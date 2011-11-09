@@ -81,7 +81,9 @@ kik_sig_child_final(void)
 	{
 		free( listeners) ;
 	}
-	
+
+	is_init = 0 ;
+
 	return  1 ;
 }
 
@@ -154,7 +156,7 @@ kik_remove_sig_child_listener(
 	void (*exited)( void * , pid_t)
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < num_of_listeners ; count ++)
 	{
@@ -179,11 +181,10 @@ kik_trigger_sig_child(
   	pid_t  pid
   	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < num_of_listeners ; count ++)
 	{
 		(*listeners[count].exited)( listeners[count].self , pid) ;
 	}
 }
-

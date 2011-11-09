@@ -157,6 +157,12 @@ ml_term_zombie(
 
 		ml_pty_delete( pty) ;
 	}
+#ifdef  DEBUG
+	else
+	{
+		kik_debug_printf( KIK_DEBUG_TAG " term is already zombie.\n") ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -189,7 +195,6 @@ ml_term_open_pty(
 		}
 
 		ml_term_plug_pty( term , pty) ;
-			
 	}
 
 	return  1 ;

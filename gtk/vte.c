@@ -196,8 +196,6 @@ static x_shortcut_t  shortcut ;
 static x_termcap_t  termcap ;
 static x_display_t  disp ;
 
-static int  timeout_registered ;
-
 #if  VTE_CHECK_VERSION(0,19,0)
 static guint signals[LAST_SIGNAL] ;
 #endif
@@ -391,7 +389,7 @@ vte_terminal_io(
 	)
 {
 	ml_term_parse_vt100_sequence( (ml_term_t*)data) ;
-	
+
 	ml_close_dead_terms() ;
 	
 	return  TRUE ;
@@ -426,10 +424,10 @@ destroy_io(
 
 		g_source_destroy(
 			g_main_context_find_source_by_id( NULL , terminal->pvt->src_id)) ;
-		g_io_channel_unref( terminal->pvt->io) ;
 	#if  0
-		g_io_channel_shutdown( terminal->pvt->io , FALSE , NULL) ;
+		g_io_channel_shutdown( terminal->pvt->io , TRUE , NULL) ;
 	#endif
+		g_io_channel_unref( terminal->pvt->io) ;
 		terminal->pvt->src_id = 0 ;
 		terminal->pvt->io = NULL ;
 	}
@@ -1261,6 +1259,10 @@ vte_terminal_finalize(
 	VteTerminal *  terminal ;
 	GtkSettings *  settings ;
 
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " vte terminal finalized.\n") ;
+#endif
+	
 	terminal = VTE_TERMINAL(obj) ;
 
 	x_font_manager_delete( terminal->pvt->screen->font_man) ;
@@ -1430,6 +1432,9 @@ init_screen(
 	terminal->pvt->set_icon_name =
 		terminal->pvt->screen->xterm_listener.set_icon_name ;
 	terminal->pvt->screen->xterm_listener.set_icon_name = set_icon_name ;
+
+	/* overriding */
+	terminal->pvt->screen->pty_listener.closed = pty_closed ;
 }
 
 static void
@@ -1460,8 +1465,8 @@ update_wall_picture(
 	else if( gdk_pixbuf_get_width(terminal->pvt->image) != ACTUAL_WIDTH(win) ||
 	         gdk_pixbuf_get_height(terminal->pvt->image) != ACTUAL_HEIGHT(win) )
 	{
-	#ifdef  __DEBUG
-		kik_debug_printf( "Scaling %d %d => %d %d\n" ,
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Scaling bg img %d %d => %d %d\n" ,
 				gdk_pixbuf_get_width(terminal->pvt->image) ,
 				gdk_pixbuf_get_height(terminal->pvt->image) ,
 				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
@@ -1497,7 +1502,7 @@ update_wall_picture(
 		terminal->pvt->pix_height = 0 ;
 		terminal->pvt->pic_mod = NULL ;
 
-		goto  set_bg_alpha ;
+		return ;
 	}
 
 	terminal->pvt->pix_width = ACTUAL_WIDTH(win) ;
@@ -1526,8 +1531,10 @@ set_bg_image:
 	return ;
 
 set_bg_alpha:
-	if( x_color_manager_change_alpha( terminal->pvt->screen->color_man ,
-		terminal->pvt->screen->pic_mod.alpha))
+	/* If screen->pic_file_path is already set, true transparency is not enabled. */
+	if( ! terminal->pvt->screen->pic_file_path &&
+	    x_color_manager_change_alpha( terminal->pvt->screen->color_man ,
+				terminal->pvt->screen->pic_mod.alpha))
 	{
 		/* Same processing as change_bg_color in x_screen.c */
 
@@ -1554,13 +1561,11 @@ vte_terminal_realize(
 	}
 
 	x_screen_attach( VTE_TERMINAL(widget)->pvt->screen , VTE_TERMINAL(widget)->pvt->term) ;
-	/* overriding */
-	VTE_TERMINAL(widget)->pvt->screen->pty_listener.closed = pty_closed ;
 
 	gtk_widget_get_allocation( widget , &allocation) ;
 
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " vte_realized %d %d %d %d\n" ,
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " vte terminal realized with size x %d y %d w %d h %d\n" ,
 		allocation.x , allocation.y , allocation.width , allocation.height) ;
 #endif
 
@@ -1618,13 +1623,6 @@ vte_terminal_realize(
 		widget->style->private_font_desc = NULL ;
 	}
 #endif
-
-	if( ! timeout_registered)
-	{
-		/* 100 miliseconds */
-		g_timeout_add( 100 , vte_terminal_timeout , NULL) ;
-		timeout_registered = 1 ;
-	}
 
 	g_signal_connect_swapped( gtk_widget_get_toplevel( widget) , "configure-event" ,
 		G_CALLBACK(toplevel_configure) , VTE_TERMINAL(widget)) ;
@@ -1688,6 +1686,10 @@ vte_terminal_unrealize(
 	VteTerminal *  terminal ;
 	x_screen_t *  screen ;
 
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " vte terminal unrealized.\n") ;
+#endif
+
 	terminal = VTE_TERMINAL(widget) ;
 
 	x_screen_detach( terminal->pvt->screen) ;
@@ -1706,10 +1708,6 @@ vte_terminal_unrealize(
 
 	g_signal_handlers_disconnect_by_func( gtk_widget_get_toplevel( GTK_WIDGET(terminal)) ,
 		G_CALLBACK(toplevel_configure) , terminal) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " vte_terminal_unrealize\n") ;
-#endif
 
 	GTK_WIDGET_CLASS(vte_terminal_parent_class)->unrealize( widget) ;
 }
@@ -1928,7 +1926,10 @@ vte_terminal_class_init(
 	XSynchronize( gdk_x11_display_get_xdisplay( gdk_display_get_default()) , True) ;
 #endif
 
+	/* kik_sig_child_init() calls signal(3) internally. */
+#if  0
 	kik_sig_child_init() ;
+#endif
 
 	kik_priv_change_euid( kik_getuid()) ;
 	kik_priv_change_egid( kik_getgid()) ;
@@ -1946,13 +1947,15 @@ vte_terminal_class_init(
 	kik_set_sys_conf_dir( CONFIG_PATH) ;
 
 	ml_term_manager_init( 1) ;
+	ml_term_manager_enable_zombie_pty() ;
+	g_timeout_add( 100 , vte_terminal_timeout , NULL) ;	/* 100 miliseconds */
+
 	x_color_config_init( &color_config) ;
 	x_shortcut_init( &shortcut) ;
 	x_termcap_init( &termcap) ;
 	x_xim_init( 1) ;
 	x_font_use_point_size_for_fc( 1) ;
 	x_set_button3_behavior( "none") ;
-	ml_term_manager_enable_zombie_pty() ;
 
 	kik_init_prog( g_get_prgname() , VERSION) ;
 
@@ -2741,6 +2744,13 @@ vte_terminal_fork_command(
 				update_wall_picture( terminal) ;
 			}
 		}
+
+		/*
+		 * In order to receive pty_closed() event even if vte_terminal_realize()
+		 * isn't called.
+		 */
+		ml_pty_set_listener( terminal->pvt->term->pty ,
+			&terminal->pvt->screen->pty_listener) ;
 	}
 	
 	return  ml_term_get_child_pid( terminal->pvt->term) ;
@@ -2841,8 +2851,15 @@ vte_terminal_forkpty(
 				update_wall_picture( terminal) ;
 			}
 		}
+
+		/*
+		 * In order to receive pty_closed() event even if vte_terminal_realize()
+		 * isn't called.
+		 */
+		ml_pty_set_listener( terminal->pvt->term->pty ,
+			&terminal->pvt->screen->pty_listener) ;
 	}
-	
+
 	return  ml_term_get_child_pid( terminal->pvt->term) ;
 }
 
@@ -3425,15 +3442,6 @@ vte_terminal_set_opacity(
 	kik_debug_printf( KIK_DEBUG_TAG " OPACITY => %x\n" , opacity) ;
 #endif
 
-	if( terminal->pvt->screen->pic_file_path)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG
-			" OPACITY is ignored because wall picture is already set.\n") ;
-	#endif
-		return ;
-	}
-
 #if  1
 	/* XXX old roxterm (1.18.5) always sets opacity 0xffff after it changes saturation. */
 	if( strstr( g_get_prgname() , "roxterm"))
@@ -3450,12 +3458,7 @@ vte_terminal_set_opacity(
 	}
 #endif
 
-	alpha = ((opacity >> 8) & 0xff) ;
-
-#ifndef  VTE_MAJOR_VERSION
-	/* gnome-terminal 2.16.0 and libvte 0.14.0 in CentOS 5 use opacity wrongly ? */
-	alpha = 255 - alpha ;
-#endif
+	alpha = 0xff - ((opacity >> 8) & 0xff) ;
 
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{

@@ -549,9 +549,9 @@ ml_close_dead_terms(void)
 					{
 						ml_term_t *  term ;
 
-					#ifdef  __DEBUG
+					#ifdef  DEBUG
 						kik_debug_printf( KIK_DEBUG_TAG
-							" closing dead term %d." , count) ;
+							" closing dead term %d.\n" , count) ;
 					#endif
 
 						term = terms[idx * MTU + count] ;
@@ -570,10 +570,6 @@ ml_close_dead_terms(void)
 						{
 							ml_term_delete( term) ;
 						}
-
-					#ifdef  __DEBUG
-						kik_msg_printf( " => Finished.\n") ;
-					#endif
 					}
 				}
 

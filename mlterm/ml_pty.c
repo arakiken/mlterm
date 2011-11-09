@@ -95,6 +95,13 @@ ml_pty_delete(
 	{
 		(*pty->pty_listener->closed)( pty->pty_listener->self) ;
 	}
+#ifdef  DEBUG
+	else
+	{
+		kik_debug_printf( KIK_DEBUG_TAG " %s is not set.\n" ,
+			pty->pty_listener ? "pty_listener->closed" : "pty listener") ;
+	}
+#endif
 
 	free( pty->buf) ;
 

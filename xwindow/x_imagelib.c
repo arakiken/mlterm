@@ -421,12 +421,12 @@ modify_pixmap(
 				g = PIXEL_GREEN(pixel,rgbinfo) ;
 				b = PIXEL_BLUE(pixel,rgbinfo) ;
 
-				r = (value_table[r] * pic_mod->alpha +
-					pic_mod->blend_red * (255 - pic_mod->alpha)) / 255 ;
-				g = (value_table[g] * pic_mod->alpha +
-					pic_mod->blend_green * (255 - pic_mod->alpha)) / 255 ;
-				b = (value_table[b] * pic_mod->alpha +
-					pic_mod->blend_blue * (255 - pic_mod->alpha)) / 255 ;
+				r = (value_table[r] * (255 - pic_mod->alpha) +
+					pic_mod->blend_red * pic_mod->alpha) / 255 ;
+				g = (value_table[g] * (255 - pic_mod->alpha) +
+					pic_mod->blend_green * pic_mod->alpha) / 255 ;
+				b = (value_table[b] * (255 - pic_mod->alpha) +
+					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
 
 				XPutPixel( image , j , i ,
 					RGB_TO_PIXEL(r,g,b,rgbinfo) |
@@ -463,12 +463,12 @@ modify_pixmap(
 				g = color_list[pixel].green >> 8 ;
 				b = color_list[pixel].blue >> 8 ;
 
-				r = (value_table[r] * pic_mod->alpha +
-					pic_mod->blend_red * (255 - pic_mod->alpha)) / 255 ;
-				g = (value_table[g] * pic_mod->alpha +
-					pic_mod->blend_green * (255 - pic_mod->alpha)) / 255 ;
-				b = (value_table[b] * pic_mod->alpha +
-					pic_mod->blend_blue * (255 - pic_mod->alpha)) / 255 ;
+				r = (value_table[r] * (255 - pic_mod->alpha) +
+					pic_mod->blend_red * pic_mod->alpha) / 255 ;
+				g = (value_table[g] * (255 - pic_mod->alpha) +
+					pic_mod->blend_green * pic_mod->alpha) / 255 ;
+				b = (value_table[b] * (255 - pic_mod->alpha) +
+					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
 
 				XPutPixel( image , j , i ,
 					closest_color_index( color_list , num_cells , r , g , b)) ;
@@ -1294,12 +1294,12 @@ modify_image(
 			 * keeps neither hue nor saturation.
 			 * MUST be replaced by another better color model(CIE Yxy? lab?)
 			 */
-			pixel[0] = (value_table[pixel[0]] * pic_mod->alpha +
-					pic_mod->blend_red * (255 - pic_mod->alpha)) / 255 ;
-			pixel[1] = (value_table[pixel[1]] * pic_mod->alpha +
-					pic_mod->blend_green * (255 - pic_mod->alpha)) / 255 ;
-			pixel[2] = (value_table[pixel[2]] * pic_mod->alpha +
-					pic_mod->blend_blue * (255 - pic_mod->alpha)) / 255 ;
+			pixel[0] = (value_table[pixel[0]] * (255 - pic_mod->alpha) +
+					pic_mod->blend_red * pic_mod->alpha) / 255 ;
+			pixel[1] = (value_table[pixel[1]] * (255 - pic_mod->alpha) +
+					pic_mod->blend_green * pic_mod->alpha) / 255 ;
+			pixel[2] = (value_table[pixel[2]] * (255 - pic_mod->alpha) +
+					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
 			/* alpha plane is not changed */
 			pixel += bytes_per_pixel ;
 		}

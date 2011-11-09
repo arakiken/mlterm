@@ -9,6 +9,7 @@ ver 3.0.9
   Fix strange behavior in selecting indic characters.
   Fix a libvte's problem which gets gnome-terminal not to be resized even if font size is changed.
   Fix a problem which disabled hinting of font metrics in cairo.
+  Reverse behavior of "alpha" option.
 
 ver 3.0.8
 * Change default value of "use_ind" option from true to false.

@@ -1,3 +1,11 @@
+2011-11-09  Araki Ken  <arakiken@users.sf.net>
+
+	* x_imagelib.c: Behavior of "alpha" option is reversed.
+	  (255=transparency, 0=opacity => 255=opacity, 0=transparency)
+
+	* vte.c: kik_sig_child_init() which internally calls signal(3) and which
+	  confuses VteReaper is never called from vte.c.
+
 2011-11-05  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib.c: Minor fixes.
