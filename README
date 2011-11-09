@@ -98,7 +98,6 @@ Options for configure
 
   --enable-ibus
     Support iBUS (Intelligent Input Bus) if available.
-    (iBUS 1.4.0 or later is not supported.)
 
   --enable-pty-helper
     Support gnome-pty-helper. (Note that it is impossible to enable

@@ -263,7 +263,7 @@ x_picture_modifiers_equal(
 		if( (a->brightness == 100) &&
 			(a->contrast == 100) &&
 			(a->gamma == 100) &&
-			(a->alpha == 255))
+			(a->alpha == 0))
 		{
 			return  1 ;
 		}

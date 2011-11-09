@@ -1,3 +1,9 @@
+2011-11-10  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c: Normal alpha value is changed from 255 to 0.
+
+	* README, ReleaseNote: Updated.
+
 2011-11-09  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib.c: Behavior of "alpha" option is reversed.

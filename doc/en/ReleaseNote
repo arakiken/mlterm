@@ -4,6 +4,7 @@ ver 3.0.9
   indic characters.
 * Improve performance of cairo module and libvte.
 * Improve processing key events of ibus.
+* Support iBUS 1.4.
 * Add experimental support for GTK+-3.0. (configure --with-gtk=2.0|3.0)
 * Bug fixes:
   Fix strange behavior in selecting indic characters.
