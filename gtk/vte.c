@@ -3458,12 +3458,7 @@ vte_terminal_set_opacity(
 	}
 #endif
 
-#ifdef  VTE_MAJOR_VERSION
-	alpha = 0xff - ((opacity >> 8) & 0xff) ;
-#else
-	/* gnome-terminal 2.16.0 and libvte 0.14.0 in CentOS 5 use opacity wrongly ? */
 	alpha = ((opacity >> 8) & 0xff) ;
-#endif
 
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
