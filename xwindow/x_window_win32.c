@@ -64,7 +64,7 @@ static LONG  decorate_height ;		/* Height of Title bar etc. */
 static int
 set_transparent(
 	x_window_t *  win ,
-	x_picture_modifier_t *  pic_mod
+	int  alpha
 	)
 {
 /*
@@ -73,34 +73,19 @@ set_transparent(
  * in older winuser.h and libuser32.a(e.g. MSYS-DTK 1.0.1).
  */
 #if  defined(WS_EX_LAYERED) && defined(LWA_ALPHA)
-	u_int  count ;
-
-	if( ! win->parent)
+	if( ( win = x_get_root_window( win))->my_window)
 	{
-		/* Root Window */
-		if( win->my_window)
-		{
-			LONG  style ;
+		LONG  style ;
 
-			style = GetWindowLong( win->my_window , GWL_EXSTYLE) ;
-			SetWindowLong( win->my_window , GWL_EXSTYLE , style | WS_EX_LAYERED) ;
+		style = GetWindowLong( win->my_window , GWL_EXSTYLE) ;
+		SetWindowLong( win->my_window , GWL_EXSTYLE , style | WS_EX_LAYERED) ;
 
-		#if  1
-			SetLayeredWindowAttributes( win->my_window , 0 , pic_mod->alpha ,
-				LWA_ALPHA) ;
-		#else
-			SetLayeredWindowAttributes( win->my_window , win->bg_color.pixel ,
-				0 , LWA_COLORKEY) ;
-		#endif
-		}
-	}
-
-	win->is_transparent = 1 ;
-	win->pic_mod = pic_mod ;
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		set_transparent( win->children[count] , win->pic_mod) ;
+	#if  1
+		SetLayeredWindowAttributes( win->my_window , 0 , alpha , LWA_ALPHA) ;
+	#else
+		SetLayeredWindowAttributes( win->my_window ,
+			ARGB_TO_RGB(win->bg_color.pixel) , 0 , LWA_COLORKEY) ;
+	#endif
 	}
 
 	return  1 ;
@@ -120,27 +105,12 @@ unset_transparent(
  * in older winuser.h and libuser32.a(e.g. MSYS-DTK 1.0.1).
  */
 #if  defined(WS_EX_LAYERED) && defined(LWA_ALPHA)
-	int  count ;
-	
-	if( ! win->parent)
+	if( ( win = x_get_root_window( win))->my_window)
 	{
-		/* Root Window */
-		
-		if( win->my_window)
-		{
-			LONG  style ;
+		LONG  style ;
 
-			style = GetWindowLong( win->my_window , GWL_EXSTYLE) ;
-			SetWindowLong( win->my_window , GWL_EXSTYLE , style & ~WS_EX_LAYERED) ;
-		}
-	}
-	
-	win->is_transparent = 0 ;
-	win->pic_mod = NULL ;
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		unset_transparent( win->children[count]) ;
+		style = GetWindowLong( win->my_window , GWL_EXSTYLE) ;
+		SetWindowLong( win->my_window , GWL_EXSTYLE , style & ~WS_EX_LAYERED) ;
 	}
 
 	return  1 ;
@@ -149,12 +119,12 @@ unset_transparent(
 #endif
 }
 
+#ifndef  USE_WIN32GUI
 static int
 update_pic_transparent(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
 	x_bg_picture_t  pic ;
 
 	if( ! x_bg_picture_init( &pic , win , win->pic_mod))
@@ -172,10 +142,10 @@ update_pic_transparent(
 	set_transparent( win , pic.pixmap) ;
 
 	x_bg_picture_final( &pic) ;
-#endif
 
 	return  1 ;
 }
+#endif
 
 /*
  * XXX
@@ -776,8 +746,8 @@ x_window_init(
 	win->parent_window = None ;
 	win->my_window = None ;
 
-	memset( &win->fg_color , 0 , sizeof(win->fg_color)) ;
-	memset( &win->bg_color , 0 , sizeof(win->bg_color)) ;
+	win->fg_color.pixel = 0xff000000 ;
+	win->bg_color.pixel = 0xffffffff ;
 
 	win->parent = NULL ;
 	win->children = NULL ;
@@ -990,12 +960,7 @@ x_window_set_transparent(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-	if( ! pic_mod)
-	{
-		return  0 ;
-	}
-	
-	return  set_transparent( x_get_root_window( win) , pic_mod) ;
+	return  0 ;
 }
 
 int
@@ -1003,7 +968,7 @@ x_window_unset_transparent(
 	x_window_t *  win
 	)
 {
-	return  unset_transparent( x_get_root_window( win)) ;
+	return  0 ;
 }
 
 int
@@ -1039,9 +1004,25 @@ x_window_set_bg_color(
 	x_color_t *  bg_color
 	)
 {
+	int  alpha ;
+
 	if( win->bg_color.pixel == bg_color->pixel)
 	{
 		return  0 ;
+	}
+
+	if( ( alpha = ((bg_color->pixel >> 24) & 0xff)) != 0xff)
+	{
+		set_transparent( win , alpha) ;
+	}
+	else if( ((win->bg_color.pixel >> 24) & 0xff) != 0xff)
+	{
+		/*
+		 * If alpha is changed from less than 0xff to 0xff,
+		 * transparent is disabled.
+		 * XXX It is assumed that alpha is changed by only one window.
+		 */
+		unset_transparent( win) ;
 	}
 
 	win->bg_color = *bg_color ;

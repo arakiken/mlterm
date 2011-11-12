@@ -34,7 +34,7 @@ line_space_selected(
 	gpointer  data
 	)
 {
-	free( new_line_space);
+	g_free( new_line_space);
 	new_line_space = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG

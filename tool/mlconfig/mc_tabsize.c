@@ -34,7 +34,7 @@ tabsize_selected(
 	gpointer  data
 	)
 {
-	free( new_tabsize);
+	g_free( new_tabsize);
 	new_tabsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG

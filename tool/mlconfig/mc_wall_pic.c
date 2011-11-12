@@ -97,17 +97,17 @@ mc_update_wall_pic(void)
 	if( is_changed)
 	{
 		mc_set_str_value( "wall_picture" , new_wall_pic) ;
-		free( old_wall_pic) ;
+		g_free( old_wall_pic) ;
 		old_wall_pic = new_wall_pic ;
 	}else{
-		free( new_wall_pic);
+		g_free( new_wall_pic);
 	}
 }
 
 void
 mc_wall_pic_none(void)
 {
-	free( old_wall_pic);
+	g_free( old_wall_pic);
 	old_wall_pic = strdup( "");
 
 	mc_set_str_value( "wall_picture" , "") ;

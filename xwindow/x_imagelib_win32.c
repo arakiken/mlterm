@@ -4,6 +4,7 @@
 
 #include  "x_imagelib.h"
 
+#include  <limits.h>		/* MAX_PATH */
 
 
 /* --- global functions --- */
@@ -37,6 +38,11 @@ x_imagelib_load_file_for_background(
 	HDC  hdc ;
 	HDC  hmdc_tmp ;
 	HDC  hmdc ;
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+	char  winpath[MAX_PATH] ;
+	cygwin_conv_to_win32_path( file_path , winpath) ;
+	file_path = winpath ;
+#endif
 
 	hdc = GetDC( win->my_window) ;
 

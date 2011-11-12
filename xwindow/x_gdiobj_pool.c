@@ -41,7 +41,7 @@ garbage_unused_objects(void)
 	
 	for( count = 0 ; count < num_of_stock_pens ;)
 	{
-		if( stock_pens[count].ref_count == 0)
+		if( stock_pens[count].ref_count <= 0)
 		{
 			DeleteObject( stock_pens[count].pen) ;
 			stock_pens[count] = stock_pens[--num_of_stock_pens] ;
@@ -54,7 +54,7 @@ garbage_unused_objects(void)
 	
 	for( count = 0 ; count < num_of_stock_brushes ;)
 	{
-		if( stock_brushes[count].ref_count == 0)
+		if( stock_brushes[count].ref_count <= 0)
 		{
 			DeleteObject( stock_brushes[count].brush) ;
 			stock_brushes[count] = stock_brushes[--num_of_stock_brushes] ;
@@ -80,7 +80,7 @@ x_gdiobj_pool_init(void)
 int
 x_gdiobj_pool_final(void)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < num_of_stock_pens ; count++)
 	{
@@ -103,8 +103,11 @@ x_acquire_pen(
 	u_long  rgb
 	)
 {
-	int  count ;
+	u_int  count ;
 
+	/* Remove alpha */
+	rgb &= 0xffffff ;
+	
 	for( count = 0 ; count < num_of_stock_pens ; count++)
 	{
 		if( rgb == stock_pens[count].rgb)
@@ -114,7 +117,7 @@ x_acquire_pen(
 			return  stock_pens[count].pen ;
 		}
 	}
-	
+
 	if( rgb == RGB(0,0,0))
 	{
 		return  GetStockObject( BLACK_PEN) ;
@@ -153,7 +156,7 @@ x_release_pen(
 	HPEN  pen
 	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < num_of_stock_pens ; count++)
 	{
@@ -173,7 +176,10 @@ x_acquire_brush(
 	u_long  rgb
 	)
 {
-	int  count ;
+	u_int  count ;
+
+	/* Remove alpha */
+	rgb &= 0xffffff ;
 
 	for( count = 0 ; count < num_of_stock_brushes ; count++)
 	{
@@ -224,7 +230,7 @@ x_release_brush(
 	HBRUSH  brush
 	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < num_of_stock_brushes ; count++)
 	{

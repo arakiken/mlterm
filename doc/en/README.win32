@@ -77,16 +77,14 @@ Memo about WIN32 native GUI.
 
 * Caution
   o x, y of -g [col]x[row]+[x]+[y] option is ignored.
-  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless and -d/--display options
-    are not available.
+  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless, -d/--display and
+    -t/--transbg options are not available.
   o 'genuine' of daemon mode is not supported in MSYS-DTK or Cygwin version.
     Daemon mode itself is not supported in MinGW version. Instead,
     "\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence (which
     mlclient or mlclientx command supports) is avaiable. (see doc/en/PROTOCOL).
   o Only BMP format is supported for background image.
   o -3/--contrast, -4/--gamma and -H/--bright options are not available.
-  o -X/--alpha option is available with -t/--transbg option but isn't available
-    with -p/--pic option.
   o use_variable_column_width and letter_space options are ignored.
   o Supported scrollbars are "simple" and "sample" alone.
   o In order to show DEC SPECIAL characters, it is necessary to install

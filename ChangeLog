@@ -1,8 +1,19 @@
-2011-11-10  Araki Ken  <arakiken@users.sf.net>
+2011-11-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x_imagelib_win32.c: file_path is converted from cygwin path to win32 path
+	  in x_imagelib_load_file_for_background().
+
+	* tool/mlconfig/main.c: "Brightness", "Contrast" and "Gamma" boxes
+	  are revived.
+
+	* mc_*.c: g_free() is used instead of free() to free returned value of
+	  gtk_editable_get_chars().
+
+	* tool/mlconfig/mc_alpha.[ch]: Added.
 
 	* x_picture.c: Normal alpha value is changed from 255 to 0.
 
-	* README, ReleaseNote: Updated.
+	* README.ja, ReleaseNote, doc/en/README.win32, doc/ja/README.win32: Updated.
 
 2011-11-09  Araki Ken  <arakiken@users.sf.net>
 

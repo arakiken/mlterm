@@ -4583,14 +4583,14 @@ change_transparent_flag(
 
 	if( is_transparent)
 	{
-	#ifdef  USE_WIN32GUI
-		/* See x_screen_new(). */
+		/*
+		 * This change doesn't affect true transparency using
+		 * x_color_manager_change_alpha() until change_alpha() is called.
+		 */
 		if( screen->pic_mod.alpha == 255)
 		{
-			/* Default translucent alpha value in win32. */
-			screen->pic_mod.alpha = 210 ;
+			screen->pic_mod.alpha = 0 ;
 		}
-	#endif
 
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
@@ -4706,13 +4706,20 @@ change_wall_picture(
 	if( *file_path == '\0')
 	{
 		screen->pic_file_path = NULL ;
-
 		x_window_unset_wall_picture( &screen->window) ;
 	}
 	else
 	{
-		screen->pic_file_path = strdup( file_path) ;
+		/*
+		 * This change doesn't affect true transparency using
+		 * x_color_manager_change_alpha() until change_alpha() is called.
+		 */
+		if( screen->pic_mod.alpha == 255)
+		{
+			screen->pic_mod.alpha = 0 ;
+		}
 
+		screen->pic_file_path = strdup( file_path) ;
 		set_wall_picture( screen) ;
 	}
 }
@@ -7027,7 +7034,7 @@ x_screen_new(
 		
 		goto  error ;
 	}
-
+	
 	if( pic_file_path)
 	{
 		screen->pic_file_path = strdup( pic_file_path) ;
@@ -7040,7 +7047,15 @@ x_screen_new(
 	screen->pic_mod.brightness = brightness ;
 	screen->pic_mod.contrast = contrast ;
 	screen->pic_mod.gamma = gamma ;
-	screen->pic_mod.alpha = alpha ;
+	if( alpha == 255 && ( pic_file_path || use_transbg))
+	{
+		screen->pic_mod.alpha = 0 ;
+	}
+	else
+	{
+		screen->pic_mod.alpha = alpha ;
+	}
+
 	/*
 	 * blend_xxx members will be set in window_realized().
 	 */
@@ -7050,6 +7065,7 @@ x_screen_new(
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 #endif
 
+	/* Be sure to use alpha here instead of screen->pic_mod.alpha which was modified above. */
 	x_color_manager_change_alpha( color_man , alpha) ;
 
 	screen->bg_pic = NULL ;
@@ -7190,15 +7206,6 @@ x_screen_new(
 
 	if( use_transbg)
 	{
-	#ifdef  USE_WIN32GUI
-		/* See change_transparent_flag(). */
-		if( screen->pic_mod.alpha == 255)
-		{
-			/* Default translucent alpha value in win32. */
-			screen->pic_mod.alpha = 210 ;
-		}
-	#endif
-	
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
 	}

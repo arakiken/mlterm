@@ -62,7 +62,7 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	xcolor->pixel = RGB(red,green,blue) ;
+	xcolor->pixel = RGB(red,green,blue) | (alpha << 24) ;
 
 	return  1 ;
 }
@@ -90,7 +90,7 @@ x_get_xcolor_rgb(
 	*blue = GetBValue( xcolor->pixel) ;
 	if( alpha)
 	{
-		*alpha = 0xff ;
+		*alpha = (xcolor->pixel >> 24) & 0xff ;
 	}
 
 	return  1 ;

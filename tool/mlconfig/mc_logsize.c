@@ -34,7 +34,7 @@ logsize_selected(
 	gpointer  data
 	)
 {
-	free( new_logsize);
+	g_free( new_logsize);
 	new_logsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG

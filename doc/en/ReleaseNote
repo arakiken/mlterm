@@ -6,11 +6,14 @@ ver 3.0.9
 * Improve processing key events of ibus.
 * Support iBUS 1.4.
 * Add experimental support for GTK+-3.0. (configure --with-gtk=2.0|3.0)
+* Reverse behavior of "alpha" option.
+* Add "alpha" box to mlconfig.
 * Bug fixes:
   Fix strange behavior in selecting indic characters.
   Fix a libvte's problem which gets gnome-terminal not to be resized even if font size is changed.
   Fix a problem which disabled hinting of font metrics in cairo.
-  Reverse behavior of "alpha" option.
+  Fix a problem which could cause segv in selecting region.
+  Revive "Brightness", "Contrast" and "Gamma" boxes of mlconfig.
 
 ver 3.0.8
 * Change default value of "use_ind" option from true to false.

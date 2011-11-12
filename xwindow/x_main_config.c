@@ -140,7 +140,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 		"variable column width (for proportional/ISCII) [false]") ;
 	kik_conf_add_opt( conf , 'X' , "alpha" , 0 , "alpha" ,
-		"alpha blending for translucent [210]") ;
+		"alpha blending for translucent [255]") ;
 	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
 		"fullwidth character occupies two logical columns [true]") ;
 	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,

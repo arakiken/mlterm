@@ -34,7 +34,7 @@ letter_space_selected(
 	gpointer  data
 	)
 {
-	free( new_letter_space);
+	g_free( new_letter_space);
 	new_letter_space = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG

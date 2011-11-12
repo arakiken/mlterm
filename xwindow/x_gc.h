@@ -17,8 +17,8 @@ typedef struct x_gc
 {
 	Display *  display ;
 	GC  gc ;
-	u_long  fg_color ;
-	u_long  bg_color ;
+	u_long  fg_color ;	/* alpha bits are always 0 in win32. */
+	u_long  bg_color ;	/* alpha bits are always 0 in win32. */
 	Font  fid ;
 #ifdef  USE_WIN32GUI
 	HPEN  pen ;

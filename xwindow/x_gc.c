@@ -8,6 +8,8 @@
 
 #include  "x_color.h"
 
+#define  ARGB_TO_RGB(pixel)  ((pixel) & 0x00ffffff)
+
 
 /* --- global functions --- */
 
@@ -37,8 +39,8 @@ x_gc_new(
 	gc->brush = None ;
 
 	/* Default value of GC. */
-	gc->fg_color = 0xff000000 ;
-	gc->bg_color = 0xffffffff ;
+	gc->fg_color = RGB(0,0,0) ;
+	gc->bg_color = RGB(0xff,0xff,0xff) ;
 #else
 	if( drawable)
 	{
@@ -46,13 +48,10 @@ x_gc_new(
 		gc->fg_color = 0xff000000 ;
 		gc->bg_color = 0xffffffff ;
 
-		gc_value.graphics_exposures = 0 ;
-		/*
-		 * Overwriting default value (1) of backgrond, meanwhile default value (0)
-		 * of foreground is not necessary to overwrite.
-		 */
+		/* Overwriting default value (1) of backgrond and foreground colors. */
 		gc_value.foreground = gc->fg_color ;
 		gc_value.background = gc->bg_color ;
+		gc_value.graphics_exposures = 0 ;
 		gc->gc = XCreateGC( gc->display , drawable ,
 				GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 	}
@@ -96,14 +95,14 @@ x_set_gc(
 	gc->gc = _gc ;
 
 	SetTextAlign( gc->gc, TA_LEFT|TA_BASELINE) ;
-	
-	gc->fg_color = BlackPixel(gc->display,DefaultScreen(gc->display)) ;	/* black */
+
+	gc->fg_color = RGB(0,0,0) ;	/* black */
 #if  0
 	/* black is default value */
 	SetTextColor( gc->gc, gc->fg_color) ;
 #endif
 
-	gc->bg_color = WhitePixel(gc->display,DefaultScreen(gc->display)) ;	/* white */
+	gc->bg_color = RGB(0xff,0xff,0xff) ;	/* white */
 #if  0
 	/* white is default value */
 	SetBkColor( gc->gc, gc->bg_color) ;
@@ -122,10 +121,10 @@ x_gc_set_fg_color(
 	u_long  fg_color
 	)
 {
-	if( fg_color != gc->fg_color)
+	if( ARGB_TO_RGB(fg_color) != gc->fg_color)
 	{
-		SetTextColor( gc->gc, fg_color) ;
-		gc->fg_color = fg_color ;
+		SetTextColor( gc->gc,
+			(gc->fg_color = ARGB_TO_RGB(fg_color))) ;
 	}
 
 	return  1 ;
@@ -137,10 +136,10 @@ x_gc_set_bg_color(
 	u_long  bg_color
 	)
 {
-	if( bg_color != gc->bg_color)
+	if( ARGB_TO_RGB(bg_color) != gc->bg_color)
 	{
-		SetBkColor( gc->gc, bg_color) ;
-		gc->bg_color = bg_color ;
+		SetBkColor( gc->gc,
+			(gc->bg_color = ARGB_TO_RGB(bg_color))) ;
 	}
 
 	return  1 ;

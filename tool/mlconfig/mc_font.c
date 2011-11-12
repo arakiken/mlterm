@@ -367,7 +367,7 @@ fontsize_selected(
 	gpointer  data
 	)
 {
-	free( new_fontsize);
+	g_free( new_fontsize);
 	new_fontsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 
 	reset_fontname_list() ;

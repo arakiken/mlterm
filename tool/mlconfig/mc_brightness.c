@@ -34,7 +34,7 @@ brightness_selected(
 	gpointer  data
 	)
 {
-	free( new_brightness);
+	g_free( new_brightness);
 	new_brightness = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG

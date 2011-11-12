@@ -28,7 +28,7 @@ selected(
 	gpointer  data
 	)
 {
-	free( new_pty);
+	g_free( new_pty);
 	new_pty = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 	return  1 ;

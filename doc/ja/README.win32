@@ -105,18 +105,17 @@ WIN32 native GUI 対応に関するメモ
 
 * WIN32 GUI 版の制限
   o -g [col]x[row]+[x]+[y] オプションの x, y は無視します。
-  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless 及び -d/--display オプション
-    は使用できません。
+  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless, -d/--display 及び
+    -t/--transbgオプションは使用できません。
   o mlterm server 機能で genuine モードは使用できません(対応予定もありません。)。
     MinGW 版では、mlterm server 機能自体が使用できません(対応予定もありません。)。
     代わりに、"\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence
     (see doc/en/PROTOCOL) が使用できます(mlclient 又は mlclientx コマンドも、
     同 sequence に対応しています。)。
   o 背景画像は、BMP 形式のファイルしか指定できません。
-  o 背景透過は、win32 のレイヤードウィンドウの機能をそのまま使用しているだけ
-    です。
+  o -X/--alpha オプションで透過率を指定した場合、win32 のレイヤードウィンドウの
+    機能を使ってウィンドウを半透明にします。
   o -3/--contrast, -4/--gamma, -H/--bright オプションは使用できません。
-  o -X/--alpha オプションは、背景透過時のみ適用され、背景画像には適用されません。
   o Bold な文字は、設定ファイルで使用するフォントを指定しない限り、基本的には、
     重ね打ちによる擬似的な bold 表示を行います(Bold と Normal でフォント幅が異
     なる場合があるため)

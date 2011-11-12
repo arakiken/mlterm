@@ -291,8 +291,8 @@ typedef int XFontSet ;	/* dummy */
 /* VK_NUMPAD0 = 0x60, VK_DIVIDE = 0x6f */
 #define IsKeypadKey(ksym)	(VK_NUMPAD0 <= (ksym) && (ksym) <= VK_DIVIDE)
 
-#define BlackPixel(disp,screen)	RGB(0,0,0)
-#define WhitePixel(disp,screen) RGB(0xff,0xff,0xff)
+#define BlackPixel(disp,screen)	(0xff000000 | RGB(0,0,0))
+#define WhitePixel(disp,screen)	(0xff000000 | RGB(0xff,0xff,0xff))
 
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152

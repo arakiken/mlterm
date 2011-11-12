@@ -13,6 +13,7 @@
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
 #include  "mc_bgtype.h"
+#include  "mc_alpha.h"
 #include  "mc_brightness.h"
 #include  "mc_contrast.h"
 #include  "mc_gamma.h"
@@ -84,6 +85,11 @@ update(
 {
     mc_update_char_encoding() ;
     mc_update_color(MC_COLOR_FG) ;
+    /*
+     * alpha must be updated before bgtype because transparent or wall picture
+     * bgtype could change alpha from 255 to 0.
+     */
+    mc_update_alpha() ;
     mc_update_bgtype() ;
     mc_update_color(MC_COLOR_SBFG) ;
     mc_update_color(MC_COLOR_SBBG) ;
@@ -693,19 +699,25 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_brightness_config_widget_new())) return 0;
-	gtk_widget_set_sensitive(config_widget, 0);
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_contrast_config_widget_new())) return 0;
-	gtk_widget_set_sensitive(config_widget, 0);
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
+	hbox = gtk_hbox_new(FALSE, 5);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 2);
+	gtk_widget_show(hbox);
+	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, FALSE, 0);
+
 	if (!(config_widget = mc_gamma_config_widget_new())) return 0;
-	gtk_widget_set_sensitive(config_widget, 0);
 	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox2), config_widget, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+
+	if (!(config_widget = mc_alpha_config_widget_new())) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
 
 	if (!(config_widget = mc_fade_config_widget_new())) return 0;

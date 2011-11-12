@@ -525,8 +525,11 @@ x_color_manager_change_alpha(
 	u_int8_t  alpha
 	)
 {
-	if( color_man->color_cache->disp->depth != 32 ||
-	    alpha == color_man->alpha)
+	if(
+	#ifndef  USE_WIN32GUI
+		color_man->color_cache->disp->depth != 32 ||
+	#endif
+		alpha == color_man->alpha)
 	{
 		return  0 ;
 	}
