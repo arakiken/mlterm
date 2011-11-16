@@ -1,3 +1,7 @@
+2011-11-17  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_win32.c, x_window.c: Typo is fixed in x_window_clear().
+
 2011-11-16  Araki Ken  <arakiken@users.sf.net>
 
 	* mlterm.1, README.ja, PROTOCOL, ReleaseNote: Updated.

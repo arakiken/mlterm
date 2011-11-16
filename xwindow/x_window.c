@@ -1832,7 +1832,7 @@ x_window_clear(
 		width += win->margin ;
 	}
 
-	if( y + width >= win->height)
+	if( y + height >= win->height)
 	{
 		/* Clearing margin area */
 		height += win->margin ;

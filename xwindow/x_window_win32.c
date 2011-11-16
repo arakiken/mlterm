@@ -1402,7 +1402,7 @@ x_window_clear(
 		width += win->margin ;
 	}
 
-	if( y + width >= win->height)
+	if( y + height >= win->height)
 	{
 		/* Clearing margin area */
 		height += win->margin ;
@@ -1421,9 +1421,9 @@ x_window_clear(
 	r.left = x ;
 	r.top = y ;
 	
-	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
-	r.right = x + width + 1 ;
-	r.bottom = y + height + 1 ;
+	/* XXX Garbage is left in screen in scrolling without +1 due to NULL_PEN ? */
+	r.right = x + width /* + 1 */ ;
+	r.bottom = y + height /* + 1 */ ;
 
 	if( win->gc->gc == None)
 	{
