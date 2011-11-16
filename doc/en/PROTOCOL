@@ -52,7 +52,8 @@ version 20110903
 		     scrollbar_mode | use_multi_column_char | col_size_of_width_a |
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
                      rows | cols | cursor_fg_color | cursor_bg_color | pty_list | pty_name |
-                     use_clipboard | icon_path | logging_vt_seq | selected_text(:encoding) | gui
+                     use_clipboard | icon_path | logging_vt_seq | selected_text(:encoding) |
+                     gui | allow_osc52
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 

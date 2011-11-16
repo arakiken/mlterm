@@ -1895,6 +1895,7 @@ static void change_im( x_screen_t * , char *) ;
 static int compare_key_state_with_modmap( void *  p , u_int  state ,
 	int *  is_shift , int *  is_lock , int *  is_ctl , int *  is_alt ,
 	int *  is_meta , int *  is_numlock , int *  is_super , int *  is_hyper) ;
+static void xterm_set_selection( void *  p , ml_char_t *  str ,	u_int  len) ;
 
 typedef struct ksym_conv
 {
@@ -2048,6 +2049,19 @@ key_pressed(
 	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
 	{
 		change_im( screen , "kbd") ;
+
+		return ;
+	}
+	else if( x_shortcut_match( screen->shortcut , SWITCH_OSC52 , ksym , masked_state))
+	{
+		if( screen->xterm_listener.set_selection)
+		{
+			screen->xterm_listener.set_selection = NULL ;
+		}
+		else
+		{
+			screen->xterm_listener.set_selection = xterm_set_selection ;
+		}
 
 		return ;
 	}
@@ -4874,13 +4888,14 @@ change_im(
 	)
 {
 #ifndef  USE_WIN32GUI
-	x_xic_deactivate( &screen->window) ;
+	x_im_t *  im ;
 
-	if( screen->im)
-	{
-		x_im_delete( screen->im) ;
-		screen->im = NULL ;
-	}
+	x_xic_deactivate( &screen->window) ;
+	/*
+	 * Avoid to delete anything inside im-module by calling x_im_delete()
+	 * after x_im_new().
+	 */
+	im = screen->im ;
 
 	free( screen->input_method) ;
 	screen->input_method = NULL ;
@@ -4895,6 +4910,7 @@ change_im(
 	if( strncmp( screen->input_method , "xim" , 3) == 0)
 	{
 		activate_xic( screen) ;
+		screen->im = NULL ;
 	}
 	else
 	{
@@ -4916,6 +4932,11 @@ change_im(
 			free( screen->input_method) ;
 			screen->input_method = NULL ;
 		}
+	}
+
+	if( im)
+	{
+		x_im_delete( im) ;
 	}
 #endif
 }
@@ -5468,6 +5489,17 @@ get_config(
 	else if( strcmp( key , "use_clipboard") == 0)
 	{
 		if( x_is_using_clipboard_selection())
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "allow_osc52") == 0)
+	{
+		if( screen->xterm_listener.set_selection)
 		{
 			value = "true" ;
 		}
@@ -6872,6 +6904,31 @@ xterm_switch_im_mode(
 	x_xic_switch_mode( &screen->window) ;
 }
 
+static void
+xterm_set_selection(
+	void *  p ,
+	ml_char_t *  str ,	/* Should be free'ed by the event listener. */
+	u_int  len
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	if( ! x_window_set_selection_owner( &screen->window , CurrentTime))
+	{
+		return ;
+	}
+
+	if( screen->sel.sel_str)
+	{
+		ml_str_delete( screen->sel.sel_str , screen->sel.sel_len) ;
+	}
+
+	screen->sel.sel_str = str ;
+	screen->sel.sel_len = len ;
+}
+
 
 /*
  * callbacks of ml_pty_event_listener_t
@@ -6992,7 +7049,8 @@ x_screen_new(
 	int  use_extended_scroll_shortcut ,
 	int  override_redirect ,
 	u_int  line_space ,
-	char *  input_method
+	char *  input_method ,
+	int  allow_osc52
 	)
 {
 	x_screen_t *  screen ;
@@ -7109,6 +7167,7 @@ x_screen_new(
 	screen->xterm_listener.bel = xterm_bel ;
 	screen->xterm_listener.im_is_active = xterm_im_is_active ;
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
+	screen->xterm_listener.set_selection = (allow_osc52 ? xterm_set_selection : NULL) ;
 
 	screen->config_listener.self = screen ;
 	screen->config_listener.exec = x_screen_exec_cmd ;
@@ -7503,7 +7562,7 @@ x_screen_attach(
 				screen->mod_ignore_mask) ;
 		/*
 		 * Avoid to delete anything inside im-module by calling x_im_delete()
-		 * after x_im_new.
+		 * after x_im_new().
 		 */
 		x_im_delete( im) ;
 	}

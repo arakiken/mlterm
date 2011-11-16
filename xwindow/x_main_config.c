@@ -229,6 +229,8 @@ x_prepare_for_main_config(
 		"use unicode property for characters [false]") ;
 	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
 		"output messages to ~/.mlterm/msg[pid].log [true]") ;
+	kik_conf_add_opt( conf , '\0' , "osc52" , 1 , "allow_osc52" ,
+		"allow access to clipboard by OSC 52 sequence [false]") ;
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
 
@@ -1173,6 +1175,16 @@ x_main_config_init(
 		main_config->private_key = strdup( value) ;
 	}
 #endif
+
+	main_config->allow_osc52 = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "allow_osc52")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config->allow_osc52 = 1 ;
+		}
+	}
 
 	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
 	{

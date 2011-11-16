@@ -171,7 +171,7 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path_1 , char *  conf_menu_path_2 , char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space ,
-	char *  input_method) ;
+	char *  input_method , int  allow_osc52) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

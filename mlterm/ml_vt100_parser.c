@@ -1099,6 +1099,123 @@ change_color_rgb(
 	return  1 ;
 }
 
+static int
+set_selection(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  encoded
+	)
+{
+	size_t  e_len ;
+	u_char *  decoded ;
+	size_t  d_pos ;
+	size_t  e_pos ;
+	/* ASCII -> Base64 order */
+	int8_t  conv_tbl[] =
+	{
+		/* 0x2b - */
+		62, -1, -1, -1, 63,
+		/* 0x30 - */
+		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -2, -1, -1,
+		/* 0x40 - */
+		-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+		/* 0x50 - */
+		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+		/* 0x60 - */
+		-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+		/* 0x70 - 7a */
+		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+	} ;
+	mkf_char_t  ch ;
+	ml_char_t *  str ;
+	u_int  str_len ;
+
+	e_len = strlen( encoded) ;
+	if( ! ( decoded = alloca( e_len)))
+	{
+		return  0 ;
+	}
+
+	d_pos = e_pos = 0 ;
+
+        while( e_len >= e_pos + 4)
+	{
+		size_t  count ;
+		int8_t  bytes[4] ;
+
+		for( count = 0 ; count < 4 ; count++)
+		{
+			if( encoded[e_pos] < 0x2b || 0x7a < encoded[e_pos] ||
+			    (bytes[count] = conv_tbl[encoded[e_pos++] - 0x2b]) == -1)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Illegal Base64 %s\n" , encoded) ;
+			#endif
+
+				return  0 ;
+			}
+		}
+
+		decoded[d_pos++] = (((bytes[0] << 2) & 0xfc) | ((bytes[1] >> 4) & 0x3)) ;
+
+		if( bytes[2] != -2)
+		{
+			decoded[d_pos++] = (((bytes[1] << 4) & 0xf0) | ((bytes[2] >> 2) & 0xf)) ;
+		}
+		else
+		{
+			break ;
+		}
+
+		if( bytes[3] != -2)
+		{
+			decoded[d_pos++] = (((bytes[2] << 6) & 0xc0) | (bytes[3] & 0x3f)) ;
+		}
+		else
+		{
+			break ;
+		}
+        }
+
+#ifdef  DEBUG
+	decoded[d_pos] = '\0' ;
+	kik_debug_printf( KIK_DEBUG_TAG " Base64 Decode %s => %s\n" , encoded , decoded) ;
+#endif
+
+	if( ! ( str = ml_str_new( d_pos)))
+	{
+		return  0 ;
+	}
+
+	str_len = 0 ;
+	(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser , decoded , d_pos) ;
+	while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
+	{
+		ml_char_set( &str[str_len++] , ch.ch , ch.size , ch.cs , 0 , 0 ,
+			0 , 0 , 0 , 0) ;
+	}
+
+	/*
+	 * It is assumed that screen is not redrawn not in
+	 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
+	 * is not held between stop_vt100_cmd and start_vt100_cmd.
+	 */
+#if  0
+	stop_vt100_cmd( vt100_parser , 0) ;
+#endif
+
+	if( HAS_XTERM_LISTENER(vt100_parser,set_selection))
+	{
+		(*vt100_parser->xterm_listener->set_selection)(
+			vt100_parser->xterm_listener->self , str , str_len) ;
+	}
+
+#if  0
+	start_vt100_cmd( vt100_parser , 0) ;
+#endif
+
+	return  1 ;
+}
+
 static void
 clear_line_all(
 	ml_vt100_parser_t *  vt100_parser
@@ -2647,6 +2764,17 @@ parse_vt100_escape_sequence(
 				/* "OSC 50" set font */
 			}
 		#endif
+			else if( ps == 52)
+			{
+				u_char *  p ;
+
+				if( ( p = strchr( pt , ';')))
+				{
+					pt = p + 1 ;
+				}
+
+				set_selection( vt100_parser , pt) ;
+			}
 			else if( ps == 5379)
 			{
 				/* "OSC 5379" set */

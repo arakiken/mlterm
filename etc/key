@@ -1,4 +1,4 @@
-# Shift+space=IM_HOTKEY
+# UNUSED=IM_HOTKEY
 # Control+F1=OPEN_SCREEN
 # Control+F2=OPEN_PTY
 # Control+F3=NEXT_PTY
@@ -6,8 +6,9 @@
 # Shift+Prior=PAGE_UP
 # Shift+Up=SCROLL_UP
 # Shift+Insert=INSERT_SELECTION
-# UNUSED=INIT_PARSER
+# UNUSED=SWITCH_OSC52
 # UNUSED=EXIT_PROGRAM
+
 # Control+F5="w3m http://www.google.co.jp/\n"
 # Control+F6="proto:font_size=12;encoding=utf8"
 # Control+F7="proto:input_method=iiimf:ja"

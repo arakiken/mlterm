@@ -1,3 +1,15 @@
+2011-11-16  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm.1, README.ja, PROTOCOL, ReleaseNote: Updated.
+
+	* x_screen.c, ml_vt100_parser.[ch], x_shortcut.[ch], x_main_config.[ch]:
+	 - OSC 52 sequence is partially supported.
+	   (OSC 52 is not accepted by default and allowed by pressing Control+Insert.)
+	 - SWICH_OSC52 shortcut key and "allow_osc52" option is added.
+
+	* vte.c: WINDOWID, TERM, DISPLAY and COLORFGBG environmental variables
+	  are added to 'envv' in ml_term_open_pty_wrap().
+
 2011-11-12  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib_win32.c: file_path is converted from cygwin path to win32 path

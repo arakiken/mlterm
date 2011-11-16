@@ -97,6 +97,7 @@ typedef struct x_main_config
 	int8_t  borderless ;
 	int8_t  use_dynamic_comb ;
 	int8_t  logging_vt_seq ;
+	int8_t  allow_osc52 ;
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	int8_t  skip_dialog ;
 #endif

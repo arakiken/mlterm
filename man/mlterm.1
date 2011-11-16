@@ -550,6 +550,10 @@ The default is \fBfalse\fR.
 Enable logging messages of mlterm to ~/.mlterm/msg[pid].log.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-osc52\fR(=\fIbool\fR)
+Allow access to clipboard(selection) by OSC 52 sequence.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-csp\fR=\fIvalue\fR
 Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
 The default is \fB0\fR.
@@ -1092,6 +1096,9 @@ The main configuration file "\fBmain\fR" has the following keys.
 Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
 .TP
+\fBallow_osc52=\fIbool\fR (\fB\-\-osc52\fR)
+Allow access to clipboard(selection) by OSC 52 sequence.
+.TP
 \fBalpha=\fIname\fR (\fB\-X\fR, \fB\-\-alpha\fR)
 Alpha in pseudo or true transparent.
 .TP
@@ -1486,6 +1493,7 @@ Double quotation marks are not needed.
 \fBSCROLL_UP\fR,
 \fBSCROLL_DOWN\fR,
 \fBINSERT_SELECTION\fR,
+\fBSWITCH_OSC52\fR,
 \fB"\fISTRING\fB"\fR,
 or \fB"proto:\fISTRING\fB"\fR.
 .TP
@@ -1531,6 +1539,9 @@ Scroll down one line
 .TP
 \fBINSERT_SELECTION\fR
 Insert selection (default \fBShift+Insert\fR).
+.TP
+\fBSWITCH_OSC52\fR
+Allow or forbid access to clipboard by OSC 52 sequence (default \fBUNUSED\fR).
 .TP
 \fB"\fISTRING\fB"\fR
 The specified string is issued when the \fIKEY\fR key is pressed.

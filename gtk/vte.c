@@ -1389,7 +1389,7 @@ init_screen(
 			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
 			main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
-			main_config.input_method) ;
+			main_config.input_method , main_config.allow_osc52) ;
 	if( terminal->pvt->term)
 	{
 		ml_term_detach( terminal->pvt->term) ;
@@ -2622,21 +2622,44 @@ ml_term_open_pty_wrap(
 	)
 {
 	const char *  host ;
+	char **  env_p ;
+	u_int  num_of_env ;
 
 	host = gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ;
 
-	if( ! envv && ( envv = alloca( sizeof( char*) * 5)))
+	num_of_env = 0 ;
+	if( envv)
 	{
-		char **  env_p ;
-
 		env_p = envv ;
+		while( *(env_p ++))
+		{
+			num_of_env ++ ;
+		}
+	}
+
+	if( ( env_p = alloca( sizeof( char*) * (num_of_env + 5))))
+	{
+		if( num_of_env > 0)
+		{
+			envv = memcpy( env_p , envv , sizeof(char*) * num_of_env) ;
+			env_p += num_of_env ;
+		}
+		else
+		{
+			envv = env_p ;
+		}
 
 		/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
 		if( ( *env_p = alloca( 9 + DIGIT_STR_LEN(Window) + 1)))
 		{
 			sprintf( *(env_p ++) , "WINDOWID=%ld" ,
+			#if  1
 				gdk_x11_drawable_get_xid(
-					gtk_widget_get_window( GTK_WIDGET(terminal)))) ;
+					gtk_widget_get_window( GTK_WIDGET(terminal)))
+			#else
+					terminal->pvt->screen->window.my_window
+			#endif
+					) ;
 		}
 
 		/* "DISPLAY="(8) + NULL(1) */
@@ -2645,12 +2668,24 @@ ml_term_open_pty_wrap(
 			sprintf( *(env_p ++) , "DISPLAY=%s" , host) ;
 		}
 
-		*(env_p ++) = "TERM=xterm" ;
+		if( ( *env_p = alloca( 5 + strlen( main_config.term_type) + 1)))
+		{
+			sprintf( *(env_p ++) , "TERM=%s" , main_config.term_type) ;
+		}
+
 		*(env_p ++) = "COLORFGBG=default;default" ;
 
 		/* NULL terminator */
 		*env_p = NULL ;
 	}
+
+#if  0
+	env_p = envv ;
+	while( *env_p)
+	{
+		kik_debug_printf( "%s\n" , *(env_p ++)) ;
+	}
+#endif
 
 	return  ml_term_open_pty( terminal->pvt->term , cmd_path , argv , envv ,
 				host , pass , pubkey , privkey) ;

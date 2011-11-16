@@ -673,6 +673,11 @@ comment $Id$
 
 	デバッグのため core dump を取得する場合は、必ず false にしてください。
 
+      o allow_osc52 (true/*false*)
+        OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可する。
+        なお、このオプションを動的に変更するには、SWITCH_OSC52 ショートカットキ
+        ーを使用する必要があります。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -937,6 +942,9 @@ comment $Id$
         スクロールダウン
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
+      o SWITCH_OSC52
+        OSC 52 sequence によるクリップボードへのアクセスの許可・不許可を切り替え
+        ます。
       o "" で囲まれた文字列
         文字列の出力
 
