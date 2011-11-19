@@ -1,5 +1,7 @@
 ver 3.0.9
 * Add auto-restart feature. ("auto_restart" option)
+* Support OSC 52 sequence which is allowed by "allow_osc52=true" in ~/.mlterm/main
+  or SWITCH_OSC52 shortcut key.
 * -V option is no longer necessary (and not automatically turned on) to show
   indic characters.
 * Improve performance of cairo module and libvte.
@@ -8,8 +10,6 @@ ver 3.0.9
 * Add experimental support for GTK+-3.0. (configure --with-gtk=2.0|3.0)
 * Reverse behavior of "alpha" option.
 * Add "alpha" box to mlconfig.
-* Support OSC 52 sequence which is allowed by "allow_osc52" option or
-  SWITCH_OSC52 shortcut key.
 * Bug fixes:
   Fix strange behavior in selecting indic characters.
   Fix a libvte's problem which gets gnome-terminal not to be resized even if font size is changed.

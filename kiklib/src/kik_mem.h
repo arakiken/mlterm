@@ -13,7 +13,7 @@
 #include  "kik_config.h"
 
 
-#ifdef  KIK_DEBUG
+#if  defined(KIK_DEBUG)
 
 #define  malloc( size)  kik_mem_malloc( size , __FILE__ , __LINE__ , __FUNCTION__)
 
@@ -22,6 +22,10 @@
 #define  realloc( ptr , size)  kik_mem_realloc( ptr , size , __FILE__ , __LINE__ , __FUNCTION__)
 
 #define  free( ptr)  kik_mem_free( ptr , __FILE__ , __LINE__ , __FUNCTION__)
+
+#elif  ! defined(CALLOC_CHECK_OVERFLOW)
+
+#define  calloc( number , size)  kik_mem_calloc( number , size , NULL , NULL , NULL)
 
 #endif
 

@@ -141,7 +141,7 @@ Supported platforms
 
   * NetBSD 3.0.1 (x86)
   * OpenSolaris 2009.06 (CC=cc) (x86)
-  * Ubuntu 11.04 (CC=gcc, CC=clang) (x86)
+  * Ubuntu 11.10 (CC=gcc, CC=clang) (x86)
   * CentOS 5 (x86)
   * MS Windows 7 (x86)
   * MS Windows 7/MSYS 1.0.10 (x86)
@@ -151,6 +151,7 @@ Supported platforms
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.
 
+  * Ubuntu 11.04 (CC=gcc, CC=clang) (x86)
   * Ubuntu 10.10 (CC=gcc, CC=llvm-gcc-4.2) (x86)
   * Debian GNU/Linux Sid, GNU libc 2.3.2 (x86)
   * Solaris 8 (x86)

@@ -212,8 +212,12 @@ kik_init_prog(
 {
 	prog_path = path ;
 
-	if( ! ( prog_name = strrchr( path , '/')) &&
-	    ! ( prog_name = strrchr( path , '\\')))
+	if( ( prog_name = strrchr( path , '/')) ||
+	    ( prog_name = strrchr( path , '\\')))
+	{
+		prog_name ++ ;
+	}
+	else
 	{
 		prog_name = prog_path ;
 	}

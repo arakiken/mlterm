@@ -22,7 +22,7 @@
 #endif
 
 #include <kiklib/kik_debug.h>
-#include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t, HAVE_STDINT_H */
+#include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t/SIZE_MAX */
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_util.h>	/* K_MIN */
@@ -38,18 +38,6 @@
  */
 #if  defined(KIK_DEBUG) && defined(malloc)
 #undef malloc
-#endif
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
-#ifndef SIZE_MAX
-#ifdef SIZE_T_MAX
-#define SIZE_MAX SIZE_T_MAX
-#else
-#define SIZE_MAX ((size_t)-1)
-#endif
 #endif
 
 #define USE_FS 1

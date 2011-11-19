@@ -136,30 +136,39 @@ void *
 kik_mem_calloc(
 	size_t  number ,
 	size_t  size ,
-	const char *  file ,	/* should be allocated memory. */
+	const char *  file ,	/* should be allocated memory. If NULL, not logged. */
 	int  line ,
 	const char *  func	/* should be allocated memory. */
 	)
 {
-	void *  ptr = NULL ;
+	void *  ptr ;
 	size_t  total_size ;
 	
-	total_size =  number * size ;
-	if( number && size && !total_size){
+	total_size = number * size ;
+	if( number && size && ! total_size)
+	{
 		/* integer overflow */
-		return NULL ;
+		return  NULL ;
 	}
 	if( total_size && (total_size / number != size))
 	{
 		/* integer overflow */
-		return NULL ;
-	}
-	if( ( ptr = kik_mem_malloc( total_size , file , line , func)) == NULL)
-	{
 		return  NULL ;
 	}
 
-	memset( ptr , 0 , total_size) ;
+	if( file == NULL)
+	{
+		ptr = malloc( total_size) ;
+	}
+	else
+	{
+		ptr = kik_mem_malloc( total_size , file , line , func) ;
+	}
+
+	if( ptr)
+	{
+		memset( ptr , 0 , total_size) ;
+	}
 
 	return  ptr ;
 }

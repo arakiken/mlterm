@@ -20132,6 +20132,35 @@ $as_echo "#define REMOVE_FUNCS_MLTERM_UNUSE /**/" >>confdefs.h
 
 fi
 
+#
+# --- check for malloc ---
+#
+if test "$cross_compiling" = yes; then :
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error "cannot run test program while cross compiling
+See \`config.log' for more details." "$LINENO" 5; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+int
+main()
+{
+return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  $as_echo "#define CALLOC_CHECK_OVERFLOW 1" >>confdefs.h
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
 
 ac_config_files="$ac_config_files Makefile src/Makefile"
 

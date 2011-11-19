@@ -27,10 +27,10 @@ version 20110903
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a" | "#forbidden" "\x0a"
   exec command     = paste | select_pty | full_reset | open_pty | open_screen |
                      snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
-		     mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
-		     search_prev <pattern> | search_next <pattern> |
-		     scp (local:|remote:)<src file name> (local:|remote:)<dst directory name>
-		     (<encoding name>)
+                     mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
+                     search_prev <pattern> | search_next <pattern> |
+                     scp (local:|remote:)<src file name> (local:|remote:)<dst directory name>
+                     (<encoding name>)
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
                      fade_ratio | mod_meta_key | mod_meta_mode | bel_mode | type_engine |
                      use_anti_alias | use_variable_column_width | use_combining |
@@ -41,15 +41,15 @@ version 20110903
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      use_dynamic_comb | cursor_fg_color | cursor_bg_color | icon_path |
                      logging_vt_seq | logging_msg | title | word_separators | button3_behavior |
-		     use_clipboard | auto_restart
+                     use_clipboard | auto_restart
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
-		     bel_mode | type_engine | use_anti_alias | use_variable_column_width |
-		     use_combining | use_transbg | use_bidi | bidi_mode | use_ind |
-		     receive_string_via_ucs | xim | locale | wall_picture |
-		     pwd | brightness | gamma | contrast | line_space | letter_space |
-		     screen_width_ratio | screen_height_ratio | vertical_mode |
-		     scrollbar_mode | use_multi_column_char | col_size_of_width_a |
+                     bel_mode | type_engine | use_anti_alias | use_variable_column_width |
+                     use_combining | use_transbg | use_bidi | bidi_mode | use_ind |
+                     receive_string_via_ucs | xim | locale | wall_picture |
+                     pwd | brightness | gamma | contrast | line_space | letter_space |
+                     screen_width_ratio | screen_height_ratio | vertical_mode |
+                     scrollbar_mode | use_multi_column_char | col_size_of_width_a |
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
                      rows | cols | cursor_fg_color | cursor_bg_color | pty_list | pty_name |
                      use_clipboard | icon_path | logging_vt_seq | selected_text(:encoding) |
@@ -57,7 +57,7 @@ version 20110903
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
-  font filename	   = font | aafont | vfont | tfont | vaafont | taafont
+  font filename    = font | aafont | vfont | tfont | vaafont | taafont
   font key         = see man/mlterm.1
   font value       = see man/mlterm.1
   fontsize         = <fontsize digit>
@@ -146,8 +146,8 @@ version 20110903
      \x1b]5379;scp /bin/ls work\x07
        => scp localhost:/bin/ls foo.bar:$HOME/work/ls
           (If destination path doesn't start with '/', home directory in remote
-	   host is automatically completed. Note that home directory is
-	   %HOMEPATH% in win32.)
+           host is automatically completed. Note that home directory is
+           %HOMEPATH% in win32.)
      \x1b]5379;scp remote:/bin/ls /usr/bin\x07
        => scp foo.bar:/bin/ls localhost:/usr/bin/ls
      \x1b]5379;scp \"$HOME/my text.txt\" ""\x07

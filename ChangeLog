@@ -1,3 +1,19 @@
+2011-11-18  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.9 released.
+	  (tag "rel-3_0_9")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.9.
+
+	* mlterm.1, mlclient.1: Updated.
+
+	* kik_types.h, x_imagelib.c: Definition of SIZE_MAX macro is moved
+	  from x_imagelib.c to kik_types.h.
+
+	* kik_mem.h, kiklib/src/configure.in: If calloc doesn't check possibility
+	  of integer overflow, kik_mem_calloc is used instead.
+
 2011-11-17  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_win32.c, x_window.c: Typo is fixed in x_window_clear().

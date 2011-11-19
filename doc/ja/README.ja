@@ -250,7 +250,7 @@ comment $Id$
       o depth
         Visual の深さ (8, 16, 24, 32)
         なお、depth が 32 の場合、--alpha オプション又は背景色として
-	"rgba:RR/GG/BB/AA" と指定することで、半透明にすることができます。
+        "rgba:RR/GG/BB/AA" と指定することで、半透明にすることができます。
 
       o parent_window (*0*)
         親 Window の Window ID を指定
@@ -511,9 +511,9 @@ comment $Id$
 
       o alpha (*255*)
         背景画像使用時及び透過処理時に、bg_color で指定した色と背景をブレンドす
-	る比率[0-255]
+        る比率[0-255]
         なお、背景画像又は擬似的な背景透過を使用する際、このオプションがデフォ
-	ルト値 (255) のままだった場合は、自動的に 0 に変更されます。
+        ルト値 (255) のままだった場合は、自動的に 0 に変更されます。
         depth オプションの説明も参照してください。
       
       o line_space  (*0*) (#)
@@ -669,9 +669,9 @@ comment $Id$
 
       o auto_restart (*true*/false)
         SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
-	application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
+        application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
 
-	デバッグのため core dump を取得する場合は、必ず false にしてください。
+        デバッグのため core dump を取得する場合は、必ず false にしてください。
 
       o allow_osc52 (true/*false*)
         OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可する。

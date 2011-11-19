@@ -28,7 +28,8 @@ static char *  na_options[] =
 	"   --depth" ,
 	"   --maxptys" ,
 	"   --button3" ,
-	"   --clip"
+	"   --clip" ,
+	"   --restart"
 } ;
 
 

@@ -84,6 +84,8 @@
 
 #undef  REMOVE_FUNCS_MLTERM_UNUSE
 
+#undef  CALLOC_CHECK_OVERFLOW
+
 #undef  inline
 
 #undef  const

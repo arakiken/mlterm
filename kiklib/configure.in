@@ -340,5 +340,19 @@ if test "$funcs_mlterm_unuse" = "no" ; then
 	AC_DEFINE(REMOVE_FUNCS_MLTERM_UNUSE,,"REMOVE_FUNCS_MLTERM_UNUSE")
 fi
 
+#
+# --- check for malloc ---
+#
+AC_TRY_RUN(
+[
+#include <stdio.h>
+int
+main()
+{
+return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+}
+],
+AC_DEFINE(CALLOC_CHECK_OVERFLOW))
+
 
 AC_OUTPUT(Makefile src/Makefile)
