@@ -1,3 +1,8 @@
+ver 3.0.10
+* Fix a problem which could cause error in loading a picture file.
+* Merge SF patches:
+  #3459267 (Thanks to Kusanagi Kouichi san)
+
 ver 3.0.9
 * Add auto-restart feature. ("auto_restart" option)
 * Support OSC 52 sequence which is allowed by "allow_osc52=true" in ~/.mlterm/main

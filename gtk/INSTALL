@@ -58,6 +58,8 @@ How to build & install libvte compatible library using mlterm engine.
     ex) - gtkterm2
     ~/.gtkterm2rc    => terminalFont=Terminal 14
     ~/.mlterm/aafont => DEFAULT=Terminal 14
+
+  o VtePty is not supported.
   
   o Unsupported vte api functions
     - vte_terminal_feed

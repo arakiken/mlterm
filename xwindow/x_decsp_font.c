@@ -37,8 +37,8 @@ x_decsp_font_new(
 	font->height = height ;
 	font->height_to_baseline = height_to_baseline ;
 
-	glyph_width = width - 1 ;
-	glyph_height = height - 1 ;
+	glyph_width = width ;
+	glyph_height = height ;
 
 	win = DefaultRootWindow( display) ;
 	

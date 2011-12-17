@@ -20,7 +20,7 @@ OBJECTS = data.o main.o comm.o \
 all: $(PROG)
 
 $(PROG): $(OBJECTS)
-	$(CC) -g -o $(PROG) $(OBJECTS)
+	$(CC) -o $(PROG) $(OBJECTS) @LDFLAGS@
 
 .SUFFIXES: .c.o
 

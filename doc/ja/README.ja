@@ -20,7 +20,7 @@ comment $Id$
     freetype 2.0.2 以上
     が必要です。
 
-    壁紙を貼るには、gdk-pixbuf (GTK+ 2.0.1 以上) が必要です。
+    壁紙を貼るには、gdk-pixbuf (GTK+ 2.x 以上) が必要です。
 
     gtk+ で作られた設定変更ツール (mlconfig, mlterm-menu) を使用する場合は、
     GTK+ (2.x 以上) が必要となります。
@@ -192,7 +192,7 @@ comment $Id$
   o mlterm configuration protocol
     設定変更のための専用シーケンスを定義しています。
     それを使うことによっても、設定の動的変更が可能です。
-    (see doc/en/PROTOCOL, doc/en/PROTOCOL.font, doc/en/PROTOCOL.color, doc/ja/README.confapp)
+    (see doc/en/PROTOCOL, doc/ja/README.confapp)
 
   o mlterm server
     mlterm は daemon process として動作することができます。

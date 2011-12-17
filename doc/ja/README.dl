@@ -56,9 +56,9 @@ Lodable module 化するか、mlterm 本体に static link するかは、configure のオプシ
       BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
       dynamic loading に対応
 
-* マクロ
-  o NO_DYNAMIC_LOAD_CTL
+* ソースコード
+  o NO_DYNAMIC_LOAD_CTL マクロ
     BiDi / Indic module の dynamic loading に対応しない場合に定義
 
-  o NO_DYNAMIC_LOAD_TYPE
+  o NO_DYNAMIC_LOAD_TYPE マクロ
     Xft / cairo module の dynamic loading に対応しない場合に定義

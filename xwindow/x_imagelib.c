@@ -691,27 +691,23 @@ create_pixbuf_from_cardinals(
 }
 
 /* create an CARDINAL array for_NET_WM_ICON data */
-static int
+static u_int32_t *
 create_cardinals_from_pixbuf(
-	u_int32_t **  cardinal ,
+	GdkPixbuf *  pixbuf ,
 	u_int  width ,
-	u_int  height ,
-	GdkPixbuf *  pixbuf
+	u_int  height
 	)
 {
+	u_int32_t *  cardinal ;
 	int  rowstride ;
-	u_char *line ;
-	u_char *pixel ;
+	u_char *  line ;
+	u_char *  pixel ;
 	u_int i , j ;
 
-	if( width > ((SIZE_MAX / 4) - 2) / height)
+	if( width > ((SIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
+	    ! ( cardinal = malloc( ( width * height + 2) * sizeof(*cardinal))))
 	{
-		return  0 ; /* integer overflow */
-	}
-
-	if( ( *cardinal = malloc( ( width * height + 2) * 4)) == NULL)
-	{
-		return  0 ;
+		return  NULL ;
 	}
 
 	/* create (maybe shriked) copy */
@@ -721,8 +717,8 @@ create_cardinals_from_pixbuf(
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
 	/* format of the array is {width, height, ARGB[][]} */
-	(*cardinal)[0] = width ;
-	(*cardinal)[1] = height ;
+	cardinal[0] = width ;
+	cardinal[1] = height ;
 	if( gdk_pixbuf_get_has_alpha( pixbuf))
 	{
 		for( i = 0 ; i < height ; i++)
@@ -732,9 +728,9 @@ create_cardinals_from_pixbuf(
 			for( j = 0 ; j < width ; j++)
 			{
 				/* RGBA to ARGB */
-				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8)
-								 + pixel[0]) << 8)
-							       + pixel[1]) << 8) + pixel[2] ;
+				cardinal[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8)
+								+ pixel[0]) << 8)
+								+ pixel[1]) << 8) + pixel[2] ;
 				pixel += 4 ;
 			}
 		}
@@ -745,11 +741,12 @@ create_cardinals_from_pixbuf(
 		{
 			pixel = line ;
 			line += rowstride;
-			for (j = 0; j < width; j++) {
+			for( j = 0 ; j < width ; j++)
+			{
 				/* all pixels are completely opaque (0xFF) */
-				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8)
-								 + pixel[0]) << 8)
-							       + pixel[1]) << 8) + pixel[2] ;
+				cardinal[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8)
+								+ pixel[0]) << 8)
+								+ pixel[1]) << 8) + pixel[2] ;
 				pixel += 3 ;
 			}
 		}
@@ -757,7 +754,7 @@ create_cardinals_from_pixbuf(
 
 	g_object_unref( pixbuf) ;
 
-	return  1 ;
+	return  cardinal ;
 }
 
 static int
@@ -931,12 +928,8 @@ pixbuf_to_ximage_truecolor(
 	u_int  i , j ;
 	u_int  width , height , rowstride , bytes_per_pixel ;
 	u_char *  line ;
-	u_char *  pixel ;
 	XImage *  image ;
 	char *  data ;
-
-	width = gdk_pixbuf_get_width( pixbuf) ;
-	height = gdk_pixbuf_get_height( pixbuf) ;
 
 	if( ! ( vinfo = x_display_get_visual_info( disp)))
 	{
@@ -946,17 +939,13 @@ pixbuf_to_ximage_truecolor(
 	rgb_info_init( vinfo , &rgbinfo) ;
 	XFree( vinfo) ;
 
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
-	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
-	line = gdk_pixbuf_get_pixels( pixbuf) ;
+	width = gdk_pixbuf_get_width( pixbuf) ;
+	height = gdk_pixbuf_get_height( pixbuf) ;
+	/* Set num of bytes per pixel of display (necessarily 4 or 2 in TrueColor). */
+	bytes_per_pixel = disp->depth > 16 ? 4 : 2 ;
 
-	/* (depth + 7 / 8) => Roundup (depth / 8) */
-	if( width > SIZE_MAX / ((disp->depth + 7) / 8) / height)
-	{
-		return  NULL ;	/* integer overflow */
-	}
-
-	if( ! ( data = malloc( width * height * ((disp->depth + 7) / 8))))
+	if( width > SIZE_MAX / bytes_per_pixel / height ||	/* integer overflow */
+	    ! ( data = malloc( width * height * bytes_per_pixel)))
 	{
 		return  NULL ;
 	}
@@ -964,16 +953,23 @@ pixbuf_to_ximage_truecolor(
 	if( ! ( image = XCreateImage( disp->display , disp->visual , disp->depth ,
 				ZPixmap , 0 , data , width , height ,
 				/* in case depth isn't multiple of 8 */
-				((disp->depth + 7) / 8) * 8 ,
-				width *  ((disp->depth + 7) / 8))))
+				bytes_per_pixel * 8 ,
+				width * bytes_per_pixel)))
 	{
 		free( data) ;
 
 		return  NULL ;
 	}
 
+	/* set num of bytes per pixel of pixbuf */
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
+	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
+	line = gdk_pixbuf_get_pixels( pixbuf) ;
+
 	for( i = 0 ; i < height ; i++)
 	{
+		u_char *  pixel ;
+
 		pixel = line ;
 		for( j = 0 ; j < width ; j++)
 		{
@@ -1024,11 +1020,11 @@ static int
 pixbuf_to_pixmap_and_mask(
 	x_display_t *  disp ,
 	GdkPixbuf *  pixbuf ,
-	Pixmap *  pixmap ,
-	Pixmap *  mask
+	Pixmap  pixmap ,
+	Pixmap *  mask		/* Created in this function. */
 	)
 {
-	if( ! pixbuf_to_pixmap( disp, pixbuf, *pixmap))
+	if( ! pixbuf_to_pixmap( disp, pixbuf, pixmap))
 	{
 		return  0 ;
 	}
@@ -1392,11 +1388,8 @@ load_file(
 		get_drawable_size( disp->display , pixmap_tmp , &width , &height) ;
 	}
 
-	if( ( *pixmap = XCreatePixmap( disp->display , x_display_get_group_leader( disp) ,
-				width , height , disp->depth)) == None)
-	{
-		goto  error ;
-	}
+	*pixmap = XCreatePixmap( disp->display , x_display_get_group_leader( disp) ,
+				width , height , disp->depth) ;
 
 	if( ! x_picture_modifier_is_normal( pic_mod))
 	{
@@ -1410,13 +1403,13 @@ load_file(
 
 	if( mask)
 	{
-		if( mask_tmp &&
-		    ( *mask = XCreatePixmap( disp->display ,
-				x_display_get_group_leader( disp) , width , height , 1)))
+		if( mask_tmp)
 		{
 			GC  mask_gc ;
 			XGCValues  gcv ;
 
+			*mask = XCreatePixmap( disp->display ,
+					x_display_get_group_leader( disp) , width , height , 1) ;
 			mask_gc = XCreateGC( disp->display , *mask , 0 , &gcv) ;
 			XCopyArea( disp->display , mask_tmp , *mask , mask_gc ,
 				0 , 0 , width , height , 0 , 0) ;
@@ -1444,43 +1437,97 @@ error:
 }
 
 /* create an CARDINAL array for_NET_WM_ICON data */
-static int
+static u_int32_t *
 create_cardinals_from_image(
-	u_int32_t **  cardinal ,
+	x_display_t *  disp ,
+	XImage *  image ,
 	u_int  width ,
-	u_int  height ,
-	XImage *  image
+	u_int  height
 	)
 {
-	int i, j ;
+	u_int32_t *  cardinal ;
+	int  i , j ;
+	u_long  pixel ;
 
-	if( width > ((SIZE_MAX / 4) - 2) / height)
+	if( width > ((SIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
+	    ! ( cardinal = malloc( (width * height + 2) * sizeof(*cardinal))))
 	{
-		return  0 ; /* integer overflow */
-	}
-
-	if( ( *cardinal = malloc( (width * height + 2) * 4)) == NULL)
-	{
-		return  0 ;
+		return  NULL ;
 	}
 
 	/* format of the array is {width, height, ARGB[][]} */
-	(*cardinal)[0] = width ;
-	(*cardinal)[1] = height ;
-	for( i = 0 ; i < height ; i++)
+	cardinal[0] = width ;
+	cardinal[1] = height ;
+
+	if( disp->visual->class == TrueColor)
 	{
-		for( j = 0 ; j < width ; j++)
+		XVisualInfo *  vinfo ;
+		rgb_info_t  rgbinfo ;
+
+		if( ! ( vinfo = x_display_get_visual_info( disp)))
 		{
-			/*
-			 * ARGB - all pixels are completely opaque (0xFF)
-			 *
-			 * XXX see how to process pixel in compose_truecolor/compose_pseudocolor.
-			 */
-			(*cardinal)[(i*width+j)+2] = 0xff000000 + XGetPixel( image , j , i) ;
+			goto  error ;
+		}
+
+		rgb_info_init( vinfo , &rgbinfo) ;
+		XFree( vinfo) ;
+
+		for( i = 0 ; i < height ; i++)
+		{
+			for( j = 0 ; j < width ; j++)
+			{
+				pixel = XGetPixel( image , j , i) ;
+
+				/* ARGB - all pixels are completely opaque (0xFF) */
+				cardinal[(i*width+j)+2] =
+					0xff000000 |
+					(PIXEL_RED(pixel,rgbinfo) << 16) |
+					(PIXEL_GREEN(pixel,rgbinfo) << 8) |
+					PIXEL_BLUE(pixel,rgbinfo) ;
+			}
 		}
 	}
+	else /* if( disp->visual->class == PseudoColor) */
+	{
+		XColor *  color_list ;
+		int  num_cells ;
 
-	return  1 ;
+		if( ( num_cells = fetch_colormap( disp , &color_list)) == 0)
+		{
+			goto  error ;
+		}
+
+		for( i = 0 ; i < height ; i++)
+		{
+			for( j = 0 ; j < width ; j++)
+			{
+				if( ( pixel = XGetPixel( image , j , i)) >= num_cells)
+				{
+				#ifdef  DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG " Pixel %x is illegal.\n" ,
+						pixel) ;
+				#endif
+					continue ;
+				}
+
+				/* ARGB - all pixels are completely opaque (0xFF) */
+				cardinal[(i*width+j)+2] =
+					0xff000000 |
+					(color_list[pixel].red >> 8 << 16) |
+					(color_list[pixel].green >> 8 << 8) |
+					(color_list[pixel].blue >> 8) ;
+			}
+		}
+
+		free( color_list) ;
+	}
+
+	return  cardinal ;
+
+error:
+	free( cardinal) ;
+
+	return  NULL ;
 }
 
 #endif	/* USE_EXT_IMAGELIB */
@@ -1663,18 +1710,16 @@ x_imagelib_get_transparent_background(
 	}
 
 	/* The pixmap to be returned */
-	if( ( pixmap = XCreatePixmap( win->disp->display , win->my_window ,
+	pixmap = XCreatePixmap( win->disp->display , win->my_window ,
 				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				win->disp->depth)) == None)
-	{
-		return  None ;
-	}
+				win->disp->depth) ;
 
 	get_drawable_size( win->disp->display , root , &root_width , &root_height) ;
 
 	if( win->disp->depth != DefaultDepth( win->disp->display ,
 					DefaultScreen( win->disp->display)))
 	{
+		u_int  bytes_per_pixel ;
 		XImage *  image = NULL ;
 		char *  data = NULL ;
 		XImage *  image2 ;
@@ -1686,16 +1731,19 @@ x_imagelib_get_transparent_background(
 		u_int  _x ;
 		u_int  _y ;
 
+		/* Set num of bytes per pixel of display (necessarily 4 or 2 in TrueColor). */
+		bytes_per_pixel = win->disp->depth > 16 ? 4 : 2 ;
+
 		if( win->disp->visual->class != TrueColor ||
 		    ! ( image = XGetImage( win->disp->display , root , x , y , width , height ,
 					AllPlanes , ZPixmap)) ||
-		    width > SIZE_MAX / ((win->disp->depth + 7) / 8) / height ||
-		    ! ( data = malloc( width * height * ((win->disp->depth + 7) / 8))) ||
+		    width > SIZE_MAX / bytes_per_pixel / height ||
+		    ! ( data = malloc( width * height * bytes_per_pixel)) ||
 		    ! ( image2 = XCreateImage( win->disp->display , win->disp->visual ,
 					win->disp->depth , ZPixmap , 0 , data , width , height ,
 					/* in case depth isn't multiple of 8 */
-					((win->disp->depth + 7) / 8) * 8 ,
-					width * ((win->disp->depth + 7) / 8))))
+					bytes_per_pixel * 8 ,
+					width * bytes_per_pixel)))
 		{
 			XFreePixmap( win->disp->display , pixmap) ;
 			if( image)
@@ -1841,12 +1889,18 @@ x_imagelib_load_file(
 
 		if( cardinal)
 		{
-			create_cardinals_from_pixbuf( cardinal , dst_width , dst_height , pixbuf) ;
+			if( ! ( *cardinal = create_cardinals_from_pixbuf( pixbuf ,
+							dst_width , dst_height)))
+			{
+				g_object_unref( pixbuf) ;
+
+				return  0 ;
+			}
 		}
 	}
 	else
 	{
-		if( !cardinal || !(*cardinal))
+		if( ! cardinal || ! *cardinal)
 		{
 			return  0 ;
 		}
@@ -1879,27 +1933,20 @@ x_imagelib_load_file(
 					 dst_width , dst_height , disp->depth) ;
 		if( mask)
 		{
-			if( ! pixbuf_to_pixmap_and_mask( disp , pixbuf , pixmap , mask))
+			if( ! pixbuf_to_pixmap_and_mask( disp , pixbuf , *pixmap , mask))
 			{
 				g_object_unref( pixbuf) ;
-				XFreePixmap( disp->display, *pixmap) ;
-				*pixmap = None ;
-				XFreePixmap( disp->display, *mask) ;
-				*mask = None ;
 
-				return  0 ;
+				goto  error ;
 			}
-
 		}
 		else
 		{
 			if( ! pixbuf_to_pixmap( disp , pixbuf , *pixmap))
 			{
 				g_object_unref( pixbuf) ;
-				XFreePixmap( disp->display , *pixmap) ;
-				*pixmap = None ;
 
-				return  0 ;
+				goto  error ;
 			}
 		}
 	}
@@ -1907,6 +1954,12 @@ x_imagelib_load_file(
 	g_object_unref( pixbuf) ;
 
 #else	/* USE_EXT_IMAGELIB */
+
+	if( ! path)
+	{
+		/* cardinals => pixbuf is not supported. */
+		return  0 ;
+	}
 
 	if( ! load_file( disp , dst_width , dst_height , path , NULL , pixmap , mask))
 	{
@@ -1923,18 +1976,20 @@ x_imagelib_load_file(
 	{
 		XImage *  image ;
 
-		image = XGetImage( disp->display , *pixmap ,
-				0 , 0 , dst_width , dst_height , AllPlanes , ZPixmap) ;
-
-		if( ! create_cardinals_from_image( cardinal , dst_width , dst_height , image))
+		if( ! ( image = XGetImage( disp->display , *pixmap , 0 , 0 ,
+					dst_width , dst_height , AllPlanes , ZPixmap)))
 		{
-			XDestroyImage( image) ;
-			XFreePixmap( disp->display , *pixmap) ;
-
-			return  0 ;
+			goto  error ;
 		}
 
+		*cardinal = create_cardinals_from_image( disp , image ,
+						dst_width , dst_height) ;
 		XDestroyImage( image) ;
+
+		if( ! *cardinal)
+		{
+			goto  error ;
+		}
 	}
 
 #endif	/* USE_EXT_IMAGELIB */
@@ -1950,6 +2005,11 @@ x_imagelib_load_file(
 	}
 
 	return  1 ;
+
+error:
+	XFreePixmap( disp->display , *pixmap) ;
+
+	return  0 ;
 }
 
 Pixmap

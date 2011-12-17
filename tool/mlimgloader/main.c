@@ -271,7 +271,6 @@ pixbuf_to_pixmap_pseudocolor(
 
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
-
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
 	for( y = 0 ; y < height ; y++)
@@ -403,7 +402,6 @@ pixbuf_to_ximage_truecolor(
 	u_int  i , j ;
 	u_int  width , height , rowstride , bytes_per_pixel ;
 	u_char *  line ;
-	u_char *  pixel ;
 	u_long  r_mask , g_mask , b_mask ;
 	int  r_offset , g_offset , b_offset ;
 	int  r_limit , g_limit , b_limit ;
@@ -432,33 +430,39 @@ pixbuf_to_ximage_truecolor(
 
 	width = gdk_pixbuf_get_width( pixbuf) ;
 	height = gdk_pixbuf_get_height( pixbuf) ;
+	/* set num of bytes per pixel of display */
+	bytes_per_pixel = depth > 16 ? 4 : 2 ;
 
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
-	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
-	line = gdk_pixbuf_get_pixels( pixbuf) ;
-
-	/* (depth + 7 / 8) => Roundup (depth / 8) */
-	if( width > (SIZE_MAX / ((depth + 7) / 8)) / height)
+	if( width > SIZE_MAX / bytes_per_pixel / height)
 	{
 		return  NULL ;	/* integer overflow */
 	}
 
-	if( ! ( data = malloc( width * height * ((depth + 7) / 8))))
+	if( ! ( data = malloc( width * height * bytes_per_pixel)))
 	{
 		return  NULL ;
 	}
 
 	if( ! ( image = XCreateImage( display , visual , depth , ZPixmap , 0 ,
-			      data , width , height , ((depth + 7) / 8) * 8 ,
-			      width * ((depth + 7) / 8))))
+			      data , width , height ,
+			      /* in case depth isn't multiple of 8 */
+			      bytes_per_pixel * 8 ,
+			      width * bytes_per_pixel)))
 	{
 		free( data) ;
 
 		return  NULL ;
 	}
 
+	/* set num of bytes per pixel of pixbuf */
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
+	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
+	line = gdk_pixbuf_get_pixels( pixbuf) ;
+
 	for( i = 0 ; i < height ; i++)
 	{
+		u_char *  pixel ;
+
 		pixel = line ;
 		for( j = 0 ; j < width ; j++)
 		{
@@ -521,8 +525,8 @@ pixbuf_to_pixmap_and_mask(
 	GC  gc ,
 	u_int  depth ,
 	GdkPixbuf *  pixbuf,
-	Pixmap *  pixmap,
-	Pixmap *  mask
+	Pixmap *  pixmap,	/* Created in this function. */
+	Pixmap *  mask		/* Created in this function. */
 	)
 {
 	u_int  width ;
@@ -531,13 +535,12 @@ pixbuf_to_pixmap_and_mask(
 	width = gdk_pixbuf_get_width( pixbuf) ;
 	height = gdk_pixbuf_get_height( pixbuf) ;
 
-	if( ( *pixmap = XCreatePixmap( display , win , width , height , depth)) == None)
-	{
-		return  0 ;
-	}
+	*pixmap = XCreatePixmap( display , win , width , height , depth) ;
 
 	if( ! pixbuf_to_pixmap( display , visual , colormap , gc , depth , pixbuf , *pixmap))
 	{
+		XFreePixmap( display , *pixmap) ;
+
 		return  0 ;
 	}
 

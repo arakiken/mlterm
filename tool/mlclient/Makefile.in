@@ -20,7 +20,7 @@ PROG = mlclient
 all: $(PROG)
 
 $(PROG): $(OBJ)
-	$(CC) -o $(PROG) $(OBJ) $(LIBS)
+	$(CC) -o $(PROG) $(OBJ) $(LIBS) @LDFLAGS@
 	cp $(PROG) $(PROG)x
 
 .SUFFIXES: .c.o

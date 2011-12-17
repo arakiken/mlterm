@@ -1,4 +1,5 @@
 #include "indian.h"
+#include <ctype.h>	/* isprint */
 
 char *binsearch(struct tabl *table, int sz, char *word) {
 	int result, index, lindex, hindex;

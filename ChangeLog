@@ -1,3 +1,23 @@
+2011-12-  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.10 released.
+	  (tag "rel-3_0_10")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.10.
+
+	* doc/ja/README.ja, doc/ja/README.dl, gtk/INSTALL: Updated.
+
+	* x_imagelib.c, mlimgloader/main.c:
+	  - The cases of passing 24 as bitmap_pad argument to XCreateImage().
+	    and passing 0 as pixmap to XFreePixmap() is fixed.
+	  - create_cardinals_from_image() supports 8 and 16 depth color.
+
+	* tool/mlclient/Makefile.in, contrib/tool/mlcc/Makefile.in: @LDFLAGS@ is added.
+
+	* xwindow/x_decsp_font.c: SF Patch #3459267 is merged.
+	  (Thanks to Kusanagi Kouichi san)
+
 2011-11-18  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.9 released.
