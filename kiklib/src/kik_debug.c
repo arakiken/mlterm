@@ -8,6 +8,7 @@
 #include  <stdarg.h>
 #include  <string.h>    /* strlen */
 #include  <unistd.h>	/* getpid */
+#include  <time.h>	/* time/ctime */
 
 #include  "kik_mem.h"	/* alloca */
 #include  "kik_util.h"	/* DIGIT_STR_LEN */
@@ -31,8 +32,26 @@ open_msg_file(void)
 {
 	FILE *  fp ;
 
-	if( log_file_path && ( fp = fopen( log_file_path , "a")))
+	if( log_file_path && ( fp = fopen( log_file_path , "a+")))
 	{
+		char  ch ;
+		time_t  tm ;
+		char *  time_str ;
+
+		if( fseek( fp , -1 , SEEK_END) == 0 && fread( &ch , 1 , 1 , fp) == 1)
+		{
+			if( ch != '\n')
+			{
+				return  fp ;
+			}
+		}
+
+		tm = time(NULL) ;
+		time_str = ctime( &tm) ;
+		time_str[19] = '\0' ;
+		time_str += 4 ;
+		fprintf( fp , "%s[%d] " , time_str , getpid()) ;
+
 		return  fp ;
 	}
 
@@ -63,7 +82,7 @@ debug_printf(
 	va_list  arg_list
 	)
 {
-	char *  new_format = NULL ;
+	char *  new_format ;
 	int  ret ;
 	FILE *  fp ;
 
@@ -160,12 +179,7 @@ kik_set_msg_log_file_name(
 	
 	if( name && *name && ( p = alloca( strlen( name) + DIGIT_STR_LEN(pid_t) + 5)))
 	{
-		pid_t  pid ;
-
-		pid = getpid() ;
-
-		sprintf( p , "%s%d.log" , name , pid) ;
-		log_file_path = kik_get_user_rc_path( p) ;
+		log_file_path = kik_get_user_rc_path( name) ;
 	}
 	else
 	{

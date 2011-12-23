@@ -1275,8 +1275,25 @@ x_window_resize(
 		return  0 ;
 	}
 
-	win->width = width ;
-	win->height = height ;
+	/* Max width of each window is screen width. */
+	if( GetSystemMetrics( SM_CXSCREEN) < width)
+	{
+		win->width = GetSystemMetrics( SM_CXSCREEN) ;
+	}
+	else
+	{
+		win->width = width ;
+	}
+
+	/* Max height of each window is screen height. */
+	if( GetSystemMetrics( SM_CYSCREEN) < height)
+	{
+		win->height = GetSystemMetrics( SM_CYSCREEN) ;
+	}
+	else
+	{
+		win->height = height ;
+	}
 
 	if( (flag & NOTIFY_TO_PARENT) && win->parent && win->parent->child_window_resized)
 	{

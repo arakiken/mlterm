@@ -72,7 +72,7 @@ typedef struct  ml_xterm_event_listener
 	void (*start)( void *) ;	/* called in *visual* context. (Note that not logical) */
 	void (*stop)( void *) ;		/* called in visual context. */
 	
-	void (*resize_columns)( void * , u_int) ;	/* called in visual context. */
+	void (*resize)( void * , u_int , u_int) ;	/* called in visual context. */
 	void (*reverse_video)( void * , int) ;		/* called in visual context. */
 	void (*set_mouse_report)( void * , ml_mouse_report_mode_t) ;/* called in visual context. */
 	void (*set_window_name)( void * , u_char *) ;	/* called in logical context. */

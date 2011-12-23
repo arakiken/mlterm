@@ -437,7 +437,7 @@ put_char(
 		}
 		else
 		{
-			if( ( prev = ml_screen_get_n_prev_char( vt100_parser->screen , ++n)) == NULL)
+			if( ! ( prev = ml_screen_get_n_prev_char( vt100_parser->screen , ++n)))
 			{
 				return ;
 			}
@@ -558,16 +558,51 @@ restore_cursor(
 }
 
 static void
-resize_columns(
+resize_by_char(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_int  cols
+	u_int  cols ,
+	u_int  rows
 	)
 {
-	if( HAS_XTERM_LISTENER(vt100_parser,resize_columns))
+	if( HAS_XTERM_LISTENER(vt100_parser,resize))
+	{
+		/*
+		 * XXX Not compatible with xterm.
+		 * cols or rows == 0 means full screen width or height in xterm.
+		 * Note that ml_vt100_parser.c depends on following behavior.
+		 */
+		if( cols == 0)
+		{
+			cols = ml_screen_get_cols( vt100_parser->screen) ;
+		}
+
+		if( rows == 0)
+		{
+			rows = ml_screen_get_rows( vt100_parser->screen) ;
+		}
+
+		ml_set_pty_winsize( vt100_parser->pty , cols , rows) ;
+		ml_screen_resize( vt100_parser->screen , cols , rows) ;
+
+		stop_vt100_cmd( vt100_parser , 0) ;
+		(*vt100_parser->xterm_listener->resize)(
+			vt100_parser->xterm_listener->self , 0 , 0) ;
+		start_vt100_cmd( vt100_parser , 0) ;
+	}
+}
+
+static void
+resize_by_pixel(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,resize))
 	{
 		stop_vt100_cmd( vt100_parser , 0) ;
-		(*vt100_parser->xterm_listener->resize_columns)(
-			vt100_parser->xterm_listener->self , cols) ;
+		(*vt100_parser->xterm_listener->resize)(
+			vt100_parser->xterm_listener->self , width , height) ;
 		start_vt100_cmd( vt100_parser , 0) ;
 	}
 }
@@ -1693,7 +1728,7 @@ parse_vt100_escape_sequence(
 						/* XTERM compatibility [#1048321] */
 						clear_display_all( vt100_parser) ;
 
-						resize_columns( vt100_parser , 132) ;
+						resize_by_char( vt100_parser , 132 , 0) ;
 					}
 				#if  0
 					else if( ps[0] == 4)
@@ -1893,7 +1928,7 @@ parse_vt100_escape_sequence(
 						/* XTERM compatibility [#1048321] */
 						clear_display_all( vt100_parser) ;
 
-						resize_columns( vt100_parser , 80) ;
+						resize_by_char( vt100_parser , 80 , 0) ;
 					}
 				#if  0
 					else if( ps[0] == 4)
@@ -2558,6 +2593,22 @@ parse_vt100_escape_sequence(
 				/* "CSI s" */
 
 				save_cursor( vt100_parser) ;
+			}
+			else if( *str_p == 't')
+			{
+				/* "CSI t" */
+
+				if( num == 3)
+				{
+					if( ps[0] == 4)
+					{
+						resize_by_pixel( vt100_parser , ps[2] , ps[1]) ;
+					}
+					else if( ps[0] == 8)
+					{
+						resize_by_char( vt100_parser , ps[2] , ps[1]) ;
+					}
+				}
 			}
 			else if( *str_p == 'u')
 			{

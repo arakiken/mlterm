@@ -1610,8 +1610,25 @@ x_window_resize(
 		return  0 ;
 	}
 
-	win->width = width ;
-	win->height = height ;
+	/* Max width of each window is DisplayWidth(). */
+	if( DisplayWidth( win->disp->display , win->disp->screen) < width)
+	{
+		win->width = DisplayWidth( win->disp->display , win->disp->screen) ;
+	}
+	else
+	{
+		win->width = width ;
+	}
+
+	/* Max height of each window is DisplayHeight(). */
+	if( DisplayHeight( win->disp->display , win->disp->screen) < height)
+	{
+		win->height = DisplayHeight( win->disp->display , win->disp->screen) ;
+	}
+	else
+	{
+		win->height = height ;
+	}
 
 	if( (flag & NOTIFY_TO_PARENT) && win->parent && win->parent->child_window_resized)
 	{

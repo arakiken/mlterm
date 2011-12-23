@@ -228,7 +228,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "ucsprop" , 1 , "use_unicode_property" ,
 		"use unicode property for characters [false]") ;
 	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
-		"output messages to ~/.mlterm/msg[pid].log [true]") ;
+		"output messages to ~/.mlterm/msg.log [true]") ;
 	kik_conf_add_opt( conf , '\0' , "osc52" , 1 , "allow_osc52" ,
 		"allow access to clipboard by OSC 52 sequence [false]") ;
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
@@ -255,7 +255,7 @@ x_main_config_init(
 	}
 	else
 	{
-		kik_set_msg_log_file_name( "mlterm/msg") ;
+		kik_set_msg_log_file_name( "mlterm/msg.log") ;
 	}
 
 #ifndef  USE_WIN32GUI

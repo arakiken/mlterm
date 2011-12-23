@@ -6704,28 +6704,22 @@ stop_vt100_cmd(
 }
 
 static void
-xterm_resize_columns(
+xterm_resize(
 	void *  p ,
-	u_int  cols
+	u_int  width ,
+	u_int  height
 	)
 {
 	x_screen_t *  screen ;
 
 	screen = p ;
 
-	if( cols == ml_term_get_logical_cols( screen->term))
+	if( width == 0 || height == 0)
 	{
-		return ;
+		resize_window( screen) ;
 	}
-
-	/*
-	 * x_screen_{start|stop}_term_screen are necessary since
-	 * window is redrawn in window_resized().
-	 */
-
-	if( x_window_resize( &screen->window , x_col_width(screen) * cols ,
-		x_line_height(screen) * ml_term_get_rows(screen->term) ,
-		NOTIFY_TO_PARENT))
+	/* screen will redrawn in window_resized() */
+	else if( x_window_resize( &screen->window , width , height , NOTIFY_TO_PARENT))
 	{
 		/*
 		 * !! Notice !!
@@ -7159,7 +7153,7 @@ x_screen_new(
 	screen->xterm_listener.self = screen ;
 	screen->xterm_listener.start = start_vt100_cmd ;
 	screen->xterm_listener.stop = stop_vt100_cmd ;
-	screen->xterm_listener.resize_columns = xterm_resize_columns ;
+	screen->xterm_listener.resize = xterm_resize ;
 	screen->xterm_listener.reverse_video = xterm_reverse_video ;
 	screen->xterm_listener.set_mouse_report = xterm_set_mouse_report ;
 	screen->xterm_listener.set_window_name = xterm_set_window_name ;
@@ -7947,11 +7941,6 @@ x_screen_set_config(
 	}
 #endif
 
-	/*
-	 * x_screen_{start|stop}_term_screen are necessary since
-	 * window is redrawn in change_wall_picture().
-	 */
-
 	if( strcmp( key , "encoding") == 0)
 	{
 		ml_char_encoding_t  encoding ;
@@ -8350,7 +8339,7 @@ x_screen_set_config(
 	{
 		if( true_or_false( value) > 0)
 		{
-			kik_set_msg_log_file_name( "mlterm/msg") ;
+			kik_set_msg_log_file_name( "mlterm/msg.log") ;
 		}
 		else
 		{

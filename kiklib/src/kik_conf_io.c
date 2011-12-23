@@ -7,6 +7,9 @@
 #include  <stdio.h>	/* sprintf */
 #include  <string.h>	/* strlen */
 #include  <stdlib.h>	/* getenv */
+#ifndef  USE_WIN32API
+#include  <sys/stat.h>
+#endif
 
 #include  "kik_str.h"	/* kik_str_sep/kik_str_chop_spaces */
 #include  "kik_mem.h"	/* malloc */
@@ -77,17 +80,34 @@ kik_get_user_rc_path(
 		return  NULL ;
 	}
 
-	/* Enough for "%s/.%s" */
-	if( ( dotrcpath = malloc( strlen( homedir) + 2 + strlen( rcfile) + 1)) == NULL)
-	{
-		return  NULL ;
-	}
-
 #ifdef  USE_WIN32API
-	/* subdir doesn't contain "." in win32 native. */
-	sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
+	/* Enough for "%s\%s" */
+	if( ( dotrcpath = malloc( strlen( homedir) + 1 + strlen( rcfile) + 1)))
+	{
+		/* subdir doesn't contain "." in win32 native. */
+		sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
+	}
 #else
-	sprintf( dotrcpath , "%s/.%s" , homedir , rcfile) ;
+	/* Enough for "%s/.config/%s" */
+	if( ( dotrcpath = malloc( strlen( homedir) + 9 + strlen( rcfile) + 1)))
+	{
+		struct stat  st ;
+		char *  p ;
+
+		sprintf( dotrcpath , "%s/.config/%s" , homedir , rcfile) ;
+
+		if( ( p = kik_str_alloca_dup( dotrcpath)))
+		{
+			*(strrchr( p , '/')) = '\0' ;	/* always succeeds. */
+			if( stat( p , &st) == 0)
+			{
+				goto  end ;
+			}
+		}
+
+		sprintf( dotrcpath , "%s/.%s" , homedir , rcfile) ;
+	}
+end:
 #endif
 
 	return  dotrcpath ;

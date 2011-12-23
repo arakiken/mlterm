@@ -1,4 +1,23 @@
-2011-12-  Araki Ken  <arakiken@users.sf.net>
+2011-12-24  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, ReleaseNote, gtk/INSTALL: Updated.
+
+	* gtk/vte.c: Hack for supporting VtePty is implemented.
+
+	* kik_conf_io.c: If ~/.config/mlterm exists, it is used as a
+	  user config directory instead of ~/.mlterm.
+
+	* kik_debug.c: File to output messages by --logmsg option is changed
+	  from ~/.mlterm/msg[pid].log to ~/.mlterm/msg.log.
+
+	* x_window.c, x_window_win32.c:
+	  x_window_resize( larger than the size of display ) resizes window
+	  to the size of display.
+
+	* ml_vt100_parser.[ch], x_screen.c: "CSI 8;rows;cols t" and
+	  "CSI 4;height;width t" sequence is supported partially.
+
+2011-12-17  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.10 released.
 	  (tag "rel-3_0_10")

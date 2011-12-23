@@ -1,3 +1,10 @@
+ver 3.0.11
+* Support CSI 8 t and CSI 4 t sequence partially.
+* Change the file to output messages by --logmsg option
+  from ~/.mlterm/msg[pid].log to ~/.mlterm/msg.log.
+* If ~/.config/mlterm exists, use it as a user config directory instead of ~/.mlterm.
+* Support VtePty partially.
+
 ver 3.0.10
 * Fix a problem which could cause error in loading a picture file.
 * Merge SF patches:

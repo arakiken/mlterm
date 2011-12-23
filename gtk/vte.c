@@ -93,6 +93,10 @@ struct _VteTerminalPrivate
 	x_screen_t *  screen ;		/* Not NULL until finalized */
 	ml_term_t *  term ;		/* Not NULL until finalized */
 
+#if  VTE_CHECK_VERSION(0,26,0)
+	VtePty *  pty ;
+#endif
+
 	x_system_event_listener_t  system_listener ;
 
 	void (*line_scrolled_out)( void *) ;
@@ -1262,8 +1266,15 @@ vte_terminal_finalize(
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " vte terminal finalized.\n") ;
 #endif
-	
+
 	terminal = VTE_TERMINAL(obj) ;
+
+#if  VTE_CHECK_VERSION(0,26,0)
+	if( terminal->pvt->pty)
+	{
+		g_object_unref( terminal->pvt->pty) ;
+	}
+#endif
 
 	x_font_manager_delete( terminal->pvt->screen->font_man) ;
 	x_color_manager_delete( terminal->pvt->screen->color_man) ;
@@ -2523,6 +2534,10 @@ vte_terminal_init(
 		init_inherit_ptys = 1 ;
 	}
 
+#if  VTE_CHECK_VERSION(0,26,0)
+	terminal->pvt->pty = NULL ;
+#endif
+
 	if( main_config.unicode_policy & NOT_USE_UNICODE_FONT ||
 		main_config.iso88591_font_for_usascii)
 	{
@@ -2795,7 +2810,7 @@ vte_terminal_fork_command(
 gboolean
 vte_terminal_fork_command_full(
 	VteTerminal *  terminal ,
-	VtePtyFlags pty_flags ,
+	VtePtyFlags  pty_flags ,
 	const char *  working_directory ,
 	char **  argv ,
 	char **  envv ,
@@ -4280,8 +4295,41 @@ set_font:
 #endif	/* VTE_DISABLE_DEPRECATED */
 
 
-/* Dummy functions for VtePty. */
 #if  VTE_CHECK_VERSION(0,26,0)
+
+#include  <sys/ioctl.h>
+#include  <ml_pty_intern.h>	/* XXX in order to operate ml_pty_t::child_pid directly. */
+#include  <kiklib/kik_config.h>	/* HAVE_SETSID */
+
+
+struct _VtePty
+{
+	GObject  parent_instance ;
+
+	VteTerminal *  terminal ;
+	VtePtyFlags  flags ;
+} ;
+
+struct _VtePtyClass
+{
+	GObjectClass  parent_class ;
+} ;
+
+G_DEFINE_TYPE(VtePty , vte_pty , G_TYPE_OBJECT) ;
+
+static void
+vte_pty_init(
+	VtePty *  pty
+	)
+{
+}
+
+static void
+vte_pty_class_init(
+	VtePtyClass *  kclass
+	)
+{
+}
 
 VtePty *
 vte_terminal_pty_new(
@@ -4290,8 +4338,21 @@ vte_terminal_pty_new(
 	GError **  error
 	)
 {
-	/* XXX */
-	return  (VtePty*)terminal ;
+	VtePty *  pty ;
+
+	if( terminal->pvt->pty)
+	{
+		return  terminal->pvt->pty ;
+	}
+
+	if( ! ( pty = vte_pty_new( flags , error)))
+	{
+		return  NULL ;
+	}
+
+	vte_terminal_set_pty_object( terminal , pty) ;
+
+	return  pty ;
 }
 
 VtePty *
@@ -4299,7 +4360,7 @@ vte_terminal_get_pty_object(
 	VteTerminal *  terminal
 	)
 {
-	return  NULL ;
+	return  terminal->pvt->pty ;
 }
 
 void
@@ -4308,8 +4369,28 @@ vte_terminal_set_pty_object(
 	VtePty *  pty
 	)
 {
-}
+	if( terminal->pvt->pty)
+	{
+		return ;
+	}
 
+	pty->terminal = terminal ;
+	terminal->pvt->pty = pty ;
+
+	vte_pty_set_term( pty , vte_terminal_get_emulation( terminal)) ;
+
+	if( vte_terminal_forkpty( terminal , NULL , NULL ,
+				(pty->flags & VTE_PTY_NO_LASTLOG) ? FALSE : TRUE ,
+				(pty->flags & VTE_PTY_NO_UTMP) ? FALSE : TRUE ,
+				(pty->flags & VTE_PTY_NO_WTMP) ? FALSE : TRUE) == 0)
+	{
+		/* child */
+		exit(0) ;
+	}
+
+	/* Don't catch exit(0) above. */
+	terminal->pvt->term->pty->child_pid = -1 ;
+}
 
 VtePty *
 vte_pty_new(
@@ -4317,7 +4398,15 @@ vte_pty_new(
 	GError **  error
 	)
 {
-	return  NULL ;
+	VtePty *  pty ;
+
+	if( ( pty = g_object_new( VTE_TYPE_PTY , NULL)))
+	{
+		pty->flags = flags ;
+		pty->terminal = NULL ;
+	}
+
+	return  pty ;
 }
 
 VtePty *
@@ -4341,6 +4430,66 @@ vte_pty_child_setup(
 	VtePty *  pty
 	)
 {
+	int  slave ;
+	int  master ;
+#if  (! defined(HAVE_SETSID) && defined(TIOCNOTTY)) || ! defined(TIOCSCTTY)
+	int  fd ;
+#endif
+
+	if( ! pty->terminal)
+	{
+		return ;
+	}
+
+#ifdef  HAVE_SETSID
+	setsid() ;
+#else
+#ifdef  TIOCNOTTY
+	if( ( fd = open( "/dev/tty" , O_RDWR|O_NOCTTY)) >= 0)
+	{
+		ioctl( fd , TIOCNOTTY , NULL) ;
+		close( fd) ;
+	}
+#endif
+#endif
+
+	master = ml_term_get_master_fd( pty->terminal->pvt->term) ;
+	slave = ml_term_get_slave_fd( pty->terminal->pvt->term) ;
+
+#ifdef  TIOCSCTTY
+	ioctl( slave, TIOCSCTTY, NULL) ;
+#else
+	if( ( fd = open( "/dev/tty" , O_RDWR|O_NOCTTY)) >= 0)
+	{
+		close( fd) ;
+	}
+	if( ( fd = open( ptsname( master) , O_RDWR)) >= 0)
+	{
+		close( fd) ;
+	}
+	if( ( fd = open( "/dev/tty" , O_WRONLY)) >= 0)
+	{
+		close( fd) ;
+	}
+#endif
+
+	dup2( slave , 0) ;
+	dup2( slave , 1) ;
+	dup2( slave , 2) ;
+
+	if( slave > STDERR_FILENO)
+	{
+		close(slave) ;
+	}
+
+	/* Already set in kik_pty_fork() from vte_terminal_forkpty(). */
+#if  0
+	cfsetispeed( &tio , B9600) ;
+	cfsetospeed( &tio , B9600) ;
+	tcsetattr( STDIN_FILENO, TCSANOW , &tio) ;
+#endif
+
+	close( master) ;
 }
 
 int
@@ -4348,7 +4497,12 @@ vte_pty_get_fd(
 	VtePty *  pty
 	)
 {
-	return  -1 ;
+	if( ! pty->terminal)
+	{
+		return  -1 ;
+	}
+
+	return  ml_term_get_master_fd( pty->terminal->pvt->term) ;
 }
 
 gboolean
@@ -4359,7 +4513,14 @@ vte_pty_set_size(
 	GError **  error
 	)
 {
-	return  FALSE ;
+	if( ! pty->terminal)
+	{
+		return  FALSE ;
+	}
+
+	vte_terminal_set_size( pty->terminal , columns , rows) ;
+
+	return  TRUE ;
 }
 
 gboolean
@@ -4370,7 +4531,15 @@ vte_pty_get_size(
 	GError **  error
 	)
 {
-	return  FALSE ;
+	if( ! pty->terminal)
+	{
+		return  FALSE ;
+	}
+
+	*columns = ml_term_get_cols( pty->terminal->pvt->term) ;
+	*rows = ml_term_get_rows( pty->terminal->pvt->term) ;
+
+	return  TRUE ;
 }
 
 void
@@ -4379,6 +4548,10 @@ vte_pty_set_term(
 	const char *  emulation
 	)
 {
+	if( pty->terminal)
+	{
+		vte_terminal_set_emulation( pty->terminal , emulation) ;
+	}
 }
 
 gboolean
@@ -4388,7 +4561,13 @@ vte_pty_set_utf8(
 	GError **  error
 	)
 {
-	return  TRUE ;
+	if( ! pty->terminal)
+	{
+		return  FALSE ;
+	}
+
+	return  ml_term_change_encoding( pty->terminal->pvt->term ,
+			utf8 ? ML_UTF8 : ml_get_char_encoding( "auto")) ;
 }
 
 void
@@ -4397,6 +4576,8 @@ vte_terminal_watch_child(
 	GPid  child_pid
 	)
 {
+	vte_reaper_add_child( child_pid) ;
+	terminal->pvt->term->pty->child_pid = child_pid ;
 }
 
 #endif
