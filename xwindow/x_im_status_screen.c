@@ -51,13 +51,6 @@ draw_screen(
 	x_window_resize( &stat_screen->window , width ,
 			 xfont->height + LINE_SPACE, 0) ;
 
-	/*
-	 * draw border
-	 */
-	x_window_draw_rect_frame( &stat_screen->window , 0 , 0 ,
-				  width + MARGIN*2 - 1 ,
-				  xfont->height + LINE_SPACE + MARGIN*2 - 1);
-
 	x_draw_str_to_eol( &stat_screen->window ,
 			   stat_screen->font_man ,
 			   stat_screen->color_man ,
@@ -68,6 +61,13 @@ draw_screen(
 			   xfont->height_to_baseline + LINE_SPACE / 2 ,
 			   LINE_SPACE / 2 ,
 			   LINE_SPACE / 2 + LINE_SPACE % 2) ;
+
+	/*
+	 * draw border
+	 */
+	x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
+				  width + MARGIN - 1 ,
+				  xfont->height + LINE_SPACE + MARGIN - 1);
 }
 
 

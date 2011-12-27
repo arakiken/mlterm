@@ -694,10 +694,10 @@ draw_cursor(
 			x_get_xcolor( screen->color_man , ml_char_fg_color(&ch))) ;
 
 		x_window_draw_rect_frame( &screen->window ,
-			x + 2 , y + x_line_top_margin( screen) + 2 ,
+			x , y + x_line_top_margin( screen) ,
 			x + x_calculate_char_width( xfont ,
-				ml_char_bytes(&ch) , ml_char_size(&ch) , ml_char_cs(&ch)) + 1 ,
-			y + x_line_top_margin( screen) + xfont->height + 1) ;
+				ml_char_bytes(&ch) , ml_char_size(&ch) , ml_char_cs(&ch)) - 1 ,
+			y + x_line_top_margin( screen) + xfont->height - 1) ;
 	}
 
 	ml_char_final( &ch) ;

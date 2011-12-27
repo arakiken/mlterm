@@ -79,7 +79,7 @@
 /* XXX Hack to distinguish x_screen_t from x_{candidate|status}_screent_t */
 #define  IS_MLTERM_SCREEN(win)  (! PARENT_WINDOWID_IS_TOP(win))
 
-#define  WINDOW_MARGIN  2
+#define  WINDOW_MARGIN  1
 
 #ifndef  VTE_CHECK_VERSION
 #define  VTE_CHECK_VERSION(a,b,c)  (0)
@@ -90,8 +90,14 @@
 
 struct _VteTerminalPrivate
 {
-	x_screen_t *  screen ;		/* Not NULL until finalized */
-	ml_term_t *  term ;		/* Not NULL until finalized */
+	/* Not NULL until finalized. screen->term is NULL until widget is realized. */
+	x_screen_t *  screen ;
+
+	/*
+	 * Not NULL until finalized. term->pty is NULL until pty is forked or
+	 * inherited from parent.
+	 */
+	ml_term_t *  term ;
 
 #if  VTE_CHECK_VERSION(0,26,0)
 	VtePty *  pty ;
@@ -1385,7 +1391,8 @@ init_screen(
 	/*
 	 * XXX
 	 * terminal->pvt->term is specified to x_screen_new in order to set
-	 * x_window_t::width and height property, but screen->term is NULL until pty is forked.
+	 * x_window_t::width and height property, but screen->term is NULL
+	 * until widget is realized.
 	 */
 	terminal->pvt->screen = x_screen_new( terminal->pvt->term , font_man , color_man ,
 			x_termcap_get_entry( &termcap , main_config.term_type) ,
@@ -1401,6 +1408,8 @@ init_screen(
 			main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
 			main_config.input_method , main_config.allow_osc52) ;
+	/* XXX override margin */
+	terminal->pvt->screen->window.margin = WINDOW_MARGIN ;
 	if( terminal->pvt->term)
 	{
 		ml_term_detach( terminal->pvt->term) ;
@@ -2993,6 +3002,7 @@ vte_terminal_paste_primary(
 	VteTerminal *  terminal
 	)
 {
+	vte_terminal_paste_clipboard( terminal) ;
 }
 
 void
@@ -4236,15 +4246,15 @@ vte_terminal_get_char_ascent(
 	return  terminal->char_ascent ;
 }
 
-void
-vte_terminal_set_font_full(
+static void
+set_anti_alias(
 	VteTerminal *  terminal ,
-	const PangoFontDescription *  font_desc ,
 	VteTerminalAntiAlias  antialias
 	)
 {
 	char *  value ;
-	
+	int  term_is_null ;
+
 	if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
 		value = "true" ;
@@ -4255,12 +4265,40 @@ vte_terminal_set_font_full(
 	}
 	else
 	{
-		goto  set_font ;
+		return ;
 	}
-	
+
+	/*
+	 * XXX
+	 * Hack for the case of calling this function before fork pty because
+	 * change_font_present() in x_screen.c calls ml_term_get_vertical_mode().
+	 */
+	if( terminal->pvt->screen->term == NULL)
+	{
+		terminal->pvt->screen->term = terminal->pvt->term ;
+		term_is_null = 1 ;
+	}
+	else
+	{
+		term_is_null = 0 ;
+	}
+
 	x_screen_set_config( terminal->pvt->screen , NULL , "use_anti_alias" , value) ;
 
-set_font:
+	if( term_is_null)
+	{
+		terminal->pvt->screen->term = NULL ;
+	}
+}
+
+void
+vte_terminal_set_font_full(
+	VteTerminal *  terminal ,
+	const PangoFontDescription *  font_desc ,
+	VteTerminalAntiAlias  antialias
+	)
+{
+	set_anti_alias( terminal , antialias) ;
 	vte_terminal_set_font( terminal , font_desc) ;
 }
 
@@ -4271,24 +4309,7 @@ vte_terminal_set_font_from_string_full(
 	VteTerminalAntiAlias  antialias
 	)
 {
-	char *  value ;
-	
-	if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
-	{
-		value = "true" ;
-	}
-	else if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
-	{
-		value = "false" ;
-	}
-	else
-	{
-		goto  set_font ;
-	}
-	
-	x_screen_set_config( terminal->pvt->screen , NULL , "use_anti_alias" , value) ;
-
-set_font:
+	set_anti_alias( terminal , antialias) ;
 	vte_terminal_set_font_from_string( terminal , name) ;
 }
 

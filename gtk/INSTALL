@@ -64,7 +64,6 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_feed_child
     - vte_terminal_feed_child_binary
     - vte_terminal_copy_primary
-    - vte_terminal_paste_primary
     - vte_terminal_set_scroll_background
     - vte_terminal_set_scroll_on_output
     - vte_terminal_set_scroll_on_keystroke
@@ -155,9 +154,6 @@ How to build & install libvte compatible library using mlterm engine.
       "word-chars"
       "visible-bell"
 
-    - style property
-      "inner-border"
-
 * Tested terminals using vte.
   o gnome-terminal 3.0.1 on Ubuntu 11.10        ... OK
   o gnome-terminal 2.32.0 on Ubuntu 10.10	... OK
@@ -167,6 +163,8 @@ How to build & install libvte compatible library using mlterm engine.
   o roxterm 1.18.5 on NetBSD 3.0.1		... OK
   o synaptic 0.63.1 on Ubuntu 10.10		... OK
   o gtkterm2 0.2.3 on NetBSD 3.0.1		... OK
+  o evilvte 0.4.8 on Ubuntu 11.10		... OK
   o evilvte 0.4.9pre4 on NetBSD 3.0.1		... OK
   o sakura 2.4.2 on Ubuntu 11.10                ... OK
   o sakura 2.3.8 on Ubuntu 10.10                ... OK
+  o lxterminal 0.1.11 on Ubuntu 11.10		... OK

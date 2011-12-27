@@ -2314,12 +2314,12 @@ x_window_receive_event(
 
 		if( win->window_exposed)
 		{
-			(*win->window_exposed)( win , x , y , width , height) ;
-
 			if( margin_area_exposed)
 			{
 				x_window_clear_margin_area( win) ;
 			}
+
+			(*win->window_exposed)( win , x , y , width , height) ;
 		}
 	#if  0
 		else
@@ -3197,11 +3197,11 @@ x_window_draw_rect_frame(
 {
 	XPoint  points[5] =
 	{
-		{ x1 , y1 } ,
-		{ x1 , y2 } ,
-		{ x2 , y2 } ,
-		{ x2 , y1 } ,
-		{ x1 , y1 } ,
+		{ x1 += win->margin	, y1 += win->margin } ,
+		{ x1			, y2 += win->margin } ,
+		{ x2 += win->margin	, y2 } ,
+		{ x2			, y1 } ,
+		{ x1			, y1 } ,
 	} ;
 
 	restore_fg_color(win) ;

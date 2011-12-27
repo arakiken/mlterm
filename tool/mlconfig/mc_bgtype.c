@@ -157,6 +157,10 @@ mc_bgtype_config_widget_new(void)
     gtk_widget_show(GTK_WIDGET(radio));
     if (bgtype == MC_BG_TRANSPARENT)
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
+#if  GTK_CHECK_VERSION(2,12,0)
+    gtk_widget_set_tooltip_text(radio ,
+	"If you want true translucence, toggle this button off and start mlterm with depth=32.");
+#endif
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);

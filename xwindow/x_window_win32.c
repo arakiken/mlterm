@@ -1807,12 +1807,12 @@ x_window_receive_event(
 				height = ps.rcPaint.bottom - y /* + 1 */ ;
 			}
 
-			(*win->window_exposed)( win, x, y, width, height) ;
-
 			if( margin_area_exposed)
 			{
 				x_window_clear_margin_area( win) ;
 			}
+
+			(*win->window_exposed)( win, x, y, width, height) ;
 
 			EndPaint( win->my_window, &ps) ;
 			x_set_gc( win->gc, None) ;
@@ -2731,7 +2731,8 @@ x_window_draw_rect_frame(
 	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color.pixel))) ;
 	x_release_brush( x_gc_set_brush( win->gc, GetStockObject(NULL_BRUSH))) ;
 	
-	Rectangle( win->gc->gc, x1, y1, x2, y2) ;
+	Rectangle( win->gc->gc, x1 + win->margin , y1 + win->margin ,
+			x2 + win->margin , y2 + win->margin) ;
 
 	return  1 ;
 }

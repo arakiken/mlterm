@@ -1,3 +1,18 @@
+2011-12-28  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.c, x_window_win32.c: window->exposed() is called after
+	  x_window_clear_margin_area() when window is exposed, because
+	  border of x_im_candidate_screen and x_im_status_screen is erased.
+
+	* gtk/INSTALL: Updated.
+
+	* gtk/vte.c:
+	  - vte_terminal_paste_primary() is implemented.
+	  - If vte_terminal_set_font_(string_)full is called before widget is
+	    realized, dummy terminal->pvt->screen->term is set to avoid segfault.
+	  - The value of WINDOW_MARGIN is changed from 2 to 1 because lxterminal-0.1.11
+	    always regards the value of inner-border property as 1.
+
 2011-12-24  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, ReleaseNote, gtk/INSTALL: Updated.

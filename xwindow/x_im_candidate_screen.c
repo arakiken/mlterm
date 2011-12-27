@@ -234,13 +234,6 @@ draw_screen_vertical(
 	x_window_resize( &cand_screen->window , win_width , win_height , 0) ;
 
 	/*
-	 * draw border
-	 */
-	x_window_draw_rect_frame( &cand_screen->window , 0 , 0 ,
-				  win_width + MARGIN*2 - 1 ,
-				  win_height + MARGIN*2 - 1);
-
-	/*
 	 * digits and candidates
 	 */
 
@@ -374,6 +367,12 @@ draw_screen_vertical(
 				    0 , 0) ;
 		}
 	}
+
+	/*
+	 * draw border
+	 */
+	x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
+				  win_width + MARGIN - 1 , win_height + MARGIN - 1);
 }
 
 static void
@@ -418,13 +417,6 @@ draw_screen_horizontal(
 	win_height = xfont->height + LINE_SPACE ;
 
 	x_window_resize( &cand_screen->window , win_width , win_height , 0) ;
-
-	/*
-	 * draw border
-	 */
-	x_window_draw_rect_frame( &cand_screen->window , 0 , 0 ,
-				  win_width + MARGIN*2 - 1 ,
-				  win_height + MARGIN*2 - 1);
 
 	for( i = top ; i <= last; i++)
 	{
@@ -495,6 +487,12 @@ draw_screen_horizontal(
 				xfont->width , win_height - 2) ;
 		x += xfont->width ;
 	}
+
+	/*
+	 * draw border
+	 */
+	x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
+				  win_width + MARGIN - 1 , win_height + MARGIN - 1);
 }
 
 static void
@@ -939,11 +937,7 @@ button_pressed(
 		return ;
 	}
 
-	draw_screen( cand_screen) ;
-
 	(*cand_screen->listener.selected)( cand_screen->listener.self , index) ;
-
-
 }
 
 
