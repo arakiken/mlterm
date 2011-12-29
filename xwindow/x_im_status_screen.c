@@ -61,13 +61,6 @@ draw_screen(
 			   xfont->height_to_baseline + LINE_SPACE / 2 ,
 			   LINE_SPACE / 2 ,
 			   LINE_SPACE / 2 + LINE_SPACE % 2) ;
-
-	/*
-	 * draw border
-	 */
-	x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
-				  width + MARGIN - 1 ,
-				  xfont->height + LINE_SPACE + MARGIN - 1);
 }
 
 
@@ -273,6 +266,11 @@ window_exposed(
 	)
 {
 	draw_screen( (x_im_status_screen_t *) win) ;
+
+	/* draw border */
+	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
+				  win->width + MARGIN - 1 ,
+				  win->height + MARGIN - 1);
 }
 
 static void

@@ -1,3 +1,17 @@
+2011-12-29  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.c, x_window_win32.c:
+	  - x_window_clear_margin_area() is called not after but before
+	    win->window_exposed().
+	  - x_window_clear() doesn't clear margin area in order to suppress flickering
+	    of im_{candidate|status}_screen.
+
+	* x_draw_str.c:
+	  - Characters outside the right end of screen aren't drawn.
+
+	* x_im_{status|candidate}_screen.c:
+	  x_window_draw_rect_frame() is called in window_exposed(), not in draw_screen().
+
 2011-12-28  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c, x_window_win32.c: window->exposed() is called after

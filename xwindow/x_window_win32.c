@@ -1403,6 +1403,7 @@ x_window_clear(
 {
 	RECT  r ;
 
+#ifdef  AUTO_CLEAR_MARGIN
 	if( x + width >= win->width)
 	{
 		/* Clearing margin area */
@@ -1410,9 +1411,11 @@ x_window_clear(
 	}
 
 	if( x > 0)
+#endif
 	{
 		x += win->margin ;
 	}
+#ifdef  AUTO_CLEAR_MARGIN
 	else
 	{
 		/* Clearing margin area */
@@ -1426,14 +1429,17 @@ x_window_clear(
 	}
 
 	if( y > 0)
+#endif
 	{
 		y += win->margin ;
 	}
+#ifdef  AUTO_CLEAR_MARGIN
 	else
 	{
 		/* Clearing margin area */
 		height += win->margin ;
 	}
+#endif
 
 	r.left = x ;
 	r.top = y ;

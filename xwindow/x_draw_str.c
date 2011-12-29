@@ -126,16 +126,6 @@ fc_draw_str(
 	int  draw_count = 0 ;
 #endif
 
-	if( x > window->width || y + height > window->height)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" ,
-			x , y , height) ;
-	#endif
-
-		return  0 ;
-	}
-
 	if( num_of_chars == 0)
 	{
 	#ifdef	__DEBUG
@@ -147,9 +137,6 @@ fc_draw_str(
 
 	start_draw = 0 ;
 	end_of_str = 0 ;
-
-	x = x ;
-	y = y ;
 
 	count = 0 ;
 
@@ -173,7 +160,18 @@ fc_draw_str(
 	xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
 
 	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
-	current_width = x + ch_width ;
+
+	if( ( current_width = x + ch_width) > window->width ||
+	    y + height > window->height)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" draw string outside screen. (x %d w %d y %d h %d)\n" ,
+			x , ch_width , y , height) ;
+	#endif
+
+		return  0 ;
+	}
 
 	fg_color = ml_char_fg_color( &chars[count]) ;
 	bg_color = ml_char_bg_color( &chars[count]) ;
@@ -260,7 +258,8 @@ fc_draw_str(
 				next_state = 2 ;
 			}
 
-			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
+			next_ch_width = x_calculate_char_width( next_xfont ,
+						ch_bytes , ch_size , ch_cs) ;
 
 			if( current_width + next_ch_width > window->width)
 			{
@@ -612,19 +611,9 @@ xcore_draw_str(
 	int  draw_count = 0 ;
 #endif
 
-	if( x > window->width || y + height > window->height)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" ,
-			x , y , height) ;
-	#endif
-
-		return  0 ;
-	}
-
 	if( num_of_chars == 0)
 	{
-	#ifdef	__DEBUG
+	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " input chars length is 0(x_window_draw_str).\n") ;
 	#endif
 
@@ -636,12 +625,25 @@ xcore_draw_str(
 	start_draw = 0 ;
 	end_of_str = 0 ;
 
-	x = x ;
-	y = y ;
-
 	ch_bytes = ml_char_bytes( &chars[count]) ;
 	ch_size = ml_char_size( &chars[count]) ;
 	ch_cs = ml_char_cs( &chars[count]) ;
+
+	xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
+
+	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
+
+	if( ( current_width = x + ch_width) > window->width ||
+	    y + height > window->height)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" draw string outside screen. (x %d w %d y %d h %d)\n" ,
+			x , ch_width , y , height) ;
+	#endif
+
+		return  0 ;
+	}
 
 	if( ch_cs == DEC_SPECIAL)
 	{
@@ -655,11 +657,6 @@ xcore_draw_str(
 	{
 		state = 2 ;
 	}
-
-	xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
-
-	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
-	current_width = x + ch_width ;
 
 	fg_color = ml_char_fg_color( &chars[count]) ;
 	bg_color = ml_char_bg_color( &chars[count]) ;
@@ -752,7 +749,8 @@ xcore_draw_str(
 				next_state = 2 ;
 			}
 
-			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
+			next_ch_width = x_calculate_char_width( next_xfont ,
+						ch_bytes , ch_size , ch_cs) ;
 
 			if( current_width + next_ch_width > window->width)
 			{
@@ -1034,4 +1032,3 @@ x_draw_str_to_eol(
 
 	return	1 ;
 }
-

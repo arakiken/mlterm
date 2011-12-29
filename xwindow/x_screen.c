@@ -871,8 +871,6 @@ redraw_screen(
 	int  count ;
 	ml_line_t *  line ;
 	int  y ;
-	int  end_y ;
-	int  beg_y ;
 
 	flush_scroll_cache( screen , 1) ;
 
@@ -900,13 +898,12 @@ redraw_screen(
 	kik_debug_printf( KIK_DEBUG_TAG " redrawing -> line %d\n" , count) ;
 #endif
 
-	beg_y = end_y = y = convert_row_to_y( screen , count) ;
+	y = convert_row_to_y( screen , count) ;
 
 	draw_line( screen , line , y) ;
 
 	count ++ ;
 	y += x_line_height( screen) ;
-	end_y = y ;
 
 	while( ( line = ml_term_get_line_in_screen( screen->term , count)) != NULL)
 	{
@@ -917,25 +914,17 @@ redraw_screen(
 		#endif
 
 			draw_line( screen , line , y) ;
-
-			y += x_line_height( screen) ;
-			end_y = y ;
 		}
+	#ifdef  __DEBUG
 		else
 		{
-		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " not redrawing -> line %d\n" , count) ;
-		#endif
-
-			y += x_line_height( screen) ;
 		}
-
+	#endif
+		
+		y += x_line_height( screen) ;
 		count ++ ;
 	}
-
-#if  0
-	x_window_clear_margin_area( &screen->window) ;
-#endif
 
 	ml_term_updated_all( screen->term) ;
 

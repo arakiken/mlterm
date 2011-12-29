@@ -367,12 +367,6 @@ draw_screen_vertical(
 				    0 , 0) ;
 		}
 	}
-
-	/*
-	 * draw border
-	 */
-	x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
-				  win_width + MARGIN - 1 , win_height + MARGIN - 1);
 }
 
 static void
@@ -487,12 +481,6 @@ draw_screen_horizontal(
 				xfont->width , win_height - 2) ;
 		x += xfont->width ;
 	}
-
-	/*
-	 * draw border
-	 */
-	x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
-				  win_width + MARGIN - 1 , win_height + MARGIN - 1);
 }
 
 static void
@@ -881,6 +869,11 @@ window_exposed(
 	)
 {
 	draw_screen( (x_im_candidate_screen_t *) win) ;
+
+	/* draw border */
+	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
+				  win->width + MARGIN - 1 ,
+				  win->height + MARGIN - 1);
 }
 
 static void
