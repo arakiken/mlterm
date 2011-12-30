@@ -120,7 +120,7 @@ struct _VteTerminalPrivate
 	 */
 	int8_t  audible_bell ;
 	int8_t  visible_bell ;
-
+	
 	GIOChannel *  io ;
 	guint  src_id ;
 
@@ -1038,8 +1038,20 @@ toplevel_configure(
 
 	if( terminal->pvt->screen->window.is_transparent)
 	{
-		x_window_set_transparent( &terminal->pvt->screen->window ,
-			x_screen_get_picture_modifier( terminal->pvt->screen)) ;
+		XEvent  ev ;
+
+		if( ! XCheckTypedWindowEvent( disp.display ,
+				gdk_x11_drawable_get_xid( gtk_widget_get_window(
+					gtk_widget_get_toplevel( GTK_WIDGET(terminal)))) ,
+				ConfigureNotify , &ev))
+		{
+			x_window_set_transparent( &terminal->pvt->screen->window ,
+				x_screen_get_picture_modifier( terminal->pvt->screen)) ;
+		}
+		else
+		{
+			XPutBackEvent( disp.display , &ev) ;
+		}
 	}
 
 	return  FALSE ;
