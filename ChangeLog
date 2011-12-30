@@ -1,3 +1,8 @@
+2011-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* configure, configure.in: Fixed SF Bug #3464878.
+	  (Thanks to Daniel Lublin)
+
 2011-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: If ConfigureNotify events are queued or not is checked in

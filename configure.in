@@ -249,6 +249,25 @@ AC_SUBST(GDK_PIXBUF_LIBS)
 AC_SUBST(IMAGELIB_CFLAGS)
 AC_SUBST(IMAGELIB_LIBS)
 
+# XXX For pow in libm.so which is used in x_imagelib.c
+for ml_cv_lib_path in /lib /usr/lib `echo $LIBRARY_PATH | tr ":" " "` ; do
+	libm_files=`ls $ml_cv_lib_path/libm\\.so $ml_cv_lib_path/libm\\.sl 2> /dev/null`
+	for libm_file in $libm_files ; do
+		libm_dynamic_symbol_found=`$NM -D $libm_file | $GREP pow`
+	done
+done
+if test -z "$IMAGELIB_LIBS" ; then
+	if test -n "$libm_dynamic_symbol_found" ; then
+		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
+	else
+		AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
+	fi
+else
+	AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
+fi
+AC_SUBST(MATH_LIBS)
+AC_SUBST(MATH_CFLAGS)
+
 
 if test "$gui" = "win32" ; then
 	WIN32TAG="_win32"
@@ -266,23 +285,6 @@ else
 	LDFLAGS="$ldflags" CFLAGS="$cflags"
 	AC_SUBST(XUTF8_CFLAGS)
 fi
-
-# XXX For pow in libm.so which is used in x_imagelib.c
-for ml_cv_lib_path in /lib /usr/lib `echo $LIBRARY_PATH | tr ":" " "` ; do
-	libm_files=`ls $ml_cv_lib_path/libm\\.so $ml_cv_lib_path/libm\\.sl 2> /dev/null`
-	for libm_file in $libm_files ; do
-		libm_dynamic_symbol_found=`$NM -D $libm_file | $GREP pow`
-	done
-done
-if test -z "$IMAGELIB_LIBS" ; then
-	if test -n "$libm_dynamic_symbol_found" ; then
-		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
-	else
-		AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
-	fi
-fi
-AC_SUBST(MATH_LIBS)
-AC_SUBST(MATH_CFLAGS)
 
 AC_CHECK_HEADER(regex.h,REGEX_CFLAGS="-DHAVE_REGEX")
 AC_SUBST(REGEX_CFLAGS)
