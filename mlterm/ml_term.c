@@ -38,7 +38,7 @@ ml_term_new(
 {
 	ml_term_t *  term ;
 
-	if( ( term = malloc( sizeof( ml_term_t))) == NULL)
+	if( ( term = calloc( 1 , sizeof( ml_term_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -46,9 +46,6 @@ ml_term_new(
 	
 		return  NULL ;
 	}
-
-	term->pty = NULL ;
-	term->pty_listener = NULL ;
 
 	if( ( term->screen = ml_screen_new( cols , rows ,
 				tab_size , log_size , use_bce , bs_mode)) == NULL)
@@ -79,7 +76,6 @@ ml_term_new(
 		goto  error ;
 	}
 
-	term->shape = NULL ;
 	term->vertical_mode = vertical_mode ;
 	term->bidi_mode = bidi_mode ;
 	term->use_bidi = use_bidi ;
@@ -87,12 +83,6 @@ ml_term_new(
 	term->use_dynamic_comb = use_dynamic_comb ;
 
 	term->is_auto_encoding = is_auto_encoding ;
-
-	term->win_name = NULL ;
-	term->icon_name = NULL ;
-	term->icon_path = NULL ;
-
-	term->is_attached = 0 ;
 
 	return  term ;
 

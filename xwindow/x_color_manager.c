@@ -81,16 +81,14 @@ x_color_manager_new(
 	char *  cursor_bg_color	  /* can be NULL(If NULL, use reversed one of the char color.) */
 	)
 {
-	int  count ;
 	x_color_manager_t *  color_man ;
 
-	if( ( color_man = malloc( sizeof( x_color_manager_t))) == NULL)
+	if( ( color_man = calloc( 1 , sizeof( x_color_manager_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	if( ( color_man->color_cache = x_acquire_color_cache( disp , color_config , 100))
-					== NULL)
+	if( ! ( color_man->color_cache = x_acquire_color_cache( disp , color_config , 100)))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
@@ -100,8 +98,6 @@ x_color_manager_new(
 		
 		return  NULL ;
 	}
-
-	color_man->alt_color_cache = NULL ;
 
 	if( fg_color == NULL)
 	{
@@ -120,29 +116,14 @@ x_color_manager_new(
 	{
 		color_man->sys_colors[_CUR_FG_COLOR].name = strdup( cursor_fg_color) ;
 	}
-	else
-	{
-		color_man->sys_colors[_CUR_FG_COLOR].name = NULL ;
-	}
 	
 	if( cursor_bg_color)
 	{
 		color_man->sys_colors[_CUR_BG_COLOR].name = strdup( cursor_bg_color) ;
 	}
-	else
-	{
-		color_man->sys_colors[_CUR_BG_COLOR].name = NULL ;
-	}
-
-	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
-	{
-		color_man->sys_colors[count].is_loaded = 0 ;
-	}
 
 	color_man->alpha = 0xff ;
 	
-	color_man->is_reversed = 0 ;
-		
 	return  color_man ;
 }
 

@@ -7038,7 +7038,7 @@ x_screen_new(
 {
 	x_screen_t *  screen ;
 
-	if( ( screen = malloc( sizeof( x_screen_t))) == NULL)
+	if( ( screen = calloc( 1 , sizeof( x_screen_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -7048,18 +7048,8 @@ x_screen_new(
 	}
 
 	screen->line_space = line_space ;
-
-	/* NULL initialization here for error: processing. */
-	screen->utf_parser = NULL ;
-	screen->xct_parser = NULL ;
-	screen->ml_str_parser = NULL ;
-	screen->utf_conv = NULL ;
-	screen->xct_conv = NULL ;
-
 	screen->use_vertical_cursor = use_vertical_cursor ;
-
 	screen->font_man = font_man ;
-
 	screen->color_man = color_man ;
 
 	screen->sel_listener.self = screen ;
@@ -7080,19 +7070,11 @@ x_screen_new(
 	{
 		screen->pic_file_path = strdup( pic_file_path) ;
 	}
-	else
-	{
-		screen->pic_file_path = NULL ;
-	}
-	
+
 	screen->pic_mod.brightness = brightness ;
 	screen->pic_mod.contrast = contrast ;
 	screen->pic_mod.gamma = gamma ;
-	if( alpha == 255 && ( pic_file_path || use_transbg))
-	{
-		screen->pic_mod.alpha = 0 ;
-	}
-	else
+	if( alpha != 255 || ( ! pic_file_path && ! use_transbg))
 	{
 		screen->pic_mod.alpha = alpha ;
 	}
@@ -7108,10 +7090,6 @@ x_screen_new(
 
 	/* Be sure to use alpha here instead of screen->pic_mod.alpha which was modified above. */
 	x_color_manager_change_alpha( color_man , alpha) ;
-
-	screen->bg_pic = NULL ;
-
-	screen->icon = NULL ;
 
 	screen->fade_ratio = fade_ratio ;
 
@@ -7190,12 +7168,6 @@ x_screen_new(
 	{
 		screen->input_method = strdup( input_method) ;
 	}
-	else
-	{
-		screen->input_method = NULL ;
-	}
-
-	screen->im = NULL ;
 
 	screen->im_listener.self = screen ;
 	screen->im_listener.get_spot = get_im_spot ;
@@ -7208,10 +7180,6 @@ x_screen_new(
 	screen->im_listener.get_display = get_display ;
 	screen->im_listener.get_font_man = get_font_man ;
 	screen->im_listener.get_color_man = get_color_man ;
-
-	screen->is_preediting = 0 ;
-	screen->im_preedit_beg_row = 0 ;
-	screen->im_preedit_end_row = 0 ;
 
 	x_window_set_cursor( &screen->window , XC_xterm) ;
 
@@ -7256,27 +7224,15 @@ x_screen_new(
 	{
 		screen->conf_menu_path_1 = strdup( conf_menu_path_1) ;
 	}
-	else
-	{
-		screen->conf_menu_path_1 = NULL ;
-	}
 
 	if( conf_menu_path_2)
 	{
 		screen->conf_menu_path_2 = strdup( conf_menu_path_2) ;
 	}
-	else
-	{
-		screen->conf_menu_path_2 = NULL ;
-	}
 
 	if( conf_menu_path_3)
 	{
 		screen->conf_menu_path_3 = strdup( conf_menu_path_3) ;
-	}
-	else
-	{
-		screen->conf_menu_path_3 = NULL ;
 	}
 
 	screen->shortcut = shortcut ;
@@ -7286,20 +7242,14 @@ x_screen_new(
 	{
 		screen->mod_meta_key = strdup( mod_meta_key) ;
 	}
-	else
-	{
-		screen->mod_meta_key = NULL ;
-	}
+
 	screen->mod_meta_mode = mod_meta_mode ;
 	screen->mod_meta_mask = 0 ;		/* set later in get_mod_meta_mask() */
 	screen->mod_ignore_mask = ~0 ;		/* set later in get_mod_ignore_mask() */
 
 	screen->bel_mode = bel_mode ;
-
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
-
 	screen->borderless = override_redirect ;
-
 	screen->font_or_color_config_updated = 0 ;
 
 	/*
@@ -7368,15 +7318,6 @@ x_screen_new(
 #endif
 
 	screen->receive_string_via_ucs = receive_string_via_ucs ;
-
-	screen->system_listener = NULL ;
-	screen->screen_scroll_listener = NULL ;
-
-	screen->scroll_cache_rows = 0 ;
-	screen->scroll_cache_boundary_start = 0 ;
-	screen->scroll_cache_boundary_end = 0 ;
-
-	memset( screen->prev_mouse_report_seq , 0 , 3) ;
 
 	return  screen ;
 

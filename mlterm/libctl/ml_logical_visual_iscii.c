@@ -339,22 +339,11 @@ ml_logvis_iscii_new(void)
 {
 	iscii_logical_visual_t *  iscii_logvis ;
 
-	if( ( iscii_logvis = malloc( sizeof( iscii_logical_visual_t))) == NULL)
+	if( ( iscii_logvis = calloc( 1 , sizeof( iscii_logical_visual_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	iscii_logvis->logical_lines = NULL ;
-	iscii_logvis->cursor_logical_char_index = 0 ;
-	iscii_logvis->cursor_logical_col = 0 ;
-
-	iscii_logvis->logvis.model = NULL ;
-	iscii_logvis->logvis.cursor = NULL ;
-	iscii_logvis->logvis.is_visual = 0 ;
-	
-	iscii_logvis->logical_num_of_cols = 0 ;
-	iscii_logvis->logical_num_of_rows = 0 ;
-	
 	iscii_logvis->logvis.delete = iscii_delete ;
 	iscii_logvis->logvis.init = iscii_init ;
 	iscii_logvis->logvis.logical_cols = iscii_logical_cols ;
@@ -363,8 +352,6 @@ ml_logvis_iscii_new(void)
 	iscii_logvis->logvis.visual = iscii_visual ;
 	iscii_logvis->logvis.logical = iscii_logical ;
 	iscii_logvis->logvis.visual_line = iscii_visual_line ;
-
-	iscii_logvis->logvis.is_reversible = 0 ;
 
 	return  (ml_logical_visual_t*) iscii_logvis ;
 }

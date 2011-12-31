@@ -139,17 +139,7 @@ x_display_open(
 		return  NULL ;
 	}
 
-	_disp.screen = 0 ;
-	_disp.name = NULL ;
-	
-	_disp.my_window = None ;
-
 	_disp.depth = 24 ;
-
-	_disp.roots = NULL ;
-	_disp.num_of_roots = 0 ;
-
-	_disp.selection_owner = NULL ;
 
 #ifdef  USE_WIN32API
 	fd = -1 ;
@@ -167,8 +157,6 @@ x_display_open(
 		return  NULL ;
 	}
 
-	memset( &_disp.modmap , 0 , sizeof( _disp.modmap)) ;
-	
 	x_gdiobj_pool_init() ;
 
 #ifndef  USE_WIN32API

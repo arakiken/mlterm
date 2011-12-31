@@ -846,17 +846,10 @@ ml_logvis_container_new(void)
 {
 	container_logical_visual_t *  container ;
 
-	if( ( container = malloc( sizeof( container_logical_visual_t))) == NULL)
+	if( ( container = calloc( 1 , sizeof( container_logical_visual_t))) == NULL)
 	{
 		return  NULL ;
 	}
-
-	container->children = NULL ;
-	container->num_of_children = 0 ;
-	
-	container->logvis.model = NULL ;
-	container->logvis.cursor = NULL ;
-	container->logvis.is_visual = 0 ;
 
 	container->logvis.delete = container_delete ;
 	container->logvis.init = container_init ;
@@ -906,17 +899,10 @@ ml_logvis_comb_new(void)
 {
 	comb_logical_visual_t *  comb_logvis ;
 
-	if( ( comb_logvis = malloc( sizeof( comb_logical_visual_t))) == NULL)
+	if( ( comb_logvis = calloc( 1 , sizeof( comb_logical_visual_t))) == NULL)
 	{
 		return  NULL ;
 	}
-	
-	comb_logvis->cursor_logical_char_index = 0 ;
-	comb_logvis->cursor_logical_col = 0 ;
-
-	comb_logvis->logvis.model = NULL ;
-	comb_logvis->logvis.cursor = NULL ;
-	comb_logvis->logvis.is_visual = 0 ;
 	
 	comb_logvis->logvis.delete = comb_delete ;
 	comb_logvis->logvis.init = comb_init ;
@@ -944,20 +930,10 @@ ml_logvis_vert_new(
 		return  NULL ;
 	}
 
-	if( ( vert_logvis = malloc( sizeof( vert_logical_visual_t))) == NULL)
+	if( ( vert_logvis = calloc( 1 , sizeof( vert_logical_visual_t))) == NULL)
 	{
 		return  NULL ;
 	}
-
-	vert_logvis->is_init = 0 ;
-	
-	vert_logvis->cursor_logical_char_index = 0 ;
-	vert_logvis->cursor_logical_col = 0 ;
-	vert_logvis->cursor_logical_row = 0 ;
-
-	vert_logvis->logvis.model = NULL ;
-	vert_logvis->logvis.cursor = NULL ;
-	vert_logvis->logvis.is_visual = 0 ;
 
 	vert_logvis->logvis.delete = vert_delete ;
 	vert_logvis->logvis.init = vert_init ;
@@ -967,8 +943,6 @@ ml_logvis_vert_new(
 	vert_logvis->logvis.logical = vert_logical ;
 	vert_logvis->logvis.visual_line = vert_visual_line ;
 
-	vert_logvis->logvis.is_reversible = 0 ;
-	
 	if( vertical_mode == VERT_RTL)
 	{
 		/*

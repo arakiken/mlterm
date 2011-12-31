@@ -236,16 +236,12 @@ x_acquire_color_cache(
 
 	color_caches = p ;
 
-	if( ( color_cache = malloc( sizeof( x_color_cache_t))) == NULL)
+	if( ( color_cache = calloc( 1 , sizeof( x_color_cache_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	memset( color_cache->xcolors , 0 , sizeof( color_cache->xcolors)) ;
-	memset( color_cache->is_loaded , 0 , sizeof( color_cache->is_loaded)) ;
-
 	color_cache->disp = disp ;
-	color_cache->cache_256 = NULL ;
 
 	color_cache->color_config = color_config ;
 	color_cache->fade_ratio = fade_ratio ;

@@ -739,43 +739,19 @@ x_window_init(
 	int  create_gc	/* ignored */
 	)
 {
-	/*
-	 * these values are set later
-	 */
-
-	win->parent_window = None ;
-	win->my_window = None ;
+	memset( win , 0 , sizeof( x_window_t)) ;
 
 	win->fg_color.pixel = 0xff000000 ;
 	win->bg_color.pixel = 0xffffffff ;
 
-	win->parent = NULL ;
-	win->children = NULL ;
-	win->num_of_children = 0 ;
-
-	win->pic_mod = NULL ;
-
-	win->wall_picture = None ;
-	win->is_transparent = 0 ;
-
-	win->cursor_shape = 0 ;
-
-	win->event_mask = 0 ;
-
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
-
-	win->is_focused = 0 ;
 
 	/* This flag will map window automatically in x_window_show(). */
 	win->is_mapped = 1 ;
 
-	win->is_sel_owner = 0 ;
-
 	win->create_gc = create_gc ;
 
-	win->x = 0 ;
-	win->y = 0 ;
 	win->width = width ;
 	win->height = height ;
 	win->min_width = min_width ;
@@ -786,48 +762,15 @@ x_window_init(
 	win->height_inc = height_inc ;
 	win->margin = margin ;
 
-	win->xim = NULL ;
-	win->xim_listener = NULL ;
-	
-	win->xic = NULL ;
-
 	/* Not freed explicitly. Expect to be freed on process exited. */
 	if( ! m_cp_parser && ( m_cp_parser = mkf_codepoint_parser_new()) == NULL)
 	{
 		return  0 ;
 	}
 
-	win->update_window_flag = 0 ;
-
-	win->prev_clicked_time = 0 ;
 	win->prev_clicked_button = -1 ;
-	win->click_num = 0 ;
-	win->button_is_pressing = 0 ;
-	win->dnd = NULL ;
-	win->app_name = __("mlterm") ;
 
-	win->window_realized = NULL ;
-	win->window_finalized = NULL ;
-	win->window_exposed = NULL ;
-	win->update_window = NULL ;
-	win->window_focused = NULL ;
-	win->window_unfocused = NULL ;
-	win->key_pressed = NULL ;
-	win->pointer_motion = NULL ;
-	win->button_motion = NULL ;
-	win->button_released = NULL ;
-	win->button_pressed = NULL ;
-	win->button_press_continued = NULL ;
-	win->window_resized = NULL ;
-	win->child_window_resized = NULL ;
-	win->selection_cleared = NULL ;
-	win->xct_selection_requested = NULL ;
-	win->utf_selection_requested = NULL ;
-	win->xct_selection_notified = NULL ;
-	win->utf_selection_notified = NULL ;
-	win->window_deleted = NULL ;
-	win->mapping_notify = NULL ;
-	win->set_xdnd_config = NULL ;
+	win->app_name = __("mlterm") ;
 
 	return	1 ;
 }

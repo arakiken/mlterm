@@ -101,27 +101,6 @@ error_handler(
 
 #endif
 
-static void
-modmap_init(
-	Display *  display ,
-	x_modifier_mapping_t *  modmap
-	)
-{
-	modmap->serial = 0 ;
-	modmap->map = XGetModifierMapping( display) ;
-}
-
-static void
-modmap_final(
-	x_modifier_mapping_t *  modmap
-	)
-{
-	if( modmap->map)
-	{
-		XFreeModifiermap( modmap->map);
-	}
-}
-
 #ifdef  __CYGWIN__
 
 /*
@@ -160,7 +139,7 @@ open_display(
 	x_display_t *  disp ;
 	XVisualInfo  vinfo ;
 
-	if( ( disp = malloc( sizeof( x_display_t))) == NULL)
+	if( ( disp = calloc( 1 , sizeof( x_display_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -218,14 +197,7 @@ open_display(
 		}
 	}
 
-	disp->roots = NULL ;
-	disp->num_of_roots = 0 ;
-
-	disp->selection_owner = NULL ;
-
-	modmap_init( disp->display, &(disp->modmap)) ;
-
-	memset( disp->cursors , 0 , sizeof( disp->cursors)) ;
+	disp->modmap.map = XGetModifierMapping( disp->display) ;
 
 	default_error_handler = XSetErrorHandler( error_handler) ;
 #ifdef  __DEBUG
@@ -265,7 +237,10 @@ close_display(
 
 	x_gc_delete( disp->gc) ;
 
-	modmap_final( &(disp->modmap)) ;
+	if( disp->modmap.map)
+	{
+		XFreeModifiermap( disp->modmap.map);
+	}
 
 	for( count = 0 ; count < (sizeof(disp->cursors)/sizeof(disp->cursors[0])) ; count++)
 	{
@@ -627,7 +602,11 @@ x_display_update_modifier_mapping(
 {
 	if( serial != disp->modmap.serial)
 	{
-		modmap_final( &(disp->modmap)) ;
+		if( disp->modmap.map)
+		{
+			XFreeModifiermap( disp->modmap.map);
+		}
+
 		disp->modmap.map = XGetModifierMapping( disp->display) ;
 		disp->modmap.serial = serial ;
 	}

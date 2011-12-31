@@ -24,20 +24,14 @@ x_gc_new(
 	XGCValues  gc_value ;
 #endif
 
-	if( ( gc = malloc( sizeof( x_gc_t))) == NULL)
+	if( ( gc = calloc( 1 , sizeof( x_gc_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
 	gc->display = display ;
-	
-	gc->fid = None ;
-	
-#ifdef  USE_WIN32GUI
-	gc->gc = None ;
-	gc->pen = None ;
-	gc->brush = None ;
 
+#ifdef  USE_WIN32GUI
 	/* Default value of GC. */
 	gc->fg_color = RGB(0,0,0) ;
 	gc->bg_color = RGB(0xff,0xff,0xff) ;

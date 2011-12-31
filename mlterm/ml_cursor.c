@@ -74,16 +74,8 @@ ml_cursor_init(
 	ml_model_t *  model
 	)
 {
+	memset( cursor , 0 , sizeof(ml_cursor_t)) ;
 	cursor->model = model ;
-
-	cursor->row = 0 ;
-	cursor->char_index = 0 ;
-	cursor->col = 0 ;
-	cursor->col_in_char = 0 ;
-	cursor->saved_row = 0 ;
-	cursor->saved_char_index = 0 ;
-	cursor->saved_col = 0 ;
-	cursor->is_saved = 0 ;
 	
 	return  1 ;
 }

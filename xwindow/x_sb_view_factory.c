@@ -459,17 +459,12 @@ register_new_view_conf(
 	int  len ;
 	void *  p ;
 
-	if( ( conf = malloc( sizeof( x_sb_view_conf_t))) == NULL)
+	if( ( conf = calloc( 1 , sizeof( x_sb_view_conf_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
 	conf->sb_name = strdup( sb_name) ;
-
-	conf->engine_name = NULL ;
-	conf->rc = NULL ;
-	conf->rc_num = 0 ;
-	conf->use_count = 0 ;
 
 	/* remove "/rc" /foo/bar/name/rc -> /foo/bar/name */
 	len = strlen( rcfile_path) - 3 ;

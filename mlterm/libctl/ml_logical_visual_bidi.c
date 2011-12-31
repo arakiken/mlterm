@@ -285,20 +285,13 @@ ml_logvis_bidi_new(
 {
 	bidi_logical_visual_t *  bidi_logvis ;
 
-	if( ( bidi_logvis = malloc( sizeof( bidi_logical_visual_t))) == NULL)
+	if( ( bidi_logvis = calloc( 1 , sizeof( bidi_logical_visual_t))) == NULL)
 	{
 		return  NULL ;
 	}
 	
-	bidi_logvis->cursor_logical_char_index = 0 ;
-	bidi_logvis->cursor_logical_col = 0 ;
-	bidi_logvis->ltr_rtl_meet_pos = 0 ;
 	bidi_logvis->bidi_mode = bidi_mode ;
 
-	bidi_logvis->logvis.model = NULL ;
-	bidi_logvis->logvis.cursor = NULL ;
-	bidi_logvis->logvis.is_visual = 0 ;
-	
 	bidi_logvis->logvis.delete = bidi_delete ;
 	bidi_logvis->logvis.init = bidi_init ;
 	bidi_logvis->logvis.logical_cols = bidi_logical_cols ;

@@ -1,3 +1,7 @@
+2012-01-01  Araki Ken  <arakiken@users.sf.net>
+
+	* malloc() to create objects is mostly replaced by calloc().
+
 2011-12-31  Araki Ken  <arakiken@users.sf.net>
 
 	* configure, configure.in: Fixed SF Bug #3464878.

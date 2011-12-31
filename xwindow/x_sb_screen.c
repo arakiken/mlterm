@@ -649,7 +649,7 @@ x_sb_screen_new(
 
 	/*
 	 * event callbacks.
-	 */	
+	 */
 	sb_screen->screen_scroll_listener.self = sb_screen ;
 	sb_screen->screen_scroll_listener.bs_mode_entered = NULL ;
 	sb_screen->screen_scroll_listener.bs_mode_exited = bs_mode_exited ;

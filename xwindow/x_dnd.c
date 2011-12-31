@@ -709,15 +709,13 @@ enter(
 		return  FAILURE ;
 	}
 
-	if( !(win->dnd))
-		win->dnd = malloc( sizeof( x_dnd_context_t)) ;
-	if( !(win->dnd))
+	if( ! win->dnd && ! (win->dnd = calloc( 1 , sizeof( x_dnd_context_t))))
+	{
 		return  FAILURE ;
+	}
+
 	win->dnd->source = event->xclient.data.l[0];
 	win->dnd->waiting_atom = to_wait;
-	win->dnd->is_incr = 0 ;
-	win->dnd->parser = NULL ;
-	win->dnd->conv = NULL ;
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "choosed atom:%d  on %p\n",
 			  to_wait, win->dnd) ;

@@ -680,7 +680,7 @@ ml_screen_new(
 {
 	ml_screen_t *  screen ;
 	
-	if( ( screen = malloc( sizeof( ml_screen_t))) == NULL)
+	if( ( screen = calloc( 1 , sizeof( ml_screen_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -688,10 +688,6 @@ ml_screen_new(
 	
 		return  NULL ;
 	}
-	
-	screen->screen_listener = NULL ;
-	
-	screen->logvis = screen->container_logvis = NULL ;
 
 	screen->edit_scroll_listener.self = screen ;
 	screen->edit_scroll_listener.receive_scrolled_out_line = receive_scrolled_out_line ;
@@ -730,13 +726,8 @@ ml_screen_new(
 		goto  error3 ;
 	}
 
-	screen->search = NULL ;
-
-	screen->backscroll_rows = 0 ;
 	screen->backscroll_mode = bs_mode ;
-	screen->is_backscrolling = 0 ;
 
-	screen->use_dynamic_comb = 0 ;
 	screen->is_cursor_visible = 1 ;
 
 	return  screen ;

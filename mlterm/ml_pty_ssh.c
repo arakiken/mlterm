@@ -859,7 +859,7 @@ ml_pty_ssh_new(
 	char *  port ;
 	char *  term ;
 
-	if( ( pty = malloc( sizeof( ml_pty_ssh_t))) == NULL)
+	if( ( pty = calloc( 1 , sizeof( ml_pty_ssh_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -997,15 +997,10 @@ ml_pty_ssh_new(
 	pty->pty.master = pty->session->sock ;
 	pty->pty.slave = -1 ;
 	pty->pty.child_pid = (pid_t) pty->channel ;	/* XXX regarding pid_t as channel */
-	pty->pty.buf = NULL ;
-	pty->pty.left = 0 ;
-	pty->pty.size = 0 ;
 	pty->pty.delete = delete ;
 	pty->pty.set_winsize = set_winsize ;
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;
-	pty->pty.pty_listener = NULL ;
-	pty->pty.stored = NULL ;
 
 	if( ml_set_pty_winsize( &pty->pty , cols , rows) == 0)
 	{

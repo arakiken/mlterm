@@ -3369,36 +3369,23 @@ ml_vt100_parser_new(
 {
 	ml_vt100_parser_t *  vt100_parser ;
 
-	if( ( vt100_parser = malloc( sizeof( ml_vt100_parser_t))) == NULL)
+	if( ( vt100_parser = calloc( 1 , sizeof( ml_vt100_parser_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	vt100_parser->left = 0 ;
-	vt100_parser->len = 0 ;
-
 	ml_str_init( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;	
-	vt100_parser->buffer.len = 0 ;
-	vt100_parser->buffer.last_ch = NULL ;
 	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
 
 	vt100_parser->screen = screen ;
-	vt100_parser->pty = NULL ;
-
-	vt100_parser->xterm_listener = NULL ;
-	vt100_parser->config_listener = NULL ;
 
 	vt100_parser->log_file = -1 ;
 	
 	vt100_parser->cs = UNKNOWN_CS ;
 	vt100_parser->fg_color = ML_FG_COLOR ;
 	vt100_parser->bg_color = ML_BG_COLOR ;
-	vt100_parser->is_bold = 0 ;
-	vt100_parser->is_underlined = 0 ;
-	vt100_parser->is_reversed = 0 ;
 	vt100_parser->use_char_combining = use_char_combining ;
 	vt100_parser->use_multi_col_char = use_multi_col_char ;
-	vt100_parser->logging_vt_seq = 0 ;
 
 	vt100_parser->unicode_policy = policy ;
 
@@ -3416,24 +3403,10 @@ ml_vt100_parser_new(
 
 	vt100_parser->encoding = encoding ;
 
-	vt100_parser->is_dec_special_in_gl = 0 ;
-	vt100_parser->is_so = 0 ;
-	vt100_parser->is_dec_special_in_g0 = 0 ;
 	vt100_parser->is_dec_special_in_g1 = 1 ;
 
 	ml_vt100_parser_set_col_size_of_width_a( vt100_parser , col_size_a) ;
 	
-	vt100_parser->saved_normal.is_saved = 0 ;
-        vt100_parser->saved_alternate.is_saved = 0 ;
-
-	vt100_parser->mouse_mode = 0 ;
-	vt100_parser->is_app_keypad = 0 ;
-	vt100_parser->is_app_cursor_keys = 0 ;
-	vt100_parser->is_app_escape = 0 ;
-	vt100_parser->is_bracketed_paste_mode = 0 ;
-
-	vt100_parser->im_is_active = 0 ;
-
 	return  vt100_parser ;
 
 error:

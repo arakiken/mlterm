@@ -196,7 +196,6 @@ x_im_new(
 	im->preedit.segment_offset = 0 ;
 	im->preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
 
-
 	return  im ;
 }
 

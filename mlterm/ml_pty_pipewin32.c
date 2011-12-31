@@ -631,7 +631,7 @@ ml_pty_pipe_new(
 		CloseHandle( thrd) ;
 	}
 
-	if( ( pty = malloc( sizeof( ml_pty_pipe_t))) == NULL)
+	if( ( pty = calloc( 1 , sizeof( ml_pty_pipe_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -704,9 +704,6 @@ ml_pty_pipe_new(
 		return  NULL ;
 	}
 
-	pty->rd_ch = '\0' ;
-	pty->rd_ready = 0 ;
-
 	snprintf( ev_name, sizeof(ev_name), "PTY_READ_READY%x", (int)pty->child_proc) ;
 	pty->rd_ev = CreateEvent( NULL, FALSE, FALSE, ev_name) ;
 #ifdef  __DEBUG
@@ -716,16 +713,10 @@ ml_pty_pipe_new(
 	pty->pty.master = (int)pty->master_output ;	/* XXX Cast HANDLE => int */
 	pty->pty.slave = (int)pty->slave_stdout ;	/* XXX Cast HANDLE => int */
 	pty->pty.child_pid = (pid_t)pty->child_proc ;	/* Cast HANDLE => pid_t */
-	pty->pty.buf = NULL ;
-	pty->pty.left = 0 ;
-	pty->pty.size = 0 ;
 	pty->pty.delete = delete ;
 	pty->pty.set_winsize = set_winsize ;
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;
-
-	pty->pty.pty_listener = NULL ;
-	pty->pty.stored = NULL ;
 
 	if( set_winsize( &pty->pty , cols , rows) == 0)
 	{
