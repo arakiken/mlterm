@@ -103,7 +103,7 @@ _kik_arg_str_to_array(
 	args_dup = args ;
 	if( ( args = kik_str_alloca_dup( args)) == NULL)
 	{
-		return  0 ;
+		return  NULL ;
 	}
 	
 	p = args_dup ;

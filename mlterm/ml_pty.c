@@ -1,3 +1,4 @@
+
 /*
  *	$Id$
  */
@@ -46,23 +47,34 @@ ml_pty_new(
 	u_int  rows
 	)
 {
+	ml_pty_t *  pty ;
+
 #ifndef  USE_WIN32API
 	if( ! pass)
 	{
-		return  ml_pty_unix_new( cmd_path , cmd_argv , env , host , cols , rows) ;
+		pty = ml_pty_unix_new( cmd_path , cmd_argv , env , host , cols , rows) ;
 	}
 	else
 #endif
 	{
 	#if  defined(USE_LIBSSH2)
-		return  ml_pty_ssh_new( cmd_path , cmd_argv , env , host , pass ,
+		pty = ml_pty_ssh_new( cmd_path , cmd_argv , env , host , pass ,
 				pubkey , privkey , cols , rows) ;
 	#elif  defined(USE_WIN32API)
-		return  ml_pty_pipe_new( cmd_path , cmd_argv , env , host , pass , cols , rows) ;
+		pty = ml_pty_pipe_new( cmd_path , cmd_argv , env , host , pass , cols , rows) ;
 	#else
-		return  NULL ;
+		pty = NULL ;
 	#endif
 	}
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+	if( pty)
+	{
+		pty->is_readable = 1 ;
+	}
+#endif
+
+	return  pty ;
 }
 
 ml_pty_ptr_t
@@ -74,16 +86,27 @@ ml_pty_new_with(
 	u_int  rows
 	)
 {
+	ml_pty_t *  pty ;
+
 #ifndef  USE_WIN32API
 	if( ptsname( master))
 	{
-		return  ml_pty_unix_new_with( master , slave , child_pid , cols , rows) ;
+		pty = ml_pty_unix_new_with( master , slave , child_pid , cols , rows) ;
 	}
 	else
 #endif
 	{
-		return  NULL ;
+		pty = NULL ;
 	}
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+	if( pty)
+	{
+		pty->is_readable = 1 ;
+	}
+#endif
+
+	return  pty ;
 }
 
 int
@@ -91,6 +114,10 @@ ml_pty_delete(
 	ml_pty_t *  pty
 	)
 {
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " ml_pty_delete is called for %p.\n" , pty) ;
+#endif
+
 	if( pty->pty_listener && pty->pty_listener->closed)
 	{
 		(*pty->pty_listener->closed)( pty->pty_listener->self) ;
@@ -105,7 +132,17 @@ ml_pty_delete(
 
 	free( pty->buf) ;
 
-	return  (*pty->delete)( pty) ;
+#ifdef  MULTI_WINDOWS_PER_PTY
+	/* XXX */
+	if( pty->is_readable)
+#endif
+	{
+		(*pty->final)( pty) ;
+	}
+
+	free( pty) ;
+
+	return  1 ;
 }
 
 int
@@ -306,6 +343,13 @@ ml_read_pty(
 {
 	size_t  read_size ;
 
+#ifdef  MULTI_WINDOWS_PER_PTY
+	if( ! pty->is_readable)
+	{
+		return  0 ;
+	}
+#endif
+
 	read_size = 0 ;
 	while( 1)
 	{
@@ -372,3 +416,29 @@ ml_pty_get_slave_name(
 
 	return  uniq_name ;
 }
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+int
+ml_pty_set_readable(
+	ml_pty_t *  pty ,
+	int  is_readable
+	)
+{
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " PTY %s is set %s.\n" ,
+		ml_pty_get_slave_name( pty) , is_readable ? "readable" : "not readable") ;
+#endif
+
+	pty->is_readable = is_readable ;
+
+	return  1 ;
+}
+
+int
+ml_pty_is_readable(
+	ml_pty_t *  pty
+	)
+{
+	return  pty->is_readable ;
+}
+#endif

@@ -16,6 +16,7 @@
 #include  <X11/Xatom.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
+#include  <kiklib/kik_util.h>	/* K_MAX */
 
 #include  "x_xic.h"
 #include  "x_picture.h"
@@ -835,7 +836,7 @@ x_window_final(
 {
 	u_int  count ;
 
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( "[deleting child windows]\n") ;
 	x_window_dump_children( win) ;
 #endif
@@ -2178,11 +2179,95 @@ x_window_receive_event(
 	         ( event->type == GraphicsExpose &&
 		   event->xgraphicsexpose.drawable == win->my_window) )
 	{
+		XEvent  next_ev ;
 		int  x ;
 		int  y ;
 		u_int  width ;
 		u_int  height ;
 		int  margin_area_exposed ;
+	#ifdef  __DEBUG
+		int  nskip = 0 ;
+	#endif
+
+		/* Optimize redrawing. */
+		while( XCheckTypedWindowEvent( win->disp->display , win->my_window ,
+			Expose , &next_ev))
+		{
+			XEvent  ev ;
+			int  diff ;
+
+			ev = *event ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" x %d y %d w %d h %d + x %d y %d w %d h %d ->" ,
+				ev.xexpose.x , ev.xexpose.y ,
+				ev.xexpose.width , ev.xexpose.height ,
+				next_ev.xexpose.x , next_ev.xexpose.y ,
+				next_ev.xexpose.width , next_ev.xexpose.height) ;
+		#endif
+
+			if( ( diff = ev.xexpose.x - next_ev.xexpose.x) > 0)
+			{
+				ev.xexpose.width += diff ;
+				ev.xexpose.x = next_ev.xexpose.x ;
+			}
+
+			if( ( diff = next_ev.xexpose.x + next_ev.xexpose.width -
+			              ev.xexpose.x - ev.xexpose.width) > 0)
+			{
+				ev.xexpose.width += diff ;
+			}
+
+			if( ( diff = ev.xexpose.y - next_ev.xexpose.y) > 0)
+			{
+				ev.xexpose.height += diff ;
+				ev.xexpose.y = next_ev.xexpose.y ;
+			}
+
+			if( ( diff = next_ev.xexpose.y + next_ev.xexpose.height -
+			             ev.xexpose.y - ev.xexpose.height) > 0)
+			{
+				ev.xexpose.height += diff ;
+			}
+
+		#ifdef  __DEBUG
+			kik_msg_printf( " x %d y %d w %d h %d\n" ,
+				ev.xexpose.x , ev.xexpose.y ,
+				ev.xexpose.width , ev.xexpose.height) ;
+		#endif
+
+			/* Minimum character size is regarded as w5 x h10. */
+			if( ( ev.xexpose.width * ev.xexpose.height) / 4  >=
+			    ( K_MAX( event->xexpose.width , 5) *
+			      K_MAX( event->xexpose.height , 10) +
+			      K_MAX( next_ev.xexpose.width , 5) *
+			      K_MAX( next_ev.xexpose.height , 10)) / 3)
+			{
+				/* Redrawing area is increased over 33.3% by this combination. */
+
+			#ifdef  __DEBUG
+				kik_msg_printf( "=> Discard combination of XExposeEvents "
+						"because of inefficiency.\n") ;
+			#endif
+
+				XPutBackEvent( win->disp->display , &next_ev) ;
+
+				break ;
+			}
+			else
+			{
+			#ifdef  __DEBUG
+				nskip ++ ;
+			#endif
+
+				*event = ev ;
+			}
+		}
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " skipped %d expose events.\n" , nskip) ;
+	#endif
 
 		margin_area_exposed = 0 ;
 		

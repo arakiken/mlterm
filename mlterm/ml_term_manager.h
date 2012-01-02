@@ -21,8 +21,6 @@ ml_term_t *  ml_create_term( u_int  cols , u_int  rows , u_int  tab_size , u_int
 
 int  ml_destroy_term( ml_term_t *  term) ;
 
-int  ml_set_auto_restart_cmd( char *  cmd) ;
-
 ml_term_t *  ml_get_term( char *  dev) ;
 
 ml_term_t *  ml_get_detached_term( char *  dev) ;

@@ -117,6 +117,9 @@ ml_term_delete(
 		(*term->shape->delete)( term->shape) ;
 	}
 
+#ifdef  MULTI_WINDOWS_PER_PTY
+	free( term->win_id) ;
+#endif
 	free( term->win_name) ;
 	free( term->icon_name) ;
 	free( term->icon_path) ;
@@ -885,6 +888,20 @@ ml_term_enter_backscroll_mode(
 	
 	return  ml_enter_backscroll_mode( term->screen) ;
 }
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+int
+ml_term_set_window_id(
+	ml_term_t *  term ,
+	char *  id		/* Could be NULL */
+	)
+{
+	free( term->win_id) ;
+	term->win_id = id ? strdup( id) : NULL ;
+
+	return  1 ;
+}
+#endif
 
 int
 ml_term_set_window_name(

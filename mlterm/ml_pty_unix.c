@@ -39,7 +39,7 @@ typedef struct ml_pty_unix
 /* --- static functions --- */
 
 static int
-delete(
+final(
 	ml_pty_t *  pty
 	)
 {
@@ -51,13 +51,11 @@ delete(
 #endif
 
 #ifdef  __DEBUG
-	kik_debug_printf( "%d fd is closed\n" , pty->master) ;
+	kik_debug_printf( "PTY fd %d is closed\n" , pty->master) ;
 #endif
 
 	kik_pty_close( pty->master) ;
 	close( pty->slave) ;
-
-	free( pty) ;
 
 	return  1 ;
 }
@@ -235,7 +233,7 @@ ml_pty_unix_new_with(
 		return  NULL ;
 	}
 
-	pty->delete = delete ;
+	pty->final = final ;
 	pty->set_winsize = set_winsize ;
 	pty->write = write_to_pty ;
 	pty->read = read_pty ;

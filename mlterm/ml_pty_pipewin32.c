@@ -386,7 +386,7 @@ error2:
 }
 
 static int
-delete(
+final(
 	ml_pty_t *  p
 	)
 {
@@ -396,10 +396,6 @@ delete(
 
 	pty = (ml_pty_pipe_t*)p ;
 	
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " ml_pty_delete is called for %p.\n" , pty) ;
-#endif
-
 	/*
 	 * TerminateProcess must be called before CloseHandle.
 	 * If pty->child_proc is not in child_procs, pty->child_proc is already
@@ -448,8 +444,6 @@ delete(
 	CloseHandle( pty->master_input) ;
 	CloseHandle( pty->master_output) ;
 	CloseHandle( pty->rd_ev) ;
-
-	free( pty) ;
 
 	return  1 ;
 }
@@ -713,7 +707,7 @@ ml_pty_pipe_new(
 	pty->pty.master = (int)pty->master_output ;	/* XXX Cast HANDLE => int */
 	pty->pty.slave = (int)pty->slave_stdout ;	/* XXX Cast HANDLE => int */
 	pty->pty.child_pid = (pid_t)pty->child_proc ;	/* Cast HANDLE => pid_t */
-	pty->pty.delete = delete ;
+	pty->pty.final = final ;
 	pty->pty.set_winsize = set_winsize ;
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;

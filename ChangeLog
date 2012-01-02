@@ -1,3 +1,23 @@
+2012-01-03  Araki Ken  <arakiken@users.sf.net>
+
+	* mlcc/main.c:
+	  - Help message is fixed. ("exec" was omited in "mlcc exec [command]")
+	  - 'mlcc exec select_pty /dev/xxx' is available instead of
+	    'mlcc exec "select_pty /dev/xxx"'.
+
+	* x_window.c: Processing Expose events is optimized.
+
+	* x_screen.c: "paste", "open_pty", "select_pty", "open_screen", "snapshot",
+	  "search_next" and "search_prev" of configuration protocol
+	  doesn't keep backward compatibility with mlterm 3.0.10 or before
+	  which accepts '=' like "paste=".
+
+	* ml_pty.[ch], ml_pty_*.c, ml_term.[ch], ml_term_manager.[ch],
+	  ml_vt100_parser.c, x_screen.[ch], x_term_manager.[ch]:
+	  Experimental implementation of multiple windows per one pty is added.
+	  (Open window by OSC 115 and close it by OSC 116.)
+	  (This feature is enabled by MULTI_WINDOWS_PER_PTY macro).
+
 2012-01-01  Araki Ken  <arakiken@users.sf.net>
 
 	* malloc() to create objects is mostly replaced by calloc().

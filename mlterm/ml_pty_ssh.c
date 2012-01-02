@@ -512,7 +512,7 @@ ssh_disconnect(
 }
 
 static int
-delete(
+final(
 	ml_pty_t *  pty
 	)
 {
@@ -520,7 +520,6 @@ delete(
 	libssh2_channel_free( ((ml_pty_ssh_t*)pty)->channel) ;
 	ssh_disconnect( ((ml_pty_ssh_t*)pty)->session) ;
 	libssh2_exit() ;
-	free( pty) ;
 
 	return  1 ;
 }
@@ -997,7 +996,7 @@ ml_pty_ssh_new(
 	pty->pty.master = pty->session->sock ;
 	pty->pty.slave = -1 ;
 	pty->pty.child_pid = (pid_t) pty->channel ;	/* XXX regarding pid_t as channel */
-	pty->pty.delete = delete ;
+	pty->pty.final = final ;
 	pty->pty.set_winsize = set_winsize ;
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;
@@ -1200,7 +1199,7 @@ ml_pty_ssh_scp(
 	/* Note that session is non-block mode in this context. */
 	
 	/* Check if pty is ml_pty_ssh_t or not. */
-	if( pty->delete != delete)
+	if( pty->final != final)
 	{
 		return  0 ;
 	}

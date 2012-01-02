@@ -55,7 +55,7 @@ static void help_msg(void){
 	printf( "[Usage]\n");
 	printf( " mlcc               : Show configuration screen.\n");
 	printf( " mlcc -h/--help     : Show this message.\n");
-	printf( " mlcc [command]     : Execute mlterm command. (full_reset, mlclient, open_pty and so on)\n") ;
+	printf( " mlcc exec [command]: Execute mlterm command. (full_reset, mlclient, open_pty and so on)\n") ;
 	printf( " mlcc [key]         : Get current value of [key].\n");
 	printf( " mlcc [key] [value] : Set [value] for [key].\n");
 	printf( " mlcc [font file name] [charset],[font size] : Get font name of [charset] and [font size] in [font file name].\n");
@@ -368,14 +368,38 @@ int main(int argc, char **argv){
 	window_t *win_root =NULL, *win_section = NULL, *win_entry = NULL;
 
 	if(argc == 2){
-		if(strcmp(argv[1],"-h") == 0 || strcmp(argv[1],"--help") == 0)
-		{
+		if (strcmp(argv[1],"-h") == 0 || strcmp(argv[1],"--help") == 0){
 			help_msg();
 		}
-		else
-		{
+		else{
 			mlterm_get_param(argv[1]);
 		}
+		exit(0);
+	}
+	else if(argc >= 3 && strcmp(argv[1],"exec") == 0){
+		int i;
+		char * cmd;
+		size_t cmd_len = 0;
+		for (i = 2; i < argc; i++){
+			/* +3 is for "" and space(or NULL terminator). */
+			cmd_len += (strlen(argv[i]) + 3) ;
+		}
+		cmd = alloca(cmd_len);
+		i = 2;
+		strcpy(cmd,argv[i]);
+		while(++i < argc){
+			strcat(cmd , " ");
+			if(strncmp(argv[2],"mlclient",8) == 0){
+				/* for mlclient arguments. */
+				strcat(cmd , "\"");
+			}
+			strcat(cmd , argv[i]);
+			if(strncmp(argv[2],"mlclient",8) == 0){
+				/* for mlclient arguments. */
+				strcat(cmd , "\"");
+			}
+		}
+		mlterm_exec(cmd);
 		exit(0);
 	}
 	else if(argc == 3 || argc == 4){
@@ -405,9 +429,6 @@ int main(int argc, char **argv){
 				mlterm_set_color_param(argv[2],argv[3]);
 				exit(0);
 			}
-		}else if(strcmp(p,"exec") == 0){
-			mlterm_exec(argv[2]);
-			exit(0);
 		}else if(argc == 3){
 			mlterm_set_param(argv[1], argv[2]);
 			exit(0);

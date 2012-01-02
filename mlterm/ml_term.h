@@ -41,6 +41,9 @@ typedef struct ml_term
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bidi_mode_t  bidi_mode ;
 
+#ifdef  MULTI_WINDOWS_PER_PTY
+	char *  win_id ;
+#endif
 	char *  win_name ;
 	char *  icon_name ;
 	char *  icon_path ;
@@ -136,6 +139,13 @@ int  ml_term_flush( ml_term_t *  term) ;
 /* Must be called in visual context. */
 #define  ml_term_write_loopback( term , buf , len) \
 		ml_parse_vt100_write_loopback( (term)->parser , buf , len)
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+#define  ml_term_set_readable( term , is_readable) \
+		((term)->pty && ml_pty_set_readable( (term)->pty , is_readable))
+
+#define  ml_term_is_readable( term)  ((term)->pty && ml_pty_is_readable( (term)->pty))
+#endif
 
 int  ml_term_resize( ml_term_t *  term , u_int  cols , u_int  rows) ;
 
@@ -277,6 +287,12 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_is_app_escape( term)  ml_vt100_parser_is_app_escape((term)->parser)
 
+#ifdef  MULTI_WINDOWS_PER_PTY
+int  ml_term_set_window_id( ml_term_t *  term , char *  name) ;
+
+#define  ml_term_window_id( term)  ((term)->win_id)
+#endif
+
 int  ml_term_set_window_name( ml_term_t *  term , char *  name) ;
 
 int  ml_term_set_icon_name( ml_term_t *  term , char *  name) ;
@@ -305,6 +321,17 @@ int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		end_char_index , end_row , regex , backward) \
 		ml_screen_search_find( (term)->screen , beg_char_index , beg_row , \
 			end_char_index , end_row , regex , backward)
+
+
+/*
+ * Defined in ml_term_manager.c, but declared here because x_screen.c uses
+ * following functions.
+ */
+int  ml_set_auto_restart_cmd( char *  cmd) ;
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+int  ml_term_sync_size( ml_term_t *  term , u_int  cols , u_int  rows) ;
+#endif
 
 
 #endif

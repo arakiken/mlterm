@@ -19,7 +19,7 @@ typedef struct  ml_pty
 	size_t  left ;
 	size_t  size ;
 
-	int (*delete)( ml_pty_ptr_t) ;
+	int (*final)( ml_pty_ptr_t) ;
 	int (*set_winsize)( ml_pty_ptr_t , u_int , u_int) ;
 	ssize_t (*write)( ml_pty_ptr_t , u_char * , size_t) ;
 	ssize_t (*read)( ml_pty_ptr_t , u_char * , size_t) ;
@@ -36,6 +36,10 @@ typedef struct  ml_pty
 		u_int  ref_count ;
 
 	} *  stored ;
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+	int8_t  is_readable ;
+#endif
 
 } ml_pty_t ;
 

@@ -21,8 +21,8 @@
 #include  <mkf/mkf_utf16_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 #endif
+#include  <ml_str_parser.h>
 
-#include  "ml_str_parser.h"
 #include  "x_xic.h"
 #include  "x_draw_str.h"
 
@@ -1566,6 +1566,10 @@ window_resized(
 #ifndef  USE_WIN32GUI
 	x_xic_resized( &screen->window) ;
 #endif
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+	ml_term_sync_size( screen->term , cols , rows) ;
+#endif
 }
 
 static void
@@ -1598,6 +1602,25 @@ window_focused(
 	if( screen->im)
 	{
 		(*screen->im->focused)( screen->im) ;
+	}
+#endif
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+	if( ! ml_term_is_readable( screen->term))
+	{
+		ml_term_set_readable( screen->term , 1) ;
+
+	#if  0
+		write_to_pty( screen , "\x1b]115;" , 6 , NULL) ;
+		write_to_pty( screen , ml_term_window_id( screen->term) ,
+			strlen( ml_term_window_id( screen->term)) , NULL) ;
+		write_to_pty( screen , "\x07" , 1 , NULL) ;
+	#else
+		write_to_pty( screen , "tmux select-window -t " , 22 , NULL) ;
+		write_to_pty( screen , ml_term_window_id( screen->term) ,
+			strlen( ml_term_window_id( screen->term)) , NULL) ;
+		write_to_pty( screen , "\n" , 1 , NULL) ;
+	#endif
 	}
 #endif
 }
@@ -1634,6 +1657,13 @@ window_unfocused(
 		(*screen->im->unfocused)( screen->im) ;
 	}
 #endif
+
+#ifdef  MULTI_WINDOWS_PER_PTY
+	if( ml_term_window_id( screen->term))
+	{
+		ml_term_set_readable( screen->term , 0) ;
+	}
+#endif
 }
 
 /*
@@ -1660,7 +1690,8 @@ window_deleted(
 
 	if( HAS_SYSTEM_LISTENER(screen,close_screen))
 	{
-		(*screen->system_listener->close_screen)( screen->system_listener->self , screen) ;
+		(*screen->system_listener->close_screen)(
+			screen->system_listener->self , screen , NULL) ;
 	}
 }
 
@@ -2000,8 +2031,8 @@ key_pressed(
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
-			(*screen->system_listener->open_screen)( screen->system_listener->self ,
-								screen) ;
+			(*screen->system_listener->open_screen)(
+				screen->system_listener->self , screen , NULL) ;
 		}
 
 		return ;
@@ -7694,15 +7725,9 @@ x_screen_exec_cmd(
 	char *  cmd
 	)
 {
-	/*
-	 * Use strncmp() to check command, because mlterm 3.0.6 or before accepts
-	 * '=' like "paste=".
-	 */
-	if( strncmp( cmd , "paste" , 5) == 0)
-	{
-		yank_event_received( screen , 0) ;
-	}
-	else if( strncmp( cmd , "mlclient" , 8) == 0)
+	char *  arg ;
+
+	if( strncmp( cmd , "mlclient" , 8) == 0)
 	{
 		if( HAS_SYSTEM_LISTENER(screen,mlclient))
 		{
@@ -7710,61 +7735,92 @@ x_screen_exec_cmd(
 				screen->system_listener->self ,
 				cmd[8] == 'x' ? screen : NULL , cmd , stdout) ;
 		}
+
+		return  1 ;
 	}
-	else if( strncmp( cmd , "select_pty" , 10) == 0)
+
+	/* Separate cmd to command string and argument string. */
+	if( ( arg = strchr( cmd , ' ')))
 	{
-		char *  arg ;
+		/*
+		 * If cmd is not matched below, *arg will be restored as ' '
+		 * at the end of this function.
+		 */
+		*arg = '\0' ;
 
-		if( ( arg = strchr( cmd + 10 , ' ')))
+		while( *(++arg) == ' ') ;
+		if( *arg == '\0')
 		{
-			*arg = '\0' ;
-			while( *(++arg) == ' ') ;
-
-			if( HAS_SYSTEM_LISTENER(screen,open_pty))
-			{
-				(*screen->system_listener->open_pty)(
-					screen->system_listener->self , screen , arg) ;
-			}
+			arg = NULL ;
 		}
 	}
-	else if( strncmp( cmd , "open_pty" , 8) == 0)
+
+	/*
+	 * Backward compatibility with mlterm 3.0.10 or before which accepts
+	 * '=' like "paste=" is broken.
+	 */
+
+	if( strcmp( cmd , "paste") == 0)
+	{
+		yank_event_received( screen , 0) ;
+	}
+	else if( strcmp( cmd , "open_pty") == 0 ||
+		strcmp( cmd , "select_pty") == 0)
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
 		{
+			/* arg is not NULL if cmd == "select_pty" */
 			(*screen->system_listener->open_pty)(
-				screen->system_listener->self , screen , NULL) ;
+				screen->system_listener->self , screen , arg) ;
 		}
 	}
-	else if( strncmp( cmd , "open_screen" , 11) == 0)
+	else if( strcmp( cmd , "open_screen") == 0)
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
-			(*screen->system_listener->open_screen)( screen->system_listener->self ,
-								screen) ;
+			(*screen->system_listener->open_screen)(
+				screen->system_listener->self , screen , arg) ;
 		}
 	}
-	else if( strncmp( cmd , "snapshot" , 8) == 0)
+#ifdef  MULTI_WINDOWS_PER_PTY
+	else if( strcmp( cmd , "close_screen") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,close_screen))
+		{
+			(*screen->system_listener->close_screen)(
+				screen->system_listener->self , screen , arg) ;
+		}
+	}
+#endif
+	else if( strcmp( cmd , "snapshot") == 0)
 	{
 		char **  argv ;
 		int  argc ;
 		ml_char_encoding_t  encoding ;
 		char *  file ;
 
-		/* argc is always > 0 because strncmp( cmd , "snapshot" , 8) == 0 is passed. */
-		argv = kik_arg_str_to_array( &argc , cmd) ;
-		
-		if( argc >= 3)
+		if( arg)
 		{
-			encoding = ml_get_char_encoding( argv[2]) ;
+			argv = kik_arg_str_to_array( &argc , arg) ;
+		}
+		else
+		{
+			argc = 0 ;
+			argv = NULL ;
+		}
+
+		if( argc >= 2)
+		{
+			encoding = ml_get_char_encoding( argv[1]) ;
 		}
 		else
 		{
 			encoding = ML_UNKNOWN_ENCODING ;
 		}
 
-		if( argc >= 2)
+		if( argc >= 1)
 		{
-			file = argv[1] ;
+			file = argv[0] ;
 		}
 		else
 		{
@@ -7783,28 +7839,20 @@ x_screen_exec_cmd(
 	}
 	else if( strncmp( cmd , "search_" , 7) == 0)
 	{
-		char *  arg ;
+		ml_char_encoding_t  encoding ;
 
-		if( ( arg = strchr( cmd + 10 , ' ')))
+		if( arg && ( encoding = ml_term_get_encoding( screen->term)) != ML_UTF8)
 		{
-			ml_char_encoding_t  encoding ;
+			char *  p ;
+			size_t  len ;
 
-			*arg = '\0' ;
-			while( *(++arg) == ' ') ;
-
-			if( ( encoding = ml_term_get_encoding( screen->term)) != ML_UTF8)
+			len = UTF_MAX_SIZE * strlen( arg) + 1 ;
+			if( ( p = alloca( len)))
 			{
-				char *  p ;
-				size_t  len ;
+				*(p + ml_char_encoding_convert( p , len - 1 , ML_UTF8 ,
+					arg , strlen(arg) , encoding)) = '\0' ;
 
-				len = UTF_MAX_SIZE * strlen( arg) + 1 ;
-				if( ( p = alloca( len)))
-				{
-					*(p + ml_char_encoding_convert( p , len - 1 , ML_UTF8 ,
-						arg , strlen(arg) , encoding)) = '\0' ;
-
-					arg = p ;
-				}
+				arg = p ;
 			}
 		}
 
@@ -7819,6 +7867,11 @@ x_screen_exec_cmd(
 	}
 	else
 	{
+		if( arg)
+		{
+			*(cmd + strlen(cmd)) = ' ' ;
+		}
+
 		return  0 ;
 	}
 
