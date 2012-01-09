@@ -364,8 +364,9 @@ ml_edit_resize(
 			if( edit->cursor.col >= num_of_cols)
 			{
 				edit->cursor.col = num_of_cols - 1 ;
-				edit->cursor.char_index = ml_convert_col_to_char_index( CURSOR_LINE(edit) ,
-							&edit->cursor.col_in_char , edit->cursor.col , 0) ;
+				edit->cursor.char_index =
+					ml_convert_col_to_char_index( CURSOR_LINE(edit) ,
+						&edit->cursor.col_in_char , edit->cursor.col , 0) ;
 			}
 		}
 	}

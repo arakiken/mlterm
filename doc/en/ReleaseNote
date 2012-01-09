@@ -4,8 +4,11 @@ ver 3.0.11
   from ~/.mlterm/msg[pid].log to ~/.mlterm/msg.log.
 * If ~/.config/mlterm exists, use it as a user config directory instead of ~/.mlterm.
 * Support VtePty partially.
+* Support mod_meta_mode option in win32.
+* Support combination of Control+key in win32.
 * Bug fixes:
   Fix a bug which erased border of candidate or status screen of uim or kbd.
+  SF Bug #3464878 (Thanks to Daniel Lublin)
 
 ver 3.0.10
 * Fix a problem which could cause error in loading a picture file.

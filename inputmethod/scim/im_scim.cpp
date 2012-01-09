@@ -359,12 +359,9 @@ cb_panel_request_factory_menu(
 	int  id
 	)
 {
-	im_scim_context_private_t *  context ;
 	std::vector<IMEngineFactoryPointer>  factories ;
 	std::vector<PanelFactoryInfo>  menu;
 	size_t  i ;
-
-	context = id_to_context( id) ;
 
 	be->get_factories_for_encoding( factories , "UTF-8") ;
 	for( i = 0 ; i < factories.size() ; i++)

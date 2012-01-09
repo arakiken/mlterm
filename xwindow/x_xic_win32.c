@@ -300,6 +300,30 @@ x_xic_get_str(
 	{
 		goto  zero_return ;
 	}
+	else if( event->state & ControlMask)
+	{
+		if( event->ch == '2' || event->ch == ' ')
+		{
+			event->ch = 0 ;
+		}
+		else if( '3' <= event->ch && event->ch <= '7')
+		{
+			/* '3' => 0x1b  '4' => 0x1c  '5' => 0x1d  '6' => 0x1e  '7' => 0x1f */
+			event->ch -= 0x18 ;
+		}
+		else if( event->ch == '8')
+		{
+			event->ch = 0x7f ;
+		}
+		else if( event->ch == '^')
+		{
+			event->ch = 0x1d ;
+		}
+		else if( event->ch == '_' || event->ch == '/')
+		{
+			event->ch = 0x1f ;
+		}
+	}
 
 #ifndef  UTF16_IME_CHAR
 	len = 1 ;
@@ -360,7 +384,7 @@ x_xic_filter_event(
 	XEvent *  event
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( event->msg != WM_KEYDOWN)
 	{
@@ -376,7 +400,7 @@ x_xic_filter_event(
 	{
 		return  0 ;
 	}
-	
+
 	win->xic->prev_keydown_wparam = event->wparam ;
 	
 	return  1 ;

@@ -1358,6 +1358,7 @@ vte_terminal_get_property(
 		case  PROP_WINDOW_TITLE:
 			g_value_set_string( value , vte_terminal_get_window_title( terminal)) ;
 			break ;
+
 	#if  0
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID( obj , prop_id , pspec) ;
@@ -1382,6 +1383,16 @@ vte_terminal_set_property(
 	#if  GTK_CHECK_VERSION(2,90,0)
 		case  PROP_VADJUSTMENT:
 			set_adjustment( terminal , g_value_get_object(value)) ;
+			break ;
+	#endif
+
+	#if  0
+		case  PROP_ICON_TITLE:
+			set_icon_name( terminal->pvt->screen , g_value_get_string(value)) ;
+			break ;
+			
+		case  PROP_WINDOW_TITLE:
+			set_window_name( terminal->pvt->screen , g_value_get_string(value)) ;
 			break ;
 	#endif
 

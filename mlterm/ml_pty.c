@@ -1,4 +1,3 @@
-
 /*
  *	$Id$
  */
@@ -13,6 +12,7 @@
 #include  <string.h>
 #include  <unistd.h>		/* ttyname/pipe */
 #include  <stdio.h>		/* sscanf */
+#include  <stdlib.h>		/* ptsname */
 #include  <fcntl.h>		/* fcntl/O_BINARY */
 #ifdef  USE_WIN32API
 #include  <windows.h>

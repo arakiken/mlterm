@@ -555,7 +555,7 @@ change_sb_mode(
 	}
 	else
 	{
-		if( sb_screen->sb_mode == SBM_NONE) ;
+		if( sb_screen->sb_mode == SBM_NONE)
 		{
 			x_window_map( &sb_screen->scrollbar.window) ;
 			

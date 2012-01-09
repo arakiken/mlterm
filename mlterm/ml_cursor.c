@@ -5,6 +5,7 @@
 #include  "ml_cursor.h"
 
 
+#include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
 
 
@@ -19,7 +20,7 @@ cursor_goto(
 	)
 {
 	int  char_index ;
-	int  cols_rest ;
+	u_int  cols_rest ;
 	ml_line_t *  line ;
 
 	if( row > ml_model_end_row( cursor->model))
@@ -35,7 +36,8 @@ cursor_goto(
 
 	if( is_by_col)
 	{
-		char_index = ml_convert_col_to_char_index( line , &cols_rest , col_or_idx , BREAK_BOUNDARY) ;
+		char_index = ml_convert_col_to_char_index( line ,
+					&cols_rest , col_or_idx , BREAK_BOUNDARY) ;
 	}
 	else
 	{

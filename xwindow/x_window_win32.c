@@ -593,7 +593,7 @@ get_key_state(void)
 	}
 	if( GetKeyState(VK_MENU) < 0)
 	{
-		state |= ModMask ;
+		state |= Mod1Mask ;
 	}
 
 	return  state ;
@@ -1790,31 +1790,88 @@ x_window_receive_event(
 			
 			return  1 ;
 		}
-	
+
+	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		if( win->key_pressed)
 		{
+			XKeyEvent  kev ;
+
 			if( ( 0x30 <= event->wparam && event->wparam <= VK_DIVIDE) ||
 				event->wparam == VK_BACK || event->wparam == VK_TAB ||
 				event->wparam == VK_RETURN || event->wparam == VK_ESCAPE ||
 				event->wparam == VK_SPACE)
 			{
-				/* wait for WM_**_CHAR message. */
+				kev.state = get_key_state() ;
+				kev.ch = event->wparam ;
+
+				if( ( kev.state & ModMask) && event->msg == WM_SYSKEYDOWN)
+				{
+					/* Alt+key (which doesn't cause WM_*_CHAR message) */
+
+					if( 'A' <= kev.ch && kev.ch <= 'Z')
+					{
+						/*
+						 * Upper case => Lower case.
+						 * event->wparam is always upper case
+						 * if alt key is pressed together.
+						 */
+						kev.ch = event->wparam + 0x20 ;
+					}
+				}
+				else if( ( kev.state & ControlMask) &&
+				         '2' <= kev.ch && kev.ch <= '8')
+				{
+					/*
+					 * - See x_xic_get_str() in x_xic_win32.c.
+					 * - Control+2-8 (which doesn't cause WM_*_CHAR message.
+					 */
+				}
+				else
+				{
+					/* wait for WM_*_CHAR message. */
+					break ;
+				}
+			}
+			else if( event->msg == WM_SYSKEYDOWN)
+			{
+				break ;
 			}
 			else
 			{
-				XKeyEvent  kev ;
-
-				kev.state = get_key_state() ;
 				kev.ch = 0 ;
 
-				(*win->key_pressed)( win, &kev) ;
+				if( ( kev.state = get_key_state()) & ControlMask)
+				{
+					/*
+					 * - See x_xic_get_str() in x_xic_win32.c.
+					 * - Following VK_* keys don't cause WM_*_CHAR message.
+					 */
+
+					/* Control+/ (106-JP Keyboard) */
+					if( event->wparam == VK_OEM_2)
+					{
+						kev.ch = '/' ;
+					}
+					/* Control+^ (106-JP Keyboard) */
+					else if( event->wparam == VK_OEM_7)
+					{
+						kev.ch = '^' ;
+					}
+					/* Control+_ (106-JP Keyboard) */
+					else if( event->wparam == VK_OEM_102)
+					{
+						kev.ch = '_' ;
+					}
+				}
 			}
+
+			(*win->key_pressed)( win , &kev) ;
 		}
 
-		/* Continued default processing. */
+		/* Continue default processing. */
 		break ;
-		
+
 	case WM_IME_CHAR:
         case WM_CHAR:
 		if( win->key_pressed)
@@ -1839,7 +1896,7 @@ x_window_receive_event(
 				kev.ch = event->wparam ;
 			}
 
-			(*win->key_pressed)( win, &kev) ;
+			(*win->key_pressed)( win , &kev) ;
 		}
 		
 		return  1 ;

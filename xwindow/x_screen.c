@@ -1169,7 +1169,7 @@ write_to_pty(
 
 	#ifdef  __DEBUG
 		{
-			int  i ;
+			size_t  i ;
 
 			kik_debug_printf( KIK_DEBUG_TAG " written str:\n") ;
 			for( i = 0 ; i < len ; i ++)
@@ -1190,7 +1190,7 @@ write_to_pty(
 
 		#ifdef  __DEBUG
 			{
-				int  i ;
+				size_t  i ;
 
 				for( i = 0 ; i < filled_len ; i ++)
 				{
@@ -1206,7 +1206,7 @@ write_to_pty(
 	{
 	#ifdef  __DEBUG
 		{
-			int  i ;
+			size_t  i ;
 
 			kik_debug_printf( KIK_DEBUG_TAG " written str: ") ;
 			for( i = 0 ; i < len ; i ++)
@@ -1967,7 +1967,7 @@ key_pressed(
 #if  0
 	kik_debug_printf( "state %x %x ksym %x str ", event->state , masked_state , ksym) ;
 	{
-		int  i ;
+		size_t  i ;
 		for( i = 0 ; i < size ; i++)
 		{
 			kik_msg_printf( "%c", seq[i]) ;
