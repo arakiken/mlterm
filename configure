@@ -821,7 +821,7 @@ IIIMCF_LIBS
 IIIMCF_CFLAGS
 UIM_LIBS
 UIM_CFLAGS
-DND_LIBS
+DND_OBJ
 DND_CFLAGS
 PERL
 XLFDSEL_OBJ
@@ -20952,7 +20952,7 @@ done
 
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS}"
+	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then
@@ -21067,7 +21067,7 @@ if test "${enable_pty_helper+set}" = set; then :
   enableval=$enable_pty_helper; pty_helper=$enable_pty_helper
 fi
 
-if test "$utmp" = "yes" -a "$pty_helper" = "no" ; then
+if test "$utmp" = "yes" -a "$pty_helper" != "yes" ; then
 	UTMP_CFLAGS="-DUSE_UTMP"
 	has_utmp=`grep utmp /etc/group 2>/dev/null`
 	if test "$has_utmp" ; then
@@ -21395,7 +21395,7 @@ fi
 if test "$dnd" = "no" ; then
 	DND_CFLAGS="-DDISABLE_XDND"
 else
-	DND_LIBS="x_dnd${WIN32TAG}.o"
+	DND_OBJ="x_dnd${WIN32TAG}.o"
 fi
 
 
@@ -25143,7 +25143,7 @@ fi
 
 CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\([0-9]*-[0-9]*-[0-9]*\).*$/\1/p'`
 
-OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
+OUTPUT_FILES="main/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
 	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
@@ -25153,8 +25153,8 @@ subdirs="$subdirs ${SUBDIRS}"
 
 fi
 
-MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
+MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow main man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile main/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 # Check whether --enable-ind was given.
 if test "${enable_ind+set}" = set; then :

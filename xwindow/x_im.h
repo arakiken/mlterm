@@ -81,8 +81,8 @@ typedef struct x_im_export_syms
 						x_font_manager_t * ,
 						x_color_manager_t * ,
 						int , int , int) ;
-	int  (*x_term_manager_add_fd)( int , void (*handler)(void)) ;
-	int  (*x_term_manager_remove_fd)( int) ;
+	int  (*x_event_source_add_fd)( int , void (*handler)(void)) ;
+	int  (*x_event_source_remove_fd)( int) ;
 
 } x_im_export_syms_t ;
 

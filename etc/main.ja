@@ -38,9 +38,6 @@
 # 同時に立ち上げられる pty の最大数
 # max_ptys = 32
 
-# 起動時に立ち上げる pty の数
-# startup_ptys = 1
-
 # 起動時に立ち上げるウィンドウの数
 # startup_screens = 1
 

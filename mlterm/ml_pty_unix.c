@@ -30,7 +30,7 @@ typedef struct ml_pty_unix
 {
 	ml_pty_t  pty ;
 #ifdef  USE_UTMP
-	kik_utmp_t *  utmp ;
+	kik_utmp_t  utmp ;
 #endif
 
 } ml_pty_unix_t ;
@@ -208,7 +208,7 @@ ml_pty_unix_new(
 	/* parent process */
 
 return_pty:
-	if( ! ( pty = ml_pty_unix_new_with( master , slave , pid , cols , rows)))
+	if( ! ( pty = ml_pty_unix_new_with( master , slave , pid , host , cols , rows)))
 	{
 		close( master) ;
 		close( slave) ;
@@ -222,6 +222,7 @@ ml_pty_unix_new_with(
 	int  master ,
 	int  slave ,
 	pid_t  child_pid ,
+	const char *  host ,
 	u_int  cols ,
 	u_int  rows
 	)
@@ -246,7 +247,7 @@ ml_pty_unix_new_with(
 
 	#ifdef  USE_UTMP
 		if( ( ((ml_pty_unix_t*)pty)->utmp = kik_utmp_new(
-							ml_pty_get_slave_name( pty->slave) ,
+							ml_pty_get_slave_name( pty) ,
 							host , pty->master)) == NULL)
 		{
 		#ifdef  DEBUG

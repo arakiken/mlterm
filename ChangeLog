@@ -1,3 +1,26 @@
+2012-02-04  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.h, x_window.c, x_window_win32.c:
+	  - x_event_dispatch_t -> x_resize_flag_t
+	  - Only if LIMIT_RESIZE flag is passed to x_window_resize(),
+	    x_window_resize() never resizes over DisplayWidth or DisplayHeight.
+
+	* ml_vt100_parser.[ch], ml_term.h, x_screen.[ch]:
+	  - Extended mouse report is supported.
+	  - ml_{vt100_parser|term}_is_extended_mouse_report_mode() are added.
+
+	* configure.in, ml_pty_unix.c, ml_pty.c, kik_utmp*:
+	  Utmp support is fixed. (SF Bug #3481552)
+	  (Thanks to Kobayashi Hiroaki san)
+
+	* daemon.[ch], xwindow/main.c, xwindow/version.h.in, xwindow/dexport.map:
+	  Moved to main/ directory.
+
+	* x_term_manager.[ch] => x_screen_manager.[ch], x_event_loop.[ch], daemon.[ch]
+
+	* x_term_manager.c, doc/ja/README.ja, man/mlterm.1, etc/main, etc/main.ja:
+	  "startup_ptys" option is removed.
+
 2012-01-15  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.11 released.

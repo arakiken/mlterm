@@ -339,7 +339,7 @@ xksym_to_ukey(
 static void
 helper_disconnected( void)
 {
-	(*syms->x_term_manager_remove_fd)( helper_fd) ;
+	(*syms->x_event_source_remove_fd)( helper_fd) ;
 
 	helper_fd = -1 ;
 }
@@ -957,7 +957,7 @@ delete(
 	if( ref_count == 0 && initialized)
 	{
 		uim_helper_close_client_fd( helper_fd) ;
-		(*syms->x_term_manager_remove_fd)( helper_fd) ;
+		(*syms->x_event_source_remove_fd)( helper_fd) ;
 		helper_fd = -1 ;
 
 		uim_quit() ;
@@ -1520,12 +1520,12 @@ im_uim_new(
 	/*
 	 * create I/O chanel for uim_helper_server
 	 */
-	if( helper_fd == -1 && syms && syms->x_term_manager_add_fd &&
-	    syms->x_term_manager_remove_fd)
+	if( helper_fd == -1 && syms && syms->x_event_source_add_fd &&
+	    syms->x_event_source_remove_fd)
 	{
 		helper_fd = uim_helper_init_client_fd( helper_disconnected) ;
 
-		(*syms->x_term_manager_add_fd)( helper_fd , helper_read_handler) ;
+		(*syms->x_event_source_add_fd)( helper_fd , helper_read_handler) ;
 	}
 
 	if( (engine == NULL) || (strlen( engine) == 0))
@@ -1642,7 +1642,7 @@ error:
 	{
 		uim_helper_close_client_fd( helper_fd) ;
 
-		(*syms->x_term_manager_remove_fd)( helper_fd) ;
+		(*syms->x_event_source_remove_fd)( helper_fd) ;
 
 		helper_fd = -1 ;
 	}

@@ -47,9 +47,13 @@ typedef enum  ml_unicode_policy
 typedef enum  ml_mouse_report_mode
 {
 	NO_MOUSE_REPORT = 0 ,
-	MOUSE_REPORT = 1 ,
-	BUTTON_EVENT_MOUSE_REPORT = 2 ,
-	ANY_EVENT_MOUSE_REPORT = 3 ,
+
+	MOUSE_REPORT = 0x1 ,
+	BUTTON_EVENT_MOUSE_REPORT = 0x2 ,
+	ANY_EVENT_MOUSE_REPORT = 0x3 ,
+
+	/* OR with above values. */
+	EXTENDED_MOUSE_REPORT = 0x4
 
 } ml_mouse_report_mode_t ;
 
@@ -238,7 +242,11 @@ int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int
 
 #define  ml_vt100_parser_is_logging_vt_seq( vt100_parser)  ((vt100_parser)->logging_vt_seq)
 
-#define  ml_vt100_parser_get_mouse_report_mode( vt100_parser)  ((vt100_parser)->mouse_mode)
+#define  ml_vt100_parser_get_mouse_report_mode( vt100_parser) \
+		((vt100_parser)->mouse_mode & ~EXTENDED_MOUSE_REPORT)
+
+#define  ml_vt100_parser_is_extended_mouse_report_mode( vt100_parser) \
+		((vt100_parser)->mouse_mode & EXTENDED_MOUSE_REPORT)
 
 #define  ml_vt100_parser_is_app_keypad( vt100_parser)  ((vt100_parser)->is_app_keypad)
 

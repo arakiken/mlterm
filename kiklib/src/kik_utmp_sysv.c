@@ -48,10 +48,10 @@ struct  kik_utmp
 
 kik_utmp_t
 kik_utmp_new(
-	     char * tty,
-	     char * host,
-	     int    pty_fd
-	    )
+	const char * tty,
+	const char * host,
+	int  pty_fd
+	)
 {
 #ifdef UTMPX
   struct utmpx	ut;

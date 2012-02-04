@@ -25,10 +25,11 @@
 #include  <ml_term_manager.h>
 #include  <x_screen.h>
 #include  <x_xim.h>
+#include  <x_xic.h>
 #include  <x_main_config.h>
 #include  <x_imagelib.h>
-#include  <version.h>
 
+#include  "../main/version.h"
 #include  "marshal.h"
 
 #ifdef  SYSCONFDIR
@@ -2010,7 +2011,7 @@ vte_terminal_class_init(
 	x_prepare_for_main_config( conf) ;
 
 	/*
-	 * Same processing as x_term_manager_init().
+	 * Same processing as main_loop_init().
 	 * Following options are not possible to specify as arguments of mlclient.
 	 * 1) Options which are used only when mlterm starts up and which aren't
 	 *    changed dynamically. (e.g. "startup_screens")
@@ -4643,7 +4644,7 @@ static GIOChannel *  gio ;
 static guint  src_id ;
 
 int
-x_term_manager_add_fd(
+x_event_source_add_fd(
 	int  fd ,
 	void (*handler)(void)
 	)
@@ -4651,7 +4652,7 @@ x_term_manager_add_fd(
 	if( gio)
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " x_term_manager_add_fd failed\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " x_event_source_add_fd failed\n") ;
 	#endif
 	
 		return  0 ;
@@ -4664,7 +4665,7 @@ x_term_manager_add_fd(
 }
 
 int
-x_term_manager_remove_fd(
+x_event_source_remove_fd(
 	int fd
 	)
 {

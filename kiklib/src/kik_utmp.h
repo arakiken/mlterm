@@ -9,7 +9,7 @@
 typedef struct kik_utmp *  kik_utmp_t ;
 
 
-kik_utmp_t  kik_utmp_new( char *  tty , char *  host, int pty_fd) ;
+kik_utmp_t  kik_utmp_new( const char *  tty , const char *  host, int pty_fd) ;
 
 int  kik_utmp_delete( kik_utmp_t  utmp) ;
 

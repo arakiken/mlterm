@@ -35,14 +35,16 @@
 #define  PARENT_WINDOWID_IS_TOP(win)  ((win)->parent_window == (win)->disp->my_window)
 
 
-typedef enum  x_event_dispatch
+typedef enum  x_resize_flag
 {
 	NOTIFY_TO_NONE = 0x0 ,
 	NOTIFY_TO_CHILDREN = 0x01 ,
 	NOTIFY_TO_PARENT = 0x02 ,
-	NOTIFY_TO_MYSELF = 0x04
+	NOTIFY_TO_MYSELF = 0x04 ,
 
-} x_event_dispatch_t ;
+	LIMIT_RESIZE = 0x08 ,
+
+} x_resize_flag_t ;
 
 typedef struct  x_xim_event_listener
 {
@@ -247,10 +249,10 @@ int  x_window_map( x_window_t *  win) ;
 
 int  x_window_unmap( x_window_t *  win) ;
 
-int  x_window_resize( x_window_t *  win , u_int  width , u_int  height , x_event_dispatch_t  flag) ;
+int  x_window_resize( x_window_t *  win , u_int  width , u_int  height , x_resize_flag_t  flag) ;
 
 int  x_window_resize_with_margin( x_window_t *  win , u_int  width , u_int  height ,
-	x_event_dispatch_t  flag) ;
+	x_resize_flag_t  flag) ;
 
 int  x_window_set_normal_hints( x_window_t *  win , u_int  min_width , u_int  min_height ,
 	u_int  base_width , u_int  base_height , u_int  width_inc , u_int  height_inc) ;

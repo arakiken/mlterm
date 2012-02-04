@@ -530,7 +530,10 @@ ml_get_all_terms(
 	ml_term_t ***  _terms
 	)
 {
-	*_terms = terms ;
+	if( _terms)
+	{
+		*_terms = terms ;
+	}
 
 	return  num_of_terms ;
 }

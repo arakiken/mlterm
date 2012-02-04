@@ -11,6 +11,7 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_path.h>
+#include  <kiklib/kik_config.h>	/* USE_WIN32API */
 
 
 #if  defined(USE_WIN32API) || (defined(USE_WIN32GUI) && defined(USE_LIBSSH2))
@@ -358,7 +359,7 @@ x_connect_dialog(
 		}
 	}
 #endif
-	
+
 	DialogBox( GetModuleHandle(NULL) , "ConnectDialog" , parent_window ,
 		(DLGPROC)dialog_proc) ;
 

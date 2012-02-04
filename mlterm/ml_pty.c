@@ -91,7 +91,8 @@ ml_pty_new_with(
 #ifndef  USE_WIN32API
 	if( ptsname( master))
 	{
-		pty = ml_pty_unix_new_with( master , slave , child_pid , cols , rows) ;
+		pty = ml_pty_unix_new_with( master , slave , child_pid ,
+				":0.0" , cols , rows) ;
 	}
 	else
 #endif

@@ -622,6 +622,7 @@ reverse_video(
 	}
 }
 
+/* Ignoring EXTENDED_MOUSE_REPORT bit. */
 static void
 set_mouse_report(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -631,9 +632,15 @@ set_mouse_report(
 	if( HAS_XTERM_LISTENER(vt100_parser,set_mouse_report))
 	{
 		stop_vt100_cmd( vt100_parser , 0) ;
-		vt100_parser->mouse_mode = mode ;
+
+		/* EXTENDED_MOUSE_REPORT bit is not changed. */
+		vt100_parser->mouse_mode &= EXTENDED_MOUSE_REPORT ;
+		vt100_parser->mouse_mode |= mode ;
+
+		/* EXTENDED_MOUSE_REPORT bit is not passed. */
 		(*vt100_parser->xterm_listener->set_mouse_report)(
 			vt100_parser->xterm_listener->self , mode) ;
+
 		start_vt100_cmd( vt100_parser , 0) ;
 	}
 }
@@ -1819,6 +1826,12 @@ parse_vt100_escape_sequence(
 
 						set_mouse_report( vt100_parser , MOUSE_REPORT) ;
 					}
+				#if  0
+					else if( ps[0] == 1001)
+					{
+						/* "CSI ? 1001 h" X11 mouse highlighting */
+					}
+				#endif
 					else if( ps[0] == 1002)
 					{
 						/* "CSI ? 1002 h" */
@@ -1833,12 +1846,12 @@ parse_vt100_escape_sequence(
 						set_mouse_report( vt100_parser ,
 							ANY_EVENT_MOUSE_REPORT) ;
 					}
-				#if  0
-					else if( ps[0] == 1001)
+					else if( ps[0] == 1005)
 					{
-						/* "CSI ? 1001 h" X11 mouse highlighting */
+						/* "CSI ? 1005 h" */
+
+						vt100_parser->mouse_mode |= EXTENDED_MOUSE_REPORT ;
 					}
-				#endif
 				#if  0
 					else if( ps[0] == 1010)
 					{
@@ -2023,6 +2036,11 @@ parse_vt100_escape_sequence(
 						/* "CSI ? 1001 l" X11 mouse highlighting */
 					}
 				#endif
+					else if( ps[0] == 1005)
+					{
+						vt100_parser->mouse_mode &=
+							~EXTENDED_MOUSE_REPORT ;
+					}
 				#if  0
 					else if( ps[0] == 1010)
 					{

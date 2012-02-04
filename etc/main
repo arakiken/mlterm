@@ -28,8 +28,6 @@
 
 # max_ptys = 32
 
-# startup_ptys = 1
-
 # startup_screens = 1
 
 # -- Encoding --

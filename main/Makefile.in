@@ -1,0 +1,81 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+exec_prefix = @exec_prefix@
+datadir = @datadir@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+BINDIR = $(DESTDIR)$(bindir)
+
+VPATH = $(top_srcdir)/main
+
+OBJ = daemon.o main_loop.o main.o
+
+LKIK = @LKIK@
+LMKF = @LMKF@
+LMLTERM = ../mlterm/libmlterm.a ../mlterm/@LMLTERM_CORE@
+LXWINDOW = ../xwindow/libxwindow.a
+LKIK_DEB = -lkik_deb
+LMKF_DEB = -lmkf_deb
+
+# XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ \
+	@X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @TYPE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-DSYSCONFDIR=\"$(sysconfdir)\" -I$(top_srcdir)/mlterm \
+	-I${top_srcdir}/xwindow -I${top_builddir}/main -I/usr/local/include
+
+LIBS1 = $(LIBS_LOCAL) $(LXWINDOW) $(LMLTERM) $(LMKF) $(LKIK) \
+	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS@
+
+LIBS2 = @IMAGELIB_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ @TYPE_LIBS_FOR_PROG@ \
+	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
+#	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+
+LIBS2_win32 = -mwindows -limm32 @SUBSYSTEM@ @WINSOCK_LIBS@ ../xwindow/winrs.o
+
+LIBS = $(LIBS1) $(LIBS2@WIN32TAG@)
+
+PROG = mlterm
+INSTALL_OPT = @INSTALL_OPT@
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(PROG)
+
+debug:
+	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
+
+$(PROG): $(OBJ) $(LMLTERM) $(LXWINDOW)
+	$(LIBTOOL_LINK) -o $(PROG) $(OBJ@XWINDOW_OBJ_SUFFIX@) @DEXPORT@ $(LIBS) @CTL_LIBS_FOR_PROG@
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+install : $(BINDIR)
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(BINDIR)
+
+uninstall :
+	rm -f $(BINDIR)/$(PROG)
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+clean:
+	rm -rf $(PROG) $(PROG).exe *.core $(OBJ) $(OBJ:.o=.lo) .libs
+
+distclean: clean
+	rm -f Makefile

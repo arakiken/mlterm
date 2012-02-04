@@ -279,6 +279,9 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 #define  ml_term_get_mouse_report_mode( term) \
 		ml_vt100_parser_get_mouse_report_mode((term)->parser)
 
+#define  ml_term_is_extended_mouse_report_mode( term) \
+		ml_vt100_parser_is_extended_mouse_report_mode((term)->parser)
+
 #define  ml_term_is_app_keypad( term) \
 		ml_vt100_parser_is_app_keypad((term)->parser)
 

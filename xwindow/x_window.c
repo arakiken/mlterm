@@ -1539,7 +1539,7 @@ x_window_resize(
 	x_window_t *  win ,
 	u_int  width ,			/* excluding margin */
 	u_int  height ,			/* excluding margin */
-	x_event_dispatch_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
+	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
 	if( win->width == width && win->height == height)
@@ -1548,7 +1548,8 @@ x_window_resize(
 	}
 
 	/* Max width of each window is DisplayWidth(). */
-	if( DisplayWidth( win->disp->display , win->disp->screen) < width)
+	if( (flag & LIMIT_RESIZE) &&
+	    DisplayWidth( win->disp->display , win->disp->screen) < width)
 	{
 		win->width = DisplayWidth( win->disp->display , win->disp->screen) ;
 	}
@@ -1558,7 +1559,8 @@ x_window_resize(
 	}
 
 	/* Max height of each window is DisplayHeight(). */
-	if( DisplayHeight( win->disp->display , win->disp->screen) < height)
+	if( (flag & LIMIT_RESIZE) &&
+	    DisplayHeight( win->disp->display , win->disp->screen) < height)
 	{
 		win->height = DisplayHeight( win->disp->display , win->disp->screen) ;
 	}
@@ -1600,7 +1602,7 @@ x_window_resize_with_margin(
 	x_window_t *  win ,
 	u_int  width ,
 	u_int  height ,
-	x_event_dispatch_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
+	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
 	u_int  min_width ;

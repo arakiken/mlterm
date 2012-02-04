@@ -2,16 +2,12 @@
  *	$Id$
  */
 
-#include  "x_term_manager.h"
+#include  "x_screen_manager.h"
 
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memset/memcpy */
-#include  <sys/time.h>		/* timeval */
-#include  <unistd.h>		/* getpid/select/unlink */
-#include  <signal.h>		/* kill */
 #include  <stdlib.h>		/* getenv */
-#include  <errno.h>
-#include  <fcntl.h>
+#include  <unistd.h>		/* getuid */
 
 #include  <kiklib/kik_config.h>	/* USE_WIN32API */
 #ifndef  USE_WIN32API
@@ -25,23 +21,14 @@
 #include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc/free */
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
-#include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <kiklib/kik_types.h>	/* u_int */
-#include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_args.h>	/* kik_arg_str_to_array */
 #include  <ml_term_manager.h>
 #include  <ml_char_encoding.h>
 
-#include  "version.h"
-#include  "x_main_config.h"
 #include  "x_sb_screen.h"
 #include  "x_display.h"
 #include  "x_termcap.h"
-#include  "x_imagelib.h"
-
-#ifndef  USE_WIN32GUI
-#include  "x_xim.h"
-#endif
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 #include  "x_connect_dialog.h"
@@ -57,6 +44,8 @@
 
 /* --- static variables --- */
 
+static char *  mlterm_version ;
+
 static u_int  max_screens_multiple ;
 static u_int32_t *  dead_mask ;
 
@@ -66,7 +55,6 @@ static u_int  num_of_screens ;
 static u_int  depth ;
 
 static u_int  num_of_startup_screens ;
-static u_int  num_of_startup_ptys ;
 
 static x_system_event_listener_t  system_listener ;
 
@@ -76,44 +64,8 @@ static x_color_config_t  color_config ;
 static x_shortcut_t  shortcut ;
 static x_termcap_t  termcap ;
 
-static int  sock_fd ;
-static char *  un_file ;
-static int8_t  is_genuine_daemon ;
-
-static struct
-{
-	int  fd ;
-	void (*handler)( void) ;
-
-} * additional_fds ;
-static u_int  num_of_additional_fds ;
-
 
 /* --- static functions --- */
-
-/*
- * signal handlers.
- */
-#ifndef  USE_WIN32API
-static void
-sig_fatal( int  sig)
-{
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG "signal %d is received\n" , sig) ;
-#endif
-
-	if( un_file)
-	{
-		unlink( un_file) ;
-	}
-
-	/* reset */
-	signal( sig , SIG_DFL) ;
-	
-	kill( getpid() , sig) ;
-}
-#endif	/* USE_WIN32API */
-
 
 /*
  * Callbacks of ml_config_event_listener_t events.
@@ -168,53 +120,6 @@ color_config_updated(void)
 	}
 }
 
-
-static int
-get_font_size_range(
-	u_int *  min ,
-	u_int *  max ,
-	const char *  str
-	)
-{
-	char *  str_p ;
-	char *  p ;
-
-	if( ( str_p = kik_str_alloca_dup(str)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
-	#endif
-
-		return  0 ;
-	}
-
-	/* kik_str_sep() never returns NULL because str_p isn't NULL. */
-	p = kik_str_sep( &str_p , "-") ;
-
-	if( str_p  == NULL)
-	{
-		kik_msg_printf( "max font size is missing.\n");
-
-		return 0;
-	}
-	
-	if( ! kik_str_to_uint( min , p))
-	{
-		kik_msg_printf( "min font size %s is not valid.\n" , p) ;
-
-		return  0 ;
-	}
-
-	
-	if( ! kik_str_to_uint( max , str_p))
-	{
-		kik_msg_printf( "max font size %s is not valid.\n" , str_p) ;
-
-		return  0 ;
-	}
-
-	return  1 ;
-}
 
 static ml_term_t *
 create_term_intern(void)
@@ -278,11 +183,11 @@ open_pty_intern(
 
 	env_p = env ;
 
-	*(env_p ++) = "MLTERM=" VERSION ;
-	
+	*(env_p ++) = mlterm_version ;
+
 	sprintf( wid_env , "WINDOWID=%ld" , window) ;
 	*(env_p ++) = wid_env ;
-	
+
 	/* "DISPLAY="(8) + NULL(1) */
 	if( display && ( disp_env = alloca( 8 + strlen( display) + 1)))
 	{
@@ -811,7 +716,7 @@ error:
  * this is for debugging.
  */
 #ifdef  KIK_DEBUG
-#include  <kiklib/kik_locale.h>		/* kik_locale_final */
+#include  "../main/main_loop.h"
 #endif
 static void
 __exit(
@@ -832,21 +737,14 @@ __exit(
 	kik_mem_dump_all() ;
 #endif
 
-	x_term_manager_final() ;
-	
-	kik_locale_final() ;
-
-	kik_alloca_garbage_collect() ;
+	main_loop_final() ;
 
 	kik_msg_printf( "reporting unfreed memories --->\n") ;
+
+	kik_alloca_garbage_collect() ;
 	kik_mem_free_all() ;
 #endif
-	
-	if( un_file)
-	{
-		unlink( un_file) ;
-	}
-	
+
 	exit(status) ;
 }
 
@@ -1193,7 +1091,8 @@ mlclient(
 			fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
 			if( ml_term_window_name( terms[count]))
 			{
-				fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
+				fprintf( fp , "(whose title is %s)" ,
+					ml_term_window_name( terms[count])) ;
 			}
 			if( ml_term_is_attached( terms[count]))
 			{
@@ -1204,15 +1103,6 @@ mlclient(
 				fprintf( fp , " is sleeping.zZ\n") ;
 			}
 		}
-	}
-	else if( argc == 2 && strcmp( argv[1] , "--kill") == 0)
-	{
-		if( un_file)
-		{
-			unlink( un_file) ;
-		}
-		fprintf( fp, "bye\n") ;
-		exit( 0) ;
 	}
 	else
 	{
@@ -1282,440 +1172,38 @@ mlclient(
 }
 
 
-#ifndef  USE_WIN32API
-static int
-start_daemon(void)
-{
-	pid_t  pid ;
-	int  fd ;
-	struct sockaddr_un  servaddr ;
-	char *  path ;
-
-	if( ( path = kik_get_user_rc_path( "mlterm/socket")) == NULL)
-	{
-		return  -1 ;
-	}
-
-	if( strlen( path) >= sizeof(servaddr.sun_path) || ! kik_mkdir_for_file( path , 0700))
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Failed mkdir for %s\n" , path) ;
-	#endif
-		free( path) ;
-		
-		return  -1 ;
-	}
-	
-	memset( &servaddr , 0 , sizeof( servaddr)) ;
-	servaddr.sun_family = AF_LOCAL ;
-	strcpy( servaddr.sun_path , path) ;
-	free( path) ;
-	path = servaddr.sun_path ;
-
-	if( ( fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " socket failed\n") ;
-	#endif
-		return  -1 ;
-	}
-	kik_file_set_cloexec( fd);
-	
-	for( ;;)
-	{
-		int  ret ;
-		int  saved_errno ;
-		mode_t  mode ;
-
-		mode = umask( 077) ;
-		ret = bind( fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) ;
-		saved_errno = errno ;
-		umask( mode) ;
-
-		if( ret == 0)
-		{
-			break ;
-		}
-		else if( saved_errno == EADDRINUSE)
-		{
-			if( connect( fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
-			{
-				close( fd) ;
-				
-				kik_msg_printf( "daemon is already running.\n") ;
-				
-				return  -1 ;
-			}
-
-			kik_msg_printf( "removing stale lock file %s.\n" , path) ;
-			
-			if( unlink( path) == 0)
-			{
-				continue ;
-			}
-		}
-		else
-		{
-			close( fd) ;
-
-			kik_msg_printf( "failed to lock file %s: %s\n" ,
-				path , strerror(saved_errno)) ;
-
-			return  -1 ;
-		}
-	}
-
-	pid = fork() ;
-
-	if( pid == -1)
-	{
-		return  -1 ;
-	}
-
-	if( pid != 0)
-	{
-		exit(0) ;
-	}
-	
-	/*
-	 * child
-	 */
-
-	/*
-	 * This process becomes a session leader and purged from control terminal.
-	 */
-	setsid() ;
-
-	/*
-	 * SIGHUP signal when the child process exits must not be sent to
-	 * the grandchild process.
-	 */
-	signal( SIGHUP , SIG_IGN) ;
-
-	pid = fork() ;
-
-	if( pid == -1)
-	{
-		exit(1) ;
-	}
-
-	if( pid != 0)
-	{
-		exit(0) ;
-	}
-
-	/*
-	 * grandchild
-	 */
-
-	if( listen( fd , 1024) < 0)
-	{
-		close( fd) ;
-		unlink( path) ;
-		
-		return  -1 ;
-	}
-
-	un_file = strdup( path) ;
-
-	return  fd ;
-}
-
-static void
-client_connected(void)
-{
-	struct sockaddr_un  addr ;
-	socklen_t  sock_len ;
-	int  fd ;
-	FILE *  fp ;
-	kik_file_t *  from ;
-	char *  line ;
-	size_t  line_len ;
-	char *  args ;
-
-	fp = NULL ;
-
-	sock_len = sizeof( addr) ;
-
-	if( ( fd = accept( sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " accept failed.\n") ;
-	#endif
-	
-		return ;
-	}
-
-	/*
-	 * Set the close-on-exec flag.
-	 * If this flag off, this fd remained open until the child process forked in
-	 * open_screen_intern()(ml_term_open_pty()) close it.
-	 */
-	kik_file_set_cloexec( fd) ;
-
-	if( ( fp = fdopen( fd , "r+")) == NULL)
-	{
-		goto  crit_error ;
-	}
-
-	if( ( from = kik_file_new( fp)) == NULL)
-	{
-		goto  error ;
-	}
-
-	if( ( line = kik_file_get_line( from , &line_len)) == NULL)
-	{
-		kik_file_delete( from) ;
-		
-		goto  error ;
-	}
-
-	if( ( args = alloca( line_len)) == NULL)
-	{
-		kik_file_delete( from) ;
-
-		goto  error ;
-	}
-
-	strncpy( args , line , line_len - 1) ;
-	args[line_len - 1] = '\0' ;
-
-	kik_file_delete( from) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , args) ;
-#endif
-
-	if( ! mlclient( NULL , NULL , args , fp))
-	{
-		goto  error ;
-	}
-
-	fclose( fp) ;
-
-	return ;
-	
-error:
-	{
-		char  msg[] = "Error happened.\n" ;
-
-		write( fd , msg , sizeof( msg) - 1) ;
-	}
-	
-crit_error:
-	if( fp)
-	{
-		fclose( fp) ;
-	}
-	else
-	{
-		close( fd) ;
-	}
-}
-#endif	/* USE_WIN32API */
-
-
-#ifdef  USE_WIN32API
-
-static VOID CALLBACK
-timer_proc(
-	HWND  hwnd,
-	UINT  msg,
-	UINT  timerid,
-	DWORD  time
-	)
-{
-	x_display_t **  displays ;
-	u_int  num_of_displays ;
-	int  count ;
-	
-	displays = x_get_opened_displays( &num_of_displays) ;
-
-	for( count = 0 ; count < num_of_displays ; count ++)
-	{
-		x_display_idling( displays[count]) ;
-	}
-}
-
-#else	/* USE_WIN32API */
-
-static void
-receive_next_event(void)
-{
-	int  count ;
-	ml_term_t **  terms ;
-	u_int  num_of_terms ;
-	int  xfd ;
-	int  ptyfd ;
-	int  maxfd ;
-	int  ret ;
-	fd_set  read_fds ;
-	struct timeval  tval ;
-	x_display_t **  displays ;
-	u_int  num_of_displays ;
-
-	num_of_terms = ml_get_all_terms( &terms) ;
-
-	while( 1)
-	{
-		/* on Linux tv_usec,tv_sec members are zero cleared after select() */
-	#if  0
-		tval.tv_usec = 50000 ;	/* 0.05 sec */
-	#else
-		tval.tv_usec = 100000 ;	/* 0.1 sec */
-	#endif
-		tval.tv_sec = 0 ;
-
-		maxfd = 0 ;
-		FD_ZERO( &read_fds) ;
-
-		displays = x_get_opened_displays( &num_of_displays) ;
-		
-		for( count = 0 ; count < num_of_displays ; count ++)
-		{
-			x_display_receive_next_event( displays[count]) ;
-			
-			xfd = x_display_fd( displays[count]) ;
-			
-			FD_SET( xfd , &read_fds) ;
-		
-			if( xfd > maxfd)
-			{
-				maxfd = xfd ;
-			}
-		}
-
-		for( count = 0 ; count < num_of_terms ; count ++)
-		{
-			ptyfd = ml_term_get_master_fd( terms[count]) ;
-			FD_SET( ptyfd , &read_fds) ;
-
-			if( ptyfd > maxfd)
-			{
-				maxfd = ptyfd ;
-			}
-		}
-		
-		if( sock_fd >= 0)
-		{
-			FD_SET( sock_fd , &read_fds) ;
-			
-			if( sock_fd > maxfd)
-			{
-				maxfd = sock_fd ;
-			}
-		}
-
-		for( count = 0 ; count < num_of_additional_fds ; count++)
-		{
-			if( additional_fds[count].fd >= 0)
-			{
-				FD_SET( additional_fds[count].fd , &read_fds) ;
-				
-				if( additional_fds[count].fd > maxfd)
-				{
-					maxfd = additional_fds[count].fd ;
-				}
-			}
-		}
-
-		if( ( ret = select( maxfd + 1 , &read_fds , NULL , NULL , &tval)) != 0)
-		{
-			break ;
-		}
-
-		for( count = 0 ; count < num_of_displays ; count ++)
-		{
-			x_display_idling( displays[count]) ;
-		}
-		
-		for( count = 0 ; count < num_of_additional_fds ; count++)
-		{
-			if( additional_fds[count].fd < 0)
-			{
-				(*additional_fds[count].handler)() ;
-			}
-		}
-	}
-	
-	if( ret < 0)
-	{
-		/* error happened */
-		
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " error happened in select. ") ;
-		perror( NULL) ;
-	#endif
-
-		return ;
-	}
-
-	/*
-	 * Processing order should be as follows.
-	 *
-	 * X Window -> PTY -> Socket -> additional_fds
-	 */
-
-	for( count = 0 ; count < num_of_displays ; count ++)
-	{
-		if( FD_ISSET( x_display_fd( displays[count]) , &read_fds))
-		{
-			x_display_receive_next_event( displays[count]) ;
-		}
-	}
-
-	for( count = 0 ; count < num_of_terms ; count ++)
-	{
-	#if  0
-		/* Flushing buffer of keypress event. Necessary ?  */
-		ml_term_flush( terms[count]) ;
-	#endif
-	
-		if( FD_ISSET( ml_term_get_master_fd( terms[count]) , &read_fds))
-		{
-			ml_term_parse_vt100_sequence( terms[count]) ;
-		}
-	}
-	
-	if( sock_fd >= 0)
-	{
-		if( FD_ISSET( sock_fd , &read_fds))
-		{
-			client_connected() ;
-		}
-	}
-
-	for( count = 0 ; count < num_of_additional_fds ; count++)
-	{
-		if( additional_fds[count].fd >= 0)
-		{
-			if( FD_ISSET( additional_fds[count].fd , &read_fds))
-			{
-				(*additional_fds[count].handler)() ;
-
-				break ;
-			}
-		}
-	}
-
-	return ;
-}
-
-#endif
-
-
 /* --- global functions --- */
 
 int
-x_term_manager_init(
-	int  argc ,
-	char **  argv
+x_screen_manager_init(
+	char *  _mlterm_version ,
+	u_int  _depth ,
+	u_int  _max_screens_multiple ,
+	u_int  _num_of_startup_screens ,
+	x_main_config_t *  _main_config
 	)
 {
-	kik_conf_t *  conf ;
-	char *  value ;
-	int  use_xim ;
-	char *  invalid_msg = "%s %s is not valid.\n" ;
+	mlterm_version = _mlterm_version ;
+
+	depth = _depth ;
+
+	main_config = *_main_config ;
+	
+	max_screens_multiple = _max_screens_multiple ;
+
+	if( ( dead_mask = calloc( sizeof( *dead_mask) , max_screens_multiple)) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( _num_of_startup_screens > MAX_SCREENS)
+	{
+		num_of_startup_screens = MAX_SCREENS ;
+	}
+	else
+	{
+		num_of_startup_screens = _num_of_startup_screens ;
+	}
 
 	if( ! x_color_config_init( &color_config))
 	{
@@ -1743,311 +1231,6 @@ x_term_manager_init(
 	
 		return  0 ;
 	}
-
-
-	kik_init_prog( argv[0] , DETAIL_VERSION) ;
-
-	if( ( conf = kik_conf_new()) == NULL)
-	{
-		return  0 ;
-	}
-	
-	x_prepare_for_main_config( conf) ;
-
-	/*
-	 * Same processing as vte_terminal_class_init().
-	 * Following options are not possible to specify as arguments of mlclient.
-	 * 1) Options which are used only when mlterm starts up and which aren't
-	 *    changed dynamically. (e.g. "startup_screens")
-	 * 2) Options which change status of all ptys or windows. (Including ones
-	 *    which are possible to change dynamically.)
-	 *    (e.g. "font_size_range")
-	 */
-
-	kik_conf_add_opt( conf , '@' , "screens" , 0 , "startup_screens" ,
-		"number of screens to open in start up [1]") ;
-	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" ,
-		"show this help message") ;
-	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" ,
-		"show version message") ;
-	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "startup_ptys" ,
-		"number of ptys to open in start up [1]") ;
-	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
-		"font size range for GUI configurator [6-30]") ;
-	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
-		"word-separating characters for double-click [,.:;/@]") ;
-#ifndef  USE_WIN32GUI
-	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
-		"compose dec special font [false]") ;
-#endif
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
-		"use CP932-Unicode mapping table for JISX0208 [false]") ;
-#endif
-#ifndef  USE_WIN32GUI
-	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
-		"use XIM (X Input Method) [true]") ;
-#endif
-#ifndef  USE_WIN32API
-	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
-	#ifdef  USE_WIN32GUI
-		/* 'genuine' is not supported in win32. */
-		"start as a daemon (none/blend) [none]"
-	#else
-		"start as a daemon (none/blend/genuine) [none]"
-	#endif
-		) ;
-#endif
-	kik_conf_add_opt( conf , '\0' , "depth" , 0 , "depth" ,
-		"visual depth") ;
-	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" ,
-		"max ptys to open simultaneously (multiple of 32)") ;
-	kik_conf_add_opt( conf , '\0' , "button3" , 0 , "button3_behavior" ,
-		"button3 behavior. (xterm/menu1/menu2/menu3) "
-	#ifdef  USE_WIN32GUI
-		"[xterm]"
-	#else
-		"[menu1]"
-	#endif
-		) ;
-	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
-		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
-	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" ,
-		"restart mlterm automatically if an error like segv happens. [true]") ;
-#ifdef  USE_IM_CURSOR_COLOR
-	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
-		"cursor color when input method is activated. [false]") ;
-#endif
-
-	if( ! kik_conf_parse_args( conf , &argc , &argv))
-	{
-		kik_conf_delete( conf) ;
-
-		return  0 ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "font_size_range")))
-	{
-		u_int  min_font_size ;
-		u_int  max_font_size ;
-
-		if( get_font_size_range( &min_font_size , &max_font_size , value))
-		{
-			x_set_font_size_range( min_font_size , max_font_size) ;
-		}
-		else
-		{
-			kik_msg_printf( invalid_msg , "font_size_range" , value) ;
-		}
-	}
-
-	x_main_config_init( &main_config , conf , argc , argv) ;
-
-	is_genuine_daemon = 0 ;
-	sock_fd = -1 ;
-
-#ifndef  USE_WIN32API
-	if( ( value = kik_conf_get_value( conf , "daemon_mode")))
-	{
-	#ifndef  USE_WIN32GUI
-		/* 'genuine' is not supported in win32. */
-		if( strcmp( value , "genuine") == 0)
-		{
-			if( ( sock_fd = start_daemon()) < 0)
-			{
-				kik_msg_printf( "mlterm failed to become daemon.\n") ;
-			}
-			else
-			{
-				is_genuine_daemon = 1 ;
-			}
-		}
-		else
-	#endif
-		if( strcmp( value , "blend") == 0)
-		{
-			if( ( sock_fd = start_daemon()) < 0)
-			{
-				kik_msg_printf( "mlterm failed to become daemon.\n") ;
-			}
-		}
-	#if  0
-		else if( strcmp( value , "none") == 0)
-		{
-		}
-	#endif
-	}
-#endif
-
-	use_xim = 1 ;
-	
-#ifndef  USE_WIN32GUI
-	if( ( value = kik_conf_get_value( conf , "use_xim")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			use_xim = 0 ;
-		}
-	}
-
-	x_xim_init( use_xim) ;
-#endif
-
-	if( ( value = kik_conf_get_value( conf , "click_interval")))
-	{
-		int  interval ;
-
-		if( kik_str_to_int( &interval , value))
-		{
-			x_set_click_interval( interval) ;
-		}
-		else
-		{
-			kik_msg_printf( invalid_msg , "click_interval" , value) ;
-		}
-	}
-
-#ifndef  USE_WIN32GUI
-	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_compose_dec_special_font() ;
-		}
-	}
-#endif
-
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
-		strcmp( value , "true") == 0)
-	{
-		x_use_cp932_ucs_for_xft() ;
-	}
-#endif
-
-	if( ( value = kik_conf_get_value( conf , "depth")))
-	{
-		kik_str_to_uint( &depth , value) ;
-	}
-	
-	max_screens_multiple = 1 ;
-
-	if( ( value = kik_conf_get_value( conf , "max_ptys")))
-	{
-		u_int  max_ptys ;
-		
-		if( kik_str_to_uint( &max_ptys , value))
-		{
-			u_int  multiple ;
-
-			multiple = max_ptys / 32 ;
-			
-			if( multiple * 32 != max_ptys)
-			{
-				kik_msg_printf( "max_ptys %s is not multiple of 32.\n" , value) ;
-			}
-
-			if( multiple > 1)
-			{
-				max_screens_multiple = multiple ;
-			}
-		}
-		else
-		{
-			kik_msg_printf( invalid_msg , "max_ptys" , value) ;
-		}
-	}
-
-	if( ( dead_mask = calloc( sizeof( *dead_mask) , max_screens_multiple)) == NULL)
-	{
-		return  0 ;
-	}
-
-	num_of_startup_screens = 1 ;
-	
-	if( ( value = kik_conf_get_value( conf , "startup_screens")))
-	{
-		u_int  n ;
-		
-		if( ! kik_str_to_uint( &n , value) || ( ! is_genuine_daemon && n == 0))
-		{
-			kik_msg_printf( invalid_msg , "startup_screens" , value) ;
-		}
-		else
-		{
-			if( n > MAX_SCREENS)
-			{
-				n = MAX_SCREENS ;
-			}
-			
-			num_of_startup_screens = n ;
-		}
-	}
-	
-	num_of_startup_ptys = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "startup_ptys")))
-	{
-		u_int  n ;
-		
-		if( ! kik_str_to_uint( &n , value) || ( ! is_genuine_daemon && n == 0))
-		{
-			kik_msg_printf( invalid_msg , "startup_ptys" , value) ;
-		}
-		else
-		{
-			if( n <= num_of_startup_screens)
-			{
-				num_of_startup_ptys = 0 ;
-			}
-			else
-			{
-				if( n > MAX_SCREENS)
-				{
-					n = MAX_SCREENS ;
-				}
-
-				num_of_startup_ptys = n - num_of_startup_screens ;
-			}
-		}
-	}
-
-	if( ( value = kik_conf_get_value( conf , "word_separators")))
-	{
-		ml_set_word_separators( value) ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "button3_behavior")))
-	{
-		x_set_button3_behavior( value) ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_set_use_clipboard_selection( 1) ;
-		}
-	}
-
-	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
-	    strcmp( value , "true") == 0)
-	{
-		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
-	}
-
-#ifdef  USE_IM_CURSOR_COLOR
-	if( ( value = kik_conf_get_value( conf , "im_cursor_color")))
-	{
-		if( *value)
-		{
-			x_set_im_cursor_color( value) ;
-		}
-	}
-#endif
-
-	kik_conf_delete( conf) ;
-
 
 	if( *main_config.disp_name)
 	{
@@ -2079,38 +1262,23 @@ x_term_manager_init(
 	system_listener.font_config_updated = font_config_updated ;
 	system_listener.color_config_updated = color_config_updated ;
 
-#ifndef  USE_WIN32API
-	signal( SIGHUP , sig_fatal) ;
-	signal( SIGINT , sig_fatal) ;
-	signal( SIGQUIT , sig_fatal) ;
-	signal( SIGTERM , sig_fatal) ;
-	signal( SIGPIPE , SIG_IGN) ;
-#else
-	/* x_window_manager_idling() called in 0.1sec. */
-	SetTimer( NULL, 0, 100, timer_proc) ;
-#endif
-
 	if( ! ml_term_manager_init( max_screens_multiple))
 	{
 		free( dead_mask) ;
 
 		return  0 ;
 	}
-	
-	kik_alloca_garbage_collect() ;
 
 	return  1 ;
 }
 
 int
-x_term_manager_final(void)
+x_screen_manager_final(void)
 {
 	u_int  count ;
 
 	x_main_config_final( &main_config) ;
 	
-	ml_free_word_separators() ;
-
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
 		close_screen_intern( screens[count]) ;
@@ -2120,251 +1288,105 @@ x_term_manager_final(void)
 
 	free( dead_mask) ;
 
-	free( additional_fds) ;
-
 	ml_term_manager_final() ;
 
 	x_display_close_all() ;
 
-#ifndef  USE_WIN32GUI
-	x_xim_final() ;
-#endif
-
 	x_color_config_final( &color_config) ;
-	
 	x_shortcut_final( &shortcut) ;
 	x_termcap_final( &termcap) ;
 
-	kik_sig_child_final() ;
-	
 	return  1 ;
 }
 
-void
-x_term_manager_event_loop(void)
+u_int
+x_screen_manager_startup(void)
 {
-	int  count ;
-	char  * display ;
+	u_int  count ;
+	u_int  num_started ;
 
-	if( ! *( display = main_config.disp_name) &&
-		( ! ( display = getenv( "DISPLAY")) || ! *display))
-	{
-		display = ":0.0" ;
-	}
+	num_started = 0 ;
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
-		if( ! open_screen_intern(NULL , 1))
+		if( ! open_screen_intern( NULL , 1))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
 		#endif
-
-			if( count == 0 && ! is_genuine_daemon)
-			{
-				kik_msg_printf( "Unable to start - open_screen_intern() failed.\n") ;
-
-				exit(1) ;
-			}
-			else
-			{
-				break ;
-			}
+		}
+		else
+		{
+			num_started ++ ;
 		}
 	}
 
-	for( count = 0 ; count < num_of_startup_ptys ; count ++)
-	{
-		ml_term_t *  term ;
-
-		if( ( term = create_term_intern()) == NULL)
-		{
-			break ;
-		}
-
-		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			display , 0))
-		{
-			return ;
-		}
-	}
-
-	while( 1)
-	{
-	#ifdef  USE_WIN32API
-		u_int  num_of_displays ;
-		x_display_t **  displays ;
-		ml_term_t **  terms ;
-		u_int  num_of_terms ;
-	#endif
-		
-		kik_alloca_begin_stack_frame() ;
-
-	#ifdef  USE_WIN32API
-		displays = x_get_opened_displays( &num_of_displays) ;
-		for( count = 0 ; count < num_of_displays ; count++)
-		{
-			x_display_receive_next_event( displays[count]) ;
-		}
-	#else
-		receive_next_event() ;
-	#endif
-	
-		ml_close_dead_terms() ;
-
-	#ifdef  USE_WIN32API
-		/*
-		 * XXX
-		 * If pty is closed after ml_close_dead_terms() ...
-		 */
-		 
-		num_of_terms = ml_get_all_terms( &terms) ;
-
-		for( count = 0 ; count < num_of_terms ; count++)
-		{
-			ml_term_flush( terms[count]) ;
-			ml_term_parse_vt100_sequence( terms[count]) ;
-		}
-	#endif
-
-		if( num_of_screens > 0)
-		{
-			int  idx ;
-			
-			for( idx = (num_of_screens - 1) / MSU ; idx >= 0 ; idx --)
-			{
-				if( dead_mask[idx])
-				{
-					for( count = MSU - 1 ; count >= 0 ; count --)
-					{
-						if( dead_mask[idx] & (0x1 << count))
-						{
-							x_screen_t *  screen ;
-
-						#ifdef  __DEBUG
-							kik_debug_printf( KIK_DEBUG_TAG
-								" closing screen %d-%d." ,
-								idx , count) ;
-						#endif
-
-							screen = screens[idx * MSU + count] ;
-							screens[idx * MSU + count] =
-								screens[--num_of_screens] ;
-							close_screen_intern( screen) ;
-
-						#ifdef  __DEBUG
-							kik_msg_printf( " => Finished. Rest %d\n" ,
-									num_of_screens) ;
-						#endif
-						}
-					}
-
-					memset( &dead_mask[idx] , 0 , sizeof(dead_mask[idx])) ;
-				}
-			}
-		}
-		
-		kik_alloca_end_stack_frame() ;
-
-		if( num_of_screens == 0 && ! is_genuine_daemon)
-		{
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Exiting...\n") ;
-		#endif
-		
-			if( un_file)
-			{
-				unlink( un_file) ;
-			}
-			
-	#ifdef  USE_WIN32GUI
-		#if  0
-			PostQuitMessage( 0) ;
-			
-			/*
-			 * XXX
-			 * WM_QUIT cannot be received by {Get|Peek}Message or read() in
-			 * x_display_receive_next_event() in msys, so GetMessage()
-			 * is called here.
-			 * (WM_QUIT is eaten by /dev/windows thread ?)
-			 */
-			{
-				MSG  msg ;
-				
-				if( GetMessage( &msg , NULL , 0 , 0) <= 0)
-				{
-					break ;
-				}
-			}
-		#else
-			break ;
-		#endif
-	#else	/* USE_WIN32GUI */
-			exit(0) ;
-	#endif	/* USE_WIn32GUI */
-		}
-	}
+	return  num_started ;
 }
 
-/*
- * fd >= 0  -> Normal file descriptor. handler is invoked if fd is ready.
- * fd < 0 -> Special ID. handler is invoked at interval of 0.1 sec.
- */
 int
-x_term_manager_add_fd(
-	int  fd ,
-	void  (*handler)(void)
-	)
+x_close_dead_screens(void)
 {
-	void *  p ;
-
-	if( ! handler)
+	if( num_of_screens > 0)
 	{
-		return  0 ;
-	}
+		int  idx ;
 
-	if( ( p = realloc( additional_fds ,
-			sizeof(*additional_fds) * (num_of_additional_fds + 1))) == NULL)
-	{
-		return  0 ;
-	}
+		for( idx = (num_of_screens - 1) / MSU ; idx >= 0 ; idx --)
+		{
+			if( dead_mask[idx])
+			{
+				int  count ;
 
-	additional_fds = p ;
-	additional_fds[num_of_additional_fds].fd = fd ;
-	additional_fds[num_of_additional_fds++].handler = handler ;
-	if( fd >= 0)
-	{
-		kik_file_set_cloexec( fd) ;
-	}
+				for( count = MSU - 1 ; count >= 0 ; count --)
+				{
+					if( dead_mask[idx] & (0x1 << count))
+					{
+						x_screen_t *  screen ;
 
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %d is added to additional fds.\n" , fd) ;
-#endif
+					#ifdef  __DEBUG
+						kik_debug_printf( KIK_DEBUG_TAG
+							" closing screen %d-%d." ,
+							idx , count) ;
+					#endif
+
+						screen = screens[idx * MSU + count] ;
+						screens[idx * MSU + count] =
+							screens[--num_of_screens] ;
+						close_screen_intern( screen) ;
+
+					#ifdef  __DEBUG
+						kik_msg_printf( " => Finished. Rest %d\n" ,
+								num_of_screens) ;
+					#endif
+					}
+				}
+
+				memset( &dead_mask[idx] , 0 , sizeof(dead_mask[idx])) ;
+			}
+		}
+	}
 
 	return  1 ;
 }
 
-int
-x_term_manager_remove_fd(
-	int  fd
+u_int
+x_get_all_screens(
+	x_screen_t ***  _screens
 	)
 {
-	u_int  count ;
-
-	for( count = 0 ; count < num_of_additional_fds ; count++)
+	if( _screens)
 	{
-		if( additional_fds[count].fd == fd)
-		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Additional fd %d is removed.\n" , fd) ;
-		#endif
-		
-			additional_fds[count] = additional_fds[--num_of_additional_fds] ;
-
-			return  1 ;
-		}
+		*_screens = screens ;
 	}
 
-	return  0 ;
+	return  num_of_screens ;
 }
 
+int
+x_mlclient(
+	char *  args ,
+	FILE *  fp
+	)
+{
+	return  mlclient( NULL , NULL , args , fp) ;
+}

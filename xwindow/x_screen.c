@@ -36,12 +36,15 @@
 #define  HAS_SCROLL_LISTENER(screen,function) \
 	((screen)->screen_scroll_listener && (screen)->screen_scroll_listener->function)
 
-#if  0
-#define  __DEBUG
-#endif
+#define  MOUSE_POS_LIMIT  (0xff - 0x20)
+#define  EXT_MOUSE_POS_LIMIT  (0x7ff - 0x20)
 
 #if  1
 #define  NL_TO_CR_IN_PAST_TEXT
+#endif
+
+#if  0
+#define  __DEBUG
 #endif
 
 
@@ -3088,7 +3091,8 @@ report_mouse_tracking(
 	int  col ;
 	int  row ;
 	u_int  x_rest ;
-	u_char  buf[6] ;
+	u_char  seq[8] ;
+	size_t  seq_len ;
 
 	if( is_released)
 	{
@@ -3214,23 +3218,54 @@ report_mouse_tracking(
 		}
 	}
 
-	if( 0x20 + row + 1 > 0xff || 0x20 + col + 1 > 0xff)
+	/* clear all bytes of seq to compare with prev_mouse_report_seq. */
+	memcpy( seq , "\x1b[M\0\0\0\0\0" , 8) ;
+
+	seq[3] = 0x20 + button + key_state ;
+
+	if( ml_term_is_extended_mouse_report_mode( screen->term))
 	{
-		/* mouse position can't be reported using this protocol */
-		return  0 ;
+		int  ch ;
+		u_char *  p ;
+
+		p = seq + 4 ;
+
+		if( (ch = 0x20 + (col < EXT_MOUSE_POS_LIMIT ? col + 1 : EXT_MOUSE_POS_LIMIT))
+			>= 0x80)
+		{
+			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
+			*(p ++) = (ch & 0x3f) | 0x80 ;
+		}
+		else
+		{
+			*(p ++) = ch ;
+		}
+
+		if( (ch = 0x20 + (row < EXT_MOUSE_POS_LIMIT ? row + 1 : EXT_MOUSE_POS_LIMIT))
+			>= 0x80)
+		{
+			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
+			*p = (ch & 0x3f) | 0x80 ;
+		}
+		else
+		{
+			*p = ch ;
+		}
+
+		seq_len = p - seq + 1 ;
+	}
+	else
+	{
+		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col + 1 : MOUSE_POS_LIMIT) ;
+		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row + 1 : MOUSE_POS_LIMIT) ;
+		seq_len = 6 ;
 	}
 
-	strcpy( buf , "\x1b[M") ;
-
-	buf[3] = 0x20 + button + key_state ;
-	buf[4] = 0x20 + col + 1 ;
-	buf[5] = 0x20 + row + 1 ;
-
 	if( key_state >= 64 ||						/* Wheeling mouse */
-	    memcmp( screen->prev_mouse_report_seq , buf + 3 , 3) != 0)	/* Position is changed */
+	    memcmp( screen->prev_mouse_report_seq , seq + 3 , 5) != 0)	/* Position is changed */
 	{
-		write_to_pty( screen , buf , 6 , NULL) ;
-		memcpy( screen->prev_mouse_report_seq , buf + 3 , 3) ;
+		write_to_pty( screen , seq , seq_len , NULL) ;
+		memcpy( screen->prev_mouse_report_seq , seq + 3 , 5) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
@@ -6736,10 +6771,12 @@ xterm_resize(
 
 	if( width == 0 || height == 0)
 	{
+		/* ml_term_t is already resized. */
 		resize_window( screen) ;
 	}
 	/* screen will redrawn in window_resized() */
-	else if( x_window_resize( &screen->window , width , height , NOTIFY_TO_PARENT))
+	else if( x_window_resize( &screen->window , width , height ,
+			NOTIFY_TO_PARENT|LIMIT_RESIZE))
 	{
 		/*
 		 * !! Notice !!
@@ -6807,7 +6844,7 @@ xterm_set_mouse_report(
 	}
 	else
 	{
-		memset( screen->prev_mouse_report_seq , 0 , 3) ;
+		memset( screen->prev_mouse_report_seq , 0 , 5) ;
 	}
 
 	if( mode == ANY_EVENT_MOUSE_REPORT)

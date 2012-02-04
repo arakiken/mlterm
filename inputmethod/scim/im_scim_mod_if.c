@@ -92,7 +92,7 @@ delete(
 	{
 		if( panel_fd >= 0)
 		{
-			(*syms->x_term_manager_remove_fd)( panel_fd) ;
+			(*syms->x_event_source_remove_fd)( panel_fd) ;
 			panel_fd = -1 ;
 		}
 
@@ -568,7 +568,7 @@ panel_read_handler( void)
 {
 	if( ! im_scim_receive_panel_event())
 	{
-		(*syms->x_term_manager_remove_fd)( panel_fd) ;
+		(*syms->x_event_source_remove_fd)( panel_fd) ;
 		panel_fd = -1 ;
 	}
 }
@@ -632,7 +632,7 @@ im_scim_new(
 
 		if( ( panel_fd = im_scim_get_panel_fd()) >= 0)
 		{
-			(*syms->x_term_manager_add_fd)( panel_fd ,
+			(*syms->x_event_source_add_fd)( panel_fd ,
 							panel_read_handler) ;
 		}
 
@@ -720,7 +720,7 @@ error:
 	{
 		if( panel_fd >= 0)
 		{
-			(*syms->x_term_manager_remove_fd)( panel_fd) ;
+			(*syms->x_event_source_remove_fd)( panel_fd) ;
 			panel_fd = -1 ;
 		}
 

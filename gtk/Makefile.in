@@ -29,13 +29,14 @@ all: libvte@LIBVTE_SUFFIX@.la
 
 libvte@LIBVTE_SUFFIX@.la: $(OBJ)
 	$(LIBTOOL_LINK) -o libvte@LIBVTE_SUFFIX@.la $(OBJ:.o=.lo) ../mlterm/*.lo \
-	`echo ../xwindow/*.lo|sed 's/..\/xwindow\/main.lo//g' | \
-	sed 's/..\/xwindow\/x_term_manager.lo//g' | \
+	`echo ../xwindow/*.lo| \
 	sed 's/..\/xwindow\/x_sb_screen.lo//g' | \
 	sed 's/..\/xwindow\/x_scrollbar.lo//g' | \
 	sed 's/..\/xwindow\/x_sb_view_factory.lo//g' | \
 	sed 's/..\/xwindow\/x_connect_dialog.lo//g' | \
-	sed 's/..\/xwindow\/x_simple_sb_view.lo//g'` \
+	sed 's/..\/xwindow\/x_simple_sb_view.lo//g' | \
+	sed 's/..\/xwindow\/x_screen_manager.lo//g' | \
+	sed 's/..\/xwindow\/x_event_source.lo//g'` \
 	$(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
 	@IMAGELIB_LIBS@ @DL_LIBS_IM@ @GTK_LIBS@ @CTL_LIBS_FOR_VTE@ @TYPE_LIBS_FOR_VTE@ @DEXPORT@ \
 	-rpath $(libdir) -version-info 9:0:0

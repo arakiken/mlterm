@@ -19,7 +19,6 @@ CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
 	@UTMP_CFLAGS@ @CTL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DBINDIR=\"$(bindir)\" \
 	-DLIBDIR=\"$(libdir)\"
-LIBS = $(LIBS_LOCAL)
 
 OBJ_CORE = ml_char.o ml_str.o ml_line.o ml_model.o @CTL_LOADER_OBJ@
 OBJ = ml_char_encoding.o ml_color.o ml_edit.o ml_edit_util.o ml_edit_scroll.o \
@@ -36,13 +35,13 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all : @LMLTERM_CORE@ $(LIBNAME).a
 
-debug : $(LIBNAME).a @LMLTERM_CORE@
+debug : @LMLTERM_CORE@ $(LIBNAME).a
 
 $(LIBNAME).a : $(OBJ)
-	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo) $(LIBS)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo)
 
 $(LIBNAME)_core.a : $(OBJ_CORE)
-	$(LIBTOOL_LINK) -o $(LIBNAME)_core.a $(OBJ_CORE:.o=.lo) $(LIBS)
+	$(LIBTOOL_LINK) -o $(LIBNAME)_core.a $(OBJ_CORE:.o=.lo)
 
 $(LIBNAME)_core.la : $(OBJ_CORE)
 	$(LIBTOOL_LINK) -o $(LIBNAME)_core.la $(OBJ_CORE:.o=.lo) \

@@ -437,7 +437,7 @@ done
 
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS}"
+	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then
@@ -498,7 +498,7 @@ AC_ARG_ENABLE(utmp,
 AC_ARG_ENABLE(pty_helper,
 	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@],
 	pty_helper=$enable_pty_helper)
-if test "$utmp" = "yes" -a "$pty_helper" = "no" ; then
+if test "$utmp" = "yes" -a "$pty_helper" != "yes" ; then
 	UTMP_CFLAGS="-DUSE_UTMP"
 	has_utmp=`grep utmp /etc/group 2>/dev/null`
 	if test "$has_utmp" ; then
@@ -642,10 +642,10 @@ AC_ARG_ENABLE(dnd,
 if test "$dnd" = "no" ; then
 	DND_CFLAGS="-DDISABLE_XDND"
 else
-	DND_LIBS="x_dnd${WIN32TAG}.o"
+	DND_OBJ="x_dnd${WIN32TAG}.o"
 fi
 AC_SUBST(DND_CFLAGS)
-AC_SUBST(DND_LIBS)
+AC_SUBST(DND_OBJ)
 
 
 IM_CFLAGS=""
@@ -960,15 +960,15 @@ AC_SUBST(XWINDOW_OBJ_SUFFIX)
 
 CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\(@<:@0-9@:>@*-@<:@0-9@:>@*-@<:@0-9@:>@*\).*$/\1/p'`
 AC_SUBST(CHANGE_DATE)
-OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
+OUTPUT_FILES="main/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
 	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
 	AC_CONFIG_SUBDIRS(${SUBDIRS})
 fi
 
-MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
+MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow main man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile main/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 AC_ARG_ENABLE(ind,
 	[  --enable-ind            libind @<:@default=disabled@:>@],

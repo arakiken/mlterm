@@ -383,10 +383,10 @@ delete(
 					ibus_bus_get_connection( ibus_bus))))) != -1)
 	#endif
 		{
-			(*syms->x_term_manager_remove_fd)( fd) ;
+			(*syms->x_event_source_remove_fd)( fd) ;
 		}
 
-		(*syms->x_term_manager_remove_fd)( IBUS_ID) ;
+		(*syms->x_event_source_remove_fd)( IBUS_ID) ;
 
 		ibus_object_destroy( (IBusObject*)ibus_bus) ;
 		ibus_bus = NULL ;
@@ -612,8 +612,8 @@ im_ibus_new(
 			goto  error ;
 		}
 	#endif
-		(*syms->x_term_manager_add_fd)( fd , connection_handler) ;
-		(*syms->x_term_manager_add_fd)( IBUS_ID , connection_handler) ;
+		(*syms->x_event_source_add_fd)( fd , connection_handler) ;
+		(*syms->x_event_source_add_fd)( IBUS_ID , connection_handler) ;
 
 		kik_list_new( im_ibus_t , ibus_list) ;
 	}

@@ -287,9 +287,6 @@ comment $Id$
 
       o max_ptys (*32*)
         同時に立ち上げることができる pty の最大数 (32の倍数で指定)
-      
-      o startup_ptys  (*1*)
-        起動時に立ち上げる pty の数
 
       o startup_screens (*1*)
         起動時に立ち上げるウィンドウの数

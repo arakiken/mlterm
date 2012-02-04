@@ -7,7 +7,7 @@
 #include  <kiklib/kik_locale.h>
 
 #include  "x_im.h"
-#include  "x_term_manager.h"
+#include  "x_event_source.h"
 
 #ifdef  USE_IM_PLUGIN
 
@@ -42,8 +42,8 @@ static  x_im_export_syms_t  im_export_syms =
 	ml_conv_new ,
 	x_im_candidate_screen_new ,
 	x_im_status_screen_new ,
-	x_term_manager_add_fd ,
-	x_term_manager_remove_fd
+	x_event_source_add_fd ,
+	x_event_source_remove_fd
 
 } ;
 
