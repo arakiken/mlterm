@@ -177,12 +177,14 @@ parse_end:
 
 
 #ifdef  __DEBUG
-void
+int
 main(void)
 {
 	int  argc ;
 	char **  argv ;
 	char  args[] = "mlclient -l \"hoge fuga \\\" \" \' a b c \' \\\' \\\"" ;
+	char *  argv_correct[] =
+		{ "mlclient" , "-l" , "hoge fuga \" " , " a b c " , "\'" , "\"" } ;
 	int  count ;
 
 	argv = kik_arg_str_to_array( &argc , args) ;
@@ -190,7 +192,17 @@ main(void)
 	printf( "%d\n" , argc) ;
 	for( count = 0 ; count < argc ; count++)
 	{
-		printf( "=>%s<=\n" , argv[count]) ;
+		if( strcmp( argv_correct[count] , argv[count]) != 0)
+		{
+			printf( "CORRECT %s <=> WRONG %s\n" ,
+				argv_correct[count] , argv[count]) ;
+
+			return  1 ;
+		}
 	}
+
+	printf( "PASS kik_args test.\n") ;
+
+	return  0 ;
 }
 #endif

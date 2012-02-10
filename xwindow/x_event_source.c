@@ -4,15 +4,17 @@
 
 #include  "x_event_source.h"
 
+#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+
+#ifndef  USE_WIN32API
 #include  <string.h>		/* memset/memcpy */
 #include  <sys/time.h>		/* timeval */
 #include  <unistd.h>		/* select */
-
-#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+#include  <kiklib/kik_file.h>	/* kik_file_set_cloexec */
+#endif
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc/free */
-#include  <kiklib/kik_file.h>
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <ml_term_manager.h>
 
@@ -229,7 +231,7 @@ x_event_source_final(void)
 {
 #if  ! defined(USE_WIN32GUI) && ! defined(DEBUG)
 	exit(0) ;
-#endif	/* USE_WIN32GUI */
+#endif
 
 #ifndef  USE_WIN32API
 	free( additional_fds) ;
@@ -285,6 +287,7 @@ x_event_source_process(void)
 	return  1 ;
 }
 
+#ifndef  USE_WIN32API
 /*
  * fd >= 0  -> Normal file descriptor. handler is invoked if fd is ready.
  * fd < 0 -> Special ID. handler is invoked at interval of 0.1 sec.
@@ -295,7 +298,6 @@ x_event_source_add_fd(
 	void  (*handler)(void)
 	)
 {
-#ifndef  USE_WIN32API
 	void *  p ;
 
 	if( ! handler)
@@ -322,9 +324,6 @@ x_event_source_add_fd(
 #endif
 
 	return  1 ;
-#else
-	return  0 ;
-#endif
 }
 
 int
@@ -332,7 +331,6 @@ x_event_source_remove_fd(
 	int  fd
 	)
 {
-#ifndef  USE_WIN32API
 	u_int  count ;
 
 	for( count = 0 ; count < num_of_additional_fds ; count++)
@@ -348,8 +346,7 @@ x_event_source_remove_fd(
 			return  1 ;
 		}
 	}
-#endif
 
 	return  0 ;
 }
-
+#endif

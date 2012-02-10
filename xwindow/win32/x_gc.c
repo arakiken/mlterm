@@ -2,11 +2,11 @@
  *	$Id$
  */
 
-#include  "x_gc.h"
+#include  "../x_gc.h"
 
 #include  <kiklib/kik_mem.h>	/* malloc */
 
-#include  "x_color.h"
+#include  "../x_color.h"
 
 #define  ARGB_TO_RGB(pixel)  ((pixel) & 0x00ffffff)
 
@@ -20,9 +20,6 @@ x_gc_new(
 	)
 {
 	x_gc_t *  gc ;
-#ifndef  USE_WIN32GUI
-	XGCValues  gc_value ;
-#endif
 
 	if( ( gc = calloc( 1 , sizeof( x_gc_t))) == NULL)
 	{
@@ -31,32 +28,9 @@ x_gc_new(
 
 	gc->display = display ;
 
-#ifdef  USE_WIN32GUI
 	/* Default value of GC. */
 	gc->fg_color = RGB(0,0,0) ;
 	gc->bg_color = RGB(0xff,0xff,0xff) ;
-#else
-	if( drawable)
-	{
-		/* Default value of GC. */
-		gc->fg_color = 0xff000000 ;
-		gc->bg_color = 0xffffffff ;
-
-		/* Overwriting default value (1) of backgrond and foreground colors. */
-		gc_value.foreground = gc->fg_color ;
-		gc_value.background = gc->bg_color ;
-		gc_value.graphics_exposures = 0 ;
-		gc->gc = XCreateGC( gc->display , drawable ,
-				GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
-	}
-	else
-	{
-		gc->gc = DefaultGC( display , DefaultScreen( display)) ;
-		XGetGCValues( display , gc->gc , GCForeground | GCBackground , &gc_value) ;
-		gc->fg_color = gc_value.foreground ;
-		gc->bg_color = gc_value.background ;
-	}
-#endif
 
 	return  gc ;
 }
@@ -66,19 +40,10 @@ x_gc_delete(
 	x_gc_t *  gc
 	)
 {
-#ifndef  USE_WIN32GUI
-	if( ( gc->gc != DefaultGC( gc->display , DefaultScreen(gc->display))))
-	{
-		XFreeGC( gc->display , gc->gc) ;
-	}
-#endif
-
 	free( gc) ;
 
 	return  1 ;
 }
-
-#ifdef  USE_WIN32GUI
 
 int
 x_set_gc(
@@ -185,52 +150,3 @@ x_gc_set_brush(
 
 	return  None ;
 }
-
-#else
-
-int
-x_gc_set_fg_color(
-	x_gc_t *  gc ,
-	u_long  fg_color
-	)
-{
-	if( fg_color != gc->fg_color)
-	{
-		XSetForeground( gc->display , gc->gc , fg_color) ;
-		gc->fg_color = fg_color ;
-	}
-
-	return  1 ;
-}
-
-int
-x_gc_set_bg_color(
-	x_gc_t *  gc ,
-	u_long  bg_color
-	)
-{
-	if( bg_color != gc->bg_color)
-	{
-		XSetBackground( gc->display , gc->gc , bg_color) ;
-		gc->bg_color = bg_color ;
-	}
-
-	return  1 ;
-}
-
-int
-x_gc_set_fid(
-	x_gc_t *  gc,
-	Font  fid
-	)
-{
-	if( gc->fid != fid)
-	{
-		XSetFont( gc->display , gc->gc , fid) ;
-		gc->fid = fid ;
-	}
-
-	return  1 ;
-}
-
-#endif

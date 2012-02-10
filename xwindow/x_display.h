@@ -30,6 +30,7 @@ typedef struct  x_display
 	Display *  display ;	/* Don't change position, which pixmap_engine depends on. */
 	int  screen ;		/* DefaultScreen */
 	char *  name ;
+
 	Window  my_window ;	/* DefaultRootWindow */
 
 #ifndef  USE_WIN32GUI
@@ -39,6 +40,9 @@ typedef struct  x_display
 #endif
 	u_int  depth ;
 	x_gc_t *  gc ;
+
+	u_int  width ;
+	u_int  height ;
 
 	/*
 	 * Private

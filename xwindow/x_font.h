@@ -18,7 +18,6 @@
 #include  <ml_font.h>
 
 #include  "x_type_engine.h"
-#include  "x_decsp_font.h"
 
 
 typedef enum x_font_present
@@ -32,6 +31,9 @@ typedef enum x_font_present
 
 typedef struct _XftFont *  xft_font_ptr_t ;
 typedef struct _cairo_scaled_font *  cairo_scaled_font_ptr_t ;
+
+/* defined in xlib/x_decsp_font.h */
+typedef struct x_decsp_font *  x_decsp_font_ptr_t ;
 
 typedef struct x_font
 {
@@ -60,7 +62,7 @@ typedef struct x_font
 #endif
 #endif
 
-	x_decsp_font_t *  decsp_font ;
+	x_decsp_font_ptr_t  decsp_font ;
 
 	/*
 	 * These members are never zero.

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_color.h"
+#include  "../x_color.h"
 
 #include  <string.h>		/* memcpy,strcmp */
 #include  <stdio.h>		/* sscanf */

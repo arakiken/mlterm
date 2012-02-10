@@ -193,11 +193,6 @@ x_picture_display_opened(
 		return  0 ;
 	}
 
-#ifndef  USE_WIN32GUI
-	/* Want _XROOTPIAMP_ID changed events. */
-	XSelectInput( display , DefaultRootWindow(display) , PropertyChangeMask) ;
-#endif
-
 	return  1 ;
 }
 

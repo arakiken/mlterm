@@ -12,7 +12,7 @@ typedef struct  stock_pen
 	HPEN  pen ;
 	u_long  rgb ;
 	int  ref_count ;
-	
+
 } stock_pen_t ;
 
 typedef struct  stock_brush
@@ -20,7 +20,7 @@ typedef struct  stock_brush
 	HBRUSH  brush ;
 	u_long  rgb ;
 	int  ref_count ;
-	
+
 } stock_brush_t ;
 
 
@@ -38,7 +38,7 @@ static int
 garbage_unused_objects(void)
 {
 	int  count ;
-	
+
 	for( count = 0 ; count < num_of_stock_pens ;)
 	{
 		if( stock_pens[count].ref_count <= 0)
@@ -51,7 +51,7 @@ garbage_unused_objects(void)
 			count ++ ;
 		}
 	}
-	
+
 	for( count = 0 ; count < num_of_stock_brushes ;)
 	{
 		if( stock_brushes[count].ref_count <= 0)
@@ -86,7 +86,7 @@ x_gdiobj_pool_final(void)
 	{
 		DeleteObject( stock_pens[count].pen) ;
 	}
-	
+
 	for( count = 0 ; count < num_of_stock_brushes ; count++)
 	{
 		DeleteObject( stock_brushes[count].brush) ;
@@ -107,13 +107,13 @@ x_acquire_pen(
 
 	/* Remove alpha */
 	rgb &= 0xffffff ;
-	
+
 	for( count = 0 ; count < num_of_stock_pens ; count++)
 	{
 		if( rgb == stock_pens[count].rgb)
 		{
 			stock_pens[count].ref_count ++ ;
-			
+
 			return  stock_pens[count].pen ;
 		}
 	}
@@ -134,7 +134,7 @@ x_acquire_pen(
 		{
 			garbage_unused_objects() ;
 		}
-		
+
 		if( ( p = realloc( stock_pens , sizeof( stock_pen_t) * (num_of_stock_pens + 1)))
 			== NULL)
 		{
@@ -142,11 +142,11 @@ x_acquire_pen(
 		}
 
 		stock_pens = p ;
-		
+
 		stock_pens[num_of_stock_pens].rgb = rgb ;
 		stock_pens[num_of_stock_pens].pen = CreatePen( PS_SOLID, 1, rgb) ;
 		stock_pens[num_of_stock_pens].ref_count = 1 ;
-		
+
 		return  stock_pens[num_of_stock_pens++].pen ;
 	}
 }
@@ -157,13 +157,13 @@ x_release_pen(
 	)
 {
 	u_int  count ;
-	
+
 	for( count = 0 ; count < num_of_stock_pens ; count++)
 	{
 		if( pen == stock_pens[count].pen)
 		{
 			-- stock_pens[count].ref_count ;
-			
+
 			return  1 ;
 		}
 	}
@@ -186,11 +186,11 @@ x_acquire_brush(
 		if( rgb == stock_brushes[count].rgb)
 		{
 			stock_brushes[count].ref_count ++ ;
-			
+
 			return  stock_brushes[count].brush ;
 		}
 	}
-	
+
 	if( rgb == RGB(0,0,0))
 	{
 		return  GetStockObject( BLACK_BRUSH) ;
@@ -202,7 +202,7 @@ x_acquire_brush(
 	else
 	{
 		void *  p ;
-		
+
 		if( num_of_stock_brushes % 10 == 9)
 		{
 			garbage_unused_objects() ;
@@ -216,7 +216,7 @@ x_acquire_brush(
 		}
 
 		stock_brushes = p ;
-		
+
 		stock_brushes[num_of_stock_brushes].rgb = rgb ;
 		stock_brushes[num_of_stock_brushes].brush = CreateSolidBrush( rgb) ;
 		stock_brushes[num_of_stock_brushes].ref_count = 1 ;
@@ -231,13 +231,13 @@ x_release_brush(
 	)
 {
 	u_int  count ;
-	
+
 	for( count = 0 ; count < num_of_stock_brushes ; count++)
 	{
 		if( brush == stock_brushes[count].brush)
 		{
 			-- stock_brushes[count].ref_count ;
-			
+
 			return  1 ;
 		}
 	}

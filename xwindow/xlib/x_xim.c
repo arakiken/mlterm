@@ -13,7 +13,7 @@
 #include  <kiklib/kik_locale.h>	/* kik_locale_init/kik_get_locale/kik_get_codeset */
 #include  <kiklib/kik_mem.h>	/* alloca/realloc */
 
-#include  "x_xic.h"		/* refering mutually */
+#include  "../x_xic.h"		/* refering mutually */
 
 
 #if  0

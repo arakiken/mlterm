@@ -16,7 +16,7 @@
 #include  <x_screen_manager.h>
 #include  <x_event_source.h>
 #ifndef  USE_WIN32GUI
-#include  <x_xim.h>
+#include  <xlib/x_xim.h>
 #endif
 
 #include  "version.h"

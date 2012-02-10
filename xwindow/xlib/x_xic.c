@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_xic.h"
+#include  "../x_xic.h"
 
 #include  <X11/Xutil.h>		/* X{mb|utf8}LookupString */
 #include  <kiklib/kik_debug.h>

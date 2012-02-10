@@ -934,7 +934,6 @@ view_created:
 		x_window_set_transparent( &sb->window , pic_mod) ;
 	}
 
-#ifndef  USE_WIN32GUI
 	/* default scrollbar cursor */
 	if( strcmp( sb->view_name , default_view_name) == 0)
 	{
@@ -944,7 +943,6 @@ view_created:
 	{
 		x_window_set_cursor( &sb->window , XC_left_ptr) ;
 	}
-#endif
 
 	/*
 	 * event callbacks.

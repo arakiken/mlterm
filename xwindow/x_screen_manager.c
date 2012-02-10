@@ -715,16 +715,15 @@ error:
  * EXIT_PROGRAM shortcut calls this at last.
  * this is for debugging.
  */
-#ifdef  KIK_DEBUG
+#ifdef  DEBUG
 #include  "../main/main_loop.h"
-#endif
+
 static void
 __exit(
 	void *  p ,
 	int  status
 	)
 {
-#ifdef  KIK_DEBUG
 #ifdef  USE_WIN32GUI
 	u_int  count ;
 
@@ -743,10 +742,10 @@ __exit(
 
 	kik_alloca_garbage_collect() ;
 	kik_mem_free_all() ;
-#endif
 
 	exit(status) ;
 }
+#endif
 
 static void
 open_pty(
@@ -773,7 +772,7 @@ open_pty(
 
 		if( ! open_pty_intern( new , main_config.cmd_path ,
 			main_config.cmd_argv ,
-			DisplayString(  screen->window.disp->display) ,
+			DisplayString( screen->window.disp->display) ,
 			x_get_root_window( &screen->window)->my_window))
 		{
 			ml_destroy_term( new) ;
@@ -1248,7 +1247,11 @@ x_screen_manager_init(
 	}
 
 	system_listener.self = NULL ;
+#ifdef  DEBUG
 	system_listener.exit = __exit ;
+#else
+	system_listener.exit = NULL ;
+#endif
 	system_listener.open_screen = open_screen ;
 	system_listener.close_screen = close_screen ;
 	system_listener.open_pty = open_pty ;

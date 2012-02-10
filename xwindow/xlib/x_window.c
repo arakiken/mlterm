@@ -8,7 +8,7 @@
  * - Extended Window Manager Hint(Icon) support
  */
 
-#include  "x_window.h"
+#include  "../x_window.h"
 
 #include  <stdlib.h>		/* abs */
 #include  <string.h>		/* memset/memcpy */
@@ -17,13 +17,16 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
 #include  <kiklib/kik_util.h>	/* K_MAX */
+#include  <kiklib/kik_unistd.h>	/* kik_usleep */
 
-#include  "x_xic.h"
-#include  "x_picture.h"
+#include  "../x_xic.h"
+#include  "../x_picture.h"
 #ifndef  DISABLE_XDND
-#include  "x_dnd.h"
+#include  "../x_dnd.h"
 #endif
-#include  "x_type_loader.h"
+#include  "../x_type_loader.h"
+
+#include  "x_decsp_font.h"
 
 
 /*
@@ -1304,14 +1307,12 @@ x_window_show(
 	
 	if( hint & XNegative)
 	{
-		win->x += (DisplayWidth( win->disp->display , win->disp->screen)
-				- ACTUAL_WIDTH(win)) ;
+		win->x += (win->disp->width - ACTUAL_WIDTH(win)) ;
 	}
 
 	if( hint & YNegative)
 	{
-		win->y += (DisplayHeight( win->disp->display , win->disp->screen)
-				- ACTUAL_HEIGHT(win)) ;
+		win->y += (win->disp->height - ACTUAL_HEIGHT(win)) ;
 	}
 
 	s_attr.background_pixel = win->bg_color.pixel ;
@@ -1548,10 +1549,9 @@ x_window_resize(
 	}
 
 	/* Max width of each window is DisplayWidth(). */
-	if( (flag & LIMIT_RESIZE) &&
-	    DisplayWidth( win->disp->display , win->disp->screen) < width)
+	if( (flag & LIMIT_RESIZE) && win->disp->width < width)
 	{
-		win->width = DisplayWidth( win->disp->display , win->disp->screen) ;
+		win->width = win->disp->width ;
 	}
 	else
 	{
@@ -1559,10 +1559,9 @@ x_window_resize(
 	}
 
 	/* Max height of each window is DisplayHeight(). */
-	if( (flag & LIMIT_RESIZE) &&
-	    DisplayHeight( win->disp->display , win->disp->screen) < height)
+	if( (flag & LIMIT_RESIZE) && win->disp->height < height)
 	{
-		win->height = DisplayHeight( win->disp->display , win->disp->screen) ;
+		win->height = win->disp->height ;
 	}
 	else
 	{
@@ -1885,8 +1884,8 @@ x_window_blank(
 {
 	restore_fg_color( win) ;
 
-	XFillRectangle( win->disp->display , win->my_window , win->gc->gc , 0 , 0 ,
-		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
+		win->margin , win->margin , win->width , win->height) ;
 
 	return  1 ;
 }
@@ -1905,7 +1904,7 @@ x_window_blank_with(
 	x_gc_set_fg_color( win->gc, color->pixel) ;
 
 	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+		win->margin , win->margin , win->width , win->height) ;
 
 	return  1 ;
 }
@@ -2376,20 +2375,18 @@ x_window_receive_event(
 			/*
 			 * for fvwm2 style virtual screen.
 			 */
-			if( abs( event->xconfigure.x - win->x) % DisplayWidth(win->disp->display ,
-									win->disp->screen) != 0 ||
-			    abs( event->xconfigure.y - win->y) % DisplayHeight(win->disp->display ,
-									win->disp->screen) != 0 ||
+			if( abs( event->xconfigure.x - win->x) % win->disp->width != 0 ||
+			    abs( event->xconfigure.y - win->y) % win->disp->height != 0 ||
 			   ( event->xconfigure.x < 0 &&
 				event->xconfigure.x + (int)ACTUAL_WIDTH(win) > 0) ||
 			   ( event->xconfigure.x > 0 &&
 				event->xconfigure.x + (int)ACTUAL_WIDTH(win)
-					> DisplayWidth( win->disp->display , win->disp->screen)) ||
+					> (int)win->disp->width) ||
 			   ( event->xconfigure.y < 0 &&
 				event->xconfigure.y + (int)ACTUAL_HEIGHT(win) > 0) ||
 			   ( event->xconfigure.y > 0 &&
 				event->xconfigure.y + (int)ACTUAL_HEIGHT(win)
-					> DisplayHeight( win->disp->display , win->disp->screen)) )
+					> (int)win->disp->height) )
 			{
 				is_changed = 1 ;
 			}
@@ -3575,17 +3572,11 @@ x_window_get_visible_geometry(
 	)
 {
 	Window  child ;
-	int screen_width ;
-	int screen_height ;
 
 	XTranslateCoordinates( win->disp->display , win->my_window ,
-		DefaultRootWindow( win->disp->display) , 0 , 0 ,
-		x , y , &child) ;
+		win->disp->my_window , 0 , 0 , x , y , &child) ;
 
-	screen_width = DisplayWidth( win->disp->display , win->disp->screen) ;
-	screen_height = DisplayHeight( win->disp->display , win->disp->screen) ;
-
-	if( *x >= screen_width || *y >= screen_height)
+	if( *x >= (int)win->disp->width || *y >= (int)win->disp->height)
 	{
 		/* no visible window */
 
@@ -3632,14 +3623,14 @@ x_window_get_visible_geometry(
 		*height = ACTUAL_HEIGHT(win) ;
 	}
 
-	if( *x + *width > screen_width)
+	if( *x + (int)*width > (int)win->disp->width)
 	{
-		*width = screen_width - *x ;
+		*width = win->disp->width - *x ;
 	}
 
-	if( *y + *height > screen_height)
+	if( *y + (int)*height > (int)win->disp->height)
 	{
-		*height = screen_height - *y ;
+		*height = win->disp->height - *y ;
 	}
 
 	return  1 ;
@@ -3815,10 +3806,27 @@ x_window_get_mod_meta_mask(
 
 int
 x_window_bell(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  visual
 	)
 {
-	XBell( win->disp->display , 0) ;
+	if( visual)
+	{
+		x_window_blank( win) ;
+
+	#if  0
+		XSync( win->disp->display , False) ;
+	#else
+		XFlush( win->disp->display) ;
+	#endif
+		kik_usleep( 1) ;
+
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+	else
+	{
+		XBell( win->disp->display , 0) ;
+	}
 
 	return  1 ;
 }

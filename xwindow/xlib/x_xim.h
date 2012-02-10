@@ -9,7 +9,7 @@
 #include  <mkf/mkf_parser.h>
 #include  <ml_char_encoding.h>
 
-#include  "x_window.h"
+#include  "../x_window.h"
 
 
 typedef struct  x_xim

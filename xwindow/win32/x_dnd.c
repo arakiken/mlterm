@@ -2,7 +2,10 @@
  * $Id$
  */
 
-#include  "x_dnd.h"
+#include  "../x_window.h"
+#include  "../x_dnd.h"
+
+#include  <kiklib/kik_config.h>	/* USE_WIN32API */
 
 #ifndef  USE_WIN32API
 #include  <mkf/mkf_utf8_conv.h>
@@ -77,12 +80,12 @@ x_dnd_filter_event(
 			{
 				continue ;
 			}
-		
+
 			if( path_len == sizeof(utf8_path))
 			{
 				path_len -- ;
 			}
-			
+
 			utf8_path[path_len] = '\0' ;
 
 			cygwin_conv_to_posix_path( utf8_path , posix_path) ;

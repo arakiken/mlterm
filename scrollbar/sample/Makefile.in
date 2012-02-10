@@ -8,25 +8,25 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/scrollbar/sample
 
-_SAMPLE_OBJ = x_sample_sb_view.o x_transparent_sample_sb_view.o x_sample_sb_view_lib.o
+_SAMPLE_OBJ_xlib = x_sample_sb_view.o x_transparent_sample_sb_view.o x_sample_sb_view_lib.o
 _SAMPLE_OBJ_win32 = x_sample_sb_view_win32.o x_sample_sb_view_lib_win32.o
-SAMPLE_OBJ = $(_SAMPLE_OBJ@WIN32TAG@)
+SAMPLE_OBJ = $(_SAMPLE_OBJ_@GUI@)
 
-_SAMPLE2_OBJ = x_sample2_sb_view.o x_transparent_sample2_sb_view.o x_sample_sb_view_lib.o
+_SAMPLE2_OBJ_xlib = x_sample2_sb_view.o x_transparent_sample2_sb_view.o x_sample_sb_view_lib.o
 _SAMPLE2_OBJ_win32 =
-SAMPLE2_OBJ = $(_SAMPLE2_OBJ@WIN32TAG@)
+SAMPLE2_OBJ = $(_SAMPLE2_OBJ_@GUI@)
 
-_TARGETS = libsample.la libsample2.la
+_TARGETS_xlib = libsample.la libsample2.la
 _TARGETS_win32 = libsample.la
-TARGETS = $(_TARGETS@WIN32TAG@)
+TARGETS = $(_TARGETS_@GUI@)
 
 CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ \
 	@GUI_CFLAGS@ -I/usr/include
 
-_LIBS = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
+_LIBS_xlib = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
 #_LIBS = @X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 _LIBS_win32 = -mwindows
-LIBS = $(_LIBS@WIN32TAG@)
+LIBS = $(_LIBS_@GUI@)
 
 CC = @CC@
 INSTALL = @INSTALL@

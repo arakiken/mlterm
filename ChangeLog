@@ -1,3 +1,42 @@
+2012-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.[ch], xlib/x_window.c, win32/x_window.c:
+	  x_display_t::width and x_display_t::height members are added and
+	  used instead of calling Display{Width|Height}() or
+	  GetSystemMetrics(SM_C{X|Y}SCREEN) directly.
+
+	* x_screen.c, x_window.h, {xlib|win32}/x_window.c:
+	  A problem that margin area isn't cleared after visual bell is fixed.
+
+	* configure.in, mlterm-menu/Makefile.in, main/Makefile.in, xwindow/Makefile.in,
+	  scrollbar/sample/Makefile.in, tool/mlconfig/Makefile.in:
+	  @WIN32TAG@ -> _@GUI@
+
+	* xwindow/:
+	  x_color.c       -> xlib/x_color.c
+	  x_color_win32.c -> win32/x_color.c
+	  x_connect_dialog.c -> xlib/x_connect_dialog.c, win32/x_connect_dialog.c
+	  x_display.c     -> xlib/x_display.c
+	  x_display_win32.c -> win32/x_display.c
+	  x_dnd.c         -> xlib/x_dnd.c
+	  x_dnd_win32.c   -> win32/x_dnd.c
+	  x_font.c        -> xlib/x_font.c
+	  x_font_win32.c  -> win32/x_font.c
+	  x_gc.c          -> xlib/x_gc.c, win32/x_gc.c
+	  x_imagelib.c    -> xlib/x_imagelib.c
+	  x_imagelib_win32.c -> win32/x_imagelib.c
+	  x_simple_sb_view.c -> xlib/x_simple_sb_view.c
+	  x_simple_sb_view_win32.c -> win32/x_simple_sb_view.c
+	  x_win32.h       -> win32/x_win32.h
+	  x_window.c      -> xlib/x_window.c
+	  x_window_win32.c -> win32/x_window.c
+	  x_xic.c         -> xlib/x_xic.c
+	  x_xic_win32.c   -> win32/x_xic.c
+	  winrs.rs        -> win32/winrs.rs
+	  x_gdiobj_pool.[ch] -> win32/x_gdiobj_pool.[ch]
+	  x_decsp_font.[ch] -> xlib/x_decsp_font.[ch]
+	  x_xim.[ch]      -> xlib/x_xim.[ch]
+
 2012-02-04  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.h, x_window.c, x_window_win32.c:

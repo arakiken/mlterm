@@ -278,6 +278,18 @@ typedef int XFontSet ;	/* dummy */
 #define XK_k	0xffd6	/* dummy */
 #define XK_j	0xffd5	/* dummy */
 
+/* For msys-dtk */
+#ifndef  VK_OEM_2
+#define  VK_OEM_2  0xbf
+#endif
+#ifndef  VK_OEM_7
+#define  VK_OEM_7  0xde
+#endif
+#ifndef  VK_OEM_102
+#define  VK_OEM_102  0xe2
+#endif
+
+
 /* XPoint(short x, short y) in Xlib. POINT(long x, long y) in win32. */
 #define XPoint  POINT
 
@@ -330,6 +342,10 @@ typedef int XFontSet ;	/* dummy */
 #else /* UTF16_IME_CHAR */
  #define  __(a) _T(a)
 #endif	/* UTF16_IME_CHAR */
+
+
+#define  XC_sb_v_double_arrow  0
+#define  XC_left_ptr  0
 
 
 #endif

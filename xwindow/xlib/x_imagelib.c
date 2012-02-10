@@ -3,6 +3,8 @@
  *	$Id$
  */
 
+#include  "../x_imagelib.h"
+
 #include <X11/Xatom.h>		/* XInternAtom */
 #include <X11/Xutil.h>
 #include <string.h>		/* memcpy */
@@ -27,7 +29,7 @@
 #include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_util.h>	/* K_MIN */
 
-#include "x_imagelib.h"
+#include "../x_imagelib.h"
 
 /*
  * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
@@ -1540,13 +1542,18 @@ x_imagelib_display_opened(
 	Display *  display
 	)
 {
-	if (display_count == 0)
-	{
 #if GDK_PIXBUF_MAJOR >= 2
+	if( display_count == 0)
+	{
 		g_type_init() ;
-#endif /*GDK_PIXBUF_MAJOR*/
 	}
+#endif /*GDK_PIXBUF_MAJOR*/
+
+	/* Want _XROOTPIAMP_ID changed events. */
+	XSelectInput( display , DefaultRootWindow( display) , PropertyChangeMask) ;
+
 	display_count ++ ;
+
 	return  1 ;
 }
 
@@ -1703,9 +1710,13 @@ x_imagelib_get_transparent_background(
 	{
 		return  None ;
 	}
-	
+
 	if( ! x_window_get_visible_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_window_get_visible_geometry failed.\n") ;
+	#endif
+
 		return  None ;
 	}
 
@@ -1791,8 +1802,7 @@ x_imagelib_get_transparent_background(
 		XDestroyImage( image) ;
 		XDestroyImage( image2) ;
 	}
-	else if( root_width < DisplayWidth( win->disp->display , win->disp->screen) ||
-	     root_height < DisplayHeight( win->disp->display , win->disp->screen))
+	else if( root_width < win->disp->width || root_height < win->disp->height)
 	{
 		GC  gc ;
 

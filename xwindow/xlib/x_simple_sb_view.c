@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_simple_sb_view.h"
+#include  "../x_simple_sb_view.h"
 
 #include  <stdlib.h>
 #include  <kiklib/kik_mem.h>		/* malloc */

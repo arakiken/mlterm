@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_xic.h"
+#include  "../x_xic.h"
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
@@ -109,21 +109,13 @@ x_xic_get_xim_name(
 	x_window_t *  win
 	)
 {
-#ifdef  USE_WIN32GUI
 	return  "" ;
-#else
-	return  x_get_xim_name( win) ;
-#endif
 }
 
 char *
 x_xic_get_default_xim_name(void)
 {
-#ifdef  USE_WIN32GUI
 	return  "" ;
-#else
-	return  x_get_default_xim_name() ;
-#endif
 }
 
 int
@@ -131,26 +123,7 @@ x_xic_fg_color_changed(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XVaNestedList  preedit_attr ;
-
-	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
-	{
-		return  0 ;
-	}
-
-	if( ( preedit_attr = XVaCreateNestedList( 0 , XNForeground ,
-		(*win->xim_listener->get_fg_color)( win->xim_listener->self) , NULL)) == NULL)
-	{
-		return  0 ;
-	}
-
-	XSetICValues( win->xic->ic , XNPreeditAttributes , preedit_attr , NULL) ;
-
-	XFree( preedit_attr) ;
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -158,26 +131,7 @@ x_xic_bg_color_changed(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XVaNestedList  preedit_attr ;
-
-	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
-	{
-		return  0 ;
-	}
-
-	if( ( preedit_attr = XVaCreateNestedList( 0 , XNBackground ,
-		(*win->xim_listener->get_bg_color)( win->xim_listener->self) , NULL)) == NULL)
-	{
-		return  0 ;
-	}
-
-	XSetICValues( win->xic->ic , XNPreeditAttributes , preedit_attr , NULL) ;
-
-	XFree( preedit_attr) ;
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -185,36 +139,7 @@ x_xic_font_set_changed(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XVaNestedList  preedit_attr ;
-	XFontSet  fontset ;
-
-	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
-	{
-		return  0 ;
-	}
-
-	if( ! ( fontset = load_fontset( win)))
-	{
-		return  0 ;
-	}
-	
-	if( ( preedit_attr = XVaCreateNestedList( 0 , XNFontSet , fontset , NULL)) == NULL)
-	{
-		XFreeFontSet( win->display , fontset) ;
-		
-		return  0 ;
-	}
-
-	XSetICValues( win->xic->ic , XNPreeditAttributes , preedit_attr , NULL) ;
-
-	XFree( preedit_attr) ;
-	
-	XFreeFontSet( win->display , win->xic->fontset) ;
-	win->xic->fontset = fontset ;
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -222,40 +147,7 @@ x_xic_resized(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XVaNestedList  preedit_attr ;
-	XRectangle  rect ;
-	XPoint  spot ;
-
-	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
-	{
-		return  0 ;
-	}
-	
-	get_rect( win , &rect) ;
-	if( get_spot( win , &spot) == 0)
-	{
-		/* forcibly set ...*/
-		spot.x = 0 ;
-		spot.y = 0 ;
-	}
-	
-	if( ( preedit_attr = XVaCreateNestedList( 0 , XNArea , &rect , XNSpotLocation , &spot , NULL))
-		== NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " XvaCreateNestedList() failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-	
-	XSetICValues( win->xic->ic , XNPreeditAttributes , preedit_attr , NULL) ;
-
-	XFree( preedit_attr) ;
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -448,6 +340,8 @@ x_xic_switch_mode(
 	return  ImmSetOpenStatus( win->xic->ic , (ImmGetOpenStatus( win->xic->ic) == FALSE)) ;
 }
 
+#if  0
+
 /*
  * x_xim.c <-> x_xic.c communication functions
  * Not necessary in win32.
@@ -469,3 +363,4 @@ x_xim_destroyed(
 	return  1 ;
 }
 
+#endif

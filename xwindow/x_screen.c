@@ -394,7 +394,6 @@ screen_height(
 	return  (height * screen->screen_height_ratio) / 100 ;
 }
 
-#ifndef  USE_WIN32GUI
 static int
 activate_xic(
 	x_screen_t *  screen
@@ -432,7 +431,6 @@ activate_xic(
 
 	return  1 ;
 }
-#endif
 
 /*
  * drawing screen functions.
@@ -931,12 +929,10 @@ redraw_screen(
 
 	ml_term_updated_all( screen->term) ;
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		x_im_redraw_preedit( screen->im , screen->window.is_focused) ;
 	}
-#endif
 
 	return  1 ;
 }
@@ -1377,10 +1373,9 @@ window_realized(
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win , NULL) ;
 
 #ifdef  USE_WIN32GUI
-	x_xic_activate( win , NULL , NULL) ;
-	
 	DragAcceptFiles( win->my_window , TRUE) ;
-#else
+#endif
+
 	if( screen->input_method)
 	{
 		/* XIM or other input methods? */
@@ -1403,7 +1398,6 @@ window_realized(
 			}
 		}
 	}
-#endif
 
 	x_window_set_fg_color( win , x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
@@ -1566,9 +1560,7 @@ window_resized(
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
-#ifndef  USE_WIN32GUI
 	x_xic_resized( &screen->window) ;
-#endif
 
 #ifdef  MULTI_WINDOWS_PER_PTY
 	ml_term_sync_size( screen->term , cols , rows) ;
@@ -1601,12 +1593,10 @@ window_focused(
 
 	x_window_update( &screen->window, UPDATE_CURSOR) ;
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		(*screen->im->focused)( screen->im) ;
 	}
-#endif
 
 #ifdef  MULTI_WINDOWS_PER_PTY
 	if( ! ml_term_is_readable( screen->term))
@@ -1654,12 +1644,10 @@ window_unfocused(
 
 	x_window_update( &screen->window, UPDATE_CURSOR) ;
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		(*screen->im->unfocused)( screen->im) ;
 	}
-#endif
 
 #ifdef  MULTI_WINDOWS_PER_PTY
 	if( ml_term_window_id( screen->term))
@@ -1984,7 +1972,6 @@ key_pressed(
 	}
 #endif
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		u_char  kchar = 0 ;
@@ -2015,7 +2002,6 @@ key_pressed(
 			return ;
 		}
 	}
-#endif
 
 #ifdef  __DEBUG
 	{
@@ -2093,7 +2079,7 @@ key_pressed(
 	{
 		if( HAS_SYSTEM_LISTENER(screen,exit))
 		{
-			screen->system_listener->exit( screen->system_listener->self , 1) ;
+			(*screen->system_listener->exit)( screen->system_listener->self , 1) ;
 		}
 
 		return ;
@@ -4134,10 +4120,8 @@ change_font_size(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32GUI
 	/* this is because font_man->font_set may have changed in x_change_font_size() */
 	x_xic_font_set_changed( &screen->window) ;
-#endif
 }
 
 static void
@@ -4250,13 +4234,11 @@ usascii_font_cs_changed(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32GUI
 	/*
 	 * this is because font_man->font_set may have changed in
 	 * x_font_manager_usascii_font_cs_changed()
 	 */
 	x_xic_font_set_changed( &screen->window) ;
-#endif
 }
 
 static void
@@ -4284,12 +4266,10 @@ change_char_encoding(
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		change_im( screen , kik_str_alloca_dup( screen->input_method)) ;
 	}
-#endif
 }
 
 static void
@@ -4474,9 +4454,7 @@ change_fg_color(
 	if( x_window_set_fg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_FG_COLOR)))
 	{
-	#ifndef  USE_WIN32GUI
 		x_xic_fg_color_changed( &screen->window) ;
-	#endif
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
@@ -4500,9 +4478,7 @@ change_bg_color(
 	if( x_window_set_bg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_BG_COLOR)))
 	{
-	#ifndef  USE_WIN32GUI
 		x_xic_bg_color_changed( &screen->window) ;
-	#endif
 
 		x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
 				&screen->pic_mod.blend_blue , NULL ,
@@ -4601,10 +4577,8 @@ larger_font_size(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32GUI
 	/* this is because font_man->font_set may have changed in x_larger_font() */
 	x_xic_font_set_changed( &screen->window) ;
-#endif
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4619,10 +4593,8 @@ smaller_font_size(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32GUI
 	/* this is because font_man->font_set may have changed in x_smaller_font() */
 	x_xic_font_set_changed( &screen->window) ;
-#endif
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4892,9 +4864,7 @@ change_alpha(
 		if( x_window_set_bg_color( &screen->window ,
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)))
 		{
-		#ifndef  USE_WIN32GUI
 			x_xic_bg_color_changed( &screen->window) ;
-		#endif
 
 			ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		}
@@ -4942,10 +4912,10 @@ change_im(
 	char *  input_method
 	)
 {
-#ifndef  USE_WIN32GUI
 	x_im_t *  im ;
 
 	x_xic_deactivate( &screen->window) ;
+
 	/*
 	 * Avoid to delete anything inside im-module by calling x_im_delete()
 	 * after x_im_new().
@@ -4993,7 +4963,6 @@ change_im(
 	{
 		x_im_delete( im) ;
 	}
-#endif
 }
 
 static void
@@ -5451,11 +5420,7 @@ get_config(
 	}
 	else if( strcmp( key , "default_xim_name") == 0)
 	{
-	#ifdef  USE_WIN32GUI
-		value = "" ;
-	#else
 		value = x_xic_get_default_xim_name() ;
-	#endif
 	}
 	else if( strcmp( key , "locale") == 0)
 	{
@@ -6451,7 +6416,6 @@ im_changed(
 	char *  input_method
 	)
 {
-#ifndef  USE_WIN32GUI
 	x_screen_t *  screen ;
 	x_im_t *  new ;
 
@@ -6475,7 +6439,6 @@ im_changed(
 
 	x_im_delete( screen->im) ;
 	screen->im = new ;
-#endif
 }
 
 static int
@@ -6898,20 +6861,11 @@ xterm_bel(
 
 	if( screen->bel_mode == BEL_SOUND)
 	{
-		x_window_bell( &screen->window) ;
+		x_window_bell( &screen->window , 0) ;
 	}
 	else if( screen->bel_mode == BEL_VISUAL)
 	{
-		x_window_blank( &screen->window) ;
-
-	#ifndef  USE_WIN32GUI
-		XFlush( screen->window.disp->display) ;
-	#endif
-	
-		x_window_clear_all( &screen->window) ;
-		
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-		x_window_update( &screen->window, UPDATE_SCREEN) ;
+		x_window_bell( &screen->window , 1) ;
 	}
 }
 
@@ -6924,12 +6878,10 @@ xterm_im_is_active(
 
 	screen = p ;
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		return  (*screen->im->is_active)( screen->im) ;
 	}
-#endif
 
 	return  x_xic_is_active( &screen->window) ;
 }
@@ -6943,14 +6895,12 @@ xterm_switch_im_mode(
 
 	screen = p ;
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		(*screen->im->switch_mode)( screen->im) ;
 
 		return ;
 	}
-#endif
 
 	x_xic_switch_mode( &screen->window) ;
 }
@@ -7481,12 +7431,10 @@ x_screen_delete(
 
 	free( screen->input_method) ;
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		x_im_delete( screen->im) ;
 	}
-#endif
 
 	free( screen) ;
 
@@ -7543,7 +7491,6 @@ x_screen_attach(
 	/* reset icon to screen->term's one */
 	set_icon( screen) ;
 
-#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		x_im_t *  im ;
@@ -7558,7 +7505,6 @@ x_screen_attach(
 		 */
 		x_im_delete( im) ;
 	}
-#endif
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 

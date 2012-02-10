@@ -6,11 +6,9 @@
 #define  __X_GC_H__
 
 
-#include  "x.h"
+#include  <kiklib/kik_types.h>	/* u_int */
 
-#ifdef  USE_WIN32GUI
-#include  "x_gdiobj_pool.h"
-#endif
+#include  "x.h"
 
 
 typedef struct x_gc

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_font.h"
+#include  "../x_font.h"
 
 #include  <stdio.h>
 #include  <string.h>		/* memset/strncasecmp */
@@ -13,7 +13,7 @@
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 
-#include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
+#include  <ml_char_encoding.h>	/* x_convert_to_xft_ucs4 */
 
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \

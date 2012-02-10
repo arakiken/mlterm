@@ -22,13 +22,13 @@ CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @GTK_CFLAGS@ \
 
 LIBS1 = $(LIBS_LOCAL) @DL_SELF@ @GTK_LIBS@
 
-LIBS2 = $(LKIK)
+LIBS2_xlib = $(LKIK)
 
-# mlconfig is statically linked with libkik.
+# mlterm-menu is statically linked with libkik.
 # Then it works if installed libkik.dll is compiled with USE_WIN32API or not.
 LIBS2_win32 = -mwindows ${top_builddir}/kiklib/src/.libs/libkik.a
 
-LIBS = $(LIBS1) $(LIBS2@WIN32TAG@)
+LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)

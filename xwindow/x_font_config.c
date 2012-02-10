@@ -529,31 +529,21 @@ read_all_conf(
 	}
 	else
 	{
-	#ifndef  USE_WIN32GUI
-		if( font_config->font_present & FONT_AA)
+		font_rcfile = font_file ;
+
+		switch( font_config->font_present & ~FONT_AA)
 		{
-			/* Never reached. */
-			return  0 ;
-		}
-		else
-	#endif
-		{
-			font_rcfile = font_file ;
+		default:
+			font_rcfile2 = NULL ;
+			break ;
 
-			switch( font_config->font_present)
-			{
-			default:
-				font_rcfile2 = NULL ;
-				break ;
+		case FONT_VAR_WIDTH:
+			font_rcfile2 = vfont_file ;
+			break ;
 
-			case FONT_VAR_WIDTH:
-				font_rcfile2 = vfont_file ;
-				break ;
-
-			case FONT_VERTICAL:
-				font_rcfile2 = tfont_file ;
-				break ;
-			}
+		case FONT_VERTICAL:
+			font_rcfile2 = tfont_file ;
+			break ;
 		}
 	}
 

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_display.h"
+#include  "../x_display.h"
 
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memset/memcpy */
@@ -14,7 +14,8 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 
-#include  "x_window.h"
+#include  "../x_window.h"
+
 #include  "x_gdiobj_pool.h"
 
 
@@ -139,6 +140,8 @@ x_display_open(
 		return  NULL ;
 	}
 
+	_disp.width = GetSystemMetrics( SM_CXSCREEN) ;
+	_disp.height = GetSystemMetrics( SM_CYSCREEN) ;
 	_disp.depth = 24 ;
 
 #ifdef  USE_WIN32API

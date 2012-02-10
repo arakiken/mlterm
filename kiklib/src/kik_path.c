@@ -376,7 +376,7 @@ main(void)
 }
 #endif
 
-#ifdef  __DEBUG
+#ifdef  __DEBUG2
 int
 main(
 	int  argc ,
@@ -385,6 +385,6 @@ main(
 {
 	printf( "%s\n" , __kik_basename( argv[1])) ;
 
-	return  1 ;
+	return  0 ;
 }
 #endif

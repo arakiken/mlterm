@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_imagelib.h"
+#include  "../x_imagelib.h"
 
 #include  <limits.h>		/* MAX_PATH */
 

@@ -545,11 +545,8 @@ adjust_window_position(
 		return ;
 	}
 
-	dh = DisplayHeight(  cand_screen->window.disp->display ,
-			     cand_screen->window.disp->screen) ;
-	dw = DisplayWidth(  cand_screen->window.disp->display ,
-			     cand_screen->window.disp->screen) ;
-
+	dh = cand_screen->window.disp->height ;
+	dw = cand_screen->window.disp->width ;
 
 	if( *y + cand_screen->window.height > dh)
 	{

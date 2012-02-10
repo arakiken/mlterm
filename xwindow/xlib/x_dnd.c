@@ -4,8 +4,9 @@
  *	$Id$
  */
 
-#include  "x_window.h"
-#include  "x_dnd.h"
+#include  "../x_window.h"
+#include  "../x_dnd.h"
+
 #include  <stdio.h>
 #include  <string.h>
 #include  <X11/Xatom.h>

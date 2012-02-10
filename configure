@@ -854,9 +854,9 @@ FRIBIDI_CFLAGS
 CTL_LOADER_OBJ
 LMLTERM_CORE
 REGEX_CFLAGS
+GUI
 XUTF8_CFLAGS
 GUI_CFLAGS
-WIN32TAG
 MATH_CFLAGS
 MATH_LIBS
 IMAGELIB_LIBS
@@ -20377,14 +20377,12 @@ fi
 
 
 if test "$gui" = "win32" ; then
-	WIN32TAG="_win32"
+	GUI="win32"
 	GUI_CFLAGS="-DUSE_WIN32GUI"
 	X_CFLAGS=""
 
-
 else
-	# gui = xlib
-
+	GUI="xlib"
 	# Li18nux Xlib-I18N defines X_HAVE_UTF8_STRING but has no Xutf8LookupString.
 	ldflags="$LDFLAGS" cflags="$CFLAGS"
 	LDFLAGS="$LDFLAGS $X_PRE_LIBS $X_LIBS $X_EXTRA_LIBS" CFLAGS="$X_CFLAGS $CFLAGS"
@@ -20431,6 +20429,7 @@ fi
 	LDFLAGS="$ldflags" CFLAGS="$cflags"
 
 fi
+
 
 ac_fn_c_check_header_mongrel "$LINENO" "regex.h" "ac_cv_header_regex_h" "$ac_includes_default"
 if test "x$ac_cv_header_regex_h" = x""yes; then :
@@ -21395,7 +21394,7 @@ fi
 if test "$dnd" = "no" ; then
 	DND_CFLAGS="-DDISABLE_XDND"
 else
-	DND_OBJ="x_dnd${WIN32TAG}.o"
+	DND_OBJ="x_dnd.o"
 fi
 
 

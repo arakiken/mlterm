@@ -389,7 +389,7 @@ u_int  x_window_get_mod_ignore_mask( x_window_t *  win , KeySym *  keysyms) ;
 
 u_int  x_window_get_mod_meta_mask( x_window_t *  win , char *  mod_key) ;
 
-int  x_window_bell( x_window_t *  win) ;
+int  x_window_bell( x_window_t *  win , int  visual) ;
 
 int  x_window_translate_coordinates( x_window_t *  win, int x, int y,
 	int *  global_x, int *  global_y, Window *  child) ;

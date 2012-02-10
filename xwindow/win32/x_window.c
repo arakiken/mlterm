@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_window.h"
+#include  "../x_window.h"
 
 #include  <stdlib.h>		/* abs */
 #include  <string.h>		/* memset/memcpy */
@@ -12,13 +12,15 @@
 #include  <mkf/mkf_codepoint_parser.h>
 #include  <ml_char.h>		/* UTF_MAX_SIZE */
 
-#include  "x_xic.h"
-#include  "x_picture.h"
-#include  "x_imagelib.h"
+#include  "../x_xic.h"
+#include  "../x_picture.h"
+#include  "../x_imagelib.h"
 
 #ifndef  DISABLE_XDND
-#include  "x_dnd.h"
+#include  "../x_dnd.h"
 #endif
+
+#include  "x_gdiobj_pool.h"
 
 
 #define  MAX_CLICK  3			/* max is triple click */
@@ -160,7 +162,7 @@ check_scrollable(
 	{
 	#ifdef  DEBUG_SCROLLABLE
 		kik_debug_printf( "SCREEN W %d H %d WINDOW W %d H %d X %d Y %d " ,
-			GetSystemMetrics( SM_CXSCREEN) , GetSystemMetrics( SM_CYSCREEN) ,
+			win->disp->width , win->disp->height ,
 			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , win->x , win->y) ;
 	#endif
 
@@ -177,11 +179,7 @@ check_scrollable(
 		}
 		else
 		{
-			u_int  screen_height ;
-
-			screen_height = GetSystemMetrics( SM_CYSCREEN);
-
-			if( win->y + ACTUAL_HEIGHT(win) > screen_height)
+			if( win->y + ACTUAL_HEIGHT(win) > win->disp->height)
 			{
 			#ifdef  DEBUG_SCROLLABLE
 				kik_debug_printf( "NOT SCROLLABLE(2)\n") ;
@@ -190,11 +188,7 @@ check_scrollable(
 			}
 			else
 			{
-				u_int  screen_width ;
-
-				screen_width = GetSystemMetrics( SM_CXSCREEN) ;
-
-				if( win->x + ACTUAL_WIDTH(win) > screen_width)
+				if( win->x + ACTUAL_WIDTH(win) > win->disp->width)
 				{
 				#ifdef  DEBUG_SCROLLABLE
 					kik_debug_printf( "NOT SCROLLABLE(3)\n") ;
@@ -221,7 +215,7 @@ check_scrollable(
 					{
 						if( barinfo.rc.left <= 0)
 						{
-							if( barinfo.rc.right >= screen_width)
+							if( barinfo.rc.right >= win->disp->width)
 							{
 								/* North */
 								if( win->y < barinfo.rc.bottom)
@@ -796,15 +790,11 @@ x_window_final(
 
 	x_display_clear_selection( win->disp , win) ;
 
-#ifdef  USE_WIN32GUI
 	/*
 	 * DestroyWindow() is not called here because DestroyWindow internally sends
 	 * WM_DESTROY message which causes window_deleted event again.
 	 * If you want to close window, call SendMessage( WM_CLOSE ) instead of x_window_final().
 	 */
-#else
-	XDestroyWindow( win->display , win->my_window) ;
-#endif
 
 	x_xic_deactivate( win) ;
 
@@ -914,6 +904,9 @@ x_window_unset_transparent(
 	return  0 ;
 }
 
+/*
+ * XXX Cursor is not changeable for now.
+ */
 int
 x_window_set_cursor(
 	x_window_t *  win ,
@@ -1091,12 +1084,12 @@ x_window_show(
 #ifndef  USE_WIN32GUI
 	if( hint & XNegative)
 	{
-		win->x += (DisplayWidth( win->display , win->screen) - ACTUAL_WIDTH(win)) ;
+		win->x += (win->disp->width - ACTUAL_WIDTH(win)) ;
 	}
 
 	if( hint & YNegative)
 	{
-		win->y += (DisplayHeight( win->display , win->screen) - ACTUAL_HEIGHT(win)) ;
+		win->y += (win->disp->height - ACTUAL_HEIGHT(win)) ;
 	}
 #endif
 
@@ -1219,9 +1212,9 @@ x_window_resize(
 	}
 
 	/* Max width of each window is screen width. */
-	if( (flag & LIMIT_RESIZE) && GetSystemMetrics( SM_CXSCREEN) < width)
+	if( (flag & LIMIT_RESIZE) && win->disp->width < width)
 	{
-		win->width = GetSystemMetrics( SM_CXSCREEN) ;
+		win->width = win->disp->width ;
 	}
 	else
 	{
@@ -1229,9 +1222,9 @@ x_window_resize(
 	}
 
 	/* Max height of each window is screen height. */
-	if( (flag & LIMIT_RESIZE) && GetSystemMetrics( SM_CYSCREEN) < height)
+	if( (flag & LIMIT_RESIZE) && win->disp->height < height)
 	{
-		win->height = GetSystemMetrics( SM_CYSCREEN) ;
+		win->height = win->disp->height ;
 	}
 	else
 	{
@@ -1553,7 +1546,7 @@ x_window_blank(
 	}
 
 	brush = x_acquire_brush( win->fg_color.pixel) ;
-	SetRect( &r , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	SetRect( &r , win->margin , win->margin , win->width , win->height) ;
 	FillRect( win->gc->gc , &r , brush) ;
 	x_release_brush( brush) ;
 
@@ -2974,32 +2967,7 @@ x_set_icon_name(
 	u_char *  name
 	)
 {
-#ifndef  USE_WIN32GUI
-	x_window_t *  root ;
-	XTextProperty  prop ;
-
-	root = x_get_root_window( win) ;
-
-	if( name == NULL)
-	{
-		name = root->app_name ;
-	}
-
-	if( XmbTextListToTextProperty( root->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
-		>= Success)
-	{
-		XSetWMIconName( root->display , root->my_window , &prop) ;
-
-		XFree( prop.value) ;
-	}
-	else
-	{
-		/* XXX which is better , doing this or return 0 without doing anything ? */
-		XSetIconName( root->display , root->my_window , name) ;
-	}
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -3038,76 +3006,6 @@ x_window_get_visible_geometry(
 	u_int *  height
 	)
 {
-#ifndef  USE_WIN32GUI
-	Window  child ;
-	int screen_width ;
-	int screen_height ;
-
-	XTranslateCoordinates( win->display , win->my_window ,
-		DefaultRootWindow( win->display) , 0 , 0 ,
-		x , y , &child) ;
-
-	screen_width = DisplayWidth( win->display , win->screen) ;
-	screen_height = DisplayHeight( win->display , win->screen) ;
-
-	if( *x >= screen_width || *y >= screen_height)
-	{
-		/* no visible window */
-
-		return  0 ;
-	}
-
-	if( *x < 0)
-	{
-		if( ACTUAL_WIDTH(win) <= abs(*x))
-		{
-			/* no visible window */
-
-			return  0 ;
-		}
-
-		*my_x = abs(*x) ;
-
-		*width = ACTUAL_WIDTH(win) - abs(*x) ;
-		*x = 0 ;
-	}
-	else
-	{
-		*my_x = 0 ;
-		*width = ACTUAL_WIDTH(win) ;
-	}
-
-	if( *y < 0)
-	{
-		if( ACTUAL_HEIGHT(win) <= abs(*y))
-		{
-			/* no visible window */
-
-			return  0 ;
-		}
-
-		*my_y = abs(*y) ;
-
-		*height = ACTUAL_HEIGHT(win) - abs(*y) ;
-		*y = 0 ;
-	}
-	else
-	{
-		*my_y = 0 ;
-		*height = ACTUAL_HEIGHT(win) ;
-	}
-
-	if( *x + *width > screen_width)
-	{
-		*width = screen_width - *x ;
-	}
-
-	if( *y + *height > screen_height)
-	{
-		*height = screen_height - *y ;
-	}
-#endif
-
 	return  1 ;
 }
 
@@ -3149,11 +3047,34 @@ x_window_get_mod_meta_mask(
 
 int
 x_window_bell(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  visual
 	)
 {
-	Beep( 800 , 200) ;
-	
+	if( visual)
+	{
+		int  count ;
+
+		x_set_gc( win->gc, GetDC( win->my_window)) ;
+
+		/* win->gc is used in x_window_blank(). */
+		x_window_blank( win) ;
+
+		for( count = 0 ; count < 10 ; count++)
+		{
+			Sleep( 10) ;
+		}
+
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+
+		ReleaseDC( win->my_window, win->gc->gc) ;
+		x_set_gc( win->gc, None) ;
+	}
+	else
+	{
+		Beep( 800 , 200) ;
+	}
+
 	return  1 ;
 }
 

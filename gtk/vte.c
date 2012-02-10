@@ -24,12 +24,13 @@
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
 #include  <x_screen.h>
-#include  <x_xim.h>
 #include  <x_xic.h>
 #include  <x_main_config.h>
 #include  <x_imagelib.h>
+#include  <xlib/x_xim.h>
 
 #include  "../main/version.h"
+
 #include  "marshal.h"
 
 #ifdef  SYSCONFDIR
@@ -2129,6 +2130,8 @@ vte_terminal_class_init(
 	disp.colormap = DefaultColormap( disp.display , disp.screen) ;
 	disp.depth = DefaultDepth( disp.display , disp.screen) ;
 	disp.gc = x_gc_new( disp.display , None) ;
+	disp.width = DisplayWidth( disp.display , disp.screen) ;
+	disp.height = DisplayHeight( disp.display , disp.screen) ;
 	disp.modmap.serial = 0 ;
 	disp.modmap.map = XGetModifierMapping( disp.display) ;
 

@@ -6,7 +6,7 @@
 #define  __X_DECFP_FONT_H__
 
 
-#include  "x.h"
+#include  "../x.h"
 
 
 typedef struct x_decsp_font

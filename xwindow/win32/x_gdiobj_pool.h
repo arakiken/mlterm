@@ -8,7 +8,7 @@
 
 #include  <kiklib/kik_types.h>
 
-#include  "x.h"
+#include  "x_win32.h"
 
 
 int  x_gdiobj_pool_init(void) ;

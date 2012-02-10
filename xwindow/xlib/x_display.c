@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_display.h"
+#include  "../x_display.h"
 
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
@@ -10,10 +10,11 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_file.h>	/* kik_file_set_cloexec */
 
-#include  "x_window.h"
+#include  "../x_window.h"
+#include  "../x_picture.h"
+#include  "../x_imagelib.h"
+
 #include  "x_xim.h"
-#include  "x_picture.h"
-#include  "x_imagelib.h"
 
 
 #if  0
@@ -161,6 +162,8 @@ open_display(
 	
 	disp->screen = DefaultScreen( disp->display) ;
 	disp->my_window = DefaultRootWindow( disp->display) ;
+	disp->width = DisplayWidth( disp->display , disp->screen) ;
+	disp->height = DisplayHeight( disp->display , disp->screen) ;
 
 	if( depth &&
 	    XMatchVisualInfo( disp->display , disp->screen , depth , TrueColor , &vinfo) &&

@@ -7,7 +7,7 @@
 
 
 #ifdef  USE_WIN32GUI
-#include  "x_win32.h"
+#include  "win32/x_win32.h"
 #else
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>

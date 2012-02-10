@@ -1,3 +1,9 @@
+ver 3.0.12
+* Support extended mouse tracking mode. (CSI ? 1005 h and CSI ? 1005 l)
+* Bug fixes:
+  SF Bug #3481552 (Thanks to Kobayashi Hiroaki san)
+  Fixed a bug which didn't clear margin area after visual bell.
+
 ver 3.0.11
 * Support CSI 8 t and CSI 4 t sequence partially.
 * Change the file to output messages by --logmsg option
