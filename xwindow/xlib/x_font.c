@@ -1281,7 +1281,7 @@ convert_to_ucs4(
 
 		if( ml_is_msb_set( cs))
 		{
-			int  count ;
+			size_t  count ;
 
 			for( count = 0 ; count < src_size ; count ++)
 			{
@@ -1387,6 +1387,62 @@ x_convert_to_xft_ucs4(
 
 no_diff:
 	return  convert_to_ucs4( ucs4_bytes , src_bytes , src_size , cs) ;
+}
+
+#endif
+
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
+
+/* Return written size */
+size_t
+x_convert_ucs4_to_utf16(
+	u_char *  dst ,	/* 4 bytes. Big endian. */
+	u_char *  src	/* 4 bytes. Big endian. */
+	)
+{
+#if  0
+	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , mkf_bytes_to_int( src , 4)) ;
+#endif
+
+	if( src[0] > 0x0 || src[1] > 0x10)
+	{
+		return  0 ;
+	}
+	else if( src[1] == 0x0)
+	{
+		dst[0] = src[2] ;
+		dst[1] = src[3] ;
+	
+		return  2 ;
+	}
+	else /* if( src[1] <= 0x10) */
+	{
+		/* surrogate pair */
+
+		u_int32_t  linear ;
+		u_char  c ;
+
+		linear = mkf_bytes_to_int( src , 4) - 0x10000 ;
+
+		c = (u_char)( linear / (0x100 * 0x400)) ;
+		linear -= (c * 0x100 * 0x400) ;
+		dst[0] = c + 0xd8 ;
+	
+		c = (u_char)( linear / 0x400) ;
+		linear -= (c * 0x400) ;
+		dst[1] = c ;
+	
+		c = (u_char)( linear / 0x100) ;
+		linear -= (c * 0x100) ;
+		dst[2] = c + 0xdc ;
+		dst[3] = (u_char) linear ;
+
+	#if  0
+		kik_msg_printf( "%.2x%.2x%.2x%.2x\n" , dst[0] , dst[1] , dst[2] , dst[3]) ;
+	#endif
+
+		return  4 ;
+	}
 }
 
 #endif

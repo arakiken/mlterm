@@ -119,7 +119,6 @@ WIN32 native GUI 対応に関するメモ
   o Bold な文字は、設定ファイルで使用するフォントを指定しない限り、基本的には、
     重ね打ちによる擬似的な bold 表示を行います(Bold と Normal でフォント幅が異
     なる場合があるため)
-  o use_variable_column_width 及び letter_space オプションは無視します。
   o スクロールバーは、"simple" 又は "sample" のみ使用できます。
 
 * ソースコード

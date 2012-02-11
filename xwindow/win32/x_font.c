@@ -12,7 +12,7 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
-
+#include  <mkf/mkf_ucs4_map.h>
 #include  <ml_char_encoding.h>	/* x_convert_to_xft_ucs4 */
 
 
@@ -21,10 +21,6 @@
 
 #if  0
 #define  __DEBUG
-#endif
-
-#if  0
-#define  ENABLE_PROPORTIONAL
 #endif
 
 
@@ -140,6 +136,8 @@ static cs_info_t  cs_info_table[] =
 	{ CNS11643_1992_7 , GB2312_CHARSET , } ,
 
 } ;
+
+static GC  display_gc ;
 
 
 /* --- static functions --- */
@@ -396,13 +394,11 @@ x_font_new(
 		font->cols = 1 ;
 	}
 
-#if  0
 	if( font_present & FONT_VAR_WIDTH)
 	{
 		font->is_var_col_width = 1 ;
 	}
 	else
-#endif
 	{
 		font->is_var_col_width = 0 ;
 	}
@@ -506,25 +502,43 @@ x_font_new(
 	}
 	else
 	{
-		GC  gc ;
 		TEXTMETRIC  tm ;
-	#if  0
-		Window  win ;
+		SIZE  w_sz ;
+		SIZE  l_sz ;
 
-		win = CreateWindow( "mlterm", "font test", WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-			NULL, NULL, font->display->hinst, NULL) ;
-		gc = GetDC( win) ;
-		SelectObject( gc, font->fid) ;
-		GetTextMetrics( gc, &tm) ;
-		ReleaseDC( win, gc) ;
-		DestroyWindow( win) ;
-	#else
-		gc = CreateIC( "Display", NULL, NULL, NULL) ;
-		SelectObject( gc, font->fid) ;
-		GetTextMetrics( gc, &tm) ;
-		DeleteDC( gc) ;
-	#endif
+		if( ! display_gc)
+		{
+			display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
+		}
+
+		SelectObject( display_gc , font->fid) ;
+
+		GetTextMetrics( display_gc , &tm) ;
+
+		/*
+		 * Note that fixed pitch font containing both Hankaku and Zenkaku characters like
+		 * MS Gothic is regarded as VARIABLE_PITCH. (tm.tmPitchAndFamily)
+		 * So "w" and "l" width is compared to check if font is proportional or not.
+		 */
+		if( GetTextExtentPointA( display_gc , "w" , 1 , &w_sz) &&
+		    GetTextExtentPointA( display_gc , "l" , 1 , &l_sz) &&
+		    w_sz.cx != l_sz.cx)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" w-width %d l-width %d\n" , w_sz.cx , l_sz.cx) ;
+		#endif
+
+			font->is_proportional = 1 ;
+		}
+		else
+		{
+			font->is_proportional = 0 ;
+		}
+		
+		DeleteDC( display_gc) ;
+		display_gc = None ;
+
 	#if  0
 		kik_debug_printf(
 		"Family %s Size %d CS %x => AveCharWidth %d MaxCharWidth %d Height %d Ascent %d ExLeading %d InLeading %d Pitch&Family %d Weight %d\n" ,
@@ -534,41 +548,9 @@ x_font_new(
 		tm.tmPitchAndFamily , tm.tmWeight) ;
 	#endif
 
-	#ifdef  ENABLE_PROPORTIONAL
-		if( font->cols == 2)
-		{
-			/*
-			 * XXX
-			 * MaxCharWidth of MS Gothic is AveCharWidth * 2 + 1.
-			 *                                               ^^^
-			 */
-			font->width = tm.tmMaxCharWidth ;
-		}
-		else
-		{
-			font->width = tm.tmAveCharWidth ;
-		}
-	#else
 		font->width = tm.tmAveCharWidth * font->cols ;
-	#endif
 		font->height = tm.tmHeight ;
 		font->height_to_baseline = tm.tmAscent ;
-
-	#ifdef  ENABLE_PROPORTIONAL
-		/*
-		 * XXX
-		 * Note that fixed pitch font containing both Hankaku and Zenkaku characters like
-		 * MS Gothic is regarded as VARIABLE_PITCH.
-		 */
-		if( tm.tmPitchAndFamily & VARIABLE_PITCH)
-		{
-			font->is_proportional = 1 ;
-		}
-		else
-	#endif
-		{
-			font->is_proportional = 0 ;
-		}
 
 		if( ( font->id & FONT_BOLD) && tm.tmWeight <= FW_MEDIUM)
 		{
@@ -629,6 +611,14 @@ x_font_new(
 			font->is_proportional = 1 ;
 			font->x_off = font->width / 2 ;
 			font->width *= 2 ;
+		}
+
+		/* letter_space is ignored in variable column width mode. */
+		if( ! font->is_var_col_width && letter_space > 0)
+		{
+			font->is_proportional = 1 ;
+			font->width += letter_space ;
+			font->x_off += (letter_space / 2) ;
 		}
 	}
 	else
@@ -724,15 +714,13 @@ x_font_delete(
 		font->conv->delete( font->conv) ;
 	}
 
-#ifndef  USE_WIN32GUI
-	if( font->decsp_font)
-	{
-		x_decsp_font_delete( font->decsp_font , font->display) ;
-		font->decsp_font = NULL ;
-	}
-#endif
-
 	free( font) ;
+
+	if( display_gc)
+	{
+		DeleteDC( display_gc) ;
+		display_gc = None ;
+	}
 
 	return  1 ;
 }
@@ -770,15 +758,80 @@ x_calculate_char_width(
 	mkf_charset_t  cs
 	)
 {
-#if  0
-	if( font->is_var_col_width)
+	if( font->is_var_col_width && font->is_proportional && ! font->decsp_font)
 	{
-		/* XXX */
-		
-		return  font->width ;
+		SIZE  sz ;
+
+		if( ! display_gc)
+		{
+			/*
+			 * Cached as far as x_caculate_char_width is called.
+			 * display_gc is deleted in x_font_new or x_font_delete.
+			 */
+			display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
+		}
+
+		SelectObject( display_gc , font->fid) ;
+
+		if( cs != US_ASCII && ! IS_ISCII(cs))
+		{
+			u_char  ucs4_bytes[4] ;
+			u_char  utf16_bytes[4] ;
+
+			if( cs == ISO10646_UCS4_1)
+			{
+				memcpy( ucs4_bytes , ch , 4) ;
+			}
+			else
+			{
+				mkf_char_t  non_ucs ;
+				mkf_char_t  ucs4 ;
+
+				if( ml_is_msb_set( cs))
+				{
+					size_t  count ;
+
+					for( count = 0 ; count < len ; count ++)
+					{
+						non_ucs.ch[count] = ch[count] & 0x7f ;
+					}
+				}
+				else
+				{
+					memcpy( non_ucs.ch , ch , len) ;
+				}
+
+				non_ucs.size = len ;
+				non_ucs.property = 0 ;
+				non_ucs.cs = cs ;
+
+				if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
+				{
+					memcpy( ucs4_bytes , ucs4.ch , 4) ;
+				}
+				else
+				{
+					return  0 ;
+				}
+			}
+
+			if( ! ( len = x_convert_ucs4_to_utf16( utf16_bytes , ucs4_bytes)) ||
+			    ! GetTextExtentPointW( display_gc , utf16_bytes , len / 2 , &sz))
+			{
+				return  0 ;
+			}
+		}
+		else
+		{
+			if( ! GetTextExtentPointA( display_gc , ch , len , &sz))
+			{
+				return  0 ;
+			}
+		}
+
+		return  sz.cx ;
 	}
 	else
-#endif
 	{
 		return  font->width ;
 	}
@@ -792,6 +845,58 @@ x_font_get_encoding_names(
 	static char *  csnames[] = { "iso8859-1" } ;	/* dummy */
 	
 	return  csnames ;
+}
+
+/* Return written size */
+size_t
+x_convert_ucs4_to_utf16(
+	u_char *  dst ,	/* 4 bytes. Little endian. */
+	u_char *  src	/* 4 bytes. Big endian. */
+	)
+{
+#if  0
+	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , mkf_bytes_to_int( src , 4)) ;
+#endif
+
+	if( src[0] > 0x0 || src[1] > 0x10)
+	{
+		return  0 ;
+	}
+	else if( src[1] == 0x0)
+	{
+		dst[1] = src[2] ;
+		dst[0] = src[3] ;
+	
+		return  2 ;
+	}
+	else /* if( src[1] <= 0x10) */
+	{
+		/* surrogate pair */
+
+		u_int32_t  linear ;
+		u_char  c ;
+
+		linear = mkf_bytes_to_int( src , 4) - 0x10000 ;
+
+		c = (u_char)( linear / (0x100 * 0x400)) ;
+		linear -= (c * 0x100 * 0x400) ;
+		dst[1] = c + 0xd8 ;
+	
+		c = (u_char)( linear / 0x400) ;
+		linear -= (c * 0x400) ;
+		dst[0] = c ;
+	
+		c = (u_char)( linear / 0x100) ;
+		linear -= (c * 0x100) ;
+		dst[3] = c + 0xdc ;
+		dst[2] = (u_char) linear ;
+
+	#if  0
+		kik_msg_printf( "%.2x%.2x%.2x%.2x\n" , dst[1] , dst[0] , dst[3] , dst[2]) ;
+	#endif
+	
+		return  4 ;
+	}
 }
 
 #ifdef  DEBUG

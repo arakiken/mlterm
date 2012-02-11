@@ -121,34 +121,6 @@ unset_transparent(
 #endif
 }
 
-#ifndef  USE_WIN32GUI
-static int
-update_pic_transparent(
-	x_window_t *  win
-	)
-{
-	x_bg_picture_t  pic ;
-
-	if( ! x_bg_picture_init( &pic , win , win->pic_mod))
-	{
-		return  0 ;
-	}
-
-	if( ! x_bg_picture_get_transparency( &pic))
-	{
-		x_bg_picture_final( &pic) ;
-
-		return  0 ;
-	}
-
-	set_transparent( win , pic.pixmap) ;
-
-	x_bg_picture_final( &pic) ;
-
-	return  1 ;
-}
-#endif
-
 /*
  * XXX
  * Adhoc alternative of VisibilityNotify event.
@@ -1816,7 +1788,7 @@ x_window_receive_event(
 				         '2' <= kev.ch && kev.ch <= '8')
 				{
 					/*
-					 * - See x_xic_get_str() in x_xic_win32.c.
+					 * - See x_xic_get_str() in win32/x_xic.c.
 					 * - Control+2-8 (which doesn't cause WM_*_CHAR message.
 					 */
 				}
@@ -1837,7 +1809,7 @@ x_window_receive_event(
 				if( ( kev.state = get_key_state()) & ControlMask)
 				{
 					/*
-					 * - See x_xic_get_str() in x_xic_win32.c.
+					 * - See x_xic_get_str() in win32/x_xic.c.
 					 * - Following VK_* keys don't cause WM_*_CHAR message.
 					 */
 
@@ -2455,17 +2427,12 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
-#ifndef  USE_WIN32GUI
-	XCopyArea( win->display , win->my_window , win->my_window , win->gc ,
-		win->margin + boundary_start + width , win->margin ,	/* src */
-		boundary_end - boundary_start - width , win->height ,	/* size */
-		win->margin + boundary_start , win->margin) ;		/* dst */
+	BitBlt( win->gc->gc , win->margin + boundary_start , win->margin ,	/* dst */
+		boundary_end - boundary_start - width , win->height ,		/* size */
+		win->gc->gc , win->margin + boundary_start + width , win->margin ,/* src */
+		SRCCOPY) ;
 
 	return  1 ;
-#else
-	/* XXX Not implemented yet. */
-	return  0 ;
-#endif
 }
 
 int
@@ -2500,17 +2467,12 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
-#ifndef  USE_WIN32GUI
-	XCopyArea( win->display , win->my_window , win->my_window , win->gc ,
-		win->margin + boundary_start , win->margin ,
-		boundary_end - boundary_start - width , win->height ,
-		win->margin + boundary_start + width , win->margin) ;
+	BitBlt( win->gc->gc , win->margin + boundary_start + width , win->margin ,/* dst */
+		boundary_end - boundary_start - width , win->height ,		/* size */
+		win->gc->gc , win->margin + boundary_start , win->margin ,	/* src */
+		SRCCOPY) ;
 
 	return  1 ;
-#else
-	/* XXX Not implemented yet. */
-	return  0 ;
-#endif
 }
 
 int

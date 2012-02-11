@@ -12,7 +12,7 @@
 
 
 /* Implemented in x_font_ft.c */
-size_t  x_convert_ucs_to_utf8( u_char *  utf8 ,	u_int32_t  ucs) ;
+size_t  x_convert_ucs4_to_utf8( u_char *  utf8 , u_int32_t  ucs) ;
 
 
 /* --- static functions --- */
@@ -168,7 +168,7 @@ x_window_cairo_draw_string8(
 
 	for( count = 0 ; count < len ; count++)
 	{
-		p += x_convert_ucs_to_utf8( p , (u_int32_t)(str[count])) ;
+		p += x_convert_ucs4_to_utf8( p , (u_int32_t)(str[count])) ;
 	}
 	*p = '\0' ;
 
@@ -200,7 +200,7 @@ x_window_cairo_draw_string32(
 
 	for( count = 0 ; count < len ; count++)
 	{
-		p += x_convert_ucs_to_utf8( p , str[count]) ;
+		p += x_convert_ucs4_to_utf8( p , str[count]) ;
 	}
 	*p = '\0' ;
 

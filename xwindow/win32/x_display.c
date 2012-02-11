@@ -6,6 +6,7 @@
 
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memset/memcpy */
+#include  <kiklib/kik_config.h>	/* USE_WIN32API */
 #ifndef  USE_WIN32API
 #include  <fcntl.h>		/* open */
 #endif

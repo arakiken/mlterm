@@ -114,15 +114,16 @@ void  x_font_use_point_size_for_fc( int  bool) ;
 
 void  x_font_set_dpi_for_fc( double  dpi) ;
 
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 int  x_use_cp932_ucs_for_xft(void) ;
 
 int  x_convert_to_xft_ucs4( u_char *  ucs4_bytes , const u_char *  src_bytes , size_t  src_size ,
 	mkf_charset_t  cs) ;
-
-size_t  x_convert_ucs_to_utf8( u_char *  utf8 , u_int32_t  ucs) ;
 #endif
 
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
+size_t  x_convert_ucs4_to_utf16( u_char *  utf16 , u_char *  ucs) ;
+#endif
 
 #ifdef  DEBUG
 int  x_font_dump( x_font_t *  font) ;

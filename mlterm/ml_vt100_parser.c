@@ -3128,7 +3128,12 @@ parse_vt100_escape_sequence(
 			stop_vt100_cmd( vt100_parser , 0) ;
 			(*vt100_parser->xterm_listener->bel)(
 				vt100_parser->xterm_listener->self) ;
-			start_vt100_cmd( vt100_parser , 0) ;
+			/*
+			 * XXX
+			 * start_vt100_cmd( ... , *1*) erases cursor which
+			 * xterm_listener::bell drew if bell mode is visual.
+			 */
+			start_vt100_cmd( vt100_parser , 1) ;
 		}
 	}
 	else

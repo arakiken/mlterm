@@ -986,7 +986,7 @@ cairo_unset_font(
 }
 
 size_t
-x_convert_ucs_to_utf8(
+x_convert_ucs4_to_utf8(
 	u_char *  utf8 ,	/* size of utf8 should be greater than 5. */
 	u_int32_t  ucs
 	)
@@ -1060,7 +1060,7 @@ cairo_calculate_char_width(
 	cairo_text_extents_t  extents ;
 	int  width ;
 
-	utf8[ x_convert_ucs_to_utf8( utf8 , mkf_bytes_to_int( ch , len))] = '\0' ;
+	utf8[ x_convert_ucs4_to_utf8( utf8 , mkf_bytes_to_int( ch , len))] = '\0' ;
 	cairo_scaled_font_text_extents( font->cairo_font , utf8 , &extents) ;
 
 #if  0

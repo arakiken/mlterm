@@ -1,3 +1,20 @@
+2012-02-12  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.win32, doc/en/README.win32, README: Updated.
+
+	* win32/x_font.c:
+	  - use_variable_column_width and letter_space options are supported.
+	  - x_convert_ucs4_to_utf16() is moved from x_draw_str.c
+
+	* win32/x_window.c:
+	  x_window_scroll_{left|right}ward_region() are implemented to
+	  scroll screen correctly in vertical mode.
+
+	* ml_vt100_parser.c:
+	  trigger_xterm_event argument of start_vt100_cmd() after
+	  xterm_listener::bel() is changed from 0 to 1 in order to erase
+	  cursor which xterm_listener::bel() drew if bel_mode is visual.
+
 2012-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.[ch], xlib/x_window.c, win32/x_window.c:

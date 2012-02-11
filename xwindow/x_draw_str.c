@@ -411,86 +411,6 @@ fc_draw_str(
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 
-static u_int		/* Return written size of XChar2b */
-convert_ucs4_to_utf16(
-	XChar2b *  dst ,	/* 2 XChar2b's */
-	u_char *  src		/* 4 bytes. Big endian. */
-	)
-{
-	/*
-	 * WIN32: Little endian utf16.
-	 * Xlib: Big endian utf16.
-	 */
-
-#if  0
-	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , mkf_bytes_to_int( src , 4)) ;
-#endif
-
-	if( src[0] > 0x0 || src[1] > 0x10)
-	{
-		return  0 ;
-	}
-	else if( src[1] == 0x0)
-	{
-	#ifdef  USE_WIN32GUI
-		dst[0].byte2 = src[2] ;
-		dst[0].byte1 = src[3] ;
-	#else
-		dst[0].byte1 = src[2] ;
-		dst[0].byte2 = src[3] ;
-	#endif
-	
-		return  1 ;
-	}
-	else /* if( src[1] <= 0x10) */
-	{
-		/* surrogate pair */
-
-		u_int32_t  linear ;
-		u_char  c ;
-
-		linear = mkf_bytes_to_int( src , 4) - 0x10000 ;
-
-		c = (u_char)( linear / (0x100 * 0x400)) ;
-		linear -= (c * 0x100 * 0x400) ;
-	#ifdef  USE_WIN32GUI
-		dst[0].byte2 = c + 0xd8 ;
-	#else
-		dst[0].byte1 = c + 0xd8 ;
-	#endif
-	
-		c = (u_char)( linear / 0x400) ;
-		linear -= (c * 0x400) ;
-	#ifdef  USE_WIN32GUI
-		dst[0].byte1 = c ;
-	#else
-		dst[0].byte2 = c ;
-	#endif
-	
-		c = (u_char)( linear / 0x100) ;
-		linear -= (c * 0x100) ;
-	#ifdef  USE_WIN32GUI
-		dst[1].byte2 = c + 0xdc ;
-		dst[1].byte1 = (u_char) linear ;
-	#else
-		dst[1].byte1 = c + 0xdc ;
-		dst[1].byte2 = (u_char) linear ;
-	#endif
-
-	#if  0
-		kik_msg_printf( "%.2x%.2x%.2x%.2x\n" ,
-		#ifdef  USE_WIN32GUI
-			dst[0].byte2 , dst[0].byte1 , dst[1].byte2 , dst[1].byte1
-		#else
-			dst[0].byte1 , dst[0].byte2 , dst[1].byte1 , dst[1].byte2
-		#endif
-			) ;
-	#endif
-	
-		return  2 ;
-	}
-}
-
 static int
 xcore_draw_combining_chars(
 	x_window_t *  window ,
@@ -545,7 +465,7 @@ xcore_draw_combining_chars(
 			XChar2b  xch[2] ;
 			u_int  len ;
 
-			if( ( len = convert_ucs4_to_utf16( xch , ch_bytes)) > 0)
+			if( ( len = (x_convert_ucs4_to_utf16( xch , ch_bytes) / 2)) > 0)
 			{
 				x_window_draw_string16( window ,
 					x_get_font( font_man , ml_char_font( &chars[count])) ,
@@ -693,7 +613,7 @@ xcore_draw_str(
 		{
 			/* UCS4 */
 
-			str_len += convert_ucs4_to_utf16( str2b + str_len , ch_bytes) ;
+			str_len += (x_convert_ucs4_to_utf16( str2b + str_len , ch_bytes) / 2) ;
 		}
 		else
 		{

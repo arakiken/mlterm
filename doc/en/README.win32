@@ -85,7 +85,6 @@ Memo about WIN32 native GUI.
     mlclient or mlclientx command supports) is avaiable. (see doc/en/PROTOCOL).
   o Only BMP format is supported for background image.
   o -3/--contrast, -4/--gamma and -H/--bright options are not available.
-  o use_variable_column_width and letter_space options are ignored.
   o Supported scrollbars are "simple" and "sample" alone.
   o In order to show DEC SPECIAL characters, it is necessary to install
     "Tera Special" font (TSPECIAL1.TTF) which is a part of Tera Term
