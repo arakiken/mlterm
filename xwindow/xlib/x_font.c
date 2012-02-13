@@ -1166,7 +1166,7 @@ x_calculate_char_width(
 	mkf_charset_t  cs
 	)
 {
-	if( font->is_var_col_width && font->is_proportional && ! font->decsp_font)
+	if( font->is_var_col_width && font->is_proportional)
 	{
 	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 		if( font->xft_font)

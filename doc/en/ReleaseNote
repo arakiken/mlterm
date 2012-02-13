@@ -5,6 +5,7 @@ ver 3.0.12
   SF Bug #3481552 (Thanks to Kobayashi Hiroaki san)
   Fixed a bug which didn't clear margin area after visual bell.
   Fixed a bug which disabled scrolling in vertical mode in win32.
+  Fix a bug which disabled wheel mouse in win32.
 
 ver 3.0.11
 * Support CSI 8 t and CSI 4 t sequence partially.

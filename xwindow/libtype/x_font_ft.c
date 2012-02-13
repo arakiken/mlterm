@@ -907,21 +907,18 @@ xft_calculate_char_width(
 #if  0
 	else if( len == 2)
 	{
-		FcChar16  xch ;
+		FcChar16  c ;
 
-		xch = ((ch[0] << 8) & 0xff00) | (ch[1] & 0xff) ;
-
-		XftTextExtents16( font->display , font->xft_font , &xch , 1 , &extents) ;
+		c = mkf_bytes_to_int( ch , len) ;
+		XftTextExtents16( font->display , font->xft_font , &c , 1 , &extents) ;
 	}
 #endif
 	else if( len == 4)
 	{
-		FcChar32  xch ;
+		FcChar32  c ;
 
-		xch = ((ch[0] << 24) & 0xff000000) | ((ch[1] << 16) & 0xff0000) |
-			((ch[2] << 8) & 0xff00) | (ch[3] & 0xff) ;
-
-		XftTextExtents32( font->display , font->xft_font , &xch , 1 , &extents) ;
+		c = mkf_bytes_to_int( ch , 4) ;
+		XftTextExtents32( font->display , font->xft_font , &c , 1 , &extents) ;
 	}
 	else
 	{

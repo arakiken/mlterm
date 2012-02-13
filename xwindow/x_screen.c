@@ -1372,7 +1372,7 @@ window_realized(
 	screen->mod_meta_mask = x_window_get_mod_meta_mask( win , screen->mod_meta_key) ;
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win , NULL) ;
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI) && ! defined(DISABLE_XDND)
 	DragAcceptFiles( win->my_window , TRUE) ;
 #endif
 

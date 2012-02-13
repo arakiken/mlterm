@@ -55,24 +55,19 @@ fc_draw_combining_chars(
 		}
 		else
 		{
-			/* FcChar32 */ u_int32_t  xch ;
-
-			char  ucs4_bytes[4] ;
+			u_char  ucs4_bytes[4] ;
+			/* FcChar32 */ u_int32_t  ucs4 ;
 
 			if( ! x_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
 			{
 				return  0 ;
 			}
 
-			xch = ((ucs4_bytes[0] << 24) & 0xff000000) |
-				((ucs4_bytes[1] << 16) & 0xff0000) |
-				((ucs4_bytes[2] << 8) & 0xff00) |
-				(ucs4_bytes[3] & 0xff) ;
-
+			ucs4 = mkf_bytes_to_int( ucs4_bytes , 4) ;
 			x_window_ft_draw_string32( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , &xch , 1) ;
+				x , y , &ucs4 , 1) ;
 		}
 	}
 
@@ -202,7 +197,7 @@ fc_draw_str(
 		}
 		else /* if( state == 2) */
 		{
-			char  ucs4_bytes[4] ;
+			u_char  ucs4_bytes[4] ;
 
 			if( ! x_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
 			{
@@ -216,10 +211,7 @@ fc_draw_str(
 				ucs4_bytes[3] = 0x20 ;
 			}
 
-			str32[str_len++] = ((ucs4_bytes[0] << 24) & 0xff000000) |
-						((ucs4_bytes[1] << 16) & 0xff0000) |
-						((ucs4_bytes[2] << 8) & 0xff00) |
-						(ucs4_bytes[3] & 0xff) ;
+			str32[str_len++] = mkf_bytes_to_int( ucs4_bytes , 4) ;
 		}
 
 		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;

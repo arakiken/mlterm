@@ -183,6 +183,27 @@ key_pressed(
 	(*sb_screen->screen->window.key_pressed)( &sb_screen->screen->window , event) ;
 }
 
+#ifdef  USE_WIN32GUI
+static void
+button_pressed(
+	x_window_t *  win ,
+	XButtonEvent *  event ,
+	int  click_num
+	)
+{
+	x_sb_screen_t *  sb_screen ;
+
+	sb_screen = (x_sb_screen_t*) win ;
+
+	event->x -= sb_screen->screen->window.x ;
+	event->y -= sb_screen->screen->window.y ;
+
+	/* dispatch to screen for WM_MOUSEWHEEL which is delivered to root window. */
+	(*sb_screen->screen->window.button_pressed)( &sb_screen->screen->window ,
+			event , click_num) ;
+}
+#endif
+
 static void
 utf_selection_notified(
 	x_window_t *  win ,
@@ -754,6 +775,9 @@ x_sb_screen_new(
 	sb_screen->window.child_window_resized = child_window_resized ;
 	sb_screen->window.window_exposed = window_exposed ;
 	sb_screen->window.key_pressed = key_pressed ;
+#ifdef  USE_WIN32GUI
+	sb_screen->window.button_pressed = button_pressed ;
+#endif
 	sb_screen->window.utf_selection_notified = utf_selection_notified ;
 	sb_screen->window.xct_selection_notified = xct_selection_notified ;
 	sb_screen->window.window_deleted = window_deleted ;

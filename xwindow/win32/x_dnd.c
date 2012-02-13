@@ -2,6 +2,8 @@
  * $Id$
  */
 
+#ifndef  DISABLE_XDND
+
 #include  "../x_window.h"
 #include  "../x_dnd.h"
 
@@ -118,3 +120,5 @@ x_dnd_filter_event(
 
 	return  1 ;
 }
+
+#endif	/* DISABLE_XDND */

@@ -1,3 +1,17 @@
+2012-02-13  Araki Ken  <arakiken@users.sf.net>
+
+	* x_sb_screen.c:
+	  button_press() event is implemented for wheel mouse in win32.
+	  (Wheel mouse in win32 hasn't worked since 2012-08-26 commit.)
+
+	* mkf_tblfunc_loader.h:
+	  If mkf module is not found, mkf_map_func() and mkf_map_func2()
+	  return 0 to avoid segfault.
+
+	* xwindow/Makefile.in, configure.in, win32/x_dnd.c, xlib/x_dnd.c:
+	  @DND_OBJ@ is obsolete. If DISABLE_XDND is defined, comment out
+	  all source code in x_dnd.c.
+
 2012-02-12  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.win32, doc/en/README.win32, README: Updated.

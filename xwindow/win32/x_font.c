@@ -758,7 +758,7 @@ x_calculate_char_width(
 	mkf_charset_t  cs
 	)
 {
-	if( font->is_var_col_width && font->is_proportional && ! font->decsp_font)
+	if( font->is_var_col_width && font->is_proportional)
 	{
 		SIZE  sz ;
 

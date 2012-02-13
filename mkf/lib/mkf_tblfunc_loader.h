@@ -28,9 +28,10 @@
 	int funcname( mkf_char_t *  ch, u_int ## bits ## _t  ucscode) \
 	{ \
 		static int (* _ ## funcname)( mkf_char_t *, u_int ## bits ## _t) ; \
-		if( ! _ ## funcname) \
+		if( ! _ ## funcname && \
+		    ! ( _ ## funcname = mkf_load_ ## libname ## _func( #funcname))) \ 
 		{ \
-			_ ## funcname = mkf_load_ ## libname ## _func( #funcname) ; \
+			return  0 ; \
 		} \
 		return  (*_ ## funcname)( ch, ucscode) ; \
 	}
@@ -39,9 +40,10 @@
 	int funcname( mkf_char_t *  dst_ch, mkf_char_t *  src_ch) \
 	{ \
 		static int (* _ ## funcname)( mkf_char_t *, mkf_char_t *) ; \
-		if( ! _ ## funcname) \
+		if( ! _ ## funcname && \
+		    ! ( _ ## funcname = mkf_load_ ## libname ## _func( #funcname))) \
 		{ \
-			_ ## funcname = mkf_load_ ## libname ## _func( #funcname) ; \
+			return  0 ; \
 		} \
 		return  (*_ ## funcname)( dst_ch, src_ch) ; \
 	}

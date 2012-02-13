@@ -4,6 +4,8 @@
  *	$Id$
  */
 
+#ifndef  DISABLE_XDND
+
 #include  "../x_window.h"
 #include  "../x_dnd.h"
 
@@ -1058,3 +1060,5 @@ main(void)
 	return  0 ;
 }
 #endif
+
+#endif	/* DISABLE_XDND */
