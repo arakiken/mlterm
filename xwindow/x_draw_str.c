@@ -28,7 +28,7 @@ fc_draw_combining_chars(
 	int  y
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
 	mkf_charset_t  ch_cs ;
@@ -345,7 +345,7 @@ fc_draw_str(
 				#if  0
 					current_width
 				#else
-					x
+					current_width - ch_width
 				#endif
 					, y + height_to_baseline) ;
 			}
@@ -414,7 +414,7 @@ xcore_draw_combining_chars(
 	int  y
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
 
@@ -783,7 +783,7 @@ xcore_draw_str(
 				#if  0
 					current_width
 				#else
-					x
+					current_width - ch_width
 				#endif
 					, y + height_to_baseline) ;
 			}

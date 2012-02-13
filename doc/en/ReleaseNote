@@ -3,8 +3,9 @@ ver 3.0.12
 * Support "use_variable_column_width" and "letter_space" options in win32.
 * Bug fixes:
   SF Bug #3481552 (Thanks to Kobayashi Hiroaki san)
-  Fixed a bug which didn't clear margin area after visual bell.
-  Fixed a bug which disabled scrolling in vertical mode in win32.
+  SF Bug #3487163 (Thanks to raghavkrishna)
+  Fix a bug which didn't clear margin area after visual bell.
+  Fix a bug which disabled scrolling in vertical mode in win32.
   Fix a bug which disabled wheel mouse in win32.
 
 ver 3.0.11

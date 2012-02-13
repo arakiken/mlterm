@@ -1,3 +1,9 @@
+2012-02-14  Araki Ken  <arakiken@users.sf.net>
+
+	* x_draw_str.c:
+	  Starting position to draw combining character is fixed. (SF Bug #3487163)
+	  (Thanks to raghavkrishna)
+
 2012-02-13  Araki Ken  <arakiken@users.sf.net>
 
 	* x_sb_screen.c:
