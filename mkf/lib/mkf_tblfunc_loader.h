@@ -29,7 +29,7 @@
 	{ \
 		static int (* _ ## funcname)( mkf_char_t *, u_int ## bits ## _t) ; \
 		if( ! _ ## funcname && \
-		    ! ( _ ## funcname = mkf_load_ ## libname ## _func( #funcname))) \ 
+		    ! ( _ ## funcname = mkf_load_ ## libname ## _func( #funcname))) \
 		{ \
 			return  0 ; \
 		} \

@@ -1,0 +1,35 @@
+comment -*- mode: text -*-
+
+How to build & install mlterm co-operating with Java.
+
+* Requirements
+  o SWT (http://www.eclipse.org/swt/)
+
+* Build
+  $ ./configure ...
+  $ make
+  $ cd java
+  -> Edit Makefile according to your environment.
+  $ make
+
+* Install and start mlterm
+  (Unix)
+  $ make install
+  $ LD_LIBRARY_PATH=(where mlterm shared libraries are installed) java -jar mlterm.jar
+
+  (Windows)
+  $ cp MLTermPty.dll mlterm.jar (where mlterm exec/dll are installed)
+  $ java -jar mlterm.jar
+
+  o options
+    -serv (<protocol>://)(<user>@)<server>(:<port>)
+    -pass password
+    e.g.) java -jar mlterm -serv ssh://guest@192.168.0.1:22 -pass password
+  
+
+* Notice
+
+* Tested terminals using vte.
+  o Java 1.6.0_23 on Ubuntu 11.10
+  o Java 1.7.0_02 on MS Windows 7/Cygwin 1.7.10
+  o Java 1.7.0_02 on MS Windows 7/MinGW 5.1.4

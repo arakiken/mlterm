@@ -1,0 +1,77 @@
+# Edit following 5 variables.
+JAVAC = javac # -source 1.6 -target 1.6
+CLASSPATH_win32 = .\;swt.jar
+CLASSPATH = .:/usr/lib/java/swt-gtk-3.7.jar
+JAVA_HOME_win32 = /cygdrive/c/Program\ Files/Java/jdk1.7.0_02
+JAVA_HOME = /usr/lib/jvm/java-7-openjdk-i386
+
+# Don't edit anything below.
+prefix = @prefix@
+libdir = $(prefix)/lib
+top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+LIBDIR = $(DESTDIR)$(libdir)
+
+CFLAGS = @CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ $(CFLAGS_LOCAL)
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+TARGET_win32 = MLTermPty.dll
+TARGET = libMLTermPty.la
+
+CLASS = mlterm/Style.class mlterm/RedrawRegion.class mlterm/MLTermPty.class mlterm/MLTerm.class
+OBJ = MLTermPty.o
+
+VPATH = $(top_srcdir)/java
+
+all : jar@WIN32TAG@
+
+jar_win32 : $(CLASS) MLTermPty.h $(OBJ)
+	dllwrap --driver-name $(CC) --add-stdcall-alias --target=`$(CC) -dumpmachine` \
+	-o $(TARGET_win32) -s $(OBJ) ../mlterm/.libs/*.o ../kiklib/src/.libs/libkik.dll.a \
+	../mkf/lib/.libs/libmkf.dll.a -L/usr/local/lib @WINSOCK_LIBS@ @SSH2_LIBS@
+	if test "`which cygpath`" = "" ; then \
+		jar cmf $(top_srcdir)/java/manifest-win32.mf mlterm.jar mlterm/*.class ; \
+	else \
+		jar cmf `cygpath -w $(top_srcdir)/java/manifest-win32.mf` mlterm.jar mlterm/*.class ; \
+	fi
+
+jar : $(CLASS) MLTermPty.h $(OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) -s $(OBJ:.o=.lo) -rpath $(libdir) \
+	-avoid-version ../mlterm/*.lo ../kiklib/src/libkik.la ../mkf/lib/libmkf.la
+	# .s? -> .so or .sl
+	# cp .libs/*.s? .
+	jar cmf $(top_srcdir)/java/manifest.mf mlterm.jar mlterm/*.class # *.s?
+
+.SUFFIXES : .java .class
+
+.java.class :
+	if test "`which cygpath`" = "" ; then \
+		$(JAVAC) -classpath $(CLASSPATH@WIN32TAG@) -d . $< ; \
+	else \
+		$(JAVAC) -classpath $(CLASSPATH@WIN32TAG@) -d . `cygpath -w $<` ; \
+	fi
+
+.SUFFIXES : .c .o
+
+.c.o :
+	$(LIBTOOL_CC) -I../kiklib/include -I../mkf/include -I$(top_srcdir)/mlterm -I. -I$(JAVA_HOME@WIN32TAG@)/include -I$(JAVA_HOME@WIN32TAG@)/include/win32 -c $<
+
+MLTermPty.h: mlterm/MLTermPty.class
+	javah -jni mlterm.MLTermPty
+
+clean :
+	rm -rf *.h $(OBJ) $(OBJ:.o=.lo) libMLTermPty.* MLTermPty.dll mlterm.jar *core .libs mlterm
+
+$(LIBDIR) :
+	mkdir -p $(LIBDIR)
+
+install : $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET@WIN32TAG@) $(LIBDIR)

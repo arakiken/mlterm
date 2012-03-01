@@ -176,6 +176,7 @@ pty_open(
 	SECURITY_ATTRIBUTES  sa ;
 	PROCESS_INFORMATION  pi ;
 	STARTUPINFO  si ;
+	char *  cmd_line ;
 
 	output_read_tmp = input_write_tmp = output_write = input_read = error_write = 0 ;
 	
@@ -279,7 +280,6 @@ pty_open(
 	if( cmd_argv)
 	{
 		int  count ;
-		char *   cmd_line ;
 		size_t   cmd_line_len ;
 
 		/* Because cmd_path == cmd_argv[0], cmd_argv[0] is ignored. */
@@ -304,34 +304,23 @@ pty_open(
 			strcat( cmd_line, " ") ;
 			strcat( cmd_line, cmd_argv[count]) ;
 		}
-		
-		if( ! CreateProcess( cmd_path , cmd_line , NULL , NULL , TRUE , CREATE_NO_WINDOW ,
-					NULL , NULL , &si , &pi))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
-		#endif
-
-			CloseHandle( pty->master_input) ;
-			CloseHandle( pty->master_output) ;
-			
-			goto  error2 ;
-		}
 	}
 	else
 	{
-		if( ! CreateProcess( cmd_path , cmd_path , NULL , NULL , TRUE , CREATE_NO_WINDOW ,
-					NULL , NULL , &si , &pi))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
-		#endif
+		cmd_line = cmd_path ;
+	}
+	
+	if( ! CreateProcess( cmd_path , cmd_line , NULL , NULL , TRUE , CREATE_NO_WINDOW ,
+				NULL , NULL , &si , &pi))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
+	#endif
 
-			CloseHandle( pty->master_input) ;
-			CloseHandle( pty->master_output) ;
-			
-			goto  error2 ;
-		}
+		CloseHandle( pty->master_input) ;
+		CloseHandle( pty->master_output) ;
+
+		goto  error2 ;
 	}
 
 	pty->slave_stdout = output_write ;
@@ -652,10 +641,8 @@ ml_pty_pipe_new(
 		}
 	}
 
-	if( /* ! cmd_path || */ ! cmd_argv)
+	if( ! cmd_path /* || ! cmd_argv */)
 	{
-		char *  p ;
-
 		if( ! ( cmd_argv = alloca( sizeof(char*) * 8)) ||
 		    ! kik_parse_uri( &proto , &user , &host , &port , NULL , NULL ,
 			kik_str_alloca_dup( uri)))
@@ -665,27 +652,31 @@ ml_pty_pipe_new(
 			return  NULL ;
 		}
 
-		if( proto && ( p = alloca( strlen( proto) + 2)))
-		{
-			sprintf( p , "-%s" , proto) ;
-			proto = p ;
-		}
-
 		cmd_path = "plink.exe" ;
 
 		idx = 0 ;
 		cmd_argv[idx++] = cmd_path ;
-		cmd_argv[idx++] = proto ;
-		if( user)
+		if( proto)
+		{
+			char *  p ;
+
+			if( ( p = alloca( strlen( proto) + 2)))
+			{
+				sprintf( p , "-%s" , proto) ;
+				cmd_argv[idx++] = p ;
+
+				/* -pw option can only be used with SSH. */
+				if( strcmp( proto , "ssh") == 0)
+				{
+					cmd_argv[idx++] = "-pw" ;
+					cmd_argv[idx++] = pass ;
+				}
+			}
+		}
+		if( user || (user = getenv( "USER")) || (user = getenv( "USERNAME")))
 		{
 			cmd_argv[idx++] = "-l" ;
 			cmd_argv[idx++] = user ;
-		}
-		/* -pw option can only be used with SSH. */
-		if( strcmp( proto , "-ssh") == 0)
-		{
-			cmd_argv[idx++] = "-pw" ;
-			cmd_argv[idx++] = pass ;
 		}
 		cmd_argv[idx++] = host ;
 		cmd_argv[idx++] = NULL ;

@@ -757,9 +757,16 @@ x_main_config_init(
 			main_config->receive_string_via_ucs = 1 ;
 		}
 	}
-	
-	/* default value is used */
-	main_config->col_size_of_width_a = 1 ;
+
+	/* "cn" and "ko" ? */
+	if( strcmp( kik_get_lang() , "ja") == 0)
+	{
+		main_config->col_size_of_width_a = 2 ;
+	}
+	else
+	{
+		main_config->col_size_of_width_a = 1 ;
+	}
 	
 	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))
 	{
@@ -887,13 +894,18 @@ x_main_config_init(
 	main_config->is_auto_encoding = 0 ;
 	if( ( value = kik_conf_get_value( conf , "ENCODING")))
 	{
-		if( ( main_config->encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+		while( ( main_config->encoding = ml_get_char_encoding( value))
+			== ML_UNKNOWN_ENCODING)
 		{
 			kik_msg_printf(
 				"%s encoding is not supported. Auto detected encoding is used.\n" ,
 				value) ;
-				
-			main_config->encoding = ml_get_char_encoding( "auto") ;
+
+			value = "auto" ;
+		}
+
+		if( strcmp( value , "auto") == 0)
+		{
 			main_config->is_auto_encoding = 1 ;
 		}
 	}

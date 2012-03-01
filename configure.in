@@ -74,6 +74,7 @@ ml_cv_is_posix="yes"
 
 case "${host_os}" in
 mingw32*)
+	WIN32TAG=_win32
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		ml_cv_is_posix="no"
 	fi
@@ -84,6 +85,7 @@ mingw32*)
 	fi
 	;;
 cygwin*)
+	WIN32TAG=_win32
 	case "${CC} ${CFLAGS}" in
 	*mno-cygwin*)
 		ml_cv_is_posix="no"
@@ -116,6 +118,9 @@ cygwin*)
 	fi
 	;;
 esac
+
+# for java/Makefile.in
+AC_SUBST(WIN32TAG)
 
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
@@ -963,7 +968,7 @@ if test "${SUBDIRS}" != "" ; then
 fi
 
 MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow main man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile main/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
+OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile ${OUTPUT_FILES}"
 
 AC_ARG_ENABLE(ind,
 	[  --enable-ind            libind @<:@default=disabled@:>@],

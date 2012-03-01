@@ -1716,393 +1716,415 @@ parse_vt100_escape_sequence(
 				if( *str_p == 'h')
 				{
 					/* "CSI ? h" DEC Private Mode Set */
+					int  count ;
 
-					if( ps[0] == 1)
+					for( count = 0 ; count < num ; count++)
 					{
-						/* "CSI ? 1 h" */
+						if( ps[count] == 1)
+						{
+							/* "CSI ? 1 h" */
 
-						vt100_parser->is_app_cursor_keys = 1 ;
-					}
-				#if  0
-					else if( ps[0] == 2)
-					{
-						/* "CSI ? 2 h" reset charsets to USASCII */
-					}
-				#endif
-					else if( ps[0] == 3)
-					{
-						/* "CSI ? 3 h" */
-
-						/* XTERM compatibility [#1048321] */
-						clear_display_all( vt100_parser) ;
-
-						resize_by_char( vt100_parser , 132 , 0) ;
-					}
-				#if  0
-					else if( ps[0] == 4)
-					{
-						/* "CSI ? 4 h" smooth scrolling */
-					}
-				#endif
-					else if( ps[0] == 5)
-					{
-						/* "CSI ? 5 h" */
-
-						reverse_video( vt100_parser , 1) ;
-					}
-					else if( ps[0] == 6)
-					{
-						/* "CSI ? 6 h" relative origins */
-
-						ml_screen_set_relative_origin(
-							vt100_parser->screen) ;
-						/*
-						 * cursor position is reset
-						 * (the same behavior of xterm 4.0.3,
-						 * kterm 6.2.0 or so)
-						 */
-						ml_screen_goto( vt100_parser->screen , 0 , 0) ;
-					}
-					else if( ps[0] == 7)
-					{
-						/* "CSI ? 7 h" auto wrap */
-
-						ml_screen_set_auto_wrap(
-							vt100_parser->screen , 1) ;
-					}
-				#if  0
-					else if( ps[0] == 8)
-					{
-						/* "CSI ? 8 h" auto repeat */
-					}
-				#endif
-				#if  0
-					else if( ps[0] == 9)
-					{
-						/* "CSI ? 9 h" X10 mouse reporting */
-					}
-				#endif
-					else if( ps[0] == 25)
-					{
-						/* "CSI ? 25 h" */
-						ml_screen_cursor_visible( vt100_parser->screen) ;
-					}
-				#if  0
-					else if( ps[0] == 35)
-					{
-						/* "CSI ? 35 h" shift keys */
-					}
-				#endif
-				#if  0
-					else if( ps[0] == 40)
-					{
-						/* "CSI ? 40 h" 80 <-> 132 */
-					}
-				#endif
-					else if( ps[0] == 47)
-					{
-						/*
-						 * "CSI ? 47 h"
-						 * Use alternate screen buffer
-						 */
-
-						ml_screen_use_alternative_edit(
-							vt100_parser->screen) ;
-					}
-					else if( ps[0] == 66)
-					{
-						/* "CSI ? 66 h" application key pad */
-						vt100_parser->is_app_keypad = 1 ;
-					}
-				#if  0
-					else if( ps[0] == 67)
-					{
-						/* "CSI ? 67 h" have back space */
-					}
-				#endif
-					else if( ps[0] == 1000)
-					{
-						/* "CSI ? 1000 h" */
-
-						set_mouse_report( vt100_parser , MOUSE_REPORT) ;
-					}
-				#if  0
-					else if( ps[0] == 1001)
-					{
-						/* "CSI ? 1001 h" X11 mouse highlighting */
-					}
-				#endif
-					else if( ps[0] == 1002)
-					{
-						/* "CSI ? 1002 h" */
-
-						set_mouse_report( vt100_parser ,
-							BUTTON_EVENT_MOUSE_REPORT) ;
-					}
-					else if( ps[0] == 1003)
-					{
-						/* "CSI ? 1003 h" */
-
-						set_mouse_report( vt100_parser ,
-							ANY_EVENT_MOUSE_REPORT) ;
-					}
-					else if( ps[0] == 1005)
-					{
-						/* "CSI ? 1005 h" */
-
-						vt100_parser->mouse_mode |= EXTENDED_MOUSE_REPORT ;
-					}
-				#if  0
-					else if( ps[0] == 1010)
-					{
-						/*
-						 * "CSI ? 1010 h"
-						 * scroll to bottom on tty output inhibit
-						 */
-					}
-				#endif
-				#if  0
-					else if( ps[0] == 1011)
-					{
-						/*
-						 * "CSI ? 1011 h"
-						 * "scroll to bottom on key press
-						 */
-					}
-				#endif
-					else if( ps[0] == 1047)
-					{
-						/* "CSI ? 1047 h" */
-
-						/* if( !titeInhibit)*/
-						save_cursor( vt100_parser) ;
-						ml_screen_use_alternative_edit(
-							vt100_parser->screen) ;
-						/* */
-					}
-					else if( ps[0] == 1048)
-					{
-						/* "CSI ? 1048 h" */
-
-						/* if( !titeInhibit)*/
-						save_cursor( vt100_parser) ;
-						/* */
-					}
-					else if( ps[0] == 1049)
-					{
-						/* "CSI ? 1049 h" */
-
-						/* if( !titeInhibit)*/
-						save_cursor( vt100_parser) ;
-						ml_screen_use_alternative_edit(
-							vt100_parser->screen) ;
-						clear_display_all( vt100_parser) ;
-						/* */
-					}
-					else if( ps[0] == 2004)
-					{
-						/* "CSI ? 2004 h" */
-
-						vt100_parser->is_bracketed_paste_mode = 1 ;
-					}
-					else if( ps[0] == 7727)
-					{
-						/* "CSI ? 7727 h" */
-
-						vt100_parser->is_app_escape = 1 ;
-					}
-					else
-					{
-					#ifdef  DEBUG
-						debug_print_unknown( "ESC [ ? %d h\n" ,
-							ps[0]) ;
+							vt100_parser->is_app_cursor_keys = 1 ;
+						}
+					#if  0
+						else if( ps[count] == 2)
+						{
+							/* "CSI ? 2 h" reset charsets to USASCII */
+						}
 					#endif
+						else if( ps[count] == 3)
+						{
+							/* "CSI ? 3 h" */
+
+							/* XTERM compatibility [#1048321] */
+							clear_display_all( vt100_parser) ;
+
+							resize_by_char( vt100_parser , 132 , 0) ;
+						}
+					#if  0
+						else if( ps[count] == 4)
+						{
+							/* "CSI ? 4 h" smooth scrolling */
+						}
+					#endif
+						else if( ps[count] == 5)
+						{
+							/* "CSI ? 5 h" */
+
+							reverse_video( vt100_parser , 1) ;
+						}
+						else if( ps[count] == 6)
+						{
+							/* "CSI ? 6 h" relative origins */
+
+							ml_screen_set_relative_origin(
+								vt100_parser->screen) ;
+							/*
+							 * cursor position is reset
+							 * (the same behavior of xterm 4.0.3,
+							 * kterm 6.2.0 or so)
+							 */
+							ml_screen_goto( vt100_parser->screen ,
+								0 , 0) ;
+						}
+						else if( ps[count] == 7)
+						{
+							/* "CSI ? 7 h" auto wrap */
+
+							ml_screen_set_auto_wrap(
+								vt100_parser->screen , 1) ;
+						}
+					#if  0
+						else if( ps[count] == 8)
+						{
+							/* "CSI ? 8 h" auto repeat */
+						}
+					#endif
+					#if  0
+						else if( ps[count] == 9)
+						{
+							/* "CSI ? 9 h" X10 mouse reporting */
+						}
+					#endif
+						else if( ps[count] == 25)
+						{
+							/* "CSI ? 25 h" */
+							ml_screen_cursor_visible(
+								vt100_parser->screen) ;
+						}
+					#if  0
+						else if( ps[count] == 35)
+						{
+							/* "CSI ? 35 h" shift keys */
+						}
+					#endif
+					#if  0
+						else if( ps[count] == 40)
+						{
+							/* "CSI ? 40 h" 80 <-> 132 */
+						}
+					#endif
+						else if( ps[count] == 47)
+						{
+							/*
+							 * "CSI ? 47 h"
+							 * Use alternate screen buffer
+							 */
+
+							ml_screen_use_alternative_edit(
+								vt100_parser->screen) ;
+						}
+						else if( ps[count] == 66)
+						{
+							/* "CSI ? 66 h" application key pad */
+							vt100_parser->is_app_keypad = 1 ;
+						}
+					#if  0
+						else if( ps[count] == 67)
+						{
+							/* "CSI ? 67 h" have back space */
+						}
+					#endif
+						else if( ps[count] == 1000)
+						{
+							/* "CSI ? 1000 h" */
+
+							set_mouse_report( vt100_parser ,
+								MOUSE_REPORT) ;
+						}
+					#if  0
+						else if( ps[count] == 1001)
+						{
+							/* "CSI ? 1001 h" X11 mouse highlighting */
+						}
+					#endif
+						else if( ps[count] == 1002)
+						{
+							/* "CSI ? 1002 h" */
+
+							set_mouse_report( vt100_parser ,
+								BUTTON_EVENT_MOUSE_REPORT) ;
+						}
+						else if( ps[count] == 1003)
+						{
+							/* "CSI ? 1003 h" */
+
+							set_mouse_report( vt100_parser ,
+								ANY_EVENT_MOUSE_REPORT) ;
+						}
+						else if( ps[count] == 1005)
+						{
+							/* "CSI ? 1005 h" */
+
+							vt100_parser->mouse_mode |=
+								EXTENDED_MOUSE_REPORT ;
+						}
+					#if  0
+						else if( ps[count] == 1010)
+						{
+							/*
+							 * "CSI ? 1010 h"
+							 * scroll to bottom on tty output inhibit
+							 */
+						}
+					#endif
+					#if  0
+						else if( ps[count] == 1011)
+						{
+							/*
+							 * "CSI ? 1011 h"
+							 * "scroll to bottom on key press
+							 */
+						}
+					#endif
+						else if( ps[count] == 1047)
+						{
+							/* "CSI ? 1047 h" */
+
+							/* if( !titeInhibit)*/
+							save_cursor( vt100_parser) ;
+							ml_screen_use_alternative_edit(
+								vt100_parser->screen) ;
+							/* */
+						}
+						else if( ps[count] == 1048)
+						{
+							/* "CSI ? 1048 h" */
+
+							/* if( !titeInhibit)*/
+							save_cursor( vt100_parser) ;
+							/* */
+						}
+						else if( ps[count] == 1049)
+						{
+							/* "CSI ? 1049 h" */
+
+							/* if( !titeInhibit)*/
+							save_cursor( vt100_parser) ;
+							ml_screen_use_alternative_edit(
+								vt100_parser->screen) ;
+							clear_display_all( vt100_parser) ;
+							/* */
+						}
+						else if( ps[count] == 2004)
+						{
+							/* "CSI ? 2004 h" */
+
+							vt100_parser->is_bracketed_paste_mode = 1 ;
+						}
+						else if( ps[count] == 7727)
+						{
+							/* "CSI ? 7727 h" */
+
+							vt100_parser->is_app_escape = 1 ;
+						}
+						else
+						{
+						#ifdef  DEBUG
+							debug_print_unknown( "ESC [ ? %d h\n" ,
+								ps[count]) ;
+						#endif
+						}
 					}
 				}
 				else if( *str_p == 'l')
 				{
 					/* DEC Private Mode Reset */
+					int  count ;
 
-					if( ps[0] == 1)
+					for( count = 0 ; count < num ; count++)
 					{
-						/* "CSI ? 1 l" */
+						if( ps[count] == 1)
+						{
+							/* "CSI ? 1 l" */
 
-						vt100_parser->is_app_cursor_keys = 0 ;
-					}
-				#if  0
-					else if( ps[0] == 2)
-					{
-						/* "CSI ? 2 l" reset charsets to USASCII */
-					}
-				#endif
-					else if( ps[0] == 3)
-					{
-						/* "CSI ? 3 l" */
-
-						/* XTERM compatibility [#1048321] */
-						clear_display_all( vt100_parser) ;
-
-						resize_by_char( vt100_parser , 80 , 0) ;
-					}
-				#if  0
-					else if( ps[0] == 4)
-					{
-						/* "CSI ? 4 l" smooth scrolling */
-					}
-				#endif
-					else if( ps[0] == 5)
-					{
-						/* "CSI ? 5 l" */
-
-						reverse_video( vt100_parser , 0) ;
-					}
-					else if( ps[0] == 6)
-					{
-						/* "CSI ? 6 l" absolute origins */
-
-						ml_screen_set_absolute_origin(
-							vt100_parser->screen) ;
-						/*
-						 * cursor position is reset
-						 * (the same behavior of xterm 4.0.3,
-						 * kterm 6.2.0 or so)
-						 */
-						ml_screen_goto( vt100_parser->screen , 0 , 0) ;
-					}
-					else if( ps[0] == 7)
-					{
-						/* "CSI ? 7 l" auto wrap */
-
-						ml_screen_set_auto_wrap(
-							vt100_parser->screen , 0) ;
-					}
-				#if  0
-					else if( ps[0] == 8)
-					{
-						/* "CSI ? 8 l" auto repeat */
-					}
-				#endif
-				#if  0
-					else if( ps[0] == 9)
-					{
-						/* "CSI ? 9 l" X10 mouse reporting */
-					}
-				#endif
-					else if( ps[0] == 25)
-					{
-						/* "CSI ? 25 l" */
-
-						ml_screen_cursor_invisible( vt100_parser->screen) ;
-					}
-				#if  0
-					else if( ps[0] == 35)
-					{
-						/* "CSI ? 35 l" shift keys */
-					}
-				#endif
-				#if  0
-					else if( ps[0] == 40)
-					{
-						/* "CSI ? 40 l" 80 <-> 132 */
-					}
-				#endif
-					else if( ps[0] == 47)
-					{
-						/* "CSI ? 47 l" Use normal screen buffer */
-
-						ml_screen_use_normal_edit( vt100_parser->screen) ;
-					}
-					else if( ps[0] == 66)
-					{
-						/* "CSI ? 66 l" application key pad */
-
-						vt100_parser->is_app_keypad = 0 ;
-					}
-				#if  0
-					else if( ps[0] == 67)
-					{
-						/* "CSI ? 67 l" have back space */
-					}
-				#endif
-					else if( ps[0] == 1000 || ps[0] == 1002 || ps[0] == 1003)
-					{
-						/* "CSI ? 1000 l" "CSI ? 1002 l" "CSI ? 1003 l" */
-
-						set_mouse_report( vt100_parser , 0) ;
-					}
-				#if  0
-					else if( ps[0] == 1001)
-					{
-						/* "CSI ? 1001 l" X11 mouse highlighting */
-					}
-				#endif
-					else if( ps[0] == 1005)
-					{
-						vt100_parser->mouse_mode &=
-							~EXTENDED_MOUSE_REPORT ;
-					}
-				#if  0
-					else if( ps[0] == 1010)
-					{
-						/*
-						 * "CSI ? 1010 l"
-						 * scroll to bottom on tty output inhibit
-						 */
-					}
-				#endif
-				#if  0
-					else if( ps[0] == 1011)
-					{
-						/*
-						 * "CSI ? 1011 l"
-						 * scroll to bottom on key press
-						 */
-					}
-				#endif
-					else if( ps[0] == 1047)
-					{
-						/* "CSI ? 1047 l" */
-
-						/* if( !titeInhibit)*/
-						clear_display_all( vt100_parser) ;
-						ml_screen_use_normal_edit( vt100_parser->screen) ;
-						restore_cursor( vt100_parser) ;
-						/* */
-					}
-					else if( ps[0] == 1048)
-					{
-						/* "CSI ? 1048 l" */
-
-						/* if( !titeInhibit)*/
-						restore_cursor( vt100_parser) ;
-						/* */
-					}
-					else if( ps[0] == 1049)
-					{
-						/* "CSI ? 1049 l" */
-
-						/* if( !titeInhibit)*/
-						ml_screen_use_normal_edit( vt100_parser->screen) ;
-						restore_cursor( vt100_parser) ;
-						/* */
-					}
-					else if( ps[0] == 2004)
-					{
-						/* "CSI ? 2004 l" */
-
-						vt100_parser->is_bracketed_paste_mode = 0 ;
-					}
-					else if( ps[0] == 7727)
-					{
-						/* "CSI ? 7727 l" */
-
-						vt100_parser->is_app_escape = 0 ;
-					}
-					else
-					{
-					#ifdef  DEBUG
-						debug_print_unknown( "ESC [ ? %d l\n" , ps[0]) ;
+							vt100_parser->is_app_cursor_keys = 0 ;
+						}
+					#if  0
+						else if( ps[count] == 2)
+						{
+							/* "CSI ? 2 l" reset charsets to USASCII */
+						}
 					#endif
+						else if( ps[count] == 3)
+						{
+							/* "CSI ? 3 l" */
+
+							/* XTERM compatibility [#1048321] */
+							clear_display_all( vt100_parser) ;
+
+							resize_by_char( vt100_parser , 80 , 0) ;
+						}
+					#if  0
+						else if( ps[count] == 4)
+						{
+							/* "CSI ? 4 l" smooth scrolling */
+						}
+					#endif
+						else if( ps[count] == 5)
+						{
+							/* "CSI ? 5 l" */
+
+							reverse_video( vt100_parser , 0) ;
+						}
+						else if( ps[count] == 6)
+						{
+							/* "CSI ? 6 l" absolute origins */
+
+							ml_screen_set_absolute_origin(
+								vt100_parser->screen) ;
+							/*
+							 * cursor position is reset
+							 * (the same behavior of xterm 4.0.3,
+							 * kterm 6.2.0 or so)
+							 */
+							ml_screen_goto( vt100_parser->screen ,
+								0 , 0) ;
+						}
+						else if( ps[count] == 7)
+						{
+							/* "CSI ? 7 l" auto wrap */
+
+							ml_screen_set_auto_wrap(
+								vt100_parser->screen , 0) ;
+						}
+					#if  0
+						else if( ps[count] == 8)
+						{
+							/* "CSI ? 8 l" auto repeat */
+						}
+					#endif
+					#if  0
+						else if( ps[count] == 9)
+						{
+							/* "CSI ? 9 l" X10 mouse reporting */
+						}
+					#endif
+						else if( ps[count] == 25)
+						{
+							/* "CSI ? 25 l" */
+
+							ml_screen_cursor_invisible(
+								vt100_parser->screen) ;
+						}
+					#if  0
+						else if( ps[count] == 35)
+						{
+							/* "CSI ? 35 l" shift keys */
+						}
+					#endif
+					#if  0
+						else if( ps[count] == 40)
+						{
+							/* "CSI ? 40 l" 80 <-> 132 */
+						}
+					#endif
+						else if( ps[count] == 47)
+						{
+							/* "CSI ? 47 l" Use normal screen buffer */
+
+							ml_screen_use_normal_edit(
+								vt100_parser->screen) ;
+						}
+						else if( ps[count] == 66)
+						{
+							/* "CSI ? 66 l" application key pad */
+
+							vt100_parser->is_app_keypad = 0 ;
+						}
+					#if  0
+						else if( ps[count] == 67)
+						{
+							/* "CSI ? 67 l" have back space */
+						}
+					#endif
+						else if( ps[count] == 1000 ||
+							ps[count] == 1002 || ps[count] == 1003)
+						{
+							/*
+							 * "CSI ? 1000 l" "CSI ? 1002 l"
+							 * "CSI ? 1003 l"
+							 */
+
+							set_mouse_report( vt100_parser , 0) ;
+						}
+					#if  0
+						else if( ps[count] == 1001)
+						{
+							/* "CSI ? 1001 l" X11 mouse highlighting */
+						}
+					#endif
+						else if( ps[count] == 1005)
+						{
+							vt100_parser->mouse_mode &=
+								~EXTENDED_MOUSE_REPORT ;
+						}
+					#if  0
+						else if( ps[count] == 1010)
+						{
+							/*
+							 * "CSI ? 1010 l"
+							 * scroll to bottom on tty output inhibit
+							 */
+						}
+					#endif
+					#if  0
+						else if( ps[count] == 1011)
+						{
+							/*
+							 * "CSI ? 1011 l"
+							 * scroll to bottom on key press
+							 */
+						}
+					#endif
+						else if( ps[count] == 1047)
+						{
+							/* "CSI ? 1047 l" */
+
+							/* if( ! titeInhibit) */
+							clear_display_all( vt100_parser) ;
+							ml_screen_use_normal_edit(
+								vt100_parser->screen) ;
+							restore_cursor( vt100_parser) ;
+							/* */
+						}
+						else if( ps[count] == 1048)
+						{
+							/* "CSI ? 1048 l" */
+
+							/* if( ! titeInhibit) */
+							restore_cursor( vt100_parser) ;
+							/* */
+						}
+						else if( ps[count] == 1049)
+						{
+							/* "CSI ? 1049 l" */
+
+							/* if( ! titeInhibit) */
+							ml_screen_use_normal_edit(
+								vt100_parser->screen) ;
+							restore_cursor( vt100_parser) ;
+							/* */
+						}
+						else if( ps[count] == 2004)
+						{
+							/* "CSI ? 2004 l" */
+
+							vt100_parser->is_bracketed_paste_mode = 0 ;
+						}
+						else if( ps[count] == 7727)
+						{
+							/* "CSI ? 7727 l" */
+
+							vt100_parser->is_app_escape = 0 ;
+						}
+						else
+						{
+						#ifdef  DEBUG
+							debug_print_unknown( "ESC [ ? %d l\n" ,
+								ps[count]) ;
+						#endif
+						}
 					}
 				}
 			#if  0
@@ -2510,31 +2532,38 @@ parse_vt100_escape_sequence(
 			else if( *str_p == 'l')
 			{
 				/* "CSI l" */
+				int  count ;
 
-				if( ps[0] == 4)
+				for( count = 0 ; count < num ; count++)
 				{
-					/* replace mode */
+					if( ps[count] == 4)
+					{
+						/* replace mode */
 
-					vt100_parser->buffer.output_func =
-						ml_screen_overwrite_chars ;
+						vt100_parser->buffer.output_func =
+							ml_screen_overwrite_chars ;
+					}
 				}
 			}
 			else if( *str_p == 'h')
 			{
 				/* "CSI h" */
+				int  count ;
 
-				if( ps[0] == 4)
+				for( count = 0 ; count < num ; count++)
 				{
-					/* insert mode */
+					if( ps[count] == 4)
+					{
+						/* insert mode */
 
-					vt100_parser->buffer.output_func =
-						ml_screen_insert_chars ;
+						vt100_parser->buffer.output_func =
+							ml_screen_insert_chars ;
+					}
 				}
 			}
 			else if( *str_p == 'm')
 			{
 				/* "CSI m" */
-
 				int  count ;
 
 				for( count = 0 ; count < num ; count ++)
@@ -3159,7 +3188,7 @@ parse_vt100_sequence(
 {
 	mkf_char_t  ch ;
 	size_t  prev_left ;
- 
+
 	while( 1)
 	{
 		prev_left = vt100_parser->left ;

@@ -943,7 +943,7 @@ ml_pty_ssh_new(
 		goto  error3 ;
 	}
 
-	if( cmd_argv)
+	if( cmd_path)
 	{
 		int  count ;
 		char *   cmd_line ;

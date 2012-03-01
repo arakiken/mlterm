@@ -355,8 +355,9 @@ comment $Id$
       o big5_buggy  (true/*false*)
         Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
 
-      o col_size_of_width_a  (*1*/2) (#)
+      o col_size_of_width_a  (1/2) (#)
         UNICODE の EastAsianWidth.txt の A プロパティのコラム数
+	デフォルト値は、ja_XX.XX locale 環境では 2 , その他の環境では 1 です。.
 
       o vertical_mode  (*none*/cjk/mongol) (#)
         縦表示のスタイルを指定

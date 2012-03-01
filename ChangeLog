@@ -1,3 +1,28 @@
+2012-03-01  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c:
+	  SM, RM, DECSET and DECRST accept multiple numeric parameters.
+	  (Thanks to Iwamoto Kouichi san)
+
+	* ml_color.h:
+	  Range of IS_VALID_COLOR() is changed from "<= 0x101" to "< 0x100"
+	  in order for ml_get_color_rgb(ML_{FG|BG}_COLOR) to return 0.
+
+	* man/mlterm.1, doc/ja/README.ja, doc/ja/README.win32, doc/en/README.win32:
+	  Updated.
+
+	* x_main_config.c:
+	  - The default value of "col_size_of_width_a" option is changed from 1 to 2
+	    if locale is "ja_XX.XXX".
+	  - If "auto" is specified as the value of "encoding" option not only if
+	    nothing is specified, set x_main_config_t::is_auto_encoding = 1.
+
+	* java/: Added.
+
+	* ml_edit.[ch], ml_pty_{pipewin32|ssh}.c: Minor fixes.
+
+	* mkf_tbl_func_loader.h: Minor fixes.
+
 2012-02-14  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c:

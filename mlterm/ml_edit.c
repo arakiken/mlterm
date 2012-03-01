@@ -1144,15 +1144,6 @@ ml_edit_clear_all_tab_stops(
 	return  1 ;
 }
 
-ml_line_t *
-ml_edit_get_line(
-	ml_edit_t *  edit ,
-	int  row
-	)
-{
-	return  ml_model_get_line( &edit->model , row) ;
-}
-
 int
 ml_edit_set_modified_all(
 	ml_edit_t *  edit

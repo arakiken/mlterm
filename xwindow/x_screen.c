@@ -7913,14 +7913,8 @@ x_screen_set_config(
 
 		if( ( encoding = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
 		{
-			if( strcasecmp( value , "auto") == 0)
-			{
-				ml_term_set_auto_encoding( screen->term , 1) ;
-			}
-			else
-			{
-				ml_term_set_auto_encoding( screen->term , 0) ;
-			}
+			ml_term_set_auto_encoding( screen->term ,
+				strcasecmp( value , "auto") == 0 ? 1 : 0) ;
 
 			change_char_encoding( screen , encoding) ;
 		}
