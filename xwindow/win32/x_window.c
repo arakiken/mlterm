@@ -2168,7 +2168,7 @@ x_window_receive_event(
 		return  1 ;
 	
 	case  WM_SIZE:
-		if( win->window_resized)
+		if( win->window_resized && ! IsIconic( win->my_window))
 		{
 			/*
 			 * Assume that win == root.

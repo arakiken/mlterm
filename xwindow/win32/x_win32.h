@@ -296,7 +296,6 @@ typedef int XFontSet ;	/* dummy */
 /* XXX dummy */
 #define XKeysymToKeycode(disp,ks)  (ks)
 #define XKeycodeToKeysym(disp,kc,i)  (kc)
-#define XStringToKeysym(str)	(1)
 #define XKeysymToString(ks)	""
 #define DisplayString(disp)	":0.0"
 #define DefaultScreen(disp)	(0)
@@ -346,6 +345,9 @@ typedef int XFontSet ;	/* dummy */
 
 #define  XC_sb_v_double_arrow  0
 #define  XC_left_ptr  0
+
+
+KeySym  XStringToKeysym( char *  str) ;
 
 
 #endif
