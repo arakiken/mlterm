@@ -689,59 +689,6 @@ AC_SUBST(UIM_CFLAGS)
 AC_SUBST(UIM_LIBS)
 
 #
-# --- IIIMF ---
-#
-AC_ARG_ENABLE(iiimf,
-	[  --enable-iiimf          IIIMF (Experimental) @<:@default=disabled@:>@],
-	iiimf=$enable_iiimf)
-if test "x$iiimf" = xyes ; then
-	PKG_CHECK_MODULES(IIIMCF, iiimf-lib-client, have_iiimcf=yes, have_iiimcf=no)
-	if test "x$have_iiimcf" = xyes ; then
-		found_iiimcf=yes
-	elif test -d /usr/lib/im/lib ; then
-		LIBS="$LIBS -L/usr/lib/im/lib"
-		AC_CHECK_LIB(iiimcf, iiimcf_create_context,
-			[
-			found_iiimcf=yes
-			IIIMCF_CFLAGS="-I/usr/lib/im/include"
-			IIIMCF_LIBS="-L/usr/lib/im/lib -liiimcf"
-			])
-	else
-		AC_CHECK_LIB(iiimcf, iiimcf_create_context,
-			[
-			found_iiimcf=yes
-			IIIMCF_CFLAGS="-I/usr/include/iiim"
-			IIIMCF_LIBS="-liiimcf"
-			])
-	fi
-
-	if test "x$found_iiimcf" = xyes ; then
-		IM_CFLAGS="$IM_CFLAGS -DUSE_IIIMF"
-		MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
-		OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
-		if test "x$with_libltdl" != xno ; then
-			echo ""
-			echo "** ERROR **"
-			echo " IIIMF plugin couldn't be used with libltdl."
-			echo ""
-			exit 1
-		else
-			input_methods_result="$input_methods_result IIIMF"
-		fi
-		AC_CHECK_LIB(iiimcf, iiimcf_create_hotkey_notify_event,
-			[
-			IIIMCF_CFLAGS="$IIIMCF_CFLAGS -DHAVE_HOTKEY_NOTFY_EVENT"
-			])
-		AC_CHECK_LIB(iiimcf, iiimcf_create_aux_getvalues_event,
-			[
-			IIIMCF_CFLAGS="$IIIMCF_CFLAGS -DHAVE_AUX_GETVALUES_EVENT"
-			])
-	fi
-fi
-AC_SUBST(IIIMCF_CFLAGS)
-AC_SUBST(IIIMCF_LIBS)
-
-#
 # --- m17n library ---
 #
 AC_ARG_ENABLE(m17nlib,

@@ -135,7 +135,7 @@ scrollbar_view_name = sample
 # -- Others --
 # use_xim = true
   
-# (xim,uim,iiimf,scim,m17n-lib,ibus,none)
+# (xim,uim,scim,m17n-lib,ibus,none)
 # input_method = xim
 
 # tabsize = 8

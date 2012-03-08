@@ -1,3 +1,13 @@
+2012-03-09  Seiichi SATO  <seiichi@pylone.jp>
+
+	* README, configure, configure.in, doc/ja/README.ja, etc/key,
+	  etc/main, etc/main.ja, man/mlterm.1, xwindow/x_main_config.c,
+	  inputmethod/iiimf/LICENCE, inputmethod/iiimf/Makefile.in,
+	  inputmethod/iiimf/im_iiimf.c, inputmethod/iiimf/im_iiimf.h,
+	  inputmethod/iiimf/im_iiimf_aux.c, inputmethod/iiimf/keymap.c,
+	  inputmethod/iiimf/keymap.h:
+	  removed IIIMF plugin
+
 2012-03-03  Araki Ken  <arakiken@users.sf.net>
 
 	* xwindow/win32/x_window.c:

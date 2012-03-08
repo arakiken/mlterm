@@ -192,7 +192,7 @@ x_prepare_for_main_config(
 		"bidi mode [normal]") ;
 #endif
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
-		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
+		"input method (xim/kbd/uim/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
 		"parent window") ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)

@@ -110,10 +110,6 @@ comment $Id$
     --enable-uim
       uim をサポートします。libuim が必要です。
 
-    --enable-iiimf
-      IIIMF (Internet/Intranet Input Method Framework) をサポートします。
-      libiiimcf が必要です。
-
     --enable-m17nlib
       m17n library が提供するインプットメソッドをサポートします。
       m17n-lib と m17n-db が必要です。
@@ -173,7 +169,7 @@ comment $Id$
     (see doc/ja/README.xim)
 
   o インプットメソッド プラグイン
-    IIIMF、uim、m17n library、scim、ibus に対応しています。プラグインとして使用
+    uim、m17n library、scim、ibus に対応しています。プラグインとして使用
     時だけロードされます。マルチXIMと同様に動的変更が可能で端末のエンコーディン
     グに依存しません。
 
@@ -542,7 +538,7 @@ comment $Id$
 
         [input method];[option1]:[option2]
 
-        [input method] にインプットメソッド(xim/uim/iiimf/m17nlib/scim/kbd)を
+        [input method] にインプットメソッド(xim/uim/m17nlib/scim/kbd)を
         指定し、必要であれば ":" で区切ってオプションを列挙します。
 
         各インプットメソッドのオプションは以下の通りです。
@@ -558,14 +554,6 @@ comment $Id$
         uim:[conversion engine]
         [conversion engine] に変換エンジン(anthy, prime, hangul2など)を指定しま
         す。指定しなかった場合は uim のデフォルト変換エンジンが使用されます。
-
-        iiimf の場合:
-        iiimf:[language id]:[language engine]
-        [language id] には RFC1766 に従って言語(ar, zh_CN, ja など)を指定しま
-        す。指定されなかった場合はシステムのローケールから取得した言語が使われ
-        ます。[language engine] では使用する LE (CannaLE, newpy など)を指定しま
-        す。指定されなかった場合は [language id] のデフォルト LE が使用されま
-        す。
 
         m17nlib の場合:
         m17nlib:[language id]:[input method]

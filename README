@@ -87,9 +87,6 @@ Options for configure
   --enable-uim
     Support uim (Universal? Input Method) if available.
 
-  --enable-iiimf
-    Support IIIMF (Internet/Intranet Input Method Framework) if available.
-
   --enable-m17nlib
     Support m17n library if available.
 
