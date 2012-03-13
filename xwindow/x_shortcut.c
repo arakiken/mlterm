@@ -86,6 +86,35 @@ parse(
 		{
 			state |= ModMask ;
 		}
+		else if( strncmp( key , "Mod" , 3) == 0)
+		{
+			switch( key[3])
+			{
+			case 0:
+				state |= ModMask ;
+				break;
+			case '1':
+				state |= Mod1Mask ;
+				break;
+			case '2':
+				state |= Mod2Mask ;
+				break;
+			case '3':
+				state |= Mod3Mask ;
+				break;
+			case '4':
+				state |= Mod4Mask ;
+				break;
+			case '5':
+				state |= Mod5Mask ;
+				break;
+	#ifdef  DEBUG
+			default:
+				kik_warn_printf( KIK_DEBUG_TAG " unrecognized Mod mask(%s)\n" , key) ;
+				break;
+	#endif
+			}
+		}
 	#ifdef  DEBUG
 		else
 		{
@@ -391,7 +420,8 @@ x_shortcut_match(
 		/* ingoring except ModMask / ControlMask / ShiftMask */
 		state &= (ModMask | ControlMask | ShiftMask) ;
 		
-		if( state & ModMask)
+		if( ((shortcut->map[func].state & ModMask) == ModMask) &&
+		     (state & ModMask))
 		{
 			/* all ModNMasks are set. */
 			state |= ModMask ;
@@ -425,16 +455,11 @@ x_shortcut_str(
 	/* ingoring except ModMask / ControlMask / ShiftMask */
 	state &= (ModMask | ControlMask | ShiftMask) ;
 
-	if( state & ModMask)
-	{
-		/* all ModNMasks are set. */
-		state |= ModMask ;
-	}
-	
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{
-		if( shortcut->str_map[count].state == state &&
-			shortcut->str_map[count].ksym == ksym)
+                if( (shortcut->str_map[count].ksym == ksym) &&
+			((shortcut->str_map[count].state == state) ||
+			    (((shortcut->str_map[count].state & ModMask) == ModMask) && (state & ModMask))))
 		{
 			return  shortcut->str_map[count].str ;
 		}

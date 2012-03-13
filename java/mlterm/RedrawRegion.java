@@ -7,8 +7,8 @@ package  mlterm ;
 
 public class RedrawRegion
 {
-	public String  str ;
-	public int  start ;
+	public String  str = null ;
+	public int  start = 0 ;
 
-	public Style[]  styles ;
+	public Style[]  styles = null ;
 }

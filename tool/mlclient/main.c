@@ -29,7 +29,8 @@ static char *  na_options[] =
 	"   --maxptys" ,
 	"   --button3" ,
 	"   --clip" ,
-	"   --restart"
+	"   --restart" ,
+	"   --logmsg"
 } ;
 
 

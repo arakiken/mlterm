@@ -4273,15 +4273,6 @@ change_char_encoding(
 }
 
 static void
-change_tab_size(
-	x_screen_t *  screen ,
-	u_int  tab_size
-	)
-{
-	ml_term_set_tab_size( screen->term , tab_size) ;
-}
-
-static void
 change_log_size(
 	x_screen_t *  screen ,
 	u_int  logsize
@@ -4397,15 +4388,6 @@ change_sb_mode(
 		(*screen->screen_scroll_listener->change_sb_mode)(
 			screen->screen_scroll_listener->self , sb_mode) ;
 	}
-}
-
-static void
-change_char_combining_flag(
-	x_screen_t *  screen ,
-	int  flag
-	)
-{
-	ml_term_set_use_char_combining( screen->term , flag) ;
 }
 
 static void
@@ -5372,7 +5354,7 @@ get_config(
 	}
 	else if( strcmp( key , "col_size_of_width_a") == 0)
 	{
-		if( ml_term_get_col_size_of_width_a( screen->term) == 2)
+		if( ml_term_get_col_size_of_width_a( term) == 2)
 		{
 			value = "2" ;
 		}
@@ -5405,7 +5387,7 @@ get_config(
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
-		value = ml_get_bidi_mode_name( ml_term_get_bidi_mode( screen->term)) ;
+		value = ml_get_bidi_mode_name( ml_term_get_bidi_mode( term)) ;
 	}
 	else if( strcmp( key , "input_method") == 0)
 	{
@@ -5530,9 +5512,9 @@ get_config(
 	}
 	else if( strncmp( key , "selected_text" , 13) == 0)
 	{
-		ml_term_write( screen->term , "#" , 1 , to_menu) ;
-		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
-		ml_term_write( screen->term , "=" , 1 , to_menu) ;
+		ml_term_write( term , "#" , 1 , to_menu) ;
+		ml_term_write( term , key , strlen(key) , to_menu) ;
+		ml_term_write( term , "=" , 1 , to_menu) ;
 		
 		if( /* screen->window.is_sel_owner && */
 			screen->sel.sel_str && screen->sel.sel_len > 0)
@@ -5559,7 +5541,7 @@ get_config(
 				mkf_conv_t *  conv ;
 				
 				if( ( conv = ml_conv_new( ml_get_char_encoding( key + 14))) ||
-				    ( conv = ml_conv_new( ml_term_get_encoding( screen->term))))
+				    ( conv = ml_conv_new( ml_term_get_encoding( term))))
 				{
 					u_char  buf[512] ;
 					size_t  len ;
@@ -5575,7 +5557,7 @@ get_config(
 							break ;
 						}
 
-						ml_term_write( screen->term , buf , len , to_menu) ;
+						ml_term_write( term , buf , len , to_menu) ;
 					}
 
 					(*conv->delete)( conv) ;
@@ -5587,14 +5569,14 @@ get_config(
 			}
 		}
 
-		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+		ml_term_write( term , "\n" , 1 , to_menu) ;
 
 		return ;
 	}
 
 	if( value == NULL)
 	{
-		ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
+		ml_term_write( term , "#error\n" , 7 , to_menu) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
@@ -5602,11 +5584,11 @@ get_config(
 	}
 	else
 	{
-		ml_term_write( screen->term , "#" , 1 , to_menu) ;
-		ml_term_write( screen->term , key , strlen( key) , to_menu) ;
-		ml_term_write( screen->term , "=" , 1 , to_menu) ;
-		ml_term_write( screen->term , value , strlen( value) , to_menu) ;
-		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+		ml_term_write( term , "#" , 1 , to_menu) ;
+		ml_term_write( term , key , strlen( key) , to_menu) ;
+		ml_term_write( term , "=" , 1 , to_menu) ;
+		ml_term_write( term , value , strlen( value) , to_menu) ;
+		ml_term_write( term , "\n" , 1 , to_menu) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
@@ -7874,9 +7856,7 @@ x_screen_set_config(
 	char *  value		/* can be NULL */
 	)
 {
-#if  0
 	ml_term_t *  term ;
-#endif
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
@@ -7902,10 +7882,10 @@ x_screen_set_config(
 		}
 	}
 	else
+#endif
 	{
 		term = screen->term ;
 	}
-#endif
 
 	if( strcmp( key , "encoding") == 0)
 	{
@@ -7913,7 +7893,7 @@ x_screen_set_config(
 
 		if( ( encoding = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
 		{
-			ml_term_set_auto_encoding( screen->term ,
+			ml_term_set_auto_encoding( term ,
 				strcasecmp( value , "auto") == 0 ? 1 : 0) ;
 
 			change_char_encoding( screen , encoding) ;
@@ -7949,7 +7929,7 @@ x_screen_set_config(
 
 		if( kik_str_to_uint( &tab_size , value))
 		{
-			change_tab_size( screen , tab_size) ;
+			ml_term_set_tab_size( screen->term , tab_size) ;
 		}
 	}
 	else if( strcmp( key , "logsize") == 0)
@@ -8058,7 +8038,7 @@ x_screen_set_config(
 			return  1 ;
 		}
 		
-		ml_term_set_backscroll_mode( screen->term , mode) ;
+		ml_term_set_backscroll_mode( term , mode) ;
 	}
 	else if( strcmp( key , "use_combining") == 0)
 	{
@@ -8066,7 +8046,7 @@ x_screen_set_config(
 
 		if( ( flag = true_or_false( value)) != -1)
 		{
-			change_char_combining_flag( screen , flag) ;
+			ml_term_set_use_char_combining( screen->term , flag) ;
 		}
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
@@ -8210,7 +8190,7 @@ x_screen_set_config(
 
 		if( kik_str_to_uint( &size , value))
 		{
-			ml_term_set_col_size_of_width_a( screen->term , size) ;
+			ml_term_set_col_size_of_width_a( term , size) ;
 		}
 	}
 	else if( strcmp( key , "use_bidi") == 0)
@@ -8219,12 +8199,12 @@ x_screen_set_config(
 
 		if( ( flag = true_or_false( value)) != -1)
 		{
-			change_bidi_flag( screen , flag , ml_term_get_bidi_mode( screen->term)) ;
+			change_bidi_flag( screen , flag , ml_term_get_bidi_mode( term)) ;
 		}
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
-		change_bidi_flag( screen , ml_term_is_using_bidi( screen->term) ,
+		change_bidi_flag( screen , ml_term_is_using_bidi( term) ,
 			ml_get_bidi_mode( value)) ;
 	}
 	else if( strcmp( key , "use_ind") == 0)
@@ -8255,7 +8235,7 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "icon_path") == 0)
 	{
-		ml_term_set_icon_path( screen->term , value) ;
+		ml_term_set_icon_path( term , value) ;
 		set_icon( screen) ;
 	}
 	else if( strcmp( key , "title") == 0)
@@ -8271,7 +8251,7 @@ x_screen_set_config(
 
 		if( ( flag = true_or_false( value)) != -1)
 		{
-			ml_term_set_logging_vt_seq( screen->term , flag) ;
+			ml_term_set_logging_vt_seq( term , flag) ;
 		}
 	}
 	else if( strcmp( key , "button3_behavior") == 0)

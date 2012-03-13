@@ -1,3 +1,37 @@
+2012-03-14  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* x_shortcut.c:
+	  Not only "Mod" but "Mod1"-"Mod5" keys are available for ~/.mlterm/key.
+	  (SF Patch #3496423 is merged, Thanks to Kevin Schoedel)
+
+	* mkf_tblfunc_loader.c: mkf_set_alt_lib_dir() is added.
+
+	* java/INSTALL: Updated.
+
+	* java/Makefile.in: Minor fixes.
+
+	* java/manifest.mf: Renamed to java/manifest.mf.in.
+	  java/manifest-win32.mf: Removed.
+
+	* java/MLTermPty.c: Added.
+	  - ml_config_listener_t::{set|get}_config and ::exec_cmd are implemented.
+	  - Options in ~/.mlterm/main are applied.
+
+	* java/mlterm/ConnectDialog.java, java/mlterm/MLTermListener.java,
+	  java/mlterm/MLTermPtyListener.java, java/mlterm/MLTermApplet.java,
+	  java/mlterm.html: Added.
+
+	* java/mlterm/MLTerm.java:
+	  - "-km", "-dialog", "-g" and "-e" options are added.
+	  - "-pass" option is removed.
+	  - Screen scroll is supported.
+	  - Screen resize is supported.
+
+	* configure.in, java/Makefile.in:
+	  @CYGPATHW@ is added.
+
 2012-03-09  Seiichi SATO  <seiichi@pylone.jp>
 
 	* README, configure, configure.in, doc/ja/README.ja, etc/key,

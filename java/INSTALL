@@ -6,7 +6,7 @@ How to build & install mlterm co-operating with Java.
   o SWT (http://www.eclipse.org/swt/)
 
 * Build
-  $ ./configure ...
+  $ ./configure (options)
   $ make
   $ cd java
   -> Edit Makefile according to your environment.
@@ -22,14 +22,62 @@ How to build & install mlterm co-operating with Java.
   $ java -jar mlterm.jar
 
   o options
-    -serv (<protocol>://)(<user>@)<server>(:<port>)
-    -pass password
-    e.g.) java -jar mlterm -serv ssh://guest@192.168.0.1:22 -pass password
-  
+    -dialog       : Show dialog to specify a server.
+    -g <col>x<row>: Specify size.
+    -fn <font>    : Specify font family.
+    -km <encoding>: Specify character encoding.
+    -serv (<protocol>://)(<user>@)<server>(:<port>): Specify a server.
+    -w <point>    : Specify font size.
+    -e ...        : Specify a command to be executed.
+    e.g.) java -jar mlterm -serv ssh://guest@192.168.0.1:22
+
+  (Applet)
+  $ cp mlterm.jar swt.jar mlterm.html (installation directory)
+  $ appletviewer mlterm.html
 
 * Notice
+  o Following options in ~/.mlterm/main or %HOMEPATH%/mlterm/main are applied automatically.
+    ENCODING
+    tabsize
+    use_combining
+    use_dynamic_comb
+    use_multi_col_char
+    col_size_of_width_a
+    logging_msg
+    logging_vt_seq
+    not_use_unicode_font
+    only_use_unicode_font
+    use_unicode_property
+    use_login_shell
+    ssh_public_key
+    ssh_private_key
+    exec_cmd
+
+  o Following configuration protocols are supported.
+    encoding
+    is_auto_encoding
+    tabsize
+    use_combining
+    use_multi_column_char
+    col_size_of_width_a
+    locale
+    pwd
+    rows
+    cols
+    pty_name
+    icon_path (*)
+    logging_vt_seq
+    logging_msg
+    browser (usage: mlcc exec browser http://www.google.co.jp)
+    (*) Not implemented.
+
+  o Sortcut keys.
+    Control+F1: Open new mlterm window.
+
+* On-line demo
+  http://mlterm.sf.net/mltermlet.html
 
 * Tested terminals using vte.
   o Java 1.6.0_23 on Ubuntu 11.10
-  o Java 1.7.0_02 on MS Windows 7/Cygwin 1.7.10
+  o Java 1.7.0_02 on MS Windows 7/Cygwin 1.7.10 (CC="gcc -mno-cygwin")
   o Java 1.7.0_02 on MS Windows 7/MinGW 5.1.4

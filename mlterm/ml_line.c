@@ -1254,8 +1254,6 @@ ml_line_get_num_of_filled_chars_except_spaces(
 	ml_line_t *  line
 	)
 {
-	int  char_index ;
-
 	if( IS_EMPTY(line))
 	{
 		return  0 ;
@@ -1266,6 +1264,8 @@ ml_line_get_num_of_filled_chars_except_spaces(
 	}
 	else
 	{
+		int  char_index ;
+
 		for( char_index = END_CHAR_INDEX(line) ; char_index >= 0 ; char_index --)
 		{
 		#if  1

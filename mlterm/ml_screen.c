@@ -165,7 +165,7 @@ window_scroll_upward_region(
 		return  1 ;
 	}
 
-	if( ! screen->screen_listener)
+	if( ! screen->screen_listener || ! screen->screen_listener->window_scroll_upward_region)
 	{
 		return  0 ;
 	}
@@ -196,7 +196,7 @@ window_scroll_downward_region(
 		return  1 ;
 	}
 	
-	if( ! screen->screen_listener)
+	if( ! screen->screen_listener || ! screen->screen_listener->window_scroll_downward_region)
 	{
 		return  0 ;
 	}
@@ -1159,7 +1159,8 @@ ml_screen_backscroll_upward(
 	screen->backscroll_rows -= size ;
 
 	if( ! screen->screen_listener ||
-		! (*screen->screen_listener->window_scroll_upward_region)(
+	    ! screen->screen_listener->window_scroll_upward_region ||
+	    ! (*screen->screen_listener->window_scroll_upward_region)(
 			screen->screen_listener->self ,
 			0 , ml_edit_get_rows( screen->edit) - 1 , size))
 	{
@@ -1216,8 +1217,9 @@ ml_screen_backscroll_downward(
 
 	screen->backscroll_rows += size ;
 
-	if( !screen->screen_listener ||
-		! (*screen->screen_listener->window_scroll_downward_region)(
+	if( ! screen->screen_listener ||
+	    ! screen->screen_listener->window_scroll_downward_region ||
+	    ! (*screen->screen_listener->window_scroll_downward_region)(
 			screen->screen_listener->self ,
 			0 , ml_edit_get_rows( screen->edit) - 1 , size))
 	{

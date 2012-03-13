@@ -49,6 +49,8 @@
 	}
 
 
+int  mkf_set_alt_lib_dir( const char *  dir) ;
+
 void *  mkf_load_8bits_func( const char *  symname) ;
 
 void *  mkf_load_jajp_func( const char *  symname) ;

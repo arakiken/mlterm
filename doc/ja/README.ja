@@ -951,9 +951,14 @@ comment $Id$
 
       Control
       Shift
+      Mod1
+      Mod2
+      Mod3
+      Mod4
+      Mod5
       Mod  (Mod1Mask - Mod5Mask まですべてにマッチします)
 
-      の 3 つが使用できます。
+      の 8 つが使用できます。
 
       e.g.)
       Control+n=OPEN_SCREEN

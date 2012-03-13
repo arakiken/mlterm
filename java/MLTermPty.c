@@ -9,25 +9,43 @@
 
 #include  "mlterm_MLTermPty.h"
 
-#include  <string.h>		/* strlen */
+#include  <unistd.h>		/* getcwd */
+#include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
+#include  <kiklib/kik_conf.h>
+#include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <mkf/mkf_utf16_conv.h>
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
+#include  <../main/version.h>
 
 
-#if  1
+#if  defined(USE_WIN32API)
+#define CONFIG_PATH "."
+#elif  defined(SYSCONFDIR)
+#define CONFIG_PATH SYSCONFDIR
+#else
+#define CONFIG_PATH "/etc"
+#endif
+
+#if  0
 #define  __DEBUG
 #endif
 
 
 typedef struct  native_obj
 {
+	JNIEnv *  env ;
+	jobject  obj ;
 	ml_term_t *  term ;
 	ml_pty_event_listener_t   pty_listener ;
 	ml_config_event_listener_t  config_listener ;
+	ml_screen_event_listener_t  screen_listener ;
+	ml_xterm_event_listener_t  xterm_listener ;
 
 } native_obj_t ;
 
@@ -54,6 +72,25 @@ pty_closed(
 }
 
 
+static int
+true_or_false(
+	char *  str
+	)
+{
+	if( strcmp( str , "true") == 0)
+	{
+		return  1 ;
+	}
+	else if( strcmp( str , "false") == 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  -1 ;
+	}
+}
+
 static void
 set_config(
 	void *  p ,
@@ -68,7 +105,7 @@ set_config(
 
 	if( strcmp( key , "encoding") == 0)
 	{
-		ml_char_encoding_t   encoding ;
+		ml_char_encoding_t  encoding ;
 
 		if( ( encoding = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
 		{
@@ -78,6 +115,263 @@ set_config(
 			ml_term_change_encoding( nativeObj->term , encoding) ;
 		}
 	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		u_int  tab_size ;
+
+		if( kik_str_to_uint( &tab_size , value))
+		{
+			ml_term_set_tab_size( nativeObj->term , tab_size) ;
+		}
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_term_set_use_char_combining( nativeObj->term , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_multi_column_char") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_term_set_use_multi_col_char( nativeObj->term , flag) ;
+		}
+	}
+	else if( strcmp( key , "col_size_of_width_a") == 0)
+	{
+		u_int  size ;
+
+		if( kik_str_to_uint( &size , value))
+		{
+			ml_term_set_col_size_of_width_a( nativeObj->term , size) ;
+		}
+	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		ml_term_set_icon_path( nativeObj->term , value) ;
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_term_set_logging_vt_seq( nativeObj->term , flag) ;
+		}
+	}
+	else if( strcmp( key , "logging_msg") == 0)
+	{
+		if( true_or_false( value) > 0)
+		{
+			kik_set_msg_log_file_name( "mlterm/msg.log") ;
+		}
+		else
+		{
+			kik_set_msg_log_file_name( NULL) ;
+		}
+	}
+}
+
+static void
+get_config(
+	void *  p ,
+	char *  dev ,
+	char *  key ,
+	int  to_menu
+	)
+{
+	native_obj_t *  nativeObj ;
+	char *  value ;
+	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
+	char  cwd[PATH_MAX] ;
+
+	nativeObj = p ;
+
+	value = NULL ;
+
+	if( strcmp( key , "encoding") == 0)
+	{
+		value = ml_get_char_encoding_name( ml_term_get_encoding( nativeObj->term)) ;
+	}
+	else if( strcmp( key , "is_auto_encoding") == 0)
+	{
+		if( ml_term_is_auto_encoding( nativeObj->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_tab_size( nativeObj->term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		if( ml_term_is_using_char_combining( nativeObj->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_multi_column_char") == 0)
+	{
+		if( ml_term_is_using_multi_col_char( nativeObj->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "col_size_of_width_a") == 0)
+	{
+		if( ml_term_get_col_size_of_width_a( nativeObj->term) == 2)
+		{
+			value = "2" ;
+		}
+		else
+		{
+			value = "1" ;
+		}
+	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		value = kik_get_locale() ;
+	}
+	else if( strcmp( key , "pwd") == 0)
+	{
+		value = getcwd( cwd , sizeof(cwd)) ;
+	}
+	else if( strcmp( key , "rows") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_logical_rows( nativeObj->term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "cols") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_logical_cols( nativeObj->term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "pty_name") == 0)
+	{
+		if( dev)
+		{
+			if( ( value = ml_term_window_name( nativeObj->term)) == NULL)
+			{
+				value = dev ;
+			}
+		}
+		else
+		{
+			value = ml_term_get_slave_name( nativeObj->term) ;
+		}
+	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		value = ml_term_icon_path( nativeObj->term) ;
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		if( ml_term_is_logging_vt_seq( nativeObj->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+
+	if( ! value)
+	{
+		ml_term_write( nativeObj->term , "#error\n" , 7 , to_menu) ;
+	}
+	else
+	{
+		ml_term_write( nativeObj->term , "#" , 1 , to_menu) ;
+		ml_term_write( nativeObj->term , key , strlen(key) , to_menu) ;
+		ml_term_write( nativeObj->term , "=" , 1 , to_menu) ;
+		ml_term_write( nativeObj->term , value , strlen(value) , to_menu) ;
+		ml_term_write( nativeObj->term , "\n" , 1 , to_menu) ;
+	}
+}
+
+static int
+exec_cmd(
+	void *  p ,
+	char *  cmd
+	)
+{
+	static jmethodID  mid ;
+	static jobject  listener ;
+	native_obj_t *  nativeObj ;
+	jstring  jstr_cmd ;
+
+	nativeObj = p ;
+
+	if( strncmp( cmd , "browser" , 7) != 0)
+	{
+		return  0 ;
+	}
+
+	jstr_cmd = (*nativeObj->env)->NewStringUTF( nativeObj->env , cmd) ;
+
+	if( ! mid)
+	{
+		jfieldID  fid ;
+
+		fid = (*nativeObj->env)->GetFieldID( nativeObj->env ,
+			(*nativeObj->env)->FindClass( nativeObj->env , "mlterm/MLTermPty") ,
+			"listener" , "Lmlterm/MLTermPtyListener;") ;
+		if( ! ( listener = (*nativeObj->env)->GetObjectField( nativeObj->env ,
+					nativeObj->obj , fid)))
+		{
+			return  1 ;
+		}
+
+		listener = (*nativeObj->env)->NewGlobalRef( nativeObj->env , listener) ;
+
+		mid = (*nativeObj->env)->GetMethodID( nativeObj->env ,
+			(*nativeObj->env)->FindClass( nativeObj->env , "mlterm/MLTermPtyListener"),
+			"executeCommand" , "(Ljava/lang/String;)V") ;
+	}
+
+	(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid , jstr_cmd) ;
+
+	return  1 ;
+}
+
+static void
+line_scrolled_out(
+	void *  p
+	)
+{
+	static jfieldID  mid ;
+	native_obj_t *  nativeObj ;
+
+	nativeObj = p ;
+
+	if( ! mid)
+	{
+		mid = (*nativeObj->env)->GetMethodID( nativeObj->env ,
+			(*nativeObj->env)->FindClass( nativeObj->env , "mlterm/MLTermPty"),
+			"lineScrolledOut" , "()V") ;
+	}
+	
+	(*nativeObj->env)->CallVoidMethod( nativeObj->env , nativeObj->obj , mid) ;
 }
 
 
@@ -122,8 +416,47 @@ need_style(
 	return  need_style ;
 }
 
+static u_int
+get_num_of_filled_chars_except_spaces(
+	ml_line_t *  line
+	)
+{
+	if( ml_line_is_empty(line))
+	{
+		return  0 ;
+	}
+	else
+	{
+		int  char_index ;
+
+		for( char_index = ml_line_end_char_index(line) ; char_index >= 0 ; char_index --)
+		{
+			if( ! ml_char_equal( line->chars + char_index , ml_sp_ch()))
+			{
+				return  char_index + 1 ;
+			}
+		}
+
+		return  0 ;
+	}
+}
+
 
 /* --- global functions --- */
+
+JNIEXPORT void JNICALL
+Java_mlterm_MLTermPty_setAltLibDir(
+	JNIEnv *  env ,
+	jclass  class ,
+	jstring  jstr_dir
+	)
+{
+	char *  dir ;
+
+	dir = (*env)->GetStringUTFChars( env , jstr_dir , NULL) ;
+	mkf_set_alt_lib_dir( strdup( dir)) ;
+	(*env)->ReleaseStringUTFChars( env , jstr_dir , dir) ;
+}
 
 JNIEXPORT jlong JNICALL
 Java_mlterm_MLTermPty_nativeOpen(
@@ -132,13 +465,34 @@ Java_mlterm_MLTermPty_nativeOpen(
 	jstring  jstr_host ,
 	jstring  jstr_pass ,	/* can be NULL */
 	jint  cols ,
-	jint  rows
+	jint  rows ,
+	jstring  jstr_encoding ,
+	jarray  jarray_argv
 	)
 {
-	char *  argv[2] ;
 	native_obj_t *  nativeObj ;
+	ml_char_encoding_t  encoding ;
+	int  is_auto_encoding ;
+	char **  argv ;
 	char *  host ;
 	char *  pass ;
+	char *  envv[4] ;
+	char *  cmd_path ;
+	int  ret ;
+
+	static u_int  tab_size ;
+	static ml_char_encoding_t  encoding_default ;
+	static int  is_auto_encoding_default ;
+	static ml_unicode_policy_t  unicode_policy ;
+	static u_int  col_size_a ;
+	static int  use_char_combining ;
+	static int  use_multi_col_char ;
+	static int  use_login_shell ;
+	static int  logging_vt_seq ;
+	static char *  public_key ;
+	static char *  private_key ;
+	static char **  default_argv ;
+	static char *  default_cmd_path ;
 
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	static int  wsa_inited = 0 ;
@@ -153,6 +507,11 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 	if( ! str_parser)
 	{
+		kik_conf_t *  conf ;
+
+		kik_init_prog( "mlterm" , "3.0.11") ;
+		kik_set_sys_conf_dir( CONFIG_PATH) ;
+		kik_locale_init( "") ;
 		kik_sig_child_init() ;
 		ml_term_manager_init(1) ;
 
@@ -163,6 +522,175 @@ Java_mlterm_MLTermPty_nativeOpen(
 	#else
 		utf16_conv = mkf_utf16le_conv_new() ;
 	#endif
+
+		logging_vt_seq = 0 ;
+		tab_size = 8 ;
+		encoding_default = ml_get_char_encoding( "auto") ;
+		is_auto_encoding_default = 1 ;
+		unicode_policy = 0 ;
+
+		if( strcmp( kik_get_lang() , "ja") == 0)
+		{
+			col_size_a = 2 ;
+		}
+		else
+		{
+			col_size_a = 1 ;
+		}
+
+		use_char_combining = 1 ;
+		use_multi_col_char = 1 ;
+		use_login_shell = 0 ;
+
+		if( ( conf = kik_conf_new()))
+		{
+			char *  rcpath ;
+			char *  value ;
+
+			if( ( rcpath = kik_get_sys_rc_path( "mlterm/main")))
+			{
+				kik_conf_read( conf , rcpath) ;
+				free( rcpath) ;
+			}
+
+			if( ( rcpath = kik_get_user_rc_path( "mlterm/main")))
+			{
+				kik_conf_read( conf , rcpath) ;
+				free( rcpath) ;
+			}
+
+			if( ( value = kik_conf_get_value( conf , "logging_msg")) &&
+			    strcmp( value , "false") == 0)
+			{
+				kik_set_msg_log_file_name( NULL) ;
+			}
+			else
+			{
+				kik_set_msg_log_file_name( "mlterm/msg.log") ;
+			}
+
+			if( ( value = kik_conf_get_value( conf , "logging_vt_seq")) &&
+			    strcmp( value , "true") == 0)
+			{
+				logging_vt_seq = 1 ;
+			}
+
+			if( ( value = kik_conf_get_value( conf , "tabsize")))
+			{
+				kik_str_to_uint( &tab_size , value) ;
+			}
+
+			if( ( value = kik_conf_get_value( conf , "ENCODING")))
+			{
+				ml_char_encoding_t  e ;
+				if( ( e = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
+				{
+					encoding_default = e ;
+
+					if( strcmp( value , "auto") == 0)
+					{
+						is_auto_encoding_default = 1 ;
+					}
+					else
+					{
+						is_auto_encoding_default = 0 ;
+					}
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
+			{
+				if( strcmp( value , "true") == 0)
+				{
+					unicode_policy = NOT_USE_UNICODE_FONT ;
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))
+			{
+				if( strcmp( value , "true") == 0)
+				{
+					if( unicode_policy == NOT_USE_UNICODE_FONT)
+					{
+						unicode_policy = 0 ;
+					}
+					else
+					{
+						unicode_policy = ONLY_USE_UNICODE_FONT ;
+					}
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "use_unicode_property")))
+			{
+				if( strcmp( value , "true") == 0)
+				{
+					if( unicode_policy != ONLY_USE_UNICODE_FONT)
+					{
+						unicode_policy |= USE_UNICODE_PROPERTY ;
+					}
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))
+			{
+				kik_str_to_uint( &col_size_a , value) ;
+			}
+
+			if( ( value = kik_conf_get_value( conf , "use_combining")))
+			{
+				if( strcmp( value , "false") == 0)
+				{
+					use_char_combining = 0 ;
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "use_muti_col_char")))
+			{
+				if( strcmp( value , "false") == 0)
+				{
+					use_multi_col_char = 0 ;
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "use_login_shell")))
+			{
+				if( strcmp( value , "true") == 0)
+				{
+					use_login_shell = 1 ;
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "ssh_public_key")))
+			{
+				public_key = strdup( value) ;
+			}
+
+			if( ( value = kik_conf_get_value( conf , "ssh_private_key")))
+			{
+				private_key = strdup( value) ;
+			}
+
+		#if  0
+			/* XXX How to get password ? */
+			if( ( value = kik_conf_get_value( conf , "default_server")))
+			{
+				default_server = strdup( value) ;
+			}
+		#endif
+
+			if( ( value = kik_conf_get_value( conf , "exec_cmd")) &&
+			    ( default_argv = malloc( sizeof(char*) *
+						kik_count_char_in_str( value , ' ') + 2)))
+			{
+				int  argc ;
+
+				_kik_arg_str_to_array( default_argv , &argc , strdup( value)) ;
+				default_cmd_path = default_argv[0] ;
+			}
+
+			kik_conf_delete( conf) ;
+		}
 	}
 
 	if( ! ( nativeObj = calloc( sizeof( native_obj_t) , 1)))
@@ -170,29 +698,121 @@ Java_mlterm_MLTermPty_nativeOpen(
 		return  0 ;
 	}
 
-	if( ! ( nativeObj->term = ml_create_term( cols , rows , 8 , 0 , ML_UTF8 , 1 , 0 , 1 ,
-					1 , 1 , 1 , 0 , 1 , 1 , 0 , BSM_STATIC , 0)))
+	encoding = encoding_default ;
+	is_auto_encoding = is_auto_encoding_default ;
+
+	if( jstr_encoding)
+	{
+		char *  p ;
+		ml_char_encoding_t  e ;
+
+		p = (*env)->GetStringUTFChars( env , jstr_encoding , NULL) ;
+
+		if( ( e = ml_get_char_encoding( p)) != ML_UNKNOWN_ENCODING)
+		{
+			encoding = e ;
+
+			if( strcmp( p , "auto") == 0)
+			{
+				is_auto_encoding = 1 ;
+			}
+			else
+			{
+				is_auto_encoding = 0 ;
+			}
+		}
+
+		(*env)->ReleaseStringUTFChars( env , jstr_encoding , p) ;
+	}
+
+	if( ! ( nativeObj->term = ml_create_term( cols , rows , tab_size , 0 , encoding ,
+					is_auto_encoding , unicode_policy , col_size_a ,
+					use_char_combining , use_multi_col_char ,
+					0 /* use_bidi */ , 0 /* bidi_mode */ ,
+					0 /* use_ind */ , 1 /* use_bce */ ,
+					0 /* use_dynamic_comb */ , BSM_STATIC ,
+					0 /* vertical_mode */)))
 	{
 		goto  error ;
 	}
 
-#ifdef  USE_WIN32API
-	argv[0] = NULL ;
-#else	/* USE_WIN32API */
-	argv[0] = getenv( "SHELL") ;
-	argv[1] = NULL ;
-#endif	/* USE_WIN32API */
+	if( logging_vt_seq)
+	{
+		ml_term_set_logging_vt_seq( nativeObj->term , logging_vt_seq) ;
+	}
+
+	if( jarray_argv)
+	{
+		jsize  len ;
+		jsize  count ;
+
+		len = (*env)->GetArrayLength( env , jarray_argv) ;
+		argv = alloca( sizeof(char*) * (len + 1)) ;
+
+		for( count = 0 ; count < len ; count++)
+		{
+			argv[count] = (*env)->GetStringUTFChars( env ,
+						(*env)->GetObjectArrayElement( env ,
+							jarray_argv , count) ,
+						NULL) ;
+		}
+		argv[count] = NULL ;
+		cmd_path = argv[0] ;
+	}
+	else if( default_argv)
+	{
+		argv = default_argv ;
+		cmd_path = default_cmd_path ;
+	}
+	else
+	{
+	#ifdef  USE_WIN32API
+		cmd_path = NULL ;
+		argv = alloca( sizeof(char*)) ;
+		argv[0] = NULL ;
+	#else	/* USE_WIN32API */
+		cmd_path = getenv( "SHELL") ;
+		argv = alloca( sizeof(char*) * 2) ;
+		argv[1] = NULL ;
+	#endif	/* USE_WIN32API */
+	}
+
+	if( cmd_path)
+	{
+		if( use_login_shell)
+		{
+			argv[0] = alloca( strlen( cmd_path) + 2) ;
+			sprintf( argv[0] , "-%s" , kik_basename( cmd_path)) ;
+		}
+		else
+		{
+			argv[0] = kik_basename( cmd_path) ;
+		}
+	}
 
 	nativeObj->pty_listener.self = nativeObj ;
 	nativeObj->pty_listener.closed = pty_closed ;
 
 	nativeObj->config_listener.self = nativeObj ;
 	nativeObj->config_listener.set = set_config ;
+	nativeObj->config_listener.get = get_config ;
+	nativeObj->config_listener.exec = exec_cmd ;
+
+	nativeObj->screen_listener.self = nativeObj ;
+	nativeObj->screen_listener.line_scrolled_out = line_scrolled_out ;
 
 	ml_term_attach( nativeObj->term , NULL , &nativeObj->config_listener ,
-		NULL , &nativeObj->pty_listener) ;
+		&nativeObj->screen_listener , &nativeObj->pty_listener) ;
 
-	host = (*env)->GetStringUTFChars( env , jstr_host , NULL) ;
+	if( jstr_host)
+	{
+		host = (*env)->GetStringUTFChars( env , jstr_host , NULL) ;
+	}
+	else if( ! ( host = getenv( "DISPLAY")))
+	{
+		host = ":0.0" ;
+	}
+
 	if( jstr_pass)
 	{
 		pass = (*env)->GetStringUTFChars( env , jstr_pass , NULL) ;
@@ -202,16 +822,42 @@ Java_mlterm_MLTermPty_nativeOpen(
 		pass = NULL ;
 	}
 
-	if( ml_term_open_pty( nativeObj->term , argv[0] , argv , NULL ,
-		host , pass , NULL , NULL))
+	envv[0] = alloca( 8 + strlen( host) + 1) ;
+	sprintf( envv[0] , "DISPLAY=%s" , host) ;
+	envv[1] = "TERM=xterm" ;
+	envv[2] = "COLORFGBG=default;default" ;
+	envv[3] = NULL ;
+
+	ret = ml_term_open_pty( nativeObj->term , cmd_path , argv , envv ,
+			host , pass , public_key , private_key) ;
+
+	if( jarray_argv)
 	{
-		return  nativeObj ;
+		jsize  count ;
+
+		argv[0] = cmd_path ;
+
+		for( count = 0 ; argv[count] ; count++)
+		{
+			(*env)->ReleaseStringUTFChars( env ,
+				(*env)->GetObjectArrayElement( env , jarray_argv , count) ,
+				argv[count]) ;
+		}
 	}
 
-	(*env)->ReleaseStringUTFChars( env , jstr_host , host) ;
+	if( jstr_host)
+	{
+		(*env)->ReleaseStringUTFChars( env , jstr_host , host) ;
+	}
+
 	if( pass)
 	{
 		(*env)->ReleaseStringUTFChars( env , jstr_pass , pass) ;
+	}
+
+	if( ret)
+	{
+		return  nativeObj ;
 	}
 
 error:
@@ -261,18 +907,43 @@ JNIEXPORT jboolean JNICALL
 Java_mlterm_MLTermPty_nativeRead(
 	JNIEnv *  env ,
 	jobject  obj ,
-	jlong  nativeObj
+	jlong  _nativeObj
 	)
 {
-	if( nativeObj && ((native_obj_t*)nativeObj)->term &&
-	    ml_term_parse_vt100_sequence( ((native_obj_t*)nativeObj)->term))
+	native_obj_t *  nativeObj ;
+
+	nativeObj = _nativeObj ;
+	
+	if( nativeObj && nativeObj->term)
 	{
-		return  JNI_TRUE ;
+		ml_line_t *  line ;
+		int  ret ;
+
+		/* For event listeners of ml_term_t. */
+		nativeObj->env = env ;
+		nativeObj->obj = obj ;
+
+		if( ( line = ml_term_get_cursor_line( nativeObj->term)))
+		{
+			ml_line_restore_color( line ,
+				ml_term_cursor_char_index( nativeObj->term)) ;
+		}
+
+		ret = ml_term_parse_vt100_sequence( nativeObj->term) ;
+
+		if( ( line = ml_term_get_cursor_line( nativeObj->term)))
+		{
+			ml_line_reverse_color( line ,
+				ml_term_cursor_char_index( nativeObj->term)) ;
+		}
+
+		if( ret)
+		{
+			return  JNI_TRUE ;
+		}
 	}
-	else
-	{
-		return  JNI_FALSE ;
-	}
+
+	return  JNI_FALSE ;
 }
 
 JNIEXPORT jboolean JNICALL
@@ -294,8 +965,17 @@ Java_mlterm_MLTermPty_nativeWrite(
 
 	str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
 #if  0
-	kik_debug_printf( "WRITE TO PTY: %s" , str) ;
+	kik_debug_printf( "WRITE TO PTY: %x" , (int)*str) ;
 #endif
+
+	if( *str == '\0')
+	{
+		/* Control+space */
+		ml_term_write( ((native_obj_t*)nativeObj)->term , str , 1 , 0) ;
+
+		return  JNI_TRUE ;
+	}
+
 	(*utf8_parser->init)( utf8_parser) ;
 	(*utf8_parser->set_str)( utf8_parser , str , strlen( str)) ;
 	while( ! utf8_parser->is_eos &&
@@ -304,12 +984,33 @@ Java_mlterm_MLTermPty_nativeWrite(
 	{
 		ml_term_write( ((native_obj_t*)nativeObj)->term , buf , len , 0) ;
 	}
+
 #if  0
 	kik_debug_printf( " => DONE\n") ;
 #endif
 	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 
 	return  JNI_TRUE ;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_mlterm_MLTermPty_nativeResize(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nativeObj ,
+	jint  cols ,
+	jint  rows
+	)
+{
+	if( nativeObj && ((native_obj_t*)nativeObj)->term &&
+	    ml_term_resize( ((native_obj_t*)nativeObj)->term , cols , rows))
+	{
+		return  JNI_TRUE ;
+	}
+	else
+	{
+		return  JNI_FALSE ;
+	}
 }
 
 JNIEXPORT jboolean JNICALL
@@ -346,7 +1047,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 	jobjectArray  array ;
 
 	if( ! nativeObj || ! ((native_obj_t*)nativeObj)->term ||
-	    ! ( line = ml_term_get_line_in_screen( ((native_obj_t*)nativeObj)->term , row)) ||
+	    ! ( line = ml_term_get_line( ((native_obj_t*)nativeObj)->term , row)) ||
 	    ! ml_line_is_modified( line))
 	{
 		return  JNI_FALSE ;
@@ -363,7 +1064,18 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 	}
 
 	mod_beg = ml_line_get_beg_of_modified( line) ;
-	num_of_chars = ml_line_get_num_of_redrawn_chars( line , 1) ;
+#if  0
+	num_of_chars = ml_line_get_num_of_redrawn_chars( line , 1 /* to end */) ;
+#else
+	if( ( num_of_chars = get_num_of_filled_chars_except_spaces( line)) >= mod_beg)
+	{
+		num_of_chars -= mod_beg ;
+	}
+	else
+	{
+		num_of_chars = 0 ;
+	}
+#endif
 
 	buf_len = (mod_beg + num_of_chars) * sizeof(int16_t) * 2 /* SURROGATE_PAIR */
 			+ 2 /* NULL */ ;
@@ -371,20 +1083,20 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 
 	num_of_styles = 0 ;
 
+	if( mod_beg > 0)
+	{
+		(*str_parser->init)( str_parser) ;
+		ml_str_parser_set_str( str_parser , line->chars , mod_beg) ;
+		start = (*utf16_conv->convert)( utf16_conv ,
+				buf , buf_len , str_parser) / 2 ;
+	}
+	else
+	{
+		start = 0 ;
+	}
+
 	if( num_of_chars > 0)
 	{
-		if( mod_beg > 0)
-		{
-			(*str_parser->init)( str_parser) ;
-			ml_str_parser_set_str( str_parser , line->chars , mod_beg) ;
-			start = (*utf16_conv->convert)( utf16_conv ,
-					buf , buf_len , str_parser) / 2 ;
-		}
-		else
-		{
-			start = 0 ;
-		}
-
 		styles = alloca( sizeof(jobject) * num_of_chars) ;
 		redraw_len = 0 ;
 		(*str_parser->init)( str_parser) ;
@@ -393,11 +1105,13 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 			size_t  len ;
 			int  ret ;
 
+		#if  0
 			if( ml_char_bytes_equal( line->chars + mod_beg + count , ml_nl_ch()))
 			{
 				/* Drawing will collapse, but region.str mustn't contain '\n'. */
 				continue ;
 			}
+		#endif
 
 			ml_str_parser_set_str( str_parser , line->chars + mod_beg + count , 1) ;
 			if( ( len = (*utf16_conv->convert)( utf16_conv , buf + redraw_len ,
@@ -485,7 +1199,6 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 	}
 	else
 	{
-		start = 0 ;
 		redraw_len = 0 ;
 	}
 

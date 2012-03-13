@@ -74,6 +74,7 @@ ml_cv_is_posix="yes"
 
 case "${host_os}" in
 mingw32*)
+	CYGPATHW=echo
 	WIN32TAG=_win32
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		ml_cv_is_posix="no"
@@ -85,6 +86,7 @@ mingw32*)
 	fi
 	;;
 cygwin*)
+	AC_CHECK_PROG(CYGPATHW,cygpath,cygpath -w,echo)
 	WIN32TAG=_win32
 	case "${CC} ${CFLAGS}" in
 	*mno-cygwin*)
@@ -110,6 +112,7 @@ cygwin*)
 	fi
 	;;
 *)
+	CYGPATHW=echo
 	if test "$gui" != "xlib" ; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. Use xlib."
@@ -121,6 +124,7 @@ esac
 
 # for java/Makefile.in
 AC_SUBST(WIN32TAG)
+AC_SUBST(CYGPATHW)
 
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"

@@ -227,8 +227,6 @@ x_prepare_for_main_config(
 		"extra space between letters in pixels [0]") ;
 	kik_conf_add_opt( conf , '\0' , "ucsprop" , 1 , "use_unicode_property" ,
 		"use unicode property for characters [false]") ;
-	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
-		"output messages to ~/.mlterm/msg.log [true]") ;
 	kik_conf_add_opt( conf , '\0' , "osc52" , 1 , "allow_osc52" ,
 		"allow access to clipboard by OSC 52 sequence [false]") ;
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
@@ -247,16 +245,6 @@ x_main_config_init(
 {
 	char *  value ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
-
-	if( ( value = kik_conf_get_value( conf , "logging_msg")) &&
-	    strcmp( value , "false") == 0)
-	{
-		kik_set_msg_log_file_name( NULL) ;
-	}
-	else
-	{
-		kik_set_msg_log_file_name( "mlterm/msg.log") ;
-	}
 
 #ifndef  USE_WIN32GUI
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
@@ -1257,8 +1245,6 @@ x_main_config_final(
 	free( main_config->icon_path) ;
 	free( main_config->input_method) ;
 	free( main_config->init_str) ;
-
-	kik_set_msg_log_file_name(NULL) ;
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	if( main_config->server_list)

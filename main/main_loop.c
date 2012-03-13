@@ -197,6 +197,8 @@ main_loop_init(
 		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
 	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" ,
 		"restart mlterm automatically if an error like segv happens. [true]") ;
+	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
+		"output messages to ~/.mlterm/msg.log [true]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -207,6 +209,16 @@ main_loop_init(
 		kik_conf_delete( conf) ;
 
 		return  0 ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "logging_msg")) &&
+	    strcmp( value , "false") == 0)
+	{
+		kik_set_msg_log_file_name( NULL) ;
+	}
+	else
+	{
+		kik_set_msg_log_file_name( "mlterm/msg.log") ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "font_size_range")))
@@ -370,7 +382,7 @@ main_loop_init(
 	}
 
 	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
-	    strcmp( value , "true") == 0)
+	    strcmp( value , "false") != 0)
 	{
 		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
 	}
@@ -418,6 +430,8 @@ main_loop_final(void)
 	daemon_final() ;
 
 	ml_free_word_separators() ;
+
+	kik_set_msg_log_file_name( NULL) ;
 
 #ifndef  USE_WIN32GUI
 	x_xim_final() ;
