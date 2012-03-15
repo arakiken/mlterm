@@ -1,3 +1,22 @@
+2012-03-16  Araki Ken  <arakiken@users.sf.net>
+
+	* ConnectDialog.java:
+	  SWT.PASSWORD is removed to create "Encoding" text field.
+
+	* MLTerm.java:
+	  - numOfScrolledOutLines member is added.
+	  - Redrawing performance is improved.
+	  - Shift-tab key is processed.
+
+	* MLTermPtyListener.java:
+	  redraw() is renamed to lineScrolledOut().
+
+	* MLTermPty.java: numOfScrolledOutLines member is removed.
+
+	* MLTermApplet.java: Minor fixes.
+
+	* mlterm.html -> mltermlet.html
+
 2012-03-14  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja: Updated.

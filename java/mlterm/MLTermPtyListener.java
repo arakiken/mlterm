@@ -9,5 +9,5 @@ public interface MLTermPtyListener
 {
 	public void  executeCommand( String  cmd) ;
 
-	public void  redraw() ;
+	public void  lineScrolledOut() ;
 }

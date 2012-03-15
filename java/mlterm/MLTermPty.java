@@ -178,15 +178,11 @@ public class  MLTermPty
 
 	private MLTermPtyListener  listener = null ;
 
-	private int  scrolledOutUnit = 0 ;
-	public int  numOfScrolledOutLines = 0 ;
-
 	private void  lineScrolledOut()
 	{
-		numOfScrolledOutLines ++ ;
-		if( numOfScrolledOutLines % scrolledOutUnit == 0 && listener != null)
+		if( listener != null)
 		{
-			listener.redraw() ;
+			listener.lineScrolledOut() ;
 		}
 	}
 
@@ -208,7 +204,6 @@ public class  MLTermPty
 		}
 		else
 		{
-			scrolledOutUnit = rows * 2 / 5 ;
 			return  true ;
 		}
 	}
@@ -246,10 +241,7 @@ public class  MLTermPty
 
 	public void resize( int  cols , int  rows)
 	{
-		if( nativeResize( nativeObj , cols , rows))
-		{
-			scrolledOutUnit = rows * 2 / 5 ;
-		}
+		nativeResize( nativeObj , cols , rows) ;
 	}
 
 	private native boolean nativeGetRedrawString( long  obj , int  row , RedrawRegion  region) ;

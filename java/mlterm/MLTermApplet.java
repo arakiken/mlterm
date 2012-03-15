@@ -5,18 +5,32 @@
 package  mlterm ;
 
 
-import  java.awt.* ;
-import  java.applet.* ;
+import  java.awt.Dimension ;
+import  java.awt.Canvas ;
+import  java.applet.Applet ;
 import  org.eclipse.swt.awt.* ;
 import  org.eclipse.swt.* ;
 import  org.eclipse.swt.widgets.* ;
 import  org.eclipse.swt.layout.* ;
-
+import  org.eclipse.swt.graphics.* ;
 
 /* applet class */
 public class  MLTermApplet extends Applet
 {
 	private Thread  kick = null ;
+
+	private void resetSize( Shell  shell , MLTerm  mlterm)
+	{
+		Dimension  d = getSize() ;
+		mlterm.resizePty( d.width , d.height) ;
+		mlterm.resetSize() ;
+
+		Point  p = mlterm.getSize() ;
+		shell.setSize( p) ;
+		setSize( p.x , p.y) ;
+
+		validate() ;
+	}
 
 	public void init()
 	{
@@ -35,7 +49,8 @@ public class  MLTermApplet extends Applet
 						add( canvas) ;
 
 						Display display = new Display() ;
-						Shell shell = SWT_AWT.new_Shell( display , canvas) ;
+
+						final Shell shell = SWT_AWT.new_Shell( display , canvas) ;
 						shell.setText( "mlterm") ;
 						shell.setLayout( new FillLayout()) ;
 
@@ -55,7 +70,8 @@ public class  MLTermApplet extends Applet
 						}
 						dialog = null ;
 
-						MLTerm mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
+						final MLTerm mlterm = new MLTerm( shell ,
+												SWT.NO_BACKGROUND|SWT.BORDER|SWT.V_SCROLL ,
 												host , pass , 80 , 24 , encoding , null) ;
 
 						String  fontFamily ;
@@ -68,17 +84,22 @@ public class  MLTermApplet extends Applet
 							fontFamily = "monospace" ;
 						}
 
-						mlterm.setFont( new org.eclipse.swt.graphics.Font(
-											display , fontFamily , 10 , SWT.NORMAL)) ;
+						mlterm.setFont( new Font( display , fontFamily , 10 , SWT.NORMAL)) ;
 
-						mlterm.resetSize() ;
+						mlterm.setListener(
+							new MLTermListener()
+							{
+								public void lineHeightChanged()
+								{
+									resetSize( shell , mlterm) ;
+								}
 
-						Dimension  d = getSize() ;
-						mlterm.resizePty( d.width , d.height) ;
+								public void ptyClosed()
+								{
+								}
+							}) ;
 
-						org.eclipse.swt.graphics.Point  p = mlterm.getSize() ;
-						setSize( p.x , p.y) ;
-						validate() ;
+						resetSize( shell , mlterm) ;
 
 						while( ! shell.isDisposed())
 						{

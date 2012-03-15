@@ -26,13 +26,14 @@ public class MLTerm extends StyledText
 	private boolean  mouseMoving = false;
 	private Clipboard  clipboard = null ;	/* StyledText.clipboard is not accessible. */
 	private int  lineHeight = 0 ;
-
+	private int  numOfScrolledOutLines = 0 ;
+	private int  scrolledOutCache = 0 ;
 
 	/* --- private methods --- */
 
 	private void moveCaret()
 	{
-		int  row = pty.getCaretRow() + pty.numOfScrolledOutLines ;
+		int  row = pty.getCaretRow() + numOfScrolledOutLines ;
 		int  lineCount = getLineCount() ;
 		int  offset ;
 		if( row >= lineCount)
@@ -57,7 +58,7 @@ public class MLTerm extends StyledText
 
 	private void startBrowser( final MLTerm  mlterm , String  uri)
 	{
-		final Composite  composite = new Composite( mlterm.getParent() , SWT.NONE) ;
+		final Composite  composite = new Composite( mlterm.getParent() , SWT.NO_BACKGROUND) ;
 		composite.setLayout( new GridLayout( 2 , false)) ;
 		composite.setLayoutData( mlterm.getLayoutData()) ;
 
@@ -120,9 +121,45 @@ public class MLTerm extends StyledText
 		}
 	}
 
+	private void checkLineHeight( boolean  invokeEvent)
+	{
+		int  height = getLineHeight() ;
+		if( lineHeight != height)
+		{
+			if( false)
+			{
+				System.out.printf( "Line height %d is changed to %d\n" , lineHeight , height) ;
+			}
+
+			lineHeight = height ;
+
+			if( invokeEvent && listener != null)
+			{
+				listener.lineHeightChanged() ;
+			}
+		}
+	}
+
+	private void resetScrollBar()
+	{
+		if( numOfScrolledOutLines > 0)
+		{
+			if( numOfScrolledOutLines > getLineCount() - ptyRows)
+			{
+				numOfScrolledOutLines = getLineCount() - ptyRows ;
+			}
+
+			setTopIndex( numOfScrolledOutLines) ;
+		}
+	}
+
 	private void  redrawPty()
 	{
-		setRedraw( false) ;
+		if( scrolledOutCache > 0)
+		{
+			numOfScrolledOutLines += scrolledOutCache ;
+			setRedraw( false) ;
+		}
 
 		for( int  row = 0 ; row < ptyRows ; row ++)
 		{
@@ -138,7 +175,7 @@ public class MLTerm extends StyledText
 			}
 
 			int  lineCount ;
-			for( lineCount = getLineCount() - pty.numOfScrolledOutLines ;
+			for( lineCount = getLineCount() - numOfScrolledOutLines ;
 				 lineCount <= row ; lineCount++)
 			{
 				append( String.valueOf( '\n')) ;
@@ -164,7 +201,7 @@ public class MLTerm extends StyledText
 			 *   4) replace 0(offsetNextRow - offset) at offset.
 			 */
 
-			int  offset = getOffsetAtLine( row + pty.numOfScrolledOutLines) + region.start ;
+			int  offset = getOffsetAtLine( row + numOfScrolledOutLines) + region.start ;
 
 			int  offsetNextRow ;
 			boolean  hasNewLine = true ;
@@ -180,7 +217,7 @@ public class MLTerm extends StyledText
 			}
 			else
 			{
-				offsetNextRow = getOffsetAtLine( row + pty.numOfScrolledOutLines + 1) ;
+				offsetNextRow = getOffsetAtLine( row + numOfScrolledOutLines + 1) ;
 			}
 
 			if( offset >= offsetNextRow)
@@ -251,34 +288,14 @@ public class MLTerm extends StyledText
 			}
 		}
 
-		if( lineHeight != getLineHeight())
+		checkLineHeight(true) ;
+
+		if( scrolledOutCache > 0)
 		{
-			if( false)
-			{
-				System.out.printf( "Line height %d is changed to %d\n" ,
-					lineHeight , getLineHeight()) ;
-			}
-
-			if( listener != null)
-			{
-				listener.lineHeightChanged() ;
-			}
+			scrolledOutCache = 0 ;
+			resetScrollBar() ;
+			setRedraw( true) ;
 		}
-
-		if( pty.numOfScrolledOutLines > 0)
-		{
-			if( pty.numOfScrolledOutLines > getLineCount() - ptyRows)
-			{
-				pty.numOfScrolledOutLines = getLineCount() - ptyRows ;
-			}
-
-			setTopIndex( pty.numOfScrolledOutLines) ;
-		}
-
-		moveCaret() ;
-
-		setRedraw( true) ;
-		redraw() ;
 	}
 
 
@@ -289,12 +306,7 @@ public class MLTerm extends StyledText
 	{
 		super( parent , style) ;
 
-		setLeftMargin( 1) ;
-		setRightMargin( 1) ;
-		setTopMargin( 1) ;
-		setBottomMargin( 1) ;
-
-		getCaret().setVisible( false) ;
+		setMargins( 1 , 1 , 1 , 1) ;
 
 		pty = new MLTermPty() ;
 		pty.setListener(
@@ -309,14 +321,17 @@ public class MLTerm extends StyledText
 					}
 				}
 
-				public void  redraw()
+				public void  lineScrolledOut()
 				{
-					Display  display ;
+					scrolledOutCache ++ ;
 
-					redrawPty() ;
+					if( scrolledOutCache == ptyRows / 2)
+					{
+						redrawPty() ;
 
-					display = getDisplay() ;
-					while( display.readAndDispatch()) ;
+						Display display = getDisplay() ;
+						while( display.readAndDispatch()) ;
+					}
 				}
 			}) ;
 
@@ -364,6 +379,24 @@ public class MLTerm extends StyledText
 				}
 			}) ;
 
+		addTraverseListener(
+			new TraverseListener()
+			{
+				public void keyTraversed( TraverseEvent  event)
+				{
+					if( false)
+					{
+						System.out.printf( "MASK %x KCODE %x\n" ,
+							event.stateMask , event.keyCode) ;
+					}
+
+					if( event.stateMask == SWT.SHIFT && event.keyCode == SWT.TAB)
+					{
+						pty.write( "\u001b[Z") ;
+					}
+				}
+			}) ;
+
 		addVerifyKeyListener(
 			new VerifyKeyListener()
 			{
@@ -383,47 +416,50 @@ public class MLTerm extends StyledText
 
 						return ;
 					}
-					else if( event.stateMask == 0x40000 /* Control */ &&
-					    event.keyCode == ' ' /* Space */)
+					else if( event.stateMask == SWT.SHIFT && event.keyCode == SWT.TAB)
+					{
+						/* XXX Shift+tab event can be received only at TraverseListener. */
+						return ;
+					}
+					else if( event.stateMask == SWT.CONTROL && event.keyCode == SWT.SPACE)
 					{
 						/* Control + space is not converted to 0x00 automatically. */
 						str = "" ;
 					}
-					else if( event.stateMask == 0x20000 /* SHIFT */ &&
-					    event.keyCode == 0x1000009 /* INSERT */)
+					else if( event.stateMask == SWT.SHIFT && event.keyCode == SWT.INSERT)
 					{
 						str = (String) clipboard.getContents(
 										TextTransfer.getInstance() , DND.CLIPBOARD) ;
 					}
-					else if( event.keyCode == 0x1000001)
+					else if( event.keyCode == SWT.ARROW_UP)
 					{
 						str = "\u001b[A" ;
 					}
-					else if( event.keyCode == 0x1000002)
+					else if( event.keyCode == SWT.ARROW_DOWN)
 					{
 						str = "\u001b[B" ;
 					}
-					else if( event.keyCode == 0x1000003)
+					else if( event.keyCode == SWT.ARROW_LEFT)
 					{
 						str = "\u001b[D" ;
 					}
-					else if( event.keyCode == 0x1000004)
+					else if( event.keyCode == SWT.ARROW_RIGHT)
 					{
 						str = "\u001b[C" ;
 					}
-					else if( event.keyCode == 0x1000005)	/* PAGEUP */
+					else if( event.keyCode == SWT.PAGE_UP)
 					{
 						str = "\u001b[5~" ;
 					}
-					else if( event.keyCode == 0x1000006)	/* PAGEDOWN */
+					else if( event.keyCode == SWT.PAGE_DOWN)
 					{
 						str = "\u001b[6~" ;
 					}
-					else if( event.keyCode == 0x1000007)	/* HOME */
+					else if( event.keyCode == SWT.HOME)
 					{
 						str = "\u001b[H" ;
 					}
-					else if( event.keyCode == 0x1000008)	/* END */
+					else if( event.keyCode == SWT.END)
 					{
 						str = "\u001b[F" ;
 					}
@@ -434,12 +470,11 @@ public class MLTerm extends StyledText
 
 					if( str != null)
 					{
-						if( event.stateMask == 0x10000 /* Alt */)
+						if( event.stateMask == SWT.ALT)
 						{
 							pty.write( "\u001b") ;
 						}
 
-						System.out.printf( str) ;
 						pty.write( str) ;
 					}
 					event.doit = false ;
@@ -451,6 +486,8 @@ public class MLTerm extends StyledText
 		colors[0x101] = getBackground() ;
 
 		region = new RedrawRegion() ;
+
+		getCaret().setVisible( false) ;
 	}
 
 	public void  setListener( MLTermListener  lsn)
@@ -465,15 +502,16 @@ public class MLTerm extends StyledText
 			return ;
 		}
 
-		lineHeight = getLineHeight() ;
+		checkLineHeight(false) ;
 
 		int  width = getColumnWidth() * ptyCols + getLeftMargin() +
 						getRightMargin() + getBorderWidth() * 2 +
-						getVerticalBar().getSize().x - 1 ;
+						getVerticalBar().getSize().x ;
 		int  height = lineHeight * ptyRows + getTopMargin() +
-						getBottomMargin() + getBorderWidth() * 2 - 1 ;
+						getBottomMargin() + getBorderWidth() * 2 ;
 
-		super.setSize( width , height) ;
+		resetScrollBar() ;
+		setSize( width , height) ;
 	}
 
 	public void  resizePty( int  width , int  height)
@@ -483,9 +521,11 @@ public class MLTerm extends StyledText
 			return ;
 		}
 
+		checkLineHeight(false) ;
+
 		ptyCols =  (width - getLeftMargin() - getRightMargin() - getBorderWidth() * 2 -
-						getVerticalBar().getSize().x + 1) / getColumnWidth() ;
-		ptyRows =  (height - getTopMargin() - getBottomMargin() - getBorderWidth() * 2 + 1)
+						getVerticalBar().getSize().x) / getColumnWidth() ;
+		ptyRows =  (height - getTopMargin() - getBottomMargin() - getBorderWidth() * 2)
 						/ lineHeight ;
 
 		pty.resize( ptyCols , ptyRows) ;
@@ -506,6 +546,7 @@ public class MLTerm extends StyledText
 		else if( pty.read())
 		{
 			redrawPty() ;
+			moveCaret() ;
 		}
 
 		return  true ;
@@ -531,7 +572,6 @@ public class MLTerm extends StyledText
 		mlterm.resetSize() ;
 		Point  p = mlterm.getSize() ;
 		shell.setSize( p) ;
-
 		Rectangle  r = shell.getClientArea() ;
 		shell.setSize( p.x * 2 - r.width , p.y * 2 - r.height) ;
 	}
@@ -541,11 +581,13 @@ public class MLTerm extends StyledText
 								final String  encoding , final String[]  argv ,
 								final Font  font)
 	{
-		final MLTerm  mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
+		final MLTerm  mlterm = new MLTerm( shell , SWT.NO_BACKGROUND|SWT.BORDER|SWT.V_SCROLL ,
 									host , pass , cols , rows , encoding , argv) ;
+
 		mlterm.setFont( font) ;
+
 		mlterm.setListener(
-			new  MLTermListener()
+			new MLTermListener()
 			{
 				public void  lineHeightChanged()
 				{
@@ -564,13 +606,14 @@ public class MLTerm extends StyledText
 					}
 				}
 			}) ;
+
 		mlterm.addVerifyKeyListener(
 			new VerifyKeyListener()
 			{
 				public void verifyKey( VerifyEvent	event)
 				{
-					if( event.stateMask == 0x40000 /* Control */ &&
-					    event.keyCode == 0x100000a /* F1 */ &&
+					if( event.stateMask == SWT.CONTROL &&
+					    event.keyCode == SWT.F1 &&
 						numMLTerms < mlterms.length)
 					{
 						Shell s = new Shell( shell.getDisplay()) ;
@@ -589,17 +632,25 @@ public class MLTerm extends StyledText
 			new Listener()
 			{
 				private boolean  processing = false ;
+				private int  prevWidth = 0 ;
+				private int  prevHeight = 0 ;
 
 				public void handleEvent( Event  e)
 				{
 					if( ! processing)
 					{
-						Rectangle  rect = shell.getClientArea() ;
-						mlterm.resizePty( rect.width , rect.height) ;
+						Rectangle  r = shell.getClientArea() ;
+						if( r.width != prevWidth || r.height != prevHeight)
+						{
+							prevWidth = r.width ;
+							prevHeight = r.height ;
 
-						processing = true ;
-						resetWindowSize( shell , mlterm) ;
-						processing = false ;
+							mlterm.resizePty( r.width , r.height) ;
+
+							processing = true ;
+							resetWindowSize( shell , mlterm) ;
+							processing = false ;
+						}
 					}
 				}
 			}) ;

@@ -140,7 +140,7 @@ public class  ConnectDialog extends Dialog
 		/* Encoding */
 		label = new Label( shell , SWT.NONE) ;
 		label.setText( "Encoding") ;
-		Text  encoding = new Text( shell , SWT.BORDER|SWT.PASSWORD) ;
+		Text  encoding = new Text( shell , SWT.BORDER) ;
 		encoding.setLayoutData( textGrid) ;
 
 		/* OK/Cancel */
@@ -217,7 +217,7 @@ public class  ConnectDialog extends Dialog
 			{
 				public void keyPressed( KeyEvent  e)
 				{
-					if( e.keyCode == '\t')
+					if( e.keyCode == SWT.TAB)
 					{
 						/* Tab list doesn't work in applet, so implement by myself. */
 
@@ -225,7 +225,7 @@ public class  ConnectDialog extends Dialog
 						{
 							if( e.widget == tabList[count])
 							{
-								if( (e.stateMask & 0x20000) != 0 /* SHIFT */)
+								if( (e.stateMask & SWT.SHIFT) != 0)
 								{
 									if( count < 3)
 									{
@@ -278,7 +278,7 @@ public class  ConnectDialog extends Dialog
 							}
 						}
 					}
-					else if( e.keyCode == '\r')
+					else if( e.keyCode == SWT.CR)
 					{
 						okPressed = true ;
 					}
