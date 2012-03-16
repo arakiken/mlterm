@@ -101,6 +101,8 @@ public class  MLTermApplet extends Applet
 
 						resetSize( shell , mlterm) ;
 
+						MLTerm.startPtyWatcher( display) ;
+
 						while( ! shell.isDisposed())
 						{
 							while( display.readAndDispatch()) ;
@@ -112,8 +114,17 @@ public class  MLTermApplet extends Applet
 
 							if( ! display.readAndDispatch())
 							{
-								display.sleep() ;
+								synchronized(display)
+								{
+									display.notifyAll() ;
+									display.sleep() ;
+								}
 							}
+						}
+
+						synchronized(display)
+						{
+							display.notifyAll() ;
 						}
 
 						display.dispose() ;

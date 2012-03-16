@@ -1,3 +1,15 @@
+2012-03-17  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTermPty.java:
+	  waitForReading() is added.
+
+	* MLTermPty.c:
+	  Java_mlterm_MLTermPty_waitForReading() is added.
+
+	* MLTerm.java:
+	  - startPtyWatcher() to check MLTermPty.waitForReading() added.
+	  - setCaret(null)
+
 2012-03-16  Araki Ken  <arakiken@users.sf.net>
 
 	* ConnectDialog.java:

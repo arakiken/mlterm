@@ -354,12 +354,13 @@ exec_cmd(
 	return  1 ;
 }
 
+
 static void
 line_scrolled_out(
 	void *  p
 	)
 {
-	static jfieldID  mid ;
+	static jmethodID  mid ;
 	native_obj_t *  nativeObj ;
 
 	nativeObj = p ;
@@ -367,12 +368,82 @@ line_scrolled_out(
 	if( ! mid)
 	{
 		mid = (*nativeObj->env)->GetMethodID( nativeObj->env ,
-			(*nativeObj->env)->FindClass( nativeObj->env , "mlterm/MLTermPty"),
+			(*nativeObj->env)->FindClass( nativeObj->env , "mlterm/MLTermPty") ,
 			"lineScrolledOut" , "()V") ;
 	}
 	
 	(*nativeObj->env)->CallVoidMethod( nativeObj->env , nativeObj->obj , mid) ;
 }
+
+#if  0
+static void
+window_scroll_region(
+	void *  p ,
+	int  beg_row ,
+	int  end_row ,
+	u_int  size ,
+	int  upward
+	)
+{
+	static jmethodID  mid_upward ;
+	static jmethodID  mid_downward ;
+	static jobject  listenerObj ;
+	native_obj_t *  nativeObj ;
+
+	nativeObj = p ;
+
+	if( ! mid_upward)
+	{
+		jfieldID  fid ;
+
+		fid = (*nativeObj->env)->GetFieldID( nativeObj->env ,
+			(*nativeObj->env)->FindClass( nativeObj->env , "mlterm/MLTermPty") ,
+			"listener" , "Lmlterm/MLTermPtyListener;") ;
+		listenerObj = (*nativeObj->env)->NewGlobalRef( nativeObj->env ,
+					(*nativeObj->env)->GetObjectField(
+							nativeObj->env , nativeObj->obj , fid)) ;
+
+		mid_upward = (*nativeObj->env)->GetMethodID( nativeObj->env ,
+					(*nativeObj->env)->FindClass( nativeObj->env ,
+						"mlterm/MLTermPtyListener") ,
+					"scrollUpwardRegion" , "(III)V") ;
+		mid_downward = (*nativeObj->env)->GetMethodID( nativeObj->env ,
+					(*nativeObj->env)->FindClass( nativeObj->env ,
+						"mlterm/MLTermPtyListener") ,
+					"scrollDownwardRegion" , "(III)V") ;
+	}
+
+	(*nativeObj->env)->CallVoidMethod( nativeObj->env , listenerObj ,
+				upward ? mid_upward : mid_downward ,
+				beg_row , end_row , size) ;
+}
+
+static int
+window_scroll_upward_region(
+	void *  p ,
+	int  beg_row ,
+	int  end_row ,
+	u_int  size
+	)
+{
+	window_scroll_region( p , beg_row , end_row , size , 1) ;
+
+	return  1 ;
+}
+
+static int
+window_scroll_downward_region(
+	void *  p ,
+	int  beg_row ,
+	int  end_row ,
+	u_int  size
+	)
+{
+	window_scroll_region( p , beg_row , end_row , size , 0) ;
+
+	return  1 ;
+}
+#endif
 
 
 /*
@@ -800,6 +871,10 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 	nativeObj->screen_listener.self = nativeObj ;
 	nativeObj->screen_listener.line_scrolled_out = line_scrolled_out ;
+#if  0
+	nativeObj->screen_listener.window_scroll_upward_region = window_scroll_upward_region ;
+	nativeObj->screen_listener.window_scroll_downward_region = window_scroll_downward_region ;
+#endif
 
 	ml_term_attach( nativeObj->term , NULL , &nativeObj->config_listener ,
 		&nativeObj->screen_listener , &nativeObj->pty_listener) ;
@@ -882,6 +957,46 @@ Java_mlterm_MLTermPty_nativeClose(
 	}
 
 	free( (native_obj_t*)nativeObj) ;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_mlterm_MLTermPty_waitForReading(
+	JNIEnv *  env ,
+	jclass  class
+	)
+{
+	u_int  count ;
+	ml_term_t **  terms ;
+	u_int  num_of_terms ;
+	int  maxfd ;
+	int  ptyfd ;
+	fd_set  read_fds ;
+
+	ml_close_dead_terms() ;
+	num_of_terms = ml_get_all_terms( &terms) ;
+
+	if( num_of_terms == 0)
+	{
+		return  JNI_FALSE ;
+	}
+
+	maxfd = 0 ;
+	FD_ZERO( &read_fds) ;
+
+	for( count = 0 ; count < num_of_terms ; count ++)
+	{
+		ptyfd = ml_term_get_master_fd( terms[count]) ;
+		FD_SET( ptyfd , &read_fds) ;
+
+		if( ptyfd > maxfd)
+		{
+			maxfd = ptyfd ;
+		}
+	}
+
+	select( maxfd + 1 , &read_fds , NULL , NULL , NULL) ;
+
+	return  JNI_TRUE ;
 }
 
 JNIEXPORT jboolean JNICALL

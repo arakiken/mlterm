@@ -216,6 +216,8 @@ public class  MLTermPty
 		nativeObj = 0 ;
 	}
 
+	public native static boolean  waitForReading() ;
+
 	private native boolean nativeIsActive( long  obj) ;
 
 	public boolean isActive()

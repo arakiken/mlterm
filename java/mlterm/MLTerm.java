@@ -29,6 +29,7 @@ public class MLTerm extends StyledText
 	private int  numOfScrolledOutLines = 0 ;
 	private int  scrolledOutCache = 0 ;
 
+
 	/* --- private methods --- */
 
 	private void moveCaret()
@@ -325,11 +326,11 @@ public class MLTerm extends StyledText
 				{
 					scrolledOutCache ++ ;
 
-					if( scrolledOutCache == ptyRows / 2)
+					if( scrolledOutCache == ptyRows * 2 / 5)
 					{
 						redrawPty() ;
 
-						Display display = getDisplay() ;
+						Display  display = getDisplay() ;
 						while( display.readAndDispatch()) ;
 					}
 				}
@@ -421,7 +422,7 @@ public class MLTerm extends StyledText
 						/* XXX Shift+tab event can be received only at TraverseListener. */
 						return ;
 					}
-					else if( event.stateMask == SWT.CONTROL && event.keyCode == SWT.SPACE)
+					else if( event.stateMask == SWT.CONTROL && event.keyCode == ' ')
 					{
 						/* Control + space is not converted to 0x00 automatically. */
 						str = "" ;
@@ -487,7 +488,39 @@ public class MLTerm extends StyledText
 
 		region = new RedrawRegion() ;
 
-		getCaret().setVisible( false) ;
+		setCaret( null) ;
+	}
+
+	public static void  startPtyWatcher( final Display  display)
+	{
+		(new Thread(
+			new  Runnable()
+			{
+				public void run()
+				{
+					do
+					{
+						synchronized(display)
+						{
+							try
+							{
+								display.wait() ;
+							}
+							catch( InterruptedException  e)
+							{
+							}
+
+							if( display.isDisposed())
+							{
+								break ;
+							}
+
+							display.wake() ;
+						}
+					}
+					while( MLTermPty.waitForReading()) ;
+				}
+			})).start() ;
 	}
 
 	public void  setListener( MLTermListener  lsn)
@@ -755,9 +788,9 @@ public class MLTerm extends StyledText
 			}
 		}
 
-		Display display = new Display() ;
+		Display  display = new Display() ;
 
-		Shell shell = new Shell(display) ;
+		Shell  shell = new Shell(display) ;
 		shell.setText( "mlterm") ;
 		shell.setLayout( new FillLayout()) ;
 
@@ -783,6 +816,8 @@ public class MLTerm extends StyledText
 		startMLTerm( shell , host , pass , cols , rows , encoding ,
 					argv , new Font( display , fontFamily , fontSize , SWT.NORMAL)) ;
 
+		MLTerm.startPtyWatcher( display) ;
+
 		while( ! display.isDisposed() && numMLTerms > 0)
 		{
 			while( display.readAndDispatch()) ;
@@ -797,8 +832,17 @@ public class MLTerm extends StyledText
 
 			if( ! display.readAndDispatch())
 			{
-				display.sleep() ;
+				synchronized(display)
+				{
+					display.notifyAll() ;
+					display.sleep() ;
+				}
 			}
+		}
+
+		synchronized(display)
+		{
+			display.notifyAll() ;
 		}
 
 		display.dispose() ;
