@@ -28,6 +28,7 @@ public class MLTerm extends StyledText
 	private int  lineHeight = 0 ;
 	private int  numOfScrolledOutLines = 0 ;
 	private int  scrolledOutCache = 0 ;
+	private boolean  windowScrolled = false ;
 
 
 	/* --- private methods --- */
@@ -59,7 +60,7 @@ public class MLTerm extends StyledText
 
 	private void startBrowser( final MLTerm  mlterm , String  uri)
 	{
-		final Composite  composite = new Composite( mlterm.getParent() , SWT.NO_BACKGROUND) ;
+		final Composite  composite = new Composite( mlterm.getParent() , SWT.NONE) ;
 		composite.setLayout( new GridLayout( 2 , false)) ;
 		composite.setLayoutData( mlterm.getLayoutData()) ;
 
@@ -141,16 +142,25 @@ public class MLTerm extends StyledText
 		}
 	}
 
-	private void resetScrollBar()
+	private void  resetScrollBar()
 	{
 		if( numOfScrolledOutLines > 0)
 		{
+			setTopIndex( numOfScrolledOutLines) ;
+		}
+	}
+
+	private void  checkTextLimit( int  num)
+	{
+		if( getTextLimit() != -1 && getTextLimit() < getCharCount() + num)
+		{
+			/* 500 is for buffer. */
+			getContent().replaceTextRange( 0 , getCharCount() + num + 500 - getTextLimit() , "") ;
+
 			if( numOfScrolledOutLines > getLineCount() - ptyRows)
 			{
 				numOfScrolledOutLines = getLineCount() - ptyRows ;
 			}
-
-			setTopIndex( numOfScrolledOutLines) ;
 		}
 	}
 
@@ -159,6 +169,10 @@ public class MLTerm extends StyledText
 		if( scrolledOutCache > 0)
 		{
 			numOfScrolledOutLines += scrolledOutCache ;
+		}
+
+		if( windowScrolled)
+		{
 			setRedraw( false) ;
 		}
 
@@ -174,6 +188,9 @@ public class MLTerm extends StyledText
 				/* Remove '\n' which region.str always contains. */
 				region.str = region.str.substring( 0 , region.str.length() - 1) ;
 			}
+
+			/* If lineCount is 0, max num of appended '\n' is row. */
+			checkTextLimit( region.str.length() + row) ;
 
 			int  lineCount ;
 			for( lineCount = getLineCount() - numOfScrolledOutLines ;
@@ -253,7 +270,7 @@ public class MLTerm extends StyledText
 
 			if( region.styles != null)
 			{
-				StyleRange[]  styles = new StyleRange[region.styles.length] ;
+				StyleRange[] styles = new StyleRange[region.styles.length] ;
 
 				for( int  count = 0 ; count < region.styles.length ; count++)
 				{
@@ -295,7 +312,12 @@ public class MLTerm extends StyledText
 		{
 			scrolledOutCache = 0 ;
 			resetScrollBar() ;
+		}
+
+		if( windowScrolled)
+		{
 			setRedraw( true) ;
+			windowScrolled = false ;
 		}
 	}
 
@@ -307,6 +329,7 @@ public class MLTerm extends StyledText
 	{
 		super( parent , style) ;
 
+		setTextLimit( 100000) ;
 		setMargins( 1 , 1 , 1 , 1) ;
 
 		pty = new MLTermPty() ;
@@ -333,6 +356,11 @@ public class MLTerm extends StyledText
 						Display  display = getDisplay() ;
 						while( display.readAndDispatch()) ;
 					}
+				}
+
+				public void  windowScrolled()
+				{
+					MLTerm.this.windowScrolled = true ;
 				}
 			}) ;
 
@@ -417,9 +445,9 @@ public class MLTerm extends StyledText
 
 						return ;
 					}
-					else if( event.stateMask == SWT.SHIFT && event.keyCode == SWT.TAB)
+					else if( false && event.stateMask == SWT.SHIFT && event.keyCode == SWT.TAB)
 					{
-						/* XXX Shift+tab event can be received only at TraverseListener. */
+						/* XXX Shift+tab event is received only at TraverseListener. */
 						return ;
 					}
 					else if( event.stateMask == SWT.CONTROL && event.keyCode == ' ')
@@ -434,19 +462,47 @@ public class MLTerm extends StyledText
 					}
 					else if( event.keyCode == SWT.ARROW_UP)
 					{
-						str = "\u001b[A" ;
+						if( pty.isAppCursorKeys())
+						{
+							str = "\u001bOA" ;
+						}
+						else
+						{
+							str = "\u001b[A" ;
+						}
 					}
 					else if( event.keyCode == SWT.ARROW_DOWN)
 					{
-						str = "\u001b[B" ;
+						if( pty.isAppCursorKeys())
+						{
+							str = "\u001bOB" ;
+						}
+						else
+						{
+							str = "\u001b[B" ;
+						}
 					}
 					else if( event.keyCode == SWT.ARROW_LEFT)
 					{
-						str = "\u001b[D" ;
+						if( pty.isAppCursorKeys())
+						{
+							str = "\u001bOD" ;
+						}
+						else
+						{
+							str = "\u001b[D" ;
+						}
 					}
 					else if( event.keyCode == SWT.ARROW_RIGHT)
 					{
-						str = "\u001b[C" ;
+						if( pty.isAppCursorKeys())
+						{
+							str = "\u001bOC" ;
+						}
+						else
+						{
+							str = "\u001b[C" ;
+						}
 					}
 					else if( event.keyCode == SWT.PAGE_UP)
 					{

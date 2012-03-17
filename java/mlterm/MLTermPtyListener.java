@@ -11,7 +11,5 @@ public interface MLTermPtyListener
 
 	public void  lineScrolledOut() ;
 
-//	public void  scrollUpwardRegion( int  begRow , int  endRow , int  size) ;
-
-//	public void  scrollDownwardRegion( int  begRow , int  endRow , int  size) ;
+	public void  windowScrolled() ;
 }

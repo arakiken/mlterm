@@ -1,3 +1,18 @@
+2012-03-18  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java:
+	  - Application cursor key is supported.
+	  - setTextLimit( 100000)
+
+	* MLTermPty.java: isAppCursorKeys() is added.
+
+	* MLTermPty.c:
+	  - nativeIsAppCursorKeys() is added.
+	  - ml_screen_event_listener_t::window_scroll_{up|down}ward_region are
+	    partially implemented.
+	  - Each native_obj_t has its MLTermPtyListener object, which was
+	    set to static variable.
+
 2012-03-17  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java: The way of calling wait/notifyAll is fixed.

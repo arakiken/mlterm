@@ -174,26 +174,17 @@ public class  MLTermPty
 		}
 	}
 
-	private long  nativeObj = 0 ;
-
 	private MLTermPtyListener  listener = null ;
-
-	private void  lineScrolledOut()
-	{
-		if( listener != null)
-		{
-			listener.lineScrolledOut() ;
-		}
-	}
 
 	public void  setListener( MLTermPtyListener  lsn)
 	{
 		listener = lsn ;
 	}
 
+	private long  nativeObj = 0 ;
+
 	private native long nativeOpen( String  host , String  pass , int  cols , int  rows ,
 							String  encoding , String[]  argv) ;
-
 	public boolean open( String  host , String  pass , int  cols , int  rows ,
 						String  encoding , String[]  argv)
 	{
@@ -209,7 +200,6 @@ public class  MLTermPty
 	}
 
 	private native void nativeClose( long  obj) ;
-
 	public void close()
 	{
 		nativeClose( nativeObj) ;
@@ -219,51 +209,50 @@ public class  MLTermPty
 	public native static boolean  waitForReading() ;
 
 	private native boolean nativeIsActive( long  obj) ;
-
 	public boolean isActive()
 	{
 		return  nativeIsActive( nativeObj) ;
 	}
 
 	private native boolean nativeRead( long  obj) ;
-
 	public boolean read()
 	{
 		return  nativeRead( nativeObj) ;
 	}
 
 	private native boolean nativeWrite( long  obj , String  str) ;
-
 	public boolean write( String  str)
 	{
 		return  nativeWrite( nativeObj , str) ;
 	}
 
 	private native boolean  nativeResize( long  obj , int  cols , int  rows) ;
-
 	public void resize( int  cols , int  rows)
 	{
 		nativeResize( nativeObj , cols , rows) ;
 	}
 
 	private native boolean nativeGetRedrawString( long  obj , int  row , RedrawRegion  region) ;
-
 	public boolean getRedrawString( int row , RedrawRegion  region)
 	{
 		return  nativeGetRedrawString( nativeObj , row , region) ;
 	}
 
 	private native int  nativeGetCaretRow( long  obj) ;
-
 	public int  getCaretRow()
 	{
 		return  nativeGetCaretRow( nativeObj) ;
 	}
 
 	private native int  nativeGetCaretCol( long  obj) ;
-
 	public int  getCaretCol()
 	{
 		return  nativeGetCaretCol( nativeObj) ;
+	}
+
+	private native boolean  nativeIsAppCursorKeys( long  obj) ;
+	public boolean  isAppCursorKeys()
+	{
+		return  nativeIsAppCursorKeys( nativeObj) ;
 	}
 }

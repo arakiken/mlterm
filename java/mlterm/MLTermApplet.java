@@ -14,7 +14,7 @@ import  org.eclipse.swt.widgets.* ;
 import  org.eclipse.swt.layout.* ;
 import  org.eclipse.swt.graphics.* ;
 
-/* applet class */
+
 public class  MLTermApplet extends Applet
 {
 	private Thread  kick = null ;
@@ -117,8 +117,8 @@ public class  MLTermApplet extends Applet
 								synchronized(display)
 								{
 									display.notifyAll() ;
-									display.sleep() ;
 								}
+								display.sleep() ;
 							}
 						}
 
