@@ -1,5 +1,11 @@
 2012-03-17  Araki Ken  <arakiken@users.sf.net>
 
+	* MLTerm.java: The way of calling wait/notifyAll is fixed.
+
+	* java/Makefile.in: Minor fixes.
+
+2012-03-17  Araki Ken  <arakiken@users.sf.net>
+
 	* MLTermPty.java:
 	  waitForReading() is added.
 

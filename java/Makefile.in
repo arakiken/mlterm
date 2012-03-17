@@ -44,7 +44,7 @@ OBJ = MLTermPty.o
 
 VPATH = $(top_srcdir)/java
 
-all : swt.jar $(TARGET@WIN32TAG@)
+all : swt.jar mlterm.jar
 
 sign :
 	jarsigner mlterm.jar mlterm
@@ -56,18 +56,19 @@ createkey :
 swt.jar :
 	if test -e $(SWT_JAR) ; then cp $(SWT_JAR) swt.jar ; fi
 
-$(TARGET_win32) : $(CLASS) MLTermPty.h manifest.mf
+mlterm.jar : $(CLASS) $(TARGET@WIN32TAG@) manifest.mf
+	jar cmf manifest.mf mlterm.jar mlterm/*.class `find * -name "*.dll" -o -name "*.s*"`
+
+$(TARGET_win32) : MLTermPty.h
 	$(CC) -Wl,--kill-at $(CFLAGS) -shared -o MLTermPty.dll \
 	$(top_srcdir)/java/MLTermPty.c ../mlterm/.libs/*.o ../kiklib/src/.libs/libkik.dll.a \
 	../mkf/lib/.libs/libmkf.dll.a -L/usr/local/lib @WINSOCK_LIBS@ @SSH2_LIBS@
-	jar cmf manifest.mf mlterm.jar mlterm/*.class `find * -name "*.dll"`
 
-$(TARGET) : $(CLASS) MLTermPty.h $(OBJ) manifest.mf
+$(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
 	$(LIBTOOL_LINK) -o $(TARGET) -s $(OBJ:.o=.lo) -rpath $(libdir) \
 	-avoid-version ../mlterm/*.lo ../kiklib/src/libkik.la ../mkf/lib/libmkf.la
 	# .s? -> .so or .sl
 	cp .libs/*.s? .
-	jar cmf manifest.mf mlterm.jar mlterm/*.class `find * -name "*.s*"`
 
 manifest.mf :
 	cp $(top_srcdir)/java/manifest.mf.in manifest.mf

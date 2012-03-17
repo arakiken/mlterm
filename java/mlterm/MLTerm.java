@@ -498,7 +498,7 @@ public class MLTerm extends StyledText
 			{
 				public void run()
 				{
-					do
+					while( true)
 					{
 						synchronized(display)
 						{
@@ -509,16 +509,15 @@ public class MLTerm extends StyledText
 							catch( InterruptedException  e)
 							{
 							}
-
-							if( display.isDisposed())
-							{
-								break ;
-							}
-
-							display.wake() ;
 						}
+
+						if( ! MLTermPty.waitForReading() || display.isDisposed())
+						{
+							break ;
+						}
+
+						display.wake() ;
 					}
-					while( MLTermPty.waitForReading()) ;
 				}
 			})).start() ;
 	}
@@ -835,8 +834,8 @@ public class MLTerm extends StyledText
 				synchronized(display)
 				{
 					display.notifyAll() ;
-					display.sleep() ;
 				}
+				display.sleep() ;
 			}
 		}
 
