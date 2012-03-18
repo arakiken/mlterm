@@ -1,3 +1,9 @@
+2012-03-19  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java:
+	  replaceTextBuffering() is added to decrease number of calling
+	  replaceTextRange().
+
 2012-03-18  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java:

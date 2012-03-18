@@ -164,6 +164,115 @@ public class MLTerm extends StyledText
 		}
 	}
 
+	private int  bufOffset = 0 ;
+	private StringBuilder  bufStr = null ;
+	private int  bufReplaceLen = 0 ;
+	private Object[]  bufStylesArray = null ;
+	private int  numOfBufStylesArray = 0 ;
+	private int  numOfBufStyles = 0 ;
+	private void  replaceTextBuffering( int  offset , int  replaceLen ,
+					String  str , StyleRange[]  styles)
+	{
+		if( false)
+		{
+			/* Simple way (output each line) */
+
+			if( str != null)
+			{
+				getContent().replaceTextRange( offset , replaceLen , str) ;
+			}
+
+			if( styles != null)
+			{
+				replaceStyleRanges( offset , str.length() , styles) ;
+			}
+		}
+		else
+		{
+			if( styles != null && bufStr != null)
+			{
+				for( int  count = 0 ; count < styles.length ; count++)
+				{
+					styles[count].start += (bufStr.length() - bufReplaceLen) ;
+				}
+			}
+
+			if( ( str == null || bufOffset + bufReplaceLen != offset) && bufStr != null)
+			{
+				getContent().replaceTextRange( bufOffset , bufReplaceLen , bufStr.toString()) ;
+
+				if( false)
+				{
+					System.err.printf( "OUTPUT %d characters.%n" , bufStr.length()) ;
+				}
+
+				if( numOfBufStylesArray > 0)
+				{
+					StyleRange[]  bufStyles = new StyleRange[numOfBufStyles] ;
+					int  destPos = 0 ;
+					for( int  count = 0 ; count < numOfBufStylesArray ; count++)
+					{
+						System.arraycopy( (StyleRange[])bufStylesArray[count] , 0 ,
+								bufStyles , destPos ,
+								((StyleRange[])bufStylesArray[count]).length) ;
+						destPos += ((StyleRange[])bufStylesArray[count]).length ;
+					}
+
+					if( destPos != numOfBufStyles)
+					{
+						System.err.printf( "Illegal styles, not applied.\n") ;
+					}
+					else
+					{
+						replaceStyleRanges( bufOffset , bufStr.length() , bufStyles) ;
+					}
+
+					numOfBufStylesArray = 0 ;
+					numOfBufStyles = 0 ;
+				}
+
+				if( str == null)
+				{
+					bufStr = null ;
+					bufOffset = 0 ;
+					bufReplaceLen = 0 ;
+				}
+				else
+				{
+					bufOffset = offset + bufStr.length() - bufReplaceLen ;
+					bufStr = new StringBuilder( str) ;
+					bufReplaceLen = replaceLen ;
+				}
+			}
+			else if( str != null)
+			{
+				if( bufStr == null)
+				{
+					bufStr = new StringBuilder( str) ;
+					bufOffset = offset ;
+				}
+				else
+				{
+					bufStr.append( str) ;
+				}
+
+				bufReplaceLen += replaceLen ;
+			}
+
+			if( styles != null)
+			{
+				if( bufStylesArray == null || bufStylesArray.length < ptyRows)
+				{
+					bufStylesArray = new Object[ptyRows] ;
+				}
+
+				bufStylesArray[numOfBufStylesArray] = styles ;
+				numOfBufStylesArray ++ ;
+				numOfBufStyles += styles.length ;
+			}
+		}
+	}
+
 	private void  redrawPty()
 	{
 		if( scrolledOutCache > 0)
@@ -183,20 +292,31 @@ public class MLTerm extends StyledText
 				continue ;
 			}
 
+			if( region.start > 0)
+			{
+				replaceTextBuffering( 0 , 0 , null , null) ;
+			}
+
 			if( row == ptyRows - 1)
 			{
 				/* Remove '\n' which region.str always contains. */
 				region.str = region.str.substring( 0 , region.str.length() - 1) ;
 			}
 
-			/* If lineCount is 0, max num of appended '\n' is row. */
+			/* If lineCount is 0, max num of '\n' appended right below is row. */
 			checkTextLimit( region.str.length() + row) ;
 
-			int  lineCount ;
-			for( lineCount = getLineCount() - numOfScrolledOutLines ;
-				 lineCount <= row ; lineCount++)
+			int  lineCount = getLineCount() - numOfScrolledOutLines ;
+			if( lineCount <= row)
 			{
-				append( String.valueOf( '\n')) ;
+				replaceTextBuffering( 0 , 0 , null , null) ;
+
+				do
+				{
+					append( String.valueOf( '\n')) ;
+					lineCount++ ;
+				}
+				while( lineCount <= row) ;
 			}
 
 			/*
@@ -266,11 +386,10 @@ public class MLTerm extends StyledText
 				}
 			}
 
-			getContent().replaceTextRange( offset , offsetNextRow - offset , region.str) ;
-
+			StyleRange[]  styles = null ;
 			if( region.styles != null)
 			{
-				StyleRange[] styles = new StyleRange[region.styles.length] ;
+				styles = new StyleRange[region.styles.length] ;
 
 				for( int  count = 0 ; count < region.styles.length ; count++)
 				{
@@ -301,10 +420,12 @@ public class MLTerm extends StyledText
 					styles[count].fontStyle = region.styles[count].bold ?
 												SWT.BOLD : SWT.NORMAL ;
 				}
-
-				replaceStyleRanges( offset , region.str.length() , styles) ;
 			}
+
+			replaceTextBuffering( offset , offsetNextRow - offset , region.str , styles) ;
 		}
+
+		replaceTextBuffering( 0 , 0 , null , null) ;
 
 		checkLineHeight(true) ;
 
@@ -327,7 +448,8 @@ public class MLTerm extends StyledText
 	public MLTerm( Composite  parent , int  style , String  host , String  pass ,
 				int  cols , int  rows , String  encoding , String[]  argv)
 	{
-		super( parent , style) ;
+		/* If SWT.READ_ONLY is specified, tab key doesn't work. */
+		super( parent , style|SWT.NO_BACKGROUND) ;
 
 		setTextLimit( 100000) ;
 		setMargins( 1 , 1 , 1 , 1) ;
@@ -598,8 +720,8 @@ public class MLTerm extends StyledText
 		int  height = lineHeight * ptyRows + getTopMargin() +
 						getBottomMargin() + getBorderWidth() * 2 ;
 
-		resetScrollBar() ;
 		setSize( width , height) ;
+		resetScrollBar() ;
 	}
 
 	public void  resizePty( int  width , int  height)
@@ -669,7 +791,7 @@ public class MLTerm extends StyledText
 								final String  encoding , final String[]  argv ,
 								final Font  font)
 	{
-		final MLTerm  mlterm = new MLTerm( shell , SWT.NO_BACKGROUND|SWT.BORDER|SWT.V_SCROLL ,
+		final MLTerm  mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
 									host , pass , cols , rows , encoding , argv) ;
 
 		mlterm.setFont( font) ;

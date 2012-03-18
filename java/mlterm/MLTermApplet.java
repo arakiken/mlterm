@@ -70,8 +70,7 @@ public class  MLTermApplet extends Applet
 						}
 						dialog = null ;
 
-						final MLTerm mlterm = new MLTerm( shell ,
-												SWT.NO_BACKGROUND|SWT.BORDER|SWT.V_SCROLL ,
+						final MLTerm mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
 												host , pass , 80 , 24 , encoding , null) ;
 
 						String  fontFamily ;
