@@ -367,33 +367,8 @@ exec_cmd(
 }
 
 
-static void
-line_scrolled_out(
-	void *  p
-	)
-{
-	static jmethodID  mid ;
-	native_obj_t *  nativeObj ;
-	jobject  listener ;
-
-	nativeObj = p ;
-
-	if( ! mid)
-	{
-		mid = (*nativeObj->env)->GetMethodID( nativeObj->env ,
-					(*nativeObj->env)->FindClass( nativeObj->env ,
-						"mlterm/MLTermPtyListener") ,
-					"lineScrolledOut" , "()V") ;
-	}
-
-	if( ( listener = get_listener_obj( nativeObj)))
-	{
-		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid) ;
-	}
-}
-
 static int
-window_scroll_region(
+window_scroll_upward_region(
 	void *  p ,
 	int  beg_row ,
 	int  end_row ,
@@ -411,12 +386,47 @@ window_scroll_region(
 		mid = (*nativeObj->env)->GetMethodID( nativeObj->env ,
 					(*nativeObj->env)->FindClass( nativeObj->env ,
 						"mlterm/MLTermPtyListener") ,
-					"windowScrolled" , "()V") ;
+					"linesScrolledOut" , "(I)V") ;
+	}
+
+	if( beg_row == 0 && end_row + 1 == ml_term_get_logical_rows( nativeObj->term) &&
+	    ! ml_screen_is_alternative_edit( nativeObj->term->screen) &&
+	    ( listener = get_listener_obj( nativeObj)))
+	{
+		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid , size) ;
+	}
+
+	return  0 ;
+}
+
+
+static int
+resize(
+	void *  p ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	static jmethodID  mid ;
+	native_obj_t *  nativeObj ;
+	jobject  listener ;
+
+	nativeObj = p ;
+
+	if( ! mid)
+	{
+		mid = (*nativeObj->env)->GetMethodID( nativeObj->env ,
+					(*nativeObj->env)->FindClass( nativeObj->env ,
+						"mlterm/MLTermPtyListener") ,
+					"resize" , "(IIII)V") ;
 	}
 
 	if( ( listener = get_listener_obj( nativeObj)))
 	{
-		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid) ;
+		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid ,
+						width , height ,
+						ml_term_get_cols( nativeObj->term) ,
+						ml_term_get_rows( nativeObj->term)) ;
 	}
 
 	return  0 ;
@@ -847,12 +857,14 @@ Java_mlterm_MLTermPty_nativeOpen(
 	nativeObj->config_listener.exec = exec_cmd ;
 
 	nativeObj->screen_listener.self = nativeObj ;
-	nativeObj->screen_listener.line_scrolled_out = line_scrolled_out ;
-	nativeObj->screen_listener.window_scroll_upward_region = window_scroll_region ;
-	nativeObj->screen_listener.window_scroll_downward_region = window_scroll_region ;
+	nativeObj->screen_listener.window_scroll_upward_region = window_scroll_upward_region ;
 
-	ml_term_attach( nativeObj->term , NULL , &nativeObj->config_listener ,
-		&nativeObj->screen_listener , &nativeObj->pty_listener) ;
+	nativeObj->xterm_listener.self = nativeObj ;
+	nativeObj->xterm_listener.resize = resize ;
+
+	ml_term_attach( nativeObj->term , &nativeObj->xterm_listener ,
+		&nativeObj->config_listener , &nativeObj->screen_listener ,
+		&nativeObj->pty_listener) ;
 
 	if( jstr_host)
 	{
@@ -1334,6 +1346,27 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 	(*env)->SetObjectField( env , region , region_styles , array) ;
 
 	ml_line_set_updated( line) ;
+
+#if  1
+	{
+		/*
+		 * XXX
+		 * It is assumed that lines are sequentially checked from 0th row.
+		 * If next line is modified, set mod_beg = 0 to enable combining modified
+		 * characters in current line and next line.
+		 */
+
+		ml_line_t *  next_line ;
+
+		if( ( next_line = ml_term_get_line( ((native_obj_t*)nativeObj)->term , row + 1)) &&
+		    ml_line_is_modified( next_line) &&
+		    ml_line_get_beg_of_modified( next_line) <
+			ml_term_get_cols( ((native_obj_t*)nativeObj)->term) / 2)
+		{
+			ml_line_set_modified_all( next_line) ;
+		}
+	}
+#endif
 
 	return  JNI_TRUE ;
 }

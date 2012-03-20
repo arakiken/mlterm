@@ -54,33 +54,40 @@ public class  MLTermApplet extends Applet
 						shell.setText( "mlterm") ;
 						shell.setLayout( new FillLayout()) ;
 
-						String  host = null ;
+						String  host = MLTerm.getProperty( "default_server") ;
 						String  pass = null ;
 						String  encoding = null ;
-						ConnectDialog  dialog = new ConnectDialog( shell) ;
-						String[]  array = dialog.open( host) ;
-						if( array != null)
+
+						if( System.getProperty( "os.name").indexOf( "Windows") >= 0 ||
+						    host != null)
 						{
-							host = array[0] ;
-							pass = array[1] ;
-							if( array[2] != null)
+							ConnectDialog  dialog = new ConnectDialog( shell) ;
+							String[]  array = dialog.open( host) ;
+							if( array != null)
 							{
-								encoding = array[2] ;
+								host = array[0] ;
+								pass = array[1] ;
+								if( array[2] != null)
+								{
+									encoding = array[2] ;
+								}
 							}
 						}
-						dialog = null ;
 
 						final MLTerm mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
 												host , pass , 80 , 24 , encoding , null) ;
 
-						String  fontFamily ;
-						if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+						String  fontFamily = MLTerm.getProperty( "font") ;
+						if( fontFamily == null)
 						{
-							fontFamily = "Terminal" ;
-						}
-						else
-						{
-							fontFamily = "monospace" ;
+							if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+							{
+								fontFamily = "Terminal" ;
+							}
+							else
+							{
+								fontFamily = "monospace" ;
+							}
 						}
 
 						mlterm.setFont( new Font( display , fontFamily , 10 , SWT.NORMAL)) ;

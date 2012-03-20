@@ -5,6 +5,8 @@
 package  mlterm ;
 
 
+import  java.util.Properties ;
+import  java.io.* ;
 import  org.eclipse.swt.* ;
 import  org.eclipse.swt.dnd.* ;
 import  org.eclipse.swt.custom.* ;
@@ -28,7 +30,6 @@ public class MLTerm extends StyledText
 	private int  lineHeight = 0 ;
 	private int  numOfScrolledOutLines = 0 ;
 	private int  scrolledOutCache = 0 ;
-	private boolean  windowScrolled = false ;
 
 
 	/* --- private methods --- */
@@ -278,11 +279,7 @@ public class MLTerm extends StyledText
 		if( scrolledOutCache > 0)
 		{
 			numOfScrolledOutLines += scrolledOutCache ;
-		}
-
-		if( windowScrolled)
-		{
-			setRedraw( false) ;
+			setRedraw( false) ;		/* Stop moving scrollbar */
 		}
 
 		for( int  row = 0 ; row < ptyRows ; row ++)
@@ -381,7 +378,7 @@ public class MLTerm extends StyledText
 
 				if( false)
 				{
-					System.out.printf( "%s row %d lineCount %d offset %d offsetNextRow %d" ,
+					System.err.printf( "%s row %d lineCount %d offset %d offsetNextRow %d%n" ,
 						region.str , row , lineCount , offset , offsetNextRow) ;
 				}
 			}
@@ -433,12 +430,7 @@ public class MLTerm extends StyledText
 		{
 			scrolledOutCache = 0 ;
 			resetScrollBar() ;
-		}
-
-		if( windowScrolled)
-		{
 			setRedraw( true) ;
-			windowScrolled = false ;
 		}
 	}
 
@@ -467,9 +459,9 @@ public class MLTerm extends StyledText
 					}
 				}
 
-				public void  lineScrolledOut()
+				public void  linesScrolledOut( int  size)
 				{
-					scrolledOutCache ++ ;
+					scrolledOutCache += size ;
 
 					if( scrolledOutCache == ptyRows * 2 / 5)
 					{
@@ -480,9 +472,23 @@ public class MLTerm extends StyledText
 					}
 				}
 
-				public void  windowScrolled()
+				public void  resize( int  width , int  height , int  cols , int  rows)
 				{
-					MLTerm.this.windowScrolled = true ;
+					if( width > 0 && height > 0)
+					{
+						resizePty( width , height) ;
+					}
+					else if( cols > 0 && rows > 0)
+					{
+						ptyCols = cols ;
+						ptyRows = rows ;
+					}
+					else
+					{
+						return ;
+					}
+
+					resetWindowSize( MLTerm.this) ;
 				}
 			}) ;
 
@@ -707,6 +713,7 @@ public class MLTerm extends StyledText
 
 	public void  resetSize()
 	{
+		/* check for checkLineHeight() */
 		if( pty == null)
 		{
 			return ;
@@ -726,6 +733,7 @@ public class MLTerm extends StyledText
 
 	public void  resizePty( int  width , int  height)
 	{
+		/* check for checkLineHeight() */
 		if( pty == null)
 		{
 			return ;
@@ -771,16 +779,48 @@ public class MLTerm extends StyledText
 		return  width ;
 	}
 
+	private static  Properties  prop = null ;
+	public static String  getProperty( String  key)
+	{
+		if( prop == null)
+		{
+			prop = new Properties() ;
+
+			String  config ;
+			if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+			{
+				config = "/mlterm/main" ;
+			}
+			else
+			{
+				config = "/.mlterm/main" ;
+			}
+			
+			try
+			{
+				prop.load( new FileInputStream( System.getProperty( "user.home") + config)) ;
+			}
+			catch( IOException  e)
+			{
+				System.err.println( "mlterm/main is not found") ;
+			}
+		}
+
+		return  prop.getProperty( key) ;
+	}
+
 
 	/* --- static functions --- */
 
 	private static MLTerm[]  mlterms = new MLTerm[10] ;
 	private static int  numMLTerms = 0 ;
 
-	private static void resetWindowSize( Shell  shell , MLTerm  mlterm)
+	private static void resetWindowSize( MLTerm  mlterm)
 	{
 		mlterm.resetSize() ;
 		Point  p = mlterm.getSize() ;
+
+		Shell  shell = mlterm.getShell() ;
 		shell.setSize( p) ;
 		Rectangle  r = shell.getClientArea() ;
 		shell.setSize( p.x * 2 - r.width , p.y * 2 - r.height) ;
@@ -801,7 +841,7 @@ public class MLTerm extends StyledText
 			{
 				public void  lineHeightChanged()
 				{
-					resetWindowSize( shell , mlterm) ;
+					resetWindowSize( mlterm) ;
 				}
 
 				public void  ptyClosed()
@@ -836,7 +876,7 @@ public class MLTerm extends StyledText
 				}
 			}) ;
 
-		resetWindowSize( shell , mlterm) ;
+		resetWindowSize( mlterm) ;
 
 		shell.addListener( SWT.Resize ,
 			new Listener()
@@ -858,7 +898,7 @@ public class MLTerm extends StyledText
 							mlterm.resizePty( r.width , r.height) ;
 
 							processing = true ;
-							resetWindowSize( shell , mlterm) ;
+							resetWindowSize( mlterm) ;
 							processing = false ;
 						}
 					}
@@ -872,7 +912,7 @@ public class MLTerm extends StyledText
 
 	public static void main (String [] args)
 	{
-		String  host = null ;
+		String  host = MLTerm.getProperty( "default_server") ;
 		String  pass = null ;
 		String  encoding = null ;
 		String[]  argv = null ;
@@ -880,15 +920,23 @@ public class MLTerm extends StyledText
 		int  cols = 80 ;
 		int  rows = 24 ;
 		int  fontSize = 10 ;
-		String  fontFamily ;
+		String  fontFamily = MLTerm.getProperty( "font") ;
 
-		if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+		if( System.getProperty( "os.name").indexOf( "Windows") >= 0 || host != null)
 		{
-			fontFamily = "Terminal" ;
+			openDialog = true ;
 		}
-		else
+
+		if( fontFamily == null)
 		{
-			fontFamily = "monospace" ;
+			if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+			{
+				fontFamily = "Terminal" ;
+			}
+			else
+			{
+				fontFamily = "monospace" ;
+			}
 		}
 
 		for( int  count = 0 ; count < args.length ; count ++)

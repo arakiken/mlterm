@@ -4,6 +4,7 @@ How to build & install mlterm co-operating with Java.
 
 * Requirements
   o SWT (http://www.eclipse.org/swt/)
+  o JDK or JRE >=1.5
 
 * Build
   $ ./configure (options)
@@ -51,7 +52,10 @@ How to build & install mlterm co-operating with Java.
     use_login_shell
     ssh_public_key
     ssh_private_key
-    exec_cmd
+    default_server
+    exec_cmd (*) (FYI: Use "exec_cmd = create" to connect user@shell.sf.net with "create" command.)
+    font (*) (e.g. "font = Kochi Gothic")
+    (*) Unique options of Java version.
 
   o Following configuration protocols are supported.
     encoding
@@ -72,7 +76,7 @@ How to build & install mlterm co-operating with Java.
     (*) Not implemented.
 
   o Sortcut keys.
-    Control+F1: Open new mlterm window.
+    Control+F1: Open new mlterm window. (Not supported in applet version.)
 
 * On-line demo
   http://mlterm.sf.net/mltermlet.html

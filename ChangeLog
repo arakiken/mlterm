@@ -1,3 +1,24 @@
+2012-03-21  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java: getProperty() method is added to apply configuration in
+	  ~/.mlterm/main.
+
+	* MLTerm.java, MLTermPtyListener.java, MLTermPty.c:
+	  - Lines are scrolled out only if not line_scrolled_out but
+	    window_scroll_upward_region of ml_screen_event_listenert is called.
+	    (Fixed failure of 7th test of vttest test type 2.)
+	  - resize() of ml_xterm_event_listener_t is implemented and
+	    MLTerm handles resize event of MLTermPtyListener to support
+	    "CSI ? 3 h", "CSI ? 3 l", "CSI 4 t" and "CSI 8 t".
+
+	* MLTermPty.c:
+	  If next line is modified, set mog_beg = 0 in
+	  Java_mlterm_MLTermPty_nativeGetRedrawString() to enable combining
+	  modified characters in current line and next line and to decrease
+	  the number of calling replaceTextRange().
+
+	* mkf/lib/Makefile.in: MAJOR.MINOR version 16.0 -> 16.1
+
 2012-03-19  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java:

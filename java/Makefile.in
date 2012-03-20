@@ -1,5 +1,5 @@
 # Edit following 5 variables.
-JAVAC = javac # -source 1.6 -target 1.6
+JAVAC = javac # -source 1.5 -target 1.5
 CLASSPATH_win32 = .\;swt.jar
 CLASSPATH = .:swt.jar
 JAVA_HOME_win32 = /c/Program\ Files/Java/jdk1.7.0_02
