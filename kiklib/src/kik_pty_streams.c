@@ -5,7 +5,7 @@
 /* _GNU_SOURCE must be defined before including <features.h> to take effect.
  * since standard headers/kik_types.h #includes features.h indirectly,
  * ecplicitly evaluate only the autoconf's result here */
-#include "kik_config.h"
+#include "kik_def.h"
 #ifdef HAVE_GNU_SOURCE
 #define _GNU_SOURCE
 #endif

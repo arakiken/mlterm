@@ -23,13 +23,16 @@ public class MLTerm extends StyledText
 	private MLTermPty  pty = null ;
 	private int  ptyCols = 80 ;
 	private int  ptyRows = 24 ;
-	private Color[]  colors = null ;
-	private RedrawRegion  region = null ;
-	private boolean  mouseMoving = false;
+	private boolean  isSelecting = false;
 	private Clipboard  clipboard = null ;	/* StyledText.clipboard is not accessible. */
 	private int  lineHeight = 0 ;
+	private int  columnWidth = 0 ;
 	private int  numOfScrolledOutLines = 0 ;
 	private int  scrolledOutCache = 0 ;
+
+	static private Color[]  colors = null ;
+	static private RedrawRegion  region = null ;
+	static private Font  font = null ;
 
 
 	/* --- private methods --- */
@@ -53,7 +56,7 @@ public class MLTerm extends StyledText
 			offset = getOffsetAtLine( row) + pty.getCaretCol() ;
 		}
 
-		if( ! mouseMoving) ;
+		if( ! isSelecting)
 		{
 			setCaretOffset( offset) ;
 		}
@@ -124,22 +127,36 @@ public class MLTerm extends StyledText
 		}
 	}
 
-	private void checkLineHeight( boolean  invokeEvent)
+	private int  getColumnWidth()
+	{
+		GC  gc = new GC( this) ;
+		int  width = gc.stringExtent( "W").x ;
+		gc.dispose() ;
+
+		return  width ;
+	}
+
+	private void checkCellSize( boolean  invokeEvent)
 	{
 		int  height = getLineHeight() ;
-		if( lineHeight != height)
+		int  width = getColumnWidth() ;
+
+		if( lineHeight == height && columnWidth == width)
 		{
-			if( false)
-			{
-				System.out.printf( "Line height %d is changed to %d\n" , lineHeight , height) ;
-			}
+			return ;
+		}
+		else if( false)
+		{
+			System.err.printf( "Line height %d is changed to %d\n" , lineHeight , height) ;
+			System.err.printf( "Column width %d is changed to %d\n" , columnWidth , width) ;
+		}
 
-			lineHeight = height ;
+		lineHeight = height ;
+		columnWidth = width ;
 
-			if( invokeEvent && listener != null)
-			{
-				listener.lineHeightChanged() ;
-			}
+		if( invokeEvent && listener != null)
+		{
+			listener.cellSizeChanged() ;
 		}
 	}
 
@@ -424,7 +441,7 @@ public class MLTerm extends StyledText
 
 		replaceTextBuffering( 0 , 0 , null , null) ;
 
-		checkLineHeight(true) ;
+		checkCellSize(true) ;
 
 		if( scrolledOutCache > 0)
 		{
@@ -432,6 +449,32 @@ public class MLTerm extends StyledText
 			resetScrollBar() ;
 			setRedraw( true) ;
 		}
+	}
+
+	private void  reportMouseTracking( MouseEvent  event ,
+						boolean  isMotion , boolean  isReleased)
+	{
+		if( ( event.stateMask & (SWT.CONTROL|SWT.SHIFT)) != 0)
+		{
+			return ;
+		}
+
+		int  row ;
+		int  charIndex ;
+		if( isMotion || event.button > 3 /* isWheel */)
+		{
+			row = event.y / lineHeight ;
+			charIndex = event.x / columnWidth ;
+		}
+		else
+		{
+			row = getLineAtOffset( getCaretOffset()) ;
+			charIndex = getLine( row).codePointCount( 0 ,
+										getCaretOffset() - getOffsetAtLine( row)) ;
+		}
+
+		pty.reportMouseTracking( charIndex , row - numOfScrolledOutLines ,
+						event.button , event.stateMask , isMotion , isReleased) ;
 	}
 
 
@@ -442,9 +485,6 @@ public class MLTerm extends StyledText
 	{
 		/* If SWT.READ_ONLY is specified, tab key doesn't work. */
 		super( parent , style|SWT.NO_BACKGROUND) ;
-
-		setTextLimit( 100000) ;
-		setMargins( 1 , 1 , 1 , 1) ;
 
 		pty = new MLTermPty() ;
 		pty.setListener(
@@ -490,6 +530,15 @@ public class MLTerm extends StyledText
 
 					resetWindowSize( MLTerm.this) ;
 				}
+
+				public void  bell()
+				{
+					String  mode = getProperty( "bel_mode") ;
+					if( mode == null || mode.equals( "sound"))
+					{
+						getDisplay().beep() ;
+					}
+				}
 			}) ;
 
 		if( ! pty.open( host , pass , cols , rows , encoding , argv))
@@ -501,6 +550,78 @@ public class MLTerm extends StyledText
 
 		ptyCols = cols ;
 		ptyRows = rows ;
+
+		if( font == null)
+		{
+			String  fontFamily = getProperty( "font") ;
+			if( fontFamily == null)
+			{
+				if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+				{
+					fontFamily = "Terminal" ;
+				}
+				else
+				{
+					fontFamily = "monospace" ;
+				}
+			}
+
+			int  fontSize = 10 ;
+			try
+			{
+				fontSize = Integer.parseInt( getProperty( "fontsize")) ;
+			}
+			catch( NumberFormatException  e)
+			{
+			}
+
+			font = new Font( getDisplay() , fontFamily , fontSize , SWT.NORMAL) ;
+		}
+
+		setFont( font) ;
+		checkCellSize( false) ;
+
+		if( colors == null)
+		{
+			colors = new Color[258] ;
+
+			String  color = getProperty( "fg_color") ;
+			if( color != null)
+			{
+				long  pixel = MLTermPty.getColorRGB( color) ;
+				if( pixel != -1)
+				{
+					colors[0x100] = new Color( getDisplay() , (int)((pixel >> 16) & 0xff) ,
+										(int)((pixel >> 8) & 0xff) , (int)(pixel & 0xff)) ;
+					setForeground( colors[0x100]) ;
+				}
+			}
+
+			if( colors[0x100] == null)
+			{
+				colors[0x100] = getForeground() ;
+			}
+
+			color = getProperty( "bg_color") ;
+			if( color != null)
+			{
+				long  pixel = MLTermPty.getColorRGB( color) ;
+				if( pixel != -1)
+				{
+					colors[0x101] = new Color( getDisplay() , (int)((pixel >> 16) & 0xff) ,
+										(int)((pixel >> 8)) & 0xff , (int)(pixel & 0xff)) ;
+					setBackground( colors[0x101]) ;
+				}
+			}
+
+			if( colors[0x101] == null)
+			{
+				colors[0x101] = getBackground() ;
+			}
+		}
+
+		setTextLimit( 100000) ;
+		setMargins( 1 , 1 , 1 , 1) ;
 
 		clipboard = new Clipboard( getDisplay()) ;
 
@@ -518,21 +639,52 @@ public class MLTerm extends StyledText
 			{
 				public void mouseDown( MouseEvent  event)
 				{
-					mouseMoving = true ;
+					reportMouseTracking( event , false , false) ;
+
+					isSelecting = true ;
 				}
 
 				public void mouseUp( MouseEvent  event)
 				{
-					mouseMoving = false ;
+					isSelecting = false ;
 
 					if( getSelectionCount() > 0)
 					{
 						copy() ;
 					}
+
+					reportMouseTracking( event , false , true) ;
 				}
 
 				public void mouseDoubleClick( MouseEvent  event)
 				{
+				}
+			}) ;
+
+		addMouseMoveListener(
+			new  MouseMoveListener()
+			{
+				public void mouseMove( MouseEvent  event)
+				{
+					reportMouseTracking( event , true , false) ;
+				}
+			}) ;
+
+		addMouseWheelListener(
+			new  MouseWheelListener()
+			{
+				public void mouseScrolled( MouseEvent  event)
+				{
+					if( event.count > 0)
+					{
+						event.button = 4 ;
+					}
+					else
+					{
+						event.button = 5 ;
+					}
+
+					reportMouseTracking( event , false , false) ;
 				}
 			}) ;
 
@@ -666,13 +818,51 @@ public class MLTerm extends StyledText
 				}
 			}) ;
 
-		colors = new Color[258] ;
-		colors[0x100] = getForeground() ;
-		colors[0x101] = getBackground() ;
+		setCaret( null) ;
+
+		DropTarget  target = new DropTarget( this , DND.DROP_MOVE|DND.DROP_COPY|DND.DROP_LINK) ;
+		target.setTransfer( new Transfer[] { FileTransfer.getInstance() }) ;
+		target.addDropListener(
+			new DropTargetAdapter()
+			{
+				public void  dragEnter( DropTargetEvent event)
+				{
+					if( event.detail == DND.DROP_NONE)
+					{
+						event.detail = DND.DROP_LINK ;
+					}
+				}
+
+				public void  dragOperationChanged( DropTargetEvent event)
+				{
+					if( event.detail == DND.DROP_NONE)
+					{
+						event.detail = DND.DROP_LINK ;
+					}
+				}
+
+				public void  drop( DropTargetEvent event)
+				{
+					if( event.data == null)
+					{
+						event.detail = DND.DROP_NONE ;
+
+						return ;
+					}
+
+					String[]  files = (String[])event.data ;
+					for( int  count = 0 ; count < files.length ; count++)
+					{
+						if( count > 0)
+						{
+							pty.write( "\n") ;
+						}
+						pty.write( files[count]) ;
+					}
+				}
+			}) ;
 
 		region = new RedrawRegion() ;
-
-		setCaret( null) ;
 	}
 
 	public static void  startPtyWatcher( final Display  display)
@@ -713,15 +903,7 @@ public class MLTerm extends StyledText
 
 	public void  resetSize()
 	{
-		/* check for checkLineHeight() */
-		if( pty == null)
-		{
-			return ;
-		}
-
-		checkLineHeight(false) ;
-
-		int  width = getColumnWidth() * ptyCols + getLeftMargin() +
+		int  width = columnWidth * ptyCols + getLeftMargin() +
 						getRightMargin() + getBorderWidth() * 2 +
 						getVerticalBar().getSize().x ;
 		int  height = lineHeight * ptyRows + getTopMargin() +
@@ -733,18 +915,28 @@ public class MLTerm extends StyledText
 
 	public void  resizePty( int  width , int  height)
 	{
-		/* check for checkLineHeight() */
-		if( pty == null)
+		int  cols =  (width - getLeftMargin() - getRightMargin() - getBorderWidth() * 2 -
+						getVerticalBar().getSize().x) / columnWidth ;
+		int  rows =  (height - getTopMargin() - getBottomMargin() - getBorderWidth() * 2)
+						/ lineHeight ;
+
+		if( cols == ptyCols && rows == ptyRows)
 		{
 			return ;
 		}
 
-		checkLineHeight(false) ;
+		ptyCols = cols ;
+		ptyRows = rows ;
 
-		ptyCols =  (width - getLeftMargin() - getRightMargin() - getBorderWidth() * 2 -
-						getVerticalBar().getSize().x) / getColumnWidth() ;
-		ptyRows =  (height - getTopMargin() - getBottomMargin() - getBorderWidth() * 2)
-						/ lineHeight ;
+		int  start = getOffsetAtLine( numOfScrolledOutLines) ;
+		int  length = getCharCount() - start ;
+		StringBuilder  str = new StringBuilder() ;
+		for( int  count = 0 ; count < ptyRows - 1 ; count++)
+		{
+			str.append( "\n") ;
+		}
+
+		replaceTextRange( start , length , str.toString()) ;
 
 		pty.resize( ptyCols , ptyRows) ;
 	}
@@ -770,43 +962,49 @@ public class MLTerm extends StyledText
 		return  true ;
 	}
 
-	public int  getColumnWidth()
+	private static  Properties  prop = null ;
+	private static void  loadProperties()
 	{
-		GC  gc = new GC( this) ;
-		int  width = gc.stringExtent( "W").x ;
-		gc.dispose() ;
+		prop = new Properties() ;
 
-		return  width ;
+		String  config ;
+		if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+		{
+			config = "/mlterm/main" ;
+		}
+		else
+		{
+			config = "/.mlterm/main" ;
+		}
+
+		try
+		{
+			prop.load( new FileInputStream( System.getProperty( "user.home") + config)) ;
+		}
+		catch( IOException  e)
+		{
+			System.err.println( "mlterm/main is not found") ;
+		}
 	}
 
-	private static  Properties  prop = null ;
 	public static String  getProperty( String  key)
 	{
 		if( prop == null)
 		{
-			prop = new Properties() ;
-
-			String  config ;
-			if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
-			{
-				config = "/mlterm/main" ;
-			}
-			else
-			{
-				config = "/.mlterm/main" ;
-			}
-			
-			try
-			{
-				prop.load( new FileInputStream( System.getProperty( "user.home") + config)) ;
-			}
-			catch( IOException  e)
-			{
-				System.err.println( "mlterm/main is not found") ;
-			}
+			loadProperties() ;
 		}
 
 		return  prop.getProperty( key) ;
+	}
+
+	public static void  setProperty( String  key , String  value)
+	{
+		if( prop == null)
+		{
+			loadProperties() ;
+		}
+
+		prop.setProperty( key , value) ;
 	}
 
 
@@ -828,18 +1026,15 @@ public class MLTerm extends StyledText
 
 	private static void startMLTerm( final Shell  shell , final String  host ,
 								final String  pass , final int  cols , final int  rows ,
-								final String  encoding , final String[]  argv ,
-								final Font  font)
+								final String  encoding , final String[]  argv)
 	{
 		final MLTerm  mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
 									host , pass , cols , rows , encoding , argv) ;
 
-		mlterm.setFont( font) ;
-
 		mlterm.setListener(
 			new MLTermListener()
 			{
-				public void  lineHeightChanged()
+				public void  cellSizeChanged()
 				{
 					resetWindowSize( mlterm) ;
 				}
@@ -870,8 +1065,7 @@ public class MLTerm extends StyledText
 						s.setText( "mlterm") ;
 						s.setLayout( new FillLayout()) ;
 
-						startMLTerm( s , host , pass , cols , rows ,
-									encoding , argv , font) ;
+						startMLTerm( s , host , pass , cols , rows , encoding , argv) ;
 					}
 				}
 			}) ;
@@ -919,24 +1113,10 @@ public class MLTerm extends StyledText
 		boolean  openDialog = false ;
 		int  cols = 80 ;
 		int  rows = 24 ;
-		int  fontSize = 10 ;
-		String  fontFamily = MLTerm.getProperty( "font") ;
 
 		if( System.getProperty( "os.name").indexOf( "Windows") >= 0 || host != null)
 		{
 			openDialog = true ;
-		}
-
-		if( fontFamily == null)
-		{
-			if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
-			{
-				fontFamily = "Terminal" ;
-			}
-			else
-			{
-				fontFamily = "monospace" ;
-			}
 		}
 
 		for( int  count = 0 ; count < args.length ; count ++)
@@ -989,17 +1169,19 @@ public class MLTerm extends StyledText
 				}
 				else if( args[count].equals( "-w"))
 				{
-					try
-					{
-						fontSize = Integer.parseInt( args[++count]) ;
-					}
-					catch( NumberFormatException  e)
-					{
-					}
+					MLTerm.setProperty( "fontsize" , args[++count]) ;
 				}
 				else if( args[count].equals( "-fn"))
 				{
-					fontFamily = args[++count] ;
+					MLTerm.setProperty( "font" , args[++count]) ;
+				}
+				else if( args[count].equals( "-fg"))
+				{
+					MLTerm.setProperty( "fg_color" , args[++count]) ;
+				}
+				else if( args[count].equals( "-bg"))
+				{
+					MLTerm.setProperty( "bg_color" , args[++count]) ;
 				}
 				else if( args[count].equals( "-e"))
 				{
@@ -1038,8 +1220,7 @@ public class MLTerm extends StyledText
 			}
 		}
 
-		startMLTerm( shell , host , pass , cols , rows , encoding ,
-					argv , new Font( display , fontFamily , fontSize , SWT.NORMAL)) ;
+		startMLTerm( shell , host , pass , cols , rows , encoding , argv) ;
 
 		MLTerm.startPtyWatcher( display) ;
 

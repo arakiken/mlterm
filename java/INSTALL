@@ -24,8 +24,11 @@ How to build & install mlterm co-operating with Java.
 
   o options
     -dialog       : Show dialog to specify a server.
+                    (Default behavior: Open dialog in win32. Not open dialog in unix.)
     -g <col>x<row>: Specify size.
     -fn <font>    : Specify font family.
+    -fg <color>   : Specify foreground color.
+    -bg <color>   : Specify background color.
     -km <encoding>: Specify character encoding.
     -serv (<protocol>://)(<user>@)<server>(:<port>): Specify a server.
     -w <point>    : Specify font size.
@@ -52,9 +55,12 @@ How to build & install mlterm co-operating with Java.
     use_login_shell
     ssh_public_key
     ssh_private_key
+    fontsize
+    fg_color
+    bg_color
     default_server
     exec_cmd (*) (FYI: Use "exec_cmd = create" to connect user@shell.sf.net with "create" command.)
-    font (*) (e.g. "font = Kochi Gothic")
+    font (*) (e.g. "font = Kochi Gothic", "font = MS Gothic")
     (*) Unique options of Java version.
 
   o Following configuration protocols are supported.
@@ -69,11 +75,11 @@ How to build & install mlterm co-operating with Java.
     rows
     cols
     pty_name
-    icon_path (*)
+    icon_path (Not implemented)
     logging_vt_seq
     logging_msg
-    browser (usage: mlcc exec browser http://www.google.co.jp)
-    (*) Not implemented.
+    browser (*) (usage: mlcc exec browser http://www.google.co.jp)
+    (*) Unique options of Java version.
 
   o Sortcut keys.
     Control+F1: Open new mlterm window. (Not supported in applet version.)

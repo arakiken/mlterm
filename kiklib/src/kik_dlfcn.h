@@ -6,7 +6,7 @@
 #define  __KIK_DLFCN_H__
 
 
-#include  "kik_config.h"
+#include  "kik_def.h"
 
 typedef void *  kik_dl_handle_t ;
 

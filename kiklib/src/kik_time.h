@@ -7,7 +7,7 @@
 
 
 #include  <time.h>
-#include  "kik_config.h"	/* REMOVE_FUNCS_MLTERM_UNUSE */
+#include  "kik_def.h"	/* REMOVE_FUNCS_MLTERM_UNUSE */
 
 #ifndef  REMOVE_FUNCS_MLTERM_UNUSE
 

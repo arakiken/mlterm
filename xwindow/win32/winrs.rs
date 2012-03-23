@@ -4,7 +4,7 @@
 
 MLTERM_ICON ICON "mlterm-icon-win32.ico"
 
-#include  <kiklib/kik_config.h>		/* USE_WIN32API */
+#include  <kiklib/kik_def.h>		/* USE_WIN32API */
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 

@@ -10,7 +10,7 @@
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_mem.h>	/* kik_alloca_garbage_collect */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
-#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+#include  <kiklib/kik_def.h>	/* USE_WIN32API */
 
 #include  <x_font.h>	/* x_use_cp932_ucs_fot_xft */
 #include  <x_screen_manager.h>

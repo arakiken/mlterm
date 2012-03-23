@@ -6,7 +6,7 @@
 #define  __ML_PTY_H__
 
 
-#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+#include  <kiklib/kik_def.h>	/* USE_WIN32API */
 #include  <kiklib/kik_types.h>	/* u_int/u_char */
 
 #ifdef  USE_LIBSSH2

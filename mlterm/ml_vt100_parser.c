@@ -2195,12 +2195,32 @@ parse_vt100_escape_sequence(
 					}
 				}
 			}
+			else if( pre_ch == '>')
+			{
+				if( *str_p == 'c')
+				{
+					/* CSI > c (Secondary DA) */
+
+					/*
+					 * If Pv is greater than 95, vim sets ttymouse=xterm2
+					 * automatically.
+					 */
+					char  msg[] = "\x1b[>0;96;0c" ;
+					ml_write_to_pty( vt100_parser->pty ,
+						msg , sizeof(msg) - 1) ;
+				}
+				else
+				{
+					/*
+					 * "CSI > T", "CSI > c", "CSI > p", "CSI > m",
+					 * "CSI > n", "CSI > t"
+					 */
+				}
+			}
 			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
 			else if( pre_ch)
 			{
 				/*
-				 * "CSI > T", "CSI > c", "CSI > p", "CSI > m", "CSI > n",
-				 * "CSI > t"
 				 * "CSI SP q"(DECSCUSR), "CSI SP t"(DECSWBV),
 				 * "CSI SP u"(DECSMBV)
 				 * "CSI " p"(DECSCL), "CSI " q"(DECSCA)

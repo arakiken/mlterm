@@ -9,13 +9,12 @@
 #include  <sys/socket.h>
 #include  <errno.h>
 #include  <fcntl.h>
-#include  <limits.h>	/* LINE_MAX */
 #include  <signal.h>
 #include  <stdio.h>
 #include  <string.h>	/* memcpy */
 #include  <unistd.h>
 
-#include  "kik_config.h"	/* HAVE_SETSID */
+#include  "kik_def.h"	/* HAVE_SETSID, LINE_MAX */
 #include  "kik_debug.h"
 #include  "kik_mem.h"	/* realloc/free */
 

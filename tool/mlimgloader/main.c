@@ -8,9 +8,10 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
 #include <kiklib/kik_debug.h>
-#include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t, HAVE_STDINT_H */
+#include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_util.h>	/* K_MIN */
+#include <kiklib/kik_def.h>	/* SIZE_MAX */
 
 /*
  * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
@@ -21,14 +22,6 @@
  */
 #if  defined(KIK_DEBUG) && defined(malloc)
 #undef malloc
-#endif
-
-#ifndef SIZE_MAX
-#ifdef SIZE_T_MAX
-#define SIZE_MAX SIZE_T_MAX
-#else
-#define SIZE_MAX ((size_t)-1)
-#endif
 #endif
 
 #define USE_FS 1

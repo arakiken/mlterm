@@ -10,7 +10,7 @@
 #include  <errno.h>
 #include  <sys/stat.h>		/* stat */
 
-#include  "kik_config.h"
+#include  "kik_def.h"		/* HAVE_FGETLN */
 #include  "kik_mem.h"		/* malloc */
 #include  "kik_str.h"		/* kik_str_alloca_dup */
 #include  "kik_debug.h"

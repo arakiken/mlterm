@@ -6,7 +6,7 @@
 #define  __KIK_NET_H__
 
 
-#include  "kik_config.h"	/* socklen_t */
+#include  "kik_types.h"		/* socklen_t */
 
 #ifndef  USE_WIN32API
 

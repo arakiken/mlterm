@@ -4,7 +4,7 @@
 
 #include  <sys/types.h>
 
-#include  <kiklib/kik_config.h>		/* USE_WIN32API */
+#include  <kiklib/kik_def.h>		/* USE_WIN32API */
 #include  <kiklib/kik_unistd.h>		/* kik_getuid/kik_getgid */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_privilege.h>

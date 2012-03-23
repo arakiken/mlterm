@@ -4,7 +4,8 @@
 
 /*
  * Don't include directly this header.
- * Include kik_def.h, kik_types.h etc...
+ * Include kik_def.h (which wraps POSIX and kik_config.h macros) or kik_types.h
+ * (which wraps POSIX and kik_config.h types).
  */
  
 #ifndef  __KIK_CONFIG_H__

@@ -4,8 +4,6 @@
 
 #include  "../x_imagelib.h"
 
-#include  <limits.h>		/* MAX_PATH */
-
 
 /* --- global functions --- */
 
@@ -39,6 +37,7 @@ x_imagelib_load_file_for_background(
 	HDC  hmdc_tmp ;
 	HDC  hmdc ;
 #if  defined(__CYGWIN__) || defined(__MSYS__)
+	/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
 	char  winpath[MAX_PATH] ;
 	cygwin_conv_to_win32_path( file_path , winpath) ;
 	file_path = winpath ;

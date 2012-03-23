@@ -7,7 +7,7 @@
 #include  "../x_window.h"
 #include  "../x_dnd.h"
 
-#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+#include  <kiklib/kik_def.h>	/* USE_WIN32API */
 
 #ifndef  USE_WIN32API
 #include  <mkf/mkf_utf8_conv.h>

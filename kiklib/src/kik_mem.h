@@ -8,9 +8,8 @@
 
 #include  <stdlib.h>
 
-#include  "kik_def.h"
 #include  "kik_types.h"	/* size_t */
-#include  "kik_config.h"
+#include  "kik_def.h"
 
 
 #if  defined(KIK_DEBUG)

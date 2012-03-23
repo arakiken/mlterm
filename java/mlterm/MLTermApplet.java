@@ -77,21 +77,6 @@ public class  MLTermApplet extends Applet
 						final MLTerm mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
 												host , pass , 80 , 24 , encoding , null) ;
 
-						String  fontFamily = MLTerm.getProperty( "font") ;
-						if( fontFamily == null)
-						{
-							if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
-							{
-								fontFamily = "Terminal" ;
-							}
-							else
-							{
-								fontFamily = "monospace" ;
-							}
-						}
-
-						mlterm.setFont( new Font( display , fontFamily , 10 , SWT.NORMAL)) ;
-
 						mlterm.setListener(
 							new MLTermListener()
 							{

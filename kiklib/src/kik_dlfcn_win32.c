@@ -6,11 +6,12 @@
 
 #include  <stdio.h>		/* NULL */
 #include  <string.h>		/* strlen */
-#include  <limits.h>		/* MAX_PATH */
+
 #include  "kik_mem.h"		/* alloca() */
 
 #include  <windows.h>
 #include  <winbase.h>
+
 
 /* --- global functions --- */
 
@@ -23,7 +24,8 @@ kik_dl_open(
 	HMODULE  module ;
 	char *  path ;
 #if defined(__CYGWIN__) || defined(__MSYS__)
-	char  winpath[MAX_PATH];
+	/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
+	char  winpath[MAX_PATH] ;
 #endif
 
 	if( ( path = alloca( strlen( dirpath) + strlen( name) + 8)) == NULL)

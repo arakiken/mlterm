@@ -6,7 +6,7 @@
 #define  __KIK_LOCALE_H__
 
 
-#include  "kik_config.h"	/* HAVE_WINDOWS_H */
+#include  "kik_def.h"	/* HAVE_WINDOWS_H */
 
 
 int  kik_locale_init( const char *  locale) ;

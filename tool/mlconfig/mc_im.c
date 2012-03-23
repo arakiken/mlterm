@@ -11,7 +11,7 @@
 #include <kiklib/kik_dlfcn.h>
 #include <kiklib/kik_map.h>
 #include <kiklib/kik_str.h>
-#include <kiklib/kik_config.h>		/* USE_WIN32API */
+#include <kiklib/kik_def.h>		/* USE_WIN32API */
 #include <glib.h>
 #include <c_intl.h>
 #include <dirent.h>

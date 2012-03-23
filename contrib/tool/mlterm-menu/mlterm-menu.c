@@ -14,7 +14,7 @@
 
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_conf_io.h>
-#include <kiklib/kik_config.h>		/* USE_WIN32API */
+#include <kiklib/kik_def.h>		/* USE_WIN32API */
 
 #if  defined(USE_WIN32API)
 #define CONFIG_PATH "."

@@ -14,7 +14,7 @@
 #include  <errno.h>
 #include  <utmp.h>
 
-#include  "kik_config.h"	/* off_t */
+#include  "kik_types.h"		/* off_t */
 #include  "kik_util.h"		/* K_MIN */
 #include  "kik_mem.h"		/* malloc/free */
 #include  "kik_privilege.h"

@@ -7,7 +7,7 @@
 
 
 #include  "kik_types.h"
-#include  "kik_config.h"
+#include  "kik_def.h"
 
 
 /* XXX win32 basename() works strangely if cp932 characters are pssed. */

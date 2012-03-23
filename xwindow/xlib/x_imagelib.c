@@ -24,7 +24,8 @@
 #endif
 
 #include <kiklib/kik_debug.h>
-#include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t/SIZE_MAX */
+#include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
+#include <kiklib/kik_def.h>	/* SIZE_MAX */
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_util.h>	/* K_MIN */

@@ -5,7 +5,7 @@
 #include  "ml_pty_intern.h"
 
 #include  <libssh2.h>
-#include  <kiklib/kik_config.h>
+#include  <kiklib/kik_def.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>

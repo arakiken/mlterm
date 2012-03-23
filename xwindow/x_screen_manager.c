@@ -9,7 +9,7 @@
 #include  <stdlib.h>		/* getenv */
 #include  <unistd.h>		/* getuid */
 
-#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+#include  <kiklib/kik_def.h>	/* USE_WIN32API */
 #ifndef  USE_WIN32API
 #include  <pwd.h>		/* getpwuid */
 #endif

@@ -32,6 +32,24 @@
 #define CONFIG_PATH "/etc"
 #endif
 
+#define  MOUSE_POS_LIMIT  (0xff - 0x20)
+#define  EXT_MOUSE_POS_LIMIT  (0x7ff - 0x20)
+
+/* Same as those defined in SWT.java */
+#define  AltMask (1 << 16)
+#define  ShiftMask  (1 << 17)
+#define  ControlMask  (1 << 18)
+#define  Button1Mask  (1 << 19)
+#define  Button2Mask  (1 << 20)
+#define  Button3Mask  (1 << 21)
+#define  Button4Mask  (1 << 23)
+#define  Button5Mask  (1 << 25)
+
+
+#if  1
+#define  TUNEUP_HACK
+#endif
+
 #if  0
 #define  __DEBUG
 #endif
@@ -47,6 +65,8 @@ typedef struct  native_obj
 	ml_config_event_listener_t  config_listener ;
 	ml_screen_event_listener_t  screen_listener ;
 	ml_xterm_event_listener_t  xterm_listener ;
+
+	char  prev_mouse_report_seq[5] ;
 
 } native_obj_t ;
 
@@ -427,6 +447,45 @@ resize(
 						width , height ,
 						ml_term_get_cols( nativeObj->term) ,
 						ml_term_get_rows( nativeObj->term)) ;
+	}
+
+	return  0 ;
+}
+
+static void
+set_mouse_report(
+	void *  p ,
+	ml_mouse_report_mode_t  mode
+	)
+{
+	if( ! mode)
+	{
+		memset( ((native_obj_t*)p)->prev_mouse_report_seq , 0 , 5) ;
+	}
+}
+
+static void
+bel(
+	void *  p
+	)
+{
+	static jmethodID  mid ;
+	native_obj_t *  nativeObj ;
+	jobject  listener ;
+
+	nativeObj = p ;
+
+	if( ! mid)
+	{
+		mid = (*nativeObj->env)->GetMethodID( nativeObj->env ,
+					(*nativeObj->env)->FindClass( nativeObj->env ,
+						"mlterm/MLTermPtyListener") ,
+					"bell" , "()V") ;
+	}
+
+	if( ( listener = get_listener_obj( nativeObj)))
+	{
+		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid) ;
 	}
 
 	return  0 ;
@@ -861,6 +920,8 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 	nativeObj->xterm_listener.self = nativeObj ;
 	nativeObj->xterm_listener.resize = resize ;
+	nativeObj->xterm_listener.set_mouse_report = set_mouse_report ;
+	nativeObj->xterm_listener.bel = bel ;
 
 	ml_term_attach( nativeObj->term , &nativeObj->xterm_listener ,
 		&nativeObj->config_listener , &nativeObj->screen_listener ,
@@ -1053,6 +1114,53 @@ Java_mlterm_MLTermPty_nativeRead(
 
 		if( ret)
 		{
+		#if  0	/* #ifdef  TUNEUP_HACK */
+			u_int  row ;
+			u_int  num_of_skip ;
+			u_int  num_of_rows ;
+			u_int  num_of_mod ;
+			int  prev_is_modified ;
+			ml_line_t *  line ;
+
+			prev_is_modified = 0 ;
+			num_of_skip = 0 ;
+			num_of_mod = 0 ;
+			num_of_rows = ml_term_get_rows( nativeObj->term) ;
+			for( row = 0 ; row < num_of_rows ; row++)
+			{
+				if( ( line = ml_term_get_line( nativeObj->term , row)) &&
+				    ml_line_is_modified( line))
+				{
+					if( ! prev_is_modified)
+					{
+						num_of_skip ++ ;
+					}
+					prev_is_modified = 1 ;
+
+					num_of_mod ++ ;
+				}
+				else if( prev_is_modified)
+				{
+					prev_is_modified = 0 ;
+				}
+			}
+
+			/*
+			 * If 80% of lines are modified, set modified flag to all lines
+			 * to decrease the number of calling replaceTextRange().
+			 */
+			if( num_of_skip > 2 && num_of_mod * 5 / 4 > num_of_rows)
+			{
+				for( row = 0 ; row < num_of_rows ; row++)
+				{
+					if( ( line = ml_term_get_line( nativeObj->term , row)))
+					{
+						ml_line_set_modified_all( line) ;
+					}
+				}
+			}
+		#endif
+
 			return  JNI_TRUE ;
 		}
 	}
@@ -1286,6 +1394,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 					style_fg_color , color) ;
 				(*env)->SetIntField( env , styles[num_of_styles - 1] ,
 					style_fg_pixel ,
+					/* return -1(white) for invalid color. */
 					ml_get_color_rgb( color , &red , &green , &blue) ?
 						((red << 16) | (green << 8) | blue) : -1) ;
 
@@ -1294,6 +1403,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 					style_bg_color , color) ;
 				(*env)->SetIntField( env , styles[num_of_styles - 1] ,
 					style_bg_pixel ,
+					/* return -1(white) for invalid color. */
 					ml_get_color_rgb( color , &red , &green , &blue) ?
 						((red << 16) | (green << 8) | blue) : -1) ;
 
@@ -1347,7 +1457,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 
 	ml_line_set_updated( line) ;
 
-#if  1
+#ifdef  TUNEUP_HACK
 	{
 		/*
 		 * XXX
@@ -1438,5 +1548,205 @@ Java_mlterm_MLTermPty_nativeIsAppCursorKeys(
 	else
 	{
 		return  JNI_FALSE ;
+	}
+}
+
+JNIEXPORT void JNICALL
+Java_mlterm_MLTermPty_nativeReportMouseTracking(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nobj ,
+	jint  char_index ,
+	jint  row ,
+	jint  button ,
+	jint  state ,
+	jboolean  isMotion ,
+	jboolean  isReleased
+	)
+{
+	native_obj_t *  nativeObj ;
+	ml_line_t *  line ;
+	int  count ;
+	int  col ;
+	int  key_state ;
+	u_char  seq[8] ;
+	size_t  seq_len ;
+
+	nativeObj = nobj ;
+	if( ! nativeObj || ! nativeObj->term ||
+	    ! ml_term_get_mouse_report_mode( nativeObj->term) ||
+	    (isMotion &&
+	     ml_term_get_mouse_report_mode( nativeObj->term) < BUTTON_EVENT_MOUSE_REPORT) ||
+	    ! ( line = ml_term_get_line( nativeObj->term , row)))
+	{
+		return ;
+	}
+
+	/*
+	 * XXX
+	 * Not considering BiDi etc.
+	 */
+
+	if( isMotion || button > 3 /* isWheel */)
+	{
+		col = char_index ;
+	}
+	else
+	{
+		col = 0 ;
+		for( count = 0 ; count < char_index ; count++)
+		{
+			u_int  size ;
+
+			col += ml_char_cols( line->chars + count) ;
+
+			if( ml_get_combining_chars( line->chars + count , &size))
+			{
+				char_index -= size ;
+			}
+		}
+	}
+
+	/*
+	 * Following is the same as x_screen.c:report_mouse_tracking().
+	 */
+
+	if( isReleased)
+	{
+		/* PointerMotion or ButtonRelease */
+		key_state = 0 ;
+		button = 3 ;
+	}
+	else
+	{
+		/*
+		 * Shift = 4
+		 * Meta = 8
+		 * Control = 16
+		 * Button Motion = 32
+		 *
+		 * NOTE: with Ctrl/Shift, the click is interpreted as region selection at present.
+		 * So Ctrl/Shift will never be catched here.
+		 */
+		key_state = ((state & ShiftMask) ? 4 : 0) +
+			((state & AltMask) ? 8 : 0) +
+			((state & ControlMask) ? 16 : 0) +
+			((state & (Button1Mask|Button2Mask|Button3Mask)) ? 32 : 0) ;
+
+		if( state & Button1Mask)
+		{
+			/* ButtonMotion */
+			button = 0 ;
+		}
+		else if( state & Button2Mask)
+		{
+			/* ButtonMotion */
+			button = 1 ;
+		}
+		else if( state & Button3Mask)
+		{
+			/* ButtonMotion */
+			button = 2 ;
+		}
+		else
+		{
+			/* ButtonPress */
+			button -- ;	/* Button1 = 1 -> 0 */
+
+			while( button >= 3)
+			{
+				/* Wheel mouse */
+				key_state += 64 ;
+				button -= 3 ;
+			}
+		}
+	}
+
+	/* clear all bytes of seq to compare with prev_mouse_report_seq. */
+	memcpy( seq , "\x1b[M\0\0\0\0\0" , 8) ;
+
+	seq[3] = 0x20 + button + key_state ;
+
+	if( ml_term_is_extended_mouse_report_mode( nativeObj->term))
+	{
+		int  ch ;
+		u_char *  p ;
+
+		p = seq + 4 ;
+
+		if( (ch = 0x20 + (col < EXT_MOUSE_POS_LIMIT ? col + 1 : EXT_MOUSE_POS_LIMIT))
+			>= 0x80)
+		{
+			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
+			*(p ++) = (ch & 0x3f) | 0x80 ;
+		}
+		else
+		{
+			*(p ++) = ch ;
+		}
+
+		if( (ch = 0x20 + (row < EXT_MOUSE_POS_LIMIT ? row + 1 : EXT_MOUSE_POS_LIMIT))
+			>= 0x80)
+		{
+			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
+			*p = (ch & 0x3f) | 0x80 ;
+		}
+		else
+		{
+			*p = ch ;
+		}
+
+		seq_len = p - seq + 1 ;
+	}
+	else
+	{
+		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col + 1 : MOUSE_POS_LIMIT) ;
+		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row + 1 : MOUSE_POS_LIMIT) ;
+		seq_len = 6 ;
+	}
+
+	if( key_state >= 64 ||						/* Wheeling mouse */
+	    memcmp( nativeObj->prev_mouse_report_seq , seq + 3 , 5) != 0) /* Position is changed */
+	{
+		ml_term_write( nativeObj->term , seq , seq_len , 0) ;
+		memcpy( nativeObj->prev_mouse_report_seq , seq + 3 , 5) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
+	#endif
+	}
+#ifdef  __DEBUG
+	else
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" cursor pos %d %d is not changed and not reported.\n") ;
+	}
+#endif
+}
+
+JNIEXPORT jlong JNICALL
+Java_mlterm_MLTermPty_getColorRGB(
+	JNIEnv *  env ,
+	jclass  class ,
+	jstring  jstr_color
+	)
+{
+	const char *  color ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
+	int  ret ;
+
+	color = (*env)->GetStringUTFChars( env , jstr_color , NULL) ;
+	ret = ml_get_color_rgb( ml_get_color( color) , &red , &green , &blue) ;
+	(*env)->ReleaseStringUTFChars( env , jstr_color , color) ;
+
+	if( ret)
+	{
+		return  ((red << 16) | (green << 8) | blue) ;
+	}
+	else
+	{
+		return  -1 ;
 	}
 }

@@ -2,11 +2,11 @@
  *	$Id$
  */
 
-#include  "kik_config.h"
 #include  "kik_privilege.h"
 
-#include  <sys/types.h>
 #include  <unistd.h>		/* getuid/getgid */
+
+#include  "kik_def.h"
 
 
 /* --- static variables --- */

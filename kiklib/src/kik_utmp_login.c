@@ -21,7 +21,7 @@
 
 #include  "kik_util.h"		/* K_MIN */
 #include  "kik_mem.h"		/* malloc/free */
-#include  "kik_config.h"	/* HAVE_SETUTENT */
+#include  "kik_def.h"		/* HAVE_SETUTENT */
 #include  "kik_privilege.h"
 
 struct  kik_utmp

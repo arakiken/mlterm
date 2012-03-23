@@ -13,7 +13,7 @@
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+#include  <kiklib/kik_def.h>	/* USE_WIN32API */
 #include  <ctype.h>
 #include  <kiklib/kik_util.h>
 #include  <ml_pty.h>

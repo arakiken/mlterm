@@ -6,7 +6,7 @@
 #define  __KIK_DEBUG_H__
 
 
-#include  "kik_config.h"
+#include  "kik_def.h"
 #include  "kik_util.h"	/* KIK_INT_TO_STR */
 
 

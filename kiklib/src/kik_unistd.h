@@ -6,7 +6,7 @@
 #define  __KIK_UNISTD_H__
 
 
-#include  "kik_config.h"
+#include  "kik_def.h"
 #include  "kik_types.h"
 
 

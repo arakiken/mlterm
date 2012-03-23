@@ -7,7 +7,7 @@ package  mlterm ;
 
 public interface MLTermListener
 {
-	public void  lineHeightChanged() ;
+	public void  cellSizeChanged() ;
 
 	public void  ptyClosed() ;
 }

@@ -15,19 +15,6 @@
 #include  <stdint.h>
 #endif
 
-#ifndef SIZE_MAX
-#ifdef  SIZE_T_MAX
-#define SIZE_MAX SIZE_T_MAX
-#else
-#define SIZE_MAX ((size_t)-1)
-#endif
-#endif
-
-#if  0
-/* Check integer overflow. Use this with malloc or alloca. */
-#define  _X(a,b) ((a) > SIZE_MAX / (b) ? SIZE_MAX : (a) * (b))
-#endif
-
 
 /* only for tests */
 #ifdef  TEST_LP64

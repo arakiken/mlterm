@@ -16,4 +16,6 @@ public interface MLTermPtyListener
 	 * If cols and rows are greater than 0, resize by character.
 	 */
 	public void  resize( int  width , int  height , int  cols , int  rows) ;
+
+	public void  bell() ;
 }

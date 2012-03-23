@@ -6,7 +6,7 @@
 #define  __KIK_LANGINFO_H__
 
 
-#include  "kik_config.h"
+#include  "kik_def.h"
 
 
 #ifdef HAVE_LANGINFO_H

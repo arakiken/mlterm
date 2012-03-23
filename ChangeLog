@@ -1,3 +1,31 @@
+2012-03-23  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_types.h, kik_def.h, xlib/x_imagelib.c:
+	  SIZE_MAX is defined in kik_def.h, not in kik_types.h to fix a compilation
+	  error in x_imagelib.c. (SF Bug #3509744)
+	  (Thanks to Thomas Wolff)
+
+	* ml_vt100_parser.c:
+	  "\x1b[0;96;0c" is returned as the value of Secondary DA in order for
+	  vim to decide ttymouse=xterm2 automatically.
+
+	* MLTerm.java:
+	  Drag&Drop is supported.
+
+	* MLTerm.java, MLTermPtyListener.java, MLTermPty.c:
+	  Audible bell is supported.
+
+	* MLTerm.java, MLTermPty.java, MLTermPty.c:
+	  "fg_color", "bg_color" options are supported.
+	  (MLTermPty.getColorRGB() method is added.)
+
+	* MLTerm.java, MLTermPty.c, MLTermPty.java:
+	  Mouse tracking sequences ("CSI ? 1000 h/l", "CSI ? 1002 h/l"
+	  and "CSI ? 1003 h/l") are supported.
+
+	* mltermlet.html:
+	  Meta tags to disable cache is added.
+
 2012-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java: getProperty() method is added to apply configuration in
