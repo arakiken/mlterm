@@ -80,7 +80,7 @@ public class  MLTermApplet extends Applet
 						mlterm.setListener(
 							new MLTermListener()
 							{
-								public void lineHeightChanged()
+								public void cellSizeChanged()
 								{
 									resetSize( shell , mlterm) ;
 								}
@@ -113,12 +113,13 @@ public class  MLTermApplet extends Applet
 							}
 						}
 
+						display.dispose() ;
+
 						synchronized(display)
 						{
 							display.notifyAll() ;
 						}
 
-						display.dispose() ;
 						remove( canvas) ;
 					}
 				}) ;

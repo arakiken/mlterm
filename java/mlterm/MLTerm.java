@@ -878,6 +878,7 @@ public class MLTerm extends StyledText
 						{
 							try
 							{
+								/* blocking until display.notifyAll() is called. */
 								display.wait() ;
 							}
 							catch( InterruptedException  e)
@@ -885,13 +886,31 @@ public class MLTerm extends StyledText
 							}
 						}
 
-						if( ! MLTermPty.waitForReading() || display.isDisposed())
+						/* blocking until pty is ready to be read. */
+						MLTermPty.waitForReading() ;
+
+						if( display.isDisposed())
 						{
 							break ;
 						}
 
 						display.wake() ;
 					}
+
+					/* font and color objects are disposed because display was disposed. */
+
+					font.dispose() ;
+					font = null ;
+
+					for( int  count = 0 ; count < colors.length ; count++)
+					{
+						if( colors[count] != null)
+						{
+							colors[count].dispose() ;
+							colors[count] = null ;
+						}
+					}
+					colors = null ;
 				}
 			})).start() ;
 	}
@@ -1246,11 +1265,11 @@ public class MLTerm extends StyledText
 			}
 		}
 
+		display.dispose() ;
+
 		synchronized(display)
 		{
 			display.notifyAll() ;
 		}
-
-		display.dispose() ;
 	}
 }

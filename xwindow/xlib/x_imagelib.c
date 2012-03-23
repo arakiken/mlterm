@@ -5,6 +5,7 @@
 
 #include  "../x_imagelib.h"
 
+#include <X11/Xlib.h>
 #include <X11/Xatom.h>		/* XInternAtom */
 #include <X11/Xutil.h>
 #include <string.h>		/* memcpy */

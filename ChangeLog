@@ -1,3 +1,14 @@
+2012-03-24  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java:
+	  After display is disposed, font and color objects are disposed, too.
+
+	* MLTermApplet.java:
+	  lineHeightChanged -> cellSizeChanged
+
+	* xlib/x_imagelib.c, tool/mlimgloader/main.c:
+	  <X11/Xlib.h> is included.
+
 2012-03-23  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_types.h, kik_def.h, xlib/x_imagelib.c:
