@@ -1018,18 +1018,24 @@ ml_pty_ssh_new(
 		u_int  tid ;
 
 		rd_ev = CreateEvent( NULL , FALSE , FALSE , "PTY_READ_READY") ;
-
-		/* Launch the thread that wait for receiving data from pty. */
-		if( ! ( thrd = _beginthreadex( NULL , 0 , wait_pty_read , pty , 0 , &tid)))
+		if( GetLastError() != ERROR_ALREADY_EXISTS)
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
-		#endif
+			/* Launch the thread that wait for receiving data from pty. */
+			if( ! ( thrd = _beginthreadex( NULL , 0 , wait_pty_read , pty , 0 , &tid)))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
+			#endif
 
-			goto  error3 ;
+				goto  error3 ;
+			}
+
+			CloseHandle( thrd) ;
 		}
-
-		CloseHandle( thrd) ;
+		else
+		{
+			/* java/MLTerm.java has already watched pty. */
+		}
 	}
 #endif
 

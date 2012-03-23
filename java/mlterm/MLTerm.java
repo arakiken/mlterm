@@ -618,6 +618,28 @@ public class MLTerm extends StyledText
 			{
 				colors[0x101] = getBackground() ;
 			}
+
+
+			/* font and color objects will be disposed when display is disposed. */
+			getDisplay().addListener( SWT.Dispose ,
+				new Listener()
+				{
+					public void handleEvent( Event  event)
+					{
+						font.dispose() ;
+						font = null ;
+
+						for( int  count = 0 ; count < colors.length ; count++)
+						{
+							if( colors[count] != null)
+							{
+								colors[count].dispose() ;
+								colors[count] = null ;
+							}
+						}
+						colors = null ;
+					}
+				}) ;
 		}
 
 		setTextLimit( 100000) ;
@@ -628,7 +650,7 @@ public class MLTerm extends StyledText
 		addListener( SWT.Dispose ,
 			new Listener()
 			{
-				public void handleEvent( Event  e)
+				public void handleEvent( Event  event)
 				{
 					closePty() ;
 				}
@@ -886,31 +908,14 @@ public class MLTerm extends StyledText
 							}
 						}
 
-						/* blocking until pty is ready to be read. */
-						MLTermPty.waitForReading() ;
-
-						if( display.isDisposed())
+						if( ! MLTermPty.waitForReading() /* block until pty is ready to be read. */
+                            || display.isDisposed())
 						{
 							break ;
 						}
 
 						display.wake() ;
 					}
-
-					/* font and color objects are disposed because display was disposed. */
-
-					font.dispose() ;
-					font = null ;
-
-					for( int  count = 0 ; count < colors.length ; count++)
-					{
-						if( colors[count] != null)
-						{
-							colors[count].dispose() ;
-							colors[count] = null ;
-						}
-					}
-					colors = null ;
 				}
 			})).start() ;
 	}
@@ -1251,7 +1256,7 @@ public class MLTerm extends StyledText
 			{
 				if( ! mlterms[count].updatePty())
 				{
-					mlterms[count].getParent().dispose() ;
+					mlterms[count].getShell().dispose() ;
 				}
 			}
 

@@ -619,6 +619,21 @@ Java_mlterm_MLTermPty_nativeOpen(
 		WSADATA  wsadata ;
 		WSAStartup( MAKEWORD(2,0) , &wsadata) ;
 		wsa_inited = 1 ;
+
+		/*
+		 * Prevent ml_pty_ssh from spawning a thread to watch pty.
+		 * If both ml_pty_ssh and MLTerm.java spawn threads to watch ptys,
+		 * problems will happen in reloading (that is, finalizing and
+		 * starting simultaneously) an applet page (mltermlet.html)
+		 * in a web browser.
+		 *
+		 * This hack doesn't make sense to ml_pty_pipewin32.c.
+		 * In the first place, if ml_pty_pipewin32 is used,
+		 * Java_mlterm_MLTermPty_waitForReading() returns JNI_FALSE
+		 * and PtyWather thread of MLTerm.java immediately exits.
+		 * So threads in ml_pty_pipewin32 should not be prevented.
+		 */
+		CreateEvent( NULL , FALSE , FALSE , "PTY_READ_READY") ;
 	}
 #endif
 
@@ -1025,6 +1040,9 @@ Java_mlterm_MLTermPty_waitForReading(
 	jclass  class
 	)
 {
+#if  defined(USE_WIN32API) && ! defined(USE_LIBSSH2)
+	return  JNI_FALSE ;
+#else
 	u_int  count ;
 	ml_term_t **  terms ;
 	u_int  num_of_terms ;
@@ -1057,6 +1075,7 @@ Java_mlterm_MLTermPty_waitForReading(
 	select( maxfd + 1 , &read_fds , NULL , NULL , NULL) ;
 
 	return  JNI_TRUE ;
+#endif
 }
 
 JNIEXPORT jboolean JNICALL

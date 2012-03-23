@@ -1,6 +1,16 @@
 2012-03-24  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java:
+	  The place to dispose font and color objects is moved from PtyWather
+	  thread to a dispose event listener of a display.
+
+	* MLTermPty.c:
+	  If libssh2 is used in win32, prevent a thread to watch pty in ml_pty_ssh.c
+	  from spawning.
+
+2012-03-24  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java:
 	  After display is disposed, font and color objects are disposed, too.
 
 	* MLTermApplet.java:
