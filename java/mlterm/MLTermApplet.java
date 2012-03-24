@@ -57,6 +57,7 @@ public class  MLTermApplet extends Applet
 						String  host = MLTerm.getProperty( "default_server") ;
 						String  pass = null ;
 						String  encoding = null ;
+						String[]  argv = null ;
 
 						if( System.getProperty( "os.name").indexOf( "Windows") >= 0 ||
 						    host != null)
@@ -71,11 +72,23 @@ public class  MLTermApplet extends Applet
 								{
 									encoding = array[2] ;
 								}
+								if( array[3] != null)
+								{
+									argv = array[3].split( " ") ;
+								}
 							}
 						}
 
 						final MLTerm mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
-												host , pass , 80 , 24 , encoding , null) ;
+												host , pass , 80 , 24 , encoding , argv) ;
+						if( ! mlterm.isActive())
+						{
+							MessageBox  box = new MessageBox( shell , SWT.OK) ;
+							box.setMessage( "Failed to open pty.") ;
+							box.open() ;
+
+							return ;
+						}
 
 						mlterm.setListener(
 							new MLTermListener()

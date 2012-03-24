@@ -920,6 +920,24 @@ public class MLTerm extends StyledText
 			})).start() ;
 	}
 
+	public boolean  isActive()
+	{
+		if( pty == null)
+		{
+			return  false ;
+		}
+		else if( ! pty.isActive())
+		{
+			closePty() ;
+
+			return  false ;
+		}
+		else
+		{
+			return  true ;
+		}
+	}
+
 	public void  setListener( MLTermListener  lsn)
 	{
 		listener = lsn ;
@@ -967,14 +985,8 @@ public class MLTerm extends StyledText
 
 	public boolean  updatePty()
 	{
-		if( pty == null)
+		if( ! isActive())
 		{
-			return  false ;
-		}
-		else if( ! pty.isActive())
-		{
-			closePty() ;
-
 			return  false ;
 		}
 		else if( pty.read())
@@ -1054,6 +1066,14 @@ public class MLTerm extends StyledText
 	{
 		final MLTerm  mlterm = new MLTerm( shell , SWT.BORDER|SWT.V_SCROLL ,
 									host , pass , cols , rows , encoding , argv) ;
+		if( ! mlterm.isActive())
+		{
+			MessageBox  box = new MessageBox( shell , SWT.OK) ;
+			box.setMessage( "Failed to open pty.") ;
+			box.open() ;
+
+			return ;
+		}
 
 		mlterm.setListener(
 			new MLTermListener()
@@ -1143,6 +1163,8 @@ public class MLTerm extends StyledText
 			openDialog = true ;
 		}
 
+		String  geom = MLTerm.getProperty( "geometry") ;
+
 		for( int  count = 0 ; count < args.length ; count ++)
 		{
 			if( args[count].equals( "-h"))
@@ -1171,21 +1193,7 @@ public class MLTerm extends StyledText
 				}
 				else if( args[count].equals( "-g"))
 				{
-					String[]  geom = args[++count].split( "x") ;
-					if( geom.length == 2)
-					{
-						try
-						{
-							int  c = Integer.parseInt( geom[0]) ;
-							int  r = Integer.parseInt( geom[1]) ;
-
-							cols = c ;
-							rows = r ;
-						}
-						catch( NumberFormatException  e)
-						{
-						}
-					}
+					geom = args[++count] ;
 				}
 				else if( args[count].equals( "-km"))
 				{
@@ -1219,6 +1227,26 @@ public class MLTerm extends StyledText
 			}
 		}
 
+		if( geom != null)
+		{
+			String[]  array = geom.split( "x") ;
+			if( array.length == 2)
+			{
+				try
+				{
+					int  c = Integer.parseInt( array[0]) ;
+					int  r = Integer.parseInt( array[1]) ;
+
+					cols = c ;
+					rows = r ;
+				}
+				catch( NumberFormatException  e)
+				{
+					System.err.println( geom + " geometry is illegal.") ;
+				}
+			}
+		}
+
 		Display  display = new Display() ;
 
 		Shell  shell = new Shell(display) ;
@@ -1241,6 +1269,10 @@ public class MLTerm extends StyledText
 			if( array[2] != null)
 			{
 				encoding = array[2] ;
+			}
+			if( array[3] != null)
+			{
+				argv = array[3].split( " ") ;
 			}
 		}
 

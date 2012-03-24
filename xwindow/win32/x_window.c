@@ -440,6 +440,8 @@ total_min_height(
 	return  min_height ;
 }
 
+/* Not used for now */
+#if  0
 static u_int
 total_base_width(
 	x_window_t *  win
@@ -481,6 +483,7 @@ total_base_height(
 
 	return  base_height ;
 }
+#endif
 
 static u_int
 total_width_inc(

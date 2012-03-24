@@ -13,6 +13,7 @@
 #include  <kiklib/kik_util.h>	/* KIK_DIGIT_STR */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>	/* kik_file_unset_cloexec */
+#include  <kiklib/kik_unistd.h>	/* kik_setenv/kik_unsetenv */
 
 #include  "ml_config_proto.h"
 
@@ -95,7 +96,7 @@ sig_error(
 		if( fork() > 0)
 		{
 			/* child process */
-			setenv( "INHERIT_PTY_LIST" , env , 1) ;
+			kik_setenv( "INHERIT_PTY_LIST" , env , 1) ;
 
 			if( auto_restart_cmd)
 			{
@@ -343,7 +344,7 @@ ml_create_term(
 			}
 		}
 
-		unsetenv( "INHERIT_PTY_LIST") ;
+		kik_unsetenv( "INHERIT_PTY_LIST") ;
 
 		if( num_of_terms > 0)
 		{

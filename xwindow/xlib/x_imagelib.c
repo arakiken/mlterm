@@ -5,6 +5,11 @@
 
 #include  "../x_imagelib.h"
 
+/*
+ * <Xutil.h> might not include <Xlib.h> internally in some environments
+ * (e.g. open window in Solaris 2.6), so <X11/Xlib.h> is necessary.
+ * SF Bug 350944.
+ */
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>		/* XInternAtom */
 #include <X11/Xutil.h>

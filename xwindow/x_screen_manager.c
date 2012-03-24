@@ -220,6 +220,7 @@ open_pty_intern(
 		char *  host ;
 		char *  port ;
 		char *  encoding ;
+		char *  exec_cmd ;
 		ml_char_encoding_t  e ;
 
 	#ifdef  USE_LIBSSH2
@@ -236,7 +237,7 @@ open_pty_intern(
 		}
 		else
 	#endif
-		if( ! x_connect_dialog( &uri , &pass , display , window ,
+		if( ! x_connect_dialog( &uri , &pass , &exec_cmd , display , window ,
 				main_config.server_list , main_config.default_server))
 		{
 			kik_msg_printf( "Connect dialog is canceled.\n") ;
@@ -256,6 +257,19 @@ open_pty_intern(
 		if( encoding && ( e = ml_get_char_encoding( encoding)) != ML_UNKNOWN_ENCODING)
 		{
 			ml_term_change_encoding( term , e) ;
+		}
+
+		if( exec_cmd)
+		{
+			int  argc ;
+			char *  tmp ;
+
+			tmp = exec_cmd ;
+			exec_cmd = kik_str_alloca_dup( exec_cmd) ;
+			cmd_argv = kik_arg_str_to_array( &argc , exec_cmd) ;
+			cmd_path = cmd_argv[0] ;
+
+			free( tmp) ;
 		}
 	}
 #endif

@@ -43,17 +43,6 @@ __kik_usleep(
 
 #endif
 
-#ifndef  HAVE_UNSETENV
-
-void
-__kik_unsetenv(
-	const char *  name
-	)
-{
-}
-
-#endif
-
 
 #ifndef  HAVE_GETUID
 

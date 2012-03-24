@@ -108,7 +108,13 @@ error_handler(
  * For Cygwin X.
  */
 
+/*
+ * NOGDI prevents <windows.h> from including <winspool.h> which uses
+ * variables named 'Status' which is defined as int in Xlib.h.
+ */
+#define  NOGDI
 #include  <windows.h>
+#undef  NOGDI
 
 static void
 hide_console(void)

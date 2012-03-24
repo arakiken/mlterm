@@ -32,7 +32,8 @@
 int
 x_connect_dialog(
 	char **  uri ,		/* Should be free'ed by those who call this. */
-	char **  pass ,		/* Same as above. If pass is not input, "" is set. */
+	char **  pass ,		/* Same as uri. If pass is not input, "" is set. */
+	char **  exec_cmd ,	/* Same as uri. If exec_cmd is not input, NULL is set. */
 	char *  display_name ,
 	Window  parent_window ,
 	char **  sv_list ,
@@ -208,6 +209,8 @@ x_connect_dialog(
 	XCloseDisplay( display) ;
 
 	*uri = strdup( def_server) ;
+
+	*exec_cmd = NULL ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Connecting to %s %s\n" , *uri , *pass) ;

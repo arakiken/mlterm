@@ -1,3 +1,27 @@
+2012-03-25  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_display.c:
+	  Add a hack not to inclulde <winspool.h> in order to avoid compilation
+	  failure in Cygwin/X. (SF Bug #3509743)
+	  (Thanks to Thomas Wolff)
+
+	* x_screen_manager.c, win32/x_connect_dialog.c, winrs.rs,
+	  ConnectDialog.java, MLTerm.java, MLTermApplet.java:
+	  "Exec cmd" is possible to be input in connecting to a ssh server.
+
+	* MLTerm.java:
+	  "geometry" option is supported.
+
+	* ml_term_manager.c:
+	  unsetenv -> kik_unsetenv (SF Bug #3509744)
+	  (Thanks to Thomas Wolff)
+
+	* kik_unistd.[ch]:
+	  - kik_setenv is defined as setenv or SetEnvironmentVariable().
+	  - kik_unsetenv is defined as unsetenv, setenv(...,"") or
+	    SetEnvironmentVariable(...,NULL).
+	    __kik_unsetenv() is removed.
+
 2012-03-24  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java:

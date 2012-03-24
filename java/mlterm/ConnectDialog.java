@@ -32,6 +32,7 @@ public class  ConnectDialog extends Dialog
 	 *  String[0] -> host
 	 *  String[1] -> password
 	 *  String[2] -> encoding (can be null)
+	 *  String[3] -> exec cmd (can be null)
 	 */
 	public String[]  open( String  uri)
 	{
@@ -143,6 +144,12 @@ public class  ConnectDialog extends Dialog
 		Text  encoding = new Text( shell , SWT.BORDER) ;
 		encoding.setLayoutData( textGrid) ;
 
+		/* Exec cmd */
+		label = new Label( shell , SWT.NONE) ;
+		label.setText( "Exec cmd") ;
+		Text  execCmd = new Text( shell , SWT.BORDER) ;
+		execCmd.setLayoutData( textGrid) ;
+
 		/* OK/Cancel */
 		comp = new Composite( shell , SWT.NONE) ;
 		comp.setLayoutData( new GridData( SWT.FILL , SWT.FILL , true , true , 2 , 1)) ;
@@ -210,7 +217,7 @@ public class  ConnectDialog extends Dialog
 		}
 
 		final Control[]  tabList = new Control[] { ssh , telnet , rlogin , server , port , user ,
-								pass , encoding , ok , cancel } ;
+								pass , encoding , execCmd , ok , cancel } ;
 
 		KeyAdapter  keyAdapter =
 			new KeyAdapter()
@@ -292,7 +299,7 @@ public class  ConnectDialog extends Dialog
 
 		shell.pack() ;
 		shell.open() ;
-		Display  display = getParent().getDisplay() ;
+		Display  display = shell.getDisplay() ;
 		array = null ;
 		while( ! shell.isDisposed())
 		{
@@ -301,7 +308,7 @@ public class  ConnectDialog extends Dialog
 				uri = server.getText() ;
 				if( ! uri.equals( ""))
 				{
-					array = new String[3] ;
+					array = new String[4] ;
 
 					String  str = user.getText() ;
 					if( ! str.equals( ""))
@@ -323,6 +330,11 @@ public class  ConnectDialog extends Dialog
 					if( array[2].equals( ""))
 					{
 						array[2] = null ;
+					}
+					array[3] = execCmd.getText() ;
+					if( array[3].equals( ""))
+					{
+						array[3] = null ;
 					}
 				}
 			}

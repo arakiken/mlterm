@@ -31,6 +31,7 @@ static char *  selected_port ;
 static char *  selected_user ;
 static char *  selected_pass ;
 static char *  selected_encoding ;
+static char *  selected_exec_cmd ;
 
 
 /* --- static functions --- */
@@ -231,7 +232,9 @@ LRESULT CALLBACK dialog_proc(
 							GetDlgItem( dlgwin , IDD_PASS)) ;
 				selected_encoding = get_window_text(
 							GetDlgItem( dlgwin , IDD_ENCODING)) ;
-				
+				selected_exec_cmd = get_window_text(
+							GetDlgItem( dlgwin , IDD_EXEC_CMD)) ;
+
 				EndDialog( dlgwin , IDOK) ;
 				
 				break ;
@@ -330,7 +333,8 @@ LRESULT CALLBACK dialog_proc(
 int
 x_connect_dialog(
 	char **  uri ,		/* Should be free'ed by those who call this. */
-	char **  pass ,		/* Same as above. If pass is not input, "" is set. */
+	char **  pass ,		/* Same as uri. If pass is not input, "" is set. */
+	char **  exec_cmd ,	/* Same as uri. If exec_cmd is not input, NULL is set. */
 	char *  display_name ,
 	Window  parent_window ,
 	char **  sv_list ,
@@ -422,6 +426,8 @@ x_connect_dialog(
 
 	*pass = selected_pass ? selected_pass : strdup( "") ;
 
+	*exec_cmd = selected_exec_cmd ;
+
 	/* Successfully */
 	ret = 1 ;
 
@@ -439,6 +445,8 @@ end:
 	selected_user = NULL ;
 	free( selected_encoding) ;
 	selected_encoding = NULL ;
+	free( selected_exec_cmd) ;
+	selected_exec_cmd = NULL ;
 
 	if( ret == 0)
 	{

@@ -58,6 +58,7 @@ How to build & install mlterm co-operating with Java.
     fontsize
     fg_color
     bg_color
+    geometry
     default_server
     exec_cmd (*) (FYI: Use "exec_cmd = create" to connect user@shell.sf.net with "create" command.)
     font (*) (e.g. "font = Kochi Gothic", "font = MS Gothic")
