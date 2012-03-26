@@ -57,7 +57,8 @@ swt.jar :
 	if test -e $(SWT_JAR) ; then cp $(SWT_JAR) swt.jar ; fi
 
 mlterm.jar : $(CLASS) $(TARGET@WIN32TAG@) manifest.mf
-	jar cmf manifest.mf mlterm.jar mlterm/*.class `find * -name "*.dll" -o -name "*.s*"`
+	jar cmf manifest.mf mlterm.jar mlterm/*.class \
+		`find * -name "*.dll" -o -name "*.s*" -o -name "plink.exe"`
 
 $(TARGET_win32) : MLTermPty.h
 	$(CC) -Wl,--kill-at $(CFLAGS) -shared -o MLTermPty.dll \
@@ -70,9 +71,9 @@ $(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
 	# .s? -> .so or .sl
 	cp .libs/*.s? .
 
-manifest.mf :
+manifest.mf : $(TARGET@WIN32TAG@)
 	cp $(top_srcdir)/java/manifest.mf.in manifest.mf
-	files=`find * -name "*.dll" -o -name "*.s*" | xargs | sed 's/ /;/g'` ; \
+	files=`find * -name "*.dll" -o -name "*.s*" -o -name "plink.exe" | xargs | sed 's/ /;/g'` ; \
 	if test "$${files}" != "" ; then \
 		echo -n "Bundle-NativeCode: " >> manifest.mf ; \
 		echo $${files} >> manifest.mf ; \

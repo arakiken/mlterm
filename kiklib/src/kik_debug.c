@@ -38,12 +38,16 @@ open_msg_file(void)
 		time_t  tm ;
 		char *  time_str ;
 
-		if( fseek( fp , -1 , SEEK_END) == 0 && fread( &ch , 1 , 1 , fp) == 1)
+		if( fseek( fp , -1 , SEEK_END) == 0)
 		{
-			if( ch != '\n')
+			if( fread( &ch , 1 , 1 , fp) == 1 && ch != '\n')
 			{
+				fseek( fp , 0 , SEEK_SET) ;
+
 				return  fp ;
 			}
+
+			fseek( fp , 0 , SEEK_SET) ;
 		}
 
 		tm = time(NULL) ;

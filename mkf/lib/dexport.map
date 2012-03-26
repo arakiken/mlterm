@@ -26,8 +26,6 @@ global:
 	mkf_bytes_to_int ;
 	mkf_int_to_bytes ;
 
-	mkf_set_alt_lib_dir ;
-
 local:
 	* ;
 } ;

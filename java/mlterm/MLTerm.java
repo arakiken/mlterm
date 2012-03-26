@@ -1003,19 +1003,9 @@ public class MLTerm extends StyledText
 	{
 		prop = new Properties() ;
 
-		String  config ;
-		if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
-		{
-			config = "/mlterm/main" ;
-		}
-		else
-		{
-			config = "/.mlterm/main" ;
-		}
-
 		try
 		{
-			prop.load( new FileInputStream( System.getProperty( "user.home") + config)) ;
+			prop.load( new FileInputStream( MLTermPty.getConfigDirectory() + "main")) ;
 		}
 		catch( IOException  e)
 		{

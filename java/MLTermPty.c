@@ -18,6 +18,8 @@
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_path.h>	/* kik_basename */
+#include  <kiklib/kik_unistd.h>	/* kik_setenv */
+#include  <kiklib/kik_args.h>	/* _kik_arg_str_to_array */
 #include  <mkf/mkf_utf16_conv.h>
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
@@ -76,6 +78,10 @@ typedef struct  native_obj
 static mkf_parser_t *  str_parser ;
 static mkf_parser_t *  utf8_parser ;
 static mkf_conv_t *  utf16_conv ;
+
+#if  defined(USE_WIN32API) && ! defined(USE_LIBSSH2)
+static char *  plink ;
+#endif
 
 
 /* --- static functions --- */
@@ -487,8 +493,6 @@ bel(
 	{
 		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid) ;
 	}
-
-	return  0 ;
 }
 
 
@@ -562,16 +566,80 @@ get_num_of_filled_chars_except_spaces(
 /* --- global functions --- */
 
 JNIEXPORT void JNICALL
-Java_mlterm_MLTermPty_setAltLibDir(
+Java_mlterm_MLTermPty_setLibDir(
 	JNIEnv *  env ,
 	jclass  class ,
-	jstring  jstr_dir
+	jstring  jstr_dir	/* Always ends with '/' or '\\' */
 	)
 {
 	const char *  dir ;
+	const char *  value ;
+#ifdef  HAVE_WINDOWS_H
+	const char *  key = "PATH" ;
+#else
+	const char *  key = "LD_LIBRARY_PATH" ;
+#endif
+	size_t  count ;
 
 	dir = (*env)->GetStringUTFChars( env , jstr_dir , NULL) ;
-	mkf_set_alt_lib_dir( strdup( dir)) ;
+
+	/*
+	 * Reset PATH or LD_LIBRARY_PATH to be able to load shared libraries
+	 * in %HOMEPATH%/mlterm/java or ~/.mlterm/java/.
+	 */
+
+	if( ( value = getenv( key)))
+	{
+		char *  p ;
+
+		if( ! ( p = alloca( strlen( value) + 1 + strlen( dir) + 1)))
+		{
+			return ;
+		}
+
+	#ifdef  USE_WIN32API
+		sprintf( p , "%s;%s" , dir , value) ;
+	#else
+		sprintf( p , "%s:%s" , dir , value) ;
+	#endif
+		value = p ;
+	}
+	else
+	{
+		value = dir ;
+	}
+
+	kik_setenv( key , value , 1) ;
+
+#ifdef  DEBUG
+	{
+	#ifdef  HAVE_WINDOWS_H
+		char  buf[4096] ;
+
+		GetEnvironmentVariable( key , buf , sizeof(buf)) ;
+		value = buf ;
+	#endif
+
+		kik_debug_printf( KIK_DEBUG_TAG " setting environment variable %s=%s\n" ,
+			key , value) ;
+	}
+#endif	/* DEBUG */
+
+#if  defined(USE_WIN32API) && ! defined(USE_LIBSSH2)
+	/*
+	 * SetEnvironmentVariable( "PATH" , %HOMEPATH%\mlterm\java;%PATH) doesn't make effect
+	 * for CreateProcess(), differently from LoadLibrary().
+	 */
+	if( ( plink = malloc( strlen( dir) + 9 + 1)))
+	{
+		sprintf( plink , "%s%s" , dir , "plink.exe") ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " %s is set for default cmd path.\n" , plink) ;
+	#endif
+	}
+#endif
+
 	(*env)->ReleaseStringUTFChars( env , jstr_dir , dir) ;
 }
 
@@ -811,7 +879,11 @@ Java_mlterm_MLTermPty_nativeOpen(
 			}
 		#endif
 
-			if( ( value = kik_conf_get_value( conf , "exec_cmd")) &&
+			if( ( ( value = kik_conf_get_value( conf , "exec_cmd"))
+			#if  defined(USE_WIN32API) && ! defined(USE_LIBSSH2)
+			      || ( value = plink)
+			#endif
+			      ) &&
 			    ( default_argv = malloc( sizeof(char*) *
 						kik_count_char_in_str( value , ' ') + 2)))
 			{

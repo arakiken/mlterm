@@ -309,7 +309,7 @@ pty_open(
 	{
 		cmd_line = cmd_path ;
 	}
-	
+
 	if( ! CreateProcess( cmd_path , cmd_line , NULL , NULL , TRUE , CREATE_NO_WINDOW ,
 				NULL , NULL , &si , &pi))
 	{
@@ -641,7 +641,8 @@ ml_pty_pipe_new(
 		}
 	}
 
-	if( ! cmd_path /* || ! cmd_argv */)
+	if( ! cmd_path || /* ! cmd_argv || */
+	    (strstr( cmd_path , "plink") && cmd_argv[0] && ! cmd_argv[1]))
 	{
 		if( ! ( cmd_argv = alloca( sizeof(char*) * 8)) ||
 		    ! kik_parse_uri( &proto , &user , &host , &port , NULL , NULL ,
@@ -652,7 +653,10 @@ ml_pty_pipe_new(
 			return  NULL ;
 		}
 
-		cmd_path = "plink.exe" ;
+		if( ! cmd_path)
+		{
+			cmd_path = "plink.exe" ;
+		}
 
 		idx = 0 ;
 		cmd_argv[idx++] = cmd_path ;

@@ -27,7 +27,7 @@ int  __kik_usleep( u_int  microseconds) ;
 
 #ifdef  USE_WIN32API
 
-#define  kik_setenv( name , value , overwrite)  SetEnvironmentVariable( name , value)
+#define  kik_setenv( name , value , overwrite)  SetEnvironmentVariableA( name , value)
 
 #else
 
@@ -47,7 +47,7 @@ int  __kik_usleep( u_int  microseconds) ;
 #else
 
 #ifdef  USE_WIN32API
-#define  kik_unsetenv( name)  SetEnvironmentVariable( name , NULL)
+#define  kik_unsetenv( name)  SetEnvironmentVariableA( name , NULL)
 #else
 #include  <stdlib.h>
 #define  kik_unsetenv( name)  setenv( name , "" , 1) ;

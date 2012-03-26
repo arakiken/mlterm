@@ -13,7 +13,7 @@ import  java.util.* ;
 
 public class  MLTermPty
 {
-	private native static void  setAltLibDir( String  dir) ;
+	private native static void  setLibDir( String  dir) ;
 
 	private static void  loadLibraryFromJar()
 	{
@@ -54,21 +54,27 @@ public class  MLTermPty
 			return ;
 		}
 
+		String  dir = getConfigDirectory() + "java" + System.getProperty( "file.separator") ;
+		File  d = new File( dir) ;
+		d.mkdir() ;
+		d.setWritable( true , true) ;
+		d.setReadable( true , true) ;
+
 		String[]  files = mf.getMainAttributes().getValue( "Bundle-NativeCode").split( ";") ;
-		String  tmpdir = System.getProperty( "java.io.tmpdir") + "/" ;
+
 		byte[]  buf = new byte[4096] ;
 		for( int  count = 0 ; count < files.length ; count++)
 		{
 			if( true)
 			{
-				System.out.println( "Writing " + tmpdir + files[count]) ;
+				System.out.println( "Writing " + dir + files[count]) ;
 			}
 
 			InputStream  is = Thread.currentThread().getContextClassLoader().
 									getResourceAsStream( files[count]) ;
 			try
 			{
-				OutputStream  os = new FileOutputStream( tmpdir + files[count] , false) ;
+				OutputStream  os = new FileOutputStream( dir + files[count] , false) ;
 				try
 				{
 					while( true)
@@ -109,16 +115,17 @@ public class  MLTermPty
 			for( int  count = 0 ; count < files.length ; count++)
 			{
 				if( ! results[count] &&
-					files[count].indexOf( '_') == -1)	/* libmkf_xxx is not loaded. */
+					files[count].indexOf( '_') == -1 &&	/* libmkf_xxx is not loaded. */
+					files[count].indexOf( ".exe") == -1)/* plink.exe is not loaded. */
 				{
 					try
 					{
 						if( true)
 						{
-							System.out.print( "Loading " + tmpdir + files[count]) ;
+							System.out.print( "Loading " + dir + files[count]) ;
 						}
 
-						System.load( tmpdir + files[count]) ;
+						System.load( dir + files[count]) ;
 						results[count] = true ;
 
 						if( true)
@@ -149,7 +156,7 @@ public class  MLTermPty
 			throw new UnsatisfiedLinkError() ;
 		}
 
-		setAltLibDir( tmpdir) ;
+		setLibDir( dir) ;
 	}
 
 	static
@@ -172,6 +179,24 @@ public class  MLTermPty
 
 			loadLibraryFromJar() ;
 		}
+	}
+
+	public static String  getConfigDirectory()
+	{
+		StringBuilder  strb = new StringBuilder() ;
+		strb.append( System.getProperty( "user.home")) ;
+		strb.append( System.getProperty( "file.separator")) ;
+		if( System.getProperty( "os.name").indexOf( "Windows") >= 0)
+		{
+			strb.append( "mlterm") ;
+		}
+		else
+		{
+			strb.append( ".mlterm") ;
+		}
+		strb.append( System.getProperty( "file.separator")) ;
+
+		return  strb.toString() ;
 	}
 
 	private MLTermPtyListener  listener = null ;

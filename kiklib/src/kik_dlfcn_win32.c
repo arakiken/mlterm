@@ -9,8 +9,14 @@
 
 #include  "kik_mem.h"		/* alloca() */
 
+#define  _WIN32_WINNT 0x0502	/* for SetDllDirectory */
 #include  <windows.h>
 #include  <winbase.h>
+
+
+/* --- static functions --- */
+
+static int  initialized ;
 
 
 /* --- global functions --- */
@@ -26,6 +32,14 @@ kik_dl_open(
 #if defined(__CYGWIN__) || defined(__MSYS__)
 	/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
 	char  winpath[MAX_PATH] ;
+#endif
+
+#ifdef  HAVE_WINDOWS_H
+	if( ! initialized)
+	{
+		SetDllDirectory( "") ;	/* Don't load library at CWD. */
+		initialized = 1 ;
+	}
 #endif
 
 	if( ( path = alloca( strlen( dirpath) + strlen( name) + 8)) == NULL)

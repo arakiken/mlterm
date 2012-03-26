@@ -1,3 +1,26 @@
+2012-03-26  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty_pipewin32.c:
+	  If cmd_argv is { "...\plink.exe" , NULL }, its options which are
+	  input from dialogbox are appended.
+
+	* MLTermPty.java:
+	  Native shared libraries are saved at ~/.mlterm/java or %HOMEPATH%/java
+	  instead of /tmp.
+
+	* MLTermPty.java, MLTermPty.c:
+	  - setAltLibDir() -> setLibDir()
+	  - PATH and LD_LIBRARY_PATH are set instead of mkf_set_alt_lib_dir().
+
+	* mkf/lib/Makefile.in, mkf_tblfunc_loader.[ch], mkf/lib/dexport.map:
+	  MAJOR.MINOR version 16.1 -> 16.0.
+	  mkf_set_alt_lib_dir() is removed.
+
+	* kik_debug.c:
+	  fseek( fp , 0 , SEEK_SET) is called after checking if EOF character is
+	  '\n' or not by fseek( fp , -1 , SEEK_END), because it fails to write
+	  messages in win32 without this.
+
 2012-03-25  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_display.c:
