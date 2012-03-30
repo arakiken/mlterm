@@ -174,9 +174,13 @@ convert_char_index_to_x(
 			ml_char_t *  ch ;
 
 			ch = ml_char_at( line , count) ;
-			x -= x_calculate_char_width(
-				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+
+			if( ml_char_cols( ch) > 0)
+			{
+				x -= x_calculate_char_width(
+					x_get_font( screen->font_man , ml_char_font( ch)) ,
+					ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+			}
 		}
 	}
 	else
@@ -190,9 +194,13 @@ convert_char_index_to_x(
 			ml_char_t *  ch ;
 
 			ch = ml_char_at( line , count) ;
-			x += x_calculate_char_width(
-				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+
+			if( ml_char_cols( ch) > 0)
+			{
+				x += x_calculate_char_width(
+					x_get_font( screen->font_man , ml_char_font( ch)) ,
+					ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+			}
 		}
 	}
 
@@ -268,6 +276,12 @@ convert_x_to_char_index(
 			ml_char_t *  ch ;
 
 			ch = ml_char_at( line , count) ;
+
+			if( ml_char_cols( ch) == 0)
+			{
+				continue ;
+			}
+
 			width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
 				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
@@ -292,6 +306,12 @@ convert_x_to_char_index(
 			ml_char_t *  ch ;
 
 			ch = ml_char_at( line , count) ;
+
+			if( ml_char_cols( ch) == 0)
+			{
+				continue ;
+			}
+
 			width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
 				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;

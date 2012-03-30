@@ -1,13 +1,15 @@
-ver 3.0.12
+ver 3.1.0
 * Support extended mouse tracking mode. (CSI ? 1005 h and CSI ? 1005 l)
 * Support "use_variable_column_width" and "letter_space" options in win32.
 * Support multiple numeric parameters of SM, RM, DECSET and DESRST sequence.
   (Thanks to Iwamoto Kouichi san)
+* Add java version. (experimental)
 * Bug fixes:
   SF Bug #3481552 (Thanks to Kobayashi Hiroaki san)
   SF Bug #3487163 (Thanks to raghavkrishna)
   SF Bug #3509743 (Thanks to Thomas Wolff)
   SF Bug #3509744 (Thanks to Thomas Wolff)
+  SF Bug #3512067 (Thanks to phcoder)
   Fix a bug which didn't clear margin area after visual bell.
   Fix a bug which disabled scrolling in vertical mode in win32.
   Fix a bug which disabled wheel mouse in win32.

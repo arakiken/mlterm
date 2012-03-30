@@ -121,7 +121,7 @@ typedef enum  mkf_charset
 	ISO10646_UCS2_1 = NON_ISO2022_2_ID('@') ,	/* Including US_ASCII(0x0-0x7f) */
 	ISO10646_UCS4_1 = NON_ISO2022_2_ID('A') ,	/* Including US_ASCII(0x0-0x7f) */
 
-	
+
 	/* Followings are mkf original classifications */
 	
 	/*

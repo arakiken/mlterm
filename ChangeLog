@@ -1,3 +1,12 @@
+2012-03-31  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm/ml_char.c, x_draw_str.c, x_screen.c:
+	  ml_char_cols() returns 0 for some control characters of Unicode,
+	  and characters which ml_char_cols() returns 0 for aren't drawn.
+	  (Thanks to phcoder)
+
+	* doc/en/ReleaseNote: Updated.
+
 2012-03-26  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty_pipewin32.c:

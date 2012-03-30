@@ -366,10 +366,7 @@ ssh_connect(
 		if( libssh2_userauth_publickey_fromfile( session->obj , user ,
 				pubkey , privkey , pass) == 0)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" Authentication by public key succeeded.\n") ;
-		#endif
+			kik_msg_printf( "Authentication by public key succeeded.\n") ;
 
 			auth_success = 1 ;
 		}
@@ -390,10 +387,7 @@ ssh_connect(
 		if( libssh2_userauth_keyboard_interactive(
 			session->obj , user , &kbd_callback) == 0)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" Authentication by keyboard-interactive succeeded.\n") ;
-		#endif
+			kik_msg_printf( "Authentication by keyboard-interactive succeeded.\n") ;
 
 			auth_success = 1 ;
 		}
@@ -411,7 +405,8 @@ ssh_connect(
 		if( ! strstr( userauthlist , "password"))
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " No supported authentication methods found.\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG
+				" No supported authentication methods found.\n") ;
 		#endif
 
 			goto  error4 ;
@@ -419,10 +414,8 @@ ssh_connect(
 
 		if( libssh2_userauth_password( session->obj , user , pass) != 0)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" Authentication by password failed.\n") ;
-		#endif
+			kik_msg_printf( "Authentication by password failed.\n") ;
+
 			goto  error4 ;
 		}
 

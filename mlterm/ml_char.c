@@ -12,20 +12,20 @@
 #define  CHARSET(attr)  (((attr) >> 7) & 0x1ff)
 #define  SIZE(attr) (CS_SIZE(CHARSET(attr)))
 
-#define  IS_BIWIDTH(attr)  (((attr) >> 6) & 0x1)
+#define  IS_BIWIDTH(attr)  ((attr) & (0x1 << 6))
 
-#define  IS_REVERSED(attr)  (((attr) >> 5) & 0x1)
+#define  IS_REVERSED(attr)  ((attr) & (0x1 << 5))
 #define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 5))
 #define  RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 5))
 
-#define  IS_BOLD(attr)  (((attr) >> 4) & 0x1)
+#define  IS_BOLD(attr)  ((attr) & (0x1 << 4))
 
-#define  IS_UNDERLINED(attr)  (((attr) >> 3) & 0x1)
+#define  IS_UNDERLINED(attr)  ((attr) & (0x1 << 3))
 
-#define  IS_COMB(attr)  (((attr) >> 2) & 0x1)
+#define  IS_COMB(attr)  ((attr) & (0x1 << 2))
 
-#define  IS_COMB_TRAILING(attr)  (((attr) >> 1) & 0x1)
-#define  SET_COMB_TRAILING(attr)  ((attr) |= 0x2)
+#define  IS_COMB_TRAILING(attr)  ((attr) & (0x1 << 1))
+#define  SET_COMB_TRAILING(attr)  ((attr) |= (0x1 << 1))
 #define  UNSET_COMB_TRAILING(attr)  ((attr) &= 0xfffd)
 
 #define  IS_SINGLE_CH(attr)  ((attr) & 0x1)
@@ -189,24 +189,24 @@ ml_char_set(
 	int  is_underlined
 	)
 {
+#ifdef  DEBUG
 	if( CS_SIZE(cs) != size)
 	{
-	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " char size error => size %d <=> CS_SIZE %d\n",
 			size, CS_SIZE(cs)) ;
-	#endif
+
 		return  0 ;
 	}
 
 	if( size > MLCHAR_SIZE)
 	{
-	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " size %d is over MAX CHAR SIZE %d\n",
 			size, MLCHAR_SIZE) ;
-	#endif
+
 		return  0 ;
 	}
-	
+#endif
+
 	ml_char_final( ch) ;
 
 	memcpy( ch->u.ch.bytes , bytes , size) ;
@@ -570,10 +570,31 @@ ml_char_cols(
 	{
 		return  2 ;
 	}
-	else
+	else if( IS_SINGLE_CH(ch->u.ch.attr) && CHARSET(ch->u.ch.attr) == ISO10646_UCS4_1)
 	{
-		return  1 ;
+		/*
+		 * 0 should be returned for all zero-width characters of Unicode,
+		 * but 0 is returned for following characters alone for now.
+		 * 200C;ZERO WIDTH NON-JOINER
+		 * 200D;ZERO WIDTH JOINER
+		 * 200E;LEFT-TO-RIGHT MARK
+		 * 200F;RIGHT-TO-LEFT MARK
+		 * 202A;LEFT-TO-RIGHT EMBEDDING
+		 * 202B;RIGHT-TO-LEFT EMBEDDING
+		 * 202C;POP DIRECTIONAL FORMATTING
+		 * 202D;LEFT-TO-RIGHT OVERRIDE
+		 * 202E;RIGHT-TO-LEFT OVERRIDE
+		*/
+		if( ch->u.ch.bytes[2] == 0x20 &&
+		    ((0x0c <= ch->u.ch.bytes[3] && ch->u.ch.bytes[3] <= 0x0f) ||
+		     (0x2a <= ch->u.ch.bytes[3] && ch->u.ch.bytes[3] <= 0x2e)) &&
+		    ch->u.ch.bytes[0] == 0 && ch->u.ch.bytes[1] == 0)
+		{
+			return  0 ;
+		}
 	}
+
+	return  1 ;
 }
 
 /*

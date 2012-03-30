@@ -35,6 +35,11 @@ fc_draw_combining_chars(
 
 	for( count = 0 ; count < size ; count ++)
 	{
+		if( ml_char_cols( &chars[count]) == 0)
+		{
+			continue ;
+		}
+
 		ch_bytes = ml_char_bytes( &chars[count]) ;
 		ch_size = ml_char_size( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
@@ -134,6 +139,13 @@ fc_draw_str(
 	end_of_str = 0 ;
 
 	count = 0 ;
+	while( ml_char_cols( &chars[count]) == 0)
+	{
+		if( ++ count >= num_of_chars)
+		{
+			return  1 ;
+		}
+	}
 
 	ch_bytes = ml_char_bytes( &chars[count]) ;
 	ch_size = ml_char_size( &chars[count]) ;
@@ -220,14 +232,19 @@ fc_draw_str(
 		 * next character.
 		 */
 
-		count ++ ;
-
-		if( count >= num_of_chars)
+		do
 		{
-			start_draw = 1 ;
-			end_of_str = 1 ;
+			if( ++ count >= num_of_chars)
+			{
+				start_draw = 1 ;
+				end_of_str = 1 ;
+
+				break ;
+			}
 		}
-		else
+		while( ml_char_cols( &chars[count]) == 0) ;
+
+		if( ! end_of_str)
 		{
 			ch_bytes = ml_char_bytes( &chars[count]) ;
 			ch_size = ml_char_size( &chars[count]) ;
@@ -420,6 +437,11 @@ xcore_draw_combining_chars(
 
 	for( count = 0 ; count < size ; count ++)
 	{
+		if( ml_char_cols( &chars[count]) == 0)
+		{
+			continue ;
+		}
+
 		ch_bytes = ml_char_bytes( &chars[count]) ;
 		ch_size = ml_char_size( &chars[count]) ;
 
@@ -533,6 +555,13 @@ xcore_draw_str(
 	}
 
 	count = 0 ;
+	while( ml_char_cols( &chars[count]) == 0)
+	{
+		if( ++ count >= num_of_chars)
+		{
+			return  1 ;
+		}
+	}
 
 	start_draw = 0 ;
 	end_of_str = 0 ;
@@ -631,14 +660,19 @@ xcore_draw_str(
 		 * next character.
 		 */
 
-		count ++ ;
-
-		if( count >= num_of_chars)
+		do
 		{
-			start_draw = 1 ;
-			end_of_str = 1 ;
+			if( ++ count >= num_of_chars)
+			{
+				start_draw = 1 ;
+				end_of_str = 1 ;
+
+				break ;
+			}
 		}
-		else
+		while( ml_char_cols( &chars[count]) == 0) ;
+
+		if( ! end_of_str)
 		{
 			ch_bytes = ml_char_bytes( &chars[count]) ;
 			ch_size = ml_char_size( &chars[count]) ;
