@@ -40,7 +40,7 @@
 #define  CS94MB_FT(cs)  ( ((cs) & 0xff) - 0x40)
 #define  CS96MB_FT(cs)  ' '			/* dummy */
 
-#define  IS_CS94SB(cs)  (0x00 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x4e)
+#define  IS_CS94SB(cs)  ((unsigned int)((cs) & 0xff) <= 0x4e)  /* same as 0x00 <= .. <= 0x4e */
 #define  IS_CS96SB(cs)  (0x50 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x7f)
 #define  IS_CS94MB(cs)  (0x80 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x9f)
 #define  IS_CS96MB(cs)  (0)			/* always false */

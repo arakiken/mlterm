@@ -757,10 +757,6 @@ IND_LIBS
 subdirs
 CHANGE_DATE
 XWINDOW_OBJ_SUFFIX
-DL_SELF
-MKF_LIBS_FOR_MODULE
-KIK_LIBS_FOR_MODULE
-NO_UNDEFINED_FLAG
 INTL_LIBS
 POSUB
 LTLIBINTL
@@ -806,6 +802,11 @@ VERSION
 PACKAGE
 CYGPATH_W
 am__isrc
+VT52_CFLAGS
+DL_SELF
+MKF_LIBS_FOR_MODULE
+KIK_LIBS_FOR_MODULE
+NO_UNDEFINED_FLAG
 DL_LIBS_SB
 SB_CFLAGS
 DL_LIBS_IM
@@ -993,6 +994,7 @@ enable_m17nlib
 enable_ibus
 enable_scim
 with_scrollbars
+enable_vt52
 enable_optimize_redrawing
 enable_dependency_tracking
 enable_nls
@@ -1676,6 +1678,7 @@ Optional Features:
   --enable-m17nlib        m17n library (Experimental) [default=disabled]
   --enable-ibus           IBUS (Experimental) [default=disabled]
   --enable-scim           SCIM (Experimental) [default=disabled]
+  --enable-vt52                  enable VT52 emulation [default=disabled]
   --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
@@ -4580,7 +4583,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4583 "configure"' > conftest.$ac_ext
+  echo '#line 4586 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7149,11 +7152,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7152: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7155: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7156: \$? = $ac_status" >&5
+   echo "$as_me:7159: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7439,11 +7442,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7442: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7445: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7446: \$? = $ac_status" >&5
+   echo "$as_me:7449: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7543,11 +7546,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7546: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7549: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7550: \$? = $ac_status" >&5
+   echo "$as_me:7553: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9568,7 +9571,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9571 "configure"
+#line 9574 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9668,7 +9671,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9671 "configure"
+#line 9674 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12009,11 +12012,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12012: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12015: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12016: \$? = $ac_status" >&5
+   echo "$as_me:12019: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12113,11 +12116,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12116: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12119: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12120: \$? = $ac_status" >&5
+   echo "$as_me:12123: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13696,11 +13699,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13699: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13702: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13703: \$? = $ac_status" >&5
+   echo "$as_me:13706: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13800,11 +13803,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13803: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13806: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13807: \$? = $ac_status" >&5
+   echo "$as_me:13810: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15961,11 +15964,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15964: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15967: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15968: \$? = $ac_status" >&5
+   echo "$as_me:15971: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16251,11 +16254,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16254: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16257: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16258: \$? = $ac_status" >&5
+   echo "$as_me:16261: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16355,11 +16358,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16358: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16361: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16362: \$? = $ac_status" >&5
+   echo "$as_me:16365: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -22434,6 +22437,49 @@ done # for scrollbar in ${scrollbars}
 
 
 
+
+#
+# --- module related stuffs ---
+#
+
+# undefined symbol
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for undefined symbol" >&5
+$as_echo_n "checking for undefined symbol... " >&6; }
+if test "x$allow_undefined_flag" = "xunsupported" ; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
+$as_echo "not supported" >&6; }
+	NO_UNDEFINED_FLAG="-no-undefined"
+	KIK_LIBS_FOR_MODULE='-L${top_builddir}/kiklib/src -lkik'
+	MKF_LIBS_FOR_MODULE='-L${top_builddir}/mkf/lib -lmkf'
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: supported" >&5
+$as_echo "supported" >&6; }
+	NO_UNDEFINED_FLAG=""
+	KIK_LIBS_FOR_MODULE=""
+	MKF_LIBS_FOR_MODULE=""
+fi
+
+
+
+
+if test "x$with_libltdl" != "xno" ; then
+	DL_SELF="-dlopen self"
+fi
+
+
+
+# Check whether --enable-vt52 was given.
+if test "${enable_vt52+set}" = set; then :
+  enableval=$enable_vt52; vt52=$enable_vt52
+else
+  vt52="no"
+fi
+
+if test "$vt52" = "yes" ; then
+	VT52_CFLAGS="-DUSE_VT52"
+fi
+
+
 # Check whether --enable-optimize_redrawing was given.
 if test "${enable_optimize_redrawing+set}" = set; then :
   enableval=$enable_optimize_redrawing; optimize_redrawing=$enable_optimize_redrawing
@@ -24861,36 +24907,6 @@ if test "x$ac_cv_lib_intl_gettext" = x""yes; then :
 
 fi
 
-fi
-
-
-
-#
-# --- module related stuffs ---
-#
-
-# undefined symbol
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for undefined symbol" >&5
-$as_echo_n "checking for undefined symbol... " >&6; }
-if test "x$allow_undefined_flag" = "xunsupported" ; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-$as_echo "not supported" >&6; }
-	NO_UNDEFINED_FLAG="-no-undefined"
-	KIK_LIBS_FOR_MODULE='-L${top_builddir}/kiklib/src -lkik'
-	MKF_LIBS_FOR_MODULE='-L${top_builddir}/mkf/lib -lmkf'
-else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: supported" >&5
-$as_echo "supported" >&6; }
-	NO_UNDEFINED_FLAG=""
-	KIK_LIBS_FOR_MODULE=""
-	MKF_LIBS_FOR_MODULE=""
-fi
-
-
-
-
-if test "x$with_libltdl" != "xno" ; then
-	DL_SELF="-dlopen self"
 fi
 
 

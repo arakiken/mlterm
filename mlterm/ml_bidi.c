@@ -1,3 +1,4 @@
+
 /*
  *	$Id$
  */
@@ -47,7 +48,7 @@ ml_get_bidi_mode_name(
 	ml_bidi_mode_t  mode
 	)
 {
-	if( mode < 0 || BIDI_MODE_MAX <= mode)
+	if( (u_int)mode >= BIDI_MODE_MAX)
 	{
 		/* default value */
 		mode = BIDI_NORMAL_MODE ;

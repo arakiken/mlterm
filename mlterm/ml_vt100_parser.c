@@ -545,7 +545,8 @@ restore_cursor(
 		else
 		{
 			/* XXX: what to do for g0/g1? */
-			if( src->cs == DEC_SPECIAL){
+			if( src->cs == DEC_SPECIAL)
+			{
 				vt100_parser->is_dec_special_in_gl = 1;
 			}
 			else
@@ -1463,6 +1464,133 @@ debug_print_unknown(
 #endif
 
 
+#ifdef  USE_VT52
+inline static int
+parse_vt52_escape_sequence(
+	ml_vt100_parser_t *  vt100_parser	/* vt100_parser->left must be more than 0 */
+	)
+{
+	u_char *  str_p ;
+	size_t  left ;
+
+	str_p = CURRENT_STR_P(vt100_parser) ;
+	left = vt100_parser->left ;
+
+	if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
+	{
+		return  0 ;
+	}
+
+	if( *str_p == 'A')
+	{
+		ml_screen_go_upward( vt100_parser->screen , 1) ;
+	}
+	else if( *str_p == 'B')
+	{
+		ml_screen_go_downward( vt100_parser->screen , 1) ;
+	}
+	else if( *str_p == 'C')
+	{
+		ml_screen_go_forward( vt100_parser->screen , 1) ;
+	}
+	else if( *str_p == 'D')
+	{
+		ml_screen_go_back( vt100_parser->screen , 1) ;
+	}
+	else if( *str_p == 'F')
+	{
+		/* Enter graphics mode */
+	}
+	else if( *str_p == 'G')
+	{
+		/* Exit graphics mode */
+	}
+	else if( *str_p == 'H')
+	{
+		ml_screen_goto( vt100_parser->screen , 0 , 0) ;
+	}
+	else if( *str_p == 'I')
+	{
+		if( ml_screen_cursor_row( vt100_parser->screen) == 0)
+		{
+			ml_screen_scroll_downward( vt100_parser->screen , 1) ;
+		}
+		else
+		{
+			ml_screen_go_upward( vt100_parser->screen , 1) ;
+		}
+	}
+	else if( *str_p == 'J')
+	{
+		ml_screen_clear_below( vt100_parser->screen) ;
+	}
+	else if( *str_p == 'K')
+	{
+		ml_screen_clear_line_to_right( vt100_parser->screen) ;
+	}
+	else if( *str_p == 'Y')
+	{
+		int  row ;
+		int  col ;
+
+		if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
+		{
+			return  0 ;
+		}
+
+		if( *str_p < ' ')
+		{
+			goto  end ;
+		}
+
+		row = *str_p - ' ' ;
+
+		if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
+		{
+			return  0 ;
+		}
+
+		if( *str_p < ' ')
+		{
+			goto  end ;
+		}
+
+		col = *str_p - ' ' ;
+
+		ml_screen_goto( vt100_parser->screen , col , row) ;
+	}
+	else if( *str_p == 'Z')
+	{
+		char  msg[] = "\x1b/Z" ;
+
+		ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
+	}
+	else if( *str_p == '=')
+	{
+		/* Enter altenate keypad mode */
+	}
+	else if( *str_p == '>')
+	{
+		/* Exit altenate keypad mode */
+	}
+	else if( *str_p == '<')
+	{
+		vt100_parser->is_vt52_mode = 0 ;
+	}
+	else
+	{
+		/* not VT52 control sequence */
+
+		return  1 ;
+	}
+
+end:
+	vt100_parser->left = left - 1 ;
+
+	return  1 ;
+}
+#endif
+
 /*
  * Parse escape/control sequence. Note that *any* valid format sequence
  * is parsed even if mlterm doesn't support it.
@@ -1496,6 +1624,13 @@ parse_vt100_escape_sequence(
 	{
 	#ifdef  ESCSEQ_DEBUG
 		kik_msg_printf( "RECEIVED ESCAPE SEQUENCE(current left = %d: ESC", left) ;
+	#endif
+
+	#ifdef  USE_VT52
+		if( vt100_parser->is_vt52_mode)
+		{
+			return  parse_vt52_escape_sequence( vt100_parser) ;
+		}
 	#endif
 
 		if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
@@ -1726,10 +1861,24 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_cursor_keys = 1 ;
 						}
-					#if  0
+					#ifdef  USE_VT52
 						else if( ps[count] == 2)
 						{
-							/* "CSI ? 2 h" reset charsets to USASCII */
+							/* "CSI ? 2 h" */
+							vt100_parser->is_vt52_mode = 0 ;
+
+							/*
+							 * USASCII should be designated for G0-G3
+							 * here, but it is temporized by using
+							 * ml_init_encoding_parser() etc for now.
+							 */
+
+							vt100_parser->is_dec_special_in_gl = 0 ;
+							vt100_parser->is_so = 0 ;
+							vt100_parser->is_dec_special_in_g0 = 0 ;
+							vt100_parser->is_dec_special_in_g1 = 0 ;
+
+							ml_init_encoding_parser( vt100_parser) ;
 						}
 					#endif
 						else if( ps[count] == 3)
@@ -1940,10 +2089,11 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_cursor_keys = 0 ;
 						}
-					#if  0
+					#ifdef  USE_VT52
 						else if( ps[count] == 2)
 						{
-							/* "CSI ? 2 l" reset charsets to USASCII */
+							/* "CSI ? 2 l" */
+							vt100_parser->is_vt52_mode = 1 ;
 						}
 					#endif
 						else if( ps[count] == 3)

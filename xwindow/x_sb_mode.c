@@ -2,8 +2,10 @@
  *	$Id$
  */
 
-#include  <string.h>
 #include  "x_sb_mode.h"
+
+#include  <string.h>
+#include  <kiklib/kik_types.h>	/* u_int */
 
 
 /* --- static variables --- */
@@ -41,7 +43,7 @@ x_get_sb_mode_name(
 	x_sb_mode_t  mode
 	)
 {
-	if( mode < 0 || SBM_MAX <= mode)
+	if( (u_int)mode >= SBM_MAX)
 	{
 		/* default value */
 		mode = SBM_NONE ;

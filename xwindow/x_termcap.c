@@ -429,7 +429,7 @@ x_termcap_get_str_field(
 	x_termcap_str_field_t  field
 	)
 {
-	if( 0 <= field && field < MAX_TERMCAP_STR_FIELDS)
+	if( (u_int)field < MAX_TERMCAP_STR_FIELDS)
 	{
 		return  entry->str_fields[field] ;
 	}
@@ -445,7 +445,7 @@ x_termcap_get_bool_field(
 	x_termcap_bool_field_t  field
 	)
 {
-	if( 0 <= field && field < MAX_TERMCAP_BOOL_FIELDS)
+	if( (u_int)field < MAX_TERMCAP_BOOL_FIELDS)
 	{
 		return  entry->bool_fields[field] ;
 	}

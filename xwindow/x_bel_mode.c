@@ -5,6 +5,7 @@
 #include  "x_bel_mode.h"
 
 #include  <string.h>		/* strcmp */
+#include  <kiklib/kik_types.h>	/* u_int */
 
 
 /* --- static variables --- */
@@ -42,7 +43,7 @@ x_get_bel_mode_name(
 	x_bel_mode_t  mode
 	)
 {
-	if( mode < 0 || BEL_MODE_MAX <= mode)
+	if( (u_int)mode >= BEL_MODE_MAX)
 	{
 		/* default value */
 		mode = BEL_SOUND ;

@@ -180,7 +180,7 @@ ml_line_bidi_convert_logical_char_index_to_visual(
 	)
 {
 	if( ml_line_is_using_bidi( line) &&
-	    0 <= char_index && char_index < line->ctl_info.bidi->size &&
+	    (u_int)char_index < line->ctl_info.bidi->size &&  /* same as 0 <= char_index < size */
 	    HAS_RTL( line->ctl_info.bidi))
 	{
 		int  count ;

@@ -1,3 +1,13 @@
+2012-04-01  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: --enable-vt52 is added.
+
+	* ml_vt100_parser.[ch]: VT52 emulation is added.
+
+	* README: Updated
+
+	* version.h.in: 3.0.11 => 3.1.0 pre
+
 2012-03-31  Araki Ken  <arakiken@users.sf.net>
 
 	* mlterm/ml_char.c, x_draw_str.c, x_screen.c:

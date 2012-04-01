@@ -854,27 +854,6 @@ done # for scrollbar in ${scrollbars}
 AC_SUBST(SB_CFLAGS)
 AC_SUBST(DL_LIBS_SB)
 
-AC_ARG_ENABLE(optimize_redrawing,
-	[  --enable-optimize-redrawing    optimize redrawing a line @<:@default=disabled@:>@],
-	optimize_redrawing=$enable_optimize_redrawing,
-	optimize_redrawing="no")
-if test "$optimize_redrawing" = "yes" ; then
-	CFLAGS="$CFLAGS -DOPTIMIZE_REDRAWING"
-fi
-
-# gettext
-AM_INIT_AUTOMAKE(mlterm,3.0.11)
-AM_GNU_GETTEXT([external])
-
-# XXX(maybe not portable)
-if test "${USE_NLS}" = "yes" ; then
-	AC_CHECK_LIB(intl,gettext,
-		[
-		INTL_LIBS="-lintl"
-		])
-fi
-AC_SUBST(INTL_LIBS)
-
 
 #
 # --- module related stuffs ---
@@ -901,6 +880,37 @@ if test "x$with_libltdl" != "xno" ; then
 	DL_SELF="-dlopen self"
 fi
 AC_SUBST(DL_SELF)
+
+
+AC_ARG_ENABLE(vt52,
+	[  --enable-vt52                  enable VT52 emulation @<:@default=disabled@:>@],
+	vt52=$enable_vt52,
+	vt52="no")
+if test "$vt52" = "yes" ; then
+	VT52_CFLAGS="-DUSE_VT52"
+fi
+AC_SUBST(VT52_CFLAGS)
+
+AC_ARG_ENABLE(optimize_redrawing,
+	[  --enable-optimize-redrawing    optimize redrawing a line @<:@default=disabled@:>@],
+	optimize_redrawing=$enable_optimize_redrawing,
+	optimize_redrawing="no")
+if test "$optimize_redrawing" = "yes" ; then
+	CFLAGS="$CFLAGS -DOPTIMIZE_REDRAWING"
+fi
+
+# gettext
+AM_INIT_AUTOMAKE(mlterm,3.0.11)
+AM_GNU_GETTEXT([external])
+
+# XXX(maybe not portable)
+if test "${USE_NLS}" = "yes" ; then
+	AC_CHECK_LIB(intl,gettext,
+		[
+		INTL_LIBS="-lintl"
+		])
+fi
+AC_SUBST(INTL_LIBS)
 
 # Because pic object files are fat, non-pic ones are linked unless --disable-static
 # option is specified.

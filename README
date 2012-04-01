@@ -60,7 +60,7 @@ Options for configure
     which are statically linked to mlterm.
   
   --enable-ssh2
-    Use libssh2 to connect ssh2 server.
+    Use libssh2 to connect ssh2 server
     (Usage: mlterm(mlclient) --serv ssh://user@xxx.xxx.xxx)
 
   --enable-utmp
@@ -79,22 +79,22 @@ Options for configure
     Build specified tools in tool/ and contrib/tool/ directories
 
   --disable-dnd
-    Disable XDnD.
+    Disable XDnD
 
   --disable-kbd
-    Disable kbd input method for Arabic, Hebrew and Indic.
+    Disable kbd input method for Arabic, Hebrew and Indic
 
   --enable-uim
-    Support uim (Universal? Input Method) if available.
+    Support uim (Universal? Input Method) if available
 
   --enable-m17nlib
-    Support m17n library if available.
+    Support m17n library if available
 
   --enable-scim
-    Support SCIM (Smart Common Input Method platform) if available.
+    Support SCIM (Smart Common Input Method platform) if available
 
   --enable-ibus
-    Support iBUS (Intelligent Input Bus) if available.
+    Support iBUS (Intelligent Input Bus) if available
 
   --enable-pty-helper
     Support gnome-pty-helper. (Note that it is impossible to enable
@@ -102,7 +102,10 @@ Options for configure
     placed at ${libexecdir}/ directory.)
 
   --with-gtk=(2.0|3.0)
-    Use specified version of GTK+.
+    Use specified version of GTK+
+
+  --enable-vt52
+    Support vt52 emulation
 
   --disable-shared
     Disable shared libraries

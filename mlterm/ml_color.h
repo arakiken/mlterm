@@ -12,7 +12,7 @@
 #define  MAX_VTSYS_COLORS  16
 #define  MAX_BASIC_VTSYS_COLORS  8
 
-#define  IS_VTSYS_COLOR(color)  (0x0 <= (color) && (color) <= 0xf)
+#define  IS_VTSYS_COLOR(color)  ((unsigned int)(color) <= 0xf)  /* same as 0 <= color <= 0xf */
 #define  IS_256_COLOR(color)  (0x10 <= (color) && (color) <= 0xff)
 #define  IS_VALID_COLOR(color)  (0x0 <= (color) && (color) < 0x100)
 
