@@ -1432,9 +1432,8 @@ init_screen(
 			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
 			main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
-			main_config.input_method , main_config.allow_osc52) ;
-	/* XXX override margin */
-	terminal->pvt->screen->window.margin = WINDOW_MARGIN ;
+			main_config.input_method , main_config.allow_osc52 ,
+			main_config.blink_cursor , WINDOW_MARGIN) ;
 	if( terminal->pvt->term)
 	{
 		ml_term_detach( terminal->pvt->term) ;
@@ -3571,6 +3570,23 @@ vte_terminal_set_cursor_blink_mode(
 	VteTerminalCursorBlinkMode  mode
 	)
 {
+	/*
+	 * XXX
+	 * Not work until x_display_idling is implemented.
+	 */
+
+	char *  value ;
+
+	if( mode == VTE_CURSOR_BLINK_ON)
+	{
+		value = "true" ;
+	}
+	else
+	{
+		value = "false" ;
+	}
+
+	x_screen_set_config( terminal->pvt->screen , NULL , "blink_cursor" , value) ;
 }
 
 VteTerminalCursorBlinkMode
@@ -3578,7 +3594,19 @@ vte_terminal_get_cursor_blink_mode(
 	VteTerminal *  terminal
 	)
 {
-	return  VTE_CURSOR_BLINK_OFF ;
+	/*
+	 * XXX
+	 * Not work until x_display_idling is implemented.
+	 */
+
+	if( terminal->pvt->screen->window.idling)
+	{
+		return  VTE_CURSOR_BLINK_ON ;
+	}
+	else
+	{
+		return  VTE_CURSOR_BLINK_OFF ;
+	}
 }
 
 void

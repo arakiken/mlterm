@@ -272,6 +272,9 @@ comment $Id$
       o screen_height_ratio  (*100*) (#)
         実スクリーンの縦幅(百分率)
 
+      o inner_border (*2*)
+        Window の inner border (0-255)
+
       -- Terminal 関連 --
       o use_login_shell  (true/*false*)
         ログインシェルを使うかどうか
@@ -525,6 +528,9 @@ comment $Id$
 
       o borderless (true/*false*)
         Window Manager の飾りを外す。
+
+      o blink_cursor (true/*false*)
+        カーソルを点滅させる。
 
       -- その他 --
       o use_xim  (*true*/false)
@@ -1078,7 +1084,9 @@ comment $Id$
        --serv=value    : default_server
        --csp=value     : letter_space
        --ucsprop(=bool): use_unicode_property
-       --logmsg(=bool) : logging_msg
+       --osc52(=bool)  : allow_osc52
+       --blink(=bool)  : blink_cursor
+       --border=value  : inner_border
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --button3=value : button3_behavior (X)
@@ -1086,6 +1094,7 @@ comment $Id$
        --pubkey=value  : ssh_public_key
        --privkey=value : ssh_private_key
        --restart(=bool): auto_restart
+       --logmsg(=bool) : logging_msg
 
     -e ... : 指定したコマンドを起動
 

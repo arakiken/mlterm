@@ -1944,6 +1944,10 @@ x_window_idling(
 	{
 		(*win->button_press_continued)( win , &win->prev_button_press_event) ;
 	}
+	else if( win->idling)
+	{
+		(*win->idling)( win) ;
+	}
 }
 
 /*

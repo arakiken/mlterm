@@ -20,6 +20,8 @@
 
 # screen_height_ratio = 100
 
+# inner_border = 2
+
 # -- Terminal --
 # use_login_shell = false
 
@@ -132,6 +134,8 @@ scrollbar_view_name = sample
 
 # borderless = false
 
+# blink_cursor = false
+
 # -- Others --
 # use_xim = true
   
@@ -188,3 +192,5 @@ scrollbar_view_name = sample
 # ssh_private_key = 
 
 # auto_restart = true
+
+# allow_osc52 = false

@@ -646,8 +646,6 @@ draw_cursor(
 	
 	if( screen->window.is_focused)
 	{
-		ml_color_t orig_ch_bg ;
-
 	#ifdef  USE_IM_CURSOR_COLOR
 		if( im_cursor_color && xterm_im_is_active( screen))
 		{
@@ -662,27 +660,20 @@ draw_cursor(
 		}
 	#endif
 
-		orig_ch_bg = ml_char_bg_color(&ch);
-
 		/* if fg/bg color should be overriden, reset ch's color to default */
 		if( x_color_manager_adjust_cursor_fg_color( screen->color_man))
 		{
-			/* for curosr's bg, *FG* color should be used */
-			ml_char_set_bg_color( &ch, ML_FG_COLOR) ;
-		}
-		else
-		{
-			ml_char_set_bg_color( &ch, ml_char_fg_color(&ch)) ;
+			/* for curosr's bg */
+			ml_char_set_bg_color( &ch, ML_BG_COLOR) ;
 		}
 
 		if( x_color_manager_adjust_cursor_bg_color( screen->color_man))
 		{
-			ml_char_set_fg_color( &ch, ML_BG_COLOR);
+			/* for cursor's fg */
+			ml_char_set_fg_color( &ch, ML_FG_COLOR);
 		}
-		else
-		{
-			ml_char_set_fg_color( &ch, orig_ch_bg);
-		}
+
+		ml_char_reverse_color( &ch) ;
 	}
 
 	x_draw_str( &screen->window , screen->font_man ,
@@ -1037,7 +1028,6 @@ bs_scroll_upward(
 {
 	if( ml_term_backscroll_upward( screen->term , 1))
 	{
-		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
@@ -1055,7 +1045,6 @@ bs_scroll_downward(
 {
 	if( ml_term_backscroll_downward( screen->term , 1))
 	{
-		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
@@ -1073,7 +1062,6 @@ bs_half_page_upward(
 {
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
-		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
@@ -1093,7 +1081,6 @@ bs_half_page_downward(
 {
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
-		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
@@ -1113,7 +1100,6 @@ bs_page_upward(
 {
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term)))
 	{
-		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
@@ -1133,7 +1119,6 @@ bs_page_downward(
 {
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term)))
 	{
-		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
@@ -3888,6 +3873,42 @@ button_released(
 	highlight_cursor( screen) ;
 }
 
+static void
+idling(
+	x_window_t *  win
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = (x_screen_t*) win ;
+
+	if( screen->cursor_blink_wait >= 0)
+	{
+		if( screen->cursor_blink_wait == 5)
+		{
+			unhighlight_cursor( screen , 1) ;
+			x_window_update( &screen->window , UPDATE_SCREEN) ;
+			screen->cursor_blink_wait = -1 ;
+		}
+		else
+		{
+			screen->cursor_blink_wait ++ ;
+		}
+	}
+	else
+	{
+		if( screen->cursor_blink_wait == -6)
+		{
+			x_window_update( &screen->window , UPDATE_SCREEN|UPDATE_CURSOR) ;
+			screen->cursor_blink_wait = 0 ;
+		}
+		else
+		{
+			screen->cursor_blink_wait -- ;
+		}
+	}
+}
+
 
 #ifdef  HAVE_REGEX
 
@@ -5530,6 +5551,17 @@ get_config(
 			value = "false" ;
 		}
 	}
+	else if( strcmp( key , "blink_cursor") == 0)
+	{
+		if( screen->window.idling)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
 	else if( strncmp( key , "selected_text" , 13) == 0)
 	{
 		ml_term_write( term , "#" , 1 , to_menu) ;
@@ -7053,7 +7085,9 @@ x_screen_new(
 	int  override_redirect ,
 	u_int  line_space ,
 	char *  input_method ,
-	int  allow_osc52
+	int  allow_osc52 ,
+	int  blink_cursor ,
+	int  margin
 	)
 {
 	x_screen_t *  screen ;
@@ -7123,7 +7157,7 @@ x_screen_new(
 		screen->term ? screen_width( screen) : x_col_width(screen) ,
 		screen->term ? screen_height( screen) : x_line_height(screen) ,
 		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
-		x_col_width( screen) , x_line_height( screen) , 2 , 0) == 0)	/* min: 1x1 */
+		x_col_width( screen) , x_line_height( screen) , margin , 0) == 0) /* min: 1x1 */
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;
@@ -7212,6 +7246,8 @@ x_screen_new(
 
 	screen->window.window_realized = window_realized ;
 	screen->window.window_finalized = window_finalized ;
+	screen->window.window_deleted = window_deleted ;
+	screen->window.mapping_notify = mapping_notify ;
 	screen->window.window_exposed = window_exposed ;
 	screen->window.update_window = update_window ;
 	screen->window.window_focused = window_focused ;
@@ -7228,11 +7264,13 @@ x_screen_new(
 	screen->window.utf_selection_requested = utf_selection_requested ;
 	screen->window.xct_selection_notified = xct_selection_notified ;
 	screen->window.utf_selection_notified = utf_selection_notified ;
-	screen->window.window_deleted = window_deleted ;
-	screen->window.mapping_notify = mapping_notify ;
 #ifndef  DISABLE_XDND
 	screen->window.set_xdnd_config = set_xdnd_config ;
 #endif
+	if( blink_cursor)
+	{
+		screen->window.idling = idling ;
+	}
 
 	if( use_transbg)
 	{
@@ -7602,8 +7640,6 @@ x_screen_scroll_upward(
 	u_int  size
 	)
 {
-	unhighlight_cursor( screen , 1) ;
-
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
@@ -7622,8 +7658,6 @@ x_screen_scroll_downward(
 	u_int  size
 	)
 {
-	unhighlight_cursor( screen , 1) ;
-
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
@@ -7642,8 +7676,6 @@ x_screen_scroll_to(
 	int  row
 	)
 {
-	unhighlight_cursor( screen , 1) ;
-
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
@@ -8304,6 +8336,17 @@ x_screen_set_config(
 		else
 		{
 			kik_set_msg_log_file_name( NULL) ;
+		}
+	}
+	else if( strcmp( key , "blink_cursor") == 0)
+	{
+		if( true_or_false( value) > 0)
+		{
+			screen->window.idling = idling ;
+		}
+		else
+		{
+			screen->window.idling = NULL ;
 		}
 	}
 	else

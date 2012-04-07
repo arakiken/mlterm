@@ -93,7 +93,7 @@ public class  MLTermApplet extends Applet
 						mlterm.setListener(
 							new MLTermListener()
 							{
-								public void cellSizeChanged()
+								public void sizeChanged()
 								{
 									resetSize( shell , mlterm) ;
 								}

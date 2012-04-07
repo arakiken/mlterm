@@ -537,13 +537,15 @@ e.g.) mlterm \-\-serv ssh://user@host:22:eucjp
 Use unicode properties in encodings excepting UTF-8.
 The default is \fBfalse\fR.
 .TP
-\fB\-\-logmsg\fR(=\fIbool\fR)
-Enable logging messages of mlterm to ~/.mlterm/msg.log.
-The default is \fBtrue\fR.
-.TP
 \fB\-\-osc52\fR(=\fIbool\fR)
 Allow access to clipboard(selection) by OSC 52 sequence.
 The default is \fBfalse\fR.
+.TP
+\fB\-\-blink\fR(=\fIbool\fR)
+Blink cursor. The default is \fBfalse\fR.
+.TP
+\fB\-\-border\fR=\fIvalue\fR
+Specify inner border width. The default is \fB2\fR.
 .TP
 \fB\-\-csp\fR=\fIvalue\fR
 Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
@@ -587,6 +589,10 @@ The default is \fB~/.ssh/id_rsa\fR(\fB%HOMEPATH%\mlterm\id_rsa\fR in win32).
 \fB\-\-restart\fR=\fIvalue\fR
 Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE
 or SIGILL is received.
+The default is \fBtrue\fR.
+.TP
+\fB\-\-logmsg\fR(=\fIbool\fR)
+Enable logging messages of mlterm to ~/.mlterm/msg.log.
 The default is \fBtrue\fR.
 
 .\" ********************************************************************
@@ -1100,6 +1106,9 @@ Background color.
 \fBbidi_mode=\fImode\fR (\fB\-\-bimode\fR)
 Specify bidi mode.
 .TP
+\fBblink_cursor=\fIbool\fR (\fB\-\-blink\fR)
+Blink cursor.
+.TP
 \fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 
 Specify the amount of darkening or lightening the background image.
 .TP
@@ -1185,6 +1194,9 @@ Icon name.
 .TP
 \fBicon_path=\fIpath\fR
 Path for the image file to be used as window icon.
+.TP
+\fBinner_border=\fIvalue\fR (\fB\-\-border\fR)
+Specify inner border width.
 .TP
 \fBinput_method\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR (\fB\-\-im\fR)
 Specify input method.

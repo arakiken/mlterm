@@ -84,6 +84,8 @@ How to build & install mlterm co-operating with Java.
 
   o Sortcut keys.
     Control+F1: Open new mlterm window. (Not supported in applet version.)
+    Control+F2: Open new pty in current mlterm window.
+    Control+F3: Switch to a next free pty.
 
 * On-line demo
   http://mlterm.sf.net/mltermlet.html

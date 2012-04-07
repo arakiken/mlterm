@@ -1,3 +1,37 @@
+2012-04-08  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c:
+	  Characters which failed to be converted from or to ucs in -u and -n
+	  option are displayed as they are, instead of being ignored.
+
+	* MLTermListener.java:
+	  cellSizeChanged() -> sizeChanged()
+
+	* MLTerm.java:
+	  - Max number of pty windows is changed from 10 to 32.
+	  - Size of window decorations is cached.
+	  - Ctrl+F2 which opens pty in current window is supported.
+	  - Ctrl+F3 which switches to a next free pty is supported.
+
+	* MLTermPty.java, MLTermPty.c:
+	  - listener object is managed not in MLTermPty.java but in MLTermPty.c.
+	  - getRows() and getCols() methods are implemented.
+	  - {set|get}AuxData() methods which are used to store StyledTextContent
+	    for the pty are added.
+
+	* ml_char.c: If IS_REVERSED is true and IS_BOLD is true, ml_char_fg_color() masks
+	  ML_BOLD_COLOR_MASK and ml_char_bg_color() doesn't mask ML_BOLD_COLOR_MASK.
+
+	* x_screen.c:
+	  - ml_char_reverse_color() is used to draw cursor.
+	  - unhighlight_cursor() in bs_* functions is removed.
+
+	* x_screen.c, x_window.c, x_main_config.[ch]:
+	  - x_window_t::idling event is added, and cursor blinking is supported by
+	    using it.
+	  - "blink_cursor" option is added.
+	  - "inner_border" option is added.
+
 2012-04-01  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: --enable-vt52 is added.

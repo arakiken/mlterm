@@ -47,7 +47,9 @@ How to build & install libvte compatible library using mlterm engine.
     - Daemon mode
     - Multiple ptys using Ctrl+F1 / Ctrl+F2 / Ctrl+F3
     - Vertical writing mode
-    - screen_width_ratio and screen_height_ratio options
+    - 'screen_width_ratio' and 'screen_height_ratio' options
+    - 'inner_border' option
+    - 'blink_cursor' option
 
   o If libvte compatible mlterm dies in compiz environment,
     try XLIB_SKIP_ARGB_VISUAL variable as follows.

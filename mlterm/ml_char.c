@@ -642,15 +642,19 @@ ml_char_fg_color(
 		if( IS_REVERSED(ch->u.ch.attr))
 		{
 			color = extern_color( ch->u.ch.bg_color) ;
+
+			/*
+			 * xterm doesn't use hilighted color for bold background color.
+			 */
 		}
 		else
 		{
 			color = extern_color( ch->u.ch.fg_color) ;
-		}
 
-		if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
-		{
-			color |= ML_BOLD_COLOR_MASK ;
+			if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
+			{
+				color |= ML_BOLD_COLOR_MASK ;
+			}
 		}
 
 		return  color ;
@@ -700,21 +704,20 @@ ml_char_bg_color(
 		if( IS_REVERSED(ch->u.ch.attr))
 		{
 			color = extern_color(ch->u.ch.fg_color) ;
+
+			if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
+			{
+				color |= ML_BOLD_COLOR_MASK ;
+			}
 		}
 		else
 		{
 			color = extern_color(ch->u.ch.bg_color) ;
-		}
 
-		/*
-		 * xterm doesn't use hilighted color for bold background color.
-		 */
-	#if  0
-		if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
-		{
-			color |= ML_BOLD_COLOR_MASK ;
+			/*
+			 * xterm doesn't use hilighted color for bold background color.
+			 */
 		}
-	#endif
 
 		return  color ;
 	}

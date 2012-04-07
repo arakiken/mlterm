@@ -166,6 +166,8 @@ typedef struct  x_window
 
 	void (*window_realized)( struct x_window *) ;
 	void (*window_finalized)( struct x_window *) ;
+	void (*window_deleted)( struct x_window *) ;
+	void (*mapping_notify)( struct x_window *) ;
 	/* Win32: gc->gc is not None. */
 	void (*window_exposed)( struct x_window * , int , int , u_int , u_int) ;
 	/* Win32: gc->gc is not None. */
@@ -190,8 +192,7 @@ typedef struct  x_window
 	 * for x_im_xxx_screen_t.
 	 */
 	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
-	void (*window_deleted)( struct x_window *) ;
-	void (*mapping_notify)( struct x_window *) ;
+	void (*idling)( struct x_window *) ;
 
 } x_window_t ;
 

@@ -73,11 +73,11 @@ typedef struct x_main_config
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	
-	u_int8_t  col_size_of_width_a ;
-	u_int8_t  step_in_changing_font_size ;
 	u_int16_t  brightness ;
 	u_int16_t  contrast ;
 	u_int16_t  gamma ;
+	u_int8_t  col_size_of_width_a ;
+	u_int8_t  step_in_changing_font_size ;
 	u_int8_t  alpha ;
 	u_int8_t  fade_ratio ;
 	u_int8_t  line_space ;
@@ -98,6 +98,8 @@ typedef struct x_main_config
 	int8_t  use_dynamic_comb ;
 	int8_t  logging_vt_seq ;
 	int8_t  allow_osc52 ;
+	int8_t  blink_cursor ;
+	int8_t  margin ;
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	int8_t  skip_dialog ;
 #endif

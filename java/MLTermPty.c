@@ -118,27 +118,6 @@ true_or_false(
 	}
 }
 
-static jobject
-get_listener_obj(
-	native_obj_t *  nativeObj
-	)
-{
-	if( nativeObj->listener == NULL)
-	{
-		nativeObj->listener =
-			(*nativeObj->env)->NewGlobalRef( nativeObj->env ,
-				(*nativeObj->env)->GetObjectField( nativeObj->env ,
-					nativeObj->obj ,
-					(*nativeObj->env)->GetFieldID( nativeObj->env ,
-						(*nativeObj->env)->FindClass( nativeObj->env ,
-							"mlterm/MLTermPty") ,
-					"listener" , "Lmlterm/MLTermPtyListener;"))) ;
-	}
-
-	return  nativeObj->listener ;
-}
-
-
 static void
 set_config(
 	void *  p ,
@@ -366,7 +345,6 @@ exec_cmd(
 	static jmethodID  mid ;
 	native_obj_t *  nativeObj ;
 	jstring  jstr_cmd ;
-	jobject  listener ;
 
 	nativeObj = p ;
 
@@ -384,9 +362,10 @@ exec_cmd(
 			"executeCommand" , "(Ljava/lang/String;)V") ;
 	}
 
-	if( ( listener = get_listener_obj( nativeObj)))
+	if( nativeObj->listener)
 	{
-		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid , jstr_cmd) ;
+		(*nativeObj->env)->CallVoidMethod( nativeObj->env ,
+			nativeObj->listener , mid , jstr_cmd) ;
 	}
 
 	return  1 ;
@@ -403,7 +382,6 @@ window_scroll_upward_region(
 {
 	static jmethodID  mid ;
 	native_obj_t *  nativeObj ;
-	jobject  listener ;
 
 	nativeObj = p ;
 
@@ -415,11 +393,12 @@ window_scroll_upward_region(
 					"linesScrolledOut" , "(I)V") ;
 	}
 
-	if( beg_row == 0 && end_row + 1 == ml_term_get_logical_rows( nativeObj->term) &&
-	    ! ml_screen_is_alternative_edit( nativeObj->term->screen) &&
-	    ( listener = get_listener_obj( nativeObj)))
+	if( nativeObj->listener &&
+	    beg_row == 0 && end_row + 1 == ml_term_get_logical_rows( nativeObj->term) &&
+	    ! ml_screen_is_alternative_edit( nativeObj->term->screen))
 	{
-		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid , size) ;
+		(*nativeObj->env)->CallVoidMethod( nativeObj->env ,
+				nativeObj->listener , mid , size) ;
 	}
 
 	return  0 ;
@@ -435,7 +414,6 @@ resize(
 {
 	static jmethodID  mid ;
 	native_obj_t *  nativeObj ;
-	jobject  listener ;
 
 	nativeObj = p ;
 
@@ -447,9 +425,10 @@ resize(
 					"resize" , "(IIII)V") ;
 	}
 
-	if( ( listener = get_listener_obj( nativeObj)))
+	if( nativeObj->listener)
 	{
-		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid ,
+		(*nativeObj->env)->CallVoidMethod( nativeObj->env ,
+						nativeObj->listener , mid ,
 						width , height ,
 						ml_term_get_cols( nativeObj->term) ,
 						ml_term_get_rows( nativeObj->term)) ;
@@ -477,7 +456,6 @@ bel(
 {
 	static jmethodID  mid ;
 	native_obj_t *  nativeObj ;
-	jobject  listener ;
 
 	nativeObj = p ;
 
@@ -489,9 +467,9 @@ bel(
 					"bell" , "()V") ;
 	}
 
-	if( ( listener = get_listener_obj( nativeObj)))
+	if( nativeObj->listener)
 	{
-		(*nativeObj->env)->CallVoidMethod( nativeObj->env , listener , mid) ;
+		(*nativeObj->env)->CallVoidMethod( nativeObj->env , nativeObj->listener , mid) ;
 	}
 }
 
@@ -1106,6 +1084,33 @@ Java_mlterm_MLTermPty_nativeClose(
 	}
 }
 
+JNIEXPORT void JNICALL
+Java_mlterm_MLTermPty_nativeSetListener(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nobj ,
+	jobject  listener
+	)
+{
+	native_obj_t *  nativeObj ;
+
+	nativeObj = nobj ;
+
+	if( nativeObj->listener)
+	{
+		(*env)->DeleteGlobalRef( env , nativeObj->listener) ;
+	}
+
+	if( listener)
+	{
+		nativeObj->listener = (*env)->NewGlobalRef( env , listener) ;
+	}
+	else
+	{
+		nativeObj->listener = NULL ;
+	}
+}
+
 JNIEXPORT jboolean JNICALL
 Java_mlterm_MLTermPty_waitForReading(
 	JNIEnv *  env ,
@@ -1570,6 +1575,36 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 #endif
 
 	return  JNI_TRUE ;
+}
+
+JNIEXPORT jint JNICALL
+Java_mlterm_MLTermPty_nativeGetRows(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nativeObj
+	)
+{
+	if( ! nativeObj || ! ((native_obj_t*)nativeObj)->term)
+	{
+		return  0 ;
+	}
+
+	return  ml_term_get_rows( ((native_obj_t*)nativeObj)->term) ;
+}
+
+JNIEXPORT jint JNICALL
+Java_mlterm_MLTermPty_nativeGetCols(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nativeObj
+	)
+{
+	if( ! nativeObj || ! ((native_obj_t*)nativeObj)->term)
+	{
+		return  0 ;
+	}
+
+	return  ml_term_get_cols( ((native_obj_t*)nativeObj)->term) ;
 }
 
 JNIEXPORT jint JNICALL

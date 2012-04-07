@@ -13,6 +13,10 @@ import  java.util.* ;
 
 public class  MLTermPty
 {
+	final private static boolean  DEBUG = false ;
+
+	private Object  auxData = null ;
+	
 	private native static void  setLibDir( String  dir) ;
 
 	private static void  loadLibraryFromJar()
@@ -163,7 +167,7 @@ public class  MLTermPty
 	{
 		try
 		{
-			if( false)
+			if( DEBUG)
 			{
 				System.out.println( System.getProperty( "java.library.path")) ;
 			}
@@ -172,7 +176,7 @@ public class  MLTermPty
 		}
 		catch( UnsatisfiedLinkError  e)
 		{
-			if( false)
+			if( DEBUG)
 			{
 				e.printStackTrace() ;
 			}
@@ -199,11 +203,14 @@ public class  MLTermPty
 		return  strb.toString() ;
 	}
 
-	private MLTermPtyListener  listener = null ;
-
-	public void  setListener( MLTermPtyListener  lsn)
+	public void  setAuxData( Object  data)
 	{
-		listener = lsn ;
+		auxData = data ;
+	}
+
+	public Object  getAuxData()
+	{
+		return  auxData ;
 	}
 
 	private long  nativeObj = 0 ;
@@ -229,6 +236,12 @@ public class  MLTermPty
 	{
 		nativeClose( nativeObj) ;
 		nativeObj = 0 ;
+	}
+
+	private native void  nativeSetListener( long  obj , Object  listener) ;
+	public void  setListener( MLTermPtyListener  listener)
+	{
+		nativeSetListener( nativeObj , listener) ;
 	}
 
 	public native static boolean  waitForReading() ;
@@ -261,6 +274,18 @@ public class  MLTermPty
 	public boolean getRedrawString( int row , RedrawRegion  region)
 	{
 		return  nativeGetRedrawString( nativeObj , row , region) ;
+	}
+
+	private native int  nativeGetRows( long  obj) ;
+	public int  getRows()
+	{
+		return  nativeGetRows( nativeObj) ;
+	}
+
+	private native int  nativeGetCols( long  obj) ;
+	public int  getCols()
+	{
+		return  nativeGetCols( nativeObj) ;
 	}
 
 	private native int  nativeGetCaretRow( long  obj) ;

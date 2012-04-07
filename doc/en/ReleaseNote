@@ -3,6 +3,8 @@ ver 3.1.0
 * Support "use_variable_column_width" and "letter_space" options in win32.
 * Support multiple numeric parameters of SM, RM, DECSET and DESRST sequence.
   (Thanks to Iwamoto Kouichi san)
+* Add "blink_cursor" option.
+* Add "inner_border" option.
 * Add java version. (experimental)
 * Add VT52 emulation. (configure with --enable-vt52 option.)
 * Bug fixes:
@@ -14,6 +16,8 @@ ver 3.1.0
   Fix a bug which didn't clear margin area after visual bell.
   Fix a bug which disabled scrolling in vertical mode in win32.
   Fix a bug which disabled wheel mouse in win32.
+  Fix a bug of reverse-video algorithm of highlighted cursor or selected text.
+  (Thanks to Andi Cristian Serbanescu)
 
 ver 3.0.11
 * Support CSI 8 t and CSI 4 t sequence partially.

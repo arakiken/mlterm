@@ -28,6 +28,9 @@
 # 実スクリーンの縦幅(百分率)
 # screen_height_ratio = 100
 
+# ウィンドウの内側のボーダー幅
+# inner_border = 2
+
 # -- Terminal 関連 --
 # ログインシェルを使うかどうか
 # use_login_shell = false
@@ -86,7 +89,7 @@
 # use_multi_column_char = false
 
 # copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
-# を、一旦 UNICODE を経由してから端末エンコーディングに変換する 
+# を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 # receive_string_via_ucs = false
 
 # -- Font 関連 --
@@ -187,6 +190,9 @@ scrollbar_view_name = sample
 # Window Manager の飾りを外す
 # borderless = false
 
+# カーソルを点滅させる
+# blink_cursor = false
+
 # -- その他 --
 # XIM を使う
 # use_xim = true
@@ -268,3 +274,6 @@ scrollbar_view_name = sample
 # SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
 # application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
 # auto_restart = true
+
+# OSC 52 シーケンスによるクリップボード操作
+# allow_osc52 = false

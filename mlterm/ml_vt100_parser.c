@@ -3390,25 +3390,20 @@ parse_vt100_sequence(
 
 					mkf_char_t  non_ucs ;
 
-					if( ! mkf_map_locale_ucs4_to( &non_ucs , &ch) )
+					if( mkf_map_locale_ucs4_to( &non_ucs , &ch) )
 					{
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-						" failed to convert ucs4 to other cs.\n") ;
-					#endif
-						continue ;
-					}
+						if( vt100_parser->unicode_policy &
+						    USE_UNICODE_PROPERTY)
+						{
+							non_ucs.property = ch.property ;
+						}
+						else if( IS_BIWIDTH_CS( non_ucs.cs))
+						{
+							non_ucs.property = MKF_BIWIDTH ;
+						}
 
-					if( vt100_parser->unicode_policy & USE_UNICODE_PROPERTY)
-					{
-						non_ucs.property = ch.property ;
+						ch = non_ucs ;
 					}
-					else if( IS_BIWIDTH_CS( non_ucs.cs))
-					{
-						non_ucs.property = MKF_BIWIDTH ;
-					}
-
-					ch = non_ucs ;
 				}
 			#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 				else
@@ -3429,44 +3424,50 @@ parse_vt100_sequence(
 				}
 			#endif
 			}
-			else if( ( /* ONLY_USE_UNICODE_FONT or USE_UNICODE_PROPERTY */
-				   vt100_parser->unicode_policy > NOT_USE_UNICODE_FONT &&
-				   ch.cs != US_ASCII)
-			#if  0
-				/* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
-				|| ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
-			#endif
-				/*
-				 * XXX
-				 * converting japanese gaiji to ucs.
-				 */
-				|| ch.cs == JISC6226_1978_NEC_EXT
-				|| ch.cs == JISC6226_1978_NECIBM_EXT
-				|| ch.cs == JISX0208_1983_MAC_EXT
-				|| ch.cs == SJIS_IBM_EXT)
+			else if( ch.cs != US_ASCII)
 			{
-				mkf_char_t  ucs ;
+				int  conv_to_ucs ;
 
-				if( ! mkf_map_to_ucs4( &ucs , &ch))
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" failed to convert other cs to ucs4.\n") ;
+				    /* XXX converting japanese gaiji to ucs. */
+				if( ( vt100_parser->unicode_policy & ONLY_USE_UNICODE_FONT) ||
+				    ch.cs == JISC6226_1978_NEC_EXT ||
+				    ch.cs == JISC6226_1978_NECIBM_EXT ||
+				    ch.cs == JISX0208_1983_MAC_EXT ||
+				    ch.cs == SJIS_IBM_EXT
+				#if  0
+				    /* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
+				    || ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
 				#endif
-					continue ;
-				}
-
-				if( vt100_parser->unicode_policy & ONLY_USE_UNICODE_FONT)
+					)
 				{
-					ch = ucs ;
+					conv_to_ucs = 1 ;
+				}
+				else
+				{
+					conv_to_ucs = 0 ;
 				}
 
-				ch.property = mkf_get_ucs_property(
-							mkf_bytes_to_int( ucs.ch , ucs.size)) ;
-			}
-			else if( IS_BIWIDTH_CS( ch.cs))
-			{
-				ch.property = MKF_BIWIDTH ;
+				if( conv_to_ucs ||
+				    ( vt100_parser->unicode_policy & USE_UNICODE_PROPERTY))
+				{
+					mkf_char_t  ucs ;
+
+					if( mkf_map_to_ucs4( &ucs , &ch))
+					{
+						if( conv_to_ucs)
+						{
+							ch = ucs ;
+						}
+
+						ch.property = mkf_get_ucs_property(
+								mkf_bytes_to_int(
+									ucs.ch , ucs.size)) ;
+					}
+				}
+				else if( IS_BIWIDTH_CS( ch.cs))
+				{
+					ch.property = MKF_BIWIDTH ;
+				}
 			}
 
 			/*

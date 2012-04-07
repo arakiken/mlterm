@@ -19,11 +19,15 @@ import  org.eclipse.swt.browser.* ;
 
 public class MLTerm extends StyledText
 {
+	/* --- private --- */
+
+	final private static boolean  DEBUG = false ;
+
 	private MLTermListener  listener = null ;
 	private MLTermPty  pty = null ;
 	private int  ptyCols = 80 ;
 	private int  ptyRows = 24 ;
-	private boolean  isSelecting = false;
+	private boolean  isSelecting = false ;
 	private Clipboard  clipboard = null ;	/* StyledText.clipboard is not accessible. */
 	private int  lineHeight = 0 ;
 	private int  columnWidth = 0 ;
@@ -34,8 +38,56 @@ public class MLTerm extends StyledText
 	static private RedrawRegion  region = null ;
 	static private Font  font = null ;
 
+	private static MLTermPty[]  pooledPtys = new MLTermPty[32] ;
+	private static int  numOfPooledPtys = 0 ;
 
-	/* --- private methods --- */
+	private boolean  pushPty( MLTermPty  p)
+	{
+		if( numOfPooledPtys == pooledPtys.length)
+		{
+			return  false ;
+		}
+
+		p.setListener( null) ;
+		pooledPtys[numOfPooledPtys] = p ;
+		numOfPooledPtys ++ ;
+
+		return  true ;
+	}
+
+	private MLTermPty  popPty()
+	{
+		if( numOfPooledPtys == 0)
+		{
+			return  null ;
+		}
+
+		numOfPooledPtys -- ;
+		MLTermPty  p = pooledPtys[numOfPooledPtys] ;
+		pooledPtys[numOfPooledPtys] = null ;
+
+		return  p ;
+	}
+
+	private MLTermPty  getNextPty()
+	{
+		if( numOfPooledPtys == 0)
+		{
+			return  null ;
+		}
+
+		/* 012 3 => 123 0 => 230 1 */
+
+		MLTermPty  p = pooledPtys[0] ;
+		if( numOfPooledPtys > 1)
+		{
+			System.arraycopy( pooledPtys , 1 , pooledPtys , 0 , numOfPooledPtys - 1) ;
+		}
+		numOfPooledPtys -- ;
+
+		return  p ;
+	}
+
 
 	private void moveCaret()
 	{
@@ -145,7 +197,7 @@ public class MLTerm extends StyledText
 		{
 			return ;
 		}
-		else if( false)
+		else if( DEBUG)
 		{
 			System.err.printf( "Line height %d is changed to %d\n" , lineHeight , height) ;
 			System.err.printf( "Column width %d is changed to %d\n" , columnWidth , width) ;
@@ -156,7 +208,7 @@ public class MLTerm extends StyledText
 
 		if( invokeEvent && listener != null)
 		{
-			listener.cellSizeChanged() ;
+			listener.sizeChanged() ;
 		}
 	}
 
@@ -191,7 +243,7 @@ public class MLTerm extends StyledText
 	private void  replaceTextBuffering( int  offset , int  replaceLen ,
 					String  str , StyleRange[]  styles)
 	{
-		if( false)
+		if( DEBUG)
 		{
 			/* Simple way (output each line) */
 
@@ -219,7 +271,7 @@ public class MLTerm extends StyledText
 			{
 				getContent().replaceTextRange( bufOffset , bufReplaceLen , bufStr.toString()) ;
 
-				if( false)
+				if( DEBUG)
 				{
 					System.err.printf( "OUTPUT %d characters.%n" , bufStr.length()) ;
 				}
@@ -393,7 +445,7 @@ public class MLTerm extends StyledText
 					offsetNextRow += padding ;
 				}
 
-				if( false)
+				if( DEBUG)
 				{
 					System.err.printf( "%s row %d lineCount %d offset %d offsetNextRow %d%n" ,
 						region.str , row , lineCount , offset , offsetNextRow) ;
@@ -477,18 +529,48 @@ public class MLTerm extends StyledText
 						event.button , event.stateMask , isMotion , isReleased) ;
 	}
 
-
-	/* public methods */
-
-	public MLTerm( Composite  parent , int  style , String  host , String  pass ,
-				int  cols , int  rows , String  encoding , String[]  argv)
+	private void attachPty( boolean  createContent)
 	{
-		/* If SWT.READ_ONLY is specified, tab key doesn't work. */
-		super( parent , style|SWT.NO_BACKGROUND) ;
+		ptyCols = pty.getCols() ;
+		ptyRows = pty.getRows() ;
 
-		pty = new MLTermPty() ;
+		StyledTextContent  content = (StyledTextContent)pty.getAuxData() ;
+		if( content == null)
+		{
+			if( createContent)
+			{
+				/* New content */
+				StyledText  text = new StyledText( MLTerm.this , 0) ;
+				setContent( text.getContent()) ;
+				text.dispose() ;
+			}
+
+			numOfScrolledOutLines = 0 ;
+		}
+		else
+		{
+			setContent( content) ;
+
+			int  rows = content.getLineCount() ;
+			if( rows > ptyRows)
+			{
+				numOfScrolledOutLines = rows - ptyRows ;
+			}
+			else
+			{
+				numOfScrolledOutLines = 0 ;
+			}
+		}
+
+		/*
+		 * XXX
+		 * If scrolledOutCache > 0 , redrawPty() should be called, but
+		 * such a case rarely seems to happen.
+		 */
+		scrolledOutCache = 0 ;
+
 		pty.setListener(
-			new  MLTermPtyListener()
+			new MLTermPtyListener()
 			{
 				public void  executeCommand( String  cmd)
 				{
@@ -528,7 +610,7 @@ public class MLTerm extends StyledText
 						return ;
 					}
 
-					resetWindowSize( MLTerm.this) ;
+					listener.sizeChanged() ;
 				}
 
 				public void  bell()
@@ -541,6 +623,18 @@ public class MLTerm extends StyledText
 				}
 			}) ;
 
+		if( content != null || createContent)
+		{
+			/* Content was changed */
+			listener.sizeChanged() ;
+		}
+	}
+
+	private void init( final String  host , final String  pass , final int  cols ,
+					final int  rows , final String  encoding , final String[]  argv)
+	{
+		pty = new MLTermPty() ;
+
 		if( ! pty.open( host , pass , cols , rows , encoding , argv))
 		{
 			pty = null ;
@@ -548,8 +642,7 @@ public class MLTerm extends StyledText
 			return ;
 		}
 
-		ptyCols = cols ;
-		ptyRows = rows ;
+		attachPty( false) ;
 
 		if( font == null)
 		{
@@ -652,7 +745,17 @@ public class MLTerm extends StyledText
 			{
 				public void handleEvent( Event  event)
 				{
-					closePty() ;
+					if( pty != null)
+					{
+						if( pushPty( pty))
+						{
+							pty.setAuxData( getContent()) ;
+						}
+						else
+						{
+							closePty() ;
+						}
+					}
 				}
 			}) ;
 
@@ -744,6 +847,41 @@ public class MLTerm extends StyledText
 					if( (event.keyCode & 0x70000) != 0)
 					{
 						/* Control, Shift, Alt */
+
+						return ;
+					}
+					else if( event.stateMask == SWT.CONTROL && event.keyCode == SWT.F2)
+					{
+						if( pushPty( pty))
+						{
+							pty.setAuxData( getContent()) ;
+
+							pty = new MLTermPty() ;
+
+							if( pty.open( host , pass , cols , rows , encoding , argv))
+							{
+								attachPty( true) ;
+							}
+							else
+							{
+								/* restore */
+								pty = popPty() ;
+							}
+						}
+
+						return ;
+					}
+					else if( event.stateMask == SWT.CONTROL && event.keyCode == SWT.F3)
+					{
+						MLTermPty  nextPty = getNextPty() ;
+						if( nextPty != null)
+						{
+							pushPty( pty) ;
+							pty.setAuxData( getContent()) ;
+
+							pty = nextPty ;
+							attachPty( false) ;
+						}
 
 						return ;
 					}
@@ -887,6 +1025,18 @@ public class MLTerm extends StyledText
 		region = new RedrawRegion() ;
 	}
 
+
+	/* --- public --- */
+
+	public MLTerm( Composite  parent , int  style , String  host , String  pass ,
+				int  cols , int  rows , String  encoding , String[]  argv)
+	{
+		/* If SWT.READ_ONLY is specified, tab key doesn't work. */
+		super( parent , style|SWT.NO_BACKGROUND) ;
+
+		init( host , pass , cols , rows , encoding , argv) ;
+	}
+
 	public static void  startPtyWatcher( final Display  display)
 	{
 		(new Thread(
@@ -928,9 +1078,21 @@ public class MLTerm extends StyledText
 		}
 		else if( ! pty.isActive())
 		{
-			closePty() ;
+			MLTermPty  nextPty = popPty() ;
+			if( nextPty != null)
+			{
+				pty.close() ;
+				pty = nextPty ;
+				attachPty( false) ;
 
-			return  false ;
+				return  true ;
+			}
+			else
+			{
+				closePty() ;
+
+				return  false ;
+			}
 		}
 		else
 		{
@@ -1034,20 +1196,29 @@ public class MLTerm extends StyledText
 	}
 
 
-	/* --- static functions --- */
+	/* --- static methods --- */
 
-	private static MLTerm[]  mlterms = new MLTerm[10] ;
-	private static int  numMLTerms = 0 ;
+	private static MLTerm[]  mlterms = new MLTerm[32] ;
+	private static int  numOfMLTerms = 0 ;
+	private static Point  decoration = null ;
 
-	private static void resetWindowSize( MLTerm  mlterm)
+	private static void  resetWindowSize( MLTerm  mlterm)
 	{
+
 		mlterm.resetSize() ;
 		Point  p = mlterm.getSize() ;
 
 		Shell  shell = mlterm.getShell() ;
-		shell.setSize( p) ;
-		Rectangle  r = shell.getClientArea() ;
-		shell.setSize( p.x * 2 - r.width , p.y * 2 - r.height) ;
+
+		if( decoration == null)
+		{
+			shell.setSize( p) ;
+			Rectangle  r = shell.getClientArea() ;
+
+			decoration = new Point( p.x - r.width , p.y - r.height) ;
+		}
+
+		shell.setSize( p.x + decoration.x , p.y + decoration.y) ;
 	}
 
 	private static void startMLTerm( final Shell  shell , final String  host ,
@@ -1068,18 +1239,34 @@ public class MLTerm extends StyledText
 		mlterm.setListener(
 			new MLTermListener()
 			{
-				public void  cellSizeChanged()
+				public void  sizeChanged()
 				{
 					resetWindowSize( mlterm) ;
 				}
 
 				public void  ptyClosed()
 				{
-					for( int  count = 0 ; count < numMLTerms ; count++)
+					for( int  count = 0 ; count < numOfMLTerms ; count++)
 					{
 						if( mlterms[count] == mlterm)
 						{
-							mlterms[count] = mlterms[--numMLTerms] ;
+							mlterms[count] = mlterms[--numOfMLTerms] ;
+							break ;
+						}
+					}
+				}
+			}) ;
+
+		shell.addListener( SWT.Dispose ,
+			new Listener()
+			{
+				public void handleEvent( Event  e)
+				{
+					for( int  count = 0 ; count < numOfMLTerms ; count++)
+					{
+						if( mlterms[count] == mlterm)
+						{
+							mlterms[count] = mlterms[--numOfMLTerms] ;
 							break ;
 						}
 					}
@@ -1093,7 +1280,7 @@ public class MLTerm extends StyledText
 				{
 					if( event.stateMask == SWT.CONTROL &&
 					    event.keyCode == SWT.F1 &&
-						numMLTerms < mlterms.length)
+						numOfMLTerms < mlterms.length)
 					{
 						Shell s = new Shell( shell.getDisplay()) ;
 						s.setText( "mlterm") ;
@@ -1135,7 +1322,7 @@ public class MLTerm extends StyledText
 
 		shell.open() ;
 
-		mlterms[numMLTerms++] = mlterm ;
+		mlterms[numOfMLTerms++] = mlterm ;
 	}
 
 	public static void main (String [] args)
@@ -1270,11 +1457,11 @@ public class MLTerm extends StyledText
 
 		MLTerm.startPtyWatcher( display) ;
 
-		while( ! display.isDisposed() && numMLTerms > 0)
+		while( ! display.isDisposed() && numOfMLTerms > 0)
 		{
 			while( display.readAndDispatch()) ;
 
-			for( int  count = 0 ; count < numMLTerms ; count++)
+			for( int  count = 0 ; count < numOfMLTerms ; count++)
 			{
 				if( ! mlterms[count].updatePty())
 				{

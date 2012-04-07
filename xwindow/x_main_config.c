@@ -7,6 +7,7 @@
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_mem.h>	/* malloc/realloc */
 #include  <kiklib/kik_str.h>	/* kik_str_to_uint */
+#include  <kiklib/kik_locale.h>	/* kik_get_lang */
 
 
 /* --- global functions --- */
@@ -229,6 +230,10 @@ x_prepare_for_main_config(
 		"use unicode property for characters [false]") ;
 	kik_conf_add_opt( conf , '\0' , "osc52" , 1 , "allow_osc52" ,
 		"allow access to clipboard by OSC 52 sequence [false]") ;
+	kik_conf_add_opt( conf , '\0' , "blink" , 1 , "blink_cursor" ,
+		"blink cursor [false]") ;
+	kik_conf_add_opt( conf , '\0' , "border" , 0 , "inner_border" ,
+		"inner border [2]") ;
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
 
@@ -1183,6 +1188,28 @@ x_main_config_init(
 		if( strcmp( value , "true") == 0)
 		{
 			main_config->allow_osc52 = 1 ;
+		}
+	}
+
+	main_config->blink_cursor = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "blink_cursor")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config->blink_cursor = 1 ;
+		}
+	}
+
+	main_config->margin = 2 ;
+
+	if( ( value = kik_conf_get_value( conf , "inner_border")))
+	{
+		u_int  margin ;
+
+		if( kik_str_to_uint( &margin , value) && margin <= 255)
+		{
+			main_config->margin = margin ;
 		}
 	}
 
