@@ -8,6 +8,42 @@
 #include  <kiklib/kik_debug.h>
 
 
+/* --- static functions --- */
+
+static void
+copy_char_with_mirror_check(
+	ml_char_t *  dst ,
+	ml_char_t *  src ,
+	u_int16_t *  visual_order ,
+	u_int16_t  visual_order_size ,
+	int  pos
+	)
+{
+	ml_char_copy( dst , src) ;
+
+	if( (( pos > 0 && visual_order[pos - 1] == visual_order[pos] + 1) ||
+	     ( pos + 1 < visual_order_size &&
+	       visual_order[pos] == visual_order[pos + 1] + 1)) )
+	{
+		/*
+		 * Pos is RTL character.
+		 * => XXX It is assumed that pos is always US_ASCII or ISO10646_UCS4_1.
+		 */
+	#if  0
+		mkf_charset_t  cs ;
+
+		if( (cs = ml_char_cs( dst)) == US_ASCII || cs == ISO10646_UCS4_1)
+	#endif
+		{
+			u_char *  bytes ;
+
+			bytes = ml_char_bytes( dst) ;
+			ml_bidi_get_mirror_char( bytes , bytes , ml_char_size(dst)) ;
+		}
+	}
+}
+
+
 /* --- global functions --- */
 
 int
@@ -121,8 +157,10 @@ ml_line_bidi_visual(
 
 	for( count = 0 ; count < line->ctl_info.bidi->size ; count ++)
 	{
-		ml_char_copy( line->chars + line->ctl_info.bidi->visual_order[count] ,
-				src + count) ;
+		copy_char_with_mirror_check(
+				line->chars + line->ctl_info.bidi->visual_order[count] ,
+				src + count , line->ctl_info.bidi->visual_order ,
+				line->ctl_info.bidi->size , count) ;
 	}
 
 	ml_str_final( src , line->ctl_info.bidi->size) ;
@@ -158,8 +196,10 @@ ml_line_bidi_logical(
 
 	for( count = 0 ; count < line->ctl_info.bidi->size ; count ++)
 	{
-		ml_char_copy( line->chars + count ,
-			src + line->ctl_info.bidi->visual_order[count]) ;
+		copy_char_with_mirror_check( line->chars + count ,
+			src + line->ctl_info.bidi->visual_order[count] ,
+			line->ctl_info.bidi->visual_order ,
+			line->ctl_info.bidi->size , count) ;
 	}
 
 	ml_str_final( src , line->ctl_info.bidi->size) ;
@@ -417,9 +457,10 @@ ml_line_bidi_copy_logical_str(
 	{
 		if( flags[norm_pos])
 		{
-			ml_char_copy( &dst[dst_pos ++] ,
-				line->chars +
-				line->ctl_info.bidi->visual_order[norm_pos]) ;
+			copy_char_with_mirror_check( &dst[dst_pos ++] ,
+				line->chars + line->ctl_info.bidi->visual_order[norm_pos] ,
+				line->ctl_info.bidi->visual_order ,
+				line->ctl_info.bidi->size , norm_pos) ;
 		}
 	}
 

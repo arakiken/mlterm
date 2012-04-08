@@ -42,6 +42,7 @@ int  ml_bidi_delete( ml_bidi_state_t  state) ;
 
 int  ml_bidi( ml_bidi_state_t  state , ml_char_t *  src , u_int  size , ml_bidi_mode_t  mode) ;
 
+int  ml_bidi_get_mirror_char( u_char *  dst , u_char *  src , size_t  len) ;
 
 
 #endif

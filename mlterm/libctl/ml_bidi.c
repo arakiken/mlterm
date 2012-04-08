@@ -279,3 +279,24 @@ ml_bidi_reset(
 
 	return  1 ;
 }
+
+int
+ml_bidi_get_mirror_char(
+	u_char *  dst ,
+	u_char *  src ,
+	size_t  len
+	)
+{
+	FriBidiChar  mirror ;
+
+	if( fribidi_get_mirror_char( mkf_bytes_to_int( src , len) , &mirror))
+	{
+		mkf_int_to_bytes( dst , len , mirror) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}

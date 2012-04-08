@@ -3,6 +3,7 @@ ver 3.1.0
 * Support "use_variable_column_width" and "letter_space" options in win32.
 * Support multiple numeric parameters of SM, RM, DECSET and DESRST sequence.
   (Thanks to Iwamoto Kouichi san)
+* Support BiDi mirroring. (Thanks to Khaled Hosny)
 * Add "blink_cursor" option.
 * Add "inner_border" option.
 * Add java version. (experimental)

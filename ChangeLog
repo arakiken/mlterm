@@ -1,5 +1,12 @@
 2012-04-08  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_line_bidi.c: BiDi mirroring is supported.
+	  (Thanks to Khaled Hosny)
+
+	* ml_bidi.c: ml_bidi_get_mirror_char() is added.
+
+2012-04-08  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.c:
 	  Characters which failed to be converted from or to ucs in -u and -n
 	  option are displayed as they are, instead of being ignored.
