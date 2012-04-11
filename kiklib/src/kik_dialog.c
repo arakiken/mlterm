@@ -4,7 +4,7 @@
 
 #include  "kik_dialog.h"
 
-#include  <kiklib/kik_debug.h>
+#include  "kik_debug.h"
 
 
 /* --- static variables --- */
