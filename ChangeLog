@@ -1,3 +1,15 @@
+2012-04-11  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTermPty.c: If ssh server is unknown, message box is shown.
+
+	* kiklib/src/Makefile.in, java/Makefile.in: Fixed.
+
+	* ConfirmDialog.java: Added.
+
+	* kik_dialog.[ch]: Added.
+
+	* ml_pty_ssh.c: ~/.ssh/known_hosts or ~/.mlterm/known_hosts are checked.
+
 2012-04-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_line_bidi.c: BiDi mirroring is supported.

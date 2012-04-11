@@ -99,6 +99,39 @@ pty_closed(
 }
 
 
+#ifdef  USE_LIBSSH2
+static JNIEnv *  env_for_dialog ;
+static int
+dialog_callback(
+	int  type ,
+	char *  msg
+	)
+{
+	jclass  class ;
+	static jmethodID  mid ;
+
+	/* This function is called rarely, so jclass is not static. */
+	class = (*env_for_dialog)->FindClass( env_for_dialog , "mlterm/ConfirmDialog") ;
+
+	if( ! mid)
+	{
+		mid = (*env_for_dialog)->GetStaticMethodID( env_for_dialog ,
+				class , "show" , "(Ljava/lang/String;)Z") ;
+	}
+
+	if( (*env_for_dialog)->CallStaticObjectMethod( env_for_dialog , class , mid ,
+				(*env_for_dialog)->NewStringUTF( env_for_dialog , msg)))
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+#endif
+
+
 static int
 true_or_false(
 	char *  str
@@ -557,7 +590,6 @@ Java_mlterm_MLTermPty_setLibDir(
 #else
 	const char *  key = "LD_LIBRARY_PATH" ;
 #endif
-	size_t  count ;
 
 	dir = (*env)->GetStringUTFChars( env , jstr_dir , NULL) ;
 
@@ -691,6 +723,9 @@ Java_mlterm_MLTermPty_nativeOpen(
 		kik_set_sys_conf_dir( CONFIG_PATH) ;
 		kik_locale_init( "") ;
 		kik_sig_child_init() ;
+	#ifdef  USE_LIBSSH2
+		kik_dialog_set_callback( 0 , dialog_callback) ;
+	#endif
 		ml_term_manager_init(1) ;
 
 		str_parser = ml_str_parser_new() ;
@@ -1015,6 +1050,10 @@ Java_mlterm_MLTermPty_nativeOpen(
 	envv[1] = "TERM=xterm" ;
 	envv[2] = "COLORFGBG=default;default" ;
 	envv[3] = NULL ;
+
+#ifdef  USE_LIBSSH2
+	env_for_dialog = env ;
+#endif
 
 	ret = ml_term_open_pty( nativeObj->term , cmd_path , argv , envv ,
 			host , pass , public_key , private_key) ;

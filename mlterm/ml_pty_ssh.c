@@ -13,6 +13,7 @@
 #include  <kiklib/kik_path.h>
 #include  <kiklib/kik_unistd.h>		/* kik_usleep */
 #include  <kiklib/kik_locale.h>
+#include  <kiklib/kik_dialog.h>
 
 #ifdef  USE_WIN32API
 #undef  _WIN32_WINNT
@@ -199,10 +200,13 @@ ssh_connect(
 	struct addrinfo  hints ;
 	struct addrinfo *  addr ;
 	struct addrinfo *  addr_p ;
-	const char *  fingerprint ;
+
+	const char *  hostkey ;
+	size_t  hostkey_len ;
+	int  hostkey_type ;
+
 	char *  userauthlist ;
 	int  auth_success = 0 ;
-	int  count ;
 
 	if( ( session = ml_search_ssh_session( host , port , user)))
 	{
@@ -293,14 +297,77 @@ ssh_connect(
 		goto  error4 ;
 	}
 
-	fingerprint = libssh2_hostkey_hash( session->obj , LIBSSH2_HOSTKEY_HASH_SHA1) ;
+	/*
+	 * Check ~/.ssh/knownhosts.
+	 */
 
-	kik_msg_printf( "Fingerprint: ") ;
-	for( count = 0 ; count < 20 ; count++)
+	if( ( hostkey = libssh2_session_hostkey( session->obj , &hostkey_len , &hostkey_type)))
 	{
-		kik_msg_printf( "%02X ", (u_char)fingerprint[count]) ;
+		char *  home ;
+		char *  path ;
+		LIBSSH2_KNOWNHOSTS *  nhs ;
+
+		if( ( home = kik_get_home_dir()) &&
+		    ( path = alloca( strlen(home) + 20)) &&
+		    ( nhs = libssh2_knownhost_init( session->obj)) )
+		{
+			struct libssh2_knownhost *  nh ;
+
+		#ifdef  USE_WIN32API
+			sprintf( path , "%s\\mlterm\\known_hosts" , home) ;
+		#else
+			sprintf( path , "%s/.ssh/known_hosts" , home) ;
+		#endif
+
+			libssh2_knownhost_readfile( nhs , path ,
+				LIBSSH2_KNOWNHOST_FILE_OPENSSH) ;
+
+			if( libssh2_knownhost_checkp( nhs , host , atoi( port) ,
+					hostkey , hostkey_len ,
+					LIBSSH2_KNOWNHOST_TYPE_PLAIN|
+					LIBSSH2_KNOWNHOST_KEYENC_RAW ,
+					&nh) != LIBSSH2_KNOWNHOST_CHECK_MATCH)
+			{
+				const char *  hash ;
+				size_t  count ;
+				char *  msg ;
+				char *  p ;
+
+				hash = libssh2_hostkey_hash( session->obj ,
+						LIBSSH2_HOSTKEY_HASH_SHA1) ;
+
+				msg = alloca( strlen( host) + 31 + 3 * 20 + 1) ;
+
+				sprintf( msg , "Connecting to unknown host: %s (" , host) ;
+				p = msg + strlen( msg) ;
+				for( count = 0 ; count < 20 ; count++)
+				{
+					sprintf( p + count * 3 , "%02x:" , (u_char)hash[count]) ;
+				}
+				msg[strlen(msg) - 1] = ')' ;	/* replace ':' with ')' */
+
+				if( ! kik_dialog( 0 , msg))
+				{
+					libssh2_knownhost_free( nhs) ;
+
+					goto  error4 ;
+				}
+
+				libssh2_knownhost_add( nhs , host , NULL ,
+						hostkey , hostkey_len ,
+						LIBSSH2_KNOWNHOST_TYPE_PLAIN|
+						LIBSSH2_KNOWNHOST_KEYENC_RAW|
+						LIBSSH2_KNOWNHOST_KEY_SSHRSA , NULL) ;
+
+				libssh2_knownhost_writefile( nhs , path ,
+					LIBSSH2_KNOWNHOST_FILE_OPENSSH) ;
+
+				kik_msg_printf( "Add to %s and continue connecting.\n" , path) ;
+			}
+
+			libssh2_knownhost_free( nhs) ;
+		}
 	}
-	kik_msg_printf("\n") ;
 
 	if( ! ( userauthlist = libssh2_userauth_list( session->obj , user , strlen(user))))
 	{

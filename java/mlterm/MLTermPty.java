@@ -31,7 +31,12 @@ public class  MLTermPty
 			while( urls.hasMoreElements())
 			{
 				URL  url = (URL)urls.nextElement() ;
-				if( url.getPath().indexOf( "mlterm.jar") != -1)
+				int  pos = url.getPath().indexOf( "mlterm") ;
+				if( pos != -1 &&
+				    /* is end element of path. */
+				    url.getPath().indexOf( System.getProperty( "file.separator") , pos) == -1 &&
+				    /* is jar file. */
+				    url.getPath().indexOf( ".jar" , pos) != -1)
 				{
 					InputStream  is = url.openStream() ;
 

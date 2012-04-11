@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="http://mlterm.sourceforge.net/" href="mltermlet.jnlp">
+	<information>
+		<title>mltermlet</title>
+		<vendor>Araki Ken</vendor>
+		<homepage href="http://mlterm.sourceforge.net" />
+		<description>mltermlet</description>
+		<description kind="short">terminal emulator</description>
+		<offline-allowed />
+	</information>
+
+	<update check="timeout" policy="always" />
+	<security><all-permissions /></security>
+	<resources>
+		<java version="1.5+" />
+		<jar href="mlterm.jar" main="true" />
+		<jar href="swt.jar" main="false" />
+	</resources>
+	<application-desc main-class="mlterm.MLTerm" />
+</jnlp>

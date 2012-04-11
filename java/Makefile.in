@@ -39,7 +39,8 @@ TARGET = libMLTermPty.la
 
 CLASS = mlterm/MLTermPtyListener.class mlterm/MLTermListener.class \
 	mlterm/ConnectDialog.class mlterm/Style.class mlterm/RedrawRegion.class \
-	mlterm/MLTermPty.class mlterm/MLTerm.class mlterm/MLTermApplet.class
+	mlterm/MLTermPty.class mlterm/MLTerm.class mlterm/MLTermApplet.class \
+	mlterm/ConfirmDialog.class
 OBJ = MLTermPty.o
 
 VPATH = $(top_srcdir)/java
