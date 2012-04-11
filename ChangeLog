@@ -1,3 +1,7 @@
+2012-04-12  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTermPty.c, MLTermPty.java: '\r' characters at end of lines are removed.
+
 2012-04-11  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.c: If ssh server is unknown, message box is shown.
