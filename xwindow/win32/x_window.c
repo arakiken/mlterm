@@ -9,6 +9,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
 #include  <kiklib/kik_util.h>	/* K_MIN/K_MAX */
+#include  <kiklib/kik_dialog.h>
 #include  <mkf/mkf_codepoint_parser.h>
 #include  <ml_char.h>		/* UTF_MAX_SIZE */
 
@@ -1083,12 +1084,12 @@ x_window_show(
 				! win->parent ? ACTUAL_WINDOW_HEIGHT(win) : ACTUAL_HEIGHT(win) ,
 				win->parent_window , NULL , win->disp->display->hinst , NULL) ;
 
-  	if( ! win->my_window)
-        {
-          	MessageBox(NULL , "Failed to create window." , NULL , MB_ICONSTOP) ;
+	if( ! win->my_window)
+	{
+		kik_dialog( KIK_DIALOG_ALERT , "Failed to create window.") ;
 
-          	return  0 ;
-        }
+		return  0 ;
+	}
 
 	/*
 	 * This should be called after Window Manager settings, because

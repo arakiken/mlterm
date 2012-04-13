@@ -9,6 +9,7 @@ ver 3.1.0
 * Add java version. (experimental)
 * Add VT52 emulation. (configure with --enable-vt52 option.)
 * Bug fixes:
+  SF Bug #2878878 (Thanks to Kusanagi Kouichi san)
   SF Bug #3481552 (Thanks to Kobayashi Hiroaki san)
   SF Bug #3487163 (Thanks to raghavkrishna)
   SF Bug #3509743 (Thanks to Thomas Wolff)

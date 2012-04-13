@@ -1,3 +1,14 @@
+2012-04-13  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c, x_xic.c: Even if X*LookupString() returnes XBufferOverflow,
+	  all input text is received.
+
+	* kik_dialog.[ch]: kik_dialog_style_t is added.
+
+	* win32/x_display.c, win32/x_window.c:
+	 - Callback function of kik_dialog is set.
+	 - MessageBox is replaced by kik_dialog.
+
 2012-04-12  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.c, MLTermPty.java: '\r' characters at end of lines are removed.

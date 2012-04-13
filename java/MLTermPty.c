@@ -20,6 +20,7 @@
 #include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <kiklib/kik_unistd.h>	/* kik_setenv */
 #include  <kiklib/kik_args.h>	/* _kik_arg_str_to_array */
+#include  <kiklib/kik_dialog.h>
 #include  <mkf/mkf_utf16_conv.h>
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
@@ -103,12 +104,17 @@ pty_closed(
 static JNIEnv *  env_for_dialog ;
 static int
 dialog_callback(
-	int  type ,
+	kik_dialog_style_t  style ,
 	char *  msg
 	)
 {
 	jclass  class ;
 	static jmethodID  mid ;
+
+	if( style != KIK_DIALOG_OKCANCEL)
+	{
+		return  -1 ;
+	}
 
 	/* This function is called rarely, so jclass is not static. */
 	class = (*env_for_dialog)->FindClass( env_for_dialog , "mlterm/ConfirmDialog") ;

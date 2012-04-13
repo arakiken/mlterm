@@ -9,15 +9,14 @@
 
 /* --- static variables --- */
 
-static int (*callback)( int , char *) ;
+static int (*callback)( kik_dialog_style_t , char *) ;
 
 
 /* --- global functions --- */
 
 int
 kik_dialog_set_callback(
-	int  type ,		/* Not used for now. */
-	int (*cb)( int , char *)
+	int (*cb)( kik_dialog_style_t , char *)
 	)
 {
 	callback = cb ;
@@ -28,7 +27,7 @@ kik_dialog_set_callback(
 #if  0
 int
 kik_dialog_set_exec_file(
-	int  type ,
+	kik_dialog_style_t  style
 	const char *  path
 	)
 {
@@ -38,13 +37,15 @@ kik_dialog_set_exec_file(
 
 int
 kik_dialog(
-	int  type ,		/* Not used for now. */
+	kik_dialog_style_t  style ,
 	char *  msg
 	)
 {
-	if( callback)
+	int  ret ;
+
+	if( callback && (ret = (*callback)( style , msg)) != -1)
 	{
-		return  (*callback)( type , msg) ;
+		return  ret ;
 	}
 	else
 	{

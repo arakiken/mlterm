@@ -346,7 +346,7 @@ ssh_connect(
 				}
 				msg[strlen(msg) - 1] = ')' ;	/* replace ':' with ')' */
 
-				if( ! kik_dialog( 0 , msg))
+				if( ! kik_dialog( KIK_DIALOG_OKCANCEL , msg))
 				{
 					libssh2_knownhost_free( nhs) ;
 

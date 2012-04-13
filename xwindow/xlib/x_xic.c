@@ -490,16 +490,13 @@ x_xic_get_str(
 	{
 		return  0 ;
 	}
-	else if( stat == XBufferOverflow)
+	else if( stat == XBufferOverflow /* len > seq_len */)
 	{
 		/*
 		 * Input string is too large for seq. seq and keysym are not modified.
-		 *
-		 * XXX
-		 * len is required size for input string, but not used for now.
+		 * len is required size for input string.
 		 */
-		
-		return  0 ;
+		return  len ;
 	}
 
 	if( IS_ENCODING_BASED_ON_ISO2022(win->xim->encoding) && *seq < 0x20)
@@ -543,15 +540,13 @@ x_xic_get_utf8_str(
 	{
 		return  0 ;
 	}
-	else if( stat == XBufferOverflow)
+	else if( stat == XBufferOverflow /* len > seq_len */)
 	{
 		/*
 		 * Input string is too large for seq. seq and keysym are not modified.
-		 *
-		 * XXX
-		 * len is required size for input string, but not used for now.
+		 * len is required size for input string.
 		 */
-		return  0 ;
+		return  len ;
 	}
 	
 	if( ! utf8_parser)

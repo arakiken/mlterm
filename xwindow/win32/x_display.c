@@ -14,6 +14,7 @@
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_dialog.h>
 
 #include  "../x_window.h"
 
@@ -100,6 +101,31 @@ hide_console(void)
 }
 #endif
 
+static int
+dialog(
+	kik_dialog_style_t  style ,
+	char *  msg
+	)
+{
+	if( style == KIK_DIALOG_OKCANCEL)
+	{
+		if( MessageBoxA( NULL , msg , "" , MB_OKCANCEL) == IDOK)
+		{
+			return  1 ;
+		}
+	}
+	else if( style == KIK_DIALOG_ALERT)
+	{
+		MessageBoxA( NULL , msg , "" , MB_ICONSTOP) ;
+	}
+	else
+	{
+		return  -1 ;
+	}
+
+	return  0 ;
+}
+
 
 /* --- global functions --- */
 
@@ -122,8 +148,11 @@ x_display_open(
 		return  &_disp ;
 	}
 
+	/* Callback should be set before kik_dialog() is called. */
+	kik_dialog_set_callback( dialog) ;
+
 	_display.hinst = GetModuleHandle(NULL) ;
-	
+
   	/* Prepare window class */
   	ZeroMemory( &wc , sizeof(WNDCLASS)) ;
   	wc.lpfnWndProc = window_proc ;
@@ -136,7 +165,7 @@ x_display_open(
 
 	if( ! RegisterClass(&wc))
 	{
-		MessageBox(NULL,"Failed to register class", NULL, MB_ICONSTOP) ;
+		kik_dialog( KIK_DIALOG_ALERT , "Failed to register class") ;
 
 		return  NULL ;
 	}

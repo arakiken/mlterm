@@ -27,9 +27,6 @@
 #include  "x_draw_str.h"
 
 
-/* the same as rxvt. if this size is too few , we may drop sequences from kinput2. */
-#define  KEY_BUF_SIZE  512
-
 #define  HAS_SYSTEM_LISTENER(screen,function) \
 	((screen)->system_listener && (screen)->system_listener->function)
 
@@ -1949,7 +1946,8 @@ key_pressed(
 {
 	x_screen_t *  screen ;
 	size_t  size ;
-	u_char  seq[KEY_BUF_SIZE] ;
+	u_char  buf[UTF_MAX_SIZE] ;
+	u_char *  seq ;
 	KeySym  ksym ;
 	mkf_parser_t *  parser ;
 	u_int  masked_state ;
@@ -1958,7 +1956,20 @@ key_pressed(
 
 	masked_state = event->state & screen->mod_ignore_mask ;
 
-	size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
+	if( ( size = x_window_get_str( win , buf , sizeof(buf) , &parser , &ksym , event))
+	    > sizeof(buf))
+	{
+		if( ! ( seq = alloca( size)))
+		{
+			return ;
+		}
+
+		size = x_window_get_str( win , seq , size , &parser , &ksym , event) ;
+	}
+	else
+	{
+		seq = buf ;
+	}
 
 #if  0
 	kik_debug_printf( "state %x %x ksym %x str ", event->state , masked_state , ksym) ;
