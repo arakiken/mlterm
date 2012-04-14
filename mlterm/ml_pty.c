@@ -320,21 +320,6 @@ ml_write_to_pty(
 	return  0 ;
 }
 
-/*
- * Flush pty->buf/pty->left.
- */
-size_t
-ml_flush_pty(
-	ml_pty_t *  pty
-	)
-{
-#if  0
-	kik_debug_printf( "flushing buffer.\n") ;
-#endif
-
-	return  ml_write_to_pty( pty , NULL , 0) ;
-}
-
 size_t
 ml_read_pty(
 	ml_pty_t *  pty ,

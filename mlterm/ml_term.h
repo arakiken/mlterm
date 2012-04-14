@@ -134,8 +134,6 @@ pid_t  ml_term_get_child_pid( ml_term_t *  term) ;
 
 size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len , int  to_menu) ;
 
-int  ml_term_flush( ml_term_t *  term) ;
-
 /* Must be called in visual context. */
 #define  ml_term_write_loopback( term , buf , len) \
 		ml_parse_vt100_write_loopback( (term)->parser , buf , len)

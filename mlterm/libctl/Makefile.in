@@ -10,7 +10,7 @@ VPATH = ${top_srcdir}/mlterm/libctl
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ \
 	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @CTL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
-	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DLIBDIR=\"$(libdir)\" \
+	-I/usr/local/include -DLIBDIR=\"$(libdir)\" \
 
 LIBS = $(LIBS_LOCAL) @LKIK@ @LMKF@
 LIBS_BIDI = @FRIBIDI_LIBS@

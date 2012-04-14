@@ -196,6 +196,10 @@ x_prepare_for_main_config(
 		"input method (xim/kbd/uim/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
 		"parent window") ;
+	kik_conf_add_opt( conf , '\0' , "bd" , 0 , "bd_color" ,
+		"Color to use to display bold characters (equivalent to colorBD)") ;
+	kik_conf_add_opt( conf , '\0' , "ul" , 0 , "ul_color" ,
+		"Color to use to display underlined characters (equivalent to colorUL)") ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	kik_conf_add_opt( conf , '\0' , "servlist" , 0 , "server_list" ,
 		"list of servers to connect") ;
@@ -471,7 +475,21 @@ x_main_config_init(
 	{
 		main_config->cursor_bg_color = strdup( value) ;
 	}
-	
+
+	main_config->bd_color = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "bd_color")))
+	{
+		main_config->bd_color = strdup( value) ;
+	}
+
+	main_config->ul_color = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "ul_color")))
+	{
+		main_config->ul_color = strdup( value) ;
+	}
+
 	main_config->sb_fg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))

@@ -39,9 +39,9 @@ version 20110903
                      letter_space | screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | static_backscroll_mode | use_multi_column_char |
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     use_dynamic_comb | cursor_fg_color | cursor_bg_color | icon_path |
-                     logging_vt_seq | logging_msg | title | word_separators | button3_behavior |
-                     use_clipboard | auto_restart
+                     use_dynamic_comb | cursor_fg_color | cursor_bg_color | color_bd | color_ul |
+                     icon_path | logging_vt_seq | logging_msg | title | word_separators |
+                     button3_behavior | use_clipboard | auto_restart
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -51,9 +51,9 @@ version 20110903
                      screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | use_multi_column_char | col_size_of_width_a |
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
-                     rows | cols | cursor_fg_color | cursor_bg_color | pty_list | pty_name |
-                     use_clipboard | icon_path | logging_vt_seq | selected_text(:encoding) |
-                     gui | allow_osc52
+                     rows | cols | cursor_fg_color | cursor_bg_color | color_bd | color_ul |
+                     pty_list | pty_name | use_clipboard | icon_path | logging_vt_seq |
+                     selected_text(:encoding) | gui | allow_osc52
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -75,6 +75,8 @@ version 20110903
   contrast = <any ASCII decimal digit>
   cursor_bg_color = <color name> | <color rgb>
   cursor_fg_color = <color name> | <color rgb>
+  cursor_bd = <color name> | <color rgb>
+  cursor_ul = <color name> | <color rgb>
   encoding = <encoding name> | auto
   fade_ratio = <any ASCII decimal digit>
   fg_color = <color name> | <color rgb>

@@ -550,7 +550,7 @@ x_font_new(
 
 		font->width = tm.tmAveCharWidth * font->cols ;
 		font->height = tm.tmHeight ;
-		font->height_to_baseline = tm.tmAscent ;
+		font->ascent = tm.tmAscent ;
 
 		if( ( font->id & FONT_BOLD) && tm.tmWeight <= FW_MEDIUM)
 		{

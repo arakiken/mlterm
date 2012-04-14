@@ -42,11 +42,11 @@ typedef struct x_font
 	 */
 	Display *  display ;
 	
-	ml_font_t  id ;
-
 	/*
 	 * Public(readonly)
 	 */
+	ml_font_t  id ;
+
 #ifdef  USE_WIN32GUI
 	Font  fid ;
 	mkf_conv_t *  conv ;
@@ -70,7 +70,7 @@ typedef struct x_font
 	u_int8_t  cols ;
 	u_int8_t  width ;
 	u_int8_t  height ;
-	u_int8_t  height_to_baseline ;
+	u_int8_t  ascent ;
 
 	/* This is not zero only when is_proportional is true and xfont is set. */
 	int8_t  x_off ;

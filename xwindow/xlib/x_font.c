@@ -242,7 +242,7 @@ set_decsp_font(
 #endif
 
 	if( ( font->decsp_font = x_decsp_font_new( font->display , font->width , font->height ,
-					font->height_to_baseline)) == NULL)
+					font->ascent)) == NULL)
 	{
 		return  0 ;
 	}
@@ -611,7 +611,7 @@ font_found:
 	font->xfont = xfont ;
 
 	font->height = xfont->ascent + xfont->descent ;
-	font->height_to_baseline = xfont->ascent ;
+	font->ascent = xfont->ascent ;
 
 	/*
 	 * calculating actual font glyph width.
@@ -802,7 +802,7 @@ font_found:
 
 
 	/*
-	 * checking if font width/height/height_to_baseline member is sane.
+	 * checking if font width/height/ascent member is sane.
 	 */
 
 	if( font->width == 0)
@@ -823,10 +823,10 @@ font_found:
 		font->height = fontsize ;
 	}
 
-	if( font->height_to_baseline == 0)
+	if( font->ascent == 0)
 	{
 		/* XXX this may be inaccurate. */
-		font->height_to_baseline = fontsize ;
+		font->ascent = fontsize ;
 	}
 
 	/*
@@ -1465,8 +1465,8 @@ x_font_dump(
 	kik_msg_printf( "Font id %x: CairoFont %p " , font->id , font->cairo_font) ;
 #endif
 
-	kik_msg_printf( "(width %d, height %d, height_to_baseline %d, x_off %d)" ,
-		font->width , font->height , font->height_to_baseline , font->x_off) ;
+	kik_msg_printf( "(width %d, height %d, ascent %d, x_off %d)" ,
+		font->width , font->height , font->ascent , font->x_off) ;
 
 	if( font->is_proportional)
 	{

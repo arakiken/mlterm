@@ -526,7 +526,7 @@ draw_line(
 					ml_char_at( line , beg_char_index) ,
 					num_of_redrawn , beg_x , y ,
 					x_line_height( screen) ,
-					x_line_height_to_baseline( screen) ,
+					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
 					x_line_bottom_margin( screen)))
 				{
@@ -540,7 +540,7 @@ draw_line(
 					ml_char_at( line , beg_char_index) ,
 					num_of_redrawn , beg_x , y ,
 					x_line_height( screen) ,
-					x_line_height_to_baseline( screen) ,
+					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
 					x_line_bottom_margin( screen)))
 				{
@@ -555,7 +555,7 @@ draw_line(
 				ml_char_at( line , beg_char_index) ,
 				num_of_redrawn , beg_x , y ,
 				x_line_height( screen) ,
-				x_line_height_to_baseline( screen) ,
+				x_line_ascent( screen) ,
 				x_line_top_margin( screen) ,
 				x_line_bottom_margin( screen)))
 			{
@@ -676,7 +676,7 @@ draw_cursor(
 	x_draw_str( &screen->window , screen->font_man ,
 		screen->color_man , &ch , 1 , x , y ,
 		x_line_height( screen) ,
-		x_line_height_to_baseline( screen) ,
+		x_line_ascent( screen) ,
 		x_line_top_margin( screen) ,
 		x_line_bottom_margin( screen));
 
@@ -4478,14 +4478,8 @@ change_fg_color(
 	char *  name
 	)
 {
-	if( strcmp( name , x_color_manager_get_fg_color( screen->color_man)) == 0)
-	{
-		return ;
-	}
-
-	x_color_manager_set_fg_color( screen->color_man , name) ;
-
-	if( x_window_set_fg_color( &screen->window ,
+	if( x_color_manager_set_fg_color( screen->color_man , name) &&
+	    x_window_set_fg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_FG_COLOR)))
 	{
 		x_xic_fg_color_changed( &screen->window) ;
@@ -4502,14 +4496,8 @@ change_bg_color(
 	char *  name
 	)
 {
-	if( strcmp( name , x_color_manager_get_bg_color( screen->color_man)) == 0)
-	{
-		return ;
-	}
-
-	x_color_manager_set_bg_color( screen->color_man , name) ;
-
-	if( x_window_set_bg_color( &screen->window ,
+	if( x_color_manager_set_bg_color( screen->color_man , name) &&
+	    x_window_set_bg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_BG_COLOR)))
 	{
 		x_xic_bg_color_changed( &screen->window) ;
@@ -4522,58 +4510,6 @@ change_bg_color(
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
-}
-
-static void
-change_cursor_fg_color(
-	x_screen_t *  screen ,
-	char *  name
-	)
-{
-	char *  old ;
-
-	if( ( old = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
-	{
-		old = "" ;
-	}
-
-	if( strcmp( name , old) == 0)
-	{
-		return ;
-	}
-
-	if( *name == '\0')
-	{
-		name = NULL ;
-	}
-
-	x_color_manager_set_cursor_fg_color( screen->color_man , name) ;
-}
-
-static void
-change_cursor_bg_color(
-	x_screen_t *  screen ,
-	char *  name
-	)
-{
-	char *  old ;
-
-	if( ( old = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
-	{
-		old = "" ;
-	}
-
-	if( strcmp( name , old) == 0)
-	{
-		return ;
-	}
-
-	if( *name == '\0')
-	{
-		name = NULL ;
-	}
-
-	x_color_manager_set_cursor_bg_color( screen->color_man , name) ;
 }
 
 static void
@@ -5178,6 +5114,20 @@ get_config(
 	else if( strcmp( key , "cursor_bg_color") == 0)
 	{
 		if( ( value = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "bd_color") == 0)
+	{
+		if( ( value = x_color_manager_get_bd_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "ul_color") == 0)
+	{
+		if( ( value = x_color_manager_get_ul_color( screen->color_man)) == NULL)
 		{
 			value = "" ;
 		}
@@ -6378,7 +6328,7 @@ draw_preedit_str(
 					screen->color_man , &chars[start] ,
 					i - start + 1 , x , y ,
 					x_line_height( screen) ,
-					x_line_height_to_baseline( screen) ,
+					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
 					x_line_bottom_margin( screen)))
 			{
@@ -6402,7 +6352,7 @@ draw_preedit_str(
 					screen->color_man , &chars[start] ,
 					i - start + 1 , x , y ,
 					x_line_height( screen) ,
-					x_line_height_to_baseline( screen) ,
+					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
 					x_line_bottom_margin( screen)))
 			{
@@ -7717,11 +7667,11 @@ x_line_height(
 }
 
 u_int
-x_line_height_to_baseline(
+x_line_ascent(
 	x_screen_t *  screen
 	)
 {
-	return  x_get_usascii_font( screen->font_man)->height_to_baseline +
+	return  x_get_usascii_font( screen->font_man)->ascent +
 			screen->line_space / 2 ;
 }
 
@@ -7972,11 +7922,23 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "cursor_fg_color") == 0)
 	{
-		change_cursor_fg_color( screen , value) ;
+		x_color_manager_set_cursor_fg_color( screen->color_man ,
+			*value == '\0' ? NULL : value) ;
 	}
 	else if( strcmp( key , "cursor_bg_color") == 0)
 	{
-		change_cursor_bg_color( screen , value) ;
+		x_color_manager_set_cursor_bg_color( screen->color_man ,
+			*value == '\0' ? NULL : value) ;
+	}
+	else if( strcmp( key , "bd_color") == 0)
+	{
+		x_color_manager_set_bd_color( screen->color_man ,
+			*value == '\0' ? NULL : value) ;
+	}
+	else if( strcmp( key , "ul_color") == 0)
+	{
+		x_color_manager_set_ul_color( screen->color_man ,
+			*value == '\0' ? NULL : value) ;
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{

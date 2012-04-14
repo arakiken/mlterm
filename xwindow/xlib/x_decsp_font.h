@@ -14,13 +14,13 @@ typedef struct x_decsp_font
 	Pixmap  glyphs[0x20] ;
 	u_int  width ;
 	u_int  height ;
-	u_int  height_to_baseline ;
+	u_int  ascent ;
 
 } x_decsp_font_t ;
 
 
 x_decsp_font_t *  x_decsp_font_new( Display *  display , u_int  width ,
-	u_int  height , u_int  height_to_baseline) ;
+	u_int  height , u_int  ascent) ;
 
 int  x_decsp_font_delete( x_decsp_font_t *  vtgr , Display *  display) ;
 

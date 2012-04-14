@@ -949,7 +949,7 @@ reset_vte_size_member(
 				terminal->char_width , terminal->char_height) ;
 	}
 	
-	terminal->char_ascent = x_line_height_to_baseline( terminal->pvt->screen) ;
+	terminal->char_ascent = x_line_ascent( terminal->pvt->screen) ;
 	terminal->char_descent = terminal->char_height - terminal->char_ascent ;
 
 

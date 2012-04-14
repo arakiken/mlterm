@@ -183,11 +183,6 @@ receive_next_event(void)
 
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-	#if  1
-		/* Flushing buffer of keypress event. Necessary ?  */
-		ml_term_flush( terms[count]) ;
-	#endif
-
 		if( FD_ISSET( ml_term_get_master_fd( terms[count]) , &read_fds))
 		{
 			ml_term_parse_vt100_sequence( terms[count]) ;

@@ -280,7 +280,7 @@ draw_screen_vertical(
 				    j * xfont->width ,
 				    (xfont->height + LINE_SPACE) * (i - top) ,
 				    xfont->height + LINE_SPACE ,
-				    xfont->height_to_baseline + LINE_SPACE / 2 ,
+				    xfont->ascent + LINE_SPACE / 2 ,
 				    LINE_SPACE / 2 ,
 				    LINE_SPACE / 2 + LINE_SPACE % 2) ;
 		}
@@ -299,7 +299,7 @@ draw_screen_vertical(
 				   xfont->width * (num_of_digits + 1) ,
 				   (xfont->height + LINE_SPACE) * (i - top) ,
 				   xfont->height + LINE_SPACE ,
-				   xfont->height_to_baseline + LINE_SPACE / 2 ,
+				   xfont->ascent + LINE_SPACE / 2 ,
 				   LINE_SPACE / 2 ,
 				   LINE_SPACE / 2 + LINE_SPACE % 2) ;
 	}
@@ -363,7 +363,7 @@ draw_screen_vertical(
 				    x + i * xfont->width ,
 				    (xfont->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
 				    xfont->height ,
-				    xfont->height_to_baseline ,
+				    xfont->ascent ,
 				    0 , 0) ;
 		}
 	}
@@ -447,7 +447,7 @@ draw_screen_horizontal(
 				    &ch , 1 ,
 				    x , 0 ,
 				    xfont->height + LINE_SPACE ,
-				    xfont->height_to_baseline + LINE_SPACE / 2 ,
+				    xfont->ascent + LINE_SPACE / 2 ,
 				    LINE_SPACE / 2 ,
 				    LINE_SPACE / 2 + LINE_SPACE % 2) ;
 			x += xfont->width ;
@@ -466,7 +466,7 @@ draw_screen_horizontal(
 			    cand_screen->candidates[i].filled_len ,
 			    x , 0 ,
 			    xfont->height + LINE_SPACE ,
-			    xfont->height_to_baseline + LINE_SPACE / 2 ,
+			    xfont->ascent + LINE_SPACE / 2 ,
 			    LINE_SPACE / 2 ,
 			    LINE_SPACE / 2 + LINE_SPACE % 2) ;
 		x += candidate_width( cand_screen->font_man ,

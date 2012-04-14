@@ -45,8 +45,6 @@ int  ml_set_pty_winsize( ml_pty_ptr_t  pty , u_int  cols , u_int  rows) ;
 
 size_t  ml_write_to_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  len) ;
 
-size_t  ml_flush_pty( ml_pty_ptr_t  pty) ;
-
 size_t  ml_read_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  left) ;
 
 pid_t  ml_pty_get_pid( ml_pty_ptr_t  pty) ;

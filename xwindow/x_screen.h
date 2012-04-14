@@ -199,7 +199,7 @@ u_int  x_col_width( x_screen_t *  screen) ;
 
 u_int  x_line_height( x_screen_t *  screen) ;
 
-u_int  x_line_height_to_baseline( x_screen_t *  screen) ;
+u_int  x_line_ascent( x_screen_t *  screen) ;
 
 u_int  x_line_top_margin( x_screen_t *  screen) ;
 

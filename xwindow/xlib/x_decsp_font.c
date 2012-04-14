@@ -15,7 +15,7 @@ x_decsp_font_new(
 	Display *  display ,
 	u_int  width ,
 	u_int  height ,
-	u_int  height_to_baseline
+	u_int  ascent
 	)
 {
 	x_decsp_font_t *  font ;
@@ -35,7 +35,7 @@ x_decsp_font_new(
 
 	font->width = width ;
 	font->height = height ;
-	font->height_to_baseline = height_to_baseline ;
+	font->ascent = ascent ;
 
 	glyph_width = width ;
 	glyph_height = height ;
@@ -194,7 +194,7 @@ x_decsp_font_draw_string(
 	int  count ;
 	int  cache = -1; /* to avoid replace clip mask every time */
 
-	y -= font->height_to_baseline; /* original y is not used */
+	y -= font->ascent; /* original y is not used */
 	for( count = 0 ; count < len ; count ++)
 	{
 		if( *str < 0x20 && font->glyphs[*str])
@@ -238,7 +238,7 @@ x_decsp_font_draw_image_string(
 {
 	int  count ;
 
-	y -= font->height_to_baseline;/* original y is not used */
+	y -= font->ascent;/* original y is not used */
 	for( count = 0 ; count < len ; count ++)
 	{
 		if( *str < 0x20 && font->glyphs[*str])

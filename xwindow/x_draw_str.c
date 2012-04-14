@@ -11,9 +11,33 @@
 
 /* --- static functions --- */
 
-/*
- * drawing string
- */
+static int
+adjust_bd_ul_color(
+	x_color_manager_t *  color_man ,
+	ml_color_t  fg_color ,
+	ml_font_t  font ,
+	int  is_underlined
+	)
+{
+	if( font & FONT_BOLD)
+	{
+		if( fg_color == ML_FG_COLOR && x_color_manager_adjust_bd_color( color_man))
+		{
+			return  1 ;
+		}
+	}
+
+	if( is_underlined)
+	{
+		if( fg_color == ML_FG_COLOR && x_color_manager_adjust_ul_color( color_man))
+		{
+			return  2 ;
+		}
+	}
+
+	return  0 ;
+}
+
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
@@ -90,7 +114,7 @@ fc_draw_str(
 	int  x ,
 	int  y ,
 	u_int  height ,
-	u_int  height_to_baseline ,
+	u_int  ascent ,
 	u_int  top_margin ,
 	u_int  bottom_margin
 	)
@@ -306,6 +330,8 @@ fc_draw_str(
 			 * status is changed.
 			 */
 
+			int  color_adjusted ;	/* 0 => None , 1 => BD , 2 => UL */
+
 		#ifdef  PERF_DEBUG
 			draw_count ++ ;
 		#endif
@@ -325,6 +351,9 @@ fc_draw_str(
 					x , y , current_width - x , height) ;
 			}
 
+			color_adjusted = adjust_bd_ul_color( color_man , fg_color ,
+							xfont->id , is_underlined) ;
+
 			/*
 			 * drawing string
 			 */
@@ -332,19 +361,19 @@ fc_draw_str(
 			{
 				x_window_ft_draw_string8( window ,
 					xfont , x_get_xcolor( color_man , fg_color) ,
-					x , y + height_to_baseline , str8 , str_len) ;
+					x , y + ascent , str8 , str_len) ;
 			}
 			else if( state == 1)
 			{
 				x_window_draw_decsp_string( window , xfont ,
 					x_get_xcolor( color_man , fg_color) ,
-					x , y + height_to_baseline , str8 , str_len) ;
+					x , y + ascent , str8 , str_len) ;
 			}
 			else /* if( state == 2) */
 			{
 				x_window_ft_draw_string32( window ,
 					xfont , x_get_xcolor( color_man , fg_color) ,
-					x , y + height_to_baseline , str32 , str_len) ;
+					x , y + ascent , str32 , str_len) ;
 			}
 
 			if( comb_chars)
@@ -364,24 +393,36 @@ fc_draw_str(
 				#else
 					current_width - ch_width
 				#endif
-					, y + height_to_baseline) ;
+					, y + ascent) ;
 			}
 
-			if( is_underlined)
+			if( color_adjusted != 2 && is_underlined)
 			{
 				if( xfont->is_vertical)
 				{
 					x_window_fill_with( window ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y , (ch_width>>4) + 1 , height) ;
+						x , y , (ch_width >> 4) + 1 , height) ;
 				}
 				else
 				{
 					x_window_fill_with( window ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y + height_to_baseline ,
+						x , y + ascent ,
 						current_width - x ,
-						((height_to_baseline - bottom_margin)>>4) +1 ) ;
+						((ascent - bottom_margin) >> 4) + 1 ) ;
+				}
+			}
+
+			if( color_adjusted)
+			{
+				if( color_adjusted == 1)
+				{
+					x_color_manager_adjust_bd_color( color_man) ;
+				}
+				else /* if( color_adjusted == 2) */
+				{
+					x_color_manager_adjust_ul_color( color_man) ;
 				}
 			}
 
@@ -509,7 +550,7 @@ xcore_draw_str(
 	int  x ,
 	int  y ,
 	u_int  height ,
-	u_int  height_to_baseline ,
+	u_int  ascent ,
 	u_int  top_margin ,
 	u_int  bottom_margin
 	)
@@ -734,9 +775,14 @@ xcore_draw_str(
 			 * status is changed.
 			 */
 
+			int  color_adjusted ;	/* 0 => None , 1 => BD , 2 => UL */
+
 		#ifdef  PERF_DEBUG
 			draw_count ++ ;
 		#endif
+
+			color_adjusted = adjust_bd_ul_color( color_man , fg_color ,
+							xfont->id , is_underlined) ;
 
 			if( ( x_window_has_wall_picture( window) && bg_color == ML_BG_COLOR) ||
 				bottom_margin + top_margin > 0 /* == line space XXX */|| 
@@ -762,19 +808,19 @@ xcore_draw_str(
 				{
 					x_window_draw_string16( window , xfont ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y + height_to_baseline , str2b , str_len) ;
+						x , y + ascent , str2b , str_len) ;
 				}
 				else if( state == 1)
 				{
 					x_window_draw_decsp_string( window , xfont ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y + height_to_baseline , str , str_len) ;
+						x , y + ascent , str , str_len) ;
 				}
 				else /* if( state == 0) */
 				{
 					x_window_draw_string( window , xfont ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y + height_to_baseline , str , str_len) ;
+						x , y + ascent , str , str_len) ;
 				}
 			}
 			else
@@ -784,21 +830,21 @@ xcore_draw_str(
 					x_window_draw_image_string16( window , xfont ,
 						x_get_xcolor( color_man , fg_color) ,
 						x_get_xcolor( color_man , bg_color) ,
-						x , y + height_to_baseline , str2b , str_len) ;
+						x , y + ascent , str2b , str_len) ;
 				}
 				else if( state == 1)
 				{
 					x_window_draw_decsp_image_string( window , xfont ,
 						x_get_xcolor( color_man , fg_color) ,
 						x_get_xcolor( color_man , bg_color) ,
-						x , y + height_to_baseline , str , str_len) ;
+						x , y + ascent , str , str_len) ;
 				}
 				else /* if( state == 0) */
 				{
 					x_window_draw_image_string( window , xfont ,
 						x_get_xcolor( color_man , fg_color) ,
 						x_get_xcolor( color_man , bg_color) ,
-						x , y + height_to_baseline , str , str_len) ;
+						x , y + ascent , str , str_len) ;
 				}
 			}
 
@@ -819,24 +865,36 @@ xcore_draw_str(
 				#else
 					current_width - ch_width
 				#endif
-					, y + height_to_baseline) ;
+					, y + ascent) ;
 			}
 
-			if( is_underlined)
+			if( color_adjusted != 2 && is_underlined)
 			{
 				if( xfont->is_vertical)
 				{
 					x_window_fill_with( window ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y , (ch_width>>4) + 1 , height) ;
+						x , y , (ch_width >> 4) + 1 , height) ;
 				}
 				else
 				{
 					x_window_fill_with( window ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y + height_to_baseline ,
+						x , y + ascent ,
 						current_width - x ,
-						((height_to_baseline - bottom_margin)>>4) +1 ) ;
+						((ascent - bottom_margin) >> 4) + 1) ;
+				}
+			}
+
+			if( color_adjusted)
+			{
+				if( color_adjusted == 1)
+				{
+					x_color_manager_adjust_bd_color( color_man) ;
+				}
+				else /* if( color_adjusted == 2) */
+				{
+					x_color_manager_adjust_ul_color( color_man) ;
 				}
 			}
 
@@ -885,7 +943,7 @@ x_draw_str(
 	int  x ,
 	int  y ,
 	u_int  height ,
-	u_int  height_to_baseline ,
+	u_int  ascent ,
 	u_int  top_margin ,
 	u_int  bottom_margin
 	)
@@ -901,7 +959,7 @@ x_draw_str(
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
 		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
+			x , y , height , ascent , top_margin , bottom_margin))
 		{
 			return  0 ;
 		}
@@ -912,7 +970,7 @@ x_draw_str(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
 		if( ! xcore_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
+			x , y , height , ascent , top_margin , bottom_margin))
 		{
 			return  0 ;
 		}
@@ -934,7 +992,7 @@ x_draw_str_to_eol(
 	int  x ,
 	int  y ,
 	u_int  height ,
-	u_int  height_to_baseline ,
+	u_int  ascent ,
 	u_int  top_margin ,
 	u_int  bottom_margin
 	)
@@ -950,7 +1008,7 @@ x_draw_str_to_eol(
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
 		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
+			x , y , height , ascent , top_margin , bottom_margin))
 		{
 			return  0 ;
 		}
@@ -961,7 +1019,7 @@ x_draw_str_to_eol(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
 		if( ! xcore_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
+			x , y , height , ascent , top_margin , bottom_margin))
 		{
 			return	0 ;
 		}

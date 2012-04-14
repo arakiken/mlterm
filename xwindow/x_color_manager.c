@@ -17,7 +17,9 @@ enum
 	_BG_COLOR = 0x1 ,
 	_CUR_FG_COLOR = 0x2 ,
 	_CUR_BG_COLOR = 0x3 ,
-	MAX_SYS_COLORS = 0x4 ,
+	_BD_COLOR = 0x4 ,
+	_UL_COLOR = 0x5 ,
+	MAX_SYS_COLORS = 0x6 ,
 } ;
 
 
@@ -36,6 +38,12 @@ sys_color_set(
 	int  color
 	)
 {
+	if( kik_compare_str( color_man->sys_colors[color].name , name) == 0)
+	{
+		/* Not changed */
+		return  0 ;
+	}
+
 	free( color_man->sys_colors[color].name) ;
 	
 	if( color_man->sys_colors[color].is_loaded)
@@ -47,7 +55,7 @@ sys_color_set(
 
 	if( name == NULL)
 	{
-		if( color == _CUR_FG_COLOR || color == _CUR_BG_COLOR)
+		if( color >= _CUR_FG_COLOR)
 		{
 			color_man->sys_colors[color].name = NULL ;
 		}
@@ -78,7 +86,9 @@ x_color_manager_new(
 	char *  fg_color ,	/* can be NULL(If NULL, use "black".) */
 	char *  bg_color ,	/* can be NULL(If NULL, use "white".) */
 	char *  cursor_fg_color , /* can be NULL(If NULL, use reversed one of the char color.) */
-	char *  cursor_bg_color	  /* can be NULL(If NULL, use reversed one of the char color.) */
+	char *  cursor_bg_color , /* can be NULL(If NULL, use reversed one of the char color.) */
+	char *  bd_color ,	/* can be NULL(If NULL, use reversed one of the char color.) */
+	char *  ul_color	/* can be NULL(If NULL, use reversed one of the char color.) */
 	)
 {
 	x_color_manager_t *  color_man ;
@@ -111,15 +121,25 @@ x_color_manager_new(
 	
 	color_man->sys_colors[_FG_COLOR].name = strdup( fg_color) ;
 	color_man->sys_colors[_BG_COLOR].name = strdup( bg_color) ;
-	
+
 	if( cursor_fg_color)
 	{
 		color_man->sys_colors[_CUR_FG_COLOR].name = strdup( cursor_fg_color) ;
 	}
-	
+
 	if( cursor_bg_color)
 	{
 		color_man->sys_colors[_CUR_BG_COLOR].name = strdup( cursor_bg_color) ;
+	}
+
+	if( bd_color)
+	{
+		color_man->sys_colors[_BD_COLOR].name = strdup( bd_color) ;
+	}
+
+	if( ul_color)
+	{
+		color_man->sys_colors[_UL_COLOR].name = strdup( ul_color) ;
 	}
 
 	color_man->alpha = 0xff ;
@@ -194,6 +214,24 @@ x_color_manager_set_cursor_bg_color(
 	return  sys_color_set( color_man, name, _CUR_BG_COLOR) ;
 }
 
+int
+x_color_manager_set_bd_color(
+	x_color_manager_t *  color_man ,
+	char *  name
+	)
+{
+	return  sys_color_set( color_man, name, _BD_COLOR) ;
+}
+
+int
+x_color_manager_set_ul_color(
+	x_color_manager_t *  color_man ,
+	char *  name
+	)
+{
+	return  sys_color_set( color_man, name, _UL_COLOR) ;
+}
+
 char *
 x_color_manager_get_fg_color(
 	x_color_manager_t *  color_man
@@ -224,6 +262,22 @@ x_color_manager_get_cursor_bg_color(
 	)
 {
 	return  color_man->sys_colors[_CUR_BG_COLOR].name ;
+}
+
+char *
+x_color_manager_get_bd_color(
+	x_color_manager_t *  color_man
+	)
+{
+	return  color_man->sys_colors[_BD_COLOR].name ;
+}
+
+char *
+x_color_manager_get_ul_color(
+	x_color_manager_t *  color_man
+	)
+{
+	return  color_man->sys_colors[_UL_COLOR].name ;
 }
 
 x_color_t *
@@ -474,6 +528,52 @@ x_color_manager_adjust_cursor_bg_color(
 	color_man->sys_colors[_FG_COLOR] = color_man->sys_colors[_CUR_BG_COLOR] ;
 	color_man->sys_colors[_CUR_BG_COLOR] = tmp_color ;
 	
+	return  1 ;
+}
+
+/*
+ * Swap the color of ML_BG_COLOR <=> that of bd color.
+ * Deal ML_BG_COLOR as bd color.
+ */
+int
+x_color_manager_adjust_bd_color(
+	x_color_manager_t *  color_man
+	)
+{
+	struct sys_color  tmp_color ;
+
+	if( ! color_man->sys_colors[_BD_COLOR].name)
+	{
+		return  0 ;
+	}
+
+	tmp_color = color_man->sys_colors[_FG_COLOR] ;
+	color_man->sys_colors[_FG_COLOR] = color_man->sys_colors[_BD_COLOR] ;
+	color_man->sys_colors[_BD_COLOR] = tmp_color ;
+
+	return  1 ;
+}
+
+/*
+ * Swap the color of ML_BG_COLOR <=> that of bd color.
+ * Deal ML_BG_COLOR as bd color.
+ */
+int
+x_color_manager_adjust_ul_color(
+	x_color_manager_t *  color_man
+	)
+{
+	struct sys_color  tmp_color ;
+
+	if( ! color_man->sys_colors[_UL_COLOR].name)
+	{
+		return  0 ;
+	}
+
+	tmp_color = color_man->sys_colors[_FG_COLOR] ;
+	color_man->sys_colors[_FG_COLOR] = color_man->sys_colors[_UL_COLOR] ;
+	color_man->sys_colors[_UL_COLOR] = tmp_color ;
+
 	return  1 ;
 }
 

@@ -423,19 +423,6 @@ ml_term_write(
 }
 
 int
-ml_term_flush(
-	ml_term_t *  term
-	)
-{
-	if( term->pty == NULL)
-	{
-		return  0 ;
-	}
-	
-	return  ml_flush_pty( term->pty) ;
-}
-
-int
 ml_term_resize(
 	ml_term_t *  term ,
 	u_int  cols ,

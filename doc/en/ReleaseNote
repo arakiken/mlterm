@@ -6,8 +6,11 @@ ver 3.1.0
 * Support BiDi mirroring. (Thanks to Khaled Hosny)
 * Add "blink_cursor" option.
 * Add "inner_border" option.
+* Add "bd_color"(rxvt style) and "ul_color" options. (equivalent to colorBD and colorUL
+  options of xterm and rxvt.)
 * Add java version. (experimental)
 * Add VT52 emulation. (configure with --enable-vt52 option.)
+* Remove IIIMF plugin.
 * Bug fixes:
   SF Bug #2878878 (Thanks to Kusanagi Kouichi san)
   SF Bug #3481552 (Thanks to Kobayashi Hiroaki san)

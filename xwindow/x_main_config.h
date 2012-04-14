@@ -56,6 +56,8 @@ typedef struct x_main_config
 	char *  bg_color ;
 	char *  cursor_fg_color ;
 	char *  cursor_bg_color ;
+	char *  bd_color ;
+	char *  ul_color ;
 	char *  sb_fg_color ;
 	char *  sb_bg_color ;
 	char *  mod_meta_key ;

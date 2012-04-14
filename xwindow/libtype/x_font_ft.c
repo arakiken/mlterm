@@ -752,7 +752,7 @@ font_found:
 		font->xft_font = xfont ;
 
 		font->height = font->xft_font->height ;
-		font->height_to_baseline = font->xft_font->ascent ;
+		font->ascent = font->xft_font->ascent ;
 
 		if( ch_width == 0)
 		{
@@ -788,7 +788,7 @@ font_found:
 
 		cairo_scaled_font_extents( font->cairo_font , &extents) ;
 		font->height = DOUBLE_ROUNDUP_TO_INT(extents.height) ;
-		font->height_to_baseline = DOUBLE_ROUNDUP_TO_INT(extents.ascent) ;
+		font->ascent = DOUBLE_ROUNDUP_TO_INT(extents.ascent) ;
 
 		/* XXX letter_space is always ignored. */
 		if( font->cols == 2)
@@ -828,7 +828,7 @@ font_found:
 	}
 
 	/*
-	 * checking if font height/height_to_baseline member is sane.
+	 * checking if font height/ascent member is sane.
 	 * font width must be always sane.
 	 */
 
@@ -838,10 +838,10 @@ font_found:
 		font->height = fontsize ;
 	}
 
-	if( font->height_to_baseline == 0)
+	if( font->ascent == 0)
 	{
 		/* XXX this may be inaccurate. */
-		font->height_to_baseline = fontsize ;
+		font->ascent = fontsize ;
 	}
 
 	return  1 ;

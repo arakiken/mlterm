@@ -546,7 +546,8 @@ open_screen_intern(
 
 	if( ( color_man = x_color_manager_new( disp , &color_config ,
 				main_config.fg_color , main_config.bg_color ,
-				main_config.cursor_fg_color , main_config.cursor_bg_color)) == NULL)
+				main_config.cursor_fg_color , main_config.cursor_bg_color ,
+				main_config.bd_color , main_config.ul_color)) == NULL)
 	{
 		goto  error ;
 	}

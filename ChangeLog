@@ -1,3 +1,19 @@
+2012-04-14  Araki Ken  <arakiken@users.sf.net>
+
+	* x_color_manager.[ch], x_draw_str.c, x_main_config.[ch],
+	  x_screen.c, x_screen_manager.c:
+	  "bd_color" (equivalent to colorBD of xterm) and "ul_color" (equivalent
+	  to colorUL of xterm) options are added.
+
+	* kik_str.[ch]: kik_compare_str() which accepts NULL as arguments is added.
+
+	* ml_term.[ch], ml_pty.[ch]:
+	  ml_term_flush() and ml_flush_pty() which rarely work is removed.
+
+	* vte.c, x_font_ft.c, xlib/x_font.c, win32/x_font.c, x_draw_str.[ch],
+	  x_im_candidate_screen.c, x_im_status_screen.c, x_screen.[ch], x_decsp_font.[ch]:
+	  height_to_baseline -> ascent
+
 2012-04-13  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c, x_xic.c: Even if X*LookupString() returnes XBufferOverflow,

@@ -465,3 +465,27 @@ kik_count_char_in_str(
 
 	return  count ;
 }
+
+/* str1 and str2 can be NULL */
+int
+kik_compare_str(
+	const char *  str1 ,
+	const char *  str2
+	)
+{
+	if( str1 == str2)
+	{
+		return  0 ;
+	}
+
+	if( str1 == NULL)
+	{
+		return  -1 ;
+	}
+	else if( str2 == NULL)
+	{
+		return  1 ;
+	}
+
+	return  strcmp( str1 , str2) ;
+}

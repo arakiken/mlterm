@@ -66,5 +66,7 @@ int  kik_str_to_int( int *  i , const char *  s) ;
 
 u_int  kik_count_char_in_str( const char *  str , char  ch) ;
 
+int  kik_compare_str( const char *  str1 , const char *  str2) ;
+
 
 #endif

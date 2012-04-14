@@ -58,7 +58,7 @@ draw_screen(
 			   stat_screen->filled_len ,
 			   0 , 0 ,
 			   xfont->height + LINE_SPACE ,
-			   xfont->height_to_baseline + LINE_SPACE / 2 ,
+			   xfont->ascent + LINE_SPACE / 2 ,
 			   LINE_SPACE / 2 ,
 			   LINE_SPACE / 2 + LINE_SPACE % 2) ;
 }

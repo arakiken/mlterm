@@ -166,6 +166,12 @@ scrollbar_view_name = sample
 # 同背景色
 # cursor_bg_color =
 
+# ボールド文字を描画するのに使用する色
+# bd_color =
+
+# アンダーラインの代わりに文字に色をつけるのに使用する色
+# ul_color =
+
 # 壁紙にする画像ファイルのパス
 # wall_picture =
 

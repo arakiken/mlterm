@@ -458,6 +458,9 @@ Specify the step of changing font size in pixel when you pushed
 GUI configurator.
 The default is \fB1\fR.
 .TP
+\fB\-\-bd\fR=\fIvalue\fR
+Specify the color to use to display bold characters.
+.TP
 \fB\-\-bimode\fR=\fIvalue\fR
 Specify bidi mode. Valid values are: \fBnormal\fR, \fBcmd_l\fR and \fBcmd_r\fR.
 The default is \fBnormal\fR.
@@ -470,6 +473,36 @@ cmd_r   |      FED CBA \-l ls $|
         +---------------------+
         (Upper case characters represent RTL ones.)
 .fi
+.TP
+\fB\-\-blink\fR(=\fIbool\fR)
+Blink cursor. The default is \fBfalse\fR.
+.TP
+\fB\-\-border\fR=\fIvalue\fR
+Specify inner border width. The default is \fB2\fR.
+.TP
+\fB\-\-button3\fR=\fIvalue\fR
+Specify behavior in pressing button3. The default is \fBxterm\fR.
+.nf
+xterm: compatible with xterm
+menu1: open external configurator of conf_menu_path_1 option.
+menu2: open external configurator of conf_menu_path_2 option.
+menu3: open external configurator of conf_menu_path_3 option.
+or command string like "mlclient \-e w3m"
+.fi
+.TP
+\fB\-\-clip\fR(=\fIbool\fR)
+Whether to enable CLIPBOARD (not only PRIMARY) selection.
+The default is \fBfalse\fR.
+.TP
+\fB\-\-csp\fR=\fIvalue\fR
+Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
+The default is \fB0\fR.
+.TP
+\fB\-\-depth\fR=\fIvalue\fR
+Specify visual depth. (8,16,24,32)
+If depth is 32, you can enable semi-transparency by specifying
+opacity as the value of \-\-alpha option or "rgba:RR/GG/BB/AA"
+as the value of \-\-bg option.
 .TP
 \fB\-\-iconpath\fR=\fIpath\fR
 Specify the file to be used as a window icon.
@@ -521,6 +554,21 @@ Use IBus.
 Don't use input method.
 .RE
 .TP
+\fB\-\-logmsg\fR(=\fIbool\fR)
+Enable logging messages of mlterm to ~/.mlterm/msg.log.
+The default is \fBtrue\fR.
+.TP
+\fB\-\-maxptys\fR=\fIvalue\fR
+Specify maximum number of ptys (sessions) to be opened simultaneously.
+It should be multiple of 32.
+The default is \fB32\fR.
+
+See \fBMULTIPLE PTY\fR section for detail.
+.TP
+\fB\-\-osc52\fR(=\fIbool\fR)
+Allow access to clipboard(selection) by OSC 52 sequence.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-parent\fR=\fIvalue\fR
 Specify parent Window ID.
 The default is \fB0\fR.
@@ -532,51 +580,6 @@ This option is enabled only if mlterm is built with MinGW or \-\-enable\-ssh2 op
 Value format: (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
 
 e.g.) mlterm \-\-serv ssh://user@host:22:eucjp
-.TP
-\fB\-\-ucsprop\fR(=\fIbool\fR)
-Use unicode properties in encodings excepting UTF-8.
-The default is \fBfalse\fR.
-.TP
-\fB\-\-osc52\fR(=\fIbool\fR)
-Allow access to clipboard(selection) by OSC 52 sequence.
-The default is \fBfalse\fR.
-.TP
-\fB\-\-blink\fR(=\fIbool\fR)
-Blink cursor. The default is \fBfalse\fR.
-.TP
-\fB\-\-border\fR=\fIvalue\fR
-Specify inner border width. The default is \fB2\fR.
-.TP
-\fB\-\-csp\fR=\fIvalue\fR
-Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
-The default is \fB0\fR.
-.TP
-\fB\-\-depth\fR=\fIvalue\fR
-Specify visual depth. (8,16,24,32)
-If depth is 32, you can enable semi-transparency by specifying
-opacity as the value of \-\-alpha option or "rgba:RR/GG/BB/AA"
-as the value of \-\-bg option.
-.TP
-\fB\-\-maxptys\fR=\fIvalue\fR
-Specify maximum number of ptys (sessions) to be opened simultaneously.
-It should be multiple of 32.
-The default is \fB32\fR.
-
-See \fBMULTIPLE PTY\fR section for detail.
-.TP
-\fB\-\-button3\fR=\fIvalue\fR
-Specify behavior in pressing button3. The default is \fBxterm\fR.
-.nf
-xterm: compatible with xterm
-menu1: open external configurator of conf_menu_path_1 option.
-menu2: open external configurator of conf_menu_path_2 option.
-menu3: open external configurator of conf_menu_path_3 option.
-or command string like "mlclient \-e w3m"
-.fi
-.TP
-\fB\-\-clip\fR(=\fIbool\fR)
-Whether to enable CLIPBOARD (not only PRIMARY) selection.
-The default is \fBfalse\fR.
 .TP
 \fB\-\-pubkey\fR=\fIvalue\fR
 Specify public key file for ssh connection.
@@ -591,9 +594,12 @@ Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SI
 or SIGILL is received.
 The default is \fBtrue\fR.
 .TP
-\fB\-\-logmsg\fR(=\fIbool\fR)
-Enable logging messages of mlterm to ~/.mlterm/msg.log.
-The default is \fBtrue\fR.
+\fB\-\-ul\fR=\fIvalue\fR
+Specify the color to use to display underlined characters.
+.TP
+\fB\-\-ucsprop\fR(=\fIbool\fR)
+Use unicode properties in encodings excepting UTF-8.
+The default is \fBfalse\fR.
 
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -1100,6 +1106,9 @@ If you want to get core image, specify "false".
 \fBbel_mode=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR) 
 Behavior when BEL (0x07) is received.
 .TP
+\fBbd_color=\fIvalue\fR (\fB\-\-bd\fR) 
+Specify the color to use to display bold characters.
+.TP
 \fBbg_color=\fIcolor\fR (\fB\-b\fR, \fB\-\-bg\fR) 
 Background color.
 .TP
@@ -1280,6 +1289,9 @@ Title name.
 .TP
 \fBtype_engine=\fIvalue\fR (\fB\-*\fR, \fB\-\-type\fR) 
 Rendering engine for drawing fonts.
+.TP
+\fBul_color=\fIvalue\fR (\fB\-\-ul\fR) 
+Specify the color to use to display underlined characters.
 .TP
 \fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR) 
 Use anti alias font.
