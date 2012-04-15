@@ -730,7 +730,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 		kik_locale_init( "") ;
 		kik_sig_child_init() ;
 	#ifdef  USE_LIBSSH2
-		kik_dialog_set_callback( 0 , dialog_callback) ;
+		kik_dialog_set_callback( dialog_callback) ;
 	#endif
 		ml_term_manager_init(1) ;
 
