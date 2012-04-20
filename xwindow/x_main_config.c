@@ -227,6 +227,8 @@ x_prepare_for_main_config(
 		"[~/.ssh/id_rsa]"
 	#endif
 		) ;
+	kik_conf_add_opt( conf , '\0' , "ciphlist" , 0 , "cipher_list" ,
+		"preferred cipher list") ;
 #endif
 	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
 		"extra space between letters in pixels [0]") ;
@@ -1196,6 +1198,11 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "ssh_private_key")))
 	{
 		main_config->private_key = strdup( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "cipher_list")))
+	{
+		ml_pty_ssh_set_cipher_list( strdup( value)) ;
 	}
 #endif
 

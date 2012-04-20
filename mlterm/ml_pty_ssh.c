@@ -87,6 +87,7 @@ static u_int  num_of_sessions = 0 ;
 #ifdef  USE_WIN32API
 static HANDLE  rd_ev ;
 #endif
+static const char *  cipher_list ;
 
 
 /* --- static functions --- */
@@ -283,10 +284,18 @@ ssh_connect(
 	}
 
 #ifdef  DEBUG
-	libssh2_trace( session->obj , LIBSSH2_TRACE_AUTH) ;
+	libssh2_trace( session->obj , -1) ;
 #endif
 
 	libssh2_session_set_blocking( session->obj , 1) ;
+
+	if( cipher_list)
+	{
+		libssh2_session_method_pref( session->obj ,
+			LIBSSH2_METHOD_CRYPT_CS , cipher_list) ;
+		libssh2_session_method_pref( session->obj ,
+			LIBSSH2_METHOD_CRYPT_SC , cipher_list) ;
+	}
 
 	if( libssh2_session_startup( session->obj , session->sock) != 0)
 	{
@@ -1514,4 +1523,12 @@ error:
 	free( scp) ;
 
 	return  0 ;
+}
+
+void
+ml_pty_ssh_set_cipher_list(
+	const char *  list
+	)
+{
+	cipher_list = list ;
 }

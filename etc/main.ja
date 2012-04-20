@@ -277,6 +277,9 @@ scrollbar_view_name = sample
 # ssh 接続の認証で使用する秘密鍵のファイルを指定する。
 # ssh_private_key = 
 
+# ssh 接続で使用する共通鍵暗号を指定する。
+# cipher_list =
+
 # SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
 # application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
 # auto_restart = true

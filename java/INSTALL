@@ -91,10 +91,9 @@ How to build & install mlterm co-operating with Java.
   http://mlterm.sf.net/mltermlet.html
   http://mlterm.sf.net/mltermlet.jnpl
 
-  (If libeay32.dll and libssl32.dll exit in system foler (c:\windows\system),
-   and they are not compatible with those which libssh2 depends on,
-   this demo doesn't start. Remove libeay32.dll and libssl32.dll in system
-   folder in advance.)
+  (If libeay32.dll exits in system foler (c:\windows\system) and it is not
+   compatible with the one which libssh2 depends on, this demo doesn't start.
+   Remove libeay32.dll in system folder in advance.)
 
 * Tested terminals using vte.
   o Java 1.6.0_23 on Ubuntu 11.10

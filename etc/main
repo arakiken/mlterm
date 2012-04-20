@@ -195,6 +195,8 @@ scrollbar_view_name = sample
 
 # ssh_private_key = 
 
+# cipher_list =
+
 # auto_restart = true
 
 # allow_osc52 = false

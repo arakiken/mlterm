@@ -11,7 +11,7 @@
 
 #define  _WIN32_WINNT 0x0502	/* for SetDllDirectory */
 #include  <windows.h>
-#include  <winbase.h>
+#include  <winbase.h>		/* SetDllDirectory */
 
 
 /* --- static functions --- */
@@ -34,7 +34,7 @@ kik_dl_open(
 	char  winpath[MAX_PATH] ;
 #endif
 
-#ifdef  HAVE_WINDOWS_H
+#ifdef  SetDllDirectory		/* Defined in winbase.h as SetDllDirectoryA or SetDllDirectoryW */
 	if( ! initialized)
 	{
 		SetDllDirectory( "") ;	/* Don't load library at CWD. */

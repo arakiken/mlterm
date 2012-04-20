@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2011-11-19"
+.TH MLTERM 1 "2012-04-16"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -497,6 +497,9 @@ The default is \fBfalse\fR.
 \fB\-\-csp\fR=\fIvalue\fR
 Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
 The default is \fB0\fR.
+.TP
+\fB\-\-ciphlist\fR=\fIvalue\fR
+Specify ciphers (comma separated list) for encrypting the ssh session.
 .TP
 \fB\-\-depth\fR=\fIvalue\fR
 Specify visual depth. (8,16,24,32)
@@ -1274,6 +1277,9 @@ Specify public key file for ssh connection.
 .TP
 \fBssh_private_key\fR=\fIvalue\fR (\fB\-\-privkey\fR)
 Specify private key file for ssh connection.
+.TP
+\fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
+Specify ciphers (comma separated list) for encrypting the ssh session.
 .TP
 \fBstep_in_changing_font_size\fR (\fB\-z\fR, \fB\-\-largesmall\fR) 
 Specify changing size when font size becomes larger or smaller.

@@ -2612,7 +2612,8 @@ vte_terminal_init(
 			main_config.letter_space) ,
 		x_color_manager_new( &disp , &color_config ,
 			main_config.fg_color , main_config.bg_color ,
-			main_config.cursor_fg_color , main_config.cursor_bg_color)) ;
+			main_config.cursor_fg_color , main_config.cursor_bg_color ,
+			main_config.bd_color , main_config.ul_color)) ;
 
 	terminal->pvt->io = NULL ;
 	terminal->pvt->src_id = 0 ;

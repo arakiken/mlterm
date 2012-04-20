@@ -890,6 +890,11 @@ Java_mlterm_MLTermPty_nativeOpen(
 				private_key = strdup( value) ;
 			}
 
+			if( ( value = kik_conf_get_value( conf , "cipher_list")))
+			{
+				ml_pty_ssh_set_cipher_list( strdup( value)) ;
+			}
+
 		#if  0
 			/* XXX How to get password ? */
 			if( ( value = kik_conf_get_value( conf , "default_server")))

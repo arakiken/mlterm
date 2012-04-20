@@ -8,6 +8,7 @@ ver 3.1.0
 * Add "inner_border" option.
 * Add "bd_color"(rxvt style) and "ul_color" options. (equivalent to colorBD and colorUL
   options of xterm and rxvt.)
+* Add "cipher_list" for ssh connection.
 * Add java version. (experimental)
 * Add VT52 emulation. (configure with --enable-vt52 option.)
 * Remove IIIMF plugin.

@@ -1,3 +1,17 @@
+2012-04-19  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.1.0 released.
+	  (tag "rel-3_1_0")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.1.0.
+
+	* x_main_config.c, MLTermPty.c, ml_pty.h, ml_pty_ssh.c,
+	  etc/main, etc/main.ja, man/mlterm.1, README.ja:
+	  "cipher_list" option is added.
+
+	* kik_debug.c, kik_utmp_sysv.c: Minor fixes.
+
 2012-04-16  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.c: Minor fixes.

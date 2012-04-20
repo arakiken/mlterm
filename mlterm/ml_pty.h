@@ -70,6 +70,8 @@ int  ml_pty_unuse_loopback( ml_pty_ptr_t  pty) ;
 
 int  ml_pty_ssh_scp( ml_pty_ptr_t  pty , ml_char_encoding_t  pty_encoding ,
 	ml_char_encoding_t  path_encoding , char *  dst_path , char *  src_path) ;
+
+void  ml_pty_ssh_set_cipher_list( const char *  list) ;
 #endif
 
 
