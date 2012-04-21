@@ -326,6 +326,14 @@ ml_get_color(
 {
 	ml_color_t  color ;
 
+	if( sscanf( name, "%d", (int*) &color) == 1)
+	{
+		if( IS_VALID_COLOR_EXCEPT_FG_BG(color))
+		{
+			return  color ;
+		}
+	}
+
 	for( color = ML_BLACK ; color <= ML_WHITE ; color++)
 	{
 		if( strcmp( name, color_name_table[color] + 3) == 0)
@@ -335,14 +343,6 @@ ml_get_color(
 		else if( strcmp( name, color_name_table[color]) == 0)
 		{
 			return  color | ML_BOLD_COLOR_MASK ;
-		}
-	}
-
-	if( sscanf( name, "%d", (int*) &color) == 1)
-	{
-		if( IS_256_COLOR(color))
-		{
-			return  color ;
 		}
 	}
 
