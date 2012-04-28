@@ -115,9 +115,17 @@ cygwin*)
 	CYGPATHW=echo
 	if test "$gui" != "xlib" ; then
 		if test "$gui" != "" ; then
-			echo "$gui is not supported in ${host_os}. Use xlib."
+			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
 		gui="xlib"
+	fi
+	# $have_x is defined in AC_PATH_XTRA.
+	if test "$have_x" != "yes" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find xlib."
+		echo ""
+		exit 1
 	fi
 	;;
 esac
@@ -900,7 +908,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.1.0)
+AM_INIT_AUTOMAKE(mlterm,3.1.1)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

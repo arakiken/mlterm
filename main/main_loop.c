@@ -157,8 +157,6 @@ main_loop_init(
 		"show version message") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
 		"font size range for GUI configurator [6-30]") ;
-	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
-		"word-separating characters for double-click [,.:;/@]") ;
 #ifndef  USE_WIN32GUI
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font [false]") ;
@@ -185,40 +183,12 @@ main_loop_init(
 		"visual depth") ;
 	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" ,
 		"max ptys to open simultaneously (multiple of 32)") ;
-	kik_conf_add_opt( conf , '\0' , "button3" , 0 , "button3_behavior" ,
-		"button3 behavior. (xterm/menu1/menu2/menu3) "
-	#ifdef  USE_WIN32GUI
-		"[xterm]"
-	#else
-		"[menu1]"
-	#endif
-		) ;
-	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
-		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
-	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" ,
-		"restart mlterm automatically if an error like segv happens. [true]") ;
-	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
-		"output messages to ~/.mlterm/msg.log [true]") ;
-#ifdef  USE_IM_CURSOR_COLOR
-	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
-		"cursor color when input method is activated. [false]") ;
-#endif
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
 		kik_conf_delete( conf) ;
 
 		return  0 ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "logging_msg")) &&
-	    strcmp( value , "false") == 0)
-	{
-		kik_set_msg_log_file_name( NULL) ;
-	}
-	else
-	{
-		kik_set_msg_log_file_name( "mlterm/msg.log") ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "font_size_range")))
@@ -363,40 +333,6 @@ main_loop_init(
 		}
 	}
 	
-	if( ( value = kik_conf_get_value( conf , "word_separators")))
-	{
-		ml_set_word_separators( value) ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "button3_behavior")))
-	{
-		x_set_button3_behavior( value) ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_set_use_clipboard_selection( 1) ;
-		}
-	}
-
-	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
-	    strcmp( value , "false") != 0)
-	{
-		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
-	}
-
-#ifdef  USE_IM_CURSOR_COLOR
-	if( ( value = kik_conf_get_value( conf , "im_cursor_color")))
-	{
-		if( *value)
-		{
-			x_set_im_cursor_color( value) ;
-		}
-	}
-#endif
-
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
 	kik_conf_delete( conf) ;

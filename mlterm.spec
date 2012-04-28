@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.1.0
+%define version 3.1.1
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -21,7 +21,6 @@ Source0:     http://prdownloads.sourceforge.net/mlterm/mlterm-%{version}.tar.gz
 Packager:    The mlterm team
 Requires:    gtk+
 BuildRoot:   /var/tmp/%{name}-%{version}-root
-BuildPreReq: gtk+-devel
 
 %description
 mlterm is a multi-lingual terminal emulator written from
@@ -68,6 +67,7 @@ rm -rf $RPM_BUILD_ROOT
 %{bindir}/mlcc
 %{libdir}/libkik.*
 %{libdir}/libmkf.*
+%{libdir}/libmlterm_core.*
 %{libdir}/mkf/
 %{libdir}/mlterm/
 %{libexecdir}/
@@ -78,6 +78,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Sun Apr 29 2012 Araki Ken <arakiken@users.sf.net>
+- Source version 3.1.1
+
 * Sat Apr 21 2012 Araki Ken <arakiken@users.sf.net>
 - Source version 3.1.0
 

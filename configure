@@ -19812,9 +19812,17 @@ fi
 	CYGPATHW=echo
 	if test "$gui" != "xlib" ; then
 		if test "$gui" != "" ; then
-			echo "$gui is not supported in ${host_os}. Use xlib."
+			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
 		gui="xlib"
+	fi
+	# $have_x is defined in AC_PATH_XTRA.
+	if test "$have_x" != "yes" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find xlib."
+		echo ""
+		exit 1
 	fi
 	;;
 esac
@@ -22899,7 +22907,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=mlterm
- VERSION=3.1.0
+ VERSION=3.1.1
 
 
 cat >>confdefs.h <<_ACEOF

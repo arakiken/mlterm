@@ -1,3 +1,9 @@
+ver 3.1.1
+* Fix a bug which caused segfault in 64bit Linux.
+* Enable to change 0-15 colors by OSC 4 sequence.
+* Enable to specify --sep, --button3, --clip, --restart and --logmsg options
+  for mlclient.
+
 ver 3.1.0
 * Support extended mouse tracking mode. (CSI ? 1005 h and CSI ? 1005 l)
 * Support "use_variable_column_width" and "letter_space" options in win32.

@@ -1,3 +1,24 @@
+2012-04-29  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.1.1 released.
+	  (tag "rel-3_1_1")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.1.1.
+
+	* configure.in: If xlib is not found, configure script exits.
+
+	* kik_pty_streams.c:
+	  <kik_config.h> is included instead of <kik_def.h> to
+	  fix segfault in 64bit Linux.
+
+	* mlterm.1, mlclient.1: Updated.
+
+	* x_main_config.c, main_loop.c:
+	  --sep, --button3, --clip, --restart and --logmsg options are
+	  moved from main_loop.c to x_main_config.c to enable to specify
+	  them for mlclient.
+
 2012-04-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_color.[ch], x_color_config.c:

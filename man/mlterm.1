@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2012-04-16"
+.TH MLTERM 1 "2012-04-29"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -118,18 +118,6 @@ The default is "\fBmlterm\fR".
 Specify the side to show a scrollbar.
 \fBleft\fR for left side and \fBright\fR for right side.
 The default is \fBnone\fR which turns off scrollbar.
-.TP
-\fB\-P\fR, \fB\-\-ptys\fR=\fIvalue\fR
-Specify number of ptys (sessions) to be opened at start up.
-The default is \fB1\fR.
-When more than one sessions was requested,
-only one screen(window) would be created.
-The sessions can be switched using the GUI Configurator or
-, in default key configuration, using Ctrl+F2/F3 key.
-To open a window for each session, use \fB\-@\fR/\fB\-\-screens\fR
-option instead.
-
-See \fBMULTIPLE PTY\fR section for detail.
 .TP
 \fB\-Q\fR, \fB\-\-vcur\fR(=\fIbool\fR)
 Change interpretation of cursor keys to be natural
@@ -813,9 +801,8 @@ PTY List
 One process of \fBmlterm\fR may have multiple sessions and screens.
 The sessions may or may not have corresponding screen, i.e.,
 the number of sessions can be more than the number of screens.
-Such situation can be achieved by using \fB\-P\fR/\fB\-\-ptys\fR
-option or closing a part of multiple screens from \fB\-@\fR/\fB\-\-screens\fR
-option.
+Such situation can be achieved by closing a part of multiple screens
+from \fB\-@\fR/\fB\-\-screens\fR option.
 In such case, the screen-less session can be designated to one of
 screens by choosing the session (pty) from this list and push "select"
 button.
@@ -1250,9 +1237,6 @@ Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
 .TP
 \fBparent_window=\fIvalue\fR (\fB\-\-parent\fR)
 Specify parent Window ID.
-.TP
-\fBptys=\fIvalue\fR (\fB\-P\fR, \fB\-\-ptys\fR) 
-Number of pty windows to be opened on start up.
 .TP
 \fBsb_bg_color=\fIcolor\fR (\fB\-B\fR, \fB\-\-sbbg\fR) 
 Background color for scrollbar.
