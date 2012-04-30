@@ -13,9 +13,10 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc/free */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
-#include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_conf_io.h>/* kik_get_user_rc_path */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #include  <kiklib/kik_args.h>
+#include  <kiklib/kik_unistd.h>	/* kik_usleep */
 #include  <mkf/mkf_ucs4_map.h>	/* mkf_map_to_ucs4 */
 #include  <mkf/mkf_ucs_property.h>
 #include  <mkf/mkf_locale_ucs4_map.h>
@@ -337,7 +338,7 @@ put_char(
 	#if  1
 		/* XTERM compatibility */
 		else if( ch[2] == 0x30 && ch[0] == 0x0 && ch[1] == 0x0 &&
-			(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == 0x1b) )
+			(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == CTL_ESC) )
 		{
 			is_biwidth = 1 ;
 		}
@@ -1693,6 +1694,80 @@ parse_vt100_escape_sequence(
 
 			ml_screen_reverse_index( vt100_parser->screen) ;
 		}
+	#ifdef  ENABLE_SIXEL
+		else if( *str_p == 'P')
+		{
+			/* "ESC P" DCS */
+
+			u_char *  start ;
+			char *  path ;
+
+			start = str_p - 1 ;
+
+			do
+			{
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
+				{
+					return  0 ;
+				}
+			}
+			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
+
+			if( ( *str_p == 'q' /* sixel */
+			    /* || *str_p == 'p' */ ) &&		/* ReGis */
+			    ( path = kik_get_user_rc_path( "mlterm/picture")) )
+			{
+				char *  seq ;
+				int  is_esc ;
+				FILE *  fp ;
+
+				seq = alloca( 12 + strlen( path) + 5) ;
+				sprintf( seq , "add_picture %s.six" , path) ;
+				free( path) ;
+
+				is_esc = 0 ;
+				fp = fopen( seq + 12 , "w") ;
+
+				while( 1)
+				{
+					if( ! increment_str( &str_p , &left))
+					{
+						fwrite( start , str_p - start + 1 , 1 , fp) ;
+
+						vt100_parser->left = 0 ;
+						while( receive_bytes( vt100_parser) == 0)
+						{
+							kik_usleep( 1000) ;
+						}
+						start = str_p = CURRENT_STR_P(vt100_parser) ;
+						left = vt100_parser->left ;
+					}
+
+					if( is_esc)
+					{
+						if( *str_p == '\\')
+						{
+							fwrite( start ,
+								str_p - start + 1 , 1 , fp) ;
+
+							break ;
+						}
+
+						is_esc = 0 ;
+					}
+					else if( *str_p == CTL_ESC)
+					{
+						is_esc = 1 ;
+					}
+				}
+
+				fclose( fp) ;
+
+				config_protocol_set( vt100_parser , seq , 0) ;
+			}
+		}
+	#endif  /* ENABLE_SIXEL */
 	#if  0
 		else if( *str_p == 'Z')
 		{

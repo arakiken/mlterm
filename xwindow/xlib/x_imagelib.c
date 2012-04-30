@@ -34,9 +34,7 @@
 #include <kiklib/kik_def.h>	/* SIZE_MAX */
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>	/* strdup */
-#include <kiklib/kik_util.h>	/* K_MIN */
-
-#include "../x_imagelib.h"
+#include <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 
 /*
  * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
@@ -103,6 +101,8 @@ static int  display_count = 0 ;
 
 /* --- static functions --- */
 
+#include  "../../common/c_imagelib.c"
+
 static Status
 get_drawable_size(
 	Display *  display ,
@@ -150,44 +150,6 @@ fetch_colormap(
 	return  num_cells ;
 }
 
-/* seek the closest color */
-static int
-closest_color_index(
-	XColor *  color_list ,
-	int  len ,
-	int  red ,
-	int  green ,
-	int  blue
-	)
-{
-	int  closest = 0 ;
-	int  i ;
-	u_long  min = 0xffffff ;
-	u_long  diff ;
-	int  diff_r , diff_g , diff_b ;
-
-	for( i = 0 ; i < len ; i++)
-	{
-		/* lazy color-space conversion*/
-		diff_r = red - (color_list[i].red >> 8) ;
-		diff_g = green - (color_list[i].green >> 8) ;
-		diff_b = blue - (color_list[i].blue >> 8) ;
-		diff = diff_r * diff_r *9 + diff_g * diff_g * 30 + diff_b * diff_b ;
-		if ( diff < min)
-		{
-			min = diff ;
-			closest = i ;
-			/* no one may notice the difference */
-			if ( diff < 31)
-			{
-				break ;
-			}
-		}
-	}
-
-	return  closest ;
-}
-
 /* Get an background pixmap from _XROOTMAP_ID */
 static Pixmap
 root_pixmap(
@@ -224,59 +186,6 @@ root_pixmap(
 	XFree( prop) ;
 
 	return  pixmap ;
-}
-
-/**Return position of the least significant bit
- *
- *\param val value to count
- *
- */
-static int
-lsb(
-	u_int  val
-	)
-{
-	int nth = 0 ;
-
-	if( val == 0)
-	{
-		return  0 ;
-	}
-
-	while((val & 1) == 0)
-	{
-		val = val >> 1 ;
-		nth ++ ;
-	}
-
-	return  nth ;
-}
-
-/**Return  position of the most significant bit
- *
- *\param val value to count
- *
- */
-static int
-msb(
-	u_int val
-	)
-{
-	int nth ;
-
-	if( val == 0)
-	{
-		return  0 ;
-	}
-
-	nth = lsb( val) + 1 ;
-
-	while(val & (1 << nth))
-	{
-		nth++ ;
-	}
-
-	return  nth ;
 }
 
 static void
@@ -529,11 +438,14 @@ load_file(
 	{
 		/* create new pixbuf */
 
-	#if GDK_PIXBUF_MAJOR >= 2
-		pixbuf = gdk_pixbuf_new_from_file( path , NULL) ;
-	#else
-		pixbuf = gdk_pixbuf_new_from_file( path) ;
-	#endif /*GDK_PIXBUF_MAJOR*/
+		if( ! strstr( path , ".six") || ! ( pixbuf = gdk_pixbuf_new_from_sixel( path)))
+		{
+		#if GDK_PIXBUF_MAJOR >= 2
+			pixbuf = gdk_pixbuf_new_from_file( path , NULL) ;
+		#else
+			pixbuf = gdk_pixbuf_new_from_file( path) ;
+		#endif /*GDK_PIXBUF_MAJOR*/
+		}
 
 		if( pixbuf == NULL)
 		{
@@ -656,11 +568,11 @@ create_pixbuf_from_cardinals(
 		pixel = line ;
 		for( j = 0 ; j < height ; j++)
 		{
-			/*ARGB -> RGBA conversion*/
-			pixel[2] = (*cardinal) & 0xFF ;
-			pixel[1] = ((*cardinal) & 0xFF00) >> 8 ;
-			pixel[0] = ((*cardinal) & 0xFF0000) >>16 ;
-			pixel[3] = (*cardinal) >> 24 ;
+			/* ARGB -> RGBA conversion */
+			pixel[2] = (*cardinal) & 0xff ;
+			pixel[1] = ((*cardinal) >> 8) & 0xff ;
+			pixel[0] = ((*cardinal) >> 16) & 0xff ;
+			pixel[3] = ((*cardinal) >> 24) & 0xff ;
 
 			cardinal++ ;
 			pixel += 4;

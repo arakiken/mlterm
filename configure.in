@@ -286,6 +286,15 @@ AC_SUBST(MATH_LIBS)
 AC_SUBST(MATH_CFLAGS)
 
 
+AC_ARG_ENABLE(sixel,
+	[  --enable-sixel          sixel @<:@default=disabled@:>@],
+	sixel=$enable_sixel)
+if test "$sixel" = "yes" ; then
+	SIXEL_CFLAGS="-DENABLE_SIXEL"
+fi
+AC_SUBST(SIXEL_CFLAGS)
+
+
 if test "$gui" = "win32" ; then
 	GUI="win32"
 	GUI_CFLAGS="-DUSE_WIN32GUI"
@@ -990,4 +999,6 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
+echo "Sixel                             : $sixel"
+echo "VT52                              : $vt52"
 echo

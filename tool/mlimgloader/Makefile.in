@@ -21,8 +21,9 @@ OBJ = main.o
 LKIK = @LKIK@
 LKIK_DEB = -lkik_deb
 
+# Sixel is always enabled.
 CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ \
-	@GDK_PIXBUF_CFLAGS@ @X_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -I/usr/local/include
+	@GDK_PIXBUF_CFLAGS@ @X_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -DENABLE_SIXEL -I/usr/local/include
 
 LIBS = $(LIBS_LOCAL) $(LKIK) \
 	-L/usr/local/lib -R/usr/local/lib \

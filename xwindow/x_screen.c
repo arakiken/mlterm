@@ -572,6 +572,15 @@ draw_line(
 		}
 	}
 
+#ifdef  ENABLE_SIXEL
+	if( ret && screen->pic_man)
+	{
+		x_picture_manager_redraw( screen->pic_man ,
+			&screen->window , 0 , y ,
+			screen->window.width , x_line_height( screen)) ;
+	}
+#endif
+
 	return  ret ;
 }
 
@@ -880,6 +889,7 @@ redraw_screen(
 	int  count ;
 	ml_line_t *  line ;
 	int  y ;
+	int  line_height ;
 
 	flush_scroll_cache( screen , 1) ;
 
@@ -912,7 +922,7 @@ redraw_screen(
 	draw_line( screen , line , y) ;
 
 	count ++ ;
-	y += x_line_height( screen) ;
+	y += (line_height = x_line_height(screen)) ;
 
 	while( ( line = ml_term_get_line_in_screen( screen->term , count)) != NULL)
 	{
@@ -931,7 +941,7 @@ redraw_screen(
 		}
 	#endif
 		
-		y += x_line_height( screen) ;
+		y += line_height ;
 		count ++ ;
 	}
 
@@ -1232,7 +1242,7 @@ set_wall_picture(
 	x_screen_t *  screen
 	)
 {
-	x_bg_picture_t *  pic ;
+	x_picture_t *  pic ;
 
 	if( ! screen->pic_file_path)
 	{
@@ -1255,7 +1265,7 @@ set_wall_picture(
 
 	if( ! x_window_set_wall_picture( &screen->window , pic->pixmap))
 	{
-		x_release_bg_picture( pic) ;
+		x_release_picture( pic) ;
 		
 		/* Because picture is loaded successfully, screen->pic_file_path retains. */
 
@@ -1264,7 +1274,7 @@ set_wall_picture(
 
 	if( screen->bg_pic)
 	{
-		x_release_bg_picture( screen->bg_pic) ;
+		x_release_picture( screen->bg_pic) ;
 	}
 
 	screen->bg_pic = pic ;
@@ -1489,6 +1499,7 @@ window_exposed(
 	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
 	
 	redraw_screen( screen) ;
+
 	highlight_cursor( screen) ;
 }
 
@@ -5850,6 +5861,16 @@ window_scroll_upward_region(
 
 	screen = p ;
 
+#ifdef  ENABLE_SIXEL
+	if( screen->pic_man)
+	{
+		x_picture_manager_scroll( screen->pic_man ,
+			beg_row * x_line_height( screen) ,
+			(end_row + 1) * x_line_height( screen) ,
+			- (int)(size * x_line_height( screen))) ;
+	}
+#endif	/* ENABLE_SIXEL */
+
 	if( ! x_window_is_scrollable( &screen->window) ||
 	    ! set_scroll_boundary( screen , beg_row , end_row))
 	{
@@ -5872,6 +5893,16 @@ window_scroll_downward_region(
 	x_screen_t *  screen ;
 
 	screen = p ;
+
+#ifdef  ENABLE_SIXEL
+	if( screen->pic_man)
+	{
+		x_picture_manager_scroll( screen->pic_man ,
+			beg_row * x_line_height( screen) ,
+			(end_row + 1) * x_line_height( screen) ,
+			size * x_line_height( screen)) ;
+	}
+#endif	/* ENABLE_SIXEL */
 
 	if( ! x_window_is_scrollable( &screen->window) ||
 	    ! set_scroll_boundary( screen , beg_row , end_row))
@@ -7391,7 +7422,7 @@ x_screen_delete(
 
 	if( screen->bg_pic)
 	{
-		x_release_bg_picture( screen->bg_pic) ;
+		x_release_picture( screen->bg_pic) ;
 	}
 	free( screen->pic_file_path) ;
 	
@@ -7399,6 +7430,13 @@ x_screen_delete(
 	{
 		x_release_icon_picture( screen->icon) ;
 	}
+
+#ifdef  ENABLE_SIXEL
+	if( screen->pic_man)
+	{
+		x_picture_manager_delete( screen->pic_man) ;
+	}
+#endif	/* ENABLE_SIXEL */
 
 	free( screen->mod_meta_key) ;
 	free( screen->conf_menu_path_1) ;
@@ -7843,6 +7881,106 @@ x_screen_exec_cmd(
 			search_find( screen , arg , 0) ;
 		}
 	}
+#ifdef  ENABLE_SIXEL
+	else if( strcmp( cmd , "add_picture") == 0)
+	{
+		if( ! ml_term_get_vertical_mode( screen->term) &&
+		    ( screen->pic_man || ( screen->pic_man = x_picture_manager_new())))
+		{
+			char *  p ;
+			int  x ;
+			int  y ;
+			int  width ;
+			int  height ;
+			u_int  col_width ;
+			u_int  line_height ;
+			x_picture_t *  pic ;
+
+			x = ml_term_cursor_col( screen->term) ;
+			y = ml_term_cursor_row( screen->term) ;
+			width = height = 0 ;
+			if( ( p = strchr( arg , ':')))
+			{
+				*p = '\0' ;
+				if( sscanf( arg , "+%d+%d" , &x , &y) != 2)
+				{
+					if( sscanf( arg , "%dx%d+%d+%d" ,
+						&width , &height , &x , &y) != 4)
+					{
+						sscanf( arg , "%dx%d" , &width , &height) ;
+					}
+				}
+
+				arg = p + 1 ;
+			}
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " %s x %d y %d w %d h %d\n" ,
+				arg , x , y , width , height) ;
+		#endif
+
+			if( ( pic = x_acquire_picture( screen->window.disp , arg ,
+					(width *= (col_width = x_col_width(screen))) ,
+					(height *= (line_height = x_line_height(screen))))) )
+			{
+			#if  0
+				u_int  count ;
+			#endif
+
+				x_picture_manager_add( screen->pic_man , pic ,
+					(x *= x_col_width(screen)) ,
+					(y *= x_line_height(screen))) ;
+
+				x_picture_manager_redraw( screen->pic_man ,
+					&screen->window , x , y ,
+					pic->width , pic->height) ;
+
+			#if  0
+				for( count = pic->height / line_height +
+				             (pic->height % line_height > 0 ? 1 : 0) ;
+				     count > 0 ; count --)
+				{
+					write_to_pty( screen , "\r" , 1 , NULL) ;
+				}
+			#endif
+			}
+		}
+	}
+	else if( strcmp( cmd , "remove_picture") == 0)
+	{
+		if( screen->pic_man)
+		{
+			int  x ;
+			int  y ;
+			int  width ;
+			int  height ;
+
+			x = ml_term_cursor_col( screen->term) ;
+			y = ml_term_cursor_row( screen->term) ;
+			width = height = 0 ;
+
+			if( sscanf( arg , "%dx%d+%d+%d" , &width , &height , &x , &y) != 4)
+			{
+				return  1 ;
+			}
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " %s x %d y %d w %d h %d\n" ,
+				arg , x , y , width , height) ;
+		#endif
+
+			x_picture_manager_remove( screen->pic_man ,
+				(x *= x_col_width(screen)) ,
+				(y *= x_line_height(screen)) ,
+				(width *= x_col_width(screen)) ,
+				(height *= x_line_height(screen))) ;
+
+			x_picture_manager_redraw( screen->pic_man ,
+				&screen->window ,
+				x , y , width , height) ;
+		}
+	}
+#endif  /* ENABLE_SIXEL */
 	else
 	{
 		if( arg)

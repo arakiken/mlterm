@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/stat.h>	/* fstat */
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
@@ -11,7 +13,6 @@
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include <kiklib/kik_str.h>	/* strdup */
-#include <kiklib/kik_util.h>	/* K_MIN */
 #include <kiklib/kik_def.h>	/* SIZE_MAX */
 
 /*
@@ -23,6 +24,7 @@
  */
 #if  defined(KIK_DEBUG) && defined(malloc)
 #undef malloc
+#undef realloc
 #endif
 
 #define USE_FS 1
@@ -32,12 +34,16 @@
 #define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
 #endif
 
+#define  RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
+
 #if  0
 #define  __DEBUG
 #endif
 
 
 /* --- static functions --- */
+
+#include  "../../common/c_imagelib.c"
 
 /* returned cmap shuold be freed by the caller */
 static int
@@ -55,7 +61,7 @@ fetch_colormap(
 	if( ( *color_list = calloc( num_cells , sizeof(XColor))) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG "couldn't allocate color table\n") ;
+		kik_warn_printf(KIK_DEBUG_TAG " couldn't allocate color table\n") ;
 	#endif
 		return  0 ;
 	}
@@ -69,98 +75,6 @@ fetch_colormap(
 
 	return  num_cells ;
 }
-
-/* seek the closest color */
-static int
-closest_color_index(
-	XColor *  color_list ,
-	int  len ,
-	int  red ,
-	int  green ,
-	int  blue
-	)
-{
-	int  closest = 0 ;
-	int  i ;
-	u_long  min = 0xffffff ;
-	u_long  diff ;
-	int  diff_r , diff_g , diff_b ;
-
-	for( i = 0 ; i < len ; i++)
-	{
-		/* lazy color-space conversion*/
-		diff_r = red - (color_list[i].red >> 8) ;
-		diff_g = green - (color_list[i].green >> 8) ;
-		diff_b = blue - (color_list[i].blue >> 8) ;
-		diff = diff_r * diff_r *9 + diff_g * diff_g * 30 + diff_b * diff_b ;
-		if ( diff < min)
-		{
-			min = diff ;
-			closest = i ;
-			/* no one may notice the difference */
-			if ( diff < 31)
-			{
-				break ;
-			}
-		}
-	}
-
-	return  closest ;
-}
-
-/**Return position of the least significant bit
- *
- *\param val value to count
- *
- */
-static int
-lsb(
-	u_int  val
-	)
-{
-	int nth = 0 ;
-
-	if( val == 0)
-	{
-		return  0 ;
-	}
-
-	while((val & 1) == 0)
-	{
-		val = val >> 1 ;
-		nth ++ ;
-	}
-
-	return  nth ;
-}
-
-/**Return  position of the most significant bit
- *
- *\param val value to count
- *
- */
-static int
-msb(
-	u_int val
-	)
-{
-	int nth ;
-
-	if( val == 0)
-	{
-		return  0 ;
-	}
-
-	nth = lsb( val) + 1 ;
-
-	while(val & (1 << nth))
-	{
-		nth++ ;
-	}
-
-	return  nth ;
-}
-
 
 /* create GdkPixbuf from the specified file path.
  *
@@ -179,11 +93,14 @@ load_file(
 	GdkPixbuf *  pixbuf_tmp ;
 	GdkPixbuf *  pixbuf ;
 
-#if GDK_PIXBUF_MAJOR >= 2
-	pixbuf_tmp = gdk_pixbuf_new_from_file( path , NULL) ;
-#else
-	pixbuf_tmp = gdk_pixbuf_new_from_file( path) ;
-#endif /*GDK_PIXBUF_MAJOR*/
+	if( ! strstr( path , ".six") || ! ( pixbuf_tmp = gdk_pixbuf_new_from_sixel( path)))
+	{
+	#if GDK_PIXBUF_MAJOR >= 2
+		pixbuf_tmp = gdk_pixbuf_new_from_file( path , NULL) ;
+	#else
+		pixbuf_tmp = gdk_pixbuf_new_from_file( path) ;
+	#endif /*GDK_PIXBUF_MAJOR*/
+	}
 
 	if( pixbuf_tmp == NULL)
 	{
@@ -203,14 +120,14 @@ load_file(
 
 	if( ! ( pixbuf = gdk_pixbuf_scale_simple( pixbuf_tmp , width , height , scale_type)))
 	{
-		g_object_unref( pixbuf) ;
+		g_object_unref( pixbuf_tmp) ;
 
 		return  NULL ;
 	}
 
 #ifdef __DEBUG
 	kik_warn_printf( KIK_DEBUG_TAG
-		"creating a scaled pixbuf(%d x %d)\n" , width , height) ;
+		" creating a scaled pixbuf(%d x %d)\n" , width , height) ;
 #endif
 
 	/* scaling ends here */
@@ -615,6 +532,10 @@ main(
 	{
 		return  -1 ;
 	}
+
+#if  0
+	kik_set_msg_log_file_name( "mlterm/msg.log") ;
+#endif
 
 	display = XOpenDisplay( NULL) ;
 

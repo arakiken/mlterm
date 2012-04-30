@@ -2282,14 +2282,6 @@ x_window_get_str(
 	return  x_xic_get_str( win, seq, seq_len, parser, keysym, event) ;
 }
 
-int
-x_window_is_scrollable(
-	x_window_t *  win
-	)
-{
-	return  win->is_scrollable ;
-}
-
 /*
  * Scroll functions.
  * The caller side should clear the scrolled area.
@@ -2453,6 +2445,40 @@ x_window_scroll_rightward_region(
 		boundary_end - boundary_start - width , win->height ,		/* size */
 		win->gc->gc , win->margin + boundary_start , win->margin ,	/* src */
 		SRCCOPY) ;
+
+	return  1 ;
+}
+
+int
+x_window_copy_area(
+	x_window_t *  win ,
+	Pixmap  src ,
+	int  src_x ,
+	int  src_y ,
+	u_int  width ,
+	u_int  height ,
+	int  dst_x ,
+	int  dst_y
+	)
+{
+	if( dst_x >= win->width || dst_y >= win->height)
+	{
+		return  0 ;
+	}
+
+	if( dst_x + width > win->width)
+	{
+		width = win->width - dst_x ;
+	}
+
+	if( dst_y + height > win->height)
+	{
+		height = win->height - dst_y ;
+	}
+
+	BitBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
+		width , height ,
+		pixmap , src_x , src_y , SRCCOPY) ;
 
 	return  1 ;
 }
@@ -3038,55 +3064,6 @@ x_window_translate_coordinates(
 	
 	return  0 ;
 }
-
-#if  0
-/*
- * XXX
- * at the present time , not used and not maintained.
- */
-int
-x_window_paste(
-	x_window_t *  win ,
-	Drawable  src ,
-	int  src_x ,
-	int  src_y ,
-	u_int  src_width ,
-	u_int  src_height ,
-	int  dst_x ,
-	int  dst_y
-	)
-{
-	if( win->width < dst_x + src_width)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " size (x)%d (w)%d is overflowed.(screen width %d)\n" ,
-			dst_x , src_width , win->width) ;
-	#endif
-
-		src_width = win->width - dst_x ;
-
-		kik_warn_printf( KIK_DEBUG_TAG " width is modified -> %d\n" , src_width) ;
-	}
-
-	if( win->height < dst_y + src_height)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " size (y)%d (h)%d is overflowed.(screen height is %d)\n" ,
-			dst_y , src_height , win->height) ;
-	#endif
-
-		src_height = win->height - dst_y ;
-
-		kik_warn_printf( KIK_DEBUG_TAG " height is modified -> %d\n" , src_height) ;
-	}
-
-	XCopyArea( win->display , src , win->my_window , win->gc ,
-		src_x , src_y , src_width , src_height ,
-		dst_x + win->margin , dst_y + win->margin) ;
-
-	return  1 ;
-}
-#endif
 
 #ifdef  DEBUG
 void

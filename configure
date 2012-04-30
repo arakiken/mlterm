@@ -855,6 +855,7 @@ REGEX_CFLAGS
 GUI
 XUTF8_CFLAGS
 GUI_CFLAGS
+SIXEL_CFLAGS
 MATH_CFLAGS
 MATH_LIBS
 IMAGELIB_LIBS
@@ -977,6 +978,7 @@ with_gui
 enable_debug
 with_gtk
 with_imagelib
+enable_sixel
 enable_dl_ctl
 enable_fribidi
 enable_dl_type
@@ -1665,6 +1667,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          debug [default=disabled]
+  --enable-sixel          sixel [default=disabled]
   --disable-dl-ctl        dynamic loading ctl library [default=enable]
   --enable-fribidi        bidi [default=disabled]
   --disable-dl-type       dynamic loading type engine library [default=enable]
@@ -4583,7 +4586,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4586 "configure"' > conftest.$ac_ext
+  echo '#line 4589 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7152,11 +7155,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7155: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7158: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7159: \$? = $ac_status" >&5
+   echo "$as_me:7162: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7442,11 +7445,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7445: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7448: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7449: \$? = $ac_status" >&5
+   echo "$as_me:7452: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7546,11 +7549,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7549: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7552: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7553: \$? = $ac_status" >&5
+   echo "$as_me:7556: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9571,7 +9574,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9574 "configure"
+#line 9577 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9671,7 +9674,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9674 "configure"
+#line 9677 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12012,11 +12015,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12015: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12018: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12019: \$? = $ac_status" >&5
+   echo "$as_me:12022: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12116,11 +12119,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12119: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12122: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12123: \$? = $ac_status" >&5
+   echo "$as_me:12126: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13699,11 +13702,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13702: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13705: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13706: \$? = $ac_status" >&5
+   echo "$as_me:13709: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13803,11 +13806,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13806: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13809: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13810: \$? = $ac_status" >&5
+   echo "$as_me:13813: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15964,11 +15967,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15967: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15970: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15971: \$? = $ac_status" >&5
+   echo "$as_me:15974: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16254,11 +16257,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16257: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16260: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16261: \$? = $ac_status" >&5
+   echo "$as_me:16264: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16358,11 +16361,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16361: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16364: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16365: \$? = $ac_status" >&5
+   echo "$as_me:16368: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20422,6 +20425,17 @@ fi
 
 fi
 
+
+
+
+# Check whether --enable-sixel was given.
+if test "${enable_sixel+set}" = set; then :
+  enableval=$enable_sixel; sixel=$enable_sixel
+fi
+
+if test "$sixel" = "yes" ; then
+	SIXEL_CFLAGS="-DENABLE_SIXEL"
+fi
 
 
 
@@ -26692,4 +26706,6 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
+echo "Sixel                             : $sixel"
+echo "VT52                              : $vt52"
 echo

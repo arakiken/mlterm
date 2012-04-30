@@ -130,9 +130,13 @@ typedef struct  x_screen
 
 	char *  pic_file_path ;
 	x_picture_modifier_t  pic_mod ;
-	x_bg_picture_t *  bg_pic ;
+	x_picture_t *  bg_pic ;
 
 	x_icon_picture_t *  icon ;
+
+#ifdef  ENABLE_SIXEL
+	x_picture_manager_t *  pic_man ;
+#endif
 
 	/*
 	 * These members mustn't be changed by mlterm configuration protocol,

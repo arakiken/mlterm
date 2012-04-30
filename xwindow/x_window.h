@@ -292,7 +292,7 @@ int  x_window_receive_event( x_window_t *  win , XEvent *  event) ;
 size_t  x_window_get_str( x_window_t *  win , u_char *  seq , size_t  seq_len ,
 	mkf_parser_t **  parser , KeySym *  keysym , XKeyEvent *  event) ;
 
-int  x_window_is_scrollable( x_window_t *  win) ;
+#define  x_window_is_scrollable(win)  ((win)->is_scrollable)
 
 int  x_window_scroll_upward( x_window_t *  win , u_int  height) ;
 
@@ -313,6 +313,9 @@ int  x_window_scroll_rightward_region( x_window_t *  win ,
 	int  boundary_start , int  boundary_end , u_int  width) ;
 
 int  x_window_scroll_rightward( x_window_t *  win , u_int  width) ;
+
+int  x_window_copy_area( x_window_t *  win , Pixmap  src , int  src_x , int  src_y ,
+	u_int  width , u_int  height , int  dst_x , int  dst_y) ;
 
 int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , u_char *  str , u_int  len) ;
@@ -394,12 +397,6 @@ int  x_window_bell( x_window_t *  win , int  visual) ;
 
 int  x_window_translate_coordinates( x_window_t *  win, int x, int y,
 	int *  global_x, int *  global_y, Window *  child) ;
-
-#if  0
-/* Not used */
-int  x_window_paste( x_window_t *  win , Drawable  src , int  src_x , int  src_y ,
-	u_int  src_width , u_int  src_height , int  dst_x , int  dst_y) ;
-#endif
 
 #ifdef  DEBUG
 void  x_window_dump_children( x_window_t *  win) ;
