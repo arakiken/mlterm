@@ -1,3 +1,26 @@
+2012-05-04  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java:
+	  The way to get mouse position is improved.
+
+	* MLTermPty.java:
+	  isTrackingMouse() method is added to check mouse traking mode is on or off.
+
+	* ml_vt100_parser.[ch], x_screen.c, java/MLTermPty.c:
+	  Extended mouse report(SGR/URXVT) is supported.
+
+	* x_draw_str.c: Even if fg/bg color is reversed, bd_color and ul_color
+	  options work correctly.
+	  (Thanks to Andi Cristian Serbanescu)
+
+	* mkf/script/config.guess, kiklib/script/config.guess,
+	  script/config.guess: updated (timestamp='2012-02-10')
+
+	* mkf/script/config.sub, kiklib/script/config.sub,
+	  script/config.sub: updated (timestamp='2012-04-18')
+
+	* win32/x_window.c: Fixed typo.
+
 2012-04-30  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/PROTOCOL: Updated.
@@ -495,7 +518,7 @@
 	    x_window_resize() never resizes over DisplayWidth or DisplayHeight.
 
 	* ml_vt100_parser.[ch], ml_term.h, x_screen.[ch]:
-	  - Extended mouse report is supported.
+	  - Extended mouse report(UTF8) is supported.
 	  - ml_{vt100_parser|term}_is_extended_mouse_report_mode() are added.
 
 	* configure.in, ml_pty_unix.c, ml_pty.c, kik_utmp*:
@@ -2401,7 +2424,7 @@
 
 	* mc_flags.c: "Ambiguouswidth = fullwidth (UTF8 only)" checkbox
 	  is added for "col_size_of_width_a" option.
-	  
+
 	* x_screen.c: "col_size_of_width_a" option is added to configuration protocol.
 
 	* x_screen.c: Screen is redrawn in selection_cleared().

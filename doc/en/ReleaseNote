@@ -1,5 +1,10 @@
+* Support extended mouse tracking mode.
+  (CSI ? 1006 h and CSI ? 1006 l / CSI ? 1015 h and CSI ? 1015 l)
 * Support sixel graphics sequence partially. (DCS .. q .. ST)
 * Add "add_picture" and "remove_picture" to configuration protocol.
+* Bug fixes:
+  Fix a bug which disabled "bd_color" and "ul_color" options in reverse characters.
+  (Thanks to Andi Cristian Serbanescu)
 
 ver 3.1.1
 * Fix a bug which caused segfault in 64bit Linux.

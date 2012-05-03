@@ -3094,22 +3094,31 @@ set_xdnd_config(
 static int
 report_mouse_tracking(
 	x_screen_t *  screen ,
-	XButtonEvent *  event ,
+	int  x ,
+	int  y ,
+	int  button ,
+	int  state ,
+	int  is_motion ,
 	int  is_released
 	)
 {
-	ml_line_t *  line ;
-	int  button ;
 	int  key_state ;
+	ml_line_t *  line ;
 	int  col ;
 	int  row ;
 	u_int  x_rest ;
-	u_char  seq[8] ;
+	/*
+	 * Max length is SGR style => ESC [ < %d ; %d(col) ; %d(row) ; %c('M' or 'm') NULL
+	 *                            1   1 1 3  1 3       1  3      1 1              1
+	 */
+	u_char  seq[17] ;
 	size_t  seq_len ;
 
-	if( is_released)
+	if( ( is_released && ml_term_get_extended_mouse_report_mode( screen->term) !=
+				EXTENDED_MOUSE_REPORT_SGR) ||
+	    ( is_motion && button == 0) )
 	{
-		/* PointerMotion or ButtonRelease */
+		/* ButtonRelease or PointerMotion */
 		key_state = 0 ;
 		button = 3 ;
 	}
@@ -3124,30 +3133,22 @@ report_mouse_tracking(
 		 * NOTE: with Ctrl/Shift, the click is interpreted as region selection at present.
 		 * So Ctrl/Shift will never be catched here.
 		 */
-		key_state = ((event->state & ShiftMask) ? 4 : 0) +
-			((event->state & screen->mod_meta_mask) ? 8 : 0) +
-			((event->state & ControlMask) ? 16 : 0) +
-			((event->state & (Button1Mask|Button2Mask|Button3Mask)) ? 32 : 0) ;
+		key_state = ((state & ShiftMask) ? 4 : 0) +
+				((state & screen->mod_meta_mask) ? 8 : 0) +
+				((state & ControlMask) ? 16 : 0) +
+				(is_motion /* && (state & (Button1Mask|Button2Mask|Button3Mask)) */
+					? 32 : 0) ;
 
-		if( event->state & Button1Mask)
+		if( is_released)
 		{
-			/* ButtonMotion */
-			button = 0 ;
+			/* is EXTENDED_MOUSE_REPORT_SGR */
+			key_state += 0x80 ;
 		}
-		else if( event->state & Button2Mask)
-		{
-			/* ButtonMotion */
-			button = 1 ;
-		}
-		else if( event->state & Button3Mask)
-		{
-			/* ButtonMotion */
-			button = 2 ;
-		}
-		else
+
+		/* if( button > 0) */
 		{
 			/* ButtonPress */
-			button = event->button - Button1 ;
+			button -= Button1 ;
 
 			while( button >= 3)
 			{
@@ -3160,7 +3161,7 @@ report_mouse_tracking(
 
 	if( ml_term_get_vertical_mode( screen->term))
 	{
-		col = convert_y_to_row( screen , NULL , event->y) ;
+		col = convert_y_to_row( screen , NULL , y) ;
 
 	#if  0
 		if( x_is_using_multi_col_char( screen->font_man))
@@ -3178,7 +3179,7 @@ report_mouse_tracking(
 		}
 
 		row = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) ,
+			convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ,
 			0) ;
 
 		if( ml_term_get_vertical_mode( screen->term) & VERT_RTL)
@@ -3201,15 +3202,14 @@ report_mouse_tracking(
 		u_int  width ;
 		int  char_index ;
 
-		row = convert_y_to_row( screen , NULL , event->y) ;
+		row = convert_y_to_row( screen , NULL , y) ;
 
 		if( ( line = ml_term_get_line_in_screen( screen->term , row)) == NULL)
 		{
 			return  0 ;
 		}
 
-		char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest ,
-					event->x) ;
+		char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
 		if( ml_line_is_rtl( line))
 		{
 			/* XXX */
@@ -3231,20 +3231,28 @@ report_mouse_tracking(
 		}
 	}
 
+	/* count starts from 1, not 0 */
+	col ++ ;
+	row ++ ;
+
 	/* clear all bytes of seq to compare with prev_mouse_report_seq. */
 	memcpy( seq , "\x1b[M\0\0\0\0\0" , 8) ;
 
 	seq[3] = 0x20 + button + key_state ;
 
-	if( ml_term_is_extended_mouse_report_mode( screen->term))
+	if( ml_term_get_extended_mouse_report_mode( screen->term))
 	{
 		int  ch ;
 		u_char *  p ;
 
 		p = seq + 4 ;
 
-		if( (ch = 0x20 + (col < EXT_MOUSE_POS_LIMIT ? col + 1 : EXT_MOUSE_POS_LIMIT))
-			>= 0x80)
+		if( col > EXT_MOUSE_POS_LIMIT)
+		{
+			col = EXT_MOUSE_POS_LIMIT ;
+		}
+
+		if( (ch = 0x20 + col) >= 0x80)
 		{
 			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
 			*(p ++) = (ch & 0x3f) | 0x80 ;
@@ -3254,8 +3262,12 @@ report_mouse_tracking(
 			*(p ++) = ch ;
 		}
 
-		if( (ch = 0x20 + (row < EXT_MOUSE_POS_LIMIT ? row + 1 : EXT_MOUSE_POS_LIMIT))
-			>= 0x80)
+		if( row > EXT_MOUSE_POS_LIMIT)
+		{
+			row = EXT_MOUSE_POS_LIMIT ;
+		}
+
+		if( (ch = 0x20 + row) >= 0x80)
 		{
 			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
 			*p = (ch & 0x3f) | 0x80 ;
@@ -3269,16 +3281,37 @@ report_mouse_tracking(
 	}
 	else
 	{
-		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col + 1 : MOUSE_POS_LIMIT) ;
-		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row + 1 : MOUSE_POS_LIMIT) ;
+		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col : MOUSE_POS_LIMIT) ;
+		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row : MOUSE_POS_LIMIT) ;
 		seq_len = 6 ;
 	}
 
 	if( key_state >= 64 ||						/* Wheeling mouse */
 	    memcmp( screen->prev_mouse_report_seq , seq + 3 , 5) != 0)	/* Position is changed */
 	{
-		write_to_pty( screen , seq , seq_len , NULL) ;
 		memcpy( screen->prev_mouse_report_seq , seq + 3 , 5) ;
+
+		if( ml_term_get_extended_mouse_report_mode( screen->term) >
+			EXTENDED_MOUSE_REPORT_UTF8)
+		{
+			if( ml_term_get_extended_mouse_report_mode( screen->term) ==
+				EXTENDED_MOUSE_REPORT_SGR)
+			{
+				sprintf( seq , "\x1b[<%d;%d;%d%c" ,
+					(button + key_state) & 0x7f , col , row ,
+					((button + key_state) & 0x80) ? 'm' : 'M') ;
+			}
+			else /* if( ml_term_get_extended_mouse_report_mode( screen->term) ==
+					EXTENDED_MOUSE_REPORT_URXVT) */
+			{
+				sprintf( seq , "\x1b[%d;%d;%dM" ,
+					0x20 + button + key_state , col , row) ;
+			}
+
+			seq_len = strlen( seq) ;
+		}
+
+		write_to_pty( screen , seq , seq_len , NULL) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
@@ -3520,8 +3553,7 @@ pointer_motion(
 		ml_term_get_mouse_report_mode( screen->term) == ANY_EVENT_MOUSE_REPORT)
 	{
 		restore_selected_region_color_instantly( screen) ;
-		/* report_mouse_tracking() can deal with X(Motion|Button)Event. */
-		report_mouse_tracking( screen , event , 1) ;
+		report_mouse_tracking( screen , event->x , event->y , 0 , event->state , 1 , 0) ;
 	}
 }
 
@@ -3545,15 +3577,31 @@ button_motion(
 	{
 		if( ml_term_get_mouse_report_mode( screen->term) >= BUTTON_EVENT_MOUSE_REPORT)
 		{
+			int  button ;
+
+			if( event->state & Button1Mask)
+			{
+				button = Button1 ;
+			}
+			else if( event->state & Button2Mask)
+			{
+				button = Button2 ;
+			}
+			else if( event->state & Button3Mask)
+			{
+				button = Button3 ;
+			}
+			else
+			{
+				return ;
+			}
+
 			restore_selected_region_color_instantly( screen) ;
-			/* report_mouse_tracking() can deal with X(Motion|Button)Event. */
-			report_mouse_tracking( screen , event , 0) ;
+			report_mouse_tracking( screen , event->x , event->y ,
+				button , event->state , 1 , 0) ;
 		}
-
-		return ;
 	}
-
-	if( ! ( event->state & Button2Mask))
+	else if( ! ( event->state & Button2Mask))
 	{
 		selecting_with_motion( screen , event->x , event->y , event->time) ;
 	}
@@ -3704,7 +3752,8 @@ button_pressed(
 		! (event->state & (ShiftMask|ControlMask)))
 	{
 		restore_selected_region_color_instantly( screen) ;
-		report_mouse_tracking( screen , event , 0) ;
+		report_mouse_tracking( screen , event->x , event->y ,
+			event->button , event->state , 0 , 0) ;
 
 		return ;
 	}
@@ -3872,7 +3921,8 @@ button_released(
 		}
 		else
 		{
-			report_mouse_tracking( screen , event , 1) ;
+			report_mouse_tracking( screen , event->x , event->y ,
+				event->button , event->state , 0 , 1) ;
 		}
 		
 		return ;

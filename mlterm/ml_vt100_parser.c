@@ -624,11 +624,10 @@ reverse_video(
 	}
 }
 
-/* Ignoring EXTENDED_MOUSE_REPORT bit. */
 static void
 set_mouse_report(
 	ml_vt100_parser_t *  vt100_parser ,
-	ml_mouse_report_mode_t  mode
+	ml_mouse_report_mode_t  mode		/* EXTENDED_MOUSE_REPORT bit is 0 */
 	)
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_mouse_report))
@@ -636,7 +635,7 @@ set_mouse_report(
 		stop_vt100_cmd( vt100_parser , 0) ;
 
 		/* EXTENDED_MOUSE_REPORT bit is not changed. */
-		vt100_parser->mouse_mode &= EXTENDED_MOUSE_REPORT ;
+		vt100_parser->mouse_mode &= EXTENDED_MOUSE_REPORT_MASK ;
 		vt100_parser->mouse_mode |= mode ;
 
 		/* EXTENDED_MOUSE_REPORT bit is not passed. */
@@ -2080,8 +2079,28 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1005 h" */
 
+							vt100_parser->mouse_mode &=
+								~EXTENDED_MOUSE_REPORT_MASK ;
 							vt100_parser->mouse_mode |=
-								EXTENDED_MOUSE_REPORT ;
+								EXTENDED_MOUSE_REPORT_UTF8 ;
+						}
+						else if( ps[count] == 1006)
+						{
+							/* "CSI ? 1006 h" */
+
+							vt100_parser->mouse_mode &=
+								~EXTENDED_MOUSE_REPORT_MASK ;
+							vt100_parser->mouse_mode |=
+								EXTENDED_MOUSE_REPORT_SGR ;
+						}
+						else if( ps[count] == 1015)
+						{
+							/* "CSI ? 1015 h" */
+
+							vt100_parser->mouse_mode &=
+								~EXTENDED_MOUSE_REPORT_MASK ;
+							vt100_parser->mouse_mode |=
+								EXTENDED_MOUSE_REPORT_URXVT ;
 						}
 					#if  0
 						else if( ps[count] == 1010)
@@ -2279,10 +2298,17 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 1001 l" X11 mouse highlighting */
 						}
 					#endif
-						else if( ps[count] == 1005)
+						else if( ps[count] == 1005 ||
+						         ps[count] == 1006 ||
+							 ps[count] == 1015)
 						{
+							/*
+							 * "CSI ? 1005 l"
+							 * "CSI ? 1006 l"
+							 * "CSI ? 1015 l"
+							 */
 							vt100_parser->mouse_mode &=
-								~EXTENDED_MOUSE_REPORT ;
+								~EXTENDED_MOUSE_REPORT_MASK ;
 						}
 					#if  0
 						else if( ps[count] == 1010)

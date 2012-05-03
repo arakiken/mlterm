@@ -311,6 +311,12 @@ public class  MLTermPty
 		return  nativeIsAppCursorKeys( nativeObj) ;
 	}
 
+	private native boolean  nativeIsTrackingMouse( long  obj , int  button , boolean  isMotion) ;
+	public boolean  isTrackingMouse( int  button , boolean  isMotion)
+	{
+		return  nativeIsTrackingMouse( nativeObj , button , isMotion) ;
+	}
+
 	private native void  nativeReportMouseTracking( long  obj ,
 							int  char_index , int  row , int  button ,
 							int  state , boolean  isMotion , boolean  isReleased) ;
@@ -318,7 +324,7 @@ public class  MLTermPty
 							int  state , boolean  isMotion , boolean  isReleased)
 	{
 		nativeReportMouseTracking( nativeObj , char_index , row ,
-						button , state , isMotion , isReleased) ;
+							button , state , isMotion , isReleased) ;
 	}
 
 	public native static long  getColorRGB( String  color) ;

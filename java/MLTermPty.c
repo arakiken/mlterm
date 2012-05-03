@@ -42,11 +42,6 @@
 #define  AltMask (1 << 16)
 #define  ShiftMask  (1 << 17)
 #define  ControlMask  (1 << 18)
-#define  Button1Mask  (1 << 19)
-#define  Button2Mask  (1 << 20)
-#define  Button3Mask  (1 << 21)
-#define  Button4Mask  (1 << 23)
-#define  Button5Mask  (1 << 25)
 
 
 #if  1
@@ -444,7 +439,7 @@ window_scroll_upward_region(
 }
 
 
-static int
+static void
 resize(
 	void *  p ,
 	u_int  width ,
@@ -472,8 +467,6 @@ resize(
 						ml_term_get_cols( nativeObj->term) ,
 						ml_term_get_rows( nativeObj->term)) ;
 	}
-
-	return  0 ;
 }
 
 static void
@@ -1727,6 +1720,34 @@ Java_mlterm_MLTermPty_nativeIsAppCursorKeys(
 	}
 }
 
+JNIEXPORT jboolean JNICALL
+Java_mlterm_MLTermPty_nativeIsTrackingMouse(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nobj ,
+	jint  button ,
+	jboolean  isMotion
+	)
+{
+	native_obj_t *  nativeObj ;
+
+	nativeObj = nobj ;
+
+	if( ! nativeObj || ! nativeObj->term ||
+	    ! ml_term_get_mouse_report_mode( nativeObj->term) ||
+	    ( isMotion &&
+	      ( ml_term_get_mouse_report_mode( nativeObj->term) < BUTTON_EVENT_MOUSE_REPORT ||
+	        ( button == 0 && ml_term_get_mouse_report_mode( nativeObj->term) ==
+		                   BUTTON_EVENT_MOUSE_REPORT))) )
+	{
+		return  JNI_FALSE ;
+	}
+	else
+	{
+		return  JNI_TRUE ;
+	}
+}
+
 JNIEXPORT void JNICALL
 Java_mlterm_MLTermPty_nativeReportMouseTracking(
 	JNIEnv *  env ,
@@ -1742,34 +1763,48 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 {
 	native_obj_t *  nativeObj ;
 	ml_line_t *  line ;
-	int  count ;
 	int  col ;
 	int  key_state ;
-	u_char  seq[8] ;
+	/*
+	 * Max length is SGR style => ESC [ < %d ; %d(col) ; %d(row) ; %c('M' or 'm') NULL
+	 *                            1   1 1 3  1 3       1  3      1 1              1
+	 */
+	u_char  seq[17] ;
 	size_t  seq_len ;
 
 	nativeObj = nobj ;
-	if( ! nativeObj || ! nativeObj->term ||
-	    ! ml_term_get_mouse_report_mode( nativeObj->term) ||
-	    (isMotion &&
-	     ml_term_get_mouse_report_mode( nativeObj->term) < BUTTON_EVENT_MOUSE_REPORT) ||
-	    ! ( line = ml_term_get_line( nativeObj->term , row)))
+
+#if  0
+	if( ! Java_mlterm_MLTermPty_nativeIsTrackingMouse( env , obj , nobj ,
+				button , state , isMotion , isReleased))
 	{
 		return ;
 	}
+#endif
 
 	/*
 	 * XXX
 	 * Not considering BiDi etc.
 	 */
 
-	if( isMotion || button > 3 /* isWheel */)
+	if( ! ( line = ml_term_get_line( nativeObj->term , row)))
 	{
 		col = char_index ;
 	}
 	else
 	{
-		col = 0 ;
+		int  count ;
+
+		if( ml_line_end_char_index( line) < char_index)
+		{
+			col = char_index - ml_line_end_char_index( line) ;
+			char_index -= col ;
+		}
+		else
+		{
+			col = 0 ;
+		}
+
 		for( count = 0 ; count < char_index ; count++)
 		{
 			u_int  size ;
@@ -1787,9 +1822,11 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 	 * Following is the same as x_screen.c:report_mouse_tracking().
 	 */
 
-	if( isReleased)
+	if( ( isReleased && ml_term_get_extended_mouse_report_mode( nativeObj->term) !=
+				EXTENDED_MOUSE_REPORT_SGR) ||
+	    ( isMotion && button == 0) )
 	{
-		/* PointerMotion or ButtonRelease */
+		/* ButtonRelease or PointerMotion */
 		key_state = 0 ;
 		button = 3 ;
 	}
@@ -1805,26 +1842,17 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 		 * So Ctrl/Shift will never be catched here.
 		 */
 		key_state = ((state & ShiftMask) ? 4 : 0) +
-			((state & AltMask) ? 8 : 0) +
-			((state & ControlMask) ? 16 : 0) +
-			((state & (Button1Mask|Button2Mask|Button3Mask)) ? 32 : 0) ;
+				((state & AltMask) ? 8 : 0) +
+				((state & ControlMask) ? 16 : 0) +
+				(isMotion ? 32 : 0) ;
 
-		if( state & Button1Mask)
+		if( isReleased)
 		{
-			/* ButtonMotion */
-			button = 0 ;
+			/* is EXTENDED_MOUSE_REPORT_SGR */
+			key_state += 0x80 ;
 		}
-		else if( state & Button2Mask)
-		{
-			/* ButtonMotion */
-			button = 1 ;
-		}
-		else if( state & Button3Mask)
-		{
-			/* ButtonMotion */
-			button = 2 ;
-		}
-		else
+
+		/* if( button > 0) */
 		{
 			/* ButtonPress */
 			button -- ;	/* Button1 = 1 -> 0 */
@@ -1838,20 +1866,28 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 		}
 	}
 
+	/* count starts from 1, not 0 */
+	col ++ ;
+	row ++ ;
+
 	/* clear all bytes of seq to compare with prev_mouse_report_seq. */
 	memcpy( seq , "\x1b[M\0\0\0\0\0" , 8) ;
 
 	seq[3] = 0x20 + button + key_state ;
 
-	if( ml_term_is_extended_mouse_report_mode( nativeObj->term))
+	if( ml_term_get_extended_mouse_report_mode( nativeObj->term))
 	{
 		int  ch ;
 		u_char *  p ;
 
 		p = seq + 4 ;
 
-		if( (ch = 0x20 + (col < EXT_MOUSE_POS_LIMIT ? col + 1 : EXT_MOUSE_POS_LIMIT))
-			>= 0x80)
+		if( col > EXT_MOUSE_POS_LIMIT)
+		{
+			col = EXT_MOUSE_POS_LIMIT ;
+		}
+
+		if( (ch = 0x20 + col) >= 0x80)
 		{
 			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
 			*(p ++) = (ch & 0x3f) | 0x80 ;
@@ -1861,8 +1897,12 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 			*(p ++) = ch ;
 		}
 
-		if( (ch = 0x20 + (row < EXT_MOUSE_POS_LIMIT ? row + 1 : EXT_MOUSE_POS_LIMIT))
-			>= 0x80)
+		if( row > EXT_MOUSE_POS_LIMIT)
+		{
+			row = EXT_MOUSE_POS_LIMIT ;
+		}
+
+		if( (ch = 0x20 + row) >= 0x80)
 		{
 			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
 			*p = (ch & 0x3f) | 0x80 ;
@@ -1876,16 +1916,37 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 	}
 	else
 	{
-		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col + 1 : MOUSE_POS_LIMIT) ;
-		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row + 1 : MOUSE_POS_LIMIT) ;
+		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col : MOUSE_POS_LIMIT) ;
+		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row : MOUSE_POS_LIMIT) ;
 		seq_len = 6 ;
 	}
 
 	if( key_state >= 64 ||						/* Wheeling mouse */
 	    memcmp( nativeObj->prev_mouse_report_seq , seq + 3 , 5) != 0) /* Position is changed */
 	{
-		ml_term_write( nativeObj->term , seq , seq_len , 0) ;
 		memcpy( nativeObj->prev_mouse_report_seq , seq + 3 , 5) ;
+
+		if( ml_term_get_extended_mouse_report_mode( nativeObj->term) >
+			EXTENDED_MOUSE_REPORT_UTF8)
+		{
+			if( ml_term_get_extended_mouse_report_mode( nativeObj->term) ==
+				EXTENDED_MOUSE_REPORT_SGR)
+			{
+				sprintf( seq , "\x1b[<%d;%d;%d%c" ,
+					(button + key_state) & 0x7f , col , row ,
+					((button + key_state) & 0x80) ? 'm' : 'M') ;
+			}
+			else /* if( ml_term_get_extended_mouse_report_mode( nativeObj->term) ==
+					EXTENDED_MOUSE_REPORT_URXVT) */
+			{
+				sprintf( seq , "\x1b[%d;%d;%dM" ,
+					0x20 + button + key_state , col , row) ;
+			}
+
+			seq_len = strlen( seq) ;
+		}
+
+		ml_term_write( nativeObj->term , seq , seq_len , 0) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;

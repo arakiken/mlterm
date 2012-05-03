@@ -503,30 +503,48 @@ public class MLTerm extends StyledText
 		}
 	}
 
-	private void  reportMouseTracking( MouseEvent  event ,
+	private boolean  reportMouseTracking( int  x , int  y , int  button , int  stateMask ,
 						boolean  isMotion , boolean  isReleased)
 	{
-		if( ( event.stateMask & (SWT.CONTROL|SWT.SHIFT)) != 0)
+		if( ( stateMask & (SWT.CONTROL|SWT.SHIFT)) != 0 ||
+		    ! pty.isTrackingMouse( button , isMotion))
 		{
-			return ;
+			return  false ;
 		}
 
-		int  row ;
+		int  row = y / lineHeight + numOfScrolledOutLines ;
 		int  charIndex ;
-		if( isMotion || event.button > 3 /* isWheel */)
+
+		try
 		{
-			row = event.y / lineHeight ;
-			charIndex = event.x / columnWidth ;
-		}
-		else
-		{
-			row = getLineAtOffset( getCaretOffset()) ;
+			Point  p = new Point( x , y) ;
 			charIndex = getLine( row).codePointCount( 0 ,
-										getCaretOffset() - getOffsetAtLine( row)) ;
+								getOffsetAtLocation( p) - getOffsetAtLine( row)) ;
+		}
+		catch( Exception  e)
+		{
+			/* There is no character at the specified location of getOffsetAtLocation(). */
+			if( row < getLineCount())
+			{
+				charIndex = getLine( row).length() ;
+				if( charIndex > 0)
+				{
+					charIndex -- ;
+				}
+				charIndex += (x - getLocationAtOffset( getOffsetAtLine( row) + charIndex).x) /
+								columnWidth ;
+			}
+			else
+			{
+				charIndex = x / columnWidth ;
+			}
 		}
 
-		pty.reportMouseTracking( charIndex , row - numOfScrolledOutLines ,
-						event.button , event.stateMask , isMotion , isReleased) ;
+		row -= numOfScrolledOutLines ;
+
+		pty.reportMouseTracking( charIndex , row , button , stateMask , isMotion , isReleased) ;
+
+		return  true ;
 	}
 
 	private void attachPty( boolean  createContent)
@@ -764,21 +782,24 @@ public class MLTerm extends StyledText
 			{
 				public void mouseDown( MouseEvent  event)
 				{
-					reportMouseTracking( event , false , false) ;
-
-					isSelecting = true ;
+					if( ! reportMouseTracking( event.x , event.y ,
+								event.button , event.stateMask , false , false))
+					{
+						isSelecting = true ;
+					}
 				}
 
 				public void mouseUp( MouseEvent  event)
 				{
-					isSelecting = false ;
-
-					if( getSelectionCount() > 0)
+					if( ! reportMouseTracking( event.x , event.y ,
+								event.button , event.stateMask , false , true))
 					{
-						copy() ;
+						isSelecting = false ;
+						if( getSelectionCount() > 0)
+						{
+							copy() ;
+						}
 					}
-
-					reportMouseTracking( event , false , true) ;
 				}
 
 				public void mouseDoubleClick( MouseEvent  event)
@@ -791,7 +812,27 @@ public class MLTerm extends StyledText
 			{
 				public void mouseMove( MouseEvent  event)
 				{
-					reportMouseTracking( event , true , false) ;
+					int  button ;
+
+					if( ( event.stateMask & SWT.BUTTON1) != 0)
+					{
+						button = 1 ;
+					}
+					else if( ( event.stateMask & SWT.BUTTON2) != 0)
+					{
+						button = 2 ;
+					}
+					else if( ( event.stateMask & SWT.BUTTON3) != 0)
+					{
+						button = 3 ;
+					}
+					else
+					{
+						button = 0 ;
+					}
+
+					reportMouseTracking( event.x , event.y , button , event.stateMask ,
+								true , false) ;
 				}
 			}) ;
 
@@ -800,16 +841,19 @@ public class MLTerm extends StyledText
 			{
 				public void mouseScrolled( MouseEvent  event)
 				{
+					int  button ;
+
 					if( event.count > 0)
 					{
-						event.button = 4 ;
+						button = 4 ;
 					}
 					else
 					{
-						event.button = 5 ;
+						button = 5 ;
 					}
 
-					reportMouseTracking( event , false , false) ;
+					reportMouseTracking( event.x , event.y , button , event.stateMask , 
+								false , false) ;
 				}
 			}) ;
 

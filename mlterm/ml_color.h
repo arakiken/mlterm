@@ -16,6 +16,7 @@
 #define  IS_256_COLOR(color)  (0x10 <= (color) && (color) <= 0xff)
 #define  IS_VALID_COLOR_EXCEPT_FG_BG(color)  ((unsigned int)(color) < 0xff)
 #define  IS_VALID_COLOR(color)  (0x0 <= (color) && (color) < 0x100)
+#define  IS_FG_BG_COLOR(color)  ((color) >= 0x100)
 
 
 typedef enum  ml_color

@@ -2478,7 +2478,7 @@ x_window_copy_area(
 
 	BitBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
 		width , height ,
-		pixmap , src_x , src_y , SRCCOPY) ;
+		src , src_x , src_y , SRCCOPY) ;
 
 	return  1 ;
 }

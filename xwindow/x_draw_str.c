@@ -21,7 +21,7 @@ adjust_bd_ul_color(
 {
 	if( font & FONT_BOLD)
 	{
-		if( fg_color == ML_FG_COLOR && x_color_manager_adjust_bd_color( color_man))
+		if( IS_FG_BG_COLOR(fg_color) && x_color_manager_adjust_bd_color( color_man))
 		{
 			return  1 ;
 		}
@@ -29,7 +29,7 @@ adjust_bd_ul_color(
 
 	if( is_underlined)
 	{
-		if( fg_color == ML_FG_COLOR && x_color_manager_adjust_ul_color( color_man))
+		if( IS_FG_BG_COLOR(fg_color) && x_color_manager_adjust_ul_color( color_man))
 		{
 			return  2 ;
 		}
