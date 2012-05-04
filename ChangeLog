@@ -1,3 +1,8 @@
+2012-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch], x_screen.c:
+	  FocusIn/FocusOut event tracking (CSI ? 1004 h and CSI ? 1004 l) is supported.
+
 2012-05-04  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java:

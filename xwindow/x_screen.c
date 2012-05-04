@@ -1611,6 +1611,11 @@ window_focused(
 		(*screen->im->focused)( screen->im) ;
 	}
 
+	if( ml_term_want_focus_event( screen->term))
+	{
+		write_to_pty( screen , "\x1b[I" , 3 , NULL) ;
+	}
+
 #ifdef  MULTI_WINDOWS_PER_PTY
 	if( ! ml_term_is_readable( screen->term))
 	{
@@ -1660,6 +1665,11 @@ window_unfocused(
 	if( screen->im)
 	{
 		(*screen->im->unfocused)( screen->im) ;
+	}
+
+	if( ml_term_want_focus_event( screen->term))
+	{
+		write_to_pty( screen , "\x1b[O" , 3 , NULL) ;
 	}
 
 #ifdef  MULTI_WINDOWS_PER_PTY

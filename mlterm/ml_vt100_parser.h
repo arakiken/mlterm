@@ -44,9 +44,6 @@ typedef enum  ml_unicode_policy
 
 } ml_unicode_policy_t ;
 
-#define EXTENDED_MOUSE_REPORT_MASK \
-	(EXTENDED_MOUSE_REPORT_UTF8|EXTENDED_MOUSE_REPORT_SGR|EXTENDED_MOUSE_REPORT_URXVT)
-
 typedef enum  ml_mouse_report_mode
 {
 	NO_MOUSE_REPORT = 0 ,
@@ -55,12 +52,17 @@ typedef enum  ml_mouse_report_mode
 	BUTTON_EVENT_MOUSE_REPORT = 0x2 ,
 	ANY_EVENT_MOUSE_REPORT = 0x3 ,
 
-	/* OR with above values. */
-	EXTENDED_MOUSE_REPORT_UTF8 = 0x4 ,
-	EXTENDED_MOUSE_REPORT_SGR = 0x8 ,
-	EXTENDED_MOUSE_REPORT_URXVT = 0x10 ,
-
 } ml_mouse_report_mode_t ;
+
+typedef enum  ml_extended_mouse_report_mode
+{
+	NO_EXTENDED_MOUSE_REPORT = 0 ,
+
+	EXTENDED_MOUSE_REPORT_UTF8 = 0x1 ,
+	EXTENDED_MOUSE_REPORT_SGR = 0x2 ,
+	EXTENDED_MOUSE_REPORT_URXVT = 0x3 ,
+
+} ml_extended_mouse_report_mode_t ;
 
 typedef struct  ml_char_buffer
 {
@@ -150,31 +152,28 @@ typedef struct  ml_vt100_parser
 	
 	mkf_charset_t  cs ;
 
-	ml_unicode_policy_t  unicode_policy ;
-
 	ml_xterm_event_listener_t *  xterm_listener ;
 	ml_config_event_listener_t *  config_listener ;
 
 	int  log_file ;
 
-	ml_mouse_report_mode_t  mouse_mode ;
+	/* ml_unicode_policy_t */ int8_t  unicode_policy ;
+
+	/* ml_mouse_report_mode_t */ int8_t  mouse_mode ;
+	/* ml_extended_mouse_report_mode_t */ int8_t  ext_mouse_mode ;
 
 	/* Used for non iso2022 encoding */
 	int8_t  is_dec_special_in_gl ;
 	int8_t  is_so ;
 	int8_t  is_dec_special_in_g0 ;
 	int8_t  is_dec_special_in_g1 ;
-	
+
 	int8_t  is_bold ;
 	int8_t  is_underlined ;
 	int8_t  is_reversed ;
 
 	u_int8_t  col_size_of_width_a ;	/* 1 or 2 */
 
-	/*
-	 * XXX
-	 * ml_term can access these 3 flags directly.
-	 */
 	int8_t  use_char_combining ;
 	int8_t  use_multi_col_char ;
 	int8_t  logging_vt_seq ;
@@ -183,6 +182,8 @@ typedef struct  ml_vt100_parser
 	int8_t  is_app_cursor_keys ;
 	int8_t  is_app_escape ;
 	int8_t  is_bracketed_paste_mode ;
+
+	int8_t  want_focus_event ;
 
 	int8_t  im_is_active ;
 
@@ -251,11 +252,10 @@ int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int
 
 #define  ml_vt100_parser_is_logging_vt_seq( vt100_parser)  ((vt100_parser)->logging_vt_seq)
 
-#define  ml_vt100_parser_get_mouse_report_mode( vt100_parser) \
-		((vt100_parser)->mouse_mode & ~EXTENDED_MOUSE_REPORT_MASK)
+#define  ml_vt100_parser_get_mouse_report_mode( vt100_parser)  ((vt100_parser)->mouse_mode)
 
 #define  ml_vt100_parser_get_extended_mouse_report_mode( vt100_parser) \
-		((vt100_parser)->mouse_mode & EXTENDED_MOUSE_REPORT_MASK)
+		((vt100_parser)->ext_mouse_mode)
 
 #define  ml_vt100_parser_is_app_keypad( vt100_parser)  ((vt100_parser)->is_app_keypad)
 
@@ -265,5 +265,8 @@ int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int
 
 #define  ml_vt100_parser_is_bracketed_paste_mode( vt100_parser) \
 		((vt100_parser)->is_bracketed_paste_mode)
+
+#define  ml_vt100_parser_want_focus_event( vt100_parser)  ((vt100_parser)->want_focus_event)
+
 
 #endif

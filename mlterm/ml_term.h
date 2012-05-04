@@ -288,6 +288,8 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_is_app_escape( term)  ml_vt100_parser_is_app_escape((term)->parser)
 
+#define  ml_term_want_focus_event( term)  ml_vt100_parser_want_focus_event((term)->parser)
+
 #ifdef  MULTI_WINDOWS_PER_PTY
 int  ml_term_set_window_id( ml_term_t *  term , char *  name) ;
 
