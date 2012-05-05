@@ -394,7 +394,7 @@ x_font_new(
 		font->cols = 1 ;
 	}
 
-	if( font_present & FONT_VAR_WIDTH)
+	if( font_present & FONT_VAR_WIDTH || IS_ISCII(FONT_CS(font->id)))
 	{
 		font->is_var_col_width = 1 ;
 	}

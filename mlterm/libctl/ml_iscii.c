@@ -67,7 +67,8 @@ load_symbol(
 	void *  handle ;
 	void *  sym ;
 
-	if( ! ( handle = kik_dl_open( INDLIB_DIR , file)))
+	if( ! ( handle = kik_dl_open( INDLIB_DIR , file)) &&
+	    ! ( handle = kik_dl_open( "" , file)))
 	{
 		kik_msg_printf( "Failed to open %s\n" , file) ;
 

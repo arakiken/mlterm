@@ -1,3 +1,14 @@
+2012-05-06  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/font.win32.indic: Added.
+
+	* README.indic, aafont.indic: Updated.
+
+	* ml_iscii.c: libiscii_xxx.so modules are possible to be loaded from
+	  current working directory.
+
+	* win32/x_font.c: is_var_col_width of ISCII font is always true.
+
 2012-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.[ch], x_screen.c:
