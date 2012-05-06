@@ -1020,10 +1020,12 @@ ml_pty_ssh_new(
 
 		/* Because cmd_path == cmd_argv[0], cmd_argv[0] is ignored. */
 
+		/* 1 = NULL terminator */
 		cmd_line_len = strlen(cmd_path) + 1 ;
 		for( count = 1 ; cmd_argv[count] != NULL ; count++)
 		{
-			cmd_line_len += (strlen(cmd_argv[count]) + 1) ;
+			/* 3 = " " */
+			cmd_line_len += (strlen(cmd_argv[count]) + 3) ;
 		}
 
 		if( ( cmd_line = alloca( sizeof(char) * cmd_line_len)) == NULL)
@@ -1034,8 +1036,9 @@ ml_pty_ssh_new(
 		strcpy( cmd_line, cmd_path) ;
 		for( count = 1 ; cmd_argv[count] != NULL ; count ++)
 		{
-			strcat( cmd_line, " ") ;
-			strcat( cmd_line, cmd_argv[count]) ;
+			sprintf( cmd_line + strlen(cmd_line) ,
+				strchr( cmd_argv[count] , ' ') ? " \"%s\"" : " %s" ,
+				cmd_argv[count]) ;
 		}
 
 		if( libssh2_channel_exec( pty->channel , cmd_line))

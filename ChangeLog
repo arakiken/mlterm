@@ -1,3 +1,12 @@
+2012-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty_ssh.c: Command string to be executed over ssh connection is
+	  braced by "" if it contains a space.
+
+	* x_screen_manager.c: A problem which failed to open a new screen because
+	  command string to be executed over ssh connection wasn't initialized
+	  is fixed.
+
 2012-05-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty.[ch], ml_term.[ch], ml_term_manager.c, ml_vt100_parser.c,

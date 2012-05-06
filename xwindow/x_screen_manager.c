@@ -234,6 +234,7 @@ open_pty_intern(
 		{
 			uri = strdup( main_config.default_server) ;
 			pass = strdup( "") ;
+			exec_cmd = NULL ;
 		}
 		else
 	#endif
