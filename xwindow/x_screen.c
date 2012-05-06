@@ -1574,10 +1574,6 @@ window_resized(
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 	x_xic_resized( &screen->window) ;
-
-#ifdef  MULTI_WINDOWS_PER_PTY
-	ml_term_sync_size( screen->term , cols , rows) ;
-#endif
 }
 
 static void
@@ -1615,25 +1611,6 @@ window_focused(
 	{
 		write_to_pty( screen , "\x1b[I" , 3 , NULL) ;
 	}
-
-#ifdef  MULTI_WINDOWS_PER_PTY
-	if( ! ml_term_is_readable( screen->term))
-	{
-		ml_term_set_readable( screen->term , 1) ;
-
-	#if  0
-		write_to_pty( screen , "\x1b]115;" , 6 , NULL) ;
-		write_to_pty( screen , ml_term_window_id( screen->term) ,
-			strlen( ml_term_window_id( screen->term)) , NULL) ;
-		write_to_pty( screen , "\x07" , 1 , NULL) ;
-	#else
-		write_to_pty( screen , "tmux select-window -t " , 22 , NULL) ;
-		write_to_pty( screen , ml_term_window_id( screen->term) ,
-			strlen( ml_term_window_id( screen->term)) , NULL) ;
-		write_to_pty( screen , "\n" , 1 , NULL) ;
-	#endif
-	}
-#endif
 }
 
 static void
@@ -1671,13 +1648,6 @@ window_unfocused(
 	{
 		write_to_pty( screen , "\x1b[O" , 3 , NULL) ;
 	}
-
-#ifdef  MULTI_WINDOWS_PER_PTY
-	if( ml_term_window_id( screen->term))
-	{
-		ml_term_set_readable( screen->term , 0) ;
-	}
-#endif
 }
 
 /*
@@ -1705,7 +1675,7 @@ window_deleted(
 	if( HAS_SYSTEM_LISTENER(screen,close_screen))
 	{
 		(*screen->system_listener->close_screen)(
-			screen->system_listener->self , screen , NULL) ;
+			screen->system_listener->self , screen) ;
 	}
 }
 
@@ -2058,7 +2028,7 @@ key_pressed(
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
 			(*screen->system_listener->open_screen)(
-				screen->system_listener->self , screen , NULL) ;
+				screen->system_listener->self , screen) ;
 		}
 
 		return ;
@@ -7855,19 +7825,9 @@ x_screen_exec_cmd(
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
 			(*screen->system_listener->open_screen)(
-				screen->system_listener->self , screen , arg) ;
+				screen->system_listener->self , screen) ;
 		}
 	}
-#ifdef  MULTI_WINDOWS_PER_PTY
-	else if( strcmp( cmd , "close_screen") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,close_screen))
-		{
-			(*screen->system_listener->close_screen)(
-				screen->system_listener->self , screen , arg) ;
-		}
-	}
-#endif
 	else if( strcmp( cmd , "snapshot") == 0)
 	{
 		char **  argv ;

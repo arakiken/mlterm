@@ -383,11 +383,6 @@ close_screen_intern(
 {
 	x_window_t *  root ;
 	x_display_t *  disp ;
-#ifdef  MULTI_WINDOWS_PER_PTY
-	ml_term_t *  term ;
-
-	term = screen->term ;
-#endif
 
 	x_screen_detach( screen) ;
 	x_font_manager_delete( screen->font_man) ;
@@ -406,20 +401,12 @@ close_screen_intern(
 		x_display_remove_root( disp, root) ;
 	}
 
-#ifdef  MULTI_WINDOWS_PER_PTY
-	if( term && ! ml_term_is_readable( term))
-	{
-		ml_destroy_term( term) ;
-	}
-#endif
-
 	return  1 ;
 }
 
 static x_screen_t *
 open_screen_intern(
-	char *  pty ,
-	int  open_pty
+	char *  pty
 	)
 {
 	ml_term_t *  term ;
@@ -631,11 +618,6 @@ open_screen_intern(
 	/*
 	 * New screen is successfully created here except ml_pty.
 	 */
-
-	if( ! open_pty)
-	{
-		return  screen ;
-	}
 
 	if( pty)
 	{
@@ -906,87 +888,21 @@ pty_closed(
 static void
 open_screen(
 	void *  p ,
-	x_screen_t *  cur_screen ,	/* Screen which triggers this event. */
-	char *  id
+	x_screen_t *  cur_screen	/* Screen which triggers this event. */
 	)
 {
 	char *  disp_name ;
-	x_screen_t *  new_screen ;
-
-#ifdef  MULTI_WINDOWS_PER_PTY
-	if( id)
-	{
-		u_int  count ;
-
-		for( count = 0 ; count < num_of_screens ; count++)
-		{
-			if( ml_term_window_id( screens[count]->term) &&
-			    strcmp( ml_term_window_id( screens[count]->term) , id) == 0 &&
-			    /*
-			     * Check if screens[count] and cur_screen belong to
-			     * the same window group.
-			     */
-			    ml_term_get_master_fd( screens[count]->term) ==
-				ml_term_get_master_fd( cur_screen->term))
-			{
-				ml_term_set_readable( cur_screen->term , 0) ;
-				ml_term_set_readable( screens[count]->term , 1) ;
-
-				return ;
-			}
-		}
-
-		if( ! ml_term_window_id( cur_screen->term))
-		{
-			ml_term_set_window_id( cur_screen->term , id) ;
-
-			return ;
-		}
-	}
-#endif
 
 	/* Saving default disp_name option. */
 	disp_name = main_config.disp_name ;
 	main_config.disp_name = cur_screen->window.disp->name ;
-	
-	if( ! ( new_screen = open_screen_intern( NULL , id ? 0 : 1)))
+
+	if( ! open_screen_intern( NULL))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
 	#endif
 	}
-#ifdef  MULTI_WINDOWS_PER_PTY
-	else if( id)
-	{
-		ml_pty_ptr_t  pty ;
-
-		if( ( pty = ml_pty_new_with( ml_term_get_master_fd( cur_screen->term) ,
-				ml_term_get_slave_fd( cur_screen->term) ,
-				ml_term_get_child_pid( cur_screen->term) ,
-				ml_term_get_logical_cols( cur_screen->term) ,
-				ml_term_get_logical_rows( cur_screen->term))))
-		{
-			ml_term_plug_pty( new_screen->term , pty) ;
-			ml_term_set_window_id( new_screen->term , id) ;
-			ml_term_set_readable( cur_screen->term , 0) ;
-
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " New screen %s is created.\n" , id) ;
-		#endif
-		}
-	}
-
-#ifdef  DEBUG
-	if( new_screen)
-	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			"New screen %s is created and old screen %s is %s.\n" ,
-			ml_term_window_id( new_screen->term) ,
-			ml_term_window_id( cur_screen->term) ,
-			ml_term_is_readable( cur_screen->term) ? "readable" : "not readable") ;
-	}
-#endif
-#endif
 
 	/* Restoring default disp_name option. */
 	main_config.disp_name = disp_name ;
@@ -995,8 +911,7 @@ open_screen(
 static void
 close_screen(
 	void *  p ,
-	x_screen_t *  screen ,	/* Screen which triggers this event. */
-	char *  id
+	x_screen_t *  screen	/* Screen which triggers this event. */
 	)
 {
 	u_int  count ;
@@ -1005,32 +920,10 @@ close_screen(
 	{
 		u_int  idx ;
 
-	#ifdef  MULTI_WINDOWS_PER_PTY
-		if( id)
-		{
-			if( ! ml_term_window_id( screens[count]->term) ||
-			    strcmp( ml_term_window_id( screens[count]->term) , id) != 0 ||
-			    /*
-			     * Check if screens[count] and screen belong to
-			     * the same window group.
-			     */
-			    ml_term_get_master_fd( screens[count]->term) !=
-				ml_term_get_master_fd( screen->term))
-			{
-				continue ;
-			}
-		}
-		else
-	#endif
 		if( screen != screens[count])
 		{
 			continue ;
 		}
-
-	#ifdef  MULTI_WINDOWS_PER_PTY
-		/* Another term will become readable by window_focused event in x_screen.c. */
-		ml_term_set_readable( screens[count]->term , 0) ;
-	#endif
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " screen %p is registered to be closed.\n",
@@ -1167,7 +1060,7 @@ mlclient(
 		}
 		else
 		{
-			if( ! open_screen_intern( pty , 1))
+			if( ! open_screen_intern( pty))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
@@ -1328,7 +1221,7 @@ x_screen_manager_startup(void)
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
-		if( ! open_screen_intern( NULL , 1))
+		if( ! open_screen_intern( NULL))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;

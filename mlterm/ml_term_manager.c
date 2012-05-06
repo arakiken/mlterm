@@ -147,11 +147,6 @@ sig_child(
 
 			idx = count / MTU ;
 			dead_mask[idx] |= (1 << (count - MTU * idx)) ;
-
-			/* Multiple terms could have the same child. */
-		#ifndef  MULTI_WINDOWS_PER_PTY
-			return ;
-		#endif
 		}
 	}
 }
@@ -629,32 +624,3 @@ ml_term_manager_enable_zombie_pty(void)
 {
 	zombie_pty = 1 ;
 }
-
-#ifdef  MULTI_WINDOWS_PER_PTY
-int
-ml_term_sync_size(
-	ml_term_t *  term ,
-	u_int  cols ,
-	u_int  rows
-	)
-{
-	if( ml_term_window_id( term))
-	{
-		u_int  count ;
-		char  seq[6 + DIGIT_STR_LEN(u_int) * 2 + 1] ;
-
-		sprintf( seq , "\x1b[8;%d;%dt" , rows , cols) ;
-
-		for( count = 0 ; count < num_of_terms ; count ++)
-		{
-			if( ml_term_get_master_fd( term) ==
-			    ml_term_get_master_fd( terms[count]))
-			{
-				ml_term_write_loopback( terms[count] , seq , strlen(seq)) ;
-			}
-		}
-	}
-
-	return  1 ;
-}
-#endif

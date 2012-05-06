@@ -1,5 +1,12 @@
 2012-05-06  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_pty.[ch], ml_term.[ch], ml_term_manager.c, ml_vt100_parser.c,
+	  ml_pty_intern.h, x_screen.c, x_screen_manager.c:
+	  Experimental implementation of multiple windows per one pty
+	  (MULTI_WINDOWS_PER_PTY) is removed.
+
+2012-05-06  Araki Ken  <arakiken@users.sf.net>
+
 	* im_ibus.c, x_im.c: Hack to avoid calling ibus_init() more than once
 	  is added. (If ibus daemon was not found last time and ibus_init() is
 	  called again, segfault happens.)

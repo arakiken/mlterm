@@ -55,12 +55,6 @@ int  ml_pty_get_slave_fd( ml_pty_ptr_t  pty) ;
 
 char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
 
-#ifdef  MULTI_WINDOWS_PER_PTY
-int  ml_pty_set_readable( ml_pty_ptr_t  pty , int  is_readable) ;
-
-int  ml_pty_is_readable( ml_pty_ptr_t  pty) ;
-#endif
-
 #ifdef  USE_LIBSSH2
 void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;
 

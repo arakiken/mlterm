@@ -3147,28 +3147,6 @@ parse_vt100_escape_sequence(
 
 				set_selection( vt100_parser , pt) ;
 			}
-		#ifdef  MULTI_WINDOWS_PER_PTY
-			else if( ps == 115)
-			{
-				u_char *  p ;
-
-				if( *pt && ( p = alloca( 14 + strlen(pt) + 1)))
-				{
-					sprintf( p , "open_screen %s" , pt) ;
-					config_protocol_set( vt100_parser , p , 0) ;
-				}
-			}
-			else if( ps == 116)
-			{
-				u_char *  p ;
-
-				if( *pt && ( p = alloca( 15 + strlen(pt) + 1)))
-				{
-					sprintf( p , "close_screen %s" , pt) ;
-					config_protocol_set( vt100_parser , p , 0) ;
-				}
-			}
-		#endif
 			else if( ps == 5379)
 			{
 				/* "OSC 5379" set */

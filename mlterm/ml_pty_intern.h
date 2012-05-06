@@ -37,10 +37,6 @@ typedef struct  ml_pty
 
 	} *  stored ;
 
-#ifdef  MULTI_WINDOWS_PER_PTY
-	int8_t  is_readable ;
-#endif
-
 } ml_pty_t ;
 
 

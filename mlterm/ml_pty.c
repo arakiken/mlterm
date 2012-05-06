@@ -67,13 +67,6 @@ ml_pty_new(
 	#endif
 	}
 
-#ifdef  MULTI_WINDOWS_PER_PTY
-	if( pty)
-	{
-		pty->is_readable = 1 ;
-	}
-#endif
-
 	return  pty ;
 }
 
@@ -99,13 +92,6 @@ ml_pty_new_with(
 	{
 		pty = NULL ;
 	}
-
-#ifdef  MULTI_WINDOWS_PER_PTY
-	if( pty)
-	{
-		pty->is_readable = 1 ;
-	}
-#endif
 
 	return  pty ;
 }
@@ -133,13 +119,7 @@ ml_pty_delete(
 
 	free( pty->buf) ;
 
-#ifdef  MULTI_WINDOWS_PER_PTY
-	/* XXX */
-	if( pty->is_readable)
-#endif
-	{
-		(*pty->final)( pty) ;
-	}
+	(*pty->final)( pty) ;
 
 	free( pty) ;
 
@@ -329,13 +309,6 @@ ml_read_pty(
 {
 	size_t  read_size ;
 
-#ifdef  MULTI_WINDOWS_PER_PTY
-	if( ! pty->is_readable)
-	{
-		return  0 ;
-	}
-#endif
-
 	read_size = 0 ;
 	while( 1)
 	{
@@ -402,29 +375,3 @@ ml_pty_get_slave_name(
 
 	return  uniq_name ;
 }
-
-#ifdef  MULTI_WINDOWS_PER_PTY
-int
-ml_pty_set_readable(
-	ml_pty_t *  pty ,
-	int  is_readable
-	)
-{
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " PTY %s is set %s.\n" ,
-		ml_pty_get_slave_name( pty) , is_readable ? "readable" : "not readable") ;
-#endif
-
-	pty->is_readable = is_readable ;
-
-	return  1 ;
-}
-
-int
-ml_pty_is_readable(
-	ml_pty_t *  pty
-	)
-{
-	return  pty->is_readable ;
-}
-#endif
