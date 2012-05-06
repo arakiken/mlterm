@@ -176,7 +176,18 @@ x_im_new(
 			      &im_export_syms , im_attr , mod_ignore_mask)))
 	{
 		kik_error_printf( "%s: Could not open.\n" , im_name) ;
-		kik_dl_close( handle) ;
+
+		/*
+		 * Even if ibus daemon was not found, ibus_init() has been
+		 * already called in im_ibus_new().
+		 * So if im-ibus module is unloaded here, ibus_init()
+		 * will be called again and segfault will happen when
+		 * im-ibus module is loaded next time.
+		 */
+		if( strcmp( im_name , "ibus") != 0)
+		{
+			kik_dl_close( handle) ;
+		}
 
 		return  NULL ;
 	}

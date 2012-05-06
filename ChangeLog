@@ -1,5 +1,11 @@
 2012-05-06  Araki Ken  <arakiken@users.sf.net>
 
+	* im_ibus.c, x_im.c: Hack to avoid calling ibus_init() more than once
+	  is added. (If ibus daemon was not found last time and ibus_init() is
+	  called again, segfault happens.)
+
+2012-05-06  Araki Ken  <arakiken@users.sf.net>
+
 	* etc/font.win32.indic: Added.
 
 	* README.indic, aafont.indic: Updated.

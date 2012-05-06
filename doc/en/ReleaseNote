@@ -6,6 +6,7 @@
 * Bug fixes:
   Fix a bug which disabled "bd_color" and "ul_color" options in reverse characters.
   (Thanks to Andi Cristian Serbanescu)
+  Fix an ibus bug which causes segmentation fault if ibus daemon is not found.
 
 ver 3.1.1
 * Fix a bug which caused segfault in 64bit Linux.

@@ -42,6 +42,7 @@ KIK_LIST_TYPEDEF( im_ibus_t) ;
 
 /* --- static variables --- */
 
+static int  is_init ;
 static IBusBus *  ibus_bus ;
 static KIK_LIST( im_ibus_t)  ibus_list = NULL ;
 
@@ -349,10 +350,7 @@ delete(
 
 	ibus = (im_ibus_t*) im ;
 
-	if( ibus->parser_ibus)
-	{
-		(*ibus->parser_ibus->delete)( ibus->parser_ibus) ;
-	}
+	(*ibus->parser_ibus->delete)( ibus->parser_ibus) ;
 
 #ifdef  DBUS_H
 	ibus_object_destroy( (IBusObject*)ibus->context) ;
@@ -561,7 +559,7 @@ im_ibus_new(
 	)
 {
 	im_ibus_t *  ibus = NULL ;
-	
+
 	if( magic != (u_int64_t) IM_API_COMPAT_CHECK_MAGIC)
 	{
 		kik_error_printf( "Incompatible input method API.\n") ;
@@ -576,13 +574,19 @@ im_ibus_new(
 	}
 #endif
 
+	if( ! is_init)
+	{
+		ibus_init() ;
+
+		/* Don't call ibus_init() again if ibus daemon is not found below. */
+		is_init = 1 ;
+	}
+
 	if( ! ibus_bus)
 	{
 		int  fd ;
 
 		syms = export_syms ;
-
-		ibus_init() ;
 
 		/* g_getenv( "DISPLAY") will be called in ibus_get_socket_path(). */
 	#if  0
@@ -627,6 +631,11 @@ im_ibus_new(
 		goto  error ;
 	}
 
+	if( ! ( ibus->parser_ibus = (*syms->ml_parser_new)( ML_UTF8)))
+	{
+		goto  error ;
+	}
+
 	ibus->context = ibus_bus_create_input_context( ibus_bus , "mlterm") ;
 	ibus_input_context_set_capabilities( ibus->context ,
 		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT) ;
@@ -638,13 +647,7 @@ im_ibus_new(
 			G_CALLBACK( forward_key_event) , ibus) ;
 
 	ibus->term_encoding = term_encoding ;
-	ibus->parser_ibus = NULL ;
 	ibus->is_enabled = FALSE ;
-
-	if( ! ( ibus->parser_ibus = (*syms->ml_parser_new)( ML_UTF8)))
-	{
-		goto  error ;
-	}
 
 	memset( &ibus->prev_key , 0 , sizeof(XKeyEvent)) ;
 
@@ -677,11 +680,6 @@ error:
 
 	if( ibus)
 	{
-		if( ibus->parser_ibus)
-		{
-			(*ibus->parser_ibus->delete)( ibus->parser_ibus) ;
-		}
-
 		free( ibus) ;
 	}
 
