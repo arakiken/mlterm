@@ -422,7 +422,7 @@ error2:
 			if( strchr( cmd_path , '/') == NULL)
 			{
 				char *  p ;
-				char  dir[] = LIBEXECDIR ;
+				char  dir[] = LIBEXECDIR "/mlterm" ;
 
 				/* not freed, since this process soon execv() */
 				if( ( p = malloc( sizeof(dir) + strlen( cmd_path) + 1)) == NULL)

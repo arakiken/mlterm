@@ -35,14 +35,14 @@ mlterm-zoom: $(OBJS)
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
-install: $(LIBEXECDIR) $(SYSCONFDIR)/mlterm
-	$(LIBTOOL_INSTALL) -m 755 mlterm-zoom $(LIBEXECDIR)
+install: $(LIBEXECDIR)/mlterm $(SYSCONFDIR)/mlterm
+	$(LIBTOOL_INSTALL) -m 755 mlterm-zoom $(LIBEXECDIR)/mlterm
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlterm-zoom
+	rm -f $(LIBEXECDIR)/mlterm/mlterm-zoom
 
-$(LIBEXECDIR):
-	mkdir -p $(LIBEXECDIR)
+$(LIBEXECDIR)/mlterm:
+	mkdir -p $(LIBEXECDIR)/mlterm
 
 $(SYSCONFDIR)/mlterm:
 	mkdir -p $(SYSCONFDIR)/mlterm

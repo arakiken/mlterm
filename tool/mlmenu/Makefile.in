@@ -34,15 +34,15 @@ mlmenu: $(OBJS)
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
-install: $(LIBEXECDIR)
-	$(LIBTOOL_INSTALL) -m 755 mlmenu $(LIBEXECDIR)
+install: $(LIBEXECDIR)/mlterm
+	$(LIBTOOL_INSTALL) -m 755 mlmenu $(LIBEXECDIR)/mlterm
 	$(INSTALL) -m 644 ${top_srcdir}/tool/mlmenu/menu-simple $(SYSCONFDIR)/mlterm
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlmenu $(SYSCONFDIR)/mlterm/menu-simple
+	rm -f $(LIBEXECDIR)/mlterm/mlmenu $(SYSCONFDIR)/mlterm/menu-simple
 
-$(LIBEXECDIR):
-	mkdir -p $(LIBEXECDIR)
+$(LIBEXECDIR)/mlterm:
+	mkdir -p $(LIBEXECDIR)/mlterm
 
 clean:
 	rm -rf $(OBJS) mlmenu mlmenu.exe *.core .libs

@@ -64,16 +64,16 @@ mlconfig: $(OBJ)
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
-install: $(LIBEXECDIR)
-	$(LIBTOOL_INSTALL) -m 755 mlconfig $(LIBEXECDIR)
+install: $(LIBEXECDIR)/mlterm
+	$(LIBTOOL_INSTALL) -m 755 mlconfig $(LIBEXECDIR)/mlterm
 	cd po ; $(MAKE) install
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlconfig
+	rm -f $(LIBEXECDIR)/mlterm/mlconfig
 	cd po ; $(MAKE) uninstall
 
-$(LIBEXECDIR):
-	mkdir -p $(LIBEXECDIR)
+$(LIBEXECDIR)/mlterm:
+	mkdir -p $(LIBEXECDIR)/mlterm
 
 clean:
 	rm -rf $(OBJ) mlconfig mlconfig.exe *.core .libs

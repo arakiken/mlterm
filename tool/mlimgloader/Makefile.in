@@ -46,14 +46,14 @@ $(PROG): $(OBJ)
 .c.o:
 	$(LIBTOOL_CC) $(CFLAGS) -c $<
 
-$(LIBEXECDIR):
-	mkdir -p $(LIBEXECDIR)
+$(LIBEXECDIR)/mlterm:
+	mkdir -p $(LIBEXECDIR)/mlterm
 
-install: $(LIBEXECDIR)
-	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(LIBEXECDIR)
+install: $(LIBEXECDIR)/mlterm
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(LIBEXECDIR)/mlterm
 
 uninstall:
-	rm -f $(LIBEXECDIR)/$(PROG)
+	rm -f $(LIBEXECDIR)/mlterm/$(PROG)
 
 wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l

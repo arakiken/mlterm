@@ -1261,7 +1261,7 @@ load_file(
 		char  width_str[DIGIT_STR_LEN(u_int)] ;
 		char  height_str[DIGIT_STR_LEN(u_int)] ;
 
-		args[0] = LIBEXECDIR "/mlimgloader" ;
+		args[0] = LIBEXECDIR "/mlterm/mlimgloader" ;
 		sprintf( win_str , "%lu" , x_display_get_group_leader( disp)) ;
 		args[1] = win_str ;
 		sprintf( width_str , "%u" , width) ;

@@ -385,9 +385,9 @@ start_pty_helper(void)
 	int  tmp[2] ;
 	int  tunnel ;
 	
-	if( access( LIBEXECDIR "/gnome-pty-helper" , X_OK) != 0)
+	if( access( LIBEXECDIR "/mlterm/gnome-pty-helper" , X_OK) != 0)
 	{
-		kik_error_printf( "Couldn't run %s" , LIBEXECDIR "/gnome-pty-helper");
+		kik_error_printf( "Couldn't run %s" , LIBEXECDIR "/mlterm/gnome-pty-helper");
 		
 		return  0 ;
 	}
@@ -438,7 +438,7 @@ start_pty_helper(void)
 		close( tunnel) ;
 		close( pty_helper_tunnel) ;
 		
-		execl(LIBEXECDIR "/gnome-pty-helper" , "gnome-pty-helper" , NULL) ;
+		execl(LIBEXECDIR "/mlterm/gnome-pty-helper" , "gnome-pty-helper" , NULL) ;
 		
 		exit( EXIT_SUCCESS) ;
 	}

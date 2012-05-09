@@ -53,7 +53,7 @@ install : $(LIBDIR)
 	fi
 
 uninstall :
-	rm -f $(LIBDIR)/*mlterm-core.*
+	rm -f $(LIBDIR)/*mlterm_core.*
 
 $(LIBDIR) :
 	mkdir -p $(LIBDIR)

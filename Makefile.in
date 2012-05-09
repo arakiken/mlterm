@@ -1,21 +1,22 @@
 MAKE_DIRS=@MAKE_DIRS@
 
 all .DEFAULT:
-	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
-	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
+	if [ -f kiklib/Makefile ]; then cd kiklib ; $(MAKE) $@ ; fi
+	if [ -f mkf/Makefile ]; then cd mkf ; $(MAKE) $@ ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
 install:
-	if [ -d kiklib ]; then cd kiklib ; $(MAKE) install-la ; fi
-	if [ -d mkf ]; then cd mkf ; $(MAKE) install-la ; fi
+	if [ -f kiklib/Makefile ]; then cd kiklib ; $(MAKE) install-la ; fi
+	if [ -f mkf/Makefile ]; then cd mkf ; $(MAKE) install-la ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
 distclean:
-	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
-	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
-	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
+	if [ -f kiklib/Makefile ]; then cd kiklib ; $(MAKE) $@ ; fi
+	if [ -f mkf/Makefile ]; then cd mkf ; $(MAKE) $@ ; fi
+	if [ -f gtk/Makefile ]; then cd gtk ; $(MAKE) $@ ; fi
+	for dir in $(MAKE_DIRS) java ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 	rm -f config.log config.cache config.status libtool Makefile \
-		common/c_config.h xwindow/version.h
+		common/c_config.h common/stamp-h1
 
 tags:
 	find . -name "*.[ch]" | xargs etags

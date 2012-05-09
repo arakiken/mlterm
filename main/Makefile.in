@@ -78,4 +78,4 @@ clean:
 	rm -rf $(PROG) $(PROG).exe *.core $(OBJ) $(OBJ:.o=.lo) .libs
 
 distclean: clean
-	rm -f Makefile
+	rm -f Makefile version.h

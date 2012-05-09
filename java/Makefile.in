@@ -97,6 +97,9 @@ clean :
 	rm -rf *.h $(OBJ) $(OBJ:.o=.lo) $(TARGET@WIN32TAG@) manifest.mf libMLTermPty.so \
 		mlterm.jar *core .libs mlterm
 
+distclean : clean
+	rm -f Makefile
+
 $(LIBDIR) :
 	mkdir -p $(LIBDIR)
 

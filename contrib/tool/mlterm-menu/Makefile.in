@@ -51,15 +51,15 @@ mlterm-menu: $(OBJS)
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
-install: $(LIBEXECDIR) $(SYSCONFDIR)/mlterm
-	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR)
+install: $(LIBEXECDIR)/mlterm $(SYSCONFDIR)/mlterm
+	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR)/mlterm
 	$(INSTALL) -m 644 ${top_srcdir}/contrib/tool/mlterm-menu/menu $(SYSCONFDIR)/mlterm
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlterm-menu $(SYSCONFDIR)/mlterm/menu
+	rm -f $(LIBEXECDIR)/mlterm/mlterm-menu $(SYSCONFDIR)/mlterm/menu
 
-$(LIBEXECDIR):
-	mkdir -p $(LIBEXECDIR)
+$(LIBEXECDIR)/mlterm:
+	mkdir -p $(LIBEXECDIR)/mlterm
 
 $(SYSCONFDIR)/mlterm:
 	mkdir -p $(SYSCONFDIR)/mlterm
