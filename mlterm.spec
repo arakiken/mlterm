@@ -42,9 +42,9 @@ CFLAGS="$RPM_OPT_FLAGS" \
 	    --mandir=%{mandir} \
 	    --libexecdir=%{libexecdir} \
 	    --datadir=%{datadir} \
-	    --sysconfdir=%{sysconfdir}
-	    # --with-imagelib=gdk-pixbuf \
-	    # --enable-anti-alias
+	    --sysconfdir=%{sysconfdir} \
+            --with-type-engines=xcore,xft,cairo
+	    # --with-imagelib=gdk-pixbuf
 make
 
 %install
@@ -70,7 +70,7 @@ rm -rf $RPM_BUILD_ROOT
 %{libdir}/libmlterm_core.*
 %{libdir}/mkf/
 %{libdir}/mlterm/
-%{libexecdir}/
+%{libexecdir}/mlterm/
 %{sysconfdir}/mlterm/
 %{mandir}/man1/mlterm.1*
 %{mandir}/man1/mlclient.1*

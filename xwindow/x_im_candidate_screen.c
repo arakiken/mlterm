@@ -282,7 +282,8 @@ draw_screen_vertical(
 				    xfont->height + LINE_SPACE ,
 				    xfont->ascent + LINE_SPACE / 2 ,
 				    LINE_SPACE / 2 ,
-				    LINE_SPACE / 2 + LINE_SPACE % 2) ;
+				    LINE_SPACE / 2 + LINE_SPACE % 2 ,
+				    1 /* no need to draw underline */) ;
 		}
 
 		/*
@@ -301,7 +302,8 @@ draw_screen_vertical(
 				   xfont->height + LINE_SPACE ,
 				   xfont->ascent + LINE_SPACE / 2 ,
 				   LINE_SPACE / 2 ,
-				   LINE_SPACE / 2 + LINE_SPACE % 2) ;
+				   LINE_SPACE / 2 + LINE_SPACE % 2 ,
+				   1 /* no need to draw underline */) ;
 	}
 
 	/*
@@ -364,7 +366,7 @@ draw_screen_vertical(
 				    (xfont->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
 				    xfont->height ,
 				    xfont->ascent ,
-				    0 , 0) ;
+				    0 , 0 , 1 /* no need to draw underline */) ;
 		}
 	}
 }
@@ -449,7 +451,8 @@ draw_screen_horizontal(
 				    xfont->height + LINE_SPACE ,
 				    xfont->ascent + LINE_SPACE / 2 ,
 				    LINE_SPACE / 2 ,
-				    LINE_SPACE / 2 + LINE_SPACE % 2) ;
+				    LINE_SPACE / 2 + LINE_SPACE % 2 ,
+				    1 /* no need to draw underline */) ;
 			x += xfont->width ;
 		}
 
@@ -468,7 +471,8 @@ draw_screen_horizontal(
 			    xfont->height + LINE_SPACE ,
 			    xfont->ascent + LINE_SPACE / 2 ,
 			    LINE_SPACE / 2 ,
-			    LINE_SPACE / 2 + LINE_SPACE % 2) ;
+			    LINE_SPACE / 2 + LINE_SPACE % 2 ,
+			    1 /* no need to draw underline */) ;
 		x += candidate_width( cand_screen->font_man ,
 				      &cand_screen->candidates[i]) ;
 

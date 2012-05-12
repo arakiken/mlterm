@@ -99,7 +99,7 @@ Options for configure
   --enable-pty-helper
     Support gnome-pty-helper. (Note that it is impossible to enable
     gnome-pty-helper in BSD style pty system and that gnome-pty-helper must be
-    placed at ${libexecdir}/ directory.)
+    placed at ${libexecdir}/mlterm directory.)
 
   --with-gtk=(2.0|3.0)
     Use specified version of GTK+

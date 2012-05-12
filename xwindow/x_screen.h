@@ -156,6 +156,7 @@ typedef struct  x_screen
 	int8_t  borderless ;
 	int8_t  font_or_color_config_updated ;	/* 0x1 = font updated, 0x2 = color updated */
 	int8_t  cursor_blink_wait ;
+	int8_t  hide_underline ;
 
 } x_screen_t ;
 
@@ -175,7 +176,8 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path_1 , char *  conf_menu_path_2 , char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space ,
-	char *  input_method , int  allow_osc52 , int  blink_cursor , int  margin) ;
+	char *  input_method , int  allow_osc52 , int  blink_cursor , int  margin ,
+	int  hide_underline) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

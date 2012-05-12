@@ -554,7 +554,8 @@ open_screen_intern(
 			main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
 			main_config.input_method , main_config.allow_osc52 ,
-			main_config.blink_cursor , main_config.margin)) == NULL)
+			main_config.blink_cursor , main_config.margin ,
+			main_config.hide_underline)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_screen_new() failed.\n") ;

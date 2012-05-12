@@ -1,3 +1,20 @@
+2012-05-12  Araki Ken  <arakiken@users.sf.net>
+
+	* README, mlterm.spec: Minor fixes.
+
+	* README.ja, doc/en/PROTOCOL, man/mlterm.1: Updated.
+
+	* x_draw_str.[ch], x_screen.[ch], x_screen_manager.[ch],
+	  x_main_config.[ch], vte.c, x_im_{candidate|status}_screen.c:
+	  "hide_underline" option is added.
+
+	* ml_vt100_parser.c: It is possible to process sequences whose length
+	  is more than PTY_RD_BUFFER_SIZE.
+
+	* x_draw_str.c: Minor fixes.
+
+	* version.h.in: 3.1.1 post => 3.1.2 pre
+
 2012-05-10  Araki Ken  <arakiken@users.sf.net>
 
 	* Makefile.in, kik_pty_helper.c, ml_config_menu.c, x_imagelib.c:

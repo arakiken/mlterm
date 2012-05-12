@@ -528,7 +528,8 @@ draw_line(
 					x_line_height( screen) ,
 					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
-					x_line_bottom_margin( screen)))
+					x_line_bottom_margin( screen) ,
+					screen->hide_underline))
 				{
 					goto  end ;
 				}
@@ -542,7 +543,8 @@ draw_line(
 					x_line_height( screen) ,
 					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
-					x_line_bottom_margin( screen)))
+					x_line_bottom_margin( screen) ,
+					screen->hide_underline))
 				{
 					goto  end ;
 				}
@@ -557,7 +559,8 @@ draw_line(
 				x_line_height( screen) ,
 				x_line_ascent( screen) ,
 				x_line_top_margin( screen) ,
-				x_line_bottom_margin( screen)))
+				x_line_bottom_margin( screen) ,
+				screen->hide_underline))
 			{
 				goto  end ;
 			}
@@ -687,7 +690,8 @@ draw_cursor(
 		x_line_height( screen) ,
 		x_line_ascent( screen) ,
 		x_line_top_margin( screen) ,
-		x_line_bottom_margin( screen));
+		x_line_bottom_margin( screen) ,
+		screen->hide_underline) ;
 
 	if( screen->window.is_focused)
 	{
@@ -4554,6 +4558,30 @@ change_bg_color(
 }
 
 static void
+change_bd_color(
+	x_screen_t *  screen ,
+	char *  name
+	)
+{
+	if( x_color_manager_set_bd_color( screen->color_man , *name ? name : NULL))
+	{
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+	}
+}
+
+static void
+change_ul_color(
+	x_screen_t *  screen ,
+	char *  name
+	)
+{
+	if( x_color_manager_set_ul_color( screen->color_man , *name ? name : NULL))
+	{
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+	}
+}
+
+static void
 change_sb_fg_color(
 	x_screen_t *  screen ,
 	char *  name
@@ -4576,6 +4604,19 @@ change_sb_bg_color(
 	{
 		(*screen->screen_scroll_listener->change_bg_color)(
 			screen->screen_scroll_listener->self , name) ;
+	}
+}
+
+static void
+change_hide_underline_flag(
+	x_screen_t *  screen ,
+	int  flag
+	)
+{
+	if( screen->hide_underline != flag)
+	{
+		screen->hide_underline = flag ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 }
 
@@ -5195,6 +5236,17 @@ get_config(
 		else
 		{
 			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "hide_underline") == 0)
+	{
+		if( screen->hide_underline)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "tabsize") == 0)
@@ -6391,7 +6443,8 @@ draw_preedit_str(
 					x_line_height( screen) ,
 					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
-					x_line_bottom_margin( screen)))
+					x_line_bottom_margin( screen) ,
+					screen->hide_underline))
 			{
 				return  0 ;
 			}
@@ -6415,7 +6468,8 @@ draw_preedit_str(
 					x_line_height( screen) ,
 					x_line_ascent( screen) ,
 					x_line_top_margin( screen) ,
-					x_line_bottom_margin( screen)))
+					x_line_bottom_margin( screen) ,
+					screen->hide_underline))
 			{
 				return  0 ;
 			}
@@ -7109,7 +7163,8 @@ x_screen_new(
 	char *  input_method ,
 	int  allow_osc52 ,
 	int  blink_cursor ,
-	int  margin
+	int  margin ,
+	int  hide_underline
 	)
 {
 	x_screen_t *  screen ;
@@ -7331,6 +7386,8 @@ x_screen_new(
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
 	screen->borderless = override_redirect ;
 	screen->font_or_color_config_updated = 0 ;
+
+	screen->hide_underline = hide_underline ;
 
 	/*
 	 * for receiving selection.
@@ -8090,13 +8147,11 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "bd_color") == 0)
 	{
-		x_color_manager_set_bd_color( screen->color_man ,
-			*value == '\0' ? NULL : value) ;
+		change_bd_color( screen , value) ;
 	}
 	else if( strcmp( key , "ul_color") == 0)
 	{
-		x_color_manager_set_ul_color( screen->color_man ,
-			*value == '\0' ? NULL : value) ;
+		change_ul_color( screen , value) ;
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{
@@ -8105,6 +8160,15 @@ x_screen_set_config(
 	else if( strcmp( key , "sb_bg_color") == 0)
 	{
 		change_sb_bg_color( screen , value) ;
+	}
+	else if( strcmp( key , "hide_underline") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			change_hide_underline_flag( screen , flag) ;
+		}
 	}
 	else if( strcmp( key , "tabsize") == 0)
 	{

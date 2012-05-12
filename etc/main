@@ -122,6 +122,8 @@ scrollbar_view_name = sample
 
 # ul_color =
 
+# hide_underline = false
+
 # wall_picture =
 
 # fade_ratio = 100
@@ -188,6 +190,8 @@ scrollbar_view_name = sample
 # logging_msg = true
 
 # use_unicode_property = false
+
+# server_list =
 
 # default_server =
 

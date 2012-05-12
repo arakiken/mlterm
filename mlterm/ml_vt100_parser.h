@@ -15,14 +15,6 @@
 #include  "ml_char_encoding.h"
 
 
-/*
- * kterm BUF_SIZE in ptyx.h is 4096.
- * Following size is adjusted to suppress sizeof(ml_vt100_parser_t) to 4KB.
- * (3984 bytes in ILP32, 4020 bytes in LP64.)
- * Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3.
- * (see ml_parse_vt100_sequence)
- */
-#define  PTY_RD_BUFFER_SIZE  3072
 #define  PTY_WR_BUFFER_SIZE  100
 
 
@@ -64,17 +56,26 @@ typedef enum  ml_extended_mouse_report_mode
 
 } ml_extended_mouse_report_mode_t ;
 
-typedef struct  ml_char_buffer
+typedef struct  ml_write_buffer
 {
 	ml_char_t  chars[PTY_WR_BUFFER_SIZE] ;
-	u_int  len ;
+	u_int  filled_len ;
 
 	/* for "CSI b"(REP) sequence */
 	ml_char_t *  last_ch ;
 
 	int (*output_func)( ml_screen_t * , ml_char_t *  chars , u_int) ;
 
-}  ml_char_buffer_t ;
+} ml_write_buffer_t ;
+
+typedef struct  ml_read_buffer
+{
+	u_char *  chars ;
+	size_t  len ;
+	size_t  filled_len ;
+	size_t  left ;
+
+} ml_read_buffer_t ;
 
 typedef struct  ml_xterm_event_listener
 {
@@ -133,11 +134,8 @@ typedef struct  ml_vt100_storable_states
 
 typedef struct  ml_vt100_parser
 {
-	u_char  seq[PTY_RD_BUFFER_SIZE] ;
-	size_t  len ;
-	size_t  left ;
-
-	ml_char_buffer_t  buffer ;
+	ml_read_buffer_t  r_buf ;
+	ml_write_buffer_t  w_buf ;
 	
 	ml_pty_ptr_t  pty ;
 	

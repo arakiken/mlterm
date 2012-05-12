@@ -60,7 +60,8 @@ draw_screen(
 			   xfont->height + LINE_SPACE ,
 			   xfont->ascent + LINE_SPACE / 2 ,
 			   LINE_SPACE / 2 ,
-			   LINE_SPACE / 2 + LINE_SPACE % 2) ;
+			   LINE_SPACE / 2 + LINE_SPACE % 2 ,
+			   1 /* no need to draw underline */) ;
 }
 
 

@@ -102,6 +102,7 @@ typedef struct x_main_config
 	int8_t  allow_osc52 ;
 	int8_t  blink_cursor ;
 	int8_t  margin ;
+	int8_t  hide_underline ;
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	int8_t  skip_dialog ;
 #endif

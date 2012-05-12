@@ -172,6 +172,9 @@ scrollbar_view_name = sample
 # アンダーラインの代わりに文字に色をつけるのに使用する色
 # ul_color =
 
+# アンダーラインを描画しない。
+# hide_underline = false
+
 # 壁紙にする画像ファイルのパス
 # wall_picture =
 
@@ -267,6 +270,9 @@ scrollbar_view_name = sample
 # UTF-8 以外のエンコーディングの文字について、対応する UNICODE のプロパティ(文字
 # 幅等)を適用する。
 # use_unicode_property = false
+
+# ssh 等により直接ログインするサーバのリストを指定する。
+# server_list =
 
 # ssh 等により直接ログインするサーバを指定する。
 # default_server =

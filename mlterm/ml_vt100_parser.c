@@ -26,6 +26,13 @@
 #include  "ml_config_proto.h"
 
 
+/*
+ * kterm BUF_SIZE in ptyx.h is 4096.
+ * Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3.
+ * (see ml_parse_vt100_sequence)
+ */
+#define  PTY_RD_BUFFER_SIZE  3072
+
 #define  CTL_BEL	0x07
 #define  CTL_BS		0x08
 #define  CTL_TAB	0x09
@@ -36,7 +43,9 @@
 #define  CTL_SI		0x0f
 #define  CTL_ESC	0x1b
 
-#define  CURRENT_STR_P(vt100_parser)  (&vt100_parser->seq[(vt100_parser)->len - (vt100_parser)->left])
+#define  CURRENT_STR_P(vt100_parser) \
+	( (vt100_parser)->r_buf.chars + \
+		(vt100_parser)->r_buf.filled_len - (vt100_parser)->r_buf.left)
 
 #define  HAS_XTERM_LISTENER(vt100_parser,method) \
 	((vt100_parser)->xterm_listener && ((vt100_parser)->xterm_listener->method))
@@ -113,24 +122,45 @@ stop_vt100_cmd(
 	}
 }
 
-static size_t
+static int
 receive_bytes(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
 	size_t  ret ;
 
-	if( 0 < vt100_parser->left && vt100_parser->left < vt100_parser->len)
+	if( 0 < vt100_parser->r_buf.left &&
+	    vt100_parser->r_buf.left < vt100_parser->r_buf.filled_len)
 	{
-		memmove( vt100_parser->seq , CURRENT_STR_P(vt100_parser) ,
-			vt100_parser->left * sizeof( u_char)) ;
+		memmove( vt100_parser->r_buf.chars , CURRENT_STR_P(vt100_parser) ,
+			vt100_parser->r_buf.left * sizeof( u_char)) ;
+	}
+	else if( vt100_parser->r_buf.left == vt100_parser->r_buf.len)
+	{
+		/* Buffer is full => Expand buffer */
+
+		size_t  len ;
+		void *  p ;
+
+		len = vt100_parser->r_buf.len + PTY_RD_BUFFER_SIZE ;
+		if( ! ( p = realloc( vt100_parser->r_buf.chars , len)))
+		{
+			return  1 ;
+		}
+
+		vt100_parser->r_buf.chars = p ;
+		vt100_parser->r_buf.len = len ;
 	}
 
-	if( ( ret = ml_read_pty( vt100_parser->pty , &vt100_parser->seq[vt100_parser->left] ,
-			/* vt100_parser->left must be always less than PTY_RD_BUFFER_SIZE. */
-			PTY_RD_BUFFER_SIZE - vt100_parser->left)) == 0)
+	if( ( ret = ml_read_pty( vt100_parser->pty ,
+			vt100_parser->r_buf.chars + vt100_parser->r_buf.left ,
+			/*
+			 * vt100_parser->r_buf.left must be always less than
+			 * vt100_parser->r_buf.len
+			 */
+			vt100_parser->r_buf.len - vt100_parser->r_buf.left)) == 0)
 	{
-		vt100_parser->len = vt100_parser->left ;
+		vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left ;
 	
 		return  0 ;
 	}
@@ -182,7 +212,8 @@ receive_bytes(
 			kik_file_set_cloexec( vt100_parser->log_file) ;
 		}
 
-		write( vt100_parser->log_file , &vt100_parser->seq[vt100_parser->left] , ret) ;
+		write( vt100_parser->log_file ,
+			vt100_parser->r_buf.chars + vt100_parser->r_buf.left , ret) ;
 	#ifndef  USE_WIN32API
 		fsync( vt100_parser->log_file) ;
 	#endif
@@ -197,27 +228,45 @@ receive_bytes(
         }
 
 end:
-	vt100_parser->len = ( vt100_parser->left += ret) ;
+	vt100_parser->r_buf.filled_len = ( vt100_parser->r_buf.left += ret) ;
+
+	if( vt100_parser->r_buf.len - vt100_parser->r_buf.filled_len > PTY_RD_BUFFER_SIZE)
+	{
+		/* Shrink buffer */
+
+		size_t  len ;
+		void *  p ;
+
+		len = vt100_parser->r_buf.len - PTY_RD_BUFFER_SIZE ;
+		if( ! ( p = realloc( vt100_parser->r_buf.chars , len)))
+		{
+			return  1 ;
+		}
+
+		vt100_parser->r_buf.chars = p ;
+		vt100_parser->r_buf.len = len ;
+	}
 
 #ifdef  INPUT_DEBUG
 	{
-		int  count ;
+		size_t  count ;
 
-		kik_debug_printf( KIK_DEBUG_TAG " pty msg (len %d) is received:" , vt100_parser->left) ;
+		kik_debug_printf( KIK_DEBUG_TAG " pty msg (len %d) is received:" ,
+			vt100_parser->r_buf.left) ;
 
-		for( count = 0 ; count < vt100_parser->left ; count ++)
+		for( count = 0 ; count < vt100_parser->r_buf.left ; count ++)
 		{
 		#ifdef  DUMP_HEX
-			if( isprint( vt100_parser->seq[count]))
+			if( isprint( vt100_parser->r_buf.chars[count]))
 			{
-				kik_msg_printf( "%c " , vt100_parser->seq[count]) ;
+				kik_msg_printf( "%c " , vt100_parser->r_buf.chars[count]) ;
 			}
 			else
 			{
-				kik_msg_printf( "%.2x " , vt100_parser->seq[count]) ;
+				kik_msg_printf( "%.2x " , vt100_parser->r_buf.chars[count]) ;
 			}
 		#else
-			kik_msg_printf( "%c" , vt100_parser->seq[count]) ;
+			kik_msg_printf( "%c" , vt100_parser->r_buf.chars[count]) ;
 		#endif
 		}
 
@@ -229,19 +278,19 @@ end:
 }
 
 /*
- * If buffer exists, vt100_parser->buffer.last_ch is cached.
- * If buffer doesn't exist, vt100_parser->buffer.last_ch is cleared.
+ * If buffer exists, vt100_parser->w_buf.last_ch is cached.
+ * If buffer doesn't exist, vt100_parser->w_buf.last_ch is cleared.
  */
 static int
 flush_buffer(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	ml_char_buffer_t *  buffer ;
+	ml_write_buffer_t *  buffer ;
 
-	buffer = &vt100_parser->buffer ;
+	buffer = &vt100_parser->w_buf ;
 
-	if( buffer->len == 0)
+	if( buffer->filled_len == 0)
 	{
 		/* last_ch is cleared. */
 		buffer->last_ch = NULL ;
@@ -251,10 +300,10 @@ flush_buffer(
 	
 #ifdef  OUTPUT_DEBUG
 	{
-		int  count ;
+		u_int  count ;
 
-		kik_msg_printf( "\nflushing chars(%d)...==>" , buffer->len) ;
-		for( count = 0 ; count < buffer->len ; count ++)
+		kik_msg_printf( "\nflushing chars(%d)...==>" , buffer->filled_len) ;
+		for( count = 0 ; count < buffer->filled_len ; count ++)
 		{
 			char *  bytes ;
 
@@ -282,12 +331,12 @@ flush_buffer(
 	}
 #endif
 
-	(*buffer->output_func)( vt100_parser->screen , buffer->chars , buffer->len) ;
+	(*buffer->output_func)( vt100_parser->screen , buffer->chars , buffer->filled_len) ;
 
 	/* last_ch which will be used & cleared in REP sequence is cached. */
-	buffer->last_ch = &buffer->chars[buffer->len - 1] ;
+	buffer->last_ch = &buffer->chars[buffer->filled_len - 1] ;
 	/* buffer is cleared. */
-	buffer->len = 0 ;
+	buffer->filled_len = 0 ;
 
 #ifdef  EDIT_DEBUG
 	ml_edit_dump( vt100_parser->screen->edit) ;
@@ -310,7 +359,7 @@ put_char(
 	int  is_biwidth ;
 	int  is_comb ;
 
-	if( vt100_parser->buffer.len == PTY_WR_BUFFER_SIZE)
+	if( vt100_parser->w_buf.filled_len == PTY_WR_BUFFER_SIZE)
 	{
 		flush_buffer( vt100_parser) ;
 	}
@@ -384,7 +433,7 @@ put_char(
 
 	if( ! vt100_parser->screen->use_dynamic_comb && is_comb)
 	{
-		if( vt100_parser->buffer.len == 0)
+		if( vt100_parser->w_buf.filled_len == 0)
 		{
 			/*
 			 * ml_line_set_modified() is done in ml_screen_combine_with_prev_char()
@@ -400,7 +449,8 @@ put_char(
 		}
 		else
 		{
-			if( ml_char_combine( &vt100_parser->buffer.chars[vt100_parser->buffer.len - 1] ,
+			if( ml_char_combine(
+				&vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ,
 				ch , len , vt100_parser->cs , is_biwidth , is_comb ,
 				fg_color , bg_color ,
 				vt100_parser->is_bold , vt100_parser->is_underlined))
@@ -414,7 +464,7 @@ put_char(
 		 */
 	}
 
-	ml_char_set( &vt100_parser->buffer.chars[vt100_parser->buffer.len++] , ch , len ,
+	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch , len ,
 		vt100_parser->cs , is_biwidth , is_comb ,
 		fg_color , bg_color , vt100_parser->is_bold , vt100_parser->is_underlined) ;
 
@@ -429,10 +479,10 @@ put_char(
 		ml_char_t *  cur ;
 		int  n ;
 
-		cur = &vt100_parser->buffer.chars[vt100_parser->buffer.len - 1] ;
+		cur = &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ;
 		n = 0 ;
 
-		if( vt100_parser->buffer.len >= 2)
+		if( vt100_parser->w_buf.filled_len >= 2)
 		{
 			prev = cur - 1 ;
 		}
@@ -444,7 +494,7 @@ put_char(
 			}
 		}
 		
-		if( vt100_parser->buffer.len >= 3)
+		if( vt100_parser->w_buf.filled_len >= 3)
 		{
 			prev2 = cur - 2  ;
 		}
@@ -456,14 +506,14 @@ put_char(
 		
 		if( ml_is_arabic_combining( prev2 , prev , cur))
 		{
-			if( vt100_parser->buffer.len >= 2)
+			if( vt100_parser->w_buf.filled_len >= 2)
 			{
 				if( ml_char_combine( prev ,
 					ch , len , vt100_parser->cs , is_biwidth , is_comb ,
 					fg_color , bg_color ,
 					vt100_parser->is_bold , vt100_parser->is_underlined))
 				{
-					vt100_parser->buffer.len -- ;
+					vt100_parser->w_buf.filled_len -- ;
 				}
 			}
 			else
@@ -477,7 +527,7 @@ put_char(
 					fg_color , bg_color ,
 					vt100_parser->is_bold , vt100_parser->is_underlined))
 				{
-					vt100_parser->buffer.len -- ;
+					vt100_parser->w_buf.filled_len -- ;
 				}
 			}
 		}
@@ -1168,8 +1218,7 @@ set_selection(
 	ml_char_t *  str ;
 	u_int  str_len ;
 
-	e_len = strlen( encoded) ;
-	if( ! ( decoded = alloca( e_len)))
+	if( ( e_len = strlen( encoded)) < 4 || ! ( decoded = alloca( e_len)))
 	{
 		return  0 ;
 	}
@@ -1295,7 +1344,7 @@ soft_reset(
 	ml_screen_cursor_visible( vt100_parser->screen) ;
 
 	/* "CSI l" (IRM) */
-	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
+	vt100_parser->w_buf.output_func = ml_screen_overwrite_chars ;
 
 	/* "CSI ? 6 l" (DECOM) */
 	ml_screen_set_absolute_origin( vt100_parser->screen) ;
@@ -1404,7 +1453,6 @@ inc_str_in_esc_seq(
 
 static char *
 get_pt_in_esc_seq(
-	ml_screen_t *  screen ,
 	u_char **  str ,
 	size_t *  left ,
 	int  bel_terminate	/* OSC is terminated by not only ST(ESC \) but also BEL. */
@@ -1464,14 +1512,14 @@ debug_print_unknown(
 #ifdef  USE_VT52
 inline static int
 parse_vt52_escape_sequence(
-	ml_vt100_parser_t *  vt100_parser	/* vt100_parser->left must be more than 0 */
+	ml_vt100_parser_t *  vt100_parser	/* vt100_parser->r_buf.left must be more than 0 */
 	)
 {
 	u_char *  str_p ;
 	size_t  left ;
 
 	str_p = CURRENT_STR_P(vt100_parser) ;
-	left = vt100_parser->left ;
+	left = vt100_parser->r_buf.left ;
 
 	if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
 	{
@@ -1582,7 +1630,7 @@ parse_vt52_escape_sequence(
 	}
 
 end:
-	vt100_parser->left = left - 1 ;
+	vt100_parser->r_buf.left = left - 1 ;
 
 	return  1 ;
 }
@@ -1593,20 +1641,20 @@ end:
  * is parsed even if mlterm doesn't support it.
  *
  * Return value:
- * 0 => vt100_parser->left == 0
- * 1 => Finished parsing. (If current vt100_parser->seq is not escape sequence,
+ * 0 => vt100_parser->r_buf.left == 0
+ * 1 => Finished parsing. (If current vt100_parser->r_buf.chars is not escape sequence,
  *      return without doing anthing.)
  */
 inline static int
 parse_vt100_escape_sequence(
-	ml_vt100_parser_t *  vt100_parser	/* vt100_parser->left must be more than 0 */
+	ml_vt100_parser_t *  vt100_parser	/* vt100_parser->r_buf.left must be more than 0 */
 	)
 {
 	u_char *  str_p ;
 	size_t  left ;
 
 #if  0
-	if( vt100_parser->left == 0)
+	if( vt100_parser->r_buf.left == 0)
 	{
 		/* end of string */
 
@@ -1615,7 +1663,7 @@ parse_vt100_escape_sequence(
 #endif
 
 	str_p = CURRENT_STR_P(vt100_parser) ;
-	left = vt100_parser->left ;
+	left = vt100_parser->r_buf.left ;
 
 	if( *str_p == CTL_ESC)
 	{
@@ -1690,80 +1738,6 @@ parse_vt100_escape_sequence(
 
 			ml_screen_reverse_index( vt100_parser->screen) ;
 		}
-	#ifdef  ENABLE_SIXEL
-		else if( *str_p == 'P')
-		{
-			/* "ESC P" DCS */
-
-			u_char *  start ;
-			char *  path ;
-
-			start = str_p - 1 ;
-
-			do
-			{
-				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0))
-				{
-					return  0 ;
-				}
-			}
-			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
-
-			if( ( *str_p == 'q' /* sixel */
-			    /* || *str_p == 'p' */ ) &&		/* ReGis */
-			    ( path = kik_get_user_rc_path( "mlterm/picture")) )
-			{
-				char *  seq ;
-				int  is_esc ;
-				FILE *  fp ;
-
-				seq = alloca( 12 + strlen( path) + 5) ;
-				sprintf( seq , "add_picture %s.six" , path) ;
-				free( path) ;
-
-				is_esc = 0 ;
-				fp = fopen( seq + 12 , "w") ;
-
-				while( 1)
-				{
-					if( ! increment_str( &str_p , &left))
-					{
-						fwrite( start , str_p - start + 1 , 1 , fp) ;
-
-						vt100_parser->left = 0 ;
-						while( receive_bytes( vt100_parser) == 0)
-						{
-							kik_usleep( 1000) ;
-						}
-						start = str_p = CURRENT_STR_P(vt100_parser) ;
-						left = vt100_parser->left ;
-					}
-
-					if( is_esc)
-					{
-						if( *str_p == '\\')
-						{
-							fwrite( start ,
-								str_p - start + 1 , 1 , fp) ;
-
-							break ;
-						}
-
-						is_esc = 0 ;
-					}
-					else if( *str_p == CTL_ESC)
-					{
-						is_esc = 1 ;
-					}
-				}
-
-				fclose( fp) ;
-
-				config_protocol_set( vt100_parser , seq , 0) ;
-			}
-		}
-	#endif  /* ENABLE_SIXEL */
 	#if  0
 		else if( *str_p == 'Z')
 		{
@@ -2750,7 +2724,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI b" repeat the preceding graphic character(REP) */
 
-				if( vt100_parser->buffer.last_ch)
+				if( vt100_parser->w_buf.last_ch)
 				{
 					int  count ;
 
@@ -2761,12 +2735,12 @@ parse_vt100_escape_sequence(
 
 					for( count = 0 ; count < ps[0] ; count++)
 					{
-						(*vt100_parser->buffer.output_func)(
+						(*vt100_parser->w_buf.output_func)(
 							vt100_parser->screen ,
-							vt100_parser->buffer.last_ch , 1) ;
+							vt100_parser->w_buf.last_ch , 1) ;
 					}
 
-					vt100_parser->buffer.last_ch = NULL ;
+					vt100_parser->w_buf.last_ch = NULL ;
 				}
 			}
 			else if( *str_p == 'c')
@@ -2813,7 +2787,7 @@ parse_vt100_escape_sequence(
 					{
 						/* replace mode */
 
-						vt100_parser->buffer.output_func =
+						vt100_parser->w_buf.output_func =
 							ml_screen_overwrite_chars ;
 					}
 				}
@@ -2829,7 +2803,7 @@ parse_vt100_escape_sequence(
 					{
 						/* insert mode */
 
-						vt100_parser->buffer.output_func =
+						vt100_parser->w_buf.output_func =
 							ml_screen_insert_chars ;
 					}
 				}
@@ -3034,8 +3008,7 @@ parse_vt100_escape_sequence(
 				ps = -1 ;
 			}
 
-			if( ( pt = get_pt_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 1)) == NULL)
+			if( ! ( pt = get_pt_in_esc_seq( &str_p , &left , 1)))
 			{
 				if( left == 0)
 				{
@@ -3182,10 +3155,93 @@ parse_vt100_escape_sequence(
 			}
 		#endif
 		}
-		else if( *str_p == 'P' || *str_p == 'X' || *str_p == '^' || *str_p == '_')
+	#ifdef  ENABLE_SIXEL
+		else if( *str_p == 'P')
 		{
-			if( ! get_pt_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0) && left == 0)
+			/* "ESC P" DCS */
+
+			u_char *  start ;
+			char *  path ;
+
+			start = str_p - 1 ;
+
+			do
+			{
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
+				{
+					return  0 ;
+				}
+			}
+			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
+
+			if( ( *str_p == 'q' /* sixel */
+			    /* || *str_p == 'p' */ ) &&		/* ReGis */
+			    ( path = kik_get_user_rc_path( "mlterm/picture")) )
+			{
+				char *  seq ;
+				int  is_esc ;
+				FILE *  fp ;
+
+				seq = alloca( 12 + strlen( path) + 5) ;
+				sprintf( seq , "add_picture %s.six" , path) ;
+				free( path) ;
+
+				is_esc = 0 ;
+				fp = fopen( seq + 12 , "w") ;
+
+				while( 1)
+				{
+					if( ! increment_str( &str_p , &left))
+					{
+						fwrite( start , str_p - start + 1 , 1 , fp) ;
+
+						vt100_parser->r_buf.left = 0 ;
+						while( receive_bytes( vt100_parser) == 0)
+						{
+							kik_usleep( 1000) ;
+						}
+						start = str_p = CURRENT_STR_P(vt100_parser) ;
+						left = vt100_parser->r_buf.left ;
+					}
+
+					if( is_esc)
+					{
+						if( *str_p == '\\')
+						{
+							fwrite( start ,
+								str_p - start + 1 , 1 , fp) ;
+
+							break ;
+						}
+
+						is_esc = 0 ;
+					}
+					else if( *str_p == CTL_ESC)
+					{
+						is_esc = 1 ;
+					}
+				}
+
+				fclose( fp) ;
+
+				config_protocol_set( vt100_parser , seq , 0) ;
+			}
+		}
+	#endif  /* ENABLE_SIXEL */
+		else if(
+		#ifndef  ENABLE_SIXEL
+			*str_p == 'P' ||
+		#endif
+			*str_p == 'X' || *str_p == '^' || *str_p == '_')
+		{
+			/*
+			 * "ESC P" DCS
+			 * "ESC X" SOS
+			 * "ESC ^" PM
+			 * "ESC _" APC
+			 */
+			if( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0)
 			{
 				return  0 ;
 			}
@@ -3427,7 +3483,7 @@ parse_vt100_escape_sequence(
 	ml_edit_dump( vt100_parser->screen->edit) ;
 #endif
 
-	vt100_parser->left = left - 1 ;
+	vt100_parser->r_buf.left = left - 1 ;
 
 	return  1 ;
 }
@@ -3442,13 +3498,13 @@ parse_vt100_sequence(
 
 	while( 1)
 	{
-		prev_left = vt100_parser->left ;
+		prev_left = vt100_parser->r_buf.left ;
 
 		/*
 		 * parsing character encoding.
 		 */
 		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
-			CURRENT_STR_P(vt100_parser) , vt100_parser->left) ;
+			CURRENT_STR_P(vt100_parser) , vt100_parser->r_buf.left) ;
 		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
 			/*
@@ -3634,10 +3690,10 @@ parse_vt100_sequence(
 
 			put_char( vt100_parser , ch.ch , ch.size , ch.cs , ch.property) ;
 
-			vt100_parser->left = vt100_parser->cc_parser->left ;
+			vt100_parser->r_buf.left = vt100_parser->cc_parser->left ;
 		}
 
-		vt100_parser->left = vt100_parser->cc_parser->left ;
+		vt100_parser->r_buf.left = vt100_parser->cc_parser->left ;
 
 		flush_buffer( vt100_parser) ;
 
@@ -3649,7 +3705,7 @@ parse_vt100_sequence(
 
 		/*
 		 * parsing other vt100 sequences.
-		 * (vt100_parser->buffer is always flushed here.)
+		 * (vt100_parser->w_buf is always flushed here.)
 		 */
 
 		if( ! parse_vt100_escape_sequence( vt100_parser))
@@ -3662,7 +3718,7 @@ parse_vt100_sequence(
 		ml_edit_dump( vt100_parser->screen->edit) ;
 	#endif
 
-		if( vt100_parser->left == prev_left)
+		if( vt100_parser->r_buf.left == prev_left)
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
@@ -3670,10 +3726,10 @@ parse_vt100_sequence(
 				*CURRENT_STR_P(vt100_parser)) ;
 		#endif
 
-			vt100_parser->left -- ;
+			vt100_parser->r_buf.left -- ;
 		}
 
-		if( vt100_parser->left == 0)
+		if( vt100_parser->r_buf.left == 0)
 		{
 			break ;
 		}
@@ -3701,8 +3757,8 @@ ml_vt100_parser_new(
 		return  NULL ;
 	}
 
-	ml_str_init( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;	
-	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
+	ml_str_init( vt100_parser->w_buf.chars , PTY_WR_BUFFER_SIZE) ;
+	vt100_parser->w_buf.output_func = ml_screen_overwrite_chars ;
 
 	vt100_parser->screen = screen ;
 
@@ -3747,7 +3803,7 @@ ml_vt100_parser_delete(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	ml_str_final( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;
+	ml_str_final( vt100_parser->w_buf.chars , PTY_WR_BUFFER_SIZE) ;
 	(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
 	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
 
@@ -3755,6 +3811,8 @@ ml_vt100_parser_delete(
 	{
 		close( vt100_parser->log_file) ;
 	}
+
+	free( vt100_parser->r_buf.chars) ;
 
 	free( vt100_parser) ;
 	
@@ -3832,7 +3890,7 @@ ml_parse_vt100_sequence(
 		parse_vt100_sequence( vt100_parser) ;
 	}
 	while(  /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
-		vt100_parser->len >= (PTY_RD_BUFFER_SIZE / 2) &&
+		vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
 		(++count) < 3 && receive_bytes( vt100_parser)) ;
 
 	stop_vt100_cmd( vt100_parser , 1) ;
@@ -3847,13 +3905,13 @@ ml_parse_vt100_write_loopback(
 	size_t  len
 	)
 {
-	if( vt100_parser->left > 0)
+	if( vt100_parser->r_buf.left > 0)
 	{
 		return  0 ;
 	}
 
-	memcpy( vt100_parser->seq , buf , len) ;
-	vt100_parser->len = vt100_parser->left = len ;
+	memcpy( vt100_parser->r_buf.chars , buf , len) ;
+	vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left = len ;
 
 	start_vt100_cmd( vt100_parser , 1) ;
 	/*

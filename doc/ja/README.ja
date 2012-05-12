@@ -495,6 +495,9 @@ comment $Id$
       o ul_color
         アンダーラインの代わりに文字に色を付けるのに使用する色
 
+      o hide_underline (true/*false*)
+        アンダーラインを描画しない。
+
       o wall_picture  (*なし*) (#)
         壁紙にする画像ファイルのパス
         なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
@@ -1090,20 +1093,25 @@ comment $Id$
        --bimode=value  : bidi_mode
        --im=value      : input_method
        --parent=value  : parent_window
+       --bd=value      : bd_color
+       --ul=value      : ul_color
+       --noul(=bool)   : hide_underline
+       --servlist=value : server_list
        --serv=value    : default_server
+       --pubkey=value  : ssh_public_key
+       --privkey=value : ssh_private_key
+       --ciphlist=value : cipher_list
        --csp=value     : letter_space
        --ucsprop(=bool): use_unicode_property
        --osc52(=bool)  : allow_osc52
        --blink(=bool)  : blink_cursor
        --border=value  : inner_border
-       --depth=value   : depth (X)
-       --maxptys=value : max_ptys (X)
        --button3=value : button3_behavior (X)
        --clip(=bool)   : use_clipboard (X)
-       --pubkey=value  : ssh_public_key
-       --privkey=value : ssh_private_key
        --restart(=bool): auto_restart
        --logmsg(=bool) : logging_msg
+       --depth=value   : depth (X)
+       --maxptys=value : max_ptys (X)
 
     -e ... : 指定したコマンドを起動
 

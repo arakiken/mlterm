@@ -202,6 +202,8 @@ x_prepare_for_main_config(
 		"Color to use to display bold characters (equivalent to colorBD)") ;
 	kik_conf_add_opt( conf , '\0' , "ul" , 0 , "ul_color" ,
 		"Color to use to display underlined characters (equivalent to colorUL)") ;
+	kik_conf_add_opt( conf , '\0' , "noul" , 1 , "hide_underline" ,
+		"Don't draw underline [false]") ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	kik_conf_add_opt( conf , '\0' , "servlist" , 0 , "server_list" ,
 		"list of servers to connect") ;
@@ -242,8 +244,6 @@ x_prepare_for_main_config(
 		"blink cursor [false]") ;
 	kik_conf_add_opt( conf , '\0' , "border" , 0 , "inner_border" ,
 		"inner border [2]") ;
-	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
-		"execute external command") ;
 	kik_conf_add_opt( conf , '\0' , "button3" , 0 , "button3_behavior" ,
 		"button3 behavior. (xterm/menu1/menu2/menu3) "
 	#ifdef  USE_WIN32GUI
@@ -262,6 +262,8 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
 #endif
+	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
+		"execute external command") ;
 
 	return  1 ;
 }
@@ -1265,6 +1267,16 @@ x_main_config_init(
 		if( kik_str_to_uint( &margin , value) && margin <= 255)
 		{
 			main_config->margin = margin ;
+		}
+	}
+
+	main_config->hide_underline = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "hide_underline")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config->hide_underline = 1 ;
 		}
 	}
 

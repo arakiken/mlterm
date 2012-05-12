@@ -15,13 +15,16 @@ static int
 adjust_bd_ul_color(
 	x_color_manager_t *  color_man ,
 	ml_color_t  fg_color ,
+	ml_color_t  bg_color ,
 	ml_font_t  font ,
 	int  is_underlined
 	)
 {
 	if( font & FONT_BOLD)
 	{
-		if( IS_FG_BG_COLOR(fg_color) && x_color_manager_adjust_bd_color( color_man))
+		/* If bg_color == ML_FG_COLOR, it seems to be reversed. */
+		if( ( fg_color == ML_FG_COLOR || bg_color == ML_FG_COLOR) &&
+		    x_color_manager_adjust_bd_color( color_man))
 		{
 			return  1 ;
 		}
@@ -29,7 +32,8 @@ adjust_bd_ul_color(
 
 	if( is_underlined)
 	{
-		if( IS_FG_BG_COLOR(fg_color) && x_color_manager_adjust_ul_color( color_man))
+		if( ( fg_color == ML_FG_COLOR || bg_color == ML_FG_COLOR) &&
+		    x_color_manager_adjust_ul_color( color_man))
 		{
 			return  2 ;
 		}
@@ -116,7 +120,8 @@ fc_draw_str(
 	u_int  height ,
 	u_int  ascent ,
 	u_int  top_margin ,
-	u_int  bottom_margin
+	u_int  bottom_margin ,
+	int  hide_underline
 	)
 {
 	int  count ;
@@ -351,7 +356,7 @@ fc_draw_str(
 					x , y , current_width - x , height) ;
 			}
 
-			color_adjusted = adjust_bd_ul_color( color_man , fg_color ,
+			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
 							xfont->id , is_underlined) ;
 
 			/*
@@ -396,7 +401,7 @@ fc_draw_str(
 					, y + ascent) ;
 			}
 
-			if( color_adjusted != 2 && is_underlined)
+			if( ! hide_underline && color_adjusted != 2 && is_underlined)
 			{
 				if( xfont->is_vertical)
 				{
@@ -552,7 +557,8 @@ xcore_draw_str(
 	u_int  height ,
 	u_int  ascent ,
 	u_int  top_margin ,
-	u_int  bottom_margin
+	u_int  bottom_margin ,
+	int  hide_underline
 	)
 {
 	int  count ;
@@ -781,7 +787,7 @@ xcore_draw_str(
 			draw_count ++ ;
 		#endif
 
-			color_adjusted = adjust_bd_ul_color( color_man , fg_color ,
+			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
 							xfont->id , is_underlined) ;
 
 			if( ( x_window_has_wall_picture( window) && bg_color == ML_BG_COLOR) ||
@@ -868,7 +874,7 @@ xcore_draw_str(
 					, y + ascent) ;
 			}
 
-			if( color_adjusted != 2 && is_underlined)
+			if( ! hide_underline && color_adjusted != 2 && is_underlined)
 			{
 				if( xfont->is_vertical)
 				{
@@ -945,7 +951,8 @@ x_draw_str(
 	u_int  height ,
 	u_int  ascent ,
 	u_int  top_margin ,
-	u_int  bottom_margin
+	u_int  bottom_margin ,
+	int  hide_underline
 	)
 {
 	u_int  updated_width ;
@@ -958,8 +965,9 @@ x_draw_str(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
-		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , ascent , top_margin , bottom_margin))
+		if( ! fc_draw_str( window , font_man , color_man , &updated_width ,
+			chars , num_of_chars , x , y , height , ascent ,
+			top_margin , bottom_margin , hide_underline))
 		{
 			return  0 ;
 		}
@@ -969,8 +977,9 @@ x_draw_str(
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
-		if( ! xcore_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , ascent , top_margin , bottom_margin))
+		if( ! xcore_draw_str( window , font_man , color_man , &updated_width ,
+			chars , num_of_chars , x , y , height , ascent ,
+			top_margin , bottom_margin , hide_underline))
 		{
 			return  0 ;
 		}
@@ -994,7 +1003,8 @@ x_draw_str_to_eol(
 	u_int  height ,
 	u_int  ascent ,
 	u_int  top_margin ,
-	u_int  bottom_margin
+	u_int  bottom_margin ,
+	int  hide_underline
 	)
 {
 	u_int  updated_width ;
@@ -1007,8 +1017,9 @@ x_draw_str_to_eol(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
-		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , ascent , top_margin , bottom_margin))
+		if( ! fc_draw_str( window , font_man , color_man , &updated_width ,
+			chars , num_of_chars , x , y , height , ascent ,
+			top_margin , bottom_margin , hide_underline))
 		{
 			return  0 ;
 		}
@@ -1018,8 +1029,9 @@ x_draw_str_to_eol(
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
-		if( ! xcore_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
-			x , y , height , ascent , top_margin , bottom_margin))
+		if( ! xcore_draw_str( window , font_man , color_man , &updated_width ,
+			chars , num_of_chars , x , y , height , ascent ,
+			top_margin , bottom_margin , hide_underline))
 		{
 			return	0 ;
 		}
