@@ -341,6 +341,9 @@ fc_draw_str(
 			draw_count ++ ;
 		#endif
 
+			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
+							xfont->id , is_underlined) ;
+
 			/*
 			 * clearing background
 			 */
@@ -355,9 +358,6 @@ fc_draw_str(
 					x_get_xcolor( color_man , bg_color) ,
 					x , y , current_width - x , height) ;
 			}
-
-			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
-							xfont->id , is_underlined) ;
 
 			/*
 			 * drawing string

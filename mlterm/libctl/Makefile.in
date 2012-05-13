@@ -64,8 +64,8 @@ uninstall:
 	rm -f $(LIBDIR)/*ctl_bidi.* $(LIBDIR)/*ctl_iscii.*
 
 clean:
-	rm -rf $(BIDI_OBJ) $(BIDI_OBJ:.o=.lo) $(ISCII_OBJ) $(ISCII_OBJ:.o=.lo) ml_functbl_*.o \
-		ml_functbl_*.lo libctl_bidi.la libctl_iscii.la *.core .libs
+	rm -rf $(BIDI_OBJ) $(BIDI_OBJ:.o=.lo) $(ISCII_OBJ) $(ISCII_OBJ:.o=.lo) ml_functbl_* \
+		libctl_bidi.* libctl_iscii.* .libs
 
 distclean: clean
 	rm -f Makefile

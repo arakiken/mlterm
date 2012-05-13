@@ -73,7 +73,7 @@ wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf *.a *.la *.core $(OBJ) $(OBJ:.o=.lo) .libs
+	rm -rf *.a *.la $(OBJ) $(OBJ:.o=.lo) $(RSOBJ_win32) mlterm-icon-win32.ico .libs
 
 distclean: clean
 	rm -f Makefile

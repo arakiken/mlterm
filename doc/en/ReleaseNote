@@ -2,11 +2,14 @@ ver 3.1.2
 * Support extended mouse tracking mode.
   (CSI ? 1006 h and CSI ? 1006 l / CSI ? 1015 h and CSI ? 1015 l)
 * Support sixel graphics sequence partially. (DCS .. q .. ST)
+  (configure with --enable-sixel option.)
 * Support FocusIn/FocusOut event tracking. (CSI ? 1004 h and CSI ? 1004 l)
 * Add "add_picture" and "remove_picture" to configuration protocol.
 * Add "hide_underline" option.
 * Merge SF patches:
-  #3524577, #3524578 (Thanks to Ahmed El-Mahmoudy)
+  #3524577 (Thanks to Ahmed El-Mahmoudy)
+  #3524578 (Install mlterm tools to $(libexecdir)/mlterm instead of $(libexecdir))
+  (Thanks to Ahmed El-Mahmoudy)
 * Bug fixes:
   Fix a bug which disabled "bd_color" and "ul_color" options in reverse characters.
   (Thanks to Andi Cristian Serbanescu)

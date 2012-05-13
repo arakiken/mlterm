@@ -82,8 +82,8 @@ wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf $(TYPE_LIBS) *.core $(XFT_OBJ) $(XFT_OBJ:.o=.lo) \
-		$(CAIRO_OBJ) $(CAIRO_OBJ:.o=.lo) .libs
+	rm -rf $(TYPE_LIBS) $(XFT_OBJ) $(XFT_OBJ:.o=.lo) \
+		$(CAIRO_OBJ) $(CAIRO_OBJ:.o=.lo) x_font_ft.* .libs
 
 distclean: clean
 	rm -f Makefile

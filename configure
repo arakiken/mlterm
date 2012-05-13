@@ -26696,7 +26696,7 @@ echo
 echo "Installation path prefix          : $prefix"
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
-echo "BiDi rendering (Fribidi)          : $fribidi"
+echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 echo "External tools                    :$tools_result"
 echo "Image library                     : $with_imagelib"

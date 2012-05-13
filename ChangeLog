@@ -1,3 +1,21 @@
+2012-05-14  Araki Ken  <arakiken@users.sf.net>
+
+	* README: Updated
+
+	* libind/*.c: u_int -> unsigned int
+
+	* MLTermPty.java: A bug which disabled loading libMLTermPty.so in mlterm.jar
+	  is fixed.
+
+	* ml_vt100_parser.c: FF(0x0c) is processed.
+
+	* configure.in, main/Makefile.in, libctl/Makefile.in, mlclient/Makefile.in,
+	  xwindow/Makefile.in, libtype/Makefile.in: Minor fixes.
+
+	* libctl/ml_shape_bidi.c: Minor fixes.
+
+	* x_draw_str.c: Minor fixes.
+
 2012-05-12  Araki Ken  <arakiken@users.sf.net>
 
 	* README, mlterm.spec: Minor fixes.

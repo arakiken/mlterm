@@ -38,6 +38,7 @@
 #define  CTL_TAB	0x09
 #define  CTL_LF		0x0a
 #define  CTL_VT		0x0b
+#define  CTL_FF		0x0c
 #define  CTL_CR		0x0d
 #define  CTL_SO		0x0e
 #define  CTL_SI		0x0f
@@ -1420,7 +1421,7 @@ inc_str_in_esc_seq(
 			/*
 			 * cursor-control characters inside ESC sequences
 			 */
-			if( **str_p == CTL_LF || **str_p == CTL_VT)
+			if( CTL_LF <= **str_p && **str_p <= CTL_FF)
 			{
 				ml_screen_line_feed( screen) ;
 			}
@@ -2132,13 +2133,13 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_escape = 1 ;
 						}
+					#ifdef  DEBUG
 						else
 						{
-						#ifdef  DEBUG
 							debug_print_unknown( "ESC [ ? %d h\n" ,
 								ps[count]) ;
-						#endif
 						}
+					#endif
 					}
 				}
 				else if( *str_p == 'l')
@@ -2345,13 +2346,13 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_escape = 0 ;
 						}
+					#ifdef  DEBUG
 						else
 						{
-						#ifdef  DEBUG
 							debug_print_unknown( "ESC [ ? %d l\n" ,
 								ps[count]) ;
-						#endif
 						}
+					#endif
 					}
 				}
 			#if  0
@@ -2806,6 +2807,13 @@ parse_vt100_escape_sequence(
 						vt100_parser->w_buf.output_func =
 							ml_screen_insert_chars ;
 					}
+				#ifdef  DEBUG
+					else
+					{
+						debug_print_unknown( "ESC [ %d h\n" ,
+							ps[count]) ;
+					}
+				#endif
 				}
 			}
 			else if( *str_p == 'm')
@@ -3421,7 +3429,7 @@ parse_vt100_escape_sequence(
 		vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g1 ;
 		vt100_parser->is_so = 1 ;
 	}
-	else if( *str_p == CTL_LF || *str_p == CTL_VT)
+	else if( CTL_LF <= *str_p && *str_p <= CTL_FF)
 	{
 	#ifdef  ESCSEQ_DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " receiving LF\n") ;

@@ -31,25 +31,28 @@ public class  MLTermPty
 			while( urls.hasMoreElements())
 			{
 				URL  url = (URL)urls.nextElement() ;
-				int  pos = url.getPath().indexOf( "mlterm") ;
-				if( pos != -1 &&
-				    /* is end element of path. */
-				    url.getPath().indexOf( System.getProperty( "file.separator") , pos) == -1 &&
-				    /* is jar file. */
-				    url.getPath().indexOf( ".jar" , pos) != -1)
+				int  beg_pos = url.getPath().indexOf( "mlterm") ;
+				if( beg_pos != -1)
 				{
-					InputStream  is = url.openStream() ;
-
-					try
+					int  end_pos = url.getPath().indexOf( ".jar" , beg_pos) ;
+					if( end_pos != -1 && /* is jar file. */
+					    /* is end element of path. */
+						url.getPath().lastIndexOf( System.getProperty( "file.separator") , end_pos)
+							< beg_pos)
 					{
-						mf = new Manifest(is) ;
-					}
-					catch( IOException  e1)
-					{
-					}
+						InputStream  is = url.openStream() ;
 
-					is.close() ;
-					break ;
+						try
+						{
+							mf = new Manifest(is) ;
+						}
+						catch( IOException  e1)
+						{
+						}
+
+						is.close() ;
+						break ;
+					}
 				}
 			}
 		}

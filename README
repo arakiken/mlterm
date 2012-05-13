@@ -144,18 +144,19 @@ Supported platforms
 
   * NetBSD 3.0.1 (x86)
   * OpenSolaris 2009.06 (CC=cc) (x86)
-  * Ubuntu 11.10 (CC=gcc, CC=clang) (x86)
+  * Ubuntu 12.04 (CC=gcc, CC=clang) (x86)
   * CentOS 5 (x86)
   * MS Windows 7 (x86)
   * MS Windows 7/MSYS 1.0.10 (x86)
-  * MS Windows 7/Cygwin 1.7.10 (CC=gcc, CC="gcc -mno-cygwin") (x86)
-  * MS Windows 7/Cygwin 1.7.10 with X (x86)
+  * MS Windows 7/Cygwin 1.7.13 (CC=gcc, CC="gcc -mno-cygwin") (x86)
+  * MS Windows 7/Cygwin 1.7.13 with X (x86)
 
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.
 
-  * Ubuntu 11.04 (CC=gcc, CC=clang) (x86)
   * Ubuntu 10.10 (CC=gcc, CC=llvm-gcc-4.2) (x86)
+  * Ubuntu 11.04 (CC=gcc, CC=clang) (x86)
+  * Ubuntu 11.10 (CC=gcc, CC=clang) (x86)
   * Debian GNU/Linux Sid, GNU libc 2.3.2 (x86)
   * Solaris 8 (x86)
   * Solaris 2.6 (SunOS 5.6) (CC=cc)
@@ -179,6 +180,8 @@ Supported platforms
   * MS Windows XP SP3/Cygwin 1.7.1-1 with X (x86)
   * MS Windows 7/Cygwin 1.7.9 (CC=gcc, CC="gcc -mno-cygwin") (x86)
   * MS Windows 7/Cygwin 1.7.9 with X (x86)
+  * MS Windows 7/Cygwin 1.7.10 (CC=gcc, CC="gcc -mno-cygwin") (x86)
+  * MS Windows 7/Cygwin 1.7.10 with X (x86)
 
 
 USAGE
