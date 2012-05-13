@@ -1,5 +1,11 @@
 2012-05-14  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font_xft.c, x_font_cairo.c: undef unnecessary USE_TYPE_XXX macro.
+
+	* x_font_ft.c: Minor fixes.
+
+2012-05-14  Araki Ken  <arakiken@users.sf.net>
+
 	* README: Updated
 
 	* libind/*.c: u_int -> unsigned int

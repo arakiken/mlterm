@@ -546,6 +546,8 @@ ft_font_open(
 	#ifdef  USE_TYPE_XFT
 		return  xft_font_open( font , family , size , encoding , weight , slant ,
 				ch_width , aa_opt) ;
+	#else
+		return  NULL ;
 	#endif
 	}
 	else
@@ -553,10 +555,10 @@ ft_font_open(
 	#ifdef  USE_TYPE_CAIRO
 		return  cairo_font_open( font , family , size , encoding , weight , slant ,
 				ch_width , aa_opt) ;
+	#else
+		return  NULL ;
 	#endif
 	}
-
-	return  NULL ;
 }
 
 u_int  xft_calculate_char_width( x_font_t *  font , const u_char *  ch , size_t  len) ;
