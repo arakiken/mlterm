@@ -4,7 +4,8 @@ ver 3.1.2
 * Support sixel graphics sequence partially. (DCS .. q .. ST)
   (configure with --enable-sixel option.)
 * Support FocusIn/FocusOut event tracking. (CSI ? 1004 h and CSI ? 1004 l)
-* Add "add_picture" and "remove_picture" to configuration protocol.
+* Support inputmethod/kbd in win32.
+* Add "add_picture" and "remove_picture" commands to configuration protocol.
 * Add "hide_underline" option.
 * Merge SF patches:
   #3524577 (Thanks to Ahmed El-Mahmoudy)

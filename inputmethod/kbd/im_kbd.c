@@ -35,14 +35,14 @@
  */
 
 #include  <stdio.h>		/* sprintf */
-#include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_utf16_parser.h>
 #include  <ml_iscii.h>
-
+#include  <x.h>			/* XK_xxx */
 #include  <x_im.h>
+
 #include  "../im_common.h"
 #include  "../im_info.h"
 

@@ -91,7 +91,8 @@ dlsym_im_new_func(
 
 	sprintf( symname , "im_%s_new" , im_name) ;
 
-	if( ! ( *handle = kik_dl_open( IM_DIR , libname)))
+	if( ! ( *handle = kik_dl_open( IM_DIR , libname)) &&
+	    ! ( *handle = kik_dl_open( "" , libname)))
 	{
 		return  0 ;
 	}

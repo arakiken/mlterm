@@ -15,7 +15,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @KIK_CFLAGS@			\
 	 @MKF_CFLAGS@			\
 	 @X_CFLAGS@			\
-	 @TYPE_CFLAGS@			\
+	 @GUI_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
 	 @CXXFLAGS@			\

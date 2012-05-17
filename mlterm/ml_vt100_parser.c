@@ -1378,6 +1378,35 @@ soft_reset(
 	vt100_parser->im_is_active = 0 ;
 }
 
+static void
+send_device_attributes(
+	ml_pty_ptr_t  pty ,
+	int  rank
+	)
+{
+	char *  seq ;
+
+	if( rank == 1)
+	{
+		/* vt100 answerback */
+		seq = "\x1b[?1;2c" ;
+	}
+	else if( rank == 2)
+	{
+		/*
+		 * If Pv is greater than 95, vim sets ttymouse=xterm2
+		 * automatically.
+		 */
+		seq = "\x1b[>0;96;0c" ;
+	}
+	else
+	{
+		return ;
+	}
+
+	ml_write_to_pty( pty , seq , strlen(seq)) ;
+}
+
 
 /*
  * For string outside escape sequences.
@@ -1739,12 +1768,12 @@ parse_vt100_escape_sequence(
 
 			ml_screen_reverse_index( vt100_parser->screen) ;
 		}
-	#if  0
 		else if( *str_p == 'Z')
 		{
-			/* "ESC Z" return terminal id */
+			/* "ESC Z" return terminal id (Obsolete form of CSI c) */
+
+			send_device_attributes( vt100_parser->pty , 1) ;
 		}
-	#endif
 		else if( *str_p == 'c')
 		{
 			/* "ESC c" full reset */
@@ -2427,15 +2456,9 @@ parse_vt100_escape_sequence(
 			{
 				if( *str_p == 'c')
 				{
-					/* CSI > c (Secondary DA) */
+					/* "CSI > c" Secondary DA */
 
-					/*
-					 * If Pv is greater than 95, vim sets ttymouse=xterm2
-					 * automatically.
-					 */
-					char  msg[] = "\x1b[>0;96;0c" ;
-					ml_write_to_pty( vt100_parser->pty ,
-						msg , sizeof(msg) - 1) ;
+					send_device_attributes( vt100_parser->pty , 2) ;
 				}
 				else
 				{
@@ -2746,12 +2769,9 @@ parse_vt100_escape_sequence(
 			}
 			else if( *str_p == 'c')
 			{
-				/* "CSI c" send device attributes */
+				/* "CSI c" Primary DA */
 
-				/* vt100 answerback */
-				char  seq[] = "\x1b[?1;2c" ;
-
-				ml_write_to_pty( vt100_parser->pty , seq , sizeof(seq) - 1) ;
+				send_device_attributes( vt100_parser->pty , 1) ;
 			}
 			else if( *str_p == 'd')
 			{

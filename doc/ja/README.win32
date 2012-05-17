@@ -104,7 +104,6 @@ WIN32 native GUI 対応に関するメモ
        ション上に新しいチャンネルを開くようにします。
 
 * WIN32 GUI 版の制限
-  o -g [col]x[row]+[x]+[y] オプションの x, y は無視します。
   o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless, -d/--display 及び
     -t/--transbgオプションは使用できません。
   o mlterm server 機能で genuine モードは使用できません(対応予定もありません。)。

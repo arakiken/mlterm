@@ -741,6 +741,8 @@ x_window_init(
 
 	win->app_name = __("mlterm") ;
 
+	win->cmd_show = SW_SHOWNORMAL ;
+
 	return	1 ;
 }
 
@@ -749,7 +751,7 @@ x_window_final(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( "[deleting child windows]\n") ;
@@ -1037,7 +1039,8 @@ x_window_get_bg_gc(
 int
 x_window_show(
 	x_window_t *  win ,
-	int  hint
+	int  hint	/* If win->parent(_window) is None,
+			   specify XValue|YValue to localte window at win->x/win->y. */
 	)
 {
 	int  count ;
@@ -1077,11 +1080,16 @@ x_window_show(
 #endif
 
 	win->my_window = CreateWindowEx( 0 , __("MLTERM") , win->app_name ,
-				! win->parent ? WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE ,
-				! win->parent ? CW_USEDEFAULT : win->x ,
-				! win->parent ? CW_USEDEFAULT : win->y ,
-				! win->parent ? ACTUAL_WINDOW_WIDTH(win) : ACTUAL_WIDTH(win) ,
-				! win->parent ? ACTUAL_WINDOW_HEIGHT(win) : ACTUAL_HEIGHT(win) ,
+				PARENT_WINDOWID_IS_TOP(win) ?
+					WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE ,
+				PARENT_WINDOWID_IS_TOP(win) && ! (hint & XValue) ?
+					CW_USEDEFAULT : win->x ,
+				PARENT_WINDOWID_IS_TOP(win) && ! (hint & YValue) ?
+					CW_USEDEFAULT : win->y ,
+				PARENT_WINDOWID_IS_TOP(win) ?
+					ACTUAL_WINDOW_WIDTH(win) : ACTUAL_WIDTH(win) ,
+				PARENT_WINDOWID_IS_TOP(win) ?
+					ACTUAL_WINDOW_HEIGHT(win) : ACTUAL_HEIGHT(win) ,
 				win->parent_window , NULL , win->disp->display->hinst , NULL) ;
 
 	if( ! win->my_window)
@@ -1123,7 +1131,7 @@ x_window_show(
 
 	if( win->is_mapped)
 	{
-		ShowWindow( win->my_window , SW_SHOWNORMAL) ;
+		ShowWindow( win->my_window , win->cmd_show) ;
 
 	#if  0
 		x_window_clear_all( win) ;
@@ -1148,7 +1156,7 @@ x_window_map(
 		return  1 ;
 	}
 
-  	ShowWindow( win->my_window , SW_SHOWNORMAL) ;
+  	ShowWindow( win->my_window , win->cmd_show) ;
 	win->is_mapped = 1 ;
 
 	return  1 ;
@@ -1164,10 +1172,7 @@ x_window_unmap(
 		return  1 ;
 	}
 
-#ifndef  USE_WIN32GUI
-	XUnmapWindow( win->display , win->my_window) ;
-#endif
-
+  	ShowWindow( win->my_window , SW_HIDE) ;
 	win->is_mapped = 0 ;
 
 	return  1 ;
@@ -1268,7 +1273,32 @@ x_window_set_override_redirect(
 	int  flag
 	)
 {
-	return  0 ;
+	x_window_t *  root ;
+
+	if( ( root = x_get_root_window( win))->my_window)
+	{
+		ShowWindow( root->my_window , SW_HIDE) ;
+
+		if( flag)
+		{
+			SetWindowLong( root->my_window , GWL_STYLE , 0) ;
+			win->cmd_show = SW_SHOWNA ;
+		}
+		else
+		{
+			SetWindowLong( root->my_window , GWL_STYLE ,
+				! win->parent ? WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE) ;
+			win->cmd_show = SW_SHOWNORMAL ;
+		}
+
+		ShowWindow( root->my_window , win->cmd_show) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 int
@@ -3058,8 +3088,15 @@ x_window_translate_coordinates(
 	Window *  child
 	)
 {
-	*global_x = 0 ;
-	*global_y = 0 ;
+	POINT  p ;
+
+	p.x = x ;
+	p.y = y ;
+
+	ClientToScreen( win->my_window , &p) ;
+
+	*global_x = p.x ;
+	*global_y = p.y ;
 	*child = None ;
 	
 	return  0 ;

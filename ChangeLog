@@ -1,3 +1,18 @@
+2012-05-17  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.win32, doc/en/README.win32: Updated.
+
+	* x_main_config.c, win32/x_window.c, win32/x_win32.h:
+	  -g +X+Y is possible to be specified.
+
+	* configure.in, x_im_candidate_screen, x_im_status_screen.c,
+	  win32/x_window.c, x_screen.c, inputmethod/kbd/im_kbd.c:
+	  inputmethod/kbd is possible to be enabled in win32.
+
+	* ml_vt100_parser.c: ESC Z is processed.
+
+	* inputmethod/*/Makefile.in: @TYPE_CFLAGS@ is removed and @GUI_CFLAGS@ is added.
+
 2012-05-14  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_xft.c, x_font_cairo.c: undef unnecessary USE_TYPE_XXX macro.

@@ -21470,7 +21470,7 @@ if test "${enable_kbd+set}" = set; then :
   enableval=$enable_kbd; kbd=$enable_kbd
 fi
 
-if test "$kbd" != "no" -a "$gui" = "xlib" ; then
+if test "$kbd" != "no" ; then
 	IM_CFLAGS="$IM_CFLAGS -DUSE_KBD"
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"

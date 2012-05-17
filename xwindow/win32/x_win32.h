@@ -308,6 +308,16 @@ typedef int XFontSet ;	/* dummy */
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152
 
+/* Same as definition in X11/Xutil.h */
+#define NoValue         0x0000
+#define XValue          0x0001
+#define YValue          0x0002
+#define WidthValue      0x0004
+#define HeightValue     0x0008
+#define AllValues       0x000F
+#define XNegative       0x0010
+#define YNegative       0x0020
+
 /* tchar.h doesn't exist in /usr/include/w32api in cygwin. */
 #ifndef  _T
 #if  defined(_UNICODE) || defined(UNICODE)

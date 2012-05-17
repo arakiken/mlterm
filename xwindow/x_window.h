@@ -150,6 +150,7 @@ typedef struct  x_window
 
 #ifdef  USE_WIN32GUI
 	Pixmap  wall_picture ;
+	int  cmd_show ;
 #else
 	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
 #endif
@@ -200,7 +201,7 @@ typedef struct  x_window
 int  x_window_init( x_window_t *  win ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
 	u_int  base_width , u_int  base_height , u_int  width_inc ,
-	u_int  height_inc , u_int  margin, int  create_gc) ;
+	u_int  height_inc , u_int  margin , int  create_gc) ;
 
 int  x_window_final( x_window_t *  win) ;
 

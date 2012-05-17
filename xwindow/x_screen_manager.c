@@ -865,7 +865,7 @@ pty_closed(
 				 * and operates screen->term which was already deleted.
 				 * (see window_unfocused())
 				 */
-				screen->fade_ratio = 100 ;
+				screen->window.window_unfocused = NULL ;
 				SendMessage( x_get_root_window( &screen->window)->my_window,
 					WM_CLOSE, 0, 0) ;
 			#else

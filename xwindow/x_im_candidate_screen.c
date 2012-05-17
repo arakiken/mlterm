@@ -1030,7 +1030,7 @@ x_im_candidate_screen_new(
 	cand_screen->listener.self = NULL ;
 	cand_screen->listener.selected = NULL ;
 
-	if( ! x_display_show_root( disp , &cand_screen->window , x , y , 0 ,
+	if( ! x_display_show_root( disp , &cand_screen->window , x , y , XValue | YValue ,
 					  "mlterm-candidate-window" , 0))
 	{
 	#ifdef  DEBUG

@@ -2001,6 +2001,13 @@ key_pressed(
 		{
 			kchar = seq[0] ;
 		}
+	#if  defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
+		else if( size == 2 && seq[0] == 0)
+		{
+			/* UTF16BE */
+			kchar = seq[1] ;
+		}
+	#endif
 
 		if( ! (*screen->im->key_event)( screen->im , kchar , ksym , event))
 		{

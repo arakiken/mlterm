@@ -76,7 +76,6 @@ Memo about WIN32 native GUI.
   o skip_dialog(--nodialog) = true/false
 
 * Caution
-  o x, y of -g [col]x[row]+[x]+[y] option is ignored.
   o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless, -d/--display and
     -t/--transbg options are not available.
   o 'genuine' of daemon mode is not supported in MSYS-DTK or Cygwin version.

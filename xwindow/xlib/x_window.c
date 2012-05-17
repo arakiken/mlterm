@@ -1285,7 +1285,8 @@ x_window_get_bg_gc(
 int
 x_window_show(
 	x_window_t *  win ,
-	int  hint
+	int  hint	/* If win->parent(_window) is None,
+			   specify XValue|YValue to localte window at win->x/win->y. */
 	)
 {
 	u_int  count ;
@@ -3862,11 +3863,11 @@ x_window_bell(
 
 int
 x_window_translate_coordinates(
-	x_window_t *  win,
-	int x,
-	int y,
-	int *  global_x,
-	int *  global_y,
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	int *  global_x ,
+	int *  global_y ,
 	Window *  child
 	)
 {
