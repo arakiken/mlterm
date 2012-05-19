@@ -2030,7 +2030,7 @@ ml_screen_search_find(
 					regex , buf , backward))
 		{
 			size_t  count ;
-			size_t  comb_size ;
+			u_int  comb_size ;
 			int  beg ;
 			int  end ;
 			int  meet_pos ;

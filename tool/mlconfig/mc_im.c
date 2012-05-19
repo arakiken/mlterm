@@ -96,10 +96,17 @@ is_im_plugin(char *file_name)
 static int
 get_im_info(char *locale, char *encoding)
 {
+	char *  im_dir_path;
 	DIR *dir;
 	struct dirent *d;
 
-	if (!(dir = opendir(IM_DIR))) return 0;
+	if ((dir = opendir(IM_DIR))) {
+		im_dir_path = IM_DIR;
+	} else if ((dir = opendir("."))) {
+		im_dir_path = "";
+	} else {
+		return 0;
+	}
 
 	while ( (d = readdir(dir)) ) {
 		kik_dl_handle_t handle;
@@ -117,7 +124,7 @@ get_im_info(char *locale, char *encoding)
 		/* libim-foo -> im-foo */
 		if (!(p = strstr(d->d_name, "im-"))) continue;
 
-		if (!(handle = kik_dl_open(IM_DIR , p))) continue;
+		if (!(handle = kik_dl_open(im_dir_path , p))) continue;
 
 		snprintf(symname, 100, "im_%s_get_info", &p[3]);
 

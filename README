@@ -135,6 +135,8 @@ What you need for compilation
   Fribidi (0.9.0 - ?) for Bidi.
 
   libssh2 for ssh2 client and scp.
+  (Apply http://mlterm.sourceforge.net/libssh2-1.4.1-camellia.patch to
+  libssh2 if you use camellia as common key cryptography.)
 
 
 Supported platforms
@@ -148,7 +150,7 @@ Supported platforms
   * CentOS 5 (x86)
   * MS Windows 7 (x86)
   * MS Windows 7/MSYS 1.0.10 (x86)
-  * MS Windows 7/Cygwin 1.7.13 (CC=gcc, CC="gcc -mno-cygwin") (x86)
+  * MS Windows 7/Cygwin 1.7.13 (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
   * MS Windows 7/Cygwin 1.7.13 with X (x86)
 
   Following platforms are not actually tested by developers, but were supported

@@ -33,7 +33,7 @@ typedef struct x_system_event_listener
 	void  (*open_pty)( void * , x_screen_ptr_t , char *) ;
 	void  (*next_pty)( void * , x_screen_ptr_t) ;
 	void  (*prev_pty)( void * , x_screen_ptr_t) ;
-	void  (*close_pty)( void * , x_screen_ptr_t) ;
+	void  (*close_pty)( void * , x_screen_ptr_t , char *) ;
 	
 	void  (*pty_closed)( void * , x_screen_ptr_t) ;
 

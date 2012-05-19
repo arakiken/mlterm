@@ -23,6 +23,7 @@
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <kiklib/kik_args.h>	/* kik_arg_str_to_array */
+#include  <kiklib/kik_sig_child.h>
 #include  <ml_term_manager.h>
 #include  <ml_char_encoding.h>
 
@@ -221,7 +222,6 @@ open_pty_intern(
 		char *  port ;
 		char *  encoding ;
 		char *  exec_cmd ;
-		ml_char_encoding_t  e ;
 
 	#ifdef  USE_LIBSSH2
 		if(
@@ -255,9 +255,21 @@ open_pty_intern(
 		kik_debug_printf( "Connect dialog: URI %s pass %s\n" , uri , pass) ;
 	#endif
 
-		if( encoding && ( e = ml_get_char_encoding( encoding)) != ML_UNKNOWN_ENCODING)
+		if( encoding && ml_get_char_encoding( encoding) != ML_UNKNOWN_ENCODING)
 		{
-			ml_term_change_encoding( term , e) ;
+			/*
+			 * Don't use ml_term_change_encoding() here because
+			 * encoding change could cause special visual change
+			 * which should update the state of x_screen_t.
+			 */
+			char *  seq ;
+			size_t  len ;
+
+			if( ( seq = alloca( ( len = 16 + strlen(encoding) + 2))))
+			{
+				sprintf( seq , "\x1b]5379;encoding=%s\x07" , encoding) ;
+				ml_term_write_loopback( term , seq , len - 1) ;
+			}
 		}
 
 		if( exec_cmd)
@@ -834,6 +846,34 @@ prev_pty(
 }
 
 static void
+close_pty(
+	void *  p ,
+	x_screen_t *  screen ,
+	char *  dev
+	)
+{
+	ml_term_t *  term ;
+
+	if( dev)
+	{
+		if( ( term = ml_get_term( dev)) == NULL)
+		{
+			return ;
+		}
+	}
+	else
+	{
+		term = screen->term ;
+	}
+
+	/*
+	 * Don't call ml_destroy_term directly, because close_pty() can be called
+	 * in the context of parsing vt100 sequence.
+	 */
+	kik_trigger_sig_child( ml_term_get_child_pid( term)) ;
+}
+
+static void
 pty_closed(
 	void *  p ,
 	x_screen_t *  screen	/* screen->term was already deleted. */
@@ -1168,7 +1208,7 @@ x_screen_manager_init(
 	system_listener.open_pty = open_pty ;
 	system_listener.next_pty = next_pty ;
 	system_listener.prev_pty = prev_pty ;
-	system_listener.close_pty = NULL ;
+	system_listener.close_pty = close_pty ;
 	system_listener.pty_closed = pty_closed ;
 	system_listener.get_pty = get_pty ;
 	system_listener.pty_list = pty_list ;

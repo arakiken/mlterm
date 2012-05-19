@@ -4,10 +4,8 @@ comment $Id$
 WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows 7 + MinGW 5.1.4
-            + MSYS 1.0.10(MSYS-DTK 1.0.1)
-            + Cygwin 1.7.10
-            + libssh2 1.2.7
+  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.13
+            + libssh2 1.4.1(win32 native)
             + GTK+ 2.12.9(win32 native)
             + Fribidi 0.19.2(win32 native)
 
@@ -30,8 +28,12 @@ WIN32 native GUI 対応に関するメモ
   kiklib/src/.libs/*.dll
   mkf/lib/.libs/*.dll
   mkf/libtbl/.libs/*.dll
+  mlterm/.libs/*.dll
+  mlterm/libctl/.libs/*.dll
+  main/.libs/mlterm.exe
   scrollbar/sample/.libs/*.dll
-  xwindow/.libs/mlterm.exe
+  inputmethod/kbd/.libs/*.dll
+  libind/.libs/*.dll
   をコピーしてください。
 
   o MinGW or Cygwin(-mno-cygwin) で --enable-ssh2 なしでビルドした場合は、

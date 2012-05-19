@@ -54,7 +54,10 @@ clean :
 	rm -rf $(OBJ) $(OBJ:.o=.lo) $(TBL_OBJ) $(TBL_OBJ:.o=.lo) .libs *.a *.so *.la
 
 distclean: clean
-	rm -f Makefile indian.h
+	rm -f Makefile
+	if test "$(top_builddir)" != "$(top_srcdir)" ; then \
+		rm -f indian.h ; \
+	fi
 
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l

@@ -53,7 +53,7 @@ wait_child_exited(
 		{
 			CloseHandle( config_menu->fd) ;
 			CloseHandle( config_menu->pid) ;
-			config_menu->fd = -1 ;
+			config_menu->fd = 0 ;
 			config_menu->pid = 0 ;
 
 		#ifdef  USE_LIBSSH2
@@ -335,7 +335,7 @@ error2:
 	if( config_menu->fd)
 	{
 		CloseHandle( config_menu->fd) ;
-		config_menu->fd = -1 ;
+		config_menu->fd = 0 ;
 	}
 
 	return  0 ;

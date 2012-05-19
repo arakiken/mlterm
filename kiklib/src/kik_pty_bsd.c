@@ -111,9 +111,8 @@ open_pty(
 			{
 				if( errno == ENOENT)
 				{
-					/* out of ptys */
-					
-					return  0 ;
+					/* try next pty */
+					continue ;
 				}
 			}
 			else

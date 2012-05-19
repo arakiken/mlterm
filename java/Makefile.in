@@ -95,7 +95,7 @@ MLTermPty.h: mlterm/MLTermPty.class
 
 clean :
 	rm -rf *.h $(OBJ) $(OBJ:.o=.lo) $(TARGET@WIN32TAG@) manifest.mf libMLTermPty.so \
-		mlterm.jar *core .libs mlterm
+		mlterm/*.class mlterm.jar *core .libs
 
 distclean : clean
 	rm -f Makefile

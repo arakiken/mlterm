@@ -241,6 +241,7 @@ int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level)
 int append_pty_list(GtkMenu* menu)
 {
     GtkWidget* item;
+    char* my_pty ;
     char* pty_list;
     char* name_locale;
     char* name_utf8;
@@ -249,6 +250,8 @@ int append_pty_list(GtkMenu* menu)
     int is_active;
     GSList* group = NULL;
 
+    if ((my_pty = get_value(NULL, "pty_name")) == NULL)
+        return 1;
     if ((pty_list = get_value(NULL, "pty_list")) == NULL)
         return 1;
 
@@ -266,6 +269,8 @@ int append_pty_list(GtkMenu* menu)
         pty_list = strchr(pty_list + 1, ';');
         if (pty_list)
             pty_list++;
+
+        if (is_active && strcmp(my_pty, pty) != 0) continue ;
 
         if ((name_locale = get_value(pty, "pty_name")) == NULL)
             name_locale = pty;
@@ -286,7 +291,7 @@ int append_pty_list(GtkMenu* menu)
         gtk_menu_append(menu, item);
         g_free(name_utf8);
 
-        if (is_active) {
+        if (strcmp(my_pty, pty) == 0) {
             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
         }
     }

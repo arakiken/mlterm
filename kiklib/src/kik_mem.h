@@ -24,7 +24,11 @@
 
 #elif  ! defined(CALLOC_CHECK_OVERFLOW)
 
-#define  calloc( number , size)  kik_mem_calloc( number , size , NULL , NULL , NULL)
+/*
+ * In some environment (where CALLOC_CHECK_OVERFLOW is not defined by configure script),
+ * calloc doesn't check if number*size is over sizeof(size_t).
+ */
+#define  calloc( number , size)  kik_mem_calloc( number , size , NULL , 0 , NULL)
 
 #endif
 

@@ -4,15 +4,13 @@ comment $Id$
 Memo about WIN32 native GUI.
 
 * Tested environments.
-  Windows 7 + MinGW 5.1.4
-            + MSYS 1.0.10(MSYS-DTK 1.0.1)
-            + Cygwin 1.7.10
-            + libssh2 1.2.7
+  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.13
+            + libssh2 1.4.1(win32 native)
             + GTK+ 2.12.9(win32 native)
             + Fribidi 0.19.2(win32 native)
 
 * Build
-  (CC="gcc -mno-cygwin") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
+  (CC="gcc-3 -mno-cygwin") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
 		       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
 		       (--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
@@ -22,8 +20,12 @@ Memo about WIN32 native GUI.
   kiklib/src/.libs/*.dll
   mkf/lib/.libs/*.dll
   mkf/libtbl/.libs/*.dll
+  mlterm/.libs/*.dll
+  mlterm/libctl/.libs/*.dll
+  main/.libs/mlterm.exe
   scrollbar/sample/.libs/*.dll
-  xwindow/.libs/mlterm.exe
+  inputmethod/kbd/.libs/*.dll
+  libind/.libs/*.dll
 
   o (Built with MinGW)
     If you build mlterm without libssh2 (--enable-ssh2 configure option),

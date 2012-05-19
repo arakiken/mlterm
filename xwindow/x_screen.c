@@ -5157,6 +5157,7 @@ get_config(
 	
 	if( dev && HAS_SYSTEM_LISTENER(screen,get_pty))
 	{
+		/* Don't response (ml_term_write) to this term whose config_menu->fd is -1. */
 		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
 				dev)) == NULL)
 		{
@@ -5625,9 +5626,9 @@ get_config(
 	}
 	else if( strncmp( key , "selected_text" , 13) == 0)
 	{
-		ml_term_write( term , "#" , 1 , to_menu) ;
-		ml_term_write( term , key , strlen(key) , to_menu) ;
-		ml_term_write( term , "=" , 1 , to_menu) ;
+		ml_term_write( screen->term , "#" , 1 , to_menu) ;
+		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
+		ml_term_write( screen->term , "=" , 1 , to_menu) ;
 		
 		if( /* screen->window.is_sel_owner && */
 			screen->sel.sel_str && screen->sel.sel_len > 0)
@@ -5670,7 +5671,8 @@ get_config(
 							break ;
 						}
 
-						ml_term_write( term , buf , len , to_menu) ;
+						ml_term_write( screen->term ,
+							buf , len , to_menu) ;
 					}
 
 					(*conv->delete)( conv) ;
@@ -5682,14 +5684,14 @@ get_config(
 			}
 		}
 
-		ml_term_write( term , "\n" , 1 , to_menu) ;
+		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
 
 		return ;
 	}
 
 	if( value == NULL)
 	{
-		ml_term_write( term , "#error\n" , 7 , to_menu) ;
+		ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
@@ -5697,11 +5699,11 @@ get_config(
 	}
 	else
 	{
-		ml_term_write( term , "#" , 1 , to_menu) ;
-		ml_term_write( term , key , strlen( key) , to_menu) ;
-		ml_term_write( term , "=" , 1 , to_menu) ;
-		ml_term_write( term , value , strlen( value) , to_menu) ;
-		ml_term_write( term , "\n" , 1 , to_menu) ;
+		ml_term_write( screen->term , "#" , 1 , to_menu) ;
+		ml_term_write( screen->term , key , strlen( key) , to_menu) ;
+		ml_term_write( screen->term , "=" , 1 , to_menu) ;
+		ml_term_write( screen->term , value , strlen( value) , to_menu) ;
+		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
@@ -7881,6 +7883,20 @@ x_screen_exec_cmd(
 		{
 			/* arg is not NULL if cmd == "select_pty" */
 			(*screen->system_listener->open_pty)(
+				screen->system_listener->self , screen , arg) ;
+		}
+	}
+	else if( strcmp( cmd , "close_pty") == 0)
+	{
+		/*
+		 * close_pty is useful if pty doesn't react anymore and
+		 * you want to kill it forcibly.
+		 */
+
+		if( HAS_SYSTEM_LISTENER(screen,close_pty))
+		{
+			/* If arg is NULL, screen->term will be closed. */
+			(*screen->system_listener->close_pty)(
 				screen->system_listener->self , screen , arg) ;
 		}
 	}

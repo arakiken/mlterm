@@ -5,12 +5,14 @@ ver 3.1.2
   (configure with --enable-sixel option.)
 * Support FocusIn/FocusOut event tracking. (CSI ? 1004 h and CSI ? 1004 l)
 * Support inputmethod/kbd in win32.
-* Add "add_picture" and "remove_picture" commands to configuration protocol.
+* Add "add_picture", "remove_picture" and "close_pty" commands to
+  configuration protocol.
 * Add "hide_underline" option.
 * Merge SF patches:
   #3524577 (Thanks to Ahmed El-Mahmoudy)
   #3524578 (Install mlterm tools to $(libexecdir)/mlterm instead of $(libexecdir))
   (Thanks to Ahmed El-Mahmoudy)
+  patch-ae in NetBSD pkgsrc x11/mlterm.
 * Bug fixes:
   Fix a bug which disabled "bd_color" and "ul_color" options in reverse characters.
   (Thanks to Andi Cristian Serbanescu)
@@ -18,6 +20,7 @@ ver 3.1.2
   Fix a bug which could cause failure of opening a new window over ssh connection.
   Fix a bug which causes infinite loop if large OSC sequence is received.
   (Thanks to Koie Hidetaka san)
+  Fix a bug which disabled mlconfig and mlterm-menu etc to start if multiple screens opened.
 
 ver 3.1.1
 * Fix a bug which caused segfault in 64bit Linux.

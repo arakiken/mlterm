@@ -124,6 +124,30 @@ stop_vt100_cmd(
 }
 
 static int
+change_read_buffer_size(
+	ml_read_buffer_t *  r_buf ,
+	size_t  len
+	)
+{
+	void *  p ;
+
+	if( ! ( p = realloc( r_buf->chars , len)))
+	{
+		return  0 ;
+	}
+
+	r_buf->chars = p ;
+	r_buf->len = len ;
+
+	/*
+	 * Not check if r_buf->left and r_buf->filled_len is larger than r_buf->len.
+	 * It should be checked before calling this function.
+	 */
+
+	return  1 ;
+}
+
+static int
 receive_bytes(
 	ml_vt100_parser_t *  vt100_parser
 	)
@@ -140,17 +164,11 @@ receive_bytes(
 	{
 		/* Buffer is full => Expand buffer */
 
-		size_t  len ;
-		void *  p ;
-
-		len = vt100_parser->r_buf.len + PTY_RD_BUFFER_SIZE ;
-		if( ! ( p = realloc( vt100_parser->r_buf.chars , len)))
+		if( ! change_read_buffer_size( &vt100_parser->r_buf ,
+			vt100_parser->r_buf.len + PTY_RD_BUFFER_SIZE))
 		{
 			return  1 ;
 		}
-
-		vt100_parser->r_buf.chars = p ;
-		vt100_parser->r_buf.len = len ;
 	}
 
 	if( ( ret = ml_read_pty( vt100_parser->pty ,
@@ -235,17 +253,11 @@ end:
 	{
 		/* Shrink buffer */
 
-		size_t  len ;
-		void *  p ;
-
-		len = vt100_parser->r_buf.len - PTY_RD_BUFFER_SIZE ;
-		if( ! ( p = realloc( vt100_parser->r_buf.chars , len)))
+		if( ! change_read_buffer_size( &vt100_parser->r_buf ,
+			vt100_parser->r_buf.len - PTY_RD_BUFFER_SIZE))
 		{
 			return  1 ;
 		}
-
-		vt100_parser->r_buf.chars = p ;
-		vt100_parser->r_buf.len = len ;
 	}
 
 #ifdef  INPUT_DEBUG
@@ -1397,7 +1409,7 @@ send_device_attributes(
 		 * If Pv is greater than 95, vim sets ttymouse=xterm2
 		 * automatically.
 		 */
-		seq = "\x1b[>0;96;0c" ;
+		seq = "\x1b[>1;96;0c" ;
 	}
 	else
 	{
@@ -3933,9 +3945,23 @@ ml_parse_vt100_write_loopback(
 	size_t  len
 	)
 {
-	if( vt100_parser->r_buf.left > 0)
+	char *  orig_buf ;
+	size_t  orig_left ;
+
+	if( vt100_parser->r_buf.len < len &&
+	    ! change_read_buffer_size( &vt100_parser->r_buf , len))
 	{
 		return  0 ;
+	}
+
+	if( (orig_left = vt100_parser->r_buf.left) > 0)
+	{
+		if( ! ( orig_buf = alloca( orig_left)))
+		{
+			return  0 ;
+		}
+
+		memcpy( orig_buf , CURRENT_STR_P(vt100_parser) , orig_left) ;
 	}
 
 	memcpy( vt100_parser->r_buf.chars , buf , len) ;
@@ -3949,6 +3975,12 @@ ml_parse_vt100_write_loopback(
 	 */
 	parse_vt100_sequence( vt100_parser) ;
 	stop_vt100_cmd( vt100_parser , 1) ;
+
+	if( orig_left > 0)
+	{
+		memcpy( vt100_parser->r_buf.chars , orig_buf , orig_left) ;
+		vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left = orig_left ;
+	}
 
 	return  1 ;
 }

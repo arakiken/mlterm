@@ -1,3 +1,34 @@
+2012-05-19  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.1.2 released.
+	  (tag "rel-3_1_2")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.1.2.
+
+	* README, doc/en/README.win32, doc/ja/README.win32, gtk/INSTALL: Updated.
+
+	* x_screen.c, x_screen_manager.c, doc/en/PROTOCOL:
+	  "close_pty" command is added to configuration protocol.
+
+	* x_screen.c: ml_term_write( term) is replaced by ml_term_write( screen->term)
+	  in get_config().
+
+	* mc_im.c: Current directory is searched for im-xxx modules
+	  if IM_DIR is not found.
+
+	* mlterm-menu.c: Ptys attached to other screens are not displayed in the menu list.
+
+	* ml_vt100_parser.c:
+	  - buf length < vt100_parser->r_buf.len is checked.
+	  - Pp of DA2 is changed from 0 (xterm default) to 1(VT220).
+
+	* x_screen_manager.c: Minor fixes.
+
+	* x_event_source.h: Minor fixes.
+
+	* ml_screen.c: Minor fixes.
+
 2012-05-17  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.win32, doc/en/README.win32: Updated.

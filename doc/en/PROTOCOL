@@ -25,8 +25,8 @@ version 20110903
   set&save         = "\x1b" "]" "5383" ";" "color:" <key> "=" <value> "\x07"
   
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a" | "#forbidden" "\x0a"
-  exec command     = paste | select_pty | full_reset | open_pty | open_screen |
-                     snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
+  exec command     = paste | select_pty <dev> | full_reset | open_pty | close_pty (<dev>) |
+                     open_screen | snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
                      mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
                      search_prev <pattern> | search_next <pattern> |
 		     add_picture (WxH+X+Y:)<file name> | remove_picture WxH+X+Y |
