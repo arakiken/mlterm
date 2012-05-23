@@ -306,6 +306,7 @@ x_get_xcolor(
 				&color_man->sys_colors[_FG_COLOR].xcolor ,
 				color_man->sys_colors[_FG_COLOR].name))
 			{
+				/* default_fg_color is black */
 				return  &color_man->color_cache->black ;
 			}
 
@@ -320,7 +321,10 @@ x_get_xcolor(
 		{
 			if( ! x_load_xcolor( color_man->color_cache ,
 				&color_man->sys_colors[_BG_COLOR].xcolor ,
-				color_man->sys_colors[_BG_COLOR].name))
+				color_man->sys_colors[_BG_COLOR].name) &&
+			    ! x_load_xcolor( color_man->color_cache ,
+				&color_man->sys_colors[_BG_COLOR].xcolor ,
+				default_bg_color))
 			{
 				return  &color_man->color_cache->black ;
 			}

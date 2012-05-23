@@ -77,15 +77,12 @@ int  kik_alloca_garbage_collect(void) ;
 #else	/* HAVE_ALLOCA */
 
 
-#ifdef  KIK_DEBUG
-#undef  alloca
-#include  <string.h>	/* memset */
-#define  alloca(size)  memset( alloca(size) , 0xff , size)
-#endif
-
 #define  kik_alloca_begin_stack_frame()  1
 #define  kik_alloca_end_stack_frame()  1
 #define  kik_alloca_garbage_collect()  1
+
+/* If glib/galloca.h has been already included, following hack is disabled. */
+#ifndef  __G_ALLOCA_H__
 
 /* AIX requires this to be the first thing in the file.  */
 #ifndef __GNUC__
@@ -97,6 +94,7 @@ int  kik_alloca_garbage_collect(void) ;
 #else	/* HAVE_ALLOCA_H */
 
 #ifdef _AIX
+
 #pragma alloca
 
 #else	/* _AIX */
@@ -112,14 +110,24 @@ char *  alloca () ;
 
 #else   /* __GNUC__ */
 
+#ifdef  KIK_DEBUG
+
+/* This debug hack can be available in GNUC alone. */
+#undef  alloca
+#include  <string.h>	/* memset */
+#define  alloca(size)  memset( alloca(size) , 0xff , size)
+
+#else	/* KIK_DEBUG */
+
 #ifdef  HAVE_ALLOCA_H
-
 #include <alloca.h>
-
 #endif   /* HAVE_ALLOCA_H */
+
+#endif	/* KIK_DEBUG */
 
 #endif	/* __GNUC__ */
 
+#endif  /* __G_ALLOCA_H__ */
 
 #endif	/* HAVE_ALLOCA */
 

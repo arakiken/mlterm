@@ -1,3 +1,25 @@
+2012-05-24  Araki Ken  <arakikenS@users.sf.net>
+
+	* xlib/x_window.c: If background color is changed, margin area is cleared
+	  in x_window_set_bg_color().
+
+	* ml_vt100_parser.c:
+	  OSC 5;0 and OSC 5;1 are supported.
+
+	* ml_vt100_parser.c, x_color_config.c, x_color_manager.c:
+	  - "?" which query color spec in OSC 4, 10, 11 and 12 is ignored.
+	  - If unknown color name is specified for fg color, it falls back to white.
+	  (Related to SF Bug #3528836, Thanks to Thomas Wolff)
+
+	* kik_mem.h, x_imagelib.c: If glib/galloca.h is included before kik_mem.h,
+	  alloca check in kik_mem.h is disabled.
+
+	* kiklib/configure.in, kik_config.h.in, kik_unistd.[ch]:
+	  If setenv doesn't exist, __kik_setenv is used instead.
+	  (Related to SF Bug #3509744, Thanks to Thomas Wolff)
+
+	* version.h.in: 3.1.2 => 3.1.2 post
+
 2012-05-19  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.1.2 released.

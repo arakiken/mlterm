@@ -73,6 +73,8 @@
 
 #undef  HAVE_USLEEP
 
+#undef  HAVE_SETENV
+
 #undef  HAVE_UNSETENV
 
 #undef  HAVE_FLOCK

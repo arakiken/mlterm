@@ -17,11 +17,6 @@
 #include <stdio.h>		/* sscanf */
 #ifdef  USE_EXT_IMAGELIB
 #include <gdk-pixbuf/gdk-pixbuf.h>
-/* alloca can be defined in glib/galloca.h which is included from gdk-pixbuf.h, then
- * it will be conflicted with one in kik_mem.h */
-#ifdef  alloca
-#undef  alloca
-#endif
 #endif	/* USE_EXT_IMAGELIB */
 #ifdef  DLOPEN_LIBM
 #include <kiklib/kik_dlfcn.h>	/* dynamically loading pow */

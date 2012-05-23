@@ -25,17 +25,27 @@ int  __kik_usleep( u_int  microseconds) ;
 #endif
 
 
-#ifdef  USE_WIN32API
-
-#define  kik_setenv( name , value , overwrite)  SetEnvironmentVariableA( name , value)
-
-#else
+#ifdef  HAVE_SETENV
 
 #include  <stdlib.h>
 
 #define  kik_setenv( name , value , overwrite)  setenv( name , value , overwrite)
 
-#endif
+#else	/* HAVE_SETENV */
+
+#ifdef  USE_WIN32API
+
+#define  kik_setenv( name , value , overwrite)  SetEnvironmentVariableA( name , value)
+
+#else	/* USE_WIN32API */
+
+#define  kik_setenv  __kik_setenv
+
+int  __kik_setenv( const char *  name , const char *  value , int  overwrite) ;
+
+#endif	/* USE_WIN32API */
+
+#endif	/* HAVE_SETENV */
 
 
 #ifdef  HAVE_UNSETENV
@@ -44,16 +54,21 @@ int  __kik_usleep( u_int  microseconds) ;
 
 #define  kik_unsetenv( name)  unsetenv( name)
 
-#else
+#else	/* HAVE_SETENV */
 
 #ifdef  USE_WIN32API
-#define  kik_unsetenv( name)  SetEnvironmentVariableA( name , NULL)
-#else
-#include  <stdlib.h>
-#define  kik_unsetenv( name)  setenv( name , "" , 1) ;
-#endif
 
-#endif
+#define  kik_unsetenv( name)  SetEnvironmentVariableA( name , NULL)
+
+#else	/* USE_WIN32API */
+
+#include  <stdlib.h>
+
+#define  kik_unsetenv( name)  setenv( name , "" , 1) ;
+
+#endif	/* USE_WIN32API */
+
+#endif	/* HAVE_UNSETENV */
 
 
 #ifdef  HAVE_GETUID

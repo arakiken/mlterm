@@ -1189,6 +1189,11 @@ change_color_rgb(
 	}
 	*p = '=' ;
 
+	if( strcmp( p + 1 , "?") == 0)
+	{
+		return  0 ;
+	}
+
 	if( ! ( p = alloca( 6 + strlen( pt) + 1)))
 	{
 		return  0 ;
@@ -1197,6 +1202,40 @@ change_color_rgb(
 	sprintf( p , "color:%s" , pt) ;
 
 	config_protocol_set( vt100_parser, p , 0) ;
+
+	return  1 ;
+}
+
+static int
+change_special_color(
+	ml_vt100_parser_t *  vt100_parser,
+	u_char *  pt
+	)
+{
+	char *  key ;
+
+	if( *pt == '0')
+	{
+		key = "bd_color" ;
+	}
+	else if( *pt == '1')
+	{
+		key = "ul_color" ;
+	}
+	else
+	{
+		return  0 ;
+	}
+
+	if( *(++pt) != ';')
+	{
+		return  0 ;
+	}
+
+	if( strcmp( ++pt , "?") != 0)	/* ?: query rgb */
+	{
+		config_protocol_set_simple( vt100_parser , key , pt) ;
+	}
 
 	return  1 ;
 }
@@ -3084,7 +3123,19 @@ parse_vt100_escape_sequence(
 			{
 				/* "OSC 4" change 256 color */
 
-				if( ! change_color_rgb( vt100_parser, pt))
+				if( ! change_color_rgb( vt100_parser , pt))
+				{
+				#ifdef  DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+					" change_color_rgb failed.\n") ;
+				#endif
+				}
+			}
+			else if( ps == 5)
+			{
+				/* "OSC 5" change colorBD/colorUL */
+
+				if( ! change_special_color( vt100_parser , pt))
 				{
 				#ifdef  DEBUG
 					kik_debug_printf( KIK_DEBUG_TAG
@@ -3094,19 +3145,30 @@ parse_vt100_escape_sequence(
 			}
 			else if( ps == 10)
 			{
-				/* "OSC 10" fg color */
-				config_protocol_set_simple( vt100_parser , "fg_color" , pt) ;
+				if( strcmp( pt , "?") != 0)	/* ?:query rgb */
+				{
+					/* "OSC 10" fg color */
+					config_protocol_set_simple( vt100_parser ,
+						"fg_color" , pt) ;
+				}
 			}
 			else if( ps == 11)
 			{
-				/* "OSC 11" bg color */
-				config_protocol_set_simple( vt100_parser , "bg_color" , pt) ;
+				if( strcmp( pt , "?") != 0)	/* ?:query rgb */
+				{
+					/* "OSC 11" bg color */
+					config_protocol_set_simple( vt100_parser ,
+						"bg_color" , pt) ;
+				}
 			}
 			else if( ps == 12)
 			{
-				/* "OSC 11" cursor bg color */
-				config_protocol_set_simple( vt100_parser ,
-					"cursor_bg_color" , pt) ;
+				if( strcmp( pt , "?") != 0)	/* ?:query rgb */
+				{
+					/* "OSC 11" cursor bg color */
+					config_protocol_set_simple( vt100_parser ,
+						"cursor_bg_color" , pt) ;
+				}
 			}
 			else if( ps == 20)
 			{
@@ -3281,7 +3343,8 @@ parse_vt100_escape_sequence(
 			 * "ESC ^" PM
 			 * "ESC _" APC
 			 */
-			if( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0)
+			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) ||
+			    ( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0))
 			{
 				return  0 ;
 			}

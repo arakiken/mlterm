@@ -186,6 +186,11 @@ x_color_config_set_rgb(
 	{
 		return  0 ;
 	}
+	else if( IS_VTSYS_COLOR(_color))
+	{
+		/* ml_get_color_name() is called to convert "0" -> "black", "1" -> "red", etc */
+		color = ml_get_color_name( _color) ;
+	}
 
 	rgb.red = red ;
 	rgb.green = green ;
@@ -246,9 +251,7 @@ x_color_config_set_rgb(
 		#endif
 		}
 
-		/* ml_get_color_name() is called to convert "0" -> "black", "1" -> "red", etc */
-		if( ! ( color = strdup( IS_VTSYS_COLOR(_color) ?
-					ml_get_color_name( _color) : color)))
+		if( ! ( color = strdup( color)))
 		{
 			return  0 ;
 		}

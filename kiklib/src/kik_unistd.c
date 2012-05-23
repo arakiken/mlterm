@@ -41,7 +41,35 @@ __kik_usleep(
 #endif /* USE_WIN32API */
 }
 
-#endif
+#endif	/* HAVE_USLEEP */
+
+
+#ifndef  HAVE_SETENV
+
+#include  <string.h>
+#include  <stdio.h>
+
+int
+__kik_setenv(
+	const char *  name ,
+	const char *  value ,
+	int  overwrite
+	)
+{
+	char *  env ;
+
+	/* XXX Memory leaks. */
+	if( ! ( env = malloc( strlen( name) + 1 + strlen(value) + 1)))
+	{
+		return  -1 ;
+	}
+
+	sprintf( env , "%s=%s" , name , value) ;
+
+	return  putenv( env) ;
+}
+
+#endif	/* HAVE_SETENV */
 
 
 #ifndef  HAVE_GETUID
@@ -52,7 +80,7 @@ __kik_getuid(void)
 	return  0 ;
 }
 
-#endif
+#endif	/* HAVE_GETUID */
 
 
 #ifndef  HAVE_GETGID
@@ -63,4 +91,4 @@ __kik_getgid(void)
 	return  0 ;
 }
 
-#endif
+#endif	/* HAVE_GETGID */

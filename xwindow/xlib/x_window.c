@@ -1202,6 +1202,8 @@ x_window_set_bg_color(
 	if( ! win->is_transparent && ! win->wall_picture_is_set)
 	{
 		XSetWindowBackground( win->disp->display , win->my_window , win->bg_color.pixel) ;
+
+		x_window_clear_margin_area( win) ;
 	}
 
 	return  1 ;
