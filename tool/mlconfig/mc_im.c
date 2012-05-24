@@ -172,7 +172,7 @@ xim_selected(GtkWidget *widget, gpointer data)
 	char *locale;
 
 	snprintf(selected_xim_name, STR_LEN,
-		 gtk_entry_get_text(GTK_ENTRY(widget)));
+		 "%s", gtk_entry_get_text(GTK_ENTRY(widget)));
 
 	if ((locale = get_xim_locale(selected_xim_name))) {
 		gtk_entry_set_text(GTK_ENTRY(data) , locale);
@@ -181,7 +181,7 @@ xim_selected(GtkWidget *widget, gpointer data)
 	}
 
 	snprintf(selected_xim_locale, STR_LEN,
-		 gtk_entry_get_text(GTK_ENTRY(data)));
+		 "%s", gtk_entry_get_text(GTK_ENTRY(data)));
 
 	is_changed = 1;
 
@@ -298,11 +298,11 @@ xim_widget_new(const char *xim_name, const char *xim_locale, const char *cur_loc
 		 cur_locale);
 	entry = gtk_entry_new();
 	snprintf(selected_xim_locale, STR_LEN,
-		 xim_locale ? xim_locale : current_locale_str);
+		 "%s", xim_locale ? xim_locale : current_locale_str);
 	gtk_entry_set_text(GTK_ENTRY(entry), selected_xim_locale);
 
 	snprintf(selected_xim_name, STR_LEN,
-		 xim_name ? xim_name : xim_auto_str);
+		 "%s", xim_name ? xim_name : xim_auto_str);
 	combo = mc_combo_new(_("XIM Server"), xims, num_of_xims,
 			     selected_xim_name, 0, xim_selected, entry);
 

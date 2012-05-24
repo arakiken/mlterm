@@ -400,6 +400,8 @@ char *yytext;
 #line 2 "syllable.lex"
 #include "indian.h"
 char word[1000], string1[1000],outstr[1000];
+int process_it(struct tabl *, int, char *);
+int my_yyinput(char *, int);
 #undef YY_INPUT 
 #undef YY_DECL
 
@@ -410,7 +412,7 @@ char word[1000], string1[1000],outstr[1000];
 
 #define YY_DECL int yylex (struct tabl *table, int sz)
 
-#line 414 "lex.split.c"
+#line 416 "lex.split.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -565,10 +567,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 24 "syllable.lex"
+#line 26 "syllable.lex"
 
 
-#line 572 "lex.split.c"
+#line 574 "lex.split.c"
 
 #if defined(YY_USES_REJECT) && (defined(__GNUC__) || defined(lint))
 	/* XXX: shut up `unused label' warning with %options yylineno */
@@ -657,33 +659,33 @@ do_action:	/* This label is used only to access EOF actions. */
 			goto yy_find_action;
 
 case 1:
-#line 27 "syllable.lex"
-case 2:
-#line 28 "syllable.lex"
-case 3:
 #line 29 "syllable.lex"
-case 4:
+case 2:
 #line 30 "syllable.lex"
-case 5:
+case 3:
 #line 31 "syllable.lex"
-case 6:
+case 4:
 #line 32 "syllable.lex"
+case 5:
+#line 33 "syllable.lex"
+case 6:
+#line 34 "syllable.lex"
 case 7:
 YY_RULE_SETUP
-#line 32 "syllable.lex"
+#line 34 "syllable.lex"
 process_it(table, sz, yytext);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 34 "syllable.lex"
+#line 36 "syllable.lex"
 illdefault(table, yytext, sz);
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 36 "syllable.lex"
+#line 38 "syllable.lex"
 ECHO;
 	YY_BREAK
-#line 687 "lex.split.c"
+#line 689 "lex.split.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1568,7 +1570,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 36 "syllable.lex"
+#line 38 "syllable.lex"
 
 
 int my_yyinput(char *buf, int max_size) {

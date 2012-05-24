@@ -1,3 +1,9 @@
+2012-05-25  Araki Ken  <arakiken@users.sf.net>
+
+	* indian.h, lex.split.c, syllable.lex, ml_vt100_parser.c, mc_im.c:
+	  SF Patch #3529392 and #3529386 are merged.
+	  (Thanks to Ahmed El-Mahmoudy)
+
 2012-05-24  Araki Ken  <arakikenS@users.sf.net>
 
 	* xlib/x_window.c: If background color is changed, margin area is cleared
@@ -110,7 +116,7 @@
 2012-05-10  Araki Ken  <arakiken@users.sf.net>
 
 	* Makefile.in, kik_pty_helper.c, ml_config_menu.c, x_imagelib.c:
-	  SF Patch #3524577 and #3524578 is merged.
+	  SF Patch #3524577 and #3524578 are merged.
 	  (Thanks to Ahmed El-Mahmoudy)
 
 	* etc/key: Updated.

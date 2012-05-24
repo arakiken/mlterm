@@ -3591,6 +3591,13 @@ parse_vt100_escape_sequence(
 	return  1 ;
 }
 
+/*
+ * XXX
+ * mkf_map_ucs4_to_iscii() in mkf_ucs4_iscii.h is used directly in
+ * parse_vt100_sequence(), though it should be used internally in mkf library
+ */
+int  mkf_map_ucs4_to_iscii( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
+
 static int
 parse_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
@@ -3650,7 +3657,6 @@ parse_vt100_sequence(
 				{
 					mkf_char_t  non_ucs ;
 
-					/* XXX */
 					if( mkf_map_ucs4_to_iscii( &non_ucs ,
 						mkf_bytes_to_int( ch.ch , ch.size)))
 					{

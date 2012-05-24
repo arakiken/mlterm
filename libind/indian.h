@@ -21,10 +21,15 @@ struct tabl
 	char *font;
 };
 
-/* Function prototypes */
+/* Private function prototypes */
 
 char *binsearch(struct tabl *, int, char *);
 char *illdefault(struct tabl *, char *, int );
+char *split(struct tabl *, char *, int);
+
+
+/* Public function prototypes */
+
 int iscii2font(struct tabl *, char *, char *, int);
 char *ins2iscii(struct a2i_tabl *, char *, int);
 char *iitk2iscii(struct a2i_tabl *, char *, char *, int);

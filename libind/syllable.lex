@@ -1,6 +1,8 @@
 %{
 #include "indian.h"
 char word[1000], string1[1000],outstr[1000];
+int process_it(struct tabl *, int, char *);
+int my_yyinput(char *, int);
 #undef YY_INPUT 
 #undef YY_DECL
 
