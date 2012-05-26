@@ -8581,7 +8581,7 @@ x_screen_reset_view(
 	x_screen_t *  screen
 	)
 {
-	x_color_manager_unload( screen->color_man) ;
+	x_color_manager_reload( screen->color_man) ;
 	
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	font_size_changed( screen) ;

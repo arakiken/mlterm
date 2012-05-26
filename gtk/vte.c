@@ -1683,10 +1683,12 @@ vte_terminal_realize(
 
 		XWindowAttributes  attr ;
 		XGCValues  gc_value ;
+		int  depth_is_changed ;
 
 		XGetWindowAttributes( disp.display , xid , &attr) ;
 		disp.visual = attr.visual ;
 		disp.colormap = attr.colormap ;
+		depth_is_changed = (disp.depth != attr.depth) ;
 		disp.depth = attr.depth ;
 
 		/* x_gc_t using DefaultGC is already created in vte_terminal_class_init */
@@ -1700,6 +1702,16 @@ vte_terminal_realize(
 		kik_debug_printf( KIK_DEBUG_TAG " Visual %x Colormap %x Depth %d\n" ,
 			disp.visual , disp.colormap , disp.depth) ;
 	#endif
+
+		if( depth_is_changed)
+		{
+			x_color_manager_reload( VTE_TERMINAL(widget)->pvt->screen->color_man) ;
+
+			/* No colors are cached for now. */
+		#if  0
+			x_color_cache_unload_all() ;
+		#endif
+		}
 	}
 
 	x_display_show_root( &disp , &VTE_TERMINAL(widget)->pvt->screen->window ,

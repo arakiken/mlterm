@@ -24,8 +24,7 @@ typedef struct  x_color_manager
 	{
 		x_color_t  xcolor ;
 		char *  name ;
-		u_int8_t  is_loaded ;
-	
+
 	} sys_colors[6] ;
 
 	u_int8_t  alpha ;
@@ -83,7 +82,7 @@ int  x_color_manager_adjust_bd_color( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_adjust_ul_color( x_color_manager_t *  color_man) ;
 
-int  x_color_manager_unload( x_color_manager_t *  color_man) ;
+int  x_color_manager_reload( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_change_alpha( x_color_manager_t *  color_man , u_int8_t  alpha) ;
 

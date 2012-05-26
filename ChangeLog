@@ -1,3 +1,11 @@
+2012-05-26  Araki Ken  <arakiken@users.sf.net>
+
+	* x_color_manager.[ch], x_screen.c:
+	  - sys_colors are loaded from the beginning.
+	    (sys_colors.is_loaded flag is removed)
+	  - If illegal color name is specified for sys_color, current sys_color
+	    is not changed. (Not falls back to white or black.)
+
 2012-05-25  Araki Ken  <arakiken@users.sf.net>
 
 	* indian.h, lex.split.c, syllable.lex, ml_vt100_parser.c, mc_im.c:
