@@ -44,7 +44,7 @@ sys_color_set(
 	{
 		if( ! x_load_xcolor( color_man->color_cache , &xcolor , name))
 		{
-			if( color <= _BG_COLOR)
+			if( ! color_man->sys_colors[color].name && color <= _BG_COLOR)
 			{
 				/* _FG_COLOR and _BG_COLOR are necessarily loaded. */
 				name = "black" ;
