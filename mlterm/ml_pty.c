@@ -2,6 +2,16 @@
  *	$Id$
  */
 
+/*
+ * _GNU_SOURCE must be defined before including <features.h> to take effect.
+ * since standard headers, kik_types.h and kik_def.h include features.h indirectly,
+ * ecplicitly evaluate only the autoconf's result here.
+ */
+#include  <kiklib/kik_config.h>
+#ifdef HAVE_GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include  "ml_pty_intern.h"
 
 #include  <kiklib/kik_debug.h>

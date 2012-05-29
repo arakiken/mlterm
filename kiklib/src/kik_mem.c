@@ -512,7 +512,7 @@ kik_mem_dump_all(void)
 		{
 			fprintf( stderr , "%p(size %d , alloced at %s[l.%d in %s] is allocated.\n" ,
 				kik_iterator_indirect( iterator)->ptr ,
-				kik_iterator_indirect( iterator)->size ,
+				(int)kik_iterator_indirect( iterator)->size ,
 				kik_iterator_indirect( iterator)->func ,
 				kik_iterator_indirect( iterator)->line ,
 				kik_iterator_indirect( iterator)->file) ;
@@ -534,7 +534,7 @@ kik_mem_free_all(void)
 		{
 			fprintf( stderr , "%p(size %d , alloced at %s[l.%d in %s] is not freed.\n" ,
 				kik_iterator_indirect( iterator)->ptr ,
-				kik_iterator_indirect( iterator)->size ,
+				(int)kik_iterator_indirect( iterator)->size ,
 				kik_iterator_indirect( iterator)->func ,
 				kik_iterator_indirect( iterator)->line ,
 				kik_iterator_indirect( iterator)->file) ;

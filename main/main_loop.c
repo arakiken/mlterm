@@ -103,6 +103,14 @@ get_font_size_range(
 	return  1 ;
 }
 
+#ifdef  USE_LIBSSH2
+static void
+ssh_keepalive(void)
+{
+	ml_pty_ssh_keepalive( 100) ;
+}
+#endif
+
 
 /* --- global functions --- */
 
@@ -183,6 +191,10 @@ main_loop_init(
 		"visual depth") ;
 	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" ,
 		"max ptys to open simultaneously (multiple of 32)") ;
+#ifdef  USE_LIBSSH2
+	kik_conf_add_opt( conf , '\0' , "keepalive" , 0 , "ssh_keepalive_interval" ,
+		"interval seconds to send keepalive. [0 = not send]") ;
+#endif
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
@@ -332,7 +344,20 @@ main_loop_init(
 			num_of_startup_screens = n ;
 		}
 	}
-	
+
+#ifdef  USE_LIBSSH2
+	if( ( value = kik_conf_get_value( conf , "ssh_keepalive_interval")))
+	{
+		u_int  interval ;
+
+		if( kik_str_to_uint( &interval , value) && interval > 0)
+		{
+			ml_pty_ssh_set_keepalive_interval( interval) ; 
+			x_event_source_add_fd( -1 , ssh_keepalive) ;
+		}
+	}
+#endif
+
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
 	kik_conf_delete( conf) ;

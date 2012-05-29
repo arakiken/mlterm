@@ -66,6 +66,10 @@ int  ml_pty_ssh_scp( ml_pty_ptr_t  pty , ml_char_encoding_t  pty_encoding ,
 	ml_char_encoding_t  path_encoding , char *  dst_path , char *  src_path) ;
 
 void  ml_pty_ssh_set_cipher_list( const char *  list) ;
+
+void  ml_pty_ssh_set_keepalive_interval( u_int  interval_sec) ;
+
+int  ml_pty_ssh_keepalive( u_int  spent_msec) ;
 #endif
 
 

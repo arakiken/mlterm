@@ -671,6 +671,10 @@ comment $Id$
         ssh 接続で使用する共通鍵暗号を指定する。
 	(コンマ区切りで複数指定)
 
+      o ssh_keepalive_interval (0)
+        ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信する。
+	(0 の場合は送信しない。)
+
       o auto_restart (*true*/false)
         SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
         application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
@@ -1112,6 +1116,7 @@ comment $Id$
        --logmsg(=bool) : logging_msg
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
+       --keepalive=value: ssh_keepalive_interval (X)
 
     -e ... : 指定したコマンドを起動
 

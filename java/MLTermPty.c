@@ -79,6 +79,10 @@ static mkf_conv_t *  utf16_conv ;
 static char *  plink ;
 #endif
 
+#ifdef  USE_LIBSSH2
+static u_int  keepalive_interval ;
+#endif
+
 
 /* --- static functions --- */
 
@@ -873,6 +877,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 				}
 			}
 
+		#ifdef  USE_LIBSSH2
 			if( ( value = kik_conf_get_value( conf , "ssh_public_key")))
 			{
 				public_key = strdup( value) ;
@@ -887,6 +892,16 @@ Java_mlterm_MLTermPty_nativeOpen(
 			{
 				ml_pty_ssh_set_cipher_list( strdup( value)) ;
 			}
+
+			if( ( value = kik_conf_get_value( conf , "ssh_keepalive_interval")))
+			{
+				if( kik_str_to_uint( &keepalive_interval , value) &&
+				    keepalive_interval > 0)
+				{
+					ml_pty_ssh_set_keepalive_interval( keepalive_interval) ;
+				}
+			}
+		#endif
 
 		#if  0
 			/* XXX How to get password ? */
@@ -1169,6 +1184,9 @@ Java_mlterm_MLTermPty_waitForReading(
 	int  maxfd ;
 	int  ptyfd ;
 	fd_set  read_fds ;
+#ifdef  USE_LIBSSH2
+	struct timeval  tval ;
+#endif
 
 	ml_close_dead_terms() ;
 	num_of_terms = ml_get_all_terms( &terms) ;
@@ -1178,21 +1196,39 @@ Java_mlterm_MLTermPty_waitForReading(
 		return  JNI_FALSE ;
 	}
 
-	maxfd = 0 ;
-	FD_ZERO( &read_fds) ;
-
-	for( count = 0 ; count < num_of_terms ; count ++)
+	while( 1)
 	{
-		ptyfd = ml_term_get_master_fd( terms[count]) ;
-		FD_SET( ptyfd , &read_fds) ;
+		maxfd = 0 ;
+		FD_ZERO( &read_fds) ;
 
-		if( ptyfd > maxfd)
+		for( count = 0 ; count < num_of_terms ; count ++)
 		{
-			maxfd = ptyfd ;
+			ptyfd = ml_term_get_master_fd( terms[count]) ;
+			FD_SET( ptyfd , &read_fds) ;
+
+			if( ptyfd > maxfd)
+			{
+				maxfd = ptyfd ;
+			}
+		}
+
+	#ifdef  USE_LIBSSH2
+		tval.tv_usec = 0 ;
+		tval.tv_sec = keepalive_interval ;
+
+		if( select( maxfd + 1 , &read_fds , NULL , NULL ,
+				keepalive_interval > 0 ? &tval : NULL) == 0)
+		{
+			ml_pty_ssh_keepalive( keepalive_interval * 1000) ;
+		}
+		else
+	#else
+		select( maxfd + 1 , &read_fds , NULL , NULL , NULL) ;
+	#endif
+		{
+			break ;
 		}
 	}
-
-	select( maxfd + 1 , &read_fds , NULL , NULL , NULL) ;
 
 	return  JNI_TRUE ;
 #endif

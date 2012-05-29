@@ -1,3 +1,19 @@
+2012-05-29  Araki Ken  <arakiken@users.sf.net>
+
+	* contrib/tool/mlcc/Makefile.in: SF Patch #3530235 is merged.
+
+	* doc/ja/README.ja, man/mlterm.1: Updated.
+
+	* mlclient/main.c:
+	  "--keepalive" is added to na_options.
+
+	* ml_pty.h, ml_pty_ssh.c, main_loop.c, MLTermPty.c:
+	  "ssh_keepalive_interval" option is added.
+
+	* kik_mem.c: Minor fixes.
+
+	* ml_pty.c: Declaration of ptsname() is enabled by defining _GNU_SOURCE.
+
 2012-05-27  Araki Ken  <arakiken@users.sf.net>
 
 	* x_color_manager.c: Minor fixes.

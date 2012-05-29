@@ -88,6 +88,8 @@ static u_int  num_of_sessions = 0 ;
 static HANDLE  rd_ev ;
 #endif
 static const char *  cipher_list ;
+static u_int  keepalive_msec ;
+static u_int  keepalive_msec_left ;
 
 
 /* --- static functions --- */
@@ -616,7 +618,8 @@ write_to_pty(
 
 	ret = libssh2_channel_write( ((ml_pty_ssh_t*)pty)->channel , buf , len) ;
 
-	if( libssh2_channel_eof( ((ml_pty_ssh_t*)pty)->channel))
+	if( ret == LIBSSH2_ERROR_SOCKET_SEND ||
+	    libssh2_channel_eof( ((ml_pty_ssh_t*)pty)->channel))
 	{
 		kik_trigger_sig_child( pty->child_pid) ;
 
@@ -643,7 +646,8 @@ read_pty(
 	SetEvent( rd_ev) ;
 #endif
 
-	if( libssh2_channel_eof( ((ml_pty_ssh_t*)pty)->channel))
+	if( ret == LIBSSH2_ERROR_SOCKET_SEND ||
+	    libssh2_channel_eof( ((ml_pty_ssh_t*)pty)->channel))
 	{
 		kik_trigger_sig_child( pty->child_pid) ;
 
@@ -1079,9 +1083,14 @@ ml_pty_ssh_new(
 		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
 	#endif
 	}
-	
+
 	/* Non-blocking in read/write. */
 	libssh2_session_set_blocking( pty->session->obj , 0) ;
+
+	if( keepalive_msec >= 1000)
+	{
+		libssh2_keepalive_config( pty->session->obj , 1 , keepalive_msec / 1000) ;
+	}
 
 #ifdef  USE_WIN32API
 	if( ! rd_ev)
@@ -1534,4 +1543,36 @@ ml_pty_ssh_set_cipher_list(
 	)
 {
 	cipher_list = list ;
+}
+
+void
+ml_pty_ssh_set_keepalive_interval(
+	u_int  interval_sec
+	)
+{
+	keepalive_msec_left = keepalive_msec = interval_sec * 1000 ;
+}
+
+int
+ml_pty_ssh_keepalive(
+	u_int  spent_msec
+	)
+{
+	if( keepalive_msec_left <= spent_msec)
+	{
+		u_int  count ;
+
+		for( count = 0 ; count < num_of_sessions ; count++)
+		{
+			libssh2_keepalive_send( sessions[count]->obj , NULL) ;
+		}
+
+		keepalive_msec_left = keepalive_msec ;
+	}
+	else
+	{
+		keepalive_msec_left -= spent_msec ;
+	}
+
+	return  1 ;
 }

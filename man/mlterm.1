@@ -545,6 +545,10 @@ Use IBus.
 Don't use input method.
 .RE
 .TP
+\fB\-\-keepalive\fR(=\fIvalue\fR)
+Specify interval seconds to send keepalive message to ssh server.
+The default is \fB0\fR.
+.TP
 \fB\-\-logmsg\fR(=\fIbool\fR)
 Enable logging messages of mlterm to ~/.mlterm/msg.log.
 The default is \fBtrue\fR.
@@ -1262,6 +1266,9 @@ Specify scrollbar position.
 .TP
 \fBscrollbar_view_name=\fIname\fR (\fB\-S\fR, \fB\-\-sbview\fR) 
 Specify name of scrollbar.
+.TP
+\fBssh_keepalive_interval\fR=\fIvalue\fR (\fB\-\-keepalive\fR)
+Specify interval seconds to send keepalive message to ssh server.
 .TP
 \fBssh_public_key\fR=\fIvalue\fR (\fB\-\-pubkey\fR)
 Specify public key file for ssh connection.

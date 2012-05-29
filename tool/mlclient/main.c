@@ -25,12 +25,12 @@ static char *  na_options[] =
 	"-c/--cp932" ,
 	"-i/--xim" ,
 	"-j/--daemon" ,
-	"   --depth" ,
-	"   --maxptys" ,
 	"   --button3" ,
 	"   --clip" ,
 	"   --restart" ,
-	"   --logmsg"
+	"   --depth" ,
+	"   --maxptys" ,
+	"   --keepalive"
 } ;
 
 

@@ -10,7 +10,7 @@ VPATH = ${top_srcdir}
 
 CC = @CC@
 PROG = mlcc
-CFLAGS = @CFLAGS@
+CFLAGS = @CFLAGS@ @CPPFLAGS@
 INSTALL = @INSTALL@
 
 OBJECTS = data.o main.o comm.o \
