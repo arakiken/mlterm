@@ -62,9 +62,7 @@ int  __kik_setenv( const char *  name , const char *  value , int  overwrite) ;
 
 #else	/* USE_WIN32API */
 
-#include  <stdlib.h>
-
-#define  kik_unsetenv( name)  setenv( name , "" , 1) ;
+#define  kik_unsetenv( name)  kik_setenv( name , "" , 1) ;
 
 #endif	/* USE_WIN32API */
 

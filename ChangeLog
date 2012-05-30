@@ -1,3 +1,7 @@
+2012-05-31  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_unistd.h: Minor fixes.
+
 2012-05-29  Araki Ken  <arakiken@users.sf.net>
 
 	* contrib/tool/mlcc/Makefile.in: SF Patch #3530235 is merged.
