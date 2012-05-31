@@ -3561,7 +3561,7 @@ vte_terminal_set_opacity(
 
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
-		char  value[DIGIT_STR_LEN(u_int8_t)] ;
+		char  value[DIGIT_STR_LEN(u_int8_t) + 1] ;
 
 		sprintf( value , "%d" , (int)alpha) ;
 

@@ -1880,12 +1880,12 @@ parse_vt100_escape_sequence(
 				}
 				if( '0' <= *str_p && *str_p <= '9')
 				{
-					u_char  digit[DIGIT_STR_LEN(int)] ;
+					u_char  digit[DIGIT_STR_LEN(int) + 1] ;
 					int  count ;
 
 					digit[0] = *str_p ;
 
-					for( count = 1 ; count < DIGIT_STR_LEN(int) - 1 ; count++)
+					for( count = 1 ; count < DIGIT_STR_LEN(int) ; count++)
 					{
 						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
 								&str_p , &left , 0))
@@ -3040,7 +3040,7 @@ parse_vt100_escape_sequence(
 		{
 			/* "ESC ]" (OSC) */
 
-			char  digit[DIGIT_STR_LEN(int)] ;
+			char  digit[DIGIT_STR_LEN(int) + 1] ;
 			int  count ;
 			int  ps ;
 			u_char *  pt ;

@@ -1224,7 +1224,7 @@ load_file(
 	pid_t  pid ;
 	int  fds1[2] ;
 	int  fds2[2] ;
-	char  pix_str[DIGIT_STR_LEN(Pixmap) + DIGIT_STR_LEN(Pixmap)] ;
+	char  pix_str[DIGIT_STR_LEN(Pixmap) + 1 + DIGIT_STR_LEN(Pixmap) + 1] ;
 	Pixmap  pixmap_tmp ;
 	Pixmap  mask_tmp ;
 	ssize_t  size ;
@@ -1252,9 +1252,9 @@ load_file(
 		/* child process */
 
 		char *  args[6] ;
-		char  win_str[DIGIT_STR_LEN(Window)] ;
-		char  width_str[DIGIT_STR_LEN(u_int)] ;
-		char  height_str[DIGIT_STR_LEN(u_int)] ;
+		char  win_str[DIGIT_STR_LEN(Window) + 1] ;
+		char  width_str[DIGIT_STR_LEN(u_int) + 1] ;
+		char  height_str[DIGIT_STR_LEN(u_int) + 1] ;
 
 		args[0] = LIBEXECDIR "/mlterm/mlimgloader" ;
 		sprintf( win_str , "%lu" , x_display_get_group_leader( disp)) ;
