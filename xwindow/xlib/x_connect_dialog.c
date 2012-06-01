@@ -50,6 +50,7 @@ x_connect_dialog(
 	u_int  ncolumns ;
 	char *  title ;
 	size_t  pass_len ;
+	int  ret ;
 
 	if( ! ( title = alloca( (ncolumns = 20 + strlen( def_server)))))
 	{
@@ -95,6 +96,7 @@ x_connect_dialog(
 	XSelectInput( display , window , KeyReleaseMask|ExposureMask|StructureNotifyMask) ;
 	XMapWindow( display , window) ;
 
+	ret = 0 ;
 	*pass = strdup( "") ;
 	pass_len = 1 ;
 
@@ -123,6 +125,10 @@ x_connect_dialog(
 						redraw = CLEAR_DRAW ;
 					}
 				}
+				else if( buf[0] == 0x1b)
+				{
+					break ;
+				}
 				else if( isprint( (int)buf[0]))
 				{
 					if( ! ( p = realloc( *pass , (pass_len += len))))
@@ -137,7 +143,8 @@ x_connect_dialog(
 				}
 				else
 				{
-					/* Exit loop */
+					/* Exit loop successfully. */
+					ret = 1 ;
 					break ;
 				}
 			}
@@ -208,15 +215,17 @@ x_connect_dialog(
 	XFreeFont( display , font) ;
 	XCloseDisplay( display) ;
 
-	*uri = strdup( def_server) ;
-
-	*exec_cmd = NULL ;
+	if( ret)
+	{
+		*uri = strdup( def_server) ;
+		*exec_cmd = NULL ;
+	}
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Connecting to %s %s\n" , *uri , *pass) ;
 #endif
 
-	return  1 ;
+	return  ret ;
 }
 
 

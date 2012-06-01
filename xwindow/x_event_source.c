@@ -282,7 +282,6 @@ x_event_source_process(void)
 	return  1 ;
 }
 
-#ifndef  USE_WIN32API
 /*
  * fd >= 0  -> Normal file descriptor. handler is invoked if fd is ready.
  * fd < 0 -> Special ID. handler is invoked at interval of 0.1 sec.
@@ -293,6 +292,8 @@ x_event_source_add_fd(
 	void  (*handler)(void)
 	)
 {
+#ifndef  USE_WIN32API
+
 	void *  p ;
 
 	if( ! handler)
@@ -319,6 +320,12 @@ x_event_source_add_fd(
 #endif
 
 	return  1 ;
+
+#else	/* USE_WIN32API */
+
+	return  0 ;
+
+#endif	/* USE_WIN32API */
 }
 
 int
@@ -326,6 +333,7 @@ x_event_source_remove_fd(
 	int  fd
 	)
 {
+#ifndef  USE_WIN32API
 	u_int  count ;
 
 	for( count = 0 ; count < num_of_additional_fds ; count++)
@@ -341,7 +349,8 @@ x_event_source_remove_fd(
 			return  1 ;
 		}
 	}
+#endif	/* USE_WIN32API */
 
 	return  0 ;
 }
-#endif
+

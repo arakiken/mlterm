@@ -1589,6 +1589,11 @@ ml_screen_insert_new_lines(
 {
 	u_int  count ;
 
+	if( size > ml_edit_get_rows( screen->edit))
+	{
+		size = ml_edit_get_rows( screen->edit) ;
+	}
+
 	for( count = 0 ; count < size ; count ++)
 	{
 		ml_edit_insert_new_line( screen->edit) ;
@@ -1614,6 +1619,11 @@ ml_screen_delete_lines(
 	)
 {
 	u_int  count ;
+
+	if( size > ml_edit_get_rows( screen->edit))
+	{
+		size = ml_edit_get_rows( screen->edit) ;
+	}
 
 	for( count = 0 ; count < size ; count ++)
 	{

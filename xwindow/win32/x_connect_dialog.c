@@ -221,24 +221,22 @@ LRESULT CALLBACK dialog_proc(
 		switch( LOWORD(wparam))
 		{
 		case  IDOK:
-			{
-				selected_server = get_window_text(
-							GetDlgItem( dlgwin , IDD_SERVER)) ;
-				selected_port = get_window_text(
-							GetDlgItem( dlgwin , IDD_PORT)) ;
-				selected_user = get_window_text(
-							GetDlgItem( dlgwin , IDD_USER)) ;
-				selected_pass = get_window_text(
-							GetDlgItem( dlgwin , IDD_PASS)) ;
-				selected_encoding = get_window_text(
-							GetDlgItem( dlgwin , IDD_ENCODING)) ;
-				selected_exec_cmd = get_window_text(
-							GetDlgItem( dlgwin , IDD_EXEC_CMD)) ;
+			selected_server = get_window_text(
+						GetDlgItem( dlgwin , IDD_SERVER)) ;
+			selected_port = get_window_text(
+						GetDlgItem( dlgwin , IDD_PORT)) ;
+			selected_user = get_window_text(
+						GetDlgItem( dlgwin , IDD_USER)) ;
+			selected_pass = get_window_text(
+						GetDlgItem( dlgwin , IDD_PASS)) ;
+			selected_encoding = get_window_text(
+						GetDlgItem( dlgwin , IDD_ENCODING)) ;
+			selected_exec_cmd = get_window_text(
+						GetDlgItem( dlgwin , IDD_EXEC_CMD)) ;
 
-				EndDialog( dlgwin , IDOK) ;
-				
-				break ;
-			}
+			EndDialog( dlgwin , IDOK) ;
+
+			break ;
 			
 		case  IDCANCEL:
 			selected_proto = -1 ;
@@ -314,14 +312,14 @@ LRESULT CALLBACK dialog_proc(
 			selected_proto = LOWORD(wparam) ;
 			CheckRadioButton( dlgwin, IDD_SSH, IDD_RLOGIN, selected_proto) ;
 			
-			return  TRUE ;
+			break ;
 
 		default:
 			return  FALSE ;
 		}
-		
+
 	default:
-		return  FALSE;
+		return  FALSE ;
 	}
 	
 	return  TRUE ;

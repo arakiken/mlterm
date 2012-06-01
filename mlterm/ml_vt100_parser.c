@@ -54,6 +54,10 @@
 #define  HAS_CONFIG_LISTENER(vt100_parser,method) \
 	((vt100_parser)->config_listener && ((vt100_parser)->config_listener->method))
 
+#if  1
+#define  MAX_PS_DIGIT  0xffff
+#endif
+
 #if  0
 #define  EDIT_DEBUG
 #endif
@@ -1905,6 +1909,12 @@ parse_vt100_escape_sequence(
 					if( num < MAX_NUM_OF_PS)
 					{
 						ps[num ++] = atoi( digit) ;
+					#ifdef  MAX_PS_DIGIT
+						if( ps[num - 1] > MAX_PS_DIGIT)
+						{
+							ps[num - 1] = MAX_PS_DIGIT ;
+						}
+					#endif
 					}
 
 					/* *str_p can be ';' here. */
@@ -3074,6 +3084,12 @@ parse_vt100_escape_sequence(
 
 				/* if digit is illegal , ps is set 0. */
 				ps = atoi( digit) ;
+			#ifdef  MAX_PS_DIGIT
+				if( ps > MAX_PS_DIGIT)
+				{
+					ps = MAX_PS_DIGIT ;
+				}
+			#endif
 
 				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
 						&str_p , &left , 1))

@@ -627,7 +627,6 @@ open_screen_intern(
 	}
 
 	screens = p ;
-	screens[num_of_screens++] = screen ;
 
 	/*
 	 * New screen is successfully created here except ml_pty.
@@ -663,7 +662,7 @@ open_screen_intern(
 			 * and operates screen->term which was already deleted.
 			 * (see window_unfocused())
 			 */
-			screen->fade_ratio = 100 ;
+			screen->window.window_unfocused = NULL ;
 			SendMessage( root->my_window , WM_CLOSE , 0 , 0) ;
 		#else
 			close_screen_intern( screen) ;
@@ -677,7 +676,10 @@ open_screen_intern(
 	{
 		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
 	}
-	
+
+	/* Don't add screen to screens before "return NULL" above. */
+	screens[num_of_screens++] = screen ;
+
 	return  screen ;
 	
 error:

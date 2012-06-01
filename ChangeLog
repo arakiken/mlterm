@@ -1,3 +1,15 @@
+2012-06-02  Araki Ken  <arakiken@users.sf.net>
+
+	* x_event_source.[ch]: Macros -> Dummy functions.
+
+	* x_screen_manager.c: If open_pty_intern() fails in open_screen_intern(),
+	  new screen is not added to static variable screens.
+
+	* ml_vt100_parser.c: MAX_PS_DIGIT macro is defined.
+
+	* ml_screen.c: Max number of lines to be inserted or deleted is
+	  number of screen rows.
+
 2012-06-01  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_font.c: Minor fixes.
