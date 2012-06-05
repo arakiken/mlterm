@@ -233,6 +233,8 @@ x_prepare_for_main_config(
 		) ;
 	kik_conf_add_opt( conf , '\0' , "ciphlist" , 0 , "cipher_list" ,
 		"preferred cipher list") ;
+	kik_conf_add_opt( conf , '\0' , "x11" , 1 , "ssh_x11_forwarding" ,
+		"allow x11 forwarding [false]") ;
 #endif
 	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
 		"extra space between letters in pixels [0]") ;
@@ -1237,6 +1239,11 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "cipher_list")))
 	{
 		ml_pty_ssh_set_cipher_list( strdup( value)) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "ssh_x11_forwarding")))
+	{
+		ml_pty_ssh_set_use_x11_forwarding( ( strcmp( value , "true") == 0)) ;
 	}
 #endif
 

@@ -675,6 +675,9 @@ comment $Id$
         ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信する。
 	(0 の場合は送信しない。)
 
+      o ssh_x11_forwarding (false)
+        ssh 接続で x11 forwarding を有効にする。
+
       o auto_restart (*true*/false)
         SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
         application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。

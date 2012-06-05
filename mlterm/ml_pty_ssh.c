@@ -14,21 +14,11 @@
 #include  <kiklib/kik_unistd.h>		/* kik_usleep */
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_dialog.h>
+#include  <kiklib/kik_net.h>		/* getaddrinfo/socket/connect/sockaddr_un */
 
-#ifdef  USE_WIN32API
-#undef  _WIN32_WINNT
-#define  _WIN32_WINNT  0x0501	/* for getaddrinfo */
-#include  <windows.h>
-#include  <ws2tcpip.h>		/* addrinfo */
-#else
-#include  <sys/socket.h>
-#include  <netdb.h>
-#include  <netinet/in.h>
-#ifdef  HAVE_PTHREAD
+#if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include  <pthread.h>
 #endif
-#endif
-
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* close/pipe */
 #include  <stdio.h>		/* sprintf */
@@ -78,18 +68,39 @@ typedef struct scp
 
 } scp_t ;
 
+#ifndef  USE_WIN32API
+typedef struct x11_fd
+{
+	int  display ;
+	int  channel ;
+
+} x11_fd_t ;
+#endif
+
 
 /* --- static variables --- */
 
 static char *  pass_response ;
+
 static ssh_session_t **  sessions ;
 static u_int  num_of_sessions = 0 ;
+
 #ifdef  USE_WIN32API
 static HANDLE  rd_ev ;
 #endif
+
 static const char *  cipher_list ;
+
 static u_int  keepalive_msec ;
 static u_int  keepalive_msec_left ;
+
+static int  use_x11_forwarding ;
+#ifndef  USE_WIN32API
+static int  display_port = -1 ;
+static x11_fd_t  x11_fds[10] ;
+static u_int  num_of_x11_fds ;
+static LIBSSH2_CHANNEL *  x11_channels[10] ;
+#endif
 
 
 /* --- static functions --- */
@@ -909,6 +920,256 @@ scp_thread(
 }
 
 
+#ifndef  USE_WIN32API
+
+static int
+setup_x11(
+	LIBSSH2_CHANNEL *  channel
+	)
+{
+	char *  display ;
+	char *  display_port_str ;
+	char *  p ;
+	char *  cmd ;
+	char  line[512] ;
+	char *  proto ;
+	char *  data ;
+	FILE *  fp ;
+
+	if( ! ( display = getenv( "DISPLAY")))
+	{
+		return  0 ;
+	}
+
+	if( strncmp( display , "unix:" , 5) == 0)
+	{
+		display_port_str = display + 5 ;
+	}
+	else if( display[0] == ':')
+	{
+		display_port_str = display + 1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+
+	if( ! ( display_port_str = kik_str_alloca_dup( display_port_str)) ||
+	    ! ( p = strrchr( display_port_str , '.')))
+	{
+		return  0 ;
+	}
+
+	*p = '\0' ;
+	display_port = atoi( display_port_str) ;
+
+	proto = NULL ;
+	data = NULL ;
+
+	if( ( cmd = alloca( 39 + strlen( display) + 1)))
+	{
+		sprintf( cmd , "xauth list %s 2> /dev/null" , display) ;
+		if( ( fp = popen( cmd , "r")))
+		{
+			if( fgets( line , sizeof(line) , fp))
+			{
+				if( ( proto = strchr( line , ' ')))
+				{
+					proto += 2 ;
+
+					if( ( data = strchr( proto , ' ')))
+					{
+						*data = '\0' ;
+						data += 2 ;
+
+						if( ( p = strchr( data , '\n')))
+						{
+							*p = '\0' ;
+						}
+					}
+				}
+			}
+
+			fclose( fp) ;
+		}
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " libssh2_channel_x11_req_ex (with xauth %s %s)\n" ,
+			proto , data) ;
+#endif
+
+	return  libssh2_channel_x11_req_ex( channel , 0 , proto , data , 0) == 0 ;
+}
+
+static void
+x11_callback(
+	LIBSSH2_SESSION *  session ,
+	LIBSSH2_CHANNEL *  channel ,
+	char *  shost ,
+	int  sport ,
+	void **  abstract
+	)
+{
+	u_int  count ;
+	int  channel_sock ;
+	struct sockaddr_un  addr ;
+	int  display_sock ;
+
+	if( display_port == -1 || num_of_x11_fds >= 10)
+	{
+		goto  error ;
+	}
+
+	for( count = 0 ; ; count++)
+	{
+		if( count == num_of_sessions)
+		{
+			goto  error ;
+		}
+
+		if( session == sessions[count]->obj)
+		{
+			channel_sock = sessions[count]->sock ;
+			break ;
+		}
+	}
+
+	if( ( display_sock = socket( AF_UNIX , SOCK_STREAM , 0)) < 0)
+	{
+		goto  error ;
+	}
+
+	memset( &addr , 0 , sizeof(addr)) ;
+	addr.sun_family = AF_UNIX;
+	snprintf( addr.sun_path , sizeof(addr.sun_path) ,
+		"/tmp/.X11-unix/X%d" , display_port) ;
+
+	if( connect( display_sock , (struct sockaddr *)&addr , sizeof(addr)) != -1)
+	{
+	#ifdef  USE_WIN32API
+		u_long  val ;
+
+		ioctlsocket( display_sock , FIONBIO , &val) ;
+	#else
+		fcntl( display_sock , F_SETFL , O_NONBLOCK|fcntl( display_sock , F_GETFL , 0)) ;
+	#endif
+
+		x11_channels[num_of_x11_fds] = channel ;
+		x11_fds[num_of_x11_fds].display = display_sock ;
+		x11_fds[num_of_x11_fds++].channel = channel_sock ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x11 forwarding started.\n") ;
+	#endif
+
+		/* Successfully setup x11 forwarding. */
+
+		return ;
+	}
+	else
+	{
+		closesocket( display_sock) ;
+	}
+
+error:
+	libssh2_channel_free( channel) ;
+}
+
+static int  ssh_to_xserver( LIBSSH2_CHANNEL *  channel , int  display) ;
+
+static int
+xserver_to_ssh(
+	LIBSSH2_CHANNEL *  channel ,
+	int  display
+	)
+{
+	char  buf[8192] ;
+	ssize_t  len ;
+	int  ret ;
+
+	ret = -1 ;
+	while( ( len = read( display , buf , sizeof(buf))) > 0)
+	{
+		ssize_t  w_len ;
+		char *  p ;
+
+		p = buf ;
+		while( ( w_len = libssh2_channel_write( channel , p , len)) < len)
+		{
+			if( w_len > 0)
+			{
+				len -= w_len ;
+				p += w_len ;
+			}
+
+			ssh_to_xserver( channel , display) ;
+		}
+
+		ret = 1 ;
+	#if  0
+		kik_debug_printf( "X SERVER -> CHANNEL %d\n" , len) ;
+	#endif
+	}
+
+	if( len == 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  ret ;
+	}
+}
+
+static int
+ssh_to_xserver(
+	LIBSSH2_CHANNEL *  channel ,
+	int  display
+	)
+{
+	char  buf[8192] ;
+	ssize_t  len ;
+	int  ret ;
+
+	ret = -1 ;
+	while( ( len = libssh2_channel_read( channel , buf , sizeof(buf))) > 0)
+	{
+		ssize_t  w_len ;
+		char *  p ;
+
+		p = buf ;
+		while( ( w_len = write( display , p , len)) < len)
+		{
+			if( w_len > 0)
+			{
+				len -= w_len ;
+				p += w_len ;
+			}
+
+			xserver_to_ssh( channel , display) ;
+		}
+
+		ret = 1 ;
+
+	#if  0
+		kik_debug_printf( "CHANNEL -> X SERVER %d\n" , len) ;
+	#endif
+	}
+
+	if( libssh2_channel_eof( channel))
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  ret ;
+	}
+}
+
+#endif
+
+
 /* --- global functions --- */
 
 ml_pty_ptr_t
@@ -958,6 +1219,14 @@ ml_pty_ssh_new(
 	{
 		goto  error1 ;
 	}
+
+#ifndef  USE_WIN32API
+	if( use_x11_forwarding)
+	{
+		libssh2_session_callback_set( pty->session->obj ,
+			LIBSSH2_CALLBACK_X11 , x11_callback) ;
+	}
+#endif
 
 	/* Request a shell */
 	if( ! ( pty->channel = libssh2_channel_open_session( pty->session->obj)))
@@ -1015,6 +1284,18 @@ ml_pty_ssh_new(
 
 		goto  error3 ;
 	}
+
+#ifndef  USE_WIN32API
+	if( use_x11_forwarding)
+	{
+		if( ! setup_x11( pty->channel))
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Failed requesting x11\n") ;
+		#endif
+		}
+	}
+#endif
 
 	if( cmd_path)
 	{
@@ -1575,4 +1856,99 @@ ml_pty_ssh_keepalive(
 	}
 
 	return  1 ;
+}
+
+void
+ml_pty_ssh_set_use_x11_forwarding(
+	int  _use_x11_forwarding
+	)
+{
+	use_x11_forwarding = _use_x11_forwarding ;
+}
+
+u_int
+ml_pty_ssh_get_x11_fds(
+	int **  fds
+	)
+{
+#ifndef  USE_WIN32API
+	if( num_of_x11_fds > 0)
+	{
+		int  count ;
+
+		for( count = num_of_x11_fds - 1 ; count >= 0 ; count--)
+		{
+			if( ! x11_channels[count])
+			{
+				/* Already closed in ml_pty_ssh_send_recv_x11(). */
+				x11_fds[count] = x11_fds[--num_of_x11_fds] ;
+				x11_channels[count] = x11_channels[num_of_x11_fds] ;
+			}
+		#if  1
+			else
+			{
+				/*
+				 * Packets from ssh channels aren't necessarily
+				 * detected by select(), so are received here
+				 * in a certain interval.
+				 * ( "+ 1" means x11_fd_t.channel.)
+				 */
+				ml_pty_ssh_send_recv_x11( count * 2 + 1) ;
+			}
+		#endif
+		}
+
+		*fds = x11_fds ;
+
+		return  num_of_x11_fds * 2 ;
+	}
+	else
+#endif
+	{
+		return  0 ;
+	}
+}
+
+int
+ml_pty_ssh_send_recv_x11(
+	int  idx
+	)
+{
+#ifndef  USE_WIN32API
+	int  read_channel ;
+	int  ret ;
+
+	if( idx >= num_of_x11_fds * 2)
+	{
+		return  0 ;
+	}
+
+	read_channel = idx % 2 ;
+	idx /= 2 ;
+
+	if( read_channel)
+	{
+		ret = ssh_to_xserver( x11_channels[idx] , x11_fds[idx].display) ;
+	}
+	else
+	{
+		ret = xserver_to_ssh( x11_channels[idx] , x11_fds[idx].display) ;
+	}
+
+	if( ! ret)
+	{
+		closesocket( x11_fds[idx].display) ;
+		libssh2_channel_free( x11_channels[idx]) ;
+
+		x11_channels[idx] = NULL ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x11 forwarding finished.\n") ;
+	#endif
+	}
+
+	return  1 ;
+#else
+	return  0 ;
+#endif
 }

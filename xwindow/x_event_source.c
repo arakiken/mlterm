@@ -74,6 +74,10 @@ receive_next_event(void)
 	u_int  num_of_terms ;
 	int  xfd ;
 	int  ptyfd ;
+#ifdef  USE_LIBSSH2
+	int *  xssh_fds ;
+	u_int  num_of_xssh_fds ;
+#endif
 	int  maxfd ;
 	int  ret ;
 	fd_set  read_fds ;
@@ -82,6 +86,9 @@ receive_next_event(void)
 	u_int  num_of_displays ;
 
 	num_of_terms = ml_get_all_terms( &terms) ;
+#ifdef  USE_LIBSSH2
+	num_of_xssh_fds = ml_pty_ssh_get_x11_fds( &xssh_fds) ;
+#endif
 
 	while( 1)
 	{
@@ -123,6 +130,17 @@ receive_next_event(void)
 			}
 		}
 		
+	#ifdef  USE_LIBSSH2
+		for( count = 0 ; count < num_of_xssh_fds ; count++)
+		{
+			FD_SET( xssh_fds[count] , &read_fds) ;
+			if( xssh_fds[count] > maxfd)
+			{
+				maxfd = xssh_fds[count] ;
+			}
+		}
+	#endif
+
 		for( count = 0 ; count < num_of_additional_fds ; count++)
 		{
 			if( additional_fds[count].fd >= 0)
@@ -170,7 +188,10 @@ receive_next_event(void)
 	/*
 	 * Processing order should be as follows.
 	 *
-	 * X Window -> PTY -> Socket -> additional_fds
+	 * X Window -> PTY -> additional_fds
+	 *
+	 * (ml_pty_ssh_send_recv_x11() should be called after ml_term_parse_vt100_sequence()
+	 * which can process x11 forwarding channel packets.)
 	 */
 
 	for( count = 0 ; count < num_of_displays ; count ++)
@@ -189,6 +210,16 @@ receive_next_event(void)
 		}
 	}
 	
+#ifdef  USE_LIBSSH2
+	for( count = 0 ; count < num_of_xssh_fds ; count++)
+	{
+		if( FD_ISSET( xssh_fds[count] , &read_fds))
+		{
+			ml_pty_ssh_send_recv_x11( count) ;
+		}
+	}
+#endif
+
 	for( count = 0 ; count < num_of_additional_fds ; count++)
 	{
 		if( additional_fds[count].fd >= 0)

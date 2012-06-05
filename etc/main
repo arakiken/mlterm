@@ -201,6 +201,10 @@ scrollbar_view_name = sample
 
 # cipher_list =
 
+# ssh_keepalive_interval = 0
+
+# ssh_x11_forwarding = false
+
 # auto_restart = true
 
 # allow_osc52 = false

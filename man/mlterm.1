@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2012-04-29"
+.TH MLTERM 1 "2012-06-06"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -599,6 +599,10 @@ Specify the color to use to display underlined characters.
 \fB\-\-ucsprop\fR(=\fIbool\fR)
 Use unicode properties in encodings excepting UTF-8.
 The default is \fBfalse\fR.
+.TP
+\fB\-\-x11\fR(=\fIbool\fR)
+Enable x11 forwarding for ssh connection.
+The default is \fBfalse\fR.
 
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -1128,25 +1132,14 @@ Don't draw window decorations.
 \fBbutton3_behavior=\fIvalue\fR (\fB\-\-button3\fR)
 Specify behavior in pressing button3.
 .TP
+\fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
+Specify ciphers (comma separated list) for encrypting the ssh session.
+.TP
 \fBcol_size_of_width_a=\fIvalue\fR (\fB\-a\fR, \fB\-\-ac\fR) 
 Number of columns of Unicode characters with EastAsianAmbiguous property.
 .TP
 \fBcompose_dec_special_font=\fIbool\fR (\fB\-Y\fR, \fB\-\-decsp\fR) 
 Compose line drawing character set.
-.TP
-\fBcursor_bg_color=\fIcolor\fR (\fB\-0\fR, \fB\-\-crbg\fR)
-Specify background color for cursor.
-.TP
-\fBcursor_fg_color=\fIcolor\fR (\fB\-9\fR, \fB\-\-crfg\fR)
-Specify foreground color for cursor.
-.TP
-\fBreceive_string_via_ucs=\fIbool\fR (\fB\-U\fR, \fB\-\-viaucs\fR) 
-If the received selection (i.e., copy-and-paste strings) or strings received
-from XIM is not UTF8_STRING type, convert it into Unicode and then to the
-current mlterm encoding, in order to identify equivalent characters
-(i.e., characters which share the same codepoint in Unicode) from various
-character sets.
-See \fBSELECTION\fR section below for detail.
 .TP
 \fBconf_menu_path_1=\fIpath\fR
 Path for external GUI configurator mapped to control key and mouse button 1
@@ -1162,6 +1155,12 @@ Path for external GUI configurator mapped to control key and mouse button 3
 .TP
 \fBcontrast=\fIvalue\fR (\fB\-3\fR, \fB\-\-contrast\fR) 
 Contrast of background image in percent.
+.TP
+\fBcursor_bg_color=\fIcolor\fR (\fB\-0\fR, \fB\-\-crbg\fR)
+Specify background color for cursor.
+.TP
+\fBcursor_fg_color=\fIcolor\fR (\fB\-9\fR, \fB\-\-crfg\fR)
+Specify foreground color for cursor.
 .TP
 \fBENCODING=\fIencoding\fR (\fB\-E\fR, \fB\-\-km\fR) 
 Specify encoding.
@@ -1249,6 +1248,14 @@ Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
 \fBparent_window=\fIvalue\fR (\fB\-\-parent\fR)
 Specify parent Window ID.
 .TP
+\fBreceive_string_via_ucs=\fIbool\fR (\fB\-U\fR, \fB\-\-viaucs\fR) 
+If the received selection (i.e., copy-and-paste strings) or strings received
+from XIM is not UTF8_STRING type, convert it into Unicode and then to the
+current mlterm encoding, in order to identify equivalent characters
+(i.e., characters which share the same codepoint in Unicode) from various
+character sets.
+See \fBSELECTION\fR section below for detail.
+.TP
 \fBsb_bg_color=\fIcolor\fR (\fB\-B\fR, \fB\-\-sbbg\fR) 
 Background color for scrollbar.
 .TP
@@ -1276,8 +1283,8 @@ Specify public key file for ssh connection.
 \fBssh_private_key\fR=\fIvalue\fR (\fB\-\-privkey\fR)
 Specify private key file for ssh connection.
 .TP
-\fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
-Specify ciphers (comma separated list) for encrypting the ssh session.
+\fBssh_x11_forwarding\fR=\fIbool\fR (\fB\-\-x11\fR)
+Enable x11 forwarding for ssh connection.
 .TP
 \fBstep_in_changing_font_size\fR (\fB\-z\fR, \fB\-\-largesmall\fR) 
 Specify changing size when font size becomes larger or smaller.

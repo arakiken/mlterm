@@ -1,3 +1,15 @@
+2012-06-06  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/main, etc/main.ja, doc/ja/README.ja, main/mlterm.1: Updated.
+
+	* x_event_source.c: x11 forwarding events are polled and dispatched.
+
+	* x_main_config.c: "ssh_x11_forwarding" option is added.
+
+	* ml_pty.h, ml_pty_ssh.c: X11 forwarding functions
+	  (ml_pty_ssh_set_use_x11_forwarding, ml_pty_ssh_get_x11_fds and
+	   ml_pty_ssh_send_recv_x11) are added.
+
 2012-06-02  Araki Ken  <arakiken@users.sf.net>
 
 	* x_event_source.[ch]: Macros -> Dummy functions.

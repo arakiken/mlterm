@@ -70,6 +70,12 @@ void  ml_pty_ssh_set_cipher_list( const char *  list) ;
 void  ml_pty_ssh_set_keepalive_interval( u_int  interval_sec) ;
 
 int  ml_pty_ssh_keepalive( u_int  spent_msec) ;
+
+void  ml_pty_ssh_set_use_x11_forwarding( int  use_x11_forwarding) ;
+
+u_int  ml_pty_ssh_get_x11_fds( int **  fds) ;
+
+int  ml_pty_ssh_send_recv_x11( int  idx) ;
 #endif
 
 
