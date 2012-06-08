@@ -75,6 +75,14 @@ typedef struct x11_fd
 	int  channel ;
 
 } x11_fd_t ;
+
+typedef struct x11_channel
+{
+	LIBSSH2_CHANNEL *  channel ;
+	ssh_session_t *  session ;
+
+} x11_channel_t ;
+
 #endif
 
 
@@ -99,7 +107,7 @@ static int  use_x11_forwarding ;
 static int  display_port = -1 ;
 static x11_fd_t  x11_fds[10] ;
 static u_int  num_of_x11_fds ;
-static LIBSSH2_CHANNEL *  x11_channels[10] ;
+static x11_channel_t  x11_channels[10] ;
 #endif
 
 
@@ -590,6 +598,10 @@ ssh_disconnect(
 	free( session->user) ;
 	free( session) ;
 
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Closed session.\n") ;
+#endif
+
 	return  1 ;
 }
 
@@ -601,7 +613,6 @@ final(
 	libssh2_session_set_blocking( ((ml_pty_ssh_t*)pty)->session->obj , 1) ;
 	libssh2_channel_free( ((ml_pty_ssh_t*)pty)->channel) ;
 	ssh_disconnect( ((ml_pty_ssh_t*)pty)->session) ;
-	libssh2_exit() ;
 
 	return  1 ;
 }
@@ -954,13 +965,16 @@ setup_x11(
 		return  0 ;
 	}
 
-	if( ! ( display_port_str = kik_str_alloca_dup( display_port_str)) ||
-	    ! ( p = strrchr( display_port_str , '.')))
+	if( ! ( display_port_str = kik_str_alloca_dup( display_port_str)))
 	{
 		return  0 ;
 	}
 
-	*p = '\0' ;
+	if( ( p = strrchr( display_port_str , '.')))
+	{
+		*p = '\0' ;
+	}
+
 	display_port = atoi( display_port_str) ;
 
 	proto = NULL ;
@@ -1055,7 +1069,10 @@ x11_callback(
 		fcntl( display_sock , F_SETFL , O_NONBLOCK|fcntl( display_sock , F_GETFL , 0)) ;
 	#endif
 
-		x11_channels[num_of_x11_fds] = channel ;
+		sessions[count]->ref_count ++ ;
+
+		x11_channels[num_of_x11_fds].channel = channel ;
+		x11_channels[num_of_x11_fds].session = sessions[count] ;
 		x11_fds[num_of_x11_fds].display = display_sock ;
 		x11_fds[num_of_x11_fds++].channel = channel_sock ;
 
@@ -1878,7 +1895,7 @@ ml_pty_ssh_get_x11_fds(
 
 		for( count = num_of_x11_fds - 1 ; count >= 0 ; count--)
 		{
-			if( ! x11_channels[count])
+			if( ! x11_channels[count].channel)
 			{
 				/* Already closed in ml_pty_ssh_send_recv_x11(). */
 				x11_fds[count] = x11_fds[--num_of_x11_fds] ;
@@ -1928,19 +1945,22 @@ ml_pty_ssh_send_recv_x11(
 
 	if( read_channel)
 	{
-		ret = ssh_to_xserver( x11_channels[idx] , x11_fds[idx].display) ;
+		ret = ssh_to_xserver( x11_channels[idx].channel , x11_fds[idx].display) ;
 	}
 	else
 	{
-		ret = xserver_to_ssh( x11_channels[idx] , x11_fds[idx].display) ;
+		ret = xserver_to_ssh( x11_channels[idx].channel , x11_fds[idx].display) ;
 	}
 
 	if( ! ret)
 	{
 		closesocket( x11_fds[idx].display) ;
-		libssh2_channel_free( x11_channels[idx]) ;
 
-		x11_channels[idx] = NULL ;
+		libssh2_session_set_blocking( x11_channels[idx].session->obj , 1) ;
+		libssh2_channel_free( x11_channels[idx].channel) ;
+		ssh_disconnect( x11_channels[idx].session) ;
+
+		x11_channels[idx].channel = NULL ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " x11 forwarding finished.\n") ;

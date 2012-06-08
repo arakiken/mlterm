@@ -108,7 +108,8 @@ x_font_manager_new(
 	int  usascii_font_cs_changable ,
 	int  use_multi_col_char ,
 	u_int  step_in_changing_font_size ,
-	u_int  letter_space
+	u_int  letter_space ,
+	int  use_bold_font
 	)
 {
 	x_font_manager_t *  font_man ;
@@ -167,6 +168,7 @@ x_font_manager_new(
 	}
 
 	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
+
 	if(  x_get_max_font_size() - x_get_min_font_size() >= step_in_changing_font_size)
 	{
 		font_man->step_in_changing_font_size = step_in_changing_font_size ;
@@ -175,7 +177,9 @@ x_font_manager_new(
 	{
 		 font_man->step_in_changing_font_size = x_get_max_font_size() - x_get_min_font_size() ;
 	}
-	
+
+	font_man->use_bold_font = use_bold_font ;
+
 	return  font_man ;
 }
 
@@ -201,6 +205,11 @@ x_get_font(
 	)
 {
 	x_font_t *  xfont ;
+
+	if( ! font_man->use_bold_font)
+	{
+		font &= ~FONT_BOLD ;
+	}
 
 	if( ( xfont = x_font_cache_get_xfont( font_man->font_cache , font)))
 	{
@@ -487,6 +496,22 @@ x_set_letter_space(
 	}
 
 	change_font_cache( font_man , font_cache) ;
+
+	return  1 ;
+}
+
+int
+x_set_use_bold_font(
+	x_font_manager_t *  font_man ,
+	int  use_bold_font
+	)
+{
+	if( font_man->use_bold_font == use_bold_font)
+	{
+		return  0 ;
+	}
+
+	font_man->use_bold_font = use_bold_font ;
 
 	return  1 ;
 }

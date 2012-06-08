@@ -711,7 +711,7 @@ font_found:
 			{
 				font->is_proportional = 1 ;
 
-				if( font->width < ch_width)
+				if( ! font->is_var_col_width && font->width < ch_width)
 				{
 					/*
 					 * If width(2) of '1' doesn't match ch_width(4)
@@ -772,7 +772,8 @@ font_found:
 			{
 				font->is_proportional = 1 ;
 
-				if( font->width < col_width)
+				/* is_var_col_width is always false if is_vertical is true. */
+				if( /* ! font->is_var_col_width && */ font->width < col_width)
 				{
 					font->x_off = (col_width - font->width) / 2 ;
 				}
@@ -790,7 +791,8 @@ font_found:
 
 				font->is_proportional = 1 ;
 
-				if( font->width < col_width * font->cols)
+				if( ! font->is_var_col_width &&
+				    font->width < col_width * font->cols)
 				{
 					font->x_off = (col_width * font->cols - font->width) / 2 ;
 				}
@@ -953,7 +955,7 @@ x_font_new(
 	Display *  display ,
 	ml_font_t  id ,
 	x_type_engine_t  type_engine ,
-	x_font_present_t  font_present ,
+	x_font_present_t  font_present , /* FONT_VAR_WIDTH is never set if FONT_VERTICAL is set. */
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,

@@ -125,11 +125,15 @@ sig_child(
 	kik_debug_printf( KIK_DEBUG_TAG " SIG_CHILD received [PID:%d].\n", pid) ;
 #endif
 
-	if( pid <= 0)
+	if( pid == -1)
 	{
 		/*
 		 * Note:
 		 * If term->pty is NULL, ml_term_get_child_pid() returns -1.
+		 * waitpid() in kik_sig_child.c might return -1.
+		 *
+		 * (Don't check by "pid < 0" above, because ml_term_get_child_pid()
+		 * might return minus value if it is a ssh channel.)
 		 */
 
 		return ;
@@ -140,7 +144,7 @@ sig_child(
 		if( pid == ml_term_get_child_pid( terms[count]))
 		{
 			u_int  idx ;
-			
+
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " pty %d is dead.\n" , count) ;
 		#endif

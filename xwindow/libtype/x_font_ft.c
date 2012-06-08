@@ -603,6 +603,8 @@ fc_set_font(
 
 	slant = -1 ;	/* use default value */
 
+	font->x_off = 0 ;
+
 	if( fontname)
 	{
 		char *  p ;
@@ -637,6 +639,7 @@ fc_set_font(
 					 * !! Notice !!
 					 * The width of full and half character font is the same.
 					 */
+					font->x_off = ch_width / 2 ;
 					ch_width *= 2 ;
 				}
 			}
@@ -692,6 +695,7 @@ fc_set_font(
 			 * !! Notice !!
 			 * The width of full and half character font is the same.
 			 */
+			font->x_off = ch_width / 2 ;
 			ch_width *= 2 ;
 		}
 	}
@@ -729,7 +733,6 @@ fc_set_font(
 
 font_found:
 
-	font->x_off = 0 ;
 	font->is_proportional = font->is_var_col_width ;
 
 	if( use_xft)
@@ -768,6 +771,13 @@ font_found:
 		{
 			font->width = ch_width ;
 		}
+
+		/* letter_space is ignored in variable column width mode. */
+		if( ! font->is_var_col_width)
+		{
+			font->x_off += letter_space * font->cols / 2 ;
+		}
+
 	#endif	/* USE_TYPE_XFT */
 	}
 	else
@@ -792,7 +802,12 @@ font_found:
 		font->height = DOUBLE_ROUNDUP_TO_INT(extents.height) ;
 		font->ascent = DOUBLE_ROUNDUP_TO_INT(extents.ascent) ;
 
-		/* XXX letter_space is always ignored. */
+		/*
+		 * Set letter_space here because cairo_font_open() ignores it.
+		 * (FC_CHAR_WIDTH doesn't make effect in cairo.)
+		 * Then, column width for vertical mode should be set again here.
+		 */
+
 		if( font->cols == 2)
 		{
 			font->width = DOUBLE_ROUNDUP_TO_INT(extents.max_x_advance) ;
@@ -800,6 +815,20 @@ font_found:
 		else
 		{
 			font->width = cairo_calculate_char_width( font , "W" , 1) ;
+
+			if( font->is_vertical)
+			{
+				font->is_proportional = 1 ;
+				font->width *= 2 ;
+			}
+		}
+
+		/* letter_space is ignored in variable column width mode. */
+		if( ! font->is_var_col_width && letter_space > 0)
+		{
+			font->is_proportional = 1 ;
+			font->width += (letter_space * font->cols) ;
+			font->x_off += (letter_space * font->cols / 2) ;
 		}
 
 		if( col_width > 0 /* is not usascii */ && ! font->is_proportional &&

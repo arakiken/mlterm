@@ -173,7 +173,8 @@ x_window_cairo_draw_string8(
 	*p = '\0' ;
 
 	show_text( win->cairo_draw , font->cairo_font , fg_color ,
-		x + win->margin , y + win->margin , buf , font->is_double_drawing) ;
+		x + font->x_off + win->margin ,
+		y + win->margin , buf , font->is_double_drawing) ;
 
 	return  1 ;
 }
@@ -205,7 +206,8 @@ x_window_cairo_draw_string32(
 	*p = '\0' ;
 
 	show_text( win->cairo_draw , font->cairo_font , fg_color ,
-		x + win->margin , y + win->margin , buf , font->is_double_drawing) ;
+		x + font->x_off + win->margin ,
+		y + win->margin , buf , font->is_double_drawing) ;
 
 	return  1 ;
 }

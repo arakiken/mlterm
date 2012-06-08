@@ -188,6 +188,8 @@ x_prepare_for_main_config(
 		"terminal type for TERM variable [xterm]") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
+	kik_conf_add_opt( conf , '\0' , "bdfont" , 1 , "use_bold_font" ,
+		"use bold fonts [true]") ;
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
@@ -1276,6 +1278,16 @@ x_main_config_init(
 		if( kik_str_to_uint( &margin , value) && margin <= 255)
 		{
 			main_config->margin = margin ;
+		}
+	}
+
+	main_config->use_bold_font = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_bold_font")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			main_config->use_bold_font = 0 ;
 		}
 	}
 

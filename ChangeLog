@@ -1,3 +1,25 @@
+2012-06-09  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL, doc/en/README.cairo: Updated.
+
+	* x_screen.c: cursor blinking is stopped in unfocused.
+
+	* xlib/x_font.c, x_font_ft.c, win32/x_font.c, xlib/x_window.c,
+	  x_window_cairo.c, x_window_xft.c:
+	  - If letter_space is larger than 0, x_off += letter_space / 2 to
+	    center a character in the cell.
+	  - If x_off is larger than 0, x_window_draw_string*() draws string
+	    from x + x_off.
+
+	* x_screen.c, x_font_manager.[ch], x_main_config.[ch], gtk/vte.c:
+	  --bdfont / "use_bold_font" option is added.
+
+	* MLTermPty.c: "ssh_x11_forwarding" option is supprted.
+
+	* ml_pty_ssh.c: Minor fixes.
+
+	* version.h.in: 3.1.2 post => 3.1.3 pre
+
 2012-06-06  Araki Ken  <arakiken@users.sf.net>
 
 	* etc/main, etc/main.ja, doc/ja/README.ja, main/mlterm.1: Updated.

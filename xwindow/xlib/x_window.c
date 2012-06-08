@@ -3076,13 +3076,13 @@ x_window_draw_string(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
 	XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-		x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+		x + font->x_off + win->margin ,
 		y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			x + font->x_off + win->margin + 1 ,
 			y + win->margin , (char *)str , len) ;
 	}
 
@@ -3104,13 +3104,13 @@ x_window_draw_string16(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
 	XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-		       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+		       x + font->x_off + win->margin ,
 		       y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			       x + font->x_off + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
 
@@ -3134,13 +3134,13 @@ x_window_draw_image_string(
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
 	XDrawImageString( win->disp->display , win->my_window , win->gc->gc ,
-			  x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+			  x + font->x_off + win->margin ,
 			  y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-			     x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			     x + font->x_off + win->margin + 1 ,
 			     y + win->margin , (char *)str , len) ;
 	}
 
@@ -3164,13 +3164,13 @@ x_window_draw_image_string16(
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
 	XDrawImageString16( win->disp->display , win->my_window , win->gc->gc ,
-			    x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+			    x + font->x_off + win->margin ,
 			    y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			       x + font->x_off + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
 

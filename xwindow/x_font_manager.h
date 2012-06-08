@@ -22,6 +22,7 @@ typedef struct  x_font_manager
 
 	int8_t  usascii_font_cs_changable ;
 	u_int8_t  step_in_changing_font_size ;
+	int8_t  use_bold_font ;
 
 }  x_font_manager_t ;
 
@@ -29,7 +30,7 @@ typedef struct  x_font_manager
 x_font_manager_t *  x_font_manager_new( Display *  display , x_type_engine_t  type_engine ,
 	x_font_present_t  font_present , u_int  font_size , mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable , int  use_multi_col_char ,
-	u_int  step_in_changing_font_size , u_int  letter_space) ;
+	u_int  step_in_changing_font_size , u_int  letter_space , int  use_bold_font) ;
 	
 int  x_font_manager_delete( x_font_manager_t *  font_man) ;
 
@@ -63,6 +64,10 @@ int  x_set_use_multi_col_char( x_font_manager_t *  font_man , int  flag) ;
 int  x_set_letter_space( x_font_manager_t *  font_man , u_int  letter_space) ;
 
 #define  x_get_letter_space( font_man)  ((font_man)->font_cache->letter_space)
+
+int  x_set_use_bold_font( x_font_manager_t *  font_man , int  use_bold_font) ;
+
+#define  x_is_using_bold_font( font_man)  ((font_man)->use_bold_font)
 
 XFontSet  x_get_fontset( x_font_manager_t *  font_man) ;
 

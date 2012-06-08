@@ -3949,8 +3949,12 @@ idling(
 	{
 		if( screen->cursor_blink_wait == 5)
 		{
-			unhighlight_cursor( screen , 1) ;
-			x_window_update( &screen->window , UPDATE_SCREEN) ;
+			if( screen->window.is_focused)
+			{
+				unhighlight_cursor( screen , 1) ;
+				x_window_update( &screen->window , UPDATE_SCREEN) ;
+			}
+
 			screen->cursor_blink_wait = -1 ;
 		}
 		else
@@ -4611,6 +4615,18 @@ change_sb_bg_color(
 	{
 		(*screen->screen_scroll_listener->change_bg_color)(
 			screen->screen_scroll_listener->self , name) ;
+	}
+}
+
+static void
+change_use_bold_font_flag(
+	x_screen_t *  screen ,
+	int  flag
+	)
+{
+	if( x_set_use_bold_font( screen->font_man , flag))
+	{
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 }
 
@@ -5447,6 +5463,17 @@ get_config(
 	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
 		if( x_is_using_multi_col_char( screen->font_man))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_bold_font") == 0)
+	{
+		if( x_is_using_bold_font( screen->font_man))
 		{
 			value = "true" ;
 		}
@@ -8452,6 +8479,15 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			change_multi_col_char_flag( screen , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_bold_font") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			change_use_bold_font_flag( screen , flag) ;
 		}
 	}
 	else if( strcmp( key , "col_size_of_width_a") == 0)

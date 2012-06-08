@@ -588,7 +588,7 @@ x_font_new(
 				ch_width = fontsize * percent / 200 ;
 			}
 
-			if( font->width != ch_width)
+			if( ! font->is_var_col_width && font->width != ch_width)
 			{
 				font->is_proportional = 1 ;
 
@@ -640,7 +640,8 @@ x_font_new(
 			{
 				font->is_proportional = 1 ;
 
-				if( font->width < col_width)
+				/* is_var_col_width is always false if is_vertical is true. */
+				if( /* ! font->is_var_col_width && */ font->width < col_width)
 				{
 					font->x_off = (col_width - font->width) / 2 ;
 				}
@@ -658,7 +659,8 @@ x_font_new(
 
 				font->is_proportional = 1 ;
 
-				if( font->width < col_width * font->cols)
+				if( ! font->is_var_col_width &&
+				    font->width < col_width * font->cols)
 				{
 					font->x_off = (col_width * font->cols - font->width) / 2 ;
 				}

@@ -901,6 +901,14 @@ Java_mlterm_MLTermPty_nativeOpen(
 					ml_pty_ssh_set_keepalive_interval( keepalive_interval) ;
 				}
 			}
+
+			if( ( value = kik_conf_get_value( conf , "ssh_x11_forwarding")))
+			{
+				if( strcmp( value , "true") == 0)
+				{
+					ml_pty_ssh_set_use_x11_forwarding( 1) ;
+				}
+			}
 		#endif
 
 		#if  0
@@ -977,55 +985,6 @@ Java_mlterm_MLTermPty_nativeOpen(
 		ml_term_set_logging_vt_seq( nativeObj->term , logging_vt_seq) ;
 	}
 
-	if( jarray_argv)
-	{
-		jsize  len ;
-		jsize  count ;
-
-		len = (*env)->GetArrayLength( env , jarray_argv) ;
-		argv = alloca( sizeof(char*) * (len + 1)) ;
-
-		for( count = 0 ; count < len ; count++)
-		{
-			argv[count] = (*env)->GetStringUTFChars( env ,
-						(*env)->GetObjectArrayElement( env ,
-							jarray_argv , count) ,
-						NULL) ;
-		}
-		argv[count] = NULL ;
-		cmd_path = argv[0] ;
-	}
-	else if( default_argv)
-	{
-		argv = default_argv ;
-		cmd_path = default_cmd_path ;
-	}
-	else
-	{
-	#ifdef  USE_WIN32API
-		cmd_path = NULL ;
-		argv = alloca( sizeof(char*)) ;
-		argv[0] = NULL ;
-	#else	/* USE_WIN32API */
-		cmd_path = getenv( "SHELL") ;
-		argv = alloca( sizeof(char*) * 2) ;
-		argv[1] = NULL ;
-	#endif	/* USE_WIN32API */
-	}
-
-	if( cmd_path)
-	{
-		if( use_login_shell)
-		{
-			argv[0] = alloca( strlen( cmd_path) + 2) ;
-			sprintf( argv[0] , "-%s" , kik_basename( cmd_path)) ;
-		}
-		else
-		{
-			argv[0] = kik_basename( cmd_path) ;
-		}
-	}
-
 	nativeObj->pty_listener.self = nativeObj ;
 	nativeObj->pty_listener.closed = pty_closed ;
 
@@ -1062,6 +1021,62 @@ Java_mlterm_MLTermPty_nativeOpen(
 	else
 	{
 		pass = NULL ;
+	}
+
+	if( jarray_argv)
+	{
+		jsize  len ;
+		jsize  count ;
+
+		len = (*env)->GetArrayLength( env , jarray_argv) ;
+		argv = alloca( sizeof(char*) * (len + 1)) ;
+
+		for( count = 0 ; count < len ; count++)
+		{
+			argv[count] = (*env)->GetStringUTFChars( env ,
+						(*env)->GetObjectArrayElement( env ,
+							jarray_argv , count) ,
+						NULL) ;
+		}
+		argv[count] = NULL ;
+		cmd_path = argv[0] ;
+	}
+	else if( default_argv)
+	{
+		argv = default_argv ;
+		cmd_path = default_cmd_path ;
+	}
+	else
+	{
+	#ifndef  USE_WIN32API
+		if( pass)
+	#endif
+		{
+			cmd_path = NULL ;
+			argv = alloca( sizeof(char*)) ;
+			argv[0] = NULL ;
+		}
+	#ifndef  USE_WIN32API
+		else
+		{
+			cmd_path = getenv( "SHELL") ;
+			argv = alloca( sizeof(char*) * 2) ;
+			argv[1] = NULL ;
+		}
+	#endif
+	}
+
+	if( cmd_path)
+	{
+		if( use_login_shell)
+		{
+			argv[0] = alloca( strlen( cmd_path) + 2) ;
+			sprintf( argv[0] , "-%s" , kik_basename( cmd_path)) ;
+		}
+		else
+		{
+			argv[0] = kik_basename( cmd_path) ;
+		}
 	}
 
 	envv[0] = alloca( 8 + strlen( host) + 1) ;
@@ -1186,6 +1201,8 @@ Java_mlterm_MLTermPty_waitForReading(
 	fd_set  read_fds ;
 #ifdef  USE_LIBSSH2
 	struct timeval  tval ;
+	int *  xssh_fds ;
+	u_int  num_of_xssh_fds ;
 #endif
 
 	ml_close_dead_terms() ;
@@ -1195,6 +1212,10 @@ Java_mlterm_MLTermPty_waitForReading(
 	{
 		return  JNI_FALSE ;
 	}
+
+#ifdef  USE_LIBSSH2
+	num_of_xssh_fds = ml_pty_ssh_get_x11_fds( &xssh_fds) ;
+#endif
 
 	while( 1)
 	{
@@ -1213,6 +1234,16 @@ Java_mlterm_MLTermPty_waitForReading(
 		}
 
 	#ifdef  USE_LIBSSH2
+		for( count = 0 ; count < num_of_xssh_fds ; count++)
+		{
+			FD_SET( xssh_fds[count] , &read_fds) ;
+
+			if( xssh_fds[count] > maxfd)
+			{
+				maxfd = xssh_fds[count] ;
+			}
+		}
+
 		tval.tv_usec = 0 ;
 		tval.tv_sec = keepalive_interval ;
 
@@ -1229,6 +1260,16 @@ Java_mlterm_MLTermPty_waitForReading(
 			break ;
 		}
 	}
+
+#ifdef  USE_LIBSSH2
+	for( count = 0 ; count < num_of_xssh_fds ; count++)
+	{
+		if( FD_ISSET( xssh_fds[count] , &read_fds))
+		{
+			ml_pty_ssh_send_recv_x11( count) ;
+		}
+	}
+#endif
 
 	return  JNI_TRUE ;
 #endif

@@ -68,7 +68,7 @@ $(TARGET_win32) : MLTermPty.h
 
 $(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
 	$(LIBTOOL_LINK) -o $(TARGET) -s $(OBJ:.o=.lo) -rpath $(libdir) \
-	-avoid-version ../mlterm/*.lo ../kiklib/src/libkik.la ../mkf/lib/libmkf.la
+	-avoid-version ../mlterm/*.lo ../kiklib/src/libkik.la ../mkf/lib/libmkf.la @SSH2_LIBS@
 	# .s? -> .so or .sl
 	cp .libs/*.s? .
 

@@ -10,7 +10,3 @@ Note for cairo support.
 
 * Usage
   $ mlterm --type cairo
-
-* Not supported features
-  o letter space (letter_space option)
-  o anti-alias (use_anti_alias option) (partially works)

@@ -2621,7 +2621,7 @@ vte_terminal_init(
 			main_config.font_size , usascii_font_cs ,
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
 			main_config.step_in_changing_font_size ,
-			main_config.letter_space) ,
+			main_config.letter_space , main_config.use_bold_font) ,
 		x_color_manager_new( &disp , &color_config ,
 			main_config.fg_color , main_config.bg_color ,
 			main_config.cursor_fg_color , main_config.cursor_bg_color ,
