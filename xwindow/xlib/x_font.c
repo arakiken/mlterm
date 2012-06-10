@@ -477,8 +477,9 @@ xcore_set_font(
 
 		if( parse_xfont_name( &font_xlfd , &percent_str , p))
 		{
-		#ifdef __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " loading %s font.\n" , font_xlfd) ;
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " loading %s font (%s percent).\n" ,
+				font_xlfd , percent_str) ;
 		#endif
 
 			if( ( xfont = XLoadQueryFont( font->display , font_xlfd)))
@@ -770,6 +771,10 @@ font_found:
 
 			if( font->width != col_width)
 			{
+				kik_msg_printf( "Font(id %x) width(%d) is not matched with "
+					"standard width(%d).\n" ,
+					font->id , font->width , col_width) ;
+
 				font->is_proportional = 1 ;
 
 				/* is_var_col_width is always false if is_vertical is true. */

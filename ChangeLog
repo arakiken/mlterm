@@ -1,3 +1,13 @@
+2012-06-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, README.cairo: Fixed.
+
+	* x_font_ft.c: If ":percent" is specified in ~/.mlterm/*font, x_off
+	  is set to center a character in the cell.
+
+	* x_draw_str.c: If current and next characters are bold or not is checked
+	  by the value of ml_char_font() instead of xfont->id.
+
 2012-06-09  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/PROTOCOL, doc/en/README.cairo: Updated.

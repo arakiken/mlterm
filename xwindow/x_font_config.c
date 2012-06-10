@@ -1731,7 +1731,6 @@ x_get_config_font_name(
 	char *  font_name ;
 	char *  encoding_name ;
 	int  has_percentd ;
-	size_t  len ;
 	
 	if( font_size < min_font_size || max_font_size < font_size)
 	{
@@ -1756,7 +1755,9 @@ x_get_config_font_name(
 		}
 
 	#ifndef  USE_WIN32GUI
-		if( font_config->type_engine == TYPE_XCORE)
+		if( font_config->type_engine == TYPE_XCORE &&
+		    /* encoding_name is appended if font_name is XLFD (not alias name). */
+		    ( strchr( pair->value , '*') || strchr( pair->value , '-')))
 		{
 			char **  names ;
 
@@ -1789,13 +1790,11 @@ x_get_config_font_name(
 		has_percentd = 0 ;
 	}
 
-	len = strlen( pair->value) +
-		/* -2 is for "%d" */
-		(has_percentd ? DIGIT_STR_LEN(font_size) - 2 : 0) +
-		/* + 1  is for "-" */
-		(encoding_name ? strlen(encoding_name) + 1 : 0) + 1 ;
-
-	if( ( font_name = malloc( len)) == NULL)
+	if( ! ( font_name = malloc( strlen( pair->value) +
+				/* -2 is for "%d" */
+				(has_percentd ? DIGIT_STR_LEN(font_size) - 2 : 0) +
+				/* + 1  is for "-" */
+				(encoding_name ? strlen(encoding_name) + 1 : 0) + 1)))
 	{
 		return  NULL ;
 	}
@@ -1811,7 +1810,22 @@ x_get_config_font_name(
 
 	if( encoding_name)
 	{
-		strcat( font_name , encoding_name) ;
+		char *  percent ;
+
+		if( ( percent = strchr( font_name , ':')))
+		{
+			/* -*-:200 -> -*-iso8859-1:200 */
+
+			size_t  len ;
+
+			memmove( percent + (len = strlen(encoding_name)) , percent ,
+				strlen( percent) + 1) ;
+			memcpy( percent , encoding_name , len) ;
+		}
+		else
+		{
+			strcat( font_name , encoding_name) ;
+		}
 	}
 
 	return  font_name ;

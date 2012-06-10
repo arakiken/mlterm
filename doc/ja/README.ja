@@ -386,7 +386,7 @@ comment $Id$
       o fontsize  (*16*) (#)
         フォントサイズ
         なお、例えば、(tv)font 設定ファイルで、
-        DEFAULT=-kochi-mincho-medium-*--14-*-iso8859-1
+        DEFAULT=-kochi-mincho-medium-*--14-*-
         のように、特定のサイズ(上記例では 14 pixel)のフォントをデフォルトとして
         指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
         例では 14 pixel のまま)変わらなくなるため、注意してください。
@@ -831,9 +831,9 @@ comment $Id$
         また、アンチエイリアスフォントについては、いずれにせよ、重ねうちはしませ
         ん。
 
-        DEFAULT を font, vfont 及び tfont で指定した場合は、フォント名の末尾に
-        文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意して
-        ください。
+        DEFAULT を font, vfont 及び tfont で指定した場合は、XLFD フォント名の
+        末尾に文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意
+        してください。
         また、DEFAULT を指定したフォント名は、Input Method で使用するフォント
         (FontSet) には影響しません。
 

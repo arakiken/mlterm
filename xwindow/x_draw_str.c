@@ -16,11 +16,11 @@ adjust_bd_ul_color(
 	x_color_manager_t *  color_man ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
-	ml_font_t  font ,
+	int  is_bold ,
 	int  is_underlined
 	)
 {
-	if( font & FONT_BOLD)
+	if( is_bold)
 	{
 		/* If bg_color == ML_FG_COLOR, it seems to be reversed. */
 		if( ( fg_color == ML_FG_COLOR || bg_color == ML_FG_COLOR) &&
@@ -139,6 +139,7 @@ fc_draw_str(
 	u_int  ch_width ;
 	mkf_charset_t  ch_cs ;
 	x_font_t *  xfont ;
+	ml_font_t  font ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
 	int  is_underlined ;
@@ -146,6 +147,7 @@ fc_draw_str(
 	u_int  comb_size ;
 
 	x_font_t *  next_xfont ;
+	ml_font_t  next_font ;
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
@@ -178,7 +180,8 @@ fc_draw_str(
 
 	ch_bytes = ml_char_bytes( &chars[count]) ;
 	ch_size = ml_char_size( &chars[count]) ;
-	ch_cs = ml_char_cs( &chars[count]) ;
+	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
+	ch_cs = FONT_CS(font) ;
 
 	if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 	{
@@ -192,8 +195,6 @@ fc_draw_str(
 	{
 		state = 2 ;
 	}
-
-	xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
 
 	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
 
@@ -228,11 +229,7 @@ fc_draw_str(
 
 	while( 1)
 	{
-		if( state == 0)
-		{
-			str8[str_len++] = ch_bytes[0] ;
-		}
-		else if( state == 1)
+		if( state == 0 || state == 1)
 		{
 			str8[str_len++] = ch_bytes[0] ;
 		}
@@ -277,11 +274,12 @@ fc_draw_str(
 		{
 			ch_bytes = ml_char_bytes( &chars[count]) ;
 			ch_size = ml_char_size( &chars[count]) ;
-			ch_cs = ml_char_cs( &chars[count]) ;
+			next_xfont = x_get_font( font_man ,
+					(next_font = ml_char_font( &chars[count]))) ;
+			ch_cs = FONT_CS(next_font) ;
 			next_fg_color = ml_char_fg_color( &chars[count]) ;
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
-			next_xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
 
 			if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 			{
@@ -307,19 +305,26 @@ fc_draw_str(
 			/*
 			 * !! Notice !!
 			 * next_xfont != xfont doesn't necessarily detect change of 'state'
-			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
-			 * and other half-width unicode characters), 'next_state' is necessary.
+			 * (for example, same Unicode font is used for both US_ASCII and
+			 * other half-width unicode characters) and 'bold'(x_get_font()
+			 * might substitute normal fonts for bold ones), 'next_state' and
+			 * 'font & FONT_BOLD' is necessary.
 			 */
 			else if( next_xfont != xfont
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
 				|| next_is_underlined != is_underlined
+				/*
+				 * Eevn if both is_underline and next_is_underline are 1,
+				 * underline is drawn one by one in vertical mode.
+				 */
 				|| (is_underlined && xfont->is_vertical)
-				|| (next_is_underlined && xfont->is_vertical)
 				|| comb_chars != NULL
 				|| state != next_state
 				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
-				|| (xfont->is_proportional && ! xfont->is_var_col_width))
+				|| (xfont->is_proportional && ! xfont->is_var_col_width)
+				/* FONT_BOLD flag is not the same. */
+			        || ((font ^ next_font) & FONT_BOLD))
 			{
 				start_draw = 1 ;
 			}
@@ -342,7 +347,7 @@ fc_draw_str(
 		#endif
 
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
-							xfont->id , is_underlined) ;
+							font & FONT_BOLD , is_underlined) ;
 
 			/*
 			 * clearing background
@@ -444,6 +449,7 @@ fc_draw_str(
 
 		is_underlined = next_is_underlined ;
 		xfont = next_xfont ;
+		font = next_font ;
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
 		state = next_state ;
@@ -578,12 +584,14 @@ xcore_draw_str(
 	mkf_charset_t  ch_cs ;
 	u_int  ch_width ;
 	x_font_t *  xfont ;
+	ml_font_t  font ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
 	int  is_underlined ;
 
 	u_int  next_ch_width ;
 	x_font_t *  next_xfont ;
+	ml_font_t  next_font ;
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
@@ -617,7 +625,7 @@ xcore_draw_str(
 	ch_size = ml_char_size( &chars[count]) ;
 	ch_cs = ml_char_cs( &chars[count]) ;
 
-	xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
+	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 
 	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
 
@@ -727,7 +735,8 @@ xcore_draw_str(
 			next_fg_color = ml_char_fg_color( &chars[count]) ;
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
-			next_xfont = x_get_font( font_man ,  ml_char_font( &chars[count])) ;
+			next_xfont = x_get_font( font_man ,
+					(next_font = ml_char_font( &chars[count]))) ;
 
 			if( ch_cs == DEC_SPECIAL)
 			{
@@ -753,19 +762,26 @@ xcore_draw_str(
 			/*
 			 * !! Notice !!
 			 * next_xfont != xfont doesn't necessarily detect change of 'state'
-			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
-			 * and other half-width unicode characters), 'next_state' is necessary.
+			 * (for example, same Unicode font is used for both US_ASCII and
+			 * other half-width unicode characters) and 'bold'(x_get_font()
+			 * might substitute normal fonts for bold ones), 'next_state' and
+			 * 'font & FONT_BOLD' is necessary.
 			 */
 			else if( next_xfont != xfont
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
 				|| next_is_underlined != is_underlined
+				/*
+				 * Eevn if both is_underline and next_is_underline are 1,
+				 * underline is drawn one by one in vertical mode.
+				 */
 				|| (is_underlined && xfont->is_vertical)
-				|| (next_is_underlined && xfont->is_vertical)
 				|| next_state != state
 				|| comb_chars != NULL
 				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
-				|| (xfont->is_proportional && ! xfont->is_var_col_width))
+				|| (xfont->is_proportional && ! xfont->is_var_col_width)
+				/* FONT_BOLD flag is not the same */
+			        || ((font ^ next_font) & FONT_BOLD))
 			{
 				start_draw = 1 ;
 			}
@@ -788,7 +804,7 @@ xcore_draw_str(
 		#endif
 
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
-							xfont->id , is_underlined) ;
+							font & FONT_BOLD , is_underlined) ;
 
 			if( ( x_window_has_wall_picture( window) && bg_color == ML_BG_COLOR) ||
 				bottom_margin + top_margin > 0 /* == line space XXX */|| 
@@ -916,6 +932,7 @@ xcore_draw_str(
 		}
 
 		xfont = next_xfont ;
+		font = next_font ;
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
 		is_underlined = next_is_underlined ;

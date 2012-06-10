@@ -10,3 +10,6 @@ Note for cairo support.
 
 * Usage
   $ mlterm --type cairo
+
+* Notice
+  ":PERCENT" specified in ~/.mlterm/*font is ignored for now.

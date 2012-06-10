@@ -603,6 +603,10 @@ fc_set_font(
 
 	slant = -1 ;	/* use default value */
 
+	/*
+	 * x_off related to percent is set before ft_font_open while
+	 * x_off related to is_vertical and letter_space is set after.
+	 */
 	font->x_off = 0 ;
 
 	if( fontname)
@@ -630,8 +634,23 @@ fc_set_font(
 			{
 				/* basic font (e.g. usascii) width */
 
+				/* if font->is_var_col_width is true, 0 is returned. */
 				ch_width = get_fc_col_width( font , fontsize_d , percent ,
 								letter_space) ;
+
+				if( percent > 100 && use_xft)  /* cairo ignores percent. */
+				{
+					/*
+					 * Centering
+					 * (fontsize * percent / 100 + letter_space = ch_width
+					 *  -> fontsize = (ch_width - letter_space) * 100 / percent
+					 *  -> fontsize * (percent - 100) / 100
+					 *     = (ch_width - letter_space) * (percent - 100)
+					 *       / percent)
+					 */
+					font->x_off = (ch_width - letter_space) *
+							(percent - 100) / percent / 2 ;
+				}
 
 				if( font->is_vertical)
 				{
@@ -639,7 +658,6 @@ fc_set_font(
 					 * !! Notice !!
 					 * The width of full and half character font is the same.
 					 */
-					font->x_off = ch_width / 2 ;
 					ch_width *= 2 ;
 				}
 			}
@@ -677,6 +695,8 @@ fc_set_font(
 			{
 				goto  font_found ;
 			}
+
+			font->x_off = 0 ;
 		}
 
 		kik_msg_printf( "Font %s (for size %f) couldn't be loaded.\n" ,
@@ -695,7 +715,6 @@ fc_set_font(
 			 * !! Notice !!
 			 * The width of full and half character font is the same.
 			 */
-			font->x_off = ch_width / 2 ;
 			ch_width *= 2 ;
 		}
 	}
@@ -770,12 +789,15 @@ font_found:
 		else
 		{
 			font->width = ch_width ;
-		}
 
-		/* letter_space is ignored in variable column width mode. */
-		if( ! font->is_var_col_width)
-		{
-			font->x_off += letter_space * font->cols / 2 ;
+			if( font->is_vertical && font->cols == 1)
+			{
+				font->x_off += ch_width / 4 ;	/* Centering */
+			}
+			else
+			{
+				font->x_off += letter_space * font->cols / 2 ;
+			}
 		}
 
 	#endif	/* USE_TYPE_XFT */
@@ -820,6 +842,7 @@ font_found:
 			{
 				font->is_proportional = 1 ;
 				font->width *= 2 ;
+				font->x_off = font->width / 4 ;	/* Centering */
 			}
 		}
 
@@ -828,7 +851,7 @@ font_found:
 		{
 			font->is_proportional = 1 ;
 			font->width += (letter_space * font->cols) ;
-			font->x_off += (letter_space * font->cols / 2) ;
+			font->x_off += (letter_space * font->cols / 2) ;  /* Centering */
 		}
 
 		if( col_width > 0 /* is not usascii */ && ! font->is_proportional &&
