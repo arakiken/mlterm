@@ -2223,6 +2223,10 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_escape = 1 ;
 						}
+						else if( ps[count] == 8840)
+						{
+							vt100_parser->col_size_of_width_a = 2 ;
+						}
 					#ifdef  DEBUG
 						else
 						{
@@ -2435,6 +2439,10 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 7727 l" */
 
 							vt100_parser->is_app_escape = 0 ;
+						}
+						else if( ps[count] == 8840)
+						{
+							vt100_parser->col_size_of_width_a = 1 ;
 						}
 					#ifdef  DEBUG
 						else

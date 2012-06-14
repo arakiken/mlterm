@@ -1729,7 +1729,8 @@ x_get_config_font_name(
 	KIK_MAP( x_font_name)  map ;
 	KIK_PAIR( x_font_name)  pair ;
 	char *  font_name ;
-	char *  encoding_name ;
+	char *  encoding ;
+	size_t  encoding_len ;
 	int  has_percentd ;
 	
 	if( font_size < min_font_size || max_font_size < font_size)
@@ -1744,7 +1745,7 @@ x_get_config_font_name(
 		return  strdup( pair->value) ;
 	}
 
-	encoding_name = NULL ;
+	encoding = NULL ;
 	if( ( pair = get_font_name_pair( font_config->default_font_name_table , font)) == NULL)
 	{
 		if( ! ( pair = get_font_name_pair( map , DEFAULT_FONT | (font & FONT_BOLD))) &&
@@ -1756,18 +1757,18 @@ x_get_config_font_name(
 
 	#ifndef  USE_WIN32GUI
 		if( font_config->type_engine == TYPE_XCORE &&
-		    /* encoding_name is appended if font_name is XLFD (not alias name). */
+		    /* encoding is appended if font_name is XLFD (not alias name). */
 		    ( strchr( pair->value , '*') || strchr( pair->value , '-')))
 		{
 			char **  names ;
 
-			if( ( names = x_font_get_encoding_names( FONT_CS(font))) == NULL ||
-				names[0] == NULL)
+			if( ! ( names = x_font_get_encoding_names( FONT_CS(font))) ||
+			    ! names[0])
 			{
 				return  NULL ;
 			}
 
-			encoding_name = names[0] ;
+			encoding = names[0] ;
 		}
 	#endif
 	}
@@ -1781,7 +1782,7 @@ x_get_config_font_name(
 	{
 		has_percentd = 1 ;
 	}
-	else if( encoding_name == NULL)
+	else if( encoding == NULL)
 	{
 		return  strdup( pair->value) ;
 	}
@@ -1793,8 +1794,7 @@ x_get_config_font_name(
 	if( ! ( font_name = malloc( strlen( pair->value) +
 				/* -2 is for "%d" */
 				(has_percentd ? DIGIT_STR_LEN(font_size) - 2 : 0) +
-				/* + 1  is for "-" */
-				(encoding_name ? strlen(encoding_name) + 1 : 0) + 1)))
+				(encoding_len = encoding ? strlen(encoding) : 0) + 1)))
 	{
 		return  NULL ;
 	}
@@ -1808,7 +1808,7 @@ x_get_config_font_name(
 		strcpy( font_name , pair->value) ;
 	}
 
-	if( encoding_name)
+	if( encoding)
 	{
 		char *  percent ;
 
@@ -1816,15 +1816,12 @@ x_get_config_font_name(
 		{
 			/* -*-:200 -> -*-iso8859-1:200 */
 
-			size_t  len ;
-
-			memmove( percent + (len = strlen(encoding_name)) , percent ,
-				strlen( percent) + 1) ;
-			memcpy( percent , encoding_name , len) ;
+			memmove( percent + encoding_len , percent , strlen( percent) + 1) ;
+			memcpy( percent , encoding , encoding_len) ;
 		}
 		else
 		{
-			strcat( font_name , encoding_name) ;
+			strcat( font_name , encoding) ;
 		}
 	}
 

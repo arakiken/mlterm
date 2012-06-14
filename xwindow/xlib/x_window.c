@@ -2057,13 +2057,12 @@ x_window_receive_event(
 		kik_debug_printf( "FOCUS IN %p\n" , event->xany.window) ;
 	#endif
 
-	#if  1
-		/* root window event only */
-		if( win->parent == NULL)
-	#endif
-		{
-			notify_focus_in_to_children( win) ;
-		}
+		/*
+		 * Cygwin/X can send FocusIn/FocusOut events not to top windows
+		 * but to child ones in changing window focus, so don't encircle
+		 * notify_focus_{in|out}_to_children with if(!win->parent).
+		 */
+		notify_focus_in_to_children( win) ;
 	}
 	else if( event->type == FocusOut)
 	{
@@ -2071,13 +2070,12 @@ x_window_receive_event(
 		kik_debug_printf( "FOCUS OUT %p\n" , event->xany.window) ;
 	#endif
 
-	#if  1
-		/* root window event only */
-		if( win->parent == NULL)
-	#endif
-		{
-			notify_focus_out_to_children( win) ;
-		}
+		/*
+		 * Cygwin/X can send FocusIn/FocusOut events not to top windows
+		 * but to child ones in changing window focus, so don't encircle
+		 * notify_focus_{in|out}_to_children with if(!win->parent).
+		 */
+		notify_focus_out_to_children( win) ;
 	}
 	else if( event->type == MotionNotify)
 	{

@@ -1,3 +1,13 @@
+2012-06-13  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_window.c: FocusIn/FocusOut events not only to top windows
+	  but also to child ones are processed.
+	  (SF Bug #3528838. Thanks to Thomas Wolff)
+
+	* ml_vt100_parser.c: CSI ? 8840 h and CSI ? 8840 l are supported.
+
+	* x_font_config.c: Minor fixes.
+
 2012-06-11  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, README.cairo: Fixed.
