@@ -823,24 +823,38 @@ flush_scroll_cache(
 	{
 		/*
 		 * setting modified mark to the lines within scroll region.
+		 *
+		 * XXX
+		 * Not regarding vertical mode.
 		 */
 
-		if( screen->scroll_cache_rows > 0)
+	#if  0
+		if( ! ml_term_get_vertical_mode( screen->term))
 		{
-			/*
-			 * scrolling upward.
-			 */
-			ml_term_set_modified_lines( screen->term , screen->scroll_cache_boundary_start ,
-				screen->scroll_cache_boundary_end - screen->scroll_cache_rows) ;
 		}
 		else
+	#endif
 		{
-			/*
-			 * scrolling downward.
-			 */
-			ml_term_set_modified_lines( screen->term ,
-				screen->scroll_cache_boundary_start - screen->scroll_cache_rows ,
-				screen->scroll_cache_boundary_end) ;
+			if( screen->scroll_cache_rows > 0)
+			{
+				/*
+				 * scrolling upward.
+				 */
+				ml_term_set_modified_lines( screen->term ,
+					screen->scroll_cache_boundary_start ,
+					screen->scroll_cache_boundary_end -
+						screen->scroll_cache_rows) ;
+			}
+			else
+			{
+				/*
+				 * scrolling downward.
+				 */
+				ml_term_set_modified_lines( screen->term ,
+					screen->scroll_cache_boundary_start -
+						screen->scroll_cache_rows ,
+					screen->scroll_cache_boundary_end) ;
+			}
 		}
 	}
 
@@ -1500,6 +1514,11 @@ window_exposed(
 	#endif
 	}
 
+	/*
+	 * XXX
+	 * ml_term_set_modified_region_in_screen() is not used here to
+	 * simplify logic.
+	 */
 	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
 	
 	redraw_screen( screen) ;

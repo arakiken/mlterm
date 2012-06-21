@@ -153,6 +153,7 @@ typedef struct  x_window
 	int  cmd_show ;
 #else
 	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
+	int8_t  wait_copy_area_response ;	/* Used for XCopyArea() */
 #endif
 	int8_t  is_sel_owner ;
 	int8_t  is_transparent ;

@@ -635,6 +635,64 @@ convert_to_decsp_font_index(
 	}
 }
 
+static void
+scroll_region(
+	x_window_t *  win ,
+	int  src_x ,
+	int  src_y ,
+	u_int  width ,
+	u_int  height ,
+	int  dst_x ,
+	int  dst_y
+	)
+{
+	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
+		src_x + win->margin , src_y + win->margin , width , height ,
+		dst_x + win->margin , dst_y + win->margin) ;
+
+	while( win->wait_copy_area_response)
+	{
+		XEvent  ev ;
+
+		XWindowEvent( win->disp->display , win->my_window ,
+				ExposureMask , &ev) ;
+		if( ev.type == GraphicsExpose)
+		{
+			/*
+			 * GraphicsExpose caused by the previous XCopyArea is
+			 * processed *after* XCopyArea above to avoid following problem.
+			 *
+			 *  - : GraphicsExpose Area
+			 *
+			 * (X Window screen)  (ml_term_t)
+			 * aaaaaaaaaa         aaaaaaaaaa
+			 * bbbbbbbbbb         bbbbbbbbbb
+			 * cccccccccc         cccccccccc
+			 *   1||(CA)             1||
+			 *    \/                  \/
+			 * bbbbbbbbbb         bbbbbbbbbb
+			 * cccccccccc         cccccccccc
+			 * ----------         dddddddddd
+			 *                       2||
+			 *                        \/
+			 * bbbbbbbbbb 3(GE)   cccccccccc
+			 * cccccccccc <=====  dddddddddd
+			 * eeeeeeeeee         eeeeeeeeee
+			 *   4||(CA)
+			 *    \/
+			 * cccccccccc
+			 * eeeeeeeeee
+			 * eeeeeeeeee
+			 */
+			ev.xgraphicsexpose.x += (dst_x - src_x) ;
+			ev.xgraphicsexpose.y += (dst_y - src_y) ;
+		}
+		x_window_receive_event( win , &ev) ;
+	}
+
+	win->wait_copy_area_response = 1 ;
+}
+
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE)
 
@@ -2181,9 +2239,11 @@ x_window_receive_event(
 				RevertToParent , CurrentTime) ;
 		}
 	}
-	else if( event->type == Expose ||
-	         ( event->type == GraphicsExpose &&
-		   event->xgraphicsexpose.drawable == win->my_window) )
+	else if( event->type == NoExpose)
+	{
+		win->wait_copy_area_response = 0 ;
+	}
+	else if( event->type == Expose || event->type == GraphicsExpose)
 	{
 		XEvent  next_ev ;
 		int  x ;
@@ -2195,7 +2255,7 @@ x_window_receive_event(
 		int  nskip = 0 ;
 	#endif
 
-		/* Optimize redrawing. */
+		/* Optimize redrawing. (Don't check GraphicsExpose) */
 		while( XCheckTypedWindowEvent( win->disp->display , win->my_window ,
 			Expose , &next_ev))
 		{
@@ -2343,6 +2403,29 @@ x_window_receive_event(
 			}
 		}
 
+		/*
+		 * win->window_exposed is called in win->is_scrollable == 0 to
+		 * avoid double XCopyArea problem described as follows.
+		 * 
+		 * 1) Stop processing VT100 sequence.
+		 * 2) XCopyArea
+		 * 3) Start processing VT100 sequence.
+		 * 4) Stop processing VT100 sequence.
+		 * 5) x_window_update() to redraw data modified by VT100 sequence.
+		 * 6) flush_scroll_cache() (x_screen.c)
+		 * 7) scroll_region() (x_window.c)
+		 *   - XCopyArea
+		 *   - Wait and process GraphicsExpose caused by 2).
+		 * 10)flush_scroll_cache() <- avoid this by setting is_scrollable = 0.
+		 * 11)scroll_region()
+		 *   - XCopyArea
+		 */
+		if( event->type == GraphicsExpose)
+		{
+			win->wait_copy_area_response = 0 ;
+			win->is_scrollable = 0 ;
+		}
+
 		if( win->window_exposed)
 		{
 			if( margin_area_exposed)
@@ -2358,6 +2441,11 @@ x_window_receive_event(
 			x_window_clear_all( win) ;
 		}
 	#endif
+
+		if( event->type == GraphicsExpose)
+		{
+			win->is_scrollable = 1 ;
+		}
 	}
 	else if( event->type == ConfigureNotify)
 	{
@@ -2808,10 +2896,10 @@ x_window_scroll_upward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
-		win->margin , win->margin + boundary_start + height ,	/* src */
+	scroll_region( win ,
+		0 , boundary_start + height ,	/* src */
 		win->width , boundary_end - boundary_start - height ,	/* size */
-		win->margin , win->margin + boundary_start) ;		/* dst */
+		0 , boundary_start) ;		/* dst */
 
 	return  1 ;
 }
@@ -2849,10 +2937,10 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
-		win->margin , win->margin + boundary_start ,
+	scroll_region( win ,
+		0 , boundary_start ,
 		win->width , boundary_end - boundary_start - height ,
-		win->margin , win->margin + boundary_start + height) ;
+		0 , boundary_start + height) ;
 
 	return  1 ;
 }
@@ -2890,10 +2978,10 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
-		win->margin + boundary_start + width , win->margin ,	/* src */
+	scroll_region( win ,
+		boundary_start + width , 0 ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
-		win->margin + boundary_start , win->margin) ;		/* dst */
+		boundary_start , 0) ;		/* dst */
 
 	return  1 ;
 }
@@ -2930,10 +3018,10 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
-		win->margin + boundary_start , win->margin ,
+	scroll_region( win ,
+		boundary_start , 0 ,
 		boundary_end - boundary_start - width , win->height ,
-		win->margin + boundary_start + width , win->margin) ;
+		boundary_start + width , 0) ;
 
 	return  1 ;
 }

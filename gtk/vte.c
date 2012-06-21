@@ -1694,7 +1694,7 @@ vte_terminal_realize(
 		/* x_gc_t using DefaultGC is already created in vte_terminal_class_init */
 		gc_value.foreground = disp.gc->fg_color ;
 		gc_value.background = disp.gc->bg_color ;
-		gc_value.graphics_exposures = 0 ;
+		gc_value.graphics_exposures = True ;
 		disp.gc->gc = XCreateGC( disp.display , xid ,
 				GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 

@@ -1,3 +1,11 @@
+2012-06-21  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.[ch]: NoExpose and GraphicsExpose events caused by
+	  XCopyArea are processed with wait_copy_area_response flag.
+
+	* x_gc.c, vte.c: Default value of graphics_exposures of GCValue is
+	  changed from False to True.
+
 2012-06-13  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_window.c: FocusIn/FocusOut events not only to top windows

@@ -36,7 +36,7 @@ x_gc_new(
 		/* Overwriting default value (1) of backgrond and foreground colors. */
 		gc_value.foreground = gc->fg_color ;
 		gc_value.background = gc->bg_color ;
-		gc_value.graphics_exposures = 0 ;
+		gc_value.graphics_exposures = True ;
 		gc->gc = XCreateGC( gc->display , drawable ,
 				GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 	}

@@ -513,6 +513,15 @@ ml_term_set_modified_region_in_screen(
 	int  row ;
 	ml_line_t *  line ;
 
+#ifdef  DEBUG
+	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" ml_term_set_modified_lines() should be called in visual context but"
+			" is called in logical context.\n") ;
+	}
+#endif
+
 	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		ml_screen_logical( term->screen) ;
