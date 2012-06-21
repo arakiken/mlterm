@@ -1,5 +1,9 @@
 2012-06-21  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: CSI Ps SP q (0 <= Ps <= 2) is supported.
+
+2012-06-21  Araki Ken  <arakiken@users.sf.net>
+
 	* x_window.[ch]: NoExpose and GraphicsExpose events caused by
 	  XCopyArea are processed with wait_copy_area_response flag.
 

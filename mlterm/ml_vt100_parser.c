@@ -2537,12 +2537,32 @@ parse_vt100_escape_sequence(
 					 */
 				}
 			}
+			else if( pre_ch == ' ')
+			{
+				if( *str_p == 'q')
+				{
+					if( ps[0] < 2)
+					{
+						config_protocol_set_simple( vt100_parser ,
+							"blink_cursor" , "true") ;
+					}
+					else if( ps[0] == 2)
+					{
+						config_protocol_set_simple( vt100_parser ,
+							"blink_cursor" , "false") ;
+					}
+				}
+				else
+				{
+					/*
+					 * "CSI SP t"(DECSWBV), "CSI SP u"(DECSMBV)
+					 */
+				}
+			}
 			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
 			else if( pre_ch)
 			{
 				/*
-				 * "CSI SP q"(DECSCUSR), "CSI SP t"(DECSWBV),
-				 * "CSI SP u"(DECSMBV)
 				 * "CSI " p"(DECSCL), "CSI " q"(DECSCA)
 				 * "CSI ' {"(DECSLE), "CSI ' |"(DECRQLP)
 				 * etc
