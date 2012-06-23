@@ -2404,26 +2404,21 @@ x_window_receive_event(
 		}
 
 		/*
-		 * win->window_exposed is called in win->is_scrollable == 0 to
-		 * avoid double XCopyArea problem described as follows.
-		 * 
-		 * 1) Stop processing VT100 sequence.
-		 * 2) XCopyArea
-		 * 3) Start processing VT100 sequence.
-		 * 4) Stop processing VT100 sequence.
-		 * 5) x_window_update() to redraw data modified by VT100 sequence.
-		 * 6) flush_scroll_cache() (x_screen.c)
-		 * 7) scroll_region() (x_window.c)
-		 *   - XCopyArea
-		 *   - Wait and process GraphicsExpose caused by 2).
-		 * 10)flush_scroll_cache() <- avoid this by setting is_scrollable = 0.
-		 * 11)scroll_region()
-		 *   - XCopyArea
+		 * It is desirable to set win->is_scrollable = 0 before calling
+		 * window_exposed event for GraphicsExpose event, because
+		 * GraphicsExpose event itself is caused by scrolling (XCopyArea).
+		 *
+		 * XXX
+		 * But win->is_scrollable = 0 is disabled for now because there
+		 * seems no cases which cause definite inconvenience.
+		 * (ref. flush_scroll_cache() in x_screen.c)
 		 */
 		if( event->type == GraphicsExpose)
 		{
 			win->wait_copy_area_response = 0 ;
+		#if  0
 			win->is_scrollable = 0 ;
+		#endif
 		}
 
 		if( win->window_exposed)
@@ -2442,10 +2437,12 @@ x_window_receive_event(
 		}
 	#endif
 
+	#if  0
 		if( event->type == GraphicsExpose)
 		{
 			win->is_scrollable = 1 ;
 		}
+	#endif
 	}
 	else if( event->type == ConfigureNotify)
 	{

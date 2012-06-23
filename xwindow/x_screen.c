@@ -738,10 +738,36 @@ flush_scroll_cache(
 	int  scroll_actual_screen
 	)
 {
+	int  scroll_cache_rows ;
+
 	if( ! screen->scroll_cache_rows)
 	{
 		return  0 ;
 	}
+
+	/*
+	 * x_window_scroll_*() can invoke window_exposed event internally,
+	 * and flush_scroll_cache() is called twice.
+	 * To avoid this, screen->scroll_cache_row is set 0 here before calling
+	 * x_window_scroll_*().
+	 *
+	 * 1) Stop processing VT100 sequence.
+	 * 2) flush_scroll_cache() (x_screen.c)
+	 * 3) scroll_region() (x_window.c)
+	 *   - XCopyArea
+	 * 4) Start processing VT100 sequence.
+	 * 5) Stop processing VT100 sequence.
+	 * 6) x_window_update() to redraw data modified by VT100 sequence.
+	 * 7) flush_scroll_cache()
+	 * 8) scroll_region()
+	 *   - XCopyArea
+	 *   - Wait and process GraphicsExpose caused by 3).
+	 * 9)flush_scroll_cache()
+	 * 10)scroll_region() <- avoid this by screen->scroll_cache_rows = 0.
+	 *   - XCopyArea
+	 */
+	scroll_cache_rows = screen->scroll_cache_rows ;
+	screen->scroll_cache_rows = 0 ;
 
 	if( scroll_actual_screen && x_window_is_scrollable( &screen->window))
 	{
@@ -751,7 +777,7 @@ flush_scroll_cache(
 			int  end_y ;
 			u_int  scroll_height ;
 
-			scroll_height = x_line_height( screen) * abs( screen->scroll_cache_rows) ;
+			scroll_height = x_line_height( screen) * abs( scroll_cache_rows) ;
 
 			if( scroll_height < screen->window.height)
 			{
@@ -760,7 +786,7 @@ flush_scroll_cache(
 						(screen->scroll_cache_boundary_end -
 						screen->scroll_cache_boundary_start + 1) ;
 
-				if( screen->scroll_cache_rows > 0)
+				if( scroll_cache_rows > 0)
 				{
 					x_window_scroll_upward_region( &screen->window ,
 						beg_y , end_y , scroll_height) ;
@@ -784,7 +810,7 @@ flush_scroll_cache(
 			int  end_x ;
 			u_int  scroll_width ;
 
-			scroll_width = x_col_width( screen) * abs( screen->scroll_cache_rows) ;
+			scroll_width = x_col_width( screen) * abs( scroll_cache_rows) ;
 
 			if( scroll_width < screen->window.width)
 			{
@@ -797,10 +823,10 @@ flush_scroll_cache(
 				{
 					end_x = screen->window.width - beg_x ;
 					beg_x = screen->window.width - end_x ;
-					screen->scroll_cache_rows = -(screen->scroll_cache_rows) ;
+					scroll_cache_rows = -(scroll_cache_rows) ;
 				}
 
-				if( screen->scroll_cache_rows > 0)
+				if( scroll_cache_rows > 0)
 				{
 					x_window_scroll_leftward_region( &screen->window ,
 						beg_x , end_x , scroll_width) ;
@@ -835,7 +861,7 @@ flush_scroll_cache(
 		else
 	#endif
 		{
-			if( screen->scroll_cache_rows > 0)
+			if( scroll_cache_rows > 0)
 			{
 				/*
 				 * scrolling upward.
@@ -843,7 +869,7 @@ flush_scroll_cache(
 				ml_term_set_modified_lines( screen->term ,
 					screen->scroll_cache_boundary_start ,
 					screen->scroll_cache_boundary_end -
-						screen->scroll_cache_rows) ;
+						scroll_cache_rows) ;
 			}
 			else
 			{
@@ -852,13 +878,11 @@ flush_scroll_cache(
 				 */
 				ml_term_set_modified_lines( screen->term ,
 					screen->scroll_cache_boundary_start -
-						screen->scroll_cache_rows ,
+						scroll_cache_rows ,
 					screen->scroll_cache_boundary_end) ;
 			}
 		}
 	}
-
-	screen->scroll_cache_rows = 0 ;
 
 	return  1 ;
 }

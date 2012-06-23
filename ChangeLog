@@ -1,3 +1,9 @@
+2012-06-24  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Duplicated code is removed.
+
+	* x_screen.c, x_window.c: Minor fixes related to GraphicsExpose.
+
 2012-06-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: CSI Ps SP q (0 <= Ps <= 2) is supported.

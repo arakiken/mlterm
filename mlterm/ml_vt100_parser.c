@@ -2569,28 +2569,7 @@ parse_vt100_escape_sequence(
 				 */
 
 			#ifdef  DEBUG
-				debug_print_unknown( "ESC [ %c" , pre_ch) ;
-			#endif
-
-				/*
-				 * In case more than one intermediate(0x20-0x2f)/
-				 * parameter(0x30-0x3f) chars.
-				 */
-				while( 0x20 <= *str_p && *str_p <= 0x3f)
-				{
-				#ifdef  DEBUG
-					kik_msg_printf( " %c" , *str_p) ;
-				#endif
-
-					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 0))
-					{
-						return  0 ;
-					}
-				}
-
-			#ifdef  DEBUG
-				kik_msg_printf( " %c\n" , *str_p) ;
+				debug_print_unknown( "ESC [ %c %c\n" , pre_ch , *str_p) ;
 			#endif
 			}
 			else if( *str_p == '@')
