@@ -1,5 +1,9 @@
 2012-06-24  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: CSI ? 8840 n is supported.
+
+2012-06-24  Araki Ken  <arakiken@users.sf.net>
+
 	* x.h, x_win32.h: XK_FMAX is added. XK_F25 ... XK_F35 macros are removed in win32.
 
 	* x_screen.c: If x_window_get_modifier_mapping() returns NULL,

@@ -2473,6 +2473,17 @@ parse_vt100_escape_sequence(
 					#endif
 					}
 				}
+				else if( *str_p == 'n')
+				{
+					if( ps[0] == 8840)
+					{
+						char  msg[] = "\x1b[?884Xn" ;
+
+						msg[6] = vt100_parser->col_size_of_width_a + 0x30 ;
+						ml_write_to_pty( vt100_parser->pty , msg ,
+							sizeof(msg) - 1) ;
+					}
+				}
 			#if  0
 				else if( *str_p == 'r')
 				{
