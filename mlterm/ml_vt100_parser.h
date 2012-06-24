@@ -93,6 +93,7 @@ typedef struct  ml_xterm_event_listener
 	int (*im_is_active)( void *) ;			/* called in logical context. */
 	void (*switch_im_mode)( void *) ;		/* called in logical context. */
 	void (*set_selection)( void * , ml_char_t * , u_int) ;	/* called in logical context. */
+	void (*set_modkey_mode)( void * , int , int) ;	/* called in logical context. */
 
 } ml_xterm_event_listener_t ;
 

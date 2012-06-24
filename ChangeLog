@@ -1,5 +1,17 @@
 2012-06-24  Araki Ken  <arakiken@users.sf.net>
 
+	* x.h, x_win32.h: XK_FMAX is added. XK_F25 ... XK_F35 macros are removed in win32.
+
+	* x_screen.c: If x_window_get_modifier_mapping() returns NULL,
+	  is_alt is set by (state & ModMask).
+
+	* ml_vt100_parser.[ch], x_screen.[ch]: CSI[>4;2m and CSI[>4;0m (enable and
+	  disable modifyOtherKeys) are partially supported.
+	  (Note that sequence from terminal is CSI [<code>;<mod>u,
+	   not CSI [27;<mod>;<code>~.)
+
+2012-06-24  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.c: Duplicated code is removed.
 
 	* x_screen.c, x_window.c: Minor fixes related to GraphicsExpose.

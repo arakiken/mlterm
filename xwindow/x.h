@@ -7,14 +7,24 @@
 
 
 #ifdef  USE_WIN32GUI
+
 #include  "win32/x_win32.h"
-#else
+
+#else	/* USE_WIN32GUI */
+
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <X11/Xatom.h>		/* XA_xxx */
 #include  <X11/Xutil.h>		/* IsKeypadKey */
+
+#ifdef  XK_F21
+#define  XK_FMAX  XK_F35
+#else
+#define  XK_FMAX  XK_F20
 #endif
+
+#endif	/* USE_WIN32GUI */
 
 /*
  * Xlib utility definitions.

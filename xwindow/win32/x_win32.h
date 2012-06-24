@@ -221,17 +221,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_F22		VK_F22
 #define XK_F23		VK_F23
 #define XK_F24		VK_F24
-#define XK_F25		0xfff6	/* dummy */
-#define XK_F26		0xfff5	/* dummy */
-#define XK_F27		0xfff4	/* dummy */
-#define XK_F28		0xfff3	/* dummy */
-#define XK_F29		0xfff2	/* dummy */
-#define XK_F30		0xfff1	/* dummy */
-#define XK_F31		0xfff0	/* dummy */
-#define XK_F32		0xffef	/* dummy */
-#define XK_F33		0xffee	/* dummy */
-#define XK_F34		0xffed	/* dummy */
-#define XK_F35		0xffec	/* dummy */
+#define XK_FMAX		XK_F24
 #define XK_Num_Lock	VK_NUMLOCK
 #define XK_Scroll_Lock	VK_SCROLL
 #define XK_Find		0xffeb	/* dummy */

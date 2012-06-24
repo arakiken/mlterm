@@ -781,6 +781,26 @@ im_is_active(
 	}
 }
 
+static void
+set_modkey_mode(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  key ,
+	int  mode
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,set_modkey_mode))
+	{
+	#if  0
+		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
+		(*vt100_parser->xterm_listener->set_modkey_mode)(
+			vt100_parser->xterm_listener->self , key , mode) ;
+	#if  0
+		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
+	}
+}
+
 
 /*
  * This function will destroy the content of pt.
@@ -2529,11 +2549,60 @@ parse_vt100_escape_sequence(
 
 					send_device_attributes( vt100_parser->pty , 2) ;
 				}
+				else if( *str_p == 'm')
+				{
+					/* "CSI > m" */
+
+					if( num == 0)
+					{
+						/* reset to initial value. */
+						set_modkey_mode( vt100_parser , 1 , 2) ;
+						set_modkey_mode( vt100_parser , 2 , 2) ;
+						set_modkey_mode( vt100_parser , 3 , 0) ;
+					}
+					else
+					{
+						if( num == 1)
+						{
+							if( ps[0] == 1 || /* modifyCursorKeys */
+							    ps[0] == 2)   /* modifyFunctionKeys */
+							{
+								/* The default is 2. */
+								ps[1] = 2 ;
+							}
+							else /* if( ps[0] == 4) */
+							{
+								/*
+								 * modifyOtherKeys
+								 * The default is 0.
+								 */
+								ps[1] = 0 ;
+							}
+						}
+
+						set_modkey_mode( vt100_parser , ps[0] , ps[1]) ;
+					}
+				}
+				else if( *str_p == 'n')
+				{
+					/* "CSI > n" */
+
+					if( num == 0)
+					{
+						ps[0] = 2 ;
+						num = 1 ;
+					}
+
+					if( num == 1)
+					{
+						/* -1: don't send modifier key code. */
+						set_modkey_mode( vt100_parser , ps[0] , -1) ;
+					}
+				}
 				else
 				{
 					/*
-					 * "CSI > T", "CSI > c", "CSI > p", "CSI > m",
-					 * "CSI > n", "CSI > t"
+					 * "CSI > T", "CSI > c", "CSI > p", "CSI > t"
 					 */
 				}
 			}

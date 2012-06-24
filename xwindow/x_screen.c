@@ -1984,8 +1984,8 @@ key_pressed(
 {
 	x_screen_t *  screen ;
 	size_t  size ;
-	u_char  buf[UTF_MAX_SIZE] ;
-	u_char *  seq ;
+	u_char  ch[UTF_MAX_SIZE] ;
+	u_char *  kstr ;
 	KeySym  ksym ;
 	mkf_parser_t *  parser ;
 	u_int  masked_state ;
@@ -1994,19 +1994,19 @@ key_pressed(
 
 	masked_state = event->state & screen->mod_ignore_mask ;
 
-	if( ( size = x_window_get_str( win , buf , sizeof(buf) , &parser , &ksym , event))
-	    > sizeof(buf))
+	if( ( size = x_window_get_str( win , ch , sizeof(ch) , &parser , &ksym , event))
+	    > sizeof(ch))
 	{
-		if( ! ( seq = alloca( size)))
+		if( ! ( kstr = alloca( size)))
 		{
 			return ;
 		}
 
-		size = x_window_get_str( win , seq , size , &parser , &ksym , event) ;
+		size = x_window_get_str( win , kstr , size , &parser , &ksym , event) ;
 	}
 	else
 	{
-		seq = buf ;
+		kstr = ch ;
 	}
 
 #if  0
@@ -2015,12 +2015,12 @@ key_pressed(
 		size_t  i ;
 		for( i = 0 ; i < size ; i++)
 		{
-			kik_msg_printf( "%c", seq[i]) ;
+			kik_msg_printf( "%c", kstr[i]) ;
 		}
 		kik_msg_printf( " hex ") ;
 		for( i = 0 ; i < size ; i++)
 		{
-			kik_msg_printf( "%x", seq[i]) ;
+			kik_msg_printf( "%x", kstr[i]) ;
 		}
 		kik_msg_printf( "\n") ;
 	}
@@ -2042,13 +2042,13 @@ key_pressed(
 
 		if( size == 1)
 		{
-			kchar = seq[0] ;
+			kchar = kstr[0] ;
 		}
 	#if  defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
-		else if( size == 2 && seq[0] == 0)
+		else if( size == 2 && kstr[0] == 0)
 		{
 			/* UTF16BE */
-			kchar = seq[1] ;
+			kchar = kstr[1] ;
 		}
 	#endif
 
@@ -2071,7 +2071,7 @@ key_pressed(
 		kik_debug_printf( KIK_DEBUG_TAG " received sequence =>") ;
 		for( i = 0 ; i < size ; i ++)
 		{
-			kik_msg_printf( "%.2x" , seq[i]) ;
+			kik_msg_printf( "%.2x" , kstr[i]) ;
 		}
 		kik_msg_printf( "\n") ;
 	}
@@ -2264,7 +2264,7 @@ key_pressed(
 		is_app_cursor_keys = ml_term_is_app_cursor_keys( screen->term) ;
 		is_app_keypad = ml_term_is_app_keypad( screen->term) ;
 
-		if ( event->state)	/* Check unmasked (raw) state of event. */
+		if( event->state)	/* Check unmasked (raw) state of event. */
 		{
 			int  is_shift ;
 			int  is_meta ;
@@ -2276,14 +2276,33 @@ key_pressed(
 						       &is_shift , NULL ,
 						       &is_ctl , &is_alt ,
 						       &is_meta , &is_numlock , NULL ,
-						       NULL))
+						       NULL) &&
+			    /* compatible with xterm (Modifier codes in input.c) */
+			    ( modcode = (is_shift ? 1 : 0) + (is_alt   ? 2 : 0) +
+						(is_ctl   ? 4 : 0) + (is_meta  ? 8 : 0)))
 			{
-				/* compatible with xterm (Modifier codes in input.c) */
-				modcode = (is_shift ? 1 : 0) + (is_alt   ? 2 : 0) +
-					  (is_ctl   ? 4 : 0) + (is_meta  ? 8 : 0) ;
-				if( modcode)
+				modcode++ ;
+
+				if( screen->modify_other_keys == 2)
 				{
-					modcode++ ;
+					if( size == 1
+				#if  defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
+					    || ( size == 2 && kstr[0] == 0)
+				#endif
+					    )
+					{
+						u_char  kchar ;
+
+						if( ( kchar = kstr[size - 1]) < 0x20)
+						{
+							kchar += (is_shift ? 0 : 0x20) +
+							         (is_ctl ? 0x40 : 0) ;
+						}
+
+						KEY_ESCSEQ( '[' , kchar , 'u') ;
+
+						goto  write_buf ;
+					}
 				}
 			}
 			
@@ -2452,14 +2471,11 @@ no_keypad:
 		{
 			if( strncmp( buf , "proto:" , 6) == 0)
 			{
-				char *  seq ;
-				size_t  len ;
-
-				len = 7 + strlen( buf + 6) + 2 ;
-				if( ( seq = alloca( len)))
+				size = 7 + strlen( buf + 6) + 2 ;
+				if( ( kstr = alloca( size)))
 				{
-					sprintf( seq , "\x1b]5379;%s\x07" , buf + 6) ;
-					ml_term_write_loopback( screen->term , seq , len - 1) ;
+					sprintf( kstr , "\x1b]5379;%s\x07" , buf + 6) ;
+					ml_term_write_loopback( screen->term , kstr , size - 1) ;
 					x_window_update( &screen->window ,
 						UPDATE_SCREEN|UPDATE_CURSOR) ;
 				}
@@ -2487,7 +2503,7 @@ no_keypad:
 		 * In some environment, if backspace(1) -> 0-9 or space(2) pressed continuously,
 		 * ksym in (2) as well as (1) is XK_BackSpace.
 		 */
-		else if( ksym == XK_BackSpace && size == 1 && seq[0] == 0x8)
+		else if( ksym == XK_BackSpace && size == 1 && kstr[0] == 0x8)
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
 		}
@@ -2500,7 +2516,7 @@ no_keypad:
 			buf = NULL ;
 		}
 		/*
-		 * following ksym is processed only if no sequence string is received
+		 * following ksym is processed only if no key string is received
 		 * (size == 0)
 		 */
 		else if( ksym == XK_Up)
@@ -2580,62 +2596,6 @@ no_keypad:
 			modcode = 0 ;
 		}
 	#endif
-		else if( ksym == XK_F1)
-		{
-			KEY_ESCSEQ( '[' , 11 , '~') ;
-		}
-		else if( ksym == XK_F2)
-		{
-			KEY_ESCSEQ( '[' , 12 , '~') ;
-		}
-		else if( ksym == XK_F3)
-		{
-			KEY_ESCSEQ( '[' , 13 , '~') ;
-		}
-		else if( ksym == XK_F4)
-		{
-			KEY_ESCSEQ( '[' , 14 , '~') ;
-		}
-		else if( ksym == XK_F5)
-		{
-			KEY_ESCSEQ( '[' , 15 , '~') ;
-		}
-		else if( ksym == XK_F6)
-		{
-			KEY_ESCSEQ( '[' , 17 , '~') ;
-		}
-		else if( ksym == XK_F7)
-		{
-			KEY_ESCSEQ( '[' , 18 , '~') ;
-		}
-		else if( ksym == XK_F8)
-		{
-			KEY_ESCSEQ( '[' , 19 , '~') ;
-		}
-		else if( ksym == XK_F9)
-		{
-			KEY_ESCSEQ( '[' , 20 , '~') ;
-		}
-		else if( ksym == XK_F10)
-		{
-			KEY_ESCSEQ( '[' , 21 , '~') ;
-		}
-		else if( ksym == XK_F11)
-		{
-			KEY_ESCSEQ( '[' , 23 , '~') ;
-		}
-		else if( ksym == XK_F12)
-		{
-			KEY_ESCSEQ( '[' , 24 , '~') ;
-		}
-		else if( ksym == XK_F13)
-		{
-			KEY_ESCSEQ( '[' , 25 , '~') ;
-		}
-		else if( ksym == XK_F14)
-		{
-			KEY_ESCSEQ( '[' , 26 , '~') ;
-		}
 		else if( ksym == XK_F15 || ksym == XK_Help)
 		{
 			KEY_ESCSEQ( '[' , 28 , '~') ;
@@ -2644,84 +2604,42 @@ no_keypad:
 		{
 			KEY_ESCSEQ( '[' , 29 , '~') ;
 		}
-		else if( ksym == XK_F17)
+		else if( XK_F1 <= ksym && ksym <= XK_FMAX)
 		{
-			KEY_ESCSEQ( '[' , 31 , '~') ;
+			if( ksym <= XK_F5)
+			{
+				/* 11 - 15 */
+				KEY_ESCSEQ( '[' , (ksym - XK_F1) + 11 , '~') ;
+			}
+			else if( ksym <= XK_F10)
+			{
+				/* 17 - 21 */
+				KEY_ESCSEQ( '[' , (ksym - XK_F6) + 17 , '~') ;
+			}
+			else if( ksym <= XK_F14)
+			{
+				/* 23 - 26 */
+				KEY_ESCSEQ( '[' , (ksym - XK_F11) + 23 , '~') ;
+			}
+			else
+		#if  XK_FMAX > XK_F20
+			if( ksym <= XK_F20)
+		#endif
+			{
+				/* 31 - 34 */
+				KEY_ESCSEQ( '[' , (ksym - XK_F17) + 31 , '~') ;
+			}
+		#if  XK_FMAX > XK_F20
+			else /* if( ksym <= XK_FMAX) */
+			{
+				/*
+				 * X11: 42 - 56(F35)
+				 * W32: 42 - 45(F24)
+				 */
+				KEY_ESCSEQ( '[' , (ksym - XK_F21) + 42 , '~') ;
+			}
+		#endif
 		}
-		else if( ksym == XK_F18)
-		{
-			KEY_ESCSEQ( '[' , 32 , '~') ;
-		}
-		else if( ksym == XK_F19)
-		{
-			KEY_ESCSEQ( '[' , 33 , '~') ;
-		}
-		else if( ksym == XK_F20)
-		{
-			KEY_ESCSEQ( '[' , 34 , '~') ;
-		}
-	#ifdef  XK_F21
-		else if( ksym == XK_F21)
-		{
-			KEY_ESCSEQ( '[' , 42 , '~') ;
-		}
-		else if( ksym == XK_F22)
-		{
-			KEY_ESCSEQ( '[' , 43 , '~') ;
-		}
-		else if( ksym == XK_F23)
-		{
-			KEY_ESCSEQ( '[' , 44 , '~') ;
-		}
-		else if( ksym == XK_F24)
-		{
-			KEY_ESCSEQ( '[' , 45 , '~') ;
-		}
-		else if( ksym == XK_F25)
-		{
-			KEY_ESCSEQ( '[' , 46 , '~') ;
-		}
-		else if( ksym == XK_F26)
-		{
-			KEY_ESCSEQ( '[' , 47 , '~') ;
-		}
-		else if( ksym == XK_F27)
-		{
-			KEY_ESCSEQ( '[' , 48 , '~') ;
-		}
-		else if( ksym == XK_F28)
-		{
-			KEY_ESCSEQ( '[' , 49 , '~') ;
-		}
-		else if( ksym == XK_F29)
-		{
-			KEY_ESCSEQ( '[' , 50 , '~') ;
-		}
-		else if( ksym == XK_F30)
-		{
-			KEY_ESCSEQ( '[' , 51 , '~') ;
-		}
-		else if( ksym == XK_F31)
-		{
-			KEY_ESCSEQ( '[' , 52 , '~') ;
-		}
-		else if( ksym == XK_F32)
-		{
-			KEY_ESCSEQ( '[' , 53 , '~') ;
-		}
-		else if( ksym == XK_F33)
-		{
-			KEY_ESCSEQ( '[' , 54 , '~') ;
-		}
-		else if( ksym == XK_F34)
-		{
-			KEY_ESCSEQ( '[' , 55 , '~') ;
-		}
-		else if( ksym == XK_F35)
-		{
-			KEY_ESCSEQ( '[' , 56 , '~') ;
-		}
-	#endif /* XK_F21 */
 	#ifdef SunXK_F36
 		else if( ksym == SunXK_F36)
 		{
@@ -2776,9 +2694,9 @@ write_buf:
 
 				for( count = 0 ; count < size ; count ++)
 				{
-					if( 0x20 <= seq[count] && seq[count] <= 0x7e)
+					if( 0x20 <= kstr[count] && kstr[count] <= 0x7e)
 					{
-						seq[count] |= 0x80 ;
+						kstr[count] |= 0x80 ;
 					}
 				}
 				/* shouldn't try to parse the modified sequence */
@@ -2800,7 +2718,7 @@ write_buf:
 				size_t  filled_len ;
 
 				(*parser->init)( parser) ;
-				(*parser->set_str)( parser , seq , size) ;
+				(*parser->set_str)( parser , kstr , size) ;
 
 				(*screen->utf_conv->init)( screen->utf_conv) ;
 
@@ -2819,7 +2737,7 @@ write_buf:
 			}
 			else
 			{
-				write_to_pty( screen , seq , size , parser) ;
+				write_to_pty( screen , kstr , size , parser) ;
 			}
 		}
 	}
@@ -6647,14 +6565,8 @@ compare_key_state_with_modmap(
 	x_screen_t *  screen ;
 	XModifierKeymap *  mod_map ;
 	u_int  mod_mask[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask} ;
-	int  i ;
 
 	screen = p ;
-
-	if( ( mod_map = x_window_get_modifier_mapping( &screen->window)) == NULL)
-	{
-		return  0 ;
-	}
 
 	if( is_shift)
 	{
@@ -6704,65 +6616,78 @@ compare_key_state_with_modmap(
 		*is_ctl = 1 ;
 	}
 
-	for( i = 0 ; i < 5 ; i++)
+	if( ! ( mod_map = x_window_get_modifier_mapping( &screen->window)))
 	{
-		int  index ;
-		int  mod1_index ;
-
-		if( ! (state & mod_mask[i]))
+		/* Assume win32 */
+		if( is_alt && (state & ModMask))
 		{
-			continue ;
+			*is_alt = 1 ;
 		}
+	}
+	else
+	{
+		int  i ;
 
-		/* skip shift/lock/control */
-		mod1_index = mod_map->max_keypermod * 3 ;
-
-		for( index = mod1_index + (mod_map->max_keypermod * i) ;
-		     index < mod1_index + (mod_map->max_keypermod * (i + 1)) ;
-		     index ++)
+		for( i = 0 ; i < 5 ; i++)
 		{
-			KeySym  sym ;
+			int  index ;
+			int  mod1_index ;
 
-			sym = XKeycodeToKeysym(  screen->window.disp->display ,
-						mod_map->modifiermap[index] , 0) ;
-
-			switch (sym)
+			if( ! (state & mod_mask[i]))
 			{
-			case  XK_Meta_R:
-			case  XK_Meta_L:
-				if( is_meta)
+				continue ;
+			}
+
+			/* skip shift/lock/control */
+			mod1_index = mod_map->max_keypermod * 3 ;
+
+			for( index = mod1_index + (mod_map->max_keypermod * i) ;
+			     index < mod1_index + (mod_map->max_keypermod * (i + 1)) ;
+			     index ++)
+			{
+				KeySym  sym ;
+
+				sym = XKeycodeToKeysym(  screen->window.disp->display ,
+							mod_map->modifiermap[index] , 0) ;
+
+				switch (sym)
 				{
-					*is_meta = 1 ;
+				case  XK_Meta_R:
+				case  XK_Meta_L:
+					if( is_meta)
+					{
+						*is_meta = 1 ;
+					}
+					break ;
+				case  XK_Alt_R:
+				case  XK_Alt_L:
+					if( is_alt)
+					{
+						*is_alt = 1 ;
+					}
+					break ;
+				case  XK_Super_R:
+				case  XK_Super_L:
+					if( is_super)
+					{
+						*is_super = 1 ;
+					}
+					break ;
+				case  XK_Hyper_R:
+				case  XK_Hyper_L:
+					if( is_hyper)
+					{
+						*is_hyper = 1 ;
+					}
+					break ;
+				case  XK_Num_Lock:
+					if( is_numlock)
+					{
+						*is_numlock = 1 ;
+					}
+				default:
+					break ;
 				}
-				break ;
-			case  XK_Alt_R:
-			case  XK_Alt_L:
-				if( is_alt)
-				{
-					*is_alt = 1 ;
-				}
-				break ;
-			case  XK_Super_R:
-			case  XK_Super_L:
-				if( is_super)
-				{
-					*is_super = 1 ;
-				}
-				break ;
-			case  XK_Hyper_R:
-			case  XK_Hyper_L:
-				if( is_hyper)
-				{
-					*is_hyper = 1 ;
-				}
-				break ;
-			case  XK_Num_Lock:
-				if( is_numlock)
-				{
-					*is_numlock = 1 ;
-				}
-			default:
-				break ;
 			}
 		}
 	}
@@ -7119,6 +7044,34 @@ xterm_set_selection(
 	screen->sel.sel_len = len ;
 }
 
+static void
+xterm_set_modkey_mode(
+	void *  p ,
+	int  key ,
+	int  mode
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+#if  0
+	if( key == 1 && mode <= 3)
+	{
+		screen->modify_cursor_keys = mode ;
+	}
+	else if( key == 2 && mode <= 3)
+	{
+		screen->modify_function_keys = mode ;
+	}
+	else
+#endif
+	if( key == 4 && mode <= 2)
+	{
+		screen->modify_other_keys = mode ;
+	}
+}
+
 
 /*
  * callbacks of ml_pty_event_listener_t
@@ -7339,6 +7292,7 @@ x_screen_new(
 	screen->xterm_listener.im_is_active = xterm_im_is_active ;
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
 	screen->xterm_listener.set_selection = (allow_osc52 ? xterm_set_selection : NULL) ;
+	screen->xterm_listener.set_modkey_mode = xterm_set_modkey_mode ;
 
 	screen->config_listener.self = screen ;
 	screen->config_listener.exec = x_screen_exec_cmd ;

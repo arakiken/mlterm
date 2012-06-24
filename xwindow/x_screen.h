@@ -157,6 +157,11 @@ typedef struct  x_screen
 	int8_t  font_or_color_config_updated ;	/* 0x1 = font updated, 0x2 = color updated */
 	int8_t  cursor_blink_wait ;
 	int8_t  hide_underline ;
+#if  0
+	int8_t  modify_cursor_keys ;
+	int8_t  modify_function_keys ;
+#endif
+	int8_t  modify_other_keys ;
 
 } x_screen_t ;
 

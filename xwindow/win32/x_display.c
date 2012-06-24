@@ -174,21 +174,23 @@ x_display_open(
 	_disp.height = GetSystemMetrics( SM_CYSCREEN) ;
 	_disp.depth = 24 ;
 
+	if( ( _disp.gc = x_gc_new( &_display , None)) == NULL)
+	{
+		return  NULL ;
+	}
+
 #ifdef  USE_WIN32API
 	fd = -1 ;
 #else
 	if( ( fd = open( "/dev/windows" , O_NONBLOCK , 0)) == -1)
 	{
+		x_gc_delete( _disp.gc) ;
+
 		return  NULL ;
 	}
 	
 	kik_file_set_cloexec( fd) ;
 #endif
-
-	if( ( _disp.gc = x_gc_new( &_display , None)) == NULL)
-	{
-		return  NULL ;
-	}
 
 	x_gdiobj_pool_init() ;
 
