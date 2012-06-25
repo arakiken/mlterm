@@ -280,6 +280,8 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_want_focus_event( term)  ml_vt100_parser_want_focus_event((term)->parser)
 
+#define  ml_term_modify_other_keys( term)  ml_vt100_parser_modify_other_keys((term)->parser)
+
 int  ml_term_set_window_name( ml_term_t *  term , char *  name) ;
 
 int  ml_term_set_icon_name( ml_term_t *  term , char *  name) ;

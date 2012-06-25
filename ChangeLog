@@ -1,3 +1,8 @@
+2012-06-26  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.[ch], ml_term.h, ml_vt100_parser.[ch]:
+	  modify_other_keys flag is moved from x_screen_t to ml_vt100_parser_t.
+
 2012-06-24  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: CSI ? 8840 n is supported.

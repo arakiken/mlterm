@@ -93,7 +93,6 @@ typedef struct  ml_xterm_event_listener
 	int (*im_is_active)( void *) ;			/* called in logical context. */
 	void (*switch_im_mode)( void *) ;		/* called in logical context. */
 	void (*set_selection)( void * , ml_char_t * , u_int) ;	/* called in logical context. */
-	void (*set_modkey_mode)( void * , int , int) ;	/* called in logical context. */
 
 } ml_xterm_event_listener_t ;
 
@@ -186,6 +185,12 @@ typedef struct  ml_vt100_parser
 
 	int8_t  im_is_active ;
 
+#if  0
+	int8_t  modify_cursor_keys ;
+	int8_t  modify_function_keys ;
+#endif
+	int8_t  modify_other_keys ;
+
 #ifdef  USE_VT52
 	int8_t  is_vt52_mode ;
 #endif
@@ -266,6 +271,8 @@ int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int
 		((vt100_parser)->is_bracketed_paste_mode)
 
 #define  ml_vt100_parser_want_focus_event( vt100_parser)  ((vt100_parser)->want_focus_event)
+
+#define  ml_vt100_parser_modify_other_keys( vt100_parser)  ((vt100_parser)->modify_other_keys)
 
 
 #endif

@@ -788,16 +788,20 @@ set_modkey_mode(
 	int  mode
 	)
 {
-	if( HAS_XTERM_LISTENER(vt100_parser,set_modkey_mode))
+#if  0
+	if( key == 1 && mode <= 3)
 	{
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
-		(*vt100_parser->xterm_listener->set_modkey_mode)(
-			vt100_parser->xterm_listener->self , key , mode) ;
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
+		vt100_parser->modify_cursor_keys = mode ;
+	}
+	else if( key == 2 && mode <= 3)
+	{
+		vt100_parser->modify_function_keys = mode ;
+	}
+	else
+#endif
+	if( key == 4 && mode <= 2)
+	{
+		vt100_parser->modify_other_keys = mode ;
 	}
 }
 

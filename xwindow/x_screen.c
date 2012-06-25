@@ -2283,7 +2283,7 @@ key_pressed(
 			{
 				modcode++ ;
 
-				if( screen->modify_other_keys == 2)
+				if( ml_term_modify_other_keys(screen->term) == 2)
 				{
 					if( size == 1
 				#if  defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
@@ -7044,34 +7044,6 @@ xterm_set_selection(
 	screen->sel.sel_len = len ;
 }
 
-static void
-xterm_set_modkey_mode(
-	void *  p ,
-	int  key ,
-	int  mode
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-#if  0
-	if( key == 1 && mode <= 3)
-	{
-		screen->modify_cursor_keys = mode ;
-	}
-	else if( key == 2 && mode <= 3)
-	{
-		screen->modify_function_keys = mode ;
-	}
-	else
-#endif
-	if( key == 4 && mode <= 2)
-	{
-		screen->modify_other_keys = mode ;
-	}
-}
-
 
 /*
  * callbacks of ml_pty_event_listener_t
@@ -7292,7 +7264,6 @@ x_screen_new(
 	screen->xterm_listener.im_is_active = xterm_im_is_active ;
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
 	screen->xterm_listener.set_selection = (allow_osc52 ? xterm_set_selection : NULL) ;
-	screen->xterm_listener.set_modkey_mode = xterm_set_modkey_mode ;
 
 	screen->config_listener.self = screen ;
 	screen->config_listener.exec = x_screen_exec_cmd ;
