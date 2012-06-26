@@ -457,9 +457,12 @@ x_shortcut_str(
 
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{
-                if( (shortcut->str_map[count].ksym == ksym) &&
-			((shortcut->str_map[count].state == state) ||
-			    (((shortcut->str_map[count].state & ModMask) == ModMask) && (state & ModMask))))
+                if( shortcut->str_map[count].ksym == ksym &&
+		    shortcut->str_map[count].state ==
+			( state |
+			  ( (state & ModMask) &&
+			    (shortcut->str_map[count].state & ModMask) == ModMask ?
+			    ModMask : 0)) )
 		{
 			return  shortcut->str_map[count].str ;
 		}

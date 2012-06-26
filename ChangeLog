@@ -1,5 +1,10 @@
 2012-06-26  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c: If x_shortcut_str() returns text in key_pressed(),
+	  event->state is set 0 to ignore mod_meta_mode.
+
+	* x_shortcut.c: ModMask check in x_shortcut_str() is fixed.
+
 	* x_screen.[ch], ml_term.h, ml_vt100_parser.[ch]:
 	  modify_other_keys flag is moved from x_screen_t to ml_vt100_parser_t.
 

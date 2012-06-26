@@ -2469,6 +2469,12 @@ key_pressed(
 no_keypad:
 		if( ( buf = x_shortcut_str( screen->shortcut , ksym , masked_state)))
 		{
+			/*
+			 * Set 0 to ignore (screen->mod_meta_mask & event->state) check
+			 * at write_buf.
+			 */
+			event->state = 0 ;
+
 			if( strncmp( buf , "proto:" , 6) == 0)
 			{
 				size = 7 + strlen( buf + 6) + 2 ;
