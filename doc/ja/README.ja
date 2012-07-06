@@ -213,6 +213,10 @@ comment $Id$
     るコンソールアプリケーションを引き継いだ mlterm を自動的に再起動し、コンソー
     ルアプリケーションを保護します。
 
+  o local echo mode
+    キー入力に対する処理結果がコンソールアプリケーションから返ってくる前に、
+    前もって画面に表示することにより、体感的な応答速度を向上します。
+
 * 設定
   o 設定ファイル
     ${SYSCONFDIR}/mlterm 以下、および、~/.mlterm 以下におかれます。
@@ -675,7 +679,7 @@ comment $Id$
         ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信する。
 	(0 の場合は送信しない。)
 
-      o ssh_x11_forwarding (false)
+      o ssh_x11_forwarding (true/*false*)
         ssh 接続で x11 forwarding を有効にする。
 
       o auto_restart (*true*/false)
@@ -688,6 +692,9 @@ comment $Id$
         OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可する。
         なお、このオプションを動的に変更するには、SWITCH_OSC52 ショートカットキ
         ーを使用する必要があります。
+
+      o use_local_echo (true/*false*)
+        local echo mode を有効にする。
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
@@ -1108,6 +1115,7 @@ comment $Id$
        --pubkey=value  : ssh_public_key
        --privkey=value : ssh_private_key
        --ciphlist=value : cipher_list
+       --x11(=bool)    : ssh_x11_forwarding
        --csp=value     : letter_space
        --ucsprop(=bool): use_unicode_property
        --osc52(=bool)  : allow_osc52
@@ -1117,6 +1125,7 @@ comment $Id$
        --clip(=bool)   : use_clipboard (X)
        --restart(=bool): auto_restart
        --logmsg(=bool) : logging_msg
+       --loecho(=bool) : use_local_echo
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)

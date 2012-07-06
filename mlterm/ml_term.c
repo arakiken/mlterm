@@ -33,7 +33,8 @@ ml_term_new(
 	int  use_bce ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
-	ml_vertical_mode_t  vertical_mode
+	ml_vertical_mode_t  vertical_mode ,
+	int  use_local_echo
 	)
 {
 	ml_term_t *  term ;
@@ -83,6 +84,8 @@ ml_term_new(
 	term->use_dynamic_comb = use_dynamic_comb ;
 
 	term->is_auto_encoding = is_auto_encoding ;
+
+	term->use_local_echo = use_local_echo ;
 
 	return  term ;
 
@@ -341,6 +344,22 @@ ml_term_set_use_dynamic_comb(
 }
 
 int
+ml_term_set_use_local_echo(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	if( term->use_local_echo != flag && ! ( term->use_local_echo = flag))
+	{
+		ml_screen_logical( term->screen) ;
+		ml_screen_disable_local_echo( term->screen) ;
+		ml_screen_visual( term->screen) ;
+	}
+
+	return  1 ;
+}
+
+int
 ml_term_get_master_fd(
 	ml_term_t *  term
 	)
@@ -413,6 +432,11 @@ ml_term_write(
 		if( term->pty == NULL)
 		{
 			return  0 ;
+		}
+
+		if( term->use_local_echo)
+		{
+			ml_vt100_parser_local_echo( term->parser , buf , len) ;
 		}
 
 		return  ml_write_to_pty( term->pty , buf , len) ;

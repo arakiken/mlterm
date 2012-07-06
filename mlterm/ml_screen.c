@@ -1833,6 +1833,113 @@ ml_screen_use_alternative_edit(
 }
 
 int
+ml_screen_enable_local_echo(
+	ml_screen_t *  screen
+	)
+{
+	if( screen->stored_edits)
+	{
+		screen->stored_edits->time = clock() / (CLOCKS_PER_SEC/10) ;
+
+		return  1 ;
+	}
+
+	if( ! ( screen->stored_edits = malloc( sizeof( ml_stored_edits_t))))
+	{
+		return  0 ;
+	}
+
+	screen->stored_edits->normal_edit = screen->normal_edit ;
+	screen->stored_edits->alt_edit = screen->alt_edit ;
+
+	if( ! ml_edit_clone( &screen->normal_edit , &screen->stored_edits->normal_edit))
+	{
+		goto  error1 ;
+	}
+
+	if( ! ml_edit_clone( &screen->alt_edit , &screen->stored_edits->alt_edit))
+	{
+		goto  error2 ;
+	}
+
+	screen->stored_edits->time = clock() / (CLOCKS_PER_SEC/10) ;
+
+	return  1 ;
+
+error2:
+	ml_edit_final( &screen->stored_edits->normal_edit) ;
+
+error1:
+	free( screen->stored_edits) ;
+	screen->stored_edits = NULL ;
+
+	return  0 ;
+}
+
+int
+ml_screen_local_echo_wait(
+	ml_screen_t *  screen ,
+	int  msec		/* If 0 is specified, time is reset. */
+	)
+{
+	if( screen->stored_edits)
+	{
+		if( msec == 0)
+		{
+			screen->stored_edits->time = 0 ;
+		}
+		else if( screen->stored_edits->time + msec / 100 >= clock() / (CLOCKS_PER_SEC/10))
+		{
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
+int
+ml_screen_disable_local_echo(
+	ml_screen_t *  screen
+	)
+{
+	u_int  row ;
+	u_int  num_of_rows ;
+	ml_line_t *  line ;
+
+	if( ! screen->stored_edits)
+	{
+		return  1 ;
+	}
+
+	num_of_rows = ml_edit_get_rows( screen->edit) ;
+
+	/* Modified lines are inherited to stored_edits. */
+	for( row = 0 ; row < num_of_rows ; row++)
+	{
+		if( ( line = ml_edit_get_line( screen->edit , row)) &&
+		    ml_line_is_modified( line) &&
+		    ( line = ml_edit_get_line(
+				( screen->edit == &screen->normal_edit ?
+					&screen->stored_edits->normal_edit :
+					&screen->stored_edits->alt_edit) , row)))
+		{
+			ml_line_set_modified_all( line) ;
+		}
+	}
+
+	ml_edit_final( &screen->normal_edit) ;
+	ml_edit_final( &screen->alt_edit) ;
+
+	screen->normal_edit = screen->stored_edits->normal_edit ;
+	screen->alt_edit = screen->stored_edits->alt_edit ;
+
+	free( screen->stored_edits) ;
+	screen->stored_edits = NULL ;
+
+	return  1 ;
+}
+
+int
 ml_screen_fill_all_with_e(
 	ml_screen_t *  screen
 	)

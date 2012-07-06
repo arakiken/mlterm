@@ -298,3 +298,6 @@ scrollbar_view_name = sample
 
 # OSC 52 シーケンスによるクリップボード操作
 # allow_osc52 = false
+
+# local echo mode を有効にする。
+# use_local_echo = false

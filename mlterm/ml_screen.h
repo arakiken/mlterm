@@ -6,6 +6,7 @@
 #define  __ML_SCREEN_H__
 
 
+#include  <time.h>
 #include  <kiklib/kik_types.h>		/* int8_t */
 
 #include  "ml_edit.h"
@@ -34,6 +35,14 @@ typedef enum  ml_bs_mode
 	
 } ml_bs_mode_t ;
 
+typedef struct  ml_stored_edits
+{
+	ml_edit_t  normal_edit ;
+	ml_edit_t  alt_edit ;
+	clock_t  time ;
+
+} ml_stored_edits_t ;
+
 typedef struct  ml_screen
 {
 	/* public(readonly) */
@@ -45,6 +54,7 @@ typedef struct  ml_screen
 
 	ml_edit_t  normal_edit ;
 	ml_edit_t  alt_edit ;
+	ml_stored_edits_t *  stored_edits ;	/* Store logical edits. */
 
 	ml_edit_scroll_event_listener_t  edit_scroll_listener ;
 	
@@ -140,7 +150,7 @@ int  ml_screen_visual( ml_screen_t *  screen) ;
 int  ml_screen_logical( ml_screen_t *  screen) ;
 
 #define  ml_screen_logical_visual_is_reversible( screen) \
-		((screen)->logvis && (screen)->logvis->is_reversible)
+		(! (screen)->logvis || (screen)->logvis->is_reversible)
 
 ml_bs_mode_t  ml_is_backscroll_mode( ml_screen_t *  screen) ;
 
@@ -277,6 +287,12 @@ int  ml_screen_use_normal_edit( ml_screen_t *  screen) ;
 int  ml_screen_use_alternative_edit( ml_screen_t *  screen) ;
 
 int  ml_screen_is_alternative_edit( ml_screen_t *  screen) ;
+
+int  ml_screen_enable_local_echo( ml_screen_t *  screen) ;
+
+int  ml_screen_local_echo_wait( ml_screen_t *  screen , int  msec) ;
+
+int  ml_screen_disable_local_echo( ml_screen_t *  screen) ;
 
 int  ml_screen_fill_all_with_e( ml_screen_t *  screen) ;
 

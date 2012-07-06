@@ -2249,7 +2249,16 @@ parse_vt100_escape_sequence(
 						}
 						else if( ps[count] == 8840)
 						{
+							/* "CSI ? 8840 h" */
+
 							vt100_parser->col_size_of_width_a = 2 ;
+						}
+						else if( ps[count] == 9500)
+						{
+							/* "CSI ? 9500 h" */
+
+							config_protocol_set_simple( vt100_parser ,
+								"use_local_echo" , "true") ;
 						}
 					#ifdef  DEBUG
 						else
@@ -2466,7 +2475,16 @@ parse_vt100_escape_sequence(
 						}
 						else if( ps[count] == 8840)
 						{
+							/* "CSI ? 8840 l" */
+
 							vt100_parser->col_size_of_width_a = 1 ;
+						}
+						else if( ps[count] == 9500)
+						{
+							/* "CSI ? 9500 l" */
+
+							config_protocol_set_simple( vt100_parser ,
+								"use_local_echo" , "false") ;
 						}
 					#ifdef  DEBUG
 						else
@@ -3954,6 +3972,59 @@ parse_vt100_sequence(
 	return  1 ;
 }
 
+static int
+write_loopback(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  buf ,
+	size_t  len ,
+	int  enable_local_echo
+	)
+{
+	char *  orig_buf ;
+	size_t  orig_left ;
+
+	if( vt100_parser->r_buf.len < len &&
+	    ! change_read_buffer_size( &vt100_parser->r_buf , len))
+	{
+		return  0 ;
+	}
+
+	if( (orig_left = vt100_parser->r_buf.left) > 0)
+	{
+		if( ! ( orig_buf = alloca( orig_left)))
+		{
+			return  0 ;
+		}
+
+		memcpy( orig_buf , CURRENT_STR_P(vt100_parser) , orig_left) ;
+	}
+
+	memcpy( vt100_parser->r_buf.chars , buf , len) ;
+	vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left = len ;
+
+	start_vt100_cmd( vt100_parser , 1) ;
+	if( enable_local_echo)
+	{
+		ml_screen_enable_local_echo( vt100_parser->screen) ;
+	}
+	/*
+	 * bidi and visual-indian is always stopped from here.
+	 * If you want to call {start|stop}_vt100_cmd (where ml_xterm_event_listener is called),
+	 * the second argument of it shoule be 0.
+	 */
+	parse_vt100_sequence( vt100_parser) ;
+	stop_vt100_cmd( vt100_parser , 1) ;
+
+	if( orig_left > 0)
+	{
+		memcpy( vt100_parser->r_buf.chars , orig_buf , orig_left) ;
+		vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left = orig_left ;
+	}
+
+	return  1 ;
+}
+
+
 /* --- global functions --- */
 
 ml_vt100_parser_t *
@@ -4085,13 +4156,20 @@ ml_parse_vt100_sequence(
 	)
 {
 	int  count ;
-	
+
+	if( ml_screen_local_echo_wait( vt100_parser->screen , 500))
+	{
+		return  1 ;
+	}
+
 	if( ! vt100_parser->pty || receive_bytes( vt100_parser) == 0)
 	{
 		return  0 ;
 	}
 
 	start_vt100_cmd( vt100_parser , 1) ;
+
+	ml_screen_disable_local_echo( vt100_parser->screen) ;
 
 	/*
 	 * bidi and visual-indian is always stopped from here.
@@ -4115,48 +4193,53 @@ ml_parse_vt100_sequence(
 }
 
 int
-ml_parse_vt100_write_loopback(
+ml_vt100_parser_write_loopback(
 	ml_vt100_parser_t *  vt100_parser ,
 	u_char *  buf ,
 	size_t  len
 	)
 {
-	char *  orig_buf ;
-	size_t  orig_left ;
+	return  write_loopback( vt100_parser , buf , len , 0) ;
+}
 
-	if( vt100_parser->r_buf.len < len &&
-	    ! change_read_buffer_size( &vt100_parser->r_buf , len))
-	{
-		return  0 ;
-	}
+int
+ml_vt100_parser_local_echo(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	size_t  count ;
 
-	if( (orig_left = vt100_parser->r_buf.left) > 0)
+	for( count = 0 ; count < len ; count++)
 	{
-		if( ! ( orig_buf = alloca( orig_left)))
+		if( buf[count] < 0x20)
 		{
-			return  0 ;
+			ml_screen_local_echo_wait( vt100_parser->screen , 0) ;
+			ml_parse_vt100_sequence( vt100_parser) ;
+
+			return  1 ;
 		}
-
-		memcpy( orig_buf , CURRENT_STR_P(vt100_parser) , orig_left) ;
 	}
 
-	memcpy( vt100_parser->r_buf.chars , buf , len) ;
-	vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left = len ;
+	ml_parse_vt100_sequence( vt100_parser) ;
 
-	start_vt100_cmd( vt100_parser , 1) ;
-	/*
-	 * bidi and visual-indian is always stopped from here.
-	 * If you want to call {start|stop}_vt100_cmd (where ml_xterm_event_listener is called),
-	 * the second argument of it shoule be 0.
-	 */
-	parse_vt100_sequence( vt100_parser) ;
-	stop_vt100_cmd( vt100_parser , 1) ;
-
-	if( orig_left > 0)
+	if( ! vt100_parser->is_underlined)
 	{
-		memcpy( vt100_parser->r_buf.chars , orig_buf , orig_left) ;
-		vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left = orig_left ;
+		char *  new_buf ;
+		size_t  new_len ;
+
+		if( ( new_buf = alloca( ( new_len = 4 + len + 5))))
+		{
+			memcpy( new_buf , "\x1b[4m" , 4) ;
+			memcpy( new_buf + 4 , buf , len) ;
+			memcpy( new_buf + 4 + len , "\x1b[24m" , 5) ;
+			buf = new_buf ;
+			len = new_len ;
+		}
 	}
+
+	write_loopback( vt100_parser , buf , len , 1) ;
 
 	return  1 ;
 }

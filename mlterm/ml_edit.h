@@ -58,6 +58,8 @@ int  ml_edit_init( ml_edit_t *  edit , ml_edit_scroll_event_listener_t *  scroll
 
 int  ml_edit_final( ml_edit_t *  edit) ;
 
+int  ml_edit_clone( ml_edit_t *  dst_edit , ml_edit_t *  src_edit) ;
+
 int  ml_edit_resize( ml_edit_t *  edit , u_int  num_of_cols , u_int  num_of_rows) ;
 
 int  ml_edit_insert_chars( ml_edit_t *  edit , ml_char_t *  chars , u_int  num_of_chars) ;

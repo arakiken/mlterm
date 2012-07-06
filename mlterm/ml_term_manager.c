@@ -288,7 +288,8 @@ ml_create_term(
 	int  use_bce ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
-	ml_vertical_mode_t  vertical_mode
+	ml_vertical_mode_t  vertical_mode ,
+	int  use_local_echo
 	)
 {
 #if  ! defined(USE_WIN32API) && ! defined(DEBUG)
@@ -324,8 +325,8 @@ ml_create_term(
 						tab_size , log_size , encoding , is_auto_encoding ,
 						policy , col_size_a , use_char_combining ,
 						use_multi_col_char , use_bidi , bidi_mode ,
-						use_ind , use_bce ,
-						use_dynamic_comb , bs_mode , vertical_mode)))
+						use_ind , use_bce , use_dynamic_comb ,
+						bs_mode , vertical_mode , use_local_echo)))
 					{
 						ml_term_plug_pty( terms[num_of_terms++] , pty) ;
 						ml_set_pty_winsize( pty , cols , rows) ;
@@ -366,7 +367,7 @@ ml_create_term(
 				is_auto_encoding ,
 				policy , col_size_a , use_char_combining , use_multi_col_char ,
 				use_bidi , bidi_mode , use_ind , use_bce , use_dynamic_comb ,
-				bs_mode , vertical_mode)) == NULL)
+				bs_mode , vertical_mode , use_local_echo)) == NULL)
 	{
 		return  NULL ;
 	}

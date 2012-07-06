@@ -208,3 +208,5 @@ scrollbar_view_name = sample
 # auto_restart = true
 
 # allow_osc52 = false
+
+# use_local_echo = false

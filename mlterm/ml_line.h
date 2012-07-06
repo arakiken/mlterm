@@ -115,7 +115,7 @@ void  ml_line_set_continued_to_next( ml_line_t *  line , int  flag) ;
 int  ml_convert_char_index_to_col( ml_line_t *  line , int  char_index , int  flag) ;
 
 int  ml_convert_col_to_char_index( ml_line_t *  line , u_int *  cols_rest , int  col , int  flag) ;
-	
+
 int  ml_line_reverse_color( ml_line_t *  line , int  char_index) ;
 
 int  ml_line_restore_color( ml_line_t *  line , int  char_index) ;

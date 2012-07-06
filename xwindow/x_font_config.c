@@ -1616,7 +1616,7 @@ x_customize_font_file(
 	 */
 	x_font_config_t *  targets[6] ;
 	u_int  num_of_targets ;
-	int  count ;
+	u_int  count ;
 
 	if( file == NULL || strcmp( file, font_file + 7) == 0)
 	{

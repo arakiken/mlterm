@@ -553,6 +553,9 @@ The default is \fB0\fR.
 Enable logging messages of mlterm to ~/.mlterm/msg.log.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-loecho\fR(=\fIbool\fR)
+Whether to use local echo mode or not. The default is \fBfalse\fR.
+.TP
 \fB\-\-maxptys\fR=\fIvalue\fR
 Specify maximum number of ptys (sessions) to be opened simultaneously.
 It should be multiple of 32.
@@ -1327,6 +1330,9 @@ Enable dynamic character combining.
 .TP
 \fBuse_extended_scroll_shortcut=\fIbool\fR (\fB\-q\fR, \fB\-\-extkey\fR)
 Enable extended short cut keys for scrolling.
+.TP
+\fBuse_local_echo=\fIbool\fR (\fB\-\-loecho\fR) 
+Whether to use local echo mode or not.
 .TP
 \fBuse_login_shell=\fIbool\fR (\fB\-L\fR, \fB\-\-ls\fR) 
 Whether to use login shell or not.

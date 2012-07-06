@@ -1,3 +1,14 @@
+2012-07-07  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/main, etc/main.ja, doc/ja/README.ja, man/mlterm.1: Updated.
+
+	* ml_screen.[ch], ml_edit.[ch], ml_term.[ch], ml_term_manager.[ch],
+	  ml_vt100_parser.[ch], x_font_config.c, x_main_config.[ch], x_screen.c,
+	  x_screen_manager.c, gtk/vte.c, java/MLTermPty.c:
+	  Local echo mode which reflects keyboard inputs immediately is supported.
+	  --loecho / "use_local_echo" option which enables or disables local echo
+	  mode is added.
+
 2012-06-26  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: If x_shortcut_str() returns text in key_pressed(),

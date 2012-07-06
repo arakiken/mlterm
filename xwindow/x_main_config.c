@@ -262,6 +262,8 @@ x_prepare_for_main_config(
 		"restart mlterm automatically if an error like segv happens. [true]") ;
 	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
 		"output messages to ~/.mlterm/msg.log [true]") ;
+	kik_conf_add_opt( conf , '\0' , "loecho" , 1 , "use_local_echo" ,
+		"use local echo [false]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -387,6 +389,7 @@ x_main_config_init(
 	}
 
 	main_config->use_dynamic_comb = 0 ;
+
 	if( ( value = kik_conf_get_value( conf , "use_dynamic_comb")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -396,6 +399,7 @@ x_main_config_init(
 	}
 
 	main_config->logging_vt_seq = 0 ;
+
 	if( ( value = kik_conf_get_value( conf , "logging_vt_seq")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1323,6 +1327,16 @@ x_main_config_init(
 	    strcmp( value , "false") != 0)
 	{
 		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
+	}
+
+	main_config->use_local_echo = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_local_echo")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config->use_local_echo = 1 ;
+		}
 	}
 
 #ifdef  USE_IM_CURSOR_COLOR

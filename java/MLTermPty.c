@@ -49,6 +49,10 @@
 #endif
 
 #if  0
+#define  USE_LOCAL_ECHO_BY_DEFAULT
+#endif
+
+#if  0
 #define  __DEBUG
 #endif
 
@@ -240,6 +244,15 @@ set_config(
 			kik_set_msg_log_file_name( NULL) ;
 		}
 	}
+	else if( strcmp( key , "use_local_echo") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_term_set_use_local_echo( nativeObj->term , flag) ;
+		}
+	}
 }
 
 static void
@@ -351,6 +364,17 @@ get_config(
 	else if( strcmp( key , "logging_vt_seq") == 0)
 	{
 		if( ml_term_is_logging_vt_seq( nativeObj->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_local_echo") == 0)
+	{
+		if( ml_term_is_using_local_echo( nativeObj->term))
 		{
 			value = "true" ;
 		}
@@ -576,6 +600,20 @@ get_num_of_filled_chars_except_spaces(
 	}
 }
 
+static void
+draw_cursor(
+	ml_term_t *  term ,
+	int (*func)( ml_line_t * , int)
+	)
+{
+	ml_line_t *  line ;
+
+	if( ( line = ml_term_get_cursor_line( term)))
+	{
+		(*func)( line , ml_term_cursor_char_index( term)) ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -687,6 +725,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 	static int  use_multi_col_char ;
 	static int  use_login_shell ;
 	static int  logging_vt_seq ;
+	static int  use_local_echo ;
 	static char *  public_key ;
 	static char *  private_key ;
 	static char **  default_argv ;
@@ -757,6 +796,11 @@ Java_mlterm_MLTermPty_nativeOpen(
 		use_char_combining = 1 ;
 		use_multi_col_char = 1 ;
 		use_login_shell = 0 ;
+	#ifdef  USE_LOCAL_ECHO_BY_DEFAULT
+		use_local_echo = 1 ;
+	#else
+		use_local_echo = 0 ;
+	#endif
 
 		if( ( conf = kik_conf_new()))
 		{
@@ -877,6 +921,21 @@ Java_mlterm_MLTermPty_nativeOpen(
 				}
 			}
 
+			if( ( value = kik_conf_get_value( conf , "use_local_echo")))
+			{
+			#ifdef  USE_LOCAL_ECHO_BY_DEFAULT
+				if( strcmp( value , "false") == 0)
+				{
+					use_local_echo = 0 ;
+				}
+			#else
+				if( strcmp( value , "true") == 0)
+				{
+					use_local_echo = 1 ;
+				}
+			#endif
+			}
+
 		#ifdef  USE_LIBSSH2
 			if( ( value = kik_conf_get_value( conf , "ssh_public_key")))
 			{
@@ -975,7 +1034,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 					0 /* use_bidi */ , 0 /* bidi_mode */ ,
 					0 /* use_ind */ , 1 /* use_bce */ ,
 					0 /* use_dynamic_comb */ , BSM_STATIC ,
-					0 /* vertical_mode */)))
+					0 /* vertical_mode */ , use_local_echo)))
 	{
 		goto  error ;
 	}
@@ -1314,19 +1373,9 @@ Java_mlterm_MLTermPty_nativeRead(
 		nativeObj->env = env ;
 		nativeObj->obj = obj ;
 
-		if( ( line = ml_term_get_cursor_line( nativeObj->term)))
-		{
-			ml_line_restore_color( line ,
-				ml_term_cursor_char_index( nativeObj->term)) ;
-		}
-
+		draw_cursor( nativeObj->term , ml_line_restore_color) ;
 		ret = ml_term_parse_vt100_sequence( nativeObj->term) ;
-
-		if( ( line = ml_term_get_cursor_line( nativeObj->term)))
-		{
-			ml_line_reverse_color( line ,
-				ml_term_cursor_char_index( nativeObj->term)) ;
-		}
+		draw_cursor( nativeObj->term , ml_line_reverse_color) ;
 
 		if( ret)
 		{
@@ -1406,27 +1455,32 @@ Java_mlterm_MLTermPty_nativeWrite(
 	kik_debug_printf( "WRITE TO PTY: %x" , (int)*str) ;
 #endif
 
+	/* In case local echo in ml_term_write(). */
+	draw_cursor( ((native_obj_t*)nativeObj)->term , ml_line_restore_color) ;
+
 	if( *str == '\0')
 	{
 		/* Control+space */
 		ml_term_write( ((native_obj_t*)nativeObj)->term , str , 1 , 0) ;
-
-		return  JNI_TRUE ;
 	}
-
-	(*utf8_parser->init)( utf8_parser) ;
-	(*utf8_parser->set_str)( utf8_parser , str , strlen( str)) ;
-	while( ! utf8_parser->is_eos &&
-	       ( len = ml_term_convert_to( ((native_obj_t*)nativeObj)->term ,
-				buf , sizeof(buf) , utf8_parser)) > 0)
+	else
 	{
-		ml_term_write( ((native_obj_t*)nativeObj)->term , buf , len , 0) ;
+		(*utf8_parser->init)( utf8_parser) ;
+		(*utf8_parser->set_str)( utf8_parser , str , strlen( str)) ;
+		while( ! utf8_parser->is_eos &&
+		       ( len = ml_term_convert_to( ((native_obj_t*)nativeObj)->term ,
+					buf , sizeof(buf) , utf8_parser)) > 0)
+		{
+			ml_term_write( ((native_obj_t*)nativeObj)->term , buf , len , 0) ;
+		}
+
+	#if  0
+		kik_debug_printf( " => DONE\n") ;
+	#endif
+		(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 	}
 
-#if  0
-	kik_debug_printf( " => DONE\n") ;
-#endif
-	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
+	draw_cursor( ((native_obj_t*)nativeObj)->term , ml_line_reverse_color) ;
 
 	return  JNI_TRUE ;
 }

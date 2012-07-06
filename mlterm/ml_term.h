@@ -51,6 +51,8 @@ typedef struct ml_term
 
 	int8_t  is_auto_encoding ;
 
+	int8_t  use_local_echo ;
+
 	int8_t  is_attached ;
 
 } ml_term_t ;
@@ -60,7 +62,7 @@ ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  l
 	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_policy_t  policy ,
 	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , int  use_ind , int  use_bce , int  use_dynamic_comb ,
-	ml_bs_mode_t  bs_mode , ml_vertical_mode_t  vertical_mode) ;
+	ml_bs_mode_t  bs_mode , ml_vertical_mode_t  vertical_mode , int  use_local_echo) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 
@@ -114,6 +116,11 @@ int  ml_term_set_use_dynamic_comb( ml_term_t *  term , int  flag) ;
 
 #define  ml_term_is_using_dynamic_comb( term)  ((term)->use_dynamic_comb)
 
+/* Must be called in visual context. */
+int  ml_term_set_use_local_echo( ml_term_t *  term , int  flag) ;
+
+#define  ml_term_is_using_local_echo( term)  ((term)->use_local_echo)
+
 #define  ml_term_convert_to( term , dst , len , _parser) \
 		ml_vt100_parser_convert_to( (term)->parser , dst , len , _parser)
 
@@ -133,7 +140,7 @@ size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len , int  to
 
 /* Must be called in visual context. */
 #define  ml_term_write_loopback( term , buf , len) \
-		ml_parse_vt100_write_loopback( (term)->parser , buf , len)
+		ml_vt100_parser_write_loopback( (term)->parser , buf , len)
 
 int  ml_term_resize( ml_term_t *  term , u_int  cols , u_int  rows) ;
 

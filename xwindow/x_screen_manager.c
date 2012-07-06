@@ -136,7 +136,7 @@ create_term_intern(void)
 			x_termcap_get_bool_field(
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,
-			main_config.vertical_mode)) == NULL)
+			main_config.vertical_mode , main_config.use_local_echo)) == NULL)
 	{
 		return  NULL ;
 	}

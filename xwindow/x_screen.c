@@ -5618,6 +5618,17 @@ get_config(
 			value = "false" ;
 		}
 	}
+	else if( strcmp( key , "use_local_echo") == 0)
+	{
+		if( ml_term_is_using_local_echo( screen->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
 	else if( strncmp( key , "selected_text" , 13) == 0)
 	{
 		ml_term_write( screen->term , "#" , 1 , to_menu) ;
@@ -6798,7 +6809,7 @@ start_vt100_cmd(
 	}
 
 	unhighlight_cursor( screen , 0) ;
-	
+
 	/*
 	 * ml_screen_logical() is called in ml_term_unhighlight_cursor(), so
 	 * not called directly from here.
@@ -8575,6 +8586,15 @@ x_screen_set_config(
 		else
 		{
 			screen->window.idling = NULL ;
+		}
+	}
+	else if( strcmp( key , "use_local_echo") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_term_set_use_local_echo( screen->term , flag) ;
 		}
 	}
 	else

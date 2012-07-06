@@ -324,6 +324,54 @@ ml_edit_final(
 }
 
 int
+ml_edit_clone(
+	ml_edit_t *  dst_edit ,
+	ml_edit_t *  src_edit
+	)
+{
+	u_int  row ;
+	u_int  num_of_rows ;
+	ml_line_t *  src_line ;
+	ml_line_t *  dst_line ;
+
+	memcpy( ((char*)dst_edit) + sizeof(ml_model_t) ,
+		((char*)src_edit) + sizeof(ml_model_t) ,
+		sizeof(ml_edit_t) - sizeof(ml_model_t)) ;
+
+	if( ! ( dst_edit->tab_stops = malloc( TAB_STOPS_SIZE(src_edit))))
+	{
+		return  0 ;
+	}
+	memcpy( dst_edit->tab_stops , src_edit->tab_stops , TAB_STOPS_SIZE(src_edit)) ;
+
+	dst_edit->cursor.model = &dst_edit->model ;
+
+	num_of_rows = ml_edit_get_rows( src_edit) ;
+
+	if( ! ml_model_init( &dst_edit->model , ml_edit_get_cols( src_edit) , num_of_rows))
+	{
+		free( dst_edit->tab_stops) ;
+
+		return  0 ;
+	}
+
+	for( row = 0 ; row < num_of_rows ; row++)
+	{
+		dst_line = ml_edit_get_line( dst_edit , row) ;
+
+		if( ( src_line = ml_edit_get_line( src_edit , row)) ==
+		    src_edit->wraparound_ready_line)
+		{
+			dst_edit->wraparound_ready_line = dst_line ;
+		}
+
+		ml_line_copy_line( dst_line , src_line) ;
+	}
+
+	return  1 ;
+}
+
+int
 ml_edit_resize(
 	ml_edit_t *  edit ,
 	u_int  num_of_cols ,
