@@ -68,7 +68,7 @@ public class  MLTermPty
 
 		String  dir = getConfigDirectory() + "java" + System.getProperty( "file.separator") ;
 		File  d = new File( dir) ;
-		d.mkdir() ;
+		d.mkdirs() ;
 		d.setWritable( true , true) ;
 		d.setReadable( true , true) ;
 

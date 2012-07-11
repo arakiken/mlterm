@@ -1,3 +1,8 @@
+2012-07-12  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTermPty.java: mkdir() -> mkdirs() in order to make sure
+	  to make parent directories of %HOMEPTH%\mlterm\java.
+
 2012-07-07  Araki Ken  <arakiken@users.sf.net>
 
 	* etc/main, etc/main.ja, doc/ja/README.ja, man/mlterm.1: Updated.

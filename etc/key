@@ -17,3 +17,5 @@
 # Control+F8="proto:input_method=ibus"
 # Control+F9="proto:aafont:DEFAULT=Kochi Gothic"
 # Control+F10="proto:color:black=rgb:ff/00/00"
+# Control+F11="proto:use_local_echo=true"
+# Control+F11="proto:use_local_echo=false"
