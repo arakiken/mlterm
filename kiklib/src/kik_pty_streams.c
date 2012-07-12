@@ -55,9 +55,10 @@ kik_pty_fork(
 	int *  slave
 	)
 {
-	pid_t pid ;
+	int mode;
+	pid_t pid;
 	char * ttydev;
-	struct  termios  tio ;
+	struct  termios  tio;
 	int fd;
 
 #ifdef  HAVE_POSIX_OPENPT 
@@ -105,11 +106,12 @@ kik_pty_fork(
 		return  -1;
 	}
 
-	if( fcntl( *master, F_SETFL, O_NDELAY) == -1)
+	if( ( mode = fcntl( *master, F_GETFL, 0)) == -1 ||
+	    ( (mode & O_NDELAY) == 0 && fcntl( *master, F_SETFL, mode|O_NDELAY) == -1) )
 	{
-		close(*master) ;
-		
-		return  -1 ;
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to set pty master non-blocking.\n") ;
+	#endif
 	}
 
 	if( ( *slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)

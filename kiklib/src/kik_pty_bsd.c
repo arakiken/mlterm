@@ -150,6 +150,7 @@ kik_pty_fork(
 	int *  slave
 	)
 {
+	int  mode ;
 	pid_t pid ;
 	struct termios  tio ;
 	int  fd ;
@@ -185,7 +186,13 @@ kik_pty_fork(
 	/*
 	 * delaying.
 	 */
-	fcntl( *master , F_SETFL , O_NDELAY) ;
+	if( ( mode = fcntl( *master , F_GETFL , 0)) == -1 ||
+	    ( (mode & O_NDELAY) == 0 && fcntl( *master , F_SETFL , mode|O_NDELAY) == -1) )
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to set pty master non-blocking.\n") ;
+	#endif
+	}
 
 	/*
 	 * terminal attributes.

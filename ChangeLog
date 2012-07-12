@@ -1,3 +1,12 @@
+2012-07-13  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_pty_streams.c, kik_bsd_streams.c:
+	  - Even if fcntl() fails, processing is continued with warning message.
+	    (fcntl(fd,F_SETFL,O_NDELAY) fails in Darwin Kernel Version 11.4.0: Mon Apr 9
+	     19:32:15 PDT 2012 / i686-apple-darwin11-llvm-gcc-4.2)
+	  - fcntl(fd,F_SETFL,O_NDELAY) -> fcntl(fd,F_SETFL,fcntl(fd,F_GETFL,0)|O_NDELAY).
+	  (Thanks to saitoha san)
+
 2012-07-12  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.java: mkdir() -> mkdirs() in order to make sure
