@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2012-06-06"
+.TH MLTERM 1 "2012-08-10"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -448,6 +448,10 @@ The default is \fB1\fR.
 .TP
 \fB\-\-bd\fR=\fIvalue\fR
 Specify the color to use to display bold characters.
+.TP
+\fB\-\-bdfont\fR(=\fIbool\fR)
+Use bold font for characters with the bold attribute.
+The default is \fBtrue\fR.
 .TP
 \fB\-\-bimode\fR=\fIvalue\fR
 Specify bidi mode. Valid values are: \fBnormal\fR, \fBcmd_l\fR and \fBcmd_r\fR.
@@ -1313,8 +1317,8 @@ Use anti alias font.
 \fBuse_bidi=\fIbool\fR (\fB\-D\fR, \fB\-\-bi\fR) 
 Use BiDi rendering on UTF8 encoding.
 .TP
-\fBuse_ind=\fIbool\fR (\fB\-C\fR, \fB\-\-ind\fR) 
-Use indic rendering on UTF8 or ISCII encoding.
+\fBuse_bold_font=\fIbool\fR (\fB\-\-bdfont\fR) 
+Use bold font for characters with the bold attribute.
 .TP
 \fBuse_clipboard=\fIbool\fR (\fB\-\-clip\fR) 
 Use CLIPBOARD (not only PRIMARY) selection.
@@ -1330,6 +1334,9 @@ Enable dynamic character combining.
 .TP
 \fBuse_extended_scroll_shortcut=\fIbool\fR (\fB\-q\fR, \fB\-\-extkey\fR)
 Enable extended short cut keys for scrolling.
+.TP
+\fBuse_ind=\fIbool\fR (\fB\-C\fR, \fB\-\-ind\fR) 
+Use indic rendering on UTF8 or ISCII encoding.
 .TP
 \fBuse_local_echo=\fIbool\fR (\fB\-\-loecho\fR) 
 Whether to use local echo mode or not.

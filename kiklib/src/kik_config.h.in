@@ -63,12 +63,6 @@
 
 #undef  CONCATABLE_FUNCTION
 
-#undef  HAVE_UTMPER
-
-#undef  HAVE_LOGIN
-
-#undef  UTMP_NONE
-
 #undef  DLFCN_NONE
 
 #undef  HAVE_USLEEP
