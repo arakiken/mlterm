@@ -26,7 +26,11 @@
 #include  <sys/ioctl.h>
 #include  <sys/stat.h>
 #include  <unistd.h>
+#ifdef  __ANDROID__
+#include  <termios.h>
+#else
 #include  <sys/termios.h>
+#endif
 #ifdef  HAVE_STROPTS_H
 #include  <stropts.h>
 #endif
@@ -145,44 +149,61 @@ kik_pty_fork(
 	tio.c_lflag |= ECHOCTL ;
 #endif
 
+#if  defined(VEOF) && defined(CEOF)
 	tio.c_cc[VEOF] = CEOF ;
+#endif
+#if  defined(VEOL) && defined(VDISABLE)
 	tio.c_cc[VEOL] = VDISABLE ;
+#endif
+#if  defined(VERASE) && defined(CERASE)
 	tio.c_cc[VERASE] = CERASE ;
+#endif
+#if  defined(VINTR) && defined(CINTR)
 	tio.c_cc[VINTR] = CINTR ;
+#endif
+#if  defined(VKILL) && defined(CKILL)
 	tio.c_cc[VKILL] = CKILL ;
+#endif
+#if  defined(VQUIT) && defined(CQUIT)
 	tio.c_cc[VQUIT] = CQUIT ;
+#endif
+#if  defined(VSTART) && defined(CSTART)
 	tio.c_cc[VSTART] = CSTART ;
+#endif
+#if  defined(VSTOP) && defined(CSTOP)
 	tio.c_cc[VSTOP] = CSTOP ;
+#endif
+#if  defined(VSUSP) && defined(CSUSP)
 	tio.c_cc[VSUSP] = CSUSP ;
-
-#ifdef VDSUSP
+#endif
+#if  defined(VDSUSP) && defined(CDSUSP)
 	tio.c_cc[VDSUSP] = CDSUSP ;
 #endif
-#ifdef VREPRINT
+#if  defined(VREPRINT) && defined(CRPRNT)
 	tio.c_cc[VREPRINT] = CRPRNT ;
 #endif
-#ifdef VRPRNT
+#if  defined(VRPRNT) && defined(CRPRNT)
 	tio.c_cc[VRPRNT] = CRPRNT ;
 #endif
-#ifdef VDISCARD
+#if  defined(VDISCARD) && defined(CFLUSH)
 	tio.c_cc[VDISCARD] = CFLUSH ;
 #endif
-#ifdef VFLUSHO
+#if  defined(VFLUSHO) && defined(CFLUSH)
 	tio.c_cc[VFLUSHO] = CFLUSH ;
 #endif
-#ifdef VWERASE
+#if  defined(VWERASE) && defined(CWERASE)
 	tio.c_cc[VWERASE] = CWERASE ;
 #endif
-#ifdef VLNEXT
+#if  defined(VLNEXT) && defined(CLNEXT)
 	tio.c_cc[VLNEXT] = CLNEXT ;
 #endif
-#ifdef VEOL2
+#if  defined(VEOL2) && defined(VDISABLE)
 	tio.c_cc[VEOL2] = VDISABLE ;
 #endif
-#ifdef VSWTC
+#if  defined(VSWTC) && defined(VDISABLE)
 	tio.c_cc[VSWTC] = VDISABLE ;
 #endif
-#ifdef VSWTCH
+#if  defined(VSWTCH) && defined(VDISABLE)
 	tio.c_cc[VSWTCH] = VDISABLE ;
 #endif
 /*
