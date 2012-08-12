@@ -8,19 +8,21 @@ fi
 PROJECT_PATH=$1
 
 echo "Prepare to build for android. (project: ${PROJECT_PATH})"
-echo "Press any key to continue."
+echo "Press enter key to continue."
 read
 
 mkdir -p ${PROJECT_PATH}/jni
 cp Android.mk ${PROJECT_PATH}/jni/
 
-mkdir -p ${PROJECT_PATH}/jni/kiklib/kiklib
-cp kik_config.h ${PROJECT_PATH}/jni/kiklib/kiklib/
-cp ../kiklib/src/*.[ch] ${PROJECT_PATH}/jni/kiklib/kiklib/
+mkdir -p ${PROJECT_PATH}/jni/kiklib/kiklib ${PROJECT_PATH}/jni/kiklib/src
+cp kik_config.h ${PROJECT_PATH}/jni/kiklib/src/
+cp ../kiklib/src/*.[ch] ${PROJECT_PATH}/jni/kiklib/src/
+cp ${PROJECT_PATH}/jni/kiklib/src/*.h ${PROJECT_PATH}/jni/kiklib/kiklib/
 
-mkdir -p ${PROJECT_PATH}/jni/mkf/mkf
-cp ../mkf/lib/*.[ch] ${PROJECT_PATH}/jni/mkf/mkf/
-cp -R ../mkf/lib/table ${PROJECT_PATH}/jni/mkf/mkf/
+mkdir -p ${PROJECT_PATH}/jni/mkf/mkf ${PROJECT_PATH}/jni/mkf/lib
+cp ../mkf/lib/*.[ch] ${PROJECT_PATH}/jni/mkf/lib/
+cp ${PROJECT_PATH}/jni/mkf/lib/*.h ${PROJECT_PATH}/jni/mkf/mkf/
+cp -R ../mkf/lib/table ${PROJECT_PATH}/jni/mkf/lib/
 cp -R ../mkf/libtbl ${PROJECT_PATH}/jni/mkf/
 
 mkdir -p ${PROJECT_PATH}/jni/mlterm

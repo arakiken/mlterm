@@ -4,6 +4,10 @@
 
 #include  "mkf_tblfunc_loader.h"
 
+
+#ifndef  NO_DYNAMIC_LOAD_TABLE
+
+
 #include  <stdio.h>	/* NULL */
 
 
@@ -124,3 +128,5 @@ mkf_load_zh_func(
 		return  NULL ;
 	}
 }
+
+#endif	/* NO_DYNAMIC_LOAD_TABLE */

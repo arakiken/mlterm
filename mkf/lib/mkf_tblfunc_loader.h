@@ -12,10 +12,12 @@
 #include  "mkf_char.h"
 
 
+#ifndef  MKFLIB_DIR	/* MKFLIB_DIR could be defined in Android.mk. */
 #ifndef  LIBDIR
 #define  MKFLIB_DIR  "/usr/local/lib/mkf/"
 #else
 #define  MKFLIB_DIR  LIBDIR "/mkf/"
+#endif
 #endif
 
 #ifdef  DLFCN_NONE
@@ -23,6 +25,9 @@
 #define  NO_DYNAMIC_LOAD_TABLE
 #endif
 #endif
+
+
+#ifndef  NO_DYNAMIC_LOAD_TABLE
 
 #define  mkf_map_func(libname,funcname,bits) \
 	int funcname( mkf_char_t *  ch, u_int ## bits ## _t  ucscode) \
@@ -56,6 +61,9 @@ void *  mkf_load_jajp_func( const char *  symname) ;
 void *  mkf_load_kokr_func( const char *  symname) ;
 
 void *  mkf_load_zh_func( const char *  symname) ;
+
+
+#endif	/* NO_DYNAMIC_LOAD_TABLE */
 
 
 #endif
