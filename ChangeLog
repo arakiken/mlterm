@@ -1,3 +1,8 @@
+2012-08-14  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_utmp_utmper.c: Fix conflicting types of kik_utmp_new.
+	  (Thanks to KATO Masashi san)
+
 2012-08-12  Araki Ken  <arakiken@users.sf.net>
 
 	* mkf_tblfunc_loader.[ch]: If NO_DYNAMIC_LOAD_TABLE is defined,

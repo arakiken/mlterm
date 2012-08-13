@@ -1,3 +1,7 @@
+ver 3.1.4
+* Bug fixes:
+  Fix conflicting types of kik_utmp_new. (Thanks to KATO Masashi san)
+
 ver 3.1.3
 * Support OSC 5;0 and OSC 5;1.
 * Support CSI ? 8840 h, CSI ? 8840 l and CSI ? 8840 n.
