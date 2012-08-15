@@ -1,3 +1,11 @@
+2012-08-15  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm.1: Spelling mistake is fixed.
+	  (SF Patch #3557298, Thanks to Ahmed El-Mahmoudy)
+
+	* ml_vt100_parser.c: The bug which didn't reset modifyOtherKeys by
+	  "CSI>m" is fixed.
+
 2012-08-14  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_utmp_utmper.c: Fix conflicting types of kik_utmp_new.

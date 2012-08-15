@@ -2591,7 +2591,7 @@ parse_vt100_escape_sequence(
 						/* reset to initial value. */
 						set_modkey_mode( vt100_parser , 1 , 2) ;
 						set_modkey_mode( vt100_parser , 2 , 2) ;
-						set_modkey_mode( vt100_parser , 3 , 0) ;
+						set_modkey_mode( vt100_parser , 4 , 0) ;
 					}
 					else
 					{
@@ -4076,7 +4076,13 @@ ml_vt100_parser_new(
 	vt100_parser->is_dec_special_in_g1 = 1 ;
 
 	ml_vt100_parser_set_col_size_of_width_a( vt100_parser , col_size_a) ;
-	
+
+#if  0
+	/* Default value of modify_*_keys except modify_other_keys is 2. */
+	vt100_parser->modify_cursor_keys = 2 ;
+	vt100_parser->modify_function_keys = 2 ;
+#endif
+
 	return  vt100_parser ;
 
 error:
