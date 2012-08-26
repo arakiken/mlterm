@@ -1,3 +1,7 @@
+2012-08-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: 0x90 ... 0x9c are available for sixel graphics sequence.
+
 2012-08-15  Araki Ken  <arakiken@users.sf.net>
 
 	* mlterm.1: Spelling mistake is fixed.

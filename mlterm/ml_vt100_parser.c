@@ -1584,7 +1584,15 @@ get_pt_in_esc_seq(
 	{
 		**str = '\0' ;
 	}
-	else if( **str == CTL_ESC && *left > 0 && *((*str) + 1) == '\\')
+	else if(
+		/*
+		 * 0x9c is not regarded as ST here, because it is used by utf8 encoding
+		 * for non control characters.
+		 */
+	#if  0
+		**str == 0x9c ||
+	#endif
+	         ( **str == CTL_ESC && *left > 0 && *((*str) + 1) == '\\'))
 	{
 		**str = '\0' ;
 		increment_str( str , left) ;
@@ -3387,15 +3395,23 @@ parse_vt100_escape_sequence(
 		{
 			/* "ESC P" DCS */
 
-			u_char *  start ;
+			u_char *  dcs_beg ;
 			char *  path ;
 
-			start = str_p - 1 ;
+			while(1)
+			{
+				/* ESC P ... */
+				dcs_beg = str_p - 1 ;
+				break ;
+
+			parse_dcs:
+				/* 0x90 ... */
+				dcs_beg = str_p ;
+			}
 
 			do
 			{
-				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0))
+				if( ! increment_str( &str_p , &left))
 				{
 					return  0 ;
 				}
@@ -3421,35 +3437,33 @@ parse_vt100_escape_sequence(
 				{
 					if( ! increment_str( &str_p , &left))
 					{
-						fwrite( start , str_p - start + 1 , 1 , fp) ;
-
-						vt100_parser->r_buf.left = 0 ;
-						while( receive_bytes( vt100_parser) == 0)
-						{
-							kik_usleep( 1000) ;
-						}
-						start = str_p = CURRENT_STR_P(vt100_parser) ;
-						left = vt100_parser->r_buf.left ;
+						return  0 ;
 					}
 
-					if( is_esc)
+					/*
+					 * 0x9c is regarded as ST here, because sixel sequence
+					 * doesn't use it certainly.
+					 */
+					if( *str_p == 0x9c)
 					{
-						if( *str_p == '\\')
-						{
-							fwrite( start ,
-								str_p - start + 1 , 1 , fp) ;
-
-							break ;
-						}
-
-						is_esc = 0 ;
+						break ;
 					}
 					else if( *str_p == CTL_ESC)
 					{
 						is_esc = 1 ;
 					}
+					else if( is_esc)
+					{
+						if( *str_p == '\\')
+						{
+							break ;
+						}
+
+						is_esc = 0 ;
+					}
 				}
 
+				fwrite( dcs_beg , str_p - dcs_beg + 1 , 1 , fp) ;
 				fclose( fp) ;
 
 				config_protocol_set( vt100_parser , seq , 0) ;
@@ -3700,6 +3714,20 @@ parse_vt100_escape_sequence(
 			start_vt100_cmd( vt100_parser , 1) ;
 		}
 	}
+#ifdef  ENABLE_SIXEL
+	else if( *str_p == 0x90)
+	{
+		/*
+		 * DCS
+		 * (0x90 is used by utf8 encoding for non control characters, so
+		 * it is inappropriate to regard it as DCS simply.
+		 * But it doesn't cause a seirous problem because mlterm parses
+		 * received text by mkf for the first time.)
+		 */
+
+		 goto  parse_dcs ;
+	}
+#endif
 	else
 	{
 		/* not VT100 control sequence */
@@ -3733,14 +3761,26 @@ parse_vt100_sequence(
 
 	while( 1)
 	{
+	#ifdef  ENABLE_SIXEL
+		u_char *  str ;
+	#endif
+
 		prev_left = vt100_parser->r_buf.left ;
 
 		/*
 		 * parsing character encoding.
 		 */
 		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
+		#ifdef  ENABLE_SIXEL
+			str =
+		#endif
 			CURRENT_STR_P(vt100_parser) , vt100_parser->r_buf.left) ;
-		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
+		while(
+		#ifdef  ENABLE_SIXEL
+			/* C1 is ignored in mkf. */
+			*str != 0x90 &&
+		#endif
+			(*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
 			/*
 			 * UCS <-> OTHER CS
