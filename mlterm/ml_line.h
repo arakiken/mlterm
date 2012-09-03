@@ -81,6 +81,8 @@ int  ml_line_reset( ml_line_t *  line) ;
 
 int  ml_line_clear( ml_line_t *  line , int  char_index) ;
 
+int  ml_line_clear_with( ml_line_t *  line , int  char_index , ml_char_t *  ch) ;
+
 int  ml_line_overwrite( ml_line_t *  line , int  beg_char_index , ml_char_t *  chars ,
 	u_int  len , u_int  cols) ;
 

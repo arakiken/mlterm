@@ -1,3 +1,32 @@
+2012-09-04  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java:
+	  Application-cursor-keys sequences for Home and End keys are
+	  ^[OH and ^[OF instead of ^[[H and ^[[F.
+
+	* x_screen.c, x_termcap.c, etc/termcap:
+	  - code cleanup
+	  - ML_F1(k1), ML_F2(k2), ML_F3(k3), ML_F4(k4) are added.
+	  - Application-cursor-keys sequences for XK_Home and XK_End are
+	    ^[OH and ^[OF instead of ^[[H and ^[[F.
+	  - Following key sequences are changed.
+	    XK_BackSpace: \x7f -> \x08
+	    XK_Home:   \x1bOH -> \x1b[H
+	    XK_End:    \x1bOF -> \x1b[F
+	    XK_F1:     \x1b[11~ -> \x1bOP
+	    XK_F2:     \x1b[12~ -> \x1bOQ
+	    XK_F3:     \x1b[13~ -> \x1bOR
+	    XK_F4:     \x1b[14~ -> \x1bOS
+
+	* x_screen.c:
+	  PAGE_DOWN shortcut is checked even if it is not backscroll mode.
+
+	* ml_edit.c, ml_edit_util.c, ml_line.c:
+	  ml_line_t::is_continued_to_next flag is reset ml_edit_clear_line_to_right(),
+	  ml_edit_clear_below(), ml_edit_clear_above(), ml_edit_fill_all() and
+	  ml_edit_clear_lines() by using the new function ml_line_clear_with()
+	  instead of ml_line_fill().
+
 2012-08-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: 0x90 ... 0x9c are available for sixel graphics sequence.

@@ -39,8 +39,8 @@ ml_edit_clear_lines(
 	{
 		for( count = 0 ; count < size ; count ++)
 		{
-			ml_line_fill( ml_model_get_line( &edit->model , beg_row + count) ,
-				&edit->bce_ch , 0 , edit->model.num_of_cols) ;
+			ml_line_clear_with( ml_model_get_line( &edit->model , beg_row + count) ,
+				0 , &edit->bce_ch) ;
 		}
 	}
 	else

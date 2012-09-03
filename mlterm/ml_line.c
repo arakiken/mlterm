@@ -429,8 +429,23 @@ ml_line_clear(
 
 	ml_char_copy( line->chars + char_index , ml_sp_ch()) ;
 	line->num_of_filled_chars = char_index + 1 ;
-	
+	line->is_continued_to_next = 0 ;
+
 	return  1 ;
+}
+
+int
+ml_line_clear_with(
+	ml_line_t *  line ,
+	int  char_index ,
+	ml_char_t *  ch
+	)
+{
+	line->is_continued_to_next = 0 ;
+
+	return  ml_line_fill( line , ch , char_index ,
+			(line->num_of_chars - ml_str_cols( line->chars , char_index))
+			/ ml_char_cols(ch)) ;
 }
 
 int

@@ -998,11 +998,25 @@ public class MLTerm extends StyledText
 					}
 					else if( event.keyCode == SWT.HOME)
 					{
-						str = "\u001b[H" ;
+						if( pty.isAppCursorKeys())
+						{
+							str = "\u001bOH" ;
+						}
+						else
+						{
+							str = "\u001b[H" ;
+						}
 					}
 					else if( event.keyCode == SWT.END)
 					{
-						str = "\u001b[F" ;
+						if( pty.isAppCursorKeys())
+						{
+							str = "\u001bOF" ;
+						}
+						else
+						{
+							str = "\u001b[F" ;
+						}
 					}
 					else
 					{

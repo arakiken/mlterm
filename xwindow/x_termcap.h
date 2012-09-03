@@ -15,6 +15,10 @@ typedef enum  x_termcap_str_field
 	ML_BACKSPACE ,
 	ML_HOME ,
 	ML_END ,
+	ML_F1 ,
+	ML_F2 ,
+	ML_F3 ,
+	ML_F4 ,
 	
 	MAX_TERMCAP_STR_FIELDS
 

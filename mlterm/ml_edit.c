@@ -869,9 +869,7 @@ ml_edit_clear_line_to_right(
 
 	if( edit->use_bce)
 	{
-		ml_line_fill( cursor_line , &edit->bce_ch , edit->cursor.char_index ,
-			edit->model.num_of_cols -
-				ml_str_cols( cursor_line->chars , edit->cursor.char_index)) ;
+		ml_line_clear_with( cursor_line , edit->cursor.char_index , &edit->bce_ch) ;
 	}
 	else
 	{
@@ -918,8 +916,8 @@ ml_edit_clear_below(
 
 		for( row = edit->cursor.row + 1 ; row < edit->model.num_of_rows ; row ++)
 		{
-			ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-				edit->model.num_of_cols) ;
+			ml_line_clear_with( ml_model_get_line( &edit->model , row) ,
+				0 , &edit->bce_ch) ;
 		}
 
 		return  1 ;
@@ -949,8 +947,8 @@ ml_edit_clear_above(
 
 		for( row = 0 ; row < edit->cursor.row ; row ++)
 		{
-			ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-				edit->model.num_of_cols) ;
+			ml_line_clear_with( ml_model_get_line( &edit->model , row) ,
+				0 , &edit->bce_ch) ;
 		}
 
 		return  1 ;
@@ -968,11 +966,10 @@ ml_edit_fill_all(
 	)
 {
 	int  row ;
-	
+
 	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
 	{
-		ml_line_fill( ml_model_get_line( &edit->model , row) , ch , 0 ,
-			edit->model.num_of_cols / ml_char_cols(ch)) ;
+		ml_line_clear_with( ml_model_get_line( &edit->model , row) , 0 , ch) ;
 	}
 
 	return  1 ;

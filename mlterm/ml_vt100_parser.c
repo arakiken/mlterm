@@ -3407,6 +3407,7 @@ parse_vt100_escape_sequence(
 			parse_dcs:
 				/* 0x90 ... */
 				dcs_beg = str_p ;
+				break ;
 			}
 
 			do
@@ -3422,16 +3423,11 @@ parse_vt100_escape_sequence(
 			    /* || *str_p == 'p' */ ) &&		/* ReGis */
 			    ( path = kik_get_user_rc_path( "mlterm/picture")) )
 			{
-				char *  seq ;
 				int  is_esc ;
+				char *  seq ;
 				FILE *  fp ;
 
-				seq = alloca( 12 + strlen( path) + 5) ;
-				sprintf( seq , "add_picture %s.six" , path) ;
-				free( path) ;
-
 				is_esc = 0 ;
-				fp = fopen( seq + 12 , "w") ;
 
 				while( 1)
 				{
@@ -3463,6 +3459,11 @@ parse_vt100_escape_sequence(
 					}
 				}
 
+				seq = alloca( 12 + strlen( path) + 5) ;
+				sprintf( seq , "add_picture %s.six" , path) ;
+				free( path) ;
+
+				fp = fopen( seq + 12 , "w") ;
 				fwrite( dcs_beg , str_p - dcs_beg + 1 , 1 , fp) ;
 				fclose( fp) ;
 

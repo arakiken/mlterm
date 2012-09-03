@@ -1629,15 +1629,31 @@ Specify sequence to be outputted when Delete key is pushed
 .TP
 \fBkb=\fIsequence\fR
 Specify sequence to be outputted when BackSpace key is pushed
-(default \fB^?\fR).
+(default \fB^H\fR).
 .TP
 \fBkh=\fIsequence\fR
 Specify sequence to be outputted when HOME key is pushed
-(default \fB\\EOH\fR).
+(default \fB\\E[H\fR).
 .TP
 \fB@7=\fIsequence\fR
 Specify sequence to be outputted when END key is pushed
-(default \fB\\EOF\fR).
+(default \fB\\E[F\fR).
+.TP
+\fBk1=\fIsequence\fR
+Specify sequence to be outputted when F1 key is pushed
+(default \fB\\EOP\fR).
+.TP
+\fBk2=\fIsequence\fR
+Specify sequence to be outputted when F2 key is pushed
+(default \fB\\EOQ\fR).
+.TP
+\fBk3=\fIsequence\fR
+Specify sequence to be outputted when F3 key is pushed
+(default \fB\\EOR\fR).
+.TP
+\fBk4=\fIsequence\fR
+Specify sequence to be outputted when F4 key is pushed
+(default \fB\\EOS\fR).
 .TP
 \fBut\fR
 Specify the way how the screen is erased by control codes.

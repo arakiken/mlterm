@@ -2230,6 +2230,10 @@ key_pressed(
 		enter_backscroll_mode( screen) ;
 		bs_half_page_downward( screen) ;
 	}
+	else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , masked_state))
+	{
+		/* do nothing */
+	}
 	else if( x_shortcut_match( screen->shortcut , INSERT_SELECTION , ksym , masked_state))
 	{
 		yank_event_received( screen , CurrentTime) ;
@@ -2495,13 +2499,10 @@ no_keypad:
 		#endif
 			) || ksym == XK_KP_Delete)
 		{
-			if( modcode)
+			if( modcode ||
+			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_DELETE)))
 			{
 				KEY_ESCSEQ( '[' , 3 , '~') ;
-			}
-			else
-			{
-				buf = x_termcap_get_str_field( screen->termcap , ML_DELETE) ;
 			}
 		}
 		/*
@@ -2511,7 +2512,10 @@ no_keypad:
 		 */
 		else if( ksym == XK_BackSpace && size == 1 && kstr[0] == 0x8)
 		{
-			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
+			if( ! (buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE)))
+			{
+				buf = "\x08" ;
+			}
 		}
 		else if( ksym == XK_Escape && ml_term_is_app_escape( screen->term))
 		{
@@ -2551,24 +2555,20 @@ no_keypad:
 		}
 		else if( ksym == XK_End)
 		{
-			if( modcode)
+			if( is_app_cursor_keys || modcode ||
+			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_END)))
 			{
-				KEY_ESCSEQ( '[' , 1 , 'F') ;
-			}
-			else
-			{
-				buf = x_termcap_get_str_field( screen->termcap , ML_END) ;
+				KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
+				            modcode ? 1 : 0 , 'F') ;
 			}
 		}
 		else if( ksym == XK_Home)
 		{
-			if( modcode)
+			if( is_app_cursor_keys || modcode ||
+			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_HOME)))
 			{
-				KEY_ESCSEQ( '[' , 1 , 'H') ;
-			}
-			else
-			{
-				buf = x_termcap_get_str_field( screen->termcap , ML_HOME) ;
+				KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
+				            modcode ? 1 : 0 , 'H') ;
 			}
 		}
 		else if( ksym == XK_Prior)
@@ -2612,10 +2612,27 @@ no_keypad:
 		}
 		else if( XK_F1 <= ksym && ksym <= XK_FMAX)
 		{
-			if( ksym <= XK_F5)
+			if( ksym <= XK_F4)
 			{
-				/* 11 - 15 */
-				KEY_ESCSEQ( '[' , (ksym - XK_F1) + 11 , '~') ;
+				if( modcode ||
+				    ! (buf = x_termcap_get_str_field( screen->termcap ,
+							ML_F1 + ksym - XK_F1)))
+				{
+					/* PQRS */
+					KEY_ESCSEQ( 'O' , modcode , (ksym - XK_F1) + 'P') ;
+
+					/*
+					 * Shift+F1 is not ^[O1;2P but ^[O2P.
+					 * So 'modcode' is copied to 'param' varaiable above
+					 * and then cleared to 0 here.
+					 */
+					modcode = 0 ;
+				}
+			}
+			else if( ksym == XK_F5)
+			{
+				/* 15 */
+				KEY_ESCSEQ( '[' , 15 , '~') ;
 			}
 			else if( ksym <= XK_F10)
 			{
