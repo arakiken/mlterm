@@ -123,6 +123,7 @@ gdk_pixbuf_new_from_sixel(
 {
 	FILE *  fp ;
 	struct stat  st ;
+	char *  file_data ;
 	char *  p ;
 	size_t  len ;
 	guchar *  pixels ;
@@ -170,7 +171,8 @@ gdk_pixbuf_new_from_sixel(
 
 	fstat( fileno( fp) , &st) ;
 
-	if( ! ( p = alloca( st.st_size + 1)))
+	/* malloc() should be used here because alloca() could return insufficient memory. */
+	if( ! ( p = file_data = malloc( st.st_size + 1)))
 	{
 		return  NULL ;
 	}
@@ -188,7 +190,7 @@ gdk_pixbuf_new_from_sixel(
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format\n.") ;
 		#endif
 
-			return  NULL ;
+			goto  error ;
 		}
 		else if( *p == '\x90')
 		{
@@ -238,7 +240,7 @@ gdk_pixbuf_new_from_sixel(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
-			return  NULL ;
+			goto  error ;
 		}
 
 		if( *(++p) != ';' || *p == '\0')
@@ -246,7 +248,7 @@ gdk_pixbuf_new_from_sixel(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
-			return  NULL ;
+			goto  error ;
 		}
 	}
 	else
@@ -263,7 +265,7 @@ gdk_pixbuf_new_from_sixel(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
-			return  NULL ;
+			goto  error ;
 		}
 	}
 
@@ -275,7 +277,7 @@ gdk_pixbuf_new_from_sixel(
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " malloc failed.\n.") ;
 	#endif
-		return  NULL ;
+		goto  error ;
 	}
 
 	pix_x = pix_y = 0 ;
@@ -468,6 +470,8 @@ gdk_pixbuf_new_from_sixel(
 		}
 	}
 
+	free( file_data) ;
+
 	if( cur_width == 0)
 	{
 	#ifdef  DEBUG
@@ -483,6 +487,11 @@ gdk_pixbuf_new_from_sixel(
 
 	return  gdk_pixbuf_new_from_data( pixels , GDK_COLORSPACE_RGB , FALSE , 8 ,
 			cur_width , cur_height , cur_width * 3 , pixbuf_destroy_notify , NULL) ;
+
+error:
+	free( file_data) ;
+
+	return  NULL ;
 }
 
 #else

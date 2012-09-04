@@ -1,3 +1,9 @@
+2012-09-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Minor fixes.
+
+	* c_imagelib.c: malloc() is used for picture file data instead of alloca().
+
 2012-09-04  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java:
