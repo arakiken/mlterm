@@ -1,7 +1,7 @@
 ver 3.1.4
 * Support 0x90...0x9c format for sixel graphics sequence.
 * Add k1, k2, k3 and k4 entries for ~/.mlterm/termcap.
-* Change key sequences.
+* Change the default key sequences.
   XK_BackSpace: \x7f -> \x08
   XK_Home:   \x1bOH -> (normal)\x1b[H  (app cursor key)\x1bOH
   XK_End:    \x1bOF -> (normal)\x1b[F  (app cursor key)\x1bOF

@@ -1,3 +1,12 @@
+2012-09-06  Araki Ken  <arakiken@users.sf.net>
+
+	* android/Android.mk -> android/jni/Android.mk
+	  android/kik_config.h -> android/jni/kiklib/src/kik_config.h
+
+	* android/build.sh, android/build.xml, android/AndroidManifest.xml,
+	  android/res/values/strings.xml, android/src/mlterm/android/MLTerm.java:
+	  Added.
+
 2012-09-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Minor fixes.
