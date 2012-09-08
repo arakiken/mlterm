@@ -391,12 +391,12 @@ gdk_pixbuf_new_from_sixel(
 			pix_x = 0 ;
 			rep = asp_x ;
 		}
-		else if( *p == '-' )
+		else if( *p == '-')
 		{
 			pix_y += 6 ;
 			rep = asp_x ;
 		}
-		else if( *p >= '?' && *p <= '\x7E' )
+		else if( *p >= '?' && *p <= '\x7E')
 		{
 			int  a ;
 			int  b ;

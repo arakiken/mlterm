@@ -1,3 +1,7 @@
+2012-09-08  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_imagelib.c: gdk_pixbuf of ~/.mlterm/picture.six is not cached.
+
 2012-09-06  Araki Ken  <arakiken@users.sf.net>
 
 	* android/Android.mk -> android/jni/Android.mk

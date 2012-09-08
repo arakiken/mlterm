@@ -429,7 +429,7 @@ load_file(
 		return  NULL ;
 	}
 
-	if( name == NULL || (strcmp( name , path) != 0))
+	if( name == NULL || strcmp( name , path) != 0)
 	{
 		/* create new pixbuf */
 
@@ -451,21 +451,24 @@ load_file(
 		kik_warn_printf(KIK_DEBUG_TAG " adding pixbuf to cache(%s)\n" , path) ;
 	#endif
 
-		/* Replace cache */
-		
-		free( name) ;
-		name = strdup( path) ;
-		
-		if( orig_cache)
+		/* Don't cache ~/.mlterm/picture.six. */
+		if( ! strstr( path , "mlterm/picture.six"))
 		{
-			g_object_unref( orig_cache) ;
-		}
-		orig_cache = pixbuf ;
+			/* Replace cache */
+			free( name) ;
+			name = strdup( path) ;
 
-		if( scaled_cache) /* scaled_cache one is not vaild now */
-		{
-			g_object_unref( scaled_cache) ;
-			scaled_cache = NULL ;
+			if( orig_cache)
+			{
+				g_object_unref( orig_cache) ;
+			}
+			orig_cache = pixbuf ;
+
+			if( scaled_cache) /* scaled_cache one is not vaild now */
+			{
+				g_object_unref( scaled_cache) ;
+				scaled_cache = NULL ;
+			}
 		}
 	}
 	else
@@ -479,16 +482,16 @@ load_file(
 
 	if( width == 0)
 	{
-		width = gdk_pixbuf_get_width( orig_cache) ;
+		width = gdk_pixbuf_get_width( pixbuf) ;
 	}
 	if( height == 0)
 	{
-		height = gdk_pixbuf_get_height( orig_cache) ;
+		height = gdk_pixbuf_get_height( pixbuf) ;
 	}
 	
 	/* It is necessary to scale orig_cache if width/height don't correspond. */
-	if( ( width != gdk_pixbuf_get_width( orig_cache)) ||
-	    ( height != gdk_pixbuf_get_height( orig_cache)))
+	if( ( width != gdk_pixbuf_get_width( pixbuf)) ||
+	    ( height != gdk_pixbuf_get_height( pixbuf)))
 	{
 		/* Old cached scaled_cache pixbuf became obsolete if width/height is changed */
 		if( scaled_cache &&
@@ -505,7 +508,7 @@ load_file(
 		}
 		else
 		{
-			if( ! ( pixbuf = gdk_pixbuf_scale_simple( orig_cache ,
+			if( ! ( pixbuf = gdk_pixbuf_scale_simple( pixbuf ,
 						width , height , scale_type)))
 			{
 				return  NULL ;
