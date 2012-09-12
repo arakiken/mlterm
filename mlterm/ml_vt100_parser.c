@@ -253,12 +253,11 @@ receive_bytes(
 end:
 	vt100_parser->r_buf.filled_len = ( vt100_parser->r_buf.left += ret) ;
 
-	if( vt100_parser->r_buf.len - vt100_parser->r_buf.filled_len > PTY_RD_BUFFER_SIZE)
+	if( vt100_parser->r_buf.filled_len <= PTY_RD_BUFFER_SIZE)
 	{
 		/* Shrink buffer */
 
-		if( ! change_read_buffer_size( &vt100_parser->r_buf ,
-			vt100_parser->r_buf.len - PTY_RD_BUFFER_SIZE))
+		if( ! change_read_buffer_size( &vt100_parser->r_buf , PTY_RD_BUFFER_SIZE))
 		{
 			return  1 ;
 		}
@@ -1592,7 +1591,7 @@ get_pt_in_esc_seq(
 	#if  0
 		**str == 0x9c ||
 	#endif
-	         ( **str == CTL_ESC && *left > 0 && *((*str) + 1) == '\\'))
+	         ( **str == CTL_ESC && *left > 1 && *((*str) + 1) == '\\'))
 	{
 		**str = '\0' ;
 		increment_str( str , left) ;
@@ -3424,59 +3423,100 @@ parse_vt100_escape_sequence(
 			    ( path = kik_get_user_rc_path( "mlterm/picture")) )
 			{
 				char *  seq ;
+				int  is_end ;
 				FILE *  fp ;
-				int  is_esc ;
 
 				seq = alloca( 12 + strlen( path) + 5) ;
 				sprintf( seq , "add_picture %s.six" , path) ;
 				free( path) ;
 
-				fp = fopen( seq + 12 , "w") ;
-
-				is_esc = 0 ;
+				is_end = 0 ;
 
 				while( 1)
 				{
 					if( ! increment_str( &str_p , &left))
 					{
-						fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
+						size_t  dcs_len ;
 
-						vt100_parser->r_buf.left = 0 ;
-						while( receive_bytes( vt100_parser) == 0)
+						if( ( vt100_parser->r_buf.left = dcs_len =
+							vt100_parser->r_buf.filled_len -
+							(dcs_beg - vt100_parser->r_buf.chars)) ==
+							vt100_parser->r_buf.len)
 						{
-							kik_usleep( 100) ;
+							/*
+							 * Expand buffer by 500KB
+							 * (Without this expansion
+							 *  receive_bytes() expands buffer by
+							 *  PTY_RD_BUFFER_SIZE internally.)
+							 */
+							change_read_buffer_size(
+								&vt100_parser->r_buf ,
+								dcs_len + 500000) ;
 						}
-						dcs_beg = str_p = CURRENT_STR_P(vt100_parser) ;
-						left = vt100_parser->r_buf.left ;
+
+						if( ! receive_bytes( vt100_parser))
+						{
+							return  0 ;
+						}
+
+						left = (vt100_parser->r_buf.left -= dcs_len) ;
+						dcs_beg = vt100_parser->r_buf.chars ;
+						str_p = CURRENT_STR_P(vt100_parser) ;
 					}
 
+					if( is_end == 2)
+					{
+						if( /* ^L (FF) */
+						    *str_p == 0x0c ||
+						    /* ^] (GS), ^^ (RS), ^_ (US) */
+						    ( 0x1d <= *str_p && *str_p <= 0x1f) ||
+						    *str_p == 0x90 ||
+						    /* XXX If left == 0 and next char is 'P'... */
+						    ( *str_p == CTL_ESC && left > 1 &&
+						      *(str_p + 1) == 'P') )
+						{
+							/* continued ... */
+							is_end = 0 ;
+						}
+						else
+						{
+							str_p -- ;
+							left ++ ;
+							break ;
+						}
+					}
 					/*
 					 * 0x9c is regarded as ST here, because sixel sequence
-					 * doesn't use it certainly.
+					 * unuses it certainly.
 					 */
-					if( *str_p == 0x9c)
+					else if( *str_p == 0x9c)
 					{
-						break ;
+						is_end = 2 ;
 					}
 					else if( *str_p == CTL_ESC)
 					{
-						is_esc = 1 ;
+						is_end = 1 ;
 					}
-					else if( is_esc)
+					else if( is_end == 1)
 					{
 						if( *str_p == '\\')
 						{
-							break ;
+							is_end = 2 ;
 						}
-
-						is_esc = 0 ;
+						else
+						{
+							is_end = 0 ;
+						}
 					}
 				}
 
-				fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
-				fclose( fp) ;
+				if( ( fp = fopen( seq + 12 , "w")))
+				{
+					fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
+					fclose( fp) ;
 
-				config_protocol_set( vt100_parser , seq , 0) ;
+					config_protocol_set( vt100_parser , seq , 0) ;
+				}
 			}
 		}
 	#endif  /* ENABLE_SIXEL */

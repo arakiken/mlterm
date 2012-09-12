@@ -1,3 +1,11 @@
+2012-09-13  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Continuous DCS/FF/GS/RS/US sequences are saved
+	  in one file (~/.mlterm/picture.six).
+
+	* c_imagelib.c: Continuous DCS sequences (ESC P ... ESC \) for sixel
+	  graphics are processed.
+
 2012-09-08  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_imagelib.c: gdk_pixbuf of ~/.mlterm/picture.six is not cached.

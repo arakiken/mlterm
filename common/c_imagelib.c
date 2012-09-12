@@ -179,9 +179,24 @@ gdk_pixbuf_new_from_sixel(
 
 	len = fread( p , 1 , st.st_size , fp) ;
 	fclose( fp) ;
-
 	p[len] = '\0' ;
 
+	cur_width = cur_height = 0 ;
+	width = 1024 ;
+	height = 1024 ;
+
+	if( ! ( pixels = malloc( 3 * width * height)))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " malloc failed.\n.") ;
+	#endif
+		goto  end ;
+	}
+
+	memcpy( color_tbl , default_color_tbl , sizeof(default_color_tbl)) ;
+	memset( color_tbl + 16 , 0 , sizeof(color_tbl) - sizeof(default_color_tbl)) ;
+
+restart:
 	while( 1)
 	{
 		if( *p == '\0')
@@ -190,7 +205,7 @@ gdk_pixbuf_new_from_sixel(
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format\n.") ;
 		#endif
 
-			goto  error ;
+			goto  end ;
 		}
 		else if( *p == '\x90')
 		{
@@ -240,7 +255,7 @@ gdk_pixbuf_new_from_sixel(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
-			goto  error ;
+			goto  end ;
 		}
 
 		if( *(++p) != ';' || *p == '\0')
@@ -248,7 +263,7 @@ gdk_pixbuf_new_from_sixel(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
-			goto  error ;
+			goto  end ;
 		}
 	}
 	else
@@ -265,28 +280,13 @@ gdk_pixbuf_new_from_sixel(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
-			goto  error ;
+			goto  end ;
 		}
 	}
 
-	width = 1024 ;
-	height = 1024 ;
-
-	if( ! ( pixels = malloc( 3 * width * height)))
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " malloc failed.\n.") ;
-	#endif
-		goto  error ;
-	}
-
-	pix_x = pix_y = 0 ;
-	cur_width = cur_height = 0 ;
 	rep = asp_x ;
+	pix_x = pix_y = 0 ;
 	color = 0 ;
-
-	memcpy( color_tbl , default_color_tbl , sizeof(default_color_tbl)) ;
-	memset( color_tbl + 16 , 0 , sizeof(color_tbl) - sizeof(default_color_tbl)) ;
 
 	while( *(++p) != '\0')
 	{
@@ -453,11 +453,21 @@ gdk_pixbuf_new_from_sixel(
 		}
 		else if( *p == '\x1b')
 		{
-			if( *(++p) == '\\' || *p == '\0')
+			if( *(++p) == '\\')
 			{
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG " EOF.\n.") ;
 			#endif
+
+				if( *(p + 1) != '\0')
+				{
+					goto  restart ;
+				}
+
+				break ;
+			}
+			else if( *p == '\0')
+			{
 				break ;
 			}
 		}
@@ -466,10 +476,17 @@ gdk_pixbuf_new_from_sixel(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " EOF.\n.") ;
 		#endif
+
+			if( *(p + 1) != '\0')
+			{
+				goto  restart ;
+			}
+
 			break ;
 		}
 	}
 
+end:
 	free( file_data) ;
 
 	if( cur_width == 0)
@@ -478,7 +495,7 @@ gdk_pixbuf_new_from_sixel(
 		kik_debug_printf( KIK_DEBUG_TAG " Nothing is drawn.\n") ;
 	#endif
 
-		free(pixels) ;
+		free( pixels) ;
 
 		return  NULL ;
 	}
@@ -487,11 +504,6 @@ gdk_pixbuf_new_from_sixel(
 
 	return  gdk_pixbuf_new_from_data( pixels , GDK_COLORSPACE_RGB , FALSE , 8 ,
 			cur_width , cur_height , cur_width * 3 , pixbuf_destroy_notify , NULL) ;
-
-error:
-	free( file_data) ;
-
-	return  NULL ;
 }
 
 #else
