@@ -2,6 +2,9 @@ mlterm {
 global:
 	x_imagelib_load_file ;
 	x_get_opened_displays ;
+	# local symbol `__progname' in /usr/lib/crt1.o is referenced by DSO in FreeBSD.
+	__progname ;
+	environ ;
 local:
 	* ;
 } ;

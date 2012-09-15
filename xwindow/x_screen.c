@@ -739,6 +739,7 @@ flush_scroll_cache(
 	)
 {
 	int  scroll_cache_rows ;
+	int  scroll_region_rows ;
 
 	if( ! screen->scroll_cache_rows)
 	{
@@ -768,6 +769,15 @@ flush_scroll_cache(
 	 */
 	scroll_cache_rows = screen->scroll_cache_rows ;
 	screen->scroll_cache_rows = 0 ;
+	
+	if( scroll_cache_rows >=
+	    ( scroll_region_rows = screen->scroll_cache_boundary_end -
+	                         screen->scroll_cache_boundary_start + 1))
+	{
+		return  1 ;
+	}
+
+	
 
 	if( scroll_actual_screen && x_window_is_scrollable( &screen->window))
 	{
@@ -782,9 +792,7 @@ flush_scroll_cache(
 			if( scroll_height < screen->window.height)
 			{
 				beg_y = convert_row_to_y( screen , screen->scroll_cache_boundary_start) ;
-				end_y = beg_y + x_line_height( screen) *
-						(screen->scroll_cache_boundary_end -
-						screen->scroll_cache_boundary_start + 1) ;
+				end_y = beg_y + x_line_height( screen) * scroll_region_rows ;
 
 				if( scroll_cache_rows > 0)
 				{
@@ -815,9 +823,7 @@ flush_scroll_cache(
 			if( scroll_width < screen->window.width)
 			{
 				beg_x = x_col_width( screen) * screen->scroll_cache_boundary_start ;
-				end_x = beg_x + x_col_width( screen) *
-						(screen->scroll_cache_boundary_end -
-						screen->scroll_cache_boundary_start + 1) ;
+				end_x = beg_x + x_col_width( screen) * scroll_region_rows ;
 
 				if( ml_term_get_vertical_mode( screen->term) & VERT_RTL)
 				{
@@ -866,7 +872,7 @@ flush_scroll_cache(
 				/*
 				 * scrolling upward.
 				 */
-				ml_term_set_modified_lines( screen->term ,
+				ml_term_set_modified_lines_in_screen( screen->term ,
 					screen->scroll_cache_boundary_start ,
 					screen->scroll_cache_boundary_end -
 						scroll_cache_rows) ;
@@ -876,7 +882,7 @@ flush_scroll_cache(
 				/*
 				 * scrolling downward.
 				 */
-				ml_term_set_modified_lines( screen->term ,
+				ml_term_set_modified_lines_in_screen( screen->term ,
 					screen->scroll_cache_boundary_start -
 						scroll_cache_rows ,
 					screen->scroll_cache_boundary_end) ;

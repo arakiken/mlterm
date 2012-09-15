@@ -3430,38 +3430,41 @@ parse_vt100_escape_sequence(
 				sprintf( seq , "add_picture %s.six" , path) ;
 				free( path) ;
 
-				is_end = 0 ;
+				if( left > 2 && *(str_p + 1) == '\0')
+				{
+					fp = fopen( seq + 12 , "a") ;
+					is_end = *(str_p + 2) ;
+					dcs_beg = (str_p += 3) ;
+					left -= 3 ;
+				}
+				else
+				{
+					fp = fopen( seq + 12 , "w") ;	
+					is_end = 0 ;
+				}
 
 				while( 1)
 				{
 					if( ! increment_str( &str_p , &left))
 					{
-						size_t  dcs_len ;
+						fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 
-						if( ( vt100_parser->r_buf.left = dcs_len =
-							vt100_parser->r_buf.filled_len -
-							(dcs_beg - vt100_parser->r_buf.chars)) ==
-							vt100_parser->r_buf.len)
-						{
-							/*
-							 * Expand buffer by 500KB
-							 * (Without this expansion
-							 *  receive_bytes() expands buffer by
-							 *  PTY_RD_BUFFER_SIZE internally.)
-							 */
-							change_read_buffer_size(
-								&vt100_parser->r_buf ,
-								dcs_len + 500000) ;
-						}
-
+						vt100_parser->r_buf.left = 0 ;
 						if( ! receive_bytes( vt100_parser))
 						{
+							fclose( fp) ;
+
+							memcpy( vt100_parser->r_buf.chars ,
+								"\x1bPq\0" , 4) ;
+							vt100_parser->r_buf.chars[4] = is_end ;
+							vt100_parser->r_buf.filled_len =
+								vt100_parser->r_buf.left = 5 ;
+
 							return  0 ;
 						}
 
-						left = (vt100_parser->r_buf.left -= dcs_len) ;
-						dcs_beg = vt100_parser->r_buf.chars ;
-						str_p = CURRENT_STR_P(vt100_parser) ;
+						dcs_beg = str_p = CURRENT_STR_P(vt100_parser) ;
+						left = vt100_parser->r_buf.left ;
 					}
 
 					if( is_end == 2)
@@ -3510,13 +3513,9 @@ parse_vt100_escape_sequence(
 					}
 				}
 
-				if( ( fp = fopen( seq + 12 , "w")))
-				{
-					fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
-					fclose( fp) ;
-
-					config_protocol_set( vt100_parser , seq , 0) ;
-				}
+				fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
+				fclose( fp) ;
+				config_protocol_set( vt100_parser , seq , 0) ;
 			}
 		}
 	#endif  /* ENABLE_SIXEL */

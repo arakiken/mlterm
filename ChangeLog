@@ -1,3 +1,11 @@
+2012-09-15  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Freeze in scrolling by CSI r is fixed. (Thanks to koie san)
+
+	* dexport.map: http://ideone.com/N9xUw is merged.
+
+	* ml_vt100_parser.c: Minor fixes around parsing sixel graphics sequence.
+
 2012-09-13  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Continuous DCS/FF/GS/RS/US sequences are saved
