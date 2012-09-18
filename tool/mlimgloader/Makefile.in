@@ -30,7 +30,6 @@ LIBS = $(LIBS_LOCAL) $(LKIK) \
 	@GDK_PIXBUF_LIBS@ @X_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 PROG = mlimgloader
-INSTALL_OPT = @INSTALL_OPT@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
@@ -50,7 +49,7 @@ $(LIBEXECDIR)/mlterm:
 	mkdir -p $(LIBEXECDIR)/mlterm
 
 install: $(LIBEXECDIR)/mlterm
-	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(LIBEXECDIR)/mlterm
+	$(LIBTOOL_INSTALL) $(PROG) $(LIBEXECDIR)/mlterm
 
 uninstall:
 	rm -f $(LIBEXECDIR)/mlterm/$(PROG)

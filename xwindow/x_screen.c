@@ -8034,16 +8034,14 @@ x_screen_exec_cmd(
 			x = ml_term_cursor_col( screen->term) ;
 			y = ml_term_cursor_row( screen->term) ;
 			width = height = 0 ;
-			if( ( p = strchr( arg , ':')))
+			if( ( p = strchr( arg , ':')) != strstr( arg , "://"))
 			{
 				*p = '\0' ;
-				if( sscanf( arg , "+%d+%d" , &x , &y) != 2)
-				{
-					if( sscanf( arg , "%dx%d+%d+%d" ,
+				if( sscanf( arg , "+%d+%d" , &x , &y) != 2 &&
+				    sscanf( arg , "%dx%d+%d+%d" ,
 						&width , &height , &x , &y) != 4)
-					{
-						sscanf( arg , "%dx%d" , &width , &height) ;
-					}
+				{
+					sscanf( arg , "%dx%d" , &width , &height) ;
 				}
 
 				arg = p + 1 ;

@@ -192,19 +192,19 @@ receive_bytes(
 	{
 		if( vt100_parser->log_file == -1)
 		{
+			char *  dev ;
 			char *  path ;
 			char *  p ;
 
-			if( ( path = alloca( 11 +
-					strlen( ml_pty_get_slave_name( vt100_parser->pty) + 5)
-					+ 1)) == NULL)
+			if( ! ( path = alloca( 11 +
+			                       strlen( ( dev = ml_pty_get_slave_name(
+			                                        vt100_parser->pty)) + 5) + 1)))
 			{
 				goto  end ;
 			}
 
 			/* +5 removes "/dev/" */
-			sprintf( path , "mlterm/%s.log" ,
-				ml_pty_get_slave_name( vt100_parser->pty) + 5) ;
+			sprintf( path , "mlterm/%s.log" , dev + 5) ;
 
 			p = path + 7 ;
 			while( *p)
@@ -3420,14 +3420,17 @@ parse_vt100_escape_sequence(
 
 			if( ( *str_p == 'q' /* sixel */
 			    /* || *str_p == 'p' */ ) &&		/* ReGis */
-			    ( path = kik_get_user_rc_path( "mlterm/picture")) )
+			    ( path = kik_get_user_rc_path( "mlterm/")) )
 			{
+				char *  dev ;
 				char *  seq ;
 				int  is_end ;
 				FILE *  fp ;
 
-				seq = alloca( 12 + strlen( path) + 5) ;
-				sprintf( seq , "add_picture %s.six" , path) ;
+				seq = alloca( 12 + strlen( path) +
+					strlen( ( dev = ml_pty_get_slave_name(
+							vt100_parser->pty)) + 5) + 5) ;
+				sprintf( seq , "add_picture %s%s.six" , path , dev + 5) ;
 				free( path) ;
 
 				if( left > 2 && *(str_p + 1) == '\0')

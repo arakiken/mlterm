@@ -1,3 +1,12 @@
+2012-09-17  Araki Ken  <arakiken@users.sf.net>
+
+	* x_imagelib.c, ml_vt100_parser.c: ~/.mlterm/picture.six is changed to
+	  ~/.mlterm/[pty name].six.
+
+	* x_imagelib.c, mlimgloader/main.c, x_screen.c: Image files on remote
+	  hosts are available for the wall picture via network protocols
+	  supported by GVfs.
+
 2012-09-15  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: Freeze in scrolling by CSI r is fixed. (Thanks to koie san)

@@ -96,7 +96,28 @@ load_file(
 	if( ! strstr( path , ".six") || ! ( pixbuf_tmp = gdk_pixbuf_new_from_sixel( path)))
 	{
 	#if GDK_PIXBUF_MAJOR >= 2
-		pixbuf_tmp = gdk_pixbuf_new_from_file( path , NULL) ;
+	#if GDK_PIXBUF_MINOR >= 14
+		if( strstr( path , "://"))
+		{
+			GFileInputStream *  in ;
+
+			if( ( in = g_file_read( g_vfs_get_file_for_uri(
+					g_vfs_get_default() , path) , NULL , NULL)))
+			{
+				pixbuf_tmp = gdk_pixbuf_new_from_stream(
+						(GInputStream*)in , NULL , NULL) ;
+				g_object_unref( in) ;
+			}
+			else
+			{
+				pixbuf_tmp = NULL ;
+			}
+		}
+		else
+	#endif
+		{
+			pixbuf_tmp = gdk_pixbuf_new_from_file( path , NULL) ;
+		}
 	#else
 		pixbuf_tmp = gdk_pixbuf_new_from_file( path) ;
 	#endif /*GDK_PIXBUF_MAJOR*/
