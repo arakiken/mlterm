@@ -15,6 +15,9 @@ ver 3.1.4
   Fix the problem which always replaces the 2nd or later sixel graphics with
   the 1st one if mlterm is compiled with --with-imagelib=gdk-pixbuf option.
   (Thanks to saitoha asn)
+  Fix the problem of reverting back to selecting one character at a time
+  by dragging the pointer after double- or triple-clicking.
+  (Thanks to Andi Cristian Serbanescu)
 
 ver 3.1.3
 * Support OSC 5;0 and OSC 5;1.

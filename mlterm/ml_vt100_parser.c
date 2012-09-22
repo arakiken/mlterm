@@ -89,6 +89,25 @@
 
 /* --- static functions --- */
 
+/* XXX This function should be move to kiklib */
+static void
+str_replace(
+	char *  str ,
+	int  c1 ,
+	int  c2
+	)
+{
+	while( *str)
+	{
+		if( *str == c1)
+		{
+			*str = c2 ;
+		}
+
+		str ++ ;
+	}
+}
+
 static void
 start_vt100_cmd(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -194,7 +213,6 @@ receive_bytes(
 		{
 			char *  dev ;
 			char *  path ;
-			char *  p ;
 
 			if( ! ( path = alloca( 11 +
 			                       strlen( ( dev = ml_pty_get_slave_name(
@@ -205,17 +223,7 @@ receive_bytes(
 
 			/* +5 removes "/dev/" */
 			sprintf( path , "mlterm/%s.log" , dev + 5) ;
-
-			p = path + 7 ;
-			while( *p)
-			{
-				if( *p == '/')
-				{
-					*p = '_' ;
-				}
-
-				p ++ ;
-			}
+			str_replace( path + 7 , '/' , '_') ;
 
 			if( ( path = kik_get_user_rc_path( path)) == NULL)
 			{
@@ -3431,6 +3439,7 @@ parse_vt100_escape_sequence(
 					strlen( ( dev = ml_pty_get_slave_name(
 							vt100_parser->pty)) + 5) + 5) ;
 				sprintf( seq , "add_picture %s%s.six" , path , dev + 5) ;
+				str_replace( seq + 12 + strlen( path) , '/' , '_') ;
 				free( path) ;
 
 				if( left > 2 && *(str_p + 1) == '\0')

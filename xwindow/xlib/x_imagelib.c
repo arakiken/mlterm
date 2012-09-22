@@ -392,9 +392,10 @@ modify_pixmap(
 
 /* create GdkPixbuf from the specified file path.
  *
- * The returned pixbuf shouled be unrefed by the caller
- * don't modify returned pixbuf since the pixbuf
+ * The returned pixbuf should be unrefed by the caller.
+ * Don't modify returned pixbuf since the pixbuf
  * is stored in the cache and may be reused.
+ * This function is not reentrant.
  */
 static GdkPixbuf *
 load_file(
@@ -408,8 +409,6 @@ load_file(
 	static GdkPixbuf *  orig_cache = NULL ;
 	static GdkPixbuf *  scaled_cache = NULL ;
 	GdkPixbuf *  pixbuf ;
-
-	pixbuf = NULL ;
 
 	if( ! path)
 	{
@@ -468,13 +467,13 @@ load_file(
 			return  NULL ;
 		}
 
-	#ifdef  __DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG " adding pixbuf to cache(%s)\n" , path) ;
-	#endif
-
 		/* XXX Don't cache ~/.mlterm/[pty name].six. */
 		if( ! strstr( path , "mlterm/"))
 		{
+		#ifdef  __DEBUG
+			kik_warn_printf(KIK_DEBUG_TAG " adding a pixbuf to cache(%s)\n" , path) ;
+		#endif
+
 			/* Replace cache */
 			free( name) ;
 			name = strdup( path) ;
@@ -514,10 +513,22 @@ load_file(
 	if( ( width != gdk_pixbuf_get_width( pixbuf)) ||
 	    ( height != gdk_pixbuf_get_height( pixbuf)))
 	{
+		if( pixbuf != orig_cache)
+		{
+			/* Non-cached image */
+
+			GdkPixbuf *  scaled_pixbuf ;
+
+			scaled_pixbuf = gdk_pixbuf_scale_simple( pixbuf ,
+					width , height , scale_type) ;
+			g_object_unref( pixbuf) ;
+
+			return  scaled_pixbuf ;
+		}
 		/* Old cached scaled_cache pixbuf became obsolete if width/height is changed */
-		if( scaled_cache &&
-		    gdk_pixbuf_get_width( scaled_cache) == width &&
-		    gdk_pixbuf_get_height( scaled_cache) == height)
+		else if( scaled_cache &&
+		         gdk_pixbuf_get_width( scaled_cache) == width &&
+		         gdk_pixbuf_get_height( scaled_cache) == height)
 		{
 		#ifdef __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG
@@ -534,21 +545,23 @@ load_file(
 			{
 				return  NULL ;
 			}
-			
+
 		#ifdef __DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				"creating a scaled_cache pixbuf(%u x %u)\n", width, height) ;
+				" adding a scaled pixbuf to cache(%u x %u)\n" , width , height) ;
 		#endif
 
 			if( scaled_cache)
 			{
 				g_object_unref( scaled_cache) ;
 			}
+
 			scaled_cache = pixbuf ;
 		}
 	}
 	/* scaling ends here */
 
+	/* Add reference count of the cache. */
 	g_object_ref( pixbuf) ;
 	
 	return  pixbuf ;

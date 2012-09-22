@@ -4,6 +4,7 @@
 
 #include  "x_selection.h"
 
+#include  <string.h>	/* memset */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 #include  <ml_str_parser.h>
@@ -133,6 +134,33 @@ update_sel_region(
 		kik_debug_printf( KIK_DEBUG_TAG " restoring %d %d %d %d\n" , rs_beg_col , rs_beg_row ,
 			rs_end_col , rs_end_row) ;
 	#endif
+
+		if( sel->is_locked == 1)
+		{
+			if( ( sel->end_row < sel->lock_row ||
+			      ( sel->end_row == sel->lock_row &&
+				sel->end_col < sel->lock_col)) )
+			{
+				(*sel->sel_listener->reverse_color)(
+					sel->sel_listener->self ,
+					rs_beg_col , rs_beg_row ,
+					(sel->end_col = sel->lock_col) ,
+					(sel->end_row = sel->lock_row)) ;
+			}
+		}
+		else if( sel->is_locked == -1)
+		{
+			if( ( sel->beg_row > sel->lock_row ||
+			      ( sel->beg_row == sel->lock_row &&
+				sel->beg_col > sel->lock_col)) )
+			{
+				(*sel->sel_listener->reverse_color)(
+					sel->sel_listener->self ,
+					(sel->beg_col = sel->lock_col) ,
+					(sel->beg_row = sel->lock_row) ,
+					rs_end_col , rs_end_row) ;
+			}
+		}
 	}
 
 #ifdef  __DEBUG
@@ -152,23 +180,9 @@ x_sel_init(
 	x_sel_event_listener_t *  sel_listener
 	)
 {
+	memset( sel , 0 , sizeof(x_selection_t)) ;
+
 	sel->sel_listener = sel_listener ;
-	sel->base_col_r = 0 ;
-	sel->base_row_r = 0 ;
-	sel->base_col_l = 0 ;
-	sel->base_row_l = 0 ;
-	sel->beg_col = 0 ;
-	sel->beg_row = 0 ;
-	sel->end_col = 0 ;
-	sel->end_row = 0 ;
-	sel->prev_col = 0 ;
-	sel->prev_row = 0 ;
-	
-	sel->is_reversed = 0 ;
-	sel->is_selecting = 0 ;
-	
-	sel->sel_str = NULL ;
-	sel->sel_len = 0 ;
 
 	return  1 ;
 }
@@ -182,7 +196,7 @@ x_sel_final(
 	{
 		ml_str_delete( sel->sel_str , sel->sel_len) ;
 	}
-			
+
 	return  1 ;
 }
 
@@ -198,16 +212,10 @@ x_start_selection(
 	sel->is_reversed = 1 ;
 	sel->is_selecting = 1 ;
 
-	sel->base_col_r = col_r ;
-	sel->base_row_r = row_r ;
+	sel->base_col_r = sel->beg_col = sel->end_col = sel->prev_col = col_r ;
+	sel->base_row_r = sel->beg_row = sel->end_row = sel->prev_row = row_r ;
 	sel->base_col_l = col_l ;
 	sel->base_row_l = row_l ;
-	sel->beg_col = col_r ;
-	sel->end_col = col_r ;
-	sel->beg_row = row_r ;
-	sel->end_row = row_r ;
-	sel->prev_col = col_r ;
-	sel->prev_row = row_r ;
 
 	(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
@@ -259,12 +267,14 @@ x_stop_selecting(
 		return  0 ;
 	}
 
+	sel->is_selecting = 0 ;
+
+	sel->is_locked = 0 ;
+
 	if( sel->sel_str)
 	{
 		ml_str_delete( sel->sel_str , sel->sel_len) ;
 	}
-
-	sel->is_selecting = 0 ;
 
 	if( ! (*sel->sel_listener->select_in_window)( sel->sel_listener->self ,
 		&sel->sel_str , &sel->sel_len , sel->beg_col , sel->beg_row , sel->end_col , sel->end_row))
@@ -301,6 +311,7 @@ x_sel_clear(
 		}
 
 		sel->is_selecting = 0 ;
+		sel->is_locked = 0 ;
 	}
 	
 	return  x_restore_selected_region_color( sel) ;
@@ -454,6 +465,18 @@ x_sel_line_scrolled_out(
 		sel->base_col_r = 0 ;
 	}
 
+	if( sel->is_locked)
+	{
+		if( sel->lock_row > min_row)
+		{
+			sel->lock_row -- ;
+		}
+		else
+		{
+			sel->lock_col = 0 ;
+		}
+	}
+
 	if( sel->beg_row > min_row)
 	{
 		sel->beg_row -- ;
@@ -534,4 +557,46 @@ x_is_before_sel_left_base_pos(
 	{
 		return  0 ;
 	}
+}
+
+int
+x_sel_lock(
+	x_selection_t *  sel
+	)
+{
+	if( sel->beg_row < sel->base_row_l ||
+	    ( sel->beg_row == sel->base_row_l && sel->beg_col <= sel->base_col_l) )
+	{
+		/*
+		 * (Text surrounded by '*' is selected region. '|' is the base position.)
+		 * aaa*bbb*|ccc
+		 *     ^
+		 *     +---- lock position ("bbb" is always selected.)
+		 *
+		 * This lock position is usually used in RTL lines.
+		 */
+
+		sel->lock_col = sel->beg_col ;
+		sel->lock_row = sel->beg_row ;
+
+		sel->is_locked = -1 ;
+	}
+	else
+	{
+		/*
+		 * (Text surrounded by '*' is selected region. '|' is the base position.)
+		 * aaa|*bbb*ccc
+		 *        ^
+		 *        +---- lock position ("bbb" is always selected.)
+		 *
+		 * This lock position is usually used in LTR lines.
+		 */
+
+		sel->lock_col = sel->end_col ;
+		sel->lock_row = sel->end_row ;
+
+		sel->is_locked = 1 ;
+	}
+
+	return  1 ;
 }

@@ -1,3 +1,17 @@
+2012-09-23  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Fix segfault caused by "remove_picture" configuration
+	  protocol with no argument.
+
+	* c_imagelib.c: memcpy -> memmove.
+
+	* xlib/x_imagelib.c, mlimgloader/main.c: Fix memory leaks.
+
+	* x_selection.[ch], x_screen.c:
+	  x_sel_lock() is added to fix the problem of reverting
+	  back to selecting one character at a time by dragging
+	  the pointer after double- or triple-clicking.
+
 2012-09-17  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib.c, ml_vt100_parser.c: ~/.mlterm/picture.six is changed to

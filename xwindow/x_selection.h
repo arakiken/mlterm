@@ -30,7 +30,7 @@ typedef struct  x_selection
 	 * Be careful that value of col must be munis in rtl line.
 	 * +-----------------------------+
 	 * |          a  a  a  a  a  a  a|<= RTL line
-	 *           -7 -6 -5 -4 -3 -2 -1 <= index
+	 *           -1 -2 -3 -4 -5 -6 -7 <= index
 	 */
 
 	int  base_col_l ;
@@ -41,12 +41,15 @@ typedef struct  x_selection
 	int  beg_row ;
 	int  end_col ;
 	int  end_row ;
+	int  lock_col ;
+	int  lock_row ;
 
 	int  prev_col ;
 	int  prev_row ;
-	
+
 	int8_t  is_selecting ;
 	int8_t  is_reversed ;
+	int8_t  is_locked ;
 
 }  x_selection_t ;
 
@@ -78,6 +81,8 @@ int  x_sel_line_scrolled_out( x_selection_t *  sel , int  min_row) ;
 int  x_is_after_sel_right_base_pos( x_selection_t *  sel , int  col , int  row) ;
 
 int  x_is_before_sel_left_base_pos( x_selection_t *  sel , int  col , int  row) ;
+
+int  x_sel_lock( x_selection_t *  sel) ;
 
 
 #endif

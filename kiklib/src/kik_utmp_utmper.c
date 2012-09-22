@@ -21,7 +21,7 @@ struct  kik_utmp
 kik_utmp_t
 kik_utmp_new(
 	const char *  tty ,
-	const char *  host,
+	const char *  host ,
 	int pty_fd
 	)
 {

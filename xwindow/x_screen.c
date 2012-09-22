@@ -3666,6 +3666,7 @@ selecting_word(
 	}
 
 	selecting( screen , end_char_index , end_row) ;
+	x_sel_lock( &screen->sel) ;
 }
 
 static void
@@ -3716,6 +3717,7 @@ selecting_line(
 	}
 
 	selecting( screen , end_char_index , end_row) ;
+	x_sel_lock( &screen->sel) ;
 }
 
 static void
@@ -8088,13 +8090,22 @@ x_screen_exec_cmd(
 			int  width ;
 			int  height ;
 
-			x = ml_term_cursor_col( screen->term) ;
-			y = ml_term_cursor_row( screen->term) ;
-			width = height = 0 ;
-
-			if( sscanf( arg , "%dx%d+%d+%d" , &width , &height , &x , &y) != 4)
+			if( arg)
 			{
-				return  1 ;
+				x = ml_term_cursor_col( screen->term) ;
+				y = ml_term_cursor_row( screen->term) ;
+				width = height = 0 ;
+
+				if( sscanf( arg , "%dx%d+%d+%d" , &width , &height , &x , &y) != 4)
+				{
+					return  1 ;
+				}
+			}
+			else
+			{
+				x = y = 0 ;
+				width = ml_term_get_cols( screen->term) ;
+				height = ml_term_get_rows( screen->term) ;
 			}
 
 		#ifdef  DEBUG
@@ -8108,9 +8119,8 @@ x_screen_exec_cmd(
 				(width *= x_col_width(screen)) ,
 				(height *= x_line_height(screen))) ;
 
-			x_picture_manager_redraw( screen->pic_man ,
-				&screen->window ,
-				x , y , width , height) ;
+			ml_term_set_modified_all_lines_in_screen( screen->term) ;
+			x_window_update( &screen->window , UPDATE_SCREEN|UPDATE_CURSOR) ;
 		}
 	}
 #endif  /* ENABLE_SIXEL */

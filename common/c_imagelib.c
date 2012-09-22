@@ -90,7 +90,7 @@ realloc_pixels(
 	{
 		for( y = 1 ; y < n_copy_rows ; y++)
 		{
-			memcpy( p + (y * new_width * 3) , p + (y * cur_width * 3) ,
+			memmove( p + (y * new_width * 3) , p + (y * cur_width * 3) ,
 				new_width * 3) ;
 		}
 	}
@@ -106,7 +106,7 @@ realloc_pixels(
 
 		for( y = n_copy_rows - 1 ; y >= 0 ; y--)
 		{
-			memcpy( p + (y * new_width * 3) , p + (y * cur_width * 3) ,
+			memmove( p + (y * new_width * 3) , p + (y * cur_width * 3) ,
 				new_width * 3) ;
 		}
 

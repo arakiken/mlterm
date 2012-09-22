@@ -139,16 +139,16 @@ load_file(
 		height = gdk_pixbuf_get_height( pixbuf_tmp) ;
 	}
 
-	if( ! ( pixbuf = gdk_pixbuf_scale_simple( pixbuf_tmp , width , height , scale_type)))
-	{
-		g_object_unref( pixbuf_tmp) ;
+	pixbuf = gdk_pixbuf_scale_simple( pixbuf_tmp , width , height , scale_type) ;
 
-		return  NULL ;
-	}
+	g_object_unref( pixbuf_tmp) ;
 
 #ifdef __DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG
-		" creating a scaled pixbuf(%d x %d)\n" , width , height) ;
+	if( pixbuf)
+	{
+		kik_warn_printf( KIK_DEBUG_TAG
+			" creating a scaled pixbuf(%d x %d)\n" , width , height) ;
+	}
 #endif
 
 	/* scaling ends here */
