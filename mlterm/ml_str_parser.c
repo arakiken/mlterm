@@ -149,6 +149,7 @@ init(
 
 	ml_str_parser->str = NULL ;
 	ml_str_parser->left = 0 ;
+	ml_str_parser->comb_left = 0 ;
 }
 
 static void

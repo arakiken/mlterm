@@ -438,14 +438,18 @@ load_file(
 		#if GDK_PIXBUF_MINOR >= 14
 			if( strstr( path , "://"))
 			{
+				GFile *  file ;
 				GFileInputStream *  in ;
 
-				if( ( in = g_file_read( g_vfs_get_file_for_uri(
-						g_vfs_get_default() , path) , NULL , NULL)))
+				if( ( in = g_file_read(
+						( file = g_vfs_get_file_for_uri(
+								g_vfs_get_default() , path)) ,
+						NULL , NULL)))
 				{
 					pixbuf = gdk_pixbuf_new_from_stream(
 							(GInputStream*)in , NULL , NULL) ;
 					g_object_unref( in) ;
+					g_object_unref( file) ;
 				}
 				else
 				{

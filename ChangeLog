@@ -1,5 +1,11 @@
 2012-09-23  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/x_imagelib.c, mlimgloader/main.c: Fix memory leaks.
+
+	* ml_str_parser.c: Fix uninitialized value of ml_str_parser::comb_left.
+
+2012-09-23  Araki Ken  <arakiken@users.sf.net>
+
 	* x_screen.c: Fix segfault caused by "remove_picture" configuration
 	  protocol with no argument.
 
