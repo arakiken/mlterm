@@ -6,14 +6,14 @@
 #define  __KIK_STR_H__
 
 
+#include  <string.h>		/* strlen/strsep/strdup */
+
 #include  "kik_types.h"		/* size_t */
 #include  "kik_def.h"
 #include  "kik_mem.h"		/* alloca */
 
 
 #ifdef  HAVE_STRSEP
-
-#include  <string.h>
 
 #define  kik_str_sep( strp , delim)  strsep( strp , delim)
 
@@ -35,10 +35,6 @@ int  kik_snprintf( char *  str , size_t  size , const char *  format , ...) ;
 #ifdef  KIK_DEBUG
 
 #define  strdup( str)  kik_str_dup( str , __FILE__ , __LINE__ , __FUNCTION__)
-
-#else
-
-#include  <string.h>		/* strdup */
 
 #endif
 

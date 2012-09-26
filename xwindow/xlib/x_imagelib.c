@@ -449,12 +449,13 @@ load_file(
 					pixbuf = gdk_pixbuf_new_from_stream(
 							(GInputStream*)in , NULL , NULL) ;
 					g_object_unref( in) ;
-					g_object_unref( file) ;
 				}
 				else
 				{
 					pixbuf = NULL ;
 				}
+
+				g_object_unref( file) ;
 			}
 			else
 		#endif

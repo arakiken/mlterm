@@ -1,3 +1,11 @@
+2012-09-26  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: CSI ? 8840 -> CSI ? 8428(RLogin original)
+
+	* vte.c: Fix vte_terminal_set_word_chars().
+
+	* kik_str.h, x_imagelib.c: Minor fixes.
+
 2012-09-23  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_imagelib.c, mlimgloader/main.c: Fix memory leaks.

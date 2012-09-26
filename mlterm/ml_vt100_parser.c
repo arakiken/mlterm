@@ -2262,11 +2262,11 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_escape = 1 ;
 						}
-						else if( ps[count] == 8840)
+						else if( ps[count] == 8428)
 						{
-							/* "CSI ? 8840 h" */
+							/* "CSI ? 8428 h" (RLogin original) */
 
-							vt100_parser->col_size_of_width_a = 2 ;
+							vt100_parser->col_size_of_width_a = 1 ;
 						}
 						else if( ps[count] == 9500)
 						{
@@ -2488,11 +2488,11 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_escape = 0 ;
 						}
-						else if( ps[count] == 8840)
+						else if( ps[count] == 8428)
 						{
-							/* "CSI ? 8840 l" */
+							/* "CSI ? 8428 l" (RLogin original) */
 
-							vt100_parser->col_size_of_width_a = 1 ;
+							vt100_parser->col_size_of_width_a = 2 ;
 						}
 						else if( ps[count] == 9500)
 						{
@@ -2514,6 +2514,8 @@ parse_vt100_escape_sequence(
 				{
 					if( ps[0] == 8840)
 					{
+						/* "CSI ? 8840 n" (TNREPTAMB) */
+
 						char  msg[] = "\x1b[?884Xn" ;
 
 						msg[6] = vt100_parser->col_size_of_width_a + 0x30 ;

@@ -5,6 +5,7 @@ ver 3.1.4
 * Add k1, k2, k3 and k4 entries for ~/.mlterm/termcap.
 * Support remote image files via network protocols supported by GVfs.
   (e.g. mlterm -pic http://....)
+* Use CSI ? 8428 instead of CSI ? 8840. (Thanks to saitoha san)
 * Bug fixes:
   Fix conflicting types of kik_utmp_new. (Thanks to KATO Masashi san)
   Erase wrap line attributes completely in clearing lines.

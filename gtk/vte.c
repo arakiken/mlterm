@@ -3771,7 +3771,59 @@ vte_terminal_set_word_chars(
 	const char *  spec
 	)
 {
-	ml_set_word_separators( spec) ;
+	char *  sep ;
+
+	if( ! spec || ! *spec)
+	{
+		sep = ",. " ;
+	}
+	else if( ( sep = alloca( 0x5f)))
+	{
+		char *  sep_p ;
+		char  c ;
+
+		sep_p = sep ;
+		c = 0x20 ;
+
+		do
+		{
+			char *  spec_p ;
+
+			spec_p = spec ;
+
+			while( *spec_p)
+			{
+				if( *spec_p == '-' &&
+				    spec_p > spec && *(spec_p + 1) != '\0')
+				{
+					if( *(spec_p - 1) < c && c < *(spec_p + 1))
+					{
+						goto  next ;
+					}
+				}
+				else if( *spec_p == c)
+				{
+					goto  next ;
+				}
+
+				spec_p ++ ;
+			}
+
+			*(sep_p++) = c ;
+
+		next:
+			c ++ ;
+		}
+		while( c < 0x7f) ;
+
+		*(sep_p) = '\0' ;
+	}
+	else
+	{
+		return ;
+	}
+
+	ml_set_word_separators( sep) ;
 }
 
 gboolean
@@ -3780,7 +3832,7 @@ vte_terminal_is_word_char(
 	gunichar  c
 	)
 {
-	return  FALSE ;
+	return  TRUE ;
 }
 
 void
