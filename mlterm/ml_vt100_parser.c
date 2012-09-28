@@ -3069,7 +3069,7 @@ parse_vt100_escape_sequence(
 				}
 				else if( ps[0] == 6)
 				{
-					char  seq[4 + DIGIT_STR_LEN(u_int) + 1] ;
+					char  seq[4 + DIGIT_STR_LEN(u_int) * 2 + 1] ;
 
 					sprintf( seq , "\x1b[%d;%dR" ,
 						ml_screen_cursor_row( vt100_parser->screen) + 1 ,

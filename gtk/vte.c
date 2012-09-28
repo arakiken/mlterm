@@ -3787,7 +3787,7 @@ vte_terminal_set_word_chars(
 
 		do
 		{
-			char *  spec_p ;
+			const char *  spec_p ;
 
 			spec_p = spec ;
 
