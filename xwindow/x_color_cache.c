@@ -423,7 +423,7 @@ x_get_cached_xcolor(
 		return  xcolor ;
 	}
 
-	kik_msg_printf( " Loading color 0x%x failed. Using black color instead.\n", color) ;
+	kik_msg_printf( "Loading color 0x%x failed. Using black color instead.\n", color) ;
 
 	return  &color_cache->black ;
 }

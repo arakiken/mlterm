@@ -1207,10 +1207,42 @@ change_char_attr(
 	}
 }
 
+static void
+get_rgb(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  ps ,
+	ml_color_t  color
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,get_rgb))
+	{
+		char  rgb[] = "rgb:xxxx/xxxx/xxxx" ;
+
+		if( (*vt100_parser->xterm_listener->get_rgb)(
+			vt100_parser->xterm_listener->self , rgb + 4 , color))
+		{
+			char  seq[2 + (DIGIT_STR_LEN(int) + 1) * 2 + sizeof(rgb) + 1] ;
+
+			if( ps >= 10)
+			{
+				/* ps: 10 = fg , 11 = bg , 12 = cursor bg */
+				sprintf( seq , "\x1b]%d;%s\x07" , ps , rgb) ;
+			}
+			else
+			{
+				/* ps: 4 , 5 */
+				sprintf( seq , "\x1b]%d;%d;%s\x07" , ps , color , rgb) ;
+			}
+
+			ml_write_to_pty( vt100_parser->pty , seq , strlen(seq)) ;
+		}
+	}
+}
+
 /*
  * This function will destroy the content of pt.
  */
-static int
+static void
 change_color_rgb(
 	ml_vt100_parser_t *  vt100_parser,
 	u_char *  pt
@@ -1218,30 +1250,34 @@ change_color_rgb(
 {
 	char *  p ;
 	
-	if( ( p = strchr( pt, ';')) == NULL)
+	if( ( p = strchr( pt, ';')))
 	{
-		return  0 ;
+		if( strcmp( p + 1 , "?") == 0)
+		{
+			ml_color_t  color ;
+
+			*p = '\0' ;
+
+			if( ( color = ml_get_color( pt)) != ML_UNKNOWN_COLOR)
+			{
+				get_rgb( vt100_parser , 4 , color) ;
+			}
+		}
+		else
+		{
+			*p = '=' ;
+
+			if( ( p = alloca( 6 + strlen( pt) + 1)))
+			{
+				sprintf( p , "color:%s" , pt) ;
+
+				config_protocol_set( vt100_parser , p , 0) ;
+			}
+		}
 	}
-	*p = '=' ;
-
-	if( strcmp( p + 1 , "?") == 0)
-	{
-		return  0 ;
-	}
-
-	if( ! ( p = alloca( 6 + strlen( pt) + 1)))
-	{
-		return  0 ;
-	}
-
-	sprintf( p , "color:%s" , pt) ;
-
-	config_protocol_set( vt100_parser, p , 0) ;
-
-	return  1 ;
 }
 
-static int
+static void
 change_special_color(
 	ml_vt100_parser_t *  vt100_parser,
 	u_char *  pt
@@ -1259,136 +1295,130 @@ change_special_color(
 	}
 	else
 	{
-		return  0 ;
+		return ;
 	}
 
-	if( *(++pt) != ';')
-	{
-		return  0 ;
-	}
-
-	if( strcmp( ++pt , "?") != 0)	/* ?: query rgb */
+	if( *(++pt) == ';' &&
+	    strcmp( ++pt , "?") != 0)	/* ?: query rgb */
 	{
 		config_protocol_set_simple( vt100_parser , key , pt) ;
 	}
-
-	return  1 ;
 }
 
-static int
+static void
 set_selection(
 	ml_vt100_parser_t *  vt100_parser ,
 	u_char *  encoded
 	)
 {
-	size_t  e_len ;
-	u_char *  decoded ;
-	size_t  d_pos ;
-	size_t  e_pos ;
-	/* ASCII -> Base64 order */
-	int8_t  conv_tbl[] =
+	if( HAS_XTERM_LISTENER(vt100_parser,set_selection))
 	{
-		/* 0x2b - */
-		62, -1, -1, -1, 63,
-		/* 0x30 - */
-		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -2, -1, -1,
-		/* 0x40 - */
-		-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-		/* 0x50 - */
-		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-		/* 0x60 - */
-		-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-		/* 0x70 - 7a */
-		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
-	} ;
-	mkf_char_t  ch ;
-	ml_char_t *  str ;
-	u_int  str_len ;
-
-	if( ( e_len = strlen( encoded)) < 4 || ! ( decoded = alloca( e_len)))
-	{
-		return  0 ;
-	}
-
-	d_pos = e_pos = 0 ;
-
-        while( e_len >= e_pos + 4)
-	{
-		size_t  count ;
-		int8_t  bytes[4] ;
-
-		for( count = 0 ; count < 4 ; count++)
+		size_t  e_len ;
+		u_char *  decoded ;
+		size_t  d_pos ;
+		size_t  e_pos ;
+		/* ASCII -> Base64 order */
+		int8_t  conv_tbl[] =
 		{
-			if( encoded[e_pos] < 0x2b || 0x7a < encoded[e_pos] ||
-			    (bytes[count] = conv_tbl[encoded[e_pos++] - 0x2b]) == -1)
-			{
-			#ifdef  DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " Illegal Base64 %s\n" , encoded) ;
-			#endif
+			/* 0x2b - */
+			62, -1, -1, -1, 63,
+			/* 0x30 - */
+			52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -2, -1, -1,
+			/* 0x40 - */
+			-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+			/* 0x50 - */
+			15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+			/* 0x60 - */
+			-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+			/* 0x70 - 7a */
+			41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+		} ;
+		mkf_char_t  ch ;
+		ml_char_t *  str ;
+		u_int  str_len ;
 
-				return  0 ;
+		if( ( e_len = strlen( encoded)) < 4 || ! ( decoded = alloca( e_len)))
+		{
+			return ;
+		}
+
+		d_pos = e_pos = 0 ;
+
+		while( e_len >= e_pos + 4)
+		{
+			size_t  count ;
+			int8_t  bytes[4] ;
+
+			for( count = 0 ; count < 4 ; count++)
+			{
+				if( encoded[e_pos] < 0x2b || 0x7a < encoded[e_pos] ||
+				    (bytes[count] = conv_tbl[encoded[e_pos++] - 0x2b]) == -1)
+				{
+				#ifdef  DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+						" Illegal Base64 %s\n" , encoded) ;
+				#endif
+
+					return ;
+				}
+			}
+
+			decoded[d_pos++] = (((bytes[0] << 2) & 0xfc) | ((bytes[1] >> 4) & 0x3)) ;
+
+			if( bytes[2] != -2)
+			{
+				decoded[d_pos++] =
+					(((bytes[1] << 4) & 0xf0) | ((bytes[2] >> 2) & 0xf)) ;
+			}
+			else
+			{
+				break ;
+			}
+
+			if( bytes[3] != -2)
+			{
+				decoded[d_pos++] = (((bytes[2] << 6) & 0xc0) | (bytes[3] & 0x3f)) ;
+			}
+			else
+			{
+				break ;
 			}
 		}
 
-		decoded[d_pos++] = (((bytes[0] << 2) & 0xfc) | ((bytes[1] >> 4) & 0x3)) ;
+	#ifdef  DEBUG
+		decoded[d_pos] = '\0' ;
+		kik_debug_printf( KIK_DEBUG_TAG " Base64 Decode %s => %s\n" , encoded , decoded) ;
+	#endif
 
-		if( bytes[2] != -2)
+		if( ! ( str = ml_str_new( d_pos)))
 		{
-			decoded[d_pos++] = (((bytes[1] << 4) & 0xf0) | ((bytes[2] >> 2) & 0xf)) ;
+			return ;
 		}
-		else
+
+		str_len = 0 ;
+		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser , decoded , d_pos) ;
+		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
-			break ;
+			ml_char_set( &str[str_len++] , ch.ch , ch.size , ch.cs , 0 , 0 ,
+				0 , 0 , 0 , 0) ;
 		}
 
-		if( bytes[3] != -2)
-		{
-			decoded[d_pos++] = (((bytes[2] << 6) & 0xc0) | (bytes[3] & 0x3f)) ;
-		}
-		else
-		{
-			break ;
-		}
-        }
+		/*
+		 * It is assumed that screen is not redrawn not in
+		 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
+		 * is not held between stop_vt100_cmd and start_vt100_cmd.
+		 */
+	#if  0
+		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
-#ifdef  DEBUG
-	decoded[d_pos] = '\0' ;
-	kik_debug_printf( KIK_DEBUG_TAG " Base64 Decode %s => %s\n" , encoded , decoded) ;
-#endif
-
-	if( ! ( str = ml_str_new( d_pos)))
-	{
-		return  0 ;
-	}
-
-	str_len = 0 ;
-	(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser , decoded , d_pos) ;
-	while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
-	{
-		ml_char_set( &str[str_len++] , ch.ch , ch.size , ch.cs , 0 , 0 ,
-			0 , 0 , 0 , 0) ;
-	}
-
-	/*
-	 * It is assumed that screen is not redrawn not in
-	 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
-	 * is not held between stop_vt100_cmd and start_vt100_cmd.
-	 */
-#if  0
-	stop_vt100_cmd( vt100_parser , 0) ;
-#endif
-
-	if( HAS_XTERM_LISTENER(vt100_parser,set_selection))
-	{
 		(*vt100_parser->xterm_listener->set_selection)(
 			vt100_parser->xterm_listener->self , str , str_len) ;
+
+	#if  0
+		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
-
-#if  0
-	start_vt100_cmd( vt100_parser , 0) ;
-#endif
-
-	return  1 ;
 }
 
 
@@ -3265,49 +3295,48 @@ parse_vt100_escape_sequence(
 			{
 				/* "OSC 4" change 256 color */
 
-				if( ! change_color_rgb( vt100_parser , pt))
-				{
-				#ifdef  DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-					" change_color_rgb failed.\n") ;
-				#endif
-				}
+				change_color_rgb( vt100_parser , pt) ;
 			}
 			else if( ps == 5)
 			{
 				/* "OSC 5" change colorBD/colorUL */
 
-				if( ! change_special_color( vt100_parser , pt))
-				{
-				#ifdef  DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-					" change_color_rgb failed.\n") ;
-				#endif
-				}
+				change_special_color( vt100_parser , pt) ;
 			}
 			else if( ps == 10)
 			{
-				if( strcmp( pt , "?") != 0)	/* ?:query rgb */
+				/* "OSC 10" fg color */
+
+				if( strcmp( pt , "?") == 0)	/* ?:query rgb */
 				{
-					/* "OSC 10" fg color */
+					get_rgb( vt100_parser , ps , ML_FG_COLOR) ;
+				}
+				else
+				{
 					config_protocol_set_simple( vt100_parser ,
 						"fg_color" , pt) ;
 				}
 			}
 			else if( ps == 11)
 			{
-				if( strcmp( pt , "?") != 0)	/* ?:query rgb */
+				/* "OSC 11" bg color */
+
+				if( strcmp( pt , "?") == 0)	/* ?:query rgb */
 				{
-					/* "OSC 11" bg color */
+					get_rgb( vt100_parser , ps , ML_BG_COLOR) ;
+				}
+				else
+				{
 					config_protocol_set_simple( vt100_parser ,
 						"bg_color" , pt) ;
 				}
 			}
 			else if( ps == 12)
 			{
+				/* "OSC 12" cursor bg color */
+
 				if( strcmp( pt , "?") != 0)	/* ?:query rgb */
 				{
-					/* "OSC 11" cursor bg color */
 					config_protocol_set_simple( vt100_parser ,
 						"cursor_bg_color" , pt) ;
 				}

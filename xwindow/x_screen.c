@@ -7086,6 +7086,32 @@ xterm_set_selection(
 	screen->sel.sel_len = len ;
 }
 
+static char *
+xterm_get_rgb(
+	void *  p ,
+	char *  rgb ,
+	ml_color_t  color
+	)
+{
+	x_screen_t *  screen ;
+	x_color_t *  xcolor ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
+
+	screen = p ;
+
+	if( ! ( xcolor = x_get_xcolor( screen->color_man , color)) ||
+	    ! x_get_xcolor_rgb( &red , &green , &blue , NULL , xcolor))
+	{
+		return  NULL ;
+	}
+
+	sprintf( rgb , "%.2x%.2x/%.2x%.2x/%.2x%.2x" , red , red , green , green , blue , blue) ;
+
+	return  rgb ;
+}
+
 
 /*
  * callbacks of ml_pty_event_listener_t
@@ -7306,6 +7332,7 @@ x_screen_new(
 	screen->xterm_listener.im_is_active = xterm_im_is_active ;
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
 	screen->xterm_listener.set_selection = (allow_osc52 ? xterm_set_selection : NULL) ;
+	screen->xterm_listener.get_rgb = xterm_get_rgb ;
 
 	screen->config_listener.self = screen ;
 	screen->config_listener.exec = x_screen_exec_cmd ;

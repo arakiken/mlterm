@@ -1,3 +1,9 @@
+2012-09-29  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c, x_screen.c: "?" of OSC 4, 10 and 11 is supported.
+
+	* version.h.in: 3.1.4 -> 3.1.4 pre
+
 2012-09-28  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.1.4 released.

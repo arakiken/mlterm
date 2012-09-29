@@ -357,7 +357,7 @@ ml_get_color_rgb(
 	u_int8_t *  blue
 	)
 {
-	if( ! IS_VALID_COLOR(color))
+	if( ! IS_VALID_COLOR_EXCEPT_FG_BG(color))
 	{
 		return  0 ;
 	}

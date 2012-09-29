@@ -1,3 +1,6 @@
+ver 3.1.5
+* Support "?" of OSC 4, 10 and 11.
+
 ver 3.1.4
 * Support 0x90...0x9c format for sixel graphics sequence.
 * Change the file where sixel graphics sequence is stored temporarily
