@@ -634,48 +634,44 @@ restore_cursor(
 }
 
 static void
-resize_by_char(
-	ml_vt100_parser_t *  vt100_parser ,
-	u_int  cols ,
-	u_int  rows
-	)
-{
-	if( HAS_XTERM_LISTENER(vt100_parser,resize))
-	{
-		/*
-		 * XXX Not compatible with xterm.
-		 * cols or rows == 0 means full screen width or height in xterm.
-		 * Note that ml_vt100_parser.c depends on following behavior.
-		 */
-		if( cols == 0)
-		{
-			cols = ml_screen_get_cols( vt100_parser->screen) ;
-		}
-
-		if( rows == 0)
-		{
-			rows = ml_screen_get_rows( vt100_parser->screen) ;
-		}
-
-		ml_set_pty_winsize( vt100_parser->pty , cols , rows) ;
-		ml_screen_resize( vt100_parser->screen , cols , rows) ;
-
-		stop_vt100_cmd( vt100_parser , 0) ;
-		(*vt100_parser->xterm_listener->resize)(
-			vt100_parser->xterm_listener->self , 0 , 0) ;
-		start_vt100_cmd( vt100_parser , 0) ;
-	}
-}
-
-static void
-resize_by_pixel(
+resize(
 	ml_vt100_parser_t *  vt100_parser ,
 	u_int  width ,
-	u_int  height
+	u_int  height ,
+	int  by_char
 	)
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,resize))
 	{
+		if( by_char)
+		{
+			/*
+			 * XXX Not compatible with xterm.
+			 * width(cols) or height(rows) == 0 means full screen width
+			 * or height in xterm.
+			 * Note that ml_vt100_parser.c depends on following behavior.
+			 */
+			if( width == 0)
+			{
+				width = ml_screen_get_cols( vt100_parser->screen) ;
+			}
+
+			if( height == 0)
+			{
+				height = ml_screen_get_rows( vt100_parser->screen) ;
+			}
+
+			ml_set_pty_winsize( vt100_parser->pty , width , height) ;
+			ml_screen_resize( vt100_parser->screen , width , height) ;
+
+			/*
+			 * xterm_listener::resize(0,0) means that screen should be
+			 * resized according to the size of pty.
+			 */
+			width = 0 ;
+			height = 0 ;
+		}
+
 		stop_vt100_cmd( vt100_parser , 0) ;
 		(*vt100_parser->xterm_listener->resize)(
 			vt100_parser->xterm_listener->self , width , height) ;
@@ -809,6 +805,41 @@ set_modkey_mode(
 	if( key == 4 && mode <= 2)
 	{
 		vt100_parser->modify_other_keys = mode ;
+	}
+}
+
+static void
+report_window_size(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  by_char
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,get_window_size))
+	{
+		int  ps ;
+		u_int  width ;
+		u_int  height ;
+		char seq[ 5 + 1 /* ps */ + DIGIT_STR_LEN(u_int) * 2 + 1] ;
+
+		if( by_char)
+		{
+			width = ml_screen_get_logical_cols( vt100_parser->screen) ;
+			height = ml_screen_get_logical_rows( vt100_parser->screen) ;
+			ps = 8 ;
+		}
+		else
+		{
+			if( ! (*vt100_parser->xterm_listener->get_window_size)(
+					vt100_parser->xterm_listener->self , &width , &height))
+			{
+				return ;
+			}
+
+			ps = 4 ;
+		}
+
+		sprintf( seq , "\x1b[%d;%d;%dt" , ps , height , width) ;
+		ml_write_to_pty( vt100_parser->pty , seq , strlen(seq)) ;
 	}
 }
 
@@ -2093,7 +2124,7 @@ parse_vt100_escape_sequence(
 							/* XTERM compatibility [#1048321] */
 							clear_display_all( vt100_parser) ;
 
-							resize_by_char( vt100_parser , 132 , 0) ;
+							resize( vt100_parser , 132 , 0 , 1) ;
 						}
 					#if  0
 						else if( ps[count] == 4)
@@ -2341,7 +2372,7 @@ parse_vt100_escape_sequence(
 							/* XTERM compatibility [#1048321] */
 							clear_display_all( vt100_parser) ;
 
-							resize_by_char( vt100_parser , 80 , 0) ;
+							resize( vt100_parser , 80 , 0 , 1) ;
 						}
 					#if  0
 						else if( ps[count] == 4)
@@ -3142,11 +3173,22 @@ parse_vt100_escape_sequence(
 				{
 					if( ps[0] == 4)
 					{
-						resize_by_pixel( vt100_parser , ps[2] , ps[1]) ;
+						resize( vt100_parser , ps[2] , ps[1] , 0) ;
 					}
 					else if( ps[0] == 8)
 					{
-						resize_by_char( vt100_parser , ps[2] , ps[1]) ;
+						resize( vt100_parser , ps[2] , ps[1] , 1) ;
+					}
+				}
+				else
+				{
+					if( ps[0] == 14)
+					{
+						report_window_size( vt100_parser , 0) ;
+					}
+					else if( ps[0] == 18)
+					{
+						report_window_size( vt100_parser , 1) ;
 					}
 				}
 			}

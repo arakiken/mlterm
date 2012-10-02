@@ -7112,6 +7112,23 @@ xterm_get_rgb(
 	return  rgb ;
 }
 
+static int
+xterm_get_window_size(
+	void *  p ,
+	u_int *  width ,
+	u_int *  height
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	*width = screen->window.width ;
+	*height = screen->window.height ;
+
+	return  1 ;
+}
+
 
 /*
  * callbacks of ml_pty_event_listener_t
@@ -7333,6 +7350,7 @@ x_screen_new(
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
 	screen->xterm_listener.set_selection = (allow_osc52 ? xterm_set_selection : NULL) ;
 	screen->xterm_listener.get_rgb = xterm_get_rgb ;
+	screen->xterm_listener.get_window_size = xterm_get_window_size ;
 
 	screen->config_listener.self = screen ;
 	screen->config_listener.exec = x_screen_exec_cmd ;

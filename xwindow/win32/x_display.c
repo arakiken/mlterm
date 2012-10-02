@@ -34,8 +34,6 @@
 static x_display_t  _disp ;	/* Singleton */
 static Display  _display ;
 
-static x_display_t *  _opened_disp ;	/* for x_get_opened_displays */
-
 
 /* --- static functions --- */
 
@@ -210,26 +208,39 @@ x_display_close(
 	x_display_t *  disp
 	)
 {
-	int  count ;
+	if( disp == &_disp)
+	{
+		return  x_display_close_all() ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
 
-	if( ! DISP_IS_INITED || disp != &_disp)
+int
+x_display_close_all(void)
+{
+	u_int  count ;
+
+	if( ! DISP_IS_INITED)
 	{
 		return  0 ;
 	}
 
-	x_gc_delete( disp->gc) ;
+	x_gc_delete( _disp.gc) ;
 
-	for( count = 0 ; count < disp->num_of_roots ; count ++)
+	for( count = 0 ; count < _disp.num_of_roots ; count ++)
 	{
-		x_window_unmap( disp->roots[count]) ;
-		x_window_final( disp->roots[count]) ;
+		x_window_unmap( _disp.roots[count]) ;
+		x_window_final( _disp.roots[count]) ;
 	}
 
-	free( disp->roots) ;
+	free( _disp.roots) ;
 
-	if( _disp.display->fd != -1)
+	if( _display.fd != -1)
 	{
-		close( _disp.display->fd) ;
+		close( _display.fd) ;
 	}
 
 	_disp.display = NULL ;
@@ -239,18 +250,13 @@ x_display_close(
 	return  1 ;
 }
 
-int
-x_display_close_all(void)
-{
-	/* Not supported */
-	return  0 ;
-}
-
 x_display_t **
 x_get_opened_displays(
 	u_int *  num
 	)
 {
+	static x_display_t *  opened_disp ;
+
 	if( ! DISP_IS_INITED)
 	{
 		*num = 0 ;
@@ -258,10 +264,10 @@ x_get_opened_displays(
 		return  NULL ;
 	}
 
-	_opened_disp = &_disp ;
+	opened_disp = &_disp ;
 	*num = 1 ;
 
-	return  &_opened_disp ;
+	return  &opened_disp ;
 }
 
 int
@@ -319,7 +325,7 @@ x_display_remove_root(
 	x_window_t *  root
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < disp->num_of_roots ; count ++)
 	{
@@ -353,7 +359,7 @@ x_display_idling(
 	x_display_t *  disp
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < disp->num_of_roots ; count ++)
 	{
