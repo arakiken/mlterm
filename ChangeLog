@@ -1,3 +1,18 @@
+2012-10-16  Araki Ken  <arakiken@users.sf.net>
+
+	* main_loop.c, x.h, x_dislay.h, x_font.h, x_font_config.c,
+	  x_font_manager.c, x_main_config.c, x_screen_manager.c, x_window.h:
+	  Minor fixes for framebuffer support.
+
+	* window/fb, doc/ja/README.fb, etc/font-fb: Added for framebuffer support.
+
+	* win32/x.[ch]:
+	  - x_win32.[ch] -> x.[c]
+	  - XParseGeometry() is added.
+
+	* x_picture.c: Overlapped pictures are removed when a new picture is added
+	  in x_picture_manager_add().
+
 2012-10-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c, x_screen.c: CSI 14 t and CSI 18 t are supported.

@@ -153,7 +153,6 @@ x_load_named_xcolor(
 	native_color_to_xcolor( xcolor , &near) ;
 
 	return  1 ;
-
 }
 
 int

@@ -42,20 +42,24 @@ LIBS2_win32 = -mwindows -limm32 @SUBSYSTEM@ @WINSOCK_LIBS@ ../xwindow/winrs.o
 
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
-PROG = mlterm
+PROG_xlib = mlterm
+PROG_win32 = mlterm
+PROG_fb = mlterm-fb
+
 INSTALL_OPT = @INSTALL_OPT@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
-all: $(PROG)
+all: $(PROG_@GUI@)
 
 debug:
 	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
 
-$(PROG): $(OBJ) $(LMLTERM) $(LXWINDOW)
-	$(LIBTOOL_LINK) -o $(PROG) $(OBJ@XWINDOW_OBJ_SUFFIX@) @DEXPORT@ $(LIBS) @CTL_LIBS_FOR_PROG@
+$(PROG_@GUI@): $(OBJ) $(LMLTERM) $(LXWINDOW)
+	$(LIBTOOL_LINK) -o $(PROG_@GUI@) $(OBJ@XWINDOW_OBJ_SUFFIX@) \
+		@DEXPORT@ $(LIBS) @CTL_LIBS_FOR_PROG@
 
 .SUFFIXES: .c .o
 
@@ -66,16 +70,16 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 install : $(BINDIR)
-	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(BINDIR)
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG_@GUI@) $(BINDIR)
 
 uninstall :
-	rm -f $(BINDIR)/$(PROG)
+	rm -f $(BINDIR)/$(PROG_@GUI@)
 
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf $(PROG) $(PROG).exe *core $(OBJ) $(OBJ:.o=.lo) .libs
+	rm -rf $(PROG_@GUI@) $(PROG_@GUI@).exe *core $(OBJ) $(OBJ:.o=.lo) .libs
 
 distclean: clean
 	rm -f Makefile version.h

@@ -389,7 +389,8 @@ int  x_window_get_visible_geometry( x_window_t *  win ,
 
 int  x_set_click_interval( int  interval) ;
 
-XModifierKeymap *  x_window_get_modifier_mapping( x_window_t *  win) ;
+#define  x_window_get_modifier_mapping( win) \
+	x_display_get_modifier_mapping( (win)->disp)
 
 u_int  x_window_get_mod_ignore_mask( x_window_t *  win , KeySym *  keysyms) ;
 

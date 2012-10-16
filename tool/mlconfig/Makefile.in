@@ -30,6 +30,7 @@ CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
 
 LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS@
 
+# -lX11 is for http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
 LIBS2_xlib = $(LKIK) -lX11 -L/usr/local/lib -R/usr/local/lib
 
 # mlconfig is statically linked with libkik.

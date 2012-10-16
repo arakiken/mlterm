@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __X_WIN32_H__
-#define  __X_WIN32_H__
+#ifndef  ___X_H__
+#define  ___X_H__
 
 
 #undef  _WIN32_WINNT
@@ -23,7 +23,7 @@ typedef struct
 {
 	HINSTANCE  hinst ;
 	int  fd ;
-	
+
 } Display ;
 
 typedef int  XIM ;		/* dummy */
@@ -44,7 +44,7 @@ typedef struct		/* Same as definition in X11/X.h */
 {
 	int  max_keypermod ;
 	KeyCode *  modifiermap ;
-	
+
 } XModifierKeymap ;
 
 typedef struct		/* Same as definition in X11/X.h */
@@ -176,7 +176,7 @@ typedef int XFontSet ;	/* dummy */
 
 #define XK_Meta_L	0xfff9	/* dummy */
 #define XK_Meta_R	0xfff8	/* dummy */
- 
+
 #define XK_Pause	VK_PAUSE
 #define XK_Shift_Lock	0xfff7	/* dummy */
 #define XK_Caps_Lock	VK_CAPITAL
@@ -346,6 +346,9 @@ typedef int XFontSet ;	/* dummy */
 #define  XC_sb_v_double_arrow  0
 #define  XC_left_ptr  0
 
+
+int  XParseGeometry( char *  str , int *  x , int *  y ,
+	unsigned int  *  width , unsigned int  *  height) ;
 
 KeySym  XStringToKeysym( char *  str) ;
 

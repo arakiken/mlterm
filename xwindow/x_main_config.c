@@ -563,33 +563,6 @@ x_main_config_init(
 	
 	if( ( value = kik_conf_get_value( conf , "geometry")))
 	{
-	#ifdef  USE_WIN32GUI
-		int  x ;
-		int  y ;
-		u_int  cols ;
-		u_int  rows ;
-
-		if( sscanf( value , "%ux%u+%d+%d" , &cols , &rows , &x , &y) == 4)
-		{
-			main_config->geom_hint = XValue|YValue|WidthValue|HeightValue ;
-			main_config->x = x ;
-			main_config->y = y ;
-			main_config->cols = cols ;
-			main_config->rows = rows ;
-		}
-		else if( sscanf( value , "%ux%u", &cols, &rows) == 2)
-		{
-			main_config->geom_hint = WidthValue|HeightValue ;
-			main_config->cols = cols ;
-			main_config->rows = rows ;
-		}
-		else if( sscanf( value , "+%d+%d" , &x , &y) == 2)
-		{
-			main_config->geom_hint = XValue|YValue ;
-			main_config->x = x ;
-			main_config->y = y ;
-		}
-	#else
 		/*
 		 * For each value not found, the argument is left unchanged.
 		 * (see man XParseGeometry(3))
@@ -597,7 +570,6 @@ x_main_config_init(
 		main_config->geom_hint = XParseGeometry( value ,
 						&main_config->x , &main_config->y ,
 						&main_config->cols , &main_config->rows) ;
-	#endif
 
 		if( main_config->cols == 0 || main_config->rows == 0)
 		{

@@ -38,9 +38,15 @@ typedef struct  custom_cache
 
 /* --- static variables --- */
 
+#ifdef  USE_FRAMEBUFFER
+static char *  font_file = "mlterm/font-fb" ;
+static char *  vfont_file = "mlterm/vfont-fb" ;
+static char *  tfont_file = "mlterm/tfont-fb" ;
+#else
 static char *  font_file = "mlterm/font" ;
 static char *  vfont_file = "mlterm/vfont" ;
 static char *  tfont_file = "mlterm/tfont" ;
+#endif
 static char *  aafont_file = "mlterm/aafont" ;
 static char *  vaafont_file = "mlterm/vaafont" ;
 static char *  taafont_file = "mlterm/taafont" ;
@@ -1755,7 +1761,7 @@ x_get_config_font_name(
 			return  NULL ;
 		}
 
-	#ifndef  USE_WIN32GUI
+	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 		if( font_config->type_engine == TYPE_XCORE &&
 		    /* encoding is appended if font_name is XLFD (not alias name). */
 		    ( strchr( pair->value , '*') || strchr( pair->value , '-')))

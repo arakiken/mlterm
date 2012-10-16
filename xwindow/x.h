@@ -6,11 +6,15 @@
 #define  __X_H__
 
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI)
 
-#include  "win32/x_win32.h"
+#include  "win32/x.h"
 
-#else	/* USE_WIN32GUI */
+#elif  defined(USE_FRAMEBUFFER)
+
+#include  "fb/x.h"
+
+#else	/* USE_WIN32GUI/USE_FRAMEBUFFER */
 
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>
@@ -24,7 +28,7 @@
 #define  XK_FMAX  XK_F20
 #endif
 
-#endif	/* USE_WIN32GUI */
+#endif	/* USE_WIN32GUI/USE_FRAMEBUFFER */
 
 /*
  * Xlib utility definitions.

@@ -3761,14 +3761,6 @@ x_set_click_interval(
 	return  1 ;
 }
 
-XModifierKeymap *
-x_window_get_modifier_mapping(
-	x_window_t *  win
-	)
-{
-	return  x_display_get_modifier_mapping( win->disp) ;
-}
-
 u_int
 x_window_get_mod_ignore_mask(
 	x_window_t *  win ,

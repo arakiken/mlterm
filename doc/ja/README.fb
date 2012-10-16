@@ -1,0 +1,34 @@
+comment -*- mode: text -*-
+comment $Id$
+
+Framebuffer on Linux 対応に関するメモ
+
+* テスト環境
+  Ubuntu 12.04
+
+* ビルド
+  ./configure --with-gui=fb ...
+  make
+  make install
+
+* 起動方法
+  mlterm-fb (-fg white -bg black)
+
+* 環境設定
+  フォント設定の以外は、通常の mlterm と同じです。
+
+  o フォントの設定方法
+    ~/.mlterm/font でなく、~/.mlterm/font-fb に、使用するフォントを設定してくだ
+    さい。font-fb のフォーマットは font と基本的には同じですが、XLFD ではなく、
+    使用するフォントファイルのパスを記載します。
+    なお、現在使用できるフォントは、gzip されていない pcf 形式のみです。
+    (mlterm-x.x.x/etc/font-fb がサンプルです。)
+
+* 使えない機能
+  o 16bpp, 15bpp, 8bpp
+  o 背景画像・透過機能
+  o マウス
+  o スクロールバー
+  o プロポーショナルフォント
+  o ssh2 client (パスフレーズ入力画面を実装していないため)
+  o ショートカットーキー

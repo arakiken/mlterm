@@ -1,4 +1,6 @@
 ver 3.1.5
+* Support framebuffer on Linux. (Experimental)
+  (./configure --with-gui=fb)
 * Support "?" of OSC 4, 10 and 11.
 * Support CSI 14 t and CSI 18 t.
 

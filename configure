@@ -852,9 +852,9 @@ FRIBIDI_CFLAGS
 CTL_LOADER_OBJ
 LMLTERM_CORE
 REGEX_CFLAGS
+GUI_CFLAGS
 GUI
 XUTF8_CFLAGS
-GUI_CFLAGS
 SIXEL_CFLAGS
 MATH_CFLAGS
 MATH_LIBS
@@ -19813,14 +19813,14 @@ fi
 	;;
 *)
 	CYGPATHW=echo
-	if test "$gui" != "xlib" ; then
+	if test "$gui" != "xlib" -a "$gui" != "fb" ; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
 		gui="xlib"
 	fi
 	# $have_x is defined in AC_PATH_XTRA.
-	if test "$have_x" != "yes" ; then
+	if test "$gui" = "xlib" -a "$have_x" != "yes" ; then
 		echo ""
 		echo "** ERROR **"
 		echo "Could not find xlib."
@@ -20443,8 +20443,7 @@ if test "$gui" = "win32" ; then
 	GUI="win32"
 	GUI_CFLAGS="-DUSE_WIN32GUI"
 	X_CFLAGS=""
-
-else
+elif test "$gui" = "xlib" ; then
 	GUI="xlib"
 	# Li18nux Xlib-I18N defines X_HAVE_UTF8_STRING but has no Xutf8LookupString.
 	ldflags="$LDFLAGS" cflags="$CFLAGS"
@@ -20491,7 +20490,11 @@ fi
 
 	LDFLAGS="$ldflags" CFLAGS="$cflags"
 
+else
+	GUI="fb"
+	GUI_CFLAGS="-DUSE_FRAMEBUFFER"
 fi
+
 
 
 ac_fn_c_check_header_mongrel "$LINENO" "regex.h" "ac_cv_header_regex_h" "$ac_includes_default"
@@ -20669,7 +20672,7 @@ fi
 
 if test "$dl_type" = "yes" ; then
 	TYPE_LOADER_OBJ=x_type_loader.o
-	if test "$gui" = "win32" ; then
+	if test "$gui" != "xlib" ; then
 		TYPE_CFLAGS="-DNO_DYNAMIC_LOAD_TYPE"
 	fi
 else
@@ -20692,7 +20695,7 @@ if test "${with_type_engines+set}" = set; then :
 fi
 
 
-if test "$gui" = "win32" ; then
+if test "$gui" != "xlib" ; then
 	type_engines="xcore"
 elif  test "$anti_alias" = "yes" ; then
 	type_engines="xcore xft"
@@ -21310,7 +21313,7 @@ tools=`echo ${tools} | sed 's/,/ /g'`
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
-	if test "${have_gtk}" = "yes" ; then
+	if test "${have_gtk}" = "yes" -a "$gui" != "fb" ; then
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -21326,7 +21329,7 @@ mlconfig)
 	fi
 	;;
 mlterm-menu)
-	if test "${have_gtk}" = "yes" ; then
+	if test "${have_gtk}" = "yes" -a "$gui" != "fb" ; then
 		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -21470,7 +21473,7 @@ if test "${enable_kbd+set}" = set; then :
   enableval=$enable_kbd; kbd=$enable_kbd
 fi
 
-if test "$kbd" != "no" ; then
+if test "$kbd" != "no" -a "$gui" != "fb" ; then
 	IM_CFLAGS="$IM_CFLAGS -DUSE_KBD"
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
@@ -21488,7 +21491,7 @@ if test "${enable_uim+set}" = set; then :
   enableval=$enable_uim; uim=$enable_uim
 fi
 
-if test "x$uim" = xyes ; then
+if test "x$uim" = xyes -a "$gui" != "fb" ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for UIM" >&5
@@ -21577,7 +21580,7 @@ if test "${enable_m17nlib+set}" = set; then :
   enableval=$enable_m17nlib; m17nlib=$enable_m17nlib
 fi
 
-if test "x$m17nlib" = xyes ; then
+if test "x$m17nlib" = xyes -a "$gui" != "fb" ; then
 	# Extract the first word of "m17n-config", so it can be a program name with args.
 set dummy m17n-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -21683,7 +21686,7 @@ if test "${enable_ibus+set}" = set; then :
   enableval=$enable_ibus; ibus=$enable_ibus
 fi
 
-if test "x$ibus" = "xyes" ; then
+if test "x$ibus" = "xyes" -a "$gui" != "fb" ; then
 	ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -22029,7 +22032,7 @@ if test "${enable_scim+set}" = set; then :
   enableval=$enable_scim; scim=$enable_scim
 fi
 
-if test "x$scim" = "xyes" ; then
+if test "x$scim" = "xyes" -a "$gui" != "fb" ; then
 	ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -22397,7 +22400,13 @@ if test "${with_scrollbars+set}" = set; then :
 
 fi
 
-scrollbars=`echo ${scrollbars} | sed 's/,/ /g'`
+
+if test "$gui" = "fb" ; then
+	scrollbars=""
+else
+	scrollbars=`echo ${scrollbars} | sed 's/,/ /g'`
+fi
+
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)

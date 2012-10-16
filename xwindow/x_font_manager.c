@@ -521,7 +521,7 @@ x_get_fontset(
 	x_font_manager_t *  font_man
 	)
 {
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER)
 	return  None ;
 #else
 	XFontSet  fontset ;

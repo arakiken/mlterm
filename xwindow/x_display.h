@@ -33,7 +33,7 @@ typedef struct  x_display
 
 	Window  my_window ;	/* DefaultRootWindow */
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	/* Only one visual, colormap or depth is permitted per display. */
 	Visual *  visual ;
 	Colormap  colormap ;
@@ -54,7 +54,7 @@ typedef struct  x_display
 
 	x_modifier_mapping_t  modmap ;
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	Cursor  cursors[3] ;
 #endif
 
@@ -91,7 +91,7 @@ int  x_display_clear_selection( x_display_t *  disp , x_window_ptr_t  win) ;
 
 XModifierKeymap *  x_display_get_modifier_mapping( x_display_t *  disp) ;
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 Cursor  x_display_get_cursor( x_display_t *  disp , u_int  shape) ;
 
 XVisualInfo *  x_display_get_visual_info( x_display_t *  disp) ;

@@ -2,11 +2,13 @@
  *	$Id$
  */
 
-#include  "x_win32.h"
+#include  "x.h"
 
+#include  <stdio.h>		/* sscanf */
+#include  <string.h>		/* strcmp */
+#include  <kiklib/kik_types.h>	/* size_t */
 
 #if  0
-#include  <stdio.h>
 #define  SELF_TEST
 #endif
 
@@ -17,7 +19,7 @@
 static struct
 {
 	char *  str ;
-	/* KeySym */ WORD  ksym ;	/* 16bit */
+	KeySym /* WORD */ ksym ;	/* 16bit */
 
 } keysym_table[] =
 {
@@ -85,10 +87,38 @@ static struct
 	{ "X" , 0x58 } ,
 	{ "Y" , 0x59 } ,
 	{ "Z" , 0x5a } ,
-	{ "space" , VK_SPACE } ,
+	{ "space" , 0x20 /* VK_SPACE */ } ,
 } ;
 
+
 /* --- global functions --- */
+
+int
+XParseGeometry(
+	char *  str ,
+	int *  x ,
+	int *  y ,
+	unsigned int  *  width ,
+	unsigned int  *  height
+	)
+{
+	if( sscanf( str , "%ux%u+%d+%d" , width , height , x , y) == 4)
+	{
+		return  XValue|YValue|WidthValue|HeightValue ;
+	}
+	else if( sscanf( str , "%ux%u" , width , height) == 2)
+	{
+		return  WidthValue|HeightValue ;
+	}
+	else if( sscanf( str , "+%d+%d" , x , y) == 2)
+	{
+		return  XValue|YValue ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
 
 KeySym
 XStringToKeysym(

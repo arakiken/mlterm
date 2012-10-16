@@ -1043,7 +1043,7 @@ x_window_show(
 			   specify XValue|YValue to localte window at win->x/win->y. */
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( win->my_window)
 	{
@@ -1609,7 +1609,7 @@ x_window_idling(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -1644,7 +1644,7 @@ x_window_receive_event(
 	XEvent *  event
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -2591,7 +2591,7 @@ x_window_draw_string(
 
 		if( ( dbl_str = alloca( len * 2)))
 		{
-			int  count ;
+			u_int  count ;
 
 			for( count = 0 ; count < len ; count++)
 			{
@@ -2667,7 +2667,7 @@ x_window_draw_image_string(
 
 		if( ( dbl_str = alloca( len * 2)))
 		{
-			int  count ;
+			u_int  count ;
 
 			for( count = 0 ; count < len ; count++)
 			{
@@ -2898,7 +2898,7 @@ x_window_send_selection(
 {
 	HGLOBAL  hmem ;
 	u_char *  g_data ;
-	int  count ;
+	size_t  count ;
 
 	if( sel_data == NULL || sel_len == 0)
 	{
@@ -3019,14 +3019,6 @@ x_set_click_interval(
 	return  1 ;
 }
 
-XModifierKeymap *
-x_window_get_modifier_mapping(
-	x_window_t *  win
-	)
-{
-	return  x_display_get_modifier_mapping( win->disp) ;
-}
-
 u_int
 x_window_get_mod_ignore_mask(
 	x_window_t *  win ,
@@ -3108,7 +3100,7 @@ x_window_dump_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	kik_msg_printf( "%p(%li) => " , win , win->my_window) ;
 	for( count = 0 ; count < win->num_of_children ; count ++)

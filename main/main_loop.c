@@ -15,7 +15,7 @@
 #include  <x_font.h>	/* x_use_cp932_ucs_fot_xft */
 #include  <x_screen_manager.h>
 #include  <x_event_source.h>
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 #include  <xlib/x_xim.h>
 #endif
 
@@ -123,7 +123,7 @@ main_loop_init(
 	x_main_config_t  main_config ;
 	kik_conf_t *  conf ;
 	char *  value ;
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	int  use_xim ;
 #endif
 	u_int  max_screens_multiple ;
@@ -246,7 +246,7 @@ main_loop_init(
 	}
 #endif
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	use_xim = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_xim")))
@@ -394,7 +394,7 @@ main_loop_final(void)
 
 	kik_set_msg_log_file_name( NULL) ;
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	x_xim_final() ;
 #endif
 

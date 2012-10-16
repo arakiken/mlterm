@@ -26,7 +26,9 @@ OBJ1 = x_screen_manager.o x_event_source.o x_display.o x_window.o x_screen.o \
 
 OBJ2_xlib = x_decsp_font.o x_xim.o
 
-OBJ2_win32 = x_gdiobj_pool.o x_win32.o
+OBJ2_win32 = x_gdiobj_pool.o x.o
+
+OBJ2_fb = x.o
 
 RSOBJ_win32 = winrs.o
 

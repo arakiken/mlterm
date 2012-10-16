@@ -589,7 +589,28 @@ x_picture_manager_add(
 	int  y
 	)
 {
+	int  count ;
 	void *  p ;
+
+	for( count = pic_man->num_of_pics - 1 ; count >= 0 ; count--)
+	{
+		if( x <= pic_man->pics[count].x &&
+		    pic_man->pics[count].x + pic_man->pics[count].pic->width <= x + pic->width &&
+		    y <= pic_man->pics[count].y &&
+		    pic_man->pics[count].y + pic_man->pics[count].pic->height <= y + pic->height)
+		{
+			/* Remove overlapped pictures. */
+
+			x_release_picture( pic_man->pics[count].pic) ;
+
+			if( -- pic_man->num_of_pics == 0)
+			{
+				break ;
+			}
+
+			pic_man->pics[count] = pic_man->pics[pic_man->num_of_pics] ;
+		}
+	}
 
 	if( ! ( p = realloc( pic_man->pics ,
 			sizeof(*pic_man->pics) * (pic_man->num_of_pics + 1))))

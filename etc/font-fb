@@ -1,0 +1,5 @@
+DEFAULT = /usr/share/fonts/X11/misc/10x20.pcf
+ISO8859_1 = /usr/share/fonts/X11/misc/mplus_f12r.pcf
+JISX0208_1983 = /usr/share/fonts/X11/misc/mplus_j12r.pcf
+ISO10646_UCS4_1 = /usr/share/fonts/X11/misc/10x20.pcf
+ISO10646_UCS4_1_BIWIDTH = /usr/share/fonts/X11/misc/18x18ja.pcf
