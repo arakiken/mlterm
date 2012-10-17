@@ -26,9 +26,10 @@ Framebuffer on Linux 対応に関するメモ
 
 * 使えない機能
   o 16bpp, 15bpp, 8bpp
-  o 背景画像・透過機能
+  o 背景画像
   o マウス
   o スクロールバー
   o プロポーショナルフォント
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o ショートカットーキー
+  o mlclient (mlclientxは使えます。)

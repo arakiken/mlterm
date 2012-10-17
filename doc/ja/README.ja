@@ -51,7 +51,7 @@ comment $Id$
       この場合、結合文字や BIDI 等を扱えなくなります。
 
     --with-gui
-      GUI ライブラリとして xlib か win32 のいずれを使用するか指定します。
+      GUI ライブラリとして xlib / win32 / fb のいずれを使用するか指定します。
 
     --with-imagelib=(gdk-pixbuf)
       mlterm 本体に gdk-pixbuf をリンクし、壁紙やアイコンの画像を扱えるようにし

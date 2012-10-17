@@ -580,6 +580,7 @@ x_font_new(
 		return  NULL ;
 	}
 
+	font->xfont->ref_count = 1 ;
 	xfonts[num_of_xfonts++] = font->xfont ;
 
 xfont_loaded:
@@ -783,18 +784,33 @@ x_font_delete(
 	x_font_t *  font
 	)
 {
-	u_int  count ;
-
-	for( count = 0 ; count < num_of_xfonts ; count++)
+	if( -- font->xfont->ref_count == 0)
 	{
-		if( strcmp( xfonts[count]->file , font->xfont->file) == 0)
+		u_int  count ;
+
+		for( count = 0 ; count < num_of_xfonts ; count++)
 		{
-			if( -- xfonts[count]->ref_count == 0)
+			if( strcmp( xfonts[count]->file , font->xfont->file) == 0)
 			{
-				unload_pcf( font->xfont) ;
-				xfonts[count] = xfonts[--num_of_xfonts] ;
+				if( -- num_of_xfonts > 0)
+				{
+					xfonts[count] = xfonts[--num_of_xfonts] ;
+				}
+				else
+				{
+					free( xfonts) ;
+					xfonts = NULL ;
+				}
 			}
 		}
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" %s font is unloaded. => CURRENT NUM OF XFONTS %d\n" ,
+			font->xfont->file , num_of_xfonts) ;
+	#endif
+
+		unload_pcf( font->xfont) ;
 	}
 
 	free( font) ;

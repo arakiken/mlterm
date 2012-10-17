@@ -494,11 +494,9 @@ x_window_show(
 		(*win->window_realized)( win) ;
 	}
 
-	x_window_resize( win , win->disp->width - win->margin * 2 ,
-		win->disp->height - win->margin * 2 , NOTIFY_TO_MYSELF) ;
-	x_window_clear( win , -(win->margin) , -(win->margin) ,
-		win->disp->width - win->margin * 2 ,
-		win->disp->height - win->margin * 2) ;
+	x_window_resize_with_margin( win , win->disp->width ,
+		win->disp->height , NOTIFY_TO_MYSELF) ;
+	x_window_clear_margin_area( win) ;
 
 	/*
 	 * showing child windows.
@@ -541,8 +539,14 @@ x_window_resize(
 		return  0 ;
 	}
 
+#if  0
 	win->width = width ;
 	win->height = height ;
+#else
+	/* Forcibly set the same size of the screen. */
+	win->width = win->disp->width - win->margin * 2 ;
+	win->height = win->disp->height - win->margin * 2 ;
+#endif
 
 	if( ( flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{
@@ -565,7 +569,7 @@ x_window_resize_with_margin(
 	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
-	return  1 ;
+	return  x_window_resize( win , width - win->margin * 2 , height - win->margin * 2 , flag) ;
 }
 
 int
@@ -627,14 +631,21 @@ x_window_clear_margin_area(
 	x_window_t *  win
 	)
 {
+	u_int  right_margin ;
+	u_int  bottom_margin ;
+
+	right_margin = (win->width - win->min_width) % win->width_inc ;
+	bottom_margin = (win->height - win->min_height) % win->height_inc ;
+
 	if( win->margin > 0)
 	{
 		x_window_clear( win , -(win->margin) , -(win->margin) ,
 			win->margin , ACTUAL_HEIGHT(win)) ;
 		x_window_clear( win , 0 , -(win->margin) , win->width , win->margin) ;
-		x_window_clear( win , win->width , -(win->margin) ,
-			win->margin , ACTUAL_HEIGHT(win)) ;
-		x_window_clear( win , 0 , win->height , win->width , win->margin) ;
+		x_window_clear( win , win->width - right_margin , -(win->margin) ,
+			win->margin + right_margin , ACTUAL_HEIGHT(win)) ;
+		x_window_clear( win , 0 , win->height - bottom_margin ,
+			win->width , win->margin + bottom_margin) ;
 	}
 
 	return  1 ;

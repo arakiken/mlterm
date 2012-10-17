@@ -1,3 +1,12 @@
+2012-10-17  Araki Ken  <arakiken@users.sf.net>
+
+	* README, doc/ja/README.ja, doc/ja/README.fb: Updated.
+
+	* fb/x_window.c: Display width and height are applied forcibly even if
+	  x_window_resize() is called with any value.
+
+	* fb/x_font.c: Initialize XFontStruct::ref_count in loading a new font.
+
 2012-10-16  Araki Ken  <arakiken@users.sf.net>
 
 	* main_loop.c, x.h, x_dislay.h, x_font.h, x_font_config.c,
