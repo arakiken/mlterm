@@ -536,6 +536,7 @@ x_font_new(
 	)
 {
 	x_font_t *  font ;
+	void *  p ;
 	u_int  count ;
 
 	if( ! fontname)
@@ -571,7 +572,7 @@ x_font_new(
 	font->display = display ;
 
 	if( ! load_pcf( font->xfont , fontname) ||
-	    ! ( xfonts = realloc( xfonts , sizeof(XFontStruct*) * (num_of_xfonts + 1))))
+	    ! ( p = realloc( xfonts , sizeof(XFontStruct*) * (num_of_xfonts + 1))))
 	{
 		unload_pcf( font->xfont) ;
 		free( font->xfont) ;
@@ -580,8 +581,9 @@ x_font_new(
 		return  NULL ;
 	}
 
-	font->xfont->ref_count = 1 ;
+	xfonts = p ;
 	xfonts[num_of_xfonts++] = font->xfont ;
+	font->xfont->ref_count = 1 ;
 
 xfont_loaded:
 	/* Following is almost the same processing as xlib. */
@@ -811,6 +813,7 @@ x_font_delete(
 	#endif
 
 		unload_pcf( font->xfont) ;
+		free( font->xfont) ;
 	}
 
 	free( font) ;

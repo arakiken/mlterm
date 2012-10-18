@@ -18,7 +18,7 @@ int  x_imagelib_display_opened( Display *  disp) ;
 int  x_imagelib_display_closed( Display *  disp) ;
 
 Pixmap  x_imagelib_load_file_for_background( x_window_t *  win ,
-	char *  file_path , x_picture_modifier_t *  pic_mod) ;
+	char *  path , x_picture_modifier_t *  pic_mod) ;
 
 Pixmap  x_imagelib_get_transparent_background( x_window_t *  win ,
 	x_picture_modifier_t *  pic_mod) ;

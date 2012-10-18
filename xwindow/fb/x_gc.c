@@ -4,6 +4,8 @@
 
 #include  "../x_gc.h"
 
+#include  <stdio.h>
+
 
 /* --- global functions --- */
 

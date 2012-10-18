@@ -58,7 +58,14 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	xcolor->pixel = (red << 16) | (green << 8) | blue | alpha << 24 ;
+	if( disp->depth < 15)
+	{
+		return  0 ;
+	}
+
+	xcolor->pixel = RGB_TO_PIXEL(red,green,blue,disp->display->rgbinfo) |
+			(disp->depth == 32 ? (alpha << 24) : 0) ;
+
 	xcolor->red = red ;
 	xcolor->green = green ;
 	xcolor->blue = blue ;

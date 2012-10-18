@@ -120,6 +120,7 @@ typedef struct  x_window
 
 #ifdef  USE_WIN32GUI
 	WORD  update_window_flag ;
+	int  cmd_show ;
 #endif
 
 	/* button */
@@ -148,9 +149,8 @@ typedef struct  x_window
 	 * flags etc.
 	 */
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER)
 	Pixmap  wall_picture ;
-	int  cmd_show ;
 #else
 	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
 	int8_t  wait_copy_area_response ;	/* Used for XCopyArea() */
@@ -222,7 +222,7 @@ int  x_window_set_wall_picture( x_window_t *  win , Pixmap  pic) ;
 
 int  x_window_unset_wall_picture( x_window_t *  win) ;
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER)
 #define  x_window_has_wall_picture( win)  ((win)->wall_picture != None)
 #else
 #define  x_window_has_wall_picture( win)  ((win)->wall_picture_is_set)

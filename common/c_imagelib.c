@@ -513,6 +513,74 @@ end:
 #endif	/* ENABLE_SIXEL */
 
 
+/* create an CARDINAL array for_NET_WM_ICON data */
+static u_int32_t *
+create_cardinals_from_pixbuf(
+	GdkPixbuf *  pixbuf ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	u_int32_t *  cardinal ;
+	int  rowstride ;
+	u_char *  line ;
+	u_char *  pixel ;
+	u_int i , j ;
+
+	if( width > ((SIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
+	    ! ( cardinal = malloc( ( width * height + 2) * sizeof(*cardinal))))
+	{
+		return  NULL ;
+	}
+
+	/* create (maybe shriked) copy */
+	pixbuf = gdk_pixbuf_scale_simple( pixbuf , width , height , GDK_INTERP_TILES) ;
+
+	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
+	line = gdk_pixbuf_get_pixels( pixbuf) ;
+
+	/* format of the array is {width, height, ARGB[][]} */
+	cardinal[0] = width ;
+	cardinal[1] = height ;
+	if( gdk_pixbuf_get_has_alpha( pixbuf))
+	{
+		for( i = 0 ; i < height ; i++)
+		{
+			pixel = line ;
+			line += rowstride;
+			for( j = 0 ; j < width ; j++)
+			{
+				/* RGBA to ARGB */
+				cardinal[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8)
+								+ pixel[0]) << 8)
+								+ pixel[1]) << 8) + pixel[2] ;
+				pixel += 4 ;
+			}
+		}
+	}
+	else
+	{
+		for( i = 0 ; i < height ; i++)
+		{
+			pixel = line ;
+			line += rowstride;
+			for( j = 0 ; j < width ; j++)
+			{
+				/* all pixels are completely opaque (0xFF) */
+				cardinal[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8)
+								+ pixel[0]) << 8)
+								+ pixel[1]) << 8) + pixel[2] ;
+				pixel += 3 ;
+			}
+		}
+	}
+
+	g_object_unref( pixbuf) ;
+
+	return  cardinal ;
+}
+
+
 /* seek the closest color */
 static int
 closest_color_index(

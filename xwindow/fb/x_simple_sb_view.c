@@ -4,6 +4,8 @@
 
 #include  "../x_simple_sb_view.h"
 
+#include  <stdio.h>
+
 
 /* --- global functions --- */
 

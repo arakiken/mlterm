@@ -267,15 +267,18 @@ AC_SUBST(IMAGELIB_CFLAGS)
 AC_SUBST(IMAGELIB_LIBS)
 
 # XXX For pow in libm.so which is used in x_imagelib.c
-for ml_cv_lib_path in /lib /usr/lib `echo $LIBRARY_PATH | tr ":" " "` ; do
-	libm_files=`ls $ml_cv_lib_path/libm\\.so $ml_cv_lib_path/libm\\.sl 2> /dev/null`
+# /lib/* ... e.g.) /lib/i386-linux-gnu in ubuntu.
+for ml_cv_lib_path in /lib /usr/lib /lib/* `echo $LIBRARY_PATH | tr ":" " "` ; do
+	libm_files=`ls $ml_cv_lib_path/libm\\.so* $ml_cv_lib_path/libm\\.sl* 2> /dev/null`
 	for libm_file in $libm_files ; do
-		libm_dynamic_symbol_found=`$NM -D $libm_file | $GREP pow`
+		if test -z "$ml_cv_libm_dir" -a -n "`$NM -D $libm_file | $GREP pow`" ; then
+			ml_cv_libm_dir=`dirname $libm_file`
+		fi
 	done
 done
 if test -z "$IMAGELIB_LIBS" ; then
-	if test -n "$libm_dynamic_symbol_found" ; then
-		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
+	if test -n "$ml_cv_libm_dir" ; then
+		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_libm_dir\\\""
 	else
 		AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
 	fi
@@ -639,7 +642,8 @@ mlterm-zoom)
 	fi
 	;;
 mlimgloader)
-	if test "$gui" = "xlib" ; then
+	# $have_x is defined in AC_PATH_XTRA.
+	if test "$have_x" = "yes" ; then
 		if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
 			OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
 			MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"

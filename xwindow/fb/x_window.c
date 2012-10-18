@@ -337,6 +337,21 @@ x_window_set_wall_picture(
 	Pixmap  pic
 	)
 {
+	win->wall_picture = pic ;
+	win->is_scrollable = 0 ;
+
+	if( win->window_exposed)
+	{
+		x_window_clear_margin_area( win) ;
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+#if  0
+	else
+	{
+		x_window_clear_all( win) ;
+	}
+#endif
+
 	return  1 ;
 }
 
@@ -345,6 +360,21 @@ x_window_unset_wall_picture(
 	x_window_t *  win
 	)
 {
+	win->wall_picture = None ;
+	win->is_scrollable = 1 ;
+
+	if( win->window_exposed)
+	{
+		x_window_clear_margin_area( win) ;
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+#if  0
+	else
+	{
+		x_window_clear_all( win) ;
+	}
+#endif
+
 	return  1 ;
 }
 
@@ -619,11 +649,22 @@ x_window_clear(
 	x_window_t *  win ,
 	int  x ,
 	int  y ,
-	u_int	width ,
-	u_int	height
+	u_int  width ,
+	u_int  height
 	)
 {
-	return  x_window_fill_with( win , &win->bg_color , x , y , width , height) ;
+	if( ! win->wall_picture)
+	{
+		return  x_window_fill_with( win , &win->bg_color , x , y , width , height) ;
+	}
+	else
+	{
+		return  x_window_copy_area( win , win->wall_picture ,
+				x + win->margin , y + win->margin ,
+				width , height , x , y) ;
+	}
+
+	return  1 ;
 }
 
 int
@@ -1003,7 +1044,22 @@ x_window_copy_area(
 	int  dst_y
 	)
 {
-	return  0 ;
+	size_t  size ;
+	int  y_off ;
+	u_int  bpp ;
+
+	size = width * (bpp = win->disp->display->bytes_per_pixel) ;
+
+	for( y_off = 0 ; y_off < height ; y_off++)
+	{
+		put_image( win->disp->display ,
+			win->margin + dst_x ,
+			win->margin + dst_y + y_off ,
+			src->image + bpp * ((src_y + y_off) * src->width + src_x) ,
+			size) ;
+	}
+
+	return  1 ;
 }
 
 int

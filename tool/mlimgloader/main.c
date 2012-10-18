@@ -552,7 +552,7 @@ main(
 	XGCValues  gc_value ;
 	char  buf[10] ;
 
-	if( argc != 5)
+	if( argc != 5 && argc != 6)
 	{
 		return  -1 ;
 	}
@@ -561,23 +561,32 @@ main(
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
 #endif
 
-	display = XOpenDisplay( NULL) ;
-
-	if( ( win = atoi( argv[1])) == 0)
+	if( ( display = XOpenDisplay( NULL)))
 	{
-		win = DefaultRootWindow( display) ;
-		visual = DefaultVisual( display , DefaultScreen( display)) ;
-		colormap = DefaultColormap( display , DefaultScreen( display)) ;
-		depth = DefaultDepth( display , DefaultScreen( display)) ;
-		gc = DefaultGC( display , DefaultScreen( display)) ;
+		if( ( win = atoi( argv[1])) == 0)
+		{
+			win = DefaultRootWindow( display) ;
+			visual = DefaultVisual( display , DefaultScreen( display)) ;
+			colormap = DefaultColormap( display , DefaultScreen( display)) ;
+			depth = DefaultDepth( display , DefaultScreen( display)) ;
+			gc = DefaultGC( display , DefaultScreen( display)) ;
+		}
+		else
+		{
+			XGetWindowAttributes( display , win , &attr) ;
+			visual = attr.visual ;
+			colormap = attr.colormap ;
+			depth = attr.depth ;
+			gc = XCreateGC( display , win , 0 , &gc_value) ;
+		}
 	}
 	else
 	{
-		XGetWindowAttributes( display , win , &attr) ;
-		visual = attr.visual ;
-		colormap = attr.colormap ;
-		depth = attr.depth ;
-		gc = XCreateGC( display , win , 0 , &gc_value) ;
+		win = None ;
+		visual = NULL ;
+		colormap = None ;
+		depth = 0 ;
+		gc = None ;
 	}
 
 #if GDK_PIXBUF_MAJOR >= 2
@@ -597,20 +606,41 @@ main(
 		return  -1 ;
 	}
 
-	if( ! pixbuf_to_pixmap_and_mask( display , win , visual , colormap , gc , depth ,
-			pixbuf , &pixmap , &mask))
+	if( argc == 6 && strcmp( argv[5] , "-c") == 0)
 	{
-		return  -1 ;
+		u_int32_t *  cardinal ;
+
+		if( width == 0 || height == 0)
+		{
+			width = gdk_pixbuf_get_width( pixbuf) ;
+			height = gdk_pixbuf_get_height( pixbuf) ;
+		}
+
+		if( ! ( cardinal = create_cardinals_from_pixbuf( pixbuf , width , height)))
+		{
+			return  -1 ;
+		}
+
+		write( STDOUT_FILENO , cardinal , sizeof(u_int32_t) * (width * height + 2)) ;
+	}
+	else if( display)
+	{
+		if( ! pixbuf_to_pixmap_and_mask( display , win , visual , colormap , gc , depth ,
+				pixbuf , &pixmap , &mask))
+		{
+			return  -1 ;
+		}
+
+		XSync( display , False) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Loaded pixmap %lu %lu\n" , pixmap , mask) ;
+	#endif
+
+		fprintf( stdout , "%lu %lu" , pixmap , mask) ;
+		fflush( stdout) ;
 	}
 
-	XSync( display , False) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " Loaded pixmap %lu %lu\n" , pixmap , mask) ;
-#endif
-
-	fprintf( stdout , "%lu %lu" , pixmap , mask) ;
-	fflush( stdout) ;
 	close( STDOUT_FILENO) ;
 
 	/* Wait for parent process receiving pixmap. */

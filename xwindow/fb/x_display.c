@@ -68,6 +68,13 @@ x_display_open(
 			_display.bytes_per_pixel = 4 ;
 		}
 
+		_display.rgbinfo.r_limit = 8 - vinfo.red.length ;
+		_display.rgbinfo.g_limit = 8 - vinfo.green.length ;
+		_display.rgbinfo.b_limit = 8 - vinfo.blue.length ;
+		_display.rgbinfo.r_offset = vinfo.red.offset ;
+		_display.rgbinfo.g_offset = vinfo.green.offset ;
+		_display.rgbinfo.b_offset = vinfo.blue.offset ;
+
 		tcgetattr( STDIN_FILENO , &tm) ;
 		orig_tm = tm ;
 		tm.c_iflag = tm.c_oflag = 0 ;
@@ -141,6 +148,8 @@ x_display_close_all(void)
 		tcsetattr( STDIN_FILENO , TCSAFLUSH , &orig_tm) ;
 
 		_disp.display = NULL ;
+
+		free( _disp.roots) ;
 	}
 
 	return  1 ;

@@ -1,3 +1,16 @@
+2012-10-18  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in:
+	  - Fix the way to search libm for pow().
+	  - mlimgloader is possible to be built in --with-gui=fb.
+
+	* doc/ja/README.fb: Updated.
+
+	* fb/x_color.c: 15 and 16 bpp are supported.
+
+	* fb/x_imagelib.c, fb/x.h, mlimgloader/main.c, c_imagelib.c:
+	  Wall picture and sixel graphics are supported except in 8 bpp.
+
 2012-10-17  Araki Ken  <arakiken@users.sf.net>
 
 	* README, doc/ja/README.ja, doc/ja/README.fb: Updated.

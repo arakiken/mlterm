@@ -23,7 +23,29 @@ typedef struct
 	unsigned int  yoffset ;
 	unsigned int  bytes_per_pixel ;
 
+	struct rgb_info
+	{
+		unsigned int  r_limit ;
+		unsigned int  g_limit ;
+		unsigned int  b_limit ;
+		unsigned int  r_offset ;
+		unsigned int  g_offset ;
+		unsigned int  b_offset ;
+
+	} rgbinfo ;
+
 } Display ;
+
+#define  PIXEL_RED(pixel,rgbinfo) \
+	(((pixel) >> (rgbinfo).r_offset) << (rgbinfo).r_limit)
+#define  PIXEL_BLUE(pixel,rgbinfo) \
+	(((pixel) >> (rgbinfo).b_offset) << (rgbinfo).b_limit)
+#define  PIXEL_GREEN(pixel,rgbinfo) \
+	(((pixel) >> (rgbinfo).g_offset) << (rgbinfo).g_limit)
+#define  RGB_TO_PIXEL(r,g,b,rgbinfo) \
+	((((r) >> (rgbinfo).r_limit) << (rgbinfo).r_offset) | \
+	 (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
+	 (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
 
 typedef int  XIM ;		/* dummy */
 typedef int  XIC ;		/* dummy */
@@ -32,7 +54,15 @@ typedef int  XIMStyle ;		/* dummy */
 typedef int  XID ;		/* dummy */
 typedef int  Window ;		/* dummy */
 typedef int  Drawable ;		/* dummy */
-typedef int  Pixmap ;		/* dummy */
+
+typedef struct
+{
+	unsigned char *  image ;
+	unsigned int  width ;
+	unsigned int  height ;
+
+} *  Pixmap ;
+
 typedef int  GC ;		/* dummy */
 typedef int  Font ;		/* dummy */
 typedef int  Cursor ;		/* dummy */

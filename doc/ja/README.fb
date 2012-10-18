@@ -25,8 +25,7 @@ Framebuffer on Linux 対応に関するメモ
     (mlterm-x.x.x/etc/font-fb がサンプルです。)
 
 * 使えない機能
-  o 16bpp, 15bpp, 8bpp
-  o 背景画像
+  o 8bpp
   o マウス
   o スクロールバー
   o プロポーショナルフォント

@@ -4674,7 +4674,7 @@ change_transparent_flag(
 	)
 {
 	if( screen->window.is_transparent == is_transparent
-	#ifndef  USE_WIN32GUI
+	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	    /*
 	     * If wall picture is not still set, do set it.
 	     * This is necessary for gnome-terminal, because ConfigureNotify event never

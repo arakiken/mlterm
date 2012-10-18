@@ -648,73 +648,6 @@ create_pixbuf_from_cardinals(
 	}
 }
 
-/* create an CARDINAL array for_NET_WM_ICON data */
-static u_int32_t *
-create_cardinals_from_pixbuf(
-	GdkPixbuf *  pixbuf ,
-	u_int  width ,
-	u_int  height
-	)
-{
-	u_int32_t *  cardinal ;
-	int  rowstride ;
-	u_char *  line ;
-	u_char *  pixel ;
-	u_int i , j ;
-
-	if( width > ((SIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
-	    ! ( cardinal = malloc( ( width * height + 2) * sizeof(*cardinal))))
-	{
-		return  NULL ;
-	}
-
-	/* create (maybe shriked) copy */
-	pixbuf = gdk_pixbuf_scale_simple( pixbuf , width , height , GDK_INTERP_TILES) ;
-
-	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
-	line = gdk_pixbuf_get_pixels( pixbuf) ;
-
-	/* format of the array is {width, height, ARGB[][]} */
-	cardinal[0] = width ;
-	cardinal[1] = height ;
-	if( gdk_pixbuf_get_has_alpha( pixbuf))
-	{
-		for( i = 0 ; i < height ; i++)
-		{
-			pixel = line ;
-			line += rowstride;
-			for( j = 0 ; j < width ; j++)
-			{
-				/* RGBA to ARGB */
-				cardinal[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8)
-								+ pixel[0]) << 8)
-								+ pixel[1]) << 8) + pixel[2] ;
-				pixel += 4 ;
-			}
-		}
-	}
-	else
-	{
-		for( i = 0 ; i < height ; i++)
-		{
-			pixel = line ;
-			line += rowstride;
-			for( j = 0 ; j < width ; j++)
-			{
-				/* all pixels are completely opaque (0xFF) */
-				cardinal[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8)
-								+ pixel[0]) << 8)
-								+ pixel[1]) << 8) + pixel[2] ;
-				pixel += 3 ;
-			}
-		}
-	}
-
-	g_object_unref( pixbuf) ;
-
-	return  cardinal ;
-}
-
 static int
 pixbuf_to_pixmap_pseudocolor(
 	x_display_t *  disp,
@@ -1541,7 +1474,7 @@ x_imagelib_display_closed(
 Pixmap
 x_imagelib_load_file_for_background(
 	x_window_t *  win,
-	char *  file_path,
+	char *  path,
 	x_picture_modifier_t *  pic_mod
 	)
 {
@@ -1550,13 +1483,13 @@ x_imagelib_load_file_for_background(
 #endif
 	Pixmap pixmap ;
 
-	if( ! file_path || ! *file_path)
+	if( ! path || ! *path)
 	{
 		return  None ;
 	}
 
-	if( strncmp( file_path , "pixmap:" , 7) == 0 &&
-		sscanf( file_path + 7 , "%lu" , &pixmap) == 1)
+	if( strncmp( path , "pixmap:" , 7) == 0 &&
+		sscanf( path + 7 , "%lu" , &pixmap) == 1)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " pixmap:%lu is used.\n" , pixmap) ;
@@ -1567,7 +1500,7 @@ x_imagelib_load_file_for_background(
 
 #ifdef  USE_EXT_IMAGELIB
 
-	if( ! ( pixbuf = load_file( file_path , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+	if( ! ( pixbuf = load_file( path , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 				   GDK_INTERP_BILINEAR)))
 	{
 		return  None ;
@@ -1627,7 +1560,7 @@ error:
 #else	/* USE_EXT_IMAGELIB */
 
 	if( load_file( win->disp , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				file_path , pic_mod , &pixmap , NULL))
+				path , pic_mod , &pixmap , NULL))
 	{
 		return  pixmap ;
 	}

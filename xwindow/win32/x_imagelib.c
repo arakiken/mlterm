@@ -26,7 +26,7 @@ x_imagelib_display_closed(
 Pixmap
 x_imagelib_load_file_for_background(
 	x_window_t *  win ,
-	char *  file_path ,
+	char *  path ,
 	x_picture_modifier_t *  pic_mod
 	)
 {
@@ -39,13 +39,13 @@ x_imagelib_load_file_for_background(
 #if  defined(__CYGWIN__) || defined(__MSYS__)
 	/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
 	char  winpath[MAX_PATH] ;
-	cygwin_conv_to_win32_path( file_path , winpath) ;
-	file_path = winpath ;
+	cygwin_conv_to_win32_path( path , winpath) ;
+	path = winpath ;
 #endif
 
 	hdc = GetDC( win->my_window) ;
 
-	if( ! ( hbmp = LoadImage( 0 , file_path , IMAGE_BITMAP , 0 , 0 , LR_LOADFROMFILE)))
+	if( ! ( hbmp = LoadImage( 0 , path , IMAGE_BITMAP , 0 , 0 , LR_LOADFROMFILE)))
 	{
 		return  None ;
 	}
@@ -92,11 +92,11 @@ int
 x_imagelib_load_file(
 	x_display_t *  disp ,
 	char *  path ,
-	u_int32_t **  cardinal,
-	Pixmap *  pixmap,
-	Pixmap *  mask,
-	unsigned int *  width,
-	unsigned int *  height
+	u_int32_t **  cardinal ,
+	Pixmap *  pixmap ,
+	Pixmap *  mask ,
+	u_int *  width ,
+	u_int *  height
 	)
 {
 	return 0 ;
