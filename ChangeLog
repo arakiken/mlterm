@@ -1,3 +1,11 @@
+2012-10-19  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c: memmove is used instead of memcpy in copying overlapped
+	  area in framebuffer.
+	  (Thanks to uobikiemukot san)
+
+	* tool/mlimgloader/main.c: Minor fixes.
+
 2012-10-18  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in:

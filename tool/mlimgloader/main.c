@@ -552,17 +552,17 @@ main(
 	XGCValues  gc_value ;
 	char  buf[10] ;
 
-	if( argc != 5 && argc != 6)
-	{
-		return  -1 ;
-	}
-
 #if  0
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
 #endif
 
-	if( ( display = XOpenDisplay( NULL)))
+	if( argc == 5)
 	{
+		if( ! ( display = XOpenDisplay( NULL)))
+		{
+			return  -1 ;
+		}
+
 		if( ( win = atoi( argv[1])) == 0)
 		{
 			win = DefaultRootWindow( display) ;
@@ -580,13 +580,9 @@ main(
 			gc = XCreateGC( display , win , 0 , &gc_value) ;
 		}
 	}
-	else
+	else if( argc != 6 || strcmp( argv[5] , "-c") != 0)
 	{
-		win = None ;
-		visual = NULL ;
-		colormap = None ;
-		depth = 0 ;
-		gc = None ;
+		return  -1 ;
 	}
 
 #if GDK_PIXBUF_MAJOR >= 2
@@ -606,7 +602,7 @@ main(
 		return  -1 ;
 	}
 
-	if( argc == 6 && strcmp( argv[5] , "-c") == 0)
+	if( argc == 6)
 	{
 		u_int32_t *  cardinal ;
 
@@ -623,7 +619,7 @@ main(
 
 		write( STDOUT_FILENO , cardinal , sizeof(u_int32_t) * (width * height + 2)) ;
 	}
-	else if( display)
+	else
 	{
 		if( ! pixbuf_to_pixmap_and_mask( display , win , visual , colormap , gc , depth ,
 				pixbuf , &pixmap , &mask))

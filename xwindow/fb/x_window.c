@@ -41,12 +41,26 @@ copy_line(
 	int  src_y ,
 	int  dst_x ,
 	int  dst_y ,
-	u_int  width
+	u_int  width ,
+	int  overlapped
 	)
 {
-	memcpy( get_fb( display , dst_x , dst_y) ,
-		get_fb( display , src_x , src_y) ,
-		width * display->bytes_per_pixel) ;
+#if  1
+	if( overlapped)
+	{
+#endif
+		memmove( get_fb( display , dst_x , dst_y) ,
+			get_fb( display , src_x , src_y) ,
+			width * display->bytes_per_pixel) ;
+#if  1
+	}
+	else
+	{
+		memcpy( get_fb( display , dst_x , dst_y) ,
+			get_fb( display , src_x , src_y) ,
+			width * display->bytes_per_pixel) ;
+	}
+#endif
 }
 
 static void
@@ -62,8 +76,19 @@ scroll_region(
 {
 	u_int  count ;
 
-	if( src_y < dst_y)
+	if( src_y <= dst_y)
 	{
+		int  overlapped ;
+
+		if( src_y == dst_y && src_x < dst_x)
+		{
+			overlapped = 1 ;
+		}
+		else
+		{
+			overlapped = 0 ;
+		}
+
 		for( count = height ; count > 0 ; count--)
 		{
 			copy_line( win->disp->display ,
@@ -71,7 +96,7 @@ scroll_region(
 				src_y + win->margin + count - 1 ,
 				dst_x + win->margin ,
 				dst_y + win->margin + count - 1 ,
-				width) ;
+				width , overlapped) ;
 		}
 	}
 	else
@@ -83,7 +108,7 @@ scroll_region(
 				src_y + win->margin + count ,
 				dst_x + win->margin ,
 				dst_y + win->margin + count ,
-				width) ;
+				width , 0) ;
 		}
 	}
 }

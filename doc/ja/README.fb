@@ -15,7 +15,7 @@ Framebuffer on Linux 対応に関するメモ
   mlterm-fb (-fg white -bg black)
 
 * 環境設定
-  フォント設定の以外は、通常の mlterm と同じです。
+  フォント設定以外は、通常の mlterm と同じです。
 
   o フォントの設定方法
     ~/.mlterm/font でなく、~/.mlterm/font-fb に、使用するフォントを設定してくだ
@@ -27,8 +27,9 @@ Framebuffer on Linux 対応に関するメモ
 * 使えない機能
   o 8bpp
   o マウス
-  o スクロールバー
   o プロポーショナルフォント
   o ssh2 client (パスフレーズ入力画面を実装していないため)
-  o ショートカットーキー
+  o ショートカットキー
   o mlclient (mlclientxは使えます。)
+  o Scrollbar plugin
+  o Input method plugin
