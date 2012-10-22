@@ -1,3 +1,15 @@
+2012-10-23  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.fb: Updated.
+
+	* fb/x_display.h, xlib/x_display.h: Added.
+
+	* configure.in: Install mlterm-fb with -m 4755 -o root option
+	  for mouse support.
+
+	* fb/x_display.c, fb/x_window.c, fb/x.h: Mouse support is added.
+	  (/dev/input/eventN device is used.)
+
 2012-10-19  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_window.c: memmove is used instead of memcpy in copying overlapped

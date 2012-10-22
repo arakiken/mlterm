@@ -6,7 +6,18 @@
 #define  ___X_H__
 
 
+#if defined (__linux__)
 #include  <linux/fb.h>
+#elif defined (__FreeBSD__)
+#include  <osreldate.h>
+#if __FreeBSD_version >= 410000
+#include  <sys/fbio.h>
+#else
+#include  <machine/console.h>
+#endif
+#elif defined (__NetBSD__) || defined (__OpenBSD__)
+#include  <dev/wscons/wsconsio.h>
+#endif
 
 #include  <kiklib/kik_types.h>
 
@@ -96,6 +107,7 @@ typedef unsigned long  Atom ;	/* Same as definition in X11/X.h */
 
 typedef struct
 {
+	int  type ;
 	Time  time ;
 	int  x ;
 	int  y ;
@@ -106,6 +118,7 @@ typedef struct
 
 typedef struct
 {
+	int  type ;
 	Time  time ;
 	int  x ;
 	int  y ;

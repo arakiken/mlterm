@@ -540,6 +540,11 @@ if test "$utmp" = "yes" -a "$pty_helper" != "yes" ; then
 else
 	INSTALL_OPT="-m 755"
 fi
+
+if test "$gui" = "fb" ; then
+	INSTALL_OPT="-m 4755 -o root"
+fi
+
 AC_SUBST(UTMP_CFLAGS)
 AC_SUBST(INSTALL_OPT)
 

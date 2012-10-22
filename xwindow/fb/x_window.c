@@ -4,64 +4,22 @@
 
 #include  "../x_window.h"
 
-#include  <string.h>		/* memcpy */
+#include  <string.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 
+#include  "x_display.h"
+
+
+#define  MAX_CLICK  3			/* max is triple click */
+
+
+/* --- static variables --- */
+
+static int  click_interval = 250 ;	/* millisecond, same as xterm. */
+
 
 /* --- static functions --- */
-
-static u_char *
-get_fb(
-	Display *  display ,
-	int  x ,
-	int  y
-	)
-{
-	return  display->fp + (display->yoffset + y) * display->line_length +
-			(display->xoffset + x) * display->bytes_per_pixel ;
-}
-
-static void
-put_image(
-	Display *  display ,
-	int  x ,
-	int  y ,
-	u_char *  image ,
-	size_t  size
-	)
-{
-	memcpy( get_fb( display , x , y) , image , size) ;
-}
-
-static void
-copy_line(
-	Display *  display ,
-	int  src_x ,
-	int  src_y ,
-	int  dst_x ,
-	int  dst_y ,
-	u_int  width ,
-	int  overlapped
-	)
-{
-#if  1
-	if( overlapped)
-	{
-#endif
-		memmove( get_fb( display , dst_x , dst_y) ,
-			get_fb( display , src_x , src_y) ,
-			width * display->bytes_per_pixel) ;
-#if  1
-	}
-	else
-	{
-		memcpy( get_fb( display , dst_x , dst_y) ,
-			get_fb( display , src_x , src_y) ,
-			width * display->bytes_per_pixel) ;
-	}
-#endif
-}
 
 static void
 scroll_region(
@@ -78,37 +36,26 @@ scroll_region(
 
 	if( src_y <= dst_y)
 	{
-		int  overlapped ;
-
-		if( src_y == dst_y && src_x < dst_x)
-		{
-			overlapped = 1 ;
-		}
-		else
-		{
-			overlapped = 0 ;
-		}
-
 		for( count = height ; count > 0 ; count--)
 		{
-			copy_line( win->disp->display ,
+			x_display_copy_line( win->disp->display ,
 				src_x + win->margin ,
 				src_y + win->margin + count - 1 ,
 				dst_x + win->margin ,
 				dst_y + win->margin + count - 1 ,
-				width , overlapped) ;
+				width) ;
 		}
 	}
 	else
 	{
 		for( count = 0 ; count < height ; count++)
 		{
-			copy_line( win->disp->display ,
+			x_display_copy_line( win->disp->display ,
 				src_x + win->margin ,
 				src_y + win->margin + count ,
 				dst_x + win->margin ,
 				dst_y + win->margin + count ,
-				width , 0) ;
+				width) ;
 		}
 	}
 }
@@ -200,7 +147,7 @@ draw_image_string(
 					{
 						u_char *  fb ;
 
-						fb = get_fb( win->disp->display , x ,
+						fb = x_display_get_fb( win->disp->display , x ,
 								y + y_off - font->ascent) +
 							(p - src) ;
 
@@ -238,7 +185,8 @@ draw_image_string(
 			}
 		}
 
-		put_image( win->disp->display , x , y + y_off - font->ascent , src , size) ;
+		x_display_put_image( win->disp->display ,
+			x , y + y_off - font->ascent , src , size) ;
 		p = src ;
 	}
 
@@ -781,7 +729,7 @@ x_window_fill_with(
 			p += bpp ;
 		}
 
-		put_image( win->disp->display , win->margin + x ,
+		x_display_put_image( win->disp->display , win->margin + x ,
 			win->margin + y + y_off , src , size) ;
 
 		p = src ;
@@ -860,9 +808,85 @@ x_window_receive_event(
 	}
 #endif
 
-	if( win->key_pressed)
+	if( event->type == KeyPress)
 	{
-		(*win->key_pressed)( win , &event->xkey) ;
+		if( win->key_pressed)
+		{
+			(*win->key_pressed)( win , &event->xkey) ;
+		}
+	}
+	else if( event->type == MotionNotify)
+	{
+		if( win->button_is_pressing)
+		{
+			if( win->button_motion)
+			{
+				event->xmotion.x -= win->margin ;
+				event->xmotion.y -= win->margin ;
+
+				(*win->button_motion)( win , &event->xmotion) ;
+			}
+
+			/* following button motion ... */
+
+			win->prev_button_press_event.x = event->xmotion.x ;
+			win->prev_button_press_event.y = event->xmotion.y ;
+			win->prev_button_press_event.time = event->xmotion.time ;
+		}
+		else if( win->pointer_motion)
+		{
+			event->xmotion.x -= win->margin ;
+			event->xmotion.y -= win->margin ;
+
+			(*win->pointer_motion)( win , &event->xmotion) ;
+		}
+	}
+	else if( event->type == ButtonRelease)
+	{
+		if( win->button_released)
+		{
+			event->xbutton.x -= win->margin ;
+			event->xbutton.y -= win->margin ;
+
+			(*win->button_released)( win , &event->xbutton) ;
+		}
+
+		win->button_is_pressing = 0 ;
+	}
+	else if( event->type == ButtonPress)
+	{
+		if( win->button_pressed)
+		{
+			event->xbutton.x -= win->margin ;
+			event->xbutton.y -= win->margin ;
+
+			if( win->click_num == MAX_CLICK)
+			{
+				win->click_num = 0 ;
+			}
+
+			if( win->prev_clicked_time + click_interval >= event->xbutton.time &&
+				event->xbutton.button == win->prev_clicked_button)
+			{
+				win->click_num ++ ;
+				win->prev_clicked_time = event->xbutton.time ;
+			}
+			else
+			{
+				win->click_num = 1 ;
+				win->prev_clicked_time = event->xbutton.time ;
+				win->prev_clicked_button = event->xbutton.button ;
+			}
+
+			(*win->button_pressed)( win , &event->xbutton , win->click_num) ;
+		}
+
+		if( event->xbutton.button <= Button3)
+		{
+			/* button_is_pressing flag is on except wheel mouse (Button4/Button5). */
+			win->button_is_pressing = 1 ;
+			win->prev_button_press_event = event->xbutton ;
+		}
 	}
 
 	return  1 ;
@@ -1077,7 +1101,7 @@ x_window_copy_area(
 
 	for( y_off = 0 ; y_off < height ; y_off++)
 	{
-		put_image( win->disp->display ,
+		x_display_put_image( win->disp->display ,
 			win->margin + dst_x ,
 			win->margin + dst_y + y_off ,
 			src->image + bpp * ((src_y + y_off) * src->width + src_x) ,
@@ -1320,6 +1344,8 @@ x_set_click_interval(
 	int  interval
 	)
 {
+	click_interval = interval ;
+
 	return  1 ;
 }
 

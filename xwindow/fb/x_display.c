@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "../x_display.h"
+#include  "x_display.h"
 
 #include  <stdio.h>	/* printf */
 #include  <unistd.h>	/* STDIN_FILENO */
@@ -11,19 +11,238 @@
 #include  <sys/ioctl.h>	/* ioctl */
 #include  <string.h>	/* memset/memcpy */
 #include  <termios.h>
+#include  <linux/input.h>
+
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_privilege.h>	/* kik_priv_change_e(u|g)id */
+#include  <kiklib/kik_unistd.h>		/* kik_getuid */
+#include  <kiklib/kik_util.h>		/* K_MIN/K_MAX */
 
 #include  "../x_window.h"
 
 
 #define  DISP_IS_INITED   (_disp.display)
+#define  MOUSE_IS_INITED  (_mouse_intern.fd != -1)
+#define  CURSOR_WIDTH  5
+#define  CURSOR_HEIGHT 13
+
+
+/* Note that this structure could be casted to Display */
+typedef struct
+{
+	int  fd ;	/* Same as Display */
+
+	int  x ;
+	int  y ;
+	int  state ;
+
+	u_char  saved_image[sizeof(u_int32_t) * CURSOR_WIDTH * CURSOR_HEIGHT] ;
+	int  hidden_region_saved ;
+	int  cursor_drawn ;
+
+} Mouse ;
 
 
 /* --- static variables --- */
 
 static Display  _display ;
 static x_display_t  _disp ;
+static Mouse  _mouse_intern ;
+static x_display_t  _mouse ;
+static x_display_t *  opened_disps[] = { &_disp , &_mouse } ;
 static struct termios  orig_tm ;
+static char *  cursor_shape =
+{
+	"*****"
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"  *  "
+	"*****"
+} ;
+
+
+/* --- static functions --- */
+
+static int
+get_mouse_event_device_num(void)
+{
+	char  class[] = "/sys/class/input/eventN/device/name" ;
+	int  count ;
+	FILE *  fp ;
+
+	for( count = 0 ; ; count++)
+	{
+		class[22] = count + 0x30 ;
+
+		if( ! ( fp = fopen( class , "r")))
+		{
+			return  -1 ;
+		}
+		else
+		{
+			char  buf[128] ;
+
+			if( fgets( buf , sizeof(buf) , fp))
+			{
+				if( strstr( buf , "Mouse"))
+				{
+					return  count ;
+				}
+			}
+
+			fclose( fp) ;
+		}
+	}
+}
+
+static inline x_window_t *
+get_window(
+	int  x ,	/* X in display */
+	int  y		/* Y in display */
+	)
+{
+	return  _disp.roots[0] ;
+}
+
+static void
+restore_hidden_region(void)
+{
+	u_char *  fb ;
+	int  count ;
+
+	if( ! _mouse_intern.cursor_drawn)
+	{
+		return ;
+	}
+
+	/* Set 0 before window_exposed is called. */
+	_mouse_intern.cursor_drawn = 0 ;
+
+	if( _mouse_intern.hidden_region_saved)
+	{
+		fb = x_display_get_fb( &_display ,
+			_mouse_intern.x - CURSOR_WIDTH / 2 , _mouse_intern.y - CURSOR_HEIGHT / 2) ;
+
+		for( count = 0 ; count < CURSOR_HEIGHT ; count++)
+		{
+			memcpy( fb ,
+				_mouse_intern.saved_image +
+					count * CURSOR_WIDTH * _display.bytes_per_pixel ,
+				CURSOR_WIDTH * _display.bytes_per_pixel) ;
+			fb += _display.line_length ;
+		}
+	}
+	else
+	{
+		x_window_t *  win ;
+
+		win = get_window( _mouse_intern.x , _mouse_intern.y) ;
+
+		if( win->window_exposed)
+		{
+			(*win->window_exposed)( win ,
+				_mouse_intern.x - CURSOR_WIDTH / 2 - win->margin ,
+				_mouse_intern.y - CURSOR_HEIGHT / 2 - win->margin ,
+				CURSOR_WIDTH , CURSOR_HEIGHT) ;
+		}
+	}
+}
+
+static void
+save_hidden_region(void)
+{
+	u_char *  fb ;
+	int  count ;
+
+	fb = x_display_get_fb( &_display ,
+		_mouse_intern.x - CURSOR_WIDTH / 2 , _mouse_intern.y - CURSOR_HEIGHT / 2) ;
+
+	for( count = 0 ; count < CURSOR_HEIGHT ; count++)
+	{
+		memcpy( _mouse_intern.saved_image +
+				count * CURSOR_WIDTH * _display.bytes_per_pixel ,
+			fb , CURSOR_WIDTH * _display.bytes_per_pixel) ;
+		fb += _display.line_length ;
+	}
+
+	_mouse_intern.hidden_region_saved = 1 ;
+}
+
+static void
+draw_mouse_cursor_line(
+	int  y
+	)
+{
+	u_char *  fb ;
+	x_window_t *  win ;
+	u_char  image[CURSOR_WIDTH * sizeof(u_int32_t)] ;
+	int  x ;
+
+	fb = x_display_get_fb( &_display , _mouse_intern.x - CURSOR_WIDTH / 2 ,
+		_mouse_intern.y - CURSOR_HEIGHT / 2 + y) ;
+	win = get_window( _mouse_intern.x , _mouse_intern.y) ;
+
+	for( x = 0 ; x < CURSOR_WIDTH ; x++)
+	{
+		if( cursor_shape[y * CURSOR_WIDTH + x] == '*')
+		{
+			switch( _display.bytes_per_pixel)
+			{
+			case  1:
+				image[x] = win->fg_color.pixel ;
+				break ;
+
+			case  2:
+				((u_int16_t*)image)[x] = win->fg_color.pixel ;
+				break ;
+
+			case  4:
+				((u_int32_t*)image)[x] = win->fg_color.pixel ;
+				break ;
+			}
+		}
+		else
+		{
+			switch( _display.bytes_per_pixel)
+			{
+			case  1:
+				image[x] = fb[x] ;
+				break ;
+
+			case  2:
+				((u_int16_t*)image)[x] = ((u_int16_t*)fb)[x] ;
+				break ;
+
+			case  4:
+				((u_int32_t*)image)[x] = ((u_int32_t*)fb)[x] ;
+				break ;
+			}
+		}
+	}
+
+	memcpy( fb , image , CURSOR_WIDTH * _display.bytes_per_pixel) ;
+}
+
+static void
+draw_mouse_cursor(void)
+{
+	int  y ;
+
+	for( y = 0 ; y < CURSOR_HEIGHT ; y++)
+	{
+		draw_mouse_cursor_line( y) ;
+	}
+
+	_mouse_intern.cursor_drawn = 1 ;
+}
 
 
 /* --- global functions --- */
@@ -40,6 +259,7 @@ x_display_open(
 		struct  fb_fix_screeninfo  finfo ;
 		struct  fb_var_screeninfo  vinfo ;
 		struct termios  tm ;
+		int  num ;
 
 		if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
 						O_RDWR)))
@@ -83,10 +303,12 @@ x_display_open(
 		tm.c_lflag &= ~(ECHO|ISIG|ICANON) ;
 		tm.c_cc[VMIN] = 1 ;
 		tm.c_cc[VTIME] = 0 ;
-		tcsetattr( _display.fd , TCSAFLUSH , &tm) ;
+		tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
 
-		fcntl( STDIN_FILENO , F_SETFL , fcntl( STDIN_FILENO , F_GETFL , 0) | O_NONBLOCK) ;
+		fcntl( STDIN_FILENO , F_SETFL ,
+			fcntl( STDIN_FILENO , F_GETFL , 0) | O_NONBLOCK) ;
 
+		/* Hide the cursor of linux console. */
 		write( STDIN_FILENO , "\x1b[?25l" , 6) ;
 
 		_display.fd = STDIN_FILENO ;
@@ -115,6 +337,39 @@ x_display_open(
 	#endif
 
 		_disp.display = &_display ;
+
+		if( ( num = get_mouse_event_device_num()) == -1)
+		{
+			_mouse_intern.fd = -1 ;
+		}
+		else
+		{
+			char  event[] = "/dev/input/eventN" ;
+
+			kik_priv_restore_euid() ;
+			kik_priv_restore_egid() ;
+
+			event[16] = num + 0x30 ;
+
+			if( ( _mouse_intern.fd = open( event , O_RDONLY|O_NONBLOCK)) == -1)
+			{
+				kik_msg_printf( "Failed to open %s.\n" , event) ;
+			}
+		#if  0
+			else
+			{
+				/* Occupy /dev/input/eventN */
+				ioctl( _mouse_intern.fd , EVIOCGRAB , 1) ;
+			}
+		#endif
+
+			kik_priv_change_euid( kik_getuid()) ;
+			kik_priv_change_egid( kik_getgid()) ;
+
+			_mouse_intern.x = _disp.width / 2 ;
+			_mouse_intern.y = _disp.height / 2 ;
+			_mouse.display = (Display*)&_mouse_intern ;
+		}
 	}
 
 	return  &_disp ;
@@ -140,16 +395,21 @@ x_display_close_all(void)
 {
 	if( DISP_IS_INITED)
 	{
+		if( MOUSE_IS_INITED)
+		{
+			close( _mouse_intern.fd) ;
+		}
+
 		munmap( _display.fp , _display.smem_len) ;
 		close( _display.fb_fd) ;
 
 		write( STDIN_FILENO , "\x1b[?25h" , 6) ;
-
 		tcsetattr( STDIN_FILENO , TCSAFLUSH , &orig_tm) ;
 
-		_disp.display = NULL ;
-
 		free( _disp.roots) ;
+
+		/* DISP_IS_INITED is false from here. */
+		_disp.display = NULL ;
 	}
 
 	return  1 ;
@@ -160,8 +420,6 @@ x_get_opened_displays(
 	u_int *  num
 	)
 {
-	static x_display_t *  opened_disp ;
-
 	if( ! DISP_IS_INITED)
 	{
 		*num = 0 ;
@@ -169,10 +427,16 @@ x_get_opened_displays(
 		return  NULL ;
 	}
 
-	opened_disp = &_disp ;
-	*num = 1 ;
+	if( MOUSE_IS_INITED)
+	{
+		*num = 2 ;
+	}
+	else
+	{
+		*num = 1 ;
+	}
 
-	return  &opened_disp ;
+	return  opened_disps ;
 }
 
 int
@@ -196,6 +460,7 @@ x_display_show_root(
 {
 	void *  p ;
 
+	/* XXX Only one root window per display. */
 	if( disp->num_of_roots > 0)
 	{
 		return  0 ;
@@ -226,7 +491,19 @@ x_display_show_root(
 
 	disp->roots[disp->num_of_roots++] = root ;
 
-	return  x_window_show( root , hint) ;
+	/* Cursor is drawn internally by calling x_display_put_image(). */
+	if( ! x_window_show( root , hint))
+	{
+		return  0 ;
+	}
+
+	if( MOUSE_IS_INITED)
+	{
+		save_hidden_region() ;
+		draw_mouse_cursor() ;
+	}
+
+	return  1 ;
 }
 
 int
@@ -282,16 +559,167 @@ x_display_receive_next_event(
 	x_display_t *  disp
 	)
 {
-	char  buf[1] ;
-	ssize_t  len ;
-
-	if( ( len = read( disp->display->fd , buf , sizeof(buf))) > 0)
+	if( disp == &_mouse)
 	{
-		XEvent  ev ;
+		struct input_event  ev ;
 
-		ev.xkey.ch = buf[0] ;
+		if( read( disp->display->fd , &ev , sizeof(ev)) > 0)
+		{
+			if( ev.type == EV_KEY)
+			{
+				XButtonEvent  xev ;
 
-		x_window_receive_event( disp->roots[0] , &ev) ;
+				if( ev.code == BTN_LEFT)
+				{
+					xev.button = Button1 ;
+					_mouse_intern.state = Button1Mask ;
+				}
+				else if( ev.code == BTN_MIDDLE)
+				{
+					xev.button = Button2 ;
+					_mouse_intern.state = Button2Mask ;
+				}
+				else if( ev.code == BTN_RIGHT)
+				{
+					xev.button = Button3 ;
+					_mouse_intern.state = Button3Mask ;
+				}
+				else
+				{
+					return  1 ;
+
+					while(1)
+					{
+					button4:
+						xev.button = Button4 ;
+						_mouse_intern.state = Button4Mask ;
+						break ;
+
+					button5:
+						xev.button = Button5 ;
+						_mouse_intern.state = Button5Mask ;
+						break ;
+					}
+
+					ev.value = 1 ;
+				}
+
+				if( ev.value == 1)
+				{
+					xev.type = ButtonPress ;
+				}
+				else if( ev.value == 0)
+				{
+					xev.type = ButtonRelease ;
+
+					/* Reset state in releasing button. */
+					_mouse_intern.state = 0 ;
+				}
+				else
+				{
+					return  1 ;
+				}
+
+				xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
+				xev.x = _mouse_intern.x ;
+				xev.y = _mouse_intern.y ;
+				xev.state = 0 ;		/* XXX */
+
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					"Button is %s x %d y %d btn %d time %d\n" ,
+					xev.type == ButtonPress ? "pressed" : "released" ,
+					xev.x , xev.y , xev.button , xev.time) ;
+			#endif
+
+				x_window_receive_event( get_window( xev.x , xev.y) , &xev) ;
+			}
+			else if( ev.type == EV_REL)
+			{
+				XMotionEvent  xev ;
+
+				if( ev.code == REL_X)
+				{
+					restore_hidden_region() ;
+
+					_mouse_intern.x += (int)ev.value ;
+
+					if( _mouse_intern.x < CURSOR_WIDTH / 2)
+					{
+						_mouse_intern.x = CURSOR_WIDTH / 2 ;
+					}
+					else if( _disp.width <= _mouse_intern.x + CURSOR_WIDTH / 2)
+					{
+						_mouse_intern.x =
+							_disp.width - CURSOR_WIDTH / 2 - 1 ;
+					}
+				}
+				else if( ev.code == REL_Y)
+				{
+					restore_hidden_region() ;
+
+					_mouse_intern.y += (int)ev.value ;
+
+					if( _mouse_intern.y < CURSOR_HEIGHT / 2)
+					{
+						_mouse_intern.y = CURSOR_HEIGHT / 2 ;
+					}
+					else if( _disp.height <=
+					         _mouse_intern.y + CURSOR_HEIGHT / 2)
+					{
+						_mouse_intern.y =
+							_disp.height - CURSOR_HEIGHT / 2 - 1 ;
+					}
+				}
+				else if( ev.code == REL_WHEEL)
+				{
+					if( ev.value > 0)
+					{
+						goto  button4 ;
+					}
+					else if( ev.value < 0)
+					{
+						goto  button5 ;
+					}
+				}
+				else
+				{
+					return  0 ;
+				}
+
+				xev.type = MotionNotify ;
+				xev.x = _mouse_intern.x ;
+				xev.y = _mouse_intern.y ;
+				xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
+				xev.state = _mouse_intern.state ;
+
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Button is moved %d x %d y %d btn %d time %d\n" ,
+					xev.type , xev.x , xev.y , xev.state , xev.time) ;
+			#endif
+
+				x_window_receive_event( get_window( xev.x , xev.y) , &xev) ;
+
+				save_hidden_region() ;
+				draw_mouse_cursor() ;
+			}
+		}
+	}
+	else
+	{
+		u_char  buf[1] ;
+		ssize_t  len ;
+
+		if( ( len = read( disp->display->fd , buf , sizeof(buf))) > 0)
+		{
+			XKeyEvent  xev ;
+
+			xev.type = KeyPress ;
+			xev.ch = buf[0] ;
+
+			x_window_receive_event( disp->roots[0] , &xev) ;
+		}
 	}
 
 	return  1 ;
@@ -345,4 +773,57 @@ x_display_get_group_leader(
 	)
 {
 	return  None ;
+}
+
+u_char *
+x_display_get_fb(
+	Display *  display ,
+	int  x ,
+	int  y
+	)
+{
+	return  display->fp + (display->yoffset + y) * display->line_length +
+			(display->xoffset + x) * display->bytes_per_pixel ;
+}
+
+void
+x_display_put_image(
+	Display *  display ,
+	int  x ,
+	int  y ,
+	u_char *  image ,
+	size_t  size
+	)
+{
+	memmove( x_display_get_fb( display , x , y) , image , size) ;
+
+	if( /* MOUSE_IS_INITED && */ _mouse_intern.cursor_drawn &&
+	    _mouse_intern.y - CURSOR_HEIGHT / 2 <= y &&
+	    y <= _mouse_intern.y + CURSOR_HEIGHT / 2)
+	{
+		if( x <= _mouse_intern.x + CURSOR_WIDTH / 2 &&
+		    _mouse_intern.x - CURSOR_WIDTH / 2 < x + size)
+		{
+			_mouse_intern.hidden_region_saved = 0 ;
+			draw_mouse_cursor_line( y - (_mouse_intern.y - CURSOR_HEIGHT / 2)) ;
+		}
+	}
+}
+
+void
+x_display_copy_line(
+	Display *  display ,
+	int  src_x ,
+	int  src_y ,
+	int  dst_x ,
+	int  dst_y ,
+	u_int  width
+	)
+{
+	/* XXX cheap implementation. */
+	restore_hidden_region() ;
+
+	memmove( x_display_get_fb( display , dst_x , dst_y) ,
+		x_display_get_fb( display , src_x , src_y) ,
+		width * display->bytes_per_pixel) ;
 }

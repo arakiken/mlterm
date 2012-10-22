@@ -26,6 +26,7 @@
 #endif
 #include  "../x_type_loader.h"
 
+#include  "x_display.h"		/* x_display_get_cursor */
 #include  "x_decsp_font.h"
 
 

@@ -513,6 +513,8 @@ end:
 #endif	/* ENABLE_SIXEL */
 
 
+#ifdef  GDK_PIXBUF_VERSION
+
 /* create an CARDINAL array for_NET_WM_ICON data */
 static u_int32_t *
 create_cardinals_from_pixbuf(
@@ -579,6 +581,8 @@ create_cardinals_from_pixbuf(
 
 	return  cardinal ;
 }
+
+#endif
 
 
 /* seek the closest color */

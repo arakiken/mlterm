@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "../x_display.h"
+#include  "x_display.h"
 
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>

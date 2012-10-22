@@ -1553,7 +1553,11 @@ window_exposed(
 	
 	redraw_screen( screen) ;
 
-	highlight_cursor( screen) ;
+	if( beg_row <= ml_term_cursor_row_in_screen( screen->term) &&
+	    ml_term_cursor_row_in_screen( screen->term) <= end_row)
+	{
+		highlight_cursor( screen) ;
+	}
 }
 
 static void

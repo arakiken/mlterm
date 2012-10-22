@@ -26,7 +26,6 @@ Framebuffer on Linux 対応に関するメモ
 
 * 使えない機能
   o 8bpp
-  o マウス
   o プロポーショナルフォント
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o ショートカットキー

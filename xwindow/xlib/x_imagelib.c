@@ -31,6 +31,9 @@
 #include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 
+#include "x_display.h"		/* x_display_get_visual_info */
+
+
 /*
  * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
  * is free'ed in XDestroyImage().

@@ -91,12 +91,6 @@ int  x_display_clear_selection( x_display_t *  disp , x_window_ptr_t  win) ;
 
 XModifierKeymap *  x_display_get_modifier_mapping( x_display_t *  disp) ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
-Cursor  x_display_get_cursor( x_display_t *  disp , u_int  shape) ;
-
-XVisualInfo *  x_display_get_visual_info( x_display_t *  disp) ;
-#endif
-
 void  x_display_update_modifier_mapping( x_display_t *  disp ,	u_int  serial) ;
 
 XID  x_display_get_group_leader( x_display_t *  disp) ;
