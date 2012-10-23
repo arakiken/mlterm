@@ -23,8 +23,12 @@
 
 #define  DISP_IS_INITED   (_disp.display)
 #define  MOUSE_IS_INITED  (_mouse_intern.fd != -1)
-#define  CURSOR_WIDTH  5
-#define  CURSOR_HEIGHT 13
+
+/* Parameters of cursor_shape */
+#define  CURSOR_WIDTH   5
+#define  CURSOR_X_OFF   -2
+#define  CURSOR_HEIGHT  13
+#define  CURSOR_Y_OFF   -6
 
 
 /* Note that this structure could be casted to Display */
@@ -36,9 +40,24 @@ typedef struct
 	int  y ;
 	int  state ;
 
+	struct
+	{
+		/* x/y is left/top of the cursor. */
+		int  x ;
+		int  y ;
+		int  width ;
+		int  height ;
+
+		/* x and y offset of cursor_shape */
+		int  x_off ;
+		int  y_off ;
+
+		int  is_drawn ;
+
+	} cursor ;
+
 	u_char  saved_image[sizeof(u_int32_t) * CURSOR_WIDTH * CURSOR_HEIGHT] ;
 	int  hidden_region_saved ;
-	int  cursor_drawn ;
 
 } Mouse ;
 
@@ -113,30 +132,71 @@ get_window(
 }
 
 static void
+update_mouse_cursor_state(void)
+{
+	if( -CURSOR_X_OFF > _mouse_intern.x)
+	{
+		_mouse_intern.cursor.x = 0 ;
+		_mouse_intern.cursor.x_off = -CURSOR_X_OFF - _mouse_intern.x ;
+	}
+	else
+	{
+		_mouse_intern.cursor.x = _mouse_intern.x + CURSOR_X_OFF ;
+		_mouse_intern.cursor.x_off = 0 ;
+	}
+
+	_mouse_intern.cursor.width = CURSOR_WIDTH - _mouse_intern.cursor.x_off ;
+	if( _mouse_intern.cursor.x + _mouse_intern.cursor.width > _disp.width)
+	{
+		_mouse_intern.cursor.width -=
+			(_mouse_intern.cursor.x + _mouse_intern.cursor.width - _disp.width) ;
+	}
+
+	if( -CURSOR_Y_OFF > _mouse_intern.y)
+	{
+		_mouse_intern.cursor.y = 0 ;
+		_mouse_intern.cursor.y_off = -CURSOR_Y_OFF - _mouse_intern.y ;
+	}
+	else
+	{
+		_mouse_intern.cursor.y = _mouse_intern.y + CURSOR_Y_OFF ;
+		_mouse_intern.cursor.y_off = 0 ;
+	}
+
+	_mouse_intern.cursor.height = CURSOR_HEIGHT - _mouse_intern.cursor.y_off ;
+	if( _mouse_intern.cursor.y + _mouse_intern.cursor.height > _disp.height)
+	{
+		_mouse_intern.cursor.height -=
+			(_mouse_intern.cursor.y + _mouse_intern.cursor.height - _disp.height) ;
+	}
+}
+
+static void
 restore_hidden_region(void)
 {
 	u_char *  fb ;
 	int  count ;
 
-	if( ! _mouse_intern.cursor_drawn)
+	if( ! _mouse_intern.cursor.is_drawn)
 	{
 		return ;
 	}
 
 	/* Set 0 before window_exposed is called. */
-	_mouse_intern.cursor_drawn = 0 ;
+	_mouse_intern.cursor.is_drawn = 0 ;
 
 	if( _mouse_intern.hidden_region_saved)
 	{
 		fb = x_display_get_fb( &_display ,
-			_mouse_intern.x - CURSOR_WIDTH / 2 , _mouse_intern.y - CURSOR_HEIGHT / 2) ;
+			_mouse_intern.cursor.x , _mouse_intern.cursor.y) ;
 
-		for( count = 0 ; count < CURSOR_HEIGHT ; count++)
+		for( count = 0 ; count < _mouse_intern.cursor.height ; count++)
 		{
 			memcpy( fb ,
 				_mouse_intern.saved_image +
-					count * CURSOR_WIDTH * _display.bytes_per_pixel ,
-				CURSOR_WIDTH * _display.bytes_per_pixel) ;
+					count * _mouse_intern.cursor.width *
+					_display.bytes_per_pixel ,
+				_mouse_intern.cursor.width * _display.bytes_per_pixel) ;
 			fb += _display.line_length ;
 		}
 	}
@@ -149,9 +209,10 @@ restore_hidden_region(void)
 		if( win->window_exposed)
 		{
 			(*win->window_exposed)( win ,
-				_mouse_intern.x - CURSOR_WIDTH / 2 - win->margin ,
-				_mouse_intern.y - CURSOR_HEIGHT / 2 - win->margin ,
-				CURSOR_WIDTH , CURSOR_HEIGHT) ;
+				_mouse_intern.cursor.x - win->margin ,
+				_mouse_intern.cursor.y - win->margin ,
+				_mouse_intern.cursor.width ,
+				_mouse_intern.cursor.height) ;
 		}
 	}
 }
@@ -162,14 +223,13 @@ save_hidden_region(void)
 	u_char *  fb ;
 	int  count ;
 
-	fb = x_display_get_fb( &_display ,
-		_mouse_intern.x - CURSOR_WIDTH / 2 , _mouse_intern.y - CURSOR_HEIGHT / 2) ;
+	fb = x_display_get_fb( &_display , _mouse_intern.cursor.x , _mouse_intern.cursor.y) ;
 
-	for( count = 0 ; count < CURSOR_HEIGHT ; count++)
+	for( count = 0 ; count < _mouse_intern.cursor.height ; count++)
 	{
 		memcpy( _mouse_intern.saved_image +
-				count * CURSOR_WIDTH * _display.bytes_per_pixel ,
-			fb , CURSOR_WIDTH * _display.bytes_per_pixel) ;
+				count * _mouse_intern.cursor.width * _display.bytes_per_pixel ,
+			fb , _mouse_intern.cursor.width * _display.bytes_per_pixel) ;
 		fb += _display.line_length ;
 	}
 
@@ -186,13 +246,13 @@ draw_mouse_cursor_line(
 	u_char  image[CURSOR_WIDTH * sizeof(u_int32_t)] ;
 	int  x ;
 
-	fb = x_display_get_fb( &_display , _mouse_intern.x - CURSOR_WIDTH / 2 ,
-		_mouse_intern.y - CURSOR_HEIGHT / 2 + y) ;
+	fb = x_display_get_fb( &_display , _mouse_intern.cursor.x ,
+			_mouse_intern.cursor.y + y) ;
 	win = get_window( _mouse_intern.x , _mouse_intern.y) ;
 
-	for( x = 0 ; x < CURSOR_WIDTH ; x++)
+	for( x = 0 ; x < _mouse_intern.cursor.width ; x++)
 	{
-		if( cursor_shape[y * CURSOR_WIDTH + x] == '*')
+		if( cursor_shape[(_mouse_intern.cursor.y_off + y) * CURSOR_WIDTH + _mouse_intern.cursor.x_off + x] == '*')
 		{
 			switch( _display.bytes_per_pixel)
 			{
@@ -228,7 +288,7 @@ draw_mouse_cursor_line(
 		}
 	}
 
-	memcpy( fb , image , CURSOR_WIDTH * _display.bytes_per_pixel) ;
+	memcpy( fb , image , _mouse_intern.cursor.width * _display.bytes_per_pixel) ;
 }
 
 static void
@@ -236,12 +296,12 @@ draw_mouse_cursor(void)
 {
 	int  y ;
 
-	for( y = 0 ; y < CURSOR_HEIGHT ; y++)
+	for( y = 0 ; y < _mouse_intern.cursor.height ; y++)
 	{
 		draw_mouse_cursor_line( y) ;
 	}
 
-	_mouse_intern.cursor_drawn = 1 ;
+	_mouse_intern.cursor.is_drawn = 1 ;
 }
 
 
@@ -355,13 +415,11 @@ x_display_open(
 			{
 				kik_msg_printf( "Failed to open %s.\n" , event) ;
 			}
-		#if  0
 			else
 			{
 				/* Occupy /dev/input/eventN */
 				ioctl( _mouse_intern.fd , EVIOCGRAB , 1) ;
 			}
-		#endif
 
 			kik_priv_change_euid( kik_getuid()) ;
 			kik_priv_change_egid( kik_getgid()) ;
@@ -499,6 +557,7 @@ x_display_show_root(
 
 	if( MOUSE_IS_INITED)
 	{
+		update_mouse_cursor_state() ;
 		save_hidden_region() ;
 		draw_mouse_cursor() ;
 	}
@@ -644,14 +703,13 @@ x_display_receive_next_event(
 
 					_mouse_intern.x += (int)ev.value ;
 
-					if( _mouse_intern.x < CURSOR_WIDTH / 2)
+					if( _mouse_intern.x < 0)
 					{
-						_mouse_intern.x = CURSOR_WIDTH / 2 ;
+						_mouse_intern.x = 0 ;
 					}
-					else if( _disp.width <= _mouse_intern.x + CURSOR_WIDTH / 2)
+					else if( _disp.width <= _mouse_intern.x)
 					{
-						_mouse_intern.x =
-							_disp.width - CURSOR_WIDTH / 2 - 1 ;
+						_mouse_intern.x = _disp.width - 1 ;
 					}
 				}
 				else if( ev.code == REL_Y)
@@ -660,15 +718,13 @@ x_display_receive_next_event(
 
 					_mouse_intern.y += (int)ev.value ;
 
-					if( _mouse_intern.y < CURSOR_HEIGHT / 2)
+					if( _mouse_intern.y < 0)
 					{
-						_mouse_intern.y = CURSOR_HEIGHT / 2 ;
+						_mouse_intern.y = 0 ;
 					}
-					else if( _disp.height <=
-					         _mouse_intern.y + CURSOR_HEIGHT / 2)
+					else if( _disp.height <= _mouse_intern.y)
 					{
-						_mouse_intern.y =
-							_disp.height - CURSOR_HEIGHT / 2 - 1 ;
+						_mouse_intern.y = _disp.height - 1 ;
 					}
 				}
 				else if( ev.code == REL_WHEEL)
@@ -686,6 +742,8 @@ x_display_receive_next_event(
 				{
 					return  0 ;
 				}
+
+				update_mouse_cursor_state() ;
 
 				xev.type = MotionNotify ;
 				xev.x = _mouse_intern.x ;
@@ -797,15 +855,15 @@ x_display_put_image(
 {
 	memmove( x_display_get_fb( display , x , y) , image , size) ;
 
-	if( /* MOUSE_IS_INITED && */ _mouse_intern.cursor_drawn &&
-	    _mouse_intern.y - CURSOR_HEIGHT / 2 <= y &&
-	    y <= _mouse_intern.y + CURSOR_HEIGHT / 2)
+	if( /* MOUSE_IS_INITED && */ _mouse_intern.cursor.is_drawn &&
+	    _mouse_intern.cursor.y <= y &&
+	    y < _mouse_intern.cursor.y + _mouse_intern.cursor.height)
 	{
-		if( x <= _mouse_intern.x + CURSOR_WIDTH / 2 &&
-		    _mouse_intern.x - CURSOR_WIDTH / 2 < x + size)
+		if( x <= _mouse_intern.cursor.x + _mouse_intern.cursor.width &&
+		    _mouse_intern.cursor.x < x + size)
 		{
 			_mouse_intern.hidden_region_saved = 0 ;
-			draw_mouse_cursor_line( y - (_mouse_intern.y - CURSOR_HEIGHT / 2)) ;
+			draw_mouse_cursor_line( y - _mouse_intern.cursor.y) ;
 		}
 	}
 }
