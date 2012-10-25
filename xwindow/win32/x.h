@@ -263,10 +263,6 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_9		VK_NUMPAD9
 
 #define XK_ISO_Level3_Lock	0xffd9	/* dummy */
-#define XK_u	0xffd8	/* dummy */
-#define XK_d	0xffd7	/* dummy */
-#define XK_k	0xffd6	/* dummy */
-#define XK_j	0xffd5	/* dummy */
 
 /* For msys-dtk */
 #ifndef  VK_OEM_2

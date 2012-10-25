@@ -1,3 +1,10 @@
+2012-10-25  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.fb: Updated.
+
+	* fb/x_display.c, fb/x.h, fb/x_window.c:
+	  /dev/input/event* of keyboard is processed instead of read(STDIN_FILENO).
+
 2012-10-24  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Minor fixes.

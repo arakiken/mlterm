@@ -907,8 +907,14 @@ x_window_get_str(
 		return  0 ;
 	}
 
-	*keysym = seq[0] = event->ch ;
 	*parser = NULL ;
+
+	if( ( *keysym = event->ksym) >= 0x100)
+	{
+		return  0 ;
+	}
+
+	seq[0] = event->ksym ;
 
 	return  1 ;
 }
@@ -1248,6 +1254,8 @@ x_window_set_selection_owner(
 	Time  time
 	)
 {
+	win->is_sel_owner = 1 ;
+
 	return  1 ;
 }
 
@@ -1355,7 +1363,7 @@ x_window_get_mod_ignore_mask(
 	KeySym *  keysyms
 	)
 {
-	return  0 ;
+	return  ~0 ;
 }
 
 u_int
@@ -1364,7 +1372,7 @@ x_window_get_mod_meta_mask(
 	char *  mod_key
 	)
 {
-	return  0 ;
+	return  ModMask ;
 }
 
 int

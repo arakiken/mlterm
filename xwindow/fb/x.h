@@ -8,6 +8,7 @@
 
 #if defined (__linux__)
 #include  <linux/fb.h>
+#include  <linux/input.h>
 #elif defined (__FreeBSD__)
 #include  <osreldate.h>
 #if __FreeBSD_version >= 410000
@@ -44,6 +45,8 @@ typedef struct
 		unsigned int  b_offset ;
 
 	} rgbinfo ;
+
+	int  key_state ;
 
 } Display ;
 
@@ -98,7 +101,7 @@ typedef struct
 {
 	int  type ;
 	unsigned int  state ;
-	unsigned int  ch ;
+	KeySym  ksym ;
 
 } XKeyEvent ;
 
@@ -222,67 +225,67 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Hyper_R	0xfffb	/* dummy */
 #define XK_BackSpace	0x08
 #define XK_Tab		0x09
-#define XK_Clear	0xfffa	/* dummy */
-#define XK_Linefeed	0x0a	/* dummy */
-#define XK_Return	0x0a	/* dummy */
+#define XK_Clear	(KEY_CLEAR + 0x100)
+#define XK_Linefeed	(KEY_LINEFEED + 0x100)
+#define XK_Return	0x0a
 
-#define XK_Shift_L	0xfff9	/* dummy */
-#define XK_Control_L	0xfff8	/* dummy */
-#define XK_Alt_L	0xfff7	/* dummy */
-#define XK_Shift_R	0xfff6	/* dummy */
-#define XK_Control_R	0xfff5	/* dummy */
-#define XK_Alt_R	0xfff4	/* dummy */
+#define XK_Shift_L	(KEY_LEFTSHIFT + 0x100)
+#define XK_Control_L	(KEY_LEFTCTRL + 0x100)
+#define XK_Alt_L	(KEY_LEFTALT + 0x100)
+#define XK_Shift_R	(KEY_RIGHTSHIFT + 0x100)
+#define XK_Control_R	(KEY_RIGHTCTRL + 0x100)
+#define XK_Alt_R	(KEY_RIGHTALT + 0x100)
 
-#define XK_Meta_L	0xfff3	/* dummy */
-#define XK_Meta_R	0xfff2	/* dummy */
+#define XK_Meta_L	0xfffa	/* dummy */
+#define XK_Meta_R	0xfff9	/* dummy */
 
 #define XK_Pause	0xfff1	/* dummy */
 #define XK_Shift_Lock	0xfff0	/* dummy */
-#define XK_Caps_Lock	0xffef	/* dummy */
+#define XK_Caps_Lock	(KEY_CAPSLOCK + 0x100)
 #define XK_Escape	0x1b
-#define XK_Prior	0xffee	/* dummy */
-#define XK_Next		0xffed	/* dummy */
-#define XK_End		0xffec	/* dummy */
-#define XK_Home		0xffeb	/* dummy */
-#define XK_Left		0xffea	/* dummy */
-#define XK_Up		0xffe9	/* dummy */
-#define XK_Right	0xffe8	/* dummy */
-#define XK_Down		0xffe7	/* dummy */
-#define XK_Select	0xffe6	/* dummy */
-#define XK_Print	0xffe5	/* dummy */
+#define XK_Prior	(KEY_PAGEUP + 0x100)
+#define XK_Next		(KEY_PAGEDOWN + 0x100)
+#define XK_End		(KEY_END + 0x100)
+#define XK_Home		(KEY_HOME + 0x100)
+#define XK_Left		(KEY_LEFT + 0x100)
+#define XK_Up		(KEY_UP + 0x100)
+#define XK_Right	(KEY_RIGHT + 0x100)
+#define XK_Down		(KEY_DOWN + 0x100)
+#define XK_Select	(KEY_SELECT + 0x100)
+#define XK_Print	(KEY_PRINT + 0x100)
 #define XK_Execute	0xffe4	/* dummy */
-#define XK_Insert	0xffe3	/* dummy */
-#define XK_Delete	0xffe2	/* dummy */
-#define XK_Help		0xffe1	/* dummy */
-#define XK_F1		0xffe0	/* dummy */
-#define XK_F2		0xffdf	/* dummy */
-#define XK_F3		0xffde	/* dummy */
-#define XK_F4		0xffdd	/* dummy */
-#define XK_F5		0xffdc	/* dummy */
-#define XK_F6		0xffdb	/* dummy */
-#define XK_F7		0xffda	/* dummy */
-#define XK_F8		0xffd9	/* dummy */
-#define XK_F9		0xffd8	/* dummy */
-#define XK_F10		0xffd7	/* dummy */
-#define XK_F11		0xffd6	/* dummy */
-#define XK_F12		0xffd5	/* dummy */
-#define XK_F13		0xffd4	/* dummy */
-#define XK_F14		0xffd3	/* dummy */
-#define XK_F15		0xffd2	/* dummy */
-#define XK_F16		0xffd1	/* dummy */
-#define XK_F17		0xffd0	/* dummy */
-#define XK_F18		0xffcf	/* dummy */
-#define XK_F19		0xffce	/* dummy */
-#define XK_F20		0xffcd	/* dummy */
-#define XK_F21		0xffcc	/* dummy */
-#define XK_F22		0xffcb	/* dummy */
-#define XK_F23		0xffca	/* dummy */
-#define XK_F24		0xffc9	/* dummy */
+#define XK_Insert	(KEY_INSERT + 0x100)
+#define XK_Delete	(KEY_DELETE + 0x100)
+#define XK_Help		(KEY_HELP + 0x100)
+#define XK_F1		(KEY_F1 + 0x100)
+#define XK_F2		(KEY_F2 + 0x100)
+#define XK_F3		(KEY_F3 + 0x100)
+#define XK_F4		(KEY_F4 + 0x100)
+#define XK_F5		(KEY_F5 + 0x100)
+#define XK_F6		(KEY_F6 + 0x100)
+#define XK_F7		(KEY_F7 + 0x100)
+#define XK_F8		(KEY_F8 + 0x100)
+#define XK_F9		(KEY_F9 + 0x100)
+#define XK_F10		(KEY_F10 + 0x100)
+#define XK_F11		(KEY_F11 + 0x100)
+#define XK_F12		(KEY_F12 + 0x100)
+#define XK_F13		(KEY_F13 + 0x100)
+#define XK_F14		(KEY_F14 + 0x100)
+#define XK_F15		(KEY_F15 + 0x100)
+#define XK_F16		(KEY_F16 + 0x100)
+#define XK_F17		(KEY_F17 + 0x100)
+#define XK_F18		(KEY_F18 + 0x100)
+#define XK_F19		(KEY_F19 + 0x100)
+#define XK_F20		(KEY_F20 + 0x100)
+#define XK_F21		(KEY_F21 + 0x100)
+#define XK_F22		(KEY_F22 + 0x100)
+#define XK_F23		(KEY_F23 + 0x100)
+#define XK_F24		(KEY_F24 + 0x100)
 #define XK_FMAX		0xffc8	/* dummy */
-#define XK_Num_Lock	0xffc7	/* dummy */
-#define XK_Scroll_Lock	0xffc6	/* dummy */
-#define XK_Find		0xffc5	/* dummy */
-#define XK_Menu		0xffc4	/* dummy */
+#define XK_Num_Lock	(KEY_NUMLOCK + 0x100)
+#define XK_Scroll_Lock	(KEY_SCROLLLOCK + 0x100)
+#define XK_Find		(KEY_FIND + 0x100)
+#define XK_Menu		(KEY_MENU + 0x100)
 #define XK_Begin	0xffc3	/* dummy */
 
 #define XK_KP_Prior	0xffc2	/* dummy */
@@ -300,28 +303,24 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_F3	0xffb6	/* dummy */
 #define XK_KP_F4	0xffb5	/* dummy */
 #define XK_KP_Begin	0xffb4	/* dummy */
-#define XK_KP_Multiply	0xffb3	/* dummy */
-#define XK_KP_Add	0xffb2	/* dummy */
+#define XK_KP_Multiply	(KEY_KPASTERISK + 0x100)
+#define XK_KP_Add	(KEY_KPPLUS + 0x100)
 #define XK_KP_Separator	0xffb1	/* dummy */
-#define XK_KP_Subtract	0xffb0	/* dummy */
+#define XK_KP_Subtract	(KEY_MINUS + 0x100)
 #define XK_KP_Decimal	0xffaf	/* dummy */
-#define XK_KP_Divide	0xffae	/* dummy */
-#define XK_KP_0		0xffad	/* dummy */
-#define XK_KP_1		0xffac	/* dummy */
-#define XK_KP_2		0xffab	/* dummy */
-#define XK_KP_3		0xffaa	/* dummy */
-#define XK_KP_4		0xffa9	/* dummy */
-#define XK_KP_5		0xffa8	/* dummy */
-#define XK_KP_6		0xffa7	/* dummy */
-#define XK_KP_7		0xffa6	/* dummy */
-#define XK_KP_8		0xffa5	/* dummy */
-#define XK_KP_9		0xffa4	/* dummy */
+#define XK_KP_Divide	(KEY_KPSLASH + 0x100)
+#define XK_KP_0		(KEY_KP0 + 0x100)
+#define XK_KP_1		(KEY_KP1 + 0x100)
+#define XK_KP_2		(KEY_KP2 + 0x100)
+#define XK_KP_3		(KEY_KP3 + 0x100)
+#define XK_KP_4		(KEY_KP4 + 0x100)
+#define XK_KP_5		(KEY_KP5 + 0x100)
+#define XK_KP_6		(KEY_KP6 + 0x100)
+#define XK_KP_7		(KEY_KP7 + 0x100)
+#define XK_KP_8		(KEY_KP8 + 0x100)
+#define XK_KP_9		(KEY_KP9 + 0x100)
 
 #define XK_ISO_Level3_Lock	0xffa3	/* dummy */
-#define XK_u	0xffa2	/* dummy */
-#define XK_d	0xffa1	/* dummy */
-#define XK_k	0xffa0	/* dummy */
-#define XK_j	0xff9f	/* dummy */
 
 
 /* Same as definition in X11/X.h */

@@ -2174,25 +2174,25 @@ key_pressed(
 				return ;
 			}
 		#if  1
-			else if( ksym == XK_u || ksym == XK_Prior || ksym == XK_KP_Prior)
+			else if( ksym == 'u' || ksym == XK_Prior || ksym == XK_KP_Prior)
 			{
 				bs_half_page_downward( screen) ;
 
 				return ;
 			}
-			else if( ksym == XK_d || ksym == XK_Next || ksym == XK_KP_Next)
+			else if( ksym == 'd' || ksym == XK_Next || ksym == XK_KP_Next)
 			{
 				bs_half_page_upward( screen) ;
 
 				return ;
 			}
-			else if( ksym == XK_k || ksym == XK_Up || ksym == XK_KP_Up)
+			else if( ksym == 'k' || ksym == XK_Up || ksym == XK_KP_Up)
 			{
 				bs_scroll_downward( screen) ;
 
 				return ;
 			}
-			else if( ksym == XK_j || ksym == XK_Down || ksym == XK_KP_Down)
+			else if( ksym == 'j' || ksym == XK_Down || ksym == XK_KP_Down)
 			{
 				bs_scroll_upward( screen) ;
 

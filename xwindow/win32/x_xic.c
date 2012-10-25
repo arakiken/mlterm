@@ -188,6 +188,9 @@ x_xic_get_str(
 {
 	size_t  len ;
 
+	*keysym = win->xic->prev_keydown_wparam ;
+	win->xic->prev_keydown_wparam = 0 ;
+
 	if( seq_len == 0 || event->ch == 0)
 	{
 		goto  zero_return ;
@@ -243,16 +246,19 @@ x_xic_get_str(
 	len = 2 ;
 #endif
 
+	/* wparam doesn't tell upper case from lower case. */
+	if( 'a' <= event->ch && event->ch <= 'z')
+	{
+		/* Upper to Lower case */
+		*keysym += 0x20 ;
+	}
+
 	*parser = win->xic->parser ;
-	*keysym = win->xic->prev_keydown_wparam ;
-	win->xic->prev_keydown_wparam = 0 ;
 
 	return  len ;
 
 zero_return:
 	*parser = NULL ;
-	*keysym = win->xic->prev_keydown_wparam ;
-	win->xic->prev_keydown_wparam = 0 ;
 
 	return  0 ;
 }

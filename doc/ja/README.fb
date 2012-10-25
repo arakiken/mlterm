@@ -5,6 +5,7 @@ Framebuffer on Linux 対応に関するメモ
 
 * テスト環境
   Ubuntu 12.04
+  (Linux kernel 2.6 以降対応)
 
 * ビルド
   ./configure --with-gui=fb ...
@@ -24,11 +25,16 @@ Framebuffer on Linux 対応に関するメモ
     なお、現在使用できるフォントは、gzip されていない pcf 形式のみです。
     (mlterm-x.x.x/etc/font-fb がサンプルです。)
 
+* 留意事項
+  o キーボードに対応する /dev/input/event* が存在しない、又はアクセスする権限
+    がない)場合、ショートカットは使用できません。
+  o マウスに対応する /dev/input/event* が存在しない、又はアクセスする権限がない
+    場合、マウスを使うことはできません。
+
 * 使えない機能
   o 8bpp
   o プロポーショナルフォント
   o ssh2 client (パスフレーズ入力画面を実装していないため)
-  o ショートカットキー
   o mlclient (mlclientxは使えます。)
   o Scrollbar plugin
   o Input method plugin
