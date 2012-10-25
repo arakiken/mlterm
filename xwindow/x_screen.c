@@ -2504,7 +2504,7 @@ no_keypad:
 			}
 		}
 		else if( ( ksym == XK_Delete
-		#ifndef  USE_WIN32GUI
+		#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 			&& size == 1
 		#endif
 			) || ksym == XK_KP_Delete)
