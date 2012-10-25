@@ -236,8 +236,8 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Control_R	(KEY_RIGHTCTRL + 0x100)
 #define XK_Alt_R	(KEY_RIGHTALT + 0x100)
 
-#define XK_Meta_L	0xfffa	/* dummy */
-#define XK_Meta_R	0xfff9	/* dummy */
+#define XK_Meta_L	(KEY_LEFTMETA + 0x100)
+#define XK_Meta_R	(KEY_RIGHTMETA + 0x100)
 
 #define XK_Pause	0xfff1	/* dummy */
 #define XK_Shift_Lock	0xfff0	/* dummy */
@@ -305,9 +305,9 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_Begin	0xffb4	/* dummy */
 #define XK_KP_Multiply	(KEY_KPASTERISK + 0x100)
 #define XK_KP_Add	(KEY_KPPLUS + 0x100)
-#define XK_KP_Separator	0xffb1	/* dummy */
+#define XK_KP_Separator	(KEY_KPENTER + 0x100)
 #define XK_KP_Subtract	(KEY_MINUS + 0x100)
-#define XK_KP_Decimal	0xffaf	/* dummy */
+#define XK_KP_Decimal	(KEY_KPCOMMA + 0x100)
 #define XK_KP_Divide	(KEY_KPSLASH + 0x100)
 #define XK_KP_0		(KEY_KP0 + 0x100)
 #define XK_KP_1		(KEY_KP1 + 0x100)

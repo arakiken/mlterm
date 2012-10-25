@@ -131,7 +131,7 @@ kcode_to_ksym(
 		/* KDGKBENT returns '\n' */
 		return  '\r' ;
 	}
-	else if( kcode <= KEY_SPACE)
+	else if( kcode <= KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO)
 	{
 		struct kbentry  ent ;
 		int  ret ;
@@ -807,7 +807,7 @@ x_display_receive_next_event(
 				xev.y = _mouse.y ;
 				xev.state = _display.key_state ;
 
-			#ifdef  DEBUG
+			#ifdef  __DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
 					"Button is %s x %d y %d btn %d time %d\n" ,
 					xev.type == ButtonPress ? "pressed" : "released" ,
@@ -874,7 +874,7 @@ x_display_receive_next_event(
 				xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
 				xev.state = _mouse.button_state | _display.key_state ;
 
-			#ifdef  DEBUG
+			#ifdef  __DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
 					" Button is moved %d x %d y %d btn %d time %d\n" ,
 					xev.type , xev.x , xev.y , xev.state , xev.time) ;
