@@ -275,7 +275,7 @@ x_change_font_present(
 	x_font_config_t *  font_config ;
 	x_font_cache_t *  font_cache ;
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	/*
 	 * FONT_AA is effective in xft, so following hack is necessary in xlib.
 	 */

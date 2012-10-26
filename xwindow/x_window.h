@@ -8,10 +8,6 @@
 
 #include  "x.h"
 
-#ifndef  USE_WIN32GUI
-#include  <X11/cursorfont.h>	/* for cursor shape */
-#endif
-
 #include  <kiklib/kik_types.h>
 #include  <mkf/mkf_parser.h>
 

@@ -165,7 +165,7 @@ main_loop_init(
 		"show version message") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
 		"font size range for GUI configurator [6-30]") ;
-#ifndef  USE_WIN32GUI
+#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font [false]") ;
 #endif
@@ -173,7 +173,7 @@ main_loop_init(
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"use CP932-Unicode mapping table for JISX0208 [false]") ;
 #endif
-#ifndef  USE_WIN32GUI
+#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
 		"use XIM (X Input Method) [true]") ;
 #endif
@@ -274,7 +274,7 @@ main_loop_init(
 		}
 	}
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)

@@ -57,7 +57,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '%' , "logseq" , 1 , "logging_vt_seq" ,
 		"enable logging vt100 sequence [false]") ;
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
 		"override redirect [false]") ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
@@ -70,7 +70,7 @@ x_prepare_for_main_config(
 		"[xft]"
 	#endif
 		) ;
-#endif	/* USE_WIN32GUI */
+#endif	/* USE_WIN32GUI/USE_FRAMEBUFFER */
 
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [100]") ;
@@ -114,7 +114,7 @@ x_prepare_for_main_config(
 		"vertical mode (none/cjk/mongol) [none]") ;
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
 #endif
@@ -150,7 +150,7 @@ x_prepare_for_main_config(
 		"columns for Unicode \"EastAsianAmbiguous\" character [1]") ;
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
 		"background color") ;
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
 #endif
@@ -285,7 +285,7 @@ x_main_config_init(
 	char *  value ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
 #endif
 	{
@@ -340,7 +340,7 @@ x_main_config_init(
 
 	main_config->icon_name = NULL ;
 
-#ifndef  USE_WIN32GUI
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "icon_name")))
 	{
 		main_config->icon_name = strdup( value) ;

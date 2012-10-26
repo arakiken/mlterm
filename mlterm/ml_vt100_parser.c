@@ -4320,17 +4320,6 @@ ml_vt100_parser_set_config_listener(
 }
 
 int
-ml_vt100_parser_set_unicode_policy(
-	ml_vt100_parser_t *  vt100_parser ,
-	ml_unicode_policy_t  policy
-	)
-{
-	vt100_parser->unicode_policy = policy ;
-
-	return  1 ;
-}
-
-int
 ml_parse_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
 	)

@@ -1,5 +1,10 @@
 2012-10-26  Araki Ken  <arakiken@users.sf.net>
 
+	* main_loop.c, fb/x_window.c, x.h , x_font_manager.c, x_main_config.c,
+	  x_screen.c, x_window.h: Minor fixes.
+
+2012-10-26  Araki Ken  <arakiken@users.sf.net>
+
 	* x_screen.c: Minor fixes.
 
 2012-10-26  Araki Ken  <arakiken@users.sf.net>

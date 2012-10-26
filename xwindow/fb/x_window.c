@@ -357,7 +357,7 @@ x_window_set_transparent(
 	x_picture_modifier_ptr_t  pic_mod
 	)
 {
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -365,7 +365,7 @@ x_window_unset_transparent(
 	x_window_t *  win
 	)
 {
-	return  1 ;
+	return  0 ;
 }
 
 int

@@ -218,9 +218,6 @@ int  ml_vt100_parser_set_xterm_listener( ml_vt100_parser_t *  vt100_parser ,
 int  ml_vt100_parser_set_config_listener( ml_vt100_parser_t *  vt100_parser ,
 	ml_config_event_listener_t *  config_listener) ;
 
-int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
-	ml_unicode_policy_t  policy) ;
-
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 
 /* Must be called in visual context. */

@@ -21,6 +21,7 @@
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <X11/Xatom.h>		/* XA_xxx */
 #include  <X11/Xutil.h>		/* IsKeypadKey */
+#include  <X11/cursorfont.h>	/* for cursor shape */
 
 #ifdef  XK_F21
 #define  XK_FMAX  XK_F35

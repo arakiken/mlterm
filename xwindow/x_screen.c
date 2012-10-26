@@ -5608,8 +5608,10 @@ get_config(
 	}
 	else if( strcmp( key , "gui") == 0)
 	{
-	#ifdef  USE_WIN32GUI
+	#if  defined(USE_WIN32GUI)
 		value = "win32" ;
+	#elif  defined(USE_FRAMEBUFFER)
+		value = "fb" ;
 	#else
 		value = "xlib" ;
 	#endif

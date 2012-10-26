@@ -93,9 +93,6 @@ int  ml_term_set_auto_encoding( ml_term_t *  term , int  is_auto_encoding) ;
 
 #define  ml_term_is_auto_encoding( term)  ((term)->is_auto_encoding)
 
-#define  ml_term_set_unicode_policy( term , policy) \
-		ml_vt100_parser_set_unicode_policy( (term)->parser , policy)
-
 int  ml_term_set_use_bidi( ml_term_t *  term , int  flag) ;
 
 #define  ml_term_is_using_bidi( term)  ((term)->use_bidi)
