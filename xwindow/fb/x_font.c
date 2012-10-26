@@ -599,11 +599,14 @@ xfont_loaded:
 		font->cols = 1 ;
 	}
 
+	/* XXX is_var_col_width is not supported. */
+#if  0
 	if( ( font_present & FONT_VAR_WIDTH) || IS_ISCII(FONT_CS(font->id)))
 	{
 		font->is_var_col_width = 1 ;
 	}
 	else
+#endif
 	{
 		font->is_var_col_width = 0 ;
 	}
@@ -656,7 +659,7 @@ xfont_loaded:
 
 			if( font->width != ch_width)
 			{
-				if( ! font->is_var_col_width && font->width < ch_width)
+				if( ! font->is_var_col_width)
 				{
 					/*
 					 * If width(2) of '1' doesn't match ch_width(4)
@@ -671,7 +674,11 @@ xfont_loaded:
 					 * |  * |
 					 * +----+
 					 */
-					font->x_off = (ch_width - font->width) / 2 ;
+					if( font->width < ch_width)
+					{
+						font->x_off = (ch_width - font->width) / 2 ;
+					}
+
 					font->width = ch_width ;
 				}
 			}
@@ -718,9 +725,15 @@ xfont_loaded:
 					font->id , font->width , col_width) ;
 
 				/* is_var_col_width is always false if is_vertical is true. */
-				if( /* ! font->is_var_col_width && */ font->width < col_width)
+			#if  0
+				if( ! font->is_var_col_width)
+			#endif
 				{
-					font->x_off = (col_width - font->width) / 2 ;
+					if( font->width < col_width)
+					{
+						font->x_off = (col_width - font->width) / 2 ;
+					}
+
 					font->width = col_width ;
 				}
 			}
@@ -733,10 +746,14 @@ xfont_loaded:
 					"standard width(%d).\n" ,
 					font->id , font->width , col_width * font->cols) ;
 
-				if( ! font->is_var_col_width &&
-				    font->width < col_width * font->cols)
+				if( ! font->is_var_col_width)
 				{
-					font->x_off = (col_width * font->cols - font->width) / 2 ;
+					if( font->width < col_width * font->cols)
+					{
+						font->x_off = (col_width * font->cols -
+								font->width) / 2 ;
+					}
+
 					font->width = col_width * font->cols ;
 				}
 			}

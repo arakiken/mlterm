@@ -61,7 +61,7 @@ scroll_region(
 }
 
 static int
-draw_image_string(
+draw_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
@@ -77,6 +77,8 @@ draw_image_string(
 	u_char *  p ;
 	u_char **  bitmaps ;
 	size_t  size ;
+	u_int  font_height ;
+	u_int  font_ascent ;
 	int  x_off ;
 	int  y_off ;
 	u_int  bpp ;
@@ -99,22 +101,42 @@ draw_image_string(
 		bitmaps[count] = x_get_bitmap( font->xfont , str + count * ch_len , ch_len) ;
 	}
 
+	/*
+	 * Check if font->height or font->ascent excesses the display height,
+	 * because font->height doesn't necessarily equals to the height of the US-ASCII font.
+	 *
+	 * XXX
+	 * On the other hand, font->width is always the same (or exactly double) for now.
+	 */
+
+	font_ascent = font->ascent ;
+	font_height = font->height ;
+
+	if( y >= win->height)
+	{
+		font_ascent -= (y - win->height + 1) ;
+		font_height -= (y - win->height + 1) ;
+	}
+
+	if( y + font_height - font_ascent > win->height)
+	{
+		font_height = win->height - y + font_ascent ;
+	}
+
+	if( y < font_ascent)
+	{
+		y_off = font_ascent - y ;
+	}
+	else
+	{
+		y_off = 0 ;
+	}
+
 	x += win->margin ;
 	y += win->margin ;
 
-	for( y_off = 0 ; y_off < font->height ; y_off++)
+	for( ; y_off < font_height ; y_off++)
 	{
-		/*
-		 * XXX
-		 * If the ascent of standard font is less than font->ascent
-		 * (y + y_off - font->ascent is minus.), skip until y + y_off
-		 * reaches font->ascent.
-		 */
-		if( y + y_off < font->ascent)
-		{
-			continue ;
-		}
-
 		for( count = 0 ; count < len ; count++)
 		{
 			int  force_fg ;
@@ -148,7 +170,7 @@ draw_image_string(
 						u_char *  fb ;
 
 						fb = x_display_get_fb( win->disp->display , x ,
-								y + y_off - font->ascent) +
+								y + y_off - font_ascent) +
 							(p - src) ;
 
 						switch( bpp)
@@ -186,7 +208,7 @@ draw_image_string(
 		}
 
 		x_display_put_image( win->disp->display ,
-			x , y + y_off - font->ascent , src , size) ;
+			x , y + y_off - font_ascent , src , size) ;
 		p = src ;
 	}
 
@@ -1158,7 +1180,7 @@ x_window_draw_string(
 	u_int  len
 	)
 {
-	return  draw_image_string( win , font , fg_color , NULL , x , y , str , len , 1) ;
+	return  draw_string( win , font , fg_color , NULL , x , y , str , len , 1) ;
 }
 
 int
@@ -1172,7 +1194,7 @@ x_window_draw_string16(
 	u_int  len
 	)
 {
-	return  draw_image_string( win , font , fg_color , NULL , x , y , str , len , 2) ;
+	return  draw_string( win , font , fg_color , NULL , x , y , str , len , 2) ;
 }
 
 int
@@ -1187,7 +1209,7 @@ x_window_draw_image_string(
 	u_int  len
 	)
 {
-	return  draw_image_string( win , font , fg_color , bg_color , x , y , str , len , 1) ;
+	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 1) ;
 }
 
 int
@@ -1202,7 +1224,7 @@ x_window_draw_image_string16(
 	u_int  len
 	)
 {
-	return  draw_image_string( win , font , fg_color , bg_color , x , y , str , len , 2) ;
+	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 2) ;
 }
 
 int

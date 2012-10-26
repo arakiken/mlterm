@@ -10,7 +10,7 @@ Framebuffer on Linux 対応に関するメモ
 * ビルド
   ./configure --with-gui=fb ...
   make
-  make install
+  sudo make install
 
 * 起動方法
   mlterm-fb (-fg white -bg black)

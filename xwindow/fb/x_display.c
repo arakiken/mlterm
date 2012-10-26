@@ -32,6 +32,10 @@
 #define  CURSOR_HEIGHT  13
 #define  CURSOR_Y_OFF   -6
 
+#if  0
+#define  READ_CTRL_KEYMAP
+#endif
+
 
 /* Note that this structure could be casted to Display */
 typedef struct
@@ -140,6 +144,12 @@ kcode_to_ksym(
 		{
 			ent.kb_table = (1 << KG_SHIFT) ;
 		}
+	#ifdef  READ_CTRL_KEYMAP
+		else if( state & ControlMask)
+		{
+			ent.kb_table = (1 << KG_CTRL) ;
+		}
+	#endif
 		else
 		{
 			ent.kb_table = 0 ;
@@ -157,14 +167,24 @@ kcode_to_ksym(
 
 		if( ret != -1 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP)
 		{
-			if( state & ControlMask)
+			ent.kb_value &= 0xff ;
+
+		#ifndef  READ_CTRL_KEYMAP
+			if( ( state & ControlMask) &&
+			    ( ent.kb_value == ' ' ||
+			      /*
+			       * Control + '@'(0x40) ... '_'(0x5f) -> 0x00 ... 0x1f
+			       *
+			       * Not "<= '_'" but "<= 'z'" because Control + 'a' is not
+			       * distinguished from Control + 'A'.
+			       */
+			     ('@' <= ent.kb_value && ent.kb_value <= 'z')) )
 			{
-				return  ent.kb_value & 0x1f ;
+				ent.kb_value &= 0x1f ;
 			}
-			else
-			{
-				return  ent.kb_value & 0xff ;
-			}
+		#endif
+
+			return  ent.kb_value ;
 		}
 	}
 

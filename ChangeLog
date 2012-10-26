@@ -1,3 +1,15 @@
+2012-10-27  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x.c: '0' - '9' keys are available for ~/.mlterm/key.
+
+	* fb/x_window.c: Whether font->height or font->ascent excesses the display height
+	  is checked in draw_string().
+
+	* fb/x_font.c: font->width is always the same or exactly double.
+
+	* fb/x_display.c: The way to convert keys combined with the control key
+	  to control characters is fixed.
+
 2012-10-26  Araki Ken  <arakiken@users.sf.net>
 
 	* main_loop.c, fb/x_window.c, x.h , x_font_manager.c, x_main_config.c,
