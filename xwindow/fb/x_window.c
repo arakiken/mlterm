@@ -215,6 +215,31 @@ draw_string(
 	return  1 ;
 }
 
+static int
+clear_margin_area(
+	x_window_t *  win
+	)
+{
+	u_int  right_margin ;
+	u_int  bottom_margin ;
+
+	right_margin = (win->width - win->min_width) % win->width_inc ;
+	bottom_margin = (win->height - win->min_height) % win->height_inc ;
+
+	if( win->margin > 0)
+	{
+		x_window_clear( win , -(win->margin) , -(win->margin) ,
+			win->margin , ACTUAL_HEIGHT(win)) ;
+		x_window_clear( win , 0 , -(win->margin) , win->width , win->margin) ;
+		x_window_clear( win , win->width - right_margin , -(win->margin) ,
+			win->margin + right_margin , ACTUAL_HEIGHT(win)) ;
+		x_window_clear( win , 0 , win->height - bottom_margin ,
+			win->width , win->margin + bottom_margin) ;
+	}
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -337,7 +362,7 @@ x_window_set_wall_picture(
 
 	if( win->window_exposed)
 	{
-		x_window_clear_margin_area( win) ;
+		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -360,7 +385,7 @@ x_window_unset_wall_picture(
 
 	if( win->window_exposed)
 	{
-		x_window_clear_margin_area( win) ;
+		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -419,6 +444,8 @@ x_window_set_bg_color(
 	)
 {
 	win->bg_color = *bg_color ;
+
+	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -521,7 +548,7 @@ x_window_show(
 
 	x_window_resize_with_margin( win , win->disp->width ,
 		win->disp->height , NOTIFY_TO_MYSELF) ;
-	x_window_clear_margin_area( win) ;
+	clear_margin_area( win) ;
 
 	/*
 	 * showing child windows.
@@ -657,31 +684,6 @@ x_window_clear(
 		return  x_window_copy_area( win , win->wall_picture ,
 				x + win->margin , y + win->margin ,
 				width , height , x , y) ;
-	}
-
-	return  1 ;
-}
-
-int
-x_window_clear_margin_area(
-	x_window_t *  win
-	)
-{
-	u_int  right_margin ;
-	u_int  bottom_margin ;
-
-	right_margin = (win->width - win->min_width) % win->width_inc ;
-	bottom_margin = (win->height - win->min_height) % win->height_inc ;
-
-	if( win->margin > 0)
-	{
-		x_window_clear( win , -(win->margin) , -(win->margin) ,
-			win->margin , ACTUAL_HEIGHT(win)) ;
-		x_window_clear( win , 0 , -(win->margin) , win->width , win->margin) ;
-		x_window_clear( win , win->width - right_margin , -(win->margin) ,
-			win->margin + right_margin , ACTUAL_HEIGHT(win)) ;
-		x_window_clear( win , 0 , win->height - bottom_margin ,
-			win->width , win->margin + bottom_margin) ;
 	}
 
 	return  1 ;

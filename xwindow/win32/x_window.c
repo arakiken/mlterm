@@ -690,6 +690,61 @@ update_decorate_size(
 	}
 }
 
+static int
+clear_margin_area(
+	x_window_t *  win
+	)
+{
+	if( win->margin == 0)
+	{
+		return  1 ;
+	}
+	else if( win->gc->gc == None)
+	{
+		return  0 ;
+	}
+	else
+	{
+		if( win->wall_picture)
+		{
+			BitBlt( win->gc->gc , 0, 0, win->margin, ACTUAL_HEIGHT(win),
+				win->wall_picture , 0 , 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc, win->margin, 0,
+				win->width + win->margin, win->margin,
+				win->wall_picture , win->margin , 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc, win->width + win->margin, 0,
+				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win) ,
+				win->wall_picture , win->width + win->margin, 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc, win->margin, win->height + win->margin,
+				win->width + win->margin, ACTUAL_HEIGHT(win) ,
+				win->wall_picture, win->margin, win->height + win->margin,
+				SRCCOPY) ;
+		}
+		else
+		{
+			HBRUSH  brush ;
+			RECT  r ;
+
+			brush = x_acquire_brush( win->bg_color.pixel) ;
+
+			SetRect( &r, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r, win->margin, 0, win->width + win->margin, win->margin) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r, win->width + win->margin, 0,
+				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r, win->margin, win->height + win->margin,
+				win->width + win->margin, ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+
+			x_release_brush( brush) ;
+		}
+		
+		return  1 ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -1418,61 +1473,6 @@ x_window_clear(
 }
 
 int
-x_window_clear_margin_area(
-	x_window_t *  win
-	)
-{
-	if( win->margin == 0)
-	{
-		return  1 ;
-	}
-	else if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-	else
-	{
-		if( win->wall_picture)
-		{
-			BitBlt( win->gc->gc , 0, 0, win->margin, ACTUAL_HEIGHT(win),
-				win->wall_picture , 0 , 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc, win->margin, 0,
-				win->width + win->margin, win->margin,
-				win->wall_picture , win->margin , 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc, win->width + win->margin, 0,
-				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win) ,
-				win->wall_picture , win->width + win->margin, 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc, win->margin, win->height + win->margin,
-				win->width + win->margin, ACTUAL_HEIGHT(win) ,
-				win->wall_picture, win->margin, win->height + win->margin,
-				SRCCOPY) ;
-		}
-		else
-		{
-			HBRUSH  brush ;
-			RECT  r ;
-
-			brush = x_acquire_brush( win->bg_color.pixel) ;
-
-			SetRect( &r, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
-			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r, win->margin, 0, win->width + win->margin, win->margin) ;
-			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r, win->width + win->margin, 0,
-				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
-			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r, win->margin, win->height + win->margin,
-				win->width + win->margin, ACTUAL_HEIGHT(win)) ;
-			FillRect( win->gc->gc , &r , brush) ;
-
-			x_release_brush( brush) ;
-		}
-		
-		return  1 ;
-	}
-}
-
-int
 x_window_clear_all(
 	x_window_t *  win
 	)
@@ -1760,7 +1760,7 @@ x_window_receive_event(
 
 			if( margin_area_exposed)
 			{
-				x_window_clear_margin_area( win) ;
+				clear_margin_area( win) ;
 			}
 
 			(*win->window_exposed)( win, x, y, width, height) ;

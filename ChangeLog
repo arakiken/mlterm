@@ -1,11 +1,16 @@
 2012-10-27  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_window.c: clear_margin_area() is called in x_window_set_bg_color().
+
+	* x_window.h, {xlib|fb|win32}/x_window.c:
+	  x_window_clear_margin_area() -> clear_margin_area() [static]
+
 	* x_font_config.c: "OSC 5379;font;..." works in framebuffer.
 
 	* win32/x.c: '0' - '9' keys are available for ~/.mlterm/key.
 
-	* fb/x_window.c: Whether font->height or font->ascent excesses the display height
-	  is checked in draw_string().
+	* fb/x_window.c: Whether font->height or font->ascent excesses the
+	  display height is checked in draw_string().
 
 	* fb/x_font.c: font->width is always the same or exactly double.
 

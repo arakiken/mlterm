@@ -351,7 +351,7 @@ notify_configure_to_children(
 		}
 		else if( win->window_exposed)
 		{
-			x_window_clear_margin_area( win) ;
+			clear_margin_area( win) ;
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	#if  0
@@ -832,6 +832,26 @@ cairo_resize(
 
 #endif /* NO_DYNAMIC_LOAD_TYPE */
 
+static int
+clear_margin_area(
+	x_window_t *  win
+	)
+{
+	if( win->margin > 0)
+	{
+		XClearArea( win->disp->display , win->my_window ,
+			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+		XClearArea( win->disp->display , win->my_window ,
+			win->margin , 0 , win->width , win->margin , 0) ;
+		XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
+			0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+		XClearArea( win->disp->display , win->my_window , win->margin ,
+			win->height + win->margin , win->width , win->margin , 0) ;
+	}
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -1071,7 +1091,7 @@ x_window_set_wall_picture(
 
 	if( win->window_exposed)
 	{
-		x_window_clear_margin_area( win) ;
+		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -1125,7 +1145,7 @@ x_window_unset_wall_picture(
 
 	if( win->window_exposed)
 	{
-		x_window_clear_margin_area( win) ;
+		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -1196,7 +1216,7 @@ x_window_unset_transparent(
 
 		if( win->window_exposed)
 		{
-			x_window_clear_margin_area( win) ;
+			clear_margin_area( win) ;
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	#if  0
@@ -1262,7 +1282,7 @@ x_window_set_bg_color(
 	{
 		XSetWindowBackground( win->disp->display , win->my_window , win->bg_color.pixel) ;
 
-		x_window_clear_margin_area( win) ;
+		clear_margin_area( win) ;
 	}
 
 	return  1 ;
@@ -1877,26 +1897,6 @@ x_window_clear(
 }
 
 int
-x_window_clear_margin_area(
-	x_window_t *  win
-	)
-{
-	if( win->margin > 0)
-	{
-		XClearArea( win->disp->display , win->my_window ,
-			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->disp->display , win->my_window ,
-			win->margin , 0 , win->width , win->margin , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
-			0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->margin ,
-			win->height + win->margin , win->width , win->margin , 0) ;
-	}
-
-	return  1 ;
-}
-
-int
 x_window_clear_all(
 	x_window_t *  win
 	)
@@ -2426,7 +2426,7 @@ x_window_receive_event(
 		{
 			if( margin_area_exposed)
 			{
-				x_window_clear_margin_area( win) ;
+				clear_margin_area( win) ;
 			}
 
 			(*win->window_exposed)( win , x , y , width , height) ;
