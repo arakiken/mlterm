@@ -39,14 +39,25 @@ typedef struct  custom_cache
 /* --- static variables --- */
 
 #ifdef  USE_FRAMEBUFFER
+
+#define  FONT_FILE  "font"
+#define  VFONT_FILE  "vfont"
+#define  TFONT_FILE  "tfont"
 static char *  font_file = "mlterm/font-fb" ;
 static char *  vfont_file = "mlterm/vfont-fb" ;
 static char *  tfont_file = "mlterm/tfont-fb" ;
+
 #else
+
+#define  FONT_FILE  (font_file + 7)
+#define  VFONT_FILE (vfont_file + 7)
+#define  TFONT_FILE (tfont_file + 7)
 static char *  font_file = "mlterm/font" ;
 static char *  vfont_file = "mlterm/vfont" ;
 static char *  tfont_file = "mlterm/tfont" ;
+
 #endif
+
 static char *  aafont_file = "mlterm/aafont" ;
 static char *  vaafont_file = "mlterm/vaafont" ;
 static char *  taafont_file = "mlterm/taafont" ;
@@ -1624,7 +1635,7 @@ x_customize_font_file(
 	u_int  num_of_targets ;
 	u_int  count ;
 
-	if( file == NULL || strcmp( file, font_file + 7) == 0)
+	if( file == NULL || strcmp( file, FONT_FILE) == 0)
 	{
 		file = font_file ;
 		num_of_targets = match_font_configs( targets , 6 , /* is xcore */ 1 , 0) ;
@@ -1634,13 +1645,13 @@ x_customize_font_file(
 		file = aafont_file ;
 		num_of_targets = match_font_configs( targets , 6 , /* is not xcore */ 0 , 0) ;
 	}
-	else if( strcmp( file, vfont_file + 7) == 0)
+	else if( strcmp( file, VFONT_FILE) == 0)
 	{
 		file = vfont_file ;
 		num_of_targets = match_font_configs( targets , 6 , /* is xcore */ 1 ,
 							FONT_VAR_WIDTH) ;
 	}
-	else if( strcmp( file, tfont_file + 7) == 0)
+	else if( strcmp( file, TFONT_FILE) == 0)
 	{
 		file = tfont_file ;
 		num_of_targets = match_font_configs( targets , 6 , /* is xcore */ 1 ,
@@ -1847,7 +1858,7 @@ x_get_config_font_name2(
 	x_font_present_t  present ;
 	char *  font_name ;
 
-	if( file == NULL || strcmp( file, font_file + 7) == 0)
+	if( file == NULL || strcmp( file, FONT_FILE) == 0)
 	{
 		engine = TYPE_XCORE ;
 		present = 0 ;
@@ -1862,12 +1873,12 @@ x_get_config_font_name2(
 		 */
 		present = 0 ;
 	}
-	else if( strcmp( file, vfont_file + 7) == 0)
+	else if( strcmp( file, VFONT_FILE) == 0)
 	{
 		engine = TYPE_XCORE ;
 		present = FONT_VAR_WIDTH ;
 	}
-	else if( strcmp( file, tfont_file + 7) == 0)
+	else if( strcmp( file, TFONT_FILE) == 0)
 	{
 		engine = TYPE_XCORE ;
 		present = FONT_VERTICAL ;

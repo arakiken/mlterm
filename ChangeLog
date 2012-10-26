@@ -1,5 +1,7 @@
 2012-10-27  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font_config.c: "OSC 5379;font;..." works in framebuffer.
+
 	* win32/x.c: '0' - '9' keys are available for ~/.mlterm/key.
 
 	* fb/x_window.c: Whether font->height or font->ascent excesses the display height
