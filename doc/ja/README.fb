@@ -11,19 +11,24 @@ Framebuffer on Linux 対応に関するメモ
   ./configure --with-gui=fb ...
   make
   sudo make install
+  (インストール先は、X 版 mlterm と同じディレクトリで構いません。
+   この場合、すでに X版 mlterm がインストールされていれば、全てのファイルを
+   make install しなくても、
+   $ cd main ; sudo make install
+   と、mlterm-fb ファイルだけをインストールしても問題ありません。)
 
-* 起動方法
-  mlterm-fb (-fg white -bg black)
-
-* 環境設定
-  フォント設定以外は、通常の mlterm と同じです。
+* 設定
+  フォント設定以外は、X 版 mlterm と同じです。
 
   o フォントの設定方法
     ~/.mlterm/font でなく、~/.mlterm/font-fb に、使用するフォントを設定してくだ
     さい。font-fb のフォーマットは font と基本的には同じですが、XLFD ではなく、
     使用するフォントファイルのパスを記載します。
     なお、現在使用できるフォントは、gzip されていない pcf 形式のみです。
-    (mlterm-x.x.x/etc/font-fb がサンプルです。)
+    (etc/font-fb がサンプルです。)
+
+* 起動方法
+  mlterm-fb (-fg white -bg black)
 
 * 留意事項
   o キーボードに対応する /dev/input/event* が存在しない、又はアクセスする権限
@@ -35,6 +40,9 @@ Framebuffer on Linux 対応に関するメモ
     でなく、X 版と同様、
     $ mlcc font ...
     としてください。
+  o 画面のマージン領域にゴミが残る場合は、
+    $ mlcc wall_picture ""
+    とすると消えます。
 
 * 使えない機能
   o 8bpp

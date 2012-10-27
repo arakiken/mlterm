@@ -5,7 +5,7 @@ sysconfdir = @sysconfdir@
 
 SYSCONFDIR=$(DESTDIR)$(sysconfdir)/mlterm
 
-RCFILES = font vfont tfont aafont vaafont taafont color termcap key xim main
+RCFILES = font vfont tfont font-fb aafont vaafont taafont color termcap key xim main
 # GEN_RCFILES =
 
 INSTALL=@INSTALL@

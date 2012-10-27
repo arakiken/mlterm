@@ -1,0 +1,43 @@
+comment -*- mode: text -*-
+comment $Id$
+
+Framebuffer support on Linux
+
+* Tested environment
+  Ubuntu 12.04 (Linux kernel 2.6 or later)
+
+* Build
+  ./configure --with-gui=fb ...
+  make
+  sudo make install
+  (You can install mlterm-fb to the directory where mlterm (X11 version)
+  has been already installed.)
+
+* Configuration
+  Configuration of framebuffer version is the same as that of X11 version
+  except font settings as follows.
+
+  o Font
+    Add the fonts you want to show to ~/.mlterm/font-fb.
+    The format of ~/.mlterm/font-fb is almost the same as that of ~/.mlterm/font,
+    but specify their file paths, not XLFD. (See etc/font-fb.)
+    Note that only ungzip'ed pcf fonts are avaiable.
+
+* Start
+  mlterm-fb (-fg white -bg black)
+
+* Note
+  o If mlterm can't open /dev/input/event* of the keyboard, shortcut keys are
+    disabled.
+  o If mlterm can't open /dev/input/event* of the mouse, mouse operation is
+    disabled.
+  o If you want to change fonts dynamically by mlcc, execute mlcc with "font"
+    (not "font-fb") argument.
+
+* Unsupported features
+  o 8bpp
+  o proportional fonts
+  o ssh2 client
+  o mlclient (mlclientx is avaialble, though)
+  o Scrollbar plugin
+  o Input method plugin

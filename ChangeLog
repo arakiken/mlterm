@@ -1,5 +1,9 @@
 2012-10-27  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.fb: Added.
+
+	* etc/Makefile.in: font-fb is installed to $(SYSCONFDIR).
+
 	* fb/x_window.c: clear_margin_area() is called in x_window_set_bg_color().
 
 	* x_window.h, {xlib|fb|win32}/x_window.c:
