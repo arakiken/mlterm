@@ -1536,7 +1536,11 @@ send_device_attributes(
 	if( rank == 1)
 	{
 		/* vt100 answerback */
+	#ifdef  ENABLE_SIXEL
+		seq = "\x1b[?1;2;4c" ;
+	#else
 		seq = "\x1b[?1;2c" ;
+	#endif
 	}
 	else if( rank == 2)
 	{

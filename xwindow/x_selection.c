@@ -120,8 +120,8 @@ update_sel_region(
 			rv_beg_col , rv_beg_row , rv_end_col , rv_end_row) ;
 
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " reversing %d %d %d %d\n" , rv_beg_col , rv_beg_row ,
-			rv_end_col , rv_end_row) ;
+		kik_debug_printf( KIK_DEBUG_TAG " reversing %d %d %d %d\n" ,
+			rv_beg_col , rv_beg_row , rv_end_col , rv_end_row) ;
 	#endif
 	}
 
@@ -131,8 +131,8 @@ update_sel_region(
 			rs_beg_col , rs_beg_row , rs_end_col , rs_end_row) ;
 
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " restoring %d %d %d %d\n" , rs_beg_col , rs_beg_row ,
-			rs_end_col , rs_end_row) ;
+		kik_debug_printf( KIK_DEBUG_TAG " restoring %d %d %d %d\n" ,
+			rs_beg_col , rs_beg_row , rs_end_col , rs_end_row) ;
 	#endif
 
 		if( sel->is_locked == 1)
@@ -206,11 +206,12 @@ x_start_selection(
 	int  col_l ,
 	int  row_l ,
 	int  col_r ,
-	int  row_r
+	int  row_r ,
+	x_sel_type_t  type
 	)
 {
 	sel->is_reversed = 1 ;
-	sel->is_selecting = 1 ;
+	sel->is_selecting = type ;
 
 	sel->base_col_r = sel->beg_col = sel->end_col = sel->prev_col = col_r ;
 	sel->base_row_r = sel->beg_row = sel->end_row = sel->prev_row = row_r ;

@@ -1,3 +1,16 @@
+2012-10-28  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c, x_screen.c: The (sixel etc) pictures are redrawn correctly
+	  in exiting backscrolling mode.
+
+	* x_screen.c, x_selection.[ch]: The selection behavior of double or
+	  tripple clicking and dragging is fixed.
+	  (Thanks to Andi Cristian Serbanescu)
+
+	* ml_vt100_parser.c: '4' which means sixel support is added to DA1
+	  answerback string if configured with --enable-sixel opton.
+	  (Thanks to saitoha san)
+
 2012-10-27  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb: Added.

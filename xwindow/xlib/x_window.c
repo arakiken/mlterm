@@ -101,6 +101,26 @@ static int  use_clipboard = 0 ;
 
 /* --- static functions --- */
 
+static int
+clear_margin_area(
+	x_window_t *  win
+	)
+{
+	if( win->margin > 0)
+	{
+		XClearArea( win->disp->display , win->my_window ,
+			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+		XClearArea( win->disp->display , win->my_window ,
+			win->margin , 0 , win->width , win->margin , 0) ;
+		XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
+			0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+		XClearArea( win->disp->display , win->my_window , win->margin ,
+			win->height + win->margin , win->width , win->margin , 0) ;
+	}
+
+	return  1 ;
+}
+
 /* Only used for set_transparent|update_modified_transparent */
 static int
 set_transparent_picture(
@@ -831,26 +851,6 @@ cairo_resize(
 }
 
 #endif /* NO_DYNAMIC_LOAD_TYPE */
-
-static int
-clear_margin_area(
-	x_window_t *  win
-	)
-{
-	if( win->margin > 0)
-	{
-		XClearArea( win->disp->display , win->my_window ,
-			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->disp->display , win->my_window ,
-			win->margin , 0 , win->width , win->margin , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
-			0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->margin ,
-			win->height + win->margin , win->width , win->margin , 0) ;
-	}
-
-	return  1 ;
-}
 
 
 /* --- global functions --- */

@@ -3,6 +3,9 @@ ver 3.1.5
   (./configure --with-gui=fb)
 * Support "?" of OSC 4, 10 and 11.
 * Support CSI 14 t and CSI 18 t.
+* Bug fixes:
+  Fix the incomplete hebavior of double- or triple-clicking and dragging.
+  (Thanks to Andi Cristian Serbanescu)
 
 ver 3.1.4
 * Support 0x90...0x9c format for sixel graphics sequence.

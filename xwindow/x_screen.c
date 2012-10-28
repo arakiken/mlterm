@@ -44,6 +44,10 @@
 #define  __DEBUG
 #endif
 
+#if  0
+#define  SCROLL_BY_SIXEL
+#endif
+
 
 /*
  * For x_window_update()
@@ -1065,6 +1069,15 @@ exit_backscroll_mode(
 	{
 		return ;
 	}
+
+#ifdef  ENABLE_SIXEL
+	if( screen->pic_man)
+	{
+		x_picture_manager_scroll( screen->pic_man , 0 , 0 ,
+			ml_term_convert_scr_row_to_abs( screen->term , 0) *
+				x_line_height( screen)) ;
+	}
+#endif	/* ENABLE_SIXEL */
 
 	ml_term_exit_backscroll_mode( screen->term) ;
 	x_window_update( &screen->window , UPDATE_SCREEN|UPDATE_CURSOR) ;
@@ -3321,7 +3334,8 @@ static void
 start_selection(
 	x_screen_t *  screen ,
 	int  col_r ,
-	int  row_r
+	int  row_r ,
+	x_sel_type_t  type
 	)
 {
 	int  col_l ;
@@ -3370,7 +3384,7 @@ start_selection(
 		row_l = row_r ;
 	}
 
-	if( x_start_selection( &screen->sel , col_l , row_l , col_r , row_r))
+	if( x_start_selection( &screen->sel , col_l , row_l , col_r , row_r , type))
 	{
 		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
@@ -3391,7 +3405,8 @@ selecting(
 		return ;
 	}
 	
-	if( x_selecting( &screen->sel , char_index , row))
+	if( x_selected_region_is_changed( &screen->sel , char_index , row , 1) &&
+	    x_selecting( &screen->sel , char_index , row))
 	{
 		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
@@ -3463,10 +3478,7 @@ selecting_with_motion(
 
 	if( ml_line_is_empty( line))
 	{
-		if( x_selected_region_is_changed( &screen->sel , 0 , row , 1))
-		{
-			selecting( screen , 0 , row) ;
-		}
+		selecting( screen , 0 , row) ;
 
 		return ;
 	}
@@ -3486,7 +3498,7 @@ selecting_with_motion(
 		char_index = -char_index ;
 	}
 
-	if( ! screen->sel.is_selecting)
+	if( ! x_is_selecting( &screen->sel))
 	{
 		restore_selected_region_color_instantly( screen) ;
 
@@ -3495,7 +3507,7 @@ selecting_with_motion(
 			return ;
 		}
 
-		start_selection( screen , char_index , row) ;
+		start_selection( screen , char_index , row , SEL_CHAR) ;
 	}
 	else
 	{
@@ -3517,10 +3529,157 @@ selecting_with_motion(
 			}
 		}
 
-		if( x_selected_region_is_changed( &screen->sel , char_index , row , 1))
+		selecting( screen , char_index , row) ;
+	}
+}
+
+static void
+selecting_word(
+	x_screen_t *  screen ,
+	int  x ,
+	int  y ,
+	Time  time
+	)
+{
+	int  char_index ;
+	int  row ;
+	u_int  x_rest ;
+	int  beg_row ;
+	int  beg_char_index ;
+	int  end_row ;
+	int  end_char_index ;
+	ml_line_t *  line ;
+
+	row = ml_term_convert_scr_row_to_abs( screen->term , convert_y_to_row( screen , NULL , y)) ;
+
+	if( ( line = ml_term_get_line( screen->term , row)) == NULL || ml_line_is_empty( line))
+	{
+		return ;
+	}
+
+	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
+
+	if( ml_line_end_char_index( line) == char_index && x_rest > 0)
+	{
+		/* over end of line */
+
+		return ;
+	}
+
+	if( ml_term_get_word_region( screen->term , &beg_char_index , &beg_row , &end_char_index ,
+		&end_row , char_index , row) == 0)
+	{
+		return ;
+	}
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)))
+	{
+		if( x_is_selecting( &screen->sel))
 		{
-			selecting( screen , char_index , row) ;
+			beg_char_index = -beg_char_index ;
 		}
+		else
+		{
+			beg_char_index = -beg_char_index + 1 ;
+		}
+	}
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
+	{
+		end_char_index = -end_char_index ;
+	}
+
+	if( ! x_is_selecting( &screen->sel))
+	{
+		restore_selected_region_color_instantly( screen) ;
+
+		if( ! x_window_set_selection_owner( &screen->window , time))
+		{
+			return ;
+		}
+
+		start_selection( screen , beg_char_index , beg_row , SEL_WORD) ;
+		selecting( screen , end_char_index , end_row) ;
+		x_sel_lock( &screen->sel) ;
+	}
+	else
+	{
+		if( beg_row == end_row &&
+		    ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)))
+		{
+			int  tmp ;
+
+			tmp = end_char_index ;
+			end_char_index = beg_char_index ;
+			beg_char_index = tmp ;
+		}
+
+		if( x_is_before_sel_left_base_pos( &screen->sel , beg_char_index , beg_row))
+		{
+			selecting( screen , beg_char_index , beg_row) ;
+		}
+		else
+		{
+			selecting( screen , end_char_index , end_row) ;
+		}
+	}
+}
+
+static void
+selecting_line(
+	x_screen_t *  screen ,
+	int  y ,
+	Time  time
+	)
+{
+	int  row ;
+	int  beg_char_index ;
+	int  beg_row ;
+	int  end_char_index ;
+	int  end_row ;
+
+	row = ml_term_convert_scr_row_to_abs( screen->term , convert_y_to_row( screen , NULL , y)) ;
+
+	if( ml_term_get_line_region( screen->term , &beg_row , &end_char_index , &end_row , row) == 0)
+	{
+		return ;
+	}
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)))
+	{
+		beg_char_index = -ml_line_end_char_index( ml_term_get_line( screen->term , beg_row)) ;
+	}
+	else
+	{
+		beg_char_index = 0 ;
+	}
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
+	{
+		end_char_index -=
+			ml_line_end_char_index( ml_term_get_line( screen->term , end_row)) ;
+	}
+
+	if( ! x_is_selecting( &screen->sel))
+	{
+		restore_selected_region_color_instantly( screen) ;
+
+		if( ! x_window_set_selection_owner( &screen->window , time))
+		{
+			return ;
+		}
+
+		start_selection( screen , beg_char_index , beg_row , SEL_LINE) ;
+		selecting( screen , end_char_index , end_row) ;
+		x_sel_lock( &screen->sel) ;
+	}
+	else if( x_is_before_sel_left_base_pos( &screen->sel , beg_char_index , beg_row))
+	{
+		selecting( screen , beg_char_index , beg_row) ;
+	}
+	else
+	{
+		selecting( screen , end_char_index , end_row) ;
 	}
 }
 
@@ -3588,7 +3747,20 @@ button_motion(
 	}
 	else if( ! ( event->state & Button2Mask))
 	{
-		selecting_with_motion( screen , event->x , event->y , event->time) ;
+		switch( x_is_selecting( &screen->sel))
+		{
+		case  SEL_WORD:
+			selecting_word( screen , event->x , event->y , event->time) ;
+			break ;
+
+		case  SEL_LINE:
+			selecting_line( screen , event->y , event->time) ;
+			break ;
+
+		default:
+			selecting_with_motion( screen , event->x , event->y , event->time) ;
+			break ;
+		}
 	}
 }
 
@@ -3602,126 +3774,10 @@ button_press_continued(
 
 	screen = (x_screen_t*) win ;
 
-	if( screen->sel.is_selecting && (event->y < 0 || win->height < event->y))
+	if( x_is_selecting( &screen->sel) && (event->y < 0 || win->height < event->y))
 	{
 		selecting_with_motion( screen , event->x , event->y , event->time) ;
 	}
-}
-
-static void
-selecting_word(
-	x_screen_t *  screen ,
-	int  x ,
-	int  y ,
-	Time  time
-	)
-{
-	int  char_index ;
-	int  row ;
-	u_int  x_rest ;
-	int  beg_row ;
-	int  beg_char_index ;
-	int  end_row ;
-	int  end_char_index ;
-	ml_line_t *  line ;
-
-	row = ml_term_convert_scr_row_to_abs( screen->term , convert_y_to_row( screen , NULL , y)) ;
-
-	if( ( line = ml_term_get_line( screen->term , row)) == NULL || ml_line_is_empty( line))
-	{
-		return ;
-	}
-
-	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
-
-	if( ml_line_end_char_index( line) == char_index && x_rest > 0)
-	{
-		/* over end of line */
-
-		return ;
-	}
-
-	if( ml_term_get_word_region( screen->term , &beg_char_index , &beg_row , &end_char_index ,
-		&end_row , char_index , row) == 0)
-	{
-		return ;
-	}
-
-	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)))
-	{
-		beg_char_index = -beg_char_index + 1 ;
-	}
-
-	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
-	{
-		end_char_index = -end_char_index ;
-	}
-
-	if( ! screen->sel.is_selecting)
-	{
-		restore_selected_region_color_instantly( screen) ;
-
-		if( ! x_window_set_selection_owner( &screen->window , time))
-		{
-			return ;
-		}
-
-		start_selection( screen , beg_char_index , beg_row) ;
-	}
-
-	selecting( screen , end_char_index , end_row) ;
-	x_sel_lock( &screen->sel) ;
-}
-
-static void
-selecting_line(
-	x_screen_t *  screen ,
-	int  y ,
-	Time  time
-	)
-{
-	int  row ;
-	int  beg_char_index ;
-	int  beg_row ;
-	int  end_char_index ;
-	int  end_row ;
-
-	row = ml_term_convert_scr_row_to_abs( screen->term , convert_y_to_row( screen , NULL , y)) ;
-
-	if( ml_term_get_line_region( screen->term , &beg_row , &end_char_index , &end_row , row) == 0)
-	{
-		return ;
-	}
-
-	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)))
-	{
-		beg_char_index = -ml_line_end_char_index( ml_term_get_line( screen->term , beg_row)) ;
-	}
-	else
-	{
-		beg_char_index = 0 ;
-	}
-
-	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
-	{
-		end_char_index -=
-			ml_line_end_char_index( ml_term_get_line( screen->term , end_row)) ;
-	}
-
-	if( ! screen->sel.is_selecting)
-	{
-		restore_selected_region_color_instantly( screen) ;
-
-		if( ! x_window_set_selection_owner( &screen->window , time))
-		{
-			return ;
-		}
-
-		start_selection( screen , beg_char_index , beg_row) ;
-	}
-
-	selecting( screen , end_char_index , end_row) ;
-	x_sel_lock( &screen->sel) ;
 }
 
 static void
@@ -3834,11 +3890,11 @@ button_pressed(
 
 			return ;
 		}
-		else if( screen->sel.is_reversed)
+		else if( x_sel_is_reversed( &screen->sel))
 		{
 			/* expand if current selection exists. */
 			/* FIXME: move sel.* stuff should be in x_selection.c */
-			screen->sel.is_selecting = 1 ;
+			screen->sel.is_selecting = SEL_CHAR ;
 			selecting_with_motion( screen, event->x, event->y, event->time);
 			/* keep sel as selected to handle succeeding MotionNotify */
 
@@ -4132,7 +4188,7 @@ search_find(
 		#endif
 
 			x_sel_clear( &screen->sel) ;
-			start_selection( screen , beg_char_index , beg_row) ;
+			start_selection( screen , beg_char_index , beg_row , SEL_CHAR) ;
 			selecting( screen , end_char_index , end_row) ;
 			x_stop_selecting( &screen->sel) ;
 
@@ -5991,9 +6047,11 @@ window_scroll_upward_region(
 #ifdef  ENABLE_SIXEL
 	if( screen->pic_man)
 	{
+		/* Not considering vertical mode. */
 		x_picture_manager_scroll( screen->pic_man ,
 			beg_row * x_line_height( screen) ,
-			(end_row + 1) * x_line_height( screen) ,
+			beg_row == 0 && end_row + 1 == ml_term_get_rows( screen->term) ?
+				0 : (end_row + 1) * x_line_height( screen) ,
 			- (int)(size * x_line_height( screen))) ;
 	}
 #endif	/* ENABLE_SIXEL */
@@ -6024,9 +6082,11 @@ window_scroll_downward_region(
 #ifdef  ENABLE_SIXEL
 	if( screen->pic_man)
 	{
+		/* Not considering vertical mode. */
 		x_picture_manager_scroll( screen->pic_man ,
 			beg_row * x_line_height( screen) ,
-			(end_row + 1) * x_line_height( screen) ,
+			beg_row == 0 && end_row + 1 == ml_term_get_rows( screen->term) ?
+				0 : (end_row + 1) * x_line_height( screen) ,
 			size * x_line_height( screen)) ;
 	}
 #endif	/* ENABLE_SIXEL */
@@ -6819,7 +6879,7 @@ start_vt100_cmd(
 
 	if( screen->sel.is_reversed)
 	{
-		if( screen->sel.is_selecting)
+		if( x_is_selecting( &screen->sel))
 		{
 			x_restore_selected_region_color_except_logs( &screen->sel) ;
 		}
@@ -6856,7 +6916,7 @@ stop_vt100_cmd(
 
 	screen = p ;
 
-	if( screen->sel.is_selecting)
+	if( x_is_selecting( &screen->sel))
 	{
 		/*
 		 * XXX Fixme XXX
@@ -8109,26 +8169,32 @@ x_screen_exec_cmd(
 					(width *= (col_width = x_col_width(screen))) ,
 					(height *= (line_height = x_line_height(screen))))) )
 			{
-			#if  0
-				u_int  count ;
+			#ifdef  SCROLL_BY_SIXEL
+				u_char *  buf ;
+				size_t  len ;
 			#endif
 
 				x_picture_manager_add( screen->pic_man , pic ,
 					(x *= x_col_width(screen)) ,
 					(y *= x_line_height(screen))) ;
 
+			#ifdef  SCROLL_BY_SIXEL
+				len = pic->height / line_height ;
+				if( len > 0 && ( buf = alloca( len)))
+				{
+				#if  1
+					memset( buf , '\n' , len) ;
+					ml_term_write_loopback( screen->term , buf , len) ;
+				#else
+					memset( buf , '\r' , len) ;
+					write_to_pty( screen , buf , len , NULL) ;
+				#endif
+				}
+			#endif
+
 				x_picture_manager_redraw( screen->pic_man ,
 					&screen->window , x , y ,
 					pic->width , pic->height) ;
-
-			#if  0
-				for( count = pic->height / line_height +
-				             (pic->height % line_height > 0 ? 1 : 0) ;
-				     count > 0 ; count --)
-				{
-					write_to_pty( screen , "\r" , 1 , NULL) ;
-				}
-			#endif
 			}
 		}
 	}

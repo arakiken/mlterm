@@ -726,7 +726,7 @@ int
 x_picture_manager_scroll(
 	x_picture_manager_t *  pic_man ,
 	int  beg_y ,
-	int  end_y ,
+	int  end_y ,	/* beg_y == 0 and end_y == 0 -> full screen area. */
 	int  height	/* < 0 => upward, > 0 => downward */
 	)
 {
@@ -739,10 +739,12 @@ x_picture_manager_scroll(
 
 	for( count = pic_man->num_of_pics - 1 ; count >= 0 ; count--)
 	{
-		if( beg_y < pic_man->pics[count].y + pic_man->pics[count].pic->height &&
-		    pic_man->pics[count].y < end_y)
+		if( ( beg_y == 0 && end_y == 0) ||
+		    ( beg_y < pic_man->pics[count].y + pic_man->pics[count].pic->height &&
+		      pic_man->pics[count].y <= end_y) )
 		{
 			pic_man->pics[count].y += height ;
+
 			if( pic_man->pics[count].y + (int)pic_man->pics[count].pic->height <= 0)
 			{
 				x_release_picture( pic_man->pics[count].pic) ;
