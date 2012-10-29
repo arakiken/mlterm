@@ -35,9 +35,11 @@ Framebuffer support on Linux
     (not "font-fb") argument.
 
 * Unsupported features
+  o 2/4 bpp
   o Wall picture and sixel graphics on 8 bpp.
   o proportional fonts
   o ssh2 client
+  o Daemon mode
   o mlclient (mlclientx is avaialble, though)
   o Scrollbar plugin
   o Input method plugin

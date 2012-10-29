@@ -46,6 +46,9 @@ typedef struct
 
 	} rgbinfo ;
 
+	struct fb_cmap *  cmap ;
+	struct fb_cmap *  cmap_orig ;
+
 	int  key_state ;
 
 } Display ;

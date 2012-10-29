@@ -8,58 +8,15 @@
 #include  <ml_color.h>
 
 
-#define  BYTE_COLOR_TO_WORD(color)  ((color) << 8 | (color))
 #define  WORD_COLOR_TO_BYTE(color)  ((color) & 0xff)
-
-
-/* --- static variables --- */
-
-static struct fb_cmap *  cmap ;
 
 
 /* --- static functions --- */
 
-static int
-cmap_init(
-	Display *  display
-	)
-{
-	ml_color_t  color ;
-	u_int8_t  r ;
-	u_int8_t  g ;
-	u_int8_t  b ;
-
-	/* XXX cmap and its members are not free'ed explicitly. */
-
-	if( ! ( cmap = malloc( sizeof(*cmap) + sizeof(__u16) * 256 * 3)))
-	{
-		return  0 ;
-	}
-
-	cmap->red = (__u16*)(cmap + 1) ;
-	cmap->green = cmap->red + 256 ;
-	cmap->blue = cmap->green + 256 ;
-	cmap->transp = NULL ;
-	cmap->start = 0 ;
-	cmap->len = 256 ;
-
-	for( color = 0 ; color < 256 ; color ++)
-	{
-		ml_get_color_rgb( color , &r , &g , &b) ;
-
-		cmap->red[color] = BYTE_COLOR_TO_WORD(r) ;
-		cmap->blue[color] = BYTE_COLOR_TO_WORD(g) ;
-		cmap->green[color] = BYTE_COLOR_TO_WORD(b) ;
-	}
-
-	ioctl( display->fb_fd , FBIOPUTCMAP , cmap) ;
-
-	return  1 ;
-}
-
 /* seek the closest color */
 static  ml_color_t
 closest_color(
+	struct fb_cmap *  cmap ,
 	int  red ,
 	int  green ,
 	int  blue
@@ -103,6 +60,7 @@ x_load_named_xcolor(
 	char *  name
 	)
 {
+	struct fb_cmap *  cmap ;
 	ml_color_t  color ;
 	u_int8_t  red ;
 	u_int8_t  green ;
@@ -114,10 +72,9 @@ x_load_named_xcolor(
 		return  x_load_rgb_xcolor( disp , xcolor , red , green , blue , alpha) ;
 	}
 
-	if( disp->depth == 8)
+	if( ( cmap = disp->display->cmap))
 	{
-		if( ( ! cmap && ! cmap_init( disp->display)) ||
-		    ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR)
+		if( ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR)
 		{
 			return  0 ;
 		}
@@ -159,18 +116,11 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	if( disp->depth < 8)
-	{
-		return  0 ;
-	}
-	else if( disp->depth == 8)
-	{
-		if( ! cmap && ! cmap_init( disp->display))
-		{
-			return  0 ;
-		}
+	struct fb_cmap *  cmap ;
 
-		xcolor->pixel = closest_color( red , green , blue) ;
+	if( ( cmap = disp->display->cmap))
+	{
+		xcolor->pixel = closest_color( cmap , red , green , blue) ;
 		xcolor->red = WORD_COLOR_TO_BYTE(cmap->red[xcolor->pixel]) ;
 		xcolor->green = WORD_COLOR_TO_BYTE(cmap->green[xcolor->pixel]) ;
 		xcolor->blue = WORD_COLOR_TO_BYTE(cmap->blue[xcolor->pixel]) ;

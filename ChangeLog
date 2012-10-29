@@ -1,3 +1,11 @@
+2012-10-30  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.fb, doc/en/README.fb: Updated.
+
+	* fb/x_display.c, fb/x_color.c, fb/x.h:
+	  - cmap is moved to Display structure.
+	  - Original cmap is restored at exiting.
+
 2012-10-29  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Set EVIOCGRAB to keyboard and mouse device.

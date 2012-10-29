@@ -20,11 +20,16 @@
 #include  <kiklib/kik_unistd.h>		/* kik_getuid */
 #include  <kiklib/kik_util.h>		/* K_MIN/K_MAX */
 
+#include  <ml_color.h>
+
 #include  "../x_window.h"
 
 
 #define  DISP_IS_INITED   (_disp.display)
 #define  MOUSE_IS_INITED  (_mouse.fd != -1)
+#define  CMAP_IS_INITED   (_display.cmap)
+
+#define  BYTE_COLOR_TO_WORD(color)  ((color) << 8 | (color))
 
 /* Parameters of cursor_shape */
 #define  CURSOR_WIDTH   5
@@ -280,6 +285,71 @@ open_event_device(
 	return  fd ;
 }
 
+static struct fb_cmap *
+cmap_new(void)
+{
+	struct fb_cmap *  cmap ;
+
+	if( ! ( cmap = malloc( sizeof(*cmap) + sizeof(__u16) * 256 * 3)))
+	{
+		return  NULL ;
+	}
+
+	cmap->red = (__u16*)(cmap + 1) ;
+	cmap->green = cmap->red + 256 ;
+	cmap->blue = cmap->green + 256 ;
+	cmap->transp = NULL ;
+	cmap->start = 0 ;
+	cmap->len = 256 ;
+
+	return  cmap ;
+}
+
+static int
+cmap_init(void)
+{
+	ml_color_t  color ;
+	u_int8_t  r ;
+	u_int8_t  g ;
+	u_int8_t  b ;
+
+	if( ! ( _display.cmap_orig = cmap_new()))
+	{
+		return  0 ;
+	}
+
+	ioctl( _display.fb_fd , FBIOGETCMAP , _display.cmap_orig) ;
+
+	if( ! ( _display.cmap = cmap_new()))
+	{
+		free( _display.cmap_orig) ;
+
+		return  0 ;
+	}
+
+	for( color = 0 ; color < 256 ; color ++)
+	{
+		ml_get_color_rgb( color , &r , &g , &b) ;
+
+		_display.cmap->red[color] = BYTE_COLOR_TO_WORD(r) ;
+		_display.cmap->blue[color] = BYTE_COLOR_TO_WORD(g) ;
+		_display.cmap->green[color] = BYTE_COLOR_TO_WORD(b) ;
+	}
+
+	ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
+
+	return  1 ;
+}
+
+static void
+cmap_final(void)
+{
+	ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap_orig) ;
+
+	free( _display.cmap_orig) ;
+	free( _display.cmap) ;
+}
+
 static inline x_window_t *
 get_window(
 	int  x ,	/* X in display */
@@ -480,8 +550,6 @@ x_display_open(
 		int  kbd_num ;
 		int  mouse_num ;
 
-		get_mouse_event_device_num( &kbd_num , &mouse_num) ;
-
 		if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
 						O_RDWR)))
 		{
@@ -491,7 +559,8 @@ x_display_open(
 		ioctl( _display.fb_fd , FBIOGET_FSCREENINFO , &finfo) ;
 		ioctl( _display.fb_fd , FBIOGET_VSCREENINFO , &vinfo) ;
 
-		if( ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
+		if( ( _disp.depth = vinfo.bits_per_pixel) < 8 || /* 2/4 bpp is not supported. */
+		    ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
 					PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , 0))
 					== MAP_FAILED)
 		{
@@ -500,14 +569,35 @@ x_display_open(
 			return  NULL ;
 		}
 
+		if( ( _display.bytes_per_pixel = (_disp.depth + 7) / 8) == 3)
+		{
+			_display.bytes_per_pixel = 4 ;
+		}
+
+		if( _disp.depth != 8 || ! cmap_init())
+		{
+			_display.cmap = NULL ;
+		}
+
 		_display.line_length = finfo.line_length ;
 		_display.xoffset = vinfo.xoffset ;
 		_display.yoffset = vinfo.yoffset ;
 
-		if( ( _display.bytes_per_pixel = (vinfo.bits_per_pixel + 7) / 8) == 3)
-		{
-			_display.bytes_per_pixel = 4 ;
-		}
+		_disp.width = vinfo.xres ;
+		_disp.height = vinfo.yres ;
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Framebuffer: "
+			"len %d line_len %d xoff %d yoff %d depth %db/%dB w %d h %d\n" ,
+			_display.smem_len ,
+			_display.line_length ,
+			_display.xoffset ,
+			_display.yoffset ,
+			_disp.depth ,
+			_display.bytes_per_pixel ,
+			_disp.width ,
+			_disp.height) ;
+	#endif
 
 		_display.rgbinfo.r_limit = 8 - vinfo.red.length ;
 		_display.rgbinfo.g_limit = 8 - vinfo.green.length ;
@@ -532,34 +622,13 @@ x_display_open(
 		/* Hide the cursor of linux console. */
 		write( STDIN_FILENO , "\x1b[?25l" , 6) ;
 
+		get_mouse_event_device_num( &kbd_num , &mouse_num) ;
+
 		if( kbd_num == -1 ||
 		    ( _display.fd = open_event_device( kbd_num)) == -1)
 		{
 			_display.fd = STDIN_FILENO ;
 		}
-
-		_disp.depth = vinfo.bits_per_pixel ;
-
-	#if  1
-		_disp.width = vinfo.xres ;
-		_disp.height = vinfo.yres ;
-	#else
-		_disp.width = _display.line_length / _display.bytes_per_pixel ;
-		_disp.height = _display.smem_len / _display.line_length ;
-	#endif
-
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Framebuffer: "
-			"len %d line_len %d xoff %d yoff %d depth %db/%dB w %d h %d\n" ,
-			_display.smem_len ,
-			_display.line_length ,
-			_display.xoffset ,
-			_display.yoffset ,
-			_disp.depth ,
-			_display.bytes_per_pixel ,
-			_disp.width ,
-			_disp.height) ;
-	#endif
 
 		_disp.display = &_display ;
 
@@ -601,6 +670,11 @@ x_display_close_all(void)
 		if( MOUSE_IS_INITED)
 		{
 			close( _mouse.fd) ;
+		}
+
+		if( CMAP_IS_INITED)
+		{
+			cmap_final() ;
 		}
 
 		munmap( _display.fp , _display.smem_len) ;
