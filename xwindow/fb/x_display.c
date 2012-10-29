@@ -26,6 +26,12 @@
 #define  DISP_IS_INITED   (_disp.display)
 #define  MOUSE_IS_INITED  (_mouse.fd != -1)
 
+/* Parameters of cursor_shape */
+#define  CURSOR_WIDTH   5
+#define  CURSOR_X_OFF   -2
+#define  CURSOR_HEIGHT  13
+#define  CURSOR_Y_OFF   -6
+
 #if  0
 #define  READ_CTRL_KEYMAP
 #endif
@@ -72,12 +78,6 @@ static x_display_t  _disp_mouse ;
 static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
 
 static struct termios  orig_tm ;
-
-/* Parameters of cursor_shape */
-#define  CURSOR_WIDTH   5
-#define  CURSOR_X_OFF   -2
-#define  CURSOR_HEIGHT  13
-#define  CURSOR_Y_OFF   -6
 
 static char *  cursor_shape =
 {

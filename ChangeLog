@@ -1,3 +1,9 @@
+2012-10-29  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_color.c: 8bpp support is added.
+
+	* fb/x_display.c: Compilation error is fixed.
+
 2012-10-28  Araki Ken  <arakiken@users.sf.net>
 
 	* x_picture.c, x_screen.c: The (sixel etc) pictures are redrawn correctly

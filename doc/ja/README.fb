@@ -40,12 +40,13 @@ Framebuffer on Linux 対応に関するメモ
     でなく、X 版と同様、
     $ mlcc font ...
     としてください。
+  o 8 bpp での cmap の設定は、起動時にのみ行い、その後変更はできません。
   o 画面のマージン領域にゴミが残る場合は、
     $ mlcc wall_picture ""
     とすると消えます。
 
 * 使えない機能
-  o 8bpp
+  o 8 bpp での背景画像及び Sixel graphcis
   o プロポーショナルフォント
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o mlclient (mlclientxは使えます。)

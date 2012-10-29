@@ -8,6 +8,92 @@
 #include  <ml_color.h>
 
 
+#define  BYTE_COLOR_TO_WORD(color)  ((color) << 8 | (color))
+#define  WORD_COLOR_TO_BYTE(color)  ((color) & 0xff)
+
+
+/* --- static variables --- */
+
+static struct fb_cmap *  cmap ;
+
+
+/* --- static functions --- */
+
+static int
+cmap_init(
+	Display *  display
+	)
+{
+	ml_color_t  color ;
+	u_int8_t  r ;
+	u_int8_t  g ;
+	u_int8_t  b ;
+
+	/* XXX cmap and its members are not free'ed explicitly. */
+
+	if( ! ( cmap = malloc( sizeof(*cmap) + sizeof(__u16) * 256 * 3)))
+	{
+		return  0 ;
+	}
+
+	cmap->red = (__u16*)(cmap + 1) ;
+	cmap->green = cmap->red + 256 ;
+	cmap->blue = cmap->green + 256 ;
+	cmap->transp = NULL ;
+	cmap->start = 0 ;
+	cmap->len = 256 ;
+
+	for( color = 0 ; color < 256 ; color ++)
+	{
+		ml_get_color_rgb( color , &r , &g , &b) ;
+
+		cmap->red[color] = BYTE_COLOR_TO_WORD(r) ;
+		cmap->blue[color] = BYTE_COLOR_TO_WORD(g) ;
+		cmap->green[color] = BYTE_COLOR_TO_WORD(b) ;
+	}
+
+	ioctl( display->fb_fd , FBIOPUTCMAP , cmap) ;
+
+	return  1 ;
+}
+
+/* seek the closest color */
+static  ml_color_t
+closest_color(
+	int  red ,
+	int  green ,
+	int  blue
+	)
+{
+	ml_color_t  closest = 0 ;
+	ml_color_t  color ;
+	u_long  min = 0xffffff ;
+	u_long  diff ;
+	int  diff_r , diff_g , diff_b ;
+
+	for( color = 0 ; color < 256 ; color++)
+	{
+		/* lazy color-space conversion*/
+		diff_r = red - WORD_COLOR_TO_BYTE(cmap->red[color]) ;
+		diff_g = green - WORD_COLOR_TO_BYTE(cmap->green[color]) ;
+		diff_b = blue - WORD_COLOR_TO_BYTE(cmap->blue[color]) ;
+		diff = diff_r * diff_r *9 + diff_g * diff_g * 30 + diff_b * diff_b ;
+		if ( diff < min)
+		{
+			min = diff ;
+			closest = color ;
+			/* no one may notice the difference */
+			if ( diff < 31)
+			{
+				break ;
+			}
+		}
+	}
+
+	return  closest ;
+}
+
+
 /* --- global functions --- */
 
 int
@@ -28,7 +114,22 @@ x_load_named_xcolor(
 		return  x_load_rgb_xcolor( disp , xcolor , red , green , blue , alpha) ;
 	}
 
-	if( ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR ||
+	if( disp->depth == 8)
+	{
+		if( ( ! cmap && ! cmap_init( disp->display)) ||
+		    ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR)
+		{
+			return  0 ;
+		}
+
+		xcolor->pixel = color ;
+		xcolor->red = WORD_COLOR_TO_BYTE(cmap->red[xcolor->pixel]) ;
+		xcolor->green = WORD_COLOR_TO_BYTE(cmap->green[xcolor->pixel]) ;
+		xcolor->blue = WORD_COLOR_TO_BYTE(cmap->blue[xcolor->pixel]) ;
+
+		return  1 ;
+	}
+	else if( ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR ||
 		! ml_get_color_rgb( color , &red , &green , &blue))
 	{
 		if( strcmp( name , "gray") == 0)
@@ -58,18 +159,32 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	if( disp->depth < 15)
+	if( disp->depth < 8)
 	{
 		return  0 ;
 	}
+	else if( disp->depth == 8)
+	{
+		if( ! cmap && ! cmap_init( disp->display))
+		{
+			return  0 ;
+		}
 
-	xcolor->pixel = RGB_TO_PIXEL(red,green,blue,disp->display->rgbinfo) |
-			(disp->depth == 32 ? (alpha << 24) : 0) ;
+		xcolor->pixel = closest_color( red , green , blue) ;
+		xcolor->red = WORD_COLOR_TO_BYTE(cmap->red[xcolor->pixel]) ;
+		xcolor->green = WORD_COLOR_TO_BYTE(cmap->green[xcolor->pixel]) ;
+		xcolor->blue = WORD_COLOR_TO_BYTE(cmap->blue[xcolor->pixel]) ;
+	}
+	else
+	{
+		xcolor->pixel = RGB_TO_PIXEL(red,green,blue,disp->display->rgbinfo) |
+				(disp->depth == 32 ? (alpha << 24) : 0) ;
 
-	xcolor->red = red ;
-	xcolor->green = green ;
-	xcolor->blue = blue ;
-	xcolor->alpha = alpha ;
+		xcolor->red = red ;
+		xcolor->green = green ;
+		xcolor->blue = blue ;
+		xcolor->alpha = alpha ;
+	}
 
 	return  1 ;
 }
