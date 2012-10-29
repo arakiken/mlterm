@@ -266,7 +266,7 @@ open_event_device(
 	{
 		kik_msg_printf( "Failed to open %s.\n" , event) ;
 	}
-#if  0
+#if  1
 	else
 	{
 		/* Occupy /dev/input/eventN */

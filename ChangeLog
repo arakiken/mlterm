@@ -1,5 +1,7 @@
 2012-10-29  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: Set EVIOCGRAB to keyboard and mouse device.
+
 	* fb/x_color.c: 8bpp support is added.
 
 	* fb/x_display.c: Compilation error is fixed.
