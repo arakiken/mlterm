@@ -1,5 +1,7 @@
 2012-10-30  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_window.c: Pixmap size check is added in x_window_copy_area().
+
 	* doc/ja/README.fb, doc/en/README.fb: Updated.
 
 	* fb/x_display.c, fb/x_color.c, fb/x.h:

@@ -13,6 +13,10 @@
 
 #define  MAX_CLICK  3			/* max is triple click */
 
+/* win->width is not multiples of (win)->width_inc in framebuffer. */
+#define  RIGHT_MARGIN(win)  (((win)->width - (win)->min_width) % (win)->width_inc)
+#define  BOTTOM_MARGIN(win)  (((win)->height - (win)->min_height) % (win)->height_inc)
+
 
 /* --- static variables --- */
 
@@ -223,8 +227,8 @@ clear_margin_area(
 	u_int  right_margin ;
 	u_int  bottom_margin ;
 
-	right_margin = (win->width - win->min_width) % win->width_inc ;
-	bottom_margin = (win->height - win->min_height) % win->height_inc ;
+	right_margin = RIGHT_MARGIN(win) ;
+	bottom_margin = BOTTOM_MARGIN(win) ;
 
 	if( win->margin > 0)
 	{
@@ -1123,9 +1127,29 @@ x_window_copy_area(
 	int  dst_y
 	)
 {
+	u_int  max_width ;
+	u_int  max_height ;
 	size_t  size ;
 	int  y_off ;
 	u_int  bpp ;
+
+	max_width = win->width - RIGHT_MARGIN(win) ;
+	max_height = win->height - BOTTOM_MARGIN(win) ;
+
+	if( dst_x >= max_width || dst_y >= max_height)
+	{
+		return  0 ;
+	}
+
+	if( dst_x + width > max_width)
+	{
+		width = max_width - dst_x ;
+	}
+
+	if( dst_y + height > max_height)
+	{
+		height = max_height - dst_y ;
+	}
 
 	size = width * (bpp = win->disp->display->bytes_per_pixel) ;
 
