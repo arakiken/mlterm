@@ -14,6 +14,7 @@
 
 #include  <linux/kd.h>
 #include  <linux/keyboard.h>
+#include  <linux/vt.h>	/* VT_GETSTATE */
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_privilege.h>	/* kik_priv_change_e(u|g)id */
@@ -81,6 +82,7 @@ static x_display_t  _disp ;
 static Mouse  _mouse ;
 static x_display_t  _disp_mouse ;
 static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
+static int  console_id ;
 
 static struct termios  orig_tm ;
 
@@ -105,19 +107,27 @@ static char *  cursor_shape =
 /* --- static functions --- */
 
 static int
+get_active_console(void)
+{
+	struct vt_stat  st ;
+
+	if( ioctl( STDIN_FILENO , VT_GETSTATE , &st) == -1)
+	{
+		return  -1 ;
+	}
+
+	return  st.v_active ;
+}
+
+static int
 get_key_state(void)
 {
 	int  ret ;
 	char  state ;
 
-	kik_priv_restore_euid() ;
-	kik_priv_restore_egid() ;
-
 	state = 6 ;
-	ret = ioctl( STDIN_FILENO , TIOCLINUX , &state) ;
 
-	kik_priv_change_euid( kik_getuid()) ;
-	kik_priv_change_egid( kik_getgid()) ;
+	ret = ioctl( STDIN_FILENO , TIOCLINUX , &state) ;
 
 	if( ret == -1)
 	{
@@ -164,13 +174,7 @@ kcode_to_ksym(
 
 		ent.kb_index = kcode ;
 
-		kik_priv_restore_euid() ;
-		kik_priv_restore_egid() ;
-
 		ret = ioctl( STDIN_FILENO , KDGKBENT , &ent) ;
-
-		kik_priv_change_euid( kik_getuid()) ;
-		kik_priv_change_egid( kik_getgid()) ;
 
 		if( ret != -1 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP)
 		{
@@ -199,7 +203,30 @@ kcode_to_ksym(
 }
 
 static void
-get_mouse_event_device_num(
+set_use_console_backscroll(
+	int  use
+	)
+{
+	struct kbentry  ent ;
+
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+
+	ent.kb_table = (1 << KG_SHIFT) ;
+	ent.kb_index = KEY_PAGEUP ;
+	ent.kb_value = use ? K_SCROLLBACK : K_PGUP ;
+	ioctl( STDIN_FILENO , KDSKBENT , &ent) ;
+
+	ent.kb_index = KEY_PAGEDOWN ;
+	ent.kb_value = use ? K_SCROLLFORW : K_PGDN ;
+	ioctl( STDIN_FILENO , KDSKBENT , &ent) ;
+
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+}
+
+static void
+get_event_device_num(
 	int *  kbd ,
 	int *  mouse
 	)
@@ -271,7 +298,7 @@ open_event_device(
 	{
 		kik_msg_printf( "Failed to open %s.\n" , event) ;
 	}
-#if  1
+#if  0
 	else
 	{
 		/* Occupy /dev/input/eventN */
@@ -622,7 +649,9 @@ x_display_open(
 		/* Hide the cursor of linux console. */
 		write( STDIN_FILENO , "\x1b[?25l" , 6) ;
 
-		get_mouse_event_device_num( &kbd_num , &mouse_num) ;
+		set_use_console_backscroll( 0) ;
+
+		get_event_device_num( &kbd_num , &mouse_num) ;
 
 		if( kbd_num == -1 ||
 		    ( _display.fd = open_event_device( kbd_num)) == -1)
@@ -642,6 +671,8 @@ x_display_open(
 			_mouse.y = _disp.height / 2 ;
 			_disp_mouse.display = (Display*)&_mouse ;
 		}
+
+		console_id = get_active_console() ;
 	}
 
 	return  &_disp ;
@@ -679,6 +710,8 @@ x_display_close_all(void)
 
 		munmap( _display.fp , _display.smem_len) ;
 		close( _display.fb_fd) ;
+
+		set_use_console_backscroll( 1) ;
 
 		write( STDIN_FILENO , "\x1b[?25h" , 6) ;
 		tcsetattr( STDIN_FILENO , TCSAFLUSH , &orig_tm) ;
@@ -843,6 +876,11 @@ x_display_receive_next_event(
 
 		if( read( _mouse.fd , &ev , sizeof(ev)) > 0)
 		{
+			if( console_id != get_active_console())
+			{
+				return  0 ;
+			}
+
 			if( ev.type == EV_KEY)
 			{
 				XButtonEvent  xev ;
@@ -1005,6 +1043,11 @@ x_display_receive_next_event(
 
 		if( read( disp->display->fd , &ev , sizeof(ev)) > 0)
 		{
+			if( console_id != get_active_console())
+			{
+				return  0 ;
+			}
+
 			if( ev.type == EV_KEY &&
 			    ev.code < 0x100 /* Key event is less than 0x100 */)
 			{

@@ -3606,6 +3606,10 @@ parse_vt100_escape_sequence(
 				fclose( fp) ;
 				config_protocol_set( vt100_parser , seq , 0) ;
 			}
+			else if( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0)
+			{
+				return  0 ;
+			}
 		}
 	#endif  /* ENABLE_SIXEL */
 		else if(

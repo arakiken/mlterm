@@ -1,3 +1,14 @@
+2012-10-31  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.c:
+	  - set_use_console_backscrolling() is added.
+	  - If the console of mlterm-fb is not active, events from
+	    /dev/input/event* aren't processed.
+	  - ioctl(EVIOCGRAB) to keyboard and mouse device is removed.
+
+	* ml_vt100_parser.c: DCS sequence except DCS q is also parsed and
+	  ignored if sixel is enabled.
+
 2012-10-30  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_window.c: Pixmap size check is added in x_window_copy_area().
