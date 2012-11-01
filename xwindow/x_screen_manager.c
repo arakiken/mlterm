@@ -584,7 +584,6 @@ open_screen_intern(
 		goto  error ;
 	}
 
-#ifndef  USE_FRAMEBUFFER
 	if( main_config.use_scrollbar)
 	{
 		if( ( sb_screen = x_sb_screen_new( screen ,
@@ -602,7 +601,6 @@ open_screen_intern(
 		root = &sb_screen->window ;
 	}
 	else
-#endif
 	{
 		root = &screen->window ;
 	}

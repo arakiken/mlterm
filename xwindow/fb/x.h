@@ -9,6 +9,7 @@
 #if defined (__linux__)
 #include  <linux/fb.h>
 #include  <linux/input.h>
+#include  <stdint.h>		/* XXX */
 #elif defined (__FreeBSD__)
 #include  <osreldate.h>
 #if __FreeBSD_version >= 410000
@@ -19,8 +20,6 @@
 #elif defined (__NetBSD__) || defined (__OpenBSD__)
 #include  <dev/wscons/wsconsio.h>
 #endif
-
-#include  <kiklib/kik_types.h>
 
 
 typedef struct
@@ -68,9 +67,9 @@ typedef int  XIM ;		/* dummy */
 typedef int  XIC ;		/* dummy */
 typedef int  XIMStyle ;		/* dummy */
 
-typedef int  XID ;		/* dummy */
-typedef int  Window ;		/* dummy */
-typedef int  Drawable ;		/* dummy */
+typedef void *  XID ;		/* dummy */
+typedef void *  Window ;		/* dummy */
+typedef void *  Drawable ;		/* dummy */
 
 typedef struct
 {

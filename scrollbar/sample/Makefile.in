@@ -10,6 +10,7 @@ VPATH = ${top_srcdir}/scrollbar/sample
 
 _SAMPLE_OBJ_xlib = x_sample_sb_view.o x_transparent_sample_sb_view.o x_sample_sb_view_lib.o
 _SAMPLE_OBJ_win32 = x_sample_sb_view_win32.o x_sample_sb_view_lib_win32.o
+_SAMPLE_OBJ_fb = x_sample_sb_view_fb.o
 SAMPLE_OBJ = $(_SAMPLE_OBJ_@GUI@)
 
 _SAMPLE2_OBJ_xlib = x_sample2_sb_view.o x_transparent_sample2_sb_view.o x_sample_sb_view_lib.o
@@ -18,6 +19,7 @@ SAMPLE2_OBJ = $(_SAMPLE2_OBJ_@GUI@)
 
 _TARGETS_xlib = libsample.la libsample2.la
 _TARGETS_win32 = libsample.la
+_TARGETS_fb = libsample-fb.la
 TARGETS = $(_TARGETS_@GUI@)
 
 CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ \
@@ -39,8 +41,13 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 .SUFFIXES: .o .c
 
 all: $(TARGETS)
+
 libsample.la: $(SAMPLE_OBJ)
 	$(LIBTOOL_LINK) -o libsample.la $(SAMPLE_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
+
+libsample-fb.la: $(SAMPLE_OBJ)
+	$(LIBTOOL_LINK) -o libsample-fb.la $(SAMPLE_OBJ:.o=.lo) -rpath $(LIBDIR) \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 libsample2.la: $(SAMPLE2_OBJ)
@@ -57,11 +64,11 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGETS) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*sample.* $(LIBDIR)/*sample2.*
+	rm -f $(LIBDIR)/*sample*.*
 
 clean:
 	rm -rf $(SAMPLE_OBJ) $(SAMPLE_OBJ:.o=.lo) $(SAMPLE2_OBJ) $(SAMPLE2_OBJ:.o=.lo) \
-		libsample.la libsample2.la *.core .libs
+		libsample*.la *.core .libs
 
 distclean: clean
 	rm -f Makefile

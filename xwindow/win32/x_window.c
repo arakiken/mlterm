@@ -2483,12 +2483,12 @@ int
 x_window_copy_area(
 	x_window_t *  win ,
 	Pixmap  src ,
-	int  src_x ,
-	int  src_y ,
+	int  src_x ,	/* >= 0 */
+	int  src_y ,	/* >= 0 */
 	u_int  width ,
 	u_int  height ,
-	int  dst_x ,
-	int  dst_y
+	int  dst_x ,	/* >= 0 */
+	int  dst_y	/* >= 0 */
 	)
 {
 	if( dst_x >= win->width || dst_y >= win->height)

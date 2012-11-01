@@ -14,8 +14,10 @@
 #define  MAX_CLICK  3			/* max is triple click */
 
 /* win->width is not multiples of (win)->width_inc in framebuffer. */
-#define  RIGHT_MARGIN(win)  (((win)->width - (win)->min_width) % (win)->width_inc)
-#define  BOTTOM_MARGIN(win)  (((win)->height - (win)->min_height) % (win)->height_inc)
+#define  RIGHT_MARGIN(win) \
+	((win)->width_inc ? ((win)->width - (win)->min_width) % (win)->width_inc : 0)
+#define  BOTTOM_MARGIN(win) \
+	((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
 
 
 /* --- static variables --- */
@@ -38,15 +40,20 @@ scroll_region(
 {
 	u_int  count ;
 
+	if( ! win->is_mapped)
+	{
+		return ;
+	}
+
 	if( src_y <= dst_y)
 	{
 		for( count = height ; count > 0 ; count--)
 		{
 			x_display_copy_line( win->disp->display ,
-				src_x + win->margin ,
-				src_y + win->margin + count - 1 ,
-				dst_x + win->margin ,
-				dst_y + win->margin + count - 1 ,
+				src_x + win->x + win->margin ,
+				src_y + win->y + win->margin + count - 1 ,
+				dst_x + win->x + win->margin ,
+				dst_y + win->y + win->margin + count - 1 ,
 				width) ;
 		}
 	}
@@ -55,10 +62,10 @@ scroll_region(
 		for( count = 0 ; count < height ; count++)
 		{
 			x_display_copy_line( win->disp->display ,
-				src_x + win->margin ,
-				src_y + win->margin + count ,
-				dst_x + win->margin ,
-				dst_y + win->margin + count ,
+				src_x + win->x + win->margin ,
+				src_y + win->y + win->margin + count ,
+				dst_x + win->x + win->margin ,
+				dst_y + win->y + win->margin + count ,
 				width) ;
 		}
 	}
@@ -87,6 +94,11 @@ draw_string(
 	int  y_off ;
 	u_int  bpp ;
 	u_int  count ;
+
+	if( ! win->is_mapped)
+	{
+		return  0 ;
+	}
 
 	bpp = win->disp->display->bytes_per_pixel ;
 
@@ -136,8 +148,8 @@ draw_string(
 		y_off = 0 ;
 	}
 
-	x += win->margin ;
-	y += win->margin ;
+	x += (win->margin + win->x) ;
+	y += (win->margin + win->y) ;
 
 	for( ; y_off < font_height ; y_off++)
 	{
@@ -220,6 +232,68 @@ draw_string(
 }
 
 static int
+copy_area(
+	x_window_t *  win ,
+	Pixmap  src ,
+	int  src_x ,	/* can be minus */
+	int  src_y ,	/* can be minus */
+	u_int  width ,
+	u_int  height ,
+	int  dst_x ,	/* can be minus */
+	int  dst_y ,	/* can be minus */
+	int  accept_margin	/* x/y can be minus or not */
+	)
+{
+	int  margin ;
+	int  right_margin ;
+	int  bottom_margin ;
+	size_t  size ;
+	int  y_off ;
+	u_int  bpp ;
+
+	if( dst_x >= (int)win->width || dst_y >= (int)win->height)
+	{
+		return  0 ;
+	}
+
+	if( accept_margin)
+	{
+		margin = win->margin ;
+		right_margin = bottom_margin = 0 ;
+	}
+	else
+	{
+		margin = 0 ;
+		right_margin = RIGHT_MARGIN(win) ;
+		bottom_margin = BOTTOM_MARGIN(win) ;
+	}
+
+	if( dst_x + width > win->width + margin - right_margin)
+	{
+		width = win->width + margin - right_margin - dst_x ;
+	}
+
+	if( dst_y + height > win->height + margin - bottom_margin)
+	{
+		height = win->height + margin - bottom_margin - dst_y ;
+	}
+
+	size = width * (bpp = win->disp->display->bytes_per_pixel) ;
+
+	for( y_off = 0 ; y_off < height ; y_off++)
+	{
+		x_display_put_image( win->disp->display ,
+			win->x + win->margin + dst_x ,
+			win->y + win->margin + dst_y + y_off ,
+			src->image + bpp * ((margin + src_y + y_off) * src->width +
+						margin + src_x) ,
+			size) ;
+	}
+
+	return  1 ;
+}
+
+static int
 clear_margin_area(
 	x_window_t *  win
 	)
@@ -230,7 +304,7 @@ clear_margin_area(
 	right_margin = RIGHT_MARGIN(win) ;
 	bottom_margin = BOTTOM_MARGIN(win) ;
 
-	if( win->margin > 0)
+	if( win->margin | right_margin | bottom_margin)
 	{
 		x_window_clear( win , -(win->margin) , -(win->margin) ,
 			win->margin , ACTUAL_HEIGHT(win)) ;
@@ -239,6 +313,29 @@ clear_margin_area(
 			win->margin + right_margin , ACTUAL_HEIGHT(win)) ;
 		x_window_clear( win , 0 , win->height - bottom_margin ,
 			win->width , win->margin + bottom_margin) ;
+	}
+
+	/* XXX */
+	if( win->num_of_children == 2 &&
+	    ACTUAL_HEIGHT(win->children[0]) == ACTUAL_HEIGHT(win->children[1]) )
+	{
+		if( win->children[0]->x + ACTUAL_WIDTH(win->children[0]) <= win->children[1]->x)
+		{
+			x_window_clear( win ,
+				win->children[0]->x + ACTUAL_WIDTH(win->children[0]) , 0 ,
+				win->children[1]->x - win->children[0]->x -
+					ACTUAL_WIDTH(win->children[0]) ,
+				win->height) ;
+		}
+		else if( win->children[0]->x >=
+			win->children[1]->x + ACTUAL_WIDTH(win->children[1]))
+		{
+			x_window_clear( win ,
+				win->children[1]->x + ACTUAL_WIDTH(win->children[1]) , 0 ,
+				win->children[0]->x - win->children[1]->x -
+					ACTUAL_WIDTH(win->children[1]) ,
+				win->height) ;
+		}
 	}
 
 	return  1 ;
@@ -366,7 +463,6 @@ x_window_set_wall_picture(
 
 	if( win->window_exposed)
 	{
-		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -375,6 +471,8 @@ x_window_set_wall_picture(
 		x_window_clear_all( win) ;
 	}
 #endif
+
+	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -389,7 +487,6 @@ x_window_unset_wall_picture(
 
 	if( win->window_exposed)
 	{
-		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -398,6 +495,8 @@ x_window_unset_wall_picture(
 		x_window_clear_all( win) ;
 	}
 #endif
+
+	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -464,6 +563,12 @@ x_window_add_child(
 	)
 {
 	void *  p ;
+
+	if( win->parent)
+	{
+		/* Can't add a grand child window. */
+		return  0 ;
+	}
 
 	if( ( p = realloc( win->children , sizeof( *win->children) * (win->num_of_children + 1)))
 		== NULL)
@@ -539,7 +644,7 @@ x_window_show(
 		win->gc = win->parent->gc ;
 	}
 
-	win->my_window = 1 ;	/* dummy */
+	win->my_window = win ;	/* dummy */
 
 	/*
 	 * This should be called after Window Manager settings, because
@@ -550,10 +655,6 @@ x_window_show(
 		(*win->window_realized)( win) ;
 	}
 
-	x_window_resize_with_margin( win , win->disp->width ,
-		win->disp->height , NOTIFY_TO_MYSELF) ;
-	clear_margin_area( win) ;
-
 	/*
 	 * showing child windows.
 	 */
@@ -561,6 +662,12 @@ x_window_show(
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		x_window_show( win->children[count] , 0) ;
+	}
+
+	if( ! win->parent)
+	{
+		x_window_resize_with_margin( win , win->disp->width ,
+			win->disp->height , NOTIFY_TO_MYSELF) ;
 	}
 
 	return  1 ;
@@ -571,6 +678,22 @@ x_window_map(
 	x_window_t *  win
 	)
 {
+	if( ! win->is_mapped)
+	{
+		win->is_mapped = 1 ;
+
+		/*
+		 * XXX
+		 * For the case of scrollbar_mode being changed from right/left to none
+		 * or vise versa.
+		 * See x_sb_screen.c:change_sb_mode().
+		 */
+		win = x_get_root_window( win) ;
+		win->width = 0 ;	/* XXX hack to skip the check of width/height change. */
+		x_window_resize_with_margin( win , win->disp->width ,
+			win->disp->height , NOTIFY_TO_MYSELF) ;
+	}
+
 	return  1 ;
 }
 
@@ -579,6 +702,22 @@ x_window_unmap(
 	x_window_t *  win
 	)
 {
+	if( win->is_mapped)
+	{
+		win->is_mapped = 0 ;
+
+		/*
+		 * XXX
+		 * For the case of scrollbar_mode being changed from right/left to none
+		 * or vise versa.
+		 * See x_sb_screen.c:change_sb_mode().
+		 */
+		win = x_get_root_window( win) ;
+		win->width = 0 ;	/* XXX hack to skip the check of width/height change. */
+		x_window_resize_with_margin( win , win->disp->width ,
+			win->disp->height , NOTIFY_TO_MYSELF) ;
+	}
+
 	return  1 ;
 }
 
@@ -590,23 +729,32 @@ x_window_resize(
 	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
+	if( width + win->margin * 2 > win->disp->width)
+	{
+		width = win->disp->width - win->margin * 2 ;
+	}
+
+	if( height + win->margin * 2 > win->disp->height)
+	{
+		height = win->disp->height - win->margin * 2 ;
+	}
+
 	if( win->width == width && win->height == height)
 	{
 		return  0 ;
 	}
 
-#if  0
 	win->width = width ;
 	win->height = height ;
-#else
-	/* Forcibly set the same size of the screen. */
-	win->width = win->disp->width - win->margin * 2 ;
-	win->height = win->disp->height - win->margin * 2 ;
-#endif
 
-	if( ( flag & NOTIFY_TO_MYSELF) && win->window_resized)
+	if( flag & NOTIFY_TO_MYSELF)
 	{
-		(*win->window_resized)( win) ;
+		if( win->window_resized)
+		{
+			(*win->window_resized)( win) ;
+		}
+
+		clear_margin_area( win) ;
 	}
 
 	return  1 ;
@@ -667,6 +815,25 @@ x_window_move(
 	int  y
 	)
 {
+	win->x = x ;
+	win->y = y ;
+
+	if( win->window_exposed)
+	{
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+#if  0
+	else
+	{
+		x_window_clear_all( win) ;
+	}
+#endif
+
+	clear_margin_area( win) ;
+
+	/* XXX */
+	clear_margin_area( win->parent) ;
+
 	return  1 ;
 }
 
@@ -685,9 +852,8 @@ x_window_clear(
 	}
 	else
 	{
-		return  x_window_copy_area( win , win->wall_picture ,
-				x + win->margin , y + win->margin ,
-				width , height , x , y) ;
+		return  copy_area( win , win->wall_picture ,
+				x , y , width , height , x , y , 1) ;
 	}
 
 	return  1 ;
@@ -730,6 +896,11 @@ x_window_fill_with(
 	int  y_off ;
 	u_int  bpp ;
 
+	if( ! win->is_mapped)
+	{
+		return  0 ;
+	}
+
 	bpp = win->disp->display->bytes_per_pixel ;
 
 	if( ! ( p = src = alloca( ( size = width * bpp))))
@@ -757,8 +928,8 @@ x_window_fill_with(
 			p += bpp ;
 		}
 
-		x_display_put_image( win->disp->display , win->margin + x ,
-			win->margin + y + y_off , src , size) ;
+		x_display_put_image( win->disp->display , win->x + win->margin + x ,
+			win->y + win->margin + y + y_off , src , size) ;
 
 		p = src ;
 	}
@@ -1119,50 +1290,15 @@ int
 x_window_copy_area(
 	x_window_t *  win ,
 	Pixmap  src ,
-	int  src_x ,
-	int  src_y ,
+	int  src_x ,	/* >= 0 */
+	int  src_y ,	/* >= 0 */
 	u_int  width ,
 	u_int  height ,
-	int  dst_x ,
-	int  dst_y
+	int  dst_x ,	/* >= 0 */
+	int  dst_y	/* >= 0 */
 	)
 {
-	u_int  max_width ;
-	u_int  max_height ;
-	size_t  size ;
-	int  y_off ;
-	u_int  bpp ;
-
-	max_width = win->width - RIGHT_MARGIN(win) ;
-	max_height = win->height - BOTTOM_MARGIN(win) ;
-
-	if( dst_x >= max_width || dst_y >= max_height)
-	{
-		return  0 ;
-	}
-
-	if( dst_x + width > max_width)
-	{
-		width = max_width - dst_x ;
-	}
-
-	if( dst_y + height > max_height)
-	{
-		height = max_height - dst_y ;
-	}
-
-	size = width * (bpp = win->disp->display->bytes_per_pixel) ;
-
-	for( y_off = 0 ; y_off < height ; y_off++)
-	{
-		x_display_put_image( win->disp->display ,
-			win->margin + dst_x ,
-			win->margin + dst_y + y_off ,
-			src->image + bpp * ((src_y + y_off) * src->width + src_x) ,
-			size) ;
-	}
-
-	return  1 ;
+	return  copy_area( win , src , src_x , src_y , width , height , dst_x , dst_y , 0) ;
 }
 
 int

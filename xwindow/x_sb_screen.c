@@ -549,19 +549,26 @@ sb_mode(
 static void
 change_sb_mode(
 	void *  p ,
-	x_sb_mode_t  mode
+	x_sb_mode_t  new_mode
 	)
 {
 	x_sb_screen_t *  sb_screen  ;
+	x_sb_mode_t  old_mode ;
 
 	sb_screen = p ;
 	
-	if( sb_screen->sb_mode == mode)
+	if( (old_mode = sb_screen->sb_mode) == new_mode)
 	{
 		return ;
 	}
-	
-	if( mode == SBM_NONE)
+
+	/*
+	 * sb_screen->sb_mode should be changed before x_window_unmap/x_window_map
+	 * for framebuffer. (see fb/x_window.c)
+	 */
+	sb_screen->sb_mode = new_mode ;
+
+	if( new_mode == SBM_NONE)
 	{
 		x_window_unmap( &sb_screen->scrollbar.window) ;
 	
@@ -576,7 +583,7 @@ change_sb_mode(
 	}
 	else
 	{
-		if( sb_screen->sb_mode == SBM_NONE)
+		if( old_mode == SBM_NONE)
 		{
 			x_window_map( &sb_screen->scrollbar.window) ;
 			
@@ -592,7 +599,7 @@ change_sb_mode(
 				SEPARATOR_WIDTH , sb_screen->window.min_height , 0 , 0) ;
 		}
 		
-		if( mode == SBM_LEFT)
+		if( new_mode == SBM_LEFT)
 		{
 			move_term_screen( sb_screen , 1) ;
 			move_scrollbar( sb_screen , 0) ;
@@ -603,8 +610,6 @@ change_sb_mode(
 			move_scrollbar( sb_screen , 1) ;
 		}
 	}
-
-	sb_screen->sb_mode = mode ;
 }
 
 static void

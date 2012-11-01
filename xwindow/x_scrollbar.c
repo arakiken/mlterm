@@ -12,12 +12,6 @@
 #include  "x_sb_view_factory.h"
 
 
-#if  0
-#define  __DEBUG
-#endif
-
-
-
 #define  HEIGHT_MARGIN(sb)  ((sb)->top_margin + (sb)->bottom_margin)
 #define  IS_TOO_SMALL(sb)  ((sb)->window.height <= HEIGHT_MARGIN(sb))
 
@@ -28,6 +22,10 @@
 	(sb)->window.height - HEIGHT_MARGIN(sb))
 #else
 #define  MAX_BAR_HEIGHT(sb)  ((sb)->window.height - HEIGHT_MARGIN(sb))
+#endif
+
+#if  0
+#define  __DEBUG
 #endif
 
 
@@ -824,7 +822,7 @@ x_scrollbar_init(
 
 	if( use_transbg)
 	{
-		if( ( sb->view = x_transparent_scrollbar_view_new( sb->view_name)))
+		if( ( sb->view = x_transparent_sb_view_new( sb->view_name)))
 		{
 			goto  view_created ;
 		}
@@ -841,7 +839,7 @@ x_scrollbar_init(
 
 		if( use_transbg)
 		{
-			if( ( sb->view = x_transparent_scrollbar_view_new( sb->view_name)))
+			if( ( sb->view = x_transparent_sb_view_new( sb->view_name)))
 			{
 				goto  view_created ;
 			}
@@ -1253,7 +1251,7 @@ x_scrollbar_change_view(
 
 	if( sb->window.is_transparent)
 	{
-		if( ( view = x_transparent_scrollbar_view_new( name)) == NULL)
+		if( ( view = x_transparent_sb_view_new( name)) == NULL)
 		{
 			/* nothing is done */
 
@@ -1326,7 +1324,7 @@ x_scrollbar_set_transparent(
 		return  1 ;
 	}
 
-	if( ( view = x_transparent_scrollbar_view_new( sb->view_name)) == NULL)
+	if( ( view = x_transparent_sb_view_new( sb->view_name)) == NULL)
 	{
 		/* nothing is done */
 		

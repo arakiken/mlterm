@@ -41,5 +41,4 @@ Framebuffer support on Linux
   o ssh2 client
   o Daemon mode
   o mlclient (mlclientx is avaialble, though)
-  o Scrollbar plugin
   o Input method plugin

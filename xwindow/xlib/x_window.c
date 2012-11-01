@@ -377,6 +377,7 @@ notify_configure_to_children(
 	#if  0
 		else
 		{
+			clear_margin_area( win) ;
 			x_window_clear_all( win) ;
 		}
 	#endif
@@ -1091,7 +1092,6 @@ x_window_set_wall_picture(
 
 	if( win->window_exposed)
 	{
-		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -1100,6 +1100,8 @@ x_window_set_wall_picture(
 		x_window_clear_all( win) ;
 	}
 #endif
+
+	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -1145,7 +1147,6 @@ x_window_unset_wall_picture(
 
 	if( win->window_exposed)
 	{
-		clear_margin_area( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #if  0
@@ -1154,6 +1155,8 @@ x_window_unset_wall_picture(
 		x_window_clear_all( win) ;
 	}
 #endif
+
+	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -1216,7 +1219,6 @@ x_window_unset_transparent(
 
 		if( win->window_exposed)
 		{
-			clear_margin_area( win) ;
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	#if  0
@@ -1225,6 +1227,8 @@ x_window_unset_transparent(
 			x_window_clear_all( win) ;
 		}
 	#endif
+
+		clear_margin_area( win) ;
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -2424,11 +2428,6 @@ x_window_receive_event(
 
 		if( win->window_exposed)
 		{
-			if( margin_area_exposed)
-			{
-				clear_margin_area( win) ;
-			}
-
 			(*win->window_exposed)( win , x , y , width , height) ;
 		}
 	#if  0
@@ -2437,6 +2436,11 @@ x_window_receive_event(
 			x_window_clear_all( win) ;
 		}
 	#endif
+
+		if( margin_area_exposed)
+		{
+			clear_margin_area( win) ;
+		}
 
 	#if  0
 		if( event->type == GraphicsExpose)
@@ -3028,12 +3032,12 @@ int
 x_window_copy_area(
 	x_window_t *  win ,
 	Pixmap  src ,
-	int  src_x ,
-	int  src_y ,
+	int  src_x ,	/* >= 0 */
+	int  src_y ,	/* >= 0 */
 	u_int  width ,
 	u_int  height ,
-	int  dst_x ,
-	int  dst_y
+	int  dst_x ,	/* >= 0 */
+	int  dst_y	/* >= 0 */
 	)
 {
 	if( dst_x >= win->width || dst_y >= win->height)

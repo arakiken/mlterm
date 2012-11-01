@@ -1,3 +1,14 @@
+2012-11-02  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.fb, doc/en/README.fb: Updated.
+
+	* fb/x.h, fb/x_display, fb/x_simple_sb_view.c, fb/x_window.c,
+	  x_screen_manager.c, x_scrollbar.c, x_sample_sb_view_fb.c,
+	  x_sb_view_factory.c, configure.in, dexport-fb.map:
+	  simple and sample scrollbars are supported in framebuffer.
+
+	* win32/x_xic.c: Typo is fixed.
+
 2012-10-31  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.c:

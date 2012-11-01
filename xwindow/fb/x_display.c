@@ -33,10 +33,10 @@
 #define  BYTE_COLOR_TO_WORD(color)  ((color) << 8 | (color))
 
 /* Parameters of cursor_shape */
-#define  CURSOR_WIDTH   5
-#define  CURSOR_X_OFF   -2
-#define  CURSOR_HEIGHT  13
-#define  CURSOR_Y_OFF   -6
+#define  CURSOR_WIDTH   7
+#define  CURSOR_X_OFF   -3
+#define  CURSOR_HEIGHT  15
+#define  CURSOR_Y_OFF   -7
 
 #if  0
 #define  READ_CTRL_KEYMAP
@@ -88,19 +88,21 @@ static struct termios  orig_tm ;
 
 static char *  cursor_shape =
 {
-	"*****"
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"  *  "
-	"*****"
+	"#######"
+	"#*****#"
+	"###*###"
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"###*###"
+	"#*****#"
+	"#######"
 } ;
 
 
@@ -383,6 +385,21 @@ get_window(
 	int  y		/* Y in display */
 	)
 {
+	x_window_t *  win ;
+	u_int  count ;
+
+	for( count = 0 ; count < _disp.roots[0]->num_of_children ; count++)
+	{
+		if( ( win = _disp.roots[0]->children[count])->is_mapped)
+		{
+			if( win->x <= x && x < win->x + ACTUAL_WIDTH(win) &&
+			    win->y <= y && y < win->y + ACTUAL_HEIGHT(win))
+			{
+				return  win ;
+			}
+		}
+	}
+
 	return  _disp.roots[0] ;
 }
 
@@ -464,8 +481,8 @@ restore_hidden_region(void)
 		if( win->window_exposed)
 		{
 			(*win->window_exposed)( win ,
-				_mouse.cursor.x - win->margin ,
-				_mouse.cursor.y - win->margin ,
+				_mouse.cursor.x - win->x - win->margin ,
+				_mouse.cursor.y - win->y - win->margin ,
 				_mouse.cursor.width ,
 				_mouse.cursor.height) ;
 		}
@@ -498,6 +515,7 @@ draw_mouse_cursor_line(
 {
 	u_char *  fb ;
 	x_window_t *  win ;
+	char  cell ;
 	u_char  image[CURSOR_WIDTH * sizeof(u_int32_t)] ;
 	int  x ;
 
@@ -507,7 +525,8 @@ draw_mouse_cursor_line(
 
 	for( x = 0 ; x < _mouse.cursor.width ; x++)
 	{
-		if( cursor_shape[(_mouse.cursor.y_off + y) * CURSOR_WIDTH + _mouse.cursor.x_off + x] == '*')
+		if( ( cell = cursor_shape[(_mouse.cursor.y_off + y) * CURSOR_WIDTH +
+					_mouse.cursor.x_off + x]) == '*')
 		{
 			switch( _display.bytes_per_pixel)
 			{
@@ -521,6 +540,23 @@ draw_mouse_cursor_line(
 
 			case  4:
 				((u_int32_t*)image)[x] = win->fg_color.pixel ;
+				break ;
+			}
+		}
+		else if( cell == '#')
+		{
+			switch( _display.bytes_per_pixel)
+			{
+			case  1:
+				image[x] = win->bg_color.pixel ;
+				break ;
+
+			case  2:
+				((u_int16_t*)image)[x] = win->bg_color.pixel ;
+				break ;
+
+			case  4:
+				((u_int32_t*)image)[x] = win->bg_color.pixel ;
 				break ;
 			}
 		}
@@ -829,7 +865,10 @@ x_display_remove_root(
 	{
 		if( disp->roots[count] == root)
 		{
+			/* XXX x_window_unmap resize all windows internally. */
+		#if  0
 			x_window_unmap( root) ;
+		#endif
 			x_window_final( root) ;
 
 			disp->num_of_roots -- ;
@@ -884,6 +923,7 @@ x_display_receive_next_event(
 			if( ev.type == EV_KEY)
 			{
 				XButtonEvent  xev ;
+				x_window_t *  win ;
 
 				if( ev.code == BTN_LEFT)
 				{
@@ -948,11 +988,16 @@ x_display_receive_next_event(
 					xev.x , xev.y , xev.button , xev.time) ;
 			#endif
 
-				x_window_receive_event( get_window( xev.x , xev.y) , &xev) ;
+				win = get_window( xev.x , xev.y) ;
+				xev.x -= win->x ;
+				xev.y -= win->y ;
+
+				x_window_receive_event( win , &xev) ;
 			}
 			else if( ev.type == EV_REL)
 			{
 				XMotionEvent  xev ;
+				x_window_t *  win ;
 
 				if( ev.code == REL_X)
 				{
@@ -1014,7 +1059,11 @@ x_display_receive_next_event(
 					xev.type , xev.x , xev.y , xev.state , xev.time) ;
 			#endif
 
-				x_window_receive_event( get_window( xev.x , xev.y) , &xev) ;
+				win = get_window( xev.x , xev.y) ;
+				xev.x -= win->x ;
+				xev.y -= win->y ;
+
+				x_window_receive_event( win , &xev) ;
 
 				save_hidden_region() ;
 				draw_mouse_cursor() ;

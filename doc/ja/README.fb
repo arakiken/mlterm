@@ -28,7 +28,7 @@ Framebuffer on Linux 対応に関するメモ
     (etc/font-fb がサンプルです。)
 
 * 起動方法
-  mlterm-fb (-fg white -bg black)
+  mlterm-fb (-fg white -bg black -sb=false)
 
 * 留意事項
   o キーボードに対応する /dev/input/event* が存在しない、又はアクセスする権限
@@ -44,6 +44,7 @@ Framebuffer on Linux 対応に関するメモ
   o 画面のマージン領域にゴミが残る場合は、
     $ mlcc wall_picture ""
     とすると消えます。
+  o 使用可能なスクロールバーは、simpleとsampleのみです。
 
 * 使えない機能
   o 2/4 bpp
@@ -52,5 +53,4 @@ Framebuffer on Linux 対応に関するメモ
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o Daemon mode
   o mlclient (mlclientxは使えます。)
-  o Scrollbar plugin
   o Input method plugin

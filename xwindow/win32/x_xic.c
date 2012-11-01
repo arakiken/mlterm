@@ -247,7 +247,7 @@ x_xic_get_str(
 #endif
 
 	/* wparam doesn't tell upper case from lower case. */
-	if( 'a' <= event->ch && event->ch <= 'z')
+	if( 'A' <= event->ch && event->ch <= 'Z')
 	{
 		/* Upper to Lower case */
 		*keysym += 0x20 ;

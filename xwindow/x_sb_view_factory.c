@@ -313,8 +313,20 @@ dlsym_sb_view_new_func(
 	char *  symbol ;
 	u_int  len ;
 
-	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL &&
-		( handle = kik_dl_open( "" , name)) == NULL)
+#ifdef  USE_FRAMEBUFFER
+	char *  p ;
+
+	if( ! ( p = alloca( strlen(name) + 3 + 1)))
+	{
+		return  NULL ;
+	}
+
+	sprintf( p , "%s-fb" , name) ;
+
+	if( ! ( handle = kik_dl_open( SBLIB_DIR , p)) && ! ( handle = kik_dl_open( "" , p)))
+#else
+	if( ! ( handle = kik_dl_open( SBLIB_DIR , name)) && ! ( handle = kik_dl_open( "" , name)))
+#endif
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " kik_dl_open(%s) failed.\n" , name) ;
@@ -383,8 +395,20 @@ dlsym_sb_engine_new_func(
 	char *  symbol ;
 	u_int  len ;
 
-	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL &&
-		( handle = kik_dl_open( "" , name)) == NULL)
+#ifdef  USE_FRAMEBUFFER
+	char *  p ;
+
+	if( ! ( p = alloca( strlen(name) + 3 + 1)))
+	{
+		return  NULL ;
+	}
+
+	sprintf( p , "%s-fb" , name) ;
+
+	if( ! ( handle = kik_dl_open( SBLIB_DIR , name)) && ! ( handle = kik_dl_open( "" , name)))
+#else
+	if( ! ( handle = kik_dl_open( SBLIB_DIR , name)) && ! ( handle = kik_dl_open( "" , name)))
+#endif
 	{
 		return  NULL ;
 	}
@@ -685,7 +709,7 @@ x_sb_view_new(
 }
 
 x_sb_view_t *
-x_transparent_scrollbar_view_new(
+x_transparent_sb_view_new(
 	char *  name
 	)
 {
