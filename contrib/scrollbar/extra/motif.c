@@ -127,187 +127,6 @@ delete(
 	}
 }
 
-static void
-draw_button(
-	x_sb_view_t *  view ,
-	char **  data ,
-	unsigned int offset_y
-	)
-{
-	motif_sb_view_t *  motif_sb ;
-	char  cur = '\0' ;
-	int  x ;
-	int  y ;
-	GC gc = NULL ;
-	XPoint xpoint [BUTTON_SIZE * BUTTON_SIZE] ;
-	int i = 0 ;
-
-	motif_sb = (motif_sb_view_t*) view ;
-
-	for( y = 0 ; y < BUTTON_SIZE ; y ++)
-	{
-		for( x = 0 ; x < BUTTON_SIZE ; x ++)
-		{
-			if( cur != data[y][x])
-			{
-				if ( i )
-				{
-					/* before setting gc,
-					                 draw stocked points */
-					XDrawPoints( view->display ,
-						     view->window ,
-						     gc , xpoint , i ,
-						     CoordModeOrigin) ;
-					i = 0 ;
-				}
-
-				/* changing gc */
-				if( data[y][x] == '.')
-				{
-					XSetForeground( view->display ,
-						motif_sb->gc ,
-						motif_sb->fg_lighter_color) ;
-					gc = motif_sb->gc ;
-				}
-				else if( data[y][x] == '#')
-				{
-					XSetForeground( view->display ,
-						motif_sb->gc ,
-						motif_sb->fg_darker_color) ;
-					gc = motif_sb->gc ;
-				}
-				else if( data[y][x] == ':')
-				{
-					if (motif_sb->is_transparent)
-					{
-						continue ;
-					}
-					gc = view->gc ;
-				}
-				else if( data[y][x] == ' ')
-				{
-					continue ;
-				}
-
-				cur = data[y][x] ;
-			}
-
-			/* stocking point */
-			xpoint[i].x = x + 2 ;
-			xpoint[i].y = y + offset_y ;
-			i ++ ;
-		}
-
-	}
-
-	if ( i)
-	{
-		XDrawPoints( view->display , view->window , gc ,
-			xpoint , i , CoordModeOrigin) ;
-	}
-
-}
-
-static void
-draw_arrow_up_icon(
-	x_sb_view_t *  view ,
-	int  is_pressed
-	)
-{
-	motif_sb_view_t *  motif_sb ;
-	char **  src ;
-	XSegment line[4] ;
-
-	motif_sb = (motif_sb_view_t*) view ;
-
-	if( is_pressed)
-	{
-		src = arrow_up_pressed_src ;
-	}
-	else
-	{
-		src = arrow_up_src ;
-	}
-
-	XClearArea( view->display , view->window ,
-		0 , 0 ,
-		V_MARGIN , V_MARGIN , 0) ;
-
-	draw_button( view , src , 2) ;
-
-	XSetForeground( view->display , motif_sb->gc ,
-			motif_sb->bg_darker_color) ;
-	line[0].x1 =  0 ; line[0].y1 =  0 ;
-	line[0].x2 = 14 ; line[0].y2 =  0 ;
-	line[1].x1 =  0 ; line[1].y1 =  1 ;
-	line[1].x2 = 13 ; line[1].y2 =  1 ;
-	line[2].x1 =  0 ; line[2].y1 =  2 ;
-	line[2].x2 =  0 ; line[2].y2 = 13 ;
-	line[3].x1 =  1 ; line[3].y1 =  2 ;
-	line[3].x2 =  1 ; line[3].y2 = 13 ;
-	XDrawSegments( view->display , view->window , motif_sb->gc ,
-			line , 4 ) ;
-
-	XSetForeground( view->display , motif_sb->gc ,
-			motif_sb->bg_lighter_color) ;
-	line[0].x1 = 13 ; line[0].y1 =  2 ;
-	line[0].x2 = 13 ; line[0].y2 = 13 ;
-	line[1].x1 = 14 ; line[1].y1 =  1 ;
-	line[1].x2 = 14 ; line[1].y2 = 13 ;
-	XDrawSegments( view->display , view->window , motif_sb->gc ,
-			line , 2 ) ;
-}
-
-static void
-draw_arrow_down_icon(
-	x_sb_view_t *  view ,
-	int  is_pressed
-	)
-{
-	motif_sb_view_t *  motif_sb ;
-	char **  src ;
-	XSegment line[4] ;
-
-	motif_sb = (motif_sb_view_t*) view ;
-
-	if( is_pressed)
-	{
-		src = arrow_down_pressed_src ;
-	}
-	else
-	{
-		src = arrow_down_src ;
-	}
-
-	XClearArea( view->display , view->window ,
-		0 , view->height - V_MARGIN ,
-		V_MARGIN , V_MARGIN , 0) ;
-
-	draw_button( view , src , view->height - BUTTON_SIZE - 2 ) ;
-
-	XSetForeground( view->display , motif_sb->gc ,
-			motif_sb->bg_darker_color) ;
-	line[0].x1 =  0 ; line[0].y1 =  view->height - V_MARGIN ;
-	line[0].x2 =  0 ; line[0].y2 =  view->height - 1 ;
-	line[1].x1 =  1 ; line[1].y1 =  view->height - V_MARGIN ;
-	line[1].x2 =  1 ; line[1].y2 =  view->height - 2 ;
-	XDrawSegments( view->display , view->window , motif_sb->gc ,
-			line , 2 ) ;
-
-	XSetForeground( view->display , motif_sb->gc ,
-			motif_sb->bg_lighter_color) ;
-	line[0].x1 = 13 ; line[0].y1 =  view->height - V_MARGIN ;
-	line[0].x2 = 13 ; line[0].y2 =  view->height - 1 ;
-	line[1].x1 = 14 ; line[1].y1 =  view->height - V_MARGIN ;
-	line[1].x2 = 14 ; line[1].y2 =  view->height - 1 ;
-	line[2].x1 =  2 ; line[2].y1 =  view->height - 2 ;
-	line[2].x2 = 12 ; line[2].y2 =  view->height - 2 ;
-	line[3].x1 =  1 ; line[3].y1 =  view->height - 1 ;
-	line[3].x2 = 12 ; line[3].y2 =  view->height - 1 ;
-	XDrawSegments( view->display , view->window , motif_sb->gc ,
-			line , 4 ) ;
-}
-
 static unsigned short
 adjust_rgb(
 	unsigned short v ,
@@ -330,8 +149,9 @@ adjust_rgb(
 }
 
 static void
-update_color(
-	x_sb_view_t *  view
+color_changed(
+	x_sb_view_t *  view ,
+	int  is_fg
 	)
 {
 	motif_sb_view_t *  motif_sb ;
@@ -415,13 +235,184 @@ update_color(
 }
 
 static void
-draw_decoration(
-	x_sb_view_t *  view
+draw_button(
+	x_sb_view_t *  view ,
+	char **  data ,
+	unsigned int offset_y
 	)
 {
-	update_color( view) ;
-	draw_arrow_up_icon( view , 0) ;
-	draw_arrow_down_icon( view , 0) ;
+	motif_sb_view_t *  motif_sb ;
+	char  cur = '\0' ;
+	int  x ;
+	int  y ;
+	GC gc = NULL ;
+	XPoint xpoint [BUTTON_SIZE * BUTTON_SIZE] ;
+	int i = 0 ;
+
+	motif_sb = (motif_sb_view_t*) view ;
+
+	for( y = 0 ; y < BUTTON_SIZE ; y ++)
+	{
+		for( x = 0 ; x < BUTTON_SIZE ; x ++)
+		{
+			if( cur != data[y][x])
+			{
+				if ( i )
+				{
+					/* before setting gc,
+					                 draw stocked points */
+					XDrawPoints( view->display ,
+						     view->window ,
+						     gc , xpoint , i ,
+						     CoordModeOrigin) ;
+					i = 0 ;
+				}
+
+				/* changing gc */
+				if( data[y][x] == '.')
+				{
+					XSetForeground( view->display ,
+						motif_sb->gc ,
+						motif_sb->fg_lighter_color) ;
+					gc = motif_sb->gc ;
+				}
+				else if( data[y][x] == '#')
+				{
+					XSetForeground( view->display ,
+						motif_sb->gc ,
+						motif_sb->fg_darker_color) ;
+					gc = motif_sb->gc ;
+				}
+				else if( data[y][x] == ':')
+				{
+					if (motif_sb->is_transparent)
+					{
+						continue ;
+					}
+					gc = view->gc ;
+				}
+				else if( data[y][x] == ' ')
+				{
+					continue ;
+				}
+
+				cur = data[y][x] ;
+			}
+
+			/* stocking point */
+			xpoint[i].x = x + 2 ;
+			xpoint[i].y = y + offset_y ;
+			i ++ ;
+		}
+
+	}
+
+	if ( i)
+	{
+		XDrawPoints( view->display , view->window , gc ,
+			xpoint , i , CoordModeOrigin) ;
+	}
+
+}
+
+static void
+draw_up_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
+	)
+{
+	motif_sb_view_t *  motif_sb ;
+	char **  src ;
+	XSegment line[4] ;
+
+	motif_sb = (motif_sb_view_t*) view ;
+
+	if( is_pressed)
+	{
+		src = arrow_up_pressed_src ;
+	}
+	else
+	{
+		src = arrow_up_src ;
+	}
+
+	XClearArea( view->display , view->window ,
+		0 , 0 ,
+		V_MARGIN , V_MARGIN , 0) ;
+
+	draw_button( view , src , 2) ;
+
+	XSetForeground( view->display , motif_sb->gc ,
+			motif_sb->bg_darker_color) ;
+	line[0].x1 =  0 ; line[0].y1 =  0 ;
+	line[0].x2 = 14 ; line[0].y2 =  0 ;
+	line[1].x1 =  0 ; line[1].y1 =  1 ;
+	line[1].x2 = 13 ; line[1].y2 =  1 ;
+	line[2].x1 =  0 ; line[2].y1 =  2 ;
+	line[2].x2 =  0 ; line[2].y2 = 13 ;
+	line[3].x1 =  1 ; line[3].y1 =  2 ;
+	line[3].x2 =  1 ; line[3].y2 = 13 ;
+	XDrawSegments( view->display , view->window , motif_sb->gc ,
+			line , 4 ) ;
+
+	XSetForeground( view->display , motif_sb->gc ,
+			motif_sb->bg_lighter_color) ;
+	line[0].x1 = 13 ; line[0].y1 =  2 ;
+	line[0].x2 = 13 ; line[0].y2 = 13 ;
+	line[1].x1 = 14 ; line[1].y1 =  1 ;
+	line[1].x2 = 14 ; line[1].y2 = 13 ;
+	XDrawSegments( view->display , view->window , motif_sb->gc ,
+			line , 2 ) ;
+}
+
+static void
+draw_down_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
+	)
+{
+	motif_sb_view_t *  motif_sb ;
+	char **  src ;
+	XSegment line[4] ;
+
+	motif_sb = (motif_sb_view_t*) view ;
+
+	if( is_pressed)
+	{
+		src = arrow_down_pressed_src ;
+	}
+	else
+	{
+		src = arrow_down_src ;
+	}
+
+	XClearArea( view->display , view->window ,
+		0 , view->height - V_MARGIN ,
+		V_MARGIN , V_MARGIN , 0) ;
+
+	draw_button( view , src , view->height - BUTTON_SIZE - 2 ) ;
+
+	XSetForeground( view->display , motif_sb->gc ,
+			motif_sb->bg_darker_color) ;
+	line[0].x1 =  0 ; line[0].y1 =  view->height - V_MARGIN ;
+	line[0].x2 =  0 ; line[0].y2 =  view->height - 1 ;
+	line[1].x1 =  1 ; line[1].y1 =  view->height - V_MARGIN ;
+	line[1].x2 =  1 ; line[1].y2 =  view->height - 2 ;
+	XDrawSegments( view->display , view->window , motif_sb->gc ,
+			line , 2 ) ;
+
+	XSetForeground( view->display , motif_sb->gc ,
+			motif_sb->bg_lighter_color) ;
+	line[0].x1 = 13 ; line[0].y1 =  view->height - V_MARGIN ;
+	line[0].x2 = 13 ; line[0].y2 =  view->height - 1 ;
+	line[1].x1 = 14 ; line[1].y1 =  view->height - V_MARGIN ;
+	line[1].x2 = 14 ; line[1].y2 =  view->height - 1 ;
+	line[2].x1 =  2 ; line[2].y1 =  view->height - 2 ;
+	line[2].x2 = 12 ; line[2].y2 =  view->height - 2 ;
+	line[3].x1 =  1 ; line[3].y1 =  view->height - 1 ;
+	line[3].x2 = 12 ; line[3].y2 =  view->height - 1 ;
+	XDrawSegments( view->display , view->window , motif_sb->gc ,
+			line , 4 ) ;
 }
 
 static void
@@ -498,38 +489,6 @@ draw_scrollbar(
 			line , 2) ;
 }
 
-static void
-up_button_pressed(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 1) ;
-}
-
-static void
-down_button_pressed(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 1) ;
-}
-
-static void
-up_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-}
-
-static void
-down_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 0) ;
-}
-
 
 /* --- global functions --- */
 
@@ -538,28 +497,23 @@ x_motif_sb_view_new(void)
 {
 	motif_sb_view_t *  motif_sb ;
 	
-	if( ( motif_sb = malloc( sizeof( motif_sb_view_t))) == NULL)
+	if( ( motif_sb = calloc( 1 , sizeof( motif_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	motif_sb->view.version = 1 ;
 
 	motif_sb->view.get_geometry_hints = get_geometry_hints ;
 	motif_sb->view.get_default_color = get_default_color ;
 	motif_sb->view.realized = realized ;
 	motif_sb->view.resized = resized ;
 	motif_sb->view.delete = delete ;
-	
-	motif_sb->view.draw_decoration = draw_decoration ;
+
+	motif_sb->view.color_changed = color_changed ;
 	motif_sb->view.draw_scrollbar = draw_scrollbar ;
-
-	motif_sb->gc = NULL ;
-
-	motif_sb->view.up_button_pressed = up_button_pressed ;
-	motif_sb->view.down_button_pressed = down_button_pressed ;
-	motif_sb->view.up_button_released = up_button_released ;
-	motif_sb->view.down_button_released = down_button_released ;
-
-	motif_sb->is_transparent = 0 ;
+	motif_sb->view.draw_up_button = draw_up_button ;
+	motif_sb->view.draw_down_button = draw_down_button ;
 
 	return  (x_sb_view_t*) motif_sb ;
 }
@@ -569,10 +523,12 @@ x_motif_transparent_sb_view_new(void)
 {
 	motif_sb_view_t *  motif_sb ;
 	
-	if( ( motif_sb = malloc( sizeof( motif_sb_view_t))) == NULL)
+	if( ( motif_sb = calloc( 1 , sizeof( motif_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	motif_sb->view.version = 1 ;
 
 	motif_sb->view.get_geometry_hints = get_geometry_hints ;
 	motif_sb->view.get_default_color = get_default_color ;
@@ -580,15 +536,10 @@ x_motif_transparent_sb_view_new(void)
 	motif_sb->view.resized = resized ;
 	motif_sb->view.delete = delete ;
 
-	motif_sb->view.draw_decoration = draw_decoration ;
+	motif_sb->view.color_changed = color_changed ;
 	motif_sb->view.draw_scrollbar = draw_scrollbar ;
-
-	motif_sb->gc = NULL ;
-
-	motif_sb->view.up_button_pressed = up_button_pressed ;
-	motif_sb->view.down_button_pressed = down_button_pressed ;
-	motif_sb->view.up_button_released = up_button_released ;
-	motif_sb->view.down_button_released = down_button_released ;
+	motif_sb->view.draw_up_button = draw_up_button ;
+	motif_sb->view.draw_down_button = draw_down_button ;
 
 	motif_sb->is_transparent = 1 ;
 

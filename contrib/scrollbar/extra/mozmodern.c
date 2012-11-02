@@ -326,7 +326,7 @@ delete(
 }
 
 static void
-draw_arrow_up_icon(
+draw_up_button(
 	x_sb_view_t *  view ,
 	int  is_pressed
 	)
@@ -355,7 +355,7 @@ draw_arrow_up_icon(
 }
 
 static void
-draw_arrow_down_icon(
+draw_down_button(
 	x_sb_view_t *  view ,
 	int  is_pressed
 	)
@@ -381,15 +381,6 @@ draw_arrow_down_icon(
 		0 , 0 ,
 		WIDTH , MARGIN ,
 		0 , view->height - MARGIN) ;
-}
-
-static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-	draw_arrow_down_icon( view , 0) ;
 }
 
 static void
@@ -555,38 +546,6 @@ draw_transparent_scrollbar(
 	draw_scrollbar_common( view , bar_top_y , bar_height , 1) ;
 }
 
-static void
-up_button_pressed(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 1) ;
-}
-
-static void
-down_button_pressed(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 1) ;
-}
-
-static void
-up_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-}
-
-static void
-down_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 0) ;
-}
-
 
 /* --- global functions --- */
 
@@ -595,10 +554,12 @@ x_mozmodern_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
 
-	if( ( mozmod_sb = malloc( sizeof( mozmod_sb_view_t))) == NULL)
+	if( ( mozmod_sb = calloc( 1 , sizeof( mozmod_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	mozmod_sb->view.version = 1 ;
 
 	mozmod_sb->view.get_geometry_hints = get_geometry_hints ;
 	mozmod_sb->view.get_default_color = get_default_color ;
@@ -606,21 +567,9 @@ x_mozmodern_sb_view_new(void)
 	mozmod_sb->view.resized = resized ;
 	mozmod_sb->view.delete = delete ;
 	
-	mozmod_sb->view.draw_decoration = draw_decoration ;
 	mozmod_sb->view.draw_scrollbar = draw_scrollbar ;
-
-	mozmod_sb->view.up_button_pressed = up_button_pressed ;
-	mozmod_sb->view.down_button_pressed = down_button_pressed ;
-	mozmod_sb->view.up_button_released = up_button_released ;
-	mozmod_sb->view.down_button_released = down_button_released ;
-
-	mozmod_sb->gc = NULL ;
-
-	mozmod_sb->background = None ;
-	mozmod_sb->arrow_up = None ;
-	mozmod_sb->arrow_up_pressed = None ;
-	mozmod_sb->arrow_down = None ;
-	mozmod_sb->arrow_down_pressed = None ;
+	mozmod_sb->view.draw_up_button = draw_up_button ;
+	mozmod_sb->view.draw_down_button = draw_down_button ;
 
 	return  (x_sb_view_t*) mozmod_sb ;
 }
@@ -630,10 +579,12 @@ x_mozmodern_transparent_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
 
-	if( ( mozmod_sb = malloc( sizeof( mozmod_sb_view_t))) == NULL)
+	if( ( mozmod_sb = calloc( 1 , sizeof( mozmod_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	mozmod_sb->view.version = 1 ;
 
 	mozmod_sb->view.get_geometry_hints = get_geometry_hints ;
 	mozmod_sb->view.get_default_color = get_default_color ;
@@ -641,21 +592,9 @@ x_mozmodern_transparent_sb_view_new(void)
 	mozmod_sb->view.resized = resized ;
 	mozmod_sb->view.delete = delete ;
 	
-	mozmod_sb->view.draw_decoration = draw_decoration ;
 	mozmod_sb->view.draw_scrollbar = draw_transparent_scrollbar ;
-
-	mozmod_sb->view.up_button_pressed = up_button_pressed ;
-	mozmod_sb->view.down_button_pressed = down_button_pressed ;
-	mozmod_sb->view.up_button_released = up_button_released ;
-	mozmod_sb->view.down_button_released = down_button_released ;
-
-	mozmod_sb->gc = NULL ;
-
-	mozmod_sb->background = None ;
-	mozmod_sb->arrow_up = None ;
-	mozmod_sb->arrow_up_pressed = None ;
-	mozmod_sb->arrow_down = None ;
-	mozmod_sb->arrow_down_pressed = None ;
+	mozmod_sb->view.draw_up_button = draw_up_button ;
+	mozmod_sb->view.draw_down_button = draw_down_button ;
 
 	return  (x_sb_view_t*) mozmod_sb ;
 }

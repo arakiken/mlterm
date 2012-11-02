@@ -728,44 +728,21 @@ draw_button(
 }
 
 static void
-up_button_pressed(
-	x_sb_view_t *  view
+draw_up_button(
+	x_sb_view_t *  view ,
+	int pressed
 	)
 {
-	draw_button( (pixmap_sb_view_t*) view , 1 , 1) ;
+	draw_button( (pixmap_sb_view_t *)view , 1 , pressed) ;
 }
 
 static void
-down_button_pressed(
-	x_sb_view_t *  view
+draw_down_button(
+	x_sb_view_t *  view ,
+	int pressed
 	)
 {
-	draw_button( (pixmap_sb_view_t*) view , 0 , 1) ;
-}
-
-static void
-up_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_button( (pixmap_sb_view_t*) view , 1 , 0) ;
-}
-
-static void
-down_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_button( (pixmap_sb_view_t*) view , 0 , 0) ;
-}
-
-static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	draw_button( (pixmap_sb_view_t*) view , 1 , 0) ;
-	draw_button( (pixmap_sb_view_t*) view , 0 , 0) ;
+	draw_button( (pixmap_sb_view_t *)view , 0 , pressed) ;
 }
 
 static void
@@ -996,13 +973,13 @@ x_pixmap_engine_sb_engine_new(
 		return NULL ;
 	}
 
-	if( ( ps = malloc( sizeof( pixmap_sb_view_t))) == NULL)
+	if( ( ps = calloc( 1 , sizeof( pixmap_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	/* Initialization and default settings */
-	memset( ps , 0 , sizeof( pixmap_sb_view_t)) ;
+	ps->view.version = 1 ;
+
 	ps->bg_tile = 1 ;
 	ps->btn_layout = BTN_NORMAL ;
 	ps->slider_tile = 1 ;
@@ -1034,15 +1011,10 @@ x_pixmap_engine_sb_engine_new(
 	ps->view.realized = realized ;
 	ps->view.resized = resized ;
 	ps->view.delete = delete ;
-	ps->view.draw_decoration = draw_decoration ;
 	ps->view.draw_scrollbar = draw_scrollbar ;
-	ps->view.up_button_pressed = up_button_pressed ;
-	ps->view.down_button_pressed = down_button_pressed ;
-	ps->view.up_button_released = up_button_released ;
-	ps->view.down_button_released = down_button_released ;
+	ps->view.draw_up_button = draw_up_button ;
+	ps->view.draw_down_button = draw_down_button ;
 
-	ps->si = NULL ;
-	
 	ps->is_transparent = is_transparent ;
 
 	/* use_count decrement. when it is 0, this plugin will be unloaded. */

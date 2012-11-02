@@ -98,14 +98,6 @@ delete(
 }
 
 static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	/* do nothing */
-}
-
-static void
 draw_scrollbar(
 	x_sb_view_t *  view ,
 	int  bar_top_y ,
@@ -160,10 +152,12 @@ x_athena_sb_view_new(void)
 {
 	athena_sb_view_t *  athena_sb ;
 	
-	if( ( athena_sb = malloc( sizeof( athena_sb_view_t))) == NULL)
+	if( ( athena_sb = calloc( 1 , sizeof( athena_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	athena_sb->view.version = 1 ;
 
 	athena_sb->view.get_geometry_hints = get_geometry_hints ;
 	athena_sb->view.get_default_color = get_default_color ;
@@ -171,15 +165,7 @@ x_athena_sb_view_new(void)
 	athena_sb->view.resized = resized ;
 	athena_sb->view.delete = delete ;
 	
-	athena_sb->view.draw_decoration = draw_decoration ;
 	athena_sb->view.draw_scrollbar = draw_scrollbar ;
-
-	athena_sb->view.up_button_pressed = NULL ;
-	athena_sb->view.down_button_pressed = NULL ;
-	athena_sb->view.up_button_released = NULL ;
-	athena_sb->view.down_button_released = NULL ;
-
-	athena_sb->is_transparent = 0 ;
 
 	return  (x_sb_view_t*) athena_sb ;
 }
@@ -189,10 +175,12 @@ x_athena_transparent_sb_view_new(void)
 {
 	athena_sb_view_t *  athena_sb ;
 	
-	if( ( athena_sb = malloc( sizeof( athena_sb_view_t))) == NULL)
+	if( ( athena_sb = calloc( 1 , sizeof( athena_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	athena_sb->view.version = 1 ;
 
 	athena_sb->view.get_geometry_hints = get_geometry_hints ;
 	athena_sb->view.get_default_color = get_default_color ;
@@ -200,13 +188,7 @@ x_athena_transparent_sb_view_new(void)
 	athena_sb->view.resized = resized ;
 	athena_sb->view.delete = delete ;
 	
-	athena_sb->view.draw_decoration = draw_decoration ;
 	athena_sb->view.draw_scrollbar = draw_scrollbar ;
-
-	athena_sb->view.up_button_pressed = NULL ;
-	athena_sb->view.down_button_pressed = NULL ;
-	athena_sb->view.up_button_released = NULL ;
-	athena_sb->view.down_button_released = NULL ;
 
 	athena_sb->is_transparent = 1 ;
 

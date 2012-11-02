@@ -1,3 +1,15 @@
+2012-11-03  Araki Ken  <arakiken@users.sf.net>
+
+	* x_sb_view.h, x_sb_view_factory.h: Support of x_sb_view_t
+	  version 0 is dropped.
+
+	* extra/athena.c, extra/motif.c, extra/mozmodern.c,
+	  extra/next.c, pixmap_engine/pixmap_engine.c:
+	  extra scrollbars and pixmap_engine are migrated to
+	  x_sb_view_t version 1.
+
+	* x_sample(2)_sb_view.c: malloc -> calloc.
+
 2012-11-02  Araki Ken  <arakiken@users.sf.net>
 
 	* libctl/dexport-fb.map: Added. (Symbolic link to dexport.map)

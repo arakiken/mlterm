@@ -135,7 +135,7 @@ x_simple_sb_view_new(void)
 {
 	x_simple_sb_view_t *  view ;
 
-	if( ( view = malloc( sizeof( x_simple_sb_view_t))) == NULL)
+	if( ( view = calloc( 1 , sizeof( x_simple_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -146,15 +146,10 @@ x_simple_sb_view_new(void)
 	view->view.get_default_color = get_default_color ;
 	view->view.realized = realized ;
 	view->view.resized = resized ;
-	view->view.color_changed = NULL ;
 	view->view.delete = delete ;
 
 	view->view.draw_scrollbar = draw_scrollbar ;
 	view->view.draw_background = draw_background ;
-	view->view.draw_up_button = NULL ;
-	view->view.draw_down_button = NULL ;
-
-	view->is_transparent = 0 ;
 
 	return  (x_sb_view_t*)view ;
 }
@@ -164,7 +159,7 @@ x_simple_transparent_sb_view_new(void)
 {
 	x_simple_sb_view_t *  view ;
 
-	if( ( view = malloc( sizeof( x_simple_sb_view_t))) == NULL)
+	if( ( view = calloc( 1 , sizeof( x_simple_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -175,13 +170,10 @@ x_simple_transparent_sb_view_new(void)
 	view->view.get_default_color = get_default_color ;
 	view->view.realized = realized ;
 	view->view.resized = resized ;
-	view->view.color_changed = NULL ;
 	view->view.delete = delete ;
 
 	view->view.draw_scrollbar = draw_scrollbar ;
 	view->view.draw_background = draw_background ;
-	view->view.draw_up_button = NULL ;
-	view->view.draw_down_button = NULL ;
 
 	view->is_transparent = 1 ;
 

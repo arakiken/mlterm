@@ -323,7 +323,7 @@ delete(
 }
 
 static void
-draw_arrow_up_icon(
+draw_up_button(
 	x_sb_view_t *  view ,
 	int  is_pressed
 	)
@@ -396,7 +396,7 @@ draw_arrow_up_icon(
 }
 
 static void
-draw_arrow_down_icon(
+draw_down_button(
 	x_sb_view_t *  view ,
 	int  is_pressed
 	)
@@ -480,15 +480,6 @@ draw_arrow_down_icon(
 }
 
 static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-	draw_arrow_down_icon( view , 0) ;
-}
-
-static void
 draw_scrollbar(
 	x_sb_view_t *  view ,
 	int  bar_top_y ,
@@ -525,8 +516,8 @@ draw_scrollbar(
 	if ( next_sb->has_scrollbuf == 0 )
 	{
 		next_sb->has_scrollbuf = 1 ;
-		draw_arrow_up_icon( view , 0) ;
-		draw_arrow_down_icon( view , 0) ;
+		draw_up_button( view , 0) ;
+		draw_down_button( view , 0) ;
 	}
 
 	/* clear */
@@ -637,38 +628,6 @@ draw_scrollbar(
 
 }
 
-static void
-up_button_pressed(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 1) ;
-}
-
-static void
-down_button_pressed(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 1) ;
-}
-
-static void
-up_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-}
-
-static void
-down_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 0) ;
-}
-
 
 /* --- global functions --- */
 
@@ -677,10 +636,12 @@ x_next_sb_view_new(void)
 {
 	next_sb_view_t *  next_sb ;
 	
-	if( ( next_sb = malloc( sizeof( next_sb_view_t))) == NULL)
+	if( ( next_sb = calloc( 1 , sizeof( next_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	next_sb->view.version = 1 ;
 
 	next_sb->view.get_geometry_hints = get_geometry_hints ;
 	next_sb->view.get_default_color = get_default_color ;
@@ -688,25 +649,10 @@ x_next_sb_view_new(void)
 	next_sb->view.resized = resized ;
 	next_sb->view.delete = delete ;
 	
-	next_sb->view.draw_decoration = draw_decoration ;
 	next_sb->view.draw_scrollbar = draw_scrollbar ;
 
-	next_sb->view.up_button_pressed = up_button_pressed ;
-	next_sb->view.down_button_pressed = down_button_pressed ;
-	next_sb->view.up_button_released = up_button_released ;
-	next_sb->view.down_button_released = down_button_released ;
-
-	next_sb->gc = NULL ;
-
-	next_sb->background = None ;
-	next_sb->bar_relief = None ;
-	next_sb->arrow_up = None ;
-	next_sb->arrow_up_pressed = None ;
-	next_sb->arrow_down = None ;
-	next_sb->arrow_down_pressed = None ;
-
-	next_sb->is_transparent = 0 ;
-	next_sb->has_scrollbuf = 0 ;
+	next_sb->view.draw_up_button = draw_up_button ;
+	next_sb->view.draw_down_button = draw_down_button ;
 
 	return  (x_sb_view_t*) next_sb ;
 }
@@ -716,10 +662,12 @@ x_next_transparent_sb_view_new(void)
 {
 	next_sb_view_t *  next_sb ;
 	
-	if( ( next_sb = malloc( sizeof( next_sb_view_t))) == NULL)
+	if( ( next_sb = calloc( 1 , sizeof( next_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
+
+	next_sb->view.version = 1 ;
 
 	next_sb->view.get_geometry_hints = get_geometry_hints ;
 	next_sb->view.get_default_color = get_default_color ;
@@ -727,25 +675,12 @@ x_next_transparent_sb_view_new(void)
 	next_sb->view.resized = resized ;
 	next_sb->view.delete = delete ;
 	
-	next_sb->view.draw_decoration = draw_decoration ;
 	next_sb->view.draw_scrollbar = draw_scrollbar ;
 
-	next_sb->view.up_button_pressed = up_button_pressed ;
-	next_sb->view.down_button_pressed = down_button_pressed ;
-	next_sb->view.up_button_released = up_button_released ;
-	next_sb->view.down_button_released = down_button_released ;
-
-	next_sb->gc = NULL ;
-
-	next_sb->background = None ;
-	next_sb->bar_relief = None ;
-	next_sb->arrow_up = None ;
-	next_sb->arrow_up_pressed = None ;
-	next_sb->arrow_down = None ;
-	next_sb->arrow_down_pressed = None ;
+	next_sb->view.draw_up_button = draw_up_button ;
+	next_sb->view.draw_down_button = draw_down_button ;
 
 	next_sb->is_transparent = 1 ;
-	next_sb->has_scrollbuf = 0 ;
 
 	return  (x_sb_view_t*) next_sb ;
 }

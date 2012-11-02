@@ -269,7 +269,7 @@ x_sample2_sb_view_new(void)
 {
 	sample_sb_view_t *  sample ;
 	
-	if( ( sample = malloc( sizeof( sample_sb_view_t))) == NULL)
+	if( ( sample = calloc( 1 , sizeof( sample_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -287,12 +287,6 @@ x_sample2_sb_view_new(void)
 	sample->view.draw_background = draw_background ;
 	sample->view.draw_up_button = draw_up_button ;
 	sample->view.draw_down_button = draw_down_button ;
-
-	sample->gc = None ;
-	sample->arrow_up = None ;
-	sample->arrow_up_dent = None ;
-	sample->arrow_down = None ;
-	sample->arrow_down_dent = None ;
 
 	return  (x_sb_view_t*) sample ;
 }

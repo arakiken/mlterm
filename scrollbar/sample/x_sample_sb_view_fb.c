@@ -241,7 +241,7 @@ x_sample_sb_view_new(void)
 {
 	x_sb_view_t *  view ;
 
-	if( ( view = malloc( sizeof( x_sb_view_t))) == NULL)
+	if( ( view = calloc( 1 , sizeof( x_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -252,7 +252,6 @@ x_sample_sb_view_new(void)
 	view->get_default_color = get_default_color ;
 	view->realized = realized ;
 	view->resized = resized ;
-	view->color_changed = NULL ;
 	view->delete = delete ;
 
 	view->draw_scrollbar = draw_scrollbar ;
