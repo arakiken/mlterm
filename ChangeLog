@@ -1,5 +1,15 @@
 2012-11-02  Araki Ken  <arakiken@users.sf.net>
 
+	* libctl/dexport-fb.map: Added. (Symbolic link to dexport.map)
+
+	* vte.c: Compilation error is fixed.
+
+	* fb/x_color.c: "gray" and "lightgray" colors are available
+	  in 256 colors.
+
+	* x_sb_view_factory.c: Backward compatibility of scrollbar
+	  plugins with the one before 2.4.0 is broken.
+
 	* doc/ja/README.fb, doc/en/README.fb: Updated.
 
 	* fb/x.h, fb/x_display, fb/x_simple_sb_view.c, fb/x_window.c,

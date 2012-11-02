@@ -308,7 +308,6 @@ dlsym_sb_view_new_func(
 	int  is_transparent
 	)
 {
-	x_sb_view_new_func_t  func ;
 	kik_dl_handle_t  handle ;
 	char *  symbol ;
 	u_int  len ;
@@ -350,33 +349,7 @@ dlsym_sb_view_new_func(
 		sprintf( symbol , "x_%s_sb_view_new" , name) ;
 	}
 
-	if( ( func = (x_sb_view_new_func_t) kik_dl_func_symbol( handle , symbol)) == NULL)
-	{
-		/* backward compatible with 2.4.0 or before */
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Loading %s failed.\n" , symbol) ;
-	#endif
-		
-		if( is_transparent)
-		{
-			sprintf( symbol , "ml_%s_transparent_sb_view_new" , name) ;
-		}
-		else
-		{
-			sprintf( symbol , "ml_%s_sb_view_new" , name) ;
-		}
-
-		if( ( func = (x_sb_view_new_func_t) kik_dl_func_symbol( handle , symbol)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Loading %s failed.\n" , symbol) ;
-		#endif
-		
-			return  NULL ;
-		}
-	}
-
-	return  func ;
+	return  (x_sb_view_new_func_t) kik_dl_func_symbol( handle , symbol) ;
 }
 
 /*

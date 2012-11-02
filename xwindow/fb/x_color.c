@@ -74,33 +74,33 @@ x_load_named_xcolor(
 
 	if( ( cmap = disp->display->cmap))
 	{
-		if( ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR)
+		if( ( color = ml_get_color( name)) != ML_UNKNOWN_COLOR)
 		{
-			return  0 ;
+			xcolor->pixel = color ;
+			xcolor->red = WORD_COLOR_TO_BYTE(cmap->red[xcolor->pixel]) ;
+			xcolor->green = WORD_COLOR_TO_BYTE(cmap->green[xcolor->pixel]) ;
+			xcolor->blue = WORD_COLOR_TO_BYTE(cmap->blue[xcolor->pixel]) ;
+
+			return  1 ;
 		}
-
-		xcolor->pixel = color ;
-		xcolor->red = WORD_COLOR_TO_BYTE(cmap->red[xcolor->pixel]) ;
-		xcolor->green = WORD_COLOR_TO_BYTE(cmap->green[xcolor->pixel]) ;
-		xcolor->blue = WORD_COLOR_TO_BYTE(cmap->blue[xcolor->pixel]) ;
-
+	}
+	else if( ( color = ml_get_color( name)) != ML_UNKNOWN_COLOR &&
+		ml_get_color_rgb( color , &red , &green , &blue))
+	{
 		return  1 ;
 	}
-	else if( ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR ||
-		! ml_get_color_rgb( color , &red , &green , &blue))
+
+	if( strcmp( name , "gray") == 0)
 	{
-		if( strcmp( name , "gray") == 0)
-		{
-			red = green = blue = 190 ;
-		}
-		else if( strcmp( name , "lightgray") == 0)
-		{
-			red = green = blue = 211 ;
-		}
-		else
-		{
-			return  0 ;
-		}
+		red = green = blue = 190 ;
+	}
+	else if( strcmp( name , "lightgray") == 0)
+	{
+		red = green = blue = 211 ;
+	}
+	else
+	{
+		return  0 ;
 	}
 
 	return  x_load_rgb_xcolor( disp , xcolor , red , green , blue , 0xff) ;

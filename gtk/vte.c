@@ -245,7 +245,7 @@ selection(
 {
 	x_sel_clear( sel) ;
 
-	x_start_selection( sel , char_index_1 - 1 , row_1 , char_index_1 , row_1) ;
+	x_start_selection( sel , char_index_1 - 1 , row_1 , char_index_1 , row_1 , SEL_CHAR) ;
 	x_selecting( sel , char_index_2 , row_2) ;
 	x_stop_selecting( sel) ;
 
