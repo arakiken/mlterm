@@ -87,7 +87,7 @@ x_load_named_xcolor(
 	else if( ( color = ml_get_color( name)) != ML_UNKNOWN_COLOR &&
 		ml_get_color_rgb( color , &red , &green , &blue))
 	{
-		return  1 ;
+		goto  end ;
 	}
 
 	if( strcmp( name , "gray") == 0)
@@ -103,6 +103,7 @@ x_load_named_xcolor(
 		return  0 ;
 	}
 
+end:
 	return  x_load_rgb_xcolor( disp , xcolor , red , green , blue , 0xff) ;
 }
 

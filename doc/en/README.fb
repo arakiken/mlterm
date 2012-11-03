@@ -24,7 +24,7 @@ Framebuffer support on Linux
     Note that only ungzip'ed pcf fonts are avaiable.
 
 * Start
-  mlterm-fb (-fg white -bg black)
+  mlterm-fb (-fg white -bg black -sb=false)
 
 * Note
   o If mlterm can't open /dev/input/event* of the keyboard, shortcut keys are

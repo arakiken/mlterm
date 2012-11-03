@@ -1,5 +1,8 @@
 2012-11-03  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_color.c: The bug which disabled any colors except black
+	  in 15,16,24,32 bpp is fixed.
+
 	* x_sb_view.h, x_sb_view_factory.h: Support of x_sb_view_t
 	  version 0 is dropped.
 
