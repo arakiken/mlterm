@@ -233,7 +233,7 @@ get_event_device_num(
 	int *  mouse
 	)
 {
-	char  class[] = "/sys/class/input/eventN/device/name" ;
+	char  class[] = "/sys/class/input/inputN/name" ;
 	int  count ;
 	FILE *  fp ;
 
@@ -616,14 +616,22 @@ x_display_open(
 		if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
 						O_RDWR)))
 		{
+			kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/fb0") ;
+
 			return  NULL ;
 		}
 
 		ioctl( _display.fb_fd , FBIOGET_FSCREENINFO , &finfo) ;
 		ioctl( _display.fb_fd , FBIOGET_VSCREENINFO , &vinfo) ;
 
-		if( ( _disp.depth = vinfo.bits_per_pixel) < 8 || /* 2/4 bpp is not supported. */
-		    ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
+		if( ( _disp.depth = vinfo.bits_per_pixel) < 8) /* 2/4 bpp is not supported. */
+		{
+			kik_msg_printf( "%d bpp is not supported.\n" , vinfo.bits_per_pixel) ;
+
+			return  NULL ;
+		}
+
+		if( ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
 					PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , 0))
 					== MAP_FAILED)
 		{

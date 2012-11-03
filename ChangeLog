@@ -1,5 +1,11 @@
 2012-11-03  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: /sys/class/input/inputN/name is checked instead
+	  of /sys/class/input/eventN/device/name to determine the type
+	  (keyboard or mouse).
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
 	* fb/x_color.c: The bug which disabled any colors except black
 	  in 15,16,24,32 bpp is fixed.
 

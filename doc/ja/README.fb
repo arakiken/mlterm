@@ -5,6 +5,7 @@ Framebuffer on Linux 対応に関するメモ
 
 * テスト環境
   Ubuntu 12.04
+  CentOS 5
   (Linux kernel 2.6 以降対応)
 
 * ビルド
@@ -33,8 +34,14 @@ Framebuffer on Linux 対応に関するメモ
 * 留意事項
   o キーボードに対応する /dev/input/event* が存在しない、又はアクセスする権限
     がない場合、ショートカットキーは使用できません。
+    なお、キーボードに対応する /dev/input/event* は、/sys/class/input/input*/name
+    の文字列に key が含まれているかどうかで判定しています。
   o マウスに対応する /dev/input/event* が存在しない、又はアクセスする権限がない
     場合、マウスを使うことはできません。
+    なお、マウスに対応する /dev/input/event* は、/sys/class/input/input*/name
+    の文字列に mouse が含まれているかどうかで判定しています。
+  o マウスを使用する場合、gpm は停止しておいてください。
+    (/etc/init.d/gpm stop)
   o mlcc を使ってフォント設定を動的に変更する場合には、
     $ mlcc font-fb ...
     でなく、X 版と同様、
