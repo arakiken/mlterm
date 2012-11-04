@@ -23,7 +23,7 @@ dump_cached_fonts(
 	x_font_cache_t *  font_cache
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  size ;
 	KIK_PAIR( x_font) *  f_array ;
 	

@@ -1759,6 +1759,21 @@ x_get_config_font_name(
 
 	if( ( pair = get_font_name_pair( map , font)))
 	{
+	#if  1
+		if( *(pair->value) == '&' &&
+		    ( font = parse_key( pair->value + 1)) != UNKNOWN_CS)
+		{
+			/*
+			 * XXX (Undocumented)
+			 *
+			 * JISX0213_2000_1 = &JISX0208_1983 in font configuration files.
+			 * => try to get a font name of JISX0208_1983 instead of
+			 *    JISX0213_2000_1 recursively.
+			 */
+			return  x_get_config_font_name( font_config , font_size , font) ;
+		}
+	#endif
+
 		return  strdup( pair->value) ;
 	}
 
@@ -1789,6 +1804,22 @@ x_get_config_font_name(
 		}
 	#endif
 	}
+
+#if  1
+	if( *(pair->value) == '&' &&
+	    /* XXX font variable is overwritten. */
+	    ( font = parse_key( pair->value + 1)) != UNKNOWN_CS)
+	{
+		/*
+		 * XXX (Undocumented)
+		 *
+		 * JISX0213_2000_1 = &JISX0208_1983 in font configuration files.
+		 * => try to get a font name of JISX0208_1983 instead of
+		 *    JISX0213_2000_1 recursively.
+		 */
+		return  x_get_config_font_name( font_config , font_size , font) ;
+	}
+#endif
 
 	/*
 	 * If pair->value is valid format or not is checked by is_valid_default_font_format()

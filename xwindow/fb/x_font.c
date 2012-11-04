@@ -788,7 +788,9 @@ xfont_loaded:
 	}
 
 #ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s font is loaded.\n" , fontname) ;
+	kik_debug_printf( KIK_DEBUG_TAG
+		" %s font is loaded. => CURRENT NUM OF XFONTS %d\n" ,
+		fontname , num_of_xfonts) ;
 #endif
 
 #ifdef  __DEBUG
@@ -813,13 +815,15 @@ x_font_delete(
 			{
 				if( -- num_of_xfonts > 0)
 				{
-					xfonts[count] = xfonts[--num_of_xfonts] ;
+					xfonts[count] = xfonts[num_of_xfonts] ;
 				}
 				else
 				{
 					free( xfonts) ;
 					xfonts = NULL ;
 				}
+
+				break ;
 			}
 		}
 

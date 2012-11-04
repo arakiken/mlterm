@@ -19,7 +19,12 @@
 
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
-	for( (font_encoding_p) = &csinfo->encoding_names[0] ; *(font_encoding_p) ; (font_encoding_p) ++)
+	for( (font_encoding_p) = (csinfo)->encoding_names ; \
+	     (font_encoding_p) < (csinfo)->encoding_names + \
+	         sizeof((csinfo)->encoding_names) / sizeof((csinfo)->encoding_names[0]) && \
+	     *(font_encoding_p) ; \
+	     (font_encoding_p) ++)
+
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
 #define  DIVIDE_ROUNDINGUP(a,b) ( ((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)) )
 
@@ -32,13 +37,8 @@ typedef struct  cs_info
 {
 	mkf_charset_t  cs ;
 
-	/*
-	 * default encoding.
-	 *
-	 * !! Notice !!
-	 * the last element must be NULL.
-	 */
-	char *   encoding_names[3] ;
+	/* default encodings. */
+	char *   encoding_names[2] ;
 
 } cs_info_t ;
 
@@ -51,24 +51,24 @@ typedef struct  cs_info
  */
 static cs_info_t  cs_info_table[] =
 {
-	{ ISO10646_UCS4_1 , { "iso10646-1" , NULL , NULL , } , } ,
+	{ ISO10646_UCS4_1 , { "iso10646-1" , NULL , } , } ,
 
-	{ DEC_SPECIAL , { "iso8859-1" , NULL , NULL , } , } ,
-	{ ISO8859_1_R , { "iso8859-1" , NULL , NULL , } , } ,
-	{ ISO8859_2_R , { "iso8859-2" , NULL , NULL , } , } ,
-	{ ISO8859_3_R , { "iso8859-3" , NULL , NULL , } , } ,
-	{ ISO8859_4_R , { "iso8859-4" , NULL , NULL , } , } ,
-	{ ISO8859_5_R , { "iso8859-5" , NULL , NULL , } , } ,
-	{ ISO8859_6_R , { "iso8859-6" , NULL , NULL , } , } ,
-	{ ISO8859_7_R , { "iso8859-7" , NULL , NULL , } , } ,
-	{ ISO8859_8_R , { "iso8859-8" , NULL , NULL , } , } ,
-	{ ISO8859_9_R , { "iso8859-9" , NULL , NULL , } , } ,
-	{ ISO8859_10_R , { "iso8859-10" , NULL , NULL , } , } ,
-	{ TIS620_2533 , { "tis620.2533-1" , "tis620.2529-1" , NULL , } , } ,
-	{ ISO8859_13_R , { "iso8859-13" , NULL , NULL , } , } ,
-	{ ISO8859_14_R , { "iso8859-14" , NULL , NULL , } , } ,
-	{ ISO8859_15_R , { "iso8859-15" , NULL , NULL , } , } ,
-	{ ISO8859_16_R , { "iso8859-16" , NULL , NULL , } , } ,
+	{ DEC_SPECIAL , { "iso8859-1" , NULL , } , } ,
+	{ ISO8859_1_R , { "iso8859-1" , NULL , } , } ,
+	{ ISO8859_2_R , { "iso8859-2" , NULL , } , } ,
+	{ ISO8859_3_R , { "iso8859-3" , NULL , } , } ,
+	{ ISO8859_4_R , { "iso8859-4" , NULL , } , } ,
+	{ ISO8859_5_R , { "iso8859-5" , NULL , } , } ,
+	{ ISO8859_6_R , { "iso8859-6" , NULL , } , } ,
+	{ ISO8859_7_R , { "iso8859-7" , NULL , } , } ,
+	{ ISO8859_8_R , { "iso8859-8" , NULL , } , } ,
+	{ ISO8859_9_R , { "iso8859-9" , NULL , } , } ,
+	{ ISO8859_10_R , { "iso8859-10" , NULL , } , } ,
+	{ TIS620_2533 , { "tis620.2533-1" , "tis620.2529-1" , } , } ,
+	{ ISO8859_13_R , { "iso8859-13" , NULL , } , } ,
+	{ ISO8859_14_R , { "iso8859-14" , NULL , } , } ,
+	{ ISO8859_15_R , { "iso8859-15" , NULL , } , } ,
+	{ ISO8859_16_R , { "iso8859-16" , NULL , } , } ,
 
 	/*
 	 * XXX
@@ -76,51 +76,51 @@ static cs_info_t  cs_info_table[] =
 	 * .VnTime or .VnTimeH ...
 	 * How to deal with it ?
 	 */
-	{ TCVN5712_3_1993 , { NULL , NULL , NULL , } , } ,
+	{ TCVN5712_3_1993 , { NULL , NULL , } , } ,
 
-	{ ISCII_ASSAMESE , { NULL , NULL , NULL , } , } ,
-	{ ISCII_BENGALI , { NULL , NULL , NULL , } , } ,
-	{ ISCII_GUJARATI , { NULL , NULL , NULL , } , } ,
-	{ ISCII_HINDI , { NULL , NULL , NULL , } , } ,
-	{ ISCII_KANNADA , { NULL , NULL , NULL , } , } ,
-	{ ISCII_MALAYALAM , { NULL , NULL , NULL , } , } ,
-	{ ISCII_ORIYA , { NULL , NULL , NULL , } , } ,
-	{ ISCII_PUNJABI , { NULL , NULL , NULL , } , } ,
-	{ ISCII_ROMAN , { NULL , NULL , NULL , } , } ,
-	{ ISCII_TAMIL , { NULL , NULL , NULL , } , } ,
-	{ ISCII_TELUGU , { NULL , NULL , NULL , } , } ,
-	{ VISCII , { "viscii-1" , NULL , NULL , } , } ,
-	{ KOI8_R , { "koi8-r" , NULL , NULL , } , } ,
-	{ KOI8_U , { "koi8-u" , NULL , NULL , } , } ,
+	{ ISCII_ASSAMESE , { NULL , NULL , } , } ,
+	{ ISCII_BENGALI , { NULL , NULL , } , } ,
+	{ ISCII_GUJARATI , { NULL , NULL , } , } ,
+	{ ISCII_HINDI , { NULL , NULL , } , } ,
+	{ ISCII_KANNADA , { NULL , NULL , } , } ,
+	{ ISCII_MALAYALAM , { NULL , NULL , } , } ,
+	{ ISCII_ORIYA , { NULL , NULL , } , } ,
+	{ ISCII_PUNJABI , { NULL , NULL , } , } ,
+	{ ISCII_ROMAN , { NULL , NULL , } , } ,
+	{ ISCII_TAMIL , { NULL , NULL , } , } ,
+	{ ISCII_TELUGU , { NULL , NULL , } , } ,
+	{ VISCII , { "viscii-1" , NULL , } , } ,
+	{ KOI8_R , { "koi8-r" , NULL , } , } ,
+	{ KOI8_U , { "koi8-u" , NULL , } , } ,
 
 #if  0
 	/*
 	 * XXX
 	 * KOI8_T, GEORGIAN_PS and CP125X charset can be shown by unicode font only.
 	 */
-	{ KOI8_T , { NULL , NULL , NULL , } , } ,
-	{ GEORGIAN_PS , { NULL , NULL , NULL , } , } ,
-	{ CP1250 , { NULL , NULL , NULL , } , } ,
-	{ CP1251 , { NULL , NULL , NULL , } , } ,
-	{ CP1252 , { NULL , NULL , NULL , } , } ,
-	{ CP1253 , { NULL , NULL , NULL , } , } ,
-	{ CP1254 , { NULL , NULL , NULL , } , } ,
-	{ CP1255 , { NULL , NULL , NULL , } , } ,
-	{ CP1256 , { NULL , NULL , NULL , } , } ,
-	{ CP1257 , { NULL , NULL , NULL , } , } ,
-	{ CP1258 , { NULL , NULL , NULL , } , } ,
-	{ CP874 , { NULL , NULL , NULL , } , } ,
+	{ KOI8_T , { NULL , NULL , } , } ,
+	{ GEORGIAN_PS , { NULL , NULL , } , } ,
+	{ CP1250 , { NULL , NULL , } , } ,
+	{ CP1251 , { NULL , NULL , } , } ,
+	{ CP1252 , { NULL , NULL , } , } ,
+	{ CP1253 , { NULL , NULL , } , } ,
+	{ CP1254 , { NULL , NULL , } , } ,
+	{ CP1255 , { NULL , NULL , } , } ,
+	{ CP1256 , { NULL , NULL , } , } ,
+	{ CP1257 , { NULL , NULL , } , } ,
+	{ CP1258 , { NULL , NULL , } , } ,
+	{ CP874 , { NULL , NULL , } , } ,
 #endif
 
-	{ JISX0201_KATA , { "jisx0201.1976-0" , NULL , NULL , } , } ,
-	{ JISX0201_ROMAN , { "jisx0201.1976-0" , NULL , NULL , } , } ,
-	{ JISC6226_1978 , { "jisx0208.1978-0" , "jisx0208.1983-0" , NULL , } , } ,
-	{ JISX0208_1983 , { "jisx0208.1983-0" , "jisx0208.1990-0" , NULL , } , } ,
-	{ JISX0208_1990 , { "jisx0208.1990-0" , "jisx0208.1983-0" , NULL , } , } ,
-	{ JISX0212_1990 , { "jisx0212.1990-0" , NULL , NULL , } , } ,
-	{ JISX0213_2000_1 , { "jisx0213.2000-1" , NULL , NULL , } , } ,
-	{ JISX0213_2000_2 , { "jisx0213.2000-2" , NULL , NULL , } , } ,
-	{ KSC5601_1987 , { "ksc5601.1987-0" , "ksx1001.1997-0" , NULL , } , } ,
+	{ JISX0201_KATA , { "jisx0201.1976-0" , NULL , } , } ,
+	{ JISX0201_ROMAN , { "jisx0201.1976-0" , NULL , } , } ,
+	{ JISC6226_1978 , { "jisx0208.1978-0" , "jisx0208.1983-0" , } , } ,
+	{ JISX0208_1983 , { "jisx0208.1983-0" , "jisx0208.1990-0" , } , } ,
+	{ JISX0208_1990 , { "jisx0208.1990-0" , "jisx0208.1983-0" , } , } ,
+	{ JISX0212_1990 , { "jisx0212.1990-0" , NULL , } , } ,
+	{ JISX0213_2000_1 , { "jisx0213.2000-1" , "jisx0208.1983-0" , } , } ,
+	{ JISX0213_2000_2 , { "jisx0213.2000-2" , NULL , } , } ,
+	{ KSC5601_1987 , { "ksc5601.1987-0" , "ksx1001.1997-0" , } , } ,
 
 #if  0
 	/*
@@ -128,21 +128,21 @@ static cs_info_t  cs_info_table[] =
 	 * UHC and JOHAB fonts are not used at the present time.
 	 * see ml_vt100_parser.c:ml_parse_vt100_sequence().
 	 */
-	{ UHC , { NULL , NULL , NULL , } , } ,
-	{ JOHAB , { "johabsh-1" , /* "johabs-1" , */ "johab-1" , NULL , } , } ,
+	{ UHC , { NULL , NULL , } , } ,
+	{ JOHAB , { "johabsh-1" , /* "johabs-1" , */ "johab-1" , } , } ,
 #endif
 
-	{ GB2312_80 , { "gb2312.1980-0" , NULL , NULL , } , } ,
-	{ GBK , { "gbk-0" , NULL , NULL , } , } ,
-	{ BIG5 , { "big5.eten-0" , "big5.hku-0" , NULL , } , } ,
-	{ HKSCS , { "big5hkscs-0" , "big5-0" , NULL , } , } ,
-	{ CNS11643_1992_1 , { "cns11643.1992-1" , "cns11643.1992.1-0" , NULL , } , } ,
-	{ CNS11643_1992_2 , { "cns11643.1992-2" , "cns11643.1992.2-0" , NULL , } , } ,
-	{ CNS11643_1992_3 , { "cns11643.1992-3" , "cns11643.1992.3-0" , NULL , } , } ,
-	{ CNS11643_1992_4 , { "cns11643.1992-4" , "cns11643.1992.4-0" , NULL , } , } ,
-	{ CNS11643_1992_5 , { "cns11643.1992-5" , "cns11643.1992.5-0" , NULL , } , } ,
-	{ CNS11643_1992_6 , { "cns11643.1992-6" , "cns11643.1992.6-0" , NULL , } , } ,
-	{ CNS11643_1992_7 , { "cns11643.1992-7" , "cns11643.1992.7-0" , NULL , } , } ,
+	{ GB2312_80 , { "gb2312.1980-0" , NULL , } , } ,
+	{ GBK , { "gbk-0" , NULL , } , } ,
+	{ BIG5 , { "big5.eten-0" , "big5.hku-0" , } , } ,
+	{ HKSCS , { "big5hkscs-0" , "big5-0" , } , } ,
+	{ CNS11643_1992_1 , { "cns11643.1992-1" , "cns11643.1992.1-0" , } , } ,
+	{ CNS11643_1992_2 , { "cns11643.1992-2" , "cns11643.1992.2-0" , } , } ,
+	{ CNS11643_1992_3 , { "cns11643.1992-3" , "cns11643.1992.3-0" , } , } ,
+	{ CNS11643_1992_4 , { "cns11643.1992-4" , "cns11643.1992.4-0" , } , } ,
+	{ CNS11643_1992_5 , { "cns11643.1992-5" , "cns11643.1992.5-0" , } , } ,
+	{ CNS11643_1992_6 , { "cns11643.1992-6" , "cns11643.1992.6-0" , } , } ,
+	{ CNS11643_1992_7 , { "cns11643.1992-7" , "cns11643.1992.7-0" , } , } ,
 
 } ;
 

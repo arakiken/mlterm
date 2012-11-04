@@ -775,6 +775,8 @@ comment $Id$
           [XLFD(*)](:[percentage])
           (--with-gui=win32 の場合)
           [font family]( Bold Italic [font size]:[percentage])
+	  (--with-gui=fb の場合)
+	  [font file path]
 
           (*) もしくは、fonts.aliasで定義している省略記法。
 

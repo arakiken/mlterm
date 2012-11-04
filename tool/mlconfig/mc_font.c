@@ -35,6 +35,8 @@ typedef struct  cs_info
 	 *
 	 * !! Notice !!
 	 * The last element must be NULL.
+	 * (Conforming to the specification of 'charsets' argument of
+	 * gtk_xlfd_selection_dialog_set_filter()).
 	 */
 	char *   encoding_names[3] ;
 
@@ -123,7 +125,7 @@ static cs_info_t  cs_info_table[] =
 	{ "JISX0208_1983" , { "jisx0208.1983-0" , "jisx0208.1990-0" , NULL , } , } ,
 	{ "JISX0208_1990" , { "jisx0208.1990-0" , "jisx0208.1983-0" , NULL , } , } ,
 	{ "JISX0212_1990" , { "jisx0212.1990-0" , NULL , NULL , } , } ,
-	{ "JISX0213_2000_1" , { "jisx0213.2000-1" , NULL , NULL , } , } ,
+	{ "JISX0213_2000_1" , { "jisx0213.2000-1" , "jisx0208.1983-0" , NULL , } , } ,
 	{ "JISX0213_2000_2" , { "jisx0213.2000-2" , NULL , NULL , } , } ,
 	{ "KSX1001_1997" , { "ksc5601.1987-0" , "ksx1001.1997-0" , NULL , } , } ,
 
