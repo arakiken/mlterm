@@ -951,7 +951,37 @@ x_window_update(
 	int  flag
 	)
 {
-	(*win->update_window)( win, flag) ;
+	if( win->update_window)
+	{
+		(*win->update_window)( win, flag) ;
+	}
+
+	return  1 ;
+}
+
+int
+x_window_update_all(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+	if( ! win->parent)
+	{
+		x_display_reset_cmap( win->disp->display) ;
+	}
+
+	if( win->window_exposed)
+	{
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+
+	clear_margin_area( win) ;
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		x_window_update_all( win->children[count]) ;
+	}
 
 	return  1 ;
 }

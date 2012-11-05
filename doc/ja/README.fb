@@ -48,9 +48,9 @@ Framebuffer on Linux 対応に関するメモ
     $ mlcc font ...
     としてください。
   o 8 bpp での cmap の設定は、起動時にのみ行い、その後変更はできません。
-  o 画面のマージン領域にゴミが残る場合は、
-    $ mlcc wall_picture ""
-    とすると消えます。
+  o 画面にゴミが残ったり、8 bpp での cmap の設定が変わってしまった場合には、
+    $ mlcc exec update_all
+    としてください。
   o 使用可能なスクロールバーは、simpleとsampleのみです。
 
 * 使えない機能

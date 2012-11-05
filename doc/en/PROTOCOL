@@ -28,7 +28,7 @@ version 20110903
   exec command     = paste | select_pty <dev> | full_reset | open_pty | close_pty (<dev>) |
                      open_screen | snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
                      mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
-                     search_prev <pattern> | search_next <pattern> |
+                     search_prev <pattern> | search_next <pattern> | update_all |
 		     add_picture (WxH+X+Y:)<file name> | remove_picture (WxH+X+Y) |
                      scp (local:|remote:)<src file name> (local:|remote:)<dst directory name>
                      (<encoding name>)

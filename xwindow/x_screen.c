@@ -8129,6 +8129,10 @@ x_screen_exec_cmd(
 			search_find( screen , arg , 0) ;
 		}
 	}
+	else if( strcmp( cmd , "update_all") == 0)
+	{
+		x_window_update_all( x_get_root_window( &screen->window)) ;
+	}
 #ifdef  ENABLE_SIXEL
 	else if( strcmp( cmd , "add_picture") == 0)
 	{

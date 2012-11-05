@@ -1604,6 +1604,30 @@ x_window_update(
 	return  1 ;
 }
 
+int
+x_window_update_all(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+#if  0
+	if( win->window_exposed)
+	{
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+#endif
+
+	clear_margin_area( win) ;
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		x_window_update_all( win->children[count]) ;
+	}
+
+	return  1 ;
+}
+
 void
 x_window_idling(
 	x_window_t *  win

@@ -281,6 +281,8 @@ int  x_window_blank_with( x_window_t *  win , x_color_t *  color) ;
 /* if flag is 0, no update. */
 int  x_window_update( x_window_t *  win , int  flag) ;
 
+int  x_window_update_all( x_window_t *  win) ;
+
 void  x_window_idling( x_window_t *  win) ;
 
 int  x_window_receive_event( x_window_t *  win , XEvent *  event) ;

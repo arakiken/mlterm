@@ -14,6 +14,8 @@
 #define MotionNotify			6	/* Private in fb/ */
 
 
+int  x_display_reset_cmap( Display *  display) ;
+
 u_char *  x_display_get_fb( Display *  display , int  x , int  y) ;
 
 void  x_display_put_image( Display *  display , int  x , int  y , u_char *  image , size_t  size) ;

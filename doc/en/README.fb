@@ -40,6 +40,9 @@ Framebuffer support on Linux
   o If you want to use mouse, disable gpm in advance. (/etc/init.d/gpm stop)
   o If you want to change fonts dynamically by mlcc, execute mlcc with "font"
     (not "font-fb") argument.
+  o To redraw the screen completely, execute a following command.
+    $ mlcc exec update_all
+  o Available scrollbars are "simple" and "sample" alone.
 
 * Unsupported features
   o 2/4 bpp

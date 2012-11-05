@@ -1224,6 +1224,22 @@ x_display_get_group_leader(
 	return  None ;
 }
 
+int
+x_display_reset_cmap(
+	Display *  display
+	)
+{
+	if( display->cmap)
+	{
+		if( ioctl( display->fb_fd , FBIOPUTCMAP , display->cmap) == -1)
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
 u_char *
 x_display_get_fb(
 	Display *  display ,

@@ -867,12 +867,12 @@ GDK_PIXBUF_LIBS
 GDK_PIXBUF_CFLAGS
 GTK_LIBS
 GTK_CFLAGS
+DEXPORT
 SUBSYSTEM
 WIN32TAG
 CYGPATHW
 OPT_CFLAGS
 DEB_CFLAGS
-DEXPORT
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -974,8 +974,8 @@ enable_libtool_lock
 with_pic
 with_tags
 with_x
-with_gui
 enable_debug
+with_gui
 with_gtk
 with_imagelib
 enable_sixel
@@ -19710,22 +19710,6 @@ fi
 fi
 
 
-
-# Check whether --with-gui was given.
-if test "${with_gui+set}" = set; then :
-  withval=$with_gui; gui=$with_gui
-fi
-
-
-if test "$with_gnu_ld" = "yes" ; then
-	if test "$gui" = "fb" ; then
-		DEXPORT="-Wl,--version-script=\$(VPATH)/dexport-fb.map"
-	else
-		DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
-	fi
-fi
-
-
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
   enableval=$enable_debug; debug=$enable_debug
@@ -19735,6 +19719,13 @@ if test "$debug" = "yes" ; then
 	DEB_CFLAGS="-DDEBUG -DKIK_DEBUG"
 fi
 
+
+
+
+# Check whether --with-gui was given.
+if test "${with_gui+set}" = set; then :
+  withval=$with_gui; gui=$with_gui
+fi
 
 
 ml_cv_is_posix="yes"
@@ -19840,6 +19831,15 @@ esac
 
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
+fi
+
+
+if test "$with_gnu_ld" = "yes" ; then
+	if test "$gui" = "fb" ; then
+		DEXPORT="-Wl,--version-script=\$(VPATH)/dexport-fb.map"
+	else
+		DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
+	fi
 fi
 
 
@@ -21433,7 +21433,7 @@ mlterm-zoom)
 	;;
 mlimgloader)
 	# $have_x is defined in AC_PATH_XTRA.
-	if test "$have_x" = "yes" ; then
+	if test "$gui" = "xlib" -o "$gui" = "fb" ; then
 		if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
 			OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
 			MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
