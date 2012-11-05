@@ -1611,14 +1611,14 @@ x_window_update_all(
 {
 	u_int  count ;
 
+	clear_margin_area( win) ;
+
 #if  0
 	if( win->window_exposed)
 	{
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 #endif
-
-	clear_margin_area( win) ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{

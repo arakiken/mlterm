@@ -12,8 +12,8 @@ Framebuffer support on Linux
   ./configure --with-gui=fb ...
   make
   sudo make install
-  (You can install mlterm-fb to the directory where mlterm (X11 version)
-  has been already installed.)
+  (You can install main/mlterm-fb and scrollbar/sample/libsample.so alone
+   to the directory where mlterm (X11 version) has been already installed.)
 
 * Configuration
   Configuration of framebuffer version is the same as that of X11 version

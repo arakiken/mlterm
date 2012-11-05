@@ -15,8 +15,9 @@ Framebuffer on Linux 対応に関するメモ
   (インストール先は、X 版 mlterm と同じディレクトリで構いません。
    この場合、すでに X版 mlterm がインストールされていれば、全てのファイルを
    make install しなくても、
-   $ cd main ; sudo make install
-   と、mlterm-fb ファイルだけをインストールしても問題ありません。)
+   $ (cd main ; sudo make install) ; (cd scrollbar/sample ; sudo make install)
+   と、mlterm-fb 及び libsample-fb.so ファイルだけインストールしても、問題あり
+   ません。)
 
 * 設定
   フォント設定以外は、X 版 mlterm と同じです。

@@ -13,7 +13,6 @@
 #define  TOP_MARGIN     14
 #define  BOTTOM_MARGIN  14
 #define  HEIGHT_MARGIN  (TOP_MARGIN + BOTTOM_MARGIN)
-#define  RIGHT_MARGIN   1
 #define  WIDTH          13
 
 
@@ -31,7 +30,7 @@ get_geometry_hints(
 	unsigned int *  down_button_height
 	)
 {
-	*width = WIDTH + RIGHT_MARGIN ;
+	*width = WIDTH ;
 	*top_margin = TOP_MARGIN ;
 	*bottom_margin = BOTTOM_MARGIN ;
 	*up_button_y = 0 ;

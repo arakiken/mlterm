@@ -461,6 +461,8 @@ x_window_set_wall_picture(
 	win->wall_picture = pic ;
 	win->is_scrollable = 0 ;
 
+	clear_margin_area( win) ;
+
 	if( win->window_exposed)
 	{
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
@@ -471,8 +473,6 @@ x_window_set_wall_picture(
 		x_window_clear_all( win) ;
 	}
 #endif
-
-	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -485,6 +485,8 @@ x_window_unset_wall_picture(
 	win->wall_picture = None ;
 	win->is_scrollable = 1 ;
 
+	clear_margin_area( win) ;
+
 	if( win->window_exposed)
 	{
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
@@ -495,8 +497,6 @@ x_window_unset_wall_picture(
 		x_window_clear_all( win) ;
 	}
 #endif
-
-	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -749,12 +749,12 @@ x_window_resize(
 
 	if( flag & NOTIFY_TO_MYSELF)
 	{
+		clear_margin_area( win) ;
+
 		if( win->window_resized)
 		{
 			(*win->window_resized)( win) ;
 		}
-
-		clear_margin_area( win) ;
 	}
 
 	return  1 ;
@@ -818,6 +818,8 @@ x_window_move(
 	win->x = x ;
 	win->y = y ;
 
+	clear_margin_area( win) ;
+
 	if( win->window_exposed)
 	{
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
@@ -829,10 +831,11 @@ x_window_move(
 	}
 #endif
 
-	clear_margin_area( win) ;
-
 	/* XXX */
-	clear_margin_area( win->parent) ;
+	if( win->parent)
+	{
+		clear_margin_area( win->parent) ;
+	}
 
 	return  1 ;
 }
@@ -971,12 +974,12 @@ x_window_update_all(
 		x_display_reset_cmap( win->disp->display) ;
 	}
 
+	clear_margin_area( win) ;
+
 	if( win->window_exposed)
 	{
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
-
-	clear_margin_area( win) ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{

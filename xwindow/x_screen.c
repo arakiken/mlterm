@@ -2635,27 +2635,30 @@ no_keypad:
 		}
 		else if( XK_F1 <= ksym && ksym <= XK_FMAX)
 		{
-			if( ksym <= XK_F4)
+			if( ksym <= XK_F5)
 			{
 				if( modcode ||
 				    ! (buf = x_termcap_get_str_field( screen->termcap ,
 							ML_F1 + ksym - XK_F1)))
 				{
-					/* PQRS */
-					KEY_ESCSEQ( 'O' , modcode , (ksym - XK_F1) + 'P') ;
+					if( ksym == XK_F5)
+					{
+						/* 15 */
+						KEY_ESCSEQ( '[' , 15 , '~') ;
+					}
+					else
+					{
+						/* PQRS */
+						KEY_ESCSEQ( 'O' , modcode , (ksym - XK_F1) + 'P') ;
 
-					/*
-					 * Shift+F1 is not ^[O1;2P but ^[O2P.
-					 * So 'modcode' is copied to 'param' varaiable above
-					 * and then cleared to 0 here.
-					 */
-					modcode = 0 ;
+						/*
+						 * Shift+F1 is not ^[O1;2P but ^[O2P.
+						 * So 'modcode' is copied to 'param' varaiable
+						 * above and then cleared to 0 here.
+						 */
+						modcode = 0 ;
+					}
 				}
-			}
-			else if( ksym == XK_F5)
-			{
-				/* 15 */
-				KEY_ESCSEQ( '[' , 15 , '~') ;
 			}
 			else if( ksym <= XK_F10)
 			{

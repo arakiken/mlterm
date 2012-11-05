@@ -48,6 +48,7 @@ static str_field_table_t  str_field_table[] =
 	{ "k3" , ML_F3 , } ,
 	/* "\x1bOS" in xterm(279), but doc/term/mlterm.ti defined "\x1b[14~" from before. */
 	{ "k4" , ML_F4 , } ,
+	{ "k5" , ML_F5 , } ,
 } ;
 
 static bool_field_table_t  bool_field_table[] =

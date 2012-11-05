@@ -6,6 +6,7 @@ ver 3.1.5
 * Break the binary compatility of extra scrollbars and pixmap_engine
   with the ones before 3.1.4.
 * Add "update_all" to the configuration protocol.
+* Add k5 entry for ~/.mlterm/termcap.
 * Bug fixes:
   Fix the incomplete hebavior of double- or triple-clicking and dragging.
   (Thanks to Andi Cristian Serbanescu)

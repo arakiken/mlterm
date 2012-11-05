@@ -19,6 +19,7 @@ typedef enum  x_termcap_str_field
 	ML_F2 ,
 	ML_F3 ,
 	ML_F4 ,
+	ML_F5 ,		/* Requested by Andi Cristian Serbanescu (1 Nov 2012) */
 	
 	MAX_TERMCAP_STR_FIELDS
 
