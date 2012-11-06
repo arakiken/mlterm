@@ -1,5 +1,13 @@
 2012-11-06  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.1.5 released.
+	  (tag "rel-3_1_5")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.1.5.
+
+2012-11-06  Araki Ken  <arakiken@users.sf.net>
+
 	* x_transparent_sample_sb_view.c: RIGHT_MARGIN is removed.
 
 	* doc/ja/README.ja, man/mlterm.1: Updated.
