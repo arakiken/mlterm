@@ -535,6 +535,9 @@ x_font_new(
 	u_int  letter_space	/* Ignored for now. */
 	)
 {
+	char *  font_file ;
+	char *  percent_str ;
+	u_int  percent ;
 	x_font_t *  font ;
 	void *  p ;
 	u_int  count ;
@@ -551,9 +554,25 @@ x_font_new(
 		return  NULL ;
 	}
 
+	if( ( percent_str = kik_str_alloca_dup( fontname)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+	font_file = kik_str_sep( &percent_str , ":") ;
+
+	if( ! percent_str || ! kik_str_to_uint( &percent , percent_str))
+	{
+		percent = 0 ;
+	}
+
 	for( count = 0 ; count < num_of_xfonts ; count++)
 	{
-		if( strcmp( xfonts[count]->file , fontname) == 0)
+		if( strcmp( xfonts[count]->file , font_file) == 0)
 		{
 			font->xfont = xfonts[count] ;
 			xfonts[count]->ref_count ++ ;
@@ -571,7 +590,7 @@ x_font_new(
 
 	font->display = display ;
 
-	if( ! load_pcf( font->xfont , fontname) ||
+	if( ! load_pcf( font->xfont , font_file) ||
 	    ! ( p = realloc( xfonts , sizeof(XFontStruct*) * (num_of_xfonts + 1))))
 	{
 		unload_pcf( font->xfont) ;
@@ -639,7 +658,6 @@ xfont_loaded:
 	{
 		/* standard(usascii) font */
 
-	#if  0
 		if( percent > 0)
 		{
 			u_int  ch_width ;
@@ -683,9 +701,7 @@ xfont_loaded:
 				}
 			}
 		}
-		else
-	#endif
-		if( font->is_vertical)
+		else if( font->is_vertical)
 		{
 			/*
 			 * !! Notice !!

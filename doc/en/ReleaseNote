@@ -1,3 +1,7 @@
+ver 3.1.6
+* Support ":[Percentage]" format for font-fb.
+  (e.g. ISO8859_1=/../font.pcf:100)
+
 ver 3.1.5
 * Support framebuffer on Linux. (Experimental)
   (See doc/en/README.fb or doc/ja/README.fb in detail.)

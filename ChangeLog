@@ -1,3 +1,9 @@
+2012-11-07  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/font-fb: unifont.pcf is added.
+
+	* fb/x_font.c: ":[Percentage]" format is supported.
+
 2012-11-06  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.1.5 released.

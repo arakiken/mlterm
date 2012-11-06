@@ -323,7 +323,7 @@ parse_xfont_name(
 	)
 {
 	/*
-	 * XftFont format.
+	 * XFont format.
 	 * [Font XLFD](:[Percentage])
 	 */
 
