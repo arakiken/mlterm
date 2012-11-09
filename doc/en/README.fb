@@ -20,6 +20,7 @@ Framebuffer support on Linux
 * Configuration
   Configuration of framebuffer version is the same as that of X11 version
   except font settings as follows.
+  Be sure to configure fonts before starting mlterm-fb.
 
   o Font
     Add the fonts you want to show to ~/.mlterm/font-fb.

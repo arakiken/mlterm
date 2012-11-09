@@ -2578,8 +2578,9 @@ no_keypad:
 		}
 		else if( ksym == XK_End)
 		{
-			if( is_app_cursor_keys || modcode ||
-			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_END)))
+			if( modcode ||
+			    ! is_app_cursor_keys ||
+			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_END)) )
 			{
 				KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
 				            modcode ? 1 : 0 , 'F') ;
@@ -2587,8 +2588,9 @@ no_keypad:
 		}
 		else if( ksym == XK_Home)
 		{
-			if( is_app_cursor_keys || modcode ||
-			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_HOME)))
+			if( modcode ||
+			    ! is_app_cursor_keys ||
+			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_HOME)) )
 			{
 				KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
 				            modcode ? 1 : 0 , 'H') ;
@@ -6016,6 +6018,11 @@ select_in_window(
 
 	*len = ml_term_copy_region( screen->term , *chars , size , beg_char_index ,
 		beg_row , end_char_index , end_row) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( "SELECTION: ") ;
+	ml_str_dump( *chars , size) ;
+#endif
 
 #ifdef  DEBUG
 	if( size != *len)

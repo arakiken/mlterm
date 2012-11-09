@@ -21,6 +21,7 @@ Framebuffer on Linux 対応に関するメモ
 
 * 設定
   フォント設定以外は、X 版 mlterm と同じです。
+  なお、mlterm-fb を起動する前に、必ずフォントの設定を行ってください。
 
   o フォントの設定方法
     ~/.mlterm/font でなく、~/.mlterm/font-fb に、使用するフォントを設定してくだ

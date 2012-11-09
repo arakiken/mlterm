@@ -999,7 +999,7 @@ ml_nl_ch(void)
 
 #ifdef  DEBUG
 
-#if  0
+#if  1
 #define  DUMP_HEX
 #endif
 

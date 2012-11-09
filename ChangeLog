@@ -1,3 +1,10 @@
+2012-11-10  Araki Ken  <arakiken@users.sf.net>
+
+	* x_termcap.[ch], x_screen.c:
+	  kh and @7 settings are applied in application cursor key mode.
+
+	* etc/font-fb, doc/ja/README.fb, doc/en/README.fb: Minor fixes.
+
 2012-11-07  Araki Ken  <arakiken@users.sf.net>
 
 	* etc/font-fb: unifont.pcf is added.

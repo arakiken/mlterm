@@ -1,10 +1,10 @@
-DEFAULT = /usr/share/fonts/X11/misc/10x20.pcf
-ISO8859_1 = /usr/share/fonts/X11/misc/mplus_f12r.pcf
-JISX0208_1983 = /usr/share/fonts/X11/misc/mplus_j12r.pcf
-JISC6226_1978 = &JISX0208_1983
-JISX0208_1990 = &JISX0208_1983
-JISX0213_2000_1 = &JISX0208_1983
-ISO10646_UCS4_1 = /usr/share/fonts/X11/misc/unifont.pcf:100
-ISO10646_UCS4_1_BIWIDTH = /usr/share/fonts/X11/misc/unifont.pcf
-#ISO10646_UCS4_1 = /usr/share/fonts/X11/misc/10x20.pcf
-#ISO10646_UCS4_1_BIWIDTH = /usr/share/fonts/X11/misc/18x18ja.pcf
+#DEFAULT = /usr/share/fonts/X11/misc/unifont.pcf:100
+
+#ISO8859_1 = /usr/share/fonts/X11/misc/mplus_f12r.pcf
+#JISX0208_1983 = /usr/share/fonts/X11/misc/mplus_j12r.pcf
+#JISC6226_1978 = &JISX0208_1983
+#JISX0208_1990 = &JISX0208_1983
+#JISX0213_2000_1 = &JISX0208_1983
+
+#ISO10646_UCS4_1 = /usr/share/fonts/X11/misc/unifont.pcf:100
+#ISO10646_UCS4_1_BIWIDTH = &ISO10646_UCS4_1

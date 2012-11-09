@@ -33,12 +33,7 @@ static str_field_table_t  str_field_table[] =
 {
 	{ "kD" , ML_DELETE , } ,
 	{ "kb" , ML_BACKSPACE , } ,
-
-	/* For backward compatibility of "mlterm" termcap/terminfo. */
-
-	/* "\x1b[H" in xterm(279), but doc/term/mlterm.ti defined "\x1bOH" from before. */
 	{ "kh" , ML_HOME , } ,
-	/* "\x1b[F" in xterm(279), but doc/term/mlterm.ti defined "\x1bOF" from before. */
 	{ "@7" , ML_END , } ,
 	/* "\x1bOP" in xterm(279), but doc/term/mlterm.ti defined "\x1b[11~" from before. */
 	{ "k1" , ML_F1 , } ,
@@ -48,6 +43,7 @@ static str_field_table_t  str_field_table[] =
 	{ "k3" , ML_F3 , } ,
 	/* "\x1bOS" in xterm(279), but doc/term/mlterm.ti defined "\x1b[14~" from before. */
 	{ "k4" , ML_F4 , } ,
+	/* Requested by Andi Cristian Serbanescu (1 Nov 2012) */
 	{ "k5" , ML_F5 , } ,
 } ;
 
