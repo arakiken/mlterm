@@ -561,6 +561,12 @@ ml_char_font(
 	}
 }
 
+/*
+ * Return the number of columns when ch is shown in the screen.
+ * So if ml_char_cols(ch) returns 0, nothing is shown in the
+ * screen, but ch can occupy one column from the point of view
+ * of console applications.
+ */
 u_int
 ml_char_cols(
 	ml_char_t *  ch
@@ -570,6 +576,7 @@ ml_char_cols(
 	{
 		return  2 ;
 	}
+#if  1
 	else if( IS_SINGLE_CH(ch->u.ch.attr) && CHARSET(ch->u.ch.attr) == ISO10646_UCS4_1)
 	{
 		/*
@@ -593,6 +600,7 @@ ml_char_cols(
 			return  0 ;
 		}
 	}
+#endif
 
 	return  1 ;
 }

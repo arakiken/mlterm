@@ -27,7 +27,6 @@ Framebuffer on Linux 対応に関するメモ
     ~/.mlterm/font でなく、~/.mlterm/font-fb に、使用するフォントを設定してくだ
     さい。font-fb のフォーマットは font と基本的には同じですが、XLFD ではなく、
     使用するフォントファイルのパスを記載します。
-    なお、現在使用できるフォントは、gzip されていない pcf 形式のみです。
     (etc/font-fb がサンプルです。)
 
 * 起動方法

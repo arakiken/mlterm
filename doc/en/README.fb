@@ -26,7 +26,6 @@ Framebuffer support on Linux
     Add the fonts you want to show to ~/.mlterm/font-fb.
     The format of ~/.mlterm/font-fb is almost the same as that of ~/.mlterm/font,
     but specify their file paths, not XLFD. (See etc/font-fb.)
-    Note that only ungzip'ed pcf fonts are avaiable.
 
 * Start
   mlterm-fb (-fg white -bg black -sb=false)

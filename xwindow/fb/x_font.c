@@ -10,11 +10,14 @@
 #include  <sys/mman.h>	/* mmap */
 #include  <string.h>	/* memcmp */
 #include  <sys/stat.h>	/* fstat */
+#include  <utime.h>	/* utime */
 
 #include  <kiklib/kik_def.h>	/* WORDS_BIG_ENDIAN */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
+#include  <kiklib/kik_path.h>	/* kik_basename */
+#include  <kiklib/kik_conf_io.h>/* kik_get_user_rc_path */
 #include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
 
 
@@ -334,6 +337,93 @@ get_metrics(
 	return  1 ;
 }
 
+static char *
+gunzip(
+	const char *  file_path ,
+	struct stat *  st
+	)
+{
+	size_t  len ;
+	char *  new_file_path ;
+	struct stat  new_st ;
+	char *  cmd ;
+
+	if( stat( file_path , st) == -1)
+	{
+		return  NULL ;
+	}
+
+	if( ( len = strlen(file_path)) <= 3 ||
+	    strcmp( file_path + len - 3 , ".gz") != 0)
+	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " USE UNCOMPRESSED FONT\n") ;
+	#endif
+
+		return  strdup( file_path) ;
+	}
+
+	if( ! ( new_file_path = alloca( 7 + len + 1)))
+	{
+		goto  error ;
+	}
+
+	sprintf( new_file_path , "mlterm/%s" , kik_basename( file_path)) ;
+	new_file_path[strlen(new_file_path) - 3] = '\0' ;	/* remove ".gz" */
+
+	if( ! ( new_file_path = kik_get_user_rc_path( new_file_path)))
+	{
+		goto  error ;
+	}
+
+	if( stat( new_file_path , &new_st) == 0)
+	{
+		if( st->st_mtime <= new_st.st_mtime)
+		{
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " USE CACHED UNCOMPRESSED FONT.\n") ;
+		#endif
+
+			*st = new_st ;
+
+			return  new_file_path ;
+		}
+	}
+
+	if( ! ( cmd = alloca( 10 + len + 3 + strlen(new_file_path) + 1)))
+	{
+		goto  error ;
+	}
+
+	sprintf( cmd , "gunzip -c %s > %s" , file_path , new_file_path) ;
+
+	if( system( cmd) == 0)
+	{
+		struct utimbuf  ut ;
+
+		/*
+		 * The atime and mtime of the uncompressed pcf font is the same
+		 * as those of the original gzipped font.
+		 */
+		ut.actime = st->st_atime ;
+		ut.modtime = st->st_mtime ;
+		utime( new_file_path , &ut) ;
+
+		stat( new_file_path , st) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " USE NEWLY UNCOMPRESSED FONT.\n") ;
+	#endif
+
+		return  new_file_path ;
+	}
+
+error:
+	free( new_file_path) ;
+
+	return  NULL ;
+}
+
 static int
 load_pcf(
 	XFontStruct *  xfont ,
@@ -348,31 +438,28 @@ load_pcf(
 	int  table_load_count ;
 	int32_t  count ;
 
-	if( ( fd = open( file_path , O_RDONLY)) == -1)
+	if( ! ( xfont->file = gunzip( file_path , &st)))
+	{
+		return  0 ;
+	}
+
+	if( ( fd = open( xfont->file , O_RDONLY)) == -1)
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Failed to open %s." , file_path) ;
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open %s." , xfont->file) ;
 	#endif
 
-		return  0 ;
+		goto  error ;
 	}
 
 	table_load_count = 0 ;
 
-	if( fstat( fd , &st) == -1)
+	if( ! ( p = pcf = mmap( NULL , st.st_size , PROT_READ , MAP_PRIVATE , fd , 0)) ||
+	    memcmp( p , "\1fcp" , 4) != 0)
 	{
 		goto  end ;
 	}
 
-	if( ! ( p = pcf = mmap( NULL , st.st_size , PROT_READ , MAP_PRIVATE , fd , 0)))
-	{
-		goto  end ;
-	}
-
-	if( memcmp( p , "\1fcp" , 4) != 0)
-	{
-		goto  end ;
-	}
 	p += 4 ;
 
 	num_of_tables = _INT32(p,0) ;
@@ -402,7 +489,7 @@ load_pcf(
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
-				" %s is unsupported pcf format.\n" , file_path) ;
+				" %s is unsupported pcf format.\n" , xfont->file) ;
 		#endif
 		}
 		else if( type == PCF_BITMAPS)
@@ -438,9 +525,9 @@ load_pcf(
 
 #ifdef  __DEBUG
 	{
-	#if  0
-		u_char  ch[] = "\x21\x29" ;
-	#elif  1
+	#if  1
+		u_char  ch[] = "\x97\xf3" ;
+	#elif  0
 		u_char  ch[] = "a" ;
 	#else
 		u_char  ch[] = "\x06\x22" ;	/* UCS2 */
@@ -473,14 +560,15 @@ end:
 		munmap( pcf , st.st_size) ;
 	}
 
-	if( table_load_count == 3 && ( xfont->file = strdup( file_path)))
+	if( table_load_count == 3)
 	{
 		return  1 ;
 	}
-	else
-	{
-		return  0 ;
-	}
+
+error:
+	free( xfont->file) ;
+
+	return  0 ;
 }
 
 static int
@@ -1022,7 +1110,11 @@ x_get_bitmap(
 		return  NULL ;
 	}
 
-	glyph_offset = xfont->glyph_offsets[ glyph_idx] ;
+	/*
+	 * glyph_idx should be casted to unsigned in order not to be minus
+	 * if it is over 32767.
+	 */
+	glyph_offset = xfont->glyph_offsets[ (u_int16_t)glyph_idx] ;
 
 #if  0
 	kik_debug_printf( KIK_DEBUG_TAG " chindex %d glindex %d glyph offset %d\n" ,

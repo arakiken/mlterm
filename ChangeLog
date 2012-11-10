@@ -1,3 +1,12 @@
+2012-11-11  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x_font.c:
+	  - glyph index in pcf font is casted to unsigned in order not
+	    to be minus if it is over 32767.
+	  - Gzipped pcf fonts are available.
+
 2012-11-10  Araki Ken  <arakiken@users.sf.net>
 
 	* x_termcap.[ch], x_screen.c:
