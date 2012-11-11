@@ -87,9 +87,14 @@
 #endif
 
 
+/* --- static variables --- */
+
+static int  use_dec_special_font ;
+
+
 /* --- static functions --- */
 
-/* XXX This function should be move to kiklib */
+/* XXX This function should be moved to kiklib */
 static void
 str_replace(
 	char *  str ,
@@ -105,6 +110,88 @@ str_replace(
 		}
 
 		str ++ ;
+	}
+}
+
+/* XXX This function should be moved to mkf */
+static u_char
+convert_ucs_to_dec_special(
+	u_int16_t  ucs
+	)
+{
+	static struct
+	{
+		u_int16_t  ucs ;
+		u_char  decsp ;
+
+	} ucs_to_decsp_table[] =
+	{
+		/* Not line characters */
+	#if  0
+		{ 0xa3 , '}' } ,
+		{ 0xb0 , 'f' } ,
+		{ 0xb1 , 'g' } ,
+		{ 0xb7 , '~' } ,
+		{ 0x3c0 , '{' } ,
+		{ 0x2260 , '|' } ,
+		{ 0x2264 , 'y' } ,
+		{ 0x2265 , 'z' } ,
+	#endif
+
+		/* Line characters */
+		{ 0x23ba , 'o' } ,
+		{ 0x23bb , 'p' } ,
+		{ 0x23bc , 'r' } ,
+		{ 0x23bd , 's' } ,
+		{ 0x2500 , 'q' } ,
+		{ 0x2502 , 'x' } ,
+		{ 0x250c , 'l' } ,
+		{ 0x2510 , 'k' } ,
+		{ 0x2514 , 'm' } ,
+		{ 0x2518 , 'j' } ,
+		{ 0x251c , 't' } ,
+		{ 0x2524 , 'u' } ,
+		{ 0x252c , 'w' } ,
+		{ 0x2534 , 'v' } ,
+		{ 0x253c , 'n' } ,
+
+		{ 0x2592 , 'a' } ,
+		{ 0x25c6 , '`' } ,
+	} ;
+	int  l_idx ;
+	int  h_idx ;
+	int  idx ;
+
+	l_idx = 0 ;
+	h_idx = sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]) - 1 ;
+
+	if( ucs < ucs_to_decsp_table[l_idx].ucs ||
+	    ucs_to_decsp_table[h_idx].ucs < ucs)
+	{
+		return  0 ;
+	}
+
+	while( 1)
+	{
+		idx = (l_idx + h_idx) / 2 ;
+
+		if( ucs == ucs_to_decsp_table[idx].ucs)
+		{
+			return  ucs_to_decsp_table[idx].decsp ;
+		}
+		else if( ucs < ucs_to_decsp_table[idx].ucs)
+		{
+			h_idx = idx ;
+		}
+		else
+		{
+			l_idx = idx + 1 ;
+		}
+
+		if( l_idx >= h_idx)
+		{
+			return  0 ;
+		}
 	}
 }
 
@@ -3929,6 +4016,8 @@ parse_vt100_sequence(
 			 */
 			if( ch.cs == ISO10646_UCS4_1)
 			{
+				u_char  decsp ;
+
 				if( ch.ch[0] == 0x00 && ch.ch[1] == 0x00 &&
 					ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f
 					)
@@ -3937,6 +4026,14 @@ parse_vt100_sequence(
 					ch.ch[0] = ch.ch[3] ;
 					ch.size = 1 ;
 					ch.cs = US_ASCII ;
+				}
+				else if( use_dec_special_font &&
+				         ( decsp = convert_ucs_to_dec_special(
+						mkf_bytes_to_int( ch.ch , ch.size))))
+				{
+					ch.ch[0] = decsp ;
+					ch.size = 1 ;
+					ch.cs = DEC_SPECIAL ;
 				}
 				else if( vt100_parser->unicode_policy & NOT_USE_UNICODE_FONT)
 				{
@@ -4208,6 +4305,14 @@ write_loopback(
 
 
 /* --- global functions --- */
+
+int
+ml_use_dec_special_font(void)
+{
+	use_dec_special_font = 1 ;
+
+	return  1 ;
+}
 
 ml_vt100_parser_t *
 ml_vt100_parser_new(

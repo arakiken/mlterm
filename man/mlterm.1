@@ -170,9 +170,12 @@ The default is 255.
 .TP
 \fB\-Y\fR, \fB\-\-decsp\fR(=\fIbool\fR)
 Use dynamically composed line drawing character set.
-This overrides DEC_SPECIAL in "font" configuration file.
 The default is \fBfalse\fR.
-This option is automatically turned on when Xft or cairo is used.
+This overrides DEC_SPECIAL in "font" configuration file,
+while DEC_SPECIAL in "aafont" (for Xft or cairo) is always
+overridden.
+If this option is specified, unicode line drawing charcters
+(U+2500 etc) are drawn by DEC_SPECIAL font.
 .TP
 \fB\-Z\fR, \fB\-\-multicol\fR(=\fIbool\fR)
 Treat fullwidth characters (east Asian characters in most cases;
@@ -1463,7 +1466,7 @@ Default colors used by mlterm are
 For hilighted colors, a name with "hl_" prefix will be automatically searched.
 i.e. for bold read character, "hl_red" is searched instead of "red".
 
-\fB17\fR - \fB230\fR and \fB232\fR - \fB255\fR in 256 color can be also overridden.
+\fB17\fR - \fB230\fR and \fB232\fR - \fB255\fR in 256 colors can be also overridden.
 (\fB16\fR and \fB231\fR cannot be overwritten because they are treated as
 \fBblack\fR and \fBhl_white\fR internally.)
 

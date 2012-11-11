@@ -464,20 +464,20 @@ draw_line(
 	int  y
 	)
 {
+	int  beg_x ;
 	int  ret ;
 
 	ret = 0 ;
 	
 	if( ml_line_is_empty( line))
 	{
-		x_window_clear( &screen->window , 0 , y ,
+		x_window_clear( &screen->window , (beg_x = 0) , y ,
 			screen->window.width , x_line_height(screen)) ;
 		ret = 1 ;
 	}
 	else
 	{
 		int  beg_char_index ;
-		int  beg_x ;
 		u_int  num_of_redrawn ;
 		int  is_cleared_to_end ;
 		ml_line_t *  orig ;
@@ -583,8 +583,8 @@ draw_line(
 	if( ret && screen->pic_man)
 	{
 		x_picture_manager_redraw( screen->pic_man ,
-			&screen->window , 0 , y ,
-			screen->window.width , x_line_height( screen)) ;
+			&screen->window , beg_x , y ,
+			screen->window.width - beg_x , x_line_height( screen)) ;
 	}
 #endif
 

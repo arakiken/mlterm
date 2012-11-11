@@ -279,6 +279,7 @@ main_loop_init(
 	{
 		if( strcmp( value , "true") == 0)
 		{
+			ml_use_dec_special_font() ;
 			x_compose_dec_special_font() ;
 		}
 	}

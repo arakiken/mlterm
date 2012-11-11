@@ -1,5 +1,15 @@
 2012-11-11  Araki Ken  <arakiken@users.sf.net>
 
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* ml_vt100_parser.c, main_loop.c, gtk.c:
+	  Unicode line drawing characters like U+2500 etc are converted to
+	  dec special ones if -Y option is specified.
+
+	* x_screen.c: Minor fixes.
+
+2012-11-11  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
 
 	* fb/x_font.c:

@@ -2,6 +2,9 @@ ver 3.1.6
 * Support ":[Percentage]" format for font-fb.
   (e.g. ISO8859_1=/../font.pcf:100)
 * Support gzipped pcf fonts in framebuffer.
+* Convert unicode line drawing characters (U+2500 etc) to dec special ones
+  if -Y option is specified in order to show them correctly with a unicode
+  font which contains double width glyphs or no glyphs for line characters.
 * Change key sequences in term_type=mlterm
   (application cursor key mode is off)
   XK_HOME: \x1bOH -> \x1b[H
