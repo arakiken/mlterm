@@ -446,11 +446,11 @@ comment $Id$
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 
       o compose_dec_special_font (true/*false*)
-        DEC_SPECIAL フォントの罫線文字(特殊文字を除く)のグリフを動的に合成
+        DEC special (特殊文字を除く) 及び Unicode の罫線文字(U+2500 etc)のグリフ
+	を動的に合成
 
         このオプションが指定された場合、"font" ファイルで DEC_SPECIAL として
-        指定したフォントは無視されます。また、Unicode の罫線文字(U+2500 etc)も、
-        DEC_SPECIAL として描画されるようになります。
+        指定したフォントは無視されます。
 
       o use_bold_font (*true*/false)
         ボールドフォントを使用する。
