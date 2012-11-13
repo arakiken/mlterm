@@ -523,7 +523,7 @@ xcore_draw_combining_chars(
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , &xch , 1) ;
 		}
-		else if( ch_size == 4)
+		else /* if( ch_size == 4) */
 		{
 			/* UCS4 */
 
@@ -539,12 +539,6 @@ xcore_draw_combining_chars(
 					x , y , xch , len) ;
 			}
 		}
-	#ifdef  DEBUG
-		else
-		{
-			kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
-		}
-	#endif
 	}
 
 	return  1 ;
@@ -685,28 +679,11 @@ xcore_draw_str(
 			str2b[str_len].byte2 = ch_bytes[1] ;
 			str_len ++ ;
 		}
-		else if( ch_size == 4)
+		else /* if( ch_size == 4) */
 		{
 			/* UCS4 */
 
 			str_len += (x_convert_ucs4_to_utf16( str2b + str_len , ch_bytes) / 2) ;
-		}
-		else
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
-		#endif
-
-			if( state)
-			{
-				str2b[str_len].byte1 = '\x20' ;
-				str2b[str_len].byte2 = '\x20' ;
-				str_len ++ ;
-			}
-			else /* if( ch_size == 1) */
-			{
-				str[str_len++] = '\x20' ;
-			}
 		}
 
 		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;

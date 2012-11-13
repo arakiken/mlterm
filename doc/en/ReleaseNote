@@ -2,20 +2,19 @@ ver 3.1.6
 * Support ":[Percentage]" format for font-fb.
   (e.g. ISO8859_1=/../font.pcf:100)
 * Support gzipped pcf fonts in framebuffer.
-* Convert unicode line drawing characters (U+2500 etc) to dec special ones
-  if -Y option is specified in order to show them correctly with a unicode
-  font which contains double width glyphs or no glyphs for line characters.
+* -Y option converts unicode line drawing characters (U+2500 etc) to dec
+  special ones in order to show them correctly with a unicode font which
+  contains double-width glyphs or no glyphs for line characters.
+* Update unicode property table (generated from UnicodeData.txt and
+  EastAsianWidth.txt) to version 6.2.0.
 * Change key sequences in term_type=mlterm
   (application cursor key mode is off)
-  XK_HOME: \x1bOH -> \x1b[H
-  XK_END : \x1bOF -> \x1b[F
+  XK_HOME: \x1bOH -> \x1b[H   XK_END : \x1bOF -> \x1b[F
 * Change key seuqences in term_type=rxvt.
   (application cursor key mode is off)
-  XK_HOME: \x1b[7~ -> \x1b[H
-  XK_END : \x1b[8~ -> \x1b[F
+  XK_HOME: \x1b[7~ -> \x1b[H  XK_END : \x1b[8~ -> \x1b[F
   (application cursor key mode is on)
-  XK_HOME: \x1bOH -> \x1b[7~
-  XK_END : \x1bOF -> \x1b[8~
+  XK_HOME: \x1bOH -> \x1b[7~  XK_END : \x1bOF -> \x1b[8~
 * Bug fixes:
   Fix the bug of showing incorrect glyphs of large fonts like unifont.pcf.
 

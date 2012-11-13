@@ -222,3 +222,5 @@ my @all_lines = <STDIN> ;
 parse( \@all_lines) ;
 
 output ;
+
+print "Add 0x1160-0x11ff (Jamo medial vowels and final consonants) = MKF_COMBINING | MKF_BIWIDTH manually.\n"
