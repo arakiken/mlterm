@@ -74,7 +74,7 @@ sys_color_set(
 			u_int8_t  blue ;
 			u_int8_t  alpha ;
 
-			x_get_xcolor_rgb( &red , &green , &blue , &alpha , &xcolor) ;
+			x_get_xcolor_rgba( &red , &green , &blue , &alpha , &xcolor) ;
 
 			/*
 			 * If alpha of bg color is already less than 0xff,
@@ -105,7 +105,6 @@ sys_color_set(
 x_color_manager_t *
 x_color_manager_new(
 	x_display_t *  disp ,
-	x_color_config_t *  color_config ,
 	char *  fg_color ,	/* can be NULL(If NULL, use "black".) */
 	char *  bg_color ,	/* can be NULL(If NULL, use "white".) */
 	char *  cursor_fg_color , /* can be NULL(If NULL, use reversed one of the char color.) */
@@ -121,7 +120,7 @@ x_color_manager_new(
 		return  NULL ;
 	}
 
-	if( ! ( color_man->color_cache = x_acquire_color_cache( disp , color_config , 100)))
+	if( ! ( color_man->color_cache = x_acquire_color_cache( disp , 100)))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
@@ -336,7 +335,7 @@ x_color_manager_fade(
 	else
 	{
 		if( ( color_cache = x_acquire_color_cache( color_man->color_cache->disp ,
-					color_man->color_cache->color_config, fade_ratio)) == NULL)
+						fade_ratio)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
@@ -558,7 +557,7 @@ x_color_manager_change_alpha(
 		u_int8_t  blue ;
 		u_int8_t  cur_alpha ;
 
-		x_get_xcolor_rgb( &red , &green , &blue , &cur_alpha ,
+		x_get_xcolor_rgba( &red , &green , &blue , &cur_alpha ,
 			&color_man->sys_colors[_BG_COLOR].xcolor) ;
 
 		if( cur_alpha == color_man->alpha)

@@ -1665,7 +1665,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 				(*env)->SetIntField( env , styles[num_of_styles - 1] ,
 					style_fg_pixel ,
 					/* return -1(white) for invalid color. */
-					ml_get_color_rgb( color , &red , &green , &blue) ?
+					ml_get_color_rgba( color , &red , &green , &blue , NULL) ?
 						((red << 16) | (green << 8) | blue) : -1) ;
 
 				color = ml_char_bg_color( line->chars + mod_beg + count) ;
@@ -1674,7 +1674,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 				(*env)->SetIntField( env , styles[num_of_styles - 1] ,
 					style_bg_pixel ,
 					/* return -1(white) for invalid color. */
-					ml_get_color_rgb( color , &red , &green , &blue) ?
+					ml_get_color_rgba( color , &red , &green , &blue , NULL) ?
 						((red << 16) | (green << 8) | blue) : -1) ;
 
 				(*env)->SetBooleanField( env , styles[num_of_styles - 1] ,
@@ -2099,17 +2099,62 @@ Java_mlterm_MLTermPty_getColorRGB(
 	jstring  jstr_color
 	)
 {
-	const char *  color ;
+	const char *  color_name ;
+	ml_color_t  color ;
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
-	int  ret ;
+	int  error ;
 
-	color = (*env)->GetStringUTFChars( env , jstr_color , NULL) ;
-	ret = ml_get_color_rgb( ml_get_color( color) , &red , &green , &blue) ;
-	(*env)->ReleaseStringUTFChars( env , jstr_color , color) ;
+	color_name = (*env)->GetStringUTFChars( env , jstr_color , NULL) ;
 
-	if( ret)
+	error = 0 ;
+
+	/*
+	 * The similar processing as that of x_load_named_xcolor()
+	 * in fb/x_color.c and win32/x_color.c.
+	 */
+
+	if( ml_color_parse_rgb_name( &red , &green , &blue , NULL , color_name))
+	{
+		/* do nothing */
+	}
+	else if( ( color = ml_get_color( color_name)) != ML_UNKNOWN_COLOR &&
+	         IS_VTSYS_BASE_COLOR(color))
+	{
+		/*
+		 * 0 : 0x00, 0x00, 0x00
+		 * 1 : 0xff, 0x00, 0x00
+		 * 2 : 0x00, 0xff, 0x00
+		 * 3 : 0xff, 0xff, 0x00
+		 * 4 : 0x00, 0x00, 0xff
+		 * 5 : 0xff, 0x00, 0xff
+		 * 6 : 0x00, 0xff, 0xff
+		 * 7 : 0xe5, 0xe5, 0xe5
+		 */
+		red = (color & 0x1) ? 0xff : 0 ;
+		green = (color & 0x2) ? 0xff : 0 ;
+		blue = (color & 0x4) ? 0xff : 0 ;
+	}
+	else
+	{
+		if( strcmp( color_name , "gray") == 0)
+		{
+			red = green = blue = 190 ;
+		}
+		else if( strcmp( color_name , "lightgray") == 0)
+		{
+			red = green = blue = 211 ;
+		}
+		else
+		{
+			error = 1 ;
+		}
+	}
+
+	(*env)->ReleaseStringUTFChars( env , jstr_color , color_name) ;
+
+	if( ! error)
 	{
 		return  ((red << 16) | (green << 8) | blue) ;
 	}

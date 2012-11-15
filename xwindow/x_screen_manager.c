@@ -61,7 +61,6 @@ static x_system_event_listener_t  system_listener ;
 
 static x_main_config_t  main_config ;
 
-static x_color_config_t  color_config ;
 static x_shortcut_t  shortcut ;
 static x_termcap_t  termcap ;
 
@@ -544,7 +543,7 @@ open_screen_intern(
 		goto  error ;
 	}
 
-	if( ( color_man = x_color_manager_new( disp , &color_config ,
+	if( ( color_man = x_color_manager_new( disp ,
 				main_config.fg_color , main_config.bg_color ,
 				main_config.cursor_fg_color , main_config.cursor_bg_color ,
 				main_config.bd_color , main_config.ul_color)) == NULL)
@@ -1157,10 +1156,10 @@ x_screen_manager_init(
 		num_of_startup_screens = _num_of_startup_screens ;
 	}
 
-	if( ! x_color_config_init( &color_config))
+	if( ! ml_color_config_init())
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_color_config_init failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " ml_color_config_init failed.\n") ;
 	#endif
 	
 		return  0 ;
@@ -1248,7 +1247,7 @@ x_screen_manager_final(void)
 
 	x_display_close_all() ;
 
-	x_color_config_final( &color_config) ;
+	ml_color_config_final() ;
 	x_shortcut_final( &shortcut) ;
 	x_termcap_final( &termcap) ;
 

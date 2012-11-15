@@ -2,6 +2,8 @@ ver 3.1.6
 * Support ":[Percentage]" format for font-fb.
   (e.g. ISO8859_1=/../font.pcf:100)
 * Support gzipped pcf fonts in framebuffer.
+* Support 3 byte rgb color sequence.
+  (<ESC>[38;2;<r>;<g>;<b>m and <ESC>[48;2;<r>;<g>;<b>m)
 * -Y option converts unicode line drawing characters (U+2500 etc) to dec
   special ones in order to show them correctly with a unicode font which
   contains double-width glyphs or no glyphs for line characters.

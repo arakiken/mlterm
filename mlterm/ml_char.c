@@ -63,6 +63,7 @@ get_comb_size(
 	return  size ;
 }
 
+/* See also ml_get_closest_color() in ml_color.c. */
 inline static u_int8_t
 intern_color(
 	ml_color_t  ex_color

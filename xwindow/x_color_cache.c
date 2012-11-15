@@ -5,6 +5,7 @@
 #include  "x_color_cache.h"
 
 #include  <stdio.h>
+#include  <kiklib/kik_debug.h>
 
 
 /* --- static variables --- */
@@ -54,7 +55,6 @@ get_cached_256_xcolor(
 	u_int8_t  green ;
 	u_int8_t  blue ;
 	u_int8_t  alpha ;
-	char *  name ;
 
 	if( ! IS_256_COLOR(color))
 	{
@@ -72,33 +72,25 @@ get_cached_256_xcolor(
 		return  &color_cache->cache_256->xcolors[color - 16] ;
 	}
 
-	alpha = 0xff ;
-	if( ( ( name = ml_get_color_name( color)) &&
-	      x_color_config_get_rgb( color_cache->color_config ,
-					&red , &green , &blue , &alpha , name) )
-	    || ml_get_color_rgb( color , &red , &green , &blue))
-	{
-		if( ! x_load_rgb_xcolor( color_cache->disp ,
+	if( ! ml_get_color_rgba( color , &red , &green , &blue , &alpha) ||
+	    ! x_load_rgb_xcolor( color_cache->disp ,
 			&color_cache->cache_256->xcolors[color - 16] , red , green , blue , alpha))
-		{
-			return  NULL ;
-		}
-
-		/*
-		 * 16-255 colors ignore color_cache->fade_ratio.
-		 */
-
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " new color %x %x\n" ,
-			color , color_cache->cache_256->xcolors[color - 16].pixel) ;
-	#endif
-
-		color_cache->cache_256->is_loaded[color - 16] = 1 ;
-
-		return  &color_cache->cache_256->xcolors[color - 16] ;
+	{
+		return  NULL ;
 	}
 
-	return  NULL ;
+	/*
+	 * 16-255 colors ignore color_cache->fade_ratio.
+	 */
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " new color %x %x\n" ,
+		color , color_cache->cache_256->xcolors[color - 16].pixel) ;
+#endif
+
+	color_cache->cache_256->is_loaded[color - 16] = 1 ;
+
+	return  &color_cache->cache_256->xcolors[color - 16] ;
 }
 
 static x_color_t *
@@ -111,8 +103,6 @@ get_cached_vtsys_xcolor(
 	u_int8_t  green ;
 	u_int8_t  blue ;
 	u_int8_t  alpha ;
-	char *  tag ;
-	char *  name ;
 
 	if( ! IS_VTSYS_COLOR(color))
 	{
@@ -124,62 +114,13 @@ get_cached_vtsys_xcolor(
 		return  &color_cache->xcolors[color] ;
 	}
 
-	if( ( tag = ml_get_color_name( color)) == NULL)
+	if( ! ml_get_color_rgba( color , &red , &green , &blue , &alpha) ||
+	    ! x_load_rgb_xcolor( color_cache->disp ,
+			&color_cache->xcolors[color] , red , green , blue , alpha))
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " ml_get_color_name failed.\n") ;
-	#endif
-	
 		return  NULL ;
 	}
 
-	/* Hack for compatibility with xterm vtsys colors. */
-	if( ML_RED <= color && color <= (ML_BLACK|ML_BOLD_COLOR_MASK))
-	{
-		char *  name_tbl[] = {
-			"#CD0000" ,	/* ML_RED */
-			"#00CD00" ,
-			"#CDCD00" ,
-			"#0000EE" ,
-			"#CD00CD" ,
-			"#00CDCD" ,
-			"#E5E5E5" ,	/* ML_WHITE */
-			"#7F7F7F" , } ;	/* ML_BLACK|ML_BOLD_COLOR_MASK */
-
-		name = name_tbl[color - ML_RED] ;
-	}
-	else if( color == (ML_BLUE|ML_BOLD_COLOR_MASK))
-	{
-		name = "#5C5CFF" ;
-	}
-	else if( strncmp( tag, "hl_", 3) == 0)
-	{
-		name = tag + 3 ;
-	}
-	else
-	{
-		name = tag ;
-	}
-	
-	if( x_color_config_get_rgb( color_cache->color_config ,
-					&red , &green , &blue , &alpha , tag))
-	{
-		if( x_load_rgb_xcolor( color_cache->disp ,
-			&color_cache->xcolors[color] , red , green , blue , alpha))
-		{
-			goto  found ;
-		}
-	}
-
-	if( x_load_named_xcolor( color_cache->disp ,
-		&color_cache->xcolors[color] , name))
-	{
-		goto  found ;
-	}
-
-	return  NULL ;
-
-found:
 	if( color_cache->fade_ratio < 100)
 	{
 		if( ! x_xcolor_fade( color_cache->disp ,
@@ -191,8 +132,9 @@ found:
 	
 #ifdef  DEBUG
 #ifndef  USE_WIN32GUI
-	kik_debug_printf( KIK_DEBUG_TAG " new color %x %s red %x green %x blue %x\n",
-		color, name , color_cache->xcolors[color].red , color_cache->xcolors[color].green ,
+	kik_debug_printf( KIK_DEBUG_TAG " new color %x red %x green %x blue %x\n",
+		color , color_cache->xcolors[color].red ,
+		color_cache->xcolors[color].green ,
 		color_cache->xcolors[color].blue) ;
 #endif
 #endif
@@ -208,7 +150,6 @@ found:
 x_color_cache_t *
 x_acquire_color_cache(
 	x_display_t *  disp ,
-	x_color_config_t *  color_config,
 	u_int8_t  fade_ratio
 	)
 {
@@ -219,7 +160,6 @@ x_acquire_color_cache(
 	for( count = 0 ; count < num_of_caches ; count ++)
 	{
 		if( color_caches[count]->disp == disp &&
-			color_caches[count]->color_config == color_config &&
 			color_caches[count]->fade_ratio == fade_ratio)
 		{
 			color_caches[count]->ref_count ++ ;
@@ -243,7 +183,6 @@ x_acquire_color_cache(
 
 	color_cache->disp = disp ;
 
-	color_cache->color_config = color_config ;
 	color_cache->fade_ratio = fade_ratio ;
 
 	if( ! x_load_rgb_xcolor( color_cache->disp , &color_cache->black ,
@@ -357,38 +296,15 @@ x_load_xcolor(
 	char *  name
 	)
 {
-	u_int8_t  red ;
-	u_int8_t  green ;
-	u_int8_t  blue ;
-	u_int8_t  alpha ;
-
-	if( x_color_config_get_rgb( color_cache->color_config ,
-					&red , &green , &blue , &alpha , name))
+	if( ! x_load_named_xcolor( color_cache->disp , xcolor , name))
 	{
-		if( x_load_rgb_xcolor( color_cache->disp , xcolor , red , green , blue , alpha))
-		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " new color %x\n",
-				xcolor->pixel) ;
-		#endif
-		
-			goto  found ;
-		}
+		return  0 ;
 	}
 
-	if( x_load_named_xcolor( color_cache->disp , xcolor , name))
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " new color %x\n",
-			xcolor->pixel) ;
-	#endif
-	
-		goto  found ;
-	}
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " new color %x\n" , xcolor->pixel) ;
+#endif
 
-	return  0 ;
-	
-found:
 	if( color_cache->fade_ratio < 100)
 	{
 		if( ! x_xcolor_fade( color_cache->disp , xcolor , color_cache->fade_ratio))

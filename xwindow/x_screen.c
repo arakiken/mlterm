@@ -1475,7 +1475,7 @@ window_realized(
 	x_window_set_fg_color( win , x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
-	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
+	x_get_xcolor_rgba( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
 			&screen->pic_mod.blend_blue , NULL ,
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 	
@@ -4615,7 +4615,7 @@ change_bg_color(
 	{
 		x_xic_bg_color_changed( &screen->window) ;
 
-		x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
+		x_get_xcolor_rgba( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
 				&screen->pic_mod.blend_blue , NULL ,
 				x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
@@ -5887,9 +5887,7 @@ set_color_config(
 	
 	screen = p ;
 	
-	if( x_customize_color_file(
-		screen->color_man->color_cache->color_config ,	/* XXX */
-		key , val , save))
+	if( ml_customize_color_file( key , val , save))
 	{
 		screen->font_or_color_config_updated |= 0x2 ;
 	}
@@ -7162,30 +7160,27 @@ xterm_set_selection(
 	screen->sel.sel_len = len ;
 }
 
-static char *
+static int
 xterm_get_rgb(
 	void *  p ,
-	char *  rgb ,
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue ,
 	ml_color_t  color
 	)
 {
 	x_screen_t *  screen ;
 	x_color_t *  xcolor ;
-	u_int8_t  red ;
-	u_int8_t  green ;
-	u_int8_t  blue ;
 
 	screen = p ;
 
 	if( ! ( xcolor = x_get_xcolor( screen->color_man , color)) ||
-	    ! x_get_xcolor_rgb( &red , &green , &blue , NULL , xcolor))
+	    ! x_get_xcolor_rgba( red , green , blue , NULL , xcolor))
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
-	sprintf( rgb , "%.2x%.2x/%.2x%.2x/%.2x%.2x" , red , red , green , green , blue , blue) ;
-
-	return  rgb ;
+	return  1 ;
 }
 
 static int
@@ -7379,7 +7374,7 @@ x_screen_new(
 	 * blend_xxx members will be set in window_realized().
 	 */
 #if  0
-	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
+	x_get_xcolor_rgba( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
 			&screen->pic_mod.blend_blue , NULL ,
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 #endif

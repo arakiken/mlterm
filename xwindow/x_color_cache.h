@@ -8,7 +8,6 @@
 
 #include  <ml_color.h>
 #include  "x_color.h"
-#include  "x_color_config.h"
 
 
 typedef struct x_color_cache_256
@@ -30,8 +29,6 @@ typedef struct x_color_cache
 	x_color_cache_256_t *  cache_256 ;
 
 	x_color_t  black ;
-	
-	x_color_config_t *  color_config ;
 
 	u_int8_t  fade_ratio ;
 
@@ -40,8 +37,7 @@ typedef struct x_color_cache
 } x_color_cache_t ;
 
 
-x_color_cache_t *  x_acquire_color_cache( x_display_t *  disp ,
-	x_color_config_t *  color_config, u_int8_t  fade_ratio) ;
+x_color_cache_t *  x_acquire_color_cache( x_display_t *  disp , u_int8_t  fade_ratio) ;
 
 int  x_release_color_cache( x_color_cache_t *  color_cache) ;
 

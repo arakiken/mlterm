@@ -203,7 +203,6 @@ G_DEFINE_TYPE(VteTerminal , vte_terminal , GTK_TYPE_WIDGET) ;
 /* --- static variables --- */
 
 static x_main_config_t  main_config ;
-static x_color_config_t  color_config ;
 static x_shortcut_t  shortcut ;
 static x_termcap_t  termcap ;
 static x_display_t  disp ;
@@ -612,7 +611,7 @@ __exit(
 	ml_term_manager_final() ;
 	kik_locale_final() ;
 	x_main_config_final( &main_config) ;
-	x_color_config_final( &color_config) ;
+	ml_color_config_final() ;
 	x_shortcut_final( &shortcut) ;
 	x_termcap_final( &termcap) ;
 	x_xim_final() ;
@@ -2006,7 +2005,7 @@ vte_terminal_class_init(
 	ml_term_manager_enable_zombie_pty() ;
 	g_timeout_add( 100 , vte_terminal_timeout , NULL) ;	/* 100 miliseconds */
 
-	x_color_config_init( &color_config) ;
+	ml_color_config_init() ;
 	x_shortcut_init( &shortcut) ;
 	x_termcap_init( &termcap) ;
 	x_xim_init( 1) ;
@@ -2623,7 +2622,7 @@ vte_terminal_init(
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
 			main_config.step_in_changing_font_size ,
 			main_config.letter_space , main_config.use_bold_font) ,
-		x_color_manager_new( &disp , &color_config ,
+		x_color_manager_new( &disp ,
 			main_config.fg_color , main_config.bg_color ,
 			main_config.cursor_fg_color , main_config.cursor_bg_color ,
 			main_config.bd_color , main_config.ul_color)) ;
@@ -3376,7 +3375,7 @@ vte_terminal_set_colors(
 			kik_debug_printf( KIK_DEBUG_TAG " Setting rgb %s=%s\n" , name , rgb) ;
 		#endif
 
-			need_redraw |= x_customize_color_file( &color_config , name , rgb , 0) ;
+			need_redraw |= ml_customize_color_file( name , rgb , 0) ;
 
 			g_free( rgb) ;
 		}

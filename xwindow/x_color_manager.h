@@ -9,7 +9,6 @@
 #include  <ml_color.h>
 
 #include  "x_color.h"
-#include  "x_color_config.h"
 #include  "x_color_cache.h"
 
 
@@ -34,7 +33,7 @@ typedef struct  x_color_manager
 
 
 x_color_manager_t *  x_color_manager_new( x_display_t *  disp ,
-	x_color_config_t *  color_config , char *  fg_color , char *  bg_color ,
+	char *  fg_color , char *  bg_color ,
 	char *  cursor_fg_color , char *  cursor_bg_color ,
 	char *  bd_color , char *  ul_color) ;
 

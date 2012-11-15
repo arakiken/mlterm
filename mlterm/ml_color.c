@@ -4,9 +4,26 @@
 
 #include  "ml_color.h"
 
-#include  <stdio.h>		/* NULL */
+#include  <stdio.h>		/* sscanf */
 #include  <string.h>		/* strcmp */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_map.h>
+#include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_file.h>
+#include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_str.h>	/* strdup */
+
+
+typedef struct rgb
+{
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
+	u_int8_t  alpha ;
+
+} rgb_t ;
+
+KIK_MAP_TYPEDEF( color_rgb , ml_color_t , rgb_t) ;
 
 
 /* --- static variables --- */
@@ -28,10 +45,19 @@ static char  color_name_256[4] ;
 static u_int8_t vtsys_color_rgb_table[][3] =
 {
 	{ 0x00, 0x00, 0x00 },
+	{ 0xcd, 0x00, 0x00 },
+	{ 0x00, 0xcd, 0x00 },
+	{ 0xcd, 0xcd, 0x00 },
+	{ 0x00, 0x00, 0xee },
+	{ 0xcd, 0x00, 0xcd },
+	{ 0x00, 0xcd, 0xcd },
+	{ 0xe5, 0xe5, 0xe5 },
+
+	{ 0x7f, 0x7f, 0x7f },
 	{ 0xff, 0x00, 0x00 },
 	{ 0x00, 0xff, 0x00 },
 	{ 0xff, 0xff, 0x00 },
-	{ 0x00, 0x00, 0xff },
+	{ 0x5c, 0x5c, 0xff },
 	{ 0xff, 0x00, 0xff },
 	{ 0x00, 0xff, 0xff },
 	{ 0xff, 0xff, 0xff },
@@ -286,8 +312,291 @@ static u_int8_t color256_rgb_table[][3] =
 };
 #endif
 
+static char *  color_file = "mlterm/color" ;
+static KIK_MAP( color_rgb)  color_config ;
+
+
+/* --- static functions --- */
+
+static KIK_PAIR( color_rgb)
+get_color_rgb_pair(
+	ml_color_t  color
+	)
+{
+	int  result ;
+	KIK_PAIR( color_rgb)  pair ;
+
+	kik_map_get( result , color_config , color , pair) ;
+	if( result)
+	{
+		return  pair ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+}
+
+static int
+color_config_set_rgb(
+	ml_color_t  color ,
+	u_int8_t  red ,
+	u_int8_t  green ,
+	u_int8_t  blue ,
+	u_int8_t  alpha
+	)
+{
+	KIK_PAIR( color_rgb)  pair ;
+	rgb_t  rgb ;
+
+	rgb.red = red ;
+	rgb.green = green ;
+	rgb.blue = blue ;
+	rgb.alpha = alpha ;
+
+	if( ( pair = get_color_rgb_pair( color)))
+	{
+		if( pair->value.red == red && pair->value.green == green &&
+			pair->value.blue == blue && pair->value.alpha == alpha)
+		{
+			/* Not changed */
+
+			return  0 ;
+		}
+
+		pair->value = rgb ;
+
+		return  1 ;
+	}
+	else
+	{
+		int  result ;
+		u_int8_t  r ;
+		u_int8_t  g ;
+		u_int8_t  b ;
+
+		/*
+		 * Same rgb as default is rejected.
+		 */
+
+		if( ! ml_get_color_rgba( color , &r , &g , &b , NULL))
+		{
+			return  0 ;
+		}
+
+		if( red == r && green == g && blue == b && alpha == 0xff)
+		{
+			/* Not changed */
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" color %d'rgb(%02x%02x%02x%02x) not changed.\n",
+				color , red , green , blue , alpha) ;
+		#endif
+
+			return  0 ;
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
+				color , r , g , b , red , green , blue) ;
+		}
+	#endif
+
+		kik_map_set( result , color_config , color , rgb) ;
+
+		return  result ;
+	}
+}
+
+static int
+color_config_get_rgb(
+	ml_color_t  color ,
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue ,
+	u_int8_t *  alpha	/* can be NULL */
+	)
+{
+	KIK_PAIR( color_rgb)  pair ;
+
+	if( ( pair = get_color_rgb_pair( color)) == NULL)
+	{
+		return  0 ;
+	}
+
+	*red = pair->value.red ;
+	*blue = pair->value.blue ;
+	*green = pair->value.green ;
+	if( alpha)
+	{
+		*alpha = pair->value.alpha ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s's rgb => %d %d %d\n", color , *red, *blue, *green) ;
+#endif
+
+	return  1 ;
+}
+
+static int
+parse_conf(
+	char *  color_name ,
+	char *  rgb
+	)
+{
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
+	u_int8_t  alpha ;
+	ml_color_t  color ;
+
+	/*
+	 * Illegal color name is rejected.
+	 */
+	if( ( color = ml_get_color( color_name)) == ML_UNKNOWN_COLOR)
+	{
+		return  0 ;
+	}
+
+	if( *rgb == '\0')
+	{
+		if( ! get_color_rgb_pair( color))
+		{
+			return  0 ;
+		}
+		else
+		{
+			int  result ;
+
+			kik_map_erase_simple( result , color_config , color) ;
+
+			return  1 ;
+		}
+	}
+	else if( ! ml_color_parse_rgb_name( &red , &green , &blue , &alpha , rgb))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,
+			color_name , rgb) ;
+	#endif
+
+		return  0 ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( "%s = red %x green %x blue %x\n" , color_name , red , green , blue) ;
+#endif
+
+	return  color_config_set_rgb( color , red , green , blue , alpha) ;
+}
+
+static int
+read_conf(
+	const char *  filename
+	)
+{
+	kik_file_t *  from ;
+	char *  color_name ;
+	char *  rgb ;
+
+	if( ! ( from = kik_file_open( filename , "r")))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n" , filename) ;
+	#endif
+
+		return  0 ;
+	}
+
+	while( kik_conf_io_read( from , &color_name , &rgb))
+	{
+		parse_conf( color_name , rgb) ;
+	}
+
+	kik_file_close( from) ;
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
+
+int
+ml_color_config_init(void)
+{
+	char *  rcpath ;
+
+	kik_map_new_with_size( ml_color_t , rgb_t , color_config ,
+		kik_map_hash_int , kik_map_compare_int , 16) ;
+
+	if( ( rcpath = kik_get_sys_rc_path( color_file)))
+	{
+		read_conf( rcpath) ;
+		free( rcpath) ;
+	}
+
+	if( ( rcpath = kik_get_user_rc_path( color_file)))
+	{
+		read_conf( rcpath) ;
+		free( rcpath) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_color_config_final(void)
+{
+	kik_map_delete( color_config) ;
+	color_config = NULL ;
+
+	return  1 ;
+}
+
+/*
+ * Return value 0 means customization failed or not changed.
+ * Return value -1 means saving failed.
+ */
+int
+ml_customize_color_file(
+	char *  color ,
+	char *  rgb ,
+	int  save
+	)
+{
+	if( ! color_config || ! parse_conf( color , rgb))
+	{
+		return  0 ;
+	}
+
+	if( save)
+	{
+		char *  path ;
+		kik_conf_write_t *  conf ;
+
+		if( ( path = kik_get_user_rc_path( color_file)) == NULL)
+		{
+			return  -1 ;
+		}
+
+		conf = kik_conf_write_open( path) ;
+		free( path) ;
+		if( conf == NULL)
+		{
+			return  -1 ;
+		}
+
+		kik_conf_io_write( conf , color , rgb) ;
+
+		kik_conf_write_close( conf) ;
+	}
+
+	return  1 ;
+}
 
 char *
 ml_get_color_name(
@@ -307,7 +616,7 @@ ml_get_color_name(
 	}
 	else if( IS_256_COLOR(color))
 	{
-		/* !Notice! Not reentrant */
+		/* XXX Not reentrant */
 		
 		snprintf( color_name_256, sizeof( color_name_256), "%d", color) ;
 
@@ -350,11 +659,12 @@ ml_get_color(
 }
 
 int
-ml_get_color_rgb(
-	ml_color_t  color,
-	u_int8_t *  red,
-	u_int8_t *  green,
-	u_int8_t *  blue
+ml_get_color_rgba(
+	ml_color_t  color ,
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue ,
+	u_int8_t *  alpha	/* can be NULL */
 	)
 {
 	if( ! IS_VALID_COLOR_EXCEPT_FG_BG(color))
@@ -362,11 +672,15 @@ ml_get_color_rgb(
 		return  0 ;
 	}
 
-	if( IS_VTSYS_COLOR(color))
+	if( color_config && color_config_get_rgb( color , red , green , blue , alpha))
 	{
-		*red = vtsys_color_rgb_table[ color & ~ML_BOLD_COLOR_MASK ][0] ;
-		*green = vtsys_color_rgb_table[ color & ~ML_BOLD_COLOR_MASK ][1] ;
-		*blue = vtsys_color_rgb_table[ color & ~ML_BOLD_COLOR_MASK ][2] ;
+		return  1 ;
+	}
+	else if( IS_VTSYS_COLOR(color))
+	{
+		*red = vtsys_color_rgb_table[ color][0] ;
+		*green = vtsys_color_rgb_table[ color][1] ;
+		*blue = vtsys_color_rgb_table[ color][2] ;
 	}
 	else if( color <= 0xe7)
 	{
@@ -391,8 +705,13 @@ ml_get_color_rgb(
 		*green = tmp ;
 		*red = tmp ;
 	}
+
+	if( alpha)
+	{
+		*alpha = 0xff ;
+	}
 	
-	return 1 ;
+	return  1 ;
 }
 
 int
@@ -404,16 +723,16 @@ ml_color_parse_rgb_name(
 	const char *  name
 	)
 {
-	int  _red ;
-	int  _green ;
-	int  _blue ;
-	int  _alpha ;
+	int  r ;
+	int  g ;
+	int  b ;
+	int  a ;
 	size_t  name_len ;
 	char *  format ;
 	int  has_alpha ;
 	int  long_color ;
 
-	_alpha = 0xffff ;
+	a = 0xffff ;
 	has_alpha = 0 ;
 	long_color = 0 ;
 
@@ -428,7 +747,7 @@ ml_color_parse_rgb_name(
 		 * what is worse "RRRR-GGGG-BBBB;" appears in etc/color sample file.
 		 * So, more than 14 length is also accepted for backward compatiblity.
 		 */
-		if( sscanf( name, "%4x-%4x-%4x" , &_red , &_green , &_blue) == 3)
+		if( sscanf( name, "%4x-%4x-%4x" , &r , &g , &b) == 3)
 		{
 			goto  end ;
 		}
@@ -485,7 +804,7 @@ ml_color_parse_rgb_name(
 		}
 	}
 
-	if( sscanf( name , format , &_red , &_green , &_blue , &_alpha) != (3 + has_alpha))
+	if( sscanf( name , format , &r , &g , &b , &a) != (3 + has_alpha))
 	{
 		return  0 ;
 	}
@@ -493,17 +812,17 @@ ml_color_parse_rgb_name(
 end:
 	if( long_color)
 	{
-		*red = (_red >> 8) & 0xff ;
-		*green = (_green >> 8) & 0xff ;
-		*blue = (_blue >> 8) & 0xff ;
-		*alpha = (_alpha >> 8) & 0xff ;
+		*red = (r >> 8) & 0xff ;
+		*green = (g >> 8) & 0xff ;
+		*blue = (b >> 8) & 0xff ;
+		*alpha = (a >> 8) & 0xff ;
 	}
 	else
 	{
-		*red = _red ;
-		*green = _green ;
-		*blue = _blue ;
-		*alpha = _alpha & 0xff ;
+		*red = r ;
+		*green = g ;
+		*blue = b ;
+		*alpha = a & 0xff ;
 	}
 
 #ifdef  __DEBUG
@@ -514,3 +833,49 @@ end:
 	return  1 ;
 }
 
+ml_color_t
+ml_get_closest_color(
+	u_int8_t  red ,
+	u_int8_t  green ,
+	u_int8_t  blue
+	)
+{
+	ml_color_t  closest = ML_UNKNOWN_COLOR ;
+	ml_color_t  color ;
+	u_long  min = 0xffffff ;
+
+	for( color = 0 ; color < 256 ; color++)
+	{
+		u_int8_t  r ;
+		u_int8_t  g ;
+		u_int8_t  b ;
+		u_int8_t  a ;
+
+		/* 16 is treated as 0 and 231 is treated as 15 internally in ml_char.c. */
+		if( color != 16 && color != 231 &&
+		    ml_get_color_rgba( color , &r , &g , &b , &a) && a == 0xff)
+		{
+			u_long  diff ;
+			int  diff_r , diff_g , diff_b ;
+
+			/* lazy color-space conversion */
+			diff_r = red - r ;
+			diff_g = green - g ;
+			diff_b = blue - b ;
+			diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 +
+				diff_b * diff_b ;
+			if( diff < min)
+			{
+				min = diff ;
+				closest = color ;
+				/* no one may notice the difference */
+				if( diff < 31)
+				{
+					break ;
+				}
+			}
+		}
+	}
+
+	return  closest ;
+}

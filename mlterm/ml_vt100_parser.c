@@ -1209,6 +1209,53 @@ config_protocol_get(
 #endif
 }
 
+static int
+change_char_fine_color(
+	ml_vt100_parser_t *  vt100_parser ,
+	int *  ps ,
+	int  num
+	)
+{
+	int  proceed ;
+
+	proceed = 0 ;
+
+	if( num >= 3)
+	{
+		ml_color_t  color ;
+
+		if( ps[1] == 5)
+		{
+			proceed = 3 ;
+			color = ps[2] ;
+		}
+		else if( num >= 5 && ps[1] == 2)
+		{
+			proceed = 5 ;
+			color = ml_get_closest_color( ps[2] , ps[3] , ps[4]) ;
+		}
+		else
+		{
+			return  0 ;
+		}
+
+		if( ps[0] == 38)
+		{
+			ml_screen_set_bce_fg_color(
+				vt100_parser->screen ,
+				( vt100_parser->fg_color = color)) ;
+		}
+		else if( ps[0] == 48)
+		{
+			ml_screen_set_bce_bg_color(
+				vt100_parser->screen ,
+				( vt100_parser->bg_color = color)) ;
+		}
+	}
+
+	return  proceed ;
+}
+
 static void
 change_char_attr(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -1332,29 +1379,41 @@ get_rgb(
 	ml_color_t  color
 	)
 {
-	if( HAS_XTERM_LISTENER(vt100_parser,get_rgb))
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
+	char  rgb[] = "rgb:xxxx/xxxx/xxxx" ;
+	char  seq[2 + (DIGIT_STR_LEN(int) + 1) * 2 + sizeof(rgb) + 1] ;
+
+	if( ps >= 10) /* IS_FG_BG_COLOR(color) */
 	{
-		char  rgb[] = "rgb:xxxx/xxxx/xxxx" ;
-
-		if( (*vt100_parser->xterm_listener->get_rgb)(
-			vt100_parser->xterm_listener->self , rgb + 4 , color))
+		if( ! HAS_XTERM_LISTENER(vt100_parser,get_rgb) ||
+		    ! (*vt100_parser->xterm_listener->get_rgb)(
+			vt100_parser->xterm_listener->self , &red , &green , &blue , color))
 		{
-			char  seq[2 + (DIGIT_STR_LEN(int) + 1) * 2 + sizeof(rgb) + 1] ;
-
-			if( ps >= 10)
-			{
-				/* ps: 10 = fg , 11 = bg , 12 = cursor bg */
-				sprintf( seq , "\x1b]%d;%s\x07" , ps , rgb) ;
-			}
-			else
-			{
-				/* ps: 4 , 5 */
-				sprintf( seq , "\x1b]%d;%d;%s\x07" , ps , color , rgb) ;
-			}
-
-			ml_write_to_pty( vt100_parser->pty , seq , strlen(seq)) ;
+			return ;
 		}
 	}
+	else if( ! ml_get_color_rgba( color , &red , &green , &blue , NULL))
+	{
+		return ;
+	}
+
+	sprintf( rgb + 4 , "%.2x%.2x/%.2x%.2x/%.2x%.2x" ,
+		red , red , green , green , blue , blue) ;
+
+	if( ps >= 10)
+	{
+		/* ps: 10 = fg , 11 = bg , 12 = cursor bg */
+		sprintf( seq , "\x1b]%d;%s\x07" , ps , rgb) ;
+	}
+	else
+	{
+		/* ps: 4 , 5 */
+		sprintf( seq , "\x1b]%d;%d;%s\x07" , ps , color , rgb) ;
+	}
+
+	ml_write_to_pty( vt100_parser->pty , seq , strlen(seq)) ;
 }
 
 /*
@@ -3180,25 +3239,14 @@ parse_vt100_escape_sequence(
 				/* "CSI m" */
 				int  count ;
 
-				for( count = 0 ; count < num ; count ++)
+				for( count = 0 ; count < num ; )
 				{
-					if( ps[count] == 38 && num >= 3 && ps[count + 1] == 5)
-					{
-						vt100_parser->fg_color = ps[count + 2] ;
-						count += 2 ;
+					int  proceed ;
 
-						ml_screen_set_bce_fg_color(
-							vt100_parser->screen ,
-							vt100_parser->fg_color) ;
-					}
-					else if( ps[count] == 48 && num >= 3 && ps[count + 1] == 5)
+					if( ( proceed = change_char_fine_color( vt100_parser ,
+								ps + count , num - count)))
 					{
-						vt100_parser->bg_color = ps[count + 2] ;
-						count += 2 ;
-
-						ml_screen_set_bce_bg_color(
-							vt100_parser->screen ,
-							vt100_parser->bg_color) ;
+						count += proceed ;
 					}
 					else
 					{
@@ -3207,7 +3255,7 @@ parse_vt100_escape_sequence(
 							ps[count] = 0 ;
 						}
 
-						change_char_attr( vt100_parser , ps[count]) ;
+						change_char_attr( vt100_parser , ps[count++]) ;
 					}
 				}
 			}

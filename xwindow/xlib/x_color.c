@@ -216,7 +216,7 @@ x_unload_xcolor(
 }
 
 int
-x_get_xcolor_rgb(
+x_get_xcolor_rgba(
 	u_int8_t *  red ,
 	u_int8_t *  green ,
 	u_int8_t *  blue ,
@@ -248,7 +248,7 @@ x_xcolor_fade(
 	u_int8_t  blue ;
 	u_int8_t  alpha ;
 
-	x_get_xcolor_rgb( &red , &green , &blue , &alpha , xcolor) ;
+	x_get_xcolor_rgba( &red , &green , &blue , &alpha , xcolor) ;
 
 #if  0
 	kik_msg_printf( "Fading R%d G%d B%d => " , red , green , blue) ;

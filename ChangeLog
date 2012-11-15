@@ -1,3 +1,21 @@
+2012-11-15  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.ja, man/mlterm.1: Updated.
+
+	* version.h.in: 3.1.5 -> 3.1.5 post
+
+	* ml_vt100_parser.[ch], x_screen.c:
+	  3 byte rgb color sequence is supported.
+	  (<ESC>[38;2;<r>;<g>;<b>m and <ESC>[48;2;<r>;<g>;<b>m)
+
+	* x_color_config.[ch], ml_color.[ch], x_color_cache.[ch]:
+	  - x_color_config.[ch] are integrated to ml_color.[ch].
+	  - Color names defined in ~/.mlterm/color are not available for
+	    -fg, -bg, -sbfg and -sbbg options.
+
+	* x_color.h, xlib/x_color.c, win32/x_color.c, fb/x_color.c:
+	  x_get_xcolor_rgb() -> x_get_xcolor_rgba()
+
 2012-11-13  Araki Ken  <arakiken@users.sf.net>
 
 	* mkf_ucs_property.table:

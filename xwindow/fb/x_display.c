@@ -358,7 +358,7 @@ cmap_init(void)
 
 	for( color = 0 ; color < 256 ; color ++)
 	{
-		ml_get_color_rgb( color , &r , &g , &b) ;
+		ml_get_color_rgba( color , &r , &g , &b , NULL) ;
 
 		_display.cmap->red[color] = BYTE_COLOR_TO_WORD(r) ;
 		_display.cmap->blue[color] = BYTE_COLOR_TO_WORD(g) ;
