@@ -1,3 +1,7 @@
+2012-11-17  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/vte.c: Duplicate code is removed.
+
 2012-11-16  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, man/mlclient.1, doc/en/PROTOCOL, doc/ja/README.ja:

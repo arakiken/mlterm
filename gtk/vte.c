@@ -2101,14 +2101,6 @@ vte_terminal_class_init(
 		ml_set_word_separators( value) ;
 	}
 
-	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_set_use_clipboard_selection( 1) ;
-		}
-	}
-
 	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
 	    strcmp( value , "true") == 0)
 	{
