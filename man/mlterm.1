@@ -448,6 +448,10 @@ Specify the step of changing font size in pixel when you pushed
 GUI configurator.
 The default is \fB1\fR.
 .TP
+\fB\-\-altbuf\fR=\fIvalue\fR
+Whether to enable alternate screen buffer.
+This option is similar to "titeInhibit" of xterm.
+.TP
 \fB\-\-bd\fR=\fIvalue\fR
 Specify the color to use to display bold characters.
 .TP
@@ -1313,6 +1317,9 @@ Rendering engine for drawing fonts.
 \fBul_color=\fIvalue\fR (\fB\-\-ul\fR) 
 Specify the color to use to display underlined characters.
 .TP
+\fBuse_alt_buffer=\fIbool\fR (\fB\-\-altbuf\fR)
+Use alternate screen buffer.
+.TP
 \fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR) 
 Use anti alias font.
 .TP
@@ -1341,7 +1348,7 @@ Enable extended short cut keys for scrolling.
 Use indic rendering on UTF8 or ISCII encoding.
 .TP
 \fBuse_local_echo=\fIbool\fR (\fB\-\-loecho\fR) 
-Whether to use local echo mode or not.
+Use local echo mode.
 .TP
 \fBuse_login_shell=\fIbool\fR (\fB\-L\fR, \fB\-\-ls\fR) 
 Whether to use login shell or not.

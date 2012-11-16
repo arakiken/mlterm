@@ -90,6 +90,7 @@
 /* --- static variables --- */
 
 static int  use_dec_special_font ;
+static int  use_alt_buffer = 1 ;
 
 
 /* --- static functions --- */
@@ -2346,8 +2347,11 @@ parse_vt100_escape_sequence(
 							 * Use alternate screen buffer
 							 */
 
-							ml_screen_use_alternative_edit(
-								vt100_parser->screen) ;
+							if( use_alt_buffer)
+							{
+								ml_screen_use_alternative_edit(
+									vt100_parser->screen) ;
+							}
 						}
 						else if( ps[count] == 66)
 						{
@@ -2436,30 +2440,33 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1047 h" */
 
-							/* if( !titeInhibit)*/
-							save_cursor( vt100_parser) ;
-							ml_screen_use_alternative_edit(
-								vt100_parser->screen) ;
-							/* */
+							if( use_alt_buffer)
+							{
+								save_cursor( vt100_parser) ;
+								ml_screen_use_alternative_edit(
+									vt100_parser->screen) ;
+							}
 						}
 						else if( ps[count] == 1048)
 						{
 							/* "CSI ? 1048 h" */
 
-							/* if( !titeInhibit)*/
-							save_cursor( vt100_parser) ;
-							/* */
+							if( use_alt_buffer)
+							{
+								save_cursor( vt100_parser) ;
+							}
 						}
 						else if( ps[count] == 1049)
 						{
 							/* "CSI ? 1049 h" */
 
-							/* if( !titeInhibit)*/
-							save_cursor( vt100_parser) ;
-							ml_screen_use_alternative_edit(
-								vt100_parser->screen) ;
-							clear_display_all( vt100_parser) ;
-							/* */
+							if( use_alt_buffer)
+							{
+								save_cursor( vt100_parser) ;
+								ml_screen_use_alternative_edit(
+									vt100_parser->screen) ;
+								clear_display_all( vt100_parser) ;
+							}
 						}
 						else if( ps[count] == 2004)
 						{
@@ -2592,8 +2599,11 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 47 l" Use normal screen buffer */
 
-							ml_screen_use_normal_edit(
-								vt100_parser->screen) ;
+							if( use_alt_buffer)
+							{
+								ml_screen_use_normal_edit(
+									vt100_parser->screen) ;
+							}
 						}
 						else if( ps[count] == 66)
 						{
@@ -2662,30 +2672,33 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1047 l" */
 
-							/* if( ! titeInhibit) */
-							clear_display_all( vt100_parser) ;
-							ml_screen_use_normal_edit(
-								vt100_parser->screen) ;
-							restore_cursor( vt100_parser) ;
-							/* */
+							if( use_alt_buffer)
+							{
+								clear_display_all( vt100_parser) ;
+								ml_screen_use_normal_edit(
+									vt100_parser->screen) ;
+								restore_cursor( vt100_parser) ;
+							}
 						}
 						else if( ps[count] == 1048)
 						{
 							/* "CSI ? 1048 l" */
 
-							/* if( ! titeInhibit) */
-							restore_cursor( vt100_parser) ;
-							/* */
+							if( use_alt_buffer)
+							{
+								restore_cursor( vt100_parser) ;
+							}
 						}
 						else if( ps[count] == 1049)
 						{
 							/* "CSI ? 1049 l" */
 
-							/* if( ! titeInhibit) */
-							ml_screen_use_normal_edit(
-								vt100_parser->screen) ;
-							restore_cursor( vt100_parser) ;
-							/* */
+							if( use_alt_buffer)
+							{
+								ml_screen_use_normal_edit(
+									vt100_parser->screen) ;
+								restore_cursor( vt100_parser) ;
+							}
 						}
 						else if( ps[count] == 2004)
 						{
@@ -4354,12 +4367,20 @@ write_loopback(
 
 /* --- global functions --- */
 
-int
-ml_use_dec_special_font(void)
+void
+ml_set_use_dec_special_font(
+	int  use
+	)
 {
-	use_dec_special_font = 1 ;
+	use_dec_special_font = use ;
+}
 
-	return  1 ;
+void
+ml_set_use_alt_buffer(
+	int  use
+	)
+{
+	use_alt_buffer = use ;
 }
 
 ml_vt100_parser_t *

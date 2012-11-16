@@ -564,9 +564,7 @@ ml_char_font(
 
 /*
  * Return the number of columns when ch is shown in the screen.
- * So if ml_char_cols(ch) returns 0, nothing is shown in the
- * screen, but ch can occupy one column from the point of view
- * of console applications.
+ * (If ml_char_cols(ch) returns 0, nothing is shown in the screen.)
  */
 u_int
 ml_char_cols(

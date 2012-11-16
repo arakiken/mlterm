@@ -260,26 +260,12 @@ main_loop_init(
 	x_xim_init( use_xim) ;
 #endif
 
-	if( ( value = kik_conf_get_value( conf , "click_interval")))
-	{
-		int  interval ;
-
-		if( kik_str_to_int( &interval , value))
-		{
-			x_set_click_interval( interval) ;
-		}
-		else
-		{
-			kik_msg_printf( invalid_msg , "click_interval" , value) ;
-		}
-	}
-
 #if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			ml_use_dec_special_font() ;
+			ml_set_use_dec_special_font( 1) ;
 			x_compose_dec_special_font() ;
 		}
 	}

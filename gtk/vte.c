@@ -2081,21 +2081,11 @@ vte_terminal_class_init(
 	/* Default value of vte "audible-bell" is TRUE, while "visible-bell" is FALSE. */
 	main_config.bel_mode = BEL_SOUND ;
 
-	if( ( value = kik_conf_get_value( conf , "click_interval")))
-	{
-		int  interval ;
-
-		if( kik_str_to_int( &interval , value))
-		{
-			x_set_click_interval( interval) ;
-		}
-	}
-
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			ml_use_dec_special_font() ;
+			ml_set_use_dec_special_font( 1) ;
 			x_compose_dec_special_font() ;
 		}
 	}

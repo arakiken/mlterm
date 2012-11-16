@@ -253,6 +253,15 @@ set_config(
 			ml_term_set_use_local_echo( nativeObj->term , flag) ;
 		}
 	}
+	else if( strcmp( key , "use_alt_buffer") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_set_use_alt_buffer( flag) ;
+		}
+	}
 }
 
 static void

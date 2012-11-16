@@ -700,6 +700,10 @@ comment $Id$
       o use_local_echo (true/*false*)
         local echo mode を有効にする。
 
+      o use_alt_buffer (*true*/false)
+        Alternate screen buffer を有効にする。
+        xterm の "titeInhibit" とは true/false が逆になるので注意してください。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1131,14 +1135,15 @@ comment $Id$
        --osc52(=bool)  : allow_osc52
        --blink(=bool)  : blink_cursor
        --border=value  : inner_border
-       --button3=value : button3_behavior (X)
-       --clip(=bool)   : use_clipboard (X)
+       --button3=value : button3_behavior
+       --clip(=bool)   : use_clipboard
        --restart(=bool): auto_restart
        --logmsg(=bool) : logging_msg
        --loecho(=bool) : use_local_echo
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)
+       --altbuf(=bool) : use_alt_buffer
 
     -e ... : 指定したコマンドを起動
 

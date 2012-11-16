@@ -205,7 +205,9 @@ typedef struct  ml_vt100_parser
 } ml_vt100_parser_t ;
 
 
-int  ml_use_dec_special_font(void) ;
+void  ml_set_use_dec_special_font( int  use) ;
+
+void  ml_set_use_alt_screen( int  use) ;
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,

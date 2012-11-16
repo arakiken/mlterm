@@ -264,6 +264,8 @@ x_prepare_for_main_config(
 		"output messages to ~/.mlterm/msg.log [true]") ;
 	kik_conf_add_opt( conf , '\0' , "loecho" , 1 , "use_local_echo" ,
 		"use local echo [false]") ;
+	kik_conf_add_opt( conf , '\0' , "altbuf" , 1 , "use_alt_buffer" ,
+		"use alternative buffer. [true]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -1308,6 +1310,28 @@ x_main_config_init(
 		if( strcmp( value , "true") == 0)
 		{
 			main_config->use_local_echo = 1 ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "click_interval")))
+	{
+		int  interval ;
+
+		if( kik_str_to_int( &interval , value))
+		{
+			x_set_click_interval( interval) ;
+		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "click_interval" , value) ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_alt_buffer")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			ml_set_use_alt_buffer( 0) ;
 		}
 	}
 
