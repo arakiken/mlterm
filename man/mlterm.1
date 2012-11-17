@@ -492,6 +492,10 @@ or command string like "mlclient \-e w3m"
 Whether to enable CLIPBOARD (not only PRIMARY) selection.
 The default is \fBfalse\fR.
 .TP
+\fB\-\-colors\fR(=\fIbool\fR)
+Whether to recognize ANSI color change escape sequences.
+The default is \fBtrue\fR.
+.TP
 \fB\-\-csp\fR=\fIvalue\fR
 Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
 The default is \fB0\fR.
@@ -1319,6 +1323,9 @@ Specify the color to use to display underlined characters.
 .TP
 \fBuse_alt_buffer=\fIbool\fR (\fB\-\-altbuf\fR)
 Use alternate screen buffer.
+.TP
+\fBuse_ansi_colors=\fIbool\fR (\fB\-\-colors\fR)
+Recognize ANSI color change escape sequences.
 .TP
 \fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR) 
 Use anti alias font.

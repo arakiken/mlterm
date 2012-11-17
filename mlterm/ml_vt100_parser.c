@@ -91,6 +91,7 @@
 
 static int  use_dec_special_font ;
 static int  use_alt_buffer = 1 ;
+static int  use_ansi_colors = 1 ;
 
 
 /* --- static functions --- */
@@ -1218,39 +1219,39 @@ change_char_fine_color(
 	)
 {
 	int  proceed ;
+	ml_color_t  color ;
 
-	proceed = 0 ;
-
-	if( num >= 3)
+	if( ps[0] != 38 && ps[0] != 48)
 	{
-		ml_color_t  color ;
+		return  0 ;
+	}
 
-		if( ps[1] == 5)
-		{
-			proceed = 3 ;
-			color = ps[2] ;
-		}
-		else if( num >= 5 && ps[1] == 2)
-		{
-			proceed = 5 ;
-			color = ml_get_closest_color( ps[2] , ps[3] , ps[4]) ;
-		}
-		else
-		{
-			return  0 ;
-		}
+	if( num >= 3 && ps[1] == 5)
+	{
+		proceed = 3 ;
+		color = ps[2] ;
+	}
+	else if( num >= 5 && ps[1] == 2)
+	{
+		proceed = 5 ;
+		color = ml_get_closest_color( ps[2] , ps[3] , ps[4]) ;
+	}
+	else
+	{
+		return  1 ;
+	}
 
+	if( use_ansi_colors)
+	{
 		if( ps[0] == 38)
 		{
-			ml_screen_set_bce_fg_color(
-				vt100_parser->screen ,
-				( vt100_parser->fg_color = color)) ;
+			vt100_parser->fg_color = color ;
+			ml_screen_set_bce_fg_color( vt100_parser->screen , color) ;
 		}
-		else if( ps[0] == 48)
+		else /* if( ps[0] == 48) */
 		{
-			ml_screen_set_bce_bg_color(
-				vt100_parser->screen ,
-				( vt100_parser->bg_color = color)) ;
+			vt100_parser->bg_color = color ;
+			ml_screen_set_bce_bg_color( vt100_parser->screen , color) ;
 		}
 	}
 
@@ -1326,39 +1327,44 @@ change_char_attr(
 		/* Not hidden */
 	}
 #endif
-	else if( 30 <= flag && flag <= 37)
+	else if( use_ansi_colors)
 	{
-		/* 30=ML_BLACK(0) ... 37=ML_WHITE(7) */
-		fg_color = flag - 30 ;
+		/* Color attributes */
+
+		if( 30 <= flag && flag <= 37)
+		{
+			/* 30=ML_BLACK(0) ... 37=ML_WHITE(7) */
+			fg_color = flag - 30 ;
+		}
+		else if( flag == 39)
+		{
+			/* default fg */
+			fg_color = ML_FG_COLOR ;
+		}
+		else if( 40 <= flag && flag <= 47)
+		{
+			/* 40=ML_BLACK(0) ... 47=ML_WHITE(7) */
+			bg_color = flag - 40 ;
+		}
+		else if( flag == 49)
+		{
+			bg_color = ML_BG_COLOR ;
+		}
+		else if( 90 <= flag && flag <= 97)
+		{
+			fg_color = (flag - 90) | ML_BOLD_COLOR_MASK ;
+		}
+		else if( 100 <= flag && flag <= 107)
+		{
+			bg_color = (flag - 100) | ML_BOLD_COLOR_MASK ;
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " unknown char attr flag(%d).\n" , flag) ;
+		}
+	#endif
 	}
-	else if( flag == 39)
-	{
-		/* default fg */
-		fg_color = ML_FG_COLOR ;
-	}
-	else if( 40 <= flag && flag <= 47)
-	{
-		/* 40=ML_BLACK(0) ... 47=ML_WHITE(7) */
-		bg_color = flag - 40 ;
-	}
-	else if( flag == 49)
-	{
-		bg_color = ML_BG_COLOR ;
-	}
-	else if( 90 <= flag && flag <= 97)
-	{
-		fg_color = (flag - 90) | ML_BOLD_COLOR_MASK ;
-	}
-	else if( 100 <= flag && flag <= 107)
-	{
-		bg_color = (flag - 100) | ML_BOLD_COLOR_MASK ;
-	}
-#ifdef  DEBUG
-	else
-	{
-		kik_warn_printf( KIK_DEBUG_TAG " unknown font attr flag(%d).\n" , flag) ;
-	}
-#endif
 
 	if( fg_color != vt100_parser->fg_color)
 	{
@@ -4381,6 +4387,14 @@ ml_set_use_alt_buffer(
 	)
 {
 	use_alt_buffer = use ;
+}
+
+void
+ml_set_use_ansi_colors(
+	int  use
+	)
+{
+	use_ansi_colors = use ;
 }
 
 ml_vt100_parser_t *

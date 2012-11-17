@@ -43,7 +43,7 @@ version 20110903
                      use_dynamic_comb | cursor_fg_color | cursor_bg_color | bd_color | ul_color |
                      use_bold_font | hide_underline | icon_path | logging_vt_seq | logging_msg |
                      title | word_separators | button3_behavior | use_clipboard | auto_restart |
-		     use_alt_buffer
+		     use_alt_buffer | use_ansi_colors
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -108,6 +108,7 @@ version 20110903
   type_engine = xcore | xft
   ul_color = <color name> | <color rgb>
   use_alt_buffer = true | false
+  use_ansi_colors = true | false
   use_anti_alias = true | false
   use_bidi = true | false
   use_bold_font = true | false

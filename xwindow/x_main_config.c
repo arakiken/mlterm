@@ -266,6 +266,8 @@ x_prepare_for_main_config(
 		"use local echo [false]") ;
 	kik_conf_add_opt( conf , '\0' , "altbuf" , 1 , "use_alt_buffer" ,
 		"use alternative buffer. [true]") ;
+	kik_conf_add_opt( conf , '\0' , "colors" , 1 , "use_ansi_colors" ,
+		"recognize ANSI color change escape sequences. [true]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -1332,6 +1334,14 @@ x_main_config_init(
 		if( strcmp( value , "false") == 0)
 		{
 			ml_set_use_alt_buffer( 0) ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_ansi_colors")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			ml_set_use_ansi_colors( 0) ;
 		}
 	}
 

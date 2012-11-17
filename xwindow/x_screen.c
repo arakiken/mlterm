@@ -8763,6 +8763,15 @@ x_screen_set_config(
 			ml_set_use_alt_buffer( flag) ;
 		}
 	}
+	else if( strcmp( key , "use_ansi_colors") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_set_use_ansi_colors( flag) ;
+		}
+	}
 	else
 	{
 		return  0 ;

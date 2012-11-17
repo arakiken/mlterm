@@ -1,5 +1,10 @@
 2012-11-17  Araki Ken  <arakiken@users.sf.net>
 
+	* man/mlterm.1, README.ja, PROTOCOL: Updated.
+
+	* ml_vt100_parser.[ch], x_screen.c, x_main_config.c:
+	  --colors / "use_ansi_colors" option is added.
+
 	* gtk/vte.c: Duplicate code is removed.
 
 2012-11-16  Araki Ken  <arakiken@users.sf.net>
@@ -8,7 +13,7 @@
 	  Updated.
 
 	* ml_vt100_parser.[ch], x_screen.c, x_main_config.c:
-	  --altbuf/"use_alt_buffer" option is added.
+	  --altbuf / "use_alt_buffer" option is added.
 
 	* main_loop.c, gtk/vte.c, x_screen_manager.c:
 	  "click_interval" option is processed in x_screen_manager.c instead
