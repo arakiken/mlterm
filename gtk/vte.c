@@ -1080,7 +1080,21 @@ vte_terminal_timeout(
 	gpointer  data
 	)
 {
+	/*
+	 * If gdk_threads_add_timeout (2.12 or later) doesn't exist,
+	 * call gdk_threads_{enter|leave} manually for MT-safe.
+	 */
+#if  ! GTK_CHECK_VERSION(2,12,0)
+	gdk_threads_enter() ;
+#endif
+
 	ml_close_dead_terms() ;
+
+	x_display_idling( &disp) ;
+
+#if  ! GTK_CHECK_VERSION(2,12,0)
+	gdk_threads_leave() ;
+#endif
 
 	return  TRUE ;
 }
@@ -2003,7 +2017,11 @@ vte_terminal_class_init(
 
 	ml_term_manager_init( 1) ;
 	ml_term_manager_enable_zombie_pty() ;
+#if  GTK_CHECK_VERSION(2,12,0)
+	gdk_threads_add_timeout( 100 , vte_terminal_timeout , NULL) ;	/* 100 miliseconds */
+#else
 	g_timeout_add( 100 , vte_terminal_timeout , NULL) ;	/* 100 miliseconds */
+#endif
 
 	ml_color_config_init() ;
 	x_shortcut_init( &shortcut) ;
@@ -3565,20 +3583,15 @@ vte_terminal_set_cursor_blink_mode(
 	VteTerminalCursorBlinkMode  mode
 	)
 {
-	/*
-	 * XXX
-	 * Not work until x_display_idling is implemented.
-	 */
-
 	char *  value ;
 
-	if( mode == VTE_CURSOR_BLINK_ON)
+	if( mode == VTE_CURSOR_BLINK_OFF)
 	{
-		value = "true" ;
+		value = "false" ;
 	}
 	else
 	{
-		value = "false" ;
+		value = "true" ;
 	}
 
 	x_screen_set_config( terminal->pvt->screen , NULL , "blink_cursor" , value) ;

@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.1.4
+%define version 3.1.5
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
