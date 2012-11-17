@@ -1,11 +1,14 @@
 2012-11-18  Araki Ken  <arakiken@users.sf.net>
 
+	* gtk/INSTALL: Updated.
+
 	* mlterm.spec: Fix the version number.
 
 	* gtk/vte.c:
 	  - x_display_idling() is called in vte_terminal_timeout().
 	  - Cursor blinking is enabled not only by VTE_CURSOR_BLINK_ON
 	    but also VTE_CURSOR_BLINK_SYSTEM.
+	  - vte_terminal_set_cursor_blinks() is implemented.
 
 2012-11-17  Araki Ken  <arakiken@users.sf.net>
 

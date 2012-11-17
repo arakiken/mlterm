@@ -4319,6 +4319,8 @@ vte_terminal_set_cursor_blinks(
 	gboolean blink
 	)
 {
+	x_screen_set_config( terminal->pvt->screen , NULL , "blink_cursor" ,
+			blink ? "true" : "false") ;
 }
 
 gboolean

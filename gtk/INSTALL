@@ -37,7 +37,8 @@ How to build & install libvte compatible library using mlterm engine.
     (*) Following configurations are invalidated by gnome-terminal or etc in startup.
        - 'DEFAULT' settings in ~/.mlterm/(v)(aa)font
        - 'bel_mode', 'fg_color', 'bg_color', 'cursor_bg_color', 'wall_picture',
-         'use_transbg', 'alpha' and 'encoding' options in ~/.mlterm/main
+         'use_transbg', 'alpha', 'encoding' and 'blink_cursor' options
+	 in ~/.mlterm/main
 
   o Default value of following options are not same as that of normal mlterm.
     [Option]       [Default Value]                     [Normal mlterm]
@@ -49,7 +50,6 @@ How to build & install libvte compatible library using mlterm engine.
     - Vertical writing mode
     - 'screen_width_ratio' and 'screen_height_ratio' options
     - 'inner_border' option
-    - 'blink_cursor' option
 
   o If libvte compatible mlterm dies in compiz environment,
     try XLIB_SKIP_ARGB_VISUAL variable as follows.
@@ -101,7 +101,6 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_get_status_line
     - vte_terminal_set_pty
     - vte_terminal_get_child_exit_status
-    - vte_terminal_set_cursor_blinks
     - vte_terminal_match_add
     - vte_terminal_set_alternate_screen_scroll
     - vte_pty_new_foreign

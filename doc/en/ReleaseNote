@@ -13,6 +13,7 @@ ver 3.1.6
   contains double-width glyphs or no glyphs for line characters.
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 6.2.0.
+* "blink_cursor" option is available for libvte.
 * Change key sequences in term_type=mlterm
   (application cursor key mode is off)
   XK_HOME: \x1bOH -> \x1b[H   XK_END : \x1bOF -> \x1b[F
