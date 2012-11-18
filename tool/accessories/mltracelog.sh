@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ ${#} -ne 1 ]; then
-	echo "Usage: mltrachet.sh [log file]"
+	echo "Usage: mltracelog.sh [log file]"
 	exit  1
 fi
 
