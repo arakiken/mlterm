@@ -1,3 +1,11 @@
+2012-11-19  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/INSTALL: Minor fixes.
+
+	* tool/accessories/mltracelog.sh: Added.
+	  Note that mltracelog.sh depends on trachet.
+	  (http://pypi.python.org/pypi/trachet/).
+
 2012-11-18  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/INSTALL: Updated.

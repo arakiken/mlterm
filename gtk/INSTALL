@@ -4,7 +4,7 @@ How to build & install libvte compatible library using mlterm engine.
 
 * Requirements
   o vte library and headers
-  o gtk+ 2.x
+  o gtk+ 2.x or 3.x
   o terminal emulators or other applications using libvte 
     (gnome-terminal, roxterm, synaptic or etc)
 
@@ -77,7 +77,6 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_set_color_highlight
     - vte_terminal_set_default_colors
     - vte_terminal_set_background_tint_color
-    - vte_terminal_set_color_blink_mode
     - vte_terminal_set_cursor_shape
     - vte_terminal_set_scrollback_lines
     - vte_terminal_im_append_menuitems
