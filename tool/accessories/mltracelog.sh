@@ -40,7 +40,7 @@ for newdev in `echo $newlist | tr ';' ' ' | tr '=' ' '` ; do
 
 	if [ $match = 0 ]; then
 		newdev=`echo $newdev | tr ':1' ' ' | tr ':0' ' '`
-		trachet -o $newdev "cat $file -"
+		trachet -b -o $newdev "cat $file -"
 		break
 	fi
 done

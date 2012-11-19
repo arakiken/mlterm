@@ -1,3 +1,7 @@
+2012-11-20  Araki Ken  <arakiken@users.sf.net>
+
+	* mltracelog.sh: -b option is added to trachet.
+
 2012-11-19  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/INSTALL: Minor fixes.
