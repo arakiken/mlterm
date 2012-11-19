@@ -16,7 +16,7 @@ _trachet=`which trachet`
 _printf=`which printf`
 
 if [ -z "$_trachet" -o "$_printf" != "/usr/bin/printf" ]; then
-	echo "Not found trachet/printf"
+	echo "Not found trachet(http://pypi.python.org/pypi/trachet) or printf"
 	exit  1
 fi
 
@@ -24,7 +24,7 @@ fi
 /usr/bin/printf "\e]5380;%s;pty_list\a" `cat $HOME/.mlterm/challenge`
 read oldlist
 
-/usr/bin/printf "\e]5379;mlclient -e cat\a"
+mlclient
 
 /usr/bin/printf "\e]5380;%s;pty_list\a" `cat $HOME/.mlterm/challenge`
 read newlist
