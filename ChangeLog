@@ -1,3 +1,10 @@
+2012-11-21  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Checking the argument of mlclient is moved from
+	  set_config() to x_screen_exec_cmd().
+
+	* ml_pty_unix.c: exit(1) is called explicitely if execv() failed.
+
 2012-11-20  Araki Ken  <arakiken@users.sf.net>
 
 	* mltracelog.sh: -b option is added to trachet.

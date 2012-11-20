@@ -24,7 +24,7 @@ fi
 /usr/bin/printf "\e]5380;%s;pty_list\a" `cat $HOME/.mlterm/challenge`
 read oldlist
 
-mlclient
+mlclient -e cat
 
 /usr/bin/printf "\e]5380;%s;pty_list\a" `cat $HOME/.mlterm/challenge`
 read newlist

@@ -5190,29 +5190,6 @@ snapshot(
  */
 
 static void
-set_config(
-	void *  p ,
-	char *  dev ,		/* can be NULL */
-	char *  key ,
-	char *  value		/* can be NULL */
-	)
-{
-	/*
-	 * Executing value of "-e" or "--initstr" option is dangerous
-	 * in case 'cat dangerousfile'.
-	 */
-	if( strstr( key , "mlclient") &&
-	    (strstr( key , "-e ") || strstr( key , "-initstr ") || strstr( key , "-#")))
-	{
-		kik_msg_printf( "\"%s\" is prohibited in configuration protocol.\n" , key) ;
-
-		return ;
-	}
-
-	x_screen_set_config( p , dev , key , value) ;
-}
-
-static void
 get_config(
 	void *  p ,
 	char *  dev ,	/* can be NULL */
@@ -7425,7 +7402,7 @@ x_screen_new(
 
 	screen->config_listener.self = screen ;
 	screen->config_listener.exec = x_screen_exec_cmd ;
-	screen->config_listener.set = set_config ;
+	screen->config_listener.set = x_screen_set_config ;
 	screen->config_listener.get = get_config ;
 	screen->config_listener.saved = NULL ;
 	screen->config_listener.set_font = set_font_config ;
@@ -7994,6 +7971,21 @@ x_screen_exec_cmd(
 
 	if( strncmp( cmd , "mlclient" , 8) == 0)
 	{
+		char *  p ;
+
+		/*
+		 * Executing value of "-e" or "--initstr" option is dangerous
+		 * in case 'cat dangerousfile'.
+		 */
+		if( ( ( p = strstr( cmd , "-e ")) &&
+		      /* XXX for mltracelog.sh */ strcmp( p , "-e cat") != 0) ||
+		    ( p = strstr( cmd , "-initstr ")) ||
+		    ( p = strstr( cmd , "-#")))
+		{
+			kik_msg_printf( "Remove \"%s\" from mlclient arguments.\n" , p) ;
+			*p = '\0' ;
+		}
+
 		if( HAS_SYSTEM_LISTENER(screen,mlclient))
 		{
 			(*screen->system_listener->mlclient)(

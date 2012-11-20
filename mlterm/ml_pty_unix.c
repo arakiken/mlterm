@@ -183,26 +183,18 @@ ml_pty_unix_new(
 
 		if( strchr( cmd_path , '/') == NULL)
 		{
-			if( execvp( cmd_path , cmd_argv) < 0)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " execve(%s) failed.\n" ,
-					cmd_path) ;
-			#endif
-			}
+			execvp( cmd_path , cmd_argv) ;
 		}
 		else
 		{
-			if( execv( cmd_path , cmd_argv) < 0)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " execve(%s) failed.\n" ,
-					cmd_path) ;
-			#endif
-			
-				exit(1) ;
-			}
+			execv( cmd_path , cmd_argv) ;
 		}
+
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " exec(%s) failed.\n" , cmd_path) ;
+	#endif
+
+		exit(1) ;
 	}
 
 	/* parent process */

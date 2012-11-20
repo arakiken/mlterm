@@ -24,6 +24,7 @@ ver 3.1.6
   XK_HOME: \x1bOH -> \x1b[7~  XK_END : \x1bOF -> \x1b[8~
 * Bug fixes:
   Fix the bug of showing incorrect glyphs of large fonts like unifont.pcf.
+  Fix the infinite loop in the failure of executing the command specified with -e option.
 
 ver 3.1.5
 * Support framebuffer on Linux. (Experimental)
