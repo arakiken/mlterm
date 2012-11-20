@@ -1,4 +1,6 @@
-2012-11-21  Araki Ken  <arakiken@users.sf.net>
+2012-11-20  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTermPty.c: "use_ansi_colors" option is added to set_config().
 
 	* x_screen.c: Checking the argument of mlclient is moved from
 	  set_config() to x_screen_exec_cmd().
