@@ -2124,94 +2124,108 @@ parse_vt100_escape_sequence(
 				return  0 ;
 			}
 
-			pre_ch = '\0' ;
+			/* Parameter characters(0x30-0x3f) */
 
-			/* Parameter characters */
+			if( 0x3c <= *str_p && *str_p <= 0x3f)
+			{
+				/* parameter character except numeric, ':' and ';' (< = > ?). */
+				pre_ch = *str_p ;
+
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
+				{
+					return  0 ;
+				}
+			}
+			else
+			{
+				pre_ch = '\0' ;
+			}
+
 			num = 0 ;
 			while( 1)
 			{
-				if( *str_p == '0')
-				{
-					/* 000000001 -> 01 */
-					while( left > 1 && *(str_p + 1) == '0')
-					{
-						str_p ++ ;
-						left -- ;
-					}
-				}
-				if( '0' <= *str_p && *str_p <= '9')
-				{
-					u_char  digit[DIGIT_STR_LEN(int) + 1] ;
-					int  count ;
-
-					digit[0] = *str_p ;
-
-					for( count = 1 ; count < DIGIT_STR_LEN(int) ; count++)
-					{
-						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 0))
-						{
-							return  0 ;
-						}
-
-						if( *str_p < '0' || '9' < *str_p)
-						{
-							break ;
-						}
-
-						digit[count] = *str_p ;
-					}
-
-					digit[count] = '\0' ;
-					if( num < MAX_NUM_OF_PS)
-					{
-						ps[num ++] = atoi( digit) ;
-					#ifdef  MAX_PS_DIGIT
-						if( ps[num - 1] > MAX_PS_DIGIT)
-						{
-							ps[num - 1] = MAX_PS_DIGIT ;
-						}
-					#endif
-					}
-
-					/* *str_p can be ';' here. */
-				}
-				else if( *str_p == ';')
+				if( *str_p == ';')
 				{
 					/*
-					 * "ESC [ ; n" is regarded as "ESC [ -1 ; n"
+					 * "CSI ; n" is regarded as "CSI -1 ; n"
 					 */
 					if( num < MAX_NUM_OF_PS)
 					{
 						ps[num ++] = -1 ;
 					}
 				}
-
-				if( 0x3c <= *str_p && *str_p <= 0x3f)
+				else
 				{
-					/* parameter character except numeric and ';' (< = > ?). */
-					if( pre_ch == '\0')
+					if( '0' <= *str_p && *str_p <= '9')
 					{
-						pre_ch = *str_p ;
-					}
-				}
-				else if( *str_p != ';')
-				{
-					/*
-					 * "ESC 0 n" is *not* regarded as "ESC 0 ; -1 n"
-					 * "ESC n" is regarded as "ESC [ -1 n"
-					 * "ESC [ 0 ; n" is regarded as "ESC [ 0 ; -1 n"
-					 * "ESC [ ; n" is regarded as "ESC [ -1 ; -1 n"
-					 */
-					if( num == 0 ||
-					    (*(str_p - 1) == ';' && num < MAX_NUM_OF_PS) )
-					{
-						ps[num ++] = -1 ;
+						u_char  digit[DIGIT_STR_LEN(int) + 1] ;
+						int  count ;
+
+						if( *str_p == '0')
+						{
+							/* 000000001 -> 01 */
+							while( left > 1 && *(str_p + 1) == '0')
+							{
+								str_p ++ ;
+								left -- ;
+							}
+						}
+
+						digit[0] = *str_p ;
+
+						for( count = 1 ; count < DIGIT_STR_LEN(int) ;
+							count++)
+						{
+							if( ! inc_str_in_esc_seq(
+									vt100_parser->screen ,
+									&str_p , &left , 0))
+							{
+								return  0 ;
+							}
+
+							if( *str_p < '0' || '9' < *str_p)
+							{
+								break ;
+							}
+
+							digit[count] = *str_p ;
+						}
+
+						digit[count] = '\0' ;
+						if( num < MAX_NUM_OF_PS)
+						{
+							ps[num ++] = atoi( digit) ;
+						#ifdef  MAX_PS_DIGIT
+							if( ps[num - 1] > MAX_PS_DIGIT)
+							{
+								ps[num - 1] = MAX_PS_DIGIT ;
+							}
+						#endif
+						}
 					}
 
-					/* num is always greater than 0 */
-					
-					break ;
+					if( *str_p < 0x30 || 0x3f < *str_p)
+					{
+						/* Is not a parameter character(0x30-0x3f). */
+
+						/*
+						 * "CSI 0 n" is *not* regarded as "CSI 0 ; -1 n"
+						 * "CSI n" is regarded as "CSI -1 n"
+						 * "CSI 0 ; n" is regarded as "CSI 0 ; -1 n"
+						 * "CSI ; n" which has been already regarded as
+						 * "CSI -1 ; n" is regarded as "CSI -1 ; -1 n"
+						 */
+						if( num == 0 ||
+						    (*(str_p - 1) == ';' && num < MAX_NUM_OF_PS) )
+						{
+							ps[num ++] = -1 ;
+						}
+
+						/* num is always greater than 0 */
+
+						break ;
+					}
 				}
 
 				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
@@ -2833,7 +2847,7 @@ parse_vt100_escape_sequence(
 				{
 					/* "CSI > m" */
 
-					if( num == 0)
+					if( ps[0] == -1)
 					{
 						/* reset to initial value. */
 						set_modkey_mode( vt100_parser , 1 , 2) ;
@@ -2842,7 +2856,7 @@ parse_vt100_escape_sequence(
 					}
 					else
 					{
-						if( num == 1)
+						if( num == 1 || ps[1] == -1)
 						{
 							if( ps[0] == 1 || /* modifyCursorKeys */
 							    ps[0] == 2)   /* modifyFunctionKeys */
@@ -2859,7 +2873,7 @@ parse_vt100_escape_sequence(
 								ps[1] = 0 ;
 							}
 						}
-
+						
 						set_modkey_mode( vt100_parser , ps[0] , ps[1]) ;
 					}
 				}
@@ -2867,14 +2881,13 @@ parse_vt100_escape_sequence(
 				{
 					/* "CSI > n" */
 
-					if( num == 0)
-					{
-						ps[0] = 2 ;
-						num = 1 ;
-					}
-
 					if( num == 1)
 					{
+						if( ps[0] == -1)
+						{
+							ps[0] = 2 ;
+						}
+
 						/* -1: don't send modifier key code. */
 						set_modkey_mode( vt100_parser , ps[0] , -1) ;
 					}
