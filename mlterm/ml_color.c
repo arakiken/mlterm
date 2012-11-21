@@ -732,6 +732,21 @@ ml_color_parse_rgb_name(
 	int  has_alpha ;
 	int  long_color ;
 
+#if   1
+	/* Backward compatibility with mlterm-3.1.5 or before. */
+	if( color_config)
+	{
+		/* If name is defined in ~/.mlterm/color, the defined rgb is returned. */
+		ml_color_t  color ;
+
+		if( ( color = ml_get_color( name)) != ML_UNKNOWN_COLOR &&
+		    color_config_get_rgb( color , red , green , blue , alpha))
+		{
+			return  1 ;
+		}
+	}
+#endif
+
 	a = 0xffff ;
 	has_alpha = 0 ;
 	long_color = 0 ;

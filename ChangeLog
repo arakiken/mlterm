@@ -1,3 +1,7 @@
+2012-11-22  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_color.c: ml_color_parse_rgb_name() returns RGB defined in ~/.mlterm/color.
+
 2012-11-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Minor fixes.
