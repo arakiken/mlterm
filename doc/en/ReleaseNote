@@ -8,6 +8,7 @@ ver 3.1.6
   "titeInhibit" of xterm.
 * Add --colors / "use_ansi_colors" option which is equivalent to
   "colorMode" of xterm.
+* Add --exitbs / "exit_backscroll_by_pty" option.
 * -Y option converts unicode line drawing characters (U+2500 etc) to dec
   special ones in order to show them correctly with a unicode font which
   contains double-width glyphs or no glyphs for line characters.

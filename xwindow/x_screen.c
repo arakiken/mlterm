@@ -73,8 +73,9 @@ enum
  * 4 = mlclient -e w3m
  * 5 = do nothing
  */
-static int  button3_open = 0 ;
+static int  button3_open ;
 static char *  button3_command ;
+static int  exit_backscroll_by_pty ;
 #ifdef  USE_IM_CURSOR_COLOR
 static char *  im_cursor_color = NULL ;
 #endif
@@ -6856,7 +6857,7 @@ start_vt100_cmd(
 
 #if  0
 	if( ! ml_term_is_backscrolling( screen->term) ||
-		ml_term_is_backscrolling( screen->term) == BSM_VOLATILE)
+		ml_term_is_backscrolling( screen->term) == BSM_DEFAULT)
 	{
 		x_stop_selecting( &screen->sel) ;
 	}
@@ -6909,6 +6910,11 @@ stop_vt100_cmd(
 		 * color of them is not reversed.
 		 */
 		x_reverse_selected_region_color_except_logs( &screen->sel) ;
+	}
+
+	if( exit_backscroll_by_pty)
+	{
+		exit_backscroll_mode( screen) ;
 	}
 
 	if( ( screen->font_or_color_config_updated & 0x1) &&
@@ -7223,7 +7229,7 @@ pty_read_ready(
 
 /* --- global functions --- */
 
-int
+void
 x_set_button3_behavior(
 	const char *  mode
 	)
@@ -7247,19 +7253,23 @@ x_set_button3_behavior(
 		/* Hidden option (e.g. w3m, lynx) */
 		button3_open = 4 ;
 	}
-	
-	return  1 ;
+}
+
+void
+x_exit_backscroll_by_pty(
+	int  flag
+	)
+{
+	exit_backscroll_by_pty = flag ;
 }
 
 #ifdef  USE_IM_CURSOR_COLOR
-int
+void
 x_set_im_cursor_color(
 	char *  color
 	)
 {
 	im_cursor_color = strdup( color) ;
-
-	return  1 ;
 }
 #endif
 
@@ -8462,7 +8472,7 @@ x_screen_set_config(
 		}
 		else if( strcmp( value , "false") == 0)
 		{
-			mode = BSM_VOLATILE ;
+			mode = BSM_DEFAULT ;
 		}
 		else
 		{
@@ -8470,6 +8480,15 @@ x_screen_set_config(
 		}
 		
 		ml_term_set_backscroll_mode( term , mode) ;
+	}
+	else if( strcmp( key , "exit_backscroll_by_pty") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			x_exit_backscroll_by_pty( flag) ;
+		}
 	}
 	else if( strcmp( key , "use_combining") == 0)
 	{

@@ -509,6 +509,10 @@ If depth is 32, you can enable semi-transparency by specifying
 opacity as the value of \-\-alpha option or "rgba:RR/GG/BB/AA"
 as the value of \-\-bg option.
 .TP
+\fB\-\-exitbs\fR(=\fIbool\fR)
+Whether to exit backscroll mode on receiving data from pty.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-iconpath\fR=\fIpath\fR
 Specify the file to be used as a window icon.
 .TP
@@ -1178,6 +1182,9 @@ Specify background color for cursor.
 .TP
 \fBcursor_fg_color=\fIcolor\fR (\fB\-9\fR, \fB\-\-crfg\fR)
 Specify foreground color for cursor.
+.TP
+\fBexit_backscroll_by_pty=\fIbool\fR (\fB\-\-exitbs\fR)
+Exit backscroll mode on receiving data from pty.
 .TP
 \fBENCODING=\fIencoding\fR (\fB\-E\fR, \fB\-\-km\fR) 
 Specify encoding.

@@ -268,6 +268,8 @@ x_prepare_for_main_config(
 		"use alternative buffer. [true]") ;
 	kik_conf_add_opt( conf , '\0' , "colors" , 1 , "use_ansi_colors" ,
 		"recognize ANSI color change escape sequences. [true]") ;
+	kik_conf_add_opt( conf , '\0' , "exitbs" , 1 , "exit_backscroll_by_pty" ,
+		"exit backscroll mode on receiving data from pty. [false]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -1045,7 +1047,7 @@ x_main_config_init(
 		}
 	}
 
-	main_config->bs_mode = BSM_VOLATILE ;
+	main_config->bs_mode = BSM_DEFAULT ;
 
 	if( ( value = kik_conf_get_value( conf , "static_backscroll_mode")))
 	{
@@ -1053,6 +1055,11 @@ x_main_config_init(
 		{
 			main_config->bs_mode = BSM_STATIC ;
 		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "exit_backscroll_by_pty")))
+	{
+		x_exit_backscroll_by_pty( 1) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "icon_path")))

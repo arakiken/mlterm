@@ -646,6 +646,9 @@ comment $Id$
       o static_backscroll_mode (true/*false*)
         バックスクロール時に端末出力があっても画面が流れないようにする。
 
+      o exit_backscroll_by_pty (true/*false*)
+        バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
+
       o logging_vt_seq (true/*false*)
         pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 
@@ -1147,6 +1150,7 @@ comment $Id$
        --loecho(=bool) : use_local_echo
        --altbuf(=bool) : use_alt_buffer
        --colors(=bool) : use_ansi_colors
+       --exitbs(=bool) : exit_backscroll_by_pty
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)

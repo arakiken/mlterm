@@ -1,3 +1,10 @@
+2012-11-23  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja, doc/en/PROTOCOL: Updated.
+
+	* x_main_config.c, x_screen.[ch]: --exitbs / "exit_backscroll_by_pty"
+	  option is added.
+
 2012-11-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_color.c: ml_color_parse_rgb_name() returns RGB defined in ~/.mlterm/color.

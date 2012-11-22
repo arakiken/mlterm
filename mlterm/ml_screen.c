@@ -137,8 +137,8 @@ scrolled_out_lines_finished(
 	ml_screen_t *  screen ;
 
 	screen = p ;
-	
-	if( ml_screen_is_backscrolling( screen) == BSM_VOLATILE)
+
+	if( ml_screen_is_backscrolling( screen) == BSM_DEFAULT)
 	{
 		ml_screen_set_modified_all( screen) ;
 	}
@@ -159,7 +159,7 @@ window_scroll_upward_region(
 	if( screen->is_backscrolling)
 	{
 		/*
-		 * Not necessary to scrolling window. If backscroll_mode is BSM_VOLATILE,
+		 * Not necessary to scrolling window. If backscroll_mode is BSM_DEFAULT,
 		 * ml_screen_set_modified_all() in scrolled_out_lines_finished() later.
 		 */
 		return  1 ;
@@ -190,7 +190,7 @@ window_scroll_downward_region(
 	if( screen->is_backscrolling)
 	{
 		/*
-		 * Not necessary to scrolling window. If backscroll_mode is BSM_VOLATILE,
+		 * Not necessary to scrolling window. If backscroll_mode is BSM_DEFAULT,
 		 * ml_screen_set_modified_all() in scrolled_out_lines_finished() later.
 		 */
 		return  1 ;
@@ -1056,11 +1056,6 @@ ml_set_backscroll_mode(
 	ml_bs_mode_t   mode
 	)
 {
-	if( mode != BSM_VOLATILE && mode != BSM_STATIC)
-	{
-		return  0 ;
-	}
-	
 	screen->backscroll_mode = mode ;
 
 	if( screen->is_backscrolling)
@@ -1969,7 +1964,7 @@ ml_screen_is_backscrolling(
 		}
 		else
 		{
-			return  BSM_VOLATILE ;
+			return  BSM_DEFAULT ;
 		}
 	}
 	else
