@@ -1,5 +1,12 @@
 2012-11-23  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_config_menu.c, xlib/x_imagelib.c, fb/x_imagelib.c:
+	  Code cleanup around execv().
+
+	* configure.in: gio-2.0 is explicitly linked if gdk-pixbuf-2.0 is
+	  2.14 or later.
+	  (Thanks to Lotus Shih and rabin_y)
+
 	* man/mlterm.1, doc/ja/README.ja, doc/en/PROTOCOL: Updated.
 
 	* x_main_config.c, x_screen.[ch]: --exitbs / "exit_backscroll_by_pty"

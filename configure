@@ -863,6 +863,8 @@ IMAGELIB_CFLAGS
 imlib2_config
 imlib_config
 have_gdk_pixbuf1
+GIO_LIBS
+GIO_CFLAGS
 GDK_PIXBUF_LIBS
 GDK_PIXBUF_CFLAGS
 GTK_LIBS
@@ -1026,6 +1028,8 @@ GTK_CFLAGS
 GTK_LIBS
 GDK_PIXBUF_CFLAGS
 GDK_PIXBUF_LIBS
+GIO_CFLAGS
+GIO_LIBS
 FRIBIDI_CFLAGS
 FRIBIDI_LIBS
 XFT_CFLAGS
@@ -1733,6 +1737,8 @@ Some influential environment variables:
               C compiler flags for GDK_PIXBUF, overriding pkg-config
   GDK_PIXBUF_LIBS
               linker flags for GDK_PIXBUF, overriding pkg-config
+  GIO_CFLAGS  C compiler flags for GIO, overriding pkg-config
+  GIO_LIBS    linker flags for GIO, overriding pkg-config
   FRIBIDI_CFLAGS
               C compiler flags for FRIBIDI, overriding pkg-config
   FRIBIDI_LIBS
@@ -4586,7 +4592,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4589 "configure"' > conftest.$ac_ext
+  echo '#line 4595 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7155,11 +7161,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7158: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7164: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7162: \$? = $ac_status" >&5
+   echo "$as_me:7168: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7445,11 +7451,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7448: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7454: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7452: \$? = $ac_status" >&5
+   echo "$as_me:7458: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7549,11 +7555,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7552: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7558: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7556: \$? = $ac_status" >&5
+   echo "$as_me:7562: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9574,7 +9580,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9577 "configure"
+#line 9583 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9674,7 +9680,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9677 "configure"
+#line 9683 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12015,11 +12021,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12018: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12024: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12022: \$? = $ac_status" >&5
+   echo "$as_me:12028: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12119,11 +12125,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12122: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12128: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12126: \$? = $ac_status" >&5
+   echo "$as_me:12132: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13702,11 +13708,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13705: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13711: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13709: \$? = $ac_status" >&5
+   echo "$as_me:13715: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13806,11 +13812,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13809: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13815: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13813: \$? = $ac_status" >&5
+   echo "$as_me:13819: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15967,11 +15973,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15970: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15976: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15974: \$? = $ac_status" >&5
+   echo "$as_me:15980: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16257,11 +16263,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16260: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16266: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16264: \$? = $ac_status" >&5
+   echo "$as_me:16270: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16361,11 +16367,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16364: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16370: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16368: \$? = $ac_status" >&5
+   echo "$as_me:16374: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20112,8 +20118,102 @@ else
 $as_echo "yes" >&6; }
 	have_gdk_pixbuf2=yes
 fi
-GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
-GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
+# try to link libgio-2.0 explicitly. (SF topic #6234829)
+if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gdk-pixbuf-2.0 >= 2.14\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gdk-pixbuf-2.0 >= 2.14") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GIO" >&5
+$as_echo_n "checking for GIO... " >&6; }
+
+if test -n "$GIO_CFLAGS"; then
+    pkg_cv_GIO_CFLAGS="$GIO_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gio-2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gio-2.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GIO_CFLAGS=`$PKG_CONFIG --cflags "gio-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$GIO_LIBS"; then
+    pkg_cv_GIO_LIBS="$GIO_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gio-2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gio-2.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GIO_LIBS=`$PKG_CONFIG --libs "gio-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        GIO_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gio-2.0" 2>&1`
+        else
+	        GIO_PKG_ERRORS=`$PKG_CONFIG --print-errors "gio-2.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$GIO_PKG_ERRORS" >&5
+
+	as_fn_error "Package requirements (gio-2.0) were not met:
+
+$GIO_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables GIO_CFLAGS
+and GIO_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+" "$LINENO" 5
+elif test $pkg_failed = untried; then
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables GIO_CFLAGS
+and GIO_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details." "$LINENO" 5; }
+else
+	GIO_CFLAGS=$pkg_cv_GIO_CFLAGS
+	GIO_LIBS=$pkg_cv_GIO_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	:
+fi
+fi
+GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS $GIO_CFLAGS | tr -d '\r'`"
+GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS $GIO_LIBS | tr -d '\r'`"
 
 # Extract the first word of "gdk-pixbuf-config", so it can be a program name with args.
 set dummy gdk-pixbuf-config; ac_word=$2

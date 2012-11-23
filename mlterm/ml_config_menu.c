@@ -414,36 +414,29 @@ error2:
 			exit(1) ;
 		}
 		
-	       	if( execv( cmd_path , args) == -1)
+	       	execv( cmd_path , args) ;
+
+		/* failed */
+
+		/* specified program name without path. */
+		if( strchr( cmd_path , '/') == NULL)
 		{
-			/* failed */
+			char *  p ;
+			char  dir[] = LIBEXECDIR "/mlterm" ;
 
-			/* specified program name without path. */
-			if( strchr( cmd_path , '/') == NULL)
+			if( ( p = alloca( sizeof(dir) + strlen( cmd_path) + 1)))
 			{
-				char *  p ;
-				char  dir[] = LIBEXECDIR "/mlterm" ;
-
-				/* not freed, since this process soon execv() */
-				if( ( p = malloc( sizeof(dir) + strlen( cmd_path) + 1)) == NULL)
-				{
-					exit(1) ;
-				}
-
 				sprintf( p , "%s/%s" , dir , cmd_path) ;
 
 				args[0] = cmd_path = p ;
 
-				if( execv( cmd_path , args) == -1)
-				{
-					kik_msg_printf( "%s is not found.\n" , cmd_path) ;
-
-					exit(1) ;
-				}
+				execv( cmd_path , args) ;
 			}
-
-			exit(1) ;
 		}
+
+		kik_msg_printf( "Failed to exec %s.\n" , cmd_path) ;
+
+		exit(1) ;
 	}
 
 	/* parent process */

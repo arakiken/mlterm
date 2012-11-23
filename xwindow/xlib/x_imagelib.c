@@ -1251,9 +1251,7 @@ load_file(
 			execv( args[0] , args) ;
 		}
 
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " %s failed to start.\n" , args[0]) ;
-	#endif
+		kik_msg_printf( "Failed to exec %s.\n" , args[0]) ;
 
 		exit(1) ;
 	}
