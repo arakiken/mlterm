@@ -376,34 +376,41 @@ color_config_set_rgb(
 		u_int8_t  b ;
 
 		/*
-		 * Same rgb as default is rejected.
+		 * The same rgb as the default is rejected in 256 color.
+		 * The same rgb as the default is not rejected in sys color
+		 * for backward compatibility with 3.1.5 or before. (If rejected,
+		 * mlterm -fg hl_white doesn't work even if hl_white is defined
+		 * in ~/.mlterm/color.)
 		 */
 
-		if( ! ml_get_color_rgba( color , &r , &g , &b , NULL))
+		if( IS_256_COLOR(color))
 		{
-			return  0 ;
-		}
+			if( ! ml_get_color_rgba( color , &r , &g , &b , NULL))
+			{
+				return  0 ;
+			}
 
-		if( red == r && green == g && blue == b && alpha == 0xff)
-		{
-			/* Not changed */
+			if( red == r && green == g && blue == b && alpha == 0xff)
+			{
+				/* Not changed */
 
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" color %d'rgb(%02x%02x%02x%02x) not changed.\n",
+					color , red , green , blue , alpha) ;
+			#endif
+
+				return  0 ;
+			}
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" color %d'rgb(%02x%02x%02x%02x) not changed.\n",
-				color , red , green , blue , alpha) ;
+			else
+			{
+				kik_debug_printf( KIK_DEBUG_TAG
+					" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
+					color , r , g , b , red , green , blue) ;
+			}
 		#endif
-
-			return  0 ;
 		}
-	#ifdef  DEBUG
-		else
-		{
-			kik_debug_printf( KIK_DEBUG_TAG
-				" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
-				color , r , g , b , red , green , blue) ;
-		}
-	#endif
 
 		kik_map_set( result , color_config , color , rgb) ;
 
@@ -436,7 +443,7 @@ color_config_get_rgb(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s's rgb => %d %d %d\n", color , *red, *blue, *green) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %d's rgb => %d %d %d\n", color , *red, *blue, *green) ;
 #endif
 
 	return  1 ;
@@ -488,7 +495,8 @@ parse_conf(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( "%s = red %x green %x blue %x\n" , color_name , red , green , blue) ;
+	kik_debug_printf( "%s(%d) = red %x green %x blue %x\n" ,
+		color_name , color , red , green , blue) ;
 #endif
 
 	return  color_config_set_rgb( color , red , green , blue , alpha) ;

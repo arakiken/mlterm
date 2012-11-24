@@ -197,30 +197,30 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Insert	VK_INSERT
 #define XK_Delete	VK_DELETE
 #define XK_Help		VK_HELP
-#define XK_F1		VK_F1
-#define XK_F2		VK_F2
-#define XK_F3		VK_F3
-#define XK_F4		VK_F4
-#define XK_F5		VK_F5
-#define XK_F6		VK_F6
-#define XK_F7		VK_F7
-#define XK_F8		VK_F8
-#define XK_F9		VK_F9
-#define XK_F10		VK_F10
-#define XK_F11		VK_F11
-#define XK_F12		VK_F12
-#define XK_F13		VK_F13
-#define XK_F14		VK_F14
-#define XK_F15		VK_F15
-#define XK_F16		VK_F16
-#define XK_F17		VK_F17
-#define XK_F18		VK_F18
-#define XK_F19		VK_F19
-#define XK_F20		VK_F20
-#define XK_F21		VK_F21
-#define XK_F22		VK_F22
-#define XK_F23		VK_F23
-#define XK_F24		VK_F24
+#define XK_F1		(VK_F1 + 0xff00)	/* 0xff70 (avoid to conflict with 'p') */
+#define XK_F2		(VK_F2 + 0xff00)	/* 0xff71 (avoid to conflict with 'q') */
+#define XK_F3		(VK_F3 + 0xff00)	/* 0xff72 (avoid to conflict with 'r') */
+#define XK_F4		(VK_F4 + 0xff00)	/* 0xff73 (avoid to conflict with 's') */
+#define XK_F5		(VK_F5 + 0xff00)	/* 0xff74 (avoid to conflict with 't') */
+#define XK_F6		(VK_F6 + 0xff00)	/* 0xff75 (avoid to conflict with 'u') */
+#define XK_F7		(VK_F7 + 0xff00)	/* 0xff76 (avoid to conflict with 'v') */
+#define XK_F8		(VK_F8 + 0xff00)	/* 0xff77 (avoid to conflict with 'w') */
+#define XK_F9		(VK_F9 + 0xff00)	/* 0xff78 (avoid to conflict with 'x') */
+#define XK_F10		(VK_F10 + 0xff00)	/* 0xff79 (avoid to conflict with 'y') */
+#define XK_F11		(VK_F11 + 0xff00)	/* 0xff7a (avoid to conflict with 'z') */
+#define XK_F12		(VK_F12 + 0xff00)
+#define XK_F13		(VK_F13 + 0xff00)
+#define XK_F14		(VK_F14 + 0xff00)
+#define XK_F15		(VK_F15 + 0xff00)
+#define XK_F16		(VK_F16 + 0xff00)
+#define XK_F17		(VK_F17 + 0xff00)
+#define XK_F18		(VK_F18 + 0xff00)
+#define XK_F19		(VK_F19 + 0xff00)
+#define XK_F20		(VK_F20 + 0xff00)
+#define XK_F21		(VK_F21 + 0xff00)
+#define XK_F22		(VK_F22 + 0xff00)
+#define XK_F23		(VK_F23 + 0xff00)
+#define XK_F24		(VK_F24 + 0xff00)
 #define XK_FMAX		XK_F24
 #define XK_Num_Lock	VK_NUMLOCK
 #define XK_Scroll_Lock	VK_SCROLL
@@ -245,22 +245,22 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_F3	0xffdc	/* dummy */
 #define XK_KP_F4	0xffdb	/* dummy */
 #define XK_KP_Begin	0xffda	/* dummy */
-#define XK_KP_Multiply	VK_MULTIPLY
-#define XK_KP_Add	VK_ADD
-#define XK_KP_Separator	VK_SEPARATOR
-#define XK_KP_Subtract	VK_SUBTRACT
-#define XK_KP_Decimal	VK_DECIMAL
-#define XK_KP_Divide	VK_DIVIDE
+#define XK_KP_Multiply	(VK_MULTIPLY + 0xff00)	/* 0xff6a (avoid to conflict with 'j') */
+#define XK_KP_Add	(VK_ADD + 0xff00)	/* 0xff6b (avoid to conflict with 'k') */
+#define XK_KP_Separator	(VK_SEPARATOR + 0xff00)	/* 0xff6c (avoid to conflict with 'l') */
+#define XK_KP_Subtract	(VK_SUBTRACT + 0xff00)	/* 0xff6d (avoid to conflict with 'm') */
+#define XK_KP_Decimal	(VK_DECIMAL + 0xff00)	/* 0xff6e (avoid to conflict with 'n') */
+#define XK_KP_Divide	(VK_DIVIDE + 0xff00)	/* 0xff6f (avoid to conflict with 'o') */
 #define XK_KP_0		VK_NUMPAD0
-#define XK_KP_1		VK_NUMPAD1
-#define XK_KP_2		VK_NUMPAD2
-#define XK_KP_3		VK_NUMPAD3
-#define XK_KP_4		VK_NUMPAD4
-#define XK_KP_5		VK_NUMPAD5
-#define XK_KP_6		VK_NUMPAD6
-#define XK_KP_7		VK_NUMPAD7
-#define XK_KP_8		VK_NUMPAD8
-#define XK_KP_9		VK_NUMPAD9
+#define XK_KP_1		(VK_NUMPAD1 + 0xff00)	/* 0xff61 (avoid to conflict with 'a') */
+#define XK_KP_2		(VK_NUMPAD2 + 0xff00)	/* 0xff62 (avoid to conflict with 'b') */
+#define XK_KP_3		(VK_NUMPAD3 + 0xff00)	/* 0xff63 (avoid to conflict with 'c') */
+#define XK_KP_4		(VK_NUMPAD4 + 0xff00)	/* 0xff64 (avoid to conflict with 'd') */
+#define XK_KP_5		(VK_NUMPAD5 + 0xff00)	/* 0xff65 (avoid to conflict with 'e') */
+#define XK_KP_6		(VK_NUMPAD6 + 0xff00)	/* 0xff66 (avoid to conflict with 'f') */
+#define XK_KP_7		(VK_NUMPAD7 + 0xff00)	/* 0xff67 (avoid to conflict with 'g') */
+#define XK_KP_8		(VK_NUMPAD8 + 0xff00)	/* 0xff68 (avoid to conflict with 'h') */
+#define XK_KP_9		(VK_NUMPAD9 + 0xff00)	/* 0xff69 (avoid to conflict with 'i') */
 
 #define XK_ISO_Level3_Lock	0xffd9	/* dummy */
 

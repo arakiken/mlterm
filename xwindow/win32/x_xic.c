@@ -189,6 +189,17 @@ x_xic_get_str(
 	size_t  len ;
 
 	*keysym = win->xic->prev_keydown_wparam ;
+
+	if( 'a' <= *keysym && *keysym <= XK_FMAX)
+	{
+		/*
+		 * Avoid to conflict 'a' - 'z' with VK_NUMPAD1..9,
+		 * VK_MULTIPLY..VK_DIVIDE, VK_F1..VK_F11.
+		 * (0x61 - 0x7a)
+		 */
+		*keysym += 0xff00 ;
+	}
+
 	win->xic->prev_keydown_wparam = 0 ;
 
 	if( seq_len == 0 || event->ch == 0)
@@ -247,7 +258,7 @@ x_xic_get_str(
 #endif
 
 	/* wparam doesn't tell upper case from lower case. */
-	if( 'A' <= event->ch && event->ch <= 'Z')
+	if( 'a' <= event->ch && event->ch <= 'z')
 	{
 		/* Upper to Lower case */
 		*keysym += 0x20 ;

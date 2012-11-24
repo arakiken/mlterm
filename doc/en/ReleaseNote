@@ -28,6 +28,7 @@ ver 3.1.6
   Fix the infinite loop in the failure of executing the command specified with -e option.
   Fix the compilation error in linking gdk-pixbuf-2.0. (SF topic #6234829)
   (Thanks to Lotus Shih and rabin_y)
+  Fix the bug of incorrect input of 'A' - 'Z' keys in win32.
 
 ver 3.1.5
 * Support framebuffer on Linux. (Experimental)

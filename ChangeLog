@@ -1,3 +1,12 @@
+2012-11-24  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x.h, win32/x_xic.c: The conflict between 0x61 and 0x7a ('a' - 'z'
+	  <=> VK_K_MULTIPLY..VK_DIVIDE, VK_F1..VK_F11.NUMPAD1...9) is fixed.
+
+	* ml_color.c: ~/.mlterm/color configurations for VT SYS colors
+	  (0x0-0x0f) are applied.
+	  (Thanks to Andi Cristian Serbanescu)
+
 2012-11-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_config_menu.c, xlib/x_imagelib.c, fb/x_imagelib.c:
