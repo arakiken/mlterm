@@ -1,3 +1,10 @@
+2012-11-25  Araki Ken  <arakiken@users.sf.net>
+
+	* version.h.in: 3.1.5post -> 3.1.6pre
+
+	* configure.in: If --with-imagelib option is not specified, mlimgloader
+	  is always built.
+
 2012-11-24  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x.h, win32/x_xic.c: The conflict between 0x61 and 0x7a ('a' - 'z'

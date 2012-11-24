@@ -582,7 +582,12 @@ AC_ARG_WITH(tools,
 		tools=${with_tools}
 	fi
 	])
+if test -z "$IMAGELIB_CFLAGS" -a "`echo ${tools}|$GREP mlimgloader`" = "" ; then
+	# If --with-imagelib option is not specified, mlimgloader is always built.
+	tools=${tools},mlimgloader
+fi
 tools=`echo ${tools} | sed 's/,/ /g'`
+
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
