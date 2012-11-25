@@ -4507,13 +4507,13 @@ vte_terminal_set_pty_object(
 	VtePty *  pty
 	)
 {
-	if( terminal->pvt->pty)
+	if( terminal->pvt->pty || ! pty)
 	{
 		return ;
 	}
 
 	pty->terminal = terminal ;
-	terminal->pvt->pty = pty ;
+	terminal->pvt->pty = g_object_ref( terminal->pvt->pty) ;
 
 	vte_pty_set_term( pty , vte_terminal_get_emulation( terminal)) ;
 

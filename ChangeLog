@@ -1,5 +1,12 @@
 2012-11-25  Araki Ken  <arakiken@users.sf.net>
 
+	* sylalble.lex, lex.split.c: bzero() -> memset()
+
+	* doc/en/README.fb, doc/ja/README.fb, gtk/INSTALL:
+	  Updated. (Ubuntu 12.04 -> Ubuntu 12.10)
+
+	* vte.c: g_object_ref(pty) is called in vte_terminal_set_pty_object().
+
 	* version.h.in: 3.1.5post -> 3.1.6pre
 
 	* configure.in: If --with-imagelib option is not specified, mlimgloader

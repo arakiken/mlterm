@@ -1581,7 +1581,7 @@ int my_yyinput(char *buf, int max_size) {
 
 char *split(struct tabl *table, char *input1, int sz) {
 	
-	bzero(outstr,1000);
+	memset(outstr,0,1000);
 	strcpy(word,input1);
 	splitlex(table, sz);
 	return outstr;
@@ -1598,7 +1598,7 @@ int process_it(struct tabl *table, int sz, char *inpword) {
 		strcat(outstr, p);
 	}
 
-	bzero(string1,1000);
+	memset(string1,0,1000);
 	return 1;
 }
 
