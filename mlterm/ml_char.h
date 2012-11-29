@@ -103,8 +103,6 @@ int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  size ,
 
 int  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
 
-int  ml_remove_combining_char( ml_char_t *  ch) ;
-
 ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
 
 ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;

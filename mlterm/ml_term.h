@@ -58,6 +58,9 @@ typedef struct ml_term
 } ml_term_t ;
 
 
+/* XXX */
+extern void (*ml_term_pty_closed_event)( ml_term_t *) ;
+
 ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
 	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_policy_t  policy ,
 	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,

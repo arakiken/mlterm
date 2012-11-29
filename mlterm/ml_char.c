@@ -191,7 +191,8 @@ ml_char_set(
 	)
 {
 #ifdef  DEBUG
-	if( CS_SIZE(cs) != size)
+	/* Ignore 0x1ff (== PICTURE_CHARSET defined in x_picture.h). */
+	if( cs != 0x1ff && CS_SIZE(cs) != size)
 	{
 		kik_debug_printf( KIK_DEBUG_TAG " char size error => size %d <=> CS_SIZE %d\n",
 			size, CS_SIZE(cs)) ;

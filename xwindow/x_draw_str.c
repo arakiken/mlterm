@@ -4,6 +4,11 @@
 
 #include  "x_draw_str.h"
 
+#ifdef  ENABLE_SIXEL
+#include  "x_picture.h"
+#endif
+
+
 #if  0
 #define  PERF_DEBUG
 #endif
@@ -42,6 +47,77 @@ adjust_bd_ul_color(
 	return  0 ;
 }
 
+#ifdef  ENABLE_SIXEL
+static int
+draw_picture(
+	x_window_t *  window ,
+	ml_char_t *  ch ,
+	int  x ,
+	int  y
+	)
+{
+	u_int16_t *  bytes ;
+	x_inline_picture_t *  pic ;
+	int  pos ;
+	u_int  num_of_rows ;
+	int  src_x ;
+	int  src_y ;
+	u_int  width ;
+	u_int  height ;
+	int  need_clear ;
+
+	if( ml_char_cs( ch) != PICTURE_CHARSET)
+	{
+		return  0 ;
+	}
+
+	bytes = (u_int16_t*)ml_char_bytes( ch) ;
+
+	if( ! ( pic = x_get_inline_picture( bytes[0])) ||
+	    pic->display != window->disp->display)
+	{
+		return  0 ;
+	}
+
+	pos = bytes[1] ;
+
+	num_of_rows = (pic->height + pic->line_height - 1) / pic->line_height ;
+	src_y = (pos % num_of_rows) * pic->line_height ;
+	src_x = (pos / num_of_rows) * pic->col_width ;
+
+	need_clear = 0 ;
+	if( src_x + pic->col_width > pic->width)
+	{
+		width = pic->width - src_x ;
+		need_clear = 1 ;
+	}
+	else
+	{
+		width = pic->col_width ;
+	}
+
+	if( src_y + pic->line_height > pic->height)
+	{
+		height = pic->height - src_y ;
+		need_clear = 1 ;
+	}
+	else
+	{
+		height = pic->line_height ;
+	}
+
+	if( need_clear)
+	{
+		x_window_clear( window , x , y , pic->col_width , pic->line_height) ;
+	}
+
+	x_window_copy_area( window , pic->pixmap , src_x , src_y ,
+		width , height , x , y) ;
+
+	return  1 ;
+}
+#endif
+
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
@@ -72,6 +148,14 @@ fc_draw_combining_chars(
 		ch_size = ml_char_size( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 
+	#ifdef  ENABLE_SIXEL
+		/* Note that ml_char_size() returns 2 for PICTURE_CHARSET. */
+		if( ch_cs == PICTURE_CHARSET)
+		{
+			continue ;
+		}
+		else
+	#endif
 		if( ch_cs == DEC_SPECIAL)
 		{
 			x_window_draw_decsp_string( window ,
@@ -93,7 +177,7 @@ fc_draw_combining_chars(
 
 			if( ! x_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
 			{
-				return  0 ;
+				continue ;
 			}
 
 			ucs4 = mkf_bytes_to_int( ucs4_bytes , 4) ;
@@ -349,6 +433,13 @@ fc_draw_str(
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
 							font & FONT_BOLD , is_underlined) ;
 
+		#ifdef  ENABLE_SIXEL
+			if( comb_chars && draw_picture( window , comb_chars , x , y))
+			{
+				goto  draw_decoration ;
+			}
+		#endif
+
 			/*
 			 * clearing background
 			 */
@@ -406,6 +497,7 @@ fc_draw_str(
 					, y + ascent) ;
 			}
 
+		draw_decoration:
 			if( ! hide_underline && color_adjusted != 2 && is_underlined)
 			{
 				if( xfont->is_vertical)
@@ -486,6 +578,7 @@ xcore_draw_combining_chars(
 	u_int  count ;
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
+	mkf_charset_t  ch_cs ;
 
 	for( count = 0 ; count < size ; count ++)
 	{
@@ -496,8 +589,17 @@ xcore_draw_combining_chars(
 
 		ch_bytes = ml_char_bytes( &chars[count]) ;
 		ch_size = ml_char_size( &chars[count]) ;
+		ch_cs = ml_char_cs( &chars[count]) ;
 
-		if( ml_char_cs( &chars[count]) == DEC_SPECIAL)
+	#ifdef  ENABLE_SIXEL
+		/* Note that ml_char_size() returns 2 for PICTURE_CHARSET. */
+		if( ch_cs == PICTURE_CHARSET)
+		{
+			continue ;
+		}
+		else
+	#endif
+		if( ch_cs == DEC_SPECIAL)
 		{
 			x_window_draw_decsp_string( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
@@ -783,6 +885,13 @@ xcore_draw_str(
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
 							font & FONT_BOLD , is_underlined) ;
 
+		#ifdef  ENABLE_SIXEL
+			if( comb_chars && draw_picture( window , comb_chars , x , y))
+			{
+				goto  draw_decoration ;
+			}
+		#endif
+
 			if( ( x_window_has_wall_picture( window) && bg_color == ML_BG_COLOR) ||
 				bottom_margin + top_margin > 0 /* == line space XXX */|| 
 				( xfont->is_proportional && ! xfont->is_var_col_width))
@@ -867,6 +976,7 @@ xcore_draw_str(
 					, y + ascent) ;
 			}
 
+		draw_decoration:
 			if( ! hide_underline && color_adjusted != 2 && is_underlined)
 			{
 				if( xfont->is_vertical)

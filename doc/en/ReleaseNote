@@ -15,6 +15,8 @@ ver 3.1.6
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 6.2.0.
 * "blink_cursor" option is available for libvte.
+* Remove "add_picture" and "remove_picture" commands from configuration
+  protocol, and add "show_picture" command to it.
 * Change key sequences in term_type=mlterm
   (application cursor key mode is off)
   XK_HOME: \x1bOH -> \x1b[H   XK_END : \x1bOF -> \x1b[F
@@ -29,6 +31,7 @@ ver 3.1.6
   Fix the compilation error in linking gdk-pixbuf-2.0. (SF topic #6234829)
   (Thanks to Lotus Shih and rabin_y)
   Fix the bug of incorrect input of 'A' - 'Z' keys in win32.
+  Fix the memory leak of scrollbar views.
 
 ver 3.1.5
 * Support framebuffer on Linux. (Experimental)

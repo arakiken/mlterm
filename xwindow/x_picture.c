@@ -24,6 +24,10 @@ static x_picture_t **  pics ;
 static u_int  num_of_pics ;
 static x_icon_picture_t **  icon_pics ;
 static u_int  num_of_icon_pics ;
+#ifdef  ENABLE_SIXEL
+static x_inline_picture_t *  inline_pics ;
+static u_int  num_of_inline_pics ;
+#endif
 
 
 /* --- static functions --- */
@@ -129,107 +133,6 @@ create_bg_picture(
 	return  pic ;
 }
 
-#ifdef  ENABLE_SIXEL
-static x_picture_t *
-create_picture(
-	x_display_t *  disp ,
-	x_picture_modifier_t *  mod ,
-	char *  file_path ,
-	u_int  width ,
-	u_int  height
-	)
-{
-	x_picture_t *  pic ;
-
-	if( ! ( pic = create_picture_intern( disp->display , mod , file_path , width , height)))
-	{
-		return  NULL ;
-	}
-
-	if( ! x_imagelib_load_file( disp , file_path ,
-		NULL , &(pic->pixmap) , NULL , &(pic->width) , &(pic->height)))
-	{
-		delete_picture_intern( pic) ;
-
-		return  NULL ;
-	}
-
-	pic->ref_count = 1 ;
-
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " New pixmap %ul is created.\n" , pic->pixmap) ;
-#endif
-
-	return  pic ;
-}
-#endif	/* ENABLE_SIXEL */
-
-static x_picture_t *
-acquire_picture(
-	x_window_t *  win ,	/* acquire bg picture => not-NULL */
-	x_display_t *  disp ,
-	x_picture_modifier_t *  mod ,
-	char *  file_path ,
-	u_int  width ,
-	u_int  height
-	)
-{
-	u_int  count ;
-	x_picture_t **  p ;
-
-	if( ! win || strcmp( file_path , "root") != 0) /* Transparent background is not cached. */
-	{
-		for( count = 0 ; count < num_of_pics ; count++)
-		{
-			if( strcmp( file_path , pics[count]->file_path) == 0 &&
-			    disp->display == pics[count]->display &&
-			    x_picture_modifiers_equal( mod , pics[count]->mod) &&
-			    width == pics[count]->width &&
-			    height == pics[count]->height)
-			{
-			#ifdef  DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " Use cached picture(%s).\n" ,
-					file_path) ;
-			#endif
-				pics[count]->ref_count ++ ;
-
-				return  pics[count] ;
-			}
-		}
-	}
-
-	if( ( p = realloc( pics , ( num_of_pics + 1) * sizeof( *pics))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	pics = p ;
-
-	if( win)
-	{
-		pics[num_of_pics] = create_bg_picture( win , mod , file_path) ;
-	}
-#ifdef  ENABLE_SIXEL
-	else
-	{
-		pics[num_of_pics] = create_picture( disp , NULL , file_path , width , height) ;
-	}
-#endif	/* ENABLE_SIXEL */
-
-	if( ! pics[num_of_pics])
-	{
-		if( num_of_pics == 0 /* pics == NULL */)
-		{
-			free( pics) ;
-			pics = NULL ;
-		}
-
-		return  NULL ;
-	}
-
-	return  pics[num_of_pics++] ;
-}
-
 static int
 delete_picture(
 	x_picture_t *  pic
@@ -313,6 +216,125 @@ delete_icon_picture(
 	return  1 ;
 }
 
+#ifdef  ENABLE_SIXEL
+static void
+delete_inline_picture(
+	x_inline_picture_t *  pic	/* pic->pixmap mustn't be NULL. */
+	)
+{
+	/* pic->display can be NULL by x_picture_display_closed(). */
+	if( pic->display)
+	{
+		x_delete_image( pic->display , pic->pixmap) ;
+	}
+
+	/* pixmap == None means that the inline picture is empty. */
+	pic->pixmap = None ;
+	pic->display = NULL ;
+}
+
+static void
+pty_closed(
+	ml_term_t *  term
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < num_of_inline_pics ; count++)
+	{
+		if( inline_pics[count].term == term &&
+		    inline_pics[count].pixmap)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %d\n" , count) ;
+		#endif
+
+			delete_inline_picture( inline_pics + count) ;
+		}
+	}
+
+	/* XXX The memory of intern_pics is not freed. */
+}
+
+static int
+cleanup_inline_pictures(
+	ml_term_t *  term
+	)
+{
+	u_int8_t *  flags ;
+	u_int  count ;
+	int  beg ;
+	int  end ;
+	int  row ;
+	ml_line_t *  line ;
+	int  empty_idx ;
+
+	if( num_of_inline_pics == 0 || ! ( flags = alloca( num_of_inline_pics)))
+	{
+		/* XXX */
+		ml_term_pty_closed_event = pty_closed ;
+
+		return  -1 ;
+	}
+
+	memset( flags , 0 , num_of_inline_pics) ;
+
+	beg = - ml_term_get_num_of_logged_lines( term) ;
+	end = ml_term_get_rows( term) ;
+
+	for( row = beg ; row <= end ; row++)
+	{
+		if( ( line = ml_term_get_line( term , row)))
+		{
+			for( count = 0 ; count < line->num_of_filled_chars ; count++)
+			{
+				ml_char_t *  comb ;
+				u_int  size ;
+
+				if( ( comb = ml_get_combining_chars( line->chars + count ,
+							&size)) &&
+				    ml_char_cs( comb) == PICTURE_CHARSET)
+				{
+					u_int16_t *  bytes ;
+
+					bytes = (u_int16_t*)ml_char_bytes( comb) ;
+					flags[bytes[0]] = 1 ;
+				}
+			}
+		}
+	}
+
+	empty_idx = -1 ;
+
+	for( count = 0 ; count < num_of_inline_pics ; count++)
+	{
+		if( inline_pics[count].pixmap == None)
+		{
+			/* do nothing */
+		}
+		else if( ! flags[count] && inline_pics[count].term == term)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %d\n" , count) ;
+		#endif
+
+			delete_inline_picture( inline_pics + count) ;
+		}
+		else
+		{
+			continue ;
+		}
+
+		if( empty_idx == -1)
+		{
+			empty_idx = count ;
+		}
+	}
+
+	return  empty_idx ;
+}
+#endif	/* ENABLE_SIXEL */
+
 
 /* --- global functions --- */
 
@@ -334,10 +356,10 @@ x_picture_display_closed(
 	Display *  display
 	)
 {
+	int  count ;
+
 	if( num_of_icon_pics > 0)
 	{
-		int  count ;
-
 		for( count = num_of_icon_pics - 1 ; count >= 0 ; count--)
 		{
 			if( icon_pics[count]->disp->display == display)
@@ -357,7 +379,26 @@ x_picture_display_closed(
 			icon_pics = NULL ;
 		}
 	}
-	
+
+#ifdef  ENABLE_SIXEL
+	for( count = 0 ; count < num_of_inline_pics ; count++)
+	{
+		if( inline_pics[count].display == display)
+		{
+			if( inline_pics[count].pixmap)
+			{
+				x_delete_image( display , inline_pics[count].pixmap) ;
+			}
+
+			/*
+			 * Don't set x_inline_picture_t::pixmap = None here because
+			 * this inline picture can still exist in ml_term_t.
+			 */
+			inline_pics[count].display = NULL ;
+		}
+	}
+#endif
+
 	return  x_imagelib_display_closed( display) ;
 }
 
@@ -420,21 +461,50 @@ x_acquire_bg_picture(
 	char *  file_path		/* "root" means transparency. */
 	)
 {
-	return  acquire_picture( win , win->disp , mod , file_path , 0 , 0) ;
-}
+	u_int  count ;
+	x_picture_t **  p ;
 
-#ifdef  ENABLE_SIXEL
-x_picture_t *
-x_acquire_picture(
-	x_display_t *  disp ,
-	char *  file_path ,
-	u_int  width ,
-	u_int  height
-	)
-{
-	return  acquire_picture( NULL , disp , NULL , file_path , width , height) ;
+	if( strcmp( file_path , "root") != 0) /* Transparent background is not cached. */
+	{
+		for( count = 0 ; count < num_of_pics ; count++)
+		{
+			if( strcmp( file_path , pics[count]->file_path) == 0 &&
+			    win->disp->display == pics[count]->display &&
+			    x_picture_modifiers_equal( mod , pics[count]->mod) &&
+			    ACTUAL_WIDTH(win) == pics[count]->width &&
+			    ACTUAL_HEIGHT(win) == pics[count]->height)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Use cached picture(%s).\n" ,
+					file_path) ;
+			#endif
+				pics[count]->ref_count ++ ;
+
+				return  pics[count] ;
+			}
+		}
+	}
+
+	if( ( p = realloc( pics , ( num_of_pics + 1) * sizeof( *pics))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	pics = p ;
+
+	if( ! ( pics[num_of_pics] = create_bg_picture( win , mod , file_path)))
+	{
+		if( num_of_pics == 0 /* pics == NULL */)
+		{
+			free( pics) ;
+			pics = NULL ;
+		}
+
+		return  NULL ;
+	}
+
+	return  pics[num_of_pics++] ;
 }
-#endif	/* ENABLE_SIXEL */
 
 int
 x_release_picture(
@@ -557,208 +627,69 @@ x_release_icon_picture(
 }
 
 #ifdef  ENABLE_SIXEL
-x_picture_manager_t *
-x_picture_manager_new(void)
-{
-	return  calloc( 1 , sizeof( x_picture_manager_t)) ;
-}
-
 int
-x_picture_manager_delete(
-	x_picture_manager_t *  pic_man
+x_load_inline_picture(
+	x_display_t *  disp ,
+	char *  file_path ,
+	u_int *  width ,	/* can be 0 */
+	u_int *  height ,	/* can be 0 */
+	u_int  col_width ,
+	u_int  line_height ,
+	ml_term_t *  term
 	)
 {
-	u_int  count ;
+	int  idx ;
+	Pixmap  pixmap ;
 
-	for( count = 0 ; count < pic_man->num_of_pics ; count++)
+	if( ! x_imagelib_load_file( disp , file_path , NULL , &pixmap , NULL , width , height))
 	{
-		x_release_picture( pic_man->pics[count].pic) ;
+		return  -1 ;
 	}
 
-	free( pic_man->pics) ;
-	free( pic_man) ;
+	if( ( idx = cleanup_inline_pictures( term)) == -1)
+	{
+		void *  p ;
 
-	return  1 ;
+		if( ! ( p = realloc( inline_pics ,
+				(num_of_inline_pics + 1) * sizeof(*inline_pics))))
+		{
+			x_delete_image( disp->display , pixmap) ;
+
+			return  -1 ;
+		}
+
+		inline_pics = p ;
+		idx = num_of_inline_pics ++ ;
+	}
+
+	inline_pics[idx].pixmap = pixmap ;
+	inline_pics[idx].width = *width ;
+	inline_pics[idx].height = *height ;
+	inline_pics[idx].display = disp->display ;
+	inline_pics[idx].term = term ;
+	inline_pics[idx].col_width = col_width ;
+	inline_pics[idx].line_height = line_height ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " new inline picture (%s %d) is created.\n" ,
+		file_path , idx) ;
+#endif
+
+	return  idx ;
 }
 
-int
-x_picture_manager_add(
-	x_picture_manager_t *  pic_man ,
-	x_picture_t *  pic ,
-	int  x ,
-	int  y
+x_inline_picture_t *
+x_get_inline_picture(
+	int  idx
 	)
 {
-	int  count ;
-	void *  p ;
-
-	for( count = pic_man->num_of_pics - 1 ; count >= 0 ; count--)
+	if( inline_pics && idx < num_of_inline_pics)
 	{
-		if( x <= pic_man->pics[count].x &&
-		    pic_man->pics[count].x + pic_man->pics[count].pic->width <= x + pic->width &&
-		    y <= pic_man->pics[count].y &&
-		    pic_man->pics[count].y + pic_man->pics[count].pic->height <= y + pic->height)
-		{
-			/* Remove overlapped pictures. */
-
-			x_release_picture( pic_man->pics[count].pic) ;
-
-			if( -- pic_man->num_of_pics == 0)
-			{
-				break ;
-			}
-
-			pic_man->pics[count] = pic_man->pics[pic_man->num_of_pics] ;
-		}
+		return  inline_pics + idx ;
 	}
-
-	if( ! ( p = realloc( pic_man->pics ,
-			sizeof(*pic_man->pics) * (pic_man->num_of_pics + 1))))
+	else
 	{
-		return  0 ;
+		return  None ;
 	}
-
-	pic_man->pics = p ;
-	pic_man->pics[pic_man->num_of_pics].x = x ;
-	pic_man->pics[pic_man->num_of_pics].y = y ;
-	pic_man->pics[pic_man->num_of_pics].pic = pic ;
-
-	pic_man->num_of_pics ++ ;
-
-	return  1 ;
 }
-
-int
-x_picture_manager_remove(
-	x_picture_manager_t *  pic_man ,
-	int  x ,
-	int  y ,
-	int  width ,
-	int  height
-	)
-{
-	int  count ;
-
-	for( count = pic_man->num_of_pics - 1 ; count >= 0 ; count--)
-	{
-		if( x <= pic_man->pics[count].x + pic_man->pics[count].pic->width &&
-		    pic_man->pics[count].x <= x + width &&
-		    y <= pic_man->pics[count].y + pic_man->pics[count].pic->height &&
-		    pic_man->pics[count].y <= y + height)
-		{
-			x_release_picture( pic_man->pics[count].pic) ;
-
-			if( -- pic_man->num_of_pics == 0)
-			{
-				return  1 ;
-			}
-
-			pic_man->pics[count] = pic_man->pics[pic_man->num_of_pics] ;
-		}
-	}
-
-	return  1 ;
-}
-
-int
-x_picture_manager_redraw(
-	x_picture_manager_t *  pic_man ,
-	x_window_t *  win ,
-	int  x ,
-	int  y ,
-	u_int  width ,
-	u_int  height
-	)
-{
-	u_int  count ;
-
-	for( count = 0 ; count < pic_man->num_of_pics ; count++)
-	{
-		int  dst_x ;
-		int  dst_y ;
-		int  src_x ;
-		int  src_y ;
-		u_int  src_width ;
-		u_int  src_height ;
-
-		if( x > pic_man->pics[count].x)
-		{
-			dst_x = x ;
-			src_x = x - pic_man->pics[count].x ;
-			if( src_x >= pic_man->pics[count].pic->width)
-			{
-				continue ;
-			}
-			src_width = K_MIN(width,pic_man->pics[count].pic->width - src_x) ;
-		}
-		else
-		{
-			dst_x = pic_man->pics[count].x ;
-			src_x = 0 ;
-			src_width = K_MIN(width + x - dst_x,pic_man->pics[count].pic->width) ;
-		}
-
-		if( y > pic_man->pics[count].y)
-		{
-			dst_y = y ;
-			src_y = y - pic_man->pics[count].y ;
-			if( src_y >= pic_man->pics[count].pic->height)
-			{
-				continue ;
-			}
-			src_height = K_MIN(height,pic_man->pics[count].pic->height - src_y) ;
-		}
-		else
-		{
-			dst_y = pic_man->pics[count].y ;
-			src_y = 0 ;
-			src_height = K_MIN(height + y - dst_y,pic_man->pics[count].pic->height) ;
-		}
-
-		x_window_copy_area( win , pic_man->pics[count].pic->pixmap ,
-			src_x , src_y , src_width , src_height , dst_x , dst_y) ;
-	}
-
-	return  1 ;
-}
-
-int
-x_picture_manager_scroll(
-	x_picture_manager_t *  pic_man ,
-	int  beg_y ,
-	int  end_y ,	/* beg_y == 0 and end_y == 0 -> full screen area. */
-	int  height	/* < 0 => upward, > 0 => downward */
-	)
-{
-	int  count ;
-
-	if( pic_man->num_of_pics == 0)
-	{
-		return  1 ;
-	}
-
-	for( count = pic_man->num_of_pics - 1 ; count >= 0 ; count--)
-	{
-		if( ( beg_y == 0 && end_y == 0) ||
-		    ( beg_y < pic_man->pics[count].y + pic_man->pics[count].pic->height &&
-		      pic_man->pics[count].y <= end_y) )
-		{
-			pic_man->pics[count].y += height ;
-
-			if( pic_man->pics[count].y + (int)pic_man->pics[count].pic->height <= 0)
-			{
-				x_release_picture( pic_man->pics[count].pic) ;
-
-				if( -- pic_man->num_of_pics == 0)
-				{
-					return  1 ;
-				}
-
-				pic_man->pics[count] = pic_man->pics[pic_man->num_of_pics] ;
-			}
-		}
-	}
-
-	return  1 ;
-}
-#endif  /* ENABLE_SIXEL */
+#endif	/* ENABLE_SIXEL */

@@ -1018,6 +1018,55 @@ public class MLTerm extends StyledText
 							str = "\u001b[F" ;
 						}
 					}
+					else if( SWT.F1 <= event.keyCode && event.keyCode <= SWT.F20)
+					{
+						char  im = '[' ;
+						int  param = 0 ;
+						char  ft = '~' ;
+						StringBuilder  tmp = new StringBuilder( "\u001b") ;
+
+						if( event.keyCode <= SWT.F4)
+						{
+							/* PQRS */
+							im = 'O' ;
+							ft = (char)((event.keyCode - SWT.F1) + (int)'P') ;
+						}
+						else if( event.keyCode == SWT.F5)
+						{
+							param = 15 ;
+						}
+						else if( event.keyCode <= SWT.F10)
+						{
+							/* 17 - 21 */
+							param = (event.keyCode - SWT.F6) + 17 ;
+						}
+						else if( event.keyCode <= SWT.F14)
+						{
+							/* 23 - 26 */
+							param = (event.keyCode - SWT.F11) + 23 ;
+						}
+						else if( event.keyCode <= SWT.F16)
+						{
+							/* 28 - 29 */
+							param = (event.keyCode - SWT.F15) + 28 ;
+						}
+						else /* if( event.keyCode <= SWT.F20) */
+						{
+							/* 31 - 34 */
+							param = (event.keyCode - SWT.F17) + 31 ;
+						}
+
+						tmp.append( im) ;
+
+						if( param > 0)
+						{
+							tmp.append( String.valueOf( param)) ;
+						}
+
+						tmp.append( ft) ;
+
+						str = tmp.toString() ;
+					}
 					else
 					{
 						str = String.valueOf( event.character) ;

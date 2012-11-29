@@ -134,10 +134,6 @@ typedef struct  x_screen
 
 	x_icon_picture_t *  icon ;
 
-#ifdef  ENABLE_SIXEL
-	x_picture_manager_t *  pic_man ;
-#endif
-
 	/*
 	 * These members mustn't be changed by mlterm configuration protocol,
 	 * since they can be executed.

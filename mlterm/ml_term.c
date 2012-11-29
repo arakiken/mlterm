@@ -13,6 +13,14 @@
 #include  "ml_screen.h"
 
 
+/* --- global variables --- */
+
+#ifdef  ENABLE_SIXEL
+/* XXX */
+void (*ml_term_pty_closed_event)( ml_term_t *) ;
+#endif
+
+
 /* --- global functions --- */
 
 ml_term_t *
@@ -110,6 +118,13 @@ ml_term_delete(
 	ml_term_t *  term
 	)
 {
+#ifdef  ENABLE_SIXEL
+	if( ml_term_pty_closed_event)
+	{
+		(*ml_term_pty_closed_event)( term) ;
+	}
+#endif
+
 	if( term->pty)
 	{
 		ml_pty_delete( term->pty) ;

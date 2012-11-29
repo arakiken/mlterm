@@ -932,6 +932,56 @@ report_window_size(
 	}
 }
 
+#ifdef  ENABLE_SIXEL
+static void
+show_picture(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  file_path ,
+	int  num_of_cols ,
+	int  num_of_rows
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,get_picture_data))
+	{
+		ml_char_t *  data ;
+
+		ml_set_use_char_combining( 1) ;
+
+		if( ( data = (*vt100_parser->xterm_listener->get_picture_data)(
+				vt100_parser->xterm_listener->self ,
+				file_path , &num_of_cols , &num_of_rows)))
+		{
+			ml_char_t *  p ;
+			int  row ;
+			int  cursor_col ;
+
+			p = data ;
+			row = 0 ;
+			cursor_col = ml_screen_cursor_col( vt100_parser->screen) ;
+			while( 1)
+			{
+				ml_screen_overwrite_chars( vt100_parser->screen ,
+					p , num_of_cols) ;
+
+				if( ++row >= num_of_rows)
+				{
+					break ;
+				}
+
+				ml_screen_line_feed( vt100_parser->screen) ;
+				ml_screen_go_horizontally( vt100_parser->screen , cursor_col) ;
+
+				p += num_of_cols ;
+			}
+
+			ml_str_delete( data , num_of_cols * num_of_rows) ;
+		}
+
+		ml_set_use_char_combining( vt100_parser->use_char_combining) ;
+	}
+}
+#endif
+
 
 /*
  * This function will destroy the content of pt.
@@ -957,6 +1007,34 @@ config_protocol_set(
 	{
 		soft_reset( vt100_parser) ;
 	}
+#ifdef  ENABLE_SIXEL
+	else if( strncmp( pt , "show_picture " , 12) == 0)
+	{
+		int  num_of_cols ;
+		int  num_of_rows ;
+		char **  argv ;
+		int  argc ;
+
+		num_of_cols = num_of_rows = 0 ;
+
+		argv = kik_arg_str_to_array( &argc , pt) ;
+		if( argc == 3)
+		{
+			sscanf( argv[2] , "%dx%d" , &num_of_cols , &num_of_rows) ;
+		}
+		else if( argc != 2)
+		{
+			return ;
+		}
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " %s w %d h %d\n" ,
+			argv[1] , num_of_cols , num_of_rows) ;
+	#endif
+
+		show_picture( vt100_parser , argv[1] , num_of_cols , num_of_rows) ;
+	}
+#endif
 #ifdef  USE_LIBSSH2
 	else if( strncmp( pt , "scp " , 4) == 0)
 	{
@@ -3647,7 +3725,7 @@ parse_vt100_escape_sequence(
 			/* "ESC P" DCS */
 
 			u_char *  dcs_beg ;
-			char *  path ;
+			char *  dir_path ;
 
 			while(1)
 			{
@@ -3672,30 +3750,30 @@ parse_vt100_escape_sequence(
 
 			if( ( *str_p == 'q' /* sixel */
 			    /* || *str_p == 'p' */ ) &&		/* ReGis */
-			    ( path = kik_get_user_rc_path( "mlterm/")) )
+			    ( dir_path = kik_get_user_rc_path( "mlterm/")) )
 			{
 				char *  dev ;
-				char *  seq ;
+				char *  file_path ;
 				int  is_end ;
 				FILE *  fp ;
 
-				seq = alloca( 12 + strlen( path) +
-					strlen( ( dev = ml_pty_get_slave_name(
+				file_path = alloca( strlen( dir_path) +
+						strlen( ( dev = ml_pty_get_slave_name(
 							vt100_parser->pty)) + 5) + 5) ;
-				sprintf( seq , "add_picture %s%s.six" , path , dev + 5) ;
-				str_replace( seq + 12 + strlen( path) , '/' , '_') ;
-				free( path) ;
+				sprintf( file_path , "%s%s.six" , dir_path , dev + 5) ;
+				str_replace( file_path + strlen( dir_path) , '/' , '_') ;
+				free( dir_path) ;
 
 				if( left > 2 && *(str_p + 1) == '\0')
 				{
-					fp = fopen( seq + 12 , "a") ;
+					fp = fopen( file_path , "a") ;
 					is_end = *(str_p + 2) ;
 					dcs_beg = (str_p += 3) ;
 					left -= 3 ;
 				}
 				else
 				{
-					fp = fopen( seq + 12 , "w") ;	
+					fp = fopen( file_path , "w") ;
 					is_end = 0 ;
 				}
 
@@ -3771,7 +3849,7 @@ parse_vt100_escape_sequence(
 
 				fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 				fclose( fp) ;
-				config_protocol_set( vt100_parser , seq , 0) ;
+				show_picture( vt100_parser , file_path , 0 , 0) ;
 			}
 			else if( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0)
 			{

@@ -25,8 +25,6 @@
 #define  SB_DIR  XDATADIR "/mlterm/scrollbars"
 #endif
 
-#define  check_version(view)  ((view)->version == 1 ? (view) : NULL)
-
 
 typedef  x_sb_view_t * (*x_sb_view_new_func_t)(void) ;
 typedef  x_sb_view_t * (*x_sb_engine_new_func_t)( x_sb_view_conf_t *  conf, int is_transparent) ;
@@ -41,6 +39,14 @@ static u_int  num_of_view_confs ;
 
 
 /* --- static functions --- */
+
+static inline x_sb_view_t *
+check_version(
+	x_sb_view_t *  view
+	)
+{
+	return  view->version == 1 ? view : NULL ;
+}
 
 static x_sb_view_new_func_t
 dlsym_sb_view_new_func(
