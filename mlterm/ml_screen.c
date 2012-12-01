@@ -1050,6 +1050,28 @@ ml_screen_logical(
 	}
 }
 
+ml_bs_mode_t
+ml_screen_is_backscrolling(
+	ml_screen_t *  screen
+	)
+{
+	if( screen->is_backscrolling == BSM_STATIC)
+	{
+		if( screen->backscroll_rows < ml_get_log_size( &screen->logs))
+		{
+			return  BSM_STATIC ;
+		}
+		else
+		{
+			return  BSM_DEFAULT ;
+		}
+	}
+	else
+	{
+		return  screen->is_backscrolling ;
+	}
+}
+
 int
 ml_set_backscroll_mode(
 	ml_screen_t *  screen ,
@@ -1482,6 +1504,307 @@ ml_screen_get_word_region(
 #endif
 
 	return  1 ;
+}
+
+int
+ml_screen_search_init(
+	ml_screen_t *  screen ,
+	int (*match)( size_t * , size_t * , void * , u_char * , int)
+	)
+{
+	if( screen->search)
+	{
+		return  0 ;
+	}
+
+	if( ! ( screen->search = malloc( sizeof( *screen->search))))
+	{
+		return  0 ;
+	}
+
+	screen->search->match = match ;
+
+	ml_screen_search_reset_position( screen) ;
+
+	return  1 ;
+}
+
+int
+ml_screen_search_final(
+	ml_screen_t *  screen
+	)
+{
+	free( screen->search) ;
+	screen->search = NULL ;
+
+	return  1 ;
+}
+
+int
+ml_screen_search_reset_position(
+	ml_screen_t *  screen
+	)
+{
+	if( ! screen->search)
+	{
+		return  0 ;
+	}
+
+	/* char_index == -1 has special meaning. */
+	screen->search->char_index = -1 ;
+	screen->search->row = -1 ;
+
+	return  1 ;
+}
+
+/*
+ * It is assumed that this function is called in *visual* context.
+ *
+ * XXX
+ * It is not supported to match text in multiple lines.
+ */
+int
+ml_screen_search_find(
+	ml_screen_t *  screen ,
+	int *  beg_char_index ,		/* visual position is returned */
+	int *  beg_row ,		/* visual position is returned */
+	int *  end_char_index ,		/* visual position is returned */
+	int *  end_row ,		/* visual position is returned */
+	void *  regex ,
+	int  backward
+	)
+{
+	ml_char_t *  line_str ;
+	mkf_parser_t *  parser ;
+	mkf_conv_t *  conv ;
+	u_char *  buf ;
+	size_t  buf_len ;
+	ml_line_t *  line ;
+	int  step ;
+	int  res ;
+
+	if( ! screen->search)
+	{
+		return  0 ;
+	}
+
+	if( ! ( line_str = ml_str_alloca( ml_screen_get_logical_cols( screen))))
+	{
+		return  0 ;
+	}
+
+	buf_len = ml_screen_get_logical_cols( screen) * MLCHAR_UTF_MAX_SIZE + 1 ;
+	if( ! ( buf = alloca( buf_len)))
+	{
+		return  0 ;
+	}
+
+	if( ! (parser = ml_str_parser_new()))
+	{
+		return  0 ;
+	}
+
+	if( ! (conv = ml_conv_new( ML_UTF8)))
+	{
+		(*parser->delete)( parser) ;
+
+		return  0 ;
+	}
+
+	/* char_index == -1 has special meaning. */
+	if( screen->search->char_index == -1)
+	{
+		screen->search->char_index = ml_screen_cursor_char_index( screen) ;
+		screen->search->row = ml_screen_cursor_row( screen) ;
+	}
+
+	*beg_char_index = screen->search->char_index ;
+	*beg_row = screen->search->row ;
+	step = (backward ? -1 : 1) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Search start from %d %d\n" ,
+			*beg_char_index , *beg_row) ;
+#endif
+
+	res = 0 ;
+
+	for( ; (line = ml_screen_get_line( screen , *beg_row)) ; (*beg_row) += step)
+	{
+		size_t  line_len ;
+		size_t  match_beg ;
+		size_t  match_len ;
+
+		if( ( line_len = ml_line_get_num_of_filled_chars_except_spaces( line)) == 0)
+		{
+			continue ;
+		}
+
+		/*
+		 * Visual => Logical
+		 */
+		ml_line_copy_logical_str( line , line_str , 0 , line_len) ;
+
+		(*parser->init)( parser) ;
+		if( backward)
+		{
+			ml_str_parser_set_str( parser , line_str ,
+				(*beg_row != screen->search->row) ?
+					line_len : K_MIN(*beg_char_index + 1,line_len)) ;
+			*beg_char_index = 0 ;
+		}
+		else
+		{
+			if( *beg_row != screen->search->row)
+			{
+				*beg_char_index = 0 ;
+			}
+			else if( line_len <= *beg_char_index)
+			{
+				continue ;
+			}
+
+			ml_str_parser_set_str( parser , line_str + (*beg_char_index) ,
+					line_len - *beg_char_index) ;
+		}
+
+		(*conv->init)( conv) ;
+		*(buf + (*conv->convert)( conv , buf , buf_len - 1 , parser)) = '\0' ;
+
+		if( (*screen->search->match)( &match_beg , &match_len ,
+					regex , buf , backward))
+		{
+			size_t  count ;
+			u_int  comb_size ;
+			int  beg ;
+			int  end ;
+			int  meet_pos ;
+
+			ml_get_combining_chars( line_str + (*beg_char_index) , &comb_size) ;
+
+			for( count = 0 ; count < match_beg ; count++)
+			{
+				/* Ignore 2nd and following bytes. */
+				if( (buf[count] & 0xc0) != 0x80)
+				{
+					if( comb_size > 0)
+					{
+						comb_size -- ;
+					}
+					else if( (++ (*beg_char_index)) >= line_len - 1)
+					{
+						break ;
+					}
+					else
+					{
+						ml_get_combining_chars(
+							line_str + (*beg_char_index) ,
+							&comb_size) ;
+					}
+				}
+			}
+
+			*end_char_index = (*beg_char_index) - 1 ;
+			for( ; count < match_beg + match_len ; count++)
+			{
+				/* Ignore 2nd and following bytes. */
+				if( (buf[count] & 0xc0) != 0x80)
+				{
+					if( comb_size > 0)
+					{
+						comb_size -- ;
+					}
+					else if( (++ (*end_char_index)) >= line_len - 1)
+					{
+						break ;
+					}
+					else
+					{
+						ml_get_combining_chars(
+							line_str + (*end_char_index) ,
+							&comb_size) ;
+					}
+				}
+			}
+
+			if( *end_char_index < *beg_char_index)
+			{
+				continue ;
+			}
+
+			*end_row = *beg_row ;
+
+			if( backward)
+			{
+				if( *beg_char_index > 0)
+				{
+					screen->search->char_index = *beg_char_index - 1 ;
+					screen->search->row = *beg_row ;
+				}
+				else
+				{
+					screen->search->char_index =
+						ml_screen_get_logical_cols( screen) - 1 ;
+					screen->search->row = *beg_row - 1 ;
+				}
+			}
+			else
+			{
+				screen->search->char_index = *beg_char_index + 1 ;
+				screen->search->row = *beg_row ;
+			}
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Search position x %d y %d\n" ,
+					screen->search->char_index , screen->search->row) ;
+		#endif
+
+			/*
+			 * Logical => Visual
+			 *
+			 * XXX Incomplete
+			 * Current implementation have problems like this.
+			 *  (logical)RRRLLLNNN => (visual)NNNLLLRRR
+			 *  Searching LLLNNN =>           ^^^^^^ hits but only NNNL is reversed.
+			 */
+			meet_pos = 0 ;
+			beg = ml_line_convert_logical_char_index_to_visual(
+					line , *beg_char_index , &meet_pos) ;
+			end = ml_line_convert_logical_char_index_to_visual(
+					line , *end_char_index , &meet_pos) ;
+
+			if( beg > end)
+			{
+				*beg_char_index = end ;
+				*end_char_index = beg ;
+			}
+			else
+			{
+				*beg_char_index = beg ;
+				*end_char_index = end ;
+			}
+
+			if( ml_line_is_rtl( line))
+			{
+				int  char_index ;
+
+				/* XXX for x_selection */
+				char_index = -(*beg_char_index) ;
+				*beg_char_index = -(*end_char_index) ;
+				*end_char_index = char_index ;
+			}
+
+			res = 1 ;
+
+			break ;
+		}
+	}
+
+	(*parser->delete)( parser) ;
+	(*conv->delete)( conv) ;
+	ml_str_final( line_str , ml_screen_get_logical_cols( screen)) ;
+
+	return  res ;
 }
 
 
@@ -1949,327 +2272,4 @@ ml_screen_fill_all_with_e(
 	ml_char_final( &e_ch) ;
 
 	return  1 ;
-}
-
-ml_bs_mode_t
-ml_screen_is_backscrolling(
-	ml_screen_t *  screen
-	)
-{
-	if( screen->is_backscrolling == BSM_STATIC)
-	{
-		if( screen->backscroll_rows < ml_get_log_size( &screen->logs))
-		{
-			return  BSM_STATIC ;
-		}
-		else
-		{
-			return  BSM_DEFAULT ;
-		}
-	}
-	else
-	{
-		return  screen->is_backscrolling ;
-	}
-}
-
-int
-ml_screen_search_init(
-	ml_screen_t *  screen ,
-	int (*match)( size_t * , size_t * , void * , u_char * , int)
-	)
-{
-	if( screen->search)
-	{
-		return  0 ;
-	}
-
-	if( ! ( screen->search = malloc( sizeof( *screen->search))))
-	{
-		return  0 ;
-	}
-
-	screen->search->match = match ;
-
-	ml_screen_search_reset_position( screen) ;
-
-	return  1 ;
-}
-
-int
-ml_screen_search_final(
-	ml_screen_t *  screen
-	)
-{
-	free( screen->search) ;
-	screen->search = NULL ;
-
-	return  1 ;
-}
-
-int
-ml_screen_search_reset_position(
-	ml_screen_t *  screen
-	)
-{
-	if( ! screen->search)
-	{
-		return  0 ;
-	}
-
-	/* char_index == -1 has special meaning. */
-	screen->search->char_index = -1 ;
-	screen->search->row = -1 ;
-
-	return  1 ;
-}
-
-/*
- * It is assumed that this function is called in *visual* context.
- *
- * XXX
- * It is not supported to match text in multiple lines.
- */
-int
-ml_screen_search_find(
-	ml_screen_t *  screen ,
-	int *  beg_char_index ,		/* visual position is returned */
-	int *  beg_row ,		/* visual position is returned */
-	int *  end_char_index ,		/* visual position is returned */
-	int *  end_row ,		/* visual position is returned */
-	void *  regex ,
-	int  backward
-	)
-{
-	ml_char_t *  line_str ;
-	mkf_parser_t *  parser ;
-	mkf_conv_t *  conv ;
-	u_char *  buf ;
-	size_t  buf_len ;
-	ml_line_t *  line ;
-	int  step ;
-	int  res ;
-
-	if( ! screen->search)
-	{
-		return  0 ;
-	}
-
-	if( ! ( line_str = ml_str_alloca( ml_screen_get_logical_cols( screen))))
-	{
-		return  0 ;
-	}
-
-	buf_len = ml_screen_get_logical_cols( screen) * MLCHAR_UTF_MAX_SIZE + 1 ;
-	if( ! ( buf = alloca( buf_len)))
-	{
-		return  0 ;
-	}
-
-	if( ! (parser = ml_str_parser_new()))
-	{
-		return  0 ;
-	}
-	
-	if( ! (conv = ml_conv_new( ML_UTF8)))
-	{
-		(*parser->delete)( parser) ;
-
-		return  0 ;
-	}
-
-	/* char_index == -1 has special meaning. */
-	if( screen->search->char_index == -1)
-	{
-		screen->search->char_index = ml_screen_cursor_char_index( screen) ;
-		screen->search->row = ml_screen_cursor_row( screen) ;
-	}
-
-	*beg_char_index = screen->search->char_index ;
-	*beg_row = screen->search->row ;
-	step = (backward ? -1 : 1) ;
-
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " Search start from %d %d\n" ,
-			*beg_char_index , *beg_row) ;
-#endif
-
-	res = 0 ;
-
-	for( ; (line = ml_screen_get_line( screen , *beg_row)) ; (*beg_row) += step)
-	{
-		size_t  line_len ;
-		size_t  match_beg ;
-		size_t  match_len ;
-
-		if( ( line_len = ml_line_get_num_of_filled_chars_except_spaces( line)) == 0)
-		{
-			continue ;
-		}
-
-		/*
-		 * Visual => Logical
-		 */
-		ml_line_copy_logical_str( line , line_str , 0 , line_len) ;
-
-		(*parser->init)( parser) ;
-		if( backward)
-		{
-			ml_str_parser_set_str( parser , line_str ,
-				(*beg_row != screen->search->row) ?
-					line_len : K_MIN(*beg_char_index + 1,line_len)) ;
-			*beg_char_index = 0 ;
-		}
-		else
-		{
-			if( *beg_row != screen->search->row)
-			{
-				*beg_char_index = 0 ;
-			}
-			else if( line_len <= *beg_char_index)
-			{
-				continue ;
-			}
-
-			ml_str_parser_set_str( parser , line_str + (*beg_char_index) ,
-					line_len - *beg_char_index) ;
-		}
-
-		(*conv->init)( conv) ;
-		*(buf + (*conv->convert)( conv , buf , buf_len - 1 , parser)) = '\0' ;
-
-		if( (*screen->search->match)( &match_beg , &match_len ,
-					regex , buf , backward))
-		{
-			size_t  count ;
-			u_int  comb_size ;
-			int  beg ;
-			int  end ;
-			int  meet_pos ;
-
-			ml_get_combining_chars( line_str + (*beg_char_index) , &comb_size) ;
-
-			for( count = 0 ; count < match_beg ; count++)
-			{
-				/* Ignore 2nd and following bytes. */
-				if( (buf[count] & 0xc0) != 0x80)
-				{
-					if( comb_size > 0)
-					{
-						comb_size -- ;
-					}
-					else if( (++ (*beg_char_index)) >= line_len - 1)
-					{
-						break ;
-					}
-					else
-					{
-						ml_get_combining_chars(
-							line_str + (*beg_char_index) ,
-							&comb_size) ;
-					}
-				}
-			}
-
-			*end_char_index = (*beg_char_index) - 1 ;
-			for( ; count < match_beg + match_len ; count++)
-			{
-				/* Ignore 2nd and following bytes. */
-				if( (buf[count] & 0xc0) != 0x80)
-				{
-					if( comb_size > 0)
-					{
-						comb_size -- ;
-					}
-					else if( (++ (*end_char_index)) >= line_len - 1)
-					{
-						break ;
-					}
-					else
-					{
-						ml_get_combining_chars(
-							line_str + (*end_char_index) ,
-							&comb_size) ;
-					}
-				}
-			}
-
-			if( *end_char_index < *beg_char_index)
-			{
-				continue ;
-			}
-
-			*end_row = *beg_row ;
-
-			if( backward)
-			{
-				if( *beg_char_index > 0)
-				{
-					screen->search->char_index = *beg_char_index - 1 ;
-					screen->search->row = *beg_row ;
-				}
-				else
-				{
-					screen->search->char_index =
-						ml_screen_get_logical_cols( screen) - 1 ;
-					screen->search->row = *beg_row - 1 ;
-				}
-			}
-			else
-			{
-				screen->search->char_index = *beg_char_index + 1 ;
-				screen->search->row = *beg_row ;
-			}
-
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Search position x %d y %d\n" ,
-					screen->search->char_index , screen->search->row) ;
-		#endif
-
-			/*
-			 * Logical => Visual
-			 *
-			 * XXX Incomplete
-			 * Current implementation have problems like this.
-			 *  (logical)RRRLLLNNN => (visual)NNNLLLRRR
-			 *  Searching LLLNNN =>           ^^^^^^ hits but only NNNL is reversed.
-			 */
-			meet_pos = 0 ;
-			beg = ml_line_convert_logical_char_index_to_visual(
-					line , *beg_char_index , &meet_pos) ;
-			end = ml_line_convert_logical_char_index_to_visual(
-					line , *end_char_index , &meet_pos) ;
-			
-			if( beg > end)
-			{
-				*beg_char_index = end ;
-				*end_char_index = beg ;
-			}
-			else
-			{
-				*beg_char_index = beg ;
-				*end_char_index = end ;
-			}
-
-			if( ml_line_is_rtl( line))
-			{
-				int  char_index ;
-
-				/* XXX for x_selection */
-				char_index = -(*beg_char_index) ;
-				*beg_char_index = -(*end_char_index) ;
-				*end_char_index = char_index ;
-			}
-
-			res = 1 ;
-
-			break ;
-		}
-	}
-
-	(*parser->delete)( parser) ;
-	(*conv->delete)( conv) ;
-	ml_str_final( line_str , ml_screen_get_logical_cols( screen)) ;
-
-	return  res ;
 }

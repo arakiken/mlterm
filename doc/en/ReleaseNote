@@ -4,6 +4,7 @@ ver 3.1.6
 * Support gzipped pcf fonts in framebuffer.
 * Support 3 byte rgb color sequence.
   (<ESC>[38;2;<r>;<g>;<b>m and <ESC>[48;2;<r>;<g>;<b>m)
+* Support DECCRA(<ESC>[...$v) and DECERA(<ESC>[...$z).
 * Add --altbuf / "use_alt_buffer" option which is equivalent to
   "titeInhibit" of xterm.
 * Add --colors / "use_ansi_colors" option which is equivalent to

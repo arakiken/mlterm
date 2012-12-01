@@ -152,7 +152,7 @@ int  ml_screen_logical( ml_screen_t *  screen) ;
 #define  ml_screen_logical_visual_is_reversible( screen) \
 		(! (screen)->logvis || (screen)->logvis->is_reversible)
 
-ml_bs_mode_t  ml_is_backscroll_mode( ml_screen_t *  screen) ;
+ml_bs_mode_t  ml_screen_is_backscrolling( ml_screen_t *  screen) ;
 
 int  ml_set_backscroll_mode( ml_screen_t *  screen , ml_bs_mode_t  mode) ;
 
@@ -188,6 +188,16 @@ int  ml_screen_get_line_region( ml_screen_t *  screen , int *  beg_row ,
 
 int  ml_screen_get_word_region( ml_screen_t *  screen , int *  beg_char_index ,
 	int *  beg_row , int *  end_char_index , int *  end_row , int  base_char_index , int  base_row) ;
+
+int  ml_screen_search_init( ml_screen_t *  screen ,
+	int (*match)( size_t * , size_t * , void * , u_char * , int)) ;
+
+int  ml_screen_search_final( ml_screen_t *  screen) ;
+
+int  ml_screen_search_reset_position( ml_screen_t *  screen) ;
+
+int  ml_screen_search_find( ml_screen_t *  screen , int *  beg_char_index , int *  beg_row ,
+	int *  end_char_index , int *  end_row , void *  regex , int  backward) ;
 
 
 /*
@@ -296,17 +306,13 @@ int  ml_screen_disable_local_echo( ml_screen_t *  screen) ;
 
 int  ml_screen_fill_all_with_e( ml_screen_t *  screen) ;
 
-ml_bs_mode_t  ml_screen_is_backscrolling( ml_screen_t *  screen) ;
+#define  ml_screen_copy_area( screen , src_col , src_row , \
+		num_of_cols , num_of_rows , dst_col , dst_row) \
+		ml_edit_copy_area( (screen)->edit , src_col , src_row , \
+			num_of_cols , num_of_rows , dst_col , dst_row)
 
-int  ml_screen_search_init( ml_screen_t *  screen ,
-	int (*match)( size_t * , size_t * , void * , u_char * , int)) ;
-
-int  ml_screen_search_final( ml_screen_t *  screen) ;
-
-int  ml_screen_search_reset_position( ml_screen_t *  screen) ;
-
-int  ml_screen_search_find( ml_screen_t *  screen , int *  beg_char_index , int *  beg_row ,
-	int *  end_char_index , int *  end_row , void *  regex , int  backward) ;
+#define  ml_screen_erase_area( screen , col , row , num_of_cols , num_of_rows) \
+		ml_edit_erase_area( (screen)->edit , col , row , num_of_cols , num_of_rows)
 
 
 #endif

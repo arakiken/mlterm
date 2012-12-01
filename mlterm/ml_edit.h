@@ -142,6 +142,12 @@ int  ml_edit_save_cursor( ml_edit_t *  edit) ;
 
 int  ml_edit_restore_cursor( ml_edit_t *  edit) ;
 
+int  ml_edit_copy_area( ml_edit_t *  edit , int  src_col , int  src_row ,
+	u_int  num_of_copy_cols , u_int  num_of_copy_rows , int  dst_col , int  dst_row) ;
+
+int  ml_edit_erase_area( ml_edit_t *  edit , int  col , int  row ,
+	u_int  num_of_cols , u_int  num_of_rows) ;
+
 #define  ml_cursor_char_index( edit)  ((edit)->cursor.char_index)
 
 #define  ml_cursor_col( edit)  ((edit)->cursor.col)

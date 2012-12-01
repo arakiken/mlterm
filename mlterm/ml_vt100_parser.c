@@ -2884,6 +2884,58 @@ parse_vt100_escape_sequence(
 					soft_reset( vt100_parser) ;
 				}
 			}
+			else if( pre_ch == '$')
+			{
+				if( num >= 4)
+				{
+					int  count ;
+
+					/* Set the default values. */
+					for( count = 0 ; count < num ; count++)
+					{
+						if( ps[count] <= 0)
+						{
+							if( count == 2)
+							{
+								ps[count] = ml_screen_get_rows(
+								            vt100_parser->screen) ;
+							}
+							else if( count == 3)
+							{
+								ps[count] = ml_screen_get_cols(
+								            vt100_parser->screen) ;
+							}
+							else
+							{
+								ps[count] = 1 ;
+							}
+						}
+					}
+
+					if( ps[3] >= ps[1] && ps[2] >= ps[0])
+					{
+						if( *str_p == 'z')
+						{
+							ml_screen_erase_area(
+								vt100_parser->screen ,
+								ps[1] - 1 , ps[0] - 1 ,
+								ps[3] - ps[1] + 1 ,
+								ps[2] - ps[0] + 1) ;
+						}
+						else if( *str_p == 'v' && num == 8)
+						{
+							/* "CSI ... $ v" DECCRA */
+
+							ml_screen_copy_area(
+								vt100_parser->screen ,
+								ps[1] - 1 , ps[0] - 1 ,
+								ps[3] - ps[1] + 1 ,
+								ps[2] - ps[0] + 1 ,
+								ps[6] - 1 , ps[5] - 1) ;
+						}
+					}
+				}
+			}
 			else if( pre_ch == '<')
 			{
 				/* Teraterm compatible IME control sequence */
@@ -3757,10 +3809,9 @@ parse_vt100_escape_sequence(
 				int  is_end ;
 				FILE *  fp ;
 
-				file_path = alloca( strlen( dir_path) +
-						strlen( ( dev = ml_pty_get_slave_name(
-							vt100_parser->pty)) + 5) + 5) ;
-				sprintf( file_path , "%s%s.six" , dir_path , dev + 5) ;
+				dev = ml_pty_get_slave_name( vt100_parser->pty) + 5 ;
+				file_path = alloca( strlen( dir_path) + strlen( dev) + 5) ;
+				sprintf( file_path , "%s%s.six" , dir_path , dev) ;
 				str_replace( file_path + strlen( dir_path) , '/' , '_') ;
 				free( dir_path) ;
 

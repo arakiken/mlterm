@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.1.5
+%define version 3.1.6
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -78,6 +78,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Sat Dec 01 2012 Araki Ken <arakiken@users.sf.net>
+- Source version 3.1.6
+
 * Tue Nov 06 2012 Araki Ken <arakiken@users.sf.net>
 - Source version 3.1.5
 

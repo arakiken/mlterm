@@ -1535,6 +1535,171 @@ ml_edit_restore_cursor(
 	return  ml_cursor_restore( &edit->cursor) ;
 }
 
+int
+ml_edit_copy_area(
+	ml_edit_t *  edit ,
+	int  src_col ,
+	int  src_row ,
+	u_int  num_of_copy_cols ,
+	u_int  num_of_copy_rows ,
+	int  dst_col ,
+	int  dst_row
+	)
+{
+	u_int  count ;
+	ml_line_t *  src_line ;
+	ml_line_t *  dst_line ;
+	int  src_char_index ;
+	int  dst_char_index ;
+	u_int  src_cols_rest ;
+	u_int  src_cols_after ;
+	u_int  dst_cols_rest ;
+	u_int  num_of_src_chars ;
+	u_int  num_of_src_cols ;
+
+	if( edit->is_relative_origin)
+	{
+		if( (src_row += edit->scroll_region_beg) > edit->scroll_region_end ||
+		    (dst_row += edit->scroll_region_beg) > edit->scroll_region_end)
+		{
+			return  1 ;
+		}
+
+		if( src_row + num_of_copy_rows > edit->scroll_region_end + 1)
+		{
+			num_of_copy_rows = edit->scroll_region_end + 1 - src_row ;
+		}
+
+		if( dst_row + num_of_copy_rows > edit->scroll_region_end + 1)
+		{
+			num_of_copy_rows = edit->scroll_region_end + 1 - dst_row ;
+		}
+	}
+
+	for( count = 0 ; count < num_of_copy_rows ; count++)
+	{
+		if( ! (src_line = ml_edit_get_line( edit , src_row + count)) ||
+		    ! (dst_line = ml_edit_get_line( edit , dst_row + count)))
+		{
+			continue ;
+		}
+
+		src_char_index = ml_convert_col_to_char_index( src_line ,
+					&src_cols_rest , src_col , BREAK_BOUNDARY) ;
+		if( src_cols_rest > 0)
+		{
+			src_cols_after = ml_char_cols( src_line->chars + src_char_index) -
+						src_cols_rest ;
+			src_char_index ++ ;
+		}
+		else
+		{
+			src_cols_after = 0 ;
+		}
+
+		dst_char_index = ml_convert_col_to_char_index( dst_line ,
+					&dst_cols_rest , dst_col , 0) ;
+
+		if( dst_cols_rest + src_cols_rest > 0)
+		{
+			ml_line_fill( dst_line , ml_sp_ch() , dst_char_index ,
+				dst_cols_rest + src_cols_after) ;
+			dst_char_index += (dst_cols_rest + src_cols_after) ;
+		}
+
+		if( src_line->num_of_filled_chars > src_char_index)
+		{
+			num_of_src_chars = ml_convert_col_to_char_index( src_line ,
+						&src_cols_rest ,
+						src_col + num_of_copy_cols , 0)
+						- src_char_index ;
+			num_of_src_cols = num_of_copy_cols - src_cols_rest ;
+		}
+		else
+		{
+			num_of_src_chars = 0 ;
+			num_of_src_cols = 0 ;
+		}
+
+		if( num_of_src_cols > 0)
+		{
+			ml_line_overwrite( dst_line , dst_char_index ,
+				src_line->chars + src_char_index ,
+				num_of_src_chars , num_of_src_cols - src_cols_after) ;
+		}
+
+		if( num_of_src_cols + src_cols_after < num_of_copy_cols)
+		{
+			ml_line_fill( dst_line , ml_sp_ch() ,
+				dst_char_index + num_of_src_chars ,
+				num_of_copy_cols - num_of_src_cols) ;
+		}
+	}
+
+	return  1 ;
+}
+
+int
+ml_edit_erase_area(
+	ml_edit_t *  edit ,
+	int  col ,
+	int  row ,
+	u_int  num_of_cols ,
+	u_int  num_of_rows
+	)
+{
+	u_int  count ;
+	ml_line_t *  line ;
+	int  char_index ;
+	u_int  cols_rest ;
+
+	if( edit->is_relative_origin)
+	{
+		if( (row += edit->scroll_region_beg) > edit->scroll_region_end)
+		{
+			return  1 ;
+		}
+
+		if( row + num_of_rows > edit->scroll_region_end + 1)
+		{
+			num_of_rows = edit->scroll_region_end + 1 - row ;
+		}
+	}
+
+	for( count = 0 ; count < num_of_rows ; count++)
+	{
+		if( ! (line = ml_edit_get_line( edit , row + count)))
+		{
+			continue ;
+		}
+
+		char_index = ml_convert_col_to_char_index( line , &cols_rest , col ,
+					BREAK_BOUNDARY) ;
+
+		if( char_index >= line->num_of_filled_chars)
+		{
+			if( ! edit->use_bce)
+			{
+				continue ;
+			}
+
+			ml_line_fill( line , ml_sp_ch() , char_index ,
+					char_index + 1 - line->num_of_filled_chars) ;
+		}
+
+		if( cols_rest > 0)
+		{
+			ml_line_fill( line , ml_sp_ch() , char_index , cols_rest) ;
+			char_index += cols_rest ;
+		}
+
+		ml_line_fill( line , edit->use_bce ? &edit->bce_ch : ml_sp_ch() ,
+				char_index , num_of_cols) ;
+	}
+
+	return  1 ;
+}
+
 
 /*
  * for debugging.
