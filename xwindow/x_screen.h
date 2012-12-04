@@ -153,6 +153,7 @@ typedef struct  x_screen
 	int8_t  font_or_color_config_updated ;	/* 0x1 = font updated, 0x2 = color updated */
 	int8_t  cursor_blink_wait ;
 	int8_t  hide_underline ;
+	int8_t  processing_vtseq ;
 
 } x_screen_t ;
 

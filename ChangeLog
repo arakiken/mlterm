@@ -1,3 +1,11 @@
+2012-12-04  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c:
+	  - The bug of "button3_behavior" option rejecting "mlclient ..."
+	    command is fixed.
+	  - "mlclient ..." with "-e" and "--initstr" option can be specified
+	    in ~/.mlterm/key.
+
 2012-12-01  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.1.6 released.

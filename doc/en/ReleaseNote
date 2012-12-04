@@ -1,3 +1,7 @@
+ver 3.1.7
+* Bug fixes:
+  Fix the bug of "button3_behavior" option rejecting "mlclient ..." command.
+
 ver 3.1.6
 * Support ":[Percentage]" format for font-fb.
   (e.g. ISO8859_1=/../font.pcf:100)

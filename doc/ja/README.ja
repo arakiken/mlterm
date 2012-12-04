@@ -656,7 +656,7 @@ comment $Id$
         button3 を押下したときの挙動を指定する。
         xterm = xterm 互換
         menuN = conf_menu_path_N で指定したプログラムを起動
-        また、"mlclient -e w3m" のようにコマンド文字列を指定すると、領域選択
+        また、mlclient -e w3m のようにコマンド文字列を指定すると、領域選択
         した文字列を引数に、指定したコマンドを実行させることができます。
 
       o use_clipboard (true/*false*)

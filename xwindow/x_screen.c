@@ -1797,7 +1797,7 @@ open_button3_command(
 
 	if( strncmp( key , "mlclient" , 8) == 0)
 	{
-		x_screen_set_config( screen , NULL , key , NULL) ;
+		x_screen_exec_cmd( screen , key) ;
 	}
 #ifndef  USE_WIN32API
 	else
@@ -2491,6 +2491,8 @@ no_keypad:
 				if( ( kstr = alloca( size)))
 				{
 					sprintf( kstr , "\x1b]5379;%s\x07" , buf + 6) ;
+					/* processing_vtseq == -1 means loopback processing. */
+					screen->processing_vtseq = -1 ;
 					ml_term_write_loopback( screen->term , kstr , size - 1) ;
 					x_window_update( &screen->window ,
 						UPDATE_SCREEN|UPDATE_CURSOR) ;
@@ -6849,6 +6851,12 @@ start_vt100_cmd(
 	 * ml_screen_logical() is called in ml_term_unhighlight_cursor(), so
 	 * not called directly from here.
 	 */
+
+	/* processing_vtseq == -1 means loopback processing. */
+	if( screen->processing_vtseq != -1)
+	{
+		screen->processing_vtseq = 1 ;
+	}
 }
 
 static void
@@ -6859,6 +6867,8 @@ stop_vt100_cmd(
 	x_screen_t *  screen ;
 
 	screen = p ;
+
+	screen->processing_vtseq = 0 ;
 
 	if( x_is_selecting( &screen->sel))
 	{
@@ -8010,23 +8020,29 @@ x_screen_exec_cmd(
 
 	if( strncmp( cmd , "mlclient" , 8) == 0)
 	{
-		char *  p ;
-
-		/*
-		 * Executing value of "-e" or "--initstr" option is dangerous
-		 * in case 'cat dangerousfile'.
-		 */
-		if( ( ( p = strstr( cmd , "-e ")) &&
-		      /* XXX for mltracelog.sh */ strcmp( p , "-e cat") != 0) ||
-		    ( p = strstr( cmd , "-initstr ")) ||
-		    ( p = strstr( cmd , "-#")))
-		{
-			kik_msg_printf( "Remove \"%s\" from mlclient arguments.\n" , p) ;
-			*p = '\0' ;
-		}
-
 		if( HAS_SYSTEM_LISTENER(screen,mlclient))
 		{
+			/* processing_vtseq == -1 means loopback processing. */
+			if( screen->processing_vtseq > 0)
+			{
+				char *  p ;
+
+				/*
+				 * Executing value of "-e" or "--initstr" option is dangerous
+				 * in case 'cat dangerousfile'.
+				 */
+				if( ( ( p = strstr( cmd , "-e")) &&
+				      p[2] < 'A' &&
+				      /* XXX for mltracelog.sh */ strcmp( p , "-e cat") != 0) ||
+				    ( p = strstr( cmd , "-initstr")) ||
+				    ( p = strstr( cmd , "-#")))
+				{
+					kik_msg_printf( "Remove \"%s\" from mlclient args.\n" ,
+						p) ;
+					p[-1] = '\0' ;	/* Replace ' ', '\"' or '\''. */
+				}
+			}
+
 			(*screen->system_listener->mlclient)(
 				screen->system_listener->self ,
 				cmd[8] == 'x' ? screen : NULL , cmd , stdout) ;
