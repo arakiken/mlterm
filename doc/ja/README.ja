@@ -284,8 +284,8 @@ comment $Id$
 
       o termtype (*xterm*)
         端末タイプ
-        デフォルトは xterm だが、mlterm を推奨。
-        (terminfo: doc/term/mlterm.ti, termcap: doc/term/mlterm.tc)
+        なお、termtype=mlterm とする場合の terminfo 及び termcap のデータベース
+        は、それぞれ doc/term/mlterm.ti 及び doc/term/mlterm.tc にあります。
 
       o max_ptys (*32*)
         同時に立ち上げることができる pty の最大数 (32の倍数で指定)
@@ -324,6 +324,7 @@ comment $Id$
 
       o use_bidi  (*true*/false) (#)
         BiDi レンダリングを行う。
+        (必要ない場合は false に設定することを推奨します。)
 
       o bidi_mode  (*normal*/cmd_l/cmd_r)
         BiDi レンダリングの方法を指定する。

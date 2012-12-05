@@ -1,6 +1,8 @@
 ver 3.1.7
 * Bug fixes:
   Fix the bug of "button3_behavior" option rejecting "mlclient ..." command.
+  Fix the incorrect parsing of font names which contain digit characters like
+  "Courier 10 Pitch" which was regarded as 10-point size "Courier" font.
 
 ver 3.1.6
 * Support ":[Percentage]" format for font-fb.
