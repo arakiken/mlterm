@@ -7822,6 +7822,12 @@ x_screen_attach(
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
+	/* XXX */
+#ifdef  USE_FRAMEBUFFER
+	x_window_resize_with_margin( &screen->window , screen->window.disp->width ,
+		screen->window.disp->height , NOTIFY_TO_MYSELF) ;
+#endif
+
 	return  1 ;
 }
 
