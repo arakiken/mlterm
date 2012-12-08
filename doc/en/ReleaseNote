@@ -1,8 +1,16 @@
 ver 3.1.7
+* Support not only bmp formats but also other image formats by mlimgloader
+  in win32.
+* "contrast", "gamma" and "brightness" options are available in win32.
 * Bug fixes:
   Fix the bug of "button3_behavior" option rejecting "mlclient ..." command.
   Fix the incorrect parsing of font names which contain digit characters like
   "Courier 10 Pitch" which was regarded as 10-point size "Courier" font.
+  Adjust the pty size to the screen size in creating a new pty by Ctrl+F2 etc
+  in framebuffer.
+  Revive "contrast", "gamma" and "brightness" options of mlterm built without
+  --with-imagelib option in Linux.
+  Fix segfault in starting mlterm with --pic option in framebuffer.
 
 ver 3.1.6
 * Support ":[Percentage]" format for font-fb.

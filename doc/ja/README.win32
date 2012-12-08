@@ -41,10 +41,11 @@ WIN32 native GUI 対応に関するメモ
     トホストへの接続には plink.exe を使用しています。
   o MSYS-DTK or Cygwin でビルドした場合は、ソースツリーの
     contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe もコピーしてください。
-  o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ >= 2.0 をインストール
-    しておく必要があります)は、ソースツリーの
+  o mlconfig,mlterm-menu,mlimgloader をビルドできた場合(あらかじめ GTK+ >= 2.0
+    をインストールしておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
+    tool/mlimgloader/.libs/mlimgloader.exe
     もコピーしてください。
   o MSYS-DTK or Cygwin でビルドした場合は、make install でインストールしても
     構いませんが、libmkf の relink に失敗することがあるため、make install の
@@ -113,10 +114,8 @@ WIN32 native GUI 対応に関するメモ
     代わりに、"\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence
     (see doc/en/PROTOCOL) が使用できます(mlclient 又は mlclientx コマンドも、
     同 sequence に対応しています。)。
-  o 背景画像は、BMP 形式のファイルしか指定できません。
   o -X/--alpha オプションで透過率を指定した場合、win32 のレイヤードウィンドウの
     機能を使ってウィンドウを半透明にします。
-  o -3/--contrast, -4/--gamma, -H/--bright オプションは使用できません。
   o Bold な文字は、設定ファイルで使用するフォントを指定しない限り、基本的には、
     重ね打ちによる擬似的な bold 表示を行います(Bold と Normal でフォント幅が異
     なる場合があるため)

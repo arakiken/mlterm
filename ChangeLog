@@ -1,3 +1,20 @@
+2012-12-08  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_imagelib.c, xlib/x_imagelib.c:
+	  kik_dl_open("libm.so") is tried not only with LIBMDIR but also without it.
+
+	* fb/x_window.c:
+	  Segfault in starting mlterm with --pic option in framebuffer is fixed.
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* win32/x_imagelib.c, mlimgloader/main.c, mlimgloader/Makefile.in,
+	  c_imagelib.c, configure.in:
+	  - mlimgloader is possible to be built in win32.
+	  - Not only BMP format but also other image formats are supported in win32
+	    by mlimgloader.
+	  - "contrast", "gamma" and "brightness" options are supported in win32.
+
 2012-12-07  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: The pty size of ml_term_t is fit to the screen size

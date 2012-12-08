@@ -22,12 +22,15 @@ LKIK = @LKIK@
 LKIK_DEB = -lkik_deb
 
 # Sixel is always enabled.
-CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ \
 	@GDK_PIXBUF_CFLAGS@ @X_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -DENABLE_SIXEL -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib \
-	@GDK_PIXBUF_LIBS@ @X_LIBS@ -lX11 @X_EXTRA_LIBS@
+LIBS1 = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib @GDK_PIXBUF_LIBS@
+
+LIBS2_xlib = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
+LIBS2_fb = $(LIBS2_xlib)
+
+LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
 PROG = mlimgloader
 

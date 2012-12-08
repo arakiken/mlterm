@@ -659,12 +659,10 @@ mlterm-zoom)
 	;;
 mlimgloader)
 	# $have_x is defined in AC_PATH_XTRA.
-	if test "$gui" = "xlib" -o "$gui" = "fb" ; then
-		if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
-			OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
-			MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
-			tools_result="$tools_result $tool"
-		fi
+	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+		MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+		tools_result="$tools_result $tool"
 	fi
 	;;
 *)

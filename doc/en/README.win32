@@ -32,9 +32,10 @@ Memo about WIN32 native GUI.
     copy win32/plink/plink.exe which mlterm uses to connect remote host.
   o (Built with MSYS or cygwin)
     Copy tool/mlclient/mlclient.exe and contrib/tool/mlcc/mlcc.exe.
-  o If you can build mlconfig and mlterm-menu which require GTK+ >= 2.0,
-    Copy tool/mlconfig/.libs/mlconfig.exe and
-    contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
+  o If you can build mlconfig, mlterm-menu and mlimgloader which require GTK+ >= 2.0,
+    Copy tool/mlconfig/.libs/mlconfig.exe,
+    contrib/tool/mlterm-menu/.libs/mlterm-menu.exe and
+    tool/mlimgloader/.libs/mlimgloader.exe.
   o 'make install' is available for installation in MSYS-DTK or Cygwin, but
     remove 'relink_command' line in libmkf.la in advance because relinking
     libmkf in 'make install' can be failed.
@@ -84,8 +85,6 @@ Memo about WIN32 native GUI.
     Daemon mode itself is not supported in MinGW version. Instead,
     "\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence (which
     mlclient or mlclientx command supports) is avaiable. (see doc/en/PROTOCOL).
-  o Only BMP format is supported for background image.
-  o -3/--contrast, -4/--gamma and -H/--bright options are not available.
   o Supported scrollbars are "simple" and "sample" alone.
   o In order to show DEC SPECIAL characters, it is necessary to install
     "Tera Special" font (TSPECIAL1.TTF) which is a part of Tera Term

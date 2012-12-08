@@ -205,6 +205,8 @@ rgb_info_init(
 	rgb->b_limit = 8 + rgb->b_offset - msb( rgb->b_mask) ;
 }
 
+#include  <dlfcn.h>
+
 static void
 value_table_refresh(
 	u_char *  value_table ,		/* 256 bytes */
@@ -224,11 +226,13 @@ value_table_refresh(
 	#ifdef  DLOPEN_LIBM
 		kik_dl_handle_t  handle ;
 
-		if( ! ( handle = kik_dl_open( LIBMDIR "/" , "m")) ||
+		if( ( ! ( handle = kik_dl_open( LIBMDIR "/" , "m")) &&
+		      ! ( handle = kik_dl_open( "" , "m"))) ||
 		    ! ( pow_func = kik_dl_func_symbol( handle , "pow")))
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Failed to load pow in libm.so\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG " Failed to load pow in "
+				LIBMDIR "/libm.so\n") ;
 		#endif
 
 			if( handle)

@@ -582,8 +582,9 @@ create_cardinals_from_pixbuf(
 	return  cardinal ;
 }
 
-#endif
+#endif	/* GDK_PIXBUF_VERSION */
 
+#ifndef  USE_WIN32GUI
 
 /* seek the closest color */
 static int
@@ -675,3 +676,5 @@ msb(
 
 	return  nth ;
 }
+
+#endif	/* USE_WIN32GUI */

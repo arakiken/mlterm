@@ -41,7 +41,8 @@ value_table_refresh(
 	#ifdef  DLOPEN_LIBM
 		kik_dl_handle_t  handle ;
 
-		if( ! ( handle = kik_dl_open( LIBMDIR "/" , "m")) ||
+		if( ( ! ( handle = kik_dl_open( LIBMDIR "/" , "m")) &&
+		      ! ( handle = kik_dl_open( "" , "m"))) ||
 		    ! ( pow_func = kik_dl_func_symbol( handle , "pow")))
 		{
 		#ifdef  DEBUG
@@ -93,7 +94,7 @@ value_table_refresh(
 	}
 }
 
-static int
+static void
 adjust_pixmap(
 	Display *  display ,
 	Pixmap  pixmap ,
@@ -111,6 +112,10 @@ adjust_pixmap(
 	    ( value_table = alloca( 256)))
 	{
 		value_table_refresh( value_table , pic_mod) ;
+	}
+	else if( display->bytes_per_pixel == 4)
+	{
+		return ;
 	}
 	else
 	{
@@ -145,7 +150,7 @@ adjust_pixmap(
 			{
 			case 1:
 				/* XXX */
-				return  0 ;
+				return ;
 
 			case 2:
 				*(((u_int16_t*)pixmap->image) + (y * pixmap->width + x)) = pixel ;
@@ -158,7 +163,15 @@ adjust_pixmap(
 		}
 	}
 
-	return  1 ;
+	if( display->bytes_per_pixel == 2)
+	{
+		void *  p ;
+
+		if( ( p = realloc( pixmap->image , pixmap->width * pixmap->height * 2)))
+		{
+			pixmap->image = p ;
+		}
+	}
 }
 
 static Pixmap
@@ -257,27 +270,28 @@ load_file(
 	{
 		goto  error ;
 	}
-
-	if( read( fds2[0] , pixmap->image , size) != size)
+	else
 	{
-		goto  error ;
-	}
+		u_char *  p ;
+		ssize_t  n_rd ;
 
-	if( adjust_pixmap( display , pixmap , pic_mod , depth))
-	{
-		if( display->bytes_per_pixel == 2)
+		p = pixmap->image ;
+		while( ( n_rd = read( fds2[0] , pixmap->image , size)) > 0)
 		{
-			void *  p ;
+			p += n_rd ;
+			size -= n_rd ;
+		}
 
-			if( ( p = realloc( pixmap->image , size / 2)))
-			{
-				pixmap->image = p ;
-			}
+		if( size > 0)
+		{
+			goto  error ;
 		}
 	}
 
+	adjust_pixmap( display , pixmap , pic_mod , depth) ;
+
 	close( fds2[0]) ;
-	close( fds1[1]) ; /* child process exited by this. pixmap_tmp is alive until here. */
+	close( fds1[1]) ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s(w %d h %d) is loaded.\n" ,
@@ -357,6 +371,11 @@ x_imagelib_load_file(
 	u_int *  height
 	)
 {
+	if( cardinal)
+	{
+		return  0 ;
+	}
+
 	if( ! ( *pixmap = load_file( disp->display , path , *width , *height ,
 				NULL , disp->depth)))
 	{

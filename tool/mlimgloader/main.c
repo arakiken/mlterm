@@ -6,8 +6,10 @@
 #include <unistd.h>
 #include <sys/stat.h>	/* fstat */
 
+#ifndef  USE_WIN32GUI
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#endif
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
 #include <kiklib/kik_debug.h>
@@ -44,37 +46,6 @@
 /* --- static functions --- */
 
 #include  "../../common/c_imagelib.c"
-
-/* returned cmap shuold be freed by the caller */
-static int
-fetch_colormap(
-	Display *  display ,
-	Visual *  visual ,
-	Colormap  colormap ,
-	XColor **  color_list
-	)
-{
-	int  num_cells , i ;
-
-	num_cells = visual->map_entries ;
-
-	if( ( *color_list = calloc( num_cells , sizeof(XColor))) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG " couldn't allocate color table\n") ;
-	#endif
-		return  0 ;
-	}
-
-	for( i = 0 ; i < num_cells ; i ++)
-	{
-		((*color_list)[i]).pixel = i ;
-	}
-
-	XQueryColors( display , colormap , *color_list, num_cells) ;
-
-	return  num_cells ;
-}
 
 /* create GdkPixbuf from the specified file path.
  *
@@ -157,6 +128,39 @@ load_file(
 	/* scaling ends here */
 
 	return  pixbuf ;
+}
+
+#ifndef  USE_WIN32GUI
+
+/* returned cmap shuold be freed by the caller */
+static int
+fetch_colormap(
+	Display *  display ,
+	Visual *  visual ,
+	Colormap  colormap ,
+	XColor **  color_list
+	)
+{
+	int  num_cells , i ;
+
+	num_cells = visual->map_entries ;
+
+	if( ( *color_list = calloc( num_cells , sizeof(XColor))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf(KIK_DEBUG_TAG " couldn't allocate color table\n") ;
+	#endif
+		return  0 ;
+	}
+
+	for( i = 0 ; i < num_cells ; i ++)
+	{
+		((*color_list)[i]).pixel = i ;
+	}
+
+	XQueryColors( display , colormap , *color_list, num_cells) ;
+
+	return  num_cells ;
 }
 
 static int
@@ -528,6 +532,8 @@ pixbuf_to_pixmap_and_mask(
 	return  1 ;
 }
 
+#endif	/* USE_WIN32GUI */
+
 
 /* --- global functions --- */
 
@@ -537,7 +543,7 @@ main(
 	char **  argv
 	)
 {
-	GdkPixbuf *  pixbuf ;
+#ifndef  USE_WIN32GUI
 	Display *  display ;
 	Visual *  visual ;
 	Colormap  colormap ;
@@ -547,15 +553,16 @@ main(
 	Pixmap  mask ;
 	Window  win ;
 	XWindowAttributes  attr ;
+#endif
+	GdkPixbuf *  pixbuf ;
 	u_int  width ;
 	u_int  height ;
-	XGCValues  gc_value ;
-	char  buf[10] ;
 
 #if  0
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
 #endif
 
+#ifndef  USE_WIN32GUI
 	if( argc == 5)
 	{
 		if( ! ( display = XOpenDisplay( NULL)))
@@ -573,6 +580,8 @@ main(
 		}
 		else
 		{
+			XGCValues  gc_value ;
+
 			XGetWindowAttributes( display , win , &attr) ;
 			visual = attr.visual ;
 			colormap = attr.colormap ;
@@ -580,7 +589,9 @@ main(
 			gc = XCreateGC( display , win , 0 , &gc_value) ;
 		}
 	}
-	else if( argc != 6 || strcmp( argv[5] , "-c") != 0)
+	else
+#endif
+	if( argc != 6 || strcmp( argv[5] , "-c") != 0)
 	{
 		return  -1 ;
 	}
@@ -599,12 +610,17 @@ main(
 
 	if( ! ( pixbuf = load_file( argv[4] , width , height , GDK_INTERP_BILINEAR)))
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , argv[4]) ;
+	#endif
+
 		return  -1 ;
 	}
 
 	if( argc == 6)
 	{
-		u_int32_t *  cardinal ;
+		char *  cardinal ;
+		ssize_t  size ;
 
 		if( width == 0 || height == 0)
 		{
@@ -612,15 +628,31 @@ main(
 			height = gdk_pixbuf_get_height( pixbuf) ;
 		}
 
-		if( ! ( cardinal = create_cardinals_from_pixbuf( pixbuf , width , height)))
+		if( ! ( cardinal = (char*)create_cardinals_from_pixbuf( pixbuf , width , height)))
 		{
 			return  -1 ;
 		}
 
-		write( STDOUT_FILENO , cardinal , sizeof(u_int32_t) * (width * height + 2)) ;
+		size = sizeof(u_int32_t) * (width * height + 2) ;
+
+		while( size > 0)
+		{
+			ssize_t  n_wr ;
+
+			if( ( n_wr = write( STDOUT_FILENO , cardinal , size)) < 0)
+			{
+				return  -1 ;
+			}
+
+			cardinal += n_wr ;
+			size -= n_wr ;
+		}
 	}
+#ifndef  USE_WIN32GUI
 	else
 	{
+		char  buf[10] ;
+
 		if( ! pixbuf_to_pixmap_and_mask( display , win , visual , colormap , gc , depth ,
 				pixbuf , &pixmap , &mask))
 		{
@@ -635,12 +667,13 @@ main(
 
 		fprintf( stdout , "%lu %lu" , pixmap , mask) ;
 		fflush( stdout) ;
+
+		close( STDOUT_FILENO) ;
+
+		/* Wait for parent process receiving pixmap. */
+		read( STDIN_FILENO , buf , sizeof(buf)) ;
 	}
-
-	close( STDOUT_FILENO) ;
-
-	/* Wait for parent process receiving pixmap. */
-	read( STDIN_FILENO , buf , sizeof(buf)) ;
+#endif	/* USE_WIN32GUI */
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Exit image loader\n") ;

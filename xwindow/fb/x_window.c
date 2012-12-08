@@ -749,12 +749,17 @@ x_window_resize(
 
 	if( flag & NOTIFY_TO_MYSELF)
 	{
-		clear_margin_area( win) ;
-
 		if( win->window_resized)
 		{
 			(*win->window_resized)( win) ;
 		}
+
+		/*
+		 * clear_margin_area must be called after win->window_resized
+		 * because wall_picture can be resized to fit to the new window
+		 * size in win->window_resized.
+		 */
+		clear_margin_area( win) ;
 	}
 
 	return  1 ;
