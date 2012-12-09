@@ -120,7 +120,7 @@ load_file(
 	HBITMAP  hbmp ;
 	BYTE *  image ;
 
-#define  CMD_LINE_FMT  LIBEXECDIR "/mlterm/mlimgloader.exe 0 %u %u %s -c"
+#define  CMD_LINE_FMT  LIBEXECDIR "/mlterm/mlimgloader.exe 0 %u %u \"%s\" -c"
 
 	if( ! ( cmd_line = alloca( sizeof( CMD_LINE_FMT) + DIGIT_STR_LEN(int) * 2 +
 				strlen( path))))
@@ -150,7 +150,7 @@ load_file(
 	si.dwFlags = STARTF_USESTDHANDLES ;
 	si.hStdOutput = output_write ;
 	si.hStdInput  = GetStdHandle(STD_INPUT_HANDLE) ;
-	si.hStdError  = output_write ;
+	si.hStdError  = GetStdHandle(STD_ERROR_HANDLE) ;
 
 	if( ! CreateProcess( LIBEXECDIR "/mlterm/mlimgloader.exe" , cmd_line ,
 		NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL, NULL, &si, &pi) &&

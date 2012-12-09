@@ -15,7 +15,12 @@
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include <kiklib/kik_str.h>	/* strdup */
-#include <kiklib/kik_def.h>	/* SIZE_MAX */
+#include <kiklib/kik_def.h>	/* SIZE_MAX, USE_WIN32API */
+
+#ifdef  USE_WIN32API
+#include <fcntl.h>	/* O_BINARY */
+#endif
+
 
 /*
  * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
@@ -619,7 +624,7 @@ main(
 
 	if( argc == 6)
 	{
-		char *  cardinal ;
+		u_char *  cardinal ;
 		ssize_t  size ;
 
 		if( width == 0 || height == 0)
@@ -628,12 +633,17 @@ main(
 			height = gdk_pixbuf_get_height( pixbuf) ;
 		}
 
-		if( ! ( cardinal = (char*)create_cardinals_from_pixbuf( pixbuf , width , height)))
+		if( ! ( cardinal = (u_char*)create_cardinals_from_pixbuf(
+					pixbuf , width , height)))
 		{
 			return  -1 ;
 		}
 
 		size = sizeof(u_int32_t) * (width * height + 2) ;
+
+	#ifdef  USE_WIN32API
+		setmode( STDOUT_FILENO , O_BINARY) ;
+	#endif
 
 		while( size > 0)
 		{
