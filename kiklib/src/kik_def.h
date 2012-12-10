@@ -27,6 +27,10 @@
 #endif
 #endif
 
+#ifndef SSIZE_MAX
+#define (SIZE_MAX / 2)
+#endif
+
 #if  0
 /* Check integer overflow. Use this with malloc or alloca. */
 #define  _X(a,b) ((a) > SIZE_MAX / (b) ? SIZE_MAX : (a) * (b))

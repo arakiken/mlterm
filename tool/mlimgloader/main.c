@@ -15,7 +15,7 @@
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include <kiklib/kik_str.h>	/* strdup */
-#include <kiklib/kik_def.h>	/* SIZE_MAX, USE_WIN32API */
+#include <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
 
 #ifdef  USE_WIN32API
 #include <fcntl.h>	/* O_BINARY */
@@ -40,8 +40,6 @@
 #define  g_object_ref( pixbuf) gdk_pixbuf_ref( pixbuf)
 #define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
 #endif
-
-#define  RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
 
 #if  0
 #define  __DEBUG
@@ -377,7 +375,7 @@ pixbuf_to_ximage_truecolor(
 	/* set num of bytes per pixel of display */
 	bytes_per_pixel = depth > 16 ? 4 : 2 ;
 
-	if( width > SIZE_MAX / bytes_per_pixel / height)
+	if( width > SSIZE_MAX / bytes_per_pixel / height)
 	{
 		return  NULL ;	/* integer overflow */
 	}
@@ -615,11 +613,20 @@ main(
 
 	if( ! ( pixbuf = load_file( argv[4] , width , height , GDK_INTERP_BILINEAR)))
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , argv[4]) ;
-	#endif
+	#if  defined(__CYGWIN__) || defined(__MSYS__)
+	#define  MAX_PATH  260	/* 3+255+1+1 */
+		char  winpath[MAX_PATH] ;
+		cygwin_conv_to_win32_path( argv[4] , winpath) ;
 
-		return  -1 ;
+		if( ! ( pixbuf = load_file( winpath , width , height , GDK_INTERP_BILINEAR)))
+	#endif
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , argv[4]) ;
+		#endif
+
+			return  -1 ;
+		}
 	}
 
 	if( argc == 6)

@@ -139,7 +139,7 @@ ml_config_menu_final(
 int
 ml_config_menu_start(
 	ml_config_menu_t *  config_menu ,
-	char *  cmd_path ,			/* Not contains ".exe" in win32. */
+	char *  cmd_path ,
 	int  x ,
 	int  y ,
 	char *  display ,

@@ -29,6 +29,8 @@ LIBS1 = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib @GDK_PIXBUF_LIBS
 
 LIBS2_xlib = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
 LIBS2_fb = $(LIBS2_xlib)
+# Segfault in cygwin without this.
+LIBS2_win32 = -mwindows
 
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 

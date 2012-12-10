@@ -529,7 +529,7 @@ create_cardinals_from_pixbuf(
 	u_char *  pixel ;
 	u_int i , j ;
 
-	if( width > ((SIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
+	if( width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
 	    ! ( cardinal = malloc( ( width * height + 2) * sizeof(*cardinal))))
 	{
 		return  NULL ;

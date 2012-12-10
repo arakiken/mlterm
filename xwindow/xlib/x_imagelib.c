@@ -26,7 +26,7 @@
 
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
-#include <kiklib/kik_def.h>	/* SIZE_MAX */
+#include <kiklib/kik_def.h>	/* SSIZE_MAX */
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
@@ -842,7 +842,7 @@ pixbuf_to_ximage_truecolor(
 	/* Set num of bytes per pixel of display (necessarily 4 or 2 in TrueColor). */
 	bytes_per_pixel = disp->depth > 16 ? 4 : 2 ;
 
-	if( width > SIZE_MAX / bytes_per_pixel / height ||	/* integer overflow */
+	if( width > SSIZE_MAX / bytes_per_pixel / height ||	/* integer overflow */
 	    ! ( data = malloc( width * height * bytes_per_pixel)))
 	{
 		return  NULL ;
@@ -1345,7 +1345,7 @@ create_cardinals_from_image(
 	int  i , j ;
 	u_long  pixel ;
 
-	if( width > ((SIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
+	if( width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
 	    ! ( cardinal = malloc( (width * height + 2) * sizeof(*cardinal))))
 	{
 		return  NULL ;
@@ -1642,7 +1642,7 @@ x_imagelib_get_transparent_background(
 		if( win->disp->visual->class != TrueColor ||
 		    ! ( image = XGetImage( win->disp->display , root , x , y , width , height ,
 					AllPlanes , ZPixmap)) ||
-		    width > SIZE_MAX / bytes_per_pixel / height ||
+		    width > SSIZE_MAX / bytes_per_pixel / height ||
 		    ! ( data = malloc( width * height * bytes_per_pixel)) ||
 		    ! ( image2 = XCreateImage( win->disp->display , win->disp->visual ,
 					win->disp->depth , ZPixmap , 0 , data , width , height ,

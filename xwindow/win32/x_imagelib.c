@@ -120,7 +120,7 @@ load_file(
 	HBITMAP  hbmp ;
 	BYTE *  image ;
 
-#define  CMD_LINE_FMT  LIBEXECDIR "/mlterm/mlimgloader.exe 0 %u %u \"%s\" -c"
+#define  CMD_LINE_FMT  "mlimgloader.exe 0 %u %u \"%s\" -c"
 
 	if( ! ( cmd_line = alloca( sizeof( CMD_LINE_FMT) + DIGIT_STR_LEN(int) * 2 +
 				strlen( path))))
@@ -149,12 +149,10 @@ load_file(
 	si.cb = sizeof(STARTUPINFO) ;
 	si.dwFlags = STARTF_USESTDHANDLES ;
 	si.hStdOutput = output_write ;
-	si.hStdInput  = GetStdHandle(STD_INPUT_HANDLE) ;
-	si.hStdError  = GetStdHandle(STD_ERROR_HANDLE) ;
+	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE) ;
+	si.hStdError = GetStdHandle(STD_ERROR_HANDLE) ;
 
-	if( ! CreateProcess( LIBEXECDIR "/mlterm/mlimgloader.exe" , cmd_line ,
-		NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL, NULL, &si, &pi) &&
-	    ! CreateProcess( "mlimgloader.exe" , cmd_line ,
+	if( ! CreateProcess( "mlimgloader.exe" , cmd_line ,
 		NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL, NULL, &si, &pi))
 	{
 	#ifdef  DEBUG
@@ -273,17 +271,17 @@ x_imagelib_load_file_for_background(
 	HDC  hdc ;
 	HDC  hmdc_tmp ;
 	HDC  hmdc ;
-#if  defined(__CYGWIN__) || defined(__MSYS__)
-	/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
-	char  winpath[MAX_PATH] ;
-	cygwin_conv_to_win32_path( path , winpath) ;
-	path = winpath ;
-#endif
 
 	width = height = 0 ;
 	if( ! ( hbmp = load_file( path , &width , &height , pic_mod)))
 	{
 		BITMAP  bmp ;
+	#if  defined(__CYGWIN__) || defined(__MSYS__)
+		/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
+		char  winpath[MAX_PATH] ;
+		cygwin_conv_to_win32_path( path , winpath) ;
+		path = winpath ;
+	#endif
 
 		if( ! ( hbmp = LoadImage( 0 , path , IMAGE_BITMAP , 0 , 0 , LR_LOADFROMFILE)))
 		{
@@ -347,12 +345,6 @@ x_imagelib_load_file(
 	HBITMAP  hbmp ;
 	HDC  hdc ;
 	HDC  hmdc ;
-#if  defined(__CYGWIN__) || defined(__MSYS__)
-	/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
-	char  winpath[MAX_PATH] ;
-	cygwin_conv_to_win32_path( path , winpath) ;
-	path = winpath ;
-#endif
 
 	if( cardinal)
 	{
@@ -362,6 +354,12 @@ x_imagelib_load_file(
 	if( ! ( hbmp = load_file( path , width , height , NULL)))
 	{
 		BITMAP  bmp ;
+	#if  defined(__CYGWIN__) || defined(__MSYS__)
+		/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
+		char  winpath[MAX_PATH] ;
+		cygwin_conv_to_win32_path( path , winpath) ;
+		path = winpath ;
+	#endif
 
 		if( ! ( hbmp = LoadImage( 0 , path , IMAGE_BITMAP , 0 , 0 , LR_LOADFROMFILE)))
 		{
