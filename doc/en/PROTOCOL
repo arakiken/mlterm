@@ -42,7 +42,7 @@ version 20110903
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      use_dynamic_comb | cursor_fg_color | cursor_bg_color | bd_color | ul_color |
                      use_bold_font | hide_underline | icon_path | logging_vt_seq | logging_msg |
-                     title | word_separators | button3_behavior | use_clipboard | auto_restart |
+                     word_separators | button3_behavior | use_clipboard | auto_restart |
 		     use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
@@ -104,7 +104,6 @@ version 20110903
   scrollbar_view_name = <name>
   stataic_backscroll_mode = true | false
   tabsize = <any ASCII decimal digit>
-  title = <pty title>
   type_engine = xcore | xft
   ul_color = <color name> | <color rgb>
   use_alt_buffer = true | false

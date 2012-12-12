@@ -42,7 +42,9 @@ ml_term_new(
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode ,
-	int  use_local_echo
+	int  use_local_echo ,
+	char *  win_name ,
+	char *  icon_name
 	)
 {
 	ml_term_t *  term ;
@@ -66,8 +68,8 @@ ml_term_new(
 		goto  error ;
 	}
 
-	if( ( term->parser = ml_vt100_parser_new( term->screen , encoding , policy , col_size_a ,
-				use_char_combining , use_multi_col_char)) == NULL)
+	if( ! ( term->parser = ml_vt100_parser_new( term->screen , encoding , policy , col_size_a ,
+				use_char_combining , use_multi_col_char , win_name , icon_name)))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new failed.\n") ;
@@ -135,8 +137,6 @@ ml_term_delete(
 		(*term->shape->delete)( term->shape) ;
 	}
 
-	free( term->win_name) ;
-	free( term->icon_name) ;
 	free( term->icon_path) ;
 
 	ml_screen_delete( term->screen) ;
@@ -919,30 +919,6 @@ ml_term_enter_backscroll_mode(
 	}
 	
 	return  ml_enter_backscroll_mode( term->screen) ;
-}
-
-int
-ml_term_set_window_name(
-	ml_term_t *  term ,
-	char *  name
-	)
-{
-	free( term->win_name) ;
-	term->win_name = strdup( name) ;
-
-	return  1 ;
-}
-
-int
-ml_term_set_icon_name(
-	ml_term_t *  term ,
-	char *  name
-	)
-{
-	free( term->icon_name) ;
-	term->icon_name = strdup( name) ;
-
-	return  1 ;
 }
 
 int

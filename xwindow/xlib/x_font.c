@@ -191,6 +191,8 @@ xft_unset_font(
 
 	return  (*func)( font) ;
 }
+#elif  defined(USE_TYPE_XFT)
+int  xft_unset_font( x_font_t *  font) ;
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE)
@@ -208,6 +210,8 @@ cairo_unset_font(
 
 	return  (*func)( font) ;
 }
+#elif  defined(USE_TYPE_CAIRO)
+int  cairo_unset_font( x_font_t *  font) ;
 #endif
 
 
@@ -895,6 +899,11 @@ xft_set_font(
 			letter_space , aa_opt , use_point_size_for_fc , dpi_for_fc) ;
 }
 
+#elif  defined(USE_TYPE_XFT)
+u_int  xft_calculate_char_width( x_font_t *  font , const u_char *  ch , size_t  len) ;
+int  xft_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
+	u_int  col_width , int  use_medium_for_bold , u_int  letter_space ,
+	int  aa_opt , int  use_point_size_for_fc , double  dpi_for_fc) ;
 #endif
 
 
@@ -942,6 +951,11 @@ cairo_set_font(
 			letter_space , aa_opt , use_point_size_for_fc , dpi_for_fc) ;
 }
 
+#elif  defined(USE_TYPE_CAIRO)
+u_int  cairo_calculate_char_width( x_font_t *  font , const u_char *  ch , size_t  len) ;
+int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
+	u_int  col_width , int  use_medium_for_bold , u_int  letter_space ,
+	int  aa_opt , int  use_point_size_for_fc , double  dpi_for_fc) ;
 #endif
 
 

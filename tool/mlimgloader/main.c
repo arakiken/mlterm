@@ -4,7 +4,16 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/stat.h>	/* fstat */
+#include <string.h>	/* strstr */
+/*
+ * Don't include kik_mem.h.
+ * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
+ * is free'ed in XDestroyImage().
+ * If malloc is replaced kik_mem_malloc in kik_mem.h, kik_mem_free_all() will
+ * free 'data' which is already free'ed in XDestroyImage() and
+ * segmentation fault error can happen.
+ */
+#include <stdlib.h>	/* malloc/free/atoi */
 
 #ifndef  USE_WIN32GUI
 #include <X11/Xlib.h>
@@ -14,25 +23,12 @@
 
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
-#include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
 
 #ifdef  USE_WIN32API
 #include <fcntl.h>	/* O_BINARY */
 #endif
 
-
-/*
- * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
- * is free'ed in XDestroyImage().
- * If malloc is replaced kik_mem_malloc in kik_mem.h, kik_mem_free_all() will
- * free 'data' which is already free'ed in XDestroyImage() and
- * segmentation fault error can happen.
- */
-#if  defined(KIK_DEBUG) && defined(malloc)
-#undef malloc
-#undef realloc
-#endif
 
 #define USE_FS 1
 
@@ -58,7 +54,7 @@
  */
 static GdkPixbuf *
 load_file(
-	char *  path ,		/* If NULL is specified, cache is cleared. */
+	char *  path ,
 	u_int  width ,		/* 0 == image width */
 	u_int  height ,		/* 0 == image height */
 	GdkInterpType  scale_type
@@ -634,18 +630,13 @@ main(
 		u_char *  cardinal ;
 		ssize_t  size ;
 
-		if( width == 0 || height == 0)
-		{
-			width = gdk_pixbuf_get_width( pixbuf) ;
-			height = gdk_pixbuf_get_height( pixbuf) ;
-		}
-
-		if( ! ( cardinal = (u_char*)create_cardinals_from_pixbuf(
-					pixbuf , width , height)))
+		if( ! ( cardinal = (u_char*)create_cardinals_from_pixbuf( pixbuf)))
 		{
 			return  -1 ;
 		}
 
+		width = ((u_int32_t*)cardinal)[0] ;
+		height = ((u_int32_t*)cardinal)[1] ;
 		size = sizeof(u_int32_t) * (width * height + 2) ;
 
 	#ifdef  USE_WIN32API

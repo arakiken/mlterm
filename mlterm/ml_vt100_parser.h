@@ -135,6 +135,12 @@ typedef struct  ml_vt100_storable_states
 
 } ml_vt100_storable_states_t ;
 
+typedef struct ml_vt100_saved_names
+{
+	char **  names ;
+	u_int  num ;
+
+} ml_vt100_saved_names_t ;
 
 typedef struct  ml_vt100_parser
 {
@@ -158,6 +164,9 @@ typedef struct  ml_vt100_parser
 	ml_config_event_listener_t *  config_listener ;
 
 	int  log_file ;
+
+	char *  win_name ;
+	char *  icon_name ;
 
 	/* ml_unicode_policy_t */ int8_t  unicode_policy ;
 
@@ -203,6 +212,9 @@ typedef struct  ml_vt100_parser
 	ml_vt100_storable_states_t  saved_normal ;
 	ml_vt100_storable_states_t  saved_alternate ;
 
+	ml_vt100_saved_names_t  saved_win_names ;
+	ml_vt100_saved_names_t  saved_icon_names ;
+
 } ml_vt100_parser_t ;
 
 
@@ -214,7 +226,8 @@ void  ml_set_use_ansi_colors( int  use) ;
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
-	int  use_char_combining , int  use_multi_col_char) ;
+	int  use_char_combining , int  use_multi_col_char ,
+	char *  win_name , char *  icon_name) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 
@@ -246,6 +259,10 @@ size_t  ml_vt100_parser_convert_to( ml_vt100_parser_t *  vt100_parser ,
 int  ml_init_encoding_parser( ml_vt100_parser_t *  vt100_parser) ;
 
 int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
+
+#define  ml_get_window_name( vt100_parser)  ((vt100_parser)->win_name)
+
+#define  ml_get_icon_name( vt100_parser)  ((vt100_parser)->icon_name)
 
 int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser ,
 	u_int  col_size_a) ;

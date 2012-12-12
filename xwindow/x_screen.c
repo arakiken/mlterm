@@ -7014,7 +7014,6 @@ xterm_set_window_name(
 	screen = p ;
 
 	x_set_window_name( &screen->window , name) ;
-	ml_term_set_window_name( screen->term , name) ;
 }
 
 static void
@@ -7028,7 +7027,6 @@ xterm_set_icon_name(
 	screen = p ;
 
 	x_set_icon_name( &screen->window , name) ;
-	ml_term_set_icon_name( screen->term , name) ;
 }
 
 static void
@@ -8635,13 +8633,6 @@ x_screen_set_config(
 	{
 		ml_term_set_icon_path( term , value) ;
 		set_icon( screen) ;
-	}
-	else if( strcmp( key , "title") == 0)
-	{
-		if( screen->xterm_listener.set_window_name)
-		{
-			(*screen->xterm_listener.set_window_name)( screen, value) ;
-		}
 	}
 	else if( strcmp( key , "logging_vt_seq") == 0)
 	{

@@ -647,6 +647,41 @@ put_char(
 	}
 }
 
+static void
+push_to_saved_names(
+	ml_vt100_saved_names_t *  saved ,
+	char *  name
+	)
+{
+	void *  p ;
+
+	if( ! ( p = realloc( saved->names , (saved->num + 1) * sizeof(name))))
+	{
+		return ;
+	}
+
+	saved->names = p ;
+	saved->names[saved->num ++] = name ? strdup( name) : NULL ;
+}
+
+static char *
+pop_from_saved_names(
+	ml_vt100_saved_names_t *  saved
+	)
+{
+	char *  name ;
+
+	name = saved->names[--saved->num] ;
+
+	if( saved->num == 0)
+	{
+		free( saved->names) ;
+		saved->names = NULL ;
+	}
+
+	return  name ;
+}
+
 
 /*
  * VT100_PARSER Escape Sequence Commands.
@@ -804,9 +839,12 @@ set_mouse_report(
 static void
 set_window_name(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_char *  name
+	u_char *  name		/* should be malloc'ed or NULL. */
 	)
 {
+	free( vt100_parser->win_name) ;
+	vt100_parser->win_name = name ;
+
 	if( HAS_XTERM_LISTENER(vt100_parser,set_window_name))
 	{
 	#if  0
@@ -823,9 +861,12 @@ set_window_name(
 static void
 set_icon_name(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_char *  name
+	u_char *  name		/* should be malloc'ed or NULL. */
 	)
 {
+	free( vt100_parser->icon_name) ;
+	vt100_parser->icon_name = name ;
+
 	if( HAS_XTERM_LISTENER(vt100_parser,set_icon_name))
 	{
 	#if  0
@@ -3481,6 +3522,43 @@ parse_vt100_escape_sequence(
 						resize( vt100_parser , ps[2] , ps[1] , 1) ;
 					}
 				}
+				else if( num == 2)
+				{
+					if( ps[0] == 22)
+					{
+						if( ps[1] == 0 || ps[1] == 1)
+						{
+							push_to_saved_names(
+								&vt100_parser->saved_icon_names ,
+								vt100_parser->icon_name) ;
+						}
+
+						if( ps[1] == 0 || ps[1] == 2)
+						{
+							push_to_saved_names(
+								&vt100_parser->saved_win_names ,
+								vt100_parser->win_name) ;
+						}
+					}
+					else if( ps[0] == 23)
+					{
+						if( ( ps[1] == 0 || ps[1] == 1) &&
+						    vt100_parser->saved_icon_names.num > 0)
+						{
+							set_icon_name( vt100_parser ,
+								pop_from_saved_names(
+								&vt100_parser->saved_icon_names)) ;
+						}
+
+						if( ( ps[1] == 0 || ps[1] == 2) &&
+						    vt100_parser->saved_win_names.num > 0)
+						{
+							set_window_name( vt100_parser ,
+								pop_from_saved_names(
+								&vt100_parser->saved_win_names)) ;
+						}
+					}
+				}
 				else
 				{
 					if( ps[0] == 14)
@@ -3619,20 +3697,29 @@ parse_vt100_escape_sequence(
 			{
 				/* "OSC 0" change icon name and window title */
 
-				set_window_name( vt100_parser , pt) ;
-				set_icon_name( vt100_parser , pt) ;
+				if( *pt != '\0')
+				{
+					set_window_name( vt100_parser , strdup( pt)) ;
+					set_icon_name( vt100_parser , strdup( pt)) ;
+				}
 			}
 			else if( ps == 1)
 			{
 				/* "OSC 1" change icon name */
 
-				set_icon_name( vt100_parser , pt) ;
+				if( *pt != '\0')
+				{
+					set_icon_name( vt100_parser , strdup( pt)) ;
+				}
 			}
 			else if( ps == 2)
 			{
 				/* "OSC 2" change window title */
 
-				set_window_name( vt100_parser , pt) ;
+				if( *pt != '\0')
+				{
+					set_window_name( vt100_parser , strdup( pt)) ;
+				}
 			}
 			else if( ps == 4)
 			{
@@ -4546,7 +4633,9 @@ ml_vt100_parser_new(
 	ml_unicode_policy_t  policy ,
 	u_int  col_size_a ,
 	int  use_char_combining ,
-	int  use_multi_col_char
+	int  use_multi_col_char ,
+	char *  win_name ,
+	char *  icon_name
 	)
 {
 	ml_vt100_parser_t *  vt100_parser ;
@@ -4585,6 +4674,16 @@ ml_vt100_parser_new(
 
 	vt100_parser->encoding = encoding ;
 
+	if( win_name)
+	{
+		vt100_parser->win_name = strdup( win_name) ;
+	}
+
+	if( icon_name)
+	{
+		vt100_parser->icon_name = strdup( icon_name) ;
+	}
+
 	vt100_parser->is_dec_special_in_g1 = 1 ;
 
 	ml_vt100_parser_set_col_size_of_width_a( vt100_parser , col_size_a) ;
@@ -4618,6 +4717,11 @@ ml_vt100_parser_delete(
 	}
 
 	free( vt100_parser->r_buf.chars) ;
+
+	free( vt100_parser->win_name) ;
+	free( vt100_parser->icon_name) ;
+	free( vt100_parser->saved_win_names.names) ;
+	free( vt100_parser->saved_icon_names.names) ;
 
 	free( vt100_parser) ;
 	

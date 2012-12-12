@@ -645,7 +645,6 @@ set_window_name(
 
 	screen = p ;
 
-	ml_term_set_window_name( screen->term , name) ;
 	VTE_WIDGET(screen)->window_title = ml_term_window_name( screen->term) ;
 	
 	gdk_window_set_title( gtk_widget_get_window( GTK_WIDGET(VTE_WIDGET(screen))) ,
@@ -667,7 +666,6 @@ set_icon_name(
 
 	screen = p ;
 
-	ml_term_set_icon_name( screen->term , name) ;
 	VTE_WIDGET(screen)->icon_title = ml_term_icon_name( screen->term) ;
 
 	gdk_window_set_icon_name( gtk_widget_get_window(GTK_WIDGET(VTE_WIDGET(screen))) ,
@@ -1385,7 +1383,7 @@ static void
 vte_terminal_set_property(
 	GObject *  obj ,
 	guint  prop_id ,
-	GValue *  value ,
+	const GValue *  value ,
 	GParamSpec *  pspec
 	)
 {
@@ -2562,7 +2560,8 @@ vte_terminal_init(
 			x_termcap_get_bool_field(
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,
-			main_config.vertical_mode , main_config.use_local_echo) ;
+			main_config.vertical_mode , main_config.use_local_echo ,
+			main_config.title , main_config.icon_name) ;
 	if( ! init_inherit_ptys)
 	{
 		u_int  num ;

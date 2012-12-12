@@ -47,6 +47,10 @@
 
 #define USE_FS 1
 
+#if  0
+#define ENABLE_CARD2PIXBUF
+#endif
+
 #if  (GDK_PIXBUF_MAJOR < 2)
 #define  g_object_ref( pixbuf) gdk_pixbuf_ref( pixbuf)
 #define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
@@ -439,7 +443,9 @@ load_file(
 	{
 		/* create new pixbuf */
 
+	#ifdef  ENABLE_SIXEL
 		if( ! strstr( path , ".six") || ! ( pixbuf = gdk_pixbuf_new_from_sixel( path)))
+	#endif
 		{
 		#if GDK_PIXBUF_MAJOR >= 2
 		#if GDK_PIXBUF_MINOR >= 14
@@ -579,6 +585,9 @@ load_file(
 	return  pixbuf ;
 }
 
+
+#ifdef  ENABLE_CARD2PIXBUF
+
 /* create a pixbuf from an array of cardinals */
 static GdkPixbuf *
 create_pixbuf_from_cardinals(
@@ -654,6 +663,9 @@ create_pixbuf_from_cardinals(
 		return  pixbuf ;
 	}
 }
+
+#endif	/* ENABLE_CARD2PIXBUF */
+
 
 static int
 pixbuf_to_pixmap_pseudocolor(
@@ -1793,8 +1805,7 @@ x_imagelib_load_file(
 
 		if( cardinal)
 		{
-			if( ! ( *cardinal = create_cardinals_from_pixbuf( pixbuf ,
-							dst_width , dst_height)))
+			if( ! ( *cardinal = create_cardinals_from_pixbuf( pixbuf)))
 			{
 				g_object_unref( pixbuf) ;
 
@@ -1804,6 +1815,7 @@ x_imagelib_load_file(
 	}
 	else
 	{
+	#ifdef  ENABLE_CARD2PIXBUF
 		if( ! cardinal || ! *cardinal)
 		{
 			return  0 ;
@@ -1812,6 +1824,7 @@ x_imagelib_load_file(
 		/* create a pixbuf from the cardinal array */
 		if( ! ( pixbuf = create_pixbuf_from_cardinals( *cardinal ,
 					dst_width , dst_height)))
+	#endif
 		{
 			return  0 ;
 		}

@@ -16,23 +16,31 @@ LIBEXECDIR = $(DESTDIR)$(libexecdir)
 
 VPATH = $(top_srcdir)/tool/mlimgloader
 
-OBJ = main.o
+OBJ = $(OBJ_@MLIMGLOADER_LIB@)
+OBJ_gdk-pixbuf = main.o
+OBJ_gdiplus = main_gdi+.o
 
 LKIK = @LKIK@
 LKIK_DEB = -lkik_deb
 
-# Sixel is always enabled.
-CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ \
-	@GDK_PIXBUF_CFLAGS@ @X_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -DENABLE_SIXEL -I/usr/local/include
+# FORCE_ENABLE_SIXEL macro always enables sixel.
+CFLAGS1 = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -DFORCE_ENABLE_SIXEL -I/usr/local/include
 
-LIBS1 = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib @GDK_PIXBUF_LIBS@
+CFLAGS2_gdk-pixbuf = @GDK_PIXBUF_CFLAGS@ @X_CFLAGS@
+
+CFLAGS = $(CFLAGS1) $(CFLAGS2_@MLIMGLOADER_LIB@)
+
+LIBS1 = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib
 
 LIBS2_xlib = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
 LIBS2_fb = $(LIBS2_xlib)
 # Segfault in cygwin without this.
 LIBS2_win32 = -mwindows
 
-LIBS = $(LIBS1) $(LIBS2_@GUI@)
+LIBS3_gdk-pixbuf = @GDK_PIXBUF_LIBS@
+LIBS3_gdiplus = -lgdiplus -lstdc++
+
+LIBS = $(LIBS1) $(LIBS2_@GUI@) $(LIBS3_@MLIMGLOADER_LIB@)
 
 PROG = mlimgloader
 
@@ -48,7 +56,10 @@ $(PROG): $(OBJ)
 .SUFFIXES: .c .o
 
 .c.o:
-	$(LIBTOOL_CC) $(CFLAGS) -c $<
+	$(LIBTOOL_CC) -c $<
+
+.cpp.o:
+	$(LIBTOOL_CC) -c $<
 
 $(LIBEXECDIR)/mlterm:
 	mkdir -p $(LIBEXECDIR)/mlterm
@@ -63,7 +74,8 @@ wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf $(PROG) $(PROG).exe *core $(OBJ) $(OBJ:.o=.lo) .libs
+	rm -rf $(PROG) $(PROG).exe *core $(OBJ) $(OBJ:.o=.lo) \
+		$(OBJ_gdiplus) $(OBJ_gdiplus:.o=.lo) .libs
 
 distclean: clean
 	rm -f Makefile

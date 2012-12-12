@@ -41,8 +41,6 @@ typedef struct ml_term
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bidi_mode_t  bidi_mode ;
 
-	char *  win_name ;
-	char *  icon_name ;
 	char *  icon_path ;
 
 	int8_t  use_bidi ;
@@ -65,7 +63,8 @@ ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  l
 	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_policy_t  policy ,
 	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , int  use_ind , int  use_bce , int  use_dynamic_comb ,
-	ml_bs_mode_t  bs_mode , ml_vertical_mode_t  vertical_mode , int  use_local_echo) ;
+	ml_bs_mode_t  bs_mode , ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
+	char *  win_name , char *  icon_name) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 
@@ -289,15 +288,11 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_modify_other_keys( term)  ml_vt100_parser_modify_other_keys((term)->parser)
 
-int  ml_term_set_window_name( ml_term_t *  term , char *  name) ;
-
-int  ml_term_set_icon_name( ml_term_t *  term , char *  name) ;
-
 int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 
-#define  ml_term_window_name( term)  ((term)->win_name)
+#define  ml_term_window_name( term)  ml_get_window_name((term)->parser)
 
-#define  ml_term_icon_name( term)  ((term)->icon_name)
+#define  ml_term_icon_name( term)  ml_get_icon_name((term)->parser)
 
 #define  ml_term_icon_path( term)  ((term)->icon_path)
 

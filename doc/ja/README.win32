@@ -47,6 +47,8 @@ WIN32 native GUI 対応に関するメモ
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
     tool/mlimgloader/.libs/mlimgloader.exe
     もコピーしてください。
+    なお、mlimgloader については、GDI+ が利用できる場合は、gdk-pixbuf でなく、
+    GDI+ を使ってビルドされます。
   o MSYS-DTK or Cygwin でビルドした場合は、make install でインストールしても
     構いませんが、libmkf の relink に失敗することがあるため、make install の
     前に libmkf.la の relink_command 行を削除してから make install してください。

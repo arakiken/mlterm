@@ -851,6 +851,22 @@ cairo_resize(
 	return  (*func)( win) ;
 }
 
+#else  /* NO_DYNAMIC_LOAD_TYPE */
+#ifdef  USE_TYPE_XFT
+int  x_window_set_use_xft( x_window_t *  win , int  use_xft) ;
+int  x_window_xft_draw_string8( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
+	int  x , int  y , u_char *  str , size_t  len) ;
+int  x_window_xft_draw_string32( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
+	int  x , int  y , u_int32_t *  str , size_t  len) ;
+#endif
+#ifdef  USE_TYPE_CAIRO
+int  x_window_set_use_cairo( x_window_t *  win , int  use_cairo) ;
+int  x_window_cairo_draw_string8( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
+	int  x , int  y , u_char *  str , size_t  len) ;
+int  x_window_cairo_draw_string32( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
+	int  x , int  y , u_int32_t *  str , size_t  len) ;
+int  cairo_resize( x_window_t *  win) ;
+#endif
 #endif /* NO_DYNAMIC_LOAD_TYPE */
 
 

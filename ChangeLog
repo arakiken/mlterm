@@ -1,3 +1,25 @@
+2012-12-12  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL, doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* x_screen.c, x_screen_manager.c, ml_term.[ch], ml_vt100_parser.[ch],
+	  ml_term_manager.[ch], vte.c, MLTermPty.c:
+	  - CSI 22 0..2 t and CSI 23 0..2 t are supported.
+	  - "title" is removed from configuration protocol.
+
+	* configure.in, c_imagelib.c: Minor fixes for GDI+ support in win32.
+
+	* tool/mlimgloader/main_gdk+.c: Added to support GDI+ not only gdk-pixbuf.
+
+	* xlib/x_imagelib.c: create_pixbuf_from_cardinals() is disabled unless
+	  ENABLE_CARD2PIXBUF macro is defined.
+
+	* x_font.c, x_window.c: libtype functions are correctly declared if
+	  libtype is statically linked to mlterm.
+
+	* ml_logical_visual.h, ml_shape.h, ml_line.c: libctl functions are
+	  correctly declared if libctl is statically linked to mlterm.
+
 2012-12-10  Araki Ken  <arakiken@users.sf.net>
 
 	* mlimgloader/Makefile.in:

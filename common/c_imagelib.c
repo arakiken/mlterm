@@ -11,16 +11,7 @@
 
 /* --- static functions --- */
 
-#if  defined(ENABLE_SIXEL) && defined(GDK_PIXBUF_VERSION)
-
-static void
-pixbuf_destroy_notify(
-	guchar *  pixels ,
-	gpointer  data
-	)
-{
-	free( pixels) ;
-}
+#if  (defined(ENABLE_SIXEL) && defined(GDK_PIXBUF_VERSION)) || defined(FORCE_ENABLE_SIXEL)
 
 static size_t
 get_params(
@@ -72,14 +63,14 @@ get_params(
 
 static int
 realloc_pixels(
-	guchar **  pixels ,
+	u_char **  pixels ,
 	int  new_width ,
 	int  new_height ,
 	int  cur_width ,
 	int  cur_height
 	)
 {
-	guchar *  p ;
+	u_char *  p ;
 	int  y ;
 	int  n_copy_rows ;
 
@@ -96,7 +87,8 @@ realloc_pixels(
 	}
 	else if( new_width > cur_width)
 	{
-		if( ! ( p = realloc( p , new_width * new_height * 3)))
+		/*  Cast to u_char* is necessary because this function can be compiled by g++. */
+		if( ! ( p = (u_char*)realloc( p , new_width * new_height * 3)))
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " realloc failed.\n.") ;
@@ -116,9 +108,11 @@ realloc_pixels(
 	return  1 ;
 }
 
-static GdkPixbuf *
-gdk_pixbuf_new_from_sixel(
-	const char *  path
+static u_char *
+load_sixel_from_file(
+	const char *  path ,
+	u_int *  width_ret ,
+	u_int *  height_ret
 	)
 {
 	FILE *  fp ;
@@ -126,7 +120,7 @@ gdk_pixbuf_new_from_sixel(
 	char *  file_data ;
 	char *  p ;
 	size_t  len ;
-	guchar *  pixels ;
+	u_char *  pixels ;
 	int  params[5] ;
 	size_t  n ;	/* number of params */
 	int  pix_x ;
@@ -138,9 +132,9 @@ gdk_pixbuf_new_from_sixel(
 	int  rep ;
 	int  color ;
 	int  asp_x ;
-	guint32  color_tbl[256] ;
+	u_int32_t  color_tbl[256] ;
 	/* VT340 Default Color Map */
-	static guint32  default_color_tbl[] =
+	static u_int32_t  default_color_tbl[] =
 	{
 		SIXEL_RGB(0,0,0) ,	/* BLACK */
 		SIXEL_RGB(20,20,80) ,	/* BLUE */
@@ -171,8 +165,11 @@ gdk_pixbuf_new_from_sixel(
 
 	fstat( fileno( fp) , &st) ;
 
-	/* malloc() should be used here because alloca() could return insufficient memory. */
-	if( ! ( p = file_data = malloc( st.st_size + 1)))
+	/*
+	 * - malloc() should be used here because alloca() could return insufficient memory.
+	 * - Cast to char* is necessary because this function can be compiled by g++.
+	 */
+	if( ! ( p = file_data = (char*)malloc( st.st_size + 1)))
 	{
 		return  NULL ;
 	}
@@ -185,7 +182,8 @@ gdk_pixbuf_new_from_sixel(
 	width = 1024 ;
 	height = 1024 ;
 
-	if( ! ( pixels = malloc( 3 * width * height)))
+	/*  Cast to u_char* is necessary because this function can be compiled by g++. */
+	if( ! ( pixels = (u_char*)malloc( 3 * width * height)))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " malloc failed.\n.") ;
@@ -502,15 +500,93 @@ end:
 
 	realloc_pixels( &pixels , cur_width , cur_height , width , height) ;
 
-	return  gdk_pixbuf_new_from_data( pixels , GDK_COLORSPACE_RGB , FALSE , 8 ,
-			cur_width , cur_height , cur_width * 3 , pixbuf_destroy_notify , NULL) ;
+	*width_ret = cur_width ;
+	*height_ret = cur_height ;
+
+	return  pixels ;
 }
+
+#ifdef  GDK_PIXBUF_VERSION
+
+static void
+pixbuf_destroy_notify(
+	guchar *  pixels ,
+	gpointer  data
+	)
+{
+	free( pixels) ;
+}
+
+static GdkPixbuf *
+gdk_pixbuf_new_from_sixel(
+	const char *  path
+	)
+{
+	u_char *  pixels ;
+	u_int  width ;
+	u_int  height ;
+
+	if( ! ( pixels = load_sixel_from_file( path , &width , &height)))
+	{
+		return  NULL ;
+	}
+
+	return  gdk_pixbuf_new_from_data( pixels , GDK_COLORSPACE_RGB , FALSE , 8 ,
+			width , height , width * 3 , pixbuf_destroy_notify , NULL) ;
+}
+
+#define  create_cardinals_from_sixel( path , width , height)  (NULL)
 
 #else
 
 #define  gdk_pixbuf_new_from_sixel(path)  (NULL)
 
-#endif	/* ENABLE_SIXEL */
+static u_int32_t *
+create_cardinals_from_sixel(
+	const char *  path
+	)
+{
+	u_int  width ;
+	u_int  height ;
+	u_char *  pixels ;
+	u_char *  pix_p ;
+	u_int32_t *  cardinal ;
+	u_int32_t *  card_p ;
+	int  x ;
+	int  y ;
+
+	if( ! ( pix_p = pixels = load_sixel_from_file( path , &width , &height)))
+	{
+		return  NULL ;
+	}
+
+	/*  Cast to u_int32_t* is necessary because this function can be compiled by g++. */
+	if( width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
+	    ! ( card_p = cardinal = (u_int32_t*)malloc( (width * height + 2) * sizeof(*cardinal))))
+	{
+		return  NULL ;
+	}
+
+	*(card_p++) = width ;
+	*(card_p++) = height ;
+
+	for( y = 0 ; y < height ; y++)
+	{
+		for( x = 0 ; x < width ; x++)
+		{
+			*(card_p++) = 0xff000000 | pix_p[0] << 16 | pix_p[1] << 8 | pix_p[2] ;
+			pix_p += 3 ;
+		}
+	}
+
+	free( pixels) ;
+
+	return  cardinal ;
+}
+
+#endif	/* GDK_PIXBUF_VERSION */
+
+#endif  /* ENABLE_SIXEL */
 
 
 #ifdef  GDK_PIXBUF_VERSION
@@ -518,16 +594,19 @@ end:
 /* create an CARDINAL array for_NET_WM_ICON data */
 static u_int32_t *
 create_cardinals_from_pixbuf(
-	GdkPixbuf *  pixbuf ,
-	u_int  width ,
-	u_int  height
+	GdkPixbuf *  pixbuf
 	)
 {
+	u_int  width ;
+	u_int  height ;
 	u_int32_t *  cardinal ;
 	int  rowstride ;
 	u_char *  line ;
 	u_char *  pixel ;
 	u_int i , j ;
+
+	width = gdk_pixbuf_get_width( pixbuf) ;
+	height = gdk_pixbuf_get_height( pixbuf) ;
 
 	if( width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
 	    ! ( cardinal = malloc( ( width * height + 2) * sizeof(*cardinal))))
