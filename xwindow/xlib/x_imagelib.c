@@ -1207,64 +1207,60 @@ modify_image(
 
 #else  /* USE_EXT_IMAGELIB */
 
-static int
-load_file(
-	x_display_t *  disp ,
+static pid_t
+exec_mlimgloader(
+	int *  read_fd ,
+	int *  write_fd ,
+	Window  window ,
 	u_int  width ,
 	u_int  height ,
 	char *  path ,
-	x_picture_modifier_t *  pic_mod ,
-	Pixmap *  pixmap ,
-	Pixmap *  mask		/* Can be NULL */
+	char *  cardinal_opt
 	)
 {
-	pid_t  pid ;
 	int  fds1[2] ;
 	int  fds2[2] ;
-	char  pix_str[DIGIT_STR_LEN(Pixmap) + 1 + DIGIT_STR_LEN(Pixmap) + 1] ;
-	Pixmap  pixmap_tmp ;
-	Pixmap  mask_tmp ;
-	ssize_t  size ;
+	pid_t  pid ;
 
-	if( pipe( fds1) == -1)
+	if( ! path || ! *path ||
+	    pipe( fds1) == -1)
 	{
-		return  0 ;
+		return  -1 ;
 	}
+
 	if( pipe( fds2) == -1)
 	{
-		close( fds1[0]) ;
-		close( fds1[1]) ;
-
-		return  0 ;
+		goto  error1 ;
 	}
 
-	pid = fork() ;
-	if( pid == -1)
+	if( ( pid = fork()) == -1)
 	{
-		return  0 ;
+		goto  error2 ;
 	}
 
 	if( pid == 0)
 	{
 		/* child process */
 
-		char *  args[6] ;
+		char *  args[7] ;
 		char  win_str[DIGIT_STR_LEN(Window) + 1] ;
 		char  width_str[DIGIT_STR_LEN(u_int) + 1] ;
 		char  height_str[DIGIT_STR_LEN(u_int) + 1] ;
 
 		args[0] = LIBEXECDIR "/mlterm/mlimgloader" ;
-		sprintf( win_str , "%lu" , x_display_get_group_leader( disp)) ;
+		sprintf( win_str , "%lu" , window) ;
 		args[1] = win_str ;
 		sprintf( width_str , "%u" , width) ;
 		args[2] = width_str ;
 		sprintf( height_str , "%u" , height) ;
 		args[3] = height_str ;
 		args[4] = path ;
-		args[5] = NULL ;
+		args[5] = cardinal_opt ;
+		args[6] = NULL ;
 
 		close( fds1[1]) ;
 		close( fds2[0]) ;
+
 		if( dup2( fds1[0] , STDIN_FILENO) != -1 && dup2( fds2[1] , STDOUT_FILENO) != -1)
 		{
 			execv( args[0] , args) ;
@@ -1278,7 +1274,47 @@ load_file(
 	close( fds1[0]) ;
 	close( fds2[1]) ;
 
-	if( ( size = read( fds2[0] , pix_str , sizeof(pix_str) - 1)) <= 0)
+	*write_fd = fds1[1] ;
+	*read_fd = fds2[0] ;
+
+	return  pid ;
+
+error2:
+	close( fds2[0]) ;
+	close( fds2[1]) ;
+error1:
+	close( fds1[0]) ;
+	close( fds1[1]) ;
+
+	return  -1 ;
+}
+
+static int
+load_file(
+	x_display_t *  disp ,
+	u_int  width ,
+	u_int  height ,
+	char *  path ,
+	x_picture_modifier_t *  pic_mod ,
+	Pixmap *  pixmap ,
+	Pixmap *  mask		/* Can be NULL */
+	)
+{
+	int  read_fd ;
+	int  write_fd ;
+	char  pix_str[DIGIT_STR_LEN(Pixmap) + 1 + DIGIT_STR_LEN(Pixmap) + 1] ;
+	Pixmap  pixmap_tmp ;
+	Pixmap  mask_tmp ;
+	ssize_t  size ;
+
+	if( exec_mlimgloader( &read_fd , &write_fd ,
+			x_display_get_group_leader( disp) ,
+			width , height , path , NULL) == -1)
+	{
+		return  0 ;
+	}
+
+	if( ( size = read( read_fd , pix_str , sizeof(pix_str) - 1)) <= 0)
 	{
 		goto  error ;
 	}
@@ -1335,108 +1371,52 @@ load_file(
 
 	XSync( disp->display , False) ;
 
-	close( fds2[0]) ;
-	close( fds1[1]) ; /* child process exited by this. pixmap_tmp is alive until here. */
+	close( read_fd) ;
+	close( write_fd) ; /* child process exited by this. pixmap_tmp is alive until here. */
 
 	return  1 ;
 
 error:
-	close( fds2[0]) ;
-	close( fds1[1]) ;
+	close( read_fd) ;
+	close( write_fd) ;
 
 	return  0 ;
 }
 
 static u_int32_t *
 create_cardinals_from_file(
-	char *  path
+	char *  path ,
+	u_int32_t  width ,
+	u_int32_t  height
 	)
 {
-	pid_t  pid ;
-	int  fds1[2] ;
-	int  fds2[2] ;
+	int  read_fd ;
+	int  write_fd ;
 	u_int32_t *  cardinal ;
-	u_int32_t  width ;
-	u_int32_t  height ;
 	ssize_t  size ;
 
-	if( ! path || ! *path)
+	if( exec_mlimgloader( &read_fd , &write_fd ,
+			None , width , height , path , "-c") == -1)
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
-	if( pipe( fds1) == -1)
+	if( read( read_fd , &width , sizeof(u_int32_t)) != sizeof(u_int32_t) ||
+	    read( read_fd , &height , sizeof(u_int32_t)) != sizeof(u_int32_t))
 	{
-		return  NULL ;
+		cardinal = NULL ;
 	}
-	if( pipe( fds2) == -1)
-	{
-		close( fds1[0]) ;
-		close( fds1[1]) ;
-
-		return  NULL ;
-	}
-
-	pid = fork() ;
-	if( pid == -1)
-	{
-		return  NULL ;
-	}
-
-	if( pid == 0)
-	{
-		/* child process */
-
-		char *  args[7] ;
-
-		args[0] = LIBEXECDIR "/mlterm/mlimgloader" ;
-		args[1] = "0" ;
-		args[2] = "0" ;
-		args[3] = "0" ;
-		args[4] = path ;
-		args[5] = "-c" ;
-		args[6] = NULL ;
-
-		close( fds1[1]) ;
-		close( fds2[0]) ;
-		if( dup2( fds1[0] , STDIN_FILENO) != -1 && dup2( fds2[1] , STDOUT_FILENO) != -1)
-		{
-			execv( args[0] , args) ;
-		}
-
-		kik_msg_printf( "Failed to exec %s.\n" , args[0]) ;
-
-		exit(1) ;
-	}
-
-	close( fds1[0]) ;
-	close( fds2[1]) ;
-
-	cardinal = NULL ;	/* for "goto error" */
-
-	if( read( fds2[0] , &width , sizeof(u_int32_t)) != sizeof(u_int32_t))
-	{
-		goto  error ;
-	}
-
-	if( read( fds2[0] , &height , sizeof(u_int32_t)) != sizeof(u_int32_t))
-	{
-		goto  error ;
-	}
-
-	size = (width * height) * sizeof(u_int32_t) ;
-
-	if( ! ( cardinal = malloc( size)))
-	{
-		goto  error ;
-	}
-	else
+	else if( ( cardinal = malloc( ( size = (width * height + 2) * sizeof(u_int32_t)))))
 	{
 		u_char *  p ;
 		ssize_t  n_rd ;
 
-		p = cardinal ;
-		while( ( n_rd = read( fds2[0] , p , size)) > 0)
+		cardinal[0] = width ;
+		cardinal[1] = height ;
+
+		size -= (sizeof(u_int32_t) * 2) ;
+		p = &cardinal[2] ;
+		while( ( n_rd = read( read_fd , p , size)) > 0)
 		{
 			p += n_rd ;
 			size -= n_rd ;
@@ -1444,12 +1424,13 @@ create_cardinals_from_file(
 
 		if( size > 0)
 		{
-			goto  error ;
+			free( cardinal) ;
+			cardinal = NULL ;
 		}
 	}
 
-	close( fds2[0]) ;
-	close( fds1[1]) ;
+	close( read_fd) ;
+	close( write_fd) ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s(w %d h %d) is loaded.\n" ,
@@ -1457,13 +1438,6 @@ create_cardinals_from_file(
 #endif
 
 	return  cardinal ;
-
-error:
-	free( cardinal) ;
-	close( fds2[0]) ;
-	close( fds1[1]) ;
-
-	return  NULL ;
 }
 
 #endif	/* USE_EXT_IMAGELIB */
@@ -1919,7 +1893,7 @@ x_imagelib_load_file(
 
 	if( cardinal)
 	{
-		if( ! (*cardinal = create_cardinals_from_file( path)))
+		if( ! (*cardinal = create_cardinals_from_file( path , dst_width , dst_height)))
 		{
 			goto  error ;
 		}
