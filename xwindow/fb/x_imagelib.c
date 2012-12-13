@@ -95,7 +95,7 @@ value_table_refresh(
 }
 
 static void
-adjust_pixmap(
+modify_pixmap(
 	Display *  display ,
 	Pixmap  pixmap ,
 	x_picture_modifier_t *  pic_mod ,
@@ -276,7 +276,7 @@ load_file(
 		ssize_t  n_rd ;
 
 		p = pixmap->image ;
-		while( ( n_rd = read( fds2[0] , pixmap->image , size)) > 0)
+		while( ( n_rd = read( fds2[0] , p , size)) > 0)
 		{
 			p += n_rd ;
 			size -= n_rd ;
@@ -288,7 +288,7 @@ load_file(
 		}
 	}
 
-	adjust_pixmap( display , pixmap , pic_mod , depth) ;
+	modify_pixmap( display , pixmap , pic_mod , depth) ;
 
 	close( fds2[0]) ;
 	close( fds1[1]) ;

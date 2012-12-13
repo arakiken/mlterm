@@ -1347,96 +1347,121 @@ error:
 	return  0 ;
 }
 
-/* create an CARDINAL array for_NET_WM_ICON data */
 static u_int32_t *
-create_cardinals_from_image(
-	x_display_t *  disp ,
-	XImage *  image ,
-	u_int  width ,
-	u_int  height
+create_cardinals_from_file(
+	char *  path
 	)
 {
+	pid_t  pid ;
+	int  fds1[2] ;
+	int  fds2[2] ;
 	u_int32_t *  cardinal ;
-	int  i , j ;
-	u_long  pixel ;
+	u_int32_t  width ;
+	u_int32_t  height ;
+	ssize_t  size ;
 
-	if( width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
-	    ! ( cardinal = malloc( (width * height + 2) * sizeof(*cardinal))))
+	if( ! path || ! *path)
 	{
 		return  NULL ;
 	}
 
-	/* format of the array is {width, height, ARGB[][]} */
-	cardinal[0] = width ;
-	cardinal[1] = height ;
-
-	if( disp->visual->class == TrueColor)
+	if( pipe( fds1) == -1)
 	{
-		XVisualInfo *  vinfo ;
-		rgb_info_t  rgbinfo ;
+		return  NULL ;
+	}
+	if( pipe( fds2) == -1)
+	{
+		close( fds1[0]) ;
+		close( fds1[1]) ;
 
-		if( ! ( vinfo = x_display_get_visual_info( disp)))
+		return  NULL ;
+	}
+
+	pid = fork() ;
+	if( pid == -1)
+	{
+		return  NULL ;
+	}
+
+	if( pid == 0)
+	{
+		/* child process */
+
+		char *  args[7] ;
+
+		args[0] = LIBEXECDIR "/mlterm/mlimgloader" ;
+		args[1] = "0" ;
+		args[2] = "0" ;
+		args[3] = "0" ;
+		args[4] = path ;
+		args[5] = "-c" ;
+		args[6] = NULL ;
+
+		close( fds1[1]) ;
+		close( fds2[0]) ;
+		if( dup2( fds1[0] , STDIN_FILENO) != -1 && dup2( fds2[1] , STDOUT_FILENO) != -1)
+		{
+			execv( args[0] , args) ;
+		}
+
+		kik_msg_printf( "Failed to exec %s.\n" , args[0]) ;
+
+		exit(1) ;
+	}
+
+	close( fds1[0]) ;
+	close( fds2[1]) ;
+
+	cardinal = NULL ;	/* for "goto error" */
+
+	if( read( fds2[0] , &width , sizeof(u_int32_t)) != sizeof(u_int32_t))
+	{
+		goto  error ;
+	}
+
+	if( read( fds2[0] , &height , sizeof(u_int32_t)) != sizeof(u_int32_t))
+	{
+		goto  error ;
+	}
+
+	size = (width * height) * sizeof(u_int32_t) ;
+
+	if( ! ( cardinal = malloc( size)))
+	{
+		goto  error ;
+	}
+	else
+	{
+		u_char *  p ;
+		ssize_t  n_rd ;
+
+		p = cardinal ;
+		while( ( n_rd = read( fds2[0] , p , size)) > 0)
+		{
+			p += n_rd ;
+			size -= n_rd ;
+		}
+
+		if( size > 0)
 		{
 			goto  error ;
 		}
-
-		rgb_info_init( vinfo , &rgbinfo) ;
-		XFree( vinfo) ;
-
-		for( i = 0 ; i < height ; i++)
-		{
-			for( j = 0 ; j < width ; j++)
-			{
-				pixel = XGetPixel( image , j , i) ;
-
-				/* ARGB - all pixels are completely opaque (0xFF) */
-				cardinal[(i*width+j)+2] =
-					0xff000000 |
-					(PIXEL_RED(pixel,rgbinfo) << 16) |
-					(PIXEL_GREEN(pixel,rgbinfo) << 8) |
-					PIXEL_BLUE(pixel,rgbinfo) ;
-			}
-		}
 	}
-	else /* if( disp->visual->class == PseudoColor) */
-	{
-		XColor *  color_list ;
-		int  num_cells ;
 
-		if( ( num_cells = fetch_colormap( disp , &color_list)) == 0)
-		{
-			goto  error ;
-		}
+	close( fds2[0]) ;
+	close( fds1[1]) ;
 
-		for( i = 0 ; i < height ; i++)
-		{
-			for( j = 0 ; j < width ; j++)
-			{
-				if( ( pixel = XGetPixel( image , j , i)) >= num_cells)
-				{
-				#ifdef  DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG " Pixel %x is illegal.\n" ,
-						pixel) ;
-				#endif
-					continue ;
-				}
-
-				/* ARGB - all pixels are completely opaque (0xFF) */
-				cardinal[(i*width+j)+2] =
-					0xff000000 |
-					(color_list[pixel].red >> 8 << 16) |
-					(color_list[pixel].green >> 8 << 8) |
-					(color_list[pixel].blue >> 8) ;
-			}
-		}
-
-		free( color_list) ;
-	}
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s(w %d h %d) is loaded.\n" ,
+			path , width , height) ;
+#endif
 
 	return  cardinal ;
 
 error:
 	free( cardinal) ;
+	close( fds2[0]) ;
+	close( fds1[1]) ;
 
 	return  NULL ;
 }
@@ -1894,19 +1919,7 @@ x_imagelib_load_file(
 
 	if( cardinal)
 	{
-		XImage *  image ;
-
-		if( ! ( image = XGetImage( disp->display , *pixmap , 0 , 0 ,
-					dst_width , dst_height , AllPlanes , ZPixmap)))
-		{
-			goto  error ;
-		}
-
-		*cardinal = create_cardinals_from_image( disp , image ,
-						dst_width , dst_height) ;
-		XDestroyImage( image) ;
-
-		if( ! *cardinal)
+		if( ! (*cardinal = create_cardinals_from_file( path)))
 		{
 			goto  error ;
 		}

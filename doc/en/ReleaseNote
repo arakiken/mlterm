@@ -4,6 +4,8 @@ ver 3.1.7
 * "contrast", "gamma" and "brightness" options are available in win32.
 * Support CSI 22 0..2 t and CSI 23 0..2 t.
 * Remove "title" from configuration protocol.
+* Support alpha values of icon files if mlterm is built without
+  --with-imagelib=gdk-pixbuf option.
 * Bug fixes:
   Fix the bug of "button3_behavior" option rejecting "mlclient ..." command.
   Fix the incorrect parsing of font names which contain digit characters like
