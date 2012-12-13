@@ -21538,6 +21538,10 @@ mlterm-zoom)
 	fi
 	;;
 mlimgloader)
+	OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+	MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+	tools_result="$tools_result $tool"
+
 	ac_fn_c_check_header_mongrel "$LINENO" "gdiplus.h" "ac_cv_header_gdiplus_h" "$ac_includes_default"
 if test "x$ac_cv_header_gdiplus_h" = x""yes; then :
   have_gdiplus=yes
@@ -21546,18 +21550,14 @@ else
 fi
 
 
-	if test "$have_gdiplus" = "yes" -o "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
-		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
-		MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
-		tools_result="$tools_result $tool"
-
-		if test "$have_gdiplus" = "yes" ; then
-			MLIMGLOADER_LIB=gdiplus
-		else
-			MLIMGLOADER_LIB=gdk-pixbuf
-		fi
-
+	if test "$have_gdiplus" = "yes" ; then
+		MLIMGLOADER_LIB=gdiplus
+	elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+		MLIMGLOADER_LIB=gdk-pixbuf
+	else
+		MLIMGLOADER_LIB=none
 	fi
+
 	;;
 *)
 	echo "${tool} is unknown tool."

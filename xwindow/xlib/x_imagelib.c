@@ -45,10 +45,12 @@
 #undef malloc
 #endif
 
-#define USE_FS 1
+#if  1
+#define  USE_FS
+#endif
 
 #if  0
-#define ENABLE_CARD2PIXBUF
+#define  ENABLE_CARD2PIXBUF
 #endif
 
 #if  (GDK_PIXBUF_MAJOR < 2)

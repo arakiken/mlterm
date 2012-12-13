@@ -284,8 +284,7 @@ parse_font_name(
 					{ "semi-condensed" , /* XXX This style is ignored. */
 						0 , 0 , } ,
 				} ;
-				float  size_f ;
-				
+
 				for( count = 0 ; count < sizeof(styles) / sizeof(styles[0]) ;
 					count ++)
 				{
@@ -311,20 +310,25 @@ parse_font_name(
 						goto  next_char ;
 					}
 				}
-				
-				if( sscanf( p , "%f" , &size_f) == 1)
-				{
-					/* If matched with %f, p has no more parameters. */
 
-					*orig_p = '\0' ;
-					*font_size = size_f ;
-
-					break ;
-				}
-				else
+				if( *p != '0') /* In case of "DevLys 010" font family. */
 				{
-					step = 1 ;
+					char *  end ;
+					double  size ;
+
+					size = strtod( p , &end) ;
+					if( *end == '\0')
+					{
+						/* p has no more parameters. */
+
+						*orig_p = '\0' ;
+						*font_size = size ;
+
+						break ;
+					}
 				}
+
+				step = 1 ;
 			}
 		}
 		else

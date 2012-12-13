@@ -183,7 +183,6 @@ main(
 		char  winpath[MAX_PATH] ;
 		cygwin_conv_to_win32_path( argv[4] , winpath) ;
 
-		fprintf( stderr , "%s\n" , winpath) ;
 		if( ! ( cardinal = (u_char*)create_cardinals_from_file( winpath , width , height)))
 	#endif
 		{

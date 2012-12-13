@@ -16,9 +16,7 @@ LIBEXECDIR = $(DESTDIR)$(libexecdir)
 
 VPATH = $(top_srcdir)/tool/mlimgloader
 
-OBJ = $(OBJ_@MLIMGLOADER_LIB@)
-OBJ_gdk-pixbuf = main.o
-OBJ_gdiplus = main_gdi+.o
+OBJ = @MLIMGLOADER_LIB@.o
 
 LKIK = @LKIK@
 LKIK_DEB = -lkik_deb
@@ -74,8 +72,7 @@ wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf $(PROG) $(PROG).exe *core $(OBJ) $(OBJ:.o=.lo) \
-		$(OBJ_gdiplus) $(OBJ_gdiplus:.o=.lo) .libs
+	rm -rf $(PROG) $(PROG).exe *core $(OBJ) $(OBJ:.o=.lo) .libs
 
 distclean: clean
 	rm -f Makefile

@@ -586,7 +586,7 @@ create_cardinals_from_sixel(
 
 #endif	/* GDK_PIXBUF_VERSION */
 
-#endif  /* ENABLE_SIXEL */
+#endif  /* ENABLE_SIXEL/FORCE_ENABLE_SIXEL */
 
 
 #ifdef  GDK_PIXBUF_VERSION
@@ -662,6 +662,7 @@ create_cardinals_from_pixbuf(
 }
 
 #endif	/* GDK_PIXBUF_VERSION */
+
 
 #ifndef  USE_WIN32GUI
 

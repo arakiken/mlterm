@@ -10,9 +10,9 @@ WIN32 native GUI 対応に関するメモ
             + Fribidi 0.19.2(win32 native)
 
 * ビルド
-  (CC="gcc -mno-cygwin") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
-		       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
-		       (--with-libiconv-prefix=[GTK+(win32) installed directory])
+  (CC="gcc-3 -mno-cygwin") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
+			(--with-libintl-prefix=[GTK+(win32) installed directory]) \
+			(--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
 
 * configure オプション
@@ -34,6 +34,7 @@ WIN32 native GUI 対応に関するメモ
   scrollbar/sample/.libs/*.dll
   inputmethod/kbd/.libs/*.dll
   libind/.libs/*.dll
+  tool/mlimgloader/.libs/mlimgloader.exe
   をコピーしてください。
 
   o MinGW or Cygwin(-mno-cygwin) で --enable-ssh2 なしでビルドした場合は、
@@ -41,14 +42,11 @@ WIN32 native GUI 対応に関するメモ
     トホストへの接続には plink.exe を使用しています。
   o MSYS-DTK or Cygwin でビルドした場合は、ソースツリーの
     contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe もコピーしてください。
-  o mlconfig,mlterm-menu,mlimgloader をビルドできた場合(あらかじめ GTK+ >= 2.0
-    をインストールしておく必要があります)は、ソースツリーの
+  o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ >= 2.0 をインストー
+    ルしておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
-    tool/mlimgloader/.libs/mlimgloader.exe
     もコピーしてください。
-    なお、mlimgloader については、GDI+ が利用できる場合は、gdk-pixbuf でなく、
-    GDI+ を使ってビルドされます。
   o MSYS-DTK or Cygwin でビルドした場合は、make install でインストールしても
     構いませんが、libmkf の relink に失敗することがあるため、make install の
     前に libmkf.la の relink_command 行を削除してから make install してください。

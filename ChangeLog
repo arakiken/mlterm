@@ -1,3 +1,18 @@
+2012-12-13  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, tool/mlimgloader/Makefile.in, c_imagelib.c:
+	  Fixes for tool/mlimgloader/none.c.
+
+	* tool/mlimgloader/none.c: Added.
+	  (none.c can handle sixel graphics alone.)
+
+	* tool/mlimgloader/main.c -> gdk-pixbuf.c
+	  tool/mlimgloader/main_gdi+.cpp -> gdiplus.cpp
+
+	* xwindow/win32/x_font.c: Font names like "Courier 10 Pitch" which
+	  was wrongly regarded as 10-point size "Courier" font is parsed
+	  correctly.
+
 2012-12-12  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/PROTOCOL, doc/en/README.win32, doc/ja/README.win32: Updated.
