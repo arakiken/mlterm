@@ -1,3 +1,8 @@
+2012-12-14  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c, mlimgloader/gdk-pixbuf.c:
+	  #ifndef USE_WIN32GUI -> #ifdef USE_X11
+
 2012-12-13  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, tool/mlimgloader/Makefile.in, c_imagelib.c:

@@ -105,6 +105,7 @@ static int  display_count = 0 ;
 
 /* --- static functions --- */
 
+#define  USE_X11	/* Necessary to use closest_color_index(), lsb() and msb() */
 #include  "../../common/c_imagelib.c"
 
 static Status

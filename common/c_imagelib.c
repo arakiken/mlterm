@@ -664,7 +664,7 @@ create_cardinals_from_pixbuf(
 #endif	/* GDK_PIXBUF_VERSION */
 
 
-#ifndef  USE_WIN32GUI
+#ifdef  USE_X11
 
 /* seek the closest color */
 static int
@@ -757,4 +757,4 @@ msb(
 	return  nth ;
 }
 
-#endif	/* USE_WIN32GUI */
+#endif	/* USE_X11 */
