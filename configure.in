@@ -185,7 +185,7 @@ imlib)
 	echo "** WARNING **"
 	echo " imlib is no longer supported."
 	echo ""
-	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_EXT_IMAGELIB"
+	IMAGELIB_CFLAGS="`imlib-config --cflags` -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="`imlib-config --libs`"
 	;;
 imlib2)
@@ -201,7 +201,7 @@ imlib2)
 	echo "** WARNING **"
 	echo " imlib2 is no longer supported."
 	echo ""
-	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_EXT_IMAGELIB"
+	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="`imlib2-config --libs`"
 	;;
 gdk-pixbuf)
@@ -261,7 +261,7 @@ if test "$gdk_pixbuf_version" != "" ; then
 		echo ""
 	fi
 
-	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
 fi
 
@@ -936,7 +936,7 @@ AC_SUBST(DL_SELF)
 
 
 AC_ARG_ENABLE(vt52,
-	[  --enable-vt52                  enable VT52 emulation @<:@default=disabled@:>@],
+	[  --enable-vt52           enable VT52 emulation @<:@default=disabled@:>@],
 	vt52=$enable_vt52,
 	vt52="no")
 if test "$vt52" = "yes" ; then

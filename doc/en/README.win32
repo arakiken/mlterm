@@ -89,3 +89,6 @@ Memo about WIN32 native GUI.
   o In order to show DEC SPECIAL characters, it is necessary to install
     "Tera Special" font (TSPECIAL1.TTF) which is a part of Tera Term
     (http://teraterm.sourceforge.jp/).
+
+* Executable binaries
+  http://mlterm.sf.net/cygwin-msys.html

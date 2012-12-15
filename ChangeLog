@@ -1,3 +1,12 @@
+2012-12-15  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* version.h.in: 3.1.6 -> 3.1.7pre
+
+	* configure.in, xlib/x_imagelib.c:
+	  USE_EXT_IMAGELIB => BUILTIN_IMAGELIB
+
 2012-12-14  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_imagelib.c:

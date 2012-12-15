@@ -67,7 +67,7 @@ value_table_refresh(
 		}
 	#else  /* DLOPEN_LIBM */
 		pow_func = pow ;
-	#endif /* USE_EXT_IMAGELIB */
+	#endif /* DLOPEN_LIBM */
 	}
 
 	for( i = 0 ; i < 256 ; i++)

@@ -1686,7 +1686,7 @@ Optional Features:
   --enable-m17nlib        m17n library (Experimental) [default=disabled]
   --enable-ibus           IBUS (Experimental) [default=disabled]
   --enable-scim           SCIM (Experimental) [default=disabled]
-  --enable-vt52                  enable VT52 emulation [default=disabled]
+  --enable-vt52           enable VT52 emulation [default=disabled]
   --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
@@ -20311,7 +20311,7 @@ fi
 	echo "** WARNING **"
 	echo " imlib is no longer supported."
 	echo ""
-	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_EXT_IMAGELIB"
+	IMAGELIB_CFLAGS="`imlib-config --cflags` -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="`imlib-config --libs`"
 	;;
 imlib2)
@@ -20364,7 +20364,7 @@ fi
 	echo "** WARNING **"
 	echo " imlib2 is no longer supported."
 	echo ""
-	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_EXT_IMAGELIB"
+	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="`imlib2-config --libs`"
 	;;
 gdk-pixbuf)
@@ -20424,7 +20424,7 @@ if test "$gdk_pixbuf_version" != "" ; then
 		echo ""
 	fi
 
-	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
 fi
 

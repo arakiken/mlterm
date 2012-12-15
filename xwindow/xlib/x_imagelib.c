@@ -15,9 +15,9 @@
 #include <X11/Xutil.h>
 #include <string.h>		/* memcpy */
 #include <stdio.h>		/* sscanf */
-#ifdef  USE_EXT_IMAGELIB
+#ifdef  BUILTIN_IMAGELIB
 #include <gdk-pixbuf/gdk-pixbuf.h>
-#endif	/* USE_EXT_IMAGELIB */
+#endif	/* BUILTIN_IMAGELIB */
 #ifdef  DLOPEN_LIBM
 #include <kiklib/kik_dlfcn.h>	/* dynamically loading pow */
 #else
@@ -260,7 +260,7 @@ value_table_refresh(
 		}
 	#else  /* DLOPEN_LIBM */
 		pow_func = pow ;
-	#endif /* USE_EXT_IMAGELIB */
+	#endif /* BUILTIN_IMAGELIB */
 	}
 	
 	for( i = 0 ; i < 256 ; i++)
@@ -402,7 +402,7 @@ modify_pixmap(
 }
 
 
-#ifdef  USE_EXT_IMAGELIB
+#ifdef  BUILTIN_IMAGELIB
 
 /* create GdkPixbuf from the specified file path.
  *
@@ -1205,7 +1205,7 @@ modify_image(
 	return  1 ;
 }
 
-#else  /* USE_EXT_IMAGELIB */
+#else  /* BUILTIN_IMAGELIB */
 
 static pid_t
 exec_mlimgloader(
@@ -1440,7 +1440,7 @@ create_cardinals_from_file(
 	return  cardinal ;
 }
 
-#endif	/* USE_EXT_IMAGELIB */
+#endif	/* BUILTIN_IMAGELIB */
 
 
 /* --- global functions --- */
@@ -1474,7 +1474,7 @@ x_imagelib_display_closed(
 
 	if( display_count == 0)
 	{
-	#ifdef  USE_EXT_IMAGELIB
+	#ifdef  BUILTIN_IMAGELIB
 		/* drop pixbuf cache */
 		load_file( NULL , 0 , 0 , 0) ;
 	#endif
@@ -1497,7 +1497,7 @@ x_imagelib_load_file_for_background(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-#ifdef  USE_EXT_IMAGELIB
+#ifdef  BUILTIN_IMAGELIB
 	GdkPixbuf *  pixbuf ;
 #endif
 	Pixmap pixmap ;
@@ -1517,7 +1517,7 @@ x_imagelib_load_file_for_background(
 		return  pixmap ;
 	}
 
-#ifdef  USE_EXT_IMAGELIB
+#ifdef  BUILTIN_IMAGELIB
 
 	if( ! ( pixbuf = load_file( path , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 				   GDK_INTERP_BILINEAR)))
@@ -1576,7 +1576,7 @@ error:
 
 	return  None ;
 
-#else	/* USE_EXT_IMAGELIB */
+#else	/* BUILTIN_IMAGELIB */
 
 	if( load_file( win->disp , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 				path , pic_mod , &pixmap , NULL))
@@ -1588,7 +1588,7 @@ error:
 		return  None ;
 	}
 
-#endif	/* USE_EXT_IMAGELIB */
+#endif	/* BUILTIN_IMAGELIB */
 }
 
 /** Create an pixmap from root window
@@ -1771,7 +1771,7 @@ x_imagelib_load_file(
 	)
 {
 	u_int  dst_height, dst_width ;
-#ifdef  USE_EXT_IMAGELIB
+#ifdef  BUILTIN_IMAGELIB
 	GdkPixbuf *  pixbuf ;
 #endif
 
@@ -1792,7 +1792,7 @@ x_imagelib_load_file(
 		dst_height = *height ;
 	}
 
-#ifdef  USE_EXT_IMAGELIB
+#ifdef  BUILTIN_IMAGELIB
 
 	if( path)
 	{
@@ -1872,7 +1872,7 @@ x_imagelib_load_file(
 
 	g_object_unref( pixbuf) ;
 
-#else	/* USE_EXT_IMAGELIB */
+#else	/* BUILTIN_IMAGELIB */
 
 	if( ! path)
 	{
@@ -1899,7 +1899,7 @@ x_imagelib_load_file(
 		}
 	}
 
-#endif	/* USE_EXT_IMAGELIB */
+#endif	/* BUILTIN_IMAGELIB */
 
 	if( width && *width == 0)
 	{
@@ -1926,7 +1926,7 @@ x_imagelib_pixbuf_to_pixmap(
 	GdkPixbufPtr  pixbuf
 	)
 {
-#ifdef  USE_EXT_IMAGELIB
+#ifdef  BUILTIN_IMAGELIB
 
 	Pixmap  pixmap ;
 	GdkPixbuf *  target ;
@@ -1961,7 +1961,7 @@ x_imagelib_pixbuf_to_pixmap(
 	
 	XFreePixmap( win->disp->display, pixmap) ;
 
-#endif	/* USE_EXT_IMAGELIB */
+#endif	/* BUILTIN_IMAGELIB */
 
 	return  None ;
 }

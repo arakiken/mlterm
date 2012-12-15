@@ -126,7 +126,7 @@ WIN32 native GUI 対応に関するメモ
   o USE_WIN32GUIマクロ: --with-gui=win32 の場合 define されます。
   o ファイル名 *_win32.c: --with-gui=win32 の場合に compile されます。
 
-* その他
+* 留意事項
   o MSYS-DTK 1.0.1 に含まれる winuser.h / libuser32.a は古いため、
     背景透過に使用する SetLayeredWindowAttributes() が使用できません。
     背景透過を使用できるようにするためには、mlterm のビルドの前に
@@ -150,3 +150,7 @@ WIN32 native GUI 対応に関するメモ
   o DEC SPECIAL 文字を表示するには、Tera Term (http://teraterm.sourceforge.jp)
     に含まれている "Tera Special" フォント (TSPECIAL1.TTF) をインストールする
     必要があります。
+
+* 実行可能バイナリの入手
+  http://mlterm.sf.net/cygwin-msys.html から cygwin/msys 用の実行可能バイナリ
+  を入手することができます(不定期更新)。
