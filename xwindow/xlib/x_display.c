@@ -2,6 +2,41 @@
  *	$Id$
  */
 
+#ifdef  __CYGWIN__
+
+/*
+ * For Cygwin X.
+ */
+
+#include  <stdio.h>	/* sprintf */
+
+/*
+ * windows.h should be included before including Xlib.h because variables
+ * named 'Status' defined as int in Xlib.h are used in winspool.h.
+ */
+#include  <windows.h>
+
+static void
+hide_console(void)
+{
+	HWND  conwin ;
+	char  app_name[40] ;
+
+	sprintf( app_name, "mlterm%08x", (unsigned int)GetCurrentThreadId()) ;
+
+	LockWindowUpdate( GetDesktopWindow()) ;
+
+	SetConsoleTitle( app_name) ;
+	while( ( conwin = FindWindow( NULL, app_name)) == NULL)
+	{
+		Sleep( 40) ;
+	}
+	ShowWindowAsync( conwin, SW_HIDE);
+	LockWindowUpdate( NULL) ;
+}
+
+#endif	/* __CYGWIN__ */
+
 #include  "x_display.h"
 
 #include  <string.h>		/* memset/memcpy */
@@ -101,41 +136,6 @@ error_handler(
 }
 
 #endif
-
-#ifdef  __CYGWIN__
-
-/*
- * For Cygwin X.
- */
-
-/*
- * NOGDI prevents <windows.h> from including <winspool.h> which uses
- * variables named 'Status' which is defined as int in Xlib.h.
- */
-#define  NOGDI
-#include  <windows.h>
-#undef  NOGDI
-
-static void
-hide_console(void)
-{
-	HWND  conwin ;
-	char  app_name[40] ;
-
-	sprintf( app_name, "mlterm%08x", (unsigned int)GetCurrentThreadId()) ;
-
-	LockWindowUpdate( GetDesktopWindow()) ;
-	
-	SetConsoleTitle( app_name) ;
-	while( ( conwin = FindWindow( NULL, app_name)) == NULL)
-	{
-		Sleep( 40) ;
-	}
-	ShowWindowAsync( conwin, SW_HIDE);
-	LockWindowUpdate( NULL) ;
-}
-
-#endif	/* __CYGWIN__ */
 
 static x_display_t *
 open_display(

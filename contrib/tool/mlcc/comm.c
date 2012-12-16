@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/select.h>	/* select */
 #include <string.h> /* memset, strchr */
 #include <stdlib.h> /* atoi */
 #include <termios.h> /* tcgetattr/tcsetattr */
@@ -80,17 +81,36 @@ static char * read_param(void){
 	return NULL;
 }
 
+static ssize_t read_stdin_timeout(void *buf, size_t nbytes){
+	fd_set fds;
+	struct timeval tval;
+
+	tval.tv_usec = 1000;	/* 0.01 sec */
+	tval.tv_sec = 0;
+
+	FD_SET(STDIN_FILENO, &fds);
+	if (select(STDIN_FILENO+1, &fds, NULL, NULL, &tval) < 0 ||
+	    ! FD_ISSET(STDIN_FILENO, &fds))
+		return -1 ;
+
+	return  read(STDIN_FILENO, buf, nbytes);
+}
+
 int read_one(void){
 	int count;
 	char buf[4] = {0};
 	count = read(STDIN_FILENO, buf, 4);
-	if(buf[0]==127)
+	if(buf[0]==0x08||buf[0]==0x7f)
 		return KEY_BS;
 	if (buf[0] != 0x1b)  /* XXX should check non-printable */
 		return  buf[0];
 	if (buf[1] == 0)
+		read_stdin_timeout(buf + 1, 3);
+	if (buf[1] == 0)
 		return KEY_ESC; /* single esc */
-	if (buf[1] == 0x4f)  /*cursor key?*/
+	if (buf[1] == 0x4f){  /*cursor key?*/
+		if (buf[2] == 0)
+			read_stdin_timeout(buf + 2, 2);
 		switch(buf[2]){
 		case 0x41:
 			return KEY_UP;
@@ -103,10 +123,18 @@ int read_one(void){
 		default:
 			return -1;
 		}
-	if (buf[1] == 0x5b)  /*cursor key?*/
-		if ((buf[1] == 0x5b) && (buf[1] == 0x5b))
-			return KEY_DEL;
-	
+	}
+	if (buf[1] == 0x5b){  /*cursor key?*/
+		if (buf[2] == 0)
+			read_stdin_timeout(buf + 2, 2);
+		if (buf[2] == 0x33){
+			if (buf[3] == 0)
+				read_stdin_timeout(buf + 2, 2);
+			if (buf[3] == 0x7e)
+				return KEY_DEL;
+		}
+	}
+
 	return -1; /* couldn't processed */
 }
 

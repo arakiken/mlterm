@@ -323,6 +323,7 @@ int init_data(config_data_t *data){
 	entry_string_add(section, "Encoding" , "encoding");
 	entry_string_add(section, "Input Method", "input_method");
 	entry_bool_add(section, "Bidi", "use_bidi");
+	entry_bool_add(section, "Indic" , "use_ind");
 	entry_bool_add(section, "Combining", "use_combining");
 	entry_bool_add(section, "Process via unicode", "copy_paste_via_ucs");
 
@@ -343,6 +344,7 @@ int init_data(config_data_t *data){
 	entry_numeric_add(section, "Brightness", "brightness", 0, -1, "%");
 	entry_numeric_add(section, "Contrast", "contrast", 0, -1, "%");
 	entry_numeric_add(section, "Gammma", "gamma", 0, -1, "%");
+	entry_numeric_add(section, "Alpha", "alpha", 0, -1, "%");
 	entry_bool_add(section, "Transparent background", "use_transbg");
 
 	section = section_add(data, "Scrollbar");
@@ -359,6 +361,7 @@ int init_data(config_data_t *data){
 	entry_radio_add(section, "Bel mode", "bel_mode", "none/sound/visual");
 	entry_bool_add(section, "Combining", "use_dynamic_comb");
 	entry_bool_add(section, "Fullwidth", "use_multi_column_char");
+	entry_bool_add(section, "Clipboard", "use_clipboard");
 	return 0;
 }
 

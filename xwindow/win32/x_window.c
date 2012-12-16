@@ -2968,19 +2968,14 @@ x_set_window_name(
 	{
 		name = root->app_name ;
 
-	#ifdef  UTF16_IME_CHAR
-		SetWindowTextW( root->my_window , name) ;
+	#ifndef  UTF16_IME_CHAR
+		SetWindowTextA( root->my_window , name) ;
 
 		return  1 ;
 	#endif
 	}
 
-	/*
-	 * XXX
-	 * Convert name to current locale encoding or UTF16.
-	 * Use SetWindowTextW if UTF16_IME_CHAR is defined.
-	 */
-	SetWindowTextA( root->my_window , name) ;
+	SetWindowTextW( root->my_window , name) ;
 
 	return  1 ;
 }

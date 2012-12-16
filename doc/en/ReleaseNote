@@ -6,6 +6,7 @@ ver 3.1.7
 * Remove "title" from configuration protocol.
 * Support alpha values of icon files if mlterm is built without
   --with-imagelib=gdk-pixbuf option.
+* Support UTF8 text for setting the window title by OSC 0 or OSC 2 in win32.
 * Bug fixes:
   Fix the bug of "button3_behavior" option rejecting "mlclient ..." command.
   Fix the incorrect parsing of font names which contain digit characters like
@@ -15,6 +16,7 @@ ver 3.1.7
   Revive "contrast", "gamma" and "brightness" options of mlterm built without
   --with-imagelib option in Linux.
   Fix segfault in starting mlterm with --pic option in framebuffer.
+  Fix the malfunction of cursor keys in mlcc in cygwin. (Thanks to saitoha san)
 
 ver 3.1.6
 * Support ":[Percentage]" format for font-fb.

@@ -122,7 +122,10 @@ struct _VteTerminalPrivate
 	 */
 	int8_t  audible_bell ;
 	int8_t  visible_bell ;
-	
+
+	/* for roxterm-2.6.5 */
+	int8_t  init_char_size ;
+
 	GIOChannel *  io ;
 	guint  src_id ;
 
@@ -926,15 +929,17 @@ reset_vte_size_member(
 
 	emit = 0 ;
 	
-	if( terminal->char_width != 0 &&
-		terminal->char_width != x_col_width( terminal->pvt->screen))
+	if( /* If char_width == 0, reset_vte_size_member is called from vte_terminal_init */
+	    terminal->char_width != 0 &&
+	    terminal->char_width != x_col_width( terminal->pvt->screen))
 	{
 		emit = 1 ;
 	}
 	terminal->char_width = x_col_width( terminal->pvt->screen) ;
 
-	if( terminal->char_height != 0 &&
-		terminal->char_height != x_line_height( terminal->pvt->screen))
+	if( /* If char_height == 0, reset_vte_size_member is called from vte_terminal_init */
+	    terminal->char_height != 0 &&
+	    terminal->char_height != x_line_height( terminal->pvt->screen))
 	{
 		emit = 1 ;
 	}
@@ -960,6 +965,14 @@ reset_vte_size_member(
 	}
 
 	terminal->row_count = ml_term_get_rows( terminal->pvt->term) ;
+
+	if( /* If column_count == 0, reset_vte_size_member is called from vte_terminal_init */
+	    terminal->column_count != 0 &&
+	    terminal->column_count != ml_term_get_cols( terminal->pvt->term))
+	{
+		emit = 1 ;
+	}
+
 	terminal->column_count = ml_term_get_cols( terminal->pvt->term) ;
 
 	if( emit)
@@ -1827,6 +1840,10 @@ vte_terminal_get_preferred_width(
 	if( minimum_width)
 	{
 		*minimum_width = VTE_TERMINAL(widget)->char_width + WINDOW_MARGIN * 2 ;
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " preferred minimum width %d\n" , *minimum_width) ;
+	#endif
 	}
 
 	if( natural_width)
@@ -1834,6 +1851,10 @@ vte_terminal_get_preferred_width(
 		*natural_width =
 			VTE_TERMINAL(widget)->column_count * VTE_TERMINAL(widget)->char_width +
 			WINDOW_MARGIN * 2 ;
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " preferred natural width %d\n" , *natural_width) ;
+	#endif
 	}
 }
 
@@ -1845,6 +1866,10 @@ vte_terminal_get_preferred_width_for_height(
 	gint *  natural_width
 	)
 {
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " preferred width for height %d\n" , height) ;
+#endif
+
 	vte_terminal_get_preferred_width( widget , minimum_width , natural_width) ;
 }
 
@@ -1857,9 +1882,37 @@ vte_terminal_get_preferred_height(
 {
 	/* Processing similar to setting GtkWidget::requisition in reset_vte_size_member(). */
 
+	/* XXX */
+	if( strstr( g_get_prgname() , "roxterm"))
+	{
+		/*
+		 * XXX
+		 * I don't know why, but the size of roxterm 2.6.5 (GTK+3) is
+		 * minimized unless "char-size-changed" signal is emit once in
+		 * vte_terminal_get_preferred_height() or
+		 * vte_terminal_get_preferred_height() in startup.
+		 *
+		 * Note that this hack might not work for roxterm started by
+		 * "x-terminal-emulator" or "exo-open --launch TerminalEmulator"
+		 * (which calls "x-terminal-emulator" internally).
+		 */
+		if( ! VTE_TERMINAL(widget)->pvt->init_char_size)
+		{
+			g_signal_emit_by_name( widget , "char-size-changed" ,
+					VTE_TERMINAL(widget)->char_width ,
+					VTE_TERMINAL(widget)->char_height) ;
+			VTE_TERMINAL(widget)->pvt->init_char_size = 1 ;
+		}
+	}
+
 	if( minimum_height)
 	{
 		*minimum_height = VTE_TERMINAL(widget)->char_height + WINDOW_MARGIN * 2 ;
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " preferred minimum height %d\n" ,
+			*minimum_height) ;
+	#endif
 	}
 
 	if( natural_height)
@@ -1867,6 +1920,11 @@ vte_terminal_get_preferred_height(
 		*natural_height =
 			VTE_TERMINAL(widget)->row_count * VTE_TERMINAL(widget)->char_height +
 			WINDOW_MARGIN * 2 ;
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " preferred natural height %d\n" ,
+			*natural_height) ;
+	#endif
 	}
 }
 
@@ -1878,6 +1936,10 @@ vte_terminal_get_preferred_height_for_width(
 	gint *  natural_height
 	)
 {
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " preferred height for width %d\n" , width) ;
+#endif
+
 	vte_terminal_get_preferred_height( widget , minimum_height , natural_height) ;
 }
 
@@ -1891,8 +1953,9 @@ vte_terminal_size_request(
 {
 	*req = widget->requisition ;
 
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " req %d %d cur alloc %d %d\n" , req->width , req->height ,
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " size_request %d %d cur alloc %d %d\n" ,
+			req->width , req->height ,
 			widget->allocation.width , widget->allocation.height) ;
 #endif
 }
@@ -1911,8 +1974,8 @@ vte_terminal_size_allocate(
 	
 	gtk_widget_get_allocation( widget , &cur_allocation) ;
 
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " alloc %d %d %d %d => %d %d %d %d\n" ,
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " size_allocate %d %d %d %d => %d %d %d %d\n" ,
 		cur_allocation.x , cur_allocation.y ,
 		cur_allocation.width , cur_allocation.height ,
 		allocation->x , allocation->y , allocation->width , allocation->height) ;
@@ -4673,8 +4736,8 @@ vte_pty_get_size(
 		return  FALSE ;
 	}
 
-	*columns = ml_term_get_cols( pty->terminal->pvt->term) ;
-	*rows = ml_term_get_rows( pty->terminal->pvt->term) ;
+	*columns = pty->terminal->column_count ;
+	*rows = pty->terminal->row_count ;
 
 	return  TRUE ;
 }

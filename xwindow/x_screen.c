@@ -1413,6 +1413,8 @@ update_special_visual(
  * callbacks of x_window events
  */
 
+static void  xterm_set_window_name( void *  p , u_char *  name) ;
+
 static void
 window_realized(
 	x_window_t *  win
@@ -1464,7 +1466,7 @@ window_realized(
 	
 	if( ( name = ml_term_window_name( screen->term)))
 	{
-		x_set_window_name( &screen->window , name) ;
+		xterm_set_window_name( screen , name) ;
 	}
 
 	if( ( name = ml_term_icon_name( screen->term)))
@@ -2972,6 +2974,7 @@ xct_selection_notified(
 		write_to_pty( screen , "\x1b[200~" , 6 , NULL) ;
 	}
 
+	/* utf_parser is utf16le in win32. */
 #ifndef  USE_WIN32GUI
 	/*
 	 * XXX
@@ -7010,23 +7013,34 @@ xterm_set_window_name(
 	)
 {
 	x_screen_t *  screen ;
+#ifdef  USE_WIN32GUI
+	u_char *  buf ;
+	size_t  len ;
+	mkf_parser_t *  parser ;
+#endif
 
 	screen = p ;
+
+#ifdef  USE_WIN32GUI
+	if( name && *name &&
+	    ( buf = alloca( ( len = strlen(name) + 1) * 4)) && /* 4 == UTF16 surrogate pair. */
+	    ( parser = ml_parser_new( ml_term_get_encoding( screen->term))))
+	{
+		(*parser->init)( parser) ;
+		(*parser->set_str)( parser , name , len) ;
+
+		(*screen->utf_conv->init)( screen->utf_conv) ;
+		if( (*screen->utf_conv->convert)( screen->utf_conv ,
+				buf , len * 4 , parser) > 0)
+		{
+			name = buf ;
+		}
+
+		(*parser->delete)( parser) ;
+	}
+#endif
 
 	x_set_window_name( &screen->window , name) ;
-}
-
-static void
-xterm_set_icon_name(
-	void *  p ,
-	u_char *  name
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-	x_set_icon_name( &screen->window , name) ;
 }
 
 static void
@@ -7445,7 +7459,7 @@ x_screen_new(
 	screen->xterm_listener.reverse_video = xterm_reverse_video ;
 	screen->xterm_listener.set_mouse_report = xterm_set_mouse_report ;
 	screen->xterm_listener.set_window_name = xterm_set_window_name ;
-	screen->xterm_listener.set_icon_name = xterm_set_icon_name ;
+	screen->xterm_listener.set_icon_name = x_set_icon_name ;
 	screen->xterm_listener.bel = xterm_bel ;
 	screen->xterm_listener.im_is_active = xterm_im_is_active ;
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
@@ -7797,7 +7811,7 @@ x_screen_attach(
 	 * if ml_term_(icon|window)_name() returns NULL, screen->window.app_name
 	 * will be used in x_set_(icon|window)_name().
 	 */
-	x_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
+	xterm_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
 	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
 
 	/* reset icon to screen->term's one */

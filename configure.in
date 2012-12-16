@@ -662,7 +662,10 @@ mlimgloader)
 	MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
 	tools_result="$tools_result $tool"
 
-	AC_CHECK_HEADER(gdiplus.h,have_gdiplus=yes,have_gdiplus=no)
+	AC_TRY_COMPILE([
+		#include  <windows.h>
+		#include  <gdiplus.h>],,
+		have_gdiplus=yes,have_gdiplus=no)
 	if test "$have_gdiplus" = "yes" ; then
 		MLIMGLOADER_LIB=gdiplus
 	elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then

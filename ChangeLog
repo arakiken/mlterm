@@ -1,3 +1,21 @@
+2012-12-16  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_display.c:
+	  #include <windows.h> is placed before Xlib.h is included in order to
+	  avoid compilation error in cygwin/X.
+
+	* x_screen.c, win32/x_window.c:
+	  UTF8 text is supported for setting the window title by OSC 0 or OSC 2
+	  in win32.
+
+	* mlcc/comm.c:
+	  - Wait the next bytes until 0.01 second elapse in read_one().
+	    ("\x1bOA" is separated to "\x1b", "O" and "A" without this in cygwin.)
+	  - The way of determining KEY_BS and KEY_DEL is fixed.
+	  - "use_ind", "alpha" and "use_clipboard" options are supported.
+
+	* configure.in: Fix the way of checking the existence of gdiplus.h.
+
 2012-12-15  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.win32, doc/ja/README.win32: Updated.
