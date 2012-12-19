@@ -78,6 +78,10 @@ Options for configure
   --with-tools
     Build specified tools in tool/ and contrib/tool/ directories
 
+  --disable-use-tools
+    Don't build and use external tools.
+    If this option is specified, --with-tools option is ignored.
+
   --disable-dnd
     Disable XDnD
 

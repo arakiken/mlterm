@@ -2,6 +2,8 @@
  *	$Id$
  */
 
+#ifndef  NO_TOOLS
+
 #include  "ml_config_menu.h"
 
 #ifdef  USE_WIN32API
@@ -485,3 +487,5 @@ ml_config_menu_write(
 		return  write_len ;
 	}
 }
+
+#endif	/* NO_TOOLS */

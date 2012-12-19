@@ -1207,6 +1207,13 @@ modify_image(
 
 #else  /* BUILTIN_IMAGELIB */
 
+#ifdef  NO_TOOLS
+
+#define  load_file( disp , width , height , path , pic_mod , pixmap , mask)  (0)
+#define  create_cardinals_from_file( path , width , height)  (NULL)
+
+#else	/* NO_TOOLS */
+
 static pid_t
 exec_mlimgloader(
 	int *  read_fd ,
@@ -1439,6 +1446,8 @@ create_cardinals_from_file(
 
 	return  cardinal ;
 }
+
+#endif	/* NO_TOOLS */
 
 #endif	/* BUILTIN_IMAGELIB */
 

@@ -1,3 +1,9 @@
+2012-12-19  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, mlterm/Makefile.in, xwindow/Makefile.in,
+	  ml_config_menu.[ch], xlib/x_imagelib.c:
+	  --disable-use-tools option is added to configure.
+
 2012-12-18  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_string.c:

@@ -588,6 +588,14 @@ if test -z "$IMAGELIB_CFLAGS" -a "`echo ${tools}|$GREP mlimgloader`" = "" ; then
 fi
 tools=`echo ${tools} | sed 's/,/ /g'`
 
+AC_ARG_ENABLE(use-tools,
+	[  --disable-use-tools     don't build and use external tools @<:@default=enabled@:>@])
+if test "$enable_use_tools" = "no" ; then
+	TOOLS_CFLAGS="-DNO_TOOLS"
+	tools=
+fi
+AC_SUBST(TOOLS_CFLAGS)
+
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
