@@ -976,9 +976,22 @@ x_calculate_char_width(
 	x_font_t *  font ,
 	const u_char *  ch ,
 	size_t  len ,
-	mkf_charset_t  cs
+	mkf_charset_t  cs ,
+	int *  draw_alone
 	)
 {
+	if( draw_alone)
+	{
+		if( font->is_proportional && ! font->is_var_col_width)
+		{
+			*draw_alone = 1 ;
+		}
+		else
+		{
+			*draw_alone = 0 ;
+		}
+	}
+
 	return  font->width ;
 }
 

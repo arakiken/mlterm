@@ -709,7 +709,7 @@ comment $Id$
         xterm の "titeInhibit" 相当のオプションですが、"titeInhibit" とは、
         true/false が逆になるので注意してください。
 
-      o use_alt_buffer (*true*/false)
+      o use_ansi_colors (*true*/false)
         ANSI color change escape sequences を有効にする。
         xterm の "colorMode" 相当のオプションです。
 

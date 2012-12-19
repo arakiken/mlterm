@@ -760,86 +760,101 @@ x_calculate_char_width(
 	x_font_t *  font ,
 	const u_char *  ch ,
 	size_t  len ,
-	mkf_charset_t  cs
+	mkf_charset_t  cs ,
+	int *  draw_alone
 	)
 {
-	if( font->is_var_col_width && font->is_proportional)
+	if( draw_alone)
 	{
-		SIZE  sz ;
+		*draw_alone = 0 ;
+	}
 
-		if( ! display_gc)
+	if( font->is_proportional)
+	{
+		if( font->is_var_col_width)
 		{
-			/*
-			 * Cached as far as x_caculate_char_width is called.
-			 * display_gc is deleted in x_font_new or x_font_delete.
-			 */
-			display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
-		}
+			SIZE  sz ;
 
-		SelectObject( display_gc , font->fid) ;
-
-		if( cs != US_ASCII && ! IS_ISCII(cs))
-		{
-			u_char  ucs4_bytes[4] ;
-			u_char  utf16_bytes[4] ;
-
-			if( cs == ISO10646_UCS4_1)
+			if( ! display_gc)
 			{
-				memcpy( ucs4_bytes , ch , 4) ;
+				/*
+				 * Cached as far as x_caculate_char_width is called.
+				 * display_gc is deleted in x_font_new or x_font_delete.
+				 */
+				display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
+			}
+
+			SelectObject( display_gc , font->fid) ;
+
+			if( cs != US_ASCII && ! IS_ISCII(cs))
+			{
+				u_char  ucs4_bytes[4] ;
+				u_char  utf16_bytes[4] ;
+
+				if( cs == ISO10646_UCS4_1)
+				{
+					memcpy( ucs4_bytes , ch , 4) ;
+				}
+				else
+				{
+					mkf_char_t  non_ucs ;
+					mkf_char_t  ucs4 ;
+
+					if( ml_is_msb_set( cs))
+					{
+						size_t  count ;
+
+						for( count = 0 ; count < len ; count ++)
+						{
+							non_ucs.ch[count] = ch[count] & 0x7f ;
+						}
+					}
+					else
+					{
+						memcpy( non_ucs.ch , ch , len) ;
+					}
+
+					non_ucs.size = len ;
+					non_ucs.property = 0 ;
+					non_ucs.cs = cs ;
+
+					if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
+					{
+						memcpy( ucs4_bytes , ucs4.ch , 4) ;
+					}
+					else
+					{
+						goto  fixed_col_width ;
+					}
+				}
+
+				if( ! ( len = x_convert_ucs4_to_utf16( utf16_bytes ,
+						ucs4_bytes)) ||
+				    ! GetTextExtentPointW( display_gc ,
+						utf16_bytes , len / 2 , &sz))
+				{
+					goto  fixed_col_width ;
+				}
 			}
 			else
 			{
-				mkf_char_t  non_ucs ;
-				mkf_char_t  ucs4 ;
-
-				if( ml_is_msb_set( cs))
+				if( ! GetTextExtentPointA( display_gc , ch , len , &sz))
 				{
-					size_t  count ;
-
-					for( count = 0 ; count < len ; count ++)
-					{
-						non_ucs.ch[count] = ch[count] & 0x7f ;
-					}
-				}
-				else
-				{
-					memcpy( non_ucs.ch , ch , len) ;
-				}
-
-				non_ucs.size = len ;
-				non_ucs.property = 0 ;
-				non_ucs.cs = cs ;
-
-				if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
-				{
-					memcpy( ucs4_bytes , ucs4.ch , 4) ;
-				}
-				else
-				{
-					return  0 ;
+					goto  fixed_col_width ;
 				}
 			}
 
-			if( ! ( len = x_convert_ucs4_to_utf16( utf16_bytes , ucs4_bytes)) ||
-			    ! GetTextExtentPointW( display_gc , utf16_bytes , len / 2 , &sz))
-			{
-				return  0 ;
-			}
+			return  sz.cx ;
 		}
-		else
+
+	fixed_col_width:
+		if( draw_alone)
 		{
-			if( ! GetTextExtentPointA( display_gc , ch , len , &sz))
-			{
-				return  0 ;
-			}
+			*draw_alone = 1 ;
 		}
+	}
 
-		return  sz.cx ;
-	}
-	else
-	{
-		return  font->width ;
-	}
+	return  font->width ;
 }
 
 char **

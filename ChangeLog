@@ -1,3 +1,19 @@
+2012-12-18  Araki Ken  <arakiken@users.sf.net>
+
+	* x_draw_string.c:
+	  "xfont->is_proportional && ! xfont->is_var_col_width" is replaced by
+	  draw_alone of x_calculate_char_width().
+
+	* xlib/x_font.c:
+	  Whether the width of U+2580 - U+259f whose width is ambiguous
+	  is the same as font->width or not is checked explicitly, because
+	  their glyphs of some fonts (e.g. GNU Unifont) are full width.
+
+	* x_font.h, fb/x_font.c, win32/x_font.c, xlib/x_font.c, x_screen.c:
+	  draw_alone argument is added to x_calculate_char_width().
+
+	* etc/main, etc/main.ja: Updated.
+
 2012-12-16  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_display.c:

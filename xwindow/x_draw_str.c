@@ -229,6 +229,7 @@ fc_draw_str(
 	int  is_underlined ;
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
+	int  draw_alone ;
 
 	x_font_t *  next_xfont ;
 	ml_font_t  next_font ;
@@ -236,6 +237,7 @@ fc_draw_str(
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
 	u_int  next_ch_width ;
+	int  next_draw_alone ;
 
 #ifdef  PERF_DEBUG
 	int  draw_count = 0 ;
@@ -280,7 +282,7 @@ fc_draw_str(
 		state = 2 ;
 	}
 
-	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
+	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs , &draw_alone) ;
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -379,7 +381,7 @@ fc_draw_str(
 			}
 
 			next_ch_width = x_calculate_char_width( next_xfont ,
-						ch_bytes , ch_size , ch_cs) ;
+						ch_bytes , ch_size , ch_cs , &next_draw_alone) ;
 
 			if( current_width + next_ch_width > window->width)
 			{
@@ -405,8 +407,8 @@ fc_draw_str(
 				|| (is_underlined && xfont->is_vertical)
 				|| comb_chars != NULL
 				|| state != next_state
-				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
-				|| (xfont->is_proportional && ! xfont->is_var_col_width)
+				|| draw_alone
+				|| next_draw_alone
 				/* FONT_BOLD flag is not the same. */
 			        || ((font ^ next_font) & FONT_BOLD))
 			{
@@ -545,6 +547,7 @@ fc_draw_str(
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
 		state = next_state ;
+		draw_alone = next_draw_alone ;
 		current_width += (ch_width = next_ch_width) ;
 	}
 
@@ -684,6 +687,7 @@ xcore_draw_str(
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
 	int  is_underlined ;
+	int  draw_alone ;
 
 	u_int  next_ch_width ;
 	x_font_t *  next_xfont ;
@@ -691,6 +695,7 @@ xcore_draw_str(
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
+	int  next_draw_alone ;
 
 #ifdef  PERF_DEBUG
 	int  draw_count = 0 ;
@@ -723,7 +728,7 @@ xcore_draw_str(
 
 	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 
-	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
+	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs , &draw_alone) ;
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -831,7 +836,7 @@ xcore_draw_str(
 			}
 
 			next_ch_width = x_calculate_char_width( next_xfont ,
-						ch_bytes , ch_size , ch_cs) ;
+						ch_bytes , ch_size , ch_cs , &next_draw_alone) ;
 
 			if( current_width + next_ch_width > window->width)
 			{
@@ -857,8 +862,8 @@ xcore_draw_str(
 				|| (is_underlined && xfont->is_vertical)
 				|| next_state != state
 				|| comb_chars != NULL
-				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
-				|| (xfont->is_proportional && ! xfont->is_var_col_width)
+				|| draw_alone
+				|| next_draw_alone
 				/* FONT_BOLD flag is not the same */
 			        || ((font ^ next_font) & FONT_BOLD))
 			{
@@ -893,8 +898,8 @@ xcore_draw_str(
 		#endif
 
 			if( ( x_window_has_wall_picture( window) && bg_color == ML_BG_COLOR) ||
-				bottom_margin + top_margin > 0 /* == line space XXX */|| 
-				( xfont->is_proportional && ! xfont->is_var_col_width))
+				bottom_margin + top_margin > 0 /* == line space XXX */ ||
+				draw_alone)
 			{
 				if( bg_color == ML_BG_COLOR)
 				{
@@ -1024,6 +1029,7 @@ xcore_draw_str(
 		bg_color = next_bg_color ;
 		is_underlined = next_is_underlined ;
 		state = next_state ;
+		draw_alone = next_draw_alone ;
 		current_width += (ch_width = next_ch_width) ;
 	}
 

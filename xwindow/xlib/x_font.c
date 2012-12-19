@@ -621,57 +621,59 @@ font_found:
 	/*
 	 * calculating actual font glyph width.
 	 */
-	if( ( FONT_CS(font->id) == ISO10646_UCS4_1 && ! (font->id & FONT_BIWIDTH)) ||
-		FONT_CS(font->id) == TIS620_2533)
+	font->is_proportional = 0 ;
+	font->width = xfont->max_bounds.width ;
+
+	if( xfont->max_bounds.width != xfont->min_bounds.width)
 	{
-		/*
-		 * XXX hack
-		 * a font including combining chars or an half width unicode font
-		 * (which may include both half and full width glyphs).
-		 * in this case , whether the font is proportional or not cannot be
-		 * determined by comparing min_bounds and max_bounds.
-		 * so , if `i' and `W' chars have different width , the font is regarded
-		 * as proportional(and `W' width is used as font->width)
-		 */
-
-		u_int  w_width ;
-		u_int  i_width ;
-
-		w_width = xcore_calculate_char_width( font->display , font->xfont , "W" , 1) ;
-		i_width = xcore_calculate_char_width( font->display , font->xfont , "i" , 1) ;
-
-		if( w_width == 0)
+		if( FONT_CS(font->id) == ISO10646_UCS4_1 ||
+		    FONT_CS(font->id) == TIS620_2533)
 		{
-			font->is_proportional = 1 ;
-			font->width = xfont->max_bounds.width ;
-		}
-		else if( i_width == 0 || w_width != i_width)
-		{
-			font->is_proportional = 1 ;
-			font->width = w_width ;
+			if( font->id & FONT_BIWIDTH)
+			{
+				/*
+				 * XXX
+				 * At the present time , all full width unicode fonts
+				 * (which may include both half width and full width
+				 * glyphs) are regarded as fixed.
+				 * Since I don't know what chars to be compared to
+				 * determine font proportion and width.
+				 */
+			}
+			else
+			{
+				/*
+				 * XXX
+				 * A font including combining (0-width) glyphs or both half and
+				 * full width glyphs.
+				 * In this case , whether the font is proportional or not
+				 * cannot be determined by comparing min_bounds and max_bounds,
+				 * so if `i' and `W' chars have different width , the font is
+				 * regarded as proportional (and `W' width is used as font->width).
+				 */
+
+				u_int  w_width ;
+				u_int  i_width ;
+
+				if( ( w_width = xcore_calculate_char_width( font->display ,
+							font->xfont , "W" , 1)) == 0)
+				{
+					font->is_proportional = 1 ;
+				}
+				else if( ( i_width = xcore_calculate_char_width( font->display ,
+								font->xfont , "i" , 1)) == 0 ||
+					 w_width != i_width)
+				{
+					font->is_proportional = 1 ;
+					font->width = w_width ;
+				}
+				else
+				{
+					font->width = w_width ;
+				}
+			}
 		}
 		else
-		{
-			font->is_proportional = 0 ;
-			font->width = w_width ;
-		}
-	}
-	else if( FONT_CS(font->id) == ISO10646_UCS4_1 && font->id & FONT_BIWIDTH)
-	{
-		/*
-		 * XXX
-		 * at the present time , all full width unicode fonts (which may include both
-		 * half width and full width glyphs) are regarded as fixed.
-		 * since I don't know what chars to be compared to determine font proportion
-		 * and width.
-		 */
-
-		font->is_proportional = 0 ;
-		font->width = xfont->max_bounds.width ;
-	}
-	else
-	{
-		if( xfont->max_bounds.width != xfont->min_bounds.width)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
@@ -681,12 +683,6 @@ font_found:
 
 			font->is_proportional = 1 ;
 		}
-		else
-		{
-			font->is_proportional = 0 ;
-		}
-
-		font->width = xfont->max_bounds.width ;
 	}
 
 	font->x_off = 0 ;
@@ -958,6 +954,69 @@ int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize
 	int  aa_opt , int  use_point_size_for_fc , double  dpi_for_fc) ;
 #endif
 
+static u_int
+calculate_char_width(
+	x_font_t *  font ,
+	const u_char *  ch ,
+	size_t  len ,
+	mkf_charset_t  cs
+	)
+{
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	if( font->xft_font)
+	{
+		u_char  ucs4[4] ;
+
+		if( cs != US_ASCII && ! IS_ISCII(cs))
+		{
+			if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
+			{
+				return  0 ;
+			}
+
+			ch = ucs4 ;
+			len = 4 ;
+		}
+
+		return  xft_calculate_char_width( font , ch , len) ;
+	}
+#endif
+
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+	if( font->cairo_font)
+	{
+		u_char  ucs4[4] ;
+
+		if( cs != US_ASCII && ! IS_ISCII(cs))
+		{
+			if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
+			{
+				return  0 ;
+			}
+
+			ch = ucs4 ;
+			len = 4 ;
+		}
+
+		return  cairo_calculate_char_width( font , ch , len) ;
+	}
+#endif
+
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
+	if( font->xfont)
+	{
+		return  xcore_calculate_char_width( font->display , font->xfont ,
+				ch , len) ;
+	}
+#endif
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " couldn't calculate correct font width.\n") ;
+#endif
+
+	return  0 ;
+}
+
 
 /* --- global functions --- */
 
@@ -1105,7 +1164,7 @@ end:
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
 		kik_msg_printf(
-			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
+			"Characters (cs %x) are drawn *one by one* to arrange column width.\n" ,
 			FONT_CS(font->id)) ;
 	}
 
@@ -1184,62 +1243,47 @@ x_calculate_char_width(
 	x_font_t *  font ,
 	const u_char *  ch ,
 	size_t  len ,
-	mkf_charset_t  cs
+	mkf_charset_t  cs ,
+	int *  draw_alone
 	)
 {
-	if( font->is_var_col_width && font->is_proportional)
+	if( draw_alone)
 	{
-	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-		if( font->xft_font)
-		{
-			u_char  ucs4[4] ;
+		*draw_alone = 0 ;
+	}
 
-			if( cs != US_ASCII && ! IS_ISCII(cs))
+	if( font->is_proportional)
+	{
+		if( font->is_var_col_width)
+		{
+			u_int  width ;
+
+			if( ( width = calculate_char_width( font , ch , len , cs)) > 0)
 			{
-				if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
-				{
-					return  0 ;
-				}
-
-				ch = ucs4 ;
-				len = 4 ;
+				return  width ;
 			}
-
-			return  xft_calculate_char_width( font , ch , len) ;
 		}
-	#endif
 
-	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
-		if( font->cairo_font)
+		if( draw_alone)
 		{
-			u_char  ucs4[4] ;
-
-			if( cs != US_ASCII && ! IS_ISCII(cs))
+			*draw_alone = 1 ;
+		}
+	}
+	else if( cs == ISO10646_UCS4_1)
+	{
+		/* XXX U+2580-U+259f is full width in GNU Unifont. */
+		if( ch[2] == 0x25 &&
+		    0x80 <= ch[3] && ch[3] <= 0x9f &&
+		    ch[0] == 0 && ch[1] == 0)
+		{
+			if( calculate_char_width( font , ch , len , cs) != font->width)
 			{
-				if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
+				if( draw_alone)
 				{
-					return  0 ;
+					*draw_alone = 1 ;
 				}
-
-				ch = ucs4 ;
-				len = 4 ;
 			}
-
-			return  cairo_calculate_char_width( font , ch , len) ;
 		}
-	#endif
-
-	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-		if( font->xfont)
-		{
-			return  xcore_calculate_char_width( font->display , font->xfont ,
-					ch , len) ;
-		}
-	#endif
-
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " couldn't calculate correct font width.\n") ;
-	#endif
 	}
 
 	return  font->width ;

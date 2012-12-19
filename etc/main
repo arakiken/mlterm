@@ -180,6 +180,8 @@ scrollbar_view_name = sample
   
 # static_backscroll_mode = false
 
+# exit_backscroll_by_pty = false
+
 # logging_vt_seq = false
 
 # (xterm,menu1,menu2,menu3, or command string like "mlclient -e w3m")
@@ -210,3 +212,7 @@ scrollbar_view_name = sample
 # allow_osc52 = false
 
 # use_local_echo = false
+
+# use_alt_buffer = true
+
+# use_ansi_colors = true

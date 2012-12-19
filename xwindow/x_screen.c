@@ -181,7 +181,8 @@ convert_char_index_to_x(
 			{
 				x -= x_calculate_char_width(
 					x_get_font( screen->font_man , ml_char_font( ch)) ,
-					ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+					ml_char_bytes( ch) , ml_char_size( ch) ,
+					ml_char_cs( ch) , NULL) ;
 			}
 		}
 	}
@@ -201,7 +202,8 @@ convert_char_index_to_x(
 			{
 				x += x_calculate_char_width(
 					x_get_font( screen->font_man , ml_char_font( ch)) ,
-					ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+					ml_char_bytes( ch) , ml_char_size( ch) ,
+					ml_char_cs( ch) , NULL) ;
 			}
 		}
 	}
@@ -286,7 +288,7 @@ convert_x_to_char_index(
 
 			width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch) , NULL) ;
 
 			if( x <= width)
 			{
@@ -316,7 +318,7 @@ convert_x_to_char_index(
 
 			width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
+				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch) , NULL) ;
 
 			if( x < width)
 			{
@@ -713,8 +715,8 @@ draw_cursor(
 
 		x_window_draw_rect_frame( &screen->window ,
 			x , y + x_line_top_margin( screen) ,
-			x + x_calculate_char_width( xfont ,
-				ml_char_bytes(&ch) , ml_char_size(&ch) , ml_char_cs(&ch)) - 1 ,
+			x + x_calculate_char_width( xfont , ml_char_bytes(&ch) ,
+				ml_char_size(&ch) , ml_char_cs(&ch) , NULL) - 1 ,
 			y + x_line_top_margin( screen) + xfont->height - 1) ;
 	}
 
@@ -3212,7 +3214,7 @@ report_mouse_tracking(
 
 		width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
-				ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII) ;
+				ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII , NULL) ;
 		if( x_rest > width)
 		{
 			if( ( col += x_rest / width) >= ml_term_get_cols( screen->term))
@@ -6237,7 +6239,7 @@ get_im_spot(
 					x_get_font( screen->font_man , ml_char_font( &chars[i])) ,
 					ml_char_bytes( &chars[i]) ,
 					ml_char_size( &chars[i]) ,
-					ml_char_cs( &chars[i])) ;
+					ml_char_cs( &chars[i]) , NULL) ;
 
 			if( *x + width > screen->window.width)
 			{
@@ -6430,7 +6432,7 @@ draw_preedit_str(
 		width = x_calculate_char_width( xfont ,
 						ml_char_bytes( &chars[i]) ,
 						ml_char_size( &chars[i]) ,
-						ml_char_cs( &chars[i])) ;
+						ml_char_cs( &chars[i]) , NULL) ;
 
 		total_width += width ;
 

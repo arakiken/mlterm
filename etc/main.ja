@@ -254,6 +254,9 @@ scrollbar_view_name = sample
 # バックスクロール時に端末出力があっても画面が流れないようにする。
 # static_backscroll_mode = false
 
+# バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
+# exit_backscroll_by_pty = false
+
 # pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 # logging_vt_seq = false
 
@@ -301,3 +304,9 @@ scrollbar_view_name = sample
 
 # local echo mode を有効にする。
 # use_local_echo = false
+
+# Alternate screen buffer を有効にする。
+# use_alt_buffer = true
+
+# ANSI color change escape sequences を有効にする。
+# use_ansi_colors = true

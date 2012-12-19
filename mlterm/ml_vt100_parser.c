@@ -7,9 +7,12 @@
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memmove */
 #include  <stdlib.h>		/* atoi */
-#include  <stdarg.h>		/* va_list */
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* write */
+#ifdef  DEBUG
+#include  <stdarg.h>		/* va_list */
+#endif
+
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc/free */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
