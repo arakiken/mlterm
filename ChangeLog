@@ -1,3 +1,7 @@
+2012-12-21  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja: Updated.
+
 2012-12-20  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_candidate_screen.c, x_im_status_screen.c:

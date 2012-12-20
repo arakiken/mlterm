@@ -657,8 +657,12 @@ comment $Id$
         button3 を押下したときの挙動を指定する。
         xterm = xterm 互換
         menuN = conf_menu_path_N で指定したプログラムを起動
-        また、mlclient -e w3m のようにコマンド文字列を指定すると、領域選択
-        した文字列を引数に、指定したコマンドを実行させることができます。
+        また、次の例のようにコマンド文字列を指定すると、領域選択した文字列を引数
+        に、指定したコマンドを実行させることができます。
+        例)
+        button3_behavior = mlclient -e w3m
+        button3_behavior = /usr/bin/firefox
+        button3_behavior = "/cygdrive/c/Program Files/Internet Explorer/iexplore.exe"
 
       o use_clipboard (true/*false*)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。

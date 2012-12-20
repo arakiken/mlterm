@@ -485,7 +485,7 @@ xterm: compatible with xterm
 menu1: open external configurator of conf_menu_path_1 option.
 menu2: open external configurator of conf_menu_path_2 option.
 menu3: open external configurator of conf_menu_path_3 option.
-or command string like "mlclient \-e w3m"
+or command string to be executed.
 .fi
 .TP
 \fB\-\-clip\fR(=\fIbool\fR)
@@ -1152,6 +1152,10 @@ Don't draw window decorations.
 .TP
 \fBbutton3_behavior=\fIvalue\fR (\fB\-\-button3\fR)
 Specify behavior in pressing button3.
+(Command string exmaples)
+button3_behavior = mlclient -e w3m
+button3_behavior = /usr/bin/firefox
+button3_behavior = "/cygdrive/c/Program Files/Internet Explorer/iexplore.exe"
 .TP
 \fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
 Specify ciphers (comma separated list) for encrypting the ssh session.
