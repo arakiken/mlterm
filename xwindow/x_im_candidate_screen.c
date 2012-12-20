@@ -105,7 +105,7 @@ candidate_width(
 					xfont ,
 					ml_char_bytes( &candidate->chars[i]) ,
 					ml_char_size( &candidate->chars[i]) ,
-					ml_char_cs( &candidate->chars[i])) ;
+					ml_char_cs( &candidate->chars[i]) , NULL) ;
 	}
 
 	return  width ;

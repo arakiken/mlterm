@@ -7,6 +7,7 @@ ver 3.1.7
 * Support alpha values of icon files if mlterm is built without
   --with-imagelib=gdk-pixbuf option.
 * Support UTF8 text for setting the window title by OSC 0 or OSC 2 in win32.
+* Add --disable-use-tools option (which disables external tools) to configure.
 * Bug fixes:
   Fix the bug of "button3_behavior" option rejecting "mlclient ..." command.
   Fix the incorrect parsing of font names which contain digit characters like

@@ -1,3 +1,8 @@
+2012-12-20  Araki Ken  <arakiken@users.sf.net>
+
+	* x_im_candidate_screen.c, x_im_status_screen.c:
+	  Compilation error is fixed.
+
 2012-12-19  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, mlterm/Makefile.in, xwindow/Makefile.in,

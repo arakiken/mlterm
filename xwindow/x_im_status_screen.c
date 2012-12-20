@@ -43,7 +43,7 @@ draw_screen(
 					xfont ,
 					ml_char_bytes( &stat_screen->chars[i]) ,
 					ml_char_size( &stat_screen->chars[i]) ,
-					ml_char_cs( &stat_screen->chars[i])) ;
+					ml_char_cs( &stat_screen->chars[i]) , NULL) ;
 	}
 
 	xfont = x_get_usascii_font( stat_screen->font_man) ;
