@@ -151,7 +151,9 @@ _kik_arg_str_to_array(
 				}
 			}
 			
-			if( *args == '\\' && ( *(args + 1) == '\"' || *(args + 1) == '\''))
+			if( *args == '\\' &&
+			    ( args[1] == '\"' || args[1] == '\'' ||
+			      ( ! quoted && ( args[1] == ' ' /* || args[1] == '\t' */))))
 			{
 				*(p ++) = *(++ args) ;
 			}
@@ -177,14 +179,17 @@ parse_end:
 
 
 #ifdef  __DEBUG
+
+#include  <stdio.h>	/* printf */
+
 int
 main(void)
 {
 	int  argc ;
 	char **  argv ;
-	char  args[] = "mlclient -l \"hoge fuga \\\" \" \' a b c \' \\\' \\\"" ;
+	char  args[] = "mlclient -l \"hoge fuga \\\" \" \' a b c \' \\\' \\\" a\\ b \"a\\ b\"" ;
 	char *  argv_correct[] =
-		{ "mlclient" , "-l" , "hoge fuga \" " , " a b c " , "\'" , "\"" } ;
+		{ "mlclient" , "-l" , "hoge fuga \" " , " a b c " , "\'" , "\"" , "a b", "a\\ b"} ;
 	int  count ;
 
 	argv = kik_arg_str_to_array( &argc , args) ;
@@ -205,4 +210,5 @@ main(void)
 
 	return  0 ;
 }
+
 #endif

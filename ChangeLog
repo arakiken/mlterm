@@ -1,5 +1,10 @@
 2012-12-21  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c: execv() -> execvp() in open_button3_command().
+
+	* kik_args.c: kik_arg_str_to_array() parsed "\ " as a normal space
+	  character not as an argument separator.
+
 	* man/mlterm.1, README.ja: Updated.
 
 2012-12-20  Araki Ken  <arakiken@users.sf.net>

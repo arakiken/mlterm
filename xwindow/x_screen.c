@@ -1814,7 +1814,7 @@ open_button3_command(
 		if( fork() == 0)
 		{
 			/* child process */
-			execv( argv[0] , argv) ;
+			execvp( argv[0] , argv) ;
 			exit( 1) ;
 		}
 	}
