@@ -921,7 +921,7 @@ x_display_receive_next_event(
 	{
 		struct input_event  ev ;
 
-		if( read( _mouse.fd , &ev , sizeof(ev)) > 0)
+		while( read( _mouse.fd , &ev , sizeof(ev)) > 0)
 		{
 			if( console_id != get_active_console())
 			{
@@ -1083,7 +1083,7 @@ x_display_receive_next_event(
 		u_char  buf[1] ;
 		ssize_t  len ;
 
-		if( ( len = read( disp->display->fd , buf , sizeof(buf))) > 0)
+		while( ( len = read( disp->display->fd , buf , sizeof(buf))) > 0)
 		{
 			XKeyEvent  xev ;
 
@@ -1098,7 +1098,7 @@ x_display_receive_next_event(
 	{
 		struct input_event  ev ;
 
-		if( read( disp->display->fd , &ev , sizeof(ev)) > 0)
+		while( read( disp->display->fd , &ev , sizeof(ev)) > 0)
 		{
 			if( console_id != get_active_console())
 			{

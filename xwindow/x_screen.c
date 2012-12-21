@@ -7307,10 +7307,17 @@ x_set_button3_behavior(
 		/* Hidden option for libvte */
 		button3_open = 5 ;
 	}
-	else if( ( button3_command = strdup( mode)))	/* XXX Not free'ed. Leaked */
+	else
 	{
-		/* Hidden option (e.g. w3m, lynx) */
-		button3_open = 4 ;
+		char *  p ;
+
+		if( ( p = strdup( mode)))	/* XXX Not free'ed. Leaked */
+		{
+			free( button3_command) ;
+			button3_command = p ;
+			/* Hidden option (e.g. w3m, lynx) */
+			button3_open = 4 ;
+		}
 	}
 }
 

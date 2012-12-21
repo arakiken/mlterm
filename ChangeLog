@@ -1,3 +1,9 @@
+2012-12-22  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: if(read() > 0) -> while(read() > 0)
+
+	* x_screen.c: Memory leak in x_set_button3_behavior() is fixed.
+
 2012-12-21  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: execv() -> execvp() in open_button3_command().
