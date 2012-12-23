@@ -2584,7 +2584,6 @@ parse_vt100_escape_sequence(
 
 							if( use_alt_buffer)
 							{
-								save_cursor( vt100_parser) ;
 								ml_screen_use_alternative_edit(
 									vt100_parser->screen) ;
 							}
@@ -2819,7 +2818,6 @@ parse_vt100_escape_sequence(
 								clear_display_all( vt100_parser) ;
 								ml_screen_use_normal_edit(
 									vt100_parser->screen) ;
-								restore_cursor( vt100_parser) ;
 							}
 						}
 						else if( ps[count] == 1048)

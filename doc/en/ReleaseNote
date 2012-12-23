@@ -18,6 +18,7 @@ ver 3.1.7
   --with-imagelib option in Linux.
   Fix segfault in starting mlterm with --pic option in framebuffer.
   Fix the malfunction of cursor keys in mlcc in cygwin. (Thanks to saitoha san)
+  Fix the bug of saving or restoring cursor in OSC ? 1047 h or OSC ? 1047 l.
 
 ver 3.1.6
 * Support ":[Percentage]" format for font-fb.
