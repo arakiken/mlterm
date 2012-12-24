@@ -7203,7 +7203,7 @@ xterm_get_picture_data(
 		bytes[0] = idx ;
 
 		max_num_of_cols = ml_term_get_cursor_line( screen->term)->num_of_chars -
-				ml_term_cursor_col( screen->term) ;
+					ml_term_cursor_col( screen->term) ;
 		if( ( *num_of_cols = (width + col_width - 1) / col_width) > max_num_of_cols)
 		{
 			*num_of_cols = max_num_of_cols ;

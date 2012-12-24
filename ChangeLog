@@ -1,3 +1,8 @@
+2012-12-24  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: "show_picture" of configuration protocol
+	  accepts "clip WxH+X+Y" which clips region of the specified picture.
+
 2012-12-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: {save|restore}_cursor() aren't called in

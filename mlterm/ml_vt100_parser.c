@@ -981,8 +981,12 @@ static void
 show_picture(
 	ml_vt100_parser_t *  vt100_parser ,
 	char *  file_path ,
-	int  num_of_cols ,
-	int  num_of_rows
+	int  clip_beg_col ,
+	int  clip_beg_row ,
+	int  clip_cols ,
+	int  clip_rows ,
+	int  img_cols ,
+	int  img_rows
 	)
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,get_picture_data))
@@ -993,21 +997,42 @@ show_picture(
 
 		if( ( data = (*vt100_parser->xterm_listener->get_picture_data)(
 				vt100_parser->xterm_listener->self ,
-				file_path , &num_of_cols , &num_of_rows)))
+				file_path , &img_cols , &img_rows)) &&
+		    clip_beg_row < img_rows && clip_beg_col < img_cols)
 		{
 			ml_char_t *  p ;
 			int  row ;
 			int  cursor_col ;
 
-			p = data ;
+			if( clip_cols == 0)
+			{
+				clip_cols = img_cols - clip_beg_col ;
+			}
+
+			if( clip_rows == 0)
+			{
+				clip_rows = img_rows - clip_beg_row ;
+			}
+
+			if( clip_beg_row + clip_rows > img_rows)
+			{
+				clip_rows = img_rows - clip_beg_row ;
+			}
+
+			if( clip_beg_col + clip_cols > img_cols)
+			{
+				clip_cols = img_cols - clip_beg_col ;
+			}
+
+			p = data + (img_cols * clip_beg_row) ;
 			row = 0 ;
 			cursor_col = ml_screen_cursor_col( vt100_parser->screen) ;
 			while( 1)
 			{
 				ml_screen_overwrite_chars( vt100_parser->screen ,
-					p , num_of_cols) ;
+					p + clip_beg_col , clip_cols) ;
 
-				if( ++row >= num_of_rows)
+				if( ++row >= clip_rows)
 				{
 					break ;
 				}
@@ -1015,10 +1040,10 @@ show_picture(
 				ml_screen_line_feed( vt100_parser->screen) ;
 				ml_screen_go_horizontally( vt100_parser->screen , cursor_col) ;
 
-				p += num_of_cols ;
+				p += img_cols ;
 			}
 
-			ml_str_delete( data , num_of_cols * num_of_rows) ;
+			ml_str_delete( data , img_cols * img_rows) ;
 		}
 
 		ml_set_use_char_combining( vt100_parser->use_char_combining) ;
@@ -1052,31 +1077,39 @@ config_protocol_set(
 		soft_reset( vt100_parser) ;
 	}
 #ifdef  ENABLE_SIXEL
-	else if( strncmp( pt , "show_picture " , 12) == 0)
+	else if( strncmp( pt , "show_picture " , 13) == 0)
 	{
-		int  num_of_cols ;
-		int  num_of_rows ;
+		int  clip_beg_col = 0 ;
+		int  clip_beg_row = 0 ;
+		int  clip_cols = 0 ;
+		int  clip_rows = 0 ;
+		int  img_cols = 0 ;
+		int  img_rows = 0 ;
 		char **  argv ;
 		int  argc ;
 
-		num_of_cols = num_of_rows = 0 ;
-
 		argv = kik_arg_str_to_array( &argc , pt) ;
-		if( argc == 3)
-		{
-			sscanf( argv[2] , "%dx%d" , &num_of_cols , &num_of_rows) ;
-		}
-		else if( argc != 2)
+		if( argc == 1)
 		{
 			return ;
 		}
 
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " %s w %d h %d\n" ,
-			argv[1] , num_of_cols , num_of_rows) ;
-	#endif
+		if( argc >= 3)
+		{
+			sscanf( argv[2] , "%dx%d" , &img_cols , &img_rows) ;
 
-		show_picture( vt100_parser , argv[1] , num_of_cols , num_of_rows) ;
+			if( argc >= 4 &&
+			    strcmp( argv[argc - 2] , "clip") == 0)
+			{
+				sscanf( argv[argc - 1] , "%dx%d+%d+%d" ,
+					&clip_cols , &clip_rows ,
+					&clip_beg_col , &clip_beg_row) ;
+			}
+		}
+
+		show_picture( vt100_parser , argv[1] ,
+			clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
+				img_cols , img_rows) ;
 	}
 #endif
 #ifdef  USE_LIBSSH2
@@ -3988,7 +4021,7 @@ parse_vt100_escape_sequence(
 
 				fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 				fclose( fp) ;
-				show_picture( vt100_parser , file_path , 0 , 0) ;
+				show_picture( vt100_parser , file_path , 0 , 0 , 0 , 0 , 0 , 0) ;
 			}
 			else if( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0)
 			{

@@ -29,7 +29,7 @@ version 20110903
                      open_screen | snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
                      mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
                      search_prev <pattern> | search_next <pattern> | update_all |
-		     show_picture <file name> (WxH+X+Y) |
+		     show_picture <file name> (WxH) (clip WxH+X+Y) |
                      scp (local:|remote:)<src file name> (local:|remote:)<dst directory name>
                      (<encoding name>)
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
