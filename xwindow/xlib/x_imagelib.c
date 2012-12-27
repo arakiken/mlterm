@@ -82,6 +82,10 @@
 	 ((((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) & (rgbinfo).g_mask) | \
 	 ((((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset) & (rgbinfo).b_mask) )
 
+#ifndef  G_PLATFORM_WIN32
+GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
+#endif
+
 
 typedef struct  rgb_info
 {
@@ -455,20 +459,41 @@ load_file(
 			if( strstr( path , "://"))
 			{
 				GFile *  file ;
-				GFileInputStream *  in ;
+				GInputStream *  in ;
 
-				if( ( in = g_file_read(
+				if( ( in = (GInputStream*)g_file_read(
 						( file = g_vfs_get_file_for_uri(
 								g_vfs_get_default() , path)) ,
 						NULL , NULL)))
 				{
-					pixbuf = gdk_pixbuf_new_from_stream(
-							(GInputStream*)in , NULL , NULL) ;
+					pixbuf = gdk_pixbuf_new_from_stream( in , NULL , NULL) ;
 					g_object_unref( in) ;
 				}
 				else
 				{
+				#ifndef  G_PLATFORM_WIN32
+					char *  cmd ;
+				#endif
+
 					pixbuf = NULL ;
+
+					/* g_unix_input_stream_new doesn't exists on win32. */
+				#ifndef  G_PLATFORM_WIN32
+					if( ( cmd = alloca( 11 + strlen( path) + 1)))
+					{
+						FILE *  fp ;
+
+						sprintf( cmd , "curl -k -s %s" , path) ;
+						if( ( fp = popen( cmd , "r")))
+						{
+							in = g_unix_input_stream_new(
+								fileno(fp) , FALSE) ;
+							pixbuf = gdk_pixbuf_new_from_stream(
+									in , NULL , NULL) ;
+							fclose( fp) ;
+						}
+					}
+				#endif
 				}
 
 				g_object_unref( file) ;

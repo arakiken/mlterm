@@ -231,6 +231,8 @@ delete_inline_picture(
 	/* pixmap == None means that the inline picture is empty. */
 	pic->pixmap = None ;
 	pic->display = NULL ;
+
+	free( pic->file_path) ;
 }
 
 static void
@@ -261,6 +263,7 @@ cleanup_inline_pictures(
 	ml_term_t *  term
 	)
 {
+	static int  counter ;
 	u_int8_t *  flags ;
 	u_int  count ;
 	int  beg ;
@@ -269,13 +272,19 @@ cleanup_inline_pictures(
 	ml_line_t *  line ;
 	int  empty_idx ;
 
-	if( num_of_inline_pics == 0 || ! ( flags = alloca( num_of_inline_pics)))
+	if( num_of_inline_pics == 0)
 	{
 		/* XXX */
 		ml_term_pty_closed_event = pty_closed ;
 
 		return  -1 ;
 	}
+
+	if( counter ++ < 8 || ! ( flags = alloca( num_of_inline_pics)))
+	{
+		return  -1 ;
+	}
+	counter = 0 ;
 
 	memset( flags , 0 , num_of_inline_pics) ;
 
@@ -641,6 +650,31 @@ x_load_inline_picture(
 	int  idx ;
 	Pixmap  pixmap ;
 
+	/* XXX Don't reuse ~/.mlterm/[pty name].six */
+	if( ! strstr( file_path , "mlterm/"))
+	{
+		for( idx = 0 ; idx < num_of_inline_pics ; idx++)
+		{
+			if( inline_pics[idx].pixmap &&
+			    strcmp( file_path , inline_pics[idx].file_path) == 0 &&
+			    disp->display == inline_pics[idx].display &&
+			    term == inline_pics[idx].term &&
+			    /* XXX */ (*width == 0 || *width == inline_pics[idx].width) &&
+			    /* XXX */ (*height == 0 || *height == inline_pics[idx].height))
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Use cached picture(%s).\n" ,
+					file_path) ;
+			#endif
+
+				*width = inline_pics[idx].width ;
+				*height = inline_pics[idx].height ;
+
+				return  idx ;
+			}
+		}
+	}
+
 	if( ! x_imagelib_load_file( disp , file_path , NULL , &pixmap , NULL , width , height))
 	{
 		return  -1 ;
@@ -663,6 +697,7 @@ x_load_inline_picture(
 	}
 
 	inline_pics[idx].pixmap = pixmap ;
+	inline_pics[idx].file_path = strdup( file_path) ;
 	inline_pics[idx].width = *width ;
 	inline_pics[idx].height = *height ;
 	inline_pics[idx].display = disp->display ;

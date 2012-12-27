@@ -59,6 +59,7 @@ typedef struct x_icon_picture
 typedef struct x_inline_picture
 {
 	Pixmap  pixmap ;
+	char *  file_path ;
 	u_int  width ;
 	u_int  height ;
 	Display *  display ;

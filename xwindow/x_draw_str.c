@@ -148,14 +148,6 @@ fc_draw_combining_chars(
 		ch_size = ml_char_size( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 
-	#ifdef  ENABLE_SIXEL
-		/* Note that ml_char_size() returns 2 for PICTURE_CHARSET. */
-		if( ch_cs == PICTURE_CHARSET)
-		{
-			continue ;
-		}
-		else
-	#endif
 		if( ch_cs == DEC_SPECIAL)
 		{
 			x_window_draw_decsp_string( window ,
@@ -238,6 +230,10 @@ fc_draw_str(
 	int  next_is_underlined ;
 	u_int  next_ch_width ;
 	int  next_draw_alone ;
+#ifdef  ENABLE_SIXEL
+	ml_char_t *  next_comb_chars ;
+	u_int  next_comb_size ;
+#endif
 
 #ifdef  PERF_DEBUG
 	int  draw_count = 0 ;
@@ -301,6 +297,10 @@ fc_draw_str(
 
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
 
+#ifdef  ENABLE_SIXEL
+	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
+#endif
+
 	if( ( str8 = alloca( sizeof( /* FcChar8 */ u_int8_t) * num_of_chars)) == NULL)
 	{
 		return	0 ;
@@ -338,7 +338,9 @@ fc_draw_str(
 			str32[str_len++] = mkf_bytes_to_int( ucs4_bytes , 4) ;
 		}
 
+	#ifndef  ENABLE_SIXEL
 		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
+	#endif
 
 		/*
 		 * next character.
@@ -383,6 +385,11 @@ fc_draw_str(
 			next_ch_width = x_calculate_char_width( next_xfont ,
 						ch_bytes , ch_size , ch_cs , &next_draw_alone) ;
 
+		#ifdef  ENABLE_SIXEL
+			next_comb_chars = ml_get_combining_chars( &chars[count] ,
+						&next_comb_size) ;
+		#endif
+
 			if( current_width + next_ch_width > window->width)
 			{
 				start_draw = 1 ;
@@ -410,7 +417,12 @@ fc_draw_str(
 				|| draw_alone
 				|| next_draw_alone
 				/* FONT_BOLD flag is not the same. */
-			        || ((font ^ next_font) & FONT_BOLD))
+			        || ((font ^ next_font) & FONT_BOLD)
+			#ifdef  ENABLE_SIXEL
+				|| (next_comb_chars &&
+				    ml_char_cs(next_comb_chars) == PICTURE_CHARSET)
+			#endif
+				)
 			{
 				start_draw = 1 ;
 			}
@@ -549,6 +561,10 @@ fc_draw_str(
 		state = next_state ;
 		draw_alone = next_draw_alone ;
 		current_width += (ch_width = next_ch_width) ;
+	#ifdef  ENABLE_SIXEL
+		comb_chars = next_comb_chars ;
+		comb_size = next_comb_size ;
+	#endif
 	}
 
 	if( updated_width != NULL)
@@ -594,14 +610,6 @@ xcore_draw_combining_chars(
 		ch_size = ml_char_size( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 
-	#ifdef  ENABLE_SIXEL
-		/* Note that ml_char_size() returns 2 for PICTURE_CHARSET. */
-		if( ch_cs == PICTURE_CHARSET)
-		{
-			continue ;
-		}
-		else
-	#endif
 		if( ch_cs == DEC_SPECIAL)
 		{
 			x_window_draw_decsp_string( window ,
@@ -696,7 +704,10 @@ xcore_draw_str(
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
 	int  next_draw_alone ;
-
+#ifdef  ENABLE_SIXEL
+	ml_char_t *  next_comb_chars ;
+	u_int  next_comb_size ;
+#endif
 #ifdef  PERF_DEBUG
 	int  draw_count = 0 ;
 #endif
@@ -759,6 +770,10 @@ xcore_draw_str(
 	bg_color = ml_char_bg_color( &chars[count]) ;
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
 
+#ifdef  ENABLE_SIXEL
+	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
+#endif
+
 	if( ( str = alloca( sizeof( char) * num_of_chars)) == NULL)
 	{
 		return	0 ;
@@ -793,7 +808,9 @@ xcore_draw_str(
 			str_len += (x_convert_ucs4_to_utf16( str2b + str_len , ch_bytes) / 2) ;
 		}
 
+	#ifndef  ENABLE_SIXEL
 		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
+	#endif
 
 		/*
 		 * next character.
@@ -838,6 +855,11 @@ xcore_draw_str(
 			next_ch_width = x_calculate_char_width( next_xfont ,
 						ch_bytes , ch_size , ch_cs , &next_draw_alone) ;
 
+		#ifdef  ENABLE_SIXEL
+			next_comb_chars = ml_get_combining_chars( &chars[count] ,
+						&next_comb_size) ;
+		#endif
+
 			if( current_width + next_ch_width > window->width)
 			{
 				start_draw = 1 ;
@@ -865,7 +887,12 @@ xcore_draw_str(
 				|| draw_alone
 				|| next_draw_alone
 				/* FONT_BOLD flag is not the same */
-			        || ((font ^ next_font) & FONT_BOLD))
+			        || ((font ^ next_font) & FONT_BOLD)
+			#ifdef  ENABLE_SIXEL
+				|| (next_comb_chars &&
+				    ml_char_cs(next_comb_chars) == PICTURE_CHARSET)
+			#endif
+				)
 			{
 				start_draw = 1 ;
 			}
@@ -891,7 +918,8 @@ xcore_draw_str(
 							font & FONT_BOLD , is_underlined) ;
 
 		#ifdef  ENABLE_SIXEL
-			if( comb_chars && draw_picture( window , comb_chars , x , y))
+			if( comb_chars && draw_picture( window , comb_chars ,
+						current_width - ch_width , y))
 			{
 				goto  draw_decoration ;
 			}
@@ -1031,6 +1059,10 @@ xcore_draw_str(
 		state = next_state ;
 		draw_alone = next_draw_alone ;
 		current_width += (ch_width = next_ch_width) ;
+	#ifdef  ENABLE_SIXEL
+		comb_chars = next_comb_chars ;
+		comb_size = next_comb_size ;
+	#endif
 	}
 
 	if( updated_width != NULL)

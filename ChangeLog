@@ -1,3 +1,21 @@
+2012-12-28  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.[ch]: The inline picture which have the same file_path
+	  is shared.
+
+	* x_draw_str.c: The position of drawing inline pictures following
+	  US ASCII characters is fixed.
+
+	* ml_vt100_parser.c: The format of "show_picture" of configuration
+	  protocol is changed from "WxH clip WxH+X+Y" to "WxH WxH+X+Y".
+
+	* doc/ja/README.w3m: Added.
+
+	* tool/mlimgloader/gdk-pixbuf.c, xlib/x_imagelib.c:
+	  Remote access with curl is supported.
+
+	* tool/mlimgloader/gdiplus.c: Remote access with URLMoniker is supported.
+
 2012-12-24  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: "show_picture" of configuration protocol

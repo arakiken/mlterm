@@ -1096,14 +1096,24 @@ config_protocol_set(
 
 		if( argc >= 3)
 		{
-			sscanf( argv[2] , "%dx%d" , &img_cols , &img_rows) ;
+			int  has_img_size ;
 
-			if( argc >= 4 &&
-			    strcmp( argv[argc - 2] , "clip") == 0)
+			if( strchr( argv[argc - 1] , '+'))
 			{
 				sscanf( argv[argc - 1] , "%dx%d+%d+%d" ,
 					&clip_cols , &clip_rows ,
 					&clip_beg_col , &clip_beg_row) ;
+
+				has_img_size = (argc >= 4) ;
+			}
+			else
+			{
+				has_img_size = 1 ;
+			}
+
+			if( has_img_size)
+			{
+				sscanf( argv[2] , "%dx%d" , &img_cols , &img_rows) ;
 			}
 		}
 

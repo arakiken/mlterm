@@ -36,7 +36,7 @@ LIBS2_fb = $(LIBS2_xlib)
 LIBS2_win32 = -mwindows
 
 LIBS3_gdk-pixbuf = @GDK_PIXBUF_LIBS@
-LIBS3_gdiplus = -lgdiplus -lstdc++
+LIBS3_gdiplus = -lgdiplus -lstdc++ -lole32
 
 LIBS = $(LIBS1) $(LIBS2_@GUI@) $(LIBS3_@MLIMGLOADER_LIB@)
 

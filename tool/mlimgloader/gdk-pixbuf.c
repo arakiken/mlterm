@@ -33,6 +33,10 @@
 #define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
 #endif
 
+#ifndef  G_PLATFORM_WIN32
+GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
+#endif
+
 #if  0
 #define  __DEBUG
 #endif
@@ -71,21 +75,44 @@ load_file(
 		if( strstr( path , "://"))
 		{
 			GFile *  file ;
-			GFileInputStream *  in ;
+			GInputStream *  in ;
 
-			if( ( in = g_file_read(
+			if( ( in = (GInputStream*)g_file_read(
 					( file = g_vfs_get_file_for_uri(
 							g_vfs_get_default() , path)) ,
 					NULL , NULL)))
 			{
 				pixbuf_tmp = gdk_pixbuf_new_from_stream(
-						(GInputStream*)in , NULL , NULL) ;
+						in , NULL , NULL) ;
 				g_object_unref( in) ;
 			}
 			else
 			{
+			#ifndef  G_PLATFORM_WIN32
+				char *  cmd ;
+			#endif
+
 				pixbuf_tmp = NULL ;
+
+				/* g_unix_input_stream_new doesn't exists on win32. */
+			#ifndef  G_PLATFORM_WIN32
+				if( ( cmd = alloca( 11 + strlen( path) + 1)))
+				{
+					FILE *  fp ;
+
+					sprintf( cmd , "curl -k -s %s" , path) ;
+					if( ( fp = popen( cmd , "r")))
+					{
+						in = g_unix_input_stream_new( fileno(fp) , FALSE) ;
+						pixbuf_tmp = gdk_pixbuf_new_from_stream(
+								in , NULL , NULL) ;
+						fclose( fp) ;
+					}
+				}
+			#endif
 			}
+
+			g_object_unref( file) ;
 		}
 		else
 	#endif
@@ -104,26 +131,33 @@ load_file(
 
 	/* loading from file/cache ends here */
 
-	if( width == 0)
+	if( width == 0 && height == 0)
 	{
-		width = gdk_pixbuf_get_width( pixbuf_tmp) ;
+		pixbuf = pixbuf_tmp ;
 	}
-	if( height == 0)
+	else
 	{
-		height = gdk_pixbuf_get_height( pixbuf_tmp) ;
+		if( width == 0)
+		{
+			width = gdk_pixbuf_get_width( pixbuf_tmp) ;
+		}
+		if( height == 0)
+		{
+			height = gdk_pixbuf_get_height( pixbuf_tmp) ;
+		}
+
+		pixbuf = gdk_pixbuf_scale_simple( pixbuf_tmp , width , height , scale_type) ;
+
+		g_object_unref( pixbuf_tmp) ;
+
+	#ifdef __DEBUG
+		if( pixbuf)
+		{
+			kik_warn_printf( KIK_DEBUG_TAG
+				" creating a scaled pixbuf(%d x %d)\n" , width , height) ;
+		}
+	#endif
 	}
-
-	pixbuf = gdk_pixbuf_scale_simple( pixbuf_tmp , width , height , scale_type) ;
-
-	g_object_unref( pixbuf_tmp) ;
-
-#ifdef __DEBUG
-	if( pixbuf)
-	{
-		kik_warn_printf( KIK_DEBUG_TAG
-			" creating a scaled pixbuf(%d x %d)\n" , width , height) ;
-	}
-#endif
 
 	/* scaling ends here */
 

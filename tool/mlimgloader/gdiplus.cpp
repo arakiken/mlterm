@@ -6,10 +6,6 @@
 #include  <unistd.h>	/* STDOUT_FILENO */
 #include  <stdlib.h>	/* mbstowcs_s */
 
-#ifdef  USE_WIN32API
-#include  <fcntl.h>	/* O_BINARY */
-#endif
-
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include  <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
@@ -47,6 +43,9 @@ create_cardinals_from_file(
 	size_t  wpath_len ;
 	Gdiplus::GdiplusStartupInput  startup ;
 	ULONG_PTR  token ;
+	IBindCtx *  ctx ;
+	IMoniker *  moniker ;
+	IStream *  stream ;
 	Gdiplus::Bitmap *  bitmap ;
 	u_int32_t *  cardinal ;
 	u_int32_t *  p ;
@@ -62,9 +61,44 @@ create_cardinals_from_file(
 		return  NULL ;
 	}
 
+	stream = NULL ;
+
+	if( strstr( path , "://"))
+	{
+		typedef HRESULT (*func)(IMoniker * , LPCWSTR , IMoniker ** , DWORD) ;
+		func  create_url_moniker ;
+		HMODULE  module ;
+
+		SetDllDirectory( "") ;
+		if( ( module = LoadLibrary( "urlmon")) &&
+		    ( create_url_moniker = (func)GetProcAddress( module ,
+							"CreateURLMonikerEx")))
+		{
+			if( (*create_url_moniker)( NULL , wpath , &moniker ,
+					URL_MK_UNIFORM) == S_OK)
+			{
+				if( CreateBindCtx( 0 , &ctx) == S_OK)
+				{
+					if( moniker->BindToStorage( ctx , NULL ,
+						IID_PPV_ARGS(&stream)) != S_OK)
+					{
+						ctx->Release() ;
+						moniker->Release() ;
+					}
+				}
+				else
+				{
+					moniker->Release() ;
+				}
+			}
+		}
+	}
+
 	if( width == 0 || height == 0)
 	{
-		if( ! ( bitmap = Gdiplus::Bitmap::FromFile( wpath)))
+		if( stream ?
+		    ! ( bitmap = Gdiplus::Bitmap::FromStream( stream)) :
+		    ! ( bitmap = Gdiplus::Bitmap::FromFile( wpath)) )
 		{
 			goto  error1 ;
 		}
@@ -74,7 +108,9 @@ create_cardinals_from_file(
 		Image *  image ;
 		Graphics *  graphics ;
 
-		if( ! ( image = Image::FromFile( wpath)))
+		if( stream ?
+		    ! ( image = Image::FromStream( stream)) :
+		    ! ( image = Image::FromFile( wpath)) )
 		{
 			goto  error1 ;
 		}
@@ -106,6 +142,13 @@ create_cardinals_from_file(
 	if( bitmap->GetLastStatus() != Gdiplus::Ok)
 	{
 		goto  error2 ;
+	}
+
+	if( stream)
+	{
+		stream->Release() ;
+		ctx->Release() ;
+		moniker->Release() ;
 	}
 
 	width = bitmap->GetWidth() ;
