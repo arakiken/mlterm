@@ -33,8 +33,10 @@
 #define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
 #endif
 
+#if  GDK_PIXBUF_MAJOR >= 2 && GDK_PIXBUF_MINOR >= 14
 #ifndef  G_PLATFORM_WIN32
 GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
+#endif
 #endif
 
 #if  0

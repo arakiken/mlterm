@@ -82,8 +82,10 @@
 	 ((((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) & (rgbinfo).g_mask) | \
 	 ((((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset) & (rgbinfo).b_mask) )
 
+#if  GDK_PIXBUF_MAJOR >= 2 && GDK_PIXBUF_MINOR >= 14
 #ifndef  G_PLATFORM_WIN32
 GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
+#endif
 #endif
 
 
