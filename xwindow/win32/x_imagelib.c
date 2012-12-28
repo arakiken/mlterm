@@ -147,7 +147,7 @@ load_file(
 
 	ZeroMemory(&si,sizeof(STARTUPINFO)) ;
 	si.cb = sizeof(STARTUPINFO) ;
-	si.dwFlags = STARTF_USESTDHANDLES ;
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_FORCEOFFFEEDBACK ;
 	si.hStdOutput = output_write ;
 	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE) ;
 	si.hStdError = GetStdHandle(STD_ERROR_HANDLE) ;

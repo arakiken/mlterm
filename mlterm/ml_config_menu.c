@@ -247,7 +247,7 @@ ml_config_menu_start(
 	/* Set up the start up info struct. */
 	ZeroMemory(&si,sizeof(STARTUPINFO)) ;
 	si.cb = sizeof(STARTUPINFO) ;
-	si.dwFlags = STARTF_USESTDHANDLES ;
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_FORCEOFFFEEDBACK ;
 	si.hStdOutput = output_write ;
 	si.hStdInput  = input_read ;
 	si.hStdError  = error_write ;

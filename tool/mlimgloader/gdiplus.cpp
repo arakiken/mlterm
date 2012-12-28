@@ -18,6 +18,7 @@
 #include  <sys/cygwin.h>
 #endif
 
+#define  _WIN32_WINNT 0x0502	/* for SetDllDirectory */
 #include  <windows.h>
 #include  <gdiplus.h>
 
@@ -43,8 +44,10 @@ create_cardinals_from_file(
 	size_t  wpath_len ;
 	Gdiplus::GdiplusStartupInput  startup ;
 	ULONG_PTR  token ;
+#ifdef  IID_PPV_ARGS
 	IBindCtx *  ctx ;
 	IMoniker *  moniker ;
+#endif
 	IStream *  stream ;
 	Gdiplus::Bitmap *  bitmap ;
 	u_int32_t *  cardinal ;
@@ -63,6 +66,7 @@ create_cardinals_from_file(
 
 	stream = NULL ;
 
+#ifdef  IID_PPV_ARGS
 	if( strstr( path , "://"))
 	{
 		typedef HRESULT (*func)(IMoniker * , LPCWSTR , IMoniker ** , DWORD) ;
@@ -93,6 +97,7 @@ create_cardinals_from_file(
 			}
 		}
 	}
+#endif
 
 	if( width == 0 || height == 0)
 	{
@@ -144,12 +149,14 @@ create_cardinals_from_file(
 		goto  error2 ;
 	}
 
+#ifdef  IID_PPV_ARGS
 	if( stream)
 	{
 		stream->Release() ;
 		ctx->Release() ;
 		moniker->Release() ;
 	}
+#endif
 
 	width = bitmap->GetWidth() ;
 	height = bitmap->GetHeight() ;
