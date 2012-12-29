@@ -1,3 +1,8 @@
+2012-12-29  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c: Unused inline pictures aren't cleaned up until the
+	  number of inline pictures reaches 24.
+
 2012-12-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_config_menu.c, ml_pty_pipewin32.c, mlimgloader/gdiplus.cpp,

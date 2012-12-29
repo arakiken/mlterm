@@ -376,6 +376,10 @@ delete(
 		if( dbus_connection_get_unix_fd( ibus_connection_get_connection(
 				ibus_bus_get_connection( ibus_bus)) , &fd))
 	#else
+		/*
+		 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
+		 * regarded as GSocketConnection.
+		 */
 		if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
 				g_dbus_connection_get_stream(
 					ibus_bus_get_connection( ibus_bus))))) != -1)
@@ -609,6 +613,10 @@ im_ibus_new(
 			goto  error ;
 		}
 	#else
+		/*
+		 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
+		 * regarded as GSocketConnection.
+		 */
 		if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
 				g_dbus_connection_get_stream(
 					ibus_bus_get_connection( ibus_bus))))) == -1)

@@ -159,7 +159,7 @@ create_icon_picture(
 	char *  file_path	/* Don't specify NULL. */
 	)
 {
-	int  icon_size = 48 ;
+	u_int  icon_size = 48 ;
 	x_icon_picture_t *  pic ;
 
 	if( ( pic = malloc( sizeof( x_icon_picture_t))) == NULL)
@@ -263,51 +263,61 @@ cleanup_inline_pictures(
 	ml_term_t *  term
 	)
 {
-	static int  counter ;
-	u_int8_t *  flags ;
+#define IS_PENDING_CLEANUP  (wait_count < 8)
+	static int  wait_count ;
 	u_int  count ;
-	int  beg ;
-	int  end ;
-	int  row ;
-	ml_line_t *  line ;
 	int  empty_idx ;
+	u_int8_t *  flags ;
 
-	if( num_of_inline_pics == 0)
+	/*
+	 * Don't cleanup unused inline pictures until the number of inline
+	 * pictures reaches 24 (num_of_inline_pics == 16 and wait_count == 8).
+	 */
+	if( num_of_inline_pics < 16 || ! ( flags = alloca( num_of_inline_pics)))
 	{
-		/* XXX */
-		ml_term_pty_closed_event = pty_closed ;
-
-		return  -1 ;
-	}
-
-	if( counter ++ < 8 || ! ( flags = alloca( num_of_inline_pics)))
-	{
-		return  -1 ;
-	}
-	counter = 0 ;
-
-	memset( flags , 0 , num_of_inline_pics) ;
-
-	beg = - ml_term_get_num_of_logged_lines( term) ;
-	end = ml_term_get_rows( term) ;
-
-	for( row = beg ; row <= end ; row++)
-	{
-		if( ( line = ml_term_get_line( term , row)))
+		if( num_of_inline_pics == 0)
 		{
-			for( count = 0 ; count < line->num_of_filled_chars ; count++)
+			/* XXX */
+			ml_term_pty_closed_event = pty_closed ;
+		}
+
+		return  -1 ;
+	}
+
+	if( IS_PENDING_CLEANUP)
+	{
+		memset( flags , 1 , num_of_inline_pics) ;
+	}
+	else
+	{
+		int  beg ;
+		int  end ;
+		int  row ;
+		ml_line_t *  line ;
+
+		memset( flags , 0 , num_of_inline_pics) ;
+
+		beg = - ml_term_get_num_of_logged_lines( term) ;
+		end = ml_term_get_rows( term) ;
+
+		for( row = beg ; row <= end ; row++)
+		{
+			if( ( line = ml_term_get_line( term , row)))
 			{
-				ml_char_t *  comb ;
-				u_int  size ;
-
-				if( ( comb = ml_get_combining_chars( line->chars + count ,
-							&size)) &&
-				    ml_char_cs( comb) == PICTURE_CHARSET)
+				for( count = 0 ; count < line->num_of_filled_chars ; count++)
 				{
-					u_int16_t *  bytes ;
+					ml_char_t *  comb ;
+					u_int  size ;
 
-					bytes = (u_int16_t*)ml_char_bytes( comb) ;
-					flags[bytes[0]] = 1 ;
+					if( ( comb = ml_get_combining_chars( line->chars + count ,
+								&size)) &&
+					    ml_char_cs( comb) == PICTURE_CHARSET)
+					{
+						u_int16_t *  bytes ;
+
+						bytes = (u_int16_t*)ml_char_bytes( comb) ;
+						flags[bytes[0]] = 1 ;
+					}
 				}
 			}
 		}
@@ -337,7 +347,21 @@ cleanup_inline_pictures(
 		if( empty_idx == -1)
 		{
 			empty_idx = count ;
+
+			if( IS_PENDING_CLEANUP)
+			{
+				break ;
+			}
 		}
+	}
+
+	if( IS_PENDING_CLEANUP)
+	{
+		wait_count ++ ;
+	}
+	else
+	{
+		wait_count = 0 ;
 	}
 
 	return  empty_idx ;
