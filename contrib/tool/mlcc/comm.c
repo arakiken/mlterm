@@ -85,7 +85,7 @@ static ssize_t read_stdin_timeout(void *buf, size_t nbytes){
 	fd_set fds;
 	struct timeval tval;
 
-	tval.tv_usec = 1000;	/* 0.01 sec */
+	tval.tv_usec = 10000;	/* 0.01 sec */
 	tval.tv_sec = 0;
 
 	FD_SET(STDIN_FILENO, &fds);
@@ -209,9 +209,20 @@ void cursor_hide(void){
 	csi("[?25l");
 }
 
-void term_size(int *w, int *h){
-	*w = atoi(mlterm_get_param("cols"));
-	*h = atoi(mlterm_get_param("rows"));
+int term_size(int *w, int *h){
+	char *p;
+
+	if (!(p = mlterm_get_param("cols")))
+		return -1;
+	else
+		*w = atoi(p);
+
+	if (!(p = mlterm_get_param("rows")))
+		return -1;
+	else
+		*h = atoi(p);
+
+	return 0;
 }
 
 char * mlterm_get_color_param(const char * key){

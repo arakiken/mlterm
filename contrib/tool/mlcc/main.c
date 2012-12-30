@@ -453,7 +453,9 @@ int main(int argc, char **argv){
 	termios_init();
 
 	init_data(&data);
-	term_size(&cols, &rows);
+	if (term_size(&cols, &rows) == -1)
+		goto FIN;
+
 	redraw_all = 1;
 	while(1){
 		if (redraw_all){

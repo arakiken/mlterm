@@ -264,6 +264,7 @@ cleanup_inline_pictures(
 	)
 {
 #define IS_PENDING_CLEANUP  (wait_count < 8)
+#define THRESHOLD  16
 	static int  wait_count ;
 	u_int  count ;
 	int  empty_idx ;
@@ -273,7 +274,7 @@ cleanup_inline_pictures(
 	 * Don't cleanup unused inline pictures until the number of inline
 	 * pictures reaches 24 (num_of_inline_pics == 16 and wait_count == 8).
 	 */
-	if( num_of_inline_pics < 16 || ! ( flags = alloca( num_of_inline_pics)))
+	if( num_of_inline_pics < THRESHOLD || ! ( flags = alloca( num_of_inline_pics)))
 	{
 		if( num_of_inline_pics == 0)
 		{
@@ -350,7 +351,22 @@ cleanup_inline_pictures(
 
 			if( IS_PENDING_CLEANUP)
 			{
-				break ;
+				if( empty_idx < THRESHOLD)
+				{
+					/*
+					 * Not increment wait_count if empty
+					 * index under THRESHOLD is found.
+					 */
+					return  empty_idx ;
+				}
+				else
+				{
+					break ;
+				}
+			}
+			else
+			{
+				/* Continue cleaning up. */
 			}
 		}
 	}

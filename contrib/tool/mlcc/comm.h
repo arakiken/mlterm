@@ -50,7 +50,7 @@ void cursor_hide(void);
 void dec_char(void);
 void normal_char(void);
 
-void term_size(int *w, int *h);
+int term_size(int *w, int *h);
 
 char * mlterm_get_color_param(const char * key);
 char * mlterm_get_font_param(const char * file, const char * key);
