@@ -2098,6 +2098,12 @@ ml_screen_cursor_invisible(
 	return  1 ;
 }
 
+/*
+ * XXX
+ * Note that alt_edit/normal_edit are directly switched by x_picture.c without
+ * using following 3 functions.
+ */
+
 int
 ml_screen_is_alternative_edit(
 	ml_screen_t *  screen

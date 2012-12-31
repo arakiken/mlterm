@@ -1,3 +1,7 @@
+2012-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.[ch]: Fixes around cleaning up inline pictures.
+
 2012-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* mlcc/comm.[ch], mlcc/main.c:

@@ -226,13 +226,12 @@ delete_inline_picture(
 	if( pic->display)
 	{
 		x_delete_image( pic->display , pic->pixmap) ;
+		free( pic->file_path) ;
+		pic->display = NULL ;
 	}
 
 	/* pixmap == None means that the inline picture is empty. */
 	pic->pixmap = None ;
-	pic->display = NULL ;
-
-	free( pic->file_path) ;
 }
 
 static void
@@ -263,16 +262,16 @@ cleanup_inline_pictures(
 	ml_term_t *  term
 	)
 {
-#define IS_PENDING_CLEANUP  (wait_count < 8)
-#define THRESHOLD  16
-	static int  wait_count ;
-	u_int  count ;
+#define THRESHOLD  24
+	static int  need_cleanup ;
+	int  count ;
 	int  empty_idx ;
 	u_int8_t *  flags ;
 
 	/*
-	 * Don't cleanup unused inline pictures until the number of inline
-	 * pictures reaches 24 (num_of_inline_pics == 16 and wait_count == 8).
+	 * Don't cleanup unused inline pictures until the number of cached inline
+	 * pictures is THRESHOLD or more(num_of_inline_pics >= THRESHOLD and
+	 * need_cleanup is true).
 	 */
 	if( num_of_inline_pics < THRESHOLD || ! ( flags = alloca( num_of_inline_pics)))
 	{
@@ -285,7 +284,7 @@ cleanup_inline_pictures(
 		return  -1 ;
 	}
 
-	if( IS_PENDING_CLEANUP)
+	if( ! need_cleanup)
 	{
 		memset( flags , 1 , num_of_inline_pics) ;
 	}
@@ -295,12 +294,15 @@ cleanup_inline_pictures(
 		int  end ;
 		int  row ;
 		ml_line_t *  line ;
+		int  restore_alt_edit ;
 
 		memset( flags , 0 , num_of_inline_pics) ;
 
 		beg = - ml_term_get_num_of_logged_lines( term) ;
 		end = ml_term_get_rows( term) ;
+		restore_alt_edit = 0 ;
 
+	check_pictures:
 		for( row = beg ; row <= end ; row++)
 		{
 			if( ( line = ml_term_get_line( term , row)))
@@ -322,11 +324,25 @@ cleanup_inline_pictures(
 				}
 			}
 		}
+
+		/* XXX FIXME */
+		if( term->screen->edit == &term->screen->alt_edit)
+		{
+			restore_alt_edit = 1 ;
+			term->screen->edit = &term->screen->normal_edit ;
+			beg = 0 ;
+
+			goto  check_pictures ;
+		}
+		else if( restore_alt_edit)
+		{
+			term->screen->edit = &term->screen->alt_edit ;
+		}
 	}
 
 	empty_idx = -1 ;
 
-	for( count = 0 ; count < num_of_inline_pics ; count++)
+	for( count = num_of_inline_pics - 1 ; count >= 0 ; count--)
 	{
 		if( inline_pics[count].pixmap == None)
 		{
@@ -334,11 +350,37 @@ cleanup_inline_pictures(
 		}
 		else if( ! flags[count] && inline_pics[count].term == term)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %d\n" , count) ;
-		#endif
+			/*
+			 * Don't cleanup inline pictures refered twice or more times
+			 * until num_of_inline_pics reaches 32 or more.
+			 */
+			if( inline_pics[count].ref_count >= 2 &&
+			    num_of_inline_pics < THRESHOLD + 8)
+			{
+				inline_pics[count].ref_count /= 2 ;
 
-			delete_inline_picture( inline_pics + count) ;
+				continue ;
+			}
+			else
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %s %d\n" ,
+					inline_pics[count].file_path , count) ;
+			#endif
+
+				delete_inline_picture( inline_pics + count) ;
+
+				if( count == num_of_inline_pics - 1)
+				{
+					num_of_inline_pics -- ;
+
+					/*
+					 * Don't return count because it is out
+					 * of num_of_inline_pics.
+					 */
+					continue ;
+				}
+			}
 		}
 		else
 		{
@@ -347,37 +389,30 @@ cleanup_inline_pictures(
 
 		if( empty_idx == -1)
 		{
-			empty_idx = count ;
-
-			if( IS_PENDING_CLEANUP)
+			if( ! need_cleanup)
 			{
-				if( empty_idx < THRESHOLD)
-				{
-					/*
-					 * Not increment wait_count if empty
-					 * index under THRESHOLD is found.
-					 */
-					return  empty_idx ;
-				}
-				else
-				{
-					break ;
-				}
+				return  count ;
 			}
 			else
 			{
+				empty_idx = count ;
+
 				/* Continue cleaning up. */
 			}
 		}
 	}
 
-	if( IS_PENDING_CLEANUP)
+	if( empty_idx == -1 && num_of_inline_pics >= THRESHOLD)
 	{
-		wait_count ++ ;
+		/*
+		 * There is no empty entry. (The number of cached inline pictures
+		 * is THRESHOLD or more.)
+		 */
+		need_cleanup = 1 ;
 	}
 	else
 	{
-		wait_count = 0 ;
+		need_cleanup = 0 ;
 	}
 
 	return  empty_idx ;
@@ -443,6 +478,8 @@ x_picture_display_closed(
 			 * Don't set x_inline_picture_t::pixmap = None here because
 			 * this inline picture can still exist in ml_term_t.
 			 */
+
+			free( inline_pics[count].file_path) ;
 			inline_pics[count].display = NULL ;
 		}
 	}
@@ -696,8 +733,8 @@ x_load_inline_picture(
 		for( idx = 0 ; idx < num_of_inline_pics ; idx++)
 		{
 			if( inline_pics[idx].pixmap &&
-			    strcmp( file_path , inline_pics[idx].file_path) == 0 &&
 			    disp->display == inline_pics[idx].display &&
+			    strcmp( file_path , inline_pics[idx].file_path) == 0 &&
 			    term == inline_pics[idx].term &&
 			    /* XXX */ (*width == 0 || *width == inline_pics[idx].width) &&
 			    /* XXX */ (*height == 0 || *height == inline_pics[idx].height))
@@ -709,6 +746,7 @@ x_load_inline_picture(
 
 				*width = inline_pics[idx].width ;
 				*height = inline_pics[idx].height ;
+				inline_pics[idx].ref_count ++ ;
 
 				return  idx ;
 			}
@@ -744,6 +782,7 @@ x_load_inline_picture(
 	inline_pics[idx].term = term ;
 	inline_pics[idx].col_width = col_width ;
 	inline_pics[idx].line_height = line_height ;
+	inline_pics[idx].ref_count = 1 ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " new inline picture (%s %d) is created.\n" ,

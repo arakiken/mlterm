@@ -64,8 +64,10 @@ typedef struct x_inline_picture
 	u_int  height ;
 	Display *  display ;
 	ml_term_t *  term ;
-	u_int  col_width ;
-	u_int  line_height ;
+	u_int8_t  col_width ;
+	u_int8_t  line_height ;
+
+	u_int16_t  ref_count ;
 
 } x_inline_picture_t ;
 
