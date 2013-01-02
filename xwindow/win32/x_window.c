@@ -2777,7 +2777,8 @@ x_window_draw_line(
 	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color.pixel))) ;
 
 	MoveToEx( win->gc->gc, x1, y1, NULL) ;
-	LineTo( win->gc->gc, x2, y2) ;
+	/* LineTo draw line from x1/y1 to x2/y2 except x2/y2 point. */
+	LineTo( win->gc->gc, x2 + 1, y2 + 1) ;
 
 	return  1 ;
 }

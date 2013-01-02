@@ -170,9 +170,7 @@ parse_escape(
 		{
 			/* we reach eos */
 
-			mkf_parser_reset( iso2022_parser) ;
-
-			return  0 ;
+			goto  reset ;
 		}
 
 		if( *iso2022_parser->parser.str == SS2_7)
@@ -216,9 +214,7 @@ parse_escape(
 				{
 					/* we reach eos */
 
-					mkf_parser_reset( iso2022_parser) ;
-
-					return  0 ;
+					goto  reset ;
 				}
 
 				if( *iso2022_parser->parser.str == NON_ISO2022_CS_2)
@@ -226,10 +222,8 @@ parse_escape(
 					if( mkf_parser_increment( iso2022_parser) == 0)
 					{
 						/* we reach eos. */
-						
-						mkf_parser_reset( iso2022_parser) ;
 
-						return 0 ;
+						goto  reset ;
 					}
 
 					is_class_2 = 1 ;
@@ -264,10 +258,8 @@ parse_escape(
 				if( mkf_parser_increment( iso2022_parser) == 0)
 				{
 					/* we reach eos */
-					
-					mkf_parser_reset( iso2022_parser) ;
 
-					return  0 ;
+					goto  reset ;
 				}
 				
 				if( iso2022_parser->non_iso2022_is_started)
@@ -296,9 +288,7 @@ parse_escape(
 					{
 						/* we reach eos */
 
-						mkf_parser_reset( iso2022_parser) ;
-
-						return  0 ;
+						goto  reset ;
 					}
 
 					if( REV_NUM( *iso2022_parser->parser.str) == 1)
@@ -320,10 +310,8 @@ parse_escape(
 					if( mkf_parser_increment( iso2022_parser) == 0)
 					{
 						/* we reach eos. */
-						
-						mkf_parser_reset( iso2022_parser) ;
 
-						return  0 ;
+						goto  reset ;
 					}
 
 					if( *iso2022_parser->parser.str != ESC)
@@ -341,10 +329,8 @@ parse_escape(
 					if( mkf_parser_increment( iso2022_parser) == 0)
 					{
 						/* we reach eos. */
-						
-						mkf_parser_reset( iso2022_parser) ;
 
-						return  0 ;
+						goto  reset ;
 					}
 				}
 				else
@@ -355,14 +341,12 @@ parse_escape(
 				if( *iso2022_parser->parser.str == MB_CS)
 				{
 					is_mb = 1 ;
-					
+
 					if( mkf_parser_increment( iso2022_parser) == 0)
 					{
 						/* we reach eos */
 
-						mkf_parser_reset( iso2022_parser) ;
-
-						return  0 ;
+						goto  reset ;
 					}
 				}
 				else
@@ -385,9 +369,19 @@ parse_escape(
 					{
 						/* we reach eos. */
 
-						mkf_parser_reset( iso2022_parser) ;
+						goto  reset ;
+					}
 
-						return  0 ;
+					if( *iso2022_parser->parser.str == ' ')
+					{
+						/* is DRCS */
+
+						if( mkf_parser_increment( iso2022_parser) == 0)
+						{
+							/* we reach eos */
+
+							goto  reset ;
+						}
 					}
 
 					if( ! IS_FT( *iso2022_parser->parser.str))
@@ -470,10 +464,8 @@ parse_escape(
 			else
 			{
 				/* not ISO2022 intermediate char */
-				
-				mkf_parser_reset( iso2022_parser) ;
 
-				return  0 ;
+				goto  reset ;
 			}
 		}
 	}
@@ -481,14 +473,17 @@ parse_escape(
 	{
 		/* error. this is not escape sequence. */
 
-		mkf_parser_reset( iso2022_parser) ;
-
-		return  0 ;
+		goto  reset ;
 	}
 
 	mkf_parser_increment( iso2022_parser) ;
 
 	return  1 ;
+
+reset:
+	mkf_parser_reset( iso2022_parser) ;
+
+	return  0 ;
 }
 
 static int

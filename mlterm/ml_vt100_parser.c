@@ -27,6 +27,7 @@
 
 #include  "ml_iscii.h"
 #include  "ml_config_proto.h"
+#include  "ml_drcs.h"
 
 
 /*
@@ -749,11 +750,11 @@ restore_cursor(
 			/* XXX: what to do for g0/g1? */
 			if( src->cs == DEC_SPECIAL)
 			{
-				vt100_parser->is_dec_special_in_gl = 1;
+				vt100_parser->gl = DEC_SPECIAL ;
 			}
 			else
 			{
-				vt100_parser->is_dec_special_in_gl = 0;
+				vt100_parser->gl = US_ASCII ;
 			}
 		}
 	}
@@ -1855,9 +1856,9 @@ send_device_attributes(
 	{
 		/* vt100 answerback */
 	#ifdef  ENABLE_SIXEL
-		seq = "\x1b[?1;2;4c" ;
+		seq = "\x1b[?1;2;4;7c" ;
 	#else
-		seq = "\x1b[?1;2c" ;
+		seq = "\x1b[?1;2;7c" ;
 	#endif
 	}
 	else if( rank == 2)
@@ -2444,11 +2445,6 @@ parse_vt100_escape_sequence(
 							 * here, but it is temporized by using
 							 * ml_init_encoding_parser() etc for now.
 							 */
-
-							vt100_parser->is_dec_special_in_gl = 0 ;
-							vt100_parser->is_so = 0 ;
-							vt100_parser->is_dec_special_in_g0 = 0 ;
-							vt100_parser->is_dec_special_in_g1 = 0 ;
 
 							ml_init_encoding_parser( vt100_parser) ;
 						}
@@ -3902,13 +3898,14 @@ parse_vt100_escape_sequence(
 			}
 		#endif
 		}
-	#ifdef  ENABLE_SIXEL
 		else if( *str_p == 'P')
 		{
 			/* "ESC P" DCS */
 
 			u_char *  dcs_beg ;
+		#ifdef  ENABLE_SIXEL
 			char *  dir_path ;
+		#endif
 
 			while(1)
 			{
@@ -3916,10 +3913,12 @@ parse_vt100_escape_sequence(
 				dcs_beg = str_p - 1 ;
 				break ;
 
+		#ifdef  ENABLE_SIXEL
 			parse_dcs:
 				/* 0x90 ... */
 				dcs_beg = str_p ;
 				break ;
+		#endif
 			}
 
 			do
@@ -3931,6 +3930,7 @@ parse_vt100_escape_sequence(
 			}
 			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
 
+		#ifdef  ENABLE_SIXEL
 			if( ( *str_p == 'q' /* sixel */
 			    /* || *str_p == 'p' */ ) &&		/* ReGis */
 			    ( dir_path = kik_get_user_rc_path( "mlterm/")) )
@@ -4033,20 +4033,169 @@ parse_vt100_escape_sequence(
 				fclose( fp) ;
 				show_picture( vt100_parser , file_path , 0 , 0 , 0 , 0 , 0 , 0) ;
 			}
+			else
+		#endif  /* ENABLE_SIXEL */
+			if( *str_p == '{')
+			{
+				/* DECDLD */
+
+				u_char *  pt ;
+				ml_drcs_t *  font ;
+				int  num ;
+				u_char *  p ;
+				int  ps[8] ;
+				int  idx ;
+				int  is_end ;
+				u_int  width ;
+				u_int  height ;
+
+				while( 1)
+				{
+					if( *str_p == 0x9c ||
+					    ( *str_p == CTL_ESC && left > 1 &&
+					      *(str_p + 1) == '\\'))
+					{
+						*str_p = '\0' ;
+						increment_str( &str_p , &left) ;
+						break ;
+					}
+					else if( ! increment_str( &str_p , &left))
+					{
+						return  0 ;
+					}
+				}
+
+				if( *dcs_beg == '\x1b')
+				{
+					pt = dcs_beg + 2 ;
+				}
+				else /* if( *dcs_beg == '\x90') */
+				{
+					pt = dcs_beg + 1 ;
+				}
+
+				for( num = 0 ; num < 8 ; num ++)
+				{
+					p = pt ;
+
+					while( '0' <= *pt && *pt <= '9')
+					{
+						pt ++ ;
+					}
+
+					if( *pt == ';' || *pt == '{')
+					{
+						*(pt ++) = '\0' ;
+					}
+					else
+					{
+						break ;
+					}
+
+					ps[num] = *p ? atoi( p) : 0 ;
+				}
+
+				if( *pt == ' ')
+				{
+					/* ESC ( SP Ft */
+					pt ++ ;
+				}
+
+				if( num == 8 &&
+				    0x30 <= *pt && *pt <= 0x7e)
+				{
+					mkf_charset_t  cs ;
+
+					if( ps[7] == 0)
+					{
+						idx = ps[1] == 0 ? 1 : ps[1] ;
+						cs = CS94SB_ID(*pt) ;
+					}
+					else
+					{
+						idx = ps[1] ;
+						cs = CS96SB_ID(*pt) ;
+					}
+
+					if( ps[2] == 0)
+					{
+						ml_drcs_final( cs) ;
+					}
+
+					font = ml_drcs_get( cs , 1) ;
+
+					if( ps[3] <= 4 || ps[3] >= 255)
+					{
+						width = 15 ;
+					}
+					else
+					{
+						width = ps[3] ;
+					}
+
+					if( ps[6] == 0 || ps[6] >= 255)
+					{
+						height = 12 ;
+					}
+					else
+					{
+						height = ps[6] ;
+					}
+
+					while( 1)
+					{
+						p = ++pt ;
+
+						while( *pt == '/' || ('?' <= *pt && *pt <= '~'))
+						{
+							pt ++ ;
+						}
+
+						if( *pt)
+						{
+							*pt = '\0' ;
+							is_end = 0 ;
+						}
+						else
+						{
+							is_end = 1 ;
+						}
+
+						if( *p)
+						{
+							if( strlen(p) == (width + 1) *
+								((height + 5) / 6) - 1)
+							{
+								ml_drcs_add( font , idx ,
+									p , width , height) ;
+							}
+						#ifdef  DEBUG
+							else
+							{
+								kik_debug_printf( KIK_DEBUG_TAG
+								    "DRCS illegal size %s\n" ,
+								    p) ;
+							}
+						#endif
+
+							idx ++ ;
+						}
+
+						if( is_end)
+						{
+							break ;
+						}
+					}
+				}
+			}
 			else if( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0)
 			{
 				return  0 ;
 			}
 		}
-	#endif  /* ENABLE_SIXEL */
-		else if(
-		#ifndef  ENABLE_SIXEL
-			*str_p == 'P' ||
-		#endif
-			*str_p == 'X' || *str_p == '^' || *str_p == '_')
+		else if( *str_p == 'X' || *str_p == '^' || *str_p == '_')
 		{
 			/*
-			 * "ESC P" DCS
 			 * "ESC X" SOS
 			 * "ESC ^" PM
 			 * "ESC _" APC
@@ -4071,10 +4220,8 @@ parse_vt100_escape_sequence(
 			 * ESC I.....I  F
 			 * 033 040-057  060-176
 			 */
-			u_char  ic1 ;
 			u_int  ic_num ;
 
-			ic1 = *str_p ;
 			ic_num = 0 ;
 
 		#ifdef  DEBUG
@@ -4102,9 +4249,9 @@ parse_vt100_escape_sequence(
 			kik_msg_printf( " %c\n" , *str_p) ;
 		#endif
 
-			if( ic_num == 1)
+			if( ic_num == 1 || ic_num == 2)
 			{
-				if( ic1 == '#')
+				if( ic_num == 1 && *(str_p - 1) == '#')
 				{
 					if( *str_p == '8')
 					{
@@ -4112,9 +4259,9 @@ parse_vt100_escape_sequence(
 						ml_screen_fill_all_with_e( vt100_parser->screen) ;
 					}
 				}
-				else if( ic1 == '(')
+				else if( *(str_p - ic_num) == '(')
 				{
-					/* "ESC (" */
+					/* "ESC ("(Registered CS) or "ESC ( SP"(DRCS) */
 
 					if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 					{
@@ -4122,32 +4269,16 @@ parse_vt100_escape_sequence(
 						return  1 ;
 					}
 
-					if( *str_p == '0')
-					{
-						vt100_parser->is_dec_special_in_g0 = 1 ;
-					}
-					else if( *str_p == 'B')
-					{
-						vt100_parser->is_dec_special_in_g0 = 0 ;
-					}
-				#ifdef  DEBUG
-					else
-					{
-						kik_debug_printf( KIK_DEBUG_TAG " ESC ( %c is "
-							"illegal sequence in current encoding" ,
-							*str_p) ;
-					}
-				#endif
+					vt100_parser->g0 = CS94SB_ID(*str_p) ;
 
 					if( ! vt100_parser->is_so)
 					{
-						vt100_parser->is_dec_special_in_gl =
-							vt100_parser->is_dec_special_in_g0 ;
+						vt100_parser->gl = vt100_parser->g0 ;
 					}
 				}
-				else if( ic1 == ')')
+				else if( *(str_p - ic_num) == ')')
 				{
-					/* "ESC )" */
+					/* "ESC )"(Registered CS) or "ESC ( SP"(DRCS) */
 
 					if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 					{
@@ -4155,27 +4286,11 @@ parse_vt100_escape_sequence(
 						return  1 ;
 					}
 
-					if( *str_p == '0')
-					{
-						vt100_parser->is_dec_special_in_g1 = 1 ;
-					}
-					else if( *str_p == 'B')
-					{
-						vt100_parser->is_dec_special_in_g1 = 0 ;
-					}
-				#ifdef  DEBUG
-					else
-					{
-						kik_debug_printf( KIK_DEBUG_TAG " ESC ) %c is "
-							"illegal sequence in current encoding" ,
-							*str_p) ;
-					}
-				#endif
+					vt100_parser->g1 = CS94SB_ID(*str_p) ;
 
 					if( vt100_parser->is_so)
 					{
-						vt100_parser->is_dec_special_in_gl =
-							vt100_parser->is_dec_special_in_g1 ;
+						vt100_parser->gl = vt100_parser->g1 ;
 					}
 				}
 				else
@@ -4214,7 +4329,7 @@ parse_vt100_escape_sequence(
 		kik_debug_printf( KIK_DEBUG_TAG " receiving SI\n") ;
 	#endif
 
-		vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g0 ;
+		vt100_parser->gl = vt100_parser->g0 ;
 		vt100_parser->is_so = 0 ;
 	}
 	else if( *str_p == CTL_SO)
@@ -4229,7 +4344,7 @@ parse_vt100_escape_sequence(
 		kik_debug_printf( KIK_DEBUG_TAG " receiving SO\n") ;
 	#endif
 
-		vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g1 ;
+		vt100_parser->gl = vt100_parser->g1 ;
 		vt100_parser->is_so = 1 ;
 	}
 	else if( CTL_LF <= *str_p && *str_p <= CTL_FF)
@@ -4358,9 +4473,8 @@ parse_vt100_sequence(
 			{
 				u_char  decsp ;
 
-				if( ch.ch[0] == 0x00 && ch.ch[1] == 0x00 &&
-					ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f
-					)
+				if( ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f &&
+				    ch.ch[1] == 0x00 && ch.ch[0] == 0x00)
 				{
 					/* this is always done */
 					ch.ch[0] = ch.ch[3] ;
@@ -4396,6 +4510,19 @@ parse_vt100_sequence(
 						ch = non_ucs ;
 					}
 				}
+			#if  1
+				/* See http://github.com/saitoha/drcsterm/ */
+				else if( ch.ch[1] == 0x10 &&
+				         0x40 <= ch.ch[2] && ch.ch[2] <= 0x7e &&
+					 0x20 <= ch.ch[3] && ch.ch[3] <= 0x7f &&
+					 ch.ch[0] == 0x00)
+				{
+					ch.ch[0] = ch.ch[3] ;
+					ch.cs = CS94SB_ID(ch.ch[2]) ;
+					ch.size = 1 ;
+					ch.property = 0 ;
+				}
+			#endif
 			#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 				else
 				{
@@ -4494,11 +4621,9 @@ parse_vt100_sequence(
 					SET_MSB( ch.ch[0]) ;
 				}
 				else if( ( ch.cs == US_ASCII &&
-						vt100_parser->is_dec_special_in_gl) ||
-					ch.cs == DEC_SPECIAL)
+				           vt100_parser->gl != US_ASCII))
 				{
-					ch.cs = DEC_SPECIAL ;
-					ch.property = 0 ;
+					ch.cs = vt100_parser->gl ;
 				}
 			}
 			else
@@ -4728,7 +4853,9 @@ ml_vt100_parser_new(
 		vt100_parser->icon_name = strdup( icon_name) ;
 	}
 
-	vt100_parser->is_dec_special_in_g1 = 1 ;
+	vt100_parser->gl = US_ASCII ;
+	vt100_parser->g0 = US_ASCII ;
+	vt100_parser->g1 = US_ASCII ;
 
 	ml_vt100_parser_set_col_size_of_width_a( vt100_parser , col_size_a) ;
 
@@ -4941,10 +5068,10 @@ ml_vt100_parser_change_encoding(
 	vt100_parser->cc_conv = cc_conv ;
 
 	/* reset */
-	vt100_parser->is_dec_special_in_gl = 0 ;
+	vt100_parser->gl = US_ASCII ;
+	vt100_parser->g0 = US_ASCII ;
+	vt100_parser->g1 = US_ASCII ;
 	vt100_parser->is_so = 0 ;
-	vt100_parser->is_dec_special_in_g0 = 0 ;
-	vt100_parser->is_dec_special_in_g1 = 1 ;
 	
 	return  1 ;
 }
@@ -4974,10 +5101,10 @@ ml_init_encoding_parser(
 	)
 {
 	(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
-	vt100_parser->is_dec_special_in_gl = 0 ;
+	vt100_parser->gl = US_ASCII ;
+	vt100_parser->g0 = US_ASCII ;
+	vt100_parser->g1 = US_ASCII ;
 	vt100_parser->is_so = 0 ;
-	vt100_parser->is_dec_special_in_g0 = 0 ;
-	vt100_parser->is_dec_special_in_g1 = 1 ;
 
 	return  1 ;
 }

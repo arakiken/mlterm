@@ -174,10 +174,10 @@ typedef struct  ml_vt100_parser
 	/* ml_extended_mouse_report_mode_t */ int8_t  ext_mouse_mode ;
 
 	/* Used for non iso2022 encoding */
-	int8_t  is_dec_special_in_gl ;
+	mkf_charset_t  gl ;
+	mkf_charset_t  g0 ;
+	mkf_charset_t  g1 ;
 	int8_t  is_so ;
-	int8_t  is_dec_special_in_g0 ;
-	int8_t  is_dec_special_in_g1 ;
 
 	int8_t  is_bold ;
 	int8_t  is_underlined ;

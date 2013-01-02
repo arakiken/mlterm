@@ -1,4 +1,16 @@
-2012-12-31  Araki Ken  <arakiken@users.sf.net>
+2013-01-02  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c: The point of x2/y2 is drawn in x_window_draw_line().
+
+	* Makefile.in, ml_vt100_parser.c, x_draw_str.c: DECDLD (DCS ... { ... ST)
+	  sequence is supported.
+
+	* ml_drcs.[ch]: Added.
+
+	* mkf_iso2022_parser.c, ml_vt100_parser.c: ISO2022 sequences like
+	  "ESC ( SP Ft" are accepted.
+
+	* doc/ja/README.w3m: Updated.
 
 	* x_picture.[ch]: Fixes around cleaning up inline pictures.
 

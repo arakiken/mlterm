@@ -4,6 +4,8 @@
 
 #include  "x_draw_str.h"
 
+#include  <ml_drcs.h>
+
 #ifdef  ENABLE_SIXEL
 #include  "x_picture.h"
 #endif
@@ -118,6 +120,110 @@ draw_picture(
 }
 #endif
 
+static int
+get_drcs_bitmap(
+	char *  glyph ,
+	u_int  width ,
+	int  x ,
+	int  y
+	)
+{
+	return  (glyph[(y / 6) * (width + 1) + x] - '?') & (1 << (y % 6)) ;
+}
+
+static int
+draw_drcs(
+	x_window_t *  window ,
+	char *  glyph ,
+	int  x ,
+	int  y ,
+	u_int  ch_width ,
+	u_int  ch_height
+	)
+{
+	int  x_off ;
+	int  y_off ;
+	u_int  glyph_width ;
+	u_int  glyph_height ;
+	u_int  smpl_width ;
+	u_int  smpl_height ;
+
+	glyph_width = glyph[0] ;
+	glyph_height = glyph[1] ;
+	glyph += 2 ;
+
+	if( ( smpl_width = glyph_width / ch_width + 1) >= 3)
+	{
+		smpl_width = 2 ;
+	}
+
+	if( ( smpl_height = glyph_height / ch_height + 1) >= 3)
+	{
+		smpl_height = 2 ;
+	}
+
+	for( y_off = 0 ; y_off < ch_height ; y_off++)
+	{
+		for( x_off = 0 ; x_off < ch_width ; x_off++)
+		{
+			int  left_x ;
+			int  top_y ;
+			int  hit ;
+			int  n_smpl ;
+			int  smpl_x ;
+			int  smpl_y ;
+
+			left_x = ((int)((double)(x_off * glyph_width) /
+					(double)ch_width * 10 + 5)) / 10 - smpl_width / 2 ;
+			top_y = ((int)((double)(y_off * glyph_height) /
+					(double)ch_height * 10 + 5)) / 10 - smpl_height / 2 ;
+
+		#if  0
+			kik_debug_printf( KIK_DEBUG_TAG
+				"x_off %d: center x %f -> %d\n" ,
+				x_off , (double)(x_off * glyph_width) / (double)ch_width ,
+				left_x + smpl_width / 2) ;
+			kik_debug_printf( KIK_DEBUG_TAG
+				"y_off %d: center y %f -> %d\n" ,
+				y_off , (double)(y_off * glyph_height) / (double)ch_height ,
+				top_y + smpl_height / 2) ;
+		#endif
+
+			hit = n_smpl = 0 ;
+
+			for( smpl_y = 0 ; smpl_y < smpl_height ; smpl_y++)
+			{
+				for( smpl_x = 0 ; smpl_x < smpl_width ; smpl_x++)
+				{
+					if( 0 <= left_x + smpl_x &&
+					    left_x + smpl_x <= glyph_width &&
+					    0 <= top_y + smpl_y &&
+					    top_y + smpl_y <= glyph_height)
+					{
+						if( get_drcs_bitmap( glyph , glyph_width ,
+							left_x + smpl_x , top_y + smpl_y))
+						{
+							hit ++ ;
+						}
+						n_smpl ++ ;
+					}
+				}
+			}
+
+			if( n_smpl <= hit * 2)
+			{
+				x_window_draw_line( window ,
+					x + x_off + window->margin ,
+					y + y_off + window->margin ,
+					x + x_off + window->margin ,
+					y + y_off + window->margin) ;
+			}
+		}
+	}
+
+	return  1 ;
+}
+
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
@@ -222,6 +328,7 @@ fc_draw_str(
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
 	int  draw_alone ;
+	char *  drcs_glyph ;
 
 	x_font_t *  next_xfont ;
 	ml_font_t  next_font ;
@@ -301,6 +408,8 @@ fc_draw_str(
 	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 #endif
 
+	drcs_glyph = NULL ;
+
 	if( ( str8 = alloca( sizeof( /* FcChar8 */ u_int8_t) * num_of_chars)) == NULL)
 	{
 		return	0 ;
@@ -315,7 +424,14 @@ fc_draw_str(
 
 	while( 1)
 	{
-		if( state == 0 || state == 1)
+		ml_drcs_t *  drcs_font ;
+
+		if( ( drcs_font = ml_drcs_get( ch_cs , 0)) &&
+		    ( drcs_glyph = drcs_font->glyphs[ch_bytes[0] - 0x20]))
+		{
+			draw_alone = 1 ;
+		}
+		else if( state == 0 || state == 1)
 		{
 			str8[str_len++] = ch_bytes[0] ;
 		}
@@ -510,6 +626,12 @@ fc_draw_str(
 				#endif
 					, y + ascent) ;
 			}
+			else if( drcs_glyph)
+			{
+				draw_drcs( window , drcs_glyph ,
+					current_width - ch_width , y , ch_width , height) ;
+				drcs_glyph = NULL ;
+			}
 
 		draw_decoration:
 			if( ! hide_underline && color_adjusted != 2 && is_underlined)
@@ -696,6 +818,7 @@ xcore_draw_str(
 	ml_color_t  bg_color ;
 	int  is_underlined ;
 	int  draw_alone ;
+	char *  drcs_glyph ;
 
 	u_int  next_ch_width ;
 	x_font_t *  next_xfont ;
@@ -774,6 +897,8 @@ xcore_draw_str(
 	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 #endif
 
+	drcs_glyph = NULL ;
+
 	if( ( str = alloca( sizeof( char) * num_of_chars)) == NULL)
 	{
 		return	0 ;
@@ -793,7 +918,17 @@ xcore_draw_str(
 	{
 		if( ch_size == 1)
 		{
-			str[str_len++] = ch_bytes[0] ;
+			ml_drcs_t *  drcs_font ;
+
+			if( ( drcs_font = ml_drcs_get( ch_cs , 0)) &&
+			    ( drcs_glyph = drcs_font->glyphs[ch_bytes[0] - 0x20]))
+			{
+				draw_alone = 1 ;
+			}
+			else
+			{
+				str[str_len++] = ch_bytes[0] ;
+			}
 		}
 		else if( ch_size == 2)
 		{
@@ -1007,6 +1142,12 @@ xcore_draw_str(
 					current_width - ch_width
 				#endif
 					, y + ascent) ;
+			}
+			else if( drcs_glyph)
+			{
+				draw_drcs( window , drcs_glyph ,
+					current_width - ch_width , y , ch_width , height) ;
+				drcs_glyph = NULL ;
 			}
 
 		draw_decoration:
