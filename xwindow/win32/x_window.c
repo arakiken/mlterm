@@ -2761,29 +2761,6 @@ x_window_draw_rect_frame(
 }
 
 int
-x_window_draw_line(
-	x_window_t *  win,
-	int  x1,
-	int  y1,
-	int  x2,
-	int  y2
-	)
-{
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
-	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color.pixel))) ;
-
-	MoveToEx( win->gc->gc, x1, y1, NULL) ;
-	/* LineTo draw line from x1/y1 to x2/y2 except x2/y2 point. */
-	LineTo( win->gc->gc, x2 + 1, y2 + 1) ;
-
-	return  1 ;
-}
-
-int
 x_set_use_clipboard_selection(
 	int  use_it
 	)

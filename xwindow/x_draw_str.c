@@ -138,7 +138,8 @@ draw_drcs(
 	int  x ,
 	int  y ,
 	u_int  ch_width ,
-	u_int  ch_height
+	u_int  ch_height ,
+	x_color_t *  fg_xcolor
 	)
 {
 	int  x_off ;
@@ -212,11 +213,8 @@ draw_drcs(
 
 			if( n_smpl <= hit * 2)
 			{
-				x_window_draw_line( window ,
-					x + x_off + window->margin ,
-					y + y_off + window->margin ,
-					x + x_off + window->margin ,
-					y + y_off + window->margin) ;
+				x_window_fill_with( window , fg_xcolor ,
+					x + x_off , y + y_off , 1 , 1) ;
 			}
 		}
 	}
@@ -242,6 +240,8 @@ fc_draw_combining_chars(
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
 	mkf_charset_t  ch_cs ;
+	x_font_t *  xfont ;
+	x_color_t *  xcolor ;
 
 	for( count = 0 ; count < size ; count ++)
 	{
@@ -253,19 +253,17 @@ fc_draw_combining_chars(
 		ch_bytes = ml_char_bytes( &chars[count]) ;
 		ch_size = ml_char_size( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
+		xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
+		xcolor = x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ;
 
 		if( ch_cs == DEC_SPECIAL)
 		{
-			x_window_draw_decsp_string( window ,
-				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
+			x_window_draw_decsp_string( window , xfont , xcolor ,
 				x , y , ch_bytes , ch_size) ;
 		}
 		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 		{
-			x_window_ft_draw_string8( window ,
-				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
+			x_window_ft_draw_string8( window , xfont , xcolor ,
 				x , y , ch_bytes , ch_size) ;
 		}
 		else
@@ -279,10 +277,7 @@ fc_draw_combining_chars(
 			}
 
 			ucs4 = mkf_bytes_to_int( ucs4_bytes , 4) ;
-			x_window_ft_draw_string32( window ,
-				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , &ucs4 , 1) ;
+			x_window_ft_draw_string32( window , xfont , xcolor , x , y , &ucs4 , 1) ;
 		}
 	}
 
@@ -555,6 +550,8 @@ fc_draw_str(
 			 */
 
 			int  color_adjusted ;	/* 0 => None , 1 => BD , 2 => UL */
+			x_color_t *  fg_xcolor ;
+			x_color_t *  bg_xcolor ;
 
 		#ifdef  PERF_DEBUG
 			draw_count ++ ;
@@ -562,6 +559,8 @@ fc_draw_str(
 
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
 							font & FONT_BOLD , is_underlined) ;
+			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
+			bg_xcolor = x_get_xcolor( color_man , bg_color) ;
 
 		#ifdef  ENABLE_SIXEL
 			if( comb_chars && draw_picture( window , comb_chars , x , y))
@@ -580,8 +579,7 @@ fc_draw_str(
 			}
 			else
 			{
-				x_window_fill_with( window ,
-					x_get_xcolor( color_man , bg_color) ,
+				x_window_fill_with( window , bg_xcolor ,
 					x , y , current_width - x , height) ;
 			}
 
@@ -590,20 +588,17 @@ fc_draw_str(
 			 */
 			if( state == 0)
 			{
-				x_window_ft_draw_string8( window ,
-					xfont , x_get_xcolor( color_man , fg_color) ,
+				x_window_ft_draw_string8( window , xfont , fg_xcolor ,
 					x , y + ascent , str8 , str_len) ;
 			}
 			else if( state == 1)
 			{
-				x_window_draw_decsp_string( window , xfont ,
-					x_get_xcolor( color_man , fg_color) ,
+				x_window_draw_decsp_string( window , xfont , fg_xcolor ,
 					x , y + ascent , str8 , str_len) ;
 			}
 			else /* if( state == 2) */
 			{
-				x_window_ft_draw_string32( window ,
-					xfont , x_get_xcolor( color_man , fg_color) ,
+				x_window_ft_draw_string32( window , xfont , fg_xcolor ,
 					x , y + ascent , str32 , str_len) ;
 			}
 
@@ -629,7 +624,8 @@ fc_draw_str(
 			else if( drcs_glyph)
 			{
 				draw_drcs( window , drcs_glyph ,
-					current_width - ch_width , y , ch_width , height) ;
+					current_width - ch_width , y , ch_width , height ,
+					fg_xcolor) ;
 				drcs_glyph = NULL ;
 			}
 
@@ -638,14 +634,12 @@ fc_draw_str(
 			{
 				if( xfont->is_vertical)
 				{
-					x_window_fill_with( window ,
-						x_get_xcolor( color_man , fg_color) ,
+					x_window_fill_with( window , fg_xcolor ,
 						x , y , (ch_width >> 4) + 1 , height) ;
 				}
 				else
 				{
-					x_window_fill_with( window ,
-						x_get_xcolor( color_man , fg_color) ,
+					x_window_fill_with( window , fg_xcolor ,
 						x , y + ascent ,
 						current_width - x ,
 						((ascent - bottom_margin) >> 4) + 1 ) ;
@@ -720,6 +714,8 @@ xcore_draw_combining_chars(
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
 	mkf_charset_t  ch_cs ;
+	x_font_t *  xfont ;
+	x_color_t *  xcolor ;
 
 	for( count = 0 ; count < size ; count ++)
 	{
@@ -731,19 +727,17 @@ xcore_draw_combining_chars(
 		ch_bytes = ml_char_bytes( &chars[count]) ;
 		ch_size = ml_char_size( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
+		xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
+		xcolor = x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ;
 
 		if( ch_cs == DEC_SPECIAL)
 		{
-			x_window_draw_decsp_string( window ,
-				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
+			x_window_draw_decsp_string( window , xfont , xcolor ,
 				x , y , ch_bytes , 1) ;
 		}
 		else if( ch_size == 1)
 		{
-			x_window_draw_string( window ,
-				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
+			x_window_draw_string( window , xfont , xcolor ,
 				x , y , ch_bytes , 1) ;
 		}
 		else if( ch_size == 2)
@@ -753,9 +747,7 @@ xcore_draw_combining_chars(
 			xch.byte1 = ch_bytes[0] ;
 			xch.byte2 = ch_bytes[1] ;
 
-			x_window_draw_string16( window ,
-				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
+			x_window_draw_string16( window , xfont , xcolor ,
 				x , y , &xch , 1) ;
 		}
 		else /* if( ch_size == 4) */
@@ -768,9 +760,7 @@ xcore_draw_combining_chars(
 
 			if( ( len = (x_convert_ucs4_to_utf16( xch , ch_bytes) / 2)) > 0)
 			{
-				x_window_draw_string16( window ,
-					x_get_font( font_man , ml_char_font( &chars[count])) ,
-					x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
+				x_window_draw_string16( window , xfont , xcolor ,
 					x , y , xch , len) ;
 			}
 		}
@@ -1044,6 +1034,8 @@ xcore_draw_str(
 			 */
 
 			int  color_adjusted ;	/* 0 => None , 1 => BD , 2 => UL */
+			x_color_t *  fg_xcolor ;
+			x_color_t *  bg_xcolor ;
 
 		#ifdef  PERF_DEBUG
 			draw_count ++ ;
@@ -1051,6 +1043,9 @@ xcore_draw_str(
 
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
 							font & FONT_BOLD , is_underlined) ;
+
+			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
+			bg_xcolor = x_get_xcolor( color_man , bg_color) ;
 
 		#ifdef  ENABLE_SIXEL
 			if( comb_chars && draw_picture( window , comb_chars ,
@@ -1075,27 +1070,23 @@ xcore_draw_str(
 					kik_debug_printf( KIK_DEBUG_TAG "prop font is used.\n") ;
 				#endif
 
-					x_window_fill_with( window ,
-						x_get_xcolor( color_man , bg_color) ,
+					x_window_fill_with( window , bg_xcolor ,
 						x , y , current_width - x , height) ;
 				}
 
 				if( state == 2)
 				{
-					x_window_draw_string16( window , xfont ,
-						x_get_xcolor( color_man , fg_color) ,
+					x_window_draw_string16( window , xfont , fg_xcolor ,
 						x , y + ascent , str2b , str_len) ;
 				}
 				else if( state == 1)
 				{
-					x_window_draw_decsp_string( window , xfont ,
-						x_get_xcolor( color_man , fg_color) ,
+					x_window_draw_decsp_string( window , xfont , fg_xcolor ,
 						x , y + ascent , str , str_len) ;
 				}
 				else /* if( state == 0) */
 				{
-					x_window_draw_string( window , xfont ,
-						x_get_xcolor( color_man , fg_color) ,
+					x_window_draw_string( window , xfont , fg_xcolor ,
 						x , y + ascent , str , str_len) ;
 				}
 			}
@@ -1104,22 +1095,19 @@ xcore_draw_str(
 				if( state == 2)
 				{
 					x_window_draw_image_string16( window , xfont ,
-						x_get_xcolor( color_man , fg_color) ,
-						x_get_xcolor( color_man , bg_color) ,
+						fg_xcolor , bg_xcolor ,
 						x , y + ascent , str2b , str_len) ;
 				}
 				else if( state == 1)
 				{
 					x_window_draw_decsp_image_string( window , xfont ,
-						x_get_xcolor( color_man , fg_color) ,
-						x_get_xcolor( color_man , bg_color) ,
+						fg_xcolor , bg_xcolor ,
 						x , y + ascent , str , str_len) ;
 				}
 				else /* if( state == 0) */
 				{
 					x_window_draw_image_string( window , xfont ,
-						x_get_xcolor( color_man , fg_color) ,
-						x_get_xcolor( color_man , bg_color) ,
+						fg_xcolor , bg_xcolor ,
 						x , y + ascent , str , str_len) ;
 				}
 			}
@@ -1145,8 +1133,8 @@ xcore_draw_str(
 			}
 			else if( drcs_glyph)
 			{
-				draw_drcs( window , drcs_glyph ,
-					current_width - ch_width , y , ch_width , height) ;
+				draw_drcs( window , drcs_glyph , current_width - ch_width , y ,
+					ch_width , height , fg_xcolor) ;
 				drcs_glyph = NULL ;
 			}
 
@@ -1155,14 +1143,12 @@ xcore_draw_str(
 			{
 				if( xfont->is_vertical)
 				{
-					x_window_fill_with( window ,
-						x_get_xcolor( color_man , fg_color) ,
+					x_window_fill_with( window , fg_xcolor ,
 						x , y , (ch_width >> 4) + 1 , height) ;
 				}
 				else
 				{
-					x_window_fill_with( window ,
-						x_get_xcolor( color_man , fg_color) ,
+					x_window_fill_with( window , fg_xcolor ,
 						x , y + ascent ,
 						current_width - x ,
 						((ascent - bottom_margin) >> 4) + 1) ;

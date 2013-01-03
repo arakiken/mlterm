@@ -353,8 +353,6 @@ int  x_window_ft_draw_string32( x_window_t *  win , x_font_t *  font ,
 
 int  x_window_draw_rect_frame( x_window_t *  win , int  x1 , int  y1 , int  x2 , int  y2) ;
 
-int  x_window_draw_line( x_window_t *  win, int  x1, int  y1, int  x2, int  y2) ;
-
 int  x_set_use_clipboard_selection( int  use_it) ;
 
 int  x_is_using_clipboard_selection( void) ;

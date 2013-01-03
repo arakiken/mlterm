@@ -1436,23 +1436,11 @@ x_window_draw_rect_frame(
 	int  y2
 	)
 {
-	x_window_fill_with( win , &win->fg_color , x1 , y1 , abs(x2-x1) , 1) ;
-	x_window_fill_with( win , &win->fg_color , x1 , y1 , 1 , abs(y2-y1)) ;
-	x_window_fill_with( win , &win->fg_color , x1 , y2 , abs(x2-x1) , 1) ;
-	x_window_fill_with( win , &win->fg_color , x2 , y1 , 1 , abs(y2-y1) + 1) ;
+	x_window_fill_with( win , &win->fg_color , x1 , y1 , x2 - x1 + 1 , 1) ;
+	x_window_fill_with( win , &win->fg_color , x1 , y1 , 1 , y2 - y1 + 1) ;
+	x_window_fill_with( win , &win->fg_color , x1 , y2 , x2 - x1 + 1 , 1) ;
+	x_window_fill_with( win , &win->fg_color , x2 , y1 , 1 , y2 - y1 + 1) ;
 
-	return  1 ;
-}
-
-int
-x_window_draw_line(
-	x_window_t *  win,
-	int  x1,
-	int  y1,
-	int  x2,
-	int  y2
-	)
-{
 	return  1 ;
 }
 

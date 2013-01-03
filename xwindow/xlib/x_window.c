@@ -3398,22 +3398,6 @@ x_window_draw_rect_frame(
 }
 
 int
-x_window_draw_line(
-	x_window_t *  win,
-	int  x1,
-	int  y1,
-	int  x2,
-	int  y2
-	)
-{
-	restore_fg_color(win) ;
-
-	XDrawLine( win->disp->display , win->my_window , win->gc->gc , x1 , y1 , x2 , y2) ;
-
-	return  1 ;
-}
-
-int
 x_set_use_clipboard_selection(
 	int  use_it
 	)

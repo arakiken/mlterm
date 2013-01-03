@@ -6549,21 +6549,21 @@ draw_preedit_str(
 
 	if( cursor_offset >= 0)
 	{
+		preedit_cursor_x -= screen->window.margin ;
+		preedit_cursor_y -= screen->window.margin ;
 		if( ! ml_term_get_vertical_mode( screen->term))
 		{
-			x_window_draw_line( &screen->window,
+			x_window_fill( &screen->window,
 				preedit_cursor_x + 1 ,
 				preedit_cursor_y + x_line_top_margin( screen) + 2 ,
-				preedit_cursor_x + 1,
-				preedit_cursor_y + x_line_height( screen)) ;
+				1 , x_line_height( screen) - x_line_top_margin( screen) - 1) ;
 		}
 		else
 		{
-			x_window_draw_line( &screen->window,
+			x_window_fill( &screen->window,
 				preedit_cursor_x + x_line_top_margin( screen) + 2 ,
 				preedit_cursor_y + 2 ,
-				preedit_cursor_x + x_line_top_margin( screen) + xfont->height ,
-				preedit_cursor_y + 2 ) ;
+				xfont->height - 1 , 1) ;
 		}
 	}
 

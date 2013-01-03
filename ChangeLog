@@ -1,3 +1,14 @@
+2013-01-03  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: x_window_fill() is used for preediting of input method
+	  plugins instead of x_window_draw_line().
+
+	* x_draw_str.c: x_window_fill_with() is used for drawing drcs instead
+	  of x_window_draw_line().
+
+	* xlib/x_window.c, win32/x_window.c, fb/x_window.c:
+	  x_window_draw_line() is removed.
+
 2013-01-02  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_window.c: The point of x2/y2 is drawn in x_window_draw_line().
