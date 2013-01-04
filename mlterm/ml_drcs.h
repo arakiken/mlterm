@@ -17,9 +17,11 @@ typedef struct ml_drcs
 } ml_drcs_t ;
 
 
+ml_drcs_t *  ml_drcs_get( mkf_charset_t  cs , int  create) ;
+
 int  ml_drcs_final( mkf_charset_t  cs) ;
 
-ml_drcs_t *  ml_drcs_get( mkf_charset_t  cs , int  create) ;
+int  ml_drcs_final_full(void) ;
 
 int  ml_drcs_add( ml_drcs_t *  font , int  idx , char *  seq , u_int  width , u_int  height) ;
 

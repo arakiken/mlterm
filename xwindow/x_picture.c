@@ -207,6 +207,7 @@ delete_icon_picture(
 #endif
 
 	x_delete_image( pic->disp->display , pic->pixmap) ;
+	x_delete_mask( pic->disp->display , pic->mask) ;
 
 	free( pic->cardinal) ;
 	free( pic->file_path) ;
@@ -226,6 +227,8 @@ delete_inline_picture(
 	if( pic->display)
 	{
 		x_delete_image( pic->display , pic->pixmap) ;
+		x_delete_mask( pic->display , pic->mask) ;
+
 		free( pic->file_path) ;
 		pic->display = NULL ;
 	}
@@ -472,6 +475,7 @@ x_picture_display_closed(
 			if( inline_pics[count].pixmap)
 			{
 				x_delete_image( display , inline_pics[count].pixmap) ;
+				x_delete_mask( display , inline_pics[count].mask) ;
 			}
 
 			/*
@@ -725,7 +729,6 @@ x_load_inline_picture(
 	)
 {
 	int  idx ;
-	Pixmap  pixmap ;
 
 	/* XXX Don't reuse ~/.mlterm/[pty name].six */
 	if( ! strstr( file_path , "mlterm/"))
@@ -753,11 +756,6 @@ x_load_inline_picture(
 		}
 	}
 
-	if( ! x_imagelib_load_file( disp , file_path , NULL , &pixmap , NULL , width , height))
-	{
-		return  -1 ;
-	}
-
 	if( ( idx = cleanup_inline_pictures( term)) == -1)
 	{
 		void *  p ;
@@ -765,8 +763,6 @@ x_load_inline_picture(
 		if( ! ( p = realloc( inline_pics ,
 				(num_of_inline_pics + 1) * sizeof(*inline_pics))))
 		{
-			x_delete_image( disp->display , pixmap) ;
-
 			return  -1 ;
 		}
 
@@ -774,7 +770,14 @@ x_load_inline_picture(
 		idx = num_of_inline_pics ++ ;
 	}
 
-	inline_pics[idx].pixmap = pixmap ;
+	if( ! x_imagelib_load_file( disp , file_path , NULL ,
+		&inline_pics[idx].pixmap , &inline_pics[idx].mask , width , height))
+	{
+		num_of_inline_pics -- ;
+
+		return  -1 ;
+	}
+
 	inline_pics[idx].file_path = strdup( file_path) ;
 	inline_pics[idx].width = *width ;
 	inline_pics[idx].height = *height ;

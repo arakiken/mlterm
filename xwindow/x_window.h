@@ -312,8 +312,8 @@ int  x_window_scroll_rightward_region( x_window_t *  win ,
 
 int  x_window_scroll_rightward( x_window_t *  win , u_int  width) ;
 
-int  x_window_copy_area( x_window_t *  win , Pixmap  src , int  src_x , int  src_y ,
-	u_int  width , u_int  height , int  dst_x , int  dst_y) ;
+int  x_window_copy_area( x_window_t *  win , Pixmap  src , PixmapMask  mask ,
+	int  src_x , int  src_y , u_int  width , u_int  height , int  dst_x , int  dst_y) ;
 
 int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , u_char *  str , u_int  len) ;

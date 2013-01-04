@@ -527,6 +527,7 @@ pixbuf_to_pixmap_and_mask(
 		u_char *  pixel ;
 		GC  mask_gc ;
 		XGCValues  gcv ;
+		int  has_tp ;
 
 		/*
 		 * DefaultRootWindow should not be used because depth and visual
@@ -542,6 +543,7 @@ pixbuf_to_pixmap_and_mask(
 
 		line = gdk_pixbuf_get_pixels( pixbuf) ;
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+		has_tp = 0 ;
 
 		for( i = 0 ; i < height ; i++)
 		{
@@ -552,12 +554,24 @@ pixbuf_to_pixmap_and_mask(
 				{
 					XDrawPoint( display , *mask , mask_gc , j , i) ;
 				}
+				else
+				{
+					has_tp = 1 ;
+				}
+
 				pixel += 4 ;
 			}
 			line += rowstride ;
 		}
 
 		XFreeGC( display , mask_gc) ;
+
+		if( ! has_tp)
+		{
+			/* mask is not necessary. */
+			XFreePixmap( display , *mask) ;
+			*mask = None ;
+		}
 	}
 	else
 	{

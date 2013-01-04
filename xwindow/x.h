@@ -23,6 +23,8 @@
 #include  <X11/Xutil.h>		/* IsKeypadKey */
 #include  <X11/cursorfont.h>	/* for cursor shape */
 
+typedef Pixmap PixmapMask ;
+
 #ifdef  XK_F21
 #define  XK_FMAX  XK_F35
 #else

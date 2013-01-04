@@ -174,44 +174,50 @@ modify_pixmap(
 	}
 }
 
-static Pixmap
+static int
 load_file(
 	Display *  display ,
 	char *  path ,
 	u_int  width ,
 	u_int  height ,
 	x_picture_modifier_t *  pic_mod ,
-	u_int  depth
+	u_int  depth ,
+	Pixmap *  pixmap ,
+	PixmapMask *  mask
 	)
 {
 	pid_t  pid ;
 	int  fds1[2] ;
 	int  fds2[2] ;
-	Pixmap  pixmap ;
 	ssize_t  size ;
 	u_int32_t  tmp ;
 
 	if( ! path || ! *path || display->bytes_per_pixel <= 1)
 	{
-		return  None ;
+		return  0 ;
 	}
 
 	if( pipe( fds1) == -1)
 	{
-		return  None ;
+		return  0 ;
 	}
 	if( pipe( fds2) == -1)
 	{
 		close( fds1[0]) ;
 		close( fds1[1]) ;
 
-		return  None ;
+		return  0 ;
 	}
 
 	pid = fork() ;
 	if( pid == -1)
 	{
-		return  None ;
+		close( fds1[0]) ;
+		close( fds1[1]) ;
+		close( fds2[0]) ;
+		close( fds2[0]) ;
+
+		return  0 ;
 	}
 
 	if( pid == 0)
@@ -247,7 +253,7 @@ load_file(
 	close( fds1[0]) ;
 	close( fds2[1]) ;
 
-	if( ! ( pixmap = calloc( 1 , sizeof(*pixmap))))
+	if( ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		goto  error ;
 	}
@@ -257,16 +263,16 @@ load_file(
 		goto  error ;
 	}
 
-	size = (pixmap->width = tmp) * sizeof(u_int32_t) ;
+	size = ((*pixmap)->width = tmp) * sizeof(u_int32_t) ;
 
 	if( read( fds2[0] , &tmp , sizeof(u_int32_t)) != sizeof(u_int32_t))
 	{
 		goto  error ;
 	}
 
-	size *= (pixmap->height = tmp) ;
+	size *= ((*pixmap)->height = tmp) ;
 
-	if( ! ( pixmap->image = malloc( size)))
+	if( ! ( (*pixmap)->image = malloc( size)))
 	{
 		goto  error ;
 	}
@@ -275,7 +281,7 @@ load_file(
 		u_char *  p ;
 		ssize_t  n_rd ;
 
-		p = pixmap->image ;
+		p = (*pixmap)->image ;
 		while( ( n_rd = read( fds2[0] , p , size)) > 0)
 		{
 			p += n_rd ;
@@ -288,29 +294,71 @@ load_file(
 		}
 	}
 
-	modify_pixmap( display , pixmap , pic_mod , depth) ;
-
 	close( fds2[0]) ;
 	close( fds1[1]) ;
 
+	modify_pixmap( display , *pixmap , pic_mod , depth) ;
+
+	if( mask)
+	{
+		u_char *  dst ;
+
+		*mask = None ;
+
+		if( ( dst = *mask = calloc( 1 , (*pixmap)->width * (*pixmap)->height)))
+		{
+			int  x ;
+			int  y ;
+			int  has_tp ;
+			u_int32_t *  src ;
+
+			has_tp = 0 ;
+			src = (u_int32_t*)(*pixmap)->image ;
+
+			for( y = 0 ; y < (*pixmap)->height ; y++)
+			{
+				for( x = 0 ; x < (*pixmap)->width ; x++)
+				{
+					if( *(src ++) >= 0x80000000)
+					{
+						*dst = 1 ;
+					}
+					else
+					{
+						has_tp = 1 ;
+					}
+
+					dst ++ ;
+				}
+			}
+
+			if( ! has_tp)
+			{
+				free( *mask) ;
+				*mask = None ;
+			}
+		}
+	}
+
 #ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s(w %d h %d) is loaded.\n" ,
-			path , pixmap->width , pixmap->height) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s(w %d h %d) is loaded%s.\n" ,
+			path , (*pixmap)->width , (*pixmap)->height ,
+			(mask && *mask) ? " (has mask)" : "") ;
 #endif
 
-	return  pixmap ;
+	return  1 ;
 
 error:
-	if( pixmap)
+	if( *pixmap)
 	{
-		free( pixmap->image) ;
-		free( pixmap) ;
+		free( (*pixmap)->image) ;
+		free( *pixmap) ;
 	}
 
 	close( fds2[0]) ;
 	close( fds1[1]) ;
 
-	return  None ;
+	return  0 ;
 }
 
 
@@ -339,8 +387,18 @@ x_imagelib_load_file_for_background(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-	return  load_file( win->disp->display , path ,
-			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , pic_mod , win->disp->depth) ;
+	Pixmap  pixmap ;
+
+	if( load_file( win->disp->display , path ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , pic_mod , win->disp->depth ,
+			&pixmap , NULL))
+	{
+		return  pixmap ;
+	}
+	else
+	{
+		return  None ;
+	}
 }
 
 int
@@ -366,7 +424,7 @@ x_imagelib_load_file(
 	char *  path ,
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
-	Pixmap *  mask,
+	PixmapMask *  mask,
 	u_int *  width,
 	u_int *  height
 	)
@@ -376,8 +434,8 @@ x_imagelib_load_file(
 		return  0 ;
 	}
 
-	if( ! ( *pixmap = load_file( disp->display , path , *width , *height ,
-				NULL , disp->depth)))
+	if( ! load_file( disp->display , path , *width , *height ,
+				NULL , disp->depth , pixmap , mask))
 	{
 		return  0 ;
 	}
@@ -386,11 +444,6 @@ x_imagelib_load_file(
 	{
 		*width = (*pixmap)->width ;
 		*height = (*pixmap)->height ;
-	}
-
-	if( mask)
-	{
-		*mask = None ;
 	}
 
 	return  1 ;
@@ -404,6 +457,17 @@ x_delete_image(
 {
 	free( pixmap->image) ;
 	free( pixmap) ;
+
+	return  1 ;
+}
+
+int
+x_delete_mask(
+	Display *  display ,
+	PixmapMask  mask	/* can be NULL */
+	)
+{
+	free( mask) ;
 
 	return  1 ;
 }

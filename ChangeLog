@@ -1,3 +1,25 @@
+2013-01-04  Araki Ken  <arakiken@users.sf.net>
+
+	* x_draw_str.c:
+	  - Segfault in drcs using ESC(I is fixed. (Thanks to saitoha san)
+	  - Minor fixes for alpha mask.
+
+	* fb/x_window.c, xlib/x_window.c, win32/x_window.c:
+	  x_window_copy_area() accepts alpha mask.
+
+	* xlib/x_imagelib.c, x_imagelib.h, fb/x.h, win32/x.h:
+	  - Minor fixes for alpha mask.
+	  - Fix memory leak (double g_object_ref) of pixbuf of sixel graphics
+	    in load_file() in xlib/x_imagelib.c.
+
+	* fb/x_imagelib.c, win32/x_imagelib.c: Alpha mask is loaded in
+	  x_imagelib_load_file() if necessary.
+
+	* c_imagelib.c: Alpha value in sixel graphics is supported in
+	  load_sixel_from_file().
+
+	* ml_drcs.[ch]: ml_drcs_final_full() is added.
+
 2013-01-03  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: x_window_fill() is used for preediting of input method

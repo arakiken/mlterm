@@ -609,9 +609,12 @@ load_file(
 	}
 	/* scaling ends here */
 
-	/* Add reference count of the cache. */
-	g_object_ref( pixbuf) ;
-	
+	if( pixbuf == scaled_cache || pixbuf == orig_cache)
+	{
+		/* Add reference count of the cache. */
+		g_object_ref( pixbuf) ;
+	}
+
 	return  pixbuf ;
 }
 
@@ -977,6 +980,7 @@ pixbuf_to_pixmap_and_mask(
 		u_char *  pixel ;
 		GC  mask_gc ;
 		XGCValues  gcv ;
+		int  has_tp ;
 
 		width = gdk_pixbuf_get_width( pixbuf) ;
 		height = gdk_pixbuf_get_height( pixbuf) ;
@@ -997,6 +1001,7 @@ pixbuf_to_pixmap_and_mask(
 
 		line = gdk_pixbuf_get_pixels( pixbuf) ;
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+		has_tp = 0 ;
 
 		for( i = 0 ; i < height ; i++)
 		{
@@ -1007,12 +1012,24 @@ pixbuf_to_pixmap_and_mask(
 				{
 					XDrawPoint( disp->display , *mask , mask_gc , j , i) ;
 				}
+				else
+				{
+					has_tp = 1 ;
+				}
+
 				pixel += 4 ;
 			}
 			line += rowstride ;
 		}
 
 		XFreeGC( disp->display , mask_gc) ;
+
+		if( ! has_tp)
+		{
+			/* mask is not necessary. */
+			XFreePixmap( disp->display , *mask) ;
+			*mask = None ;
+		}
 	}
 	else
 	{
@@ -1801,7 +1818,7 @@ x_imagelib_load_file(
 	char *  path,
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
-	Pixmap *  mask,
+	PixmapMask *  mask,
 	u_int *  width,
 	u_int *  height
 	)

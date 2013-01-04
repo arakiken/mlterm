@@ -3073,6 +3073,7 @@ int
 x_window_copy_area(
 	x_window_t *  win ,
 	Pixmap  src ,
+	PixmapMask  mask ,
 	int  src_x ,	/* >= 0 */
 	int  src_y ,	/* >= 0 */
 	u_int  width ,
@@ -3096,8 +3097,20 @@ x_window_copy_area(
 		height = win->height - dst_y ;
 	}
 
+	if( mask)
+	{
+		XSetClipOrigin( win->disp->display , win->gc->gc ,
+			dst_x + win->margin - src_x , dst_y + win->margin - src_y) ;
+		XSetClipMask( win->disp->display , win->gc->gc , mask) ;
+	}
+
 	XCopyArea( win->disp->display , src , win->my_window , win->gc->gc ,
 		src_x , src_y , width , height , dst_x + win->margin , dst_y + win->margin) ;
+
+	if( mask)
+	{
+		XSetClipMask( win->disp->display , win->gc->gc , None) ;
+	}
 
 	return  1 ;
 }

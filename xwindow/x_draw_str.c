@@ -108,12 +108,17 @@ draw_picture(
 		height = pic->line_height ;
 	}
 
+	if( pic->mask)
+	{
+		need_clear = 1 ;
+	}
+
 	if( need_clear)
 	{
 		x_window_clear( window , x , y , pic->col_width , pic->line_height) ;
 	}
 
-	x_window_copy_area( window , pic->pixmap , src_x , src_y ,
+	x_window_copy_area( window , pic->pixmap , pic->mask , src_x , src_y ,
 		width , height , x , y) ;
 
 	return  1 ;
@@ -422,7 +427,9 @@ fc_draw_str(
 		ml_drcs_t *  drcs_font ;
 
 		if( ( drcs_font = ml_drcs_get( ch_cs , 0)) &&
-		    ( drcs_glyph = drcs_font->glyphs[ch_bytes[0] - 0x20]))
+		    /* msb can be set in ml_vt100_parser.c (e.g. ESC(I (JISX0201 kana)) */
+		    ( 0x20 <= (ch_bytes[0] & 0x7f)) &&
+		    ( drcs_glyph = drcs_font->glyphs[(ch_bytes[0] & 0x7f) - 0x20]))
 		{
 			draw_alone = 1 ;
 		}
@@ -911,7 +918,10 @@ xcore_draw_str(
 			ml_drcs_t *  drcs_font ;
 
 			if( ( drcs_font = ml_drcs_get( ch_cs , 0)) &&
-			    ( drcs_glyph = drcs_font->glyphs[ch_bytes[0] - 0x20]))
+			    /* msb can be set in ml_vt100_parser.c (e.g. ESC(I (JISX0201 kana)) */
+			    ( 0x20 <= (ch_bytes[0] & 0x7f)) &&
+			    ( drcs_glyph =
+			          drcs_font->glyphs[(ch_bytes[0] & 0x7f) - 0x20]))
 			{
 				draw_alone = 1 ;
 			}

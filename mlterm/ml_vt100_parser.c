@@ -4101,8 +4101,18 @@ parse_vt100_escape_sequence(
 					pt ++ ;
 				}
 
-				if( num == 8 &&
-				    0x30 <= *pt && *pt <= 0x7e)
+				if( num != 8)
+				{
+					/* illegal format */
+				}
+				else if( *pt == '\0')
+				{
+					if( ps[2] == 2)
+					{
+						ml_drcs_final_full() ;
+					}
+				}
+				else if( 0x30 <= *pt && *pt <= 0x7e)
 				{
 					mkf_charset_t  cs ;
 
@@ -4120,6 +4130,10 @@ parse_vt100_escape_sequence(
 					if( ps[2] == 0)
 					{
 						ml_drcs_final( cs) ;
+					}
+					else if( ps[2] == 2)
+					{
+						ml_drcs_final_full() ;
 					}
 
 					font = ml_drcs_get( cs , 1) ;

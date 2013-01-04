@@ -49,7 +49,7 @@ typedef struct x_icon_picture
 	char *  file_path ;
 
 	Pixmap  pixmap ;
-	Pixmap  mask ;
+	PixmapMask  mask ;
 	u_int32_t *  cardinal ;
 
 	u_int  ref_count ;
@@ -59,6 +59,7 @@ typedef struct x_icon_picture
 typedef struct x_inline_picture
 {
 	Pixmap  pixmap ;
+	PixmapMask  mask ;
 	char *  file_path ;
 	u_int  width ;
 	u_int  height ;

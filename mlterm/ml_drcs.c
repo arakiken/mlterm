@@ -17,6 +17,32 @@ static u_int  num_of_drcs_fonts ;
 static mkf_charset_t  cached_font_cs = UNKNOWN_CS ;
 
 
+/* --- static functions --- */
+
+static int
+drcs_final(
+	ml_drcs_t *  font
+	)
+{
+	int  idx ;
+
+	for( idx = 0 ; idx < 0x5f ; idx++)
+	{
+		free( font->glyphs[idx]) ;
+	}
+
+	memset( font->glyphs , 0 , sizeof(font->glyphs)) ;
+
+	if( cached_font_cs == font->cs)
+	{
+		/* Clear cache in ml_drcs_get(). */
+		cached_font_cs = UNKNOWN_CS ;
+	}
+
+	return  1 ;
+}
+
+
 /* --- global functions --- */
 
 ml_drcs_t *
@@ -72,26 +98,29 @@ ml_drcs_final(
 	{
 		if( drcs_fonts[count].cs == cs)
 		{
-			int  idx ;
-
-			for( idx = 0 ; idx < 0x5f ; idx++)
-			{
-				free( drcs_fonts[count].glyphs[idx]) ;
-			}
-
-			memset( drcs_fonts[count].glyphs , 0 , sizeof(drcs_fonts[count].glyphs)) ;
-
+			drcs_final( drcs_fonts + count) ;
 			drcs_fonts[count] = drcs_fonts[--num_of_drcs_fonts] ;
-
-			if( cached_font_cs == cs)
-			{
-				/* Clear cache in ml_drcs_get(). */
-				cached_font_cs = UNKNOWN_CS ;
-			}
 
 			return  1 ;
 		}
 	}
+
+	return  1 ;
+}
+
+int
+ml_drcs_final_full(void)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < num_of_drcs_fonts ; count++)
+	{
+		drcs_final( drcs_fonts + count) ;
+	}
+
+	free( drcs_fonts) ;
+	drcs_fonts = NULL ;
+	num_of_drcs_fonts = 0 ;
 
 	return  1 ;
 }

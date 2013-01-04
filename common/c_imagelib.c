@@ -77,18 +77,78 @@ realloc_pixels(
 	p = *pixels ;
 	n_copy_rows = K_MIN(new_height,cur_height) ;
 
+	if( new_width == cur_width && new_height == cur_height)
+	{
+		return  1 ;
+	}
+
 	if( new_width < cur_width)
 	{
+		if( new_height > cur_height)
+		{
+			/* Not supported */
+
+		#ifdef  DEBUG
+			kik_error_printf( KIK_DEBUG_TAG
+				" Sixel width is shrinked (%d->%d) but"
+				" height is lengthen (%d->%d)\n" ,
+				cur_width , cur_height , new_width , new_height) ;
+		#endif
+
+			return  0 ;
+		}
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Sixel data: %d %d -> shrink %d %d\n" ,
+			cur_width , cur_height , new_width , new_height) ;
+	#endif
+
 		for( y = 1 ; y < n_copy_rows ; y++)
 		{
-			memmove( p + (y * new_width * 3) , p + (y * cur_width * 3) ,
-				new_width * 3) ;
+			memmove( p + (y * new_width * 4) , p + (y * cur_width * 4) ,
+				new_width * 4) ;
 		}
 	}
-	else if( new_width > cur_width)
+	else if( new_width == cur_width)
 	{
-		/*  Cast to u_char* is necessary because this function can be compiled by g++. */
-		if( ! ( p = (u_char*)realloc( p , new_width * new_height * 3)))
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Sixel data: %d %d -> realloc %d %d\n" ,
+			cur_width , cur_height , new_width , new_height) ;
+	#endif
+
+		if( new_height > cur_height)
+		{
+			/*
+			 * Cast to u_char* is necessary because this function can be
+			 * compiled by g++.
+			 */
+			if( ! ( p = (u_char*)realloc( *pixels , new_width * new_height * 4)))
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " realloc failed.\n.") ;
+			#endif
+				return  0 ;
+			}
+
+			memset( p + cur_width * cur_height * 4 , 0 ,
+				new_width * (new_height - cur_height)) ;
+
+			*pixels = p ;
+		}
+		else /* if( new_height < cur_height) */
+		{
+			/* do nothing */
+		}
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Sixel data: %d %d -> calloc %d %d\n" ,
+			cur_width , cur_height , new_width , new_height) ;
+	#endif
+
+		/* Cast to u_char* is necessary because this function can be compiled by g++. */
+		if( ! ( p = (u_char*)calloc( 4 , new_width * new_height)))
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " realloc failed.\n.") ;
@@ -96,12 +156,13 @@ realloc_pixels(
 			return  0 ;
 		}
 
-		for( y = n_copy_rows - 1 ; y >= 0 ; y--)
+		for( y = 0 ; y < n_copy_rows ; y++)
 		{
-			memmove( p + (y * new_width * 3) , p + (y * cur_width * 3) ,
-				new_width * 3) ;
+			memcpy( p + (y * new_width * 4) , (*pixels) + (y * cur_width * 4) ,
+				cur_width * 4) ;
 		}
 
+		free( *pixels) ;
 		*pixels = p ;
 	}
 
@@ -183,7 +244,7 @@ load_sixel_from_file(
 	height = 1024 ;
 
 	/*  Cast to u_char* is necessary because this function can be compiled by g++. */
-	if( ! ( pixels = (u_char*)malloc( 3 * width * height)))
+	if( ! ( pixels = (u_char*)calloc( width * height , 4)))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " malloc failed.\n.") ;
@@ -396,21 +457,22 @@ restart:
 		}
 		else if( *p >= '?' && *p <= '\x7E')
 		{
+			u_int  new_width ;
+			u_int  new_height ;
 			int  a ;
 			int  b ;
 			int  y ;
 
-			if( width < pix_x + rep || height < pix_y + 6)
+			if( ! realloc_pixels( &pixels ,
+					(new_width = width < pix_x + rep ? width * 2 : width) ,
+					(new_height = height < pix_y + 6 ? height * 2 : height) ,
+					width , height))
 			{
-				if( ! realloc_pixels( &pixels , width * 2 , height * 2 ,
-						width , height))
-				{
-					break ;
-				}
-
-				width *= 2 ;
-				height *= 2 ;
+				break ;
 			}
+
+			width = new_width ;
+			height = new_height ;
 
 			b = *p - '?' ;
 			a = 0x01 ;
@@ -423,12 +485,22 @@ restart:
 
 					for( x = 0 ; x < rep ; x ++)
 					{
-						pixels[((pix_y + y) * width + pix_x + x) * 3] =
+					#ifdef  GDK_PIXBUF_VERSION
+						/* RGBA */
+						pixels[((pix_y + y) * width + pix_x + x) * 4] =
 							(color_tbl[color] >> 16) & 0xff ;
-						pixels[((pix_y + y) * width + pix_x + x) * 3 + 1] =
+						pixels[((pix_y + y) * width + pix_x + x) * 4 + 1] =
 							(color_tbl[color] >> 8) & 0xff ;
-						pixels[((pix_y + y) * width + pix_x + x) * 3 + 2] =
+						pixels[((pix_y + y) * width + pix_x + x) * 4 + 2] =
 							(color_tbl[color]) & 0xff ;
+						pixels[((pix_y + y) * width + pix_x + x) * 4 + 3] =
+							0xff ;
+					#else
+						/* ARGB (cardinal) */
+						((u_int32_t*)pixels)[(pix_y + y) * width +
+							pix_x + x] =
+							0xff000000 | color_tbl[color] ;
+					#endif
 					}
 				}
 
@@ -531,8 +603,8 @@ gdk_pixbuf_new_from_sixel(
 		return  NULL ;
 	}
 
-	return  gdk_pixbuf_new_from_data( pixels , GDK_COLORSPACE_RGB , FALSE , 8 ,
-			width , height , width * 3 , pixbuf_destroy_notify , NULL) ;
+	return  gdk_pixbuf_new_from_data( pixels , GDK_COLORSPACE_RGB , TRUE , 8 ,
+			width , height , width * 4 , pixbuf_destroy_notify , NULL) ;
 }
 
 #define  create_cardinals_from_sixel( path , width , height)  (NULL)
@@ -549,35 +621,24 @@ create_cardinals_from_sixel(
 	u_int  width ;
 	u_int  height ;
 	u_char *  pixels ;
-	u_char *  pix_p ;
 	u_int32_t *  cardinal ;
-	u_int32_t *  card_p ;
-	int  x ;
-	int  y ;
 
-	if( ! ( pix_p = pixels = load_sixel_from_file( path , &width , &height)))
+	if( ! ( pixels = load_sixel_from_file( path , &width , &height)))
 	{
 		return  NULL ;
 	}
 
 	/*  Cast to u_int32_t* is necessary because this function can be compiled by g++. */
 	if( width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
-	    ! ( card_p = cardinal = (u_int32_t*)malloc( (width * height + 2) * sizeof(*cardinal))))
+	    ! ( cardinal = (u_int32_t*)malloc( (width * height + 2) * sizeof(*cardinal))))
 	{
 		return  NULL ;
 	}
 
-	*(card_p++) = width ;
-	*(card_p++) = height ;
+	cardinal[0] = width ;
+	cardinal[1] = height ;
 
-	for( y = 0 ; y < height ; y++)
-	{
-		for( x = 0 ; x < width ; x++)
-		{
-			*(card_p++) = 0xff000000 | pix_p[0] << 16 | pix_p[1] << 8 | pix_p[2] ;
-			pix_p += 3 ;
-		}
-	}
+	memcpy( cardinal + 2 , pixels , width * height * sizeof(*cardinal)) ;
 
 	free( pixels) ;
 
@@ -613,9 +674,6 @@ create_cardinals_from_pixbuf(
 	{
 		return  NULL ;
 	}
-
-	/* create (maybe shriked) copy */
-	pixbuf = gdk_pixbuf_scale_simple( pixbuf , width , height , GDK_INTERP_TILES) ;
 
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
@@ -655,8 +713,6 @@ create_cardinals_from_pixbuf(
 			}
 		}
 	}
-
-	g_object_unref( pixbuf) ;
 
 	return  cardinal ;
 }

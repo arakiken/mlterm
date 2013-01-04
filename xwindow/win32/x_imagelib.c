@@ -98,12 +98,14 @@ adjust_pixmap(
 	}
 }
 
-static HBITMAP
+static int
 load_file(
 	char *  path ,
 	u_int *  width ,
 	u_int *  height ,
-	x_picture_modifier_t *  pic_mod
+	x_picture_modifier_t *  pic_mod ,
+	HBITMAP *  hbmp ,
+	HBITMAP *  hbmp_mask
 	)
 {
 	char *  cmd_line ;
@@ -117,7 +119,6 @@ load_file(
 	DWORD  size ;
 	BITMAPINFOHEADER  header ;
 	HDC  hdc ;
-	HBITMAP  hbmp ;
 	BYTE *  image ;
 
 #define  CMD_LINE_FMT  "mlimgloader.exe 0 %u %u \"%s\" -c"
@@ -125,7 +126,7 @@ load_file(
 	if( ! ( cmd_line = alloca( sizeof( CMD_LINE_FMT) + DIGIT_STR_LEN(int) * 2 +
 				strlen( path))))
 	{
-		return  None ;
+		return  0 ;
 	}
 
 	sprintf( cmd_line , CMD_LINE_FMT , *width , *height , path) ;
@@ -142,7 +143,7 @@ load_file(
 		kik_warn_printf( KIK_DEBUG_TAG " CreatePipe() failed.\n") ;
 	#endif
 
-		return  None ;
+		return  0 ;
 	}
 
 	ZeroMemory(&si,sizeof(STARTUPINFO)) ;
@@ -211,6 +212,55 @@ load_file(
 
 	adjust_pixmap( image , *width , *height , pic_mod) ;
 
+	if( hbmp_mask)
+	{
+		int  x ;
+		int  y ;
+		u_int  data_width ;
+		BYTE *  mask_data ;
+		BYTE *  dst ;
+
+		*hbmp_mask = None ;
+
+		/* align each line by short. */
+		data_width = ((*width) + 15) / 16 * 2 ;
+
+		if( ( dst = mask_data = calloc( data_width * (*height) , 1)))
+		{
+			int  has_tp ;
+			u_int32_t *  src ;
+
+			has_tp = 0 ;
+			src = (u_int32_t*)image ;
+
+			for( y = 0 ; y < *height ; y++)
+			{
+				for( x = 0 ; x < *width ; x++)
+				{
+					if( *src >= 0x80000000)
+					{
+						dst[x / 8] |= (1 << (7 - x % 8)) ;
+					}
+					else
+					{
+						has_tp = 1 ;
+					}
+
+					src ++ ;
+				}
+
+				dst += data_width ;
+			}
+
+			if( has_tp)
+			{
+				*hbmp_mask = CreateBitmap( *width , *height , 1 , 1 , mask_data) ;
+			}
+
+			free( mask_data) ;
+		}
+	}
+
 	header.biSize = sizeof(BITMAPINFOHEADER) ;
 	header.biWidth = *width ;
 	header.biHeight = -(*height) ;
@@ -224,18 +274,18 @@ load_file(
 	header.biClrImportant = 0 ;
 
 	hdc = GetDC(NULL) ;
-	hbmp = CreateDIBitmap( hdc , &header , CBM_INIT , image ,
+	*hbmp = CreateDIBitmap( hdc , &header , CBM_INIT , image ,
 		(BITMAPINFO*)&header , DIB_RGB_COLORS) ;
 	ReleaseDC( NULL , hdc) ;
 
 	free( image) ;
 
-	return  hbmp ;
+	return  1 ;
 
 error:
 	CloseHandle( output_read) ;
 
-	return  None ;
+	return  0 ;
 }
 
 
@@ -273,7 +323,7 @@ x_imagelib_load_file_for_background(
 	HDC  hmdc ;
 
 	width = height = 0 ;
-	if( ! ( hbmp = load_file( path , &width , &height , pic_mod)))
+	if( ! load_file( path , &width , &height , pic_mod , &hbmp , NULL))
 	{
 		BITMAP  bmp ;
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
@@ -337,7 +387,7 @@ x_imagelib_load_file(
 	char *  path ,
 	u_int32_t **  cardinal ,
 	Pixmap *  pixmap ,
-	Pixmap *  mask ,
+	PixmapMask *  mask ,
 	u_int *  width ,
 	u_int *  height
 	)
@@ -351,7 +401,7 @@ x_imagelib_load_file(
 		return  0 ;
 	}
 
-	if( ! ( hbmp = load_file( path , width , height , NULL)))
+	if( ! load_file( path , width , height , NULL , &hbmp , mask))
 	{
 		BITMAP  bmp ;
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
@@ -381,11 +431,6 @@ x_imagelib_load_file(
 
 	*pixmap = hmdc ;
 
-	if( mask)
-	{
-		*mask = None ;
-	}
-
 	return  1 ;
 }
 
@@ -401,6 +446,20 @@ x_delete_image(
 	DeleteObject( SelectObject( pixmap , bmp)) ;
 	DeleteDC( pixmap) ;
 	DeleteObject( bmp) ;
+
+	return  1 ;
+}
+
+int
+x_delete_mask(
+	Display *  display ,
+	PixmapMask  mask	/* can be NULL */
+	)
+{
+	if( mask)
+	{
+		DeleteObject( mask) ;
+	}
 
 	return  1 ;
 }

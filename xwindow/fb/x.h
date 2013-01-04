@@ -79,6 +79,7 @@ typedef struct
 
 } *  Pixmap ;
 
+typedef unsigned char *  PixmapMask ;
 typedef int  GC ;		/* dummy */
 typedef int  Font ;		/* dummy */
 typedef int  Cursor ;		/* dummy */

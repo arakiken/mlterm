@@ -235,6 +235,7 @@ static int
 copy_area(
 	x_window_t *  win ,
 	Pixmap  src ,
+	PixmapMask  mask ,
 	int  src_x ,	/* can be minus */
 	int  src_y ,	/* can be minus */
 	u_int  width ,
@@ -247,7 +248,6 @@ copy_area(
 	int  margin ;
 	int  right_margin ;
 	int  bottom_margin ;
-	size_t  size ;
 	int  y_off ;
 	u_int  bpp ;
 
@@ -278,16 +278,67 @@ copy_area(
 		height = win->height + margin - bottom_margin - dst_y ;
 	}
 
-	size = width * (bpp = win->disp->display->bytes_per_pixel) ;
+	bpp = win->disp->display->bytes_per_pixel ;
 
-	for( y_off = 0 ; y_off < height ; y_off++)
+	if( mask)
 	{
-		x_display_put_image( win->disp->display ,
-			win->x + win->margin + dst_x ,
-			win->y + win->margin + dst_y + y_off ,
-			src->image + bpp * ((margin + src_y + y_off) * src->width +
-						margin + src_x) ,
-			size) ;
+		mask += ((margin + src_y) * src->width + margin + src_x) ;
+
+		for( y_off = 0 ; y_off < height ; y_off++)
+		{
+			int  x_off ;
+			u_int  w ;
+
+			w = 0 ;
+			for( x_off = 0 ; x_off < width ; x_off++)
+			{
+				if( mask[x_off])
+				{
+					w ++ ;
+
+					if( x_off + 1 == width)
+					{
+						/* for x_off - w */
+						x_off ++ ;
+					}
+					else
+					{
+						continue ;
+					}
+				}
+				else if( w == 0)
+				{
+					continue ;
+				}
+
+				x_display_put_image( win->disp->display ,
+					win->x + win->margin + dst_x + x_off - w ,
+					win->y + win->margin + dst_y + y_off ,
+					src->image + bpp *
+						((margin + src_y + y_off) * src->width +
+						 margin + src_x + x_off - w) ,
+					w * bpp) ;
+				w = 0 ;
+			}
+
+			mask += src->width ;
+		}
+	}
+	else
+	{
+		size_t  size ;
+
+		size = width * bpp ;
+
+		for( y_off = 0 ; y_off < height ; y_off++)
+		{
+			x_display_put_image( win->disp->display ,
+				win->x + win->margin + dst_x ,
+				win->y + win->margin + dst_y + y_off ,
+				src->image + bpp * ((margin + src_y + y_off) * src->width +
+							margin + src_x) ,
+				size) ;
+		}
 	}
 
 	return  1 ;
@@ -860,7 +911,7 @@ x_window_clear(
 	}
 	else
 	{
-		return  copy_area( win , win->wall_picture ,
+		return  copy_area( win , win->wall_picture , None ,
 				x , y , width , height , x , y , 1) ;
 	}
 
@@ -1328,6 +1379,7 @@ int
 x_window_copy_area(
 	x_window_t *  win ,
 	Pixmap  src ,
+	PixmapMask  mask ,
 	int  src_x ,	/* >= 0 */
 	int  src_y ,	/* >= 0 */
 	u_int  width ,
@@ -1336,7 +1388,7 @@ x_window_copy_area(
 	int  dst_y	/* >= 0 */
 	)
 {
-	return  copy_area( win , src , src_x , src_y , width , height , dst_x , dst_y , 0) ;
+	return  copy_area( win , src , mask , src_x , src_y , width , height , dst_x , dst_y , 0) ;
 }
 
 int

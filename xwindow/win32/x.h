@@ -34,6 +34,7 @@ typedef HANDLE XID ;
 typedef HANDLE Window ;
 typedef HDC Drawable ;
 typedef HDC Pixmap ;
+typedef HBITMAP PixmapMask ;
 typedef HDC GC ;
 typedef HFONT Font ;
 typedef HCURSOR Cursor ;

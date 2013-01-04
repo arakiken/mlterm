@@ -2507,6 +2507,7 @@ int
 x_window_copy_area(
 	x_window_t *  win ,
 	Pixmap  src ,
+	PixmapMask  mask ,
 	int  src_x ,	/* >= 0 */
 	int  src_y ,	/* >= 0 */
 	u_int  width ,
@@ -2530,9 +2531,25 @@ x_window_copy_area(
 		height = win->height - dst_y ;
 	}
 
-	BitBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
-		width , height ,
-		src , src_x , src_y , SRCCOPY) ;
+	if( mask)
+	{
+		POINT  p[3] ;
+
+		p[0].x = win->margin + dst_x ;
+		p[0].y = win->margin + dst_y ;
+		p[1].x = win->margin + dst_x + width ;
+		p[1].y = win->margin + dst_y ;
+		p[2].x = win->margin + dst_x ;
+		p[2].y = win->margin + dst_y + height ;
+
+		PlgBlt( win->gc->gc , p , src , src_x , src_y , width , height ,
+			mask , src_x , src_y) ;
+	}
+	else
+	{
+		BitBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
+			width , height , src , src_x , src_y , SRCCOPY) ;
+	}
 
 	return  1 ;
 }
