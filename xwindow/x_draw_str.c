@@ -170,6 +170,10 @@ draw_drcs(
 
 	for( y_off = 0 ; y_off < ch_height ; y_off++)
 	{
+		u_int  w ;
+
+		w = 0 ;
+
 		for( x_off = 0 ; x_off < ch_width ; x_off++)
 		{
 			int  left_x ;
@@ -218,9 +222,26 @@ draw_drcs(
 
 			if( n_smpl <= hit * 2)
 			{
-				x_window_fill_with( window , fg_xcolor ,
-					x + x_off , y + y_off , 1 , 1) ;
+				w ++ ;
+
+				if( x_off + 1 == ch_width)
+				{
+					/* for x_off - w */
+					x_off ++ ;
+				}
+				else
+				{
+					continue ;
+				}
 			}
+			else if( w == 0)
+			{
+				continue ;
+			}
+
+			x_window_fill_with( window , fg_xcolor ,
+				x + x_off - w , y + y_off , w , 1) ;
+			w = 0 ;
 		}
 	}
 

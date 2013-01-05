@@ -1,5 +1,9 @@
 2013-01-04  Araki Ken  <arakiken@users.sf.net>
 
+	* x_draw_str.c: Performance of draw_drcs() is improved.
+
+2013-01-04  Araki Ken  <arakiken@users.sf.net>
+
 	* x_draw_str.c:
 	  - Segfault in drcs using ESC(I is fixed. (Thanks to saitoha san)
 	  - Minor fixes for alpha mask.
