@@ -46,7 +46,7 @@ drcs_final(
 /* --- global functions --- */
 
 ml_drcs_t *
-ml_drcs_get(
+ml_drcs_get_font(
 	mkf_charset_t  cs ,
 	int  create
 	)
@@ -85,6 +85,25 @@ ml_drcs_get(
 	cached_font_cs = drcs_fonts[num_of_drcs_fonts].cs = cs ;
 
 	return  (cached_font = &drcs_fonts[num_of_drcs_fonts ++]) ;
+}
+
+char *
+ml_drcs_get_glyph(
+	mkf_charset_t  cs ,
+	u_char  idx
+	)
+{
+	ml_drcs_t *  font ;
+
+	/* msb can be set in ml_vt100_parser.c (e.g. ESC(I (JISX0201 kana)) */
+	if( ( font = ml_drcs_get_font( cs , 0)) && 0x20 <= (idx & 0x7f))
+	{
+		return  font->glyphs[(idx & 0x7f) - 0x20] ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }
 
 int

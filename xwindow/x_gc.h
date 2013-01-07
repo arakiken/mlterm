@@ -13,6 +13,9 @@
 
 typedef struct x_gc
 {
+#ifdef  USE_FRAMEBUFFER
+	int  gc ;		/* dummy */
+#else
 	Display *  display ;
 	GC  gc ;
 	u_long  fg_color ;	/* alpha bits are always 0 in win32. */
@@ -21,7 +24,10 @@ typedef struct x_gc
 #ifdef  USE_WIN32GUI
 	HPEN  pen ;
 	HBRUSH  brush ;
+#else
+	PixmapMask  mask ;
 #endif
+#endif	/* USE_FRAMEBUFFER */
 
 } x_gc_t ;
 

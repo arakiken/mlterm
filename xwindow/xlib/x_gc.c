@@ -72,6 +72,13 @@ x_gc_set_fg_color(
 	u_long  fg_color
 	)
 {
+	/* Cooperate with x_window_copy_area(). */
+	if( gc->mask)
+	{
+		XSetClipMask( gc->display , gc->gc , None) ;
+		gc->mask = None ;
+	}
+
 	if( fg_color != gc->fg_color)
 	{
 		XSetForeground( gc->display , gc->gc , fg_color) ;
@@ -87,6 +94,13 @@ x_gc_set_bg_color(
 	u_long  bg_color
 	)
 {
+	/* Cooperate with x_window_copy_area(). */
+	if( gc->mask)
+	{
+		XSetClipMask( gc->display , gc->gc , None) ;
+		gc->mask = None ;
+	}
+
 	if( bg_color != gc->bg_color)
 	{
 		XSetBackground( gc->display , gc->gc , bg_color) ;
@@ -102,6 +116,15 @@ x_gc_set_fid(
 	Font  fid
 	)
 {
+	/* XXX Lazy skip (maybe harmless) */
+#if  0
+	if( gc->mask)
+	{
+		XSetClipMask( gc->display , gc->gc , None) ;
+		gc->mask = None ;
+	}
+#endif
+
 	if( gc->fid != fid)
 	{
 		XSetFont( gc->display , gc->gc , fid) ;

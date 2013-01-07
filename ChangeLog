@@ -1,3 +1,19 @@
+2013-01-07  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_display.c, xlib/x_display.c, main.c:
+	  hide_console() is moved x_display.c to main.c.
+
+	* win32/x_window.c: PlgBlt() is replaced by MaskBlt() in copy_area().
+
+	* x_draw_str.c: The number of calling x_window_copy_area() is decreased.
+
+	* ml_drcs.[ch]:
+	  - ml_drcs_get() -> ml_drcs_get_font()
+	  - ml_drcs_get_glyph() is added.
+
+	* xlib/x_window.c, x_gc.[ch]: The number of calling XSetClipMask()
+	  is decreased.
+
 2013-01-04  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c: Performance of draw_drcs() is improved.

@@ -331,6 +331,39 @@ restart:
 		asp_x = 2 ;
 	}
 
+#if  0
+	if( *(++p) != ';')
+	{
+		/* P2 */
+		switch( *p)
+		{
+		case '0':
+		case '2':
+			...
+			break;
+
+		default:
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
+		#endif
+			goto  end ;
+		}
+
+		if( *(++p) != ';' || *p == '\0')
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
+		#endif
+			goto  end ;
+		}
+	}
+	else
+	{
+		/* P2 is omitted. */
+		...
+	}
+#endif
+
 	/* Ignoring P2 and P3 */
 	while( *(++p) != 'q')
 	{

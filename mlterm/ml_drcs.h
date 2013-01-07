@@ -17,7 +17,9 @@ typedef struct ml_drcs
 } ml_drcs_t ;
 
 
-ml_drcs_t *  ml_drcs_get( mkf_charset_t  cs , int  create) ;
+ml_drcs_t *  ml_drcs_get_font( mkf_charset_t  cs , int  create) ;
+
+char *  ml_drcs_get_glyph( mkf_charset_t  cs , u_char  idx) ;
 
 int  ml_drcs_final( mkf_charset_t  cs) ;
 

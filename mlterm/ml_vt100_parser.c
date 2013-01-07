@@ -4136,7 +4136,7 @@ parse_vt100_escape_sequence(
 						ml_drcs_final_full() ;
 					}
 
-					font = ml_drcs_get( cs , 1) ;
+					font = ml_drcs_get_font( cs , 1) ;
 
 					if( ps[3] <= 4 || ps[3] >= 255)
 					{

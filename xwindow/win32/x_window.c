@@ -2533,17 +2533,9 @@ x_window_copy_area(
 
 	if( mask)
 	{
-		POINT  p[3] ;
-
-		p[0].x = win->margin + dst_x ;
-		p[0].y = win->margin + dst_y ;
-		p[1].x = win->margin + dst_x + width ;
-		p[1].y = win->margin + dst_y ;
-		p[2].x = win->margin + dst_x ;
-		p[2].y = win->margin + dst_y + height ;
-
-		PlgBlt( win->gc->gc , p , src , src_x , src_y , width , height ,
-			mask , src_x , src_y) ;
+		MaskBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
+			width , height , src , src_x , src_y , mask , src_x , src_y ,
+			MAKEROP4(SRCCOPY,PATCOPY)) ;
 	}
 	else
 	{

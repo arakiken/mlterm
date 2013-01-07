@@ -71,35 +71,6 @@ static LRESULT CALLBACK window_proc(
 	return  DefWindowProc( hwnd, msg, wparam, lparam) ;
 }
 
-#ifndef  USE_WIN32API
-static void
-hide_console(void)
-{
-	HWND  conwin ;
-	char  app_name[40] ;
-
-	sprintf( app_name, "mlterm%08x", (unsigned int)GetCurrentThreadId()) ;
-
-	LockWindowUpdate( GetDesktopWindow()) ;
-	
-/*
- * "-Wl,-subsystem,console" is specified in xwindow/Makefile, so AllocConsole()
- * is not necessary.
- */
-#if  0
-	AllocConsole() ;
-#endif
-
-	SetConsoleTitle( app_name) ;
-	while( ( conwin = FindWindow( NULL, app_name)) == NULL)
-	{
-		Sleep( 40) ;
-	}
-	ShowWindowAsync( conwin, SW_HIDE);
-	LockWindowUpdate( NULL) ;
-}
-#endif
-
 static int
 dialog(
 	kik_dialog_style_t  style ,
@@ -192,10 +163,6 @@ x_display_open(
 #endif
 
 	x_gdiobj_pool_init() ;
-
-#ifndef  USE_WIN32API
-	hide_console() ;
-#endif
 
 	/* _disp is initialized successfully. */
 	_display.fd = fd ;
