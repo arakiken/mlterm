@@ -6,7 +6,10 @@
 #include  <unistd.h>	/* STDOUT_FILENO */
 #include  <stdlib.h>	/* mbstowcs_s */
 
+extern "C" {
 #include  <kiklib/kik_debug.h>
+}
+
 #include  <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include  <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
 

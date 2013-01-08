@@ -1,3 +1,18 @@
+2013-01-09  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c: The bug of decreasing num_of_inline_pics wrongly after the
+	  failure of loading a picture is fixed.
+
+	* win32/x_imagelib.c, xwindow/Makefile.in:
+	  If CreateProcess("mlimgloader.exe") failed, try "c:\cygwin\bin\mlimgloader.exe".
+
+	* mlimgloader/gdiplus.c: <kiklib/kik_debug.h> is enclosed by extern "C" to
+	  fix compilation error.
+
+	* c_imagelib.c: load_sixel_from_file() returns the pointer to cardinal + 2
+	  in order to decrease the number of allocating and copying memory
+	  if gdk_pixbuf is not used.
+
 2013-01-07  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_display.c, xlib/x_display.c, main.c:

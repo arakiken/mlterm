@@ -250,7 +250,8 @@ pty_closed(
 		    inline_pics[count].pixmap)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %d\n" , count) ;
+			kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %d (%d)\n" ,
+				count , num_of_inline_pics) ;
 		#endif
 
 			delete_inline_picture( inline_pics + count) ;
@@ -367,8 +368,10 @@ cleanup_inline_pictures(
 			else
 			{
 			#ifdef  DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %s %d\n" ,
-					inline_pics[count].file_path , count) ;
+				kik_debug_printf( KIK_DEBUG_TAG
+					" delete inline picture %s %d (%d) \n" ,
+					inline_pics[count].file_path ,
+					count , num_of_inline_pics) ;
 			#endif
 
 				delete_inline_picture( inline_pics + count) ;
@@ -767,14 +770,12 @@ x_load_inline_picture(
 		}
 
 		inline_pics = p ;
-		idx = num_of_inline_pics ++ ;
+		idx = num_of_inline_pics ;
 	}
 
 	if( ! x_imagelib_load_file( disp , file_path , NULL ,
 		&inline_pics[idx].pixmap , &inline_pics[idx].mask , width , height))
 	{
-		num_of_inline_pics -- ;
-
 		return  -1 ;
 	}
 
@@ -786,6 +787,11 @@ x_load_inline_picture(
 	inline_pics[idx].col_width = col_width ;
 	inline_pics[idx].line_height = line_height ;
 	inline_pics[idx].ref_count = 1 ;
+
+	if( idx == num_of_inline_pics)
+	{
+		num_of_inline_pics ++ ;
+	}
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " new inline picture (%s %d) is created.\n" ,

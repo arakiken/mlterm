@@ -5,7 +5,7 @@
 #include  "../x_imagelib.h"
 
 #include  <stdio.h>		/* sprintf */
-#include  <math.h>               /* pow */
+#include  <math.h>		/* pow */
 
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_debug.h>
@@ -153,16 +153,32 @@ load_file(
 	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE) ;
 	si.hStdError = GetStdHandle(STD_ERROR_HANDLE) ;
 
-	if( ! CreateProcess( "mlimgloader.exe" , cmd_line ,
-		NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL, NULL, &si, &pi))
+	if( ! CreateProcess( NULL , cmd_line ,
+		NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL , NULL , &si , &pi))
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
+	#if  defined(__CYGWIN__) || defined(__MSYS__)
+	#ifndef  BINDIR
+	#define  BINDIR "/bin"
 	#endif
+		/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
+		char  bindir[MAX_PATH] ;
+		char *  new_cmd_line ;
 
-		CloseHandle( output_write) ;
+		cygwin_conv_to_win32_path( BINDIR , bindir) ;
+		if( ! ( new_cmd_line = alloca( strlen(bindir) + 1 + strlen(cmd_line) + 1)) ||
+		    sprintf( new_cmd_line , "%s\\%s" , bindir , cmd_line) < 0 ||
+		    ! CreateProcess( NULL , new_cmd_line ,
+			NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL , NULL , &si , &pi))
+	#endif
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
+		#endif
 
-		goto  error ;
+			CloseHandle( output_write) ;
+
+			goto  error ;
+		}
 	}
 
 	CloseHandle( output_write) ;
