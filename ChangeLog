@@ -1,3 +1,33 @@
+2013-01-15  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: "vertical_mode" is not dynamic changeable.
+
+	* x_picture.c: THRESHOLD for inline pictures is changed from 24 to 48.
+
+	* fb/x_window.c:
+	  - x_window_full_expose() and x_window_move_no_expose() are added.
+	  - If input method screen is opened, x_window_is_scrollable() which
+	    is implemented as a function instead of a macro returns 0.
+
+	* fb/x_display.c: x_expose_window() is added.
+
+	* fb/x_display.c, fb/x_window.c, fb/x.h:
+	  - XK_Return is defined as 0x0d instead of 0x0a.
+	  - Masking '@' ... '_' characters pressed with control key by 0x1f is
+	    moved from kcode_to_ksym() in x_display.c to x_window_get_str() in
+	    x_window.c.
+
+	* im_uim.c, uim/Makefile.in, im_m17nlib.c, im_kbd.c, x_im.c:
+	  Fixes for framebuffer.
+
+	* x_im_candidate_screen.c, x_im_status_screen.c:
+	  - x_im_status_screen.c uses x_window_full_expose() in framebuffer.
+	  - x_im_candidate_screen.c uses x_window_no_expose() in framebuffer.
+	  - line_height (x_im_status_screen alone), x and y members are added
+	    to place screen correctly.
+
+	* x_screen.c: window_exposed() is tuned up.
+
 2013-01-09  Araki Ken  <arakiken@users.sf.net>
 
 	* x_picture.c: The bug of decreasing num_of_inline_pics wrongly after the

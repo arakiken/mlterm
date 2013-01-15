@@ -717,7 +717,7 @@ DL_LIBS_IM=""
 AC_ARG_ENABLE(kbd,
 	[  --disable-kbd           input method for Arabic and Indic @<:@default=enabled@:>@],
 	kbd=$enable_kbd)
-if test "$kbd" != "no" -a "$gui" != "fb" ; then
+if test "$kbd" != "no" ; then
 	IM_CFLAGS="$IM_CFLAGS -DUSE_KBD"
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
@@ -733,7 +733,7 @@ fi
 AC_ARG_ENABLE(uim,
 	[  --enable-uim            uim (Experimental) @<:@default=disabled@:>@],
 	uim=$enable_uim)
-if test "x$uim" = xyes -a "$gui" != "fb" ; then
+if test "x$uim" = xyes ; then
 	PKG_CHECK_MODULES(UIM, uim >= 1.0.0, have_uim=yes, have_uim=no)
 	if test "x$have_uim" = xyes ; then
 		IM_CFLAGS="$IM_CFLAGS -DUSE_UIM"
@@ -754,7 +754,7 @@ AC_SUBST(UIM_LIBS)
 AC_ARG_ENABLE(m17nlib,
 	[  --enable-m17nlib        m17n library (Experimental) @<:@default=disabled@:>@],
 	m17nlib=$enable_m17nlib)
-if test "x$m17nlib" = xyes -a "$gui" != "fb" ; then
+if test "x$m17nlib" = xyes ; then
 	AC_CHECK_PROG(m17nlib, m17n-config, yes, no)
 fi
 if test "x$m17nlib" = xyes ; then
@@ -851,6 +851,7 @@ AC_ARG_WITH(scrollbars,
 
 scrollbars=`echo ${scrollbars} | sed 's/,/ /g'`
 
+# sample scrollbar needs x_window_clear etc.
 if test "$gui" = "fb" -a "$scrollbars" != "" ; then
 	DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
 fi

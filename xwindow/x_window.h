@@ -290,7 +290,11 @@ int  x_window_receive_event( x_window_t *  win , XEvent *  event) ;
 size_t  x_window_get_str( x_window_t *  win , u_char *  seq , size_t  seq_len ,
 	mkf_parser_t **  parser , KeySym *  keysym , XKeyEvent *  event) ;
 
+#ifdef  USE_FRAMEBUFFER
+int  x_window_is_scrollable( x_window_t *  win) ;
+#else
 #define  x_window_is_scrollable(win)  ((win)->is_scrollable)
+#endif
 
 int  x_window_scroll_upward( x_window_t *  win , u_int  height) ;
 

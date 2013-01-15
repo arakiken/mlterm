@@ -54,20 +54,13 @@ static  x_im_export_syms_t  im_export_syms =
 
 /* --- static functions --- */
 
-static int
-dlsym_im_new_func(
-	char *  im_name ,
-	x_im_new_func_t *  func ,
-	kik_dl_handle_t *  handle
+static void *
+im_dlopen(
+	char *  im_name
 	)
 {
-	char * libname ;
-	char * symname ;
-
-	if( ! im_name)
-	{
-		return  0 ;
-	}
+	char *  libname ;
+	void *  handle ;
 
 	if( ! ( libname = alloca( strlen( im_name) + 4)))
 	{
@@ -75,27 +68,54 @@ dlsym_im_new_func(
 		kik_debug_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
 	#endif
 
-		return  0 ;
+		return  NULL ;
 	}
 
 	sprintf( libname , "im-%s" , im_name) ;
 
-	if( ! ( symname = alloca( strlen( im_name) + 8)))
+	if( ! ( handle = kik_dl_open( IM_DIR , libname)))
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
-	#endif
+		handle = kik_dl_open( "" , libname) ;
+	}
 
+	return  handle ;
+}
+
+static int
+dlsym_im_new_func(
+	char *  im_name ,
+	x_im_new_func_t *  func ,
+	kik_dl_handle_t *  handle
+	)
+{
+	char * symname ;
+#ifdef  USE_FRAMEBUFFER
+	char *  fb_im_name ;
+#endif
+
+	if( ! im_name || ! ( symname = alloca( strlen( im_name) + 8)))
+	{
 		return  0 ;
 	}
 
 	sprintf( symname , "im_%s_new" , im_name) ;
 
-	if( ! ( *handle = kik_dl_open( IM_DIR , libname)) &&
-	    ! ( *handle = kik_dl_open( "" , libname)))
+#ifdef  USE_FRAMEBUFFER
+	if( ( fb_im_name = alloca( strlen( im_name) + 3 + 1)))
 	{
-		return  0 ;
+		sprintf( fb_im_name , "%s-fb" , im_name) ;
+
+		if( ! ( *handle = im_dlopen( fb_im_name)))
+		{
+#endif
+			if( ! ( *handle = im_dlopen( im_name)))
+			{
+				return  0 ;
+			}
+#ifdef  USE_FRAMEBUFFER
+		}
 	}
+#endif
 
 	if( ! ( *func = (x_im_new_func_t) kik_dl_func_symbol( *handle , symname)))
 	{

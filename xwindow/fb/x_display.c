@@ -151,8 +151,13 @@ kcode_to_ksym(
 {
 	if( kcode == KEY_ENTER)
 	{
-		/* KDGKBENT returns '\n' */
-		return  '\r' ;
+		/* KDGKBENT returns '\n'(0x0a) */
+		return  0x0d ;
+	}
+	else if( kcode == KEY_BACKSPACE)
+	{
+		/* KDGKBDENT returns 0x7f */
+		return  0x08 ;
 	}
 	else if( kcode <= KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO)
 	{
@@ -181,21 +186,6 @@ kcode_to_ksym(
 		if( ret != -1 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP)
 		{
 			ent.kb_value &= 0xff ;
-
-		#ifndef  READ_CTRL_KEYMAP
-			if( ( state & ControlMask) &&
-			    ( ent.kb_value == ' ' ||
-			      /*
-			       * Control + '@'(0x40) ... '_'(0x5f) -> 0x00 ... 0x1f
-			       *
-			       * Not "<= '_'" but "<= 'z'" because Control + 'a' is not
-			       * distinguished from Control + 'A'.
-			       */
-			     ('@' <= ent.kb_value && ent.kb_value <= 'z')) )
-			{
-				ent.kb_value &= 0x1f ;
-			}
-		#endif
 
 			return  ent.kb_value ;
 		}
@@ -595,6 +585,55 @@ draw_mouse_cursor(void)
 	_mouse.cursor.is_drawn = 1 ;
 }
 
+static void
+expose_window(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	if( x < win->x || y < win->y ||
+	    x - win->x + width > win->margin + win->width ||
+	    y - win->y + height > win->margin + win->height)
+	{
+		x_window_clear_margin_area( win) ;
+	}
+
+	if( win->window_exposed)
+	{
+		(*win->window_exposed)( win , x - win->x , y - win->y , width , height) ;
+	}
+}
+
+static void
+receive_event_for_multi_roots(
+	x_display_t *  disp ,
+	XEvent *  xev
+	)
+{
+	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
+	{
+		/* XXX for input method window */
+		x_window_t  saved_win ;
+
+		saved_win = *(disp->roots[1]) ;
+
+		x_window_receive_event( disp->roots[0] , xev) ;
+
+		if( disp->num_of_roots == 1 || ! disp->roots[1]->is_mapped)
+		{
+			x_display_expose( saved_win.x , saved_win.y ,
+				ACTUAL_WIDTH(&saved_win) , ACTUAL_HEIGHT(&saved_win)) ;
+		}
+	}
+	else
+	{
+		x_window_receive_event( disp->roots[0] , xev) ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -627,6 +666,8 @@ x_display_open(
 		if( ( _disp.depth = vinfo.bits_per_pixel) < 8) /* 2/4 bpp is not supported. */
 		{
 			kik_msg_printf( "%d bpp is not supported.\n" , vinfo.bits_per_pixel) ;
+
+			close( _display.fb_fd) ;
 
 			return  NULL ;
 		}
@@ -813,12 +854,6 @@ x_display_show_root(
 	)
 {
 	void *  p ;
-
-	/* XXX Only one root window per display. */
-	if( disp->num_of_roots > 0)
-	{
-		return  0 ;
-	}
 
 	if( ( p = realloc( disp->roots , sizeof( x_window_t*) * (disp->num_of_roots + 1))) == NULL)
 	{
@@ -1146,7 +1181,7 @@ x_display_receive_next_event(
 						xev.state = _mouse.button_state |
 							    disp->display->key_state ;
 
-						x_window_receive_event( disp->roots[0] , &xev) ;
+						receive_event_for_multi_roots( disp , &xev) ;
 					}
 				}
 				else if( ev.value == 0 /* Released */)
@@ -1291,4 +1326,41 @@ x_display_copy_line(
 	memmove( x_display_get_fb( display , dst_x , dst_y) ,
 		x_display_get_fb( display , src_x , src_y) ,
 		width * display->bytes_per_pixel) ;
+}
+
+void
+x_display_expose(
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	x_window_t *  win1 ;
+	x_window_t *  win2 ;
+
+	win1 = get_window( x , y) ;
+	expose_window( win1 , x , y , width , height) ;
+
+	/*
+	 * XXX
+	 * x_im_{status|candidate}_screen can exceed display width or height,
+	 * because x_im_{status|candidate}_screen_new() shows screen at
+	 * non-adjusted position.
+	 */
+
+	if( x + width > _disp.width)
+	{
+		width = _disp.width - x ;
+	}
+
+	if( y + height > _disp.height)
+	{
+		height = _disp.height - y ;
+	}
+
+	if( ( win2 = get_window( x + width - 1 , y + height - 1)) != win1)
+	{
+		expose_window( win2 , x , y , width , height) ;
+	}
 }

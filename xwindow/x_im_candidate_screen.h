@@ -45,6 +45,8 @@ typedef struct x_im_candidate_screen
 
 	u_int  is_focused ;
 
+	int  x ;		/* not adjusted by window size            */
+	int  y ;		/* not adjusted by window size            */
 	u_int  line_height ;	/* line height of attaced screen          */
 
 	int  is_vertical_term ;

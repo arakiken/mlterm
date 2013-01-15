@@ -13,6 +13,7 @@ ver 3.1.7
 * Support UTF8 text for setting the window title by OSC 0 or OSC 2 in win32.
 * Add --disable-use-tools option (which disables external tools) to configure.
 * Support alpha mask of sixel graphics.
+* Support uim and kbd plugin in framebuffer.
 * Bug fixes:
   Fix the bug of "button3_behavior" option rejecting "mlclient ..." command.
   Fix the incorrect parsing of font names which contain digit characters like

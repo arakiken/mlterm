@@ -1531,9 +1531,14 @@ window_exposed(
 			" exposed [row] from %d to %d [x] from %d to %d\n" ,
 			beg_row , end_row , x , x + width) ;
 	#endif
+
+		ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
 	}
 	else
 	{
+		int  row ;
+		ml_line_t *  line ;
+
 		beg_row = convert_y_to_row( screen , NULL , y) ;
 		end_row = convert_y_to_row( screen , NULL , y + height) ;
 
@@ -1542,15 +1547,39 @@ window_exposed(
 			" exposed [row] from %d to %d [y] from %d to %d\n" ,
 			beg_row , end_row , y , y + height) ;
 	#endif
+
+		for( row = beg_row ; row <= end_row ; row ++)
+		{
+			if( ( line = ml_term_get_line_in_screen( screen->term , row)))
+			{
+				if( ml_line_is_rtl( line))
+				{
+					ml_line_set_modified_all( line) ;
+				}
+				else
+				{
+					int  beg ;
+					int  end ;
+					u_int  rest ;
+
+					beg = convert_x_to_char_index_with_shape(
+							screen , line , &rest , x) ;
+					beg += (rest / x_col_width( screen)) ;
+					end = convert_x_to_char_index_with_shape(
+							screen , line , &rest , x + width) ;
+					end += (rest / x_col_width( screen)) ;
+					ml_line_set_modified( line , beg , end) ;
+
+				#ifdef  __DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+						" exposed line %d to %d [row %d]\n" ,
+						beg , end , row) ;
+				#endif
+				}
+			}
+		}
 	}
 
-	/*
-	 * XXX
-	 * ml_term_set_modified_region_in_screen() is not used here to
-	 * simplify logic.
-	 */
-	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
-	
 	redraw_screen( screen) ;
 
 	if( beg_row <= ml_term_cursor_row_in_screen( screen->term) &&
@@ -8414,10 +8443,12 @@ x_screen_set_config(
 	{
 		change_bel_mode( screen , x_get_bel_mode_by_name( value)) ;
 	}
+#ifndef  USE_FRAMEBUFFER
 	else if( strcmp( key , "vertical_mode") == 0)
 	{
 		change_vertical_mode( screen , ml_get_vertical_mode( value)) ;
 	}
+#endif
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
 		change_sb_mode( screen , x_get_sb_mode_by_name( value)) ;

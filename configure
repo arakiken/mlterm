@@ -21629,7 +21629,7 @@ if test "${enable_kbd+set}" = set; then :
   enableval=$enable_kbd; kbd=$enable_kbd
 fi
 
-if test "$kbd" != "no" -a "$gui" != "fb" ; then
+if test "$kbd" != "no" ; then
 	IM_CFLAGS="$IM_CFLAGS -DUSE_KBD"
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
@@ -21647,7 +21647,7 @@ if test "${enable_uim+set}" = set; then :
   enableval=$enable_uim; uim=$enable_uim
 fi
 
-if test "x$uim" = xyes -a "$gui" != "fb" ; then
+if test "x$uim" = xyes ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for UIM" >&5
@@ -21736,7 +21736,7 @@ if test "${enable_m17nlib+set}" = set; then :
   enableval=$enable_m17nlib; m17nlib=$enable_m17nlib
 fi
 
-if test "x$m17nlib" = xyes -a "$gui" != "fb" ; then
+if test "x$m17nlib" = xyes ; then
 	# Extract the first word of "m17n-config", so it can be a program name with args.
 set dummy m17n-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -22559,6 +22559,7 @@ fi
 
 scrollbars=`echo ${scrollbars} | sed 's/,/ /g'`
 
+# sample scrollbar needs x_window_clear etc.
 if test "$gui" = "fb" -a "$scrollbars" != "" ; then
 	DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
 fi

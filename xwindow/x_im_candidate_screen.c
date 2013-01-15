@@ -159,6 +159,75 @@ total_candidate_width(
 	return  total_width ;
 }
 
+static void
+adjust_window_position_by_size(
+	x_im_candidate_screen_t *  cand_screen ,
+	int *  x ,
+	int *  y
+	)
+{
+	if( *x + ACTUAL_WIDTH(&cand_screen->window) > cand_screen->window.disp->width)
+	{
+		if( cand_screen->is_vertical_term)
+		{
+			/* x_im_candidate_screen doesn't know column width. */
+			*x -= (ACTUAL_WIDTH(&cand_screen->window) + cand_screen->line_height) ;
+		}
+		else
+		{
+			*x = cand_screen->window.disp->width -
+				ACTUAL_WIDTH(&cand_screen->window) ;
+		}
+	}
+
+	if( *y + ACTUAL_HEIGHT(&cand_screen->window) > cand_screen->window.disp->height)
+	{
+		*y -= ACTUAL_HEIGHT(&cand_screen->window) ;
+
+		if( ! cand_screen->is_vertical_term)
+		{
+			*y -= cand_screen->line_height ;
+		}
+	}
+}
+
+static void
+resize(
+	x_im_candidate_screen_t *  cand_screen ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	int  x ;
+	int  y ;
+
+	x_window_resize( &cand_screen->window , width , height , 0) ;
+
+	x = cand_screen->x ;
+	y = cand_screen->y ;
+	adjust_window_position_by_size( cand_screen , &x , &y) ;
+
+	if( x != cand_screen->window.x || y != cand_screen->window.y)
+	{
+		/*
+		 * In frmebuffer,
+		 * x_window_move() -> x_im_candidate_screen::window_exposed() ->
+		 * x_im_candidate_screen::draw_screen() -> here again
+		 */
+	#ifdef  USE_FRAMEBUFFER
+		x_window_move_no_expose( &cand_screen->window , x , y) ;
+	#else
+		x_window_move( &cand_screen->window , x , y) ;
+	#endif
+	}
+
+#ifdef  USE_FRAMEBUFFER
+	x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
+				  cand_screen->window.width + MARGIN - 1 ,
+				  cand_screen->window.height + MARGIN - 1) ;
+#endif
+}
+
 #define  MAX_NUM_OF_DIGITS 4 /* max is 9999. enough? */
 
 static void
@@ -231,7 +300,7 @@ draw_screen_vertical(
 			     cand_screen->num_of_candidates ;
 	}
 
-	x_window_resize( &cand_screen->window , win_width , win_height , 0) ;
+	resize( cand_screen , win_width , win_height) ;
 
 	/*
 	 * digits and candidates
@@ -255,10 +324,26 @@ draw_screen_vertical(
 		 * |1 cand0	  |
 		 *  ^
 		 */
-		if( cand_screen->candidates[i].info){
-			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c    " , (char)cand_screen->candidates[i].info) ;
-			num_of_digits = 1;
-		}else{
+		if( cand_screen->candidates[i].info)
+		{
+			char  byte2 ;
+
+			if( ! ( byte2 = (cand_screen->candidates[i].info >> 8) & 0xff))
+			{
+				byte2 = ' ' ;
+				num_of_digits = 1 ;
+			}
+			else
+			{
+				num_of_digits = 2 ;
+			}
+
+			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c%c   " ,
+				cand_screen->candidates[i].info & 0xff ,
+				byte2 ? byte2 : ' ') ;
+		}
+		else
+		{
 			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i    " , i - top + 1) ;
 		}
 
@@ -412,7 +497,7 @@ draw_screen_horizontal(
 	/* height of window */
 	win_height = xfont->height + LINE_SPACE ;
 
-	x_window_resize( &cand_screen->window , win_width , win_height , 0) ;
+	resize( cand_screen , win_width , win_height) ;
 
 	for( i = top ; i <= last; i++)
 	{
@@ -427,10 +512,14 @@ draw_screen_horizontal(
 		 *  ^^
 		 */
 		NUM_OF_DIGITS( num_of_digits , (i - top + 1)) ;
-		if( cand_screen->candidates[i].info){
-			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c." , cand_screen->candidates[i].info) ;
+		if( cand_screen->candidates[i].info)
+		{
+			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c." ,
+				cand_screen->candidates[i].info & 0xff) ;
 			num_of_digits = 1;
-		}else{
+		}
+		else
+		{
 			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i." , i - top + 1) ;
 		}
 
@@ -511,10 +600,9 @@ draw_screen(
 }
 
 static void
-adjust_window_position(
+adjust_window_x_position(
 	x_im_candidate_screen_t *  cand_screen ,
-	int *  x ,
-	int *  y
+	int *  x
 	)
 {
 	u_int  dh ;
@@ -522,6 +610,11 @@ adjust_window_position(
 	u_int  top ;
 	u_int  last ;
 	u_int  num_of_digits ;
+
+	if( cand_screen->is_vertical_term)
+	{
+		return ;
+	}
 
 	VISIBLE_INDEX( cand_screen->num_of_candidates ,
 		       cand_screen->num_per_window ,
@@ -544,27 +637,17 @@ adjust_window_position(
 		num_of_digits = 1 ;
 	}
 
-	if( cand_screen->is_vertical_term)
-	{
-		return ;
-	}
-
 	dh = cand_screen->window.disp->height ;
 	dw = cand_screen->window.disp->width ;
 
-	if( *y + cand_screen->window.height > dh)
-	{
-		*y -= (cand_screen->window.height + cand_screen->line_height + MARGIN * 2) ;
-	}
-
 	if( num_of_digits)
 	{
-		*x -= x_get_usascii_font( cand_screen->font_man)->width * (num_of_digits + 1) + MARGIN ;
-	}
-
-	if( *x + cand_screen->window.width > dw)
-	{
-		*x = dw - cand_screen->window.width ;
+		*x -= (x_get_usascii_font( cand_screen->font_man)->width * (num_of_digits + 1) +
+			MARGIN) ;
+		if( *x < 0)
+		{
+			*x = 0 ;
+		}
 	}
 }
 
@@ -620,11 +703,19 @@ set_spot(
 	int  y
 	)
 {
-	adjust_window_position( cand_screen , &x ,&y) ;
+	adjust_window_x_position( cand_screen , &x) ;
+	cand_screen->x = x ;
+	cand_screen->y = y ;
+
+	adjust_window_position_by_size( cand_screen , &x , &y) ;
 
 	if( cand_screen->window.x != x || cand_screen->window.y != y)
 	{
+	#ifdef  USE_FRAMEBUFFER
+		x_window_move_no_expose( &cand_screen->window , x , y) ;
+	#else
 		x_window_move( &cand_screen->window , x , y) ;
+	#endif
 	}
 
 	return  1 ;
@@ -669,7 +760,7 @@ set_candidate(
 	x_im_candidate_screen_t *  cand_screen ,
 	mkf_parser_t *  parser ,
 	u_char *  str ,
-	u_int  index
+	u_int  index	/* 16bit: info, 16bit: index */
 	)
 {
 	int  count = 0 ;
@@ -970,6 +1061,8 @@ x_im_candidate_screen_new(
 
 	cand_screen->is_focused = 0 ;
 
+	cand_screen->x = x ;
+	cand_screen->y = y ;
 	cand_screen->line_height = line_height_of_screen ;
 
 	cand_screen->is_vertical_term = is_vertical_term ;

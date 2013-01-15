@@ -31,7 +31,6 @@
  *	$Id$
  */
 
-#include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_snprintf kik_str_sep*/
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
@@ -143,7 +142,7 @@ xksym_to_msymbol(
 						&is_hyper) ;
 
 	/* Latin 1 */
-	if( XK_space <= ksym && ksym <= XK_asciitilde)
+	if( 0x20 <= ksym && ksym <= 0x7e)
 	{
 		char  buf[2] = " ";
 		buf[0] = ksym ;
@@ -840,6 +839,7 @@ switch_mode(
 					(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self) ,
+					(*m17nlib->im.listener->get_line_height)(m17nlib->im.listener->self) ,
 					x , y)))
 			{
 			#ifdef  DEBUG

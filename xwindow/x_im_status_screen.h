@@ -25,6 +25,10 @@ typedef struct x_im_status_screen
 
 	u_int  is_focused ;
 
+	int  x ;		/* not adjusted by window size */
+	int  y ;		/* not adjusted by window size */
+	u_int  line_height ;	/* line height of attaced screen */
+
 	int  is_vertical ;
 
 	/*
@@ -41,7 +45,7 @@ typedef struct x_im_status_screen
 x_im_status_screen_t * x_im_status_screen_new( x_display_t *  disp ,
 					       x_font_manager_t *  font_man ,
 					       x_color_manager_t *  color_man ,
-					       int  is_vertical ,
+					       int  is_vertical , u_int  line_height ,
 					       int  x , int  y) ;
 
 #endif

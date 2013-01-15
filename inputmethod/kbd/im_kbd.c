@@ -40,7 +40,6 @@
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_utf16_parser.h>
 #include  <ml_iscii.h>
-#include  <x.h>			/* XK_xxx */
 #include  <x_im.h>
 
 #include  "../im_common.h"
@@ -585,6 +584,7 @@ switch_mode(
 						(*kbd->im.listener->get_font_man)(kbd->im.listener->self) ,
 						(*kbd->im.listener->get_color_man)(kbd->im.listener->self) ,
 						(*kbd->im.listener->is_vertical)(kbd->im.listener->self) ,
+						(*kbd->im.listener->get_line_height)(kbd->im.listener->self) ,
 						x , y)))
 			{
 			#ifdef  DEBUG

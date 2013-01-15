@@ -230,7 +230,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Tab		0x09
 #define XK_Clear	(KEY_CLEAR + 0x100)
 #define XK_Linefeed	(KEY_LINEFEED + 0x100)
-#define XK_Return	0x0a
+#define XK_Return	0x0d
 
 #define XK_Shift_L	(KEY_LEFTSHIFT + 0x100)
 #define XK_Control_L	(KEY_LEFTCTRL + 0x100)
@@ -290,6 +290,9 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Find		(KEY_FIND + 0x100)
 #define XK_Menu		(KEY_MENU + 0x100)
 #define XK_Begin	0xffc3	/* dummy */
+#define XK_Muhenkan	(KEY_MUHENKAN + 0x100)
+#define XK_Henkan_Mode	(KEY_HENKAN + 0x100)
+#define XK_Zenkaku_Hankaku	(KEY_ZENKAKUHANKAKU + 0x100)
 
 #define XK_KP_Prior	0xffc2	/* dummy */
 #define XK_KP_Next	0xffc1	/* dummy */

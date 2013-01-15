@@ -266,7 +266,7 @@ cleanup_inline_pictures(
 	ml_term_t *  term
 	)
 {
-#define THRESHOLD  24
+#define THRESHOLD  48
 	static int  need_cleanup ;
 	int  count ;
 	int  empty_idx ;

@@ -36,13 +36,13 @@
 #include  <uim-helper.h>
 #include  <uim-im-switcher.h>
 
-#include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <kiklib/kik_list.h>
 
 #include  <x_im.h>
+
 #include  "../im_common.h"
 #include  "../im_info.h"
 
@@ -149,7 +149,7 @@ xksym_to_ukey(
 	)
 {
 	/* Latin 1 */
-	if( XK_space <= ksym && ksym <= XK_asciitilde)
+	if( 0x20 <= ksym && ksym <= 0x7e)
 	{
 		return  ksym ;
 	}
@@ -167,9 +167,11 @@ xksym_to_ukey(
 		return  UKey_Escape ;
 	case  XK_Delete:
 		return  UKey_Delete ;
+#ifdef  XK_Multi_key
 	/* International & multi-key character composition */
 	case  XK_Multi_key:
 		return  UKey_Multi_key ;
+#endif
 	/* Japanese keyboard support */
 	case  XK_Muhenkan:
 		return  UKey_Muhenkan ;
@@ -242,6 +244,7 @@ xksym_to_ukey(
 		return  UKey_F23 ;
 	case  XK_F24:
 		return  UKey_F24 ;
+#ifdef  XK_F25
 	case  XK_F25:
 		return  UKey_F25 ;
 	case  XK_F26:
@@ -264,12 +267,19 @@ xksym_to_ukey(
 		return  UKey_F34 ;
 	case  XK_F35:
 		return  UKey_F35 ;
+#endif
+#ifdef  XK_KP_Space
 	case  XK_KP_Space:
 		return  ' ' ;
+#endif
+#ifdef  XK_KP_Tab
 	case  XK_KP_Tab:
 		return  UKey_Tab ;
+#endif
+#ifdef  XK_KP_Enter
 	case  XK_KP_Enter:
 		return  UKey_Return ;
+#endif
 	case  XK_KP_F1:
 		return  UKey_F1 ;
 	case  XK_KP_F2:
@@ -296,8 +306,10 @@ xksym_to_ukey(
 		return  UKey_End ;
 	case  XK_KP_Delete:
 		return  UKey_Delete ;
+#ifdef  XK_KP_Equal
 	case  XK_KP_Equal:
 		return  '=' ;
+#endif
 	case  XK_KP_Multiply:
 		return  '*' ;
 	case  XK_KP_Add:
@@ -777,15 +789,19 @@ candidate_activate(
 		uim_candidate  c ;
 		u_char *  _p ;
 		u_char *  p = NULL ;
-		const char * heading;
-		u_int info;
+		const char *  heading ;
+		u_int info ;
 
 		c = uim_get_candidate( uim->context , i , i) ;
 		_p = (u_char*)uim_candidate_get_cand_str( c) ;
-		heading = uim_candidate_get_heading_label( c);
-		if(heading && (heading[0])){
-			info = (((u_int)heading[0]) << 16) | i;
-		}else{
+		heading = uim_candidate_get_heading_label( c) ;
+		if( heading && heading[0])
+		{
+			/* heading[1] may be '\0' */
+			info = (((u_int)heading[0]) << 16) | (((u_int)heading[1]) << 24) | i;
+		}
+		else
+		{
 			info = (((u_int)' ') << 16) | i;
 		}
 
@@ -956,8 +972,8 @@ delete(
 
 	if( ref_count == 0 && initialized)
 	{
-		uim_helper_close_client_fd( helper_fd) ;
 		(*syms->x_event_source_remove_fd)( helper_fd) ;
+		uim_helper_close_client_fd( helper_fd) ;
 		helper_fd = -1 ;
 
 		uim_quit() ;
@@ -1009,6 +1025,9 @@ key_event(
 		kik_msg_printf( ">>ksym            : %.8x\n" , ksym) ;
 	}
 
+#ifdef  USE_FRAMEBUFFER
+	uim->pressing_mod_key = ~0 ;
+#else
 	if( ! ( event->state & uim->mod_ignore_mask))
 	{
 		uim->pressing_mod_key = 0 ;
@@ -1043,6 +1062,7 @@ key_event(
 	default:
 		break ;
 	}
+#endif
 
 	(*uim->im.listener->compare_key_state_with_modmap)(
 							uim->im.listener->self ,
@@ -1640,9 +1660,9 @@ im_uim_new(
 error:
 	if( helper_fd != -1)
 	{
-		uim_helper_close_client_fd( helper_fd) ;
-
 		(*syms->x_event_source_remove_fd)( helper_fd) ;
+
+		uim_helper_close_client_fd( helper_fd) ;
 
 		helper_fd = -1 ;
 	}

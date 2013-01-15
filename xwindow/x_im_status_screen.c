@@ -18,6 +18,8 @@
 
 /* --- static functions --- */
 
+static int  set_spot( x_im_status_screen_t *  stat_screen , int  x , int  y) ;
+
 static void
 draw_screen(
 	x_im_status_screen_t *  stat_screen
@@ -50,6 +52,13 @@ draw_screen(
 
 	x_window_resize( &stat_screen->window , width ,
 			 xfont->height + LINE_SPACE, 0) ;
+	/* Reset window position */
+	set_spot( stat_screen , stat_screen->x , stat_screen->y) ;
+#ifdef  USE_FRAMEBUFFER
+	x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
+				  stat_screen->window.width + MARGIN - 1 ,
+				  stat_screen->window.height + MARGIN - 1);
+#endif
 
 	x_draw_str_to_eol( &stat_screen->window ,
 			   stat_screen->font_man ,
@@ -118,9 +127,38 @@ set_spot(
 	int  y
 	)
 {
+	stat_screen->x = x ;
+	stat_screen->y = y ;
+
+	if( y + ACTUAL_HEIGHT(&stat_screen->window) > stat_screen->window.disp->height)
+	{
+		y -= ACTUAL_HEIGHT(&stat_screen->window) ;
+		if( ! stat_screen->is_vertical)
+		{
+			y -= stat_screen->line_height ;
+		}
+	}
+
+	if( x + ACTUAL_WIDTH(&stat_screen->window) > stat_screen->window.disp->width)
+	{
+		if( stat_screen->is_vertical)
+		{
+			/* x_im_stat_screen doesn't know column width. */
+			x -= (ACTUAL_WIDTH(&stat_screen->window) + stat_screen->line_height) ;
+		}
+		else
+		{
+			x = stat_screen->window.disp->width - ACTUAL_WIDTH(&stat_screen->window) ;
+		}
+	}
+
 	if( stat_screen->window.x != x || stat_screen->window.y != y)
 	{
+	#ifdef  USE_FRAMEBUFFER
+		x_window_move_full_expose( &stat_screen->window , x , y) ;
+	#else
 		x_window_move( &stat_screen->window , x , y) ;
+	#endif
 	}
 
 	return  1 ;
@@ -299,6 +337,7 @@ x_im_status_screen_new(
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	int  is_vertical ,
+	u_int  line_height ,
 	int  x ,
 	int  y
 	)
@@ -322,6 +361,10 @@ x_im_status_screen_new(
 	stat_screen->filled_len = 0 ;
 
 	stat_screen->is_focused = 0 ;
+
+	stat_screen->x = x ;
+	stat_screen->y = y ;
+	stat_screen->line_height = line_height ;
 
 	stat_screen->is_vertical = is_vertical ;
 
@@ -390,6 +433,7 @@ x_im_status_screen_new(
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	int  is_vertical ,
+	u_int  line_height ,
 	int  x ,
 	int  y
 	)

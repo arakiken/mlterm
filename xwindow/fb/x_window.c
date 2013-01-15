@@ -27,7 +27,7 @@ static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 
 /* --- static functions --- */
 
-static void
+static int
 scroll_region(
 	x_window_t *  win ,
 	int  src_x ,
@@ -40,9 +40,9 @@ scroll_region(
 {
 	u_int  count ;
 
-	if( ! win->is_mapped)
+	if( ! win->is_mapped || ! x_window_is_scrollable( win))
 	{
-		return ;
+		return  0 ;
 	}
 
 	if( src_y <= dst_y)
@@ -69,6 +69,8 @@ scroll_region(
 				width) ;
 		}
 	}
+
+	return  1 ;
 }
 
 static int
@@ -387,6 +389,55 @@ clear_margin_area(
 					ACTUAL_WIDTH(win->children[1]) ,
 				win->height) ;
 		}
+	}
+
+	return  1 ;
+}
+
+static int
+window_move(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	int  expose	/* 1=full, -1=normal, 0=no */
+	)
+{
+	int  prev_x ;
+	int  prev_y ;
+
+	prev_x = win->x ;
+	prev_y = win->y ;
+
+	win->x = x ;
+	win->y = y ;
+
+	if( expose == 1)
+	{
+		/*
+		 * x_expose_window() must be called after win->x and win->y is set
+		 * because window_exposed event which is called in x_expose_window()
+		 * can call x_window_move() recursively.
+		 */
+		x_display_expose( prev_x , prev_y , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	}
+
+	clear_margin_area( win) ;
+
+	if( expose && win->window_exposed)
+	{
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+#if  0
+	else
+	{
+		x_window_clear_all( win) ;
+	}
+#endif
+
+	/* XXX */
+	if( win->parent)
+	{
+		clear_margin_area( win->parent) ;
 	}
 
 	return  1 ;
@@ -715,7 +766,7 @@ x_window_show(
 		x_window_show( win->children[count] , 0) ;
 	}
 
-	if( ! win->parent)
+	if( ! win->parent && win->x == 0 && win->y == 0)
 	{
 		x_window_resize_with_margin( win , win->disp->width ,
 			win->disp->height , NOTIFY_TO_MYSELF) ;
@@ -804,14 +855,14 @@ x_window_resize(
 		{
 			(*win->window_resized)( win) ;
 		}
-
-		/*
-		 * clear_margin_area must be called after win->window_resized
-		 * because wall_picture can be resized to fit to the new window
-		 * size in win->window_resized.
-		 */
-		clear_margin_area( win) ;
 	}
+
+	/*
+	 * clear_margin_area must be called after win->window_resized
+	 * because wall_picture can be resized to fit to the new window
+	 * size in win->window_resized.
+	 */
+	clear_margin_area( win) ;
 
 	return  1 ;
 }
@@ -871,29 +922,29 @@ x_window_move(
 	int  y
 	)
 {
-	win->x = x ;
-	win->y = y ;
+	return  window_move( win , x , y , -1) ;
+}
 
-	clear_margin_area( win) ;
+/* XXX for x_im_status_screen */
+int
+x_window_move_full_expose(
+	x_window_t *  win ,
+	int  x ,
+	int  y
+	)
+{
+	return  window_move( win , x , y , 1) ;
+}
 
-	if( win->window_exposed)
-	{
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-	}
-#if  0
-	else
-	{
-		x_window_clear_all( win) ;
-	}
-#endif
-
-	/* XXX */
-	if( win->parent)
-	{
-		clear_margin_area( win->parent) ;
-	}
-
-	return  1 ;
+/* XXX for x_im_candidate_screen */
+int
+x_window_move_no_expose(
+	x_window_t *  win ,
+	int  x ,
+	int  y
+	)
+{
+	return  window_move( win , x , y , 0) ;
 }
 
 int
@@ -1202,7 +1253,21 @@ x_window_get_str(
 		return  0 ;
 	}
 
-	seq[0] = event->ksym ;
+	/*
+	 * Control + '@'(0x40) ... '_'(0x5f) -> 0x00 ... 0x1f
+	 *
+	 * Not "<= '_'" but "<= 'z'" because Control + 'a' is not
+	 * distinguished from Control + 'A'.
+	 */
+	if( (event->state & ControlMask) &&
+	    (event->ksym == ' ' || ('@' <= event->ksym && event->ksym <= 'z')) )
+	{
+		seq[0] = (event->ksym & 0x1f) ;
+	}
+	else
+	{
+		seq[0] = event->ksym ;
+	}
 
 	return  1 ;
 }
@@ -1222,6 +1287,23 @@ x_window_scroll_upward(
 }
 
 int
+x_window_is_scrollable(
+	x_window_t *  win
+	)
+{
+	/* XXX If input method module is activated, don't scroll window. */
+	if( win->is_scrollable &&
+	    (win->disp->num_of_roots == 1 || ! win->disp->roots[1]->is_mapped) )
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
 x_window_scroll_upward_region(
 	x_window_t *  win ,
 	int  boundary_start ,
@@ -1229,12 +1311,8 @@ x_window_scroll_upward_region(
 	u_int  height
 	)
 {
-	if( ! win->is_scrollable)
-	{
-		return  0 ;
-	}
-
-	if( boundary_start < 0 || boundary_end > win->height || boundary_end <= boundary_start + height)
+	if( boundary_start < 0 || boundary_end > win->height ||
+	    boundary_end <= boundary_start + height)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
@@ -1245,12 +1323,10 @@ x_window_scroll_upward_region(
 		return  0 ;
 	}
 
-	scroll_region( win ,
-		0 , boundary_start + height ,	/* src */
-		win->width , boundary_end - boundary_start - height ,	/* size */
-		0 , boundary_start) ;		/* dst */
-
-	return  1 ;
+	return  scroll_region( win ,
+			0 , boundary_start + height ,	/* src */
+			win->width , boundary_end - boundary_start - height ,	/* size */
+			0 , boundary_start) ;		/* dst */
 }
 
 int
@@ -1270,13 +1346,8 @@ x_window_scroll_downward_region(
 	u_int  height
 	)
 {
-	if( ! win->is_scrollable)
-	{
-		return  0 ;
-	}
-
 	if( boundary_start < 0 || boundary_end > win->height ||
-		boundary_end <= boundary_start + height)
+	    boundary_end <= boundary_start + height)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " boundary start %d end %d height %d\n" ,
@@ -1286,12 +1357,10 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	scroll_region( win ,
-		0 , boundary_start ,
-		win->width , boundary_end - boundary_start - height ,
-		0 , boundary_start + height) ;
-
-	return  1 ;
+	return  scroll_region( win ,
+			0 , boundary_start ,
+			win->width , boundary_end - boundary_start - height ,
+			0 , boundary_start + height) ;
 }
 
 int
@@ -1303,6 +1372,30 @@ x_window_scroll_leftward(
 	return  x_window_scroll_leftward_region( win , 0 , win->width , width) ;
 }
 
+static int
+fix_rl_boundary(
+	x_window_t *  win ,
+	int  boundary_start ,
+	int *  boundary_end
+	)
+{
+	int  margin ;
+
+	margin = RIGHT_MARGIN(win) ;
+
+	if( boundary_start > win->width - margin)
+	{
+		return  0 ;
+	}
+
+	if( *boundary_end > win->width - margin)
+	{
+		*boundary_end = win->width - margin ;
+	}
+
+	return  1 ;
+}
+
 int
 x_window_scroll_leftward_region(
 	x_window_t *  win ,
@@ -1311,12 +1404,9 @@ x_window_scroll_leftward_region(
 	u_int  width
 	)
 {
-	if( ! win->is_scrollable)
-	{
-		return  0 ;
-	}
-
-	if( boundary_start < 0 || boundary_end > win->width || boundary_end <= boundary_start + width)
+	if( boundary_start < 0 || boundary_end > win->width ||
+	    boundary_end <= boundary_start + width ||
+	    ! fix_rl_boundary( win , boundary_start , &boundary_end))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
@@ -1352,12 +1442,9 @@ x_window_scroll_rightward_region(
 	u_int  width
 	)
 {
-	if( ! win->is_scrollable)
-	{
-		return  0 ;
-	}
-
-	if( boundary_start < 0 || boundary_end > win->width || boundary_end <= boundary_start + width)
+	if( boundary_start < 0 || boundary_end > win->width ||
+	    boundary_end <= boundary_start + width ||
+	    ! fix_rl_boundary( win , boundary_start , &boundary_end))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " boundary start %d end %d width %d\n" ,
@@ -1656,5 +1743,19 @@ x_window_translate_coordinates(
 	Window *  child
 	)
 {
+	*global_x = x + win->x ;
+	*global_y = y + win->y ;
+
 	return  0 ;
+}
+
+
+/* for x_display.c */
+
+int
+x_window_clear_margin_area(
+	x_window_t *  win
+	)
+{
+	return  clear_margin_area( win) ;
 }
