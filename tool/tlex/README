@@ -10,6 +10,7 @@
 
 * Usage
   $ tlex [command]
+  or
   $ [terminal emulator command] -e tlex [command]
 
   e.g.) mlterm -e tlex
@@ -28,5 +29,5 @@
   o Each application is bound to a specific terminal window (never changed to
     another window) until being detached.
   o If tlex server has a detached pty in being connected by tlex client, tlex
-    server re-attaches it and outputs its logs stored in ~/.tlex/log-[ttyname]
-    in order to reproduce its screen.
+    server reattaches it and outputs its logs stored in ~/.tlex/log-[ttyname]
+    in order to reproduce its original screen.
