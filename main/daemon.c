@@ -146,11 +146,6 @@ start_daemon(void)
 
 	pid = fork() ;
 
-	if( pid == -1)
-	{
-		exit(1) ;
-	}
-
 	if( pid != 0)
 	{
 		exit(0) ;

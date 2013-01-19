@@ -6,18 +6,18 @@
 #define  ___X_H__
 
 
-#if defined (__linux__)
+#if  defined(__linux__)
 #include  <linux/fb.h>
 #include  <linux/input.h>
 #include  <stdint.h>		/* XXX */
-#elif defined (__FreeBSD__)
+#elif  defined(__FreeBSD__)
 #include  <osreldate.h>
 #if __FreeBSD_version >= 410000
 #include  <sys/fbio.h>
 #else
 #include  <machine/console.h>
 #endif
-#elif defined (__NetBSD__) || defined (__OpenBSD__)
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 #include  <dev/wscons/wsconsio.h>
 #endif
 

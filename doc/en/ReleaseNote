@@ -4,6 +4,7 @@ ver 3.1.7
 * "contrast", "gamma" and "brightness" options are available in win32.
 * Support CSI 22 0..2 t and CSI 23 0..2 t.
 * Support DCS ... { ... ST. (DECDLD)
+  (http://github.com/saitoha/vim-powerline/tree/drcs works!)
 * Assign U+10XXYY like drcsterm to DRCS (ESC ( SP XX YY)
   (0x40 <= XX <= 0x7e, 0x20 <= YY <= 0x7f)
   (See http://github.com/saitoha/drcsterm)
