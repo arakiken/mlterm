@@ -46,12 +46,12 @@ static struct
 	int  pty_fd ;
 	int  connect_fd ;
 
+	char  left[MAX_LEFT_LEN] ;
+	ssize_t  left_len ;
+
 	/* server data */
 	pid_t  child_pid ;
 	int  log_fd ;
-
-	char  left[MAX_LEFT_LEN] ;
-	ssize_t  left_len ;
 
 } *  sessions ;
 static u_int  num_of_sessions ;
@@ -139,9 +139,11 @@ session_new(
 	sessions = p ;
 	sessions[num_of_sessions].pty_fd = pty_fd ;
 	sessions[num_of_sessions].connect_fd = connect_fd ;
+	sessions[num_of_sessions].left_len = 0 ;
+
 	sessions[num_of_sessions].child_pid = child_pid ;
 	sessions[num_of_sessions].log_fd = log_fd ;
-	sessions[num_of_sessions].left_len = 0 ;
+
 	num_of_sessions ++ ;
 
 #if  0
@@ -163,8 +165,17 @@ session_delete(
 	}
 
 	close( sessions[idx].pty_fd) ;
-	close( sessions[idx].connect_fd) ;
-	close( sessions[idx].log_fd) ;
+
+	if( sessions[idx].connect_fd != -1)
+	{
+		close( sessions[idx].connect_fd) ;
+	}
+
+	if( sessions[idx].log_fd != -1)
+	{
+		close( sessions[idx].log_fd) ;
+	}
+
 	sessions[idx] = sessions[--num_of_sessions] ;
 }
 
@@ -918,6 +929,31 @@ connect_to_server(
 	return  1 ;
 }
 
+static void
+check_log_file_size(
+	int  fd
+	)
+{
+	off_t  pos ;
+
+	pos = lseek( fd , 0 , SEEK_CUR) ;
+
+	if( pos >= 5*1024*1024)
+	{
+		/* Over 5MB */
+		char  buf[ATTACH_OUTPUT_SIZE] ;
+
+		lseek( fd , -ATTACH_OUTPUT_SIZE , SEEK_END) ;
+		if( read( fd , buf , ATTACH_OUTPUT_SIZE) == ATTACH_OUTPUT_SIZE) ;
+		{
+			lseek( fd , 0 , SEEK_SET) ;
+			ftruncate( fd , 0) ;
+			write( fd , buf , ATTACH_OUTPUT_SIZE) ;
+		}
+	}
+
+}
+
 
 /* --- global functions --- */
 
@@ -1016,6 +1052,11 @@ main(
 				#endif
 
 					session_delete( count) ;
+				}
+
+				if( IS_SERVER && sessions[count].log_fd != -1)
+				{
+					check_log_file_size( sessions[count].log_fd) ;
 				}
 			}
 

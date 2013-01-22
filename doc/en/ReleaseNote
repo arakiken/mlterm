@@ -27,6 +27,7 @@ ver 3.1.7
   Fix the malfunction of cursor keys in mlcc in cygwin. (Thanks to saitoha san)
   Fix the bug of saving or restoring cursor in OSC ? 1047 h or OSC ? 1047 l.
   Exit mlcc to avoid segfault if OSC 5380 doesn't return anything.
+  Fix the bug of unloading fonts which are still used in framebuffer.
 
 ver 3.1.6
 * Support ":[Percentage]" format for font-fb.

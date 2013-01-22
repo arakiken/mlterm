@@ -1256,12 +1256,8 @@ x_calculate_char_width(
 	{
 		if( font->is_var_col_width)
 		{
-			u_int  width ;
-
-			if( ( width = calculate_char_width( font , ch , len , cs)) > 0)
-			{
-				return  width ;
-			}
+			/* Returned value can be 0 if iscii font is used. */
+			return  calculate_char_width( font , ch , len , cs) ;
 		}
 
 		if( draw_alone)

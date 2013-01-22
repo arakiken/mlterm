@@ -23,7 +23,7 @@
   Terminal                             tlex(server)
           \                          *==============*
            \                        /                \
-	    window2 === pty2 === tlex(client)         pty4 === App3
+	    window2 === pty2 === tlex(client)         pty4 === App2
 
   o tlex server is automatically started by tlex client.
   o Each application is bound to a specific terminal window (never changed to

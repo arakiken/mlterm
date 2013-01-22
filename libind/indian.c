@@ -30,9 +30,8 @@ char *illdefault(struct tabl *table, char *wrd, int sz) {
 	char iwrd[2];
 	char *p;
 	
-	ostr = (char *) malloc(1000 * sizeof(char));
-	bzero(ostr,1000);
-		
+	ostr = (char *) calloc(1000 , sizeof(char));
+
 	for(i = 0; i < strlen(wrd); i++) {
 		iwrd[0]=wrd[i];
 		iwrd[1]='\0';

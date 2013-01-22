@@ -154,8 +154,8 @@ Supported platforms
   * CentOS 5 (x86)
   * MS Windows 7 (x86)
   * MS Windows 7/MSYS 1.0.10 (x86)
-  * MS Windows 7/Cygwin 1.7.13 (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
-  * MS Windows 7/Cygwin 1.7.13 with X (x86)
+  * MS Windows 7/Cygwin 1.7.17 (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
+  * MS Windows 7/Cygwin 1.7.17 with X (x86)
 
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.
@@ -189,6 +189,8 @@ Supported platforms
   * MS Windows 7/Cygwin 1.7.9 with X (x86)
   * MS Windows 7/Cygwin 1.7.10 (CC=gcc, CC="gcc -mno-cygwin") (x86)
   * MS Windows 7/Cygwin 1.7.10 with X (x86)
+  * MS Windows 7/Cygwin 1.7.13 (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
+  * MS Windows 7/Cygwin 1.7.13 with X (x86)
 
 
 USAGE

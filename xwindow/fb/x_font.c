@@ -430,6 +430,7 @@ load_pcf(
 	const char *  file_path
 	)
 {
+	char *  uzfile_path ;
 	int  fd ;
 	struct stat  st ;
 	u_char *  pcf = NULL ;
@@ -438,18 +439,28 @@ load_pcf(
 	int  table_load_count ;
 	int32_t  count ;
 
-	if( ! ( xfont->file = gunzip( file_path , &st)))
+	if( ! ( uzfile_path = gunzip( file_path , &st)))
 	{
 		return  0 ;
 	}
 
-	if( ( fd = open( xfont->file , O_RDONLY)) == -1)
+	fd = open( uzfile_path , O_RDONLY) ;
+	free( uzfile_path) ;
+
+	if( fd == -1)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Failed to open %s." , xfont->file) ;
 	#endif
 
-		goto  error ;
+		return  0 ;
+	}
+
+	if( ! ( xfont->file = strdup( file_path)))
+	{
+		close( fd) ;
+
+		return  0 ;
 	}
 
 	table_load_count = 0 ;
@@ -564,9 +575,6 @@ end:
 	{
 		return  1 ;
 	}
-
-error:
-	free( xfont->file) ;
 
 	return  0 ;
 }
@@ -894,7 +902,7 @@ xfont_loaded:
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG
 		" %s font is loaded. => CURRENT NUM OF XFONTS %d\n" ,
-		fontname , num_of_xfonts) ;
+		font_file , num_of_xfonts) ;
 #endif
 
 #ifdef  __DEBUG

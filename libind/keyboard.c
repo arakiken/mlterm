@@ -32,7 +32,7 @@ char *iitk2iscii(struct a2i_tabl *a2i_table, char *buf, char *remem, int a2i_sz)
 
 	if (buf[0] == 'a') remem[0] = buf[0];
 	strcpy(bufferi, buf);
-	bzero(buffer1,1000);
+	memset(buffer1,0,1000);
 	
 	if (remem[0] == 'a' && (matra(bufferi) == 1) && bufferi[0] != 'a') {
 		bufferi[1] = bufferi[0];

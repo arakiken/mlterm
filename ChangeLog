@@ -1,3 +1,18 @@
+2013-01-22  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.1.7 released.
+	  (tag "rel-3_1_7")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.1.7.
+
+	* fb/x_font.c: Whether a font has been already loaded or not isn't checked
+	  by its gunzipped file path but by the one specified in ~/.mlterm/font-fb.
+
+	* xlib/x_font.c: 0 width glyph is accepted for showing indic characters.
+
+	* tlex/main.c: The size of a log file is shrinked after excessing over 5MB.
+
 2013-01-20  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/tlex: Added.
