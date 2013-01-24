@@ -1578,8 +1578,22 @@ ml_edit_copy_area(
 
 	for( count = 0 ; count < num_of_copy_rows ; count++)
 	{
-		if( ! (src_line = ml_edit_get_line( edit , src_row + count)) ||
-		    ! (dst_line = ml_edit_get_line( edit , dst_row + count)))
+		int  srow ;
+		int  drow ;
+
+		if( src_row < dst_row)
+		{
+			srow = src_row + num_of_copy_rows - count - 1 ;
+			drow = dst_row + num_of_copy_rows - count - 1 ;
+		}
+		else
+		{
+			srow = src_row + count ;
+			drow = dst_row + count ;
+		}
+
+		if( ! (src_line = ml_edit_get_line( edit , srow)) ||
+		    ! (dst_line = ml_edit_get_line( edit , drow)))
 		{
 			continue ;
 		}
