@@ -443,14 +443,15 @@ end:
 	selected_user = NULL ;
 	free( selected_encoding) ;
 	selected_encoding = NULL ;
-	free( selected_exec_cmd) ;
-	selected_exec_cmd = NULL ;
 
 	if( ret == 0)
 	{
 		free( selected_pass) ;
-		selected_pass = NULL ;
+		free( selected_exec_cmd) ;
 	}
+
+	selected_pass = NULL ;
+	selected_exec_cmd = NULL ;
 
 	return  ret ;
 }

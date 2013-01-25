@@ -1,6 +1,7 @@
 ver 3.1.8
 * Bug fixes:
   Fix the bug of DECCRA.
+  Fix the bug which broke input string of "ExecCmd" field of the connection dialog in win32.
 
 ver 3.1.7
 * Support not only bmp formats but also other image formats by mlimgloader
