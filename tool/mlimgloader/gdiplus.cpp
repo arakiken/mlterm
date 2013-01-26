@@ -31,6 +31,18 @@ using namespace Gdiplus ;
 #define  __DEBUG
 #endif
 
+#ifndef  IID_PPV_ARGS
+/* IStream IID (objidl.h) */
+static const IID __uuid_inst =
+	{ 0x0000000c , 0x0000 , 0x0000 ,
+		{ 0xc0 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x46 } } ;
+#define IID_PPV_ARGS(iface) __uuid_inst, reinterpret_cast<void**>(iface)
+#endif
+
+#ifndef  URL_MK_UNIFORM
+#define  URL_MK_UNIFORM  1
+#endif
+
 
 /* --- static functions --- */
 
@@ -47,10 +59,8 @@ create_cardinals_from_file(
 	size_t  wpath_len ;
 	Gdiplus::GdiplusStartupInput  startup ;
 	ULONG_PTR  token ;
-#ifdef  IID_PPV_ARGS
 	IBindCtx *  ctx ;
 	IMoniker *  moniker ;
-#endif
 	IStream *  stream ;
 	Gdiplus::Bitmap *  bitmap ;
 	u_int32_t *  cardinal ;
@@ -69,7 +79,6 @@ create_cardinals_from_file(
 
 	stream = NULL ;
 
-#ifdef  IID_PPV_ARGS
 	if( strstr( path , "://"))
 	{
 		typedef HRESULT (*func)(IMoniker * , LPCWSTR , IMoniker ** , DWORD) ;
@@ -100,7 +109,6 @@ create_cardinals_from_file(
 			}
 		}
 	}
-#endif
 
 	if( width == 0 || height == 0)
 	{
@@ -152,14 +160,12 @@ create_cardinals_from_file(
 		goto  error2 ;
 	}
 
-#ifdef  IID_PPV_ARGS
 	if( stream)
 	{
 		stream->Release() ;
 		ctx->Release() ;
 		moniker->Release() ;
 	}
-#endif
 
 	width = bitmap->GetWidth() ;
 	height = bitmap->GetHeight() ;

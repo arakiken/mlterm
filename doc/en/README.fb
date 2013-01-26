@@ -45,6 +45,7 @@ Framebuffer support on Linux
   o To redraw the screen completely, execute a following command.
     $ mlcc exec update_all
   o Available scrollbars are "simple" and "sample" alone.
+  o Available input method plugins are kbd, uim and m17nlib.
 
 * Unsupported features
   o 2/4 bpp
@@ -53,4 +54,3 @@ Framebuffer support on Linux
   o ssh2 client
   o Daemon mode
   o mlclient (mlclientx is avaialble, though)
-  o Input method plugin
