@@ -86,6 +86,8 @@ Memo about WIN32 native GUI.
     "\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence (which
     mlclient or mlclientx command supports) is avaiable. (see doc/en/PROTOCOL).
   o Supported scrollbars are "simple" and "sample" alone.
+  o Only "mlclient" command is available for "exesel:..." operation in
+    ~/.mlterm/key in MinGW.
   o In order to show DEC SPECIAL characters, it is necessary to install
     "Tera Special" font (TSPECIAL1.TTF) which is a part of Tera Term
     (http://teraterm.sourceforge.jp/).

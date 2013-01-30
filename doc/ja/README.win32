@@ -120,6 +120,8 @@ WIN32 native GUI 対応に関するメモ
     重ね打ちによる擬似的な bold 表示を行います(Bold と Normal でフォント幅が異
     なる場合があるため)
   o スクロールバーは、"simple" 又は "sample" のみ使用できます。
+  o MinGW では、~/.mlterm/key の OPERATION の "exesel:..." では、mlclient 以外を
+    実行することはできません。
 
 * ソースコード
   o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。

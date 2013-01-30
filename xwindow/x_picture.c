@@ -812,7 +812,7 @@ x_get_inline_picture(
 	}
 	else
 	{
-		return  None ;
+		return  NULL ;
 	}
 }
 #endif	/* ENABLE_SIXEL */

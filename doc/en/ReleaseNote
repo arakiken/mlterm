@@ -1,7 +1,18 @@
 ver 3.1.8
+* 'key' configuration file accepts Button1 - Button5.
+* Remove "conf_menu_path_1", "conf_menu_path_2", "conf_menu_path_3" and
+  "button3_behavior" options which are integrated to shortcuts.
+  [Migration]
+  (~/.mlterm/main)        (~/.mlterm/key)
+  conf_menu_path_1=... => Control+Button1="menu:..."
+  conf_menu_path_2=... => Control+Button2="menu:..."
+  conf_menu_path_2=... => Control+Button3="menu:..."
+  button3_behavior=... => Button3="exesel:..."
+* Add "set_shortcut" command to configuration protocol.
 * Bug fixes:
   Fix the bug of DECCRA.
   Fix the bug which broke input string of "ExecCmd" field of the connection dialog in win32.
+  Fix the bug which didn't redraw a part of full-width characters when window is exposed.
 
 ver 3.1.7
 * Support not only bmp formats but also other image formats by mlimgloader

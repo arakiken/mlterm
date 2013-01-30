@@ -9,6 +9,8 @@
 # Shift+Insert=INSERT_SELECTION
 # UNUSED=SWITCH_OSC52
 # UNUSED=EXIT_PROGRAM
+# Control+Button1=menu:mlterm-menu
+# Control+Button3=menu:mlconfig
 
 #### Examples
 # Control+F5="proto:mlclient --serv localhost -e screen -xR"
@@ -18,4 +20,9 @@
 # Control+F9="proto:aafont:DEFAULT=Kochi Gothic"
 # Control+F10="proto:color:black=rgb:ff/00/00"
 # Control+F11="proto:use_local_echo=true"
-# Control+F11="proto:use_local_echo=false"
+# Control+F12="proto:use_local_echo=false"
+# Button3="exesel:mlclient -e w3m"
+# Button3="exesel:\"/cygdrive/c/Program Files/Internet Explorer/iexplore.exe\""
+# Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe"
+# Button4="\x1bOA\x1bOA"
+# Button5="\x1bOB\x1bOB"

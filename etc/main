@@ -162,12 +162,6 @@ scrollbar_view_name = sample
 
 # (none,sound,visual)
 # bel_mode = sound
-  
-# conf_menu_path_1
-
-# conf_menu_path_2
-
-# conf_menu_path_3
 
 # (none,blend,genuine)
 # daemon_mode = none
@@ -183,9 +177,6 @@ scrollbar_view_name = sample
 # exit_backscroll_by_pty = false
 
 # logging_vt_seq = false
-
-# (xterm,menu1,menu2,menu3, or command string like "mlclient -e w3m")
-# button3_behavior = xterm
 
 # use_clipboard = false
 

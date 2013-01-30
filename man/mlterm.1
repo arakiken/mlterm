@@ -103,13 +103,6 @@ See \fB\-k\fR option also.
 \fB\-L\fR, \fB\-\-ls\fR(=\fIbool\fR)
 Whether to use login shell or not.  The default is \fBfalse\fR.
 .TP
-\fB\-M\fR, \fB\-\-menu\fR=\fIpath\fR
-Specify path name of the GUI configurator command.
-The default varies depending on compile-time options.
-By default, the path should be "\fB/usr/local/libexec/mlconfig\fR".
-
-See \fBGUI CONFIGURATOR\fR section for detail.
-.TP
 \fB\-N\fR, \fB\-\-name\fR=\fIname\fR
 Specify application name.
 The default is "\fBmlterm\fR".
@@ -477,16 +470,6 @@ Blink cursor. The default is \fBfalse\fR.
 .TP
 \fB\-\-border\fR=\fIvalue\fR
 Specify inner border width. The default is \fB2\fR.
-.TP
-\fB\-\-button3\fR=\fIvalue\fR
-Specify behavior in pressing button3. The default is \fBxterm\fR.
-.nf
-xterm: compatible with xterm
-menu1: open external configurator of conf_menu_path_1 option.
-menu2: open external configurator of conf_menu_path_2 option.
-menu3: open external configurator of conf_menu_path_3 option.
-or command string to be executed.
-.fi
 .TP
 \fB\-\-clip\fR(=\fIbool\fR)
 Whether to enable CLIPBOARD (not only PRIMARY) selection.
@@ -1150,13 +1133,6 @@ Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
 \fBborderless=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR) 
 Don't draw window decorations.
 .TP
-\fBbutton3_behavior=\fIvalue\fR (\fB\-\-button3\fR)
-Specify behavior in pressing button3.
-(Command string exmaples)
-button3_behavior = mlclient -e w3m
-button3_behavior = /usr/bin/firefox
-button3_behavior = "/cygdrive/c/Program Files/Internet Explorer/iexplore.exe"
-.TP
 \fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
 Specify ciphers (comma separated list) for encrypting the ssh session.
 .TP
@@ -1165,18 +1141,6 @@ Number of columns of Unicode characters with EastAsianAmbiguous property.
 .TP
 \fBcompose_dec_special_font=\fIbool\fR (\fB\-Y\fR, \fB\-\-decsp\fR) 
 Compose line drawing character set.
-.TP
-\fBconf_menu_path_1=\fIpath\fR
-Path for external GUI configurator mapped to control key and mouse button 1
-(default \fBmlterm-menu\fR).
-.TP
-\fBconf_menu_path_2=\fIpath\fR
-Path for external GUI configurator mapped to control key and mouse button 2
-(not mapped by default).
-.TP
-\fBconf_menu_path_3=\fIpath\fR (\fB\-M\fR, \fB\-\-menu\fR) 
-Path for external GUI configurator mapped to control key and mouse button 3
-(default \fBmlconfig\fR).
 .TP
 \fBcontrast=\fIvalue\fR (\fB\-3\fR, \fB\-\-contrast\fR) 
 Contrast of background image in percent.
@@ -1538,6 +1502,7 @@ command or searching keysym macros from
 \fB/usr/X11R6/include/X11/keysymdefs.h\fR (or the equivalent
 file in your X11 include directory) and omit the prefix \fBXK_\fR.
 Double quotation marks are not needed.
+You can specify Button1, Button2, Button3, Button4 or Button5 as \fIKEY\fR.
 .PP
 \fIFEATURE\fR is one of \fBIM_HOTKEY\fR,
 \fBEXT_KBD\fR,
@@ -1615,6 +1580,16 @@ The specified string is assumed to \fBmlterm\fR's original control
 sequence. A list of sequences should be found in \fBdoc/en/PROTOCOL\fR.
 For example, \fB"proto:encoding=utf8"\fR
 means changing the current character encoding to UTF-8.
+.TP
+\fB"exesel:\fISTRING\fB"\fR
+The specified string is assumed to a command to be executed with selected
+strings as arguments.
+For example, \fB"exesel:mlclient -e w3m"\fR means executing
+"mlclient -e w3m [selected text]".
+.TP
+\fB"menu:\fISTRING\fB"\fR
+The specified string is assumed to a configuration program to be executed.
+For example, \fB"menu:mlterm-menu"\fR means executing mlterm-menu.
 .\" ******************************************************
 .SS Terminal Behavior Configuration File
 This configuration file determines the behaviors of \fBmlterm\fR

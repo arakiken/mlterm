@@ -134,14 +134,6 @@ typedef struct  x_screen
 
 	x_icon_picture_t *  icon ;
 
-	/*
-	 * These members mustn't be changed by mlterm configuration protocol,
-	 * since they can be executed.
-	 */
-	char *  conf_menu_path_1 ;
-	char *  conf_menu_path_2 ;
-	char *  conf_menu_path_3 ;
-
 	char  prev_mouse_report_seq[5] ;
 
 	u_int8_t  fade_ratio ;
@@ -158,9 +150,6 @@ typedef struct  x_screen
 } x_screen_t ;
 
 
-/* xterm = traditional, menuN = conf_menu_path_N */
-void  x_set_button3_behavior( const char *  mode) ;
-
 void  x_exit_backscroll_by_pty( int  flag) ;
 
 void  x_set_im_cursor_color( char *  color) ;
@@ -173,7 +162,6 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
-	char *  conf_menu_path_1 , char *  conf_menu_path_2 , char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space ,
 	char *  input_method , int  allow_osc52 , int  blink_cursor , int  margin ,
 	int  hide_underline) ;

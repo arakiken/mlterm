@@ -49,9 +49,10 @@ typedef struct x_main_config
 	char *  term_type ;
 	char *  scrollbar_view_name ;
 	char *  pic_file_path ;
-	char *  conf_menu_path_1 ;
-	char *  conf_menu_path_2 ;
-	char *  conf_menu_path_3 ;
+	/* BACKWARD COMPAT (3.1.7 or before) */
+#if  1
+	char *  shortcut_strs[4] ;
+#endif
 	char *  fg_color ;
 	char *  bg_color ;
 	char *  cursor_fg_color ;

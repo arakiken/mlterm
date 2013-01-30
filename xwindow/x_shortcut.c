@@ -6,6 +6,7 @@
 
 #include  <stdio.h>		/* sscanf */
 #include  <string.h>		/* strchr/memcpy */
+#include  <kiklib/kik_def.h>	/* HAVE_WINDOWS_H */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
@@ -57,205 +58,6 @@ static key_func_table_t  key_func_table[] =
 /* --- static functions --- */
 
 static int
-parse(
-	x_shortcut_t *  shortcut ,
-	char *  key ,
-	char *  oper
-	)
-{
-	char *  p ;
-	KeySym  ksym ;
-	u_int  state ;
-	int  count ;
-
-	state = 0 ;
-
-	while( ( p = strchr( key , '+')) != NULL)
-	{
-		*(p ++) = '\0' ;
-
-		if( strcmp( key , "Control") == 0)
-		{
-			state |= ControlMask ;
-		}
-		else if( strcmp( key , "Shift") == 0)
-		{
-			state |= ShiftMask ;
-		}
-		else if( strcmp( key , "Mod") == 0)
-		{
-			state |= ModMask ;
-		}
-		else if( strncmp( key , "Mod" , 3) == 0)
-		{
-			switch( key[3])
-			{
-			case 0:
-				state |= ModMask ;
-				break;
-			case '1':
-				state |= Mod1Mask ;
-				break;
-			case '2':
-				state |= Mod2Mask ;
-				break;
-			case '3':
-				state |= Mod3Mask ;
-				break;
-			case '4':
-				state |= Mod4Mask ;
-				break;
-			case '5':
-				state |= Mod5Mask ;
-				break;
-	#ifdef  DEBUG
-			default:
-				kik_warn_printf( KIK_DEBUG_TAG " unrecognized Mod mask(%s)\n" , key) ;
-				break;
-	#endif
-			}
-		}
-	#ifdef  DEBUG
-		else
-		{
-			kik_warn_printf( KIK_DEBUG_TAG " unrecognized mask(%s)\n" , key) ;
-		}
-	#endif
-
-		key = p ;
-	}
-
-	if( ( ksym = XStringToKeysym( key)) == NoSymbol)
-	{
-		return  0 ;
-	}
-
-	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
-	{
-		x_key_t *  map_entry ;
-
-		map_entry = shortcut->map + key_func_table[count].func ;
-		if( (map_entry->ksym == ksym) &&
-		    (map_entry->state == state))
-		{
-			map_entry->is_used = 0 ;
-		}
-	}
-
-
-	if( *oper == '"')
-	{
-		char *  str ;
-		char *  p ;
-		x_str_key_t *  str_map ;
-
-		if( ( str = malloc( strlen( oper))) == NULL)
-		{
-			return  0 ;
-		}
-
-		p = str ;
-
-		oper ++ ;
-
-		while( *oper != '"' && *oper != '\0')
-		{
-			u_int  digit ;
-
-			if( sscanf( oper , "\\x%2x" , &digit) == 1)
-			{
-				*p = (char)digit ;
-
-				oper += 4 ;
-			}
-			else
-			{
-				if( *oper == '\\')
-				{
-					oper ++ ;
-
-					if( *oper == '\0')
-					{
-						break ;
-					}
-					else if( *oper == 'n')
-					{
-						*p = '\n' ;
-					}
-					else if( *oper == 'r')
-					{
-						*p = '\r' ;
-					}
-					else if( *oper == 't')
-					{
-						*p = '\t' ;
-					}
-					else if( *oper == 'e')
-					{
-						*p = '\033' ;
-					}
-					else
-					{
-						*p = *oper ;
-					}
-				}
-				else
-				{
-					*p = *oper ;
-				}
-
-				oper ++ ;
-			}
-
-			p ++ ;
-		}
-
-		*p = '\0' ;
-
-		str_map = realloc( shortcut->str_map ,
-				   sizeof( x_str_key_t) * (shortcut->str_map_size + 1)) ;
-
-		if( str_map == NULL)
-		{
-			free( str) ;
-
-			return  0 ;
-		}
-
-		str_map[shortcut->str_map_size].ksym = ksym ;
-		str_map[shortcut->str_map_size].state = state ;
-		str_map[shortcut->str_map_size].str = str ;
-
-		shortcut->str_map_size ++ ;
-		shortcut->str_map = str_map ;
-
-		return  1 ;
-	}
-
-	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
-	{
-		if( strcmp( oper , key_func_table[count].name) == 0)
-		{
-			if( strcmp( key , "UNUSED") == 0)
-			{
-				shortcut->map[key_func_table[count].func].is_used = 0 ;
-			}
-			else
-			{
-				shortcut->map[key_func_table[count].func].ksym = ksym ;
-				shortcut->map[key_func_table[count].func].is_used = 1 ;
-			}
-
-			shortcut->map[key_func_table[count].func].state = state ;
-
-			return  1 ;
-		}
-	}
-
-	return  0 ;
-}
-
-static int
 read_conf(
 	x_shortcut_t *  shortcut ,
 	char *  filename
@@ -292,7 +94,7 @@ read_conf(
 		/*
 		 * [shortcut key]=[operation]
 		 */
-		if( ! parse( shortcut , key , value))
+		if( ! x_shortcut_parse( shortcut , key , value))
 		{
 			/*
 			 * XXX
@@ -300,7 +102,7 @@ read_conf(
 			 * [operation]=[shortcut key]
 			 */
 			 
-			parse( shortcut , value , key) ;
+			x_shortcut_parse( shortcut , value , key) ;
 		}
 	}
 
@@ -367,8 +169,29 @@ x_shortcut_init(
 
 	memcpy( &shortcut->map , &default_key_map , sizeof( default_key_map)) ;
 
-	shortcut->str_map = NULL ;
-	shortcut->str_map_size = 0 ;
+	if( ( shortcut->str_map = malloc( 2 * sizeof(x_str_key_t))))
+	{
+		shortcut->str_map_size = 2 ;
+
+		shortcut->str_map[0].ksym = 0 ;
+		shortcut->str_map[0].state = Button1Mask | ControlMask ;
+		shortcut->str_map[0].str = strdup( "menu:mlterm-menu"
+						#ifdef  HAVE_WINDOWS_H
+							".exe"
+						#endif
+						) ;
+		shortcut->str_map[1].ksym = 0 ;
+		shortcut->str_map[1].state = Button3Mask | ControlMask ;
+		shortcut->str_map[1].str = strdup( "menu:mlconfig"
+						#ifdef  HAVE_WINDOWS_H
+							".exe"
+						#endif
+						) ;
+	}
+	else
+	{
+		shortcut->str_map_size = 0 ;
+	}
 
 	if( ( rcpath = kik_get_sys_rc_path( key_file)))
 	{
@@ -452,8 +275,9 @@ x_shortcut_str(
 {
 	u_int  count ;
 
-	/* ingoring except ModMask / ControlMask / ShiftMask */
-	state &= (ModMask | ControlMask | ShiftMask) ;
+	/* ingoring except these masks */
+	state &= (ModMask|ControlMask|ShiftMask|
+	          Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask) ;
 
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{
@@ -469,4 +293,218 @@ x_shortcut_str(
 	}
 
 	return  NULL ;
+}
+
+int
+x_shortcut_parse(
+	x_shortcut_t *  shortcut ,
+	char *  key ,
+	char *  oper
+	)
+{
+	char *  p ;
+	KeySym  ksym ;
+	u_int  state ;
+	int  count ;
+
+	state = 0 ;
+
+	while( ( p = strchr( key , '+')) != NULL)
+	{
+		*(p ++) = '\0' ;
+
+		if( strcmp( key , "Control") == 0)
+		{
+			state |= ControlMask ;
+		}
+		else if( strcmp( key , "Shift") == 0)
+		{
+			state |= ShiftMask ;
+		}
+		else if( strcmp( key , "Mod") == 0)
+		{
+			state |= ModMask ;
+		}
+		else if( strncmp( key , "Mod" , 3) == 0)
+		{
+			switch( key[3])
+			{
+			case 0:
+				state |= ModMask ;
+				break;
+			case '1':
+				state |= Mod1Mask ;
+				break;
+			case '2':
+				state |= Mod2Mask ;
+				break;
+			case '3':
+				state |= Mod3Mask ;
+				break;
+			case '4':
+				state |= Mod4Mask ;
+				break;
+			case '5':
+				state |= Mod5Mask ;
+				break;
+		#ifdef  DEBUG
+			default:
+				kik_warn_printf( KIK_DEBUG_TAG
+					" unrecognized Mod mask(%s)\n" , key) ;
+				break;
+		#endif
+			}
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " unrecognized mask(%s)\n" , key) ;
+		}
+	#endif
+
+		key = p ;
+	}
+
+	if( strncmp( key , "Button" , 6) == 0)
+	{
+		state |= (Button1Mask << (key[6] - '1')) ;
+		ksym = 0 ;
+	}
+	else if( ( ksym = XStringToKeysym( key)) == NoSymbol)
+	{
+		return  0 ;
+	}
+
+	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
+	{
+		x_key_t *  map_entry ;
+
+		map_entry = shortcut->map + key_func_table[count].func ;
+		if( map_entry->ksym == ksym &&
+		    map_entry->state == state)
+		{
+			map_entry->is_used = 0 ;
+			break ;
+		}
+	}
+
+	for( count = 0 ; count < shortcut->str_map_size ; count++)
+	{
+		if( shortcut->str_map[count].ksym == ksym &&
+		    shortcut->str_map[count].state == state)
+		{
+			free( shortcut->str_map[count].str) ;
+			shortcut->str_map[count] = shortcut->str_map[-- shortcut->str_map_size] ;
+			break ;
+		}
+	}
+
+	if( *oper == '"')
+	{
+		char *  str ;
+		char *  p ;
+		x_str_key_t *  str_map ;
+
+		if( ( str = malloc( strlen( oper))) == NULL)
+		{
+			return  0 ;
+		}
+
+		p = str ;
+
+		oper ++ ;
+
+		while( *oper != '"' && *oper != '\0')
+		{
+			u_int  digit ;
+
+			if( sscanf( oper , "\\x%2x" , &digit) == 1)
+			{
+				*p = (char)digit ;
+
+				oper += 4 ;
+			}
+			else
+			{
+				if( *oper == '\\')
+				{
+					oper ++ ;
+
+					if( *oper == '\0')
+					{
+						break ;
+					}
+					else if( *oper == 'n')
+					{
+						*p = '\n' ;
+					}
+					else if( *oper == 'r')
+					{
+						*p = '\r' ;
+					}
+					else if( *oper == 't')
+					{
+						*p = '\t' ;
+					}
+					else if( *oper == 'e')
+					{
+						*p = '\033' ;
+					}
+					else
+					{
+						*p = *oper ;
+					}
+				}
+				else
+				{
+					*p = *oper ;
+				}
+
+				oper ++ ;
+			}
+
+			p ++ ;
+		}
+
+		*p = '\0' ;
+
+		if( ! ( str_map = realloc( shortcut->str_map ,
+				   sizeof( x_str_key_t) * (shortcut->str_map_size + 1))))
+		{
+			free( str) ;
+
+			return  0 ;
+		}
+
+		str_map[shortcut->str_map_size].ksym = ksym ;
+		str_map[shortcut->str_map_size].state = state ;
+		str_map[shortcut->str_map_size].str = str ;
+
+		shortcut->str_map_size ++ ;
+		shortcut->str_map = str_map ;
+
+		return  1 ;
+	}
+
+	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
+	{
+		if( strcmp( oper , key_func_table[count].name) == 0)
+		{
+			if( strcmp( key , "UNUSED") == 0)
+			{
+				shortcut->map[key_func_table[count].func].is_used = 0 ;
+			}
+			else
+			{
+				shortcut->map[key_func_table[count].func].ksym = ksym ;
+				shortcut->map[key_func_table[count].func].is_used = 1 ;
+			}
+
+			shortcut->map[key_func_table[count].func].state = state ;
+
+			return  1 ;
+		}
+	}
+
+	return  0 ;
 }

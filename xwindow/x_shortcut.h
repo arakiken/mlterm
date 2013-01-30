@@ -67,5 +67,7 @@ int  x_shortcut_match( x_shortcut_t *  shortcut , x_key_func_t  func , KeySym  s
 
 char *  x_shortcut_str( x_shortcut_t *  shortcut , KeySym  sym , u_int  state) ;
 
+int  x_shortcut_parse( x_shortcut_t *  shortcut , char *  key , char *  oper) ;
+
 
 #endif

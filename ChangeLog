@@ -1,3 +1,25 @@
+2013-01-30  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.ja, man/mlterm.1, etc/key, etc/main, etc/main.ja,
+	  doc/en/PROTOCOL: Updated.
+
+	* x_main_config.[ch]: -M/--menu, --button3 options are removed.
+
+	* x_screen.c, x_screen_manager.c, vte.c:
+	  button3_open and conf_menu_path_[1-3] are replaced by x_shortcut
+	  using Button1-Button5.
+
+	* x_screen.c:
+	  - The bug which didn't redraw a part of full-width characters in
+	    window_exposed() is fixed.
+	  - "set_shortcut" is added to configuration protocol.
+
+	* x_shortcut.c: Button1-Button5 are available.
+
+	* doc/en/README.fb: Added.
+
+	* doc/en/README.w3m: Updated.
+
 2013-01-26  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.fb: Updated.

@@ -551,9 +551,7 @@ open_screen_intern(
 			main_config.mod_meta_mode , main_config.bel_mode ,
 			main_config.receive_string_via_ucs , main_config.pic_file_path ,
 			main_config.use_transbg , main_config.use_vertical_cursor ,
-			main_config.big5_buggy , main_config.conf_menu_path_1 ,
-			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
-			main_config.use_extended_scroll_shortcut ,
+			main_config.big5_buggy , main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
 			main_config.input_method , main_config.allow_osc52 ,
 			main_config.blink_cursor , main_config.margin ,
@@ -1164,6 +1162,24 @@ x_screen_manager_init(
 	
 		return  0 ;
 	}
+	/* BACKWARD COMPAT (3.1.7 or before) */
+#if  1
+	else
+	{
+		size_t  count ;
+		char *  keys[] = { "Control+Button1" , "Control+Button2" ,
+					"Control+Button3" , "Button3" } ;
+
+		for( count = 0 ; count < sizeof(keys) / sizeof(keys[0]) ; count ++)
+		{
+			if( main_config.shortcut_strs[count])
+			{
+				x_shortcut_parse( &shortcut ,
+					keys[count] , main_config.shortcut_strs[count]) ;
+			}
+		}
+	}
+#endif
 
 	if( ! x_termcap_init( &termcap))
 	{

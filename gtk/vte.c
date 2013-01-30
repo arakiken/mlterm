@@ -1452,9 +1452,7 @@ init_screen(
 			main_config.mod_meta_mode , main_config.bel_mode ,
 			main_config.receive_string_via_ucs , main_config.pic_file_path ,
 			main_config.use_transbg , main_config.use_vertical_cursor ,
-			main_config.big5_buggy , main_config.conf_menu_path_1 ,
-			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
-			main_config.use_extended_scroll_shortcut ,
+			main_config.big5_buggy , main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
 			main_config.input_method , main_config.allow_osc52 ,
 			main_config.blink_cursor , WINDOW_MARGIN , main_config.hide_underline) ;
@@ -2086,10 +2084,10 @@ vte_terminal_class_init(
 
 	ml_color_config_init() ;
 	x_shortcut_init( &shortcut) ;
+	x_shortcut_parse( &shortcut , "Button3" , "\"none\"") ;
 	x_termcap_init( &termcap) ;
 	x_xim_init( 1) ;
 	x_font_use_point_size_for_fc( 1) ;
-	x_set_button3_behavior( "none") ;
 
 	kik_init_prog( g_get_prgname() , VERSION) ;
 
@@ -2132,6 +2130,29 @@ vte_terminal_class_init(
 #endif
 
 	x_main_config_init( &main_config , conf , 1 , argv) ;
+
+	/* BACKWARD COMPAT (3.1.7 or before) */
+#if  1
+	{
+		size_t  count ;
+		/*
+		 * Compat with button3_behavior (shortcut_str[3]) is not applied
+		 * because button3 is disabled by
+		 * x_shortcut_parse( &shortcut , "Button3" , "\"none\"") above.
+		 */
+		char *  keys[] = { "Control+Button1" , "Control+Button2" ,
+					"Control+Button3" } ;
+
+		for( count = 0 ; count < sizeof(keys) / sizeof(keys[0]) ; count ++)
+		{
+			if( main_config.shortcut_strs[count])
+			{
+				x_shortcut_parse( &shortcut ,
+					keys[count] , main_config.shortcut_strs[count]) ;
+			}
+		}
+	}
+#endif
 
 	if( main_config.type_engine == TYPE_XCORE)
 	{

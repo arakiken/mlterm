@@ -1,0 +1,29 @@
+comment -*- mode: text -*-
+comment update: <>
+
+How to display images by w3m on the remote host. (Experimental)
+
+* Requirement
+  (Xlib, Framebuffer)
+  gdk-pixbuf >= 2.14
+  gvfs or curl
+
+  (Win32)
+  GDI+
+  URL Monikers
+
+* Installation
+  o mlterm
+    ./configure --enable-sixel ...
+    make
+    make install
+
+  o w3m 0.5.3
+    Download http://mlterm.sf.net/w3m-0.5.3-remoteimg.patch
+    patch -p1 < w3m-0.5.3-remoteimg.patch
+    ./configure --enable-image ...
+    make
+    make install
+
+o Usage
+  w3m -ri http://...

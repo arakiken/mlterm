@@ -65,16 +65,6 @@ enum
 
 /* --- static variables --- */
 
-/*
- * 0 = traditional (not open)
- * 1 = conf_menu_path_1
- * 2 = conf_menu_path_2
- * 3 = conf_menu_path_3
- * 4 = mlclient -e w3m
- * 5 = do nothing
- */
-static int  button3_open ;
-static char *  button3_command ;
 static int  exit_backscroll_by_pty ;
 #ifdef  USE_IM_CURSOR_COLOR
 static char *  im_cursor_color = NULL ;
@@ -1538,6 +1528,9 @@ window_exposed(
 	{
 		int  row ;
 		ml_line_t *  line ;
+		u_int  col_width ;
+
+		col_width = x_col_width( screen) ;
 
 		beg_row = convert_y_to_row( screen , NULL , y) ;
 		end_row = convert_y_to_row( screen , NULL , y + height) ;
@@ -1562,12 +1555,17 @@ window_exposed(
 					int  end ;
 					u_int  rest ;
 
+					/*
+					 * Don't add rest/col_width to beg because the
+					 * character at beg can be full-width.
+					 */
 					beg = convert_x_to_char_index_with_shape(
 							screen , line , &rest , x) ;
-					beg += (rest / x_col_width( screen)) ;
+
 					end = convert_x_to_char_index_with_shape(
 							screen , line , &rest , x + width) ;
-					end += (rest / x_col_width( screen)) ;
+					end += ((rest + col_width - 1) / col_width) ;
+
 					ml_line_set_modified( line , beg , end) ;
 
 				#ifdef  __DEBUG
@@ -1777,79 +1775,6 @@ mapping_notify(
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win, NULL) ;
 }
 
-static void
-config_menu(
-	x_screen_t *  screen ,
-	int  x ,
-	int  y ,
-	char *  conf_menu_path
-	)
-{
-	int  global_x ;
-	int  global_y ;
-	Window  child ;
-
-	x_window_translate_coordinates( &screen->window, x, y, &global_x, &global_y, &child) ;
-
-	/* XXX I don't know why but XGrabPointer() in child processes fails without this. */
-	x_window_ungrab_pointer( &screen->window) ;
-
-	ml_term_start_config_menu( screen->term , conf_menu_path , global_x , global_y ,
-		DisplayString( screen->window.disp->display)) ;
-}
-
-static void
-open_button3_command(
-	x_screen_t *  screen
-	)
-{
-	size_t  cmd_len ;
-	char *  key ;
-	size_t  key_len ;
-
-	if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
-	{
-		return ;
-	}
-
-	cmd_len = strlen( button3_command) + 1 ;
-	
-	key_len = cmd_len + screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE + 1 ;
-	key = alloca( key_len) ;
-
-	strcpy( key , button3_command) ;
-	key[cmd_len - 1] = ' ' ;
-
-	(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
-	ml_str_parser_set_str( screen->ml_str_parser , screen->sel.sel_str , screen->sel.sel_len) ;
-
-	ml_term_init_encoding_conv( screen->term) ;
-	key_len = ml_term_convert_to( screen->term , key + cmd_len , key_len - cmd_len ,
-				screen->ml_str_parser) + cmd_len ;
-	key[key_len] = '\0' ;
-
-	if( strncmp( key , "mlclient" , 8) == 0)
-	{
-		x_screen_exec_cmd( screen , key) ;
-	}
-#ifndef  USE_WIN32API
-	else
-	{
-		char **  argv ;
-		int  argc ;
-
-		argv = kik_arg_str_to_array( &argc , key) ;
-
-		if( fork() == 0)
-		{
-			/* child process */
-			execvp( argv[0] , argv) ;
-			exit( 1) ;
-		}
-	}
-#endif
-}
-
 static int
 use_utf_selection(
 	x_screen_t *  screen
@@ -1980,12 +1905,311 @@ receive_string_via_ucs(
 	}
 }
 
-/* referred in key_pressed. */
+/* referred in shortcut_match */
 static void change_im( x_screen_t * , char *) ;
+static void xterm_set_selection( void *  p , ml_char_t *  str ,	u_int  len) ;
+
+static int
+shortcut_match(
+	x_screen_t *  screen ,
+	KeySym  ksym ,
+	u_int  state
+	)
+{
+	if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_screen))
+		{
+			(*screen->system_listener->open_screen)(
+				screen->system_listener->self , screen) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_pty))
+		{
+			(*screen->system_listener->open_pty)(
+				screen->system_listener->self , screen , NULL) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , NEXT_PTY , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,next_pty))
+		{
+			(*screen->system_listener->next_pty)( screen->system_listener->self ,
+				screen) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , PREV_PTY , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,prev_pty))
+		{
+			(*screen->system_listener->prev_pty)( screen->system_listener->self ,
+				screen) ;
+		}
+
+		return  1 ;
+	}
+	/* for backward compatibility */
+	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , state))
+	{
+		change_im( screen , "kbd") ;
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , SWITCH_OSC52 , ksym , state))
+	{
+		if( screen->xterm_listener.set_selection)
+		{
+			screen->xterm_listener.set_selection = NULL ;
+		}
+		else
+		{
+			screen->xterm_listener.set_selection = xterm_set_selection ;
+		}
+
+		return  1 ;
+	}
+#ifdef  DEBUG
+	else if( x_shortcut_match( screen->shortcut , EXIT_PROGRAM , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,exit))
+		{
+			(*screen->system_listener->exit)( screen->system_listener->self , 1) ;
+		}
+
+		return  1 ;
+	}
+#endif
+
+	if( ml_term_is_backscrolling( screen->term))
+	{
+		if( screen->use_extended_scroll_shortcut)
+		{
+			if( x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , state))
+			{
+				bs_scroll_downward( screen) ;
+
+				return  1 ;
+			}
+			else if( x_shortcut_match( screen->shortcut , SCROLL_DOWN , ksym , state))
+			{
+				bs_scroll_upward( screen) ;
+
+				return  1 ;
+			}
+		#if  1
+			else if( ksym == 'u' || ksym == XK_Prior || ksym == XK_KP_Prior)
+			{
+				bs_half_page_downward( screen) ;
+
+				return  1 ;
+			}
+			else if( ksym == 'd' || ksym == XK_Next || ksym == XK_KP_Next)
+			{
+				bs_half_page_upward( screen) ;
+
+				return  1 ;
+			}
+			else if( ksym == 'k' || ksym == XK_Up || ksym == XK_KP_Up)
+			{
+				bs_scroll_downward( screen) ;
+
+				return  1 ;
+			}
+			else if( ksym == 'j' || ksym == XK_Down || ksym == XK_KP_Down)
+			{
+				bs_scroll_upward( screen) ;
+
+				return  1 ;
+			}
+		#endif
+		}
+
+		if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , state))
+		{
+			bs_half_page_downward( screen) ;
+
+			return  1 ;
+		}
+		else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , state))
+		{
+			bs_half_page_upward( screen) ;
+
+			return  1 ;
+		}
+		else if( ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
+			ksym == XK_Control_R || ksym == XK_Caps_Lock || ksym == XK_Shift_Lock ||
+			ksym == XK_Meta_L || ksym == XK_Meta_R || ksym == XK_Alt_L ||
+			ksym == XK_Alt_R || ksym == XK_Super_L || ksym == XK_Super_R ||
+			ksym == XK_Hyper_L || ksym == XK_Hyper_R || ksym == XK_Escape)
+		{
+			/* any modifier keys(X11/keysymdefs.h) */
+
+			return  1 ;
+		}
+		else
+		{
+			exit_backscroll_mode( screen) ;
+
+			/* Continue processing */
+		}
+	}
+
+	if( screen->use_extended_scroll_shortcut &&
+		x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , state))
+	{
+		enter_backscroll_mode( screen) ;
+		bs_scroll_downward( screen) ;
+	}
+	else if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , state))
+	{
+		enter_backscroll_mode( screen) ;
+		bs_half_page_downward( screen) ;
+	}
+	else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , state))
+	{
+		/* do nothing */
+	}
+	else if( x_shortcut_match( screen->shortcut , INSERT_SELECTION , ksym , state))
+	{
+		yank_event_received( screen , CurrentTime) ;
+	}
+	else
+	{
+		return  0 ;
+	}
+
+	return  1 ;
+}
+
+static int
+shortcut_str(
+	x_screen_t *  screen ,
+	KeySym  ksym ,
+	u_int  state ,
+	int  x ,
+	int  y
+	)
+{
+	char *  str ;
+
+	if( ! ( str = x_shortcut_str( screen->shortcut , ksym , state)))
+	{
+		return  0 ;
+	}
+
+	if( strncmp( str , "menu:" , 5) == 0)
+	{
+		int  global_x ;
+		int  global_y ;
+		Window  child ;
+
+		str += 5 ;
+
+		x_window_translate_coordinates( &screen->window ,
+			x , y , &global_x , &global_y , &child) ;
+
+		/*
+		 * XXX I don't know why but XGrabPointer() in child processes
+		 * fails without this.
+		 */
+		x_window_ungrab_pointer( &screen->window) ;
+
+		ml_term_start_config_menu( screen->term , str , global_x , global_y ,
+			DisplayString( screen->window.disp->display)) ;
+	}
+	else if( strncmp( str , "exesel:" , 7) == 0)
+	{
+		size_t  str_len ;
+		char *  key ;
+		size_t  key_len ;
+
+		str += 7 ;
+
+		if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
+		{
+			return  0 ;
+		}
+
+		str_len = strlen( str) + 1 ;
+
+		key_len = str_len + screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE + 1 ;
+		key = alloca( key_len) ;
+
+		strcpy( key , str) ;
+		key[str_len - 1] = ' ' ;
+
+		(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
+		ml_str_parser_set_str( screen->ml_str_parser , screen->sel.sel_str ,
+			screen->sel.sel_len) ;
+
+		ml_term_init_encoding_conv( screen->term) ;
+		key_len = ml_term_convert_to( screen->term , key + str_len , key_len - str_len ,
+					screen->ml_str_parser) + str_len ;
+		key[key_len] = '\0' ;
+
+		if( strncmp( key , "mlclient" , 8) == 0)
+		{
+			x_screen_exec_cmd( screen , key) ;
+		}
+	#ifndef  USE_WIN32API
+		else
+		{
+			char **  argv ;
+			int  argc ;
+
+			argv = kik_arg_str_to_array( &argc , key) ;
+
+			if( fork() == 0)
+			{
+				/* child process */
+				execvp( argv[0] , argv) ;
+				exit( 1) ;
+			}
+		}
+	#endif
+	}
+	else if( strncmp( str , "proto:" , 6) == 0)
+	{
+		char *  seq ;
+		size_t  len ;
+
+		str += 6 ;
+
+		len = 7 + strlen( str) + 2 ;
+		if( ( seq = alloca( len)))
+		{
+			sprintf( seq , "\x1b]5379;%s\x07" , str) ;
+			/* processing_vtseq == -1 means loopback processing. */
+			screen->processing_vtseq = -1 ;
+			ml_term_write_loopback( screen->term , seq , len - 1) ;
+			x_window_update( &screen->window , UPDATE_SCREEN|UPDATE_CURSOR) ;
+		}
+	}
+	/* XXX Hack for libvte */
+	else if( ksym == 0 && state == Button3Mask && strcmp( str , "none") == 0)
+	{
+		/* do nothing */
+	}
+	else
+	{
+		write_to_pty( screen , str , strlen(str) , NULL) ;
+	}
+
+	return  1 ;
+}
+
+/* referred in key_pressed. */
 static int compare_key_state_with_modmap( void *  p , u_int  state ,
 	int *  is_shift , int *  is_lock , int *  is_ctl , int *  is_alt ,
 	int *  is_meta , int *  is_numlock , int *  is_super , int *  is_hyper) ;
-static void xterm_set_selection( void *  p , ml_char_t *  str ,	u_int  len) ;
 
 typedef struct ksym_conv
 {
@@ -2116,168 +2340,7 @@ key_pressed(
 	}
 #endif
 
-	if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , masked_state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_screen))
-		{
-			(*screen->system_listener->open_screen)(
-				screen->system_listener->self , screen) ;
-		}
-
-		return ;
-	}
-	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , masked_state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_pty))
-		{
-			(*screen->system_listener->open_pty)(
-				screen->system_listener->self , screen , NULL) ;
-		}
-
-		return ;
-	}
-	else if( x_shortcut_match( screen->shortcut , NEXT_PTY , ksym , masked_state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,next_pty))
-		{
-			(*screen->system_listener->next_pty)( screen->system_listener->self , screen) ;
-		}
-
-		return ;
-	}
-	else if( x_shortcut_match( screen->shortcut , PREV_PTY , ksym , masked_state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,prev_pty))
-		{
-			(*screen->system_listener->prev_pty)( screen->system_listener->self , screen) ;
-		}
-
-		return ;
-	}
-	/* for backward compatibility */
-	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
-	{
-		change_im( screen , "kbd") ;
-
-		return ;
-	}
-	else if( x_shortcut_match( screen->shortcut , SWITCH_OSC52 , ksym , masked_state))
-	{
-		if( screen->xterm_listener.set_selection)
-		{
-			screen->xterm_listener.set_selection = NULL ;
-		}
-		else
-		{
-			screen->xterm_listener.set_selection = xterm_set_selection ;
-		}
-
-		return ;
-	}
-#ifdef  DEBUG
-	else if( x_shortcut_match( screen->shortcut , EXIT_PROGRAM , ksym , masked_state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,exit))
-		{
-			(*screen->system_listener->exit)( screen->system_listener->self , 1) ;
-		}
-
-		return ;
-	}
-#endif
-
-	if( ml_term_is_backscrolling( screen->term))
-	{
-		if( screen->use_extended_scroll_shortcut)
-		{
-			if( x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , masked_state))
-			{
-				bs_scroll_downward( screen) ;
-
-				return ;
-			}
-			else if( x_shortcut_match( screen->shortcut , SCROLL_DOWN , ksym , masked_state))
-			{
-				bs_scroll_upward( screen) ;
-
-				return ;
-			}
-		#if  1
-			else if( ksym == 'u' || ksym == XK_Prior || ksym == XK_KP_Prior)
-			{
-				bs_half_page_downward( screen) ;
-
-				return ;
-			}
-			else if( ksym == 'd' || ksym == XK_Next || ksym == XK_KP_Next)
-			{
-				bs_half_page_upward( screen) ;
-
-				return ;
-			}
-			else if( ksym == 'k' || ksym == XK_Up || ksym == XK_KP_Up)
-			{
-				bs_scroll_downward( screen) ;
-
-				return ;
-			}
-			else if( ksym == 'j' || ksym == XK_Down || ksym == XK_KP_Down)
-			{
-				bs_scroll_upward( screen) ;
-
-				return ;
-			}
-		#endif
-		}
-
-		if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , masked_state))
-		{
-			bs_half_page_downward( screen) ;
-
-			return ;
-		}
-		else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , masked_state))
-		{
-			bs_half_page_upward( screen) ;
-
-			return ;
-		}
-		else if( ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
-			ksym == XK_Control_R || ksym == XK_Caps_Lock || ksym == XK_Shift_Lock ||
-			ksym == XK_Meta_L || ksym == XK_Meta_R || ksym == XK_Alt_L ||
-			ksym == XK_Alt_R || ksym == XK_Super_L || ksym == XK_Super_R ||
-			ksym == XK_Hyper_L || ksym == XK_Hyper_R || ksym == XK_Escape)
-		{
-			/* any modifier keys(X11/keysymdefs.h) */
-
-			return ;
-		}
-		else
-		{
-			exit_backscroll_mode( screen) ;
-		}
-	}
-
-	if( screen->use_extended_scroll_shortcut &&
-		x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , masked_state))
-	{
-		enter_backscroll_mode( screen) ;
-		bs_scroll_downward( screen) ;
-	}
-	else if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , masked_state))
-	{
-		enter_backscroll_mode( screen) ;
-		bs_half_page_downward( screen) ;
-	}
-	else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , masked_state))
-	{
-		/* do nothing */
-	}
-	else if( x_shortcut_match( screen->shortcut , INSERT_SELECTION , ksym , masked_state))
-	{
-		yank_event_received( screen , CurrentTime) ;
-	}
-	else
+	if( ! shortcut_match( screen , ksym , masked_state))
 	{
 		int  is_app_keypad ;
 		int  is_app_cursor_keys ;
@@ -2301,6 +2364,7 @@ key_pressed(
 			final_ch = ( f) ;		\
 		} while ( 0)
 
+		buf = NULL ;
 		intermediate_ch = 0 ;
 		modcode = 0 ;
 
@@ -2510,29 +2574,9 @@ key_pressed(
 		}
 
 no_keypad:
-		if( ( buf = x_shortcut_str( screen->shortcut , ksym , masked_state)))
+		if( shortcut_str( screen , ksym , masked_state , 0 , 0))
 		{
-			/*
-			 * Set 0 to ignore (screen->mod_meta_mask & event->state) check
-			 * at write_buf.
-			 */
-			event->state = 0 ;
-
-			if( strncmp( buf , "proto:" , 6) == 0)
-			{
-				size = 7 + strlen( buf + 6) + 2 ;
-				if( ( kstr = alloca( size)))
-				{
-					sprintf( kstr , "\x1b]5379;%s\x07" , buf + 6) ;
-					/* processing_vtseq == -1 means loopback processing. */
-					screen->processing_vtseq = -1 ;
-					ml_term_write_loopback( screen->term , kstr , size - 1) ;
-					x_window_update( &screen->window ,
-						UPDATE_SCREEN|UPDATE_CURSOR) ;
-				}
-
-				return  ;
-			}
+			return ;
 		}
 		else if( ( ksym == XK_Delete
 		#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
@@ -2564,7 +2608,7 @@ no_keypad:
 		}
 		else if( size > 0)
 		{
-			buf = NULL ;
+			/* do nothing */
 		}
 		/*
 		 * following ksym is processed only if no key string is received
@@ -3812,6 +3856,7 @@ button_pressed(
 	)
 {
 	x_screen_t *  screen ;
+	u_int  state ;
 
 	screen = (x_screen_t*)win ;
 
@@ -3825,16 +3870,9 @@ button_pressed(
 		return ;
 	}
 
-	if( event->button == Button2)
-	{
-		if( (event->state & ControlMask) && screen->conf_menu_path_2)
-		{
-			config_menu( screen , event->x , event->y , screen->conf_menu_path_2) ;
-		}
+	state = (Button1Mask << (event->button - Button1)) | event->state ;
 
-		return ;
-	}
-	else if( event->button == Button1)
+	if( event->button == Button1)
 	{
 		if( click_num == 2)
 		{
@@ -3850,80 +3888,26 @@ button_pressed(
 
 			return ;
 		}
-		else if( event->state & ControlMask)
-		{
-			config_menu( screen , event->x , event->y ,
-				screen->conf_menu_path_1 ?
-					screen->conf_menu_path_1 : "mlterm-menu"
-				#ifdef  HAVE_WINDOWS_H
-					".exe"
-				#endif
-				) ;
-
-			return ;
-		}
 	}
-	else if( event->button == Button3)
+
+	if( shortcut_match( screen , 0 , state) ||
+	    shortcut_str( screen , 0 , state , event->x , event->y))
 	{
-		if( event->state & ControlMask)
-		{
-			config_menu( screen , event->x , event->y ,
-				screen->conf_menu_path_3 ?
-					screen->conf_menu_path_3 : "mlconfig"
-				#ifdef  HAVE_WINDOWS_H
-					".exe"
-				#endif
-				) ;
+		return ;
+	}
 
-			return ;
-		}
-		else if( button3_open)
-		{
-			if( button3_open == 1)
-			{
-				config_menu( screen , event->x , event->y ,
-					screen->conf_menu_path_1 ?
-						screen->conf_menu_path_1 : "mlterm-menu"
-					#ifdef  HAVE_WINDOWS_H
-						".exe"
-					#endif
-					) ;
-			}
-			else if( button3_open == 2)
-			{
-				if( screen->conf_menu_path_2)
-				{
-					config_menu( screen , event->x , event->y ,
-						screen->conf_menu_path_2) ;
-				}
-			}
-			else if( button3_open == 3)
-			{
-				config_menu( screen , event->x , event->y ,
-					screen->conf_menu_path_3 ?
-						screen->conf_menu_path_3 : "mlconfig"
-					#ifdef  HAVE_WINDOWS_H
-						".exe"
-					#endif
-					) ;
-			}
-			else if( button3_open == 4)
-			{
-				open_button3_command( screen) ;
-			}
-
-			return ;
-		}
-		else if( x_sel_is_reversed( &screen->sel))
+	if( event->button == Button3)
+	{
+		if( x_sel_is_reversed( &screen->sel))
 		{
 			/* expand if current selection exists. */
 			/* FIXME: move sel.* stuff should be in x_selection.c */
 			screen->sel.is_selecting = SEL_CHAR ;
 			selecting_with_motion( screen, event->x, event->y, event->time);
 			/* keep sel as selected to handle succeeding MotionNotify */
-
-			return ;
 		}
+
+		return ;
 	}
 	else if ( event->button == Button4)
 	{
@@ -3997,7 +3981,7 @@ button_released(
 
 	if( event->button == Button2)
 	{
-		if( (event->state & ControlMask) && screen->conf_menu_path_2)
+		if( event->state & ControlMask)
 		{
 			/* FIXME: should check whether a menu is really active? */
 			return ;
@@ -7318,39 +7302,6 @@ pty_read_ready(
 /* --- global functions --- */
 
 void
-x_set_button3_behavior(
-	const char *  mode
-	)
-{
-	if( strcmp( mode , "xterm") == 0)
-	{
-		button3_open = 0 ;
-	}
-	else if( strlen( mode) == 5 && '1' <= mode[4] && mode[4] <= '3')
-	{
-		/* menu1, menu2, menu3 */
-		button3_open = mode[4] - '0' ;
-	}
-	else if( strcmp( mode , "none") == 0)
-	{
-		/* Hidden option for libvte */
-		button3_open = 5 ;
-	}
-	else
-	{
-		char *  p ;
-
-		if( ( p = strdup( mode)))	/* XXX Not free'ed. Leaked */
-		{
-			free( button3_command) ;
-			button3_command = p ;
-			/* Hidden option (e.g. w3m, lynx) */
-			button3_open = 4 ;
-		}
-	}
-}
-
-void
 x_exit_backscroll_by_pty(
 	int  flag
 	)
@@ -7396,9 +7347,6 @@ x_screen_new(
 	int  use_transbg ,
 	int  use_vertical_cursor ,
 	int  big5_buggy ,
-	char *  conf_menu_path_1 ,
-	char *  conf_menu_path_2 ,
-	char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut ,
 	int  override_redirect ,
 	u_int  line_space ,
@@ -7600,21 +7548,6 @@ x_screen_new(
 			x_screen_get_picture_modifier( screen)) ;
 	}
 
-	if( conf_menu_path_1)
-	{
-		screen->conf_menu_path_1 = strdup( conf_menu_path_1) ;
-	}
-
-	if( conf_menu_path_2)
-	{
-		screen->conf_menu_path_2 = strdup( conf_menu_path_2) ;
-	}
-
-	if( conf_menu_path_3)
-	{
-		screen->conf_menu_path_3 = strdup( conf_menu_path_3) ;
-	}
-
 	screen->shortcut = shortcut ;
 	screen->termcap = termcap ;
 
@@ -7730,9 +7663,6 @@ error:
 	}
 
 	free( screen->pic_file_path) ;
-	free( screen->conf_menu_path_1) ;
-	free( screen->conf_menu_path_2) ;
-	free( screen->conf_menu_path_3) ;
 	free( screen->mod_meta_key) ;
 	free( screen->input_method) ;
 	free( screen) ;
@@ -7764,9 +7694,6 @@ x_screen_delete(
 	}
 
 	free( screen->mod_meta_key) ;
-	free( screen->conf_menu_path_1) ;
-	free( screen->conf_menu_path_2) ;
-	free( screen->conf_menu_path_3) ;
 
 	if( screen->utf_parser)
 	{
@@ -8241,6 +8168,16 @@ x_screen_exec_cmd(
 	{
 		x_window_update_all( x_get_root_window( &screen->window)) ;
 	}
+	else if( strcmp( cmd , "set_shortcut") == 0)
+	{
+		char *  opr ;
+
+		if( arg && ( opr = strchr( arg , '=')))
+		{
+			*(opr++) = '\0' ;
+			x_shortcut_parse( screen->shortcut , arg , opr) ;
+		}
+	}
 	else
 	{
 		if( arg)
@@ -8696,10 +8633,6 @@ x_screen_set_config(
 		{
 			ml_term_set_logging_vt_seq( term , flag) ;
 		}
-	}
-	else if( strcmp( key , "button3_behavior") == 0)
-	{
-		x_set_button3_behavior( value) ;
 	}
 	else if( strcmp( key , "word_separators") == 0)
 	{

@@ -229,13 +229,6 @@ scrollbar_view_name = sample
 
 # BEL(0x7)を受け取った時の挙動(none,sound,visual)
 # bel_mode = sound
-  
-# GUI 設定コマンドのパス
-# conf_menu_path_1
-
-# conf_menu_path_2
-
-# conf_menu_path_3
 
 # daemon process となるかどうか(none,blend,genuine)
 # daemon_mode = none
@@ -259,10 +252,6 @@ scrollbar_view_name = sample
 
 # pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 # logging_vt_seq = false
-
-# button3 を押下したときの挙動を指定する。
-# (xterm,menu1,menu2,menu3, or command string like "mlclient -e w3m")
-# button3_behavior = xterm
 
 # 領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 # use_clipboard = false

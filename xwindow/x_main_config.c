@@ -124,8 +124,6 @@ x_prepare_for_main_config(
 		"meta key [none]") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell [false]") ;
-	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path_3" ,
-		"command path of mlconfig (GUI configurator)") ;
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
 	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
@@ -248,14 +246,6 @@ x_prepare_for_main_config(
 		"blink cursor [false]") ;
 	kik_conf_add_opt( conf , '\0' , "border" , 0 , "inner_border" ,
 		"inner border [2]") ;
-	kik_conf_add_opt( conf , '\0' , "button3" , 0 , "button3_behavior" ,
-		"button3 behavior. (xterm/menu1/menu2/menu3) "
-	#ifdef  USE_WIN32GUI
-		"[xterm]"
-	#else
-		"[menu1]"
-	#endif
-		) ;
 	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
 		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
 	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" ,
@@ -353,28 +343,37 @@ x_main_config_init(
 	}
 #endif
 
-	/* Not changeable. */
-	main_config->conf_menu_path_1 = NULL ;
+	/* BACKWARD COMPAT (3.1.7 or before) */
+#if  1
+	memset( main_config->shortcut_strs , 0 , sizeof(main_config->shortcut_strs)) ;
 
 	if( ( value = kik_conf_get_value( conf , "conf_menu_path_1")))
 	{
-		main_config->conf_menu_path_1 = strdup( value) ;
+		main_config->shortcut_strs[0] = malloc( 5 + strlen(value) + 2 + 1) ;
+		sprintf( main_config->shortcut_strs[0] , "\"menu:%s\"" , value) ;
 	}
-
-	/* Not changeable. */
-	main_config->conf_menu_path_2 = NULL ;
 
 	if( ( value = kik_conf_get_value( conf , "conf_menu_path_2")))
 	{
-		main_config->conf_menu_path_2 = strdup( value) ;
+		main_config->shortcut_strs[1] = malloc( 5 + strlen(value) + 2 + 1) ;
+		sprintf( main_config->shortcut_strs[1] , "\"menu:%s\"" , value) ;
 	}
-
-	main_config->conf_menu_path_3 = NULL ;
 
 	if( ( value = kik_conf_get_value( conf , "conf_menu_path_3")))
 	{
-		main_config->conf_menu_path_3 = strdup( value) ;
+		main_config->shortcut_strs[2] = malloc( 5 + strlen(value) + 2 + 1) ;
+		sprintf( main_config->shortcut_strs[2] , "\"menu:%s\"" , value) ;
 	}
+
+	if( ( value = kik_conf_get_value( conf , "button3_behavior")) &&
+	    /* menu1,menu2,menu3,xterm values are ignored. */
+	    strncmp( value , "menu" , 4) != 0)
+	{
+		main_config->shortcut_strs[3] = malloc( 7 + strlen(value) + 2 + 1) ;
+		/* XXX "abc" should be "exesel:\"abc\"" but it's not supported. */
+		sprintf( main_config->shortcut_strs[3] , "\"exesel:%s\"" , value) ;
+	}
+#endif
 
 	/* use default value */
 	main_config->scrollbar_view_name = NULL ;
@@ -1293,11 +1292,6 @@ x_main_config_init(
 		ml_set_word_separators( value) ;
 	}
 
-	if( ( value = kik_conf_get_value( conf , "button3_behavior")))
-	{
-		x_set_button3_behavior( value) ;
-	}
-
 	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1406,9 +1400,10 @@ x_main_config_final(
 	free( main_config->title) ;
 	free( main_config->icon_name) ;
 	free( main_config->term_type) ;
-	free( main_config->conf_menu_path_1) ;
-	free( main_config->conf_menu_path_2) ;
-	free( main_config->conf_menu_path_3) ;
+	free( main_config->shortcut_strs[0]) ;
+	free( main_config->shortcut_strs[1]) ;
+	free( main_config->shortcut_strs[2]) ;
+	free( main_config->shortcut_strs[3]) ;
 	free( main_config->pic_file_path) ;
 	free( main_config->scrollbar_view_name) ;
 	free( main_config->fg_color) ;

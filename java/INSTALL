@@ -40,7 +40,7 @@ How to build & install mlterm co-operating with Java.
   $ appletviewer mlterm.html
 
 * Notice
-  o Following options in ~/.mlterm/main or %HOMEPATH%/mlterm/main are applied automatically.
+  o Following options in ~/.mlterm/main or %HOMEPATH%\mlterm\main are applied automatically.
     ENCODING
     tabsize
     use_combining
@@ -91,9 +91,11 @@ How to build & install mlterm co-operating with Java.
   http://mlterm.sf.net/mltermlet.html
   http://mlterm.sf.net/mltermlet.jnpl
 
-  (If libeay32.dll exits in system foler (c:\windows\system) and it is not
-   compatible with the one which libssh2 depends on, this demo doesn't start.
-   Remove libeay32.dll in system folder in advance.)
+  o If libeay32.dll exits in system foler (c:\windows\system) and it is not
+    compatible with the one which libssh2 depends on, this demo doesn't start.
+    Remove libeay32.dll in system folder in advance.
+  o The path of RSA public key is %HOMEPATH%\mlterm\id_rsa.pub and the one of
+    private key is %HOMEPATH%\mlterm\id_rsa by default.
 
 * Tested terminals using vte.
   o Java 1.6.0_23 on Ubuntu 11.10

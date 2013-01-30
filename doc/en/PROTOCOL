@@ -29,7 +29,7 @@ version 20110903
                      open_screen | snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
                      mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
                      search_prev <pattern> | search_next <pattern> | update_all |
-		     show_picture <file name> (WxH) (WxH+X+Y) |
+                     show_picture <file name> (WxH) (WxH+X+Y) | set_shortcut <key>=<operation>
                      scp (local:|remote:)<src file name> (local:|remote:)<dst directory name>
                      (<encoding name>)
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
@@ -42,8 +42,8 @@ version 20110903
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      use_dynamic_comb | cursor_fg_color | cursor_bg_color | bd_color | ul_color |
                      use_bold_font | hide_underline | icon_path | logging_vt_seq | logging_msg |
-                     word_separators | button3_behavior | use_clipboard | auto_restart |
-		     use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty
+                     word_separators | use_clipboard | auto_restart | use_alt_buffer |
+                     use_ansi_colors | exit_backscroll_by_pty
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
