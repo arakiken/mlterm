@@ -1,3 +1,9 @@
+2013-02-02  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_imagelib.c, mlimgloader/gdk-pixbuf.c, c_imagelib.c:
+	  The function of creating GdkPixbuf from the specified path is integrated
+	  to gdk_pixbuf_new_from() in c_imagelib.c.
+
 2013-01-30  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.ja, man/mlterm.1, etc/key, etc/main, etc/main.ja,

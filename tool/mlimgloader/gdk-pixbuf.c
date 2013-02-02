@@ -70,63 +70,7 @@ load_file(
 	GdkPixbuf *  pixbuf_tmp ;
 	GdkPixbuf *  pixbuf ;
 
-	if( ! strstr( path , ".six") || ! ( pixbuf_tmp = gdk_pixbuf_new_from_sixel( path)))
-	{
-	#if GDK_PIXBUF_MAJOR >= 2
-	#if GDK_PIXBUF_MINOR >= 14
-		if( strstr( path , "://"))
-		{
-			GFile *  file ;
-			GInputStream *  in ;
-
-			if( ( in = (GInputStream*)g_file_read(
-					( file = g_vfs_get_file_for_uri(
-							g_vfs_get_default() , path)) ,
-					NULL , NULL)))
-			{
-				pixbuf_tmp = gdk_pixbuf_new_from_stream(
-						in , NULL , NULL) ;
-				g_object_unref( in) ;
-			}
-			else
-			{
-			#ifndef  G_PLATFORM_WIN32
-				char *  cmd ;
-			#endif
-
-				pixbuf_tmp = NULL ;
-
-				/* g_unix_input_stream_new doesn't exists on win32. */
-			#ifndef  G_PLATFORM_WIN32
-				if( ( cmd = alloca( 11 + strlen( path) + 1)))
-				{
-					FILE *  fp ;
-
-					sprintf( cmd , "curl -k -s %s" , path) ;
-					if( ( fp = popen( cmd , "r")))
-					{
-						in = g_unix_input_stream_new( fileno(fp) , FALSE) ;
-						pixbuf_tmp = gdk_pixbuf_new_from_stream(
-								in , NULL , NULL) ;
-						fclose( fp) ;
-					}
-				}
-			#endif
-			}
-
-			g_object_unref( file) ;
-		}
-		else
-	#endif
-		{
-			pixbuf_tmp = gdk_pixbuf_new_from_file( path , NULL) ;
-		}
-	#else
-		pixbuf_tmp = gdk_pixbuf_new_from_file( path) ;
-	#endif /*GDK_PIXBUF_MAJOR*/
-	}
-
-	if( pixbuf_tmp == NULL)
+	if( ! ( pixbuf_tmp = gdk_pixbuf_new_from( path)))
 	{
 		return  NULL ;
 	}

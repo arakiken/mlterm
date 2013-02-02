@@ -44,10 +44,6 @@
 #define  __DEBUG
 #endif
 
-#if  0
-#define  SCROLL_BY_SIXEL
-#endif
-
 
 /*
  * For x_window_update()
