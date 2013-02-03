@@ -310,6 +310,8 @@ ssh_connect(
 
 	libssh2_session_set_blocking( session->obj , 1) ;
 
+	libssh2_session_flag( session->obj , LIBSSH2_FLAG_COMPRESS , 1) ;
+
 	if( cipher_list)
 	{
 		libssh2_session_method_pref( session->obj ,

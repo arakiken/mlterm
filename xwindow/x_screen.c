@@ -2050,6 +2050,11 @@ shortcut_match(
 
 			return  1 ;
 		}
+		else if( ksym == 0)
+		{
+			/* button press -> reversed color is restored in button_press(). */
+			return  0 ;
+		}
 		else
 		{
 			exit_backscroll_mode( screen) ;

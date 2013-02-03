@@ -1,3 +1,11 @@
+2013-02-03  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Backscroll mode is not exited if pressing a mouse button.
+
+	* ml_pty_ssh.c: Compression is enabled by libssh2_session_flag().
+
+	* version.h.in: 3.1.7 -> 3.1.7 post
+
 2013-02-02  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_imagelib.c, mlimgloader/gdk-pixbuf.c, c_imagelib.c:
