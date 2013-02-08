@@ -1010,7 +1010,11 @@ mlclient(
 	}
 #endif
 
-	if( argc == 0)
+	if( argc == 0
+	#ifdef  USE_FRAMEBUFFER
+	    || screen == NULL
+	#endif
+	    )
 	{
 		return  0 ;
 	}
@@ -1211,7 +1215,11 @@ x_screen_manager_init(
 #else
 	system_listener.exit = NULL ;
 #endif
+#ifdef  USE_FRAMEBUFFER
+	system_listener.open_screen = NULL ;
+#else
 	system_listener.open_screen = open_screen ;
+#endif
 	system_listener.close_screen = close_screen ;
 	system_listener.open_pty = open_pty ;
 	system_listener.next_pty = next_pty ;

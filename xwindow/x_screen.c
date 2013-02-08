@@ -7759,6 +7759,11 @@ x_screen_attach(
 		return  1 ;
 	}
 
+	/* XXX */
+#ifdef  USE_FRAMEBUFFER
+	window_resized( &screen->window) ;
+#endif
+
 	usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 
 	update_special_visual( screen) ;
@@ -7799,12 +7804,6 @@ x_screen_attach(
 	}
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
-
-	/* XXX */
-#ifdef  USE_FRAMEBUFFER
-	x_window_resize_with_margin( &screen->window , screen->window.disp->width ,
-		screen->window.disp->height , NOTIFY_TO_MYSELF) ;
-#endif
 
 	return  1 ;
 }

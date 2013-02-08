@@ -50,8 +50,8 @@ enum
 static void
 set_redraw_area(
 	x_scrollbar_t *  sb ,
-	int  y ,
-	u_int  height	/* Should be over 0. */
+	int  y ,	/* Should exclude sb->top_margin. */
+	u_int  height	/* Should be over 0. Can be over sb->window.height - sb->bottom_margin. */
 	)
 {
 	if( sb->redraw_height == 0)
@@ -120,52 +120,62 @@ draw_background(
 	{
 		int  y ;
 		int  height ;
-		
+
 		/* Redraw upward area of bar. */
 		if( sb->redraw_y < sb->bar_top_y)
 		{
 			y = sb->redraw_y ;
-			
-			if( sb->redraw_y + sb->redraw_height > sb->bar_top_y)
+
+			if( y + sb->redraw_height > sb->bar_top_y)
 			{
 				/* Redraw except bar area. */
-				height = sb->bar_top_y - sb->redraw_y ;
+				height = sb->bar_top_y - y ;
 			}
 			else
 			{
 				height = sb->redraw_height ;
 			}
-			
+
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
-				" updating background from %d height %d\n" , y , height) ;
+				" updating background from %d height %d\n" ,
+					y + sb->top_margin , height) ;
 		#endif
 			(*sb->view->draw_background)( sb->view , y + sb->top_margin , height) ;
 		}
 
 		/* Redraw downward area of bar. */
-		if( sb->redraw_y + sb->redraw_height > sb->bar_top_y + sb->bar_height)
+		if( sb->redraw_y < sb->window.height - HEIGHT_MARGIN(sb) &&
+		    sb->bar_top_y + sb->bar_height < sb->redraw_y + sb->redraw_height)
 		{
 			if( sb->redraw_y < sb->bar_top_y + sb->bar_height)
 			{
-				/* Redraw except bar area. */
 				y = sb->bar_top_y + sb->bar_height ;
-				height = sb->redraw_y + sb->redraw_height
-						- sb->bar_top_y - sb->bar_height ;
 			}
 			else
 			{
 				y = sb->redraw_y ;
-				height = sb->redraw_height ;
 			}
-			
+
+			if( sb->redraw_y + sb->redraw_height >
+			    sb->window.height - HEIGHT_MARGIN(sb))
+			{
+				/* Redraw except bar area. */
+				height = sb->window.height - HEIGHT_MARGIN(sb) - y ;
+			}
+			else
+			{
+				height = sb->redraw_y + sb->redraw_height - y ;
+			}
+
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
-				" updating background from %d height %d\n" , y , height) ;
+				" updating background from %d height %d\n" ,
+					y + sb->top_margin , height) ;
 		#endif
-			(*sb->view->draw_background)( sb->view , sb->top_margin + y , height) ;
+			(*sb->view->draw_background)( sb->view , y + sb->top_margin , height) ;
 		}
-		
+
 		sb->redraw_y = 0 ;
 		sb->redraw_height = 0 ;
 	}
@@ -427,8 +437,8 @@ window_exposed(
 
 	if( y < sb->top_margin)
 	{
+		height -= (sb->top_margin - y) ;
 		y = 0 ;
-		height -= y ;
 	}
 	else
 	{
@@ -1048,7 +1058,7 @@ x_scrollbar_line_is_added(
 	x_scrollbar_t *  sb
 	)
 {
-	int  old_y ;
+	int  old_bar_top_y ;
 	u_int  old_bar_height ;
 	
 	if( (*sb->sb_listener->screen_is_static)(sb->sb_listener->self))
@@ -1072,16 +1082,16 @@ x_scrollbar_line_is_added(
 	old_bar_height = sb->bar_height ;
 	sb->bar_height = calculate_bar_height( sb) ;
 	
-	old_y = sb->bar_top_y ;
+	old_bar_top_y = sb->bar_top_y ;
 	sb->bar_top_y = calculate_bar_top_y( sb) ;
 	
-	if( old_y == sb->bar_top_y && old_bar_height == sb->bar_height)
+	if( old_bar_top_y == sb->bar_top_y && old_bar_height == sb->bar_height)
 	{
 		return  1 ;
 	}
 	else
 	{
-		set_redraw_area( sb, old_y, old_bar_height) ;
+		set_redraw_area( sb, old_bar_top_y, old_bar_height) ;
 		x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 
 		return  1 ;

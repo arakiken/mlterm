@@ -17,7 +17,7 @@
 /* seek the closest color */
 static  ml_color_t
 closest_color(
-	struct fb_cmap *  cmap ,
+	fb_cmap_t *  cmap ,
 	int  red ,
 	int  green ,
 	int  blue
@@ -121,7 +121,7 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	struct fb_cmap *  cmap ;
+	fb_cmap_t *  cmap ;
 
 	if( ( cmap = disp->display->cmap))
 	{

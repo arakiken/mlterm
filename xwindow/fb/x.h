@@ -22,6 +22,12 @@
 #endif
 
 
+#ifdef  __FreeBSD__
+typedef video_color_palette_t fb_cmap_t ;
+#else
+typedef struct fb_cmap  fb_cmap_t ;
+#endif
+
 typedef struct
 {
 	int  fd ;
@@ -45,8 +51,8 @@ typedef struct
 
 	} rgbinfo ;
 
-	struct fb_cmap *  cmap ;
-	struct fb_cmap *  cmap_orig ;
+	fb_cmap_t *  cmap ;
+	fb_cmap_t *  cmap_orig ;
 
 	int  key_state ;
 
@@ -222,6 +228,97 @@ typedef int XFontSet ;	/* dummy */
 #define Button4		4
 #define Button5		5
 
+#ifdef  __FreeBSD__
+
+/* Same definitions as Linux */
+
+#define BTN_LEFT	0x110
+#define BTN_RIGHT	0x111
+#define BTN_MIDDLE	0x112
+#define REL_X		0x00
+#define REL_Y		0x01
+#define REL_WHEEL	0x08
+
+#define KEY_ENTER	28
+#define KEY_BACKSPACE	14
+#define KEY_SPACE	57
+#define KEY_YEN		124
+#define KEY_RO		89
+
+#define KEY_CLEAR	0x163
+#define KEY_LINEFEED	101
+#define KEY_LEFTSHIFT	42
+#define KEY_LEFTCTRL	29
+#define KEY_LEFTALT	56
+#define KEY_RIGHTSHIFT	54
+#define KEY_RIGHTCTRL	97
+#define KEY_RIGHTALT	100
+#define KEY_LEFTMETA	125
+#define KEY_RIGHTMETA	126
+#define KEY_CAPSLOCK	58
+#define KEY_PAGEUP	104
+#define KEY_PAGEDOWN	109
+#define KEY_END		107
+#define KEY_HOME	102
+#define KEY_LEFT	105
+#define KEY_UP		103
+#define KEY_RIGHT	106
+#define KEY_DOWN	108
+#define KEY_SELECT	0x161
+#define KEY_PRINT	210
+#define KEY_INSERT	110
+#define KEY_DELETE	111
+#define KEY_HELP	138
+#define KEY_F1		59
+#define KEY_F2		60
+#define KEY_F3		61
+#define KEY_F4		62
+#define KEY_F5		63
+#define KEY_F6		64
+#define KEY_F7		65
+#define KEY_F8		66
+#define KEY_F9		67
+#define KEY_F10		68
+#define KEY_F11		87
+#define KEY_F12		88
+#define KEY_F13		183
+#define KEY_F14		184
+#define KEY_F15		185
+#define KEY_F16		186
+#define KEY_F17		187
+#define KEY_F18		188
+#define KEY_F19		189
+#define KEY_F20		190
+#define KEY_F21		191
+#define KEY_F22		192
+#define KEY_F23		193
+#define KEY_F24		194
+#define KEY_NUMLOCK	69
+#define KEY_SCROLLLOCK	70
+#define KEY_FIND	136
+#define KEY_MENU	139
+#define KEY_MUHENKAN	94
+#define KEY_HENKAN	92
+#define KEY_ZENKAKUHANKAKU	85
+#define KEY_KPASTERISK	55
+#define KEY_KPPLUS	78
+#define KEY_KPENTER	96
+#define KEY_KPMINUS	74
+#define KEY_KPCOMMA	121
+#define KEY_KPSLASH	98
+#define KEY_KP0		82
+#define KEY_KP1		79
+#define KEY_KP2		80
+#define KEY_KP3		81
+#define KEY_KP4		75
+#define KEY_KP5		76
+#define KEY_KP6		77
+#define KEY_KP7		71
+#define KEY_KP8		72
+#define KEY_KP9		73
+
+#endif	/* FreeBSD */
+
 #define XK_Super_L	0xfffe	/* dummy */
 #define XK_Super_R	0xfffd	/* dummy */
 #define XK_Hyper_L	0xfffc	/* dummy */
@@ -312,7 +409,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_Multiply	(KEY_KPASTERISK + 0x100)
 #define XK_KP_Add	(KEY_KPPLUS + 0x100)
 #define XK_KP_Separator	(KEY_KPENTER + 0x100)
-#define XK_KP_Subtract	(KEY_MINUS + 0x100)
+#define XK_KP_Subtract	(KEY_KPMINUS + 0x100)
 #define XK_KP_Decimal	(KEY_KPCOMMA + 0x100)
 #define XK_KP_Divide	(KEY_KPSLASH + 0x100)
 #define XK_KP_0		(KEY_KP0 + 0x100)

@@ -12,14 +12,22 @@
 #include  <string.h>	/* memset/memcpy */
 #include  <termios.h>
 
+#ifdef  __FreeBSD__
+#include  <sys/consio.h>
+#include  <sys/kbio.h>
+#include  <sys/mouse.h>
+#include  <sys/time.h>
+#else
 #include  <linux/kd.h>
 #include  <linux/keyboard.h>
 #include  <linux/vt.h>	/* VT_GETSTATE */
+#endif
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_privilege.h>	/* kik_priv_change_e(u|g)id */
 #include  <kiklib/kik_unistd.h>		/* kik_getuid */
 #include  <kiklib/kik_util.h>		/* K_MIN/K_MAX */
+#include  <kiklib/kik_file.h>
 
 #include  <ml_color.h>
 
@@ -41,6 +49,8 @@
 #if  0
 #define  READ_CTRL_KEYMAP
 #endif
+
+#define  SYSMOUSE_PACKET_SIZE  8
 
 
 /* Note that this structure could be casted to Display */
@@ -82,7 +92,10 @@ static x_display_t  _disp ;
 static Mouse  _mouse ;
 static x_display_t  _disp_mouse ;
 static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
-static int  console_id ;
+
+#ifdef  __linux__
+static int  console_id = -1 ;
+#endif
 
 static struct termios  orig_tm ;
 
@@ -108,218 +121,28 @@ static char *  cursor_shape =
 
 /* --- static functions --- */
 
-static int
-get_active_console(void)
-{
-	struct vt_stat  st ;
-
-	if( ioctl( STDIN_FILENO , VT_GETSTATE , &st) == -1)
-	{
-		return  -1 ;
-	}
-
-	return  st.v_active ;
-}
-
-static int
-get_key_state(void)
-{
-	int  ret ;
-	char  state ;
-
-	state = 6 ;
-
-	ret = ioctl( STDIN_FILENO , TIOCLINUX , &state) ;
-
-	if( ret == -1)
-	{
-		return  0 ;
-	}
-	else
-	{
-		/* ShiftMask and ControlMask is the same. */
-
-		return  state | ( (state & (1 << KG_ALT)) ? ModMask : 0) ;
-	}
-}
-
-static int
-kcode_to_ksym(
-	int  kcode ,
-	int  state
-	)
-{
-	if( kcode == KEY_ENTER)
-	{
-		/* KDGKBENT returns '\n'(0x0a) */
-		return  0x0d ;
-	}
-	else if( kcode == KEY_BACKSPACE)
-	{
-		/* KDGKBDENT returns 0x7f */
-		return  0x08 ;
-	}
-	else if( kcode <= KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO)
-	{
-		struct kbentry  ent ;
-		int  ret ;
-
-		if( state & ShiftMask)
-		{
-			ent.kb_table = (1 << KG_SHIFT) ;
-		}
-	#ifdef  READ_CTRL_KEYMAP
-		else if( state & ControlMask)
-		{
-			ent.kb_table = (1 << KG_CTRL) ;
-		}
-	#endif
-		else
-		{
-			ent.kb_table = 0 ;
-		}
-
-		ent.kb_index = kcode ;
-
-		ret = ioctl( STDIN_FILENO , KDGKBENT , &ent) ;
-
-		if( ret != -1 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP)
-		{
-			ent.kb_value &= 0xff ;
-
-			return  ent.kb_value ;
-		}
-	}
-
-	return  kcode + 0x100 ;
-}
-
-static void
-set_use_console_backscroll(
-	int  use
-	)
-{
-	struct kbentry  ent ;
-
-	kik_priv_restore_euid() ;
-	kik_priv_restore_egid() ;
-
-	ent.kb_table = (1 << KG_SHIFT) ;
-	ent.kb_index = KEY_PAGEUP ;
-	ent.kb_value = use ? K_SCROLLBACK : K_PGUP ;
-	ioctl( STDIN_FILENO , KDSKBENT , &ent) ;
-
-	ent.kb_index = KEY_PAGEDOWN ;
-	ent.kb_value = use ? K_SCROLLFORW : K_PGDN ;
-	ioctl( STDIN_FILENO , KDSKBENT , &ent) ;
-
-	kik_priv_restore_euid() ;
-	kik_priv_restore_egid() ;
-}
-
-static void
-get_event_device_num(
-	int *  kbd ,
-	int *  mouse
-	)
-{
-	char  class[] = "/sys/class/input/inputN/name" ;
-	int  count ;
-	FILE *  fp ;
-
-	*kbd = -1 ;
-	*mouse = -1 ;
-
-	for( count = 0 ; ; count++)
-	{
-		class[22] = count + 0x30 ;
-
-		if( ! ( fp = fopen( class , "r")))
-		{
-			break ;
-		}
-		else
-		{
-			char  buf[128] ;
-
-			if( fgets( buf , sizeof(buf) , fp))
-			{
-				char *  p ;
-
-				for( p = buf ; *p ; p++)
-				{
-					/*
-					 * "0x41 <=" is not necessary to check if
-					 * "mouse" or "key" exits in buf.
-					 */
-					if( /* 0x41 <= *p && */ *p <= 0x5a)
-					{
-						*p += 0x20 ;
-					}
-				}
-
-				if( strstr( buf , "mouse"))
-				{
-					*mouse = count ;
-				}
-				else if( strstr( buf , "key"))
-				{
-					*kbd = count ;
-				}
-			}
-
-			fclose( fp) ;
-		}
-	}
-}
-
-static int
-open_event_device(
-	int  num
-	)
-{
-	char  event[] = "/dev/input/eventN" ;
-	int  fd ;
-
-	kik_priv_restore_euid() ;
-	kik_priv_restore_egid() ;
-
-	event[16] = num + 0x30 ;
-
-	if( ( fd = open( event , O_RDONLY|O_NONBLOCK)) == -1)
-	{
-		kik_msg_printf( "Failed to open %s.\n" , event) ;
-	}
-#if  0
-	else
-	{
-		/* Occupy /dev/input/eventN */
-		ioctl( fd , EVIOCGRAB , 1) ;
-	}
-#endif
-
-	kik_priv_change_euid( kik_getuid()) ;
-	kik_priv_change_egid( kik_getgid()) ;
-
-	return  fd ;
-}
-
-static struct fb_cmap *
+static fb_cmap_t *
 cmap_new(void)
 {
-	struct fb_cmap *  cmap ;
+	fb_cmap_t *  cmap ;
 
-	if( ! ( cmap = malloc( sizeof(*cmap) + sizeof(__u16) * 256 * 3)))
+	if( ! ( cmap = malloc( sizeof(*cmap) + sizeof(*(cmap->red)) * 256 * 3)))
 	{
 		return  NULL ;
 	}
 
-	cmap->red = (__u16*)(cmap + 1) ;
-	cmap->green = cmap->red + 256 ;
-	cmap->blue = cmap->green + 256 ;
-	cmap->transp = NULL ;
+#ifdef  __FreeBSD__
+	cmap->index = 0 ;
+	cmap->count = 256 ;
+	cmap->transparent = NULL ;
+#else
 	cmap->start = 0 ;
 	cmap->len = 256 ;
+	cmap->transp = NULL ;
+#endif
+	cmap->red = cmap + 1 ;
+	cmap->green = cmap->red + 256 ;
+	cmap->blue = cmap->green + 256 ;
 
 	return  cmap ;
 }
@@ -585,6 +408,767 @@ draw_mouse_cursor(void)
 	_mouse.cursor.is_drawn = 1 ;
 }
 
+#ifdef  __FreeBSD__
+
+#define get_key_state()  (0)
+#define set_use_console_backscroll(use)  (0)
+
+static int
+open_display(void)
+{
+	char *  dev ;
+	int  vmode ;
+	video_info_t  vinfo ;
+	video_adapter_info_t  vainfo ;
+	video_display_start_t  vstart ;
+
+	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ?
+						dev : "/dev/ttyv0" ,
+					O_RDWR)))
+	{
+		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/ttyv0") ;
+
+		return  0 ;
+	}
+
+	kik_file_set_cloexec( _display.fb_fd) ;
+
+	ioctl( _display.fb_fd , FBIO_GETMODE , &vmode) ;
+
+	vinfo.vi_mode = vmode ;
+	ioctl( _display.fb_fd , FBIO_MODEINFO , &vinfo) ;
+	ioctl( _display.fb_fd , FBIO_ADPINFO , &vainfo) ;
+	ioctl( _display.fb_fd , FBIO_GETDISPSTART , &vstart) ;
+
+	if( ( _disp.depth = vinfo.vi_depth) < 8) /* 2/4 bpp is not supported. */
+	{
+		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.vi_depth) ;
+
+		goto  error ;
+	}
+
+	if( ( _display.fp = mmap( NULL , (_display.smem_len = vainfo.va_window_size) ,
+				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , 0))
+				== MAP_FAILED)
+	{
+		goto  error ;
+	}
+
+	if( ( _display.bytes_per_pixel = (_disp.depth + 7) / 8) == 3)
+	{
+		_display.bytes_per_pixel = 4 ;
+	}
+
+	if( _disp.depth != 8 || ! cmap_init())
+	{
+		_display.cmap = NULL ;
+	}
+
+	_display.line_length = vainfo.va_line_width ;
+	_display.xoffset = vstart.x ;
+	_display.yoffset = vstart.y ;
+
+	_disp.width = vinfo.vi_width ;
+	_disp.height = vinfo.vi_height ;
+
+	_display.rgbinfo.r_limit = 8 - vinfo.vi_pixel_fsizes[0] ;
+	_display.rgbinfo.g_limit = 8 - vinfo.vi_pixel_fsizes[1] ;
+	_display.rgbinfo.b_limit = 8 - vinfo.vi_pixel_fsizes[2] ;
+	_display.rgbinfo.r_offset = vinfo.vi_pixel_fields[0] ;
+	_display.rgbinfo.g_offset = vinfo.vi_pixel_fields[1] ;
+	_display.rgbinfo.b_offset = vinfo.vi_pixel_fields[2] ;
+
+	_display.fd = STDIN_FILENO ;
+
+	_disp.display = &_display ;
+
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+	_mouse.fd = open( "/dev/sysmouse" , O_RDWR|O_NONBLOCK) ;
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
+
+	if( _mouse.fd != -1)
+	{
+		int  level ;
+		mousemode_t  mode ;
+		struct termios  tm ;
+		struct mouse_info  info ;
+
+		level = 1 ;
+		ioctl( _mouse.fd , MOUSE_SETLEVEL , &level) ;
+		ioctl( _mouse.fd , MOUSE_GETMODE , &mode) ;
+
+		if( mode.packetsize != SYSMOUSE_PACKET_SIZE)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Failed to open /dev/sysmouse.\n") ;
+		#endif
+
+			close( _mouse.fd) ;
+			_mouse.fd = -1 ;
+		}
+		else
+		{
+			kik_file_set_cloexec( _mouse.fd) ;
+
+			_mouse.x = _disp.width / 2 ;
+			_mouse.y = _disp.height / 2 ;
+			_disp_mouse.display = (Display*)&_mouse ;
+
+			tcgetattr( _mouse.fd , &tm) ;
+			tm.c_iflag = IGNBRK|IGNPAR;
+			tm.c_oflag = 0 ;
+			tm.c_lflag = 0 ;
+			tm.c_cc[VTIME] = 0 ;
+			tm.c_cc[VMIN] = 1 ;
+			tm.c_cflag = CS8 | CSTOPB | CREAD | CLOCAL | HUPCL ;
+			cfsetispeed( &tm , B1200) ;
+			cfsetospeed( &tm , B1200) ;
+			tcsetattr( _mouse.fd , TCSAFLUSH , &tm) ;
+
+			info.operation = MOUSE_HIDE ;
+			ioctl( STDIN_FILENO , CONS_MOUSECTL , &info) ;
+		}
+	}
+#ifdef  DEBUG
+	else
+	{
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open /dev/sysmouse.\n") ;
+	}
+#endif
+
+	return  1 ;
+
+error:
+	close( _display.fb_fd) ;
+
+	return  0 ;
+}
+
+static void
+receive_mouse_event(void)
+{
+	u_char  buf[64] ;
+	ssize_t  len ;
+
+	while( ( len = read( _mouse.fd , buf , sizeof(buf))) > 0)
+	{
+		static u_char  packet[SYSMOUSE_PACKET_SIZE] ;
+		static ssize_t  packet_len ;
+		ssize_t  count ;
+
+		for( count = 0 ; count < len ; count++)
+		{
+			int  x ;
+			int  y ;
+			int  z ;
+			int  move ;
+			struct timeval  tv ;
+			XButtonEvent  xev ;
+			x_window_t *  win ;
+
+			if( packet_len == 0)
+			{
+				if( (buf[count] & 0xf8) != 0x80)
+				{
+					/* is not packet header */
+					continue ;
+				}
+			}
+
+			packet[packet_len++] = buf[count] ;
+
+			if( packet_len < SYSMOUSE_PACKET_SIZE)
+			{
+				continue ;
+			}
+
+			packet_len = 0 ;
+
+			/* set mili seconds */
+			gettimeofday( &tv , NULL) ;
+			xev.time = tv.tv_sec * 1000 + tv.tv_usec / 1000 ;
+
+			move = 0 ;
+
+			if( ( x = (char)packet[1] + (char)packet[3]) != 0)
+			{
+				restore_hidden_region() ;
+
+				_mouse.x += x ;
+
+				if( _mouse.x < 0)
+				{
+					_mouse.x = 0 ;
+				}
+				else if( _disp.width <= _mouse.x)
+				{
+					_mouse.x = _disp.width - 1 ;
+				}
+
+				move = 1 ;
+			}
+
+			if( ( y = (char)packet[2] + (char)packet[4]) != 0)
+			{
+				restore_hidden_region() ;
+
+				_mouse.y -= y ;
+
+				if( _mouse.y < 0)
+				{
+					_mouse.y = 0 ;
+				}
+				else if( _disp.height <= _mouse.y)
+				{
+					_mouse.y = _disp.height - 1 ;
+				}
+
+				move = 1 ;
+			}
+
+			z = ((char)(packet[5] << 1) + (char)(packet[6] << 1)) >> 1 ;
+
+			if( move)
+			{
+				update_mouse_cursor_state() ;
+			}
+
+			if( ~packet[0] & 0x04)
+			{
+				xev.button = Button1 ;
+				_mouse.button_state = Button1Mask ;
+			}
+			else if( ~packet[0] & 0x02)
+			{
+				xev.button = Button2 ;
+				_mouse.button_state = Button2Mask ;
+			}
+			else if( ~packet[0] & 0x01)
+			{
+				xev.button = Button3 ;
+				_mouse.button_state = Button3Mask ;
+			}
+			else if( z < 0)
+			{
+				xev.button = Button4 ;
+				_mouse.button_state = Button4Mask ;
+			}
+			else if( z > 0)
+			{
+				xev.button = Button5 ;
+				_mouse.button_state = Button5Mask ;
+			}
+			else
+			{
+				xev.button = 0 ;
+			}
+
+			if( move)
+			{
+				xev.type = MotionNotify ;
+				xev.state = _mouse.button_state | _display.key_state ;
+			}
+			else
+			{
+				if( xev.button)
+				{
+					xev.type = ButtonPress ;
+				}
+				else
+				{
+					xev.type = ButtonRelease ;
+				}
+
+				xev.state = _display.key_state ;
+			}
+
+			xev.x = _mouse.x ;
+			xev.y = _mouse.y ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				"Button is %s x %d y %d btn %d time %d\n" ,
+				xev.type == ButtonPress ? "pressed" :
+					xev.type == MotionNotify ? "motion" : "released" ,
+				xev.x , xev.y , xev.button , xev.time) ;
+		#endif
+
+			win = get_window( xev.x , xev.y) ;
+			xev.x -= win->x ;
+			xev.y -= win->y ;
+
+			x_window_receive_event( win , &xev) ;
+
+			if( move)
+			{
+				save_hidden_region() ;
+				draw_mouse_cursor() ;
+			}
+		}
+	}
+}
+
+#else	/* __linux__ */
+
+static int
+get_active_console(void)
+{
+	struct vt_stat  st ;
+
+	if( ioctl( STDIN_FILENO , VT_GETSTATE , &st) == -1)
+	{
+		return  -1 ;
+	}
+
+	return  st.v_active ;
+}
+
+static int
+get_key_state(void)
+{
+	int  ret ;
+	char  state ;
+
+	state = 6 ;
+
+	ret = ioctl( STDIN_FILENO , TIOCLINUX , &state) ;
+
+	if( ret == -1)
+	{
+		return  0 ;
+	}
+	else
+	{
+		/* ShiftMask and ControlMask is the same. */
+
+		return  state | ( (state & (1 << KG_ALT)) ? ModMask : 0) ;
+	}
+}
+
+static int
+kcode_to_ksym(
+	int  kcode ,
+	int  state
+	)
+{
+	if( kcode == KEY_ENTER)
+	{
+		/* KDGKBENT returns '\n'(0x0a) */
+		return  0x0d ;
+	}
+	else if( kcode == KEY_BACKSPACE)
+	{
+		/* KDGKBDENT returns 0x7f */
+		return  0x08 ;
+	}
+	else if( kcode <= KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO)
+	{
+		struct kbentry  ent ;
+		int  ret ;
+
+		if( state & ShiftMask)
+		{
+			ent.kb_table = (1 << KG_SHIFT) ;
+		}
+	#ifdef  READ_CTRL_KEYMAP
+		else if( state & ControlMask)
+		{
+			ent.kb_table = (1 << KG_CTRL) ;
+		}
+	#endif
+		else
+		{
+			ent.kb_table = 0 ;
+		}
+
+		ent.kb_index = kcode ;
+
+		ret = ioctl( STDIN_FILENO , KDGKBENT , &ent) ;
+
+		if( ret != -1 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP)
+		{
+			ent.kb_value &= 0xff ;
+
+			return  ent.kb_value ;
+		}
+	}
+
+	return  kcode + 0x100 ;
+}
+
+static void
+set_use_console_backscroll(
+	int  use
+	)
+{
+	struct kbentry  ent ;
+
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+
+	ent.kb_table = (1 << KG_SHIFT) ;
+	ent.kb_index = KEY_PAGEUP ;
+	ent.kb_value = use ? K_SCROLLBACK : K_PGUP ;
+	ioctl( STDIN_FILENO , KDSKBENT , &ent) ;
+
+	ent.kb_index = KEY_PAGEDOWN ;
+	ent.kb_value = use ? K_SCROLLFORW : K_PGDN ;
+	ioctl( STDIN_FILENO , KDSKBENT , &ent) ;
+
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
+}
+
+static void
+get_event_device_num(
+	int *  kbd ,
+	int *  mouse
+	)
+{
+	char  class[] = "/sys/class/input/inputN/name" ;
+	int  count ;
+	FILE *  fp ;
+
+	*kbd = -1 ;
+	*mouse = -1 ;
+
+	for( count = 0 ; ; count++)
+	{
+		class[22] = count + 0x30 ;
+
+		if( ! ( fp = fopen( class , "r")))
+		{
+			break ;
+		}
+		else
+		{
+			char  buf[128] ;
+
+			if( fgets( buf , sizeof(buf) , fp))
+			{
+				char *  p ;
+
+				for( p = buf ; *p ; p++)
+				{
+					/*
+					 * "0x41 <=" is not necessary to check if
+					 * "mouse" or "key" exits in buf.
+					 */
+					if( /* 0x41 <= *p && */ *p <= 0x5a)
+					{
+						*p += 0x20 ;
+					}
+				}
+
+				if( strstr( buf , "mouse"))
+				{
+					*mouse = count ;
+				}
+				else if( strstr( buf , "key"))
+				{
+					*kbd = count ;
+				}
+			}
+
+			fclose( fp) ;
+		}
+	}
+}
+
+static int
+open_event_device(
+	int  num
+	)
+{
+	char  event[] = "/dev/input/eventN" ;
+	int  fd ;
+
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+
+	event[16] = num + 0x30 ;
+
+	if( ( fd = open( event , O_RDONLY|O_NONBLOCK)) == -1)
+	{
+		kik_msg_printf( "Failed to open %s.\n" , event) ;
+	}
+#if  0
+	else
+	{
+		/* Occupy /dev/input/eventN */
+		ioctl( fd , EVIOCGRAB , 1) ;
+	}
+#endif
+
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
+
+	return  fd ;
+}
+
+static int
+open_display(void)
+{
+	char *  dev ;
+	struct  fb_fix_screeninfo  finfo ;
+	struct  fb_var_screeninfo  vinfo ;
+	int  kbd_num ;
+	int  mouse_num ;
+
+	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
+					O_RDWR)))
+	{
+		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/fb0") ;
+
+		return  0 ;
+	}
+
+	kik_file_set_cloexec( _display.fb_fd) ;
+
+	ioctl( _display.fb_fd , FBIOGET_FSCREENINFO , &finfo) ;
+	ioctl( _display.fb_fd , FBIOGET_VSCREENINFO , &vinfo) ;
+
+	if( ( _disp.depth = vinfo.bits_per_pixel) < 8) /* 2/4 bpp is not supported. */
+	{
+		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.bits_per_pixel) ;
+
+		goto  error ;
+	}
+
+	if( ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
+				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , 0))
+				== MAP_FAILED)
+	{
+		goto  error ;
+	}
+
+	if( ( _display.bytes_per_pixel = (_disp.depth + 7) / 8) == 3)
+	{
+		_display.bytes_per_pixel = 4 ;
+	}
+
+	if( _disp.depth != 8 || ! cmap_init())
+	{
+		_display.cmap = NULL ;
+	}
+
+	_display.line_length = finfo.line_length ;
+	_display.xoffset = vinfo.xoffset ;
+	_display.yoffset = vinfo.yoffset ;
+
+	_disp.width = vinfo.xres ;
+	_disp.height = vinfo.yres ;
+
+	_display.rgbinfo.r_limit = 8 - vinfo.red.length ;
+	_display.rgbinfo.g_limit = 8 - vinfo.green.length ;
+	_display.rgbinfo.b_limit = 8 - vinfo.blue.length ;
+	_display.rgbinfo.r_offset = vinfo.red.offset ;
+	_display.rgbinfo.g_offset = vinfo.green.offset ;
+	_display.rgbinfo.b_offset = vinfo.blue.offset ;
+
+	get_event_device_num( &kbd_num , &mouse_num) ;
+
+	if( kbd_num == -1 ||
+	    ( _display.fd = open_event_device( kbd_num)) == -1)
+	{
+		_display.fd = STDIN_FILENO ;
+	}
+	else
+	{
+		kik_file_set_cloexec( _display.fd) ;
+	}
+
+	_disp.display = &_display ;
+
+	if( mouse_num == -1)
+	{
+		_mouse.fd = -1 ;
+	}
+	else if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
+	{
+		kik_file_set_cloexec( _mouse.fd) ;
+		_mouse.x = _disp.width / 2 ;
+		_mouse.y = _disp.height / 2 ;
+		_disp_mouse.display = (Display*)&_mouse ;
+	}
+
+	console_id = get_active_console() ;
+
+	return  1 ;
+
+error:
+	close( _display.fb_fd) ;
+
+	return  0 ;
+}
+
+static void
+receive_mouse_event(void)
+{
+	struct input_event  ev ;
+
+	while( read( _mouse.fd , &ev , sizeof(ev)) > 0)
+	{
+		if( console_id != get_active_console())
+		{
+			return  0 ;
+		}
+
+		if( ev.type == EV_KEY)
+		{
+			XButtonEvent  xev ;
+			x_window_t *  win ;
+
+			if( ev.code == BTN_LEFT)
+			{
+				xev.button = Button1 ;
+				_mouse.button_state = Button1Mask ;
+			}
+			else if( ev.code == BTN_MIDDLE)
+			{
+				xev.button = Button2 ;
+				_mouse.button_state = Button2Mask ;
+			}
+			else if( ev.code == BTN_RIGHT)
+			{
+				xev.button = Button3 ;
+				_mouse.button_state = Button3Mask ;
+			}
+			else
+			{
+				return  1 ;
+
+				while(1)
+				{
+				button4:
+					xev.button = Button4 ;
+					_mouse.button_state = Button4Mask ;
+					break ;
+
+				button5:
+					xev.button = Button5 ;
+					_mouse.button_state = Button5Mask ;
+					break ;
+				}
+
+				ev.value = 1 ;
+			}
+
+			if( ev.value == 1)
+			{
+				xev.type = ButtonPress ;
+			}
+			else if( ev.value == 0)
+			{
+				xev.type = ButtonRelease ;
+
+				/* Reset button_state in releasing button. */
+				_mouse.button_state = 0 ;
+			}
+			else
+			{
+				return  1 ;
+			}
+
+			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
+			xev.x = _mouse.x ;
+			xev.y = _mouse.y ;
+			xev.state = _display.key_state ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				"Button is %s x %d y %d btn %d time %d\n" ,
+				xev.type == ButtonPress ? "pressed" : "released" ,
+				xev.x , xev.y , xev.button , xev.time) ;
+		#endif
+
+			win = get_window( xev.x , xev.y) ;
+			xev.x -= win->x ;
+			xev.y -= win->y ;
+
+			x_window_receive_event( win , &xev) ;
+		}
+		else if( ev.type == EV_REL)
+		{
+			XMotionEvent  xev ;
+			x_window_t *  win ;
+
+			if( ev.code == REL_X)
+			{
+				restore_hidden_region() ;
+
+				_mouse.x += (int)ev.value ;
+
+				if( _mouse.x < 0)
+				{
+					_mouse.x = 0 ;
+				}
+				else if( _disp.width <= _mouse.x)
+				{
+					_mouse.x = _disp.width - 1 ;
+				}
+			}
+			else if( ev.code == REL_Y)
+			{
+				restore_hidden_region() ;
+
+				_mouse.y += (int)ev.value ;
+
+				if( _mouse.y < 0)
+				{
+					_mouse.y = 0 ;
+				}
+				else if( _disp.height <= _mouse.y)
+				{
+					_mouse.y = _disp.height - 1 ;
+				}
+			}
+			else if( ev.code == REL_WHEEL)
+			{
+				if( ev.value > 0)
+				{
+					goto  button4 ;
+				}
+				else if( ev.value < 0)
+				{
+					goto  button5 ;
+				}
+			}
+			else
+			{
+				return  0 ;
+			}
+
+			update_mouse_cursor_state() ;
+
+			xev.type = MotionNotify ;
+			xev.x = _mouse.x ;
+			xev.y = _mouse.y ;
+			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
+			xev.state = _mouse.button_state | _display.key_state ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Button is moved %d x %d y %d btn %d time %d\n" ,
+				xev.type , xev.x , xev.y , xev.state , xev.time) ;
+		#endif
+
+			win = get_window( xev.x , xev.y) ;
+			xev.x -= win->x ;
+			xev.y -= win->y ;
+
+			x_window_receive_event( win , &xev) ;
+
+			save_hidden_region() ;
+			draw_mouse_cursor() ;
+		}
+	}
+}
+
+#endif	/* FreeBSD/linux */
+
 static void
 expose_window(
 	x_window_t *  win ,
@@ -645,58 +1229,12 @@ x_display_open(
 {
 	if( ! DISP_IS_INITED)
 	{
-		char *  dev ;
-		struct  fb_fix_screeninfo  finfo ;
-		struct  fb_var_screeninfo  vinfo ;
 		struct termios  tm ;
-		int  kbd_num ;
-		int  mouse_num ;
 
-		if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
-						O_RDWR)))
+		if( ! open_display())
 		{
-			kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/fb0") ;
-
 			return  NULL ;
 		}
-
-		ioctl( _display.fb_fd , FBIOGET_FSCREENINFO , &finfo) ;
-		ioctl( _display.fb_fd , FBIOGET_VSCREENINFO , &vinfo) ;
-
-		if( ( _disp.depth = vinfo.bits_per_pixel) < 8) /* 2/4 bpp is not supported. */
-		{
-			kik_msg_printf( "%d bpp is not supported.\n" , vinfo.bits_per_pixel) ;
-
-			close( _display.fb_fd) ;
-
-			return  NULL ;
-		}
-
-		if( ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
-					PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , 0))
-					== MAP_FAILED)
-		{
-			close( _display.fb_fd) ;
-
-			return  NULL ;
-		}
-
-		if( ( _display.bytes_per_pixel = (_disp.depth + 7) / 8) == 3)
-		{
-			_display.bytes_per_pixel = 4 ;
-		}
-
-		if( _disp.depth != 8 || ! cmap_init())
-		{
-			_display.cmap = NULL ;
-		}
-
-		_display.line_length = finfo.line_length ;
-		_display.xoffset = vinfo.xoffset ;
-		_display.yoffset = vinfo.yoffset ;
-
-		_disp.width = vinfo.xres ;
-		_disp.height = vinfo.yres ;
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Framebuffer: "
@@ -711,13 +1249,6 @@ x_display_open(
 			_disp.height) ;
 	#endif
 
-		_display.rgbinfo.r_limit = 8 - vinfo.red.length ;
-		_display.rgbinfo.g_limit = 8 - vinfo.green.length ;
-		_display.rgbinfo.b_limit = 8 - vinfo.blue.length ;
-		_display.rgbinfo.r_offset = vinfo.red.offset ;
-		_display.rgbinfo.g_offset = vinfo.green.offset ;
-		_display.rgbinfo.b_offset = vinfo.blue.offset ;
-
 		tcgetattr( STDIN_FILENO , &tm) ;
 		orig_tm = tm ;
 		tm.c_iflag = tm.c_oflag = 0 ;
@@ -731,33 +1262,11 @@ x_display_open(
 		fcntl( STDIN_FILENO , F_SETFL ,
 			fcntl( STDIN_FILENO , F_GETFL , 0) | O_NONBLOCK) ;
 
-		/* Hide the cursor of linux console. */
+		/* Hide the cursor of default console. */
 		write( STDIN_FILENO , "\x1b[?25l" , 6) ;
 
+		/* Disable backscrolling of default console. */
 		set_use_console_backscroll( 0) ;
-
-		get_event_device_num( &kbd_num , &mouse_num) ;
-
-		if( kbd_num == -1 ||
-		    ( _display.fd = open_event_device( kbd_num)) == -1)
-		{
-			_display.fd = STDIN_FILENO ;
-		}
-
-		_disp.display = &_display ;
-
-		if( mouse_num == -1)
-		{
-			_mouse.fd = -1 ;
-		}
-		else if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
-		{
-			_mouse.x = _disp.width / 2 ;
-			_mouse.y = _disp.height / 2 ;
-			_disp_mouse.display = (Display*)&_mouse ;
-		}
-
-		console_id = get_active_console() ;
 	}
 
 	return  &_disp ;
@@ -954,181 +1463,150 @@ x_display_receive_next_event(
 {
 	if( disp == &_disp_mouse)
 	{
-		struct input_event  ev ;
-
-		while( read( _mouse.fd , &ev , sizeof(ev)) > 0)
-		{
-			if( console_id != get_active_console())
-			{
-				return  0 ;
-			}
-
-			if( ev.type == EV_KEY)
-			{
-				XButtonEvent  xev ;
-				x_window_t *  win ;
-
-				if( ev.code == BTN_LEFT)
-				{
-					xev.button = Button1 ;
-					_mouse.button_state = Button1Mask ;
-				}
-				else if( ev.code == BTN_MIDDLE)
-				{
-					xev.button = Button2 ;
-					_mouse.button_state = Button2Mask ;
-				}
-				else if( ev.code == BTN_RIGHT)
-				{
-					xev.button = Button3 ;
-					_mouse.button_state = Button3Mask ;
-				}
-				else
-				{
-					return  1 ;
-
-					while(1)
-					{
-					button4:
-						xev.button = Button4 ;
-						_mouse.button_state = Button4Mask ;
-						break ;
-
-					button5:
-						xev.button = Button5 ;
-						_mouse.button_state = Button5Mask ;
-						break ;
-					}
-
-					ev.value = 1 ;
-				}
-
-				if( ev.value == 1)
-				{
-					xev.type = ButtonPress ;
-				}
-				else if( ev.value == 0)
-				{
-					xev.type = ButtonRelease ;
-
-					/* Reset button_state in releasing button. */
-					_mouse.button_state = 0 ;
-				}
-				else
-				{
-					return  1 ;
-				}
-
-				xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
-				xev.x = _mouse.x ;
-				xev.y = _mouse.y ;
-				xev.state = _display.key_state ;
-
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					"Button is %s x %d y %d btn %d time %d\n" ,
-					xev.type == ButtonPress ? "pressed" : "released" ,
-					xev.x , xev.y , xev.button , xev.time) ;
-			#endif
-
-				win = get_window( xev.x , xev.y) ;
-				xev.x -= win->x ;
-				xev.y -= win->y ;
-
-				x_window_receive_event( win , &xev) ;
-			}
-			else if( ev.type == EV_REL)
-			{
-				XMotionEvent  xev ;
-				x_window_t *  win ;
-
-				if( ev.code == REL_X)
-				{
-					restore_hidden_region() ;
-
-					_mouse.x += (int)ev.value ;
-
-					if( _mouse.x < 0)
-					{
-						_mouse.x = 0 ;
-					}
-					else if( _disp.width <= _mouse.x)
-					{
-						_mouse.x = _disp.width - 1 ;
-					}
-				}
-				else if( ev.code == REL_Y)
-				{
-					restore_hidden_region() ;
-
-					_mouse.y += (int)ev.value ;
-
-					if( _mouse.y < 0)
-					{
-						_mouse.y = 0 ;
-					}
-					else if( _disp.height <= _mouse.y)
-					{
-						_mouse.y = _disp.height - 1 ;
-					}
-				}
-				else if( ev.code == REL_WHEEL)
-				{
-					if( ev.value > 0)
-					{
-						goto  button4 ;
-					}
-					else if( ev.value < 0)
-					{
-						goto  button5 ;
-					}
-				}
-				else
-				{
-					return  0 ;
-				}
-
-				update_mouse_cursor_state() ;
-
-				xev.type = MotionNotify ;
-				xev.x = _mouse.x ;
-				xev.y = _mouse.y ;
-				xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
-				xev.state = _mouse.button_state | _display.key_state ;
-
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" Button is moved %d x %d y %d btn %d time %d\n" ,
-					xev.type , xev.x , xev.y , xev.state , xev.time) ;
-			#endif
-
-				win = get_window( xev.x , xev.y) ;
-				xev.x -= win->x ;
-				xev.y -= win->y ;
-
-				x_window_receive_event( win , &xev) ;
-
-				save_hidden_region() ;
-				draw_mouse_cursor() ;
-			}
-		}
+		receive_mouse_event() ;
 	}
 	else if( disp->display->fd == STDIN_FILENO)
 	{
-		u_char  buf[1] ;
+		u_char  buf[6] ;
 		ssize_t  len ;
 
-		while( ( len = read( disp->display->fd , buf , sizeof(buf))) > 0)
+		while( ( len = read( disp->display->fd , buf , sizeof(buf) - 1)) > 0)
 		{
+			static struct
+			{
+				char *  str ;
+				KeySym  ksym ;
+
+			} table[] =
+			{
+				{ "[2~" , XK_Insert } ,
+				{ "[3~" , XK_Delete } ,
+				{ "[5~" , XK_Prior } ,
+				{ "[6~" , XK_Next } ,
+				{ "[A" , XK_Up } ,
+				{ "[B" , XK_Down } ,
+				{ "[C" , XK_Right } ,
+				{ "[D" , XK_Left } ,
+				{ "[F" , XK_End } ,
+				{ "[H" , XK_Home } ,
+				{ "OP" , XK_F1 } ,
+				{ "OQ" , XK_F2 } ,
+				{ "OR" , XK_F3 } ,
+				{ "OS" , XK_F4 } ,
+				{ "[15~" , XK_F5 } ,
+				{ "[17~" , XK_F6 } ,
+				{ "[18~" , XK_F7 } ,
+				{ "[19~" , XK_F8 } ,
+				{ "[20~" , XK_F9 } ,
+				{ "[21~" , XK_F10 } ,
+				{ "[23~" , XK_F11 } ,
+				{ "[24~" , XK_F12 } ,
+			} ;
+
+			size_t  count ;
 			XKeyEvent  xev ;
 
 			xev.type = KeyPress ;
-			xev.ksym = buf[0] ;
 			xev.state = get_key_state() ;
+			xev.ksym = 0 ;
 
-			x_window_receive_event( disp->roots[0] , &xev) ;
+			if( buf[0] == '\x1b' && len > 1)
+			{
+				buf[len] = '\0' ;
+
+				for( count = 0 ; count < sizeof(table) / sizeof(table[0]) ;
+				     count++)
+				{
+					if( strcmp( buf + 1 , table[count].str) == 0)
+					{
+						xev.ksym = table[count].ksym ;
+
+						break ;
+					}
+				}
+
+			#ifdef  __FreeBSD__
+				if( xev.ksym == 0 && len == 3 && buf[1] == '[')
+				{
+					if( 'Y' <= buf[2] && buf[2] <= 'Z')
+					{
+						xev.ksym = XK_F1 + (buf[2] - 'Y') ;
+						xev.state = ShiftMask ;
+					}
+					else if( 'a' <= buf[2] && buf[2] <= 'j')
+					{
+						xev.ksym = XK_F3 + (buf[2] - 'a') ;
+						xev.state = ShiftMask ;
+					}
+					else if( 'k' <= buf[2] && buf[2] <= 'v')
+					{
+						xev.ksym = XK_F1 + (buf[2] - 'k') ;
+						xev.state = ControlMask ;
+					}
+					else if( 'w' <= buf[2] && buf[2] <= 'z')
+					{
+						xev.ksym = XK_F1 + (buf[2] - 'w') ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+					else if( buf[2] == '@')
+					{
+						xev.ksym = XK_F5 ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+					else if( '[' <= buf[2] && buf[2] <= '\`')
+					{
+						xev.ksym = XK_F6 + (buf[2] - '[') ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+					else if( buf[2] == '{')
+					{
+						xev.ksym = XK_F12 ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+				}
+			#endif
+			}
+
+			if( xev.ksym)
+			{
+				receive_event_for_multi_roots( disp , &xev) ;
+			}
+			else
+			{
+				for( count = 0 ; count < len ; count++)
+				{
+					xev.ksym = buf[count] ;
+
+					if( (u_int)xev.ksym <= 0x1f)
+					{
+						if( xev.ksym == '\0')
+						{
+							/* CTL+' ' instead of CTL+@ */
+							xev.ksym = ' ' ;
+						}
+						else if( 0x01 <= xev.ksym &&
+						         xev.ksym <= 0x1a)
+						{
+							/*
+							 * Lower case alphabets instead of
+							 * upper ones.
+							 */
+							xev.ksym = xev.ksym + 0x60 ;
+						}
+						else
+						{
+							xev.ksym = xev.ksym + 0x40 ;
+						}
+
+						xev.state = ControlMask ;
+					}
+
+					receive_event_for_multi_roots( disp , &xev) ;
+				}
+			}
 		}
 	}
+#ifdef  __linux__
 	else
 	{
 		struct input_event  ev ;
@@ -1205,6 +1683,7 @@ x_display_receive_next_event(
 			}
 		}
 	}
+#endif	/* __linux__ */
 
 	return  1 ;
 }

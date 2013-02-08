@@ -1,3 +1,13 @@
+2013-02-08  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x.h, fb/x_color.c, fb/x_display.c: Support for FreeBSD is added.
+
+	* x_screen.c, x_screen_manager.c: Fixes for framebuffer.
+
+	* x_scrollbar.c: The drawn area of draw_background() is fixed.
+
 2013-02-03  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: Backscroll mode is not exited if pressing a mouse button.

@@ -1,12 +1,14 @@
 comment -*- mode: text -*-
 comment $Id$
 
-Framebuffer on Linux 対応に関するメモ
+Framebuffer 対応に関するメモ
 
 * テスト環境
   Ubuntu 12.10
   CentOS 5
   (Linux kernel 2.6 以降対応)
+
+  FreeBSD 9.0
 
 * ビルド
   ./configure --with-gui=fb ...
@@ -33,6 +35,7 @@ Framebuffer on Linux 対応に関するメモ
   mlterm-fb (-fg white -bg black -sb=false)
 
 * 留意事項
+  (for Linux)
   o キーボードに対応する /dev/input/event* が存在しない、又はアクセスする権限
     がない場合、ショートカットキーは使用できません。
     なお、キーボードに対応する /dev/input/event* は、/sys/class/input/input*/name
@@ -43,6 +46,22 @@ Framebuffer on Linux 対応に関するメモ
     の文字列に mouse が含まれているかどうかで判定しています。
   o マウスを使用する場合、gpm は停止しておいてください。
     (/etc/init.d/gpm stop)
+
+  (for FreeBSD)
+  o あらかじめ、次のように vesa kernel module をロードしておいてください。
+    $ kldload vesa
+    $ vidcontrol MODE_XXX
+  o Shift, Control, Mod といった装飾キーは、次の場合以外は使用できません。
+    - Shift+F1-F12
+    - Control+F1-F12
+    - Shift+Control+F1-F12
+    - Control+space
+    - Control+a-z
+  o マウス(/dev/sysmouse)を使用する場合、あらかじめ、次のように moused を起動し
+    ておいてください。
+    $ /etc/rc.d/moused onestart
+
+  (Common)
   o mlcc を使ってフォント設定を動的に変更する場合には、
     $ mlcc font-fb ...
     でなく、X 版と同様、
@@ -62,3 +81,4 @@ Framebuffer on Linux 対応に関するメモ
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o Daemon mode
   o mlclient (mlclientxは使えます。)
+  o ~/.mlterm/key の OPEN_SCREEN

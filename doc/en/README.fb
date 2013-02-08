@@ -1,12 +1,14 @@
 comment -*- mode: text -*-
 comment $Id$
 
-Framebuffer support on Linux
+Framebuffer support
 
 * Tested environment
   Ubuntu 12.10
   CentOS 5
   (Linux kernel 2.6 or later)
+
+  FreeBSD 9.0
 
 * Build
   ./configure --with-gui=fb ...
@@ -31,6 +33,7 @@ Framebuffer support on Linux
   mlterm-fb (-fg white -bg black -sb=false)
 
 * Note
+  (for Linux)
   o If mlterm can't open /dev/input/event* of the keyboard, shortcut keys are
     disabled.
     (If the string in /sys/class/input/input*/name contains "key",
@@ -40,6 +43,15 @@ Framebuffer support on Linux
     (If the string in /sys/class/input/input*/name contains "mouse",
     /dev/input/event* is regarded as the mouse.)
   o If you want to use mouse, disable gpm in advance. (/etc/init.d/gpm stop)
+
+  (for FreeBSD)
+  o Load vesa kernel module in advance as follows.
+    $ kldload vesa
+    $ vidcontrol MODE_XXX
+  o Shift, Control and Mod modifier keys aren't available.
+  o Start moused in advance as follows if you want to use mouse (/dev/sysmouse).
+    $ /etc/rc.d/moused onestart
+
   o If you want to change fonts dynamically by mlcc, execute mlcc with "font"
     (not "font-fb") argument.
   o To redraw the screen completely, execute a following command.
@@ -54,3 +66,4 @@ Framebuffer support on Linux
   o ssh2 client
   o Daemon mode
   o mlclient (mlclientx is avaialble, though)
+  o OPEN_SCREEN shortcut of ~/.mlterm/key.
