@@ -11,6 +11,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_str.h>	/* strdup */
 
 
 /*

@@ -230,92 +230,77 @@ typedef int XFontSet ;	/* dummy */
 
 #ifdef  __FreeBSD__
 
-/* Same definitions as Linux */
-
-#define BTN_LEFT	0x110
-#define BTN_RIGHT	0x111
-#define BTN_MIDDLE	0x112
-#define REL_X		0x00
-#define REL_Y		0x01
-#define REL_WHEEL	0x08
-
-#define KEY_ENTER	28
-#define KEY_BACKSPACE	14
-#define KEY_SPACE	57
-#define KEY_YEN		124
-#define KEY_RO		89
-
-#define KEY_CLEAR	0x163
-#define KEY_LINEFEED	101
-#define KEY_LEFTSHIFT	42
-#define KEY_LEFTCTRL	29
-#define KEY_LEFTALT	56
-#define KEY_RIGHTSHIFT	54
-#define KEY_RIGHTCTRL	97
-#define KEY_RIGHTALT	100
-#define KEY_LEFTMETA	125
-#define KEY_RIGHTMETA	126
-#define KEY_CAPSLOCK	58
-#define KEY_PAGEUP	104
-#define KEY_PAGEDOWN	109
-#define KEY_END		107
-#define KEY_HOME	102
-#define KEY_LEFT	105
-#define KEY_UP		103
-#define KEY_RIGHT	106
-#define KEY_DOWN	108
-#define KEY_SELECT	0x161
-#define KEY_PRINT	210
-#define KEY_INSERT	110
-#define KEY_DELETE	111
-#define KEY_HELP	138
-#define KEY_F1		59
-#define KEY_F2		60
-#define KEY_F3		61
-#define KEY_F4		62
-#define KEY_F5		63
-#define KEY_F6		64
-#define KEY_F7		65
-#define KEY_F8		66
-#define KEY_F9		67
-#define KEY_F10		68
-#define KEY_F11		87
-#define KEY_F12		88
-#define KEY_F13		183
-#define KEY_F14		184
-#define KEY_F15		185
-#define KEY_F16		186
-#define KEY_F17		187
-#define KEY_F18		188
-#define KEY_F19		189
-#define KEY_F20		190
-#define KEY_F21		191
-#define KEY_F22		192
-#define KEY_F23		193
-#define KEY_F24		194
-#define KEY_NUMLOCK	69
-#define KEY_SCROLLLOCK	70
-#define KEY_FIND	136
-#define KEY_MENU	139
-#define KEY_MUHENKAN	94
-#define KEY_HENKAN	92
-#define KEY_ZENKAKUHANKAKU	85
-#define KEY_KPASTERISK	55
-#define KEY_KPPLUS	78
-#define KEY_KPENTER	96
-#define KEY_KPMINUS	74
-#define KEY_KPCOMMA	121
-#define KEY_KPSLASH	98
-#define KEY_KP0		82
-#define KEY_KP1		79
-#define KEY_KP2		80
-#define KEY_KP3		81
-#define KEY_KP4		75
-#define KEY_KP5		76
-#define KEY_KP6		77
-#define KEY_KP7		71
-#define KEY_KP8		72
-#define KEY_KP9		73
+#define KEY_CLEAR	0xff	/* dummy */
+#define KEY_LINEFEED	0xfe	/* dummy */
+#define KEY_LEFTSHIFT	0x02
+#define KEY_LEFTCTRL	0x09
+#define KEY_LEFTALT	0x07
+#define KEY_RIGHTSHIFT	0x03
+#define KEY_RIGHTCTRL	0x80
+#define KEY_RIGHTALT	0x81
+#define KEY_LEFTMETA	0xfd	/* dummy */
+#define KEY_RIGHTMETA	0xfc	/* dummy */
+#define KEY_CAPSLOCK	0x04
+#define KEY_PAGEUP	0x4d
+#define KEY_PAGEDOWN	0x55
+#define KEY_END		0x53
+#define KEY_HOME	0x4b
+#define KEY_LEFT	0x4f
+#define KEY_UP		0x4c
+#define KEY_RIGHT	0x51
+#define KEY_DOWN	0x54
+#define KEY_SELECT	0xfb	/* dummy */
+#define KEY_PRINT	0x0a
+#define KEY_INSERT	0x56
+#define KEY_DELETE	0x57
+#define KEY_HELP	0xfa	/* dummy */
+#define KEY_F1		0x1b
+#define KEY_F2		0x1c
+#define KEY_F3		0x1d
+#define KEY_F4		0x1e
+#define KEY_F5		0x1f
+#define KEY_F6		0x20
+#define KEY_F7		0x21
+#define KEY_F8		0x22
+#define KEY_F9		0x23
+#define KEY_F10		0x24
+#define KEY_F11		0x25
+#define KEY_F12		0x26
+#define KEY_F13		0xf9	/* dummy */
+#define KEY_F14		0xf8	/* dummy */
+#define KEY_F15		0xf7	/* dummy */
+#define KEY_F16		0xf6	/* dummy */
+#define KEY_F17		0xf5	/* dummy */
+#define KEY_F18		0xf4	/* dummy */
+#define KEY_F19		0xf3	/* dummy */
+#define KEY_F20		0xf2	/* dummy */
+#define KEY_F21		0xf1	/* dummy */
+#define KEY_F22		0xf0	/* dummy */
+#define KEY_F23		0xef	/* dummy */
+#define KEY_F24		0xee	/* dummy */
+#define KEY_NUMLOCK	0x05
+#define KEY_SCROLLLOCK	0x06
+#define KEY_FIND	0xed	/* dummy */
+#define KEY_MENU	0xec	/* dummy */
+#define KEY_MUHENKAN	0xeb	/* dummy */
+#define KEY_HENKAN	0xea	/* dummy */
+#define KEY_ZENKAKUHANKAKU	0xe9	/* dummy */
+#define KEY_KPASTERISK	0xe8	/* dummy */
+#define KEY_KPPLUS	0x52
+#define KEY_KPENTER	0xe7	/* dummy */
+#define KEY_KPMINUS	0x4e
+#define KEY_KPCOMMA	0xe6	/* dummy */
+#define KEY_KPSLASH	0xe5	/* dummy */
+#define KEY_KP0		0x56
+#define KEY_KP1		0x53
+#define KEY_KP2		0x54
+#define KEY_KP3		0x55
+#define KEY_KP4		0x4f
+#define KEY_KP5		0x50
+#define KEY_KP6		0x51
+#define KEY_KP7		0x4b
+#define KEY_KP8		0x4c
+#define KEY_KP9		0x4d
 
 #endif	/* FreeBSD */
 
@@ -381,7 +366,11 @@ typedef int XFontSet ;	/* dummy */
 #define XK_F22		(KEY_F22 + 0x100)
 #define XK_F23		(KEY_F23 + 0x100)
 #define XK_F24		(KEY_F24 + 0x100)
-#define XK_FMAX		0xffc8	/* dummy */
+#ifdef  __FreeBSD__
+#define XK_FMAX		XK_F12
+#else
+#define XK_FMAX		XK_F10	/* F11 or later is not sequential number. */
+#endif
 #define XK_Num_Lock	(KEY_NUMLOCK + 0x100)
 #define XK_Scroll_Lock	(KEY_SCROLLLOCK + 0x100)
 #define XK_Find		(KEY_FIND + 0x100)
@@ -441,7 +430,7 @@ typedef struct
 #define XKeysymToString(ks)	""
 #define DisplayString(disp)	":0.0"
 #define DefaultScreen(disp)	(0)
-#define IsKeypadKey(ksym)	(0)
+#define IsKeypadKey(ksym)	(1)
 
 #define BlackPixel(disp,screen)	 (0)
 #define WhitePixel(disp,screen)	 (-1)

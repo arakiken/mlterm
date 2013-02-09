@@ -97,6 +97,10 @@ static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
 static int  console_id = -1 ;
 #endif
 
+#ifdef  __FreeBSD__
+static keymap_t  keymap ;
+#endif
+
 static struct termios  orig_tm ;
 
 static char *  cursor_shape =
@@ -408,6 +412,33 @@ draw_mouse_cursor(void)
 	_mouse.cursor.is_drawn = 1 ;
 }
 
+static void
+receive_event_for_multi_roots(
+	x_display_t *  disp ,
+	XEvent *  xev
+	)
+{
+	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
+	{
+		/* XXX for input method window */
+		x_window_t  saved_win ;
+
+		saved_win = *(disp->roots[1]) ;
+
+		x_window_receive_event( disp->roots[0] , xev) ;
+
+		if( disp->num_of_roots == 1 || ! disp->roots[1]->is_mapped)
+		{
+			x_display_expose( saved_win.x , saved_win.y ,
+				ACTUAL_WIDTH(&saved_win) , ACTUAL_HEIGHT(&saved_win)) ;
+		}
+	}
+	else
+	{
+		x_window_receive_event( disp->roots[0] , xev) ;
+	}
+}
+
 #ifdef  __FreeBSD__
 
 #define get_key_state()  (0)
@@ -481,6 +512,9 @@ open_display(void)
 	_display.fd = STDIN_FILENO ;
 
 	_disp.display = &_display ;
+
+	ioctl( _display.fd , GIO_KEYMAP , &keymap) ;
+	ioctl( _display.fd , KDSKBMODE , K_CODE) ;
 
 	kik_priv_restore_euid() ;
 	kik_priv_restore_egid() ;
@@ -705,6 +739,131 @@ receive_mouse_event(void)
 			{
 				save_hidden_region() ;
 				draw_mouse_cursor() ;
+			}
+		}
+	}
+}
+
+static void
+receive_key_event(void)
+{
+	u_char  code ;
+
+	while( read( _display.fd , &code , 1) == 1)
+	{
+		XKeyEvent  xev ;
+		int  pressed ;
+
+		if( code & 0x80)
+		{
+			pressed = 0 ;
+			code &= 0x7f ;
+		}
+		else
+		{
+			pressed = 1 ;
+		}
+
+		if( code >= keymap.n_keys)
+		{
+			continue ;
+		}
+
+		if( ! ( keymap.key[code].spcl & 0x80))
+		{
+			/* Character keys */
+
+			if( pressed)
+			{
+				int  idx ;
+
+				idx = (_display.key_state & 0x7) ;
+
+				xev.type = KeyPress ;
+				xev.ksym = keymap.key[code].map[idx] ;
+				xev.state = _mouse.button_state |
+					    _display.key_state ;
+
+			#ifdef  __DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					"scancode %d -> ksym 0x%x state 0x%x\n" ,
+					code , xev.ksym , xev.state) ;
+			#endif
+
+				receive_event_for_multi_roots( &_disp , &xev) ;
+			}
+		}
+		else
+		{
+			/* Function keys */
+
+			int  kcode ;
+
+			if( ( kcode = keymap.key[code].map[0]) == 0)
+			{
+				/* Do nothing */
+			}
+			else if( pressed)
+			{
+				if( kcode == KEY_RIGHTSHIFT ||
+				    kcode == KEY_LEFTSHIFT)
+				{
+					_display.key_state |= ShiftMask ;
+				}
+				else if( kcode == KEY_CAPSLOCK)
+				{
+					if( _display.key_state & ShiftMask)
+					{
+						_display.key_state &= ~ShiftMask ;
+					}
+					else
+					{
+						_display.key_state |= ShiftMask ;
+					}
+				}
+				else if( kcode == KEY_RIGHTCTRL ||
+					 kcode == KEY_LEFTCTRL)
+				{
+					_display.key_state |= ControlMask ;
+				}
+				else if( kcode == KEY_RIGHTALT ||
+					 kcode == KEY_LEFTALT)
+				{
+					_display.key_state |= ModMask ;
+				}
+				else
+				{
+					xev.type = KeyPress ;
+					xev.ksym = kcode + 0x100 ;
+					xev.state = _mouse.button_state |
+						    _display.key_state ;
+
+				#ifdef  __DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+						"scancode %d -> ksym 0x%x state 0x%x\n" ,
+						code , xev.ksym , xev.state) ;
+				#endif
+
+					receive_event_for_multi_roots( &_disp , &xev) ;
+				}
+			}
+			else
+			{
+				if( kcode == KEY_RIGHTSHIFT ||
+				    kcode == KEY_LEFTSHIFT)
+				{
+					_display.key_state &= ~ShiftMask ;
+				}
+				else if( kcode == KEY_RIGHTCTRL ||
+					 kcode == KEY_LEFTCTRL)
+				{
+					_display.key_state &= ~ControlMask ;
+				}
+				else if( kcode == KEY_RIGHTALT ||
+					 kcode == KEY_LEFTALT)
+				{
+					_display.key_state &= ~ModMask ;
+				}
 			}
 		}
 	}
@@ -1167,6 +1326,237 @@ receive_mouse_event(void)
 	}
 }
 
+static void
+receive_key_event(void)
+{
+	if( _display.fd == STDIN_FILENO)
+	{
+		u_char  buf[6] ;
+		ssize_t  len ;
+
+		while( ( len = read( _display.fd , buf , sizeof(buf) - 1)) > 0)
+		{
+			static struct
+			{
+				char *  str ;
+				KeySym  ksym ;
+
+			} table[] =
+			{
+				{ "[2~" , XK_Insert } ,
+				{ "[3~" , XK_Delete } ,
+				{ "[5~" , XK_Prior } ,
+				{ "[6~" , XK_Next } ,
+				{ "[A" , XK_Up } ,
+				{ "[B" , XK_Down } ,
+				{ "[C" , XK_Right } ,
+				{ "[D" , XK_Left } ,
+				{ "[F" , XK_End } ,
+				{ "[H" , XK_Home } ,
+			#ifdef  __FreeBSD__
+				{ "OP" , XK_F1 } ,
+				{ "OQ" , XK_F2 } ,
+				{ "OR" , XK_F3 } ,
+				{ "OS" , XK_F4 } ,
+				{ "[15~" , XK_F5 } ,
+			#else
+				{ "[[A" , XK_F1 } ,
+				{ "[[B" , XK_F2 } ,
+				{ "[[C" , XK_F3 } ,
+				{ "[[D" , XK_F4 } ,
+				{ "[[E" , XK_F5 } ,
+			#endif
+				{ "[17~" , XK_F6 } ,
+				{ "[18~" , XK_F7 } ,
+				{ "[19~" , XK_F8 } ,
+				{ "[20~" , XK_F9 } ,
+				{ "[21~" , XK_F10 } ,
+				{ "[23~" , XK_F11 } ,
+				{ "[24~" , XK_F12 } ,
+			} ;
+
+			size_t  count ;
+			XKeyEvent  xev ;
+
+			xev.type = KeyPress ;
+			xev.state = get_key_state() ;
+			xev.ksym = 0 ;
+
+			if( buf[0] == '\x1b' && len > 1)
+			{
+				buf[len] = '\0' ;
+
+				for( count = 0 ; count < sizeof(table) / sizeof(table[0]) ;
+				     count++)
+				{
+					if( strcmp( buf + 1 , table[count].str) == 0)
+					{
+						xev.ksym = table[count].ksym ;
+
+						break ;
+					}
+				}
+
+				/* XXX */
+			#ifdef  __FreeBSD__
+				if( xev.ksym == 0 && len == 3 && buf[1] == '[')
+				{
+					if( 'Y' <= buf[2] && buf[2] <= 'Z')
+					{
+						xev.ksym = XK_F1 + (buf[2] - 'Y') ;
+						xev.state = ShiftMask ;
+					}
+					else if( 'a' <= buf[2] && buf[2] <= 'j')
+					{
+						xev.ksym = XK_F3 + (buf[2] - 'a') ;
+						xev.state = ShiftMask ;
+					}
+					else if( 'k' <= buf[2] && buf[2] <= 'v')
+					{
+						xev.ksym = XK_F1 + (buf[2] - 'k') ;
+						xev.state = ControlMask ;
+					}
+					else if( 'w' <= buf[2] && buf[2] <= 'z')
+					{
+						xev.ksym = XK_F1 + (buf[2] - 'w') ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+					else if( buf[2] == '@')
+					{
+						xev.ksym = XK_F5 ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+					else if( '[' <= buf[2] && buf[2] <= '\`')
+					{
+						xev.ksym = XK_F6 + (buf[2] - '[') ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+					else if( buf[2] == '{')
+					{
+						xev.ksym = XK_F12 ;
+						xev.state = ControlMask|ShiftMask ;
+					}
+				}
+			#endif
+			}
+
+			if( xev.ksym)
+			{
+				receive_event_for_multi_roots( &_disp , &xev) ;
+			}
+			else
+			{
+				for( count = 0 ; count < len ; count++)
+				{
+					xev.ksym = buf[count] ;
+
+					if( (u_int)xev.ksym <= 0x1f)
+					{
+						if( xev.ksym == '\0')
+						{
+							/* CTL+' ' instead of CTL+@ */
+							xev.ksym = ' ' ;
+						}
+						else if( 0x01 <= xev.ksym &&
+						         xev.ksym <= 0x1a)
+						{
+							/*
+							 * Lower case alphabets instead of
+							 * upper ones.
+							 */
+							xev.ksym = xev.ksym + 0x60 ;
+						}
+						else
+						{
+							xev.ksym = xev.ksym + 0x40 ;
+						}
+
+						xev.state = ControlMask ;
+					}
+
+					receive_event_for_multi_roots( &_disp , &xev) ;
+				}
+			}
+		}
+	}
+	else
+	{
+		struct input_event  ev ;
+
+		while( read( _display.fd , &ev , sizeof(ev)) > 0)
+		{
+			if( console_id != get_active_console())
+			{
+				return  0 ;
+			}
+
+			if( ev.type == EV_KEY &&
+			    ev.code < 0x100 /* Key event is less than 0x100 */)
+			{
+				if( ev.value == 1 /* Pressed */ || ev.value == 2 /* auto repeat */)
+				{
+					if( ev.code == KEY_RIGHTSHIFT ||
+					    ev.code == KEY_LEFTSHIFT)
+					{
+						_display.key_state |= ShiftMask ;
+					}
+					else if( ev.code == KEY_CAPSLOCK)
+					{
+						if( _display.key_state & ShiftMask)
+						{
+							_display.key_state &= ~ShiftMask ;
+						}
+						else
+						{
+							_display.key_state |= ShiftMask ;
+						}
+					}
+					else if( ev.code == KEY_RIGHTCTRL ||
+					         ev.code == KEY_LEFTCTRL)
+					{
+						_display.key_state |= ControlMask ;
+					}
+					else if( ev.code == KEY_RIGHTALT ||
+					         ev.code == KEY_LEFTALT)
+					{
+						_display.key_state |= ModMask ;
+					}
+					else
+					{
+						XKeyEvent  xev ;
+
+						xev.type = KeyPress ;
+						xev.ksym = kcode_to_ksym( ev.code ,
+								_display.key_state) ;
+						xev.state = _mouse.button_state |
+							    _display.key_state ;
+
+						receive_event_for_multi_roots( &_disp , &xev) ;
+					}
+				}
+				else if( ev.value == 0 /* Released */)
+				{
+					if( ev.code == KEY_RIGHTSHIFT ||
+					    ev.code == KEY_LEFTSHIFT)
+					{
+						_display.key_state &= ~ShiftMask ;
+					}
+					else if( ev.code == KEY_RIGHTCTRL ||
+					         ev.code == KEY_LEFTCTRL)
+					{
+						_display.key_state &= ~ControlMask ;
+					}
+					else if( ev.code == KEY_RIGHTALT ||
+					         ev.code == KEY_LEFTALT)
+					{
+						_display.key_state &= ~ModMask ;
+					}
+				}
+			}
+		}
+	}
+}
+
 #endif	/* FreeBSD/linux */
 
 static void
@@ -1188,33 +1578,6 @@ expose_window(
 	if( win->window_exposed)
 	{
 		(*win->window_exposed)( win , x - win->x , y - win->y , width , height) ;
-	}
-}
-
-static void
-receive_event_for_multi_roots(
-	x_display_t *  disp ,
-	XEvent *  xev
-	)
-{
-	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
-	{
-		/* XXX for input method window */
-		x_window_t  saved_win ;
-
-		saved_win = *(disp->roots[1]) ;
-
-		x_window_receive_event( disp->roots[0] , xev) ;
-
-		if( disp->num_of_roots == 1 || ! disp->roots[1]->is_mapped)
-		{
-			x_display_expose( saved_win.x , saved_win.y ,
-				ACTUAL_WIDTH(&saved_win) , ACTUAL_HEIGHT(&saved_win)) ;
-		}
-	}
-	else
-	{
-		x_window_receive_event( disp->roots[0] , xev) ;
 	}
 }
 
@@ -1309,6 +1672,9 @@ x_display_close_all(void)
 
 		write( STDIN_FILENO , "\x1b[?25h" , 6) ;
 		tcsetattr( STDIN_FILENO , TCSAFLUSH , &orig_tm) ;
+	#ifdef  __FreeBSD__
+		ioctl( _display.fd , KDSKBMODE , K_XLATE) ;
+	#endif
 
 		free( _disp.roots) ;
 
@@ -1465,225 +1831,10 @@ x_display_receive_next_event(
 	{
 		receive_mouse_event() ;
 	}
-	else if( disp->display->fd == STDIN_FILENO)
-	{
-		u_char  buf[6] ;
-		ssize_t  len ;
-
-		while( ( len = read( disp->display->fd , buf , sizeof(buf) - 1)) > 0)
-		{
-			static struct
-			{
-				char *  str ;
-				KeySym  ksym ;
-
-			} table[] =
-			{
-				{ "[2~" , XK_Insert } ,
-				{ "[3~" , XK_Delete } ,
-				{ "[5~" , XK_Prior } ,
-				{ "[6~" , XK_Next } ,
-				{ "[A" , XK_Up } ,
-				{ "[B" , XK_Down } ,
-				{ "[C" , XK_Right } ,
-				{ "[D" , XK_Left } ,
-				{ "[F" , XK_End } ,
-				{ "[H" , XK_Home } ,
-				{ "OP" , XK_F1 } ,
-				{ "OQ" , XK_F2 } ,
-				{ "OR" , XK_F3 } ,
-				{ "OS" , XK_F4 } ,
-				{ "[15~" , XK_F5 } ,
-				{ "[17~" , XK_F6 } ,
-				{ "[18~" , XK_F7 } ,
-				{ "[19~" , XK_F8 } ,
-				{ "[20~" , XK_F9 } ,
-				{ "[21~" , XK_F10 } ,
-				{ "[23~" , XK_F11 } ,
-				{ "[24~" , XK_F12 } ,
-			} ;
-
-			size_t  count ;
-			XKeyEvent  xev ;
-
-			xev.type = KeyPress ;
-			xev.state = get_key_state() ;
-			xev.ksym = 0 ;
-
-			if( buf[0] == '\x1b' && len > 1)
-			{
-				buf[len] = '\0' ;
-
-				for( count = 0 ; count < sizeof(table) / sizeof(table[0]) ;
-				     count++)
-				{
-					if( strcmp( buf + 1 , table[count].str) == 0)
-					{
-						xev.ksym = table[count].ksym ;
-
-						break ;
-					}
-				}
-
-			#ifdef  __FreeBSD__
-				if( xev.ksym == 0 && len == 3 && buf[1] == '[')
-				{
-					if( 'Y' <= buf[2] && buf[2] <= 'Z')
-					{
-						xev.ksym = XK_F1 + (buf[2] - 'Y') ;
-						xev.state = ShiftMask ;
-					}
-					else if( 'a' <= buf[2] && buf[2] <= 'j')
-					{
-						xev.ksym = XK_F3 + (buf[2] - 'a') ;
-						xev.state = ShiftMask ;
-					}
-					else if( 'k' <= buf[2] && buf[2] <= 'v')
-					{
-						xev.ksym = XK_F1 + (buf[2] - 'k') ;
-						xev.state = ControlMask ;
-					}
-					else if( 'w' <= buf[2] && buf[2] <= 'z')
-					{
-						xev.ksym = XK_F1 + (buf[2] - 'w') ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-					else if( buf[2] == '@')
-					{
-						xev.ksym = XK_F5 ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-					else if( '[' <= buf[2] && buf[2] <= '\`')
-					{
-						xev.ksym = XK_F6 + (buf[2] - '[') ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-					else if( buf[2] == '{')
-					{
-						xev.ksym = XK_F12 ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-				}
-			#endif
-			}
-
-			if( xev.ksym)
-			{
-				receive_event_for_multi_roots( disp , &xev) ;
-			}
-			else
-			{
-				for( count = 0 ; count < len ; count++)
-				{
-					xev.ksym = buf[count] ;
-
-					if( (u_int)xev.ksym <= 0x1f)
-					{
-						if( xev.ksym == '\0')
-						{
-							/* CTL+' ' instead of CTL+@ */
-							xev.ksym = ' ' ;
-						}
-						else if( 0x01 <= xev.ksym &&
-						         xev.ksym <= 0x1a)
-						{
-							/*
-							 * Lower case alphabets instead of
-							 * upper ones.
-							 */
-							xev.ksym = xev.ksym + 0x60 ;
-						}
-						else
-						{
-							xev.ksym = xev.ksym + 0x40 ;
-						}
-
-						xev.state = ControlMask ;
-					}
-
-					receive_event_for_multi_roots( disp , &xev) ;
-				}
-			}
-		}
-	}
-#ifdef  __linux__
 	else
 	{
-		struct input_event  ev ;
-
-		while( read( disp->display->fd , &ev , sizeof(ev)) > 0)
-		{
-			if( console_id != get_active_console())
-			{
-				return  0 ;
-			}
-
-			if( ev.type == EV_KEY &&
-			    ev.code < 0x100 /* Key event is less than 0x100 */)
-			{
-				if( ev.value == 1 /* Pressed */ || ev.value == 2 /* auto repeat */)
-				{
-					if( ev.code == KEY_RIGHTSHIFT ||
-					    ev.code == KEY_LEFTSHIFT)
-					{
-						disp->display->key_state |= ShiftMask ;
-					}
-					else if( ev.code == KEY_CAPSLOCK)
-					{
-						if( disp->display->key_state & ShiftMask)
-						{
-							disp->display->key_state &= ~ShiftMask ;
-						}
-						else
-						{
-							disp->display->key_state |= ShiftMask ;
-						}
-					}
-					else if( ev.code == KEY_RIGHTCTRL ||
-					         ev.code == KEY_LEFTCTRL)
-					{
-						disp->display->key_state |= ControlMask ;
-					}
-					else if( ev.code == KEY_RIGHTALT ||
-					         ev.code == KEY_LEFTALT)
-					{
-						disp->display->key_state |= ModMask ;
-					}
-					else
-					{
-						XKeyEvent  xev ;
-
-						xev.type = KeyPress ;
-						xev.ksym = kcode_to_ksym( ev.code ,
-								disp->display->key_state) ;
-						xev.state = _mouse.button_state |
-							    disp->display->key_state ;
-
-						receive_event_for_multi_roots( disp , &xev) ;
-					}
-				}
-				else if( ev.value == 0 /* Released */)
-				{
-					if( ev.code == KEY_RIGHTSHIFT ||
-					    ev.code == KEY_LEFTSHIFT)
-					{
-						disp->display->key_state &= ~ShiftMask ;
-					}
-					else if( ev.code == KEY_RIGHTCTRL ||
-					         ev.code == KEY_LEFTCTRL)
-					{
-						disp->display->key_state &= ~ControlMask ;
-					}
-					else if( ev.code == KEY_RIGHTALT ||
-					         ev.code == KEY_LEFTALT)
-					{
-						disp->display->key_state &= ~ModMask ;
-					}
-				}
-			}
-		}
+		receive_key_event() ;
 	}
-#endif	/* __linux__ */
 
 	return  1 ;
 }

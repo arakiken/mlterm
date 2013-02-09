@@ -51,12 +51,6 @@ Framebuffer 対応に関するメモ
   o あらかじめ、次のように vesa kernel module をロードしておいてください。
     $ kldload vesa
     $ vidcontrol MODE_XXX
-  o Shift, Control, Mod といった装飾キーは、次の場合以外は使用できません。
-    - Shift+F1-F12
-    - Control+F1-F12
-    - Shift+Control+F1-F12
-    - Control+space
-    - Control+a-z
   o マウス(/dev/sysmouse)を使用する場合、あらかじめ、次のように moused を起動し
     ておいてください。
     $ /etc/rc.d/moused onestart

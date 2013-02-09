@@ -48,7 +48,6 @@ Framebuffer support
   o Load vesa kernel module in advance as follows.
     $ kldload vesa
     $ vidcontrol MODE_XXX
-  o Shift, Control and Mod modifier keys aren't available.
   o Start moused in advance as follows if you want to use mouse (/dev/sysmouse).
     $ /etc/rc.d/moused onestart
 
