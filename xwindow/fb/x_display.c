@@ -580,7 +580,7 @@ error:
 	return  0 ;
 }
 
-static void
+static int
 receive_mouse_event(void)
 {
 	u_char  buf[64] ;
@@ -742,9 +742,11 @@ receive_mouse_event(void)
 			}
 		}
 	}
+
+	return  1 ;
 }
 
-static void
+static int
 receive_key_event(void)
 {
 	u_char  code ;
@@ -867,6 +869,8 @@ receive_key_event(void)
 			}
 		}
 	}
+
+	return  1 ;
 }
 
 #else	/* __linux__ */
@@ -1163,7 +1167,7 @@ error:
 	return  0 ;
 }
 
-static void
+static int
 receive_mouse_event(void)
 {
 	struct input_event  ev ;
@@ -1326,7 +1330,7 @@ receive_mouse_event(void)
 	}
 }
 
-static void
+static int
 receive_key_event(void)
 {
 	if( _display.fd == STDIN_FILENO)
@@ -1555,6 +1559,8 @@ receive_key_event(void)
 			}
 		}
 	}
+
+	return  1 ;
 }
 
 #endif	/* FreeBSD/linux */
@@ -1829,14 +1835,12 @@ x_display_receive_next_event(
 {
 	if( disp == &_disp_mouse)
 	{
-		receive_mouse_event() ;
+		return  receive_mouse_event() ;
 	}
 	else
 	{
-		receive_key_event() ;
+		return  receive_key_event() ;
 	}
-
-	return  1 ;
 }
 
 

@@ -130,7 +130,7 @@ set_spot(
 	stat_screen->x = x ;
 	stat_screen->y = y ;
 
-	if( y + ACTUAL_HEIGHT(&stat_screen->window) > stat_screen->window.disp->height)
+	if( y + ACTUAL_HEIGHT(&stat_screen->window) >= stat_screen->window.disp->height)
 	{
 		y -= ACTUAL_HEIGHT(&stat_screen->window) ;
 		if( ! stat_screen->is_vertical)
@@ -139,7 +139,7 @@ set_spot(
 		}
 	}
 
-	if( x + ACTUAL_WIDTH(&stat_screen->window) > stat_screen->window.disp->width)
+	if( x + ACTUAL_WIDTH(&stat_screen->window) >= stat_screen->window.disp->width)
 	{
 		if( stat_screen->is_vertical)
 		{

@@ -855,14 +855,14 @@ x_window_resize(
 		{
 			(*win->window_resized)( win) ;
 		}
-	}
 
-	/*
-	 * clear_margin_area must be called after win->window_resized
-	 * because wall_picture can be resized to fit to the new window
-	 * size in win->window_resized.
-	 */
-	clear_margin_area( win) ;
+		/*
+		 * clear_margin_area must be called after win->window_resized
+		 * because wall_picture can be resized to fit to the new window
+		 * size in win->window_resized.
+		 */
+		clear_margin_area( win) ;
+	}
 
 	return  1 ;
 }
