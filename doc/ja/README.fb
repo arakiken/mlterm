@@ -48,9 +48,12 @@ Framebuffer 対応に関するメモ
     (/etc/init.d/gpm stop)
 
   (for FreeBSD)
-  o あらかじめ、次のように vesa kernel module をロードしておいてください。
-    $ kldload vesa
+  o あらかじめ、SC_PIXEL_MODE 及び VESA オプション付きのカーネルで起動(又は起動
+    後にカーネルモジュールをロード)し、vidcontrol コマンド等により、適切な表示モ
+    ードを指定してください。
     $ vidcontrol MODE_XXX
+    (vidcontrol -i modeで表示される全てのモードで mlterm-fb が起動するわけではな
+    いので注意してください。)
   o マウス(/dev/sysmouse)を使用する場合、あらかじめ、次のように moused を起動し
     ておいてください。
     $ /etc/rc.d/moused onestart

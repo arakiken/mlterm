@@ -34,7 +34,7 @@ typedef struct
 
 	int  fb_fd ;
 	unsigned char *  fp ;
-	unsigned int  smem_len ;
+	size_t  smem_len ;
 	unsigned int  line_length ;
 	unsigned int  xoffset ;
 	unsigned int  yoffset ;

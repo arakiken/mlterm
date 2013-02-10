@@ -479,7 +479,7 @@ open_display(void)
 	}
 
 	if( ( _display.fp = mmap( NULL , (_display.smem_len = vainfo.va_window_size) ,
-				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , 0))
+				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
 	{
 		goto  error ;
@@ -1101,7 +1101,7 @@ open_display(void)
 	}
 
 	if( ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
-				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , 0))
+				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
 	{
 		goto  error ;

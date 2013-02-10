@@ -45,8 +45,8 @@ Framebuffer support
   o If you want to use mouse, disable gpm in advance. (/etc/init.d/gpm stop)
 
   (for FreeBSD)
-  o Load vesa kernel module in advance as follows.
-    $ kldload vesa
+  o Start FreeBSD kernel with SC_PIXEL_MODE and VESA option and set display mode
+    by vidcontrol as follows.
     $ vidcontrol MODE_XXX
   o Start moused in advance as follows if you want to use mouse (/dev/sysmouse).
     $ /etc/rc.d/moused onestart
