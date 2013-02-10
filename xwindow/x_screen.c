@@ -3181,13 +3181,18 @@ report_mouse_tracking(
 	u_char  seq[17] ;
 	size_t  seq_len ;
 
-	if( ( is_released && ml_term_get_extended_mouse_report_mode( screen->term) !=
-				EXTENDED_MOUSE_REPORT_SGR) ||
-	    ( is_motion && button == 0) )
+	if( is_released &&
+	    ml_term_get_extended_mouse_report_mode( screen->term) != EXTENDED_MOUSE_REPORT_SGR)
 	{
-		/* ButtonRelease or PointerMotion */
+		/* ButtonRelease */
 		key_state = 0 ;
 		button = 3 ;
+	}
+	else if( is_motion && button == 0)
+	{
+		/* PointerMotion */
+		key_state = 0 ;
+		button = 3 + 32 ;
 	}
 	else
 	{
