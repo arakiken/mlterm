@@ -1,5 +1,11 @@
 2013-02-10  Araki Ken  <arakiken@users.sf.net>
 
+	* x_sb_screen.c, x_window.c: The hack of repositioning windows when
+	  "scrollbar_mode" option is changed is moved from x_window_(un)map()
+	  to change_sb_mode().
+
+2013-02-10  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_display.c: Minor fixes.
 
 	* x_im_status_screen.c: Minor fixes.

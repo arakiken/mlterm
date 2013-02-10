@@ -253,7 +253,7 @@ copy_area(
 	int  y_off ;
 	u_int  bpp ;
 
-	if( dst_x >= (int)win->width || dst_y >= (int)win->height)
+	if( ! win->is_mapped || dst_x >= (int)win->width || dst_y >= (int)win->height)
 	{
 		return  0 ;
 	}
@@ -780,21 +780,7 @@ x_window_map(
 	x_window_t *  win
 	)
 {
-	if( ! win->is_mapped)
-	{
-		win->is_mapped = 1 ;
-
-		/*
-		 * XXX
-		 * For the case of scrollbar_mode being changed from right/left to none
-		 * or vise versa.
-		 * See x_sb_screen.c:change_sb_mode().
-		 */
-		win = x_get_root_window( win) ;
-		win->width = 0 ;	/* XXX hack to skip the check of width/height change. */
-		x_window_resize_with_margin( win , win->disp->width ,
-			win->disp->height , NOTIFY_TO_MYSELF) ;
-	}
+	win->is_mapped = 1 ;
 
 	return  1 ;
 }
@@ -804,21 +790,7 @@ x_window_unmap(
 	x_window_t *  win
 	)
 {
-	if( win->is_mapped)
-	{
-		win->is_mapped = 0 ;
-
-		/*
-		 * XXX
-		 * For the case of scrollbar_mode being changed from right/left to none
-		 * or vise versa.
-		 * See x_sb_screen.c:change_sb_mode().
-		 */
-		win = x_get_root_window( win) ;
-		win->width = 0 ;	/* XXX hack to skip the check of width/height change. */
-		x_window_resize_with_margin( win , win->disp->width ,
-			win->disp->height , NOTIFY_TO_MYSELF) ;
-	}
+	win->is_mapped = 0 ;
 
 	return  1 ;
 }

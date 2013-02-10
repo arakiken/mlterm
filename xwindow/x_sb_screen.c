@@ -571,34 +571,54 @@ change_sb_mode(
 	if( new_mode == SBM_NONE)
 	{
 		x_window_unmap( &sb_screen->scrollbar.window) ;
-	
+
+	#ifndef  USE_FRAMEBUFFER
+		/* The screen size is changed to the one without scrollbar. */
 		x_window_resize_with_margin( &sb_screen->window ,
 			ACTUAL_WIDTH( &sb_screen->screen->window) ,
 			ACTUAL_HEIGHT( &sb_screen->screen->window) , NOTIFY_TO_NONE) ;
+	#endif
 
 		x_window_set_normal_hints( &sb_screen->window , 0 , 0 , 0 , 0 , 0 , 0) ;
 			
 		/* overlaying scrollbar window */
 		move_term_screen( sb_screen , 0) ;
+
+	#ifdef  USE_FRAMEBUFFER
+		/*
+		 * The screen size is not changed.
+		 * As a result the size of sb_screen->screen gets larger.
+		 */
+		window_resized( &sb_screen->window) ;
+	#endif
 	}
 	else
 	{
 		if( old_mode == SBM_NONE)
 		{
 			x_window_map( &sb_screen->scrollbar.window) ;
-			
+
+		#ifndef  USE_FRAMEBUFFER
+			/* The screen size is changed to the one with scrollbar. */
 			x_window_resize_with_margin( &sb_screen->window ,
 				ACTUAL_WIDTH( &sb_screen->screen->window)
 					+ ACTUAL_WIDTH( &sb_screen->scrollbar.window)
 					+ SEPARATOR_WIDTH ,
 				ACTUAL_HEIGHT( &sb_screen->screen->window) ,
 				NOTIFY_TO_NONE) ;
-				
+		#else
+			/*
+			 * The screen size is not changed.
+			 * As a result the size of sb_screen->screen gets smaller.
+			 */
+			window_resized( &sb_screen->window) ;
+		#endif
+
 			x_window_set_normal_hints( &sb_screen->window ,
 				SEPARATOR_WIDTH , sb_screen->window.min_height ,
 				SEPARATOR_WIDTH , sb_screen->window.min_height , 0 , 0) ;
 		}
-		
+
 		if( new_mode == SBM_LEFT)
 		{
 			move_term_screen( sb_screen , 1) ;
