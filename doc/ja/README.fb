@@ -54,6 +54,9 @@ Framebuffer 対応に関するメモ
     $ vidcontrol MODE_XXX
     (vidcontrol -i modeで表示される全てのモードで mlterm-fb が起動するわけではな
     いので注意してください。)
+  o キーリピートを変更する場合は kbdcontrol -r [delay.repeat] で、write-combine
+    を有効にする場合は memcontrol set -b 0x.... -l 0x.... write-combine で、それ
+    ぞれあらかじめ設定しておいてください。
   o マウス(/dev/sysmouse)を使用する場合、あらかじめ、次のように moused を起動し
     ておいてください。
     $ /etc/rc.d/moused onestart
