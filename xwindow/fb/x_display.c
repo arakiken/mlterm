@@ -512,8 +512,12 @@ open_display(void)
 
 	tcgetattr( STDIN_FILENO , &tm) ;
 	orig_tm = tm ;
-	tm.c_iflag &= ~(BRKINT) ;
-	tm.c_lflag &= ~(ECHO|ICANON|IEXTEN|ISIG) ;
+	tm.c_iflag = tm.c_oflag = 0 ;
+	tm.c_cflag &= ~CSIZE ;
+	tm.c_cflag |= CS8 ;
+	tm.c_lflag &= ~(ECHO|ISIG|IEXTEN|ICANON) ;
+	tm.c_cc[VMIN] = 1 ;
+	tm.c_cc[VTIME] = 0 ;
 	tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
 
 	_display.fd = STDIN_FILENO ;
