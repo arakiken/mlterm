@@ -1,5 +1,7 @@
 2013-02-11  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: Minor fixes for FreeBSD termios.
+
 	* fb/x.h: Minor fixes.
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.

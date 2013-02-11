@@ -452,6 +452,7 @@ open_display(void)
 	video_info_t  vinfo ;
 	video_adapter_info_t  vainfo ;
 	video_display_start_t  vstart ;
+	struct termios  tm ;
 
 	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ?
 						dev : "/dev/ttyv0" ,
@@ -509,6 +510,12 @@ open_display(void)
 	_display.rgbinfo.g_offset = vinfo.vi_pixel_fields[1] ;
 	_display.rgbinfo.b_offset = vinfo.vi_pixel_fields[2] ;
 
+	tcgetattr( STDIN_FILENO , &tm) ;
+	orig_tm = tm ;
+	tm.c_iflag &= ~(BRKINT) ;
+	tm.c_lflag &= ~(ECHO|ICANON|IEXTEN|ISIG) ;
+	tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
+
 	_display.fd = STDIN_FILENO ;
 
 	_disp.display = &_display ;
@@ -526,7 +533,6 @@ open_display(void)
 	{
 		int  level ;
 		mousemode_t  mode ;
-		struct termios  tm ;
 		struct mouse_info  info ;
 
 		level = 1 ;
@@ -1079,6 +1085,7 @@ open_display(void)
 	struct  fb_var_screeninfo  vinfo ;
 	int  kbd_num ;
 	int  mouse_num ;
+	struct termios  tm ;
 
 	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
 					O_RDWR)))
@@ -1132,6 +1139,19 @@ open_display(void)
 	_display.rgbinfo.b_offset = vinfo.blue.offset ;
 
 	get_event_device_num( &kbd_num , &mouse_num) ;
+
+	tcgetattr( STDIN_FILENO , &tm) ;
+	orig_tm = tm ;
+	tm.c_iflag = tm.c_oflag = 0 ;
+	tm.c_cflag &= ~CSIZE ;
+	tm.c_cflag |= CS8 ;
+	tm.c_lflag &= ~(ECHO|ISIG|ICANON) ;
+	tm.c_cc[VMIN] = 1 ;
+	tm.c_cc[VTIME] = 0 ;
+	tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
+
+	/* Disable backscrolling of default console. */
+	set_use_console_backscroll( 0) ;
 
 	if( kbd_num == -1 ||
 	    ( _display.fd = open_event_device( kbd_num)) == -1)
@@ -1598,8 +1618,6 @@ x_display_open(
 {
 	if( ! DISP_IS_INITED)
 	{
-		struct termios  tm ;
-
 		if( ! open_display())
 		{
 			return  NULL ;
@@ -1618,24 +1636,11 @@ x_display_open(
 			_disp.height) ;
 	#endif
 
-		tcgetattr( STDIN_FILENO , &tm) ;
-		orig_tm = tm ;
-		tm.c_iflag = tm.c_oflag = 0 ;
-		tm.c_cflag &= ~CSIZE ;
-		tm.c_cflag |= CS8 ;
-		tm.c_lflag &= ~(ECHO|ISIG|ICANON) ;
-		tm.c_cc[VMIN] = 1 ;
-		tm.c_cc[VTIME] = 0 ;
-		tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
-
 		fcntl( STDIN_FILENO , F_SETFL ,
 			fcntl( STDIN_FILENO , F_GETFL , 0) | O_NONBLOCK) ;
 
 		/* Hide the cursor of default console. */
 		write( STDIN_FILENO , "\x1b[?25l" , 6) ;
-
-		/* Disable backscrolling of default console. */
-		set_use_console_backscroll( 0) ;
 	}
 
 	return  &_disp ;
@@ -1674,13 +1679,20 @@ x_display_close_all(void)
 		munmap( _display.fp , _display.smem_len) ;
 		close( _display.fb_fd) ;
 
-		set_use_console_backscroll( 1) ;
-
 		write( STDIN_FILENO , "\x1b[?25h" , 6) ;
+
 		tcsetattr( STDIN_FILENO , TCSAFLUSH , &orig_tm) ;
+
 	#ifdef  __FreeBSD__
 		ioctl( _display.fd , KDSKBMODE , K_XLATE) ;
+	#else
+		set_use_console_backscroll( 1) ;
 	#endif
+
+		if( _display.fd != STDIN_FILENO)
+		{
+			close( _display.fd) ;
+		}
 
 		free( _disp.roots) ;
 
