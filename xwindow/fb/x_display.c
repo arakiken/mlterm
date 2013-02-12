@@ -792,7 +792,26 @@ receive_key_event(void)
 				idx = (_display.key_state & 0x7) ;
 
 				xev.type = KeyPress ;
-				xev.ksym = keymap.key[code].map[idx] ;
+
+			#if  1
+				if( code == 41)
+				{
+					xev.ksym = XK_Zenkaku_Hankaku ;
+				}
+				else if( code == 121)
+				{
+					xev.ksym = XK_Henkan_Mode ;
+				}
+				else if( code == 123)
+				{
+					xev.ksym = XK_Muhenkan ;
+				}
+				else
+			#endif
+				{
+					xev.ksym = keymap.key[code].map[idx] ;
+				}
+
 				xev.state = _mouse.button_state |
 					    _display.key_state ;
 

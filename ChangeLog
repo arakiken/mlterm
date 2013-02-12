@@ -1,3 +1,12 @@
+2013-02-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x.c: XStringToKeysym() supports Zenkaku_Hankaku, Henkan_Mode and Muhenkan.
+
+	* fb/x_display.c: Zenkaku_Hankaku, Henkan_Mode and Muhenkan key syms
+	  are set from its scan codes.
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
 2013-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Minor fixes for FreeBSD termios.
