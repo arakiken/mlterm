@@ -1,3 +1,8 @@
+2013-02-13  Araki Ken  <arakiken@users.sf.net>
+
+	* x.h, x_display.c: 0x100 is added to KEY_KPXX keys to distinguish them from
+	  the same code keys.
+
 2013-02-12  Araki Ken  <arakiken@users.sf.net>
 
 	* x.c: XStringToKeysym() supports Zenkaku_Hankaku, Henkan_Mode and Muhenkan.

@@ -865,7 +865,21 @@ receive_key_event(void)
 				else
 				{
 					xev.type = KeyPress ;
-					xev.ksym = kcode + 0x100 ;
+					if( keymap.key[code].flgs == 2)
+					{
+						/*
+						 * The key should react on num-lock(2).
+						 * (Keypad keys)
+						 *
+						 * More 0x100 is added to KEY_KPXX keys.
+						 * (see x.h)
+						 */
+						xev.ksym = kcode + 0x200 ;
+					}
+					else
+					{
+						xev.ksym = kcode + 0x100 ;
+					}
 					xev.state = _mouse.button_state |
 						    _display.key_state ;
 

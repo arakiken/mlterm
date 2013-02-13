@@ -286,21 +286,21 @@ typedef int XFontSet ;	/* dummy */
 #define KEY_HENKAN	0xea	/* dummy */
 #define KEY_ZENKAKUHANKAKU	0xe9	/* dummy */
 #define KEY_KPASTERISK	0xe8	/* dummy */
-#define KEY_KPPLUS	0x52
+#define KEY_KPPLUS	(0x52 + 0x100)
 #define KEY_KPENTER	0xe7	/* dummy */
-#define KEY_KPMINUS	0x4e
-#define KEY_KPCOMMA	0xe6	/* dummy */
+#define KEY_KPMINUS	(0x4e + 0x100)
+#define KEY_KPCOMMA	(0x83 + 0x100)
 #define KEY_KPSLASH	0xe5	/* dummy */
-#define KEY_KP0		0x56
-#define KEY_KP1		0x53
-#define KEY_KP2		0x54
-#define KEY_KP3		0x55
-#define KEY_KP4		0x4f
-#define KEY_KP5		0x50
-#define KEY_KP6		0x51
-#define KEY_KP7		0x4b
-#define KEY_KP8		0x4c
-#define KEY_KP9		0x4d
+#define KEY_KP0		(0x56 + 0x100)
+#define KEY_KP1		(0x53 + 0x100)
+#define KEY_KP2		(0x54 + 0x100)
+#define KEY_KP3		(0x55 + 0x100)
+#define KEY_KP4		(0x4f + 0x100)
+#define KEY_KP5		(0x50 + 0x100)
+#define KEY_KP6		(0x51 + 0x100)
+#define KEY_KP7		(0x4b + 0x100)
+#define KEY_KP8		(0x4c + 0x100)
+#define KEY_KP9		(0x4d + 0x100)
 
 #endif	/* FreeBSD */
 
