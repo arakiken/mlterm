@@ -520,12 +520,13 @@ open_display(void)
 	tm.c_cc[VTIME] = 0 ;
 	tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
 
+	ioctl( STDIN_FILENO , GIO_KEYMAP , &keymap) ;
+	ioctl( STDIN_FILENO , KDSKBMODE , K_CODE) ;
+	ioctl( STDIN_FILENO , KDGKBSTATE , &_display.lock_state) ;
+
 	_display.fd = STDIN_FILENO ;
 
 	_disp.display = &_display ;
-
-	ioctl( _display.fd , GIO_KEYMAP , &keymap) ;
-	ioctl( _display.fd , KDSKBMODE , K_CODE) ;
 
 	kik_priv_restore_euid() ;
 	kik_priv_restore_egid() ;
@@ -781,7 +782,63 @@ receive_key_event(void)
 			continue ;
 		}
 
-		if( ! ( keymap.key[code].spcl & 0x80))
+		if( keymap.key[code].flgs & 2)
+		{
+			/* The key should react on num-lock(2). (Keypad keys) */
+
+			int  kcode ;
+
+			if( ( kcode = keymap.key[code].map[0]) == 0)
+			{
+				/* do nothing */
+			}
+			else if( pressed)
+			{
+				kcode += 0x100 ;
+
+				if( kcode == KEY_KPMINUS)
+				{
+					xev.ksym = '-' ;
+				}
+				else if( kcode == KEY_KPPLUS)
+				{
+					xev.ksym = '+' ;
+				}
+				else if( ( _display.lock_state & NLKED) &&
+				           ( ( KEY_KP7 <= kcode && kcode <= KEY_KP0) ||
+				             kcode == KEY_KPDOT) )
+				{
+					if( kcode <= KEY_KP9)
+					{
+						xev.ksym = '7' + kcode - KEY_KP7 ;
+					}
+					else if( kcode <= KEY_KP6)
+					{
+						xev.ksym = '4' + kcode - KEY_KP4 ;
+					}
+					else if( kcode <= KEY_KP3)
+					{
+						xev.ksym = '1' + kcode - KEY_KP1 ;
+					}
+					else if( kcode == KEY_KP0)
+					{
+						xev.ksym = '0' ;
+					}
+					else /* if( kcode == KEY_KPDOT) */
+					{
+						xev.ksym = '.' ;
+					}
+				}
+				else
+				{
+					/* More 0x100 is added to KEY_KPXX keys. (see x.h) */
+					xev.ksym = kcode + 0x100 ;
+				}
+
+				goto  send_event ;
+			}
+		}
+		else if( ! ( keymap.key[code].spcl & 0x80))
 		{
 			/* Character keys */
 
@@ -791,7 +848,12 @@ receive_key_event(void)
 
 				idx = (_display.key_state & 0x7) ;
 
-				xev.type = KeyPress ;
+				if( ( keymap.key[code].flgs & 1) &&
+				    ( _display.lock_state & CLKED) )
+				{
+					/* xor shift bit(1) */
+					idx ^= 1 ;
+				}
 
 			#if  1
 				if( code == 41)
@@ -812,16 +874,7 @@ receive_key_event(void)
 					xev.ksym = keymap.key[code].map[idx] ;
 				}
 
-				xev.state = _mouse.button_state |
-					    _display.key_state ;
-
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					"scancode %d -> ksym 0x%x state 0x%x\n" ,
-					code , xev.ksym , xev.state) ;
-			#endif
-
-				receive_event_for_multi_roots( &_disp , &xev) ;
+				goto  send_event ;
 			}
 		}
 		else
@@ -832,7 +885,7 @@ receive_key_event(void)
 
 			if( ( kcode = keymap.key[code].map[0]) == 0)
 			{
-				/* Do nothing */
+				/* do nothing */
 			}
 			else if( pressed)
 			{
@@ -862,34 +915,19 @@ receive_key_event(void)
 				{
 					_display.key_state |= ModMask ;
 				}
+				else if( kcode == KEY_NUMLOCK)
+				{
+					_display.lock_state ^= NLKED ;
+				}
+				else if( kcode == KEY_CAPSLOCK)
+				{
+					_display.lock_state ^= CLKED ;
+				}
 				else
 				{
-					xev.type = KeyPress ;
-					if( keymap.key[code].flgs == 2)
-					{
-						/*
-						 * The key should react on num-lock(2).
-						 * (Keypad keys)
-						 *
-						 * More 0x100 is added to KEY_KPXX keys.
-						 * (see x.h)
-						 */
-						xev.ksym = kcode + 0x200 ;
-					}
-					else
-					{
-						xev.ksym = kcode + 0x100 ;
-					}
-					xev.state = _mouse.button_state |
-						    _display.key_state ;
+					xev.ksym = kcode + 0x100 ;
 
-				#ifdef  __DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-						"scancode %d -> ksym 0x%x state 0x%x\n" ,
-						code , xev.ksym , xev.state) ;
-				#endif
-
-					receive_event_for_multi_roots( &_disp , &xev) ;
+					goto  send_event ;
 				}
 			}
 			else
@@ -911,6 +949,21 @@ receive_key_event(void)
 				}
 			}
 		}
+
+		continue ;
+
+	send_event:
+		xev.type = KeyPress ;
+		xev.state = _mouse.button_state |
+			    _display.key_state ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			"scancode %d -> ksym 0x%x state 0x%x\n" ,
+			code , xev.ksym , xev.state) ;
+	#endif
+
+		receive_event_for_multi_roots( &_disp , &xev) ;
 	}
 
 	return  1 ;
@@ -956,10 +1009,56 @@ get_key_state(void)
 static int
 kcode_to_ksym(
 	int  kcode ,
-	int  state
+	int  state ,
+	int  num_lock
 	)
 {
-	if( kcode == KEY_ENTER)
+	if( kcode == KEY_KPMINUS)
+	{
+		return  '-' ;
+	}
+	else if( kcode == KEY_KPPLUS)
+	{
+		return  '+' ;
+	}
+	else if( kcode == KEY_KPSLASH)
+	{
+		return  '/' ;
+	}
+	else if( kcode == KEY_KPASTERISK)
+	{
+		return  '*' ;
+	}
+	else if( KEY_KP7 <= kcode && kcode <= KEY_KP0)
+	{
+		if( num_lock)
+		{
+			if( kcode <= KEY_KP9)
+			{
+				return  '7' + kcode - KEY_KP7 ;
+			}
+			else if( kcode <= KEY_KP6)
+			{
+				return  '4' + kcode - KEY_KP4 ;
+			}
+			else if( kcode <= KEY_KP3)
+			{
+				return  '1' + kcode - KEY_KP1 ;
+			}
+			else /* if( kcode == KEY_KP0) */
+			{
+				return  '0' ;
+			}
+		}
+	}
+	else if( kcode == KEY_KPDOT)
+	{
+		if( num_lock)
+		{
+			return  '.' ;
+		}
+	}
+	else if( kcode == KEY_ENTER)
 	{
 		/* KDGKBENT returns '\n'(0x0a) */
 		return  0x0d ;
@@ -1582,13 +1681,19 @@ receive_key_event(void)
 					{
 						_display.key_state |= ModMask ;
 					}
+					else if( ev.code == KEY_NUMLOCK)
+					{
+						/* 2 == NumLock */
+						_display.lock_state ^= 2 ;
+					}
 					else
 					{
 						XKeyEvent  xev ;
 
 						xev.type = KeyPress ;
 						xev.ksym = kcode_to_ksym( ev.code ,
-								_display.key_state) ;
+								_display.key_state ,
+								_display.lock_state) ;
 						xev.state = _mouse.button_state |
 							    _display.key_state ;
 

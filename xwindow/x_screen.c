@@ -6696,7 +6696,8 @@ compare_key_state_with_modmap(
 
 	if( ! ( mod_map = x_window_get_modifier_mapping( &screen->window)))
 	{
-		/* Assume win32 */
+		/* Win32 or framebuffer */
+
 		if( is_alt && (state & ModMask))
 		{
 			*is_alt = 1 ;

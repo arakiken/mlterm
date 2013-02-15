@@ -55,6 +55,7 @@ typedef struct
 	fb_cmap_t *  cmap_orig ;
 
 	int  key_state ;
+	int  lock_state ;
 
 } Display ;
 
@@ -289,7 +290,7 @@ typedef int XFontSet ;	/* dummy */
 #define KEY_KPPLUS	(0x52 + 0x100)
 #define KEY_KPENTER	0xe7	/* dummy */
 #define KEY_KPMINUS	(0x4e + 0x100)
-#define KEY_KPCOMMA	(0x83 + 0x100)
+#define KEY_KPDOT	(0x7f + 0x100)
 #define KEY_KPSLASH	0xe5	/* dummy */
 #define KEY_KP0		(0x56 + 0x100)
 #define KEY_KP1		(0x53 + 0x100)
@@ -338,7 +339,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Down		(KEY_DOWN + 0x100)
 #define XK_Select	(KEY_SELECT + 0x100)
 #define XK_Print	(KEY_PRINT + 0x100)
-#define XK_Execute	0xffe4	/* dummy */
+#define XK_Execute	0xffef	/* dummy */
 #define XK_Insert	(KEY_INSERT + 0x100)
 #define XK_Delete	(KEY_DELETE + 0x100)
 #define XK_Help		(KEY_HELP + 0x100)
@@ -375,42 +376,42 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Scroll_Lock	(KEY_SCROLLLOCK + 0x100)
 #define XK_Find		(KEY_FIND + 0x100)
 #define XK_Menu		(KEY_MENU + 0x100)
-#define XK_Begin	0xffc3	/* dummy */
+#define XK_Begin	0xffee	/* dummy */
 #define XK_Muhenkan	(KEY_MUHENKAN + 0x100)
 #define XK_Henkan_Mode	(KEY_HENKAN + 0x100)
 #define XK_Zenkaku_Hankaku	(KEY_ZENKAKUHANKAKU + 0x100)
 
-#define XK_KP_Prior	0xffc2	/* dummy */
-#define XK_KP_Next	0xffc1	/* dummy */
-#define XK_KP_End	0xffc0	/* dummy */
-#define XK_KP_Home	0xffbf	/* dummy */
-#define XK_KP_Left	0xffbe	/* dummy */
-#define XK_KP_Up	0xffbd	/* dummy */
-#define XK_KP_Right	0xffbc	/* dummy */
-#define XK_KP_Down	0xffbb	/* dummy */
-#define XK_KP_Insert	0xffba	/* dummy */
-#define XK_KP_Delete	0xffb9	/* dummy */
-#define XK_KP_F1	0xffb8	/* dummy */
-#define XK_KP_F2	0xffb7	/* dummy */
-#define XK_KP_F3	0xffb6	/* dummy */
-#define XK_KP_F4	0xffb5	/* dummy */
-#define XK_KP_Begin	0xffb4	/* dummy */
+#define XK_KP_Prior	(KEY_KP9 + 0x100)
+#define XK_KP_Next	(KEY_KP3 + 0x100)
+#define XK_KP_End	(KEY_KP1 + 0x100)
+#define XK_KP_Home	(KEY_KP7 + 0x100)
+#define XK_KP_Left	(KEY_KP4 + 0x100)
+#define XK_KP_Up	(KEY_KP8 + 0x100)
+#define XK_KP_Right	(KEY_KP6 + 0x100)
+#define XK_KP_Down	(KEY_KP2 + 0x100)
+#define XK_KP_Insert	(KEY_KP0 + 0x100)
+#define XK_KP_Delete	(KEY_KPDOT + 0x100)
+#define XK_KP_F1	0xffed	/* dummy */
+#define XK_KP_F2	0xffec	/* dummy */
+#define XK_KP_F3	0xffeb	/* dummy */
+#define XK_KP_F4	0xffea	/* dummy */
+#define XK_KP_Begin	0xffe9	/* dummy */
 #define XK_KP_Multiply	(KEY_KPASTERISK + 0x100)
 #define XK_KP_Add	(KEY_KPPLUS + 0x100)
 #define XK_KP_Separator	(KEY_KPENTER + 0x100)
 #define XK_KP_Subtract	(KEY_KPMINUS + 0x100)
-#define XK_KP_Decimal	(KEY_KPCOMMA + 0x100)
+#define XK_KP_Decimal	0xffe8	/* dummy */
 #define XK_KP_Divide	(KEY_KPSLASH + 0x100)
-#define XK_KP_0		(KEY_KP0 + 0x100)
-#define XK_KP_1		(KEY_KP1 + 0x100)
-#define XK_KP_2		(KEY_KP2 + 0x100)
-#define XK_KP_3		(KEY_KP3 + 0x100)
-#define XK_KP_4		(KEY_KP4 + 0x100)
-#define XK_KP_5		(KEY_KP5 + 0x100)
-#define XK_KP_6		(KEY_KP6 + 0x100)
-#define XK_KP_7		(KEY_KP7 + 0x100)
-#define XK_KP_8		(KEY_KP8 + 0x100)
-#define XK_KP_9		(KEY_KP9 + 0x100)
+#define XK_KP_0		0xffe7	/* dummy */
+#define XK_KP_1		0xffe6	/* dummy */
+#define XK_KP_2		0xffe5	/* dummy */
+#define XK_KP_3		0xffe4	/* dummy */
+#define XK_KP_4		0xffe3	/* dummy */
+#define XK_KP_5		0xffe2	/* dummy */
+#define XK_KP_6		0xffe1	/* dummy */
+#define XK_KP_7		0xffe0	/* dummy */
+#define XK_KP_8		0xffdf	/* dummy */
+#define XK_KP_9		0xffde	/* dummy */
 
 #define XK_ISO_Level3_Lock	0xffa3	/* dummy */
 
