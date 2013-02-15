@@ -190,7 +190,7 @@ x_xic_get_str(
 
 	*keysym = win->xic->prev_keydown_wparam ;
 
-	if( 'a' <= *keysym && *keysym <= XK_FMAX)
+	if( 'a' <= *keysym && *keysym <= VK_F24)
 	{
 		/*
 		 * Avoid to conflict 'a' - 'z' with VK_NUMPAD1..9,
@@ -295,7 +295,8 @@ x_xic_filter_event(
 {
 	u_int  count ;
 
-	if( event->msg != WM_KEYDOWN)
+	if( event->msg != WM_KEYDOWN &&
+	    ( event->msg != WM_SYSKEYDOWN || event->wparam != VK_F10) )
 	{
 		return  0 ;
 	}

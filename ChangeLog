@@ -1,3 +1,14 @@
+2013-02-16  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c, win32/x_xic.c: F10 key is available.
+
+	* win32/x_xic.c: Range check bug is fixed in x_xic_get_str().
+
+	* win32/x.h:
+	  - The definition of XK_Zenkaku_Hankaku, XK_Henkan_Mode and
+	    XK_Muhenkan is added.
+	  - Range check bug of IsKeypadKey() is fixed.
+
 2013-02-15  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x.h, fb/x_display.c: Numlock key is supported.

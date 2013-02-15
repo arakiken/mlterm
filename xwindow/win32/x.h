@@ -209,25 +209,28 @@ typedef int XFontSet ;	/* dummy */
 #define XK_F9		(VK_F9 + 0xff00)	/* 0xff78 (avoid to conflict with 'x') */
 #define XK_F10		(VK_F10 + 0xff00)	/* 0xff79 (avoid to conflict with 'y') */
 #define XK_F11		(VK_F11 + 0xff00)	/* 0xff7a (avoid to conflict with 'z') */
-#define XK_F12		(VK_F12 + 0xff00)
-#define XK_F13		(VK_F13 + 0xff00)
-#define XK_F14		(VK_F14 + 0xff00)
-#define XK_F15		(VK_F15 + 0xff00)
-#define XK_F16		(VK_F16 + 0xff00)
-#define XK_F17		(VK_F17 + 0xff00)
-#define XK_F18		(VK_F18 + 0xff00)
-#define XK_F19		(VK_F19 + 0xff00)
-#define XK_F20		(VK_F20 + 0xff00)
-#define XK_F21		(VK_F21 + 0xff00)
-#define XK_F22		(VK_F22 + 0xff00)
-#define XK_F23		(VK_F23 + 0xff00)
-#define XK_F24		(VK_F24 + 0xff00)
+#define XK_F12		(VK_F12 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F13		(VK_F13 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F14		(VK_F14 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F15		(VK_F15 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F16		(VK_F16 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F17		(VK_F17 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F18		(VK_F18 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F19		(VK_F19 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F20		(VK_F20 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F21		(VK_F21 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F22		(VK_F22 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F23		(VK_F23 + 0xff00)	/* Add 0xff00 to be sequential number. */
+#define XK_F24		(VK_F24 + 0xff00)	/* Add 0xff00 to be sequential number. */
 #define XK_FMAX		XK_F24
 #define XK_Num_Lock	VK_NUMLOCK
 #define XK_Scroll_Lock	VK_SCROLL
 #define XK_Find		0xffeb	/* dummy */
 #define XK_Menu		0xffea	/* dummy */
 #define XK_Begin	0xffe9	/* dummy */
+#define XK_Muhenkan	VK_NONCONVERT
+#define XK_Henkan_Mode	0xe5
+#define XK_Zenkaku_Hankaku	0xe5
 /* #define XXX	VK_PLAY */
 /* #define XXX	VK_ZOOM */
 
@@ -263,6 +266,10 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_8		(VK_NUMPAD8 + 0xff00)	/* 0xff68 (avoid to conflict with 'h') */
 #define XK_KP_9		(VK_NUMPAD9 + 0xff00)	/* 0xff69 (avoid to conflict with 'i') */
 
+/* VK_NUMPAD0 = 0x60, VK_DIVIDE = 0x6f */
+#define IsKeypadKey(ksym) \
+	((ksym) == XK_KP_0 || (XK_KP_1 <= (ksym) && (ksym) <= XK_KP_Divide))
+
 #define XK_ISO_Level3_Lock	0xffd9	/* dummy */
 
 /* For msys-dtk */
@@ -286,8 +293,6 @@ typedef int XFontSet ;	/* dummy */
 #define XKeysymToString(ks)	""
 #define DisplayString(disp)	":0.0"
 #define DefaultScreen(disp)	(0)
-/* VK_NUMPAD0 = 0x60, VK_DIVIDE = 0x6f */
-#define IsKeypadKey(ksym)	(VK_NUMPAD0 <= (ksym) && (ksym) <= VK_DIVIDE)
 
 #define BlackPixel(disp,screen)	(0xff000000 | RGB(0,0,0))
 #define WhitePixel(disp,screen)	(0xff000000 | RGB(0xff,0xff,0xff))

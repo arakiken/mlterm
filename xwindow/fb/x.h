@@ -413,6 +413,8 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_8		0xffdf	/* dummy */
 #define XK_KP_9		0xffde	/* dummy */
 
+#define IsKeypadKey(ksym)	(1)
+
 #define XK_ISO_Level3_Lock	0xffa3	/* dummy */
 
 
@@ -431,7 +433,6 @@ typedef struct
 #define XKeysymToString(ks)	""
 #define DisplayString(disp)	":0.0"
 #define DefaultScreen(disp)	(0)
-#define IsKeypadKey(ksym)	(1)
 
 #define BlackPixel(disp,screen)	 (0)
 #define WhitePixel(disp,screen)	 (-1)

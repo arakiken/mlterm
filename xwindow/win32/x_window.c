@@ -1859,7 +1859,8 @@ x_window_receive_event(
 					break ;
 				}
 			}
-			else if( event->msg == WM_SYSKEYDOWN)
+			else if( event->msg == WM_SYSKEYDOWN &&
+			         event->wparam != VK_F10 /* Menu */)
 			{
 				break ;
 			}
@@ -1893,6 +1894,12 @@ x_window_receive_event(
 			}
 
 			(*win->key_pressed)( win , &kev) ;
+
+			/* Don't process VK_F10 as a menu key by DefWindowProc(). */
+			if( event->wparam == VK_F10)
+			{
+				return  1 ;
+			}
 		}
 
 		/* Continue default processing. */
