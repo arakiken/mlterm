@@ -7,6 +7,9 @@
 
 #include  "../x_display.h"
 
+#ifdef  __FreeBSD__
+#include  <sys/kbio.h>	/* NLKED */
+#endif
 
 #define KeyPress			2	/* Private in fb/ */
 #define ButtonPress			4	/* Private in fb/ */

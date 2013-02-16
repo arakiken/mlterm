@@ -288,7 +288,7 @@ typedef int XFontSet ;	/* dummy */
 #define KEY_ZENKAKUHANKAKU	0xe9	/* dummy */
 #define KEY_KPASTERISK	0xe8	/* dummy */
 #define KEY_KPPLUS	(0x52 + 0x100)
-#define KEY_KPENTER	0xe7	/* dummy */
+#define KEY_KPCOMMA	0xe7	/* dummy */
 #define KEY_KPMINUS	(0x4e + 0x100)
 #define KEY_KPDOT	(0x7f + 0x100)
 #define KEY_KPSLASH	0xe5	/* dummy */
@@ -302,6 +302,13 @@ typedef int XFontSet ;	/* dummy */
 #define KEY_KP7		(0x4b + 0x100)
 #define KEY_KP8		(0x4c + 0x100)
 #define KEY_KP9		(0x4d + 0x100)
+
+#else
+
+#define  CLKED  1
+#define  NLKED  2
+#define  SLKED  4
+#define  ALKED  8
 
 #endif	/* FreeBSD */
 
@@ -398,7 +405,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_Begin	0xffe9	/* dummy */
 #define XK_KP_Multiply	(KEY_KPASTERISK + 0x100)
 #define XK_KP_Add	(KEY_KPPLUS + 0x100)
-#define XK_KP_Separator	(KEY_KPENTER + 0x100)
+#define XK_KP_Separator	(KEY_KPCOMMA + 0x100)
 #define XK_KP_Subtract	(KEY_KPMINUS + 0x100)
 #define XK_KP_Decimal	0xffe8	/* dummy */
 #define XK_KP_Divide	(KEY_KPSLASH + 0x100)
@@ -407,7 +414,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_2		0xffe5	/* dummy */
 #define XK_KP_3		0xffe4	/* dummy */
 #define XK_KP_4		0xffe3	/* dummy */
-#define XK_KP_5		0xffe2	/* dummy */
+#define XK_KP_5		(KEY_KP5 + 0x100)	/* dummy */
 #define XK_KP_6		0xffe1	/* dummy */
 #define XK_KP_7		0xffe0	/* dummy */
 #define XK_KP_8		0xffdf	/* dummy */

@@ -1,5 +1,10 @@
 2013-02-16  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_window.c, fb/x_display.[ch]: Conversion from Keypad keys to ASCII
+	  character is moved from x_display.c to x_window_get_str() in x_window.c.
+
+2013-02-16  Araki Ken  <arakiken@users.sf.net>
+
 	* win32/x_window.c, win32/x_xic.c: F10 key is available.
 
 	* win32/x_xic.c: Range check bug is fixed in x_xic_get_str().

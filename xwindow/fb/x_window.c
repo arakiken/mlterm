@@ -1213,6 +1213,8 @@ x_window_get_str(
 	XKeyEvent *  event
 	)
 {
+	u_char  ch ;
+
 	if( seq_len == 0)
 	{
 		return  0 ;
@@ -1220,9 +1222,76 @@ x_window_get_str(
 
 	*parser = NULL ;
 
+	ch = event->ksym ;
 	if( ( *keysym = event->ksym) >= 0x100)
 	{
-		return  0 ;
+		switch( *keysym)
+		{
+		case  XK_KP_Multiply:
+			ch = '*' ;
+			break ;
+		case  XK_KP_Add:
+			ch = '+' ;
+			break ;
+		case  XK_KP_Separator:
+			ch = ',' ;
+			break ;
+		case  XK_KP_Subtract:
+			ch = '-' ;
+			break ;
+		case  XK_KP_Divide:
+			ch = '/' ;
+			break ;
+
+		default:
+			if( win->disp->display->lock_state & NLKED)
+			{
+				switch( *keysym)
+				{
+				case  XK_KP_Insert:
+					ch = '0' ;
+					break ;
+				case  XK_KP_End:
+					ch = '1' ;
+					break ;
+				case  XK_KP_Down:
+					ch = '2' ;
+					break ;
+				case  XK_KP_Next:
+					ch = '3' ;
+					break ;
+				case  XK_KP_Left:
+					ch = '4' ;
+					break ;
+				case  XK_KP_5:
+					ch = '5' ;
+					break ;
+				case  XK_KP_Right:
+					ch = '6' ;
+					break ;
+				case  XK_KP_Home:
+					ch = '7' ;
+					break ;
+				case  XK_KP_Up:
+					ch = '8' ;
+					break ;
+				case  XK_KP_Prior:
+					ch = '9' ;
+					break ;
+				case  XK_KP_Delete:
+					ch = '.' ;
+					break ;
+				default:
+					return  0 ;
+				}
+
+				*keysym = ch ;
+			}
+			else
+			{
+				return  0 ;
+			}
+		}
 	}
 
 	/*
@@ -1232,13 +1301,13 @@ x_window_get_str(
 	 * distinguished from Control + 'A'.
 	 */
 	if( (event->state & ControlMask) &&
-	    (event->ksym == ' ' || ('@' <= event->ksym && event->ksym <= 'z')) )
+	    (ch == ' ' || ('@' <= ch && ch <= 'z')) )
 	{
-		seq[0] = (event->ksym & 0x1f) ;
+		seq[0] = (ch & 0x1f) ;
 	}
 	else
 	{
-		seq[0] = event->ksym ;
+		seq[0] = ch ;
 	}
 
 	return  1 ;

@@ -14,7 +14,6 @@
 
 #ifdef  __FreeBSD__
 #include  <sys/consio.h>
-#include  <sys/kbio.h>
 #include  <sys/mouse.h>
 #include  <sys/time.h>
 #else
@@ -788,52 +787,14 @@ receive_key_event(void)
 
 			int  kcode ;
 
-			if( ( kcode = keymap.key[code].map[0]) == 0)
+			if( ( kcode = keymap.key[code].map[0]) != 0 && pressed)
 			{
-				/* do nothing */
-			}
-			else if( pressed)
-			{
-				kcode += 0x100 ;
-
-				if( kcode == KEY_KPMINUS)
-				{
-					xev.ksym = '-' ;
-				}
-				else if( kcode == KEY_KPPLUS)
-				{
-					xev.ksym = '+' ;
-				}
-				else if( ( _display.lock_state & NLKED) &&
-				           ( ( KEY_KP7 <= kcode && kcode <= KEY_KP0) ||
-				             kcode == KEY_KPDOT) )
-				{
-					if( kcode <= KEY_KP9)
-					{
-						xev.ksym = '7' + kcode - KEY_KP7 ;
-					}
-					else if( kcode <= KEY_KP6)
-					{
-						xev.ksym = '4' + kcode - KEY_KP4 ;
-					}
-					else if( kcode <= KEY_KP3)
-					{
-						xev.ksym = '1' + kcode - KEY_KP1 ;
-					}
-					else if( kcode == KEY_KP0)
-					{
-						xev.ksym = '0' ;
-					}
-					else /* if( kcode == KEY_KPDOT) */
-					{
-						xev.ksym = '.' ;
-					}
-				}
-				else
-				{
-					/* More 0x100 is added to KEY_KPXX keys. (see x.h) */
-					xev.ksym = kcode + 0x100 ;
-				}
+				/*
+				 * KEY_KP0 etc are 0x100 larger than KEY_INSERT etc to
+				 * distinguish them.
+				 * (see x.h)
+				 */
+				xev.ksym = kcode + 0x200 ;
 
 				goto  send_event ;
 			}
@@ -1013,52 +974,7 @@ kcode_to_ksym(
 	int  num_lock
 	)
 {
-	if( kcode == KEY_KPMINUS)
-	{
-		return  '-' ;
-	}
-	else if( kcode == KEY_KPPLUS)
-	{
-		return  '+' ;
-	}
-	else if( kcode == KEY_KPSLASH)
-	{
-		return  '/' ;
-	}
-	else if( kcode == KEY_KPASTERISK)
-	{
-		return  '*' ;
-	}
-	else if( KEY_KP7 <= kcode && kcode <= KEY_KP0)
-	{
-		if( num_lock)
-		{
-			if( kcode <= KEY_KP9)
-			{
-				return  '7' + kcode - KEY_KP7 ;
-			}
-			else if( kcode <= KEY_KP6)
-			{
-				return  '4' + kcode - KEY_KP4 ;
-			}
-			else if( kcode <= KEY_KP3)
-			{
-				return  '1' + kcode - KEY_KP1 ;
-			}
-			else /* if( kcode == KEY_KP0) */
-			{
-				return  '0' ;
-			}
-		}
-	}
-	else if( kcode == KEY_KPDOT)
-	{
-		if( num_lock)
-		{
-			return  '.' ;
-		}
-	}
-	else if( kcode == KEY_ENTER)
+	if( kcode == KEY_ENTER || kcode == KEY_KPENTER)
 	{
 		/* KDGKBENT returns '\n'(0x0a) */
 		return  0x0d ;
@@ -1068,7 +984,7 @@ kcode_to_ksym(
 		/* KDGKBDENT returns 0x7f */
 		return  0x08 ;
 	}
-	else if( kcode <= KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO)
+	else if( kcode <= KEY_SLASH || kcode == KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO)
 	{
 		struct kbentry  ent ;
 		int  ret ;
@@ -1683,8 +1599,7 @@ receive_key_event(void)
 					}
 					else if( ev.code == KEY_NUMLOCK)
 					{
-						/* 2 == NumLock */
-						_display.lock_state ^= 2 ;
+						_display.lock_state ^= NLKED ;
 					}
 					else
 					{
@@ -1693,7 +1608,7 @@ receive_key_event(void)
 						xev.type = KeyPress ;
 						xev.ksym = kcode_to_ksym( ev.code ,
 								_display.key_state ,
-								_display.lock_state) ;
+								_display.lock_state & NLKED) ;
 						xev.state = _mouse.button_state |
 							    _display.key_state ;
 
