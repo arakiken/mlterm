@@ -8386,12 +8386,10 @@ x_screen_set_config(
 	{
 		change_bel_mode( screen , x_get_bel_mode_by_name( value)) ;
 	}
-#ifndef  USE_FRAMEBUFFER
 	else if( strcmp( key , "vertical_mode") == 0)
 	{
 		change_vertical_mode( screen , ml_get_vertical_mode( value)) ;
 	}
-#endif
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
 		change_sb_mode( screen , x_get_sb_mode_by_name( value)) ;

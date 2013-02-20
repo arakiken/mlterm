@@ -1,5 +1,5 @@
 ver 3.1.8
-* Support framebuffer on FreeBSD.
+* Support framebuffer on FreeBSD. (Experimental)
 * 'key' configuration file accepts Button1 - Button5.
 * Remove "conf_menu_path_1", "conf_menu_path_2", "conf_menu_path_3" and
   "button3_behavior" options which are integrated to shortcuts.

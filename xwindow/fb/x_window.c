@@ -754,7 +754,16 @@ x_window_show(
 	 */
 	if( win->window_realized)
 	{
+		int  is_mapped ;
+
+		/*
+		 * Don't show anything until x_window_resize_with_margin() is called
+		 * at the end of this function.
+		 */
+		is_mapped = win->is_mapped ;
+		win->is_mapped = 0 ;
 		(*win->window_realized)( win) ;
+		win->is_mapped = is_mapped ;
 	}
 
 	/*
@@ -798,11 +807,25 @@ x_window_unmap(
 int
 x_window_resize(
 	x_window_t *  win ,
-	u_int  width ,			/* excluding margin */
-	u_int  height ,			/* excluding margin */
+	u_int  width ,		/* excluding margin */
+	u_int  height ,		/* excluding margin */
 	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
+	if( (flag & NOTIFY_TO_PARENT) && win->parent)
+	{
+		/*
+		 * XXX
+		 * If Font size, screen_{width|height}_ratio or vertical_mode is changed
+		 * and x_window_resize( NOTIFY_TO_PARENT) is called, ignore this call and
+		 * resize windows with display size.
+		 */
+		win->parent->width = 0 ;
+		return  x_window_resize_with_margin( win->parent ,
+				win->disp->width , win->disp->height ,
+				NOTIFY_TO_MYSELF) ;
+	}
+
 	if( width + win->margin * 2 > win->disp->width)
 	{
 		width = win->disp->width - win->margin * 2 ;

@@ -1,3 +1,12 @@
+2013-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: "vertical_mode" option is dynamically changeable.
+
+	* fb/x_window.c:
+	  - x_window_resize() supports NOTIFY_TO_PARENT.
+	  - window_realized() event show nothing by setting win->is_mapped = 0
+	    to prevent segfault in startup.
+
 2013-02-16  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_window.c, fb/x_display.[ch]: Conversion from Keypad keys to ASCII
