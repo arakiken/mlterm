@@ -171,22 +171,26 @@ ml_config_menu_start(
 
 	input_read = output_write = error_write = 0 ;
 
-	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
+#ifdef  USE_LIBSSH2
+	if( ml_pty_use_loopback( pty))
 	{
-	#ifdef  USE_LIBSSH2
-		ml_pty_use_loopback( pty) ;
 		pty_fd = ml_pty_get_slave_fd( pty) ;
 		config_menu->pty = pty ;
-	#else
+	}
+	else
+#else
+	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
+#endif
+	{
 		return  0 ;
-	#endif
 	}
 
 	/*
-	 * pty_fd is not inheritable(see ml_pty_pipewin32.c).
-	 * So it is necessary to duplicate inheritable handle.
+	 * pty_fd is not inheritable(see ml_pty_pipewin32.c), so it is necessary
+	 * to duplicate inheritable handle.
+	 * It is possible to DuplicateHandle(socket) if pty_fd is socket.
 	 */
-	if( ! DuplicateHandle( GetCurrentProcess() , pty_fd ,
+	if( ! DuplicateHandle( GetCurrentProcess() , (HANDLE)pty_fd ,
 			       GetCurrentProcess() , &output_write , 0 ,
 			       TRUE , DUPLICATE_SAME_ACCESS))
 	{
@@ -194,10 +198,10 @@ ml_config_menu_start(
 		kik_warn_printf( KIK_DEBUG_TAG " DuplicateHandle() failed.\n") ;
 	#endif
 
-		return  0 ;
+		goto  error1 ;
 	}
 
-	if( ! DuplicateHandle( GetCurrentProcess() , pty_fd ,
+	if( ! DuplicateHandle( GetCurrentProcess() , (HANDLE)pty_fd ,
 			       GetCurrentProcess() , &error_write , 0 ,
 			       TRUE , DUPLICATE_SAME_ACCESS))
 	{
@@ -282,7 +286,7 @@ ml_config_menu_start(
 	}
 
 	/* Set global child process handle to cause threads to exit. */
-	config_menu->pid = (pid_t)pi.hProcess ;
+	config_menu->pid = pi.hProcess ;
 
 	/* Close any unnecessary handles. */
 	CloseHandle( pi.hThread) ;
@@ -340,6 +344,14 @@ error2:
 		config_menu->fd = 0 ;
 	}
 
+#ifdef  USE_LIBSSH2
+	if( config_menu->pty)
+	{
+		ml_pty_unuse_loopback( config_menu->pty) ;
+		config_menu->pty = NULL ;
+	}
+#endif
+
 	return  0 ;
 
 #else	/* USE_WIN32API */
@@ -355,15 +367,18 @@ error2:
 		return  0 ;
 	}
 
-	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
+#ifdef  USE_LIBSSH2
+	if( ml_pty_use_loopback( pty))
 	{
-	#ifdef  USE_LIBSSH2
-		ml_pty_use_loopback( pty) ;
 		pty_fd = ml_pty_get_slave_fd( pty) ;
 		config_menu->pty = pty ;
-	#else
+	}
+	else
+#else
+	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
+#endif
+	{
 		return  0 ;
-	#endif
 	}
 
 	if( ! kik_file_unset_cloexec( pty_fd))
@@ -466,18 +481,11 @@ ml_config_menu_write(
 	ssize_t  write_len ;
 
 #ifdef  USE_WIN32API
-	if( config_menu->fd == 0)
+	if( config_menu->fd == 0 ||
+	    ! WriteFile( config_menu->fd , buf , len , &write_len , NULL))
 #else
-	if( config_menu->fd == -1)
-#endif
-	{
-		return  0 ;
-	}
-
-#ifdef  USE_WIN32API
-	if( ! WriteFile( config_menu->fd , buf , len , &write_len , NULL))
-#else
-	if( ( write_len = write( config_menu->fd , buf , len)) == -1)
+	if( config_menu->fd == -1 ||
+	    ( write_len = write( config_menu->fd , buf , len)) == -1)
 #endif
 	{
 		return  0 ;

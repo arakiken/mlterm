@@ -13,9 +13,13 @@
 
 typedef struct  ml_config_menu
 {
-	/* These members are regarded as HANDLE in win32. */
+#ifdef  USE_WIN32API
+	void *  pid ;	/* HANDLE */
+	void *  fd ;	/* HANDLE */
+#else
 	pid_t  pid ;
 	int  fd ;
+#endif
 
 #ifdef  USE_LIBSSH2
 	ml_pty_ptr_t  pty ;

@@ -1418,10 +1418,6 @@ window_realized(
 	screen->mod_meta_mask = x_window_get_mod_meta_mask( win , screen->mod_meta_key) ;
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win , NULL) ;
 
-#if  defined(USE_WIN32GUI) && ! defined(DISABLE_XDND)
-	DragAcceptFiles( win->my_window , TRUE) ;
-#endif
-
 	if( screen->input_method)
 	{
 		/* XIM or other input methods? */

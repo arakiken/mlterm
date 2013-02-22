@@ -1154,6 +1154,10 @@ x_window_show(
 		return  0 ;
 	}
 
+#ifndef  DISABLE_XDND
+	DragAcceptFiles( win->my_window , TRUE) ;
+#endif
+
 	/*
 	 * This should be called after Window Manager settings, because
 	 * x_set_{window|icon}_name() can be called in win->window_realized().

@@ -1,3 +1,11 @@
+2013-02-22  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c, x_screen.c: DragAcceptFiles() is moved from x_screen.c
+	  to x_window.c.
+
+	* ml_config_menu.[ch]: ml_config_menu_t::pid and ml_config_menu_t::fd are
+	  changed from pid_t and int to void * (==HANDLE).
+
 2013-02-20  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: "vertical_mode" option is dynamically changeable.
