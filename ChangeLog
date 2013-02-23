@@ -1,3 +1,17 @@
+2013-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.1.8 released.
+	  (tag "rel-3_1_8")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.1.8.
+
+	* win32/x_font.c: Type engines except TYPE_XCORE are rejected.
+
+	* win32/x.h: Fix compilation error in msys-1.0.
+
+	* x_screen_manager.c: Minor fixes.
+
 2013-02-22  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_window.c, x_screen.c: DragAcceptFiles() is moved from x_screen.c

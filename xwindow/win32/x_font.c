@@ -376,7 +376,7 @@ x_font_new(
 	double  fontsize_d ;
 	u_int  percent ;
 	
-	if( ( font = malloc( sizeof( x_font_t))) == NULL)
+	if( type_engine != TYPE_XCORE || ( font = malloc( sizeof( x_font_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;

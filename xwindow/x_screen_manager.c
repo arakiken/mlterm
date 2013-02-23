@@ -1179,7 +1179,8 @@ x_screen_manager_init(
 			if( main_config.shortcut_strs[count])
 			{
 				x_shortcut_parse( &shortcut ,
-					keys[count] , main_config.shortcut_strs[count]) ;
+					kik_str_alloca_dup( keys[count]) ,
+					main_config.shortcut_strs[count]) ;
 			}
 		}
 	}

@@ -14,6 +14,7 @@ ver 3.1.8
   Fix the bug of DECCRA.
   Fix the bug which broke input string of "ExecCmd" field of the connection dialog in win32.
   Fix the bug which didn't redraw a part of full-width characters when window is exposed.
+  Enable to change "vertical_mode" option dynamically in framebuffer.
 
 ver 3.1.7
 * Support not only bmp formats but also other image formats by mlimgloader

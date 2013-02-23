@@ -18,6 +18,11 @@
 #define  WM_IME_CHAR 0x286
 #endif
 
+/* for msys-1.0 dvlpr */
+#ifndef  VK_NONCONVERT
+#define  VK_NONCONVERT  0x1d
+#endif
+
 
 typedef struct
 {
