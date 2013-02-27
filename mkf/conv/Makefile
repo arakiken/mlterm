@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -O3 $(CFLAGS_LOCAL)
-LIBS = -lmkf -lkik
+LIBS = -lmkf -lkik $(LIBS_LOCAL)
 INSTALL = install -c
 
 PREFIX = $(HOME)

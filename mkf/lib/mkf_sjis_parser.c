@@ -60,9 +60,7 @@ sjis_parser_next_char_intern(
 		
 		if( mkf_parser_increment( sjis_parser) == 0)
 		{
-			mkf_parser_reset( sjis_parser) ;
-			
-			return  0 ;
+			goto  shortage ;
 		}
 
 		c2 = *sjis_parser->str ;
@@ -177,10 +175,8 @@ sjis_parser_next_char_intern(
 				kik_warn_printf( KIK_DEBUG_TAG
 					" 0x%.2x is illegal upper byte of jisx0213_2.\n" , c1) ;
 			#endif
-			
-				mkf_parser_reset( sjis_parser) ;
 
-				return  0 ;
+				goto  error ;
 			}
 			
 			if( c2 <= 0x9e)
@@ -220,10 +216,7 @@ sjis_parser_next_char_intern(
 			else
 			{
 				/* XXX what's this ? */
-
-				mkf_parser_reset( sjis_parser) ;
-
-				return  0 ;
+				goto  error ;
 			}
 
 			high = high * 2 + 1 ;
@@ -248,11 +241,8 @@ sjis_parser_next_char_intern(
 			}
 			else
 			{
-				/* what's this ? */
-
-				mkf_parser_reset( sjis_parser) ;
-
-				return  0 ;
+				/* XXX what's this ? */
+				goto  error ;
 			}
 
 			ch->ch[0] = high ;
@@ -278,6 +268,12 @@ sjis_parser_next_char_intern(
 	mkf_parser_increment( sjis_parser) ;
 
 	return  1 ;
+
+error:
+shortage:
+	mkf_parser_reset( sjis_parser) ;
+
+	return  0 ;
 }
 
 static int

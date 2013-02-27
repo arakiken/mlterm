@@ -82,9 +82,7 @@ hz_parser_next_char(
 		{
 			if( mkf_parser_increment( parser) == 0)
 			{
-				mkf_parser_reset( parser) ;
-
-				return  0 ;
+				goto  shortage ;
 			}
 		}
 
@@ -156,33 +154,18 @@ hz_parser_next_char(
 		ch->size = 1 ;
 		ch->cs = US_ASCII ;
 	}
-	else if( hz_parser->cur_cs == GB2312_80)
+	else /* if( hz_parser->cur_cs == GB2312_80) */
 	{
 		ch->ch[0] = *parser->str ;
 
 		if( mkf_parser_increment( parser) == 0)
 		{
-			mkf_parser_reset( parser) ;
-
-			return  0 ;
+			goto  shortage ;
 		}
 
 		ch->ch[1] = *parser->str ;
 		ch->size = 2 ;
 		ch->cs = GB2312_80 ;
-	}
-	else
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" hz does not support charsets but GB2312 and US_ASCII.\n") ;
-	#endif
-
-		ch->ch[0] = ' ' ;
-		ch->size = 1 ;
-		ch->cs = US_ASCII ;
-
-		hz_parser->cur_cs = US_ASCII ;
 	}
 
 	ch->property = 0 ;
@@ -190,6 +173,11 @@ hz_parser_next_char(
 	mkf_parser_increment( parser) ;
 
 	return  1 ;
+
+shortage:
+	mkf_parser_reset( parser) ;
+
+	return  0 ;
 }
 
 

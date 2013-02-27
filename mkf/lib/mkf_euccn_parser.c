@@ -58,9 +58,7 @@ gbk_parser_next_char_intern(
 
 				if( mkf_parser_increment( parser) == 0)
 				{
-					mkf_parser_reset( parser) ;
-
-					return  0 ;
+					goto  shortage ;
 				}
 
 				if( 0x30 <= *parser->str && *parser->str <= 0x39)
@@ -74,9 +72,7 @@ gbk_parser_next_char_intern(
 
 				if( mkf_parser_increment( parser) == 0)
 				{
-					mkf_parser_reset( parser) ;
-
-					return  0 ;
+					goto  shortage ;
 				}
 
 				if( 0x30 <= *parser->str && *parser->str <= 0x39)
@@ -87,12 +83,11 @@ gbk_parser_next_char_intern(
 			else
 			{
 			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" illegal GBK format. %x (maybe the 1st byte of GBK) is discarded.\n" ,
+				kik_warn_printf( KIK_DEBUG_TAG " illegal GBK format. [%x ...]\n" ,
 					*parser->str) ;
 			#endif
 
-				return  0 ;
+				goto  error ;
 			}
 		}
 		else
@@ -101,9 +96,7 @@ gbk_parser_next_char_intern(
 
 			if( mkf_parser_increment( parser) == 0)
 			{
-				mkf_parser_reset( parser) ;
-
-				return  0 ;
+				goto  shortage ;
 			}
 		}
 
@@ -112,13 +105,11 @@ gbk_parser_next_char_intern(
 		if( *parser->str < 0x40) 
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" illegal GBK format. %.2x%.2x (maybe the 1st-2nd byte of GBK)"
-				" is discarded.\n" ,
+			kik_warn_printf( KIK_DEBUG_TAG " illegal GBK format. [%.2x%.2x ...]\n" ,
 				bytes[0] , *parser->str) ;
 		#endif
 
-			return  0 ;
+			goto  error ;
 		}
 		
 		ch->ch[1] = *parser->str ;
@@ -135,41 +126,36 @@ gbk_parser_next_char_intern(
 
 		if( mkf_parser_increment( parser) == 0)
 		{
-			mkf_parser_reset( parser) ;
-
-			return  0 ;
+			goto  shortage ;
 		}
 
 		if( *parser->str < 0x81 || 0xfe < *parser->str)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				" illegal GBK format. %.2x%.2x%.2x (maybe the 1st-3th byte of GBK)"
-				" is discarded.\n" ,
+				" illegal GBK format. [%.2x%.2x%.2x ...]\n" ,
 				bytes[0] , bytes[1] , *parser->str) ;
 		#endif
 
-			return  0 ;
+			goto  error ;
 		}
 
 		bytes[2] = *parser->str ;
 
 		if( mkf_parser_increment( parser) == 0)
 		{
-			mkf_parser_reset( parser) ;
-
-			return  0 ;
+			goto  shortage ;
 		}
 
 		if( *parser->str < 0x30 || 0x39 < *parser->str)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				" illegal GBK format. %.2x%.2x%.2x%.2x (maybe the 1-4 byte of GBK) is discarded.\n" ,
+				" illegal GBK format. [%.2x%.2x%.2x%.2x]\n" ,
 				bytes[0] , bytes[1] , bytes[2] , *parser->str) ;
 		#endif
 
-			return  0 ;
+			goto  error ;
 		}
 
 		bytes[3] = *parser->str ;
@@ -178,7 +164,7 @@ gbk_parser_next_char_intern(
 
 		if( mkf_decode_gb18030_2000_to_ucs4( ucs4 , bytes) == 0)
 		{
-			return  0 ;
+			goto  error ;
 		}
 
 		memcpy( ch->ch , ucs4 , 4) ;
@@ -188,6 +174,12 @@ gbk_parser_next_char_intern(
 
 		return  1 ;
 	}
+
+error:
+shortage:
+	mkf_parser_reset( parser) ;
+
+	return  0 ;
 }
 
 static int

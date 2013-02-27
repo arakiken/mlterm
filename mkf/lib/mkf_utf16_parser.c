@@ -147,10 +147,8 @@ utf16_parser_next_char(
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " illegal UTF-16 surrogate-pair format.\n") ;
 			#endif
-			
-				mkf_parser_n_increment( parser , 4) ;
-				
-				return  0 ;
+
+				goto  error ;
 			}
 
 			ucs4 = ( (ch[0] - 0xd8) * 0x100 * 0x400 + ch[1] * 0x400 +
@@ -161,9 +159,7 @@ utf16_parser_next_char(
 			{
 				kik_warn_printf( KIK_DEBUG_TAG " illegal UTF-16 surrogate-pair format.\n") ;
 
-				mkf_parser_n_increment( parser , 4) ;
-				
-				return  0 ;
+				goto  error ;
 			}
 		#endif
 
@@ -187,6 +183,11 @@ utf16_parser_next_char(
 
 		return  1 ;
 	}
+
+error:
+	mkf_parser_reset( parser) ;
+
+	return  0 ;
 }
 
 

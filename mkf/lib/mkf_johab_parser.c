@@ -41,9 +41,7 @@ johab_parser_next_char(
 
 		if( mkf_parser_increment( johab_parser) == 0)
 		{
-			mkf_parser_reset( johab_parser) ;
-
-			return  0 ;
+			goto  shortage ;
 		}
 
 		byte2 = *johab_parser->str ;
@@ -113,9 +111,7 @@ johab_parser_next_char(
 
 		if( mkf_parser_increment( johab_parser) == 0)
 		{
-			mkf_parser_reset( johab_parser) ;
-
-			return  0 ;
+			goto  shortage ;
 		}
 
 		ch->ch[1] = *johab_parser->str ;
@@ -128,6 +124,11 @@ johab_parser_next_char(
 	mkf_parser_increment( johab_parser) ;
 	
 	return  1 ;
+
+shortage:
+	mkf_parser_reset( johab_parser) ;
+
+	return  0 ;
 }
 
 static void

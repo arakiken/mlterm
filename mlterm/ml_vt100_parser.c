@@ -4459,26 +4459,14 @@ parse_vt100_sequence(
 
 	while( 1)
 	{
-	#ifdef  ENABLE_SIXEL
-		u_char *  str ;
-	#endif
-
 		prev_left = vt100_parser->r_buf.left ;
 
 		/*
 		 * parsing character encoding.
 		 */
 		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
-		#ifdef  ENABLE_SIXEL
-			str =
-		#endif
 			CURRENT_STR_P(vt100_parser) , vt100_parser->r_buf.left) ;
-		while(
-		#ifdef  ENABLE_SIXEL
-			/* C1 is ignored in mkf. */
-			*str != 0x90 &&
-		#endif
-			(*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
+		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
 			/*
 			 * UCS <-> OTHER CS
@@ -4617,10 +4605,10 @@ parse_vt100_sequence(
 				#endif
 					continue ;
 				}
-				else if( /* 0x1 <= ch.ch[0] && */ ch.ch[0] <= 0x1f)
+				else if( (ch.ch[0] & 0x7f) <= 0x1f && ch.cs == US_ASCII)
 				{
 					/*
-					 * this is a control sequence.
+					 * This is a control sequence (C0 or C1), so
 					 * reparsing this char in vt100_escape_sequence() ...
 					 */
 

@@ -529,23 +529,11 @@ next_byte(
 	}
 	else
 	{
-		if( IS_C0( *iso2022_parser->parser.str))
+		if( IS_C0( *iso2022_parser->parser.str) ||
+		    IS_C1( *iso2022_parser->parser.str))
 		{
 			ch->ch[ ch->size++] = *iso2022_parser->parser.str ;
 			ch->cs = US_ASCII ;
-		}
-		else if( IS_C1( *iso2022_parser->parser.str))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" %.2x C1 charset except SS2(0x8e) SS3(0x8f) is not supported ,"
-				" skipping...\n" ,
-				*iso2022_parser->parser.str) ;
-		#endif
-			
-			mkf_parser_increment( iso2022_parser) ;
-
-			return  next_byte( iso2022_parser , ch) ;
 		}
 		else if( IS_GL( *(iso2022_parser->parser.str)))
 		{

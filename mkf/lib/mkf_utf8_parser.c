@@ -191,7 +191,7 @@ utf8_err:
 	kik_warn_printf( KIK_DEBUG_TAG " illegal utf8 sequence [0x%.2x ...].\n" , utf8_ch[0]) ;
 #endif
 
-	mkf_parser_increment( utf8_parser) ;
+	mkf_parser_reset( utf8_parser) ;
 
 	return  0 ;
 }

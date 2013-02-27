@@ -61,6 +61,8 @@ euctw_parser_next_char(
 				ch->ch[0]) ;
 		#endif
 
+			mkf_parser_reset( parser) ;
+
 			return  0 ;
 		}
 		

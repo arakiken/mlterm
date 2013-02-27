@@ -1,3 +1,15 @@
+2013-02-28  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Fixes around parsing C1 characters.
+
+	* mkf_iso2022_parser.c: C1 characters are regarded as US_ASCII
+	  like C0 ones instead of being ignored.
+
+	* mkf_*_parser.c: If error happens in parsing sequence,
+	  the parsing position is reset.
+
+	* mkf.c: Minor fixes.
+
 2013-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* README: Updated.

@@ -251,8 +251,11 @@ main( int  argc , char **  argv)
 	while( ( size = fread( input_p , 1 , 1024 - parser->left , fp)) > 0)
 	{
 		(*parser->set_str)( parser , input , size + parser->left) ;
-		size = (*conv->convert)( conv , output , 1024 , parser) ;
-		
+		if( ( size = (*conv->convert)( conv , output , 1024 , parser)) == 0)
+		{
+			break ;
+		}
+
 		fwrite( output , 1 , size , stdout) ;
 		
 		if( parser->left > 0)

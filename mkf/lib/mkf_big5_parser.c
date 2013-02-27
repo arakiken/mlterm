@@ -50,9 +50,7 @@ big5_parser_next_char_intern(
 
 		if( mkf_parser_increment( big5_parser) == 0)
 		{
-			mkf_parser_reset( big5_parser) ;
-
-			return  0 ;
+			goto  shortage ;
 		}
 
 		if( ( 0x40 <= *big5_parser->str && *big5_parser->str <= 0x7e) ||
@@ -90,7 +88,8 @@ big5_parser_next_char_intern(
 	return  1 ;
 
 error:
-	mkf_parser_increment( big5_parser) ;
+shortage:
+	mkf_parser_reset( big5_parser) ;
 
 	return  0 ;
 }
