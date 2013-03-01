@@ -46,6 +46,7 @@ static const IID __uuid_inst =
 
 /* --- static functions --- */
 
+#define  BUILTIN_IMAGELIB	/* Necessary to use create_cardinals_from_sixel() */
 #include  "../../common/c_imagelib.c"
 
 static u_int32_t *

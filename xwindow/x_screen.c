@@ -7181,7 +7181,7 @@ xterm_get_window_size(
 	return  1 ;
 }
 
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 static ml_char_t *
 xterm_get_picture_data(
 	void *  p ,
@@ -7256,7 +7256,7 @@ xterm_get_picture_data(
 }
 #else
 #define  xterm_get_picture_data NULL
-#endif	/* ENABLE_SIXEL */
+#endif	/* NO_IMAGE */
 
 
 /*

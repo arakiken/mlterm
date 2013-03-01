@@ -3,6 +3,8 @@
  *	$Id$
  */
 
+#ifndef  NO_IMAGE
+
 #include  "../x_imagelib.h"
 
 /*
@@ -1971,3 +1973,5 @@ x_delete_image(
 
 	return  1 ;
 }
+
+#endif	/* NO_IMAGE */

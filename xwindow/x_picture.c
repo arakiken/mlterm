@@ -2,6 +2,8 @@
  *	$Id$
  */
 
+#ifndef  NO_IMAGE
+
 #include  "x_picture.h"
 
 
@@ -24,10 +26,8 @@ static x_picture_t **  pics ;
 static u_int  num_of_pics ;
 static x_icon_picture_t **  icon_pics ;
 static u_int  num_of_icon_pics ;
-#ifdef  ENABLE_SIXEL
 static x_inline_picture_t *  inline_pics ;
 static u_int  num_of_inline_pics ;
-#endif
 
 
 /* --- static functions --- */
@@ -217,7 +217,6 @@ delete_icon_picture(
 	return  1 ;
 }
 
-#ifdef  ENABLE_SIXEL
 static void
 delete_inline_picture(
 	x_inline_picture_t *  pic	/* pic->pixmap mustn't be NULL. */
@@ -423,7 +422,6 @@ cleanup_inline_pictures(
 
 	return  empty_idx ;
 }
-#endif	/* ENABLE_SIXEL */
 
 
 /* --- global functions --- */
@@ -470,7 +468,6 @@ x_picture_display_closed(
 		}
 	}
 
-#ifdef  ENABLE_SIXEL
 	for( count = 0 ; count < num_of_inline_pics ; count++)
 	{
 		if( inline_pics[count].display == display)
@@ -490,7 +487,6 @@ x_picture_display_closed(
 			inline_pics[count].display = NULL ;
 		}
 	}
-#endif
 
 	return  x_imagelib_display_closed( display) ;
 }
@@ -719,7 +715,6 @@ x_release_icon_picture(
 	return  0 ;
 }
 
-#ifdef  ENABLE_SIXEL
 int
 x_load_inline_picture(
 	x_display_t *  disp ,
@@ -815,4 +810,5 @@ x_get_inline_picture(
 		return  NULL ;
 	}
 }
-#endif	/* ENABLE_SIXEL */
+
+#endif	/* NO_IMAGE */

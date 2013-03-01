@@ -977,7 +977,7 @@ report_window_size(
 	}
 }
 
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 static void
 show_picture(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -1077,7 +1077,7 @@ config_protocol_set(
 	{
 		soft_reset( vt100_parser) ;
 	}
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 	else if( strncmp( pt , "show_picture " , 13) == 0)
 	{
 		int  clip_beg_col = 0 ;
@@ -1855,7 +1855,7 @@ send_device_attributes(
 	if( rank == 1)
 	{
 		/* vt100 answerback */
-	#ifdef  ENABLE_SIXEL
+	#ifndef  NO_IMAGE
 		seq = "\x1b[?1;2;4;7c" ;
 	#else
 		seq = "\x1b[?1;2;7c" ;
@@ -3903,7 +3903,7 @@ parse_vt100_escape_sequence(
 			/* "ESC P" DCS */
 
 			u_char *  dcs_beg ;
-		#ifdef  ENABLE_SIXEL
+		#ifndef  NO_IMAGE
 			char *  dir_path ;
 		#endif
 
@@ -3913,12 +3913,10 @@ parse_vt100_escape_sequence(
 				dcs_beg = str_p - 1 ;
 				break ;
 
-		#ifdef  ENABLE_SIXEL
 			parse_dcs:
 				/* 0x90 ... */
 				dcs_beg = str_p ;
 				break ;
-		#endif
 			}
 
 			do
@@ -3930,7 +3928,7 @@ parse_vt100_escape_sequence(
 			}
 			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
 
-		#ifdef  ENABLE_SIXEL
+		#ifndef  NO_IMAGE
 			if( ( *str_p == 'q' /* sixel */
 			    /* || *str_p == 'p' */ ) &&		/* ReGis */
 			    ( dir_path = kik_get_user_rc_path( "mlterm/")) )
@@ -4034,7 +4032,7 @@ parse_vt100_escape_sequence(
 				show_picture( vt100_parser , file_path , 0 , 0 , 0 , 0 , 0 , 0) ;
 			}
 			else
-		#endif  /* ENABLE_SIXEL */
+		#endif  /* NO_IMAGE */
 			if( *str_p == '{')
 			{
 				/* DECDLD */
@@ -4412,20 +4410,10 @@ parse_vt100_escape_sequence(
 			start_vt100_cmd( vt100_parser , 1) ;
 		}
 	}
-#ifdef  ENABLE_SIXEL
 	else if( *str_p == 0x90)
 	{
-		/*
-		 * DCS
-		 * (0x90 is used by utf8 encoding for non control characters, so
-		 * it is inappropriate to regard it as DCS simply.
-		 * But it doesn't cause a seirous problem because mlterm parses
-		 * received text by mkf for the first time.)
-		 */
-
 		 goto  parse_dcs ;
 	}
-#endif
 	else
 	{
 		/* not VT100 control sequence */

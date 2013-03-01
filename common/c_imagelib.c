@@ -6,7 +6,7 @@
 #include <kiklib/kik_util.h>	/* K_MIN */
 
 
-#if  (defined(ENABLE_SIXEL) && defined(GDK_PIXBUF_VERSION)) || defined(FORCE_ENABLE_SIXEL)
+#ifdef  BUILTIN_IMAGELIB
 
 #define  SIXEL_RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
 #define  PIXEL_SIZE  4
@@ -686,43 +686,6 @@ gdk_pixbuf_new_from_sixel(
 
 #define  create_cardinals_from_sixel( path , width , height)  (NULL)
 
-#else
-
-#define  gdk_pixbuf_new_from_sixel(path)  (NULL)
-
-static u_int32_t *
-create_cardinals_from_sixel(
-	const char *  path
-	)
-{
-	u_int  width ;
-	u_int  height ;
-	u_int32_t *  cardinal ;
-
-	if( ! ( cardinal = (u_int32_t*)load_sixel_from_file( path , &width , &height)))
-	{
-		return  NULL ;
-	}
-
-	cardinal -= 2 ;
-
-	cardinal[0] = width ;
-	cardinal[1] = height ;
-
-	return  cardinal ;
-}
-
-#endif	/* GDK_PIXBUF_VERSION */
-
-#undef  SIXEL_RGB
-#undef  PIXEL_SIZE
-#undef  CARD_HEAD_SIZE
-
-#endif  /* ENABLE_SIXEL/FORCE_ENABLE_SIXEL */
-
-
-#ifdef  GDK_PIXBUF_VERSION
-
 /* create an CARDINAL array for_NET_WM_ICON data */
 static u_int32_t *
 create_cardinals_from_pixbuf(
@@ -860,7 +823,39 @@ gdk_pixbuf_new_from(
 	return  pixbuf ;
 }
 
+#else	/* GDK_PIXBUF_VERSION */
+
+#define  gdk_pixbuf_new_from_sixel(path)  (NULL)
+
+static u_int32_t *
+create_cardinals_from_sixel(
+	const char *  path
+	)
+{
+	u_int  width ;
+	u_int  height ;
+	u_int32_t *  cardinal ;
+
+	if( ! ( cardinal = (u_int32_t*)load_sixel_from_file( path , &width , &height)))
+	{
+		return  NULL ;
+	}
+
+	cardinal -= 2 ;
+
+	cardinal[0] = width ;
+	cardinal[1] = height ;
+
+	return  cardinal ;
+}
+
 #endif	/* GDK_PIXBUF_VERSION */
+
+#undef  SIXEL_RGB
+#undef  PIXEL_SIZE
+#undef  CARD_HEAD_SIZE
+
+#endif  /* BUILTIN_IMAGELIB */
 
 
 #ifdef  USE_X11

@@ -2,6 +2,8 @@
  *	$Id$
  */
 
+#ifndef  NO_IMAGE
+
 #include  "../x_imagelib.h"
 
 #include  <stdio.h>	/* sprintf */
@@ -471,3 +473,5 @@ x_delete_mask(
 
 	return  1 ;
 }
+
+#endif	/* NO_IMAGE */

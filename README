@@ -111,8 +111,8 @@ Options for configure
   --enable-vt52
     Support vt52 emulation
 
-  --enable-sixel
-    Support sixel graphics
+  --disable-image
+    Disable wall picture, icon picture, pseudo transparency and sixel graphics.
 
   --disable-shared
     Disable shared libraries

@@ -1,3 +1,9 @@
+ver 3.1.9
+* Remove --enable-sixel option from configure, and add --disable-image option.
+  (Support sixel graphics by default unless configure with --disable-image option.)
+* Bug fixes:
+  Fix the conflict of DCS(0x90) and the first byte of SJIS, GBK and so on.
+
 ver 3.1.8
 * Support framebuffer on FreeBSD. (Experimental)
 * 'key' configuration file accepts Button1 - Button5.

@@ -15,7 +15,7 @@
 
 /* --- global variables --- */
 
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 /* XXX */
 void (*ml_term_pty_closed_event)( ml_term_t *) ;
 #endif
@@ -120,7 +120,7 @@ ml_term_delete(
 	ml_term_t *  term
 	)
 {
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 	if( ml_term_pty_closed_event)
 	{
 		(*ml_term_pty_closed_event)( term) ;

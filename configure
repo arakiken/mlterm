@@ -857,7 +857,7 @@ REGEX_CFLAGS
 GUI_CFLAGS
 GUI
 XUTF8_CFLAGS
-SIXEL_CFLAGS
+IMAGE_CFLAGS
 MATH_CFLAGS
 MATH_LIBS
 IMAGELIB_LIBS
@@ -982,7 +982,7 @@ enable_debug
 with_gui
 with_gtk
 with_imagelib
-enable_sixel
+enable_image
 enable_dl_ctl
 enable_fribidi
 enable_dl_type
@@ -1674,7 +1674,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          debug [default=disabled]
-  --enable-sixel          sixel [default=disabled]
+  --disable-image          show image [default=disabled]
   --disable-dl-ctl        dynamic loading ctl library [default=enable]
   --enable-fribidi        bidi [default=disabled]
   --disable-dl-type       dynamic loading type engine library [default=enable]
@@ -20539,13 +20539,15 @@ fi
 
 
 
-# Check whether --enable-sixel was given.
-if test "${enable_sixel+set}" = set; then :
-  enableval=$enable_sixel; sixel=$enable_sixel
+# Check whether --enable-image was given.
+if test "${enable_image+set}" = set; then :
+  enableval=$enable_image; image=$enable_image
+else
+  image="yes"
 fi
 
-if test "$sixel" = "yes" ; then
-	SIXEL_CFLAGS="-DENABLE_SIXEL"
+if test "$image" != "yes" ; then
+	IMAGE_CFLAGS="-DNO_IMAGE"
 fi
 
 

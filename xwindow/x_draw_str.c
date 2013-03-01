@@ -6,7 +6,7 @@
 
 #include  <ml_drcs.h>
 
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 #include  "x_picture.h"
 #endif
 
@@ -49,7 +49,7 @@ adjust_bd_ul_color(
 	return  0 ;
 }
 
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 static int
 draw_picture(
 	x_window_t *  window ,
@@ -320,7 +320,7 @@ get_state(
 	int *  draw_alone
 	)
 {
-#ifdef  ENABLE_SIXEL
+#ifndef  NO_IMAGE
 	if( comb_chars && ml_char_cs( comb_chars) == PICTURE_CHARSET)
 	{
 		*draw_alone = 0 ;	/* forcibly set 0 regardless of xfont. */
@@ -652,7 +652,7 @@ fc_draw_str(
 			draw_count ++ ;
 		#endif
 
-		#ifdef  ENABLE_SIXEL
+		#ifndef  NO_IMAGE
 			if( state == 4)
 			{
 				draw_picture( window , glyphs , str_len , x , y ,
@@ -1094,7 +1094,7 @@ xcore_draw_str(
 			draw_count ++ ;
 		#endif
 
-		#ifdef  ENABLE_SIXEL
+		#ifndef  NO_IMAGE
 			if( state == 4)
 			{
 				draw_picture( window , glyphs , str_len , x , y ,

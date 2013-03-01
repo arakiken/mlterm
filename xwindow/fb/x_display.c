@@ -482,6 +482,8 @@ open_display(void)
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
 	{
+		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
+
 		goto  error ;
 	}
 

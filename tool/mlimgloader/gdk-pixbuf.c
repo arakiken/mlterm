@@ -51,6 +51,7 @@ GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #endif
+#define  BUILTIN_IMAGELIB	/* Necessary to use gdk_pixbuf_new_from() etc */
 #include  "../../common/c_imagelib.c"
 
 /* create GdkPixbuf from the specified file path.
