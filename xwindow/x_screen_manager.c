@@ -1171,15 +1171,17 @@ x_screen_manager_init(
 	else
 	{
 		size_t  count ;
-		char *  keys[] = { "Control+Button1" , "Control+Button2" ,
-					"Control+Button3" , "Button3" } ;
+		char  key0[] = "Control+Button1" ;
+		char  key1[] = "Control+Button2" ;
+		char  key2[] = "Control+Button3" ;
+		char  key3[] = "Button3" ;
+		char *  keys[] = { key0 , key1 , key2 , key3 } ;
 
 		for( count = 0 ; count < sizeof(keys) / sizeof(keys[0]) ; count ++)
 		{
 			if( main_config.shortcut_strs[count])
 			{
-				x_shortcut_parse( &shortcut ,
-					kik_str_alloca_dup( keys[count]) ,
+				x_shortcut_parse( &shortcut , keys[count] ,
 					main_config.shortcut_strs[count]) ;
 			}
 		}

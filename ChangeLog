@@ -1,3 +1,10 @@
+2013-03-02  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_config_menu.c: ml_pty_use_loopback() is called only if
+	  ml_pty_get_slave_fd() returns -1 like mlterm-3.1.7 or before.
+
+	* configure.in, x_screen_manager.c: Minor fixes.
+
 2013-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: 0x90 is always processed as DCS.

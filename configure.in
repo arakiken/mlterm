@@ -296,7 +296,7 @@ AC_SUBST(MATH_CFLAGS)
 
 
 AC_ARG_ENABLE(image,
-	[  --disable-image          show image @<:@default=disabled@:>@],
+	[  --disable-image         show image @<:@default=disabled@:>@],
 	image=$enable_image, image="yes")
 if test "$image" != "yes" ; then
 	IMAGE_CFLAGS="-DNO_IMAGE"

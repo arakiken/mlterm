@@ -171,18 +171,19 @@ ml_config_menu_start(
 
 	input_read = output_write = error_write = 0 ;
 
-#ifdef  USE_LIBSSH2
-	if( ml_pty_use_loopback( pty))
-	{
-		pty_fd = ml_pty_get_slave_fd( pty) ;
-		config_menu->pty = pty ;
-	}
-	else
-#else
 	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
-#endif
 	{
-		return  0 ;
+	#ifdef  USE_LIBSSH2
+		if( ml_pty_use_loopback( pty))
+		{
+			pty_fd = ml_pty_get_slave_fd( pty) ;
+			config_menu->pty = pty ;
+		}
+		else
+	#endif
+		{
+			return  0 ;
+		}
 	}
 
 	/*
@@ -367,18 +368,19 @@ error2:
 		return  0 ;
 	}
 
-#ifdef  USE_LIBSSH2
-	if( ml_pty_use_loopback( pty))
-	{
-		pty_fd = ml_pty_get_slave_fd( pty) ;
-		config_menu->pty = pty ;
-	}
-	else
-#else
 	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
-#endif
 	{
-		return  0 ;
+	#ifdef  USE_LIBSSH2
+		if( ml_pty_use_loopback( pty))
+		{
+			pty_fd = ml_pty_get_slave_fd( pty) ;
+			config_menu->pty = pty ;
+		}
+		else
+	#endif
+		{
+			return  0 ;
+		}
 	}
 
 	if( ! kik_file_unset_cloexec( pty_fd))
