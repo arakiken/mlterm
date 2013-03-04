@@ -758,9 +758,7 @@ gdk_pixbuf_new_from(
 {
 	GdkPixbuf *  pixbuf ;
 
-#if defined(ENABLE_SIXEL) || defined(FORCE_ENABLE_SIXEL)
 	if( ! strstr( path , ".six") || ! ( pixbuf = gdk_pixbuf_new_from_sixel( path)))
-#endif
 	{
 	#if GDK_PIXBUF_MAJOR >= 2
 

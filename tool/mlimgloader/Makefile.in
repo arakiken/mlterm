@@ -21,7 +21,6 @@ OBJ = @MLIMGLOADER_LIB@.o
 LKIK = @LKIK@
 LKIK_DEB = -lkik_deb
 
-# FORCE_ENABLE_SIXEL macro always enables sixel.
 CFLAGS1 = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -I/usr/local/include
 
 CFLAGS2_gdk-pixbuf = @GDK_PIXBUF_CFLAGS@ @X_CFLAGS@

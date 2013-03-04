@@ -13,8 +13,8 @@ comment $Id$
   URL Monikers
 
 * 準備
-  o mlterm (2012/12/28 以降の hg head)
-    ./configure --enable-sixel ...
+  o mlterm >= 3.1.7
+    ./configure ... (3.1.8 以前は --enable-sixel オプションが必要です。)
     make
     make install
 

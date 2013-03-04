@@ -1,3 +1,7 @@
+2013-03-04  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c, mlimgloader/Makefile.in: Minor fixes.
+
 2013-03-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_config_menu.c: ml_pty_use_loopback() is called only if

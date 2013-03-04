@@ -95,11 +95,15 @@ comment $Id$
       行の再描画処理を高速化します。(但し、w3m-img で副作用が出ます)
 
     --with-scrollbars
-      scrollbar/ か contrib/scrollbar/ 以下の指定されたスクロールバーをビルドし
-      ます。
+      scrollbar/ 又は contrib/scrollbar/ 以下の指定されたスクロールバーをビルド
+      します。
 
     --with-tools
-      tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
+      tool/ 又は contrib/tool/ 以下の指定されたツールをビルドします。
+
+    --disable-use-tools
+      tool/ 又は contrib/tool/ 以下のツールを一切ビルドせず、これらのツールを呼
+      び出す機能を mlterm 本体から削除します。
 
     --disable-dnd
       XDnD プロトコルによるドラッグアンドドロップサポートを無効にします。
@@ -129,6 +133,13 @@ comment $Id$
 
     --with-gtk=(2.0|3.0)
       使用する GTK+ のバージョンを指定します。
+
+    --enable-vt52
+      VT52 エミュレーション機能をサポートします。
+
+    --disable-image
+      壁紙、アイコン、擬似透過及び Sixel graphics といった画像処理関連の機能を全
+      て無効にします。
 
     --disable-shared
       共有ライブラリを構築しません。
