@@ -1,3 +1,11 @@
+2013-03-05  Araki Ken  <arakiken@users.sf.net>
+
+	* tlex/main.c:
+	  - tlex client skips parsing vt sequence in parse_vtseq().
+	  - Wrong check of disable_logging flag in parse_vtseq() is fixed.
+
+	* tlex/ChangeLog: Added.
+
 2013-03-04  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c, mlimgloader/Makefile.in: Minor fixes.

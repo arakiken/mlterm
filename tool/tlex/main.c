@@ -260,8 +260,8 @@ set_winsize(
 static void
 write_and_log(
 	char *  seq ,
-	char *  w_end ,
-	char *  log_end ,
+	char *  w_end ,		/* *w_end is not written. */
+	char *  log_end ,	/* *log_end is not logged. */
 	int  w_fd ,
 	int  log_fd
 	)
@@ -314,7 +314,15 @@ parse_vtseq(
 {
 	char *  seq_p ;
 
-	seq_p = seq ;
+	if( ! IS_SERVER)
+	{
+		seq_p = seq + len ;
+		len = 0 ;
+	}
+	else
+	{
+		seq_p = seq ;
+	}
 
 	while( len > 0)
 	{
@@ -464,7 +472,7 @@ parse_vtseq(
 				}
 				*seq_p = ch ;
 
-				if( disable_logging)
+				if( ! disable_logging)
 				{
 					write_and_log( seq , seq_p + 1 , esc_beg ,
 						w_fd , log_fd) ;
