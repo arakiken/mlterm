@@ -1,3 +1,13 @@
+2013-03-06  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.w3m -> tool/w3m-remoteimg/README.ja
+	  doc/en/README.w3m -> tool/w3m-remoteimg/README
+
+	* tool/w3m-remoteimg: Added.
+
+	* tlex/main.c: The previous commit around disable_logging flag in
+	  parse_vtseq() is undone.
+
 2013-03-05  Araki Ken  <arakiken@users.sf.net>
 
 	* tlex/main.c:

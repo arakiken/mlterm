@@ -472,7 +472,7 @@ parse_vtseq(
 				}
 				*seq_p = ch ;
 
-				if( ! disable_logging)
+				if( disable_logging)
 				{
 					write_and_log( seq , seq_p + 1 , esc_beg ,
 						w_fd , log_fd) ;
@@ -487,11 +487,10 @@ parse_vtseq(
 end:
 	write_and_log( seq , seq_p , seq_p , w_fd , log_fd) ;
 
-	if( len > 0)
+	if( (*left_len = len) > 0)
 	{
 		memcpy( left , seq_p , len) ;
 	}
-	*left_len = len ;
 
 	return  1 ;
 }
@@ -512,8 +511,7 @@ read_write(
 	debug_printf( "%s: read %d " , IS_SERVER ? "server" : "client" , r_fd) ;
 #endif
 
-	/* -1 is for buf[len] = '\0' */
-	if( ( len = read( r_fd , buf + *left_len , sizeof(buf) - *left_len - 1)) > 0)
+	if( ( len = read( r_fd , buf + *left_len , sizeof(buf) - *left_len)) > 0)
 	{
 		if( *left_len > 0)
 		{

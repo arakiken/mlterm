@@ -19,8 +19,8 @@ comment $Id$
     make install
 
   o w3m 0.5.3
-    http://mlterm.sf.net/w3m-0.5.3-remoteimg.patch をダウンロードし、w3m-0.5.3
-    のソースコードに適用
+    tar xzvf w3m-0.5.3.tar.gz ; cd w3m-0.5.3
+    patch -p1 < w3m-0.5.3-remoteimg.patch
     ./configure --enable-image ...
     make
     make install
