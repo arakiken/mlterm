@@ -62,6 +62,7 @@ enum
 /* --- static variables --- */
 
 static int  exit_backscroll_by_pty ;
+static int  allow_change_shortcut ;
 #ifdef  USE_IM_CURSOR_COLOR
 static char *  im_cursor_color = NULL ;
 #endif
@@ -7312,6 +7313,14 @@ x_exit_backscroll_by_pty(
 	exit_backscroll_by_pty = flag ;
 }
 
+void
+x_allow_change_shortcut(
+	int  flag
+	)
+{
+	allow_change_shortcut = flag ;
+}
+
 #ifdef  USE_IM_CURSOR_COLOR
 void
 x_set_im_cursor_color(
@@ -8172,12 +8181,15 @@ x_screen_exec_cmd(
 	}
 	else if( strcmp( cmd , "set_shortcut") == 0)
 	{
-		char *  opr ;
-
-		if( arg && ( opr = strchr( arg , '=')))
+		if( allow_change_shortcut)
 		{
-			*(opr++) = '\0' ;
-			x_shortcut_parse( screen->shortcut , arg , opr) ;
+			char *  opr ;
+
+			if( arg && ( opr = strchr( arg , '=')))
+			{
+				*(opr++) = '\0' ;
+				x_shortcut_parse( screen->shortcut , arg , opr) ;
+			}
 		}
 	}
 	else

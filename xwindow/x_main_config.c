@@ -260,6 +260,8 @@ x_prepare_for_main_config(
 		"recognize ANSI color change escape sequences. [true]") ;
 	kik_conf_add_opt( conf , '\0' , "exitbs" , 1 , "exit_backscroll_by_pty" ,
 		"exit backscroll mode on receiving data from pty. [false]") ;
+	kik_conf_add_opt( conf , '\0' , "shortcut" , 1 , "allow_change_shortcut" ,
+		"allow dynamic change of shortcut keys. [false]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -1059,6 +1061,11 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "exit_backscroll_by_pty")))
 	{
 		x_exit_backscroll_by_pty( 1) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "allow_change_shortcut")))
+	{
+		x_allow_change_shortcut( 1) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "icon_path")))

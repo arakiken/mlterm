@@ -3863,6 +3863,23 @@ parse_vt100_escape_sequence(
 
 				set_selection( vt100_parser , pt) ;
 			}
+		#if  0
+			else if( ps == 110)
+			{
+				config_protocol_set_simple( vt100_parser ,
+						"fg_color" , "black") ;
+			}
+			else if( ps == 111)
+			{
+				config_protocol_set_simple( vt100_parser ,
+						"bg_color" , "white") ;
+			}
+			else if( ps == 112)
+			{
+				config_protocol_set_simple( vt100_parser ,
+						"cursor_bg_color" , "black") ;
+			}
+		#endif
 			else if( ps == 5379)
 			{
 				/* "OSC 5379" set */

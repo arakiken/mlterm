@@ -1,3 +1,11 @@
+2013-03-07  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.c, x_screen.[ch]: "allow_change_shortcut" option is added.
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* configure.in: DEXPORT is set in Solaris.
+
 2013-03-06  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.w3m -> tool/w3m-remoteimg/README.ja

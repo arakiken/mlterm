@@ -597,6 +597,10 @@ Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SI
 or SIGILL is received.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-shortcut\fR(=\fIbool\fR)
+Whether to allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-ul\fR=\fIvalue\fR
 Specify the color to use to display underlined characters.
 .TP
@@ -1098,6 +1102,9 @@ See the explanation on these command-line options for detail.
 .TP
 \fBallow_osc52=\fIbool\fR (\fB\-\-osc52\fR)
 Allow access to clipboard(selection) by OSC 52 sequence.
+.TP
+\fBallow_change_shortcut=\fIbool\fR (\fB\-\-shortcut\fR)
+Allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
 .TP
 \fBalpha=\fIname\fR (\fB\-X\fR, \fB\-\-alpha\fR)
 Alpha in pseudo or true transparent.

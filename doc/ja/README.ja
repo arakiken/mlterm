@@ -712,6 +712,10 @@ comment $Id$
         ANSI color change escape sequences を有効にする。
         xterm の "colorMode" 相当のオプションです。
 
+      o allow_change_shortcut (true/*false*)
+        OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にす
+        る。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1158,6 +1162,7 @@ comment $Id$
        --altbuf(=bool) : use_alt_buffer
        --colors(=bool) : use_ansi_colors
        --exitbs(=bool) : exit_backscroll_by_pty
+       --shortcut(=bool) : allow_change_shortcut
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)

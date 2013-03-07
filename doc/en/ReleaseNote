@@ -3,6 +3,8 @@ ver 3.1.9
   That is, support sixel graphics by default unless configure with
   --disable-image option. (tool/w3m-remoteimg which doesn't depend on sixel
   graphics but on OSC 5379 show_picture also works on mlterm by default.)
+* Add "allow_change_shortcut" option which enables "set_shortcut" command of
+  configuration protocol.
 * Bug fixes:
   Fix the conflict of DCS(0x90) and the first byte of SJIS, GBK and so on.
 

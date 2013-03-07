@@ -19850,6 +19850,8 @@ if test "$with_gnu_ld" = "yes" ; then
 	else
 		DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
 	fi
+elif test "`$LD --version 2>&1 | $GREP Solaris`" != "" ; then
+	DEXPORT="-Wl,-M -Wl,\$(VPATH)/dexport.map -Wl,-z -Wl,nodefs"
 fi
 
 
@@ -20756,6 +20758,8 @@ fi
 			have_fribidi="yes"
 		fi
 	fi
+else
+	have_fribidi="no"
 fi
 if test "$have_fribidi" = "yes" ; then
 	if test "$dl_ctl" = "yes" ; then
@@ -26869,6 +26873,7 @@ echo "Build static libraries            : $enable_static"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 echo "External tools                    :$tools_result"
+echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
 echo "utmp support                      : $utmp"
 echo "Type engines                      :$type_engines_result"
@@ -26876,6 +26881,5 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
-echo "Sixel                             : $sixel"
 echo "VT52                              : $vt52"
 echo

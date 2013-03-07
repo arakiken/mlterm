@@ -152,7 +152,11 @@ typedef struct  x_screen
 
 void  x_exit_backscroll_by_pty( int  flag) ;
 
+void  x_allow_change_shortcut( int  flag) ;
+
+#ifdef  USE_IM_CURSOR_COLOR
 void  x_set_im_cursor_color( char *  color) ;
+#endif
 
 x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
