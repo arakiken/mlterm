@@ -6,6 +6,7 @@
 #define  __KIK_CONF_H__
 
 
+#include  "kik_def.h"		/* REMOVE_FUNCS_MLTERM_UNUSE */
 #include  "kik_types.h"
 #include  "kik_map.h"
 
@@ -29,7 +30,9 @@ typedef struct  kik_arg_opt
 typedef struct  kik_conf_entry
 {
 	char *  value ;
+#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
 	char *  default_value ;
+#endif
 
 } kik_conf_entry_t ;
 
@@ -67,7 +70,9 @@ int  kik_conf_read( kik_conf_t *  conf , char *  filename) ;
 
 char *  kik_conf_get_value( kik_conf_t *  conf , char *  key) ;
 
+#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
 int  kik_conf_set_default_value( kik_conf_t *  conf , char *  key , char *  default_value) ;
+#endif
 
 char *  kik_conf_get_version( kik_conf_t *  conf) ;
 

@@ -1100,9 +1100,10 @@ comment $Id$
     -J/--dyncomb(=bool) : use_dynamic_comb
     -K/--metakey=value : mod_meta_key
     -L/--ls(=bool)     : use_login_shell
+    -M/--im=value      : input_method
     -N/--name=value    : app_name
     -O/--sbmod=value   : scrollbar_mode
-    -P/--ptys=value    : startup_ptys (X)
+    -P/--clip(=bool)   : use_clipboard
     -Q/--vcur(=bool)   : use_vertical_cursor
     -R/--fsrange=value : font_size_range (X)
     -S/--sbview=value  : scrollbar_view_name
@@ -1139,7 +1140,6 @@ comment $Id$
        --bdfont(=bool) : use_bold_font
        --iconpath=value : icon_path
        --bimode=value  : bidi_mode
-       --im=value      : input_method
        --parent=value  : parent_window
        --bd=value      : bd_color
        --ul=value      : ul_color
@@ -1155,7 +1155,6 @@ comment $Id$
        --osc52(=bool)  : allow_osc52
        --blink(=bool)  : blink_cursor
        --border=value  : inner_border
-       --clip(=bool)   : use_clipboard
        --restart(=bool): auto_restart
        --logmsg(=bool) : logging_msg
        --loecho(=bool) : use_local_echo

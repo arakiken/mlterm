@@ -124,10 +124,14 @@ x_prepare_for_main_config(
 		"meta key [none]") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell [false]") ;
+	kik_conf_add_opt( conf , 'M' , "im" , 0 , "input_method" ,
+		"input method (xim/kbd/uim/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
 	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
 		"scrollbar mode (none/left/right) [none]") ;
+	kik_conf_add_opt( conf , 'P' , "clip" , 1 , "use_clipboard" ,
+		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
 	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
 		"rearrange cursor key for vertical mode [false]") ;
 	kik_conf_add_opt( conf , 'S' , "sbview" , 0 , "scrollbar_view_name" , 
@@ -194,8 +198,6 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "bimode" , 0 , "bidi_mode" ,
 		"bidi mode [normal]") ;
 #endif
-	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
-		"input method (xim/kbd/uim/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
 		"parent window") ;
 	kik_conf_add_opt( conf , '\0' , "bd" , 0 , "bd_color" ,
@@ -246,8 +248,6 @@ x_prepare_for_main_config(
 		"blink cursor [false]") ;
 	kik_conf_add_opt( conf , '\0' , "border" , 0 , "inner_border" ,
 		"inner border [2]") ;
-	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
-		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
 	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" ,
 		"restart mlterm automatically if an error like segv happens. [true]") ;
 	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,

@@ -296,7 +296,9 @@ kik_conf_delete(
 	{
 		free( pairs[count]->key) ;
 		free( pairs[count]->value->value) ;
+	#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
 		free( pairs[count]->value->default_value) ;
+	#endif
 		free( pairs[count]->value) ;
 	}
 	
@@ -583,8 +585,12 @@ kik_conf_write(
 	for( count = 0 ; count < size ; count ++)
 	{
 		fprintf( to , "%s = %s\n" , pairs[count]->key ,
-			pairs[count]->value->value ?
-				pairs[count]->value->value : pairs[count]->value->default_value) ;
+			pairs[count]->value->value
+			#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
+				? pairs[count]->value->value :
+				pairs[count]->value->default_value
+			#endif
+				) ;
 	}
 
 	fclose( to) ;
@@ -665,10 +671,15 @@ kik_conf_get_value(
 	}
 	else
 	{
-		return  pair->value->value ? pair->value->value : pair->value->default_value ;
+		return  pair->value->value
+		#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
+			? pair->value->value : pair->value->default_value
+		#endif
+			;
 	}
 }
 
+#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
 int
 kik_conf_set_default_value(
 	kik_conf_t *  conf ,
@@ -701,3 +712,5 @@ kik_conf_set_default_value(
 
 	return  1 ;
 }
+
+#endif

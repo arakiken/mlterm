@@ -2185,7 +2185,11 @@ shortcut_str(
 		if( ( seq = alloca( len)))
 		{
 			sprintf( seq , "\x1b]5379;%s\x07" , str) ;
-			/* processing_vtseq == -1 means loopback processing. */
+			/*
+			 * processing_vtseq == -1 means loopback processing of vtseq.
+			 * If processing_vtseq is -1, it is not set 1 in start_vt100_cmd()
+			 * which is called from ml_term_write_loopback().
+			 */
 			screen->processing_vtseq = -1 ;
 			ml_term_write_loopback( screen->term , seq , len - 1) ;
 			x_window_update( &screen->window , UPDATE_SCREEN|UPDATE_CURSOR) ;
@@ -6874,7 +6878,7 @@ start_vt100_cmd(
 	 * not called directly from here.
 	 */
 
-	/* processing_vtseq == -1 means loopback processing. */
+	/* processing_vtseq == -1 means loopback processing of vtseq. */
 	if( screen->processing_vtseq != -1)
 	{
 		screen->processing_vtseq = 1 ;
@@ -8016,24 +8020,40 @@ x_screen_exec_cmd(
 	{
 		if( HAS_SYSTEM_LISTENER(screen,mlclient))
 		{
-			/* processing_vtseq == -1 means loopback processing. */
+			/*
+			 * processing_vtseq == -1: process vtseq in loopback.
+			 * processing_vtseq == 0 : stop processing vtseq.
+			 */
 			if( screen->processing_vtseq > 0)
 			{
+				char *  ign_opts[] =
+				{
+					"-e" ,
+					"-initstr" , "-#" ,
+					"-osc52" ,
+					"-shortcut" ,
+				} ;
 				char *  p ;
+				size_t  count ;
 
 				/*
 				 * Executing value of "-e" or "--initstr" option is dangerous
 				 * in case 'cat dangerousfile'.
 				 */
-				if( ( ( p = strstr( cmd , "-e")) &&
-				      p[2] < 'A' &&
-				      /* XXX for mltracelog.sh */ strcmp( p , "-e cat") != 0) ||
-				    ( p = strstr( cmd , "-initstr")) ||
-				    ( p = strstr( cmd , "-#")))
+
+				for( count = 0 ; count < sizeof(ign_opts) / sizeof(ign_opts[0]) ;
+				     count ++)
 				{
-					kik_msg_printf( "Remove \"%s\" from mlclient args.\n" ,
-						p) ;
-					p[-1] = '\0' ;	/* Replace ' ', '\"' or '\''. */
+					if( ( p = strstr( cmd , ign_opts[count])) &&
+					    ( count > 0 ||    /* not -e option */
+					      ( p[2] < 'A' && /* not to match --extkey, --exitbs */
+					        /* XXX for mltracelog.sh */
+						strcmp( p , "-e cat") != 0)))
+					{
+						kik_msg_printf( "Remove %s "
+							"from mlclient args.\n" , p - 1) ;
+						p[-1] = '\0' ;	/* Replace ' ', '\"' or '\''. */
+					}
 				}
 			}
 
@@ -8181,7 +8201,11 @@ x_screen_exec_cmd(
 	}
 	else if( strcmp( cmd , "set_shortcut") == 0)
 	{
-		if( allow_change_shortcut)
+		/*
+		 * processing_vtseq == -1: process vtseq in loopback.
+		 * processing_vtseq == 0 : stop processing vtseq.
+		 */
+		if( screen->processing_vtseq <= 0 || allow_change_shortcut)
 		{
 			char *  opr ;
 

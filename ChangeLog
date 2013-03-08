@@ -1,3 +1,16 @@
+2013-03-08  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* x_main_config.c:
+	  -P option is assigned as the short option as --clip, and -M option is as --im.
+
+	* kik_conf.[ch]: kik_conf_set_default_value() is removed for buiding mlterm.
+
+	* x_screen.c:
+	  --shortcut and --osc52 options which are specified as the arguments of
+	  OSC 5379 mlclient are ignored.
+
 2013-03-07  Araki Ken  <arakiken@users.sf.net>
 
 	* x_main_config.c, x_screen.[ch]: "allow_change_shortcut" option is added.
