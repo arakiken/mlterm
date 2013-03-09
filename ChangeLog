@@ -1,3 +1,8 @@
+2013-03-10  Araki Ken  <arakiken@users.sf.net>
+
+	* w3m-0.5.3-remoteimg.patch: Time to wait for the response of
+	  "\x1b[14t\x1b[18t" is changed from 0.1 sec to 0.5 sec.
+
 2013-03-09  Araki Ken  <arakiken@users.sf.net>
 
 	* mlclient/main.c: Extra space in arguments of OSC 5379 mlclient is removed.
