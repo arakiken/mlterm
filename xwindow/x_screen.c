@@ -8045,13 +8045,28 @@ x_screen_exec_cmd(
 				     count ++)
 				{
 					if( ( p = strstr( cmd , ign_opts[count])) &&
-					    ( count > 0 ||    /* not -e option */
-					      ( p[2] < 'A' && /* not to match --extkey, --exitbs */
-					        /* XXX for mltracelog.sh */
-						strcmp( p , "-e cat") != 0)))
+					    ( count > 0 ||  /* not -e option, or */
+					      ( p[2] < 'A'  /* not match --extkey, --exitbs */
+					    #if  1
+					        /*
+						 * XXX for mltracelog.sh which executes
+						 * mlclient -e cat.
+						 * 3.1.9 or later : mlclient "-e" "cat"
+						 * 3.1.8 or before: mlclient "-e"  "cat"
+						 */
+						&& strcmp( p + 4 , "\"cat\"") != 0
+						&& strcmp( p + 5 , "\"cat\"") != 0
+					    #endif
+						)))
 					{
+						if( p[-1] == '-')
+						{
+							p -- ;
+						}
+
 						kik_msg_printf( "Remove %s "
 							"from mlclient args.\n" , p - 1) ;
+
 						p[-1] = '\0' ;	/* Replace ' ', '\"' or '\''. */
 					}
 				}

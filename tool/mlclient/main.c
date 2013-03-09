@@ -114,8 +114,7 @@ write_argv(
 		return  1 ;
 	}
 	
-	count = 1 ;
-	while( 1)
+	for( count = 1 ; count < argc ; count++)
 	{
 		p = argv[count] ;
 
@@ -145,16 +144,7 @@ write_argv(
 			p ++ ;
 		}
 
-		if( ++ count < argc)
-		{
-			write( fd , "\" " , 2) ;
-		}
-		else
-		{
-			write( fd , "\"" , 1) ;
-
-			break ;
-		}
+		write( fd , "\"" , 1) ;
 	}
 
 	return  1 ;
