@@ -1,3 +1,16 @@
+2013-03-11  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL: Updated.
+
+	* tool/w3m-remoteimg/README, README.ja:
+	  Moved to doc/en/README.w3m, doc/ja/README.w3m
+
+	* tool/w3m-0.5.3-remoteimg.patch:
+	  Removed. (Moved to bitbucket repository.)
+
+	* tool/tlex:
+	  Removed. (Moved to bitbucket repository.)
+
 2013-03-10  Araki Ken  <arakiken@users.sf.net>
 
 	* w3m-0.5.3-remoteimg.patch: Time to wait for the response of

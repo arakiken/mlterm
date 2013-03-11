@@ -18,9 +18,9 @@ How to display images by w3m on the remote host. (Experimental)
     make
     make install
 
-  o w3m 0.5.3
-    tar xzvf w3m-0.5.3.tar.gz ; cd w3m-0.5.3
-    patch -p1 < w3m-0.5.3-remoteimg.patch
+  o w3m 0.5.3 with remoteimg patch
+    Download a latest source archive of remoteimg branch from
+    https://bitbucket.org/arakiken/w3m/downloads
     ./configure --enable-image ...
     make
     make install

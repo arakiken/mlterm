@@ -138,17 +138,20 @@ version 20110903
   o If /dev/... is specified with 'pty_name' key, <pty title> is returned.
     Otherwise, <pty dev> returned.
   o /dev/... in 5379,5382,5383 proto is ignored for now.
-  o If "snapshot" protocol issued without <file name> or with no value,
+  o If "snapshot" command issued without <file name> or with no value,
     screen snapshot is output to ~/.mlterm/[tty].snp.
-  o "mlclient" protocol accepts arguments like mlclient comman except '='.
-    mlclient or mlclientx command is recommended to use.
+  o "mlclient" command accepts arguments like mlclient comman except '='.
+    mlclient or mlclientx executables of tool/mlclient is recommended to use.
     e.g. "\x1b]5379;mlclient --km utf8\x07"
-  o "mlclientx" protocol is similar to "mlclient" one except for not creating
+  o "mlclientx" command is similar to "mlclient" one except for not creating
     any new window.
-  o "selected_text(:encoding)" protocol returns selected text in which NL is
+  o "mlclient" and "mlclientx" commands doesn't accept "-e", "--initstr",
+    "--osc52" and "--shortcut" options, while they are available in ~/.mlterm/key
+    like Control+F1="proto:mlclient -osc52".
+  o "selected_text(:encoding)" command returns selected text in which NL is
     replaced to CR.
-  o "paste" protocol works like INSERT_SELECTION.
-  o "scp" protocol works as follows. ("foo.bar" is a remote host.)
+  o "paste" command works like INSERT_SELECTION.
+  o "scp" command works as follows. ("foo.bar" is a remote host.)
     e.g.)
      \x1b]5379;scp /bin/ls work\x07
        => scp localhost:/bin/ls foo.bar:$HOME/work/ls
@@ -164,7 +167,7 @@ version 20110903
      \x1b]5379;scp c:\users\text.txt ./\x07
        => scp localhost:c:\users\text.txt foo.bar:$HOME/text.txt
           ("\" is available as a separator only in win32.)
-  o Source and destination file names of "scp" protocol are convered to system
+  o Source and destination file names of "scp" command are convered to system
     locale encoding and terminal encoding respectively.
 
 * Note about font configuration
