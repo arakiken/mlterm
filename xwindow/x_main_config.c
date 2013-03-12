@@ -161,7 +161,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
 		"size (in characters) and position [80x24]") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
-		"mode in pressing meta key (none/esc/8bit) [none]") ;
+		"mode in pressing meta key (none/esc/8bit) [8bit]") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
 		"number of backlog (scrolled lines to save) [128]") ;
 	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , 

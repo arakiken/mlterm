@@ -2805,7 +2805,20 @@ write_buf:
 			}
 			else if( screen->mod_meta_mode == MOD_META_SET_MSB)
 			{
-				int  count ;
+				size_t  count ;
+			#ifdef  USE_WIN32GUI
+				static mkf_parser_t *  iso88591_parser ;
+
+				if( ! iso88591_parser)
+				{
+					iso88591_parser = ml_parser_new( ML_ISO8859_1) ;
+				}
+
+				parser = iso88591_parser ;
+			#else
+				/* xct's gl is US_ASCII and gr is ISO8859_1_R by default. */
+				parser = screen->xct_parser ;
+			#endif
 
 				for( count = 0 ; count < size ; count ++)
 				{
@@ -2814,8 +2827,6 @@ write_buf:
 						kstr[count] |= 0x80 ;
 					}
 				}
-				/* shouldn't try to parse the modified sequence */
-				parser = NULL ;
 			}
 		}
 
