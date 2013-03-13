@@ -221,6 +221,10 @@ x_xic_get_str(
 		{
 			event->ch = 0x7f ;
 		}
+		else if( event->ch == '@')
+		{
+			event->ch = 0x0 ;
+		}
 		else if( event->ch == '^')
 		{
 			event->ch = 0x1d ;

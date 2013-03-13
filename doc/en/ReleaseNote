@@ -12,6 +12,7 @@ ver 3.1.9
   such as mlconfig is started.
   Encode input character masked with 0x80 to the character encoding of pty
   if the value of mod_meta_mode option is 8bit. (Thanks to Vladimir Elisseev)
+  Fix the bug which disabled Alt+symbol and Control+@ in win32.
 
 ver 3.1.8
 * Support framebuffer on FreeBSD. (Experimental)

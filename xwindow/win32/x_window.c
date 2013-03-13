@@ -745,6 +745,47 @@ clear_margin_area(
 	}
 }
 
+static WORD
+oem_key_to_char(
+	WORD  wparam
+	)
+{
+	if( VK_OEM_1 <= wparam && wparam <= VK_OEM_2)
+	{
+		/*
+		 * VK_OEM_1 0xba
+		 * VK_OEM_PLUS 0xbb
+		 * VK_OEM_COMMA 0xbc
+		 * VK_OEM_MINUS 0xbd
+		 * VK_OEM_PERIOD 0xbe
+		 * VK_OEM_2 0xbf
+		 */
+		return  '*' + wparam - VK_OEM_1 ;
+	}
+	else if( wparam == VK_OEM_3)
+	{
+		return  '@' ;
+	}
+	else if( VK_OEM_4 <= wparam && wparam <= VK_OEM_7)
+	{
+		/*
+		 * VK_OEM_4 0xdb
+		 * VK_OEM_5 0xdc
+		 * VK_OEM_6 0xdd
+		 * VK_OEM_7 0xde
+		 */
+		return  '[' + wparam - VK_OEM_4 ;
+	}
+	else if( wparam == VK_OEM_102)
+	{
+		return  '_' ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -1827,12 +1868,13 @@ x_window_receive_event(
 		{
 			XKeyEvent  kev ;
 
+			kev.state = get_key_state() ;
+
 			if( ( 0x30 <= event->wparam && event->wparam <= VK_DIVIDE) ||
 				event->wparam == VK_BACK || event->wparam == VK_TAB ||
 				event->wparam == VK_RETURN || event->wparam == VK_ESCAPE ||
 				event->wparam == VK_SPACE)
 			{
-				kev.state = get_key_state() ;
 				kev.ch = event->wparam ;
 
 				if( ( kev.state & ModMask) && event->msg == WM_SYSKEYDOWN)
@@ -1863,37 +1905,43 @@ x_window_receive_event(
 					break ;
 				}
 			}
-			else if( event->msg == WM_SYSKEYDOWN &&
-			         event->wparam != VK_F10 /* Menu */)
+			else if( event->msg == WM_SYSKEYDOWN)
 			{
-				break ;
+				if( kev.state & ModMask)
+				{
+					/*
+					 * VK_OEM_XXX doesn't cause WM_*_CHAR message
+					 * in WM_SYSKEYDOWN.
+					 */
+					kev.ch = oem_key_to_char( event->wparam) ;
+				}
+				else
+				{
+					kev.ch = 0 ;
+				}
+
+				if( kev.ch == 0 && event->wparam != VK_F10 /* Menu */)
+				{
+					break ;
+				}
 			}
 			else
 			{
-				kev.ch = 0 ;
-
-				if( ( kev.state = get_key_state()) & ControlMask)
+				/*
+				 * - See x_xic_get_str() in win32/x_xic.c.
+				 * - Following keys don't cause WM_*_CHAR message.
+				 */
+				if( ( kev.state & ControlMask) &&
+				    ( event->wparam == VK_OEM_2 ||	/* Ctl+/ */
+				      event->wparam == VK_OEM_3 ||	/* Ctl+@ */
+				      event->wparam == VK_OEM_7 ||	/* Ctl+^ */
+				      event->wparam == VK_OEM_102))	/* Ctl+_ */
 				{
-					/*
-					 * - See x_xic_get_str() in win32/x_xic.c.
-					 * - Following VK_* keys don't cause WM_*_CHAR message.
-					 */
-
-					/* Control+/ (106-JP Keyboard) */
-					if( event->wparam == VK_OEM_2)
-					{
-						kev.ch = '/' ;
-					}
-					/* Control+^ (106-JP Keyboard) */
-					else if( event->wparam == VK_OEM_7)
-					{
-						kev.ch = '^' ;
-					}
-					/* Control+_ (106-JP Keyboard) */
-					else if( event->wparam == VK_OEM_102)
-					{
-						kev.ch = '_' ;
-					}
+					kev.ch = oem_key_to_char( event->wparam) ;
+				}
+				else
+				{
+					kev.ch = 0 ;
 				}
 			}
 

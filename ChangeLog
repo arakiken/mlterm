@@ -1,3 +1,12 @@
+2013-03-14  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c:
+	  mod_meta_mode=8bit works in win32.
+
+	* win32/x_window.c, win32/x_xic.c:
+	  - Alt + symbol character works.
+	  - Control + @ works.
+
 2013-03-13  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: If the value of mod_meta_mode option is 8bit, input
