@@ -18,7 +18,7 @@ comment $Id$
     make
     make install
 
-  o w3m 0.5.3 with remoteimg patch
+  o w3m 0.5.3 with remote image patch
     https://bitbucket.org/arakiken/w3m/downloads から remoteimg ブランチ
     のアーカイブをダウンロード
     ./configure --enable-image ...

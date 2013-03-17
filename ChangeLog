@@ -1,3 +1,27 @@
+2013-03-16  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: mod_meta_mode=8bit works correctly in 8bit character
+	  encodings except ISO8859-1.
+
+	* README, man/mlterm.1, doc/ja/README.ja, doc/ja/BUGS: Updated.
+
+	* mlterm/libptyssh/Makefile.in, mlterm/libptyssh/ml_pty_ssh.c,
+	  mlterm/ml_pty_ssh.c:
+	  ml_pty_ssh is separated to a dynamically loaded module in platforms
+	  except win32.
+
+	* ml_pty.h, ml_pty_ssh.c:
+	  ml_pty_(un)use_loopback() -> ml_pty_set_use_loopback()
+
+	* kiklib/src/Makefile.in:
+	  MAJOR.MINOR: 14.1 -> 14.2
+
+	* kik_conf.c, kik_map.[ch]:
+	  kik_map_compare_str_nocase which compare strings ignoring case is added,
+	  and kik_conf uses it to check key strings of configuration files.
+
+	* configure.in: --without-pthread option is added.
+
 2013-03-14  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c:

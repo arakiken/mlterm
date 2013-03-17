@@ -58,9 +58,7 @@ char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
 #ifdef  USE_LIBSSH2
 void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;
 
-int  ml_pty_use_loopback( ml_pty_ptr_t  pty) ;
-
-int  ml_pty_unuse_loopback( ml_pty_ptr_t  pty) ;
+int  ml_pty_set_use_loopback( ml_pty_ptr_t  pty , int  use) ;
 
 int  ml_pty_ssh_scp( ml_pty_ptr_t  pty , ml_char_encoding_t  pty_encoding ,
 	ml_char_encoding_t  path_encoding , char *  dst_path , char *  src_path) ;

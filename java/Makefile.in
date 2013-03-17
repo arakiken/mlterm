@@ -64,11 +64,12 @@ mlterm.jar : $(CLASS) $(TARGET@WIN32TAG@) manifest.mf
 $(TARGET_win32) : MLTermPty.h
 	$(CC) -Wl,--kill-at $(CFLAGS) -shared -o MLTermPty.dll \
 	$(top_srcdir)/java/MLTermPty.c ../mlterm/.libs/*.o ../kiklib/src/.libs/libkik.dll.a \
-	../mkf/lib/.libs/libmkf.dll.a -L/usr/local/lib @WINSOCK_LIBS@ @SSH2_LIBS@
+	../mkf/lib/.libs/libmkf.dll.a -L/usr/local/lib @SSH2_LIBS_FOR_PROG@
 
 $(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
 	$(LIBTOOL_LINK) -o $(TARGET) -s $(OBJ:.o=.lo) -rpath $(libdir) \
-	-avoid-version ../mlterm/*.lo ../kiklib/src/libkik.la ../mkf/lib/libmkf.la @SSH2_LIBS@
+	-avoid-version ../mlterm/*.lo ../kiklib/src/libkik.la ../mkf/lib/libmkf.la \
+	@SSH2_LIBS_FOR_PROG@
 	# .s? -> .so or .sl
 	cp .libs/*.s? .
 

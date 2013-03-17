@@ -59,7 +59,7 @@ wait_child_exited(
 			config_menu->pid = 0 ;
 
 		#ifdef  USE_LIBSSH2
-			ml_pty_unuse_loopback( config_menu->pty) ;
+			ml_pty_set_use_loopback( config_menu->pty , 0) ;
 			config_menu->pty = NULL ;
 		#endif
 
@@ -94,7 +94,7 @@ sig_child(
 	#ifdef  USE_LIBSSH2
 		if( config_menu->pty)
 		{
-			ml_pty_unuse_loopback( config_menu->pty) ;
+			ml_pty_set_use_loopback( config_menu->pty , 0) ;
 			config_menu->pty = NULL ;
 		}
 	#endif
@@ -174,7 +174,7 @@ ml_config_menu_start(
 	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
 	{
 	#ifdef  USE_LIBSSH2
-		if( ml_pty_use_loopback( pty))
+		if( ml_pty_set_use_loopback( pty , 1))
 		{
 			pty_fd = ml_pty_get_slave_fd( pty) ;
 			config_menu->pty = pty ;
@@ -348,7 +348,7 @@ error2:
 #ifdef  USE_LIBSSH2
 	if( config_menu->pty)
 	{
-		ml_pty_unuse_loopback( config_menu->pty) ;
+		ml_pty_set_use_loopback( config_menu->pty , 0) ;
 		config_menu->pty = NULL ;
 	}
 #endif
@@ -371,7 +371,7 @@ error2:
 	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
 	{
 	#ifdef  USE_LIBSSH2
-		if( ml_pty_use_loopback( pty))
+		if( ml_pty_set_use_loopback( pty , 1))
 		{
 			pty_fd = ml_pty_get_slave_fd( pty) ;
 			config_menu->pty = pty ;

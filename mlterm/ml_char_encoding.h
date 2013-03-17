@@ -97,6 +97,8 @@ typedef enum  ml_char_encoding
 
 #define  IS_ISO8859_VARIANT(encoding)  (ML_ISO8859_1 <= (encoding) && (encoding) <= ML_TCVN5712)
 
+#define  IS_8BIT_ENCODING(encoding)  (ML_ISO8859_1 <= (encoding) && (encoding) <= ML_CP874)
+
 #define  IS_ENCODING_BASED_ON_ISO2022(encoding) \
 	(IS_ISO8859_VARIANT(encoding) || (ML_EUCJP <= (encoding) && (encoding) <= ML_ISO2022JP3) || \
 		ML_EUCKR == (encoding) || ML_ISO2022KR == (encoding) || ML_EUCTW == (encoding) || \

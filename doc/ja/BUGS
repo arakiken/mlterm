@@ -5,8 +5,9 @@ comment $Id$
 * NetBSD 5.1 + scim 1.4.9 で mlterm --im scim すると、segmentation fault する。
   (mlterm 2.9.4, 3.0.6)
 
-* 一部の環境(NetBSD 3.0.1) では、mlterm 本体を pthread にリンクしておかないと、
-  pthread に依存する module (libtype_cairo) を dlopen した場合に abort する。
+* 一部の環境(NetBSD 3.0.1) では、mlterm 本体を pthread にリンク(又は LD_PRELOAD
+  環境変数に libpthread.so ライブラリを指定)しておかないと、pthread に依存する
+  module (libtype_cairo, libptyssh) を dlopen した場合に abort する。
   NetBSD 5.1, Ubuntu 11.04 では問題ない。
   (mlterm 3.0.7pre 2011-09-16)
 

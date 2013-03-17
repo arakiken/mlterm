@@ -398,7 +398,7 @@ AC_ARG_ENABLE(anti_alias,
 	anti_alias=$enable_anti_alias)
 
 AC_ARG_WITH(type_engines,
-	[  --with-type-engines     type engines(xcore, xft) @<:@default=xcore@:>@],
+	[  --with-type-engines@<:@=ARG@:>@ type engines (xcore, xft, cairo) @<:@default=xcore@:>@],
 	type_engines=$with_type_engines)
 
 if test "$gui" != "xlib" ; then
@@ -506,33 +506,41 @@ if test "$ssh2" = "yes" ; then
 		[
 		SSH2_CFLAGS="-DUSE_LIBSSH2"
 		SSH2_LIBS="-lssh2"
-		AC_CHECK_HEADER(pthread.h,
-			[
-			SSH2_CFLAGS="$SSH2_CFLAGS -DHAVE_PTHREAD"
-			SSH2_LIBS="$SSH2_LIBS -lpthread"
-			]
-			)
 		], ssh2="no")
 fi
 
 if test "$ml_cv_is_posix" = "no" ; then
 	if test "$ssh2" = "yes" ; then
 		ML_PTY_OBJ="ml_pty_ssh.o"
-		WINSOCK_LIBS="-lwsock32 -lws2_32"
+		# Not dlopen
+		SSH2_CFLAGS="$SSH2_CFLAGS -DNO_DYNAMIC_LOAD_SSH"
+		SSH2_LIBS_FOR_PROG="$SSH2_LIBS -lwsock32 -lws2_32"
+		SSH2_LIBS=
 	else
 		ML_PTY_OBJ="ml_pty_pipewin32.o"
 	fi
 else
+	ML_PTY_OBJ="ml_pty_unix.o"
 	if test "$ssh2" = "yes" ; then
-		ML_PTY_OBJ="ml_pty_unix.o ml_pty_ssh.o"
-	else
-		ML_PTY_OBJ="ml_pty_unix.o"
+		AC_ARG_WITH(pthread,
+			[  --without-pthread       don't use pthread @<:@default=with@:>@])
+		if test "$with_pthread" != "no" ; then
+			AC_CHECK_HEADER(pthread.h,
+				[
+				SSH2_CFLAGS="$SSH2_CFLAGS -DHAVE_PTHREAD"
+				SSH2_LIBS="$SSH2_LIBS -lpthread"
+				])
+		fi
+		ML_PTY_OBJ="ml_pty_ssh.o ${ML_PTY_OBJ}"
+		# dlopen libptyssh
+		MAKE_DIRS="mlterm/libptyssh ${MAKE_DIRS}"
+		OUTPUT_FILES="mlterm/libptyssh/Makefile ${OUTPUT_FILES}"
 	fi
 fi
 AC_SUBST(SSH2_LIBS)
+AC_SUBST(SSH2_LIBS_FOR_PROG)
 AC_SUBST(SSH2_CFLAGS)
 AC_SUBST(ML_PTY_OBJ)
-AC_SUBST(WINSOCK_LIBS)
 
 AC_ARG_ENABLE(utmp,
 	[  --enable-utmp           utmp (Experimental) @<:@default=disabled@:>@],

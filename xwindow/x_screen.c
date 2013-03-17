@@ -2806,23 +2806,30 @@ write_buf:
 			else if( screen->mod_meta_mode == MOD_META_SET_MSB)
 			{
 				size_t  count ;
-			#if  defined(USE_WIN32GUI)
-			#ifndef  UTF16_IME_CHAR
-				static mkf_parser_t *  key_parser ;
 
-				if( ! key_parser)
+				if( ! IS_8BIT_ENCODING(ml_term_get_encoding(screen->term)))
 				{
-					key_parser = ml_parser_new( ML_ISO8859_1) ;
-				}
+				#ifdef  USE_WIN32GUI
+				#ifndef  UTF16_IME_CHAR
+					static mkf_parser_t *  key_parser ;
 
-				parser = key_parser ;
-			#else
-				/* parser has been already set for UTF16BE. */
-			#endif	/* UTF16_IME_CHAR */
-			#else	/* USE_WIN32GUI */
-				/* xct's gl is US_ASCII and gr is ISO8859_1_R by default. */
-				parser = screen->xct_parser ;
-			#endif	/* USE_WIN32GUI */
+					if( ! key_parser)
+					{
+						key_parser = ml_parser_new( ML_ISO8859_1) ;
+					}
+
+					parser = key_parser ;
+				#else
+					/* parser has been already set for UTF16BE. */
+				#endif	/* UTF16_IME_CHAR */
+				#else	/* USE_WIN32GUI */
+					/*
+					 * xct's gl is US_ASCII and gr is ISO8859_1_R
+					 * by default.
+					 */
+					parser = screen->xct_parser ;
+				#endif	/* USE_WIN32GUI */
+				}
 
 				for( count = 0 ; count < size ; count ++)
 				{

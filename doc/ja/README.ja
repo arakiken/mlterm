@@ -85,6 +85,10 @@ comment $Id$
     --enable-ssh2
       libssh2 を用いて ssh サーバに接続できるようにします。
 
+    --without-pthread
+      ssh サーバとの (doc/en/PROTOCOL の scp コマンドによる) secure copy において
+      pthread を使用しません。
+
     --enable-utmp
       utmp に対応します。
 
@@ -305,7 +309,7 @@ comment $Id$
         起動時に立ち上げるウィンドウの数
 
       -- Encoding 関連 --
-      o ENCODING  (*auto*) (#)
+      o encoding  (*auto*) (#)
         エンコーディングの指定
 
         サポートしているエンコーディングは、以下の通りです。

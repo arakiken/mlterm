@@ -63,6 +63,9 @@ Options for configure
     Use libssh2 to connect ssh2 server
     (Usage: mlterm(mlclient) --serv ssh://user@xxx.xxx.xxx)
 
+  --without-pthread
+    Don't depend on pthread for secure copy (scp) over ssh.
+
   --enable-utmp
     Use utmp,wtmp,lastlog
 

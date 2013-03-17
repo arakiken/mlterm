@@ -103,12 +103,12 @@ x_prepare_for_main_config(
 		"use indic (ligature text) [false]") ;
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
-	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
+	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" ,
 		"use bidi (bi-directional text) [true]") ;
 #endif
-	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
+	kik_conf_add_opt( conf , 'E' , "km" , 0 , "encoding" ,
 		"character encoding (AUTO/ISO-8859-*/EUC-*/UTF-8/...) [AUTO]") ;
-	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , 
+	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" ,
 		"scrollbar foreground color") ;
 	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
 		"vertical mode (none/cjk/mongol) [none]") ;

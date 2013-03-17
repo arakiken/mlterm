@@ -51,14 +51,16 @@ kik_map_compare_str(
 	char *  key2
 	)
 {
-	if( strcmp( key1 , key2) == 0)
-	{
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
+	return  (strcmp( key1 , key2) == 0) ;
+}
+
+int
+kik_map_compare_str_nocase(
+	char *  key1 ,
+	char *  key2
+	)
+{
+	return  (strcasecmp( key1 , key2) == 0) ;
 }
 
 int

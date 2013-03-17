@@ -266,7 +266,7 @@ kik_conf_new(void)
 	conf->end_opt = '\0' ;
 	
 	kik_map_new( char * , kik_conf_entry_t * , conf->conf_entries ,
-		kik_map_hash_str , kik_map_compare_str) ;
+		kik_map_hash_str , kik_map_compare_str_nocase) ;
 
 	return  conf ;
 }

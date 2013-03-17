@@ -389,6 +389,8 @@ int  kik_map_hash_int( int  key , u_int  size) ;
  */
 int  kik_map_compare_str( char *  key1 , char *  key2) ;
 
+int  kik_map_compare_str_nocase( char *  key1 , char *  key2) ;
+
 int  kik_map_compare_int( int  key1 , int  key2) ;
 
 
