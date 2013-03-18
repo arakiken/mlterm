@@ -1,0 +1,39 @@
+Utility scripts for mlterm.
+
+* google.sh
+  Search specified keyword by google.
+  (This script doesn't work with mlterm-3.1.7 or later + w3m remote img which
+   consumes string of --inistr in checking OSC14t and OSC18t.)
+
+  o Usage
+    $ google.sh [keyword]
+
+* mlscp.sh
+  Do secure copy over ssh connection.
+
+  o Usage
+    $ mlscp [src path] [dst path]
+
+    <path> = (remote:|local:)/dir/file
+
+* mlsearch.sh
+  Move to characters matching a pattern.
+
+  o Usage
+    $ mlsearch.sh [keyword]
+    $ mlsearch.sh prev [keyword]
+    $ mlsearch.sh next [keyword]
+
+* mltracelog.sh
+  Trace a log file mlterm --logseq outputs with trachet(http://pypi.python.org/pypi/trachet).
+
+  o Usage
+    $ mltracelog.sh [log file]
+
+* xconsole.sh
+  Watch /dev/console like /usr/X11R6/bin/xconsole.
+
+  o Usage
+    $ xconsole.sh
+
+    Exit by control+c.

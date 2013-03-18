@@ -622,6 +622,8 @@ open_screen_intern(
 
 	if( pty)
 	{
+	#if  0
+		/* mlclient /dev/... -e foo */
 		if( main_config.cmd_argv)
 		{
 			int  count ;
@@ -634,6 +636,7 @@ open_screen_intern(
 
 			ml_term_write( term , "\n" , 1 , 0) ;
 		}
+	#endif
 	}
 	else
 	{
@@ -658,11 +661,12 @@ open_screen_intern(
 
 			return  NULL ;
 		}
-	}
 
-	if( main_config.init_str)
-	{
-		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
+		if( main_config.init_str)
+		{
+			ml_term_write( term , main_config.init_str ,
+				strlen( main_config.init_str) , 0) ;
+		}
 	}
 
 	/* Don't add screen to screens before "return NULL" above. */

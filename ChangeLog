@@ -1,3 +1,11 @@
+2013-03-18  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen_manager.c, accessories/google.sh: Minor fixes.
+
+	* accessories/README: Added.
+
+	* accessories/README.ja: Removed.
+
 2013-03-16  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: mod_meta_mode=8bit works correctly in 8bit character

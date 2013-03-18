@@ -5,10 +5,10 @@ if [ ${#} -ne 1 ]; then
 	exit  1
 fi
 
-if [ -e /tmp/.mlterm-* ]; then
+if [ -e ~/.mlterm/socket ]; then
 	cmd="mlclient"
 else
 	cmd="mlterm"
 fi
 
-mlclient -T google --initstr "													\n${1}\n	\n" -e w3m http://www.google.com
+$cmd -T google --initstr "													\n${1}\n	\n" -e w3m http://www.google.com
