@@ -60,7 +60,7 @@ Options for configure
     which are statically linked to mlterm.
   
   --enable-ssh2
-    Use libssh2 to connect ssh2 server
+    Use libssh2 (http://www.libssh2.org) to connect ssh2 server
     (Usage: mlterm(mlclient) --serv ssh://user@xxx.xxx.xxx)
 
   --without-pthread
@@ -141,9 +141,9 @@ What you need for compilation
 
   Fribidi (0.9.0 - ?) for Bidi.
 
-  libssh2 for ssh2 client and scp.
-  (Apply http://mlterm.sourceforge.net/libssh2-1.4.1-camellia.patch to
-  libssh2 if you use camellia as common key cryptography.)
+  libssh2 (http://www.libssh2.org) for ssh2 client and scp.
+  (If you want to use camellia as common key cryptography, download libssh2
+   camellia branch from https://bitbucket.org/arakiken/libssh2/downloads)
 
 
 Supported platforms

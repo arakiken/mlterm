@@ -103,7 +103,9 @@ mkf_parser_next_char(
 		{
 			return  1 ;
 		}
-		else if( parser->is_eos)
+		else if( parser->is_eos ||
+		         /* parser->next_char() returns error and skip to next char */
+		         mkf_parser_increment( parser) == 0)
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG

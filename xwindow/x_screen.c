@@ -7063,30 +7063,37 @@ xterm_set_window_name(
 	)
 {
 	x_screen_t *  screen ;
-#ifdef  USE_WIN32GUI
-	u_char *  buf ;
-	size_t  len ;
-	mkf_parser_t *  parser ;
-#endif
 
 	screen = p ;
 
 #ifdef  USE_WIN32GUI
-	if( name && *name &&
-	    ( buf = alloca( ( len = strlen(name) + 1) * 4)) && /* 4 == UTF16 surrogate pair. */
-	    ( parser = ml_parser_new( ml_term_get_encoding( screen->term))))
+	if( name)
 	{
-		(*parser->init)( parser) ;
-		(*parser->set_str)( parser , name , len) ;
+		u_char *  buf ;
+		size_t  len ;
+		mkf_parser_t *  parser ;
 
-		(*screen->utf_conv->init)( screen->utf_conv) ;
-		if( (*screen->utf_conv->convert)( screen->utf_conv ,
-				buf , len * 4 , parser) > 0)
+		/* 4 == UTF16 surrogate pair. */
+		if( ! ( buf = alloca( ( len = strlen(name)) * 4 + 2)) ||
+		    ! ( parser = ml_parser_new( ml_term_get_encoding( screen->term))))
 		{
-			name = buf ;
+			return ;
 		}
 
-		(*parser->delete)( parser) ;
+		if( len > 0)
+		{
+			(*parser->init)( parser) ;
+			(*parser->set_str)( parser , name , len) ;
+
+			(*screen->utf_conv->init)( screen->utf_conv) ;
+			len = (*screen->utf_conv->convert)( screen->utf_conv ,
+						buf , len * 4 , parser) ;
+			(*parser->delete)( parser) ;
+		}
+
+		buf[len] = '\0' ;
+		buf[len + 1] = '\0' ;
+		name = buf ;
 	}
 #endif
 

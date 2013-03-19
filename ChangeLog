@@ -1,3 +1,15 @@
+2013-03-20  Araki Ken  <arakiken@users.sf.net>
+
+	* mkf_parser.c:
+	  If parser->next_char() returns error, mkf_parser_increment() is called
+	  before continuting parsing.
+
+	* x_screen.c:
+	  Window title string is always terminated by U+0000 in xterm_set_window_name()
+	  in win32.
+
+	* README, doc/ja/README.ja: Updated.
+
 2013-03-18  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen_manager.c, accessories/google.sh: Minor fixes.
@@ -154,7 +166,7 @@
 
 	* README: Updated.
 
-	* version.h.in: 3.1.7 -> 3.1.7 post
+	* version.h.in: 3.1.8 -> 3.1.8 post
 
 2013-02-23  Araki Ken  <arakiken@users.sf.net>
 

@@ -30,7 +30,7 @@ comment $Id$
 
     Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
 
-    ssh2 client として使用する場合は、libssh2 が必要です。
+    ssh2 client として使用する場合は、libssh2 (http://www.libssh2.org) が必要です。
 
     これらは、すべて、configure 時に有無をチェックします。
 
@@ -83,7 +83,7 @@ comment $Id$
       mlterm 本体にリンクするようにします。
 
     --enable-ssh2
-      libssh2 を用いて ssh サーバに接続できるようにします。
+      libssh2 (http://www.libssh2.org) を用いて ssh サーバに接続できるようにします。
 
     --without-pthread
       ssh サーバとの (doc/en/PROTOCOL の scp コマンドによる) secure copy において
@@ -220,7 +220,7 @@ comment $Id$
 
   o ssh2 client
     ssh2 client として直接 ssh2 server に接続することができます。
-    libssh2 が必要となります。
+    libssh2 (http://www.libssh2.org) が必要となります。
     (例 mlterm(mlclient) --serv ssh://user@host:22)
 
   o auto-restart
