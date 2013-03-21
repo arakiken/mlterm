@@ -13,6 +13,10 @@
 # Control+Button3=menu:mlconfig
 
 #### Examples
+# Control+Right=NEXT_PTY
+# Control+Left=PREV_PTY
+# Button7=NEXT_PTY
+# Button6=PREV_PTY
 # Control+F5="proto:mlclient --serv localhost -e screen -xR"
 # Control+F6="w3m http://www.google.co.jp/\n"
 # Control+F7="proto:font_size=12;encoding=utf8"

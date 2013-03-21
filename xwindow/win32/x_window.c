@@ -2017,6 +2017,7 @@ x_window_receive_event(
 		break ;
 
 	case WM_MOUSEWHEEL:
+	case WM_MOUSEHWHEEL:
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
@@ -2065,7 +2066,8 @@ x_window_receive_event(
 				bev.state |= ControlMask ;
 			}
 
-			if( event->msg == WM_MOUSEWHEEL)
+			if( event->msg == WM_MOUSEWHEEL ||
+			    event->msg == WM_MOUSEHWHEEL)
 			{
 				/* Note that WM_MOUSEWHEEL event is reported to top window. */
 
@@ -2081,11 +2083,29 @@ x_window_receive_event(
 
 				if( ((SHORT)HIWORD(event->wparam)) > 0)
 				{
-					bev.button = 4 ;
+					if( event->msg == WM_MOUSEHWHEEL)
+					{
+						/* Right */
+						bev.button = Button7 ;
+					}
+					else
+					{
+						/* Up */
+						bev.button = Button4 ;
+					}
 				}
 				else
 				{
-					bev.button = 5 ;
+					if( event->msg == WM_MOUSEHWHEEL)
+					{
+						/* Left */
+						bev.button = Button6 ;
+					}
+					else
+					{
+						/* Down */
+						bev.button = Button5 ;
+					}
 				}
 			}
 			else
@@ -2095,17 +2115,17 @@ x_window_receive_event(
 
 				if( event->msg == WM_LBUTTONDOWN || event->msg == WM_LBUTTONUP)
 				{
-					bev.button = 1 ;
+					bev.button = Button1 ;
 				}
 				else if( event->msg == WM_MBUTTONDOWN ||
 					event->msg == WM_MBUTTONUP)
 				{
-					bev.button = 2 ;
+					bev.button = Button2 ;
 				}
 				else /* if( event->msg == WM_RBUTTONDOWN ||
 					event->msg == WM_RBUTTONUP) */
 				{
-					bev.button = 3 ;
+					bev.button = Button3 ;
 				}
 			}
 

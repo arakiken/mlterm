@@ -241,8 +241,8 @@ x_shortcut_match(
 	
 	if( shortcut->map[func].state != 0)
 	{
-		/* ingoring except ModMask / ControlMask / ShiftMask */
-		state &= (ModMask | ControlMask | ShiftMask) ;
+		/* ingoring except these masks */
+		state &= (ModMask|ControlMask|ShiftMask|ButtonMask) ;
 		
 		if( ((shortcut->map[func].state & ModMask) == ModMask) &&
 		     (state & ModMask))
@@ -277,8 +277,7 @@ x_shortcut_str(
 	u_int  count ;
 
 	/* ingoring except these masks */
-	state &= (ModMask|ControlMask|ShiftMask|
-	          Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask) ;
+	state &= (ModMask|ControlMask|ShiftMask|ButtonMask) ;
 
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{

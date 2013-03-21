@@ -1288,6 +1288,16 @@ receive_mouse_event(void)
 					xev.button = Button5 ;
 					_mouse.button_state = Button5Mask ;
 					break ;
+
+				button6:
+					xev.button = Button6 ;
+					_mouse.button_state = Button6Mask ;
+					break ;
+
+				button7:
+					xev.button = Button7 ;
+					_mouse.button_state = Button7Mask ;
+					break ;
 				}
 
 				ev.value = 1 ;
@@ -1366,11 +1376,26 @@ receive_mouse_event(void)
 			{
 				if( ev.value > 0)
 				{
+					/* Up */
 					goto  button4 ;
 				}
 				else if( ev.value < 0)
 				{
+					/* Down */
 					goto  button5 ;
+				}
+			}
+			else if( ev.code == REL_HWHEEL)
+			{
+				if( ev.value < 0)
+				{
+					/* Left */
+					goto  button6 ;
+				}
+				else if( ev.value > 0)
+				{
+					/* Right */
+					goto  button7 ;
 				}
 			}
 			else

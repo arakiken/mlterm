@@ -2203,8 +2203,7 @@ x_window_receive_event(
 		 * is always 0. So, event->xmotion.state is also checked.
 		 */
 		if( win->button_is_pressing ||
-			( event->xmotion.state &
-			  (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)))
+			( event->xmotion.state & ButtonMask))
 		{
 			if( win->button_motion)
 			{
