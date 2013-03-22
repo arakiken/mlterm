@@ -649,6 +649,7 @@ write_to_pty(
 	ret = libssh2_channel_write( ((ml_pty_ssh_t*)pty)->channel , buf , len) ;
 
 	if( ret == LIBSSH2_ERROR_SOCKET_SEND ||
+	    ret == LIBSSH2_ERROR_SOCKET_RECV ||
 	    libssh2_channel_eof( ((ml_pty_ssh_t*)pty)->channel))
 	{
 		kik_trigger_sig_child( pty->child_pid) ;
@@ -677,6 +678,7 @@ read_pty(
 #endif
 
 	if( ret == LIBSSH2_ERROR_SOCKET_SEND ||
+	    ret == LIBSSH2_ERROR_SOCKET_RECV ||
 	    libssh2_channel_eof( ((ml_pty_ssh_t*)pty)->channel))
 	{
 		kik_trigger_sig_child( pty->child_pid) ;

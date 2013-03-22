@@ -1,3 +1,8 @@
+2013-03-22  Araki Ken  <arakiken@users.sf.net>
+
+	* libptyssh/ml_pty_ssh.c: If libssh2_channel_{write|read}() returns
+	  LIBSSH2_ERROR_SOCKET_RECV, call kik_trigger_sig_child().
+
 2013-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* x_shortcut.c: The bug which ignored ButtonMask in x_shortcut_match()
