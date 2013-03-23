@@ -1,8 +1,9 @@
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.
   That is, support sixel graphics by default unless configure with
-  --disable-image option. (tool/w3m-remoteimg which doesn't depend on sixel
-  graphics but on OSC 5379 show_picture also works on mlterm by default.)
+  --disable-image option. (w3m-remoteimg (https://bitbucket.org/arakiken/w3m/downloads)
+  which doesn't depend on sixel graphics but on OSC 5379 show_picture also works
+  on mlterm by default.)
 * Separate SSH client functions to a dynamically loaded module (libptyssh)
   in platforms except win32.
 * Treat key strings of "main" configuration file case-insensitively.
