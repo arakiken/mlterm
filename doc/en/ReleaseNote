@@ -8,8 +8,8 @@ ver 3.1.9
 * Treat key strings of "main" configuration file case-insensitively.
   (Both encoding=utf8 and ENCODING=utf8 are available.)
 * Assign -M and -P options as the short options of --im and --clip.
-* Add "allow_change_shortcut" option which enables "set_shortcut" command of
-  configuration protocol.
+* Add "allow_change_shortcut" (--shortcut) option which enables "set_shortcut"
+  command of configuration protocol.
 * Bug fixes:
   Fix the conflict of DCS(0x90) and the first byte of SJIS, GBK and so on.
   Fix the bug which disabled input and output of pty when configuration program

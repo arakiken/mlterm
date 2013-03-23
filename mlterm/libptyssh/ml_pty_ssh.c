@@ -35,6 +35,14 @@
 #define  ml_write_to_pty( pty , buf , len)  (*(pty)->write)( pty , buf , len)
 #endif
 
+#ifndef  LIBSSH2_FLAG_COMPRESS
+#define  LIBSSH2_FLAG_COMPRESS  2
+#endif
+#ifndef  LIBSSH2_ERROR_SOCKET_RECV
+#define  LIBSSH2_ERROR_SOCKET_RECV  -43
+#endif
+
+
 #if  0
 #define  __DEBUG
 #endif
@@ -88,8 +96,7 @@ typedef struct x11_channel
 	ssh_session_t *  session ;
 
 } x11_channel_t ;
-
-#endif
+#endif	/* USE_WIN32API */
 
 
 /* --- static variables --- */
@@ -211,6 +218,10 @@ kbd_callback(
 	(void)abstract ;
 }
 
+#ifdef  AI_PASSIVE
+#define  HAVE_GETADDRINFO
+#endif
+
 /*
  * Return session which is blocking mode.
  */
@@ -225,9 +236,15 @@ ssh_connect(
 	)
 {
 	ssh_session_t *  session ;
+#ifdef  HAVE_GETADDRINFO
 	struct addrinfo  hints ;
 	struct addrinfo *  addr ;
 	struct addrinfo *  addr_p ;
+#else
+	struct hostent *  hent ;
+	struct sockaddr_in  addr ;
+	int  count ;
+#endif
 
 	const char *  hostkey ;
 	size_t  hostkey_len ;
@@ -258,6 +275,7 @@ ssh_connect(
 		goto  error1 ;
 	}
 
+#ifdef  HAVE_GETADDRINFO
 	memset( &hints , 0 , sizeof(hints)) ;
 	hints.ai_family = PF_UNSPEC ;
 	hints.ai_socktype = SOCK_STREAM ;
@@ -300,6 +318,45 @@ ssh_connect(
 	}
 
 	freeaddrinfo( addr) ;
+#else
+	if( ! ( hent = gethostbyname( host)))
+	{
+		goto  error2 ;
+	}
+
+	memset( &addr , 0 , sizeof(addr)) ;
+	addr.sin_port = htons( atoi( port)) ;
+	addr.sin_family = AF_INET ;
+
+	count = 0 ;
+	while( 1)
+	{
+		if( ! hent->h_addr_list[count])
+		{
+			goto  error2 ;
+		}
+
+		if( hent->h_addrtype == AF_INET)
+		{
+			addr.sin_addr.s_addr = *((u_int*)hent->h_addr_list[count]) ;
+
+			if( ( session->sock = socket( addr.sin_family , SOCK_STREAM , 0)) >= 0)
+			{
+				if( connect( session->sock , (struct sockaddr *)&addr ,
+					sizeof(addr)) == 0)
+				{
+					break ;
+				}
+				else
+				{
+					closesocket( session->sock) ;
+				}
+			}
+		}
+
+		count ++ ;
+	}
+#endif	/* HAVE_GETADDRINFO */
 
 	if( ! ( session->obj = libssh2_session_init()))
 	{

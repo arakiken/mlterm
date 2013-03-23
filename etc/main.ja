@@ -299,3 +299,6 @@ scrollbar_view_name = sample
 
 # ANSI color change escape sequences を有効にする。
 # use_ansi_colors = true
+
+# OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にする。
+# allow_change_shortcut = false

@@ -1,3 +1,22 @@
+2013-03-23  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.1.9 released.
+	  (tag "rel-3_1_9")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.1.9.
+
+	* libptyssh/ml_pty_ssh.c:
+	  gethostbyname() is used if getaddrinfo() doesn't exist.
+
+	* win32/x.h: VK_OEM_{1|3|4} macros are defined.
+
+	* script/config.guess, mkf/script/config.guess, kiklib/script/config.guess,
+	  script/config.sub, mkf/script/config.sub, kiklib/script/config.sub:
+	  Updated (timestamp='2013-02-12')
+
+	* etc/main, etc/main.ja: Updated.
+
 2013-03-22  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/ml_pty_ssh.c: If libssh2_channel_{write|read}() returns

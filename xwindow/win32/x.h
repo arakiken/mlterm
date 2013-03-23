@@ -283,8 +283,17 @@ typedef int XFontSet ;	/* dummy */
 #define XK_ISO_Level3_Lock	0xffd9	/* dummy */
 
 /* For msys-dtk */
+#ifndef  VK_OEM_1
+#define  VK_OEM_1  0xba
+#endif
 #ifndef  VK_OEM_2
 #define  VK_OEM_2  0xbf
+#endif
+#ifndef  VK_OEM_3
+#define  VK_OEM_3  0xc0
+#endif
+#ifndef  VK_OEM_4
+#define  VK_OEM_4  0xdb
 #endif
 #ifndef  VK_OEM_7
 #define  VK_OEM_7  0xde

@@ -207,3 +207,5 @@ scrollbar_view_name = sample
 # use_alt_buffer = true
 
 # use_ansi_colors = true
+
+# allow_change_shortcut = false
