@@ -245,20 +245,27 @@ open_pty_intern(
 		kik_debug_printf( "Connect dialog: URI %s pass %s\n" , uri , pass) ;
 	#endif
 
-		if( encoding && ml_get_char_encoding( encoding) != ML_UNKNOWN_ENCODING)
+		if( encoding)
 		{
-			/*
-			 * Don't use ml_term_change_encoding() here because
-			 * encoding change could cause special visual change
-			 * which should update the state of x_screen_t.
-			 */
-			char *  seq ;
-			size_t  len ;
-
-			if( ( seq = alloca( ( len = 16 + strlen(encoding) + 2))))
+			if( ml_term_is_attached( term))
 			{
-				sprintf( seq , "\x1b]5379;encoding=%s\x07" , encoding) ;
-				ml_term_write_loopback( term , seq , len - 1) ;
+				/*
+				 * Don't use ml_term_change_encoding() here because
+				 * encoding change could cause special visual change
+				 * which should update the state of x_screen_t.
+				 */
+				char *  seq ;
+				size_t  len ;
+
+				if( ( seq = alloca( ( len = 16 + strlen(encoding) + 2))))
+				{
+					sprintf( seq , "\x1b]5379;encoding=%s\x07" , encoding) ;
+					ml_term_write_loopback( term , seq , len - 1) ;
+				}
+			}
+			else
+			{
+				ml_term_change_encoding( term , ml_get_char_encoding(encoding)) ;
 			}
 		}
 

@@ -1,3 +1,9 @@
+ver 3.1.10
+* Bug fixes:
+  Fix the bug which disabled some shortcut keys in FreeBSD/framebuffer.
+  Fix the bug which ignored the specified encoding of "default_server" option
+  in opening a new pty.
+
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.
   That is, support sixel graphics by default unless configure with

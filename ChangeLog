@@ -1,5 +1,9 @@
 2013-03-24  Araki Ken  <arakiken@users.sf.net>
 
+	* xwindow/x_screen_manager.c: If term hasn't been attached to screen yet,
+	  ml_term_change_encoding() is called instead of
+	  ml_term_write_loopback("\x1b]5379;encoding=...\x07") in open_pty_intern().
+
 	* fb/x_display.c: _mouse.button_state is reset when button is released
 	  in FreeBSD.
 
