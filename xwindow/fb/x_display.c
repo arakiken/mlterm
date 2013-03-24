@@ -725,6 +725,9 @@ receive_mouse_event(void)
 				else
 				{
 					xev.type = ButtonRelease ;
+
+					/* Reset button_state in releasing button */
+					_mouse.button_state = 0 ;
 				}
 
 				xev.state = _display.key_state ;
