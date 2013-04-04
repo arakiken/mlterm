@@ -107,6 +107,7 @@ static struct wskbd_map_data  keymap ;
 static int  console_id = -1 ;
 static int  orig_console_mode = -1 ;
 static struct wscons_event  prev_key_event ;
+static int  wskbd_repeat_wait = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
 int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
 int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
 #else
@@ -1214,6 +1215,8 @@ process_wskbd_event(
 			receive_event_for_multi_roots( &_disp , &xev) ;
 
 			prev_key_event = *ev ;
+			wskbd_repeat_wait = (wskbd_repeat_1 + KEY_REPEAT_UNIT - 1) /
+						KEY_REPEAT_UNIT ;
 		}
 	}
 	else if( ev->type == WSCONS_EVENT_KEY_UP)
@@ -1243,19 +1246,10 @@ process_wskbd_event(
 static void
 auto_repeat(void)
 {
-	static int  wait_count = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
-
-	if( prev_key_event.value)
+	if( prev_key_event.value && --wskbd_repeat_wait == 0)
 	{
-		if( --wait_count == 0)
-		{
-			process_wskbd_event( &prev_key_event) ;
-			wait_count = (wskbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
-		}
-	}
-	else
-	{
-		wait_count = (wskbd_repeat_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
+		process_wskbd_event( &prev_key_event) ;
+		wskbd_repeat_wait = (wskbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
 	}
 }
 

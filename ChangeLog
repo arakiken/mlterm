@@ -1,3 +1,7 @@
+2013-04-05  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: Autorepeat bug is fixed.
+
 2013-04-04  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
