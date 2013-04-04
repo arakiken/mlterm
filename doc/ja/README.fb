@@ -10,6 +10,8 @@ Framebuffer 対応に関するメモ
 
   FreeBSD 9.0
 
+  NetBSD teokure 6.0.1
+
 * ビルド
   ./configure --with-gui=fb ...
   make
@@ -60,6 +62,15 @@ Framebuffer 対応に関するメモ
   o マウス(/dev/sysmouse)を使用する場合、あらかじめ、次のように moused を起動し
     ておいてください。
     $ /etc/rc.d/moused onestart
+
+  (for NetBSD)
+  o /boot.cfg に次のように vesa を指定して起動してください。
+    menu=Boot vesa:vesa 800x600x32;boot netbsd
+                   ^^^^^^^^^^^^^^^
+  o キーリピートは、~/.mlterm/main に次のオプションを指定することで変更できます。
+    ただし、指定できる値は50ms単位になります。
+    wskbd_repeat_1=400
+    wskbd_repeat_N=50
 
   (Common)
   o mlcc を使ってフォント設定を動的に変更する場合には、

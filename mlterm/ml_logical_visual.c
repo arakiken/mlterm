@@ -438,7 +438,12 @@ comb_logical(
 			ml_char_t *  comb ;
 			u_int  size ;
 
-			if( ( comb = ml_get_combining_chars( c , &size)))
+			if( ( comb = ml_get_combining_chars( c , &size))
+			#if  1
+			    /* XXX Hack for inline pictures (see x_picture.c) */
+			    && ml_char_cs( comb) != PICTURE_CHARSET
+			#endif
+			    )
 			{
 				int  count ;
 

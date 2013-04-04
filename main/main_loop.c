@@ -345,6 +345,22 @@ main_loop_init(
 	}
 #endif
 
+#if  defined(__NetBSD__) && defined(USE_FRAMEBUFFER)
+	if( ( value = kik_conf_get_value( conf , "wskbd_repeat_1")))
+	{
+		extern int  wskbd_repeat_1 ;
+
+		kik_str_to_int( &wskbd_repeat_1 , value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "wskbd_repeat_N")))
+	{
+		extern int  wskbd_repeat_N ;
+
+		kik_str_to_int( &wskbd_repeat_N , value) ;
+	}
+#endif
+
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
 	kik_conf_delete( conf) ;

@@ -1,8 +1,11 @@
 ver 3.1.10
+* Support framebuffer on NetBSD. (Experimental)
 * Bug fixes:
   Fix the bug which disabled some shortcut keys in FreeBSD/framebuffer.
   Fix the bug which ignored the specified encoding of "default_server" option
   in opening a new pty.
+  Fix the bug which disabled sixel graphic images in framebuffer 16bpp.
+  Fix the bug which disabled inline pictures if use_dynamic_comb option is true.
 
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.

@@ -1,6 +1,27 @@
+2013-04-04  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x_imagelib.c: The bug which disabled sixel graphic images in 16bpp
+	  is fixed.
+
+	* x_main_config.c: --contrast, --gamma, --bright and --pic options are
+	  removed if configure with --disable-image option.
+
+	* main_loop.c: "wskbd_repeat_1" and "wskbd_repeat_N" options are added
+	  in NetBSD framebuffer.
+
+	* x_event_loop.c: addional_fds::handler() is called every 50ms in NetBSD
+	  framebuffer.
+
+	* fb/x.h, fb/x_display.c, fb/x_window.c: Support for NetBSD framebuffer.
+
+	* ml_logical_visual.c: Inline pictures are correctly shown if use_dynamic_comb
+	  option is true.
+
 2013-03-24  Araki Ken  <arakiken@users.sf.net>
 
-	* xwindow/x_screen_manager.c: If term hasn't been attached to screen yet,
+	* x_screen_manager.c: If term hasn't been attached to screen yet,
 	  ml_term_change_encoding() is called instead of
 	  ml_term_write_loopback("\x1b]5379;encoding=...\x07") in open_pty_intern().
 

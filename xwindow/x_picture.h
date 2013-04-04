@@ -13,9 +13,6 @@
 #include  "x_window.h"
 
 
-#define  PICTURE_CHARSET  0x1ff
-
-
 typedef struct x_picture_modifier
 {
 	u_int16_t  brightness ;		/* 0 - 65535 */

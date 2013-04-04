@@ -1246,6 +1246,7 @@ x_window_get_str(
 	*parser = NULL ;
 
 	ch = event->ksym ;
+
 	if( ( *keysym = event->ksym) >= 0x100)
 	{
 		switch( *keysym)

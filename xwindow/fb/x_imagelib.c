@@ -150,7 +150,7 @@ modify_pixmap(
 
 			switch( display->bytes_per_pixel)
 			{
-			case 1:
+			default:
 				/* XXX */
 				return ;
 
@@ -299,8 +299,6 @@ load_file(
 	close( fds2[0]) ;
 	close( fds1[1]) ;
 
-	modify_pixmap( display , *pixmap , pic_mod , depth) ;
-
 	if( mask)
 	{
 		u_char *  dst ;
@@ -341,6 +339,8 @@ load_file(
 			}
 		}
 	}
+
+	modify_pixmap( display , *pixmap , pic_mod , depth) ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s(w %d h %d) is loaded%s.\n" ,

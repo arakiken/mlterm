@@ -12,10 +12,13 @@
 #include  <string.h>	/* memset/memcpy */
 #include  <termios.h>
 
-#ifdef  __FreeBSD__
+#if  defined(__FreeBSD__)
 #include  <sys/consio.h>
 #include  <sys/mouse.h>
 #include  <sys/time.h>
+#elif  defined(__NetBSD__)
+#include  <dev/wscons/wsdisplay_usl_io.h>	/* VT_GETSTATE */
+#include  "../x_event_source.h"
 #else
 #include  <linux/kd.h>
 #include  <linux/keyboard.h>
@@ -49,8 +52,13 @@
 #define  READ_CTRL_KEYMAP
 #endif
 
+#if  defined(__FreeBSD__)
 #define  SYSMOUSE_PACKET_SIZE  8
-
+#elif  defined(__NetBSD__)
+#define  KEY_REPEAT_UNIT  50	/* msec (see x_event_source.c) */
+#define  DEFAULT_KEY_REPEAT_1  400	/* msec */
+#define  DEFAULT_KEY_REPEAT_N  50	/* msec */
+#endif
 
 /* Note that this structure could be casted to Display */
 typedef struct
@@ -92,12 +100,17 @@ static Mouse  _mouse ;
 static x_display_t  _disp_mouse ;
 static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
 
-#ifdef  __linux__
-static int  console_id = -1 ;
-#endif
-
-#ifdef  __FreeBSD__
+#if  defined(__FreeBSD__)
 static keymap_t  keymap ;
+#elif  defined(__NetBSD__)
+static struct wskbd_map_data  keymap ;
+static int  console_id = -1 ;
+static int  orig_console_mode = -1 ;
+static struct wscons_event  prev_key_event ;
+int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
+int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
+#else
+static int  console_id = -1 ;
 #endif
 
 static struct termios  orig_tm ;
@@ -134,10 +147,13 @@ cmap_new(void)
 		return  NULL ;
 	}
 
-#ifdef  __FreeBSD__
+#if  defined(__FreeBSD__)
 	cmap->index = 0 ;
 	cmap->count = 256 ;
 	cmap->transparent = NULL ;
+#elif  defined(__NetBSD__)
+	cmap->index = 0 ;
+	cmap->count = 256 ;
 #else
 	cmap->start = 0 ;
 	cmap->len = 256 ;
@@ -176,9 +192,15 @@ cmap_init(void)
 	{
 		ml_get_color_rgba( color , &r , &g , &b , NULL) ;
 
+	#if  defined(__FreeBSD__) || defined(__NetBSD__)
+		_display.cmap->red[color] = r ;
+		_display.cmap->green[color] = g ;
+		_display.cmap->blue[color] = b ;
+	#else
 		_display.cmap->red[color] = BYTE_COLOR_TO_WORD(r) ;
-		_display.cmap->blue[color] = BYTE_COLOR_TO_WORD(g) ;
-		_display.cmap->green[color] = BYTE_COLOR_TO_WORD(b) ;
+		_display.cmap->green[color] = BYTE_COLOR_TO_WORD(g) ;
+		_display.cmap->blue[color] = BYTE_COLOR_TO_WORD(b) ;
+	#endif
 	}
 
 	ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
@@ -438,10 +460,194 @@ receive_event_for_multi_roots(
 	}
 }
 
-#ifdef  __FreeBSD__
+#ifndef  __FreeBSD__
 
+#ifdef  __NetBSD__
 #define get_key_state()  (0)
-#define set_use_console_backscroll(use)  (0)
+#else
+static int get_key_state(void) ;
+#endif
+
+static int
+get_active_console(void)
+{
+	struct vt_stat  st ;
+
+	if( ioctl( STDIN_FILENO , VT_GETSTATE , &st) == -1)
+	{
+		return  -1 ;
+	}
+
+	return  st.v_active ;
+}
+
+static int
+receive_stdin_key_event(void)
+{
+	u_char  buf[6] ;
+	ssize_t  len ;
+
+	while( ( len = read( _display.fd , buf , sizeof(buf) - 1)) > 0)
+	{
+		static struct
+		{
+			char *  str ;
+			KeySym  ksym ;
+
+		} table[] =
+		{
+			{ "[2~" , XK_Insert } ,
+			{ "[3~" , XK_Delete } ,
+			{ "[5~" , XK_Prior } ,
+			{ "[6~" , XK_Next } ,
+			{ "[A" , XK_Up } ,
+			{ "[B" , XK_Down } ,
+			{ "[C" , XK_Right } ,
+			{ "[D" , XK_Left } ,
+		#if  defined(__NetBSD__)
+			{ "[8~" , XK_End } ,
+			{ "[7~" , XK_Home } ,
+		#else
+			{ "[F" , XK_End } ,
+			{ "[H" , XK_Home } ,
+		#endif
+		#if  defined(__FreeBSD__)
+			{ "OP" , XK_F1 } ,
+			{ "OQ" , XK_F2 } ,
+			{ "OR" , XK_F3 } ,
+			{ "OS" , XK_F4 } ,
+			{ "[15~" , XK_F5 } ,
+		#elif  defined(__NetBSD__)
+			{ "[11~" , XK_F1 } ,
+			{ "[12~" , XK_F2 } ,
+			{ "[13~" , XK_F3 } ,
+			{ "[14~" , XK_F4 } ,
+			{ "[15~" , XK_F5 } ,
+		#else
+			{ "[[A" , XK_F1 } ,
+			{ "[[B" , XK_F2 } ,
+			{ "[[C" , XK_F3 } ,
+			{ "[[D" , XK_F4 } ,
+			{ "[[E" , XK_F5 } ,
+		#endif
+			{ "[17~" , XK_F6 } ,
+			{ "[18~" , XK_F7 } ,
+			{ "[19~" , XK_F8 } ,
+			{ "[20~" , XK_F9 } ,
+			{ "[21~" , XK_F10 } ,
+			{ "[23~" , XK_F11 } ,
+			{ "[24~" , XK_F12 } ,
+		} ;
+
+		size_t  count ;
+		XKeyEvent  xev ;
+
+		xev.type = KeyPress ;
+		xev.state = get_key_state() ;
+		xev.ksym = 0 ;
+
+		if( buf[0] == '\x1b' && len > 1)
+		{
+			buf[len] = '\0' ;
+
+			for( count = 0 ; count < sizeof(table) / sizeof(table[0]) ;
+			     count++)
+			{
+				if( strcmp( buf + 1 , table[count].str) == 0)
+				{
+					xev.ksym = table[count].ksym ;
+
+					break ;
+				}
+			}
+
+			/* XXX */
+		#ifdef  __FreeBSD__
+			if( xev.ksym == 0 && len == 3 && buf[1] == '[')
+			{
+				if( 'Y' <= buf[2] && buf[2] <= 'Z')
+				{
+					xev.ksym = XK_F1 + (buf[2] - 'Y') ;
+					xev.state = ShiftMask ;
+				}
+				else if( 'a' <= buf[2] && buf[2] <= 'j')
+				{
+					xev.ksym = XK_F3 + (buf[2] - 'a') ;
+					xev.state = ShiftMask ;
+				}
+				else if( 'k' <= buf[2] && buf[2] <= 'v')
+				{
+					xev.ksym = XK_F1 + (buf[2] - 'k') ;
+					xev.state = ControlMask ;
+				}
+				else if( 'w' <= buf[2] && buf[2] <= 'z')
+				{
+					xev.ksym = XK_F1 + (buf[2] - 'w') ;
+					xev.state = ControlMask|ShiftMask ;
+				}
+				else if( buf[2] == '@')
+				{
+					xev.ksym = XK_F5 ;
+					xev.state = ControlMask|ShiftMask ;
+				}
+				else if( '[' <= buf[2] && buf[2] <= '\`')
+				{
+					xev.ksym = XK_F6 + (buf[2] - '[') ;
+					xev.state = ControlMask|ShiftMask ;
+				}
+				else if( buf[2] == '{')
+				{
+					xev.ksym = XK_F12 ;
+					xev.state = ControlMask|ShiftMask ;
+				}
+			}
+		#endif
+		}
+
+		if( xev.ksym)
+		{
+			receive_event_for_multi_roots( &_disp , &xev) ;
+		}
+		else
+		{
+			for( count = 0 ; count < len ; count++)
+			{
+				xev.ksym = buf[count] ;
+
+				if( (u_int)xev.ksym <= 0x1f)
+				{
+					if( xev.ksym == '\0')
+					{
+						/* CTL+' ' instead of CTL+@ */
+						xev.ksym = ' ' ;
+					}
+					else if( 0x01 <= xev.ksym &&
+						 xev.ksym <= 0x1a)
+					{
+						/*
+						 * Lower case alphabets instead of
+						 * upper ones.
+						 */
+						xev.ksym = xev.ksym + 0x60 ;
+					}
+					else
+					{
+						xev.ksym = xev.ksym + 0x40 ;
+					}
+
+					xev.state = ControlMask ;
+				}
+
+				receive_event_for_multi_roots( &_disp , &xev) ;
+			}
+		}
+	}
+
+	return  1 ;
+}
+#endif
+
+#if  defined(__FreeBSD__)
 
 static int
 open_display(void)
@@ -935,20 +1141,562 @@ receive_key_event(void)
 	return  1 ;
 }
 
-#else	/* __linux__ */
+#elif  defined(__NetBSD__)
 
-static int
-get_active_console(void)
+static void
+process_wskbd_event(
+	struct wscons_event *  ev
+	)
 {
-	struct vt_stat  st ;
+	keysym_t  ksym ;
 
-	if( ioctl( STDIN_FILENO , VT_GETSTATE , &st) == -1)
+	if( keymap.map[ev->value].command == KS_Cmd_ResetEmul)
 	{
-		return  -1 ;
+		/* XXX */
+		ksym = XK_BackSpace ;
+	}
+	else if( _display.key_state & ShiftMask)
+	{
+		ksym = keymap.map[ev->value].group1[1] ;
+	}
+	else
+	{
+		ksym = keymap.map[ev->value].group1[0] ;
 	}
 
-	return  st.v_active ;
+	if( KS_f1 <= ksym && ksym <= KS_f20)
+	{
+		/* KS_f1 => KS_F1 */
+		ksym += 0x40 ;
+	}
+
+	if( ev->type == WSCONS_EVENT_KEY_DOWN)
+	{
+		if( ksym == KS_Shift_R ||
+		    ksym == KS_Shift_L)
+		{
+			_display.key_state |= ShiftMask ;
+		}
+		else if( ksym == KS_Caps_Lock)
+		{
+			if( _display.key_state & ShiftMask)
+			{
+				_display.key_state &= ~ShiftMask ;
+			}
+			else
+			{
+				_display.key_state |= ShiftMask ;
+			}
+		}
+		else if( ksym == KS_Control_R ||
+			 ksym == KS_Control_L)
+		{
+			_display.key_state |= ControlMask ;
+		}
+		else if( ksym == KS_Alt_R ||
+			 ksym == KS_Alt_L)
+		{
+			_display.key_state |= ModMask ;
+		}
+		else if( ksym == KS_Num_Lock)
+		{
+			_display.lock_state ^= NLKED ;
+		}
+		else
+		{
+			XKeyEvent  xev ;
+
+			xev.type = KeyPress ;
+			xev.ksym = ksym ;
+			xev.state = _mouse.button_state |
+				    _display.key_state ;
+
+			receive_event_for_multi_roots( &_disp , &xev) ;
+
+			prev_key_event = *ev ;
+		}
+	}
+	else if( ev->type == WSCONS_EVENT_KEY_UP)
+	{
+		if( ksym == KS_Shift_R ||
+		    ksym == KS_Shift_L)
+		{
+			_display.key_state &= ~ShiftMask ;
+		}
+		else if( ksym == KS_Control_R ||
+			 ksym == KS_Control_L)
+		{
+			_display.key_state &= ~ControlMask ;
+		}
+		else if( ksym == KS_Alt_R ||
+			 ksym == KS_Alt_L)
+		{
+			_display.key_state &= ~ModMask ;
+		}
+		else if( ev->value == prev_key_event.value)
+		{
+			prev_key_event.value = 0 ;
+		}
+	}
 }
+
+static void
+auto_repeat(void)
+{
+	static int  wait_count = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
+
+	if( prev_key_event.value)
+	{
+		if( --wait_count == 0)
+		{
+			process_wskbd_event( &prev_key_event) ;
+			wait_count = (wskbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
+		}
+	}
+	else
+	{
+		wait_count = (wskbd_repeat_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
+	}
+}
+
+static int
+open_display(void)
+{
+	char *  dev ;
+	struct wsdisplay_fbinfo  vinfo ;
+	int  mode ;
+	struct rgb_info  rgbinfos[] =
+	{
+		{ 3 , 3 , 3 , 10 , 5 , 0 } ,
+		{ 3 , 2 , 3 , 11 , 5 , 0 } ,
+		{ 0 , 0 , 0 , 16 , 8 , 0 } ,
+	} ;
+	struct termios  tm ;
+	static struct wscons_keymap  map[KS_NUMKEYCODES] ;
+
+	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ?
+						dev : "/dev/ttyE0" ,
+					O_RDWR)))
+	{
+		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/ttyE0") ;
+
+		return  0 ;
+	}
+
+	kik_file_set_cloexec( _display.fb_fd) ;
+
+	ioctl( _display.fb_fd , WSDISPLAYIO_GINFO , &vinfo) ;
+	ioctl( _display.fb_fd , WSDISPLAYIO_LINEBYTES , &_display.line_length) ;
+
+	_display.xoffset = 0 ;
+	_display.yoffset = 0 ;
+
+	_disp.width = vinfo.width ;
+	_disp.height = vinfo.height ;
+
+	_display.smem_len = _display.line_length * _disp.height ;
+
+	ioctl( STDIN_FILENO , WSDISPLAYIO_GMODE , &orig_console_mode) ;
+
+	mode = WSDISPLAYIO_MODE_MAPPED ;
+	ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &mode) ;
+
+	if( ( _display.fp = mmap( NULL , _display.smem_len ,
+				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
+				== MAP_FAILED)
+	{
+		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
+
+		goto  error ;
+	}
+
+	if( ( _disp.depth = vinfo.depth) < 8) /* 2/4 bpp is not supported. */
+	{
+		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.depth) ;
+
+		goto  error ;
+	}
+
+	if( ( _display.bytes_per_pixel = (_disp.depth + 7) / 8) == 3)
+	{
+		_display.bytes_per_pixel = 4 ;
+	}
+
+	if( _disp.depth == 15)
+	{
+		_display.rgbinfo = rgbinfos[0] ;
+	}
+	else if( _disp.depth == 16)
+	{
+		_display.rgbinfo = rgbinfos[1] ;
+	}
+	else if( _disp.depth >= 24)
+	{
+		_display.rgbinfo = rgbinfos[2] ;
+	}
+	else if( /* _disp.depth == 8 && */ ! cmap_init())
+	{
+		_display.cmap = NULL ;
+	}
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Framebuffer: w %d h %d line %d size %d depth %d\n" ,
+		_disp.width , _disp.height , _display.line_length , _display.smem_len ,
+		_disp.depth) ;
+#endif
+
+	tcgetattr( STDIN_FILENO , &tm) ;
+	orig_tm = tm ;
+	tm.c_iflag = tm.c_oflag = 0 ;
+	tm.c_cflag &= ~CSIZE ;
+	tm.c_cflag |= CS8 ;
+	tm.c_lflag &= ~(ECHO|ISIG|IEXTEN|ICANON) ;
+	tm.c_cc[VMIN] = 1 ;
+	tm.c_cc[VTIME] = 0 ;
+	tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
+
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+
+#if  1
+	_display.fd = open( "/dev/wskbd0" , O_RDWR|O_NONBLOCK|O_EXCL) ;
+#else
+	_display.fd = -1 ;
+#endif
+	_mouse.fd = open( "/dev/wsmouse" , O_RDWR|O_NONBLOCK|O_EXCL) ;
+
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
+
+	if( _display.fd == -1)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open /dev/wskbd0.\n") ;
+	#endif
+
+		_display.fd = STDIN_FILENO ;
+	}
+	else
+	{
+		kik_file_set_cloexec( _display.fd) ;
+
+	#ifdef  WSKBDIO_EVENT_VERSION
+		mode = WSKBDIO_EVENT_VERSION ;
+		ioctl( _display.fd , WSKBDIO_SETVERSION , &mode) ;
+	#endif
+
+		keymap.maplen = KS_NUMKEYCODES ;
+		keymap.map = map ;
+		ioctl( _display.fd , WSKBDIO_GETMAP , &keymap) ;
+
+	#if  0
+		kik_debug_printf( "DUMP KEYMAP (LEN %d)\n" , keymap.maplen) ;
+		{
+			int  count ;
+
+			for( count = 0 ; count < keymap.maplen ; count++)
+			{
+				kik_debug_printf( "%d: %x %x %x %x %x\n" ,
+					count ,
+					keymap.map[count].command ,
+					keymap.map[count].group1[0] ,
+					keymap.map[count].group1[1] ,
+					keymap.map[count].group2[0] ,
+					keymap.map[count].group2[1]) ;
+			}
+		}
+	#endif
+
+		tcgetattr( _display.fd , &tm) ;
+		tm.c_iflag = IGNBRK | IGNPAR ;
+		tm.c_oflag = 0 ;
+		tm.c_lflag = 0 ;
+		tm.c_cc[VTIME] = 0 ;
+		tm.c_cc[VMIN] = 1 ;
+		tm.c_cflag = CS8 | CSTOPB | CREAD | CLOCAL | HUPCL ;
+		cfsetispeed( &tm , B1200) ;
+		cfsetospeed( &tm , B1200) ;
+		tcsetattr( _display.fd , TCSAFLUSH , &tm) ;
+
+		x_event_source_add_fd( -10 , auto_repeat) ;
+	}
+
+	ioctl( _display.fd , WSKBDIO_GETLEDS , &_display.lock_state) ;
+
+	_disp.display = &_display ;
+
+	if( _mouse.fd != -1)
+	{
+		kik_file_set_cloexec( _mouse.fd) ;
+
+	#ifdef  WSMOUSE_EVENT_VERSION
+		mode = WSMOUSE_EVENT_VERSION ;
+		ioctl( _mouse.fd , WSMOUSEIO_SETVERSION , &mode) ;
+	#endif
+
+		_mouse.x = _disp.width / 2 ;
+		_mouse.y = _disp.height / 2 ;
+		_disp_mouse.display = (Display*)&_mouse ;
+
+		tcgetattr( _mouse.fd , &tm) ;
+		tm.c_iflag = IGNBRK | IGNPAR;
+		tm.c_oflag = 0 ;
+		tm.c_lflag = 0 ;
+		tm.c_cc[VTIME] = 0 ;
+		tm.c_cc[VMIN] = 1 ;
+		tm.c_cflag = CS8 | CSTOPB | CREAD | CLOCAL | HUPCL ;
+		cfsetispeed( &tm , B1200) ;
+		cfsetospeed( &tm , B1200) ;
+		tcsetattr( _mouse.fd , TCSAFLUSH , &tm) ;
+	}
+#ifdef  DEBUG
+	else
+	{
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open /dev/wsmouse.\n") ;
+	}
+#endif
+
+	console_id = get_active_console() ;
+
+	return  1 ;
+
+error:
+	ioctl( STDIN_FILENO , WSDISPLAYIO_GMODE , &orig_console_mode) ;
+	close( _display.fb_fd) ;
+
+	return  0 ;
+}
+
+static int
+receive_mouse_event(void)
+{
+	struct wscons_event  ev ;
+	ssize_t  len ;
+
+	while( ( len = read( _mouse.fd , memset( &ev , 0 , sizeof(ev)) , sizeof(ev))) > 0)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " MOUSE event (len)%d (type)%d (val)%d\n" ,
+			len , ev.type , ev.value) ;
+	#endif
+
+		if( console_id != get_active_console())
+		{
+			return  0 ;
+		}
+
+		if( ev.type == WSCONS_EVENT_MOUSE_DOWN ||
+		    ev.type == WSCONS_EVENT_MOUSE_UP)
+		{
+			XButtonEvent  xev ;
+			x_window_t *  win ;
+
+			if( ev.value == 0)
+			{
+				xev.button = Button1 ;
+				_mouse.button_state = Button1Mask ;
+			}
+			else if( ev.value == 1)
+			{
+				xev.button = Button2 ;
+				_mouse.button_state = Button2Mask ;
+			}
+			else if( ev.value == 2)
+			{
+				xev.button = Button3 ;
+				_mouse.button_state = Button3Mask ;
+			}
+			else
+			{
+				return  1 ;
+
+				while(1)
+				{
+				button4:
+					xev.button = Button4 ;
+					_mouse.button_state = Button4Mask ;
+					break ;
+
+				button5:
+					xev.button = Button5 ;
+					_mouse.button_state = Button5Mask ;
+					break ;
+
+				button6:
+					xev.button = Button6 ;
+					_mouse.button_state = Button6Mask ;
+					break ;
+
+				button7:
+					xev.button = Button7 ;
+					_mouse.button_state = Button7Mask ;
+					break ;
+				}
+
+				ev.value = 1 ;
+			}
+
+			if( ev.type != WSCONS_EVENT_MOUSE_UP)
+			{
+				/*
+				 * WSCONS_EVENT_MOUSE_UP,
+				 * WSCONS_EVENT_MOUSE_DELTA_Z
+				 * WSCONS_EVENT_MOUSE_DELTA_W
+				 */
+				xev.type = ButtonPress ;
+			}
+			else /* if( ev.type == WSCONS_EVENT_MOUSE_UP) */
+			{
+				xev.type = ButtonRelease ;
+
+				/* Reset button_state in releasing button. */
+				_mouse.button_state = 0 ;
+			}
+
+			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_nsec / 1000000 ;
+			xev.x = _mouse.x ;
+			xev.y = _mouse.y ;
+			xev.state = _display.key_state ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				"Button is %s x %d y %d btn %d time %d\n" ,
+				xev.type == ButtonPress ? "pressed" : "released" ,
+				xev.x , xev.y , xev.button , xev.time) ;
+		#endif
+
+			win = get_window( xev.x , xev.y) ;
+			xev.x -= win->x ;
+			xev.y -= win->y ;
+
+			x_window_receive_event( win , &xev) ;
+		}
+		else if( ev.type == WSCONS_EVENT_MOUSE_DELTA_X ||
+		         ev.type == WSCONS_EVENT_MOUSE_DELTA_Y ||
+			 ev.type == WSCONS_EVENT_MOUSE_DELTA_Z ||
+			 ev.type == WSCONS_EVENT_MOUSE_DELTA_W)
+		{
+			XMotionEvent  xev ;
+			x_window_t *  win ;
+
+			if( ev.type == WSCONS_EVENT_MOUSE_DELTA_X)
+			{
+				restore_hidden_region() ;
+
+				_mouse.x += (int)ev.value ;
+
+				if( _mouse.x < 0)
+				{
+					_mouse.x = 0 ;
+				}
+				else if( _disp.width <= _mouse.x)
+				{
+					_mouse.x = _disp.width - 1 ;
+				}
+			}
+			else if( ev.type == WSCONS_EVENT_MOUSE_DELTA_Y)
+			{
+				restore_hidden_region() ;
+
+				_mouse.y -= (int)ev.value ;
+
+				if( _mouse.y < 0)
+				{
+					_mouse.y = 0 ;
+				}
+				else if( _disp.height <= _mouse.y)
+				{
+					_mouse.y = _disp.height - 1 ;
+				}
+			}
+			else if( ev.type == WSCONS_EVENT_MOUSE_DELTA_Z)
+			{
+				if( ev.value < 0)
+				{
+					/* Up */
+					goto  button4 ;
+				}
+				else if( ev.value > 0)
+				{
+					/* Down */
+					goto  button5 ;
+				}
+			}
+			else /* if( ev.type == WSCONS_EVENT_MOUSE_DELTA_W) */
+			{
+				if( ev.value < 0)
+				{
+					/* Left */
+					goto  button6 ;
+				}
+				else if( ev.value > 0)
+				{
+					/* Right */
+					goto  button7 ;
+				}
+			}
+
+			update_mouse_cursor_state() ;
+
+			xev.type = MotionNotify ;
+			xev.x = _mouse.x ;
+			xev.y = _mouse.y ;
+			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_nsec / 1000000 ;
+			xev.state = _mouse.button_state | _display.key_state ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Button is moved %d x %d y %d btn %d time %d\n" ,
+				xev.type , xev.x , xev.y , xev.state , xev.time) ;
+		#endif
+
+			win = get_window( xev.x , xev.y) ;
+			xev.x -= win->x ;
+			xev.y -= win->y ;
+
+			x_window_receive_event( win , &xev) ;
+
+			save_hidden_region() ;
+			draw_mouse_cursor() ;
+		}
+	}
+
+	return  1 ;
+}
+
+static int
+receive_key_event(void)
+{
+	if( _display.fd == STDIN_FILENO)
+	{
+		return  receive_stdin_key_event() ;
+	}
+	else
+	{
+		ssize_t  len ;
+		struct wscons_event  ev ;
+
+		while( ( len = read( _display.fd , memset( &ev , 0 , sizeof(ev)) ,
+				sizeof(ev))) > 0)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " KEY event (len)%d (type)%d (val)%d\n" ,
+				len , ev.type , ev.value) ;
+		#endif
+
+			if( console_id != get_active_console())
+			{
+				return  0 ;
+			}
+
+			process_wskbd_event( &ev) ;
+		}
+	}
+
+	return  1 ;
+}
+
+#else	/* FreeBSD/NetBSD/linux */
 
 static int
 get_key_state(void)
@@ -975,8 +1723,7 @@ get_key_state(void)
 static int
 kcode_to_ksym(
 	int  kcode ,
-	int  state ,
-	int  num_lock
+	int  state
 	)
 {
 	if( kcode == KEY_ENTER || kcode == KEY_KPENTER)
@@ -1437,153 +2184,7 @@ receive_key_event(void)
 {
 	if( _display.fd == STDIN_FILENO)
 	{
-		u_char  buf[6] ;
-		ssize_t  len ;
-
-		while( ( len = read( _display.fd , buf , sizeof(buf) - 1)) > 0)
-		{
-			static struct
-			{
-				char *  str ;
-				KeySym  ksym ;
-
-			} table[] =
-			{
-				{ "[2~" , XK_Insert } ,
-				{ "[3~" , XK_Delete } ,
-				{ "[5~" , XK_Prior } ,
-				{ "[6~" , XK_Next } ,
-				{ "[A" , XK_Up } ,
-				{ "[B" , XK_Down } ,
-				{ "[C" , XK_Right } ,
-				{ "[D" , XK_Left } ,
-				{ "[F" , XK_End } ,
-				{ "[H" , XK_Home } ,
-			#ifdef  __FreeBSD__
-				{ "OP" , XK_F1 } ,
-				{ "OQ" , XK_F2 } ,
-				{ "OR" , XK_F3 } ,
-				{ "OS" , XK_F4 } ,
-				{ "[15~" , XK_F5 } ,
-			#else
-				{ "[[A" , XK_F1 } ,
-				{ "[[B" , XK_F2 } ,
-				{ "[[C" , XK_F3 } ,
-				{ "[[D" , XK_F4 } ,
-				{ "[[E" , XK_F5 } ,
-			#endif
-				{ "[17~" , XK_F6 } ,
-				{ "[18~" , XK_F7 } ,
-				{ "[19~" , XK_F8 } ,
-				{ "[20~" , XK_F9 } ,
-				{ "[21~" , XK_F10 } ,
-				{ "[23~" , XK_F11 } ,
-				{ "[24~" , XK_F12 } ,
-			} ;
-
-			size_t  count ;
-			XKeyEvent  xev ;
-
-			xev.type = KeyPress ;
-			xev.state = get_key_state() ;
-			xev.ksym = 0 ;
-
-			if( buf[0] == '\x1b' && len > 1)
-			{
-				buf[len] = '\0' ;
-
-				for( count = 0 ; count < sizeof(table) / sizeof(table[0]) ;
-				     count++)
-				{
-					if( strcmp( buf + 1 , table[count].str) == 0)
-					{
-						xev.ksym = table[count].ksym ;
-
-						break ;
-					}
-				}
-
-				/* XXX */
-			#ifdef  __FreeBSD__
-				if( xev.ksym == 0 && len == 3 && buf[1] == '[')
-				{
-					if( 'Y' <= buf[2] && buf[2] <= 'Z')
-					{
-						xev.ksym = XK_F1 + (buf[2] - 'Y') ;
-						xev.state = ShiftMask ;
-					}
-					else if( 'a' <= buf[2] && buf[2] <= 'j')
-					{
-						xev.ksym = XK_F3 + (buf[2] - 'a') ;
-						xev.state = ShiftMask ;
-					}
-					else if( 'k' <= buf[2] && buf[2] <= 'v')
-					{
-						xev.ksym = XK_F1 + (buf[2] - 'k') ;
-						xev.state = ControlMask ;
-					}
-					else if( 'w' <= buf[2] && buf[2] <= 'z')
-					{
-						xev.ksym = XK_F1 + (buf[2] - 'w') ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-					else if( buf[2] == '@')
-					{
-						xev.ksym = XK_F5 ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-					else if( '[' <= buf[2] && buf[2] <= '\`')
-					{
-						xev.ksym = XK_F6 + (buf[2] - '[') ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-					else if( buf[2] == '{')
-					{
-						xev.ksym = XK_F12 ;
-						xev.state = ControlMask|ShiftMask ;
-					}
-				}
-			#endif
-			}
-
-			if( xev.ksym)
-			{
-				receive_event_for_multi_roots( &_disp , &xev) ;
-			}
-			else
-			{
-				for( count = 0 ; count < len ; count++)
-				{
-					xev.ksym = buf[count] ;
-
-					if( (u_int)xev.ksym <= 0x1f)
-					{
-						if( xev.ksym == '\0')
-						{
-							/* CTL+' ' instead of CTL+@ */
-							xev.ksym = ' ' ;
-						}
-						else if( 0x01 <= xev.ksym &&
-						         xev.ksym <= 0x1a)
-						{
-							/*
-							 * Lower case alphabets instead of
-							 * upper ones.
-							 */
-							xev.ksym = xev.ksym + 0x60 ;
-						}
-						else
-						{
-							xev.ksym = xev.ksym + 0x40 ;
-						}
-
-						xev.state = ControlMask ;
-					}
-
-					receive_event_for_multi_roots( &_disp , &xev) ;
-				}
-			}
-		}
+		return  receive_stdin_key_event() ;
 	}
 	else
 	{
@@ -1637,8 +2238,7 @@ receive_key_event(void)
 
 						xev.type = KeyPress ;
 						xev.ksym = kcode_to_ksym( ev.code ,
-								_display.key_state ,
-								_display.lock_state & NLKED) ;
+								_display.key_state) ;
 						xev.state = _mouse.button_state |
 							    _display.key_state ;
 
@@ -1670,7 +2270,7 @@ receive_key_event(void)
 	return  1 ;
 }
 
-#endif	/* FreeBSD/linux */
+#endif	/* FreeBSD/NetBSD/linux */
 
 static void
 expose_window(
@@ -1770,8 +2370,11 @@ x_display_close_all(void)
 
 		tcsetattr( STDIN_FILENO , TCSAFLUSH , &orig_tm) ;
 
-	#ifdef  __FreeBSD__
-		ioctl( _display.fd , KDSKBMODE , K_XLATE) ;
+	#if  defined(__FreeBSD__)
+		ioctl( STDIN_FILENO , KDSKBMODE , K_XLATE) ;
+	#elif  defined(__NetBSD__)
+		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
+		x_event_source_remove_fd( -10) ;
 	#else
 		set_use_console_backscroll( 1) ;
 	#endif

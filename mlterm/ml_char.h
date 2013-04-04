@@ -31,6 +31,10 @@
 #define  MLCHAR_XCT_MAX_SIZE  (XCT_MAX_SIZE * (MAX_COMB_SIZE + 1))
 
 
+/* For inline pictures (see x_picture.c) */
+#define  PICTURE_CHARSET  0x1ff
+
+
 /*
  * This object size should be kept as small as possible.
  * (ILP32: 64bit) (LP64: 64bit)

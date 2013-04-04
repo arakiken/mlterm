@@ -18,14 +18,26 @@
 #include  <machine/console.h>
 #endif
 #elif  defined(__NetBSD__) || defined(__OpenBSD__)
+#include  <time.h>
 #include  <dev/wscons/wsconsio.h>
+#include  <dev/wscons/wsksymdef.h>
 #endif
 
 
-#ifdef  __FreeBSD__
+#if  defined(__FreeBSD__)
+
 typedef video_color_palette_t fb_cmap_t ;
+
+#elif  defined(__NetBSD__)
+
+#define  FBIOGETCMAP  WSDISPLAYIO_GETCMAP
+#define  FBIOPUTCMAP  WSDISPLAYIO_PUTCMAP
+typedef struct wsdisplay_cmap fb_cmap_t ;
+
 #else
+
 typedef struct fb_cmap  fb_cmap_t ;
+
 #endif
 
 typedef struct
@@ -229,7 +241,118 @@ typedef int XFontSet ;	/* dummy */
 #define Button4		4
 #define Button5		5
 
-#ifdef  __FreeBSD__
+
+#if  defined(__NetBSD__)
+
+#define XK_Super_L	0xfffe	/* dummy */
+#define XK_Super_R	0xfffd	/* dummy */
+#define XK_Hyper_L	0xfffc	/* dummy */
+#define XK_Hyper_R	0xfffb	/* dummy */
+#define XK_BackSpace	0x08
+#define XK_Tab		0x09
+#define XK_Clear	KS_Clear
+#define XK_Linefeed	KS_Linefeed
+#define XK_Return	0x0d
+
+#define XK_Shift_L	KS_Shift_L
+#define XK_Control_L	KS_Control_L
+#define XK_Alt_L	KS_Alt_L
+#define XK_Shift_R	KS_Shift_R
+#define XK_Control_R	KS_Control_R
+#define XK_Alt_R	KS_Alt_R
+
+#define XK_Meta_L	KS_Meta_L
+#define XK_Meta_R	KS_Meta_R
+
+#define XK_Pause	KS_Pause
+#define XK_Shift_Lock	KS_Shift_Lock
+#define XK_Caps_Lock	KS_Caps_Lock
+#define XK_Escape	KS_Escape
+#define XK_Prior	KS_Prior
+#define XK_Next		KS_Next
+#define XK_End		KS_End
+#define XK_Home		KS_Home
+#define XK_Left		KS_Left
+#define XK_Up		KS_Up
+#define XK_Right	KS_Right
+#define XK_Down		KS_Down
+#define XK_Select	KS_Select
+#define XK_Print	KS_Print
+#define XK_Execute	KS_Execute
+#define XK_Insert	KS_Insert
+#define XK_Delete	KS_Delete
+#define XK_Help		KS_Help
+#define XK_F1		KS_F1
+#define XK_F2		KS_F2
+#define XK_F3		KS_F3
+#define XK_F4		KS_F4
+#define XK_F5		KS_F5
+#define XK_F6		KS_F6
+#define XK_F7		KS_F7
+#define XK_F8		KS_F8
+#define XK_F9		KS_F9
+#define XK_F10		KS_F10
+#define XK_F11		KS_F11
+#define XK_F12		KS_F12
+#define XK_F13		KS_F13
+#define XK_F14		KS_F14
+#define XK_F15		KS_F15
+#define XK_F16		KS_F16
+#define XK_F17		KS_F17
+#define XK_F18		KS_F18
+#define XK_F19		KS_F19
+#define XK_F20		KS_F20
+#define XK_F21		0xfffa	/* dummy */
+#define XK_F22		0xfff9	/* dummy */
+#define XK_F23		0xfff8	/* dummy */
+#define XK_F24		0xfff7	/* dummy */
+#define XK_FMAX		KS_F20
+#define XK_Num_Lock	KS_Num_Lock
+#define XK_Scroll_Lock	KS_Scroll_Lock
+#define XK_Find		KS_Find
+#define XK_Menu		KS_Menu
+#define XK_Begin	0xfff6	/* dummy */
+#define XK_Muhenkan	KS_Muhenkan
+#define XK_Henkan_Mode	KS_Henkan_Mode
+#define XK_Zenkaku_Hankaku	KS_Zenkaku_Hankaku
+
+#define XK_KP_Prior	KS_KP_Prior
+#define XK_KP_Next	KS_KP_Next
+#define XK_KP_End	KS_KP_End
+#define XK_KP_Home	KS_KP_Home
+#define XK_KP_Left	KS_KP_Left
+#define XK_KP_Up	KS_KP_Up
+#define XK_KP_Right	KS_KP_Right
+#define XK_KP_Down	KS_KP_Down
+#define XK_KP_Insert	KS_KP_Insert
+#define XK_KP_Delete	KS_KP_Delete
+#define XK_KP_F1	KS_KP_F1
+#define XK_KP_F2	KS_KP_F2
+#define XK_KP_F3	KS_KP_F3
+#define XK_KP_F4	KS_KP_F4
+#define XK_KP_Begin	KS_KP_Begin
+#define XK_KP_Multiply	KS_KP_Multiply
+#define XK_KP_Add	KS_KP_Add
+#define XK_KP_Separator	KS_KP_Separator
+#define XK_KP_Subtract	KS_KP_Subtract
+#define XK_KP_Decimal	KS_KP_Decimal
+#define XK_KP_Divide	KS_KP_Divide
+#define XK_KP_0		KS_KP_0
+#define XK_KP_1		KS_KP_1
+#define XK_KP_2		KS_KP_2
+#define XK_KP_3		KS_KP_3
+#define XK_KP_4		KS_KP_4
+#define XK_KP_5		KS_KP_5
+#define XK_KP_6		KS_KP_6
+#define XK_KP_7		KS_KP_7
+#define XK_KP_8		KS_KP_8
+#define XK_KP_9		KS_KP_9
+
+#define IsKeypadKey(ksym)	(0xf200 <= (ksym) && (ksym) < 0xf300)
+
+#else	/* __NetBSD__ */
+
+#if  defined(__FreeBSD__)
 
 #define KEY_CLEAR	0xff	/* dummy */
 #define KEY_LINEFEED	0xfe	/* dummy */
@@ -303,14 +426,7 @@ typedef int XFontSet ;	/* dummy */
 #define KEY_KP8		(0x4c + 0x100)
 #define KEY_KP9		(0x4d + 0x100)
 
-#else
-
-#define  CLKED  1
-#define  NLKED  2
-#define  SLKED  4
-#define  ALKED  8
-
-#endif	/* FreeBSD */
+#endif	/* FreeBSD/Linux */
 
 #define XK_Super_L	0xfffe	/* dummy */
 #define XK_Super_R	0xfffd	/* dummy */
@@ -421,6 +537,15 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_9		0xffde	/* dummy */
 
 #define IsKeypadKey(ksym)	(1)
+
+#endif	/* NetBSD */
+
+#ifndef  __FreeBSD__
+#define CLKED  1
+#define NLKED  2
+#define SLKED  4
+#define ALKED  8
+#endif
 
 #define XK_ISO_Level3_Lock	0xffa3	/* dummy */
 

@@ -93,7 +93,9 @@ receive_next_event(void)
 	while( 1)
 	{
 		/* on Linux tv_usec,tv_sec members are zero cleared after select() */
-	#if  0
+	#if  defined(__NetBSD__) && defined(USE_FRAMEBUFFER)
+		static int  wait_count = 2 ;
+
 		tval.tv_usec = 50000 ;	/* 0.05 sec */
 	#else
 		tval.tv_usec = 100000 ;	/* 0.1 sec */
@@ -159,17 +161,26 @@ receive_next_event(void)
 			break ;
 		}
 
-		for( count = 0 ; count < num_of_displays ; count ++)
-		{
-			x_display_idling( displays[count]) ;
-		}
-		
 		for( count = 0 ; count < num_of_additional_fds ; count++)
 		{
 			if( additional_fds[count].fd < 0)
 			{
 				(*additional_fds[count].handler)() ;
 			}
+		}
+
+	#if  defined(__NetBSD__) && defined(USE_FRAMEBUFFER)
+		/* x_display_idling() is called every 0.1 sec. */
+		if( -- wait_count > 0)
+		{
+			continue ;
+		}
+		wait_count = 2 ;
+	#endif
+
+		for( count = 0 ; count < num_of_displays ; count ++)
+		{
+			x_display_idling( displays[count]) ;
 		}
 	}
 	
