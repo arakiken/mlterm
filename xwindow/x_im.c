@@ -34,7 +34,7 @@ static  x_im_export_syms_t  im_export_syms =
 	ml_char_set ,
 	ml_get_char_encoding_name ,
 	ml_get_char_encoding ,
-	ml_is_msb_set ,
+	ml_convert_to_internal_ch ,
 	ml_isciikey_state_new ,
 	ml_isciikey_state_delete ,
 	ml_convert_ascii_to_iscii ,
@@ -132,6 +132,9 @@ dlsym_im_new_func(
 
 x_im_t *
 x_im_new(
+	x_display_t *  disp ,
+	x_font_manager_t *  font_man ,
+	x_color_manager_t *  color_man ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_event_listener_t *  im_listener ,
 	char *  input_method ,
@@ -219,6 +222,9 @@ x_im_new(
 	 */
 	im->handle = handle ;
 	im->name = strdup( im_name) ;
+	im->disp = disp ;
+	im->font_man = font_man ;
+	im->color_man = color_man ;
 	im->listener = im_listener ;
 	im->cand_screen = NULL ;
 	im->stat_screen = NULL ;

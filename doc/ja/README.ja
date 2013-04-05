@@ -741,7 +741,7 @@ comment $Id$
       o KOI8_R             ... KOI8_R フォント
       o KOI8_U             ... KOI8_U フォント
       o JISX0201_ROMAN     ... JISX0201左面フォント
-      o JISX0201_KATA      ... JISX0201右面フォント
+      o JISX0201_KATA      ... JISX0201右面(半角カナ)フォント
       o JISX0208_1978      ... JISX0208フォント(JISC6226_1978も可)
       o JISX0208_1983      ... JISX0208フォント
       o JISX0208_1990      ... JISX0208フォント

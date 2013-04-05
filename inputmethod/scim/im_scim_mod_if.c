@@ -336,22 +336,21 @@ preedit_update(
 			scim->im.preedit.cursor_offset = cursor_offset ;
 		}
 
-		if( ch.cs == ISO10646_UCS4_1)
+		if( (*syms->ml_convert_to_internal_ch)( &ch ,
+			(*scim->im.listener->get_unicode_policy)(scim->im.listener->self) ,
+			US_ASCII) <= 0)
 		{
-			if( ch.property & MKF_BIWIDTH)
-			{
-				is_biwidth = 1 ;
-			}
-			else if( ch.property & MKF_AWIDTH)
-			{
-				/* TODO: check col_size_of_width_a */
-				is_biwidth = 1 ;
-			}
+			continue ;
 		}
 
-		if( ch.property & MKF_COMBINING)
+		if( ch.property & MKF_BIWIDTH)
 		{
-			is_comb = 1 ;
+			is_biwidth = 1 ;
+		}
+		else if( ch.property & MKF_AWIDTH)
+		{
+			/* TODO: check col_size_of_width_a */
+			is_biwidth = 1 ;
 		}
 
 		attr = im_scim_preedit_char_attr( scim->context , index) ;
@@ -373,8 +372,10 @@ preedit_update(
 			is_bold = 1 ;
 		}
 
-		if( is_comb)
+		if( ch.property & MKF_COMBINING)
 		{
+			is_comb = 1 ;
+
 			if( (*syms->ml_char_combine)( p - 1 , ch.ch ,
 						      ch.size , ch.cs ,
 						      is_biwidth ,
@@ -391,11 +392,6 @@ preedit_update(
 			/*
 			 * if combining failed , char is normally appended.
 			 */
-		}
-
-		if( (*syms->ml_is_msb_set)( ch.cs))
-		{
-			SET_MSB( ch.ch[0]) ;
 		}
 
 		(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
@@ -458,11 +454,10 @@ candidate_update(
 	if( scim->im.cand_screen == NULL)
 	{
 		if( ! ( scim->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				(*scim->im.listener->get_display)(scim->im.listener->self) ,
-				(*scim->im.listener->get_font_man)(scim->im.listener->self) ,
-				(*scim->im.listener->get_color_man)(scim->im.listener->self) ,
+				scim->im.disp , scim->im.font_man , scim->im.color_man ,
 				(*scim->im.listener->is_vertical)(scim->im.listener->self) ,
 				is_vertical_lookup ,
+				(*scim->im.listener->get_unicode_policy)(scim->im.listener->self) ,
 				(*scim->im.listener->get_line_height)(scim->im.listener->self) ,
 				x , y)))
 		{

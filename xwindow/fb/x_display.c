@@ -55,7 +55,7 @@
 #if  defined(__FreeBSD__)
 #define  SYSMOUSE_PACKET_SIZE  8
 #elif  defined(__NetBSD__)
-#define  KEY_REPEAT_UNIT  50	/* msec (see x_event_source.c) */
+#define  KEY_REPEAT_UNIT  25	/* msec (see x_event_source.c) */
 #define  DEFAULT_KEY_REPEAT_1  400	/* msec */
 #define  DEFAULT_KEY_REPEAT_N  50	/* msec */
 #endif

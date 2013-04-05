@@ -68,9 +68,10 @@ Framebuffer 対応に関するメモ
     menu=Boot vesa:vesa 800x600x32;boot netbsd
                    ^^^^^^^^^^^^^^^
   o キーリピートは、~/.mlterm/main に次のオプションを指定することで変更できます。
-    ただし、指定できる値は50ms単位になります。
+    ただし、指定できる値は25ms単位になります。
     wskbd_repeat_1=400
     wskbd_repeat_N=50
+  o 8 bpp で使用した場合、色が正しく表示されません(要修正)。
 
   (Common)
   o mlcc を使ってフォント設定を動的に変更する場合には、

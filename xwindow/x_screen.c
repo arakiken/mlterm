@@ -1397,6 +1397,17 @@ update_special_visual(
 	return  1 ;
 }
 
+static x_im_t *
+im_new(
+	x_screen_t *  screen
+	)
+{
+	return  x_im_new( screen->window.disp , screen->font_man ,
+			screen->color_man , ml_term_get_encoding( screen->term) ,
+			&screen->im_listener , screen->input_method ,
+			screen->mod_ignore_mask) ;
+}
+
 
 /*
  * callbacks of x_window events
@@ -1430,11 +1441,7 @@ window_realized(
 		{
 			x_xic_activate( &screen->window , "none" , "") ;
 
-			if( ! ( screen->im = x_im_new(
-					ml_term_get_encoding( screen->term) ,
-					&screen->im_listener ,
-					screen->input_method ,
-					screen->mod_ignore_mask)))
+			if( ! ( screen->im = im_new( screen)))
 			{
 				free( screen->input_method) ;
 				screen->input_method = NULL ;
@@ -5110,11 +5117,7 @@ change_im(
 	{
 		x_xic_activate( &screen->window , "none" , "");
 	
-		if( ( screen->im = x_im_new(
-				ml_term_get_encoding( screen->term) ,
-				&screen->im_listener ,
-				screen->input_method ,
-				screen->mod_ignore_mask)))
+		if( ( screen->im = im_new( screen)))
 		{
 			if(screen->window.is_focused)
 			{
@@ -6639,9 +6642,7 @@ im_changed(
 		return;
 	}
 
-	if( !( new = x_im_new( ml_term_get_encoding( screen->term) ,
-				&screen->im_listener ,
-				input_method , screen->mod_ignore_mask)))
+	if( !( new = im_new( screen)))
 	{
 		free( input_method);
 		return ;
@@ -6830,28 +6831,12 @@ write_to_term(
 	ml_term_write( screen->term , str , len , 0) ;
 }
 
-static x_display_t *
-get_display(
+static ml_unicode_policy_t
+get_unicode_policy(
 	void *  p
 	)
 {
-	return  ((x_screen_t*)p)->window.disp ;
-}
-
-static x_font_manager_t *
-get_font_man(
-	void *  p
-	)
-{
-	return  ((x_screen_t*)p)->font_man ;
-}
-
-static x_color_manager_t *
-get_color_man(
-	void *  p
-	)
-{
-	return((x_screen_t *)p)->color_man ;
+	return  ml_term_get_unicode_policy( ((x_screen_t *)p)->term) ;
 }
 
 
@@ -7551,9 +7536,7 @@ x_screen_new(
 	screen->im_listener.im_changed = im_changed ;
 	screen->im_listener.compare_key_state_with_modmap = compare_key_state_with_modmap ;
 	screen->im_listener.write_to_term = write_to_term ;
-	screen->im_listener.get_display = get_display ;
-	screen->im_listener.get_font_man = get_font_man ;
-	screen->im_listener.get_color_man = get_color_man ;
+	screen->im_listener.get_unicode_policy = get_unicode_policy ;
 
 	x_window_set_cursor( &screen->window , XC_xterm) ;
 
@@ -7842,9 +7825,7 @@ x_screen_attach(
 		x_im_t *  im ;
 
 		im = screen->im ;
-		screen->im = x_im_new( ml_term_get_encoding(term) ,
-				&screen->im_listener , screen->input_method ,
-				screen->mod_ignore_mask) ;
+		screen->im = im_new( screen) ;
 		/*
 		 * Avoid to delete anything inside im-module by calling x_im_delete()
 		 * after x_im_new().

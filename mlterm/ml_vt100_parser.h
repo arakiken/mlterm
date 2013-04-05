@@ -302,5 +302,10 @@ int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int
 
 #define  ml_vt100_parser_modify_other_keys( vt100_parser)  ((vt100_parser)->modify_other_keys)
 
+#define  ml_vt100_parser_get_unicode_policy( vt100_parser)  ((vt100_parser)->unicode_policy)
+
+int  ml_convert_to_internal_ch( mkf_char_t *  ch , ml_unicode_policy_t  unicode_policy ,
+		mkf_charset_t  gl) ;
+
 
 #endif

@@ -639,43 +639,39 @@ preedit_pushback(
 		int  is_biwidth = 0 ;
 		int  is_comb = 0 ;
 
-		if( ch.cs == ISO10646_UCS4_1)
+		if( (*syms->ml_convert_to_internal_ch)( &ch ,
+			(*uim->im.listener->get_unicode_policy)(uim->im.listener->self) ,
+			US_ASCII) <= 0)
 		{
-			if( ch.property & MKF_BIWIDTH)
-			{
-				is_biwidth = 1 ;
-			}
-			else if( ch.property & MKF_AWIDTH)
-			{
-				/* TODO: check col_size_of_width_a */
-				is_biwidth = 1 ;
-			}
+			continue ;
+		}
+
+		if( ch.property & MKF_BIWIDTH)
+		{
+			is_biwidth = 1 ;
+		}
+		else if( ch.property & MKF_AWIDTH)
+		{
+			/* TODO: check col_size_of_width_a */
+			is_biwidth = 1 ;
 		}
 
 		if( ch.property & MKF_COMBINING)
 		{
 			is_comb = 1 ;
-		}
 
-		if( is_comb)
-		{
 			if( (*syms->ml_char_combine)( p - 1 , ch.ch ,
 						      ch.size , ch.cs ,
 						      is_biwidth , is_comb ,
 						      fg_color , bg_color ,
 						      0 , is_underline))
 			{
-				continue;
+				continue ;
 			}
 
 			/*
 			 * if combining failed , char is normally appended.
 			 */
-		}
-
-		if( (*syms->ml_is_msb_set)( ch.cs))
-		{
-			SET_MSB( ch.ch[0]) ;
 		}
 
 		(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
@@ -755,11 +751,10 @@ candidate_activate(
 					       &x , &y) ;
 
 		if( ! ( uim->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				(*uim->im.listener->get_display)(uim->im.listener->self) ,
-				(*uim->im.listener->get_font_man)(uim->im.listener->self) ,
-				(*uim->im.listener->get_color_man)(uim->im.listener->self) ,
+				uim->im.disp , uim->im.font_man , uim->im.color_man ,
 				(*uim->im.listener->is_vertical)(uim->im.listener->self) ,
 				1 ,
+				(*uim->im.listener->get_unicode_policy)(uim->im.listener->self) ,
 				(*uim->im.listener->get_line_height)(uim->im.listener->self) ,
 				x , y)))
 		{

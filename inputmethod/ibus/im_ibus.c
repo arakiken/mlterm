@@ -188,45 +188,45 @@ update_preedit_text(
 				}
 			}
 
-			if( ch.cs == ISO10646_UCS4_1)
+			if( (*syms->ml_convert_to_internal_ch)( &ch ,
+				(*ibus->im.listener->get_unicode_policy)(ibus->im.listener->self) ,
+				US_ASCII) <= 0)
 			{
-				if( ch.property & MKF_BIWIDTH)
-				{
-					is_biwidth = 1 ;
-				}
-				else if( ch.property & MKF_AWIDTH)
-				{
-					/* TODO: check col_size_of_width_a */
-					is_biwidth = 1 ;
-				}
+				continue ;
+			}
+
+			if( ch.property & MKF_BIWIDTH)
+			{
+				is_biwidth = 1 ;
+			}
+			else if( ch.property & MKF_AWIDTH)
+			{
+				/* TODO: check col_size_of_width_a */
+				is_biwidth = 1 ;
 			}
 
 			if( ch.property & MKF_COMBINING)
 			{
 				is_comb = 1 ;
-			}
 
-			if( ! is_comb ||
-			    ! (*syms->ml_char_combine)( p - 1 , ch.ch , ch.size , ch.cs ,
+				if( (*syms->ml_char_combine)( p - 1 , ch.ch , ch.size , ch.cs ,
 					is_biwidth , is_comb , fg_color , bg_color , 0 , 1))
-			{
-				/*
-				 * If char is not a combination or failed to be combined ,
-				 * it is normally appended.
-				 */
-				if( (*syms->ml_is_msb_set)( ch.cs))
 				{
-					SET_MSB( ch.ch[0]) ;
+					continue ;
 				}
 
-				(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
-						      is_biwidth , is_comb ,
-						      fg_color , bg_color ,
-						      0 , 1) ;
-
-				p ++ ;
-				ibus->im.preedit.filled_len ++ ;
+				/*
+				 * if combining failed , char is normally appended.
+				 */
 			}
+
+			(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
+					      is_biwidth , is_comb ,
+					      fg_color , bg_color ,
+					      0 , 1) ;
+
+			p ++ ;
+			ibus->im.preedit.filled_len ++ ;
 
 			index ++ ;
 		}

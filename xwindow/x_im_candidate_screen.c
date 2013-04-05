@@ -7,7 +7,7 @@
 
 #ifdef  USE_IM_PLUGIN
 
-#include  "ml_str.h"
+#include  <ml_str.h>
 #include  "x_draw_str.h"
 
 #define  MARGIN		3
@@ -830,43 +830,38 @@ set_candidate(
 		int  is_biwidth = 0 ;
 		int  is_comb = 0 ;
 
-		if( ch.cs == ISO10646_UCS4_1)
+		if( ml_convert_to_internal_ch( &ch ,
+			cand_screen->unicode_policy , US_ASCII) <= 0)
 		{
-			if( ch.property & MKF_BIWIDTH)
-			{
-				is_biwidth = 1 ;
-			}
-			else if( ch.property & MKF_AWIDTH)
-			{
-				/* TODO: check col_size_of_width_a */
-				is_biwidth = 1 ;
-			}
+			continue ;
+		}
+
+		if( ch.property & MKF_BIWIDTH)
+		{
+			is_biwidth = 1 ;
+		}
+		else if( ch.property & MKF_AWIDTH)
+		{
+			/* TODO: check col_size_of_width_a */
+			is_biwidth = 1 ;
 		}
 
 		if( ch.property & MKF_COMBINING)
 		{
 			is_comb = 1 ;
-		}
 
-		if( is_comb)
-		{
 			if( ml_char_combine( p - 1 ,
 					     ch.ch , ch.size , ch.cs ,
 					     is_biwidth , is_comb ,
 					     ML_FG_COLOR , ML_BG_COLOR ,
 					     0 , 0))
 			{
-				continue;
+				continue ;
 			}
 
 			/*
 			 * if combining failed , char is normally appended.
 			 */
-		}
-
-		if( ml_is_msb_set( ch.cs))
-		{
-			SET_MSB( ch.ch[0]) ;
 		}
 
 		ml_char_set( p , ch.ch , ch.size , ch.cs ,
@@ -1035,6 +1030,7 @@ x_im_candidate_screen_new(
 	x_color_manager_t *  color_man ,
 	int  is_vertical_term ,
 	int  is_vertical_direction ,
+	ml_unicode_policy_t  unicode_policy ,
 	u_int  line_height_of_screen ,
 	int  x ,
 	int  y
@@ -1067,6 +1063,8 @@ x_im_candidate_screen_new(
 
 	cand_screen->is_vertical_term = is_vertical_term ;
 	cand_screen->is_vertical_direction = is_vertical_direction ;
+
+	cand_screen->unicode_policy = unicode_policy ;
 
 	if( ! x_window_init( &cand_screen->window , MARGIN * 2 , MARGIN * 2 ,
 			     MARGIN * 2 , MARGIN * 2 , MARGIN * 2 , MARGIN * 2 ,

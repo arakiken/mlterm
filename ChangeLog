@@ -1,3 +1,29 @@
+2013-04-06  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* x_im.[ch], x_screen.c:
+	  - IM_API_VERSION 0x08 => 0x09.
+	  - get_display, get_font_man and get_color_man are removed from
+	    x_im_event_listener_t and get_unicode_policy is added.
+	  - ml_is_msb_set is removed from x_im_export_syms and
+	    ml_convert_to_internal_ch is added.
+
+	* im_ibus.c, im_kbd.c, im_m17nlib.c, im_scim_mod_if.c, im_uim.c,
+	  x_im_candidate_screen.c:
+	  - ml_convert_to_internal_ch() is used for preedit or candidate
+	    characters.
+	  - MKF_BIWIDTH or MKF_AWIDTH property of preedit or candidate
+	    characters is always checked even if they are not ISO10646_UCS4_1.
+
+	* ml_term.h, ml_vt100_parser.h:
+	  ml_{term|vt100_parser}_get_unicode_policy() is added.
+
+	* ml_vt100_parser.c: ml_convert_to_internal_ch() is added.
+
+	* fb/x_display.c, x_event_source.c: The minimum interval of
+	  autorepeating is changed from 50ms to 25ms.
+
 2013-04-05  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Autorepeat bug is fixed.

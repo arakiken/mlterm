@@ -63,9 +63,10 @@ Framebuffer support
     menu=Boot vesa:vesa 800x600x32;boot netbsd
                    ^^^^^^^^^^^^^^^
   o You can change auto key repeat settings (ms) by the following options of
-    ~/.mlterm/main. (The values of these options should be in units of 50ms)
+    ~/.mlterm/main. (The values of these options should be in units of 25ms)
     wskbd_repeat_1=400
     wskbd_repeat_N=50
+  o 8bpp is not supported.
 
   (Common)
   o If you want to change fonts dynamically by mlcc, execute mlcc with "font"

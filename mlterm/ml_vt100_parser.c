@@ -4473,209 +4473,29 @@ parse_vt100_sequence(
 			CURRENT_STR_P(vt100_parser) , vt100_parser->r_buf.left) ;
 		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
-			/*
-			 * UCS <-> OTHER CS
-			 */
-			if( ch.cs == ISO10646_UCS4_1)
+			int  ret ;
+
+			ret = ml_convert_to_internal_ch( &ch ,
+				vt100_parser->unicode_policy , vt100_parser->gl) ;
+
+			if( ret == 1)
 			{
-				u_char  decsp ;
+				put_char( vt100_parser , ch.ch , ch.size , ch.cs , ch.property) ;
 
-				if( ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f &&
-				    ch.ch[1] == 0x00 && ch.ch[0] == 0x00)
-				{
-					/* this is always done */
-					ch.ch[0] = ch.ch[3] ;
-					ch.size = 1 ;
-					ch.cs = US_ASCII ;
-				}
-				else if( use_dec_special_font &&
-				         ( decsp = convert_ucs_to_dec_special(
-						mkf_bytes_to_int( ch.ch , ch.size))))
-				{
-					ch.ch[0] = decsp ;
-					ch.size = 1 ;
-					ch.cs = DEC_SPECIAL ;
-				}
-				else if( vt100_parser->unicode_policy & NOT_USE_UNICODE_FONT)
-				{
-					/* convert ucs4 to appropriate charset */
-
-					mkf_char_t  non_ucs ;
-
-					if( mkf_map_locale_ucs4_to( &non_ucs , &ch) )
-					{
-						if( vt100_parser->unicode_policy &
-						    USE_UNICODE_PROPERTY)
-						{
-							non_ucs.property = ch.property ;
-						}
-						else if( IS_BIWIDTH_CS( non_ucs.cs))
-						{
-							non_ucs.property = MKF_BIWIDTH ;
-						}
-
-						ch = non_ucs ;
-					}
-				}
-			#if  1
-				/* See http://github.com/saitoha/drcsterm/ */
-				else if( ch.ch[1] == 0x10 &&
-				         0x40 <= ch.ch[2] && ch.ch[2] <= 0x7e &&
-					 0x20 <= ch.ch[3] && ch.ch[3] <= 0x7f &&
-					 ch.ch[0] == 0x00)
-				{
-					ch.ch[0] = ch.ch[3] ;
-					ch.cs = CS94SB_ID(ch.ch[2]) ;
-					ch.size = 1 ;
-					ch.property = 0 ;
-				}
-			#endif
-			#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-				else
-				{
-					mkf_char_t  non_ucs ;
-
-					if( mkf_map_ucs4_to_iscii( &non_ucs ,
-						mkf_bytes_to_int( ch.ch , ch.size)))
-					{
-						if( vt100_parser->unicode_policy &
-							USE_UNICODE_PROPERTY)
-						{
-							non_ucs.property = ch.property ;
-						}
-						ch = non_ucs ;
-					}
-				}
-			#endif
+				vt100_parser->r_buf.left = vt100_parser->cc_parser->left ;
 			}
-			else if( ch.cs != US_ASCII)
+			else if( ret == -1)
 			{
-				int  conv_to_ucs ;
-
-				    /* XXX converting japanese gaiji to ucs. */
-				if( ( vt100_parser->unicode_policy & ONLY_USE_UNICODE_FONT) ||
-				    ch.cs == JISC6226_1978_NEC_EXT ||
-				    ch.cs == JISC6226_1978_NECIBM_EXT ||
-				    ch.cs == JISX0208_1983_MAC_EXT ||
-				    ch.cs == SJIS_IBM_EXT
-				#if  0
-				    /* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
-				    || ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
-				#endif
-					)
-				{
-					conv_to_ucs = 1 ;
-				}
-				else
-				{
-					conv_to_ucs = 0 ;
-				}
-
-				if( conv_to_ucs ||
-				    ( vt100_parser->unicode_policy & USE_UNICODE_PROPERTY))
-				{
-					mkf_char_t  ucs ;
-
-					if( mkf_map_to_ucs4( &ucs , &ch))
-					{
-						if( conv_to_ucs)
-						{
-							ch = ucs ;
-						}
-
-						ch.property = mkf_get_ucs_property(
-								mkf_bytes_to_int(
-									ucs.ch , ucs.size)) ;
-					}
-				}
-				else if( IS_BIWIDTH_CS( ch.cs))
-				{
-					ch.property = MKF_BIWIDTH ;
-				}
-			}
-
-			/*
-			 * NON UCS <-> NON UCS
-			 */
-
-			if( ch.size == 1)
-			{
-				/* single byte cs */
-
-				if( (ch.ch[0] == 0x0 || ch.ch[0] == 0x7f))
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" 0x0/0x7f sequence is received , ignored...\n") ;
-				#endif
-					continue ;
-				}
-				else if( (ch.ch[0] & 0x7f) <= 0x1f && ch.cs == US_ASCII)
-				{
-					/*
-					 * This is a control sequence (C0 or C1), so
-					 * reparsing this char in vt100_escape_sequence() ...
-					 */
-
-					vt100_parser->cc_parser->left ++ ;
-					vt100_parser->cc_parser->is_eos = 0 ;
-
-					break ;
-				}
-
-				if( ml_is_msb_set( ch.cs))
-				{
-					SET_MSB( ch.ch[0]) ;
-				}
-				else if( ( ch.cs == US_ASCII &&
-				           vt100_parser->gl != US_ASCII))
-				{
-					ch.cs = vt100_parser->gl ;
-				}
-			}
-			else
-			{
-				/* multi byte cs */
-
 				/*
-				 * XXX hack
-				 * how to deal with johab 10-4-4(8-4-4) font ?
-				 * is there any uhc font ?
+				 * This is a control sequence (C0 or C1), so
+				 * reparsing this char in vt100_escape_sequence() ...
 				 */
 
-				if( ch.cs == JOHAB)
-				{
-					mkf_char_t  uhc ;
+				vt100_parser->cc_parser->left ++ ;
+				vt100_parser->cc_parser->is_eos = 0 ;
 
-					if( mkf_map_johab_to_uhc( &uhc , &ch) == 0)
-					{
-						continue ;
-					}
-
-					ch = uhc ;
-				}
-
-				/*
-				 * XXX
-				 * switching option whether this conversion is done should
-				 * be introduced.
-				 */
-				if( ch.cs == UHC)
-				{
-					mkf_char_t  ksc ;
-
-					if( mkf_map_uhc_to_ksc5601_1987( &ksc , &ch) == 0)
-					{
-						continue ;
-					}
-
-					ch = ksc ;
-				}
+				break ;
 			}
-
-			put_char( vt100_parser , ch.ch , ch.size , ch.cs , ch.property) ;
-
-			vt100_parser->r_buf.left = vt100_parser->cc_parser->left ;
 		}
 
 		vt100_parser->r_buf.left = vt100_parser->cc_parser->left ;
@@ -5191,5 +5011,219 @@ ml_vt100_parser_set_logging_vt_seq(
 {
 	vt100_parser->logging_vt_seq = flag ;
 	
+	return  1 ;
+}
+
+/*
+ * Return value
+ *  1:  Succeed
+ *  0:  Error
+ *  -1: Control sequence
+ */
+int
+ml_convert_to_internal_ch(
+	mkf_char_t *  orig_ch ,
+#if  0
+	ml_char_encoding_t  encoding ,
+#endif
+	ml_unicode_policy_t  unicode_policy ,
+	mkf_charset_t  gl
+	)
+{
+	mkf_char_t  ch ;
+
+	ch = *orig_ch ;
+
+	/*
+	 * UCS <-> OTHER CS
+	 */
+	if( ch.cs == ISO10646_UCS4_1)
+	{
+		u_char  decsp ;
+
+		if( ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f &&
+		    ch.ch[1] == 0x00 && ch.ch[0] == 0x00)
+		{
+			/* this is always done */
+			ch.ch[0] = ch.ch[3] ;
+			ch.size = 1 ;
+			ch.cs = US_ASCII ;
+		}
+		else if( use_dec_special_font &&
+			 ( decsp = convert_ucs_to_dec_special(
+				mkf_bytes_to_int( ch.ch , ch.size))))
+		{
+			ch.ch[0] = decsp ;
+			ch.size = 1 ;
+			ch.cs = DEC_SPECIAL ;
+		}
+		else if( unicode_policy & NOT_USE_UNICODE_FONT)
+		{
+			/* convert ucs4 to appropriate charset */
+
+			mkf_char_t  non_ucs ;
+
+			if( mkf_map_locale_ucs4_to( &non_ucs , &ch) )
+			{
+				if( unicode_policy & USE_UNICODE_PROPERTY)
+				{
+					non_ucs.property = ch.property ;
+				}
+				else if( IS_BIWIDTH_CS( non_ucs.cs))
+				{
+					non_ucs.property = MKF_BIWIDTH ;
+				}
+
+				ch = non_ucs ;
+			}
+		}
+	#if  1
+		/* See http://github.com/saitoha/drcsterm/ */
+		else if( ch.ch[1] == 0x10 &&
+			 0x40 <= ch.ch[2] && ch.ch[2] <= 0x7e &&
+			 0x20 <= ch.ch[3] && ch.ch[3] <= 0x7f &&
+			 ch.ch[0] == 0x00)
+		{
+			ch.ch[0] = ch.ch[3] ;
+			ch.cs = CS94SB_ID(ch.ch[2]) ;
+			ch.size = 1 ;
+			ch.property = 0 ;
+		}
+	#endif
+	#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
+		else
+		{
+			mkf_char_t  non_ucs ;
+
+			if( mkf_map_ucs4_to_iscii( &non_ucs ,
+				mkf_bytes_to_int( ch.ch , ch.size)))
+			{
+				if( unicode_policy & USE_UNICODE_PROPERTY)
+				{
+					non_ucs.property = ch.property ;
+				}
+				ch = non_ucs ;
+			}
+		}
+	#endif
+	}
+	else if( ch.cs != US_ASCII)
+	{
+		int  conv_to_ucs ;
+
+		    /* XXX converting japanese gaiji to ucs. */
+		if( ( unicode_policy & ONLY_USE_UNICODE_FONT) ||
+		    ch.cs == JISC6226_1978_NEC_EXT ||
+		    ch.cs == JISC6226_1978_NECIBM_EXT ||
+		    ch.cs == JISX0208_1983_MAC_EXT ||
+		    ch.cs == SJIS_IBM_EXT
+		#if  0
+		    /* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
+		    || ( encoding == ML_GB18030 && ch.cs == GBK)
+		#endif
+			)
+		{
+			conv_to_ucs = 1 ;
+		}
+		else
+		{
+			conv_to_ucs = 0 ;
+		}
+
+		if( conv_to_ucs || ( unicode_policy & USE_UNICODE_PROPERTY))
+		{
+			mkf_char_t  ucs ;
+
+			if( mkf_map_to_ucs4( &ucs , &ch))
+			{
+				if( conv_to_ucs)
+				{
+					ch = ucs ;
+				}
+
+				ch.property = mkf_get_ucs_property(
+						mkf_bytes_to_int(
+							ucs.ch , ucs.size)) ;
+			}
+		}
+		else if( IS_BIWIDTH_CS( ch.cs))
+		{
+			ch.property = MKF_BIWIDTH ;
+		}
+	}
+
+	/*
+	 * NON UCS <-> NON UCS
+	 */
+
+	if( ch.size == 1)
+	{
+		/* single byte cs */
+
+		if( (ch.ch[0] == 0x0 || ch.ch[0] == 0x7f))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" 0x0/0x7f sequence is received , ignored...\n") ;
+		#endif
+			return  0 ;
+		}
+		else if( (ch.ch[0] & 0x7f) <= 0x1f && ch.cs == US_ASCII)
+		{
+			/* Control sequence (C0 or C1) */
+			return  -1 ;
+		}
+
+		if( ml_is_msb_set( ch.cs))
+		{
+			SET_MSB( ch.ch[0]) ;
+		}
+		else if( ch.cs == US_ASCII && gl != US_ASCII)
+		{
+			ch.cs = gl ;
+		}
+	}
+	else
+	{
+		/* multi byte cs */
+
+		/*
+		 * XXX hack
+		 * how to deal with johab 10-4-4(8-4-4) font ?
+		 * is there any uhc font ?
+		 */
+
+		if( ch.cs == JOHAB)
+		{
+			mkf_char_t  uhc ;
+
+			if( mkf_map_johab_to_uhc( &uhc , &ch) == 0)
+			{
+				return  0 ;
+			}
+
+			ch = uhc ;
+		}
+
+		/*
+		 * XXX
+		 * switching option whether this conversion is done should
+		 * be introduced.
+		 */
+		if( ch.cs == UHC)
+		{
+			mkf_char_t  ksc ;
+
+			if( mkf_map_uhc_to_ksc5601_1987( &ksc , &ch) == 0)
+			{
+				return  0 ;
+			}
+
+			ch = ksc ;
+		}
+	}
+
+	*orig_ch = ch ;
+
 	return  1 ;
 }

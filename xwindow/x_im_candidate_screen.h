@@ -6,6 +6,8 @@
 #define  __X_IM_CANDIDATE_SCREEN_H__
 
 #include  <ml_char.h>
+#include  <ml_vt100_parser.h>	/* ml_unicode_policy_t */
+
 #include  "x_window.h"
 #include  "x_display.h"
 #include  "x_font_manager.h"
@@ -32,9 +34,8 @@ typedef struct x_im_candidate_screen
 {
 	x_window_t  window ;
 
-	x_font_manager_t *  font_man ;		/* same as attaced screen */
-
-	x_color_manager_t *  color_man ;	/* same as attaced screen */
+	x_font_manager_t *  font_man ;		/* same as attached screen */
+	x_color_manager_t *  color_man ;	/* same as attached screen */
 
 	x_im_candidate_t *  candidates ;
 	u_int  num_of_candidates ;		/* == array size          */
@@ -51,6 +52,8 @@ typedef struct x_im_candidate_screen
 
 	int  is_vertical_term ;
 	int  is_vertical_direction ;
+
+	ml_unicode_policy_t  unicode_policy ;
 
 	/* x_im_candidate_screen.c -> im plugins */
 	x_im_candidate_event_listener_t  listener ;
@@ -75,6 +78,7 @@ x_im_candidate_screen_t * x_im_candidate_screen_new(
 					x_color_manager_t *  color_man ,
 					int  is_vertical_term ,
 					int  is_vertical_direction ,
+					ml_unicode_policy_t  unicode_policy ,
 					u_int  line_height_of_screen ,
 					int  x , int  y) ;
 

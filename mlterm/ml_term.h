@@ -299,6 +299,8 @@ int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 #define  ml_term_is_bracketed_paste_mode( term) \
 		ml_vt100_parser_is_bracketed_paste_mode((term)->parser)
 
+#define  ml_term_get_unicode_policy( term)  ml_vt100_parser_get_unicode_policy((term)->parser)
+
 int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		int  x , int  y , char *  display) ;
 
