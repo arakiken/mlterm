@@ -1,5 +1,7 @@
 2013-04-06  Araki Ken  <arakiken@users.sf.net>
 
+	* Makefile.in: install-fb target is added.
+
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
 
 	* x_im.[ch], x_screen.c:
