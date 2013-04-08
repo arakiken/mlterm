@@ -1,3 +1,16 @@
+2013-04-08  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, etc/main, etc/main.ja, doc/en/PROTOCOL:
+	  Updated.
+
+	* x_screen.c, x_main_config.c, ml_vt100_parser.[ch], ml_term.h,
+	  x_font_manager.[ch], x_screen_manager.c, gtk/vte.c, main_loop.c:
+	  - "box_drawing_font" option is added.
+	  - It is possible to change "not_use_unicode_font" and
+	    "only_use_unicode_font" dynamically.
+
+	* ml_char_encoding.c: ml_is_msb_set() is tuned up.
+
 2013-04-06  Araki Ken  <arakiken@users.sf.net>
 
 	* Makefile.in: install-fb target is added.

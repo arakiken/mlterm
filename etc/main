@@ -88,6 +88,8 @@
 
 # iso88591_font_for_usascii = false
 
+# box_drawing_font = noconv
+
 # compose_dec_special_font = false
 
 # -- Appearance --

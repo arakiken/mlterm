@@ -214,7 +214,7 @@ The default is 255.
 .TP
 \fB\-Y\fR, \fB\-\-decsp\fR(=\fIbool\fR)
 Use dynamically composed line drawing character set
-of DEC special and Unicode (U+2500 etc).
+of DEC special.
 The default is \fBfalse\fR.
 This overrides DEC_SPECIAL in "font" configuration file,
 while DEC_SPECIAL in "aafont" (for Xft or cairo) is always
@@ -521,6 +521,11 @@ Blink cursor. The default is \fBfalse\fR.
 .TP
 \fB\-\-border\fR=\fIvalue\fR
 Specify inner border width. The default is \fB2\fR.
+.TP
+\fB\-\-boxdraw\fR=\fIvalue\fR
+Use either unicode font or DEC Special font forcibly to draw box-drawing characters.
+\fBunicode\fR for unicode font and \fBdecsp\fR for DEC special font.
+The default is \fBnoconv\fR which draw them as they are.
 .TP
 \fB\-\-colors\fR(=\fIbool\fR)
 Whether to recognize ANSI color change escape sequences.
@@ -1130,6 +1135,9 @@ Specify bidi mode.
 .TP
 \fBblink_cursor=\fIbool\fR (\fB\-\-blink\fR)
 Blink cursor.
+.TP
+\fBbox_drawing_font=\fIvalue\fR (\fB\-\-boxdraw\fR)
+Use either unicode font or DEC Special font forcibly to draw box-drawing characters.
 .TP
 \fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 
 Specify the amount of darkening or lightening the background image.

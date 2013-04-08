@@ -105,7 +105,6 @@ x_font_manager_new(
 	x_font_present_t  font_present ,
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
-	int  usascii_font_cs_changable ,
 	int  use_multi_col_char ,
 	u_int  step_in_changing_font_size ,
 	u_int  letter_space ,
@@ -166,8 +165,6 @@ x_font_manager_new(
 
 		kik_msg_printf( "Fall back to %s.\n" , x_get_type_engine_name( engine)) ;
 	}
-
-	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
 
 	if(  x_get_max_font_size() - x_get_min_font_size() >= step_in_changing_font_size)
 	{
@@ -240,11 +237,6 @@ x_font_manager_usascii_font_cs_changed(
 	if( usascii_font_cs == font_man->font_cache->usascii_font_cs)
 	{
 		return  1 ;
-	}
-	
-	if( ! font_man->usascii_font_cs_changable)
-	{
-		return  0 ;
 	}
 
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,

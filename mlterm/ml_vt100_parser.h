@@ -31,7 +31,9 @@ typedef enum  ml_unicode_policy
 	NOT_USE_UNICODE_FONT = 0x1 ,
 	USE_UNICODE_PROPERTY = 0x2 ,
 	ONLY_USE_UNICODE_FONT = 0x4 ,
-	
+	NOT_USE_UNICODE_BOXDRAW_FONT = 0x8 ,
+	ONLY_USE_UNICODE_BOXDRAW_FONT = 0x10 ,
+
 	UNICODE_POLICY_MAX
 
 } ml_unicode_policy_t ;
@@ -218,8 +220,6 @@ typedef struct  ml_vt100_parser
 } ml_vt100_parser_t ;
 
 
-void  ml_set_use_dec_special_font( int  use) ;
-
 void  ml_set_use_alt_buffer( int  use) ;
 
 void  ml_set_use_ansi_colors( int  use) ;
@@ -301,6 +301,9 @@ int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int
 #define  ml_vt100_parser_want_focus_event( vt100_parser)  ((vt100_parser)->want_focus_event)
 
 #define  ml_vt100_parser_modify_other_keys( vt100_parser)  ((vt100_parser)->modify_other_keys)
+
+int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
+		ml_unicode_policy_t  policy) ;
 
 #define  ml_vt100_parser_get_unicode_policy( vt100_parser)  ((vt100_parser)->unicode_policy)
 

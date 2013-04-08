@@ -2,6 +2,8 @@ ver 3.1.10
 * Support framebuffer on NetBSD. (Experimental)
 * "only_use_unicode_font" and "not_use_unicode_font" options have an effect
   on preedit and candidate characters of input method plugins.
+* Add "box_drawing_font" option.
+* Enable to change "not_use_unicode_font" and "only_use_unicode_font" dynamically.
 * Bug fixes:
   Fix the bug which disabled some shortcut keys in FreeBSD/framebuffer.
   Fix the bug which ignored the specified encoding of "default_server" option

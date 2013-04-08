@@ -170,6 +170,7 @@ static encoding_table_t  encoding_table[] =
 
 /*
  * MSB of these charsets are not set , but must be set manually for X font.
+ * These charsets are placed in an ascending order.
  */
 static mkf_charset_t  msb_set_cs_table[] =
 {
@@ -454,13 +455,19 @@ ml_is_msb_set(
 	mkf_charset_t  cs
 	)
 {
-	int  count ;
-
-	for( count = 0 ; count < sizeof( msb_set_cs_table) / sizeof( msb_set_cs_table[0]) ; count ++)
+	if( msb_set_cs_table[0] <= cs &&
+	    cs <= msb_set_cs_table[sizeof( msb_set_cs_table) / sizeof( msb_set_cs_table[0]) - 1])
 	{
-		if( msb_set_cs_table[count] == cs)
+		int  count ;
+
+		for( count = 0 ;
+		     count < sizeof( msb_set_cs_table) / sizeof( msb_set_cs_table[0]) ;
+		     count ++)
 		{
-			return  1 ;
+			if( msb_set_cs_table[count] == cs)
+			{
+				return  1 ;
+			}
 		}
 	}
 

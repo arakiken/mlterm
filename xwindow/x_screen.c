@@ -4438,8 +4438,22 @@ usascii_font_cs_changed(
 	ml_char_encoding_t  encoding
 	)
 {
-	x_font_manager_usascii_font_cs_changed( screen->font_man ,
-				x_get_usascii_font_cs( encoding)) ;
+	mkf_charset_t  cs ;
+
+	if( ml_term_get_unicode_policy( screen->term) & NOT_USE_UNICODE_FONT)
+	{
+		cs = x_get_usascii_font_cs( ML_ISO8859_1) ;
+	}
+	else if( ml_term_get_unicode_policy( screen->term) & ONLY_USE_UNICODE_FONT)
+	{
+		cs = x_get_usascii_font_cs( ML_UTF8) ;
+	}
+	else
+	{
+		cs = x_get_usascii_font_cs( encoding) ;
+	}
+
+	x_font_manager_usascii_font_cs_changed( screen->font_man , cs) ;
 
 	font_size_changed( screen) ;
 
@@ -5736,6 +5750,44 @@ get_config(
 		else
 		{
 			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "not_use_unicode_font") == 0)
+	{
+		if( ml_term_get_unicode_policy( screen->term) & NOT_USE_UNICODE_FONT)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "only_use_unicode_font") == 0)
+	{
+		if( ml_term_get_unicode_policy( screen->term) & ONLY_USE_UNICODE_FONT)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "box_drawing_font") == 0)
+	{
+		if( ml_term_get_unicode_policy( screen->term) & NOT_USE_UNICODE_BOXDRAW_FONT)
+		{
+			value = "decsp" ;
+		}
+		else if( ml_term_get_unicode_policy( screen->term) &
+		         ONLY_USE_UNICODE_BOXDRAW_FONT)
+		{
+			value = "unicode" ;
+		}
+		else
+		{
+			value = "noconv" ;
 		}
 	}
 	else if( strncmp( key , "selected_text" , 13) == 0)
@@ -8764,6 +8816,64 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			ml_set_use_ansi_colors( flag) ;
+		}
+	}
+	else if( strcmp( key , "box_drawing_font") == 0)
+	{
+		ml_unicode_policy_t  policy ;
+
+		policy = ml_term_get_unicode_policy( screen->term) ;
+
+		if( strcmp( value , "unicode") == 0)
+		{
+			policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
+		}
+		else if( strcmp( value , "decsp") == 0)
+		{
+			policy |= NOT_USE_UNICODE_BOXDRAW_FONT ;
+		}
+		else
+		{
+			policy &= (~NOT_USE_UNICODE_BOXDRAW_FONT &
+			           ~ONLY_USE_UNICODE_BOXDRAW_FONT) ;
+		}
+
+		ml_term_set_unicode_policy( screen->term , policy) ;
+	}
+	else if( strstr( key , "_use_unicode_font"))
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			if( strncmp( key , "only" , 4) == 0)
+			{
+				/* only_use_unicode_font */
+
+				ml_term_set_unicode_policy( screen->term ,
+					flag ?
+					(ml_term_get_unicode_policy( screen->term) |
+					 ONLY_USE_UNICODE_FONT) & ~NOT_USE_UNICODE_FONT :
+					ml_term_get_unicode_policy( screen->term) &
+					~ONLY_USE_UNICODE_FONT) ;
+			}
+			else if( strncmp( key , "not" , 3) == 0)
+			{
+				/* not_use_unicode_font */
+
+				ml_term_set_unicode_policy( screen->term ,
+					flag ?
+					(ml_term_get_unicode_policy( screen->term) |
+					 NOT_USE_UNICODE_FONT) & ~ONLY_USE_UNICODE_FONT :
+					ml_term_get_unicode_policy( screen->term) &
+					~NOT_USE_UNICODE_FONT) ;
+			}
+			else
+			{
+				return  0 ;
+			}
+
+			usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 		}
 	}
 	else

@@ -93,9 +93,47 @@
 
 /* --- static variables --- */
 
-static int  use_dec_special_font ;
 static int  use_alt_buffer = 1 ;
 static int  use_ansi_colors = 1 ;
+static struct
+{
+	u_int16_t  ucs ;
+	u_char  decsp ;
+
+} ucs_to_decsp_table[] =
+{
+	/* Not line characters */
+#if  0
+	{ 0xa3 , '}' } ,
+	{ 0xb0 , 'f' } ,
+	{ 0xb1 , 'g' } ,
+	{ 0xb7 , '~' } ,
+	{ 0x3c0 , '{' } ,
+	{ 0x2260 , '|' } ,
+	{ 0x2264 , 'y' } ,
+	{ 0x2265 , 'z' } ,
+#endif
+
+	/* Line characters */
+	{ 0x23ba , 'o' } ,
+	{ 0x23bb , 'p' } ,
+	{ 0x23bc , 'r' } ,
+	{ 0x23bd , 's' } ,
+	{ 0x2500 , 'q' } ,
+	{ 0x2502 , 'x' } ,
+	{ 0x250c , 'l' } ,
+	{ 0x2510 , 'k' } ,
+	{ 0x2514 , 'm' } ,
+	{ 0x2518 , 'j' } ,
+	{ 0x251c , 't' } ,
+	{ 0x2524 , 'u' } ,
+	{ 0x252c , 'w' } ,
+	{ 0x2534 , 'v' } ,
+	{ 0x253c , 'n' } ,
+
+	{ 0x2592 , 'a' } ,
+	{ 0x25c6 , '`' } ,
+} ;
 
 
 /* --- static functions --- */
@@ -121,49 +159,10 @@ str_replace(
 
 /* XXX This function should be moved to mkf */
 static u_char
-convert_ucs_to_dec_special(
+convert_ucs_to_decsp(
 	u_int16_t  ucs
 	)
 {
-	static struct
-	{
-		u_int16_t  ucs ;
-		u_char  decsp ;
-
-	} ucs_to_decsp_table[] =
-	{
-		/* Not line characters */
-	#if  0
-		{ 0xa3 , '}' } ,
-		{ 0xb0 , 'f' } ,
-		{ 0xb1 , 'g' } ,
-		{ 0xb7 , '~' } ,
-		{ 0x3c0 , '{' } ,
-		{ 0x2260 , '|' } ,
-		{ 0x2264 , 'y' } ,
-		{ 0x2265 , 'z' } ,
-	#endif
-
-		/* Line characters */
-		{ 0x23ba , 'o' } ,
-		{ 0x23bb , 'p' } ,
-		{ 0x23bc , 'r' } ,
-		{ 0x23bd , 's' } ,
-		{ 0x2500 , 'q' } ,
-		{ 0x2502 , 'x' } ,
-		{ 0x250c , 'l' } ,
-		{ 0x2510 , 'k' } ,
-		{ 0x2514 , 'm' } ,
-		{ 0x2518 , 'j' } ,
-		{ 0x251c , 't' } ,
-		{ 0x2524 , 'u' } ,
-		{ 0x252c , 'w' } ,
-		{ 0x2534 , 'v' } ,
-		{ 0x253c , 'n' } ,
-
-		{ 0x2592 , 'a' } ,
-		{ 0x25c6 , '`' } ,
-	} ;
 	int  l_idx ;
 	int  h_idx ;
 	int  idx ;
@@ -199,6 +198,30 @@ convert_ucs_to_dec_special(
 			return  0 ;
 		}
 	}
+}
+
+/* XXX This function should be moved to mkf */
+static u_int16_t
+convert_decsp_to_ucs(
+	u_char  decsp
+	)
+{
+	if( '`' <= decsp && decsp <= 'x')
+	{
+		int  count ;
+
+		for( count = 0 ;
+		     count < sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]) ;
+		     count ++)
+		{
+			if( ucs_to_decsp_table[count].decsp == decsp)
+			{
+				return  ucs_to_decsp_table[count].ucs ;
+			}
+		}
+	}
+
+	return  0 ;
 }
 
 static void
@@ -4599,14 +4622,6 @@ write_loopback(
 /* --- global functions --- */
 
 void
-ml_set_use_dec_special_font(
-	int  use
-	)
-{
-	use_dec_special_font = use ;
-}
-
-void
 ml_set_use_alt_buffer(
 	int  use
 	)
@@ -5014,6 +5029,17 @@ ml_vt100_parser_set_logging_vt_seq(
 	return  1 ;
 }
 
+int
+ml_vt100_parser_set_unicode_policy(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_unicode_policy_t  policy
+	)
+{
+	vt100_parser->unicode_policy = policy ;
+
+	return  1 ;
+}
+
 /*
  * Return value
  *  1:  Succeed
@@ -5049,13 +5075,14 @@ ml_convert_to_internal_ch(
 			ch.size = 1 ;
 			ch.cs = US_ASCII ;
 		}
-		else if( use_dec_special_font &&
-			 ( decsp = convert_ucs_to_dec_special(
-				mkf_bytes_to_int( ch.ch , ch.size))))
+		else if( ( unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT) &&
+			 ( decsp = convert_ucs_to_decsp(
+					mkf_bytes_to_int( ch.ch , ch.size))))
 		{
 			ch.ch[0] = decsp ;
 			ch.size = 1 ;
 			ch.cs = DEC_SPECIAL ;
+			ch.property = 0 ;
 		}
 		else if( unicode_policy & NOT_USE_UNICODE_FONT)
 		{
@@ -5152,10 +5179,6 @@ ml_convert_to_internal_ch(
 		}
 	}
 
-	/*
-	 * NON UCS <-> NON UCS
-	 */
-
 	if( ch.size == 1)
 	{
 		/* single byte cs */
@@ -5178,13 +5201,34 @@ ml_convert_to_internal_ch(
 		{
 			SET_MSB( ch.ch[0]) ;
 		}
-		else if( ch.cs == US_ASCII && gl != US_ASCII)
+		else
 		{
-			ch.cs = gl ;
+			if( ch.cs == US_ASCII && gl != US_ASCII)
+			{
+				ch.cs = gl ;
+			}
+
+			if( ch.cs == DEC_SPECIAL)
+			{
+				u_int16_t  ucs ;
+
+				if( ( unicode_policy & ONLY_USE_UNICODE_BOXDRAW_FONT) &&
+				    ( ucs = convert_decsp_to_ucs( ch.ch[0])))
+				{
+					mkf_int_to_bytes( ch.ch , 4 , ucs) ;
+					ch.size = 4 ;
+					ch.cs = ISO10646_UCS4_1 ;
+					ch.property = mkf_get_ucs_property( ucs) ;
+				}
+			}
 		}
 	}
 	else
 	{
+		/*
+		 * NON UCS <-> NON UCS
+		 */
+
 		/* multi byte cs */
 
 		/*

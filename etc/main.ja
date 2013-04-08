@@ -124,6 +124,9 @@
 # US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 # iso88591_font_for_usascii = false
 
+# 罫線文字について、常に Unicode フォント又は DEC Special フォントで表示する。
+# box_drawing_font = noconv
+
 # DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
 # compose_dec_special_font = false
 

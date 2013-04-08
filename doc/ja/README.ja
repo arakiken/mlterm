@@ -461,9 +461,12 @@ comment $Id$
       o iso88591_font_for_usascii (true/*false*)
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 
+      o box_drawing_font (unicode/decsp/*noconv*)
+        罫線文字について、常に Unicode フォント又は DEC Special フォントで表示す
+        る。
+
       o compose_dec_special_font (true/*false*)
-        DEC special (特殊文字を除く) 及び Unicode の罫線文字(U+2500 etc)のグリフ
-	を動的に合成
+        DEC special (特殊文字を除く) のグリフを動的に合成
 
         このオプションが指定された場合、"font" ファイルで DEC_SPECIAL として
         指定したフォントは無視されます。

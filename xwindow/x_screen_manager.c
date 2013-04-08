@@ -427,7 +427,6 @@ open_screen_intern(
 	x_color_manager_t *  color_man ;
 	x_window_t *  root ;
 	mkf_charset_t  usascii_font_cs ;
-	int  usascii_font_cs_changable ;
 	void *  p ;
 	
 	/*
@@ -478,23 +477,20 @@ open_screen_intern(
 		main_config.iso88591_font_for_usascii)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_ISO8859_1) ;
-		usascii_font_cs_changable = 0 ;
 	}
 	else if( main_config.unicode_policy & ONLY_USE_UNICODE_FONT)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_UTF8) ;
-		usascii_font_cs_changable = 0 ;
 	}
 	else
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ml_term_get_encoding( term)) ;
-		usascii_font_cs_changable = 1 ;
 	}
 	
 	if( ( font_man = x_font_manager_new( disp->display ,
 		main_config.type_engine , main_config.font_present ,
 		main_config.font_size , usascii_font_cs ,
-		usascii_font_cs_changable , main_config.use_multi_col_char ,
+		main_config.use_multi_col_char ,
 		main_config.step_in_changing_font_size ,
 		main_config.letter_space , main_config.use_bold_font)) == NULL)
 	{

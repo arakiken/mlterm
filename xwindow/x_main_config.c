@@ -268,6 +268,8 @@ x_prepare_for_main_config(
 		"exit backscroll mode on receiving data from pty. [false]") ;
 	kik_conf_add_opt( conf , '\0' , "shortcut" , 1 , "allow_change_shortcut" ,
 		"allow dynamic change of shortcut keys. [false]") ;
+	kik_conf_add_opt( conf , '\0' , "boxdraw" , 0 , "box_drawing_font" ,
+		"force unicode or decsp font for box-drawing characters. [noconv]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -785,6 +787,18 @@ x_main_config_init(
 			{
 				main_config->unicode_policy |= USE_UNICODE_PROPERTY ;
 			}
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "box_drawing_font")))
+	{
+		if( strcmp( value , "decsp") == 0)
+		{
+			main_config->unicode_policy |= NOT_USE_UNICODE_BOXDRAW_FONT ;
+		}
+		else if( strcmp( value , "unicode") == 0)
+		{
+			main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
 		}
 	}
 
