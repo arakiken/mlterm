@@ -2,14 +2,16 @@ ver 3.1.10
 * Support framebuffer on NetBSD. (Experimental)
 * "only_use_unicode_font" and "not_use_unicode_font" options have an effect
   on preedit and candidate characters of input method plugins.
-* Add "box_drawing_font" option.
 * Enable to change "not_use_unicode_font" and "only_use_unicode_font" dynamically.
+* Add "box_drawing_font" option.
 * Bug fixes:
   Fix the bug which disabled some shortcut keys in FreeBSD/framebuffer.
   Fix the bug which ignored the specified encoding of "default_server" option
   in opening a new pty.
   Fix the bug which disabled sixel graphic images in framebuffer 16bpp.
   Fix the bug which disabled inline pictures if use_dynamic_comb option is true.
+  Fix the bug of iBus input method plugin which disabled to erase the last
+  preedited character even if backspace key was pressed.
 
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.

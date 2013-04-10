@@ -124,6 +124,7 @@ typedef struct
 	int  type ;
 	unsigned int  state ;
 	KeySym  ksym ;
+	unsigned int  keycode ;
 
 } XKeyEvent ;
 

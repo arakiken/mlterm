@@ -256,6 +256,8 @@ preedit_update(
 	{
 		/* utf8 -> term encoding */
 		(*parser_utf8->init)( parser_utf8) ;
+		(*scim->conv->init)( scim->conv) ;
+
 		if( ! (im_convert_encoding( parser_utf8 , scim->conv ,
 					    (u_char*) utf8_str , &str ,
 					    strlen( utf8_str) + 1)))

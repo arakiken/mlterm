@@ -21863,7 +21863,7 @@ if test "${enable_ibus+set}" = set; then :
   enableval=$enable_ibus; ibus=$enable_ibus
 fi
 
-if test "x$ibus" = "xyes" -a "$gui" != "fb" ; then
+if test "x$ibus" = "xyes" ; then
 	ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'

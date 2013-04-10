@@ -26,6 +26,11 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @IBUS_LIBS@
 
+TARGET_xlib = libim-ibus.la
+TARGET_fb = libim-ibus-fb.la
+
+TARGET = $(TARGET_@GUI@)
+
 CC      = @CC@
 INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
@@ -36,10 +41,10 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: libim-ibus.la
+all: $(TARGET)
 
-libim-ibus.la: $(IM_IBUS_OBJ)
-	$(LIBTOOL_LINK) -o libim-ibus.la $(IM_IBUS_OBJ:.o=.lo) \
+$(TARGET): $(IM_IBUS_OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) $(IM_IBUS_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
@@ -50,13 +55,13 @@ $(LIBDIR):
 	mkdir -p $(LIBDIR)
 
 install: $(LIBDIR)
-	$(LIBTOOL_INSTALL) libim-ibus.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
 	rm -f $(LIBDIR)/*im-ibus.*
 
 clean:
-	rm -rf $(IM_IBUS_OBJ) $(IM_IBUS_OBJ:.o=.lo) libim-ibus.la *.core .libs
+	rm -rf $(IM_IBUS_OBJ) $(IM_IBUS_OBJ:.o=.lo) $(TARGET) *.core .libs
 
 distclean: clean
 	rm -f Makefile

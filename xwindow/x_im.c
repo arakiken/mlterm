@@ -351,6 +351,9 @@ x_im_redraw_preedit(
 
 x_im_t *
 x_im_new(
+	x_display_t *  disp ,
+	x_font_manager_t *  font_man ,
+	x_color_manager_t *  color_man ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_event_listener_t *  im_listener ,
 	char *  input_method ,

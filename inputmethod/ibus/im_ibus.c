@@ -7,6 +7,8 @@
 #include  <x_im.h>
 #include  <kiklib/kik_list.h>
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_str.h>	/* kik_compare_str */
 #include  "../im_info.h"
 
 #if  0
@@ -25,7 +27,10 @@ typedef struct im_ibus
 
 	ml_char_encoding_t  term_encoding ;
 
-	mkf_parser_t *  parser_ibus ;	/* for ibus encoding  */
+#ifdef  USE_FRAMEBUFFER
+	mkf_parser_t *  parser_term ;	/* for term encoding */
+#endif
+	mkf_conv_t *  conv ;		/* for term encoding */
 
 	/*
 	 * Cache a result of ibus_input_context_is_enabled() which uses
@@ -34,6 +39,11 @@ typedef struct im_ibus
 	gboolean  is_enabled ;
 
 	XKeyEvent  prev_key ;
+
+#ifdef  USE_FRAMEBUFFER
+	gchar *  prev_first_cand ;
+	u_int  prev_num_of_cands ;
+#endif
 
 }  im_ibus_t ;
 
@@ -45,8 +55,8 @@ KIK_LIST_TYPEDEF( im_ibus_t) ;
 static int  is_init ;
 static IBusBus *  ibus_bus ;
 static KIK_LIST( im_ibus_t)  ibus_list = NULL ;
-
 static int  ref_count = 0 ;
+static mkf_parser_t *  parser_utf8 = NULL ;
 static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
 #ifdef  DEBUG_MODKEY
 static int  mod_key_debug = 0 ;
@@ -143,12 +153,12 @@ update_preedit_text(
 				ibus->im.preedit.num_of_chars = len) ;
 		ibus->im.preedit.filled_len = 0 ;
 
-		(*ibus->parser_ibus->init)( ibus->parser_ibus) ;
-		(*ibus->parser_ibus->set_str)( ibus->parser_ibus ,
+		(*parser_utf8->init)( parser_utf8) ;
+		(*parser_utf8->set_str)( parser_utf8 ,
 				text->text , strlen( text->text)) ;
 
 		index = 0 ;
-		while( (*ibus->parser_ibus->next_char)( ibus->parser_ibus , &ch))
+		while( (*parser_utf8->next_char)( parser_utf8 , &ch))
 		{
 			u_int  count ;
 			IBusAttribute *  attr ;
@@ -238,11 +248,52 @@ update_preedit_text(
 			return ;
 		}
 
+	#ifdef  USE_FRAMEBUFFER
+		if( ibus->im.cand_screen)
+		{
+			(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
+			ibus->im.cand_screen = NULL ;
+		}
+	#endif
+
 		/* Stop preediting. */
 		ibus->im.preedit.filled_len = 0 ;
 	}
 
 	ibus->im.preedit.cursor_offset = cursor_pos ;
+
+	(*ibus->im.listener->draw_preedit_str)( ibus->im.listener->self ,
+					       ibus->im.preedit.chars ,
+					       ibus->im.preedit.filled_len ,
+					       ibus->im.preedit.cursor_offset) ;
+}
+
+static void
+hide_preedit_text(
+	IBusInputContext *  context ,
+	gpointer  data
+	)
+{
+	im_ibus_t *  ibus ;
+
+	ibus = (im_ibus_t*) data ;
+
+	if( ibus->im.preedit.filled_len == 0)
+	{
+		return ;
+	}
+
+#ifdef  USE_FRAMEBUFFER
+	if( ibus->im.cand_screen)
+	{
+		(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
+		ibus->im.cand_screen = NULL ;
+	}
+#endif
+
+	/* Stop preediting. */
+	ibus->im.preedit.filled_len = 0 ;
+	ibus->im.preedit.cursor_offset = 0 ;
 
 	(*ibus->im.listener->draw_preedit_str)( ibus->im.listener->self ,
 					       ibus->im.preedit.chars ,
@@ -258,9 +309,6 @@ commit_text(
 	)
 {
 	im_ibus_t *  ibus ;
-	mkf_conv_t *  conv ;
-	u_char  conv_buf[256] ;
-	size_t  filled_len ;
 
 	ibus = (im_ibus_t*) data ;
 
@@ -277,43 +325,47 @@ commit_text(
 
 	if( ibus_text_get_length( text) == 0)
 	{
-		return ;
+		/* do nothing */
 	}
-
-	if( ibus->term_encoding == ML_UTF8)
+	else if( ibus->term_encoding == ML_UTF8)
 	{
 		(*ibus->im.listener->write_to_term)(
 						ibus->im.listener->self ,
 						text->text , strlen( text->text)) ;
-		return ;
 	}
-
-	if( ! ( conv = (*syms->ml_conv_new)( ibus->term_encoding)))
+	else
 	{
-		return ;
-	}
+		u_char  conv_buf[256] ;
+		size_t  filled_len ;
 
-	(*ibus->parser_ibus->init)( ibus->parser_ibus) ;
-	(*ibus->parser_ibus->set_str)( ibus->parser_ibus , text->text , strlen( text->text)) ;
+		(*parser_utf8->init)( parser_utf8) ;
+		(*parser_utf8->set_str)( parser_utf8 , text->text , strlen( text->text)) ;
 
-	(*conv->init)( conv) ;
+		(*ibus->conv->init)( ibus->conv) ;
 
-	while( ! ibus->parser_ibus->is_eos)
-	{
-		filled_len = (*conv->convert)( conv , conv_buf , sizeof( conv_buf) ,
-					ibus->parser_ibus) ;
-
-		if( filled_len == 0)
+		while( ! parser_utf8->is_eos)
 		{
-			/* finished converting */
-			break ;
-		}
+			filled_len = (*ibus->conv->convert)( ibus->conv , conv_buf ,
+						sizeof( conv_buf) , parser_utf8) ;
 
-		(*ibus->im.listener->write_to_term)( ibus->im.listener->self ,
-						conv_buf , filled_len) ;
+			if( filled_len == 0)
+			{
+				/* finished converting */
+				break ;
+			}
+
+			(*ibus->im.listener->write_to_term)( ibus->im.listener->self ,
+							conv_buf , filled_len) ;
+		}
 	}
 
-	(*conv->delete)( conv) ;
+#ifdef  USE_FRAMEBUFFER
+	if( ibus->im.cand_screen)
+	{
+		(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
+		ibus->im.cand_screen = NULL ;
+	}
+#endif
 }
 
 static void
@@ -329,13 +381,137 @@ forward_key_event(
 
 	ibus = (im_ibus_t*) data ;
 
-	if( ibus->prev_key.keycode == keycode + 8)
+	if( ibus->prev_key.keycode ==
+		#ifdef  USE_FRAMEBUFFER
+			keycode
+		#else
+			keycode + 8
+		#endif
+			)
 	{
 		ibus->prev_key.state |= IBUS_IGNORED_MASK ;
+	#ifndef  USE_FRAMEBUFFER
 		XPutBackEvent( ibus->prev_key.display , &ibus->prev_key) ;
+	#endif
 		memset( &ibus->prev_key , 0 , sizeof(XKeyEvent)) ;
 	}
 }
+
+#ifdef  USE_FRAMEBUFFER
+
+static void
+update_lookup_table(
+	IBusInputContext *  context ,
+	IBusLookupTable *  table ,
+	gboolean  visible ,
+	gpointer  data
+	)
+{
+	im_ibus_t *  ibus ;
+	u_int  num_of_cands ;
+	int  cur_pos ;
+	u_char *  str ;
+	u_int  i ;
+	int  x ;
+	int  y ;
+
+	ibus = (im_ibus_t*) data ;
+
+	if( ( num_of_cands = ibus_lookup_table_get_number_of_candidates( table)) == 0)
+	{
+		return ;
+	}
+
+	if( ibus->prev_num_of_cands != num_of_cands ||
+	    kik_compare_str( ibus->prev_first_cand ,
+		( str = ibus_text_get_text(ibus_lookup_table_get_candidate( table , 0)))) != 0)
+	{
+		ibus->prev_num_of_cands = num_of_cands ;
+		free( ibus->prev_first_cand) ;
+		ibus->prev_first_cand = strdup( str) ;
+
+		if( ibus->im.cand_screen)
+		{
+			(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
+			ibus->im.cand_screen = NULL ;
+		}
+	}
+
+	cur_pos = ibus_lookup_table_get_cursor_pos( table) ;
+
+	(*ibus->im.listener->get_spot)( ibus->im.listener->self ,
+				       ibus->im.preedit.chars ,
+				       ibus->im.preedit.segment_offset ,
+				       &x , &y) ;
+
+	if( ibus->im.cand_screen == NULL)
+	{
+		if( cur_pos == 0)
+		{
+			return ;
+		}
+
+		if( ! ( ibus->im.cand_screen = (*syms->x_im_candidate_screen_new)(
+				ibus->im.disp , ibus->im.font_man , ibus->im.color_man ,
+				(*ibus->im.listener->is_vertical)(ibus->im.listener->self) ,
+				1 ,
+				(*ibus->im.listener->get_unicode_policy)(ibus->im.listener->self) ,
+				(*ibus->im.listener->get_line_height)(ibus->im.listener->self) ,
+				x , y)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " x_im_candidate_screen_new() failed.\n") ;
+		#endif
+
+			return ;
+		}
+	}
+
+	if( ! (*ibus->im.cand_screen->init)( ibus->im.cand_screen , num_of_cands , 10))
+	{
+		(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
+		ibus->im.cand_screen = NULL ;
+
+		return ;
+	}
+
+	(*ibus->im.cand_screen->set_spot)( ibus->im.cand_screen , x , y) ;
+
+	for( i = 0 ; i < num_of_cands ; i++)
+	{
+		str = ibus_text_get_text( ibus_lookup_table_get_candidate( table , i)) ;
+
+		if( ibus->term_encoding != ML_UTF8)
+		{
+			u_char *  p ;
+
+			(*parser_utf8->init)( parser_utf8) ;
+			(*ibus->conv->init)( ibus->conv) ;
+
+			if( im_convert_encoding( parser_utf8 , ibus->conv ,
+						 str , &p ,
+						 strlen( str) + 1))
+			{
+				(*ibus->im.cand_screen->set)(
+							ibus->im.cand_screen ,
+							ibus->parser_term ,
+							p , i) ;
+				free( p) ;
+			}
+		}
+		else
+		{
+			(*ibus->im.cand_screen->set)( ibus->im.cand_screen ,
+						     ibus->parser_term ,
+						     str , i) ;
+		}
+	}
+
+	(*ibus->im.cand_screen->select)( ibus->im.cand_screen , cur_pos) ;
+}
+
+#endif	/* USE_FRAMEBUFFER */
+
 
 /*
  * methods of x_im_t
@@ -350,8 +526,6 @@ delete(
 
 	ibus = (im_ibus_t*) im ;
 
-	(*ibus->parser_ibus->delete)( ibus->parser_ibus) ;
-
 #ifdef  DBUS_H
 	ibus_object_destroy( (IBusObject*)ibus->context) ;
 #else
@@ -365,6 +539,20 @@ delete(
 #endif
 
 	kik_list_search_and_remove( im_ibus_t , ibus_list , ibus) ;
+
+	if( ibus->conv)
+	{
+		(*ibus->conv->delete)( ibus->conv) ;
+	}
+
+#ifdef  USE_FRAMEBUFFER
+	if( ibus->parser_term)
+	{
+		(*ibus->parser_term->delete)( ibus->parser_term) ;
+	}
+
+	free( ibus->prev_first_cand) ;
+#endif
 
 	free( ibus) ;
 
@@ -402,10 +590,101 @@ delete(
 
 		kik_list_delete( im_ibus_t , ibus_list) ;
 		ibus_list = NULL ;
+
+		if( parser_utf8)
+		{
+			(*parser_utf8->delete)( parser_utf8) ;
+			parser_utf8 = NULL ;
+		}
 	}
 
 	return  ref_count ;
 }
+
+#ifdef  USE_FRAMEBUFFER
+static KeySym
+native_to_ibus_ksym(
+	KeySym  ksym
+	)
+{
+	switch( ksym)
+	{
+	case  XK_Zenkaku_Hankaku:
+		return  IBUS_Zenkaku_Hankaku ;
+
+	case  XK_Muhenkan:
+		return  IBUS_Muhenkan ;
+
+	case  XK_Henkan_Mode:
+		return  IBUS_Henkan_Mode ;
+
+	case  XK_Home:
+		return  IBUS_Home ;
+
+	case  XK_Left:
+		return  IBUS_Left ;
+
+	case  XK_Up:
+		return  IBUS_Up ;
+
+	case  XK_Right:
+		return  IBUS_Right ;
+
+	case  XK_Down:
+		return  IBUS_Down ;
+
+	case  XK_Prior:
+		return  IBUS_Prior ;
+
+	case  XK_Next:
+		return  IBUS_Next ;
+
+	case  XK_Insert:
+		return  IBUS_Insert ;
+
+	case  XK_End:
+		return  IBUS_End ;
+
+	case  XK_Num_Lock:
+		return  IBUS_Num_Lock ;
+
+	case  XK_Shift_L:
+		return  IBUS_Shift_L ;
+
+	case  XK_Shift_R:
+		return  IBUS_Shift_R ;
+
+	case  XK_Control_L:
+		return  IBUS_Control_L ;
+
+	case  XK_Control_R:
+		return  IBUS_Control_R ;
+
+	case  XK_Caps_Lock:
+		return  IBUS_Caps_Lock ;
+
+	case  XK_Meta_L:
+		return  IBUS_Meta_L ;
+
+	case  XK_Meta_R:
+		return  IBUS_Meta_R ;
+
+	case  XK_Alt_L:
+		return  IBUS_Alt_L ;
+
+	case  XK_Alt_R:
+		return  IBUS_Alt_R ;
+
+	case  XK_Delete:
+		return  IBUS_Delete ;
+
+	default:
+		return  ksym ;
+	}
+}
+#else
+#define  native_to_ibus_ksym( ksym)  (ksym)
+#endif
 
 static int
 key_event(
@@ -424,8 +703,15 @@ key_event(
 		/* Is put back in forward_key_event */
 		event->state &= ~IBUS_IGNORED_MASK ;
 	}
-	else if( ibus_input_context_process_key_event( ibus->context , ksym , event->keycode - 8 ,
-			event->state | (event->type == KeyRelease ? IBUS_RELEASE_MASK : 0)))
+	else if( ibus_input_context_process_key_event( ibus->context , native_to_ibus_ksym( ksym) ,
+		#ifdef  USE_FRAMEBUFFER
+			event->keycode ,
+			event->state
+		#else
+			event->keycode - 8 ,
+			event->state | (event->type == KeyRelease ? IBUS_RELEASE_MASK : 0)
+		#endif
+			))
 	{
 		gboolean  is_enabled_old ;
 
@@ -484,7 +770,7 @@ switch_mode(
 		ibus_input_context_enable( ibus->context) ;
 		ibus->is_enabled = TRUE ;
 	}
-	
+
 	return  1 ;
 }
 
@@ -628,9 +914,14 @@ im_ibus_new(
 		(*syms->x_event_source_add_fd)( IBUS_ID , connection_handler) ;
 
 		kik_list_new( im_ibus_t , ibus_list) ;
+
+		if( ! ( parser_utf8 = (*syms->ml_parser_new)( ML_UTF8)))
+		{
+			goto  error ;
+		}
 	}
 
-	if( ! ( ibus = malloc( sizeof( im_ibus_t))))
+	if( ! ( ibus = calloc( 1 , sizeof( im_ibus_t))))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -639,25 +930,44 @@ im_ibus_new(
 		goto  error ;
 	}
 
-	if( ! ( ibus->parser_ibus = (*syms->ml_parser_new)( ML_UTF8)))
-	{
-		goto  error ;
-	}
-
 	ibus->context = ibus_bus_create_input_context( ibus_bus , "mlterm") ;
 	ibus_input_context_set_capabilities( ibus->context ,
-		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT) ;
+	#ifdef  USE_FRAMEBUFFER
+		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_LOOKUP_TABLE
+	#else
+		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT
+	#endif
+		) ;
 
 	g_signal_connect( ibus->context , "update-preedit-text" ,
 			G_CALLBACK( update_preedit_text) , ibus) ;
+	g_signal_connect( ibus->context , "hide-preedit-text" ,
+			G_CALLBACK( hide_preedit_text) , ibus) ;
 	g_signal_connect( ibus->context , "commit-text" , G_CALLBACK( commit_text) , ibus) ;
 	g_signal_connect( ibus->context , "forward-key-event" ,
 			G_CALLBACK( forward_key_event) , ibus) ;
+#ifdef  USE_FRAMEBUFFER
+	g_signal_connect( ibus->context , "update-lookup-table" ,
+			G_CALLBACK( update_lookup_table) , ibus) ;
+#endif
 
 	ibus->term_encoding = term_encoding ;
 	ibus->is_enabled = FALSE ;
 
-	memset( &ibus->prev_key , 0 , sizeof(XKeyEvent)) ;
+	if( term_encoding != ML_UTF8)
+	{
+		if( ! ( ibus->conv = (*syms->ml_conv_new)( term_encoding)))
+		{
+			goto  error ;
+		}
+	}
+
+#ifdef  USE_FRAMEBUFFER
+	if( ! ( ibus->parser_term = (*syms->ml_parser_new)( term_encoding)))
+	{
+		goto  error ;
+	}
+#endif
 
 	/*
 	 * set methods of x_im_t
@@ -684,10 +994,28 @@ error:
 	{
 		ibus_object_destroy( (IBusObject*)ibus_bus) ;
 		ibus_bus = NULL ;
+
+		if( parser_utf8)
+		{
+			(*parser_utf8->delete)( parser_utf8) ;
+			parser_utf8 = NULL ;
+		}
 	}
 
 	if( ibus)
 	{
+		if( ibus->conv)
+		{
+			(*ibus->conv->delete)( ibus->conv) ;
+		}
+
+	#ifdef  USE_FRAMEBUFFER
+		if( ibus->parser_term)
+		{
+			(*ibus->parser_term->delete)( ibus->parser_term) ;
+		}
+	#endif
+
 		free( ibus) ;
 	}
 

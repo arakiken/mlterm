@@ -546,6 +546,7 @@ receive_stdin_key_event(void)
 		xev.type = KeyPress ;
 		xev.state = get_key_state() ;
 		xev.ksym = 0 ;
+		xev.keycode = 0 ;
 
 		if( buf[0] == '\x1b' && len > 1)
 		{
@@ -1129,6 +1130,7 @@ receive_key_event(void)
 		xev.type = KeyPress ;
 		xev.state = _mouse.button_state |
 			    _display.key_state ;
+		xev.keycode = code ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG
@@ -1211,6 +1213,7 @@ process_wskbd_event(
 			xev.ksym = ksym ;
 			xev.state = _mouse.button_state |
 				    _display.key_state ;
+			xev.keycode = ev->value ;
 
 			receive_event_for_multi_roots( &_disp , &xev) ;
 
@@ -2233,6 +2236,7 @@ receive_key_event(void)
 						xev.type = KeyPress ;
 						xev.ksym = kcode_to_ksym( ev.code ,
 								_display.key_state) ;
+						xev.keycode = ev.code ;
 						xev.state = _mouse.button_state |
 							    _display.key_state ;
 
