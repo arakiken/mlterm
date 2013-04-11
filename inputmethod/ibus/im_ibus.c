@@ -4,11 +4,15 @@
 
 #include  <stdio.h>
 #include  <ibus.h>
-#include  <x_im.h>
+
 #include  <kiklib/kik_list.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>	/* kik_compare_str */
+
+#include  <x_im.h>
+
+#include  "../im_common.h"
 #include  "../im_info.h"
 
 #if  0
@@ -417,14 +421,15 @@ update_lookup_table(
 
 	ibus = (im_ibus_t*) data ;
 
-	if( ( num_of_cands = ibus_lookup_table_get_number_of_candidates( table)) == 0)
+	if( ( num_of_cands = ibus_lookup_table_get_number_of_candidates( table)) == 0 ||
+	    /* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_of_cands > 0. */
+	    ! ( str = ibus_text_get_text(ibus_lookup_table_get_candidate( table , 0))))
 	{
 		return ;
 	}
 
 	if( ibus->prev_num_of_cands != num_of_cands ||
-	    kik_compare_str( ibus->prev_first_cand ,
-		( str = ibus_text_get_text(ibus_lookup_table_get_candidate( table , 0)))) != 0)
+	    kik_compare_str( ibus->prev_first_cand , str) != 0)
 	{
 		ibus->prev_num_of_cands = num_of_cands ;
 		free( ibus->prev_first_cand) ;
@@ -609,6 +614,18 @@ native_to_ibus_ksym(
 {
 	switch( ksym)
 	{
+	case  XK_BackSpace:
+		return  IBUS_BackSpace ;
+
+	case  XK_Tab:
+		return  IBUS_Tab ;
+
+	case  XK_Return:
+		return  IBUS_Return ;
+
+	case  XK_Escape:
+		return  IBUS_Escape ;
+
 	case  XK_Zenkaku_Hankaku:
 		return  IBUS_Zenkaku_Hankaku ;
 

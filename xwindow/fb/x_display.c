@@ -440,24 +440,22 @@ receive_event_for_multi_roots(
 	XEvent *  xev
 	)
 {
+	/* XXX for input method window */
+	static x_window_t  saved_win ;
+
 	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
 	{
-		/* XXX for input method window */
-		x_window_t  saved_win ;
-
 		saved_win = *(disp->roots[1]) ;
-
-		x_window_receive_event( disp->roots[0] , xev) ;
-
-		if( disp->num_of_roots == 1 || ! disp->roots[1]->is_mapped)
-		{
-			x_display_expose( saved_win.x , saved_win.y ,
-				ACTUAL_WIDTH(&saved_win) , ACTUAL_HEIGHT(&saved_win)) ;
-		}
 	}
-	else
+
+	x_window_receive_event( disp->roots[0] , xev) ;
+
+	if( saved_win.my_window &&
+	    ( disp->num_of_roots == 1 || ! disp->roots[1]->is_mapped))
 	{
-		x_window_receive_event( disp->roots[0] , xev) ;
+		x_display_expose( saved_win.x , saved_win.y ,
+			ACTUAL_WIDTH(&saved_win) , ACTUAL_HEIGHT(&saved_win)) ;
+		saved_win.my_window = None ;
 	}
 }
 

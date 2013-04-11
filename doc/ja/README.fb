@@ -84,7 +84,8 @@ Framebuffer 対応に関するメモ
     $ mlcc exec update_all
     としてください。
   o 使用可能なスクロールバーは、simpleとsampleのみです。
-  o 使用可能なInput method pluginは、kbd、uim及びm17nlibのみです。
+  o 使用可能なInput method pluginは、kbd、m17nlib、uim及びiBusのみです。
+    (iBusはFreeBSD上ではテストしていません。)
 
 * 使えない機能
   o 2/4 bpp

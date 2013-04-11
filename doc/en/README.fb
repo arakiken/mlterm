@@ -74,7 +74,8 @@ Framebuffer support
   o To redraw the screen completely, execute a following command.
     $ mlcc exec update_all
   o Available scrollbars are "simple" and "sample" alone.
-  o Available input method plugins are kbd, uim and m17nlib.
+  o Available input method plugins are kbd, m17nlib, uim and iBus.
+    (iBus is not tested on FreeBSD)
 
 * Unsupported features
   o 2/4 bpp

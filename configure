@@ -21639,7 +21639,7 @@ if test "$dnd" = "no" ; then
 fi
 
 
-IM_CFLAGS=""
+
 DL_LIBS_IM=""
 
 #
@@ -21651,7 +21651,6 @@ if test "${enable_kbd+set}" = set; then :
 fi
 
 if test "$kbd" != "no" ; then
-	IM_CFLAGS="$IM_CFLAGS -DUSE_KBD"
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != "xno" ; then
@@ -21737,7 +21736,6 @@ $as_echo "yes" >&6; }
 	have_uim=yes
 fi
 	if test "x$have_uim" = xyes ; then
-		IM_CFLAGS="$IM_CFLAGS -DUSE_UIM"
 		MAKE_DIRS="inputmethod/uim ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/uim/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
@@ -21839,7 +21837,6 @@ fi
 $as_echo "$ac_cv_lib_m17n_minput_open_im" >&6; }
 if test "x$ac_cv_lib_m17n_minput_open_im" = x""yes; then :
 
-		IM_CFLAGS="$IM_CFLAGS -DUSE_M17NLIB"
 		M17NLIB_CFLAGS="`m17n-config --cflags`"
 		MAKE_DIRS="inputmethod/m17nlib ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/m17nlib/Makefile ${OUTPUT_FILES}"
@@ -22189,7 +22186,6 @@ $as_echo "yes" >&6; }
 	has_ibus=yes
 fi
 	if test "x$has_ibus" = xyes ; then
-		IM_CFLAGS="$IM_CFLAGS -DUSE_IBUS"
 		MAKE_DIRS="inputmethod/ibus ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/ibus/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
@@ -22535,7 +22531,6 @@ $as_echo "yes" >&6; }
 	has_scim=yes
 fi
 	if test "x$has_scim" = xyes ; then
-		IM_CFLAGS="$IM_CFLAGS -DUSE_SCIM"
 		MAKE_DIRS="inputmethod/scim ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/scim/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
@@ -22548,8 +22543,8 @@ fi
 
 
 
-if test "x$IM_CFLAGS" != x ; then
-	IM_CFLAGS="$IM_CFLAGS -DUSE_IM_PLUGIN"
+if test "x$input_methods_result" != x ; then
+	IM_CFLAGS="-DUSE_IM_PLUGIN"
 fi
 
 

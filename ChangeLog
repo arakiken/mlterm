@@ -1,3 +1,12 @@
+2013-04-12  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: The region where input method window is opened
+	  is always exposed in hiding it.
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* im_ibus.c: Framebuffer on Linux is supported.
+
 2013-04-11  Araki Ken  <arakiken@users.sf.net>
 
 	* im_ibus.c:
