@@ -1,3 +1,8 @@
+2013-04-13  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: The region where input method window is opened
+	  is always exposed in moving it.
+
 2013-04-12  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: The region where input method window is opened

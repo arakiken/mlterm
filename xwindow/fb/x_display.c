@@ -441,21 +441,57 @@ receive_event_for_multi_roots(
 	)
 {
 	/* XXX for input method window */
-	static x_window_t  saved_win ;
-
-	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
+	static struct
 	{
-		saved_win = *(disp->roots[1]) ;
-	}
+		int  saved ;
+		int  x ;
+		int  y ;
+		u_int  width ;
+		u_int  height ;
+
+	} im_region ;
 
 	x_window_receive_event( disp->roots[0] , xev) ;
 
-	if( saved_win.my_window &&
-	    ( disp->num_of_roots == 1 || ! disp->roots[1]->is_mapped))
+	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
 	{
-		x_display_expose( saved_win.x , saved_win.y ,
-			ACTUAL_WIDTH(&saved_win) , ACTUAL_HEIGHT(&saved_win)) ;
-		saved_win.my_window = None ;
+		if( im_region.saved)
+		{
+			if( im_region.x == disp->roots[1]->x &&
+			    im_region.y == disp->roots[1]->y &&
+			    im_region.width == ACTUAL_WIDTH(disp->roots[1]) &&
+			    im_region.height == ACTUAL_HEIGHT(disp->roots[1]))
+			{
+				return ;
+			}
+
+			x_display_expose( im_region.x , im_region.y ,
+				im_region.width , im_region.height) ;
+
+			if( disp->roots[1]->window_exposed)
+			{
+				(*disp->roots[1]->window_exposed)( disp->roots[1] ,
+					disp->roots[1]->x ,
+					disp->roots[1]->y ,
+					ACTUAL_WIDTH(disp->roots[1]) ,
+					ACTUAL_HEIGHT(disp->roots[1])) ;
+			}
+		}
+
+		im_region.saved = 1 ;
+		im_region.x = disp->roots[1]->x ;
+		im_region.y = disp->roots[1]->y ;
+		im_region.width = ACTUAL_WIDTH(disp->roots[1]) ;
+		im_region.height = ACTUAL_HEIGHT(disp->roots[1]) ;
+	}
+	else
+	{
+		if( im_region.saved)
+		{
+			x_display_expose( im_region.x , im_region.y ,
+				im_region.width , im_region.height) ;
+			im_region.saved = 0 ;
+		}
 	}
 }
 
@@ -1353,11 +1389,7 @@ open_display(void)
 	kik_priv_restore_euid() ;
 	kik_priv_restore_egid() ;
 
-#if  1
 	_display.fd = open( "/dev/wskbd0" , O_RDWR|O_NONBLOCK|O_EXCL) ;
-#else
-	_display.fd = -1 ;
-#endif
 	_mouse.fd = open( "/dev/wsmouse" , O_RDWR|O_NONBLOCK|O_EXCL) ;
 
 	kik_priv_change_euid( kik_getuid()) ;
