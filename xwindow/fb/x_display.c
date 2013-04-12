@@ -1389,7 +1389,7 @@ open_display(void)
 	kik_priv_restore_euid() ;
 	kik_priv_restore_egid() ;
 
-	_display.fd = open( "/dev/wskbd0" , O_RDWR|O_NONBLOCK|O_EXCL) ;
+	_display.fd = open( "/dev/wskbd" , O_RDWR|O_NONBLOCK|O_EXCL) ;
 	_mouse.fd = open( "/dev/wsmouse" , O_RDWR|O_NONBLOCK|O_EXCL) ;
 
 	kik_priv_change_euid( kik_getuid()) ;
@@ -1398,7 +1398,7 @@ open_display(void)
 	if( _display.fd == -1)
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Failed to open /dev/wskbd0.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open /dev/wskbd.\n") ;
 	#endif
 
 		_display.fd = STDIN_FILENO ;
