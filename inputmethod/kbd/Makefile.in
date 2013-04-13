@@ -24,6 +24,11 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@
 
+TARGET_xlib = libim-kbd.la
+TARGET_fb = libim-kbd-fb.la
+
+TARGET = $(TARGET_@GUI@)
+
 CC      = @CC@
 INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
@@ -34,10 +39,10 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: libim-kbd.la
+all: $(TARGET)
 
-libim-kbd.la: $(IM_KBD_OBJ)
-	$(LIBTOOL_LINK) -o libim-kbd.la $(IM_KBD_OBJ:.o=.lo) \
+$(TARGET): $(IM_KBD_OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) $(IM_KBD_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
@@ -48,7 +53,7 @@ $(LIBDIR):
 	mkdir -p $(LIBDIR)
 
 install: $(LIBDIR)
-	$(LIBTOOL_INSTALL) libim-kbd.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
 	rm -f $(LIBDIR)/*im-kbd*

@@ -86,10 +86,7 @@ Framebuffer 対応に関するメモ
     としてください。
   o 使用可能なスクロールバーは、simpleとsampleのみです。
   o 使用可能なInput method pluginは、kbd、m17nlib、uim及びiBusのみです。
-    なお、libim-kbd.so は、X 版と framebuffer 版で同じバイナリを使用できますが、
-    その他は framebuffer 専用のバイナリを(libim-*-fb.so)をビルド&インストールす
-    る必要があります。
-    また、iBus は FreeBSD 上ではテストしていません。
+    (iBus は FreeBSD 上ではテストしていません。)
 
 * 使えない機能
   o 2/4 bpp

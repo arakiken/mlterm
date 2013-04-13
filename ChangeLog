@@ -1,5 +1,12 @@
 2013-04-13  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/ja/READBE.fb: Updated.
+
+	* inputmethod/kbd/Makefile.in:
+	  libim-kbd.so -> libim-kbd-fb.so in framebuffer.
+
+2013-04-13  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x.h, win32/x.h: IsModifierKey() which is used by im_m17nlib.c is added.
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
