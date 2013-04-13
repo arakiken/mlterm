@@ -70,9 +70,9 @@ Framebuffer 対応に関するメモ
     wskbd_repeat_1=400
     wskbd_repeat_N=50
   o 8 bpp で使用した場合、色が正しく表示されません(要修正)。
-  o Input method plugin として iBus を使用する場合は、mlterm-fb をビルドする際に
-    -lpthread してください(mlterm-fb に pthread ライブラリをリンクしておかないと、
-    ibus module の dlopen に失敗します。)。
+  o Input method plugin として iBus を使用する場合は、./configure に
+    --without-pthread を指定してビルドしないでください(mlterm-fb に pthread ライ
+    ブラリをリンクしておかないと、ibus module の dlopen に失敗します。)。
 
   (Common)
   o mlcc を使ってフォント設定を動的に変更する場合には、

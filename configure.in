@@ -378,6 +378,9 @@ AC_SUBST(FRIBIDI_LIBS)
 AC_SUBST(CTL_CFLAGS)
 AC_SUBST(CTL_LIBS_FOR_VTE)
 
+AC_ARG_WITH(pthread,
+	[  --without-pthread       don't use pthread @<:@default=with@:>@])
+
 AC_ARG_ENABLE(dl-type,
 	[  --disable-dl-type       dynamic loading type engine library @<:@default=enable@:>@],
 	dl_type=$enable_dl_type, dl_type="yes")
@@ -459,6 +462,13 @@ cairo)
 	if test "$have_cairo" = "yes" ; then
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_cairo.la ${TYPE_LIBS}"
+			if test "$with_pthread" != "no" ; then
+				case "${host_os}" in
+				netbsd*)
+					PTHREAD_LIB="-lpthread"
+					;;
+				esac
+			fi
 		else
 			NODL_OBJ="x_window_cairo.o ${NODL_OBJ}"
 			TYPE_LIBS_FOR_VTE="${CAIRO_LIBS} ${TYPE_LIBS_FOR_VTE}"
@@ -521,15 +531,19 @@ if test "$ml_cv_is_posix" = "no" ; then
 	fi
 else
 	ML_PTY_OBJ="ml_pty_unix.o"
+
 	if test "$ssh2" = "yes" ; then
-		AC_ARG_WITH(pthread,
-			[  --without-pthread       don't use pthread @<:@default=with@:>@])
 		if test "$with_pthread" != "no" ; then
 			AC_CHECK_HEADER(pthread.h,
 				[
 				SSH2_CFLAGS="$SSH2_CFLAGS -DHAVE_PTHREAD"
 				SSH2_LIBS="$SSH2_LIBS -lpthread"
 				])
+			case "${host_os}" in
+			netbsd*)
+				PTHREAD_LIB="-lpthread"
+				;;
+			esac
 		fi
 		ML_PTY_OBJ="ml_pty_ssh.o ${ML_PTY_OBJ}"
 		# dlopen libptyssh
@@ -802,6 +816,13 @@ if test "x$ibus" = "xyes" ; then
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/ibus/libim-ibus.la ${DL_LIBS_IM}"
 		fi
+		if test "$with_pthread" != "no" ; then
+			case "${host_os}" in
+			netbsd*)
+				PTHREAD_LIB="-lpthread"
+				;;
+			esac
+		fi
 		input_methods_result="$input_methods_result iBus"
 	fi
 fi
@@ -1024,6 +1045,8 @@ AC_SUBST(IND_LIBS)
 AC_SUBST(IND_CFLAGS)
 AC_SUBST(CTL_LIBS)
 AC_SUBST(CTL_LIBS_FOR_PROG)
+
+AC_SUBST(PTHREAD_LIB)
 
 AC_SUBST(MAKE_DIRS)
 

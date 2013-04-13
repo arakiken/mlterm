@@ -65,6 +65,8 @@ Options for configure
 
   --without-pthread
     Don't depend on pthread for secure copy (scp) over ssh.
+    (Furthermore, don't link libpthread to mlterm in NetBSD even if --enable-ibus
+     or --with-type-engines=cairo is specified.)
 
   --enable-utmp
     Use utmp,wtmp,lastlog

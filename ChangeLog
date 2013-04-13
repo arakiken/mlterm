@@ -1,5 +1,14 @@
 2013-04-13  Araki Ken  <arakiken@users.sf.net>
 
+	* README, doc/ja/README.fb: Updated.
+
+	* configure.in, main/Makefile.in: -lpthread is added in compiling mlterm
+	  in NetBSD if ./configure is executed with --enable-ibus, --enable-ssh2
+	  or --with-type-engines=cairo option unless --without-pthread is
+	  specified.
+
+2013-04-13  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/ja/READBE.fb: Updated.
 
 	* inputmethod/kbd/Makefile.in:
