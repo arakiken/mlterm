@@ -8,7 +8,7 @@
 #include  <ctype.h>		/* isalpha */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca/realloc/free */
-#include  <fribidi/fribidi.h>
+#include  <fribidi.h>
 #include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
 
 

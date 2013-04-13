@@ -26,6 +26,11 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @M17NLIB_LIBS@
 
+TARGET_xlib = libim-m17nlib.la
+TARGET_fb = libim-m17nlib-fb.la
+
+TARGET = $(TARGET_@GUI@)
+
 CC      = @CC@
 INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
@@ -36,10 +41,10 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: libim-m17nlib.la
+all: $(TARGET)
 
-libim-m17nlib.la: $(IM_M17NLIB_OBJ)
-	$(LIBTOOL_LINK) -o libim-m17nlib.la $(IM_M17NLIB_OBJ:.o=.lo) \
+$(TARGET): $(IM_M17NLIB_OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) $(IM_M17NLIB_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
@@ -50,13 +55,13 @@ $(LIBDIR):
 	mkdir -p $(LIBDIR)
 
 install: $(LIBDIR)
-	$(LIBTOOL_INSTALL) libim-m17nlib.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-m17nlib.*
+	rm -f $(LIBDIR)/*im-m17nlib*
 
 clean:
-	rm -rf $(IM_M17NLIB_OBJ) $(IM_M17NLIB_OBJ:.o=.lo) libim-m17nlib.la *.core .libs
+	rm -rf $(IM_M17NLIB_OBJ) $(IM_M17NLIB_OBJ:.o=.lo) *im-m17nlib* *.core .libs
 
 distclean: clean
 	rm -f Makefile

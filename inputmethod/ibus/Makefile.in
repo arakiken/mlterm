@@ -58,10 +58,10 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-ibus.*
+	rm -f $(LIBDIR)/*im-ibus*
 
 clean:
-	rm -rf $(IM_IBUS_OBJ) $(IM_IBUS_OBJ:.o=.lo) $(TARGET) *.core .libs
+	rm -rf $(IM_IBUS_OBJ) $(IM_IBUS_OBJ:.o=.lo) *im-ibus* *.core .libs
 
 distclean: clean
 	rm -f Makefile

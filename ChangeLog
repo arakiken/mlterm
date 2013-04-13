@@ -1,5 +1,20 @@
 2013-04-13  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x.h, win32/x.h: IsModifierKey() which is used by im_m17nlib.c is added.
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* libctl/ml_bidi.c: <fribidi/fribidi.h> -> <fribidi.h>
+
+	* im_m17nlib.c: Compilation error is fixed.
+
+	* inputmethod/m17nlib/Makefile.in:
+	  libim-m17nlib.so -> libim-m17nlib-fb.so in framebuffer.
+
+	* inputmethod/*/Makefile.in: Minor fixes.
+
+	* x_im_candidate_screen.c: Minor fixes.
+
 	* fb/x_display.c: /dev/wskbd is opened instead of /dev/wskbd0 because
 	  "wsconsctl encoding" command returns "encoding=unknown_0" if
 	  /dev/wskbd0 is opened.

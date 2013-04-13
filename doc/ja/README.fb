@@ -18,10 +18,8 @@ Framebuffer 対応に関するメモ
   sudo make install
   (インストール先は、X 版 mlterm と同じディレクトリで構いません。
    この場合、すでに X版 mlterm がインストールされていれば、全てのファイルを
-   make install しなくても、
-   $ (cd main ; sudo make install) ; (cd scrollbar/sample ; sudo make install)
-   と、mlterm-fb 及び libsample-fb.so ファイルだけインストールしても、問題あり
-   ません。)
+   make install しなくても、make install-fb で、mlterm-fb, libsample-fb.so 及び
+   libim-*-fb.so ファイルだけインストールしても、問題ありません。)
 
 * 設定
   フォント設定以外は、X 版 mlterm と同じです。
@@ -72,6 +70,9 @@ Framebuffer 対応に関するメモ
     wskbd_repeat_1=400
     wskbd_repeat_N=50
   o 8 bpp で使用した場合、色が正しく表示されません(要修正)。
+  o Input method plugin として iBus を使用する場合は、mlterm-fb をビルドする際に
+    -lpthread してください(mlterm-fb に pthread ライブラリをリンクしておかないと、
+    ibus module の dlopen に失敗します。)。
 
   (Common)
   o mlcc を使ってフォント設定を動的に変更する場合には、
@@ -85,7 +86,10 @@ Framebuffer 対応に関するメモ
     としてください。
   o 使用可能なスクロールバーは、simpleとsampleのみです。
   o 使用可能なInput method pluginは、kbd、m17nlib、uim及びiBusのみです。
-    (iBusはFreeBSD上ではテストしていません。)
+    なお、libim-kbd.so は、X 版と framebuffer 版で同じバイナリを使用できますが、
+    その他は framebuffer 専用のバイナリを(libim-*-fb.so)をビルド&インストールす
+    る必要があります。
+    また、iBus は FreeBSD 上ではテストしていません。
 
 * 使えない機能
   o 2/4 bpp

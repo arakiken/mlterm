@@ -350,8 +350,9 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_9		KS_KP_9
 
 #define IsKeypadKey(ksym)	(0xf200 <= (ksym) && (ksym) < 0xf300)
+#define IsModifierKey(ksym)      (KS_Shift_L <= (ksym) && (ksym) <= KS_Alt_R)
 
-#else	/* __NetBSD__ */
+#else	/* if __FreeBSD__ || __Linux__ */
 
 #if  defined(__FreeBSD__)
 
@@ -427,7 +428,7 @@ typedef int XFontSet ;	/* dummy */
 #define KEY_KP8		(0x4c + 0x100)
 #define KEY_KP9		(0x4d + 0x100)
 
-#endif	/* FreeBSD/Linux */
+#endif	/* FreeBSD */
 
 #define XK_Super_L	0xfffe	/* dummy */
 #define XK_Super_R	0xfffd	/* dummy */
@@ -538,8 +539,9 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_9		0xffde	/* dummy */
 
 #define IsKeypadKey(ksym)	(1)
+#define IsModifierKey(ksym)      (0)
 
-#endif	/* NetBSD */
+#endif	/* FreeBSD/Linux/NetBSD */
 
 #ifndef  __FreeBSD__
 #define CLKED  1

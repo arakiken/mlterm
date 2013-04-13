@@ -51,10 +51,10 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libim-kbd.la $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-kbd.*
+	rm -f $(LIBDIR)/*im-kbd*
 
 clean:
-	rm -rf $(IM_KBD_OBJ) $(IM_KBD_OBJ:.o=.lo) libim-kbd.la *.core .libs
+	rm -rf $(IM_KBD_OBJ) $(IM_KBD_OBJ:.o=.lo) *im-kbd* *.core .libs
 
 distclean: clean
 	rm -f Makefile

@@ -279,6 +279,7 @@ typedef int XFontSet ;	/* dummy */
 /* VK_NUMPAD0 = 0x60, VK_DIVIDE = 0x6f */
 #define IsKeypadKey(ksym) \
 	((ksym) == XK_KP_0 || (XK_KP_1 <= (ksym) && (ksym) <= XK_KP_Divide))
+#define IsModifierKey(ksym)  (0)
 
 #define XK_ISO_Level3_Lock	0xffd9	/* dummy */
 

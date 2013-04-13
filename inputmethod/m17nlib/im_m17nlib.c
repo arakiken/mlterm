@@ -129,7 +129,7 @@ xksym_to_msymbol(
 	int  is_super ;
 	int  is_hyper ;
 
-	if( XK_Shift_L <= ksym && ksym <= XK_Hyper_R)
+	if( IsModifierKey(ksym))
 	{
 		return  Mnil ;
 	}
@@ -156,6 +156,9 @@ xksym_to_msymbol(
 		return  msymbol( buf) ;
 	}
 
+#ifdef  USE_FRAMEBUFFER
+	return  Mnil ;
+#else
 	if( is_shift)
 		filled_len += kik_snprintf( &mod[filled_len] ,
 				    sizeof(mod) - filled_len ,
@@ -200,6 +203,7 @@ xksym_to_msymbol(
 	kik_snprintf( str , len , "%s%s" , mod , key) ;
 
 	return  msymbol( str) ;
+#endif
 }
 
 static MInputMethod *
@@ -830,9 +834,8 @@ switch_mode(
 		if( m17nlib->im.stat_screen == NULL)
 		{
 			if( ! ( m17nlib->im.stat_screen = (*syms->x_im_status_screen_new)(
-					(*m17nlib->im.listener->get_display)(m17nlib->im.listener->self) ,
-					(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
-					(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
+					m17nlib->im.disp , m17nlib->im.font_man ,
+					m17nlib->im.color_man ,
 					(*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->get_line_height)(m17nlib->im.listener->self) ,
 					x , y)))

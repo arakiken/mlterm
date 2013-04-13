@@ -17,9 +17,10 @@ Framebuffer support
   make
   sudo make install
   (Framebuffer version and X11 version can coexist in the same directory.
-   So you can install main/mlterm-fb and scrollbar/sample/libsample.so
-   alone to the directory where mlterm (X11 version) has been already
-   installed instead of installing all files.)
+   So you can install main/mlterm-fb, scrollbar/sample/libsample-fb.so and
+   inputmethod/*/*-fb.so alone by 'make install-fb' to the directory where
+   mlterm (X11 version) has been already installed instead of installing
+   all files by 'make install'.)
 
 * Configuration
   Configuration of framebuffer version is the same as that of X11 version
@@ -67,6 +68,9 @@ Framebuffer support
     wskbd_repeat_1=400
     wskbd_repeat_N=50
   o 8bpp is not supported.
+  o If you want to use ibus input method plugin (./configure --enable-ibus),
+    add "-lpthread" to LIBS2_fb of mlterm-x.x.x/main/Makefile.in before building
+    mlterm-fb.
 
   (Common)
   o If you want to change fonts dynamically by mlcc, execute mlcc with "font"
