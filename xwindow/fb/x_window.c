@@ -789,7 +789,11 @@ x_window_map(
 	x_window_t *  win
 	)
 {
-	win->is_mapped = 1 ;
+	if( ! win->is_mapped)
+	{
+		win->is_mapped = 1 ;
+		clear_margin_area( win) ;
+	}
 
 	return  1 ;
 }
@@ -850,14 +854,18 @@ x_window_resize(
 		{
 			(*win->window_resized)( win) ;
 		}
-
-		/*
-		 * clear_margin_area must be called after win->window_resized
-		 * because wall_picture can be resized to fit to the new window
-		 * size in win->window_resized.
-		 */
-		clear_margin_area( win) ;
 	}
+
+	/*
+	 * clear_margin_area() must be called after win->window_resized
+	 * because wall_picture can be resized to fit to the new window
+	 * size in win->window_resized.
+	 *
+	 * If flag == 0, clear_margin_area() must be called in case of
+	 * resizing input method window whose margin area should be
+	 * cleared here.
+	 */
+	clear_margin_area( win) ;
 
 	return  1 ;
 }

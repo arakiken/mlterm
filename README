@@ -154,6 +154,7 @@ Supported platforms
   Platforms tested by developers.
 
   * NetBSD 3.0.1 / X (x86)
+  * NetBSD teokure 6.0.1 / frmebuffer (x86)
   * OpenSolaris 2009.06 / X (CC=cc) (x86)
   * Ubuntu 12.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
   * CentOS 5 / X (x86)

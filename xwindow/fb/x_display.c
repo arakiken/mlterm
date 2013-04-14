@@ -218,6 +218,7 @@ cmap_final(void)
 	free( _display.cmap) ;
 }
 
+/* _disp.roots[1] is ignored. */
 static inline x_window_t *
 get_window(
 	int  x ,	/* X in display */
@@ -435,12 +436,31 @@ draw_mouse_cursor(void)
 }
 
 static void
-receive_event_for_multi_roots(
-	x_display_t *  disp ,
-	XEvent *  xev
+expose_window(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
 	)
 {
-	/* XXX for input method window */
+	if( x < win->x + win->margin || y < win->y + win->margin ||
+	    x - win->x + width > win->margin + win->width ||
+	    y - win->y + height > win->margin + win->height)
+	{
+		x_window_clear_margin_area( win) ;
+	}
+
+	if( win->window_exposed)
+	{
+		(*win->window_exposed)( win , x - win->x , y - win->y , width , height) ;
+	}
+}
+
+/* XXX for input method window */
+static void
+check_visibility_of_im_window(void)
+{
 	static struct
 	{
 		int  saved ;
@@ -451,16 +471,14 @@ receive_event_for_multi_roots(
 
 	} im_region ;
 
-	x_window_receive_event( disp->roots[0] , xev) ;
-
-	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
+	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
 	{
 		if( im_region.saved)
 		{
-			if( im_region.x == disp->roots[1]->x &&
-			    im_region.y == disp->roots[1]->y &&
-			    im_region.width == ACTUAL_WIDTH(disp->roots[1]) &&
-			    im_region.height == ACTUAL_HEIGHT(disp->roots[1]))
+			if( im_region.x == _disp.roots[1]->x &&
+			    im_region.y == _disp.roots[1]->y &&
+			    im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
+			    im_region.height == ACTUAL_HEIGHT(_disp.roots[1]))
 			{
 				return ;
 			}
@@ -468,21 +486,16 @@ receive_event_for_multi_roots(
 			x_display_expose( im_region.x , im_region.y ,
 				im_region.width , im_region.height) ;
 
-			if( disp->roots[1]->window_exposed)
-			{
-				(*disp->roots[1]->window_exposed)( disp->roots[1] ,
-					disp->roots[1]->x ,
-					disp->roots[1]->y ,
-					ACTUAL_WIDTH(disp->roots[1]) ,
-					ACTUAL_HEIGHT(disp->roots[1])) ;
-			}
+			expose_window( _disp.roots[1] ,
+				_disp.roots[1]->x , _disp.roots[1]->y ,
+				ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
 		}
 
 		im_region.saved = 1 ;
-		im_region.x = disp->roots[1]->x ;
-		im_region.y = disp->roots[1]->y ;
-		im_region.width = ACTUAL_WIDTH(disp->roots[1]) ;
-		im_region.height = ACTUAL_HEIGHT(disp->roots[1]) ;
+		im_region.x = _disp.roots[1]->x ;
+		im_region.y = _disp.roots[1]->y ;
+		im_region.width = ACTUAL_WIDTH(_disp.roots[1]) ;
+		im_region.height = ACTUAL_HEIGHT(_disp.roots[1]) ;
 	}
 	else
 	{
@@ -493,6 +506,16 @@ receive_event_for_multi_roots(
 			im_region.saved = 0 ;
 		}
 	}
+}
+
+static void
+receive_event_for_multi_roots(
+	XEvent *  xev
+	)
+{
+	check_visibility_of_im_window() ;
+	x_window_receive_event( _disp.roots[0] , xev) ;
+	check_visibility_of_im_window() ;
 }
 
 #ifndef  __FreeBSD__
@@ -642,7 +665,7 @@ receive_stdin_key_event(void)
 
 		if( xev.ksym)
 		{
-			receive_event_for_multi_roots( &_disp , &xev) ;
+			receive_event_for_multi_roots( &xev) ;
 		}
 		else
 		{
@@ -674,7 +697,7 @@ receive_stdin_key_event(void)
 					xev.state = ControlMask ;
 				}
 
-				receive_event_for_multi_roots( &_disp , &xev) ;
+				receive_event_for_multi_roots( &xev) ;
 			}
 		}
 	}
@@ -1172,7 +1195,7 @@ receive_key_event(void)
 			code , xev.ksym , xev.state) ;
 	#endif
 
-		receive_event_for_multi_roots( &_disp , &xev) ;
+		receive_event_for_multi_roots( &xev) ;
 	}
 
 	return  1 ;
@@ -1249,7 +1272,7 @@ process_wskbd_event(
 				    _display.key_state ;
 			xev.keycode = ev->value ;
 
-			receive_event_for_multi_roots( &_disp , &xev) ;
+			receive_event_for_multi_roots( &xev) ;
 
 			prev_key_event = *ev ;
 			wskbd_repeat_wait = (wskbd_repeat_1 + KEY_REPEAT_UNIT - 1) /
@@ -2270,7 +2293,7 @@ receive_key_event(void)
 						xev.state = _mouse.button_state |
 							    _display.key_state ;
 
-						receive_event_for_multi_roots( &_disp , &xev) ;
+						receive_event_for_multi_roots( &xev) ;
 					}
 				}
 				else if( ev.value == 0 /* Released */)
@@ -2299,28 +2322,6 @@ receive_key_event(void)
 }
 
 #endif	/* FreeBSD/NetBSD/linux */
-
-static void
-expose_window(
-	x_window_t *  win ,
-	int  x ,
-	int  y ,
-	u_int  width ,
-	u_int  height
-	)
-{
-	if( x < win->x || y < win->y ||
-	    x - win->x + width > win->margin + win->width ||
-	    y - win->y + height > win->margin + win->height)
-	{
-		x_window_clear_margin_area( win) ;
-	}
-
-	if( win->window_exposed)
-	{
-		(*win->window_exposed)( win , x - win->x , y - win->y , width , height) ;
-	}
-}
 
 
 /* --- global functions --- */

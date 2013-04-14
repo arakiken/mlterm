@@ -455,6 +455,11 @@ candidate_update(
 
 	if( scim->im.cand_screen == NULL)
 	{
+		if( index == 0)
+		{
+			return ;
+		}
+
 		if( ! ( scim->im.cand_screen = (*syms->x_im_candidate_screen_new)(
 				scim->im.disp , scim->im.font_man , scim->im.color_man ,
 				(*scim->im.listener->is_vertical)(scim->im.listener->self) ,

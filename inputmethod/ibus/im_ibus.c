@@ -255,8 +255,7 @@ update_preedit_text(
 	#ifdef  USE_FRAMEBUFFER
 		if( ibus->im.cand_screen)
 		{
-			(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
-			ibus->im.cand_screen = NULL ;
+			(*ibus->im.cand_screen->hide)( ibus->im.cand_screen) ;
 		}
 	#endif
 
@@ -290,8 +289,7 @@ hide_preedit_text(
 #ifdef  USE_FRAMEBUFFER
 	if( ibus->im.cand_screen)
 	{
-		(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
-		ibus->im.cand_screen = NULL ;
+		(*ibus->im.cand_screen->hide)( ibus->im.cand_screen) ;
 	}
 #endif
 
@@ -404,6 +402,38 @@ forward_key_event(
 #ifdef  USE_FRAMEBUFFER
 
 static void
+show_lookup_table(
+	IBusInputContext *  context ,
+	gpointer  data
+	)
+{
+	im_ibus_t *  ibus ;
+
+	ibus = (im_ibus_t*) data ;
+
+	if( ibus->im.cand_screen)
+	{
+		(*ibus->im.cand_screen->show)( ibus->im.cand_screen) ;
+	}
+}
+
+static void
+hide_lookup_table(
+	IBusInputContext *  context ,
+	gpointer  data
+	)
+{
+	im_ibus_t *  ibus ;
+
+	ibus = (im_ibus_t*) data ;
+
+	if( ibus->im.cand_screen)
+	{
+		(*ibus->im.cand_screen->hide)( ibus->im.cand_screen) ;
+	}
+}
+
+static void
 update_lookup_table(
 	IBusInputContext *  context ,
 	IBusLookupTable *  table ,
@@ -414,7 +444,6 @@ update_lookup_table(
 	im_ibus_t *  ibus ;
 	u_int  num_of_cands ;
 	int  cur_pos ;
-	u_char *  str ;
 	u_int  i ;
 	int  x ;
 	int  y ;
@@ -423,23 +452,9 @@ update_lookup_table(
 
 	if( ( num_of_cands = ibus_lookup_table_get_number_of_candidates( table)) == 0 ||
 	    /* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_of_cands > 0. */
-	    ! ( str = ibus_text_get_text(ibus_lookup_table_get_candidate( table , 0))))
+	    ! ibus_text_get_text(ibus_lookup_table_get_candidate( table , 0)))
 	{
 		return ;
-	}
-
-	if( ibus->prev_num_of_cands != num_of_cands ||
-	    kik_compare_str( ibus->prev_first_cand , str) != 0)
-	{
-		ibus->prev_num_of_cands = num_of_cands ;
-		free( ibus->prev_first_cand) ;
-		ibus->prev_first_cand = strdup( str) ;
-
-		if( ibus->im.cand_screen)
-		{
-			(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
-			ibus->im.cand_screen = NULL ;
-		}
 	}
 
 	cur_pos = ibus_lookup_table_get_cursor_pos( table) ;
@@ -471,6 +486,10 @@ update_lookup_table(
 			return ;
 		}
 	}
+	else
+	{
+		(*ibus->im.cand_screen->show)( ibus->im.cand_screen) ;
+	}
 
 	if( ! (*ibus->im.cand_screen->init)( ibus->im.cand_screen , num_of_cands , 10))
 	{
@@ -484,6 +503,8 @@ update_lookup_table(
 
 	for( i = 0 ; i < num_of_cands ; i++)
 	{
+		u_char *  str ;
+
 		str = ibus_text_get_text( ibus_lookup_table_get_candidate( table , i)) ;
 
 		if( ibus->term_encoding != ML_UTF8)
@@ -966,6 +987,10 @@ im_ibus_new(
 #ifdef  USE_FRAMEBUFFER
 	g_signal_connect( ibus->context , "update-lookup-table" ,
 			G_CALLBACK( update_lookup_table) , ibus) ;
+	g_signal_connect( ibus->context , "show-lookup-table" ,
+			G_CALLBACK( show_lookup_table) , ibus) ;
+	g_signal_connect( ibus->context , "hide-lookup-table" ,
+			G_CALLBACK( hide_lookup_table) , ibus) ;
 #endif
 
 	ibus->term_encoding = term_encoding ;

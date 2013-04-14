@@ -1,3 +1,17 @@
+2013-04-14  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c:
+	  - x_window_resize() always calls clear_margin_area() for
+	    input method window.
+	  - x_window_map() calls clear_margin_area().
+
+	* fb/x_display.c: Minor fixes around IME window.
+
+	* im_scim_mod_if.c: Candidate window is shown after the 2nd candidate.
+
+	* im_ibus.c: "show-lookup-table" and "hide-lookup-table" events are processed
+	  in framebuffer.
+
 2013-04-13  Araki Ken  <arakiken@users.sf.net>
 
 	* README, doc/ja/README.fb: Updated.
