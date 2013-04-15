@@ -316,6 +316,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Muhenkan	KS_Muhenkan
 #define XK_Henkan_Mode	KS_Henkan_Mode
 #define XK_Zenkaku_Hankaku	KS_Zenkaku_Hankaku
+#define XK_Hiragana_Katakana	KS_Hiragana_Katakana
 
 #define XK_KP_Prior	KS_KP_Prior
 #define XK_KP_Next	KS_KP_Next
@@ -411,9 +412,10 @@ typedef int XFontSet ;	/* dummy */
 #define KEY_MUHENKAN	0xeb	/* dummy */
 #define KEY_HENKAN	0xea	/* dummy */
 #define KEY_ZENKAKUHANKAKU	0xe9	/* dummy */
-#define KEY_KPASTERISK	0xe8	/* dummy */
+#define KEY_KATAKANAHIRAGANA	0xe8	/* dummy */
+#define KEY_KPASTERISK	0xe7	/* dummy */
 #define KEY_KPPLUS	(0x52 + 0x100)
-#define KEY_KPCOMMA	0xe7	/* dummy */
+#define KEY_KPCOMMA	0xe6	/* dummy */
 #define KEY_KPMINUS	(0x4e + 0x100)
 #define KEY_KPDOT	(0x7f + 0x100)
 #define KEY_KPSLASH	0xe5	/* dummy */
@@ -505,6 +507,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Muhenkan	(KEY_MUHENKAN + 0x100)
 #define XK_Henkan_Mode	(KEY_HENKAN + 0x100)
 #define XK_Zenkaku_Hankaku	(KEY_ZENKAKUHANKAKU + 0x100)
+#define XK_Hiragana_Katakana	(KEY_KATAKANAHIRAGANA + 0x100)
 
 #define XK_KP_Prior	(KEY_KP9 + 0x100)
 #define XK_KP_Next	(KEY_KP3 + 0x100)

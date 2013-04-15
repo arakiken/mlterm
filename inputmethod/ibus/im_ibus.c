@@ -247,17 +247,18 @@ update_preedit_text(
 	}
 	else
 	{
+	#ifdef  USE_FRAMEBUFFER
+		if( ibus->im.cand_screen)
+		{
+			(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
+			ibus->im.cand_screen = NULL ;
+		}
+	#endif
+
 		if( ibus->im.preedit.filled_len == 0)
 		{
 			return ;
 		}
-
-	#ifdef  USE_FRAMEBUFFER
-		if( ibus->im.cand_screen)
-		{
-			(*ibus->im.cand_screen->hide)( ibus->im.cand_screen) ;
-		}
-	#endif
 
 		/* Stop preediting. */
 		ibus->im.preedit.filled_len = 0 ;
@@ -450,9 +451,7 @@ update_lookup_table(
 
 	ibus = (im_ibus_t*) data ;
 
-	if( ( num_of_cands = ibus_lookup_table_get_number_of_candidates( table)) == 0 ||
-	    /* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_of_cands > 0. */
-	    ! ibus_text_get_text(ibus_lookup_table_get_candidate( table , 0)))
+	if( ( num_of_cands = ibus_lookup_table_get_number_of_candidates( table)) == 0)
 	{
 		return ;
 	}
@@ -505,7 +504,11 @@ update_lookup_table(
 	{
 		u_char *  str ;
 
-		str = ibus_text_get_text( ibus_lookup_table_get_candidate( table , i)) ;
+		/* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_of_cands > 0. */
+		if( ! ( str = ibus_text_get_text( ibus_lookup_table_get_candidate( table , i))))
+		{
+			continue ;
+		}
 
 		if( ibus->term_encoding != ML_UTF8)
 		{
@@ -649,6 +652,9 @@ native_to_ibus_ksym(
 
 	case  XK_Zenkaku_Hankaku:
 		return  IBUS_Zenkaku_Hankaku ;
+
+	case  XK_Hiragana_Katakana:
+		return  IBUS_Hiragana_Katakana ;
 
 	case  XK_Muhenkan:
 		return  IBUS_Muhenkan ;

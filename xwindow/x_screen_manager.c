@@ -400,15 +400,12 @@ close_screen_intern(
 
 	root = x_get_root_window( &screen->window) ;
 	disp = root->disp ;
-	
-	if( disp->num_of_roots == 1)
+
+	x_display_remove_root( disp, root) ;
+
+	if( disp->num_of_roots == 0)
 	{
-		x_display_remove_root( disp, root) ;
 		x_display_close( disp) ;
-	}
-	else
-	{
-		x_display_remove_root( disp, root) ;
 	}
 
 	return  1 ;

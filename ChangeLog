@@ -1,3 +1,9 @@
+2013-04-15  Araki Ken  <arakiken@users.sf.net>
+
+	* im_uim.c, im_ibus.c, fb/x.h: XK_Hiragana_Katakana is supported.
+
+	* x_screen_manager.c, im_ibus.c, fb/x_display.c: Minor fixes.
+
 2013-04-14  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_window.c:

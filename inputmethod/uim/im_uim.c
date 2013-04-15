@@ -179,6 +179,8 @@ xksym_to_ukey(
 		return  UKey_Henkan_Mode ;
 	case  XK_Zenkaku_Hankaku:
 		return  UKey_Zenkaku_Hankaku ;
+	case  XK_Hiragana_Katakana:
+		return  UKey_Hiragana_Katakana ;
 	/* Cursor control & motion */
 	case  XK_Home:
 		return  UKey_Home ;

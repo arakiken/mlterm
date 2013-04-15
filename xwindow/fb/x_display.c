@@ -2530,13 +2530,11 @@ x_display_remove_root(
 
 			if( count == disp->num_of_roots)
 			{
-				memset( &disp->roots[count] , 0 , sizeof( disp->roots[0])) ;
+				disp->roots[count] = NULL ;
 			}
 			else
 			{
-				memcpy( &disp->roots[count] ,
-					&disp->roots[disp->num_of_roots] ,
-					sizeof( disp->roots[0])) ;
+				disp->roots[count] = disp->roots[disp->num_of_roots] ;
 			}
 
 			return  1 ;
