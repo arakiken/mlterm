@@ -458,7 +458,7 @@ expose_window(
 }
 
 /* XXX for input method window */
-static void
+static int
 check_visibility_of_im_window(void)
 {
 	static struct
@@ -470,6 +470,9 @@ check_visibility_of_im_window(void)
 		u_int  height ;
 
 	} im_region ;
+	int  need_redraw_im_window ;
+
+	need_redraw_im_window = 0 ;
 
 	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
 	{
@@ -480,15 +483,13 @@ check_visibility_of_im_window(void)
 			    im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
 			    im_region.height == ACTUAL_HEIGHT(_disp.roots[1]))
 			{
-				return ;
+				return  0 ;
 			}
 
 			x_display_expose( im_region.x , im_region.y ,
 				im_region.width , im_region.height) ;
 
-			expose_window( _disp.roots[1] ,
-				_disp.roots[1]->x , _disp.roots[1]->y ,
-				ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
+			need_redraw_im_window = 1 ;
 		}
 
 		im_region.saved = 1 ;
@@ -506,6 +507,8 @@ check_visibility_of_im_window(void)
 			im_region.saved = 0 ;
 		}
 	}
+
+	return  need_redraw_im_window ;
 }
 
 static void
@@ -513,9 +516,18 @@ receive_event_for_multi_roots(
 	XEvent *  xev
 	)
 {
-	check_visibility_of_im_window() ;
+	int  need_redraw ;
+
+	need_redraw = check_visibility_of_im_window() ;
+
 	x_window_receive_event( _disp.roots[0] , xev) ;
-	check_visibility_of_im_window() ;
+
+	if( check_visibility_of_im_window() || need_redraw)
+	{
+		expose_window( _disp.roots[1] ,
+			_disp.roots[1]->x , _disp.roots[1]->y ,
+			ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
+	}
 }
 
 #ifndef  __FreeBSD__

@@ -1,3 +1,10 @@
+2013-04-17  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.c: "ibus" is added to the message of --im option.
+	  (Thanks to @tsutsuii)
+
+	* fb/x_display.c: Minor fixes.
+
 2013-04-16  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Minor fixes.

@@ -129,7 +129,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell [false]") ;
 	kik_conf_add_opt( conf , 'M' , "im" , 0 , "input_method" ,
-		"input method (xim/kbd/uim/m17nlib/scim/none) [xim]") ;
+		"input method (xim/kbd/uim/m17nlib/scim/ibus/none) [xim]") ;
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
 	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
