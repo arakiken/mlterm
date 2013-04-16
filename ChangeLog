@@ -1,3 +1,9 @@
+2013-04-16  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Minor fixes.
+
+	* fb/x_window.c: Minor fixes.
+
 2013-04-15  Araki Ken  <arakiken@users.sf.net>
 
 	* im_uim.c, im_ibus.c, fb/x.h: XK_Hiragana_Katakana is supported.

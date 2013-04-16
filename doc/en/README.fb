@@ -67,7 +67,7 @@ Framebuffer support
     ~/.mlterm/main. (The values of these options should be in units of 25ms)
     wskbd_repeat_1=400
     wskbd_repeat_N=50
-  o 8bpp is not supported.
+  o 8 bpp is not supported.
   o If you want to use ibus input method plugin (./configure --enable-ibus),
     add "-lpthread" to LIBS2_fb of mlterm-x.x.x/main/Makefile.in before building
     mlterm-fb.
@@ -82,7 +82,7 @@ Framebuffer support
     (iBus is not tested on FreeBSD)
 
 * Unsupported features
-  o 2/4 bpp
+  o 1,2,4 bpp
   o Wall picture and sixel graphics on 8 bpp.
   o proportional fonts
   o ssh2 client

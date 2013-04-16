@@ -854,18 +854,17 @@ x_window_resize(
 		{
 			(*win->window_resized)( win) ;
 		}
-	}
 
-	/*
-	 * clear_margin_area() must be called after win->window_resized
-	 * because wall_picture can be resized to fit to the new window
-	 * size in win->window_resized.
-	 *
-	 * If flag == 0, clear_margin_area() must be called in case of
-	 * resizing input method window whose margin area should be
-	 * cleared here.
-	 */
-	clear_margin_area( win) ;
+		/*
+		 * clear_margin_area() must be called after win->window_resized
+		 * because wall_picture can be resized to fit to the new window
+		 * size in win->window_resized.
+		 *
+		 * Don't clear_margin_area() if flag == 0 because segfault happens
+		 * in selecting candidates on the input method window.
+		 */
+		clear_margin_area( win) ;
+	}
 
 	return  1 ;
 }
