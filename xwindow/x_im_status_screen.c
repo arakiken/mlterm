@@ -55,6 +55,7 @@ draw_screen(
 	/* Reset window position */
 	set_spot( stat_screen , stat_screen->x , stat_screen->y) ;
 #ifdef  USE_FRAMEBUFFER
+	x_window_clear_margin_area( &stat_screen->window) ;	/* XXX */
 	x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
 				  stat_screen->window.width + MARGIN - 1 ,
 				  stat_screen->window.height + MARGIN - 1);
@@ -306,7 +307,7 @@ window_exposed(
 {
 	draw_screen( (x_im_status_screen_t *) win) ;
 
-	/* draw border */
+	/* draw border (margin area has been already cleared in x_window.c) */
 	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
 				  win->width + MARGIN - 1 ,
 				  win->height + MARGIN - 1);

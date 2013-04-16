@@ -1,5 +1,12 @@
 2013-04-17  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im_candidate_screen.c, x_im_status_screen.c:
+	  x_window_clear_margin_area() is also called in redrawing the window frame.
+
+	* fb/x_display.c: The number of redrawing input method window is decreased.
+
+2013-04-17  Araki Ken  <arakiken@users.sf.net>
+
 	* x_main_config.c: "ibus" is added to the message of --im option.
 	  (Thanks to @tsutsuii)
 

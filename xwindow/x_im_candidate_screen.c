@@ -220,8 +220,12 @@ resize(
 		x_window_move( &cand_screen->window , x , y) ;
 	#endif
 	}
-
 #ifdef  USE_FRAMEBUFFER
+	else
+	{
+		x_window_clear_margin_area( &cand_screen->window) ;	/* XXX */
+	}
+
 	x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
 				  cand_screen->window.width + MARGIN - 1 ,
 				  cand_screen->window.height + MARGIN - 1) ;
@@ -957,7 +961,7 @@ window_exposed(
 {
 	draw_screen( (x_im_candidate_screen_t *) win) ;
 
-	/* draw border */
+	/* draw border (margin area has been already cleared in x_window.c) */
 	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
 				  win->width + MARGIN - 1 ,
 				  win->height + MARGIN - 1);

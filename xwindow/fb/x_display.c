@@ -470,9 +470,9 @@ check_visibility_of_im_window(void)
 		u_int  height ;
 
 	} im_region ;
-	int  need_redraw_im_window ;
+	int  redraw_im_win ;
 
-	need_redraw_im_window = 0 ;
+	redraw_im_win = 0 ;
 
 	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
 	{
@@ -489,7 +489,7 @@ check_visibility_of_im_window(void)
 			x_display_expose( im_region.x , im_region.y ,
 				im_region.width , im_region.height) ;
 
-			need_redraw_im_window = 1 ;
+			redraw_im_win = 1 ;
 		}
 
 		im_region.saved = 1 ;
@@ -508,7 +508,7 @@ check_visibility_of_im_window(void)
 		}
 	}
 
-	return  need_redraw_im_window ;
+	return  redraw_im_win ;
 }
 
 static void
@@ -516,18 +516,29 @@ receive_event_for_multi_roots(
 	XEvent *  xev
 	)
 {
-	int  need_redraw ;
+	int  redraw_im_win ;
 
-	need_redraw = check_visibility_of_im_window() ;
+	if( ( redraw_im_win = check_visibility_of_im_window()))
+	{
+		/* Stop drawing input method window */
+		_disp.roots[1]->is_mapped = 0 ;
+	}
 
 	x_window_receive_event( _disp.roots[0] , xev) ;
 
-	if( check_visibility_of_im_window() || need_redraw)
+	if( redraw_im_win)
 	{
-		expose_window( _disp.roots[1] ,
-			_disp.roots[1]->x , _disp.roots[1]->y ,
-			ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
+		/* Restart drawing input method window */
+		_disp.roots[1]->is_mapped = 1 ;
 	}
+
+	if( ! check_visibility_of_im_window())
+	{
+		return ;
+	}
+
+	expose_window( _disp.roots[1] , _disp.roots[1]->x , _disp.roots[1]->y ,
+			ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
 }
 
 #ifndef  __FreeBSD__
