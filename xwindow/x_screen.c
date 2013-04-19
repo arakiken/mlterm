@@ -6548,7 +6548,7 @@ draw_preedit_str(
 				end_row++ ;
 			}
 		}
-		else if( ml_term_get_vertical_mode( screen->term) == VERT_RTL)
+		else
 		{
 			need_wraparound = 1 ;
 			_x = x ;
@@ -6559,22 +6559,17 @@ draw_preedit_str(
 			{
 				y = 0 ;
 				_y = x_line_height( screen) ;
-				_x = x = x - x_line_height( screen) ;
-				end_row++ ;
-			}
-		}
-		else /* VERT_LTR */
-		{
-			need_wraparound = 1 ;
-			_x = x ;
-			_y = y + x_line_height( screen) ;
-			start = i ;
-			
-			if( _y > screen->window.height)
-			{
-				y = 0 ;
-				_y = x_line_height( screen) ;
-				_x = x = x + x_line_height( screen) ;
+
+				if( ml_term_get_vertical_mode( screen->term) == VERT_RTL)
+				{
+					x -= x_col_width( screen) ;
+				}
+				else /* VERT_LRT */
+				{
+					x += x_col_width( screen) ;
+				}
+				_x = x ;
+
 				end_row++ ;
 			}
 		}
@@ -6651,21 +6646,18 @@ draw_preedit_str(
 
 	if( cursor_offset >= 0)
 	{
-		preedit_cursor_x -= screen->window.margin ;
-		preedit_cursor_y -= screen->window.margin ;
 		if( ! ml_term_get_vertical_mode( screen->term))
 		{
-			x_window_fill( &screen->window,
-				preedit_cursor_x + 1 ,
-				preedit_cursor_y + x_line_top_margin( screen) + 2 ,
-				1 , x_line_height( screen) - x_line_top_margin( screen) - 1) ;
+			x_window_fill( &screen->window ,
+				preedit_cursor_x ,
+				preedit_cursor_y + x_line_top_margin( screen) ,
+				1 , x_line_height( screen) - x_line_top_margin( screen)) ;
 		}
 		else
 		{
-			x_window_fill( &screen->window,
-				preedit_cursor_x + x_line_top_margin( screen) + 2 ,
-				preedit_cursor_y + 2 ,
-				xfont->height - 1 , 1) ;
+			x_window_fill( &screen->window ,
+				preedit_cursor_x , preedit_cursor_y ,
+				x_col_width( screen) , 1) ;
 		}
 	}
 
@@ -8816,6 +8808,15 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			ml_set_use_ansi_colors( flag) ;
+		}
+	}
+	else if( strcmp( key , "use_urgent_bell") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			x_set_use_urgent_bell( flag) ;
 		}
 	}
 	else if( strcmp( key , "box_drawing_font") == 0)

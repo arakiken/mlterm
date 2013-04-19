@@ -59,9 +59,39 @@ static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 static mkf_parser_t *  m_cp_parser ;
 static LONG  decorate_width ;
 static LONG  decorate_height ;		/* Height of Title bar etc. */
+static int  use_urgent_bell ;
 
 
 /* --- static functions --- */
+
+static void
+urgent_bell(
+	x_window_t *  win ,
+	int  on
+	)
+{
+	if( use_urgent_bell && ( ! win->is_focused || ! on))
+	{
+		win = x_get_root_window( win) ;
+
+		if( on)
+		{
+			FLASHWINFO  info ;
+
+			info.cbSize = sizeof(info) ;
+			info.hwnd = win->my_window ;
+			info.dwFlags = FLASHW_ALL ;
+			info.uCount = 5 ;
+			info.dwTimeout = 0 ;	/* standard */
+
+			FlashWindowEx( &info) ;
+		}
+		else
+		{
+			FlashWindow( win->my_window , FALSE) ;
+		}
+	}
+}
 
 static int
 set_transparent(
@@ -1996,6 +2026,7 @@ x_window_receive_event(
 		if( win->parent == NULL)
 	#endif
 		{
+			urgent_bell( win , 0) ;
 			notify_focus_in_to_children( win) ;
 		}
 
@@ -3123,11 +3154,23 @@ x_window_get_mod_meta_mask(
 }
 
 int
+x_set_use_urgent_bell(
+	int  use
+	)
+{
+	use_urgent_bell = use ;
+
+	return  1 ;
+}
+
+int
 x_window_bell(
 	x_window_t *  win ,
 	int  visual
 	)
 {
+	urgent_bell( win , 1) ;
+
 	if( visual)
 	{
 		int  count ;

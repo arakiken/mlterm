@@ -1,3 +1,16 @@
+2013-04-19  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: The wrong height of the preediting cursor of the input
+	  method plugin in the case of inner_border != 2 is fixed.
+	  (Thanks to @tsutsuii)
+
+	* man/mlterm.1, doc/en/README.ja, doc/en/PROTOCOL: Updated.
+
+	* x_main_config.c, x_screen.c: "use_urgent_bell" option is added.
+
+	* x_window.h, xlib/x_window.c, win32/x_window.c:
+	  x_set_use_urgent_bell() is added for "use_urgent_bell" option.
+
 2013-04-17  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_candidate_screen.c, x_im_status_screen.c:

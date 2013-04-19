@@ -270,6 +270,8 @@ x_prepare_for_main_config(
 		"allow dynamic change of shortcut keys. [false]") ;
 	kik_conf_add_opt( conf , '\0' , "boxdraw" , 0 , "box_drawing_font" ,
 		"force unicode or decsp font for box-drawing characters. [noconv]") ;
+	kik_conf_add_opt( conf , '\0' , "urgent" , 1 , "use_urgent_bell" ,
+		"draw the user's attention when making a bell sound. [false]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -1036,6 +1038,14 @@ x_main_config_init(
 	else
 	{
 		main_config->bel_mode = BEL_SOUND ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_urgent_bell")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			x_set_use_urgent_bell( 1) ;
+		}
 	}
 
 	main_config->use_vertical_cursor = 0 ;

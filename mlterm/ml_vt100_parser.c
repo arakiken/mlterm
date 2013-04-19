@@ -2640,6 +2640,12 @@ parse_vt100_escape_sequence(
 							 */
 						}
 					#endif
+						else if( ps[count] == 1042)
+						{
+							/* "CSI ? 1042 h" */
+							config_protocol_set_simple( vt100_parser ,
+								"use_urgent_bell" , "true") ;
+						}
 						else if( ps[count] == 1047)
 						{
 							/* "CSI ? 1047 h" */
@@ -2871,6 +2877,12 @@ parse_vt100_escape_sequence(
 							 */
 						}
 					#endif
+						else if( ps[count] == 1042)
+						{
+							/* "CSI ? 1042 l" */
+							config_protocol_set_simple( vt100_parser ,
+								"use_urgent_bell" , "false") ;
+						}
 						else if( ps[count] == 1047)
 						{
 							/* "CSI ? 1047 l" */

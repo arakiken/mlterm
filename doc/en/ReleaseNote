@@ -1,5 +1,7 @@
 ver 3.1.10
 * Support framebuffer on NetBSD. (Experimental)
+* Add "use_urgent_bell" option which is equivalent to "bellIsUrgent" option of
+  xterm and support CSI ? 1042.
 * "only_use_unicode_font" and "not_use_unicode_font" options have an effect
   on preedit and candidate characters of input method plugins.
 * Enable to change "not_use_unicode_font" and "only_use_unicode_font" dynamically.
@@ -12,6 +14,8 @@ ver 3.1.10
   Fix the bug which disabled inline pictures if use_dynamic_comb option is true.
   Fix the bug of iBus input method plugin which disabled to erase the last
   preedited character even if backspace key was pressed.
+  Fix the wrong height of the preediting cursor of the input method plugin
+  if the value of "inner_border" option isn't 2. (Thanks to @tsutsuii)
 
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.

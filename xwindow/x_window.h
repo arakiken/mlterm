@@ -394,6 +394,12 @@ u_int  x_window_get_mod_ignore_mask( x_window_t *  win , KeySym *  keysyms) ;
 
 u_int  x_window_get_mod_meta_mask( x_window_t *  win , char *  mod_key) ;
 
+#ifdef  USE_FRAMEBUFFER
+#define  x_set_use_urgent_bell( use)  (0)
+#else
+int  x_set_use_urgent_bell( int  use) ;
+#endif
+
 int  x_window_bell( x_window_t *  win , int  visual) ;
 
 int  x_window_translate_coordinates( x_window_t *  win, int x, int y,

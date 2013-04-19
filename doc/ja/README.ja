@@ -638,6 +638,9 @@ comment $Id$
 
         soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
 
+      o use_urgent_bell (true/*false*)
+        フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告する。
+
       o daemon_mode (*none*/blend/genuine)
         daemon process となるかどうか
 
@@ -1169,6 +1172,8 @@ comment $Id$
        --colors(=bool) : use_ansi_colors
        --exitbs(=bool) : exit_backscroll_by_pty
        --shortcut(=bool) : allow_change_shortcut
+       --boxdraw=value : box_drawing_font
+       --urgent(=bool) : use_urgent_bell
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)
