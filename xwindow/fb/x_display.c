@@ -49,8 +49,8 @@
 #define FB_SHIFT(ppb,idx)	((ppb) - (idx) % (ppb) - 1) * (8 / (ppb))
 #define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
 #define FB_WIDTH_BYTES(display,width) \
-	( ((width) * (display)->bytes_per_pixel) / (display)->pixels_per_byte + \
-		(display)->pixels_per_byte > 1 ? 2 : 0)
+	( (width) * (display)->bytes_per_pixel / (display)->pixels_per_byte + \
+		((display)->pixels_per_byte > 1 ? 2 : 0))
 
 #if  0
 #define  READ_CTRL_KEYMAP

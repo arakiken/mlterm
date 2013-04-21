@@ -1,5 +1,9 @@
 2013-04-21  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display.c: Minor fixes.
+
+2013-04-21  Araki Ken  <arakiken@users.sf.net>
+
 	* x.h, x_display.[ch], x_window.c:
 	  Experimental support for less than 8bpp/framebuffer is added.
 
