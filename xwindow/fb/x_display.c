@@ -194,12 +194,19 @@ cmap_init(
 	} ;
 	u_char *  rgb_tbl ;
 
-	if( ! ( _display.cmap_orig = cmap_new( num_of_colors)))
+	if( num_of_colors > 2)
 	{
-		return  0 ;
-	}
+		/*
+		 * Not get the current cmap because num_of_colors == 2 doesn't
+		 * conform the actual depth (1,2,4).
+		 */
+		if( ! ( _display.cmap_orig = cmap_new( num_of_colors)))
+		{
+			return  0 ;
+		}
 
-	ioctl( _display.fb_fd , FBIOGETCMAP , _display.cmap_orig) ;
+		ioctl( _display.fb_fd , FBIOGETCMAP , _display.cmap_orig) ;
+	}
 
 	if( ! ( _display.cmap = cmap_new( num_of_colors)))
 	{
@@ -253,9 +260,13 @@ cmap_init(
 static void
 cmap_final(void)
 {
-	ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap_orig) ;
+	if( _display.cmap_orig)
+	{
+		ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap_orig) ;
 
-	free( _display.cmap_orig) ;
+		free( _display.cmap_orig) ;
+	}
+
 	free( _display.cmap) ;
 }
 
@@ -912,7 +923,7 @@ open_display(void)
 	#if  1
 		if( _disp.depth < 8)
 		{
-			/* Forcibly set 1 bpp */
+			/* XXX Forcibly set 1 bpp */
 			_display.pixels_per_byte = 8 ;
 			_disp.depth = 1 ;
 		}
@@ -1542,7 +1553,7 @@ open_display(void)
 		goto  error ;
 	#else
 	#if  1
-		/* Forcibly set 1 bpp */
+		/* XXX Forcibly set 1 bpp */
 		_display.pixels_per_byte = 8 ;
 		_disp.depth = 1 ;
 	#else
@@ -2149,7 +2160,7 @@ open_display(void)
 		goto  error ;
 	#else
 	#if  1
-		/* Forcibly set 1 bpp */
+		/* XXX Forcibly set 1 bpp */
 		_display.pixels_per_byte = 8 ;
 		_disp.depth = 1 ;
 	#else
