@@ -40,13 +40,17 @@
 #define  MOUSE_IS_INITED  (_mouse.fd != -1)
 #define  CMAP_IS_INITED   (_display.cmap)
 
-#define  BYTE_COLOR_TO_WORD(color)  ((color) << 8 | (color))
-
 /* Parameters of cursor_shape */
 #define  CURSOR_WIDTH   7
 #define  CURSOR_X_OFF   -3
 #define  CURSOR_HEIGHT  15
 #define  CURSOR_Y_OFF   -7
+
+#define FB_SHIFT(ppb,idx)	((ppb) - (idx) % (ppb) - 1) * (8 / (ppb))
+#define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
+#define FB_WIDTH_BYTES(display,width) \
+	( ((width) * (display)->bytes_per_pixel) / (display)->pixels_per_byte + \
+		(display)->pixels_per_byte > 1 ? 2 : 0)
 
 #if  0
 #define  READ_CTRL_KEYMAP
@@ -139,59 +143,96 @@ static char *  cursor_shape =
 /* --- static functions --- */
 
 static fb_cmap_t *
-cmap_new(void)
+cmap_new(
+	int  num_of_colors
+	)
 {
 	fb_cmap_t *  cmap ;
 
-	if( ! ( cmap = malloc( sizeof(*cmap) + sizeof(*(cmap->red)) * 256 * 3)))
+	if( ! ( cmap = malloc( sizeof(*cmap) + sizeof(*(cmap->red)) * num_of_colors * 3)))
 	{
 		return  NULL ;
 	}
 
 #if  defined(__FreeBSD__)
 	cmap->index = 0 ;
-	cmap->count = 256 ;
 	cmap->transparent = NULL ;
 #elif  defined(__NetBSD__)
 	cmap->index = 0 ;
-	cmap->count = 256 ;
 #else
 	cmap->start = 0 ;
-	cmap->len = 256 ;
 	cmap->transp = NULL ;
 #endif
+	CMAP_SIZE(cmap) = num_of_colors ;
 	cmap->red = cmap + 1 ;
-	cmap->green = cmap->red + 256 ;
-	cmap->blue = cmap->green + 256 ;
+	cmap->green = cmap->red + num_of_colors ;
+	cmap->blue = cmap->green + num_of_colors ;
 
 	return  cmap ;
 }
 
 static int
-cmap_init(void)
+cmap_init(
+	int  num_of_colors
+	)
 {
 	ml_color_t  color ;
 	u_int8_t  r ;
 	u_int8_t  g ;
 	u_int8_t  b ;
+	static u_char rgb_1bpp[] =
+	{
+		0x00 , 0x00 , 0x00 ,
+		0xff , 0xff , 0xff
+	} ;
+	static u_char rgb_2bpp[] =
+	{
+		0x00 , 0x00 , 0x00 ,
+		0x55 , 0x55 , 0x55 ,
+		0xaa , 0xaa , 0xaa ,
+		0xff , 0xff , 0xff
+	} ;
+	u_char *  rgb_tbl ;
 
-	if( ! ( _display.cmap_orig = cmap_new()))
+	if( ! ( _display.cmap_orig = cmap_new( num_of_colors)))
 	{
 		return  0 ;
 	}
 
 	ioctl( _display.fb_fd , FBIOGETCMAP , _display.cmap_orig) ;
 
-	if( ! ( _display.cmap = cmap_new()))
+	if( ! ( _display.cmap = cmap_new( num_of_colors)))
 	{
 		free( _display.cmap_orig) ;
 
 		return  0 ;
 	}
 
-	for( color = 0 ; color < 256 ; color ++)
+	if( num_of_colors == 2)
 	{
-		ml_get_color_rgba( color , &r , &g , &b , NULL) ;
+		rgb_tbl = rgb_1bpp ;
+	}
+	else if( num_of_colors == 4)
+	{
+		rgb_tbl = rgb_2bpp ;
+	}
+	else
+	{
+		rgb_tbl = NULL ;
+	}
+
+	for( color = 0 ; color < num_of_colors ; color ++)
+	{
+		if( rgb_tbl)
+		{
+			r = rgb_1bpp[color * 3] ;
+			g = rgb_1bpp[color * 3 + 1] ;
+			b = rgb_1bpp[color * 3 + 2] ;
+		}
+		else
+		{
+			ml_get_color_rgba( color , &r , &g , &b , NULL) ;
+		}
 
 	#if  defined(__FreeBSD__) || defined(__NetBSD__)
 		_display.cmap->red[color] = r ;
@@ -241,6 +282,79 @@ get_window(
 	}
 
 	return  _disp.roots[0] ;
+}
+
+static void
+put_image_to_124bpp(
+	Display *  display ,
+	int  x ,
+	int  y ,
+	u_char *  image ,
+	size_t  size
+	)
+{
+	/*
+	 * 8 or less bpp.
+	 */
+
+	u_int  ppb ;
+	u_char *  new_image ;
+	u_char *  p ;
+	u_char *  fb ;
+	int  surplus ;
+	int  shift ;
+	int  mask ;
+	int  count ;
+
+	ppb = display->pixels_per_byte ;
+
+	/* + 2 is for surplus */
+	if( ! ( p = new_image = alloca( size / ppb + 2)))
+	{
+		return ;
+	}
+
+	memset( new_image , 0 , size / ppb + 2) ;
+
+	mask = FB_MASK(ppb) ;
+	fb = x_display_get_fb( display , x , y) ;
+
+	if( ( surplus = x % ppb) > 0)
+	{
+		for( ; surplus > 0 ; surplus --)
+		{
+			(*p) |= (fb[0] & (mask << FB_SHIFT(ppb, x - surplus))) ;
+		}
+	}
+
+	for( count = 0 ; count < size ; count++)
+	{
+		shift = FB_SHIFT(ppb, x + count) ;
+
+		(*p) |= (image[count] << shift) ;
+
+		if( shift == 0)
+		{
+			p ++ ;
+		}
+	}
+
+	if( ( surplus = ( x + size) % ppb) > 0)
+	{
+		u_char *  fb2 ;
+
+		fb2 = x_display_get_fb( display , x + size , y) ;
+
+		for( ; surplus < ppb ; surplus++)
+		{
+			(*p) |= (fb2[0] & (mask << FB_SHIFT(ppb, x + size))) ;
+			size ++ ;
+		}
+
+		p ++ ;
+	}
+
+	memmove( fb , new_image , p - new_image) ;
 }
 
 static void
@@ -306,9 +420,8 @@ restore_hidden_region(void)
 		{
 			memcpy( fb ,
 				_mouse.saved_image +
-					count * _mouse.cursor.width *
-					_display.bytes_per_pixel ,
-				_mouse.cursor.width * _display.bytes_per_pixel) ;
+					count * FB_WIDTH_BYTES(&_display, _mouse.cursor.width) ,
+				FB_WIDTH_BYTES(&_display, _mouse.cursor.width)) ;
 			fb += _display.line_length ;
 		}
 	}
@@ -340,8 +453,8 @@ save_hidden_region(void)
 	for( count = 0 ; count < _mouse.cursor.height ; count++)
 	{
 		memcpy( _mouse.saved_image +
-				count * _mouse.cursor.width * _display.bytes_per_pixel ,
-			fb , _mouse.cursor.width * _display.bytes_per_pixel) ;
+				count * FB_WIDTH_BYTES(&_display, _mouse.cursor.width) ,
+			fb , FB_WIDTH_BYTES(&_display, _mouse.cursor.width)) ;
 		fb += _display.line_length ;
 	}
 
@@ -361,6 +474,7 @@ draw_mouse_cursor_line(
 
 	fb = x_display_get_fb( &_display , _mouse.cursor.x ,
 			_mouse.cursor.y + y) ;
+
 	win = get_window( _mouse.x , _mouse.y) ;
 
 	for( x = 0 ; x < _mouse.cursor.width ; x++)
@@ -405,7 +519,9 @@ draw_mouse_cursor_line(
 			switch( _display.bytes_per_pixel)
 			{
 			case  1:
-				image[x] = fb[x] ;
+				image[x] = x_display_get_pixel( &_display ,
+						_mouse.cursor.x + x ,
+						_mouse.cursor.y + y) ;
 				break ;
 
 			case  2:
@@ -419,7 +535,16 @@ draw_mouse_cursor_line(
 		}
 	}
 
-	memcpy( fb , image , _mouse.cursor.width * _display.bytes_per_pixel) ;
+	if( _display.pixels_per_byte > 1)
+	{
+		put_image_to_124bpp( &_display ,
+			_mouse.cursor.x , _mouse.cursor.y + y ,
+			image , _mouse.cursor.width) ;
+	}
+	else
+	{
+		memcpy( fb , image , _mouse.cursor.width * _display.bytes_per_pixel) ;
+	}
 }
 
 static void
@@ -759,11 +884,13 @@ open_display(void)
 	ioctl( _display.fb_fd , FBIO_ADPINFO , &vainfo) ;
 	ioctl( _display.fb_fd , FBIO_GETDISPSTART , &vstart) ;
 
-	if( ( _disp.depth = vinfo.vi_depth) < 8) /* 2/4 bpp is not supported. */
+	if( ( _disp.depth = vinfo.vi_depth) < 8) /* 1/2/4 bpp is not supported. */
 	{
+	#if  0
 		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.vi_depth) ;
 
 		goto  error ;
+	#endif
 	}
 
 	if( ( _display.fp = mmap( NULL , (_display.smem_len = vainfo.va_window_size) ,
@@ -780,9 +907,29 @@ open_display(void)
 		_display.bytes_per_pixel = 4 ;
 	}
 
-	if( _disp.depth != 8 || ! cmap_init())
+	if( _disp.depth < 15)
 	{
-		_display.cmap = NULL ;
+	#if  1
+		if( _disp.depth < 8)
+		{
+			/* Forcibly set 1 bpp */
+			_display.pixels_per_byte = 8 ;
+			_disp.depth = 1 ;
+		}
+		else
+	#endif
+		{
+			_display.pixels_per_byte = 8 / _disp.depth ;
+		}
+
+		if( ! cmap_init( 2 << (_disp.depth - 1)))
+		{
+			goto  error ;
+		}
+	}
+	else
+	{
+		_display.pixels_per_byte = 1 ;
 	}
 
 	_display.line_length = vainfo.va_line_width ;
@@ -1387,11 +1534,25 @@ open_display(void)
 		goto  error ;
 	}
 
-	if( ( _disp.depth = vinfo.depth) < 8) /* 2/4 bpp is not supported. */
+	if( ( _disp.depth = vinfo.depth) < 8) /* 1/2/4 bpp is not supported. */
 	{
+	#if  0
 		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.depth) ;
 
 		goto  error ;
+	#else
+	#if  1
+		/* Forcibly set 1 bpp */
+		_display.pixels_per_byte = 8 ;
+		_disp.depth = 1 ;
+	#else
+		_display.pixels_per_byte = 8 / _disp.depth ;
+	#endif
+	#endif
+	}
+	else
+	{
+		_display.pixels_per_byte = 1 ;
 	}
 
 	if( ( _display.bytes_per_pixel = (_disp.depth + 7) / 8) == 3)
@@ -1411,9 +1572,12 @@ open_display(void)
 	{
 		_display.rgbinfo = rgbinfos[2] ;
 	}
-	else if( /* _disp.depth == 8 && */ ! cmap_init())
+	else
 	{
-		_display.cmap = NULL ;
+		if( ! cmap_init( 2 << (_disp.depth - 1)))
+		{
+			goto  error ;
+		}
 	}
 
 #ifdef  DEBUG
@@ -1977,11 +2141,25 @@ open_display(void)
 	ioctl( _display.fb_fd , FBIOGET_FSCREENINFO , &finfo) ;
 	ioctl( _display.fb_fd , FBIOGET_VSCREENINFO , &vinfo) ;
 
-	if( ( _disp.depth = vinfo.bits_per_pixel) < 8) /* 2/4 bpp is not supported. */
+	if( ( _disp.depth = vinfo.bits_per_pixel) < 8) /* 1/2/4 bpp is not supported. */
 	{
+	#if  0
 		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.bits_per_pixel) ;
 
 		goto  error ;
+	#else
+	#if  1
+		/* Forcibly set 1 bpp */
+		_display.pixels_per_byte = 8 ;
+		_disp.depth = 1 ;
+	#else
+		_display.pixels_per_byte = 8 / _disp.depth ;
+	#endif
+	#endif
+	}
+	else
+	{
+		_display.pixels_per_byte = 1 ;
 	}
 
 	if( ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
@@ -1996,9 +2174,9 @@ open_display(void)
 		_display.bytes_per_pixel = 4 ;
 	}
 
-	if( _disp.depth != 8 || ! cmap_init())
+	if( _disp.depth < 15 && ! cmap_init( 2 << (_disp.depth - 1)))
 	{
-		_display.cmap = NULL ;
+		goto  error ;
 	}
 
 	_display.line_length = finfo.line_length ;
@@ -2669,7 +2847,39 @@ x_display_get_fb(
 	)
 {
 	return  display->fp + (display->yoffset + y) * display->line_length +
-			(display->xoffset + x) * display->bytes_per_pixel ;
+			(display->xoffset + x) * display->bytes_per_pixel
+			/ display->pixels_per_byte ;
+}
+
+u_long
+x_display_get_pixel(
+	Display *  display ,
+	int  x ,
+	int  y
+	)
+{
+	u_char *  fb ;
+	u_long  pixel ;
+
+	fb = x_display_get_fb( display , x , y) ;
+
+	switch( display->bytes_per_pixel)
+	{
+	case 1:
+		pixel = ((*fb) >> FB_SHIFT(display->pixels_per_byte, x)) &
+		        FB_MASK(display->pixels_per_byte) ;
+		break ;
+
+	case 2:
+		pixel = *((u_int16_t*)fb) ;
+		break ;
+
+	/* case 4: */
+	default:
+		pixel = *((u_int32_t*)fb) ;
+	}
+
+	return  pixel ;
 }
 
 void
@@ -2681,7 +2891,14 @@ x_display_put_image(
 	size_t  size
 	)
 {
-	memmove( x_display_get_fb( display , x , y) , image , size) ;
+	if( display->pixels_per_byte > 1)
+	{
+		put_image_to_124bpp( display , x , y , image , size) ;
+	}
+	else
+	{
+		memmove( x_display_get_fb( display , x , y) , image , size) ;
+	}
 
 	if( /* MOUSE_IS_INITED && */ _mouse.cursor.is_drawn &&
 	    _mouse.cursor.y <= y &&
@@ -2711,7 +2928,7 @@ x_display_copy_line(
 
 	memmove( x_display_get_fb( display , dst_x , dst_y) ,
 		x_display_get_fb( display , src_x , src_y) ,
-		width * display->bytes_per_pixel) ;
+		FB_WIDTH_BYTES(display,width)) ;
 }
 
 void
@@ -2749,4 +2966,41 @@ x_display_expose(
 	{
 		expose_window( win2 , x , y , width , height) ;
 	}
+}
+
+/* seek the closest color */
+u_long
+x_get_closest_color(
+	fb_cmap_t *  cmap ,
+	int  red ,
+	int  green ,
+	int  blue
+	)
+{
+	ml_color_t  closest = ML_UNKNOWN_COLOR ;
+	ml_color_t  color ;
+	u_long  min = 0xffffff ;
+	u_long  diff ;
+	int  diff_r , diff_g , diff_b ;
+
+	for( color = 0 ; color < CMAP_SIZE(cmap) ; color++)
+	{
+		/* lazy color-space conversion */
+		diff_r = red - WORD_COLOR_TO_BYTE(cmap->red[color]) ;
+		diff_g = green - WORD_COLOR_TO_BYTE(cmap->green[color]) ;
+		diff_b = blue - WORD_COLOR_TO_BYTE(cmap->blue[color]) ;
+		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
+		if( diff < min)
+		{
+			min = diff ;
+			closest = color ;
+			/* no one may notice the difference */
+			if( diff < 31)
+			{
+				break ;
+			}
+		}
+	}
+
+	return  closest ;
 }

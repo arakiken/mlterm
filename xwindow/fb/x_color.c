@@ -7,52 +7,7 @@
 #include  <string.h>		/* strcmp */
 #include  <ml_color.h>
 
-
-#define  WORD_COLOR_TO_BYTE(color)  ((color) & 0xff)
-
-
-/* --- static functions --- */
-
-#if  1
-/* seek the closest color */
-static  ml_color_t
-closest_color(
-	fb_cmap_t *  cmap ,
-	int  red ,
-	int  green ,
-	int  blue
-	)
-{
-	ml_color_t  closest = ML_UNKNOWN_COLOR ;
-	ml_color_t  color ;
-	u_long  min = 0xffffff ;
-	u_long  diff ;
-	int  diff_r , diff_g , diff_b ;
-
-	for( color = 0 ; color < 256 ; color++)
-	{
-		/* lazy color-space conversion */
-		diff_r = red - WORD_COLOR_TO_BYTE(cmap->red[color]) ;
-		diff_g = green - WORD_COLOR_TO_BYTE(cmap->green[color]) ;
-		diff_b = blue - WORD_COLOR_TO_BYTE(cmap->blue[color]) ;
-		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
-		if( diff < min)
-		{
-			min = diff ;
-			closest = color ;
-			/* no one may notice the difference */
-			if( diff < 31)
-			{
-				break ;
-			}
-		}
-	}
-
-	return  closest ;
-}
-#else
-#define  closest_color(cmap,red,green,blue)  ml_get_colosest_color((red),(green),(blue))
-#endif
+#include  "x_display.h"		/* CMAP_SIZE, x_get_closest_color */
 
 
 /* --- global functions --- */
@@ -125,7 +80,7 @@ x_load_rgb_xcolor(
 
 	if( ( cmap = disp->display->cmap))
 	{
-		xcolor->pixel = closest_color( cmap , red , green , blue) ;
+		xcolor->pixel = x_get_closest_color( cmap , red , green , blue) ;
 		xcolor->red = WORD_COLOR_TO_BYTE(cmap->red[xcolor->pixel]) ;
 		xcolor->green = WORD_COLOR_TO_BYTE(cmap->green[xcolor->pixel]) ;
 		xcolor->blue = WORD_COLOR_TO_BYTE(cmap->blue[xcolor->pixel]) ;

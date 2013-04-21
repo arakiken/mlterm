@@ -15,6 +15,8 @@
 #endif
 #include  <kiklib/kik_debug.h>
 
+#include  "x_display.h"		/* x_get_closest_color */
+
 
 /* Trailing "/" is appended in value_table_refresh(). */
 #ifndef  LIBMDIR
@@ -145,31 +147,36 @@ modify_pixmap(
 					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
 			}
 
-			pixel = RGB_TO_PIXEL(r,g,b,display->rgbinfo) |
-				(depth == 32 ? (a << 24) : 0) ;
-
-			switch( display->bytes_per_pixel)
+			if( display->bytes_per_pixel == 1)
 			{
-			default:
-				/* XXX */
-				return ;
+				*(pixmap->image + y * pixmap->width + x) =
+					x_get_closest_color( display->cmap , r , g , b) ;
+			}
+			else
+			{
+				pixel = RGB_TO_PIXEL(r,g,b,display->rgbinfo) |
+					(depth == 32 ? (a << 24) : 0) ;
 
-			case 2:
-				*(((u_int16_t*)pixmap->image) + (y * pixmap->width + x)) = pixel ;
-				break ;
-
-			case 4:
-				*(((u_int32_t*)pixmap->image) + (y * pixmap->width + x)) = pixel ;
-				break ;
+				if( display->bytes_per_pixel == 2)
+				{
+					*(((u_int16_t*)pixmap->image) + (y * pixmap->width + x)) =
+						pixel ;
+				}
+				else /* if( display->bytes_per_pixel == 4) */
+				{
+					*(((u_int32_t*)pixmap->image) + (y * pixmap->width + x)) =
+						pixel ;
+				}
 			}
 		}
 	}
 
-	if( display->bytes_per_pixel == 2)
+	if( display->bytes_per_pixel < 4)
 	{
 		void *  p ;
 
-		if( ( p = realloc( pixmap->image , pixmap->width * pixmap->height * 2)))
+		if( ( p = realloc( pixmap->image ,
+				pixmap->width * pixmap->height * display->bytes_per_pixel)))
 		{
 			pixmap->image = p ;
 		}
@@ -194,7 +201,7 @@ load_file(
 	ssize_t  size ;
 	u_int32_t  tmp ;
 
-	if( ! path || ! *path || display->bytes_per_pixel <= 1)
+	if( ! path || ! *path)
 	{
 		return  0 ;
 	}

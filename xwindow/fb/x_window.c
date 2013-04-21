@@ -92,7 +92,7 @@ draw_string(
 	size_t  size ;
 	u_int  font_height ;
 	u_int  font_ascent ;
-	int  x_off ;
+	int  orig_x ;
 	int  y_off ;
 	u_int  bpp ;
 	u_int  count ;
@@ -150,7 +150,7 @@ draw_string(
 		y_off = 0 ;
 	}
 
-	x += (win->margin + win->x) ;
+	orig_x = (x += (win->margin + win->x)) ;
 	y += (win->margin + win->y) ;
 
 	for( ; y_off < font_height ; y_off++)
@@ -158,6 +158,7 @@ draw_string(
 		for( count = 0 ; count < len ; count++)
 		{
 			int  force_fg ;
+			int  x_off ;
 
 			force_fg = 0 ;
 
@@ -185,24 +186,10 @@ draw_string(
 					}
 					else
 					{
-						u_char *  fb ;
-
-						fb = x_display_get_fb( win->disp->display , x ,
-								y + y_off - font_ascent) +
-							(p - src) ;
-
-						switch( bpp)
-						{
-						case 1:
-							pixel = *fb ;
-							break ;
-						case 2:
-							pixel = *((u_int16_t*)fb) ;
-							break ;
-						/* case 4: */
-						default:
-							pixel = *((u_int32_t*)fb) ;
-						}
+						pixel = x_display_get_pixel(
+								win->disp->display ,
+								x + x_off ,
+								y + y_off - font_ascent) ;
 					}
 
 					force_fg = 0 ;
@@ -223,10 +210,12 @@ draw_string(
 
 				p += bpp ;
 			}
+
+			x += x_off ;
 		}
 
 		x_display_put_image( win->disp->display ,
-			x , y + y_off - font_ascent , src , size) ;
+			(x = orig_x) , y + y_off - font_ascent , src , p - src) ;
 		p = src ;
 	}
 
@@ -1020,6 +1009,9 @@ x_window_fill_with(
 		return  0 ;
 	}
 
+	x += (win->x + win->margin) ;
+	y += (win->y + win->margin) ;
+
 	for( y_off = 0 ; y_off < height ; y_off++)
 	{
 		for( x_off = 0 ; x_off < width ; x_off++)
@@ -1040,8 +1032,7 @@ x_window_fill_with(
 			p += bpp ;
 		}
 
-		x_display_put_image( win->disp->display , win->x + win->margin + x ,
-			win->y + win->margin + y + y_off , src , size) ;
+		x_display_put_image( win->disp->display , x , y + y_off , src , p - src) ;
 
 		p = src ;
 	}

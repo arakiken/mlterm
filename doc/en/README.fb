@@ -83,7 +83,6 @@ Framebuffer support
 
 * Unsupported features
   o 1,2,4 bpp
-  o Wall picture and sixel graphics on 8 bpp.
   o proportional fonts
   o ssh2 client
   o Daemon mode

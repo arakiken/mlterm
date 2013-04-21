@@ -1,3 +1,11 @@
+2013-04-21  Araki Ken  <arakiken@users.sf.net>
+
+	* x.h, x_display.[ch], x_window.c:
+	  Experimental support for less than 8bpp/framebuffer is added.
+
+	* x_imagelib.c, x_color.c, x_display.c:
+	  Drawing pictures is supported in 8 bpp/framebuffer.
+
 2013-04-19  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: The wrong height of the preediting cursor of the input

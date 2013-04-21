@@ -51,6 +51,7 @@ typedef struct
 	unsigned int  xoffset ;
 	unsigned int  yoffset ;
 	unsigned int  bytes_per_pixel ;
+	unsigned int  pixels_per_byte ;
 
 	struct rgb_info
 	{
