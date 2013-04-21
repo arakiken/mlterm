@@ -48,9 +48,10 @@
 
 #define FB_SHIFT(ppb,idx)	((ppb) - (idx) % (ppb) - 1) * (8 / (ppb))
 #define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
-#define FB_WIDTH_BYTES(display,width) \
+#define FB_WIDTH_BYTES(display,x,width) \
 	( (width) * (display)->bytes_per_pixel / (display)->pixels_per_byte + \
-		((display)->pixels_per_byte > 1 ? 2 : 0))
+		((x) % (display)->pixels_per_byte > 0 ? 1 : 0) + \
+		(((x) + (width)) % (display)->pixels_per_byte > 0 ? 1 : 0))
 
 #if  0
 #define  READ_CTRL_KEYMAP
@@ -232,9 +233,9 @@ cmap_init(
 	{
 		if( rgb_tbl)
 		{
-			r = rgb_1bpp[color * 3] ;
-			g = rgb_1bpp[color * 3 + 1] ;
-			b = rgb_1bpp[color * 3 + 2] ;
+			r = rgb_tbl[color * 3] ;
+			g = rgb_tbl[color * 3 + 1] ;
+			b = rgb_tbl[color * 3 + 2] ;
 		}
 		else
 		{
@@ -412,7 +413,6 @@ static void
 restore_hidden_region(void)
 {
 	u_char *  fb ;
-	int  count ;
 
 	if( ! _mouse.cursor.is_drawn)
 	{
@@ -424,15 +424,16 @@ restore_hidden_region(void)
 
 	if( _mouse.hidden_region_saved)
 	{
+		size_t  width ;
+		u_int  count ;
+
 		fb = x_display_get_fb( &_display ,
 			_mouse.cursor.x , _mouse.cursor.y) ;
+		width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width) ;
 
 		for( count = 0 ; count < _mouse.cursor.height ; count++)
 		{
-			memcpy( fb ,
-				_mouse.saved_image +
-					count * FB_WIDTH_BYTES(&_display, _mouse.cursor.width) ,
-				FB_WIDTH_BYTES(&_display, _mouse.cursor.width)) ;
+			memcpy( fb , _mouse.saved_image + count * width , width) ;
 			fb += _display.line_length ;
 		}
 	}
@@ -457,15 +458,15 @@ static void
 save_hidden_region(void)
 {
 	u_char *  fb ;
-	int  count ;
+	size_t  width ;
+	u_int  count ;
 
 	fb = x_display_get_fb( &_display , _mouse.cursor.x , _mouse.cursor.y) ;
+	width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width) ;
 
 	for( count = 0 ; count < _mouse.cursor.height ; count++)
 	{
-		memcpy( _mouse.saved_image +
-				count * FB_WIDTH_BYTES(&_display, _mouse.cursor.width) ,
-			fb , FB_WIDTH_BYTES(&_display, _mouse.cursor.width)) ;
+		memcpy( _mouse.saved_image + count * width , fb , width) ;
 		fb += _display.line_length ;
 	}
 
@@ -895,9 +896,10 @@ open_display(void)
 	ioctl( _display.fb_fd , FBIO_ADPINFO , &vainfo) ;
 	ioctl( _display.fb_fd , FBIO_GETDISPSTART , &vstart) ;
 
-	if( ( _disp.depth = vinfo.vi_depth) < 8) /* 1/2/4 bpp is not supported. */
+	if( ( _disp.depth = vinfo.vi_depth) < 8)
 	{
 	#if  0
+		/* 1/2/4 bpp is not supported. */
 		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.vi_depth) ;
 
 		goto  error ;
@@ -1545,9 +1547,10 @@ open_display(void)
 		goto  error ;
 	}
 
-	if( ( _disp.depth = vinfo.depth) < 8) /* 1/2/4 bpp is not supported. */
+	if( ( _disp.depth = vinfo.depth) < 8)
 	{
 	#if  0
+		/* 1/2/4 bpp is not supported. */
 		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.depth) ;
 
 		goto  error ;
@@ -2152,9 +2155,10 @@ open_display(void)
 	ioctl( _display.fb_fd , FBIOGET_FSCREENINFO , &finfo) ;
 	ioctl( _display.fb_fd , FBIOGET_VSCREENINFO , &vinfo) ;
 
-	if( ( _disp.depth = vinfo.bits_per_pixel) < 8) /* 1/2/4 bpp is not supported. */
+	if( ( _disp.depth = vinfo.bits_per_pixel) < 8)
 	{
 	#if  0
+		/* 1/2/4 bpp is not supported. */
 		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.bits_per_pixel) ;
 
 		goto  error ;
@@ -2939,7 +2943,8 @@ x_display_copy_line(
 
 	memmove( x_display_get_fb( display , dst_x , dst_y) ,
 		x_display_get_fb( display , src_x , src_y) ,
-		FB_WIDTH_BYTES(display,width)) ;
+		/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
+		FB_WIDTH_BYTES(display, src_x, width)) ;
 }
 
 void
@@ -2988,8 +2993,8 @@ x_get_closest_color(
 	int  blue
 	)
 {
-	ml_color_t  closest = ML_UNKNOWN_COLOR ;
-	ml_color_t  color ;
+	u_long  closest ;
+	u_int  color ;
 	u_long  min = 0xffffff ;
 	u_long  diff ;
 	int  diff_r , diff_g , diff_b ;
