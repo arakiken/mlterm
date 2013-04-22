@@ -5,6 +5,7 @@ ver 3.1.10
   xterm and support CSI ? 1042.
 * "only_use_unicode_font" and "not_use_unicode_font" options have an effect
   on preedit and candidate characters of input method plugins.
+* Add "sound|visual" to the value of "bel_mode" option.
 * Enable to change "not_use_unicode_font" and "only_use_unicode_font" dynamically.
 * Add "box_drawing_font" option.
 * Bug fixes:

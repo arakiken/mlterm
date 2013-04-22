@@ -1,3 +1,16 @@
+2013-04-22  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja, gtk/INSTALL: Updated.
+
+	* x_screen.c, x_window.h, xlib/x_window.c, win32/x_window.c, fb/x_window.c:
+	  - "bel_mode" option accepts "sound|visual" value which enables both audible
+	    and visual bell.
+	  - "use_urgent_bell=true" works even if the value of "bel_mode" option
+	    is "none".
+
+	* configure.in: --with-gui option can accept "xlib,fb" which means
+	  compiling both mlterm-xlib and mlterm-fb.
+
 2013-04-21  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.c: Minor fixes.

@@ -15,6 +15,7 @@
 #include  "x_font.h"
 #include  "x_color.h"
 #include  "x_gc.h"
+#include  "x_bel_mode.h"
 
 
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
@@ -400,7 +401,7 @@ u_int  x_window_get_mod_meta_mask( x_window_t *  win , char *  mod_key) ;
 int  x_set_use_urgent_bell( int  use) ;
 #endif
 
-int  x_window_bell( x_window_t *  win , int  visual) ;
+int  x_window_bell( x_window_t *  win , x_bel_mode_t  mode) ;
 
 int  x_window_translate_coordinates( x_window_t *  win, int x, int y,
 	int *  global_x, int *  global_y, Window *  child) ;

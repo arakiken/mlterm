@@ -1790,7 +1790,7 @@ x_window_get_mod_meta_mask(
 int
 x_window_bell(
 	x_window_t *  win ,
-	int  visual
+	x_bel_mode_t  bel_mode
 	)
 {
 	return  1 ;

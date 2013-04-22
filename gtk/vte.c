@@ -113,16 +113,6 @@ struct _VteTerminalPrivate
 	x_screen_scroll_event_listener_t  screen_scroll_listener ;
 	int8_t  adj_value_changed_by_myself ;
 
-	/*
-	 * Keep 'is_visible' value of vte_terminal_set_visible_bell() and
-	 * 'is_audible' value of vte_terminal_set_audible_bell() to prepare for
-	 * vte_terminal_set_audible_bell( FALSE ) and
-	 * vte_terminal_set_visible_bell( FALSE ),
-	 * because mlterm doesn't keep values of both visible and sound.
-	 */
-	int8_t  audible_bell ;
-	int8_t  visible_bell ;
-
 	/* for roxterm-2.6.5 */
 	int8_t  init_char_size ;
 
@@ -2714,10 +2704,6 @@ vte_terminal_init(
 	terminal->pvt->pix_height = 0 ;
 	terminal->pvt->pic_mod = NULL ;
 
-	/* audible_bell and visible_bell member is initialized by settings of main_config. */
-	terminal->pvt->audible_bell = (main_config.bel_mode == BEL_SOUND) ;
-	terminal->pvt->visible_bell = (main_config.bel_mode == BEL_VISUAL) ;
-
 /* GRegex was not supported */
 #if  GLIB_CHECK_VERSION(2,14,0)
 	terminal->pvt->regex = NULL ;
@@ -3196,20 +3182,10 @@ vte_terminal_set_audible_bell(
 	gboolean is_audible
 	)
 {
-	terminal->pvt->audible_bell = (is_audible == TRUE) ;
-
-	if( is_audible)
-	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "sound") ;
-	}
-	else if( terminal->pvt->visible_bell)
-	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "visual") ;
-	}
-	else
-	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "none") ;
-	}
+	x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" ,
+		x_get_bel_mode_name( is_audible ?
+			(BEL_SOUND | terminal->pvt->screen->bel_mode) :
+			(~BEL_SOUND & terminal->pvt->screen->bel_mode))) ;
 }
 
 gboolean
@@ -3217,7 +3193,7 @@ vte_terminal_get_audible_bell(
 	VteTerminal *  terminal
 	)
 {
-	if( terminal->pvt->screen->bel_mode == BEL_SOUND)
+	if( terminal->pvt->screen->bel_mode & BEL_SOUND)
 	{
 		return  TRUE ;
 	}
@@ -3233,9 +3209,10 @@ vte_terminal_set_visible_bell(
 	gboolean  is_visible
 	)
 {
-	terminal->pvt->visible_bell = (is_visible == TRUE) ;
-
-	vte_terminal_set_audible_bell( terminal , ! is_visible && terminal->pvt->audible_bell) ;
+	x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" ,
+		x_get_bel_mode_name( is_visible ?
+			(BEL_VISUAL | terminal->pvt->screen->bel_mode) :
+			(~BEL_VISUAL & terminal->pvt->screen->bel_mode))) ;
 }
 
 gboolean
@@ -3243,7 +3220,7 @@ vte_terminal_get_visible_bell(
 	VteTerminal *  terminal
 	)
 {
-	if( terminal->pvt->screen->bel_mode == BEL_VISUAL)
+	if( terminal->pvt->screen->bel_mode & BEL_VISUAL)
 	{
 		return  TRUE ;
 	}

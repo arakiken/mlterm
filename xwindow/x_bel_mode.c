@@ -13,7 +13,7 @@
 /* Order of this table must be same as x_bel_mode_t. */
 static char *   bel_mode_name_table[] =
 {
-	"none" , "sound" , "visual" ,
+	"none" , "sound" , "visual" , "sound|visual"
 } ;
 
 

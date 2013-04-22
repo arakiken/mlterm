@@ -9,10 +9,11 @@
 typedef enum  x_bel_mode
 {
 	BEL_NONE = 0x0 ,
-	BEL_SOUND ,
-	BEL_VISUAL ,
-	
-	BEL_MODE_MAX
+	BEL_SOUND = 0x1 ,
+	BEL_VISUAL = 0x2 ,
+	/* BEL_SOUND|BEL_VISUAL */
+
+	BEL_MODE_MAX = 0x4
 	
 } x_bel_mode_t ;
 

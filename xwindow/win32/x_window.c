@@ -3166,12 +3166,12 @@ x_set_use_urgent_bell(
 int
 x_window_bell(
 	x_window_t *  win ,
-	int  visual
+	x_bel_mode_t  mode
 	)
 {
 	urgent_bell( win , 1) ;
 
-	if( visual)
+	if( mode & BEL_VISUAL)
 	{
 		int  count ;
 
@@ -3190,7 +3190,8 @@ x_window_bell(
 		ReleaseDC( win->my_window, win->gc->gc) ;
 		x_set_gc( win->gc, None) ;
 	}
-	else
+
+	if( mode & BEL_SOUND)
 	{
 		Beep( 800 , 200) ;
 	}

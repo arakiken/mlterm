@@ -4002,12 +4002,12 @@ x_set_use_urgent_bell(
 int
 x_window_bell(
 	x_window_t *  win ,
-	int  visual
+	x_bel_mode_t  mode
 	)
 {
 	urgent_bell( win , 1) ;
 
-	if( visual)
+	if( mode & BEL_VISUAL)
 	{
 		x_window_blank( win) ;
 
@@ -4020,7 +4020,8 @@ x_window_bell(
 
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
-	else
+
+	if( mode & BEL_SOUND)
 	{
 		XBell( win->disp->display , 0) ;
 	}

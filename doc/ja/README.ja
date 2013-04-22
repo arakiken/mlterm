@@ -633,10 +633,11 @@ comment $Id$
 
         esc の場合は"0x1b"を出力し、8bit の場合は入力文字の8ビット目をたてます。
 
-      o bel_mode  (none/*sound*/visual) (#)
+      o bel_mode  (none/*sound*/visual/sound|visual) (#)
         BEL(0x7)を受け取った時の挙動
 
         soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
+        sound|visualを指定すると、両方行います。
 
       o use_urgent_bell (true/*false*)
         フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告する。

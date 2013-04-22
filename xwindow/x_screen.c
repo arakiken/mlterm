@@ -7138,14 +7138,7 @@ xterm_bel(
 
 	screen = p ;
 
-	if( screen->bel_mode == BEL_SOUND)
-	{
-		x_window_bell( &screen->window , 0) ;
-	}
-	else if( screen->bel_mode == BEL_VISUAL)
-	{
-		x_window_bell( &screen->window , 1) ;
-	}
+	x_window_bell( &screen->window , screen->bel_mode) ;
 }
 
 static int
