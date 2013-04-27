@@ -29,15 +29,15 @@ CFLAGS = $(CFLAGS1) $(CFLAGS2_@MLIMGLOADER_LIB@)
 
 LIBS1 = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib
 
-LIBS2_xlib = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
-LIBS2_fb = $(LIBS2_xlib)
-# Segfault in cygwin without this.
-LIBS2_win32 = -mwindows
+LIBS2_xlib_gdk-pixbuf = @X_LIBS@ -lX11 @X_EXTRA_LIBS@ @GDK_PIXBUF_LIBS@
+LIBS2_fb_gdk-pixbuf = $(LIBS2_xlib)
 
-LIBS3_gdk-pixbuf = @GDK_PIXBUF_LIBS@
-LIBS3_gdiplus = -lgdiplus -lstdc++ -lole32
+# Segfault in cygwin without them.
+LIBS2_win32_gdk-pixbuf = -mwindows @GDK_PIXBUF_LIBS@
+LIBS2_win32_gdiplus = -mwindows -lgdiplus -lstdc++ -lole32
+LIBS2_win32_none = -mwindows
 
-LIBS = $(LIBS1) $(LIBS2_@GUI@) $(LIBS3_@MLIMGLOADER_LIB@)
+LIBS = $(LIBS1) $(LIBS2_@GUI@_@MLIMGLOADER_LIB@)
 
 PROG = mlimgloader
 

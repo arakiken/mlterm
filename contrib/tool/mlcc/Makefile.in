@@ -6,7 +6,7 @@ bindir = @bindir@
 
 BINDIR = $(DESTDIR)$(bindir)
 
-VPATH = ${top_srcdir}
+VPATH = $(top_srcdir)/contrib/tool/mlcc
 
 CC = @CC@
 PROG = mlcc
@@ -47,4 +47,4 @@ mostlyclean:
 	rm -f $(OBJECTS) core core.* $(PROG).core 
 
 distclean: clean
-	rm -f Makefile config.h config.log config.status
+	rm -f Makefile

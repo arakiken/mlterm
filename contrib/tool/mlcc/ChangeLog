@@ -1,3 +1,5 @@
+(Recent changelogs are integrated to ../../../ChangeLog)
+
 2010-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* data_entry_string.c: If data->initial is NULL, mlterm_set_param is called

@@ -1,3 +1,13 @@
+2013-04-27  Araki Ken  <arakiken@users.sf.net>
+
+	* mlimgloader/Makefile.in: mlimgloader can be built without X11 library.
+
+	* configure.in, mlcc/Makefile.in: configure script at the top directory
+	  generates Makefile of mlcc.
+
+	* mlcc/configure, mlcc/configure.in, mlcc/config.h.in, mlcc/install-sh:
+	  Removed.
+
 2013-04-22  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja, gtk/INSTALL: Updated.

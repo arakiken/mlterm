@@ -21593,7 +21593,7 @@ fi
 mlcc)
 	if test "$ml_cv_is_posix" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
-		SUBDIRS="${SUBDIRS} contrib/tool/mlcc"
+		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	fi
 	;;

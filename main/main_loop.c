@@ -418,7 +418,7 @@ main_loop_start(void)
 
 		if( ! is_genuine_daemon)
 		{
-			kik_msg_printf( "Unable to start - open_screen_intern() failed.\n") ;
+			kik_msg_printf( "Unable to open screen.\n") ;
 
 			return  0 ;
 		}
