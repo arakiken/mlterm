@@ -1,3 +1,14 @@
+2013-04-28  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.c: Tune up drawing the wall picture in put_image_to_124bpp()
+	  and x_display_get_pixel().
+
+	* x_display.c, x_font.c: TOINT32 and TOINT16 macros are used to access
+	  fb and pcf fonts.
+
+	* kik_util.h: BE32DEC, BE16DEC, LE32DEC, LE16DEC, TOINT32 and TOINT16
+	  macros are added.
+
 2013-04-27  Araki Ken  <arakiken@users.sf.net>
 
 	* mlimgloader/Makefile.in: mlimgloader can be built without X11 library.

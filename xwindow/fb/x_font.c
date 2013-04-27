@@ -12,30 +12,25 @@
 #include  <sys/stat.h>	/* fstat */
 #include  <utime.h>	/* utime */
 
-#include  <kiklib/kik_def.h>	/* WORDS_BIG_ENDIAN */
+#include  <kiklib/kik_def.h>	/* WORDS_BIGENDIAN */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <kiklib/kik_conf_io.h>/* kik_get_user_rc_path */
+#include  <kiklib/kik_util.h>	/* TOINT32 */
 #include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
 
 
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
 #define  DIVIDE_ROUNDINGUP(a,b) ( ((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)) )
 
-#ifdef  WORDS_BIG_ENDIAN
-#define  _INT32(p,is_be) \
-	( (is_be) ? *((u_int32_t*)p) : \
-		((p)[3] | ((p)[2] << 8) | ((p)[1] << 16) | ((p)[0] << 24)))
-#define  _INT16(p,is_be) \
-	( (is_be) ? *((u_int16_t*)p) : ((p)[1] | ((p)[0] << 8)))
+#ifdef  WORDS_BIGENDIAN
+#define  _TOINT32(p,is_be) ((is_be) ? TOINT32(p) : LE32DEC(p))
+#define  _TOINT16(p,is_be) ((is_be) ? TOINT16(p) : LE16DEC(p))
 #else
-#define  _INT32(p,is_be) \
-	( (is_be) ? ((p)[3] | ((p)[2] << 8) | ((p)[1] << 16) | ((p)[0] << 24)) : \
-		*((u_int32_t*)(p)) )
-#define  _INT16(p,is_be) \
-	( (is_be) ? ((p)[1] | ((p)[0] << 8)) : *((u_int16_t*)(p)))
+#define  _TOINT32(p,is_be) ((is_be) ? BE32DEC(p) : TOINT32(p))
+#define  _TOINT16(p,is_be) ((is_be) ? BE16DEC(p) : TOINT16(p))
 #endif
 
 #define  PCF_PROPERTIES		(1<<0)
@@ -78,7 +73,7 @@ load_bitmaps(
 	/* 0 -> byte , 1 -> short , 2 -> int */
 	xfont->glyph_width_bytes = ( glyph_pad_type == 2 ? 4 : ( glyph_pad_type == 1 ? 2 : 0)) ;
 
-	xfont->num_of_glyphs = _INT32(p,is_be) ;
+	xfont->num_of_glyphs = _TOINT32(p,is_be) ;
 	p += 4 ;
 
 	if( size < 8 + sizeof(*offsets) * xfont->num_of_glyphs)
@@ -95,7 +90,7 @@ load_bitmaps(
 		return  0 ;
 	}
 
-#ifdef  WORDS_BIG_ENDIAN
+#ifdef  WORDS_BIGENDIAN
 	if( is_be)
 #else
 	if( ! is_be)
@@ -108,14 +103,14 @@ load_bitmaps(
 	{
 		for( count = 0 ; count < xfont->num_of_glyphs ; count++)
 		{
-			xfont->glyph_offsets[count] = _INT32(p,is_be) ;
+			xfont->glyph_offsets[count] = _TOINT32(p,is_be) ;
 			p += 4 ;
 		}
 	}
 
 	for( count = 0 ; count < 4 ; count++)
 	{
-		bitmap_sizes[count] = _INT32(p,is_be) ;
+		bitmap_sizes[count] = _TOINT32(p,is_be) ;
 		p += 4 ;
 	}
 
@@ -135,10 +130,10 @@ load_bitmaps(
 
 	memcpy( xfont->glyphs , p , bitmap_sizes[glyph_pad_type]) ;
 
-#ifdef  WORDS_BIG_ENDIAN
-	xfont->glyphs_same_endian = is_be ;
+#ifdef  BIT_MSBLEFT
+	xfont->glyphs_same_bitorder = is_be ;
 #else
-	xfont->glyphs_same_endian = ! is_be ;
+	xfont->glyphs_same_bitorder = ! is_be ;
 #endif
 
 #ifdef  __DEBUG
@@ -155,37 +150,37 @@ load_bitmaps(
 		for( count = 0 ; count < xfont->num_of_glyphs ; count++)
 		{
 			fprintf( fp , "NUM %x\n" , count) ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
-			fprintf( fp , "%x\n\n" , _INT32(p,is_be)) ;
+			fprintf( fp , "%x\n\n" , _TOINT32(p,is_be)) ;
 			p += 4 ;
 		}
 
@@ -206,13 +201,13 @@ load_encodings(
 {
 	size_t  idx_size ;
 
-	xfont->min_char_or_byte2 = _INT16(p,is_be) ;
+	xfont->min_char_or_byte2 = _TOINT16(p,is_be) ;
 	p += 2 ;
-	xfont->max_char_or_byte2 = _INT16(p,is_be) ;
+	xfont->max_char_or_byte2 = _TOINT16(p,is_be) ;
 	p += 2 ;
-	xfont->min_byte1 = _INT16(p,is_be) ;
+	xfont->min_byte1 = _TOINT16(p,is_be) ;
 	p += 2 ;
-	xfont->max_byte1 = _INT16(p,is_be) ;
+	xfont->max_byte1 = _TOINT16(p,is_be) ;
 	p += 2 ;
 
 	/* skip default_char */
@@ -235,7 +230,7 @@ load_encodings(
 		return  0 ;
 	}
 
-#ifdef  WORDS_BIG_ENDIAN
+#ifdef  WORDS_BIGENDIAN
 	if( is_be)
 #else
 	if( ! is_be)
@@ -249,7 +244,7 @@ load_encodings(
 
 		for( count = 0 ; count < (idx_size / sizeof(int16_t)) ; count++)
 		{
-			xfont->glyph_indeces[count] = _INT16(p,is_be) ;
+			xfont->glyph_indeces[count] = _TOINT16(p,is_be) ;
 			p += 2 ;
 		}
 	}
@@ -315,18 +310,18 @@ get_metrics(
 	}
 	else
 	{
-		num_of_metrics = _INT32(p,is_be) ;
+		num_of_metrics = _TOINT32(p,is_be) ;
 		p += 4 ;
 
 		p += 4 ;
 
-		*width = _INT16(p,is_be) ;
+		*width = _TOINT16(p,is_be) ;
 		p += 2 ;
 
-		*ascent = _INT16(p,is_be) ;
+		*ascent = _TOINT16(p,is_be) ;
 		p += 2 ;
 
-		*height = *ascent + _INT16(p,is_be) ;
+		*height = *ascent + _TOINT16(p,is_be) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " NOT COMPRESSED METRICS %d %d %d %d\n" ,
@@ -473,7 +468,7 @@ load_pcf(
 
 	p += 4 ;
 
-	num_of_tables = _INT32(p,0) ;
+	num_of_tables = _TOINT32(p,0) ;
 	p += 4 ;
 
 	for( count = 0 ; count < num_of_tables ; count++)
@@ -483,20 +478,20 @@ load_pcf(
 		int32_t  size ;
 		int32_t  offset ;
 
-		type = _INT32(p,0) ;
+		type = _TOINT32(p,0) ;
 		p += 4 ;
-		format = _INT32(p,0) ;
+		format = _TOINT32(p,0) ;
 		p += 4 ;
-		size = _INT32(p,0) ;
+		size = _TOINT32(p,0) ;
 		p += 4 ;
-		offset = _INT32(p,0) ;
+		offset = _TOINT32(p,0) ;
 		p += 4 ;
 
 		if( /* (format & 8) != 0 || */ /* MSBit first */
 		    ((format >> 4) & 3) != 0 || /* the bits aren't stored in
 		                                   bytes(0) but in short(1) or int(2). */
 		    offset + size > st.st_size ||
-		    format != _INT32(pcf + offset,0) )
+		    format != _TOINT32(pcf + offset,0) )
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
@@ -1155,7 +1150,7 @@ x_get_bitmap_cell(
 {
 	if( bitmap && x < xfont->width)
 	{
-		if( xfont->glyphs_same_endian) /* XXX ? */
+		if( xfont->glyphs_same_bitorder) /* XXX ? */
 		{
 			return  bitmap[y * xfont->glyph_width_bytes + x / 8] & (1 << (x % 8)) ;
 		}

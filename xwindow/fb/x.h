@@ -174,7 +174,7 @@ typedef struct
 	unsigned char *  glyphs ;
 	int32_t *  glyph_offsets ;
 	int32_t  glyph_width_bytes ;
-	int  glyphs_same_endian ;
+	int  glyphs_same_bitorder ; /* The bit order of glyph data is same as that of the host */
 
 	int16_t  min_char_or_byte2 ;
 	int16_t  max_char_or_byte2 ;

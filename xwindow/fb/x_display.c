@@ -18,6 +18,7 @@
 #include  <sys/time.h>
 #elif  defined(__NetBSD__)
 #include  <dev/wscons/wsdisplay_usl_io.h>	/* VT_GETSTATE */
+#include  <sys/param.h>				/* MACHINE */
 #include  "../x_event_source.h"
 #else
 #include  <linux/kd.h>
@@ -46,12 +47,18 @@
 #define  CURSOR_HEIGHT  15
 #define  CURSOR_Y_OFF   -7
 
-#define FB_SHIFT(ppb,idx)	((ppb) - (idx) % (ppb) - 1) * (8 / (ppb))
+#ifdef  BIT_MSBLEFT
+#define FB_SHIFT(ppb,idx)	(((idx) % (ppb)) * (8 / (ppb)))
+#else
+#define FB_SHIFT(ppb,idx)	(((ppb) - (idx) % (ppb) - 1) * (8 / (ppb)))
+#endif
 #define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
 #define FB_WIDTH_BYTES(display,x,width) \
 	( (width) * (display)->bytes_per_pixel / (display)->pixels_per_byte + \
 		((x) % (display)->pixels_per_byte > 0 ? 1 : 0) + \
 		(((x) + (width)) % (display)->pixels_per_byte > 0 ? 1 : 0))
+
+#define  BG_MAGIC	0xff	/* for 1,2,4 bpp */
 
 #if  0
 #define  READ_CTRL_KEYMAP
@@ -64,6 +71,7 @@
 #define  DEFAULT_KEY_REPEAT_1  400	/* msec */
 #define  DEFAULT_KEY_REPEAT_N  50	/* msec */
 #endif
+
 
 /* Note that this structure could be casted to Display */
 typedef struct
@@ -110,7 +118,7 @@ static keymap_t  keymap ;
 #elif  defined(__NetBSD__)
 static struct wskbd_map_data  keymap ;
 static int  console_id = -1 ;
-static int  orig_console_mode = -1 ;
+static int  orig_console_mode = WSDISPLAYIO_MODE_EMUL ;	/* 0 */
 static struct wscons_event  prev_key_event ;
 static int  wskbd_repeat_wait = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
 int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
@@ -313,10 +321,9 @@ put_image_to_124bpp(
 	u_char *  new_image ;
 	u_char *  p ;
 	u_char *  fb ;
-	int  surplus ;
 	int  shift ;
 	int  mask ;
-	int  count ;
+	size_t  count ;
 
 	ppb = display->pixels_per_byte ;
 
@@ -326,44 +333,106 @@ put_image_to_124bpp(
 		return ;
 	}
 
-	memset( new_image , 0 , size / ppb + 2) ;
-
-	mask = FB_MASK(ppb) ;
 	fb = x_display_get_fb( display , x , y) ;
+	mask = FB_MASK(ppb) ;
 
-	if( ( surplus = x % ppb) > 0)
+	if( memchr( image , BG_MAGIC , size))
 	{
-		for( ; surplus > 0 ; surplus --)
+		memcpy( new_image , fb ,
+			x_display_get_fb( display , x + size , y) - fb +
+			(( x + size) % ppb > 0 ? 1 : 0)) ;
+
+	#ifdef  BIT_MSBLEFT
+		shift = FB_SHIFT(ppb, x) ;
+		for( count = 0 ; count < size ; count++)
 		{
-			(*p) |= (fb[0] & (mask << FB_SHIFT(ppb, x - surplus))) ;
+			if( image[count] != BG_MAGIC)
+			{
+				(*p) &= ~(mask << shift) ;
+				(*p) |= (image[count] << shift) ;
+			}
+
+			if( ( shift = FB_SHIFT(ppb, x + count + 1)) == 0)
+			{
+				p ++ ;
+			}
 		}
-	}
+	#else
+		for( count = 0 ; count < size ; count++)
+		{
+			shift = FB_SHIFT(ppb, x + count) ;
 
-	for( count = 0 ; count < size ; count++)
-	{
-		shift = FB_SHIFT(ppb, x + count) ;
+			if( image[count] != BG_MAGIC)
+			{
+				(*p) &= ~(mask << shift) ;
+				(*p) |= (image[count] << shift) ;
+			}
 
-		(*p) |= (image[count] << shift) ;
+			if( shift == 0)
+			{
+				p ++ ;
+			}
+		}
+	#endif
 
-		if( shift == 0)
+		if( ( x + size) % ppb > 0)
 		{
 			p ++ ;
 		}
 	}
-
-	if( ( surplus = ( x + size) % ppb) > 0)
+	else
 	{
-		u_char *  fb2 ;
+		int  surplus ;
 
-		fb2 = x_display_get_fb( display , x + size , y) ;
+		memset( new_image , 0 , size / ppb + 2) ;
 
-		for( ; surplus < ppb ; surplus++)
+		if( ( surplus = x % ppb) > 0)
 		{
-			(*p) |= (fb2[0] & (mask << FB_SHIFT(ppb, x + size))) ;
-			size ++ ;
+			for( ; surplus > 0 ; surplus --)
+			{
+				(*p) |= (fb[0] & (mask << FB_SHIFT(ppb, x - surplus))) ;
+			}
 		}
 
-		p ++ ;
+	#ifdef  BIT_MSBLEFT
+		shift = FB_SHIFT(ppb, x) ;
+		for( count = 0 ; count < size ; count++)
+		{
+			(*p) |= (image[count] << shift) ;
+
+			if( ( shift = FB_SHIFT(ppb, x + count + 1)) == 0)
+			{
+				p ++ ;
+			}
+		}
+	#else
+		for( count = 0 ; count < size ; count++)
+		{
+			shift = FB_SHIFT(ppb, x + count) ;
+
+			(*p) |= (image[count] << shift) ;
+
+			if( shift == 0)
+			{
+				p ++ ;
+			}
+		}
+	#endif
+
+		if( ( surplus = ( x + size) % ppb) > 0)
+		{
+			u_char *  fb2 ;
+
+			fb2 = x_display_get_fb( display , x + size , y) ;
+
+			for( ; surplus < ppb ; surplus++)
+			{
+				(*p) |= (fb2[0] & (mask << FB_SHIFT(ppb, x + size))) ;
+				size ++ ;
+			}
+
+			p ++ ;
+		}
 	}
 
 	memmove( fb , new_image , p - new_image) ;
@@ -537,11 +606,11 @@ draw_mouse_cursor_line(
 				break ;
 
 			case  2:
-				((u_int16_t*)image)[x] = ((u_int16_t*)fb)[x] ;
+				((u_int16_t*)image)[x] = TOINT16(fb+2*x) ;
 				break ;
 
 			case  4:
-				((u_int32_t*)image)[x] = ((u_int32_t*)fb)[x] ;
+				((u_int32_t*)image)[x] = TOINT32(fb+4*x) ;
 				break ;
 			}
 		}
@@ -1502,6 +1571,7 @@ open_display(void)
 	char *  dev ;
 	struct wsdisplay_fbinfo  vinfo ;
 	int  mode ;
+	int  wstype ;
 	struct rgb_info  rgbinfos[] =
 	{
 		{ 3 , 3 , 3 , 10 , 5 , 0 } ,
@@ -1522,8 +1592,18 @@ open_display(void)
 
 	kik_file_set_cloexec( _display.fb_fd) ;
 
-	ioctl( _display.fb_fd , WSDISPLAYIO_GINFO , &vinfo) ;
-	ioctl( _display.fb_fd , WSDISPLAYIO_LINEBYTES , &_display.line_length) ;
+	ioctl( STDIN_FILENO , WSDISPLAYIO_GMODE , &orig_console_mode) ;
+
+	if( ioctl( _display.fb_fd , WSDISPLAYIO_GINFO , &vinfo) == -1 ||
+	    ioctl( _display.fb_fd , WSDISPLAYIO_GTYPE , &wstype) == -1)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" WSDISPLAYIO_GINFO or WSDISPLAYIO_GTYPE failed.\n") ;
+	#endif
+
+		goto  error ;
+	}
 
 	_display.xoffset = 0 ;
 	_display.yoffset = 0 ;
@@ -1531,37 +1611,14 @@ open_display(void)
 	_disp.width = vinfo.width ;
 	_disp.height = vinfo.height ;
 
-	_display.smem_len = _display.line_length * _disp.height ;
-
-	ioctl( STDIN_FILENO , WSDISPLAYIO_GMODE , &orig_console_mode) ;
-
-	mode = WSDISPLAYIO_MODE_MAPPED ;
-	ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &mode) ;
-
-	if( ( _display.fp = mmap( NULL , _display.smem_len ,
-				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
-				== MAP_FAILED)
-	{
-		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
-
-		goto  error ;
-	}
-
 	if( ( _disp.depth = vinfo.depth) < 8)
 	{
-	#if  0
-		/* 1/2/4 bpp is not supported. */
-		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.depth) ;
-
-		goto  error ;
-	#else
 	#if  1
 		/* XXX Forcibly set 1 bpp */
 		_display.pixels_per_byte = 8 ;
 		_disp.depth = 1 ;
 	#else
 		_display.pixels_per_byte = 8 / _disp.depth ;
-	#endif
 	#endif
 	}
 	else
@@ -1573,6 +1630,52 @@ open_display(void)
 	{
 		_display.bytes_per_pixel = 4 ;
 	}
+
+	if( ioctl( _display.fb_fd , WSDISPLAYIO_LINEBYTES , &_display.line_length) == -1)
+	{
+		/* WSDISPLAYIO_LINEBYTES isn't defined in some ports. */
+
+	#ifdef  MACHINE
+		/* XXX Hack for NetBSD 5.x/hpcmips */
+		if( strcmp( MACHINE , "hpcmips") == 0 && _disp.depth == 16)
+		{
+			_display.line_length = _disp.width * 5 / 2 ;
+		}
+		else
+	#endif
+		{
+			_display.line_length = _disp.width * _display.bytes_per_pixel /
+					_display.pixels_per_byte ;
+		}
+	}
+
+	_display.smem_len = _display.line_length * _disp.height ;
+
+	mode = WSDISPLAYIO_MODE_MAPPED ;
+	if( ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &mode) == -1)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " WSDISPLAYIO_SMODE failed.\n") ;
+	#endif
+
+		goto  error ;
+	}
+
+	if( ( _display.fp = mmap( NULL , _display.smem_len ,
+				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
+				== MAP_FAILED)
+	{
+		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
+
+		goto  error ;
+	}
+
+#ifdef  WSDISPLAY_TYPE_LUNA
+	if( wstype == WSDISPLAY_TYPE_LUNA)
+	{
+		_display.fp += 8 ;
+	}
+#endif
 
 	if( _disp.depth == 15)
 	{
@@ -1613,7 +1716,16 @@ open_display(void)
 	kik_priv_restore_euid() ;
 	kik_priv_restore_egid() ;
 
-	_display.fd = open( "/dev/wskbd" , O_RDWR|O_NONBLOCK|O_EXCL) ;
+#ifdef  MACHINE
+	if( strcmp( MACHINE , "hpcmips") == 0)
+	{
+		_display.fd = -1 ;
+	}
+	else
+#endif
+	{
+		_display.fd = open( "/dev/wskbd" , O_RDWR|O_NONBLOCK|O_EXCL) ;
+	}
 	_mouse.fd = open( "/dev/wsmouse" , O_RDWR|O_NONBLOCK|O_EXCL) ;
 
 	kik_priv_change_euid( kik_getuid()) ;
@@ -1712,8 +1824,14 @@ open_display(void)
 	return  1 ;
 
 error:
-	ioctl( STDIN_FILENO , WSDISPLAYIO_GMODE , &orig_console_mode) ;
+	if( _display.fp)
+	{
+		munmap( _display.fp , _display.smem_len) ;
+	}
+
 	close( _display.fb_fd) ;
+
+	ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
 
 	return  0 ;
 }
@@ -2881,17 +2999,25 @@ x_display_get_pixel(
 	switch( display->bytes_per_pixel)
 	{
 	case 1:
-		pixel = ((*fb) >> FB_SHIFT(display->pixels_per_byte, x)) &
-		        FB_MASK(display->pixels_per_byte) ;
+		if( display->pixels_per_byte > 1)
+		{
+			return  BG_MAGIC ;
+		}
+		else
+		{
+			pixel = ((*fb) >> FB_SHIFT(display->pixels_per_byte, x)) &
+			        FB_MASK(display->pixels_per_byte) ;
+		}
+
 		break ;
 
 	case 2:
-		pixel = *((u_int16_t*)fb) ;
+		pixel = TOINT16(fb) ;
 		break ;
 
 	/* case 4: */
 	default:
-		pixel = *((u_int32_t*)fb) ;
+		pixel = TOINT32(fb) ;
 	}
 
 	return  pixel ;
