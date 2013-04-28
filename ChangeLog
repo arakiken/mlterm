@@ -1,5 +1,12 @@
 2013-04-28  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x_display.c: The value of WSKBD environmental variable is used for
+	  the keyboard device.
+
+2013-04-28  Araki Ken  <arakiken@users.sf.net>
+
 	* x_display.c: Tune up drawing the wall picture in put_image_to_124bpp()
 	  and x_display_get_pixel().
 

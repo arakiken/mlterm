@@ -69,6 +69,9 @@ Framebuffer 対応に関するメモ
     ただし、指定できる値は25ms単位になります。
     wskbd_repeat_1=400
     wskbd_repeat_N=50
+  o キーボード入力は、/dev/wskbd を使って読み込みます。別のデバイスを使用したい
+    場合は、WSKBD 環境変数にそのデバイス名を指定してください。
+    (e.g. export WSKBD=/dev/wskbd0)
   o 8 bpp で使用した場合、色が正しく表示されません(要修正)。
   o Input method plugin として iBus を使用する場合は、./configure に
     --without-pthread を指定してビルドしないでください(mlterm-fb に pthread ライ

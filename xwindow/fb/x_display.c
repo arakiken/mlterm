@@ -1716,16 +1716,13 @@ open_display(void)
 	kik_priv_restore_euid() ;
 	kik_priv_restore_egid() ;
 
-#ifdef  MACHINE
-	if( strcmp( MACHINE , "hpcmips") == 0)
-	{
-		_display.fd = -1 ;
-	}
-	else
-#endif
+	if( ! getenv( "WSKBD") ||
+	    /* If you want to use /dev/wskbd0, export WSKBD=/dev/wskbd0 */
+	    ( _display.fd = open( getenv( "WSKBD") , O_RDWR|O_NONBLOCK|O_EXCL)) == -1)
 	{
 		_display.fd = open( "/dev/wskbd" , O_RDWR|O_NONBLOCK|O_EXCL) ;
 	}
+
 	_mouse.fd = open( "/dev/wsmouse" , O_RDWR|O_NONBLOCK|O_EXCL) ;
 
 	kik_priv_change_euid( kik_getuid()) ;
