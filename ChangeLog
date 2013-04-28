@@ -1,3 +1,7 @@
+2013-04-28  Araki Kenaaaaa  <arakiken@users.sf.net>
+
+	* im_scim_mod_if.c: Fixed typo(?).
+
 2013-04-28  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.

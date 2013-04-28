@@ -45,8 +45,6 @@ typedef struct  im_scim
 	mkf_parser_t *  parser_term ;	/* for term encoding  */
 	mkf_conv_t *  conv ;
 
-	x_im_candidate_screen_t *  hidden_cand_screen ;
-
 } im_scim_t ;
 
 /* --- static variables --- */
@@ -235,7 +233,7 @@ preedit_update(
 		scim->im.preedit.chars = NULL ;
 	}
 
-	saved_segment_offset = scim->im.preedit.cursor_offset ;
+	saved_segment_offset = scim->im.preedit.segment_offset ;
 
 	scim->im.preedit.num_of_chars = 0 ;
 	scim->im.preedit.filled_len = 0 ;
@@ -658,7 +656,6 @@ im_scim_new(
 	scim->context = NULL ;
 	scim->term_encoding = term_encoding ;
 	scim->conv = NULL ;
-	scim->hidden_cand_screen = NULL ;
 
 	if( scim->term_encoding != ML_UTF8)
 	{
