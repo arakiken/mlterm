@@ -8,10 +8,17 @@
 
 #ifdef  BUILTIN_IMAGELIB
 
+#ifdef  SIXEL_1BPP
+#define  SIXEL_RGB(r,g,b)  ((9 * (r) + 30 * (g) + (b)) * 51 >= 5120 * 20 ? 1 : 0)
+#define  PIXEL_SIZE  1
+#define  CARD_HEAD_SIZE  0
+typedef u_int8_t  pixel_t ;
+#else
 #define  SIXEL_RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
 #define  PIXEL_SIZE  4
 #define  CARD_HEAD_SIZE  8
-
+typedef u_int32_t  pixel_t ;
+#endif
 
 static size_t
 get_params(
@@ -232,9 +239,9 @@ load_sixel_from_file(
 	int  rep ;
 	int  color ;
 	int  asp_x ;
-	u_int32_t  color_tbl[256] ;
+	pixel_t  color_tbl[256] ;
 	/* VT340 Default Color Map */
-	static u_int32_t  default_color_tbl[] =
+	static pixel_t  default_color_tbl[] =
 	{
 		SIXEL_RGB(0,0,0) ,	/* BLACK */
 		SIXEL_RGB(20,20,80) ,	/* BLUE */
@@ -559,7 +566,7 @@ restart:
 
 					for( x = 0 ; x < rep ; x ++)
 					{
-					#ifdef  GDK_PIXBUF_VERSION
+					#if  defined(GDK_PIXBUF_VERSION)
 						/* RGBA */
 						pixels[((pix_y + y) * width + pix_x + x) *
 							PIXEL_SIZE] =
@@ -572,9 +579,14 @@ restart:
 							(color_tbl[color]) & 0xff ;
 						pixels[((pix_y + y) * width + pix_x + x) *
 							PIXEL_SIZE + 3] = 0xff ;
+					#elif  defined(SIXEL_1BPP)
+						/* 0x80 is opaque mark */
+						((pixel_t*)pixels)[(pix_y + y) * width +
+							pix_x + x] =
+							0x80 | color_tbl[color] ;
 					#else
 						/* ARGB (cardinal) */
-						((u_int32_t*)pixels)[(pix_y + y) * width +
+						((pixel_t*)pixels)[(pix_y + y) * width +
 							pix_x + x] =
 							0xff000000 | color_tbl[color] ;
 					#endif

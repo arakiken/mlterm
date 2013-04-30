@@ -1473,7 +1473,13 @@ window_realized(
 		x_window_set_borderless_flag( &screen->window , 1) ;
 	}
 
-	set_wall_picture( screen) ;
+	/* XXX Don't load wall picture until window is resized */
+#ifdef  USE_FRAMEBUFFER
+	if( screen->window.is_mapped)
+#endif
+	{
+		set_wall_picture( screen) ;
+	}
 }
 
 static void

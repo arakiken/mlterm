@@ -183,6 +183,103 @@ modify_pixmap(
 	}
 }
 
+#define  BUILTIN_IMAGELIB
+#define  SIXEL_1BPP
+#include  "../../common/c_imagelib.c"
+
+static int
+load_sixel_1bpp_from_file(
+	Display *  display ,
+	char *  path ,
+	u_int  width ,
+	u_int  height ,
+	x_picture_modifier_t *  pic_mod ,
+	u_int  depth ,
+	Pixmap *  pixmap ,
+	PixmapMask *  mask
+	)
+{
+	int  x ;
+	int  y ;
+	u_char *  src ;
+	u_char *  dst ;
+
+	if( display->pixels_per_byte != 8 || ! strstr( path , ".six") || pic_mod ||
+	    ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
+	{
+		return  0 ;
+	}
+
+	if( ! ( src = (*pixmap)->image = load_sixel_from_file( path ,
+						&(*pixmap)->width , &(*pixmap)->height)))
+	{
+		free( *pixmap) ;
+
+		return  0 ;
+	}
+
+	if( ( width != 0 && width != (*pixmap)->width) ||
+	    ( height != 0 && height != (*pixmap)->height))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" Picture size (%dx%d) doesn't match specified size (%dx%d)\n" ,
+			(*pixmap)->width , (*pixmap)->height , width , height) ;
+	#endif
+
+		free( (*pixmap)->image) ;
+		free( *pixmap) ;
+
+		return  0 ;
+	}
+
+	if( mask && ( dst = *mask = calloc( 1 , (*pixmap)->width * (*pixmap)->height)))
+	{
+		int  has_tp ;
+
+		has_tp = 0 ;
+
+		for( y = 0 ; y < (*pixmap)->height ; y++)
+		{
+			for( x = 0 ; x < (*pixmap)->width ; x++)
+			{
+				if( *src >= 0x80)
+				{
+					*dst = 1 ;
+					/* clear opaque mark */
+					*src &= 0x7f ;
+				}
+				else
+				{
+					has_tp = 1 ;
+				}
+
+				src ++ ;
+				dst ++ ;
+			}
+		}
+
+		if( ! has_tp)
+		{
+			free( *mask) ;
+			*mask = None ;
+		}
+	}
+	else
+	{
+		for( y = 0 ; y < (*pixmap)->height ; y++)
+		{
+			for( x = 0 ; x < (*pixmap)->width ; x++)
+			{
+				/* clear opaque mark */
+				*(src ++) &= 0x7f ;
+			}
+		}
+	}
+
+	return  1 ;
+}
+
 static int
 load_file(
 	Display *  display ,
@@ -204,6 +301,12 @@ load_file(
 	if( ! path || ! *path)
 	{
 		return  0 ;
+	}
+
+	if( load_sixel_1bpp_from_file( display , path , width , height ,
+		pic_mod , depth , pixmap , mask))
+	{
+		return  1 ;
 	}
 
 	if( pipe( fds1) == -1)
@@ -309,8 +412,6 @@ load_file(
 	if( mask)
 	{
 		u_char *  dst ;
-
-		*mask = None ;
 
 		if( ( dst = *mask = calloc( 1 , (*pixmap)->width * (*pixmap)->height)))
 		{

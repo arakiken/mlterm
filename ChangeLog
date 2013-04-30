@@ -1,3 +1,15 @@
+2013-04-30  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: set_wall_picture() isn't called in window_realized()
+	  if the window is unmapped (== not resized to the screen size yet)
+	  in framebuffer.
+
+	* fb/x_imagelib.c: load_sixel_1bpp_from_file() is added to tune up
+	  loading sixel graphics in 1bpp framebuffer.
+
+	* c_imagelib.c: load_sixel_from_file() returns 1bpp bitmap data if
+	  SIXEL_1BPP is defined.
+
 2013-04-28  Araki Kenaaaaa  <arakiken@users.sf.net>
 
 	* im_scim_mod_if.c: Fixed typo(?).
