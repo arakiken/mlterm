@@ -41,12 +41,6 @@
 #define  MOUSE_IS_INITED  (_mouse.fd != -1)
 #define  CMAP_IS_INITED   (_display.cmap)
 
-/* Parameters of cursor_shape */
-#define  CURSOR_WIDTH   7
-#define  CURSOR_X_OFF   -3
-#define  CURSOR_HEIGHT  15
-#define  CURSOR_Y_OFF   -7
-
 /* Because ppb is 2, 4 or 8, "% ppb" can be replaced by "& ppb" */
 #define  MOD_PPB(i,ppb)  ((i) & ((ppb) - 1))
 
@@ -77,6 +71,12 @@
 #define  DEFAULT_KEY_REPEAT_1  400	/* msec */
 #define  DEFAULT_KEY_REPEAT_N  50	/* msec */
 #endif
+
+/* Parameters of cursor_shape */
+#define  CURSOR_WIDTH   7
+#define  CURSOR_X_OFF   -3
+#define  CURSOR_HEIGHT  15
+#define  CURSOR_Y_OFF   -7
 
 
 /* Note that this structure could be casted to Display */
@@ -974,7 +974,7 @@ open_display(void)
 	#endif
 	}
 
-	if( ( _display.fp = mmap( NULL , (_display.smem_len = vainfo.va_window_size) ,
+	if( ( _display.fb = mmap( NULL , (_display.smem_len = vainfo.va_window_size) ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
 	{
@@ -1103,10 +1103,10 @@ open_display(void)
 	return  1 ;
 
 error:
-	if( _display.fp)
+	if( _display.fb)
 	{
-		munmap( _display.fp , _display.smem_len) ;
-		_display.fp = NULL ;
+		munmap( _display.fb , _display.smem_len) ;
+		_display.fb = NULL ;
 	}
 
 	close( _display.fb_fd) ;
@@ -1666,7 +1666,7 @@ open_display(void)
 		goto  error ;
 	}
 
-	if( ( _display.fp = mmap( NULL , _display.smem_len ,
+	if( ( _display.fb = mmap( NULL , _display.smem_len ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
 	{
@@ -1678,7 +1678,7 @@ open_display(void)
 #ifdef  WSDISPLAY_TYPE_LUNA
 	if( wstype == WSDISPLAY_TYPE_LUNA)
 	{
-		_display.fp += 8 ;
+		_display.fb += 8 ;
 	}
 #endif
 
@@ -1826,10 +1826,10 @@ open_display(void)
 	return  1 ;
 
 error:
-	if( _display.fp)
+	if( _display.fb)
 	{
-		munmap( _display.fp , _display.smem_len) ;
-		_display.fp = NULL ;
+		munmap( _display.fb , _display.smem_len) ;
+		_display.fb = NULL ;
 	}
 
 	close( _display.fb_fd) ;
@@ -2298,7 +2298,7 @@ open_display(void)
 		_display.pixels_per_byte = 1 ;
 	}
 
-	if( ( _display.fp = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
+	if( ( _display.fb = mmap( NULL , (_display.smem_len = finfo.smem_len) ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
 	{
@@ -2373,10 +2373,10 @@ open_display(void)
 	return  1 ;
 
 error:
-	if( _display.fp)
+	if( _display.fb)
 	{
-		munmap( _display.fp , _display.smem_len) ;
-		_display.fp = NULL ;
+		munmap( _display.fb , _display.smem_len) ;
+		_display.fb = NULL ;
 	}
 
 	close( _display.fb_fd) ;
@@ -2735,7 +2735,7 @@ x_display_close_all(void)
 			cmap_final() ;
 		}
 
-		munmap( _display.fp , _display.smem_len) ;
+		munmap( _display.fb , _display.smem_len) ;
 		close( _display.fb_fd) ;
 
 		write( STDIN_FILENO , "\x1b[?25h" , 6) ;
@@ -2988,7 +2988,7 @@ x_display_get_fb(
 	int  y
 	)
 {
-	return  display->fp + (display->yoffset + y) * display->line_length +
+	return  display->fb + (display->yoffset + y) * display->line_length +
 			(display->xoffset + x) * display->bytes_per_pixel
 			/ display->pixels_per_byte ;
 }
@@ -3003,20 +3003,17 @@ x_display_get_pixel(
 	u_char *  fb ;
 	u_long  pixel ;
 
+	if( display->pixels_per_byte > 1)
+	{
+		return  BG_MAGIC ;
+	}
+
 	fb = x_display_get_fb( display , x , y) ;
 
 	switch( display->bytes_per_pixel)
 	{
 	case 1:
-		if( display->pixels_per_byte > 1)
-		{
-			return  BG_MAGIC ;
-		}
-		else
-		{
-			pixel = *fb ;
-		}
-
+		pixel = *fb ;
 		break ;
 
 	case 2:
@@ -3063,22 +3060,51 @@ x_display_put_image(
 }
 
 void
-x_display_copy_line(
+x_display_copy_lines(
 	Display *  display ,
 	int  src_x ,
 	int  src_y ,
 	int  dst_x ,
 	int  dst_y ,
-	u_int  width
+	u_int  width ,
+	u_int  height
 	)
 {
+	u_char *  src ;
+	u_char *  dst ;
+	u_int  copy_len ;
+	u_int  count ;
+
 	/* XXX cheap implementation. */
 	restore_hidden_region() ;
 
-	memmove( x_display_get_fb( display , dst_x , dst_y) ,
-		x_display_get_fb( display , src_x , src_y) ,
-		/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
-		FB_WIDTH_BYTES(display, src_x, width)) ;
+	/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
+	copy_len = FB_WIDTH_BYTES(display, src_x, width) ;
+
+	if( src_y <= dst_y)
+	{
+		src = x_display_get_fb( display , src_x , src_y + height - 1) ;
+		dst = x_display_get_fb( display , dst_x , dst_y + height - 1) ;
+
+		for( count = 0 ; count < height ; count++)
+		{
+			memmove( dst , src , copy_len) ;
+			dst -= display->line_length ;
+			src -= display->line_length ;
+		}
+	}
+	else
+	{
+		src = x_display_get_fb( display , src_x , src_y) ;
+		dst = x_display_get_fb( display , dst_x , dst_y) ;
+
+		for( count = 0 ; count < height ; count++)
+		{
+			memmove( dst , src , copy_len) ;
+			dst += display->line_length ;
+			src += display->line_length ;
+		}
+	}
 }
 
 void

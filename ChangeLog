@@ -1,3 +1,10 @@
+2013-05-02  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.[ch], fb/x_window.c:
+	  x_display_copy_line() -> x_display_copy_lines()
+
+	* fb/x_display.c, x.h: Display::fp -> Display::fb
+
 2013-05-01  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_imagelib.c: If the difference between the specified height and

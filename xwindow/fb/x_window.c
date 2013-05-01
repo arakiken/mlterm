@@ -38,37 +38,17 @@ scroll_region(
 	int  dst_y
 	)
 {
-	u_int  count ;
-
 	if( ! win->is_mapped || ! x_window_is_scrollable( win))
 	{
 		return  0 ;
 	}
 
-	if( src_y <= dst_y)
-	{
-		for( count = height ; count > 0 ; count--)
-		{
-			x_display_copy_line( win->disp->display ,
-				src_x + win->x + win->margin ,
-				src_y + win->y + win->margin + count - 1 ,
-				dst_x + win->x + win->margin ,
-				dst_y + win->y + win->margin + count - 1 ,
-				width) ;
-		}
-	}
-	else
-	{
-		for( count = 0 ; count < height ; count++)
-		{
-			x_display_copy_line( win->disp->display ,
-				src_x + win->x + win->margin ,
-				src_y + win->y + win->margin + count ,
-				dst_x + win->x + win->margin ,
-				dst_y + win->y + win->margin + count ,
-				width) ;
-		}
-	}
+	x_display_copy_lines( win->disp->display ,
+			src_x + win->x + win->margin ,
+			src_y + win->y + win->margin ,
+			dst_x + win->x + win->margin ,
+			dst_y + win->y + win->margin ,
+			width , height) ;
 
 	return  1 ;
 }
