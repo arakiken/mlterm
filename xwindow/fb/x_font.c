@@ -1152,12 +1152,14 @@ x_get_bitmap_cell(
 	{
 		if( xfont->glyphs_same_bitorder) /* XXX ? */
 		{
-			return  bitmap[y * xfont->glyph_width_bytes + x / 8] & (1 << (x % 8)) ;
+			/* x & 7 == x % 8 */
+			return  bitmap[y * xfont->glyph_width_bytes + x / 8] & (1 << (x & 7)) ;
 		}
 		else
 		{
+			/* x & 7 == x % 8 */
 			return  bitmap[y * xfont->glyph_width_bytes + x / 8] &
-					(1 << (8 - (x % 8) - 1)) ;
+					(1 << (8 - (x & 7) - 1)) ;
 		}
 	}
 	else

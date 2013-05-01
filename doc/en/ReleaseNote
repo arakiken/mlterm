@@ -1,4 +1,4 @@
-ver 3.1.10
+ver 3.2.0
 * Support framebuffer on NetBSD. (Experimental)
 * Support sixel graphics and wall pictures in 8 bpp framebuffer.
 * Add "use_urgent_bell" option which is equivalent to "bellIsUrgent" option of

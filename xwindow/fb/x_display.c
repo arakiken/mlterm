@@ -47,16 +47,22 @@
 #define  CURSOR_HEIGHT  15
 #define  CURSOR_Y_OFF   -7
 
+/* Because ppb is 2, 4 or 8, "% ppb" can be replaced by "& ppb" */
+#define  MOD_PPB(i,ppb)  ((i) & ((ppb) - 1))
+
 #ifdef  BIT_MSBLEFT
-#define FB_SHIFT(ppb,idx)	(((idx) % (ppb)) * (8 / (ppb)))
+#define FB_SHIFT(ppb,bpp,idx)	(MOD_PPB(idx,ppb) * (bpp))
+#define FB_SHIFT_0(ppb,bpp)	(0)
 #else
-#define FB_SHIFT(ppb,idx)	(((ppb) - (idx) % (ppb) - 1) * (8 / (ppb)))
+#define FB_SHIFT(ppb,bpp,idx)	(((ppb) - MOD_PPB(idx,ppb) - 1) * (bpp))
+#define FB_SHIFT_0(ppb,bpp)	((ppb) - 1) * (bpp)
 #endif
+
 #define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
 #define FB_WIDTH_BYTES(display,x,width) \
 	( (width) * (display)->bytes_per_pixel / (display)->pixels_per_byte + \
-		((x) % (display)->pixels_per_byte > 0 ? 1 : 0) + \
-		(((x) + (width)) % (display)->pixels_per_byte > 0 ? 1 : 0))
+		(MOD_PPB(x,(display)->pixels_per_byte) > 0 ? 1 : 0) + \
+		(MOD_PPB((x) + (width),(display)->pixels_per_byte) > 0 ? 1 : 0))
 
 #define  BG_MAGIC	0xff	/* for 1,2,4 bpp */
 
@@ -318,6 +324,7 @@ put_image_to_124bpp(
 	 */
 
 	u_int  ppb ;
+	u_int  bpp ;
 	u_char *  new_image ;
 	u_char *  p ;
 	u_char *  fb ;
@@ -326,6 +333,7 @@ put_image_to_124bpp(
 	size_t  count ;
 
 	ppb = display->pixels_per_byte ;
+	bpp = 8 / ppb ;
 
 	/* + 2 is for surplus */
 	if( ! ( p = new_image = alloca( size / ppb + 2)))
@@ -340,10 +348,10 @@ put_image_to_124bpp(
 	{
 		memcpy( new_image , fb ,
 			x_display_get_fb( display , x + size , y) - fb +
-			(( x + size) % ppb > 0 ? 1 : 0)) ;
+			(MOD_PPB(x + size,ppb) > 0 ? 1 : 0)) ;
 
-	#ifdef  BIT_MSBLEFT
-		shift = FB_SHIFT(ppb, x) ;
+		shift = FB_SHIFT(ppb,bpp,x) ;
+
 		for( count = 0 ; count < size ; count++)
 		{
 			if( image[count] != BG_MAGIC)
@@ -352,30 +360,18 @@ put_image_to_124bpp(
 				(*p) |= (image[count] << shift) ;
 			}
 
-			if( ( shift = FB_SHIFT(ppb, x + count + 1)) == 0)
+		#ifdef  BIT_MSBLEFT
+			if( ( shift += bpp) >= 8)
+		#else
+			if( ( shift -= bpp) < 0)
+		#endif
 			{
 				p ++ ;
+				shift = FB_SHIFT_0(ppb,bpp) ;
 			}
 		}
-	#else
-		for( count = 0 ; count < size ; count++)
-		{
-			shift = FB_SHIFT(ppb, x + count) ;
 
-			if( image[count] != BG_MAGIC)
-			{
-				(*p) &= ~(mask << shift) ;
-				(*p) |= (image[count] << shift) ;
-			}
-
-			if( shift == 0)
-			{
-				p ++ ;
-			}
-		}
-	#endif
-
-		if( ( x + size) % ppb > 0)
+		if( MOD_PPB(x + size,ppb) > 0)
 		{
 			p ++ ;
 		}
@@ -386,40 +382,38 @@ put_image_to_124bpp(
 
 		memset( new_image , 0 , size / ppb + 2) ;
 
-		if( ( surplus = x % ppb) > 0)
+		shift = FB_SHIFT_0(ppb,bpp) ;
+
+		if( ( surplus = MOD_PPB(x,ppb)) > 0)
 		{
 			for( ; surplus > 0 ; surplus --)
 			{
-				(*p) |= (fb[0] & (mask << FB_SHIFT(ppb, x - surplus))) ;
+				(*p) |= (fb[0] & (mask << shift)) ;
+
+			#ifdef  BIT_MSBLEFT
+				shift += bpp ;
+			#else
+				shift -= bpp ;
+			#endif
 			}
 		}
 
-	#ifdef  BIT_MSBLEFT
-		shift = FB_SHIFT(ppb, x) ;
 		for( count = 0 ; count < size ; count++)
 		{
 			(*p) |= (image[count] << shift) ;
 
-			if( ( shift = FB_SHIFT(ppb, x + count + 1)) == 0)
+		#ifdef  BIT_MSBLEFT
+			if( ( shift += bpp) >= 8)
+		#else
+			if( ( shift -= bpp) < 0)
+		#endif
 			{
 				p ++ ;
+				shift = FB_SHIFT_0(ppb,bpp) ;
 			}
 		}
-	#else
-		for( count = 0 ; count < size ; count++)
-		{
-			shift = FB_SHIFT(ppb, x + count) ;
 
-			(*p) |= (image[count] << shift) ;
-
-			if( shift == 0)
-			{
-				p ++ ;
-			}
-		}
-	#endif
-
-		if( ( surplus = ( x + size) % ppb) > 0)
+		if( ( surplus = MOD_PPB(x + size,ppb)) > 0)
 		{
 			u_char *  fb2 ;
 
@@ -427,15 +421,20 @@ put_image_to_124bpp(
 
 			for( ; surplus < ppb ; surplus++)
 			{
-				(*p) |= (fb2[0] & (mask << FB_SHIFT(ppb, x + size))) ;
-				size ++ ;
+				(*p) |= (fb2[0] & (mask << shift)) ;
+
+			#ifdef  BIT_MSBLEFT
+				shift += bpp ;
+			#else
+				shift -= bpp ;
+			#endif
 			}
 
 			p ++ ;
 		}
 	}
 
-	memmove( fb , new_image , p - new_image) ;
+	memcpy( fb , new_image , p - new_image) ;
 }
 
 static void
@@ -1104,6 +1103,12 @@ open_display(void)
 	return  1 ;
 
 error:
+	if( _display.fp)
+	{
+		munmap( _display.fp , _display.smem_len) ;
+		_display.fp = NULL ;
+	}
+
 	close( _display.fb_fd) ;
 
 	return  0 ;
@@ -1824,6 +1829,7 @@ error:
 	if( _display.fp)
 	{
 		munmap( _display.fp , _display.smem_len) ;
+		_display.fp = NULL ;
 	}
 
 	close( _display.fb_fd) ;
@@ -2367,6 +2373,12 @@ open_display(void)
 	return  1 ;
 
 error:
+	if( _display.fp)
+	{
+		munmap( _display.fp , _display.smem_len) ;
+		_display.fp = NULL ;
+	}
+
 	close( _display.fb_fd) ;
 
 	return  0 ;
@@ -3002,8 +3014,7 @@ x_display_get_pixel(
 		}
 		else
 		{
-			pixel = ((*fb) >> FB_SHIFT(display->pixels_per_byte, x)) &
-			        FB_MASK(display->pixels_per_byte) ;
+			pixel = *fb ;
 		}
 
 		break ;
@@ -3035,7 +3046,7 @@ x_display_put_image(
 	}
 	else
 	{
-		memmove( x_display_get_fb( display , x , y) , image , size) ;
+		memcpy( x_display_get_fb( display , x , y) , image , size) ;
 	}
 
 	if( /* MOUSE_IS_INITED && */ _mouse.cursor.is_drawn &&

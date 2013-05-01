@@ -185,6 +185,7 @@ modify_pixmap(
 
 #define  BUILTIN_IMAGELIB
 #define  SIXEL_1BPP
+#include  <string.h>	/* memset/memmove */
 #include  "../../common/c_imagelib.c"
 
 static int
@@ -219,7 +220,8 @@ load_sixel_1bpp_from_file(
 	}
 
 	if( ( width != 0 && width != (*pixmap)->width) ||
-	    ( height != 0 && height != (*pixmap)->height))
+	    /* (*pixmap)->height is always multiple of 6. */
+	    ( height != 0 && (height + 5) / 6 != (*pixmap)->height / 6))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG

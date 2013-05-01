@@ -1,3 +1,15 @@
+2013-05-01  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_imagelib.c: If the difference between the specified height and
+	  the height of the loaded sixel picture is less than 6, they are
+	  regarded as the same ones.
+
+	* fb/x_font.c: "% 8" is replaced by "& 7".
+
+	* fb/x_display.c:
+	  - "% ppb" is replaced by "& (ppb - 1)".
+	  - Tune up FB_SHIFT.
+
 2013-04-30  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: set_wall_picture() isn't called in window_realized()

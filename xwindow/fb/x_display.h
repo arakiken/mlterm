@@ -18,12 +18,13 @@
 
 #if  defined(__FreeBSD__) || defined(__NetBSD__)
 #define CMAP_SIZE(cmap)			((cmap)->count)
-#else
+#define  BYTE_COLOR_TO_WORD(color)  (color)
+#define  WORD_COLOR_TO_BYTE(color)  (color)
+#else	/* Linux */
 #define CMAP_SIZE(cmap)			((cmap)->len)
-#endif
-
 #define  BYTE_COLOR_TO_WORD(color)  ((color) << 8 | (color))
 #define  WORD_COLOR_TO_BYTE(color)  ((color) & 0xff)
+#endif
 
 
 int  x_display_reset_cmap( Display *  display) ;

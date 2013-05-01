@@ -667,6 +667,7 @@ end:
 	return  pixels ;
 }
 
+#ifndef  SIXEL_1BPP
 #ifdef  GDK_PIXBUF_VERSION
 
 static void
@@ -860,6 +861,7 @@ create_cardinals_from_sixel(
 }
 
 #endif	/* GDK_PIXBUF_VERSION */
+#endif  /* SIXEL_1BPP */
 
 #undef  SIXEL_RGB
 #undef  PIXEL_SIZE
