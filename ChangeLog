@@ -1,3 +1,8 @@
+2013-05-03  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c: correct_height() is added to try to correct the height
+	  of sixel graphics.
+
 2013-05-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_char.c: ml_char_set() allows is_biwidth, is_comb, is_bold and
@@ -43,7 +48,7 @@
 
 2013-04-28  Araki Ken  <arakiken@users.sf.net>
 
-	* im_scim_mod_if.c: Fixed typo(?).
+	* im_scim_mod_if.c: Fixed typo.
 
 2013-04-28  Araki Ken  <arakiken@users.sf.net>
 

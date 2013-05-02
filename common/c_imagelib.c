@@ -10,15 +10,17 @@
 
 #ifdef  SIXEL_1BPP
 #define  SIXEL_RGB(r,g,b)  ((9 * (r) + 30 * (g) + (b)) * 51 >= 5120 * 20 ? 1 : 0)
-#define  PIXEL_SIZE  1
 #define  CARD_HEAD_SIZE  0
 typedef u_int8_t  pixel_t ;
 #else
 #define  SIXEL_RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
-#define  PIXEL_SIZE  4
 #define  CARD_HEAD_SIZE  8
 typedef u_int32_t  pixel_t ;
 #endif
+#define  PIXEL_SIZE  sizeof(pixel_t)
+
+
+/* --- static functions --- */
 
 static size_t
 get_params(
@@ -213,6 +215,37 @@ realloc_pixels(
 	*pixels = p ;
 
 	return  1 ;
+}
+
+/*
+ * Correct the height which is always multiple of 6, but this doesn't
+ * necessarily work.
+ */
+static void
+correct_height(
+	pixel_t *  pixels ,
+	int  width ,
+	int *  height	/* multiple of 6 */
+	)
+{
+	int  x ;
+	int  y ;
+
+	pixels += (width * (*height - 1)) ;
+
+	for( y = 0 ; y < 5 ; y++)
+	{
+		for( x = 0 ; x < width ; x++)
+		{
+			if( pixels[x])
+			{
+				return ;
+			}
+		}
+
+		(*height) -- ;
+		pixels -= width ;
+	}
 }
 
 static u_char *
@@ -659,6 +692,7 @@ end:
 		return  NULL ;
 	}
 
+	correct_height( (pixel_t*)pixels , cur_width , &cur_height) ;
 	realloc_pixels( &pixels , cur_width , cur_height , width , height) ;
 
 	*width_ret = cur_width ;
