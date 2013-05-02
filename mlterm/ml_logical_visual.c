@@ -388,7 +388,21 @@ comb_visual(
 	#if  1
 		if( ml_line_is_modified( line))
 		{
-			ml_line_set_modified_all( line) ;
+			/*
+			 * (Logical)    AbcdEfgHij  (bcdfg are combining characters)
+			 * => (Visual)  AEH
+			 * => (Logical) AbcEfgHij
+			 *                 ^^^^^^^ (^ means redrawn characters)
+			 * => (Visual)  AE
+			 *                 ^^^^^^^
+			 *              ^^^^^^^^^^ <= ml_line_set_modified( line , 0 , ...)
+			 * => (Logical) AkcEfgHij
+			 *               ^
+			 * => (Visual)  AEH
+			 *               ^
+			 *              ^^ <= ml_line_set_modified( line , 0 , ...)
+			 */
+			ml_line_set_modified( line , 0 , ml_line_get_end_of_modified( line)) ;
 		}
 	#endif
 	
@@ -870,6 +884,12 @@ ml_logvis_container_new(void)
 	return  (ml_logical_visual_t*) container ;
 }
 
+/*
+ * logvis_comb can coexist with another logvise, but must be added to
+ * logvis_container first of all.
+ * vert_logvis, bidi_logvis and iscii_logvis can't coexist with each other
+ * for now.
+ */
 int
 ml_logvis_container_add(
 	ml_logical_visual_t *  logvis ,

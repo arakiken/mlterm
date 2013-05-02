@@ -19,6 +19,7 @@ ver 3.2.0
   preedited character even if backspace key was pressed.
   Fix the wrong height of the preediting cursor of the input method plugin
   if the value of "inner_border" option isn't 2. (Thanks to @tsutsuii)
+  Fix "use_dynamic_comb" option which didn't work anymore.
 
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.

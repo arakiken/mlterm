@@ -3,6 +3,7 @@
  */
 
 #ifndef  ___X_DISPLAY_H__
+#define  ___X_DISPLAY_H__
 
 
 #include  "../x_display.h"

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "../x_font.h"
+#include  "x_font.h"
 
 #include  <stdio.h>
 #include  <fcntl.h>	/* open */
@@ -71,7 +71,7 @@ load_bitmaps(
 	int32_t  count ;
 
 	/* 0 -> byte , 1 -> short , 2 -> int */
-	xfont->glyph_width_bytes = ( glyph_pad_type == 2 ? 4 : ( glyph_pad_type == 1 ? 2 : 0)) ;
+	xfont->glyph_width_bytes = ( glyph_pad_type == 2 ? 4 : ( glyph_pad_type == 1 ? 2 : 1)) ;
 
 	xfont->num_of_glyphs = _TOINT32(p,is_be) ;
 	p += 4 ;
@@ -546,11 +546,15 @@ load_pcf(
 		{
 			for( j = 0 ; j < xfont->height ; j++)
 			{
+				u_char *  line ;
+
+				line = x_get_bitmap_line( xfont , bitmap , j) ;
+
 				for( i = 0 ; i < xfont->width ; i++)
 				{
 					kik_msg_printf( "%d" ,
-						x_get_bitmap_cell( xfont ,
-							bitmap , i , j) ? 1 : 0) ;
+						(line && x_get_bitmap_cell( xfont , line , i)) ?
+							1 : 0) ;
 				}
 				kik_msg_printf( "\n") ;
 			}
@@ -1140,30 +1144,44 @@ x_get_bitmap(
 	return  xfont->glyphs + glyph_offset ;
 }
 
-int
-x_get_bitmap_cell(
+u_char *
+x_get_bitmap_line(
 	XFontStruct *  xfont ,
 	u_char *  bitmap ,
-	int  x ,
-	int  y		/* y < height must be checked by the caller. */
+	int  y		/* y < xfont->height must be checked by the caller. */
 	)
 {
-	if( bitmap && x < xfont->width)
+	u_char *  line ;
+
+	if( bitmap &&
+	    /* xfont->glyph_width_bytes is 1, 2 or 4 bytes */
+	    memcmp( ( line = bitmap + y * xfont->glyph_width_bytes) ,
+			"\x0\x0\x0" ,	/* 4 bytes */
+			xfont->glyph_width_bytes) != 0)
 	{
-		if( xfont->glyphs_same_bitorder) /* XXX ? */
-		{
-			/* x & 7 == x % 8 */
-			return  bitmap[y * xfont->glyph_width_bytes + x / 8] & (1 << (x & 7)) ;
-		}
-		else
-		{
-			/* x & 7 == x % 8 */
-			return  bitmap[y * xfont->glyph_width_bytes + x / 8] &
-					(1 << (8 - (x & 7) - 1)) ;
-		}
+		return  line ;
 	}
 	else
 	{
-		return  0 ;
+		return  NULL ;
+	}
+}
+
+int
+x_get_bitmap_cell(
+	XFontStruct *  xfont ,
+	u_char *  bitmap_line ,	/* bitmap_line != NULL must be checked by the caller. */
+	int  x			/* x < xfont->width must be checked by the caller. */
+	)
+{
+	if( xfont->glyphs_same_bitorder) /* XXX ? */
+	{
+		/* x & 7 == x % 8 */
+		return  bitmap_line[x / 8] & (1 << (x & 7)) ;
+	}
+	else
+	{
+		/* x & 7 == x % 8 */
+		return  bitmap_line[x / 8] & (1 << (8 - (x & 7) - 1)) ;
 	}
 }

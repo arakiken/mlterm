@@ -9,6 +9,7 @@
 #include  <kiklib/kik_mem.h>
 
 #include  "x_display.h"
+#include  "x_font.h"
 
 
 #define  MAX_CLICK  3			/* max is triple click */
@@ -139,16 +140,19 @@ draw_string(
 		{
 			int  force_fg ;
 			int  x_off ;
+			u_char *  bitmap_line ;
 
 			force_fg = 0 ;
+
+			bitmap_line = x_get_bitmap_line( font->xfont , bitmaps[count] , y_off) ;
 
 			for( x_off = 0 ; x_off < font->width ; x_off++)
 			{
 				u_long  pixel ;
 
-				if( font->x_off <= x_off &&
-				    x_get_bitmap_cell( font->xfont , bitmaps[count] ,
-					x_off - font->x_off , y_off) )
+				if( bitmap_line && font->x_off <= x_off &&
+				    x_get_bitmap_cell( font->xfont , bitmap_line ,
+					x_off - font->x_off) )
 				{
 					pixel = fg_color->pixel ;
 

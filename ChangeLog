@@ -1,5 +1,17 @@
 2013-05-02  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_char.c: ml_char_set() allows is_biwidth, is_comb, is_bold and
+	  is_underlined to be > 1.
+	  (This fixes the bug of use_dynamic_comb option.)
+
+	* ml_logical_visual.c: Minor fixes.
+
+	* fb/x_font.c, fb/x_window.c: x_get_bitmap_line() is added.
+
+	* fb/x_font.h: Added.
+
+2013-05-02  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_display.[ch], fb/x_window.c:
 	  x_display_copy_line() -> x_display_copy_lines()
 
@@ -29,7 +41,7 @@
 	* c_imagelib.c: load_sixel_from_file() returns 1bpp bitmap data if
 	  SIXEL_1BPP is defined.
 
-2013-04-28  Araki Kenaaaaa  <arakiken@users.sf.net>
+2013-04-28  Araki Ken  <arakiken@users.sf.net>
 
 	* im_scim_mod_if.c: Fixed typo(?).
 

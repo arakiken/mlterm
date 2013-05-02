@@ -219,25 +219,9 @@ ml_char_set(
 	{
 		kik_warn_printf(KIK_DEBUG_TAG "charset(%x) is out of range\n", cs) ;
 	}
-	if( is_biwidth > 1 || is_biwidth < 0)
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "is_biwidth should be 0/1\n") ;
-	}
-	if( is_comb > 1 || is_comb < 0)
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "is_comb should be 0/1\n") ;
-	}
-	if( is_bold > 1 || is_bold < 0)
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "is_bold should be 0/1\n") ;
-	}
-	if( is_underlined > 1 || is_underlined < 0)
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "is_underlined should be 0/1\n") ;
-	}
 #endif
 
-	ch->u.ch.attr = COMPOUND_ATTR(cs,is_biwidth,is_bold,is_underlined,is_comb) ;
+	ch->u.ch.attr = COMPOUND_ATTR(cs,is_biwidth!=0,is_bold!=0,is_underlined!=0,is_comb!=0) ;
 	ch->u.ch.fg_color = intern_color(fg_color) ;
 	ch->u.ch.bg_color = intern_color(bg_color) ;
 
@@ -274,6 +258,13 @@ ml_char_combine(
 	if( ! is_comb)
 	{
 		return  0 ;
+	}
+#endif
+
+#ifdef  DEBUG
+	if( cs >= MAX_CHARSET)
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "charset(%x) is out of range\n", cs) ;
 	}
 #endif
 
@@ -330,7 +321,7 @@ ml_char_combine(
 			return  0 ;
 		}
 
-	#if !defined(__GLIBC__)
+	#ifndef  __GLIBC__
 		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
 		{
 			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."

@@ -125,12 +125,6 @@ int  x_convert_to_xft_ucs4( u_char *  ucs4_bytes , const u_char *  src_bytes , s
 size_t  x_convert_ucs4_to_utf16( u_char *  utf16 , u_char *  ucs) ;
 #endif
 
-#ifdef  USE_FRAMEBUFFER
-u_char *  x_get_bitmap( XFontStruct *  xfont , u_char *  ch , size_t  len) ;
-
-int  x_get_bitmap_cell( XFontStruct *  xfont , u_char *  bitmap , int  x , int  y) ;
-#endif
-
 #ifdef  DEBUG
 int  x_font_dump( x_font_t *  font) ;
 #endif
