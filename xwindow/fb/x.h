@@ -70,6 +70,8 @@ typedef struct
 	int  key_state ;
 	int  lock_state ;
 
+	unsigned char *  back_fb ;
+
 } Display ;
 
 #define  PIXEL_RED(pixel,rgbinfo) \

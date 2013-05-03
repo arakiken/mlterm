@@ -64,6 +64,11 @@
 #define  READ_CTRL_KEYMAP
 #endif
 
+/* Enable doube buffering on 1, 2 or 4 bpp */
+#if  1
+#define  ENABLE_DOUBLE_BUFFER
+#endif
+
 #if  defined(__FreeBSD__)
 #define  SYSMOUSE_PACKET_SIZE  8
 #elif  defined(__NetBSD__)
@@ -346,7 +351,12 @@ put_image_to_124bpp(
 
 	if( memchr( image , BG_MAGIC , size))
 	{
-		memcpy( new_image , fb ,
+		memcpy( new_image ,
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			display->back_fb + (fb - display->fb) ,
+		#else
+			fb ,
+		#endif
 			x_display_get_fb( display , x + size , y) - fb +
 			(MOD_PPB(x + size,ppb) > 0 ? 1 : 0)) ;
 
@@ -418,6 +428,9 @@ put_image_to_124bpp(
 			u_char *  fb2 ;
 
 			fb2 = x_display_get_fb( display , x + size , y) ;
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			fb2 = display->back_fb + (fb2 - display->fb) ;
+		#endif
 
 			for( ; surplus < ppb ; surplus++)
 			{
@@ -435,6 +448,9 @@ put_image_to_124bpp(
 	}
 
 	memcpy( fb , new_image , p - new_image) ;
+#ifdef  ENABLE_DOUBLE_BUFFER
+	memcpy( display->back_fb + (fb - display->fb) , new_image , p - new_image) ;
+#endif
 }
 
 static void
@@ -1012,6 +1028,14 @@ open_display(void)
 	{
 		_display.pixels_per_byte = 1 ;
 	}
+
+#ifdef  ENABLE_DOUBLE_BUFFER
+	if( _display.pixels_per_byte > 1 &&
+	    ! ( _display.back_fb = malloc( _display.smem_len)))
+	{
+		goto  error ;
+	}
+#endif
 
 	_display.line_length = vainfo.va_line_width ;
 	_display.xoffset = vstart.x ;
@@ -1702,6 +1726,14 @@ open_display(void)
 		}
 	}
 
+#ifdef  ENABLE_DOUBLE_BUFFER
+	if( _display.pixels_per_byte > 1 &&
+	    ! ( _display.back_fb = malloc( _display.smem_len)))
+	{
+		goto  error ;
+	}
+#endif
+
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Framebuffer: w %d h %d line %d size %d depth %d\n" ,
 		_disp.width , _disp.height , _display.line_length , _display.smem_len ,
@@ -2314,6 +2346,14 @@ open_display(void)
 	{
 		goto  error ;
 	}
+
+#ifdef  ENABLE_DOUBLE_BUFFER
+	if( _display.pixels_per_byte > 1 &&
+	    ! ( _display.back_fb = malloc( _display.smem_len)))
+	{
+		goto  error ;
+	}
+#endif
 
 	_display.line_length = finfo.line_length ;
 	_display.xoffset = vinfo.xoffset ;
@@ -3086,11 +3126,33 @@ x_display_copy_lines(
 		src = x_display_get_fb( display , src_x , src_y + height - 1) ;
 		dst = x_display_get_fb( display , dst_x , dst_y + height - 1) ;
 
-		for( count = 0 ; count < height ; count++)
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		if( display->back_fb)
 		{
-			memmove( dst , src , copy_len) ;
-			dst -= display->line_length ;
-			src -= display->line_length ;
+			u_char *  src_back ;
+			u_char *  dst_back ;
+
+			src_back = display->back_fb + (src - display->fb) ;
+			dst_back = display->back_fb + (dst - display->fb) ;
+
+			for( count = 0 ; count < height ; count++)
+			{
+				memmove( dst_back , src_back , copy_len) ;
+				memcpy( dst , src_back , copy_len) ;
+				dst -= display->line_length ;
+				dst_back -= display->line_length ;
+				src_back -= display->line_length ;
+			}
+		}
+		else
+	#endif
+		{
+			for( count = 0 ; count < height ; count++)
+			{
+				memmove( dst , src , copy_len) ;
+				dst -= display->line_length ;
+				src -= display->line_length ;
+			}
 		}
 	}
 	else
@@ -3098,11 +3160,33 @@ x_display_copy_lines(
 		src = x_display_get_fb( display , src_x , src_y) ;
 		dst = x_display_get_fb( display , dst_x , dst_y) ;
 
-		for( count = 0 ; count < height ; count++)
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		if( display->back_fb)
 		{
-			memmove( dst , src , copy_len) ;
-			dst += display->line_length ;
-			src += display->line_length ;
+			u_char *  src_back ;
+			u_char *  dst_back ;
+
+			src_back = display->back_fb + (src - display->fb) ;
+			dst_back = display->back_fb + (dst - display->fb) ;
+
+			for( count = 0 ; count < height ; count++)
+			{
+				memmove( dst_back , src_back , copy_len) ;
+				memcpy( dst , src_back , copy_len) ;
+				dst += display->line_length ;
+				dst_back += display->line_length ;
+				src_back += display->line_length ;
+			}
+		}
+		else
+	#endif
+		{
+			for( count = 0 ; count < height ; count++)
+			{
+				memmove( dst , src , copy_len) ;
+				dst += display->line_length ;
+				src += display->line_length ;
+			}
 		}
 	}
 }

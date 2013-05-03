@@ -1,5 +1,12 @@
 2013-05-03  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_window.c: copy_area() is optimized.
+
+	* fb/x.h, fb/x_display.c:
+	  Double buffering of 1,2 or 4 bpp framebuffer is added.
+
+2013-05-03  Araki Ken  <arakiken@users.sf.net>
+
 	* c_imagelib.c: correct_height() is added to try to correct the height
 	  of sixel graphics.
 

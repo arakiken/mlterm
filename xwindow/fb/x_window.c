@@ -225,6 +225,8 @@ copy_area(
 	int  bottom_margin ;
 	int  y_off ;
 	u_int  bpp ;
+	u_char *  image ;
+	size_t  src_width_size ;
 
 	if( ! win->is_mapped || dst_x >= (int)win->width || dst_y >= (int)win->height)
 	{
@@ -254,6 +256,9 @@ copy_area(
 	}
 
 	bpp = win->disp->display->bytes_per_pixel ;
+	src_width_size = src->width * bpp ;
+	image = src->image + src_width_size * (margin + src_y) +
+			bpp * ( margin + src_x) ;
 
 	if( mask)
 	{
@@ -289,14 +294,13 @@ copy_area(
 				x_display_put_image( win->disp->display ,
 					win->x + win->margin + dst_x + x_off - w ,
 					win->y + win->margin + dst_y + y_off ,
-					src->image + bpp *
-						((margin + src_y + y_off) * src->width +
-						 margin + src_x + x_off - w) ,
+					image + bpp * ( x_off - w) ,
 					w * bpp) ;
 				w = 0 ;
 			}
 
 			mask += src->width ;
+			image += src_width_size ;
 		}
 	}
 	else
@@ -310,9 +314,8 @@ copy_area(
 			x_display_put_image( win->disp->display ,
 				win->x + win->margin + dst_x ,
 				win->y + win->margin + dst_y + y_off ,
-				src->image + bpp * ((margin + src_y + y_off) * src->width +
-							margin + src_x) ,
-				size) ;
+				image , size) ;
+			image += src_width_size ;
 		}
 	}
 
