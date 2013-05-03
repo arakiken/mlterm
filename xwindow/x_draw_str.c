@@ -1108,10 +1108,24 @@ xcore_draw_str(
 							font & FONT_BOLD , is_underlined) ;
 
 			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
-			bg_xcolor = x_get_xcolor( color_man , bg_color) ;
 
-			if( ( x_window_has_wall_picture( window) &&
+		#ifdef  USE_FRAMEBUFFER
+			if( x_window_has_wall_picture( window) &&
+			           bg_color == ML_BG_COLOR)
+			{
+				bg_xcolor = NULL ;
+			}
+			else
+		#endif
+			{
+				bg_xcolor = x_get_xcolor( color_man , bg_color) ;
+			}
+
+			if(
+			#ifndef  USE_FRAMEBUFFER
+			    ( x_window_has_wall_picture( window) &&
 			           bg_color == ML_BG_COLOR) ||
+			#endif
 				bottom_margin + top_margin > 0 /* == line space XXX */ ||
 				draw_alone || state == 3)
 			{

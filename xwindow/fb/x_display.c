@@ -633,9 +633,20 @@ draw_mouse_cursor_line(
 
 	if( _display.pixels_per_byte > 1)
 	{
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		u_char *  back_fb ;
+
+		back_fb = _display.back_fb ;
+		_display.back_fb = NULL ;
+	#endif
+
 		put_image_to_124bpp( &_display ,
 			_mouse.cursor.x , _mouse.cursor.y + y ,
 			image , _mouse.cursor.width) ;
+
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		_display.back_fb = back_fb ;
+	#endif
 	}
 	else
 	{

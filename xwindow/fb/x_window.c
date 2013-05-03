@@ -64,7 +64,8 @@ draw_string(
 	int  y ,
 	u_char *  str ,	/* 'len * ch_len' bytes */
 	u_int  len ,
-	u_int  ch_len
+	u_int  ch_len ,
+	int  wall_picture_bg
 	)
 {
 	u_char *  src ;
@@ -76,6 +77,7 @@ draw_string(
 	int  orig_x ;
 	int  y_off ;
 	u_int  bpp ;
+	u_char *  image ;
 	u_int  count ;
 
 	if( ! win->is_mapped)
@@ -134,6 +136,17 @@ draw_string(
 	orig_x = (x += (win->margin + win->x)) ;
 	y += (win->margin + win->y) ;
 
+	if( wall_picture_bg)
+	{
+		image = win->wall_picture->image +
+			((y + y_off - font_ascent - win->y) *
+			 win->wall_picture->width - win->x) * bpp ;
+	}
+	else
+	{
+		image = NULL ;
+	}
+
 	for( ; y_off < font_height ; y_off++)
 	{
 		for( count = 0 ; count < len ; count++)
@@ -168,6 +181,22 @@ draw_string(
 					{
 						pixel = bg_color->pixel ;
 					}
+					else if( image)
+					{
+						switch( bpp)
+						{
+						case  1:
+							pixel = image[x + x_off] ;
+							break ;
+
+						case  2:
+							pixel = ((u_int16_t*)image)[x + x_off] ;
+							break ;
+
+						default:
+							pixel = ((u_int32_t*)image)[x + x_off] ;
+						}
+					}
 					else
 					{
 						pixel = x_display_get_pixel(
@@ -201,6 +230,11 @@ draw_string(
 		x_display_put_image( win->disp->display ,
 			(x = orig_x) , y + y_off - font_ascent , src , p - src) ;
 		p = src ;
+
+		if( image)
+		{
+			image += (win->wall_picture->width * bpp) ;
+		}
 	}
 
 	return  1 ;
@@ -1547,7 +1581,7 @@ x_window_draw_decsp_image_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
-	x_color_t *  bg_color ,
+	x_color_t *  bg_color ,	/* If NULL is specified, use wall_picture for bg */
 	int  x ,
 	int  y ,
 	u_char *  str ,
@@ -1569,7 +1603,7 @@ x_window_draw_string(
 	u_int  len
 	)
 {
-	return  draw_string( win , font , fg_color , NULL , x , y , str , len , 1) ;
+	return  draw_string( win , font , fg_color , NULL , x , y , str , len , 1 , 0) ;
 }
 
 int
@@ -1583,7 +1617,7 @@ x_window_draw_string16(
 	u_int  len
 	)
 {
-	return  draw_string( win , font , fg_color , NULL , x , y , str , len , 2) ;
+	return  draw_string( win , font , fg_color , NULL , x , y , str , len , 2 , 0) ;
 }
 
 int
@@ -1591,14 +1625,15 @@ x_window_draw_image_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
-	x_color_t *  bg_color ,
+	x_color_t *  bg_color ,	/* If NULL is specified, use wall_picture for bg */
 	int  x ,
 	int  y ,
 	u_char *  str ,
 	u_int  len
 	)
 {
-	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 1) ;
+	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 1 ,
+			bg_color == NULL) ;
 }
 
 int
@@ -1606,14 +1641,15 @@ x_window_draw_image_string16(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
-	x_color_t *  bg_color ,
+	x_color_t *  bg_color ,	/* If NULL is specified, use wall_picture for bg */
 	int  x ,
 	int  y ,
 	XChar2b *  str ,
 	u_int  len
 	)
 {
-	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 2) ;
+	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 2 ,
+			bg_color == NULL) ;
 }
 
 int

@@ -1,3 +1,11 @@
+2013-05-04  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: The bug of drawing the mouse cursor if ENABLE_DOUBLE_BUFFER
+	  is defined is fixed.
+
+	* fb/x_window.c, x_draw_str.c: wall_picture_bg argument is added to
+	  draw_str() in x_window.c to optimize drawing string with wall picture.
+
 2013-05-03  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_window.c: copy_area() is optimized.
