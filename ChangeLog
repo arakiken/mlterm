@@ -1,5 +1,9 @@
 2013-05-04  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: The previous fix which caused segfault is fixed again.
+
+2013-05-04  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_display.c: The bug of drawing the mouse cursor if ENABLE_DOUBLE_BUFFER
 	  is defined is fixed.
 

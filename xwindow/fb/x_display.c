@@ -321,7 +321,8 @@ put_image_to_124bpp(
 	int  x ,
 	int  y ,
 	u_char *  image ,
-	size_t  size
+	size_t  size ,
+	int  write_back_fb
 	)
 {
 	/*
@@ -449,7 +450,10 @@ put_image_to_124bpp(
 
 	memcpy( fb , new_image , p - new_image) ;
 #ifdef  ENABLE_DOUBLE_BUFFER
-	memcpy( display->back_fb + (fb - display->fb) , new_image , p - new_image) ;
+	if( write_back_fb)
+	{
+		memcpy( display->back_fb + (fb - display->fb) , new_image , p - new_image) ;
+	}
 #endif
 }
 
@@ -633,20 +637,9 @@ draw_mouse_cursor_line(
 
 	if( _display.pixels_per_byte > 1)
 	{
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		u_char *  back_fb ;
-
-		back_fb = _display.back_fb ;
-		_display.back_fb = NULL ;
-	#endif
-
 		put_image_to_124bpp( &_display ,
 			_mouse.cursor.x , _mouse.cursor.y + y ,
-			image , _mouse.cursor.width) ;
-
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		_display.back_fb = back_fb ;
-	#endif
+			image , _mouse.cursor.width , 0) ;
 	}
 	else
 	{
@@ -3090,7 +3083,7 @@ x_display_put_image(
 {
 	if( display->pixels_per_byte > 1)
 	{
-		put_image_to_124bpp( display , x , y , image , size) ;
+		put_image_to_124bpp( display , x , y , image , size , 1) ;
 	}
 	else
 	{
