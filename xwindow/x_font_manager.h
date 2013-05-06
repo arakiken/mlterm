@@ -35,7 +35,7 @@ int  x_font_manager_delete( x_font_manager_t *  font_man) ;
 
 x_font_t *  x_get_font( x_font_manager_t *  font_man , ml_font_t  fontattr) ;
 
-x_font_t *  x_get_usascii_font( x_font_manager_t *  font_man) ;
+#define  x_get_usascii_font( font_man)  ((font_man)->font_cache->usascii_font)
 
 int  x_font_manager_usascii_font_cs_changed( x_font_manager_t *  font_man ,
 	mkf_charset_t  usascii_font_cs) ;

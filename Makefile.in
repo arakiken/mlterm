@@ -1,22 +1,24 @@
 MAKE_DIRS=@MAKE_DIRS@
 
 all .DEFAULT:
-	if [ -f kiklib/Makefile ]; then cd kiklib ; $(MAKE) $@ ; fi
-	if [ -f mkf/Makefile ]; then cd mkf ; $(MAKE) $@ ; fi
+	# "cd kiklib" and "cd mkf" must be enclosed by () because it may not return
+	# to the $(top_builddir) at the next line.
+	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) $@) ; fi
+	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) $@) ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
 install:
-	if [ -f kiklib/Makefile ]; then cd kiklib ; $(MAKE) install-la ; fi
-	if [ -f mkf/Makefile ]; then cd mkf ; $(MAKE) install-la ; fi
+	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) install-la) ; fi
+	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) install-la) ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
 install-fb:
 	for dir in main scrollbar/* inputmethod/* ; do (cd $${dir} ; $(MAKE) install) || exit $? ; done
 
 distclean:
-	if [ -f kiklib/Makefile ]; then cd kiklib ; $(MAKE) $@ ; fi
-	if [ -f mkf/Makefile ]; then cd mkf ; $(MAKE) $@ ; fi
-	if [ -f gtk/Makefile ]; then cd gtk ; $(MAKE) $@ ; fi
+	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) $@) ; fi
+	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) $@) ; fi
+	if [ -f gtk/Makefile ]; then (cd gtk ; $(MAKE) $@) ; fi
 	for dir in $(MAKE_DIRS) java ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 	rm -f config.log config.cache config.status libtool Makefile \
 		common/c_config.h common/stamp-h1

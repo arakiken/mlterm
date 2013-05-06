@@ -218,14 +218,6 @@ x_get_font(
 	}
 }
 
-x_font_t *
-x_get_usascii_font(
-	x_font_manager_t *  font_man
-	)
-{
-	return  font_man->font_cache->usascii_font ;
-}
-
 int
 x_font_manager_usascii_font_cs_changed(
 	x_font_manager_t *  font_man ,

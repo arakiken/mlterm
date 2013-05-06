@@ -59,7 +59,9 @@ debug:
 
 mlconfig: $(OBJ)
 	$(LIBTOOL_LINK) $(OBJ) $(CFLAGS) -o mlconfig $(LIBS)
-	cd po ; $(MAKE) update-gmo
+	# "cd po" must be enclosed by () because it may not return
+	# to the $(top_builddir)/tool/mlconfig at the next line.
+	(cd po ; $(MAKE) update-gmo)
 	# cd po ; $(MAKE) update-po
 
 .c.o:

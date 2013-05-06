@@ -1,7 +1,9 @@
 BUILD_TOPDIR = ..
 
 all .DEFAULT:
-	cd lib ; $(MAKE) $@
+	# "cd lib" must be enclosed by () because it may not return
+	# to the $(top_builddir) at the next line.
+	(cd lib ; $(MAKE) $@)
 	cd libtbl ; $(MAKE) $@
 
 distclean : clean

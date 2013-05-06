@@ -1,5 +1,16 @@
 2013-05-06  Araki Ken  <arakiken@users.sf.net>
 
+	* mkf/Makefile.in, kiklib/Makefile.in: The dependency of collect-headers
+	  target is clarified.
+
+	* Makefile.in, mkf/Makefile.in, tool/mlconfig/Makefile.in:
+	  "cd xxx" is enclosed by ().
+
+	* x_font_manager.[ch]: x_get_usascii_font() is changed from function
+	  to macro.
+
+2013-05-06  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/ja/README.fb, doc/en/README.fb: Updated.
 
 	* x_screen.c:

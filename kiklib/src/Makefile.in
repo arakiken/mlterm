@@ -72,9 +72,10 @@ $(LIBDIR) :
 $(INCDIR_TMP)/kiklib :
 	mkdir -p $(INCDIR_TMP)/kiklib
 
-collect-headers: $(INCDIR_TMP)/kiklib
+collect-headers: $(INCDIR_TMP)/kiklib $(INC) kik_config.h
 	for file in $(INC) ; do cp $(top_srcdir)/src/$${file} $(INCDIR_TMP)/kiklib ; done
 	cp kik_config.h $(INCDIR_TMP)/kiklib
+	touch collect-headers
 
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
@@ -92,4 +93,4 @@ $(LIBNAME).a : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ)
 
 clean :
-	rm -rf $(INCDIR_TMP) .libs $(OBJ) $(OBJ:.o=.lo) *.la *.a
+	rm -rf $(INCDIR_TMP) .libs $(OBJ) $(OBJ:.o=.lo) *.la *.a collect-headers
