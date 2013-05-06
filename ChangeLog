@@ -1,5 +1,16 @@
 2013-05-06  Araki Ken  <arakiken@users.sf.net>
 
+	* c_imagelib.c: Workaround for the pixel aspect ratio is added.
+
+	* fb/x_font.c:
+	  - The returned value of system("gunzip fontfile") is ignored
+	    because it may return -1 with errno=ECHILD even if it succeeds.
+	  - If a unicode font of biwidth characters is loaded, the width
+	    of U+3000 is used.
+	    (Hack for efont-unicode (b*.pcf.gz))
+
+2013-05-06  Araki Ken  <arakiken@users.sf.net>
+
 	* mkf/Makefile.in, kiklib/Makefile.in: The dependency of collect-headers
 	  target is clarified.
 

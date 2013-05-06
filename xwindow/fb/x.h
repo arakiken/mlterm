@@ -185,6 +185,7 @@ typedef struct
 	int16_t *  glyph_indeces ;
 
 	unsigned char  width ;
+	unsigned char  width_bi ;
 	unsigned char  height ;
 	unsigned char  ascent ;
 

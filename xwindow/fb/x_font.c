@@ -253,26 +253,21 @@ load_encodings(
 	kik_debug_printf( KIK_DEBUG_TAG "GLYPH INDEX %d %d %d %d\n" ,
 		xfont->min_char_or_byte2 ,
 		xfont->max_char_or_byte2 ,
-		xfont->max_byte1 ,
-		xfont->min_byte1) ;
+		xfont->min_byte1 ,
+		xfont->max_byte1) ;
 
 	{
-		FILE *  fp ;
 		int  count ;
 		int16_t *  p ;
 
 		p = xfont->glyph_indeces ;
 
-		fp = fopen( "log2.txt" , "w") ;
-
 		for( count = xfont->min_char_or_byte2 ;
 		     count <= xfont->max_char_or_byte2 ; count++)
 		{
-			fprintf( fp , "%d %x\n" , count , (int)*p) ;
+			kik_msg_printf( "%d %x\n" , count , (int)*p) ;
 			p ++ ;
 		}
-
-		fclose( fp) ;
 	}
 #endif
 
@@ -282,6 +277,7 @@ load_encodings(
 static int
 get_metrics(
 	u_int8_t *  width ,
+	u_int8_t *  width_bi ,
 	u_int8_t *  height ,
 	u_int8_t *  ascent ,
 	u_char *  p ,
@@ -296,16 +292,27 @@ get_metrics(
 
 	if( is_compressed)
 	{
-		num_of_metrics = *((u_int16_t*)p) ;
+		num_of_metrics = _TOINT16(p,is_be) ;
 		p += 2 ;
 
 		*width = p[2] - 0x80 ;
 		*ascent = p[3] - 0x80 ;
 		*height = *ascent + (p[4] - 0x80) ;
 
+		if( num_of_metrics > 0x3000)
+		{
+			/* U+3000: Unicode ideographic space (Full width) */
+			p += (5 * 0x3000) ;
+			*width_bi = p[2] - 0x80 ;
+		}
+		else
+		{
+			*width_bi = 0 ;
+		}
+
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " COMPRESSED METRICS %d %d %d %d\n" ,
-			num_of_metrics , *width , *height , *ascent) ;
+		kik_debug_printf( KIK_DEBUG_TAG " COMPRESSED METRICS %d %d %d %d %d\n" ,
+			num_of_metrics , *width , *width_bi , *height , *ascent) ;
 	#endif
 	}
 	else
@@ -313,6 +320,7 @@ get_metrics(
 		num_of_metrics = _TOINT32(p,is_be) ;
 		p += 4 ;
 
+		/* skip {left|right}_sided_bearing */
 		p += 4 ;
 
 		*width = _TOINT16(p,is_be) ;
@@ -323,9 +331,27 @@ get_metrics(
 
 		*height = *ascent + _TOINT16(p,is_be) ;
 
+		if( num_of_metrics > 0x3000)
+		{
+			/* skip character_descent and character attributes */
+			p += 4 ;
+
+			/* U+3000: Unicode ideographic space (Full width) */
+			p += (12 * 0x2999) ;
+
+			/* skip {left|right}_sided_bearing */
+			p += 4 ;
+
+			*width_bi = _TOINT16(p,is_be) ;
+		}
+		else
+		{
+			*width_bi = 0 ;
+		}
+
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " NOT COMPRESSED METRICS %d %d %d %d\n" ,
-			num_of_metrics , *width , *height , *ascent) ;
+		kik_debug_printf( KIK_DEBUG_TAG " NOT COMPRESSED METRICS %d %d %d %d %d\n" ,
+			num_of_metrics , *width , *width_bi , *height , *ascent) ;
 	#endif
 	}
 
@@ -342,6 +368,7 @@ gunzip(
 	char *  new_file_path ;
 	struct stat  new_st ;
 	char *  cmd ;
+	struct utimbuf  ut ;
 
 	if( stat( file_path , st) == -1)
 	{
@@ -392,28 +419,36 @@ gunzip(
 
 	sprintf( cmd , "gunzip -c %s > %s" , file_path , new_file_path) ;
 
-	if( system( cmd) == 0)
+	/*
+	 * The returned value is not checked because -1 with errno=ECHILD may be
+	 * returned even if cmd is executed successfully.
+	 */
+	system( cmd) ;
+
+	/*
+	 * The atime and mtime of the uncompressed pcf font is the same
+	 * as those of the original gzipped font.
+	 */
+	ut.actime = st->st_atime ;
+	ut.modtime = st->st_mtime ;
+	if( utime( new_file_path , &ut) == -1)
 	{
-		struct utimbuf  ut ;
-
-		/*
-		 * The atime and mtime of the uncompressed pcf font is the same
-		 * as those of the original gzipped font.
-		 */
-		ut.actime = st->st_atime ;
-		ut.modtime = st->st_mtime ;
-		utime( new_file_path , &ut) ;
-
-		stat( new_file_path , st) ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " USE NEWLY UNCOMPRESSED FONT.\n") ;
-	#endif
-
-		return  new_file_path ;
+		goto  error ;
 	}
 
+	stat( new_file_path , st) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " USE NEWLY UNCOMPRESSED FONT\n") ;
+#endif
+
+	return  new_file_path ;
+
 error:
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Failed to gunzip %s.\n" , file_path) ;
+#endif
+
 	free( new_file_path) ;
 
 	return  NULL ;
@@ -519,8 +554,9 @@ load_pcf(
 		}
 		else if( type == PCF_METRICS)
 		{
-			if( ! get_metrics( &xfont->width , &xfont->height , &xfont->ascent ,
-					pcf + offset + 4 , size , format & 4 , format & 0x100))
+			if( ! get_metrics( &xfont->width , &xfont->width_bi , &xfont->height ,
+					&xfont->ascent , pcf + offset + 4 , size ,
+					format & 4 , format & 0x100))
 			{
 				goto  end ;
 			}
@@ -743,7 +779,16 @@ xfont_loaded:
 		font->is_double_drawing = 0 ;
 	}
 
-	font->width = font->xfont->width ;
+	if( ( id & FONT_BIWIDTH) && FONT_CS(id) == ISO10646_UCS4_1 &&
+	    font->xfont->width_bi > 0)
+	{
+		font->width = font->xfont->width_bi ;
+	}
+	else
+	{
+		font->width = font->xfont->width ;
+	}
+
 	font->height = font->xfont->height ;
 	font->ascent = font->xfont->ascent ;
 

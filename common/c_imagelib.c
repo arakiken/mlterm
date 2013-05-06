@@ -366,6 +366,7 @@ restart:
 
 	if( *(++p) != ';')
 	{
+	#if  0
 		/* P1 */
 		switch( *p)
 		{
@@ -373,22 +374,26 @@ restart:
 		case '1':
 		case '5':
 		case '6':
-			asp_x = 2 ;
+			asp_x = 1 ;
+			asp_y = 2 ;
 			break;
 
 		case '2':
-			asp_x = 5 ;
+			asp_x = 1 ;
+			asp_y = 5 ;
 			break;
 
 		case '3':
 		case '4':
-			asp_x = 3 ;
+			asp_x = 1 ;
+			asp_y = 3 ;
 			break;
 
 		case '7':
 		case '8':
 		case '9':
 			asp_x = 1 ;
+			asp_y = 1 ;
 			break;
 
 		default:
@@ -397,6 +402,9 @@ restart:
 		#endif
 			goto  end ;
 		}
+	#else
+		asp_x = 1 ;	/* XXX */
+	#endif
 
 		if( *(++p) != ';' || *p == '\0')
 		{
@@ -409,7 +417,10 @@ restart:
 	else
 	{
 		/* P1 is omitted. */
-		asp_x = 2 ;
+		asp_x = 1 ;	/* V:H=2:1 */
+	#if  0
+		asp_y = 2 ;
+	#endif
 	}
 
 #if  0
@@ -473,7 +484,11 @@ restart:
 				break ;
 			}
 
-			n = get_params( params , 4 , &p) ;
+			if( ( n = get_params( params , 4 , &p)) == 1)
+			{
+				params[1] = 1 ;
+				n = 2 ;
+			}
 
 			switch(n)
 			{
@@ -482,10 +497,18 @@ restart:
 			case 3:
 				width = params[2] ;
 			case 2:
-				asp_x = params[0] / params[1] ;	/* XXX */
-				break ;
-			case 1:
-				asp_x = params[0] ;
+				/* V:H=params[0]:params[1] */
+			#if  0
+				asp_x = params[1] ;
+				asp_y = params[0] ;
+			#else
+				rep /= asp_x ;
+				if( ( asp_x = params[1] / params[0]) == 0)
+				{
+					asp_x = 1 ;	/* XXX */
+				}
+				rep *= asp_x ;
+			#endif
 			}
 
 			if( asp_x <= 0)
