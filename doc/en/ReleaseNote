@@ -2,6 +2,7 @@ ver 3.2.0
 * Support framebuffer on NetBSD. (Experimental)
   (Thanks to @tsutsuii san)
 * Support sixel graphics and wall pictures in 8 bpp framebuffer.
+* Support 1 bpp framebuffer.
 * Add "use_urgent_bell" option which is equivalent to "bellIsUrgent" option of
   xterm and support CSI ? 1042.
 * "only_use_unicode_font" and "not_use_unicode_font" options have an effect

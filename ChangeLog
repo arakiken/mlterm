@@ -1,3 +1,11 @@
+2013-05-06  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.fb, doc/en/README.fb: Updated.
+
+	* x_screen.c:
+	  - Benchmark which is invoked by XK_F12 is added to shortcut_match().
+	  - Segfault in preediting at the lower left corner of the screen is fixed.
+
 2013-05-04  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: The previous fix which caused segfault is fixed again.

@@ -1993,6 +1993,86 @@ shortcut_match(
 		return  1 ;
 	}
 #endif
+#ifdef  DEBUG
+	else if( ksym == XK_F12)
+	{
+		/* Performance benchmark */
+
+		struct timeval  tv ;
+		struct timeval  tv2 ;
+		ml_char_t *  str ;
+		int  count ;
+		int  y ;
+		u_int  height ;
+		u_int  ascent ;
+		u_int  top_margin ;
+		u_int  bottom_margin ;
+		char  ch ;
+
+		str = ml_str_alloca( 0x5e) ;
+		ch = ' ' ;
+		for( count = 0 ; count < 0x5e ; count++)
+		{
+			ml_char_set( str + count , &ch , 1 , US_ASCII , 0 , 0 ,
+				ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+			ch ++ ;
+		}
+
+		height = x_line_height( screen) ;
+		ascent = x_line_ascent( screen) ;
+		top_margin = x_line_top_margin( screen) ;
+		bottom_margin = x_line_bottom_margin( screen) ;
+
+		gettimeofday( &tv , NULL) ;
+
+		for( count = 0 ; count < 5 ; count++)
+		{
+			for( y = 0 ; y < screen->window.height - height ; y += height)
+			{
+				x_draw_str( &screen->window , screen->font_man ,
+					screen->color_man , str ,
+					0x5e , 0 , y , height , ascent ,
+					top_margin , bottom_margin , 0) ;
+			}
+
+			x_window_clear_all( &screen->window) ;
+		}
+
+		gettimeofday( &tv2 , NULL) ;
+
+		kik_debug_printf( "Bench(draw) %d usec\n" ,
+			((int)(tv2.tv_sec - tv.tv_sec)) * 1000000 +
+			 (int)(tv2.tv_usec - tv.tv_usec)) ;
+
+		count = 0 ;
+		for( y = 0 ; y < screen->window.height - height ; y += height)
+		{
+			x_draw_str( &screen->window , screen->font_man ,
+				screen->color_man , str ,
+				0x5e , 0 , y , height , ascent , top_margin , bottom_margin , 0) ;
+
+			count ++ ;
+		}
+
+		gettimeofday( &tv , NULL) ;
+
+		while( count > 0)
+		{
+			x_window_scroll_upward( &screen->window , height) ;
+			count -- ;
+			x_window_clear( &screen->window , 0 , height * count ,
+				screen->window.width , height) ;
+		}
+
+		gettimeofday( &tv2 , NULL) ;
+
+		kik_debug_printf( "Bench(scroll) %d usec\n" ,
+			((int)(tv2.tv_sec - tv.tv_sec)) * 1000000 +
+			 (int)(tv2.tv_usec - tv.tv_usec)) ;
+
+		return  1 ;
+	}
+#endif
 
 	if( ml_term_is_backscrolling( screen->term))
 	{
@@ -6640,13 +6720,21 @@ draw_preedit_str(
 	{
 		if ( ! ml_term_get_vertical_mode( screen->term))
 		{
-			preedit_cursor_x = x + total_width;
+			if( ( preedit_cursor_x = x + total_width) == screen->window.width)
+			{
+				preedit_cursor_x -- ;
+			}
+
 			preedit_cursor_y = y ;
 		}
 		else
 		{
 			preedit_cursor_x = x ;
-			preedit_cursor_y = y ;
+
+			if( ( preedit_cursor_y = y) == screen->window.height)
+			{
+				preedit_cursor_y -- ;
+			}
 		}
 	}
 

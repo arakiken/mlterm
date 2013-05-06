@@ -94,8 +94,7 @@ Framebuffer 対応に関するメモ
      なお、iBus はFreeBSD 上ではテストしていません。)
 
 * 使えない機能
-  o 1,2,4 bpp
-  o 8 bpp での背景画像及び Sixel graphcis
+  o 2,4 bpp
   o プロポーショナルフォント
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o Daemon mode
