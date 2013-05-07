@@ -325,10 +325,6 @@ put_image_to_124bpp(
 	int  write_back_fb
 	)
 {
-	/*
-	 * 8 or less bpp.
-	 */
-
 	u_int  ppb ;
 	u_int  bpp ;
 	u_char *  new_image ;
@@ -397,6 +393,10 @@ put_image_to_124bpp(
 
 		if( ( surplus = MOD_PPB(x,ppb)) > 0)
 		{
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			fb = display->back_fb + (fb - display->fb) ;
+		#endif
+
 			for( ; surplus > 0 ; surplus --)
 			{
 				(*p) |= (fb[0] & (mask << shift)) ;
@@ -407,6 +407,10 @@ put_image_to_124bpp(
 				shift -= bpp ;
 			#endif
 			}
+
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			fb = display->fb + (fb - display->back_fb) ;
+		#endif
 		}
 
 		for( count = 0 ; count < size ; count++)
@@ -568,7 +572,7 @@ draw_mouse_cursor_line(
 {
 	u_char *  fb ;
 	x_window_t *  win ;
-	char  cell ;
+	char *  shape ;
 	u_char  image[CURSOR_WIDTH * sizeof(u_int32_t)] ;
 	int  x ;
 
@@ -576,11 +580,12 @@ draw_mouse_cursor_line(
 			_mouse.cursor.y + y) ;
 
 	win = get_window( _mouse.x , _mouse.y) ;
+	shape = cursor_shape +
+		((_mouse.cursor.y_off + y) * CURSOR_WIDTH + _mouse.cursor.x_off) ;
 
 	for( x = 0 ; x < _mouse.cursor.width ; x++)
 	{
-		if( ( cell = cursor_shape[(_mouse.cursor.y_off + y) * CURSOR_WIDTH +
-					_mouse.cursor.x_off + x]) == '*')
+		if( shape[x] == '*')
 		{
 			switch( _display.bytes_per_pixel)
 			{
@@ -592,12 +597,13 @@ draw_mouse_cursor_line(
 				((u_int16_t*)image)[x] = win->fg_color.pixel ;
 				break ;
 
-			case  4:
+			/* case  4: */
+			default:
 				((u_int32_t*)image)[x] = win->fg_color.pixel ;
 				break ;
 			}
 		}
-		else if( cell == '#')
+		else if( shape[x] == '#')
 		{
 			switch( _display.bytes_per_pixel)
 			{
@@ -609,7 +615,8 @@ draw_mouse_cursor_line(
 				((u_int16_t*)image)[x] = win->bg_color.pixel ;
 				break ;
 
-			case  4:
+			/* case  4: */
+			default:
 				((u_int32_t*)image)[x] = win->bg_color.pixel ;
 				break ;
 			}
@@ -628,7 +635,8 @@ draw_mouse_cursor_line(
 				((u_int16_t*)image)[x] = TOINT16(fb+2*x) ;
 				break ;
 
-			case  4:
+			/* case  4: */
+			default:
 				((u_int32_t*)image)[x] = TOINT32(fb+4*x) ;
 				break ;
 			}

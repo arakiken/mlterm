@@ -176,6 +176,7 @@ draw_string(
 					if( force_fg)
 					{
 						pixel = fg_color->pixel ;
+						force_fg = 0 ;
 					}
 					else if( bg_color)
 					{
@@ -204,8 +205,6 @@ draw_string(
 								x + x_off ,
 								y + y_off - font_ascent) ;
 					}
-
-					force_fg = 0 ;
 				}
 
 				switch( bpp)
@@ -1012,9 +1011,7 @@ x_window_fill_with(
 	)
 {
 	u_char *  src ;
-	u_char *  p ;
 	size_t  size ;
-	int  x_off ;
 	int  y_off ;
 	u_int  bpp ;
 
@@ -1025,7 +1022,7 @@ x_window_fill_with(
 
 	bpp = win->disp->display->bytes_per_pixel ;
 
-	if( ! ( p = src = alloca( ( size = width * bpp))))
+	if( ! ( src = alloca( ( size = width * bpp))))
 	{
 		return  0 ;
 	}
@@ -1035,27 +1032,33 @@ x_window_fill_with(
 
 	for( y_off = 0 ; y_off < height ; y_off++)
 	{
-		for( x_off = 0 ; x_off < width ; x_off++)
+		if( bpp == 1)
 		{
-			switch( bpp)
-			{
-			case 1:
-				*p = color->pixel ;
-				break ;
-			case 2:
-				*((u_int16_t*)p) = color->pixel ;
-				break ;
-			/* case 4: */
-			default:
-				*((u_int32_t*)p) = color->pixel ;
-			}
+			memset( src , color->pixel , width) ;
+		}
+		else
+		{
+			u_char *  p ;
+			int  x_off ;
 
-			p += bpp ;
+			p = src ;
+
+			for( x_off = 0 ; x_off < width ; x_off++)
+			{
+				if( bpp == 2)
+				{
+					*((u_int16_t*)p) = color->pixel ;
+				}
+				else /* if( bpp == 4) */
+				{
+					*((u_int32_t*)p) = color->pixel ;
+				}
+
+				p += bpp ;
+			}
 		}
 
-		x_display_put_image( win->disp->display , x , y + y_off , src , p - src) ;
-
-		p = src ;
+		x_display_put_image( win->disp->display , x , y + y_off , src , width * bpp) ;
 	}
 
 	return  1 ;

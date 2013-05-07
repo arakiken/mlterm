@@ -20646,11 +20646,16 @@ fi
 
 
 
+
 # Check whether --enable-dl-ctl was given.
 if test "${enable_dl_ctl+set}" = set; then :
   enableval=$enable_dl_ctl; dl_ctl=$enable_dl_ctl
 else
   dl_ctl="yes"
+fi
+
+if test "$enable_shared" = "no" ; then
+	dl_ctl="no"
 fi
 
 if test "$dl_ctl" = "yes" ; then
@@ -20813,11 +20818,16 @@ if test "${with_pthread+set}" = set; then :
 fi
 
 
+
 # Check whether --enable-dl-type was given.
 if test "${enable_dl_type+set}" = set; then :
   enableval=$enable_dl_type; dl_type=$enable_dl_type
 else
   dl_type="yes"
+fi
+
+if test "$enable_shared" = "no" ; then
+	dl_type="no"
 fi
 
 if test "$dl_type" = "yes" ; then
@@ -21278,10 +21288,18 @@ fi
 				;;
 			esac
 		fi
+
 		ML_PTY_OBJ="ml_pty_ssh.o ${ML_PTY_OBJ}"
-		# dlopen libptyssh
-		MAKE_DIRS="mlterm/libptyssh ${MAKE_DIRS}"
-		OUTPUT_FILES="mlterm/libptyssh/Makefile ${OUTPUT_FILES}"
+
+		if test "$enable_shared" = "no" ; then
+			SSH2_CFLAGS="$SSH2_CFLAGS -DNO_DYNAMIC_LOAD_SSH"
+			SSH2_LIBS_FOR_PROG="$SSH2_LIBS"
+			SSH2_LIBS=
+		else
+			# dlopen libptyssh
+			MAKE_DIRS="mlterm/libptyssh ${MAKE_DIRS}"
+			OUTPUT_FILES="mlterm/libptyssh/Makefile ${OUTPUT_FILES}"
+		fi
 	fi
 fi
 
@@ -21689,6 +21707,10 @@ if test "${enable_kbd+set}" = set; then :
   enableval=$enable_kbd; kbd=$enable_kbd
 fi
 
+if test "$enable_shared" = "no" ; then
+	kbd="no"
+fi
+
 if test "$kbd" != "no" ; then
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
@@ -21704,6 +21726,10 @@ fi
 # Check whether --enable-uim was given.
 if test "${enable_uim+set}" = set; then :
   enableval=$enable_uim; uim=$enable_uim
+fi
+
+if test "$enable_shared" = "no" ; then
+	uim="no"
 fi
 
 if test "x$uim" = xyes ; then
@@ -21792,6 +21818,10 @@ fi
 # Check whether --enable-m17nlib was given.
 if test "${enable_m17nlib+set}" = set; then :
   enableval=$enable_m17nlib; m17nlib=$enable_m17nlib
+fi
+
+if test "$enable_shared" = "no" ; then
+	m17nlib="no"
 fi
 
 if test "x$m17nlib" = xyes ; then
@@ -21897,6 +21927,10 @@ fi
 # Check whether --enable-ibus was given.
 if test "${enable_ibus+set}" = set; then :
   enableval=$enable_ibus; ibus=$enable_ibus
+fi
+
+if test "$enable_shared" = "no" ; then
+	ibus="no"
 fi
 
 if test "x$ibus" = "xyes" ; then
@@ -22249,6 +22283,10 @@ fi
 # Check whether --enable-scim was given.
 if test "${enable_scim+set}" = set; then :
   enableval=$enable_scim; scim=$enable_scim
+fi
+
+if test "$enable_shared" = "no" ; then
+	scim="no"
 fi
 
 if test "x$scim" = "xyes" -a "$gui" != "fb" ; then
@@ -22619,7 +22657,11 @@ if test "${with_scrollbars+set}" = set; then :
 fi
 
 
-scrollbars=`echo ${scrollbars} | sed 's/,/ /g'`
+if test "$enable_shared" != "no" ; then
+	scrollbars=`echo ${scrollbars} | sed 's/,/ /g'`
+else
+	scrollbars=
+fi
 
 # sample scrollbar needs x_window_clear etc.
 if test "$gui" = "fb" -a "$scrollbars" != "" ; then
@@ -25177,6 +25219,10 @@ if test "${SUBDIRS}" != "" ; then
 	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
 	# for mlterm-x.x.x/fb
 	ac_configure_args="${ac_configure_args} --with-gui=fb --disable-ind --disable-fribidi --with-type-engines=xcore --without-tools"
+	if test "$enable_shared" = "no" ; then
+		ac_configure_args="${ac_configure_args} --disable-dl-table"
+	fi
+
 
 
 subdirs="$subdirs ${SUBDIRS}"

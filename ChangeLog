@@ -1,3 +1,11 @@
+2013-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c, fb/x_window.c: Optimization.
+
+	* configure.in: If --disable-shared option is specified, --disable-dl-ctl,
+	  --disable-kbd, --disable-dl-type, --disbale-dl-table and --without-scrollbars
+	  options are automatically specified.
+
 2013-05-06  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: Workaround for the pixel aspect ratio is added.
