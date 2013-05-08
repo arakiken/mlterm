@@ -77,6 +77,16 @@
 #define  DEFAULT_KEY_REPEAT_N  50	/* msec */
 #endif
 
+#if  defined(__FreeBSD__) || defined(__NetBSD__)
+#define  CMAP_SIZE(cmap)            ((cmap)->count)
+#define  BYTE_COLOR_TO_WORD(color)  (color)
+#define  WORD_COLOR_TO_BYTE(color)  (color)
+#else	/* Linux */
+#define  CMAP_SIZE(cmap)            ((cmap)->len)
+#define  BYTE_COLOR_TO_WORD(color)  ((color) << 8 | (color))
+#define  WORD_COLOR_TO_BYTE(color)  ((color) & 0xff)
+#endif
+
 /* Parameters of cursor_shape */
 #define  CURSOR_WIDTH   7
 #define  CURSOR_X_OFF   -3
@@ -315,9 +325,19 @@ get_window(
 	return  _disp.roots[0] ;
 }
 
+static inline u_char *
+get_fb(
+	int  x ,
+	int  y
+	)
+{
+	return  _display.fb + (_display.yoffset + y) * _display.line_length +
+			(_display.xoffset + x) * _display.bytes_per_pixel
+			/ _display.pixels_per_byte ;
+}
+
 static void
 put_image_to_124bpp(
-	Display *  display ,
 	int  x ,
 	int  y ,
 	u_char *  image ,
@@ -334,7 +354,7 @@ put_image_to_124bpp(
 	int  mask ;
 	size_t  count ;
 
-	ppb = display->pixels_per_byte ;
+	ppb = _display.pixels_per_byte ;
 	bpp = 8 / ppb ;
 
 	/* + 2 is for surplus */
@@ -343,18 +363,18 @@ put_image_to_124bpp(
 		return ;
 	}
 
-	fb = x_display_get_fb( display , x , y) ;
+	fb = get_fb( x , y) ;
 	mask = FB_MASK(ppb) ;
 
 	if( memchr( image , BG_MAGIC , size))
 	{
 		memcpy( new_image ,
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			display->back_fb + (fb - display->fb) ,
+			_display.back_fb + (fb - _display.fb) ,
 		#else
 			fb ,
 		#endif
-			x_display_get_fb( display , x + size , y) - fb +
+			get_fb( x + size , y) - fb +
 			(MOD_PPB(x + size,ppb) > 0 ? 1 : 0)) ;
 
 		shift = FB_SHIFT(ppb,bpp,x) ;
@@ -394,7 +414,7 @@ put_image_to_124bpp(
 		if( ( surplus = MOD_PPB(x,ppb)) > 0)
 		{
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb = display->back_fb + (fb - display->fb) ;
+			fb = _display.back_fb + (fb - _display.fb) ;
 		#endif
 
 			for( ; surplus > 0 ; surplus --)
@@ -409,7 +429,7 @@ put_image_to_124bpp(
 			}
 
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb = display->fb + (fb - display->back_fb) ;
+			fb = _display.fb + (fb - _display.back_fb) ;
 		#endif
 		}
 
@@ -432,9 +452,9 @@ put_image_to_124bpp(
 		{
 			u_char *  fb2 ;
 
-			fb2 = x_display_get_fb( display , x + size , y) ;
+			fb2 = get_fb( x + size , y) ;
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb2 = display->back_fb + (fb2 - display->fb) ;
+			fb2 = _display.back_fb + (fb2 - _display.fb) ;
 		#endif
 
 			for( ; surplus < ppb ; surplus++)
@@ -456,7 +476,7 @@ put_image_to_124bpp(
 #ifdef  ENABLE_DOUBLE_BUFFER
 	if( write_back_fb)
 	{
-		memcpy( display->back_fb + (fb - display->fb) , new_image , p - new_image) ;
+		memcpy( _display.back_fb + (fb - _display.fb) , new_image , p - new_image) ;
 	}
 #endif
 }
@@ -519,8 +539,7 @@ restore_hidden_region(void)
 		size_t  width ;
 		u_int  count ;
 
-		fb = x_display_get_fb( &_display ,
-			_mouse.cursor.x , _mouse.cursor.y) ;
+		fb = get_fb(_mouse.cursor.x , _mouse.cursor.y) ;
 		width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width) ;
 
 		for( count = 0 ; count < _mouse.cursor.height ; count++)
@@ -553,7 +572,7 @@ save_hidden_region(void)
 	size_t  width ;
 	u_int  count ;
 
-	fb = x_display_get_fb( &_display , _mouse.cursor.x , _mouse.cursor.y) ;
+	fb = get_fb( _mouse.cursor.x , _mouse.cursor.y) ;
 	width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width) ;
 
 	for( count = 0 ; count < _mouse.cursor.height ; count++)
@@ -576,8 +595,7 @@ draw_mouse_cursor_line(
 	u_char  image[CURSOR_WIDTH * sizeof(u_int32_t)] ;
 	int  x ;
 
-	fb = x_display_get_fb( &_display , _mouse.cursor.x ,
-			_mouse.cursor.y + y) ;
+	fb = get_fb( _mouse.cursor.x , _mouse.cursor.y + y) ;
 
 	win = get_window( _mouse.x , _mouse.y) ;
 	shape = cursor_shape +
@@ -626,7 +644,7 @@ draw_mouse_cursor_line(
 			switch( _display.bytes_per_pixel)
 			{
 			case  1:
-				image[x] = x_display_get_pixel( &_display ,
+				image[x] = x_display_get_pixel(
 						_mouse.cursor.x + x ,
 						_mouse.cursor.y + y) ;
 				break ;
@@ -645,7 +663,7 @@ draw_mouse_cursor_line(
 
 	if( _display.pixels_per_byte > 1)
 	{
-		put_image_to_124bpp( &_display ,
+		put_image_to_124bpp(
 			_mouse.cursor.x , _mouse.cursor.y + y ,
 			image , _mouse.cursor.width , 0) ;
 	}
@@ -3017,37 +3035,9 @@ x_display_get_group_leader(
 	return  None ;
 }
 
-int
-x_display_reset_cmap(
-	Display *  display
-	)
-{
-	if( display->cmap)
-	{
-		if( ioctl( display->fb_fd , FBIOPUTCMAP , display->cmap) == -1)
-		{
-			return  0 ;
-		}
-	}
-
-	return  1 ;
-}
-
-u_char *
-x_display_get_fb(
-	Display *  display ,
-	int  x ,
-	int  y
-	)
-{
-	return  display->fb + (display->yoffset + y) * display->line_length +
-			(display->xoffset + x) * display->bytes_per_pixel
-			/ display->pixels_per_byte ;
-}
 
 u_long
 x_display_get_pixel(
-	Display *  display ,
 	int  x ,
 	int  y
 	)
@@ -3055,14 +3045,14 @@ x_display_get_pixel(
 	u_char *  fb ;
 	u_long  pixel ;
 
-	if( display->pixels_per_byte > 1)
+	if( _display.pixels_per_byte > 1)
 	{
 		return  BG_MAGIC ;
 	}
 
-	fb = x_display_get_fb( display , x , y) ;
+	fb = get_fb( x , y) ;
 
-	switch( display->bytes_per_pixel)
+	switch( _display.bytes_per_pixel)
 	{
 	case 1:
 		pixel = *fb ;
@@ -3082,20 +3072,19 @@ x_display_get_pixel(
 
 void
 x_display_put_image(
-	Display *  display ,
 	int  x ,
 	int  y ,
 	u_char *  image ,
 	size_t  size
 	)
 {
-	if( display->pixels_per_byte > 1)
+	if( _display.pixels_per_byte > 1)
 	{
-		put_image_to_124bpp( display , x , y , image , size , 1) ;
+		put_image_to_124bpp( x , y , image , size , 1) ;
 	}
 	else
 	{
-		memcpy( x_display_get_fb( display , x , y) , image , size) ;
+		memcpy( get_fb( x , y) , image , size) ;
 	}
 
 	if( /* MOUSE_IS_INITED && */ _mouse.cursor.is_drawn &&
@@ -3113,7 +3102,6 @@ x_display_put_image(
 
 void
 x_display_copy_lines(
-	Display *  display ,
 	int  src_x ,
 	int  src_y ,
 	int  dst_x ,
@@ -3131,29 +3119,29 @@ x_display_copy_lines(
 	restore_hidden_region() ;
 
 	/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
-	copy_len = FB_WIDTH_BYTES(display, src_x, width) ;
+	copy_len = FB_WIDTH_BYTES(&_display, src_x, width) ;
 
 	if( src_y <= dst_y)
 	{
-		src = x_display_get_fb( display , src_x , src_y + height - 1) ;
-		dst = x_display_get_fb( display , dst_x , dst_y + height - 1) ;
+		src = get_fb( src_x , src_y + height - 1) ;
+		dst = get_fb( dst_x , dst_y + height - 1) ;
 
 	#ifdef  ENABLE_DOUBLE_BUFFER
-		if( display->back_fb)
+		if( _display.back_fb)
 		{
 			u_char *  src_back ;
 			u_char *  dst_back ;
 
-			src_back = display->back_fb + (src - display->fb) ;
-			dst_back = display->back_fb + (dst - display->fb) ;
+			src_back = _display.back_fb + (src - _display.fb) ;
+			dst_back = _display.back_fb + (dst - _display.fb) ;
 
 			for( count = 0 ; count < height ; count++)
 			{
 				memmove( dst_back , src_back , copy_len) ;
 				memcpy( dst , src_back , copy_len) ;
-				dst -= display->line_length ;
-				dst_back -= display->line_length ;
-				src_back -= display->line_length ;
+				dst -= _display.line_length ;
+				dst_back -= _display.line_length ;
+				src_back -= _display.line_length ;
 			}
 		}
 		else
@@ -3162,32 +3150,32 @@ x_display_copy_lines(
 			for( count = 0 ; count < height ; count++)
 			{
 				memmove( dst , src , copy_len) ;
-				dst -= display->line_length ;
-				src -= display->line_length ;
+				dst -= _display.line_length ;
+				src -= _display.line_length ;
 			}
 		}
 	}
 	else
 	{
-		src = x_display_get_fb( display , src_x , src_y) ;
-		dst = x_display_get_fb( display , dst_x , dst_y) ;
+		src = get_fb( src_x , src_y) ;
+		dst = get_fb( dst_x , dst_y) ;
 
 	#ifdef  ENABLE_DOUBLE_BUFFER
-		if( display->back_fb)
+		if( _display.back_fb)
 		{
 			u_char *  src_back ;
 			u_char *  dst_back ;
 
-			src_back = display->back_fb + (src - display->fb) ;
-			dst_back = display->back_fb + (dst - display->fb) ;
+			src_back = _display.back_fb + (src - _display.fb) ;
+			dst_back = _display.back_fb + (dst - _display.fb) ;
 
 			for( count = 0 ; count < height ; count++)
 			{
 				memmove( dst_back , src_back , copy_len) ;
 				memcpy( dst , src_back , copy_len) ;
-				dst += display->line_length ;
-				dst_back += display->line_length ;
-				src_back += display->line_length ;
+				dst += _display.line_length ;
+				dst_back += _display.line_length ;
+				src_back += _display.line_length ;
 			}
 		}
 		else
@@ -3196,8 +3184,8 @@ x_display_copy_lines(
 			for( count = 0 ; count < height ; count++)
 			{
 				memmove( dst , src , copy_len) ;
-				dst += display->line_length ;
-				src += display->line_length ;
+				dst += _display.line_length ;
+				src += _display.line_length ;
 			}
 		}
 	}
@@ -3240,32 +3228,50 @@ x_display_expose(
 	}
 }
 
+int
+x_cmap_reset(void)
+{
+	if( _display.cmap)
+	{
+		if( ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) == -1)
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
 /* seek the closest color */
-u_long
-x_get_closest_color(
-	fb_cmap_t *  cmap ,
+int
+x_cmap_get_closest_color(
+	u_long *  closest ,
 	int  red ,
 	int  green ,
 	int  blue
 	)
 {
-	u_long  closest ;
 	u_int  color ;
 	u_long  min = 0xffffff ;
 	u_long  diff ;
 	int  diff_r , diff_g , diff_b ;
 
-	for( color = 0 ; color < CMAP_SIZE(cmap) ; color++)
+	if( ! _display.cmap)
+	{
+		return  0 ;
+	}
+
+	for( color = 0 ; color < CMAP_SIZE(_display.cmap) ; color++)
 	{
 		/* lazy color-space conversion */
-		diff_r = red - WORD_COLOR_TO_BYTE(cmap->red[color]) ;
-		diff_g = green - WORD_COLOR_TO_BYTE(cmap->green[color]) ;
-		diff_b = blue - WORD_COLOR_TO_BYTE(cmap->blue[color]) ;
+		diff_r = red - WORD_COLOR_TO_BYTE(_display.cmap->red[color]) ;
+		diff_g = green - WORD_COLOR_TO_BYTE(_display.cmap->green[color]) ;
+		diff_b = blue - WORD_COLOR_TO_BYTE(_display.cmap->blue[color]) ;
 		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
 		if( diff < min)
 		{
 			min = diff ;
-			closest = color ;
+			*closest = color ;
 			/* no one may notice the difference */
 			if( diff < 31)
 			{
@@ -3274,5 +3280,20 @@ x_get_closest_color(
 		}
 	}
 
-	return  closest ;
+	return  1 ;
+}
+
+int
+x_cmap_get_pixel_rgb(
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue ,
+	u_long  pixel
+	)
+{
+	*red = WORD_COLOR_TO_BYTE(_display.cmap->red[pixel]) ;
+	*green = WORD_COLOR_TO_BYTE(_display.cmap->green[pixel]) ;
+	*blue = WORD_COLOR_TO_BYTE(_display.cmap->blue[pixel]) ;
+
+	return  1 ;
 }

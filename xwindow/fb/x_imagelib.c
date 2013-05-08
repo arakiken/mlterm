@@ -15,7 +15,7 @@
 #endif
 #include  <kiklib/kik_debug.h>
 
-#include  "x_display.h"		/* x_get_closest_color */
+#include  "x_display.h"		/* x_cmap_get_closest_color */
 
 
 /* Trailing "/" is appended in value_table_refresh(). */
@@ -147,10 +147,9 @@ modify_pixmap(
 					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
 			}
 
-			if( display->bytes_per_pixel == 1)
+			if( x_cmap_get_closest_color( &pixel , r , g , b))
 			{
-				*(pixmap->image + y * pixmap->width + x) =
-					x_get_closest_color( display->cmap , r , g , b) ;
+				*(pixmap->image + y * pixmap->width + x) = pixel ;
 			}
 			else
 			{

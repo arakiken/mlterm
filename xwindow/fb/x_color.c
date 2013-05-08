@@ -76,14 +76,10 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	fb_cmap_t *  cmap ;
-
-	if( ( cmap = disp->display->cmap))
+	if( x_cmap_get_closest_color( &xcolor->pixel , red , green , blue))
 	{
-		xcolor->pixel = x_get_closest_color( cmap , red , green , blue) ;
-		xcolor->red = WORD_COLOR_TO_BYTE(cmap->red[xcolor->pixel]) ;
-		xcolor->green = WORD_COLOR_TO_BYTE(cmap->green[xcolor->pixel]) ;
-		xcolor->blue = WORD_COLOR_TO_BYTE(cmap->blue[xcolor->pixel]) ;
+		x_cmap_get_pixel_rgb( &xcolor->red , &xcolor->green ,
+			&xcolor->blue , xcolor->pixel) ;
 	}
 	else
 	{

@@ -9,6 +9,9 @@
 #include  <kiklib/kik_mem.h>
 
 #include  "x_display.h"
+
+#define  USE_X_GET_BITMAP_LINE
+#define  USE_X_GET_BITMAP_CELL
 #include  "x_font.h"
 
 
@@ -44,7 +47,7 @@ scroll_region(
 		return  0 ;
 	}
 
-	x_display_copy_lines( win->disp->display ,
+	x_display_copy_lines(
 			src_x + win->x + win->margin ,
 			src_y + win->y + win->margin ,
 			dst_x + win->x + win->margin ,
@@ -201,7 +204,6 @@ draw_string(
 					else
 					{
 						pixel = x_display_get_pixel(
-								win->disp->display ,
 								x + x_off ,
 								y + y_off - font_ascent) ;
 					}
@@ -226,8 +228,7 @@ draw_string(
 			x += x_off ;
 		}
 
-		x_display_put_image( win->disp->display ,
-			(x = orig_x) , y + y_off - font_ascent , src , p - src) ;
+		x_display_put_image( (x = orig_x) , y + y_off - font_ascent , src , p - src) ;
 		p = src ;
 
 		if( image)
@@ -324,7 +325,7 @@ copy_area(
 					continue ;
 				}
 
-				x_display_put_image( win->disp->display ,
+				x_display_put_image(
 					win->x + win->margin + dst_x + x_off - w ,
 					win->y + win->margin + dst_y + y_off ,
 					image + bpp * ( x_off - w) ,
@@ -344,7 +345,7 @@ copy_area(
 
 		for( y_off = 0 ; y_off < height ; y_off++)
 		{
-			x_display_put_image( win->disp->display ,
+			x_display_put_image(
 				win->x + win->margin + dst_x ,
 				win->y + win->margin + dst_y + y_off ,
 				image , size) ;
@@ -1058,7 +1059,7 @@ x_window_fill_with(
 			}
 		}
 
-		x_display_put_image( win->disp->display , x , y + y_off , src , width * bpp) ;
+		x_display_put_image( x , y + y_off , src , width * bpp) ;
 	}
 
 	return  1 ;
@@ -1095,7 +1096,7 @@ x_window_update_all(
 
 	if( ! win->parent)
 	{
-		x_display_reset_cmap( win->disp->display) ;
+		x_cmap_reset() ;
 	}
 
 	clear_margin_area( win) ;

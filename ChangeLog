@@ -1,4 +1,21 @@
+2013-05-08  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.[ch]:
+	  - x_display_get_fb() -> get_fb() (static function)
+	  - "Display * display" argument is removed from x_display_get_pixel(),
+	    x_display_put_image(), x_display_copy_lines() and x_display_reset_cmap()
+	    which is renamed to x_cmap_reset().
+	  - "fb_cmap_t * cmap" argument is removed from x_get_closest_color() which
+	    is renamed to x_cmap_get_closest_color().
+	  - x_cmap_get_pixel_rgb() is added.
+
+	* fb/x_font.[ch]:
+	  x_get_bitmap_line() and x_get_bitmap_cell() are changed to inline
+	  static functions.
+
 2013-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* mlimgloader/Makefile.in: Compilation error on framebuffer is fixed.
 
 	* fb/x_display.c, fb/x_window.c: Optimization.
 

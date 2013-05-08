@@ -50,8 +50,8 @@ typedef struct
 	unsigned int  line_length ;
 	unsigned int  xoffset ;
 	unsigned int  yoffset ;
-	unsigned int  bytes_per_pixel ;
-	unsigned int  pixels_per_byte ;
+	unsigned int  bytes_per_pixel ;	/* public */
+	unsigned int  pixels_per_byte ;	/* public */
 
 	struct rgb_info
 	{
