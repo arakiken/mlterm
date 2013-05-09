@@ -1,3 +1,9 @@
+2013-05-09  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_imagelib.c: Minor fixes.
+
+	* x_screen.c: F12 => F10 to invoke benchmark.
+
 2013-05-08  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.[ch]:

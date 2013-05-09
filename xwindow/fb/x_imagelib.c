@@ -182,7 +182,9 @@ modify_pixmap(
 	}
 }
 
+#ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
+#endif
 #define  SIXEL_1BPP
 #include  <string.h>	/* memset/memmove */
 #include  "../../common/c_imagelib.c"
