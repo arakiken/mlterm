@@ -251,8 +251,8 @@ xim_widget_new(const char *xim_name, const char *xim_locale, const char *cur_loc
 	 * ~/.mlterm/xim.
 	 */
 
-	kik_map_new(char *, char *, xim_locale_table, kik_map_hash_str,
-		    kik_map_compare_str);
+	kik_map_new_with_size(char *, char *, xim_locale_table, kik_map_hash_str,
+		    kik_map_compare_str, 16);
 
 	kik_set_sys_conf_dir(CONFIG_PATH);
 

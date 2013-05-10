@@ -40,24 +40,6 @@ dump_cached_fonts(
 
 #endif
 
-static int
-font_hash(
-	ml_font_t  font ,
-	u_int  size
-	)
-{
-	return  font % size ;
-}
-
-static int
-font_compare(
-	ml_font_t  key1 ,
-	ml_font_t  key2
-	)
-{
-	return  (key1 == key2) ;
-}
-
 /*
  * Call this function after init all members except font_table
  */
@@ -91,7 +73,7 @@ xfont_table_new(void)
 	KIK_MAP( x_font)  xfont_table ;
 	
 	kik_map_new_with_size( ml_font_t , x_font_t * , xfont_table ,
-		font_hash , font_compare , 16) ;
+		kik_map_hash_int , kik_map_compare_int , 16) ;
 
 	return  xfont_table ;
 }

@@ -13,7 +13,7 @@
 #include  "kik_mem.h"
 
 
-#define  DEFAULT_MAP_SIZE  128
+#define  DEFAULT_MAP_SIZE  16
 
 
 #define  KIK_PAIR( name)  __ ## name ## _pair_t
@@ -52,23 +52,27 @@ typedef struct  __ ## name ## _map \
 		abort() ; \
 	} \
 	\
-	if( ( (map)->pairs = malloc( size * sizeof( *(map)->pairs))) == NULL) \
+	if( ( (map)->pairs = calloc( size , sizeof( *(map)->pairs))) == NULL) \
 	{ \
 		kik_error_printf( "malloc() failed in kik_map_new().\n") ; \
 		abort() ; \
 	} \
-	memset( (map)->pairs , 0 , size * sizeof( *(map)->pairs)) ; \
 	\
-	if( ( (map)->pairs_array = malloc( size * sizeof(void*))) == NULL) \
-	{ \
-		kik_error_printf( "malloc() failed in kik_map_new().\n") ; \
-		abort() ; \
-	} \
-	memset( (map)->pairs_array , 0 , size * sizeof(void*)) ; \
-	\
+	(map)->pairs_array = NULL ; \
 	(map)->map_size = size ; \
 	(map)->filled_size = 0 ; \
-	(map)->hash_func = __hash_func ; \
+	if( __hash_func == kik_map_hash_int) \
+	{ \
+		if( size & (size - 1)) \
+		{ \
+			(map)->hash_func = kik_map_hash_int ; \
+		} \
+		else \
+		{ \
+			/* new_size == 2^n */ \
+			(map)->hash_func = kik_map_hash_int_fast ; \
+		} \
+	} \
 	(map)->compare_func = __compare_func ; \
 }
 
@@ -87,25 +91,25 @@ typedef struct  __ ## name ## _map \
 
 #define  kik_map_get( result , map , __key , __pair_p) \
 { \
-	int  hash_key ; \
-	int  count ; \
+	int  __hash_key ; \
+	u_int  __count ; \
 	\
 	__pair_p = NULL ; \
 	result = 0 ; \
 	\
-	hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
-	for( count = 0 ; count < (map)->map_size ; count ++) \
+	__hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
+	for( __count = 0 ; __count < (map)->map_size ; __count ++) \
 	{ \
-		if( (map)->pairs[hash_key].is_filled && \
-			(*(map)->compare_func)( __key , (map)->pairs[hash_key].key)) \
+		if( (map)->pairs[__hash_key].is_filled && \
+			(*(map)->compare_func)( __key , (map)->pairs[__hash_key].key)) \
 		{ \
-			__pair_p = &(map)->pairs[hash_key] ; \
+			__pair_p = &(map)->pairs[__hash_key] ; \
 			result = 1 ; \
 			\
 			break ; \
 		} \
 		\
-		hash_key = kik_map_rehash( hash_key , (map)->map_size) ; \
+		__hash_key = kik_map_rehash( __hash_key , (map)->map_size) ; \
 	} \
 }
 
@@ -124,143 +128,119 @@ typedef struct  __ ## name ## _map \
 
 #define  kik_map_set( result , map , __key , __value) \
 { \
-	int  hash_key ; \
-	int  count ; \
+	int  __hash_key ; \
+	u_int  __count ; \
 	\
 	result = 0 ; \
 	\
-	while( 1) \
+	if( (map)->map_size == (map)->filled_size) \
 	{ \
-		hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
-		for( count = 0 ; count < (map)->map_size ; count ++) \
+		/* \
+		 * Expanding map by DEFAULT_MAP_SIZE \
+		 */ \
+		\
+		u_int  __new_size ; \
+		void *  __old ; \
+		void *  __new ; \
+		\
+		__new_size = (map)->map_size + DEFAULT_MAP_SIZE ; \
+		\
+		kik_map_dump_size((map)->map_size,__new_size) ; \
+		\
+		if( ( __new = calloc( __new_size , sizeof( *(map)->pairs))) == NULL) \
 		{ \
-			if( ! (map)->pairs[hash_key].is_filled) \
-			{ \
-				(map)->pairs[hash_key].key = __key ; \
-				(map)->pairs[hash_key].value = __value ; \
-				(map)->pairs[hash_key].is_filled = 1 ; \
-				(map)->pairs_array[(map)->filled_size ++] = &(map)->pairs[hash_key] ; \
-				result = 1 ; \
-				\
-				break ; \
-			} \
-			\
-			hash_key = kik_map_rehash( hash_key , (map)->map_size) ; \
+			kik_error_printf( "malloc() failed in kik_map_set().\n") ; \
+			abort() ; \
 		} \
 		\
-		if( result == 1) \
+		__old = (map)->pairs ; \
+		\
+		if( (map)->hash_func == kik_map_hash_int || \
+		    (map)->hash_func == kik_map_hash_int_fast) \
 		{ \
-			/* exiting while(1) loop */ \
-			break ; \
+			if( __new_size & (__new_size - 1)) \
+			{ \
+				(map)->hash_func = kik_map_hash_int ; \
+			} \
+			else \
+			{ \
+				/* __new_size == 2^n */ \
+				(map)->hash_func = kik_map_hash_int_fast ; \
+			} \
 		} \
-		else \
+		\
+		/* reconstruct (map)->pairs since map_size is changed. */ \
+		for( __count = 0 ; __count < (map)->map_size ; __count ++) \
 		{ \
-			/* \
-			 * Expanding map by DEFAULT_MAP_SIZE \
-			 */ \
+			void *  src ; \
+			void *  dst ; \
 			\
-			u_int  new_size ; \
-			int  array_index ; \
-			void *  old ; \
-			void *  new ; \
+			__hash_key = (*(map)->hash_func)( (map)->pairs[__count].key , \
+					__new_size) ; \
 			\
-			new_size = (map)->map_size + DEFAULT_MAP_SIZE ; \
-			\
-			kik_map_dump_size((map)->map_size,new_size) ; \
-			\
-			if( ( new = malloc( new_size * sizeof( *(map)->pairs))) == NULL) \
+			(map)->pairs = __new ; \
+			while( (map)->pairs[__hash_key].is_filled) \
 			{ \
-				kik_error_printf( "malloc() failed in kik_map_set().\n") ; \
-				abort() ; \
-			} \
-			memset( new , 0 , new_size * sizeof( *(map)->pairs)) ; \
-			\
-			old = (map)->pairs ; \
-			\
-			/* reconstruct (map)->pairs since map_size is changed. */ \
-			for( count = 0 ; count < (map)->map_size ; count ++) \
-			{ \
-				void *  src ; \
-				void *  dst ; \
-				\
-				hash_key = (*(map)->hash_func)( (map)->pairs[count].key , new_size) ; \
-				\
-				(map)->pairs = new ; \
-				while( (map)->pairs[hash_key].is_filled) \
-				{ \
-					hash_key = kik_map_rehash( hash_key , new_size) ; \
-				} \
-				\
-				dst = &(map)->pairs[hash_key] ; \
-				(map)->pairs = old ; \
-				src = &(map)->pairs[count] ; \
-				memcpy( dst , src , sizeof( *(map)->pairs)) ; \
-				(map)->pairs[count].is_filled = 0 ; \
+				__hash_key = kik_map_rehash( __hash_key , __new_size) ; \
 			} \
 			\
-			free( old) ; \
-			(map)->pairs = new ; \
-			\
-			if( ( (map)->pairs_array = realloc( (map)->pairs_array , new_size * sizeof(void*))) == NULL) \
-			{ \
-				kik_error_printf( "realloc() failed in kik_map_set().\n") ; \
-				abort() ; \
-			} \
-			\
-			memset( &(map)->pairs_array[(map)->map_size] , 0 , DEFAULT_MAP_SIZE * sizeof(void*)) ; \
-			\
-			/* reconstruct (map)->pairs_array since the address of (map)->pairs changed above */ \
-			array_index = 0 ; \
-			for( count = 0 ; count < new_size ; count ++) \
-			{ \
-				if( (map)->pairs[count].is_filled) \
-				{ \
-					(map)->pairs_array[array_index++] = &(map)->pairs[count] ; \
-				} \
-			} \
-			\
-			(map)->map_size = new_size ; \
+			dst = &(map)->pairs[__hash_key] ; \
+			(map)->pairs = __old ; \
+			src = &(map)->pairs[__count] ; \
+			memcpy( dst , src , sizeof( *(map)->pairs)) ; \
 		} \
+		\
+		free( __old) ; \
+		(map)->pairs = __new ; \
+		(map)->map_size = __new_size ; \
 	} \
-}
-
-#define  __kik_map_erase_simple( result , map , __key) \
-	int  hash_key ; \
-	int  count ; \
 	\
-	result = 0 ; \
-	\
-	hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
-	for( count = 0 ; count < (map)->map_size ; count ++) \
+	__hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
+	for( __count = 0 ; __count < (map)->map_size ; __count ++) \
 	{ \
-		if( (map)->pairs[hash_key].is_filled && \
-			(*(map)->compare_func)( __key , (map)->pairs[hash_key].key)) \
+		if( ! (map)->pairs[__hash_key].is_filled) \
 		{ \
-			int  count2 ; \
+			(map)->pairs[__hash_key].key = __key ; \
+			(map)->pairs[__hash_key].value = __value ; \
+			(map)->pairs[__hash_key].is_filled = 1 ; \
+			(map)->filled_size ++ ; \
 			\
-			for( count2 = 0 ; count2 < (map)->filled_size ; count2 ++) \
-			{ \
-				if( (map)->pairs_array[count2] == &(map)->pairs[hash_key]) \
-				{ \
-					if( count2 + 1 < (map)->filled_size) \
-					{ \
-						/* moving the last element to the pos of the erased */ \
-						(map)->pairs_array[count2] = \
-							(map)->pairs_array[(map)->filled_size - 1] ; \
-					} \
-					(map)->filled_size -- ; \
-					\
-					break ; \
-				} \
-			} \
+			free( (map)->pairs_array) ; \
+			(map)->pairs_array = NULL ; \
 			\
-			(map)->pairs[hash_key].is_filled = 0 ; \
 			result = 1 ; \
 			\
 			break ; \
 		} \
 		\
-		hash_key = kik_map_rehash( hash_key , (map)->map_size) ; \
+		__hash_key = kik_map_rehash( __hash_key , (map)->map_size) ; \
+	} \
+}
+
+#define  __kik_map_erase_simple( result , map , __key) \
+	int  __hash_key ; \
+	u_int  __count ; \
+	\
+	result = 0 ; \
+	\
+	__hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
+	for( __count = 0 ; __count < (map)->map_size ; __count ++) \
+	{ \
+		if( (map)->pairs[__hash_key].is_filled && \
+			(*(map)->compare_func)( __key , (map)->pairs[__hash_key].key)) \
+		{ \
+			(map)->pairs[__hash_key].is_filled = 0 ; \
+			(map)->filled_size -- ; \
+			\
+			free( (map)->pairs_array) ; \
+			(map)->pairs_array = NULL ; \
+			\
+			result = 1 ; \
+			\
+			break ; \
+		} \
+		\
+		__hash_key = kik_map_rehash( __hash_key , (map)->map_size) ; \
 	}
 
 /*
@@ -279,96 +259,105 @@ typedef struct  __ ## name ## _map \
 	__kik_map_erase_simple( result , map , __key) ; \
 	\
 	/* \
-	 * hash_key and count are declared in __kik_map_erase_simple(). \
+	 * __hash_key and __count are declared in __kik_map_erase_simple(). \
 	 */ \
 	\
-	if( result == 1) \
+	if( result == 1 && \
+	    /* \
+	     * if (map)->filled_size is (DEFAULT_MAP_SIZE * 2) smaller than the map size , \
+	     * the map size is (DEFAULT_MAP_SIZE) shrinked. \
+	     * the difference(DEFAULT_MAP_SIZE) is buffered to reduce calling realloc(). \
+	     */ \
+	    (map)->filled_size + (DEFAULT_MAP_SIZE * 2) < (map)->map_size) \
 	{ \
 		/* \
-		 * if (map)->filled_size is (DEFAULT_MAP_SIZE * 2) smaller than the map size , \
-		 * the map size is (DEFAULT_MAP_SIZE) shrinked.
-		 * the difference(DEFAULT_MAP_SIZE) is buffered to reduce calling realloc().
+		 * shrinking map by DEFAULT_MAP_SIZE \
 		 */ \
-		if( (map)->filled_size + (DEFAULT_MAP_SIZE * 2) < (map)->map_size) \
+		\
+		u_int  __new_size ; \
+		void *  __old ; \
+		void *  __new ; \
+		u_int  __count ; \
+		\
+		__new_size = (map)->map_size - DEFAULT_MAP_SIZE ; \
+		\
+		kik_map_dump_size((map)->map_size,__new_size) ; \
+		\
+		if( ( __new = calloc( __new_size , sizeof( *(map)->pairs))) == NULL) \
 		{ \
-			/* \
-			 * shrinking map by DEFAULT_MAP_SIZE \
-			 */ \
-			\
-			u_int  new_size ; \
-			int  array_index ; \
-			void *  old ; \
-			void *  new ; \
-			\
-			new_size = (map)->map_size - DEFAULT_MAP_SIZE ; \
-			\
-			kik_map_dump_size((map)->map_size,new_size) ; \
-			\
-			if( ( new = malloc( new_size * sizeof( *(map)->pairs))) == NULL) \
-			{ \
-				kik_error_printf( "malloc() failed in kik_map_set().\n") ; \
-				abort() ; \
-			} \
-			memset( new , 0 , sizeof( new_size * sizeof( *(map)->pairs))) ; \
-			\
-			old = (map)->pairs ; \
-			\
-			/* reconstruct (map)->pairs since map_size is changed. */ \
-			for( count = 0 ; count < (map)->map_size ; count ++) \
-			{ \
-				hash_key = (*(map)->hash_func)( (map)->pairs[count].key , new_size) ; \
-				\
-				(map)->pairs = new ; \
-				while( (map)->pairs[hash_key].is_filled) \
-				{ \
-					hash_key = kik_map_rehash( hash_key , new_size) ; \
-				} \
-				\
-				if( hash_key == count) \
-				{ \
-					(map)->pairs = old ; \
-				} \
-				else \
-				{ \
-					void *  src ; \
-					void *  dst ; \
-					\
-					dst = &(map)->pairs[hash_key] ; \
-					(map)->pairs = old ; \
-					src = &(map)->pairs[count] ; \
-					memcpy( dst , src , sizeof( *(map)->pairs)) ; \
-					(map)->pairs[count].is_filled = 0 ; \
-				} \
-			} \
-			\
-			free( old) ; \
-			(map)->pairs = new ; \
-			\
-			if( ( (map)->pairs_array = realloc( (map)->pairs_array , new_size * sizeof(void*))) == NULL) \
-			{ \
-				kik_error_printf( "realloc() failed in kik_map_set().\n") ; \
-				abort() ; \
-			} \
-			\
-			/* reconstruct (map)->pairs_array since the address of (map)->pairs changed above */ \
-			array_index = 0 ; \
-			for( count = 0 ; count < new_size ; count ++) \
-			{ \
-				if( (map)->pairs[count].is_filled) \
-				{ \
-					(map)->pairs_array[array_index++] = &(map)->pairs[count] ; \
-				} \
-			} \
-			\
-			(map)->map_size = new_size ; \
+			kik_error_printf( "malloc() failed in kik_map_set().\n") ; \
+			abort() ; \
 		} \
+		\
+		__old = (map)->pairs ; \
+		\
+		if( (map)->hash_func == kik_map_hash_int || \
+		    (map)->hash_func == kik_map_hash_int_fast) \
+		{ \
+			if( __new_size & (__new_size - 1)) \
+			{ \
+				(map)->hash_func = kik_map_hash_int ; \
+			} \
+			else \
+			{ \
+				/* __new_size == 2^n */ \
+				(map)->hash_func = kik_map_hash_int_fast ; \
+			} \
+		} \
+		\
+		/* reconstruct (map)->pairs since map_size is changed. */ \
+		for( __count = 0 ; __count < (map)->map_size ; __count ++) \
+		{ \
+			void *  src ; \
+			void *  dst ; \
+			\
+			__hash_key = (*(map)->hash_func)( (map)->pairs[__count].key , \
+					__new_size) ; \
+			\
+			(map)->pairs = __new ; \
+			while( (map)->pairs[__hash_key].is_filled) \
+			{ \
+				__hash_key = kik_map_rehash( __hash_key , __new_size) ; \
+			} \
+			\
+			dst = &(map)->pairs[__hash_key] ; \
+			(map)->pairs = __old ; \
+			src = &(map)->pairs[__count] ; \
+			memcpy( dst , src , sizeof( *(map)->pairs)) ; \
+		} \
+		\
+		free( __old) ; \
+		(map)->pairs = __new ; \
+		(map)->map_size = __new_size ; \
 	} \
 }
 
 #define  kik_map_get_pairs_array( map , array , size) \
 { \
-	array = (map)->pairs_array ; \
 	size = (map)->filled_size ; \
+	\
+	if( ! (map)->pairs_array) \
+	{ \
+		int  array_index ; \
+		u_int  __count ; \
+		\
+		if( ( (map)->pairs_array = calloc( size , sizeof(void*))) == NULL) \
+		{ \
+			kik_error_printf( "malloc() failed in kik_map_get_pairs_array().\n") ; \
+			abort() ; \
+		} \
+		\
+		array_index = 0 ; \
+		for( __count = 0 ; __count < (map)->map_size ; __count ++) \
+		{ \
+			if( (map)->pairs[__count].is_filled) \
+			{ \
+				(map)->pairs_array[array_index++] = &(map)->pairs[__count] ; \
+			} \
+		} \
+	} \
+	\
+	array = (map)->pairs_array ; \
 }
 
 
@@ -382,6 +371,8 @@ int  kik_map_rehash( int  hash_key , u_int  size) ;
 int  kik_map_hash_str( char *  key , u_int  size) ;
 
 int  kik_map_hash_int( int  key , u_int  size) ;
+
+int  kik_map_hash_int_fast( int  key , u_int  size) ;
 
 
 /*

@@ -1,5 +1,6 @@
 ver 3.2.0
-* Support framebuffer on NetBSD. (Experimental)
+* Support framebuffer on NetBSD.
+  (See http://www.youtube.com/watch?v=yKKT_Z1P9Xo and http://www.youtube.com/watch?v=5IH1NYSVpHY)
   (Thanks to @tsutsuii san)
 * Support 1 bpp framebuffer. (Experimental)
 * Support sixel graphics and wall pictures in 8 bpp framebuffer.

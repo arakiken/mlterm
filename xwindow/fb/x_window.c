@@ -1059,7 +1059,7 @@ x_window_fill_with(
 			}
 		}
 
-		x_display_put_image( x , y + y_off , src , width * bpp) ;
+		x_display_put_image( x , y + y_off , src , size) ;
 	}
 
 	return  1 ;

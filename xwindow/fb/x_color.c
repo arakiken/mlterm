@@ -7,7 +7,7 @@
 #include  <string.h>		/* strcmp */
 #include  <ml_color.h>
 
-#include  "x_display.h"		/* CMAP_SIZE, x_get_closest_color */
+#include  "x_display.h"		/* CMAP_SIZE, x_cmap_get_closest_color */
 
 
 /* --- global functions --- */

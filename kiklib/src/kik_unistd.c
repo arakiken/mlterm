@@ -48,6 +48,7 @@ __kik_usleep(
 
 #include  <string.h>
 #include  <stdio.h>
+#include  <stdlib.h>	/* putenv */
 
 int
 __kik_setenv(

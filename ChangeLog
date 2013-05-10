@@ -1,3 +1,20 @@
+2013-05-10  Araki Ken  <arakiken@users.sf.net>
+
+	* kiklib/src/Makefile.in: MAJOR.MINOR 14.2 => 14.3
+
+	* kik_unistd.h: #include <stdlib.h> is added for putenv.
+
+	* x_font_cache.c, x_font_config.c:
+	  font_hash => kik_map_hash_int
+
+	* kik_map.[ch]:
+	  - kik_map_hash_int_fast() is added.
+	  - DEFAULT_MAP_SIZE is changed from 128 to 16.
+	  - (map)->pairs_array is allocated in kik_map_get_pairs_array() instead
+	    of kik_map_new_with_size().
+	  - The bug which erases data unexpectedly in shrinking the map size
+	    is fixed.
+
 2013-05-09  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_imagelib.c: Minor fixes.

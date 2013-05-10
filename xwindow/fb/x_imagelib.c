@@ -110,7 +110,7 @@ modify_pixmap(
 	u_int  y ;
 	u_int  x ;
 	u_char  r , g , b , a ;
-	u_int32_t  pixel ;
+	u_long  pixel ;
 
 	if( ! x_picture_modifier_is_normal( pic_mod) &&
 	    ( value_table = alloca( 256)))

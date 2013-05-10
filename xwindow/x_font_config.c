@@ -12,6 +12,13 @@
 #include  <kiklib/kik_file.h>
 
 
+#define  DEFAULT_FONT (MAX_CHARSET + 1)
+
+#if  0
+#define  __DEBUG
+#endif
+
+
 typedef struct  cs_table
 {
 	char *  name ;
@@ -26,14 +33,6 @@ typedef struct  custom_cache
 	char *  value ;
 
 } custom_cache_t ;
-
-
-#define  DEFAULT_FONT (MAX_CHARSET + 1)
-
-
-#if  0
-#define  __DEBUG
-#endif
 
 
 /* --- static variables --- */
@@ -176,24 +175,6 @@ static void  TEST_create_value(void) ;
 #endif
 
 
-static int
-font_hash(
-	ml_font_t  font ,
-	u_int  size
-	)
-{
-	return  font % size ;
-}
-
-static int
-font_compare(
-	ml_font_t  key1 ,
-	ml_font_t  key2
-	)
-{
-	return  (key1 == key2) ;
-}
-
 static KIK_PAIR( x_font_name)
 get_font_name_pair(
 	KIK_MAP( x_font_name)  table ,
@@ -222,7 +203,7 @@ get_font_name_pairs_array(
 {
 	KIK_PAIR( x_font_name) *  array ;
 	
-	kik_map_get_pairs_array( table , array , *size)
+	kik_map_get_pairs_array( table , array , *size) ;
 
 	return  array ;
 }
@@ -252,7 +233,7 @@ get_font_name_table(
 	{
 		kik_map_new_with_size( ml_font_t , char * ,
 			font_config->font_name_table[font_size - min_font_size] ,
-			font_hash , font_compare , 16) ;
+			kik_map_hash_int , kik_map_compare_int , 16) ;
 	}
 
 	return  font_config->font_name_table[font_size - min_font_size] ;
@@ -1427,7 +1408,8 @@ x_font_config_new(
 		sizeof( KIK_MAP( x_font_name)) * (max_font_size - min_font_size + 1)) ;
 
 	kik_map_new_with_size( ml_font_t , char * ,
-		font_config->default_font_name_table , font_hash , font_compare , 8) ;
+		font_config->default_font_name_table ,
+		kik_map_hash_int , kik_map_compare_int , 16) ;
 
 	font_config->type_engine = type_engine ;
 	font_config->font_present = font_present ;
