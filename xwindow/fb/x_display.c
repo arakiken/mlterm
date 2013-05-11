@@ -3135,23 +3135,49 @@ x_display_copy_lines(
 			src_back = _display.back_fb + (src - _display.fb) ;
 			dst_back = _display.back_fb + (dst - _display.fb) ;
 
-			for( count = 0 ; count < height ; count++)
+			if( dst_y == src_y)
 			{
-				memmove( dst_back , src_back , copy_len) ;
-				memcpy( dst , src_back , copy_len) ;
-				dst -= _display.line_length ;
-				dst_back -= _display.line_length ;
-				src_back -= _display.line_length ;
+				for( count = 0 ; count < height ; count++)
+				{
+					memmove( dst_back , src_back , copy_len) ;
+					memcpy( dst , src_back , copy_len) ;
+					dst -= _display.line_length ;
+					dst_back -= _display.line_length ;
+					src_back -= _display.line_length ;
+				}
+			}
+			else
+			{
+				for( count = 0 ; count < height ; count++)
+				{
+					memcpy( dst_back , src_back , copy_len) ;
+					memcpy( dst , src_back , copy_len) ;
+					dst -= _display.line_length ;
+					dst_back -= _display.line_length ;
+					src_back -= _display.line_length ;
+				}
 			}
 		}
 		else
 	#endif
 		{
-			for( count = 0 ; count < height ; count++)
+			if( src_y == dst_y)
 			{
-				memmove( dst , src , copy_len) ;
-				dst -= _display.line_length ;
-				src -= _display.line_length ;
+				for( count = 0 ; count < height ; count++)
+				{
+					memmove( dst , src , copy_len) ;
+					dst -= _display.line_length ;
+					src -= _display.line_length ;
+				}
+			}
+			else
+			{
+				for( count = 0 ; count < height ; count++)
+				{
+					memcpy( dst , src , copy_len) ;
+					dst -= _display.line_length ;
+					src -= _display.line_length ;
+				}
 			}
 		}
 	}
@@ -3171,7 +3197,7 @@ x_display_copy_lines(
 
 			for( count = 0 ; count < height ; count++)
 			{
-				memmove( dst_back , src_back , copy_len) ;
+				memcpy( dst_back , src_back , copy_len) ;
 				memcpy( dst , src_back , copy_len) ;
 				dst += _display.line_length ;
 				dst_back += _display.line_length ;
@@ -3183,7 +3209,7 @@ x_display_copy_lines(
 		{
 			for( count = 0 ; count < height ; count++)
 			{
-				memmove( dst , src , copy_len) ;
+				memcpy( dst , src , copy_len) ;
 				dst += _display.line_length ;
 				src += _display.line_length ;
 			}

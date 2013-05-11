@@ -98,6 +98,7 @@ Framebuffer 対応に関するメモ
 * 使えない機能
   o 2,4 bpp
   o プロポーショナルフォント
+    (use_variable_column_width 及び use_ind オプションも使用できません。)
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o Daemon mode
   o mlclient (mlclientxは使えます。)

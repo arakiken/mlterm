@@ -10,7 +10,6 @@
 
 
 #define  CHARSET(attr)  (((attr) >> 7) & 0x1ff)
-#define  SIZE(attr) (CS_SIZE(CHARSET(attr)))
 
 #define  IS_BIWIDTH(attr)  ((attr) & (0x1 << 6))
 
@@ -352,8 +351,10 @@ ml_char_combine_simple(
 	ml_char_t *  comb
 	)
 {
-	return  ml_char_combine( ch , ml_char_bytes( comb) , SIZE(comb->u.ch.attr) ,
-			CHARSET(comb->u.ch.attr) ,
+	mkf_charset_t  cs ;
+
+	cs = CHARSET(comb->u.ch.attr) ;
+	return  ml_char_combine( ch , ml_char_bytes( comb) , CS_SIZE(cs) , cs ,
 			IS_BIWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
 			comb->u.ch.fg_color , comb->u.ch.bg_color ,
 			IS_BOLD(comb->u.ch.attr) , IS_UNDERLINED(comb->u.ch.attr)) ;
@@ -484,7 +485,11 @@ ml_char_size(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  SIZE(ch->u.ch.attr) ;
+		mkf_charset_t  cs ;
+
+		cs = CHARSET(ch->u.ch.attr) ;
+
+		return  CS_SIZE(cs) ;
 	}
 	else
 	{
@@ -500,7 +505,11 @@ ml_char_set_bytes(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		memcpy( ch->u.ch.bytes , bytes , SIZE(ch->u.ch.attr)) ;
+		mkf_charset_t  cs ;
+
+		cs = CHARSET(ch->u.ch.attr) ;
+
+		memcpy( ch->u.ch.bytes , bytes , CS_SIZE(cs)) ;
 	}
 	else
 	{
@@ -530,23 +539,15 @@ ml_char_font(
 	ml_char_t *  ch
 	)
 {
-	if( IS_SINGLE_CH(ch->u.ch.attr))
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr))
 	{
-		ml_font_t  font ;
-
-		font = CHARSET(ch->u.ch.attr) ;
-
-		if( IS_BOLD(ch->u.ch.attr))
-		{
-			font |= FONT_BOLD ;
-		}
-
-		if( IS_BIWIDTH(ch->u.ch.attr))
-		{
-			font |= FONT_BIWIDTH ;
-		}
-
-		return  font ;
+		return  CHARSET(attr) |
+		        (IS_BOLD(attr) ? FONT_BOLD : 0) |
+		        (IS_BIWIDTH(attr) ? FONT_BIWIDTH : 0) ;
 	}
 	else
 	{
@@ -583,10 +584,14 @@ ml_char_cols(
 		 * 202D;LEFT-TO-RIGHT OVERRIDE
 		 * 202E;RIGHT-TO-LEFT OVERRIDE
 		*/
-		if( ch->u.ch.bytes[2] == 0x20 &&
-		    ((0x0c <= ch->u.ch.bytes[3] && ch->u.ch.bytes[3] <= 0x0f) ||
-		     (0x2a <= ch->u.ch.bytes[3] && ch->u.ch.bytes[3] <= 0x2e)) &&
-		    ch->u.ch.bytes[0] == 0 && ch->u.ch.bytes[1] == 0)
+		u_char *  bytes ;
+
+		bytes = ch->u.ch.bytes ;
+
+		if( bytes[2] == 0x20 &&
+		    ((0x0c <= bytes[3] && bytes[3] <= 0x0f) ||
+		     (0x2a <= bytes[3] && bytes[3] <= 0x2e)) &&
+		    bytes[0] == 0 && bytes[1] == 0)
 		{
 			return  0 ;
 		}
@@ -634,11 +639,15 @@ ml_char_fg_color(
 	ml_char_t *  ch
 	)
 {
-	if( IS_SINGLE_CH(ch->u.ch.attr))
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr))
 	{
 		ml_color_t  color ;
 
-		if( IS_REVERSED(ch->u.ch.attr))
+		if( IS_REVERSED(attr))
 		{
 			color = extern_color( ch->u.ch.bg_color) ;
 
@@ -650,7 +659,7 @@ ml_char_fg_color(
 		{
 			color = extern_color( ch->u.ch.fg_color) ;
 
-			if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
+			if( color < MAX_VTSYS_COLORS && IS_BOLD(attr))
 			{
 				color |= ML_BOLD_COLOR_MASK ;
 			}
@@ -696,15 +705,19 @@ ml_char_bg_color(
 	ml_char_t *  ch
 	)
 {
-	if( IS_SINGLE_CH(ch->u.ch.attr))
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr))
 	{
 		ml_color_t  color ;
 
-		if( IS_REVERSED(ch->u.ch.attr))
+		if( IS_REVERSED(attr))
 		{
 			color = extern_color(ch->u.ch.fg_color) ;
 
-			if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
+			if( color < MAX_VTSYS_COLORS && IS_BOLD(attr))
 			{
 				color |= ML_BOLD_COLOR_MASK ;
 			}
@@ -869,7 +882,11 @@ ml_char_is_null(
 {
 	if( IS_SINGLE_CH( ch->u.ch.attr))
 	{
-		return  (SIZE(ch->u.ch.attr) == 1 && ch->u.ch.bytes[0] == '\0') ;
+		mkf_charset_t  cs ;
+
+		cs = CHARSET(ch->u.ch.attr) ;
+
+		return  (CS_SIZE(cs) == 1 && ch->u.ch.bytes[0] == '\0') ;
 	}
 	else
 	{
@@ -903,8 +920,8 @@ ml_char_bytes_is(
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
 		if( CHARSET(ch->u.ch.attr) == cs &&
-			SIZE(ch->u.ch.attr) == size &&
-			memcmp( ml_char_bytes( ch) , bytes , size) == 0)
+		    CS_SIZE(cs) == size &&
+		    memcmp( ml_char_bytes( ch) , bytes , size) == 0)
 		{
 			return  1 ;
 		}

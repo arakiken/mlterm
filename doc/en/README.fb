@@ -88,6 +88,7 @@ Framebuffer support
 * Unsupported features
   o 2,4 bpp
   o proportional fonts
+    (use_variable_column_width and use_ind options are also unavailable.)
   o ssh2 client
   o Daemon mode
   o mlclient (mlclientx is avaialble, though)

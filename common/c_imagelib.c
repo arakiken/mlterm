@@ -715,8 +715,8 @@ end:
 		return  NULL ;
 	}
 
-	correct_height( (pixel_t*)pixels , cur_width , &cur_height) ;
 	realloc_pixels( &pixels , cur_width , cur_height , width , height) ;
+	correct_height( (pixel_t*)pixels , cur_width , &cur_height) ;
 
 	*width_ret = cur_width ;
 	*height_ret = cur_height ;

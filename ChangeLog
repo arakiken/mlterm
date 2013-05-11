@@ -1,3 +1,17 @@
+2013-05-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.c: All possible memmove is replaced by memcpy.
+
+	* c_imagelib.c: realloc_pixels() is called before correct_height()
+	  because correct_height() expects the width of pixels to be curtailed.
+
+	* ml_char.c: Optimization of ml_char_size().
+
+	* kik_conf.c: The initial size of kik_conf_entry_t table is changed from
+	  128 to 16 to speed up starting mlterm.
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
 2013-05-11  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_map.h: Uninitialization of KIK_MAP::hash_func is fixed.
