@@ -265,8 +265,8 @@ kik_conf_new(void)
 	
 	conf->end_opt = '\0' ;
 	
-	kik_map_new( char * , kik_conf_entry_t * , conf->conf_entries ,
-		kik_map_hash_str , kik_map_compare_str_nocase) ;
+	kik_map_new_with_size( char * , kik_conf_entry_t * , conf->conf_entries ,
+		kik_map_hash_str , kik_map_compare_str_nocase , 128) ;
 
 	return  conf ;
 }
@@ -401,7 +401,6 @@ kik_conf_parse_args(
 	char *  opt_val ;
 	KIK_PAIR( kik_conf_entry)  pair ;
 	kik_conf_entry_t *  entry ;
-	int  ret ;
 
 	/* passing argv[0] 'cause it may be the program name. */
 	(*argv) ++ ;
@@ -458,8 +457,8 @@ kik_conf_parse_args(
 			goto error ;
 		}
 
-		kik_map_get( ret , conf->conf_entries , opt->key , pair) ;
-		if( ! ret)
+		kik_map_get( conf->conf_entries , opt->key , pair) ;
+		if( ! pair)
 		{
 			if( ( entry = create_new_conf_entry( conf , opt->key)) == NULL)
 			{
@@ -609,7 +608,6 @@ kik_conf_read(
 	char *  value ;
 	kik_conf_entry_t *  entry ;
 	KIK_PAIR( kik_conf_entry)  pair ;
-	int  ret ;
 
 	if( ! ( from = kik_file_open( filename , "r")))
 	{
@@ -624,8 +622,8 @@ kik_conf_read(
 	{
 		value = strdup( value) ;
 
-		kik_map_get( ret , conf->conf_entries , key , pair) ;
-		if( ! ret)
+		kik_map_get( conf->conf_entries , key , pair) ;
+		if( ! pair)
 		{
 			if( ( entry = create_new_conf_entry( conf , key)) == NULL)
 			{
@@ -657,11 +655,10 @@ kik_conf_get_value(
 	)
 {
 	KIK_PAIR( kik_conf_entry)  pair ;
-	int  ret ;
 
-	kik_map_get( ret , conf->conf_entries , key , pair) ;
+	kik_map_get( conf->conf_entries , key , pair) ;
 
-	if( ! ret)
+	if( ! pair)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " no such key[%s] in conf map.\n" , key) ;
@@ -689,12 +686,11 @@ kik_conf_set_default_value(
 {
 	kik_conf_entry_t *  entry ;
 	KIK_PAIR( kik_conf_entry)  pair ;
-	int  ret ;
 
 	key = strdup( key) ;
 
-	kik_map_get( ret , conf->conf_entries , key , pair) ;
-	if( ! ret)
+	kik_map_get( conf->conf_entries , key , pair) ;
+	if( ! pair)
 	{
 		if( ( entry = create_new_conf_entry( conf , key)) == NULL)
 		{

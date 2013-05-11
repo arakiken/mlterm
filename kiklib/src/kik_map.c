@@ -107,6 +107,8 @@ main(void)
 {
 	KIK_MAP( test)  map ;
 	KIK_PAIR( test)  pair ;
+	KIK_PAIR( test) *  array ;
+	u_int  size ;
 	int  result ;
 	int  key ;
 	char *  table[] = { "a" , "b" , "c" , "d" , "e" , "f" , "g" } ;
@@ -122,8 +124,8 @@ main(void)
 
 	for( key = 0 ; key < sizeof(table) / sizeof(table[0]) ; key++)
 	{
-		kik_map_get( result , map , key , pair) ;
-		if( result)
+		kik_map_get( map , key , pair) ;
+		if( pair)
 		{
 			printf( "%d %s\n" , key , pair->value) ;
 		}
@@ -143,8 +145,8 @@ main(void)
 
 	for( key = 0 ; key < sizeof(table) / sizeof(table[0]) ; key++)
 	{
-		kik_map_get( result , map , key , pair) ;
-		if( result)
+		kik_map_get( map , key , pair) ;
+		if( pair)
 		{
 			printf( "%d %s\n" , key , pair->value) ;
 		}
@@ -152,6 +154,15 @@ main(void)
 		{
 			printf( "The value of the key %d is not found\n" , key) ;
 		}
+	}
+
+	printf( "---\n") ;
+
+	kik_map_get_pairs_array( map , array , size) ;
+
+	for( key = 0 ; key < size ; key ++)
+	{
+		printf( "%d %s\n" , array[key]->key , array[key]->value) ;
 	}
 
 	kik_map_delete( map) ;

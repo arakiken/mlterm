@@ -181,18 +181,11 @@ get_font_name_pair(
 	ml_font_t  font
 	)
 {
-	int  result ;
 	KIK_PAIR( x_font_name)  pair ;
 
-	kik_map_get( result , table , font , pair) ;
-	if( result)
-	{
-		return  pair ;
-	}
-	else
-	{
-		return  NULL ;
-	}
+	kik_map_get( table , font , pair) ;
+
+	return  pair ;
 }
 
 static KIK_PAIR( x_font_name) *

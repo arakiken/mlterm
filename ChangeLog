@@ -1,3 +1,12 @@
+2013-05-11  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_map.h: Uninitialization of KIK_MAP::hash_func is fixed.
+
+	* kik_map.h, kik_conf.c, ml_color.c, mc_im.c, x_font_cache.c, x_font_config.c:
+	  'result' argument is removed from kik_map_get().
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
 2013-05-10  Araki Ken  <arakiken@users.sf.net>
 
 	* kiklib/src/Makefile.in: MAJOR.MINOR 14.2 => 14.3

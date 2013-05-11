@@ -323,18 +323,11 @@ get_color_rgb_pair(
 	ml_color_t  color
 	)
 {
-	int  result ;
 	KIK_PAIR( color_rgb)  pair ;
 
-	kik_map_get( result , color_config , color , pair) ;
-	if( result)
-	{
-		return  pair ;
-	}
-	else
-	{
-		return  NULL ;
-	}
+	kik_map_get( color_config , color , pair) ;
+
+	return  pair ;
 }
 
 static int

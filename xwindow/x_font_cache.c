@@ -282,8 +282,8 @@ x_font_cache_get_xfont(
 		col_width = font_cache->usascii_font->width ;
 	}
 
-	kik_map_get( result , font_cache->xfont_table , font , fn_pair) ;
-	if( result)
+	kik_map_get( font_cache->xfont_table , font , fn_pair) ;
+	if( fn_pair)
 	{
 		return  fn_pair->value ;
 	}

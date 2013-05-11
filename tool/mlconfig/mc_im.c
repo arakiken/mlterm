@@ -208,9 +208,9 @@ read_xim_conf(KIK_MAP(xim_locale) xim_locale_table, char *filename)
 
 	while (kik_conf_io_read(from, &key, &value)) {
 
-		kik_map_get(result, xim_locale_table, key, pair);
+		kik_map_get(xim_locale_table, key, pair);
 
-		if (result) {
+		if (pair) {
 			free(pair->value);
 			pair->value = strdup(value);
 		} else {
