@@ -70,7 +70,10 @@ typedef struct
 	int  key_state ;
 	int  lock_state ;
 
+	/* For 1, 2 or 4 bpp */
 	unsigned char *  back_fb ;
+	int  shift_0 ;
+	int  mask ;
 
 } Display ;
 

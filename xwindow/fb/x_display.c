@@ -47,9 +47,11 @@
 #ifdef  BIT_MSBLEFT
 #define FB_SHIFT(ppb,bpp,idx)	(MOD_PPB(idx,ppb) * (bpp))
 #define FB_SHIFT_0(ppb,bpp)	(0)
+#define FB_SHIFT_NEXT(shift,bpp)	((shift) += (bpp))
 #else
 #define FB_SHIFT(ppb,bpp,idx)	(((ppb) - MOD_PPB(idx,ppb) - 1) * (bpp))
-#define FB_SHIFT_0(ppb,bpp)	((ppb) - 1) * (bpp)
+#define FB_SHIFT_0(ppb,bpp)	(((ppb) - 1) * (bpp))
+#define FB_SHIFT_NEXT(shift,bpp)	((shift) -= (bpp))
 #endif
 
 #define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
@@ -351,7 +353,6 @@ put_image_to_124bpp(
 	u_char *  p ;
 	u_char *  fb ;
 	int  shift ;
-	int  mask ;
 	size_t  count ;
 
 	ppb = _display.pixels_per_byte ;
@@ -364,7 +365,6 @@ put_image_to_124bpp(
 	}
 
 	fb = get_fb( x , y) ;
-	mask = FB_MASK(ppb) ;
 
 	if( memchr( image , BG_MAGIC , size))
 	{
@@ -383,18 +383,18 @@ put_image_to_124bpp(
 		{
 			if( image[count] != BG_MAGIC)
 			{
-				(*p) &= ~(mask << shift) ;
+				(*p) &= ~(_display.mask << shift) ;
 				(*p) |= (image[count] << shift) ;
 			}
 
 		#ifdef  BIT_MSBLEFT
-			if( ( shift += bpp) >= 8)
+			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
 		#else
-			if( ( shift -= bpp) < 0)
+			if( FB_SHIFT_NEXT(shift,bpp) < 0)
 		#endif
 			{
 				p ++ ;
-				shift = FB_SHIFT_0(ppb,bpp) ;
+				shift = _display.shift_0 ;
 			}
 		}
 
@@ -409,7 +409,7 @@ put_image_to_124bpp(
 
 		memset( new_image , 0 , size / ppb + 2) ;
 
-		shift = FB_SHIFT_0(ppb,bpp) ;
+		shift = _display.shift_0 ;
 
 		if( ( surplus = MOD_PPB(x,ppb)) > 0)
 		{
@@ -419,13 +419,9 @@ put_image_to_124bpp(
 
 			for( ; surplus > 0 ; surplus --)
 			{
-				(*p) |= (fb[0] & (mask << shift)) ;
+				(*p) |= (fb[0] & (_display.mask << shift)) ;
 
-			#ifdef  BIT_MSBLEFT
-				shift += bpp ;
-			#else
-				shift -= bpp ;
-			#endif
+				FB_SHIFT_NEXT(shift,bpp) ;
 			}
 
 		#ifdef  ENABLE_DOUBLE_BUFFER
@@ -438,13 +434,13 @@ put_image_to_124bpp(
 			(*p) |= (image[count] << shift) ;
 
 		#ifdef  BIT_MSBLEFT
-			if( ( shift += bpp) >= 8)
+			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
 		#else
-			if( ( shift -= bpp) < 0)
+			if( FB_SHIFT_NEXT(shift,bpp) < 0)
 		#endif
 			{
 				p ++ ;
-				shift = FB_SHIFT_0(ppb,bpp) ;
+				shift = _display.shift_0 ;
 			}
 		}
 
@@ -459,13 +455,9 @@ put_image_to_124bpp(
 
 			for( ; surplus < ppb ; surplus++)
 			{
-				(*p) |= (fb2[0] & (mask << shift)) ;
+				(*p) |= (fb2[0] & (_display.mask << shift)) ;
 
-			#ifdef  BIT_MSBLEFT
-				shift += bpp ;
-			#else
-				shift -= bpp ;
-			#endif
+				FB_SHIFT_NEXT(shift,bpp) ;
 			}
 
 			p ++ ;
@@ -1036,17 +1028,22 @@ open_display(void)
 
 	if( _disp.depth < 15)
 	{
-	#if  1
 		if( _disp.depth < 8)
 		{
+		#if  1
 			/* XXX Forcibly set 1 bpp */
 			_display.pixels_per_byte = 8 ;
 			_disp.depth = 1 ;
+		#else
+			_display.pixels_per_byte = 8 / _disp.depth ;
+		#endif
+
+			_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;
+			_display.mask = FB_MASK(_display.pixels_per_byte) ;
 		}
 		else
-	#endif
 		{
-			_display.pixels_per_byte = 8 / _disp.depth ;
+			_display.pixels_per_byte = 1 ;
 		}
 
 		if( ! cmap_init( 2 << (_disp.depth - 1)))
@@ -1679,6 +1676,9 @@ open_display(void)
 	#else
 		_display.pixels_per_byte = 8 / _disp.depth ;
 	#endif
+
+		_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;
+		_display.mask = FB_MASK(_display.pixels_per_byte) ;
 	}
 	else
 	{
@@ -1762,12 +1762,6 @@ open_display(void)
 	{
 		goto  error ;
 	}
-#endif
-
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " Framebuffer: w %d h %d line %d size %d depth %d\n" ,
-		_disp.width , _disp.height , _display.line_length , _display.smem_len ,
-		_disp.depth) ;
 #endif
 
 	tcgetattr( STDIN_FILENO , &tm) ;
@@ -2354,6 +2348,9 @@ open_display(void)
 		_display.pixels_per_byte = 8 / _disp.depth ;
 	#endif
 	#endif
+
+		_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;
+		_display.mask = FB_MASK(_display.pixels_per_byte) ;
 	}
 	else
 	{
