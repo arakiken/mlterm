@@ -339,12 +339,13 @@ get_fb(
 }
 
 static void
-put_image_to_124bpp(
+put_image_124bpp(
 	int  x ,
 	int  y ,
 	u_char *  image ,
 	size_t  size ,
-	int  write_back_fb
+	int  write_back_fb ,
+	int  need_fb_pixel
 	)
 {
 	u_int  ppb ;
@@ -366,7 +367,7 @@ put_image_to_124bpp(
 
 	fb = get_fb( x , y) ;
 
-	if( memchr( image , BG_MAGIC , size))
+	if( need_fb_pixel && memchr( image , BG_MAGIC , size))
 	{
 		memcpy( new_image ,
 		#ifdef  ENABLE_DOUBLE_BUFFER
@@ -465,6 +466,7 @@ put_image_to_124bpp(
 	}
 
 	memcpy( fb , new_image , p - new_image) ;
+
 #ifdef  ENABLE_DOUBLE_BUFFER
 	if( write_back_fb)
 	{
@@ -655,9 +657,9 @@ draw_mouse_cursor_line(
 
 	if( _display.pixels_per_byte > 1)
 	{
-		put_image_to_124bpp(
+		put_image_124bpp(
 			_mouse.cursor.x , _mouse.cursor.y + y ,
-			image , _mouse.cursor.width , 0) ;
+			image , _mouse.cursor.width , 0 , 0) ;
 	}
 	else
 	{
@@ -3072,12 +3074,13 @@ x_display_put_image(
 	int  x ,
 	int  y ,
 	u_char *  image ,
-	size_t  size
+	size_t  size ,
+	int  need_fb_pixel
 	)
 {
 	if( _display.pixels_per_byte > 1)
 	{
-		put_image_to_124bpp( x , y , image , size , 1) ;
+		put_image_124bpp( x , y , image , size , 1 , need_fb_pixel) ;
 	}
 	else
 	{

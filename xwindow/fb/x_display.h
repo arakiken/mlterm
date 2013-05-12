@@ -20,7 +20,7 @@
 
 u_long  x_display_get_pixel( int  x , int  y) ;
 
-void  x_display_put_image( int  x , int  y , u_char *  image , size_t  size) ;
+void  x_display_put_image( int  x , int  y , u_char *  image , size_t  size , int  need_fb_pixel) ;
 
 void  x_display_copy_lines( int  src_x , int  src_y ,
 		int  dst_x , int  dst_y , u_int  width , u_int  height) ;

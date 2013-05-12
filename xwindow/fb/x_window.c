@@ -82,6 +82,7 @@ draw_string(
 	u_int  bpp ;
 	u_char *  image ;
 	u_int  count ;
+	int  need_fb_pixel ;
 
 	if( ! win->is_mapped)
 	{
@@ -144,10 +145,12 @@ draw_string(
 		image = win->wall_picture->image +
 			((y + y_off - font_ascent - win->y) *
 			 win->wall_picture->width - win->x) * bpp ;
+		need_fb_pixel = 0 ;
 	}
 	else
 	{
 		image = NULL ;
+		need_fb_pixel = bg_color ? 1 : 0 ;
 	}
 
 	for( ; y_off < font_height ; y_off++)
@@ -228,7 +231,8 @@ draw_string(
 			x += x_off ;
 		}
 
-		x_display_put_image( (x = orig_x) , y + y_off - font_ascent , src , p - src) ;
+		x_display_put_image( (x = orig_x) , y + y_off - font_ascent ,
+			src , p - src , need_fb_pixel) ;
 		p = src ;
 
 		if( image)
@@ -329,7 +333,7 @@ copy_area(
 					win->x + win->margin + dst_x + x_off - w ,
 					win->y + win->margin + dst_y + y_off ,
 					image + bpp * ( x_off - w) ,
-					w * bpp) ;
+					w * bpp , 0) ;
 				w = 0 ;
 			}
 
@@ -348,7 +352,7 @@ copy_area(
 			x_display_put_image(
 				win->x + win->margin + dst_x ,
 				win->y + win->margin + dst_y + y_off ,
-				image , size) ;
+				image , size , 0) ;
 			image += src_width_size ;
 		}
 	}
@@ -1059,7 +1063,7 @@ x_window_fill_with(
 			}
 		}
 
-		x_display_put_image( x , y + y_off , src , size) ;
+		x_display_put_image( x , y + y_off , src , size , 0) ;
 	}
 
 	return  1 ;
