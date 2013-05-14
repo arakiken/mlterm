@@ -659,7 +659,7 @@ draw_mouse_cursor_line(
 	{
 		put_image_124bpp(
 			_mouse.cursor.x , _mouse.cursor.y + y ,
-			image , _mouse.cursor.width , 0 , 0) ;
+			image , _mouse.cursor.width , 0 , 1) ;
 	}
 	else
 	{
