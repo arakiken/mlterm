@@ -325,7 +325,7 @@ draw_screen_vertical(
 		/*
 		 * digits
 		 * +----------+
-		 * |1 cand0	  |
+		 * |1 cand0   |
 		 *  ^
 		 */
 		if( cand_screen->candidates[i].info)

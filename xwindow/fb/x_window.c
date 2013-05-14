@@ -57,6 +57,28 @@ scroll_region(
 	return  1 ;
 }
 
+static inline void
+copy_pixel(
+	u_char *  dst ,		/* should be aligned */
+	u_long  pixel ,
+	u_int  bpp
+	)
+{
+	switch( bpp)
+	{
+	case  1:
+		*dst = pixel ;
+		return ;
+	case  2:
+		*((u_int16_t*)dst) = pixel ;
+		return ;
+
+	/* case  4: */
+	default:
+		*((u_int32_t*)dst) = pixel ;
+	}
+}
+
 static int
 draw_string(
 	x_window_t *  win ,
@@ -138,106 +160,107 @@ draw_string(
 	}
 
 	orig_x = (x += (win->margin + win->x)) ;
-	y += (win->margin + win->y) ;
+	y = y + (win->margin + win->y) - font_ascent ;
 
 	if( wall_picture_bg)
 	{
 		image = win->wall_picture->image +
-			((y + y_off - font_ascent - win->y) *
-			 win->wall_picture->width - win->x) * bpp ;
+			( (y + y_off - win->y) * win->wall_picture->width +
+			  x - win->x) * bpp ;
+		memcpy( src , image , size) ;
 		need_fb_pixel = 0 ;
 	}
 	else
 	{
 		image = NULL ;
-		need_fb_pixel = bg_color ? 1 : 0 ;
+		need_fb_pixel = bg_color ? 0 : 1 ;
 	}
 
 	for( ; y_off < font_height ; y_off++)
 	{
-		for( count = 0 ; count < len ; count++)
+		for( count = 0 ; count < len ; count++ , x += font->width)
 		{
-			int  force_fg ;
-			int  x_off ;
 			u_char *  bitmap_line ;
+			int  x_off ;
 
-			force_fg = 0 ;
-
-			bitmap_line = x_get_bitmap_line( font->xfont , bitmaps[count] , y_off) ;
-
-			for( x_off = 0 ; x_off < font->width ; x_off++)
+			if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
+						bitmaps[count] , y_off)))
 			{
-				u_long  pixel ;
-
-				if( bitmap_line && font->x_off <= x_off &&
-				    x_get_bitmap_cell( font->xfont , bitmap_line ,
-					x_off - font->x_off) )
+				if( image)
 				{
-					pixel = fg_color->pixel ;
-
-					force_fg = font->is_double_drawing ;
+					p += (font->width * bpp) ;
+				}
+				else if( bg_color)
+				{
+					for( x_off = 0 ; x_off < font->width ; x_off++ , p += bpp)
+					{
+						copy_pixel( p , bg_color->pixel , bpp) ;
+					}
 				}
 				else
 				{
-					if( force_fg)
+					for( x_off = 0 ; x_off < font->width ; x_off++ , p += bpp)
+					{
+						copy_pixel( p ,
+							x_display_get_pixel( x + x_off ,
+								y + y_off) ,
+							bpp) ;
+					}
+				}
+			}
+			else
+			{
+				int  force_fg ;
+
+				force_fg = 0 ;
+
+				for( x_off = 0 ; x_off < font->width ; x_off++ , p += bpp)
+				{
+					u_long  pixel ;
+
+					if( bitmap_line && font->x_off <= x_off &&
+					    x_get_bitmap_cell( font->xfont , bitmap_line ,
+						x_off - font->x_off) )
 					{
 						pixel = fg_color->pixel ;
-						force_fg = 0 ;
-					}
-					else if( bg_color)
-					{
-						pixel = bg_color->pixel ;
-					}
-					else if( image)
-					{
-						switch( bpp)
-						{
-						case  1:
-							pixel = image[x + x_off] ;
-							break ;
 
-						case  2:
-							pixel = ((u_int16_t*)image)[x + x_off] ;
-							break ;
-
-						default:
-							pixel = ((u_int32_t*)image)[x + x_off] ;
-						}
+						force_fg = font->is_double_drawing ;
 					}
 					else
 					{
-						pixel = x_display_get_pixel(
-								x + x_off ,
-								y + y_off - font_ascent) ;
+						if( force_fg)
+						{
+							pixel = fg_color->pixel ;
+							force_fg = 0 ;
+						}
+						else if( image)
+						{
+							continue ;
+						}
+						else if( bg_color)
+						{
+							pixel = bg_color->pixel ;
+						}
+						else
+						{
+							pixel = x_display_get_pixel(
+									x + x_off ,
+									y + y_off) ;
+						}
 					}
-				}
 
-				switch( bpp)
-				{
-				case 1:
-					*p = pixel ;
-					break ;
-				case 2:
-					*((u_int16_t*)p) = pixel ;
-					break ;
-				/* case 4: */
-				default:
-					*((u_int32_t*)p) = pixel ;
+					copy_pixel( p , pixel , bpp) ;
 				}
-
-				p += bpp ;
 			}
-
-			x += x_off ;
 		}
 
-		x_display_put_image( (x = orig_x) , y + y_off - font_ascent ,
-			src , p - src , need_fb_pixel) ;
+		x_display_put_image( (x = orig_x) , y + y_off , src , p - src , need_fb_pixel) ;
 		p = src ;
 
 		if( image)
 		{
 			image += (win->wall_picture->width * bpp) ;
+			memcpy( src , image , size) ;
 		}
 	}
 
@@ -830,16 +853,23 @@ x_window_resize(
 	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
-	if( (flag & NOTIFY_TO_PARENT) && win->parent)
+	if( (flag & NOTIFY_TO_PARENT) &&
+	    /* XXX Check if win is input method window or not. */
+	    (win->disp->num_of_roots == 1 || win != win->disp->roots[1]))
 	{
+		if( win->parent)
+		{
+			win = win->parent ;
+		}
+
 		/*
 		 * XXX
 		 * If Font size, screen_{width|height}_ratio or vertical_mode is changed
 		 * and x_window_resize( NOTIFY_TO_PARENT) is called, ignore this call and
 		 * resize windows with display size.
 		 */
-		win->parent->width = 0 ;
-		return  x_window_resize_with_margin( win->parent ,
+		win->width = 0 ;
+		return  x_window_resize_with_margin( win ,
 				win->disp->width , win->disp->height ,
 				NOTIFY_TO_MYSELF) ;
 	}
@@ -1025,23 +1055,21 @@ x_window_fill_with(
 		return  0 ;
 	}
 
-	bpp = win->disp->display->bytes_per_pixel ;
-
-	if( ! ( src = alloca( ( size = width * bpp))))
-	{
-		return  0 ;
-	}
-
 	x += (win->x + win->margin) ;
 	y += (win->y + win->margin) ;
 
-	for( y_off = 0 ; y_off < height ; y_off++)
+	if( ( bpp = win->disp->display->bytes_per_pixel) == 1)
 	{
-		if( bpp == 1)
+		x_display_fill_with( x , y , width , height , (u_int8_t)color->pixel) ;
+	}
+	else
+	{
+		if( ! ( src = alloca( ( size = width * bpp))))
 		{
-			memset( src , color->pixel , width) ;
+			return  0 ;
 		}
-		else
+
+		for( y_off = 0 ; y_off < height ; y_off++)
 		{
 			u_char *  p ;
 			int  x_off ;
@@ -1061,9 +1089,9 @@ x_window_fill_with(
 
 				p += bpp ;
 			}
-		}
 
-		x_display_put_image( x , y + y_off , src , size , 0) ;
+			x_display_put_image( x , y + y_off , src , size , 0) ;
+		}
 	}
 
 	return  1 ;

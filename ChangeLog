@@ -1,6 +1,29 @@
+2013-05-14  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c, x_font_manager.c: Whether usascii_font_cs is actually
+	  changed or not is checked in usascii_font_cs_changed().
+
+	* fb/x_window.c:
+	  - Mistake of need_fb_pixel in the previous commit is fixed.
+	  - Optimization of draw_string().
+	  - Hack in x_window_resize() is applied if scrollbar is hidden.
+
+	* fb/x_display.c, fb/x_window.c: x_display_fill_with() for 8 or less bpp
+	  is added, and x_window_fill_with() uses it.
+
 2013-05-12  Araki Ken  <arakiken@users.sf.net>
 
-	* x_display.c: All possible memmove is replaced by memcpy.
+	* fb/x_display.c, fb/x_window.c: need_fb_pixel argument which triggers
+	  memchr( BG_MAGIC) is added to put_image_124bpp.
+
+2013-05-12  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x.h, fb/x_display.c: Display structure has shift_0 and mask members which
+	  stores the result of FB_SHIFT_0() and FB_MASK().
+
+2013-05-12  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: All possible memmove is replaced by memcpy.
 
 	* c_imagelib.c: realloc_pixels() is called before correct_height()
 	  because correct_height() expects the width of pixels to be curtailed.

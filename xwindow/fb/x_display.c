@@ -3100,6 +3100,177 @@ x_display_put_image(
 	}
 }
 
+/* Check if bytes_per_pixel == 1 or not by the caller. */
+void
+x_display_fill_with(
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height ,
+	u_int8_t  pixel
+	)
+{
+	u_char *  fb ;
+	u_int  ppb ;
+	u_char *  buf ;
+	int  y_off ;
+
+	fb = get_fb( x , y) ;
+
+	if( ( ppb = _display.pixels_per_byte) > 1)
+	{
+		u_int  bpp ;
+		u_char *  fb_end ;
+		u_char *  buf_end ;
+		u_int  surplus ;
+		u_int  surplus_end ;
+
+		fb_end = get_fb( x + width , y) ;
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		fb_end = _display.back_fb + ( fb_end - _display.fb) ;
+	#else
+		if( ! ( buf = alloca( fb_end - fb + 1)))
+		{
+			return ;
+		}
+
+		buf_end = buf + (fb_end - fb) ;
+	#endif
+
+		bpp = 8 / ppb ;
+		surplus = MOD_PPB(x,ppb) ;
+		surplus_end = MOD_PPB(x+width,ppb) ;
+
+		for( y_off = 0 ; y_off < height ; y_off ++)
+		{
+			u_char *  buf_p ;
+			int  shift ;
+			u_int8_t  pix ;
+			u_int  count ;
+			size_t  size ;
+
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			buf = fb = _display.back_fb + ( fb - _display.fb) ;
+			buf_end = fb_end ;
+		#endif
+			buf_p = buf ;
+
+			shift = _display.shift_0 ;
+			count = 0 ;
+			pix = 0 ;
+
+			if( surplus > 0)
+			{
+				for( ; count < surplus ; count++)
+				{
+					pix |= (fb[0] & (_display.mask << shift)) ;
+
+					FB_SHIFT_NEXT(shift,bpp) ;
+				}
+
+				if( buf_p != buf_end)
+				{
+					if( pixel)
+					{
+						for( ; count < ppb ; count++)
+						{
+							pix |= (pixel << shift) ;
+
+							FB_SHIFT_NEXT(shift,bpp) ;
+						}
+					}
+
+					*(buf_p++) = pix ;
+
+					shift = _display.shift_0 ;
+					count = 0 ;
+					pix = 0 ;
+				}
+			}
+
+			if( surplus_end > 0)
+			{
+				if( pixel)
+				{
+					for( ; count < surplus_end ; count++)
+					{
+						pix |= (pixel << shift) ;
+
+						FB_SHIFT_NEXT(shift,bpp) ;
+					}
+				}
+				else
+				{
+					count = surplus_end ;
+					shift = FB_SHIFT(ppb,bpp,surplus_end) ;
+				}
+
+				for( ; count < ppb ; count++)
+				{
+					pix |= (fb_end[0] & (_display.mask << shift)) ;
+
+					FB_SHIFT_NEXT(shift,bpp) ;
+				}
+
+				*buf_end = pix ;
+
+				shift = _display.shift_0 ;
+				pix = 0 ;
+
+				size = buf_end - buf + 1 ;
+			}
+			else
+			{
+				size = buf_end - buf ;
+			}
+
+			if( buf_p < buf_end)
+			{
+				if( pixel)
+				{
+					if( ppb == 8)
+					{
+						pix = 0xff ;
+					}
+					else
+					{
+						for( count = 0 ; count < ppb ; count++)
+						{
+							pix |= (pixel << shift) ;
+
+							FB_SHIFT_NEXT(shift,bpp) ;
+						}
+					}
+				}
+
+				memset( buf_p , pix , buf_end - buf_p) ;
+			}
+
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			fb = _display.fb + ( fb - _display.back_fb) ;
+		#endif
+
+			memcpy( fb , buf , size) ;
+			fb += _display.line_length ;
+			fb_end += _display.line_length ;
+		}
+	}
+	else
+	{
+		if( ! ( buf = alloca( width)))
+		{
+			return ;
+		}
+
+		for( y_off = 0 ; y_off < height ; y_off ++)
+		{
+			memset( buf , pixel , width) ;
+			memcpy( fb , buf , width) ;
+			fb += _display.line_length ;
+		}
+	}
+}
+
 void
 x_display_copy_lines(
 	int  src_x ,

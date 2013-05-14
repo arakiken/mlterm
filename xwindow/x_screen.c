@@ -4539,15 +4539,16 @@ usascii_font_cs_changed(
 		cs = x_get_usascii_font_cs( encoding) ;
 	}
 
-	x_font_manager_usascii_font_cs_changed( screen->font_man , cs) ;
+	if( x_font_manager_usascii_font_cs_changed( screen->font_man , cs))
+	{
+		font_size_changed( screen) ;
 
-	font_size_changed( screen) ;
-
-	/*
-	 * this is because font_man->font_set may have changed in
-	 * x_font_manager_usascii_font_cs_changed()
-	 */
-	x_xic_font_set_changed( &screen->window) ;
+		/*
+		 * this is because font_man->font_set may have changed in
+		 * x_font_manager_usascii_font_cs_changed()
+		 */
+		x_xic_font_set_changed( &screen->window) ;
+	}
 }
 
 static void

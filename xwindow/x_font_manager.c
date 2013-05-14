@@ -228,7 +228,7 @@ x_font_manager_usascii_font_cs_changed(
 
 	if( usascii_font_cs == font_man->font_cache->usascii_font_cs)
 	{
-		return  1 ;
+		return  0 ;
 	}
 
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
