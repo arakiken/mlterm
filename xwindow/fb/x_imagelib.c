@@ -221,8 +221,8 @@ load_sixel_1bpp_from_file(
 	}
 
 	if( ( width != 0 && width != (*pixmap)->width) ||
-	    /* (*pixmap)->height is always multiple of 6. */
-	    ( height != 0 && (height + 5) / 6 != (*pixmap)->height / 6))
+	    /* The height of sixel graphics is multiple of 6. */
+	    ( height != 0 && (height + 5) / 6 != ((*pixmap)->height + 5) / 6))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG
