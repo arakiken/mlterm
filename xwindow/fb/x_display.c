@@ -442,6 +442,33 @@ put_image_124bpp(
 			{
 				p ++ ;
 				shift = _display.shift_0 ;
+
+				if( ppb == 8)
+				{
+					for( ; count + 8 <= size ; count += 8)
+					{
+						*(p++) =
+						#ifdef  BIT_MSBLEFT
+							 image[count] |
+							 (image[count + 1] << 1) |
+							 (image[count + 2] << 2) |
+							 (image[count + 3] << 3) |
+							 (image[count + 4] << 4) |
+							 (image[count + 5] << 5) |
+							 (image[count + 6] << 6) |
+							 (image[count + 7] << 7) ;
+						#else
+							 (image[count] << 7) |
+							 (image[count + 1] << 6) |
+							 (image[count + 2] << 5) |
+							 (image[count + 3] << 4) |
+							 (image[count + 4] << 3) |
+							 (image[count + 5] << 2) |
+							 (image[count + 6] << 1) |
+							 image[count + 7] ;
+						#endif
+					}
+				}
 			}
 		}
 
@@ -3124,6 +3151,9 @@ x_display_fill_with(
 		u_char *  buf_end ;
 		u_int  surplus ;
 		u_int  surplus_end ;
+		int  packed_pixel ;
+		u_int  count ;
+		int  shift ;
 
 		fb_end = get_fb( x + width , y) ;
 	#ifdef  ENABLE_DOUBLE_BUFFER
@@ -3141,12 +3171,29 @@ x_display_fill_with(
 		surplus = MOD_PPB(x,ppb) ;
 		surplus_end = MOD_PPB(x+width,ppb) ;
 
+		packed_pixel = 0 ;
+		if( pixel)
+		{
+			if( ppb == 8)
+			{
+				packed_pixel = 0xff ;
+			}
+			else
+			{
+				shift = _display.shift_0 ;
+
+				for( count = 0 ; count < ppb ; count++)
+				{
+					packed_pixel |= (pixel << shift) ;
+					FB_SHIFT_NEXT(shift,bpp) ;
+				}
+			}
+		}
+
 		for( y_off = 0 ; y_off < height ; y_off ++)
 		{
 			u_char *  buf_p ;
-			int  shift ;
 			u_int8_t  pix ;
-			u_int  count ;
 			size_t  size ;
 
 		#ifdef  ENABLE_DOUBLE_BUFFER
@@ -3226,24 +3273,13 @@ x_display_fill_with(
 
 			if( buf_p < buf_end)
 			{
-				if( pixel)
-				{
-					if( ppb == 8)
-					{
-						pix = 0xff ;
-					}
-					else
-					{
-						for( count = 0 ; count < ppb ; count++)
-						{
-							pix |= (pixel << shift) ;
-
-							FB_SHIFT_NEXT(shift,bpp) ;
-						}
-					}
-				}
-
-				memset( buf_p , pix , buf_end - buf_p) ;
+				/*
+				 * XXX
+				 * If ENABLE_DOUBLE_BUFFER is on, it is not necessary
+				 * to memset every time because the pointer of buf
+				 * points the same address.
+				 */
+				memset( buf_p , packed_pixel , buf_end - buf_p) ;
 			}
 
 		#ifdef  ENABLE_DOUBLE_BUFFER
