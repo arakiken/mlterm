@@ -105,6 +105,7 @@ draw_string(
 	u_char *  image ;
 	u_int  count ;
 	int  need_fb_pixel ;
+	int  src_bg_is_set ;
 
 	if( ! win->is_mapped)
 	{
@@ -168,11 +169,24 @@ draw_string(
 			( (y + y_off - win->y) * win->wall_picture->width +
 			  x - win->x) * bpp ;
 		memcpy( src , image , size) ;
+		src_bg_is_set = 1 ;
+
 		need_fb_pixel = 0 ;
 	}
 	else
 	{
 		image = NULL ;
+
+		if( bpp == 1)
+		{
+			memset( src , bg_color->pixel , size) ;
+			src_bg_is_set = 1 ;
+		}
+		else
+		{
+			src_bg_is_set = 0 ;
+		}
+
 		need_fb_pixel = bg_color ? 0 : 1 ;
 	}
 
@@ -186,7 +200,7 @@ draw_string(
 			if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
 						bitmaps[count] , y_off)))
 			{
-				if( image)
+				if( src_bg_is_set)
 				{
 					p += (font->width * bpp) ;
 				}
@@ -233,7 +247,7 @@ draw_string(
 							pixel = fg_color->pixel ;
 							force_fg = 0 ;
 						}
-						else if( image)
+						else if( src_bg_is_set)
 						{
 							continue ;
 						}
@@ -257,10 +271,17 @@ draw_string(
 		x_display_put_image( (x = orig_x) , y + y_off , src , p - src , need_fb_pixel) ;
 		p = src ;
 
-		if( image)
+		if( src_bg_is_set)
 		{
-			image += (win->wall_picture->width * bpp) ;
-			memcpy( src , image , size) ;
+			if( image)
+			{
+				image += (win->wall_picture->width * bpp) ;
+				memcpy( src , image , size) ;
+			}
+			else
+			{
+				memset( src , bg_color->pixel , size) ;
+			}
 		}
 	}
 
