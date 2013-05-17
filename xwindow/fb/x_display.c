@@ -430,9 +430,9 @@ put_image_124bpp(
 		#endif
 		}
 
-		for( count = 0 ; count < size ; count++)
+		for( count = 0 ; count < size ;)
 		{
-			(*p) |= (image[count] << shift) ;
+			(*p) |= (image[count++] << shift) ;
 
 		#ifdef  BIT_MSBLEFT
 			if( FB_SHIFT_NEXT(shift,bpp) >= 8)

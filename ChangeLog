@@ -1,5 +1,7 @@
 2013-05-17  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: Off by one error in put_image_124bpp is fixed.
+
 	* fb/x_window.c: Optimization of draw_string() for 1bpp.
 
 2013-05-16  Araki Ken  <arakiken@users.sf.net>
