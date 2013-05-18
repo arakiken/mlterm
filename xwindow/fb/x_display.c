@@ -29,7 +29,6 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_privilege.h>	/* kik_priv_change_e(u|g)id */
 #include  <kiklib/kik_unistd.h>		/* kik_getuid */
-#include  <kiklib/kik_util.h>		/* K_MIN/K_MAX */
 #include  <kiklib/kik_file.h>
 
 #include  <ml_color.h>
@@ -44,7 +43,15 @@
 /* Because ppb is 2, 4 or 8, "% ppb" can be replaced by "& ppb" */
 #define  MOD_PPB(i,ppb)  ((i) & ((ppb) - 1))
 
-#ifdef  BIT_MSBLEFT
+/*
+ * If the most significant bit stores the pixel at the right side of the screen,
+ * define VRAMBIT_MSBRIGHT.
+ */
+#if  0
+#define VRAMBIT_MSBRIGHT
+#endif
+
+#ifdef  VRAMBIT_MSBRIGHT
 #define FB_SHIFT(ppb,bpp,idx)	(MOD_PPB(idx,ppb) * (bpp))
 #define FB_SHIFT_0(ppb,bpp)	(0)
 #define FB_SHIFT_NEXT(shift,bpp)	((shift) += (bpp))
@@ -388,7 +395,7 @@ put_image_124bpp(
 				(*p) |= (image[count] << shift) ;
 			}
 
-		#ifdef  BIT_MSBLEFT
+		#ifdef  VRAMBIT_MSBRIGHT
 			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
 		#else
 			if( FB_SHIFT_NEXT(shift,bpp) < 0)
@@ -434,7 +441,7 @@ put_image_124bpp(
 		{
 			(*p) |= (image[count++] << shift) ;
 
-		#ifdef  BIT_MSBLEFT
+		#ifdef  VRAMBIT_MSBRIGHT
 			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
 		#else
 			if( FB_SHIFT_NEXT(shift,bpp) < 0)
@@ -448,7 +455,7 @@ put_image_124bpp(
 					for( ; count + 8 <= size ; count += 8)
 					{
 						*(p++) =
-						#ifdef  BIT_MSBLEFT
+						#ifdef  VRAMBIT_MSBRIGHT
 							 image[count] |
 							 (image[count + 1] << 1) |
 							 (image[count + 2] << 2) |

@@ -1,3 +1,12 @@
+2013-05-19  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_util.h, fb/x_font.c: BIT_MSBLEFT => BIT_MSBFIRST
+
+	* fb/x_display.c: BIT_MSBLEFT => VRAMBIT_MSBRIGHT
+
+	* fb/x_window.c: Segfault in draw_string without bg_color (for example
+	  in drawing a candidate window of input method plugin) is fixed.
+
 2013-05-17  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Off by one error in put_image_124bpp is fixed.

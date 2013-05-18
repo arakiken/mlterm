@@ -177,17 +177,25 @@ draw_string(
 	{
 		image = NULL ;
 
-		if( bpp == 1)
+		if( bg_color)
 		{
-			memset( src , bg_color->pixel , size) ;
-			src_bg_is_set = 1 ;
+			if( bpp == 1)
+			{
+				memset( src , bg_color->pixel , size) ;
+				src_bg_is_set = 1 ;
+			}
+			else
+			{
+				src_bg_is_set = 0 ;
+			}
+
+			need_fb_pixel = 0 ;
 		}
 		else
 		{
 			src_bg_is_set = 0 ;
+			need_fb_pixel = 1 ;
 		}
-
-		need_fb_pixel = bg_color ? 0 : 1 ;
 	}
 
 	for( ; y_off < font_height ; y_off++)

@@ -42,7 +42,7 @@
 #endif
 
 #if  defined(WORDS_BIGENDIAN) && ! defined(__mc68000) && ! defined(__mips)
-#define  BIT_MSBLEFT
+#define  BIT_MSBFIRST
 #endif
 
 #define  K_MAX(n1,n2)  ((n1) > (n2) ? (n1) : (n2))

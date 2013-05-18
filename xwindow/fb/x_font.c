@@ -130,7 +130,7 @@ load_bitmaps(
 
 	memcpy( xfont->glyphs , p , bitmap_sizes[glyph_pad_type]) ;
 
-#ifdef  BIT_MSBLEFT
+#ifdef  BIT_MSBFIRST
 	xfont->glyphs_same_bitorder = is_be ;
 #else
 	xfont->glyphs_same_bitorder = ! is_be ;
