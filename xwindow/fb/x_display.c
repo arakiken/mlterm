@@ -366,24 +366,39 @@ put_image_124bpp(
 	ppb = _display.pixels_per_byte ;
 	bpp = 8 / ppb ;
 
-	/* + 2 is for surplus */
-	if( ! ( p = new_image = alloca( size / ppb + 2)))
+	fb = get_fb( x , y) ;
+
+#ifdef  ENABLE_DOUBLE_BUFFER
+	if( write_back_fb)
 	{
-		return ;
+		new_image = _display.back_fb + (fb - _display.fb) ;
+	}
+	else
+#endif
+	{
+		/* + 2 is for surplus */
+		if( ! ( new_image = alloca( size / ppb + 2)))
+		{
+			return ;
+		}
 	}
 
-	fb = get_fb( x , y) ;
+	p = new_image ;
 
 	if( need_fb_pixel && memchr( image , BG_MAGIC , size))
 	{
-		memcpy( new_image ,
-		#ifdef  ENABLE_DOUBLE_BUFFER
-			_display.back_fb + (fb - _display.fb) ,
-		#else
-			fb ,
-		#endif
-			get_fb( x + size , y) - fb +
-			(MOD_PPB(x + size,ppb) > 0 ? 1 : 0)) ;
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		if( ! write_back_fb)
+	#endif
+		{
+			memcpy( new_image ,
+			#ifdef  ENABLE_DOUBLE_BUFFER
+				_display.back_fb + (fb - _display.fb) ,
+			#else
+				fb ,
+			#endif
+				size / ppb + 2) ;
+		}
 
 		shift = FB_SHIFT(ppb,bpp,x) ;
 
@@ -391,8 +406,8 @@ put_image_124bpp(
 		{
 			if( image[count] != BG_MAGIC)
 			{
-				(*p) &= ~(_display.mask << shift) ;
-				(*p) |= (image[count] << shift) ;
+				(*p) = ((*p) & ~(_display.mask << shift)) |
+				       (image[count] << shift) ;
 			}
 
 		#ifdef  VRAMBIT_MSBRIGHT
@@ -406,7 +421,7 @@ put_image_124bpp(
 			}
 		}
 
-		if( MOD_PPB(x + size,ppb) > 0)
+		if( shift != _display.shift_0)
 		{
 			p ++ ;
 		}
@@ -414,32 +429,37 @@ put_image_124bpp(
 	else
 	{
 		int  surplus ;
-
-		memset( new_image , 0 , size / ppb + 2) ;
+		u_char  pixel ;
 
 		shift = _display.shift_0 ;
+		count = 0 ;
+		pixel = 0 ;
 
 		if( ( surplus = MOD_PPB(x,ppb)) > 0)
 		{
+			u_char  fb_pixel ;
+
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb = _display.back_fb + (fb - _display.fb) ;
+			fb_pixel = _display.back_fb[fb - _display.fb] ;
+		#else
+			fb_pixel = fb[0] ;
 		#endif
 
 			for( ; surplus > 0 ; surplus --)
 			{
-				(*p) |= (fb[0] & (_display.mask << shift)) ;
+				pixel |= (fb_pixel & (_display.mask << shift)) ;
 
 				FB_SHIFT_NEXT(shift,bpp) ;
 			}
-
-		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb = _display.fb + (fb - _display.back_fb) ;
-		#endif
+		}
+		else
+		{
+			goto  round_number ;
 		}
 
-		for( count = 0 ; count < size ;)
+		do
 		{
-			(*p) |= (image[count++] << shift) ;
+			pixel |= (image[count++] << shift) ;
 
 		#ifdef  VRAMBIT_MSBRIGHT
 			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
@@ -447,12 +467,14 @@ put_image_124bpp(
 			if( FB_SHIFT_NEXT(shift,bpp) < 0)
 		#endif
 			{
-				p ++ ;
+				*(p ++) = pixel ;
+				pixel = 0 ;
 				shift = _display.shift_0 ;
 
+			round_number:
 				if( ppb == 8)
 				{
-					for( ; count + 8 <= size ; count += 8)
+					for( ; count + 7 < size ; count += 8)
 					{
 						*(p++) =
 						#ifdef  VRAMBIT_MSBRIGHT
@@ -478,35 +500,33 @@ put_image_124bpp(
 				}
 			}
 		}
+		while( count < size) ;
 
-		if( ( surplus = MOD_PPB(x + size,ppb)) > 0)
+		if( shift != _display.shift_0)
 		{
-			u_char *  fb2 ;
+			u_char  fb_pixel ;
 
-			fb2 = get_fb( x + size , y) ;
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb2 = _display.back_fb + (fb2 - _display.fb) ;
+			fb_pixel = _display.back_fb[get_fb( x + size , y) - _display.fb] ;
+		#else
+			fb_pixel = get_fb( x + size , y)[0] ;
 		#endif
 
-			for( ; surplus < ppb ; surplus++)
+			do
 			{
-				(*p) |= (fb2[0] & (_display.mask << shift)) ;
-
-				FB_SHIFT_NEXT(shift,bpp) ;
+				pixel |= (fb_pixel & (_display.mask << shift)) ;
 			}
+		#ifdef  VRAMBIT_MSBRIGHT
+			while( FB_SHIFT_NEXT(shift,bpp) < 8) ;
+		#else
+			while( FB_SHIFT_NEXT(shift,bpp) >= 0) ;
+		#endif
 
-			p ++ ;
+			*(p ++) = pixel ;
 		}
 	}
 
 	memcpy( fb , new_image , p - new_image) ;
-
-#ifdef  ENABLE_DOUBLE_BUFFER
-	if( write_back_fb)
-	{
-		memcpy( _display.back_fb + (fb - _display.fb) , new_image , p - new_image) ;
-	}
-#endif
 }
 
 static void

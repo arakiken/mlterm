@@ -1,5 +1,9 @@
 2013-05-19  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: Optimization of put_image_124bpp.
+
+2013-05-19  Araki Ken  <arakiken@users.sf.net>
+
 	* kik_util.h, fb/x_font.c: BIT_MSBLEFT => BIT_MSBFIRST
 
 	* fb/x_display.c: BIT_MSBLEFT => VRAMBIT_MSBRIGHT
