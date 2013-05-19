@@ -32,6 +32,12 @@ typedef struct  key_func_table
 
 static char *  key_file = "mlterm/key" ;
 
+/*
+ * Button*Mask is disabled until Button* is specified in ~/.mlterm/key to avoid
+ * such a problem as http://sourceforge.net/mailarchive/message.php?msg_id=30866232
+ */
+static int  button_mask = 0 ;
+
 
 /* --- static variables --- */
 
@@ -242,7 +248,7 @@ x_shortcut_match(
 	if( shortcut->map[func].state != 0)
 	{
 		/* ingoring except these masks */
-		state &= (ModMask|ControlMask|ShiftMask|ButtonMask) ;
+		state &= (ModMask|ControlMask|ShiftMask|button_mask) ;
 		
 		if( ((shortcut->map[func].state & ModMask) == ModMask) &&
 		     (state & ModMask))
@@ -277,7 +283,7 @@ x_shortcut_str(
 	u_int  count ;
 
 	/* ingoring except these masks */
-	state &= (ModMask|ControlMask|ShiftMask|ButtonMask) ;
+	state &= (ModMask|ControlMask|ShiftMask|button_mask) ;
 
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{
@@ -306,6 +312,11 @@ x_shortcut_parse(
 	KeySym  ksym ;
 	u_int  state ;
 	int  count ;
+
+	if( strcmp( key , "UNUSED") == 0)
+	{
+		goto  replace_shortcut_map ;
+	}
 
 	state = 0 ;
 
@@ -482,29 +493,50 @@ x_shortcut_parse(
 
 		shortcut->str_map_size ++ ;
 		shortcut->str_map = str_map ;
+	}
+	else
+	{
+	replace_shortcut_map:
+		for( count = 0 ;
+		     count < sizeof( key_func_table) / sizeof( key_func_table_t) ;
+		     count ++)
+		{
+			if( strcmp( oper , key_func_table[count].name) == 0)
+			{
+				if( strcmp( key , "UNUSED") == 0)
+				{
+					shortcut->map[key_func_table[count].func].is_used = 0 ;
 
-		return  1 ;
+					return  1 ;
+				}
+				else
+				{
+					shortcut->map[key_func_table[count].func].is_used = 1 ;
+					shortcut->map[key_func_table[count].func].ksym = ksym ;
+					shortcut->map[key_func_table[count].func].state = state ;
+
+					goto  success ;
+				}
+			}
+		}
+
+		return  0 ;
 	}
 
-	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
+success:
+	if( state & ButtonMask)
 	{
-		if( strcmp( oper , key_func_table[count].name) == 0)
+		int  mask ;
+
+		for( mask = Button1Mask ; mask <= Button7Mask ; mask <<= 1)
 		{
-			if( strcmp( key , "UNUSED") == 0)
+			if( state & mask)
 			{
-				shortcut->map[key_func_table[count].func].is_used = 0 ;
+				button_mask |= mask ;
+				break ;
 			}
-			else
-			{
-				shortcut->map[key_func_table[count].func].ksym = ksym ;
-				shortcut->map[key_func_table[count].func].is_used = 1 ;
-			}
-
-			shortcut->map[key_func_table[count].func].state = state ;
-
-			return  1 ;
 		}
 	}
 
-	return  0 ;
+	return  1 ;
 }

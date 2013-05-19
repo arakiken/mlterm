@@ -1,5 +1,11 @@
 2013-05-19  Araki Ken  <arakiken@users.sf.net>
 
+	* x_shortcut.c:
+	  - Button*Mask is disabled until Button* is specified in
+	    ~/.mlterm/key to avoid such a problem as
+	    http://sourceforge.net/mailarchive/message.php?msg_id=30866232
+	  - The bug which disabled "UNUSED" key is fixed.
+
 	* fb/x_display.c: Optimization of put_image_124bpp.
 
 2013-05-19  Araki Ken  <arakiken@users.sf.net>

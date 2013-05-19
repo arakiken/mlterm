@@ -23,6 +23,7 @@ ver 3.2.0
   Fix the wrong height of the preediting cursor of the input method plugin
   if the value of "inner_border" option isn't 2. (Thanks to @tsutsuii san)
   Fix "use_dynamic_comb" option which didn't work anymore.
+  Fix the bug which disabled "UNUSED" key in ~/.mlterm/key.
 
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.
