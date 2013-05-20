@@ -358,7 +358,7 @@ put_image_124bpp(
 	u_int  ppb ;
 	u_int  bpp ;
 	u_char *  new_image ;
-	u_char *  p ;
+	u_char *  new_image_p ;
 	u_char *  fb ;
 	int  shift ;
 	size_t  count ;
@@ -383,7 +383,7 @@ put_image_124bpp(
 		}
 	}
 
-	p = new_image ;
+	new_image_p = new_image ;
 
 	if( need_fb_pixel && memchr( image , BG_MAGIC , size))
 	{
@@ -406,8 +406,9 @@ put_image_124bpp(
 		{
 			if( image[count] != BG_MAGIC)
 			{
-				(*p) = ((*p) & ~(_display.mask << shift)) |
-				       (image[count] << shift) ;
+				(*new_image_p) =
+					((*new_image_p) & ~(_display.mask << shift)) |
+					 (image[count] << shift) ;
 			}
 
 		#ifdef  VRAMBIT_MSBRIGHT
@@ -416,14 +417,14 @@ put_image_124bpp(
 			if( FB_SHIFT_NEXT(shift,bpp) < 0)
 		#endif
 			{
-				p ++ ;
+				new_image_p ++ ;
 				shift = _display.shift_0 ;
 			}
 		}
 
 		if( shift != _display.shift_0)
 		{
-			p ++ ;
+			new_image_p ++ ;
 		}
 	}
 	else
@@ -467,7 +468,7 @@ put_image_124bpp(
 			if( FB_SHIFT_NEXT(shift,bpp) < 0)
 		#endif
 			{
-				*(p ++) = pixel ;
+				*(new_image_p ++) = pixel ;
 				pixel = 0 ;
 				shift = _display.shift_0 ;
 
@@ -476,7 +477,7 @@ put_image_124bpp(
 				{
 					for( ; count + 7 < size ; count += 8)
 					{
-						*(p++) =
+						*(new_image_p++) =
 						#ifdef  VRAMBIT_MSBRIGHT
 							 image[count] |
 							 (image[count + 1] << 1) |
@@ -522,11 +523,11 @@ put_image_124bpp(
 			while( FB_SHIFT_NEXT(shift,bpp) >= 0) ;
 		#endif
 
-			*(p ++) = pixel ;
+			*(new_image_p ++) = pixel ;
 		}
 	}
 
-	memcpy( fb , new_image , p - new_image) ;
+	memcpy( fb , new_image , new_image_p - new_image) ;
 }
 
 static void

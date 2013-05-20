@@ -221,6 +221,9 @@ comment $Id$
   o ssh2 client
     ssh2 client として直接 ssh2 server に接続することができます。
     libssh2 (http://www.libssh2.org) が必要となります。
+    なお、共通鍵暗号方式として camellia を利用する場合は、
+    https://bitbucket.org/arakiken/libssh2/downloads から、camellia branch の
+    libssh2 をインストールしてください。
     (例 mlterm(mlclient) --serv ssh://user@host:22)
 
   o auto-restart

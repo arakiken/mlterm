@@ -1,3 +1,12 @@
+2013-05-21  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: ESC [ 1 ; * A is output instead of ESC O 1 ; * A
+	  if modifier keys + arrow key is pressed in applicatio cursor
+	  key mode.
+	  (Thanks to Mohammad_Alsaleh)
+
+	* fb/x_display.c: Minor fixes.
+
 2013-05-19  Araki Ken  <arakiken@users.sf.net>
 
 	* x_shortcut.c:

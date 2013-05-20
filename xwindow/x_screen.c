@@ -2711,22 +2711,22 @@ no_keypad:
 		 */
 		else if( ksym == XK_Up)
 		{
-			KEY_ESCSEQ( is_app_cursor_keys ? 'O' : '[' ,
+			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
 				    modcode ? 1 : 0 , 'A') ;
 		}
 		else if( ksym == XK_Down)
 		{
-			KEY_ESCSEQ( is_app_cursor_keys ? 'O' : '[' ,
+			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
 				    modcode ? 1 : 0 , 'B') ;
 		}
 		else if( ksym == XK_Right)
 		{
-			KEY_ESCSEQ( is_app_cursor_keys ? 'O' : '[' ,
+			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
 				    modcode ? 1 : 0 , 'C') ;
 		}
 		else if( ksym == XK_Left)
 		{
-			KEY_ESCSEQ( is_app_cursor_keys ? 'O' : '[' ,
+			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
 				    modcode ? 1 : 0 , 'D') ;
 		}
 		else if( ksym == XK_Begin)
