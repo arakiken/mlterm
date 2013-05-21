@@ -1,3 +1,10 @@
+2013-05-22  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c: Minor optimization of draw_string().
+
+	* ml_vt100_parser.c: get_home_file_path() is added to remove
+	  duplicated codes.
+
 2013-05-21  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: ESC [ 1 ; * A is output instead of ESC O 1 ; * A

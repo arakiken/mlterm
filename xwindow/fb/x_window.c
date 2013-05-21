@@ -240,7 +240,7 @@ draw_string(
 				{
 					u_long  pixel ;
 
-					if( bitmap_line && font->x_off <= x_off &&
+					if( font->x_off <= x_off &&
 					    x_get_bitmap_cell( font->xfont , bitmap_line ,
 						x_off - font->x_off) )
 					{

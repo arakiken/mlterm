@@ -286,6 +286,25 @@ change_read_buffer_size(
 	return  1 ;
 }
 
+static char *
+get_home_file_path(
+	const char *  name ,
+	const char *  suffix
+	)
+{
+	char *  file_name ;
+
+	if( ! ( file_name = alloca( 7 + strlen( name) + 1 + strlen( suffix) + 1)))
+	{
+		return  NULL ;
+	}
+
+	sprintf( file_name , "mlterm/%s.%s" , name , suffix) ;
+	str_replace( file_name + 7 , '/' , '_') ;
+
+	return  kik_get_user_rc_path( file_name) ;
+}
+
 static int
 receive_bytes(
 	ml_vt100_parser_t *  vt100_parser
@@ -327,24 +346,14 @@ receive_bytes(
 	{
 		if( vt100_parser->log_file == -1)
 		{
-			char *  dev ;
 			char *  path ;
 
-			if( ! ( path = alloca( 11 +
-			                       strlen( ( dev = ml_pty_get_slave_name(
-			                                        vt100_parser->pty)) + 5) + 1)))
+			if( ! ( path = get_home_file_path( ml_pty_get_slave_name(
+			                                     vt100_parser->pty) + 5 , "log")))
 			{
 				goto  end ;
 			}
 
-			/* +5 removes "/dev/" */
-			sprintf( path , "mlterm/%s.log" , dev + 5) ;
-			str_replace( path + 7 , '/' , '_') ;
-
-			if( ( path = kik_get_user_rc_path( path)) == NULL)
-			{
-				goto  end ;
-			}
 
 			if( ( vt100_parser->log_file =
 				open( path , O_CREAT | O_APPEND | O_WRONLY , 0600)) == -1)
@@ -3956,7 +3965,7 @@ parse_vt100_escape_sequence(
 
 			u_char *  dcs_beg ;
 		#ifndef  NO_IMAGE
-			char *  dir_path ;
+			char *  path ;
 		#endif
 
 			while(1)
@@ -3983,29 +3992,22 @@ parse_vt100_escape_sequence(
 		#ifndef  NO_IMAGE
 			if( ( *str_p == 'q' /* sixel */
 			    /* || *str_p == 'p' */ ) &&		/* ReGis */
-			    ( dir_path = kik_get_user_rc_path( "mlterm/")) )
+			    ( path = get_home_file_path( ml_pty_get_slave_name(
+			                                   vt100_parser->pty) + 5 , "six")))
 			{
-				char *  dev ;
-				char *  file_path ;
 				int  is_end ;
 				FILE *  fp ;
 
-				dev = ml_pty_get_slave_name( vt100_parser->pty) + 5 ;
-				file_path = alloca( strlen( dir_path) + strlen( dev) + 5) ;
-				sprintf( file_path , "%s%s.six" , dir_path , dev) ;
-				str_replace( file_path + strlen( dir_path) , '/' , '_') ;
-				free( dir_path) ;
-
 				if( left > 2 && *(str_p + 1) == '\0')
 				{
-					fp = fopen( file_path , "a") ;
+					fp = fopen( path , "a") ;
 					is_end = *(str_p + 2) ;
 					dcs_beg = (str_p += 3) ;
 					left -= 3 ;
 				}
 				else
 				{
-					fp = fopen( file_path , "w") ;
+					fp = fopen( path , "w") ;
 					is_end = 0 ;
 				}
 
@@ -4019,6 +4021,7 @@ parse_vt100_escape_sequence(
 						if( ! receive_bytes( vt100_parser))
 						{
 							fclose( fp) ;
+							free( path) ;
 
 							memcpy( vt100_parser->r_buf.chars ,
 								"\x1bPq\0" , 4) ;
@@ -4081,7 +4084,8 @@ parse_vt100_escape_sequence(
 
 				fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 				fclose( fp) ;
-				show_picture( vt100_parser , file_path , 0 , 0 , 0 , 0 , 0 , 0) ;
+				show_picture( vt100_parser , path , 0 , 0 , 0 , 0 , 0 , 0) ;
+				free( path) ;
 			}
 			else
 		#endif  /* NO_IMAGE */

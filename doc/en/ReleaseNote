@@ -24,6 +24,8 @@ ver 3.2.0
   if the value of "inner_border" option isn't 2. (Thanks to @tsutsuii san)
   Fix "use_dynamic_comb" option which didn't work anymore.
   Fix the bug which disabled "UNUSED" key in ~/.mlterm/key.
+  Change key seuqences for modifier keys + cursor keys in application cursor key
+  mode. (e.g. Ctrl+Up: "\x1bO1;5A" -> "\x1b[1;5A") (Thanks to Mohammad Alsaleh)
 
 ver 3.1.9
 * Remove --enable-sixel option from configure, and add --disable-image option.
