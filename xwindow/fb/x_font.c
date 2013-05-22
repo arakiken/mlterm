@@ -1148,8 +1148,8 @@ x_font_dump(
 
 u_char *
 x_get_bitmap(
-	XFontStruct *  xfont ,
-	u_char *  ch ,
+	const XFontStruct *  xfont ,
+	const u_char *  ch ,
 	size_t  len
 	)
 {

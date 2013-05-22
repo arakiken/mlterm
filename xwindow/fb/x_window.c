@@ -82,12 +82,12 @@ copy_pixel(
 static int
 draw_string(
 	x_window_t *  win ,
-	x_font_t *  font ,
-	x_color_t *  fg_color ,
-	x_color_t *  bg_color ,
+	const x_font_t *  font ,
+	const x_color_t *  fg_color ,
+	const x_color_t *  bg_color ,
 	int  x ,
 	int  y ,
-	u_char *  str ,	/* 'len * ch_len' bytes */
+	const u_char *  str ,	/* 'len * ch_len' bytes */
 	u_int  len ,
 	u_int  ch_len ,
 	int  wall_picture_bg
