@@ -82,12 +82,12 @@ copy_pixel(
 static int
 draw_string(
 	x_window_t *  win ,
-	const x_font_t *  font ,
-	const x_color_t *  fg_color ,
-	const x_color_t *  bg_color ,
+	x_font_t *  font ,
+	x_color_t *  fg_color ,
+	x_color_t *  bg_color ,
 	int  x ,
 	int  y ,
-	const u_char *  str ,	/* 'len * ch_len' bytes */
+	u_char *  str ,	/* 'len * ch_len' bytes */
 	u_int  len ,
 	u_int  ch_len ,
 	int  wall_picture_bg
@@ -198,6 +198,113 @@ draw_string(
 		}
 	}
 
+#if  1
+	/* Optimization for most cases */
+	if( src_bg_is_set && ! font->is_double_drawing)
+	{
+		for( ; y_off < font_height ; y_off++)
+		{
+			u_char *  bitmap_line ;
+			int  x_off ;
+
+			switch( bpp)
+			{
+			case  1:
+				for( count = 0 ; count < len ; count++ , x += font->width)
+				{
+					if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
+								bitmaps[count] , y_off)))
+					{
+						p += font->width ;
+					}
+					else
+					{
+						p += (x_off = font->x_off) ;
+
+						for( ; x_off < font->width ; x_off++ , p ++)
+						{
+							if( x_get_bitmap_cell( bitmap_line ,
+								x_off - font->x_off))
+							{
+								*p = fg_color->pixel ;
+							}
+						}
+					}
+				}
+
+				break ;
+
+			case  2:
+				for( count = 0 ; count < len ; count++ , x += font->width)
+				{
+					if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
+								bitmaps[count] , y_off)))
+					{
+						p += (font->width * 2) ;
+					}
+					else
+					{
+						p += ((x_off = font->x_off) * 2) ;
+
+						for( ; x_off < font->width ; x_off++ , p += 2)
+						{
+							if( x_get_bitmap_cell( bitmap_line ,
+								x_off - font->x_off))
+							{
+								*((u_int16_t*)p) =
+									fg_color->pixel ;
+							}
+						}
+					}
+				}
+
+				break ;
+
+			/* case  4: */
+			default:
+				for( count = 0 ; count < len ; count++ , x += font->width)
+				{
+					if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
+								bitmaps[count] , y_off)))
+					{
+						p += (font->width * 4) ;
+					}
+					else
+					{
+						p += ((x_off = font->x_off) * 4) ;
+
+						for( ; x_off < font->width ; x_off++ , p += 4)
+						{
+							if( x_get_bitmap_cell( bitmap_line ,
+								x_off - font->x_off))
+							{
+								*((u_int32_t*)p) =
+									fg_color->pixel ;
+							}
+						}
+					}
+				}
+			}
+
+			x_display_put_image( (x = orig_x) , y + y_off ,
+				src , p - src , need_fb_pixel) ;
+			p = src ;
+
+			if( image)
+			{
+				image += (win->wall_picture->width * bpp) ;
+				memcpy( src , image , size) ;
+			}
+			else
+			{
+				memset( src , bg_color->pixel , size) ;
+			}
+		}
+
+		return  1 ;
+	}
+#endif
+
 	for( ; y_off < font_height ; y_off++)
 	{
 		for( count = 0 ; count < len ; count++ , x += font->width)
@@ -241,8 +348,7 @@ draw_string(
 					u_long  pixel ;
 
 					if( font->x_off <= x_off &&
-					    x_get_bitmap_cell( font->xfont , bitmap_line ,
-						x_off - font->x_off) )
+					    x_get_bitmap_cell( bitmap_line , x_off - font->x_off))
 					{
 						pixel = fg_color->pixel ;
 

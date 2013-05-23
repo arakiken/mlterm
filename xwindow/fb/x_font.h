@@ -9,7 +9,7 @@
 #include  "../x_font.h"
 
 
-u_char *  x_get_bitmap( const XFontStruct *  xfont , const u_char *  ch , size_t  len) ;
+u_char *  x_get_bitmap( XFontStruct *  xfont , u_char *  ch , size_t  len) ;
 
 
 #ifdef  USE_X_GET_BITMAP_LINE
@@ -18,8 +18,8 @@ u_char *  x_get_bitmap( const XFontStruct *  xfont , const u_char *  ch , size_t
 
 static inline u_char *
 x_get_bitmap_line(
-	const XFontStruct *  xfont ,
-	const u_char *  bitmap ,
+	XFontStruct *  xfont ,
+	u_char *  bitmap ,
 	int  y		/* y < xfont->height must be checked by the caller. */
 	)
 {
@@ -47,21 +47,12 @@ x_get_bitmap_line(
 
 static inline int
 x_get_bitmap_cell(
-	const XFontStruct *  xfont ,
-	const u_char *  bitmap_line ,	/* bitmap_line != NULL must be checked by the caller. */
+	u_char *  bitmap_line ,	/* bitmap_line != NULL must be checked by the caller. */
 	int  x			/* x < xfont->width must be checked by the caller. */
 	)
 {
-	if( xfont->glyphs_same_bitorder) /* XXX ? */
-	{
-		/* x & 7 == x % 8 */
-		return  bitmap_line[x / 8] & (1 << (x & 7)) ;
-	}
-	else
-	{
-		/* x & 7 == x % 8 */
-		return  bitmap_line[x / 8] & (1 << (8 - (x & 7) - 1)) ;
-	}
+	/* x & 7 == x % 8 */
+	return  bitmap_line[x / 8] & (1 << (8 - (x & 7) - 1)) ;
 }
 
 #endif	/* USE_X_GET_BITMAP_CELL */

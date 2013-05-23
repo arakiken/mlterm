@@ -1,3 +1,23 @@
+2013-05-23  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_util.h: BIT_MSBFIRST macro is removed.
+
+	* fb/x_font.[ch], fb/x.h: LSB first glyphs are converted MSB first in loading
+	  the font, x_get_bitmap_cell() is simplified and glyphs_same_bitorder member
+	  is removed from XFontStruct.
+
+	* fb/x_window.c: Optimization of draw_string().
+
+	* win32/x.h: #define WINVER 0x0500 is added.
+
+	* fb/x_window.c, fb/x_display.[ch], x_font.[ch]: The previous commit
+	  of adding const modifier is cancelled.
+
+2013-05-22  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c, fb/x_display.[ch], x_font.[ch]: const modifier is
+	  added.
+
 2013-05-22  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_window.c: Minor optimization of draw_string().

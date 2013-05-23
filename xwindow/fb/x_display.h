@@ -20,8 +20,7 @@
 
 u_long  x_display_get_pixel( int  x , int  y) ;
 
-void  x_display_put_image( int  x , int  y , const u_char *  image ,
-		size_t  size , int  need_fb_pixel) ;
+void  x_display_put_image( int  x , int  y , u_char *  image , size_t  size , int  need_fb_pixel) ;
 
 void  x_display_fill_with( int  x , int  y , u_int  width , u_int  height , u_int8_t  pixel) ;
 

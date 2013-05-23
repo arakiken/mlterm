@@ -41,10 +41,6 @@
 #define  TOINT16(p)  LE16DEC(p)
 #endif
 
-#if  defined(WORDS_BIGENDIAN) && ! defined(__mc68000) && ! defined(__mips)
-#define  BIT_MSBFIRST
-#endif
-
 #define  K_MAX(n1,n2)  ((n1) > (n2) ? (n1) : (n2))
 
 #define  K_MIN(n1,n2)  ((n1) > (n2) ? (n2) : (n1))

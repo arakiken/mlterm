@@ -349,7 +349,7 @@ static void
 put_image_124bpp(
 	int  x ,
 	int  y ,
-	const u_char *  image ,
+	u_char *  image ,
 	size_t  size ,
 	int  write_back_fb ,
 	int  need_fb_pixel
@@ -3128,7 +3128,7 @@ void
 x_display_put_image(
 	int  x ,
 	int  y ,
-	const u_char *  image ,
+	u_char *  image ,
 	size_t  size ,
 	int  need_fb_pixel
 	)

@@ -128,13 +128,27 @@ load_bitmaps(
 		return  0 ;
 	}
 
-	memcpy( xfont->glyphs , p , bitmap_sizes[glyph_pad_type]) ;
-
-#ifdef  BIT_MSBFIRST
-	xfont->glyphs_same_bitorder = is_be ;
-#else
-	xfont->glyphs_same_bitorder = ! is_be ;
-#endif
+	if( is_be)
+	{
+		/* Regard the bit order of p as msb first */
+		memcpy( xfont->glyphs , p , bitmap_sizes[glyph_pad_type]) ;
+	}
+	else
+	{
+		/* Regard the bit order of p as lsb first. Reorder it to msb first. */
+		for( count = 0 ; count < bitmap_sizes[glyph_pad_type] ; count++)
+		{
+			xfont->glyphs[count] =
+				((p[count] << 7) & 0x80) |
+				((p[count] << 5) & 0x40) |
+				((p[count] << 3) & 0x20) |
+				((p[count] << 1) & 0x10) |
+				((p[count] >> 1) & 0x08) |
+				((p[count] >> 3) & 0x04) |
+				((p[count] >> 5) & 0x02) |
+				((p[count] >> 7) & 0x01) ;
+		}
+	}
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "GLYPH COUNT %d x WIDTH BYTE %d = SIZE %d\n" ,
@@ -589,7 +603,7 @@ load_pcf(
 				for( i = 0 ; i < xfont->width ; i++)
 				{
 					kik_msg_printf( "%d" ,
-						(line && x_get_bitmap_cell( xfont , line , i)) ?
+						(line && x_get_bitmap_cell( line , i)) ?
 							1 : 0) ;
 				}
 				kik_msg_printf( "\n") ;
@@ -1148,8 +1162,8 @@ x_font_dump(
 
 u_char *
 x_get_bitmap(
-	const XFontStruct *  xfont ,
-	const u_char *  ch ,
+	XFontStruct *  xfont ,
+	u_char *  ch ,
 	size_t  len
 	)
 {
