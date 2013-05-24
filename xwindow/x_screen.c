@@ -1993,7 +1993,7 @@ shortcut_match(
 		return  1 ;
 	}
 #endif
-#ifdef  DEBUG
+#if 1 //def  DEBUG
 	else if( ksym == XK_F10)
 	{
 		/* Performance benchmark */

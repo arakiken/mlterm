@@ -9,9 +9,6 @@
 #include  <kiklib/kik_mem.h>
 
 #include  "x_display.h"
-
-#define  USE_X_GET_BITMAP_LINE
-#define  USE_X_GET_BITMAP_CELL
 #include  "x_font.h"
 
 
@@ -79,12 +76,46 @@ copy_pixel(
 	}
 }
 
+static inline u_int16_t *
+memset16(
+	u_int16_t *  dst ,
+	u_int16_t  i ,
+	u_int  len
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < len ; count++)
+	{
+		dst[count] = i ;
+	}
+
+	return  dst ;
+}
+
+static inline u_int32_t *
+memset32(
+	u_int32_t *  dst ,
+	u_int32_t  i ,
+	u_int  len
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < len ; count++)
+	{
+		dst[count] = i ;
+	}
+
+	return  dst ;
+}
+
 static int
 draw_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
-	x_color_t *  bg_color ,
+	x_color_t *  bg_color ,	/* must be NULL if wall_picture_bg is 1 */
 	int  x ,
 	int  y ,
 	u_char *  str ,	/* 'len * ch_len' bytes */
@@ -93,19 +124,20 @@ draw_string(
 	int  wall_picture_bg
 	)
 {
+	u_int  bpp ;
+	XFontStruct *  xfont ;
 	u_char *  src ;
 	u_char *  p ;
 	u_char **  bitmaps ;
 	size_t  size ;
 	u_int  font_height ;
 	u_int  font_ascent ;
-	int  orig_x ;
 	int  y_off ;
-	u_int  bpp ;
-	u_char *  image ;
+	u_char *  picture ;
+	size_t  picture_line_len ;
 	u_int  count ;
-	int  need_fb_pixel ;
 	int  src_bg_is_set ;
+	int  orig_x ;
 
 	if( ! win->is_mapped)
 	{
@@ -114,19 +146,17 @@ draw_string(
 
 	bpp = win->disp->display->bytes_per_pixel ;
 
-	if( ! ( p = src = alloca( ( size = len * font->width * bpp))))
+	if( ! ( src = alloca( ( size = len * font->width * bpp))) ||
+	    ! ( bitmaps = alloca( ( len * sizeof(*bitmaps)))))
 	{
 		return  0 ;
 	}
 
-	if( ! ( bitmaps = alloca( ( len * sizeof(*bitmaps)))))
-	{
-		return  0 ;
-	}
+	xfont = font->xfont ;
 
 	for( count = 0 ; count < len ; count++)
 	{
-		bitmaps[count] = x_get_bitmap( font->xfont , str + count * ch_len , ch_len) ;
+		bitmaps[count] = x_get_bitmap( xfont , str + count * ch_len , ch_len) ;
 	}
 
 	/*
@@ -160,41 +190,31 @@ draw_string(
 		y_off = 0 ;
 	}
 
-	orig_x = (x += (win->margin + win->x)) ;
+	x += (win->margin + win->x) ;
 	y = y + (win->margin + win->y) - font_ascent ;
 
 	if( wall_picture_bg)
 	{
-		image = win->wall_picture->image +
-			( (y + y_off - win->y) * win->wall_picture->width +
-			  x - win->x) * bpp ;
-		memcpy( src , image , size) ;
-		src_bg_is_set = 1 ;
+		/* bg_color is always NULL */
 
-		need_fb_pixel = 0 ;
+		picture_line_len = win->wall_picture->width * bpp ;
+		picture = win->wall_picture->image +
+		          (y + y_off - win->y) * picture_line_len +
+			  /* - picture_line_len is for picture += picture_line_len below. */
+			  (x - win->x) * bpp - picture_line_len ;
+		src_bg_is_set = 1 ;
 	}
 	else
 	{
-		image = NULL ;
+		picture = NULL ;
 
 		if( bg_color)
 		{
-			if( bpp == 1)
-			{
-				memset( src , bg_color->pixel , size) ;
-				src_bg_is_set = 1 ;
-			}
-			else
-			{
-				src_bg_is_set = 0 ;
-			}
-
-			need_fb_pixel = 0 ;
+			src_bg_is_set = 1 ;
 		}
 		else
 		{
 			src_bg_is_set = 0 ;
-			need_fb_pixel = 1 ;
 		}
 	}
 
@@ -202,129 +222,170 @@ draw_string(
 	/* Optimization for most cases */
 	if( src_bg_is_set && ! font->is_double_drawing)
 	{
-		for( ; y_off < font_height ; y_off++)
-		{
-			u_char *  bitmap_line ;
-			int  x_off ;
+		u_char *  bitmap_line ;
+		int  x_off ;
+		u_int  glyph_width ;
 
-			switch( bpp)
+		glyph_width = font->width - font->x_off ;
+
+		switch( bpp)
+		{
+		case  1:
+			for( ; y_off < font_height ; y_off++)
 			{
-			case  1:
-				for( count = 0 ; count < len ; count++ , x += font->width)
+				p = ( picture ?
+					memcpy( src , (picture += picture_line_len) , size) :
+					memset( src , bg_color->pixel , size)) ;
+
+				for( count = 0 ; count < len ; count++)
 				{
-					if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
-								bitmaps[count] , y_off)))
+					if( ! x_get_bitmap_line( xfont ,
+						bitmaps[count] , y_off , bitmap_line))
 					{
 						p += font->width ;
 					}
 					else
 					{
-						p += (x_off = font->x_off) ;
+						p += font->x_off ;
 
-						for( ; x_off < font->width ; x_off++ , p ++)
+						for( x_off = 0 ; x_off < glyph_width ; x_off++)
 						{
 							if( x_get_bitmap_cell( bitmap_line ,
-								x_off - font->x_off))
+									x_off))
 							{
 								*p = fg_color->pixel ;
 							}
+
+							p ++ ;
 						}
 					}
 				}
 
-				break ;
+				x_display_put_image( x , y + y_off , src , p - src , 0) ;
+			}
 
-			case  2:
-				for( count = 0 ; count < len ; count++ , x += font->width)
+			return  1 ;
+
+		case  2:
+			for( ; y_off < font_height ; y_off++)
+			{
+				p = ( picture ?
+					memcpy( src , (picture += picture_line_len) , size) :
+					memset16( src , bg_color->pixel , size / 2)) ;
+
+				for( count = 0 ; count < len ; count++)
 				{
-					if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
-								bitmaps[count] , y_off)))
+					if( ! x_get_bitmap_line( xfont ,
+						bitmaps[count] , y_off , bitmap_line))
 					{
 						p += (font->width * 2) ;
 					}
 					else
 					{
-						p += ((x_off = font->x_off) * 2) ;
+						p += (font->x_off * 2) ;
 
-						for( ; x_off < font->width ; x_off++ , p += 2)
+						for( x_off = 0 ; x_off < glyph_width ; x_off++)
 						{
 							if( x_get_bitmap_cell( bitmap_line ,
-								x_off - font->x_off))
+									x_off))
 							{
 								*((u_int16_t*)p) =
 									fg_color->pixel ;
 							}
+
+							p += 2 ;
 						}
 					}
 				}
 
-				break ;
+				x_display_put_image( x , y + y_off , src , p - src , 0) ;
+			}
 
-			/* case  4: */
-			default:
-				for( count = 0 ; count < len ; count++ , x += font->width)
+			return  1 ;
+
+		/* case  4: */
+		default:
+			for( ; y_off < font_height ; y_off++)
+			{
+				p = ( picture ?
+					memcpy( src , (picture += picture_line_len) , size) :
+					memset32( src , bg_color->pixel , size / 4)) ;
+
+				for( count = 0 ; count < len ; count++)
 				{
-					if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
-								bitmaps[count] , y_off)))
+					if( ! x_get_bitmap_line( xfont ,
+						bitmaps[count] , y_off , bitmap_line))
 					{
 						p += (font->width * 4) ;
 					}
 					else
 					{
-						p += ((x_off = font->x_off) * 4) ;
+						p += (font->x_off * 4) ;
 
-						for( ; x_off < font->width ; x_off++ , p += 4)
+						for( x_off = 0 ; x_off < font->width ; x_off++)
 						{
 							if( x_get_bitmap_cell( bitmap_line ,
-								x_off - font->x_off))
+									x_off))
 							{
 								*((u_int32_t*)p) =
 									fg_color->pixel ;
 							}
+
+							p += 4 ;
 						}
 					}
 				}
+
+				x_display_put_image( x , y + y_off , src , p - src , 0) ;
 			}
 
-			x_display_put_image( (x = orig_x) , y + y_off ,
-				src , p - src , need_fb_pixel) ;
-			p = src ;
-
-			if( image)
-			{
-				image += (win->wall_picture->width * bpp) ;
-				memcpy( src , image , size) ;
-			}
-			else
-			{
-				memset( src , bg_color->pixel , size) ;
-			}
+			return  1 ;
 		}
-
-		return  1 ;
 	}
 #endif
 
+	orig_x = x ;
+
 	for( ; y_off < font_height ; y_off++)
 	{
+		if( src_bg_is_set)
+		{
+			if( picture)
+			{
+				memcpy( src , (picture += picture_line_len) , size) ;
+			}
+			else
+			{
+				switch( bpp)
+				{
+				case  1:
+					memset( src , bg_color->pixel , size) ;
+					break ;
+
+				case  2:
+					memset16( src , bg_color->pixel , size / 2) ;
+					break ;
+
+				/* case  4: */
+				default:
+					memset32( src , bg_color->pixel , size / 4) ;
+					break ;
+				}
+			}
+		}
+
+		p = src ;
+
 		for( count = 0 ; count < len ; count++ , x += font->width)
 		{
 			u_char *  bitmap_line ;
 			int  x_off ;
 
-			if( ! ( bitmap_line = x_get_bitmap_line( font->xfont ,
-						bitmaps[count] , y_off)))
+			if( ! x_get_bitmap_line( xfont , bitmaps[count] , y_off , bitmap_line))
 			{
 				if( src_bg_is_set)
 				{
 					p += (font->width * bpp) ;
-				}
-				else if( bg_color)
-				{
-					for( x_off = 0 ; x_off < font->width ; x_off++ , p += bpp)
-					{
-						copy_pixel( p , bg_color->pixel , bpp) ;
-					}
 				}
 				else
 				{
@@ -365,10 +426,6 @@ draw_string(
 						{
 							continue ;
 						}
-						else if( bg_color)
-						{
-							pixel = bg_color->pixel ;
-						}
 						else
 						{
 							pixel = x_display_get_pixel(
@@ -382,21 +439,7 @@ draw_string(
 			}
 		}
 
-		x_display_put_image( (x = orig_x) , y + y_off , src , p - src , need_fb_pixel) ;
-		p = src ;
-
-		if( src_bg_is_set)
-		{
-			if( image)
-			{
-				image += (win->wall_picture->width * bpp) ;
-				memcpy( src , image , size) ;
-			}
-			else
-			{
-				memset( src , bg_color->pixel , size) ;
-			}
-		}
+		x_display_put_image( (x = orig_x) , y + y_off , src , p - src , ! src_bg_is_set) ;
 	}
 
 	return  1 ;
@@ -421,7 +464,7 @@ copy_area(
 	int  bottom_margin ;
 	int  y_off ;
 	u_int  bpp ;
-	u_char *  image ;
+	u_char *  picture ;
 	size_t  src_width_size ;
 
 	if( ! win->is_mapped || dst_x >= (int)win->width || dst_y >= (int)win->height)
@@ -453,7 +496,7 @@ copy_area(
 
 	bpp = win->disp->display->bytes_per_pixel ;
 	src_width_size = src->width * bpp ;
-	image = src->image + src_width_size * (margin + src_y) +
+	picture = src->image + src_width_size * (margin + src_y) +
 			bpp * ( margin + src_x) ;
 
 	if( mask)
@@ -490,13 +533,13 @@ copy_area(
 				x_display_put_image(
 					win->x + win->margin + dst_x + x_off - w ,
 					win->y + win->margin + dst_y + y_off ,
-					image + bpp * ( x_off - w) ,
+					picture + bpp * ( x_off - w) ,
 					w * bpp , 0) ;
 				w = 0 ;
 			}
 
 			mask += src->width ;
-			image += src_width_size ;
+			picture += src_width_size ;
 		}
 	}
 	else
@@ -510,8 +553,8 @@ copy_area(
 			x_display_put_image(
 				win->x + win->margin + dst_x ,
 				win->y + win->margin + dst_y + y_off ,
-				image , size , 0) ;
-			image += src_width_size ;
+				picture , size , 0) ;
+			picture += src_width_size ;
 		}
 	}
 

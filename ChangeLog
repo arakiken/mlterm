@@ -1,3 +1,10 @@
+2013-05-24  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_font.h: x_get_bitmap_line() and x_get_bitmap_cell() are changed from
+	  functions to macros to be always inlined even if compiled with -Os option.
+
+	* fb/x_window.c: Optimization of draw_string().
+
 2013-05-23  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_util.h: BIT_MSBFIRST macro is removed.
