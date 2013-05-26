@@ -51,6 +51,12 @@
 #define VRAMBIT_MSBRIGHT
 #endif
 
+#if  0
+#define ENABLE_2_4_PPB
+#endif
+
+#ifdef  ENABLE_2_4_PPB
+
 #ifdef  VRAMBIT_MSBRIGHT
 #define FB_SHIFT(ppb,bpp,idx)	(MOD_PPB(idx,ppb) * (bpp))
 #define FB_SHIFT_0(ppb,bpp)	(0)
@@ -62,6 +68,23 @@
 #endif
 
 #define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
+
+#else	/* ENABLE_2_4_PPB */
+
+#ifdef  VRAMBIT_MSBRIGHT
+#define FB_SHIFT(ppb,bpp,idx)	MOD_PPB(idx,ppb)
+#define FB_SHIFT_0(ppb,bpp)	(0)
+#define FB_SHIFT_NEXT(shift,bpp)	((shift) += 1)
+#else
+#define FB_SHIFT(ppb,bpp,idx)	(7 - MOD_PPB(idx,ppb))
+#define FB_SHIFT_0(ppb,bpp)	(7)
+#define FB_SHIFT_NEXT(shift,bpp)	((shift) -= 1)
+#endif
+
+#define FB_MASK(ppb)		(1)
+
+#endif	/* ENABLE_2_4_PPB */
+
 #define FB_WIDTH_BYTES(display,x,width) \
 	( (width) * (display)->bytes_per_pixel / (display)->pixels_per_byte + \
 		(MOD_PPB(x,(display)->pixels_per_byte) > 0 ? 1 : 0) + \
@@ -1087,12 +1110,12 @@ open_display(void)
 	{
 		if( _disp.depth < 8)
 		{
-		#if  1
+		#ifdef  ENABLE_2_4_PPB
+			_display.pixels_per_byte = 8 / _disp.depth ;
+		#else
 			/* XXX Forcibly set 1 bpp */
 			_display.pixels_per_byte = 8 ;
 			_disp.depth = 1 ;
-		#else
-			_display.pixels_per_byte = 8 / _disp.depth ;
 		#endif
 
 			_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;
@@ -1726,12 +1749,12 @@ open_display(void)
 
 	if( ( _disp.depth = vinfo.depth) < 8)
 	{
-	#if  1
+	#ifdef  ENABLE_2_4_PPB
+		_display.pixels_per_byte = 8 / _disp.depth ;
+	#else
 		/* XXX Forcibly set 1 bpp */
 		_display.pixels_per_byte = 8 ;
 		_disp.depth = 1 ;
-	#else
-		_display.pixels_per_byte = 8 / _disp.depth ;
 	#endif
 
 		_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;
@@ -2397,12 +2420,12 @@ open_display(void)
 
 		goto  error ;
 	#else
-	#if  1
+	#ifdef  ENABLE_2_4_PPB
+		_display.pixels_per_byte = 8 / _disp.depth ;
+	#else
 		/* XXX Forcibly set 1 bpp */
 		_display.pixels_per_byte = 8 ;
 		_disp.depth = 1 ;
-	#else
-		_display.pixels_per_byte = 8 / _disp.depth ;
 	#endif
 	#endif
 
@@ -2858,6 +2881,10 @@ x_display_close_all(void)
 		{
 			cmap_final() ;
 		}
+
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		free( _display.back_fb) ;
+	#endif
 
 		munmap( _display.fb , _display.smem_len) ;
 		close( _display.fb_fd) ;

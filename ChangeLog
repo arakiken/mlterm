@@ -1,3 +1,21 @@
+2013-05-26  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.2.0 released.
+	  (tag "rel-3_2_0")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.2.0.
+
+	* kiklib/src/Makefile.in, mkf/lib/Makefile.in: Fixes for SunOS make.
+
+	* win32/x_window.c: Compilation error on msys-dtk is fixed.
+
+	* win32/x.h: Minor fixes.
+
+	* fb/x_display.c:
+	  - ENABLE_2_4_PPB is added. 2 and 4 ppb are disabled by default.
+	  - _display.back_fb is free'ed in x_display_close_all().
+
 2013-05-24  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_font.h: x_get_bitmap_line() and x_get_bitmap_cell() are changed from

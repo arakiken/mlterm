@@ -73,7 +73,12 @@ $(INCDIR_TMP)/mkf :
 	mkdir -p $(INCDIR_TMP)/mkf
 
 collect-headers : $(INCDIR_TMP)/mkf $(INC)
-	for file in $(INC) ; do cp $(top_srcdir)/lib/$${file} $(INCDIR_TMP)/mkf ; done
+	for file in $(INC) ; do \
+		if test -f $${file} ; \
+		then cp $${file} $(INCDIR_TMP)/mkf ; \
+		else cp $(top_srcdir)/lib/$${file} $(INCDIR_TMP)/mkf ; \
+		fi \
+	done
 	touch collect-headers
 
 install: install-inc install-la

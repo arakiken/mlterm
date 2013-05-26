@@ -230,8 +230,11 @@ scrollbar_view_name = sample
 # (none,esc,8bit)
 # mod_meta_mode = none
 
-# BEL(0x7)を受け取った時の挙動(none,sound,visual)
+# BEL(0x7)を受け取った時の挙動(none,sound,visual,sound|visual)
 # bel_mode = sound
+
+# フォーカスを失った画面上でBEL(0x7)を受け取った時に、ユーザに警告する。
+# use_urgent_bell = false
 
 # daemon process となるかどうか(none,blend,genuine)
 # daemon_mode = none

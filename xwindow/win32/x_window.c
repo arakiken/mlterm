@@ -64,6 +64,7 @@ static int  use_urgent_bell ;
 
 /* --- static functions --- */
 
+#ifdef  FLASHW_ALL
 static void
 urgent_bell(
 	x_window_t *  win ,
@@ -92,6 +93,10 @@ urgent_bell(
 		}
 	}
 }
+#else
+#define  urgent_bell(win,on)  (0)
+#endif
+
 
 static int
 set_transparent(

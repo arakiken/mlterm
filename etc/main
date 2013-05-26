@@ -162,8 +162,10 @@ scrollbar_view_name = sample
 # (none,esc,8bit)
 # mod_meta_mode = none
 
-# (none,sound,visual)
+# (none,sound,visual,sound|visual)
 # bel_mode = sound
+
+# use_urgent_bell = false
 
 # (none,blend,genuine)
 # daemon_mode = none

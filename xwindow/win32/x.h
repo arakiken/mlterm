@@ -16,18 +16,8 @@
 
 
 /* for msys-1.0 dvlpr */
-#ifndef  WM_IME_CHAR
-#define  WM_IME_CHAR 0x286
-#endif
-
-/* for msys-1.0 dvlpr */
 #ifndef  WM_MOUSEHWHEEL
-#define  WM_MOUSEHWHEEL 0x20e
-#endif
-
-/* for msys-1.0 dvlpr */
-#ifndef  VK_NONCONVERT
-#define  VK_NONCONVERT  0x1d
+#define  WM_MOUSEHWHEEL  0x20e
 #endif
 
 
@@ -160,6 +150,30 @@ typedef int XFontSet ;	/* dummy */
 #define Button4		4
 #define Button5		5
 
+
+/* For msys-dtk */
+#ifndef  VK_OEM_1
+#define  VK_OEM_1  0xba
+#endif
+#ifndef  VK_OEM_2
+#define  VK_OEM_2  0xbf
+#endif
+#ifndef  VK_OEM_3
+#define  VK_OEM_3  0xc0
+#endif
+#ifndef  VK_OEM_4
+#define  VK_OEM_4  0xdb
+#endif
+#ifndef  VK_OEM_7
+#define  VK_OEM_7  0xde
+#endif
+#ifndef  VK_OEM_102
+#define  VK_OEM_102  0xe2
+#endif
+#ifndef  VK_NONCONVERT
+#define  VK_NONCONVERT  0x1d
+#endif
+
 #define XK_Super_L	0xfffe	/* dummy */
 #define XK_Super_R	0xfffd	/* dummy */
 #define XK_Hyper_L	0xfffc	/* dummy */
@@ -284,26 +298,6 @@ typedef int XFontSet ;	/* dummy */
 #define IsModifierKey(ksym)  (0)
 
 #define XK_ISO_Level3_Lock	0xffd9	/* dummy */
-
-/* For msys-dtk */
-#ifndef  VK_OEM_1
-#define  VK_OEM_1  0xba
-#endif
-#ifndef  VK_OEM_2
-#define  VK_OEM_2  0xbf
-#endif
-#ifndef  VK_OEM_3
-#define  VK_OEM_3  0xc0
-#endif
-#ifndef  VK_OEM_4
-#define  VK_OEM_4  0xdb
-#endif
-#ifndef  VK_OEM_7
-#define  VK_OEM_7  0xde
-#endif
-#ifndef  VK_OEM_102
-#define  VK_OEM_102  0xe2
-#endif
 
 
 /* XPoint(short x, short y) in Xlib. POINT(long x, long y) in win32. */
