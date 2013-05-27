@@ -322,7 +322,7 @@ draw_string(
 					{
 						p += (font->x_off * 4) ;
 
-						for( x_off = 0 ; x_off < font->width ; x_off++)
+						for( x_off = 0 ; x_off < glyph_width ; x_off++)
 						{
 							if( x_get_bitmap_cell( bitmap_line ,
 									x_off))

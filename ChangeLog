@@ -1,3 +1,8 @@
+2013-05-28  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: Segfault in x_font_t::x_off > 0 is fixed.
+	  (Thanks to @tsutsuii san)
+
 2013-05-27  Araki Ken  <arakiken@users.sf.net>
 
 	* main_loop.c: "fb_resolution" option is added for OpenBSD framebuffer.
