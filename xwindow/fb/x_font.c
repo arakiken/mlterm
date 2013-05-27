@@ -598,7 +598,7 @@ load_pcf(
 			{
 				u_char *  line ;
 
-				line = x_get_bitmap_line( xfont , bitmap , j) ;
+				x_get_bitmap_line( xfont , bitmap , j , line) ;
 
 				for( i = 0 ; i < xfont->width ; i++)
 				{

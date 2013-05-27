@@ -16,7 +16,7 @@
 #include  <sys/consio.h>
 #include  <sys/mouse.h>
 #include  <sys/time.h>
-#elif  defined(__NetBSD__)
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 #include  <dev/wscons/wsdisplay_usl_io.h>	/* VT_GETSTATE */
 #include  <sys/param.h>				/* MACHINE */
 #include  "../x_event_source.h"
@@ -103,13 +103,13 @@
 
 #if  defined(__FreeBSD__)
 #define  SYSMOUSE_PACKET_SIZE  8
-#elif  defined(__NetBSD__)
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 #define  KEY_REPEAT_UNIT  25	/* msec (see x_event_source.c) */
 #define  DEFAULT_KEY_REPEAT_1  400	/* msec */
 #define  DEFAULT_KEY_REPEAT_N  50	/* msec */
 #endif
 
-#if  defined(__FreeBSD__) || defined(__NetBSD__)
+#if  defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #define  CMAP_SIZE(cmap)            ((cmap)->count)
 #define  BYTE_COLOR_TO_WORD(color)  (color)
 #define  WORD_COLOR_TO_BYTE(color)  (color)
@@ -168,7 +168,7 @@ static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
 
 #if  defined(__FreeBSD__)
 static keymap_t  keymap ;
-#elif  defined(__NetBSD__)
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 static struct wskbd_map_data  keymap ;
 static int  console_id = -1 ;
 static int  orig_console_mode = WSDISPLAYIO_MODE_EMUL ;	/* 0 */
@@ -176,6 +176,11 @@ static struct wscons_event  prev_key_event ;
 static int  wskbd_repeat_wait = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
 int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
 int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
+#ifdef  __OpenBSD__
+u_int  fb_width = 640 ;
+u_int  fb_height = 480 ;
+u_int  fb_depth = 8 ;
+#endif
 #else
 static int  console_id = -1 ;
 #endif
@@ -219,7 +224,7 @@ cmap_new(
 #if  defined(__FreeBSD__)
 	cmap->index = 0 ;
 	cmap->transparent = NULL ;
-#elif  defined(__NetBSD__)
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 	cmap->index = 0 ;
 #else
 	cmap->start = 0 ;
@@ -303,7 +308,7 @@ cmap_init(
 			ml_get_color_rgba( color , &r , &g , &b , NULL) ;
 		}
 
-	#if  defined(__FreeBSD__) || defined(__NetBSD__)
+	#if  defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 		_display.cmap->red[color] = r ;
 		_display.cmap->green[color] = g ;
 		_display.cmap->blue[color] = b ;
@@ -866,7 +871,7 @@ receive_event_for_multi_roots(
 
 #ifndef  __FreeBSD__
 
-#ifdef  __NetBSD__
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
 #define get_key_state()  (0)
 #else
 static int get_key_state(void) ;
@@ -908,7 +913,7 @@ receive_stdin_key_event(void)
 			{ "[B" , XK_Down } ,
 			{ "[C" , XK_Right } ,
 			{ "[D" , XK_Left } ,
-		#if  defined(__NetBSD__)
+		#if  defined(__NetBSD__) || defined(__OpenBSD__)
 			{ "[8~" , XK_End } ,
 			{ "[7~" , XK_Home } ,
 		#else
@@ -921,7 +926,7 @@ receive_stdin_key_event(void)
 			{ "OR" , XK_F3 } ,
 			{ "OS" , XK_F4 } ,
 			{ "[15~" , XK_F5 } ,
-		#elif  defined(__NetBSD__)
+		#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 			{ "[11~" , XK_F1 } ,
 			{ "[12~" , XK_F2 } ,
 			{ "[13~" , XK_F3 } ,
@@ -1589,7 +1594,7 @@ receive_key_event(void)
 	return  1 ;
 }
 
-#elif  defined(__NetBSD__)
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 
 static void
 process_wskbd_event(
@@ -1717,9 +1722,13 @@ open_display(void)
 	struct termios  tm ;
 	static struct wscons_keymap  map[KS_NUMKEYCODES] ;
 
-	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ?
-						dev : "/dev/ttyE0" ,
-					O_RDWR)))
+	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev :
+					#ifdef  __NetBSD__
+						"/dev/ttyE0"
+					#else	/* __OpenBSD__ */
+						"/dev/ttyC0"
+					#endif
+					, O_RDWR)))
 	{
 		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/ttyE0") ;
 
@@ -1729,6 +1738,34 @@ open_display(void)
 	kik_file_set_cloexec( _display.fb_fd) ;
 
 	ioctl( STDIN_FILENO , WSDISPLAYIO_GMODE , &orig_console_mode) ;
+
+#ifdef  __NetBSD__
+	mode = WSDISPLAYIO_MODE_MAPPED ;
+#else
+	{
+		struct wsdisplay_gfx_mode  gfx_mode ;
+
+		gfx_mode.width = fb_width ;
+		gfx_mode.height = fb_height ;
+		gfx_mode.depth = fb_depth ;
+
+		if( ioctl( _display.fb_fd , WSDISPLAYIO_SETGFXMODE , &gfx_mode) == -1)
+		{
+			goto  error ;
+		}
+	}
+
+	mode = WSDISPLAYIO_MODE_DUMBFB ;
+#endif
+
+	if( ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &mode) == -1)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " WSDISPLAYIO_SMODE failed.\n") ;
+	#endif
+
+		goto  error ;
+	}
 
 	if( ioctl( _display.fb_fd , WSDISPLAYIO_GINFO , &vinfo) == -1 ||
 	    ioctl( _display.fb_fd , WSDISPLAYIO_GTYPE , &wstype) == -1)
@@ -1770,7 +1807,8 @@ open_display(void)
 		_display.bytes_per_pixel = 4 ;
 	}
 
-	if( ioctl( _display.fb_fd , WSDISPLAYIO_LINEBYTES , &_display.line_length) == -1)
+	if( ioctl( _display.fb_fd , WSDISPLAYIO_LINEBYTES , &_display.line_length) == -1 ||
+	    _display.line_length <= 0)
 	{
 		/* WSDISPLAYIO_LINEBYTES isn't defined in some ports. */
 
@@ -1789,16 +1827,6 @@ open_display(void)
 	}
 
 	_display.smem_len = _display.line_length * _disp.height ;
-
-	mode = WSDISPLAYIO_MODE_MAPPED ;
-	if( ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &mode) == -1)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " WSDISPLAYIO_SMODE failed.\n") ;
-	#endif
-
-		goto  error ;
-	}
 
 	if( ( _display.fb = mmap( NULL , _display.smem_len ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
@@ -2204,7 +2232,7 @@ receive_key_event(void)
 	return  1 ;
 }
 
-#else	/* FreeBSD/NetBSD/linux */
+#else	/* FreeBSD/NetBSD/OpenBSD/linux */
 
 static int
 get_key_state(void)
@@ -2811,7 +2839,7 @@ receive_key_event(void)
 	return  1 ;
 }
 
-#endif	/* FreeBSD/NetBSD/linux */
+#endif	/* FreeBSD/NetBSD/OpenBSD/linux */
 
 
 /* --- global functions --- */
@@ -2895,7 +2923,7 @@ x_display_close_all(void)
 
 	#if  defined(__FreeBSD__)
 		ioctl( STDIN_FILENO , KDSKBMODE , K_XLATE) ;
-	#elif  defined(__NetBSD__)
+	#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
 		x_event_source_remove_fd( -10) ;
 	#else

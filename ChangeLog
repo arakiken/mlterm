@@ -1,3 +1,17 @@
+2013-05-27  Araki Ken  <arakiken@users.sf.net>
+
+	* main_loop.c: "fb_resolution" option is added for OpenBSD framebuffer.
+
+	* fb/x_display.c: OpenBSD support is added.
+
+	* etc/font-fb: JISC6226_1978, JISX0208_1990 and JISX0213_2000_1
+	  are defiend as &JISX0208_1983.
+
+	* mkf_ucs4_map.c: mkf_map_ucs4_to_jisx0213_2000_1 is not cached
+	  in mkf_map_ucs4_to() to prefer JISX0208 to JISX0213 all the time.
+
+	* version.h.in: 3.2.0 -> 3.2.0 post
+
 2013-05-26  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.2.0 released.

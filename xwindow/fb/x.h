@@ -28,7 +28,7 @@
 
 typedef video_color_palette_t fb_cmap_t ;
 
-#elif  defined(__NetBSD__)
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 
 #define  FBIOGETCMAP  WSDISPLAYIO_GETCMAP
 #define  FBIOPUTCMAP  WSDISPLAYIO_PUTCMAP
@@ -249,7 +249,7 @@ typedef int XFontSet ;	/* dummy */
 #define Button5		5
 
 
-#if  defined(__NetBSD__)
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
 
 #define XK_Super_L	0xfffe	/* dummy */
 #define XK_Super_R	0xfffd	/* dummy */

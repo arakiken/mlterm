@@ -1,3 +1,6 @@
+ver 3.2.1
+* Prefer JISX0208 to JISX0213 all the time in converting Unicode to other cs.
+
 ver 3.2.0
 * Support framebuffer on NetBSD.
 * Support 1 bpp framebuffer.

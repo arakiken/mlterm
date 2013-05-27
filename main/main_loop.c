@@ -344,7 +344,7 @@ main_loop_init(
 	}
 #endif
 
-#if  defined(__NetBSD__) && defined(USE_FRAMEBUFFER)
+#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "wskbd_repeat_1")))
 	{
 		extern int  wskbd_repeat_1 ;
@@ -358,6 +358,17 @@ main_loop_init(
 
 		kik_str_to_int( &wskbd_repeat_N , value) ;
 	}
+
+#ifdef  __OpenBSD__
+	if( ( value = kik_conf_get_value( conf , "fb_resolution")))
+	{
+		extern u_int  fb_width ;
+		extern u_int  fb_height ;
+		extern u_int  fb_depth ;
+
+		sscanf( value , "%dx%dx%d" , &fb_width , &fb_height , &fb_depth) ;
+	}
+#endif
 #endif
 
 	x_main_config_init( &main_config , conf , argc , argv) ;
