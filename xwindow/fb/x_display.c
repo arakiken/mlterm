@@ -103,7 +103,7 @@
 
 #if  defined(__FreeBSD__)
 #define  SYSMOUSE_PACKET_SIZE  8
-#elif  defined(__NetBSD__) || defined(__OpenBSD__)
+#elif  defined(__NetBSD__)
 #define  KEY_REPEAT_UNIT  25	/* msec (see x_event_source.c) */
 #define  DEFAULT_KEY_REPEAT_1  400	/* msec */
 #define  DEFAULT_KEY_REPEAT_N  50	/* msec */
@@ -173,10 +173,11 @@ static struct wskbd_map_data  keymap ;
 static int  console_id = -1 ;
 static int  orig_console_mode = WSDISPLAYIO_MODE_EMUL ;	/* 0 */
 static struct wscons_event  prev_key_event ;
+#ifdef  __NetBSD__
 static int  wskbd_repeat_wait = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
 int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
 int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
-#ifdef  __OpenBSD__
+#else
 u_int  fb_width = 640 ;
 u_int  fb_height = 480 ;
 u_int  fb_depth = 8 ;
@@ -1668,8 +1669,10 @@ process_wskbd_event(
 			receive_event_for_multi_roots( &xev) ;
 
 			prev_key_event = *ev ;
+		#ifdef  __NetBSD__
 			wskbd_repeat_wait = (wskbd_repeat_1 + KEY_REPEAT_UNIT - 1) /
 						KEY_REPEAT_UNIT ;
+		#endif
 		}
 	}
 	else if( ev->type == WSCONS_EVENT_KEY_UP)
@@ -1696,6 +1699,7 @@ process_wskbd_event(
 	}
 }
 
+#ifdef  __NetBSD__
 static void
 auto_repeat(void)
 {
@@ -1705,6 +1709,7 @@ auto_repeat(void)
 		wskbd_repeat_wait = (wskbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
 	}
 }
+#endif
 
 static int
 open_display(void)
@@ -1807,8 +1812,7 @@ open_display(void)
 		_display.bytes_per_pixel = 4 ;
 	}
 
-	if( ioctl( _display.fb_fd , WSDISPLAYIO_LINEBYTES , &_display.line_length) == -1 ||
-	    _display.line_length <= 0)
+	if( ioctl( _display.fb_fd , WSDISPLAYIO_LINEBYTES , &_display.line_length) == -1)
 	{
 		/* WSDISPLAYIO_LINEBYTES isn't defined in some ports. */
 
@@ -1947,7 +1951,9 @@ open_display(void)
 		cfsetospeed( &tm , B1200) ;
 		tcsetattr( _display.fd , TCSAFLUSH , &tm) ;
 
+	#ifdef  __NetBSD__
 		x_event_source_add_fd( -10 , auto_repeat) ;
+	#endif
 	}
 
 	ioctl( _display.fd , WSKBDIO_GETLEDS , &_display.lock_state) ;
@@ -2923,9 +2929,11 @@ x_display_close_all(void)
 
 	#if  defined(__FreeBSD__)
 		ioctl( STDIN_FILENO , KDSKBMODE , K_XLATE) ;
-	#elif  defined(__NetBSD__) || defined(__OpenBSD__)
+	#elif  defined(__NetBSD__)
 		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
 		x_event_source_remove_fd( -10) ;
+	#elif  defined(__OpenBSD__)
+		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
 	#else
 		set_use_console_backscroll( 1) ;
 	#endif

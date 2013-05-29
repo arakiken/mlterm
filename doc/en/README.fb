@@ -12,6 +12,8 @@ Framebuffer support
 
   NetBSD teokure 6.0.1
 
+  OpenBSD 5.3
+
 * Build
   ./configure --with-gui=fb ...
   make
@@ -74,6 +76,23 @@ Framebuffer support
   o If you want to use ibus input method plugin (./configure --enable-ibus),
     add "-lpthread" to LIBS2_fb of mlterm-x.x.x/main/Makefile.in before building
     mlterm-fb.
+
+  (for OpenBSD)
+  o Enable following options and rebuild kernel.
+    (Apply http://mlterm.sf.net/openbsd-5.3-fixvesa.patch for OpenBSD 4.9 or
+     later at the same time.)
+    vesabios0 at mainbus?
+    option VESAFB
+  o You can change the screen resolution and depth by fb_resolution option in
+    ~/.mlterm/main.
+    fb_resolution=800x600x32
+  o You can change auto key repeat settings (ms) by /etc/wsconsctl.conf or
+    wsconsctl command.
+    $ wsconsctl keyboard.repeat.del1=400
+    $ wsconsctl keyboard.repeat.deln=50
+  o The keyboard input data is read from /dev/wskbd by default. If you want to
+    use another device, set it to the value of WSKBD environmental variable.
+    (e.g. export WSKBD=/dev/wskbd0)
 
   (Common)
   o If you want to change fonts dynamically by mlcc, execute mlcc with "font"

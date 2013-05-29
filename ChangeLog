@@ -1,3 +1,9 @@
+2013-05-29  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x_display.c, main_loop.c: Minor fixes.
+
 2013-05-28  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Segfault in x_font_t::x_off > 0 is fixed.

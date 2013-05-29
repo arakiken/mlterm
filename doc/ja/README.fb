@@ -12,6 +12,8 @@ Framebuffer 対応に関するメモ
 
   NetBSD teokure 6.0.1
 
+  OpenBSD 5.3
+
 * ビルド
   ./configure --with-gui=fb ...
   make
@@ -76,6 +78,21 @@ Framebuffer 対応に関するメモ
   o Input method plugin として iBus を使用する場合は、./configure に
     --without-pthread を指定してビルドしないでください(mlterm-fb に pthread ライ
     ブラリをリンクしておかないと、ibus module の dlopen に失敗します。)。
+
+  (for OpenBSD)
+  o 次の2行を有効にしてカーネルの再構築を行ってください。
+    (OpenBSD 4.9以降では http://mlterm.sf.net/openbsd-5.3-fixvesa.patch も当ててください)
+    vesabios0 at mainbus?
+    option VESAFB
+  o ~/.mlterm/main に次のように指定することで、解像度を変更できます。
+    fb_resolution=800x600x32
+  o キーリピートは、/etc/wsconsctl.conf に設定するか、wsconsctl コマンドで指定し
+    てください。
+    $ wsconsctl keyboard.repeat.del1=400
+    $ wsconsctl keyboard.repeat.deln=50
+  o キーボード入力は、/dev/wskbd を使って読み込みます。別のデバイスを使用したい
+    場合は、WSKBD 環境変数にそのデバイス名を指定してください。
+    (e.g. export WSKBD=/dev/wskbd0)
 
   (Common)
   o mlcc を使ってフォント設定を動的に変更する場合には、

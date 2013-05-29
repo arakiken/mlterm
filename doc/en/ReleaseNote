@@ -1,5 +1,9 @@
 ver 3.2.1
+* Support framebuffer on OpenBSD.
 * Prefer JISX0208 to JISX0213 all the time in converting Unicode to other cs.
+* Bug fixes:
+  Fix the bug which caused segmentation fault in using a font whose width doesn't
+  match the usascii font on 24 or 32 bpp framebuffer.
 
 ver 3.2.0
 * Support framebuffer on NetBSD.
