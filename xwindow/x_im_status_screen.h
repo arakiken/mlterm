@@ -23,7 +23,7 @@ typedef struct x_im_status_screen
 	u_int  num_of_chars ; /* == array size */
 	u_int  filled_len ;
 
-	u_int  is_focused ;
+	u_int  dummy ;		/* left not to change the size of x_im_candidate_screen */
 
 	int  x ;		/* not adjusted by window size */
 	int  y ;		/* not adjusted by window size */

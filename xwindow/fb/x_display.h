@@ -27,7 +27,7 @@ void  x_display_fill_with( int  x , int  y , u_int  width , u_int  height , u_in
 void  x_display_copy_lines( int  src_x , int  src_y ,
 		int  dst_x , int  dst_y , u_int  width , u_int  height) ;
 
-void  x_display_expose( int  x , int  y , u_int  width , u_int  height) ;
+int  x_display_check_visibility_of_im_window( void) ;
 
 int  x_cmap_reset(void) ;
 

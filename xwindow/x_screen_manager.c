@@ -572,20 +572,12 @@ open_screen_intern(
 		goto  error ;
 	}
 
-	if( main_config.use_scrollbar)
+	if( main_config.use_scrollbar &&
+	    ( sb_screen = x_sb_screen_new( screen ,
+				main_config.scrollbar_view_name ,
+				main_config.sb_fg_color , main_config.sb_bg_color ,
+				main_config.sb_mode)))
 	{
-		if( ( sb_screen = x_sb_screen_new( screen ,
-					main_config.scrollbar_view_name ,
-					main_config.sb_fg_color , main_config.sb_bg_color ,
-					main_config.sb_mode)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " x_sb_screen_new() failed.\n") ;
-		#endif
-
-			goto  error ;
-		}
-
 		root = &sb_screen->window ;
 	}
 	else

@@ -4,6 +4,7 @@ ver 3.2.1
 * Bug fixes:
   Fix the bug which caused segmentation fault in using a font whose width doesn't
   match the usascii font on 24 or 32 bpp framebuffer.
+  Fix the bug which caused segmentation fault in closing input method status window.
 
 ver 3.2.0
 * Support framebuffer on NetBSD.

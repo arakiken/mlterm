@@ -614,7 +614,7 @@ window_move(
 	x_window_t *  win ,
 	int  x ,
 	int  y ,
-	int  expose	/* 1=full, -1=normal, 0=no */
+	int  expose	/* 1=normal, 0=no */
 	)
 {
 	int  prev_x ;
@@ -626,14 +626,14 @@ window_move(
 	win->x = x ;
 	win->y = y ;
 
-	if( expose == 1)
+	if( expose)
 	{
 		/*
-		 * x_expose_window() must be called after win->x and win->y is set
-		 * because window_exposed event which is called in x_expose_window()
-		 * can call x_window_move() recursively.
+		 * x_display_check_visibility_of_im_window() must be called after
+		 * win->x and win->y is set because window_exposed event which is
+		 * called in expose_window() can call x_window_move() recursively.
 		 */
-		x_display_expose( prev_x , prev_y , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+		x_display_check_visibility_of_im_window() ;
 	}
 
 	clear_margin_area( win) ;
@@ -1082,8 +1082,9 @@ x_window_resize(
 		 * because wall_picture can be resized to fit to the new window
 		 * size in win->window_resized.
 		 *
-		 * Don't clear_margin_area() if flag == 0 because segfault happens
-		 * in selecting candidates on the input method window.
+		 * Don't clear_margin_area() if flag == 0 because x_window_resize()
+		 * is called before x_window_move() in x_im_*_screen.c and could
+		 * cause segfault.
 		 */
 		clear_margin_area( win) ;
 	}
@@ -1141,17 +1142,6 @@ x_window_set_borderless_flag(
 
 int
 x_window_move(
-	x_window_t *  win ,
-	int  x ,
-	int  y
-	)
-{
-	return  window_move( win , x , y , -1) ;
-}
-
-/* XXX for x_im_status_screen */
-int
-x_window_move_full_expose(
 	x_window_t *  win ,
 	int  x ,
 	int  y

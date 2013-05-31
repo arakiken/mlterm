@@ -50,16 +50,25 @@ draw_screen(
 
 	xfont = x_get_usascii_font( stat_screen->font_man) ;
 
-	x_window_resize( &stat_screen->window , width ,
-			 xfont->height + LINE_SPACE, 0) ;
-	/* Reset window position */
-	set_spot( stat_screen , stat_screen->x , stat_screen->y) ;
-#ifdef  USE_FRAMEBUFFER
-	x_window_clear_margin_area( &stat_screen->window) ;	/* XXX */
-	x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
-				  stat_screen->window.width + MARGIN - 1 ,
-				  stat_screen->window.height + MARGIN - 1);
-#endif
+	if( x_window_resize( &stat_screen->window , width ,
+				xfont->height + LINE_SPACE, 0))
+	{
+		/* Reset window position */
+
+	#ifdef  USE_FRAMEBUFFER
+		if( ! set_spot( stat_screen , stat_screen->x , stat_screen->y))
+		{
+			/* resized but position not changed */
+			x_window_clear_margin_area( &stat_screen->window) ;
+		}
+
+		x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
+					  stat_screen->window.width + MARGIN - 1 ,
+					  stat_screen->window.height + MARGIN - 1) ;
+	#else
+		set_spot( stat_screen , stat_screen->x , stat_screen->y) ;
+	#endif
+	}
 
 	x_draw_str_to_eol( &stat_screen->window ,
 			   stat_screen->font_man ,
@@ -111,12 +120,10 @@ hide(
 	x_im_status_screen_t *  stat_screen
 	)
 {
-	if( stat_screen->is_focused)
+	if( ! stat_screen->window.is_focused)
 	{
-		return  1 ;
+		x_window_unmap( &stat_screen->window) ;
 	}
-
-	x_window_unmap( &stat_screen->window) ;
 
 	return  1 ;
 }
@@ -155,14 +162,14 @@ set_spot(
 
 	if( stat_screen->window.x != x || stat_screen->window.y != y)
 	{
-	#ifdef  USE_FRAMEBUFFER
-		x_window_move_full_expose( &stat_screen->window , x , y) ;
-	#else
 		x_window_move( &stat_screen->window , x , y) ;
-	#endif
-	}
 
-	return  1 ;
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 static int
@@ -313,22 +320,6 @@ window_exposed(
 				  win->height + MARGIN - 1);
 }
 
-static void
-window_focused(
-	x_window_t *  win
-	)
-{
-	((x_im_status_screen_t *) win)->is_focused = 1 ;
-}
-
-static void
-window_unfocused(
-	x_window_t *  win
-	)
-{
-	((x_im_status_screen_t *) win)->is_focused = 0 ;
-}
-
 
 /* --- global functions --- */
 
@@ -345,7 +336,7 @@ x_im_status_screen_new(
 {
 	x_im_status_screen_t *  stat_screen ;
 
-	if( ( stat_screen = malloc( sizeof( x_im_status_screen_t))) == NULL)
+	if( ( stat_screen = calloc( 1 , sizeof( x_im_status_screen_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -356,12 +347,6 @@ x_im_status_screen_new(
 
 	stat_screen->font_man = font_man ;
 	stat_screen->color_man = color_man ;
-
-	stat_screen->chars = NULL ;
-	stat_screen->num_of_chars = 0 ;
-	stat_screen->filled_len = 0 ;
-
-	stat_screen->is_focused = 0 ;
 
 	stat_screen->x = x ;
 	stat_screen->y = y ;
@@ -398,8 +383,6 @@ x_im_status_screen_new(
 	stat_screen->window.window_finalized = window_finalized ;
 #endif
 	stat_screen->window.window_exposed = window_exposed ;
-	stat_screen->window.window_focused = window_focused ;
-	stat_screen->window.window_unfocused = window_unfocused ;
 
 	/* methods of x_im_status_screen_t */
 	stat_screen->delete = delete ;

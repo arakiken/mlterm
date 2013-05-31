@@ -786,58 +786,41 @@ expose_window(
 	}
 }
 
-/* XXX for input method window */
-static int
-check_visibility_of_im_window(void)
+static void
+expose_display(
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
 {
-	static struct
+	x_window_t *  win1 ;
+	x_window_t *  win2 ;
+
+	win1 = get_window( x , y) ;
+	expose_window( win1 , x , y , width , height) ;
+
+	/*
+	 * XXX
+	 * x_im_{status|candidate}_screen can exceed display width or height,
+	 * because x_im_{status|candidate}_screen_new() shows screen at
+	 * non-adjusted position.
+	 */
+
+	if( x + width > _disp.width)
 	{
-		int  saved ;
-		int  x ;
-		int  y ;
-		u_int  width ;
-		u_int  height ;
-
-	} im_region ;
-	int  redraw_im_win ;
-
-	redraw_im_win = 0 ;
-
-	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
-	{
-		if( im_region.saved)
-		{
-			if( im_region.x == _disp.roots[1]->x &&
-			    im_region.y == _disp.roots[1]->y &&
-			    im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
-			    im_region.height == ACTUAL_HEIGHT(_disp.roots[1]))
-			{
-				return  0 ;
-			}
-
-			x_display_expose( im_region.x , im_region.y ,
-				im_region.width , im_region.height) ;
-
-			redraw_im_win = 1 ;
-		}
-
-		im_region.saved = 1 ;
-		im_region.x = _disp.roots[1]->x ;
-		im_region.y = _disp.roots[1]->y ;
-		im_region.width = ACTUAL_WIDTH(_disp.roots[1]) ;
-		im_region.height = ACTUAL_HEIGHT(_disp.roots[1]) ;
-	}
-	else
-	{
-		if( im_region.saved)
-		{
-			x_display_expose( im_region.x , im_region.y ,
-				im_region.width , im_region.height) ;
-			im_region.saved = 0 ;
-		}
+		width = _disp.width - x ;
 	}
 
-	return  redraw_im_win ;
+	if( y + height > _disp.height)
+	{
+		height = _disp.height - y ;
+	}
+
+	if( ( win2 = get_window( x + width - 1 , y + height - 1)) != win1)
+	{
+		expose_window( win2 , x , y , width , height) ;
+	}
 }
 
 static void
@@ -847,7 +830,7 @@ receive_event_for_multi_roots(
 {
 	int  redraw_im_win ;
 
-	if( ( redraw_im_win = check_visibility_of_im_window()))
+	if( ( redraw_im_win = x_display_check_visibility_of_im_window()))
 	{
 		/* Stop drawing input method window */
 		_disp.roots[1]->is_mapped = 0 ;
@@ -855,19 +838,17 @@ receive_event_for_multi_roots(
 
 	x_window_receive_event( _disp.roots[0] , xev) ;
 
-	if( redraw_im_win)
+	if( redraw_im_win && _disp.num_of_roots == 2)
 	{
 		/* Restart drawing input method window */
 		_disp.roots[1]->is_mapped = 1 ;
 	}
 
-	if( ! check_visibility_of_im_window())
+	if( x_display_check_visibility_of_im_window())
 	{
-		return ;
+		expose_window( _disp.roots[1] , _disp.roots[1]->x , _disp.roots[1]->y ,
+				ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
 	}
-
-	expose_window( _disp.roots[1] , _disp.roots[1]->x , _disp.roots[1]->y ,
-			ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
 }
 
 #ifndef  __FreeBSD__
@@ -3515,41 +3496,58 @@ x_display_copy_lines(
 	}
 }
 
-void
-x_display_expose(
-	int  x ,
-	int  y ,
-	u_int  width ,
-	u_int  height
-	)
+/* XXX for input method window */
+int
+x_display_check_visibility_of_im_window(void)
 {
-	x_window_t *  win1 ;
-	x_window_t *  win2 ;
-
-	win1 = get_window( x , y) ;
-	expose_window( win1 , x , y , width , height) ;
-
-	/*
-	 * XXX
-	 * x_im_{status|candidate}_screen can exceed display width or height,
-	 * because x_im_{status|candidate}_screen_new() shows screen at
-	 * non-adjusted position.
-	 */
-
-	if( x + width > _disp.width)
+	static struct
 	{
-		width = _disp.width - x ;
+		int  saved ;
+		int  x ;
+		int  y ;
+		u_int  width ;
+		u_int  height ;
+
+	} im_region ;
+	int  redraw_im_win ;
+
+	redraw_im_win = 0 ;
+
+	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
+	{
+		if( im_region.saved)
+		{
+			if( im_region.x == _disp.roots[1]->x &&
+			    im_region.y == _disp.roots[1]->y &&
+			    im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
+			    im_region.height == ACTUAL_HEIGHT(_disp.roots[1]))
+			{
+				return  0 ;
+			}
+
+			expose_display( im_region.x , im_region.y ,
+				im_region.width , im_region.height) ;
+
+			redraw_im_win = 1 ;
+		}
+
+		im_region.saved = 1 ;
+		im_region.x = _disp.roots[1]->x ;
+		im_region.y = _disp.roots[1]->y ;
+		im_region.width = ACTUAL_WIDTH(_disp.roots[1]) ;
+		im_region.height = ACTUAL_HEIGHT(_disp.roots[1]) ;
+	}
+	else
+	{
+		if( im_region.saved)
+		{
+			expose_display( im_region.x , im_region.y ,
+				im_region.width , im_region.height) ;
+			im_region.saved = 0 ;
+		}
 	}
 
-	if( y + height > _disp.height)
-	{
-		height = _disp.height - y ;
-	}
-
-	if( ( win2 = get_window( x + width - 1 , y + height - 1)) != win1)
-	{
-		expose_window( win2 , x , y , width , height) ;
-	}
+	return  redraw_im_win ;
 }
 
 int

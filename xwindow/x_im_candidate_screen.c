@@ -201,35 +201,40 @@ resize(
 	int  x ;
 	int  y ;
 
-	x_window_resize( &cand_screen->window , width , height , 0) ;
-
-	x = cand_screen->x ;
-	y = cand_screen->y ;
-	adjust_window_position_by_size( cand_screen , &x , &y) ;
-
-	if( x != cand_screen->window.x || y != cand_screen->window.y)
+	if( x_window_resize( &cand_screen->window , width , height , 0))
 	{
-		/*
-		 * In frmebuffer,
-		 * x_window_move() -> x_im_candidate_screen::window_exposed() ->
-		 * x_im_candidate_screen::draw_screen() -> here again
-		 */
+		x = cand_screen->x ;
+		y = cand_screen->y ;
+		adjust_window_position_by_size( cand_screen , &x , &y) ;
+
+		if( x != cand_screen->window.x || y != cand_screen->window.y)
+		{
+		#ifdef  USE_FRAMEBUFFER
+			/*
+			 * In frmebuffer,
+			 * x_im_candidate_screen::draw_screen() ->
+			 * x_im_candidate_screen::resize() ->
+			 * x_window_move() ->
+			 * x_im_candidate_screen::window_exposed() ->
+			 * x_im_candidate_screen::draw_screen()
+			 */
+			x_window_move_no_expose( &cand_screen->window , x , y) ;
+		#else
+			x_window_move( &cand_screen->window , x , y) ;
+		#endif
+		}
 	#ifdef  USE_FRAMEBUFFER
-		x_window_move_no_expose( &cand_screen->window , x , y) ;
-	#else
-		x_window_move( &cand_screen->window , x , y) ;
+		else
+		{
+			/* resized but position is not changed. */
+			x_window_clear_margin_area( &cand_screen->window) ;	/* XXX */
+		}
+
+		x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
+					  cand_screen->window.width + MARGIN - 1 ,
+					  cand_screen->window.height + MARGIN - 1) ;
 	#endif
 	}
-#ifdef  USE_FRAMEBUFFER
-	else
-	{
-		x_window_clear_margin_area( &cand_screen->window) ;	/* XXX */
-	}
-
-	x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
-				  cand_screen->window.width + MARGIN - 1 ,
-				  cand_screen->window.height + MARGIN - 1) ;
-#endif
 }
 
 #define  MAX_NUM_OF_DIGITS 4 /* max is 9999. enough? */
@@ -427,6 +432,13 @@ draw_screen_vertical(
 		u_int  width ;
 		size_t  len ;
 		int  x ;
+
+	#ifdef  USE_FRAMEBUFFER
+		x_window_clear( &cand_screen->window , 0 ,
+				(xfont->height + LINE_SPACE) * cand_screen->num_per_window +
+					LINE_SPACE ,
+				win_width , xfont->height) ;
+	#endif
 
 		len = kik_snprintf( navi , MAX_NUM_OF_DIGITS * 2 + 2 , "%d/%d",
 				cand_screen->index + 1 ,
@@ -690,12 +702,10 @@ hide(
 	x_im_candidate_screen_t *  cand_screen
 	)
 {
-	if( cand_screen->is_focused)
+	if( ! cand_screen->window.is_focused)
 	{
-		return  1 ;
+		x_window_unmap( &cand_screen->window) ;
 	}
-
-	x_window_unmap( &cand_screen->window) ;
 
 	return  1 ;
 }
@@ -968,22 +978,6 @@ window_exposed(
 }
 
 static void
-window_focused(
-	x_window_t *  win
-	)
-{
-	((x_im_candidate_screen_t *) win)->is_focused = 1 ;
-}
-
-static void
-window_unfocused(
-	x_window_t *  win
-	)
-{
-	((x_im_candidate_screen_t *) win)->is_focused = 0 ;
-}
-
-static void
 button_pressed(
 	x_window_t *  win ,
 	XButtonEvent *  event ,
@@ -1042,7 +1036,7 @@ x_im_candidate_screen_new(
 {
 	x_im_candidate_screen_t *  cand_screen ;
 
-	if( ( cand_screen = malloc( sizeof( x_im_candidate_screen_t))) == NULL)
+	if( ( cand_screen = calloc( 1 , sizeof( x_im_candidate_screen_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -1053,13 +1047,6 @@ x_im_candidate_screen_new(
 
 	cand_screen->font_man = font_man ;
 	cand_screen->color_man = color_man ;
-
-	cand_screen->candidates = NULL ;
-	cand_screen->num_of_candidates = 0 ;
-
-	cand_screen->index = 0 ;
-
-	cand_screen->is_focused = 0 ;
 
 	cand_screen->x = x ;
 	cand_screen->y = y ;
@@ -1100,8 +1087,6 @@ x_im_candidate_screen_new(
 	cand_screen->window.window_finalized = window_finalized ;
 #endif
 	cand_screen->window.window_exposed = window_exposed ;
-	cand_screen->window.window_focused = window_focused ;
-	cand_screen->window.window_unfocused = window_unfocused ;
 #if  0
 	cand_screen->window.button_released = button_released ;
 #endif
@@ -1120,10 +1105,6 @@ x_im_candidate_screen_new(
 	cand_screen->init = init_candidates ;
 	cand_screen->set = set_candidate ;
 	cand_screen->select = select_candidate ;
-
-	/* callbacks for events of candidate_screen */
-	cand_screen->listener.self = NULL ;
-	cand_screen->listener.selected = NULL ;
 
 	if( ! x_display_show_root( disp , &cand_screen->window , x , y , XValue | YValue ,
 					  "mlterm-candidate-window" , 0))

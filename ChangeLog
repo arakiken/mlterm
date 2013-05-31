@@ -1,3 +1,13 @@
+2013-06-01  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.[ch], x_window.c, x_im_{candidate|status}_screen.[ch]:
+	  Input method window on framebuffer is improved.
+
+	* fb/x_display.c: Segfault in closing input method status window
+	  is fixed.
+
+	* x_screen_manager.c: Minor fixes.
+
 2013-05-29  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
