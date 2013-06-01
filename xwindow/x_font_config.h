@@ -60,5 +60,7 @@ char *  x_get_config_font_name2( const char *  file , u_int  font_size , char * 
 
 char *  x_get_all_config_font_names( x_font_config_t *  font_config , u_int  font_size) ;
 
+char *  x_get_charset_name( mkf_charset_t  cs) ;
+
 
 #endif

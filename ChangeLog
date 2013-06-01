@@ -1,3 +1,18 @@
+2013-06-02  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_font.c, etc/font-fb: The default fonts of ISO10646_UCS4_1 and
+	  ISO8859_1_R are not defined in etc/font-fb but in fb/x_font.c.
+
+	* x_screen_manager.c: Error messages in the failure of x_font_manager_new()
+	  are simplified.
+
+	* x_font_config.[ch]: x_get_charset_name() is added.
+
+	* xlib/x_window.c: The type for 32-bit format data of XChangeProperty()
+	  is changed to u_long. (SF Bug #3614192)
+
+	* kiklib/src/Makefile.in: 14.3 -> 15.0 (SF Bug #3614142)
+
 2013-06-01  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.[ch], x_window.c, x_im_{candidate|status}_screen.[ch]:

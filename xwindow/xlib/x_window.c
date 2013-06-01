@@ -654,7 +654,7 @@ reset_client_leader(
 	x_window_t *  root
 	)
 {
-	Window  leader ;
+	u_long  leader ;
 
 	if( ( leader = x_display_get_group_leader( root->disp)) == None)
 	{
@@ -1867,7 +1867,8 @@ x_window_set_borderless_flag(
 			MWMHints_t  mwmhints = { MWM_HINTS_DECORATIONS, 0, 0, 0, 0 } ;
 
 			XChangeProperty( root->disp->display, root->my_window, atom , atom , 32,
-				PropModeReplace, (u_char *)&mwmhints, sizeof(MWMHints_t)/4) ;
+				PropModeReplace, (u_char *)&mwmhints,
+				sizeof(MWMHints_t)/sizeof(u_long)) ;
 		}
 		else
 		{
@@ -3664,14 +3665,36 @@ x_window_set_icon(
 	/* set extended window manager hint's icon */
 	if( icon->cardinal && icon->cardinal[0] && icon->cardinal[1])
 	{
+		int  num ;
+		u_long *  data ;
+
+		/* width * height + 2 */
+		num = icon->cardinal[0] * icon->cardinal[1] + 2 ;
+
+		if( sizeof(u_long) != 4)
+		{
+			int  count ;
+
+			if( ! ( data = alloca( sizeof(u_long) * num)))
+			{
+				return  0 ;
+			}
+
+			for( count = 0 ; count < num ; count++)
+			{
+				data[count] = icon->cardinal[count] ;
+			}
+		}
+		else
+		{
+			data = icon->cardinal ;
+		}
+
 		/*it should be possible to set multiple icons...*/
 		XChangeProperty( root->disp->display, root->my_window,
 				 XA_NET_WM_ICON( root->disp->display),
 				 XA_CARDINAL, 32, PropModeReplace,
-				 (unsigned char *)(icon->cardinal),
-				 /* (cardinal[0])*(cardinal[1])
-				  *          = width * height */
-				 (icon->cardinal[0])*(icon->cardinal[1]) +2) ;
+				 (u_char*)data , num) ;
 	}
 
 	if( ( hints = XGetWMHints( root->disp->display , root->my_window)) == NULL &&

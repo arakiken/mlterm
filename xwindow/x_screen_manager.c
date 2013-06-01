@@ -491,41 +491,13 @@ open_screen_intern(
 		main_config.step_in_changing_font_size ,
 		main_config.letter_space , main_config.use_bold_font)) == NULL)
 	{
-		char **  names ;
+		char *  name ;
 
-		names = x_font_get_encoding_names( usascii_font_cs) ;
-		if( names == NULL || names[0] == NULL)
-		{
-			kik_msg_printf(
-			  "Current encoding \"%s\" is supported only with "
-			  "Unicode font.  "
-			  "Please use \"-u\" option.\n",
-			  ml_get_char_encoding_name(ml_term_get_encoding(term))) ;
-		}
-		else if( strcmp( names[0] , "iso10646-1") == 0)
-		{
-			kik_msg_printf(
-			  "No fonts found for charset \"%s\".  "
-			  "Please install fonts.\n" , names[0]) ;
-		}
-		else if( names[1] == NULL)
-		{
-			/*
-			 * names[0] exists but x_font_manager_new failed.
-			 * It means that no fonts for names[0] exit in your system.
-			 */
-			kik_msg_printf(
-			  "No fonts found for charset \"%s\".  "
-			  "Please install fonts or use Unicode font "
-			  "(\"-u\" option).\n" , names[0]) ;
-		}
-		else
-		{
-			kik_msg_printf(
-			  "No fonts found for charset \"%s\" or \"%s\".  "
-			  "Please install fonts or use Unicode font "
-			  "(\"-u\" option).\n" , names[0] , names[1] );
-		}
+		name = x_get_charset_name( usascii_font_cs) ;
+
+		kik_msg_printf( "No fonts found for %s. Please install fonts "
+			"and edit the font config file in ~/.mlterm.\n" ,
+			name ? name : "US-ASCII") ;
 
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_font_manager_new() failed.\n") ;

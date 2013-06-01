@@ -61,6 +61,8 @@ Framebuffer support
     $ /etc/rc.d/moused onestart
 
   (for NetBSD)
+  o See https://gist.github.com/tsutsui/5689730
+    (Thanks to @tsutsuii san)
   o Boot kernel with vesa.
     [Example of /boot.cfg]
     menu=Boot vesa:vesa 800x600x32;boot netbsd

@@ -857,16 +857,6 @@ x_calculate_char_width(
 	return  font->width ;
 }
 
-char **
-x_font_get_encoding_names(
-	mkf_charset_t  cs
-	)
-{
-	static char *  csnames[] = { "iso8859-1" } ;	/* dummy */
-	
-	return  csnames ;
-}
-
 /* Return written size */
 size_t
 x_convert_ucs4_to_utf16(

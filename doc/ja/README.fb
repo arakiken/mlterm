@@ -64,6 +64,8 @@ Framebuffer 対応に関するメモ
     $ /etc/rc.d/moused onestart
 
   (for NetBSD)
+  o See https://gist.github.com/tsutsui/5689730
+    (Thanks to @tsutsuii san)
   o /boot.cfg に次のように vesa を指定して起動してください。
     menu=Boot vesa:vesa 800x600x32;boot netbsd
                    ^^^^^^^^^^^^^^^

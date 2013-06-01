@@ -681,7 +681,6 @@ x_font_new(
 	)
 {
 	char *  font_file ;
-	char *  percent_str ;
 	u_int  percent ;
 	x_font_t *  font ;
 	void *  p ;
@@ -689,30 +688,84 @@ x_font_new(
 
 	if( ! fontname)
 	{
-		kik_msg_printf( "Font file is not specified.\n") ;
-
-		return  NULL ;
-	}
-
-	if( type_engine != TYPE_XCORE || ! ( font = calloc( 1 , sizeof(x_font_t))))
-	{
-		return  NULL ;
-	}
-
-	if( ( percent_str = kik_str_alloca_dup( fontname)) == NULL)
-	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " Font file is not specified.\n") ;
 	#endif
 
-		return  0 ;
+		if( FONT_CS(id) == ISO10646_UCS4_1 || FONT_CS(id) == ISO8859_1_R)
+		{
+			struct stat  st ;
+
+		#if  defined(__FreeBSD__)
+			if( stat( "/usr/local/lib/X11/fonts/local/unifont.pcf.gz" , &st) == 0)
+			{
+				font_file = "/usr/local/lib/X11/fonts/local/unifont.pcf.gz" ;
+				percent = 100 ;
+			}
+			else
+			{
+				font_file = "/usr/local/lib/X11/fonts/misc/10x20.pcf.gz" ;
+				percent = 0 ;
+			}
+		#elif  defined(__NetBSD__)
+			percent = 0 ;
+			if( stat( "/usr/pkg/lib/X11/fonts/efont/b16.pcf.gz" , &st) == 0)
+			{
+				font_file = "/usr/pkg/lib/X11/fonts/efont/b16.pcf.gz" ;
+			}
+			else
+			{
+				font_file = "/usr/X11R7/lib/X11/fonts/misc/10x20.pcf.gz" ;
+			}
+		#elif  defined(__OpenBSD__)
+			if( stat( "/usr/X11R6/lib/X11/fonts/misc/unifont.pcf.gz" , &st) == 0)
+			{
+				font_file = "/usr/X11R6/lib/X11/fonts/misc/unifont.pcf.gz" ;
+				percent = 100 ;
+			}
+			else
+			{
+				font_file = "/usr/X11R6/lib/X11/fonts/misc/10x20.pcf.gz" ;
+				percent = 0 ;
+			}
+		#else /* __linux__ */
+			if( stat( "/usr/share/fonts/X11/misc/unifont.pcf.gz" , &st) == 0)
+			{
+				font_file = "/usr/share/fonts/X11/misc/unifont.pcf.gz" ;
+				percent = 100 ;
+			}
+			else
+			{
+				font_file = "/usr/share/fonts/X11/misc/10x20.pcf.gz" ;
+				percent = 0 ;
+			}
+		#endif
+		}
+		else
+		{
+			return  NULL ;
+		}
+	}
+	else
+	{
+		char *  percent_str ;
+
+		if( ! ( percent_str = kik_str_alloca_dup( fontname)))
+		{
+			return  NULL ;
+		}
+
+		font_file = kik_str_sep( &percent_str , ":") ;
+
+		if( ! percent_str || ! kik_str_to_uint( &percent , percent_str))
+		{
+			percent = 0 ;
+		}
 	}
 
-	font_file = kik_str_sep( &percent_str , ":") ;
-
-	if( ! percent_str || ! kik_str_to_uint( &percent , percent_str))
+ 	if( type_engine != TYPE_XCORE || ! ( font = calloc( 1 , sizeof(x_font_t))))
 	{
-		percent = 0 ;
+		return  NULL ;
 	}
 
 	for( count = 0 ; count < num_of_xfonts ; count++)
@@ -1059,14 +1112,6 @@ x_calculate_char_width(
 	}
 
 	return  font->width ;
-}
-
-char **
-x_font_get_encoding_names(
-	mkf_charset_t  cs
-	)
-{
-	return  NULL ;
 }
 
 /* Return written size */

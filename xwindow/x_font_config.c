@@ -2020,6 +2020,24 @@ x_get_all_config_font_names(
 	return  font_name_list ;
 }
 
+char *
+x_get_charset_name(
+	mkf_charset_t  cs
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < sizeof(cs_table) / sizeof(cs_table[0]) ; count++)
+	{
+		if( cs_table[count].cs == cs)
+		{
+			return  cs_table[count].name ;
+		}
+	}
+
+	return  NULL ;
+}
+
 #ifdef  DEBUG
 static void
 TEST_write_conf(void)
