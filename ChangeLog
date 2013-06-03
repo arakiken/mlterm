@@ -1,3 +1,9 @@
+2013-06-03  Araki Ken  <arakiken@users.sf.net>
+
+	* x_im_status_screen.c: The number of drawing string is reduced.
+
+	* fb/x_font.c: Segfault if pcf.gz file is illegally gzipped is fixed.
+
 2013-06-02  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_font.c, etc/font-fb: The default fonts of ISO10646_UCS4_1 and

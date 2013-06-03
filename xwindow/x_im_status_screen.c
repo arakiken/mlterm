@@ -56,10 +56,13 @@ draw_screen(
 		/* Reset window position */
 
 	#ifdef  USE_FRAMEBUFFER
-		if( ! set_spot( stat_screen , stat_screen->x , stat_screen->y))
+		if( set_spot( stat_screen , stat_screen->x , stat_screen->y))
 		{
-			/* resized but position not changed */
-			x_window_clear_margin_area( &stat_screen->window) ;
+			/*
+			 * set_spot() -> x_window_move() -> window_exposed() ->
+			 * draw_screen() and x_window_draw_rect_frame().
+			 */
+			return ;
 		}
 
 		x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,

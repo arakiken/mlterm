@@ -7,6 +7,7 @@ ver 3.2.1
   Fix the bug which caused segmentation fault in using a font whose width doesn't
   match the usascii font on 24 or 32 bpp framebuffer.
   Fix the bug which caused segmentation fault in closing input method status window.
+  Fix the bug which caused segmentation fault in loading illegal pcf fonts.
 
 ver 3.2.0
 * Support framebuffer on NetBSD.

@@ -439,18 +439,21 @@ gunzip(
 	 */
 	system( cmd) ;
 
+	/* st->st_size can be 0 if file_path points an illegally gzipped file. */
+	if( stat( new_file_path , st) == -1 || st->st_size <= 8)
+	{
+		unlink( new_file_path) ;
+
+		goto  error ;
+	}
+
 	/*
 	 * The atime and mtime of the uncompressed pcf font is the same
 	 * as those of the original gzipped font.
 	 */
 	ut.actime = st->st_atime ;
 	ut.modtime = st->st_mtime ;
-	if( utime( new_file_path , &ut) == -1)
-	{
-		goto  error ;
-	}
-
-	stat( new_file_path , st) ;
+	utime( new_file_path , &ut) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " USE NEWLY UNCOMPRESSED FONT\n") ;
@@ -509,6 +512,7 @@ load_pcf(
 
 	table_load_count = 0 ;
 
+	/* "st.st_size > 8" is ensured. (see gunzip()) */
 	if( ! ( p = pcf = mmap( NULL , st.st_size , PROT_READ , MAP_PRIVATE , fd , 0)) ||
 	    memcmp( p , "\1fcp" , 4) != 0)
 	{
@@ -519,6 +523,11 @@ load_pcf(
 
 	num_of_tables = _TOINT32(p,0) ;
 	p += 4 ;
+
+	if( st.st_size <= 8 + 16 * num_of_tables)
+	{
+		goto  end ;
+	}
 
 	for( count = 0 ; count < num_of_tables ; count++)
 	{
