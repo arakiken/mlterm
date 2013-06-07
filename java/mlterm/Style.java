@@ -15,4 +15,5 @@ public class Style
 	public int  bg_pixel = 0 ;
 	public boolean  underline = false ;
 	public boolean  bold = false ;
+	public boolean  italic = false ;
 }

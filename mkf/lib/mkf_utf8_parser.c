@@ -173,16 +173,13 @@ utf8_parser_next_char(
 		goto  utf8_err ;
 	}
 
-	ucs4_ch->ch[0] = ((ucs4_int >> 24) & 0xff) ;
-	ucs4_ch->ch[1] = ((ucs4_int >> 16) & 0xff) ;
-	ucs4_ch->ch[2] = ((ucs4_int >> 8) & 0xff) ;
-	ucs4_ch->ch[3] = (ucs4_int & 0xff) ;
+	mkf_int_to_bytes( ucs4_ch->ch , 4 , ucs4_int) ;
 
 	mkf_parser_n_increment( utf8_parser , bytes) ;
 
 	ucs4_ch->size = 4 ;
 	ucs4_ch->cs = ISO10646_UCS4_1 ;
-	ucs4_ch->property = mkf_get_ucs_property( mkf_bytes_to_int( ucs4_ch->ch , ucs4_ch->size)) ;
+	ucs4_ch->property = mkf_get_ucs_property( ucs4_int) ;
 	
 	return  1 ;
 	

@@ -53,7 +53,7 @@ adjust_bd_ul_color(
 static int
 draw_picture(
 	x_window_t *  window ,
-	char **  glyphs ,
+	u_int32_t *  glyphs ,
 	u_int  num_of_glyphs ,
 	int  dst_x ,
 	int  dst_y ,
@@ -80,7 +80,10 @@ draw_picture(
 		int  x ;
 		u_int  w ;
 
-		pic = x_get_inline_picture( ((u_int16_t*)glyphs[count])[0]) ;
+		if( ! ( pic = x_get_inline_picture( INLINEPIC_ID(glyphs[count]))))
+		{
+			continue ;
+		}
 
 		/*
 		 * XXX
@@ -93,7 +96,7 @@ draw_picture(
 			num_of_rows = (pic->height + pic->line_height - 1) / pic->line_height ;
 		}
 
-		pos = ((u_int16_t*)glyphs[count])[1] ;
+		pos = INLINEPIC_POS(glyphs[count]) ;
 		x = (pos / num_of_rows) * ch_width ;
 
 		if( x + ch_width > pic->width)
@@ -314,9 +317,10 @@ draw_drcs(
 static int
 get_state(
 	mkf_charset_t  ch_cs ,
-	u_char *  ch_bytes ,
+	u_int32_t  ch_code ,
 	ml_char_t *  comb_chars ,
-	char **  glyph ,
+	u_int32_t *  pic_glyph ,
+	char **  drcs_glyph ,
 	int *  draw_alone
 	)
 {
@@ -324,32 +328,37 @@ get_state(
 	if( comb_chars && ml_char_cs( comb_chars) == PICTURE_CHARSET)
 	{
 		*draw_alone = 0 ;	/* forcibly set 0 regardless of xfont. */
-		*glyph = ml_char_bytes( comb_chars) ;
+		*pic_glyph = ml_char_code( comb_chars) ;
+		*drcs_glyph = NULL ;
 
 		return  4 ;
 	}
 	else
 #endif
-	if( ( *glyph = ml_drcs_get_glyph( ch_cs , ch_bytes[0])))
 	{
-		*draw_alone = 0 ;	/* forcibly set 0 regardless of xfont. */
+		*pic_glyph = 0 ;
 
-		return  3 ;
-	}
-	else
-	{
-		if( comb_chars)
+		if( ( *drcs_glyph = ml_drcs_get_glyph( ch_cs , ch_code)))
 		{
-			*draw_alone = 1 ;
-		}
+			*draw_alone = 0 ;	/* forcibly set 0 regardless of xfont. */
 
-		if( ch_cs == DEC_SPECIAL)
-		{
-			return  1 ;
+			return  3 ;
 		}
 		else
 		{
-			return  0 ;
+			if( comb_chars)
+			{
+				*draw_alone = 1 ;
+			}
+
+			if( ch_cs == DEC_SPECIAL)
+			{
+				return  1 ;
+			}
+			else
+			{
+				return  0 ;
+			}
 		}
 	}
 }
@@ -369,8 +378,7 @@ fc_draw_combining_chars(
 	)
 {
 	u_int  count ;
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
+	u_int32_t  ch_code ;
 	mkf_charset_t  ch_cs ;
 	x_font_t *  xfont ;
 	x_color_t *  xcolor ;
@@ -382,34 +390,34 @@ fc_draw_combining_chars(
 			continue ;
 		}
 
-		ch_bytes = ml_char_bytes( &chars[count]) ;
-		ch_size = ml_char_size( &chars[count]) ;
+		ch_code = ml_char_code( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 		xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
 		xcolor = x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ;
 
 		if( ch_cs == DEC_SPECIAL)
 		{
-			x_window_draw_decsp_string( window , xfont , xcolor ,
-				x , y , ch_bytes , ch_size) ;
+			u_char  c ;
+
+			c = ch_code ;
+			x_window_draw_decsp_string( window , xfont , xcolor , x , y , &c , 1) ;
 		}
 		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 		{
-			x_window_ft_draw_string8( window , xfont , xcolor ,
-				x , y , ch_bytes , ch_size) ;
+			u_char  c ;
+
+			c = ch_code ;
+			x_window_ft_draw_string8( window , xfont , xcolor , x , y , &c , 1) ;
 		}
 		else
 		{
-			u_char  ucs4_bytes[4] ;
 			/* FcChar32 */ u_int32_t  ucs4 ;
 
-			if( ! x_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
+			if( ( ucs4 = x_convert_to_xft_ucs4( ch_code , ch_cs)))
 			{
-				continue ;
+				x_window_ft_draw_string32( window , xfont , xcolor ,
+					x , y , &ucs4 , 1) ;
 			}
-
-			ucs4 = mkf_bytes_to_int( ucs4_bytes , 4) ;
-			x_window_ft_draw_string32( window , xfont , xcolor , x , y , &ucs4 , 1) ;
 		}
 	}
 
@@ -436,13 +444,12 @@ fc_draw_str(
 	int  count ;
 	int  start_draw ;
 	int  end_of_str ;
-	u_int	current_width ;
+	u_int  current_width ;
 	/* FcChar8 */ u_int8_t *  str8 ;
 	/* FcChar32 */ u_int32_t *  str32 ;
 	u_int	str_len ;
 
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
+	u_int32_t  ch_code ;
 	u_int  ch_width ;
 	mkf_charset_t  ch_cs ;
 
@@ -455,8 +462,10 @@ fc_draw_str(
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
 	int  draw_alone ;
-	char *  glyph ;
-	char **  glyphs ;
+	u_int32_t  pic_glyph ;
+	u_int32_t *  pic_glyphs ;
+	char *  drcs_glyph ;
+	char **  drcs_glyphs ;
 
 	int  next_state ;
 	x_font_t *  next_xfont ;
@@ -494,12 +503,11 @@ fc_draw_str(
 		}
 	}
 
-	ch_bytes = ml_char_bytes( &chars[count]) ;
-	ch_size = ml_char_size( &chars[count]) ;
+	ch_code = ml_char_code( &chars[count]) ;
 	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 	ch_cs = FONT_CS(font) ;
 
-	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs , &draw_alone) ;
+	ch_width = x_calculate_char_width( xfont , ch_code , ch_cs , &draw_alone) ;
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -515,7 +523,8 @@ fc_draw_str(
 
 	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 
-	if( ( state = get_state( ch_cs , ch_bytes , comb_chars , &glyph , &draw_alone)) == 0 &&
+	if( ( state = get_state( ch_cs , ch_code , comb_chars ,
+			&pic_glyph , &drcs_glyph , &draw_alone)) == 0 &&
 	    ch_cs != US_ASCII && ch_cs != ISO8859_1_R && ! IS_ISCII(ch_cs))
 	{
 		state = 2 ;
@@ -526,9 +535,9 @@ fc_draw_str(
 
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
 
-	if( ! ( str8 = str32 = glyphs =
-		alloca( K_MAX(K_MAX(sizeof(*str8),sizeof(*str32)),sizeof(*glyphs)) *
-			num_of_chars)))
+	if( ! ( str8 = str32 = pic_glyphs = drcs_glyphs =
+		alloca( K_MAX(sizeof(*str8),K_MAX(sizeof(*str32),
+		        K_MAX(sizeof(*pic_glyphs),sizeof(*drcs_glyphs)))) * num_of_chars)))
 	{
 		return  0 ;
 	}
@@ -537,31 +546,34 @@ fc_draw_str(
 
 	while( 1)
 	{
-		if( glyph)
+		if( state <= 1)
 		{
-			glyphs[str_len ++] = glyph ;
+			str8[str_len++] = ch_code ;
 		}
-		else if( state == 0 || state == 1)
+		else if( state >= 3)
 		{
-			str8[str_len++] = ch_bytes[0] ;
+			if( drcs_glyph)
+			{
+				drcs_glyphs[str_len ++] = drcs_glyph ;
+			}
+			else /* if( pic_glyph) */
+			{
+				pic_glyphs[str_len ++] = pic_glyph ;
+			}
 		}
 		else /* if( state == 2) */
 		{
-			u_char  ucs4_bytes[4] ;
+			u_int32_t  ucs4 ;
 
-			if( ! x_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
+			if( ! ( ucs4 = x_convert_to_xft_ucs4( ch_code , ch_cs)))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
 			#endif
-
-				ucs4_bytes[0] = 0 ;
-				ucs4_bytes[1] = 0 ;
-				ucs4_bytes[2] = 0 ;
-				ucs4_bytes[3] = 0x20 ;
+				ucs4 = 0x20 ;
 			}
 
-			str32[str_len++] = mkf_bytes_to_int( ucs4_bytes , 4) ;
+			str32[str_len++] = ucs4 ;
 		}
 
 		/*
@@ -582,8 +594,7 @@ fc_draw_str(
 
 		if( ! end_of_str)
 		{
-			ch_bytes = ml_char_bytes( &chars[count]) ;
-			ch_size = ml_char_size( &chars[count]) ;
+			ch_code = ml_char_code( &chars[count]) ;
 			next_xfont = x_get_font( font_man ,
 					(next_font = ml_char_font( &chars[count]))) ;
 			ch_cs = FONT_CS(next_font) ;
@@ -591,12 +602,13 @@ fc_draw_str(
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
 			next_ch_width = x_calculate_char_width( next_xfont ,
-						ch_bytes , ch_size , ch_cs , &next_draw_alone) ;
+						ch_code , ch_cs , &next_draw_alone) ;
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
 							&next_comb_size) ;
 
-			if( ( next_state = get_state( ch_cs , ch_bytes , next_comb_chars ,
-						&glyph , &next_draw_alone)) == 0 &&
+			if( ( next_state = get_state( ch_cs , ch_code , next_comb_chars ,
+						&pic_glyph , &drcs_glyph ,
+						&next_draw_alone)) == 0 &&
 			    ch_cs != US_ASCII && ch_cs != ISO8859_1_R && ! IS_ISCII(ch_cs))
 			{
 				next_state = 2 ;
@@ -655,7 +667,7 @@ fc_draw_str(
 		#ifndef  NO_IMAGE
 			if( state == 4)
 			{
-				draw_picture( window , glyphs , str_len , x , y ,
+				draw_picture( window , pic_glyphs , str_len , x , y ,
 					ch_width , height) ;
 
 				goto  end_draw ;
@@ -701,7 +713,7 @@ fc_draw_str(
 			}
 			else /* if( state == 3) */
 			{
-				draw_drcs( window , glyphs , str_len ,
+				draw_drcs( window , drcs_glyphs , str_len ,
 					x , y , ch_width , height , fg_xcolor) ;
 			}
 
@@ -805,8 +817,7 @@ xcore_draw_combining_chars(
 	)
 {
 	u_int  count ;
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
+	u_int32_t  ch_code ;
 	mkf_charset_t  ch_cs ;
 	x_font_t *  xfont ;
 	x_color_t *  xcolor ;
@@ -818,33 +829,36 @@ xcore_draw_combining_chars(
 			continue ;
 		}
 
-		ch_bytes = ml_char_bytes( &chars[count]) ;
-		ch_size = ml_char_size( &chars[count]) ;
+		ch_code = ml_char_code( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 		xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
 		xcolor = x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ;
 
 		if( ch_cs == DEC_SPECIAL)
 		{
-			x_window_draw_decsp_string( window , xfont , xcolor ,
-				x , y , ch_bytes , 1) ;
+			u_char  c ;
+
+			c = ch_code ;
+			x_window_draw_decsp_string( window , xfont , xcolor , x , y , &c , 1) ;
 		}
-		else if( ch_size == 1)
+		else if( ch_code < 0x100)
 		{
-			x_window_draw_string( window , xfont , xcolor ,
-				x , y , ch_bytes , 1) ;
+			u_char  c ;
+
+			c = ch_code ;
+			x_window_draw_string( window , xfont , xcolor , x , y , &c , 1) ;
 		}
-		else if( ch_size == 2)
+		else if( ch_cs != ISO10646_UCS4_1)
 		{
 			XChar2b  xch ;
 
-			xch.byte1 = ch_bytes[0] ;
-			xch.byte2 = ch_bytes[1] ;
+			xch.byte1 = (ch_code >> 8) & 0xff ;
+			xch.byte2 = ch_code & 0xff ;
 
 			x_window_draw_string16( window , xfont , xcolor ,
 				x , y , &xch , 1) ;
 		}
-		else /* if( ch_size == 4) */
+		else
 		{
 			/* UCS4 */
 
@@ -852,7 +866,7 @@ xcore_draw_combining_chars(
 			XChar2b  xch[2] ;
 			u_int  len ;
 
-			if( ( len = (x_convert_ucs4_to_utf16( xch , ch_bytes) / 2)) > 0)
+			if( ( len = (x_convert_ucs4_to_utf16( xch , ch_code) / 2)) > 0)
 			{
 				x_window_draw_string16( window , xfont , xcolor ,
 					x , y , xch , len) ;
@@ -887,8 +901,7 @@ xcore_draw_str(
 	u_char *  str ;
 	XChar2b *  str2b ;
 	u_int	str_len ;
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
+	u_int32_t  ch_code ;
 	mkf_charset_t  ch_cs ;
 
 	int  state ;			/* 0(8bit),1(decsp),2(16bit) */
@@ -901,8 +914,10 @@ xcore_draw_str(
 	ml_color_t  bg_color ;
 	int  is_underlined ;
 	int  draw_alone ;
-	char *  glyph ;
-	char **  glyphs ;
+	u_int32_t  pic_glyph ;
+	u_int32_t *  pic_glyphs ;
+	char *  drcs_glyph ;
+	char **  drcs_glyphs ;
 
 	int  next_state ;
 	ml_char_t *  next_comb_chars ;
@@ -939,12 +954,11 @@ xcore_draw_str(
 	start_draw = 0 ;
 	end_of_str = 0 ;
 
-	ch_bytes = ml_char_bytes( &chars[count]) ;
-	ch_size = ml_char_size( &chars[count]) ;
+	ch_code = ml_char_code( &chars[count]) ;
 	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 	ch_cs = FONT_CS(font) ;
 
-	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs , &draw_alone) ;
+	ch_width = x_calculate_char_width( xfont , ch_code , ch_cs , &draw_alone) ;
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -960,8 +974,8 @@ xcore_draw_str(
 
 	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 
-	if( ( state = get_state( ch_cs , ch_bytes , comb_chars , &glyph , &draw_alone)) == 0 &&
-	    ch_size > 1)
+	if( ( state = get_state( ch_cs , ch_code , comb_chars ,
+			&pic_glyph , &drcs_glyph , &draw_alone)) == 0 && ch_code >= 0x100)
 	{
 		state = 2 ;
 	}
@@ -970,10 +984,10 @@ xcore_draw_str(
 	bg_color = ml_char_bg_color( &chars[count]) ;
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
 
-	if( ! ( str2b = str = glyphs =
+	if( ! ( str2b = str = pic_glyphs = drcs_glyphs =
 		/* '* 2' is for UTF16 surrogate pair. */
-		alloca( K_MAX(sizeof(*str2b)*2,K_MAX(sizeof(*str),sizeof(*glyphs)) *
-			num_of_chars))))
+		alloca( K_MAX(sizeof(*str2b)*2,K_MAX(sizeof(*str),
+		        K_MAX(sizeof(*pic_glyphs),sizeof(*drcs_glyphs)))) * num_of_chars)))
 	{
 		return	0 ;
 	}
@@ -982,28 +996,32 @@ xcore_draw_str(
 
 	while( 1)
 	{
-		if( ch_size == 1)
+		if( state <= 1)
 		{
-			if( glyph)
+			str[str_len++] = ch_code ;
+		}
+		else if( state >= 3)
+		{
+			if( pic_glyph)
 			{
-				glyphs[str_len++] = glyph ;
+				pic_glyphs[str_len++] = pic_glyph ;
 			}
-			else
+			else /* if( drcs_glyph) */
 			{
-				str[str_len++] = ch_bytes[0] ;
+				drcs_glyphs[str_len++] = drcs_glyph ;
 			}
 		}
-		else if( ch_size == 2)
+		else if( ch_cs != ISO10646_UCS4_1)
 		{
-			str2b[str_len].byte1 = ch_bytes[0] ;
-			str2b[str_len].byte2 = ch_bytes[1] ;
+			str2b[str_len].byte1 = (ch_code >> 8) & 0xff ;
+			str2b[str_len].byte2 = ch_code & 0xff ;
 			str_len ++ ;
 		}
-		else /* if( ch_size == 4) */
+		else
 		{
 			/* UCS4 */
 
-			str_len += (x_convert_ucs4_to_utf16( str2b + str_len , ch_bytes) / 2) ;
+			str_len += (x_convert_ucs4_to_utf16( str2b + str_len , ch_code) / 2) ;
 		}
 
 		/*
@@ -1024,8 +1042,7 @@ xcore_draw_str(
 
 		if( ! end_of_str)
 		{
-			ch_bytes = ml_char_bytes( &chars[count]) ;
-			ch_size = ml_char_size( &chars[count]) ;
+			ch_code = ml_char_code( &chars[count]) ;
 			next_xfont = x_get_font( font_man ,
 					(next_font = ml_char_font( &chars[count]))) ;
 			ch_cs = FONT_CS(next_font) ;
@@ -1033,13 +1050,13 @@ xcore_draw_str(
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
 			next_ch_width = x_calculate_char_width( next_xfont ,
-						ch_bytes , ch_size , ch_cs , &next_draw_alone) ;
+						ch_code , ch_cs , &next_draw_alone) ;
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
 							&next_comb_size) ;
 
-			if( ( next_state = get_state( ch_cs , ch_bytes , next_comb_chars ,
-						&glyph , &next_draw_alone)) == 0 &&
-			    ch_size > 1)
+			if( ( next_state = get_state( ch_cs , ch_code , next_comb_chars ,
+						&pic_glyph , &drcs_glyph ,
+						&next_draw_alone)) == 0 && ch_code >= 0x100)
 			{
 				next_state = 2 ;
 			}
@@ -1097,7 +1114,7 @@ xcore_draw_str(
 		#ifndef  NO_IMAGE
 			if( state == 4)
 			{
-				draw_picture( window , glyphs , str_len , x , y ,
+				draw_picture( window , pic_glyphs , str_len , x , y ,
 					ch_width , height) ;
 
 				goto  end_draw ;
@@ -1161,7 +1178,7 @@ xcore_draw_str(
 				}
 				else /* if( state == 3) */
 				{
-					draw_drcs( window , glyphs , str_len ,
+					draw_drcs( window , drcs_glyphs , str_len ,
 						x , y , ch_width , height , fg_xcolor) ;
 				}
 			}

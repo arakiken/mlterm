@@ -19,7 +19,7 @@
 #include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <kiklib/kik_conf_io.h>/* kik_get_user_rc_path */
 #include  <kiklib/kik_util.h>	/* TOINT32 */
-#include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
+#include  <mkf/mkf_char.h>
 
 
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
@@ -1102,8 +1102,7 @@ x_change_font_cols(
 u_int
 x_calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,
-	size_t  len ,
+	u_int32_t  ch ,
 	mkf_charset_t  cs ,
 	int *  draw_alone
 	)
@@ -1127,52 +1126,40 @@ x_calculate_char_width(
 size_t
 x_convert_ucs4_to_utf16(
 	u_char *  dst ,	/* 4 bytes. Big endian. */
-	u_char *  src	/* 4 bytes. Big endian. */
+	u_int32_t  src
 	)
 {
-#if  0
-	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , mkf_bytes_to_int( src , 4)) ;
-#endif
-
-	if( src[0] > 0x0 || src[1] > 0x10)
+	if( src < 0x10000)
 	{
-		return  0 ;
-	}
-	else if( src[1] == 0x0)
-	{
-		dst[0] = src[2] ;
-		dst[1] = src[3] ;
+		dst[0] = (src >> 8) & 0xff ;
+		dst[1] = src & 0xff ;
 
 		return  2 ;
 	}
-	else /* if( src[1] <= 0x10) */
+	else if( src < 0x110000)
 	{
 		/* surrogate pair */
 
-		u_int32_t  linear ;
 		u_char  c ;
 
-		linear = mkf_bytes_to_int( src , 4) - 0x10000 ;
-
-		c = (u_char)( linear / (0x100 * 0x400)) ;
-		linear -= (c * 0x100 * 0x400) ;
+		src -= 0x10000 ;
+		c = (u_char)( src / (0x100 * 0x400)) ;
+		src -= (c * 0x100 * 0x400) ;
 		dst[0] = c + 0xd8 ;
 
-		c = (u_char)( linear / 0x400) ;
-		linear -= (c * 0x400) ;
+		c = (u_char)( src / 0x400) ;
+		src -= (c * 0x400) ;
 		dst[1] = c ;
 
-		c = (u_char)( linear / 0x100) ;
-		linear -= (c * 0x100) ;
+		c = (u_char)( src / 0x100) ;
+		src -= (c * 0x100) ;
 		dst[2] = c + 0xdc ;
-		dst[3] = (u_char) linear ;
-
-	#if  0
-		kik_msg_printf( "%.2x%.2x%.2x%.2x\n" , dst[0] , dst[1] , dst[2] , dst[3]) ;
-	#endif
+		dst[3] = (u_char)src ;
 
 		return  4 ;
 	}
+
+	return  0 ;
 }
 
 
@@ -1225,15 +1212,21 @@ x_get_bitmap(
 	int16_t  glyph_idx ;
 	int32_t  glyph_offset ;
 
-	if( len == 2)
-	{
-		ch_idx = (ch[0] - xfont->min_byte1) *
-			 (xfont->max_char_or_byte2 - xfont->min_char_or_byte2 + 1) +
-			ch[1] - xfont->min_char_or_byte2 ;
-	}
-	else /* if( len == 1) */
+	if( len == 1)
 	{
 		ch_idx = ch[0] - xfont->min_char_or_byte2 ;
+	}
+	else if( len == 2)
+	{
+		ch_idx = (ch[0] - xfont->min_byte1) *
+		         (xfont->max_char_or_byte2 - xfont->min_char_or_byte2 + 1) +
+		         ch[1] - xfont->min_char_or_byte2 ;
+	}
+	else /* if( len == 4) */
+	{
+		ch_idx = (ch[1] * 0x100 + ch[2] - xfont->min_byte1) *
+		         (xfont->max_char_or_byte2 - xfont->min_char_or_byte2 + 1) +
+		         ch[3] - xfont->min_char_or_byte2 ;
 	}
 
 	if( ch_idx >= ( xfont->max_char_or_byte2 - xfont->min_char_or_byte2 + 1) *

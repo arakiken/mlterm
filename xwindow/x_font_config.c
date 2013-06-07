@@ -246,14 +246,9 @@ parse_key(
 
 	if( key_len >= 7 && strncmp( key , "DEFAULT" , 7) == 0)
 	{
-		if( strcmp( key + 7 , "_BOLD") == 0)
-		{
-			return  DEFAULT_FONT | FONT_BOLD ;
-		}
-		else
-		{
-			return  DEFAULT_FONT ;
-		}
+		font = DEFAULT_FONT ;
+
+		goto  check_style ;
 	}
 	
 	for( count = 0 ; count < sizeof( cs_table) / sizeof( cs_table[0]) ; count ++)
@@ -298,9 +293,15 @@ parse_key(
 		}
 	}
 
+check_style:
 	if( strstr( key , "_BOLD"))
 	{
 		font |= FONT_BOLD ;
+	}
+
+	if( strstr( key , "_ITALIC"))
+	{
+		font |= FONT_ITALIC ;
 	}
 
 	return  font ;
@@ -1755,9 +1756,17 @@ x_get_config_font_name(
 	encoding = NULL ;
 	if( ( pair = get_font_name_pair( font_config->default_font_name_table , font)) == NULL)
 	{
-		if( ! ( pair = get_font_name_pair( map , DEFAULT_FONT | (font & FONT_BOLD))) &&
+		if( ! ( pair = get_font_name_pair( map ,
+					DEFAULT_FONT | (font & (FONT_BOLD|FONT_ITALIC)))) &&
 		    ! ( pair = get_font_name_pair( font_config->default_font_name_table ,
-							DEFAULT_FONT | (font & FONT_BOLD))) )
+					DEFAULT_FONT | (font & (FONT_BOLD|FONT_ITALIC))))
+		    && (
+		#ifndef  USE_WIN32GUI
+			font_config->type_engine == TYPE_XCORE ||
+		#endif
+		        ( ! ( pair = get_font_name_pair( map , DEFAULT_FONT)) &&
+		          ! ( pair = get_font_name_pair( font_config->default_font_name_table ,
+						DEFAULT_FONT)))))
 		{
 			return  NULL ;
 		}

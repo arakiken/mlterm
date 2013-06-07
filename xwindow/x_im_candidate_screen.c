@@ -103,8 +103,7 @@ candidate_width(
 
 		width += x_calculate_char_width(
 					xfont ,
-					ml_char_bytes( &candidate->chars[i]) ,
-					ml_char_size( &candidate->chars[i]) ,
+					ml_char_code( &candidate->chars[i]) ,
 					ml_char_cs( &candidate->chars[i]) , NULL) ;
 	}
 
@@ -362,10 +361,9 @@ draw_screen_vertical(
 
 			ml_char_init( &ch) ;
 
-			ml_char_set( &ch , &digit[j] , 1 ,
-				     US_ASCII , 0 , 0 ,
+			ml_char_set( &ch , digit[j] , US_ASCII , 0 , 0 ,
 				     ML_FG_COLOR , ML_BG_COLOR ,
-				     0 , 0) ;
+				     0 , 0 , 0) ;
 
 			x_draw_str( &cand_screen->window ,
 				    cand_screen->font_man ,
@@ -454,10 +452,9 @@ draw_screen_vertical(
 
 			ml_char_init( &ch) ;
 
-			ml_char_set( &ch , &navi[i] , 1 ,
-				     US_ASCII , 0 , 0 ,
+			ml_char_set( &ch , navi[i] , US_ASCII , 0 , 0 ,
 				     ML_FG_COLOR , ML_BG_COLOR ,
-				     0 , 0) ;
+				     0 , 0 , 0) ;
 
 			x_draw_str( &cand_screen->window ,
 				    cand_screen->font_man ,
@@ -545,8 +542,8 @@ draw_screen_horizontal(
 
 			ml_char_init( &ch) ;
 
-			ml_char_set( &ch , &digit[j] , 1 , US_ASCII , 0 , 0 ,
-				     ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+			ml_char_set( &ch , digit[j] , US_ASCII , 0 , 0 ,
+				     ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 
 			x_draw_str( &cand_screen->window ,
 				    cand_screen->font_man ,
@@ -864,11 +861,9 @@ set_candidate(
 		{
 			is_comb = 1 ;
 
-			if( ml_char_combine( p - 1 ,
-					     ch.ch , ch.size , ch.cs ,
-					     is_biwidth , is_comb ,
-					     ML_FG_COLOR , ML_BG_COLOR ,
-					     0 , 0))
+			if( ml_char_combine( p - 1 , mkf_char_to_int(&ch) ,
+					ch.cs , is_biwidth , is_comb ,
+					ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0))
 			{
 				continue ;
 			}
@@ -878,10 +873,8 @@ set_candidate(
 			 */
 		}
 
-		ml_char_set( p , ch.ch , ch.size , ch.cs ,
-			     is_biwidth , is_comb ,
-			     ML_FG_COLOR , ML_BG_COLOR ,
-			     0 , 0) ;
+		ml_char_set( p , mkf_char_to_int(&ch) , ch.cs , is_biwidth ,
+			is_comb , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 
 		p++ ;
 		cand_screen->candidates[index].filled_len++ ;

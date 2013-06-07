@@ -21,14 +21,12 @@ typedef enum ml_font
 	FONT_BIWIDTH = 0x1000u ,	/* (default) half width */
 
 	/* 0x2000 is reserved for font thickness */
-	FONT_BOLD    = 0x2000u		/* (default) medium */
+	FONT_BOLD    = 0x2000u ,	/* (default) medium */
+
+	/* for font slant */
+	FONT_ITALIC  = 0x4000u ,	/* (default) roman */
 
 #if  0
-	/* not defined in VT100 */
-	
-	/* for font slant */
-	FONT_ITALIC ,		/* (default) roman */
-	
 	/* font width */
 	FONT_SEMICONDENSED	/* (default) normal */
 #endif

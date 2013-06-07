@@ -124,7 +124,7 @@ ml_line_iscii_visual(
 		{
 			ml_char_copy( dst + dst_pos , src + src_pos - 1) ;
 			/* NULL */
-			ml_char_set_bytes( dst + dst_pos , "\x0") ;
+			ml_char_set_code( dst + dst_pos , 0) ;
 		}
 		else
 		{

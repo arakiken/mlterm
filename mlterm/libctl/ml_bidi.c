@@ -9,7 +9,6 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca/realloc/free */
 #include  <fribidi.h>
-#include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
 
 
 #if  0
@@ -62,7 +61,7 @@ ml_bidi(
 	FriBidiChar *  fri_src ;
 	FriBidiCharType  fri_type ;
 	FriBidiStrIndex *  fri_order ;
-	u_char *  bytes ;
+	u_int32_t  code ;
 	u_int  count ;
 
 	state->rtl_state = 0 ;
@@ -94,17 +93,17 @@ ml_bidi(
 
 	for( count = 0 ; count < size ; count ++)
 	{
-		bytes = ml_char_bytes( &src[count]) ;
+		code = ml_char_code( &src[count]) ;
 
 		if( ml_char_cs( &src[count]) == US_ASCII)
 		{
-			if( bidi_mode == BIDI_CMD_MODE_L && bytes[0] == ' ')
+			if( bidi_mode == BIDI_CMD_MODE_L && code == ' ')
 			{
 				fri_src[count] = DIR_LTR_MARK ;
 			}
-			else if( bidi_mode == BIDI_CMD_MODE_R && ! isalpha(bytes[0]))
+			else if( bidi_mode == BIDI_CMD_MODE_R && ! isalpha(code))
 			{
-				if( bytes[0] == ' ')
+				if( code == ' ')
 				{
 					fri_src[count] = DIR_RTL_MARK ;
 				}
@@ -121,12 +120,12 @@ ml_bidi(
 			}
 			else
 			{
-				fri_src[count] = bytes[0] ;
+				fri_src[count] = code ;
 			}
 		}
 		else if( ml_char_cs( &src[count]) == ISO10646_UCS4_1)
 		{
-			fri_src[count] = (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3] ;
+			fri_src[count] = code ;
 		}
 		else if( ml_char_cs( &src[count]) == DEC_SPECIAL)
 		{
@@ -280,20 +279,16 @@ ml_bidi_reset(
 	return  1 ;
 }
 
-int
+u_int32_t
 ml_bidi_get_mirror_char(
-	u_char *  dst ,
-	u_char *  src ,
-	size_t  len
+	u_int32_t  ch
 	)
 {
 	FriBidiChar  mirror ;
 
-	if( fribidi_get_mirror_char( mkf_bytes_to_int( src , len) , &mirror))
+	if( fribidi_get_mirror_char( ch , &mirror))
 	{
-		mkf_int_to_bytes( dst , len , mirror) ;
-
-		return  1 ;
+		return  mirror ;
 	}
 	else
 	{

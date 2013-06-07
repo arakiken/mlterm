@@ -129,6 +129,7 @@ typedef struct  ml_vt100_storable_states
 	int8_t  is_saved ;
 	
 	int8_t  is_bold ;
+	int8_t  is_italic ;
 	int8_t  is_underlined ;
 	int8_t  is_reversed ;
 	ml_color_t  fg_color ;
@@ -182,6 +183,7 @@ typedef struct  ml_vt100_parser
 	int8_t  is_so ;
 
 	int8_t  is_bold ;
+	int8_t  is_italic ;
 	int8_t  is_underlined ;
 	int8_t  is_reversed ;
 

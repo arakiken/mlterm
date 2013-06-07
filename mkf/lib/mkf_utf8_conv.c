@@ -51,7 +51,7 @@ convert_to_utf8(
 		{
 			u_int32_t  ucs_ch ;
 
-			ucs_ch = mkf_bytes_to_int( ch.ch , ch.size) ;
+			ucs_ch = mkf_char_to_int(&ch) ;
 
 			/* ucs_ch is unsigned */
 			if( /* 0x00 <= ucs_ch && */ ucs_ch <= 0x7f)

@@ -68,7 +68,7 @@ is_word_separator(
 	}
 
 	p = word_separators ;
-	c = ml_char_bytes(ch)[0] ;
+	c = ml_char_code(ch) ;
 
 	while( *p)
 	{
@@ -1847,14 +1847,14 @@ ml_screen_get_n_prev_char(
 int
 ml_screen_combine_with_prev_char(
 	ml_screen_t *  screen ,
-	u_char *  bytes ,
-	size_t  ch_size ,
+	u_int32_t  code ,
 	mkf_charset_t  cs ,
 	int  is_biwidth ,
 	int  is_comb ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
 	int  is_bold ,
+	int  is_italic ,
 	int  is_underlined
 	)
 {
@@ -1878,8 +1878,8 @@ ml_screen_combine_with_prev_char(
 		return  0 ;
 	}
 	
-	if( ! ml_char_combine( ch , bytes , ch_size , cs , is_biwidth , is_comb ,
-		fg_color , bg_color , is_bold , is_underlined))
+	if( ! ml_char_combine( ch , code , cs , is_biwidth , is_comb ,
+		fg_color , bg_color , is_bold , is_italic , is_underlined))
 	{
 		return  0 ;
 	}
@@ -2271,7 +2271,7 @@ ml_screen_fill_all_with_e(
 	ml_char_t  e_ch ;
 
 	ml_char_init( &e_ch) ;
-	ml_char_set( &e_ch , "E" , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+	ml_char_set( &e_ch , 'E' , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 
 	ml_edit_fill_all( screen->edit , &e_ch) ;
 

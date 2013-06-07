@@ -6,7 +6,7 @@
 
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>	/* kik_msg_printf */
-#include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
+#include  <mkf/mkf_char.h>
 #include  "ml_iscii.h"
 
 
@@ -89,7 +89,7 @@ shape_iscii(
 
 				for( count = 0 ; count < font_filled ; count ++)
 				{
-					ml_char_set_bytes( dst_shaped ++ , font_buf + count) ;
+					ml_char_set_code( dst_shaped ++ , font_buf[count]) ;
 				}
 
 				iscii_filled = 0 ;
@@ -111,13 +111,13 @@ shape_iscii(
 
 			if( ! ml_char_is_null( ch))
 			{
-				iscii_buf[iscii_filled ++] = ml_char_bytes( ch)[0] ;
+				iscii_buf[iscii_filled ++] = ml_char_code( ch) ;
 				
 				comb = ml_get_combining_chars( ch , &comb_size) ;
 				for( count = 0 ; count < comb_size ; count ++)
 				{
 					iscii_buf[iscii_filled ++] =
-						ml_char_bytes( &comb[count])[0] ;
+						ml_char_code( &comb[count]) ;
 				}
 			}
 
@@ -157,7 +157,7 @@ shape_iscii(
 		for( count = 0 ; count < font_filled ; count ++)
 		{
 			ml_char_copy( dst_shaped + count , dst_shaped) ;
-			ml_char_set_bytes( dst_shaped + count , font_buf + count) ;
+			ml_char_set_code( dst_shaped + count , font_buf[count]) ;
 		}
 	}
 

@@ -7,7 +7,6 @@
 #include  <string.h>		/* strncpy */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>	/* kik_msg_printf */
-#include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
 
 
 typedef struct arabic_present
@@ -137,13 +136,11 @@ get_arabic_present(
 	)
 {
 	u_int16_t  code ;
-	u_char *  bytes ;
 	int  count ;
 
 	if( ml_char_cs(ch) == ISO10646_UCS4_1)
 	{
-		bytes = ml_char_bytes(ch) ;
-		code = (bytes[2] << 8) + bytes[3] ;
+		code = ml_char_code(ch) ;
 	}
 	else
 	{
@@ -218,11 +215,8 @@ shape_arabic(
 					count + 1 >= src_len ? NULL : &src[count + 1] ,
 					ml_get_base_char( cur) , comb)))
 		{
-			u_char  bytes[4] ;
-
 			ml_char_copy( &dst[count] , ml_get_base_char(cur)) ;
-			ml_char_set_bytes( &dst[count] ,
-				mkf_int_to_bytes( bytes , ml_char_size(cur) , code)) ;
+			ml_char_set_code( &dst[count] , code) ;
 		}
 		else if( list[count])
 		{
@@ -292,14 +286,7 @@ shape_arabic(
 
 			if( code)
 			{
-				u_char *  bytes ;
-				
-				bytes = ml_char_bytes( &dst[count]) ;
-
-				bytes[0] = 0x0 ;
-				bytes[1] = 0x0 ;
-				bytes[2] = (code >> 8) & 0xff ;
-				bytes[3] = code & 0xff ;
+				ml_char_set_code( &dst[count] , code) ;
 			}
 		}
 		else
@@ -383,7 +370,7 @@ ml_is_arabic_combining(
 	{
 		if( seq[count] && ml_char_cs(seq[count]) == ISO10646_UCS4_1)
 		{
-			ucs_seq[count] = mkf_bytes_to_int(ml_char_bytes(seq[count]), 4) ;
+			ucs_seq[count] = ml_char_code( seq[count]) ;
 		}
 		else if ( count < 2)
 		{

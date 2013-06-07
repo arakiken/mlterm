@@ -1,3 +1,35 @@
+2013-06-07  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja, doc/ja/README.fb: Updated.
+
+	* fb/x_window.c: draw_string() supports surrogate pair.
+
+	* x_shortcut.c: The bug which disabled Control+Button1 and Control+Button3
+	  is fixed.
+
+	* mkf_char.[ch]: mkf_char_to_int() is changed from function to macro.
+
+	* MLTermPty.c, MLTerm.java, Style.java: Italic font style is supported.
+
+	* ml_char.[ch], ml_font.h, ml_line.c, ml_screen.[ch], ml_str.c,
+	  ml_str_parser.c, ml_vt100_parser.[ch], fb/x_font.c, x_font_ft.c,
+	  win32/x_font.c, x_draw_str.c, x_font.h, x_font_config.c, x_im.h
+	  x_im_candidate_screen.c, x_im_status_screen.c, x_picture.[ch],
+	  x_screen.c, xlib/x_font.c, libctl/ml_bidi.[ch], libctl/ml_iscii.c,
+	  libctl/ml_line_bidi.c, libctl/ml_line_iscii.c,
+	  libctl/ml_shape_bidi.c, libctl/ml_shape_iscii.c:
+	  - ml_char_t::bytes == 32 bits  attr == 16 bits
+	            => code  == 24 bits  attr == 24 bits
+	    and related ml_char_*() functions are changed.
+	  - is_italic is added to ml_char_t::attr.
+	  - FOO_ITALIC key is available in ~/.mlterm/*font* files.
+
+	* x_screen.c:
+	  - Window is always resized according to the size of the pty
+	    in x_screen_attach().
+	  - Even if Button6 or Button7 is pressed, the reversed fg and bg colors
+	    of the selected region aren't restored.
+
 2013-06-03  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_status_screen.c: The number of drawing string is reduced.

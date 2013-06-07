@@ -9,6 +9,8 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
+#define  IS_ITALIC(attr)  ((attr) & (0x1 << 16))
+
 #define  CHARSET(attr)  (((attr) >> 7) & 0x1ff)
 
 #define  IS_BIWIDTH(attr)  ((attr) & (0x1 << 6))
@@ -25,14 +27,14 @@
 
 #define  IS_COMB_TRAILING(attr)  ((attr) & (0x1 << 1))
 #define  SET_COMB_TRAILING(attr)  ((attr) |= (0x1 << 1))
-#define  UNSET_COMB_TRAILING(attr)  ((attr) &= 0xfffd)
+#define  UNSET_COMB_TRAILING(attr)  ((attr) &= 0xfffffd)
 
 #define  IS_SINGLE_CH(attr)  ((attr) & 0x1)
-#define  USE_MULTI_CH(attr)  ((attr) &= 0xfffe)
+#define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffe)
 #define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
-#define  COMPOUND_ATTR(charset,is_biwidth,is_bold,is_underlined,is_comb) \
-	( ((charset) << 7) | ((is_biwidth) << 6) | \
+#define  COMPOUND_ATTR(charset,is_biwidth,is_bold,is_italic,is_underlined,is_comb) \
+	( ((is_italic) << 16) | ((charset) << 7) | ((is_biwidth) << 6) | \
 	( 0x0 << 5) | ((is_bold) << 4) | ((is_underlined) << 3) | \
 	( (is_comb) << 2) | ( 0x0 << 1) | 0x1)
 
@@ -178,40 +180,20 @@ ml_char_final(
 int
 ml_char_set(
 	ml_char_t *  ch ,
-	u_char *  bytes ,
-	size_t  size ,
+	u_int32_t  code ,
 	mkf_charset_t  cs ,
 	int  is_biwidth ,
 	int  is_comb ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
 	int  is_bold ,
+	int  is_italic ,
 	int  is_underlined
 	)
 {
-#ifdef  DEBUG
-	/* Ignore PICTURE_CHARSET. */
-	if( cs != PICTURE_CHARSET && CS_SIZE(cs) != size)
-	{
-		kik_debug_printf( KIK_DEBUG_TAG " char size error => size %d <=> CS_SIZE %d\n",
-			size, CS_SIZE(cs)) ;
-
-		return  0 ;
-	}
-
-	if( size > MLCHAR_SIZE)
-	{
-		kik_debug_printf( KIK_DEBUG_TAG " size %d is over MAX CHAR SIZE %d\n",
-			size, MLCHAR_SIZE) ;
-
-		return  0 ;
-	}
-#endif
-
 	ml_char_final( ch) ;
 
-	memcpy( ch->u.ch.bytes , bytes , size) ;
-	memset( ch->u.ch.bytes + size , 0 , MLCHAR_SIZE - size) ;
+	ch->u.ch.code = code ;
 
 #ifdef  DEBUG
 	if( cs >= MAX_CHARSET)
@@ -220,7 +202,8 @@ ml_char_set(
 	}
 #endif
 
-	ch->u.ch.attr = COMPOUND_ATTR(cs,is_biwidth!=0,is_bold!=0,is_underlined!=0,is_comb!=0) ;
+	ch->u.ch.attr = COMPOUND_ATTR(cs,is_biwidth!=0,is_bold!=0,is_italic!=0,
+				is_underlined!=0,is_comb!=0) ;
 	ch->u.ch.fg_color = intern_color(fg_color) ;
 	ch->u.ch.bg_color = intern_color(bg_color) ;
 
@@ -230,14 +213,14 @@ ml_char_set(
 int
 ml_char_combine(
 	ml_char_t *  ch ,
-	u_char *  bytes ,
-	size_t  size ,
+	u_int32_t  code ,
 	mkf_charset_t  cs ,
 	int  is_biwidth ,
 	int  is_comb ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
 	int  is_bold ,
+	int  is_italic ,
 	int  is_underlined
 	)
 {
@@ -293,8 +276,8 @@ ml_char_combine(
 		SET_COMB_TRAILING( multi_ch->u.ch.attr) ;
 
 		ml_char_init( multi_ch + 1) ;
-		if( ml_char_set( multi_ch + 1 , bytes , size , cs , is_biwidth , is_comb ,
-			fg_color , bg_color , is_bold , is_underlined) == 0)
+		if( ml_char_set( multi_ch + 1 , code , cs , is_biwidth , is_comb ,
+			fg_color , bg_color , is_bold , is_italic , is_underlined) == 0)
 		{
 			return  0 ;
 		}
@@ -332,15 +315,15 @@ ml_char_combine(
 
 		SET_COMB_TRAILING( multi_ch[comb_size].u.ch.attr) ;
 		ml_char_init( multi_ch + comb_size + 1) ;
-		if( ml_char_set( multi_ch + comb_size + 1 , bytes , size , cs , is_biwidth ,
-			is_comb , fg_color , bg_color , is_bold , is_underlined) == 0)
+		if( ml_char_set( multi_ch + comb_size + 1 , code , cs , is_biwidth ,
+			is_comb , fg_color , bg_color , is_bold , is_italic , is_underlined) == 0)
 		{
 			return  0 ;
 		}
 	}
 
 	ch->u.multi_ch = multi_ch ;
-	USE_MULTI_CH(ch->u.ch.attr) ;
+	USE_MULTI_CH(ch->u.ch.attr) ;	/* necessary for 64bit big endian */
 
 	return  1 ;
 }
@@ -351,13 +334,11 @@ ml_char_combine_simple(
 	ml_char_t *  comb
 	)
 {
-	mkf_charset_t  cs ;
-
-	cs = CHARSET(comb->u.ch.attr) ;
-	return  ml_char_combine( ch , ml_char_bytes( comb) , CS_SIZE(cs) , cs ,
+	return  ml_char_combine( ch , ml_char_code( comb) , CHARSET(comb->u.ch.attr) ,
 			IS_BIWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
 			comb->u.ch.fg_color , comb->u.ch.bg_color ,
-			IS_BOLD(comb->u.ch.attr) , IS_UNDERLINED(comb->u.ch.attr)) ;
+			IS_BOLD(comb->u.ch.attr) , IS_ITALIC(comb->u.ch.attr) ,
+			IS_UNDERLINED(comb->u.ch.attr)) ;
 }
 
 ml_char_t *
@@ -457,63 +438,40 @@ ml_char_copy(
 		memcpy( multi_ch , src->u.multi_ch , sizeof( ml_char_t) * (comb_size + 1)) ;
 
 		dst->u.multi_ch = multi_ch ;
-		USE_MULTI_CH(dst->u.ch.attr) ;
+		USE_MULTI_CH(dst->u.ch.attr) ;	/* necessary for 64bit big endian */
 	}
 	
 	return  1 ;
 }
 
-u_char *
-ml_char_bytes(
+u_int32_t
+ml_char_code(
 	ml_char_t *  ch
 	)
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  ch->u.ch.bytes ;
+		return  ch->u.ch.code ;
 	}
 	else
 	{
-		return  ml_char_bytes( ch->u.multi_ch) ;
-	}
-}
-
-size_t
-ml_char_size(
-	ml_char_t *  ch
-	)
-{
-	if( IS_SINGLE_CH(ch->u.ch.attr))
-	{
-		mkf_charset_t  cs ;
-
-		cs = CHARSET(ch->u.ch.attr) ;
-
-		return  CS_SIZE(cs) ;
-	}
-	else
-	{
-		return  ml_char_size( ch->u.multi_ch) ;
+		return  ml_char_code( ch->u.multi_ch) ;
 	}
 }
 
 int
-ml_char_set_bytes(
+ml_char_set_code(
 	ml_char_t *  ch ,
-	u_char *  bytes
+	u_int32_t  code
 	)
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		mkf_charset_t  cs ;
-
-		cs = CHARSET(ch->u.ch.attr) ;
-
-		memcpy( ch->u.ch.bytes , bytes , CS_SIZE(cs)) ;
+		ch->u.ch.code = code ;
 	}
 	else
 	{
-		ml_char_set_bytes( ch->u.multi_ch , bytes) ;
+		ml_char_set_code( ch->u.multi_ch , code) ;
 	}
 	
 	return  1 ;
@@ -547,6 +505,7 @@ ml_char_font(
 	{
 		return  CHARSET(attr) |
 		        (IS_BOLD(attr) ? FONT_BOLD : 0) |
+			(IS_ITALIC(attr) ? FONT_ITALIC : 0) |
 		        (IS_BIWIDTH(attr) ? FONT_BIWIDTH : 0) ;
 	}
 	else
@@ -584,14 +543,12 @@ ml_char_cols(
 		 * 202D;LEFT-TO-RIGHT OVERRIDE
 		 * 202E;RIGHT-TO-LEFT OVERRIDE
 		*/
-		u_char *  bytes ;
+		u_int32_t  code ;
 
-		bytes = ch->u.ch.bytes ;
+		code = ch->u.ch.code ;
 
-		if( bytes[2] == 0x20 &&
-		    ((0x0c <= bytes[3] && bytes[3] <= 0x0f) ||
-		     (0x2a <= bytes[3] && bytes[3] <= 0x2e)) &&
-		    bytes[0] == 0 && bytes[1] == 0)
+		if( ( 0x200c <= code && code <= 0x200f) ||
+		    ( 0x202a <= code && code <= 0x202e))
 		{
 			return  0 ;
 		}
@@ -882,11 +839,7 @@ ml_char_is_null(
 {
 	if( IS_SINGLE_CH( ch->u.ch.attr))
 	{
-		mkf_charset_t  cs ;
-
-		cs = CHARSET(ch->u.ch.attr) ;
-
-		return  (CS_SIZE(cs) == 1 && ch->u.ch.bytes[0] == '\0') ;
+		return  ch->u.ch.code == 0 ;
 	}
 	else
 	{
@@ -897,7 +850,7 @@ ml_char_is_null(
 /*
  * XXX
  * Returns inaccurate result in dealing with combined characters.
- * Even if they have the same bytes, false is returned since
+ * Even if they have the same code, false is returned since
  * ml_char_t:multi_ch-s never point the same address.)
  */
 int
@@ -910,18 +863,15 @@ ml_char_equal(
 }
 
 int
-ml_char_bytes_is(
+ml_char_code_is(
 	ml_char_t *  ch ,
-	char *  bytes ,
-	size_t  size ,
+	u_int32_t  code ,
 	mkf_charset_t  cs
 	)
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		if( CHARSET(ch->u.ch.attr) == cs &&
-		    CS_SIZE(cs) == size &&
-		    memcmp( ml_char_bytes( ch) , bytes , size) == 0)
+		if( CHARSET(ch->u.ch.attr) == cs && ch->u.ch.code == code)
 		{
 			return  1 ;
 		}
@@ -932,33 +882,23 @@ ml_char_bytes_is(
 	}
 	else
 	{
-		return  ml_char_bytes_is( ch->u.multi_ch , bytes , size , cs) ;
+		return  ml_char_code_is( ch->u.multi_ch , code , cs) ;
 	}
 }
 
 int
-ml_char_bytes_equal(
+ml_char_code_equal(
 	ml_char_t *  ch1 ,
 	ml_char_t *  ch2
 	)
 {
-	u_int  size1 ;
-	u_int  size2 ;
 	ml_char_t *  comb1 ;
 	ml_char_t *  comb2 ;
 	u_int  comb1_size ;
 	u_int  comb2_size ;
 	u_int  count ;
 
-	size1 = ml_char_size( ch1) ;
-	size2 = ml_char_size( ch2) ;
-
-	if( size1 != size2)
-	{
-		return  0 ;
-	}
-
-	if( memcmp( ml_char_bytes( ch1) , ml_char_bytes( ch2) , size1) != 0)
+	if( ml_char_code( ch1) == ml_char_code( ch2))
 	{
 		return  0 ;
 	}
@@ -973,7 +913,7 @@ ml_char_bytes_equal(
 
 	for( count = 0 ; count < comb1_size ; count ++)
 	{
-		if( ! ml_char_bytes_equal( &comb1[count] , &comb2[count]))
+		if( comb1[count].u.ch.code == comb2[count].u.ch.code)
 		{
 			return  0 ;
 		}
@@ -990,8 +930,8 @@ ml_sp_ch(void)
 	if( sp_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &sp_ch) ;
-		ml_char_set( &sp_ch , (u_char *)" " , 1 , US_ASCII , 0 , 0 ,
-			ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+		ml_char_set( &sp_ch , ' ' , US_ASCII , 0 , 0 ,
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 	}
 
 	return  &sp_ch ;
@@ -1005,8 +945,8 @@ ml_nl_ch(void)
 	if( nl_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &nl_ch) ;
-		ml_char_set( &nl_ch , (u_char *)"\n" , 1 , US_ASCII , 0 , 0 ,
-			ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+		ml_char_set( &nl_ch , '\n' , US_ASCII , 0 , 0 ,
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 	}
 
 	return  &nl_ch ;
@@ -1031,14 +971,7 @@ ml_char_dump(
 	ml_char_t *  comb_chars ;
 	
 #ifdef  DUMP_HEX
-	int  i ;
-	
-	kik_msg_printf( "[") ;
-	for( i = 0 ; i < ml_char_size(ch) ; i ++)
-	{
-		kik_msg_printf( "%.2x" , ml_char_bytes(ch)[i]) ;
-	}
-	kik_msg_printf( "]") ;
+	kik_msg_printf( "[%.4x]" , ml_char_code(ch)) ;
 #else
 	if( ml_char_size(ch) == 2)
 	{
@@ -1046,8 +979,9 @@ ml_char_dump(
 		{
 			/* only eucjp */
 
-			kik_msg_printf( "%c%c" , ml_char_bytes(ch)[0] | 0x80 ,
-				ml_char_bytes(ch)[1] | 0x80) ;
+			kik_msg_printf( "%c%c" ,
+				((ml_char_code(ch) >> 8) & 0xff) | 0x80 ,
+				(ml_char_code(ch) & 0xff) | 0x80) ;
 		}
 		else
 		{
@@ -1056,12 +990,11 @@ ml_char_dump(
 	}
 	else if( ml_char_size(ch) == 1)
 	{
-		kik_msg_printf( "%c" , ml_char_bytes(ch)[0]) ;
+		kik_msg_printf( "%c" , ml_char_code(ch)) ;
 	}
 	else
 	{
-		kik_msg_printf( "!!! unsupported char[0x%.2x len %d] !!!" ,
-			ml_char_bytes(ch)[0] , SIZE(ch->u.ch.attr)) ;
+		kik_msg_printf( "!!! unsupported char[0x%.4x] !!!" , ml_char_code(ch)) ;
 	}
 #endif
 

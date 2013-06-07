@@ -43,8 +43,7 @@ draw_screen(
 
 		width += x_calculate_char_width(
 					xfont ,
-					ml_char_bytes( &stat_screen->chars[i]) ,
-					ml_char_size( &stat_screen->chars[i]) ,
+					ml_char_code( &stat_screen->chars[i]) ,
 					ml_char_cs( &stat_screen->chars[i]) , NULL) ;
 	}
 
@@ -250,11 +249,9 @@ set(
 
 		if( is_comb)
 		{
-			if( ml_char_combine( p - 1 ,
-					     ch.ch , ch.size , ch.cs ,
-					     is_biwidth , is_comb ,
-					     ML_FG_COLOR , ML_BG_COLOR ,
-					     0 , 0))
+			if( ml_char_combine( p - 1 , mkf_char_to_int(&ch) ,
+				ch.cs , is_biwidth , is_comb , ML_FG_COLOR ,
+				ML_BG_COLOR , 0 , 0 , 0))
 			{
 				continue;
 			}
@@ -269,10 +266,8 @@ set(
 			SET_MSB( ch.ch[0]) ;
 		}
 
-		ml_char_set( p , ch.ch , ch.size , ch.cs ,
-			     is_biwidth , is_comb ,
-			     ML_FG_COLOR , ML_BG_COLOR ,
-			     0 , 0) ;
+		ml_char_set( p , mkf_char_to_int(&ch) , ch.cs , is_biwidth ,
+			is_comb , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 
 		p++ ;
 		stat_screen->filled_len++ ;

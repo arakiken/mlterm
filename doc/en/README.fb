@@ -114,3 +114,5 @@ Framebuffer support
   o Daemon mode
   o mlclient (mlclientx is avaialble, though)
   o OPEN_SCREEN shortcut of ~/.mlterm/key.
+  o It is not possible to input characters with iBus and USB keyboard on *BSD.
+    (Only PS/2 keyboard is available for now.)

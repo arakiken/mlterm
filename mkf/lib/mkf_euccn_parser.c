@@ -170,7 +170,7 @@ gbk_parser_next_char_intern(
 		memcpy( ch->ch , ucs4 , 4) ;
 		ch->size = 4 ;
 		ch->cs = ISO10646_UCS4_1 ;
-		ch->property = mkf_get_ucs_property( mkf_bytes_to_int( ch->ch , ch->size)) ;
+		ch->property = mkf_get_ucs_property( mkf_bytes_to_int( ucs4 , 4)) ;
 
 		return  1 ;
 	}

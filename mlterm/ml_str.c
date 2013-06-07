@@ -197,7 +197,7 @@ ml_str_bytes_equal(
 
 	for( count = 0 ; count < len ; count ++)
 	{
-		if( ! ml_char_bytes_equal( str1 ++ , str2 ++))
+		if( ! ml_char_code_equal( str1 ++ , str2 ++))
 		{
 			return  0 ;
 		}

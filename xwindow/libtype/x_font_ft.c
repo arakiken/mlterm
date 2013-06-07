@@ -16,7 +16,6 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/memset/strncasecmp */
-#include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
 #include  <ml_char.h>		/* UTF_MAX_SIZE */
 
 
@@ -565,8 +564,8 @@ ft_font_open(
 	}
 }
 
-u_int  xft_calculate_char_width( x_font_t *  font , const u_char *  ch , size_t  len) ;
-u_int  cairo_calculate_char_width( x_font_t *  font , const u_char *  ch , size_t  len) ;
+u_int  xft_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
+u_int  cairo_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 
 static int
 fc_set_font(
@@ -605,7 +604,14 @@ fc_set_font(
 		weight = -1 ;	/* use default value */
 	}
 
-	slant = -1 ;	/* use default value */
+	if( font->id & FONT_ITALIC)
+	{
+		slant = FC_SLANT_ITALIC ;
+	}
+	else
+	{
+		slant = -1 ;	/* use default value */
+	}
 
 	/*
 	 * x_off related to percent is set before ft_font_open while
@@ -788,7 +794,7 @@ font_found:
 			 * Proportional (font->is_var_col_width is true)
 			 * letter_space is ignored in variable column width mode.
 			 */
-			font->width = xft_calculate_char_width( font , "W" , 1) ;
+			font->width = xft_calculate_char_width( font , 'W') ;
 		}
 		else
 		{
@@ -840,7 +846,7 @@ font_found:
 		}
 		else
 		{
-			font->width = cairo_calculate_char_width( font , "W" , 1) ;
+			font->width = cairo_calculate_char_width( font , 'W') ;
 
 			if( font->is_vertical)
 			{
@@ -952,39 +958,21 @@ xft_unset_font(
 u_int
 xft_calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,		/* US-ASCII or Unicode */
-	size_t  len
+	u_int32_t  ch		/* US-ASCII or Unicode */
 	)
 {
 	XGlyphInfo  extents ;
 
-	if( len == 1)
+	if( ch < 0x100)
 	{
-		XftTextExtents8( font->display , font->xft_font , ch , 1 , &extents) ;
-	}
-#if  0
-	else if( len == 2)
-	{
-		FcChar16  c ;
+		u_char  c ;
 
-		c = mkf_bytes_to_int( ch , len) ;
-		XftTextExtents16( font->display , font->xft_font , &c , 1 , &extents) ;
-	}
-#endif
-	else if( len == 4)
-	{
-		FcChar32  c ;
-
-		c = mkf_bytes_to_int( ch , 4) ;
-		XftTextExtents32( font->display , font->xft_font , &c , 1 , &extents) ;
+		c = ch ;
+		XftTextExtents8( font->display , font->xft_font , &c , 1 , &extents) ;
 	}
 	else
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " char size %d is too large.\n" , len) ;
-	#endif
-
-		return  0 ;
+		XftTextExtents32( font->display , font->xft_font , &ch , 1 , &extents) ;
 	}
 
 	if( extents.xOff < 0)
@@ -1107,15 +1095,14 @@ x_convert_ucs4_to_utf8(
 u_int
 cairo_calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,
-	size_t  len
+	u_int32_t  ch
 	)
 {
 	u_char  utf8[UTF_MAX_SIZE + 1] ;
 	cairo_text_extents_t  extents ;
 	int  width ;
 
-	utf8[ x_convert_ucs4_to_utf8( utf8 , mkf_bytes_to_int( ch , len))] = '\0' ;
+	utf8[ x_convert_ucs4_to_utf8( utf8 , ch)] = '\0' ;
 	cairo_scaled_font_text_extents( font->cairo_font , utf8 , &extents) ;
 
 #if  0

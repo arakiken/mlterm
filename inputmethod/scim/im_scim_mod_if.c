@@ -376,14 +376,10 @@ preedit_update(
 		{
 			is_comb = 1 ;
 
-			if( (*syms->ml_char_combine)( p - 1 , ch.ch ,
-						      ch.size , ch.cs ,
-						      is_biwidth ,
-						      is_comb ,
-						      fg_color ,
-						      bg_color ,
-						      is_bold ,
-						      is_underline))
+			if( (*syms->ml_char_combine)( p - 1 , mkf_char_to_int(&ch) ,
+						ch.cs , is_biwidth , is_comb ,
+						fg_color , bg_color , is_bold , 0 ,
+						is_underline))
 			{
 				index ++ ;
 				continue;
@@ -394,10 +390,10 @@ preedit_update(
 			 */
 		}
 
-		(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
+		(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
 				      is_biwidth , is_comb ,
 				      fg_color , bg_color ,
-				      is_bold , is_underline) ;
+				      is_bold , 0 , is_underline) ;
 
 		p++ ;
 		scim->im.preedit.filled_len++;

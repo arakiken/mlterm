@@ -168,8 +168,7 @@ convert_char_index_to_x(
 			{
 				x -= x_calculate_char_width(
 					x_get_font( screen->font_man , ml_char_font( ch)) ,
-					ml_char_bytes( ch) , ml_char_size( ch) ,
-					ml_char_cs( ch) , NULL) ;
+					ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
 			}
 		}
 	}
@@ -189,8 +188,7 @@ convert_char_index_to_x(
 			{
 				x += x_calculate_char_width(
 					x_get_font( screen->font_man , ml_char_font( ch)) ,
-					ml_char_bytes( ch) , ml_char_size( ch) ,
-					ml_char_cs( ch) , NULL) ;
+					ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
 			}
 		}
 	}
@@ -275,7 +273,7 @@ convert_x_to_char_index(
 
 			width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch) , NULL) ;
+				ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
 
 			if( x <= width)
 			{
@@ -305,7 +303,7 @@ convert_x_to_char_index(
 
 			width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch) , NULL) ;
+				ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
 
 			if( x < width)
 			{
@@ -702,8 +700,8 @@ draw_cursor(
 
 		x_window_draw_rect_frame( &screen->window ,
 			x , y + x_line_top_margin( screen) ,
-			x + x_calculate_char_width( xfont , ml_char_bytes(&ch) ,
-				ml_char_size(&ch) , ml_char_cs(&ch) , NULL) - 1 ,
+			x + x_calculate_char_width( xfont , ml_char_code(&ch) ,
+				ml_char_cs(&ch) , NULL) - 1 ,
 			y + x_line_top_margin( screen) + xfont->height - 1) ;
 	}
 
@@ -1832,9 +1830,9 @@ convert_nl_to_cr2(
 
 	for( count = 0 ; count < len ; count ++)
 	{
-		if( ml_char_bytes_is( &str[count] , "\n" , 1 , US_ASCII))
+		if( ml_char_code_is( &str[count] , '\n' , US_ASCII))
 		{
-			ml_char_set_bytes( &str[count] , "\r") ;
+			ml_char_set_code( &str[count] , '\r') ;
 		}
 	}
 }
@@ -2013,8 +2011,8 @@ shortcut_match(
 		ch = ' ' ;
 		for( count = 0 ; count < 0x5e ; count++)
 		{
-			ml_char_set( str + count , &ch , 1 , US_ASCII , 0 , 0 ,
-				ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+			ml_char_set( str + count , ch , US_ASCII , 0 , 0 ,
+				ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 			ch ++ ;
 		}
 
@@ -3414,7 +3412,7 @@ report_mouse_tracking(
 
 		width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
-				ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII , NULL) ;
+				ml_char_code( ml_sp_ch()) , US_ASCII , NULL) ;
 		if( x_rest > width)
 		{
 			if( ( col += x_rest / width) >= ml_term_get_cols( screen->term))
@@ -4033,10 +4031,8 @@ button_pressed(
 			selecting_with_motion( screen, event->x, event->y, event->time);
 			/* keep sel as selected to handle succeeding MotionNotify */
 		}
-
-		return ;
 	}
-	else if ( event->button == Button4)
+	else if( event->button == Button4)
 	{
 		/* wheel mouse */
 
@@ -4053,10 +4049,8 @@ button_pressed(
 		{
 			bs_half_page_downward(screen) ;
 		}
-
-		return ;
 	}
-	else if ( event->button == Button5)
+	else if( event->button == Button5)
 	{
 		/* wheel mouse */
 
@@ -4073,11 +4067,11 @@ button_pressed(
 		{
 			bs_half_page_upward(screen) ;
 		}
-
-		return ;
 	}
-
-	restore_selected_region_color_instantly( screen) ;
+	else if( event->button < Button3)
+	{
+		restore_selected_region_color_instantly( screen) ;
+	}
 }
 
 static void
@@ -4363,10 +4357,7 @@ resize_window(
 		 * won't be called , since xconfigure.width , xconfigure.height are the same
 		 * as the already resized window.
 		 */
-		if( screen->window.window_resized)
-		{
-			(*screen->window.window_resized)( &screen->window) ;
-		}
+		window_resized( &screen->window) ;
 	}
 }
 
@@ -4518,7 +4509,7 @@ change_font_present(
 	font_size_changed( screen) ;
 }
 
-static void
+static int
 usascii_font_cs_changed(
 	x_screen_t *  screen ,
 	ml_char_encoding_t  encoding
@@ -4548,6 +4539,12 @@ usascii_font_cs_changed(
 		 * x_font_manager_usascii_font_cs_changed()
 		 */
 		x_xic_font_set_changed( &screen->window) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 
@@ -6426,8 +6423,7 @@ get_im_spot(
 
 			width = x_calculate_char_width(
 					x_get_font( screen->font_man , ml_char_font( &chars[i])) ,
-					ml_char_bytes( &chars[i]) ,
-					ml_char_size( &chars[i]) ,
+					ml_char_code( &chars[i]) ,
 					ml_char_cs( &chars[i]) , NULL) ;
 
 			if( *x + width > screen->window.width)
@@ -6619,8 +6615,7 @@ draw_preedit_str(
 
 		xfont = x_get_font( screen->font_man , ml_char_font( &chars[i])) ;
 		width = x_calculate_char_width( xfont ,
-						ml_char_bytes( &chars[i]) ,
-						ml_char_size( &chars[i]) ,
+						ml_char_code( &chars[i]) ,
 						ml_char_cs( &chars[i]) , NULL) ;
 
 		total_width += width ;
@@ -7368,11 +7363,10 @@ xterm_get_picture_data(
 	if( ( idx = x_load_inline_picture( screen->window.disp , file_path ,
 			&width , &height , col_width , line_height , screen->term)) != -1)
 	{
-		u_int16_t  bytes[2] ;
 		ml_char_t *  buf ;
 		int  max_num_of_cols ;
 
-		bytes[0] = idx ;
+		idx <<= INLINEPIC_ID_SHIFT ;
 
 		max_num_of_cols = ml_term_get_cursor_line( screen->term)->num_of_chars -
 					ml_term_cursor_col( screen->term) ;
@@ -7396,11 +7390,9 @@ xterm_get_picture_data(
 				{
 					ml_char_copy( buf_p , ml_sp_ch()) ;
 
-					bytes[1] = col * (*num_of_rows) + row ;
-
 					ml_char_combine( buf_p ++ ,
-						(u_char*)bytes , 4 , PICTURE_CHARSET ,
-						0 , 0 , 0 , 0 , 0 , 0) ;
+						idx | (col * (*num_of_rows) + row) ,
+						PICTURE_CHARSET , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
 				}
 			}
 
@@ -7923,12 +7915,10 @@ x_screen_attach(
 		return  1 ;
 	}
 
-	/* XXX */
-#ifdef  USE_FRAMEBUFFER
-	window_resized( &screen->window) ;
-#endif
-
-	usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
+	if( ! usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)))
+	{
+		resize_window( screen) ;
+	}
 
 	update_special_visual( screen) ;
 	/* Even if update_special_visual succeeded or not, all screen should be redrawn. */

@@ -105,6 +105,7 @@ utf16_parser_next_char(
 	else
 	{
 		u_char  ch[2] ;
+		u_int32_t  ucs4 ;
 			
 		if( utf16_parser->is_big_endian)
 		{
@@ -122,7 +123,6 @@ utf16_parser_next_char(
 			/* surrogate pair */
 
 			u_char  ch2[2] ;
-			u_int32_t  ucs4 ;
 
 			if( parser->left < 4)
 			{
@@ -173,13 +173,15 @@ utf16_parser_next_char(
 			ucs4_ch->ch[1] = 0x0 ;
 			ucs4_ch->ch[2] = ch[0] ;
 			ucs4_ch->ch[3] = ch[1] ;
-			
+
+			ucs4 = mkf_bytes_to_int( ch , 2) ;
+
 			mkf_parser_n_increment( parser , 2) ;
 		}
 
 		ucs4_ch->cs = ISO10646_UCS4_1 ;
 		ucs4_ch->size = 4 ;
-		ucs4_ch->property = mkf_get_ucs_property( mkf_bytes_to_int( ucs4_ch->ch , ucs4_ch->size)) ;
+		ucs4_ch->property = mkf_get_ucs_property( ucs4) ;
 
 		return  1 ;
 	}

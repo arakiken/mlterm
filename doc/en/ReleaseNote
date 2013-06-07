@@ -1,5 +1,6 @@
-ver 3.2.1
+xver 3.2.1
 * Support framebuffer on OpenBSD.
+* Support CSI 3 m and CSI 23 m which set/unset italic attribute.
 * Prefer JISX0208 to JISX0213 all the time in converting Unicode to other cs.
 * Bug fixes:
   SF Bug #3614142 (Thanks to Ahmed El-Mahmoudy)
@@ -8,6 +9,9 @@ ver 3.2.1
   match the usascii font on 24 or 32 bpp framebuffer.
   Fix the bug which caused segmentation fault in closing input method status window.
   Fix the bug which caused segmentation fault in loading illegal pcf fonts.
+  Resize the window in attaching a new pty. (enbugged at 3.2.0)
+  Fix the bug which disabled mlconfig and mlterm-menu. (enbugged at 3.2.0)
+  Fix the error message in the failure of loading US-ASCII font.
 
 ver 3.2.0
 * Support framebuffer on NetBSD.

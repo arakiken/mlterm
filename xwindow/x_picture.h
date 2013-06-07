@@ -70,6 +70,11 @@ typedef struct x_inline_picture
 } x_inline_picture_t ;
 
 
+#define  INLINEPIC_ID_SHIFT   14
+#define  INLINEPIC_ID(glyph)  ((glyph) >> 14 & 0x3ff)
+#define  INLINEPIC_POS(glyph) ((glyph) & 0x3fff)
+
+
 #ifdef  NO_IMAGE
 
 #define  x_picture_display_opened(display)  (0)

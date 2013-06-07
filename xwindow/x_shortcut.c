@@ -194,6 +194,7 @@ x_shortcut_init(
 							".exe"
 						#endif
 						) ;
+		button_mask |= (Button1Mask|Button3Mask) ;
 	}
 	else
 	{

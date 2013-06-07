@@ -456,7 +456,7 @@ flush_buffer(
 		{
 			char *  bytes ;
 
-			bytes = ml_char_bytes( &buffer->chars[count]) ;
+			bytes = ml_char_code( &buffer->chars[count]) ;
 
 			if( ml_char_size( &buffer->chars[count]) == 2)
 			{
@@ -497,8 +497,7 @@ flush_buffer(
 static void
 put_char(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_char *  ch ,
-	size_t  len ,
+	u_int32_t  ch ,
 	mkf_charset_t  cs ,
 	mkf_property_t  prop
 	)
@@ -533,14 +532,6 @@ put_char(
 		{
 			is_biwidth = 1 ;
 		}
-	#if  1
-		/* XTERM compatibility */
-		else if( ch[2] == 0x30 && ch[0] == 0x0 && ch[1] == 0x0 &&
-			(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == CTL_ESC) )
-		{
-			is_biwidth = 1 ;
-		}
-	#endif
 	#ifdef  SUPPORT_VTE_CJK_WIDTH
 		else if( ( env = getenv( "VTE_CJK_WIDTH")) &&
 		         ( strcmp( env , "wide") == 0 || strcmp( env , "1") == 0))
@@ -589,9 +580,9 @@ put_char(
 			 * internally.
 			 */
 			if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
-				ch , len , vt100_parser->cs , is_biwidth , is_comb ,
-				fg_color , bg_color ,
-				vt100_parser->is_bold , vt100_parser->is_underlined))
+				ch , vt100_parser->cs , is_biwidth , is_comb ,
+				fg_color , bg_color , vt100_parser->is_bold ,
+				vt100_parser->is_italic , vt100_parser->is_underlined))
 			{
 				return ;
 			}
@@ -600,9 +591,9 @@ put_char(
 		{
 			if( ml_char_combine(
 				&vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ,
-				ch , len , vt100_parser->cs , is_biwidth , is_comb ,
-				fg_color , bg_color ,
-				vt100_parser->is_bold , vt100_parser->is_underlined))
+				ch , vt100_parser->cs , is_biwidth , is_comb ,
+				fg_color , bg_color , vt100_parser->is_bold ,
+				vt100_parser->is_italic , vt100_parser->is_underlined))
 			{
 				return ;
 			}
@@ -613,9 +604,10 @@ put_char(
 		 */
 	}
 
-	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch , len ,
+	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch ,
 		vt100_parser->cs , is_biwidth , is_comb ,
-		fg_color , bg_color , vt100_parser->is_bold , vt100_parser->is_underlined) ;
+		fg_color , bg_color , vt100_parser->is_bold ,
+		vt100_parser->is_italic , vt100_parser->is_underlined) ;
 
 	if( ! vt100_parser->screen->use_dynamic_comb && cs == ISO10646_UCS4_1)
 	{
@@ -658,9 +650,9 @@ put_char(
 			if( vt100_parser->w_buf.filled_len >= 2)
 			{
 				if( ml_char_combine( prev ,
-					ch , len , vt100_parser->cs , is_biwidth , is_comb ,
-					fg_color , bg_color ,
-					vt100_parser->is_bold , vt100_parser->is_underlined))
+					ch , vt100_parser->cs , is_biwidth , is_comb ,
+					fg_color , bg_color , vt100_parser->is_bold ,
+					vt100_parser->is_italic , vt100_parser->is_underlined))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -672,9 +664,9 @@ put_char(
 				 * ml_screen_combine_with_prev_char() internally.
 				 */
 				if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
-					ch , len , vt100_parser->cs , is_biwidth , is_comb ,
-					fg_color , bg_color ,
-					vt100_parser->is_bold , vt100_parser->is_underlined))
+					ch , vt100_parser->cs , is_biwidth , is_comb ,
+					fg_color , bg_color , vt100_parser->is_bold ,
+					vt100_parser->is_italic , vt100_parser->is_underlined))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -737,6 +729,7 @@ save_cursor(
 	dest->fg_color = vt100_parser->fg_color ;
 	dest->bg_color = vt100_parser->bg_color ;
 	dest->is_bold  = vt100_parser->is_bold ;
+	dest->is_italic = vt100_parser->is_italic ;
 	dest->is_underlined = vt100_parser->is_underlined ;
 	dest->is_reversed   = vt100_parser->is_reversed ;
 	dest->cs = vt100_parser->cs ;
@@ -758,7 +751,8 @@ restore_cursor(
 	{
 		vt100_parser->fg_color = src->fg_color ;
 		vt100_parser->bg_color = src->bg_color ;
-		vt100_parser->is_bold  = src->is_bold ;
+		vt100_parser->is_bold = src->is_bold ;
+		vt100_parser->is_italic = src->is_italic ;
 		vt100_parser->is_underlined = src->is_underlined ;
 		vt100_parser->is_reversed = src->is_reversed ;
 		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
@@ -1474,6 +1468,7 @@ change_char_attr(
 		fg_color = ML_FG_COLOR ;
 		bg_color = ML_BG_COLOR ;
 		vt100_parser->is_bold = 0 ;
+		vt100_parser->is_italic = 0 ;
 		vt100_parser->is_underlined = 0 ;
 		vt100_parser->is_reversed = 0 ;
 	}
@@ -1481,6 +1476,11 @@ change_char_attr(
 	{
 		/* Bold */
 		vt100_parser->is_bold = 1 ;
+	}
+	else if( flag == 3)
+	{
+		/* Italic */
+		vt100_parser->is_italic = 1 ;
 	}
 	else if( flag == 4)
 	{
@@ -1506,6 +1506,11 @@ change_char_attr(
 	{
 		/* Bold */
 		vt100_parser->is_bold = 0 ;
+	}
+	else if( flag == 23)
+	{
+		/* Italic */
+		vt100_parser->is_italic = 0 ;
 	}
 	else if( flag == 24)
 	{
@@ -1781,8 +1786,8 @@ set_selection(
 		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser , decoded , d_pos) ;
 		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
-			ml_char_set( &str[str_len++] , ch.ch , ch.size , ch.cs , 0 , 0 ,
-				0 , 0 , 0 , 0) ;
+			ml_char_set( &str[str_len++] , mkf_char_to_int(&ch) ,
+				ch.cs , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
 		}
 
 		/*
@@ -4519,7 +4524,8 @@ parse_vt100_sequence(
 
 			if( ret == 1)
 			{
-				put_char( vt100_parser , ch.ch , ch.size , ch.cs , ch.property) ;
+				put_char( vt100_parser , mkf_char_to_int(&ch) ,
+					ch.cs , ch.property) ;
 
 				vt100_parser->r_buf.left = vt100_parser->cc_parser->left ;
 			}
@@ -5092,8 +5098,7 @@ ml_convert_to_internal_ch(
 			ch.cs = US_ASCII ;
 		}
 		else if( ( unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT) &&
-			 ( decsp = convert_ucs_to_decsp(
-					mkf_bytes_to_int( ch.ch , ch.size))))
+			 ( decsp = convert_ucs_to_decsp( mkf_char_to_int(&ch))))
 		{
 			ch.ch[0] = decsp ;
 			ch.size = 1 ;
@@ -5138,8 +5143,7 @@ ml_convert_to_internal_ch(
 		{
 			mkf_char_t  non_ucs ;
 
-			if( mkf_map_ucs4_to_iscii( &non_ucs ,
-				mkf_bytes_to_int( ch.ch , ch.size)))
+			if( mkf_map_ucs4_to_iscii( &non_ucs , mkf_char_to_int(&ch)))
 			{
 				if( unicode_policy & USE_UNICODE_PROPERTY)
 				{
@@ -5184,9 +5188,7 @@ ml_convert_to_internal_ch(
 					ch = ucs ;
 				}
 
-				ch.property = mkf_get_ucs_property(
-						mkf_bytes_to_int(
-							ucs.ch , ucs.size)) ;
+				ch.property = mkf_get_ucs_property( mkf_char_to_int(&ucs)) ;
 			}
 		}
 		else if( IS_BIWIDTH_CS( ch.cs))

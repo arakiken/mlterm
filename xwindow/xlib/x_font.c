@@ -267,45 +267,24 @@ static u_int
 xcore_calculate_char_width(
 	Display *  display ,
 	XFontStruct *  xfont ,
-	const u_char *  ch ,
-	size_t  len
+	u_int32_t  ch
 	)
 {
 	int  width ;
 
-	if( len == 1)
+	if( ch < 0x100)
 	{
-		width = XTextWidth( xfont , ch , 1) ;
-	}
-	else if( len == 2)
-	{
-		XChar2b  c ;
+		u_char  c ;
 
-		c.byte1 = ch[0] ;
-		c.byte2 = ch[1] ;
+		c = ch ;
 
-		width = XTextWidth16( xfont , &c , 1) ;
-	}
-	else if( len == 4)
-	{
-		/* is UCS4 */
-
-		XChar2b  c ;
-
-		/* XXX dealing as UCS2 */
-
-		c.byte1 = ch[2] ;
-		c.byte2 = ch[3] ;
-
-		width = XTextWidth16( xfont , &c , 1) ;
+		width = XTextWidth( xfont , &c , 1) ;
 	}
 	else
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " char size %d is too large.\n" , len) ;
-	#endif
+		XChar2b  c[2] ;
 
-		return  0 ;
+		width = XTextWidth16( xfont , c , x_convert_ucs4_to_utf16( c , ch) / 2) ;
 	}
 
 	if( width < 0)
@@ -444,6 +423,9 @@ xcore_set_font(
 	cs_info_t *  csinfo ;
 	char **  font_encoding_p ;
 	u_int  percent ;
+	int  count ;
+	char *  spacings[] = { "c" , "m" , "p" } ;
+	size_t  idx ;
 
 	if( ( csinfo = get_cs_info( FONT_CS(font->id))) == NULL)
 	{
@@ -519,7 +501,14 @@ xcore_set_font(
 		weight = "medium" ;
 	}
 
-	slant = "r" ;
+	if( font->id & FONT_ITALIC)
+	{
+		slant = "i" ;
+	}
+	else
+	{
+		slant = "r" ;
+	}
 
 	width = "normal" ;
 
@@ -532,80 +521,42 @@ xcore_set_font(
 		family = "*" ;
 	}
 
-	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
-	{
-		if( ( xfont = load_xfont( font->display , family , weight , slant ,
-			width , fontsize , "c" , *font_encoding_p)))
-		{
-			goto  font_found ;
-		}
-	}
-
-	if( font->id & FONT_BOLD)
+	for( count = 0 ; ; count ++)
 	{
 		FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
 		{
-			if( ( xfont = load_xfont( font->display , family , weight , "*" , "*" ,
-				fontsize , "c" , *font_encoding_p)))
+			for( idx = 0 ; idx < sizeof(spacings) / sizeof(spacings[0]) ; idx++)
 			{
-				goto  font_found ;
+				if( ( xfont = load_xfont( font->display , family ,
+						weight , slant , width , fontsize ,
+						spacings[idx] , *font_encoding_p)))
+				{
+					goto  font_found ;
+				}
 			}
 		}
 
-		/*
-		 * loading variable width font :(
-		 */
-
-		FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
+		if( count == 0)
 		{
-			if( ( xfont = load_xfont( font->display , family , weight , "*" , "*" ,
-				fontsize , "m" , *font_encoding_p)))
+			width = "*" ;
+		}
+		else if( count == 1)
+		{
+			slant = "*" ;
+		}
+		else if( count == 2)
+		{
+			weight = "*" ;
+
+			if( font->id & FONT_BOLD)
 			{
-				goto   font_found ;
+				/* no bold font is found. */
+				font->is_double_drawing = 1 ;
 			}
 		}
-
-		FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
+		else
 		{
-			if( ( xfont = load_xfont( font->display , family , weight , "*" , "*" ,
-				fontsize , "p" , *font_encoding_p)))
-			{
-				goto   font_found ;
-			}
-		}
-
-		/* no bold font is found. */
-		font->is_double_drawing = 1 ;
-	}
-
-	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
-	{
-		if( ( xfont = load_xfont( font->display , family , "*" , "*" , "*" , fontsize ,
-			"c" , *font_encoding_p)))
-		{
-			goto   font_found ;
-		}
-	}
-
-	/*
-	 * loading variable width font :(
-	 */
-
-	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
-	{
-		if( ( xfont = load_xfont( font->display , family , "*" , "*" , "*" , fontsize ,
-			"m" , *font_encoding_p)))
-		{
-			goto   font_found ;
-		}
-	}
-
-	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
-	{
-		if( ( xfont = load_xfont( font->display , family , "*" , "*" , "*" , fontsize ,
-			"p" , *font_encoding_p)))
-		{
-			goto   font_found ;
+			break ;
 		}
 	}
 
@@ -656,12 +607,12 @@ font_found:
 				u_int  i_width ;
 
 				if( ( w_width = xcore_calculate_char_width( font->display ,
-							font->xfont , "W" , 1)) == 0)
+							font->xfont , 'W')) == 0)
 				{
 					font->is_proportional = 1 ;
 				}
 				else if( ( i_width = xcore_calculate_char_width( font->display ,
-								font->xfont , "i" , 1)) == 0 ||
+								font->xfont , 'i')) == 0 ||
 					 w_width != i_width)
 				{
 					font->is_proportional = 1 ;
@@ -856,18 +807,17 @@ font_found:
 static u_int
 xft_calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,		/* US-ASCII or Unicode */
-	size_t  len
+	u_int32_t  ch			/* US-ASCII or Unicode */
 	)
 {
-	int (*func)( x_font_t * , const u_char * , size_t) ;
+	int (*func)( x_font_t * , u_int32_t) ;
 
 	if( ! ( func = x_load_type_xft_func( X_CALCULATE_CHAR_WIDTH)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( font , ch , len) ;
+	return  (*func)( font , ch) ;
 }
 
 static int
@@ -896,7 +846,7 @@ xft_set_font(
 }
 
 #elif  defined(USE_TYPE_XFT)
-u_int  xft_calculate_char_width( x_font_t *  font , const u_char *  ch , size_t  len) ;
+u_int  xft_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  xft_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold , u_int  letter_space ,
 	int  aa_opt , int  use_point_size_for_fc , double  dpi_for_fc) ;
@@ -908,18 +858,17 @@ int  xft_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 static u_int
 cairo_calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,		/* US-ASCII or Unicode */
-	size_t  len
+	u_int32_t  ch		/* US-ASCII or Unicode */
 	)
 {
-	int (*func)( x_font_t * , const u_char * , size_t) ;
+	int (*func)( x_font_t * , u_int32_t) ;
 
 	if( ! ( func = x_load_type_cairo_func( X_CALCULATE_CHAR_WIDTH)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( font , ch , len) ;
+	return  (*func)( font , ch) ;
 }
 
 static int
@@ -948,7 +897,7 @@ cairo_set_font(
 }
 
 #elif  defined(USE_TYPE_CAIRO)
-u_int  cairo_calculate_char_width( x_font_t *  font , const u_char *  ch , size_t  len) ;
+u_int  cairo_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold , u_int  letter_space ,
 	int  aa_opt , int  use_point_size_for_fc , double  dpi_for_fc) ;
@@ -957,56 +906,44 @@ int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize
 static u_int
 calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,
-	size_t  len ,
+	u_int32_t  ch ,
 	mkf_charset_t  cs
 	)
 {
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	if( font->xft_font)
 	{
-		u_char  ucs4[4] ;
-
 		if( cs != US_ASCII && ! IS_ISCII(cs))
 		{
-			if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
+			if( ! ( ch = x_convert_to_xft_ucs4( ch , cs)))
 			{
 				return  0 ;
 			}
-
-			ch = ucs4 ;
-			len = 4 ;
 		}
 
-		return  xft_calculate_char_width( font , ch , len) ;
+		return  xft_calculate_char_width( font , ch) ;
 	}
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	if( font->cairo_font)
 	{
-		u_char  ucs4[4] ;
-
 		if( cs != US_ASCII && ! IS_ISCII(cs))
 		{
-			if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
+			if( ! ( ch = x_convert_to_xft_ucs4( ch , cs)))
 			{
 				return  0 ;
 			}
-
-			ch = ucs4 ;
-			len = 4 ;
 		}
 
-		return  cairo_calculate_char_width( font , ch , len) ;
+		return  cairo_calculate_char_width( font , ch) ;
 	}
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	if( font->xfont)
 	{
-		return  xcore_calculate_char_width( font->display , font->xfont ,
-				ch , len) ;
+		return  xcore_calculate_char_width( font->display , font->xfont , ch) ;
 	}
 #endif
 
@@ -1241,8 +1178,7 @@ x_change_font_cols(
 u_int
 x_calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,
-	size_t  len ,
+	u_int32_t  ch ,
 	mkf_charset_t  cs ,
 	int *  draw_alone
 	)
@@ -1257,7 +1193,7 @@ x_calculate_char_width(
 		if( font->is_var_col_width)
 		{
 			/* Returned value can be 0 if iscii font is used. */
-			return  calculate_char_width( font , ch , len , cs) ;
+			return  calculate_char_width( font , ch , cs) ;
 		}
 
 		if( draw_alone)
@@ -1268,11 +1204,9 @@ x_calculate_char_width(
 	else if( cs == ISO10646_UCS4_1)
 	{
 		/* XXX U+2580-U+259f is full width in GNU Unifont. */
-		if( ch[2] == 0x25 &&
-		    0x80 <= ch[3] && ch[3] <= 0x9f &&
-		    ch[0] == 0 && ch[1] == 0)
+		if( 0x2580 <= ch && ch <= 0x259f)
 		{
-			if( calculate_char_width( font , ch , len , cs) != font->width)
+			if( calculate_char_width( font , ch , cs) != font->width)
 			{
 				if( draw_alone)
 				{
@@ -1323,44 +1257,39 @@ x_font_set_dpi_for_fc(
 
 static int  use_cp932_ucs_for_xft = 0 ;
 
-static int
+static u_int32_t
 convert_to_ucs4(
-	u_char *  ucs4_bytes ,
-	const u_char *  src_bytes ,
-	size_t  src_size ,
+	u_int32_t  ch ,
 	mkf_charset_t  cs
 	)
 {
-	if( cs == ISO10646_UCS4_1)
+	if( cs == ISO10646_UCS4_1 /* || cs == ISO10646_UCS2_1 */)
 	{
-		memcpy( ucs4_bytes , src_bytes , 4) ;
+		return  ch ;
 	}
 	else
 	{
 		mkf_char_t  non_ucs ;
 		mkf_char_t  ucs4 ;
 
-		if( ml_is_msb_set( cs))
-		{
-			size_t  count ;
-
-			for( count = 0 ; count < src_size ; count ++)
-			{
-				non_ucs.ch[count] = src_bytes[count] & 0x7f ;
-			}
-		}
-		else
-		{
-			memcpy( non_ucs.ch , src_bytes , src_size) ;
-		}
-		
-		non_ucs.size = src_size ;
+		non_ucs.size = CS_SIZE(cs) ;
 		non_ucs.property = 0 ;
 		non_ucs.cs = cs ;
+		mkf_int_to_bytes( non_ucs.ch , non_ucs.size , ch) ;
+
+		if( ml_is_msb_set( cs))
+		{
+			u_int  count ;
+
+			for( count = 0 ; count < non_ucs.size ; count ++)
+			{
+				non_ucs.ch[count] &= 0x7f ;
+			}
+		}
 
 		if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
 		{
-			memcpy( ucs4_bytes , ucs4.ch , 4) ;
+			return  mkf_char_to_int( &ucs4) ;
 		}
 		else
 		{
@@ -1382,11 +1311,9 @@ x_use_cp932_ucs_for_xft(void)
 /*
  * used only for xft or cairo.
  */
-int
+u_int32_t
 x_convert_to_xft_ucs4(
-	u_char *  ucs4_bytes ,
-	const u_char *  src_bytes ,
-	size_t  src_size ,
+	u_int32_t  ch ,
 	mkf_charset_t  cs	/* US_ASCII and ISO8859_1_R is not accepted */
 	)
 {
@@ -1396,58 +1323,37 @@ x_convert_to_xft_ucs4(
 	}
 	else if( use_cp932_ucs_for_xft && cs == JISX0208_1983)
 	{
-		u_int16_t  code ;
-
-		code = mkf_bytes_to_int( src_bytes , src_size) ;
-
-		if( code == 0x2140)
+		if( ch == 0x2140)
 		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0x3c ;
+			return  0xff3c ;
 		}
-		else if( code == 0x2141)
+		else if( ch == 0x2141)
 		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0x5e ;
+			return  0xff5e ;
 		}
-		else if( code == 0x2142)
+		else if( ch == 0x2142)
 		{
-			ucs4_bytes[2] = 0x22 ;
-			ucs4_bytes[3] = 0x25 ;
+			return  0x2225 ;
 		}
-		else if( code == 0x215d)
+		else if( ch == 0x215d)
 		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0x0d ;
+			return  0xff0d ;
 		}
-		else if( code == 0x2171)
+		else if( ch == 0x2171)
 		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0xe0 ;
+			return  0xffe0 ;
 		}
-		else if( code == 0x2172)
+		else if( ch == 0x2172)
 		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0xe1 ;
+			return  0xffe1 ;
 		}
-		else if( code == 0x224c)
+		else if( ch == 0x224c)
 		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0xe2 ;
+			return  0xffe2 ;
 		}
-		else
-		{
-			goto  no_diff ;
-		}
-		
-		ucs4_bytes[0] = 0x0 ;
-		ucs4_bytes[1] = 0x0 ;
-		
-		return  1 ;
 	}
 
-no_diff:
-	return  convert_to_ucs4( ucs4_bytes , src_bytes , src_size , cs) ;
+	return  convert_to_ucs4( ch , cs) ;
 }
 
 #endif
@@ -1458,45 +1364,39 @@ no_diff:
 size_t
 x_convert_ucs4_to_utf16(
 	u_char *  dst ,	/* 4 bytes. Big endian. */
-	u_char *  src	/* 4 bytes. Big endian. */
+	u_int32_t  src
 	)
 {
 #if  0
-	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , mkf_bytes_to_int( src , 4)) ;
+	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , src) ;
 #endif
 
-	if( src[0] > 0x0 || src[1] > 0x10)
+	if( src < 0x10000)
 	{
-		return  0 ;
-	}
-	else if( src[1] == 0x0)
-	{
-		dst[0] = src[2] ;
-		dst[1] = src[3] ;
+		dst[0] = (src >> 8) & 0xff ;
+		dst[1] = src & 0xff ;
 	
 		return  2 ;
 	}
-	else /* if( src[1] <= 0x10) */
+	else if( src < 0x110000)
 	{
 		/* surrogate pair */
 
-		u_int32_t  linear ;
 		u_char  c ;
 
-		linear = mkf_bytes_to_int( src , 4) - 0x10000 ;
-
-		c = (u_char)( linear / (0x100 * 0x400)) ;
-		linear -= (c * 0x100 * 0x400) ;
+		src -= 0x10000 ;
+		c = (u_char)( src / (0x100 * 0x400)) ;
+		src -= (c * 0x100 * 0x400) ;
 		dst[0] = c + 0xd8 ;
-	
-		c = (u_char)( linear / 0x400) ;
-		linear -= (c * 0x400) ;
+
+		c = (u_char)( src / 0x400) ;
+		src -= (c * 0x400) ;
 		dst[1] = c ;
-	
-		c = (u_char)( linear / 0x100) ;
-		linear -= (c * 0x100) ;
+
+		c = (u_char)( src / 0x100) ;
+		src -= (c * 0x100) ;
 		dst[2] = c + 0xdc ;
-		dst[3] = (u_char) linear ;
+		dst[3] = (u_char)src ;
 
 	#if  0
 		kik_msg_printf( "%.2x%.2x%.2x%.2x\n" , dst[0] , dst[1] , dst[2] , dst[3]) ;
@@ -1504,6 +1404,8 @@ x_convert_ucs4_to_utf16(
 
 		return  4 ;
 	}
+
+	return  0 ;
 }
 
 #endif

@@ -154,9 +154,45 @@ draw_string(
 
 	xfont = font->xfont ;
 
-	for( count = 0 ; count < len ; count++)
+	if( ch_len == 1)
 	{
-		bitmaps[count] = x_get_bitmap( xfont , str + count * ch_len , ch_len) ;
+		for( count = 0 ; count < len ; count++)
+		{
+			bitmaps[count] = x_get_bitmap( xfont , str + count , 1) ;
+		}
+	}
+	else /* if( ch_len == 2) */
+	{
+		for( count = 0 ; count < len ; count++)
+		{
+			if( 0xd8 <= str[0] && str[0] <= 0xdb)
+			{
+				if( count + 1 >= len)
+				{
+					break ;
+				}
+
+				if( 0xdc <= str[2] && str[2] <= 0xdf)
+				{
+					/* surrogate pair */
+
+					mkf_int_to_bytes( str , 4 ,
+						(str[0] - 0xd8) * 0x100 * 0x400 + str[1] * 0x400 +
+						(str[2] - 0xdc) * 0x100 + str[3] + 0x10000) ;
+					ch_len = 4 ;
+					len -- ;
+				}
+				else
+				{
+					str += 2 ;
+				}
+			}
+
+			bitmaps[count] = x_get_bitmap( xfont , str , ch_len) ;
+
+			str += ch_len ;
+			ch_len = 2 ;
+		}
 	}
 
 	/*

@@ -248,7 +248,7 @@ ml_iscii(
 		{
 			u_int  font_filled ;
 			
-			iscii_buf[iscii_filled ++] = ml_char_bytes( src + src_pos)[0] ;
+			iscii_buf[iscii_filled ++] = ml_char_code( src + src_pos) ;
 			iscii_buf[iscii_filled] = '\0' ;
 			font_filled = ml_iscii_shape( cs , font_buf , font_buf_len , iscii_buf) ;
 

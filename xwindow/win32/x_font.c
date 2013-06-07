@@ -447,7 +447,15 @@ x_font_new(
 		weight = FW_MEDIUM ;
 	}
 
-	is_italic = FALSE ;
+	if( font->id & FONT_ITALIC)
+	{
+		is_italic = TRUE ;
+	}
+	else
+	{
+		is_italic = FALSE ;
+	}
+
 	font_family = NULL ;
 	percent = 0 ;
 	fontsize_d = (double)fontsize ;
@@ -758,8 +766,7 @@ x_change_font_cols(
 u_int
 x_calculate_char_width(
 	x_font_t *  font ,
-	const u_char *  ch ,
-	size_t  len ,
+	u_int32_t  ch ,
 	mkf_charset_t  cs ,
 	int *  draw_alone
 	)
@@ -788,39 +795,36 @@ x_calculate_char_width(
 
 			if( cs != US_ASCII && ! IS_ISCII(cs))
 			{
-				u_char  ucs4_bytes[4] ;
-				u_char  utf16_bytes[4] ;
+				u_int32_t  ucs4_code ;
+				u_char  utf16[4] ;
 
 				if( cs == ISO10646_UCS4_1)
 				{
-					memcpy( ucs4_bytes , ch , 4) ;
+					ucs4_code = ch ;
 				}
 				else
 				{
 					mkf_char_t  non_ucs ;
 					mkf_char_t  ucs4 ;
 
-					if( ml_is_msb_set( cs))
-					{
-						size_t  count ;
-
-						for( count = 0 ; count < len ; count ++)
-						{
-							non_ucs.ch[count] = ch[count] & 0x7f ;
-						}
-					}
-					else
-					{
-						memcpy( non_ucs.ch , ch , len) ;
-					}
-
-					non_ucs.size = len ;
+					non_ucs.size = CS_SIZE(cs) ;
 					non_ucs.property = 0 ;
 					non_ucs.cs = cs ;
+					mkf_int_to_bytes( non_ucs.ch , non_ucs.size , ch) ;
+
+					if( ml_is_msb_set( cs))
+					{
+						u_int  count ;
+
+						for( count = 0 ; count < non_ucs.size ; count ++)
+						{
+							non_ucs.ch[count] &= 0x7f ;
+						}
+					}
 
 					if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
 					{
-						memcpy( ucs4_bytes , ucs4.ch , 4) ;
+						ucs4_code = mkf_bytes_to_int( ucs4.ch , 4) ;
 					}
 					else
 					{
@@ -828,17 +832,18 @@ x_calculate_char_width(
 					}
 				}
 
-				if( ! ( len = x_convert_ucs4_to_utf16( utf16_bytes ,
-						ucs4_bytes)) ||
-				    ! GetTextExtentPointW( display_gc ,
-						utf16_bytes , len / 2 , &sz))
+				if( ! GetTextExtentPointW( display_gc , utf16 ,
+					x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 , &sz))
 				{
 					goto  fixed_col_width ;
 				}
 			}
 			else
 			{
-				if( ! GetTextExtentPointA( display_gc , ch , len , &sz))
+				u_char  c ;
+
+				c = ch ;
+				if( ! GetTextExtentPointA( display_gc , &c , 1 , &sz))
 				{
 					goto  fixed_col_width ;
 				}
@@ -861,53 +866,42 @@ x_calculate_char_width(
 size_t
 x_convert_ucs4_to_utf16(
 	u_char *  dst ,	/* 4 bytes. Little endian. */
-	u_char *  src	/* 4 bytes. Big endian. */
+	u_int32_t  src
 	)
 {
-#if  0
-	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , mkf_bytes_to_int( src , 4)) ;
-#endif
-
-	if( src[0] > 0x0 || src[1] > 0x10)
+	if( src < 0x10000)
 	{
-		return  0 ;
-	}
-	else if( src[1] == 0x0)
-	{
-		dst[1] = src[2] ;
-		dst[0] = src[3] ;
+		dst[1] = (src >> 8) & 0xff ;
+		dst[0] = src & 0xff ;
 	
 		return  2 ;
 	}
-	else /* if( src[1] <= 0x10) */
+	else if( src < 0x110000)
 	{
 		/* surrogate pair */
 
-		u_int32_t  linear ;
 		u_char  c ;
 
-		linear = mkf_bytes_to_int( src , 4) - 0x10000 ;
-
-		c = (u_char)( linear / (0x100 * 0x400)) ;
-		linear -= (c * 0x100 * 0x400) ;
+		src -= 0x10000 ;
+		c = (u_char)( src / (0x100 * 0x400)) ;
+		src -= (c * 0x100 * 0x400) ;
 		dst[1] = c + 0xd8 ;
-	
-		c = (u_char)( linear / 0x400) ;
-		linear -= (c * 0x400) ;
-		dst[0] = c ;
-	
-		c = (u_char)( linear / 0x100) ;
-		linear -= (c * 0x100) ;
-		dst[3] = c + 0xdc ;
-		dst[2] = (u_char) linear ;
 
-	#if  0
-		kik_msg_printf( "%.2x%.2x%.2x%.2x\n" , dst[1] , dst[0] , dst[3] , dst[2]) ;
-	#endif
-	
+		c = (u_char)( src / 0x400) ;
+		src -= (c * 0x400) ;
+		dst[0] = c ;
+
+		c = (u_char)( src / 0x100) ;
+		src -= (c * 0x100) ;
+		dst[3] = c + 0xdc ;
+		dst[2] = (u_char)src ;
+
 		return  4 ;
 	}
+
+	return  0 ;
 }
+
 
 #ifdef  DEBUG
 

@@ -35,10 +35,12 @@ copy_char_with_mirror_check(
 		if( (cs = ml_char_cs( dst)) == US_ASCII || cs == ISO10646_UCS4_1)
 	#endif
 		{
-			u_char *  bytes ;
+			u_int  mirror ;
 
-			bytes = ml_char_bytes( dst) ;
-			ml_bidi_get_mirror_char( bytes , bytes , ml_char_size(dst)) ;
+			if( ( mirror = ml_bidi_get_mirror_char( ml_char_code( dst))))
+			{
+				ml_char_set_code( dst , mirror) ;
+			}
 		}
 	}
 }

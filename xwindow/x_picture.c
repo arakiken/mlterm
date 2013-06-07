@@ -319,10 +319,7 @@ cleanup_inline_pictures(
 								&size)) &&
 					    ml_char_cs( comb) == PICTURE_CHARSET)
 					{
-						u_int16_t *  bytes ;
-
-						bytes = (u_int16_t*)ml_char_bytes( comb) ;
-						flags[bytes[0]] = 1 ;
+						flags[INLINEPIC_ID(ml_char_code( comb))] = 1 ;
 					}
 				}
 			}

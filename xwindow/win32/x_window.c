@@ -610,7 +610,7 @@ text_out(
 	int  y ,
 	u_char *  str ,
 	u_int  len ,
-	mkf_charset_t  cs
+	mkf_charset_t  cs	/* FONT_CS(font->id) */
 	)
 {
 	if( cs == ISO10646_UCS4_1)

@@ -5,33 +5,10 @@
 #include  "mkf_char.h"
 
 #include  <stdio.h>		/* NULL */
+#include  <kiklib/kik_util.h>	/* BE*DEC */
 
 
 /* --- global functions --- */
-
-u_int32_t
-mkf_char_to_int(
-	mkf_char_t *  ch
-	)
-{
-	if( ch->size == 1)
-	{
-		return  ch->ch[0] ;
-	}
-	else if( ch->size == 2)
-	{
-		return  ( ( ch->ch[0] << 8) & 0xff00) + ch->ch[1] ;
-	}
-	else if( ch->size == 4)
-	{
-		return (( ch->ch[0] << 24) & 0xff000000) + (( ch->ch[1] << 16) & 0x00ff0000) +
-			(( ch->ch[2] << 8) & 0x0000ff00) + ch->ch[3] ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
 
 u_char *
 mkf_int_to_bytes(
@@ -70,20 +47,18 @@ mkf_bytes_to_int(
 	size_t  len
 	)
 {
-	if( len == 1)
+	switch( len)
 	{
+	case  1:
 		return  bytes[0] ;
-	}
-	else if( len == 2)
-	{
-		return  (bytes[0] << 8) + bytes[1] ;
-	}
-	else if( len == 4)
-	{
-		return  (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3] ;
-	}
-	else
-	{
+
+	case  2:
+		return  BE16DEC(bytes) ;
+
+	case  4:
+		return  BE32DEC(bytes) ;
+
+	default:
 		return  0 ;
 	}
 }

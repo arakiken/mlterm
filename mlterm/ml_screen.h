@@ -206,9 +206,10 @@ int  ml_screen_search_find( ml_screen_t *  screen , int *  beg_char_index , int 
  
 ml_char_t *  ml_screen_get_n_prev_char( ml_screen_t *  screen , int  n) ;
 
-int  ml_screen_combine_with_prev_char( ml_screen_t *  screen , u_char *  bytes ,
-	size_t  ch_size , mkf_charset_t  cs , int  is_biwidth , int  is_comb ,
-	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold , int  is_underlined) ;
+int  ml_screen_combine_with_prev_char( ml_screen_t *  screen , u_int32_t  code ,
+	mkf_charset_t  cs , int  is_biwidth , int  is_comb ,
+	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold ,
+	int  is_italic , int  is_underlined) ;
 
 int  ml_screen_insert_chars( ml_screen_t *  screen , ml_char_t *  chars , u_int  len) ;
 

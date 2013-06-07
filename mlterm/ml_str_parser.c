@@ -106,10 +106,10 @@ next_char(
 			ml_str_parser->str ++ ;
 		}
 	}
-	
-	ch->size = ml_char_size( ml_ch) ;
-	memcpy( ch->ch , ml_char_bytes( ml_ch) , ch->size) ;
+
 	ch->cs = ml_char_cs( ml_ch) ;
+	ch->size = CS_SIZE(ch->cs) ;
+	mkf_int_to_bytes( ch->ch , ch->size , ml_char_code( ml_ch)) ;
 
 	if( ml_is_msb_set( ch->cs))
 	{

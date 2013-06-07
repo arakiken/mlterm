@@ -105,8 +105,8 @@ int  x_font_load_xfont( x_font_t *  font , char *  fontname , u_int  fontsize ,
 
 int  x_change_font_cols( x_font_t *  font , u_int  cols) ;
 
-u_int  x_calculate_char_width( x_font_t *  font , const u_char *  ch ,
-	size_t  len , mkf_charset_t  cs , int *  draw_alone) ;
+u_int  x_calculate_char_width( x_font_t *  font , u_int32_t  ch ,
+	mkf_charset_t  cs , int *  draw_alone) ;
 
 #if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_WIN32GUI)
 char **  x_font_get_encoding_names( mkf_charset_t  cs) ;
@@ -119,12 +119,11 @@ void  x_font_set_dpi_for_fc( double  dpi) ;
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 int  x_use_cp932_ucs_for_xft(void) ;
 
-int  x_convert_to_xft_ucs4( u_char *  ucs4_bytes , const u_char *  src_bytes , size_t  src_size ,
-	mkf_charset_t  cs) ;
+u_int32_t  x_convert_to_xft_ucs4( u_int32_t  ch , mkf_charset_t  cs) ;
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-size_t  x_convert_ucs4_to_utf16( u_char *  utf16 , u_char *  ucs) ;
+size_t  x_convert_ucs4_to_utf16( u_char *  utf16 , u_int32_t  ucs4) ;
 #endif
 
 #ifdef  DEBUG

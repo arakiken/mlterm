@@ -44,8 +44,6 @@ typedef struct x_im_candidate_screen
 
 	u_int  index ;		/* current selected index of candidates   */
 
-	u_int  dummy ;		/* left not to change the size of x_im_candidate_screen */
-
 	int  x ;		/* not adjusted by window size            */
 	int  y ;		/* not adjusted by window size            */
 	u_int  line_height ;	/* line height of attaced screen          */

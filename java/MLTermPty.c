@@ -568,7 +568,7 @@ need_style(
 	if( ml_char_fg_color( ch) != ML_FG_COLOR ||
 	    ml_char_bg_color( ch) != ML_BG_COLOR ||
 	    ml_char_is_underlined( ch) ||
-	    (ml_char_font( ch) & FONT_BOLD) )
+	    (ml_char_font( ch) & (FONT_BOLD|FONT_ITALIC)))
 	{
 		need_style = 2 ;
 	}
@@ -581,7 +581,8 @@ need_style(
 	    ml_char_fg_color( ch) == ml_char_fg_color( prev_ch) &&
 	    ml_char_bg_color( ch) == ml_char_bg_color( prev_ch) &&
 	    ml_char_is_underlined( ch) == ml_char_is_underlined( prev_ch) &&
-	    (ml_char_font( ch) & ml_char_font( prev_ch) & FONT_BOLD) )
+	    (ml_char_font( ch) & (FONT_BOLD|FONT_ITALIC)) ==
+	    (ml_char_font( prev_ch) & (FONT_BOLD|FONT_ITALIC)) )
 	{
 		if( need_style)
 		{
@@ -1553,6 +1554,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 	static jfieldID  style_bg_pixel ;
 	static jfieldID  style_underline ;
 	static jfieldID  style_bold ;
+	static jfieldID  style_italic ;
 	jobjectArray  array ;
 
 	if( ! nativeObj || ! ((native_obj_t*)nativeObj)->term ||
@@ -1615,7 +1617,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 			int  ret ;
 
 		#if  0
-			if( ml_char_bytes_equal( line->chars + mod_beg + count , ml_nl_ch()))
+			if( ml_char_code_equal( line->chars + mod_beg + count , ml_nl_ch()))
 			{
 				/* Drawing will collapse, but region.str mustn't contain '\n'. */
 				continue ;
@@ -1666,6 +1668,8 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 								"underline" , "Z") ;
 					style_bold = (*env)->GetFieldID( env , style_class ,
 								"bold" , "Z") ;
+					style_italic = (*env)->GetFieldID( env , style_class ,
+								"italic" , "Z") ;
 				}
 
 				styles[num_of_styles++] = (*env)->AllocObject( env , style_class) ;
@@ -1703,6 +1707,11 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 					style_bold ,
 					ml_char_font( line->chars + mod_beg + count) & FONT_BOLD ?
 						JNI_TRUE : JNI_FALSE) ;
+
+				(*env)->SetBooleanField( env , styles[num_of_styles - 1] ,
+					style_italic ,
+					ml_char_font( line->chars + mod_beg + count) &
+						FONT_ITALIC ? JNI_TRUE : JNI_FALSE) ;
 			}
 
 			redraw_len += len ;

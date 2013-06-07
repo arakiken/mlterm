@@ -15,7 +15,6 @@
 #include  "ml_color.h"
 
 
-#define  MLCHAR_SIZE	4
 #define  MAX_COMB_SIZE	7	/* Used in ml_shape.c,x_screen.c */
 #define  UTF_MAX_SIZE	6
 /*
@@ -54,7 +53,9 @@ typedef struct ml_char
 		{
 			/*
 			 * attr member contents.
-			 * Total 16 bit
+			 * Total 24 bit
+			 * 7 bit : not used
+			 * 1 bit : is_italic(0 or 1)
 			 * 9 bit : charset(0x0 - 0x1ff)
 			 * 1 bit : is_biwidth(0 or 1)
 			 * 1 bit : is_reversed(0 or 1)	... used for X Selection
@@ -66,15 +67,15 @@ typedef struct ml_char
 			 * 1 bit : is_single_ch(0 or 1)
 			 */
 		#ifdef  WORDS_BIGENDIAN
-			u_char  bytes[MLCHAR_SIZE] ;	/* 32 bit */
-			u_int8_t  fg_color ;
-			u_int8_t  bg_color ;
-			u_int16_t  attr ;
+			u_int32_t  code: 24 ;
+			u_int8_t  fg_color: 8 ;
+			u_int8_t  bg_color: 8 ;
+			u_int32_t  attr: 24 ;
 		#else
-			u_int16_t  attr ;
-			u_int8_t  fg_color ;
-			u_int8_t  bg_color ;
-			u_char  bytes[MLCHAR_SIZE] ;	/* 32 bit */
+			u_int32_t  attr: 24 ;
+			u_int8_t  fg_color: 8 ;
+			u_int8_t  bg_color: 8 ;
+			u_int32_t  code: 24 ;
 		#endif
 		} ch ;
 
@@ -97,13 +98,13 @@ int  ml_char_init( ml_char_t *  ch) ;
 
 int  ml_char_final( ml_char_t *  ch) ;
 
-int  ml_char_set( ml_char_t *  ch , u_char *  bytes , size_t  size ,
-	mkf_charset_t  cs , int  is_biwidth , int  is_comb ,
-	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold , int  is_underlined) ;
+int  ml_char_set( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
+	int  is_biwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
+	int  is_bold , int  is_italic , int  is_underlined) ;
 
-int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  size ,
-	mkf_charset_t  cs , int  is_biwidth , int  is_comb ,
-	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold , int  is_underlined) ;
+int  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
+	int  is_biwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
+	int  is_bold , int  is_italic , int  is_underlined) ;
 
 int  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
 
@@ -120,11 +121,9 @@ int  ml_char_move( ml_char_t *  dst , ml_char_t *  src) ;
 
 int  ml_char_copy( ml_char_t *  dst , ml_char_t *  src) ;
 
-u_char *  ml_char_bytes( ml_char_t *  ch) ;
+u_int32_t  ml_char_code( ml_char_t *  ch) ;
 
-size_t  ml_char_size( ml_char_t *  ch) ;
-
-int  ml_char_set_bytes( ml_char_t *  ch , u_char *  bytes) ;
+int  ml_char_set_code( ml_char_t *  ch , u_int32_t  code) ;
 
 mkf_charset_t  ml_char_cs( ml_char_t *  ch) ;
 
@@ -156,9 +155,9 @@ int  ml_char_is_null( ml_char_t *  ch) ;
 
 int  ml_char_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
-int  ml_char_bytes_is( ml_char_t *  ch , char *  bytes , size_t  size , mkf_charset_t  cs) ;
+int  ml_char_code_is( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs) ;
 
-int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
+int  ml_char_code_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
 ml_char_t *  ml_sp_ch(void) ;
 

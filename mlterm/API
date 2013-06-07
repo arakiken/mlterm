@@ -24,7 +24,7 @@
 * ml_line_is_modified
 
 [ml_char]
-* ml_char_bytes
+* ml_char_code
 
 * ml_char_size
 
@@ -44,9 +44,9 @@
 
 * ml_char_final
 
-* ml_char_bytes_is
+* ml_char_code_is
 
-* ml_char_set_bytes
+* ml_char_set_code
 
 * ml_char_dump
 
