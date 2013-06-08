@@ -12,6 +12,7 @@ xver 3.2.1
   Resize the window in attaching a new pty. (enbugged at 3.2.0)
   Fix the bug which disabled mlconfig and mlterm-menu. (enbugged at 3.2.0)
   Fix the error message in the failure of loading US-ASCII font.
+  Fix the bug which lets parcellite reset the selected region.
 
 ver 3.2.0
 * Support framebuffer on NetBSD.

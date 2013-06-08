@@ -3694,12 +3694,6 @@ selecting_with_motion(
 	if( ! x_is_selecting( &screen->sel))
 	{
 		restore_selected_region_color_instantly( screen) ;
-
-		if( ! x_window_set_selection_owner( &screen->window , time))
-		{
-			return ;
-		}
-
 		start_selection( screen , char_index , row , SEL_CHAR) ;
 	}
 	else
@@ -3785,12 +3779,6 @@ selecting_word(
 	if( ! x_is_selecting( &screen->sel))
 	{
 		restore_selected_region_color_instantly( screen) ;
-
-		if( ! x_window_set_selection_owner( &screen->window , time))
-		{
-			return ;
-		}
-
 		start_selection( screen , beg_char_index , beg_row , SEL_WORD) ;
 		selecting( screen , end_char_index , end_row) ;
 		x_sel_lock( &screen->sel) ;
@@ -3856,12 +3844,6 @@ selecting_line(
 	if( ! x_is_selecting( &screen->sel))
 	{
 		restore_selected_region_color_instantly( screen) ;
-
-		if( ! x_window_set_selection_owner( &screen->window , time))
-		{
-			return ;
-		}
-
 		start_selection( screen , beg_char_index , beg_row , SEL_LINE) ;
 		selecting( screen , end_char_index , end_row) ;
 		x_sel_lock( &screen->sel) ;
@@ -6185,7 +6167,16 @@ select_in_window(
 	}
 #endif
 
-	return  1 ;
+	if( ! x_window_set_selection_owner( &screen->window , CurrentTime))
+	{
+		ml_str_delete( *chars , size) ;
+
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
+	}
 }
 
 
@@ -7163,15 +7154,21 @@ xterm_set_mouse_report(
 		memset( screen->prev_mouse_report_seq , 0 , 5) ;
 	}
 
-	if( mode == ANY_EVENT_MOUSE_REPORT)
+	if( screen->window.pointer_motion)
 	{
-		screen->window.pointer_motion = pointer_motion ;
-		x_window_add_event_mask( &screen->window , PointerMotionMask) ;
+		if( mode != ANY_EVENT_MOUSE_REPORT)
+		{
+			screen->window.pointer_motion = NULL ;
+			x_window_remove_event_mask( &screen->window , PointerMotionMask) ;
+		}
 	}
 	else
 	{
-		screen->window.pointer_motion = NULL ;
-		x_window_remove_event_mask( &screen->window , PointerMotionMask) ;
+		if( mode == ANY_EVENT_MOUSE_REPORT)
+		{
+			screen->window.pointer_motion = pointer_motion ;
+			x_window_add_event_mask( &screen->window , PointerMotionMask) ;
+		}
 	}
 }
 
