@@ -955,7 +955,7 @@ ml_nl_ch(void)
 
 #ifdef  DEBUG
 
-#if  1
+#if  0
 #define  DUMP_HEX
 #endif
 
@@ -973,7 +973,7 @@ ml_char_dump(
 #ifdef  DUMP_HEX
 	kik_msg_printf( "[%.4x]" , ml_char_code(ch)) ;
 #else
-	if( ml_char_size(ch) == 2)
+	if( ml_char_code(ch) >= 0x100)
 	{
 		if( ml_char_cs(ch) == JISX0208_1983)
 		{
@@ -988,13 +988,9 @@ ml_char_dump(
 			kik_msg_printf( "**") ;
 		}
 	}
-	else if( ml_char_size(ch) == 1)
-	{
-		kik_msg_printf( "%c" , ml_char_code(ch)) ;
-	}
 	else
 	{
-		kik_msg_printf( "!!! unsupported char[0x%.4x] !!!" , ml_char_code(ch)) ;
+		kik_msg_printf( "%c" , ml_char_code(ch)) ;
 	}
 #endif
 

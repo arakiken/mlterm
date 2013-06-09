@@ -1,5 +1,6 @@
 xver 3.2.1
 * Support framebuffer on OpenBSD.
+* Support CSI ? 69 h, CSI ? 69 l (DECLRMM) and CSI pl;pr s (DECSLRM).
 * Support CSI 3 m and CSI 23 m which set/unset italic attribute.
 * Prefer JISX0208 to JISX0213 all the time in converting Unicode to other cs.
 * Bug fixes:

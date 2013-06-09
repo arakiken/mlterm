@@ -1,3 +1,13 @@
+2013-06-10  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.[ch], ml_screen.h, ml_vt100_parser.c:
+	  DECLRMM(CSI ? 69 h / CSI ? 69 l) and DECSLRM(CSI pl;pr s) are
+	  supported.
+
+	* ml_vt100_parser.[ch], ml_term.c: use_bidi flag is added to
+	  ml_vt100_parser_t in order to determine whether
+	  ml_is_arabic_combining() should be called.
+
 2013-06-09  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_char.c: The bug of ml_char_code_equal() is fixed.

@@ -78,6 +78,8 @@ ml_term_new(
 		goto  error ;
 	}
 
+	ml_vt100_parser_set_use_bidi( term->parser , use_bidi) ;
+
 	if( ! ml_config_menu_init( &term->config_menu))
 	{
 	#ifdef  DEBUG
@@ -310,6 +312,8 @@ ml_term_set_use_bidi(
 	)
 {
 	term->use_bidi = flag ;
+
+	ml_vt100_parser_set_use_bidi( term->parser , flag) ;
 
 	return  1 ;
 }

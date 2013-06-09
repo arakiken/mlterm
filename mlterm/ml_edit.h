@@ -39,10 +39,14 @@ typedef struct  ml_edit
 	/* used for line overlapping */
 	ml_line_t *  wraparound_ready_line ;
 
-	int  scroll_region_beg ;
-	int  scroll_region_end ;
+	int16_t  scroll_region_beg ;
+	int16_t  scroll_region_end ;
 
 	ml_edit_scroll_event_listener_t *  scroll_listener ;
+
+	int16_t  margin_beg ;
+	int16_t  margin_end ;
+	int8_t  use_margin ;
 
 	int8_t  is_logging ;
 	int8_t  is_relative_origin ;
@@ -91,6 +95,10 @@ int  ml_edit_set_scroll_region( ml_edit_t *  edit , int  beg , int  end) ;
 int  ml_edit_scroll_upward( ml_edit_t *  edit , u_int  size) ;
 
 int  ml_edit_scroll_downward( ml_edit_t *  edit , u_int  size) ;
+
+int  ml_edit_set_use_margin( ml_edit_t *  edit , int  use) ;
+
+int  ml_edit_set_margin( ml_edit_t *  edit , int  beg , int  end) ;
 
 int  ml_edit_vertical_forward_tabs( ml_edit_t *  edit , u_int  num) ;
 

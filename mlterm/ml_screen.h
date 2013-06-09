@@ -251,6 +251,12 @@ int  ml_screen_delete_lines( ml_screen_t *  screen , u_int  size) ;
 #define  ml_screen_set_scroll_region( screen , beg , end) \
 		ml_edit_set_scroll_region( (screen)->edit , beg , end)
 
+#define  ml_screen_set_use_margin( screen , use) \
+		ml_edit_set_use_margin( (screen)->edit , use)
+
+#define  ml_screen_set_margin( screen , beg , end) \
+		ml_edit_set_margin( (screen)->edit , beg , end)
+
 #define  ml_screen_index( screen)  ml_edit_go_downward( (screen)->edit , SCROLL)
 
 #define  ml_screen_reverse_index( screen)  ml_edit_go_upward( (screen)->edit , SCROLL)

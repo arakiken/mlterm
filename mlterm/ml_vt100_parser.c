@@ -645,7 +645,7 @@ put_char(
 			prev2 = ml_screen_get_n_prev_char( vt100_parser->screen , ++n) ;
 		}
 		
-		if( ml_is_arabic_combining( prev2 , prev , cur))
+		if( vt100_parser->use_bidi && ml_is_arabic_combining( prev2 , prev , cur))
 		{
 			if( vt100_parser->w_buf.filled_len >= 2)
 			{
@@ -1862,6 +1862,9 @@ soft_reset(
 	/* "CSI r" (DECSTBM) */
 	ml_screen_set_scroll_region( vt100_parser->screen , -1 , -1) ;
 
+	/* "CSI ? 69 l" */
+	ml_screen_set_use_margin( vt100_parser->screen , 0) ;
+
 	/* "CSI m" (SGR) */
 	change_char_attr( vt100_parser , 0) ;
 
@@ -2582,6 +2585,12 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 67 h" have back space */
 						}
 					#endif
+						else if( ps[count] == 69)
+						{
+							/* "CSI ? 69 h" */
+							ml_screen_set_use_margin(
+								vt100_parser->screen , 1) ;
+						}
 						else if( ps[count] == 1000)
 						{
 							/* "CSI ? 1000 h" */
@@ -2840,6 +2849,11 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 67 l" have back space */
 						}
 					#endif
+						else if( ps[count] == 69)
+						{
+							ml_screen_set_use_margin(
+								vt100_parser->screen , 0) ;
+						}
 						else if( ps[count] == 1000 ||
 							ps[count] == 1002 || ps[count] == 1003)
 						{
@@ -3594,7 +3608,17 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI s" */
 
-				save_cursor( vt100_parser) ;
+				if( num <= 1 || ps[1] <= 0)
+				{
+					ps[1] = ml_screen_get_cols( vt100_parser->screen) ;
+				}
+
+				if( ! ml_screen_set_margin( vt100_parser->screen ,
+						ps[0] <= 0 ? 0 : ps[0] - 1 , ps[1] - 1)
+				    && num == 1 && ps[0] == -1)
+				{
+					save_cursor( vt100_parser) ;
+				}
 			}
 			else if( *str_p == 't')
 			{

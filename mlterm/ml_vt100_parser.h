@@ -208,6 +208,8 @@ typedef struct  ml_vt100_parser
 #endif
 	int8_t  modify_other_keys ;
 
+	int8_t  use_bidi ;
+
 #ifdef  USE_VT52
 	int8_t  is_vt52_mode ;
 #endif
@@ -308,6 +310,8 @@ int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
 		ml_unicode_policy_t  policy) ;
 
 #define  ml_vt100_parser_get_unicode_policy( vt100_parser)  ((vt100_parser)->unicode_policy)
+
+#define  ml_vt100_parser_set_use_bidi( vt100_parser , use)  ((vt100_parser)->use_bidi = (use))
 
 int  ml_convert_to_internal_ch( mkf_char_t *  ch , ml_unicode_policy_t  unicode_policy ,
 		mkf_charset_t  gl) ;
