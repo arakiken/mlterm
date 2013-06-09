@@ -898,11 +898,11 @@ ml_char_code_equal(
 	u_int  comb2_size ;
 	u_int  count ;
 
-	if( ml_char_code( ch1) == ml_char_code( ch2))
+	if( ml_char_code( ch1) != ml_char_code( ch2))
 	{
 		return  0 ;
 	}
-	
+
 	comb1 = ml_get_combining_chars( ch1 , &comb1_size) ;
 	comb2 = ml_get_combining_chars( ch2 , &comb2_size) ;
 
@@ -913,7 +913,7 @@ ml_char_code_equal(
 
 	for( count = 0 ; count < comb1_size ; count ++)
 	{
-		if( comb1[count].u.ch.code == comb2[count].u.ch.code)
+		if( comb1[count].u.ch.code != comb2[count].u.ch.code)
 		{
 			return  0 ;
 		}
