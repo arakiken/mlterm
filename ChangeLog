@@ -1,3 +1,8 @@
+2013-06-11  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_font.c: "fixed" fonts are preferred to other fonts if
+	  nothing is specified in ~/.mlterm/font.
+
 2013-06-10  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c: Bug fixes of insert_chars().

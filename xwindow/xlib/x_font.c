@@ -424,8 +424,8 @@ xcore_set_font(
 	char **  font_encoding_p ;
 	u_int  percent ;
 	int  count ;
+	int  num_of_spacings ;
 	char *  spacings[] = { "c" , "m" , "p" } ;
-	size_t  idx ;
 
 	if( ( csinfo = get_cs_info( FONT_CS(font->id))) == NULL)
 	{
@@ -518,14 +518,18 @@ xcore_set_font(
 	}
 	else
 	{
-		family = "*" ;
+		family = "fixed" ;
 	}
+
+	num_of_spacings = 1 ;
 
 	for( count = 0 ; ; count ++)
 	{
 		FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
 		{
-			for( idx = 0 ; idx < sizeof(spacings) / sizeof(spacings[0]) ; idx++)
+			int  idx ;
+
+			for( idx = 0 ; idx < num_of_spacings ; idx++)
 			{
 				if( ( xfont = load_xfont( font->display , family ,
 						weight , slant , width , fontsize ,
@@ -539,6 +543,8 @@ xcore_set_font(
 		if( count == 0)
 		{
 			width = "*" ;
+			family = "*" ;
+			num_of_spacings = sizeof(spacings) / sizeof(spacings[0]) ;
 		}
 		else if( count == 1)
 		{
