@@ -54,8 +54,6 @@ int  ml_cursor_goto_home( ml_cursor_t *  cursor) ;
 
 int  ml_cursor_goto_beg_of_line( ml_cursor_t *  cursor) ;
 
-int  ml_cursor_reset_col_in_char( ml_cursor_t *  cursor) ;
-
 int  ml_cursor_go_forward( ml_cursor_t *  cursor) ;
 
 int  ml_cursor_cr_lf( ml_cursor_t *  cursor) ;

@@ -1,5 +1,11 @@
 2013-06-10  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_edit.c: Bug fixes of insert_chars().
+
+	* ml_cursor.[ch]: ml_cursor_reset_col_in_char() is removed.
+
+2013-06-10  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_edit.[ch], ml_screen.h, ml_vt100_parser.c:
 	  DECLRMM(CSI ? 69 h / CSI ? 69 l) and DECSLRM(CSI pl;pr s) are
 	  supported.

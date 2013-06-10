@@ -61,6 +61,8 @@ insert_chars(
 	u_int  filled_cols ;
 	u_int  last_index ;
 	u_int  cols_after ;
+	u_int  cols ;
+	int  cursor_col ;
 	int  count ;
 	ml_line_t *  cursor_line ;
 
@@ -91,6 +93,8 @@ insert_chars(
 	}
 
 	filled_len = 0 ;
+	filled_cols = 0 ;
+	cursor_col = edit->cursor.col ;
 
 	/*
 	 * before cursor(excluding cursor)
@@ -113,7 +117,9 @@ insert_chars(
 			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 		}
 
-		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - edit->cursor.col_in_char ;
+		filled_cols += count ;
+		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - count ;
+		cursor_col -= count ;
 	}
 	else
 	{
@@ -127,75 +133,70 @@ insert_chars(
 	/*
 	 * inserted chars
 	 */
-	
-	filled_cols = ml_str_cols( buffer , filled_len) ;
-	
+
 	for( count = 0 ; count < num_of_ins_chars ; count ++)
 	{
-		if( filled_cols + ml_char_cols( &ins_chars[count]) > num_of_cols)
+		cols = ml_char_cols( &ins_chars[count]) ;
+		if( cursor_col + filled_cols + cols > num_of_cols)
 		{
 			break ;
 		}
 
 		ml_char_copy( &buffer[filled_len ++] , &ins_chars[count]) ;
-		filled_cols += ml_char_cols( &ins_chars[count]) ;
+		filled_cols += cols ;
 	}
 
 	last_index = filled_len ;
 
-	if( filled_cols < num_of_cols)
+	/*
+	 * cursor char
+	 */
+
+	if( cols_after)
 	{
 		/*
-		 * cursor char
+		 * padding spaces for latter half of cursor.
 		 */
-		 
-		if( cols_after)
+		for( count = 0 ; count < cols_after ; count ++)
 		{
-			/*
-			 * padding spaces for latter half of cursor.
-			 */
-			for( count = 0 ; count < cols_after ; count ++)
-			{
-				/* + 1 is for ml_sp_ch() */
-				if( filled_cols + 1 > num_of_cols)
-				{
-					goto  line_full ;
-				}
-
-				ml_char_copy( &buffer[filled_len++] , ml_sp_ch()) ;
-				filled_cols += 1 ;
-			}
-		}
-		else
-		{
-			if( filled_cols + ml_char_cols( CURSOR_CHAR(edit)) > num_of_cols)
+			/* + 1 is for ml_sp_ch() */
+			if( cursor_col + filled_cols + 1 > num_of_cols)
 			{
 				goto  line_full ;
 			}
 
-			ml_char_copy( &buffer[filled_len++] , CURSOR_CHAR(edit)) ;
-			filled_cols += ml_char_cols( CURSOR_CHAR(edit)) ;
+			ml_char_copy( &buffer[filled_len++] , ml_sp_ch()) ;
 		}
-
-		/*
-		 * after cursor(excluding cursor)
-		 */
-		 
-		for( count = edit->cursor.char_index + 1 ;
-			count < cursor_line->num_of_filled_chars ;
-			count ++)
+		filled_cols += count ;
+	}
+	else
+	{
+		cols = ml_char_cols( CURSOR_CHAR(edit)) ;
+		if( cursor_col + filled_cols + cols > num_of_cols)
 		{
-			u_int  cols ;
-
-			cols = ml_char_cols( ml_char_at( cursor_line , count)) ;
-			if( filled_cols + cols > num_of_cols)
-			{
-				break ;
-			}
-
-			ml_char_copy( &buffer[filled_len ++] , ml_char_at( cursor_line , count)) ;
-			filled_cols += cols ;
+			goto  line_full ;
 		}
+
+		ml_char_copy( &buffer[filled_len++] , CURSOR_CHAR(edit)) ;
+		filled_cols += cols ;
+	}
+
+	/*
+	 * after cursor(excluding cursor)
+	 */
+
+	for( count = edit->cursor.char_index + 1 ;
+		count < cursor_line->num_of_filled_chars ;
+		count ++)
+	{
+		cols = ml_char_cols( ml_char_at( cursor_line , count)) ;
+		if( cursor_col + filled_cols + cols > num_of_cols)
+		{
+			break ;
+		}
+
+		ml_char_copy( &buffer[filled_len ++] , ml_char_at( cursor_line , count)) ;
+		filled_cols += cols ;
 	}
 
 line_full:
@@ -203,12 +204,8 @@ line_full:
 	 * Updating current line and cursor.
 	 */
 
-	if( edit->cursor.char_index + filled_len > num_of_cols)
-	{
-		filled_len = num_of_cols - edit->cursor.char_index ;
-	}
-
-	ml_line_overwrite( cursor_line , edit->cursor.char_index , buffer , filled_len , filled_cols) ;
+	ml_line_overwrite( cursor_line , edit->cursor.char_index ,
+		buffer , filled_len , filled_cols) ;
 
 	ml_str_final( buffer , buf_len) ;
 

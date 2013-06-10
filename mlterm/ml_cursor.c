@@ -158,17 +158,6 @@ ml_cursor_goto_beg_of_line(
 }
 
 int
-ml_cursor_reset_col_in_char(
-	ml_cursor_t *  cursor
-	)
-{
-	cursor->col = ml_convert_char_index_to_col( ml_get_cursor_line( cursor) , cursor->char_index , 0) ;
-	cursor->col_in_char = 0 ;
-
-	return  1 ;
-}
-
-int
 ml_cursor_go_forward(
 	ml_cursor_t *  cursor
 	)
@@ -187,8 +176,9 @@ ml_cursor_go_forward(
 	}
 	else if( cursor->char_index < ml_line_end_char_index( ml_get_cursor_line(cursor)))
 	{
-		cursor->char_index ++ ;
-		ml_cursor_reset_col_in_char( cursor) ;
+		cursor->col = ml_convert_char_index_to_col(
+				ml_get_cursor_line( cursor) , ++ cursor->char_index , 0) ;
+		cursor->col_in_char = 0 ;
 
 		return  1 ;
 	}
