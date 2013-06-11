@@ -435,7 +435,12 @@ scroll_downward_region(
 	u_int  size
 	)
 {
-	if( CURSOR_IS_INSIDE_MARGIN(edit) &&
+	/*
+	 * XXX
+	 * CURSOR_IS_INSIDE_MARGIN(edit) disables vim to scroll the right side of
+	 * vertically splitted window.
+	 */
+	if( /* CURSOR_IS_INSIDE_MARGIN(edit) && */
 	    edit->cursor.row >= edit->scroll_region_beg &&
 	    edit->cursor.row <= edit->scroll_region_end)
 	{
@@ -468,7 +473,12 @@ scroll_upward_region(
 	u_int  size
 	)
 {
-	if( CURSOR_IS_INSIDE_MARGIN(edit) &&
+	/*
+	 * XXX
+	 * CURSOR_IS_INSIDE_MARGIN(edit) disables vim to scroll the right side of
+	 * vertical splitted window.
+	 */
+	if( /* CURSOR_IS_INSIDE_MARGIN(edit) && */
 	    edit->cursor.row >= edit->scroll_region_beg &&
 	    edit->cursor.row <= edit->scroll_region_end)
 	{

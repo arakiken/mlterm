@@ -1,3 +1,8 @@
+2013-06-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c: CURSOR_IS_INSIDE_MARGIN() is not checked in
+	  scroll_{up|down}ward_region() for vim.
+
 2013-06-11  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c:
