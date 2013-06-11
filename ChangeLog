@@ -1,5 +1,13 @@
 2013-06-11  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_edit.c:
+	  - The bug of the cursor position in scrolling in
+	    ml_edit_overwrite_chars() is fixed.
+	  - scroll_{up|down}ward_region() doesn't scroll if the cursor
+	    is outside of the scrolling region.
+
+2013-06-11  Araki Ken  <arakiken@users.sf.net>
+
 	* man/mlterm.1, doc/ja/README.ja: Updated.
 
 	* ml_char.[ch], ml_color.c: 16 and 231 aren't treated as ML_FG_COLOR

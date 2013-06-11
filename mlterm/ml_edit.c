@@ -435,13 +435,9 @@ scroll_downward_region(
 	u_int  size
 	)
 {
-	if( CURSOR_IS_INSIDE_MARGIN(edit)
-	    /* Can this cause unexpected result ? */
-	#if  0
-	    && edit->cursor.row >= edit->scroll_region_beg &&
-	    && edit->cursor.row <= edit->scroll_region_end
-	#endif
-	    )
+	if( CURSOR_IS_INSIDE_MARGIN(edit) &&
+	    edit->cursor.row >= edit->scroll_region_beg &&
+	    edit->cursor.row <= edit->scroll_region_end)
 	{
 		if( size > edit->scroll_region_end - edit->scroll_region_beg + 1)
 		{
@@ -472,13 +468,9 @@ scroll_upward_region(
 	u_int  size
 	)
 {
-	if( CURSOR_IS_INSIDE_MARGIN(edit)
-	    /* Can this cause unexpected result ? */
-	#if  0
-	    && edit->cursor.row >= edit->scroll_region_beg
-	    && edit->cursor.row <= edit->scroll_region_end
-	#endif
-	    )
+	if( CURSOR_IS_INSIDE_MARGIN(edit) &&
+	    edit->cursor.row >= edit->scroll_region_beg &&
+	    edit->cursor.row <= edit->scroll_region_end)
 	{
 		if( size > edit->scroll_region_end - edit->scroll_region_beg + 1)
 		{
@@ -846,7 +838,6 @@ ml_edit_overwrite_chars(
 
 			ml_line_set_continued_to_next( line , 1) ;
 
-			edit->cursor.char_index = edit->cursor.col = 0 ;
 			if( edit->cursor.row + 1 > edit->scroll_region_end)
 			{
 				if( MARGIN_IS_ENABLED(edit) ?
@@ -874,6 +865,10 @@ ml_edit_overwrite_chars(
 			{
 				ml_cursor_goto_by_col( &edit->cursor , edit->margin_beg ,
 					edit->cursor.row) ;
+			}
+			else
+			{
+				edit->cursor.char_index = edit->cursor.col = 0 ;
 			}
 
 			/* Reset edit->wraparound_ready_line because it is not cursor line now. */
