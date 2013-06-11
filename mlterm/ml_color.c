@@ -867,9 +867,7 @@ ml_get_closest_color(
 		u_int8_t  b ;
 		u_int8_t  a ;
 
-		/* 16 is treated as 0 and 231 is treated as 15 internally in ml_char.c. */
-		if( color != 16 && color != 231 &&
-		    ml_get_color_rgba( color , &r , &g , &b , &a) && a == 0xff)
+		if( ml_get_color_rgba( color , &r , &g , &b , &a) && a == 0xff)
 		{
 			u_long  diff ;
 			int  diff_r , diff_g , diff_b ;

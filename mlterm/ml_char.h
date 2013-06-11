@@ -53,8 +53,8 @@ typedef struct ml_char
 		{
 			/*
 			 * attr member contents.
-			 * Total 24 bit
-			 * 7 bit : not used
+			 * Total 23 bit
+			 * 6 bit : not used
 			 * 1 bit : is_italic(0 or 1)
 			 * 9 bit : charset(0x0 - 0x1ff)
 			 * 1 bit : is_biwidth(0 or 1)
@@ -67,15 +67,15 @@ typedef struct ml_char
 			 * 1 bit : is_single_ch(0 or 1)
 			 */
 		#ifdef  WORDS_BIGENDIAN
-			u_int32_t  code: 24 ;
-			u_int8_t  fg_color: 8 ;
-			u_int8_t  bg_color: 8 ;
-			u_int32_t  attr: 24 ;
+			u_int  code: 23 ;
+			u_int  fg_color: 9 ;
+			u_int  bg_color: 9 ;
+			u_int  attr: 23 ;
 		#else
-			u_int32_t  attr: 24 ;
-			u_int8_t  fg_color: 8 ;
-			u_int8_t  bg_color: 8 ;
-			u_int32_t  code: 24 ;
+			u_int  attr: 23 ;
+			u_int  fg_color: 9 ;
+			u_int  bg_color: 9 ;
+			u_int  code: 23 ;
 		#endif
 		} ch ;
 

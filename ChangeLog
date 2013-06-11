@@ -1,5 +1,12 @@
 2013-06-11  Araki Ken  <arakiken@users.sf.net>
 
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* ml_char.[ch], ml_color.c: 16 and 231 aren't treated as ML_FG_COLOR
+	  and ML_BG_COLOR internally but as 256 colors.
+
+2013-06-11  Araki Ken  <arakiken@users.sf.net>
+
 	* xlib/x_font.c: "fixed" fonts are preferred to other fonts if
 	  nothing is specified in ~/.mlterm/font.
 

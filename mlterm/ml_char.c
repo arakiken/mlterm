@@ -64,56 +64,6 @@ get_comb_size(
 	return  size ;
 }
 
-/* See also ml_get_closest_color() in ml_color.c. */
-inline static u_int8_t
-intern_color(
-	ml_color_t  ex_color
-	)
-{
-	if( ex_color == ML_FG_COLOR)
-	{
-		return  0x10 ;
-	}
-	else if( ex_color == ML_BG_COLOR)
-	{
-		return  0xe7 ;
-	}
-	else if( IS_256_COLOR(ex_color))
-	{
-		if( ex_color == 0x10)
-		{
-			/* avoid batting internal presentation of ML_FG_COLOR. */
-			return  ML_BLACK ;
-		}
-		else if( ex_color == 0xe7)
-		{
-			/* avoid batting internal presentation of ML_BG_COLOR. */
-			return  ML_WHITE | ML_BOLD_COLOR_MASK ;
-		}
-	}
-	
-	return  ex_color ;
-}
-
-inline static ml_color_t
-extern_color(
-	u_int8_t  in_color
-	)
-{
-	if( in_color == 0x10)
-	{
-		return  ML_FG_COLOR ;
-	}
-	else if( in_color == 0xe7)
-	{
-		return  ML_BG_COLOR ;
-	}
-	else
-	{
-		return  in_color ;
-	}
-}
-
 
 /* --- global functions --- */
 
@@ -204,8 +154,8 @@ ml_char_set(
 
 	ch->u.ch.attr = COMPOUND_ATTR(cs,is_biwidth!=0,is_bold!=0,is_italic!=0,
 				is_underlined!=0,is_comb!=0) ;
-	ch->u.ch.fg_color = intern_color(fg_color) ;
-	ch->u.ch.bg_color = intern_color(bg_color) ;
+	ch->u.ch.fg_color = fg_color ;
+	ch->u.ch.bg_color = bg_color ;
 
 	return  1 ;
 }
@@ -606,7 +556,7 @@ ml_char_fg_color(
 
 		if( IS_REVERSED(attr))
 		{
-			color = extern_color( ch->u.ch.bg_color) ;
+			color = ch->u.ch.bg_color ;
 
 			/*
 			 * xterm doesn't use hilighted color for bold background color.
@@ -614,7 +564,7 @@ ml_char_fg_color(
 		}
 		else
 		{
-			color = extern_color( ch->u.ch.fg_color) ;
+			color = ch->u.ch.fg_color ;
 
 			if( color < MAX_VTSYS_COLORS && IS_BOLD(attr))
 			{
@@ -638,9 +588,7 @@ ml_char_set_fg_color(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		ch->u.ch.fg_color = intern_color(color) ;
-
-		return  1 ;
+		ch->u.ch.fg_color = color ;
 	}
 	else
 	{
@@ -652,9 +600,9 @@ ml_char_set_fg_color(
 		{
 			ml_char_set_fg_color( ch->u.multi_ch + count , color) ;
 		}
-
-		return  1 ;
 	}
+
+	return  1 ;
 }
 
 ml_color_t
@@ -672,7 +620,7 @@ ml_char_bg_color(
 
 		if( IS_REVERSED(attr))
 		{
-			color = extern_color(ch->u.ch.fg_color) ;
+			color = ch->u.ch.fg_color ;
 
 			if( color < MAX_VTSYS_COLORS && IS_BOLD(attr))
 			{
@@ -681,7 +629,7 @@ ml_char_bg_color(
 		}
 		else
 		{
-			color = extern_color(ch->u.ch.bg_color) ;
+			color = ch->u.ch.bg_color ;
 
 			/*
 			 * xterm doesn't use hilighted color for bold background color.
@@ -704,9 +652,7 @@ ml_char_set_bg_color(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		ch->u.ch.bg_color = intern_color(color) ;
-
-		return  1 ;
+		ch->u.ch.bg_color = color ;
 	}
 	else
 	{
@@ -718,9 +664,9 @@ ml_char_set_bg_color(
 		{
 			ml_char_set_bg_color( ch->u.multi_ch + count , color) ;
 		}
-
-		return  1 ;
 	}
+
+	return  1 ;
 }
 
 int
