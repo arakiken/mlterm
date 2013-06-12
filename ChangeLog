@@ -1,5 +1,12 @@
 2013-06-12  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* x_main_config.c: "geometry" option is disabled and the default value
+	  of cols and rows is not 80x24 but 1x1 on framebuffer.
+
+2013-06-12  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_edit.c: CURSOR_IS_INSIDE_MARGIN() is not checked in
 	  scroll_{up|down}ward_region() for vim.
 

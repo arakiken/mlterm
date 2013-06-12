@@ -574,6 +574,16 @@ x_main_config_init(
 	
 	main_config->x = 0 ;
 	main_config->y = 0 ;
+#ifdef  USE_FRAMEBUFFER
+	/*
+	 * The pty is always resized to fit the display size.
+	 * Don't use 80x24 for the default value because the screen is not drawn
+	 * correctly on startup if the display size / the us-ascii font size is
+	 * 80x24 by chance.
+	 */
+	main_config->cols = 1 ;
+	main_config->rows = 1 ;
+#else
 	main_config->cols = 80 ;
 	main_config->rows = 24 ;
 	main_config->geom_hint = 0 ;
@@ -596,6 +606,7 @@ x_main_config_init(
 			main_config->rows = 24 ;
 		}
 	}
+#endif
 
 	main_config->screen_width_ratio = 100 ;
 	

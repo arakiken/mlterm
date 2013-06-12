@@ -123,3 +123,4 @@ Framebuffer 対応に関するメモ
   o mlclient (mlclientxは使えます。)
   o ~/.mlterm/key の OPEN_SCREEN
   o *BSD では、PS/2 以外のキーボードで iBus による入力を行うことはできません。
+  o geometry オプション
