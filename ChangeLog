@@ -1,3 +1,8 @@
+2013-06-18  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_font.c: The default font of bold ISO8859-1 or ISO10646-UCS4-1
+	  is doubly drawn.
+
 2013-06-17  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_font.c, x_font_ft.c: use_medium_for_bold argument is removed

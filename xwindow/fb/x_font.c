@@ -749,6 +749,11 @@ x_font_new(
 				percent = 0 ;
 			}
 		#endif
+
+			if( id & FONT_BOLD)
+			{
+				use_medium_for_bold = 1 ;
+			}
 		}
 		else
 		{
