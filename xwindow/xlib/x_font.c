@@ -437,15 +437,6 @@ xcore_set_font(
 		return  0 ;
 	}
 
-	if( use_medium_for_bold)
-	{
-		font->is_double_drawing = 1 ;
-	}
-	else
-	{
-		font->is_double_drawing = 0 ;
-	}
-
 	if( fontname)
 	{
 		char *  p ;
@@ -463,26 +454,49 @@ xcore_set_font(
 
 		if( parse_xfont_name( &font_xlfd , &percent_str , p))
 		{
-		#ifdef  __DEBUG
+		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " loading %s font (%s percent).\n" ,
 				font_xlfd , percent_str) ;
 		#endif
 
-			if( ( xfont = XLoadQueryFont( font->display , font_xlfd)))
+			while( 1)
 			{
-				if( percent_str == NULL || ! kik_str_to_uint( &percent , percent_str))
+				if( ! ( xfont = XLoadQueryFont( font->display , font_xlfd)))
+				{
+					char *  xlfd ;
+
+					if( ( xlfd = kik_str_replace( font_xlfd ,
+							"-bold-" , "-medium-")))
+					{
+						xfont = XLoadQueryFont( font->display , xlfd) ;
+						free( xlfd) ;
+					}
+
+					if( ! xfont)
+					{
+						kik_msg_printf( "Font %s couldn't be loaded.\n" ,
+							font_xlfd) ;
+
+						break ;
+					}
+
+					font->is_double_drawing = 1 ;
+				}
+				else
+				{
+					font->is_double_drawing = use_medium_for_bold ;
+				}
+
+				if( percent_str == NULL ||
+				    ! kik_str_to_uint( &percent , percent_str))
 				{
 					percent = 0 ;
 				}
 
 				goto  font_found ;
 			}
-
-			kik_msg_printf( "Font %s couldn't be loaded.\n" , font_xlfd) ;
 		}
 	}
-
-	percent = 0 ;
 
 	/*
 	 * searching apropriate font by using font info.
@@ -491,6 +505,10 @@ xcore_set_font(
 #ifdef  __DEBUG
 	kik_debug_printf( "font for id %x will be loaded.\n" , font->id) ;
 #endif
+
+	font->is_double_drawing = 0 ;
+
+	percent = 0 ;
 
 	if( font->id & FONT_BOLD)
 	{
@@ -832,30 +850,28 @@ xft_set_font(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
-	int  use_medium_for_bold ,	/* Not used for now. */
 	u_int  letter_space ,
 	int  aa_opt ,		/* 0 = default , 1 = enable , -1 = disable */
 	int  use_point_size_for_fc ,
 	double  dpi_for_fc
 	)
 {
-	int (*func)( x_font_t * , const char * , u_int , u_int , int , u_int , int ,
-			int , double) ;
+	int (*func)( x_font_t * , const char * , u_int , u_int , u_int , int , int , double) ;
 
 	if( ! ( func = x_load_type_xft_func( X_SET_FONT)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( font , fontname , fontsize , col_width , use_medium_for_bold ,
-			letter_space , aa_opt , use_point_size_for_fc , dpi_for_fc) ;
+	return  (*func)( font , fontname , fontsize , col_width , letter_space ,
+			aa_opt , use_point_size_for_fc , dpi_for_fc) ;
 }
 
 #elif  defined(USE_TYPE_XFT)
 u_int  xft_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  xft_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
-	u_int  col_width , int  use_medium_for_bold , u_int  letter_space ,
-	int  aa_opt , int  use_point_size_for_fc , double  dpi_for_fc) ;
+	u_int  col_width , u_int  letter_space , int  aa_opt ,
+	int  use_point_size_for_fc , double  dpi_for_fc) ;
 #endif
 
 
@@ -883,30 +899,28 @@ cairo_set_font(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
-	int  use_medium_for_bold ,	/* Not used for now. */
 	u_int  letter_space ,
 	int  aa_opt ,		/* 0 = default , 1 = enable , -1 = disable */
 	int  use_point_size_for_fc ,
 	double  dpi_for_fc
 	)
 {
-	int (*func)( x_font_t * , const char * , u_int , u_int , int , u_int , int ,
-			int , double) ;
+	int (*func)( x_font_t * , const char * , u_int , u_int , u_int , int , int , double) ;
 
 	if( ! ( func = x_load_type_cairo_func( X_SET_FONT)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( font , fontname , fontsize , col_width , use_medium_for_bold ,
-			letter_space , aa_opt , use_point_size_for_fc , dpi_for_fc) ;
+	return  (*func)( font , fontname , fontsize , col_width , letter_space ,
+			aa_opt , use_point_size_for_fc , dpi_for_fc) ;
 }
 
 #elif  defined(USE_TYPE_CAIRO)
 u_int  cairo_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
-	u_int  col_width , int  use_medium_for_bold , u_int  letter_space ,
-	int  aa_opt , int  use_point_size_for_fc , double  dpi_for_fc) ;
+	u_int  col_width , u_int  letter_space , int  aa_opt , int  use_point_size_for_fc ,
+	double  dpi_for_fc) ;
 #endif
 
 static u_int
@@ -1043,8 +1057,7 @@ x_font_new(
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	case  TYPE_XFT:
-		if( ! xft_set_font( font , fontname , fontsize , col_width ,
-				use_medium_for_bold , letter_space ,
+		if( ! xft_set_font( font , fontname , fontsize , col_width , letter_space ,
 				(font_present & FONT_AA) == FONT_AA ?
 					1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0) ,
 				use_point_size_for_fc , dpi_for_fc))
@@ -1059,8 +1072,7 @@ x_font_new(
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	case  TYPE_CAIRO:
-		if( ! cairo_set_font( font , fontname , fontsize , col_width ,
-				use_medium_for_bold , letter_space ,
+		if( ! cairo_set_font( font , fontname , fontsize , col_width , letter_space ,
 				(font_present & FONT_AA) == FONT_AA ?
 					1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0) ,
 				use_point_size_for_fc , dpi_for_fc))

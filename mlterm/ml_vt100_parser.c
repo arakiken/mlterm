@@ -1268,12 +1268,6 @@ config_protocol_set(
 				if( conf)
 				{
 					/* XXX */
-					if( strcmp( key , "encoding") == 0)
-					{
-						key = "ENCODING" ;
-					}
-
-					/* XXX */
 					if( strcmp( key , "xim") != 0)
 					{
 						kik_conf_io_write( conf , key , val) ;

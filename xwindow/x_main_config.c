@@ -959,7 +959,7 @@ x_main_config_init(
 	}
 
 	main_config->is_auto_encoding = 0 ;
-	if( ( value = kik_conf_get_value( conf , "ENCODING")))
+	if( ( value = kik_conf_get_value( conf , "encoding")))
 	{
 		while( ( main_config->encoding = ml_get_char_encoding( value))
 			== ML_UNKNOWN_ENCODING)

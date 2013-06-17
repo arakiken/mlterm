@@ -1,3 +1,21 @@
+2013-06-17  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_font.c, x_font_ft.c: use_medium_for_bold argument is removed
+	  from the functions of xft and cairo.
+
+	* x_font.c: If "-*-bold-*-" is unable to be loaded on xcore, retry
+	  "-*-medium-*-" which is drawn doubly.
+
+	* x_font_ft.c: The column width of italic fonts is always treated as
+	  variable on xft.
+
+	* x_font_config.c: If DEFAULT=-foo-bar-medium-r-*--%d-*- is specified
+	  in ~/.mlterm/font, -foo-bar-bold-r-*--%d-*-,
+	  -foo-bar-medium-i-*--%d-*- or -foo-bar-bold-i-*--%d-*- are
+	  automatically searched for a bold, italic or bold italic font.
+
+	* kik_str.[ch]: kik_str_replace() is added.
+
 2013-06-12  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.

@@ -573,7 +573,6 @@ fc_set_font(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
-	int  use_medium_for_bold ,	/* Not used for now. */
 	u_int  letter_space ,
 	int  aa_opt ,		/* 0 = default , 1 = enable , -1 = disable */
 	int  use_xft
@@ -606,6 +605,17 @@ fc_set_font(
 
 	if( font->id & FONT_ITALIC)
 	{
+	#ifdef  USE_TYPE_XFT
+		/*
+		 * XXX
+		 * FC_CHAR_WIDTH=ch_width and FC_SPACING=FC_MONO make
+		 * the width of italic kochi font double of ch_width
+		 * on xft if slant >= 0. (They works fine for Dejavu
+		 * Sans Mono Italic, though.)
+		 */
+		font->is_var_col_width = 1 ;
+	#endif
+
 		slant = FC_SLANT_ITALIC ;
 	}
 	else
@@ -640,6 +650,20 @@ fc_set_font(
 		if( parse_fc_font_name( &font_family , &weight , &slant , &fontsize_d ,
 						&font_encoding , &percent , p))
 		{
+		#ifdef  USE_TYPE_XFT
+			/*
+			 * XXX
+			 * FC_CHAR_WIDTH=ch_width and FC_SPACING=FC_MONO make
+			 * the width of italic kochi font double of ch_width
+			 * on xft if slant >= 0. (They works fine for Dejavu
+			 * Sans Mono Italic, though.)
+			 */
+			if( slant >= 0)
+			{
+				font->is_var_col_width = 1 ;
+			}
+		#endif
+
 			if( col_width == 0)
 			{
 				/* basic font (e.g. usascii) width */
@@ -692,11 +716,12 @@ fc_set_font(
 			}
 
 		#ifdef  DEBUG
-			kik_debug_printf( "Loading font %s%s%s %f %d\n" , font_family ,
+			kik_debug_printf( "Loading font %s%s%s %f %d%s\n" , font_family ,
 				weight == FC_WEIGHT_BOLD ? ":Bold" :
 					weight == FC_WEIGHT_LIGHT ? " Light" : "" ,
 				slant == FC_SLANT_ITALIC ? ":Italic" : "" ,
-				fontsize_d , font->is_var_col_width) ;
+				fontsize_d , ch_width ,
+				font->is_var_col_width ? "(varcolwidth)" : "") ;
 		#endif
 
 			if( ( xfont = ft_font_open( font , font_family , fontsize_d ,
@@ -834,12 +859,6 @@ font_found:
 		font->height = DOUBLE_ROUNDUP_TO_INT(extents.height) ;
 		font->ascent = DOUBLE_ROUNDUP_TO_INT(extents.ascent) ;
 
-		/*
-		 * Set letter_space here because cairo_font_open() ignores it.
-		 * (FC_CHAR_WIDTH doesn't make effect in cairo.)
-		 * Then, column width for vertical mode should be set again here.
-		 */
-
 		if( font->cols == 2)
 		{
 			font->width = DOUBLE_ROUNDUP_TO_INT(extents.max_x_advance) ;
@@ -855,6 +874,12 @@ font_found:
 				font->x_off = font->width / 4 ;	/* Centering */
 			}
 		}
+
+		/*
+		 * Set letter_space here because cairo_font_open() ignores it.
+		 * (FC_CHAR_WIDTH doesn't make effect in cairo.)
+		 * Then, column width for vertical mode should be set again here.
+		 */
 
 		/* letter_space is ignored in variable column width mode. */
 		if( ! font->is_var_col_width && letter_space > 0)
@@ -922,7 +947,6 @@ xft_set_font(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,		/* if usascii font wants to be set , 0 will be set. */
-	int  use_medium_for_bold ,	/* Not used for now. */
 	u_int  letter_space ,
 	int  aa_opt ,			/* 0 = default , 1 = enable , -1 = disable */
 	int  use_point_size ,
@@ -940,8 +964,7 @@ xft_set_font(
 	
 	dpi_for_fc = dpi ;
 
-	return  fc_set_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
-			letter_space , aa_opt , 1) ;
+	return  fc_set_font( font , fontname , fontsize , col_width , letter_space , aa_opt , 1) ;
 }
 
 int
@@ -996,7 +1019,6 @@ cairo_set_font(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,		/* if usascii font wants to be set , 0 will be set. */
-	int  use_medium_for_bold ,	/* Not used for now. */
 	u_int  letter_space ,
 	int  aa_opt ,			/* 0 = default , 1 = enable , -1 = disable */
 	int  use_point_size ,
@@ -1013,8 +1035,7 @@ cairo_set_font(
 	}
 	dpi_for_fc = dpi ;
 
-	return  fc_set_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
-			letter_space , aa_opt , 0) ;
+	return  fc_set_font( font , fontname , fontsize , col_width , letter_space , aa_opt , 0) ;
 }
 
 int

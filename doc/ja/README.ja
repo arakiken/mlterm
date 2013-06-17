@@ -612,9 +612,11 @@ comment $Id$
         scim (オプション無し)
 
         kbd の場合:
-        kbd (オプション無し)
-        ISCII モードの時は ISCII 配列、それ以外ではローケールが ar_* の場合はア
-        ラビア語配列、he_* の場合はヘブライ語配列のキーマッピングになります。
+        kbd:[mode]
+        [mode]には、isciixxx、arabic 又は hebrew を指定します。
+        なお、[mode]を省略した場合、ISCII モードの時は ISCII 配列、それ以外では
+        ローケールが ar_* の場合はアラビア語配列、he_* の場合はヘブライ語配列の
+        キーマッピングになります。
         kbd を指定した時は key ファイルで IM_HOTKEY を指定してください。
 
       o tabsize  (*8*) (#)

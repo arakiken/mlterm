@@ -289,20 +289,65 @@ x_font_cache_get_xfont(
 	}
 
 	use_medium_for_bold = 0 ;
-	
-	if( ( fontname = x_get_config_font_name( font_cache->font_config , font_cache->font_size ,
-							font)) == NULL)
+
+	if( ( fontname = x_get_config_font_name( font_cache->font_config ,
+				font_cache->font_size , font)) == NULL)
 	{
-		if( font & FONT_BOLD)
+		ml_font_t  next_font ;
+		int  scalable ;
+
+		next_font = font ;
+
+	#ifndef  USE_WIN32GUI
+		if( font_cache->font_config->type_engine == TYPE_XCORE)
 		{
-			if( ( fontname = x_get_config_font_name( font_cache->font_config ,
-						font_cache->font_size , font & ~FONT_BOLD)))
+			/*
+			 * If the type engine doesn't support scalable fonts,
+			 * medium weight font (drawn doubly) is used for bold.
+			 */
+			scalable = 0 ;
+		}
+		else
+	#endif
+		{
+			/*
+			 * If the type engine supports scalable fonts,
+			 * the face of medium weight / r slant font is used
+			 * for bold and italic.
+			 */
+			scalable = 1 ;
+		}
+
+		while( next_font & (FONT_BOLD|FONT_ITALIC))
+		{
+			if( next_font & FONT_BOLD)
 			{
-				use_medium_for_bold = 1 ;
+				next_font &= ~FONT_BOLD ;
+			}
+			else /* if( next_font & FONT_ITALIC) */
+			{
+				if( ! scalable)
+				{
+					break ;
+				}
+
+				next_font &= ~FONT_ITALIC ;
+			}
+
+			if( ( fontname = x_get_config_font_name( font_cache->font_config ,
+						font_cache->font_size , next_font)))
+			{
+				if( ( font & FONT_BOLD) && ! scalable)
+				{
+					use_medium_for_bold = 1 ;
+				}
+
+				goto  found ;
 			}
 		}
 	}
 
+found:
 	if( ( xfont = x_font_new( font_cache->display , font ,
 				font_cache->font_config->type_engine ,
 				font_cache->font_config->font_present , fontname ,

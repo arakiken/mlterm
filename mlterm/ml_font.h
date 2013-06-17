@@ -11,7 +11,7 @@
 
 #define  NORMAL_FONT_OF(cs)  (IS_BIWIDTH_CS(cs) ? (cs) | FONT_BIWIDTH : (cs))
 #define  FONT_CS(font)  ((font) & MAX_CHARSET)
-
+#define  FONT_STYLE_INDEX(font)  ((((font) & (FONT_BOLD|FONT_ITALIC)) >> 13) - 1)
 
 typedef enum ml_font
 {

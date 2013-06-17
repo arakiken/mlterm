@@ -859,7 +859,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 				kik_str_to_uint( &tab_size , value) ;
 			}
 
-			if( ( value = kik_conf_get_value( conf , "ENCODING")))
+			if( ( value = kik_conf_get_value( conf , "encoding")))
 			{
 				ml_char_encoding_t  e ;
 				if( ( e = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)

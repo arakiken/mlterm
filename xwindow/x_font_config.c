@@ -1759,16 +1759,41 @@ x_get_config_font_name(
 		if( ! ( pair = get_font_name_pair( map ,
 					DEFAULT_FONT | (font & (FONT_BOLD|FONT_ITALIC)))) &&
 		    ! ( pair = get_font_name_pair( font_config->default_font_name_table ,
-					DEFAULT_FONT | (font & (FONT_BOLD|FONT_ITALIC))))
-		    && (
-		#ifndef  USE_WIN32GUI
-			font_config->type_engine == TYPE_XCORE ||
-		#endif
-		        ( ! ( pair = get_font_name_pair( map , DEFAULT_FONT)) &&
-		          ! ( pair = get_font_name_pair( font_config->default_font_name_table ,
-						DEFAULT_FONT)))))
+					DEFAULT_FONT | (font & (FONT_BOLD|FONT_ITALIC)))))
 		{
-			return  NULL ;
+		#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+			char *  orig_style[] = { "-medium-" , "-r-" , "-medium-r-" } ;
+			char *  new_style[] = { "-bold-" , "-i-" , "-bold-i-" } ;
+			int  idx ;
+			char *  name ;
+
+			if( font_config->type_engine == TYPE_XCORE &&
+			    ( idx = FONT_STYLE_INDEX(font)) >= 0 &&
+			    ( ( ( pair = get_font_name_pair( map , DEFAULT_FONT)) &&
+			        ( name = kik_str_replace( pair->value ,
+						orig_style[idx] , new_style[idx]))) ||
+			      ( ( pair = get_font_name_pair( font_config->default_font_name_table ,
+						DEFAULT_FONT)) &&
+				( name = kik_str_replace( pair->value ,
+						orig_style[idx] , new_style[idx])))) )
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					"Set default font %s for %x\n" , name , font) ;
+			#endif
+
+				set_font_name_to_table( map , font , name) ;
+
+				if( ! ( pair = get_font_name_pair( map , font)))
+				{
+					return  NULL ;
+				}
+			}
+			else
+		#endif
+			{
+				return  NULL ;
+			}
 		}
 
 	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)

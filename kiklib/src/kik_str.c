@@ -489,3 +489,25 @@ kik_compare_str(
 
 	return  strcmp( str1 , str2) ;
 }
+
+char *
+kik_str_replace(
+	const char *  str ,
+	const char *  orig ,
+	const char *  new
+	)
+{
+	char *  p ;
+	char *  new_str ;
+
+	if( ! ( p = strstr( str , orig)) ||
+	    ! ( new_str = malloc( strlen( str) + strlen(new) - strlen(orig) + 1)))
+	{
+		return  NULL ;
+	}
+
+	strncpy( new_str , str , p - str) ;
+	sprintf( new_str + (p - str) , "%s%s" , new , p + strlen(orig)) ;
+
+	return  new_str ;
+}
