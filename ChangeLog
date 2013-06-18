@@ -1,3 +1,7 @@
+2013-06-19  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_font.c: The bug which outputs unchanged fontname is fixed.
+
 2013-06-18  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_font.c: The default font of bold ISO8859-1 or ISO10646-UCS4-1

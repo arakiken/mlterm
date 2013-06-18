@@ -158,6 +158,7 @@ static char *  old_fontsize = NULL ;
 static int is_fontsize_changed ;
 
 static char *  new_fontname_list[sizeof(cs_info_table)/sizeof(cs_info_table[0])] ;
+static int  dont_change_new_fontname_list = 0 ;
 static int  selected_cs = 0 ;	/* 0 = DEFAULT */
 static GtkWidget *  fontname_entry ;
 static GtkWidget *  select_font_button ;
@@ -178,30 +179,6 @@ reset_fontname_list(void)
 	{
 		free( new_fontname_list[count]) ;
 		new_fontname_list[count] = NULL ;
-	}
-}
-
-void
-save_current_fontname_entry(void)
-{
-	char *  name ;
-		
-	if( ! ( name = gtk_entry_get_text(GTK_ENTRY(fontname_entry))))
-	{
-		if( new_fontname_list[selected_cs])
-		{
-			/*
-			 * Font name for selected_cs was specfied, but now
-			 * font name for selected_cs is cleared.
-			 */
-			name = "" ;
-		}
-	}
-
-	if( name)
-	{
-		free( new_fontname_list[selected_cs]) ;
-		new_fontname_list[selected_cs] = strdup(name) ;
 	}
 }
 
@@ -403,9 +380,6 @@ fontcs_selected(
 		{
 			if( selected_cs != count)
 			{
-				/* In case fontname is editted in text entry widget. */
-				save_current_fontname_entry() ;
-
 			#if  0
 				kik_debug_printf( "Before: cs %s fontname %s => " ,
 					cs_info_table[selected_cs].cs ,
@@ -413,7 +387,9 @@ fontcs_selected(
 			#endif
 
 				selected_cs = count ;
-				
+
+				dont_change_new_fontname_list = 1 ;
+
 				if( new_fontname_list[selected_cs])
 				{
 					gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
@@ -428,7 +404,9 @@ fontcs_selected(
 								get_correct_cs(selected_cs)) ,
 							-1 , NULL , NULL , NULL) ) ;
 				}
-				
+
+				dont_change_new_fontname_list = 0 ;
+
 			#if  0
 				kik_debug_printf( "After: cs %s fontname %s\n" ,
 					cs , new_fontname_list[selected_cs]) ;
@@ -662,6 +640,38 @@ get_gtk_font_name(
 }
 
 static void
+fontname_entry_edit(
+	GtkWidget *  widget,
+	gpointer  p
+	)
+{
+	/* In case fontname is editted in text entry widget. */
+
+	if( ! dont_change_new_fontname_list)
+	{
+		char *  name ;
+
+		if( ! ( name = gtk_entry_get_text(GTK_ENTRY(fontname_entry))))
+		{
+			if( new_fontname_list[selected_cs])
+			{
+				/*
+				 * Font name for selected_cs was specfied, but now
+				 * font name for selected_cs is cleared.
+				 */
+				name = "" ;
+			}
+		}
+
+		if( name)
+		{
+			free( new_fontname_list[selected_cs]) ;
+			new_fontname_list[selected_cs] = strdup(name) ;
+		}
+	}
+}
+
+static void
 select_fc_font(
 	GtkWidget *  widget,
 	gpointer  p
@@ -830,6 +840,8 @@ mc_font_config_widget_new(void)
 	gtk_widget_show(fontname_entry) ;
 	gtk_widget_set_size_request(fontname_entry , 100 , -1) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , fontname_entry , TRUE , TRUE , 1) ;
+	g_signal_connect(fontname_entry , "changed" ,
+		G_CALLBACK(fontname_entry_edit) , NULL) ;
 
 	select_font_button = gtk_button_new_with_label( _("Select")) ;
 	gtk_widget_show( select_font_button) ;
@@ -868,11 +880,8 @@ mc_update_font_misc(void)
 void
 mc_update_font_name(mc_io_t  io)
 {
-	int  count ;
+	size_t  count ;
 
-	/* In case fontname is editted in text entry widget. */
-	save_current_fontname_entry() ;
-	
 	for( count = 0 ; count < sizeof(cs_info_table) / sizeof(cs_info_table[0]) ; count++)
 	{
 		if( new_fontname_list[count])
