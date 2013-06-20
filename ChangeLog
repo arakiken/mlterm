@@ -1,6 +1,13 @@
-2013-06-19  Araki Ken  <arakiken@users.sf.net>
+2013-06-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c: ICH is disabled if the cursor is outside of the left and
+	  right margins
 
 	* mc_font.c: The bug which outputs unchanged fontname is fixed.
+
+	* etc/key: Minor fixes.
+
+	* x_font_config.c: Minor fixes.
 
 2013-06-18  Araki Ken  <arakiken@users.sf.net>
 

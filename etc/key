@@ -9,8 +9,8 @@
 # Shift+Insert=INSERT_SELECTION
 # UNUSED=SWITCH_OSC52
 # UNUSED=EXIT_PROGRAM
-# Control+Button1=menu:mlterm-menu
-# Control+Button3=menu:mlconfig
+# Control+Button1="menu:mlterm-menu"
+# Control+Button3="menu:mlconfig"
 
 #### Examples
 # Control+Right=NEXT_PTY

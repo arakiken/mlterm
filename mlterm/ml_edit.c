@@ -44,7 +44,9 @@
 /* --- static functions --- */
 
 /*
- * inserting chars within a line.
+ * Insert chars within a line.
+ * The cursor must be inside the left and right margins. (The caller of this
+ * function must check it in advance.)
  */
 static int
 insert_chars(
@@ -74,14 +76,7 @@ insert_chars(
 
 	buf_len = edit->model.num_of_cols ;
 
-	if( CURSOR_IS_INSIDE_MARGIN(edit))
-	{
-		num_of_cols = edit->margin_end + 1 ;
-	}
-	else
-	{
-		return  ml_edit_overwrite_chars( edit , ins_chars , num_of_ins_chars) ;
-	}
+	num_of_cols = edit->margin_end + 1 ;
 
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
@@ -706,7 +701,14 @@ ml_edit_insert_chars(
 {
 	reset_wraparound_checker( edit) ;
 
-	return  insert_chars( edit , ins_chars , num_of_ins_chars , 1) ;
+	if( CURSOR_IS_INSIDE_MARGIN(edit))
+	{
+		return  insert_chars( edit , ins_chars , num_of_ins_chars , 1) ;
+	}
+	else
+	{
+		return  ml_edit_overwrite_chars( edit , ins_chars , num_of_ins_chars) ;
+	}
 }
 
 int
@@ -718,6 +720,11 @@ ml_edit_insert_blank_chars(
 	int  count ;
 	ml_char_t *  blank_chars ;
 	ml_char_t *  sp_ch ;
+
+	if( ! CURSOR_IS_INSIDE_MARGIN(edit))
+	{
+		return  0 ;
+	}
 
 	reset_wraparound_checker( edit) ;
 
