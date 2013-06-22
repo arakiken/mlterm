@@ -97,6 +97,8 @@ Framebuffer support
     (e.g. export WSKBD=/dev/wskbd0)
 
   (Common)
+  o You can use a software keyboard if you press the left mouse button (Button1)
+    at the bottom of the screen.
   o If you want to change fonts dynamically by mlcc, execute mlcc with "font"
     (not "font-fb") argument.
   o To redraw the screen completely, execute a following command.

@@ -25229,8 +25229,8 @@ subdirs="$subdirs ${SUBDIRS}"
 
 fi
 
-MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow main man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile ${OUTPUT_FILES}"
+MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow main man etc doc/kbd ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile doc/kbd/Makefile ${OUTPUT_FILES}"
 
 # Check whether --enable-ind was given.
 if test "${enable_ind+set}" = set; then :

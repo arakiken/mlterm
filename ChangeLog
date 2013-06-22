@@ -1,3 +1,13 @@
+2013-06-22  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: doc/kbd is added to MAKE_DIRS and doc/kbd/Makefile is
+	  added to OUTPUT_FILES.
+
+	* fb/x_virsual_kbd.[ch], fb/x_display.c, fb/x.h, fb/Makefile.in:
+	  Software keyboard support is added on framebuffer.
+
+	* fb/x_virtual_kbd.[ch], doc/kbd/: Added.
+
 2013-06-20  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c: ICH is disabled if the cursor is outside of the left and

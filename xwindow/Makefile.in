@@ -28,7 +28,7 @@ OBJ2_xlib = x_decsp_font.o x_xim.o
 
 OBJ2_win32 = x_gdiobj_pool.o x.o
 
-OBJ2_fb = x.o
+OBJ2_fb = x.o x_virtual_kbd.o
 
 RSOBJ_win32 = winrs.o
 

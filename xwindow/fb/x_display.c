@@ -34,6 +34,7 @@
 #include  <ml_color.h>
 
 #include  "../x_window.h"
+#include  "x_virtual_kbd.h"
 
 
 #define  DISP_IS_INITED   (_disp.display)
@@ -574,10 +575,10 @@ update_mouse_cursor_state(void)
 	}
 
 	_mouse.cursor.width = CURSOR_WIDTH - _mouse.cursor.x_off ;
-	if( _mouse.cursor.x + _mouse.cursor.width > _disp.width)
+	if( _mouse.cursor.x + _mouse.cursor.width > _display.width)
 	{
 		_mouse.cursor.width -=
-			(_mouse.cursor.x + _mouse.cursor.width - _disp.width) ;
+			(_mouse.cursor.x + _mouse.cursor.width - _display.width) ;
 	}
 
 	if( -CURSOR_Y_OFF > _mouse.y)
@@ -592,10 +593,10 @@ update_mouse_cursor_state(void)
 	}
 
 	_mouse.cursor.height = CURSOR_HEIGHT - _mouse.cursor.y_off ;
-	if( _mouse.cursor.y + _mouse.cursor.height > _disp.height)
+	if( _mouse.cursor.y + _mouse.cursor.height > _display.height)
 	{
 		_mouse.cursor.height -=
-			(_mouse.cursor.y + _mouse.cursor.height - _disp.height) ;
+			(_mouse.cursor.y + _mouse.cursor.height - _display.height) ;
 	}
 }
 
@@ -849,6 +850,55 @@ receive_event_for_multi_roots(
 		expose_window( _disp.roots[1] , _disp.roots[1]->x , _disp.roots[1]->y ,
 				ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
 	}
+}
+
+/*
+ * Return value
+ *  0: button is out of the keyboard.
+ *  1: button is inside the keyboard. (bev is converted to kev.)
+ */
+static int
+check_virtual_kbd(
+	XButtonEvent *  bev
+	)
+{
+	XKeyEvent  kev ;
+	int  ret ;
+	int  saved_flag ;
+
+	if( bev->type == ButtonPress && bev->y >= _display.height - 2)
+	{
+		x_virtual_kbd_start( &_disp) ;
+	}
+
+	saved_flag = _mouse.cursor.is_drawn ;
+	_mouse.cursor.is_drawn = 0 ;	/* don't draw mouse cursor in x_virtual_kbd_read() */
+
+	ret = x_virtual_kbd_read( &kev , bev) ;
+
+	if( ret > 0)
+	{
+		/* One of the keytops was redrawn in x_virtual_kbd_read() */
+
+		save_hidden_region() ;
+		draw_mouse_cursor() ;
+
+		if( ret == 1)
+		{
+			receive_event_for_multi_roots( &kev) ;
+		}
+	}
+	else
+	{
+		_mouse.cursor.is_drawn = saved_flag ;
+
+		if( ret == 0)
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
 }
 
 #ifndef  __FreeBSD__
@@ -1135,8 +1185,8 @@ open_display(void)
 	_display.xoffset = vstart.x ;
 	_display.yoffset = vstart.y ;
 
-	_disp.width = vinfo.vi_width ;
-	_disp.height = vinfo.vi_height ;
+	_display.width = _disp.width = vinfo.vi_width ;
+	_display.height = _disp.height = vinfo.vi_height ;
 
 	_display.rgbinfo.r_limit = 8 - vinfo.vi_pixel_fsizes[0] ;
 	_display.rgbinfo.g_limit = 8 - vinfo.vi_pixel_fsizes[1] ;
@@ -1192,8 +1242,8 @@ open_display(void)
 		{
 			kik_file_set_cloexec( _mouse.fd) ;
 
-			_mouse.x = _disp.width / 2 ;
-			_mouse.y = _disp.height / 2 ;
+			_mouse.x = _display.width / 2 ;
+			_mouse.y = _display.height / 2 ;
 			_disp_mouse.display = (Display*)&_mouse ;
 
 			tcgetattr( _mouse.fd , &tm) ;
@@ -1288,9 +1338,9 @@ receive_mouse_event(void)
 				{
 					_mouse.x = 0 ;
 				}
-				else if( _disp.width <= _mouse.x)
+				else if( _display.width <= _mouse.x)
 				{
-					_mouse.x = _disp.width - 1 ;
+					_mouse.x = _display.width - 1 ;
 				}
 
 				move = 1 ;
@@ -1306,9 +1356,9 @@ receive_mouse_event(void)
 				{
 					_mouse.y = 0 ;
 				}
-				else if( _disp.height <= _mouse.y)
+				else if( _display.height <= _mouse.y)
 				{
-					_mouse.y = _disp.height - 1 ;
+					_mouse.y = _display.height - 1 ;
 				}
 
 				move = 1 ;
@@ -1384,11 +1434,14 @@ receive_mouse_event(void)
 				xev.x , xev.y , xev.button , xev.time) ;
 		#endif
 
-			win = get_window( xev.x , xev.y) ;
-			xev.x -= win->x ;
-			xev.y -= win->y ;
+			if( ! check_virtual_kbd( &xev))
+			{
+				win = get_window( xev.x , xev.y) ;
+				xev.x -= win->x ;
+				xev.y -= win->y ;
 
-			x_window_receive_event( win , &xev) ;
+				x_window_receive_event( win , &xev) ;
+			}
 
 			if( move)
 			{
@@ -1767,8 +1820,8 @@ open_display(void)
 	_display.xoffset = 0 ;
 	_display.yoffset = 0 ;
 
-	_disp.width = vinfo.width ;
-	_disp.height = vinfo.height ;
+	_display.width = _disp.width = vinfo.width ;
+	_display.height = _disp.height = vinfo.height ;
 
 	if( ( _disp.depth = vinfo.depth) < 8)
 	{
@@ -1801,17 +1854,17 @@ open_display(void)
 		/* XXX Hack for NetBSD 5.x/hpcmips */
 		if( strcmp( MACHINE , "hpcmips") == 0 && _disp.depth == 16)
 		{
-			_display.line_length = _disp.width * 5 / 2 ;
+			_display.line_length = _display.width * 5 / 2 ;
 		}
 		else
 	#endif
 		{
-			_display.line_length = _disp.width * _display.bytes_per_pixel /
+			_display.line_length = _display.width * _display.bytes_per_pixel /
 					_display.pixels_per_byte ;
 		}
 	}
 
-	_display.smem_len = _display.line_length * _disp.height ;
+	_display.smem_len = _display.line_length * _display.height ;
 
 	if( ( _display.fb = mmap( NULL , _display.smem_len ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
@@ -1950,8 +2003,8 @@ open_display(void)
 		ioctl( _mouse.fd , WSMOUSEIO_SETVERSION , &mode) ;
 	#endif
 
-		_mouse.x = _disp.width / 2 ;
-		_mouse.y = _disp.height / 2 ;
+		_mouse.x = _display.width / 2 ;
+		_mouse.y = _display.height / 2 ;
 		_disp_mouse.display = (Display*)&_mouse ;
 
 		tcgetattr( _mouse.fd , &tm) ;
@@ -2088,11 +2141,14 @@ receive_mouse_event(void)
 				xev.x , xev.y , xev.button , xev.time) ;
 		#endif
 
-			win = get_window( xev.x , xev.y) ;
-			xev.x -= win->x ;
-			xev.y -= win->y ;
+			if( ! check_virtual_kbd( &xev))
+			{
+				win = get_window( xev.x , xev.y) ;
+				xev.x -= win->x ;
+				xev.y -= win->y ;
 
-			x_window_receive_event( win , &xev) ;
+				x_window_receive_event( win , &xev) ;
+			}
 		}
 		else if( ev.type == WSCONS_EVENT_MOUSE_DELTA_X ||
 		         ev.type == WSCONS_EVENT_MOUSE_DELTA_Y ||
@@ -2112,9 +2168,9 @@ receive_mouse_event(void)
 				{
 					_mouse.x = 0 ;
 				}
-				else if( _disp.width <= _mouse.x)
+				else if( _display.width <= _mouse.x)
 				{
-					_mouse.x = _disp.width - 1 ;
+					_mouse.x = _display.width - 1 ;
 				}
 			}
 			else if( ev.type == WSCONS_EVENT_MOUSE_DELTA_Y)
@@ -2127,9 +2183,9 @@ receive_mouse_event(void)
 				{
 					_mouse.y = 0 ;
 				}
-				else if( _disp.height <= _mouse.y)
+				else if( _display.height <= _mouse.y)
 				{
-					_mouse.y = _disp.height - 1 ;
+					_mouse.y = _display.height - 1 ;
 				}
 			}
 			else if( ev.type == WSCONS_EVENT_MOUSE_DELTA_Z)
@@ -2481,8 +2537,8 @@ open_display(void)
 	_display.xoffset = vinfo.xoffset ;
 	_display.yoffset = vinfo.yoffset ;
 
-	_disp.width = vinfo.xres ;
-	_disp.height = vinfo.yres ;
+	_display.width = _disp.width = vinfo.xres ;
+	_display.height = _disp.height = vinfo.yres ;
 
 	_display.rgbinfo.r_limit = 8 - vinfo.red.length ;
 	_display.rgbinfo.g_limit = 8 - vinfo.green.length ;
@@ -2525,8 +2581,8 @@ open_display(void)
 	else if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
 	{
 		kik_file_set_cloexec( _mouse.fd) ;
-		_mouse.x = _disp.width / 2 ;
-		_mouse.y = _disp.height / 2 ;
+		_mouse.x = _display.width / 2 ;
+		_mouse.y = _display.height / 2 ;
 		_disp_mouse.display = (Display*)&_mouse ;
 	}
 
@@ -2636,11 +2692,14 @@ receive_mouse_event(void)
 				xev.x , xev.y , xev.button , xev.time) ;
 		#endif
 
-			win = get_window( xev.x , xev.y) ;
-			xev.x -= win->x ;
-			xev.y -= win->y ;
+			if( ! check_virtual_kbd( &xev))
+			{
+				win = get_window( xev.x , xev.y) ;
+				xev.x -= win->x ;
+				xev.y -= win->y ;
 
-			x_window_receive_event( win , &xev) ;
+				x_window_receive_event( win , &xev) ;
+			}
 		}
 		else if( ev.type == EV_REL)
 		{
@@ -2657,9 +2716,9 @@ receive_mouse_event(void)
 				{
 					_mouse.x = 0 ;
 				}
-				else if( _disp.width <= _mouse.x)
+				else if( _display.width <= _mouse.x)
 				{
-					_mouse.x = _disp.width - 1 ;
+					_mouse.x = _display.width - 1 ;
 				}
 			}
 			else if( ev.code == REL_Y)
@@ -2672,9 +2731,9 @@ receive_mouse_event(void)
 				{
 					_mouse.y = 0 ;
 				}
-				else if( _disp.height <= _mouse.y)
+				else if( _display.height <= _mouse.y)
 				{
-					_mouse.y = _disp.height - 1 ;
+					_mouse.y = _display.height - 1 ;
 				}
 			}
 			else if( ev.code == REL_WHEEL)
@@ -2853,8 +2912,8 @@ x_display_open(
 			_display.yoffset ,
 			_disp.depth ,
 			_display.bytes_per_pixel ,
-			_disp.width ,
-			_disp.height) ;
+			_display.width ,
+			_display.height) ;
 	#endif
 
 		fcntl( STDIN_FILENO , F_SETFL ,
@@ -2887,6 +2946,8 @@ x_display_close_all(void)
 {
 	if( DISP_IS_INITED)
 	{
+		x_virtual_kbd_stop() ;
+
 		if( MOUSE_IS_INITED)
 		{
 			close( _mouse.fd) ;

@@ -1,0 +1,25 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+datadir = @datadir@
+
+DATADIR = $(DESTDIR)$(datadir)/mlterm/kbd
+
+FILES = kbd.png pressed_kbd.png
+
+INSTALL=@INSTALL@
+
+all .DEFAULT:
+	@echo "no such a target"
+
+$(DATADIR):
+	mkdir -p $(DATADIR)
+
+install: $(DATADIR)
+	for file in $(FILES) ; do $(INSTALL) -m 644 $(top_srcdir)/doc/kbd/$${file} $(DATADIR)/$${file} ; done
+
+uninstall:
+	rm -rf $(DATADIR)
+
+distclean:
+	rm -f Makefile

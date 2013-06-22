@@ -53,6 +53,11 @@ typedef struct
 	unsigned int  bytes_per_pixel ;	/* public */
 	unsigned int  pixels_per_byte ;	/* public */
 
+	/* Actual width, while x_display_t.width excludes virtual kbd area. */
+	unsigned int  width ;
+	/* Actual height, while x_display_t.height excludes virtual kbd area. */
+	unsigned int  height ;
+
 	struct rgb_info
 	{
 		unsigned int  r_limit ;

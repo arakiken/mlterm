@@ -97,6 +97,8 @@ Framebuffer 対応に関するメモ
     (e.g. export WSKBD=/dev/wskbd0)
 
   (Common)
+  o 画面の最下行でマウスの左ボタンをクリックすると、ソフトウェアキーボードを使用
+    することができます。
   o mlcc を使ってフォント設定を動的に変更する場合には、
     $ mlcc font-fb ...
     でなく、X 版と同様、
