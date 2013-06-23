@@ -5,7 +5,7 @@ datadir = @datadir@
 
 DATADIR = $(DESTDIR)$(datadir)/mlterm/kbd
 
-FILES = kbd.png pressed_kbd.png
+FILES = kbd.six pressed_kbd.six
 
 INSTALL=@INSTALL@
 

@@ -1,3 +1,14 @@
+2013-06-23  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: get_ps2_kcode() is added to convert usb keycode
+	  to ps2 keycode for iBus on NetBSD/OpenBSD framebuffer.
+
+	* x_virtual_kbd.c: kbd.six and pressed_kbd.six are used instead of
+	  kbd.png and pressed_kbd.png.
+
+	* doc/kbd/kbd.six, doc/kbd/pressed_kbd.six, doc/kbd/Makefile.in:
+	  Replace kbd.png and pressed_kbd.six.
+
 2013-06-22  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: doc/kbd is added to MAKE_DIRS and doc/kbd/Makefile is
