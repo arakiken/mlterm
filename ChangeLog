@@ -1,3 +1,7 @@
+2013-06-24  Araki Ken  <arakiken@users.sf.net>
+
+	* x_virtual_kbd.c, fb/x_imagelib.c, fb/x_display.c: Minor fixes.
+
 2013-06-23  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: get_ps2_kcode() is added to convert usb keycode

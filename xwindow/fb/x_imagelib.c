@@ -462,6 +462,10 @@ load_file(
 	return  1 ;
 
 error:
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , path) ;
+#endif
+
 	if( *pixmap)
 	{
 		free( (*pixmap)->image) ;

@@ -251,16 +251,16 @@ x_virtual_kbd_start(
 	{
 		width = 0 ;
 		height = 0 ;
-		if( ! x_imagelib_load_file( disp , KBD_DIR "/kbd.six" ,
-				NULL , &normal_pixmap , NULL , &width , &height))
+		if( ! x_imagelib_load_file( disp , KBD_DIR "/pressed_kbd.six" ,
+				NULL , &pressed_pixmap , NULL , &width , &height))
 		{
 			return  0 ;
 		}
 
 		width = 0 ;
 		height = 0 ;
-		if( ! x_imagelib_load_file( disp , KBD_DIR "/pressed_kbd.six" ,
-				NULL , &pressed_pixmap , NULL , &width , &height))
+		if( ! x_imagelib_load_file( disp , KBD_DIR "/kbd.six" ,
+				NULL , &normal_pixmap , NULL , &width , &height))
 		{
 			goto  error ;
 		}

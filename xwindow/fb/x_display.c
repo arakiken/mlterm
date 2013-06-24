@@ -1632,7 +1632,7 @@ receive_key_event(void)
 
 #elif  defined(__NetBSD__) || defined(__OpenBSD__)
 
-/* For iBus */
+/* For iBus which requires ps/2 keycode. */
 static u_int
 get_ps2_kcode(
 	u_int  kcode
