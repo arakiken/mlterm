@@ -1,3 +1,9 @@
+2013-06-25  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* x_virtual_kbd.c: Error handling is fixed.
+
 2013-06-24  Araki Ken  <arakiken@users.sf.net>
 
 	* x_virtual_kbd.c, fb/x_imagelib.c, fb/x_display.c: Minor fixes.

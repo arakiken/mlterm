@@ -254,6 +254,12 @@ x_virtual_kbd_start(
 		if( ! x_imagelib_load_file( disp , KBD_DIR "/pressed_kbd.six" ,
 				NULL , &pressed_pixmap , NULL , &width , &height))
 		{
+			/*
+			 * Note that pressed_pixmap can be non-NULL even if
+			 * x_imagelib_load_file() fails.
+			 */
+			pressed_pixmap = NULL ;
+
 			return  0 ;
 		}
 
@@ -262,6 +268,12 @@ x_virtual_kbd_start(
 		if( ! x_imagelib_load_file( disp , KBD_DIR "/kbd.six" ,
 				NULL , &normal_pixmap , NULL , &width , &height))
 		{
+			/*
+			 * Note that normal_pixmap can be non-NULL even if
+			 * x_imagelib_load_file() fails.
+			 */
+			normal_pixmap = NULL ;
+
 			goto  error ;
 		}
 
@@ -314,11 +326,13 @@ error:
 	if( normal_pixmap)
 	{
 		x_delete_image( disp->display , normal_pixmap) ;
+		normal_pixmap = NULL ;
 	}
 
 	if( pressed_pixmap)
 	{
 		x_delete_image( disp->display , pressed_pixmap) ;
+		pressed_pixmap = NULL ;
 	}
 
 	return  0 ;
@@ -334,7 +348,10 @@ x_virtual_kbd_stop(void)
 
 #if  0
 	x_delete_image( kbd_win->disp->display , normal_pixmap) ;
+	normal_pixmap = NULL ;
+
 	x_delete_image( kbd_win->disp->display , pressed_pixmap) ;
+	pressed_pixmap = NULL ;
 #endif
 
 	kbd_win->disp->height += kbd_win->height ;
