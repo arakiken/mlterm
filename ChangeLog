@@ -1,5 +1,16 @@
 2013-06-25  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display.c:
+	  - The bug which leaves the cursor shape in the virtual keyboard
+	    area is fixed.
+	  - EV_ABS events are processed on Linux framebuffer.
+
+	* x_virtual_kbd.c:
+	  - x_is_virtual_kbd_event() is added.
+	  - x_virtual_kbd_stop() is renamed to x_virtual_kbd_hide().
+
+2013-06-25  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
 
 	* x_virtual_kbd.c: Error handling is fixed.

@@ -226,11 +226,8 @@ update_state(
 	}
 }
 
-
-/* --- global functions --- */
-
-int
-x_virtual_kbd_start(
+static int
+start_virtual_kbd(
 	x_display_t *  disp
 	)
 {
@@ -338,8 +335,11 @@ error:
 	return  0 ;
 }
 
+
+/* --- global functions --- */
+
 int
-x_virtual_kbd_stop(void)
+x_virtual_kbd_hide(void)
 {
 	if( ! kbd_win)
 	{
@@ -370,10 +370,42 @@ x_virtual_kbd_stop(void)
 
 /*
  * Return value
- *  0: button is out of the keyboard.
+ *  0: is not virtual kbd event.
+ *  1: is virtual kbd event.
+ * -1: is inside the virtual kbd area but not virtual kbd event.
+ */
+int
+x_is_virtual_kbd_event(
+	x_display_t *  disp ,
+	XButtonEvent *  bev
+	)
+{
+	if( ( ! kbd_win &&
+	      ( bev->y < disp->display->height - 2 || bev->type != ButtonPress ||
+	        ! start_virtual_kbd( disp))) ||
+	    bev->y < kbd_win->y)
+	{
+		return  0 ;
+	}
+
+	if( bev->type == ButtonRelease || bev->type == ButtonPress)
+	{
+		return  1 ;
+	}
+	else
+	{
+		is_pressed = 0 ;
+
+		return  -1 ;
+	}
+}
+
+/*
+ * Call this function after checking if x_is_virtual_kbd_event() returns 1.
+ * Return value
  *  1: keytop image is redrawn and kev is set.
- *  2: keytop image is redrawn. (kev is not set.)
- *  -1: keytop image is not redrawn and kev is not set.
+ *  2: keytop image is redrawn but kev is not set.
+ *  0: keytop image is not redrawn and kev is not set.
  */
 int
 x_virtual_kbd_read(
@@ -383,11 +415,6 @@ x_virtual_kbd_read(
 {
 	int  x ;
 	int  y ;
-
-	if( ! kbd_win || bev->y < kbd_win->y)
-	{
-		return  0 ;
-	}
 
 	if( bev->type == ButtonRelease)
 	{
@@ -404,7 +431,7 @@ x_virtual_kbd_read(
 			return  2 ;
 		}
 	}
-	else if( bev->type == ButtonPress)
+	else /* if( bev->type == ButtonPress) */
 	{
 		struct kbd_key_group *  key_group ;
 		u_int  count ;
@@ -412,9 +439,9 @@ x_virtual_kbd_read(
 		y = bev->y - kbd_win->y ;
 		x = bev->x - x_off ;
 
-		key_group = kbd_key_groups ;
-		for( count = 0 ;
-		     count < sizeof(kbd_key_groups) / sizeof(kbd_key_groups[0]) ; count++)
+		for( count = 0 , key_group = kbd_key_groups ;
+		     count < sizeof(kbd_key_groups) / sizeof(kbd_key_groups[0]) ;
+		     count++ , key_group ++)
 		{
 			if( y < key_group->top)
 			{
@@ -442,7 +469,7 @@ x_virtual_kbd_read(
 						{
 							/* [X] button */
 
-							return  x_virtual_kbd_stop() ;
+							return  x_virtual_kbd_hide() ;
 						}
 
 						if( ( ret = update_state(
@@ -489,12 +516,10 @@ x_virtual_kbd_read(
 					}
 				}
 			}
-
-			key_group ++ ;
 		}
 	}
 
 	is_pressed = 0 ;
 
-	return  -1 ;
+	return  0 ;
 }

@@ -855,8 +855,8 @@ receive_event_for_multi_roots(
 
 /*
  * Return value
- *  0: button is out of the keyboard.
- *  1: button is inside the keyboard. (bev is converted to kev.)
+ *  0: button is outside the virtual kbd area.
+ *  1: button is inside the virtual kbd area. (bev is converted to kev.)
  */
 static int
 check_virtual_kbd(
@@ -865,21 +865,18 @@ check_virtual_kbd(
 {
 	XKeyEvent  kev ;
 	int  ret ;
-	int  saved_flag ;
 
-	if( bev->type == ButtonPress && bev->y >= _display.height - 2)
+	if( ! ( ret = x_is_virtual_kbd_event( &_disp , bev)))
 	{
-		x_virtual_kbd_start( &_disp) ;
+		return  0 ;
 	}
-
-	saved_flag = _mouse.cursor.is_drawn ;
-	_mouse.cursor.is_drawn = 0 ;	/* don't draw mouse cursor in x_virtual_kbd_read() */
-
-	ret = x_virtual_kbd_read( &kev , bev) ;
 
 	if( ret > 0)
 	{
-		/* One of the keytops was redrawn in x_virtual_kbd_read() */
+		/* don't draw mouse cursor in x_virtual_kbd_read() */
+		restore_hidden_region() ;
+
+		ret = x_virtual_kbd_read( &kev , bev) ;
 
 		save_hidden_region() ;
 		draw_mouse_cursor() ;
@@ -887,15 +884,6 @@ check_virtual_kbd(
 		if( ret == 1)
 		{
 			receive_event_for_multi_roots( &kev) ;
-		}
-	}
-	else
-	{
-		_mouse.cursor.is_drawn = saved_flag ;
-
-		if( ret == 0)
-		{
-			return  0 ;
 		}
 	}
 
@@ -2230,7 +2218,7 @@ receive_mouse_event(void)
 			}
 			else
 			{
-				return  1 ;
+				continue ;
 
 				while(1)
 				{
@@ -2548,6 +2536,7 @@ get_event_device_num(
 			{
 				char *  p ;
 
+				/* To lower case */
 				for( p = buf ; *p ; p++)
 				{
 					/*
@@ -2560,13 +2549,27 @@ get_event_device_num(
 					}
 				}
 
-				if( strstr( buf , "mouse"))
-				{
-					*mouse = count ;
-				}
-				else if( strstr( buf , "key"))
+				if( strstr( buf , "key"))
 				{
 					*kbd = count ;
+				}
+				else
+				{
+					static char *  mouse_names[] =
+						{ "mouse" , "ts" , "touch" } ;
+					u_int  idx ;
+
+					for( idx = 0 ;
+					     idx < sizeof(mouse_names) / sizeof(mouse_names[0]) ;
+					     idx++)
+					{
+						if( strstr( buf , mouse_names[idx]))
+						{
+							*mouse = count ;
+
+							break ;
+						}
+					}
 				}
 			}
 
@@ -2760,6 +2763,32 @@ receive_mouse_event(void)
 			return  0 ;
 		}
 
+		if( ev.type == EV_ABS)
+		{
+			if( ev.code == ABS_PRESSURE)
+			{
+				ev.type = EV_KEY ;
+				ev.code = BTN_LEFT ;
+				ev.value = 1 ;	/* ButtonPress */
+			}
+			else if( ev.code == ABS_X)
+			{
+				ev.type = EV_REL ;
+				ev.code = REL_X ;
+				ev.value = ev.value - _mouse.x ;
+			}
+			else if( ev.code == ABS_Y)
+			{
+				ev.type = EV_REL ;
+				ev.code = REL_Y ;
+				ev.value = ev.value - _mouse.y ;
+			}
+			else
+			{
+				continue ;
+			}
+		}
+
 		if( ev.type == EV_KEY)
 		{
 			XButtonEvent  xev ;
@@ -2782,7 +2811,7 @@ receive_mouse_event(void)
 			}
 			else
 			{
-				return  1 ;
+				continue ;
 
 				while(1)
 				{
@@ -2823,7 +2852,7 @@ receive_mouse_event(void)
 			}
 			else
 			{
-				return  1 ;
+				continue ;
 			}
 
 			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
@@ -2910,7 +2939,7 @@ receive_mouse_event(void)
 			}
 			else
 			{
-				return  0 ;
+				continue ;
 			}
 
 			update_mouse_cursor_state() ;
@@ -2937,6 +2966,8 @@ receive_mouse_event(void)
 			draw_mouse_cursor() ;
 		}
 	}
+
+	return  1 ;
 }
 
 static int
@@ -3092,7 +3123,7 @@ x_display_close_all(void)
 {
 	if( DISP_IS_INITED)
 	{
-		x_virtual_kbd_stop() ;
+		x_virtual_kbd_hide() ;
 
 		if( MOUSE_IS_INITED)
 		{
