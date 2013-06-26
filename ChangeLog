@@ -1,3 +1,12 @@
+2013-06-27  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c:
+	  The behavior of ml_edit_goto_beg_of_line(), ml_edit_copy_area()
+	  and ml_edit_erase_area() in origin mode is fixed.
+
+	* ml_vt100_parser.c, ml_edit.h, ml_screen.h:
+	  Relative-origin position of the cursor is reported to CPR sequence.
+
 2013-06-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.c:

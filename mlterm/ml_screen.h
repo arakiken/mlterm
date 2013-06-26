@@ -105,11 +105,15 @@ int  ml_screen_resize( ml_screen_t *  screen , u_int  cols , u_int  rows) ;
 #define  ml_screen_set_bce_bg_color( screen , bg_color) \
 		ml_edit_set_bce_bg_color( (screen)->edit , bg_color)
 
-#define  ml_screen_cursor_col( screen)  ml_cursor_col( (screen)->edit)
-
 #define  ml_screen_cursor_char_index( screen)  ml_cursor_char_index( (screen)->edit)
 
+#define  ml_screen_cursor_col( screen)  ml_cursor_col( (screen)->edit)
+
 #define  ml_screen_cursor_row( screen)  ml_cursor_row( (screen)->edit)
+
+#define  ml_screen_cursor_relative_col( screen)  ml_cursor_relative_col( (screen)->edit)
+
+#define  ml_screen_cursor_relative_row( screen)  ml_cursor_relative_row( (screen)->edit)
 
 int  ml_screen_cursor_row_in_screen( ml_screen_t *  screen) ;
 

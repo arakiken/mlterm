@@ -1601,17 +1601,16 @@ ml_edit_goto_beg_of_line(
 	ml_edit_t *  edit
 	)
 {
+	reset_wraparound_checker( edit) ;
+
 	if( edit->margin_beg > 0 && edit->cursor.col >= edit->margin_beg)
 	{
-		return  ml_edit_goto( edit , edit->margin_beg , edit->cursor.row) ;
+		return  ml_cursor_goto_by_col( &edit->cursor ,
+				edit->margin_beg , edit->cursor.row) ;
 	}
 	else
 	{
-		reset_wraparound_checker( edit) ;
-
-		ml_cursor_goto_beg_of_line( &edit->cursor) ;
-
-		return  1 ;
+		return  ml_cursor_goto_beg_of_line( &edit->cursor) ;
 	}
 }
 
@@ -1961,7 +1960,9 @@ ml_edit_copy_area(
 	if( edit->is_relative_origin)
 	{
 		if( (src_row += edit->scroll_region_beg) > edit->scroll_region_end ||
-		    (dst_row += edit->scroll_region_beg) > edit->scroll_region_end)
+		    (dst_row += edit->scroll_region_beg) > edit->scroll_region_end ||
+		    (src_col += edit->margin_beg) > edit->margin_end ||
+		    (dst_col += edit->margin_beg) > edit->margin_end)
 		{
 			return  1 ;
 		}
@@ -1974,6 +1975,16 @@ ml_edit_copy_area(
 		if( dst_row + num_of_copy_rows > edit->scroll_region_end + 1)
 		{
 			num_of_copy_rows = edit->scroll_region_end + 1 - dst_row ;
+		}
+
+		if( src_col + num_of_copy_cols > edit->margin_end + 1)
+		{
+			num_of_copy_cols = edit->margin_end + 1 - src_col ;
+		}
+
+		if( dst_col + num_of_copy_cols > edit->margin_end + 1)
+		{
+			num_of_copy_cols = edit->margin_end + 1 - dst_col ;
 		}
 	}
 
@@ -1992,7 +2003,8 @@ ml_edit_erase_area(
 {	
 	if( edit->is_relative_origin)
 	{
-		if( (row += edit->scroll_region_beg) > edit->scroll_region_end)
+		if( ( row += edit->scroll_region_beg) > edit->scroll_region_end ||
+		    ( col += edit->margin_beg) > edit->margin_end)
 		{
 			return  1 ;
 		}
@@ -2000,6 +2012,11 @@ ml_edit_erase_area(
 		if( row + num_of_rows > edit->scroll_region_end + 1)
 		{
 			num_of_rows = edit->scroll_region_end + 1 - row ;
+		}
+
+		if( col + num_of_cols > edit->margin_end + 1)
+		{
+			num_of_cols = edit->margin_end + 1 - col ;
 		}
 	}
 

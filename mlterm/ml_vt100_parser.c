@@ -3572,8 +3572,10 @@ parse_vt100_escape_sequence(
 					char  seq[4 + DIGIT_STR_LEN(u_int) * 2 + 1] ;
 
 					sprintf( seq , "\x1b[%d;%dR" ,
-						ml_screen_cursor_row( vt100_parser->screen) + 1 ,
-						ml_screen_cursor_col( vt100_parser->screen) + 1) ;
+						ml_screen_cursor_relative_row(
+							vt100_parser->screen) + 1 ,
+						ml_screen_cursor_relative_col(
+							vt100_parser->screen) + 1) ;
 
 					ml_write_to_pty( vt100_parser->pty , seq , strlen( seq)) ;
 				}

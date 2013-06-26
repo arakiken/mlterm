@@ -162,6 +162,10 @@ int  ml_edit_erase_area( ml_edit_t *  edit , int  col , int  row ,
 
 #define  ml_cursor_row( edit)  ((edit)->cursor.row)
 
+#define  ml_cursor_relative_col( edit)  ((edit)->cursor.col - (edit)->margin_beg)
+
+#define  ml_cursor_relative_row( edit)  ((edit)->cursor.row - (edit)->scroll_region_beg)
+
 #ifdef  DEBUG
 
 void  ml_edit_dump( ml_edit_t *  edit) ;
