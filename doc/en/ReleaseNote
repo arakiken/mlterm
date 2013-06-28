@@ -1,7 +1,7 @@
 xver 3.2.1
 * Support framebuffer on OpenBSD.
 * Support software keyboard on framebuffer.
-  (Press Button1 at the bottom of the screen to show the software keyboard.)
+  (Double-click Button1 at the right bottom corner of the screen to show it.)
 * Support USB keyboard with iBus on NetBSD/OpenBSD framebuffer.
 * Support CSI ? 69 h, CSI ? 69 l (DECLRMM) and CSI pl;pr s (DECSLRM).
 * Support CSI 3 m and CSI 23 m which set/unset italic attribute.

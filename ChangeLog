@@ -1,3 +1,11 @@
+2013-06-28  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* x_virtual_kbd.c: The trigger to start software keyboard is changed
+	  from the click at the bottom of the screen to the double click at
+	  the right bottom corner.
+
 2013-06-27  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c:

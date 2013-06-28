@@ -234,11 +234,6 @@ start_virtual_kbd(
 	u_int  width ;
 	u_int  height ;
 
-	if( kbd_win)
-	{
-		return  0 ;
-	}
-
 	if( normal_pixmap /* && pressed_pixmap */)
 	{
 		width = normal_pixmap->width ;
@@ -311,7 +306,7 @@ start_virtual_kbd(
 	x_window_copy_area( kbd_win , normal_pixmap , None , 0 , 0 ,
 		width , height , x_off , 0) ;
 
-	if( kbd_win->disp->num_of_roots > 0)
+	if( disp->num_of_roots > 0)
 	{
 		x_window_resize_with_margin( disp->roots[0] , disp->width , disp->height ,
 			NOTIFY_TO_MYSELF) ;
@@ -380,10 +375,38 @@ x_is_virtual_kbd_event(
 	XButtonEvent *  bev
 	)
 {
-	if( ( ! kbd_win &&
-	      ( bev->y < disp->display->height - 2 || bev->type != ButtonPress ||
-	        ! start_virtual_kbd( disp))) ||
-	    bev->y < kbd_win->y)
+	while( ! kbd_win)
+	{
+		static int  click_num ;
+
+		if( bev->type == ButtonPress)
+		{
+			if( bev->x + bev->y >= disp->display->width + disp->display->height - 20)
+			{
+				if( click_num == 0)
+				{
+					click_num = 1 ;
+				}
+				else /* if( click_num == 1) */
+				{
+					click_num = 0 ;
+
+					if( start_virtual_kbd( disp))
+					{
+						break ;
+					}
+				}
+			}
+			else
+			{
+				click_num = 0 ;
+			}
+		}
+
+		return  0 ;
+	}
+
+	if( bev->y < kbd_win->y)
 	{
 		return  0 ;
 	}
