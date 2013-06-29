@@ -161,6 +161,7 @@ Supported platforms
   * CentOS 5 / X (x86)
   * Arch Linux 2013.05.01 / X (CC=gcc) (x86)
   * FreeBSD 9.0 / framebuffer (x86)
+  * OpenBSD 5.3 / framebuffer (x86)
   * MS Windows 7 / GDI (x86)
   * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
   * MS Windows 7 + Cygwin 1.7.17 / GDI (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)

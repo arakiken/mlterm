@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.2.0
+%define version 3.2.1
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -76,8 +76,12 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/mlclient.1*
 %{pixmapdir}/mlterm*
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
+%{datadir}/mlterm/kbd/kbd*
 
 %changelog
+* Sat Jun 29 2013 Araki Ken <arakiken@users.sf.net>
+- Source version 3.2.1
+
 * Sun May 26 2013 Araki Ken <arakiken@users.sf.net>
 - Source version 3.2.0
 
