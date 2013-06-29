@@ -76,7 +76,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/mlclient.1*
 %{pixmapdir}/mlterm*
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
-%{datadir}/mlterm/kbd/kbd*
 
 %changelog
 * Sat Jun 29 2013 Araki Ken <arakiken@users.sf.net>
