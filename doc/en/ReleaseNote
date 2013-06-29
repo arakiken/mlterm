@@ -1,4 +1,4 @@
-xver 3.2.1
+ver 3.2.1
 * Support framebuffer on OpenBSD.
 * Support software keyboard on framebuffer.
   (Double-click Button1 at the right bottom corner of the screen to show it.)
