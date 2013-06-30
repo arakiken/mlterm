@@ -1,5 +1,10 @@
 2013-06-30  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display.c: Support for touch screen on NetBSD/OpenBSD is added.
+	  (Experimental)
+
+2013-06-30  Araki Ken  <arakiken@users.sf.net>
+
 	* configure.in: configure error which --with-gui=xlib,fb option
 	  causes is fixed.
 

@@ -2195,6 +2195,31 @@ receive_mouse_event(void)
 			return  0 ;
 		}
 
+		if( ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_X ||
+		    ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_Y)
+		{
+			restore_hidden_region() ;
+
+			if( ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_X)
+			{
+				_mouse.x = ev.value ;
+			}
+			else
+			{
+				_mouse.y = ev.value ;
+			}
+
+			update_mouse_cursor_state() ;
+
+			/* XXX MotionNotify event is not sent. */
+
+			save_hidden_region() ;
+			draw_mouse_cursor() ;
+
+			ev.type = WSCONS_EVENT_MOUSE_DOWN ;
+			ev.value = 0 ;	/* Button1 */
+		}
+
 		if( ev.type == WSCONS_EVENT_MOUSE_DOWN ||
 		    ev.type == WSCONS_EVENT_MOUSE_UP)
 		{
