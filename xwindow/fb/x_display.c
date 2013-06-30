@@ -2195,20 +2195,17 @@ receive_mouse_event(void)
 			return  0 ;
 		}
 
-		if( ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_X ||
-		    ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_Y)
+		if( ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_X)
+		{
+			_mouse.x = ev.value ;
+
+			continue ;	/* Wait for ABSOLUTE_Y */
+		}
+		else if( ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_Y)
 		{
 			restore_hidden_region() ;
 
-			if( ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_X)
-			{
-				_mouse.x = ev.value ;
-			}
-			else
-			{
-				_mouse.y = ev.value ;
-			}
-
+			_mouse.y = ev.value ;
 			update_mouse_cursor_state() ;
 
 			/* XXX MotionNotify event is not sent. */

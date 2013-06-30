@@ -1,5 +1,9 @@
 2013-06-30  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display.c: Minor fixes.
+
+2013-06-30  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.c: DECALN(ESC#8) resets the screen margins.
 
 	* x_display.c: Support for touch screen on NetBSD/OpenBSD is added.
