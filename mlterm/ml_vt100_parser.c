@@ -4349,6 +4349,11 @@ parse_vt100_escape_sequence(
 					if( *str_p == '8')
 					{
 						/* "ESC # 8" DEC screen alignment test */
+
+						ml_screen_set_scroll_region(
+							vt100_parser->screen , -1 , -1) ;
+						ml_screen_set_use_margin(
+							vt100_parser->screen , 0) ;
 						ml_screen_fill_all_with_e( vt100_parser->screen) ;
 					}
 				}
