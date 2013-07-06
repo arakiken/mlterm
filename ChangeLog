@@ -1,3 +1,10 @@
+2013-07-06  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_line_bidi.c: The cursor position in inserting RTL characters after
+	  one LTR character (and vice versa) is fixed.
+	  (There were no problem in inserting RTL characters after two or more
+	  LTR characters.)
+
 2013-06-30  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.c: Minor fixes.

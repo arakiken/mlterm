@@ -229,7 +229,7 @@ ml_line_bidi_convert_logical_char_index_to_visual(
 
 		if( ! BASE_IS_RTL( line->ctl_info.bidi) && char_index >= 1)
 		{
-			for( count = char_index - 2 ; count >= 0 ; count --)
+			for( count = char_index - 2 ; count >= -1 ; count --)
 			{
 				/*
 				 * visual order -> 1 2 4 3 5
@@ -294,7 +294,7 @@ ml_line_bidi_convert_logical_char_index_to_visual(
 		}
 		else if( BASE_IS_RTL( line->ctl_info.bidi) && char_index >= 1)
 		{
-			for( count = char_index - 2 ; count >= 0 ; count --)
+			for( count = char_index - 2 ; count >= -1 ; count --)
 			{
 				/*
 				 * visual order -> 6 5 4 2 3 1
