@@ -84,6 +84,9 @@ comment $Id$
 
     --enable-ssh2
       libssh2 (http://www.libssh2.org) を用いて ssh サーバに接続できるようにします。
+      なお、共通鍵暗号方式として camellia を使用したい場合や SSH agent forwarding
+      を行いたい場合は、https://bitbucket.org/arakiken/libssh2/downloads にある
+      camellia branch の libssh2 をダウンロードしてインストールしてください。
 
     --without-pthread
       ssh サーバとの (doc/en/PROTOCOL の scp コマンドによる) secure copy において

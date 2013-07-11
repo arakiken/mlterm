@@ -1,4 +1,5 @@
 ver 3.2.2
+* Support SSH agent authentication and forwarding.
 * Bug fixes:
   Fix configure error which --with-gui=xlib,fb option causes. (enbugged at 3.2.1)
   DECALN(ESC#8) resets the screen margins.

@@ -123,6 +123,8 @@ static u_int  num_of_x11_fds ;
 static x11_channel_t  x11_channels[10] ;
 #endif
 
+static int  auth_agent_is_available ;
+
 
 /* --- static functions --- */
 
@@ -475,8 +477,47 @@ ssh_connect(
 
 	if( strstr( userauthlist , "publickey"))
 	{
+		LIBSSH2_AGENT *  agent ;
 		char *  home ;
 		char *  p ;
+
+		if( ( agent = libssh2_agent_init( session->obj)))
+		{
+			if( libssh2_agent_connect( agent) == 0)
+			{
+				if( libssh2_agent_list_identities( agent) == 0)
+				{
+					struct libssh2_agent_publickey *  ident ;
+					struct libssh2_agent_publickey *  prev_ident ;
+
+					prev_ident = NULL ;
+					while( libssh2_agent_get_identity( agent ,
+								&ident , prev_ident) == 0)
+					{
+						if( libssh2_agent_userauth( agent ,
+								user , ident) == 0)
+						{
+							libssh2_agent_disconnect( agent) ;
+							libssh2_agent_free( agent) ;
+
+							auth_agent_is_available = 1 ;
+
+							goto  pubkey_success ;
+						}
+
+						prev_ident = ident ;
+					}
+				}
+
+				libssh2_agent_disconnect( agent) ;
+			}
+
+			libssh2_agent_free( agent) ;
+		}
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Unable to use ssh-agent.\n") ;
+	#endif
 
 		if( ( home = kik_get_home_dir()) &&
 		    ( ( p = alloca( strlen(home) * 2 + 38))) )
@@ -528,6 +569,7 @@ ssh_connect(
 		if( libssh2_userauth_publickey_fromfile( session->obj , user ,
 				pubkey , privkey , pass) == 0)
 		{
+		pubkey_success:
 			kik_msg_printf( "Authentication by public key succeeded.\n") ;
 
 			auth_success = 1 ;
@@ -1414,7 +1456,6 @@ ml_pty_ssh_new(
 	}
 #endif
 
-	/* Request a shell */
 	if( ! ( pty->channel = libssh2_channel_open_session( pty->session->obj)))
 	{
 	#ifdef  DEBUG
@@ -1425,6 +1466,20 @@ ml_pty_ssh_new(
 	}
 
 	pty->session->doing_scp = 0 ;
+
+#ifdef  LIBSSH2_FORWARD_AGENT
+	if( auth_agent_is_available)
+	{
+		if( libssh2_channel_request_auth_agent( pty->channel) != 0)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Failed to agent forwarding.\n") ;
+		#endif
+		}
+
+		auth_agent_is_available = 0 ;
+	}
+#endif
 
 	term = NULL ;
 	if( env)

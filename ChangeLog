@@ -1,3 +1,10 @@
+2013-07-12  Araki Ken  <arakiken@users.sf.net>
+
+	* README, doc/ja/README.ja: Updated.
+
+	* libptyssh/ml_pty_ssh.c:
+	  SSH agent authentication and forwarding are supported.
+
 2013-07-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_line_bidi.c: The cursor position in inserting RTL characters after
