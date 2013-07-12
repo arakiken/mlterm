@@ -1,5 +1,9 @@
 2013-07-12  Araki Ken  <arakiken@users.sf.net>
 
+	* libptyssh/ml_pty_ssh.c: Workaround for libssh2/cygwin.
+
+2013-07-12  Araki Ken  <arakiken@users.sf.net>
+
 	* README, doc/ja/README.ja: Updated.
 
 	* libptyssh/ml_pty_ssh.c:
