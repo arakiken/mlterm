@@ -1,3 +1,11 @@
+2013-07-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: Whether VteTerminal is realized or not is checked in setting
+	  WINDOWID environmental variable in ml_term_open_pty_wrap().
+	  (Segfault with synaptic 0.80 is fixed.)
+
+	* gtk/vte.c: "logging_vt_seq" option works.
+
 2013-07-12  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/ml_pty_ssh.c: Workaround for libssh2/cygwin.

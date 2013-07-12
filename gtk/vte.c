@@ -2652,6 +2652,11 @@ vte_terminal_init(
 		init_inherit_ptys = 1 ;
 	}
 
+	if( main_config.logging_vt_seq)
+	{
+		ml_term_set_logging_vt_seq( terminal->pvt->term , main_config.logging_vt_seq) ;
+	}
+
 #if  VTE_CHECK_VERSION(0,26,0)
 	terminal->pvt->pty = NULL ;
 #endif
@@ -2777,7 +2782,8 @@ ml_term_open_pty_wrap(
 		}
 
 		/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
-		if( ( *env_p = alloca( 9 + DIGIT_STR_LEN(Window) + 1)))
+		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)) &&
+		    ( *env_p = alloca( 9 + DIGIT_STR_LEN(Window) + 1)))
 		{
 			sprintf( *(env_p ++) , "WINDOWID=%ld" ,
 			#if  1
