@@ -41,7 +41,7 @@ static void  (*ssh_set_keepalive_interval)( u_int) ;
 static int  (*ssh_keepalive)( u_int) ;
 static void  (*ssh_set_use_x11_forwarding)( int) ;
 static u_int  (*ssh_get_x11_fds)( int **) ;
-static int  (*ssh_send_recv_x11)( int) ;
+static int  (*ssh_send_recv_x11)( int , int) ;
 
 static int  is_tried ;
 
@@ -229,12 +229,13 @@ ml_pty_ssh_get_x11_fds(
 
 int
 ml_pty_ssh_send_recv_x11(
-	int  idx
+	int  idx ,
+	int  bidirection
 	)
 {
 	if( ssh_send_recv_x11)
 	{
-		return  (*ssh_send_recv_x11)( idx) ;
+		return  (*ssh_send_recv_x11)( idx , bidirection) ;
 	}
 	else
 	{

@@ -73,7 +73,7 @@ void  ml_pty_ssh_set_use_x11_forwarding( int  use_x11_forwarding) ;
 
 u_int  ml_pty_ssh_get_x11_fds( int **  fds) ;
 
-int  ml_pty_ssh_send_recv_x11( int  idx) ;
+int  ml_pty_ssh_send_recv_x11( int  idx , int  bidirection) ;
 #endif
 
 

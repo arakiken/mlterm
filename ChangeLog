@@ -1,3 +1,15 @@
+2013-07-16  Araki Ken  <arakiken@users.sf.net>
+
+	* x_event_source.c:
+	  Minor fixes to improve the performance of x11 forwarding.
+
+	* libptyssh/ml_pty_ssh.c:
+	  - LIBSSH2_FLAG_COMPRESS is not enabled if x11 forwarding is
+	    enabled because LIBSSH2_FLAG_COMPRESS might fail to decompress
+	    highly compressed data.
+	  - libssh2_channel_x11_req_ex() is called with untrusted xauth data.
+	  - bidirection argument is added to ml_pty_ssh_send_recv_x11().
+
 2013-07-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Whether VteTerminal is realized or not is checked in setting

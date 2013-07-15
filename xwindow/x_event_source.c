@@ -86,9 +86,6 @@ receive_next_event(void)
 	u_int  num_of_displays ;
 
 	num_of_terms = ml_get_all_terms( &terms) ;
-#ifdef  USE_LIBSSH2
-	num_of_xssh_fds = ml_pty_ssh_get_x11_fds( &xssh_fds) ;
-#endif
 
 	while( 1)
 	{
@@ -133,6 +130,8 @@ receive_next_event(void)
 		}
 		
 	#ifdef  USE_LIBSSH2
+		num_of_xssh_fds = ml_pty_ssh_get_x11_fds( &xssh_fds) ;
+
 		for( count = 0 ; count < num_of_xssh_fds ; count++)
 		{
 			FD_SET( xssh_fds[count] , &read_fds) ;
@@ -220,14 +219,12 @@ receive_next_event(void)
 			ml_term_parse_vt100_sequence( terms[count]) ;
 		}
 	}
-	
+
 #ifdef  USE_LIBSSH2
-	for( count = 0 ; count < num_of_xssh_fds ; count++)
+	for( count = num_of_xssh_fds ; count > 0 ; count--)
 	{
-		if( FD_ISSET( xssh_fds[count] , &read_fds))
-		{
-			ml_pty_ssh_send_recv_x11( count) ;
-		}
+		ml_pty_ssh_send_recv_x11( count - 1 ,
+			FD_ISSET( xssh_fds[count - 1] , &read_fds)) ;
 	}
 #endif
 
