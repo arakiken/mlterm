@@ -211,10 +211,7 @@ draw_scrollbar(
 	unsigned int  bar_height
 	)
 {
-	sample_sb_view_t *  sample ;
 	HPEN  old_pen ;
-
-	sample = (sample_sb_view_t*) view ;
 	
 	/* drawing bar */
 	Rectangle( view->gc , 1 , bar_top_y , WIDTH , bar_top_y + bar_height) ;
