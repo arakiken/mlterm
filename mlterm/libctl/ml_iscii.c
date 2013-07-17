@@ -75,6 +75,8 @@ load_symbol(
 		return  NULL ;
 	}
 
+	kik_dl_close_at_exit( handle) ;
+
 	if( ! ( sym = kik_dl_func_symbol( handle , "libind_get_table")))
 	{
 		kik_dl_close( handle) ;

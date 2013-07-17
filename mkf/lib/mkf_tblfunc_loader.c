@@ -30,6 +30,8 @@ mkf_load_8bits_func(
 		{
 			return  NULL ;
 		}
+
+		kik_dl_close_at_exit( handle) ;
 	}
 
 	if( handle)
@@ -59,6 +61,8 @@ mkf_load_jajp_func(
 		{
 			return  NULL ;
 		}
+
+		kik_dl_close_at_exit( handle) ;
 	}
 
 	if( handle)
@@ -88,6 +92,8 @@ mkf_load_kokr_func(
 		{
 			return  NULL ;
 		}
+
+		kik_dl_close_at_exit( handle) ;
 	}
 
 	if( handle)
@@ -117,6 +123,8 @@ mkf_load_zh_func(
 		{
 			return  NULL ;
 		}
+
+		kik_dl_close_at_exit( handle) ;
 	}
 
 	if( handle)

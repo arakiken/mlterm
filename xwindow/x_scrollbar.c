@@ -988,8 +988,8 @@ x_scrollbar_final(
 	(*sb->view->delete)( sb->view) ;
 	x_unload_scrollbar_view_lib( sb->view_name) ;
 
-	x_unload_xcolor(  sb->window.disp , &sb->fg_xcolor) ;
-	x_unload_xcolor(  sb->window.disp , &sb->bg_xcolor) ;
+	x_unload_xcolor( sb->window.disp , &sb->fg_xcolor) ;
+	x_unload_xcolor( sb->window.disp , &sb->bg_xcolor) ;
 	free( sb->fg_color) ;
 	free( sb->bg_color) ;
 	free( sb->view_name) ;

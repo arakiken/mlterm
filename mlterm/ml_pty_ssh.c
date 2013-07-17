@@ -44,6 +44,7 @@ static u_int  (*ssh_get_x11_fds)( int **) ;
 static int  (*ssh_send_recv_x11)( int , int) ;
 
 static int  is_tried ;
+static kik_dl_handle_t  handle ;
 
 
 /* --- static functions --- */
@@ -51,8 +52,6 @@ static int  is_tried ;
 static void
 load_library(void)
 {
-	kik_dl_handle_t  handle ;
-
 	is_tried = 1 ;
 
 	if( ! ( handle = kik_dl_open( SSHLIB_DIR , "ptyssh")) &&
@@ -62,6 +61,8 @@ load_library(void)
 
 		return ;
 	}
+
+	kik_dl_close_at_exit( handle) ;
 
 	ssh_new = kik_dl_func_symbol( handle , "ml_pty_ssh_new") ;
 	search_ssh_session = kik_dl_func_symbol( handle , "ml_search_ssh_session") ;

@@ -1,4 +1,3 @@
-
 /*
  *	$Id$
  */
@@ -48,6 +47,8 @@ x_load_type_xft_func(
 		kik_debug_printf( KIK_DEBUG_TAG " Loading libtype_xft.so\n") ;
 	#endif
 
+		kik_dl_close_at_exit( handle) ;
+
 		func_table = kik_dl_func_symbol( handle , "x_type_xft_func_table") ;
 
 		if( (u_int32_t)func_table[TYPE_API_COMPAT_CHECK] != TYPE_API_COMPAT_CHECK_MAGIC)
@@ -95,6 +96,8 @@ x_load_type_cairo_func(
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Loading libtype_cairo.so\n") ;
 	#endif
+
+		kik_dl_close_at_exit( handle) ;
 
 		func_table = kik_dl_func_symbol( handle , "x_type_cairo_func_table") ;
 

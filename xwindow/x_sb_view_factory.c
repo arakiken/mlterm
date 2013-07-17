@@ -80,6 +80,11 @@ dlsym_sb_view_new_func(
 		return  NULL ;
 	}
 
+	/* XXX I don't know why but it causes abort at exit in win32 */
+#if  0
+	kik_dl_close_at_exit( handle) ;
+#endif
+
 	len = 27 + strlen( name) + 1 ;
 	if( ( symbol = alloca( len)) == NULL)
 	{
@@ -131,6 +136,11 @@ dlsym_sb_engine_new_func(
 	{
 		return  NULL ;
 	}
+
+	/* XXX I don't know why but it causes abort at exit in win32 */
+#if  0
+	kik_dl_close_at_exit( handle) ;
+#endif
 
 	len = 16 + strlen( name) + 1 ;
 	if( ( symbol = alloca( len)) == NULL)

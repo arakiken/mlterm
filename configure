@@ -19824,7 +19824,7 @@ fi
 
 	WIN32TAG=_win32
 	case "${CC} ${CFLAGS}" in
-	*mno-cygwin*)
+	*mno-cygwin* | *-mingw*)
 		ml_cv_is_posix="no"
 		;;
 	*)

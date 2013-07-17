@@ -1,3 +1,23 @@
+2013-07-17  Araki Ken  <arakiken@users.sf.net>
+
+	* libptyssh/ml_pty_ssh.c: Compilation error on win32 is fixed.
+
+	* mkf_tblfunc_loader.c, ml_iscii.c, ml_pty_ssh.c, x_imagelib.c,
+	  x_im.c, x_type_loader.c:
+	  kik_dl_close_at_exit() is called with handles created by
+	  kik_dl_open().
+
+	* kiklib/src/Makefile.in: 15.0 -> 15.1
+
+	* kik_dlfcn.c: Added. (kik_dl_close_at_exit() is added.)
+
+	* win32/x_window.c:
+	  - button_motion event isn't called if mev.{x|y} are the same as
+	    prev_button_press_event.{x|y}.
+	  - Clipboard operations are fixed.
+
+	* configure.in, kiklib/configure.in: *-*-mingw-gcc is supported.
+
 2013-07-16  Araki Ken  <arakiken@users.sf.net>
 
 	* x_event_source.c:

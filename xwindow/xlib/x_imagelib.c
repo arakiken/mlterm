@@ -220,8 +220,6 @@ rgb_info_init(
 	rgb->b_limit = 8 + rgb->b_offset - msb( rgb->b_mask) ;
 }
 
-#include  <dlfcn.h>
-
 static void
 value_table_refresh(
 	u_char *  value_table ,		/* 256 bytes */

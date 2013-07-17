@@ -1926,6 +1926,7 @@ ml_pty_ssh_get_x11_fds(
 	int **  fds
 	)
 {
+#ifndef  USE_WIN32API
 	if( num_of_x11_fds > 1)
 	{
 		/*
@@ -1945,6 +1946,9 @@ ml_pty_ssh_get_x11_fds(
 	*fds = x11_fds ;
 
 	return  num_of_x11_fds ;
+#else
+	return  0 ;
+#endif
 }
 
 int

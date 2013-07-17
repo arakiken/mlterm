@@ -18,5 +18,7 @@ void *  kik_dl_func_symbol( kik_dl_handle_t  handle , const char *  symbol) ;
 
 int  kik_dl_is_module( const char * name) ;
 
+int  kik_dl_close_at_exit( kik_dl_handle_t  handle) ;
+
 
 #endif

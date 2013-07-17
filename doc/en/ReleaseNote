@@ -5,6 +5,7 @@ ver 3.2.2
   DECALN(ESC#8) resets the screen margins.
   Fix the cursor position in inserting RTL characters after one LTR character.
   Fix segmentation fault of libvte compatible libyrary with synaptic 0.80.
+  Fix clipboard operations of copy&paste on multiple windows on win32.
 
 ver 3.2.1
 * Support framebuffer on OpenBSD.

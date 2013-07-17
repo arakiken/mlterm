@@ -212,6 +212,10 @@ x_im_new(
 		{
 			kik_dl_close( handle) ;
 		}
+		else
+		{
+			kik_dl_close_at_exit( handle) ;
+		}
 
 		return  NULL ;
 	}

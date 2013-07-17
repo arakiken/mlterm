@@ -69,6 +69,8 @@ value_table_refresh(
 
 			return ;
 		}
+
+		kik_dl_close_at_exit( handle) ;
 	#else  /* DLOPEN_LIBM */
 		pow_func = pow ;
 	#endif /* DLOPEN_LIBM */

@@ -87,7 +87,7 @@ case "${host_os}" in
 cygwin*)
 	kik_cv_cygwin=yes
 	case "${CC} ${CFLAGS}" in
-	*mno-cygwin*)
+	*mno-cygwin* | *-mingw*)
 		kik_cv_win32=yes
 		AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
 		;;

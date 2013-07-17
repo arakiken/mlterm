@@ -111,7 +111,7 @@ cygwin*)
 	AC_CHECK_PROG(CYGPATHW,cygpath,cygpath -w,echo)
 	WIN32TAG=_win32
 	case "${CC} ${CFLAGS}" in
-	*mno-cygwin*)
+	*mno-cygwin* | *-mingw*)
 		ml_cv_is_posix="no"
 		;;
 	*)

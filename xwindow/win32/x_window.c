@@ -2255,7 +2255,13 @@ x_window_receive_event(
 
 			if( win->button_is_pressing)
 			{
-				if( win->button_motion)
+				/*
+				 * prev_button_press_event.{x|y} can be the same
+				 * as mev.{x|y} when window is pressed and focused.
+				 */
+				if( win->button_motion &&
+				    ( win->prev_button_press_event.x != mev.x ||
+				      win->prev_button_press_event.y != mev.y))
 				{
 					(*win->button_motion)( win , &mev) ;
 				}
@@ -2321,11 +2327,18 @@ x_window_receive_event(
 		return  1 ;
 
 	case  WM_DESTROYCLIPBOARD:
-		/*
-		 * Call win->selection_cleared and win->is_sel_owner is set 0
-		 * in x_display_clear_selection.
-		 */
-		x_display_clear_selection( win->disp , win) ;
+		if( win->is_sel_owner == 1)
+		{
+			/*
+			 * Call win->selection_cleared and win->is_sel_owner is set 0
+			 * in x_display_clear_selection.
+			 */
+			x_display_clear_selection( win->disp , win) ;
+		}
+		else if( win->is_sel_owner > 1)
+		{
+			win->is_sel_owner -- ;
+		}
 
 		return  1 ;
 
@@ -2904,30 +2917,31 @@ x_window_set_selection_owner(
 	Time  time
 	)
 {
-	/*
-	 * Whether win->is_sel_owner is 1 or 0, set clipboard NULL
-	 * whenever x_window_set_selection_owner is called.
-	 */
-	 
-	if( OpenClipboard( win->my_window) == FALSE)
-	{
-		win->is_sel_owner = 0 ;
-		
-		return  0 ;
-	}
-	
 #if  0
 	kik_debug_printf( KIK_DEBUG_TAG " x_window_set_selection_owner.\n") ;
 #endif
 
-	EmptyClipboard() ;
+	if( OpenClipboard( win->my_window) == FALSE ||
+	    ( ! win->is_sel_owner &&
+	      ! x_display_own_selection( win->disp , win)))
+	{
+		return  0 ;
+	}
+
+	/*
+	 * If win->is_sel_owner is already 1, win->is_sel_owner++ prevents
+	 * WM_DESTROYCLIPBOARD by EmtpyClipboard() from calling
+	 * x_display_clear_selection().
+	 */
+	win->is_sel_owner ++ ;
+
+	EmptyClipboard() ;	/* Own clipboard. Create WM_DESTROYCLIPBOARD message */
 	SetClipboardData( CF_TEXT, NULL) ;
 	SetClipboardData( CF_UNICODETEXT, NULL) ;
+
 	CloseClipboard() ;
 
-	win->is_sel_owner = 1 ;
-	
-	return  x_display_own_selection( win->disp , win) ;
+	return  1 ;
 }
 
 int
@@ -2941,12 +2955,12 @@ x_window_xct_selection_request(
 	u_char *  g_data ;
 	size_t  len ;
 	
-	if( IsClipboardFormatAvailable( CF_TEXT) == FALSE)
+	if( IsClipboardFormatAvailable( CF_TEXT) == FALSE ||
+	    OpenClipboard( win->my_window) == FALSE)
 	{
 		return  0 ;
 	}
 
-	OpenClipboard( win->my_window) ;
 	hmem = GetClipboardData( CF_TEXT) ;
 
 	g_data = GlobalLock( hmem) ;
@@ -2984,12 +2998,12 @@ x_window_utf_selection_request(
 	u_char *  g_data ;
 	size_t  len ;
 	
-	if( IsClipboardFormatAvailable( CF_UNICODETEXT) == FALSE)
+	if( IsClipboardFormatAvailable( CF_UNICODETEXT) == FALSE ||
+	    OpenClipboard( win->my_window) == FALSE)
 	{
 		return  0 ;
 	}
 
-	OpenClipboard( win->my_window) ;
 	hmem = GetClipboardData( CF_UNICODETEXT) ;
 
 	g_data = GlobalLock( hmem) ;
