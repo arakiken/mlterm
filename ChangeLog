@@ -1,3 +1,8 @@
+2013-07-18  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_config.h.in: _BSDTYPES_DEFINED macro is added to avoid
+	  compilation error of i686-pc-mingw32-gcc at winsock2.h.
+
 2013-07-17  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/ml_pty_ssh.c: Compilation error on win32 is fixed.
