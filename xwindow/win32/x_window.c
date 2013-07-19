@@ -1667,15 +1667,16 @@ x_window_update(
 {
 	if( win->update_window_flag)
 	{
+		/* WM_APP_PAINT has been already posted. */
 		win->update_window_flag |= flag ;
-		
+
 		return  1 ;
 	}
 	else
 	{
 		win->update_window_flag = flag ;
 	}
-	
+
 	/*
 	 * WM_APP_PAINT message is posted only when update_window_flag is 0.
 	 */

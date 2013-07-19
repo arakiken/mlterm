@@ -282,6 +282,7 @@ x_event_source_process(void)
 	x_display_t **  displays ;
 	ml_term_t **  terms ;
 	u_int  num_of_terms ;
+	int *  xssh_fds ;
 	u_int  count ;
 #endif
 
@@ -302,6 +303,13 @@ x_event_source_process(void)
 	 * XXX
 	 * If pty is closed after ml_close_dead_terms() ...
 	 */
+
+#ifdef  USE_LIBSSH2
+	for( count = ml_pty_ssh_get_x11_fds( &xssh_fds) ; count > 0 ; count--)
+	{
+		ml_pty_ssh_send_recv_x11( count - 1 , 1) ;
+	}
+#endif
 
 	num_of_terms = ml_get_all_terms( &terms) ;
 

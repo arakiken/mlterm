@@ -1,11 +1,14 @@
 ver 3.2.2
 * Support SSH agent authentication and forwarding.
+* Support X11 forwarding (no xauth) on win32/libssh2.
 * Bug fixes:
   Fix configure error which --with-gui=xlib,fb option causes. (enbugged at 3.2.1)
   DECALN(ESC#8) resets the screen margins.
   Fix the cursor position in inserting RTL characters after one LTR character.
   Fix segmentation fault of libvte compatible libyrary with synaptic 0.80.
   Fix clipboard operations of copy&paste on multiple windows on win32.
+  Fix hangup on x11 forwarding.
+  Fix segmentation fault in closing the first window on win32/libssh2.
 
 ver 3.2.1
 * Support framebuffer on OpenBSD.

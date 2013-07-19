@@ -39,6 +39,7 @@ typedef struct ml_pty_pipe
 } ml_pty_pipe_t ;
 
 
+static DWORD  main_tid ;
 static HANDLE *  child_procs ;		/* Notice: The first element is "ADDED_CHILD" event */
 static DWORD  num_of_child_procs ;
 
@@ -137,10 +138,8 @@ wait_pty_read(
 			break ;
 		}
 
-		if( pty->pty.pty_listener && pty->pty.pty_listener->read_ready)
-		{
-			(*pty->pty.pty_listener->read_ready)( pty->pty.pty_listener->self) ;
-		}
+		/* Exit GetMessage() in x_display_receive_next_event(). */
+		PostThreadMessage( main_tid , WM_APP , 0 , 0) ;
 
 		WaitForSingleObject( pty->rd_ev, INFINITE) ;
 		
@@ -589,6 +588,8 @@ ml_pty_pipe_new(
 
 	if( num_of_child_procs == 0)
 	{
+		main_tid = GetCurrentThreadId() ;
+
 		/*
 		 * Initialize child_procs array.
 		 */

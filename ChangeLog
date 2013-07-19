@@ -1,3 +1,15 @@
+2013-07-19  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_display.c:
+	  Not only GetMessage() but also PeekMessage() is called on win32 GDI.
+
+	* ml_pty.h, ml_pty_pipewin32.c, libssh2/ml_pty_ssh.c, x_screen.c:
+	  PostThreadMessage() is used instead of ml_pty_listener_t::read_ready.
+
+	* libssh2/ml_pty_ssh.c:
+	  - X11 forwarding is supported on win32.
+	  - The shortage of alloca() memory for xauth command is fixed.
+
 2013-07-18  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_config.h.in: _BSDTYPES_DEFINED macro is added to avoid

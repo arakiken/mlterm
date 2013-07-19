@@ -19,11 +19,7 @@ typedef struct  ml_pty_event_listener
 	void *  self ;
 
 	/* Called when ml_pty_delete. */
-  	void  (*closed)( void *) ;
-#ifdef  USE_WIN32API
-  	/* Called when ml_read_pty() is ready. */
-  	void  (*read_ready)( void *) ;
-#endif
+	void  (*closed)( void *) ;
 
 } ml_pty_event_listener_t ;
 

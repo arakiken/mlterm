@@ -87,7 +87,7 @@
 
 #undef  const
 
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) && ! defined(_BSDTYPES_DEFINED)
 /* XXX winsock2.h typedefs u_char, u_short, u_int if _BSDTYPES_DEFINED is undefined. */
 #define  _BSDTYPES_DEFINED
 #endif

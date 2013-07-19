@@ -7433,19 +7433,6 @@ pty_closed(
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
 
-#ifdef  USE_WIN32API
-static void
-pty_read_ready(
-  	void *  p
-  	)
-{
-	x_screen_t *  screen = p ;
-
-	/* Occur dummy event(WM_USER_PAINT) to exit GetMessage() loop. */
-	x_window_update( &screen->window, 0) ;
-}
-#endif
-
 
 /* --- global functions --- */
 
@@ -7621,9 +7608,6 @@ x_screen_new(
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
-#ifdef  USE_WIN32API
-	screen->pty_listener.read_ready = pty_read_ready ;
-#endif
 
 	if( screen->term)
 	{

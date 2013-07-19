@@ -345,7 +345,6 @@ x_display_receive_next_event(
 	MSG  msg ;
 
 #ifdef  USE_WIN32API
-
 	/* 0: WM_QUIT, -1: Error */
 	if( GetMessage( &msg , NULL , 0 , 0) <= 0)
 	{
@@ -353,10 +352,8 @@ x_display_receive_next_event(
 	}
 
 	TranslateMessage( &msg) ;
-	
 	DispatchMessage( &msg) ;
-  
-#else
+#endif
 
 	while( PeekMessage( &msg , NULL , 0 , 0 , PM_REMOVE))
 	{
@@ -366,11 +363,8 @@ x_display_receive_next_event(
 		}
 
 		TranslateMessage( &msg) ;
-		
 		DispatchMessage( &msg) ;
 	}
-	
-#endif	/* USE_WIN32API */
 
 	return  1 ;
 }

@@ -14,9 +14,7 @@
 #include  <kiklib/kik_unistd.h>		/* kik_usleep */
 #include  <kiklib/kik_dialog.h>
 #include  <kiklib/kik_net.h>		/* getaddrinfo/socket/connect/sockaddr_un */
-#ifndef  USE_WIN32API
 #include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
-#endif
 
 #if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include  <pthread.h>
@@ -87,14 +85,12 @@ typedef struct scp
 
 } scp_t ;
 
-#ifndef  USE_WIN32API
 typedef struct x11_channel
 {
 	LIBSSH2_CHANNEL *  channel ;
 	ssh_session_t *  session ;
 
 } x11_channel_t ;
-#endif	/* USE_WIN32API */
 
 
 /* --- static variables --- */
@@ -106,6 +102,7 @@ static u_int  num_of_sessions = 0 ;
 
 #ifdef  USE_WIN32API
 static HANDLE  rd_ev ;
+static DWORD  main_tid ;
 #endif
 
 static const char *  cipher_list ;
@@ -114,12 +111,10 @@ static u_int  keepalive_msec ;
 static u_int  keepalive_msec_left ;
 
 static int  use_x11_forwarding ;
-#ifndef  USE_WIN32API
 static int  display_port = -1 ;
 static int  x11_fds[MAX_NUM_OF_X11] ;
 static u_int  num_of_x11_fds ;
 static x11_channel_t  x11_channels[MAX_NUM_OF_X11] ;
-#endif
 
 static int  auth_agent_is_available ;
 
@@ -133,7 +128,6 @@ wait_pty_read(
 	LPVOID thr_param
   	)
 {
-	ml_pty_t *  pty = (ml_pty_t*)thr_param ;
 	u_int  count ;
 	struct timeval  tval ;
 	fd_set  read_fds ;
@@ -160,12 +154,19 @@ wait_pty_read(
 			}
 		}
 
+		for( count = 0 ; count < num_of_x11_fds ; count++)
+		{
+			FD_SET( x11_fds[count] , &read_fds) ;
+			if( x11_fds[count] > maxfd)
+			{
+				maxfd = x11_fds[count] ;
+			}
+		}
+
 		if( select( maxfd + 1 , &read_fds , NULL , NULL , &tval) > 0)
 		{
-			if( pty->pty_listener && pty->pty_listener->read_ready)
-			{
-				(*pty->pty_listener->read_ready)( pty->pty_listener->self) ;
-			}
+			/* Exit GetMessage() in x_display_receive_next_event(). */
+			PostThreadMessage( main_tid , WM_APP , 0 , 0) ;
 
 			WaitForSingleObject( rd_ev, INFINITE) ;
 		}
@@ -384,7 +385,6 @@ ssh_connect(
 			LIBSSH2_METHOD_CRYPT_SC , cipher_list) ;
 	}
 
-#ifndef  USE_WIN32API
 	if( use_x11_forwarding)
 	{
 		/* LIBSSH2_FLAG_COMPRESS doesn't work with X11 forwarding. */
@@ -400,7 +400,6 @@ ssh_connect(
 	 * and defines LIBSSH2_FIX_DECOMPRESS_BUG macro.
 	 */
 	else
-#endif
 #endif
 	{
 		libssh2_session_flag( session->obj , LIBSSH2_FLAG_COMPRESS , 1) ;
@@ -1138,12 +1137,8 @@ scp_thread(
 			ml_write_to_pty( &scp->pty_ssh->pty , "|\r|" , 3) ;
 
 		#ifdef  USE_WIN32API
-			if( scp->pty_ssh->pty.pty_listener &&
-			    scp->pty_ssh->pty.pty_listener->read_ready)
-			{
-				(*scp->pty_ssh->pty.pty_listener->read_ready)(
-					scp->pty_ssh->pty.pty_listener->self) ;
-			}
+			/* Exit GetMessage() in x_display_receive_next_event(). */
+			PostThreadMessage( main_tid , WM_APP , 0 , 0) ;
 		#endif
 		}
 	}
@@ -1173,8 +1168,6 @@ scp_thread(
 }
 
 
-#ifndef  USE_WIN32API
-
 #if  0
 #define  TRUSTED
 #endif
@@ -1187,15 +1180,20 @@ setup_x11(
 	char *  display ;
 	char *  display_port_str ;
 	char *  p ;
-	char *  cmd ;
-	char  line[512] ;
 	char *  proto ;
 	char *  data ;
+#ifndef  USE_WIN32API
+	char *  cmd ;
 	FILE *  fp ;
+	char  line[512] ;
+#ifndef  TRUSTED
+	char *  xauth_file ;
+#endif
+#endif
 
 	if( ! ( display = getenv( "DISPLAY")))
 	{
-		return  0 ;
+		display = ":0.0" ;
 	}
 
 	if( strncmp( display , "unix:" , 5) == 0)
@@ -1226,20 +1224,22 @@ setup_x11(
 	proto = NULL ;
 	data = NULL ;
 
-	if( ( cmd = alloca( /* 39 */ 61 + strlen( display) + 1)))
+#ifndef  USE_WIN32API
+#ifdef  TRUSTED
+	if( ( cmd = alloca( 24 + strlen( display) + 1)))
 	{
-	#ifdef  TRUSTED
 		sprintf( cmd , "xauth list %s 2> /dev/null" , display) ;
-	#else
-		char *  xauth_file ;
-
-		if( ( xauth_file = kik_get_user_rc_path( "xauthfile")))
+#else
+	if( ( xauth_file = kik_get_user_rc_path( "mlterm/xauthfile")))
+	{
+		if( ( cmd = alloca( 61 + strlen(xauth_file) + strlen( display) + 1)))
 		{
 			sprintf( cmd , "xauth -f %s generate %s MIT-MAGIC-COOKIE-1 "
 				       "untrusted 2> /dev/null" , xauth_file , display) ;
 			system( cmd) ;
-			sprintf( cmd , "xauth -f %s list %s 2> /dev/null" , xauth_file , display) ;
-	#endif
+			sprintf( cmd , "xauth -f %s list %s 2> /dev/null" ,
+					xauth_file , display) ;
+#endif
 
 			if( ( fp = popen( cmd , "r")))
 			{
@@ -1267,10 +1267,12 @@ setup_x11(
 
 	#ifndef  TRUSTED
 			unlink( xauth_file) ;
-			free( xauth_file) ;
 		}
+
+		free( xauth_file) ;
 	#endif
 	}
+#endif
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " libssh2_channel_x11_req_ex (with xauth %s %s)\n" ,
@@ -1290,19 +1292,19 @@ x11_callback(
 	)
 {
 	u_int  count ;
+	int  display_sock = -1 ;
+#ifdef  USE_WIN32API
+	struct sockaddr_in  addr ;
+#else
 	struct sockaddr_un  addr ;
-	int  display_sock ;
-
-	if( display_port == -1 || num_of_x11_fds >= MAX_NUM_OF_X11)
-	{
-		goto  error ;
-	}
+#endif
 
 	for( count = 0 ; ; count++)
 	{
 		if( count == num_of_sessions)
 		{
-			goto  error ;
+			/* XXX count must not reache num_of_sessions. */
+			return ;
 		}
 
 		if( session == sessions[count]->obj)
@@ -1311,6 +1313,22 @@ x11_callback(
 		}
 	}
 
+	if( display_port == -1 || num_of_x11_fds >= MAX_NUM_OF_X11)
+	{
+		goto  error ;
+	}
+
+#ifdef  USE_WIN32API
+	if( ( display_sock = socket( AF_INET , SOCK_STREAM , 0)) < 0)
+	{
+		goto  error ;
+	}
+
+	memset( &addr , 0 , sizeof(addr)) ;
+	addr.sin_family = AF_INET ;
+	addr.sin_port = htons(6000) ;
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK) ;
+#else
 	if( ( display_sock = socket( AF_UNIX , SOCK_STREAM , 0)) < 0)
 	{
 		goto  error ;
@@ -1320,34 +1338,40 @@ x11_callback(
 	addr.sun_family = AF_UNIX ;
 	snprintf( addr.sun_path , sizeof(addr.sun_path) ,
 		"/tmp/.X11-unix/X%d" , display_port) ;
+#endif
 
-	if( connect( display_sock , (struct sockaddr *)&addr , sizeof(addr)) != -1)
+	if( connect( display_sock , (struct sockaddr *)&addr , sizeof(addr)) < 0)
 	{
-		fcntl( display_sock , F_SETFL , O_NONBLOCK|fcntl( display_sock , F_GETFL , 0)) ;
+	error:
+		kik_msg_printf( "Failed to connect X Server.\n") ;
+		closesocket( display_sock) ;
+		display_sock = -1 ;
 
-		sessions[count]->ref_count ++ ;
-
-		x11_channels[num_of_x11_fds].channel = channel ;
-		x11_channels[num_of_x11_fds].session = sessions[count] ;
-		x11_fds[num_of_x11_fds++] = display_sock ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG
-			" x11 forwarding %d (display %d <=> ssh %p) started. => channel num %d\n" ,
-			num_of_x11_fds - 1 , display_sock , channel , num_of_x11_fds) ;
-	#endif
-
-		/* Successfully setup x11 forwarding. */
-
-		return ;
+		/* Don't call libssh2_channel_free() which causes segfault here. */
 	}
 	else
 	{
-		closesocket( display_sock) ;
+	#ifdef  USE_WIN32API
+		u_long  val ;
+
+		val = 1 ;
+		ioctlsocket( display_sock , FIONBIO , &val) ;
+	#else
+		fcntl( display_sock , F_SETFL , O_NONBLOCK|fcntl( display_sock , F_GETFL , 0)) ;
+	#endif
 	}
 
-error:
-	libssh2_channel_free( channel) ;
+	sessions[count]->ref_count ++ ;
+
+	x11_channels[num_of_x11_fds].channel = channel ;
+	x11_channels[num_of_x11_fds].session = sessions[count] ;
+	x11_fds[num_of_x11_fds++] = display_sock ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG
+		" x11 forwarding %d (display %d <=> ssh %p) started. => channel num %d\n" ,
+		num_of_x11_fds - 1 , display_sock , channel , num_of_x11_fds) ;
+#endif
 }
 
 static int
@@ -1359,7 +1383,7 @@ xserver_to_ssh(
 	char  buf[8192] ;
 	ssize_t  len ;
 
-	while( ( len = read( display , buf , sizeof(buf))) > 0)
+	while( ( len = recv( display , buf , sizeof(buf) , 0)) > 0)
 	{
 		ssize_t  w_len ;
 		char *  p ;
@@ -1417,7 +1441,7 @@ ssh_to_xserver(
 		char *  p ;
 
 		p = buf ;
-		while( ( w_len = write( display , p , len)) < len)
+		while( ( w_len = send( display , p , len , 0)) < len)
 		{
 			if( w_len > 0)
 			{
@@ -1448,8 +1472,6 @@ ssh_to_xserver(
 		return  1 ;
 	}
 }
-
-#endif	/* USE_WIN32API */
 
 
 /* --- global functions --- */
@@ -1519,7 +1541,7 @@ ml_pty_ssh_new(
 		if( libssh2_channel_request_auth_agent( pty->channel) != 0)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Failed to agent forwarding.\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG " Agent forwarding failed.\n") ;
 		#endif
 		}
 
@@ -1566,23 +1588,19 @@ ml_pty_ssh_new(
 	if( libssh2_channel_request_pty( pty->channel , term ? term : "xterm"))
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Failed requesting pty\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to request pty\n") ;
 	#endif
 
 		goto  error3 ;
 	}
 
-#ifndef  USE_WIN32API
 	if( use_x11_forwarding)
 	{
 		if( ! setup_x11( pty->channel))
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Failed requesting x11\n") ;
-		#endif
+			kik_debug_printf( "X11 forwarding failed.\n") ;
 		}
 	}
-#endif
 
 	if( cmd_path)
 	{
@@ -1670,7 +1688,8 @@ ml_pty_ssh_new(
 		if( GetLastError() != ERROR_ALREADY_EXISTS)
 		{
 			/* Launch the thread that wait for receiving data from pty. */
-			if( ! ( thrd = _beginthreadex( NULL , 0 , wait_pty_read , pty , 0 , &tid)))
+			if( ! ( thrd = _beginthreadex( NULL , 0 , wait_pty_read ,
+						NULL , 0 , &tid)))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
@@ -1685,6 +1704,8 @@ ml_pty_ssh_new(
 		{
 			/* java/MLTerm.java has already watched pty. */
 		}
+
+		main_tid = GetCurrentThreadId() ;
 	}
 #endif
 
@@ -1942,13 +1963,11 @@ ml_pty_ssh_get_x11_fds(
 			ml_pty_ssh_send_recv_x11( idx , 0) ;
 		}
 	}
+#endif
 
 	*fds = x11_fds ;
 
 	return  num_of_x11_fds ;
-#else
-	return  0 ;
-#endif
 }
 
 int
@@ -1957,8 +1976,8 @@ ml_pty_ssh_send_recv_x11(
 	int  bidirection
 	)
 {
-#ifndef  USE_WIN32API
-	if( ! ( ( ! bidirection ||
+	if( x11_fds[idx] == -1 ||	/* Failed to connect X server */
+	    ! ( ( ! bidirection ||
 	          xserver_to_ssh( x11_channels[idx].channel , x11_fds[idx])) &&
 	        ssh_to_xserver( x11_channels[idx].channel , x11_fds[idx])))
 	{
@@ -1983,7 +2002,4 @@ ml_pty_ssh_send_recv_x11(
 	}
 
 	return  1 ;
-#else
-	return  0 ;
-#endif
 }
