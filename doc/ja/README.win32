@@ -4,8 +4,8 @@ comment $Id$
 WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.17
-            + libssh2 1.4.1(win32 native)
+  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.20
+            + libssh2 1.4.3(win32 native)
             + GTK+ 2.12.9(win32 native)
             + Fribidi 0.19.2(win32 native)
 

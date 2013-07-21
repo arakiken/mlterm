@@ -4,8 +4,7 @@
 
 #include  "kik_dlfcn.h"
 
-#include  <stdlib.h>	/* atexit */
-#include  "kik_mem.h"	/* realloc */
+#include  <stdlib.h>	/* atexit, realloc(Don't include kik_mem.h) */
 
 
 /* --- static variables --- */

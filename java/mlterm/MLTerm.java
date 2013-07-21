@@ -34,12 +34,14 @@ public class MLTerm extends StyledText
 	private int  numOfScrolledOutLines = 0 ;
 	private int  scrolledOutCache = 0 ;
 
-	static private Color[]  colors = null ;
-	static private RedrawRegion  region = null ;
-	static private Font  font = null ;
+	private static Color[]  colors = null ;
+	private static RedrawRegion  region = null ;
+	private static Font  font = null ;
 
 	private static MLTermPty[]  pooledPtys = new MLTermPty[32] ;
 	private static int  numOfPooledPtys = 0 ;
+
+	private static boolean  readyReadPty = false ;
 
 	private boolean  pushPty( MLTermPty  p)
 	{
@@ -1155,25 +1157,38 @@ public class MLTerm extends StyledText
 				{
 					while( true)
 					{
-						synchronized(display)
+						display.wake() ;
+
+						if( readyReadPty)
 						{
-							try
+							if( false)
 							{
-								/* blocking until display.notifyAll() is called. */
-								display.wait() ;
+								Thread.yield() ;
 							}
-							catch( InterruptedException  e)
+							else
 							{
+								try
+								{
+									Thread.sleep(1) ;
+								}
+								catch( InterruptedException  e)
+								{
+								}
+							}
+
+							if( readyReadPty)
+							{
+								continue ;
 							}
 						}
 
 						if( ! MLTermPty.waitForReading() /* block until pty is ready to be read. */
-                            || display.isDisposed())
+							|| display.isDisposed())
 						{
 							break ;
 						}
 
-						display.wake() ;
+						readyReadPty = true ;
 					}
 				}
 			})).start() ;
@@ -1256,6 +1271,8 @@ public class MLTerm extends StyledText
 
 	public boolean  updatePty()
 	{
+		readyReadPty = false ;
+
 		if( ! isActive())
 		{
 			return  false ;
@@ -1580,19 +1597,10 @@ public class MLTerm extends StyledText
 
 			if( ! display.readAndDispatch())
 			{
-				synchronized(display)
-				{
-					display.notifyAll() ;
-				}
 				display.sleep() ;
 			}
 		}
 
 		display.dispose() ;
-
-		synchronized(display)
-		{
-			display.notifyAll() ;
-		}
 	}
 }

@@ -86,6 +86,9 @@ receive_next_event(void)
 	u_int  num_of_displays ;
 
 	num_of_terms = ml_get_all_terms( &terms) ;
+#ifdef  USE_LIBSSH2
+	num_of_xssh_fds = ml_pty_ssh_get_x11_fds( &xssh_fds) ;
+#endif
 
 	while( 1)
 	{
@@ -99,11 +102,30 @@ receive_next_event(void)
 	#endif
 		tval.tv_sec = 0 ;
 
+		displays = x_get_opened_displays( &num_of_displays) ;
+
+	#ifdef  USE_LIBSSH2
+		if( ( ret = ml_pty_ssh_poll( &read_fds)) > 0)
+		{
+			break ;
+		}
+	#endif
+
 		maxfd = 0 ;
 		FD_ZERO( &read_fds) ;
 
-		displays = x_get_opened_displays( &num_of_displays) ;
-		
+	#ifdef  USE_LIBSSH2
+		for( count = 0 ; count < num_of_xssh_fds ; count ++)
+		{
+			FD_SET( xssh_fds[count] , &read_fds) ;
+
+			if( xssh_fds[count] > maxfd)
+			{
+				maxfd = xssh_fds[count] ;
+			}
+		}
+	#endif
+
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{
 			x_display_receive_next_event( displays[count]) ;
@@ -128,19 +150,6 @@ receive_next_event(void)
 				maxfd = ptyfd ;
 			}
 		}
-		
-	#ifdef  USE_LIBSSH2
-		num_of_xssh_fds = ml_pty_ssh_get_x11_fds( &xssh_fds) ;
-
-		for( count = 0 ; count < num_of_xssh_fds ; count++)
-		{
-			FD_SET( xssh_fds[count] , &read_fds) ;
-			if( xssh_fds[count] > maxfd)
-			{
-				maxfd = xssh_fds[count] ;
-			}
-		}
-	#endif
 
 		for( count = 0 ; count < num_of_additional_fds ; count++)
 		{
@@ -199,9 +208,6 @@ receive_next_event(void)
 	 * Processing order should be as follows.
 	 *
 	 * X Window -> PTY -> additional_fds
-	 *
-	 * (ml_pty_ssh_send_recv_x11() should be called after ml_term_parse_vt100_sequence()
-	 * which can process x11 forwarding channel packets.)
 	 */
 
 	for( count = 0 ; count < num_of_displays ; count ++)
@@ -212,6 +218,18 @@ receive_next_event(void)
 		}
 	}
 
+#ifdef  USE_LIBSSH2
+	/*
+	 * ml_pty_ssh_send_recv_x11() should be called before
+	 * ml_term_parse_vt100_sequence() where xssh_fds can be deleted.
+	 */
+	for( count = num_of_xssh_fds ; count > 0 ; count--)
+	{
+		ml_pty_ssh_send_recv_x11( count - 1 ,
+			FD_ISSET( xssh_fds[count - 1] , &read_fds)) ;
+	}
+#endif
+
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
 		if( FD_ISSET( ml_term_get_master_fd( terms[count]) , &read_fds))
@@ -219,14 +237,6 @@ receive_next_event(void)
 			ml_term_parse_vt100_sequence( terms[count]) ;
 		}
 	}
-
-#ifdef  USE_LIBSSH2
-	for( count = num_of_xssh_fds ; count > 0 ; count--)
-	{
-		ml_pty_ssh_send_recv_x11( count - 1 ,
-			FD_ISSET( xssh_fds[count - 1] , &read_fds)) ;
-	}
-#endif
 
 	for( count = 0 ; count < num_of_additional_fds ; count++)
 	{
@@ -240,8 +250,6 @@ receive_next_event(void)
 			}
 		}
 	}
-
-	return ;
 }
 
 #endif

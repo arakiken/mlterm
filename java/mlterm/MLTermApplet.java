@@ -118,20 +118,11 @@ public class  MLTermApplet extends Applet
 
 							if( ! display.readAndDispatch())
 							{
-								synchronized(display)
-								{
-									display.notifyAll() ;
-								}
 								display.sleep() ;
 							}
 						}
 
 						display.dispose() ;
-
-						synchronized(display)
-						{
-							display.notifyAll() ;
-						}
 
 						remove( canvas) ;
 					}

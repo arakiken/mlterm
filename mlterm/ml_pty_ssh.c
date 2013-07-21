@@ -40,6 +40,7 @@ static void  (*ssh_set_cipher_list)( const char *) ;
 static void  (*ssh_set_keepalive_interval)( u_int) ;
 static int  (*ssh_keepalive)( u_int) ;
 static void  (*ssh_set_use_x11_forwarding)( int) ;
+static int  (*ssh_poll)( void *) ;
 static u_int  (*ssh_get_x11_fds)( int **) ;
 static int  (*ssh_send_recv_x11)( int , int) ;
 
@@ -74,6 +75,7 @@ load_library(void)
 	ssh_keepalive = kik_dl_func_symbol( handle , "ml_pty_ssh_keepalive") ;
 	ssh_set_use_x11_forwarding = kik_dl_func_symbol( handle ,
 					"ml_pty_ssh_set_use_x11_forwarding") ;
+	ssh_poll = kik_dl_func_symbol( handle , "ml_pty_ssh_poll") ;
 	ssh_get_x11_fds = kik_dl_func_symbol( handle , "ml_pty_ssh_get_x11_fds") ;
 	ssh_send_recv_x11 = kik_dl_func_symbol( handle , "ml_pty_ssh_send_recv_x11") ;
 }
@@ -210,6 +212,21 @@ ml_pty_ssh_set_use_x11_forwarding(
 	else
 	{
 		return ;
+	}
+}
+
+int
+ml_pty_ssh_poll(
+	void *  fds
+	)
+{
+	if( ssh_poll)
+	{
+		return  (*ssh_poll)( fds) ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 

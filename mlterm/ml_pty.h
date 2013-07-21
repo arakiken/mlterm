@@ -67,6 +67,8 @@ int  ml_pty_ssh_keepalive( u_int  spent_msec) ;
 
 void  ml_pty_ssh_set_use_x11_forwarding( int  use_x11_forwarding) ;
 
+int  ml_pty_ssh_poll( void *  fds) ;
+
 u_int  ml_pty_ssh_get_x11_fds( int **  fds) ;
 
 int  ml_pty_ssh_send_recv_x11( int  idx , int  bidirection) ;

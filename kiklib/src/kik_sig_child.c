@@ -41,7 +41,7 @@ sig_child(
 	)
 {
 	pid_t  pid ;
-	
+
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " SIG CHILD received.\n") ;
 #endif
@@ -182,7 +182,7 @@ kik_trigger_sig_child(
   	)
 {
 	u_int  count ;
-	
+
 	for( count = 0 ; count < num_of_listeners ; count ++)
 	{
 		(*listeners[count].exited)( listeners[count].self , pid) ;

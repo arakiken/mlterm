@@ -780,7 +780,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 	{
 		kik_conf_t *  conf ;
 
-		kik_init_prog( "mlterm" , "3.0.11") ;
+		kik_init_prog( "mlterm" , "3.2.1") ;
 		kik_set_sys_conf_dir( CONFIG_PATH) ;
 		kik_locale_init( "") ;
 		kik_sig_child_init() ;
@@ -1297,6 +1297,13 @@ Java_mlterm_MLTermPty_waitForReading(
 
 	while( 1)
 	{
+	#ifdef  USE_LIBSSH2
+		if( ml_pty_ssh_poll( &read_fds) > 0)
+		{
+			return  JNI_TRUE ;
+		}
+	#endif
+
 		maxfd = 0 ;
 		FD_ZERO( &read_fds) ;
 
@@ -1339,16 +1346,6 @@ Java_mlterm_MLTermPty_waitForReading(
 		}
 	}
 
-#ifdef  USE_LIBSSH2
-	for( count = 0 ; count < num_of_xssh_fds ; count++)
-	{
-		if( FD_ISSET( xssh_fds[count] , &read_fds))
-		{
-			ml_pty_ssh_send_recv_x11( count) ;
-		}
-	}
-#endif
-
 	return  JNI_TRUE ;
 #endif
 }
@@ -1386,6 +1383,16 @@ Java_mlterm_MLTermPty_nativeRead(
 	if( nativeObj && nativeObj->term)
 	{
 		int  ret ;
+
+	#ifdef  USE_LIBSSH2
+		u_int  count ;
+		int *  xssh_fds ;
+
+		for( count = ml_pty_ssh_get_x11_fds( &xssh_fds) ; count > 0 ; count--)
+		{
+			ml_pty_ssh_send_recv_x11( count - 1 , 1) ;
+		}
+	#endif
 
 		/* For event listeners of ml_term_t. */
 		nativeObj->env = env ;

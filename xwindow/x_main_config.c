@@ -1309,7 +1309,7 @@ x_main_config_init(
 	{
 		u_int  margin ;
 
-		if( kik_str_to_uint( &margin , value) && margin <= 255)
+		if( kik_str_to_uint( &margin , value) && margin <= 127)
 		{
 			main_config->margin = margin ;
 		}

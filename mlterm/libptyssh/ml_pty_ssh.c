@@ -43,8 +43,6 @@
 #define  LIBSSH2_ERROR_SOCKET_RECV  -43
 #endif
 
-#define  MAX_NUM_OF_X11  10
-
 
 #if  0
 #define  __DEBUG
@@ -61,7 +59,12 @@ typedef struct ssh_session
 
 	int  doing_scp ;
 
-	u_int  ref_count ;
+	LIBSSH2_CHANNEL **  pty_channels ;
+	u_int  num_of_ptys ;
+
+	int *  x11_fds ;
+	LIBSSH2_CHANNEL **  x11_channels ;
+	u_int  num_of_x11 ;
 
 } ssh_session_t ;
 
@@ -85,13 +88,6 @@ typedef struct scp
 
 } scp_t ;
 
-typedef struct x11_channel
-{
-	LIBSSH2_CHANNEL *  channel ;
-	ssh_session_t *  session ;
-
-} x11_channel_t ;
-
 
 /* --- static variables --- */
 
@@ -112,9 +108,6 @@ static u_int  keepalive_msec_left ;
 
 static int  use_x11_forwarding ;
 static int  display_port = -1 ;
-static int  x11_fds[MAX_NUM_OF_X11] ;
-static u_int  num_of_x11_fds ;
-static x11_channel_t  x11_channels[MAX_NUM_OF_X11] ;
 
 static int  auth_agent_is_available ;
 
@@ -147,19 +140,21 @@ wait_pty_read(
 
 		for( count = 0 ; count < num_of_sessions ; count++)
 		{
+			u_int  count2 ;
+
 			FD_SET( sessions[count]->sock , &read_fds) ;
 			if( sessions[count]->sock > maxfd)
 			{
 				maxfd = sessions[count]->sock ;
 			}
-		}
 
-		for( count = 0 ; count < num_of_x11_fds ; count++)
-		{
-			FD_SET( x11_fds[count] , &read_fds) ;
-			if( x11_fds[count] > maxfd)
+			for( count2 = 0 ; count2 < sessions[count]->num_of_x11 ; count2++)
 			{
-				maxfd = x11_fds[count] ;
+				FD_SET( sessions[count]->x11_fds[count2] , &read_fds) ;
+				if( sessions[count]->x11_fds[count2] > maxfd)
+				{
+					maxfd = sessions[count]->x11_fds[count2] ;
+				}
 			}
 		}
 
@@ -192,7 +187,6 @@ wait_pty_read(
 }
 
 #endif	/* USE_WIN32API */
-
 
 static void
 kbd_callback(
@@ -259,13 +253,12 @@ ssh_connect(
 
 	if( ( session = ml_search_ssh_session( host , port , user)))
 	{
-		session->ref_count ++ ;
 		libssh2_session_set_blocking( session->obj , 1) ;
 
 		return  session ;
 	}
 
-	if( ! ( session = malloc( sizeof(ssh_session_t))))
+	if( ! ( session = calloc( 1 , sizeof(ssh_session_t))))
 	{
 		return  NULL ;
 	}
@@ -408,7 +401,7 @@ ssh_connect(
 	if( libssh2_session_handshake( session->obj , session->sock) != 0)
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " libssh2_session_startup failed.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " libssh2_session_handshake failed.\n") ;
 	#endif
 
 		goto  error4 ;
@@ -658,16 +651,22 @@ ssh_connect(
 	#endif
 	}
 
-	if( ! ( sessions = realloc( sessions , sizeof(ssh_session_t) * (++num_of_sessions))))
 	{
-		goto  error4 ;
+		void *  p ;
+
+		if( ! ( p = realloc( sessions , sizeof(ssh_session_t) * (num_of_sessions + 1))))
+		{
+			goto  error4 ;
+		}
+
+		sessions = p ;
 	}
 
 	session->host = strdup( host) ;
 	session->port = strdup( port) ;
 	session->user = strdup( user) ;
-	session->ref_count = 1 ;
-	sessions[num_of_sessions - 1] = session ;
+
+	sessions[num_of_sessions ++] = session ;
 
 	return  session ;
 
@@ -690,6 +689,11 @@ error1:
 	return  NULL ;
 }
 
+static void  close_x11( ssh_session_t *  session , int  idx) ;
+
+/*
+ * Call with in blocking mode.
+ */
 static int
 ssh_disconnect(
 	ssh_session_t *  session
@@ -697,12 +701,12 @@ ssh_disconnect(
 {
 	u_int  count ;
 
-	if( -- session->ref_count > 0)
+	if( session->num_of_ptys > 0)
 	{
 		/* In case this function is called from ml_pty_new. */
 		libssh2_session_set_blocking( session->obj , 0) ;
 
-		return  1 ;
+		return  0 ;
 	}
 
 	for( count = 0 ; count < num_of_sessions ; count++)
@@ -721,6 +725,11 @@ ssh_disconnect(
 		}
 	}
 
+	for( count = session->num_of_x11 ; count > 0 ; count--)
+	{
+		close_x11( session , count - 1) ;
+	}
+
 	libssh2_session_disconnect( session->obj , "Normal shutdown, Thank you for playing") ;
 	libssh2_session_free( session->obj) ;
 	closesocket( session->sock) ;
@@ -733,6 +742,9 @@ ssh_disconnect(
 	free( session->host) ;
 	free( session->port) ;
 	free( session->user) ;
+	free( session->pty_channels) ;
+	free( session->x11_fds) ;
+	free( session->x11_channels) ;
 	free( session) ;
 
 #ifdef  DEBUG
@@ -747,9 +759,25 @@ final(
 	ml_pty_t *  pty
 	)
 {
-	libssh2_session_set_blocking( ((ml_pty_ssh_t*)pty)->session->obj , 1) ;
+	ssh_session_t *  session ;
+	u_int  count ;
+
+	session = ((ml_pty_ssh_t*)pty)->session ;
+
+	libssh2_session_set_blocking( session->obj , 1) ;
+
+	for( count = 0 ; count < session->num_of_ptys ; count++)
+	{
+		if( session->pty_channels[count] == ((ml_pty_ssh_t*)pty)->channel)
+		{
+			session->pty_channels[count] =
+				session->pty_channels[--session->num_of_ptys] ;
+			break ;
+		}
+	}
+
 	libssh2_channel_free( ((ml_pty_ssh_t*)pty)->channel) ;
-	ssh_disconnect( ((ml_pty_ssh_t*)pty)->session) ;
+	ssh_disconnect( session) ;
 
 	return  1 ;
 }
@@ -1284,7 +1312,7 @@ setup_x11(
 
 static void
 x11_callback(
-	LIBSSH2_SESSION *  session ,
+	LIBSSH2_SESSION *  session_obj ,
 	LIBSSH2_CHANNEL *  channel ,
 	char *  shost ,
 	int  sport ,
@@ -1292,6 +1320,8 @@ x11_callback(
 	)
 {
 	u_int  count ;
+	ssh_session_t *  session ;
+	void *  p ;
 	int  display_sock = -1 ;
 #ifdef  USE_WIN32API
 	struct sockaddr_in  addr ;
@@ -1307,13 +1337,32 @@ x11_callback(
 			return ;
 		}
 
-		if( session == sessions[count]->obj)
+		if( session_obj == sessions[count]->obj)
 		{
+			session = sessions[count] ;
 			break ;
 		}
 	}
 
-	if( display_port == -1 || num_of_x11_fds >= MAX_NUM_OF_X11)
+	if( ! ( p = realloc( session->x11_fds ,
+			(session->num_of_x11 + 1) * sizeof(int))))
+	{
+		/* XXX channel resource is leaked. */
+		return ;
+	}
+
+	session->x11_fds = p ;
+
+	if( ! ( p = realloc( session->x11_channels ,
+			(session->num_of_x11 + 1) * sizeof(LIBSSH2_CHANNEL*))))
+	{
+		/* XXX channel resource is leaked. */
+		return ;
+	}
+
+	session->x11_channels = p ;
+
+	if( display_port == -1)
 	{
 		goto  error ;
 	}
@@ -1361,17 +1410,37 @@ x11_callback(
 	#endif
 	}
 
-	sessions[count]->ref_count ++ ;
-
-	x11_channels[num_of_x11_fds].channel = channel ;
-	x11_channels[num_of_x11_fds].session = sessions[count] ;
-	x11_fds[num_of_x11_fds++] = display_sock ;
+	session->x11_channels[session->num_of_x11] = channel ;
+	session->x11_fds[session->num_of_x11++] = display_sock ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG
 		" x11 forwarding %d (display %d <=> ssh %p) started. => channel num %d\n" ,
-		num_of_x11_fds - 1 , display_sock , channel , num_of_x11_fds) ;
+		session->num_of_x11 - 1 , display_sock , channel , session->num_of_x11) ;
 #endif
+}
+
+static void
+close_x11(
+	ssh_session_t *  session ,
+	int  idx
+	)
+{
+	closesocket( session->x11_fds[idx]) ;
+	while( libssh2_channel_free( session->x11_channels[idx]) == LIBSSH2_ERROR_EAGAIN) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG
+		" x11 forwarding %d (display %d <=> ssh %p) stopped. => channel num %d\n" ,
+		idx , session->x11_fds[idx] , session->x11_channels[idx] ,
+		session->num_of_x11 - 1) ;
+#endif
+
+	if( -- session->num_of_x11 > 0)
+	{
+		session->x11_channels[idx] = session->x11_channels[session->num_of_x11] ;
+		session->x11_fds[idx] = session->x11_fds[session->num_of_x11] ;
+	}
 }
 
 static int
@@ -1495,6 +1564,7 @@ ml_pty_ssh_new(
 	char *  host ;
 	char *  port ;
 	char *  term ;
+	void *  p ;
 
 	if( ( pty = calloc( 1 , sizeof( ml_pty_ssh_t))) == NULL)
 	{
@@ -1524,6 +1594,14 @@ ml_pty_ssh_new(
 		goto  error1 ;
 	}
 
+	if( ! ( p = realloc( pty->session->pty_channels ,
+			(pty->session->num_of_ptys + 1) * sizeof(LIBSSH2_CHANNEL*))))
+	{
+		goto  error1 ;
+	}
+
+	pty->session->pty_channels = p ;
+
 	if( ! ( pty->channel = libssh2_channel_open_session( pty->session->obj)))
 	{
 	#ifdef  DEBUG
@@ -1538,11 +1616,9 @@ ml_pty_ssh_new(
 #ifdef  LIBSSH2_FORWARD_AGENT
 	if( auth_agent_is_available)
 	{
-		if( libssh2_channel_request_auth_agent( pty->channel) != 0)
+		if( libssh2_channel_request_auth_agent( pty->channel) == 0)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Agent forwarding failed.\n") ;
-		#endif
+			kik_msg_printf( "Agent forwarding.\n") ;
 		}
 
 		auth_agent_is_available = 0 ;
@@ -1598,7 +1674,7 @@ ml_pty_ssh_new(
 	{
 		if( ! setup_x11( pty->channel))
 		{
-			kik_debug_printf( "X11 forwarding failed.\n") ;
+			kik_msg_printf( "X11 forwarding failed.\n") ;
 		}
 	}
 
@@ -1708,6 +1784,8 @@ ml_pty_ssh_new(
 		main_tid = GetCurrentThreadId() ;
 	}
 #endif
+
+	pty->session->pty_channels[pty->session->num_of_ptys++] = pty->channel ;
 
 	return  &pty->pty ;
 
@@ -1942,32 +2020,95 @@ ml_pty_ssh_set_use_x11_forwarding(
 	use_x11_forwarding = use ;
 }
 
+int
+ml_pty_ssh_poll(
+	void *  p
+	)
+{
+	fd_set *  fds ;
+	int  num_of_fds ;
+	u_int  count ;
+
+	fds = p ;
+	FD_ZERO(fds) ;
+	num_of_fds = 0 ;
+
+	for( count = 0 ; count < num_of_sessions ; count++)
+	{
+		u_int  idx ;
+
+		for( idx = 0 ; idx < sessions[count]->num_of_ptys ; idx++)
+		{
+			if( libssh2_poll_channel_read( sessions[count]->pty_channels[idx] , 0))
+			{
+				goto  found ;
+			}
+		}
+
+		for( idx = 0 ; idx < sessions[count]->num_of_x11 ; idx++)
+		{
+			if( libssh2_poll_channel_read( sessions[count]->x11_channels[idx] , 0))
+			{
+				goto  found ;
+			}
+		}
+
+		continue ;
+
+	found:
+		FD_SET( sessions[count]->sock , fds) ;
+		num_of_fds ++ ;
+	}
+
+	return  num_of_fds ;
+}
+
 u_int
 ml_pty_ssh_get_x11_fds(
 	int **  fds
 	)
 {
-#ifndef  USE_WIN32API
-	if( num_of_x11_fds > 1)
+	static int *  x11_fds ;
+	static u_int  num_of_x11_fds ;
+	u_int  count ;
+	u_int  num ;
+
+	if( num_of_sessions == 0)
 	{
-		/*
-		 * If there are two or more x11 channels, ssh_to_xserver() in
-		 * ml_pty_ssh_send_recv_x11() might read other channels except
-		 * itself.
-		 */
-
-		int  idx ;
-
-		for( idx = num_of_x11_fds - 1 ; idx >= 0 ; idx--)
-		{
-			ml_pty_ssh_send_recv_x11( idx , 0) ;
-		}
+		return  0 ;
 	}
-#endif
+
+	num = 0 ;
+	for( count = 0 ; count < num_of_sessions ; count++)
+	{
+		num += sessions[count]->num_of_x11 ;
+	}
+
+	if( num_of_x11_fds < num)
+	{
+		void *  p ;
+
+		num_of_x11_fds = num ;
+
+		if( ! ( p = realloc( x11_fds , num * sizeof(int))))
+		{
+			return  0 ;
+		}
+
+		x11_fds = p ;
+	}
+
+	num = 0 ;
+	for( count = 0 ; count < num_of_sessions ; count++)
+	{
+		memcpy( x11_fds + num , sessions[count]->x11_fds ,
+			sessions[count]->num_of_x11 * sizeof(int)) ;
+		num += sessions[count]->num_of_x11 ;
+	}
 
 	*fds = x11_fds ;
 
-	return  num_of_x11_fds ;
+	return  num ;
 }
 
 int
@@ -1976,29 +2117,32 @@ ml_pty_ssh_send_recv_x11(
 	int  bidirection
 	)
 {
-	if( x11_fds[idx] == -1 ||	/* Failed to connect X server */
-	    ! ( ( ! bidirection ||
-	          xserver_to_ssh( x11_channels[idx].channel , x11_fds[idx])) &&
-	        ssh_to_xserver( x11_channels[idx].channel , x11_fds[idx])))
+	u_int  count ;
+	ssh_session_t *  session ;
+
+	for( count = 0 ; ; count++)
 	{
-		closesocket( x11_fds[idx]) ;
-
-		libssh2_session_set_blocking( x11_channels[idx].session->obj , 1) ;
-		libssh2_channel_free( x11_channels[idx].channel) ;
-		ssh_disconnect( x11_channels[idx].session) ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG
-			" x11 forwarding %d (display %d <=> ssh %p) stopped."
-			" => channel num %d\n" ,
-			idx , x11_fds[idx] , x11_channels[idx].channel , num_of_x11_fds - 1) ;
-	#endif
-
-		if( --num_of_x11_fds > 0)
+		if( count >= num_of_sessions)
 		{
-			x11_channels[idx] = x11_channels[num_of_x11_fds] ;
-			x11_fds[idx] = x11_fds[num_of_x11_fds] ;
+			return  0 ;
 		}
+
+		if( idx < sessions[count]->num_of_x11)
+		{
+			break ;
+		}
+
+		idx -= sessions[count]->num_of_x11 ;
+	}
+
+	session = sessions[count] ;
+
+	if( session->x11_fds[idx] == -1 ||	/* Failed to connect X server */
+	    ! ( ( ! bidirection ||
+	          xserver_to_ssh( session->x11_channels[idx] , session->x11_fds[idx])) &&
+	        ssh_to_xserver( session->x11_channels[idx] , session->x11_fds[idx])))
+	{
+		close_x11( session , idx) ;
 	}
 
 	return  1 ;

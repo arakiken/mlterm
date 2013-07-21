@@ -1,3 +1,29 @@
+2013-07-20  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.c: The range of "inner_border" option is changed from
+	  0-255 to 0-127.
+
+	* x_event_source.c:
+	  - ml_pty_ssh_poll() is used in receive_next_event().
+	  - ml_pty_ssh_send_recv_x11() is not called after ml_term_parse_vt100_sequence()
+	    but called before it.
+
+	* MLTerm.java, MLTermApplet.java:
+	  Thread.sleep() is used to change the executing thread instead of
+	  wait/notify().
+
+	* MLTermPty.c:
+	  - Compilation error is fixed.
+	  - Version number is fixed. (3.0.11 -> 3.2.1)
+	  - ml_pty_ssh_poll() is used in waitForReading().
+	  - ml_pty_ssh_send_recv_x11 is called in nativeRead() instead of
+	    waitForReading().
+
+	* libssh2/ml_pty_ssh.c:
+	  - ml_pty_ssh_poll() which checks waiting data on pty and x11 channel
+	    by libssh2_poll_channel_read() is added.
+	  - MAX_NUM_OF_X11 which limits the number of X11 channels  is removed.
+
 2013-07-19  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_display.c:
