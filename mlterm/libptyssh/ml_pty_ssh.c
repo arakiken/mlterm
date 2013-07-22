@@ -1290,7 +1290,7 @@ setup_x11(
 					}
 				}
 
-				fclose( fp) ;
+				pclose( fp) ;
 			}
 
 	#ifndef  TRUSTED

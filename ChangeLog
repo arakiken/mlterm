@@ -1,3 +1,7 @@
+2013-07-22  Araki Ken  <arakiken@users.sf.net>
+
+	* libssh2/ml_pty_ssh.c, common/c_imagelib.c: fclose() -> pclose()
+
 2013-07-20  Araki Ken  <arakiken@users.sf.net>
 
 	* x_main_config.c: The range of "inner_border" option is changed from

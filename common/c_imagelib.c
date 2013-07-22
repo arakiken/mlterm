@@ -867,7 +867,7 @@ gdk_pixbuf_new_from(
 							fileno(fp) , FALSE) ;
 						pixbuf = gdk_pixbuf_new_from_stream(
 								in , NULL , NULL) ;
-						fclose( fp) ;
+						pclose( fp) ;
 					}
 				}
 			#endif
