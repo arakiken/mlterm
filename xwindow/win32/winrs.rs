@@ -10,7 +10,7 @@ MLTERM_ICON ICON "mlterm-icon-win32.ico"
 
 #include  "../x_connect_dialog.h"
 
-ConnectDialog DIALOG 20, 20, 138, 132
+ConnectDialog DIALOG 20, 20, 138, 139
 	STYLE WS_POPUP | WS_DLGFRAME | DS_CENTER
 	{
 		LTEXT		"List",		-1,		4,  4,  20,  8
@@ -31,8 +31,9 @@ ConnectDialog DIALOG 20, 20, 138, 132
 		EDITTEXT			IDD_ENCODING,	38, 90, 96, 10, ES_AUTOHSCROLL
 		LTEXT		"ExecCmd",	-1,		4, 101, 30,  8
 		EDITTEXT			IDD_EXEC_CMD,	38,101, 96, 10, ES_AUTOHSCROLL
-		DEFPUSHBUTTON	"OK",		IDOK,		20,117, 40, 12
-		PUSHBUTTON	"Cancel",	IDCANCEL,	80,117, 40, 12
+		CONTROL		"X11 forwarding", IDD_X11,	"Button", BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP, 4, 112, 126, 8
+		DEFPUSHBUTTON	"OK",		IDOK,		20,124, 40, 12
+		PUSHBUTTON	"Cancel",	IDCANCEL,	80,124, 40, 12
 	}
 
 #endif	/* USE_WIN32API */

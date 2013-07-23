@@ -1,3 +1,17 @@
+2013-07-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty_ssh.[ch]:
+	  - x11_callback is always set.
+	  - Each session has its own use_x11_forwarding option.
+	  - "ssh_session_t *" is added to the argument of
+	    ml_pty_ssh_set_use_x11_forwarding().
+
+	* winrs.rs, x_connect_dialog.h, win32/x_connect_dialog.c, fb/x_connect_dialog.c,
+	  xlib/x_connect_dialog.c, x_main_config.[ch], x_screen_manager.c:
+	  X11 forwarding checkbox is added to the connection dialog.
+
+	* x_main_config.c: Minor fixes.
+
 2013-07-22  Araki Ken  <arakiken@users.sf.net>
 
 	* libssh2/ml_pty_ssh.c, common/c_imagelib.c: fclose() -> pclose()

@@ -212,6 +212,10 @@ open_pty_intern(
 		char *  port ;
 		char *  encoding ;
 		char *  exec_cmd ;
+		int  x11_fwd ;
+		void *  session ;
+
+		x11_fwd = main_config.use_x11_forwarding ;
 
 	#ifdef  USE_LIBSSH2
 		if(
@@ -220,25 +224,35 @@ open_pty_intern(
 		#endif
 		    kik_parse_uri( NULL , &user , &host , &port , NULL , &encoding ,
 			kik_str_alloca_dup( main_config.default_server)) &&
-		    ml_search_ssh_session( host , port , user))
+		    ( session = ml_search_ssh_session( host , port , user)))
 		{
 			uri = strdup( main_config.default_server) ;
 			pass = strdup( "") ;
 			exec_cmd = NULL ;
+
+			ml_pty_ssh_set_use_x11_forwarding( session , x11_fwd) ;
 		}
 		else
 	#endif
-		if( ! x_connect_dialog( &uri , &pass , &exec_cmd , display , window ,
+		if( ! x_connect_dialog( &uri , &pass , &exec_cmd , &x11_fwd , display , window ,
 				main_config.server_list , main_config.default_server))
 		{
 			kik_msg_printf( "Connect dialog is canceled.\n") ;
 
 			return  0 ;
 		}
-		else if( ! kik_parse_uri( NULL , NULL , NULL , NULL , NULL , &encoding ,
-				kik_str_alloca_dup( uri)) )
+		else
 		{
-			encoding = NULL ;
+			if( ! kik_parse_uri( NULL , &user , &host , &port , NULL , &encoding ,
+					kik_str_alloca_dup( uri)) )
+			{
+				encoding = NULL ;
+			}
+
+		#ifdef  USE_LIBSSH2
+			ml_pty_ssh_set_use_x11_forwarding(
+				ml_search_ssh_session( host , port , user) , x11_fwd) ;
+		#endif
 		}
 
 	#ifdef  __DEBUG

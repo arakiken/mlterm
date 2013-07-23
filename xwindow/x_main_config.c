@@ -293,6 +293,8 @@ x_main_config_init(
 	char *  value ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
 
+	memset( main_config , 0 , sizeof(x_main_config_t)) ;
+
 #if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
 #endif
@@ -332,21 +334,15 @@ x_main_config_init(
 		main_config->font_size = x_get_min_font_size() ;
 	}
 
-	main_config->app_name = NULL ;
-
 	if( ( value = kik_conf_get_value( conf , "app_name")))
 	{
 		main_config->app_name = strdup( value) ;
 	}
-
-	main_config->title = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "title")))
 	{
 		main_config->title = strdup( value) ;
 	}
-
-	main_config->icon_name = NULL ;
 
 #if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "icon_name")))
@@ -357,8 +353,6 @@ x_main_config_init(
 
 	/* BACKWARD COMPAT (3.1.7 or before) */
 #if  1
-	memset( main_config->shortcut_strs , 0 , sizeof(main_config->shortcut_strs)) ;
-
 	if( ( value = kik_conf_get_value( conf , "conf_menu_path_1")))
 	{
 		main_config->shortcut_strs[0] = malloc( 5 + strlen(value) + 2 + 1) ;
@@ -386,9 +380,6 @@ x_main_config_init(
 		sprintf( main_config->shortcut_strs[3] , "\"exesel:%s\"" , value) ;
 	}
 #endif
-
-	/* use default value */
-	main_config->scrollbar_view_name = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "scrollbar_view_name")))
 	{
@@ -405,8 +396,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->use_dynamic_comb = 0 ;
-
 	if( ( value = kik_conf_get_value( conf , "use_dynamic_comb")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -414,8 +403,6 @@ x_main_config_init(
 			main_config->use_dynamic_comb = 1 ;
 		}
 	}
-
-	main_config->logging_vt_seq = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "logging_vt_seq")))
 	{
@@ -464,8 +451,6 @@ x_main_config_init(
 		main_config->type_engine = x_get_type_engine_by_name( value) ;
 	}
 
-	main_config->font_present = 0 ;
-
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
 	{
@@ -496,8 +481,6 @@ x_main_config_init(
 			main_config->font_present |= FONT_VAR_WIDTH ;
 		}
 	}
-
-	main_config->vertical_mode = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "vertical_mode")))
 	{
@@ -507,56 +490,40 @@ x_main_config_init(
 		}
 	}
 
-	main_config->fg_color = NULL ;
-	
 	if( ( value = kik_conf_get_value( conf , "fg_color")))
 	{
 		main_config->fg_color = strdup( value) ;
 	}
-
-	main_config->bg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "bg_color")))
 	{
 		main_config->bg_color = strdup( value) ;
 	}
-
-	main_config->cursor_fg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "cursor_fg_color")))
 	{
 		main_config->cursor_fg_color = strdup( value) ;
 	}
-
-	main_config->cursor_bg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "cursor_bg_color")))
 	{
 		main_config->cursor_bg_color = strdup( value) ;
 	}
 
-	main_config->bd_color = NULL ;
-
 	if( ( value = kik_conf_get_value( conf , "bd_color")))
 	{
 		main_config->bd_color = strdup( value) ;
 	}
 
-	main_config->ul_color = NULL ;
-
 	if( ( value = kik_conf_get_value( conf , "ul_color")))
 	{
 		main_config->ul_color = strdup( value) ;
 	}
-
-	main_config->sb_fg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))
 	{
 		main_config->sb_fg_color = strdup( value) ;
 	}
-
-	main_config->sb_bg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "sb_bg_color")))
 	{
@@ -571,9 +538,7 @@ x_main_config_init(
 	{
 		main_config->term_type = strdup( "xterm") ;
 	}
-	
-	main_config->x = 0 ;
-	main_config->y = 0 ;
+
 #ifdef  USE_FRAMEBUFFER
 	/*
 	 * The pty is always resized to fit the display size.
@@ -586,8 +551,7 @@ x_main_config_init(
 #else
 	main_config->cols = 80 ;
 	main_config->rows = 24 ;
-	main_config->geom_hint = 0 ;
-	
+
 	if( ( value = kik_conf_get_value( conf , "geometry")))
 	{
 		/*
@@ -650,8 +614,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->line_space = 0 ;
-
 	if( ( value = kik_conf_get_value( conf , "line_space")))
 	{
 		u_int  size ;
@@ -665,8 +627,6 @@ x_main_config_init(
 			kik_msg_printf( invalid_msg , "line space" , value) ;
 		}
 	}
-
-	main_config->letter_space = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "letter_space")))
 	{
@@ -682,29 +642,37 @@ x_main_config_init(
 		}
 	}
 
-	if( ( value = kik_conf_get_value( conf , "logsize")) == NULL)
-	{
-		main_config->num_of_log_lines = 128 ;
-	}
-	else if( ! kik_str_to_uint( &main_config->num_of_log_lines , value))
-	{
-		kik_msg_printf( invalid_msg , "log size" , value) ;
+	main_config->num_of_log_lines = 128 ;
 
-		/* default value is used. */
-		main_config->num_of_log_lines = 128 ;
+	if( ( value = kik_conf_get_value( conf , "logsize")))
+	{
+		u_int  size ;
+
+		if( kik_str_to_uint( &size , value))
+		{
+			main_config->num_of_log_lines = size ;
+		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "log size" , value) ;
+		}
+
 	}
 
-	if( ( value = kik_conf_get_value( conf , "tabsize")) == NULL)
-	{
-		/* default value is used. */
-		main_config->tab_size = 8 ;
-	}
-	else if( ! kik_str_to_uint( &main_config->tab_size , value))
-	{
-		kik_msg_printf( invalid_msg , "tab size" , value) ;
+	main_config->tab_size = 8 ;
 
-		/* default value is used. */
-		main_config->tab_size = 8 ;
+	if( ( value = kik_conf_get_value( conf , "tabsize")))
+	{
+		u_int  size ;
+
+		if( kik_str_to_uint( &size , value))
+		{
+			main_config->tab_size = size ;
+		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "tab size" , value) ;
+		}
 	}
 	
 	main_config->use_login_shell = 0 ;
@@ -716,8 +684,6 @@ x_main_config_init(
 			main_config->use_login_shell = 1 ;
 		}
 	}
-
-	main_config->big5_buggy = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "big5_buggy")))
 	{
@@ -746,8 +712,6 @@ x_main_config_init(
 		main_config->sb_mode = SBM_LEFT ;
 	}
 
-	main_config->iso88591_font_for_usascii = 0 ;
-
 	if( ( value = kik_conf_get_value( conf , "iso88591_font_for_usascii")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -755,8 +719,6 @@ x_main_config_init(
 			main_config->iso88591_font_for_usascii = 1 ;
 		}
 	}
-
-	main_config->unicode_policy = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
 	{
@@ -815,8 +777,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->receive_string_via_ucs = 0 ;
-
 	if( ( value = kik_conf_get_value( conf , "receive_string_via_ucs")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -849,8 +809,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->pic_file_path = NULL ;
-
 	if( ( value = kik_conf_get_value( conf , "wall_picture")))
 	{
 		if( *value != '\0')
@@ -858,8 +816,6 @@ x_main_config_init(
 			main_config->pic_file_path = strdup( value) ;
 		}
 	}
-
-	main_config->use_transbg = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_transbg")))
 	{
@@ -958,7 +914,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->is_auto_encoding = 0 ;
 	if( ( value = kik_conf_get_value( conf , "encoding")))
 	{
 		while( ( main_config->encoding = ml_get_char_encoding( value))
@@ -997,8 +952,6 @@ x_main_config_init(
 			main_config->use_bidi = 0 ;
 		}
 	}
-#else
-	main_config->use_bidi = 0 ;
 #endif
 
 	main_config->bidi_mode = BIDI_NORMAL_MODE ;
@@ -1009,8 +962,6 @@ x_main_config_init(
 		main_config->bidi_mode = ml_get_bidi_mode( value) ;
 	}
 #endif
-
-	main_config->use_ind = 0 ;
 
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 	if( ( value = kik_conf_get_value( conf , "use_ind")))
@@ -1027,10 +978,6 @@ x_main_config_init(
 		strcmp( value , "none") != 0)
 	{
 		main_config->mod_meta_key = strdup( value) ;
-	}
-	else
-	{
-		main_config->mod_meta_key = NULL ;
 	}
 	
 	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
@@ -1059,8 +1006,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->use_vertical_cursor = 0 ;
-
 	if( ( value = kik_conf_get_value( conf , "use_vertical_cursor")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1069,8 +1014,6 @@ x_main_config_init(
 		}
 	}
 	
-	main_config->use_extended_scroll_shortcut = 0 ;
-	
 	if( ( value = kik_conf_get_value( conf , "use_extended_scroll_shortcut")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1078,8 +1021,6 @@ x_main_config_init(
 			main_config->use_extended_scroll_shortcut = 1 ;
 		}
 	}
-
-	main_config->borderless = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "borderless")))
 	{
@@ -1112,10 +1053,6 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "icon_path")))
 	{
 		main_config->icon_path = strdup( value) ;
-	}
-	else
-	{
-		main_config->icon_path = NULL ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "input_method")))
@@ -1179,12 +1116,6 @@ x_main_config_init(
 			*p2 = '\0' ;
 		}
 	}
-	else
-	{
-		main_config->init_str = NULL ;
-	}
-
-	main_config->parent_window = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "parent_window")))
 	{
@@ -1201,8 +1132,6 @@ x_main_config_init(
 	}
 	
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
-	main_config->server_list = NULL ;
-	
 	if( ( value = kik_conf_get_value( conf , "server_list")))
 	{
 		if( ( main_config->server_list = malloc( sizeof( char*) *
@@ -1231,8 +1160,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->default_server = NULL ;
-	
 	if( ( value = kik_conf_get_value( conf , "default_server")))
 	{
 		if( *value && ( main_config->default_server = strdup( value)))
@@ -1246,8 +1173,6 @@ x_main_config_init(
 #endif
 
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
-	main_config->skip_dialog = 0 ;
-	
 	if( ( value = kik_conf_get_value( conf , "skip_dialog")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1258,14 +1183,10 @@ x_main_config_init(
 #endif
 
 #ifdef  USE_LIBSSH2
-	main_config->public_key = NULL ;
-
 	if( ( value = kik_conf_get_value( conf , "ssh_public_key")))
 	{
 		main_config->public_key = strdup( value) ;
 	}
-
-	main_config->private_key = NULL ;
 
 	if( ( value = kik_conf_get_value( conf , "ssh_private_key")))
 	{
@@ -1279,11 +1200,9 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "ssh_x11_forwarding")))
 	{
-		ml_pty_ssh_set_use_x11_forwarding( ( strcmp( value , "true") == 0)) ;
+		main_config->use_x11_forwarding = (strcmp( value , "true") == 0) ;
 	}
 #endif
-
-	main_config->allow_osc52 = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "allow_osc52")))
 	{
@@ -1292,8 +1211,6 @@ x_main_config_init(
 			main_config->allow_osc52 = 1 ;
 		}
 	}
-
-	main_config->blink_cursor = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "blink_cursor")))
 	{
@@ -1325,8 +1242,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->hide_underline = 0 ;
-
 	if( ( value = kik_conf_get_value( conf , "hide_underline")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1353,8 +1268,6 @@ x_main_config_init(
 	{
 		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
 	}
-
-	main_config->use_local_echo = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_local_echo")))
 	{
@@ -1406,16 +1319,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
 	{
-		if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1))) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-		#endif
-		
-			main_config->cmd_path = NULL ;
-			main_config->cmd_argv = NULL ;
-		}
-		else
+		if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1))))
 		{
 			/*
 			 * !! Notice !!
@@ -1428,11 +1332,6 @@ x_main_config_init(
 			memcpy( &main_config->cmd_argv[0] , argv , sizeof( char*) * argc) ;
 			main_config->cmd_argv[argc] = NULL ;
 		}
-	}
-	else
-	{
-		main_config->cmd_path = NULL ;
-		main_config->cmd_argv = NULL ;
 	}
 
 	return  1 ;

@@ -21,11 +21,12 @@
 #define IDD_PASS	17
 #define IDD_ENCODING	18
 #define IDD_EXEC_CMD	19
+#define IDD_X11		20
 #endif
 
 
-int  x_connect_dialog( char **  info , char **  pass , char **  exec_cmd ,
-		char *  display_name , Window  parent_window ,
+int  x_connect_dialog( char **  uri , char **  pass , char **  exec_cmd ,
+		int *  x11_fwd , char *  display_name , Window  parent_window ,
 		char **  server_list , char *  default_server) ;
 
 

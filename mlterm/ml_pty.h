@@ -65,7 +65,7 @@ void  ml_pty_ssh_set_keepalive_interval( u_int  interval_sec) ;
 
 int  ml_pty_ssh_keepalive( u_int  spent_msec) ;
 
-void  ml_pty_ssh_set_use_x11_forwarding( int  use_x11_forwarding) ;
+void  ml_pty_ssh_set_use_x11_forwarding( void *  session , int  use_x11_forwarding) ;
 
 int  ml_pty_ssh_poll( void *  fds) ;
 

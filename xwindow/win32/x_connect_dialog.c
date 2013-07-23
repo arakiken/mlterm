@@ -32,6 +32,7 @@ static char *  selected_user ;
 static char *  selected_pass ;
 static char *  selected_encoding ;
 static char *  selected_exec_cmd ;
+static int  use_x11_forwarding ;
 
 
 /* --- static functions --- */
@@ -205,6 +206,16 @@ LRESULT CALLBACK dialog_proc(
 			CheckRadioButton( dlgwin , IDD_SSH , IDD_RLOGIN , selected_proto) ;
 		#endif
 
+		#ifdef  USE_LIBSSH2
+			if( use_x11_forwarding)
+			{
+				SendMessage( GetDlgItem( dlgwin , IDD_X11) ,
+					BM_SETCHECK , BST_CHECKED , 0) ;
+			}
+		#else
+			EnableWindow( GetDlgItem( dlgwin , IDD_X11) , FALSE) ;
+		#endif
+
 			if( focus_win)
 			{
 				SetFocus( focus_win) ;
@@ -314,6 +325,12 @@ LRESULT CALLBACK dialog_proc(
 			
 			break ;
 
+		case  IDD_X11:
+			use_x11_forwarding =
+				(SendMessage( GetDlgItem( dlgwin , IDD_X11) ,
+					BM_GETCHECK , 0 , 0) == BST_CHECKED) ;
+			break ;
+
 		default:
 			return  FALSE ;
 		}
@@ -333,6 +350,7 @@ x_connect_dialog(
 	char **  uri ,		/* Should be free'ed by those who call this. */
 	char **  pass ,		/* Same as uri. If pass is not input, "" is set. */
 	char **  exec_cmd ,	/* Same as uri. If exec_cmd is not input, NULL is set. */
+	int *  x11_fwd ,	/* in/out */
 	char *  display_name ,
 	Window  parent_window ,
 	char **  sv_list ,
@@ -344,6 +362,8 @@ x_connect_dialog(
 
 	server_list = sv_list ;
 	default_server = def_server ;
+
+	use_x11_forwarding = *x11_fwd ;
 
 #ifdef  DEBUG
 	{
@@ -425,6 +445,8 @@ x_connect_dialog(
 	*pass = selected_pass ? selected_pass : strdup( "") ;
 
 	*exec_cmd = selected_exec_cmd ;
+
+	*x11_fwd = use_x11_forwarding ;
 
 	/* Successfully */
 	ret = 1 ;

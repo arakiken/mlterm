@@ -57,6 +57,8 @@ typedef struct ssh_session
 	LIBSSH2_SESSION *  obj ;
 	int  sock ;
 
+	int  use_x11_forwarding ;
+
 	int  doing_scp ;
 
 	LIBSSH2_CHANNEL **  pty_channels ;
@@ -378,12 +380,10 @@ ssh_connect(
 			LIBSSH2_METHOD_CRYPT_SC , cipher_list) ;
 	}
 
-	if( use_x11_forwarding)
-	{
-		/* LIBSSH2_FLAG_COMPRESS doesn't work with X11 forwarding. */
-		libssh2_session_callback_set( session->obj ,
+	/* LIBSSH2_FLAG_COMPRESS doesn't work with X11 forwarding. */
+	libssh2_session_callback_set( session->obj ,
 			LIBSSH2_CALLBACK_X11 , x11_callback) ;
-	}
+
 #ifndef  LIBSSH2_FIX_DECOMPRESS_BUG
 	/*
 	 * XXX
@@ -392,11 +392,13 @@ ssh_connect(
 	 * Camellia branch of http://bitbucket.org/arakiken/libssh2/ fixes this bug
 	 * and defines LIBSSH2_FIX_DECOMPRESS_BUG macro.
 	 */
-	else
+	if( ! use_x11_forwarding)
 #endif
 	{
 		libssh2_session_flag( session->obj , LIBSSH2_FLAG_COMPRESS , 1) ;
 	}
+
+	session->use_x11_forwarding = use_x11_forwarding ;
 
 	if( libssh2_session_handshake( session->obj , session->sock) != 0)
 	{
@@ -1670,7 +1672,7 @@ ml_pty_ssh_new(
 		goto  error3 ;
 	}
 
-	if( use_x11_forwarding)
+	if( pty->session->use_x11_forwarding)
 	{
 		if( ! setup_x11( pty->channel))
 		{
@@ -2014,10 +2016,18 @@ ml_pty_ssh_keepalive(
 
 void
 ml_pty_ssh_set_use_x11_forwarding(
+	void *  session ,
 	int  use
 	)
 {
-	use_x11_forwarding = use ;
+	if( session)
+	{
+		((ssh_session_t*)session)->use_x11_forwarding = use ;
+	}
+	else
+	{
+		use_x11_forwarding = use ;
+	}
 }
 
 int
