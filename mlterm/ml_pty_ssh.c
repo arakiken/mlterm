@@ -39,7 +39,7 @@ static int  (*ssh_scp)( ml_pty_ptr_t , int , char * , char *) ;
 static void  (*ssh_set_cipher_list)( const char *) ;
 static void  (*ssh_set_keepalive_interval)( u_int) ;
 static int  (*ssh_keepalive)( u_int) ;
-static void  (*ssh_set_use_x11_forwarding)( int) ;
+static void  (*ssh_set_use_x11_forwarding)( void * , int) ;
 static int  (*ssh_poll)( void *) ;
 static u_int  (*ssh_get_x11_fds)( int **) ;
 static int  (*ssh_send_recv_x11)( int , int) ;
@@ -196,6 +196,7 @@ ml_pty_ssh_keepalive(
 
 void
 ml_pty_ssh_set_use_x11_forwarding(
+	void *  session ,
 	int  use
 	)
 {
@@ -207,7 +208,7 @@ ml_pty_ssh_set_use_x11_forwarding(
 
 	if( ssh_set_use_x11_forwarding)
 	{
-		return  (*ssh_set_use_x11_forwarding)( use) ;
+		return  (*ssh_set_use_x11_forwarding)( session , use) ;
 	}
 	else
 	{

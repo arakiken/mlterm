@@ -1,3 +1,7 @@
+2013-07-24  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty_ssh.c: Compilation error is fixed.
+
 2013-07-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty_ssh.[ch]:
