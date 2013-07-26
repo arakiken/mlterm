@@ -1,5 +1,7 @@
 2013-07-26  Araki Ken  <arakiken@users.sf.net>
 
+	* kik_dlfcn.c: Compilation error is fixed.
+
 	* gdiplus.cpp: The leak of resources is fixed.
 
 2013-07-24  Araki Ken  <arakiken@users.sf.net>

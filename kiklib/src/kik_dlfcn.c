@@ -6,6 +6,8 @@
 
 #include  <stdlib.h>	/* atexit, realloc(Don't include kik_mem.h) */
 
+#include  "kik_types.h"	/* u_int */
+
 
 /* --- static variables --- */
 
