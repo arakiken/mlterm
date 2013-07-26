@@ -60,6 +60,7 @@ create_cardinals_from_file(
 	size_t  wpath_len ;
 	Gdiplus::GdiplusStartupInput  startup ;
 	ULONG_PTR  token ;
+	HMODULE  module ;
 	IBindCtx *  ctx ;
 	IMoniker *  moniker ;
 	IStream *  stream ;
@@ -84,7 +85,6 @@ create_cardinals_from_file(
 	{
 		typedef HRESULT (*func)(IMoniker * , LPCWSTR , IMoniker ** , DWORD) ;
 		func  create_url_moniker ;
-		HMODULE  module ;
 
 		SetDllDirectory( "") ;
 		if( ( module = LoadLibrary( "urlmon")) &&
@@ -108,8 +108,15 @@ create_cardinals_from_file(
 					moniker->Release() ;
 				}
 			}
+
+			if( ! stream)
+			{
+				FreeLibrary( module) ;
+			}
 		}
 	}
+
+	cardinal = NULL ;
 
 	if( width == 0 || height == 0)
 	{
@@ -117,7 +124,7 @@ create_cardinals_from_file(
 		    ! ( bitmap = Gdiplus::Bitmap::FromStream( stream)) :
 		    ! ( bitmap = Gdiplus::Bitmap::FromFile( wpath)) )
 		{
-			goto  error1 ;
+			goto  end1 ;
 		}
 	}
 	else
@@ -129,22 +136,21 @@ create_cardinals_from_file(
 		    ! ( image = Image::FromStream( stream)) :
 		    ! ( image = Image::FromFile( wpath)) )
 		{
-			goto  error1 ;
+			goto  end1 ;
 		}
 
 		if( ! ( bitmap = new Bitmap( width , height)))
 		{
 			delete  image ;
 
-			goto  error1 ;
+			goto  end1 ;
 		}
 
 		if( ! ( graphics = Graphics::FromImage( bitmap)))
 		{
 			delete  image ;
-			delete  bitmap ;
 
-			goto  error1 ;
+			goto  end2 ;
 		}
 
 		Gdiplus::Rect  rect( 0 , 0 , width , height) ;
@@ -158,14 +164,7 @@ create_cardinals_from_file(
 
 	if( bitmap->GetLastStatus() != Gdiplus::Ok)
 	{
-		goto  error2 ;
-	}
-
-	if( stream)
-	{
-		stream->Release() ;
-		ctx->Release() ;
-		moniker->Release() ;
+		goto  end2 ;
 	}
 
 	width = bitmap->GetWidth() ;
@@ -174,7 +173,7 @@ create_cardinals_from_file(
 	if( width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height ||	/* integer overflow */
 	   ! ( p = cardinal = (u_int32_t*)malloc( (width * height + 2) * sizeof(*cardinal))))
 	{
-		goto  error2 ;
+		goto  end2 ;
 	}
 
 	*(p++) = width ;
@@ -193,17 +192,21 @@ create_cardinals_from_file(
 		}
 	}
 
+end2:
+	delete  bitmap ;
+
+end1:
+	if( stream)
+	{
+		stream->Release() ;
+		ctx->Release() ;
+		moniker->Release() ;
+		FreeLibrary( module) ;
+	}
+
 	Gdiplus::GdiplusShutdown( token) ;
 
 	return  cardinal ;
-
-error2:
-	delete  bitmap ;
-
-error1:
-	Gdiplus::GdiplusShutdown( token) ;
-
-	return  NULL ;
 }
 
 
