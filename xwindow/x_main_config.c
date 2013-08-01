@@ -219,10 +219,8 @@ x_prepare_for_main_config(
 		"connecting server by default") ;
 #endif
 #ifdef  USE_LIBSSH2
-	#ifdef  USE_WIN32API
-	kik_conf_add_opt( conf , '\0' , "nodialog" , 1 , "skip_dialog" ,
-		"if possible, skip dialog to input server address, password and so on") ;
-	#endif
+	kik_conf_add_opt( conf , '\0' , "dialog" , 1 , "always_show_dialog" ,
+		"always show dialog to input server address, password and so on [false]") ;
 	kik_conf_add_opt( conf , '\0' , "pubkey" , 0 , "ssh_public_key" ,
 		"ssh public key file "
 	#ifdef  USE_WIN32API
@@ -1170,14 +1168,12 @@ x_main_config_init(
 		#endif
 		}
 	}
-#endif
 
-#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
-	if( ( value = kik_conf_get_value( conf , "skip_dialog")))
+	if( ( value = kik_conf_get_value( conf , "always_show_dialog")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			main_config->skip_dialog = 1 ;
+			main_config->show_dialog = 1 ;
 		}
 	}
 #endif

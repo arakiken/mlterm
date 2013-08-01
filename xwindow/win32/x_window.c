@@ -2957,20 +2957,22 @@ x_window_xct_selection_request(
 	size_t  len ;
 	
 	if( IsClipboardFormatAvailable( CF_TEXT) == FALSE ||
-	    OpenClipboard( win->my_window) == FALSE)
+	    OpenClipboard( win->my_window) == FALSE ||
+	    ( hmem = GetClipboardData( CF_TEXT)) == NULL)
 	{
 		return  0 ;
 	}
 
-	hmem = GetClipboardData( CF_TEXT) ;
-
-	g_data = GlobalLock( hmem) ;
-	len = strlen( g_data) ;
-	if( ( l_data = alloca( len + 1)) == NULL)
+	if( ( g_data = GlobalLock( hmem)) == NULL ||
+	    ( l_data = alloca( (len = strlen( g_data)) + 1)) == NULL)
 	{
-		GlobalUnlock( hmem) ;
+		if( g_data)
+		{
+			GlobalUnlock( hmem) ;
+		}
+
 		CloseClipboard() ;
-		
+
 		return  0 ;
 	}
 
@@ -3000,18 +3002,20 @@ x_window_utf_selection_request(
 	size_t  len ;
 	
 	if( IsClipboardFormatAvailable( CF_UNICODETEXT) == FALSE ||
-	    OpenClipboard( win->my_window) == FALSE)
+	    OpenClipboard( win->my_window) == FALSE ||
+	    ( hmem = GetClipboardData( CF_UNICODETEXT)) == NULL)
 	{
 		return  0 ;
 	}
 
-	hmem = GetClipboardData( CF_UNICODETEXT) ;
-
-	g_data = GlobalLock( hmem) ;
-	len = lstrlenW( g_data) ;
-	if( ( l_data = alloca( (len + 1) * 2)) == NULL)
+	if( ( g_data = GlobalLock( hmem)) == NULL ||
+	    ( l_data = alloca( ( (len = lstrlenW( g_data)) + 1) * 2)) == NULL)
 	{
-		GlobalUnlock( hmem) ;
+		if( g_data)
+		{
+			GlobalUnlock( hmem) ;
+		}
+
 		CloseClipboard() ;
 		
 		return  0 ;
@@ -3052,7 +3056,12 @@ x_window_send_selection(
 		return  0 ;
 	}
 
-	g_data = GlobalLock( hmem) ;
+	if( ( g_data = GlobalLock( hmem)) == NULL)
+	{
+		GlobalFree( hmem) ;
+
+		return  0 ;
+	}
 
 	for( count = 0 ; count < sel_len ; count ++)
 	{

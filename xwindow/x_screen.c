@@ -8954,6 +8954,7 @@ x_screen_reset_view(
 	
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	font_size_changed( screen) ;
+	x_xic_font_set_changed( &screen->window) ;
 	x_window_update( &screen->window, UPDATE_SCREEN | UPDATE_CURSOR) ;
 
 	return  1 ;

@@ -192,6 +192,8 @@ scrollbar_view_name = sample
 
 # default_server =
 
+# always_show_dialog = false
+
 # ssh_public_key = 
 
 # ssh_private_key = 

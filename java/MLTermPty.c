@@ -984,7 +984,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 			{
 				if( strcmp( value , "true") == 0)
 				{
-					ml_pty_ssh_set_use_x11_forwarding( 1) ;
+					ml_pty_ssh_set_use_x11_forwarding( NULL , 1) ;
 				}
 			}
 		#endif

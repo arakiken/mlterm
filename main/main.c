@@ -166,15 +166,11 @@ main(
 
 	main_loop_final() ;
 
-	/*
-	 * Not reachable in unix.
-	 * Reachable in win32.
-	 */
-
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	WSACleanup() ;
 #endif
 
+	kik_dl_close_all() ;
+
 	return  0 ;
 }
-

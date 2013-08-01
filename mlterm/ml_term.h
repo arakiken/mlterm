@@ -43,6 +43,8 @@ typedef struct ml_term
 
 	char *  icon_path ;
 
+	char *  uri ;
+
 	int8_t  use_bidi ;
 	int8_t  use_ind ;
 	int8_t  use_dynamic_comb ;
@@ -295,6 +297,8 @@ int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 #define  ml_term_icon_name( term)  ml_get_icon_name((term)->parser)
 
 #define  ml_term_icon_path( term)  ((term)->icon_path)
+
+#define  ml_term_get_uri( term)  ((term)->uri)
 
 #define  ml_term_is_bracketed_paste_mode( term) \
 		ml_vt100_parser_is_bracketed_paste_mode((term)->parser)

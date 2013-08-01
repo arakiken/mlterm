@@ -275,6 +275,8 @@ scrollbar_view_name = sample
 # ssh 等により直接ログインするサーバを指定する。
 # default_server =
 
+# always_show_dialog = false
+
 # ssh 接続の認証で使用する公開鍵のファイルを指定する。
 # ssh_public_key = 
 

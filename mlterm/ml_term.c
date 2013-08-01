@@ -139,6 +139,8 @@ ml_term_delete(
 		(*term->shape->delete)( term->shape) ;
 	}
 
+	free( term->uri) ;
+
 	free( term->icon_path) ;
 
 	ml_screen_delete( term->screen) ;
@@ -202,6 +204,11 @@ ml_term_open_pty(
 		#endif
 
 			return  0 ;
+		}
+
+		if( pass)
+		{
+			term->uri = strdup( host) ;
 		}
 
 		ml_term_plug_pty( term , pty) ;

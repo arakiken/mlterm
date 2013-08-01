@@ -2,6 +2,7 @@ ver 3.2.2
 * Support SSH agent authentication and forwarding.
 * Support X11 forwarding (no xauth) on win32/libssh2 and java.
 * Add "X11 forwarding" checkbox to the connection dialog on win32.
+* Change "skip_dialog" option to "show_dialog" and reverse the default behavior.
 * Bug fixes:
   Fix configure error which --with-gui=xlib,fb option causes. (enbugged at 3.2.1)
   DECALN(ESC#8) resets the screen margins.

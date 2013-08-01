@@ -218,9 +218,9 @@ open_pty_intern(
 		x11_fwd = main_config.use_x11_forwarding ;
 
 	#ifdef  USE_LIBSSH2
-		if(
+		if( ! main_config.show_dialog &&
 		#ifdef  USE_WIN32API
-		    main_config.skip_dialog && main_config.default_server &&
+		    main_config.default_server &&
 		#endif
 		    kik_parse_uri( NULL , &user , &host , &port , NULL , &encoding ,
 			kik_str_alloca_dup( main_config.default_server)) &&
@@ -382,7 +382,7 @@ open_pty_intern(
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	if( uri)
 	{
-		if( ret)
+		if( ret && kik_compare_str( uri , main_config.default_server) != 0)
 		{
 			x_main_config_add_to_server_list( &main_config , uri) ;
 			free( main_config.default_server) ;
@@ -749,15 +749,39 @@ open_pty(
 	}
 	else
 	{
+	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+		char *  default_server ;
+		int  show_dialog ;
+	#endif
+		int  ret ;
+
 		if( ( new = create_term_intern()) == NULL)
 		{
 			return ;
 		}
 
-		if( ! open_pty_intern( new , main_config.cmd_path ,
+	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+		default_server = main_config.default_server ;
+		main_config.default_server = ml_term_get_uri( screen->term) ;
+		/*
+		 * If show_dialog == 1, main_config.default_server can be
+		 * free'ed in open_pty_intern.
+		 */
+		show_dialog = main_config.show_dialog ;
+		main_config.show_dialog = 0 ;
+	#endif
+
+		ret = open_pty_intern( new , main_config.cmd_path ,
 			main_config.cmd_argv ,
 			DisplayString( screen->window.disp->display) ,
-			x_get_root_window( &screen->window)->my_window))
+			x_get_root_window( &screen->window)->my_window) ;
+
+	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+		main_config.default_server = default_server ;
+		main_config.show_dialog = show_dialog ;
+	#endif
+
+		if( ! ret)
 		{
 			ml_destroy_term( new) ;
 
@@ -906,10 +930,23 @@ open_screen(
 	)
 {
 	char *  disp_name ;
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+	char *  default_server ;
+	int  show_dialog ;
+#endif
 
-	/* Saving default disp_name option. */
 	disp_name = main_config.disp_name ;
 	main_config.disp_name = cur_screen->window.disp->name ;
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+	default_server = main_config.default_server ;
+	main_config.default_server = ml_term_get_uri( cur_screen->term) ;
+	/*
+	 * If show_dialog == 1, main_config.default_server can be
+	 * free'ed in open_pty_intern.
+	 */
+	show_dialog = main_config.show_dialog ;
+	main_config.show_dialog = 0 ;
+#endif
 
 	if( ! open_screen_intern( NULL))
 	{
@@ -918,8 +955,11 @@ open_screen(
 	#endif
 	}
 
-	/* Restoring default disp_name option. */
 	main_config.disp_name = disp_name ;
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+	main_config.default_server = default_server ;
+	main_config.show_dialog = show_dialog ;
+#endif
 }
 
 static void
@@ -1035,6 +1075,9 @@ mlclient(
 		kik_conf_t *  conf ;
 		x_main_config_t  orig_conf ;
 		char *  pty ;
+	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+		char **  server_list ;
+	#endif
 		
 		if( argc >= 2 && *argv[1] != '-')
 		{
@@ -1069,6 +1112,10 @@ mlclient(
 		orig_conf = main_config ;
 
 		x_main_config_init( &main_config , conf , argc , argv) ;
+	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+		server_list = main_config.server_list ;
+		main_config.server_list = orig_conf.server_list ;
+	#endif
 
 		kik_conf_delete( conf) ;
 
@@ -1086,6 +1133,10 @@ mlclient(
 			}
 		}
 
+	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+		orig_conf.server_list = main_config.server_list ;
+		main_config.server_list = server_list ;
+	#endif
 		x_main_config_final( &main_config) ;
 
 		main_config = orig_conf ;

@@ -15,22 +15,6 @@ static kik_dl_handle_t *  handles ;
 static u_int  num_of_handles ;
 
 
-/* --- static functions --- */
-
-static void
-close_at_exit(void)
-{
-	u_int  count ;
-
-	for( count = 0 ; count < num_of_handles ; count++)
-	{
-		kik_dl_close( handles[count]) ;
-	}
-
-	free( handles) ;
-}
-
-
 /* --- global functions --- */
 
 int
@@ -49,7 +33,7 @@ kik_dl_close_at_exit(
 
 	if( num_of_handles == 0)
 	{
-		atexit( close_at_exit) ;
+		atexit( kik_dl_close_all) ;
 	}
 	else
 	{
@@ -69,4 +53,19 @@ kik_dl_close_at_exit(
 	handles[num_of_handles++] = handle ;
 
 	return  1 ;
+}
+
+void
+kik_dl_close_all(void)
+{
+	u_int  count ;
+
+	/* Close from the last loaded library. */
+	for( count = num_of_handles ; count > 0 ; count--)
+	{
+		kik_dl_close( handles[count - 1]) ;
+	}
+
+	num_of_handles = 0 ;
+	free( handles) ;
 }

@@ -81,6 +81,8 @@ x_xic_activate(
 	win->xic->ic = ImmGetContext( win->my_window) ;
 	win->xic->prev_keydown_wparam = 0 ;
 
+	x_xic_font_set_changed( win) ;
+
 	return  1 ;
 }
 
@@ -139,6 +141,15 @@ x_xic_font_set_changed(
 	x_window_t *  win
 	)
 {
+	if( HAS_XIM_LISTENER(win,get_fontset))
+	{
+		if( ImmSetCompositionFont( win->xic->ic ,
+			(*win->xim_listener->get_fontset)( win->xim_listener->self)))
+		{
+			return  1 ;
+		}
+	}
+
 	return  0 ;
 }
 

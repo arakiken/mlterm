@@ -97,7 +97,7 @@ typedef struct
 
 typedef int XSelectionRequestEvent ;	/* dummy */
 
-typedef int XFontSet ;	/* dummy */
+typedef LPLOGFONT XFontSet ;
 
 #define None		0L	/* Same as definition in X11/X.h */
 #define NoSymbol	0L	/* Same as definition in X11/X.h */

@@ -4,13 +4,13 @@ comment $Id$
 WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.20
+  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.22
             + libssh2 1.4.3(win32 native)
             + GTK+ 2.12.9(win32 native)
             + Fribidi 0.19.2(win32 native)
 
 * ビルド
-  (CC="gcc-3 -mno-cygwin") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
+  (CC="i686-pc-mingw32-gcc") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
 			(--with-libintl-prefix=[GTK+(win32) installed directory]) \
 			(--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
@@ -102,9 +102,10 @@ WIN32 native GUI 対応に関するメモ
        ダイアログの "List" 欄に、接続するサーバの候補を表示します。
        default_server で指定したサーバが server_list にない場合、自動的に
        default_server が server_list に追加されます。
-     o skip_dialog(--nodialog) = true/false
-       既に確立された SSH セッションがある場合に、ダイアログを表示せず、そのセッ
-       ション上に新しいチャンネルを開くようにします。
+     o always_show_dialog(--dialog) = true/false
+       既に確立された SSH セッションがあり、そのセッション上に新しいチャンネルを
+       開くことができる場合でも、必ず接続先のサーバを指定するためのダイアログを
+       表示します。
 
 * WIN32 GUI 版の制限
   o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless, -d/--display 及び

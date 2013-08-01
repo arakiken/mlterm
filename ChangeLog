@@ -1,3 +1,32 @@
+2013-08-01  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_xic.c, x_font_manager.c: x_xic_font_set_changed() and x_get_fontset()
+	  are implemented on win32.
+
+	* doc/ja/README.win32, doc/en/README.win32, etc/main, etc/main.ja: Updated.
+
+	* win32/x_window.c:
+	  If the returned value of GlobalLock() or GetClipboardData() is NULL
+	  or not is checked.
+
+	* x_main_config.[ch]:
+	  "skip_dialog" option is changed to "always_show_dialog" and the
+	  default behavior is reversed.
+
+	* x_screen_manager.[ch]:
+	  main_config.default_server is temporarily replaced by uri of
+	  the current pty in open_screen() and open_pty().
+
+	* ml_term.[ch]:
+	  - 'host' (uri) argument of ml_term_open_pty() is kept.
+	  - ml_term_get_uri() is added.
+
+	* main.c: kik_dl_close_all() is called at the end of main().
+
+	* kik_dlfcn.c:
+	  - close_at_exit() is renamed to kik_dl_close_all()
+	  - kik_dl_close_all() closes from the last loaded library.
+
 2013-07-26  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_dlfcn.c: Compilation error is fixed.

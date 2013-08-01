@@ -505,9 +505,21 @@ x_get_fontset(
 	x_font_manager_t *  font_man
 	)
 {
-#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER)
+#if  defined(USE_FRAMEBUFFER)
+
 	return  None ;
+
+#elif  defined(USE_WIN32GUI)
+
+	static LOGFONT  logfont ;
+
+	ZeroMemory( &logfont , sizeof(logfont)) ;
+	GetObject( font_man->font_cache->usascii_font->fid , sizeof(logfont) , &logfont) ;
+
+	return  &logfont ;
+
 #else
+
 	XFontSet  fontset ;
 	char *  list_str ;
 	char **  missing ;
