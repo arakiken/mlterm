@@ -1222,7 +1222,8 @@ x_main_config_init(
 	{
 		u_int  margin ;
 
-		if( kik_str_to_uint( &margin , value) && margin <= 127)
+		/* 640x480 => (640-224*2)x(480-224*2) => 192x32 on framebuffer. */
+		if( kik_str_to_uint( &margin , value) && margin <= 224)
 		{
 			main_config->margin = margin ;
 		}
@@ -1388,13 +1389,11 @@ x_main_config_add_to_server_list(
 	)
 {
 	u_int  nlist ;
-	int  found ;
 	size_t  len ;
 	size_t  add_len ;
 	char *  p ;
 	char **  pp ;
 
-	found = 0 ;
 	nlist = 0 ;
 	len = 0 ;
 	if( main_config->server_list)

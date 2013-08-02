@@ -722,6 +722,12 @@ __exit(
 
 	main_loop_final() ;
 
+#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+	WSACleanup() ;
+#endif
+
+	kik_dl_close_all() ;
+
 	kik_msg_printf( "reporting unfreed memories --->\n") ;
 
 	kik_alloca_garbage_collect() ;

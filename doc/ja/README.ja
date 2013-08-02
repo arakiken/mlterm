@@ -297,7 +297,7 @@ comment $Id$
         実スクリーンの縦幅(百分率)
 
       o inner_border (*2*)
-        Window の inner border (0-127)
+        Window の inner border (0-224)
 
       -- Terminal 関連 --
       o use_login_shell  (true/*false*)

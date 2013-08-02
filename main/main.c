@@ -9,6 +9,7 @@
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_privilege.h>
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_dlfcn.h>
 
 #ifdef  HAVE_WINDOWS_H
 #include  <windows.h>

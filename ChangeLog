@@ -1,3 +1,18 @@
+2013-08-03  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_dlfcn.c: Double free is fixed.
+
+	* x_screen.c: If screen->term != NULL is checked in window_unfocused()
+	  in case of receiving unfocus event after screen->term was deleted.
+	  (especially for win32.)
+
+	* win32/x_xic.c: x_xic_font_set_changed() is called in x_xic_set_focus().
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* x_main_config.c: The range of "inner_border" option is changed from
+	  0-127 to 0-224.
+
 2013-08-01  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_xic.c, x_font_manager.c: x_xic_font_set_changed() and x_get_fontset()

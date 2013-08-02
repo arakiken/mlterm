@@ -336,6 +336,13 @@ x_xic_set_focus(
 	x_window_t *  win
 	)
 {
+#if  0
+	x_xic_set_spot( win) ;
+#endif
+
+	/* The composition font can be changed by the connection dialog box. */
+	x_xic_font_set_changed( win) ;
+
 	return  1 ;
 }
 

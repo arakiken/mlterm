@@ -1710,6 +1710,17 @@ window_unfocused(
 
 	screen = (x_screen_t *) win ;
 
+	/*
+	 * XXX
+	 * Unfocus event can be received in deleting window after screen->term was deleted.
+	 */
+#if  1
+	if( ! screen->term)
+	{
+		return ;
+	}
+#endif
+
 	if( screen->fade_ratio != 100)
 	{
 		if( x_color_manager_fade( screen->color_man , screen->fade_ratio))
@@ -1991,7 +2002,7 @@ shortcut_match(
 		return  1 ;
 	}
 #endif
-#ifdef  DEBUG
+#ifdef  __DEBUG
 	else if( ksym == XK_F10)
 	{
 		/* Performance benchmark */

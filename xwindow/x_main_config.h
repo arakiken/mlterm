@@ -102,7 +102,7 @@ typedef struct x_main_config
 	int8_t  logging_vt_seq ;
 	int8_t  allow_osc52 ;
 	int8_t  blink_cursor ;
-	int8_t  margin ;
+	u_int8_t  margin ;
 	int8_t  hide_underline ;
 	int8_t  use_bold_font ;
 	int8_t  use_local_echo ;

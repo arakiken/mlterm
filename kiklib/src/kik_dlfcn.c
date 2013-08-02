@@ -68,4 +68,5 @@ kik_dl_close_all(void)
 
 	num_of_handles = 0 ;
 	free( handles) ;
+	handles = NULL ;
 }

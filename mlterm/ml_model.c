@@ -95,7 +95,6 @@ ml_model_resize(
 	int  new_row ;
 	int  count ;
 	u_int  copy_rows ;
-	u_int  copy_len ;
 	ml_line_t *  lines_p ;
 	u_int  filled_rows ;
 
@@ -119,8 +118,6 @@ ml_model_resize(
 	
 		return  0 ;
 	}
-	
-	copy_len = K_MIN(num_of_cols , model->num_of_cols) ;
 
 	count = model->num_of_rows - 1 ;
 	while( 1)
