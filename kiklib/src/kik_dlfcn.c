@@ -31,11 +31,13 @@ kik_dl_close_at_exit(
 
 	handles = p ;
 
+#if  0
 	if( num_of_handles == 0)
 	{
 		atexit( kik_dl_close_all) ;
 	}
 	else
+#endif
 	{
 		u_int  count ;
 

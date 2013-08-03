@@ -165,7 +165,11 @@ main(
 
 	main_loop_start() ;
 
+#if defined(DEBUG) || defined(USE_WIN32GUI) || defined(__CYGWIN__) || defined(__MSYS__)
 	main_loop_final() ;
+#else
+	/* All resources are freed on exit. */
+#endif
 
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	WSACleanup() ;

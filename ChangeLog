@@ -1,5 +1,13 @@
 2013-08-03  Araki Ken  <arakiken@users.sf.net>
 
+	* kik_dlfcn.c, x_event_source.c, main/main.c:
+	  kik_dl_close_all() is called at the end of main() instead of
+	  atexit(kik_dl_close_all).
+
+	* x_xim.c: Fix segfault in x_xim_final().
+
+2013-08-03  Araki Ken  <arakiken@users.sf.net>
+
 	* kik_dlfcn.c: Double free is fixed.
 
 	* x_screen.c: If screen->term != NULL is checked in window_unfocused()

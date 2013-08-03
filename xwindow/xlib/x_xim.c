@@ -361,7 +361,7 @@ x_xim_init(
 	#if  0
 		default_xim_name = NULL ;
 	#else
-		default_xim_name = "none" ;
+		default_xim_name = strdup( "none") ;
 	#endif
 	}
 	else

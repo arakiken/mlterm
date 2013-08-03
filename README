@@ -166,8 +166,8 @@ Supported platforms
   * OpenBSD 5.3 / framebuffer (x86)
   * MS Windows 7 / GDI (x86)
   * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
-  * MS Windows 7 + Cygwin 1.7.20 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
-  * MS Windows 7 + Cygwin 1.7.20 / X (x86)
+  * MS Windows 7 + Cygwin 1.7.22 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
+  * MS Windows 7 + Cygwin 1.7.22 / X (x86)
 
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.

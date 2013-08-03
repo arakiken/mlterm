@@ -271,10 +271,6 @@ x_event_source_init(void)
 int
 x_event_source_final(void)
 {
-#if  ! defined(USE_WIN32GUI) && ! defined(DEBUG)
-	exit(0) ;
-#endif
-
 #ifndef  USE_WIN32API
 	free( additional_fds) ;
 #endif
