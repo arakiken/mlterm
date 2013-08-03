@@ -1,3 +1,9 @@
+2013-08-04  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_xic.c:
+	  - Y of the preedit position is fixed.
+	  - x_xic_set_spot() is called in x_xic_set_focus().
+
 2013-08-03  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_dlfcn.c, x_event_source.c, main/main.c:

@@ -40,7 +40,7 @@ get_spot(
 	}
 
 	spot->x = x + win->margin ;
-	spot->y = y /* + win->margin */ ;
+	spot->y = y + win->margin ;
 
 	return  1 ;
 }
@@ -336,7 +336,7 @@ x_xic_set_focus(
 	x_window_t *  win
 	)
 {
-#if  0
+#if  1
 	x_xic_set_spot( win) ;
 #endif
 
