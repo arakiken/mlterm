@@ -10,7 +10,9 @@
 #define  WINVER  0x0500
 #undef   _WIN32_WINNT
 #define  _WIN32_WINNT  0x0500	/* for WS_EX_LAYERED , LWA_XXX , SetLayeredWindowAttributes */
-#define  _WINSOCK2_H		/* Don't include winsock2.h */
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+#define  _WINSOCK2_H	/* Don't include winsock2.h which conflicts with cygwin/msys types. */
+#endif
 #include  <windows.h>
 #include  <imm.h>
 

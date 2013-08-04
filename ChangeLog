@@ -1,5 +1,15 @@
 2013-08-04  Araki Ken  <arakiken@users.sf.net>
 
+	* kiklib/configure.in: socklen_t of winsock is checked.
+
+	* win32/x.h: _WINSOCK2_H is not defined unless __CYGWIN__ or __MSYS__
+	  to fix compilation error with i686-pc-mingw32-gcc.
+
+	* win32/x_xic.c: CFS_POINT is replaced by CFS_FORCE_POSITION and
+	  x_xic_set_spot() in x_xic_set_focus() is removed.
+
+2013-08-04  Araki Ken  <arakiken@users.sf.net>
+
 	* win32/x_xic.c:
 	  - Y of the preedit position is fixed.
 	  - x_xic_set_spot() is called in x_xic_set_focus().

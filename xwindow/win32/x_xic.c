@@ -182,7 +182,7 @@ x_xic_set_spot(
 	MapWindowPoints( win->my_window, x_get_root_window( win)->my_window, &spot, 1) ;
 
 	cf.ptCurrentPos = spot ;
-	cf.dwStyle = CFS_POINT ;
+	cf.dwStyle = CFS_FORCE_POSITION ;
 
 	return  ImmSetCompositionWindow( win->xic->ic, &cf) ;
 }
@@ -336,10 +336,6 @@ x_xic_set_focus(
 	x_window_t *  win
 	)
 {
-#if  1
-	x_xic_set_spot( win) ;
-#endif
-
 	/* The composition font can be changed by the connection dialog box. */
 	x_xic_font_set_changed( win) ;
 

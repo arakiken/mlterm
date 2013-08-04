@@ -3,6 +3,8 @@ ver 3.2.2
 * Support X11 forwarding (no xauth) on win32/libssh2 and java.
 * Add "X11 forwarding" checkbox to the connection dialog on win32.
 * Change "skip_dialog" option to "show_dialog" and reverse the default behavior.
+* Open a pty channel on the same ssh session as the active screen when OPEN_PTY
+  or OPEN_SCREEN shortcut key is pressed.
 * Bug fixes:
   Fix configure error which --with-gui=xlib,fb option causes. (enbugged at 3.2.1)
   DECALN(ESC#8) resets the screen margins.
@@ -11,6 +13,7 @@ ver 3.2.2
   Fix clipboard operations of copy&paste on multiple windows on win32.
   Fix hangup on x11 forwarding.
   Fix segmentation fault in closing the first window on win32/libssh2.
+  Fix the font and position of IME preedit text on win32.
 
 ver 3.2.1
 * Support framebuffer on OpenBSD.

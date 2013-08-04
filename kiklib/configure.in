@@ -109,6 +109,9 @@ esac
 #
 # --- socklen_t ---
 #
+# NOTE: #define _BSDTYPES_DEFINED is necessary because AC_TRY_COMPILE defines
+#       u_char, u_short and so on before #include <ws2tcpip.h> .
+#
 AC_CACHE_CHECK(for socklen_t, kik_cv_socklen_ident,
 [AC_TRY_COMPILE(
 [
@@ -118,11 +121,18 @@ AC_CACHE_CHECK(for socklen_t, kik_cv_socklen_ident,
 ],
 [
 socklen_t  len ;
-], kik_cv_socklen_ident=yes, kik_cv_socklen_ident=no)])
+], kik_cv_socklen_ident=yes,
+[AC_TRY_COMPILE(
+[
+#define  _BSDTYPES_DEFINED
+#include  <ws2tcpip.h>
+],
+[
+socklen_t  len ;
+], kik_cv_socklen_ident=yes, kik_cv_socklen_ident=no)])])
 if test "${kik_cv_socklen_ident}" = "no" ; then
 	AC_DEFINE(socklen_t, unsigned int, "socklen_t")
 fi
-
 
 #
 # --- Check if concatenation of string literals with __FUNCTION__ is supported. ---
