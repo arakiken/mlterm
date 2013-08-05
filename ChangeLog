@@ -1,3 +1,8 @@
+2013-08-05  Araki Ken  <arakiken@users.sf.net>
+
+	* main.c: If __argv is NULL on win32, dummy_argv ({"mlterm",NULL}) is
+	  used instead.
+
 2013-08-04  Araki Ken  <arakiken@users.sf.net>
 
 	* kiklib/configure.in: socklen_t of winsock is checked.

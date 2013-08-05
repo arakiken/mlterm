@@ -26,7 +26,8 @@
 #endif
 
 #ifdef  USE_WIN32API
-#define  argv  __argv
+static char *  dummy_argv[] = { "mlterm" , NULL } ;
+#define  argv  (__argv ? __argv : dummy_argv)
 #define  argc  __argc
 #endif
 

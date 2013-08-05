@@ -9,6 +9,7 @@
 
 #include  "kik_mem.h"		/* alloca() */
 
+#undef   _WIN32_WINNT
 #define  _WIN32_WINNT 0x0502	/* for SetDllDirectory */
 #include  <windows.h>
 #include  <winbase.h>		/* SetDllDirectory */
