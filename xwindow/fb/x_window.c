@@ -492,7 +492,7 @@ copy_area(
 	u_int  height ,
 	int  dst_x ,	/* can be minus */
 	int  dst_y ,	/* can be minus */
-	int  accept_margin	/* x/y can be minus or not */
+	int  accept_margin	/* x/y can be minus and over width/height */
 	)
 {
 	int  margin ;
@@ -503,7 +503,7 @@ copy_area(
 	u_char *  picture ;
 	size_t  src_width_size ;
 
-	if( ! win->is_mapped || dst_x >= (int)win->width || dst_y >= (int)win->height)
+	if( ! win->is_mapped)
 	{
 		return  0 ;
 	}
@@ -518,6 +518,11 @@ copy_area(
 		margin = 0 ;
 		right_margin = RIGHT_MARGIN(win) ;
 		bottom_margin = BOTTOM_MARGIN(win) ;
+	}
+
+	if( dst_x >= (int)win->width + margin || dst_y >= (int)win->height + margin)
+	{
+		return  0 ;
 	}
 
 	if( dst_x + width > win->width + margin - right_margin)

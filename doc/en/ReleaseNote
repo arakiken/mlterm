@@ -1,3 +1,7 @@
+ver 3.2.3
+* Bug fixes:
+  Fix the bug which disabled redrawing the margin area on framebuffer.
+
 ver 3.2.2
 * Support SSH agent authentication and forwarding.
 * Support X11 forwarding (no xauth) on win32/libssh2 and java.
