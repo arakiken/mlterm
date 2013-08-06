@@ -1,3 +1,11 @@
+2013-08-06  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.2.2 released.
+	  (tag "rel-3_2_2")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.2.2.
+
 2013-08-05  Araki Ken  <arakiken@users.sf.net>
 
 	* main.c: If __argv is NULL on win32, dummy_argv ({"mlterm",NULL}) is
