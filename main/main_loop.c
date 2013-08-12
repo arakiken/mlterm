@@ -360,7 +360,7 @@ main_loop_init(
 		kik_str_to_int( &wskbd_repeat_N , value) ;
 	}
 #endif
-#ifdef  __OpenBSD__
+#if  defined(__OpenBSD__) || defined(__NetBSD__)
 	if( ( value = kik_conf_get_value( conf , "fb_resolution")))
 	{
 		extern u_int  fb_width ;

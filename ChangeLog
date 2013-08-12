@@ -1,3 +1,14 @@
+2013-08-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.c: "fb_resolution" option is available on NetBSD/x68k
+	  framebuffer.
+
+	* fb/x_display.c, fb/x_imagelib.c:
+	  /dev/grf1 support for NetBSD/x68k is added.
+
+	* mkf/configure.in, mkf/libtbl/Makefile:
+	  If --disable-dl-table is not specified, don't make at libtbl/.
+
 2013-08-07  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_window.c: The bug of copy_area() which disabled redrawing

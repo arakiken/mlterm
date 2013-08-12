@@ -14,6 +14,9 @@
 #include <math.h>               /* pow */
 #endif
 #include  <kiklib/kik_debug.h>
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
+#include  <sys/param.h>		/* _MACHINE */
+#endif
 
 #include  "x_display.h"		/* x_cmap_get_closest_color */
 
@@ -151,7 +154,14 @@ modify_pixmap(
 
 			if( x_cmap_get_closest_color( &pixel , r , g , b))
 			{
+			#if  defined(__NetBSD__) || defined(__OpenBSD__)
+			#if  _MACHINE == x68k
+				*(((u_int16_t*)pixmap->image) + (y * pixmap->width + x)) =
+						pixel ;
+			#else
 				*(pixmap->image + y * pixmap->width + x) = pixel ;
+			#endif
+			#endif
 			}
 			else
 			{
@@ -183,6 +193,20 @@ modify_pixmap(
 		}
 	}
 }
+
+/* For old machines */
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
+
+#if  _MACHINE == x68k
+
+#ifndef  BUILTIN_IMAGELIB
+#define  BUILTIN_IMAGELIB
+#endif
+#define  CARD_HEAD_SIZE  0
+#include  <string.h>	/* memset/memmove */
+#include  "../../common/c_imagelib.c"
+
+#elif  _MACHINE != i386
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -285,6 +309,11 @@ load_sixel_1bpp_from_file(
 	return  1 ;
 }
 
+#endif
+
+#endif	/* __NetBSD__ || __OpenBSD__ */
+
+
 static int
 load_file(
 	Display *  display ,
@@ -308,11 +337,29 @@ load_file(
 		return  0 ;
 	}
 
+/* For old machines */
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
+#if  _MACHINE == x68k
+	if( strstr( path , ".six") && ( *pixmap = calloc( 1 , sizeof(**pixmap))))
+	{
+		if( ( (*pixmap)->image = load_sixel_from_file( path ,
+						&(*pixmap)->width , &(*pixmap)->height)))
+		{
+			goto  loaded ;
+		}
+		else
+		{
+			free( *pixmap) ;
+		}
+	}
+#elif  _MACHINE != i386
 	if( load_sixel_1bpp_from_file( display , path , width , height ,
 		pic_mod , depth , pixmap , mask))
 	{
 		return  1 ;
 	}
+#endif
+#endif	/* __NetBSD__ || __OpenBSD__ */
 
 	if( pipe( fds1) == -1)
 	{
@@ -414,6 +461,7 @@ load_file(
 	close( fds2[0]) ;
 	close( fds1[1]) ;
 
+loaded:
 	if( mask)
 	{
 		u_char *  dst ;

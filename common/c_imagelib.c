@@ -14,7 +14,9 @@
 typedef u_int8_t  pixel_t ;
 #else
 #define  SIXEL_RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
+#ifndef  CARD_HEAD_SIZE
 #define  CARD_HEAD_SIZE  8
+#endif
 typedef u_int32_t  pixel_t ;
 #endif
 #define  PIXEL_SIZE  sizeof(pixel_t)

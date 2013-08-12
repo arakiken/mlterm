@@ -64,8 +64,11 @@ AC_ARG_ENABLE(dl-table,
 	dl_table=$enable_dl_table,dl_table="yes")
 if test "$dl_table" = "no" ; then
 	TABLE_CFLAGS="${TABLE_CFLAGS} -DNO_DYNAMIC_LOAD_TABLE"
+else
+	DL_LIBS="libmkf_jajp.la libmkf_kokr.la libmkf_zh.la libmkf_8bits.la"
 fi
 AC_SUBST(TABLE_CFLAGS)
+AC_SUBST(DL_LIBS)
 
 #
 # --- check for undefined symbol ---

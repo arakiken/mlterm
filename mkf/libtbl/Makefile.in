@@ -28,7 +28,7 @@ LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
-all: libmkf_jajp.la libmkf_kokr.la libmkf_zh.la libmkf_8bits.la
+all: @DL_LIBS@
 
 libmkf_jajp.la: $(JAJP_TABLE_OBJ)
 	$(LIBTOOL_LINK) -o libmkf_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
