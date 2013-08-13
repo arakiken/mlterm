@@ -1,3 +1,8 @@
+2013-08-13  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.c: open_display() on NetBSD is separated to
+	  open_display() for wscons and open_display() for x68k.
+
 2013-08-12  Araki Ken  <arakiken@users.sf.net>
 
 	* x_main_config.c: "fb_resolution" option is available on NetBSD/x68k

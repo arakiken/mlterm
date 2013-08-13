@@ -17,11 +17,11 @@
 #include  <sys/mouse.h>
 #include  <sys/time.h>
 #elif  defined(__NetBSD__) || defined(__OpenBSD__)
+#include  <sys/param.h>				/* MACHINE */
 #if  _MACHINE == x68k
 #include  <machine/grfioctl.h>
 #endif
 #include  <dev/wscons/wsdisplay_usl_io.h>	/* VT_GETSTATE */
-#include  <sys/param.h>				/* MACHINE */
 #include  "../x_event_source.h"
 #else
 #include  <linux/kd.h>
@@ -332,7 +332,7 @@ cmap_init(
 	} ;
 	u_char *  rgb_tbl ;
 
-#if _MACHINE != x68k
+#if  ! defined(_MACHINE) || _MACHINE != x68k
 	if( num_of_colors > 2)
 	{
 		/*
@@ -392,7 +392,7 @@ cmap_init(
 	#endif
 	}
 
-#if  _MACHINE != x68k
+#if  ! defined(_MACHINE) || _MACHINE != x68k
 	ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
 #endif
 
@@ -1937,18 +1937,6 @@ process_wskbd_event(
 	}
 }
 
-#ifdef  __NetBSD__
-static void
-auto_repeat(void)
-{
-	if( prev_key_event.value && --wskbd_repeat_wait == 0)
-	{
-		process_wskbd_event( &prev_key_event) ;
-		wskbd_repeat_wait = (wskbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
-	}
-}
-#endif
-
 #if  _MACHINE == x68k
 
 static void
@@ -1995,13 +1983,10 @@ setup_reg(
 	reg->videoc.r2 = conf->videoc.r2 ;
 }
 
-#endif
-
 static int
 open_display(void)
 {
 	char *  dev ;
-#if  _MACHINE == x68k
 	struct grfinfo  vinfo ;
 	fb_reg_t *  reg ;
 	fb_reg_conf_t *  conf ;
@@ -2017,27 +2002,206 @@ open_display(void)
 	fb_reg_conf_t  conf_1024_768_4 =
 		{ { 169 , 14 , 28 , 156 , 439 , 5 , 40 , 424 , 27 , 1050 } ,
 		  { 4 , 0x21e4 , 0x0010 } } ;
-#else
-	struct wsdisplay_fbinfo  vinfo ;
+	int  mode ;
+	struct rgb_info  rgb_info_15bpp = { 3 , 3 , 3 , 6 , 11 , 1 } ;
+	struct termios  tm ;
+	static struct wscons_keymap  map[KS_NUMKEYCODES] ;
+
+	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/grf1" ,
+					O_RDWR)))
+	{
+		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/grf1") ;
+
+		return  0 ;
+	}
+
+	kik_file_set_cloexec( _display.fb_fd) ;
+
+	if( ioctl( _display.fb_fd , GRFIOCON , 0) == -1 ||
+	    ioctl( _display.fb_fd , GRFIOCGINFO , &vinfo) == -1)
+	{
+		goto  error ;
+	}
+
+	_display.smem_len = vinfo.gd_fbsize + vinfo.gd_regsize ;
+
+	if( ( _display.fb = mmap( NULL , _display.smem_len ,
+				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
+				== MAP_FAILED)
+	{
+		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
+
+		goto  error ;
+	}
+
+	reg = _display.fb ;
+	orig_reg.crtc.r00 = reg->crtc.r00 ;
+	orig_reg.crtc.r01 = reg->crtc.r01 ;
+	orig_reg.crtc.r02 = reg->crtc.r02 ;
+	orig_reg.crtc.r03 = reg->crtc.r03 ;
+	orig_reg.crtc.r04 = reg->crtc.r04 ;
+	orig_reg.crtc.r05 = reg->crtc.r05 ;
+	orig_reg.crtc.r06 = reg->crtc.r06 ;
+	orig_reg.crtc.r07 = reg->crtc.r07 ;
+	orig_reg.crtc.r08 = reg->crtc.r08 ;
+	orig_reg.crtc.r20 = reg->crtc.r20 ;
+	orig_reg.videoc.r0 = reg->videoc.r0 ;
+	orig_reg.videoc.r1 = reg->videoc.r1 ;
+	orig_reg.videoc.r2 = reg->videoc.r2 ;
+
+	if( fb_depth == 15)
+	{
+		conf = &conf_512_512_15 ;
+
+		_display.width = _disp.width = 512 ;
+		_display.height = _disp.height = 512 ;
+		_disp.depth = 15 ;
+
+		_display.rgbinfo = rgb_info_15bpp ;
+	}
+	else
+	{
+		if( fb_depth == 8)
+		{
+			conf = &conf_512_512_8 ;
+
+			_display.width = _disp.width = 512 ;
+			_display.height = _disp.height = 512 ;
+			_disp.depth = 8 ;
+		}
+		else /* if( fb_depth == 4) */
+		{
+			if( fb_width == 1024 && fb_height == 768)
+			{
+				conf = &conf_1024_768_4 ;
+
+				_display.width = _disp.width = 1024 ;
+				_display.height = _disp.height = 768 ;
+			}
+			else
+			{
+				conf = &conf_768_512_4 ;
+
+				_display.width = _disp.width = 768 ;
+				_display.height = _disp.height = 512 ;
+			}
+
+			_disp.depth = 4 ;
+		}
+
+		if( ! cmap_init( 2 << (_disp.depth - 1)))
+		{
+			goto  error ;
+		}
+		else
+		{
+			u_int  count ;
+
+			if( ( orig_cmap = malloc( sizeof(reg->gpal))))
+			{
+				memcpy( orig_cmap , reg->gpal , sizeof(reg->gpal)) ;
+			}
+
+			for( count = 0 ; count < CMAP_SIZE(_display.cmap) ; count++)
+			{
+				reg->gpal[count] =
+					(_display.cmap->red[count] >> 3) << 6 |
+					(_display.cmap->green[count] >> 3) << 11 |
+					(_display.cmap->blue[count] >> 3) << 1 ;
+			}
+		}
+	}
+
+	_display.bytes_per_pixel = 2 ;
+	_display.pixels_per_byte = 1 ;
+
+	_display.line_length = (_disp.width * 2 + 1023) / 1024 * 1024 ;
+	_display.xoffset = 0 ;
+	/* XXX gd_regsize is regarded as multiple of line_length */
+	_display.yoffset = vinfo.gd_regsize / _display.line_length ;
+
+	setup_reg( reg , conf) ;
+
+#ifdef  ENABLE_DOUBLE_BUFFER
+	if( _display.pixels_per_byte > 1 &&
+	    ! ( _display.back_fb = malloc( _display.smem_len)))
+	{
+		goto  error ;
+	}
 #endif
+
+	tcgetattr( STDIN_FILENO , &tm) ;
+	orig_tm = tm ;
+	tm.c_iflag = tm.c_oflag = 0 ;
+	tm.c_cflag &= ~CSIZE ;
+	tm.c_cflag |= CS8 ;
+	tm.c_lflag &= ~(ECHO|ISIG|IEXTEN|ICANON) ;
+	tm.c_cc[VMIN] = 1 ;
+	tm.c_cc[VTIME] = 0 ;
+	tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
+
+	_display.fd = STDIN_FILENO ;
+	_mouse.fd = -1 ;
+
+	_disp.display = &_display ;
+
+	console_id = get_active_console() ;
+
+	return  1 ;
+
+error:
+	if( _display.fb)
+	{
+		setup_reg( reg , &orig_reg) ;
+
+		if( orig_cmap)
+		{
+			memcpy( reg->gpal , orig_cmap , sizeof(reg->gpal)) ;
+			free( orig_cmap) ;
+		}
+
+		munmap( _display.fb , _display.smem_len) ;
+		_display.fb = NULL ;
+	}
+
+	close( _display.fb_fd) ;
+
+	ioctl( _display.fb_fd , GRFIOCOFF , 0) ;
+
+	return  0 ;
+}
+
+#else	/* _MACHINE != x68k */
+
+#ifdef  __NetBSD__
+static void
+auto_repeat(void)
+{
+	if( prev_key_event.value && --wskbd_repeat_wait == 0)
+	{
+		process_wskbd_event( &prev_key_event) ;
+		wskbd_repeat_wait = (wskbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT ;
+	}
+}
+#endif
+
+static int
+open_display(void)
+{
+	char *  dev ;
+	struct wsdisplay_fbinfo  vinfo ;
 	int  mode ;
 	int  wstype ;
 	struct rgb_info  rgbinfos[] =
 	{
-	#if  _MACHINE == x68k
-		{ 3 , 3 , 3 , 6 , 11 , 1 } ,
-	#else
 		{ 3 , 3 , 3 , 10 , 5 , 0 } ,
-	#endif
 		{ 3 , 2 , 3 , 11 , 5 , 0 } ,
 		{ 0 , 0 , 0 , 16 , 8 , 0 } ,
 	} ;
 	struct termios  tm ;
 	static struct wscons_keymap  map[KS_NUMKEYCODES] ;
 
-#if  _MACHINE == x68k
-#define  DEFAULT_FBDEV  "/dev/grf1"
-#elif  defined(__NetBSD__)
+#if  defined(__NetBSD__)
 #define  DEFAULT_FBDEV  "/dev/ttyE0"
 #else  /* __OpenBSD__ */
 #define  DEFAULT_FBDEV  "/dev/ttyC0"
@@ -2052,20 +2216,6 @@ open_display(void)
 	}
 
 	kik_file_set_cloexec( _display.fb_fd) ;
-
-#if  _MACHINE == x68k
-
-	if( ioctl( _display.fb_fd , GRFIOCON , 0) == -1 ||
-	    ioctl( _display.fb_fd , GRFIOCGINFO , &vinfo) == -1)
-	{
-		goto  error ;
-	}
-
-	_display.smem_len = vinfo.gd_fbsize + vinfo.gd_regsize ;
-
-	wstype = 0 ;
-
-#else	/* _MACHINE != x68k */
 
 	ioctl( STDIN_FILENO , WSDISPLAYIO_GMODE , &orig_console_mode) ;
 
@@ -2157,9 +2307,6 @@ open_display(void)
 
 	_display.smem_len = _display.line_length * _display.height ;
 
-#endif	/* _MACHINE == x68k */
-
-
 	if( ( _display.fb = mmap( NULL , _display.smem_len ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
@@ -2175,98 +2322,6 @@ open_display(void)
 		_display.fb += 8 ;
 	}
 #endif
-
-#if  _MACHINE == x68k
-
-	reg = _display.fb ;
-	orig_reg.crtc.r00 = reg->crtc.r00 ;
-	orig_reg.crtc.r01 = reg->crtc.r01 ;
-	orig_reg.crtc.r02 = reg->crtc.r02 ;
-	orig_reg.crtc.r03 = reg->crtc.r03 ;
-	orig_reg.crtc.r04 = reg->crtc.r04 ;
-	orig_reg.crtc.r05 = reg->crtc.r05 ;
-	orig_reg.crtc.r06 = reg->crtc.r06 ;
-	orig_reg.crtc.r07 = reg->crtc.r07 ;
-	orig_reg.crtc.r08 = reg->crtc.r08 ;
-	orig_reg.crtc.r20 = reg->crtc.r20 ;
-	orig_reg.videoc.r0 = reg->videoc.r0 ;
-	orig_reg.videoc.r1 = reg->videoc.r1 ;
-	orig_reg.videoc.r2 = reg->videoc.r2 ;
-
-	if( fb_depth == 15)
-	{
-		conf = &conf_512_512_15 ;
-
-		_display.width = _disp.width = 512 ;
-		_display.height = _disp.height = 512 ;
-		_disp.depth = 15 ;
-
-		_display.rgbinfo = rgbinfos[0] ;
-	}
-	else
-	{
-		if( fb_depth == 8)
-		{
-			conf = &conf_512_512_8 ;
-
-			_display.width = _disp.width = 512 ;
-			_display.height = _disp.height = 512 ;
-			_disp.depth = 8 ;
-		}
-		else /* if( fb_depth == 4) */
-		{
-			if( fb_width == 1024 && fb_height == 768)
-			{
-				conf = &conf_1024_768_4 ;
-
-				_display.width = _disp.width = 1024 ;
-				_display.height = _disp.height = 768 ;
-			}
-			else
-			{
-				conf = &conf_768_512_4 ;
-
-				_display.width = _disp.width = 768 ;
-				_display.height = _disp.height = 512 ;
-			}
-
-			_disp.depth = 4 ;
-		}
-
-		if( ! cmap_init( 2 << (_disp.depth - 1)))
-		{
-			goto  error ;
-		}
-		else
-		{
-			u_int  count ;
-
-			if( ( orig_cmap = malloc( sizeof(reg->gpal))))
-			{
-				memcpy( orig_cmap , reg->gpal , sizeof(reg->gpal)) ;
-			}
-
-			for( count = 0 ; count < CMAP_SIZE(_display.cmap) ; count++)
-			{
-				reg->gpal[count] =
-					(_display.cmap->red[count] >> 3) << 6 |
-					(_display.cmap->green[count] >> 3) << 11 |
-					(_display.cmap->blue[count] >> 3) << 1 ;
-			}
-		}
-	}
-
-	_display.bytes_per_pixel = 2 ;
-	_display.pixels_per_byte = 1 ;
-
-	_display.line_length = (_disp.width * 2 + 1023) / 1024 * 1024 ;
-	_display.xoffset = 0 ;
-	/* XXX gd_regsize is regarded as multiple of line_length */
-	_display.yoffset = vinfo.gd_regsize / _display.line_length ;
-
-	setup_reg( reg , conf) ;
-
-#else
 
 	if( _disp.depth == 15)
 	{
@@ -2287,8 +2342,6 @@ open_display(void)
 			goto  error ;
 		}
 	}
-
-#endif	/* x68k */
 
 #ifdef  ENABLE_DOUBLE_BUFFER
 	if( _display.pixels_per_byte > 1 &&
@@ -2375,12 +2428,12 @@ open_display(void)
 		cfsetospeed( &tm , B1200) ;
 		tcsetattr( _display.fd , TCSAFLUSH , &tm) ;
 
+		ioctl( _display.fd , WSKBDIO_GETLEDS , &_display.lock_state) ;
+
 	#ifdef  __NetBSD__
 		x_event_source_add_fd( -10 , auto_repeat) ;
 	#endif
 	}
-
-	ioctl( _display.fd , WSKBDIO_GETLEDS , &_display.lock_state) ;
 
 	_disp.display = &_display ;
 
@@ -2422,29 +2475,19 @@ open_display(void)
 error:
 	if( _display.fb)
 	{
-	#if  _MACHINE == x68k
-		setup_reg( reg , &orig_reg) ;
-		if( orig_cmap)
-		{
-			memcpy( reg->gpal , orig_cmap , sizeof(reg->gpal)) ;
-			free( orig_cmap) ;
-		}
-	#endif
-
 		munmap( _display.fb , _display.smem_len) ;
 		_display.fb = NULL ;
 	}
 
 	close( _display.fb_fd) ;
 
-#if  _MACHINE == x68k
-	ioctl( _display.fb_fd , GRFIOCOFF , 0) ;
-#else
 	ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
-#endif
 
 	return  0 ;
 }
+
+#endif	/* _MACHINE == x68k */
+
 
 static int
 receive_mouse_event(void)

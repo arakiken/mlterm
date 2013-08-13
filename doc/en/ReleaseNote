@@ -1,4 +1,5 @@
 ver 3.2.3
+* Support framebuffer on NetBSD/x68k.
 * Bug fixes:
   Fix the bug which disabled redrawing the margin area on framebuffer.
 
