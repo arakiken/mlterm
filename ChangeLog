@@ -1,3 +1,9 @@
+2013-08-15  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: orig_reg is copied from 768x512x4 crtc and videoc
+	  (except videoc.r2 = 0x20) instead of being copied from reg in order
+	  not to slide the screen on exit.
+
 2013-08-14  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Cleanup code for NetBSD/x68k.

@@ -2032,6 +2032,9 @@ open_display(void)
 	}
 
 	reg = _display.fb ;
+
+	/* XXX Here reg->crtc.rXX are 0 which will slide the screen unexpectedly on exit. */
+#if  0
 	orig_reg.crtc.r00 = reg->crtc.r00 ;
 	orig_reg.crtc.r01 = reg->crtc.r01 ;
 	orig_reg.crtc.r02 = reg->crtc.r02 ;
@@ -2045,6 +2048,18 @@ open_display(void)
 	orig_reg.videoc.r0 = reg->videoc.r0 ;
 	orig_reg.videoc.r1 = reg->videoc.r1 ;
 	orig_reg.videoc.r2 = reg->videoc.r2 ;
+
+	kik_debug_printf( KIK_DEBUG_TAG
+		" crtc %d %d %d %d %d %d %d %d %d 0x%x videoc 0x%x 0x%x 0x%x\n" ,
+		orig_reg.crtc.r00 , orig_reg.crtc.r01 , orig_reg.crtc.r02 ,
+		orig_reg.crtc.r03 , orig_reg.crtc.r04 , orig_reg.crtc.r05 ,
+		orig_reg.crtc.r06 , orig_reg.crtc.r07 , orig_reg.crtc.r08 ,
+		orig_reg.crtc.r20 , orig_reg.videoc.r0 , orig_reg.videoc.r1 ,
+		orig_reg.videoc.r2) ;
+#else
+	orig_reg = conf_768_512_4 ;
+	orig_reg.videoc.r2 = 0x20 ;
+#endif
 
 	if( fb_depth == 15)
 	{
