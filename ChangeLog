@@ -1,6 +1,10 @@
+2013-08-14  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: Cleanup code for NetBSD/x68k.
+
 2013-08-13  Araki Ken  <arakiken@users.sf.net>
 
-	* x_display.c: open_display() on NetBSD is separated to
+	* fb/x_display.c: open_display() on NetBSD is separated to
 	  open_display() for wscons and open_display() for x68k.
 
 2013-08-12  Araki Ken  <arakiken@users.sf.net>

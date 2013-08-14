@@ -249,8 +249,8 @@ int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
 int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
 #endif
 #if  _MACHINE == x68k
-static  fb_reg_conf_t  orig_reg ;
-static  u_short *  orig_cmap ;
+static fb_reg_conf_t  orig_reg ;
+static u_short *  orig_cmap ;
 #endif
 #else	/* Linux */
 static int  console_id = -1 ;
@@ -2002,10 +2002,8 @@ open_display(void)
 	fb_reg_conf_t  conf_1024_768_4 =
 		{ { 169 , 14 , 28 , 156 , 439 , 5 , 40 , 424 , 27 , 1050 } ,
 		  { 4 , 0x21e4 , 0x0010 } } ;
-	int  mode ;
 	struct rgb_info  rgb_info_15bpp = { 3 , 3 , 3 , 6 , 11 , 1 } ;
 	struct termios  tm ;
-	static struct wscons_keymap  map[KS_NUMKEYCODES] ;
 
 	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/grf1" ,
 					O_RDWR)))
@@ -2017,8 +2015,7 @@ open_display(void)
 
 	kik_file_set_cloexec( _display.fb_fd) ;
 
-	if( ioctl( _display.fb_fd , GRFIOCON , 0) == -1 ||
-	    ioctl( _display.fb_fd , GRFIOCGINFO , &vinfo) == -1)
+	if( ioctl( _display.fb_fd , GRFIOCGINFO , &vinfo) == -1)
 	{
 		goto  error ;
 	}
@@ -2026,8 +2023,8 @@ open_display(void)
 	_display.smem_len = vinfo.gd_fbsize + vinfo.gd_regsize ;
 
 	if( ( _display.fb = mmap( NULL , _display.smem_len ,
-				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
-				== MAP_FAILED)
+				PROT_WRITE|PROT_READ , MAP_FILE|MAP_SHARED ,
+				_display.fb_fd , (off_t)0)) == MAP_FAILED)
 	{
 		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
 
@@ -3487,11 +3484,10 @@ x_display_close_all(void)
 				sizeof(((fb_reg_t*)_display.fb)->gpal)) ;
 			free( orig_cmap) ;
 		}
-		ioctl( _display.fb_fd , GRFIOCOFF , 0) ;
 	#else
 		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
-	#endif
 		x_event_source_remove_fd( -10) ;
+	#endif
 	#elif  defined(__OpenBSD__)
 		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
 	#else
