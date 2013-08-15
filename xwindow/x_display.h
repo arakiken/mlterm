@@ -95,5 +95,11 @@ void  x_display_update_modifier_mapping( x_display_t *  disp ,	u_int  serial) ;
 
 XID  x_display_get_group_leader( x_display_t *  disp) ;
 
+#ifdef  USE_FRAMEBUFFER
+int  x_display_reset_cmap(void) ;
+#else
+#define  x_display_reset_cmap()  (0)
+#endif
+
 
 #endif

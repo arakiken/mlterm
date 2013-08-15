@@ -1337,7 +1337,7 @@ x_window_update_all(
 
 	if( ! win->parent)
 	{
-		x_cmap_reset() ;
+		x_display_reset_cmap() ;
 	}
 
 	clear_margin_area( win) ;

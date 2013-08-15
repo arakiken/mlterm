@@ -1,5 +1,14 @@
 2013-08-15  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen_manager.c: x_display_reset_cmap() is called in
+	  color_config_updated().
+
+	* fb/x_display.[ch]:
+	  - x_cmap_reset() is renamed to x_display_reset_cmap().
+	  - cleanup.
+
+2013-08-15  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_display.c: orig_reg is copied from 768x512x4 crtc and videoc
 	  (except videoc.r2 = 0x20) instead of being copied from reg in order
 	  not to slide the screen on exit.

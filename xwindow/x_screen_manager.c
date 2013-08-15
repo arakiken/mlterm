@@ -114,6 +114,8 @@ color_config_updated(void)
 	
 	x_color_cache_unload_all() ;
 
+	x_display_reset_cmap() ;
+
 	for( count = 0 ; count < num_of_screens ; count++)
 	{
 		x_screen_reset_view( screens[count]) ;

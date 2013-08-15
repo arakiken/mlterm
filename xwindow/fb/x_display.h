@@ -29,8 +29,6 @@ void  x_display_copy_lines( int  src_x , int  src_y ,
 
 int  x_display_check_visibility_of_im_window( void) ;
 
-int  x_cmap_reset(void) ;
-
 int  x_cmap_get_closest_color( u_long *  closest , int  red , int  green , int  blue) ;
 
 int  x_cmap_get_pixel_rgb( u_int8_t *  red , u_int8_t *  green ,

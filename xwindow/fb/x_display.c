@@ -250,7 +250,6 @@ int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
 #endif
 #if  _MACHINE == x68k
 static fb_reg_conf_t  orig_reg ;
-static u_short *  orig_cmap ;
 #endif
 #else	/* Linux */
 static int  console_id = -1 ;
@@ -310,10 +309,9 @@ cmap_new(
 }
 
 static int
-cmap_init(
-	int  num_of_colors
-	)
+cmap_init(void)
 {
+	int  num_of_colors ;
 	ml_color_t  color ;
 	u_int8_t  r ;
 	u_int8_t  g ;
@@ -332,27 +330,38 @@ cmap_init(
 	} ;
 	u_char *  rgb_tbl ;
 
-#if  ! defined(_MACHINE) || _MACHINE != x68k
-	if( num_of_colors > 2)
+	num_of_colors = (2 << (_disp.depth - 1)) ;
+
+	if( ! _display.cmap)
 	{
-		/*
-		 * Not get the current cmap because num_of_colors == 2 doesn't
-		 * conform the actual depth (1,2,4).
-		 */
-		if( ! ( _display.cmap_orig = cmap_new( num_of_colors)))
+	#if  ! defined(_MACHINE) || _MACHINE != x68k
+		if( num_of_colors > 2)
 		{
+			/*
+			 * Not get the current cmap because num_of_colors == 2 doesn't
+			 * conform the actual depth (1,2,4).
+			 */
+			if( ! ( _display.cmap_orig = cmap_new( num_of_colors)))
+			{
+				return  0 ;
+			}
+
+			ioctl( _display.fb_fd , FBIOGETCMAP , _display.cmap_orig) ;
+		}
+	#else
+		if( ( _display.cmap_orig = malloc( sizeof(((fb_reg_t*)_display.fb)->gpal))))
+		{
+			memcpy( _display.cmap_orig , ((fb_reg_t*)_display.fb)->gpal ,
+				sizeof(((fb_reg_t*)_display.fb)->gpal)) ;
+		}
+	#endif
+
+		if( ! ( _display.cmap = cmap_new( num_of_colors)))
+		{
+			free( _display.cmap_orig) ;
+
 			return  0 ;
 		}
-
-		ioctl( _display.fb_fd , FBIOGETCMAP , _display.cmap_orig) ;
-	}
-#endif
-
-	if( ! ( _display.cmap = cmap_new( num_of_colors)))
-	{
-		free( _display.cmap_orig) ;
-
-		return  0 ;
 	}
 
 	if( num_of_colors == 2)
@@ -394,6 +403,18 @@ cmap_init(
 
 #if  ! defined(_MACHINE) || _MACHINE != x68k
 	ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
+#else
+	{
+		u_int  count ;
+
+		for( count = 0 ; count < CMAP_SIZE(_display.cmap) ; count++)
+		{
+			((fb_reg_t*)_display.fb)->gpal[count] =
+				(_display.cmap->red[count] >> 3) << 6 |
+				(_display.cmap->green[count] >> 3) << 11 |
+				(_display.cmap->blue[count] >> 3) << 1 ;
+		}
+	}
 #endif
 
 	return  1 ;
@@ -404,7 +425,12 @@ cmap_final(void)
 {
 	if( _display.cmap_orig)
 	{
+	#if ! defined(_MACHINE) || _MACHINE != x68k
 		ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap_orig) ;
+	#else
+		memcpy( ((fb_reg_t*)_display.fb)->gpal , _display.cmap_orig ,
+			sizeof(((fb_reg_t*)_display.fb)->gpal)) ;
+	#endif
 
 		free( _display.cmap_orig) ;
 	}
@@ -1224,7 +1250,7 @@ open_display(void)
 			_display.pixels_per_byte = 1 ;
 		}
 
-		if( ! cmap_init( 2 << (_disp.depth - 1)))
+		if( ! cmap_init())
 		{
 			goto  error ;
 		}
@@ -2101,26 +2127,9 @@ open_display(void)
 			_disp.depth = 4 ;
 		}
 
-		if( ! cmap_init( 2 << (_disp.depth - 1)))
+		if( ! cmap_init())
 		{
 			goto  error ;
-		}
-		else
-		{
-			u_int  count ;
-
-			if( ( orig_cmap = malloc( sizeof(reg->gpal))))
-			{
-				memcpy( orig_cmap , reg->gpal , sizeof(reg->gpal)) ;
-			}
-
-			for( count = 0 ; count < CMAP_SIZE(_display.cmap) ; count++)
-			{
-				reg->gpal[count] =
-					(_display.cmap->red[count] >> 3) << 6 |
-					(_display.cmap->green[count] >> 3) << 11 |
-					(_display.cmap->blue[count] >> 3) << 1 ;
-			}
 		}
 	}
 
@@ -2162,16 +2171,11 @@ open_display(void)
 	return  1 ;
 
 error:
+	cmap_final() ;
+
 	if( _display.fb)
 	{
 		setup_reg( reg , &orig_reg) ;
-
-		if( orig_cmap)
-		{
-			memcpy( reg->gpal , orig_cmap , sizeof(reg->gpal)) ;
-			free( orig_cmap) ;
-		}
-
 		munmap( _display.fb , _display.smem_len) ;
 		_display.fb = NULL ;
 	}
@@ -2349,7 +2353,7 @@ open_display(void)
 	}
 	else
 	{
-		if( ! cmap_init( 2 << (_disp.depth - 1)))
+		if( ! cmap_init())
 		{
 			goto  error ;
 		}
@@ -3015,7 +3019,7 @@ open_display(void)
 		_display.bytes_per_pixel = 4 ;
 	}
 
-	if( _disp.depth < 15 && ! cmap_init( 2 << (_disp.depth - 1)))
+	if( _disp.depth < 15 && ! cmap_init())
 	{
 		goto  error ;
 	}
@@ -3493,12 +3497,6 @@ x_display_close_all(void)
 	#elif  defined(__NetBSD__)
 	#if  _MACHINE == x68k
 		setup_reg( (fb_reg_t*)_display.fb , &orig_reg) ;
-		if( orig_cmap)
-		{
-			memcpy( ((fb_reg_t*)_display.fb)->gpal , orig_cmap ,
-				sizeof(((fb_reg_t*)_display.fb)->gpal)) ;
-			free( orig_cmap) ;
-		}
 	#else
 		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
 		x_event_source_remove_fd( -10) ;
@@ -3724,6 +3722,12 @@ x_display_get_group_leader(
 	)
 {
 	return  None ;
+}
+
+int
+x_display_reset_cmap(void)
+{
+	return  _display.cmap && cmap_init() ;
 }
 
 
@@ -4141,20 +4145,6 @@ x_display_check_visibility_of_im_window(void)
 	}
 
 	return  redraw_im_win ;
-}
-
-int
-x_cmap_reset(void)
-{
-	if( _display.cmap)
-	{
-		if( ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) == -1)
-		{
-			return  0 ;
-		}
-	}
-
-	return  1 ;
 }
 
 /* seek the closest color */
