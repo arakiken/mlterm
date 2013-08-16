@@ -1,3 +1,12 @@
+2013-08-16  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c, ml_color.c, c_imagelib.c:
+	  Threshold to determine the closest pixel is changed from 31 to 640.
+
+	* fb/x_display.c, fb/x.h: prev_pixel and prev_closest_pixel which cache
+	  the closest pixel previously found in the color palette are added to
+	  Display.
+
 2013-08-15  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen_manager.c: x_display_reset_cmap() is called in

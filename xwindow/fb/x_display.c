@@ -417,6 +417,9 @@ cmap_init(void)
 	}
 #endif
 
+	_display.prev_pixel = 0xff000000 ;
+	_display.prev_closest_pixel = 0xff000000 ;
+
 	return  1 ;
 }
 
@@ -3727,6 +3730,9 @@ x_display_get_group_leader(
 int
 x_display_reset_cmap(void)
 {
+	_display.prev_pixel = 0xff000000 ;
+	_display.prev_closest_pixel = 0xff000000 ;
+
 	return  _display.cmap && cmap_init() ;
 }
 
@@ -4156,6 +4162,7 @@ x_cmap_get_closest_color(
 	int  blue
 	)
 {
+	u_long  pixel ;
 	u_int  color ;
 	u_long  min = 0xffffff ;
 	u_long  diff ;
@@ -4166,6 +4173,17 @@ x_cmap_get_closest_color(
 		return  0 ;
 	}
 
+	/* 0xf8f8f8 ignores least significant 3bits */
+	if( (((pixel = (red << 16) | (green << 8) | blue) ^ _display.prev_pixel)
+	     & 0xfff8f8f8) == 0)
+	{
+		*closest = _display.prev_closest_pixel ;
+
+		return  1 ;
+	}
+
+	_display.prev_pixel = pixel ;
+
 	for( color = 0 ; color < CMAP_SIZE(_display.cmap) ; color++)
 	{
 		/* lazy color-space conversion */
@@ -4173,17 +4191,21 @@ x_cmap_get_closest_color(
 		diff_g = green - WORD_COLOR_TO_BYTE(_display.cmap->green[color]) ;
 		diff_b = blue - WORD_COLOR_TO_BYTE(_display.cmap->blue[color]) ;
 		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
+
 		if( diff < min)
 		{
 			min = diff ;
 			*closest = color ;
-			/* no one may notice the difference */
-			if( diff < 31)
+
+			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
+			if( diff < 640)
 			{
 				break ;
 			}
 		}
 	}
+
+	_display.prev_closest_pixel = *closest ;
 
 	return  1 ;
 }

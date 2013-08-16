@@ -958,8 +958,8 @@ closest_color_index(
 		{
 			min = diff ;
 			closest = i ;
-			/* no one may notice the difference */
-			if ( diff < 31)
+			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
+			if ( diff < 640)
 			{
 				break ;
 			}

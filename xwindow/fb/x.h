@@ -72,6 +72,10 @@ typedef struct
 	fb_cmap_t *  cmap ;
 	fb_cmap_t *  cmap_orig ;
 
+	/* XXX Move after cmap_orig */
+	u_long  prev_pixel ;
+	u_long  prev_closest_pixel ;
+
 	int  key_state ;
 	int  lock_state ;
 

@@ -112,9 +112,11 @@ modify_pixmap(
 	)
 {
 	u_char *  value_table ;
-	u_int  y ;
-	u_int  x ;
-	u_char  r , g , b , a ;
+	u_int32_t *  src ;
+	u_char *  dst ;
+	u_int  num_of_pixels ;
+	u_int  count ;
+	u_char  r , g , b ;
 	u_long  pixel ;
 
 	if( ! x_picture_modifier_is_normal( pic_mod) &&
@@ -131,53 +133,50 @@ modify_pixmap(
 		value_table = NULL ;
 	}
 
-	for( y = 0 ; y < pixmap->height ; y++)
+	src = dst = pixmap->image ;
+	num_of_pixels = pixmap->width * pixmap->height ;
+
+	for( count = 0 ; count < num_of_pixels ; count++)
 	{
-		for( x = 0 ; x < pixmap->width ; x++)
+		pixel = *(src ++) ;
+
+		r = (pixel >> 16) & 0xff ;
+		g = (pixel >> 8) & 0xff ;
+		b = pixel & 0xff ;
+
+		if( value_table)
 		{
-			pixel = *(((u_int32_t*)pixmap->image) + (y * pixmap->width + x)) ;
+			r = (value_table[r] * (255 - pic_mod->alpha) +
+				pic_mod->blend_red * pic_mod->alpha) / 255 ;
+			g = (value_table[g] * (255 - pic_mod->alpha) +
+				pic_mod->blend_green * pic_mod->alpha) / 255 ;
+			b = (value_table[b] * (255 - pic_mod->alpha) +
+				pic_mod->blend_blue * pic_mod->alpha) / 255 ;
+		}
 
-			a = (pixel >> 24) & 0xff ;
-			r = (pixel >> 16) & 0xff ;
-			g = (pixel >> 8) & 0xff ;
-			b = pixel & 0xff ;
+		if( x_cmap_get_closest_color( &pixel , r , g , b))
+		{
+		#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && _MACHINE == x68k
+			*((u_int16_t*)dst) = pixel ;
+			dst += 2 ;
+		#else
+			*(dst ++) = pixel ;
+		#endif
+		}
+		else
+		{
+			pixel = RGB_TO_PIXEL(r,g,b,display->rgbinfo) |
+				(depth == 32 ? (pixel & 0xff000000) : 0) ;
 
-			if( value_table)
+			if( display->bytes_per_pixel == 2)
 			{
-				r = (value_table[r] * (255 - pic_mod->alpha) +
-					pic_mod->blend_red * pic_mod->alpha) / 255 ;
-				g = (value_table[g] * (255 - pic_mod->alpha) +
-					pic_mod->blend_green * pic_mod->alpha) / 255 ;
-				b = (value_table[b] * (255 - pic_mod->alpha) +
-					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
+				*((u_int16_t*)dst) = pixel ;
+				dst += 2 ;
 			}
-
-			if( x_cmap_get_closest_color( &pixel , r , g , b))
+			else /* if( display->bytes_per_pixel == 4) */
 			{
-			#if  defined(__NetBSD__) || defined(__OpenBSD__)
-			#if  _MACHINE == x68k
-				*(((u_int16_t*)pixmap->image) + (y * pixmap->width + x)) =
-						pixel ;
-			#else
-				*(pixmap->image + y * pixmap->width + x) = pixel ;
-			#endif
-			#endif
-			}
-			else
-			{
-				pixel = RGB_TO_PIXEL(r,g,b,display->rgbinfo) |
-					(depth == 32 ? (a << 24) : 0) ;
-
-				if( display->bytes_per_pixel == 2)
-				{
-					*(((u_int16_t*)pixmap->image) + (y * pixmap->width + x)) =
-						pixel ;
-				}
-				else /* if( display->bytes_per_pixel == 4) */
-				{
-					*(((u_int32_t*)pixmap->image) + (y * pixmap->width + x)) =
-						pixel ;
-				}
+				*((u_int32_t*)dst) = pixel ;
+				dst += 4 ;
 			}
 		}
 	}
@@ -206,7 +205,7 @@ modify_pixmap(
 #include  <string.h>	/* memset/memmove */
 #include  "../../common/c_imagelib.c"
 
-#elif  _MACHINE != i386
+#elif  _MACHINE != i386 && _MACHINE != amd64
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -352,7 +351,7 @@ load_file(
 			free( *pixmap) ;
 		}
 	}
-#elif  _MACHINE != i386
+#elif  _MACHINE != i386 && _MACHINE != amd64
 	if( load_sixel_1bpp_from_file( display , path , width , height ,
 		pic_mod , depth , pixmap , mask))
 	{
