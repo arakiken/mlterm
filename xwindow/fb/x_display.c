@@ -2127,7 +2127,14 @@ open_display(void)
 				_display.height = _disp.height = 512 ;
 			}
 
-			_disp.depth = 4 ;
+			if( fb_depth == 1)
+			{
+				_disp.depth = 1 ;
+			}
+			else
+			{
+				_disp.depth = 4 ;
+			}
 		}
 
 		if( ! cmap_init())

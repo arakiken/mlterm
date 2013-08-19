@@ -8962,7 +8962,9 @@ x_screen_reset_view(
 	)
 {
 	x_color_manager_reload( screen->color_man) ;
-	
+
+	x_window_set_bg_color( &screen->window ,
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	font_size_changed( screen) ;
 	x_xic_font_set_changed( &screen->window) ;

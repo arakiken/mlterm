@@ -2664,7 +2664,7 @@ x_window_copy_area(
 	{
 		MaskBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
 			width , height , src , src_x , src_y , mask , src_x , src_y ,
-			MAKEROP4(SRCCOPY,PATCOPY)) ;
+			MAKEROP4(SRCCOPY,0x00aa0029)) ;
 	}
 	else
 	{

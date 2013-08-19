@@ -1,3 +1,16 @@
+2013-08-20  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c: The background raster operation of MaskBlt is changed
+	  from PATCOPY to 0xaa0029 which draws nothing to the destination device
+	  context.
+
+	* x_screen.c: x_window_set_bg_color() is called in x_screen_reset_view()
+	  because RGB of the window bg color can be changed.
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x_display.c: 1024x768x1 is supported on NetBSD/x68k.
+
 2013-08-16  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c, ml_color.c, c_imagelib.c:

@@ -80,6 +80,10 @@ Framebuffer 対応に関するメモ
   o Input method plugin として iBus を使用する場合は、./configure に
     --without-pthread を指定してビルドしないでください(mlterm-fb に pthread ライ
     ブラリをリンクしておかないと、ibus module の dlopen に失敗します。)。
+  o NetBSD/x68k では ~/.mlterm/main に次のように指定することで、解像度を変更でき
+    ます。サポートする解像度は、512x512x15 512x512x8 768x512x4 768x512x1
+    1024x768x4 1024x768x1 です。
+    fb_resolution=512x512x15
 
   (for OpenBSD)
   o 次の2行を有効にしてカーネルの再構築を行ってください。

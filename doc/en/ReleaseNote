@@ -1,7 +1,11 @@
 ver 3.2.3
 * Support framebuffer on NetBSD/x68k.
+* Update the colormap instead of searching the closest color when
+  OSC 4 ; c ; spec changes RGB of the color number on framebuffer.
 * Bug fixes:
   Fix the bug which disabled redrawing the margin area on framebuffer.
+  Fix the bug of the transparent color of sixel graphics on win32.
+  OSC 4 has an effect on RGB of the window background color.
 
 ver 3.2.2
 * Support SSH agent authentication and forwarding.
