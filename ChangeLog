@@ -1,3 +1,11 @@
+2013-08-21  Araki Ken  <arakiken@users.sf.net>
+
+	* version.h.in: 3.2.2post -> 3.2.3pre
+
+	* ml_vt100_parser.c:
+	  - OSC ? 80 h (disable sixel scrolling) is (ad-hoc) supported.
+	  - A sixel next line character (-) is sent after a sixel dump.
+
 2013-08-20  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_window.c: The background raster operation of MaskBlt is changed

@@ -1013,7 +1013,8 @@ show_picture(
 	int  clip_cols ,
 	int  clip_rows ,
 	int  img_cols ,
-	int  img_rows
+	int  img_rows ,
+	int  is_sixel
 	)
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,get_picture_data))
@@ -1053,7 +1054,18 @@ show_picture(
 
 			p = data + (img_cols * clip_beg_row) ;
 			row = 0 ;
+
+			if( is_sixel && ! vt100_parser->sixel_scrolling)
+			{
+				ml_screen_save_cursor( vt100_parser->screen) ;
+				ml_screen_cursor_invisible( vt100_parser->screen) ;
+				ml_screen_go_upward( vt100_parser->screen ,
+					ml_screen_cursor_row( vt100_parser->screen)) ;
+				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+			}
+
 			cursor_col = ml_screen_cursor_col( vt100_parser->screen) ;
+
 			while( 1)
 			{
 				ml_screen_overwrite_chars( vt100_parser->screen ,
@@ -1064,10 +1076,36 @@ show_picture(
 					break ;
 				}
 
-				ml_screen_line_feed( vt100_parser->screen) ;
+				if( is_sixel && ! vt100_parser->sixel_scrolling)
+				{
+					if( ! ml_screen_go_downward( vt100_parser->screen , 1))
+					{
+						break ;
+					}
+				}
+				else
+				{
+					ml_screen_line_feed( vt100_parser->screen) ;
+				}
+
 				ml_screen_go_horizontally( vt100_parser->screen , cursor_col) ;
 
 				p += img_cols ;
+			}
+
+			if( is_sixel)
+			{
+				if( vt100_parser->sixel_scrolling)
+				{
+					ml_screen_line_feed( vt100_parser->screen) ;
+					ml_screen_go_horizontally( vt100_parser->screen ,
+						cursor_col) ;
+				}
+				else
+				{
+					ml_screen_restore_cursor( vt100_parser->screen) ;
+					ml_screen_cursor_visible( vt100_parser->screen) ;
+				}
 			}
 
 			ml_str_delete( data , img_cols * img_rows) ;
@@ -1146,7 +1184,7 @@ config_protocol_set(
 
 		show_picture( vt100_parser , argv[1] ,
 			clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
-				img_cols , img_rows) ;
+				img_cols , img_rows , 0) ;
 	}
 #endif
 #ifdef  USE_LIBSSH2
@@ -2582,8 +2620,15 @@ parse_vt100_escape_sequence(
 						else if( ps[count] == 69)
 						{
 							/* "CSI ? 69 h" */
+
 							ml_screen_set_use_margin(
 								vt100_parser->screen , 1) ;
+						}
+						else if( ps[count] == 80)
+						{
+							/* "CSI ? 80 h" */
+
+							vt100_parser->sixel_scrolling = 0 ;
 						}
 						else if( ps[count] == 1000)
 						{
@@ -2845,8 +2890,16 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[count] == 69)
 						{
+							/* "CSI ? 69 l" */
+
 							ml_screen_set_use_margin(
 								vt100_parser->screen , 0) ;
+						}
+						else if( ps[count] == 80)
+						{
+							/* "CSI ? 80 l" */
+
+							vt100_parser->sixel_scrolling = 1 ;
 						}
 						else if( ps[count] == 1000 ||
 							ps[count] == 1002 || ps[count] == 1003)
@@ -4109,7 +4162,7 @@ parse_vt100_escape_sequence(
 
 				fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 				fclose( fp) ;
-				show_picture( vt100_parser , path , 0 , 0 , 0 , 0 , 0 , 0) ;
+				show_picture( vt100_parser , path , 0 , 0 , 0 , 0 , 0 , 0 , 1) ;
 				free( path) ;
 			}
 			else
@@ -4753,6 +4806,8 @@ ml_vt100_parser_new(
 	vt100_parser->modify_cursor_keys = 2 ;
 	vt100_parser->modify_function_keys = 2 ;
 #endif
+
+	vt100_parser->sixel_scrolling = 1 ;
 
 	return  vt100_parser ;
 
