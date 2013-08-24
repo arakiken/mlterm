@@ -246,11 +246,19 @@ mkf_map_ucs4_to(
 	{
 		if( (*map_table[count].map_ucs4_to)( non_ucs , ucs4_code))
 		{
+			mkf_charset_t  cs ;
+
+			cs = map_table[count].cs ;
+
 			/*
-			 * Don't cache the map function of JISX0213_2000_1 to
-			 * prefer JISX0208 to JISX0213 all the time.
+			 * Don't cache the map functions of JISX0213_2000_1 and
+			 * non ISO2022 cs (GBK etc), in order not to map the
+			 * following chars automatically to JISX0213_2000_1,
+			 * GBK etc if a ucs4 character is mapped to the one of
+			 * JISX0213_2000_1, GBK etc which doesn't exist in
+			 * JISX0208, GB2312 etc.
 			 */
-			if( map_table[count].cs != JISX0213_2000_1)
+			if( ! IS_NON_ISO2022(cs) && cs != JISX0213_2000_1)
 			{
 				cached_map = &map_table[count] ;
 			}

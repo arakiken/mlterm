@@ -1,3 +1,10 @@
+2013-08-24  Araki Ken  <arakiken@users.sf.net>
+
+	* mkf_ucs4_map.c: mkf_map_ucs4_to() doesn't cache the map functions of
+	  non ISO2022 cs (GBK etc), in order not to map the following chars
+	  automatically to GBK etc if a ucs4 character is mapped to the one of
+	  GBK etc which doesn't exist in GB2312 etc.
+
 2013-08-21  Araki Ken  <arakiken@users.sf.net>
 
 	* version.h.in: 3.2.2post -> 3.2.3pre
