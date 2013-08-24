@@ -1,5 +1,8 @@
 2013-08-24  Araki Ken  <arakiken@users.sf.net>
 
+	* mkf_locale_ucs4_map.c: get_map_ucs4_to_func_for_current_locale()
+	  never changes a cached map function after the first call.
+
 	* mkf_ucs4_map.c: mkf_map_ucs4_to() doesn't cache the map functions of
 	  non ISO2022 cs (GBK etc), in order not to map the following chars
 	  automatically to GBK etc if a ucs4 character is mapped to the one of

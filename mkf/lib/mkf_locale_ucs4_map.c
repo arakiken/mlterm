@@ -63,17 +63,19 @@ get_map_ucs4_to_func_for_current_locale(void)
 	char *  lang ;
 	char *  country ;
 	map_ucs4_to_func_table_t *  tablep ;
-	static map_ucs4_to_func_table_t *  cached_table ;
+	static map_func_t  cached_func ;
+	static int  cached ;
+
+	/* Once cached, never changed. NULL is also cached. */
+	if( cached)
+	{
+		return  cached_func ;
+	}
+
+	cached = 1 ;
 
 	lang = kik_get_lang() ;
 	country = kik_get_country() ;
-
-	if( ( tablep = cached_table) &&
-	    ( ! tablep->lang || ! strcmp( tablep->lang , lang)) &&
-	    ( ! tablep->country || ! strcmp( tablep->country , country)))
-	{
-		return  tablep->func ;
-	}
 
 	for( count = 0 ;
 		count < sizeof( map_ucs4_to_func_table) / sizeof( map_ucs4_to_func_table[0]) ;
@@ -81,12 +83,10 @@ get_map_ucs4_to_func_for_current_locale(void)
 	{
 		tablep = map_ucs4_to_func_table + count ;
 
-		if( ( ! tablep->lang || ! strcmp( tablep->lang, lang)) &&
-			( ! tablep->country || ! strcmp( tablep->country, country)))
+		if( ! strcmp( tablep->lang, lang) &&
+		    ( ! tablep->country || ! strcmp( tablep->country, country)))
 		{
-			cached_table = tablep ;
-
-			return  tablep->func ;
+			return  ( cached_func = tablep->func) ;
 		}
 	}
 
