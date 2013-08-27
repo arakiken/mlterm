@@ -1,3 +1,17 @@
+2013-08-27  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c:
+	  - The bug which erased the end character of each line in scrolling
+	    if DECSLRM set the right margin at the right end is fixed.
+	  - The bug of DL/IL which scrolled the screen instead of insert or
+	    delete lines from the cursor position.
+
+	* win32/x_window.c:
+	  - x_xic_filter_event() is called before win->key_pressed for
+	    WM_SYSKEYDOWN message in x_window_receive_event() to make
+	    Mod+XXX shortcut key settings work.
+	  - Hack for AltGr is added in x_window_receive_event().
+
 2013-08-24  Araki Ken  <arakiken@users.sf.net>
 
 	* mkf_locale_ucs4_map.c: get_map_ucs4_to_func_for_current_locale()

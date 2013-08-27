@@ -348,8 +348,8 @@ copy_area(
 		{
 			num_of_src_chars = ml_convert_col_to_char_index( src_line ,
 						&src_cols_rest ,
-						src_col + num_of_copy_cols , 0)
-						- src_char_index ;
+						src_col + num_of_copy_cols - 1 , 0)
+						+ 1 - src_char_index ;
 			num_of_src_cols = num_of_copy_cols - src_cols_rest ;
 		}
 		else
@@ -427,31 +427,48 @@ erase_area(
 static int
 scroll_downward_region(
 	ml_edit_t *  edit ,
-	u_int  size
+	u_int  size ,
+	int  is_cursor_beg
 	)
 {
+	int  scroll_region_beg ;
+
+	if( is_cursor_beg)
+	{
+		if( edit->cursor.row < edit->scroll_region_beg)
+		{
+			return  0 ;
+		}
+
+		scroll_region_beg = edit->cursor.row ;
+	}
+	else
+	{
+		scroll_region_beg = edit->scroll_region_beg ;
+	}
+
 	/*
 	 * XXX
 	 * CURSOR_IS_INSIDE_MARGIN(edit) disables vim to scroll the right side of
 	 * vertically splitted window.
 	 */
 	if( /* CURSOR_IS_INSIDE_MARGIN(edit) && */
-	    edit->cursor.row >= edit->scroll_region_beg &&
+	    edit->cursor.row >= scroll_region_beg &&
 	    edit->cursor.row <= edit->scroll_region_end)
 	{
-		if( size > edit->scroll_region_end - edit->scroll_region_beg + 1)
+		if( size > edit->scroll_region_end - scroll_region_beg + 1)
 		{
-			size = edit->scroll_region_end - edit->scroll_region_beg + 1 ;
+			size = edit->scroll_region_end - scroll_region_beg + 1 ;
 		}
 		else
 		{
-			copy_area( edit , edit->margin_beg , edit->scroll_region_beg ,
+			copy_area( edit , edit->margin_beg , scroll_region_beg ,
 				edit->margin_end - edit->margin_beg + 1 ,
-				edit->scroll_region_end - edit->scroll_region_beg + 1 - size ,
-				edit->margin_beg , edit->scroll_region_beg + size) ;
+				edit->scroll_region_end - scroll_region_beg + 1 - size ,
+				edit->margin_beg , scroll_region_beg + size) ;
 		}
 
-		erase_area( edit , edit->margin_beg , edit->scroll_region_beg ,
+		erase_area( edit , edit->margin_beg , scroll_region_beg ,
 			edit->margin_end - edit->margin_beg + 1 , size) ;
 
 		return  1 ;
@@ -465,28 +482,45 @@ scroll_downward_region(
 static int
 scroll_upward_region(
 	ml_edit_t *  edit ,
-	u_int  size
+	u_int  size ,
+	int  is_cursor_beg
 	)
 {
+	int  scroll_region_beg ;
+
+	if( is_cursor_beg)
+	{
+		if( edit->cursor.row < edit->scroll_region_beg)
+		{
+			return  0 ;
+		}
+
+		scroll_region_beg = edit->cursor.row ;
+	}
+	else
+	{
+		scroll_region_beg = edit->scroll_region_beg ;
+	}
+
 	/*
 	 * XXX
 	 * CURSOR_IS_INSIDE_MARGIN(edit) disables vim to scroll the right side of
 	 * vertical splitted window.
 	 */
 	if( /* CURSOR_IS_INSIDE_MARGIN(edit) && */
-	    edit->cursor.row >= edit->scroll_region_beg &&
+	    edit->cursor.row >= scroll_region_beg &&
 	    edit->cursor.row <= edit->scroll_region_end)
 	{
-		if( size > edit->scroll_region_end - edit->scroll_region_beg + 1)
+		if( size > edit->scroll_region_end - scroll_region_beg + 1)
 		{
-			size = edit->scroll_region_end - edit->scroll_region_beg + 1 ;
+			size = edit->scroll_region_end - scroll_region_beg + 1 ;
 		}
 		else
 		{
-			copy_area( edit , edit->margin_beg , edit->scroll_region_beg + size ,
+			copy_area( edit , edit->margin_beg , scroll_region_beg + size ,
 				edit->margin_end - edit->margin_beg + 1 ,
-				edit->scroll_region_end - edit->scroll_region_beg + 1 - size ,
-				edit->margin_beg , edit->scroll_region_beg) ;
+				edit->scroll_region_end - scroll_region_beg + 1 - size ,
+				edit->margin_beg , scroll_region_beg) ;
 		}
 
 		erase_area( edit , edit->margin_beg , edit->scroll_region_end + 1 - size ,
@@ -858,7 +892,7 @@ ml_edit_overwrite_chars(
 			if( edit->cursor.row + 1 > edit->scroll_region_end)
 			{
 				if( MARGIN_IS_ENABLED(edit) ?
-				    ! scroll_upward_region( edit , 1) :
+				    ! scroll_upward_region( edit , 1 , 0) :
 				    ! ml_edsl_scroll_upward( edit , 1))
 				{
 					return  0 ;
@@ -1164,7 +1198,7 @@ ml_edit_insert_new_line(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		return  scroll_downward_region( edit , 1) ;
+		return  scroll_downward_region( edit , 1 , 1) ;
 	}
 	else
 	{
@@ -1181,7 +1215,7 @@ ml_edit_delete_line(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		return  scroll_upward_region( edit , 1) ;
+		return  scroll_upward_region( edit , 1 , 1) ;
 	}
 	else
 	{
@@ -1388,7 +1422,7 @@ ml_edit_scroll_upward(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		scroll_upward_region( edit , size) ;
+		scroll_upward_region( edit , size , 0) ;
 	}
 	else
 	{
@@ -1414,7 +1448,7 @@ ml_edit_scroll_downward(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		scroll_downward_region( edit , size) ;
+		scroll_downward_region( edit , size , 0) ;
 	}
 	else
 	{
@@ -1672,7 +1706,7 @@ ml_edit_go_forward(
 			{
 				if( ! ( flag & SCROLL) ||
 				    ( MARGIN_IS_ENABLED(edit) ?
-				      ! scroll_upward_region( edit , 1) :
+				      ! scroll_upward_region( edit , 1 , 0) :
 				      ! ml_edsl_scroll_upward( edit , 1)) )
 				{
 					return  0 ;
@@ -1740,7 +1774,7 @@ ml_edit_go_back(
 		{
 			if( ! ( flag & SCROLL) ||
 			    ( MARGIN_IS_ENABLED(edit) ?
-			      ! scroll_downward_region( edit , 1) :
+			      ! scroll_downward_region( edit , 1 , 0) :
 			      ! ml_edsl_scroll_downward( edit , 1)) )
 			{
 				return  0 ;
@@ -1788,7 +1822,7 @@ ml_edit_go_upward(
 	{
 		if( ! ( flag & SCROLL) ||
 		    ( MARGIN_IS_ENABLED(edit) ?
-		      ! scroll_downward_region( edit , 1) :
+		      ! scroll_downward_region( edit , 1 , 0) :
 		      ! ml_edit_scroll_downward( edit , 1)) )
 		{
 		#ifdef  DEBUG
@@ -1830,7 +1864,7 @@ ml_edit_go_downward(
 	{
 		if( ! ( flag & SCROLL) ||
 		    ( MARGIN_IS_ENABLED(edit) ?
-		      ! scroll_upward_region( edit , 1) :
+		      ! scroll_upward_region( edit , 1 , 0) :
 		      ! ml_edit_scroll_upward( edit , 1)) )
 		{
 		#ifdef  DEBUG

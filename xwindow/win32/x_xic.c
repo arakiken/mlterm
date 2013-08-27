@@ -310,8 +310,7 @@ x_xic_filter_event(
 {
 	u_int  count ;
 
-	if( event->msg != WM_KEYDOWN &&
-	    ( event->msg != WM_SYSKEYDOWN || event->wparam != VK_F10) )
+	if( event->msg != WM_KEYDOWN)
 	{
 		return  0 ;
 	}

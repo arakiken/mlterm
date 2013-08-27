@@ -1924,7 +1924,7 @@ x_window_receive_event(
 						 * event->wparam is always upper case
 						 * if alt key is pressed together.
 						 */
-						kev.ch = event->wparam + 0x20 ;
+						kev.ch += 0x20 ;
 					}
 				}
 				else if( ( kev.state & ControlMask) &&
@@ -1981,13 +1981,15 @@ x_window_receive_event(
 				}
 			}
 
+			if( event->msg == WM_SYSKEYDOWN)
+			{
+				event->msg = WM_KEYDOWN ;
+				x_xic_filter_event( x_get_root_window( win), event) ;
+			}
+
 			(*win->key_pressed)( win , &kev) ;
 
-			/* Don't process VK_F10 as a menu key by DefWindowProc(). */
-			if( event->wparam == VK_F10)
-			{
-				return  1 ;
-			}
+			return  1 ;
 		}
 
 		/* Continue default processing. */
@@ -2000,6 +2002,13 @@ x_window_receive_event(
 			XKeyEvent  kev ;
 
 			kev.state = get_key_state() ;
+
+			if( ( kev.state & (ControlMask|ModMask)) &&
+			    event->wparam >= 0x80)
+			{
+				/* Ctrl+Alt+key => AltGr+key */
+				kev.state &= ~ModMask ;
+			}
 
 		#if  0
 			/*

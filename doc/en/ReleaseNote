@@ -8,6 +8,11 @@ ver 3.2.3
   Fix the bug of the transparent color of sixel graphics on win32.
   OSC 4 has an effect on RGB of the window background color.
   Send a sixel next line character (-) following a sixel dump.
+  Fix the bug which disabled Mod+XXX shortcut key settings on win32.
+  Fix the bug which erased the end character of each line in scrolling if DECSLRM
+  set the right margin at the right end is fixed.
+  Fix the bug of DL/IL which scrolled the screen instead of inserting or deleteing
+  lines from the cursor position.
 
 ver 3.2.2
 * Support SSH agent authentication and forwarding.
