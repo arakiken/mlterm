@@ -1,3 +1,9 @@
+2013-08-29  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c: AltGr+key is supported.
+
+	* ml_edit.c: Minor fixes.
+
 2013-08-27  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c:

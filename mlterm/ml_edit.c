@@ -660,7 +660,6 @@ ml_edit_resize(
 	u_int  num_of_rows
 	)
 {
-	u_int  old_rows ;
 	u_int  old_cols ;
 	u_int  slide ;
 	
@@ -668,7 +667,6 @@ ml_edit_resize(
 	ml_cursor_dump( &edit->cursor) ;
 #endif
 
-	old_rows = edit->model.num_of_rows ;
 	old_cols = edit->model.num_of_cols ;
 
 	if( ! ml_model_resize( &edit->model , &slide , num_of_cols , num_of_rows))
@@ -803,7 +801,6 @@ ml_edit_overwrite_chars(
 	)
 {
 	int  count ;
-	int  cursor_index ;
 	ml_char_t *  buffer ;
 	u_int  buf_len ;
 	u_int  num_of_cols ;
@@ -858,8 +855,6 @@ ml_edit_overwrite_chars(
 	/* appending overwriting chars */
 	ml_str_copy( &buffer[filled_len] , ow_chars , num_of_ow_chars) ;
 	filled_len += num_of_ow_chars ;
-	
-	cursor_index = filled_len ;
 
 	/*
 	 * overwriting

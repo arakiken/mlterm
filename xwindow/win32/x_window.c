@@ -1765,12 +1765,6 @@ x_window_receive_event(
 		return  0 ;
 	}
 
-	/*
-	 * Dispatch event to all window in case key was pressed in scrollbar window but
-	 * should be shown in text area.
-	 */
-	x_xic_filter_event( x_get_root_window( win), event) ;
-
 #ifndef  DISABLE_XDND
 	if( x_dnd_filter_event( event, win))
 	{
@@ -1898,8 +1892,14 @@ x_window_receive_event(
 			return  1 ;
 		}
 
-	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
+		/*
+		 * Dispatch event to all windows in case key was pressed in the
+		 * scrollbar window but should be shown in the text area.
+		 */
+		x_xic_filter_event( x_get_root_window( win), event) ;
+
+	case WM_SYSKEYDOWN:
 		if( win->key_pressed)
 		{
 			XKeyEvent  kev ;
@@ -1913,18 +1913,30 @@ x_window_receive_event(
 			{
 				kev.ch = event->wparam ;
 
-				if( ( kev.state & ModMask) && event->msg == WM_SYSKEYDOWN)
+				if( kev.state & ModMask)
 				{
-					/* Alt+key (which doesn't cause WM_*_CHAR message) */
-
-					if( 'A' <= kev.ch && kev.ch <= 'Z')
+					if( event->msg == WM_SYSKEYDOWN)
 					{
 						/*
-						 * Upper case => Lower case.
-						 * event->wparam is always upper case
-						 * if alt key is pressed together.
+						 * Alt+key (which doesn't cause WM_*_CHAR message)
+						 * Alt+Ctrl+key doesn't enter here because
+						 * wparam < 0x20.
 						 */
-						kev.ch += 0x20 ;
+
+						if( 'A' <= kev.ch && kev.ch <= 'Z')
+						{
+							/*
+							 * Upper case => Lower case.
+							 * event->wparam is always upper case
+							 * if alt key is pressed together.
+							 */
+							kev.ch += 0x20 ;
+						}
+					}
+					else
+					{
+						/* wait for WM_*_CHAR message. */
+						break ;
 					}
 				}
 				else if( ( kev.state & ControlMask) &&
@@ -2003,11 +2015,10 @@ x_window_receive_event(
 
 			kev.state = get_key_state() ;
 
-			if( ( kev.state & (ControlMask|ModMask)) &&
-			    event->wparam >= 0x80)
+			if( ( kev.state & (ControlMask|ModMask)) && event->wparam > 0x20)
 			{
 				/* Ctrl+Alt+key => AltGr+key */
-				kev.state &= ~ModMask ;
+				kev.state &= ~(ControlMask|ModMask) ;
 			}
 
 		#if  0
