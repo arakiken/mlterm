@@ -18,7 +18,7 @@
 #include  <sys/time.h>
 #elif  defined(__NetBSD__) || defined(__OpenBSD__)
 #include  <sys/param.h>				/* MACHINE */
-#if  _MACHINE == x68k
+#ifdef  USE_GRF
 #include  <machine/grfioctl.h>
 #endif
 #include  <dev/wscons/wsdisplay_usl_io.h>	/* VT_GETSTATE */
@@ -161,7 +161,7 @@ typedef struct
 
 } Mouse ;
 
-#if  _MACHINE == x68k
+#ifdef  USE_GRF
 typedef struct  fb_reg
 {
 	/* CRT controller */
@@ -248,7 +248,7 @@ static int  wskbd_repeat_wait = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / K
 int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
 int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
 #endif
-#if  _MACHINE == x68k
+#ifdef  USE_GRF
 static fb_reg_conf_t  orig_reg ;
 #endif
 #else	/* Linux */
@@ -334,7 +334,7 @@ cmap_init(void)
 
 	if( ! _display.cmap)
 	{
-	#if  ! defined(_MACHINE) || _MACHINE != x68k
+	#ifndef  USE_GRF
 		if( num_of_colors > 2)
 		{
 			/*
@@ -401,7 +401,7 @@ cmap_init(void)
 	#endif
 	}
 
-#if  ! defined(_MACHINE) || _MACHINE != x68k
+#ifndef  USE_GRF
 	ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
 #else
 	{
@@ -428,7 +428,7 @@ cmap_final(void)
 {
 	if( _display.cmap_orig)
 	{
-	#if ! defined(_MACHINE) || _MACHINE != x68k
+	#ifndef  USE_GRF
 		ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap_orig) ;
 	#else
 		memcpy( ((fb_reg_t*)_display.fb)->gpal , _display.cmap_orig ,
@@ -1966,7 +1966,7 @@ process_wskbd_event(
 	}
 }
 
-#if  _MACHINE == x68k
+#ifdef  USE_GRF
 
 static void
 setup_reg(
@@ -2197,7 +2197,7 @@ error:
 	return  0 ;
 }
 
-#else	/* _MACHINE != x68k */
+#else	/* USE_GRF */
 
 #ifdef  __NetBSD__
 static void
@@ -2512,7 +2512,7 @@ error:
 	return  0 ;
 }
 
-#endif	/* _MACHINE == x68k */
+#endif	/* USE_GRF */
 
 
 static int
@@ -3505,7 +3505,7 @@ x_display_close_all(void)
 	#if  defined(__FreeBSD__)
 		ioctl( STDIN_FILENO , KDSKBMODE , K_XLATE) ;
 	#elif  defined(__NetBSD__)
-	#if  _MACHINE == x68k
+	#ifdef  USE_GRF
 		setup_reg( (fb_reg_t*)_display.fb , &orig_reg) ;
 	#else
 		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;

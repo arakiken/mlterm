@@ -14,9 +14,6 @@
 #include <math.h>               /* pow */
 #endif
 #include  <kiklib/kik_debug.h>
-#if  defined(__NetBSD__) || defined(__OpenBSD__)
-#include  <sys/param.h>		/* _MACHINE */
-#endif
 
 #include  "x_display.h"		/* x_cmap_get_closest_color */
 
@@ -156,7 +153,7 @@ modify_pixmap(
 
 		if( x_cmap_get_closest_color( &pixel , r , g , b))
 		{
-		#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && _MACHINE == x68k
+		#ifdef  USE_GRF
 			*((u_int16_t*)dst) = pixel ;
 			dst += 2 ;
 		#else
@@ -196,7 +193,7 @@ modify_pixmap(
 /* For old machines */
 #if  defined(__NetBSD__) || defined(__OpenBSD__)
 
-#if  _MACHINE == x68k
+#ifdef  USE_GRF
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -205,7 +202,7 @@ modify_pixmap(
 #include  <string.h>	/* memset/memmove */
 #include  "../../common/c_imagelib.c"
 
-#elif  _MACHINE != i386 && _MACHINE != amd64
+#else
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -338,7 +335,7 @@ load_file(
 
 /* For old machines */
 #if  defined(__NetBSD__) || defined(__OpenBSD__)
-#if  _MACHINE == x68k
+#ifdef  USE_GRF
 	if( strstr( path , ".six") && ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
@@ -351,7 +348,7 @@ load_file(
 			free( *pixmap) ;
 		}
 	}
-#elif  _MACHINE != i386 && _MACHINE != amd64
+#else
 	if( load_sixel_1bpp_from_file( display , path , width , height ,
 		pic_mod , depth , pixmap , mask))
 	{

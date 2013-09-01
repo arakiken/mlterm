@@ -1,3 +1,8 @@
+2013-09-01  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, fb/x_display.c, fb/x_imagelib.c: Whether the port on
+	  NetBSD is x68k or not is checked by <machine/grfioctl.h> in configure.
+
 2013-08-29  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_window.c: AltGr+key is supported.

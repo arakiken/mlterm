@@ -20638,7 +20638,13 @@ fi
 
 else
 	GUI="fb"
-	GUI_CFLAGS="-DUSE_FRAMEBUFFER"
+	ac_fn_c_check_header_mongrel "$LINENO" "machine/grfioctl.h" "ac_cv_header_machine_grfioctl_h" "$ac_includes_default"
+if test "x$ac_cv_header_machine_grfioctl_h" = x""yes; then :
+  GUI_CFLAGS="-DUSE_GRF"
+fi
+
+
+	GUI_CFLAGS="${GUI_CFLAGS} -DUSE_FRAMEBUFFER"
 fi
 
 
