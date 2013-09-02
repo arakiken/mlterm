@@ -4,6 +4,7 @@ ver 3.2.3
   OSC 4 ; c ; spec changes RGB of the color number on framebuffer.
 * Support OSC ? 80 h (disable sixel scrolling).
 * Bug fixes:
+  #70 (Thanks to Thomas Wolff)
   Fix the bug which disabled redrawing the margin area on framebuffer.
   Fix the bug of the transparent color of sixel graphics on win32.
   OSC 4 has an effect on RGB of the window background color.

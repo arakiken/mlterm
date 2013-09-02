@@ -255,7 +255,7 @@ typedef LPLOGFONT XFontSet ;
 #define XK_Scroll_Lock	VK_SCROLL
 #define XK_Find		0xffeb	/* dummy */
 #define XK_Menu		0xffea	/* dummy */
-#define XK_Begin	0xffe9	/* dummy */
+#define XK_Begin	VK_CLEAR
 #define XK_Muhenkan	VK_NONCONVERT
 #define XK_Henkan_Mode	0xe5
 #define XK_Zenkaku_Hankaku	0xe5

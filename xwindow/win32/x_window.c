@@ -1919,8 +1919,6 @@ x_window_receive_event(
 					{
 						/*
 						 * Alt+key (which doesn't cause WM_*_CHAR message)
-						 * Alt+Ctrl+key doesn't enter here because
-						 * wparam < 0x20.
 						 */
 
 						if( 'A' <= kev.ch && kev.ch <= 'Z')
@@ -1978,8 +1976,10 @@ x_window_receive_event(
 				/*
 				 * - See x_xic_get_str() in win32/x_xic.c.
 				 * - Following keys don't cause WM_*_CHAR message.
+				 * - Ctrl+Alt+key(AltGr+key) can cause WM_*_CHAR message later.
 				 */
-				if( ( kev.state & ControlMask) &&
+				if( ! ( kev.state & ModMask) &&
+				    ( kev.state & ControlMask) &&
 				    ( event->wparam == VK_OEM_2 ||	/* Ctl+/ */
 				      event->wparam == VK_OEM_3 ||	/* Ctl+@ */
 				      event->wparam == VK_OEM_7 ||	/* Ctl+^ */

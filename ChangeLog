@@ -1,3 +1,10 @@
+2013-09-03  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c: AltGr+VK_OEM* which can cause WM_*_CHAR message later
+	  aren't converted to Ctrl+*.
+
+	* win32/x.h: VK_Clear (Keypad key 5) is assigned to XK_Begin.
+
 2013-09-01  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, fb/x_display.c, fb/x_imagelib.c: Whether the port on
