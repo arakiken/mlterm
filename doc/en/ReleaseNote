@@ -14,6 +14,7 @@ ver 3.2.3
   set the right margin at the right end is fixed.
   Fix the bug of DL/IL which scrolled the screen instead of inserting or deleteing
   lines from the cursor position.
+  Fix keypad '5' key (VK_CLEAR) on win32.
 
 ver 3.2.2
 * Support SSH agent authentication and forwarding.

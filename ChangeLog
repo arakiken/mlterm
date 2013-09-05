@@ -1,3 +1,9 @@
+2013-09-04  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: Mouse is supported on NetBSD/x68k.
+
+	* etc/color: Updated.
+
 2013-09-03  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_window.c: AltGr+VK_OEM* which can cause WM_*_CHAR message later

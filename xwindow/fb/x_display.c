@@ -2172,8 +2172,42 @@ open_display(void)
 	tcsetattr( STDIN_FILENO , TCSAFLUSH , &tm) ;
 
 	_display.fd = STDIN_FILENO ;
-	_mouse.fd = -1 ;
 
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+
+	_mouse.fd = open( "/dev/mouse" , O_RDWR|O_NONBLOCK|O_EXCL) ;
+
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
+
+	if( _mouse.fd != -1)
+	{
+		kik_file_set_cloexec( _mouse.fd) ;
+
+		_mouse.x = _display.width / 2 ;
+		_mouse.y = _display.height / 2 ;
+		_disp_mouse.display = (Display*)&_mouse ;
+
+	#if  0
+		tcgetattr( _mouse.fd , &tm) ;
+		tm.c_iflag = IGNBRK | IGNPAR;
+		tm.c_oflag = 0 ;
+		tm.c_lflag = 0 ;
+		tm.c_cc[VTIME] = 0 ;
+		tm.c_cc[VMIN] = 1 ;
+		tm.c_cflag = CS8 | CSTOPB | CREAD | CLOCAL | HUPCL ;
+		cfsetispeed( &tm , B1200) ;
+		cfsetospeed( &tm , B1200) ;
+		tcsetattr( _mouse.fd , TCSAFLUSH , &tm) ;
+	#endif
+	}
+#ifdef  DEBUG
+	else
+	{
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open /dev/wsmouse.\n") ;
+	}
+#endif
 	_disp.display = &_display ;
 
 	console_id = get_active_console() ;
@@ -2195,6 +2229,158 @@ error:
 	ioctl( _display.fb_fd , GRFIOCOFF , 0) ;
 
 	return  0 ;
+}
+
+static int
+receive_mouse_event(void)
+{
+#define  MS_LEFT      0x7f20  /* left mouse button */
+#define  MS_MIDDLE    0x7f21  /* middle mouse button */
+#define  MS_RIGHT     0x7f22  /* right mouse button */
+#define  LOC_X_DELTA  0x7f80  /* mouse delta-X */
+#define  LOC_Y_DELTA  0x7f81  /* mouse delta-Y */
+#define  VKEY_UP      0
+#define  VKEY_DOWN    1
+
+	struct
+	{
+		u_short  id ;
+		u_short  pad ;
+		int  value ;
+		struct timeval  time ;
+	} ev ;
+	ssize_t  len ;
+
+	if( console_id != get_active_console())
+	{
+		return  0 ;
+	}
+
+	while( ( len = read( _mouse.fd , memset( &ev , 0 , sizeof(ev)) , sizeof(ev))) > 0)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " MOUSE event (len)%d (id)%d (val)%d\n" ,
+			len , ev.id , ev.value) ;
+	#endif
+
+		if( ev.value == VKEY_DOWN || ev.value == VKEY_UP)
+		{
+			XButtonEvent  xev ;
+			x_window_t *  win ;
+
+			if( ev.id == MS_LEFT)
+			{
+				xev.button = Button1 ;
+				_mouse.button_state = Button1Mask ;
+			}
+			else if( ev.id == MS_MIDDLE)
+			{
+				xev.button = Button2 ;
+				_mouse.button_state = Button2Mask ;
+			}
+			else if( ev.id == MS_RIGHT)
+			{
+				xev.button = Button3 ;
+				_mouse.button_state = Button3Mask ;
+			}
+			else
+			{
+				continue ;
+			}
+
+			if( ev.value == VKEY_DOWN)
+			{
+				xev.type = ButtonPress ;
+			}
+			else /* if( ev.value == VKEY_UP) */
+			{
+				xev.type = ButtonRelease ;
+
+				/* Reset button_state in releasing button. */
+				_mouse.button_state = 0 ;
+			}
+
+			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
+			xev.x = _mouse.x ;
+			xev.y = _mouse.y ;
+			xev.state = _display.key_state ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				"Button is %s x %d y %d btn %d time %d\n" ,
+				xev.type == ButtonPress ? "pressed" : "released" ,
+				xev.x , xev.y , xev.button , xev.time) ;
+		#endif
+
+			if( ! check_virtual_kbd( &xev))
+			{
+				win = get_window( xev.x , xev.y) ;
+				xev.x -= win->x ;
+				xev.y -= win->y ;
+
+				x_window_receive_event( win , &xev) ;
+			}
+		}
+		else if( ev.id == LOC_X_DELTA || ev.id == LOC_Y_DELTA)
+		{
+			XMotionEvent  xev ;
+			x_window_t *  win ;
+
+			restore_hidden_region() ;
+
+			if( ev.id == LOC_X_DELTA)
+			{
+				_mouse.x += ((int)ev.value * 2) ;
+
+				if( _mouse.x < 0)
+				{
+					_mouse.x = 0 ;
+				}
+				else if( _display.width <= _mouse.x)
+				{
+					_mouse.x = _display.width - 1 ;
+				}
+			}
+			else /* if( ev.id == LOC_Y_DELTA) */
+			{
+				_mouse.y -= ((int)ev.value * 2) ;
+
+				if( _mouse.y < 0)
+				{
+					_mouse.y = 0 ;
+				}
+				else if( _display.height <= _mouse.y)
+				{
+					_mouse.y = _display.height - 1 ;
+				}
+			}
+
+			update_mouse_cursor_state() ;
+
+			xev.type = MotionNotify ;
+			xev.x = _mouse.x ;
+			xev.y = _mouse.y ;
+			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000 ;
+			xev.state = _mouse.button_state | _display.key_state ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Button is moved %d x %d y %d btn %d time %d\n" ,
+				xev.type , xev.x , xev.y , xev.state , xev.time) ;
+		#endif
+
+			win = get_window( xev.x , xev.y) ;
+			xev.x -= win->x ;
+			xev.y -= win->y ;
+
+			x_window_receive_event( win , &xev) ;
+
+			save_hidden_region() ;
+			draw_mouse_cursor() ;
+		}
+	}
+
+	return  1 ;
 }
 
 #else	/* USE_GRF */
@@ -2512,14 +2698,16 @@ error:
 	return  0 ;
 }
 
-#endif	/* USE_GRF */
-
-
 static int
 receive_mouse_event(void)
 {
 	struct wscons_event  ev ;
 	ssize_t  len ;
+
+	if( console_id != get_active_console())
+	{
+		return  0 ;
+	}
 
 	while( ( len = read( _mouse.fd , memset( &ev , 0 , sizeof(ev)) , sizeof(ev))) > 0)
 	{
@@ -2527,11 +2715,6 @@ receive_mouse_event(void)
 		kik_debug_printf( KIK_DEBUG_TAG " MOUSE event (len)%d (type)%d (val)%d\n" ,
 			len , ev.type , ev.value) ;
 	#endif
-
-		if( console_id != get_active_console())
-		{
-			return  0 ;
-		}
 
 		if( ev.type == WSCONS_EVENT_MOUSE_ABSOLUTE_X)
 		{
@@ -2737,6 +2920,9 @@ receive_mouse_event(void)
 	return  1 ;
 }
 
+#endif	/* USE_GRF */
+
+
 static int
 receive_key_event(void)
 {
@@ -2749,6 +2935,11 @@ receive_key_event(void)
 		ssize_t  len ;
 		struct wscons_event  ev ;
 
+		if( console_id != get_active_console())
+		{
+			return  0 ;
+		}
+
 		while( ( len = read( _display.fd , memset( &ev , 0 , sizeof(ev)) ,
 				sizeof(ev))) > 0)
 		{
@@ -2756,11 +2947,6 @@ receive_key_event(void)
 			kik_debug_printf( KIK_DEBUG_TAG " KEY event (len)%d (type)%d (val)%d\n" ,
 				len , ev.type , ev.value) ;
 		#endif
-
-			if( console_id != get_active_console())
-			{
-				return  0 ;
-			}
 
 			process_wskbd_event( &ev) ;
 		}
@@ -3116,13 +3302,13 @@ receive_mouse_event(void)
 {
 	struct input_event  ev ;
 
+	if( console_id != get_active_console())
+	{
+		return  0 ;
+	}
+
 	while( read( _mouse.fd , &ev , sizeof(ev)) > 0)
 	{
-		if( console_id != get_active_console())
-		{
-			return  0 ;
-		}
-
 		if( ev.type == EV_ABS)
 		{
 			if( ev.code == ABS_PRESSURE)
@@ -3341,13 +3527,13 @@ receive_key_event(void)
 	{
 		struct input_event  ev ;
 
+		if( console_id != get_active_console())
+		{
+			return  0 ;
+		}
+
 		while( read( _display.fd , &ev , sizeof(ev)) > 0)
 		{
-			if( console_id != get_active_console())
-			{
-				return  0 ;
-			}
-
 			if( ev.type == EV_KEY &&
 			    ev.code < 0x100 /* Key event is less than 0x100 */)
 			{
