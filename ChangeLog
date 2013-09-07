@@ -1,3 +1,9 @@
+2013-09-08  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch]: 'yield' member which is used to exit the parser
+	  of vt100 sequence as soon as possible after OSC 5379 show_picture is
+	  added to ml_vt100_parser_t.
+
 2013-09-04  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Mouse is supported on NetBSD/x68k.

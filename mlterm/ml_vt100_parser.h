@@ -216,6 +216,8 @@ typedef struct  ml_vt100_parser
 
 	int8_t  sixel_scrolling ;
 
+	int8_t  yield ;
+
 	/* for save/restore cursor */
 	ml_vt100_storable_states_t  saved_normal ;
 	ml_vt100_storable_states_t  saved_alternate ;

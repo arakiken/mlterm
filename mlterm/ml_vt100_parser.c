@@ -1004,7 +1004,7 @@ report_window_size(
 }
 
 #ifndef  NO_IMAGE
-static void
+static int
 show_picture(
 	ml_vt100_parser_t *  vt100_parser ,
 	char *  file_path ,
@@ -1017,6 +1017,10 @@ show_picture(
 	int  is_sixel
 	)
 {
+	int  ret ;
+
+	ret = 0 ;
+
 	if( HAS_XTERM_LISTENER(vt100_parser,get_picture_data))
 	{
 		ml_char_t *  data ;
@@ -1109,10 +1113,14 @@ show_picture(
 			}
 
 			ml_str_delete( data , img_cols * img_rows) ;
+
+			ret = 1 ;
 		}
 
 		ml_set_use_char_combining( vt100_parser->use_char_combining) ;
 	}
+
+	return  ret ;
 }
 #endif
 
@@ -1182,9 +1190,12 @@ config_protocol_set(
 			}
 		}
 
-		show_picture( vt100_parser , argv[1] ,
+		if( show_picture( vt100_parser , argv[1] ,
 			clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
-				img_cols , img_rows , 0) ;
+				img_cols , img_rows , 0))
+		{
+			vt100_parser->yield = 1 ;
+		}
 	}
 #endif
 #ifdef  USE_LIBSSH2
@@ -4107,6 +4118,8 @@ parse_vt100_escape_sequence(
 							vt100_parser->r_buf.filled_len =
 								vt100_parser->r_buf.left = 5 ;
 
+							vt100_parser->yield = 1 ;
+
 							return  0 ;
 						}
 
@@ -4663,7 +4676,16 @@ parse_vt100_sequence(
 		}
 	}
 
-	return  1 ;
+	if( vt100_parser->yield)
+	{
+		vt100_parser->yield = 0 ;
+
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
+	}
 }
 
 static int
@@ -4905,13 +4927,10 @@ ml_parse_vt100_sequence(
 
 	/* Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3. */
 	count = 0 ;
-	do
-	{
-		parse_vt100_sequence( vt100_parser) ;
-	}
-	while(  /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
-		vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
-		(++count) < 3 && receive_bytes( vt100_parser)) ;
+	while( parse_vt100_sequence( vt100_parser) &&
+	       /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
+	       vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
+	       (++count) < 3 && receive_bytes( vt100_parser)) ;
 
 	stop_vt100_cmd( vt100_parser , 1) ;
 
