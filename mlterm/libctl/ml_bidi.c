@@ -61,6 +61,7 @@ ml_bidi(
 	FriBidiChar *  fri_src ;
 	FriBidiCharType  fri_type ;
 	FriBidiStrIndex *  fri_order ;
+	mkf_charset_t  cs ;
 	u_int32_t  code ;
 	u_int  count ;
 
@@ -93,41 +94,55 @@ ml_bidi(
 
 	for( count = 0 ; count < size ; count ++)
 	{
+		cs = ml_char_cs( &src[count]) ;
 		code = ml_char_code( &src[count]) ;
 
-		if( ml_char_cs( &src[count]) == US_ASCII)
+		if( cs == US_ASCII)
 		{
-			if( bidi_mode == BIDI_CMD_MODE_L && code == ' ')
+			if( code == ' ')
 			{
-				fri_src[count] = DIR_LTR_MARK ;
-			}
-			else if( bidi_mode == BIDI_CMD_MODE_R && ! isalpha(code))
-			{
-				if( code == ' ')
+				ml_char_t *  comb ;
+				u_int  comb_size ;
+
+				if( ( comb = ml_get_combining_chars( &src[count] , &comb_size)) &&
+				    ml_char_cs( comb) == PICTURE_CHARSET)
+				{
+					/* Regarded as LTR character. */
+					fri_src[count] = 'a' ;
+				}
+				else if( bidi_mode == BIDI_CMD_MODE_L)
+				{
+					fri_src[count] = DIR_LTR_MARK ;
+				}
+				else if( bidi_mode == BIDI_CMD_MODE_R)
 				{
 					fri_src[count] = DIR_RTL_MARK ;
 				}
 				else
 				{
-					/*
-					 * Without this hack, following NG happens.
-					 * $ ls test.txt test1.txt =>          test.txt ls $
-					 * ./text.txt ./test1.txt  => test1.txt/. text.txt/. <- NG
-					 *                                     ^^         ^^
-					 */
-					fri_src[count] = DIR_LTR_MARK ;
+					fri_src[count] = ' ' ;
 				}
+			}
+			else if( bidi_mode == BIDI_CMD_MODE_R && ! isalpha(code))
+			{
+				/*
+				 * Without this hack, following NG happens.
+				 * $ ls test.txt test1.txt =>          test.txt ls $
+				 * ./text.txt ./test1.txt  => test1.txt/. text.txt/. <- NG
+				 *                                     ^^         ^^
+				 */
+				fri_src[count] = DIR_LTR_MARK ;
 			}
 			else
 			{
 				fri_src[count] = code ;
 			}
 		}
-		else if( ml_char_cs( &src[count]) == ISO10646_UCS4_1)
+		else if( cs == ISO10646_UCS4_1)
 		{
 			fri_src[count] = code ;
 		}
-		else if( ml_char_cs( &src[count]) == DEC_SPECIAL)
+		else if( cs == DEC_SPECIAL)
 		{
 			/* Regarded as LTR character. */
 			fri_src[count] = 'a' ;
@@ -135,8 +150,7 @@ ml_bidi(
 		else
 		{
 		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " %x is not ucs.\n" ,
-				ml_char_cs(&src[count])) ;
+			kik_debug_printf( KIK_DEBUG_TAG " %x is not ucs.\n" , cs) ;
 		#endif
 
 			/*

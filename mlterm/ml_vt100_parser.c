@@ -4091,8 +4091,12 @@ parse_vt100_escape_sequence(
 				{
 					fp = fopen( path , "a") ;
 					is_end = *(str_p + 2) ;
-					dcs_beg = (str_p += 3) ;
-					left -= 3 ;
+					/*
+					 * dcs_beg will equal to str_p after str_p is
+					 * incremented by the following increment_str().
+					 */
+					dcs_beg = (str_p += 2) + 1 ;
+					left -= 2 ;
 				}
 				else
 				{

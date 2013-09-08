@@ -15,6 +15,7 @@ ver 3.2.3
   Fix the bug of DL/IL which scrolled the screen instead of inserting or deleteing
   lines from the cursor position.
   Fix keypad '5' key (VK_CLEAR) on win32.
+  Fix the bug of ignoring the next character after sixel graphics data.
 
 ver 3.2.2
 * Support SSH agent authentication and forwarding.

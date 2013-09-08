@@ -1,5 +1,12 @@
 2013-09-08  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: The bug of storing not only sixel graphics
+	  data but also following sequence to ~/.mlterm/*.six is fixed.
+
+	* ml_bidi.c: PICTURE_CHARSET is considered.
+
+2013-09-08  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.[ch]: 'yield' member which is used to exit the parser
 	  of vt100 sequence as soon as possible after OSC 5379 show_picture is
 	  added to ml_vt100_parser_t.
