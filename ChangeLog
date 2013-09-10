@@ -1,3 +1,8 @@
+2013-09-10  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty.c: ml_pty_get_slave_name() returns /dev/vptyN instead of /dev/ptyN
+	  if connected to the remote host.
+
 2013-09-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: The bug of storing not only sixel graphics

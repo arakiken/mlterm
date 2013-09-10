@@ -372,7 +372,7 @@ ml_pty_get_slave_name(
 	ml_pty_t *  pty
 	)
 {
-	static char  uniq_name[8 + DIGIT_STR_LEN(int) + 1] ;
+	static char  virt_name[9 + DIGIT_STR_LEN(int) + 1] ;
 #ifndef  USE_WIN32API
 	char *  name ;
 
@@ -382,7 +382,8 @@ ml_pty_get_slave_name(
 	}
 #endif
 
-	sprintf( uniq_name , "/dev/pty%d" , pty->master) ;
+	/* Virtual pty name */
+	sprintf( virt_name , "/dev/vpty%d" , pty->master) ;
 
-	return  uniq_name ;
+	return  virt_name ;
 }
