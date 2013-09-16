@@ -1,3 +1,9 @@
+2013-09-17  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: The result of ioctl(WSDISPLAYIO_SETGFXMODE) is ignored.
+
+	* tool/mlimgloader/Makefile.in: Fix for Cygwin/X.
+
 2013-09-10  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty.c: ml_pty_get_slave_name() returns /dev/vptyN instead of /dev/ptyN

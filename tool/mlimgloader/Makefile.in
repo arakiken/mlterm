@@ -30,6 +30,7 @@ CFLAGS = $(CFLAGS1) $(CFLAGS2_@MLIMGLOADER_LIB@)
 LIBS1 = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib
 
 LIBS2_xlib_gdk-pixbuf = @X_LIBS@ -lX11 @X_EXTRA_LIBS@ @GDK_PIXBUF_LIBS@
+LIBS2_xlib_gdiplus = $(LIBS2_win32_gdiplus)
 LIBS2_fb_gdk-pixbuf = $(LIBS2_xlib_gdk-pixbuf)
 
 # Segfault in cygwin without them.

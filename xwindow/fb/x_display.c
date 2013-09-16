@@ -2443,7 +2443,8 @@ open_display(void)
 
 		if( ioctl( _display.fb_fd , WSDISPLAYIO_SETGFXMODE , &gfx_mode) == -1)
 		{
-			goto  error ;
+			/* Always failed on OpenBSD/luna88k. */
+			kik_msg_printf( "Failed to set screen resolution (gfx mode).\n") ;
 		}
 	}
 
