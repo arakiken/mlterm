@@ -40,13 +40,7 @@ cp ../java/MLTermPty.c ${PROJECT_PATH}/jni/java/
 mkdir -p ${PROJECT_PATH}/jni/main
 cp ../main/version.h.in ${PROJECT_PATH}/jni/main/version.h
 
-mkdir -p ${PROJECT_PATH}/src/mlterm
-for file in MLTermPty.java MLTermPtyListener.java RedrawRegion.java Style.java ; do
-	cp ../java/mlterm/$file ${PROJECT_PATH}/src/mlterm/
-done
-
-mkdir -p ${PROJECT_PATH}/src/mlterm/android
-cp src/mlterm/android/MLTerm.java ${PROJECT_PATH}/src/mlterm/android
+mkdir -p ${PROJECT_PATH}/src
 
 cp -R res ${PROJECT_PATH}/
 

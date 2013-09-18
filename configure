@@ -1676,7 +1676,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          debug [default=disabled]
-  --disable-image         show image [default=disabled]
+  --disable-image         show image [default=enabled]
   --disable-dl-ctl        dynamic loading ctl library [default=enable]
   --enable-fribidi        bidi [default=disabled]
   --disable-dl-type       dynamic loading type engine library [default=enable]

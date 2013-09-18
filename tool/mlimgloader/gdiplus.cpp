@@ -12,13 +12,12 @@ extern "C" {
 
 #include  <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include  <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+#include  <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
+#endif
 
 #ifdef  USE_WIN32API
 #include  <fcntl.h>	/* O_BINARY */
-#endif
-
-#if  defined(__CYGWIN__) || defined(__MSYS__)
-#include  <sys/cygwin.h>
 #endif
 
 #define  _WIN32_WINNT 0x0502	/* for SetDllDirectory */

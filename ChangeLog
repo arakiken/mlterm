@@ -1,3 +1,15 @@
+2013-09-18  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_dlfcn_win32.c, tool/mlimgloader/none.c, gdk-pixbuf.c, gdiplus.cpp:
+	  #include <kiklib/kik_path.h> for cygwin_conv_to_win32_path.
+
+	* kik_path.h: cygwin_conv_to_win32_path is replaced by cygwin_conv_path
+	  on cygwin.
+
+	* configure.in: Fixed typo.
+
+	* android/: Minor fixes.
+
 2013-09-17  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: The result of ioctl(WSDISPLAYIO_SETGFXMODE) is ignored.

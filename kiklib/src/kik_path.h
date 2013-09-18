@@ -38,5 +38,13 @@ int  kik_parse_uri( char **  proto , char **  user , char **  host , char **  po
 
 char *  kik_get_home_dir(void) ;
 
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+#include  <sys/cygwin.h>
+#ifdef  __CYGWIN__
+#define  cygwin_conv_to_win32_path( path , winpath) \
+	cygwin_conv_path( CCP_POSIX_TO_WIN_A , path , winpath , sizeof(winpath))
+#endif
+#endif
+
 
 #endif

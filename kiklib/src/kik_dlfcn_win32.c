@@ -8,6 +8,9 @@
 #include  <string.h>		/* strlen */
 
 #include  "kik_mem.h"		/* alloca() */
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+#include  "kik_path.h"		/* cygwin_conv_to_win32_path */
+#endif
 
 #undef   _WIN32_WINNT
 #define  _WIN32_WINNT 0x0502	/* for SetDllDirectory */

@@ -1,9 +1,8 @@
 #!/bin/sh
 
-if ! test -f src/mlterm/MLTermPty.java ; then
-	echo "Execute prepare.sh in advance."
-	exit 1
-fi
+ANDROID_SDK_PATH=/cygdrive/c/Program\ Files/Android/android-sdk
+ANDROID_NDK_PATH=/cygdrive/c/Users/ken/workspace/android-ndk-r8
+export JAVA_HOME=c:\\Program\ Files\\Java\\jdk1.7.0_02
 
 ${ANDROID_SDK_PATH}/tools/android.bat update project --path . --target android-15
 (cd jni ; ${ANDROID_NDK_PATH}/ndk-build V=1)
