@@ -481,6 +481,11 @@ x_font_new(
 		
 		parse_font_name( &font_family , &weight , &is_italic , &fontsize_d , &percent , p) ;
 	}
+	else
+	{
+		/* Default font */
+		font_family = "Courier New" ;
+	}
 
   	font->fid = CreateFont( (int)fontsize_d ,	/* Height */
 			#if  0

@@ -158,6 +158,7 @@ Supported platforms
   * NetBSD 3.0.1 / X (x86)
   * NetBSD teokure 6.0.1 / frmebuffer (x86)
   * NetBSD 5.2 / framebuffer (hpcmips)
+  * NetBSD 6.1 / framebuffer (xm6i 0.42)
   * OpenSolaris 2009.06 / X (CC=cc) (x86)
   * Ubuntu 12.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
   * CentOS 5 / X (x86)

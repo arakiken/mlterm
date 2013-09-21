@@ -33,10 +33,6 @@ cp -R ../mkf/libtbl ${PROJECT_PATH}/jni/mkf/
 mkdir -p ${PROJECT_PATH}/jni/mlterm
 cp ../mlterm/*.[ch] ${PROJECT_PATH}/jni/mlterm/
 
-mkdir -p ${PROJECT_PATH}/jni/java
-cp ../java/MLTermPty.c ${PROJECT_PATH}/jni/java/
-(cd ../java ; javah -jni mlterm.MLTermPty ; mv mlterm_MLTermPty.h ${PROJECT_PATH}/jni/java/)
-
 mkdir -p ${PROJECT_PATH}/jni/main
 cp ../main/version.h.in ${PROJECT_PATH}/jni/main/version.h
 

@@ -1,3 +1,14 @@
+2013-09-21  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font.c: "Courier New" font is used by default.
+
+	* x_dnd.c: #include <kiklib/kik_path.h> for cygwin_conv_to_posix_path.
+
+	* kik_path.h: cygwin_conv_to_posix_path is replaced by cygwin_conv_path
+	  on cygwin.
+
+	* android/: Minor fixes.
+
 2013-09-18  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_dlfcn_win32.c, tool/mlimgloader/none.c, gdk-pixbuf.c, gdiplus.cpp:

@@ -8,6 +8,9 @@
 #include  "../x_dnd.h"
 
 #include  <kiklib/kik_def.h>	/* USE_WIN32API */
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+#include  <kiklib/kik_path.h>	/* cygwin_conv_to_posix_path */
+#endif
 
 #ifndef  USE_WIN32API
 #include  <mkf/mkf_utf8_conv.h>
