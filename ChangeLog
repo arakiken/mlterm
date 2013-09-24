@@ -1,3 +1,9 @@
+2013-09-24  Araki Ken  <arakiken@users.sf.net>
+
+	* Wraparound is stopped on DECRC.
+
+	* android/: Minor fixes.
+
 2013-09-21  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font.c: "Courier New" font is used by default.

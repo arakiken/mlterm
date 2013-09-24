@@ -1972,6 +1972,8 @@ ml_edit_restore_cursor(
 	ml_edit_t *  edit
 	)
 {
+	reset_wraparound_checker(edit) ;
+
 	return  ml_cursor_restore( &edit->cursor) ;
 }
 

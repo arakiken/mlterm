@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- BEGIN_INCLUDE(manifest) -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="mlterm.android"
-    android:versionCode="1"
-    android:versionName="1.0" >
+        package="mlterm.native_activity"
+        android:versionCode="1"
+        android:versionName="1.0">
 
+    <!-- This is the platform API where NativeActivity was introduced. -->
     <uses-sdk android:minSdkVersion="9" />
 
-    <application
-        android:label="@string/app_name" >
-        <activity
-            android:name="android.app.NativeActivity"
-            android:label="@string/app_name" >
-        <meta-data android:name="android.app.mlterm"
-            android:value="native-activity" />
+    <!-- This .apk has no Java code itself, so set hasCode to false. -->
+    <application android:label="@string/app_name" android:hasCode="false">
+
+        <!-- Our activity is the built-in NativeActivity framework class.
+             This will take care of integrating with our NDK code. -->
+        <activity android:name="android.app.NativeActivity"
+                android:label="@string/app_name"
+                android:configChanges="orientation|keyboardHidden">
+            <!-- Tell NativeActivity the name of or .so -->
+            <meta-data android:name="android.app.lib_name"
+                    android:value="mlterm" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -21,3 +27,4 @@
     </application>
 
 </manifest>
+<!-- END_INCLUDE(manifest) -->

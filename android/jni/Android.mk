@@ -9,7 +9,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_debug.c kiklib/src/kik_map.c kiklib/src/kik_ar
 		kiklib/src/kik_cycle_index.c kiklib/src/kik_langinfo.c kiklib/src/kik_time.c \
 		kiklib/src/kik_locale.c kiklib/src/kik_privilege.c kiklib/src/kik_unistd.c \
 		kiklib/src/kik_sig_child.c kiklib/src/kik_dialog.c kiklib/src/kik_pty_streams.c \
-		kiklib/src/kik_utmp_none.c kiklib/src/kik_dlfcn_dl.c kiklib/src/kik_dlfcn.c \
+		kiklib/src/kik_utmp_none.c kiklib/src/kik_dlfcn.c kiklib/src/kik_dlfcn_dl.c \
 		mkf/lib/mkf_parser.c mkf/lib/mkf_iso2022_parser.c mkf/lib/mkf_iso8859_parser.c \
 		mkf/lib/mkf_xct_parser.c mkf/lib/mkf_eucjp_parser.c mkf/lib/mkf_euckr_parser.c \
 		mkf/lib/mkf_euccn_parser.c mkf/lib/mkf_iso2022jp_parser.c \
@@ -42,11 +42,11 @@ LOCAL_SRC_FILES := kiklib/src/kik_debug.c kiklib/src/kik_map.c kiklib/src/kik_ar
 		mlterm/ml_logs.c mlterm/ml_screen.c mlterm/ml_shape.c mlterm/ml_str_parser.c \
 		mlterm/ml_term.c mlterm/ml_vt100_parser.c mlterm/ml_term_manager.c mlterm/ml_bidi.c \
 		mlterm/ml_iscii.c mlterm/ml_config_menu.c mlterm/ml_config_proto.c mlterm/ml_pty.c \
-		mlterm/ml_pty_unix.c mlterm/ml_drcs.c
+		mlterm/ml_pty_unix.c mlterm/ml_drcs.c main.c
 LOCAL_CFLAGS := -Ikiklib -Imkf -Imlterm -Ijava -DNO_DYNAMIC_LOAD_CTL -DMKFLIB_DIR=\"/data/data/jp.android.mlterm/lib/\" # -DNO_DYNAMIC_LOAD_TABLE
 LOCAL_LDLIBS := -llog -landroid
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 
 include $(BUILD_SHARED_LIBRARY)
 
-$(call import-module.android/native_app_glue)
+$(call import-module,android/native_app_glue)

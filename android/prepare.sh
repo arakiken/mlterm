@@ -17,7 +17,7 @@ cp build.sh ${PROJECT_PATH}/
 cp *.xml ${PROJECT_PATH}/
 
 mkdir -p ${PROJECT_PATH}/jni
-cp jni/Android.mk ${PROJECT_PATH}/jni/
+cp jni/Android.mk jni/main.c ${PROJECT_PATH}/jni/
 
 mkdir -p ${PROJECT_PATH}/jni/kiklib/kiklib ${PROJECT_PATH}/jni/kiklib/src
 cp jni/kiklib/src/kik_config.h ${PROJECT_PATH}/jni/kiklib/src/
