@@ -12,12 +12,10 @@
 #include  "mkf_char.h"
 
 
-#ifndef  MKFLIB_DIR	/* MKFLIB_DIR could be defined in Android.mk. */
 #ifndef  LIBDIR
 #define  MKFLIB_DIR  "/usr/local/lib/mkf/"
 #else
 #define  MKFLIB_DIR  LIBDIR "/mkf/"
-#endif
 #endif
 
 #ifdef  DLFCN_NONE

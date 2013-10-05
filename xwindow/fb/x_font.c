@@ -737,6 +737,9 @@ x_font_new(
 				font_file = "/usr/X11R6/lib/X11/fonts/misc/10x20.pcf.gz" ;
 				percent = 0 ;
 			}
+		#elif  defined(__ANDROID__)
+			font_file = "/sdcard/Download/unifont.pcf.gz" ;
+			percent = 0 ;
 		#else /* __linux__ */
 			if( stat( "/usr/share/fonts/X11/misc/unifont.pcf.gz" , &st) == 0)
 			{

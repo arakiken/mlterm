@@ -14,6 +14,7 @@
 #include  "kik_str.h"	/* kik_str_sep/kik_str_chop_spaces */
 #include  "kik_mem.h"	/* malloc */
 #include  "kik_path.h"
+#include  "kik_debug.h"
 
 
 /* --- static variables --- */

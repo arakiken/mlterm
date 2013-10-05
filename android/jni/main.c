@@ -1,50 +1,49 @@
-#include  <android/log.h>
-#include  <android_native_app_glue.h>
+/*
+ *	$Id$
+ */
 
-#define LOG_TAG ("mlterm")
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
+#include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_dlfcn.h>
 
-static int32_t handle_input(struct android_app* app, AInputEvent* event)
+#include  "xwindow/x_display.h"
+#include  "xwindow/x_event_source.h"
+
+
+#ifdef  SYSCONFDIR
+#define CONFIG_PATH SYSCONFDIR
+#else
+#define CONFIG_PATH "/etc"
+#endif
+
+
+/* --- global functions --- */
+
+void
+android_main(
+	struct android_app *  app
+	)
 {
-        LOGI("handle_input");
-        switch(AInputEvent_getType(event)) {
-        case AINPUT_EVENT_TYPE_MOTION:
-                LOGI("(%f, %f)", AMotionEvent_getX(event, 0), AMotionEvent_getY(event, 0));
-                break;
-        default:
-                break;
-        }
-        return 0;
-}
+	int  argc = 1 ;
+	char *  argv[] = { "mlterm" } ;
 
-static void handle_cmd(struct android_app* app, int32_t cmd)
-{
-        LOGI("handle_cmd");
-}
+	x_display_init( app) ;
 
-void android_main(struct android_app* state) {
-    app_dummy();
+	kik_set_sys_conf_dir( CONFIG_PATH) ;
 
-    state->userData = 0;
-    state->onAppCmd = handle_cmd;
-    state->onInputEvent = handle_input;
+	if( ! main_loop_init( argc , argv))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " main_loop_init() failed.\n") ;
+	#endif
 
-    while (1) {
-        int ident;
-        int events;
-        struct android_poll_source* source;
+		return ;
+	}
 
-        while ((ident=ALooper_pollAll(0, NULL, &events, (void**)&source)) >= 0) {
-            if (source != NULL) {
-                source->process(state, source);
-            }
+	main_loop_start() ;
 
-            if (ident == LOOPER_ID_USER) {
-            }
-
-            if (state->destroyRequested != 0) {
-                break;
-            }
-        }
-    }
+#if  0
+	main_loop_final() ;
+	kik_dl_close_all() ;
+#endif
 }

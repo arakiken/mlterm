@@ -560,6 +560,7 @@ open_screen_intern(
 		goto  error ;
 	}
 
+#ifndef  __ANDROID__
 	if( main_config.use_scrollbar &&
 	    ( sb_screen = x_sb_screen_new( screen ,
 				main_config.scrollbar_view_name ,
@@ -569,6 +570,7 @@ open_screen_intern(
 		root = &sb_screen->window ;
 	}
 	else
+#endif
 	{
 		root = &screen->window ;
 	}

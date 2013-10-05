@@ -23,6 +23,10 @@
 #define  LIBMDIR  "/lib"
 #endif
 
+#ifndef  LIBEXECDIR
+#define  LIBEXECDIR  "/usr/local/libexec"
+#endif
+
 
 /* --- static functions --- */
 
@@ -190,10 +194,7 @@ modify_pixmap(
 	}
 }
 
-/* For old machines */
-#if  defined(__NetBSD__) || defined(__OpenBSD__)
-
-#ifdef  USE_GRF
+#if defined(USE_GRF) || defined(__ANDROID__)
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -202,7 +203,8 @@ modify_pixmap(
 #include  <string.h>	/* memset/memmove */
 #include  "../../common/c_imagelib.c"
 
-#else
+/* For old machines */
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -307,8 +309,6 @@ load_sixel_1bpp_from_file(
 
 #endif
 
-#endif	/* __NetBSD__ || __OpenBSD__ */
-
 
 static int
 load_file(
@@ -333,9 +333,7 @@ load_file(
 		return  0 ;
 	}
 
-/* For old machines */
-#if  defined(__NetBSD__) || defined(__OpenBSD__)
-#ifdef  USE_GRF
+#if defined(USE_GRF) || defined(__ANDROID__)
 	if( strstr( path , ".six") && ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
@@ -348,14 +346,14 @@ load_file(
 			free( *pixmap) ;
 		}
 	}
-#else
+/* For old machines */
+#elif  defined(__NetBSD__) || defined(__OpenBSD__)
 	if( load_sixel_1bpp_from_file( display , path , width , height ,
 		pic_mod , depth , pixmap , mask))
 	{
 		return  1 ;
 	}
 #endif
-#endif	/* __NetBSD__ || __OpenBSD__ */
 
 	if( pipe( fds1) == -1)
 	{

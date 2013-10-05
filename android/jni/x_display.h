@@ -6,22 +6,27 @@
 #define  ___X_DISPLAY_H__
 
 
+#include  <kiklib/kik_types.h>
+
 #include  "../x_display.h"
 
-#ifdef  __FreeBSD__
-#include  <sys/kbio.h>	/* NLKED */
-#else
+
 #define CLKED  1
 #define NLKED  2
 #define SLKED  4
 #define ALKED  8
-#endif
 
 #define KeyPress			2	/* Private in fb/ */
 #define ButtonPress			4	/* Private in fb/ */
 #define ButtonRelease			5	/* Private in fb/ */
 #define MotionNotify			6	/* Private in fb/ */
 
+
+int  x_display_init( struct android_app *  app) ;
+
+int  x_display_process_event( struct android_poll_source *  source , int  ident) ;
+
+void  x_display_unlock(void) ;
 
 u_long  x_display_get_pixel( int  x , int  y) ;
 

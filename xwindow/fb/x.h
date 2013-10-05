@@ -560,13 +560,6 @@ typedef int XFontSet ;	/* dummy */
 
 #endif	/* FreeBSD/Linux/NetBSD */
 
-#ifndef  __FreeBSD__
-#define CLKED  1
-#define NLKED  2
-#define SLKED  4
-#define ALKED  8
-#endif
-
 #define XK_ISO_Level3_Lock	0xffa3	/* dummy */
 
 

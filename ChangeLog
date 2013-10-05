@@ -1,6 +1,21 @@
+2013-10-04  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x.h, fb/x_display.h:
+	  CLKED, NLKED, SLKED, ALKED macros are moved from x.h to x_display.h.
+
+	* x_screen_manager.c, fb/x_imagelib.c, fb/x_font.c, kik_path.c:
+	  #ifdef  __ANDROID__ is added.
+
+	* android/: Support Android native-activity.
+
+	* x_screen.c, vte.c: malloc() is used instead of alloca() in copying text
+	  to avoid the failure of alloca().
+
+	* ml_edit.c: Minor fixes of ml_edit_restore_cursor().
+
 2013-09-24  Araki Ken  <arakiken@users.sf.net>
 
-	* Wraparound is stopped on DECRC.
+	* ml_edit.c: Wraparound is stopped on DECRC.
 
 	* android/: Minor fixes.
 

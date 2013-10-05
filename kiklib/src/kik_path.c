@@ -320,6 +320,9 @@ kik_get_home_dir(void)
 {
 	char *  dir ;
 
+#ifdef  __ANDROID__
+	return  "/sdcard" ;
+#else
 #ifdef  USE_WIN32API
 	if( ( dir = getenv( "HOMEPATH")) && *dir)
 	{
@@ -333,6 +336,7 @@ kik_get_home_dir(void)
 	}
 
 	return  NULL ;
+#endif
 }
 
 

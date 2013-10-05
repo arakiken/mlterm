@@ -3074,7 +3074,12 @@ vte_terminal_copy_clipboard(
 	}
 
 	len = terminal->pvt->screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE ;
-	if( ! ( buf = alloca( len)))
+
+	/*
+	 * Don't use alloca() here because len can be too big value.
+	 * (MLCHAR_UTF_MAX_SIZE defined in ml_char.h is 48 byte.)
+	 */
+	if( ! ( buf = malloc( len)))
 	{
 		return ;
 	}
@@ -3089,6 +3094,8 @@ vte_terminal_copy_clipboard(
 	
 	gtk_clipboard_set_text( clipboard , buf , len) ;
 	gtk_clipboard_store( clipboard) ;
+
+	free( buf) ;
 }
 
 void

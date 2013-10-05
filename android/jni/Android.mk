@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := mlterm
-LOCAL_SRC_FILES := kiklib/src/kik_debug.c kiklib/src/kik_map.c kiklib/src/kik_args.c \
+LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		kiklib/src/kik_mem.c kiklib/src/kik_conf.c kiklib/src/kik_file.c \
 		kiklib/src/kik_path.c kiklib/src/kik_conf_io.c kiklib/src/kik_str.c \
 		kiklib/src/kik_cycle_index.c kiklib/src/kik_langinfo.c kiklib/src/kik_time.c \
@@ -42,8 +42,23 @@ LOCAL_SRC_FILES := kiklib/src/kik_debug.c kiklib/src/kik_map.c kiklib/src/kik_ar
 		mlterm/ml_logs.c mlterm/ml_screen.c mlterm/ml_shape.c mlterm/ml_str_parser.c \
 		mlterm/ml_term.c mlterm/ml_vt100_parser.c mlterm/ml_term_manager.c mlterm/ml_bidi.c \
 		mlterm/ml_iscii.c mlterm/ml_config_menu.c mlterm/ml_config_proto.c mlterm/ml_pty.c \
-		mlterm/ml_pty_unix.c mlterm/ml_drcs.c main.c
-LOCAL_CFLAGS := -Ikiklib -Imkf -Imlterm -Ijava -DNO_DYNAMIC_LOAD_CTL -DMKFLIB_DIR=\"/data/data/jp.android.mlterm/lib/\" # -DNO_DYNAMIC_LOAD_TABLE
+		mlterm/ml_pty_unix.c mlterm/ml_drcs.c \
+		xwindow/fb/x.c xwindow/fb/x_font.c xwindow/x_mod_meta_mode.c xwindow/x_shortcut.c \
+		xwindow/x_bel_mode.c xwindow/x_font_cache.c xwindow/x_picture.c \
+		xwindow/fb/x_color.c xwindow/x_font_config.c xwindow/x_sb_mode.c \
+		xwindow/x_termcap.c xwindow/x_color_cache.c \
+		xwindow/x_font_manager.c xwindow/x_type_engine.c \
+		xwindow/x_color_manager.c xwindow/fb/x_gc.c xwindow/x_type_loader.c \
+		xwindow/fb/x_connect_dialog.c xwindow/x_im.c \
+		xwindow/fb/x_window.c xwindow/fb/x_display.c xwindow/x_im_candidate_screen.c \
+		xwindow/x_screen.c xwindow/fb/x_xic.c xwindow/fb/x_dnd.c \
+		xwindow/x_im_status_screen.c xwindow/x_screen_manager.c xwindow/x_draw_str.c \
+		xwindow/fb/x_imagelib.c xwindow/x_event_source.c \
+		xwindow/x_main_config.c xwindow/x_selection.c \
+		main/daemon.c main/main_loop.c main/main.c
+		# xwindow/x_sb_screen.c xwindow/fb/x_simple_sb_view.c
+		# xwindow/x_sb_view_factory.c xwindow/x_scrollbar.c
+LOCAL_CFLAGS := -Ikiklib -Imkf -Imlterm -Ixwindow -DNO_DYNAMIC_LOAD_CTL -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER # -DNO_DYNAMIC_LOAD_TABLE
 LOCAL_LDLIBS := -llog -landroid
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 

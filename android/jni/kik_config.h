@@ -7,7 +7,7 @@
  * Include kik_def.h (which wraps POSIX and kik_config.h macros) or kik_types.h
  * (which wraps POSIX and kik_config.h types).
  */
- 
+
 #ifndef  __KIK_CONFIG_H__
 #define  __KIK_CONFIG_H__
 

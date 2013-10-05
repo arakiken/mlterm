@@ -3111,7 +3111,11 @@ xct_selection_requested(
 
 		xct_len = screen->sel.sel_len * MLCHAR_XCT_MAX_SIZE ;
 
-		if( ( xct_str = alloca( xct_len)) == NULL)
+		/*
+		 * Don't use alloca() here because len can be too big value.
+		 * (MLCHAR_XCT_MAX_SIZE defined in ml_char.h is 160 byte.)
+		 */
+		if( ( xct_str = malloc( xct_len)) == NULL)
 		{
 			return ;
 		}
@@ -3119,6 +3123,8 @@ xct_selection_requested(
 		filled_len = convert_selection_to_xct( screen , xct_str , xct_len) ;
 
 		x_window_send_selection( win , event , xct_str , filled_len , type , 8) ;
+
+		free( xct_str) ;
 	}
 }
 
@@ -3145,7 +3151,11 @@ utf_selection_requested(
 
 		utf_len = screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE ;
 
-		if( ( utf_str = alloca( utf_len)) == NULL)
+		/*
+		 * Don't use alloca() here because len can be too big value.
+		 * (MLCHAR_UTF_MAX_SIZE defined in ml_char.h is 48 byte.)
+		 */
+		if( ( utf_str = malloc( utf_len)) == NULL)
 		{
 			return ;
 		}
@@ -3153,6 +3163,8 @@ utf_selection_requested(
 		filled_len = convert_selection_to_utf( screen , utf_str , utf_len) ;
 
 		x_window_send_selection( win , event , utf_str , filled_len , type , 8) ;
+
+		free( utf_str) ;
 	}
 }
 
