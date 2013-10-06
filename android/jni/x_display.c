@@ -296,6 +296,11 @@ process_mouse_event(
 
 		switch( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK)
 		{
+		case  0x100:
+			_display.button_state = Button1Mask ;
+			xev.button = Button1 ;
+			break ;
+
 		case  0x200:
 			xev.button = Button2 ;
 			_display.button_state = Button2Mask ;
@@ -306,12 +311,10 @@ process_mouse_event(
 			_display.button_state = Button3Mask ;
 			break ;
 
-		case  0x100:
+		case  0x0:
 		default:
 			xev.button = Button1 ;
-			_display.button_state = Button1Mask ;
 			break ;
-
 		}
 
 		switch( action & AMOTION_EVENT_ACTION_MASK)

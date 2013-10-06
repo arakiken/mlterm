@@ -1,3 +1,8 @@
+2013-10-06  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/x_display.c: _display.button_state is not changed
+	  if action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK is 0.
+
 2013-10-04  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x.h, fb/x_display.h:
