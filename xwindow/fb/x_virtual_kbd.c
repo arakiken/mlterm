@@ -269,6 +269,18 @@ start_virtual_kbd(
 			goto  error ;
 		}
 
+	#if  1
+		if( disp->depth == 1)
+		{
+			/* XXX */
+			Pixmap  tmp ;
+
+			tmp = normal_pixmap ;
+			normal_pixmap = pressed_pixmap ;
+			pressed_pixmap = tmp ;
+		}
+	#endif
+
 		/*
 		 * It is assumed that the width and height of kbd.png are the same
 		 * as those of pressed_kbg.png

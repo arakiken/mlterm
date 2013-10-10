@@ -270,6 +270,10 @@ x_prepare_for_main_config(
 		"force unicode or decsp font for box-drawing characters. [noconv]") ;
 	kik_conf_add_opt( conf , '\0' , "urgent" , 1 , "use_urgent_bell" ,
 		"draw the user's attention when making a bell sound. [false]") ;
+#ifdef  USE_GRF
+	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
+		"draw wall picture on another vram. (available on 4bpp) [false]") ;
+#endif
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -1303,6 +1307,18 @@ x_main_config_init(
 			ml_set_use_ansi_colors( 0) ;
 		}
 	}
+
+#ifdef  USE_GRF
+	if( ( value = kik_conf_get_value( conf , "separate_wall_picture")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			extern int  separate_wall_picture ;
+
+			separate_wall_picture = 1 ;
+		}
+	}
+#endif
 
 #ifdef  USE_IM_CURSOR_COLOR
 	if( ( value = kik_conf_get_value( conf , "im_cursor_color")))

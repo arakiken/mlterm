@@ -220,7 +220,6 @@ typedef struct  fb_reg_conf
 	} videoc ;
 
 } fb_reg_conf_t ;
-
 #endif
 
 
@@ -249,7 +248,12 @@ int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
 int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
 #endif
 #ifdef  USE_GRF
+int  separate_wall_picture ;
 static fb_reg_conf_t  orig_reg ;
+static int  grf0_fd = -1 ;
+static size_t  grf0_len ;
+static fb_reg_t *  grf0_reg ;
+static u_char *  grf0_cmap_orig ;
 #endif
 #else	/* Linux */
 static int  console_id = -1 ;
@@ -390,15 +394,9 @@ cmap_init(void)
 			ml_get_color_rgba( color , &r , &g , &b , NULL) ;
 		}
 
-	#if  defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-		_display.cmap->red[color] = r ;
-		_display.cmap->green[color] = g ;
-		_display.cmap->blue[color] = b ;
-	#else
 		_display.cmap->red[color] = BYTE_COLOR_TO_WORD(r) ;
 		_display.cmap->green[color] = BYTE_COLOR_TO_WORD(g) ;
 		_display.cmap->blue[color] = BYTE_COLOR_TO_WORD(b) ;
-	#endif
 	}
 
 #ifndef  USE_GRF
@@ -1191,9 +1189,9 @@ open_display(void)
 	video_display_start_t  vstart ;
 	struct termios  tm ;
 
-	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ?
+	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ?
 						dev : "/dev/ttyv0" ,
-					O_RDWR)))
+					O_RDWR)) < 0)
 	{
 		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/ttyv0") ;
 
@@ -1969,6 +1967,28 @@ process_wskbd_event(
 #ifdef  USE_GRF
 
 static void
+close_grf0(void)
+{
+	if( grf0_fd != -1)
+	{
+		/* Remove TP_COLOR */
+		memcpy( grf0_reg->gpal , grf0_reg->tpal , sizeof(u_short) * 16) ;
+
+		if( grf0_cmap_orig)
+		{
+			memcpy( grf0_reg->tpal , grf0_cmap_orig , sizeof(u_short) * 16) ;
+		}
+
+		grf0_reg->videoc.r2 = 0x0010 ;
+
+		munmap( grf0_reg , grf0_len) ;
+
+		close( grf0_fd) ;
+		grf0_fd = -1 ;
+	}
+}
+
+static void
 setup_reg(
 	fb_reg_t *  reg ,
 	fb_reg_conf_t *  conf
@@ -2027,15 +2047,15 @@ open_display(void)
 		  { 1 , 0x21e4 , 0x0003 } } ;
 	fb_reg_conf_t  conf_768_512_4 =
 		{ { 137 , 14 , 28 , 124 , 567 , 5 , 40 , 552 , 27 , 1046 } ,
-		  { 4 , 0x21e4 , 0x0010 } } ;
+		  { 4 , 0x24e4 /* Graphic vram is prior to text one. */ , 0x0010 } } ;
 	fb_reg_conf_t  conf_1024_768_4 =
 		{ { 169 , 14 , 28 , 156 , 439 , 5 , 40 , 424 , 27 , 1050 } ,
 		  { 4 , 0x21e4 , 0x0010 } } ;
 	struct rgb_info  rgb_info_15bpp = { 3 , 3 , 3 , 6 , 11 , 1 } ;
 	struct termios  tm ;
 
-	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/grf1" ,
-					O_RDWR)))
+	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/grf1" ,
+					O_RDWR)) < 0)
 	{
 		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/grf1") ;
 
@@ -2419,8 +2439,8 @@ open_display(void)
 #define  DEFAULT_FBDEV  "/dev/ttyC0"
 #endif
 
-	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : DEFAULT_FBDEV ,
-					O_RDWR)))
+	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : DEFAULT_FBDEV ,
+					O_RDWR)) < 0)
 	{
 		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : DEFAULT_FBDEV) ;
 
@@ -3166,8 +3186,8 @@ open_display(void)
 	int  mouse_num ;
 	struct termios  tm ;
 
-	if( ! ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
-					O_RDWR)))
+	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
+					O_RDWR)) < 0)
 	{
 		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/fb0") ;
 
@@ -3693,6 +3713,7 @@ x_display_close_all(void)
 		ioctl( STDIN_FILENO , KDSKBMODE , K_XLATE) ;
 	#elif  defined(__NetBSD__)
 	#ifdef  USE_GRF
+		close_grf0() ;
 		setup_reg( (fb_reg_t*)_display.fb , &orig_reg) ;
 	#else
 		ioctl( STDIN_FILENO , WSDISPLAYIO_SMODE , &orig_console_mode) ;
@@ -4380,6 +4401,13 @@ x_cmap_get_closest_color(
 
 	for( color = 0 ; color < CMAP_SIZE(_display.cmap) ; color++)
 	{
+	#ifdef  USE_GRF
+		if( grf0_fd != -1 && color == TP_COLOR)
+		{
+			continue ;
+		}
+	#endif
+
 		/* lazy color-space conversion */
 		diff_r = red - WORD_COLOR_TO_BYTE(_display.cmap->red[color]) ;
 		diff_g = green - WORD_COLOR_TO_BYTE(_display.cmap->green[color]) ;
@@ -4418,3 +4446,173 @@ x_cmap_get_pixel_rgb(
 
 	return  1 ;
 }
+
+
+#ifdef  USE_GRF
+
+int
+x68k_tvram_is_enabled(void)
+{
+	return  (grf0_fd != -1) ? 1 : 0 ;
+}
+
+int
+x68k_tvram_set_wall_picture(
+	u_short *  image ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	static u_char *  vram ;
+	u_char *  pl0 ;
+	u_char *  pl1 ;
+	u_char *  pl2 ;
+	u_char *  pl3 ;
+	u_short *  img ;
+	int  y ;
+	int  img_y ;
+
+	if( ! separate_wall_picture || _disp.depth != 4)
+	{
+		return  0 ;
+	}
+
+	if( width < 8)
+	{
+		image = NULL ;
+	}
+
+	while( grf0_fd == -1)
+	{
+		struct grfinfo  vinfo ;
+
+		if( image && ( grf0_fd = open( "/dev/grf0" , O_RDWR)) >= 0)
+		{
+			kik_file_set_cloexec( grf0_fd) ;
+
+			if( ioctl( grf0_fd , GRFIOCGINFO , &vinfo) >= 0)
+			{
+				grf0_len = vinfo.gd_fbsize + vinfo.gd_regsize ;
+
+				if( ( grf0_reg = mmap( NULL , grf0_len ,
+							PROT_WRITE|PROT_READ ,
+							MAP_FILE|MAP_SHARED ,
+							grf0_fd , (off_t)0)) != MAP_FAILED)
+				{
+					u_long  color ;
+
+					/* Enale the text vram. */
+					grf0_reg->videoc.r2 = 0x0030 ;
+
+					/* Initialize scroll registers. */
+					grf0_reg->crtc.r10 = grf0_reg->crtc.r11 = 0 ;
+
+					grf0_reg->crtc.r21 = 0 ;
+
+					if( ( grf0_cmap_orig = malloc( sizeof(u_short) * 16)))
+					{
+						memcpy( grf0_cmap_orig , grf0_reg->tpal ,
+							sizeof(u_short) * 16) ;
+					}
+
+					memcpy( grf0_reg->tpal , grf0_reg->gpal ,
+						sizeof(u_short) * 16) ;
+
+					vram = ((u_char*)grf0_reg) + vinfo.gd_regsize ;
+
+					if( x_cmap_get_closest_color( &color , 0 , 0 , 0))
+					{
+						/* Opaque black */
+						grf0_reg->gpal[color] |= 0x1 ;
+					}
+
+					/* Transparent (Wall paper is visible) */
+					grf0_reg->gpal[TP_COLOR] = 0x0 ;
+
+					break ;
+				}
+			}
+
+			close( grf0_fd) ;
+			grf0_fd = -1 ;
+		}
+
+		return  0 ;
+	}
+
+	if( ! image)
+	{
+		close_grf0() ;
+
+		return  0 ;
+	}
+
+	pl0 = vram ;
+	pl1 = pl0 + 0x20000 ;
+	pl2 = pl1 + 0x20000 ;
+	pl3 = pl2 + 0x20000 ;
+	img = image ;
+
+	for( y = 0 , img_y = 0 ; y < 1024 ; y++ , img_y++)
+	{
+		int  x ;
+		int  img_x ;
+
+		if( img_y >= height)
+		{
+			img = image ;
+			img_y = 0 ;
+		}
+
+		img_x = 0 ;
+
+		/* 128 bytes per line */
+		for( x = 0 ; x < 128 ; x++)
+		{
+			*(pl3++) = ((img[img_x] & 0x8) << 4) |
+			            ((img[img_x + 1] & 0x8) << 3) |
+			            ((img[img_x + 2] & 0x8) << 2) |
+			            ((img[img_x + 3] & 0x8) << 1) |
+			            (img[img_x + 4] & 0x8) |
+			            ((img[img_x + 5] & 0x8) >> 1) |
+			            ((img[img_x + 6] & 0x8) >> 2) |
+			            ((img[img_x + 7] & 0x8) >> 3) ;
+			*(pl2++) = ((img[img_x] & 0x4) << 5) |
+			            ((img[img_x + 1] & 0x4) << 4) |
+			            ((img[img_x + 2] & 0x4) << 3) |
+			            ((img[img_x + 3] & 0x4) << 2) |
+			            ((img[img_x + 4] & 0x4) << 1) |
+			            (img[img_x + 5] & 0x4) |
+			            ((img[img_x + 6] & 0x4) >> 1) |
+			            ((img[img_x + 7] & 0x4) >> 2) ;
+			*(pl1++) = ((img[img_x] & 0x2) << 6) |
+			            ((img[img_x + 1] & 0x2) << 5) |
+			            ((img[img_x + 2] & 0x2) << 4) |
+			            ((img[img_x + 3] & 0x2) << 3) |
+			            ((img[img_x + 4] & 0x2) << 2) |
+			            ((img[img_x + 5] & 0x2) << 1) |
+			            (img[img_x + 6] & 0x2) |
+			            ((img[img_x + 7] & 0x2) >> 1) ;
+			*(pl0++) = ((img[img_x] & 0x1) << 7) |
+			            ((img[img_x + 1] & 0x1) << 6) |
+			            ((img[img_x + 2] & 0x1) << 5) |
+			            ((img[img_x + 3] & 0x1) << 4) |
+			            ((img[img_x + 4] & 0x1) << 3) |
+			            ((img[img_x + 5] & 0x1) << 2) |
+			            ((img[img_x + 6] & 0x1) << 1) |
+			            (img[img_x + 7] & 0x1) ;
+
+			if( (img_x += 8) >= width)
+			{
+				/* XXX tiling with chopping the last 7 or less pixels. */
+				img_x = 0 ;
+			}
+		}
+
+		img += width ;
+	}
+
+	return  1 ;
+}
+
+#endif	/* USE_GRF */

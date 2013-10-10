@@ -84,6 +84,9 @@ Framebuffer 対応に関するメモ
     ます。サポートする解像度は、512x512x15 512x512x8 768x512x4 768x512x1
     1024x768x4 1024x768x1 です。
     fb_resolution=512x512x15
+  o NetBSD/x68k では、--multivram 又は separate_wall_picture=true オプションを指
+    定すると、壁紙のみ Text VRAM に (その他は Graphic VRAM) に描画します。これに
+    より、スクロール速度が改善します。
 
   (for OpenBSD)
   o 次の2行を有効にしてカーネルの再構築を行ってください。

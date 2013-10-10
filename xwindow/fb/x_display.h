@@ -17,10 +17,14 @@
 #define ALKED  8
 #endif
 
-#define KeyPress			2	/* Private in fb/ */
-#define ButtonPress			4	/* Private in fb/ */
-#define ButtonRelease			5	/* Private in fb/ */
-#define MotionNotify			6	/* Private in fb/ */
+#define KeyPress	2	/* Private in fb/ */
+#define ButtonPress	4	/* Private in fb/ */
+#define ButtonRelease	5	/* Private in fb/ */
+#define MotionNotify	6	/* Private in fb/ */
+
+#ifdef  USE_GRF
+#define  TP_COLOR  8
+#endif
 
 
 u_long  x_display_get_pixel( int  x , int  y) ;
@@ -38,6 +42,12 @@ int  x_cmap_get_closest_color( u_long *  closest , int  red , int  green , int  
 
 int  x_cmap_get_pixel_rgb( u_int8_t *  red , u_int8_t *  green ,
 	u_int8_t *  blue , u_long  pixel) ;
+
+#ifdef  USE_GRF
+int  x68k_tvram_is_enabled(void) ;
+
+int  x68k_tvram_set_wall_picture( u_short *  image , u_int  width , u_int  height) ;
+#endif
 
 
 #endif

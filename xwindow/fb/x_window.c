@@ -20,6 +20,10 @@
 #define  BOTTOM_MARGIN(win) \
 	((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
 
+#ifdef  USE_GRF
+static x_color_t  black = { TP_COLOR , 0 , 0 , 0 , 0 } ;
+#endif
+
 
 /* --- static variables --- */
 
@@ -816,6 +820,17 @@ x_window_set_wall_picture(
 	Pixmap  pic
 	)
 {
+#ifdef  USE_GRF
+	if( x68k_tvram_set_wall_picture( pic->image , pic->width , pic->height))
+	{
+		win->wall_picture = 0x1 ;	/* dummy */
+
+		/* Don't set is_scrollable = 0. */
+
+		return  0 ;	/* to free pic memory. */
+	}
+#endif
+
 	win->wall_picture = pic ;
 	win->is_scrollable = 0 ;
 
@@ -1211,6 +1226,13 @@ x_window_clear(
 	u_int  height
 	)
 {
+#ifdef  USE_GRF
+	if( x68k_tvram_is_enabled())
+	{
+		return  x_window_fill_with( win , &black , x , y , width , height) ;
+	}
+	else
+#endif
 	if( ! win->wall_picture)
 	{
 		return  x_window_fill_with( win , &win->bg_color , x , y , width , height) ;
@@ -1877,6 +1899,13 @@ x_window_draw_image_string(
 	u_int  len
 	)
 {
+#ifdef  USE_GRF
+	if( bg_color == NULL && x68k_tvram_is_enabled())
+	{
+		bg_color = &black ;
+	}
+#endif
+
 	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 1 ,
 			bg_color == NULL) ;
 }
@@ -1893,6 +1922,13 @@ x_window_draw_image_string16(
 	u_int  len
 	)
 {
+#ifdef  USE_GRF
+	if( bg_color == NULL && x68k_tvram_is_enabled())
+	{
+		bg_color = &black ;
+	}
+#endif
+
 	return  draw_string( win , font , fg_color , bg_color , x , y , str , len , 2 ,
 			bg_color == NULL) ;
 }

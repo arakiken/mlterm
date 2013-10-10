@@ -82,6 +82,9 @@ Framebuffer support
     ~/.mlterm/main on NetBSD/x68k. Supported resolutions are 512x512x15
     512x512x8 768x512x4 768x512x1 1024x768x4 1024x768x1.
     fb_resolution=512x512x15
+  o If you specify --multivram or separate_wall_picture=true option, the wall
+    picture is drawn on Text VRAM instead of Graphic VRAM and scrolling
+    performance will be improved.
 
   (for OpenBSD)
   o Enable following options and rebuild kernel.

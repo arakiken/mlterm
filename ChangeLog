@@ -1,3 +1,20 @@
+2013-10-10  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_main_config.c: --multivram / separate_wall_picture option is added.
+
+	* fb/x_window.c, fb/x_display.c:
+	  x68k_tvram_set_wall_picture() and x68k_tvram_is_enabled() are added to
+	  show the wall picture on the text vram and to improve the performance
+	  of scrolling with the wall picture.
+
+	* x_virtual_kbd.c: normal_pixmap and pressed_pixmap are swapped on 1bpp
+	  to make normal keyboard visible.
+
+2013-10-09  Araki Ken  <arakiken@users.sf.net>
+
+	* main/main.c: main.c was overwritten by android/jni/main.c at the
+	  revision 2098. It reverts to the revision 2097.
+
 2013-10-06  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/x_display.c: _display.button_state is not changed
