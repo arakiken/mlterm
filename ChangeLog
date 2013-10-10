@@ -1,5 +1,10 @@
 2013-10-10  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display_freebsd.c, fb/x_display_netbsd.c, fb/x_display_linux.c:
+	  Platform dependent stuff is separated from fb/x_display.c.
+
+2013-10-10  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_main_config.c: --multivram / separate_wall_picture option is added.
 
 	* fb/x_window.c, fb/x_display.c:
