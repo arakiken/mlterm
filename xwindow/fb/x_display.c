@@ -729,8 +729,10 @@ static int  receive_stdin_key_event(void) ;
 
 #if  defined(__FreeBSD__)
 #include  "x_display_freebsd.c"
+#elif  defined(USE_GRF)
+#include  "x_display_x68kgrf.c"
 #elif  defined(__NetBSD__) || defined(__OpenBSD__)
-#include  "x_display_netbsd.c"
+#include  "x_display_wscons.c"
 #else	/* Linux */
 #include  "x_display_linux.c"
 #endif
@@ -1140,11 +1142,6 @@ x_display_close_all(void)
 			close( _mouse.fd) ;
 		}
 
-		if( CMAP_IS_INITED)
-		{
-			cmap_final() ;
-		}
-
 	#ifdef  ENABLE_DOUBLE_BUFFER
 		free( _display.back_fb) ;
 	#endif
@@ -1167,6 +1164,11 @@ x_display_close_all(void)
 	#else
 		set_use_console_backscroll( 1) ;
 	#endif
+
+		if( CMAP_IS_INITED)
+		{
+			cmap_final() ;
+		}
 
 		if( _display.fd != STDIN_FILENO)
 		{
@@ -1845,7 +1847,7 @@ x_cmap_get_closest_color(
 	for( color = 0 ; color < CMAP_SIZE(_display.cmap) ; color++)
 	{
 	#ifdef  USE_GRF
-		if( grf0_fd != -1 && color == TP_COLOR)
+		if( grf0_fd != -1 && ! use_tvram_cmap && color == TP_COLOR)
 		{
 			continue ;
 		}

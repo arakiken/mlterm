@@ -1,3 +1,10 @@
+2013-10-11  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display_x68kgrf.c, fb/x_imagelib.c, common/c_imagelib.c:
+	  x68k_set_use_tvram_colors() and x68k_set_tvram_cmap() are added.
+
+	* fb/x_display_netbsd.c -> fb/x_display_wscons.c, fb/x_display_x68kgrf.c
+
 2013-10-10  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display_freebsd.c, fb/x_display_netbsd.c, fb/x_display_linux.c:

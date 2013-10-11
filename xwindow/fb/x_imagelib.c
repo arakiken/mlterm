@@ -339,6 +339,10 @@ load_file(
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
 						&(*pixmap)->width , &(*pixmap)->height)))
 		{
+		#ifdef  USE_GRF
+			x68k_set_tvram_cmap( sixel_cmap , sixel_cmap_size) ;
+		#endif
+
 			goto  loaded ;
 		}
 		else
@@ -550,16 +554,22 @@ x_imagelib_load_file_for_background(
 {
 	Pixmap  pixmap ;
 
-	if( load_file( win->disp->display , path ,
+#ifdef  USE_GRF
+	x68k_set_use_tvram_colors( 1) ;
+#endif
+
+	if( ! load_file( win->disp->display , path ,
 			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , pic_mod , win->disp->depth ,
 			&pixmap , NULL))
 	{
-		return  pixmap ;
+		pixmap = None ;
 	}
-	else
-	{
-		return  None ;
-	}
+
+#ifdef  USE_GRF
+	x68k_set_use_tvram_colors( 0) ;
+#endif
+
+	return  pixmap ;
 }
 
 int

@@ -22,6 +22,14 @@ typedef u_int32_t  pixel_t ;
 #define  PIXEL_SIZE  sizeof(pixel_t)
 
 
+/* --- static variables --- */
+
+#ifdef  USE_GRF
+static pixel_t  sixel_cmap[256] ;
+static u_int  sixel_cmap_size ;
+#endif
+
+
 /* --- static functions --- */
 
 static size_t
@@ -274,7 +282,6 @@ load_sixel_from_file(
 	int  rep ;
 	int  color ;
 	int  asp_x ;
-	pixel_t  color_tbl[256] ;
 	/* VT340 Default Color Map */
 	static pixel_t  default_color_tbl[] =
 	{
@@ -295,6 +302,12 @@ load_sixel_from_file(
 		SIXEL_RGB(60,60,33) , /* YELLOW* */
 		SIXEL_RGB(80,80,80)   /* GRAY 75% */
 	} ;
+#ifdef  USE_GRF
+#define  color_tbl  sixel_cmap
+	sixel_cmap_size = 16 ;
+#else
+	pixel_t  color_tbl[256] ;
+#endif
 
 	if( ! ( fp = fopen( path , "r")))
 	{
@@ -576,6 +589,13 @@ restart:
 					                             K_MIN(params[3],100),
 								     K_MIN(params[4],100)) ;
 
+				#ifdef  USE_GRF
+					if( sixel_cmap_size >= color)
+					{
+						sixel_cmap_size = color + 1 ;
+					}
+				#endif
+
 				#ifdef  __DEBUG
 					kik_debug_printf( KIK_DEBUG_TAG
 						" Set rgb %x for color %d.\n" ,
@@ -725,6 +745,7 @@ end:
 
 	return  pixels ;
 }
+#undef  color_tbl
 
 #ifndef  SIXEL_1BPP
 #ifdef  GDK_PIXBUF_VERSION

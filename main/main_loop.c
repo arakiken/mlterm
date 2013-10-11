@@ -345,7 +345,7 @@ main_loop_init(
 #endif
 
 #ifdef  USE_FRAMEBUFFER
-#ifdef  __NetBSD__
+#if  defined(__NetBSD__) && ! defined(USE_GRF)
 	if( ( value = kik_conf_get_value( conf , "wskbd_repeat_1")))
 	{
 		extern int  wskbd_repeat_1 ;

@@ -46,6 +46,10 @@ int  x_cmap_get_pixel_rgb( u_int8_t *  red , u_int8_t *  green ,
 #ifdef  USE_GRF
 int  x68k_tvram_is_enabled(void) ;
 
+void  x68k_set_use_tvram_colors( int  use) ;
+
+void  x68k_set_tvram_cmap( u_int32_t *  cmap , u_int  cmap_size) ;
+
 int  x68k_tvram_set_wall_picture( u_short *  image , u_int  width , u_int  height) ;
 #endif
 
