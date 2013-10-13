@@ -821,11 +821,24 @@ x_window_set_wall_picture(
 	)
 {
 #ifdef  USE_GRF
-	if( x68k_tvram_set_wall_picture( pic->image , pic->width , pic->height))
+	int  ret ;
+
+	if( ( ret = x68k_tvram_set_wall_picture( pic->image , pic->width , pic->height)))
 	{
 		win->wall_picture = 0x1 ;	/* dummy */
 
 		/* Don't set is_scrollable = 0. */
+
+		/* If ret == 2, text vram was initialized just now. */
+		if( ret == 2)
+		{
+			clear_margin_area( win) ;
+
+			if( win->window_exposed)
+			{
+				(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+			}
+		}
 
 		return  0 ;	/* to free pic memory. */
 	}
@@ -855,6 +868,10 @@ x_window_unset_wall_picture(
 	x_window_t *  win
 	)
 {
+#ifdef  USE_GRF
+	x68k_tvram_set_wall_picture( NULL , 0 , 0) ;
+#endif
+
 	win->wall_picture = None ;
 	win->is_scrollable = 1 ;
 
@@ -1032,7 +1049,7 @@ x_window_show(
 		 * at the end of this function.
 		 */
 		is_mapped = win->is_mapped ;
-		win->is_mapped = 0 ;
+		win->is_mapped = 0 ;	/* XXX x_window_set_wall_picture() depends on this. */
 		(*win->window_realized)( win) ;
 		win->is_mapped = is_mapped ;
 	}

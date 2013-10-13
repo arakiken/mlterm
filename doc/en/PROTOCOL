@@ -36,20 +36,21 @@ version 20110903
                      fade_ratio | mod_meta_key | mod_meta_mode | bel_mode | type_engine |
                      use_anti_alias | use_variable_column_width | use_combining |
                      use_transbg | use_bidi | bidi_mode | use_ind | receive_string_via_ucs |
-                     input_method | wall_picture | brightness | gamma | contrast | line_space |
-                     letter_space | screen_width_ratio | screen_height_ratio | vertical_mode |
-                     scrollbar_mode | static_backscroll_mode | use_multi_column_char |
-                     col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     use_dynamic_comb | cursor_fg_color | cursor_bg_color | bd_color | ul_color |
-                     use_bold_font | hide_underline | icon_path | logging_vt_seq | logging_msg |
-                     word_separators | use_clipboard | auto_restart | use_alt_buffer |
-                     use_ansi_colors | exit_backscroll_by_pty | only_use_unicode_font |
-                     not_use_unicode_font | box_drawing_font | use_urgent_bell
+                     input_method | locale | wall_picture | brightness | gamma | contrast |
+                     line_space | letter_space | screen_width_ratio | screen_height_ratio |
+                     vertical_mode | scrollbar_mode | static_backscroll_mode |
+                     use_multi_column_char | col_size_of_width_a | scrollbar_view_name |
+                     sb_fg_color | sb_bg_color | use_dynamic_comb | cursor_fg_color |
+                     cursor_bg_color | bd_color | ul_color | use_bold_font | hide_underline |
+                     icon_path | logging_vt_seq | logging_msg | word_separators | use_clipboard |
+                     auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
+                     only_use_unicode_font | not_use_unicode_font | box_drawing_font |
+                     use_urgent_bell
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | bidi_mode | use_ind |
-                     receive_string_via_ucs | xim | locale | wall_picture |
+                     receive_string_via_ucs | input_method | locale | wall_picture |
                      pwd | brightness | gamma | contrast | line_space | letter_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | use_multi_column_char | col_size_of_width_a |
@@ -135,8 +136,6 @@ version 20110903
     effect.
   o Adjusting and operation arguments of  ESC ] 20 ; pt BEL sequence are not
     used for now.
-  o Return value of ESC ] 5380 ; xim BEL is <xim name> only , never <xim name>
-    ":" <locale name>.
   o It is configuration programs themselves that search ~/.mlterm/xim and
     ${SYSCONFDIR}/mlterm/xim files for pairs of xim name and its preferable
     locale.

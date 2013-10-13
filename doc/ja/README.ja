@@ -574,6 +574,9 @@ comment $Id$
         カーソルを点滅させる。
 
       -- その他 --
+      o locale
+        指定したローケールに setlocale() します。
+
       o use_xim  (*true*/false)
         XIM を使う
 
@@ -1184,6 +1187,7 @@ comment $Id$
        --shortcut(=bool) : allow_change_shortcut
        --boxdraw=value : box_drawing_font
        --urgent(=bool) : use_urgent_bell
+       --locale=value  : locale
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)

@@ -1,3 +1,18 @@
+2013-10-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_x68kgrf.c:
+	  - The number of resetting T-VRAM palette in changing wall pictures is
+	    decreased.
+	  - Wall picture is never drawn in the Left and right margin of virtual
+	    keyboard.
+	  - TP_COLOR is changed from 8 to 12.
+
+	* doc/en/PROTOCOL: Updated.
+
+	* fb/x_screen.c: "locale" is added to OSC 5379 protocol.
+
+	* fb/x_main_config.c: "locale" option is added.
+
 2013-10-11  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display_x68kgrf.c, fb/x_imagelib.c, common/c_imagelib.c:

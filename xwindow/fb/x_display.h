@@ -23,7 +23,7 @@
 #define MotionNotify	6	/* Private in fb/ */
 
 #ifdef  USE_GRF
-#define  TP_COLOR  8
+#define  TP_COLOR  12
 #endif
 
 

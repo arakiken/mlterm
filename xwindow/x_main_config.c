@@ -270,6 +270,7 @@ x_prepare_for_main_config(
 		"force unicode or decsp font for box-drawing characters. [noconv]") ;
 	kik_conf_add_opt( conf , '\0' , "urgent" , 1 , "use_urgent_bell" ,
 		"draw the user's attention when making a bell sound. [false]") ;
+	kik_conf_add_opt( conf , '\0' , "locale" , 1 , "locale" , "set locale.") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [false]") ;
@@ -296,6 +297,11 @@ x_main_config_init(
 	char *  invalid_msg = "%s %s is not valid.\n" ;
 
 	memset( main_config , 0 , sizeof(x_main_config_t)) ;
+
+	if( ( value = kik_conf_get_value( conf , "locale")))
+	{
+		kik_locale_init( value) ;
+	}
 
 #if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)

@@ -1393,7 +1393,11 @@ x_display_reset_cmap(void)
 	_display.prev_pixel = 0xff000000 ;
 	_display.prev_closest_pixel = 0xff000000 ;
 
-	return  _display.cmap && cmap_init() ;
+	return  _display.cmap && cmap_init()
+	#ifdef  USE_GRF
+		&& gpal_init( ((fb_reg_t*)_display.fb)->gpal)
+	#endif
+		;
 }
 
 

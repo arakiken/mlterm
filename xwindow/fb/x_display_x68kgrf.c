@@ -81,9 +81,10 @@ static int  grf0_fd = -1 ;
 static size_t  grf0_len ;
 static fb_reg_t *  grf0_reg ;
 static u_short *  tpal_orig ;
-static u_short  gpal_8_orig ;
+static u_short  gpal_12_orig ;
 static int  use_tvram_cmap ;
-static fb_cmap_t *  cmap_orig ;
+static fb_cmap_t *  tcmap ;	/* If NULL, T-VRAM palette is the same as G-VRAM. */
+static fb_cmap_t *  gcmap ;
 
 
 /* --- static functions --- */
@@ -93,7 +94,13 @@ close_grf0(void)
 {
 	if( grf0_fd != -1)
 	{
-		grf0_reg->gpal[TP_COLOR] = gpal_8_orig ;
+		if( tcmap)
+		{
+			free( tcmap) ;
+			tcmap = NULL ;
+		}
+
+		grf0_reg->gpal[TP_COLOR] = gpal_12_orig ;
 
 		if( tpal_orig)
 		{
@@ -531,20 +538,27 @@ receive_key_event(void)
 	return  receive_stdin_key_event() ;
 }
 
-static void
-init_tpal(void)
+static int
+gpal_init(
+	u_short *  gpal
+	)
 {
-	if( ! tpal_orig)
+	if( grf0_fd != -1)
 	{
-		if( ( tpal_orig = malloc( sizeof(u_short) * 16)))
+		u_long  color ;
+
+		if( x_cmap_get_closest_color( &color , 0 , 0 , 0))
 		{
-			memcpy( tpal_orig , ((fb_reg_t*)_display.fb)->tpal ,
-				sizeof(u_short) * 16) ;
+			/* Opaque black */
+			gpal[color] |= 0x1 ;
 		}
 
-		memcpy( ((fb_reg_t*)_display.fb)->tpal , ((fb_reg_t*)_display.fb)->gpal ,
-			sizeof(u_short) * 16) ;
+		/* Transparent (Wall paper is visible) */
+		gpal_12_orig = gpal[TP_COLOR] ;
+		gpal[TP_COLOR] = 0x0 ;
 	}
+
+	return  1 ;
 }
 
 
@@ -563,22 +577,19 @@ x68k_set_use_tvram_colors(
 {
 	if( separate_wall_picture && _disp.depth == 4 && use)
 	{
-		use_tvram_cmap = 1 ;
-
-		if( grf0_fd != -1)
+		if( tcmap)
 		{
-			/* Reset text palette. */
-			memcpy( grf0_reg->tpal , grf0_reg->gpal , sizeof(u_short) * 16) ;
-			grf0_reg->tpal[TP_COLOR] = gpal_8_orig ;
+			free( tcmap) ;
+			tcmap = NULL ;
 		}
+
+		use_tvram_cmap = 1 ;
 	}
 	else
 	{
-		if( cmap_orig)
+		if( _display.cmap == tcmap)
 		{
-			free( _display.cmap) ;
-			_display.cmap = cmap_orig ;
-			cmap_orig = NULL ;
+			_display.cmap = gcmap ;
 		}
 
 		use_tvram_cmap = 0 ;
@@ -595,32 +606,27 @@ x68k_set_tvram_cmap(
 {
 	if( use_tvram_cmap && cmap_size <= 16)
 	{
-		fb_cmap_t *  cmap ;
-
-		if( ( cmap = cmap_new( cmap_size)))
+		if( ( tcmap = cmap_new( cmap_size)))
 		{
 			u_int  count ;
 
-			init_tpal() ;
-
 			for( count = 0 ; count < cmap_size ; count++)
 			{
-				cmap->red[count] = (pixels[count] >> 16) & 0xff ;
-				cmap->green[count] = (pixels[count] >> 8) & 0xff ;
-				cmap->blue[count] = pixels[count] & 0xff ;
-
-				((fb_reg_t*)_display.fb)->tpal[count] =
-					(cmap->red[count] >> 3) << 6 |
-					(cmap->green[count] >> 3) << 11 |
-					(cmap->blue[count] >> 3) << 1 ;
+				tcmap->red[count] = (pixels[count] >> 16) & 0xff ;
+				tcmap->green[count] = (pixels[count] >> 8) & 0xff ;
+				tcmap->blue[count] = pixels[count] & 0xff ;
 			}
 
-			cmap_orig = _display.cmap ;
-			_display.cmap = cmap ;
+			gcmap = _display.cmap ;
+			_display.cmap = tcmap ;
 		}
 	}
 }
 
+/*
+ * On success, if /dev/grf0 is opened just now, 2 is returned, while if
+ * /dev/grf0 has been already opened, 1 is returned.
+ */
 int
 x68k_tvram_set_wall_picture(
 	u_short *  image ,
@@ -628,6 +634,7 @@ x68k_tvram_set_wall_picture(
 	u_int  height
 	)
 {
+	int  ret ;
 	static u_char *  vram ;
 	u_char *  pl0 ;
 	u_char *  pl1 ;
@@ -637,15 +644,14 @@ x68k_tvram_set_wall_picture(
 	int  y ;
 	int  img_y ;
 
-	if( ! separate_wall_picture || _disp.depth != 4)
+	if( ! separate_wall_picture || _disp.depth != 4 || width < 8 || ! image)
 	{
+		close_grf0() ;
+
 		return  0 ;
 	}
 
-	if( width < 8)
-	{
-		image = NULL ;
-	}
+	ret = 1 ;
 
 	while( grf0_fd == -1)
 	{
@@ -674,19 +680,17 @@ x68k_tvram_set_wall_picture(
 
 					grf0_reg->crtc.r21 = 0 ;
 
-					init_tpal() ;
+					if( ( tpal_orig = malloc( sizeof(u_short) * 16)))
+					{
+						memcpy( tpal_orig , grf0_reg->tpal ,
+							sizeof(u_short) * 16) ;
+					}
 
 					vram = ((u_char*)grf0_reg) + vinfo.gd_regsize ;
 
-					if( x_cmap_get_closest_color( &color , 0 , 0 , 0))
-					{
-						/* Opaque black */
-						grf0_reg->gpal[color] |= 0x1 ;
-					}
+					gpal_init( grf0_reg->gpal) ;
 
-					/* Transparent (Wall paper is visible) */
-					gpal_8_orig = grf0_reg->gpal[TP_COLOR] ;
-					grf0_reg->gpal[TP_COLOR] = 0x0 ;
+					ret = 2 ;
 
 					break ;
 				}
@@ -699,11 +703,28 @@ x68k_tvram_set_wall_picture(
 		return  0 ;
 	}
 
-	if( ! image)
-	{
-		close_grf0() ;
+	kik_msg_printf( "Wall picture on Text VRAM. %s\n" ,
+		tcmap ? "" : "(ANSI 16 colors)") ;
 
-		return  0 ;
+	if( tcmap)
+	{
+		u_int  count ;
+
+		for( count = 0 ; count < CMAP_SIZE(tcmap) ; count++)
+		{
+			grf0_reg->tpal[count] = (tcmap->red[count] >> 3) << 6 |
+						(tcmap->green[count] >> 3) << 11 |
+						(tcmap->blue[count] >> 3) << 1 ;
+		}
+
+		free( tcmap) ;
+		tcmap = NULL ;
+	}
+	else
+	{
+		/* Reset text palette. */
+		memcpy( grf0_reg->tpal , grf0_reg->gpal , sizeof(u_short) * 16) ;
+		grf0_reg->tpal[TP_COLOR] = gpal_12_orig ;
 	}
 
 	pl0 = vram ;
@@ -712,7 +733,7 @@ x68k_tvram_set_wall_picture(
 	pl3 = pl2 + 0x20000 ;
 	img = image ;
 
-	for( y = 0 , img_y = 0 ; y < 1024 ; y++ , img_y++)
+	for( y = 0 , img_y = 0 ; y < _disp.height ; y++ , img_y++)
 	{
 		int  x ;
 		int  img_x ;
@@ -771,5 +792,21 @@ x68k_tvram_set_wall_picture(
 		img += width ;
 	}
 
-	return  1 ;
+	if( y < 1024)
+	{
+		u_long  color ;
+
+		if( x_cmap_get_closest_color( &color , 0 , 0 , 0))
+		{
+			size_t  len ;
+
+			len = (1024 - y) * 128 ;
+			memset( pl3 , (color & 0x8) ? 0xff : 0 , len) ;
+			memset( pl2 , (color & 0x4) ? 0xff : 0 , len) ;
+			memset( pl1 , (color & 0x2) ? 0xff : 0 , len) ;
+			memset( pl0 , (color & 0x1) ? 0xff : 0 , len) ;
+		}
+	}
+
+	return  ret ;
 }

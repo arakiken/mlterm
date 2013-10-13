@@ -8799,6 +8799,10 @@ x_screen_set_config(
 	{
 		change_im( screen , value) ;
 	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		kik_locale_init( value) ;
+	}
 	else if( strcmp( key , "borderless") == 0)
 	{
 		int  flag ;
