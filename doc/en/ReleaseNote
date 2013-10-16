@@ -3,6 +3,8 @@ ver 3.2.3
 * Update the colormap instead of searching the closest color when
   OSC 4 ; c ; spec changes RGB of the color number on framebuffer.
 * Support OSC ? 80 h (disable sixel scrolling).
+* Support U+XXXX-XXXX key in 'font' configuration file.
+* Add "unicode_noconv_areas" (a.k.a --ucsnoconv) option.
 * Bug fixes:
   #70 (Thanks to Thomas Wolff)
   Fix the bug which disabled redrawing the margin area on framebuffer.

@@ -270,7 +270,9 @@ x_prepare_for_main_config(
 		"force unicode or decsp font for box-drawing characters. [noconv]") ;
 	kik_conf_add_opt( conf , '\0' , "urgent" , 1 , "use_urgent_bell" ,
 		"draw the user's attention when making a bell sound. [false]") ;
-	kik_conf_add_opt( conf , '\0' , "locale" , 1 , "locale" , "set locale.") ;
+	kik_conf_add_opt( conf , '\0' , "locale" , 0 , "locale" , "set locale.") ;
+	kik_conf_add_opt( conf , '\0' , "ucsnoconv" , 0 , "unicode_noconv_areas" ,
+		"use unicode fonts partially regardless of -n option.") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [false]") ;
@@ -734,6 +736,11 @@ x_main_config_init(
 		{
 			main_config->unicode_policy = NOT_USE_UNICODE_FONT ;
 		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "unicode_noconv_areas")))
+	{
+		ml_set_unicode_noconv_areas( value) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))

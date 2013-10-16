@@ -638,7 +638,7 @@ preedit_pushback(
 
 	while( (*uim->parser_term->next_char)( uim->parser_term , &ch))
 	{
-		int  is_biwidth = 0 ;
+		int  is_fullwidth = 0 ;
 		int  is_comb = 0 ;
 
 		if( (*syms->ml_convert_to_internal_ch)( &ch ,
@@ -648,14 +648,14 @@ preedit_pushback(
 			continue ;
 		}
 
-		if( ch.property & MKF_BIWIDTH)
+		if( ch.property & MKF_FULLWIDTH)
 		{
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 		else if( ch.property & MKF_AWIDTH)
 		{
 			/* TODO: check col_size_of_width_a */
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 
 		if( ch.property & MKF_COMBINING)
@@ -663,7 +663,7 @@ preedit_pushback(
 			is_comb = 1 ;
 
 			if( (*syms->ml_char_combine)( p - 1 , mkf_char_to_int(&ch) ,
-						ch.cs , is_biwidth , is_comb ,
+						ch.cs , is_fullwidth , is_comb ,
 						fg_color , bg_color ,
 						0 , 0 , is_underline))
 			{
@@ -676,7 +676,7 @@ preedit_pushback(
 		}
 
 		(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
-				      is_biwidth , is_comb ,
+				      is_fullwidth , is_comb ,
 				      fg_color , bg_color ,
 				      0 , 0 , is_underline) ;
 

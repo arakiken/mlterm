@@ -457,6 +457,13 @@ comment $Id$
       o not_use_unicode_font  (true/*false*)
         UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
 
+      o unicode_noconv_areas
+        not_use_unicode_font を true とした場合でも、このオプションで指定した範
+        囲の文字は、常に UNICODE のまま表示する。
+        範囲の指定方法は次のとおり。
+
+        e.g.) U+1234-5678,U+0123-4567
+
       o only_use_unicode_font (true/*false*)
         すべての文字を UNICODE フォントだけを使って表示する
 
@@ -773,14 +780,15 @@ comment $Id$
       o HKSCS              ... HKSCSフォント
       o CNS11643_1992_N    ... CNS11643_1992_Nフォント
       o ISO10646_UCS4_1    ... UNICODEフォント(1カラム用)
-      o ISO10646_UCS4_1_BIWIDTH ... UNICODEフォント(2カラム用)
+      o ISO10646_UCS4_1_FULLWIDTH ... UNICODEフォント(2カラム用)
+      o U+XXXX-XXXX        ... UNICODEフォント(指定した範囲。最大7個まで。)
 
       (*) KOI8_T,GEORGIAN_PS,CP125[0-8],CP874 は -u オプションを指定して
           Unicode フォントを使用する必要があります。
           UHC,JOHAB は 自動的に KSX1001 フォントが使用されます。
       (*) 通常全角文字として扱う文字集合については、
-          JISX0208_1983_NARROW
-          のように、後に "_NARROW" をつけると、一部の文字を半角文字として扱う場
+          JISX0208_1983_HALFWIDTH
+          のように、後に "_HALFWIDTH" をつけると、一部の文字を半角文字として扱う場
           合(--ucsprop オプションによって EastAsianWidth.txt で定義された文字幅
           を強制する場合)のフォントを指定することができます。
       (*) Unicode のインド諸語は、mlterm 内部で一旦 ISCII に変換され、ISCII_XXX
@@ -1188,6 +1196,7 @@ comment $Id$
        --boxdraw=value : box_drawing_font
        --urgent(=bool) : use_urgent_bell
        --locale=value  : locale
+       --ucsnoconv=value : unicode_noconv_areas
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)

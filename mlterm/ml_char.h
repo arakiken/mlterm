@@ -54,12 +54,13 @@ typedef struct ml_char
 			/*
 			 * attr member contents.
 			 * Total 23 bit
-			 * 6 bit : not used
+			 * 3 bit : not used
+			 * 3 bit : unicode area(0x0 - 0x7)
 			 * 1 bit : is_italic(0 or 1)
-			 * 9 bit : charset(0x0 - 0x1ff)
-			 * 1 bit : is_biwidth(0 or 1)
-			 * 1 bit : is_reversed(0 or 1)	... used for X Selection
 			 * 1 bit : is_bold(0 or 1)
+			 * 1 bit : is_fullwidth(0 or 1)
+			 * 9 bit : charset(0x0 - 0x1ff)
+			 * 1 bit : is_reversed(0 or 1)	... used for X Selection
 			 * 1 bit : is_underlined(0 or 1)
 			 * 1 bit : is_comb(0 or 1)
 			 * 1 bit : is_comb_trailing(0 or 1)
@@ -94,16 +95,18 @@ int  ml_set_use_char_combining( int  use_it) ;
 
 int  ml_set_use_multi_col_char( int  use_it) ;
 
+ml_font_t  ml_char_add_unicode_area_font( u_int32_t  min , u_int32_t  max) ;
+
 int  ml_char_init( ml_char_t *  ch) ;
 
 int  ml_char_final( ml_char_t *  ch) ;
 
 int  ml_char_set( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
-	int  is_biwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
+	int  is_fullwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
 	int  is_bold , int  is_italic , int  is_underlined) ;
 
 int  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
-	int  is_biwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
+	int  is_fullwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
 	int  is_bold , int  is_italic , int  is_underlined) ;
 
 int  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
@@ -133,7 +136,7 @@ ml_font_t  ml_char_font( ml_char_t *  ch) ;
 
 u_int  ml_char_cols( ml_char_t *  ch) ;
 
-u_int  ml_char_is_biwidth( ml_char_t *  ch) ;
+u_int  ml_char_is_fullwidth( ml_char_t *  ch) ;
 
 ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
 

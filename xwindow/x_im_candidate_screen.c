@@ -838,7 +838,7 @@ set_candidate(
 
 	while( (*parser->next_char)( parser , &ch))
 	{
-		int  is_biwidth = 0 ;
+		int  is_fullwidth = 0 ;
 		int  is_comb = 0 ;
 
 		if( ml_convert_to_internal_ch( &ch ,
@@ -847,14 +847,14 @@ set_candidate(
 			continue ;
 		}
 
-		if( ch.property & MKF_BIWIDTH)
+		if( ch.property & MKF_FULLWIDTH)
 		{
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 		else if( ch.property & MKF_AWIDTH)
 		{
 			/* TODO: check col_size_of_width_a */
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 
 		if( ch.property & MKF_COMBINING)
@@ -862,7 +862,7 @@ set_candidate(
 			is_comb = 1 ;
 
 			if( ml_char_combine( p - 1 , mkf_char_to_int(&ch) ,
-					ch.cs , is_biwidth , is_comb ,
+					ch.cs , is_fullwidth , is_comb ,
 					ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0))
 			{
 				continue ;
@@ -873,7 +873,7 @@ set_candidate(
 			 */
 		}
 
-		ml_char_set( p , mkf_char_to_int(&ch) , ch.cs , is_biwidth ,
+		ml_char_set( p , mkf_char_to_int(&ch) , ch.cs , is_fullwidth ,
 			is_comb , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 
 		p++ ;

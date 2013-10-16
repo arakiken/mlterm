@@ -11,6 +11,8 @@
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_file.h>
 
+#include  <ml_char.h>
+
 
 #define  DEFAULT_FONT (MAX_CHARSET + 1)
 
@@ -250,6 +252,22 @@ parse_key(
 
 		goto  check_style ;
 	}
+
+	if( key_len >= 3 && strncmp( key , "U+" , 2) == 0)
+	{
+		int  min ;
+		int  max ;
+
+		if( sscanf( key + 2 , "%x-%x" , &min , &max) == 2 &&
+		    ( font = ml_char_add_unicode_area_font( min , max)) != UNKNOWN_CS)
+		{
+			goto  check_style ;
+		}
+		else
+		{
+			return  UNKNOWN_CS ;
+		}
+	}
 	
 	for( count = 0 ; count < sizeof( cs_table) / sizeof( cs_table[0]) ; count ++)
 	{
@@ -259,7 +277,7 @@ parse_key(
 
 		if( key_len >= nlen && strncmp( cs_table[count].name , key , nlen) == 0 &&
 			( key[nlen] == '\0' ||
-				/* "_BOLD" or "_BIWIDTH" is trailing */ key[nlen] == '_'))
+				/* "_BOLD" or "_FULLWIDTH" is trailing */ key[nlen] == '_'))
 		{
 			cs = cs_table[count].cs ;
 
@@ -278,18 +296,20 @@ parse_key(
 
 	font = NORMAL_FONT_OF(cs) ;
 
-	if( font & FONT_BIWIDTH)
+	if( font & FONT_FULLWIDTH)
 	{
-		if( strstr( key , "_NARROW"))
+		if( strstr( key , "_NARROW") || /* compat with 3.2.2 or before. */
+		    strstr( key , "_HALFWIDTH"))
 		{
-			font &= ~FONT_BIWIDTH ;
+			font &= ~FONT_FULLWIDTH ;
 		}
 	}
 	else
 	{
-		if( strstr( key , "_BIWIDTH"))
+		if( strstr( key , "_BIWIDTH") || /* compat with 3.2.2 or before. */
+		    strstr( key , "_FULLWIDTH"))
 		{
-			font |= FONT_BIWIDTH ;
+			font |= FONT_FULLWIDTH ;
 		}
 	}
 
@@ -1737,6 +1757,11 @@ x_get_config_font_name(
 
 	map = get_font_name_table( font_config , font_size) ;
 
+	if( HAS_UNICODE_AREA(font))
+	{
+		font &= ~FONT_FULLWIDTH ;
+	}
+
 	if( ( pair = get_font_name_pair( map , font)))
 	{
 	#if  1
@@ -2033,12 +2058,12 @@ x_get_all_config_font_names(
 		/*
 		 * XXX
 		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
-		 * Also ignore XXXX_NARROW and XXX_BIWIDTH except ISO10646_UCS4_1_BIWIDTH.
+		 * Also ignore XXXX_HALFWIDTH and XXX_FULLWIDTH except ISO10646_UCS4_1_FULLWIDTH.
 		 */
 		if( array[count]->key != DEFAULT_FONT &&
 		    (FONT_CS(array[count]->key) == ISO10646_UCS4_1 ||
-		     (IS_BIWIDTH_CS(FONT_CS(array[count]->key)) ==
-		      ((array[count]->key & FONT_BIWIDTH) == FONT_BIWIDTH))) )
+		     (IS_FULLWIDTH_CS(FONT_CS(array[count]->key)) ==
+		      ((array[count]->key & FONT_FULLWIDTH) == FONT_FULLWIDTH))) )
 		{
 			strcpy( p , array[count]->value) ;
 			p += strlen( p) ;
@@ -2051,12 +2076,12 @@ x_get_all_config_font_names(
 		/*
 		 * XXX
 		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
-		 * Also ignore XXXX_NARROW and XXX_BIWIDTH except ISO10646_UCS4_BIWIDTH.
+		 * Also ignore XXXX_NARROW and XXX_FULLWIDTH except ISO10646_UCS4_FULLWIDTH.
 		 */
 		if( d_array[count]->key != DEFAULT_FONT &&
 		    ( FONT_CS(d_array[count]->key) == ISO10646_UCS4_1 ||
-		      (IS_BIWIDTH_CS(FONT_CS(d_array[count]->key)) ==
-		        ((d_array[count]->key & FONT_BIWIDTH) == FONT_BIWIDTH))) )
+		      (IS_FULLWIDTH_CS(FONT_CS(d_array[count]->key)) ==
+		        ((d_array[count]->key & FONT_FULLWIDTH) == FONT_FULLWIDTH))) )
 		{
 			sprintf( p , d_array[count]->value , font_size) ;
 			p += strlen( p) ;

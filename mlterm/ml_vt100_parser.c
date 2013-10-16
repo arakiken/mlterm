@@ -135,6 +135,14 @@ static struct
 	{ 0x25c6 , '`' } ,
 } ;
 
+struct
+{
+	u_int32_t  min ;
+	u_int32_t  max ;
+
+} *  unicode_noconv_areas ;
+u_int  num_of_unicode_noconv_areas ;
+
 
 /* --- static functions --- */
 
@@ -217,6 +225,31 @@ convert_decsp_to_ucs(
 			if( ucs_to_decsp_table[count].decsp == decsp)
 			{
 				return  ucs_to_decsp_table[count].ucs ;
+			}
+		}
+	}
+
+	return  0 ;
+}
+
+static inline int
+is_noconv_unicode(
+	u_char *  ch
+	)
+{
+	if( unicode_noconv_areas)
+	{
+		u_int  count ;
+		u_int32_t  code ;
+
+		code = mkf_bytes_to_int( ch , 4) ;
+
+		for( count = 0 ; count < num_of_unicode_noconv_areas ; count++)
+		{
+			if( unicode_noconv_areas[count].min <= code &&
+			    code <= unicode_noconv_areas[count].max)
+			{
+				return  1 ;
 			}
 		}
 	}
@@ -504,7 +537,7 @@ put_char(
 {
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
-	int  is_biwidth ;
+	int  is_fullwidth ;
 	int  is_comb ;
 
 	if( vt100_parser->w_buf.filled_len == PTY_WR_BUFFER_SIZE)
@@ -516,11 +549,11 @@ put_char(
 	 * checking width property of the char.
 	 */
 
-	is_biwidth = 0 ;
+	is_fullwidth = 0 ;
 
-	if( prop & MKF_BIWIDTH)
+	if( prop & MKF_FULLWIDTH)
 	{
-		is_biwidth = 1 ;
+		is_fullwidth = 1 ;
 	}
 	else if( prop & MKF_AWIDTH)
 	{
@@ -530,20 +563,20 @@ put_char(
 
 		if( vt100_parser->col_size_of_width_a == 2)
 		{
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 	#ifdef  SUPPORT_VTE_CJK_WIDTH
 		else if( ( env = getenv( "VTE_CJK_WIDTH")) &&
 		         ( strcmp( env , "wide") == 0 || strcmp( env , "1") == 0))
 		{
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 	#endif
 	}
 
 #ifdef  __DEBUG
 	kik_debug_printf( "%.2x%.2x%.2x%.2x %d %x => %s\n" , ch[0] , ch[1] , ch[2] , ch[3] ,
-			len , cs , is_biwidth ? "Biwidth" : "Single") ;
+			len , cs , is_fullwidth ? "Fullwidth" : "Single") ;
 #endif
 
 	if( prop & MKF_COMBINING)
@@ -580,7 +613,7 @@ put_char(
 			 * internally.
 			 */
 			if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
-				ch , vt100_parser->cs , is_biwidth , is_comb ,
+				ch , vt100_parser->cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , vt100_parser->is_bold ,
 				vt100_parser->is_italic , vt100_parser->is_underlined))
 			{
@@ -591,7 +624,7 @@ put_char(
 		{
 			if( ml_char_combine(
 				&vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ,
-				ch , vt100_parser->cs , is_biwidth , is_comb ,
+				ch , vt100_parser->cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , vt100_parser->is_bold ,
 				vt100_parser->is_italic , vt100_parser->is_underlined))
 			{
@@ -605,7 +638,7 @@ put_char(
 	}
 
 	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch ,
-		vt100_parser->cs , is_biwidth , is_comb ,
+		vt100_parser->cs , is_fullwidth , is_comb ,
 		fg_color , bg_color , vt100_parser->is_bold ,
 		vt100_parser->is_italic , vt100_parser->is_underlined) ;
 
@@ -650,7 +683,7 @@ put_char(
 			if( vt100_parser->w_buf.filled_len >= 2)
 			{
 				if( ml_char_combine( prev ,
-					ch , vt100_parser->cs , is_biwidth , is_comb ,
+					ch , vt100_parser->cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , vt100_parser->is_bold ,
 					vt100_parser->is_italic , vt100_parser->is_underlined))
 				{
@@ -664,7 +697,7 @@ put_char(
 				 * ml_screen_combine_with_prev_char() internally.
 				 */
 				if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
-					ch , vt100_parser->cs , is_biwidth , is_comb ,
+					ch , vt100_parser->cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , vt100_parser->is_bold ,
 					vt100_parser->is_italic , vt100_parser->is_underlined))
 				{
@@ -4763,6 +4796,46 @@ ml_set_use_ansi_colors(
 	use_ansi_colors = use ;
 }
 
+int
+ml_set_unicode_noconv_areas(
+	char *  areas
+	)
+{
+	if( areas == NULL || *areas == '\0')
+	{
+		free( unicode_noconv_areas) ;
+		unicode_noconv_areas = NULL ;
+	}
+	else
+	{
+		u_int  num_of_areas ;
+		void *  p ;
+
+		num_of_areas = kik_count_char_in_str( areas , ',') + 1 ;
+
+	        if( ( p = realloc( unicode_noconv_areas ,
+				sizeof(*unicode_noconv_areas) * num_of_areas)))
+		{
+			u_int32_t  min ;
+			u_int32_t  max ;
+			char *  area ;
+
+			unicode_noconv_areas = p ;
+
+			while( ( area = kik_str_sep( &areas , ",")))
+			{
+				if( sscanf( area , "U+%x-%x" , &min , &max) == 2)
+				{
+					unicode_noconv_areas[num_of_unicode_noconv_areas].min = min ;
+					unicode_noconv_areas[num_of_unicode_noconv_areas++].max = max ;
+				}
+			}
+		}
+	}
+
+	return  1 ;
+}
+
 ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
@@ -5214,15 +5287,16 @@ ml_convert_to_internal_ch(
 
 			mkf_char_t  non_ucs ;
 
-			if( mkf_map_locale_ucs4_to( &non_ucs , &ch) )
+			if( ! is_noconv_unicode( ch.ch) &&
+			    mkf_map_locale_ucs4_to( &non_ucs , &ch))
 			{
 				if( unicode_policy & USE_UNICODE_PROPERTY)
 				{
 					non_ucs.property = ch.property ;
 				}
-				else if( IS_BIWIDTH_CS( non_ucs.cs))
+				else if( IS_FULLWIDTH_CS( non_ucs.cs))
 				{
-					non_ucs.property = MKF_BIWIDTH ;
+					non_ucs.property = MKF_FULLWIDTH ;
 				}
 
 				ch = non_ucs ;
@@ -5294,9 +5368,9 @@ ml_convert_to_internal_ch(
 				ch.property = mkf_get_ucs_property( mkf_char_to_int(&ucs)) ;
 			}
 		}
-		else if( IS_BIWIDTH_CS( ch.cs))
+		else if( IS_FULLWIDTH_CS( ch.cs))
 		{
-			ch.property = MKF_BIWIDTH ;
+			ch.property = MKF_FULLWIDTH ;
 		}
 	}
 

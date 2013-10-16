@@ -25,13 +25,13 @@
 #ISO10646_UCS4_1=Thryomanes
 
 # Japanese speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=Kochi Gothic
+#ISO10646_UCS4_1_FULLWIDTH=Kochi Gothic
 
 # Korean speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=dotum
+#ISO10646_UCS4_1_FULLWIDTH=dotum
 
 # Traditional Chinese speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=AR PL Mingti2L Big5
+#ISO10646_UCS4_1_FULLWIDTH=AR PL Mingti2L Big5
 
 # Simplified Chinese speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=AR PL SungtiL GB
+#ISO10646_UCS4_1_FULLWIDTH=AR PL SungtiL GB

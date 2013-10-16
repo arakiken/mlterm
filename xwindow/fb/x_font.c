@@ -291,7 +291,7 @@ load_encodings(
 static int
 get_metrics(
 	u_int8_t *  width ,
-	u_int8_t *  width_bi ,
+	u_int8_t *  width_full ,
 	u_int8_t *  height ,
 	u_int8_t *  ascent ,
 	u_char *  p ,
@@ -317,16 +317,16 @@ get_metrics(
 		{
 			/* U+3000: Unicode ideographic space (Full width) */
 			p += (5 * 0x3000) ;
-			*width_bi = p[2] - 0x80 ;
+			*width_full = p[2] - 0x80 ;
 		}
 		else
 		{
-			*width_bi = 0 ;
+			*width_full = 0 ;
 		}
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " COMPRESSED METRICS %d %d %d %d %d\n" ,
-			num_of_metrics , *width , *width_bi , *height , *ascent) ;
+			num_of_metrics , *width , *width_full , *height , *ascent) ;
 	#endif
 	}
 	else
@@ -356,16 +356,16 @@ get_metrics(
 			/* skip {left|right}_sided_bearing */
 			p += 4 ;
 
-			*width_bi = _TOINT16(p,is_be) ;
+			*width_full = _TOINT16(p,is_be) ;
 		}
 		else
 		{
-			*width_bi = 0 ;
+			*width_full = 0 ;
 		}
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " NOT COMPRESSED METRICS %d %d %d %d %d\n" ,
-			num_of_metrics , *width , *width_bi , *height , *ascent) ;
+			num_of_metrics , *width , *width_full , *height , *ascent) ;
 	#endif
 	}
 
@@ -577,7 +577,7 @@ load_pcf(
 		}
 		else if( type == PCF_METRICS)
 		{
-			if( ! get_metrics( &xfont->width , &xfont->width_bi , &xfont->height ,
+			if( ! get_metrics( &xfont->width , &xfont->width_full , &xfont->height ,
 					&xfont->ascent , pcf + offset + 4 , size ,
 					format & 4 , format & 0x100))
 			{
@@ -824,7 +824,7 @@ xfont_loaded:
 
 	font->id = id ;
 
-	if( font->id & FONT_BIWIDTH)
+	if( font->id & FONT_FULLWIDTH)
 	{
 		font->cols = 2 ;
 	}
@@ -863,10 +863,10 @@ xfont_loaded:
 		font->is_double_drawing = 0 ;
 	}
 
-	if( ( id & FONT_BIWIDTH) && FONT_CS(id) == ISO10646_UCS4_1 &&
-	    font->xfont->width_bi > 0)
+	if( ( id & FONT_FULLWIDTH) && FONT_CS(id) == ISO10646_UCS4_1 &&
+	    font->xfont->width_full > 0)
 	{
-		font->width = font->xfont->width_bi ;
+		font->width = font->xfont->width_full ;
 	}
 	else
 	{
@@ -1090,7 +1090,7 @@ x_change_font_cols(
 {
 	if( cols == 0)
 	{
-		if( font->id & FONT_BIWIDTH)
+		if( font->id & FONT_FULLWIDTH)
 		{
 			font->cols = 2 ;
 		}

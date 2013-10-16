@@ -614,6 +614,11 @@ The default is \fBfalse\fR.
 \fB\-\-ul\fR=\fIvalue\fR
 Specify the color to use to display underlined characters.
 .TP
+\fB\-\-ucsnoconv\fR=\fIvalue\fR
+Use unicode fonts partially regardless of -n option.
+
+e.g.) U+1234-5678,U+0123-4567
+.TP
 \fB\-\-ucsprop\fR(=\fIbool\fR)
 Use unicode properties in encodings excepting UTF-8.
 The default is \fBfalse\fR.
@@ -1439,7 +1444,8 @@ The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",
 \fBHKSCS=\fIfonts\fR
 \fBCNS11643_1992_\fIn\fB=\fIfonts\fR
 \fBISO10646_UCS4_1=\fIfonts\fR
-\fBISO10646_UCS4_1_BIWIDTH=\fIfonts\fR
+\fBISO10646_UCS4_1_FULLWIDTH=\fIfonts\fR
+\fBU+XXXX-XXXX=\fIfonts\fR
 .fi
 .RS
 Specify fonts for corresponding character sets.  The format is

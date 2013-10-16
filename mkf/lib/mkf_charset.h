@@ -49,9 +49,9 @@
 #define  IS_NON_ISO2022(cs)  ((cs) != UNKNOWN_CS && 0xa0 <= ((cs) & 0xff))
 #define  IS_ISCII(cs)  (0xf0 <= (cs) && (cs) <= 0xfa)
 
-#define  IS_BIWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0x1e0 <= (cs) && (cs) <= 0x1ff))
+#define  IS_FULLWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0x1e0 <= (cs) && (cs) <= 0x1ff))
 #define  CS_SIZE(cs) \
-	((cs) == ISO10646_UCS4_1 ? 4 : ((IS_BIWIDTH_CS(cs) || (cs) == ISO10646_UCS2_1) ? 2 : 1))
+	((cs) == ISO10646_UCS4_1 ? 4 : ((IS_FULLWIDTH_CS(cs) || (cs) == ISO10646_UCS2_1) ? 2 : 1))
 
 
 /*

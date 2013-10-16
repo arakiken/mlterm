@@ -326,7 +326,7 @@ preedit_update(
 		ml_color_t  fg_color = ML_FG_COLOR ;
 		ml_color_t  bg_color = ML_BG_COLOR ;
 		u_int  attr ;
-		int  is_biwidth = 0 ;
+		int  is_fullwidth = 0 ;
 		int  is_comb = 0 ;
 		int  is_underline = 0 ;
 		int  is_bold = 0 ;
@@ -343,14 +343,14 @@ preedit_update(
 			continue ;
 		}
 
-		if( ch.property & MKF_BIWIDTH)
+		if( ch.property & MKF_FULLWIDTH)
 		{
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 		else if( ch.property & MKF_AWIDTH)
 		{
 			/* TODO: check col_size_of_width_a */
-			is_biwidth = 1 ;
+			is_fullwidth = 1 ;
 		}
 
 		attr = im_scim_preedit_char_attr( scim->context , index) ;
@@ -377,7 +377,7 @@ preedit_update(
 			is_comb = 1 ;
 
 			if( (*syms->ml_char_combine)( p - 1 , mkf_char_to_int(&ch) ,
-						ch.cs , is_biwidth , is_comb ,
+						ch.cs , is_fullwidth , is_comb ,
 						fg_color , bg_color , is_bold , 0 ,
 						is_underline))
 			{
@@ -391,7 +391,7 @@ preedit_update(
 		}
 
 		(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
-				      is_biwidth , is_comb ,
+				      is_fullwidth , is_comb ,
 				      fg_color , bg_color ,
 				      is_bold , 0 , is_underline) ;
 

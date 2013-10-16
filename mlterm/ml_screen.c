@@ -1417,7 +1417,7 @@ ml_screen_get_word_region(
 		return  1 ;
 	}
 
-	flag = ml_char_is_biwidth( ml_char_at( base_line , base_char_index)) ;
+	flag = ml_char_is_fullwidth( ml_char_at( base_line , base_char_index)) ;
 	
 	/*
 	 * search the beg of word
@@ -1448,7 +1448,7 @@ ml_screen_get_word_region(
 		
 		ch = ml_char_at( line , char_index) ;
 
-		if( is_word_separator(ch) || flag != ml_char_is_biwidth( ch))
+		if( is_word_separator(ch) || flag != ml_char_is_fullwidth( ch))
 		{
 			*beg_char_index = char_index + 1 ;
 			
@@ -1488,7 +1488,7 @@ ml_screen_get_word_region(
 		
 		ch = ml_char_at( line , char_index) ;
 
-		if( is_word_separator(ch) || flag != ml_char_is_biwidth( ch))
+		if( is_word_separator(ch) || flag != ml_char_is_fullwidth( ch))
 		{
 			*end_char_index = char_index - 1 ;
 
@@ -1849,7 +1849,7 @@ ml_screen_combine_with_prev_char(
 	ml_screen_t *  screen ,
 	u_int32_t  code ,
 	mkf_charset_t  cs ,
-	int  is_biwidth ,
+	int  is_fullwidth ,
 	int  is_comb ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
@@ -1878,7 +1878,7 @@ ml_screen_combine_with_prev_char(
 		return  0 ;
 	}
 	
-	if( ! ml_char_combine( ch , code , cs , is_biwidth , is_comb ,
+	if( ! ml_char_combine( ch , code , cs , is_fullwidth , is_comb ,
 		fg_color , bg_color , is_bold , is_italic , is_underlined))
 	{
 		return  0 ;

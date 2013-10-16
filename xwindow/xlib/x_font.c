@@ -530,7 +530,7 @@ xcore_set_font(
 
 	width = "normal" ;
 
-	if( (font->id & FONT_BIWIDTH) && (FONT_CS(font->id) == ISO10646_UCS4_1) )
+	if( (font->id & FONT_FULLWIDTH) && (FONT_CS(font->id) == ISO10646_UCS4_1) )
 	{
 		family = "biwidth" ;
 	}
@@ -604,7 +604,7 @@ font_found:
 		if( FONT_CS(font->id) == ISO10646_UCS4_1 ||
 		    FONT_CS(font->id) == TIS620_2533)
 		{
-			if( font->id & FONT_BIWIDTH)
+			if( font->id & FONT_FULLWIDTH)
 			{
 				/*
 				 * XXX
@@ -1012,7 +1012,7 @@ x_font_new(
 	font->display = display ;
 	font->id = id ;
 
-	if( font->id & FONT_BIWIDTH)
+	if( font->id & FONT_FULLWIDTH)
 	{
 		font->cols = 2 ;
 	}
@@ -1176,7 +1176,7 @@ x_change_font_cols(
 {
 	if( cols == 0)
 	{
-		if( font->id & FONT_BIWIDTH)
+		if( font->id & FONT_FULLWIDTH)
 		{
 			font->cols = 2 ;
 		}

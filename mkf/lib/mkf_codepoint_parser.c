@@ -58,7 +58,7 @@ cp_parser_set_str(
 	{
 		cp_parser->cp_size = 4 ;
 	}
-	else if( IS_BIWIDTH_CS(cs) || cs == ISO10646_UCS2_1)
+	else if( IS_FULLWIDTH_CS(cs) || cs == ISO10646_UCS2_1)
 	{
 		cp_parser->cp_size = 2 ;
 	}

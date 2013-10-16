@@ -166,7 +166,7 @@ update_preedit_text(
 		{
 			u_int  count ;
 			IBusAttribute *  attr ;
-			int  is_biwidth = 0 ;
+			int  is_fullwidth = 0 ;
 			int  is_comb = 0 ;
 			int  is_underlined = 0 ;
 			ml_color_t  fg_color = ML_FG_COLOR ;
@@ -209,14 +209,14 @@ update_preedit_text(
 				continue ;
 			}
 
-			if( ch.property & MKF_BIWIDTH)
+			if( ch.property & MKF_FULLWIDTH)
 			{
-				is_biwidth = 1 ;
+				is_fullwidth = 1 ;
 			}
 			else if( ch.property & MKF_AWIDTH)
 			{
 				/* TODO: check col_size_of_width_a */
-				is_biwidth = 1 ;
+				is_fullwidth = 1 ;
 			}
 
 			if( ch.property & MKF_COMBINING)
@@ -224,7 +224,7 @@ update_preedit_text(
 				is_comb = 1 ;
 
 				if( (*syms->ml_char_combine)( p - 1 , mkf_char_to_int(&ch) ,
-					ch.cs , is_biwidth , is_comb , fg_color , bg_color ,
+					ch.cs , is_fullwidth , is_comb , fg_color , bg_color ,
 					0 , 0 , 1))
 				{
 					continue ;
@@ -236,7 +236,7 @@ update_preedit_text(
 			}
 
 			(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
-					      is_biwidth , is_comb ,
+					      is_fullwidth , is_comb ,
 					      fg_color , bg_color ,
 					      0 , 0 , 1) ;
 

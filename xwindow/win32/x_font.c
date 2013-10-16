@@ -388,7 +388,7 @@ x_font_new(
 	font->display = display ;
 	font->id = id ;
 
-	if( font->id & FONT_BIWIDTH)
+	if( font->id & FONT_FULLWIDTH)
 	{
 		font->cols = 2 ;
 	}
@@ -751,7 +751,7 @@ x_change_font_cols(
 {
 	if( cols == 0)
 	{
-		if( font->id & FONT_BIWIDTH)
+		if( font->id & FONT_FULLWIDTH)
 		{
 			font->cols = 2 ;
 		}

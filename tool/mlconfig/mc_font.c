@@ -56,7 +56,7 @@ static cs_info_t  cs_info_table[] =
 	 * ISO10646_1 => ISO10646_UCS4_1 in get_correct_cs().
 	 */
 	{ "ISO10646_1" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "ISO10646_1_BIWIDTH" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "ISO10646_1_FULLWIDTH" , { "iso10646-1" , NULL , NULL , } , } ,
 
 	{ "DEC_SPECIAL" , { "iso8859-1" , NULL , NULL , } , } ,
 	{ "ISO8859_1" , { "iso8859-1" , NULL , NULL , } , } ,
@@ -201,7 +201,7 @@ get_correct_cs(
 	}
 	else if( idx == 2)
 	{
-		return  "ISO10646_UCS4_1_BIWIDTH" ;
+		return  "ISO10646_UCS4_1_FULLWIDTH" ;
 	}
 	else if( idx < sizeof(cs_info_table) / sizeof(cs_info_table[0]))
 	{

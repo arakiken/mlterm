@@ -1,3 +1,17 @@
+2013-10-15  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja, doc/en/PROTOCOL: Updated.
+
+	* ml_vt100_parser.[ch], x_main_config.c, x_screen.c:
+	  ml_set_unicode_fixed_areas() is added, and
+	  unicode_fixed_areas (a.k.a --ucsnoconv) option is added.
+
+	* ml_char.[ch], x_font_config.c: ml_char_add_unicode_area_font() is added
+	  and font configuration files support "U+XXX-XXX" key which designates a
+	  font of specific unicode area.
+
+	* BIWIDTH => FULLWIDTH, NARROW => HALFWIDTH
+
 2013-10-12  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_x68kgrf.c:

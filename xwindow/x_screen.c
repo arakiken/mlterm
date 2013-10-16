@@ -8963,6 +8963,10 @@ x_screen_set_config(
 			usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 		}
 	}
+	else if( strstr( key , "unicode_noconv_areas"))
+	{
+		ml_set_unicode_noconv_areas( value) ;
+	}
 	else
 	{
 		return  0 ;

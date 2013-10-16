@@ -9,17 +9,15 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
+#define  MLFONT(attr)  (((attr) >> 5) & 0x7fff)
 #define  IS_ITALIC(attr)  ((attr) & (0x1 << 16))
+#define  IS_BOLD(attr)  ((attr) & (0x1 << 15))
+#define  IS_FULLWIDTH(attr)  ((attr) & (0x1 << 14))
+#define  CHARSET(attr)  (((attr) >> 5) & 0x1ff)
 
-#define  CHARSET(attr)  (((attr) >> 7) & 0x1ff)
-
-#define  IS_BIWIDTH(attr)  ((attr) & (0x1 << 6))
-
-#define  IS_REVERSED(attr)  ((attr) & (0x1 << 5))
-#define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 5))
-#define  RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 5))
-
-#define  IS_BOLD(attr)  ((attr) & (0x1 << 4))
+#define  IS_REVERSED(attr)  ((attr) & (0x1 << 4))
+#define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 4))
+#define  RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 4))
 
 #define  IS_UNDERLINED(attr)  ((attr) & (0x1 << 3))
 
@@ -33,16 +31,24 @@
 #define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffe)
 #define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
-#define  COMPOUND_ATTR(charset,is_biwidth,is_bold,is_italic,is_underlined,is_comb) \
-	( ((is_italic) << 16) | ((charset) << 7) | ((is_biwidth) << 6) | \
-	( 0x0 << 5) | ((is_bold) << 4) | ((is_underlined) << 3) | \
-	( (is_comb) << 2) | ( 0x0 << 1) | 0x1)
+#define  COMPOUND_ATTR(charset,is_fullwidth,is_bold,is_italic,unicode_area,is_underlined,is_comb) \
+	( ((unicode_area) << 17) | ((is_italic) << 16) | ((is_bold) << 15) | \
+	  ((is_fullwidth) << 14) | ((charset) << 5) | ( 0x0 << 4) |  \
+	  ((is_underlined) << 3) | ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
 
 
 /* --- static variables --- */
 
 static int  use_char_combining = 1 ;
 static int  use_multi_col_char = 1 ;
+
+static struct
+{
+	u_int32_t  min ;
+	u_int32_t  max ;
+
+} *  unicode_areas ;
+static u_int  num_of_unicode_areas ;
 
 
 /* --- static functions --- */
@@ -85,6 +91,28 @@ ml_set_use_multi_col_char(
 	use_multi_col_char = use_it ;
 
 	return  1 ;
+}
+
+ml_font_t
+ml_char_add_unicode_area_font(
+	u_int32_t  min ,
+	u_int32_t  max
+	)
+{
+	void *  p ;
+
+	if( num_of_unicode_areas >= 7 ||
+	    ! ( p = realloc( unicode_areas ,
+			sizeof(*unicode_areas) * (num_of_unicode_areas + 1))))
+	{
+		return  UNKNOWN_CS ;
+	}
+
+	unicode_areas = p ;
+	unicode_areas[num_of_unicode_areas].min = min ;
+	unicode_areas[num_of_unicode_areas++].max = max ;
+
+	return  ISO10646_UCS4_1 | (num_of_unicode_areas << 12) ;
 }
 
 
@@ -132,7 +160,7 @@ ml_char_set(
 	ml_char_t *  ch ,
 	u_int32_t  code ,
 	mkf_charset_t  cs ,
-	int  is_biwidth ,
+	int  is_fullwidth ,
 	int  is_comb ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
@@ -141,6 +169,7 @@ ml_char_set(
 	int  is_underlined
 	)
 {
+	u_int  idx ;
 	ml_char_final( ch) ;
 
 	ch->u.ch.code = code ;
@@ -152,7 +181,23 @@ ml_char_set(
 	}
 #endif
 
-	ch->u.ch.attr = COMPOUND_ATTR(cs,is_biwidth!=0,is_bold!=0,is_italic!=0,
+	if( unicode_areas && cs == ISO10646_UCS4_1)
+	{
+		for( idx = num_of_unicode_areas ; idx > 0 ; idx --)
+		{
+			if( unicode_areas[idx - 1].min <= code &&
+			    code <= unicode_areas[idx - 1].max)
+			{
+				break ;
+			}
+		}
+	}
+	else
+	{
+		idx = 0 ;
+	}
+
+	ch->u.ch.attr = COMPOUND_ATTR(cs,is_fullwidth!=0,is_bold!=0,is_italic!=0,idx,
 				is_underlined!=0,is_comb!=0) ;
 	ch->u.ch.fg_color = fg_color ;
 	ch->u.ch.bg_color = bg_color ;
@@ -165,7 +210,7 @@ ml_char_combine(
 	ml_char_t *  ch ,
 	u_int32_t  code ,
 	mkf_charset_t  cs ,
-	int  is_biwidth ,
+	int  is_fullwidth ,
 	int  is_comb ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
@@ -226,7 +271,7 @@ ml_char_combine(
 		SET_COMB_TRAILING( multi_ch->u.ch.attr) ;
 
 		ml_char_init( multi_ch + 1) ;
-		if( ml_char_set( multi_ch + 1 , code , cs , is_biwidth , is_comb ,
+		if( ml_char_set( multi_ch + 1 , code , cs , is_fullwidth , is_comb ,
 			fg_color , bg_color , is_bold , is_italic , is_underlined) == 0)
 		{
 			return  0 ;
@@ -265,7 +310,7 @@ ml_char_combine(
 
 		SET_COMB_TRAILING( multi_ch[comb_size].u.ch.attr) ;
 		ml_char_init( multi_ch + comb_size + 1) ;
-		if( ml_char_set( multi_ch + comb_size + 1 , code , cs , is_biwidth ,
+		if( ml_char_set( multi_ch + comb_size + 1 , code , cs , is_fullwidth ,
 			is_comb , fg_color , bg_color , is_bold , is_italic , is_underlined) == 0)
 		{
 			return  0 ;
@@ -285,7 +330,7 @@ ml_char_combine_simple(
 	)
 {
 	return  ml_char_combine( ch , ml_char_code( comb) , CHARSET(comb->u.ch.attr) ,
-			IS_BIWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
+			IS_FULLWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
 			comb->u.ch.fg_color , comb->u.ch.bg_color ,
 			IS_BOLD(comb->u.ch.attr) , IS_ITALIC(comb->u.ch.attr) ,
 			IS_UNDERLINED(comb->u.ch.attr)) ;
@@ -453,10 +498,7 @@ ml_char_font(
 
 	if( IS_SINGLE_CH(attr))
 	{
-		return  CHARSET(attr) |
-		        (IS_BOLD(attr) ? FONT_BOLD : 0) |
-			(IS_ITALIC(attr) ? FONT_ITALIC : 0) |
-		        (IS_BIWIDTH(attr) ? FONT_BIWIDTH : 0) ;
+		return  MLFONT(attr) ;
 	}
 	else
 	{
@@ -473,56 +515,67 @@ ml_char_cols(
 	ml_char_t *  ch
 	)
 {
-	if( use_multi_col_char && ml_char_is_biwidth(ch))
-	{
-		return  2 ;
-	}
-#if  1
-	else if( IS_SINGLE_CH(ch->u.ch.attr) && CHARSET(ch->u.ch.attr) == ISO10646_UCS4_1)
-	{
-		/*
-		 * 0 should be returned for all zero-width characters of Unicode,
-		 * but 0 is returned for following characters alone for now.
-		 * 200C;ZERO WIDTH NON-JOINER
-		 * 200D;ZERO WIDTH JOINER
-		 * 200E;LEFT-TO-RIGHT MARK
-		 * 200F;RIGHT-TO-LEFT MARK
-		 * 202A;LEFT-TO-RIGHT EMBEDDING
-		 * 202B;RIGHT-TO-LEFT EMBEDDING
-		 * 202C;POP DIRECTIONAL FORMATTING
-		 * 202D;LEFT-TO-RIGHT OVERRIDE
-		 * 202E;RIGHT-TO-LEFT OVERRIDE
-		*/
-		u_int32_t  code ;
+	u_int  attr ;
 
-		code = ch->u.ch.code ;
+	attr = ch->u.ch.attr ;
 
-		if( ( 0x200c <= code && code <= 0x200f) ||
-		    ( 0x202a <= code && code <= 0x202e))
+	if( IS_SINGLE_CH(attr))
+	{
+		if( use_multi_col_char && IS_FULLWIDTH(attr))
 		{
-			return  0 ;
+			return  2 ;
 		}
-	}
-#endif
+	#if  1
+		else if( CHARSET(attr) == ISO10646_UCS4_1)
+		{
+			/*
+			 * 0 should be returned for all zero-width characters of Unicode,
+			 * but 0 is returned for following characters alone for now.
+			 * 200C;ZERO WIDTH NON-JOINER
+			 * 200D;ZERO WIDTH JOINER
+			 * 200E;LEFT-TO-RIGHT MARK
+			 * 200F;RIGHT-TO-LEFT MARK
+			 * 202A;LEFT-TO-RIGHT EMBEDDING
+			 * 202B;RIGHT-TO-LEFT EMBEDDING
+			 * 202C;POP DIRECTIONAL FORMATTING
+			 * 202D;LEFT-TO-RIGHT OVERRIDE
+			 * 202E;RIGHT-TO-LEFT OVERRIDE
+			*/
+			u_int32_t  code ;
 
-	return  1 ;
+			code = ch->u.ch.code ;
+
+			if( ( 0x200c <= code && code <= 0x200f) ||
+			    ( 0x202a <= code && code <= 0x202e))
+			{
+				return  0 ;
+			}
+		}
+	#endif
+
+		return  1 ;
+	}
+	else
+	{
+		return  ml_char_cols( ch->u.multi_ch) ;
+	}
 }
 
 /*
  * 'use_multi_col_char' not concerned.
  */
 u_int
-ml_char_is_biwidth(
+ml_char_is_fullwidth(
 	ml_char_t *  ch
 	)
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  IS_BIWIDTH(ch->u.ch.attr) ;
+		return  IS_FULLWIDTH(ch->u.ch.attr) ;
 	}
 	else
 	{
-		return  ml_char_is_biwidth( ch->u.multi_ch) ;
+		return  ml_char_is_fullwidth( ch->u.multi_ch) ;
 	}
 }
 

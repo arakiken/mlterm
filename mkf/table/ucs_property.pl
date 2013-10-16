@@ -64,7 +64,7 @@ sub  parse($)
 				}
 				elsif( $_prop =~ /^EAW_[WF]$/)
 				{
-					$_prop = "MKF_BIWIDTH" ;
+					$_prop = "MKF_FULLWIDTH" ;
 				}
 				elsif( $_prop eq "EAW_A")
 				{
@@ -223,4 +223,4 @@ parse( \@all_lines) ;
 
 output ;
 
-print "Add 0x1160-0x11ff (Jamo medial vowels and final consonants) = MKF_COMBINING | MKF_BIWIDTH manually.\n"
+print "Add 0x1160-0x11ff (Jamo medial vowels and final consonants) = MKF_COMBINING | MKF_FULLWIDTH manually.\n"

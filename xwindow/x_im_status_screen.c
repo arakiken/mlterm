@@ -226,19 +226,19 @@ set(
 
 	while( (*parser->next_char)( parser , &ch))
 	{
-		int  is_biwidth = 0 ;
+		int  is_fullwidth = 0 ;
 		int  is_comb = 0 ;
 
 		if( ch.cs == ISO10646_UCS4_1)
 		{
-			if( ch.property & MKF_BIWIDTH)
+			if( ch.property & MKF_FULLWIDTH)
 			{
-				is_biwidth = 1 ;
+				is_fullwidth = 1 ;
 			}
 			else if( ch.property & MKF_AWIDTH)
 			{
 				/* TODO: check col_size_of_width_a */
-				is_biwidth = 1 ;
+				is_fullwidth = 1 ;
 			}
 		}
 
@@ -250,7 +250,7 @@ set(
 		if( is_comb)
 		{
 			if( ml_char_combine( p - 1 , mkf_char_to_int(&ch) ,
-				ch.cs , is_biwidth , is_comb , ML_FG_COLOR ,
+				ch.cs , is_fullwidth , is_comb , ML_FG_COLOR ,
 				ML_BG_COLOR , 0 , 0 , 0))
 			{
 				continue;
@@ -266,7 +266,7 @@ set(
 			SET_MSB( ch.ch[0]) ;
 		}
 
-		ml_char_set( p , mkf_char_to_int(&ch) , ch.cs , is_biwidth ,
+		ml_char_set( p , mkf_char_to_int(&ch) , ch.cs , is_fullwidth ,
 			is_comb , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
 
 		p++ ;
