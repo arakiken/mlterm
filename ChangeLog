@@ -1,5 +1,9 @@
 2013-10-20  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.android: Added.
+
+2013-10-20  Araki Ken  <arakiken@users.sf.net>
+
 	* android/build.sh: target is changed from android-10 to android-14.
 
 	* android/jni/Android.mk: -DDEBUG and -DKIK_DEBUG are added.

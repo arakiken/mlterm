@@ -1,0 +1,21 @@
+comment -*- mode: text -*-
+comment update: <>
+comment $Id$
+
+Android support (Experimental)
+
+* Tested environment
+  Android 4.0 (x86)
+
+* Install
+  Check "Unknown sources" from Settings => Security => DEVICE ADMINISTRATION.
+  Download mlterm-android-YYYYMMDD.apk from http://mlterm.sf.net/bin.html
+ and install it.
+
+* Configuration
+  Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
+
+* Note
+  o Only sixel graphics format is available for "wall_picture" option.
+  o Encodings except UTF-8 doesn't work correctly.
+  o BiDi and indic support is unavailable.
