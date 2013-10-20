@@ -58,7 +58,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		main/daemon.c main/main_loop.c main/main.c
 		# xwindow/x_sb_screen.c xwindow/fb/x_simple_sb_view.c
 		# xwindow/x_sb_view_factory.c xwindow/x_scrollbar.c
-LOCAL_CFLAGS := -Ikiklib -Imkf -Imlterm -Ixwindow -DNO_DYNAMIC_LOAD_CTL -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER # -DNO_DYNAMIC_LOAD_TABLE
+LOCAL_CFLAGS := -DDEBUG -DKIK_DEBUG -Ikiklib -Imkf -Imlterm -Ixwindow -DNO_DYNAMIC_LOAD_CTL -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER # -DNO_DYNAMIC_LOAD_TABLE
 LOCAL_LDLIBS := -llog -landroid
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 

@@ -466,7 +466,7 @@ open_screen_intern(
 	}
 	else
 	{
-	#if  0
+	#ifdef  __ANDROID__
 		if( ( term = ml_get_detached_term( NULL)) == NULL &&
 			( term = create_term_intern()) == NULL)
 	#else
@@ -1301,7 +1301,6 @@ x_screen_manager_final(void)
 	}
 
 	free( screens) ;
-
 	free( dead_mask) ;
 
 	ml_term_manager_final() ;
@@ -1314,6 +1313,29 @@ x_screen_manager_final(void)
 
 	return  1 ;
 }
+
+#ifdef  __ANDROID__
+int
+x_screen_manager_suspend(void)
+{
+	u_int  count ;
+
+	x_close_dead_screens() ;
+
+	for( count = 0 ; count < num_of_screens ; count ++)
+	{
+		close_screen_intern( screens[count]) ;
+	}
+
+	free( screens) ;
+	screens = NULL ;
+	num_of_screens = 0 ;
+
+	x_display_close_all() ;
+
+	return  1 ;
+}
+#endif
 
 u_int
 x_screen_manager_startup(void)

@@ -24,9 +24,13 @@
 
 int  x_display_init( struct android_app *  app) ;
 
+void  x_display_final(void) ;
+
 int  x_display_process_event( struct android_poll_source *  source , int  ident) ;
 
 void  x_display_unlock(void) ;
+
+size_t  x_display_get_str( u_char *  seq , size_t  seq_len) ;
 
 u_long  x_display_get_pixel( int  x , int  y) ;
 

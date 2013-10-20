@@ -17,6 +17,10 @@
 
 #define  CH2IDX(ch)  ((ch) - 0x20)
 
+#if  0
+#define  __DEBUG
+#endif
+
 
 /* --- static variables --- */
 
@@ -660,7 +664,7 @@ kik_conf_get_value(
 
 	if( ! pair)
 	{
-	#ifdef  DEBUG
+	#ifdef  __DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " no such key[%s] in conf map.\n" , key) ;
 	#endif
 	

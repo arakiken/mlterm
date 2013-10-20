@@ -399,7 +399,6 @@ main_loop_final(void)
 {
 	x_event_source_final() ;
 
-	/* Not reachable in unix. */
 	x_screen_manager_final() ;
 
 	daemon_final() ;

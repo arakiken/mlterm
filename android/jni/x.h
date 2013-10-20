@@ -150,7 +150,7 @@ typedef struct
 	int16_t *  glyph_indeces ;
 
 	unsigned char  width ;
-	unsigned char  width_bi ;
+	unsigned char  width_full ;
 	unsigned char  height ;
 	unsigned char  ascent ;
 
@@ -212,6 +212,7 @@ typedef int XFontSet ;	/* dummy */
 #define Button5		5
 
 /* Not defined in android/keycode.h */
+#define  AKEYCODE_ESCAPE	0x6f
 #define  AKEYCODE_CONTROL_LEFT	0x71
 #define  AKEYCODE_CONTROL_RIGHT	0x72
 

@@ -1,3 +1,29 @@
+2013-10-20  Araki Ken  <arakiken@users.sf.net>
+
+	* android/build.sh: target is changed from android-10 to android-14.
+
+	* android/jni/Android.mk: -DDEBUG and -DKIK_DEBUG are added.
+
+	* android/AndroidManifest.xml:
+	  android.app.NativeActivity -> mlterm.native_activity.MLActivity
+
+	* MLActivity.java, x_display.c, x_window.c:
+	  - The terminal screen is resized by the software keyboard.
+	  - AKEY_EVENT_ACTION_MULTIPLE is processed.
+
+	* android/jni/main.c, x_screen_manager.c:
+	  x_screen_manager_suspend() which closes only screen objects is called
+	  instead of main_loop_final() at the end of android_main() in order to
+	  make mlterm activity restartable.
+
+	* MLActivity.java, android/jni/main.c, fb/x_font.c: unifont.pcf packed
+	  in the apk package is saved in /sdcard/.mlterm/ and loaded by default
+	  on startup.
+
+	* android/jni/x.h, fb/x.h: width_bi -> width_full
+
+	* ml_char_encoding.c: "auto" encoding is UTF-8 on Android.
+
 2013-10-15  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja, doc/en/PROTOCOL: Updated.

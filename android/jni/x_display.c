@@ -22,13 +22,21 @@ static x_display_t  _disp ;
 static Display  _display ;
 static int  locked ;
 
+static int  visible_frame_changed ;
+static u_int  new_width ;
+static u_int  new_height ;
+
 
 /* --- static functions --- */
 
 static int
 display_lock(void)
 {
-	if( ! locked)
+	if( locked < 0)
+	{
+		return  0 ;
+	}
+	else if( ! locked)
 	{
 		ANativeWindow_Buffer  buf ;
 
@@ -195,18 +203,26 @@ kcode_to_ksym(
 		case AKEYCODE_AT:
 			return  '@' ;
 
+		case AKEYCODE_ESCAPE:
+			return  '\x1b' ;
+
 		default:
 			return  kcode + 0x100 ;
 		}
 	}
 }
 
-static void
+static int
 process_key_event(
 	int  action ,
 	int  code
 	)
 {
+	if( code == AKEYCODE_BACK)
+	{
+		return  0 ;
+	}
+
 	if( action == AKEY_EVENT_ACTION_DOWN)
 	{
 		if( code == AKEYCODE_SHIFT_RIGHT ||
@@ -259,7 +275,14 @@ process_key_event(
 	}
 	else if( action == AKEY_EVENT_ACTION_MULTIPLE)
 	{
-		kik_debug_printf( "MULTIPLE\n") ;
+		XKeyEvent  xev ;
+
+		xev.type = KeyPress ;
+		xev.ksym = 0 ;
+		xev.keycode = 0 ;
+		xev.state = 0 ;
+
+		x_window_receive_event( _disp.roots[0] , &xev) ;
 	}
 	else /* if( action == AKEY_EVENT_ACTION_UP) */
 	{
@@ -279,9 +302,11 @@ process_key_event(
 			_display.key_state &= ~ModMask ;
 		}
 	}
+
+	return  1 ;
 }
 
-static void
+static int
 process_mouse_event(
 	int  source ,
 	int  action ,
@@ -334,7 +359,7 @@ process_mouse_event(
 			break ;
 
 		default:
-			return ;
+			return  1 ;
 		}
 
 		xev.time = time / 1000000 ;
@@ -352,6 +377,8 @@ process_mouse_event(
 
 		x_window_receive_event( _disp.roots[0] , &xev) ;
 	}
+
+	return  1 ;
 }
 
 static int32_t
@@ -369,24 +396,120 @@ on_input_event(
 			AMotionEvent_getAction( event) , AMotionEvent_getEventTime( event) ,
 			AMotionEvent_getX( event , 0) , AMotionEvent_getY( event , 0)) ;
 	#endif
-		process_mouse_event( AInputEvent_getSource( event) ,
-			AMotionEvent_getAction( event) , AMotionEvent_getEventTime( event) ,
-			AMotionEvent_getX( event , 0) , AMotionEvent_getY( event , 0)) ;
-
-		return  1 ;
+		return  process_mouse_event( AInputEvent_getSource( event) ,
+				AMotionEvent_getAction( event) ,
+				AMotionEvent_getEventTime( event) ,
+				AMotionEvent_getX( event , 0) ,
+				AMotionEvent_getY( event , 0)) ;
 
 	case  AINPUT_EVENT_TYPE_KEY:
 	#if  0
 		kik_debug_printf( "KEY %d %d\n" , AKeyEvent_getScanCode(event) ,
 			AKeyEvent_getKeyCode( event)) ;
 	#endif
-		process_key_event( AKeyEvent_getAction( event) ,
-			AKeyEvent_getKeyCode( event)) ;
-
-		return  1 ;
+		return  process_key_event( AKeyEvent_getAction( event) ,
+				AKeyEvent_getKeyCode( event)) ;
 
 	default:
 		return  0 ;
+	}
+}
+
+static void
+update_window(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+	x_window_clear_margin_area( win) ;
+
+	if( win->window_exposed)
+	{
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		update_window( win->children[count]) ;
+	}
+}
+
+static void
+init_window(
+	ANativeWindow *  window
+	)
+{
+	struct rgb_info  rgbinfos[] =
+	{
+		{ 3 , 2 , 3 , 11 , 5 , 0 } ,
+		{ 0 , 0 , 0 , 16 , 8 , 0 } ,
+	} ;
+
+	if( _disp.width == 0)
+	{
+		_disp.width = ANativeWindow_getWidth( window) ;
+		_disp.height = ANativeWindow_getHeight( window) ;
+	}
+	else
+	{
+		/* Changed in visibleFrameChanged. */
+	}
+
+#if  0
+	switch( ANativeWindow_getFormat( window))
+	{
+	case  WINDOW_FORMAT_RGBA_8888:
+		_disp.depth = 32 ;
+		_display.bytes_per_pixel = 4 ;
+		_display.rgbinfo = rgbinfos[1] ;
+		break ;
+
+	case  WINDOW_FORMAT_RGBX_8888:
+		_disp.depth = 24 ;
+		_display.bytes_per_pixel = 4 ;
+		_display.rgbinfo = rgbinfos[1] ;
+		break ;
+
+	case  WINDOW_FORMAT_RGB_565:
+	default:
+		_disp.depth = 16 ;
+		_display.bytes_per_pixel = 2 ;
+		_display.rgbinfo = rgbinfos[0] ;
+	}
+
+	ANativeWindow_setBuffersGeometry( window ,
+		_disp.width , _disp.height ,
+		ANativeWindow_getFormat( window)) ;
+#else
+	_disp.depth = 16 ;
+	_display.bytes_per_pixel = 2 ;
+	_display.rgbinfo = rgbinfos[0] ;
+
+	ANativeWindow_setBuffersGeometry( window , 0 , 0 , WINDOW_FORMAT_RGB_565) ;
+#endif
+
+	if( _display.buf.bits)
+	{
+		/* mlterm restarted */
+
+		_display.buf.bits = NULL ;
+
+		if( locked < 0)
+		{
+			/* If mlterm exited and restarted, locked is -1 here. */
+			locked = 0 ;
+		}
+		else
+		{
+			u_int  count ;
+
+			/* mlterm paused and restarted. */
+			for( count = 0 ; count < _disp.num_of_roots ; count++)
+			{
+				update_window( _disp.roots[count]) ;
+			}
+		}
 	}
 }
 
@@ -399,16 +522,45 @@ on_app_cmd(
 	switch(cmd)
 	{
 	case APP_CMD_SAVE_STATE:
+	#ifdef  DEBUG
+		kik_debug_printf( "SAVE_STATE\n") ;
+	#endif
 		break ;
 
 	case APP_CMD_INIT_WINDOW:
+	#ifdef  DEBUG
+		kik_debug_printf( "INIT_WINDOW\n") ;
+	#endif
+		init_window( app->window) ;
+		break ;
+
+	case APP_CMD_WINDOW_RESIZED:
+	#ifdef  DEBUG
+		kik_debug_printf( "WINDOW_RESIZED\n") ;
+	#endif
 		break ;
 
 	case APP_CMD_TERM_WINDOW:
-		x_display_close_all() ;
+	#ifdef  DEBUG
+		kik_debug_printf( "TERM_WINDOW\n") ;
+	#endif
 		break ;
 
+	case APP_CMD_WINDOW_REDRAW_NEEDED:
+	#ifdef  DEBUG
+		kik_debug_printf( "WINDOW_REDRAW_NEEDED\n") ;
+	#endif
+		break ;
+
+	case APP_CMD_CONFIG_CHANGED:
+	#ifdef  DEBUG
+		kik_debug_printf( "CONFIG_CHANGED\n") ;
+	#endif
+
 	case APP_CMD_GAINED_FOCUS:
+	#ifdef  DEBUG
+		kik_debug_printf( "GAINED_FOCUS\n") ;
+	#endif
 		/* When our app gains focus, we start monitoring the accelerometer. */
 		if( _display.accel_sensor)
 		{
@@ -422,6 +574,9 @@ on_app_cmd(
 		break ;
 
 	case APP_CMD_LOST_FOCUS:
+	#ifdef  DEBUG
+		kik_debug_printf( "LOST_FOCUS\n") ;
+	#endif
 		/*
 		 * When our app loses focus, we stop monitoring the accelerometer.
 		 * This is to avoid consuming battery while not being used.
@@ -445,38 +600,6 @@ x_display_open(
 	u_int  depth
 	)
 {
-	struct rgb_info  rgbinfos[] =
-	{
-		{ 3 , 2 , 3 , 11 , 5 , 0 } ,
-		{ 0 , 0 , 0 , 16 , 8 , 0 } ,
-	} ;
-
-	switch( ANativeWindow_getFormat( _display.app->window))
-	{
-#if  0
-	case  WINDOW_FORMAT_RGBA_8888:
-		_disp.depth = 32 ;
-		_display.bytes_per_pixel = 4 ;
-		_display.rgbinfo = rgbinfos[1] ;
-		break ;
-
-	case  WINDOW_FORMAT_RGBX_8888:
-		_disp.depth = 24 ;
-		_display.bytes_per_pixel = 4 ;
-		_display.rgbinfo = rgbinfos[1] ;
-		break ;
-
-	case  WINDOW_FORMAT_RGB_565:
-#endif
-	default:
-		_disp.depth = 16 ;
-		_display.bytes_per_pixel = 2 ;
-		_display.rgbinfo = rgbinfos[0] ;
-	}
-
-	_disp.width = ANativeWindow_getWidth( _display.app->window) ;
-	_disp.height = ANativeWindow_getHeight( _display.app->window) ;
-
 	_disp.display = &_display ;
 
 	return  &_disp ;
@@ -517,39 +640,9 @@ x_display_close_all(void)
 
 		/* DISP_IS_INITED is false from here. */
 		_disp.display = NULL ;
-
-		android_app_post_exec_cmd( _display.app , APP_CMD_TERM_WINDOW) ;
 	}
 
 	return  1 ;
-}
-
-x_display_t **
-x_get_opened_displays(
-	u_int *  num
-	)
-{
-	static x_display_t *  opened_disp ;
-
-	if( ! DISP_IS_INITED)
-	{
-		*num = 0 ;
-
-		return  NULL ;
-	}
-
-	*num = 1 ;
-	opened_disp = &_disp ;
-
-	return  &opened_disp ;
-}
-
-int
-x_display_fd(
-	x_display_t *  disp
-	)
-{
-	return  -1 ;
 }
 
 int
@@ -648,14 +741,6 @@ x_display_idling(
 	}
 }
 
-int
-x_display_receive_next_event(
-	x_display_t *  disp
-	)
-{
-	return  1 ;
-}
-
 
 /*
  * Folloing functions called from x_window.c
@@ -744,8 +829,6 @@ x_display_init(
 
 	app->onInputEvent = on_input_event ;
 
-	_display.app = app ;
-
 	/* Prepare to monitor accelerometer. */
 	_display.sensor_man = ASensorManager_getInstance() ;
 	_display.accel_sensor = ASensorManager_getDefaultSensor(
@@ -753,6 +836,29 @@ x_display_init(
 	_display.sensor_evqueue = ASensorManager_createEventQueue(
 					_display.sensor_man , app->looper ,
 					LOOPER_ID_USER , NULL , NULL) ;
+
+	if( _display.app)
+	{
+		_display.app = app ;
+
+		return  0 ;
+	}
+	else
+	{
+		_display.app = app ;
+
+		return  1 ;
+	}
+}
+
+void
+x_display_final(void)
+{
+	if( locked >= 0)
+	{
+		locked = -1 ;	/* unlocked until APP_CMD_INIT_WINDOW after restart. */
+		ANativeActivity_finish( _display.app->activity) ;
+	}
 }
 
 int
@@ -761,6 +867,20 @@ x_display_process_event(
 	int  ident
 	)
 {
+	if( visible_frame_changed)
+	{
+		/* XXX should synchronize */
+		_disp.width = new_width ;
+		_disp.height = new_height ;
+		visible_frame_changed = 0 ;
+
+		if( _disp.num_of_roots > 0)
+		{
+			x_window_resize_with_margin( _disp.roots[0] ,
+				_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
+		}
+	}
+
 	/* Process this event. */
 	if( source)
 	{
@@ -788,6 +908,12 @@ x_display_process_event(
 	/* Check if we are exiting. */
 	if( _display.app->destroyRequested)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " destroy requested.\n") ;
+	#endif
+
+		locked = -1 ;
+
 		return  0 ;
 	}
 
@@ -797,12 +923,60 @@ x_display_process_event(
 void
 x_display_unlock(void)
 {
-	if( locked)
+	if( locked > 0)
 	{
 		ANativeWindow_unlockAndPost( _display.app->window) ;
 		locked = 0 ;
 	}
 }
+
+size_t
+x_display_get_str(
+	u_char *  seq ,
+	size_t  seq_len
+	)
+{
+	JNIEnv *  env ;
+	JavaVM *  vm ;
+	jobject  this ;
+	jstring  jstr_key ;
+	char *  key ;
+	size_t  len ;
+
+	vm = _display.app->activity->vm ;
+	(*vm)->AttachCurrentThread( vm , &env , NULL) ;
+
+	this = _display.app->activity->clazz ;
+
+	jstr_key = (*env)->GetObjectField( env , this ,
+			(*env)->GetFieldID( env , (*env)->GetObjectClass( env , this) ,
+				"keyString" , "Ljava/lang/String;")) ;
+
+	if( jstr_key)
+	{
+		key = (*env)->GetStringUTFChars( env , jstr_key , NULL) ;
+
+		if( ( len = strlen(key)) > seq_len)
+		{
+			len = 0 ;
+		}
+		else
+		{
+			memcpy( seq , key , len) ;
+		}
+
+		(*env)->ReleaseStringUTFChars( env , jstr_key , key) ;
+	}
+	else
+	{
+		len = 0 ;
+	}
+
+	(*vm)->DetachCurrentThread(vm) ;
+
+	return  len ;
+}
+
 
 u_long
 x_display_get_pixel(
@@ -936,4 +1110,25 @@ x_cmap_get_pixel_rgb(
 	)
 {
 	return  0 ;
+}
+
+
+/* Called in the main thread (not in the native activity thread) */
+void
+Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
+	JNIEnv *  env ,
+	jobject  this ,
+	jint  width ,
+	jint  height
+	)
+{
+#ifdef  DEBUG
+	kik_debug_printf( "Visible frame changed w %d h %d => w %d h %d\n" ,
+		_disp.width , _disp.height , width , height) ;
+#endif
+
+	/* XXX should synchronize */
+	new_width = width ;
+	new_height = height ;
+	visible_frame_changed = 1 ;
 }

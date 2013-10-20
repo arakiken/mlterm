@@ -1550,6 +1550,13 @@ x_window_get_str(
 
 	ch = event->ksym ;
 
+#ifdef  __ANDROID__
+	if( ch == 0)
+	{
+		return  x_display_get_str( seq , seq_len) ;
+	}
+#endif
+
 	if( ( *keysym = event->ksym) >= 0x100)
 	{
 		switch( *keysym)

@@ -42,7 +42,8 @@ cp jni/x_event_source.c ${PROJECT_PATH}/jni/xwindow/
 cp jni/x.h jni/x_display.[ch] ${PROJECT_PATH}/jni/xwindow/fb/
 cp jni/main.c jni/version.h ${PROJECT_PATH}/jni/main/
 
-mkdir -p ${PROJECT_PATH}/src
+mkdir -p ${PROJECT_PATH}/src/mlterm/native_activity
+cp src/mlterm/native_activity/MLActivity.java ${PROJECT_PATH}/src/mlterm/native_activity/
 
 cp -R res ${PROJECT_PATH}/
 

@@ -10,6 +10,26 @@
 #include  "x_display.h"
 
 
+/* --- static functions --- */
+
+static void
+ALooper_removeFds(
+	int *  fds ,
+	u_int  num_of_fds
+	)
+{
+	ALooper *  looper ;
+	u_int  count ;
+
+	looper = ALooper_forThread() ;
+
+	for( count = 0 ; count < num_of_fds ; count++)
+	{
+		ALooper_removeFd( looper , fds[count]) ;
+	}
+}
+
+
 /* --- global functions --- */
 
 int
@@ -30,38 +50,31 @@ x_event_source_process(void)
 	int  ident ;
 	int  events ;
 	struct android_poll_source *  source ;
-	u_int  count ;
 	ml_term_t **  terms ;
 	u_int  num_of_terms ;
-	static int  prev_num_of_terms ;
+	u_int  count ;
+	static u_int  prev_num_of_terms ;
 	static int *  fds ;
 
-	if( ( num_of_terms = ml_get_all_terms( &terms)) == 0 &&
-	    prev_num_of_terms > 0)
+	if( ( num_of_terms = ml_get_all_terms( &terms)) != prev_num_of_terms)
 	{
-		x_display_close_all() ;
-	}
-
-	if( prev_num_of_terms != num_of_terms)
-	{
-		ALooper *  looper ;
 		void *  p ;
 
-		looper = ALooper_forThread() ;
+		ALooper_removeFds( fds , prev_num_of_terms) ;
+		prev_num_of_terms = 0 ;
 
-		for( count = 0 ; count < prev_num_of_terms ; count++)
+		if( num_of_terms == 0)
 		{
-			ALooper_removeFd( looper , fds[count]) ;
+			x_display_final() ;
 		}
+		else if( ( p = realloc( fds , sizeof(int) * num_of_terms)))
+		{
+			ALooper *  looper ;
 
-		if( num_of_terms == 0 || ! ( p = realloc( fds , sizeof(int) * num_of_terms)))
-		{
-			prev_num_of_terms = 0 ;
-		}
-		else
-		{
 			fds = p ;
 			prev_num_of_terms = num_of_terms ;
+
+			looper = ALooper_forThread() ;
 
 			for( count = 0 ; count < num_of_terms ; count++)
 			{
@@ -79,6 +92,11 @@ x_event_source_process(void)
 	{
 		if( ! x_display_process_event( source , ident))
 		{
+			ALooper_removeFds( fds , prev_num_of_terms) ;
+			prev_num_of_terms = 0 ;
+			free( fds) ;
+			fds = NULL ;
+
 			return  0 ;
 		}
 

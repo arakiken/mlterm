@@ -348,7 +348,7 @@ ml_get_char_encoding(
 
 	if( strcasecmp( encoding , "auto") == 0)
 	{
-	#if  defined(__CYGWIN__) || defined(__MSYS__)
+	#if  defined(__CYGWIN__) || defined(__MSYS__) || defined(__ANDROID__)
 		/*
 		 * XXX
 		 * UTF-8 is used by default in cygwin and msys.
