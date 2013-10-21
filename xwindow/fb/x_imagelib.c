@@ -125,7 +125,11 @@ modify_pixmap(
 	{
 		value_table_refresh( value_table , pic_mod) ;
 	}
-	else if( display->bytes_per_pixel == 4)
+	else if( display->bytes_per_pixel == 4 &&
+	         /* RRGGBB */
+	         display->rgbinfo.r_offset == 16 &&
+		 display->rgbinfo.g_offset == 8 &&
+		 display->rgbinfo.b_offset == 0)
 	{
 		return ;
 	}

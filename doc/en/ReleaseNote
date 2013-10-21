@@ -1,4 +1,5 @@
 ver 3.2.3
+* Support Android. (Experimental)
 * Support framebuffer on NetBSD/x68k.
 * Update the colormap instead of searching the closest color when
   OSC 4 ; c ; spec changes RGB of the color number on framebuffer.

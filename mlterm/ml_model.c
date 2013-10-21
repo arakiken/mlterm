@@ -110,42 +110,10 @@ ml_model_resize(
 		return  0 ;
 	}
 
-	if( ( lines_p = calloc( sizeof( ml_line_t), num_of_rows)) == NULL)
+	if( ( filled_rows = ml_model_get_num_of_filled_rows( model)) == 0 ||
+	    ( lines_p = calloc( sizeof( ml_line_t) , num_of_rows)) == NULL)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-	#endif
-	
 		return  0 ;
-	}
-
-	count = model->num_of_rows - 1 ;
-	while( 1)
-	{
-		if( count < 0)
-		{
-			/* All lines are empty, which is impossible. */
-			free( lines_p) ;		
-			return  0 ;
-		}
-	#if  0
-		/*
-		 * This is problematic, since the value of 'slide' can be incorrect when
-		 * cursor is located at the line which contains white spaces alone.
-		 */
-		else if( ml_line_get_num_of_filled_chars_except_spaces( ml_model_get_line( model , count)) > 0)
-	#else
-		else if( ! ml_line_is_empty( ml_model_get_line( model , count)))
-	#endif
-		{
-			filled_rows = count + 1 ;
-			
-			break ;
-		}
-		else
-		{
-			count -- ;
-		}
 	}
 
 	if( num_of_rows >= filled_rows)
@@ -204,6 +172,33 @@ ml_model_resize(
 	model->beg_row = 0 ;
 
 	return  1 ;
+}
+
+u_int
+ml_model_get_num_of_filled_rows(
+	ml_model_t *  model
+	)
+{
+	u_int  filled_rows ;
+
+	for( filled_rows = model->num_of_rows ; filled_rows > 0 ; filled_rows --)
+	{
+	#if  0
+		/*
+		 * This is problematic, since the value of 'slide' can be incorrect when
+		 * cursor is located at the line which contains white spaces alone.
+		 */
+		if( ml_line_get_num_of_filled_chars_except_spaces(
+				ml_model_get_line( model , filled_rows - 1)) > 0)
+	#else
+		if( ! ml_line_is_empty( ml_model_get_line( model , filled_rows - 1)))
+	#endif
+		{
+			return  filled_rows ;
+		}
+	}
+
+	return  0 ;
 }
 
 int

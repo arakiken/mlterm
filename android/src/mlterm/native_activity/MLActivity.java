@@ -75,6 +75,12 @@ public class MLActivity extends NativeActivity
 
 		try
 		{
+			File  dir = new File( "/sdcard/.mlterm") ;
+			if( ! dir.isDirectory())
+			{
+				dir.mkdir() ;
+			}
+
 			InputStream  is = getResources().getAssets().open( "unifont.pcf") ;
 			OutputStream  os = new FileOutputStream( "/sdcard/.mlterm/unifont.pcf") ;
 			int  len ;

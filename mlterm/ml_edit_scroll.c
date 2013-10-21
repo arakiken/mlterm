@@ -13,12 +13,6 @@
 
 /*
  * src and dst may overlap
- *
- * the caller side must be responsible for whether {dst|src} + size is within
- * edit->num_of_filled_lines.
- *
- * !! Notice !!
- * this function doesn't concern about crossing over the boundary and num_of_filled_rows.
  */
 static int
 copy_lines(

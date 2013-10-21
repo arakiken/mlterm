@@ -660,12 +660,28 @@ ml_edit_resize(
 	u_int  num_of_rows
 	)
 {
+	u_int  old_filled_rows ;
 	u_int  old_cols ;
 	u_int  slide ;
-	
+
 #ifdef  CURSOR_DEBUG
 	ml_cursor_dump( &edit->cursor) ;
 #endif
+
+	if( ( old_filled_rows = ml_model_get_num_of_filled_rows( &edit->model)) > num_of_rows)
+	{
+		if( edit->is_logging && edit->scroll_listener->receive_scrolled_out_line)
+		{
+			int  count ;
+
+			for( count = 0 ; count < old_filled_rows - num_of_rows ; count++)
+			{
+				(*edit->scroll_listener->receive_scrolled_out_line)(
+					edit->scroll_listener->self ,
+					ml_model_get_line( &edit->model , count)) ;
+			}
+		}
+	}
 
 	old_cols = edit->model.num_of_cols ;
 

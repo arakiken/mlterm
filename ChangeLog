@@ -1,3 +1,13 @@
+2013-10-21  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display_wscons.c, fb/x_imagelib.c: BBGGRR style wsdisplay is supported.
+	  (Thanks to @oshimayja san)
+
+	* ml_model.[ch], ml_edit.c: Overflowed lines are scrolled out in ml_edit_resize().
+	  (ml_model_get_num_of_filled_rows() is added.)
+
+	* MLActivity.java: mkdir("/sdcard/.mlterm") before saving unifont.pcf.
+
 2013-10-20  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.android: Added.

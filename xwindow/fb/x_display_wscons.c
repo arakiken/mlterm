@@ -432,23 +432,40 @@ open_display(void)
 	}
 #endif
 
-	if( _disp.depth == 15)
-	{
-		_display.rgbinfo = rgbinfos[0] ;
-	}
-	else if( _disp.depth == 16)
-	{
-		_display.rgbinfo = rgbinfos[1] ;
-	}
-	else if( _disp.depth >= 24)
-	{
-		_display.rgbinfo = rgbinfos[2] ;
-	}
-	else
+	if( _disp.depth < 15)
 	{
 		if( ! cmap_init())
 		{
 			goto  error ;
+		}
+	}
+	else
+	{
+		if( _disp.depth == 15)
+		{
+			_display.rgbinfo = rgbinfos[0] ;
+		}
+		else if( _disp.depth == 16)
+		{
+			_display.rgbinfo = rgbinfos[1] ;
+		}
+		else /* if( _disp.depth >= 24) */
+		{
+			_display.rgbinfo = rgbinfos[2] ;
+		}
+
+		if( wstype == WSDISPLAY_TYPE_SUNFFB
+		#ifdef  WSDISPLAY_TYPE_VC4
+		    || wstype == WSDISPLAY_TYPE_VC4
+		#endif
+		    )
+		{
+			/* RRGGBB => BBGGRR */
+			u_int  tmp ;
+
+			tmp = _display.rgbinfo.r_offset ;
+			_display.rgbinfo.r_offset = _display.rgbinfo.b_offset ;
+			_display.rgbinfo.b_offset = tmp ;
 		}
 	}
 

@@ -35,6 +35,8 @@ int  ml_model_reset( ml_model_t *  model) ;
 
 int  ml_model_resize( ml_model_t *  model , u_int *  slide , u_int  num_of_cols , u_int  num_of_rows) ;
 
+u_int  ml_model_get_num_of_filled_rows( ml_model_t *  model) ;
+
 int  ml_model_end_row( ml_model_t *  model) ;
 
 ml_line_t *  ml_model_get_line( ml_model_t *  model , int  row) ;
