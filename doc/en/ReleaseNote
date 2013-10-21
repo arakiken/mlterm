@@ -19,6 +19,8 @@ ver 3.2.3
   lines from the cursor position.
   Fix keypad '5' key (VK_CLEAR) on win32.
   Fix the bug of ignoring the next character after sixel graphics data.
+  Fix the bug which makes the window smaller than necessary in resizing.
+  Support wsdisplay of the BBGGRR format on NetBSD/OpenBSD. (Thanks to @oshimyja san)
 
 ver 3.2.2
 * Support SSH agent authentication and forwarding.

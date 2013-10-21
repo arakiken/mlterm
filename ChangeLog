@@ -1,3 +1,8 @@
+2013-10-22  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c: The bug which makes the window smaller than necessary
+	  in resizing is fixed.
+
 2013-10-21  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display_wscons.c, fb/x_imagelib.c: BBGGRR style wsdisplay is supported.

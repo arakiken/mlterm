@@ -2389,18 +2389,22 @@ x_window_receive_event(
 			u_int  height ;
 			u_int  min_width ;
 			u_int  min_height ;
+			u_int  old_width ;
+			u_int  old_height ;
 
 			width = LOWORD(event->lparam) ;
 			height = HIWORD(event->lparam) ;
 
-		#if  0
-			kik_debug_printf( "WM_SIZE resized from %d %d to %d %d\n" ,
-				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), width, height) ;
-		#endif
-		
 			min_width = total_min_width(win) ;
 			min_height = total_min_height(win) ;
+			old_width = ACTUAL_WIDTH(win) ;
+			old_height = ACTUAL_HEIGHT(win) ;
 
+		#if  0
+			kik_debug_printf( "WM_SIZE resized from %d %d to %d %d\n" ,
+				old_width, old_height, width, height) ;
+		#endif
+		
 			if( width < min_width || height < min_height)
 			{
 				x_window_resize( win,
@@ -2408,32 +2412,32 @@ x_window_receive_event(
 					K_MAX(min_height,height) - win->margin * 2,
 					NOTIFY_TO_MYSELF) ;
 			}
-			else if( width != ACTUAL_WIDTH(win) || height != ACTUAL_HEIGHT(win))
+			else if( width != old_width || height != old_height)
 			{
 				u_int  width_surplus ;
 				u_int  height_surplus ;
 
-				if( width > ACTUAL_WIDTH(win))
+				if( width >= old_width)
 				{
-					width_surplus = (width - ACTUAL_WIDTH(win)) %
+					width_surplus = (width - old_width) %
 							total_width_inc(win) ;
 				}
 				else
 				{
 					width_surplus = total_width_inc(win) -
-							( (ACTUAL_WIDTH(win) - width) %
+							( (old_width - width) %
 							  total_width_inc(win) ) ;
 				}
 
-				if( height > ACTUAL_HEIGHT(win))
+				if( height >= old_height)
 				{
-					height_surplus = (height - ACTUAL_HEIGHT(win)) %
+					height_surplus = (height - old_height) %
 							total_height_inc(win) ;
 				}
 				else
 				{
 					height_surplus = total_height_inc(win) -
-							( (ACTUAL_HEIGHT(win) - height) %
+							( (old_height - height) %
 							  total_height_inc(win) ) ;
 				}
 				
