@@ -642,7 +642,10 @@ ml_set_word_separators(
 
 	if( default_word_separators)
 	{
-		free( word_separators) ;
+		if( word_separators != default_word_separators)
+		{
+			free( word_separators) ;
+		}
 
 		if( seps == NULL || *seps == '\0')
 		{
@@ -659,6 +662,7 @@ ml_set_word_separators(
 	}
 	else
 	{
+		/* Store the default value. */
 		default_word_separators = word_separators ;
 	}
 

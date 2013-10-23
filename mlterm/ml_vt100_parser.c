@@ -95,6 +95,9 @@
 
 static int  use_alt_buffer = 1 ;
 static int  use_ansi_colors = 1 ;
+#ifdef  USE_LIBSSH2
+static int  use_scp ;
+#endif
 static struct
 {
 	u_int16_t  ucs ;
@@ -1234,23 +1237,27 @@ config_protocol_set(
 #ifdef  USE_LIBSSH2
 	else if( strncmp( pt , "scp " , 4) == 0)
 	{
-		char **  argv ;
-		int  argc ;
-
-		argv = kik_arg_str_to_array( &argc , pt) ;
-
-		if( argc == 3 || argc == 4)
+		if( use_scp)
 		{
-			ml_char_encoding_t  encoding ;
+			char **  argv ;
+			int  argc ;
 
-			if( ! argv[3] ||
-			    ( encoding = ml_get_char_encoding( argv[3])) == ML_UNKNOWN_ENCODING)
+			argv = kik_arg_str_to_array( &argc , pt) ;
+
+			if( argc == 3 || argc == 4)
 			{
-				encoding = vt100_parser->encoding ;
-			}
+				ml_char_encoding_t  encoding ;
 
-			ml_pty_ssh_scp( vt100_parser->pty ,
-				vt100_parser->encoding , encoding , argv[2] , argv[1]) ;
+				if( ! argv[3] ||
+				    ( encoding = ml_get_char_encoding( argv[3]))
+				      == ML_UNKNOWN_ENCODING)
+				{
+					encoding = vt100_parser->encoding ;
+				}
+
+				ml_pty_ssh_scp( vt100_parser->pty ,
+					vt100_parser->encoding , encoding , argv[2] , argv[1]) ;
+			}
 		}
 	}
 #endif
@@ -1259,7 +1266,7 @@ config_protocol_set(
 		char *  key ;
 		char *  val ;
 
-		if( ml_parse_proto( NULL , &key , &val , &pt , 0 , 0) && val &&
+		if( ml_parse_proto( NULL , &key , &val , &pt , save , 0) && val &&
 		    HAS_CONFIG_LISTENER(vt100_parser,set_font))
 		{
 			/*
@@ -1286,7 +1293,7 @@ config_protocol_set(
 		char *  key ;
 		char *  val ;
 
-		if( ml_parse_proto( NULL , &key , &val , &pt , 0 , 0) && val &&
+		if( ml_parse_proto( NULL , &key , &val , &pt , save , 0) && val &&
 		    HAS_CONFIG_LISTENER(vt100_parser,set_color))
 		{
 			/*
@@ -1342,7 +1349,7 @@ config_protocol_set(
 				char *  val ;
 
 				if( ! ml_parse_proto( dev ? NULL : &dev ,
-						&key , &val , &pt , 0 , 1))
+						&key , &val , &pt , save , 1))
 				{
 					break ;
 				}
@@ -4796,39 +4803,77 @@ ml_set_use_ansi_colors(
 	use_ansi_colors = use ;
 }
 
+#ifdef  USE_LIBSSH2
+void
+ml_set_use_scp(
+	int  use
+	)
+{
+	use_scp = use ;
+}
+#endif
+
 int
 ml_set_unicode_noconv_areas(
 	char *  areas
 	)
 {
+	char *  area ;
+
 	if( areas == NULL || *areas == '\0')
 	{
 		free( unicode_noconv_areas) ;
 		unicode_noconv_areas = NULL ;
+		num_of_unicode_noconv_areas = 0 ;
+
+		return  1 ;
 	}
 	else
 	{
-		u_int  num_of_areas ;
 		void *  p ;
 
-		num_of_areas = kik_count_char_in_str( areas , ',') + 1 ;
-
-	        if( ( p = realloc( unicode_noconv_areas ,
-				sizeof(*unicode_noconv_areas) * num_of_areas)))
+		if( ! ( p = realloc(  unicode_noconv_areas ,
+				sizeof(*unicode_noconv_areas) *
+				(kik_count_char_in_str( areas , ',') + 1))))
 		{
-			u_int32_t  min ;
-			u_int32_t  max ;
-			char *  area ;
+			return  0 ;
+		}
 
-			unicode_noconv_areas = p ;
+		unicode_noconv_areas = p ;
+		num_of_unicode_noconv_areas = 0 ;
+	}
 
-			while( ( area = kik_str_sep( &areas , ",")))
+	while( ( area = kik_str_sep( &areas , ",")))
+	{
+		u_int  min ;
+		u_int  max ;
+
+		if( sscanf( area , "U+%x-%x" , &min , &max) == 2)
+		{
+			u_int  count ;
+
+			for( count = 0 ; count < num_of_unicode_noconv_areas ; count++)
 			{
-				if( sscanf( area , "U+%x-%x" , &min , &max) == 2)
+				if( unicode_noconv_areas[count].min <= min &&
+				    unicode_noconv_areas[count].max >= max)
 				{
-					unicode_noconv_areas[num_of_unicode_noconv_areas].min = min ;
-					unicode_noconv_areas[num_of_unicode_noconv_areas++].max = max ;
+					break ;
 				}
+
+				if( min <= unicode_noconv_areas[count].min &&
+				    max >= unicode_noconv_areas[count].max)
+				{
+					unicode_noconv_areas[count].min = min ;
+					unicode_noconv_areas[count].max = max ;
+
+					break ;
+				}
+			}
+
+			if( count == num_of_unicode_noconv_areas)
+			{
+				unicode_noconv_areas[num_of_unicode_noconv_areas].min = min ;
+				unicode_noconv_areas[num_of_unicode_noconv_areas++].max = max ;
 			}
 		}
 	}

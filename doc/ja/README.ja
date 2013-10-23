@@ -726,8 +726,8 @@ comment $Id$
 
       o allow_osc52 (true/*false*)
         OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可する。
-        なお、このオプションを動的に変更するには、SWITCH_OSC52 ショートカットキ
-        ーを使用する必要があります。
+        なお、このオプションを動的に変更するには、"proto:allow_osc52=switch"
+        ショートカットキーを使用する必要があります。
 
       o use_local_echo (true/*false*)
         local echo mode を有効にする。
@@ -1012,9 +1012,6 @@ comment $Id$
         スクロールダウン
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
-      o SWITCH_OSC52
-        OSC 52 sequence によるクリップボードへのアクセスの許可・不許可を切り替え
-        ます。
       o "" で囲まれた文字列
         文字列の出力
 

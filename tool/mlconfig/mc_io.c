@@ -18,6 +18,37 @@ static int  gui_is_win32 ;
 
 /* --- static functions --- */
 
+static char *
+load_challenge(void)
+{
+	FILE *  fp ;
+	char *  homedir ;
+	char  path[256] ;
+	static char  challenge[64] ;
+
+	if( ! ( homedir = getenv("HOME")))
+	{
+		return  "" ;
+	}
+
+	snprintf( path , sizeof(path) , "%s/.mlterm/challenge" , homedir) ;
+
+	if( ( fp = fopen( path , "r")))
+	{
+		size_t  len ;
+
+		if( ( len = fread( challenge , 1 , sizeof(challenge) - 2 , fp)) > 0)
+		{
+			challenge[len++] = ';' ;
+			challenge[len] = '\0' ;
+		}
+
+		fclose( fp) ;
+	}
+
+	return  challenge ;
+}
+
 static int
 append_value(
 	char *  key ,
@@ -154,12 +185,19 @@ mc_set_flag_value(
 int
 mc_flush(mc_io_t  io)
 {
+	char *  chal = "" ;
+
 	if( message == NULL)
 	{
 		return  1 ;
 	}
-	
-	printf("\x1b]%d;%s\x07" , io , message);
+
+	if( io == mc_io_set_save)
+	{
+		chal = load_challenge() ;
+	}
+
+	printf( "\x1b]%d;%s%s\x07" , io , chal , message);
 	fflush( stdout) ;
 
 #if  0
@@ -248,7 +286,14 @@ mc_set_font_name(
 	char *  font_name
 	)
 {
-	printf( "\x1b]%d;%s:%s=%s,%s\x07" , io , file , cs , font_size , font_name) ;
+	char *  chal = "" ;
+
+	if( io == mc_io_set_save_font)
+	{
+		chal = load_challenge() ;
+	}
+
+	printf( "\x1b]%d;%s%s:%s=%s,%s\x07" , io , chal , file , cs , font_size , font_name) ;
 	fflush( NULL) ;
 
 	return  1 ;

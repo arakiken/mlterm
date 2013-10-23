@@ -1,3 +1,25 @@
+2013-10-23  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen_manager.c: config_saved() is called in x_screen_manager_startup()
+	  on android.
+
+	* x_screen.c:
+	  - OSC 5379 snapshot rejects file names containing "..".
+	  - OSC 5379 selected_text is removed.
+	  - OSC 5379 paste is rejected.
+
+	* x_screen.c, x_shortcut.[ch]: SWITCH_OSC52 shortcut is removed.
+	  (Use "proto:allow_osc52=switch" instead.)
+
+	* ml_vt100_parser.c, x_screen.c, x_main_config.c:
+	  OSC 5379 scp is disabled by default, while "allow_scp" option is added.
+
+	* ml_vt100_parser.c:
+	  - The illegal memory access in ml_set_unicode_noconv_areas() is fixed.
+	  - OSC 5383 requests challenge sequence.
+
+	* ml_screen.c: The bug of freeing static data is fixed.
+
 2013-10-22  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_window.c: The bug which makes the window smaller than necessary

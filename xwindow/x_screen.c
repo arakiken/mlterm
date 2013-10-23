@@ -1978,19 +1978,6 @@ shortcut_match(
 
 		return  1 ;
 	}
-	else if( x_shortcut_match( screen->shortcut , SWITCH_OSC52 , ksym , state))
-	{
-		if( screen->xterm_listener.set_selection)
-		{
-			screen->xterm_listener.set_selection = NULL ;
-		}
-		else
-		{
-			screen->xterm_listener.set_selection = xterm_set_selection ;
-		}
-
-		return  1 ;
-	}
 #ifdef  DEBUG
 	else if( x_shortcut_match( screen->shortcut , EXIT_PROGRAM , ksym , state))
 	{
@@ -5879,70 +5866,6 @@ get_config(
 			value = "noconv" ;
 		}
 	}
-	else if( strncmp( key , "selected_text" , 13) == 0)
-	{
-		ml_term_write( screen->term , "#" , 1 , to_menu) ;
-		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
-		ml_term_write( screen->term , "=" , 1 , to_menu) ;
-		
-		if( /* screen->window.is_sel_owner && */
-			screen->sel.sel_str && screen->sel.sel_len > 0)
-		{
-		#ifndef  NL_TO_CR_IN_PAST_TEXT
-			if( to_menu)
-		#endif
-			{
-				/*
-				 * Convert NL to CR because menu programs regard NL as terminator
-				 * of returned value.
-				 * Notice that menu programs must convert CR to NL in receiving
-				 * selected text.
-				 */
-				convert_nl_to_cr2( screen->sel.sel_str , screen->sel.sel_len) ;
-			}
-
-			(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
-			ml_str_parser_set_str( screen->ml_str_parser ,
-				screen->sel.sel_str , screen->sel.sel_len) ;
-
-			if( to_menu)
-			{
-				mkf_conv_t *  conv ;
-				
-				if( ( conv = ml_conv_new( ml_get_char_encoding( key + 14))) ||
-				    ( conv = ml_conv_new( ml_term_get_encoding( term))))
-				{
-					u_char  buf[512] ;
-					size_t  len ;
-
-					(*conv->init)( conv) ;
-
-					while( ! screen->ml_str_parser->is_eos)
-					{
-						if( ( len = (*conv->convert)( conv ,
-								buf , sizeof(buf) ,
-								screen->ml_str_parser)) == 0)
-						{
-							break ;
-						}
-
-						ml_term_write( screen->term ,
-							buf , len , to_menu) ;
-					}
-
-					(*conv->delete)( conv) ;
-				}
-			}
-			else
-			{
-				write_to_pty( screen , NULL , 0 , screen->ml_str_parser) ;
-			}
-		}
-
-		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
-
-		return ;
-	}
 
 	if( value == NULL)
 	{
@@ -8173,6 +8096,9 @@ x_screen_exec_cmd(
 					"-initstr" , "-#" ,
 					"-osc52" ,
 					"-shortcut" ,
+				#ifdef  USE_LIBSSH2
+					"-scp" ,
+				#endif
 				} ;
 				char *  p ;
 				size_t  count ;
@@ -8244,7 +8170,16 @@ x_screen_exec_cmd(
 
 	if( strcmp( cmd , "paste") == 0)
 	{
-		yank_event_received( screen , 0) ;
+		/*
+		 * for vte.c
+		 *
+		 * processing_vtseq == -1: process vtseq in loopback.
+		 * processing_vtseq == 0 : stop processing vtseq.
+		 */
+		if( screen->processing_vtseq <= 0)
+		{
+			yank_event_received( screen , CurrentTime) ;
+		}
 	}
 	else if( strcmp( cmd , "open_pty") == 0 ||
 		strcmp( cmd , "select_pty") == 0)
@@ -8312,16 +8247,17 @@ x_screen_exec_cmd(
 		{
 			/* skip /dev/ */
 			file = ml_term_get_slave_name( screen->term) + 5 ;
-			if( strstr( file , ".."))
-			{
-				/* insecure file name */
-				kik_msg_printf( "%s is insecure file name.\n" , file) ;
-
-				return  1 ;
-			}
 		}
 
-		snapshot( screen , encoding , file) ;
+		if( strstr( file , ".."))
+		{
+			/* insecure file name */
+			kik_msg_printf( "%s is insecure file name.\n" , file) ;
+		}
+		else
+		{
+			snapshot( screen , encoding , file) ;
+		}
 	}
 	else if( strncmp( cmd , "search_" , 7) == 0)
 	{
@@ -8858,6 +8794,29 @@ x_screen_set_config(
 			kik_set_msg_log_file_name( NULL) ;
 		}
 	}
+	else if( strcmp( key , "allow_osc52") == 0)
+	{
+		/*
+		 * processing_vtseq == -1: process vtseq in loopback.
+		 * processing_vtseq == 0 : stop processing vtseq.
+		 */
+		if( screen->processing_vtseq <= 0)
+		{
+			if( strcmp( value , "switch") == 0)
+			{
+				value = screen->xterm_listener.set_selection ? "false" : "true" ;
+			}
+
+			if( true_or_false( value) > 0)
+			{
+				screen->xterm_listener.set_selection = xterm_set_selection ;
+			}
+			else
+			{
+				screen->xterm_listener.set_selection = NULL ;
+			}
+		}
+	}
 	else if( strcmp( key , "blink_cursor") == 0)
 	{
 		if( true_or_false( value) > 0)
@@ -8963,10 +8922,21 @@ x_screen_set_config(
 			usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 		}
 	}
-	else if( strstr( key , "unicode_noconv_areas"))
+	else if( strcmp( key , "unicode_noconv_areas"))
 	{
 		ml_set_unicode_noconv_areas( value) ;
 	}
+#ifdef  USE_LIBSSH2
+	else if( strcmp( key , "allow_scp") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_set_use_scp( flag) ;
+		}
+	}
+#endif
 	else
 	{
 		return  0 ;

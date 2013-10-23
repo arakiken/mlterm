@@ -27,7 +27,6 @@ typedef enum  x_key_func
 	SCROLL_UP ,
 	SCROLL_DOWN ,
 	INSERT_SELECTION ,
-	SWITCH_OSC52 ,
 	EXIT_PROGRAM ,
 	
 	MAX_KEY_MAPS

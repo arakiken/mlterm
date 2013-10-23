@@ -241,6 +241,7 @@ x_prepare_for_main_config(
 		"preferred cipher list") ;
 	kik_conf_add_opt( conf , '\0' , "x11" , 1 , "ssh_x11_forwarding" ,
 		"allow x11 forwarding [false]") ;
+	kik_conf_add_opt( conf , '\0' , "scp" , 1 , "allow_scp" , "allow scp [false]") ;
 #endif
 	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
 		"extra space between letters in pixels [0]") ;
@@ -1214,6 +1215,14 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "ssh_x11_forwarding")))
 	{
 		main_config->use_x11_forwarding = (strcmp( value , "true") == 0) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "allow_scp")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			ml_set_use_scp( 1) ;
+		}
 	}
 #endif
 

@@ -104,37 +104,6 @@ GtkWidget* create_menu(void)
 
     menu = gtk_menu_new();
 
-#if ! defined(G_PLATFORM_WIN32)
-    {
-        GtkWidget* item;
-        char* sel = get_value(NULL, "selected_text:utf8");
-        GtkClipboard* clipboard;
-
-        item = gtk_menu_item_new_with_label("Copy");
-	if (sel && *sel) {
-	    g_signal_connect(item, "activate",
-                           G_CALLBACK(activate_callback_copy),
-                           (gpointer) sel);
-        } else {
-	    gtk_widget_set_sensitive(item, 0);
-	}
-        gtk_menu_append(GTK_MENU(menu), item);
-
-	item = gtk_menu_item_new_with_label("Paste");
-        if ((clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)) &&
-	     gtk_clipboard_wait_is_text_available(clipboard)) {
-	     g_signal_connect(item, "activate",
-                           G_CALLBACK(activate_callback), "paste");
-	     
-	} else {
-	     gtk_widget_set_sensitive(item, 0);
-	}
-	gtk_menu_append(GTK_MENU(menu), item);
-	
-	gtk_menu_append(GTK_MENU(menu), gtk_menu_item_new());
-    }
-#endif
-
     if ((rc_path = kik_get_user_rc_path(MENU_RCFILE))) {
         userexist = append_menu_from_file(GTK_MENU(menu), rc_path);
         free(rc_path);

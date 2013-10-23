@@ -1315,6 +1315,8 @@ x_screen_manager_final(void)
 }
 
 #ifdef  __ANDROID__
+static int  suspended ;
+
 int
 x_screen_manager_suspend(void)
 {
@@ -1333,6 +1335,8 @@ x_screen_manager_suspend(void)
 
 	x_display_close_all() ;
 
+	suspended = 1 ;
+
 	return  1 ;
 }
 #endif
@@ -1344,6 +1348,14 @@ x_screen_manager_startup(void)
 	u_int  num_started ;
 
 	num_started = 0 ;
+
+#ifdef  __ANDROID__
+	if( suspended)
+	{
+		/* reload ~/.mlterm/main. */
+		config_saved() ;
+	}
+#endif
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{

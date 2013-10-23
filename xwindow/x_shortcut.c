@@ -54,7 +54,6 @@ static key_func_table_t  key_func_table[] =
 	{ "SCROLL_UP" , SCROLL_UP , } ,
 	{ "SCROLL_DOWN" , SCROLL_DOWN , } ,
 	{ "INSERT_SELECTION" , INSERT_SELECTION , } ,
-	{ "SWITCH_OSC52" , SWITCH_OSC52 , } ,
 	{ "EXIT_PROGRAM" , EXIT_PROGRAM , } ,
 
 	/* obsoleted: alias of OPEN_SCREEN */
@@ -162,9 +161,6 @@ x_shortcut_init(
 
 		/* INSERT_SELECTION */
 		{ XK_Insert , ShiftMask , 1 , } ,
-
-		/* SWITCH_OSC52 */
-		{ 0 , 0 , 0 , } ,
 
 	#ifdef  DEBUG
 		/* EXIT PROGRAM(only for debug) */

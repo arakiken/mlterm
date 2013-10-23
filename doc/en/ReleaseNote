@@ -1,4 +1,4 @@
-ver 3.2.3
+ver 3.3.0
 * Support Android. (Experimental)
 * Support framebuffer on NetBSD/x68k.
 * Update the colormap instead of searching the closest color when
@@ -6,6 +6,9 @@ ver 3.2.3
 * Support OSC ? 80 h (disable sixel scrolling).
 * Support U+XXXX-XXXX key in 'font' configuration file.
 * Add "unicode_noconv_areas" (a.k.a --ucsnoconv) option.
+* Add "allow_scp" (a.k.a --scp) option.
+* Remove SWITCH_OSC52. (Use "proto:allow_osc52=switch" instead.)
+* OSC 5383 reqests challenge sequence.
 * Bug fixes:
   #70 (Thanks to Thomas Wolff)
   Fix the bug which disabled redrawing the margin area on framebuffer.

@@ -2,7 +2,7 @@ comment -*- mode: text -*-
 comment $Id$
 
 mlterm configuration protocol
-version 20110903
+version 20131023
 
 * Protocol
   exec             = "\x1b" "]" "5379" ";" <command> "\x07"
@@ -15,15 +15,15 @@ version 20110903
   get(pty)	   = "\x1b" "]" "5380" ";" <challenge> ";" <font filename> ":" <key> ","
                      <fontsize> "\x07"
   get(GUI menu)	   = "\x1b" "]" "5381" ";" <font filename> ":" <key> "," <fontsize> "\x07"
-  set&save         = "\x1b" "]" "5383" ";" <font filename> ":" <key> "=" <value> "\x07"
+  set&save         = "\x1b" "]" "5383" ";" <challenge> ";" <font filename> ":" <key> "=" <value> "\x07"
 
   set color        = "\x1b" "]" "5379" ";" "color:" <key> "=" <value> "\x07"
 #if  0
   get(pty)	   = "\x1b" "]" "5380" ";" <challenge> ";" "color:" <key> "\x07"
   get(GUI menu)	   = "\x1b" "]" "5381" ";" "color:" <key> "\x07"
 #endif
-  set&save         = "\x1b" "]" "5383" ";" "color:" <key> "=" <value> "\x07"
-  
+  set&save         = "\x1b" "]" "5383" ";" <challenge> ";" "color:" <key> "=" <value> "\x07"
+
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a" | "#forbidden" "\x0a"
   exec command     = paste | select_pty <dev> | full_reset | open_pty | close_pty (<dev>) |
                      open_screen | snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
@@ -45,7 +45,7 @@ version 20110903
                      icon_path | logging_vt_seq | logging_msg | word_separators | use_clipboard |
                      auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
-                     box_drawing_font | use_urgent_bell
+                     box_drawing_font | use_urgent_bell | allow_scp
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -57,7 +57,7 @@ version 20110903
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
                      rows | cols | cursor_fg_color | cursor_bg_color | bd_color | ul_color |
                      use_bold_font | hide_underline | pty_list | pty_name | use_clipboard |
-                     icon_path | logging_vt_seq | selected_text(:encoding) | gui | allow_osc52 |
+                     icon_path | logging_vt_seq | gui | allow_osc52 |
                      only_use_unicode_font | not_use_unicode_font | box_drawing_font
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
@@ -71,6 +71,8 @@ version 20110903
   color value      = see man/mlterm.1
 
 * Values for each key
+  allow_osc52 = true | false | switch
+  allow_scp = true | false
   auto_restart = true | false | <restart command>
   bd_color = <color name> | <color rgb>
   bel_mode = none | sound | visual
@@ -127,7 +129,6 @@ version 20110903
   wall_picture = <file path>
   logging_vt_seq = true | false
   logging_msg = true | false
-  selected_text(:encoding) = <none>
 
 * Note
   o Encoding names are regularized , that is , `-' , `_' are removed , and only
