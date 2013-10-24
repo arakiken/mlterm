@@ -418,10 +418,11 @@ kik_conf_parse_args(
 		if( strlen( opt_name) == 1)
 		{
 			short_opt = *opt_name ;
-			
-			if( ( opt = conf->arg_opts[CH2IDX(short_opt)]) == NULL)
+
+			if( short_opt < ' ' ||
+			    ( opt = conf->arg_opts[CH2IDX(short_opt)]) == NULL)
 			{
-				kik_msg_printf( "%s is unknown option.\n\n" , opt_name) ;
+				kik_msg_printf( "%s is unknown option.\n" , opt_name) ;
 				
 				goto error ;
 			}
@@ -447,7 +448,7 @@ kik_conf_parse_args(
 
 			if( ! opt)
 			{
-				kik_msg_printf( "%s is unknown option.\n\n" , opt_name) ;
+				kik_msg_printf( "%s is unknown option.\n" , opt_name) ;
 
 				goto error ;
 			}
@@ -456,7 +457,7 @@ kik_conf_parse_args(
 		}
 		else
 		{
-			kik_msg_printf( "%s is unknown option.\n\n" , opt_name) ;
+			kik_msg_printf( "%s is unknown option.\n" , opt_name) ;
 			
 			goto error ;
 		}
@@ -528,7 +529,7 @@ kik_conf_parse_args(
 				
 				if( *argc == 0 || (*argv)[0] == NULL)
 				{
-					kik_msg_printf( "%s option requires value.\n\n" , opt_name) ;
+					kik_msg_printf( "%s option requires value.\n" , opt_name) ;
 
 					entry->value = NULL ;
 					

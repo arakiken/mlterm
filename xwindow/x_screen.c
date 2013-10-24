@@ -36,6 +36,8 @@
 #define  MOUSE_POS_LIMIT  (0xff - 0x20)
 #define  EXT_MOUSE_POS_LIMIT  (0x7ff - 0x20)
 
+#define  IS_LIBVTE(screen)  ( ! (screen)->window.parent && (screen)->window.parent_window)
+
 #if  1
 #define  NL_TO_CR_IN_PAST_TEXT
 #endif
@@ -2285,7 +2287,8 @@ shortcut_str(
 		}
 	}
 	/* XXX Hack for libvte */
-	else if( ksym == 0 && state == Button3Mask && strcmp( str , "none") == 0)
+	else if( IS_LIBVTE(screen) && ksym == 0 && state == Button3Mask &&
+	         strcmp( str , "none") == 0)
 	{
 		/* do nothing */
 	}
@@ -3943,7 +3946,19 @@ button_motion(
 			break ;
 
 		default:
-			selecting_with_motion( screen , event->x , event->y , event->time) ;
+			/*
+			 * XXX
+			 * Button3 selection is disabled on libvte.
+			 * If Button3 is pressed after selecting in order to show
+			 * "copy" menu, button_motion can be called by slight movement
+			 * of the mouse cursor, then selection is reset unexpectedly.
+			 */
+			if( ! (event->state & Button3Mask) || ! IS_LIBVTE(screen))
+			{
+				selecting_with_motion( screen ,
+					event->x , event->y , event->time) ;
+			}
+
 			break ;
 		}
 	}
