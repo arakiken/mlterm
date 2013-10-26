@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2013-08-06"
+.TH MLTERM 1 "2013-10-27"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -586,6 +586,10 @@ The default is \fBfalse\fR.
 Specify parent Window ID.
 The default is \fB0\fR.
 .TP
+\fB\-\-scp\fR(=\fIbool\fR)
+Allow OSC 5379 scp.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-serv\fR=\fIvalue\fR
 Specify a host you want to connect via ssh etc.
 This option is enabled only if mlterm is built with MinGW or \-\-enable\-ssh2 option.
@@ -1121,6 +1125,9 @@ See the explanation on these command-line options for detail.
 .TP
 \fBallow_osc52=\fIbool\fR (\fB\-\-osc52\fR)
 Allow access to clipboard(selection) by OSC 52 sequence.
+.TP
+\fBallow_scp=\fIbool\fR (\fB\-\-scp\fR)
+Allow OSC 5379 scp.
 .TP
 \fBallow_change_shortcut=\fIbool\fR (\fB\-\-shortcut\fR)
 Allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.

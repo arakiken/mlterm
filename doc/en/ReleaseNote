@@ -1,6 +1,6 @@
 ver 3.3.0
+* Support framebuffer on NetBSD/x68k. (Thanks to NetBSD/x68k developers)
 * Support Android. (Experimental)
-* Support framebuffer on NetBSD/x68k.
 * Update the colormap instead of searching the closest color when
   OSC 4 ; c ; spec changes RGB of the color number on framebuffer.
 * Support OSC ? 80 h (disable sixel scrolling).

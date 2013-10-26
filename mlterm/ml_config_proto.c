@@ -157,7 +157,7 @@ ml_parse_proto_prefix(
 			if( *p == ';' || *p == '\0')
 			{
 				/* Illegal format */
-			#ifndef  KIK_DEBUG
+			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " Illegal protocol format.\n") ;
 			#endif
 
@@ -228,7 +228,7 @@ ml_parse_proto(
 		{
 			/* Illegal format */
 
-		#ifndef  KIK_DEBUG
+		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " Illegal protocol format.\n") ;
 		#endif
 

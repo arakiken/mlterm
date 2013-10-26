@@ -1,3 +1,12 @@
+2013-10-27  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.3.0 released.
+	  (tag "rel-3_3_0")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.3.0.
+
 2013-10-26  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c, x_screen.c:
