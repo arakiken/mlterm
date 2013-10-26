@@ -1,3 +1,14 @@
+2013-10-26  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c, x_screen.c:
+	  OSC 5379 logging_msg, word_separators, use_alt_buffer,
+	  use_ansi_colors, unicode_noconv_areas and allow_scp are moved from
+	  x_screen.c to ml_vt100_parser.c.
+
+	* MLTermPty.c:
+	  - Minor fixes around some options.
+	  - ONLY_USE_UNICODE_BOXDRAW_FONT is alwasy enabled.
+
 2013-10-24  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: Button3 motion event doesn't start selecting on libvte.

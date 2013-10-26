@@ -220,10 +220,6 @@ set_config(
 			ml_term_set_col_size_of_width_a( nativeObj->term , size) ;
 		}
 	}
-	else if( strcmp( key , "icon_path") == 0)
-	{
-		ml_term_set_icon_path( nativeObj->term , value) ;
-	}
 	else if( strcmp( key , "logging_vt_seq") == 0)
 	{
 		int  flag ;
@@ -233,17 +229,6 @@ set_config(
 			ml_term_set_logging_vt_seq( nativeObj->term , flag) ;
 		}
 	}
-	else if( strcmp( key , "logging_msg") == 0)
-	{
-		if( true_or_false( value) > 0)
-		{
-			kik_set_msg_log_file_name( "mlterm/msg.log") ;
-		}
-		else
-		{
-			kik_set_msg_log_file_name( NULL) ;
-		}
-	}
 	else if( strcmp( key , "use_local_echo") == 0)
 	{
 		int  flag ;
@@ -251,24 +236,6 @@ set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			ml_term_set_use_local_echo( nativeObj->term , flag) ;
-		}
-	}
-	else if( strcmp( key , "use_alt_buffer") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_set_use_alt_buffer( flag) ;
-		}
-	}
-	else if( strcmp( key , "use_ansi_colors") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_set_use_ansi_colors( flag) ;
 		}
 	}
 }
@@ -374,10 +341,6 @@ get_config(
 		{
 			value = ml_term_get_slave_name( nativeObj->term) ;
 		}
-	}
-	else if( strcmp( key , "icon_path") == 0)
-	{
-		value = ml_term_icon_path( nativeObj->term) ;
 	}
 	else if( strcmp( key , "logging_vt_seq") == 0)
 	{
@@ -955,6 +918,22 @@ Java_mlterm_MLTermPty_nativeOpen(
 			#endif
 			}
 
+			if( ( value = kik_conf_get_value( conf , "use_alt_buffer")))
+			{
+				if( strcmp( value , "false") == 0)
+				{
+					ml_set_use_alt_buffer( 0) ;
+				}
+			}
+
+			if( ( value = kik_conf_get_value( conf , "use_ansi_colors")))
+			{
+				if( strcmp( value , "false") == 0)
+				{
+					ml_set_use_ansi_colors( 0) ;
+				}
+			}
+
 		#ifdef  USE_LIBSSH2
 			if( ( value = kik_conf_get_value( conf , "ssh_public_key")))
 			{
@@ -987,6 +966,14 @@ Java_mlterm_MLTermPty_nativeOpen(
 					ml_pty_ssh_set_use_x11_forwarding( NULL , 1) ;
 				}
 			}
+
+			if( ( value = kik_conf_get_value( conf , "allow_scp")))
+			{
+				if( strcmp( value , "true") == 0)
+				{
+					ml_set_use_scp( 1) ;
+				}
+			}
 		#endif
 
 		#if  0
@@ -1013,6 +1000,8 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 			kik_conf_delete( conf) ;
 		}
+
+		unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
 	}
 
 	if( ! ( nativeObj = calloc( sizeof( native_obj_t) , 1)))

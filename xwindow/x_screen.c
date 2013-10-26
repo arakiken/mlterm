@@ -8781,10 +8781,6 @@ x_screen_set_config(
 			ml_term_set_logging_vt_seq( term , flag) ;
 		}
 	}
-	else if( strcmp( key , "word_separators") == 0)
-	{
-		ml_set_word_separators( value) ;
-	}
 	else if( strcmp( key , "use_clipboard") == 0)
 	{
 		int  flag ;
@@ -8797,17 +8793,6 @@ x_screen_set_config(
 	else if( strcmp( key , "auto_restart") == 0)
 	{
 		ml_set_auto_restart_cmd( strcmp( value , "false") == 0 ? NULL : value) ;
-	}
-	else if( strcmp( key , "logging_msg") == 0)
-	{
-		if( true_or_false( value) > 0)
-		{
-			kik_set_msg_log_file_name( "mlterm/msg.log") ;
-		}
-		else
-		{
-			kik_set_msg_log_file_name( NULL) ;
-		}
 	}
 	else if( strcmp( key , "allow_osc52") == 0)
 	{
@@ -8850,24 +8835,6 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			ml_term_set_use_local_echo( screen->term , flag) ;
-		}
-	}
-	else if( strcmp( key , "use_alt_buffer") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_set_use_alt_buffer( flag) ;
-		}
-	}
-	else if( strcmp( key , "use_ansi_colors") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_set_use_ansi_colors( flag) ;
 		}
 	}
 	else if( strcmp( key , "use_urgent_bell") == 0)
@@ -8937,21 +8904,6 @@ x_screen_set_config(
 			usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 		}
 	}
-	else if( strcmp( key , "unicode_noconv_areas"))
-	{
-		ml_set_unicode_noconv_areas( value) ;
-	}
-#ifdef  USE_LIBSSH2
-	else if( strcmp( key , "allow_scp") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_set_use_scp( flag) ;
-		}
-	}
-#endif
 	else
 	{
 		return  0 ;

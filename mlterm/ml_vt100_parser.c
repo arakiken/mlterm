@@ -1161,11 +1161,30 @@ show_picture(
 #endif
 
 
+static int
+true_or_false(
+	char *  str
+	)
+{
+	if( strcmp( str , "true") == 0)
+	{
+		return  1 ;
+	}
+	else if( strcmp( str , "false") == 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  -1 ;
+	}
+}
+
+static void  soft_reset( ml_vt100_parser_t *  vt100_parser) ;
+
 /*
  * This function will destroy the content of pt.
  */
-static void  soft_reset( ml_vt100_parser_t *  vt100_parser) ;
-
 static void
 config_protocol_set(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -1363,7 +1382,59 @@ config_protocol_set(
 					}
 				}
 
-				if( HAS_CONFIG_LISTENER(vt100_parser,set))
+				/*
+				 * Here process options whose 'get' protocol doesn't
+				 * exist and which are stored in static variables.
+				 */
+				if( strcmp( key , "logging_msg") == 0)
+				{
+					if( true_or_false( val) > 0)
+					{
+						kik_set_msg_log_file_name( "mlterm/msg.log") ;
+					}
+					else
+					{
+						kik_set_msg_log_file_name( NULL) ;
+					}
+				}
+				else if( strcmp( key , "word_separators") == 0)
+				{
+					ml_set_word_separators( val) ;
+				}
+				else if( strcmp( key , "use_alt_buffer") == 0)
+				{
+					int  flag ;
+
+					if( ( flag = true_or_false( val)) != -1)
+					{
+						use_alt_buffer = flag ;
+					}
+				}
+				else if( strcmp( key , "use_ansi_colors") == 0)
+				{
+					int  flag ;
+
+					if( ( flag = true_or_false( val)) != -1)
+					{
+						use_ansi_colors = flag ;
+					}
+				}
+				else if( strcmp( key , "unicode_noconv_areas") == 0)
+				{
+					ml_set_unicode_noconv_areas( val) ;
+				}
+			#ifdef  USE_LIBSSH2
+				else if( strcmp( key , "allow_scp") == 0)
+				{
+					int  flag ;
+
+					if( ( flag = true_or_false( val)) != -1)
+					{
+						use_scp = flag ;
+					}
+				}
+			#endif
+				else if( HAS_CONFIG_LISTENER(vt100_parser,set))
 				{
 					(*vt100_parser->config_listener->set)(
 						vt100_parser->config_listener->self ,
