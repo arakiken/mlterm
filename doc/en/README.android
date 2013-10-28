@@ -17,5 +17,5 @@ Android support (Experimental)
 
 * Note
   o Only sixel graphics format is available for "wall_picture" option.
-  o Encodings except UTF-8 doesn't work correctly.
-  o BiDi and indic support is unavailable.
+  o Indic support is unavailable.
+  o Scrollbar is disabled.

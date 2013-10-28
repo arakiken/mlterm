@@ -1,5 +1,13 @@
 2013-10-27  Araki Ken  <arakiken@users.sf.net>
 
+	* README.androind: Updated.
+
+	* android/build.sh, Android.mk: Support fribidi.
+
+	* version.h.in: 3.3.0 -> 3.3.0post
+
+2013-10-27  Araki Ken  <arakiken@users.sf.net>
+
 	* 3.3.0 released.
 	  (tag "rel-3_3_0")
 
