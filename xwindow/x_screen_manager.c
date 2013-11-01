@@ -150,7 +150,12 @@ create_term_intern(void)
 
 	if( main_config.logging_vt_seq)
 	{
-		ml_term_set_logging_vt_seq( term , main_config.logging_vt_seq) ;
+		ml_term_set_logging_vt_seq( term , 1) ;
+	}
+
+	if( main_config.use_auto_detect)
+	{
+		ml_term_set_use_auto_detect( term , 1) ;
 	}
 
 	return  term ;

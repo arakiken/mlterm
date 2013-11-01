@@ -218,6 +218,8 @@ typedef struct  ml_vt100_parser
 
 	int8_t  yield ;
 
+	int8_t  use_auto_detect ;
+
 	/* for save/restore cursor */
 	ml_vt100_storable_states_t  saved_normal ;
 	ml_vt100_storable_states_t  saved_alternate ;
@@ -320,6 +322,12 @@ int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
 #define  ml_vt100_parser_get_unicode_policy( vt100_parser)  ((vt100_parser)->unicode_policy)
 
 #define  ml_vt100_parser_set_use_bidi( vt100_parser , use)  ((vt100_parser)->use_bidi = (use))
+
+int  ml_set_auto_detect_encodings( char *  encodings) ;
+
+int  ml_vt100_parser_set_use_auto_detect( ml_vt100_parser_t *  vt100_parser , int  use) ;
+
+#define  ml_vt100_parser_is_using_auto_detect( vt100_parser) ((vt100_parser)->use_auto_detect)
 
 int  ml_convert_to_internal_ch( mkf_char_t *  ch , ml_unicode_policy_t  unicode_policy ,
 		mkf_charset_t  gl) ;

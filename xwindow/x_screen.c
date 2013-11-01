@@ -5881,6 +5881,17 @@ get_config(
 			value = "noconv" ;
 		}
 	}
+	else if( strcmp( key , "use_auto_detect") == 0)
+	{
+		if( ml_term_is_using_auto_detect( screen->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
 
 	if( value == NULL)
 	{
@@ -8902,6 +8913,19 @@ x_screen_set_config(
 			}
 
 			usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
+		}
+	}
+	else if( strcmp( key , "auto_detect_encodings") == 0)
+	{
+		ml_set_auto_detect_encodings( value) ;
+	}
+	else if( strcmp( key , "use_auto_detect") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_term_set_use_auto_detect( screen->term , flag) ;
 		}
 	}
 	else

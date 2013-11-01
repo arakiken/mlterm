@@ -1,3 +1,6 @@
+ver 3.3.1
+* Add "use_auto_detect" and "auto_detect_encodings" options.
+* Support ESC $ on non-ISO2022 encodings such as UTF-8.
 ver 3.3.0
 * Support framebuffer on NetBSD/x68k. (Thanks to NetBSD/x68k developers)
 * Support Android. (Experimental)

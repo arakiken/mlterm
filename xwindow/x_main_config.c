@@ -274,6 +274,10 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "locale" , 0 , "locale" , "set locale.") ;
 	kik_conf_add_opt( conf , '\0' , "ucsnoconv" , 0 , "unicode_noconv_areas" ,
 		"use unicode fonts partially regardless of -n option.") ;
+	kik_conf_add_opt( conf , '\0' , "ade" , 0 , "auto_detect_encodings" ,
+		"encodings detected automatically.") ;
+	kik_conf_add_opt( conf , '\0' , "auto" , 0 , "use_auto_detect" ,
+		"detect character encoding automatically.") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [false]") ;
@@ -1327,6 +1331,19 @@ x_main_config_init(
 		if( strcmp( value , "false") == 0)
 		{
 			ml_set_use_ansi_colors( 0) ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "auto_detect_encodings")))
+	{
+		ml_set_auto_detect_encodings( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_auto_detect")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config->use_auto_detect = 1 ;
 		}
 	}
 

@@ -408,6 +408,14 @@ comment $Id$
         copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
         を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 
+      o auto_detect_encodings
+        文字コードを自動判定する場合の候補とするエンコーディングをカンマで区切っ
+        て指定します。
+
+      o use_auto_detect
+        文字コードの自動判定を行います。あらかじめ、auto_detect_encodings オプシ
+        ョンで候補とするエンコーディングを指定しておく必要があります。
+
       -- Font 関連 --
       o fontsize  (*16*) (#)
         フォントサイズ
@@ -1194,6 +1202,8 @@ comment $Id$
        --urgent(=bool) : use_urgent_bell
        --locale=value  : locale
        --ucsnoconv=value : unicode_noconv_areas
+       --ade=value     : auto_detect_encodings
+       --auto(=bool)   : use_auto_detect
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)

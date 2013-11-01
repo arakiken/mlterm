@@ -492,7 +492,14 @@ Specify the step of changing font size in pixel when you pushed
 GUI configurator.
 The default is \fB1\fR.
 .TP
-\fB\-\-altbuf\fR=\fIvalue\fR
+\fB\-\-ade\fR=\fIvalue\fR
+Specify character encodings detected automatically.
+.TP
+\fB\-\-auto\fR(=\fIbool\fR)
+Automatically detect appropriate character encoding from the encodings
+specified by \-\-ade option. The default is \fBfalse\fR.
+.TP
+\fB\-\-altbuf\fR(=\fIbool\fR)
 Whether to enable alternate screen buffer.
 This option is similar to "titeInhibit" of xterm.
 .TP
@@ -1123,6 +1130,9 @@ The main configuration file "\fBmain\fR" has the following keys.
 Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
 .TP
+\fBauto_detect_encodings=\fIvalue\fR (\fB\-\-ade\fR)
+Specify character encodings detected automatically.
+.TP
 \fBallow_osc52=\fIbool\fR (\fB\-\-osc52\fR)
 Allow access to clipboard(selection) by OSC 52 sequence.
 .TP
@@ -1334,6 +1344,10 @@ Rendering engine for drawing fonts.
 .TP
 \fBul_color=\fIvalue\fR (\fB\-\-ul\fR) 
 Specify the color to use to display underlined characters.
+.TP
+\fBuse_auto_detect=\fIbool\fR (\fB\-\-auto\fR)
+Automatically detect appropriate character encoding from the encodings
+specified by auto_detect_encodings option.
 .TP
 \fBuse_alt_buffer=\fIbool\fR (\fB\-\-altbuf\fR)
 Use alternate screen buffer.

@@ -107,6 +107,7 @@ typedef struct x_main_config
 	int8_t  use_bold_font ;
 	int8_t  use_local_echo ;
 	int8_t  use_x11_forwarding ;
+	int8_t  use_auto_detect ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	int8_t  show_dialog ;
 #endif

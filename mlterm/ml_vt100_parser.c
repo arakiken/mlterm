@@ -146,6 +146,14 @@ struct
 } *  unicode_noconv_areas ;
 u_int  num_of_unicode_noconv_areas ;
 
+static struct
+{
+	ml_char_encoding_t  encoding ;
+	mkf_parser_t *  parser ;
+
+} *  auto_detect ;
+static u_int  auto_detect_count ;
+
 
 /* --- static functions --- */
 
@@ -341,6 +349,154 @@ get_home_file_path(
 	return  kik_get_user_rc_path( file_name) ;
 }
 
+/*
+ * 0: Error
+ * 1: No error
+ * 2: Probable
+ */
+static int
+parse_string(
+	mkf_parser_t *  cc_parser ,
+	u_char *  str ,
+	size_t  len
+	)
+{
+	mkf_char_t  ch ;
+	int  ret ;
+
+	ret = 1 ;
+	(*cc_parser->init)( cc_parser) ;
+	(*cc_parser->set_str)( cc_parser , str , len) ;
+
+	while(1)
+	{
+		if( ! (*cc_parser->next_char)( cc_parser , &ch))
+		{
+			if( cc_parser->is_eos)
+			{
+				return  ret ;
+			}
+			else
+			{
+				if( ((str[len - cc_parser->left]) & 0x7f) <= 0x1f)
+				{
+					/* skip C0 or C1 */
+					mkf_parser_increment( cc_parser) ;
+				}
+				else
+				{
+					return  0 ;
+				}
+			}
+		}
+		else if( ch.size > 1)
+		{
+			if( ch.cs == ISO10646_UCS4_1)
+			{
+				if( ret == 1 && ch.property == MKF_FULLWIDTH)
+				{
+					ret = 2 ;
+				}
+			}
+			else if( IS_CS94MB(ch.cs))
+			{
+				if( ch.ch[0] <= 0x20 || ch.ch[0] == 0x7f ||
+				    ch.ch[1] <= 0x20 || ch.ch[1] == 0x7f)
+				{
+					/* mkf can return illegal character code. */
+					return  0 ;
+				}
+				else if( ret == 1 &&
+				         ( ch.cs == JISX0208_1983 ||
+					   ch.cs == JISC6226_1978 ||
+					   ch.cs == JISX0213_2000_1))
+				{
+					if( (ch.ch[0] == 0x24 || ch.ch[0] == 0x25) &&
+					    0x21 <= ch.ch[1] && ch.ch[1] <= 0x73)
+					{
+						/* Hiragana/Katakana */
+						ret = 2 ;
+					}
+				}
+			}
+		}
+	}
+}
+
+/* Check auto_detect_count > 0 before calling this function. */
+static void
+detect_encoding(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	u_char *  str ;
+	size_t  len ;
+	size_t  count ;
+	u_int  idx ;
+	int  cur_idx ;
+	int  cand_idx ;
+	int  threshold ;
+
+	str = vt100_parser->r_buf.chars ;
+	len = vt100_parser->r_buf.filled_len ;
+
+	for( count = 0 ; count < len - 1 ; count++)
+	{
+		if( str[count] >= 0x80 && str[count + 1] >= 0x80)
+		{
+			goto  detect ;
+		}
+	}
+
+	return ;
+
+detect:
+	cur_idx = -1 ;
+	threshold = 0 ;
+	for( idx = 0 ; idx < auto_detect_count ; idx++)
+	{
+		if( auto_detect[idx].encoding == vt100_parser->encoding)
+		{
+			if( ( threshold = parse_string( auto_detect[idx].parser , str , len)) == 2)
+			{
+				return ;
+			}
+
+			cur_idx = idx ;
+			break ;
+		}
+	}
+
+	cand_idx = -1 ;
+	for( idx = 0 ; idx < auto_detect_count ; idx++)
+	{
+		int  ret ;
+
+		if( idx != cur_idx &&
+		    ( ret = parse_string( auto_detect[idx].parser , str , len)) > threshold)
+		{
+			cand_idx = idx ;
+
+			if( ret > 1)
+			{
+				break ;
+			}
+		}
+	}
+
+	if( cand_idx >= 0)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" Character encoding is changed to %s.\n" ,
+			ml_get_char_encoding_name( auto_detect[cand_idx].encoding)) ;
+	#endif
+
+		ml_vt100_parser_change_encoding( vt100_parser ,
+			auto_detect[cand_idx].encoding) ;
+	}
+}
+
 static int
 receive_bytes(
 	ml_vt100_parser_t *  vt100_parser
@@ -430,6 +586,11 @@ end:
 		{
 			return  1 ;
 		}
+	}
+
+	if( vt100_parser->use_auto_detect && auto_detect_count > 0)
+	{
+		detect_encoding( vt100_parser) ;
 	}
 
 #ifdef  INPUT_DEBUG
@@ -4538,9 +4699,14 @@ parse_vt100_escape_sequence(
 						ml_screen_fill_all_with_e( vt100_parser->screen) ;
 					}
 				}
-				else if( *(str_p - ic_num) == '(')
+				else if( *(str_p - ic_num) == '(' ||
+				         *(str_p - ic_num) == '$')
 				{
-					/* "ESC ("(Registered CS) or "ESC ( SP"(DRCS) */
+					/*
+					 * "ESC ("(Registered CS),
+					 * "ESC ( SP"(DRCS) or "ESC $"
+					 * See ml_convert_to_internal_ch() about CS94MB_ID.
+					 */
 
 					if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 					{
@@ -4548,7 +4714,9 @@ parse_vt100_escape_sequence(
 						return  1 ;
 					}
 
-					vt100_parser->g0 = CS94SB_ID(*str_p) ;
+					vt100_parser->g0 = *(str_p - ic_num) == '$' ?
+								CS94MB_ID(*str_p) :
+								CS94SB_ID(*str_p) ;
 
 					if( ! vt100_parser->is_so)
 					{
@@ -5354,6 +5522,66 @@ ml_vt100_parser_set_unicode_policy(
 	return  1 ;
 }
 
+int
+ml_vt100_parser_set_use_auto_detect(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  use
+	)
+{
+	vt100_parser->use_auto_detect = use ;
+
+	return  1 ;
+}
+
+int
+ml_set_auto_detect_encodings(
+	char *  encodings
+	)
+{
+	char *  p ;
+	u_int  count ;
+
+	if( auto_detect_count > 0)
+	{
+		for( count = 0 ; count < auto_detect_count ; count++)
+		{
+			(*auto_detect[count].parser->delete)( auto_detect[count].parser) ;
+		}
+
+		free( auto_detect) ;
+		auto_detect_count = 0 ;
+	}
+
+	if( ! ( auto_detect = malloc( sizeof(*auto_detect) *
+					(kik_count_char_in_str( encodings , ',') + 1))))
+	{
+		return  0 ;
+	}
+
+	while( ( p = kik_str_sep( &encodings , ",")))
+	{
+		if( ( auto_detect[auto_detect_count].encoding = ml_get_char_encoding( p)) !=
+			ML_UNKNOWN_ENCODING)
+		{
+			auto_detect_count ++ ;
+		}
+	}
+
+	if( auto_detect_count == 0)
+	{
+		free( auto_detect) ;
+
+		return  0 ;
+	}
+
+	for( count = 0 ; count < auto_detect_count ; count++)
+	{
+		auto_detect[count].parser = ml_parser_new( auto_detect[count].encoding) ;
+	}
+
+	return  1 ;
+}
+
 /*
  * Return value
  *  1:  Succeed
@@ -5516,6 +5744,30 @@ ml_convert_to_internal_ch(
 		{
 			if( ch.cs == US_ASCII && gl != US_ASCII)
 			{
+				/* XXX prev_ch should not be static. */
+				static u_char  prev_ch ;
+				static mkf_charset_t  prev_gl = US_ASCII ;
+
+				if( IS_CS94MB( gl))
+				{
+					if( gl == prev_gl && prev_ch)
+					{
+						ch.ch[1] = ch.ch[0] ;
+						ch.ch[0] = prev_ch ;
+						ch.size = 2 ;
+						ch.property = MKF_FULLWIDTH ;
+						prev_ch = 0 ;
+						prev_gl = US_ASCII ;
+					}
+					else
+					{
+						prev_ch = ch.ch[0] ;
+						prev_gl = gl ;
+
+						return  0 ;
+					}
+				}
+
 				ch.cs = gl ;
 			}
 

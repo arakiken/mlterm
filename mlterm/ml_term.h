@@ -290,6 +290,12 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_modify_other_keys( term)  ml_vt100_parser_modify_other_keys((term)->parser)
 
+#define  ml_term_is_using_auto_detect( term) \
+		ml_vt100_parser_is_using_auto_detect((term)->parser)
+
+#define  ml_term_set_use_auto_detect( term , use) \
+		ml_vt100_parser_set_use_auto_detect((term)->parser , use)
+
 int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 
 #define  ml_term_window_name( term)  ml_get_window_name((term)->parser)

@@ -45,7 +45,8 @@ version 20131027
                      icon_path | logging_vt_seq | logging_msg | word_separators | use_clipboard |
                      auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
-                     box_drawing_font | use_urgent_bell | allow_scp
+                     box_drawing_font | use_urgent_bell | allow_scp | auto_detect_encodings |
+                     use_auto_detect
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -58,7 +59,8 @@ version 20131027
                      rows | cols | cursor_fg_color | cursor_bg_color | bd_color | ul_color |
                      use_bold_font | hide_underline | pty_list | pty_name | use_clipboard |
                      icon_path | logging_vt_seq | gui | allow_osc52 |
-                     only_use_unicode_font | not_use_unicode_font | box_drawing_font
+                     only_use_unicode_font | not_use_unicode_font | box_drawing_font |
+                     use_auto_detect
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -74,6 +76,7 @@ version 20131027
   allow_osc52 = true | false | switch
   allow_scp = true | false
   auto_restart = true | false | <restart command>
+  auto_detect_encodings = (<encoding name>,)*
   bd_color = <color name> | <color rgb>
   bel_mode = none | sound | visual
   bg_color = <color name> | <color rgb>
@@ -117,6 +120,7 @@ version 20131027
   use_alt_buffer = true | false
   use_ansi_colors = true | false
   use_anti_alias = true | false
+  use_auto_deetect = true | false
   use_bidi = true | false
   use_bold_font = true | false
   use_ind = true | false
