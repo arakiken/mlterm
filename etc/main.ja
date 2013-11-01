@@ -92,6 +92,12 @@
 # を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 # receive_string_via_ucs = false
 
+# 文字コードを自動判定する場合の候補とするエンコーディング
+# auto_detect_encodings =
+
+# 文字コードの自動判定を行う
+# use_auto_detect = false
+
 # -- Font 関連 --
 # デフォルトフォントサイズ
 # fontsize = 16
@@ -291,6 +297,9 @@ scrollbar_view_name = sample
 
 # ssh 接続で x11 forwarding を有効にする。
 # ssh_x11_forwarding = false
+
+# ssh 接続時に OSC 5379 scp を許可する。
+# allow_scp = false
 
 # SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
 # application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。

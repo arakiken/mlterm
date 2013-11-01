@@ -1,5 +1,9 @@
 2013-11-02  Araki Ken  <arakiken@users.sf.net>
 
+	* etc/main, etc/main.ja: Updated.
+
+2013-11-02  Araki Ken  <arakiken@users.sf.net>
+
 	* mlterm.1, README.ja, PROTOCOL: Updated.
 
 	* ml_vt100_parser.c: ESC $ is available on non-ISO2022 encodings

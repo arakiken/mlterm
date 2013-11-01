@@ -409,12 +409,14 @@ comment $Id$
         を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 
       o auto_detect_encodings
-        文字コードを自動判定する場合の候補とするエンコーディングをカンマで区切っ
-        て指定します。
+        文字コードを自動判定する場合の候補とするエンコーディング
+        (カンマで区切って複数指定可)
 
       o use_auto_detect
-        文字コードの自動判定を行います。あらかじめ、auto_detect_encodings オプシ
-        ョンで候補とするエンコーディングを指定しておく必要があります。
+        文字コードの自動判定を行う
+
+        あらかじめ、auto_detect_encodings オプションで候補とするエンコーディング
+        を指定しておく必要があります。
 
       -- Font 関連 --
       o fontsize  (*16*) (#)
@@ -725,6 +727,9 @@ comment $Id$
 
       o ssh_x11_forwarding (true/*false*)
         ssh 接続で x11 forwarding を有効にする。
+
+      o allow_scp (false)
+        ssh 接続時に OSC 5379 scp を許可する。
 
       o auto_restart (*true*/false)
         SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console

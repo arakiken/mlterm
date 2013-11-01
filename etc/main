@@ -67,6 +67,10 @@
 
 # receive_string_via_ucs = false
 
+# auto_detect_encodings =
+
+# use_auto_detect = false
+
 # -- Font --
 # fontsize = 16
 
@@ -203,6 +207,8 @@ scrollbar_view_name = sample
 # ssh_keepalive_interval = 0
 
 # ssh_x11_forwarding = false
+
+# allow_scp = false
 
 # auto_restart = true
 
