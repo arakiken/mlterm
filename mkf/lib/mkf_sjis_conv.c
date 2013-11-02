@@ -166,7 +166,7 @@ map_jisx0208_1983_to_sjis(
 
 	high = (high - 0x21) / 2 + 0x81 ;
 
-	if( high >= 0x9f)
+	if( high > 0x9f)
 	{
 		high += 0x40 ;
 	}

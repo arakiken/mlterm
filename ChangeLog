@@ -1,5 +1,11 @@
 2013-11-02  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: Minor fixes.
+
+	* mkf_sjis_conv.c: The bug of converting to shift jis is fixed.
+
+2013-11-02  Araki Ken  <arakiken@users.sf.net>
+
 	* etc/main, etc/main.ja: Updated.
 
 2013-11-02  Araki Ken  <arakiken@users.sf.net>

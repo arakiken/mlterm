@@ -352,7 +352,7 @@ get_home_file_path(
 /*
  * 0: Error
  * 1: No error
- * 2: Probable
+ * >=2: Probable
  */
 static int
 parse_string(
@@ -409,14 +409,12 @@ parse_string(
 				else if( ret == 1 &&
 				         ( ch.cs == JISX0208_1983 ||
 					   ch.cs == JISC6226_1978 ||
-					   ch.cs == JISX0213_2000_1))
+					   ch.cs == JISX0213_2000_1) &&
+					 ( ch.ch[0] == 0x24 || ch.ch[0] == 0x25) &&
+					 0x21 <= ch.ch[1] && ch.ch[1] <= 0x73)
 				{
-					if( (ch.ch[0] == 0x24 || ch.ch[0] == 0x25) &&
-					    0x21 <= ch.ch[1] && ch.ch[1] <= 0x73)
-					{
-						/* Hiragana/Katakana */
-						ret = 2 ;
-					}
+					/* Hiragana/Katakana */
+					ret = 2 ;
 				}
 			}
 		}
@@ -457,7 +455,7 @@ detect:
 	{
 		if( auto_detect[idx].encoding == vt100_parser->encoding)
 		{
-			if( ( threshold = parse_string( auto_detect[idx].parser , str , len)) == 2)
+			if( ( threshold = parse_string( auto_detect[idx].parser , str , len)) > 1)
 			{
 				return ;
 			}
