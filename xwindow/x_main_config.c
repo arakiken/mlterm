@@ -276,7 +276,7 @@ x_prepare_for_main_config(
 		"use unicode fonts partially regardless of -n option.") ;
 	kik_conf_add_opt( conf , '\0' , "ade" , 0 , "auto_detect_encodings" ,
 		"encodings detected automatically.") ;
-	kik_conf_add_opt( conf , '\0' , "auto" , 0 , "use_auto_detect" ,
+	kik_conf_add_opt( conf , '\0' , "auto" , 1 , "use_auto_detect" ,
 		"detect character encoding automatically.") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
