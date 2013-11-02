@@ -88,6 +88,9 @@ int  ml_term_detach( ml_term_t *  term) ;
 
 #define  ml_term_parse_vt100_sequence( term)  ml_parse_vt100_sequence( (term)->parser)
 
+#define  ml_term_reset_pending_vt100_sequence( term) \
+		ml_reset_pending_vt100_sequence( (term)->parser)
+
 #define  ml_term_change_encoding( term , encoding) \
 		ml_vt100_parser_change_encoding( (term)->parser , encoding)
 

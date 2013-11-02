@@ -363,8 +363,12 @@ parse_string(
 {
 	mkf_char_t  ch ;
 	int  ret ;
+	u_int  nfull ;
+	u_int  nkana ;
 
 	ret = 1 ;
+	nfull = 0 ;
+	nkana = 0 ;
 	(*cc_parser->init)( cc_parser) ;
 	(*cc_parser->set_str)( cc_parser , str , len) ;
 
@@ -374,6 +378,12 @@ parse_string(
 		{
 			if( cc_parser->is_eos)
 			{
+				if( nkana * 8 > nfull)
+				{
+					/* kana is over 12.5%. */
+					ret = 2 ;
+				}
+
 				return  ret ;
 			}
 			else
@@ -398,24 +408,29 @@ parse_string(
 					ret = 2 ;
 				}
 			}
-			else if( IS_CS94MB(ch.cs))
+			else
 			{
-				if( ch.ch[0] <= 0x20 || ch.ch[0] == 0x7f ||
-				    ch.ch[1] <= 0x20 || ch.ch[1] == 0x7f)
+				if( IS_CS94MB(ch.cs))
 				{
-					/* mkf can return illegal character code. */
-					return  0 ;
+					if( ch.ch[0] <= 0x20 || ch.ch[0] == 0x7f ||
+					    ch.ch[1] <= 0x20 || ch.ch[1] == 0x7f)
+					{
+						/* mkf can return illegal character code. */
+						return  0 ;
+					}
+					else if( ret == 1 &&
+						 ( ch.cs == JISX0208_1983 ||
+						   ch.cs == JISC6226_1978 ||
+						   ch.cs == JISX0213_2000_1) &&
+						 ( ch.ch[0] == 0x24 || ch.ch[0] == 0x25) &&
+						 0x21 <= ch.ch[1] && ch.ch[1] <= 0x73)
+					{
+						/* Hiragana/Katakana */
+						nkana ++ ;
+					}
 				}
-				else if( ret == 1 &&
-				         ( ch.cs == JISX0208_1983 ||
-					   ch.cs == JISC6226_1978 ||
-					   ch.cs == JISX0213_2000_1) &&
-					 ( ch.ch[0] == 0x24 || ch.ch[0] == 0x25) &&
-					 0x21 <= ch.ch[1] && ch.ch[1] <= 0x73)
-				{
-					/* Hiragana/Katakana */
-					ret = 2 ;
-				}
+
+				nfull ++ ;
 			}
 		}
 	}
@@ -5294,6 +5309,20 @@ ml_parse_vt100_sequence(
 	stop_vt100_cmd( vt100_parser , 1) ;
 
 	return  1 ;
+}
+
+void
+ml_reset_pending_vt100_sequence(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	if( vt100_parser->r_buf.left >= 2 &&
+	    ( vt100_parser->r_buf.chars[0] == 0x90 ||
+	      memcmp( vt100_parser->r_buf.chars , "\x1bP" , 2) == 0))
+	{
+		/* Reset DCS */
+		vt100_parser->r_buf.left = 0 ;
+	}
 }
 
 int

@@ -2696,9 +2696,14 @@ no_keypad:
 				buf = "\x08" ;
 			}
 		}
-		else if( ksym == XK_Escape && ml_term_is_app_escape( screen->term))
+		else if( ksym == XK_Escape)
 		{
-			buf = "\x1bO[" ;
+			ml_term_reset_pending_vt100_sequence( screen->term) ;
+
+			if( ml_term_is_app_escape( screen->term))
+			{
+				buf = "\x1bO[" ;
+			}
 		}
 		else if( size > 0)
 		{

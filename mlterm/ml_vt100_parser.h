@@ -255,6 +255,8 @@ int  ml_vt100_parser_set_config_listener( ml_vt100_parser_t *  vt100_parser ,
 
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 
+void  ml_reset_pending_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
+
 /* Must be called in visual context. */
 int  ml_vt100_parser_write_loopback( ml_vt100_parser_t *  vt100_parser ,
 	u_char *  buf , size_t  len) ;
