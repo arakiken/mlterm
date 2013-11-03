@@ -21,6 +21,11 @@
 
 #define  IBUS_ID  -2
 
+#if  IBUS_CHECK_VERSION(1,5,0)
+#define  ibus_input_context_is_enabled(context)  (TRUE)
+#define  ibus_input_context_disable(context)  (0)
+#define  ibus_input_context_enable(context)  (0)
+#endif
 
 typedef struct im_ibus
 {
@@ -763,11 +768,14 @@ key_event(
 		is_enabled_old = ibus->is_enabled ;
 		ibus->is_enabled = ibus_input_context_is_enabled( ibus->context) ;
 
+	#if  ! IBUS_CHECK_VERSION(1,5,0)
 		if( ibus->is_enabled != is_enabled_old)
 		{
 			return  0 ;
 		}
-		else if( ibus->is_enabled)
+		else
+	#endif
+		if( ibus->is_enabled)
 		{
 		#ifndef  DBUS_H
 		#if  0

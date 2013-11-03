@@ -5506,61 +5506,6 @@ ml_vt100_parser_set_col_size_of_width_a(
 }
 
 int
-ml_vt100_parser_set_use_char_combining(
-	ml_vt100_parser_t *  vt100_parser ,
-	int  flag
-	)
-{
-	vt100_parser->use_char_combining = flag ;
-
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_use_multi_col_char(
-	ml_vt100_parser_t *  vt100_parser ,
-	int  flag
-	)
-{
-	vt100_parser->use_multi_col_char = flag ;
-
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_logging_vt_seq(
-	ml_vt100_parser_t *  vt100_parser ,
-	int  flag
-	)
-{
-	vt100_parser->logging_vt_seq = flag ;
-	
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_unicode_policy(
-	ml_vt100_parser_t *  vt100_parser ,
-	ml_unicode_policy_t  policy
-	)
-{
-	vt100_parser->unicode_policy = policy ;
-
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_use_auto_detect(
-	ml_vt100_parser_t *  vt100_parser ,
-	int  use
-	)
-{
-	vt100_parser->use_auto_detect = use ;
-
-	return  1 ;
-}
-
-int
 ml_set_auto_detect_encodings(
 	char *  encodings
 	)

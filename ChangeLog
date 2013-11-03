@@ -1,5 +1,22 @@
 2013-11-03  Araki Ken  <arakiken@users.sf.net>
 
+	* im_ibus.c: ibus 1.5 is supported.
+
+	* ml_term.[ch]: Following functions are changed to macros.
+	  ml_term_set_bidi_mode
+	  ml_term_set_use_ind
+	  ml_term_set_vertical_mode
+	  ml_term_set_use_dynamic_comb
+
+	* ml_vt100_parser.[ch]: Following functions are changed to macros.
+	  ml_vt100_parser_set_use_char_combining
+	  ml_vt100_parser_set_use_multi_col_char
+	  ml_vt100_parser_set_logging_vt_seq
+	  ml_vt100_parser_set_unicode_policy
+	  ml_vt100_parser_set_use_auto_detect
+
+2013-11-03  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.c: Auto encoding detection is a little improved.
 
 	* ml_vt100_parser.[ch], ml_term.h, x_screen.c:

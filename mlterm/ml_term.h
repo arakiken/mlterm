@@ -104,19 +104,19 @@ int  ml_term_set_use_bidi( ml_term_t *  term , int  flag) ;
 
 #define  ml_term_is_using_bidi( term)  ((term)->use_bidi)
 
-int  ml_term_set_bidi_mode( ml_term_t *  term , ml_bidi_mode_t  mode) ;
+#define  ml_term_set_bidi_mode( term , mode)  ((term)->bidi_mode = (mode))
 
 #define  ml_term_get_bidi_mode( term)  ((term)->bidi_mode)
 
-int  ml_term_set_use_ind( ml_term_t *  term , int  flag) ;
+#define  ml_term_set_use_ind( term , use)  ((term)->use_ind = (use))
 
 #define  ml_term_is_using_ind( term)  ((term)->use_ind)
 
-int  ml_term_set_vertical_mode( ml_term_t *  term , ml_vertical_mode_t  mode) ;
+#define  ml_term_set_vertical_mode( term , mode)  ((term)->vertical_mode = (mode))
 
 #define  ml_term_get_vertical_mode( term)  ((term)->vertical_mode)
 
-int  ml_term_set_use_dynamic_comb( ml_term_t *  term , int  flag) ;
+#define  ml_term_set_use_dynamic_comb( term , use)  ((term)->use_dynamic_comb = (use))
 
 #define  ml_term_is_using_dynamic_comb( term)  ((term)->use_dynamic_comb)
 

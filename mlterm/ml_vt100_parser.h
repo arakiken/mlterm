@@ -286,17 +286,20 @@ int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser 
 #define  ml_vt100_parser_get_col_size_of_width_a( vt100_parser) \
 		((vt100_parser)->col_size_of_width_a)
 
-int  ml_vt100_parser_set_use_char_combining( ml_vt100_parser_t *  vt100_parser , int  flag) ;
+#define  ml_vt100_parser_set_use_char_combining( vt100_parser , use) \
+		((vt100_parser)->use_char_combining = (use))
 
 #define  ml_vt100_parser_is_using_char_combining( vt100_parser) \
 		((vt100_parser)->use_char_combining)
 
-int  ml_vt100_parser_set_use_multi_col_char( ml_vt100_parser_t *  vt100_parser , int  flag) ;
+#define  ml_vt100_parser_set_use_multi_col_char( vt100_parser , use) \
+		((vt100_parser)->use_multi_col_char = (use))
 
 #define  ml_vt100_parser_is_using_multi_col_char( vt100_parser) \
 		((vt100_parser)->use_multi_col_char)
 
-int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int  flag) ;
+#define  ml_vt100_parser_set_logging_vt_seq( vt100_parser , flag) \
+		((vt100_parser)->logging_vt_seq = (flag))
 
 #define  ml_vt100_parser_is_logging_vt_seq( vt100_parser)  ((vt100_parser)->logging_vt_seq)
 
@@ -318,8 +321,8 @@ int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int
 
 #define  ml_vt100_parser_modify_other_keys( vt100_parser)  ((vt100_parser)->modify_other_keys)
 
-int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
-		ml_unicode_policy_t  policy) ;
+#define  ml_vt100_parser_set_unicode_policy( vt100_parser , policy) \
+		((vt100_parser)->unicode_policy = (policy))
 
 #define  ml_vt100_parser_get_unicode_policy( vt100_parser)  ((vt100_parser)->unicode_policy)
 
@@ -327,7 +330,8 @@ int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
 
 int  ml_set_auto_detect_encodings( char *  encodings) ;
 
-int  ml_vt100_parser_set_use_auto_detect( ml_vt100_parser_t *  vt100_parser , int  use) ;
+#define  ml_vt100_parser_set_use_auto_detect( vt100_parser , use) \
+		((vt100_parser)->use_auto_detect = (use))
 
 #define  ml_vt100_parser_is_using_auto_detect( vt100_parser) ((vt100_parser)->use_auto_detect)
 

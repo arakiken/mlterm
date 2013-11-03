@@ -326,50 +326,6 @@ ml_term_set_use_bidi(
 }
 
 int
-ml_term_set_bidi_mode(
-	ml_term_t *  term ,
-	ml_bidi_mode_t  mode
-	)
-{
-	term->bidi_mode = mode ;
-
-	return  1 ;
-}
-
-int
-ml_term_set_use_ind(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	term->use_ind = flag ;
-
-	return  1 ;
-}
-
-int
-ml_term_set_vertical_mode(
-	ml_term_t *  term ,
-	ml_vertical_mode_t  mode
-	)
-{
-	term->vertical_mode = mode ;
-
-	return  1 ;
-}
-
-int
-ml_term_set_use_dynamic_comb(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	term->use_dynamic_comb = flag ;
-
-	return  1 ;
-}
-
-int
 ml_term_set_use_local_echo(
 	ml_term_t *  term ,
 	int  flag
