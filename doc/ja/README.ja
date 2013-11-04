@@ -634,6 +634,11 @@ comment $Id$
         scim の場合:
         scim (オプション無し)
 
+        ibus の場合：
+        ibus:[conversion engine]
+        [conversion engine] に変換エンジン(anthy, prime, hangul2など)を指定しま
+        す。指定しなかった場合は ibus のデフォルト変換エンジンが使用されます。
+
         kbd の場合:
         kbd:[mode]
         [mode]には、isciixxx、arabic 又は hebrew を指定します。

@@ -804,6 +804,16 @@ key_event(
 	return  1 ;
 }
 
+static void
+set_engine(
+	IBusInputContext *  context ,
+	gchar *  name
+	)
+{
+	kik_msg_printf( "iBus engine is %s\n" , name) ;
+	ibus_input_context_set_engine( context , name) ;
+}
+
 #if  IBUS_CHECK_VERSION(1,5,0)
 static void
 next_engine(
@@ -848,8 +858,7 @@ next_engine(
 			}
 			while( loop) ;
 
-			kik_msg_printf( "iBus engine is %s\n" , name) ;
-			ibus_input_context_set_engine( ibus->context , name) ;
+			set_engine( ibus->context , name) ;
 
 			free( first_name) ;
 		}
@@ -1096,8 +1105,15 @@ im_ibus_new(
 	ibus->im.focused = focused ;
 	ibus->im.unfocused = unfocused ;
 
+	if( engine)
+	{
+		set_engine( ibus->context , engine) ;
+	}
 #if  defined(USE_FRAMEBUFFER) && IBUS_CHECK_VERSION(1,5,0)
-	next_engine( ibus) ;
+	else
+	{
+		next_engine( ibus) ;
+	}
 #endif
 
 	kik_list_insert_head( im_ibus_t , ibus_list , ibus) ;

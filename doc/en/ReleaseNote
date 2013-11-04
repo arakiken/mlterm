@@ -3,6 +3,7 @@ ver 3.3.1
 * Support ESC $ on non-ISO2022 encodings such as UTF-8.
 * Reset pending DCS sequence by pressing ESC key.
 * Support iBus 1.5.
+* Enable to specify the conversion engine name of iBus. (e.g. --im ibus:anthy)
 * Bug fixes:
   Fix the bug of convertion to sjis.
 
