@@ -804,6 +804,62 @@ key_event(
 	return  1 ;
 }
 
+#if  IBUS_CHECK_VERSION(1,5,0)
+static void
+next_engine(
+	im_ibus_t *  ibus
+	)
+{
+	IBusConfig *  config ;
+	GVariant *  var ;
+
+	config = ibus_bus_get_config( ibus_bus) ;
+	if( ( var = ibus_config_get_value( config , "general" , "preload-engines")))
+	{
+		gchar *  cur_name ;
+		GVariantIter *  iter ;
+		gchar *  name ;
+
+		cur_name = ibus_engine_desc_get_name(
+				ibus_input_context_get_engine( ibus->context)) ;
+
+		g_variant_get( var , "as" , &iter) ;
+
+		if( g_variant_iter_loop( iter , "s" , &name))
+		{
+			gchar *  first_name ;
+			int  loop ;
+
+			first_name = g_strdup( name) ;
+			loop = 1 ;
+
+			do
+			{
+				if( strcmp( cur_name , name) == 0)
+				{
+					loop = 0 ;
+				}
+
+				if( ! g_variant_iter_loop( iter , "s" , &name))
+				{
+					loop = 0 ;
+					name = first_name ;
+				}
+			}
+			while( loop) ;
+
+			kik_msg_printf( "iBus engine is %s\n" , name) ;
+			ibus_input_context_set_engine( ibus->context , name) ;
+
+			free( first_name) ;
+		}
+
+		g_variant_iter_free( iter) ;
+		g_variant_unref( var) ;
+	}
+}
+#endif
+
 static int
 switch_mode(
 	x_im_t *  im
@@ -813,6 +869,9 @@ switch_mode(
 
 	ibus =  (im_ibus_t*)  im ;
 
+#if  IBUS_CHECK_VERSION(1,5,0)
+	next_engine( ibus) ;
+#else
 	if( ibus->is_enabled)
 	{
 		ibus_input_context_disable( ibus->context) ;
@@ -823,6 +882,7 @@ switch_mode(
 		ibus_input_context_enable( ibus->context) ;
 		ibus->is_enabled = TRUE ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -1035,6 +1095,10 @@ im_ibus_new(
 	ibus->im.is_active = is_active ;
 	ibus->im.focused = focused ;
 	ibus->im.unfocused = unfocused ;
+
+#if  defined(USE_FRAMEBUFFER) && IBUS_CHECK_VERSION(1,5,0)
+	next_engine( ibus) ;
+#endif
 
 	kik_list_insert_head( im_ibus_t , ibus_list , ibus) ;
 

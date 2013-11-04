@@ -1,6 +1,10 @@
+2013-11-04  Araki Ken  <arakiken@users.sf.net>
+
+	* im_ibus.c: ibus 1.5 is supported on framebuffer.
+
 2013-11-03  Araki Ken  <arakiken@users.sf.net>
 
-	* im_ibus.c: ibus 1.5 is supported.
+	* im_ibus.c: ibus 1.5 is supported on x11.
 
 	* ml_term.[ch]: Following functions are changed to macros.
 	  ml_term_set_bidi_mode
