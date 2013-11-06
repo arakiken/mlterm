@@ -128,12 +128,15 @@ receive_next_event(void)
 
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{
-			x_display_receive_next_event( displays[count]) ;
-			
+		#ifdef  X_PROTOCOL
+			/* XFlush() is necessary after using Xlib functions. */
+			XFlush( displays[count]->display) ;
+		#endif
+
 			xfd = x_display_fd( displays[count]) ;
-			
+
 			FD_SET( xfd , &read_fds) ;
-		
+
 			if( xfd > maxfd)
 			{
 				maxfd = xfd ;

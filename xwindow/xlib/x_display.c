@@ -486,12 +486,15 @@ x_display_receive_next_event(
 		while( XEventsQueued( disp->display , QueuedAfterReading)) ;
 	}
 
+	/* XFlush() is called in x_event_source.c */
+#if  0
 	/*
 	 * If XEventsQueued() return 0, this should be done because events
 	 * should be flushed before waiting in select().
 	 */
 	XFlush( disp->display) ;
-	
+#endif
+
 	return  1 ;
 }
 

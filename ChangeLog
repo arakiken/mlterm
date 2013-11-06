@@ -1,3 +1,8 @@
+2013-11-06  Araki Ken  <arakiken@users.sf.net>
+
+	* x_event_source.c, xlib/x_display.c: XFlush() is called directly in
+	  x_event_source.c, not in x_display.c.
+
 2013-11-04  Araki Ken  <arakiken@users.sf.net>
 
 	* im_ibus.c: --im ibus:[conversion engine] is available.
