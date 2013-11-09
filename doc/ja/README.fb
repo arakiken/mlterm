@@ -111,7 +111,6 @@ Framebuffer 対応に関するメモ
     でなく、X 版と同様、
     $ mlcc font ...
     としてください。
-  o 8 bpp での cmap の設定は、起動時にのみ行い、その後変更はできません。
   o 画面にゴミが残ったり、8 bpp での cmap の設定が変わってしまった場合には、
     $ mlcc exec update_all
     としてください。

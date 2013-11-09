@@ -45,7 +45,7 @@ version 20131027
                      icon_path | logging_vt_seq | logging_msg | word_separators | use_clipboard |
                      auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
-                     box_drawing_font | use_urgent_bell | allow_scp | auto_detect_encodings |
+                     box_drawing_font | use_urgent_bell | allow_osc52 | auto_detect_encodings |
                      use_auto_detect
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
@@ -161,21 +161,24 @@ version 20131027
     replaced to CR.
   o "paste" command works like INSERT_SELECTION.
   o "scp" command works as follows. ("foo.bar" is a remote host.)
+    If the destination directory is an absolute path, scp isn't executed unless
+    "allow_scp = true".
+    If the destination directory is a relative path, the target file is stored
+    in $HOME/.mlterm/scp/... (mkdir $HOME/.mlterm/scp in advance.)
     e.g.)
-     \x1b]5379;scp /bin/ls work\x07
-       => scp localhost:/bin/ls foo.bar:$HOME/work/ls
-          (If destination path doesn't start with '/', home directory in remote
-           host is automatically completed. Note that home directory is
-           %HOMEPATH% in win32.)
+     \x1b]5379;scp /bin/ls .\x07
+       => scp localhost:/bin/ls foo.bar:$HOME/.mlterm/scp/./ls
+     \x1b]5379;scp remote:/bin/ls .\x07
+       => scp foo.bar:/bin/ls localhost:$HOME/.mlterm/scp/./ls
+     \x1b]5379;scp \"$HOME/my text.txt\" ""\x07
+       => scp "localhost:$HOME/my text.txt" "foo.bar:$HOME/.mlterm/scp/my text.txt"
+     \x1b]5379;scp c:\\users\\text.txt .\x07
+       => scp localhost:c:\users\text.txt foo.bar:$HOME/.mlterm/scp/./text.txt
+          ("\" is available as a separator only in win32.)
      \x1b]5379;scp remote:/bin/ls /usr/bin\x07
        => scp foo.bar:/bin/ls localhost:/usr/bin/ls
-     \x1b]5379;scp \"$HOME/my text.txt\" ""\x07
-       => scp "localhost:$HOME/my text.txt" "foo.bar:$HOME/my text.txt"
      \x1b]5379;scp local:$PWD/hosts remote:/etc\x07
        => scp localhost:$PWD/hosts foo.bar:/etc/hosts
-     \x1b]5379;scp c:\users\text.txt ./\x07
-       => scp localhost:c:\users\text.txt foo.bar:$HOME/text.txt
-          ("\" is available as a separator only in win32.)
   o Source and destination file names of "scp" command are convered to system
     locale encoding and terminal encoding respectively.
 

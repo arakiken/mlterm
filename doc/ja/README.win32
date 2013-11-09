@@ -155,5 +155,5 @@ WIN32 native GUI 対応に関するメモ
     必要があります。
 
 * 実行可能バイナリの入手
-  http://mlterm.sf.net/cygwin-msys.html から cygwin/msys 用の実行可能バイナリ
-  を入手することができます(不定期更新)。
+  http://mlterm.sf.net/bin.html から cygwin/msys 用の実行可能バイナリを入手する
+  ことができます(不定期更新)。

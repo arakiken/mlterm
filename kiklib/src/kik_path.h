@@ -10,6 +10,16 @@
 #include  "kik_def.h"
 
 
+#ifdef  USE_WIN32API
+/* PathIsRelative() is not used to avoid link shlwapi.lib */
+#define  IS_RELATIVE_PATH(path) \
+	(isalpha((path)[0]) ? ( (path)[1] != ':' || (path)[2] != '\\') : \
+	                      ( (path)[0] != '\\'))
+#else
+#define  IS_RELATIVE_PATH(path)  (*(path) != '/')
+#endif
+
+
 /* XXX win32 basename() works strangely if cp932 characters are pssed. */
 #if  defined(HAVE_BASENAME) && ! defined(USE_WIN32API)
 

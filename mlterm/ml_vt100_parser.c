@@ -95,9 +95,6 @@
 
 static int  use_alt_buffer = 1 ;
 static int  use_ansi_colors = 1 ;
-#ifdef  USE_LIBSSH2
-static int  use_scp ;
-#endif
 static struct
 {
 	u_int16_t  ucs ;
@@ -1430,27 +1427,24 @@ config_protocol_set(
 #ifdef  USE_LIBSSH2
 	else if( strncmp( pt , "scp " , 4) == 0)
 	{
-		if( use_scp)
+		char **  argv ;
+		int  argc ;
+
+		argv = kik_arg_str_to_array( &argc , pt) ;
+
+		if( argc == 3 || argc == 4)
 		{
-			char **  argv ;
-			int  argc ;
+			ml_char_encoding_t  encoding ;
 
-			argv = kik_arg_str_to_array( &argc , pt) ;
-
-			if( argc == 3 || argc == 4)
+			if( ! argv[3] ||
+			    ( encoding = ml_get_char_encoding( argv[3]))
+			      == ML_UNKNOWN_ENCODING)
 			{
-				ml_char_encoding_t  encoding ;
-
-				if( ! argv[3] ||
-				    ( encoding = ml_get_char_encoding( argv[3]))
-				      == ML_UNKNOWN_ENCODING)
-				{
-					encoding = vt100_parser->encoding ;
-				}
-
-				ml_pty_ssh_scp( vt100_parser->pty ,
-					vt100_parser->encoding , encoding , argv[2] , argv[1]) ;
+				encoding = vt100_parser->encoding ;
 			}
+
+			ml_pty_ssh_scp( vt100_parser->pty ,
+				vt100_parser->encoding , encoding , argv[2] , argv[1]) ;
 		}
 	}
 #endif
@@ -1597,17 +1591,6 @@ config_protocol_set(
 				{
 					ml_set_unicode_noconv_areas( val) ;
 				}
-			#ifdef  USE_LIBSSH2
-				else if( strcmp( key , "allow_scp") == 0)
-				{
-					int  flag ;
-
-					if( ( flag = true_or_false( val)) != -1)
-					{
-						use_scp = flag ;
-					}
-				}
-			#endif
 				else if( HAS_CONFIG_LISTENER(vt100_parser,set))
 				{
 					(*vt100_parser->config_listener->set)(
@@ -5054,16 +5037,6 @@ ml_set_use_ansi_colors(
 {
 	use_ansi_colors = use ;
 }
-
-#ifdef  USE_LIBSSH2
-void
-ml_set_use_scp(
-	int  use
-	)
-{
-	use_scp = use ;
-}
-#endif
 
 int
 ml_set_unicode_noconv_areas(

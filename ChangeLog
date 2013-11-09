@@ -1,3 +1,16 @@
+2013-11-10  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty_ssh.c, ml_vt100_parser.c:
+	  ml_set_use_scp() in ml_vt100_parser.c is moved to ml_pty_ssh.c
+	  as ml_set_use_scp_full().
+
+	* libptyssh/ml_pty_ssh.c: ml_pty_ssh_poll() doesn't check while scp
+	  is executing.
+
+	* kik_path.h: IS_RELATIVE_PATH() is added.
+
+	* doc/ja/README.fb, doc/ja/README.win32, doc/en/PROTOCOL: Updated.
+
 2013-11-06  Araki Ken  <arakiken@users.sf.net>
 
 	* x_event_source.c, xlib/x_display.c: XFlush() is called directly in

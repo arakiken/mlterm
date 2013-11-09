@@ -2047,6 +2047,11 @@ ml_pty_ssh_poll(
 	{
 		u_int  idx ;
 
+		if( sessions[count]->doing_scp)
+		{
+			continue ;
+		}
+
 		for( idx = 0 ; idx < sessions[count]->num_of_ptys ; idx++)
 		{
 			if( libssh2_poll_channel_read( sessions[count]->pty_channels[idx] , 0))

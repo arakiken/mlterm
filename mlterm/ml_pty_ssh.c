@@ -264,6 +264,17 @@ ml_pty_ssh_send_recv_x11(
 
 #endif	/* NO_DYNAMIC_LOAD_SSH */
 
+
+static int  use_scp_full ;
+
+void
+ml_set_use_scp_full(
+	int  use
+	)
+{
+	use_scp_full = use ;
+}
+
 int
 ml_pty_ssh_scp(
 	ml_pty_ptr_t  pty ,
@@ -332,9 +343,34 @@ ml_pty_ssh_scp(
 		return  0 ;
 	}
 
-	if( ! *dst_path)
+	if( IS_RELATIVE_PATH(dst_path))
 	{
-		dst_path = "." ;
+		char *  prefix ;
+
+		if( strstr( dst_path , ".."))
+		{
+			/* insecure file name */
+			return  0 ;
+		}
+
+		prefix = dst_is_remote ? "" : kik_get_home_dir() ;
+		if( ! ( p = alloca( strlen( prefix) + 13 + strlen(dst_path) + 1)))
+		{
+			return  0 ;
+		}
+
+		/* mkdir ~/.mlterm/scp in advance. */
+	#ifdef  USE_WIN32API
+		sprintf( p , "%s\\mlterm\\scp\\%s" , prefix , dst_path) ;
+	#else
+		sprintf( p , "%s/.mlterm/scp/%s" , prefix , dst_path) ;
+	#endif
+
+		dst_path = p ;
+	}
+	else if( ! use_scp_full)
+	{
+		return  0 ;
 	}
 
 	/* scp /tmp/TEST /home/user => scp /tmp/TEST /home/user/TEST */

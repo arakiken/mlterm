@@ -7,6 +7,11 @@
 #include  <linux/vt.h>	/* VT_GETSTATE */
 
 
+#if  0
+#define  READ_CTRL_KEYMAP
+#endif
+
+
 /* --- static variables --- */
 
 static int  console_id = -1 ;

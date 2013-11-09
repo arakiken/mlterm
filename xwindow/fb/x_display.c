@@ -79,10 +79,6 @@
 
 #define  BG_MAGIC	0xff	/* for 1,2,4 bpp */
 
-#if  0
-#define  READ_CTRL_KEYMAP
-#endif
-
 /* Enable doube buffering on 1, 2 or 4 bpp */
 #if  1
 #define  ENABLE_DOUBLE_BUFFER
