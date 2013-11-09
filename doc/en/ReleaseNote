@@ -6,6 +6,7 @@ ver 3.3.1
 * Enable to specify the conversion engine name of iBus. (e.g. --im ibus:anthy)
 * Bug fixes:
   Fix the bug of convertion to sjis.
+  Fix the bug which disabled threading scp.
 
 ver 3.3.0
 * Support framebuffer on NetBSD/x68k. (Thanks to NetBSD/x68k developers)

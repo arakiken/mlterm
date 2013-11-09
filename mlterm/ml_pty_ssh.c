@@ -353,18 +353,26 @@ ml_pty_ssh_scp(
 			return  0 ;
 		}
 
-		prefix = dst_is_remote ? "" : kik_get_home_dir() ;
+		prefix = kik_get_home_dir() ;
+
 		if( ! ( p = alloca( strlen( prefix) + 13 + strlen(dst_path) + 1)))
 		{
 			return  0 ;
 		}
 
 		/* mkdir ~/.mlterm/scp in advance. */
-	#ifdef  USE_WIN32API
-		sprintf( p , "%s\\mlterm\\scp\\%s" , prefix , dst_path) ;
-	#else
-		sprintf( p , "%s/.mlterm/scp/%s" , prefix , dst_path) ;
-	#endif
+		if( ! dst_is_remote)
+		{
+		#ifdef  USE_WIN32API
+			sprintf( p , "%s\\mlterm\\scp\\%s" , prefix , dst_path) ;
+		#else
+			sprintf( p , "%s/.mlterm/scp/%s" , prefix , dst_path) ;
+		#endif
+		}
+		else
+		{
+			sprintf( p , ".mlterm/scp/%s" , dst_path) ;
+		}
 
 		dst_path = p ;
 	}
@@ -377,7 +385,17 @@ ml_pty_ssh_scp(
 	file = kik_basename( src_path) ;
 	if( ( p = alloca( strlen(dst_path) + strlen( file) + 2)))
 	{
-		sprintf( p , "%s/%s" , dst_path , file) ;
+	#ifdef  USE_WIN32API
+		if( ! dst_is_remote)
+		{
+			sprintf( p , "%s\\%s" , dst_path , file) ;
+		}
+		else
+	#endif
+		{
+			sprintf( p , "%s/%s" , dst_path , file) ;
+		}
+
 		dst_path = p ;
 	}
 

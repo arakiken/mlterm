@@ -392,15 +392,9 @@ int main(int argc, char **argv){
 		strcpy(cmd,argv[i]);
 		while(++i < argc){
 			strcat(cmd , " ");
-			if(strncmp(argv[2],"mlclient",8) == 0){
-				/* for mlclient arguments. */
-				strcat(cmd , "\"");
-			}
+			strcat(cmd , "\"");
 			strcat(cmd , argv[i]);
-			if(strncmp(argv[2],"mlclient",8) == 0){
-				/* for mlclient arguments. */
-				strcat(cmd , "\"");
-			}
+			strcat(cmd , "\"");
 		}
 		mlterm_exec(cmd);
 		exit(0);
