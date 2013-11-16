@@ -1,3 +1,20 @@
+2013-11-16  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c: draw_string() which causes segfault by illegal
+	  surrogate pairs is fixed.
+
+	* xlib/x_font.c: https://bugzilla.novell.com/attachment.cgi?id=566444
+	  (https://bugzilla.novell.com/show_bug.cgi?id=849342) is applied.
+
+	* README.ja, man/mlterm.1: Updated.
+
+	* ml_logs.[ch], ml_screen.h, ml_term.h, x_screen.c, x_sb_screen.c,
+	  x_screen_manager.c, x_main_config.[ch], vte.c:
+	  "logsize" option accepts "unlimited" which unlimits the number of
+	  lines of backscroll logs.
+
+	* mlcc/main.c: The argument of set_shortcut command isn't enclosed by "".
+
 2013-11-10  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty_ssh.c: Minor fixes around processing path.

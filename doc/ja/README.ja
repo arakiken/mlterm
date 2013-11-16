@@ -652,6 +652,7 @@ comment $Id$
 
       o logsize  (*128*) (#)
         ログの行数
+        unlimited を指定するとログの行数は無制限になります。
 
       o word_separators  (*" ,.:;/|@()[]{}"*)
         単語の区切り文字を指定

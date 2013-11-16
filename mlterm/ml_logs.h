@@ -17,6 +17,7 @@ typedef struct  ml_logs
 	ml_line_t *  lines ;
 	kik_cycle_index_t *  index ;
 	u_int  num_of_rows ;
+	int  unlimited ;
 
 } ml_logs_t ;
 
@@ -26,6 +27,10 @@ int  ml_log_init( ml_logs_t *  logs , u_int  num_of_rows) ;
 int  ml_log_final( ml_logs_t *  logs) ;
 
 int  ml_change_log_size( ml_logs_t *  logs , u_int  num_of_rows) ;
+
+#define  ml_unlimit_log_size(logs)  ((logs)->unlimited = 1)
+
+#define  ml_log_size_is_unlimited(logs)  ((logs)->unlimited)
 
 int  ml_log_add( ml_logs_t *  logs , ml_line_t *  line) ;
 

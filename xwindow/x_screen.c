@@ -5464,8 +5464,15 @@ get_config(
 	}
 	else if( strcmp( key , "logsize") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
-		value = digit ;
+		if( ml_term_log_size_is_unlimited( term))
+		{
+			value = "unlimited" ;
+		}
+		else
+		{
+			sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
+			value = digit ;
+		}
 	}
 	else if( strcmp( key , "fontsize") == 0)
 	{
@@ -8464,7 +8471,11 @@ x_screen_set_config(
 	{
 		u_int  log_size ;
 
-		if( kik_str_to_uint( &log_size , value))
+		if( strcmp( value , "unlimited") == 0)
+		{
+			ml_term_unlimit_log_size( screen->term) ;
+		}
+		else if( kik_str_to_uint( &log_size , value))
 		{
 			change_log_size( screen , log_size) ;
 		}

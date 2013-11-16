@@ -533,13 +533,13 @@ xcore_set_font(
 	if( (font->id & FONT_FULLWIDTH) && (FONT_CS(font->id) == ISO10646_UCS4_1) )
 	{
 		family = "biwidth" ;
+		num_of_spacings = sizeof(spacings) / sizeof(spacings[0]) ;
 	}
 	else
 	{
 		family = "fixed" ;
+		num_of_spacings = 1 ;
 	}
-
-	num_of_spacings = 1 ;
 
 	for( count = 0 ; ; count ++)
 	{

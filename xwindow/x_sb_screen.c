@@ -284,6 +284,12 @@ line_scrolled_out(
 
 	(*sb_screen->line_scrolled_out)( p) ;
 
+	if( ml_term_log_size_is_unlimited( ((x_screen_t*)p)->term))
+	{
+		x_scrollbar_set_num_of_log_lines( &sb_screen->scrollbar ,
+			ml_term_get_log_size( ((x_screen_t*)p)->term)) ;
+	}
+
 	x_scrollbar_line_is_added( &sb_screen->scrollbar) ;
 }
 

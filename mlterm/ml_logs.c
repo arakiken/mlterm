@@ -89,6 +89,8 @@ ml_change_log_size(
 {
 	u_int  num_of_filled_rows ;
 
+	logs->unlimited = 0 ;
+
 	num_of_filled_rows = ml_get_num_of_logged_lines( logs) ;	
 
 	if( new_num_of_rows == logs->num_of_rows)
@@ -227,9 +229,19 @@ ml_log_add(
 	{
 		return  1 ;
 	}
-	
+
+	if( logs->unlimited &&
+	    kik_get_filled_cycle_index( logs->index) == kik_get_cycle_index_size( logs->index))
+	{
+		if( logs->num_of_rows + 128 > logs->num_of_rows)
+		{
+			ml_change_log_size( logs , logs->num_of_rows + 128) ;
+			logs->unlimited = 1 ;
+		}
+	}
+
 	at = kik_next_cycle_index( logs->index) ;
-	
+
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %d len line logged to index %d.\n" , 
 		line->num_of_filled_chars , at) ;

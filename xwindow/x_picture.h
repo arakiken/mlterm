@@ -60,7 +60,7 @@ typedef struct x_inline_picture
 	char *  file_path ;
 	u_int  width ;
 	u_int  height ;
-	Display *  display ;
+	x_display_t *  disp ;
 	ml_term_t *  term ;
 	u_int8_t  col_width ;
 	u_int8_t  line_height ;

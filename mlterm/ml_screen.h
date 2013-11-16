@@ -130,6 +130,10 @@ u_int  ml_screen_get_logical_rows( ml_screen_t *  screen) ;
 #define  ml_screen_change_log_size( screen , log_size) \
 		ml_change_log_size( &(screen)->logs , log_size)
 
+#define  ml_screen_unlimit_log_size( screen)  ml_unlimit_log_size( &(screen)->logs)
+
+#define  ml_screen_log_size_is_unlimited( screen)  ml_log_size_is_unlimited( &(screen)->logs)
+
 #define  ml_screen_get_num_of_logged_lines( screen) \
 		ml_get_num_of_logged_lines( &(screen)->logs)
 

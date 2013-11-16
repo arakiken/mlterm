@@ -12,12 +12,45 @@
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
+/*
+ * XXX
+ * Don't link libpthread to mlterm for now.
+ * Xlib doesn't work on threading without XInitThreads().
+ */
+#if ! defined(__CYGWIN__) || ! defined(USE_WIN32GUI)
+#undef  HAVE_PTHREAD
+#endif
+
+#if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
+#include  <pthread.h>
+#ifndef  HAVE_WINDOWS_H
+#include  <sys/select.h>
+#include  <unistd.h>
+#endif
+#endif
+
 #include  "x_imagelib.h"
 
+
+#define  DUMMY_PIXMAP  ((Pixmap)1)
+#define  PIXMAP_IS_ACTIVE(inline_pic) \
+	((inline_pic).pixmap && (inline_pic).pixmap != DUMMY_PIXMAP)
 
 #if  0
 #define  __DEBUG
 #endif
+
+
+typedef struct  inline_pic_args
+{
+	int  idx ;
+#ifdef  HAVE_WINDOWS_H
+	HANDLE  ev ;
+#else
+	int  ev ;
+#endif
+
+} inline_pic_args_t ;
 
 
 /* --- static varaibles --- */
@@ -222,14 +255,14 @@ delete_inline_picture(
 	x_inline_picture_t *  pic	/* pic->pixmap mustn't be NULL. */
 	)
 {
-	/* pic->display can be NULL by x_picture_display_closed(). */
-	if( pic->display)
+	/* pic->disp can be NULL by x_picture_display_closed(). */
+	if( pic->disp)
 	{
-		x_delete_image( pic->display , pic->pixmap) ;
-		x_delete_mask( pic->display , pic->mask) ;
+		x_delete_image( pic->disp->display , pic->pixmap) ;
+		x_delete_mask( pic->disp->display , pic->mask) ;
 
 		free( pic->file_path) ;
-		pic->display = NULL ;
+		pic->disp = NULL ;
 	}
 
 	/* pixmap == None means that the inline picture is empty. */
@@ -246,7 +279,7 @@ pty_closed(
 	for( count = 0 ; count < num_of_inline_pics ; count++)
 	{
 		if( inline_pics[count].term == term &&
-		    inline_pics[count].pixmap)
+		    PIXMAP_IS_ACTIVE(inline_pics[count]))
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %d (%d)\n" ,
@@ -348,7 +381,8 @@ cleanup_inline_pictures(
 		{
 			/* do nothing */
 		}
-		else if( ! flags[count] && inline_pics[count].term == term)
+		else if( inline_pics[count].pixmap != DUMMY_PIXMAP &&
+		         ! flags[count] && inline_pics[count].term == term)
 		{
 			/*
 			 * Don't cleanup inline pictures refered twice or more times
@@ -420,6 +454,84 @@ cleanup_inline_pictures(
 	return  empty_idx ;
 }
 
+static int
+load_file(
+	void *  p
+	)
+{
+	int  idx ;
+	Pixmap  pixmap ;
+	PixmapMask  mask ;
+	u_int  width ;
+	u_int  height ;
+
+	idx = ((inline_pic_args_t*)p)->idx ;
+	width = inline_pics[idx].width ;
+	height = inline_pics[idx].height ;
+
+	if( x_imagelib_load_file( inline_pics[idx].disp , inline_pics[idx].file_path ,
+		NULL , &pixmap , &mask , &width , &height))
+	{
+		/* XXX pthread_mutex_lock( &mutex) is necessary. */
+		inline_pics[idx].pixmap = pixmap ;
+		inline_pics[idx].mask = mask ;
+		inline_pics[idx].width = width ;
+		inline_pics[idx].height = height ;
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " new inline picture (%s %d %p %p) is created.\n" ,
+			inline_pics[idx].file_path , idx ,
+			inline_pics[idx].pixmap , inline_pics[idx].mask) ;
+	#endif
+
+		return  1 ;
+	}
+	else
+	{
+		free( inline_pics[idx].file_path) ;
+		inline_pics[idx].pixmap = None ;	/* Mark as empty */
+
+		return  0 ;
+	}
+}
+
+#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
+
+#ifdef  USE_WIN32API
+static u_int __stdcall
+#else
+static void *
+#endif
+load_file_async(
+	void *  p
+  	)
+{
+#ifdef  HAVE_PTHREAD
+	pthread_detach( pthread_self()) ;
+#endif
+
+	load_file( p) ;
+
+#ifdef  HAVE_WINDOWS_H
+	if( ((inline_pic_args_t*)p)->ev)
+	{
+		SetEvent( ((inline_pic_args_t*)p)->ev) ;
+		CloseHandle( ((inline_pic_args_t*)p)->ev) ;
+	}
+#else
+	if( ((inline_pic_args_t*)p)->ev != -1)
+	{
+		close( ((inline_pic_args_t*)p)->ev) ;
+	}
+#endif
+
+	free( p) ;
+
+	return  0 ;
+}
+
+#endif
+
 
 /* --- global functions --- */
 
@@ -467,9 +579,10 @@ x_picture_display_closed(
 
 	for( count = 0 ; count < num_of_inline_pics ; count++)
 	{
-		if( inline_pics[count].display == display)
+		if( inline_pics[count].disp &&
+		    inline_pics[count].disp->display == display)
 		{
-			if( inline_pics[count].pixmap)
+			if( PIXMAP_IS_ACTIVE(inline_pics[count]))
 			{
 				x_delete_image( display , inline_pics[count].pixmap) ;
 				x_delete_mask( display , inline_pics[count].mask) ;
@@ -481,7 +594,7 @@ x_picture_display_closed(
 			 */
 
 			free( inline_pics[count].file_path) ;
-			inline_pics[count].display = NULL ;
+			inline_pics[count].disp = NULL ;
 		}
 	}
 
@@ -724,6 +837,7 @@ x_load_inline_picture(
 	)
 {
 	int  idx ;
+	inline_pic_args_t *  args ;
 
 	/* XXX Don't reuse ~/.mlterm/[pty name].six */
 	if( ! strstr( file_path , "mlterm/"))
@@ -731,7 +845,7 @@ x_load_inline_picture(
 		for( idx = 0 ; idx < num_of_inline_pics ; idx++)
 		{
 			if( inline_pics[idx].pixmap &&
-			    disp->display == inline_pics[idx].display &&
+			    disp == inline_pics[idx].disp &&
 			    strcmp( file_path , inline_pics[idx].file_path) == 0 &&
 			    term == inline_pics[idx].term &&
 			    /* XXX */ (*width == 0 || *width == inline_pics[idx].width) &&
@@ -742,11 +856,16 @@ x_load_inline_picture(
 					file_path) ;
 			#endif
 
-				*width = inline_pics[idx].width ;
-				*height = inline_pics[idx].height ;
 				inline_pics[idx].ref_count ++ ;
 
-				return  idx ;
+				if( inline_pics[idx].pixmap == DUMMY_PIXMAP)
+				{
+					return  -1 ;
+				}
+				else
+				{
+					goto  success ;
+				}
 			}
 		}
 	}
@@ -755,6 +874,7 @@ x_load_inline_picture(
 	{
 		void *  p ;
 
+		/* XXX pthread_mutex_lock( &mutex) is necessary. */
 		if( ! ( p = realloc( inline_pics ,
 				(num_of_inline_pics + 1) * sizeof(*inline_pics))))
 		{
@@ -762,33 +882,115 @@ x_load_inline_picture(
 		}
 
 		inline_pics = p ;
-		idx = num_of_inline_pics ;
-	}
-
-	if( ! x_imagelib_load_file( disp , file_path , NULL ,
-		&inline_pics[idx].pixmap , &inline_pics[idx].mask , width , height))
-	{
-		return  -1 ;
+		idx = num_of_inline_pics ++ ;
 	}
 
 	inline_pics[idx].file_path = strdup( file_path) ;
 	inline_pics[idx].width = *width ;
 	inline_pics[idx].height = *height ;
-	inline_pics[idx].display = disp->display ;
+	inline_pics[idx].disp = disp ;
 	inline_pics[idx].term = term ;
 	inline_pics[idx].col_width = col_width ;
 	inline_pics[idx].line_height = line_height ;
 	inline_pics[idx].ref_count = 1 ;
 
-	if( idx == num_of_inline_pics)
+	if( ! ( args = malloc( sizeof(inline_pic_args_t))))
 	{
-		num_of_inline_pics ++ ;
+		inline_pics[idx].pixmap = None ;	/* mark as empty */
+
+		return  -1 ;
 	}
 
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " new inline picture (%s %d) is created.\n" ,
-		file_path , idx) ;
+	args->idx = idx ;
+
+#if  defined(HAVE_PTHREAD) || defined(USE_WIN32API)
+	if( strstr( file_path , "://"))
+	{
+		/* Loading a remote file asynchronously. */
+
+	#ifdef  HAVE_WINDOWS_H
+		args->ev = CreateEvent( NULL , FALSE , FALSE , NULL) ;
+	#else
+		int  fds[2] ;
+
+		if( pipe( fds) != 0)
+		{
+			fds[1] = args->ev = -1 ;
+		}
+		else
+		{
+			args->ev = fds[0] ;
+		}
+	#endif
+
+		inline_pics[idx].pixmap = DUMMY_PIXMAP ;
+
+	#ifdef  USE_WIN32API
+		{
+			HANDLE  thrd ;
+			u_int  tid ;
+
+			if( ( thrd = _beginthreadex( NULL , 0 ,
+					load_file_async , args , 0 , &tid)))
+			{
+				CloseHandle( thrd) ;
+			}
+		}
+	#else
+		{
+			pthread_t  thrd ;
+
+			pthread_create( &thrd , NULL , load_file_async , args) ;
+		}
+	#endif
+
+	#ifdef  HAVE_WINDOWS_H
+		if( WaitForSingleObject( args->ev , 750) != WAIT_TIMEOUT &&
+		    PIXMAP_IS_ACTIVE(inline_pics[idx]))
+		{
+			goto  success ;
+		}
+	#else
+		if( fds[1] != -1)
+		{
+			fd_set  read_fds ;
+			struct timeval  tval ;
+			int  ret ;
+
+			tval.tv_usec = 750000 ;
+			tval.tv_sec = 0 ;
+			FD_ZERO( &read_fds) ;
+			FD_SET( fds[1] , &read_fds) ;
+
+			ret = select( fds[1] + 1 , &read_fds , NULL , NULL , &tval) ;
+			close( fds[1]) ;
+
+			if( ret != 0 && PIXMAP_IS_ACTIVE(inline_pics[idx]))
+			{
+				goto  success ;
+			}
+		}
+	#endif
+	}
+	else
 #endif
+	{
+		int  ret ;
+
+		ret = load_file(args) ;
+		free( args) ;
+
+		if( ret)
+		{
+			goto  success ;
+		}
+	}
+
+	return  -1 ;
+
+success:
+	*width = inline_pics[idx].width ;
+	*height = inline_pics[idx].height ;
 
 	return  idx ;
 }

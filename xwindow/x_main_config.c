@@ -658,12 +658,17 @@ x_main_config_init(
 	}
 
 	main_config->num_of_log_lines = 128 ;
+	main_config->unlimit_log_size = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "logsize")))
 	{
 		u_int  size ;
 
-		if( kik_str_to_uint( &size , value))
+		if( strcmp( value , "unlimited") == 0)
+		{
+			main_config->unlimit_log_size = 1 ;
+		}
+		else if( kik_str_to_uint( &size , value))
 		{
 			main_config->num_of_log_lines = size ;
 		}

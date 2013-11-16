@@ -4,9 +4,12 @@ ver 3.3.1
 * Reset pending DCS sequence by pressing ESC key.
 * Support iBus 1.5.
 * Enable to specify the conversion engine name of iBus. (e.g. --im ibus:anthy)
+* Desynchronize ESC [ 5379 ; show_picture BEL on cygwin/win32gdi or mingw.
+* "unlimited" value is available for "logsize" option.
 * Bug fixes:
   Fix the bug of convertion to sjis.
   Fix the bug which disabled threading scp.
+  Fix https://bugzilla.novell.com/show_bug.cgi?id=849342
 
 ver 3.3.0
 * Support framebuffer on NetBSD/x68k. (Thanks to NetBSD/x68k developers)

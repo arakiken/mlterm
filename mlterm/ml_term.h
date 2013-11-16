@@ -171,6 +171,10 @@ int  ml_term_unhighlight_cursor( ml_term_t *  term , int  revert_visual) ;
 #define  ml_term_change_log_size( term , log_size) \
 		ml_screen_change_log_size( (term)->screen , log_size)
 
+#define  ml_term_unlimit_log_size( term)  ml_screen_unlimit_log_size( (term)->screen)
+
+#define  ml_term_log_size_is_unlimited( term)  ml_screen_log_size_is_unlimited( (term)->screen)
+
 #define  ml_term_get_num_of_logged_lines( term)  ml_screen_get_num_of_logged_lines( (term)->screen)
 
 #define  ml_term_convert_scr_row_to_abs( term , row) \

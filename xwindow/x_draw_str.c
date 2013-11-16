@@ -135,7 +135,7 @@ draw_picture(
 		}
 
 		if( src_width > 0 && src_height > 0 &&
-		    pic->display == window->disp->display)
+		    pic->disp == window->disp)
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf(

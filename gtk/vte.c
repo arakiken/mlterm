@@ -2657,6 +2657,11 @@ vte_terminal_init(
 		ml_term_set_logging_vt_seq( terminal->pvt->term , main_config.logging_vt_seq) ;
 	}
 
+	if( main_config.unlimit_log_size)
+	{
+		ml_term_unlimit_log_size( terminal->pvt->term) ;
+	}
+
 #if  VTE_CHECK_VERSION(0,26,0)
 	terminal->pvt->pty = NULL ;
 #endif

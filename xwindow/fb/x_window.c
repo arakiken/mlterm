@@ -136,6 +136,7 @@ draw_string(
 	size_t  size ;
 	u_int  font_height ;
 	u_int  font_ascent ;
+	u_int  font_width ;
 	int  y_off ;
 	u_char *  picture ;
 	size_t  picture_line_len ;
@@ -149,8 +150,9 @@ draw_string(
 	}
 
 	bpp = win->disp->display->bytes_per_pixel ;
+	font_width = font->width ;
 
-	if( ! ( src = alloca( ( size = len * font->width * bpp))) ||
+	if( ! ( src = alloca( ( size = len * font_width * bpp))) ||
 	    ! ( bitmaps = alloca( ( len * sizeof(*bitmaps)))))
 	{
 		return  0 ;
@@ -171,24 +173,29 @@ draw_string(
 		{
 			if( 0xd8 <= str[0] && str[0] <= 0xdb)
 			{
-				if( count + 1 >= len)
+				len -- ;
+
+				if( count >= len)
 				{
+					/* ignored */
 					break ;
 				}
 
 				if( 0xdc <= str[2] && str[2] <= 0xdf)
 				{
 					/* surrogate pair */
-
 					mkf_int_to_bytes( str , 4 ,
 						(str[0] - 0xd8) * 0x100 * 0x400 + str[1] * 0x400 +
 						(str[2] - 0xdc) * 0x100 + str[3] + 0x10000) ;
 					ch_len = 4 ;
-					len -- ;
 				}
 				else
 				{
-					str += 2 ;
+					/* illegal, ignored. */
+					len -- ;
+					count -- ;
+					str += 4 ;
+					continue ;
 				}
 			}
 
@@ -230,6 +237,20 @@ draw_string(
 		y_off = 0 ;
 	}
 
+	/* Following check is done by the caller of this function. */
+#if  0
+	/*
+	 * Check if font->width * len excesses the display height
+	 * because full width fonts can be used for characters which console
+	 * applications regard as half width.
+	 */
+
+	if( x + font_width * len > win->width)
+	{
+		len = (win->width - x) / font_width ;
+	}
+#endif
+
 	x += (win->margin + win->x) ;
 	y = y + (win->margin + win->y) - font_ascent ;
 
@@ -266,7 +287,7 @@ draw_string(
 		int  x_off ;
 		u_int  glyph_width ;
 
-		glyph_width = font->width - font->x_off ;
+		glyph_width = font_width - font->x_off ;
 
 		switch( bpp)
 		{
@@ -282,7 +303,7 @@ draw_string(
 					if( ! x_get_bitmap_line( xfont ,
 						bitmaps[count] , y_off , bitmap_line))
 					{
-						p += font->width ;
+						p += font_width ;
 					}
 					else
 					{
@@ -318,7 +339,7 @@ draw_string(
 					if( ! x_get_bitmap_line( xfont ,
 						bitmaps[count] , y_off , bitmap_line))
 					{
-						p += (font->width * 2) ;
+						p += (font_width * 2) ;
 					}
 					else
 					{
@@ -356,7 +377,7 @@ draw_string(
 					if( ! x_get_bitmap_line( xfont ,
 						bitmaps[count] , y_off , bitmap_line))
 					{
-						p += (font->width * 4) ;
+						p += (font_width * 4) ;
 					}
 					else
 					{
@@ -416,7 +437,7 @@ draw_string(
 
 		p = src ;
 
-		for( count = 0 ; count < len ; count++ , x += font->width)
+		for( count = 0 ; count < len ; count++ , x += font_width)
 		{
 			u_char *  bitmap_line ;
 			int  x_off ;
@@ -425,11 +446,11 @@ draw_string(
 			{
 				if( src_bg_is_set)
 				{
-					p += (font->width * bpp) ;
+					p += (font_width * bpp) ;
 				}
 				else
 				{
-					for( x_off = 0 ; x_off < font->width ; x_off++ , p += bpp)
+					for( x_off = 0 ; x_off < font_width ; x_off++ , p += bpp)
 					{
 						copy_pixel( p ,
 							x_display_get_pixel( x + x_off ,
@@ -444,7 +465,7 @@ draw_string(
 
 				force_fg = 0 ;
 
-				for( x_off = 0 ; x_off < font->width ; x_off++ , p += bpp)
+				for( x_off = 0 ; x_off < font_width ; x_off++ , p += bpp)
 				{
 					u_long  pixel ;
 

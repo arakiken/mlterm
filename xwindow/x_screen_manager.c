@@ -158,6 +158,11 @@ create_term_intern(void)
 		ml_term_set_use_auto_detect( term , 1) ;
 	}
 
+	if( main_config.unlimit_log_size)
+	{
+		ml_term_unlimit_log_size( term) ;
+	}
+
 	return  term ;
 }
 

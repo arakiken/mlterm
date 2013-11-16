@@ -392,9 +392,13 @@ int main(int argc, char **argv){
 		strcpy(cmd,argv[i]);
 		while(++i < argc){
 			strcat(cmd , " ");
-			strcat(cmd , "\"");
+			if(strcmp(argv[2],"set_shortcut") != 0){
+				strcat(cmd , "\"");
+			}
 			strcat(cmd , argv[i]);
-			strcat(cmd , "\"");
+			if(strcmp(argv[2],"set_shortcut") != 0){
+				strcat(cmd , "\"");
+			}
 		}
 		mlterm_exec(cmd);
 		exit(0);
