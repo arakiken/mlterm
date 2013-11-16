@@ -198,9 +198,15 @@ GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS $GIO_LIBS | tr -d '\r'`"
 
 AC_CHECK_PROG(have_gdk_pixbuf1,gdk-pixbuf-config,yes)
 
-AC_ARG_WITH(imagelib,
-	[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
-	imagelib=$with_imagelib)
+if test "$gui" = "xlib" ; then
+	AC_ARG_WITH(imagelib,
+		[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
+		imagelib=$with_imagelib)
+else
+	# Don't link an external image library on win32gdi or framebuffer.
+	with_imagelib=""
+fi
+
 case ${imagelib} in
 imlib)
 	AC_CHECK_PROG(imlib_config,imlib-config,yes,no)

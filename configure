@@ -20290,10 +20290,16 @@ fi
 
 
 
+if test "$gui" = "xlib" ; then
 
 # Check whether --with-imagelib was given.
 if test "${with_imagelib+set}" = set; then :
   withval=$with_imagelib; imagelib=$with_imagelib
+fi
+
+else
+	# Don't link an external image library on win32gdi or framebuffer.
+	with_imagelib=""
 fi
 
 case ${imagelib} in

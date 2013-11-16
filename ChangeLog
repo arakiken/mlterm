@@ -1,5 +1,10 @@
 2013-11-16  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in: Don't link an external image library such as gdk-pixbuf
+	  on win32gdi or framebuffer even if --with-imagelib option is specified.
+
+2013-11-16  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_window.c: draw_string() which causes segfault by illegal
 	  surrogate pairs is fixed.
 
