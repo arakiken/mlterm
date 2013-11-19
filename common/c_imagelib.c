@@ -844,6 +844,12 @@ create_cardinals_from_pixbuf(
 	return  cardinal ;
 }
 
+#if  GDK_PIXBUF_MAJOR >= 2 && (GDK_PIXBUF_MAJOR >= 3 || GDK_PIXBUF_MINOR >= 14)
+#ifndef  G_PLATFORM_WIN32
+GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
+#endif
+#endif
+
 static GdkPixbuf *
 gdk_pixbuf_new_from(
 	const char *  path
@@ -855,7 +861,7 @@ gdk_pixbuf_new_from(
 	{
 	#if GDK_PIXBUF_MAJOR >= 2
 
-	#if GDK_PIXBUF_MINOR >= 14
+	#if GDK_PIXBUF_MAJOR >= 3 || GDK_PIXBUF_MINOR >= 14
 		if( strstr( path , "://"))
 		{
 			GFile *  file ;
@@ -883,7 +889,7 @@ gdk_pixbuf_new_from(
 				{
 					FILE *  fp ;
 
-					sprintf( cmd , "curl -k -s %s" , path) ;
+					sprintf( cmd , "curl -L -k -s %s" , path) ;
 					if( ( fp = popen( cmd , "r")))
 					{
 						in = g_unix_input_stream_new(

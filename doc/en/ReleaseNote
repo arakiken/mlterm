@@ -1,5 +1,7 @@
 ver 3.3.1
 * Add "use_auto_detect" and "auto_detect_encodings" options.
+  (auto_detect_encodings=utf8,eucjp,sjis and use_auto_detect=true enable
+  auto detection of utf8, eucjp and sjis.)
 * Support ESC $ on non-ISO2022 encodings such as UTF-8.
 * Reset pending DCS sequence by pressing ESC key.
 * Support iBus 1.5.

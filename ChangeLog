@@ -1,3 +1,9 @@
+2013-11-19  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c: -L option is added to curl.
+
+	* mlimgloader/gdk-pixbuf.c, xlib/x_imagelib.c: Minor fixes.
+
 2013-11-16  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: Don't link an external image library such as gdk-pixbuf

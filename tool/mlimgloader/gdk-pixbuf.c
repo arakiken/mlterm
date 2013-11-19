@@ -36,12 +36,6 @@
 #define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
 #endif
 
-#if  GDK_PIXBUF_MAJOR >= 2 && GDK_PIXBUF_MINOR >= 14
-#ifndef  G_PLATFORM_WIN32
-GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
-#endif
-#endif
-
 #if  0
 #define  __DEBUG
 #endif
@@ -322,7 +316,7 @@ pixbuf_to_ximage_truecolor(
 	XVisualInfo  vinfo_template ;
 	XVisualInfo *  vinfolist ;
 	int  nitem ;
-	u_int  i , j ;
+	u_int  x , y ;
 	u_int  width , height , rowstride , bytes_per_pixel ;
 	u_char *  line ;
 	u_long  r_mask , g_mask , b_mask ;
@@ -382,14 +376,14 @@ pixbuf_to_ximage_truecolor(
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	for( i = 0 ; i < height ; i++)
+	for( y = 0 ; y < height ; y++)
 	{
 		u_char *  pixel ;
 
 		pixel = line ;
-		for( j = 0 ; j < width ; j++)
+		for( x = 0 ; x < width ; x++)
 		{
-			XPutPixel( image , j , i ,
+			XPutPixel( image , x , y ,
 				(depth == 32 ? 0xff000000 : 0) |
 				(((pixel[0] >> r_limit) << r_offset) & r_mask) |
 				(((pixel[1] >> g_limit) << g_offset) & g_mask) |
@@ -469,7 +463,7 @@ pixbuf_to_pixmap_and_mask(
 
 	if( gdk_pixbuf_get_has_alpha( pixbuf))
 	{
-		int  i , j ;
+		int  x , y ;
 		int  rowstride ;
 		u_char *  line ;
 		u_char *  pixel ;
@@ -493,14 +487,14 @@ pixbuf_to_pixmap_and_mask(
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 		has_tp = 0 ;
 
-		for( i = 0 ; i < height ; i++)
+		for( y = 0 ; y < height ; y++)
 		{
 			pixel = line + 3 ;
-			for( j = 0 ; j < width ; j++)
+			for( x = 0 ; x < width ; x++)
 			{
 				if( *pixel > 127)
 				{
-					XDrawPoint( display , *mask , mask_gc , j , i) ;
+					XDrawPoint( display , *mask , mask_gc , x , y) ;
 				}
 				else
 				{

@@ -84,12 +84,6 @@
 	 ((((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) & (rgbinfo).g_mask) | \
 	 ((((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset) & (rgbinfo).b_mask) )
 
-#if  GDK_PIXBUF_MAJOR >= 2 && GDK_PIXBUF_MINOR >= 14
-#ifndef  G_PLATFORM_WIN32
-GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
-#endif
-#endif
-
 
 typedef struct  rgb_info
 {
@@ -302,7 +296,7 @@ modify_pixmap(
 	)
 {
 	u_char  value_table[256] ;
-	u_int  i , j ;
+	u_int  x , y ;
 	u_int  width , height ;
 	XImage *  image ;
 	u_char  r , g , b ;
@@ -332,11 +326,11 @@ modify_pixmap(
 		rgb_info_init( vinfo , &rgbinfo) ;
 		XFree( vinfo) ;
 
-		for( i = 0 ; i < height ; i++)
+		for( y = 0 ; y < height ; y++)
 		{
-			for( j = 0 ; j < width ; j++)
+			for( x = 0 ; x < width ; x++)
 			{
-				pixel = XGetPixel( image , j , i) ;
+				pixel = XGetPixel( image , x , y) ;
 
 				r = PIXEL_RED(pixel,rgbinfo) ;
 				g = PIXEL_GREEN(pixel,rgbinfo) ;
@@ -349,7 +343,7 @@ modify_pixmap(
 				b = (value_table[b] * (255 - pic_mod->alpha) +
 					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
 
-				XPutPixel( image , j , i ,
+				XPutPixel( image , x , y ,
 					RGB_TO_PIXEL(r,g,b,rgbinfo) |
 					(disp->depth == 32 ? 0xff000000 : 0)) ;
 			}
@@ -367,11 +361,11 @@ modify_pixmap(
 			return  0 ;
 		}
 
-		for( i = 0 ; i < height ; i++)
+		for( y = 0 ; y < height ; y++)
 		{
-			for( j = 0 ; j < width ; j++)
+			for( x = 0 ; x < width ; x++)
 			{
-				if( ( pixel = XGetPixel( image, j, i)) >= num_cells)
+				if( ( pixel = XGetPixel( image , x , y)) >= num_cells)
 				{
 				#ifdef  DEBUG
 					kik_debug_printf( KIK_DEBUG_TAG " Pixel %x is illegal.\n" ,
@@ -391,7 +385,7 @@ modify_pixmap(
 				b = (value_table[b] * (255 - pic_mod->alpha) +
 					pic_mod->blend_blue * pic_mod->alpha) / 255 ;
 
-				XPutPixel( image , j , i ,
+				XPutPixel( image , x , y ,
 					closest_color_index( color_list , num_cells , r , g , b)) ;
 			}
 		}
@@ -577,7 +571,7 @@ create_pixbuf_from_cardinals(
 	u_char *  line ;
 	u_char *  pixel ;
 	int  width , height ;
-	int  i , j ;
+	int  x , y ;
 
 	width = cardinal[0] ;
 	height = cardinal[1] ;
@@ -591,10 +585,10 @@ create_pixbuf_from_cardinals(
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 	cardinal += 2 ;
 
-	for( i = 0 ; i < width ; i++)
+	for( y = 0 ; y < height ; y++)
 	{
 		pixel = line ;
-		for( j = 0 ; j < height ; j++)
+		for( x = 0 ; x < width ; x++)
 		{
 			/* ARGB -> RGBA conversion */
 			pixel[2] = (*cardinal) & 0xff ;
@@ -810,7 +804,7 @@ pixbuf_to_ximage_truecolor(
 {
 	XVisualInfo *  vinfo ;
 	rgb_info_t  rgbinfo ;
-	u_int  i , j ;
+	u_int  x , y ;
 	u_int  width , height , rowstride , bytes_per_pixel ;
 	u_char *  line ;
 	XImage *  image ;
@@ -851,14 +845,14 @@ pixbuf_to_ximage_truecolor(
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	for( i = 0 ; i < height ; i++)
+	for( y = 0 ; y < height ; y++)
 	{
 		u_char *  pixel ;
 
 		pixel = line ;
-		for( j = 0 ; j < width ; j++)
+		for( x = 0 ; x < width ; x++)
 		{
-			XPutPixel( image , j , i ,
+			XPutPixel( image , x , y ,
 				RGB_TO_PIXEL(pixel[0],pixel[1],pixel[2],rgbinfo) |
 				(disp->depth == 32 ? 0xff000000 : 0)) ;
 			pixel += bytes_per_pixel ;
@@ -916,7 +910,7 @@ pixbuf_to_pixmap_and_mask(
 
 	if( gdk_pixbuf_get_has_alpha( pixbuf))
 	{
-		int  i , j ;
+		int  x , y ;
 		int  width , height , rowstride ;
 		u_char *  line ;
 		u_char *  pixel ;
@@ -945,14 +939,14 @@ pixbuf_to_pixmap_and_mask(
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 		has_tp = 0 ;
 
-		for( i = 0 ; i < height ; i++)
+		for( y = 0 ; y < height ; y++)
 		{
 			pixel = line + 3 ;
-			for( j = 0 ; j < width ; j++)
+			for( x = 0 ; x < width ; x++)
 			{
 				if( *pixel > 127)
 				{
-					XDrawPoint( disp->display , *mask , mask_gc , j , i) ;
+					XDrawPoint( disp->display , *mask , mask_gc , x , y) ;
 				}
 				else
 				{
@@ -992,7 +986,7 @@ compose_truecolor(
 	XVisualInfo *  vinfo ;
 	rgb_info_t  rgbinfo ;
 	XImage *  image ;
-	int  i , j ;
+	int  x , y ;
 	int  width , height , rowstride ;
 	u_char *  line ;
 	u_char *  pixel ;
@@ -1019,13 +1013,13 @@ compose_truecolor(
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	for( i = 0; i < height; i++)
+	for( y = 0; y < height; y++)
 	{
 		pixel = line ;
-		for( j = 0 ; j < width ; j++)
+		for( x = 0 ; x < width ; x++)
 		{
-			pixel2 = XGetPixel( image , j , i) ;
-			
+			pixel2 = XGetPixel( image , x , y) ;
+
 			r = PIXEL_RED(pixel2,rgbinfo) ;
 			g = PIXEL_BLUE(pixel2,rgbinfo) ;
 			b = PIXEL_GREEN(pixel2,rgbinfo) ;
@@ -1034,7 +1028,7 @@ compose_truecolor(
 			g = (g*(256 - pixel[3]) + pixel[1] * pixel[3])>>8 ;
 			b = (b*(256 - pixel[3]) + pixel[2] * pixel[3])>>8 ;
 
-			XPutPixel( image , j , i ,
+			XPutPixel( image , x , y ,
 				RGB_TO_PIXEL(r,g,b,rgbinfo) |
 				(disp->depth == 32 ? 0xff000000 : 0)) ;
 			pixel += 4 ;
@@ -1053,7 +1047,7 @@ compose_pseudocolor(
 	)
 {
 	XImage *  image ;
-	int  i , j , num_cells ;
+	int  x , y , num_cells ;
 	int  width , height , rowstride ;
 	u_int  r , g , b ;
 	u_char *  line ;
@@ -1079,12 +1073,12 @@ compose_pseudocolor(
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	for( i = 0 ; i < height ; i++)
+	for( y = 0 ; y < height ; y++)
 	{
 		pixel = line ;
-		for( j = 0 ; j < width ; j++)
+		for( x = 0 ; x < width ; x++)
 		{
-			if( ( pixel2 = XGetPixel( image , j , i)) >= num_cells)
+			if( ( pixel2 = XGetPixel( image , x , y)) >= num_cells)
 			{
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG " Pixel %x is illegal.\n" ,
@@ -1101,7 +1095,7 @@ compose_pseudocolor(
 			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
 			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
 
-			XPutPixel( image , j , i ,
+			XPutPixel( image , x , y ,
 				closest_color_index( color_list , num_cells , r , g , b)) ;
 			pixel += 4 ;
 		}
@@ -1150,7 +1144,7 @@ modify_image(
 	x_picture_modifier_t *  pic_mod		/* Mustn't be normal */
 	)
 {
-	int  i , j ;
+	int  x , y ;
 	int  width , height , rowstride , bytes_per_pixel ;
 	u_char *  line ;
 	u_char *  pixel ;
@@ -1165,12 +1159,12 @@ modify_image(
 
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	for( i = 0 ; i < height ; i++)
+	for( y = 0 ; y < height ; y++)
 	{
 		pixel = line ;
 		line += rowstride ;
 
-		for( j = 0 ; j < width ; j++)
+		for( x = 0 ; x < width ; x++)
 		{
 			/*
 			 * XXX
