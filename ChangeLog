@@ -1,3 +1,7 @@
+2013-11-20  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c, x_screen.c: Minor fixes.
+
 2013-11-19  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: -L option is added to curl.

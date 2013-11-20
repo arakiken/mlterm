@@ -21,6 +21,10 @@
 #undef  HAVE_PTHREAD
 #endif
 
+#ifdef  X_PROTOCOL
+#undef  HAVE_WINDOWS_H
+#endif
+
 #if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include  <pthread.h>
 #ifndef  HAVE_WINDOWS_H

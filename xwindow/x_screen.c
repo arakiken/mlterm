@@ -13,7 +13,7 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
-#include  <kiklib/kik_def.h>	/* PATH_MAX , HAVE_WINDOWS_H */
+#include  <kiklib/kik_def.h>	/* PATH_MAX */
 #include  <kiklib/kik_args.h>	/* kik_arg_str_to_array */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
