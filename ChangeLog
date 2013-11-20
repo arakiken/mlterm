@@ -1,5 +1,7 @@
 2013-11-20  Araki Ken  <arakiken@users.sf.net>
 
+	* MLTermPty.c: ml_set_use_scp() -> ml_set_use_scp_full().
+
 	* x_picture.c, x_screen.c: Minor fixes.
 
 2013-11-19  Araki Ken  <arakiken@users.sf.net>

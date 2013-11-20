@@ -971,7 +971,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 			{
 				if( strcmp( value , "true") == 0)
 				{
-					ml_set_use_scp( 1) ;
+					ml_set_use_scp_full( 1) ;
 				}
 			}
 		#endif
