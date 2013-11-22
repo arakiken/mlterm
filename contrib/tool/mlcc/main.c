@@ -391,12 +391,20 @@ int main(int argc, char **argv){
 		i = 2;
 		strcpy(cmd,argv[i]);
 		while(++i < argc){
+                        int  enclose;
 			strcat(cmd , " ");
-			if(strcmp(argv[2],"set_shortcut") != 0){
+			if(strncmp(argv[2],"mlclient",8) == 0 ||
+			   strcmp(argv[2],"snapshot") == 0 ||
+			   strcmp(argv[2],"show_picture") == 0 ||
+			   strcmp(argv[2],"scp") == 0){
+				enclose = 1;
 				strcat(cmd , "\"");
 			}
+			else {
+				enclose = 0;
+			}
 			strcat(cmd , argv[i]);
-			if(strcmp(argv[2],"set_shortcut") != 0){
+			if(enclose){
 				strcat(cmd , "\"");
 			}
 		}

@@ -28,6 +28,7 @@
 #include  "ml_iscii.h"
 #include  "ml_config_proto.h"
 #include  "ml_drcs.h"
+#include  "ml_str_parser.h"
 
 
 /*
@@ -1331,6 +1332,87 @@ show_picture(
 }
 #endif
 
+static void
+snapshot(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_char_encoding_t  encoding ,
+	char *  file_name
+	)
+{
+	int  beg ;
+	int  end ;
+	ml_char_t *  buf ;
+	u_int  num ;
+	char *  path ;
+	FILE *  file ;
+	u_char  conv_buf[512] ;
+	mkf_parser_t *  ml_str_parser ;
+	mkf_conv_t *  conv ;
+
+	beg = - ml_screen_get_num_of_logged_lines( vt100_parser->screen) ;
+	end = ml_screen_get_rows( vt100_parser->screen) ;
+
+	num = ml_screen_get_region_size( vt100_parser->screen , 0 , beg , 0 , end) ;
+
+	if( ( buf = ml_str_alloca( num)) == NULL)
+	{
+		return ;
+	}
+
+	ml_screen_copy_region( vt100_parser->screen , buf , num , 0 , beg , 0 , end) ;
+
+	if( ( path = alloca( 7 + strlen( file_name) + 4 + 1)) == NULL)
+	{
+		return ;
+	}
+	sprintf( path , "mlterm/%s.snp" , file_name) ;
+
+	if( ( path = kik_get_user_rc_path( path)) == NULL)
+	{
+		return ;
+	}
+
+	file = fopen( path , "w") ;
+	free( path) ;
+	if( ! file)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open %s\n" , file_name) ;
+	#endif
+
+		return ;
+	}
+
+	if( ! ( ml_str_parser = ml_str_parser_new()))
+	{
+		fclose( file) ;
+
+		return ;
+	}
+
+	(*ml_str_parser->init)( ml_str_parser) ;
+	ml_str_parser_set_str( ml_str_parser , buf , num) ;
+
+	if( encoding == ML_UNKNOWN_ENCODING || ( conv = ml_conv_new( encoding)) == NULL)
+	{
+		conv = vt100_parser->cc_conv ;
+	}
+
+	while( ! ml_str_parser->is_eos &&
+	       ( num = (*conv->convert)( conv , conv_buf , sizeof( conv_buf) , ml_str_parser)) > 0)
+	{
+		fwrite( conv_buf , num , 1 , file) ;
+	}
+
+	if( conv != vt100_parser->cc_conv)
+	{
+		(*conv->delete)( conv) ;
+	}
+
+	(*ml_str_parser->delete)( ml_str_parser) ;
+	fclose( file) ;
+}
+
 
 static int
 true_or_false(
@@ -1374,6 +1456,44 @@ config_protocol_set(
 	else if( strcmp( pt , "full_reset") == 0)
 	{
 		soft_reset( vt100_parser) ;
+	}
+	else if( strncmp( pt , "snapshot" , 8) == 0)
+	{
+		char **  argv ;
+		int  argc ;
+		ml_char_encoding_t  encoding ;
+		char *  file ;
+
+		argv = kik_arg_str_to_array( &argc , pt) ;
+
+		if( argc >= 3)
+		{
+			encoding = ml_get_char_encoding( argv[2]) ;
+		}
+		else
+		{
+			encoding = ML_UNKNOWN_ENCODING ;
+		}
+
+		if( argc >= 2)
+		{
+			file = argv[1] ;
+		}
+		else
+		{
+			/* skip /dev/ */
+			file = ml_pty_get_slave_name( vt100_parser->pty) + 5 ;
+		}
+
+		if( strstr( file , ".."))
+		{
+			/* insecure file name */
+			kik_msg_printf( "%s is insecure file name.\n" , file) ;
+		}
+		else
+		{
+			snapshot( vt100_parser , encoding , file) ;
+		}
 	}
 #ifndef  NO_IMAGE
 	else if( strncmp( pt , "show_picture " , 13) == 0)
