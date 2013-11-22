@@ -4,7 +4,7 @@ comment $Id$
 Memo about WIN32 native GUI.
 
 * Tested environments.
-  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.22
+  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.25
             + libssh2 1.4.3(win32 native)
             + GTK+ 2.12.9(win32 native)
             + Fribidi 0.19.2(win32 native)
