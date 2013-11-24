@@ -507,6 +507,8 @@ cairo)
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_cairo.la ${TYPE_LIBS}"
 			if test "$with_pthread" != "no" ; then
+				# NetBSD doesn't allow shared libraries to link
+				# libpthread without linking it to executables.
 				case "${host_os}" in
 				netbsd*)
 					PTHREAD_LIB="-lpthread"
@@ -583,6 +585,8 @@ else
 				SSH2_CFLAGS="$SSH2_CFLAGS -DHAVE_PTHREAD"
 				SSH2_LIBS="$SSH2_LIBS -lpthread"
 				])
+			# NetBSD doesn't allow shared libraries to link libpthread
+			# without linking it to executables.
 			case "${host_os}" in
 			netbsd*)
 				PTHREAD_LIB="-lpthread"
@@ -887,6 +891,8 @@ if test "x$ibus" = "xyes" ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/ibus/libim-ibus.la ${DL_LIBS_IM}"
 		fi
 		if test "$with_pthread" != "no" ; then
+			# NetBSD doesn't allow shared libraries to link libpthread
+			# without linking it to executables.
 			case "${host_os}" in
 			netbsd*)
 				PTHREAD_LIB="-lpthread"

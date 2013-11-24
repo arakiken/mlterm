@@ -13,11 +13,225 @@
 #include  "ml_screen.h"
 
 
+#ifdef  OPEN_PTY_ASYNC
+
+#ifdef  USE_WIN32API
+#include  <windows.h>
+#else
+#include  <pthread.h>
+#endif
+#include  <kiklib/kik_sig_child.h>
+
+
+typedef struct
+{
+	ml_term_t *  term ;
+	char *  cmd_path ;
+	char **  argv ;
+	char **  env ;
+	char *  host ;
+	char *  pass ;
+	char *  pubkey ;
+	char *  privkey ;
+
+} pty_args_t ;
+
+#endif
+
+
 /* --- global variables --- */
 
 #ifndef  NO_IMAGE
 /* XXX */
 void (*ml_term_pty_closed_event)( ml_term_t *) ;
+#endif
+
+
+/* --- static functions --- */
+
+#ifdef  OPEN_PTY_ASYNC
+
+static void
+pty_args_delete(
+	pty_args_t *  args
+	)
+{
+	int  count ;
+
+	free( args->cmd_path) ;
+	free( args->host) ;
+	free( args->pass) ;
+	free( args->pubkey) ;
+	free( args->privkey) ;
+
+	if( args->argv)
+	{
+		for( count = 0 ; args->argv[count] ; count++)
+		{
+			free( args->argv[count]) ;
+		}
+		free( args->argv) ;
+	}
+
+	if( args->env)
+	{
+		for( count = 0 ; args->env[count] ; count++)
+		{
+			free( args->env[count]) ;
+		}
+		free( args->env) ;
+	}
+
+	free( args) ;
+}
+
+static pty_args_t *
+pty_args_new(
+	ml_term_t *  term ,
+	const char *  cmd_path ,
+	char **  argv ,
+	char **  env ,
+	const char *  host ,
+	const char *  pass ,
+	const char *  pubkey ,
+	const char *  privkey
+	)
+{
+	pty_args_t *  args ;
+	u_int  num ;
+	u_int  count ;
+
+	if( ! ( args = calloc( 1 , sizeof(pty_args_t))))
+	{
+		return  NULL ;
+	}
+
+	args->term = term ;
+
+	if( cmd_path)
+	{
+		args->cmd_path = strdup( cmd_path) ;
+	}
+
+	if( host)
+	{
+		args->host = strdup( host) ;
+	}
+
+	if( pass)
+	{
+		args->pass = strdup( pass) ;
+	}
+
+	if( pubkey)
+	{
+		args->pubkey = strdup( pubkey) ;
+	}
+
+	if( privkey)
+	{
+		args->privkey = strdup( privkey) ;
+	}
+
+	if( argv)
+	{
+		for( num = 0 ; argv[num] ; num++) ;
+
+		if( ( args->argv = malloc( sizeof(char*) * (num + 1))))
+		{
+			for( count = 0 ; count < num ; count++)
+			{
+				args->argv[count] = strdup( argv[count]) ;
+			}
+			args->argv[count] = NULL ;
+		}
+	}
+	else
+	{
+		args->argv = NULL ;
+	}
+
+	if( args->env)
+	{
+		for( num = 0 ; env[num] ; num++) ;
+
+		if( ( args->env = malloc( sizeof(char*) * (num + 1))))
+		{
+			for( count = 0 ; count < num ; count++)
+			{
+				args->env[count] = strdup( env[count]) ;
+			}
+			args->env[count] = NULL ;
+		}
+	}
+	else
+	{
+		args->env = NULL ;
+	}
+
+	return  args ;
+}
+
+#ifdef  USE_WIN32API
+static u_int __stdcall
+#else
+static void *
+#endif
+open_pty(
+	void *  p
+  	)
+{
+	pty_args_t *  args ;
+	ml_pty_ptr_t  pty ;
+
+#ifdef  USE_WIN32API
+	static HANDLE  mutex ;
+
+	if( ! mutex)
+	{
+		mutex = CreateMutex( NULL , FALSE , NULL) ;
+	}
+
+	WaitForSingleObject( mutex , INFINITE) ;
+#else
+	static pthread_mutex_t  mutex = PTHREAD_MUTEX_INITIALIZER ;
+
+	pthread_detach( pthread_self()) ;
+	pthread_mutex_lock( &mutex) ;
+#endif
+
+	args = p ;
+
+	if( ( pty = ml_pty_new( args->cmd_path , args->argv , args->env , args->host ,
+			args->pass , args->pubkey , args->privkey ,
+			ml_screen_get_logical_cols( args->term->screen) ,
+			ml_screen_get_logical_rows( args->term->screen))))
+	{
+		if( args->pass)
+		{
+			args->term->uri = strdup( args->host) ;
+		}
+
+		ml_term_plug_pty( args->term , pty) ;
+
+		pty_args_delete( args) ;
+	}
+	else
+	{
+		args->term->return_special_pid = 1 ;
+		kik_trigger_sig_child( -10) ;
+		args->term->return_special_pid = 0 ;
+	}
+
+#ifdef  USE_WIN32API
+	ReleaseMutex( mutex) ;
+#else
+	pthread_mutex_unlock( &mutex) ;
+#endif
+
+	return  0 ;
+}
+
 #endif
 
 
@@ -133,6 +347,10 @@ ml_term_delete(
 	{
 		ml_pty_delete( term->pty) ;
 	}
+	else if( term->pty_listener)
+	{
+		(*term->pty_listener->closed)( term->pty_listener->self) ;
+	}
 	
 	if( term->shape)
 	{
@@ -193,6 +411,44 @@ ml_term_open_pty(
 {
 	if( ! term->pty)
 	{
+	#ifdef  OPEN_PTY_ASYNC
+		pty_args_t *  args ;
+
+		if( ! ( args = pty_args_new( term , cmd_path , argv , env , host , pass ,
+						pubkey , privkey)))
+		{
+			return  0 ;
+		}
+
+	#ifdef  USE_WIN32API
+		{
+			HANDLE  thrd ;
+			u_int  tid ;
+
+			if( ( thrd = _beginthreadex( NULL , 0 , open_pty , args , 0 , &tid)))
+			{
+				CloseHandle( thrd) ;
+
+				return  1 ;
+			}
+
+			return  0 ;
+		}
+	#else
+		{
+			pthread_t  thrd ;
+
+			if( pthread_create( &thrd , NULL , open_pty , args) == 0)
+			{
+				return  1 ;
+			}
+			else
+			{
+				return  0 ;
+			}
+		}
+	#endif
+	#else
 		ml_pty_ptr_t  pty ;
 
 		if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , pass , pubkey , privkey ,
@@ -212,6 +468,7 @@ ml_term_open_pty(
 		}
 
 		ml_term_plug_pty( term , pty) ;
+	#endif
 	}
 
 	return  1 ;
@@ -225,15 +482,15 @@ ml_term_plug_pty(
 {
 	if( ! term->pty)
 	{
-		term->pty = pty ;
-
 		if( term->pty_listener)
 		{
-			ml_pty_set_listener( term->pty, term->pty_listener) ;
+			ml_pty_set_listener( pty , term->pty_listener) ;
 			term->pty_listener = NULL ;
 		}
 
-		ml_vt100_parser_set_pty( term->parser , term->pty) ;
+		ml_vt100_parser_set_pty( term->parser , pty) ;
+
+		term->pty = pty ;
 	}
 	
 	return  1 ;
@@ -391,7 +648,11 @@ ml_term_get_child_pid(
 {
 	if( term->pty == NULL)
 	{
+	#ifdef  OPEN_PTY_ASYNC
+		return  term->return_special_pid ? -10 : -1 ;
+	#else
 		return  -1 ;
+	#endif
 	}
 	
 	return  ml_pty_get_pid( term->pty) ;

@@ -146,11 +146,16 @@ receive_next_event(void)
 		for( count = 0 ; count < num_of_terms ; count ++)
 		{
 			ptyfd = ml_term_get_master_fd( terms[count]) ;
-			FD_SET( ptyfd , &read_fds) ;
-
-			if( ptyfd > maxfd)
+		#ifdef  OPEN_PTY_ASYNC
+			if( ptyfd >= 0)
+		#endif
 			{
-				maxfd = ptyfd ;
+				FD_SET( ptyfd , &read_fds) ;
+
+				if( ptyfd > maxfd)
+				{
+					maxfd = ptyfd ;
+				}
 			}
 		}
 
@@ -235,9 +240,15 @@ receive_next_event(void)
 
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-		if( FD_ISSET( ml_term_get_master_fd( terms[count]) , &read_fds))
+		ptyfd = ml_term_get_master_fd( terms[count]) ;
+	#ifdef  OPEN_PTY_ASYNC
+		if( ptyfd >= 0)
+	#endif
 		{
-			ml_term_parse_vt100_sequence( terms[count]) ;
+			if( FD_ISSET( ptyfd , &read_fds))
+			{
+				ml_term_parse_vt100_sequence( terms[count]) ;
+			}
 		}
 	}
 

@@ -1,3 +1,15 @@
+2013-11-24  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen_manager.c: Memory leak when opening pty fails on win32gdi
+	  is fixed.
+
+	* x_event_source.c: receive_next_event() assumes that ml_term_get_master_fd()
+	  could return -1 in opening pty asynchronously on cygwin or mingw.
+
+	* ml_term.[ch]: ml_term_open_pty() works asynchronously on cygwin or mingw.
+
+	* version.h.in: 3.3.0 -> 3.3.0post
+
 2013-11-23  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.3.1 released.

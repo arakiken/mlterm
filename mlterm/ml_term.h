@@ -12,10 +12,18 @@
 #define  __ML_TERM_H__
 
 
+#include  <kiklib/kik_def.h>	/* HAVE_PTHREAD/USE_WIN32API */
+
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
 #include  "ml_screen.h"
 #include  "ml_config_menu.h"
+
+
+/* defined(__CYGWIN__) is not to link libpthread to mlterm for now. */
+#if  defined(USE_WIN32API) || (defined(HAVE_PTHREAD) && defined(__CYGWIN__))
+#define  OPEN_PTY_ASYNC
+#endif
 
 
 typedef struct ml_term
@@ -48,12 +56,12 @@ typedef struct ml_term
 	int8_t  use_bidi ;
 	int8_t  use_ind ;
 	int8_t  use_dynamic_comb ;
-
 	int8_t  is_auto_encoding ;
-
 	int8_t  use_local_echo ;
-
 	int8_t  is_attached ;
+#ifdef  OPEN_PTY_ASYNC
+	int8_t	return_special_pid ;
+#endif
 
 } ml_term_t ;
 

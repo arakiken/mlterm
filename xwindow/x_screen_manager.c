@@ -645,6 +645,7 @@ open_screen_intern(
 			 * and operates screen->term which was already deleted.
 			 * (see window_unfocused())
 			 */
+			screens[num_of_screens++] = screen ;
 			screen->window.window_unfocused = NULL ;
 			SendMessage( root->my_window , WM_CLOSE , 0 , 0) ;
 		#else
@@ -661,7 +662,7 @@ open_screen_intern(
 		}
 	}
 
-	/* Don't add screen to screens before "return NULL" above. */
+	/* Don't add screen to screens before "return NULL" above unless USE_WIN32GUI. */
 	screens[num_of_screens++] = screen ;
 
 	return  screen ;

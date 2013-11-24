@@ -1,3 +1,8 @@
+ver 3.3.2
+* Desynchronize ssh negotiation on cygwin or mingw.
+* Bug fixes:
+  Fix memory leak when opening pty fails on win32gdi.
+
 ver 3.3.1
 * Add "use_auto_detect" and "auto_detect_encodings" options.
   (auto_detect_encodings=utf8,eucjp,sjis and use_auto_detect=true enable
