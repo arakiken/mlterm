@@ -1,7 +1,10 @@
 ver 3.3.2
 * Desynchronize ssh negotiation on cygwin or mingw.
+* "inner_border" option accepts "[horizontal border],[vertical border]" format value.
 * Bug fixes:
   Fix memory leak when opening pty fails on win32gdi.
+  Fix the bug which disabled to clear hidden input method window it if large
+  value is specified for --border option.
 
 ver 3.3.1
 * Add "use_auto_detect" and "auto_detect_encodings" options.

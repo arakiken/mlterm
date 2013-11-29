@@ -299,6 +299,9 @@ comment $Id$
       o inner_border (*2*)
         Window の inner border (0-224)
 
+        "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
+        定できます。
+
       -- Terminal 関連 --
       o use_login_shell  (true/*false*)
         ログインシェルを使うかどうか

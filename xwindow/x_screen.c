@@ -4377,15 +4377,20 @@ font_size_changed(
 	x_screen_t *  screen
 	)
 {
+	u_int  col_width ;
+	u_int  line_height ;
+
 	if( HAS_SCROLL_LISTENER(screen,line_height_changed))
 	{
 		(*screen->screen_scroll_listener->line_height_changed)(
 			screen->screen_scroll_listener->self , x_line_height( screen)) ;
 	}
 
+	col_width = x_col_width( screen) ;
+	line_height = x_line_height( screen) ;
+
 	x_window_set_normal_hints( &screen->window ,
-		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
-		x_col_width( screen) , x_line_height( screen)) ;
+		col_width , line_height , col_width , line_height) ;
 
 	resize_window( screen) ;
 }
@@ -6362,8 +6367,8 @@ get_im_spot(
 
 	x_window_translate_coordinates( &screen->window, 0, 0, &win_x, &win_y, &unused) ;
 
-	*x += win_x + screen->window.margin ;
-	*y += win_y + screen->window.margin ;
+	*x += win_x + screen->window.hmargin ;
+	*y += win_y + screen->window.vmargin ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " im spot => x %d y %d\n" , *x , *y) ;
@@ -7392,11 +7397,14 @@ x_screen_new(
 	char *  input_method ,
 	int  allow_osc52 ,
 	int  blink_cursor ,
-	int  margin ,
+	int  hmargin ,
+	int  vmargin ,
 	int  hide_underline
 	)
 {
 	x_screen_t *  screen ;
+	u_int  col_width ;
+	u_int  line_height ;
 
 	if( ( screen = calloc( 1 , sizeof( x_screen_t))) == NULL)
 	{
@@ -7459,11 +7467,14 @@ x_screen_new(
 	/* screen->term must be set before screen_height() */
 	screen->term = term ;
 
+	col_width = x_col_width( screen) ;
+	line_height = x_line_height( screen) ;
+
 	if( x_window_init( &screen->window ,
-		screen->term ? screen_width( screen) : x_col_width(screen) ,
-		screen->term ? screen_height( screen) : x_line_height(screen) ,
-		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
-		x_col_width( screen) , x_line_height( screen) , margin , 0) == 0) /* min: 1x1 */
+		screen->term ? screen_width( screen) : col_width ,
+		screen->term ? screen_height( screen) : line_height ,
+		col_width , line_height , col_width , line_height ,
+		hmargin , vmargin , 0) == 0) /* min: 1x1 */
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;

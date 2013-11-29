@@ -167,8 +167,8 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
 	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space ,
-	char *  input_method , int  allow_osc52 , int  blink_cursor , int  margin ,
-	int  hide_underline) ;
+	char *  input_method , int  allow_osc52 , int  blink_cursor ,
+	int  hmargin , int  vmargin , int  hide_underline) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

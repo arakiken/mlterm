@@ -140,16 +140,21 @@ clear_margin_area(
 	x_window_t *  win
 	)
 {
-	if( win->margin > 0)
+	if( win->hmargin > 0)
 	{
 		XClearArea( win->disp->display , win->my_window ,
-			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+			0 , 0 , win->hmargin , ACTUAL_HEIGHT(win) , 0) ;
 		XClearArea( win->disp->display , win->my_window ,
-			win->margin , 0 , win->width , win->margin , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
-			0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->margin ,
-			win->height + win->margin , win->width , win->margin , 0) ;
+			win->width + win->hmargin , 0 , win->hmargin , ACTUAL_HEIGHT(win) , 0) ;
+	}
+
+	if( win->vmargin > 0)
+	{
+		XClearArea( win->disp->display , win->my_window ,
+			win->hmargin , 0 , win->width , win->vmargin , 0) ;
+		XClearArea( win->disp->display , win->my_window ,
+			win->hmargin , win->height + win->vmargin ,
+			win->width , win->vmargin , 0) ;
 	}
 
 	return  1 ;
@@ -513,7 +518,7 @@ total_min_width(
 	u_int  count ;
 	u_int  min_width ;
 
-	min_width = win->min_width + win->margin * 2 ;
+	min_width = win->min_width + win->hmargin * 2 ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -534,7 +539,7 @@ total_min_height(
 	u_int  count ;
 	u_int  min_height ;
 
-	min_height = win->min_height + win->margin * 2 ;
+	min_height = win->min_height + win->vmargin * 2 ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -545,48 +550,6 @@ total_min_height(
 	}
 
 	return  min_height ;
-}
-
-static u_int
-total_base_width(
-	x_window_t *  win
-	)
-{
-	u_int  count ;
-	u_int  base_width ;
-
-	base_width = win->base_width + win->margin * 2 ;
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		if( win->children[count]->is_mapped)
-		{
-			base_width += total_base_width( win->children[count]) ;
-		}
-	}
-
-	return  base_width ;
-}
-
-static u_int
-total_base_height(
-	x_window_t *  win
-	)
-{
-	u_int  count ;
-	u_int  base_height ;
-
-	base_height = win->base_height + win->margin * 2 ;
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		if( win->children[count]->is_mapped)
-		{
-			base_height += total_base_height( win->children[count]) ;
-		}
-	}
-
-	return  base_height ;
 }
 
 static u_int
@@ -703,8 +666,8 @@ scroll_region(
 	)
 {
 	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
-		src_x + win->margin , src_y + win->margin , width , height ,
-		dst_x + win->margin , dst_y + win->margin) ;
+		src_x + win->hmargin , src_y + win->vmargin , width , height ,
+		dst_x + win->hmargin , dst_y + win->vmargin) ;
 
 	while( win->wait_copy_area_response)
 	{
@@ -911,13 +874,12 @@ x_window_init(
 	x_window_t *  win ,
 	u_int  width ,
 	u_int  height ,
-	u_int  min_width ,
-	u_int  min_height ,
-	u_int  base_width ,
-	u_int  base_height ,
+	u_int  min_width ,	/* width_inc * 1 must be added to if width_inc > 0 */
+	u_int  min_height ,	/* height_inc * 1 must be added to if height_inc > 0 */
 	u_int  width_inc ,
 	u_int  height_inc ,
-	u_int  margin ,
+	u_int  hmargin ,
+	u_int  vmargin ,
 	int  create_gc
 	)
 {
@@ -949,11 +911,10 @@ x_window_init(
 	win->height = height ;
 	win->min_width = min_width ;
 	win->min_height = min_height ;
-	win->base_width = base_width ;
-	win->base_height = base_height ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
-	win->margin = margin ;
+	win->hmargin = hmargin ;
+	win->vmargin = vmargin ;
 
 	win->prev_clicked_button = -1 ;
 
@@ -1521,8 +1482,10 @@ x_window_show(
 		size_hints.height_inc = total_height_inc( win) ;
 		size_hints.min_width = total_min_width( win) ;
 		size_hints.min_height = total_min_height( win) ;
-		size_hints.base_width = total_base_width( win) ;
-		size_hints.base_height = total_base_height( win) ;
+		size_hints.base_width = size_hints.min_width > size_hints.width_inc ?
+					size_hints.min_width - size_hints.width_inc : 0 ;
+		size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
+					size_hints.min_height - size_hints.height_inc : 0 ;
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG
@@ -1747,8 +1710,8 @@ x_window_resize_with_margin(
 	min_height = total_min_height( win) ;
 	
 	return  x_window_resize( win ,
-			width <= min_width ? min_width : width - win->margin * 2 ,
-			height <= min_height ? min_height : height - win->margin * 2 , flag) ;
+			width <= min_width ? min_width : width - win->hmargin * 2 ,
+			height <= min_height ? min_height : height - win->vmargin * 2 , flag) ;
 }
 
 int
@@ -1756,8 +1719,6 @@ x_window_set_normal_hints(
 	x_window_t *  win ,
 	u_int  min_width ,
 	u_int  min_height ,
-	u_int  base_width ,
-	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc
 	)
@@ -1767,8 +1728,6 @@ x_window_set_normal_hints(
 
 	win->min_width = min_width ;
 	win->min_height = min_height  ;
-	win->base_width = base_width ;
-	win->base_height = base_height  ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 
@@ -1781,8 +1740,8 @@ x_window_set_normal_hints(
 	size_hints.height_inc = total_height_inc( root) ;
 	size_hints.min_width = total_min_width( root) ;
 	size_hints.min_height = total_min_height( root) ;
-	size_hints.base_width = total_base_width( root) ;
-	size_hints.base_height = total_base_height( root) ;
+	size_hints.base_width = size_hints.min_width - size_hints.width_inc ;
+	size_hints.base_height = size_hints.min_height - size_hints.height_inc ;
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
 
 #ifdef  DEBUG
@@ -1912,37 +1871,37 @@ x_window_clear(
 	if( x + width >= win->width)
 	{
 		/* Clearing margin area */
-		width += win->margin ;
+		width += win->hmargin ;
 	}
 
 	if( x > 0)
 #endif
 	{
-		x += win->margin ;
+		x += win->hmargin ;
 	}
 #ifdef  AUTO_CLEAR_MARGIN
 	else
 	{
 		/* Clearing margin area */
-		width += win->margin ;
+		width += win->hmargin ;
 	}
 
 	if( y + height >= win->height)
 	{
 		/* Clearing margin area */
-		height += win->margin ;
+		height += win->vmargin ;
 	}
 
 	if( y > 0)
 #endif
 	{
-		y += win->margin ;
+		y += win->vmargin ;
 	}
 #ifdef  AUTO_CLEAR_MARGIN
 	else
 	{
 		/* Clearing margin area */
-		height += win->margin ;
+		height += win->vmargin ;
 	}
 #endif
 
@@ -1971,7 +1930,7 @@ x_window_fill(
 	restore_fg_color( win) ;
 
 	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-		x + win->margin , y + win->margin , width , height) ;
+		x + win->hmargin , y + win->vmargin , width , height) ;
 
 	return  1 ;
 }
@@ -1989,7 +1948,7 @@ x_window_fill_with(
 	x_gc_set_fg_color( win->gc, color->pixel) ;
 
 	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-		x + win->margin , y + win->margin , width , height) ;
+		x + win->hmargin , y + win->vmargin , width , height) ;
 
 	return  1 ;
 }
@@ -2002,7 +1961,7 @@ x_window_blank(
 	restore_fg_color( win) ;
 
 	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-		win->margin , win->margin , win->width , win->height) ;
+		win->hmargin , win->vmargin , win->width , win->height) ;
 
 	return  1 ;
 }
@@ -2021,7 +1980,7 @@ x_window_blank_with(
 	x_gc_set_fg_color( win->gc, color->pixel) ;
 
 	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-		win->margin , win->margin , win->width , win->height) ;
+		win->hmargin , win->vmargin , win->width , win->height) ;
 
 	return  1 ;
 }
@@ -2244,8 +2203,8 @@ x_window_receive_event(
 		{
 			if( win->button_motion)
 			{
-				event->xmotion.x -= win->margin ;
-				event->xmotion.y -= win->margin ;
+				event->xmotion.x -= win->hmargin ;
+				event->xmotion.y -= win->vmargin ;
 
 				(*win->button_motion)( win , &event->xmotion) ;
 			}
@@ -2258,8 +2217,8 @@ x_window_receive_event(
 		}
 		else if( win->pointer_motion)
 		{
-			event->xmotion.x -= win->margin ;
-			event->xmotion.y -= win->margin ;
+			event->xmotion.x -= win->hmargin ;
+			event->xmotion.y -= win->vmargin ;
 
 			(*win->pointer_motion)( win , &event->xmotion) ;
 		}
@@ -2268,8 +2227,8 @@ x_window_receive_event(
 	{
 		if( win->button_released)
 		{
-			event->xbutton.x -= win->margin ;
-			event->xbutton.y -= win->margin ;
+			event->xbutton.x -= win->hmargin ;
+			event->xbutton.y -= win->vmargin ;
 
 			(*win->button_released)( win , &event->xbutton) ;
 		}
@@ -2280,8 +2239,8 @@ x_window_receive_event(
 	{
 		if( win->button_pressed)
 		{
-			event->xbutton.x -= win->margin ;
-			event->xbutton.y -= win->margin ;
+			event->xbutton.x -= win->hmargin ;
+			event->xbutton.y -= win->vmargin ;
 
 			if( win->click_num == MAX_CLICK)
 			{
@@ -2419,7 +2378,7 @@ x_window_receive_event(
 
 		margin_area_exposed = 0 ;
 		
-		if( event->xexpose.x < win->margin)
+		if( event->xexpose.x < win->hmargin)
 		{
 			margin_area_exposed = 1 ;
 			x = 0 ;
@@ -2428,18 +2387,18 @@ x_window_receive_event(
 			{
 				width = win->width ;
 			}
-			else if( event->xexpose.width < (win->margin - event->xexpose.x))
+			else if( event->xexpose.width < (win->hmargin - event->xexpose.x))
 			{
 				width = 0 ;
 			}
 			else
 			{
-				width = event->xexpose.width - (win->margin - event->xexpose.x) ;
+				width = event->xexpose.width - (win->hmargin - event->xexpose.x) ;
 			}
 		}
 		else
 		{
-			x = event->xexpose.x - win->margin ;
+			x = event->xexpose.x - win->hmargin ;
 
 			if( x + event->xexpose.width > win->width)
 			{
@@ -2452,7 +2411,7 @@ x_window_receive_event(
 			}
 		}
 
-		if( event->xexpose.y < win->margin)
+		if( event->xexpose.y < win->vmargin)
 		{
 			margin_area_exposed = 1 ;
 			y = 0 ;
@@ -2461,18 +2420,18 @@ x_window_receive_event(
 			{
 				height = win->height ;
 			}
-			else if( event->xexpose.height < (win->margin - event->xexpose.y))
+			else if( event->xexpose.height < (win->vmargin - event->xexpose.y))
 			{
 				height = 0 ;
 			}
 			else
 			{
-				height = event->xexpose.height - (win->margin - event->xexpose.y) ;
+				height = event->xexpose.height - (win->vmargin - event->xexpose.y) ;
 			}
 		}
 		else
 		{
-			y = event->xexpose.y - win->margin ;
+			y = event->xexpose.y - win->vmargin ;
 
 			if( y + event->xexpose.height > win->height)
 			{
@@ -2570,8 +2529,8 @@ x_window_receive_event(
 		if( event->xconfigure.width != ACTUAL_WIDTH(win) ||
 			event->xconfigure.height != ACTUAL_HEIGHT(win))
 		{
-			win->width = event->xconfigure.width - win->margin * 2 ;
-			win->height = event->xconfigure.height - win->margin * 2 ;
+			win->width = event->xconfigure.width - win->hmargin * 2 ;
+			win->height = event->xconfigure.height - win->vmargin * 2 ;
 
 			if( win->window_resized)
 			{
@@ -3142,11 +3101,11 @@ x_window_copy_area(
 	if( mask)
 	{
 		XSetClipOrigin( win->disp->display , win->gc->gc ,
-			dst_x + win->margin - src_x , dst_y + win->margin - src_y) ;
+			dst_x + win->hmargin - src_x , dst_y + win->vmargin - src_y) ;
 	}
 
 	XCopyArea( win->disp->display , src , win->my_window , win->gc->gc ,
-		src_x , src_y , width , height , dst_x + win->margin , dst_y + win->margin) ;
+		src_x , src_y , width , height , dst_x + win->hmargin , dst_y + win->vmargin) ;
 
 	return  1 ;
 }
@@ -3168,9 +3127,9 @@ x_window_draw_decsp_string(
 	{
 		x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-		return  x_decsp_font_draw_string( font->decsp_font , win->disp->display ,
-				win->my_window , win->gc->gc , x + win->margin , y + win->margin ,
-				str , len) ;
+		return  x_decsp_font_draw_string( font->decsp_font ,
+				win->disp->display , win->my_window , win->gc->gc ,
+				x + win->hmargin , y + win->vmargin , str , len) ;
 	}
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	else if( font->xfont)
@@ -3203,9 +3162,9 @@ x_window_draw_decsp_image_string(
 		x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 		x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-		return  x_decsp_font_draw_image_string( font->decsp_font , win->disp->display ,
-				win->my_window , win->gc->gc , x + win->margin , y + win->margin ,
-				str , len) ;
+		return  x_decsp_font_draw_image_string( font->decsp_font ,
+				win->disp->display , win->my_window , win->gc->gc ,
+				x + win->hmargin , y + win->vmargin , str , len) ;
 	}
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	else if( font->xfont)
@@ -3254,14 +3213,14 @@ x_window_draw_string(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
 	XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-		x + font->x_off + win->margin ,
-		y + win->margin , (char *)str , len) ;
+		x + font->x_off + win->hmargin ,
+		y + win->vmargin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-			x + font->x_off + win->margin + 1 ,
-			y + win->margin , (char *)str , len) ;
+			x + font->x_off + win->hmargin + 1 ,
+			y + win->vmargin , (char *)str , len) ;
 	}
 
 	return  1 ;
@@ -3282,14 +3241,14 @@ x_window_draw_string16(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
 	XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-		       x + font->x_off + win->margin ,
-		       y + win->margin , str , len) ;
+		       x + font->x_off + win->hmargin ,
+		       y + win->vmargin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-			       x + font->x_off + win->margin + 1 ,
-			       y + win->margin , str , len) ;
+			       x + font->x_off + win->hmargin + 1 ,
+			       y + win->vmargin , str , len) ;
 	}
 
 	return  1 ;
@@ -3312,14 +3271,14 @@ x_window_draw_image_string(
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
 	XDrawImageString( win->disp->display , win->my_window , win->gc->gc ,
-			  x + font->x_off + win->margin ,
-			  y + win->margin , (char *)str , len) ;
+			  x + font->x_off + win->hmargin ,
+			  y + win->vmargin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-			     x + font->x_off + win->margin + 1 ,
-			     y + win->margin , (char *)str , len) ;
+			     x + font->x_off + win->hmargin + 1 ,
+			     y + win->vmargin , (char *)str , len) ;
 	}
 
 	return  1 ;
@@ -3342,14 +3301,14 @@ x_window_draw_image_string16(
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
 	XDrawImageString16( win->disp->display , win->my_window , win->gc->gc ,
-			    x + font->x_off + win->margin ,
-			    y + win->margin , str , len) ;
+			    x + font->x_off + win->hmargin ,
+			    y + win->vmargin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-			       x + font->x_off + win->margin + 1 ,
-			       y + win->margin , str , len) ;
+			       x + font->x_off + win->hmargin + 1 ,
+			       y + win->vmargin , str , len) ;
 	}
 
 	return  1 ;
@@ -3431,9 +3390,9 @@ x_window_draw_rect_frame(
 {
 	XPoint  points[5] =
 	{
-		{ x1 += win->margin	, y1 += win->margin } ,
-		{ x1			, y2 += win->margin } ,
-		{ x2 += win->margin	, y2 } ,
+		{ x1 += win->hmargin	, y1 += win->vmargin } ,
+		{ x1			, y2 += win->vmargin } ,
+		{ x2 += win->hmargin	, y2 } ,
 		{ x2			, y1 } ,
 		{ x1			, y1 } ,
 	} ;

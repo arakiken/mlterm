@@ -49,10 +49,10 @@ scroll_region(
 	}
 
 	x_display_copy_lines(
-			src_x + win->x + win->margin ,
-			src_y + win->y + win->margin ,
-			dst_x + win->x + win->margin ,
-			dst_y + win->y + win->margin ,
+			src_x + win->x + win->hmargin ,
+			src_y + win->y + win->vmargin ,
+			dst_x + win->x + win->hmargin ,
+			dst_y + win->y + win->vmargin ,
 			width , height) ;
 
 	return  1 ;
@@ -251,8 +251,8 @@ draw_string(
 	}
 #endif
 
-	x += (win->margin + win->x) ;
-	y = y + (win->margin + win->y) - font_ascent ;
+	x += (win->hmargin + win->x) ;
+	y = y + (win->vmargin + win->y) - font_ascent ;
 
 	if( wall_picture_bg)
 	{
@@ -520,7 +520,8 @@ copy_area(
 	int  accept_margin	/* x/y can be minus and over width/height */
 	)
 {
-	int  margin ;
+	int  hmargin ;
+	int  vmargin ;
 	int  right_margin ;
 	int  bottom_margin ;
 	int  y_off ;
@@ -535,39 +536,40 @@ copy_area(
 
 	if( accept_margin)
 	{
-		margin = win->margin ;
+		hmargin = win->hmargin ;
+		vmargin = win->vmargin ;
 		right_margin = bottom_margin = 0 ;
 	}
 	else
 	{
-		margin = 0 ;
+		hmargin = vmargin = 0 ;
 		right_margin = RIGHT_MARGIN(win) ;
 		bottom_margin = BOTTOM_MARGIN(win) ;
 	}
 
-	if( dst_x >= (int)win->width + margin || dst_y >= (int)win->height + margin)
+	if( dst_x >= (int)win->width + hmargin || dst_y >= (int)win->height + vmargin)
 	{
 		return  0 ;
 	}
 
-	if( dst_x + width > win->width + margin - right_margin)
+	if( dst_x + width > win->width + hmargin - right_margin)
 	{
-		width = win->width + margin - right_margin - dst_x ;
+		width = win->width + hmargin - right_margin - dst_x ;
 	}
 
-	if( dst_y + height > win->height + margin - bottom_margin)
+	if( dst_y + height > win->height + vmargin - bottom_margin)
 	{
-		height = win->height + margin - bottom_margin - dst_y ;
+		height = win->height + vmargin - bottom_margin - dst_y ;
 	}
 
 	bpp = win->disp->display->bytes_per_pixel ;
 	src_width_size = src->width * bpp ;
-	picture = src->image + src_width_size * (margin + src_y) +
-			bpp * ( margin + src_x) ;
+	picture = src->image + src_width_size * (vmargin + src_y) +
+			bpp * (hmargin + src_x) ;
 
 	if( mask)
 	{
-		mask += ((margin + src_y) * src->width + margin + src_x) ;
+		mask += ((vmargin + src_y) * src->width + hmargin + src_x) ;
 
 		for( y_off = 0 ; y_off < height ; y_off++)
 		{
@@ -597,8 +599,8 @@ copy_area(
 				}
 
 				x_display_put_image(
-					win->x + win->margin + dst_x + x_off - w ,
-					win->y + win->margin + dst_y + y_off ,
+					win->x + win->hmargin + dst_x + x_off - w ,
+					win->y + win->vmargin + dst_y + y_off ,
 					picture + bpp * ( x_off - w) ,
 					w * bpp , 0) ;
 				w = 0 ;
@@ -617,8 +619,8 @@ copy_area(
 		for( y_off = 0 ; y_off < height ; y_off++)
 		{
 			x_display_put_image(
-				win->x + win->margin + dst_x ,
-				win->y + win->margin + dst_y + y_off ,
+				win->x + win->hmargin + dst_x ,
+				win->y + win->vmargin + dst_y + y_off ,
 				picture , size , 0) ;
 			picture += src_width_size ;
 		}
@@ -638,15 +640,15 @@ clear_margin_area(
 	right_margin = RIGHT_MARGIN(win) ;
 	bottom_margin = BOTTOM_MARGIN(win) ;
 
-	if( win->margin | right_margin | bottom_margin)
+	if( win->hmargin | win->vmargin | right_margin | bottom_margin)
 	{
-		x_window_clear( win , -(win->margin) , -(win->margin) ,
-			win->margin , ACTUAL_HEIGHT(win)) ;
-		x_window_clear( win , 0 , -(win->margin) , win->width , win->margin) ;
-		x_window_clear( win , win->width - right_margin , -(win->margin) ,
-			win->margin + right_margin , ACTUAL_HEIGHT(win)) ;
+		x_window_clear( win , -(win->hmargin) , -(win->vmargin) ,
+			win->hmargin , ACTUAL_HEIGHT(win)) ;
+		x_window_clear( win , 0 , -(win->vmargin) , win->width , win->vmargin) ;
+		x_window_clear( win , win->width - right_margin , -(win->vmargin) ,
+			win->hmargin + right_margin , ACTUAL_HEIGHT(win)) ;
 		x_window_clear( win , 0 , win->height - bottom_margin ,
-			win->width , win->margin + bottom_margin) ;
+			win->width , win->vmargin + bottom_margin) ;
 	}
 
 	/* XXX */
@@ -724,6 +726,30 @@ window_move(
 	return  1 ;
 }
 
+static int
+fix_rl_boundary(
+	x_window_t *  win ,
+	int  boundary_start ,
+	int *  boundary_end
+	)
+{
+	int  margin ;
+
+	margin = RIGHT_MARGIN(win) ;
+
+	if( boundary_start > win->width - margin)
+	{
+		return  0 ;
+	}
+
+	if( *boundary_end > win->width - margin)
+	{
+		*boundary_end = win->width - margin ;
+	}
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -734,11 +760,10 @@ x_window_init(
 	u_int  height ,
 	u_int  min_width ,
 	u_int  min_height ,
-	u_int  base_width ,
-	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc ,
-	u_int  margin ,
+	u_int  hmargin ,
+	u_int  vmargin ,
 	int  create_gc
 	)
 {
@@ -756,11 +781,10 @@ x_window_init(
 	win->height = height ;
 	win->min_width = min_width ;
 	win->min_height = min_height ;
-	win->base_width = base_width ;
-	win->base_height = base_height ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
-	win->margin = margin ;
+	win->hmargin = hmargin ;
+	win->vmargin = vmargin ;
 
 	win->prev_clicked_button = -1 ;
 
@@ -1146,14 +1170,14 @@ x_window_resize(
 				NOTIFY_TO_MYSELF) ;
 	}
 
-	if( width + win->margin * 2 > win->disp->width)
+	if( width + win->hmargin * 2 > win->disp->width)
 	{
-		width = win->disp->width - win->margin * 2 ;
+		width = win->disp->width - win->hmargin * 2 ;
 	}
 
-	if( height + win->margin * 2 > win->disp->height)
+	if( height + win->vmargin * 2 > win->disp->height)
 	{
-		height = win->disp->height - win->margin * 2 ;
+		height = win->disp->height - win->vmargin * 2 ;
 	}
 
 	if( win->width == width && win->height == height)
@@ -1199,7 +1223,8 @@ x_window_resize_with_margin(
 	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
-	return  x_window_resize( win , width - win->margin * 2 , height - win->margin * 2 , flag) ;
+	return  x_window_resize( win , width - win->hmargin * 2 ,
+			height - win->vmargin * 2 , flag) ;
 }
 
 int
@@ -1207,8 +1232,6 @@ x_window_set_normal_hints(
 	x_window_t *  win ,
 	u_int  min_width ,
 	u_int  min_height ,
-	u_int  base_width ,
-	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc
 	)
@@ -1324,8 +1347,8 @@ x_window_fill_with(
 		return  0 ;
 	}
 
-	x += (win->x + win->margin) ;
-	y += (win->y + win->margin) ;
+	x += (win->x + win->hmargin) ;
+	y += (win->y + win->vmargin) ;
 
 	if( ( bpp = win->disp->display->bytes_per_pixel) == 1)
 	{
@@ -1479,8 +1502,8 @@ x_window_receive_event(
 		{
 			if( win->button_motion)
 			{
-				event->xmotion.x -= win->margin ;
-				event->xmotion.y -= win->margin ;
+				event->xmotion.x -= win->hmargin ;
+				event->xmotion.y -= win->vmargin ;
 
 				(*win->button_motion)( win , &event->xmotion) ;
 			}
@@ -1493,8 +1516,8 @@ x_window_receive_event(
 		}
 		else if( win->pointer_motion)
 		{
-			event->xmotion.x -= win->margin ;
-			event->xmotion.y -= win->margin ;
+			event->xmotion.x -= win->hmargin ;
+			event->xmotion.y -= win->vmargin ;
 
 			(*win->pointer_motion)( win , &event->xmotion) ;
 		}
@@ -1503,8 +1526,8 @@ x_window_receive_event(
 	{
 		if( win->button_released)
 		{
-			event->xbutton.x -= win->margin ;
-			event->xbutton.y -= win->margin ;
+			event->xbutton.x -= win->hmargin ;
+			event->xbutton.y -= win->vmargin ;
 
 			(*win->button_released)( win , &event->xbutton) ;
 		}
@@ -1515,8 +1538,8 @@ x_window_receive_event(
 	{
 		if( win->button_pressed)
 		{
-			event->xbutton.x -= win->margin ;
-			event->xbutton.y -= win->margin ;
+			event->xbutton.x -= win->hmargin ;
+			event->xbutton.y -= win->vmargin ;
 
 			if( win->click_num == MAX_CLICK)
 			{
@@ -1766,30 +1789,6 @@ x_window_scroll_leftward(
 	)
 {
 	return  x_window_scroll_leftward_region( win , 0 , win->width , width) ;
-}
-
-static int
-fix_rl_boundary(
-	x_window_t *  win ,
-	int  boundary_start ,
-	int *  boundary_end
-	)
-{
-	int  margin ;
-
-	margin = RIGHT_MARGIN(win) ;
-
-	if( boundary_start > win->width - margin)
-	{
-		return  0 ;
-	}
-
-	if( *boundary_end > win->width - margin)
-	{
-		*boundary_end = win->width - margin ;
-	}
-
-	return  1 ;
 }
 
 int

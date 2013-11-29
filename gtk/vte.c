@@ -1445,7 +1445,8 @@ init_screen(
 			main_config.big5_buggy , main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
 			main_config.input_method , main_config.allow_osc52 ,
-			main_config.blink_cursor , WINDOW_MARGIN , main_config.hide_underline) ;
+			main_config.blink_cursor , WINDOW_MARGIN , WINDOW_MARGIN ,
+			main_config.hide_underline) ;
 	if( terminal->pvt->term)
 	{
 		ml_term_detach( terminal->pvt->term) ;

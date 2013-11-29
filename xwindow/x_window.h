@@ -18,8 +18,8 @@
 #include  "x_bel_mode.h"
 
 
-#define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
-#define  ACTUAL_HEIGHT(win)  ((win)->height + (win)->margin * 2)
+#define  ACTUAL_WIDTH(win)  ((win)->width + (win)->hmargin * 2)
+#define  ACTUAL_HEIGHT(win)  ((win)->height + (win)->vmargin * 2)
 
 /*
  * Don't use win->parent in xlib to check if win is root window or not
@@ -102,13 +102,12 @@ typedef struct  x_window
 	u_int  height ;
 	u_int  min_width ;
 	u_int  min_height ;
-	u_int  base_width ;
-	u_int  base_height ;
 	u_int  width_inc ;
 	u_int  height_inc ;
 
 	/* actual window size is +margin on north/south/east/west */
-	u_int  margin ;
+	u_int16_t  hmargin ;
+	u_int16_t  vmargin ;
 
 	/* used by x_xim */
 	x_xim_ptr_t  xim ;
@@ -198,8 +197,8 @@ typedef struct  x_window
 
 int  x_window_init( x_window_t *  win ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
-	u_int  base_width , u_int  base_height , u_int  width_inc ,
-	u_int  height_inc , u_int  margin , int  create_gc) ;
+	u_int  width_inc , u_int  height_inc , u_int  hmargin , u_int  vmargin ,
+	int  create_gc) ;
 
 int  x_window_final( x_window_t *  win) ;
 
@@ -255,7 +254,7 @@ int  x_window_resize_with_margin( x_window_t *  win , u_int  width , u_int  heig
 	x_resize_flag_t  flag) ;
 
 int  x_window_set_normal_hints( x_window_t *  win , u_int  min_width , u_int  min_height ,
-	u_int  base_width , u_int  base_height , u_int  width_inc , u_int  height_inc) ;
+	u_int  width_inc , u_int  height_inc) ;
 
 int  x_window_set_override_redirect( x_window_t *  win , int  flag) ;
 

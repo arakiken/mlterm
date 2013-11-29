@@ -442,7 +442,7 @@ total_min_width(
 	int  count ;
 	u_int  min_width ;
 
-	min_width = win->min_width + win->margin * 2 ;
+	min_width = win->min_width + win->hmargin * 2 ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -463,7 +463,7 @@ total_min_height(
 	int  count ;
 	u_int  min_height ;
 
-	min_height = win->min_height + win->margin * 2 ;
+	min_height = win->min_height + win->vmargin * 2 ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -475,51 +475,6 @@ total_min_height(
 
 	return  min_height ;
 }
-
-/* Not used for now */
-#if  0
-static u_int
-total_base_width(
-	x_window_t *  win
-	)
-{
-	int  count ;
-	u_int  base_width ;
-
-	base_width = win->base_width + win->margin * 2 ;
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		if( win->children[count]->is_mapped)
-		{
-			base_width += total_base_width( win->children[count]) ;
-		}
-	}
-
-	return  base_width ;
-}
-
-static u_int
-total_base_height(
-	x_window_t *  win
-	)
-{
-	int  count ;
-	u_int  base_height ;
-
-	base_height = win->base_height + win->margin * 2 ;
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		if( win->children[count]->is_mapped)
-		{
-			base_height += total_base_height( win->children[count]) ;
-		}
-	}
-
-	return  base_height ;
-}
-#endif
 
 static u_int
 total_width_inc(
@@ -662,16 +617,16 @@ draw_string(
 		SetBkMode( win->gc->gc , TRANSPARENT) ;
 	}
 
-	text_out( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->margin,
-		y + win->margin, str, len , FONT_CS(font->id)) ;
+	text_out( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin ,
+		y + win->vmargin , str , len , FONT_CS(font->id)) ;
 	
 	if( font->is_double_drawing)
 	{
 		SetBkMode( win->gc->gc , TRANSPARENT) ;
 
-		text_out( win->gc->gc,
-			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1,
-			y + win->margin, str, len , FONT_CS(font->id)) ;
+		text_out( win->gc->gc ,
+			x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin + 1 ,
+			y + win->vmargin , str , len , FONT_CS(font->id)) ;
 
 		SetBkMode( win->gc->gc , OPAQUE) ;
 	}
@@ -730,54 +685,64 @@ clear_margin_area(
 	x_window_t *  win
 	)
 {
-	if( win->margin == 0)
-	{
-		return  1 ;
-	}
-	else if( win->gc->gc == None)
+	if( win->gc->gc == None)
 	{
 		return  0 ;
 	}
-	else
+
+	if( win->wall_picture)
 	{
-		if( win->wall_picture)
+		if( win->hmargin > 0)
 		{
-			BitBlt( win->gc->gc , 0, 0, win->margin, ACTUAL_HEIGHT(win),
+			BitBlt( win->gc->gc , 0 , 0 , win->hmargin , ACTUAL_HEIGHT(win) ,
 				win->wall_picture , 0 , 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc, win->margin, 0,
-				win->width + win->margin, win->margin,
-				win->wall_picture , win->margin , 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc, win->width + win->margin, 0,
-				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win) ,
-				win->wall_picture , win->width + win->margin, 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc, win->margin, win->height + win->margin,
-				win->width + win->margin, ACTUAL_HEIGHT(win) ,
-				win->wall_picture, win->margin, win->height + win->margin,
+			BitBlt( win->gc->gc , win->width + win->hmargin , 0 ,
+				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+				win->wall_picture , win->width + win->hmargin , 0 ,
 				SRCCOPY) ;
 		}
-		else
+
+		if( win->vmargin > 0)
 		{
-			HBRUSH  brush ;
-			RECT  r ;
-
-			brush = x_acquire_brush( win->bg_color.pixel) ;
-
-			SetRect( &r, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
-			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r, win->margin, 0, win->width + win->margin, win->margin) ;
-			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r, win->width + win->margin, 0,
-				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
-			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r, win->margin, win->height + win->margin,
-				win->width + win->margin, ACTUAL_HEIGHT(win)) ;
-			FillRect( win->gc->gc , &r , brush) ;
-
-			x_release_brush( brush) ;
+			BitBlt( win->gc->gc , win->hmargin , 0 ,
+				win->width + win->hmargin , win->vmargin ,
+				win->wall_picture , win->hmargin , 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc, win->hmargin , win->height + win->vmargin ,
+				win->width + win->hmargin , ACTUAL_HEIGHT(win) ,
+				win->wall_picture , win->hmargin , win->height + win->vmargin ,
+				SRCCOPY) ;
 		}
-		
-		return  1 ;
 	}
+	else
+	{
+		HBRUSH  brush ;
+		RECT  r ;
+
+		brush = x_acquire_brush( win->bg_color.pixel) ;
+
+		if( win->hmargin > 0)
+		{
+			SetRect( &r , 0 , 0 , win->hmargin , ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r , win->width + win->hmargin , 0 ,
+				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+		}
+
+		if( win->vmargin > 0)
+		{
+			SetRect( &r , win->hmargin , 0 ,
+				win->width + win->hmargin , win->vmargin) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r , win->hmargin , win->height + win->vmargin ,
+				win->width + win->hmargin , ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+		}
+
+		x_release_brush( brush) ;
+	}
+
+	return  1 ;
 }
 
 static WORD
@@ -831,11 +796,10 @@ x_window_init(
 	u_int  height ,
 	u_int  min_width ,
 	u_int  min_height ,
-	u_int  base_width ,
-	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc ,
-	u_int  margin ,
+	u_int  hmargin ,
+	u_int  vmargin ,
 	int  create_gc	/* ignored */
 	)
 {
@@ -856,11 +820,10 @@ x_window_init(
 	win->height = height ;
 	win->min_width = min_width ;
 	win->min_height = min_height ;
-	win->base_width = base_width ;
-	win->base_height = base_height ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
-	win->margin = margin ;
+	win->hmargin = hmargin ;
+	win->vmargin = vmargin ;
 
 	/* Not freed explicitly. Expect to be freed on process exited. */
 	if( ! m_cp_parser && ( m_cp_parser = mkf_codepoint_parser_new()) == NULL)
@@ -1378,7 +1341,8 @@ x_window_resize_with_margin(
 	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
-	return  x_window_resize( win , width - win->margin * 2 , height - win->margin * 2 , flag) ;
+	return  x_window_resize( win , width - win->hmargin * 2 ,
+		height - win->vmargin * 2 , flag) ;
 }
 
 int
@@ -1386,16 +1350,12 @@ x_window_set_normal_hints(
 	x_window_t *  win ,
 	u_int  min_width ,
 	u_int  min_height ,
-	u_int  base_width ,
-	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc
 	)
 {
 	win->min_width = min_width ;
 	win->min_height = min_height  ;
-	win->base_width = base_width ;
-	win->base_height = base_height  ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 
@@ -1483,37 +1443,37 @@ x_window_clear(
 	if( x + width >= win->width)
 	{
 		/* Clearing margin area */
-		width += win->margin ;
+		width += win->hmargin ;
 	}
 
 	if( x > 0)
 #endif
 	{
-		x += win->margin ;
+		x += win->hmargin ;
 	}
 #ifdef  AUTO_CLEAR_MARGIN
 	else
 	{
 		/* Clearing margin area */
-		width += win->margin ;
+		width += win->hmargin ;
 	}
 
 	if( y + height >= win->height)
 	{
 		/* Clearing margin area */
-		height += win->margin ;
+		height += win->vmargin ;
 	}
 
 	if( y > 0)
 #endif
 	{
-		y += win->margin ;
+		y += win->vmargin ;
 	}
 #ifdef  AUTO_CLEAR_MARGIN
 	else
 	{
 		/* Clearing margin area */
-		height += win->margin ;
+		height += win->vmargin ;
 	}
 #endif
 
@@ -1590,8 +1550,8 @@ x_window_fill_with(
 	if( height == 1)
 	{
 		x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( color->pixel))) ;
-		MoveToEx( win->gc->gc , win->margin + x , win->margin + y , NULL) ;
-		LineTo( win->gc->gc , win->margin + x + width , win->margin + y) ;
+		MoveToEx( win->gc->gc , win->hmargin + x , win->vmargin + y , NULL) ;
+		LineTo( win->gc->gc , win->hmargin + x + width , win->vmargin + y) ;
 	}
 	else
 	{
@@ -1599,8 +1559,8 @@ x_window_fill_with(
 		RECT  r ;
 
 		brush = x_acquire_brush( color->pixel) ;
-		SetRect( &r , win->margin + x, win->margin + y,
-				win->margin + x + width, win->margin + y + height) ;
+		SetRect( &r , win->hmargin + x, win->vmargin + y,
+				win->hmargin + x + width, win->vmargin + y + height) ;
 		FillRect( win->gc->gc , &r , brush) ;
 		x_release_brush( brush) ;
 	}
@@ -1631,7 +1591,7 @@ x_window_blank(
 	}
 
 	brush = x_acquire_brush( win->fg_color.pixel) ;
-	SetRect( &r , win->margin , win->margin , win->width , win->height) ;
+	SetRect( &r , win->hmargin , win->vmargin , win->width , win->height) ;
 	FillRect( win->gc->gc , &r , brush) ;
 	x_release_brush( brush) ;
 
@@ -1815,30 +1775,30 @@ x_window_receive_event(
 
 			margin_area_exposed = 0 ;
 
-			if( ps.rcPaint.left < win->margin)
+			if( ps.rcPaint.left < win->hmargin)
 			{
 				margin_area_exposed = 1 ;
 				x = 0 ;
 			}
 			else
 			{
-				x = ps.rcPaint.left - win->margin ;
+				x = ps.rcPaint.left - win->hmargin ;
 			}
 
-			if( ps.rcPaint.top < win->margin)
+			if( ps.rcPaint.top < win->vmargin)
 			{
 				margin_area_exposed = 1 ;
 				y = 0 ;
 			}
 			else
 			{
-				y = ps.rcPaint.top - win->margin ;
+				y = ps.rcPaint.top - win->vmargin ;
 			}
 
-			if( ps.rcPaint.right > win->width - win->margin)
+			if( ps.rcPaint.right > win->width - win->hmargin)
 			{
 				margin_area_exposed = 1 ;
-				width = win->width - win->margin - x ;
+				width = win->width - win->hmargin - x ;
 			}
 			else
 			{
@@ -1846,10 +1806,10 @@ x_window_receive_event(
 				width = ps.rcPaint.right - x /* + 1 */ ;
 			}
 
-			if( ps.rcPaint.bottom > win->height - win->margin)
+			if( ps.rcPaint.bottom > win->height - win->vmargin)
 			{
 				margin_area_exposed = 1 ;
-				height = win->height - win->margin - y ;
+				height = win->height - win->vmargin - y ;
 			}
 			else
 			{
@@ -2135,8 +2095,8 @@ x_window_receive_event(
 
 				ScreenToClient( win->my_window , &p) ;
 
-				bev.x = p.x - win->margin ;
-				bev.y = p.y - win->margin ;
+				bev.x = p.x - win->hmargin ;
+				bev.y = p.y - win->vmargin ;
 
 				if( ((SHORT)HIWORD(event->wparam)) > 0)
 				{
@@ -2167,8 +2127,8 @@ x_window_receive_event(
 			}
 			else
 			{
-				bev.x = LOWORD(event->lparam) - win->margin ;
-				bev.y = HIWORD(event->lparam) - win->margin ;
+				bev.x = LOWORD(event->lparam) - win->hmargin ;
+				bev.y = HIWORD(event->lparam) - win->vmargin ;
 
 				if( event->msg == WM_LBUTTONDOWN || event->msg == WM_LBUTTONUP)
 				{
@@ -2242,8 +2202,8 @@ x_window_receive_event(
 
 			mev.time = GetMessageTime() ;
 
-			mev.x = LOWORD(event->lparam) - win->margin ;
-			mev.y = HIWORD(event->lparam) - win->margin ;
+			mev.x = LOWORD(event->lparam) - win->hmargin ;
+			mev.y = HIWORD(event->lparam) - win->vmargin ;
 
 			mev.state = 0 ;
 
@@ -2408,8 +2368,8 @@ x_window_receive_event(
 			if( width < min_width || height < min_height)
 			{
 				x_window_resize( win,
-					K_MAX(min_width,width) - win->margin * 2,
-					K_MAX(min_height,height) - win->margin * 2,
+					K_MAX(min_width,width) - win->hmargin * 2,
+					K_MAX(min_height,height) - win->vmargin * 2,
 					NOTIFY_TO_MYSELF) ;
 			}
 			else if( width != old_width || height != old_height)
@@ -2441,14 +2401,14 @@ x_window_receive_event(
 							  total_height_inc(win) ) ;
 				}
 				
-				win->width = width - win->margin * 2 ;
-				win->height = height - win->margin * 2 ;
+				win->width = width - win->hmargin * 2 ;
+				win->height = height - win->vmargin * 2 ;
 
 				if( width_surplus > 0 || height_surplus > 0)
 				{
 					x_window_resize( win,
-						width - win->margin * 2 - width_surplus,
-						height - win->margin * 2 - height_surplus,
+						width - win->hmargin * 2 - width_surplus,
+						height - win->vmargin * 2 - height_surplus,
 						NOTIFY_TO_MYSELF) ;
 				}
 				else
@@ -2527,9 +2487,9 @@ x_window_scroll_upward_region(
 		return  0 ;
 	}
 
-	BitBlt( win->gc->gc, win->margin, win->margin + boundary_start,		/* dst */
+	BitBlt( win->gc->gc, win->hmargin, win->vmargin + boundary_start,		/* dst */
 		win->width, boundary_end - boundary_start - height,		/* size */
-		win->gc->gc, win->margin, win->margin + boundary_start + height,	/* src */
+		win->gc->gc, win->hmargin, win->vmargin + boundary_start + height,	/* src */
 		SRCCOPY) ;
 
 	return  1 ;
@@ -2567,9 +2527,9 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	BitBlt( win->gc->gc, win->margin, win->margin + boundary_start + height,	/* dst */
+	BitBlt( win->gc->gc, win->hmargin, win->vmargin + boundary_start + height,	/* dst */
 		win->width, boundary_end - boundary_start - height,		/* size */
-		win->gc->gc, win->margin , win->margin + boundary_start,		/* src */
+		win->gc->gc, win->hmargin , win->vmargin + boundary_start,		/* src */
 		SRCCOPY) ;
 
 	return  1 ;
@@ -2608,9 +2568,9 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
-	BitBlt( win->gc->gc , win->margin + boundary_start , win->margin ,	/* dst */
+	BitBlt( win->gc->gc , win->hmargin + boundary_start , win->vmargin ,	/* dst */
 		boundary_end - boundary_start - width , win->height ,		/* size */
-		win->gc->gc , win->margin + boundary_start + width , win->margin ,/* src */
+		win->gc->gc , win->hmargin + boundary_start + width , win->vmargin ,/* src */
 		SRCCOPY) ;
 
 	return  1 ;
@@ -2648,9 +2608,9 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
-	BitBlt( win->gc->gc , win->margin + boundary_start + width , win->margin ,/* dst */
+	BitBlt( win->gc->gc , win->hmargin + boundary_start + width , win->vmargin ,/* dst */
 		boundary_end - boundary_start - width , win->height ,		/* size */
-		win->gc->gc , win->margin + boundary_start , win->margin ,	/* src */
+		win->gc->gc , win->hmargin + boundary_start , win->vmargin ,	/* src */
 		SRCCOPY) ;
 
 	return  1 ;
@@ -2686,13 +2646,13 @@ x_window_copy_area(
 
 	if( mask)
 	{
-		MaskBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
+		MaskBlt( win->gc->gc , win->hmargin + dst_x , win->vmargin + dst_y ,
 			width , height , src , src_x , src_y , mask , src_x , src_y ,
 			MAKEROP4(SRCCOPY,0x00aa0029)) ;
 	}
 	else
 	{
-		BitBlt( win->gc->gc , win->margin + dst_x , win->margin + dst_y ,
+		BitBlt( win->gc->gc , win->hmargin + dst_x , win->vmargin + dst_y ,
 			width , height , src , src_x , src_y , SRCCOPY) ;
 	}
 
@@ -2916,8 +2876,8 @@ x_window_draw_rect_frame(
 	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color.pixel))) ;
 	x_release_brush( x_gc_set_brush( win->gc, GetStockObject(NULL_BRUSH))) ;
 	
-	Rectangle( win->gc->gc, x1 + win->margin , y1 + win->margin ,
-			x2 + win->margin , y2 + win->margin) ;
+	Rectangle( win->gc->gc, x1 + win->hmargin , y1 + win->vmargin ,
+			x2 + win->hmargin , y2 + win->vmargin) ;
 
 	return  1 ;
 }

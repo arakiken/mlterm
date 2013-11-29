@@ -1251,16 +1251,25 @@ x_main_config_init(
 		}
 	}
 
-	main_config->margin = 2 ;
+	main_config->hmargin = main_config->vmargin = 2 ;
 
 	if( ( value = kik_conf_get_value( conf , "inner_border")))
 	{
-		u_int  margin ;
+		u_int  hmargin ;
+		u_int  vmargin ;
 
 		/* 640x480 => (640-224*2)x(480-224*2) => 192x32 on framebuffer. */
-		if( kik_str_to_uint( &margin , value) && margin <= 224)
+		if( sscanf( value , "%d,%d" , &hmargin , &vmargin) == 2)
 		{
-			main_config->margin = margin ;
+			if( hmargin <= 224 && vmargin <= 224)
+			{
+				main_config->hmargin = hmargin ;
+				main_config->vmargin = vmargin ;
+			}
+		}
+		else if( kik_str_to_uint( &hmargin , value) && hmargin <= 224)
+		{
+			main_config->hmargin = main_config->vmargin = hmargin ;
 		}
 	}
 

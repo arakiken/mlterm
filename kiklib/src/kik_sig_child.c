@@ -46,13 +46,22 @@ sig_child(
 	kik_debug_printf( KIK_DEBUG_TAG " SIG CHILD received.\n") ;
 #endif
 
-	while( ( pid = waitpid( -1 , NULL , WNOHANG)) == -1 && errno == EINTR)
+	while(1)
 	{
-		errno = 0 ;
+		if( ( pid = waitpid( -1 , NULL , WNOHANG)) <= 0)
+		{
+			if( pid == -1 && errno == EINTR)
+			{
+				errno = 0 ;
+				continue ;
+			}
+
+			break ;
+		}
+
+		kik_trigger_sig_child( pid) ;
 	}
 
-  	kik_trigger_sig_child( pid) ;
-	
 	/* reset */
 	signal( SIGCHLD , sig_child) ;
 }

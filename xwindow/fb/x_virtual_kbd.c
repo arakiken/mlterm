@@ -305,7 +305,7 @@ start_virtual_kbd(
 	}
 
 	x_window_init( kbd_win , disp->width , height , disp->width ,
-		height , disp->width , height , 0 , 0 , 0 , 0) ;
+		height , disp->width , height , 0 , 0 , 0) ;
 
 	kbd_win->disp = disp ;
 	kbd_win->x = 0 ;

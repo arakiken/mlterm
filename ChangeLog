@@ -1,3 +1,19 @@
+2013-11-28  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: The bug which ignored win->hmargin and win->vmargin
+	  in calling win->window_exposed() in expose_window() is fixed.
+	  (If large value was specified for --border option, hidden input method
+	  window wasn't cleared.)
+
+	* fb/x_display.c, fb/x_virtual_kbd.c, fb/x_window.c, x_window_cairo.c,
+	  x_window_xft.c, win32/x_window.c, win32/x_xic.c,
+	  x_im_candidate_screen.c, x_im_status_screen.c, x_main_config.c,
+	  x_main_config.h, x_sb_screen.c, x_screen.[ch], x_screen_manager.c,
+	  x_scrollbar.c, x_window.h, xlib/x_window.c, xlib/x_xic.c:
+	  "inner_border" option accepts [horizontal border],[vertical border].
+
+	* kik_sig_child.c: Wait multiple zombie processes for one SIGCHLD signal.
+
 2013-11-24  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen_manager.c: Memory leak when opening pty fails on win32gdi

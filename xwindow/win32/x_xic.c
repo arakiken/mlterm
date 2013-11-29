@@ -39,8 +39,8 @@ get_spot(
 		return  0 ;
 	}
 
-	spot->x = x + win->margin ;
-	spot->y = y + win->margin ;
+	spot->x = x + win->hmargin ;
+	spot->y = y + win->vmargin ;
 
 	return  1 ;
 }

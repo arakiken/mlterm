@@ -906,7 +906,7 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
-	if( ! x_window_init( &sb->window , width , height , width , 0 , width , 0 , 0 , 0 , 0 , 0))
+	if( ! x_window_init( &sb->window , width , height , width , 0 , 0 , 0 , 0 , 0 , 0))
 	{
 		goto  error ;
 	}
@@ -1305,7 +1305,6 @@ x_scrollbar_change_view(
 	if( sb->window.width != width)
 	{
 		x_window_set_normal_hints( &sb->window ,
-			width , sb->window.min_height ,
 			width , sb->window.min_height , 0 , 0) ;
 
 		x_window_resize( &sb->window , width , sb->window.height , NOTIFY_TO_PARENT) ;

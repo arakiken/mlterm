@@ -452,8 +452,8 @@ restore_hidden_region(void)
 		if( win->window_exposed)
 		{
 			(*win->window_exposed)( win ,
-				_mouse.cursor.x - win->x - win->margin ,
-				_mouse.cursor.y - win->y - win->margin ,
+				_mouse.cursor.x - win->x - win->hmargin ,
+				_mouse.cursor.y - win->y - win->vmargin ,
 				_mouse.cursor.width ,
 				_mouse.cursor.height) ;
 		}
@@ -590,16 +590,17 @@ expose_window(
 	u_int  height
 	)
 {
-	if( x < win->x + win->margin || y < win->y + win->margin ||
-	    x - win->x + width > win->margin + win->width ||
-	    y - win->y + height > win->margin + win->height)
+	if( x < win->x + win->hmargin || y < win->y + win->vmargin ||
+	    x - win->x + width > win->hmargin + win->width ||
+	    y - win->y + height > win->vmargin + win->height)
 	{
 		x_window_clear_margin_area( win) ;
 	}
 
 	if( win->window_exposed)
 	{
-		(*win->window_exposed)( win , x - win->x , y - win->y , width , height) ;
+		(*win->window_exposed)( win , x - win->x - win->hmargin ,
+			y - win->y - win->vmargin , width , height) ;
 	}
 }
 

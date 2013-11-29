@@ -353,8 +353,8 @@ x_im_status_screen_new(
 	stat_screen->is_vertical = is_vertical ;
 
 	if( ! x_window_init( &stat_screen->window , MARGIN * 2 , MARGIN * 2 ,
-			     MARGIN * 2 , MARGIN * 2 , MARGIN * 2 , MARGIN * 2 ,
-			     1 , 1 , MARGIN, /* ceate_gc */ 1))
+			     MARGIN * 2 , MARGIN * 2 , 0 , 0 ,
+			     MARGIN , MARGIN , /* ceate_gc */ 1))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;
