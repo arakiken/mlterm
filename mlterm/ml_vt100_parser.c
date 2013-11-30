@@ -246,7 +246,7 @@ is_noconv_unicode(
 	u_char *  ch
 	)
 {
-	if( unicode_noconv_areas)
+	if( unicode_noconv_areas || ch[2] == 0x20)
 	{
 		u_int  count ;
 		u_int32_t  code ;
@@ -260,6 +260,16 @@ is_noconv_unicode(
 			{
 				return  1 ;
 			}
+		}
+
+		/*
+		 * Don't convert these characters in order not to show them.
+		 * see ml_char_cols().
+		 */
+		if( ( 0x200c <= code && code <= 0x200f) ||
+		    ( 0x202a <= code && code <= 0x202e))
+		{
+			return  1 ;
 		}
 	}
 

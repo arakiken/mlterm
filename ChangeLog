@@ -1,3 +1,8 @@
+2013-11-30  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: U+200c-200f and U+202a-202e aren't converted
+	  even if -n option is specified.
+
 2013-11-28  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: The bug which ignored win->hmargin and win->vmargin

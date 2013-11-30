@@ -545,6 +545,7 @@ ml_char_cols(
 
 			code = ch->u.ch.code ;
 
+			/* see is_noconv_unicode() in ml_vt100_parser.c */
 			if( ( 0x200c <= code && code <= 0x200f) ||
 			    ( 0x202a <= code && code <= 0x202e))
 			{
