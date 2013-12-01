@@ -5,6 +5,7 @@ ver 3.3.2
   Fix memory leak when opening pty fails on win32gdi.
   Fix the bug which disabled to clear hidden input method window it if large
   value is specified for --border option.
+  Fix the bug which disabled to paste UTF-8 string.
 
 ver 3.3.1
 * Add "use_auto_detect" and "auto_detect_encodings" options.

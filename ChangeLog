@@ -1,3 +1,7 @@
+2013-12-02  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Typo which disabled to paste UTF8 string is fixed.
+
 2013-12-01  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: The limitation of the column width and the line height (< 32)

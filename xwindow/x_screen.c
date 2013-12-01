@@ -1800,7 +1800,7 @@ use_utf_selection(
 
 	encoding = ml_term_get_encoding( screen->term) ;
 
-	if( encoding == UTF8)
+	if( encoding == ML_UTF8)
 	{
 		return  1 ;
 	}
