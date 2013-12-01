@@ -7248,15 +7248,13 @@ xterm_get_picture_data(
 
 	screen = p ;
 
-	if( ml_term_get_vertical_mode( screen->term) ||
-	    ( col_width = x_col_width(screen)) >= 32 ||
-	    ( line_height = x_line_height(screen)) >= 32)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		return  NULL ;
 	}
 
-	width = (*num_of_cols) * col_width ;
-	height = (*num_of_rows) * line_height ;
+	width = (*num_of_cols) * (col_width = x_col_width(screen)) ;
+	height = (*num_of_rows) * (line_height = x_line_height(screen)) ;
 
 	if( ( idx = x_load_inline_picture( screen->window.disp , file_path ,
 			&width , &height , col_width , line_height , screen->term)) != -1)

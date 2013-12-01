@@ -1,3 +1,8 @@
+2013-12-01  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: The limitation of the column width and the line height (< 32)
+	  is removed.
+
 2013-11-30  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: U+200c-200f and U+202a-202e aren't converted
