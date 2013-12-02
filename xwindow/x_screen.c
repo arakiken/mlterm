@@ -1791,29 +1791,6 @@ mapping_notify(
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win, NULL) ;
 }
 
-static int
-use_utf_selection(
-	x_screen_t *  screen
-	)
-{
-	ml_char_encoding_t  encoding ;
-
-	encoding = ml_term_get_encoding( screen->term) ;
-
-	if( encoding == ML_UTF8)
-	{
-		return  1 ;
-	}
-	else if( IS_UCS_SUBSET_ENCODING(encoding) && screen->receive_string_via_ucs)
-	{
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
 #ifdef  NL_TO_CR_IN_PAST_TEXT
 static void
 convert_nl_to_cr1(
@@ -1891,7 +1868,12 @@ yank_event_received(
 	}
 	else
 	{
-		if( use_utf_selection(screen))
+		ml_char_encoding_t  encoding ;
+
+		encoding = ml_term_get_encoding( screen->term) ;
+
+		if( encoding == ML_UTF8 ||
+		    ( IS_UCS_SUBSET_ENCODING(encoding) && screen->receive_string_via_ucs))
 		{
 			return  x_window_utf_selection_request( &screen->window , time) ;
 		}

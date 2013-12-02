@@ -102,14 +102,16 @@ receive_next_event(void)
 	#endif
 		tval.tv_sec = 0 ;
 
-		displays = x_get_opened_displays( &num_of_displays) ;
-
 	#ifdef  USE_LIBSSH2
 		if( ( ret = ml_pty_ssh_poll( &read_fds)) > 0)
 		{
+			num_of_displays = 0 ;	/* Don't check FD_ISSET(x_display_fd) */
+
 			break ;
 		}
 	#endif
+
+		displays = x_get_opened_displays( &num_of_displays) ;
 
 		maxfd = 0 ;
 		FD_ZERO( &read_fds) ;
@@ -174,6 +176,18 @@ receive_next_event(void)
 
 		if( ( ret = select( maxfd + 1 , &read_fds , NULL , NULL , &tval)) != 0)
 		{
+			if( ret < 0)
+			{
+				/* error happened */
+
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " error happened in select. ") ;
+				perror( NULL) ;
+			#endif
+
+				return ;
+			}
+
 			break ;
 		}
 
@@ -200,18 +214,6 @@ receive_next_event(void)
 		}
 	}
 	
-	if( ret < 0)
-	{
-		/* error happened */
-		
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " error happened in select. ") ;
-		perror( NULL) ;
-	#endif
-
-		return ;
-	}
-
 	/*
 	 * Processing order should be as follows.
 	 *
