@@ -100,7 +100,7 @@ static u_int  num_of_sessions = 0 ;
 
 #ifdef  USE_WIN32API
 static HANDLE  rd_ev ;
-static DWORD  main_tid ;
+DWORD  main_tid ;	/* XXX set in main(). */
 #endif
 
 static const char *  cipher_list ;
@@ -1782,8 +1782,6 @@ ml_pty_ssh_new(
 		{
 			/* java/MLTerm.java has already watched pty. */
 		}
-
-		main_tid = GetCurrentThreadId() ;
 	}
 #endif
 

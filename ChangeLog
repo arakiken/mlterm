@@ -1,3 +1,8 @@
+2013-12-03  Araki Ken  <arakiken@users.sf.net>
+
+	* main.c, libptyssh/ml_pty_ssh.c:
+	  main_tid used in ml_pty_ssh.c is initialized not in ml_pty_ssh.c but in main.c.
+
 2013-12-02  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c, x_event_source.c: Minor fixes.

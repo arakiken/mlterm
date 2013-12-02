@@ -143,8 +143,16 @@ main(
 {
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	WSADATA wsadata ;
+	extern DWORD  main_tid ;	/* see libptyssh/ml_pty_ssh.c */
 
 	WSAStartup( MAKEWORD(2,0), &wsadata) ;
+
+	/*
+	 * XXX
+	 * ml_pty_ssh_new() isn't called from the main thread, so main_tid
+	 * must be set here, not in ml_pty_ssh_new().
+	 */
+	main_tid = GetCurrentThreadId() ;
 #endif
 
 	check_console() ;
