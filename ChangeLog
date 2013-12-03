@@ -1,5 +1,7 @@
 2013-12-03  Araki Ken  <arakiken@users.sf.net>
 
+	* c_imagelib.c: GdkPixbufLoader is used instead of g_unix_input_stream_new().
+
 	* main.c, libptyssh/ml_pty_ssh.c:
 	  main_tid used in ml_pty_ssh.c is initialized not in ml_pty_ssh.c but in main.c.
 

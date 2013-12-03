@@ -844,12 +844,6 @@ create_cardinals_from_pixbuf(
 	return  cardinal ;
 }
 
-#if  GDK_PIXBUF_MAJOR >= 2 && (GDK_PIXBUF_MAJOR >= 3 || GDK_PIXBUF_MINOR >= 14)
-#ifndef  G_PLATFORM_WIN32
-GInputStream * g_unix_input_stream_new( gint fd , gboolean close_fd) ;
-#endif
-#endif
-
 static GdkPixbuf *
 gdk_pixbuf_new_from(
 	const char *  path
@@ -861,9 +855,13 @@ gdk_pixbuf_new_from(
 	{
 	#if GDK_PIXBUF_MAJOR >= 2
 
-	#if GDK_PIXBUF_MAJOR >= 3 || GDK_PIXBUF_MINOR >= 14
 		if( strstr( path , "://"))
 		{
+		#ifdef  __G_IO_H__
+			/*
+			 * gdk-pixbuf depends on gio. (__G_IO_H__ is defined if
+			 * gdk-pixbuf-core.h includes gio.h)
+			 */
 			GFile *  file ;
 			GInputStream *  in ;
 
@@ -876,15 +874,12 @@ gdk_pixbuf_new_from(
 				g_object_unref( in) ;
 			}
 			else
+		#endif
 			{
-			#ifndef  G_PLATFORM_WIN32
 				char *  cmd ;
-			#endif
 
 				pixbuf = NULL ;
 
-				/* g_unix_input_stream_new doesn't exists on win32. */
-			#ifndef  G_PLATFORM_WIN32
 				if( ( cmd = alloca( 11 + strlen( path) + 1)))
 				{
 					FILE *  fp ;
@@ -892,20 +887,37 @@ gdk_pixbuf_new_from(
 					sprintf( cmd , "curl -L -k -s %s" , path) ;
 					if( ( fp = popen( cmd , "r")))
 					{
-						in = g_unix_input_stream_new(
-							fileno(fp) , FALSE) ;
-						pixbuf = gdk_pixbuf_new_from_stream(
-								in , NULL , NULL) ;
+						GdkPixbufLoader *  loader ;
+						guchar  buf[65536] ;
+						size_t  len ;
+
+						loader = gdk_pixbuf_loader_new() ;
+						while( ( len = fread( buf , 1 , sizeof(buf) , fp))
+						       > 0)
+						{
+							gdk_pixbuf_loader_write( loader ,
+								buf , len , NULL) ;
+						}
+						gdk_pixbuf_loader_close( loader , NULL) ;
+
 						pclose( fp) ;
+
+						if( ( pixbuf = gdk_pixbuf_loader_get_pixbuf(
+									loader)))
+						{
+							g_object_ref( pixbuf) ;
+						}
+
+						g_object_unref( loader) ;
 					}
 				}
-			#endif
 			}
 
+		#ifdef  __G_IO_H__
 			g_object_unref( file) ;
+		#endif
 		}
 		else
-	#endif	/* GDK_PIXBUF_MINOR */
 		{
 			pixbuf = gdk_pixbuf_new_from_file( path , NULL) ;
 		}
