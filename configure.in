@@ -561,7 +561,12 @@ if test "$ssh2" = "yes" ; then
 	AC_CHECK_LIB(ssh2,libssh2_init,
 		[
 		SSH2_CFLAGS="-DUSE_LIBSSH2"
-		SSH2_LIBS="-lssh2"
+		if test "x$allow_undefined_flag" = "xunsupported" ; then
+			# ml_pty_ssh.c uses CRYPTO_xxx functions.
+			SSH2_LIBS="-lcrypto -lssh2"
+		else
+			SSH2_LIBS="-lssh2"
+		fi
 		], ssh2="no")
 fi
 

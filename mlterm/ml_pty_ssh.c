@@ -43,6 +43,7 @@ static void  (*ssh_set_use_x11_forwarding)( void * , int) ;
 static int  (*ssh_poll)( void *) ;
 static u_int  (*ssh_get_x11_fds)( int **) ;
 static int  (*ssh_send_recv_x11)( int , int) ;
+static void  (*ssh_set_use_multi_thread)( int) ;
 
 static int  is_tried ;
 static kik_dl_handle_t  handle ;
@@ -78,6 +79,8 @@ load_library(void)
 	ssh_poll = kik_dl_func_symbol( handle , "ml_pty_ssh_poll") ;
 	ssh_get_x11_fds = kik_dl_func_symbol( handle , "ml_pty_ssh_get_x11_fds") ;
 	ssh_send_recv_x11 = kik_dl_func_symbol( handle , "ml_pty_ssh_send_recv_x11") ;
+	ssh_set_use_multi_thread = kik_dl_func_symbol( handle ,
+					"ml_pty_ssh_set_use_multi_thread") ;
 }
 
 
@@ -255,6 +258,21 @@ ml_pty_ssh_send_recv_x11(
 	if( ssh_send_recv_x11)
 	{
 		return  (*ssh_send_recv_x11)( idx , bidirection) ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+void
+ml_pty_ssh_set_use_multi_thread(
+	int  use
+	)
+{
+	if( ssh_set_use_multi_thread)
+	{
+		return  (*ssh_set_use_multi_thread)( use) ;
 	}
 	else
 	{

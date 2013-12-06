@@ -1,3 +1,13 @@
+2013-12-06  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_term.c: ml_pty_ssh_set_use_multi_thread() is called before and after
+	  ml_pty_new().
+
+	* libptyssh/ml_pty_ssh.c: ml_pty_ssh_set_use_multi_thread() which enables or
+	  disables multi threading of openssl/libssh2 is added.
+
+	* configure.in: -lcrypto is specified with -lssh2 on win32.
+
 2013-12-03  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: GdkPixbufLoader is used instead of g_unix_input_stream_new().
