@@ -1544,7 +1544,9 @@ ssh_to_xserver(
 	}
 }
 
-#if  defined(USE_WIN32API)
+#ifdef  OPEN_PTY_ASYNC
+
+#ifdef  USE_WIN32API
 
 static HANDLE *  openssl_locks ;
 
@@ -1566,7 +1568,7 @@ openssl_lock_callback(
 	}
 }
 
-#elif  defined(HAVE_PTHREAD)
+#else
 
 static pthread_mutex_t *  openssl_locks ;
 
@@ -1590,9 +1592,69 @@ openssl_lock_callback(
 
 #endif
 
+int  CRYPTO_num_locks(void) ;
+void  CRYPTO_set_locking_callback( void (*func)( int , int , const char * , int)) ;
+
+/* gcrypt is not supported. */
+static void
+set_use_multi_thread(
+	int  use
+	)
+{
+	static int  num_locks ;
+	int  count ;
+
+	if( use)
+	{
+		num_locks = CRYPTO_num_locks() ;
+
+		if( ( openssl_locks = malloc( num_locks * sizeof(*openssl_locks))))
+		{
+			for( count = 0 ; count < num_locks ; count++)
+			{
+			#ifdef  USE_WIN32API
+				openssl_locks[count] = CreateMutex( NULL , FALSE , NULL) ;
+			#else
+				openssl_locks[count] = PTHREAD_MUTEX_INITIALIZER ;
+			#endif
+			}
+
+			CRYPTO_set_locking_callback( openssl_lock_callback) ;
+		}
+		else
+		{
+			num_locks = 0 ;
+		}
+	}
+	else
+	{
+		if( openssl_locks)
+		{
+			CRYPTO_set_locking_callback( NULL) ;
+
+		#ifdef  USE_WIN32API
+			for( count = 0 ; count < num_locks ; count++)
+			{
+				CloseHandle( openssl_locks[count]) ;
+			}
+		#endif
+
+			free( openssl_locks) ;
+			openssl_locks = NULL ;
+		}
+	}
+}
+
+#else
+#define  set_use_multi_thread(use)  (0)
+#endif
+
 
 /* --- global functions --- */
 
+/*
+ * Thread-safe.
+ */
 ml_pty_t *
 ml_pty_ssh_new(
 	const char *  cmd_path ,	/* can be NULL */
@@ -1635,6 +1697,8 @@ ml_pty_ssh_new(
 	{
 		goto  error1 ;
 	}
+
+	set_use_multi_thread( 1) ;
 
 	if( ( pty->session = ssh_connect( host , port ? port : "22" , user , pass ,
 					pubkey , privkey)) == NULL)
@@ -1833,6 +1897,8 @@ ml_pty_ssh_new(
 
 	pty->session->pty_channels[pty->session->num_of_ptys++] = pty->channel ;
 
+	set_use_multi_thread( 0) ;
+
 	return  &pty->pty ;
 
 error3:
@@ -1843,6 +1909,8 @@ error2:
 
 error1:
 	free( pty) ;
+
+	set_use_multi_thread( 0) ;
 
 	return  NULL ;
 }
@@ -2206,69 +2274,3 @@ ml_pty_ssh_send_recv_x11(
 
 	return  1 ;
 }
-
-#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
-
-int  CRYPTO_num_locks(void) ;
-void  CRYPTO_set_locking_callback( void (*func)( int , int , const char * , int)) ;
-
-/* gcrypt is not supported. */
-void
-ml_pty_ssh_set_use_multi_thread(
-	int  use
-	)
-{
-	static int  num_locks ;
-	int  count ;
-
-	if( use)
-	{
-		num_locks = CRYPTO_num_locks() ;
-
-		if( ( openssl_locks = malloc( num_locks * sizeof(*openssl_locks))))
-		{
-			for( count = 0 ; count < num_locks ; count++)
-			{
-			#ifdef  USE_WIN32API
-				openssl_locks[count] = CreateMutex( NULL , FALSE , NULL) ;
-			#else
-				openssl_locks[count] = PTHREAD_MUTEX_INITIALIZER ;
-			#endif
-			}
-
-			CRYPTO_set_locking_callback( openssl_lock_callback) ;
-		}
-		else
-		{
-			num_locks = 0 ;
-		}
-	}
-	else
-	{
-		if( openssl_locks)
-		{
-			CRYPTO_set_locking_callback( NULL) ;
-
-		#ifdef  USE_WIN32API
-			for( count = 0 ; count < num_locks ; count++)
-			{
-				CloseHandle( openssl_locks[count]) ;
-			}
-		#endif
-
-			free( openssl_locks) ;
-			openssl_locks = NULL ;
-		}
-	}
-}
-
-#else
-
-void
-ml_pty_ssh_set_use_multi_thread(
-	int  use
-	)
-{
-}
-
-#endif

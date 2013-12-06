@@ -1,3 +1,11 @@
+2013-12-07  Araki Ken  <arakiken@users.sf.net>
+
+	* libptyssh/ml_pty_ssh.c, ml_pty_ssh.c, ml_pty.h, ml_term.c:
+	  ml_pty_ssh_new() gets thread safe by directly calling set_use_multi_thread()
+	  which was ml_pty_ssh_set_use_multi_thread() originally.
+
+	* ml_pty.h, ml_term.h: OPEN_PTY_ASYNC macro is moved from ml_term.h to ml_pty.h.
+
 2013-12-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_term.c: ml_pty_ssh_set_use_multi_thread() is called before and after

@@ -10,8 +10,15 @@
 #include  <kiklib/kik_types.h>	/* u_int/u_char */
 
 #ifdef  USE_LIBSSH2
+
 #include  "ml_char_encoding.h"
+
+/* defined(__CYGWIN__) is not to link libpthread to mlterm for now. */
+#if  defined(USE_WIN32API) || (defined(HAVE_PTHREAD) && defined(__CYGWIN__))
+#define  OPEN_PTY_ASYNC
 #endif
+
+#endif	/* USE_LIBSSH2 */
 
 
 typedef struct  ml_pty_event_listener
@@ -74,8 +81,6 @@ int  ml_pty_ssh_poll( void *  fds) ;
 u_int  ml_pty_ssh_get_x11_fds( int **  fds) ;
 
 int  ml_pty_ssh_send_recv_x11( int  idx , int  bidirection) ;
-
-void  ml_pty_ssh_set_use_multi_thread( int  use) ;
 
 #endif
 

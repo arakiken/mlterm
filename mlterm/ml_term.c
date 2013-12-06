@@ -200,22 +200,12 @@ open_pty(
 	pthread_mutex_lock( &mutex) ;
 #endif
 
-	ml_pty_ssh_set_use_multi_thread( 1) ;
-
 	args = p ;
 
 	pty = ml_pty_new( args->cmd_path , args->argv , args->env , args->host ,
 			args->pass , args->pubkey , args->privkey ,
 			ml_screen_get_logical_cols( args->term->screen) ,
 			ml_screen_get_logical_rows( args->term->screen)) ;
-
-	ml_pty_ssh_set_use_multi_thread( 0) ;
-
-#ifdef  USE_WIN32API
-	ReleaseMutex( mutex) ;
-#else
-	pthread_mutex_unlock( &mutex) ;
-#endif
 
 	if( pty)
 	{
@@ -234,6 +224,12 @@ open_pty(
 	}
 
 	pty_args_delete( args) ;
+
+#ifdef  USE_WIN32API
+	ReleaseMutex( mutex) ;
+#else
+	pthread_mutex_unlock( &mutex) ;
+#endif
 
 	return  0 ;
 }

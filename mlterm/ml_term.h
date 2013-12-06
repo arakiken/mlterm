@@ -20,12 +20,6 @@
 #include  "ml_config_menu.h"
 
 
-/* defined(__CYGWIN__) is not to link libpthread to mlterm for now. */
-#if  defined(USE_WIN32API) || (defined(HAVE_PTHREAD) && defined(__CYGWIN__))
-#define  OPEN_PTY_ASYNC
-#endif
-
-
 typedef struct ml_term
 {
 	/*
