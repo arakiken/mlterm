@@ -235,259 +235,260 @@ put_image_124bpp(
 #else
 #define  PLANE(image)  (((image) >> plane) & 0x1)
 #endif
+
 	plane = 0 ;
-while( 1)
-{
-	new_image_p = new_image ;
-
-	if( need_fb_pixel && memchr( image , BG_MAGIC , size))
+	while( 1)
 	{
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		if( ! write_back_fb)
-	#endif
+		new_image_p = new_image ;
+
+		if( need_fb_pixel && memchr( image , BG_MAGIC , size))
 		{
-			memcpy( new_image ,
-			#ifdef  ENABLE_DOUBLE_BUFFER
-				_display.back_fb + (fb - _display.fb) ,
-			#else
-				fb ,
-			#endif
-				size / ppb + 2) ;
-		}
-
-		shift = FB_SHIFT(ppb,bpp,x) ;
-
-	if( plane > 0)
-	{
-		for( count = 0 ; count < size ; count++)
-		{
-			if( image[count] != BG_MAGIC)
-			{
-				(*new_image_p) =
-					((*new_image_p) & ~(_display.mask << shift)) |
-					 (PLANE(image[count]) << shift) ;
-			}
-
-		#ifdef  VRAMBIT_MSBRIGHT
-			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
-		#else
-			if( FB_SHIFT_NEXT(shift,bpp) < 0)
-		#endif
-			{
-				new_image_p ++ ;
-				shift = _display.shift_0 ;
-			}
-		}
-	}
-	else
-	{
-		for( count = 0 ; count < size ; count++)
-		{
-			if( image[count] != BG_MAGIC)
-			{
-				(*new_image_p) =
-					((*new_image_p) & ~(_display.mask << shift)) |
-					 (image[count] << shift) ;
-			}
-
-		#ifdef  VRAMBIT_MSBRIGHT
-			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
-		#else
-			if( FB_SHIFT_NEXT(shift,bpp) < 0)
-		#endif
-			{
-				new_image_p ++ ;
-				shift = _display.shift_0 ;
-			}
-		}
-	}
-
-		if( shift != _display.shift_0)
-		{
-			new_image_p ++ ;
-		}
-	}
-	else
-	{
-		int  surplus ;
-		u_char  pixel ;
-
-		shift = _display.shift_0 ;
-		count = 0 ;
-		pixel = 0 ;
-
-		if( ( surplus = MOD_PPB(x,ppb)) > 0)
-		{
-			u_char  fb_pixel ;
-
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb_pixel = _display.back_fb[fb - _display.fb] ;
-		#else
-			fb_pixel = fb[0] ;
+			if( ! write_back_fb)
 		#endif
-
-			for( ; surplus > 0 ; surplus --)
 			{
-				pixel |= (fb_pixel & (_display.mask << shift)) ;
+				memcpy( new_image ,
+				#ifdef  ENABLE_DOUBLE_BUFFER
+					_display.back_fb + (fb - _display.fb) ,
+				#else
+					fb ,
+				#endif
+					size / ppb + 2) ;
+			}
 
-				FB_SHIFT_NEXT(shift,bpp) ;
+			shift = FB_SHIFT(ppb,bpp,x) ;
+
+			if( plane > 0)
+			{
+				for( count = 0 ; count < size ; count++)
+				{
+					if( image[count] != BG_MAGIC)
+					{
+						(*new_image_p) =
+						  ((*new_image_p) & ~(_display.mask << shift)) |
+						   (PLANE(image[count]) << shift) ;
+					}
+
+				#ifdef  VRAMBIT_MSBRIGHT
+					if( FB_SHIFT_NEXT(shift,bpp) >= 8)
+				#else
+					if( FB_SHIFT_NEXT(shift,bpp) < 0)
+				#endif
+					{
+						new_image_p ++ ;
+						shift = _display.shift_0 ;
+					}
+				}
+			}
+			else
+			{
+				for( count = 0 ; count < size ; count++)
+				{
+					if( image[count] != BG_MAGIC)
+					{
+						(*new_image_p) =
+						  ((*new_image_p) & ~(_display.mask << shift)) |
+						   (image[count] << shift) ;
+					}
+
+				#ifdef  VRAMBIT_MSBRIGHT
+					if( FB_SHIFT_NEXT(shift,bpp) >= 8)
+				#else
+					if( FB_SHIFT_NEXT(shift,bpp) < 0)
+				#endif
+					{
+						new_image_p ++ ;
+						shift = _display.shift_0 ;
+					}
+				}
+			}
+
+			if( shift != _display.shift_0)
+			{
+				new_image_p ++ ;
 			}
 		}
 		else
 		{
-			if( plane > 0)
+			int  surplus ;
+			u_char  pixel ;
+
+			shift = _display.shift_0 ;
+			count = 0 ;
+			pixel = 0 ;
+
+			if( ( surplus = MOD_PPB(x,ppb)) > 0)
 			{
-				goto  round_number_1 ;
+				u_char  fb_pixel ;
+
+			#ifdef  ENABLE_DOUBLE_BUFFER
+				fb_pixel = _display.back_fb[fb - _display.fb] ;
+			#else
+				fb_pixel = fb[0] ;
+			#endif
+
+				for( ; surplus > 0 ; surplus --)
+				{
+					pixel |= (fb_pixel & (_display.mask << shift)) ;
+
+					FB_SHIFT_NEXT(shift,bpp) ;
+				}
 			}
 			else
 			{
-				goto  round_number_2 ;
-			}
-		}
-
-	if( plane > 0)
-	{
-		do
-		{
-			pixel |= (PLANE(image[count++]) << shift) ;
-
-		#ifdef  VRAMBIT_MSBRIGHT
-			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
-		#else
-			if( FB_SHIFT_NEXT(shift,bpp) < 0)
-		#endif
-			{
-				*(new_image_p ++) = pixel ;
-				pixel = 0 ;
-				shift = _display.shift_0 ;
-
-			round_number_1:
-				if( ppb == 8)
+				if( plane > 0)
 				{
-					for( ; count + 7 < size ; count += 8)
-					{
-						*(new_image_p++) =
-						#ifdef  VRAMBIT_MSBRIGHT
-							 PLANE(image[count]) |
-							 (PLANE(image[count + 1]) << 1) |
-							 (PLANE(image[count + 2]) << 2) |
-							 (PLANE(image[count + 3]) << 3) |
-							 (PLANE(image[count + 4]) << 4) |
-							 (PLANE(image[count + 5]) << 5) |
-							 (PLANE(image[count + 6]) << 6) |
-							 (PLANE(image[count + 7]) << 7) ;
-						#else
-							 (PLANE(image[count]) << 7) |
-							 (PLANE(image[count + 1]) << 6) |
-							 (PLANE(image[count + 2]) << 5) |
-							 (PLANE(image[count + 3]) << 4) |
-							 (PLANE(image[count + 4]) << 3) |
-							 (PLANE(image[count + 5]) << 2) |
-							 (PLANE(image[count + 6]) << 1) |
-							 PLANE(image[count + 7]) ;
-						#endif
-					}
+					goto  round_number_1 ;
+				}
+				else
+				{
+					goto  round_number_2 ;
 				}
 			}
-		}
-		while( count < size) ;
-	}
-	else
-	{
-		do
-		{
-			pixel |= (image[count++] << shift) ;
 
-		#ifdef  VRAMBIT_MSBRIGHT
-			if( FB_SHIFT_NEXT(shift,bpp) >= 8)
-		#else
-			if( FB_SHIFT_NEXT(shift,bpp) < 0)
-		#endif
+			if( plane > 0)
 			{
-				*(new_image_p ++) = pixel ;
-				pixel = 0 ;
-				shift = _display.shift_0 ;
-
-			round_number_2:
-				if( ppb == 8)
+				do
 				{
-					for( ; count + 7 < size ; count += 8)
+					pixel |= (PLANE(image[count++]) << shift) ;
+
+				#ifdef  VRAMBIT_MSBRIGHT
+					if( FB_SHIFT_NEXT(shift,bpp) >= 8)
+				#else
+					if( FB_SHIFT_NEXT(shift,bpp) < 0)
+				#endif
 					{
-						*(new_image_p++) =
-						#ifdef  VRAMBIT_MSBRIGHT
-							 image[count] |
-							 (image[count + 1] << 1) |
-							 (image[count + 2] << 2) |
-							 (image[count + 3] << 3) |
-							 (image[count + 4] << 4) |
-							 (image[count + 5] << 5) |
-							 (image[count + 6] << 6) |
-							 (image[count + 7] << 7) ;
-						#else
-							 (image[count] << 7) |
-							 (image[count + 1] << 6) |
-							 (image[count + 2] << 5) |
-							 (image[count + 3] << 4) |
-							 (image[count + 4] << 3) |
-							 (image[count + 5] << 2) |
-							 (image[count + 6] << 1) |
-							 image[count + 7] ;
-						#endif
+						*(new_image_p ++) = pixel ;
+						pixel = 0 ;
+						shift = _display.shift_0 ;
+
+					round_number_1:
+						if( ppb == 8)
+						{
+							for( ; count + 7 < size ; count += 8)
+							{
+								*(new_image_p++) =
+								#ifdef  VRAMBIT_MSBRIGHT
+								  PLANE(image[count]) |
+								  (PLANE(image[count + 1]) << 1) |
+								  (PLANE(image[count + 2]) << 2) |
+								  (PLANE(image[count + 3]) << 3) |
+								  (PLANE(image[count + 4]) << 4) |
+								  (PLANE(image[count + 5]) << 5) |
+								  (PLANE(image[count + 6]) << 6) |
+								  (PLANE(image[count + 7]) << 7) ;
+								#else
+								  (PLANE(image[count]) << 7) |
+								  (PLANE(image[count + 1]) << 6) |
+								  (PLANE(image[count + 2]) << 5) |
+								  (PLANE(image[count + 3]) << 4) |
+								  (PLANE(image[count + 4]) << 3) |
+								  (PLANE(image[count + 5]) << 2) |
+								  (PLANE(image[count + 6]) << 1) |
+								  PLANE(image[count + 7]) ;
+								#endif
+							}
+						}
 					}
 				}
+				while( count < size) ;
+			}
+			else
+			{
+				do
+				{
+					pixel |= (image[count++] << shift) ;
+
+				#ifdef  VRAMBIT_MSBRIGHT
+					if( FB_SHIFT_NEXT(shift,bpp) >= 8)
+				#else
+					if( FB_SHIFT_NEXT(shift,bpp) < 0)
+				#endif
+					{
+						*(new_image_p ++) = pixel ;
+						pixel = 0 ;
+						shift = _display.shift_0 ;
+
+					round_number_2:
+						if( ppb == 8)
+						{
+							for( ; count + 7 < size ; count += 8)
+							{
+								*(new_image_p++) =
+								#ifdef  VRAMBIT_MSBRIGHT
+									 image[count] |
+									 (image[count + 1] << 1) |
+									 (image[count + 2] << 2) |
+									 (image[count + 3] << 3) |
+									 (image[count + 4] << 4) |
+									 (image[count + 5] << 5) |
+									 (image[count + 6] << 6) |
+									 (image[count + 7] << 7) ;
+								#else
+									 (image[count] << 7) |
+									 (image[count + 1] << 6) |
+									 (image[count + 2] << 5) |
+									 (image[count + 3] << 4) |
+									 (image[count + 4] << 3) |
+									 (image[count + 5] << 2) |
+									 (image[count + 6] << 1) |
+									 image[count + 7] ;
+								#endif
+							}
+						}
+					}
+				}
+				while( count < size) ;
+			}
+
+			if( shift != _display.shift_0)
+			{
+				u_char  fb_pixel ;
+
+			#ifdef  ENABLE_DOUBLE_BUFFER
+				fb_pixel = _display.back_fb[get_fb( x + size , y) - _display.fb] ;
+			#else
+				fb_pixel = get_fb( x + size , y)[0] ;
+			#endif
+
+				do
+				{
+					pixel |= (fb_pixel & (_display.mask << shift)) ;
+				}
+			#ifdef  VRAMBIT_MSBRIGHT
+				while( FB_SHIFT_NEXT(shift,bpp) < 8) ;
+			#else
+				while( FB_SHIFT_NEXT(shift,bpp) >= 0) ;
+			#endif
+
+				*(new_image_p ++) = pixel ;
 			}
 		}
-		while( count < size) ;
-	}
 
-		if( shift != _display.shift_0)
+		memcpy( fb , new_image , new_image_p - new_image) ;
+
+		if( ++plane < _disp.depth)
 		{
-			u_char  fb_pixel ;
+			static size_t  plane_size ;
 
+			if( plane_size == 0)
+			{
+				plane_size = _display.smem_len / _disp.depth ;
+			}
+
+			fb += plane_size ;
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb_pixel = _display.back_fb[get_fb( x + size , y) - _display.fb] ;
-		#else
-			fb_pixel = get_fb( x + size , y)[0] ;
-		#endif
-
-			do
+			if( write_back_fb)
 			{
-				pixel |= (fb_pixel & (_display.mask << shift)) ;
+				new_image += plane_size ;
 			}
-		#ifdef  VRAMBIT_MSBRIGHT
-			while( FB_SHIFT_NEXT(shift,bpp) < 8) ;
-		#else
-			while( FB_SHIFT_NEXT(shift,bpp) >= 0) ;
 		#endif
-
-			*(new_image_p ++) = pixel ;
 		}
-	}
-
-	memcpy( fb , new_image , new_image_p - new_image) ;
-
-	if( ++plane < _disp.depth)
-	{
-		static size_t  plane_size ;
-
-		if( plane_size == 0)
+		else
 		{
-			plane_size = _display.smem_len / _disp.depth ;
+			break ;
 		}
-
-		fb += plane_size ;
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		if( write_back_fb)
-		{
-			new_image += plane_size ;
-		}
-	#endif
 	}
-	else
-	{
-		break ;
-	}
-}
 }
 
 static void
