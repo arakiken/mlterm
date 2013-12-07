@@ -1,5 +1,16 @@
 2013-12-07  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c, x_display_wscons.c: 16 color mode by 4 planes is supported
+	  on NetBSD/luna68k framebuffer.
+
+	* x_imagelib.c: Sixel loaders for both 1 and 32 bpp are built in on
+	  NetBSD and OpenBSD.
+
+	* c_imagelib.c: It is enabled to include c_imagelib.c with SIXEL_1BPP after
+	  including it without it.
+
+2013-12-07  Araki Ken  <arakiken@users.sf.net>
+
 	* libptyssh/ml_pty_ssh.c, ml_pty_ssh.c, ml_pty.h, ml_term.c:
 	  ml_pty_ssh_new() gets thread safe by directly calling set_use_multi_thread()
 	  which was ml_pty_ssh_set_use_multi_thread() originally.

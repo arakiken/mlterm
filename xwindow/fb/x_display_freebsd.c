@@ -18,7 +18,9 @@ static keymap_t  keymap ;
 /* --- static functions --- */
 
 static int
-open_display(void)
+open_display(
+	u_int  depth
+	)
 {
 	char *  dev ;
 	int  vmode ;

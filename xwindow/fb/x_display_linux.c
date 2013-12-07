@@ -218,7 +218,9 @@ open_event_device(
 }
 
 static int
-open_display(void)
+open_display(
+	u_int  depth
+	)
 {
 	char *  dev ;
 	struct  fb_fix_screeninfo  finfo ;

@@ -300,7 +300,9 @@ auto_repeat(void)
 #endif
 
 static int
-open_display(void)
+open_display(
+	u_int  depth	/* used on luna68k alone. */
+	)
 {
 	char *  dev ;
 	struct wsdisplay_fbinfo  vinfo ;
@@ -378,10 +380,22 @@ open_display(void)
 	#ifdef  ENABLE_2_4_PPB
 		_display.pixels_per_byte = 8 / _disp.depth ;
 	#else
-		/* XXX Forcibly set 1 bpp */
-		_display.pixels_per_byte = 8 ;
-		_disp.depth = 1 ;
+	#ifdef  WSDISPLAY_TYPE_LUNA
+		if( wstype == WSDISPLAY_TYPE_LUNA)
+		{
+			if( ( depth == 1 || depth == 4))
+			{
+				_disp.depth = depth ;
+			}
+		}
+		else
 	#endif
+		{
+			/* XXX Forcibly set 1 bpp */
+			_disp.depth = 1 ;
+		}
+	#endif
+		_display.pixels_per_byte = 8 ;
 
 		_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;
 		_display.mask = FB_MASK(_display.pixels_per_byte) ;
@@ -414,7 +428,16 @@ open_display(void)
 		}
 	}
 
-	_display.smem_len = _display.line_length * _display.height ;
+#ifdef  WSDISPLAY_TYPE_LUNA
+	if( wstype == WSDISPLAY_TYPE_LUNA && _disp.depth == 4)
+	{
+		_display.smem_len = 0x40000 * 4 ;
+	}
+	else
+#endif
+	{
+		_display.smem_len = _display.line_length * _display.height ;
+	}
 
 	if( ( _display.fb = mmap( NULL , _display.smem_len ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))

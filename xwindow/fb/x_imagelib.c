@@ -198,7 +198,8 @@ modify_pixmap(
 	}
 }
 
-#if defined(USE_GRF) || defined(__ANDROID__)
+/* For old machines and Android */
+#if  defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -207,8 +208,10 @@ modify_pixmap(
 #include  <string.h>	/* memset/memmove */
 #include  "../../common/c_imagelib.c"
 
+#endif
+
 /* For old machines */
-#elif  defined(__NetBSD__) || defined(__OpenBSD__)
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
 
 #ifndef  BUILTIN_IMAGELIB
 #define  BUILTIN_IMAGELIB
@@ -217,14 +220,14 @@ modify_pixmap(
 #include  <string.h>	/* memset/memmove */
 #include  "../../common/c_imagelib.c"
 
+/* depth should be checked by the caller. */
 static int
-load_sixel_1bpp_from_file(
+load_sixel_with_mask_from_file_1bpp(
 	Display *  display ,
 	char *  path ,
 	u_int  width ,
 	u_int  height ,
 	x_picture_modifier_t *  pic_mod ,
-	u_int  depth ,
 	Pixmap *  pixmap ,
 	PixmapMask *  mask
 	)
@@ -234,13 +237,12 @@ load_sixel_1bpp_from_file(
 	u_char *  src ;
 	u_char *  dst ;
 
-	if( display->pixels_per_byte != 8 || ! strstr( path , ".six") || pic_mod ||
-	    ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
+	if( ! strstr( path , ".six") || pic_mod || ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		return  0 ;
 	}
 
-	if( ! ( src = (*pixmap)->image = load_sixel_from_file( path ,
+	if( ! ( src = (*pixmap)->image = load_sixel_from_file_1bpp( path ,
 						&(*pixmap)->width , &(*pixmap)->height)))
 	{
 		free( *pixmap) ;
@@ -337,7 +339,19 @@ load_file(
 		return  0 ;
 	}
 
-#if defined(USE_GRF) || defined(__ANDROID__)
+/* For old machines */
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
+	if( depth == 1)
+	{
+		if( load_sixel_with_mask_from_file_1bpp( display , path , width , height ,
+				pic_mod , pixmap , mask))
+		{
+			return  1 ;
+		}
+	}
+	else
+#endif
+#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
 	if( strstr( path , ".six") && ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
@@ -353,13 +367,6 @@ load_file(
 		{
 			free( *pixmap) ;
 		}
-	}
-/* For old machines */
-#elif  defined(__NetBSD__) || defined(__OpenBSD__)
-	if( load_sixel_1bpp_from_file( display , path , width , height ,
-		pic_mod , depth , pixmap , mask))
-	{
-		return  1 ;
 	}
 #endif
 

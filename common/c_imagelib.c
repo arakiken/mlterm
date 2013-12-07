@@ -9,16 +9,20 @@
 #ifdef  BUILTIN_IMAGELIB
 
 #ifdef  SIXEL_1BPP
+#define  realloc_pixels  realloc_pixels_1bpp
+#define  correct_height  correct_height_1bpp
+#define  load_sixel_from_file  load_sixel_from_file_1bpp
 #define  SIXEL_RGB(r,g,b)  ((9 * (r) + 30 * (g) + (b)) * 51 >= 5120 * 20 ? 1 : 0)
 #define  CARD_HEAD_SIZE  0
-typedef u_int8_t  pixel_t ;
-#else
+#define  pixel_t  u_int8_t
+#else	/* SIXEL_1BPP */
 #define  SIXEL_RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
 #ifndef  CARD_HEAD_SIZE
 #define  CARD_HEAD_SIZE  8
 #endif
-typedef u_int32_t  pixel_t ;
-#endif
+#define  pixel_t  u_int32_t
+#endif	/* SIXEL_1BPP */
+
 #define  PIXEL_SIZE  sizeof(pixel_t)
 
 
@@ -32,6 +36,8 @@ static u_int  sixel_cmap_size ;
 
 /* --- static functions --- */
 
+#ifndef  __GET_PARAMS__
+#define  __GET_PARAMS__
 static size_t
 get_params(
 	int *  params ,
@@ -79,6 +85,7 @@ get_params(
 
 	return  count ;
 }
+#endif	/* __GET_PARAMS__ */
 
 static int
 realloc_pixels(
@@ -745,7 +752,7 @@ end:
 
 	return  pixels ;
 }
-#undef  color_tbl
+
 
 #ifndef  SIXEL_1BPP
 #ifdef  GDK_PIXBUF_VERSION
@@ -936,6 +943,7 @@ gdk_pixbuf_new_from(
 
 #define  gdk_pixbuf_new_from_sixel(path)  (NULL)
 
+#if  CARD_HEAD_SIZE == 8
 static u_int32_t *
 create_cardinals_from_sixel(
 	const char *  path
@@ -957,6 +965,7 @@ create_cardinals_from_sixel(
 
 	return  cardinal ;
 }
+#endif
 
 #endif	/* GDK_PIXBUF_VERSION */
 #endif  /* SIXEL_1BPP */
@@ -1062,3 +1071,12 @@ msb(
 }
 
 #endif	/* USE_X11 */
+
+
+#undef  color_tbl
+#undef  realloc_pixels
+#undef  correct_height
+#undef  load_sixel_from_file
+#undef  SIXEL_RGB
+#undef  CARD_HEAD_SIZE
+#undef  pixel_t

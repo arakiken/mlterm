@@ -162,7 +162,9 @@ setup_reg(
 }
 
 static int
-open_display(void)
+open_display(
+	u_int  depth
+	)
 {
 	char *  dev ;
 	struct grfinfo  vinfo ;
