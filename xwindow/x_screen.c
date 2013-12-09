@@ -4872,6 +4872,29 @@ smaller_font_size(
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
+static int
+change_true_transbg_alpha(
+	x_screen_t *  screen ,
+	u_int  alpha
+	)
+{
+	int  ret ;
+
+	if( ( ret = x_change_true_transbg_alpha( screen->color_man , alpha)) > 0)
+	{
+		/* True transparency works. Same processing as change_bg_color */
+		if( x_window_set_bg_color( &screen->window ,
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)))
+		{
+			x_xic_bg_color_changed( &screen->window) ;
+
+			ml_term_set_modified_all_lines_in_screen( screen->term) ;
+		}
+	}
+
+	return  ret ;
+}
+
 static void
 change_transparent_flag(
 	x_screen_t *  screen ,
@@ -4896,15 +4919,8 @@ change_transparent_flag(
 
 	if( is_transparent)
 	{
-		/*
-		 * This change doesn't affect true transparency using
-		 * x_color_manager_change_alpha() until change_alpha() is called.
-		 */
-		if( screen->pic_mod.alpha == 255)
-		{
-			screen->pic_mod.alpha = 0 ;
-		}
-
+		/* disable true transparency */
+		change_true_transbg_alpha( screen , 255) ;
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
 	}
@@ -5023,18 +5039,16 @@ change_wall_picture(
 	}
 	else
 	{
-		/*
-		 * This change doesn't affect true transparency using
-		 * x_color_manager_change_alpha() until change_alpha() is called.
-		 */
-		if( screen->pic_mod.alpha == 255)
-		{
-			screen->pic_mod.alpha = 0 ;
-		}
-
 		screen->pic_file_path = strdup( file_path) ;
-		set_wall_picture( screen) ;
+
+		if( set_wall_picture( screen))
+		{
+			return ;
+		}
 	}
+
+	/* disable true transparency */
+	change_true_transbg_alpha( screen , 255) ;
 }
 
 static void
@@ -5123,26 +5137,26 @@ change_alpha(
 	if( screen->pic_mod.alpha == alpha)
 	{
 		/* not changed */
-
 		return ;
 	}
 
 	screen->pic_mod.alpha = alpha ;
 
-	if( x_color_manager_change_alpha( screen->color_man , alpha))
+	if( x_window_has_wall_picture( &screen->window) ||
+	    ! change_true_transbg_alpha( screen , alpha))
 	{
-		/* Same processing as change_bg_color */
-	
-		if( x_window_set_bg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_BG_COLOR)))
+		/* True transparency doesn't work. */
+		picture_modifier_changed( screen) ;
+	}
+	else
+	{
+		/* True transparency works. */
+		if( alpha == 255)
 		{
-			x_xic_bg_color_changed( &screen->window) ;
-
-			ml_term_set_modified_all_lines_in_screen( screen->term) ;
+			/* Completely opaque. => reset pic_mod.alpha. */
+			screen->pic_mod.alpha = 0 ;
 		}
 	}
-	
-	picture_modifier_changed( screen) ;
 }
 
 static void
@@ -7422,10 +7436,6 @@ x_screen_new(
 	screen->pic_mod.brightness = brightness ;
 	screen->pic_mod.contrast = contrast ;
 	screen->pic_mod.gamma = gamma ;
-	if( alpha != 255 || ( ! pic_file_path && ! use_transbg))
-	{
-		screen->pic_mod.alpha = alpha ;
-	}
 
 	/*
 	 * blend_xxx members will be set in window_realized().
@@ -7436,8 +7446,16 @@ x_screen_new(
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 #endif
 
-	/* Be sure to use alpha here instead of screen->pic_mod.alpha which was modified above. */
-	x_color_manager_change_alpha( color_man , alpha) ;
+	if( alpha != 255)
+	{
+		screen->pic_mod.alpha = alpha ;
+	}
+
+	/* True transparency is disabled on pseudo transparency or wall picture. */
+	if( ! use_transbg && ! pic_file_path)
+	{
+		x_change_true_transbg_alpha( color_man , alpha) ;
+	}
 
 	screen->fade_ratio = fade_ratio ;
 

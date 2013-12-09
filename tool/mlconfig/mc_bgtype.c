@@ -150,7 +150,7 @@ mc_bgtype_config_widget_new(void)
     gtk_box_pack_start(GTK_BOX(hbox), wall_picture, TRUE, TRUE, 0);
 
     /* transparent button */
-    radio = gtk_radio_button_new_with_label(group, _("Transparent"));
+    radio = gtk_radio_button_new_with_label(group, _("Pseudo transparent"));
     group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
     g_signal_connect(radio, "toggled",
 		       G_CALLBACK(button_transparent_checked), NULL);

@@ -121,8 +121,8 @@ msgid "Picture"
 msgstr "Bild"
 
 #: tool/mlconfig/mc_bgtype.c:156
-msgid "Transparent"
-msgstr "transparent"
+msgid "Pseudo transparent"
+msgstr "Pseudo transparent"
 
 #: tool/mlconfig/mc_brightness.c:71
 msgid "Brightness"

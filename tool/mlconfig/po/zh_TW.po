@@ -123,7 +123,7 @@ msgid "Picture"
 msgstr "¹Ï®×"
 
 #: tool/mlconfig/mc_bgtype.c:156
-msgid "Transparent"
+msgid "Pseudo transparent"
 msgstr "³z©ú"
 
 #: tool/mlconfig/mc_brightness.c:71

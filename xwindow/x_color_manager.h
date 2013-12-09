@@ -83,7 +83,7 @@ int  x_color_manager_adjust_ul_color( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_reload( x_color_manager_t *  color_man) ;
 
-int  x_color_manager_change_alpha( x_color_manager_t *  color_man , u_int8_t  alpha) ;
+int  x_change_true_transbg_alpha( x_color_manager_t *  color_man , u_int8_t  alpha) ;
 
 
 #endif

@@ -424,7 +424,7 @@ The default is \fB0\fR.
 .TP
 \fB\-p\fR, \fB\-\-pic\fR=\fIpath\fR
 Path for a wallpaper (background) image.
-Note that the wallpaper cannot be used with transparent background.
+Note that the wallpaper cannot be used with pseudo transparent background.
 .TP
 \fB\-q\fR, \fB\-\-extkey\fR(=\fIbool\fR)
 Enable extended keys for backscroll mode.
@@ -450,7 +450,7 @@ The default is \fBtrue\fR.
 .TP
 \fB\-t\fR, \fB\-\-transbg\fR(=\fIbool\fR)
 Whether to enable pseudo transparent background.
-Note that transparent background cannot be used with wallpaper.
+Note that pseudo transparent background cannot be used with wallpaper.
 The default is \fBfalse\fR.
 .TP
 \fB\-u\fR, \fB\-\-onlyucsfont\fR(=\fIbool\fR)
@@ -778,7 +778,7 @@ Specify the image file to be used for background image.
 (\fB\-p\fR, \fB\-\-pic\fR) 
 .TP
 Transparent
-Transparent background. (\fB\-t\fR, \fB\-\-transbg\fR) 
+Pseudo transparent background. (\fB\-t\fR, \fB\-\-transbg\fR) 
 .TP
 Picture/Transparent Brightness, Contrast and Gamma.
 Brightness, contrast and gamma of the background image.
@@ -1395,7 +1395,7 @@ Process full width characters.
 Use scrollbar.
 .TP
 \fBuse_transbg=\fIbool\fR (\fB\-t\fR, \fB\-\-transbg\fR) 
-Use transparent background.
+Use pseudo transparent background.
 .TP
 \fBuse_unicode_property=\fIbool\fR (\fB\-\-ucsprop\fR)
 Use unicode properties in encodings excepting UTF-8.

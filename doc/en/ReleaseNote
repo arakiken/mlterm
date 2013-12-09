@@ -1,6 +1,8 @@
 ver 3.3.2
+* Support 4bpp framebuffer on NetBSD/luna68k.
 * Desynchronize ssh negotiation on cygwin or mingw.
 * "inner_border" option accepts "[horizontal border],[vertical border]" format value.
+* Add vte_terminal_set_color_*_rgba() functions to libvte compatible library.
 * Bug fixes:
   Fix memory leak when opening pty fails on win32gdi.
   Fix the bug which disabled to clear hidden input method window it if large

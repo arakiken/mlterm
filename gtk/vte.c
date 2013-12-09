@@ -1506,7 +1506,7 @@ update_wall_picture(
 
 	if( ! terminal->pvt->image)
 	{
-		goto  set_bg_alpha ;
+		return ;
 	}
 	
 	win = &terminal->pvt->screen->window ;
@@ -1580,27 +1580,10 @@ update_wall_picture(
 	}
 
 set_bg_image:
-	x_color_manager_change_alpha( terminal->pvt->screen->color_man , 0xff) ;
+	x_change_true_transbg_alpha( terminal->pvt->screen->color_man , 255) ;
 
 	sprintf( file , "pixmap:%lu" , terminal->pvt->pixmap) ;
 	vte_terminal_set_background_image_file( terminal , file) ;
-
-	return ;
-
-set_bg_alpha:
-	/* If screen->pic_file_path is already set, true transparency is not enabled. */
-	if( ! terminal->pvt->screen->pic_file_path &&
-	    x_color_manager_change_alpha( terminal->pvt->screen->color_man ,
-				terminal->pvt->screen->pic_mod.alpha))
-	{
-		/* Same processing as change_bg_color in x_screen.c */
-
-		if( x_window_set_bg_color( &terminal->pvt->screen->window ,
-			x_get_xcolor( terminal->pvt->screen->color_man , ML_BG_COLOR)))
-		{
-			x_xic_bg_color_changed( &terminal->pvt->screen->window) ;
-		}
-	}
 }
 
 static void
@@ -2830,6 +2813,197 @@ ml_term_open_pty_wrap(
 				host , pass , pubkey , privkey) ;
 }
 
+static void
+set_alpha(
+	VteTerminal *  terminal ,
+	u_int8_t  alpha
+	)
+{
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " ALPHA => %d\n" , alpha) ;
+#endif
+
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		char  value[DIGIT_STR_LEN(u_int8_t) + 1] ;
+
+		sprintf( value , "%d" , (int)alpha) ;
+
+		x_screen_set_config( terminal->pvt->screen , NULL , "alpha" , value) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
+		update_wall_picture( terminal) ;
+	}
+	else
+	{
+		if( ! x_change_true_transbg_alpha( terminal->pvt->screen->color_man , alpha))
+		{
+			/* True transparency doesn't work. */
+			terminal->pvt->screen->pic_mod.alpha = alpha ;
+		}
+	}
+}
+
+static void
+set_color_foreground(
+	VteTerminal *  terminal ,
+	const void *  foreground ,
+	gchar *  (*to_string)( const void *)
+	)
+{
+	gchar *  str ;
+
+	if( ! foreground)
+	{
+		return ;
+	}
+
+	/* #rrrrggggbbbb */
+	str = (*to_string)( foreground) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " set_color_foreground %s\n" , str) ;
+#endif
+
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		x_screen_set_config( terminal->pvt->screen , NULL , "fg_color" , str) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
+	}
+	else
+	{
+		x_color_manager_set_fg_color( terminal->pvt->screen->color_man , str) ;
+	}
+
+	g_free( str) ;
+}
+
+static void
+set_color_background(
+	VteTerminal *  terminal ,
+	const void *  background ,
+	gchar *  (*to_string)( const void *)
+	)
+{
+	gchar *  str ;
+
+	if( ! background)
+	{
+		return ;
+	}
+
+	/* #rrrrggggbbbb */
+	str = (*to_string)( background) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " set_color_background %s\n" , str) ;
+#endif
+
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		x_screen_set_config( terminal->pvt->screen , NULL , "bg_color" , str) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
+
+		if( terminal->pvt->image && terminal->pvt->screen->pic_mod.alpha < 255)
+		{
+			update_wall_picture( terminal) ;
+		}
+	}
+	else
+	{
+		x_color_manager_set_bg_color( terminal->pvt->screen->color_man , str) ;
+	}
+
+	g_free( str) ;
+}
+
+static void
+set_color_cursor(
+	VteTerminal *  terminal ,
+	const void *  cursor_background ,
+	gchar *  (*to_string)( const void *)
+	)
+{
+	gchar *  str ;
+
+	if( ! cursor_background)
+	{
+		return ;
+	}
+
+	/* #rrrrggggbbbb */
+	str = (*to_string)( cursor_background) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " set_color_cursor %s\n" , str) ;
+#endif
+
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		x_screen_set_config( terminal->pvt->screen , NULL , "cursor_bg_color" , str) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
+	}
+	else
+	{
+		x_color_manager_set_cursor_bg_color( terminal->pvt->screen->color_man , str) ;
+	}
+
+	g_free( str) ;
+}
+
+static int
+set_colors(
+	VteTerminal *  terminal ,
+	const void *  palette ,
+	glong palette_size ,
+	gchar *  (*to_string)( const void *)
+	)
+{
+	if( palette_size != 0 && palette_size != 8 && palette_size != 16 &&
+	    ( palette_size < 24 || 256 < palette_size))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " palette_size %d is illegal\n" , palette_size) ;
+	#endif
+
+		return  0 ;
+	}
+
+	if( palette_size >= 8)
+	{
+		ml_color_t  color ;
+		int  need_redraw = 0 ;
+
+		for( color = 0 ; color < palette_size ; color++)
+		{
+			gchar *  rgb ;
+			char *  name ;
+
+			rgb = (*to_string)( palette + color) ;
+			name = ml_get_color_name( color) ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Setting rgb %s=%s\n" , name , rgb) ;
+		#endif
+
+			need_redraw |= ml_customize_color_file( name , rgb , 0) ;
+
+			g_free( rgb) ;
+		}
+
+		if( need_redraw && GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+		{
+			x_color_cache_unload_all() ;
+			x_screen_reset_view( terminal->pvt->screen) ;
+		}
+	}
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -3295,32 +3469,7 @@ vte_terminal_set_color_foreground(
 	const GdkColor *  foreground
 	)
 {
-	gchar *  str ;
-
-	if( ! foreground)
-	{
-		return ;
-	}
-
-	/* #rrrrggggbbbb */
-	str = gdk_color_to_string( foreground) ;
-	
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " set_color_foreground %s\n" , str) ;
-#endif
-
-	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
-	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "fg_color" , str) ;
-		x_window_update( &terminal->pvt->screen->window ,
-			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
-	}
-	else
-	{
-		x_color_manager_set_fg_color( terminal->pvt->screen->color_man , str) ;
-	}
-
-	g_free( str) ;
+	set_color_foreground( terminal , foreground , gdk_color_to_string) ;
 }
 
 void
@@ -3329,37 +3478,7 @@ vte_terminal_set_color_background(
 	const GdkColor *  background
 	)
 {
-	gchar *  str ;
-
-	if( ! background)
-	{
-		return ;
-	}
-	
-	/* #rrrrggggbbbb */
-	str = gdk_color_to_string( background) ;
-
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " set_color_background %s\n" , str) ;
-#endif
-
-	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
-	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "bg_color" , str) ;
-		x_window_update( &terminal->pvt->screen->window ,
-			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
-
-		if( terminal->pvt->image && terminal->pvt->screen->pic_mod.alpha < 255)
-		{
-			update_wall_picture( terminal) ;
-		}
-	}
-	else
-	{
-		x_color_manager_set_bg_color( terminal->pvt->screen->color_man , str) ;
-	}
-	
-	g_free( str) ;
+	set_color_background( terminal , background , gdk_color_to_string) ;
 }
 
 void
@@ -3368,32 +3487,7 @@ vte_terminal_set_color_cursor(
 	const GdkColor *  cursor_background
 	)
 {
-	gchar *  str ;
-
-	if( ! cursor_background)
-	{
-		return ;
-	}
-
-	/* #rrrrggggbbbb */
-	str = gdk_color_to_string( cursor_background) ;
-
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " set_color_cursor %s\n" , str) ;
-#endif
-
-	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
-	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "cursor_bg_color" , str) ;
-		x_window_update( &terminal->pvt->screen->window ,
-			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
-	}
-	else
-	{
-		x_color_manager_set_cursor_bg_color( terminal->pvt->screen->color_man , str) ;
-	}
-
-	g_free( str) ;
+	set_color_cursor( terminal , cursor_background , gdk_color_to_string) ;
 }
 
 void
@@ -3413,21 +3507,8 @@ vte_terminal_set_colors(
 	glong palette_size
 	)
 {
-	if( palette_size != 0 && palette_size != 8 && palette_size != 16 &&
-	    ( palette_size < 24 || 256 < palette_size))
+	if( set_colors( terminal , palette , palette_size , gdk_color_to_string))
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " palette_size %d is illegal\n" , palette_size) ;
-	#endif
-
-		return ;
-	}
-
-	if( palette_size >= 8)
-	{
-		ml_color_t  color ;
-		int  need_redraw = 0 ;
-
 		if( foreground == NULL)
 		{
 			foreground = &palette[7] ;
@@ -3437,32 +3518,9 @@ vte_terminal_set_colors(
 			background = &palette[0] ;
 		}
 
-		for( color = 0 ; color < palette_size ; color++)
-		{
-			gchar *  rgb ;
-			char *  name ;
-
-			rgb = gdk_color_to_string( palette + color) ;
-			name = ml_get_color_name( color) ;
-
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Setting rgb %s=%s\n" , name , rgb) ;
-		#endif
-
-			need_redraw |= ml_customize_color_file( name , rgb , 0) ;
-
-			g_free( rgb) ;
-		}
-
-		if( need_redraw && GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
-		{
-			x_color_cache_unload_all() ;
-			x_screen_reset_view( terminal->pvt->screen) ;
-		}
+		vte_terminal_set_color_foreground( terminal , foreground) ;
+		vte_terminal_set_color_background( terminal , background) ;
 	}
-
-	vte_terminal_set_color_foreground( terminal , foreground) ;
-	vte_terminal_set_color_background( terminal , background) ;
 }
 
 void
@@ -3472,22 +3530,96 @@ vte_terminal_set_default_colors(
 {
 }
 
+#if  GTK_CHECK_VERSION(2,99,0)
+void
+vte_terminal_set_color_dim_rgba(
+	VteTerminal *  terminal ,
+	const GdkRGBA *  dim
+	)
+{
+}
+
+void
+vte_terminal_set_color_bold_rgba(
+	VteTerminal *  terminal ,
+	const GdkRGBA *  bold
+	)
+{
+}
+
+void
+vte_terminal_set_color_foreground_rgba(
+	VteTerminal *  terminal ,
+	const GdkRGBA *  foreground
+	)
+{
+	set_color_foreground( terminal , foreground , gdk_rgba_to_string) ;
+}
+
+void
+vte_terminal_set_color_background_rgba(
+	VteTerminal *  terminal ,
+	const GdkRGBA *  background
+	)
+{
+	set_color_background( terminal , background , gdk_rgba_to_string) ;
+}
+
+void
+vte_terminal_set_color_cursor_rgba(
+	VteTerminal *  terminal ,
+	const GdkRGBA *  cursor_background
+	)
+{
+	set_color_cursor( terminal , cursor_background , gdk_rgba_to_string) ;
+}
+
+void
+vte_terminal_set_colors_rgba(
+	VteTerminal *  terminal ,
+	const GdkRGBA *  foreground ,
+	const GdkRGBA *  background ,
+	const GdkRGBA *  palette ,
+	gsize palette_size
+	)
+{
+	if( set_colors( terminal , palette , palette_size , gdk_rgba_to_string))
+	{
+		if( foreground == NULL)
+		{
+			foreground = &palette[7] ;
+		}
+		if( background == NULL)
+		{
+			background = &palette[0] ;
+		}
+
+		vte_terminal_set_color_foreground_rgba( terminal , foreground) ;
+		vte_terminal_set_color_background_rgba( terminal , background) ;
+	}
+}
+#endif
+
 void
 vte_terminal_set_background_image(
 	VteTerminal *  terminal ,
 	GdkPixbuf *  image		/* can be NULL and same as current terminal->pvt->image */
 	)
 {
-	if( terminal->pvt->image == image)
-	{
-		return ;
-	}
-	
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Setting image %p\n" , image) ;
+#endif
+
 	if( terminal->pvt->image)
 	{
+		if( terminal->pvt->image == image)
+		{
+			return ;
+		}
+
 		g_object_unref( terminal->pvt->image) ;
 	}
-	
+
 	if( ( terminal->pvt->image = image) == NULL)
 	{
 		vte_terminal_set_background_image_file( terminal , "") ;
@@ -3553,21 +3685,11 @@ vte_terminal_set_background_saturation(
 	kik_debug_printf( KIK_DEBUG_TAG " SATURATION => %f\n" , saturation) ;
 #endif
 
-#if  1
-	/* XXX old roxterm (1.18.5) always sets opacity 0xffff after it changes saturation. */
-	if( strstr( g_get_prgname() , "roxterm"))
+	if( terminal->pvt->screen->pic_file_path ||
+	    terminal->pvt->screen->window.is_transparent)
 	{
-		/* "Use solid color" => saturation == 1.0 (roxterm 1.22.2) */
-		if( saturation == 1.0)
-		{
-			vte_terminal_set_opacity( terminal , 0xfffe) ;
-
-			return ;
-		}
+		set_alpha( terminal , 255 * (1.0 - saturation)) ;
 	}
-#endif
-
-	vte_terminal_set_opacity( terminal , 0xffff * (1.0 - saturation)) ;
 }
 
 void
@@ -3615,38 +3737,12 @@ vte_terminal_set_opacity(
 	kik_debug_printf( KIK_DEBUG_TAG " OPACITY => %x\n" , opacity) ;
 #endif
 
-#if  1
-	/* XXX old roxterm (1.18.5) always sets opacity 0xffff after it changes saturation. */
-	if( strstr( g_get_prgname() , "roxterm"))
-	{
-		if( opacity == 0xffff)
-		{
-			return ;
-		}
-		else if( opacity == 0xfffe)
-		{
-			/* 0xfffe seemed to be set in vte_terminal_set_background_saturation(). */
-			opacity = 0xffff ;
-		}
-	}
-#endif
-
 	alpha = ((opacity >> 8) & 0xff) ;
 
-	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	if( ! terminal->pvt->screen->pic_file_path &&
+	    ! terminal->pvt->screen->window.is_transparent)
 	{
-		char  value[DIGIT_STR_LEN(u_int8_t) + 1] ;
-
-		sprintf( value , "%d" , (int)alpha) ;
-
-		x_screen_set_config( terminal->pvt->screen , NULL , "alpha" , value) ;
-		x_window_update( &terminal->pvt->screen->window ,
-			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
-		update_wall_picture( terminal) ;
-	}
-	else
-	{
-		terminal->pvt->screen->pic_mod.alpha = alpha ;
+		set_alpha( terminal , alpha) ;
 	}
 }
 

@@ -78,6 +78,7 @@ Framebuffer support
   o If you want to use ibus input method plugin (./configure --enable-ibus),
     add "-lpthread" to LIBS2_fb of mlterm-x.x.x/main/Makefile.in before building
     mlterm-fb.
+  o You can specify --depth=1 (1bpp) or --depth=4 (4bpp) on NetBSD/luna68k.
   o You can change the screen resolution and depth by fb_resolution option in
     ~/.mlterm/main on NetBSD/x68k. Supported resolutions are 512x512x15
     512x512x8 768x512x4 768x512x1 1024x768x4 1024x768x1.

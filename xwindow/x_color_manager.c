@@ -67,7 +67,7 @@ sys_color_set(
 
 	if( name)
 	{
-		if( color == _BG_COLOR && color_man->alpha < 0xff)
+		if( color == _BG_COLOR && color_man->alpha < 255)
 		{
 			u_int8_t  red ;
 			u_int8_t  green ;
@@ -77,10 +77,10 @@ sys_color_set(
 			x_get_xcolor_rgba( &red , &green , &blue , &alpha , &xcolor) ;
 
 			/*
-			 * If alpha of bg color is already less than 0xff,
+			 * If alpha of bg color is already less than 255,
 			 * default alpha value is not applied.
 			 */
-			if( alpha == 0xff)
+			if( alpha == 255)
 			{
 				x_unload_xcolor( color_man->color_cache->disp , &xcolor) ;
 				x_load_rgb_xcolor( color_man->color_cache->disp ,
@@ -131,7 +131,7 @@ x_color_manager_new(
 		return  NULL ;
 	}
 
-	color_man->alpha = 0xff ;
+	color_man->alpha = 255 ;
 
 	sys_color_set( color_man , fg_color ? fg_color : "black" , _FG_COLOR) ;
 	sys_color_set( color_man , bg_color ? bg_color : "white" , _BG_COLOR) ;
@@ -537,18 +537,27 @@ x_color_manager_reload(
 }
 
 int
-x_color_manager_change_alpha(
+x_change_true_transbg_alpha(
 	x_color_manager_t *  color_man ,
 	u_int8_t  alpha
 	)
 {
-	if(
-	#ifndef  USE_WIN32GUI
-		color_man->color_cache->disp->depth != 32 ||
-	#endif
-		alpha == color_man->alpha)
+#ifdef  USE_FRAMEBUFFER
+
+	return  0 ;
+
+#else
+
+#ifndef  USE_WIN32GUI
+	if( color_man->color_cache->disp->depth != 32)
 	{
 		return  0 ;
+	}
+	else
+#endif
+	if( alpha == color_man->alpha)
+	{
+		return  -1 ;
 	}
 	else
 	{
@@ -573,4 +582,6 @@ x_color_manager_change_alpha(
 
 		return  1 ;
 	}
+
+#endif
 }

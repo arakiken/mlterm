@@ -1,3 +1,14 @@
+2013-12-09  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm.1, doc/en/README.fb, doc/ja/README.fb, gtk/INSTALL: Updated.
+
+	* fb/x_display.c: plane > 0 => _disp.depth > 0 in put_image_124bpp().
+
+	* x_color_manager.[ch], x_screen.c, vte.c:
+	  x_color_manager_change_alpha() -> x_change_true_transbg_alpha().
+
+	* mc_bgtype.c, mlconfig/po/*.po: Transparent => Pseudo transparent.
+
 2013-12-08  Hayaki Saito <user@zuse.jp>
 
 	* c_imagelib.c: Change DECGNL(-) behavior to move the active position to the

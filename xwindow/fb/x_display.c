@@ -258,7 +258,7 @@ put_image_124bpp(
 
 			shift = FB_SHIFT(ppb,bpp,x) ;
 
-			if( plane > 0)
+			if( _disp.depth > 0)
 			{
 				for( count = 0 ; count < size ; count++)
 				{
@@ -336,7 +336,7 @@ put_image_124bpp(
 			}
 			else
 			{
-				if( plane > 0)
+				if( _disp.depth > 1)
 				{
 					goto  round_number_1 ;
 				}
@@ -346,7 +346,7 @@ put_image_124bpp(
 				}
 			}
 
-			if( plane > 0)
+			if( _disp.depth > 0)
 			{
 				do
 				{
