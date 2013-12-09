@@ -618,6 +618,7 @@ restart:
 		}
 		else if( *p == '-')
 		{
+			pix_x = 0 ;
 			pix_y += 6 ;
 			rep = asp_x ;
 		}

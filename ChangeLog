@@ -1,3 +1,8 @@
+2013-12-08  Hayaki Saito <user@zuse.jp>
+
+	* c_imagelib.c: Change DECGNL(-) behavior to move the active position to the
+	  "beginning" of the next line.
+
 2013-12-07  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c, x_display_wscons.c: 16 color mode by 4 planes is supported
