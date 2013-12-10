@@ -432,6 +432,7 @@ open_display(
 	if( wstype == WSDISPLAY_TYPE_LUNA && _disp.depth == 4)
 	{
 		_display.smem_len = 0x40000 * 4 ;
+		_display.plane_len = 0x40000 ;
 	}
 	else
 #endif

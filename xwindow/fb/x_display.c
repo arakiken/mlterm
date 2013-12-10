@@ -469,18 +469,11 @@ put_image_124bpp(
 
 		if( ++plane < _disp.depth)
 		{
-			static size_t  plane_size ;
-
-			if( plane_size == 0)
-			{
-				plane_size = _display.smem_len / _disp.depth ;
-			}
-
-			fb += plane_size ;
+			fb += _display.plane_len ;
 		#ifdef  ENABLE_DOUBLE_BUFFER
 			if( write_back_fb)
 			{
-				new_image += plane_size ;
+				new_image += _display.plane_len ;
 			}
 		#endif
 		}
@@ -1755,7 +1748,7 @@ x_display_fill_with(
 
 		if( ++plane < _disp.depth)
 		{
-			fb = fb_orig + _display.smem_len / _disp.depth ;
+			fb = fb_orig + _display.plane_len * plane ;
 			fb_end = fb + (buf_end - buf) ;
 		}
 		else
@@ -1806,10 +1799,8 @@ for( plane = 0 ; plane < _disp.depth ; plane++)
 {
 	if( src_y <= dst_y)
 	{
-		src = get_fb( src_x , src_y + height - 1) +
-			_display.smem_len / _disp.depth * plane ;
-		dst = get_fb( dst_x , dst_y + height - 1) +
-			_display.smem_len / _disp.depth * plane ;
+		src = get_fb( src_x , src_y + height - 1) + _display.plane_len * plane ;
+		dst = get_fb( dst_x , dst_y + height - 1) + _display.plane_len * plane ;
 
 	#ifdef  ENABLE_DOUBLE_BUFFER
 		if( _display.back_fb)
@@ -1868,8 +1859,8 @@ for( plane = 0 ; plane < _disp.depth ; plane++)
 	}
 	else
 	{
-		src = get_fb( src_x , src_y) ;
-		dst = get_fb( dst_x , dst_y) ;
+		src = get_fb( src_x , src_y) + _display.plane_len * plane ;
+		dst = get_fb( dst_x , dst_y) + _display.plane_len * plane ;
 
 	#ifdef  ENABLE_DOUBLE_BUFFER
 		if( _display.back_fb)

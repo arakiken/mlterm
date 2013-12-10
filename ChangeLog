@@ -1,5 +1,13 @@
 2013-12-10  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: The bug of calculating the address of each plane in
+	  x_display_fill_with() and x_display_copy_lines() is fixed.
+
+	* x.h, fb/x_display_wscons.c, fb/x_display.c:
+	  plane_len is added to Display.
+
+2013-12-10  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_display.c: x_display_fill_with() and x_display_copy_lines() support 4 bpp.
 
 	* kiklib/configure.in: NSLinkModule is enabled only if no other dynamic
