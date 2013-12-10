@@ -1588,16 +1588,18 @@ x_display_fill_with(
 	u_int8_t  pixel
 	)
 {
+	u_char *  fb_orig ;
 	u_char *  fb ;
 	u_int  ppb ;
 	u_char *  buf ;
 	int  y_off ;
 
-	fb = get_fb( x , y) ;
+	fb_orig = fb = get_fb( x , y) ;
 
 	if( ( ppb = _display.pixels_per_byte) > 1)
 	{
 		u_int  bpp ;
+		int  plane ;
 		u_char *  fb_end ;
 		u_char *  buf_end ;
 		u_int  surplus ;
@@ -1606,10 +1608,11 @@ x_display_fill_with(
 		u_int  count ;
 		int  shift ;
 
+		bpp = 8 / ppb ;
+		plane = 0 ;
 		fb_end = get_fb( x + width , y) ;
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		fb_end = _display.back_fb + ( fb_end - _display.fb) ;
-	#else
+
+	#ifndef ENABLE_DOUBLE_BUFFER
 		if( ! ( buf = alloca( fb_end - fb + 1)))
 		{
 			return ;
@@ -1618,7 +1621,12 @@ x_display_fill_with(
 		buf_end = buf + (fb_end - fb) ;
 	#endif
 
-		bpp = 8 / ppb ;
+	while( 1)
+	{
+	#ifdef  ENABLE_DOUBLE_BUFFER
+		fb_end = _display.back_fb + ( fb_end - _display.fb) ;
+	#endif
+
 		surplus = MOD_PPB(x,ppb) ;
 		surplus_end = MOD_PPB(x+width,ppb) ;
 
@@ -1627,7 +1635,10 @@ x_display_fill_with(
 		{
 			if( ppb == 8)
 			{
-				packed_pixel = 0xff ;
+				if( _disp.depth == 1 || PLANE(pixel))
+				{
+					packed_pixel = 0xff ;
+				}
 			}
 			else
 			{
@@ -1672,7 +1683,7 @@ x_display_fill_with(
 					{
 						for( ; count < ppb ; count++)
 						{
-							pix |= (pixel << shift) ;
+							pix |= (PLANE(pixel) << shift) ;
 
 							FB_SHIFT_NEXT(shift,bpp) ;
 						}
@@ -1692,7 +1703,7 @@ x_display_fill_with(
 				{
 					for( ; count < surplus_end ; count++)
 					{
-						pix |= (pixel << shift) ;
+						pix |= (PLANE(pixel) << shift) ;
 
 						FB_SHIFT_NEXT(shift,bpp) ;
 					}
@@ -1741,6 +1752,17 @@ x_display_fill_with(
 			fb += _display.line_length ;
 			fb_end += _display.line_length ;
 		}
+
+		if( ++plane < _disp.depth)
+		{
+			fb = fb_orig + _display.smem_len / _disp.depth ;
+			fb_end = fb + (buf_end - buf) ;
+		}
+		else
+		{
+			break ;
+		}
+	}
 	}
 	else
 	{
@@ -1772,6 +1794,7 @@ x_display_copy_lines(
 	u_char *  dst ;
 	u_int  copy_len ;
 	u_int  count ;
+	int  plane ;
 
 	/* XXX cheap implementation. */
 	restore_hidden_region() ;
@@ -1779,10 +1802,14 @@ x_display_copy_lines(
 	/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
 	copy_len = FB_WIDTH_BYTES(&_display, src_x, width) ;
 
+for( plane = 0 ; plane < _disp.depth ; plane++)
+{
 	if( src_y <= dst_y)
 	{
-		src = get_fb( src_x , src_y + height - 1) ;
-		dst = get_fb( dst_x , dst_y + height - 1) ;
+		src = get_fb( src_x , src_y + height - 1) +
+			_display.smem_len / _disp.depth * plane ;
+		dst = get_fb( dst_x , dst_y + height - 1) +
+			_display.smem_len / _disp.depth * plane ;
 
 	#ifdef  ENABLE_DOUBLE_BUFFER
 		if( _display.back_fb)
@@ -1873,6 +1900,7 @@ x_display_copy_lines(
 			}
 		}
 	}
+}
 }
 
 /* XXX for input method window */

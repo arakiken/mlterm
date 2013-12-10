@@ -1,5 +1,7 @@
 2013-12-10  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: x_display_fill_with() and x_display_copy_lines() support 4 bpp.
+
 	* kiklib/configure.in: NSLinkModule is enabled only if no other dynamic
 	  loader is found.
 
