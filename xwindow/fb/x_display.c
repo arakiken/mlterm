@@ -1614,148 +1614,148 @@ x_display_fill_with(
 		buf_end = buf + (fb_end - fb) ;
 	#endif
 
-	while( 1)
-	{
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		fb_end = _display.back_fb + ( fb_end - _display.fb) ;
-	#endif
-
-		surplus = MOD_PPB(x,ppb) ;
-		surplus_end = MOD_PPB(x+width,ppb) ;
-
-		packed_pixel = 0 ;
-		if( pixel)
+		while( 1)
 		{
-			if( ppb == 8)
-			{
-				if( _disp.depth == 1 || PLANE(pixel))
-				{
-					packed_pixel = 0xff ;
-				}
-			}
-			else
-			{
-				shift = _display.shift_0 ;
-
-				for( count = 0 ; count < ppb ; count++)
-				{
-					packed_pixel |= (pixel << shift) ;
-					FB_SHIFT_NEXT(shift,bpp) ;
-				}
-			}
-		}
-
-		for( y_off = 0 ; y_off < height ; y_off ++)
-		{
-			u_char *  buf_p ;
-			u_int8_t  pix ;
-			size_t  size ;
-
 		#ifdef  ENABLE_DOUBLE_BUFFER
-			buf = fb = _display.back_fb + ( fb - _display.fb) ;
-			buf_end = fb_end ;
+			fb_end = _display.back_fb + ( fb_end - _display.fb) ;
 		#endif
-			buf_p = buf ;
 
-			shift = _display.shift_0 ;
-			count = 0 ;
-			pix = 0 ;
+			surplus = MOD_PPB(x,ppb) ;
+			surplus_end = MOD_PPB(x+width,ppb) ;
 
-			if( surplus > 0)
+			packed_pixel = 0 ;
+			if( pixel)
 			{
-				for( ; count < surplus ; count++)
+				if( ppb == 8)
 				{
-					pix |= (fb[0] & (_display.mask << shift)) ;
+					if( _disp.depth == 1 || PLANE(pixel))
+					{
+						packed_pixel = 0xff ;
+					}
+				}
+				else
+				{
+					shift = _display.shift_0 ;
 
-					FB_SHIFT_NEXT(shift,bpp) ;
+					for( count = 0 ; count < ppb ; count++)
+					{
+						packed_pixel |= (pixel << shift) ;
+						FB_SHIFT_NEXT(shift,bpp) ;
+					}
+				}
+			}
+
+			for( y_off = 0 ; y_off < height ; y_off ++)
+			{
+				u_char *  buf_p ;
+				u_int8_t  pix ;
+				size_t  size ;
+
+			#ifdef  ENABLE_DOUBLE_BUFFER
+				buf = fb = _display.back_fb + ( fb - _display.fb) ;
+				buf_end = fb_end ;
+			#endif
+				buf_p = buf ;
+
+				shift = _display.shift_0 ;
+				count = 0 ;
+				pix = 0 ;
+
+				if( surplus > 0)
+				{
+					for( ; count < surplus ; count++)
+					{
+						pix |= (fb[0] & (_display.mask << shift)) ;
+
+						FB_SHIFT_NEXT(shift,bpp) ;
+					}
+
+					if( buf_p != buf_end)
+					{
+						if( pixel)
+						{
+							for( ; count < ppb ; count++)
+							{
+								pix |= (PLANE(pixel) << shift) ;
+
+								FB_SHIFT_NEXT(shift,bpp) ;
+							}
+						}
+
+						*(buf_p++) = pix ;
+
+						shift = _display.shift_0 ;
+						count = 0 ;
+						pix = 0 ;
+					}
 				}
 
-				if( buf_p != buf_end)
+				if( surplus_end > 0)
 				{
 					if( pixel)
 					{
-						for( ; count < ppb ; count++)
+						for( ; count < surplus_end ; count++)
 						{
 							pix |= (PLANE(pixel) << shift) ;
 
 							FB_SHIFT_NEXT(shift,bpp) ;
 						}
 					}
-
-					*(buf_p++) = pix ;
-
-					shift = _display.shift_0 ;
-					count = 0 ;
-					pix = 0 ;
-				}
-			}
-
-			if( surplus_end > 0)
-			{
-				if( pixel)
-				{
-					for( ; count < surplus_end ; count++)
+					else
 					{
-						pix |= (PLANE(pixel) << shift) ;
+						count = surplus_end ;
+						shift = FB_SHIFT(ppb,bpp,surplus_end) ;
+					}
+
+					for( ; count < ppb ; count++)
+					{
+						pix |= (fb_end[0] & (_display.mask << shift)) ;
 
 						FB_SHIFT_NEXT(shift,bpp) ;
 					}
+
+					*buf_end = pix ;
+
+					shift = _display.shift_0 ;
+					pix = 0 ;
+
+					size = buf_end - buf + 1 ;
 				}
 				else
 				{
-					count = surplus_end ;
-					shift = FB_SHIFT(ppb,bpp,surplus_end) ;
+					size = buf_end - buf ;
 				}
 
-				for( ; count < ppb ; count++)
+				if( buf_p < buf_end)
 				{
-					pix |= (fb_end[0] & (_display.mask << shift)) ;
-
-					FB_SHIFT_NEXT(shift,bpp) ;
+					/*
+					 * XXX
+					 * If ENABLE_DOUBLE_BUFFER is on, it is not necessary
+					 * to memset every time because the pointer of buf
+					 * points the same address.
+					 */
+					memset( buf_p , packed_pixel , buf_end - buf_p) ;
 				}
 
-				*buf_end = pix ;
+			#ifdef  ENABLE_DOUBLE_BUFFER
+				fb = _display.fb + ( fb - _display.back_fb) ;
+			#endif
 
-				shift = _display.shift_0 ;
-				pix = 0 ;
+				memcpy( fb , buf , size) ;
+				fb += _display.line_length ;
+				fb_end += _display.line_length ;
+			}
 
-				size = buf_end - buf + 1 ;
+			if( ++plane < _disp.depth)
+			{
+				fb = fb_orig + _display.plane_len * plane ;
+				fb_end = fb + (buf_end - buf) ;
 			}
 			else
 			{
-				size = buf_end - buf ;
+				break ;
 			}
-
-			if( buf_p < buf_end)
-			{
-				/*
-				 * XXX
-				 * If ENABLE_DOUBLE_BUFFER is on, it is not necessary
-				 * to memset every time because the pointer of buf
-				 * points the same address.
-				 */
-				memset( buf_p , packed_pixel , buf_end - buf_p) ;
-			}
-
-		#ifdef  ENABLE_DOUBLE_BUFFER
-			fb = _display.fb + ( fb - _display.back_fb) ;
-		#endif
-
-			memcpy( fb , buf , size) ;
-			fb += _display.line_length ;
-			fb_end += _display.line_length ;
 		}
-
-		if( ++plane < _disp.depth)
-		{
-			fb = fb_orig + _display.plane_len * plane ;
-			fb_end = fb + (buf_end - buf) ;
-		}
-		else
-		{
-			break ;
-		}
-	}
 	}
 	else
 	{
@@ -1795,103 +1795,103 @@ x_display_copy_lines(
 	/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
 	copy_len = FB_WIDTH_BYTES(&_display, src_x, width) ;
 
-for( plane = 0 ; plane < _disp.depth ; plane++)
-{
-	if( src_y <= dst_y)
+	for( plane = 0 ; plane < _disp.depth ; plane++)
 	{
-		src = get_fb( src_x , src_y + height - 1) + _display.plane_len * plane ;
-		dst = get_fb( dst_x , dst_y + height - 1) + _display.plane_len * plane ;
-
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		if( _display.back_fb)
+		if( src_y <= dst_y)
 		{
-			u_char *  src_back ;
-			u_char *  dst_back ;
+			src = get_fb( src_x , src_y + height - 1) + _display.plane_len * plane ;
+			dst = get_fb( dst_x , dst_y + height - 1) + _display.plane_len * plane ;
 
-			src_back = _display.back_fb + (src - _display.fb) ;
-			dst_back = _display.back_fb + (dst - _display.fb) ;
-
-			if( dst_y == src_y)
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			if( _display.back_fb)
 			{
-				for( count = 0 ; count < height ; count++)
+				u_char *  src_back ;
+				u_char *  dst_back ;
+
+				src_back = _display.back_fb + (src - _display.fb) ;
+				dst_back = _display.back_fb + (dst - _display.fb) ;
+
+				if( dst_y == src_y)
 				{
-					memmove( dst_back , src_back , copy_len) ;
-					memcpy( dst , src_back , copy_len) ;
-					dst -= _display.line_length ;
-					dst_back -= _display.line_length ;
-					src_back -= _display.line_length ;
+					for( count = 0 ; count < height ; count++)
+					{
+						memmove( dst_back , src_back , copy_len) ;
+						memcpy( dst , src_back , copy_len) ;
+						dst -= _display.line_length ;
+						dst_back -= _display.line_length ;
+						src_back -= _display.line_length ;
+					}
+				}
+				else
+				{
+					for( count = 0 ; count < height ; count++)
+					{
+						memcpy( dst_back , src_back , copy_len) ;
+						memcpy( dst , src_back , copy_len) ;
+						dst -= _display.line_length ;
+						dst_back -= _display.line_length ;
+						src_back -= _display.line_length ;
+					}
 				}
 			}
 			else
+		#endif
 			{
+				if( src_y == dst_y)
+				{
+					for( count = 0 ; count < height ; count++)
+					{
+						memmove( dst , src , copy_len) ;
+						dst -= _display.line_length ;
+						src -= _display.line_length ;
+					}
+				}
+				else
+				{
+					for( count = 0 ; count < height ; count++)
+					{
+						memcpy( dst , src , copy_len) ;
+						dst -= _display.line_length ;
+						src -= _display.line_length ;
+					}
+				}
+			}
+		}
+		else
+		{
+			src = get_fb( src_x , src_y) + _display.plane_len * plane ;
+			dst = get_fb( dst_x , dst_y) + _display.plane_len * plane ;
+
+		#ifdef  ENABLE_DOUBLE_BUFFER
+			if( _display.back_fb)
+			{
+				u_char *  src_back ;
+				u_char *  dst_back ;
+
+				src_back = _display.back_fb + (src - _display.fb) ;
+				dst_back = _display.back_fb + (dst - _display.fb) ;
+
 				for( count = 0 ; count < height ; count++)
 				{
 					memcpy( dst_back , src_back , copy_len) ;
 					memcpy( dst , src_back , copy_len) ;
-					dst -= _display.line_length ;
-					dst_back -= _display.line_length ;
-					src_back -= _display.line_length ;
-				}
-			}
-		}
-		else
-	#endif
-		{
-			if( src_y == dst_y)
-			{
-				for( count = 0 ; count < height ; count++)
-				{
-					memmove( dst , src , copy_len) ;
-					dst -= _display.line_length ;
-					src -= _display.line_length ;
+					dst += _display.line_length ;
+					dst_back += _display.line_length ;
+					src_back += _display.line_length ;
 				}
 			}
 			else
+		#endif
 			{
 				for( count = 0 ; count < height ; count++)
 				{
 					memcpy( dst , src , copy_len) ;
-					dst -= _display.line_length ;
-					src -= _display.line_length ;
+					dst += _display.line_length ;
+					src += _display.line_length ;
 				}
 			}
 		}
 	}
-	else
-	{
-		src = get_fb( src_x , src_y) + _display.plane_len * plane ;
-		dst = get_fb( dst_x , dst_y) + _display.plane_len * plane ;
-
-	#ifdef  ENABLE_DOUBLE_BUFFER
-		if( _display.back_fb)
-		{
-			u_char *  src_back ;
-			u_char *  dst_back ;
-
-			src_back = _display.back_fb + (src - _display.fb) ;
-			dst_back = _display.back_fb + (dst - _display.fb) ;
-
-			for( count = 0 ; count < height ; count++)
-			{
-				memcpy( dst_back , src_back , copy_len) ;
-				memcpy( dst , src_back , copy_len) ;
-				dst += _display.line_length ;
-				dst_back += _display.line_length ;
-				src_back += _display.line_length ;
-			}
-		}
-		else
-	#endif
-		{
-			for( count = 0 ; count < height ; count++)
-			{
-				memcpy( dst , src , copy_len) ;
-				dst += _display.line_length ;
-				src += _display.line_length ;
-			}
-		}
-	}
-}
 }
 
 /* XXX for input method window */
