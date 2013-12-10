@@ -1,3 +1,8 @@
+2013-12-10  Araki Ken  <arakiken@users.sf.net>
+
+	* kiklib/configure.in: NSLinkModule is enabled only if no other dynamic
+	  loader is found.
+
 2013-12-09  Araki Ken  <arakiken@users.sf.net>
 
 	* mlterm.1, doc/en/README.fb, doc/ja/README.fb, gtk/INSTALL: Updated.

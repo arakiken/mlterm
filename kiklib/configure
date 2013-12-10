@@ -19860,14 +19860,17 @@ if test "$DL_LOADER" = none ; then
 		;;
 	esac
 	DL_LIBS="${DL_LIBS} ${lt_cv_dlopen_libs}"
-	# NSLinkModule (darwin)
-	ac_fn_c_check_func "$LINENO" "NSLinkModule" "ac_cv_func_NSLinkModule"
+	if test "$DL_LOADER" = none ; then
+		# NSLinkModule (darwin)
+		ac_fn_c_check_func "$LINENO" "NSLinkModule" "ac_cv_func_NSLinkModule"
 if test "x$ac_cv_func_NSLinkModule" = x""yes; then :
 
 			DL_LOADER=dyld
 			DL_LIBS=
 
 fi
+
+	fi
 
 	# cygwin hack
 	# (AC_LIBTOOL_DLOPEN tell lt_cv_dlopen == dlopen but use kik_dlcfn_win32.c.)
