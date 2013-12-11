@@ -388,10 +388,18 @@ restart:
 
 	if( *(++p) != ';')
 	{
-	#if  0
 		/* P1 */
 		switch( *p)
 		{
+		case 'q':
+			/* The default value. (2:1 is documented though) */
+			asp_x = 1 ;
+		#if  0
+			asp_y = 1 ;
+		#endif
+			goto  body ;
+
+	#if  0
 		case '0':
 		case '1':
 		case '5':
@@ -423,17 +431,21 @@ restart:
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
 			goto  end ;
-		}
 	#else
-		asp_x = 1 ;	/* XXX */
-	#endif
-
-		if( *(++p) != ';' || *p == '\0')
-		{
+		case '\0':
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
 			goto  end ;
+
+		default:
+			asp_x = 1 ;	/* XXX */
+	#endif
+		}
+
+		if( p[1] == ';')
+		{
+			p ++ ;
 		}
 	}
 	else
@@ -445,40 +457,42 @@ restart:
 	#endif
 	}
 
-#if  0
 	if( *(++p) != ';')
 	{
 		/* P2 */
 		switch( *p)
 		{
+		case 'q':
+			goto  body ;
+	#if  0
 		case '0':
 		case '2':
 			...
 			break;
 
 		default:
+	#else
+		case '\0':
+	#endif
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
 		#endif
 			goto  end ;
 		}
 
-		if( *(++p) != ';' || *p == '\0')
+		if( p[1] == ';')
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Illegal format.\n.") ;
-		#endif
-			goto  end ;
+			p ++ ;
 		}
 	}
+#if  0
 	else
 	{
 		/* P2 is omitted. */
-		...
 	}
 #endif
 
-	/* Ignoring P2 and P3 */
+	/* Ignoring P3 */
 	while( *(++p) != 'q')
 	{
 		if( *p == '\0')
@@ -490,6 +504,7 @@ restart:
 		}
 	}
 
+body:
 	rep = asp_x ;
 	pix_x = pix_y = 0 ;
 	color = 0 ;
@@ -512,12 +527,15 @@ restart:
 				n = 2 ;
 			}
 
+			/* XXX ignored */
+		#if  0
 			switch(n)
 			{
 			case 4:
 				height = params[3] ;
 			case 3:
 				width = params[2] ;
+				/* XXX realloc_pixels() is necessary here. */
 			case 2:
 				/* V:H=params[0]:params[1] */
 			#if  0
@@ -537,6 +555,7 @@ restart:
 			{
 				asp_x = 1 ;
 			}
+		#endif
 		}
 		else if( *p == '!')	/* ! Pn Ch */
 		{

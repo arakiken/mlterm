@@ -1,3 +1,11 @@
+2013-12-11  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c:
+	  - DCS P q without any parameters separated by ; is accepted.
+	  - Pan;Pad;Ph;Pv is ignored.
+
+	* ml_term.c: The bug of pty_args_new() which didn't clone env correctly is fixed.
+
 2013-12-10  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: The bug of calculating the address of each plane in

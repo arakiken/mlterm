@@ -151,7 +151,7 @@ pty_args_new(
 		args->argv = NULL ;
 	}
 
-	if( args->env)
+	if( env)
 	{
 		for( num = 0 ; env[num] ; num++) ;
 
@@ -183,7 +183,6 @@ open_pty(
 {
 	pty_args_t *  args ;
 	ml_pty_ptr_t  pty ;
-
 #ifdef  USE_WIN32API
 	static HANDLE  mutex ;
 
@@ -450,7 +449,7 @@ ml_term_open_pty(
 			}
 		}
 	#endif
-	#else
+	#else	/* OPEN_PTY_ASYNC */
 		ml_pty_ptr_t  pty ;
 
 		if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , pass , pubkey , privkey ,
@@ -470,7 +469,7 @@ ml_term_open_pty(
 		}
 
 		ml_term_plug_pty( term , pty) ;
-	#endif
+	#endif	/* OPEN_PTY_ASYNC */
 	}
 
 	return  1 ;
