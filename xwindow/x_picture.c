@@ -493,6 +493,7 @@ load_file(
 	else
 	{
 		free( inline_pics[idx].file_path) ;
+		inline_pics[idx].file_path = NULL ;
 		inline_pics[idx].pixmap = None ;	/* Mark as empty */
 
 		return  0 ;

@@ -1,5 +1,11 @@
 2013-12-11  Araki Ken  <arakiken@users.sf.net>
 
+	* x_picture.c: Double free of file names of inline pictures is fixed.
+
+	* c_imagelib.c: Wrong address of free() is fixed.
+
+2013-12-11  Araki Ken  <arakiken@users.sf.net>
+
 	* c_imagelib.c:
 	  - DCS P q without any parameters separated by ; is accepted.
 	  - Pan;Pad;Ph;Pv is ignored.

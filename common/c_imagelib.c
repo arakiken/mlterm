@@ -759,7 +759,7 @@ end:
 		kik_debug_printf( KIK_DEBUG_TAG " Nothing is drawn.\n") ;
 	#endif
 
-		free( pixels) ;
+		free( pixels - CARD_HEAD_SIZE) ;
 
 		return  NULL ;
 	}
