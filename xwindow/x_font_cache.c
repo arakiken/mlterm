@@ -273,6 +273,12 @@ x_font_cache_get_xfont(
 		return  font_cache->prev_cache.xfont ;
 	}
 
+	kik_map_get( font_cache->xfont_table , font , fn_pair) ;
+	if( fn_pair)
+	{
+		return  fn_pair->value ;
+	}
+
 	if( font == NORMAL_FONT_OF(font_cache->usascii_font_cs))
 	{
 		col_width = 0 ;
@@ -280,12 +286,6 @@ x_font_cache_get_xfont(
 	else
 	{
 		col_width = font_cache->usascii_font->width ;
-	}
-
-	kik_map_get( font_cache->xfont_table , font , fn_pair) ;
-	if( fn_pair)
-	{
-		return  fn_pair->value ;
 	}
 
 	use_medium_for_bold = 0 ;

@@ -223,7 +223,8 @@ static void  x11_callback( LIBSSH2_SESSION *  session , LIBSSH2_CHANNEL *  chann
 	char *  shost , int  sport , void **  abstract) ;
 
 /*
- * Return session which is blocking mode.
+ * Return session which is non-blocking mode because opening a new channel
+ * can work as multi threading.
  */
 static ssh_session_t *
 ssh_connect(
@@ -255,8 +256,6 @@ ssh_connect(
 
 	if( ( session = ml_search_ssh_session( host , port , user)))
 	{
-		libssh2_session_set_blocking( session->obj , 1) ;
-
 		return  session ;
 	}
 
@@ -663,6 +662,8 @@ ssh_connect(
 
 		sessions = p ;
 	}
+
+	libssh2_session_set_blocking( session->obj , 0) ;
 
 	session->host = strdup( host) ;
 	session->port = strdup( port) ;
@@ -1212,7 +1213,7 @@ setup_x11(
 	char *  p ;
 	char *  proto ;
 	char *  data ;
-#ifndef  USE_WIN32API
+#if  ! defined(USE_WIN32API) && ! defined(OPEN_PTY_ASYNC)
 	char *  cmd ;
 	FILE *  fp ;
 	char  line[512] ;
@@ -1220,6 +1221,7 @@ setup_x11(
 	char *  xauth_file ;
 #endif
 #endif
+	int  ret ;
 
 	if( ! ( display = getenv( "DISPLAY")))
 	{
@@ -1254,7 +1256,8 @@ setup_x11(
 	proto = NULL ;
 	data = NULL ;
 
-#ifndef  USE_WIN32API
+	/* I don't know why but system() and popen() can freeze if OPEN_PTY_ASYNC. */
+#if ! defined(USE_WIN32API) && ! defined(OPEN_PTY_ASYNC)
 #ifdef  TRUSTED
 	if( ( cmd = alloca( 24 + strlen( display) + 1)))
 	{
@@ -1309,7 +1312,10 @@ setup_x11(
 			proto , data) ;
 #endif
 
-	return  libssh2_channel_x11_req_ex( channel , 0 , proto , data , 0) == 0 ;
+	while( ( ret = libssh2_channel_x11_req_ex( channel , 0 , proto , data , 0))
+		== LIBSSH2_ERROR_EAGAIN) ;
+
+	return  ret == 0 ;
 }
 
 static void
@@ -1675,6 +1681,7 @@ ml_pty_ssh_new(
 	char *  port ;
 	char *  term ;
 	void *  p ;
+	int  ret ;
 
 	if( ( pty = calloc( 1 , sizeof( ml_pty_ssh_t))) == NULL)
 	{
@@ -1714,13 +1721,16 @@ ml_pty_ssh_new(
 
 	pty->session->pty_channels = p ;
 
-	if( ! ( pty->channel = libssh2_channel_open_session( pty->session->obj)))
+	while( ! ( pty->channel = libssh2_channel_open_session( pty->session->obj)))
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Unable to open a session\n") ;
-	#endif
+		if( libssh2_session_last_errno( pty->session->obj) != LIBSSH2_ERROR_EAGAIN)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Unable to open a session\n") ;
+		#endif
 
-		goto  error2 ;
+			goto  error2 ;
+		}
 	}
 
 	pty->session->doing_scp = 0 ;
@@ -1728,7 +1738,9 @@ ml_pty_ssh_new(
 #ifdef  LIBSSH2_FORWARD_AGENT
 	if( auth_agent_is_available)
 	{
-		if( libssh2_channel_request_auth_agent( pty->channel) == 0)
+		while( ( ret = libssh2_channel_request_auth_agent( pty->channel))
+				== LIBSSH2_ERROR_EAGAIN) ;
+		if( ret == 0)
 		{
 			kik_msg_printf( "Agent forwarding.\n") ;
 		}
@@ -1756,8 +1768,8 @@ ml_pty_ssh_new(
 				val = "" ;
 			}
 
-			libssh2_channel_setenv_ex( pty->channel , *env , key_len ,
-				val , strlen( val)) ;
+			while( libssh2_channel_setenv_ex( pty->channel , *env ,
+					key_len , val , strlen( val)) == LIBSSH2_ERROR_EAGAIN) ;
 
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Env %s => key_len %d val %s\n" ,
@@ -1773,13 +1785,16 @@ ml_pty_ssh_new(
 		}
 	}
 
-	if( libssh2_channel_request_pty( pty->channel , term ? term : "xterm"))
+	while( ( ret = libssh2_channel_request_pty( pty->channel , term ? term : "xterm")) < 0)
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Failed to request pty\n") ;
-	#endif
+		if( ret != LIBSSH2_ERROR_EAGAIN)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Failed to request pty\n") ;
+		#endif
 
-		goto  error3 ;
+			goto  error3 ;
+		}
 	}
 
 	if( pty->session->use_x11_forwarding)
@@ -1819,27 +1834,33 @@ ml_pty_ssh_new(
 				cmd_argv[count]) ;
 		}
 
-		if( libssh2_channel_exec( pty->channel , cmd_line))
+		while( ( ret = libssh2_channel_exec( pty->channel , cmd_line)) < 0)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" Unable to exec %s on allocated pty\n" , cmd_line) ;
-		#endif
+			if( ret != LIBSSH2_ERROR_EAGAIN)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Unable to exec %s on allocated pty\n" , cmd_line) ;
+			#endif
 
-			goto  error3 ;
+				goto  error3 ;
+			}
 		}
 	}
 	else
 	{
 		/* Open a SHELL on that pty */
-		if( libssh2_channel_shell( pty->channel))
+		while( ( ret = libssh2_channel_shell( pty->channel)) < 0)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" Unable to request shell on allocated pty\n") ;
-		#endif
+			if( ret != LIBSSH2_ERROR_EAGAIN)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Unable to request shell on allocated pty\n") ;
+			#endif
 
-			goto  error3 ;
+				goto  error3 ;
+			}
 		}
 	}
 
@@ -1857,9 +1878,6 @@ ml_pty_ssh_new(
 		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
 	#endif
 	}
-
-	/* Non-blocking in read/write. */
-	libssh2_session_set_blocking( pty->session->obj , 0) ;
 
 	if( keepalive_msec >= 1000)
 	{
@@ -1902,6 +1920,7 @@ ml_pty_ssh_new(
 	return  &pty->pty ;
 
 error3:
+	libssh2_session_set_blocking( pty->session->obj , 1) ;
 	libssh2_channel_free( pty->channel) ;
 
 error2:
