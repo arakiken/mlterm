@@ -12,6 +12,7 @@
 
 static x_font_cache_t **  font_caches ;
 static u_int  num_of_caches ;
+static int  leftward_double_drawing ;
 
 
 /* --- static functions --- */
@@ -104,6 +105,14 @@ xfont_table_delete(
 
 
 /* --- global functions --- */
+
+void
+x_set_use_leftward_double_drawing(
+	int  use
+	)
+{
+	leftward_double_drawing = use ;
+}
 
 x_font_cache_t *
 x_acquire_font_cache(
@@ -357,6 +366,11 @@ found:
 		if( ! font_cache->use_multi_col_char)
 		{
 			x_change_font_cols( xfont , 1) ;
+		}
+
+		if( xfont->double_draw_gap && leftward_double_drawing)
+		{
+			xfont->double_draw_gap = -1 ;
 		}
 	}
 #ifdef  DEBUG

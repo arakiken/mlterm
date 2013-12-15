@@ -96,6 +96,10 @@
 
 # compose_dec_special_font = false
 
+# use_bold_font = true
+
+# leftward_double_drawing = false
+
 # -- Appearance --
 # use_transbg = false
 

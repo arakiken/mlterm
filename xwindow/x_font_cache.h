@@ -47,6 +47,8 @@ typedef struct  x_font_cache
 } x_font_cache_t ;
 
 
+void  x_set_use_leftward_double_drawing( int  use) ;
+
 x_font_cache_t *  x_acquire_font_cache( Display *  display , u_int  font_size ,
 	mkf_charset_t  usascii_font_cs , x_font_config_t *  font_config ,
 	int  use_multi_col_char , u_int  letter_space) ;

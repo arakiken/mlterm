@@ -252,7 +252,7 @@ set_decsp_font(
 	}
 
 	/* decsp_font is impossible to draw double with. */
-	font->is_double_drawing = 0 ;
+	font->double_draw_gap = 0 ;
 
 	/* decsp_font is always fixed pitch. */
 	font->is_proportional = 0 ;
@@ -480,11 +480,11 @@ xcore_set_font(
 						break ;
 					}
 
-					font->is_double_drawing = 1 ;
+					font->double_draw_gap = 1 ;
 				}
 				else
 				{
-					font->is_double_drawing = use_medium_for_bold ;
+					font->double_draw_gap = use_medium_for_bold ;
 				}
 
 				if( percent_str == NULL ||
@@ -506,7 +506,7 @@ xcore_set_font(
 	kik_debug_printf( "font for id %x will be loaded.\n" , font->id) ;
 #endif
 
-	font->is_double_drawing = 0 ;
+	font->double_draw_gap = 0 ;
 
 	percent = 0 ;
 
@@ -575,7 +575,7 @@ xcore_set_font(
 			if( font->id & FONT_BOLD)
 			{
 				/* no bold font is found. */
-				font->is_double_drawing = 1 ;
+				font->double_draw_gap = 1 ;
 			}
 		}
 		else
@@ -1464,7 +1464,7 @@ x_font_dump(
 		kik_msg_printf( " (vertical)") ;
 	}
 	
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		kik_msg_printf( " (double drawing)") ;
 	}

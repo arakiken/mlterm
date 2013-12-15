@@ -92,10 +92,10 @@ x_window_xft_draw_string8(
 		x + font->x_off + win->hmargin ,
 		y + win->vmargin , str , len) ;
 
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		XftDrawString8( win->xft_draw , xftcolor , font->xft_font ,
-			x + font->x_off + win->hmargin + 1 ,
+			x + font->x_off + win->hmargin + font->double_draw_gap ,
 			y + win->vmargin , str , len) ;
 	}
 
@@ -121,10 +121,10 @@ x_window_xft_draw_string32(
 		x + font->x_off + win->hmargin ,
 		y + win->vmargin , str , len) ;
 
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
-			x + font->x_off + win->hmargin + 1 ,
+			x + font->x_off + win->hmargin + font->double_draw_gap ,
 			y + win->vmargin , str , len) ;
 	}
 

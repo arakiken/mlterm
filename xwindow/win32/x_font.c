@@ -570,11 +570,11 @@ x_font_new(
 
 		if( ( font->id & FONT_BOLD) && tm.tmWeight <= FW_MEDIUM)
 		{
-			font->is_double_drawing = 1 ;
+			font->double_draw_gap = 1 ;
 		}
 		else
 		{
-			font->is_double_drawing = 0 ;
+			font->double_draw_gap = 0 ;
 		}
 	}
 

@@ -25,7 +25,7 @@ show_text(
 	int  x ,
 	int  y ,
 	u_char *  str ,		/* NULL-terminated UTF8 */
-	int  is_double_drawing
+	int  double_draw_gap
 	)
 {
 #if  CAIRO_VERSION_ENCODE(1,4,0) <= CAIRO_VERSION
@@ -58,9 +58,9 @@ show_text(
 	cairo_move_to( cr , x , y) ;
 	cairo_show_text( cr , str) ;
 
-	if( is_double_drawing)
+	if( double_draw_gap)
 	{
-		cairo_move_to( cr , x + 1 , y) ;
+		cairo_move_to( cr , x + double_draw_gap , y) ;
 		cairo_show_text( cr , str) ;
 	}
 #else
@@ -75,13 +75,13 @@ show_text(
 	{
 		cairo_show_glyphs( cr , glyphs , num_of_glyphs) ;
 
-		if( is_double_drawing)
+		if( double_draw_gap)
 		{
 			int  count ;
 
 			for( count = 0 ; count < num_of_glyphs ; count++)
 			{
-				glyphs[count].x += 1.0 ;
+				glyphs[count].x += double_draw_gap ;
 			}
 
 			cairo_show_glyphs( cr , glyphs , num_of_glyphs) ;
@@ -174,7 +174,7 @@ x_window_cairo_draw_string8(
 
 	show_text( win->cairo_draw , font->cairo_font , fg_color ,
 		x + font->x_off + win->hmargin ,
-		y + win->vmargin , buf , font->is_double_drawing) ;
+		y + win->vmargin , buf , font->double_draw_gap) ;
 
 	return  1 ;
 }
@@ -207,7 +207,7 @@ x_window_cairo_draw_string32(
 
 	show_text( win->cairo_draw , font->cairo_font , fg_color ,
 		x + font->x_off + win->hmargin ,
-		y + win->vmargin , buf , font->is_double_drawing) ;
+		y + win->vmargin , buf , font->double_draw_gap) ;
 
 	return  1 ;
 }

@@ -136,6 +136,13 @@
 # DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
 # compose_dec_special_font = false
 
+# ボールドフォントを使用する。
+# use_bold_font = true
+
+# medium フォントを重ね打ちする場合の開始位置を1ピクセル左(デフォルトは右)からと
+# する。
+# leftward_double_drawing = false
+
 # -- Appearance 関連 --
 # 背景透過する
 # use_transbg = false

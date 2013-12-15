@@ -3216,10 +3216,10 @@ x_window_draw_string(
 		x + font->x_off + win->hmargin ,
 		y + win->vmargin , (char *)str , len) ;
 
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-			x + font->x_off + win->hmargin + 1 ,
+			x + font->x_off + win->hmargin + font->double_draw_gap ,
 			y + win->vmargin , (char *)str , len) ;
 	}
 
@@ -3244,10 +3244,10 @@ x_window_draw_string16(
 		       x + font->x_off + win->hmargin ,
 		       y + win->vmargin , str , len) ;
 
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-			       x + font->x_off + win->hmargin + 1 ,
+			       x + font->x_off + win->hmargin + font->double_draw_gap ,
 			       y + win->vmargin , str , len) ;
 	}
 
@@ -3274,10 +3274,10 @@ x_window_draw_image_string(
 			  x + font->x_off + win->hmargin ,
 			  y + win->vmargin , (char *)str , len) ;
 
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
-			     x + font->x_off + win->hmargin + 1 ,
+			     x + font->x_off + win->hmargin + font->double_draw_gap ,
 			     y + win->vmargin , (char *)str , len) ;
 	}
 
@@ -3304,10 +3304,10 @@ x_window_draw_image_string16(
 			    x + font->x_off + win->hmargin ,
 			    y + win->vmargin , str , len) ;
 
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
-			       x + font->x_off + win->hmargin + 1 ,
+			       x + font->x_off + win->hmargin + font->double_draw_gap ,
 			       y + win->vmargin , str , len) ;
 	}
 

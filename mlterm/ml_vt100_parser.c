@@ -724,6 +724,7 @@ put_char(
 	ml_color_t  bg_color ;
 	int  is_fullwidth ;
 	int  is_comb ;
+	int  is_bold ;
 
 	if( vt100_parser->w_buf.filled_len == PTY_WR_BUFFER_SIZE)
 	{
@@ -778,6 +779,16 @@ put_char(
 		vt100_parser->cs = cs ;
 	}
 
+	if( cs == ISO10646_UCS4_1 && 0x2580 <= ch && ch <= 0x259f)
+	{
+		/* prevent these block characters from being drawn doubly. */
+		is_bold = 0 ;
+	}
+	else
+	{
+		is_bold = vt100_parser->is_bold ;
+	}
+
 	if( vt100_parser->is_reversed)
 	{
 		fg_color = vt100_parser->bg_color ;
@@ -798,8 +809,8 @@ put_char(
 			 * internally.
 			 */
 			if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
-				ch , vt100_parser->cs , is_fullwidth , is_comb ,
-				fg_color , bg_color , vt100_parser->is_bold ,
+				ch , cs , is_fullwidth , is_comb ,
+				fg_color , bg_color , is_bold ,
 				vt100_parser->is_italic , vt100_parser->is_underlined))
 			{
 				return ;
@@ -809,8 +820,8 @@ put_char(
 		{
 			if( ml_char_combine(
 				&vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ,
-				ch , vt100_parser->cs , is_fullwidth , is_comb ,
-				fg_color , bg_color , vt100_parser->is_bold ,
+				ch , cs , is_fullwidth , is_comb ,
+				fg_color , bg_color , is_bold ,
 				vt100_parser->is_italic , vt100_parser->is_underlined))
 			{
 				return ;
@@ -823,8 +834,8 @@ put_char(
 	}
 
 	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch ,
-		vt100_parser->cs , is_fullwidth , is_comb ,
-		fg_color , bg_color , vt100_parser->is_bold ,
+		cs , is_fullwidth , is_comb ,
+		fg_color , bg_color , is_bold ,
 		vt100_parser->is_italic , vt100_parser->is_underlined) ;
 
 	if( ! vt100_parser->screen->use_dynamic_comb && cs == ISO10646_UCS4_1)
@@ -868,8 +879,8 @@ put_char(
 			if( vt100_parser->w_buf.filled_len >= 2)
 			{
 				if( ml_char_combine( prev ,
-					ch , vt100_parser->cs , is_fullwidth , is_comb ,
-					fg_color , bg_color , vt100_parser->is_bold ,
+					ch , cs , is_fullwidth , is_comb ,
+					fg_color , bg_color , is_bold ,
 					vt100_parser->is_italic , vt100_parser->is_underlined))
 				{
 					vt100_parser->w_buf.filled_len -- ;
@@ -882,8 +893,8 @@ put_char(
 				 * ml_screen_combine_with_prev_char() internally.
 				 */
 				if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
-					ch , vt100_parser->cs , is_fullwidth , is_comb ,
-					fg_color , bg_color , vt100_parser->is_bold ,
+					ch , cs , is_fullwidth , is_comb ,
+					fg_color , bg_color , is_bold ,
 					vt100_parser->is_italic , vt100_parser->is_underlined))
 				{
 					vt100_parser->w_buf.filled_len -- ;

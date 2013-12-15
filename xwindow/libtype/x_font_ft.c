@@ -793,18 +793,18 @@ font_found:
 	{
 	#ifdef  USE_TYPE_XFT
 	#if  defined(FC_EMBOLDEN) /* Synthetic emboldening (fontconfig >= 2.3.0) */
-		font->is_double_drawing = 0 ;
+		font->double_draw_gap = 0 ;
 	#else	/* FC_EMBOLDEN */
 		if( weight == FC_WEIGHT_BOLD &&
 		    XftPatternGetInteger( xfont->pattern , FC_WEIGHT , 0 , &weight) ==
 			XftResultMatch &&
 		    weight != FC_WEIGHT_BOLD)
 		{
-			font->is_double_drawing = 1 ;
+			font->double_draw_gap = 1 ;
 		}
 		else
 		{
-			font->is_double_drawing = 0 ;
+			font->double_draw_gap = 0 ;
 		}
 	#endif	/* FC_EMBOLDEN */
 
@@ -845,12 +845,12 @@ font_found:
 	#ifdef  CAIRO_FORCE_DOUBLE_DRAWING
 		if( font->id & FONT_BOLD)
 		{
-			font->is_double_drawing = 1 ;
+			font->double_draw_gap = 1 ;
 		}
 		else
 	#endif
 		{
-			font->is_double_drawing = 0 ;
+			font->double_draw_gap = 0 ;
 		}
 
 		font->cairo_font = xfont ;

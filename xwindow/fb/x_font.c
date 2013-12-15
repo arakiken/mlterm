@@ -856,11 +856,11 @@ xfont_loaded:
 
 	if( use_medium_for_bold)
 	{
-		font->is_double_drawing = 1 ;
+		font->double_draw_gap = 1 ;
 	}
 	else
 	{
-		font->is_double_drawing = 0 ;
+		font->double_draw_gap = 0 ;
 	}
 
 	if( ( id & FONT_FULLWIDTH) && FONT_CS(id) == ISO10646_UCS4_1 &&
@@ -1196,7 +1196,7 @@ x_font_dump(
 		kik_msg_printf( " (vertical)") ;
 	}
 
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		kik_msg_printf( " (double drawing)") ;
 	}

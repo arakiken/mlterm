@@ -1,3 +1,14 @@
+2013-12-15  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: U+2580 - U+259f is never Embolded by double drawing.
+
+	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.
+
+	* fb/x_font.c, fb/x_window.c, x_font_ft.c, x_window_cairo.c,
+	  x_window_xft.c, win32/x_font.c, win32/x_window.c, xlib/x_font.c,
+	  xlib/x_window.c, x_font_cache.[ch], x_font.h, x_main_config.c:
+	  "leftward_double_drawing" option is added.
+
 2013-12-14  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/ml_pty_ssh.c: Opening a new channel after creating a session

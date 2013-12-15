@@ -620,12 +620,13 @@ draw_string(
 	text_out( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin ,
 		y + win->vmargin , str , len , FONT_CS(font->id)) ;
 	
-	if( font->is_double_drawing)
+	if( font->double_draw_gap)
 	{
 		SetBkMode( win->gc->gc , TRANSPARENT) ;
 
 		text_out( win->gc->gc ,
-			x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin + 1 ,
+			x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin +
+				font->double_draw_gap ,
 			y + win->vmargin , str , len , FONT_CS(font->id)) ;
 
 		SetBkMode( win->gc->gc , OPAQUE) ;

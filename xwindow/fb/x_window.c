@@ -281,7 +281,7 @@ draw_string(
 
 #if  1
 	/* Optimization for most cases */
-	if( src_bg_is_set && ! font->is_double_drawing)
+	if( src_bg_is_set && ! font->double_draw_gap)
 	{
 		u_char *  bitmap_line ;
 		int  x_off ;
@@ -474,7 +474,7 @@ draw_string(
 					{
 						pixel = fg_color->pixel ;
 
-						force_fg = font->is_double_drawing ;
+						force_fg = font->double_draw_gap ;
 					}
 					else
 					{

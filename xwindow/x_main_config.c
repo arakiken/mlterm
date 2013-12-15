@@ -278,6 +278,8 @@ x_prepare_for_main_config(
 		"encodings detected automatically.") ;
 	kik_conf_add_opt( conf , '\0' , "auto" , 1 , "use_auto_detect" ,
 		"detect character encoding automatically.") ;
+	kik_conf_add_opt( conf , '\0' , "ldd" , 1 , "leftward_double_drawing" ,
+		"embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [false]") ;
@@ -1358,6 +1360,14 @@ x_main_config_init(
 		if( strcmp( value , "true") == 0)
 		{
 			main_config->use_auto_detect = 1 ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "leftward_double_drawing")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			x_set_use_leftward_double_drawing( 1) ;
 		}
 	}
 

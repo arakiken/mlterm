@@ -500,6 +500,10 @@ comment $Id$
       o use_bold_font (*true*/false)
         ボールドフォントを使用する。
 
+      o leftward_double_drawing (true/*false*)
+        medium フォントを重ね打ちする場合の開始位置を1ピクセル左(デフォルトは右)
+        からとする。
+
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
         擬似的な背景透過を行う。

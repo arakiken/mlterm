@@ -82,7 +82,7 @@ typedef struct x_font
 	int8_t  is_var_col_width ;
 	int8_t  is_proportional ;
 	int8_t  is_vertical ;
-	int8_t  is_double_drawing ;
+	int8_t  double_draw_gap ;
 
 } x_font_t ;
 
