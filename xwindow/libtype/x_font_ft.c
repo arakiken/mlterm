@@ -273,7 +273,7 @@ get_fc_col_width(
 		return  DIVIDE_ROUNDING(fontsize_d * font->cols * percent , 100 * 2) +
 			letter_space ;
 	}
-	else if( font->is_var_col_width)
+	else if( letter_space == 0 || font->is_var_col_width)
 	{
 		return  0 ;
 	}

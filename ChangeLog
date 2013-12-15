@@ -1,5 +1,9 @@
 2013-12-15  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font_ft.c: FC_CHAR_WIDTH is not used for US-ASCII font on xft.
+
+2013-12-15  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.c: U+2580 - U+259f is never Embolded by double drawing.
 
 	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.
