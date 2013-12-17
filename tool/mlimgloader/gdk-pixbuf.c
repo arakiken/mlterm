@@ -583,7 +583,7 @@ main(
 	}
 	else
 #endif
-	if( argc != 6 || strcmp( argv[5] , "-c") != 0)
+	if( argc != 6)
 	{
 		return  -1 ;
 	}
@@ -622,6 +622,28 @@ main(
 	{
 		u_char *  cardinal ;
 		ssize_t  size ;
+
+		if( strcmp( argv[5] , "-c") != 0)
+		{
+			char *  type ;
+			GError *  error = NULL ;
+
+			if( ! ( type = strrchr( argv[5] , '.')))
+			{
+				return  -1 ;
+			}
+
+			type ++ ;
+
+			if( strcmp( type , "jpg") == 0)
+			{
+				type = "jpeg" ;
+			}
+
+			gdk_pixbuf_save( pixbuf , argv[5] , type , &error , NULL) ;
+
+			return  0 ;
+		}
 
 		if( ! ( cardinal = (u_char*)create_cardinals_from_pixbuf( pixbuf)))
 		{

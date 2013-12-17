@@ -1,3 +1,9 @@
+2013-12-18  Araki Ken  <arakiken@users.sf.net>
+
+	* mlimgloader/gdk-pixbuf.c:
+	  It is possible to convert image format by mlimgloader [windowid] [width]
+	  [height] [src path] [dst path].
+
 2013-12-17  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.win32, doc/ja/README.win32: Updated.
