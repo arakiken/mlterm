@@ -1,5 +1,9 @@
 2013-12-18  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: Fix the 4 bpp specific bug.
+
+2013-12-18  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_display.c: Fix typo.
 
 	* mlimgloader/gdk-pixbuf.c:

@@ -322,9 +322,10 @@ put_image_124bpp(
 				u_char  fb_pixel ;
 
 			#ifdef  ENABLE_DOUBLE_BUFFER
-				fb_pixel = _display.back_fb[fb - _display.fb] ;
+				fb_pixel = _display.back_fb[
+						fb - _display.fb + _display.plane_len * plane] ;
 			#else
-				fb_pixel = fb[0] ;
+				fb_pixel = fb[_display.plane_len * plane] ;
 			#endif
 
 				for( ; surplus > 0 ; surplus --)
@@ -446,9 +447,11 @@ put_image_124bpp(
 				u_char  fb_pixel ;
 
 			#ifdef  ENABLE_DOUBLE_BUFFER
-				fb_pixel = _display.back_fb[get_fb( x + size , y) - _display.fb] ;
+				fb_pixel = _display.back_fb[
+						get_fb( x + size , y) - _display.fb +
+						_display.plane_len * plane] ;
 			#else
-				fb_pixel = get_fb( x + size , y)[0] ;
+				fb_pixel = get_fb( x + size , y)[_display.plane_len * plane] ;
 			#endif
 
 				do
