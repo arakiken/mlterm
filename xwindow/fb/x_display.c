@@ -258,7 +258,7 @@ put_image_124bpp(
 
 			shift = FB_SHIFT(ppb,bpp,x) ;
 
-			if( _disp.depth > 0)
+			if( _disp.depth > 1)
 			{
 				for( count = 0 ; count < size ; count++)
 				{
@@ -346,7 +346,7 @@ put_image_124bpp(
 				}
 			}
 
-			if( _disp.depth > 0)
+			if( _disp.depth > 1)
 			{
 				do
 				{
