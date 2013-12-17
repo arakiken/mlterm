@@ -1,0 +1,20 @@
+comment -*- mode: text -*-
+comment update: <>
+comment $Id$
+
+Memo about ssh2
+
+* mlterm with ssh2
+  If you build mlterm with configure --enable-ssh2, mlterm can connect ssh2
+  server directly by libssh2 (http://www.libssh2.org)
+
+  See mlterm manual page for the options related to ssh connection.
+
+* libssh2 camellia branch
+  https://bitbucket.org/arakiken/libssh2/branch/camellia
+  https://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz
+
+  o Support camellia.
+  o Support Agent Forwarding.
+  o Support pageant on cygwin.
+  o Minor bug fixes.

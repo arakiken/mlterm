@@ -72,7 +72,8 @@ Memo about WIN32 native GUI.
   mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
 
   If -e option is not specified, a dialog window which decides server to connect
-  is shown.
+  is shown. (Note that if you don't input password to the dialog, mlterm tries
+  agent authentication.)
   You can specify following options which customize a dialog in ~/.mlterm/main file.
   o default_server(--serv) = (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
   o server_list(--servlist) = (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),...

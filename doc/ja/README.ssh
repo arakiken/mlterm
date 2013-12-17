@@ -1,0 +1,26 @@
+comment -*- mode: text -*-
+comment update: <>
+comment $Id$
+
+ssh2 対応に関するメモ
+
+* mlterm with ssh2
+  mlterm を --enable-ssh2 オプションをつけて configure し、ビルドすると、libssh2
+  (http://www.libssh2.org) を使って、mlterm が直接 ssh2 サーバに接続することがで
+  きます。
+
+  ssh2 サーバに接続する際の挙動に関する各種オプションについては、
+  doc/ja/README.ja を参照。
+
+* libssh2 camellia branch
+  https://bitbucket.org/arakiken/libssh2/branch/camellia
+  https://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz
+
+  公式の libssh2 に次の機能を追加しています。
+  o 共通鍵暗号方式として camellia をサポート
+  o Agent Forwarding をサポート
+  o Cygwin 版でも pageant が利用可能
+  o その他公式の libssh2 のバグをいくつか修正
+
+  mlterm からこれらの機能を利用するには、あらかじめ libssh2 camellia branch をビ
+  ルド、インストールしておく必要があります。

@@ -1,3 +1,12 @@
+2013-12-17  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* doc/en/README.ssh, doc/ja/README.ssh: Added.
+
+	* libptyssh/ml_pty_ssh.c:
+	  Agent authentication is tried only if no password is specified.
+
 2013-12-15  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_ft.c: FC_CHAR_WIDTH is not used for US-ASCII font on xft.

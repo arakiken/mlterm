@@ -495,17 +495,7 @@ ssh_connect(
 		char *  p ;
 		LIBSSH2_AGENT *  agent ;
 
-	#if  defined(__CYGWIN__)
-		if( ! getenv( "SSH_AUTH_SOCK"))
-		{
-			/*
-			 * libssh2_agent_* functions instabilize libssh2 in cygwin, so
-			 * do nothing if SSH_AUTH_SOCK is not defined.
-			 */
-		}
-		else
-	#endif
-		if( ( agent = libssh2_agent_init( session->obj)))
+		if( *pass == '\0' && ( agent = libssh2_agent_init( session->obj)))
 		{
 			if( libssh2_agent_connect( agent) == 0)
 			{
