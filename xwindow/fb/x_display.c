@@ -1509,7 +1509,7 @@ x_display_reset_cmap(void)
 }
 
 void
-x_display_use_ansi_colors(
+x_display_set_use_ansi_colors(
 	int  use
 	)
 {

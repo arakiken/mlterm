@@ -1337,7 +1337,7 @@ x_main_config_init(
 		use = (strcmp( value , "true") == 0) ;
 
 		ml_set_use_ansi_colors( use) ;
-		x_display_use_ansi_colors( use) ;
+		x_display_set_use_ansi_colors( use) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "auto_detect_encodings")))
