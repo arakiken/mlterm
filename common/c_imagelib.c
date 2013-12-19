@@ -28,7 +28,7 @@
 
 /* --- static variables --- */
 
-#if  defined(__NetBSD__) || defined(__OpenBSD__)
+#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(SIXEL_1BPP)
 static pixel_t  sixel_cmap[256] ;
 static u_int  sixel_cmap_size ;
 #endif
@@ -309,7 +309,7 @@ load_sixel_from_file(
 		SIXEL_RGB(60,60,33) , /* YELLOW* */
 		SIXEL_RGB(80,80,80)   /* GRAY 75% */
 	} ;
-#if  defined(__NetBSD__) || defined(__OpenBSD__)
+#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(SIXEL_1BPP)
 #define  color_tbl  sixel_cmap
 	sixel_cmap_size = 16 ;
 #else
@@ -615,7 +615,7 @@ body:
 					                             K_MIN(params[3],100),
 								     K_MIN(params[4],100)) ;
 
-				#if  defined(__NetBSD__) || defined(__OpenBSD__)
+				#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(SIXEL_1BPP)
 					if( sixel_cmap_size >= color)
 					{
 						sixel_cmap_size = color + 1 ;
