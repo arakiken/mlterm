@@ -1548,10 +1548,6 @@ x_display_set_cmap(
 			_display.cmap->blue[color] = pixels[count] & 0xff ;
 		}
 
-		memset( _display.cmap->red + 16 , 0 , CMAP_SIZE(_display.cmap) - 16) ;
-		memset( _display.cmap->green + 16 , 0 , CMAP_SIZE(_display.cmap) - 16) ;
-		memset( _display.cmap->blue + 16 , 0 , CMAP_SIZE(_display.cmap) - 16) ;
-
 		ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
 	}
 }
