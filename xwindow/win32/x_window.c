@@ -2907,9 +2907,9 @@ x_window_set_selection_owner(
 	kik_debug_printf( KIK_DEBUG_TAG " x_window_set_selection_owner.\n") ;
 #endif
 
-	if( OpenClipboard( win->my_window) == FALSE ||
-	    ( ! win->is_sel_owner &&
-	      ! x_display_own_selection( win->disp , win)))
+	if( ( ! win->is_sel_owner &&
+	      ! x_display_own_selection( win->disp , win)) ||
+	    OpenClipboard( win->my_window) == FALSE)
 	{
 		return  0 ;
 	}
@@ -2942,13 +2942,15 @@ x_window_xct_selection_request(
 	size_t  len ;
 	
 	if( IsClipboardFormatAvailable( CF_TEXT) == FALSE ||
-	    OpenClipboard( win->my_window) == FALSE ||
-	    ( hmem = GetClipboardData( CF_TEXT)) == NULL)
+	    OpenClipboard( win->my_window) == FALSE)
 	{
 		return  0 ;
 	}
 
-	if( ( g_data = GlobalLock( hmem)) == NULL ||
+	g_data = NULL ;
+
+	if( ( hmem = GetClipboardData( CF_TEXT)) == NULL ||
+	    ( g_data = GlobalLock( hmem)) == NULL ||
 	    ( l_data = alloca( (len = strlen( g_data)) + 1)) == NULL)
 	{
 		if( g_data)
@@ -2987,13 +2989,15 @@ x_window_utf_selection_request(
 	size_t  len ;
 	
 	if( IsClipboardFormatAvailable( CF_UNICODETEXT) == FALSE ||
-	    OpenClipboard( win->my_window) == FALSE ||
-	    ( hmem = GetClipboardData( CF_UNICODETEXT)) == NULL)
+	    OpenClipboard( win->my_window) == FALSE)
 	{
 		return  0 ;
 	}
 
-	if( ( g_data = GlobalLock( hmem)) == NULL ||
+	g_data = NULL ;
+
+	if( ( hmem = GetClipboardData( CF_UNICODETEXT)) == NULL ||
+	    ( g_data = GlobalLock( hmem)) == NULL ||
 	    ( l_data = alloca( ( (len = lstrlenW( g_data)) + 1) * 2)) == NULL)
 	{
 		if( g_data)
@@ -3010,6 +3014,10 @@ x_window_utf_selection_request(
 	GlobalUnlock( hmem) ;
 
 	CloseClipboard() ;
+
+#if  0
+	kik_debug_printf( "UTF SELECTION: %d\n", len) ;
+#endif
 
 	(*win->utf_selection_notified)( win, l_data, len * 2) ;
 	

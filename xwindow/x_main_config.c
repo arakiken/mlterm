@@ -1027,10 +1027,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_urgent_bell")))
 	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_set_use_urgent_bell( 1) ;
-		}
+		x_set_use_urgent_bell( strcmp( value , "true") == 0) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "use_vertical_cursor")))
@@ -1069,12 +1066,12 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "exit_backscroll_by_pty")))
 	{
-		x_exit_backscroll_by_pty( 1) ;
+		x_exit_backscroll_by_pty( strcmp( value , "true") == 0) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "allow_change_shortcut")))
 	{
-		x_allow_change_shortcut( 1) ;
+		x_allow_change_shortcut( strcmp( value , "true") == 0) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "icon_path")))
@@ -1230,10 +1227,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "allow_scp")))
 	{
-		if( strcmp( value , "true") == 0)
-		{
-			ml_set_use_scp_full( 1) ;
-		}
+		ml_set_use_scp_full( strcmp( value , "true") == 0) ;
 	}
 #endif
 
@@ -1300,10 +1294,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
 	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_set_use_clipboard_selection( 1) ;
-		}
+		x_set_use_clipboard_selection( strcmp( value , "true") == 0) ;
 	}
 
 	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
@@ -1336,18 +1327,17 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_alt_buffer")))
 	{
-		if( strcmp( value , "false") == 0)
-		{
-			ml_set_use_alt_buffer( 0) ;
-		}
+		ml_set_use_alt_buffer( strcmp( value , "true") == 0) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "use_ansi_colors")))
 	{
-		if( strcmp( value , "false") == 0)
-		{
-			ml_set_use_ansi_colors( 0) ;
-		}
+		int  use ;
+
+		use = (strcmp( value , "true") == 0) ;
+
+		ml_set_use_ansi_colors( use) ;
+		x_display_use_ansi_colors( use) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "auto_detect_encodings")))
@@ -1365,10 +1355,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "leftward_double_drawing")))
 	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_set_use_leftward_double_drawing( 1) ;
-		}
+		x_set_use_leftward_double_drawing( strcmp( value , "true") == 0) ;
 	}
 
 #ifdef  USE_GRF

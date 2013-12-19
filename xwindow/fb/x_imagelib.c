@@ -357,8 +357,13 @@ load_file(
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
 						&(*pixmap)->width , &(*pixmap)->height)))
 		{
+		#if  defined(__NetBSD__) || defined(__OpenBSD__)
 		#ifdef  USE_GRF
-			x68k_set_tvram_cmap( sixel_cmap , sixel_cmap_size) ;
+			if( ! x68k_set_tvram_cmap( sixel_cmap , sixel_cmap_size))
+		#endif
+			{
+				x_display_set_cmap( sixel_cmap , sixel_cmap_size) ;
+			}
 		#endif
 
 			goto  loaded ;

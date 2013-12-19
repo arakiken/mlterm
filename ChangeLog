@@ -1,3 +1,21 @@
+2013-12-19  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_wscons.c: The palette of 4bpp framebuffer is initialized
+	  to monochrome if --depth 1 option is specified.
+
+	* fb/x_display.c: put_image_124bpp() is fixed.
+
+	* c_imagelib.c, fb/x_imagelib.c, fb/x_display.c:
+	  If the value of "use_ansi_colors" option is false on 4bpp framebuffer,
+	  the colors used by the wall picture are set to framebuffer palette
+	  by x_display_set_use_ansi_colors() and x_display_set_cmap().
+
+	* win32/x_window.c: Fix error check of OpenClipboard().
+
+	* x_main_config.c: Even if the default value is specified for "use_urgent_bell",
+	  "exit_backscroll_by_pty", "allow_change_shortcut", "allow_scp", "use_clipboard",
+	  "use_alt_buffer", "use_ansi_colors" and "leftward_double_drawing", it is applied.
+
 2013-12-18  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Fix the 4 bpp specific bug.

@@ -299,6 +299,8 @@ auto_repeat(void)
 }
 #endif
 
+static fb_cmap_t *  cmap_new( int  num_of_colors) ;
+
 static int
 open_display(
 	u_int  depth	/* used on luna68k alone. */
@@ -458,7 +460,43 @@ open_display(
 
 	if( _disp.depth < 15)
 	{
-		if( ! cmap_init())
+		if( vinfo.depth >= 2 && _disp.depth == 1)
+		{
+			int  num_of_colors ;
+			ml_color_t  color ;
+
+			num_of_colors = (2 << (vinfo.depth - 1)) ;
+
+			if( ! _display.cmap)
+			{
+				if( ! ( _display.cmap_orig = cmap_new( num_of_colors)))
+				{
+					goto  error ;
+				}
+
+				ioctl( _display.fb_fd , FBIOGETCMAP , _display.cmap_orig) ;
+
+				if( ! ( _display.cmap = cmap_new( num_of_colors)))
+				{
+					free( _display.cmap_orig) ;
+
+					goto  error ;
+				}
+			}
+
+			for( color = 0 ; color < num_of_colors ; color ++)
+			{
+				_display.cmap->red[color] = (color & 1) ? 0xff : 0 ;
+				_display.cmap->green[color] = (color & 1) ? 0xff : 0 ;
+				_display.cmap->blue[color] = (color & 1) ? 0xff : 0 ;
+			}
+
+			ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
+
+			_display.prev_pixel = 0xff000000 ;
+			_display.prev_closest_pixel = 0xff000000 ;
+		}
+		else if( ! cmap_init())
 		{
 			goto  error ;
 		}

@@ -130,6 +130,7 @@ static x_display_t  _disp ;
 static Mouse  _mouse ;
 static x_display_t  _disp_mouse ;
 static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
+static int  use_ansi_colors = 1 ;
 
 static struct termios  orig_tm ;
 
@@ -322,10 +323,9 @@ put_image_124bpp(
 				u_char  fb_pixel ;
 
 			#ifdef  ENABLE_DOUBLE_BUFFER
-				fb_pixel = _display.back_fb[
-						fb - _display.fb + _display.plane_len * plane] ;
+				fb_pixel = _display.back_fb[fb - _display.fb] ;
 			#else
-				fb_pixel = fb[_display.plane_len * plane] ;
+				fb_pixel = fb[0] ;
 			#endif
 
 				for( ; surplus > 0 ; surplus --)
@@ -1506,6 +1506,54 @@ x_display_reset_cmap(void)
 		&& gpal_init( ((fb_reg_t*)_display.fb)->gpal)
 	#endif
 		;
+}
+
+void
+x_display_use_ansi_colors(
+	int  use
+	)
+{
+	use_ansi_colors = use ;
+}
+
+void
+x_display_set_cmap(
+	u_int32_t *  pixels ,
+	u_int  cmap_size
+	)
+{
+	if( ! use_ansi_colors && cmap_size <= 16 && _disp.depth == 4)
+	{
+		u_int  count ;
+		ml_color_t  color ;
+
+		if( cmap_size < 16)
+		{
+			color = ML_RED ;
+		}
+		else
+		{
+			color = ML_BLACK ;
+		}
+
+		for( count = 0 ; count < cmap_size ; count++ , color++)
+		{
+			if( color == ML_WHITE && cmap_size < 15)
+			{
+				color ++ ;
+			}
+
+			_display.cmap->red[color] = (pixels[count] >> 16) & 0xff ;
+			_display.cmap->green[color] = (pixels[count] >> 8) & 0xff ;
+			_display.cmap->blue[color] = pixels[count] & 0xff ;
+		}
+
+		memset( _display.cmap->red + 16 , 0 , CMAP_SIZE(_display.cmap) - 16) ;
+		memset( _display.cmap->green + 16 , 0 , CMAP_SIZE(_display.cmap) - 16) ;
+		memset( _display.cmap->blue + 16 , 0 , CMAP_SIZE(_display.cmap) - 16) ;
+
+		ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
+	}
 }
 
 

@@ -600,7 +600,7 @@ x68k_set_use_tvram_colors(
 
 static fb_cmap_t *  cmap_new( int  num_of_colors) ;
 
-void
+int
 x68k_set_tvram_cmap(
 	u_int32_t *  pixels ,
 	u_int  cmap_size
@@ -621,8 +621,12 @@ x68k_set_tvram_cmap(
 
 			gcmap = _display.cmap ;
 			_display.cmap = tcmap ;
+
+			return  1 ;
 		}
 	}
+
+	return  0 ;
 }
 
 /*
