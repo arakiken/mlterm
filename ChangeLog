@@ -1,5 +1,7 @@
 2013-12-21  Araki Ken  <arakiken@users.sf.net>
 
+	* win32/x_window.c: x_window_{xct|utf}_selection_request() works as a thread.
+
 	* ml_line.c: Segfault caused by zero column characters like 0x200e is fixed.
 
 2013-12-19  Araki Ken  <arakiken@users.sf.net>

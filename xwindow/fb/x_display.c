@@ -1777,7 +1777,7 @@ x_display_fill_with(
 				{
 					/*
 					 * XXX
-					 * If ENABLE_DOUBLE_BUFFER is on, it is not necessary
+					 * If ENABLE_DOUBLE_BUFFER is off, it is not necessary
 					 * to memset every time because the pointer of buf
 					 * points the same address.
 					 */

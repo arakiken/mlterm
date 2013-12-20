@@ -10,8 +10,10 @@ ver 3.3.2
   Fix the bug which disabled to clear hidden input method window it if large
   value is specified for --border option.
   Fix the bug which disabled to paste UTF-8 string.
-* Bug fixes:
   Bitbucket pull request #1 (Thanks to Hayaki Saito san)
+  Fix the bug which causes segfault in pasting text via win32 clipboard from x11
+  applications over ssh x11 forwarding
+  Fix segfault caused by zero column characters like 0x200e.
 
 ver 3.3.1
 * Add "use_auto_detect" and "auto_detect_encodings" options.

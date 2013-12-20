@@ -13,6 +13,10 @@
 #include  <mkf/mkf_codepoint_parser.h>
 #include  <ml_char.h>		/* UTF_MAX_SIZE */
 
+#if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
+#include  <pthread.h>
+#endif
+
 #include  "../x_xic.h"
 #include  "../x_picture.h"
 #include  "../x_imagelib.h"
@@ -26,6 +30,8 @@
 #define  MAX_CLICK  3			/* max is triple click */
 
 #define  WM_APP_PAINT  (WM_APP + 0x0)
+#define  WM_APP_PASTE  (WM_APP + 0x1)
+#define  WM_APP_WPASTE (WM_APP + 0x2)
 
 /*
  * ACTUAL_(WIDTH|HEIGHT) is the width of client area, ACTUAL_WINDOW_(WIDTH|HEIGHT) is
@@ -785,6 +791,129 @@ oem_key_to_char(
 	{
 		return  0 ;
 	}
+}
+
+static int
+selection_request(
+	x_window_t *  win ,
+	UINT  format
+	)
+{
+	HGLOBAL  hmem ;
+	u_char *  l_data ;
+	u_char *  g_data ;
+	size_t  len ;
+
+#if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
+	pthread_detach( pthread_self()) ;
+#endif
+
+	if( OpenClipboard( win->my_window) == FALSE)
+	{
+		return  0 ;
+	}
+
+	g_data = NULL ;
+
+	if( ( hmem = GetClipboardData( format)) == NULL ||
+	    ( g_data = GlobalLock( hmem)) == NULL ||
+	    ( len = (format == CF_TEXT ? strlen( g_data) : lstrlenW( g_data))) == 0 ||
+	    ( l_data = malloc( (len + 1) * (format == CF_TEXT ? 1 : 2))) == NULL)
+	{
+		if( g_data)
+		{
+			GlobalUnlock( hmem) ;
+		}
+
+		CloseClipboard() ;
+
+		return  0 ;
+	}
+
+	if( format == CF_TEXT)
+	{
+		strcpy( l_data , g_data) ;
+	}
+	else
+	{
+		lstrcpyW( l_data , g_data) ;
+	}
+
+	GlobalUnlock( hmem) ;
+	CloseClipboard() ;
+
+#if  0
+	kik_debug_printf( "%s SELECTION: %d\n", format == CF_TEXT ? "XCT" : "UTF" , len) ;
+#endif
+
+	PostMessage( win->my_window ,
+		format == CF_TEXT ? WM_APP_PASTE : WM_APP_WPASTE , len , l_data) ;
+
+	return  0 ;
+}
+
+#ifdef  USE_WIN32API
+static u_int __stdcall
+#else
+static void *
+#endif
+xct_selection_request(
+	LPVOID  thr_param
+	)
+{
+	return  selection_request( thr_param , CF_TEXT) ;
+}
+
+#ifdef  USE_WIN32API
+static u_int __stdcall
+#else
+static void *
+#endif
+utf_selection_request(
+	LPVOID  thr_param
+	)
+{
+	return  selection_request( thr_param , CF_UNICODETEXT) ;
+}
+
+/*
+ * Request selection from another thread for x11 applications on x11 forwarding.
+ */
+static int
+invoke_selection_request(
+	x_window_t *  win ,
+	UINT  format ,
+#ifdef  USE_WIN32API
+	u_int (*selection_request)(LPVOID)
+#else
+	void *  (*selection_request)(LPVOID)
+#endif
+	)
+{
+	if( IsClipboardFormatAvailable( format))
+	{
+	#if  defined(USE_WIN32API)
+		HANDLE  thrd ;
+		u_int  tid ;
+
+		if( ! ( thrd = _beginthreadex( NULL , 0 , selection_request , win , 0 , &tid)))
+		{
+			return  0 ;
+		}
+
+		CloseHandle( thrd) ;
+	#elif  defined(HAVE_PTHREAD)
+		pthread_t  thrd ;
+
+		pthread_create( &thrd , NULL , selection_request , win) ;
+	#else
+		selection_request( win) ;
+	#endif
+
+		return  1 ;
+	}
+
+	return  0 ;
 }
 
 
@@ -1743,6 +1872,24 @@ x_window_receive_event(
 		}
 
           	return  1 ;
+
+	case WM_APP_PASTE:
+		if( win->xct_selection_notified)
+		{
+			(*win->xct_selection_notified)( win , event->lparam , event->wparam) ;
+			free( event->lparam) ;
+		}
+
+		return  1 ;
+
+	case WM_APP_WPASTE:
+		if( win->utf_selection_notified)
+		{
+			(*win->utf_selection_notified)( win , event->lparam , event->wparam * 2) ;
+			free( event->lparam) ;
+		}
+
+		return  1 ;
 
 	case WM_APP_PAINT:
 		if( win->update_window)
@@ -2936,45 +3083,7 @@ x_window_xct_selection_request(
 	Time  time
 	)
 {
-	HGLOBAL  hmem ;
-	u_char *  l_data ;
-	u_char *  g_data ;
-	size_t  len ;
-	
-	if( IsClipboardFormatAvailable( CF_TEXT) == FALSE ||
-	    OpenClipboard( win->my_window) == FALSE)
-	{
-		return  0 ;
-	}
-
-	g_data = NULL ;
-
-	if( ( hmem = GetClipboardData( CF_TEXT)) == NULL ||
-	    ( g_data = GlobalLock( hmem)) == NULL ||
-	    ( l_data = alloca( (len = strlen( g_data)) + 1)) == NULL)
-	{
-		if( g_data)
-		{
-			GlobalUnlock( hmem) ;
-		}
-
-		CloseClipboard() ;
-
-		return  0 ;
-	}
-
-	strcpy( l_data , g_data) ;
-	GlobalUnlock( hmem) ;
-
-	CloseClipboard() ;
-
-#if  0
-	kik_debug_printf( "XCT SELECTION: %s %d\n", l_data, len) ;
-#endif
-
-	(*win->xct_selection_notified)( win, l_data, len) ;
-	
-	return  1 ;
+	return  invoke_selection_request( win , CF_TEXT , xct_selection_request) ;
 }
 
 int
@@ -2983,45 +3092,7 @@ x_window_utf_selection_request(
 	Time  time
 	)
 {
-	HGLOBAL  hmem ;
-	u_char *  l_data ;
-	u_char *  g_data ;
-	size_t  len ;
-	
-	if( IsClipboardFormatAvailable( CF_UNICODETEXT) == FALSE ||
-	    OpenClipboard( win->my_window) == FALSE)
-	{
-		return  0 ;
-	}
-
-	g_data = NULL ;
-
-	if( ( hmem = GetClipboardData( CF_UNICODETEXT)) == NULL ||
-	    ( g_data = GlobalLock( hmem)) == NULL ||
-	    ( l_data = alloca( ( (len = lstrlenW( g_data)) + 1) * 2)) == NULL)
-	{
-		if( g_data)
-		{
-			GlobalUnlock( hmem) ;
-		}
-
-		CloseClipboard() ;
-		
-		return  0 ;
-	}
-
-	lstrcpyW( l_data , g_data) ;
-	GlobalUnlock( hmem) ;
-
-	CloseClipboard() ;
-
-#if  0
-	kik_debug_printf( "UTF SELECTION: %d\n", len) ;
-#endif
-
-	(*win->utf_selection_notified)( win, l_data, len * 2) ;
-	
-	return  1 ;
+	return  invoke_selection_request( win , CF_UNICODETEXT , utf_selection_request) ;
 }
 
 int

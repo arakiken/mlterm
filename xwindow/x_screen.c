@@ -1875,12 +1875,13 @@ yank_event_received(
 		if( encoding == ML_UTF8 ||
 		    ( IS_UCS_SUBSET_ENCODING(encoding) && screen->receive_string_via_ucs))
 		{
-			return  x_window_utf_selection_request( &screen->window , time) ;
+			if( x_window_utf_selection_request( &screen->window , time))
+			{
+				return  1 ;
+			}
 		}
-		else
-		{
-			return  x_window_xct_selection_request( &screen->window , time) ;
-		}
+
+		return  x_window_xct_selection_request( &screen->window , time) ;
 	}
 }
 
