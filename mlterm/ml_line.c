@@ -862,7 +862,15 @@ ml_line_set_modified(
 			 */
 			end_col += ml_char_cols( line->chars + count) ;
 		}
-		end_col -- ;
+
+		/*
+		 * If ml_char_cols() returns 0, beg_col can be equals to end_col here.
+		 * If beg_col is equals to end_col, don't minus end_col.
+		 */
+		if( beg_col < end_col)
+		{
+			end_col -- ;
+		}
 	}
 
 	if( line->is_modified)
