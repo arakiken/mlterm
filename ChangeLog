@@ -1,3 +1,8 @@
+2013-12-22  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: Only if _display.pixels_per_byte is 8, multiple planes
+	  of scrolled lines are copied.
+
 2013-12-21  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.3.2 released.

@@ -1,3 +1,7 @@
+ver 3.3.3
+* Bug fixes:
+  Fix the bug of scrolling on framebuffer.
+
 ver 3.3.2
 * Support 4bpp framebuffer on NetBSD/luna68k.
 * Desynchronize ssh negotiation on cygwin or mingw.

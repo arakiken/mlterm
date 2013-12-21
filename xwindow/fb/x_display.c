@@ -1870,6 +1870,7 @@ x_display_copy_lines(
 	u_char *  dst ;
 	u_int  copy_len ;
 	u_int  count ;
+	int  num_of_planes ;
 	int  plane ;
 
 	/* XXX cheap implementation. */
@@ -1878,7 +1879,16 @@ x_display_copy_lines(
 	/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
 	copy_len = FB_WIDTH_BYTES(&_display, src_x, width) ;
 
-	for( plane = 0 ; plane < _disp.depth ; plane++)
+	if( _display.pixels_per_byte == 8)
+	{
+		num_of_planes = _disp.depth ;
+	}
+	else
+	{
+		num_of_planes = 1 ;
+	}
+
+	for( plane = 0 ; plane < num_of_planes ; plane++)
 	{
 		if( src_y <= dst_y)
 		{
