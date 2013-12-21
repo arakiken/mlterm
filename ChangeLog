@@ -1,5 +1,13 @@
 2013-12-21  Araki Ken  <arakiken@users.sf.net>
 
+	* gtk/vte.c:
+	  - The bug which disabled true transparency on roxterm just after it
+	    started is fixed.
+	  - Hack for roxterm works if it started as "x-terminal-emulator" or
+	    "exo-open --launch TerminalEmulator".
+
+	* jni/x_display.c: x_display_set_use_ansi_colors() is added.
+
 	* win32/x_window.c: x_window_{xct|utf}_selection_request() works as a thread.
 
 	* ml_line.c: Segfault caused by zero column characters like 0x200e is fixed.

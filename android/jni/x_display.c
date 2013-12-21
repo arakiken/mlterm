@@ -797,6 +797,12 @@ x_display_reset_cmap(void)
 	return  0 ;
 }
 
+void
+x_display_set_use_ansi_colors(
+	int  use
+	)
+{
+}
 
 int
 x_display_init(

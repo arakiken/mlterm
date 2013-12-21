@@ -1701,6 +1701,9 @@ vte_terminal_realize(
 
 		if( depth_is_changed)
 		{
+			x_change_true_transbg_alpha(
+				VTE_TERMINAL(widget)->pvt->screen->color_man ,
+				VTE_TERMINAL(widget)->pvt->screen->pic_mod.alpha) ;
 			x_color_manager_reload( VTE_TERMINAL(widget)->pvt->screen->color_man) ;
 
 			/* No colors are cached for now. */
@@ -1855,7 +1858,14 @@ vte_terminal_get_preferred_height(
 	/* Processing similar to setting GtkWidget::requisition in reset_vte_size_member(). */
 
 	/* XXX */
-	if( strstr( g_get_prgname() , "roxterm"))
+	if( ! VTE_TERMINAL(widget)->pvt->init_char_size &&
+	    ( strstr( g_get_prgname() , "roxterm") ||
+	      /*
+	       * Hack for roxterm started by "x-terminal-emulator" or
+	       * "exo-open --launch TerminalEmulator" (which calls
+	       * "x-terminal-emulator" internally)
+	       */
+	      g_object_get_data( gtk_widget_get_parent( widget) , "roxterm_tab")))
 	{
 		/*
 		 * XXX
@@ -1863,19 +1873,13 @@ vte_terminal_get_preferred_height(
 		 * minimized unless "char-size-changed" signal is emit once in
 		 * vte_terminal_get_preferred_height() or
 		 * vte_terminal_get_preferred_height() in startup.
-		 *
-		 * Note that this hack might not work for roxterm started by
-		 * "x-terminal-emulator" or "exo-open --launch TerminalEmulator"
-		 * (which calls "x-terminal-emulator" internally).
 		 */
-		if( ! VTE_TERMINAL(widget)->pvt->init_char_size)
-		{
-			g_signal_emit_by_name( widget , "char-size-changed" ,
-					VTE_TERMINAL(widget)->char_width ,
-					VTE_TERMINAL(widget)->char_height) ;
-			VTE_TERMINAL(widget)->pvt->init_char_size = 1 ;
-		}
+		g_signal_emit_by_name( widget , "char-size-changed" ,
+				VTE_TERMINAL(widget)->char_width ,
+				VTE_TERMINAL(widget)->char_height) ;
 	}
+
+	VTE_TERMINAL(widget)->pvt->init_char_size = 1 ;
 
 	if( minimum_height)
 	{
@@ -2708,7 +2712,13 @@ vte_terminal_init(
 
 #if  ! GTK_CHECK_VERSION(2,90,0)
 	/* XXX */
-	if( strstr( g_get_prgname() , "roxterm"))
+	if( strstr( g_get_prgname() , "roxterm") ||
+	    /*
+	     * Hack for roxterm started by "x-terminal-emulator" or
+	     * "exo-open --launch TerminalEmulator" (which calls
+	     * "x-terminal-emulator" internally)
+	     */
+	    g_object_get_data( gtk_widget_get_parent( widget) , "roxterm_tab"))
 	{
 		/*
 		 * XXX
@@ -2836,11 +2846,8 @@ set_alpha(
 	}
 	else
 	{
-		if( ! x_change_true_transbg_alpha( terminal->pvt->screen->color_man , alpha))
-		{
-			/* True transparency doesn't work. */
-			terminal->pvt->screen->pic_mod.alpha = alpha ;
-		}
+		terminal->pvt->screen->pic_mod.alpha = alpha ;
+		x_change_true_transbg_alpha( terminal->pvt->screen->color_man , alpha) ;
 	}
 }
 
@@ -3663,7 +3670,7 @@ vte_terminal_set_background_image_file(
 	else
 	{
 		free( terminal->pvt->screen->pic_file_path) ;
-		terminal->pvt->screen->pic_file_path = strdup( path) ;
+		terminal->pvt->screen->pic_file_path = (*path == '\0') ? NULL : strdup( path) ;
 	}
 }
 
