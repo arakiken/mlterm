@@ -2718,7 +2718,7 @@ vte_terminal_init(
 	     * "exo-open --launch TerminalEmulator" (which calls
 	     * "x-terminal-emulator" internally)
 	     */
-	    g_object_get_data( gtk_widget_get_parent( widget) , "roxterm_tab"))
+	    g_object_get_data( gtk_widget_get_parent( GTK_WIDGET(terminal)) , "roxterm_tab"))
 	{
 		/*
 		 * XXX
