@@ -55,6 +55,7 @@
 #endif
 
 #define FB_MASK(ppb)		((2 << (8 / (ppb) - 1)) - 1)
+#define PLANE(image)  (image)
 
 #else	/* ENABLE_2_4_PPB */
 
@@ -69,6 +70,7 @@
 #endif
 
 #define FB_MASK(ppb)		(1)
+#define PLANE(image)  (((image) >> plane) & 0x1)
 
 #endif	/* ENABLE_2_4_PPB */
 
@@ -117,7 +119,7 @@ typedef struct
 
 	} cursor ;
 
-	u_char  saved_image[sizeof(u_int32_t) * CURSOR_WIDTH * CURSOR_HEIGHT] ;
+	u_char  saved_image[sizeof(u_int32_t) * CURSOR_WIDTH * CURSOR_HEIGHT * 4] ;
 	int  hidden_region_saved ;
 
 } Mouse ;
@@ -231,12 +233,6 @@ put_image_124bpp(
 		}
 	}
 
-#ifdef  ENABLE_2_4_PPB
-#define  PLANE(image)  (image)
-#else
-#define  PLANE(image)  (((image) >> plane) & 0x1)
-#endif
-
 	plane = 0 ;
 	while( 1)
 	{
@@ -259,6 +255,7 @@ put_image_124bpp(
 
 			shift = FB_SHIFT(ppb,bpp,x) ;
 
+		#ifndef  ENABLE_2_4_PPB
 			if( _disp.depth > 1)
 			{
 				for( count = 0 ; count < size ; count++)
@@ -282,6 +279,7 @@ put_image_124bpp(
 				}
 			}
 			else
+		#endif
 			{
 				for( count = 0 ; count < size ; count++)
 				{
@@ -347,6 +345,7 @@ put_image_124bpp(
 				}
 			}
 
+		#ifndef  ENABLE_2_4_PPB
 			if( _disp.depth > 1)
 			{
 				do
@@ -395,6 +394,7 @@ put_image_124bpp(
 				while( count < size) ;
 			}
 			else
+		#endif
 			{
 				do
 				{
@@ -530,8 +530,6 @@ update_mouse_cursor_state(void)
 static void
 restore_hidden_region(void)
 {
-	u_char *  fb ;
-
 	if( ! _mouse.cursor.is_drawn)
 	{
 		return ;
@@ -543,15 +541,35 @@ restore_hidden_region(void)
 	if( _mouse.hidden_region_saved)
 	{
 		size_t  width ;
+		u_char *  saved ;
+		int  plane ;
+		int  num_of_planes ;
+		u_char *  fb ;
 		u_int  count ;
 
-		fb = get_fb(_mouse.cursor.x , _mouse.cursor.y) ;
 		width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width) ;
+		saved = _mouse.saved_image ;
 
-		for( count = 0 ; count < _mouse.cursor.height ; count++)
+		if( _display.pixels_per_byte == 8)
 		{
-			memcpy( fb , _mouse.saved_image + count * width , width) ;
-			fb += _display.line_length ;
+			num_of_planes = _disp.depth ;
+		}
+		else
+		{
+			num_of_planes = 1 ;
+		}
+
+		for( plane = 0 ; plane < num_of_planes ; plane++)
+		{
+			fb = get_fb(_mouse.cursor.x , _mouse.cursor.y) +
+				_display.plane_len * plane ;
+
+			for( count = 0 ; count < _mouse.cursor.height ; count++)
+			{
+				memcpy( fb , saved , width) ;
+				saved += width ;
+				fb += _display.line_length ;
+			}
 		}
 	}
 	else
@@ -574,17 +592,35 @@ restore_hidden_region(void)
 static void
 save_hidden_region(void)
 {
-	u_char *  fb ;
 	size_t  width ;
+	u_char *  saved ;
+	int  plane ;
+	int  num_of_planes ;
+	u_char *  fb ;
 	u_int  count ;
 
-	fb = get_fb( _mouse.cursor.x , _mouse.cursor.y) ;
 	width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width) ;
+	saved = _mouse.saved_image ;
 
-	for( count = 0 ; count < _mouse.cursor.height ; count++)
+	if( _display.pixels_per_byte == 8)
 	{
-		memcpy( _mouse.saved_image + count * width , fb , width) ;
-		fb += _display.line_length ;
+		num_of_planes = _disp.depth ;
+	}
+	else
+	{
+		num_of_planes = 1 ;
+	}
+
+	for( plane = 0 ; plane < num_of_planes ; plane++)
+	{
+		fb = get_fb( _mouse.cursor.x , _mouse.cursor.y) + _display.plane_len * plane ;
+
+		for( count = 0 ; count < _mouse.cursor.height ; count++)
+		{
+			memcpy( saved , fb , width) ;
+			fb += _display.line_length ;
+			saved += width ;
+		}
 	}
 
 	_mouse.hidden_region_saved = 1 ;

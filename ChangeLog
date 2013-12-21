@@ -1,5 +1,7 @@
 2013-12-21  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: The bug which drew mouse cursor incorrectly on 4bpp is fixed.
+
 	* gtk/vte.c:
 	  - The bug which disabled true transparency on roxterm just after it
 	    started is fixed.
