@@ -16,6 +16,8 @@
  * XXX
  * Don't link libpthread to mlterm for now.
  * Xlib doesn't work on threading without XInitThreads().
+ * Threading is not supported for 8 or less bpp framebuffer imaging
+ * because of x_display_enable_to_change_cmap() and x_display_set_cmap().
  */
 #if ! defined(__CYGWIN__) || ! defined(USE_WIN32GUI)
 #undef  HAVE_PTHREAD

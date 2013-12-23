@@ -160,7 +160,7 @@ Supported platforms
   * NetBSD 5.2 / framebuffer (hpcmips)
   * NetBSD 6.1 / framebuffer (xm6i 0.42)
   * OpenSolaris 2009.06 / X (CC=cc) (x86)
-  * Ubuntu 12.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
+  * Ubuntu 13.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
   * CentOS 5 / X (x86)
   * Arch Linux 2013.05.01 / X (CC=gcc) (x86)
   * FreeBSD 9.0 / framebuffer (x86)

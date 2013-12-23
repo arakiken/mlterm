@@ -1,3 +1,12 @@
+2013-12-23  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display_x68kgrf.c: x68k_set_tvram_cmap() and x68k_set_use_tvram_colors()
+	  are changed to static functions.
+
+	* fb/x_display.[ch]: x_display_enable_to_change_cmap() is added.
+
+	* version.h.in: 3.3.2 -> 3.3.2post
+
 2013-12-22  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c: Only if _display.pixels_per_byte is 8, multiple planes
@@ -212,7 +221,7 @@
 
 	* ml_term.[ch]: ml_term_open_pty() works asynchronously on cygwin or mingw.
 
-	* version.h.in: 3.3.0 -> 3.3.0post
+	* version.h.in: 3.3.1 -> 3.3.1post
 
 2013-11-23  Araki Ken  <arakiken@users.sf.net>
 

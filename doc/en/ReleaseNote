@@ -3,7 +3,7 @@ ver 3.3.3
   Fix the bug of scrolling on framebuffer.
 
 ver 3.3.2
-* Support 4bpp framebuffer on NetBSD/luna68k.
+* Support 4bpp framebuffer on NetBSD/luna68k and OpenBSD/luna88k.
 * Desynchronize ssh negotiation on cygwin or mingw.
 * "inner_border" option accepts "[horizontal border],[vertical border]" format value.
 * Add "leftward_double_drawing" option which embolds medium fonts by drawing doubly at
