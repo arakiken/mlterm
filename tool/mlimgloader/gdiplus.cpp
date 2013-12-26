@@ -48,6 +48,14 @@ static const IID __uuid_inst =
 #define  BUILTIN_IMAGELIB	/* Necessary to use create_cardinals_from_sixel() */
 #include  "../../common/c_imagelib.c"
 
+static void
+help(void)
+{
+	printf( "mlimgloader [window id] [width] [height] [file path] (-c)\n") ;
+	printf( "  window id: ignored.\n") ;
+	printf( "  -c       : output XA_CARDINAL format data to stdout.\n") ;
+}
+
 static u_int32_t *
 create_cardinals_from_file(
 	const char *  path ,
@@ -228,7 +236,7 @@ main(
 
 	if( argc != 6 || strcmp( argv[5] , "-c") != 0)
 	{
-		return  -1 ;
+		goto  error ;
 	}
 
 	width = atoi( argv[2]) ;
@@ -252,7 +260,7 @@ main(
 			kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , argv[4]) ;
 		#endif
 
-			return  -1 ;
+			goto  error ;
 		}
 	}
 
@@ -270,7 +278,7 @@ main(
 
 		if( ( n_wr = write( STDOUT_FILENO , cardinal , size)) < 0)
 		{
-			return  -1 ;
+			goto  error ;
 		}
 
 		cardinal += n_wr ;
@@ -282,4 +290,8 @@ main(
 #endif
 
 	return  0 ;
+
+error:
+	help() ;
+	return  -1 ;
 }

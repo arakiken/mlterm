@@ -1205,10 +1205,7 @@ write_to_pty(
 	if( parser)
 	{
 		u_char  conv_buf[512] ;
-		u_char *  p ;
 		size_t  filled_len ;
-
-		p = conv_buf ;
 
 	#ifdef  __DEBUG
 		{
@@ -5253,29 +5250,24 @@ change_im(
  * Callbacks of x_config_event_listener_t events.
  */
 
-static void
-get_config(
-	void *  p ,
+static char *
+get_config_intern(
+	x_screen_t *  screen ,
 	char *  dev ,	/* can be NULL */
-	char *  key ,	/* can be "error" */
-	int  to_menu
+	char *  key	/* can be "error" */
 	)
 {
-	x_screen_t *  screen ;
 	ml_term_t *  term ;
 	char *  value ;
 	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
 	char  cwd[PATH_MAX] ;
-
-	screen = p ;
 	
 	if( dev && HAS_SYSTEM_LISTENER(screen,get_pty))
 	{
-		/* Don't response (ml_term_write) to this term whose config_menu->fd is -1. */
 		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
 				dev)) == NULL)
 		{
-			return ;
+			return  NULL ;
 		}
 	}
 	else
@@ -5819,7 +5811,23 @@ get_config(
 		}
 	}
 
-	if( value == NULL)
+	return  value ;
+}
+
+static void
+get_config(
+	void *  p ,
+	char *  dev ,	/* can be NULL */
+	char *  key ,	/* can be "error" */
+	int  to_menu
+	)
+{
+	x_screen_t *  screen ;
+	char *  value ;
+
+	screen = p ;
+
+	if( ( value = get_config_intern( screen , dev , key)) == NULL)
 	{
 		ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
 
@@ -8258,6 +8266,22 @@ x_screen_set_config(
 	{
 		value = "" ;
 	}
+	else if( strcmp( value , "switch") == 0)
+	{
+		char *  val ;
+
+		if( ( val = get_config_intern( screen , /* dev */ NULL , key)))
+		{
+			if( strcmp( val , "true") == 0)
+			{
+				value = "false" ;
+			}
+			else if( strcmp( val , "false") == 0)
+			{
+				value = "true" ;
+			}
+		}
+	}
 
 	/*
 	 * XXX
@@ -8265,7 +8289,7 @@ x_screen_set_config(
 	 * screen->term internally.
 	 */
 #if  0
-	if( dev)
+	if( dev && HAS_SYSTEM_LISTENER(screen,get_pty))
 	{
 		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
 				dev)) == NULL)
@@ -8705,11 +8729,6 @@ x_screen_set_config(
 		 */
 		if( screen->processing_vtseq <= 0)
 		{
-			if( strcmp( value , "switch") == 0)
-			{
-				value = screen->xterm_listener.set_selection ? "false" : "true" ;
-			}
-
 			if( true_or_false( value) > 0)
 			{
 				screen->xterm_listener.set_selection = xterm_set_selection ;

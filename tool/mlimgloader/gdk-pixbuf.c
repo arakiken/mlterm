@@ -51,6 +51,14 @@
 #define  BUILTIN_IMAGELIB	/* Necessary to use gdk_pixbuf_new_from() etc */
 #include  "../../common/c_imagelib.c"
 
+static void
+help(void)
+{
+	printf( "mlimgloader [window id] [width] [height] [src file] ([dst file]) (-c)\n") ;
+	printf( "  [dst file]: convert [src file] to [dst file].\n") ;
+	printf( "  -c        : output XA_CARDINAL format data to stdout.\n") ;
+}
+
 /* create GdkPixbuf from the specified file path.
  *
  * The returned pixbuf shouled be unrefed by the caller
@@ -559,7 +567,7 @@ main(
 	{
 		if( ! ( display = XOpenDisplay( NULL)))
 		{
-			return  -1 ;
+			goto  error ;
 		}
 
 		if( ( win = atoi( argv[1])) == 0)
@@ -585,7 +593,7 @@ main(
 #endif
 	if( argc != 6)
 	{
-		return  -1 ;
+		goto  error ;
 	}
 
 #if GDK_PIXBUF_MAJOR >= 2
@@ -613,8 +621,7 @@ main(
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , argv[4]) ;
 		#endif
-
-			return  -1 ;
+			goto  error ;
 		}
 	}
 
@@ -630,7 +637,7 @@ main(
 
 			if( ! ( type = strrchr( argv[5] , '.')))
 			{
-				return  -1 ;
+				goto  error ;
 			}
 
 			type ++ ;
@@ -647,7 +654,7 @@ main(
 
 		if( ! ( cardinal = (u_char*)create_cardinals_from_pixbuf( pixbuf)))
 		{
-			return  -1 ;
+			goto  error ;
 		}
 
 		width = ((u_int32_t*)cardinal)[0] ;
@@ -664,7 +671,7 @@ main(
 
 			if( ( n_wr = write( STDOUT_FILENO , cardinal , size)) < 0)
 			{
-				return  -1 ;
+				goto  error ;
 			}
 
 			cardinal += n_wr ;
@@ -679,7 +686,7 @@ main(
 		if( ! pixbuf_to_pixmap_and_mask( display , win , visual , colormap , gc , depth ,
 				pixbuf , &pixmap , &mask))
 		{
-			return  -1 ;
+			goto  error ;
 		}
 
 		XSync( display , False) ;
@@ -703,4 +710,8 @@ main(
 #endif
 
 	return  0 ;
+
+error:
+	help() ;
+	return  -1 ;
 }

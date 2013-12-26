@@ -1630,6 +1630,8 @@ x_display_set_cmap(
 				(_display.cmap->blue[count] >> 3) << 1 ;
 		}
 	#endif
+
+		kik_msg_printf( "Palette changed.\n") ;
 	}
 }
 

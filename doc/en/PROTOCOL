@@ -76,8 +76,8 @@ version 20131123
 
 * Values for each key
   allow_osc52 = true | false | switch
-  allow_scp = true | false
-  auto_restart = true | false | <restart command>
+  allow_scp = true | false | switch
+  auto_restart = true | false | switch | <restart command>
   auto_detect_encodings = (<encoding name>,)*
   bd_color = <color name> | <color rgb>
   bel_mode = none | sound | visual
@@ -94,7 +94,7 @@ version 20131123
   fg_color = <color name> | <color rgb>
   fontsize = <any ASCII decimal digit> | larger | smaller
   gamma = <any ASCII decimal digit>
-  hide_underline = true | false
+  hide_underline = true | false | switch
   icon_path = <file path>
   input_method = <input method> ":" <input method specific options> ...
   line_space = <any ASCII decimal digit>
@@ -102,12 +102,12 @@ version 20131123
   logsize = <any ASCII decimal digit>
   mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | meta | alt | super | hyper
   mod_meta_mode = none | esc | 8bit
-  not_use_unicode_font = true | false
-  only_use_unicode_font = true | false
+  not_use_unicode_font = true | false | switch
+  only_use_unicode_font = true | false | switch
   pty_list = (<pty dev>:<active flag>;)*
   pty_name = <pty dev> | <pty title>
   pwd = <current working directory>
-  receive_string_via_ucs = true | false
+  receive_string_via_ucs = true | false | switch
   rows = <any ASCII decimal digit>
   sb_bg_color = <color name> | <color rgb>
   sb_fg_color = <color name> | <color rgb>
@@ -115,26 +115,26 @@ version 20131123
   screen_width_ratio = <any ASCII decimal digit>
   scrollbar_mode = none | left | right
   scrollbar_view_name = <name>
-  stataic_backscroll_mode = true | false
+  stataic_backscroll_mode = true | false | switch
   tabsize = <any ASCII decimal digit>
   type_engine = xcore | xft
   ul_color = <color name> | <color rgb>
-  use_alt_buffer = true | false
-  use_ansi_colors = true | false
-  use_anti_alias = true | false
-  use_auto_deetect = true | false
-  use_bidi = true | false
-  use_bold_font = true | false
-  use_ind = true | false
-  use_combining = true | false
-  use_dynamic_comb = true | false
-  use_multi_column_char = true | false
-  use_transbg = true | false
-  use_variable_column_width = true | false
+  use_alt_buffer = true | false | switch
+  use_ansi_colors = true | false | switch
+  use_anti_alias = true | false | switch
+  use_auto_deetect = true | false | switch
+  use_bidi = true | false | switch
+  use_bold_font = true | false | switch
+  use_ind = true | false | switch
+  use_combining = true | false | switch
+  use_dynamic_comb = true | false | switch
+  use_multi_column_char = true | false | switch
+  use_transbg = true | false | switch
+  use_variable_column_width = true | false | switch
   vertical_mode = none | cjk | mongol
   wall_picture = <file path>
-  logging_vt_seq = true | false
-  logging_msg = true | false
+  logging_vt_seq = true | false | switch
+  logging_msg = true | false | switch
 
 * Note
   o Encoding names are regularized , that is , `-' , `_' are removed , and only

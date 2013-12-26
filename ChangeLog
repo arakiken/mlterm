@@ -1,3 +1,9 @@
+2013-12-26  Araki Ken  <arakiken@users.sf.net>
+
+	* mlimgloader/none.c, gdk-pixbuf.c, gdiplus.cpp: Help message is added.
+
+	* x_screen.c: "switch" value is available for x_screen_set_config().
+
 2013-12-23  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display_x68kgrf.c: x68k_set_tvram_cmap() and x68k_set_use_tvram_colors()
