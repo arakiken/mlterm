@@ -1,5 +1,11 @@
 2013-12-28  Araki Ken  <arakiken@users.sf.net>
 
+	* android/jni/x_display.c: _display.app = app in the first place in
+	  x_display_init() because x_display_lock() can be called from update_window()
+	  in init_window() if restarting mlterm from paused state.
+
+2013-12-28  Araki Ken  <arakiken@users.sf.net>
+
 	* android/jni/x_display.c, android/jni/x.h, MLActivity.java:
 	  yoffset is added to the members of Display and the argumens of
 	  MLActivity.visibleFrameChanged().

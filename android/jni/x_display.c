@@ -811,12 +811,16 @@ x_display_init(
 	struct android_app *  app
 	)
 {
+	int  ret ;
 	int  ident ;
 	int  events ;
 	struct android_poll_source *  source ;
 
 	/* Make sure glue isn't stripped. */
 	app_dummy() ;
+
+	ret = _display.app ? 0 : 1 ;
+	_display.app = app ;
 
 	app->onAppCmd = on_app_cmd ;
 
@@ -845,18 +849,7 @@ x_display_init(
 					_display.sensor_man , app->looper ,
 					LOOPER_ID_USER , NULL , NULL) ;
 
-	if( _display.app)
-	{
-		_display.app = app ;
-
-		return  0 ;
-	}
-	else
-	{
-		_display.app = app ;
-
-		return  1 ;
-	}
+	return  ret ;
 }
 
 void
@@ -864,7 +857,7 @@ x_display_final(void)
 {
 	if( locked >= 0)
 	{
-		locked = -1 ;	/* unlocked until APP_CMD_INIT_WINDOW after restart. */
+		locked = -1 ;	/* Don't lock until APP_CMD_INIT_WINDOW after restart. */
 		ANativeActivity_finish( _display.app->activity) ;
 	}
 }
@@ -929,6 +922,7 @@ x_display_process_event(
 	return  1 ;
 }
 
+/* Be sure to call x_display_unlock() after x_display_*(). */
 void
 x_display_unlock(void)
 {

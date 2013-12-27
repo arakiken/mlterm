@@ -92,6 +92,8 @@ x_event_source_process(void)
 	{
 		if( ! x_display_process_event( source , ident))
 		{
+			x_display_unlock() ;
+
 			ALooper_removeFds( fds , prev_num_of_terms) ;
 			prev_num_of_terms = 0 ;
 			free( fds) ;
