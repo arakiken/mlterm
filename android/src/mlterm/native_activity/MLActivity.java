@@ -24,7 +24,7 @@ public class MLActivity extends NativeActivity
 		System.loadLibrary( "mlterm") ;
 	}
 
-	private native void  visibleFrameChanged( int  width , int  height) ;
+	private native void  visibleFrameChanged( int  yoffset , int  width , int  height) ;
 
 	public String  keyString ;
 
@@ -60,7 +60,7 @@ public class MLActivity extends NativeActivity
 				{
 					Rect  r = new Rect() ;
 					getWindow().getDecorView().getWindowVisibleDisplayFrame(r) ;
-					visibleFrameChanged( r.right , r.bottom) ;
+					visibleFrameChanged( r.top , r.right , r.bottom - r.top) ;
 				}
 			}) ;
 	}

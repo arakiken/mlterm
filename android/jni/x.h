@@ -17,6 +17,7 @@ typedef struct
 
 	ANativeWindow_Buffer  buf ;
 	unsigned int  bytes_per_pixel ;
+	unsigned int  yoffset ;
 
 	struct rgb_info
 	{

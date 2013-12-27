@@ -23,6 +23,7 @@ static Display  _display ;
 static int  locked ;
 
 static int  visible_frame_changed ;
+static int  new_yoffset ;
 static u_int  new_width ;
 static u_int  new_height ;
 
@@ -74,7 +75,8 @@ get_fb(
 	int  y
 	)
 {
-	return  _display.buf.bits + (y * _display.buf.stride + x) * _display.bytes_per_pixel ;
+	return  _display.buf.bits +
+		((_display.yoffset + y) * _display.buf.stride + x) * _display.bytes_per_pixel ;
 }
 
 static int
@@ -876,6 +878,7 @@ x_display_process_event(
 	if( visible_frame_changed)
 	{
 		/* XXX should synchronize */
+		_display.yoffset = new_yoffset ;
 		_disp.width = new_width ;
 		_disp.height = new_height ;
 		visible_frame_changed = 0 ;
@@ -1124,16 +1127,18 @@ void
 Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 	JNIEnv *  env ,
 	jobject  this ,
+	jint  yoffset ,
 	jint  width ,
 	jint  height
 	)
 {
 #ifdef  DEBUG
-	kik_debug_printf( "Visible frame changed w %d h %d => w %d h %d\n" ,
-		_disp.width , _disp.height , width , height) ;
+	kik_debug_printf( "Visible frame changed yoff %d w %d h %d => yoff %d w %d h %d\n" ,
+		_display.yoffset , _disp.width , _disp.height , yoffset , width , height) ;
 #endif
 
 	/* XXX should synchronize */
+	new_yoffset = yoffset ;
 	new_width = width ;
 	new_height = height ;
 	visible_frame_changed = 1 ;

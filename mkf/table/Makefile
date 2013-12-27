@@ -105,7 +105,7 @@ gbk:
 	cat ${SRCDIR}/CP936.TXT | ./gbk_table.pl
 
 property:
-	cat ${SRCDIR}/UnicodeData-20120809.txt ${SRCDIR}/EastAsianWidth-6.2.0.txt | ./ucs_property.pl
+	cat ${SRCDIR}/UnicodeData-20130512.txt ${SRCDIR}/EastAsianWidth-6.3.0.txt | ./ucs_property.pl
 
 clean:
 	rm -f mkf_*.table
