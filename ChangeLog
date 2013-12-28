@@ -1,5 +1,11 @@
 2013-12-28  Araki Ken  <arakiken@users.sf.net>
 
+	* android/jni/x_display.c:
+	  - ANativeWindow_unlockAndPost() is not called in display_lock().
+	  - AMotioinEvent_getY() - _display.yoffset
+
+2013-12-28  Araki Ken  <arakiken@users.sf.net>
+
 	* android/jni/x_display.c: _display.app = app in the first place in
 	  x_display_init() because x_display_lock() can be called from update_window()
 	  in init_window() if restarting mlterm from paused state.

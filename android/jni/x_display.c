@@ -41,26 +41,23 @@ display_lock(void)
 	{
 		ANativeWindow_Buffer  buf ;
 
-		while( 1)
+		if( ANativeWindow_lock( _display.app->window , &buf , NULL) != 0)
 		{
-			if( ANativeWindow_lock( _display.app->window , &buf , NULL) != 0)
-			{
-				return  0 ;
-			}
+			return  0 ;
+		}
 
-			if( _display.buf.bits && _display.buf.bits != buf.bits)
+		if( _display.buf.bits != buf.bits)
+		{
+			if( _display.buf.bits &&
+			    _display.buf.height == buf.height &&
+			    _display.buf.stride == buf.stride)
 			{
 				memcpy( buf.bits , _display.buf.bits ,
-					_display.buf.stride * _display.buf.height *
+					_display.buf.height * _display.buf.stride *
 					_display.bytes_per_pixel) ;
-				ANativeWindow_unlockAndPost( _display.app->window) ;
 			}
-			else
-			{
-				_display.buf = buf ;
 
-				break ;
-			}
+			_display.buf = buf ;
 		}
 
 		locked = 1 ;
@@ -75,7 +72,7 @@ get_fb(
 	int  y
 	)
 {
-	return  _display.buf.bits +
+	return  ((u_char*)_display.buf.bits) +
 		((_display.yoffset + y) * _display.buf.stride + x) * _display.bytes_per_pixel ;
 }
 
@@ -396,13 +393,14 @@ on_input_event(
 		kik_debug_printf( "MOTION %d %d %d x %d y %d\n" ,
 			AInputEvent_getSource( event) ,
 			AMotionEvent_getAction( event) , AMotionEvent_getEventTime( event) ,
-			AMotionEvent_getX( event , 0) , AMotionEvent_getY( event , 0)) ;
+			AMotionEvent_getX( event , 0) ,
+			AMotionEvent_getY( event , 0) - _display.yoffset) ;
 	#endif
 		return  process_mouse_event( AInputEvent_getSource( event) ,
 				AMotionEvent_getAction( event) ,
 				AMotionEvent_getEventTime( event) ,
 				AMotionEvent_getX( event , 0) ,
-				AMotionEvent_getY( event , 0)) ;
+				AMotionEvent_getY( event , 0) - _display.yoffset) ;
 
 	case  AINPUT_EVENT_TYPE_KEY:
 	#if  0
@@ -481,7 +479,7 @@ init_window(
 	}
 
 	ANativeWindow_setBuffersGeometry( window ,
-		_disp.width , _disp.height ,
+		_disp.width , _disp.height + _display.yoffset ,
 		ANativeWindow_getFormat( window)) ;
 #else
 	_disp.depth = 16 ;
@@ -505,6 +503,9 @@ init_window(
 		else
 		{
 			u_int  count ;
+
+			/* In case of locked is 1 here. */
+			locked = 0 ;
 
 			/* mlterm paused and restarted. */
 			for( count = 0 ; count < _disp.num_of_roots ; count++)
@@ -922,7 +923,6 @@ x_display_process_event(
 	return  1 ;
 }
 
-/* Be sure to call x_display_unlock() after x_display_*(). */
 void
 x_display_unlock(void)
 {
