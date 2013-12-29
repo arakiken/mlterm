@@ -1,5 +1,7 @@
 2013-12-30  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_model.c: Minor fixes.
+
 	* mlterm/Makefile.in, ml_vt100_parser.c:
 	  Read as large amount of data as possible from pty on NetBSD and
 	  OpenBSD framebuffer for old machines.

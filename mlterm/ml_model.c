@@ -132,10 +132,7 @@ ml_model_resize(
 		*slide = old_row ;
 	}
 
-	/*
-	 * updating each line.
-	 */
-
+	/* updating existing lines. */
 	for( new_row = 0 ; new_row < copy_rows ; new_row ++)
 	{
 		ml_line_init( &lines_p[new_row] , num_of_cols) ;
@@ -146,25 +143,21 @@ ml_model_resize(
 		ml_line_set_modified_all( &lines_p[new_row]) ;
 	}
 
+	/* freeing old data. */
+	for( count = 0 ; count < model->num_of_rows ; count ++)
+	{
+		ml_line_final( &model->lines[count]) ;
+	}
+	free( model->lines) ;
+	model->lines = lines_p ;
+
+	/* update empty lines. */
 	for( ; new_row < num_of_rows ; new_row ++)
 	{
 		ml_line_init( &lines_p[new_row] , num_of_cols) ;
 
 		ml_line_set_modified_all( &lines_p[new_row]) ;
 	}
-
-	/*
-	 * freeing old data.
-	 */
-	 
-	for( count = 0 ; count < model->num_of_rows ; count ++)
-	{
-		ml_line_final( &model->lines[count]) ;
-	}
-
-	free( model->lines) ;
-	
-	model->lines = lines_p ;
 
 	model->num_of_rows = num_of_rows ;
 	model->num_of_cols = num_of_cols ;
