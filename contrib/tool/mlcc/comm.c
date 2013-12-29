@@ -97,9 +97,8 @@ static ssize_t read_stdin_timeout(void *buf, size_t nbytes){
 }
 
 int read_one(void){
-	int count;
 	char buf[4] = {0};
-	count = read(STDIN_FILENO, buf, 4);
+	read(STDIN_FILENO, buf, 4);
 	if(buf[0]==0x08||buf[0]==0x7f)
 		return KEY_BS;
 	if (buf[0] != 0x1b)  /* XXX should check non-printable */

@@ -618,8 +618,6 @@ adjust_window_x_position(
 	int *  x
 	)
 {
-	u_int  dh ;
-	u_int  dw ;
 	u_int  top ;
 	u_int  last ;
 	u_int  num_of_digits ;
@@ -649,9 +647,6 @@ adjust_window_x_position(
 	{
 		num_of_digits = 1 ;
 	}
-
-	dh = cand_screen->window.disp->height ;
-	dw = cand_screen->window.disp->width ;
 
 	if( num_of_digits)
 	{

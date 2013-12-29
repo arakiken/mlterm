@@ -80,6 +80,9 @@ Framebuffer 対応に関するメモ
   o Input method plugin として iBus を使用する場合は、./configure に
     --without-pthread を指定してビルドしないでください(mlterm-fb に pthread ライ
     ブラリをリンクしておかないと、ibus module の dlopen に失敗します。)。
+  o 1・2・4 bpp では、壁紙等は ANSI color から近似色を検索して表示しますが、
+    4 bpp で --colors=false を指定し、16色以下の sixel を背景にセットした場合は
+    当該画像のパレットを使用します。
   o NetBSD/luna68k では、--depth=1 又は --depth=4 により、1bpp と 4bpp を切り替
     えることができます。
   o NetBSD/x68k では ~/.mlterm/main に次のように指定することで、解像度を変更でき
@@ -125,7 +128,6 @@ Framebuffer 対応に関するメモ
      なお、iBus はFreeBSD 上ではテストしていません。)
 
 * 使えない機能
-  o 2,4 bpp
   o プロポーショナルフォント
     (use_variable_column_width 及び use_ind オプションも使用できません。)
   o ssh2 client (パスフレーズ入力画面を実装していないため)

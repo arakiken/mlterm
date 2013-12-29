@@ -1,3 +1,11 @@
+2013-12-30  Araki Ken  <arakiken@users.sf.net>
+
+	* jni/Android.mk: -DKIK_DEBUG is removed.
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* mlcc/comm.c, x_im_candidate_screen.c: Minor fixes.
+
 2013-12-28  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/x_display.c:
