@@ -5096,6 +5096,11 @@ parse_vt100_sequence(
 		}
 	}
 
+	/*
+	 * It is not necessary to process pending events for other windows on
+	 * framebuffer because there is only one active window.
+	 */
+#ifndef  USE_FRAMEBUFFER
 	if( vt100_parser->yield)
 	{
 		vt100_parser->yield = 0 ;
@@ -5103,6 +5108,7 @@ parse_vt100_sequence(
 		return  0 ;
 	}
 	else
+#endif
 	{
 		return  1 ;
 	}
@@ -5416,9 +5422,17 @@ ml_parse_vt100_sequence(
 	/* Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3. */
 	count = 0 ;
 	while( parse_vt100_sequence( vt100_parser) &&
+	       /*
+	        * XXX
+	        * It performs well to read as large amount of data as possible
+		* on framebuffer on old machines.
+		*/
+	#if  (! defined(__NetBSD__) && ! defined(__OpenBSD__)) || ! defined(USE_FRAMEBUFFER)
 	       /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
 	       vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
-	       (++count) < 3 && receive_bytes( vt100_parser)) ;
+	       (++count) < 3 &&
+	#endif
+	       receive_bytes( vt100_parser)) ;
 
 	stop_vt100_cmd( vt100_parser , 1) ;
 

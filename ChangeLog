@@ -1,5 +1,11 @@
 2013-12-30  Araki Ken  <arakiken@users.sf.net>
 
+	* mlterm/Makefile.in, ml_vt100_parser.c:
+	  Read as large amount of data as possible from pty on NetBSD and
+	  OpenBSD framebuffer for old machines.
+
+2013-12-30  Araki Ken  <arakiken@users.sf.net>
+
 	* jni/Android.mk: -DKIK_DEBUG is removed.
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
