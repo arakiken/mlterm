@@ -1,5 +1,7 @@
 2013-12-30  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display_wscons.c: 8 bpp on OpenBSD/luna88k is supported.
+
 	* ml_model.c: Minor fixes.
 
 	* mlterm/Makefile.in, ml_vt100_parser.c:

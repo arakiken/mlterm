@@ -376,28 +376,37 @@ open_display(
 
 	_display.width = _disp.width = vinfo.width ;
 	_display.height = _disp.height = vinfo.height ;
+	_disp.depth = vinfo.depth ;
 
-	if( ( _disp.depth = vinfo.depth) < 8)
+#ifdef  WSDISPLAY_TYPE_LUNA
+	if( wstype == WSDISPLAY_TYPE_LUNA)
+	{
+		/* always 8 or less bpp */
+
+		if( _disp.depth > 8)
+		{
+			goto  error ;
+		}
+		else if( depth == 1 || depth == 4 || depth == 8)
+		{
+			_disp.depth = depth ;
+		}
+
+		_display.pixels_per_byte = 8 ;
+		_display.shift_0 = 7 ;
+		_display.mask = 1 ;
+	}
+	else
+#endif
+	if( _disp.depth < 8)
 	{
 	#ifdef  ENABLE_2_4_PPB
 		_display.pixels_per_byte = 8 / _disp.depth ;
 	#else
-	#ifdef  WSDISPLAY_TYPE_LUNA
-		if( wstype == WSDISPLAY_TYPE_LUNA)
-		{
-			if( ( depth == 1 || depth == 4))
-			{
-				_disp.depth = depth ;
-			}
-		}
-		else
-	#endif
-		{
-			/* XXX Forcibly set 1 bpp */
-			_disp.depth = 1 ;
-		}
-	#endif
+		/* XXX Forcibly set 1 bpp */
+		_disp.depth = 1 ;
 		_display.pixels_per_byte = 8 ;
+	#endif
 
 		_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;
 		_display.mask = FB_MASK(_display.pixels_per_byte) ;
@@ -431,9 +440,9 @@ open_display(
 	}
 
 #ifdef  WSDISPLAY_TYPE_LUNA
-	if( wstype == WSDISPLAY_TYPE_LUNA && _disp.depth == 4)
+	if( wstype == WSDISPLAY_TYPE_LUNA && (_disp.depth == 4 || _disp.depth == 8))
 	{
-		_display.smem_len = 0x40000 * 4 ;
+		_display.smem_len = 0x40000 * _disp.depth ;
 		_display.plane_len = 0x40000 ;
 	}
 	else
