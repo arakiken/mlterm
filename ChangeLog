@@ -1,3 +1,16 @@
+2014-01-01  Araki Ken  <arakiken@users.sf.net>
+
+	* MLActivity.java: Minor changes around input method window in onCreate().
+
+	* android/jni/x_display.c:
+	  If no root window has been shown yet, width and height of x_display_t
+	  and yoffset of Display are changed immediately in
+	  Java_mlterm_native_1activity_MLActivity_visibleFrameChanged().
+
+	* android/jni/x_display.c, MLActivity.java:
+	  Double-click at the right bottom corner of the screen calls
+	  showSoftInput() which is added to MLActivity.
+
 2013-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_wscons.c: 8 bpp on OpenBSD/luna88k is supported.

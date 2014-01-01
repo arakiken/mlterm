@@ -305,6 +305,24 @@ process_key_event(
 	return  1 ;
 }
 
+static void
+show_soft_input(
+	JavaVM *  vm
+	)
+{
+	JNIEnv *  env ;
+	jobject  this ;
+
+	(*vm)->AttachCurrentThread( vm , &env , NULL) ;
+
+	this = _display.app->activity->clazz ;
+	(*env)->CallVoidMethod( env , this ,
+		(*env)->GetMethodID( env , (*env)->GetObjectClass( env , this) ,
+			"showSoftInput" , "()V")) ;
+
+	(*vm)->DetachCurrentThread(vm) ;
+}
+
 static int
 process_mouse_event(
 	int  source ,
@@ -317,6 +335,7 @@ process_mouse_event(
 	if( source & AINPUT_SOURCE_MOUSE)
 	{
 		XButtonEvent  xev ;
+		static int  click_num ;
 
 		switch( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK)
 		{
@@ -366,6 +385,32 @@ process_mouse_event(
 		xev.y = y ;
 		xev.state = _display.key_state ;
 
+		if( xev.type == ButtonPress)
+		{
+			if( xev.x + xev.y + 20 >= _disp.width + _disp.height)
+			{
+				if( click_num == 0)
+				{
+					click_num = 1 ;
+				}
+				else /* if( click_num == 1) */
+				{
+					click_num = 0 ;
+
+				#if  0
+					ANativeActivity_showSoftInput( _display.app->activity ,
+						ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED) ;
+				#else
+					show_soft_input( _display.app->activity->vm) ;
+				#endif
+				}
+			}
+			else
+			{
+				click_num = 0 ;
+			}
+		}
+
 	#if  0
 		kik_debug_printf( KIK_DEBUG_TAG
 			"Button is %s x %d y %d btn %d time %d\n" ,
@@ -390,9 +435,9 @@ on_input_event(
 	{
 	case  AINPUT_EVENT_TYPE_MOTION:
 	#if  0
-		kik_debug_printf( "MOTION %d %d %d x %d y %d\n" ,
+		kik_debug_printf( "MOTION %d %d x %d y %d\n" ,
 			AInputEvent_getSource( event) ,
-			AMotionEvent_getAction( event) , AMotionEvent_getEventTime( event) ,
+			AMotionEvent_getAction( event) ,
 			AMotionEvent_getX( event , 0) ,
 			AMotionEvent_getY( event , 0) - _display.yoffset) ;
 	#endif
@@ -900,10 +945,12 @@ x_display_process_event(
 			while( ASensorEventQueue_getEvents(
 				_display.sensor_evqueue , &event , 1) > 0)
 			{
+			#if  0
 				kik_debug_printf( "Accelerometer: x=%f y=%f z=%f" ,
 					event.acceleration.x ,
 					event.acceleration.y ,
 					event.acceleration.z) ;
+			#endif
 			}
 		}
 	}
@@ -1131,9 +1178,18 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 		_display.yoffset , _disp.width , _disp.height , yoffset , width , height) ;
 #endif
 
-	/* XXX should synchronize */
-	new_yoffset = yoffset ;
-	new_width = width ;
-	new_height = height ;
-	visible_frame_changed = 1 ;
+	if( _disp.roots)
+	{
+		/* XXX should synchronize */
+		new_yoffset = yoffset ;
+		new_width = width ;
+		new_height = height ;
+		visible_frame_changed = 1 ;
+	}
+	else
+	{
+		_display.yoffset = yoffset ;
+		_disp.width = width ;
+		_disp.height = height ;
+	}
 }

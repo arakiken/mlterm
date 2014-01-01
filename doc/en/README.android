@@ -19,3 +19,5 @@ Android support (Experimental)
   o Only sixel graphics format is available for "wall_picture" option.
   o Indic support is unavailable.
   o Scrollbar is disabled.
+  o You can show a software keyboard if you double-click the left mouse
+    button (Button1) at the right bottom corner of the screen.

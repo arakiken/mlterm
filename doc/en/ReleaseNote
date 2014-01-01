@@ -3,6 +3,7 @@ ver 3.3.3
   which inverts the current value.
 * Bug fixes:
   Fix the bug of scrolling on framebuffer.
+  Fix the failure of starting mlterm on Android 3.x.
 
 ver 3.3.2
 * Support 4bpp framebuffer on NetBSD/luna68k and OpenBSD/luna88k.

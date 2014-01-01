@@ -10,7 +10,6 @@ import  android.view.WindowManager ;
 import  android.view.WindowManager.LayoutParams ;
 import  android.view.inputmethod.InputMethodManager ;
 import  android.view.View ;
-import  android.view.View.OnLayoutChangeListener ;
 import  android.content.Context ;
 import  android.os.Bundle ;
 import  android.graphics.Rect ;
@@ -28,6 +27,12 @@ public class MLActivity extends NativeActivity
 
 	public String  keyString ;
 
+	public void showSoftInput()
+	{
+		((InputMethodManager)getSystemService( Context.INPUT_METHOD_SERVICE)).showSoftInput(
+			getWindow().getDecorView() , InputMethodManager.SHOW_FORCED) ;
+	}
+
 	@Override
 	public boolean dispatchKeyEvent( KeyEvent  event)
 	{
@@ -42,16 +47,17 @@ public class MLActivity extends NativeActivity
 	@Override
 	protected void onCreate( Bundle  state)
 	{
+		View  view ;
+
 		super.onCreate( state) ;
 
-		InputMethodManager  m = (InputMethodManager)getSystemService(
-									Context.INPUT_METHOD_SERVICE) ;
-		m.showSoftInput( getWindow().getDecorView() , 0) ;
 		getWindow().setSoftInputMode( WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE) ;
 
+		view = getWindow().getDecorView() ;
+
 		/* android-11 or later */
-		getWindow().getDecorView().addOnLayoutChangeListener(
-			new OnLayoutChangeListener()
+		view.addOnLayoutChangeListener(
+			new View.OnLayoutChangeListener()
 			{
 				@Override
 				public void onLayoutChange( View  v , int  left , int  top ,
@@ -59,10 +65,41 @@ public class MLActivity extends NativeActivity
 						int  oldRight , int  oldBottom)
 				{
 					Rect  r = new Rect() ;
-					getWindow().getDecorView().getWindowVisibleDisplayFrame(r) ;
+					v.getWindowVisibleDisplayFrame(r) ;
 					visibleFrameChanged( r.top , r.right , r.bottom - r.top) ;
 				}
 			}) ;
+
+		if( true)
+		{
+			view.setOnFocusChangeListener(
+				new View.OnFocusChangeListener()
+				{
+					@Override
+					public void onFocusChange( View  v , boolean  hasFocus)
+					{
+						InputMethodManager  m = (InputMethodManager)getSystemService(
+													Context.INPUT_METHOD_SERVICE) ;
+						if( hasFocus)
+						{
+							m.showSoftInput( v , InputMethodManager.SHOW_FORCED) ;
+						}
+						else
+						{
+							m.hideSoftInputFromWindow( v.getWindowToken() , 0) ;
+						}
+					}
+				}) ;
+
+			view.setFocusable( true) ;
+			view.setFocusableInTouchMode( true) ;
+			view.requestFocus() ;
+		}
+		else
+		{
+			((InputMethodManager)getSystemService( Context.INPUT_METHOD_SERVICE)).showSoftInput(
+						view , InputMethodManager.SHOW_FORCED) ;
+		}
 	}
 
 	public void saveUnifont()

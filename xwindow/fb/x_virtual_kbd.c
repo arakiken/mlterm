@@ -393,7 +393,7 @@ x_is_virtual_kbd_event(
 
 		if( bev->type == ButtonPress)
 		{
-			if( bev->x + bev->y >= disp->display->width + disp->display->height - 20)
+			if( bev->x + bev->y + 20 >= disp->display->width + disp->display->height)
 			{
 				if( click_num == 0)
 				{
