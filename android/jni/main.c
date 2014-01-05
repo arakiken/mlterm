@@ -17,6 +17,8 @@
 #endif
 
 
+char *  unifont_path ;
+
 /* --- static functions --- */
 
 static inline void
@@ -27,14 +29,25 @@ save_unifont(
 	JNIEnv *  env ;
 	JavaVM *  vm ;
 	jobject  this ;
+	jstring  jstr ;
+	const char *  path ;
+
+	if( unifont_path)
+	{
+		return ;
+	}
 
 	vm = activity->vm ;
 	(*vm)->AttachCurrentThread( vm , &env , NULL) ;
 
 	this = activity->clazz ;
-	(*env)->CallVoidMethod( env , this ,
+	jstr = (*env)->CallObjectMethod( env , this ,
 		(*env)->GetMethodID( env , (*env)->GetObjectClass( env , this) ,
-			"saveUnifont" , "()V")) ;
+			"saveUnifont" , "()Ljava/lang/String;")) ;
+
+	path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
+	unifont_path = strdup( path) ;
+	(*env)->ReleaseStringUTFChars( env , jstr , path) ;
 
 	(*vm)->DetachCurrentThread(vm) ;
 }

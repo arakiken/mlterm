@@ -43,6 +43,7 @@
 #endif
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
+#define  XA_BMP(display)  (XInternAtom( display , "image/bmp" , False))
 #define  XA_NONE(display)  (XInternAtom(display , "NONE" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
@@ -98,6 +99,31 @@ static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 static int  use_inherit_transparent = 0 ;
 static int  use_clipboard = 0 ;
 static int  use_urgent_bell = 0 ;
+
+static struct
+{
+	u_int8_t  h_type[2] ;
+	u_int8_t  h_size[4] ;
+	u_int8_t  h_res1[2] ;
+	u_int8_t  h_res2[2] ;
+	u_int8_t  h_offbits[4] ;
+
+	u_int8_t  i_size[4] ;
+	u_int8_t  i_width[4] ;
+	u_int8_t  i_height[4] ;
+	u_int8_t  i_planes[2] ;
+	u_int8_t  i_bitcount[2] ;
+	u_int8_t  i_compression[4] ;
+	u_int8_t  i_sizeimage[4] ;
+	u_int8_t  i_xpelspermeter[4] ;
+	u_int8_t  i_ypelspermeter[4] ;
+	u_int8_t  i_clrused[4] ;
+	u_int8_t  i_clrimportant[4] ;
+
+	u_char  data[1] ;
+
+} *  sel_bmp ;
+static size_t  sel_bmp_size ;
 
 
 /* --- static functions --- */
@@ -710,6 +736,85 @@ scroll_region(
 	}
 
 	win->wait_copy_area_response = 1 ;
+}
+
+static int
+send_selection(
+	x_window_t *  win ,
+	XSelectionRequestEvent *  req_ev ,
+	u_char *  sel_data ,
+	size_t  sel_len ,
+	Atom  sel_type ,
+	int  sel_format
+	)
+{
+	XEvent  res_ev ;
+
+	res_ev.xselection.type = SelectionNotify ;
+	res_ev.xselection.display = req_ev->display ;
+	res_ev.xselection.requestor = req_ev->requestor ;
+	res_ev.xselection.selection = req_ev->selection ;
+	res_ev.xselection.target = req_ev->target ;
+	res_ev.xselection.time = req_ev->time ;
+
+	if( sel_data == NULL)
+	{
+		res_ev.xselection.property = None ;
+	}
+	else
+	{
+		if( req_ev->property == None)
+		{
+			/* An obsolete client may fill None as a property.
+			 * Try to deal with them by using 'target' instead.
+			 */
+			req_ev->property = req_ev->target;
+		}
+		if( req_ev->property != None)
+		{
+			XChangeProperty( win->disp->display , req_ev->requestor ,
+				req_ev->property , sel_type ,
+				sel_format , PropModeReplace , sel_data , sel_len) ;
+		}
+		res_ev.xselection.property = req_ev->property ;
+	}
+
+	XSendEvent( win->disp->display , res_ev.xselection.requestor , False , 0 , &res_ev) ;
+
+	return  1 ;
+}
+
+static int
+right_shift(
+	u_long  mask
+	)
+{
+	int  shift = 0 ;
+	int  count = 8 ;
+
+	if( mask == 0)
+	{
+		return  0 ;
+	}
+
+	while((mask & 1) == 0)
+	{
+		mask >>= 1 ;
+		shift ++ ;
+	}
+
+	while((mask & 1) == 1)
+	{
+		mask >>= 1 ;
+		count -- ;
+	}
+
+	if( count > 0)
+	{
+		shift -= count ;
+	}
+
+	return  shift ;
 }
 
 
@@ -2586,6 +2691,9 @@ x_window_receive_event(
 		 * in x_display_clear_selection.
 		 */
 		x_display_clear_selection( win->disp , win) ;
+
+		free( sel_bmp) ;
+		sel_bmp = NULL ;
 	}
 	else if( event->type == SelectionRequest)
 	{
@@ -2596,6 +2704,7 @@ x_window_receive_event(
 	#endif
 		Atom  xa_targets ;
 		Atom  xa_text ;
+		Atom  xa_bmp ;
 
 		xa_compound_text = XA_COMPOUND_TEXT(win->disp->display) ;
 		xa_targets = XA_TARGETS(win->disp->display) ;
@@ -2604,6 +2713,7 @@ x_window_receive_event(
 	#endif
 		xa_text = XA_TEXT(win->disp->display) ;
 		xa_utf8_string = XA_UTF8_STRING(win->disp->display) ;
+		xa_bmp = XA_BMP(win->disp->display) ;
 
 		if( event->xselectionrequest.target == XA_STRING)
 		{
@@ -2638,27 +2748,33 @@ x_window_receive_event(
 		}
 		else if( event->xselectionrequest.target == xa_targets)
 		{
-			Atom  targets[5] ;
+			Atom  targets[6] ;
 
-			targets[0] =xa_targets ;
-			targets[1] =XA_STRING ;
-			targets[2] =xa_text ;
-			targets[3] =xa_compound_text ;
-			targets[4] =xa_utf8_string ;
-			
-			x_window_send_selection( win , &event->xselectionrequest ,
-				(u_char *)(&targets) , sizeof(targets) / sizeof targets[0] ,
+			targets[0] = xa_targets ;
+			targets[1] = XA_STRING ;
+			targets[2] = xa_text ;
+			targets[3] = xa_compound_text ;
+			targets[4] = xa_utf8_string ;
+			targets[5] = xa_bmp ;
+
+			send_selection( win , &event->xselectionrequest ,
+				(u_char *)targets , sizeof(targets) / sizeof targets[0] ,
 				XA_ATOM , 32) ;
 		}
 #ifdef  DEBUG
 		else if( event->xselectionrequest.target == xa_multiple)
 		{
-			kik_debug_printf("MULTIPLE requested(not yet implemented)\n") ;
+			kik_debug_printf( "MULTIPLE requested(not yet implemented)\n") ;
 		}
 #endif
+		else if( event->xselectionrequest.target == xa_bmp && sel_bmp)
+		{
+			send_selection( win , &event->xselectionrequest ,
+				(u_char *)sel_bmp , sel_bmp_size , xa_bmp , 8) ;
+		}
 		else
 		{
-			x_window_send_selection( win , &event->xselectionrequest , NULL , 0 , 0 , 0) ;
+			send_selection( win , &event->xselectionrequest , NULL , 0 , 0 , 0) ;
 		}
 	}
 	else if( event->type == SelectionNotify)
@@ -3501,13 +3617,112 @@ x_window_utf_selection_request(
 }
 
 int
-x_window_send_selection(
+x_window_send_picture_selection(
+	x_window_t *  win ,
+	Pixmap  pixmap ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	XImage *  image ;
+
+	if( win->disp->visual->class == TrueColor &&
+	    ( image = XGetImage( win->disp->display , pixmap , 0 , 0 , width , height ,
+			AllPlanes , ZPixmap)))
+	{
+		XVisualInfo *  vinfo ;
+
+		if( ( vinfo = x_display_get_visual_info( win->disp)))
+		{
+			int  shift[3] ;
+			u_long  mask[3] ;
+			size_t  image_size ;
+
+			shift[0] = right_shift((mask[0] = vinfo->blue_mask)) ;
+			shift[1] = right_shift((mask[1] = vinfo->green_mask)) ;
+			shift[2] = right_shift((mask[2] = vinfo->red_mask)) ;
+
+			image_size = width * height * 4 ;
+			sel_bmp_size = image_size + 54 ;
+
+			if( ( sel_bmp = calloc( 1 , sel_bmp_size)))
+			{
+				int  x ;
+				int  y ;
+				u_char *  dst ;
+
+				sel_bmp->h_type[0] = 0x42 ;
+				sel_bmp->h_type[1] = 0x4d ;
+				sel_bmp->h_size[0] = sel_bmp_size & 0xff ;
+				sel_bmp->h_size[1] = (sel_bmp_size >> 8) & 0xff ;
+				sel_bmp->h_size[2] = (sel_bmp_size >> 16) & 0xff ;
+				sel_bmp->h_size[3] = (sel_bmp_size >> 24) & 0xff ;
+				sel_bmp->h_offbits[0] = 54 ;
+				sel_bmp->i_size[0] = 40 ;
+				sel_bmp->i_width[0] = width & 0xff ;
+				sel_bmp->i_width[1] = (width >> 8) & 0xff ;
+				sel_bmp->i_width[2] = (width >> 16) & 0xff ;
+				sel_bmp->i_width[3] = (width >> 24) & 0xff ;
+				sel_bmp->i_height[0] = height & 0xff ;
+				sel_bmp->i_height[1] = (height >> 8) & 0xff ;
+				sel_bmp->i_height[2] = (height >> 16) & 0xff ;
+				sel_bmp->i_height[3] = (height >> 24) & 0xff ;
+				sel_bmp->i_planes[0] = 1 ;
+				sel_bmp->i_bitcount[0] = 32 ;
+				sel_bmp->i_sizeimage[0] = image_size & 0xff ;
+				sel_bmp->i_sizeimage[1] = (image_size >> 8) & 0xff ;
+				sel_bmp->i_sizeimage[2] = (image_size >> 16) & 0xff ;
+				sel_bmp->i_sizeimage[3] = (image_size >> 24) & 0xff ;
+
+				dst = sel_bmp->data ;
+				for( y = height - 1 ; y >= 0 ; y--)
+				{
+					for( x = 0 ; x < width ; x++)
+					{
+						u_long  pixel ;
+						int  count ;
+
+						pixel = XGetPixel( image , x , y) ;
+
+						for( count = 0 ; count < 3 ; count++)
+						{
+							if( shift[count] < 0)
+							{
+								*(dst++) = (pixel & mask[count]) <<
+										(-shift[count]) ;
+							}
+							else
+							{
+								*(dst++) = (pixel & mask[count]) >>
+										(shift[count]) ;
+							}
+						}
+
+						*(dst++) = 0x00 ;
+					}
+				}
+
+				x_window_set_selection_owner( win , CurrentTime) ;
+
+				kik_msg_printf( "Set a clicked picture to the clipboard.\n") ;
+			}
+
+			XFree(vinfo) ;
+		}
+
+		XDestroyImage( image) ;
+	}
+
+	return  0 ;
+}
+
+int
+x_window_send_text_selection(
 	x_window_t *  win ,
 	XSelectionRequestEvent *  req_ev ,
 	u_char *  sel_data ,
 	size_t  sel_len ,
-	Atom  sel_type ,
-	int sel_format
+	Atom  sel_type
 	)
 {
 	XEvent  res_ev ;
@@ -3536,7 +3751,7 @@ x_window_send_selection(
 		{
 			XChangeProperty( win->disp->display , req_ev->requestor ,
 				req_ev->property , sel_type ,
-				sel_format , PropModeReplace , sel_data , sel_len) ;
+				8 , PropModeReplace , sel_data , sel_len) ;
 		}
 		res_ev.xselection.property = req_ev->property ;
 	}

@@ -738,7 +738,9 @@ x_font_new(
 				percent = 0 ;
 			}
 		#elif  defined(__ANDROID__)
-			font_file = "/sdcard/.mlterm/unifont.pcf" ;
+			extern char *  unifont_path ;	/* XXX defined in main.c */
+
+			font_file = unifont_path ;
 			percent = 100 ;
 		#else /* __linux__ */
 			if( stat( "/usr/share/fonts/X11/misc/unifont.pcf.gz" , &st) == 0)

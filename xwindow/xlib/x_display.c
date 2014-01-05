@@ -621,9 +621,6 @@ x_display_get_cursor(
 	return  disp->cursors[idx] ;
 }
 
-/*
- * Called from x_imagelib.c alone.
- */
 XVisualInfo *
 x_display_get_visual_info(
 	x_display_t *  disp

@@ -3075,7 +3075,7 @@ xct_selection_requested(
 
 	if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
 	{
-		x_window_send_selection( win , event , NULL , 0 , 0 , 0) ;
+		x_window_send_text_selection( win , event , NULL , 0 , 0) ;
 	}
 	else
 	{
@@ -3096,7 +3096,7 @@ xct_selection_requested(
 
 		filled_len = convert_selection_to_xct( screen , xct_str , xct_len) ;
 
-		x_window_send_selection( win , event , xct_str , filled_len , type , 8) ;
+		x_window_send_text_selection( win , event , xct_str , filled_len , type) ;
 
 		free( xct_str) ;
 	}
@@ -3115,7 +3115,7 @@ utf_selection_requested(
 
 	if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
 	{
-		x_window_send_selection( win , event , NULL , 0 , 0 , 0) ;
+		x_window_send_text_selection( win , event , NULL , 0 , 0) ;
 	}
 	else
 	{
@@ -3136,7 +3136,7 @@ utf_selection_requested(
 
 		filled_len = convert_selection_to_utf( screen , utf_str , utf_len) ;
 
-		x_window_send_selection( win , event , utf_str , filled_len , type , 8) ;
+		x_window_send_text_selection( win , event , utf_str , filled_len , type) ;
 
 		free( utf_str) ;
 	}
@@ -3717,6 +3717,34 @@ selecting_with_motion(
 	}
 }
 
+static int
+selecting_picture(
+	x_screen_t *  screen ,
+	int  char_index ,
+	int  row
+	)
+{
+	ml_line_t *  line ;
+	ml_char_t *  ch ;
+	size_t  comb_size ;
+	x_inline_picture_t *  pic ;
+
+	if( ! ( line = ml_term_get_line( screen->term , row)) ||
+	    ml_line_is_empty( line) ||
+	    ! ( ch = ml_char_at( line , char_index)) ||
+	    ! ( ch = ml_get_combining_chars( ch , &comb_size)) ||
+	    ml_char_cs( ch) != PICTURE_CHARSET ||
+	    ! ( pic = x_get_inline_picture( INLINEPIC_ID(ml_char_code( ch)))))
+	{
+		return  0 ;
+	}
+
+	x_window_send_picture_selection( &screen->window ,
+			pic->pixmap , pic->width , pic->height) ;
+
+	return  1 ;
+}
+
 static void
 selecting_word(
 	x_screen_t *  screen ,
@@ -3747,6 +3775,11 @@ selecting_word(
 	{
 		/* over end of line */
 
+		return ;
+	}
+
+	if( selecting_picture( screen , char_index , row))
+	{
 		return ;
 	}
 

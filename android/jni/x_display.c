@@ -398,6 +398,7 @@ process_mouse_event(
 					click_num = 0 ;
 
 				#if  0
+					/* This doesn't work on Android 3.x and 4.x. */
 					ANativeActivity_showSoftInput( _display.app->activity ,
 						ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED) ;
 				#else

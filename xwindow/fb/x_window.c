@@ -2038,13 +2038,23 @@ x_window_utf_selection_request(
 }
 
 int
-x_window_send_selection(
+x_window_send_picture_selection(
+	x_window_t *  win ,
+	Pixmap  pixmap ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	return  0 ;
+}
+
+int
+x_window_send_text_selection(
 	x_window_t *  win ,
 	XSelectionRequestEvent *  req_ev ,
 	u_char *  sel_data ,
 	size_t  sel_len ,
-	Atom  sel_type ,
-	int sel_format
+	Atom  sel_type
 	)
 {
 	return  1 ;

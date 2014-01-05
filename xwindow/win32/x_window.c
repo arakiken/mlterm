@@ -3096,13 +3096,60 @@ x_window_utf_selection_request(
 }
 
 int
-x_window_send_selection(
+x_window_send_picture_selection(
+	x_window_t *  win ,
+	Pixmap  pixmap ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	HBITMAP  hbmp ;
+	HGDIOBJ old ;
+	HDC  hdc ;
+
+	if( MessageBox( win->my_window , "Set this picture to the clipboard." ,
+		"" , MB_OKCANCEL) != IDOK)
+	{
+		return  0 ;
+	}
+
+	hbmp = CreateCompatibleBitmap( pixmap , width , height) ;
+	hdc = CreateCompatibleDC( pixmap) ;
+	old = SelectObject( hdc , hbmp) ;
+	BitBlt( hdc , 0 , 0 , width , height , pixmap , 0 , 0 , SRCCOPY) ;
+	SelectObject( hdc , old) ;
+	DeleteDC( hdc) ;
+
+	if( ( ! win->is_sel_owner &&
+	      ! x_display_own_selection( win->disp , win)) ||
+	    OpenClipboard( win->my_window) == FALSE)
+	{
+		return  0 ;
+	}
+
+	/*
+	 * If win->is_sel_owner is already 1, win->is_sel_owner++ prevents
+	 * WM_DESTROYCLIPBOARD by EmtpyClipboard() from calling
+	 * x_display_clear_selection().
+	 */
+	win->is_sel_owner ++ ;
+
+	EmptyClipboard() ;
+	SetClipboardData( CF_BITMAP , hbmp) ;
+	CloseClipboard() ;
+
+	DeleteObject( hbmp) ;
+
+	return  1 ;
+}
+
+int
+x_window_send_text_selection(
 	x_window_t *  win ,
 	XSelectionRequestEvent *  req_ev ,
 	u_char *  sel_data ,
 	size_t  sel_len ,
-	Atom  sel_type ,
-	int sel_format
+	Atom  sel_type
 	)
 {
 	HGLOBAL  hmem ;

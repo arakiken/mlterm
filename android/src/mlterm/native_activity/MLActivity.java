@@ -102,39 +102,33 @@ public class MLActivity extends NativeActivity
 		}
 	}
 
-	public void saveUnifont()
+	public String saveUnifont()
 	{
-		File  file = new File("/sdcard/.mlterm/unifont.pcf") ;
-		if( file.exists())
+		File  file = getFileStreamPath( "unifont.pcf") ;
+		if( ! file.exists())
 		{
-			return ;
-		}
-
-		try
-		{
-			File  dir = new File( "/sdcard/.mlterm") ;
-			if( ! dir.isDirectory())
+			try
 			{
-				dir.mkdir() ;
+				InputStream  is = getResources().getAssets().open( "unifont.pcf") ;
+				OutputStream  os = openFileOutput( "unifont.pcf" , 0) ;
+				int  len ;
+				byte[]  buf = new byte[102400] ;
+
+				while( ( len = is.read( buf)) >= 0)
+				{
+					os.write( buf , 0 , len) ;
+				}
+
+				os.close() ;
+				is.close() ;
+
+				System.err.println( "unifont.pcf written.\n") ;
 			}
-
-			InputStream  is = getResources().getAssets().open( "unifont.pcf") ;
-			OutputStream  os = new FileOutputStream( "/sdcard/.mlterm/unifont.pcf") ;
-			int  len ;
-			byte[]  buf = new byte[102400] ;
-
-			while( ( len = is.read( buf)) >= 0)
+			catch(Exception  e)
 			{
-				os.write( buf , 0 , len) ;
 			}
-
-			os.close() ;
-			is.close() ;
-
-			System.err.println( "unifont.pcf written.\n") ;
 		}
-		catch(Exception  e)
-		{
-		}
+
+		return  file.getPath() ;
 	}
 }

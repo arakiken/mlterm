@@ -1,3 +1,15 @@
+2014-01-05  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/main.c, MLActivity.java: unifont.pcf is saved in
+	  /data/data/mlterm.native_activity/files instead of /sdcard/.mlterm.
+
+	* x_screen.c: Fixes because of the changes of x_window.[ch].
+
+	* win32/x_window.c, xlib/x_window.c, x_window.h:
+	  - x_window_send_picture_selection() which sends double-clicked picture
+	    to other windows via clipboard.
+	  - x_window_send_selection() is renamed to x_window_send_text_selection().
+
 2014-01-01  Araki Ken  <arakiken@users.sf.net>
 
 	* MLActivity.java: Minor changes around input method window in onCreate().

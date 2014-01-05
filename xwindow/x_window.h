@@ -369,8 +369,11 @@ int  x_window_xct_selection_request( x_window_t *  win , Time  time) ;
 
 int  x_window_utf_selection_request( x_window_t *  win , Time  time) ;
 
-int  x_window_send_selection( x_window_t *  win , XSelectionRequestEvent *  event ,
-	u_char *  sel_data , size_t  sel_len , Atom  sel_type , int sel_format) ;
+int  x_window_send_picture_selection( x_window_t *  win , Pixmap  pixmap ,
+	u_int  width , u_int  height) ;
+
+int  x_window_send_text_selection( x_window_t *  win , XSelectionRequestEvent *  event ,
+	u_char *  sel_data , size_t  sel_len , Atom  sel_type) ;
 
 int  x_set_window_name( x_window_t *  win , u_char *  name) ;
 
