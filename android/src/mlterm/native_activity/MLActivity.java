@@ -9,10 +9,16 @@ import  android.view.KeyEvent ;
 import  android.view.WindowManager ;
 import  android.view.WindowManager.LayoutParams ;
 import  android.view.inputmethod.InputMethodManager ;
+import  android.view.inputmethod.InputConnection ;
+import  android.view.inputmethod.BaseInputConnection ;
+import  android.view.inputmethod.EditorInfo ;
 import  android.view.View ;
+import  android.view.ViewGroup ;
+import  android.text.InputType ;
 import  android.content.Context ;
 import  android.os.Bundle ;
 import  android.graphics.Rect ;
+import  android.util.AttributeSet ;
 import  java.io.* ;
 
 
@@ -24,13 +30,86 @@ public class MLActivity extends NativeActivity
 	}
 
 	private native void  visibleFrameChanged( int  yoffset , int  width , int  height) ;
+	private native void  commitText( String  str) ;
+	private native void  preeditText( String  str) ;
 
-	public String  keyString ;
+	private boolean  isPreediting ;
+	private String  keyString ;
+	private View  contentView ;
+
+	private class TextInputConnection extends BaseInputConnection
+	{
+		public TextInputConnection( View  v , boolean  fulledit)
+		{
+			super( v , fulledit) ;
+		}
+
+		@Override
+		public boolean commitText( CharSequence  text , int  newCursorPosition)
+		{
+			super.commitText( text , newCursorPosition) ;
+
+			isPreediting = false ;
+			commitText( text.toString()) ;
+
+			return  true ;
+		}
+
+		@Override
+		public boolean setComposingText( CharSequence  text , int  newCursorPosition)
+		{
+			super.setComposingText( text , newCursorPosition) ;
+
+			isPreediting = true ;
+			preeditText( text.toString()) ;
+
+			return  true ;
+		}
+
+		@Override
+		public boolean finishComposingText()
+		{
+			super.finishComposingText() ;
+
+			isPreediting = false ;
+
+			return  true ;
+		}
+	}
+
+	private class NativeContentView extends View
+	{
+		public NativeContentView( Context  context)
+		{
+			super( context) ;
+		}
+
+		public NativeContentView( Context  context , AttributeSet  attrs)
+		{
+			super( context , attrs) ;
+		}
+
+		@Override
+		public boolean onCheckIsTextEditor()
+		{
+			return  true ;
+		}
+
+		@Override
+		public InputConnection onCreateInputConnection( EditorInfo  outAttrs)
+		{
+			outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE ;
+			outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION |
+			                      EditorInfo.IME_ACTION_DONE ;
+
+			return  new TextInputConnection( this , true) ;
+		}
+	}
 
 	public void showSoftInput()
 	{
 		((InputMethodManager)getSystemService( Context.INPUT_METHOD_SERVICE)).showSoftInput(
-			getWindow().getDecorView() , InputMethodManager.SHOW_FORCED) ;
+			contentView , InputMethodManager.SHOW_FORCED) ;
 	}
 
 	@Override
@@ -47,16 +126,28 @@ public class MLActivity extends NativeActivity
 	@Override
 	protected void onCreate( Bundle  state)
 	{
-		View  view ;
-
 		super.onCreate( state) ;
 
 		getWindow().setSoftInputMode( WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE) ;
 
-		view = getWindow().getDecorView() ;
+		if( false)
+		{
+			/* setContentView() is called in NativeActivity.onCreate(). */
+			contentView = ((ViewGroup)findViewById(android.R.id.content)).getChildAt(0) ;
+		}
+		else
+		{
+			contentView = new NativeContentView( this) ;
+			setContentView( contentView) ;
+			contentView.getViewTreeObserver().addOnGlobalLayoutListener( this) ;
+		}
+
+		contentView.setFocusable( true) ;
+		contentView.setFocusableInTouchMode( true) ;
+		contentView.requestFocus() ;
 
 		/* android-11 or later */
-		view.addOnLayoutChangeListener(
+		getWindow().getDecorView().addOnLayoutChangeListener(
 			new View.OnLayoutChangeListener()
 			{
 				@Override
@@ -67,39 +158,30 @@ public class MLActivity extends NativeActivity
 					Rect  r = new Rect() ;
 					v.getWindowVisibleDisplayFrame(r) ;
 					visibleFrameChanged( r.top , r.right , r.bottom - r.top) ;
+					if( isPreediting)
+					{
+						commitText( "") ;	/* Stop preediting. */
+					}
 				}
 			}) ;
+	}
 
-		if( true)
-		{
-			view.setOnFocusChangeListener(
-				new View.OnFocusChangeListener()
-				{
-					@Override
-					public void onFocusChange( View  v , boolean  hasFocus)
-					{
-						InputMethodManager  m = (InputMethodManager)getSystemService(
-													Context.INPUT_METHOD_SERVICE) ;
-						if( hasFocus)
-						{
-							m.showSoftInput( v , InputMethodManager.SHOW_FORCED) ;
-						}
-						else
-						{
-							m.hideSoftInputFromWindow( v.getWindowToken() , 0) ;
-						}
-					}
-				}) ;
+	@Override
+	protected void onPause()
+	{
+		super.onPause() ;
 
-			view.setFocusable( true) ;
-			view.setFocusableInTouchMode( true) ;
-			view.requestFocus() ;
-		}
-		else
-		{
-			((InputMethodManager)getSystemService( Context.INPUT_METHOD_SERVICE)).showSoftInput(
-						view , InputMethodManager.SHOW_FORCED) ;
-		}
+		((InputMethodManager)getSystemService(
+			Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(
+				contentView.getWindowToken() , 0) ;
+	}
+
+	@Override
+	protected void onRestart()
+	{
+		super.onRestart() ;
+
+		showSoftInput() ;
 	}
 
 	public String saveUnifont()

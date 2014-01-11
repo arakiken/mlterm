@@ -34,6 +34,8 @@ RSOBJ_win32 = winrs.o
 
 OBJ = $(OBJ1) $(OBJ2_@GUI@)
 
+XDISPLAY_DEPENDS_fb = x_display_freebsd.c x_display_linux.c x_display_wscons.c x_display_x68kgrf.c
+
 LIBNAME = libxwindow
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
@@ -60,6 +62,9 @@ $(LIBNAME).a: $(OBJ) $(RSOBJ_@GUI@)
 .SUFFIXES: .c .o
 
 .c.o:
+	$(LIBTOOL_CC) -c $<
+
+x_display.o: x_display.c $(XDISPLAY_DEPENDS_@GUI@)
 	$(LIBTOOL_CC) -c $<
 
 winrs.o: winrs.rs

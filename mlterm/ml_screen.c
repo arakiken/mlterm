@@ -2232,7 +2232,8 @@ ml_screen_disable_local_echo(
 {
 	u_int  row ;
 	u_int  num_of_rows ;
-	ml_line_t *  line ;
+	ml_line_t *  old_line ;
+	ml_line_t *  new_line ;
 
 	if( ! screen->stored_edits)
 	{
@@ -2241,17 +2242,26 @@ ml_screen_disable_local_echo(
 
 	num_of_rows = ml_edit_get_rows( screen->edit) ;
 
-	/* Modified lines are inherited to stored_edits. */
+	/*
+	 * Set modified flag to the difference between the current edit and the stored one
+	 * to restore the screen before starting local echo.
+	 */
 	for( row = 0 ; row < num_of_rows ; row++)
 	{
-		if( ( line = ml_edit_get_line( screen->edit , row)) &&
-		    ml_line_is_modified( line) &&
-		    ( line = ml_edit_get_line(
-				( screen->edit == &screen->normal_edit ?
-					&screen->stored_edits->normal_edit :
-					&screen->stored_edits->alt_edit) , row)))
+		if( ( new_line = ml_edit_get_line(
+					( screen->edit == &screen->normal_edit ?
+					  &screen->stored_edits->normal_edit :
+					  &screen->stored_edits->alt_edit) , row)) &&
+		    ( old_line = ml_edit_get_line( screen->edit , row)) &&
+		    ( ml_line_is_modified( old_line) ||
+		      old_line->num_of_filled_chars != new_line->num_of_filled_chars
+		#if  0
+		      || ml_str_bytes_equal( old_line->chars , new_line->chars ,
+				new_line->num_of_filled_chars)
+		#endif
+		      ))
 		{
-			ml_line_set_modified_all( line) ;
+			ml_line_set_modified_all( new_line) ;
 		}
 	}
 

@@ -1,3 +1,19 @@
+2014-01-11  Araki Ken  <arakiken@users.sf.net>
+
+	* MLActivity.java:
+	  - NativeContentView and TextInputConnection inner classes
+	    are added to support Google IME.
+	  - IME is hidden on pause and shown on restart.
+
+	* android/jni/x_event_source.c: commitText and preeditTexit native methods
+	  which output text from IME are added.
+
+	* xwindow/Makefile.in:
+	  fb/x_display_*.c are added to the dependency of x_display.o on framebuffer.
+
+	* xwindow/libtype/Makefile.in:
+	  x_font_ft.c is added to the dependency of x_font_cairo.o and x_font_xft.o.
+
 2014-01-05  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/main.c, MLActivity.java: unifont.pcf is saved in

@@ -5463,6 +5463,33 @@ ml_vt100_parser_write_loopback(
 	return  write_loopback( vt100_parser , buf , len , 0) ;
 }
 
+#ifdef  __ANDROID__
+int
+ml_vt100_parser_preedit(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	if( ! vt100_parser->is_underlined)
+	{
+		char *  new_buf ;
+		size_t  new_len ;
+
+		if( ( new_buf = alloca( ( new_len = 4 + len + 5))))
+		{
+			memcpy( new_buf , "\x1b[4m" , 4) ;
+			memcpy( new_buf + 4 , buf , len) ;
+			memcpy( new_buf + 4 + len , "\x1b[24m" , 5) ;
+			buf = new_buf ;
+			len = new_len ;
+		}
+	}
+
+	return  write_loopback( vt100_parser , buf , len , 1) ;
+}
+#endif
+
 int
 ml_vt100_parser_local_echo(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -5500,9 +5527,7 @@ ml_vt100_parser_local_echo(
 		}
 	}
 
-	write_loopback( vt100_parser , buf , len , 1) ;
-
-	return  1 ;
+	return  write_loopback( vt100_parser , buf , len , 1) ;
 }
 
 int
