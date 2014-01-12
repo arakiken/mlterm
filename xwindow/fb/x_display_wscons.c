@@ -442,8 +442,14 @@ open_display(
 #ifdef  WSDISPLAY_TYPE_LUNA
 	if( wstype == WSDISPLAY_TYPE_LUNA && (_disp.depth == 4 || _disp.depth == 8))
 	{
+		u_int  plane ;
+
 		_display.smem_len = 0x40000 * _disp.depth ;
-		_display.plane_len = 0x40000 ;
+
+		for( plane = 0 ; plane < _disp.depth ; plane++)
+		{
+			_display.plane_offset[plane] = 0x40000 * plane ;
+		}
 	}
 	else
 #endif

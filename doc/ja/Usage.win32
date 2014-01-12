@@ -1,0 +1,173 @@
+cygwin/win32gdi 版 mlterm によるコンソール環境整備に関する備忘録
+
+* 概要
+  Windows をホスト OSとし、vmware player などに複数の仮想環境を立ち上げ、それら
+  に ssh で接続して各種操作を行う、というのはよくある(?)ことだと思いますが、その
+  ような場合における mlterm の使い方をまとめたメモです。
+
+* やりたいこと
+  1) 複数のゲスト OS への接続をできるだけ自動化したい。
+  2) ゲスト OS の X アプリケーションをホスト OS の X サーバ(cygwin)に表示したい。
+  3) ゲスト OS の emacs サーバに接続したい。
+  4) ゲスト OS 上で画像を表示したい。
+
+  http://mlterm.sf.net/mlterm-cygwin.png
+
+* cygwin/win32gdi 版 mlterm の入手
+  http://mlterm.sf.net/bin.html にある
+  http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip をダウンロードし、
+  c:\cygwin 以下に展開。
+
+  設定等については、
+  http://bitbucket.org/arakiken/mlterm/raw/tip/doc/ja/README.win32
+  http://bitbucket.org/arakiken/mlterm/raw/tip/doc/ja/README.ja
+  を参照。
+
+* ゲスト OS への接続
+  mlterm は、libssh2 を使って ssh サーバ に接続する機能を持っています。
+  接続するサーバは、--serv オプションで指定できるので、cygwin/win32gdi 版の mlterm
+  をダブルクリックして起動した後、次のようなスクリプトを実行することで、(単一の
+  プロセス中で)接続したいゲスト OS への接続を順次開始することができます。
+  (認証には、~/.ssh/id_rsa.pub 及び ~/.ssh/id_rsa を使用します。)
+
+#!/bin/sh
+
+mlcc exec mlclient --serv user@host:port
+mlcc exec mlclient --serv user@host:port
+mlcc exec mlclient --serv user@host:port
+....
+
+  また、~/.mlterm/key に
+  Control+F5="proto:mlclient --serv user@host:port"
+  のようにショートカットとして割り当てておくことも可能です。
+
+  なお、windows 7 で、ホスト OS をサスペンドした時に ssh の接続が切断される (ARP
+  テーブルがリセットされる) という問題が生じる場合は vmware player 付属ツールの
+  vmnetcfg の「NAT接続」で、接続したいサーバ・ポートを、ローカルホスト
+  (127.0.0.1)の特定のポートに転送することで回避できます。
+  例えば、192.168.146.10 の22番ポートに接続したい場合、これを127.0.0.1の9910番ポ
+  ートに転送し、
+  $ mlcc exec mlclient --serv user@127.0.0.1:9910
+  とすれば、ホスト OS をサスペンドしても、ssh 接続が切断されることはありません。
+  (他にも解決方法があるのかもしれませんが)
+
+  さて、上記のスクリプトを実行すると、順次、パスワード入力画面が表示され、OK ボ
+  タンを押下することにより、サーバへの接続を開始していきます。
+  このとき、一々パスワードを入力するのが面倒なので、pageant を使い、パスワードを
+  入力せずに OK ボタンを押すだけで認証できるようにすることもできます。
+  ただし、cygwin 標準の libssh2 では pageant が使えないため、
+  http://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz をビルドし、
+  /usr/bin/cygssh2-1.dll を置き換える必要があります。
+  (上記私家版 libssh2 の changeset 12:3b301bbbc26dをビルドしたバイナリ
+   => http://mlterm.sf.net/cygssh2-1.dll.tar.gz
+      MD5 (cygssh2-1.dll.tar.gz) = 67e42d49dadf83e28e6d0099e10661a3)
+
+  Agent forwarding に対応することもできますが、その場合、上記 camellia.tar.gz
+  をビルドし、make install した上で mlterm cygwin/win32gdi 版を一から作り直す作
+  業が必要になります。
+
+  一旦 ssh サーバに接続した後、同じサーバに対しては、
+  $ mlcc exec mlclient --serv user@host:port
+  するか、そのサーバに接続しているウィンドウ上で Control+F1 又は Control+F2 を押
+  下すると、パスワード等の入力画面なしにすぐに新しいウィンドウを開くことができま
+  す(後者の方法の場合、mlcc exec mlclient で指定されたコマンドラインオプションは
+  無視されるので注意してください。)。
+
+* X アプリケーションの利用
+  まず、ssh サーバ側の /etc/ssh/sshd_config で
+  X11Forwarding yes
+  と設定しておくとともに、ホスト OS 上で X サーバ (cygwin) を起動しておく必要が
+  あります。
+
+  その上で、mlterm から ssh サーバに接続する際に -x11 オプションを指定すると、
+  X11 forwarding により、リモートの X アプリケーションをホスト OS 上の X サーバ
+  に表示することができます。
+
+  パスワード等の入力画面の「X11 forwarding」というチェックボックスでも、有効又は
+  無効にすることができます。
+
+* emacs サーバへの接続
+  ゲスト OS 上の emacs サーバに接続して編集作業を行なえば、mlterm のウィンドウを
+  閉じても、emacs サーバが生きている限り、編集中のファイルや twittering-mode な
+  どのログが残るので便利です。
+
+  まず、ゲスト OS 上で emacs --daemon を起動した上で、次のように ~/.mlterm/key
+  に設定し、指定キーを押下することで emacsclient 経由で emacs サーバの画面を表示
+  することができます。
+  Control+F5="proto:mlclient --serv user@host:port -e /usr/.../bin/emacsclient -t"
+
+  なお、emacsclient から emacs サーバに接続すると keyboard-coding-system がリセ
+  ットされているので、接続する都度、(set-keyboard-coding-system 'euc-jp) などを
+  実行しないと、MS-IME からの日本語入力ができません。
+
+  また、ホスト OS の ~/.mlterm/main において、
+  allow_osc52=true
+  と設定した上で、ゲスト OS の ~/.emacs.d/init.el において、次のように設定してお
+  けば、emacs 上でコピーした文字列を、他の mlterm ウィンドウや、他の windows アプ
+  リケーションに貼り付けることができます(mlterm 経由で任意のコンソールアプリケー
+  ションがクリップボードにアクセスできるようになるため、注意が必要です。)。
+
+(defun my-cut-function (text &optional rest)
+  (interactive)
+    (send-string-to-terminal "\x1b]52;")
+      (send-string-to-terminal
+        (base64-encode-string
+          (encode-coding-string text 'euc-jp) t))
+        (send-string-to-terminal "\x07"))
+(setq interprogram-cut-function 'my-cut-function)
+
+  加えて、X11 forwading を有効にしている場合、emacs 内部から起動するブラウザを次
+  のように設定すれば、ローカルの X サーバにブラウザを表示することもできます。
+
+(defun xterm-w3m (URL &rest ARGS)
+  (let ((args (concat "-g 100x35 -e w3m " URL)))
+    (start-process-shell-command "xterm" "w3m" "xterm" args)))
+(setq browse-url-browser-function 'xterm-w3m)
+
+  emacs をコンソールで使用する場合、スクロールバーは特に必要ないと思いますが、
+  -sbmod=none オプションを指定すれば、スクロールバーは非表示となります。
+  Control+F5="proto:mlclient -sbmod=none --serv user@host:port -e /usr/.../bin/emacsclient -t"
+
+* 画像の利用
+  mlterm は sixel graphics に対応しているので、各種画像を次のように sixel に変換
+  し、リモートホスト上で cat することで画像を表示することができます。
+  $ convert -colors 256 a.png ppm:- | ppmtosixel > a.six
+
+  tw (http://shokai.github.io/tw/) を sixel に対応させた
+  http://bitbucket.org/arakiken/tw/get/sixel.tar.gz をインストールし、ゲスト OS
+  上で動かせば、画像付きでツイートを表示することもできます。
+
+  また、mlterm の独自拡張機能を使用するものですが、
+  http://bitbucket.org/arakiken/w3m/get/remoteimg.tar.gz
+  をインストールすれば、ゲスト OS 上の w3m で画像を表示することもできます。
+  (詳細は http://bitbucket.org/arakiken/mlterm/raw/tip/doc/ja/README.w3m を参照)
+
+  なお、3.3.3以降であれば、表示した画像は、ダブルクリックすることでクリップボー
+  ドにコピーすることができます。
+
+* その他 Tips
+  o http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip には、mlconfig を
+    同梱していません(mlconfig は windows 版の gtk+ に依存するため)。
+    このため、設定を変更する場合は、直接 ~/.mlterm/main を編集する必要があります。
+    雛型は、http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip に含まれる
+    etc/mlterm/main を利用してください。
+
+    設定を動的に変更する場合には、mlcc コマンドを次のように使用してください。
+    $ mlcc encoding eucjp
+
+  o ~/.mlterm/key に次のように設定し、URL を選択して Shift + 右クリックすると、
+    選択した URL を引数として Internet Explorer を開くことができます。
+    Shift+Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe"
+
+  o ~/.mlterm/main に次のとおり設定することで、文字エンコーディングの自動判定を
+    行うことができます。
+    auto_detect_encodings = utf8,sjis,eucjp
+    use_auto_detect = true
+
+    use_auto_detect オプションは動的に変更できるため、必要な場合だけ
+    $ mlcc use_auto_detect true
+    を実行する方法や、~/.mlterm/key に次のように設定し、ショートカットキーで変更
+    する方法もあります。
+    Control+F6="proto:use_auto_detect=true"
+    Control+F7="proto:use_auto_detect=false"
+    (3.3.3 以降であれば "proto:use_auto_detect=switch" で切り替えられます。)

@@ -1,3 +1,12 @@
+2014-01-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_freebsd.c: Configuration for M_PC98_EGC640x400 is added.
+
+	* x.h, x_display_wscons.c:
+	  size_t plane_len is changed to size_t plane_offset[8] in Display structure.
+
+	* doc/ja/Usage.win32: Added.
+
 2014-01-11  Araki Ken  <arakiken@users.sf.net>
 
 	* MLActivity.java:

@@ -83,7 +83,7 @@ typedef struct
 	int  shift_0 ;
 	int  mask ;
 
-	size_t  plane_len ;
+	size_t  plane_offset[8] ;
 
 } Display ;
 

@@ -449,9 +449,9 @@ put_image_124bpp(
 			#ifdef  ENABLE_DOUBLE_BUFFER
 				fb_pixel = _display.back_fb[
 						get_fb( x + size , y) - _display.fb +
-						_display.plane_len * plane] ;
+						_display.plane_offset[plane]] ;
 			#else
-				fb_pixel = get_fb( x + size , y)[_display.plane_len * plane] ;
+				fb_pixel = get_fb( x + size , y)[_display.plane_offset[plane]] ;
 			#endif
 
 				do
@@ -472,11 +472,14 @@ put_image_124bpp(
 
 		if( ++plane < _disp.depth)
 		{
-			fb += _display.plane_len ;
+			size_t  offset ;
+
+			offset = _display.plane_offset[plane] - _display.plane_offset[plane - 1] ;
+			fb += offset ;
 		#ifdef  ENABLE_DOUBLE_BUFFER
 			if( write_back_fb)
 			{
-				new_image += _display.plane_len ;
+				new_image += offset ;
 			}
 		#endif
 		}
@@ -562,7 +565,7 @@ restore_hidden_region(void)
 		for( plane = 0 ; plane < num_of_planes ; plane++)
 		{
 			fb = get_fb(_mouse.cursor.x , _mouse.cursor.y) +
-				_display.plane_len * plane ;
+				_display.plane_offset[plane] ;
 
 			for( count = 0 ; count < _mouse.cursor.height ; count++)
 			{
@@ -613,7 +616,7 @@ save_hidden_region(void)
 
 	for( plane = 0 ; plane < num_of_planes ; plane++)
 	{
-		fb = get_fb( _mouse.cursor.x , _mouse.cursor.y) + _display.plane_len * plane ;
+		fb = get_fb( _mouse.cursor.x , _mouse.cursor.y) + _display.plane_offset[plane] ;
 
 		for( count = 0 ; count < _mouse.cursor.height ; count++)
 		{
@@ -1879,7 +1882,7 @@ x_display_fill_with(
 		#ifndef  ENABLE_2_4_PPB
 			if( ++plane < _disp.depth)
 			{
-				fb = fb_orig + _display.plane_len * plane ;
+				fb = fb_orig + _display.plane_offset[plane] ;
 				fb_end = fb + (buf_end - buf) ;
 			}
 			else
@@ -1941,8 +1944,8 @@ x_display_copy_lines(
 	{
 		if( src_y <= dst_y)
 		{
-			src = get_fb( src_x , src_y + height - 1) + _display.plane_len * plane ;
-			dst = get_fb( dst_x , dst_y + height - 1) + _display.plane_len * plane ;
+			src = get_fb( src_x , src_y + height - 1) + _display.plane_offset[plane] ;
+			dst = get_fb( dst_x , dst_y + height - 1) + _display.plane_offset[plane] ;
 
 		#ifdef  ENABLE_DOUBLE_BUFFER
 			if( _display.back_fb)
@@ -2001,8 +2004,8 @@ x_display_copy_lines(
 		}
 		else
 		{
-			src = get_fb( src_x , src_y) + _display.plane_len * plane ;
-			dst = get_fb( dst_x , dst_y) + _display.plane_len * plane ;
+			src = get_fb( src_x , src_y) + _display.plane_offset[plane] ;
+			dst = get_fb( dst_x , dst_y) + _display.plane_offset[plane] ;
 
 		#ifdef  ENABLE_DOUBLE_BUFFER
 			if( _display.back_fb)

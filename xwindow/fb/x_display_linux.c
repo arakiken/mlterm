@@ -244,19 +244,12 @@ open_display(
 
 	if( ( _disp.depth = vinfo.bits_per_pixel) < 8)
 	{
-	#if  0
-		/* 1/2/4 bpp is not supported. */
-		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.bits_per_pixel) ;
-
-		goto  error ;
-	#else
 	#ifdef  ENABLE_2_4_PPB
 		_display.pixels_per_byte = 8 / _disp.depth ;
 	#else
 		/* XXX Forcibly set 1 bpp */
 		_display.pixels_per_byte = 8 ;
 		_disp.depth = 1 ;
-	#endif
 	#endif
 
 		_display.shift_0 = FB_SHIFT_0(_display.pixels_per_byte,_disp.depth) ;

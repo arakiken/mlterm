@@ -47,16 +47,6 @@ open_display(
 	ioctl( _display.fb_fd , FBIO_ADPINFO , &vainfo) ;
 	ioctl( _display.fb_fd , FBIO_GETDISPSTART , &vstart) ;
 
-	if( ( _disp.depth = vinfo.vi_depth) < 8)
-	{
-	#if  0
-		/* 1/2/4 bpp is not supported. */
-		kik_msg_printf( "%d bpp is not supported.\n" , vinfo.vi_depth) ;
-
-		goto  error ;
-	#endif
-	}
-
 	if( ( _display.fb = mmap( NULL , (_display.smem_len = vainfo.va_window_size) ,
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
@@ -66,6 +56,8 @@ open_display(
 		goto  error ;
 	}
 
+	_disp.depth = vinfo.vi_depth ;
+
 	if( ( _display.bytes_per_pixel = (_disp.depth + 7) / 8) == 3)
 	{
 		_display.bytes_per_pixel = 4 ;
@@ -73,7 +65,18 @@ open_display(
 
 	if( _disp.depth < 15)
 	{
-		if( _disp.depth < 8)
+		if( vainfo.va_mode == M_PC98_EGC640x400)
+		{
+			_display.pixels_per_byte = 8 ;
+			_disp.depth = 4 ;
+			_display.shift_0 = 7 ;
+			_display.mask = 1 ;
+			_display.plane_offset[0] = 0 ;		/* 0xA8000 */
+			_display.plane_offset[1] = 0x8000 ;	/* 0xB0000 */
+			_display.plane_offset[2] = 0x10000 ;	/* 0xB8000 */
+			_display.plane_offset[3] = 0x38000 ;	/* 0xE0000 */
+		}
+		else if( _disp.depth < 8)
 		{
 		#ifdef  ENABLE_2_4_PPB
 			_display.pixels_per_byte = 8 / _disp.depth ;

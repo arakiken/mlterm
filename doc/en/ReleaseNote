@@ -2,7 +2,7 @@ ver 3.3.3
 * Double-clicking a picture sets it to the clipboard.
 * All configuration protocol keys whose value is boolean accept "switch"
   which inverts the current value.
-* Support Google IME on Android. (Experimental)
+* Support IME on Android. (Experimental)
 * Mlterm works without SD card on Android.
 * Bug fixes:
   Fix the bug of scrolling on framebuffer.
