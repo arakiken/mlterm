@@ -114,8 +114,25 @@ ml_line_iscii_visual(
 	
 	ml_str_copy( src , line->chars , src_len) ;
 
+	dst_len = line->ctl_info.iscii->size ;
+	if( line->num_of_chars < dst_len)
+	{
+		ml_char_t *  chars ;
+
+		if( ( chars = ml_str_new( dst_len)))
+		{
+			/* XXX */
+			ml_str_delete( line->chars , line->num_of_chars) ;
+			line->chars = chars ;
+			line->num_of_chars = dst_len ;
+		}
+		else
+		{
+			dst_len = line->num_of_chars ;
+		}
+	}
+
 	dst = line->chars ;
-	dst_len = K_MIN(line->num_of_chars,line->ctl_info.iscii->size) ;
 
 	src_pos = 0 ;
 	for( dst_pos = 0 ; dst_pos < dst_len ; dst_pos ++)
@@ -139,6 +156,14 @@ ml_line_iscii_visual(
 			}
 		}
 	}
+
+#ifdef  DEBUG
+	if( src_pos != src_len)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG "ml_line_iscii_visual() failed: %d -> %d\n" ,
+			src_len , src_pos) ;
+	}
+#endif
 
 	ml_str_final( src , src_len) ;
 

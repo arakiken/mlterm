@@ -402,7 +402,8 @@ fc_draw_combining_chars(
 			c = ch_code ;
 			x_window_draw_decsp_string( window , xfont , xcolor , x , y , &c , 1) ;
 		}
-		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
+		/* ISCII characters never have combined ones. */
+		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R /* || IS_ISCII(ch_cs) */)
 		{
 			u_char  c ;
 

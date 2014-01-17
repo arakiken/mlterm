@@ -1,3 +1,23 @@
+2014-01-18  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c:
+	  U+950 and U+958-95e are converted to two ISCII characters.
+
+	* ml_line_iscii.c, ml_logical_visual_iscii.c, ml_screen.c:
+	  - The number of characters in lines is increased if visual iscii
+	    glyphs need more. It is decreased as before when iscii characters
+	    are converted to logical.
+	  - iscii_render_line() is called from iscii_visual_line() in
+	    ml_logical_visual_iscii.c.
+
+	* ml_iscii.c:
+	  - The rendering of iscii characters in ml_iscii() is fixed.
+	  - ml_iscii_copy() copied has_iscii flag.
+
+	* ml_logical_visual_bidi.c: Cleanup code.
+
+	* x_screen.c: Minor fixes.
+
 2014-01-12  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_freebsd.c: Configuration for M_PC98_EGC640x400 is added.

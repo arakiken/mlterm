@@ -5035,6 +5035,14 @@ parse_vt100_sequence(
 
 			if( ret == 1)
 			{
+				if( ch.cs == ISCII_HINDI && ch.size == 2)
+				{
+					ch.size = 1 ;
+					put_char( vt100_parser , mkf_char_to_int(&ch) ,
+						ch.cs , ch.property) ;
+					ch.ch[0] = ch.ch[1] ;
+				}
+
 				put_char( vt100_parser , mkf_char_to_int(&ch) ,
 					ch.cs , ch.property) ;
 
@@ -5787,9 +5795,32 @@ ml_convert_to_internal_ch(
 	#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 		else
 		{
+			u_int32_t  code ;
 			mkf_char_t  non_ucs ;
 
-			if( mkf_map_ucs4_to_iscii( &non_ucs , mkf_char_to_int(&ch)))
+			if( ( code = mkf_char_to_int( &ch)) == 0x950)
+			{
+				ch.ch[0] = '\xa1' ;
+				ch.ch[1] = '\xe9' ;
+				ch.size = 2 ;
+				ch.cs = ISCII_HINDI ;
+				ch.property = 0 ;
+			}
+			else if( 0x958 <= code && code <= 0x95e)
+			{
+				u_char  table[] =
+				{
+					'\xb3' , '\xb4' , '\xb5' , '\xba' , '\xbf' ,
+					'\xc0' , '\xc9' ,
+				} ;
+
+				ch.ch[0] = table[code - 0x958] ;
+				ch.ch[1] = '\xe9' ;
+				ch.size = 2 ;
+				ch.cs = ISCII_HINDI ;
+				ch.property = 0 ;
+			}
+			else if( mkf_map_ucs4_to_iscii( &non_ucs , code))
 			{
 				if( unicode_policy & USE_UNICODE_PROPERTY)
 				{

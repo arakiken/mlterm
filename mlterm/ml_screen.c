@@ -118,6 +118,15 @@ receive_scrolled_out_line(
 	
 	ml_log_add( &screen->logs , line) ;
 
+	/* XXX see ml_line_iscii_visual() */
+#if  1
+	if( line->num_of_chars != ml_screen_get_logical_cols( screen))
+	{
+		ml_line_final( line) ;
+		ml_line_init( line , ml_screen_get_logical_cols( screen)) ;
+	}
+#endif
+
 	if( ml_screen_is_backscrolling( screen) == BSM_STATIC)
 	{
 		screen->backscroll_rows ++ ;

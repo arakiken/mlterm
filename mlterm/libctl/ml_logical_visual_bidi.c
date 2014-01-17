@@ -98,12 +98,40 @@ bidi_logical_rows(
 	return  logvis->model->num_of_rows ;
 }
 
+static void
+bidi_render_line(
+	ml_logical_visual_t *  logvis ,
+	ml_line_t *  line
+	)
+{
+	int  need_render ;
+
+	need_render = 0 ;
+
+	if( ! ml_line_is_using_bidi( line))
+	{
+		ml_line_set_use_bidi( line , 1) ;
+
+		need_render = 1 ;
+	}
+
+	if( ml_line_is_modified( line) || need_render)
+	{
+		if( ! ml_line_bidi_render( line ,
+					((bidi_logical_visual_t*)logvis)->bidi_mode))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
+		#endif
+		}
+	}
+}
+
 static int
 bidi_render(
 	ml_logical_visual_t *  logvis
 	)
 {
-	ml_line_t *  line ;
 	int  row ;
 
 	if( logvis->is_visual)
@@ -116,29 +144,7 @@ bidi_render(
 	 */
 	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
-		int  need_render ;
-
-		line = ml_model_get_line( logvis->model , row) ;
-
-		need_render = 0 ;
-		
-		if( ! ml_line_is_using_bidi( line))
-		{
-			ml_line_set_use_bidi( line , 1) ;
-
-			need_render = 1 ;
-		}
-
-		if( ml_line_is_modified( line) || need_render)
-		{
-			if( ! ml_line_bidi_render( line ,
-						((bidi_logical_visual_t*)logvis)->bidi_mode))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
-			#endif
-			}
-		}
+		bidi_render_line( logvis , ml_model_get_line( logvis->model , row)) ;
 	}
 
 	return  1 ;
@@ -244,27 +250,8 @@ bidi_visual_line(
 	ml_line_t *  line
 	)
 {
-	int  need_render ;
+	bidi_render_line( logvis , line) ;
 
-	need_render = 0 ;
-	
-	if( ! ml_line_is_using_bidi( line))
-	{
-		ml_line_set_use_bidi( line , 1) ;
-
-		need_render = 1 ;
-	}
-
-	if( ml_line_is_modified( line) || need_render)
-	{
-		if( ! ml_line_bidi_render( line , ((bidi_logical_visual_t*)logvis)->bidi_mode))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
-		#endif
-		}
-	}
-	
 	if( ! ml_line_bidi_visual( line))
 	{
 	#ifdef  DEBUG

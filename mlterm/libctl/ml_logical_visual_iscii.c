@@ -114,43 +114,49 @@ iscii_logical_rows(
 	return  logvis->model->num_of_rows ;
 }
 
+static void
+iscii_render_line(
+	ml_logical_visual_t *  logvis ,
+	ml_line_t *  line
+	)
+{
+	int  need_render ;
+
+	if( ml_line_is_empty( line))
+	{
+		return ;
+	}
+
+	need_render = 0 ;
+
+	if( ! ml_line_is_using_iscii( line))
+	{
+		ml_line_set_use_iscii( line , 1) ;
+
+		need_render = 1 ;
+	}
+
+	if( ml_line_is_modified( line) || need_render)
+	{
+		if( ! ml_line_iscii_render( line))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_line_iscii_render failed.\n") ;
+		#endif
+		}
+	}
+}
+
 static int
 iscii_render(
 	ml_logical_visual_t *  logvis
 	)
 {
-	ml_line_t *  line ;
 	int  row ;
 
 	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
-		int  need_render ;
-
-		line = ml_model_get_line( logvis->model , row) ;
-
-		if( ml_line_is_empty( line))
-		{
-			continue ;
-		}
-
-		need_render = 0 ;
-
-		if( ! ml_line_is_using_iscii( line))
-		{
-			ml_line_set_use_iscii( line , 1) ;
-
-			need_render = 1 ;
-		}
-
-		if( ml_line_is_modified( line) || need_render)
-		{
-			if( ! ml_line_iscii_render( line))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_line_iscii_render failed.\n") ;
-			#endif
-			}
-		}
+		iscii_render_line( logvis , ml_model_get_line( logvis->model , row)) ;
 	}
 
 	return  1 ;
@@ -297,14 +303,24 @@ iscii_logical(
 		copy_color_reversed_flag( &iscii_logvis->logical_lines[row] , vis_line) ;
 
 		/*
-		 * If line is drawin in visual mode, cache lines are also updated.
+		 * If line is drawn in visual mode, cache lines are also updated.
 		 */
 		if( ! ml_line_is_modified( vis_line))
 		{
 			ml_line_set_updated( &iscii_logvis->logical_lines[row]) ;
 		}
-		
-		ml_line_copy_line( vis_line , &iscii_logvis->logical_lines[row]) ;
+
+		if( vis_line->num_of_chars != iscii_logvis->logical_lines[row].num_of_chars)
+		{
+			ml_line_final( vis_line) ;
+			ml_line_share( vis_line , &iscii_logvis->logical_lines[row]) ;
+			ml_line_init( &iscii_logvis->logical_lines[row] ,
+				iscii_logvis->logical_lines[row].num_of_chars) ;
+		}
+		else
+		{
+			ml_line_copy_line( vis_line , &iscii_logvis->logical_lines[row]) ;
+		}
 	}
 
 	logvis->cursor->char_index = iscii_logvis->cursor_logical_char_index ;
@@ -326,8 +342,9 @@ iscii_visual_line(
 	ml_line_t *  line
 	)
 {
+	iscii_render_line( logvis , line) ;
 	ml_line_iscii_visual( line) ;
-	
+
 	return  1 ;
 }
 

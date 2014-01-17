@@ -238,31 +238,28 @@ ml_iscii(
 	cs = UNKNOWN_CS ;
 	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
 	{
-		if( cs != ml_char_cs( src + src_pos))
-		{
-			prev_font_filled = 0 ;
-			iscii_filled = 0 ;
-		}
-
 		cs = ml_char_cs( src + src_pos) ;
 		
 		if( IS_ISCII( cs))
 		{
 			u_int  font_filled ;
-			
+			u_int  count ;
+
 			iscii_buf[iscii_filled ++] = ml_char_code( src + src_pos) ;
 			iscii_buf[iscii_filled] = '\0' ;
 			font_filled = ml_iscii_shape( cs , font_buf , font_buf_len , iscii_buf) ;
 
 			if( font_filled < prev_font_filled)
 			{
-				if( prev_font_filled - font_filled > dst_pos)
-				{
-					font_filled = prev_font_filled - dst_pos ;
-				}
-				
 				dst_pos -= (prev_font_filled - font_filled) ;
-				prev_font_filled = font_filled ;
+
+				for( count = 1 ; count <= prev_font_filled - font_filled ; count++)
+				{
+					state->num_of_chars_array[dst_pos] +=
+						state->num_of_chars_array[dst_pos + count] ;
+				}
+
+				prev_font_filled = font_filled ; /* goto to the next if block */
 			}
 
 			if( dst_pos >= 0 && font_filled == prev_font_filled)
@@ -271,8 +268,6 @@ ml_iscii(
 			}
 			else
 			{
-				u_int  count ;
-
 				state->num_of_chars_array[++dst_pos] = 1 ;
 
 				for( count = 1 ; count < font_filled - prev_font_filled ; count++)
@@ -288,6 +283,7 @@ ml_iscii(
 		else
 		{
 			state->num_of_chars_array[++dst_pos] = 1 ;
+			prev_font_filled = iscii_filled = 0 ;
 		}
 	}
 
@@ -320,6 +316,7 @@ ml_iscii_copy(
 
 	dst->num_of_chars_array = p ;
 	dst->size = src->size ;
+	dst->has_iscii = src->has_iscii ;
 
 	return  1 ;
 }
