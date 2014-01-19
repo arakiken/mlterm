@@ -173,6 +173,68 @@ ml_line_iscii_visual(
 }
 
 int
+ml_line_iscii_logical(
+	ml_line_t *  line
+	)
+{
+	ml_char_t *  src ;
+	u_int  src_len ;
+	ml_char_t *  dst ;
+	int  src_pos ;
+
+	if( ! ml_line_is_using_iscii( line) ||
+	    line->ctl_info.iscii->size == 0 ||
+	    ! line->ctl_info.iscii->has_iscii)
+	{
+	#ifdef  __DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Not need to logicalize.\n") ;
+	#endif
+
+		return  1 ;
+	}
+
+	src_len = line->num_of_filled_chars ;
+	if( ( src = ml_str_alloca( src_len)) == NULL)
+	{
+		return  0 ;
+	}
+
+	ml_str_copy( src , line->chars , src_len) ;
+	dst = line->chars ;
+
+	for( src_pos = 0 ; src_pos < line->ctl_info.iscii->size ; src_pos++)
+	{
+		ml_char_t *  comb ;
+		u_int  num ;
+
+		if( line->ctl_info.iscii->num_of_chars_array[src_pos] == 0)
+		{
+			continue ;
+		}
+
+		ml_char_copy( dst ++ , ml_get_base_char( src + src_pos)) ;
+
+		if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+		{
+			u_int  count ;
+
+			for( count = 0 ;
+			     count < line->ctl_info.iscii->num_of_chars_array[src_pos] - 1 ;
+			     count++)
+			{
+				ml_char_copy( dst ++ , comb + count) ;
+			}
+		}
+	}
+
+	ml_str_final( src , src_len) ;
+
+	line->num_of_filled_chars = dst - line->chars ;
+
+	return  1 ;
+}
+
+int
 ml_line_iscii_convert_logical_char_index_to_visual(
 	ml_line_t *  line ,
 	int  logical_char_index

@@ -46,6 +46,7 @@ static struct tabl  iscii_hindi_table[] =
 	{ "\xa9\xa2" , "\x3e\xc6\xf0" } ,
 	{ "\xaa" , "\x40\xf1" } ,
 	{ "\xaa\xa2" , "\x40\xc6\xf1" } ,
+	{ "\xaa\xe9" , "\x41\xf1" } ,		/* U+9600 */
 	{ "\xab" , "\x42\xe0" } ,
 	{ "\xab\xa1" , "\x42\xe1" } ,
 	{ "\xab\xa2" , "\x42\xe1" } ,

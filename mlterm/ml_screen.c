@@ -120,10 +120,11 @@ receive_scrolled_out_line(
 
 	/* XXX see ml_line_iscii_visual() */
 #if  1
-	if( line->num_of_chars != ml_screen_get_logical_cols( screen))
+	if( line->num_of_chars > ml_screen_get_logical_cols( screen))
 	{
-		ml_line_final( line) ;
-		ml_line_init( line , ml_screen_get_logical_cols( screen)) ;
+		ml_str_final( line->chars + ml_screen_get_logical_cols( screen) ,
+			line->num_of_chars - ml_screen_get_logical_cols( screen)) ;
+		line->num_of_chars = ml_screen_get_logical_cols( screen) ;
 	}
 #endif
 

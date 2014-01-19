@@ -1,3 +1,19 @@
+2014-01-19  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_logical_visual_iscii.c: Logicalizing iscii characters is simplified
+	  by ml_line_iscii_logical().
+
+	* ml_line_iscii.[ch]: ml_line_iscii_logical() is added.
+
+	* ml_vt100_parser.c: The conversion table from U+90c and U+960-963 to ISCII
+	  is added.
+
+	* hindi.table: ISCII "\xaa\xe9"(== U+9600) => FONT "\x41\xf1" is added.
+
+	* syllable.lex:
+	  {VOWELS}{VOWMOD}?, {VOWMOD}{NUKTA}? and {NUKUTA} are integrated to
+	  {VOWELS}?{VOWMOD}?{NUKUTA}? to parse "\xaa\xe9"(=={VOWELS}{NUKTA}).
+
 2014-01-18  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c:

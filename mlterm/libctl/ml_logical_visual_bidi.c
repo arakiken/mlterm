@@ -226,7 +226,7 @@ bidi_logical(
 		if( ! ml_line_bidi_logical( ml_model_get_line( logvis->model , row)))
 		{
 		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
+			kik_debug_printf( KIK_DEBUG_TAG " logicalize row %d failed.\n" , row) ;
 		#endif
 		}
 	}

@@ -25,12 +25,10 @@ NON_DEV [^¡-é\n\t ]
 
 %%
 
-{VOWELS}{VOWMOD}? | 
+{VOWELS}?{VOWMOD}?{NUKTA}? |
 {CNS}{VOWMOD}?{HALMWA}?{NON_DEV} |
 ({CNS}{NUKTA}?{HALMWA})*{CNS}{NUKTA}?{HALMWA}?{HALMWA}?{MATRAS}?{VOWMOD}? |
 {MATRAS} |
-{VOWMOD}{NUKTA}? |
-{NUKTA}  |
 {CNS}?{HALMWA}{NUKTA}?{CNS}? process_it(table, sz, yytext);
 
 . illdefault(table, yytext, sz);

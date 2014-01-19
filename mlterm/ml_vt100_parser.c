@@ -5798,7 +5798,19 @@ ml_convert_to_internal_ch(
 			u_int32_t  code ;
 			mkf_char_t  non_ucs ;
 
-			if( ( code = mkf_char_to_int( &ch)) == 0x950)
+			if( ( code = mkf_char_to_int( &ch)) < 0x900 || 0xd7f < code)
+			{
+				/* break */
+			}
+			else if( code == 0x90C)
+			{
+				ch.ch[0] = '\xa6' ;
+				ch.ch[1] = '\xe9' ;
+				ch.size = 2 ;
+				ch.cs = ISCII_HINDI ;
+				ch.property = 0 ;
+			}
+			else if( code == 0x950)
 			{
 				ch.ch[0] = '\xa1' ;
 				ch.ch[1] = '\xe9' ;
@@ -5815,6 +5827,19 @@ ml_convert_to_internal_ch(
 				} ;
 
 				ch.ch[0] = table[code - 0x958] ;
+				ch.ch[1] = '\xe9' ;
+				ch.size = 2 ;
+				ch.cs = ISCII_HINDI ;
+				ch.property = 0 ;
+			}
+			else if( 0x960 <= code && code <= 0x963)
+			{
+				u_char  table[] =
+				{
+					'\xaa' , '\xa7' , '\xdb' , '\xdc' ,
+				} ;
+
+				ch.ch[0] = table[code - 0x960] ;
 				ch.ch[1] = '\xe9' ;
 				ch.size = 2 ;
 				ch.cs = ISCII_HINDI ;
