@@ -5798,60 +5798,78 @@ ml_convert_to_internal_ch(
 			u_int32_t  code ;
 			mkf_char_t  non_ucs ;
 
-			if( ( code = mkf_char_to_int( &ch)) < 0x900 || 0xd7f < code)
+			if( 0x900 <= ( code = mkf_char_to_int( &ch)) && code <= 0xd7f)
 			{
-				/* break */
-			}
-			else if( code == 0x90C)
-			{
-				ch.ch[0] = '\xa6' ;
-				ch.ch[1] = '\xe9' ;
-				ch.size = 2 ;
-				ch.cs = ISCII_HINDI ;
-				ch.property = 0 ;
-			}
-			else if( code == 0x950)
-			{
-				ch.ch[0] = '\xa1' ;
-				ch.ch[1] = '\xe9' ;
-				ch.size = 2 ;
-				ch.cs = ISCII_HINDI ;
-				ch.property = 0 ;
-			}
-			else if( 0x958 <= code && code <= 0x95e)
-			{
-				u_char  table[] =
+				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
 				{
-					'\xb3' , '\xb4' , '\xb5' , '\xba' , '\xbf' ,
-					'\xc0' , '\xc9' ,
-				} ;
-
-				ch.ch[0] = table[code - 0x958] ;
-				ch.ch[1] = '\xe9' ;
-				ch.size = 2 ;
-				ch.cs = ISCII_HINDI ;
-				ch.property = 0 ;
-			}
-			else if( 0x960 <= code && code <= 0x963)
-			{
-				u_char  table[] =
-				{
-					'\xaa' , '\xa7' , '\xdb' , '\xdc' ,
-				} ;
-
-				ch.ch[0] = table[code - 0x960] ;
-				ch.ch[1] = '\xe9' ;
-				ch.size = 2 ;
-				ch.cs = ISCII_HINDI ;
-				ch.property = 0 ;
-			}
-			else if( mkf_map_ucs4_to_iscii( &non_ucs , code))
-			{
-				if( unicode_policy & USE_UNICODE_PROPERTY)
-				{
-					non_ucs.property = ch.property ;
+					if( unicode_policy & USE_UNICODE_PROPERTY)
+					{
+						non_ucs.property = ch.property ;
+					}
+					ch = non_ucs ;
 				}
-				ch = non_ucs ;
+				else
+				{
+					switch( code & 0x07f)
+					{
+					case  0x0c:
+						ch.ch[0] = '\xa6' ;
+						break ;
+					case  0x3d:
+						ch.ch[0] = '\xea' ;
+						break ;
+					case  0x44:
+						ch.ch[0] = '\xdf' ;
+						break ;
+					case  0x50:
+						ch.ch[0] = '\xa1' ;
+						break ;
+					case  0x58:
+						ch.ch[0] = '\xb3' ;
+						break ;
+					case  0x59:
+						ch.ch[0] = '\xb4' ;
+						break ;
+					case  0x5a:
+						ch.ch[0] = '\xb5' ;
+						break ;
+					case  0x5b:
+						ch.ch[0] = '\xba' ;
+						break ;
+					case  0x5c:
+						ch.ch[0] = '\xbf' ;
+						break ;
+					case  0x5d:
+						ch.ch[0] = '\xc0' ;
+						break ;
+					case  0x5e:
+						ch.ch[0] = '\xc9' ;
+						break ;
+					case  0x60:
+						ch.ch[0] = '\xaa' ;
+						break ;
+					case  0x61:
+						ch.ch[0] = '\xa7' ;
+						break ;
+					case  0x62:
+						ch.ch[0] = '\xdb' ;
+						break ;
+					case  0x63:
+						ch.ch[0] = '\xdc' ;
+						break ;
+					default:
+						goto  end ;
+					}
+
+					ch.ch[1] = '\xe9' ;
+					/* non_ucs.cs is set if mkf_map_ucs4_to_iscii() fails. */
+					ch.cs = non_ucs.cs ;
+					ch.size = 2 ;
+					ch.property = 0 ;
+
+				end:
+					;
+				}
 			}
 		}
 	#endif

@@ -1,5 +1,10 @@
 2014-01-19  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: Characters with nukta of not only devanagari but also
+	  other indic languages are converted from unicode to ISCII.
+
+2014-01-19  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_logical_visual_iscii.c: Logicalizing iscii characters is simplified
 	  by ml_line_iscii_logical().
 
