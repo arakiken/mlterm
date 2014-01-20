@@ -67,12 +67,6 @@ x_font_ft.o:
 .c.o:
 	$(LIBTOOL_CC) -c $<
 
-x_font_cairo.o: x_font_ft.c
-	$(LIBTOOL_CC) -c $<
-
-x_font_xft.o: x_font_ft.c
-	$(LIBTOOL_CC) -c $<
-
 install : $(LIBDIR)
 	if test "$(TYPE_LIBS)" != "" ; then \
 		$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(TYPE_LIBS) $(LIBDIR) ; \
