@@ -121,7 +121,7 @@ ml_line_iscii_visual(
 
 		if( ( chars = ml_str_new( dst_len)))
 		{
-			/* XXX */
+			/* XXX => shrunk at ml_screen.c and ml_logical_visual_iscii.c */
 			ml_str_delete( line->chars , line->num_of_chars) ;
 			line->chars = chars ;
 			line->num_of_chars = dst_len ;
@@ -139,7 +139,7 @@ ml_line_iscii_visual(
 	{
 		if( line->ctl_info.iscii->num_of_chars_array[dst_pos] == 0)
 		{
-			ml_char_copy( dst + dst_pos , src + src_pos - 1) ;
+			ml_char_copy( dst + dst_pos , ml_get_base_char( src + src_pos - 1)) ;
 			/* NULL */
 			ml_char_set_code( dst + dst_pos , 0) ;
 		}
@@ -152,7 +152,32 @@ ml_line_iscii_visual(
 			for( count = 1 ;
 			     count < line->ctl_info.iscii->num_of_chars_array[dst_pos] ; count++)
 			{
-				ml_char_combine_simple( dst + dst_pos , src + (src_pos ++)) ;
+				ml_char_t *  comb ;
+				u_int  num ;
+
+			#ifdef  DEBUG
+				if( ml_char_is_comb( ml_get_base_char( src + src_pos)))
+				{
+					kik_debug_printf( KIK_DEBUG_TAG " illegal iscii\n") ;
+				}
+			#endif
+				ml_char_combine_simple( dst + dst_pos ,
+					ml_get_base_char( src + src_pos)) ;
+
+				if( ( comb = ml_get_combining_chars( src + (src_pos ++) , &num)))
+				{
+					for( ; num > 0 ; num--)
+					{
+					#ifdef  DEBUG
+						if( ! ml_char_is_comb( comb))
+						{
+							kik_debug_printf( KIK_DEBUG_TAG
+								" illegal iscii\n") ;
+						}
+					#endif
+						ml_char_combine_simple( dst + dst_pos , comb ++) ;
+					}
+				}
 			}
 		}
 	}
@@ -211,20 +236,31 @@ ml_line_iscii_logical(
 		{
 			continue ;
 		}
-
-		ml_char_copy( dst ++ , ml_get_base_char( src + src_pos)) ;
-
-		if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+		else if( line->ctl_info.iscii->num_of_chars_array[src_pos] == 1)
 		{
-			u_int  count ;
+			ml_char_copy( dst , src + src_pos) ;
+		}
+		else
+		{
+			ml_char_copy( dst , ml_get_base_char( src + src_pos)) ;
 
-			for( count = 0 ;
-			     count < line->ctl_info.iscii->num_of_chars_array[src_pos] - 1 ;
-			     count++)
+			if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
 			{
-				ml_char_copy( dst ++ , comb + count) ;
+				for( ; num > 0 ; num-- , comb++)
+				{
+					if( ml_char_is_comb( comb))
+					{
+						ml_char_combine_simple( dst , comb) ;
+					}
+					else
+					{
+						ml_char_copy( ++ dst , comb) ;
+					}
+				}
 			}
 		}
+
+		dst++ ;
 	}
 
 	ml_str_final( src , src_len) ;

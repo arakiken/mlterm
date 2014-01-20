@@ -1052,7 +1052,6 @@ ml_term_update_special_visual(
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
 				has_logvis = 1 ;
-				need_comb = 1 ;
 			}
 			else
 			{
@@ -1082,7 +1081,6 @@ ml_term_update_special_visual(
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
 				has_logvis = 1 ;
-				need_comb = 1 ;
 			}
 			else
 			{

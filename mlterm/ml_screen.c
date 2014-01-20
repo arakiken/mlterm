@@ -122,6 +122,13 @@ receive_scrolled_out_line(
 #if  1
 	if( line->num_of_chars > ml_screen_get_logical_cols( screen))
 	{
+		/*
+		 * line->num_of_filled_chars can be more than line->num_of_chars
+		 * without ml_line_reset() here because line is visualized.
+		 */
+		ml_line_reset( line) ;
+		ml_line_set_updated( line) ;
+
 		ml_str_final( line->chars + ml_screen_get_logical_cols( screen) ,
 			line->num_of_chars - ml_screen_get_logical_cols( screen)) ;
 		line->num_of_chars = ml_screen_get_logical_cols( screen) ;

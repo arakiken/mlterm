@@ -39,7 +39,6 @@
 
 /* --- static variables --- */
 
-static int  use_char_combining = 1 ;
 static int  use_multi_col_char = 1 ;
 
 static struct
@@ -72,16 +71,6 @@ get_comb_size(
 
 
 /* --- global functions --- */
-
-int
-ml_set_use_char_combining(
-	int  use_it
-	)
-{
-	use_char_combining = use_it ;
-
-	return  1 ;
-}
 
 int
 ml_set_use_multi_col_char(
@@ -220,11 +209,6 @@ ml_char_combine(
 	)
 {
 	ml_char_t *  multi_ch ;
-
-	if( ! use_char_combining)
-	{
-		return  0 ;
-	}
 
 	/*
 	 * This check should be excluded, because characters whose is_comb flag

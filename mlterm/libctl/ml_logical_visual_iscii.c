@@ -213,6 +213,11 @@ iscii_logical(
 			ml_str_final( line->chars + logvis->model->num_of_cols ,
 				line->num_of_chars - logvis->model->num_of_cols) ;
 			line->num_of_chars = logvis->model->num_of_cols ;
+
+			/*
+			 * line->num_of_filled_chars is equal or less than line->num_of_chars
+			 * because line is logicalized.
+			 */
 		}
 	#endif
 	}

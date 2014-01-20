@@ -1,3 +1,14 @@
+2014-01-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.c: line->num_of_filled_chars never becomes more than line->num_of_chars
+	  in receive_scrolled_out_line().
+
+	* ml_char.[ch], ml_vt100_parser.c:
+	  ml_set_use_char_combining() is removed.
+
+	* ml_iscii.c, ml_line_iscii.c, ml_vt100_parser.c:
+	  ISCII characters converted from unicode retain combining property.
+
 2014-01-19  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Characters with nukta of not only devanagari but also

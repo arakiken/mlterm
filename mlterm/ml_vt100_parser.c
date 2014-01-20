@@ -282,7 +282,6 @@ start_vt100_cmd(
 	int  trigger_xterm_event	/* dispatch to x_screen or not. */
 	)
 {
-	ml_set_use_char_combining( vt100_parser->use_char_combining) ;
 	ml_set_use_multi_col_char( vt100_parser->use_multi_col_char) ;
 
 	if( trigger_xterm_event && HAS_XTERM_LISTENER(vt100_parser,start))
@@ -765,7 +764,7 @@ put_char(
 			len , cs , is_fullwidth ? "Fullwidth" : "Single") ;
 #endif
 
-	if( prop & MKF_COMBINING)
+	if( ( prop & MKF_COMBINING) && vt100_parser->use_char_combining)
 	{
 		is_comb = 1 ;
 	}
@@ -1254,8 +1253,6 @@ show_picture(
 	{
 		ml_char_t *  data ;
 
-		ml_set_use_char_combining( 1) ;
-
 		if( ( data = (*vt100_parser->xterm_listener->get_picture_data)(
 				vt100_parser->xterm_listener->self ,
 				file_path , &img_cols , &img_rows)) &&
@@ -1345,8 +1342,6 @@ show_picture(
 
 			ret = 1 ;
 		}
-
-		ml_set_use_char_combining( vt100_parser->use_char_combining) ;
 	}
 
 	return  ret ;
@@ -5806,7 +5801,12 @@ ml_convert_to_internal_ch(
 					{
 						non_ucs.property = ch.property ;
 					}
-					ch = non_ucs ;
+
+					ch.ch[0] = non_ucs.ch[0] ;
+					/* non_ucs.cs is set if mkf_map_ucs4_to_iscii() fails. */
+					ch.cs = non_ucs.cs ;
+					ch.size = 1 ;
+					/* ch.property is not changed. */
 				}
 				else
 				{
@@ -5865,7 +5865,7 @@ ml_convert_to_internal_ch(
 					/* non_ucs.cs is set if mkf_map_ucs4_to_iscii() fails. */
 					ch.cs = non_ucs.cs ;
 					ch.size = 2 ;
-					ch.property = 0 ;
+					/* ch.property is not changed. */
 
 				end:
 					;

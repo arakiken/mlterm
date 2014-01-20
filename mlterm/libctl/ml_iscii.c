@@ -244,8 +244,17 @@ ml_iscii(
 		{
 			u_int  font_filled ;
 			u_int  count ;
+			ml_char_t *  comb ;
+			u_int  num ;
 
 			iscii_buf[iscii_filled ++] = ml_char_code( src + src_pos) ;
+			if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+			{
+				for( count = 0 ; count < num ; count++)
+				{
+					iscii_buf[iscii_filled ++] = ml_char_code( comb + count) ;
+				}
+			}
 			iscii_buf[iscii_filled] = '\0' ;
 			font_filled = ml_iscii_shape( cs , font_buf , font_buf_len , iscii_buf) ;
 

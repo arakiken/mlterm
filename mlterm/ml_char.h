@@ -91,8 +91,6 @@ typedef struct ml_char
 } ml_char_t ;
 
 
-int  ml_set_use_char_combining( int  use_it) ;
-
 int  ml_set_use_multi_col_char( int  use_it) ;
 
 ml_font_t  ml_char_add_unicode_area_font( u_int32_t  min , u_int32_t  max) ;
