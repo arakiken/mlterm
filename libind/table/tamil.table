@@ -1,7 +1,7 @@
 static struct tabl  iscii_tamil_table[] =
 {
-	{ "\xa1" , "\x23\x20" } ,
-	{ "\xa1\xa2" , "\x23\x20" } ,
+	{ "\xa1" , "\x20" } ,
+	{ "\xa1\xa2" , "\x20" } ,
 	{ "\xa1\xa4" , "\xdc" } ,
 	{ "\xa1\xa4\xa2" , "\xdc\x8b" } ,
 	{ "\xa1\xab" , "\xe2" } ,
@@ -10,7 +10,7 @@ static struct tabl  iscii_tamil_table[] =
 	{ "\xa1\xcd\xdb" , "\x4a" } ,
 	{ "\xa1\xd4" , "\xf5" } ,
 	{ "\xa1\xe9" , "\xe6\x8b" } ,
-	{ "\xa2" , "\x23\x20" } ,
+	{ "\xa2" , "\x20" } ,
 	{ "\xa2\xa3" , "\xe7" } ,
 	{ "\xa3" , "\xe7" } ,
 	{ "\xa4" , "\xdc" } ,

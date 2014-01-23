@@ -1,3 +1,34 @@
+2014-01-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c:
+	  nukta is always combined even if use_combining option is false.
+
+	* x_draw_str.c:
+	  x_window_clear() is called once to clear background in x_draw_str_to_eol().
+
+	* hindi.table:
+	  - Added following entries.
+	    "\xb3\xe8\xc2\xdc\xa2" => "\x48\xf2\xd3"
+	    "\xca\xe3" => "\xa4\xc9\xec"
+	    "\xd0\xe8\xcd" => "\xad\xaa\xc9"
+	    "\xd0\xe8\xcd\xda" => "\xad\xaa\xc9\xc9"
+	  - Fixed following entries.
+	    "\xbd\xe8\xbd*"
+
+	* assamese.table, bengali.table, gujarati.table, hindi.table, kannada.table,
+	  malayalam.table, oriya.table, punjabi.table, tamil.table:
+	  0x23 glyph is removed.
+
+	* libind/indian.[ch], syllable.lex:
+	  - 0xf1-fa is parsed as digit characters.
+	  - Minor fixes to improve performance and error handling.
+
+	* man/mlterm.1, doc/en/README.indic, doc/ja/README.ja: Updated.
+
+2014-01-21  Araki Ken  <arakiken@users.sf.net>
+
+	* libtype/Makefile.in: Compilation error is fixed.
+
 2014-01-20  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_screen.c: line->num_of_filled_chars never becomes more than line->num_of_chars

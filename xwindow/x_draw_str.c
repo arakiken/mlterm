@@ -683,15 +683,18 @@ fc_draw_str(
 			/*
 			 * clearing background
 			 */
-			if( bg_color == ML_BG_COLOR)
+			if( updated_width)
 			{
-				x_window_clear( window ,
-					x , y , current_width - x , height) ;
-			}
-			else
-			{
-				x_window_fill_with( window , bg_xcolor ,
-					x , y , current_width - x , height) ;
+				if( bg_color == ML_BG_COLOR)
+				{
+					x_window_clear( window ,
+						x , y , current_width - x , height) ;
+				}
+				else
+				{
+					x_window_fill_with( window , bg_xcolor ,
+						x , y , current_width - x , height) ;
+				}
 			}
 
 			/*
@@ -1371,7 +1374,10 @@ x_draw_str_to_eol(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
-		if( ! fc_draw_str( window , font_man , color_man , &updated_width ,
+		x_window_clear( window , x , y , window->width - x , height) ;
+
+		if( ! fc_draw_str( window , font_man , color_man ,
+			NULL /* NULL disables x_window_clear() in fc_draw_str() */ ,
 			chars , num_of_chars , x , y , height , ascent ,
 			top_margin , bottom_margin , hide_underline))
 		{
@@ -1390,14 +1396,14 @@ x_draw_str_to_eol(
 			return	0 ;
 		}
 
+		if( updated_width < window->width)
+		{
+			x_window_clear( window , updated_width , y ,
+				window->width - updated_width , height) ;
+		}
+
 		break ;
 #endif
-	}
-
-	if( updated_width < window->width)
-	{
-		x_window_clear( window , updated_width , y ,
-			window->width - updated_width , height) ;
 	}
 
 	return	1 ;

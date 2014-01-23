@@ -16,13 +16,10 @@ Following is a instruction of setting up mlterm indic support.
   of indic characters are not supported.)
 
 * Usage
-  $ mlterm -E utf8 -w 16 -m --im=kbd:isciihindi --lsp 2 --bi=false --ind --type=xft
+  $ mlterm -E utf8 -w 16 --im=kbd:isciihindi --lsp 2 --bi=false --ind --type=xft
 
   o -E option specifies character encoding.
     "utf8" or "isciixxx"(like "isciihindi") are available.
-  o -m option enables character combining, which is necessary since mlterm
-    diverts character combining framework for rendering ISCII glyph internally.
-    This option is automatically turned on.
   o -w [font size] specifies font size you want to use. (optional)
   o --im option specifies input method to be used. For ISCII use kbd input
     method.
@@ -31,6 +28,7 @@ Following is a instruction of setting up mlterm indic support.
   o --bi=false is necessary because bidi and ind can't coexist.
   o --ind enables rendering indic characters.
   o --type=xft enables xft. (optional)
+  o If console applications you use don't support combining characters, try -m=false.
 
   Pressing the key defined as IM_HOTKEY in ~/.mlterm/key lets you use ISCII
   inputting.

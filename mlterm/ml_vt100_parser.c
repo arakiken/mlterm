@@ -760,11 +760,13 @@ put_char(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( "%.2x%.2x%.2x%.2x %d %x => %s\n" , ch[0] , ch[1] , ch[2] , ch[3] ,
-			len , cs , is_fullwidth ? "Fullwidth" : "Single") ;
+	kik_debug_printf( "%x %d %x => %s\n" , ch , len , cs ,
+		is_fullwidth ? "Fullwidth" : "Single") ;
 #endif
 
-	if( ( prop & MKF_COMBINING) && vt100_parser->use_char_combining)
+	if( ( prop & MKF_COMBINING) &&
+	    ( vt100_parser->use_char_combining ||
+	      ( ch == '\e9' && IS_ISCII(cs)) /* nukta is always combined. */))
 	{
 		is_comb = 1 ;
 	}
@@ -5036,6 +5038,8 @@ parse_vt100_sequence(
 					put_char( vt100_parser , mkf_char_to_int(&ch) ,
 						ch.cs , ch.property) ;
 					ch.ch[0] = ch.ch[1] ;
+					/* nukta is always combined. */
+					ch.property |= MKF_COMBINING ;
 				}
 
 				put_char( vt100_parser , mkf_char_to_int(&ch) ,

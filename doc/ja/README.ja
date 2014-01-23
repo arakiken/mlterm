@@ -367,11 +367,8 @@ comment $Id$
       o use_combining  (*true*/false) (#)
         結合文字を処理する
 
-	なお、
-	・ENCODING が UTF-8 で use_bidi 又は use_ind が true の場合、
-	・ENCODING が ISCII_XXX の場合、
-	・use_dynamic_comb が true の場合は、
-	use_combining = false と設定していても、自動的に true に戻されます。
+        なお、use_dynamic_comb が true の場合は、use_combining = false と設定し
+        ていても、自動的に true に戻されます。
 
       o use_dynamic_comb  (true/*false*) (#)
         結合文字を動的に合成する

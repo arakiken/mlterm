@@ -24,7 +24,6 @@ struct tabl
 /* Private function prototypes */
 
 char *binsearch(struct tabl *, int, char *);
-char *illdefault(struct tabl *, char *, int );
 char *split(struct tabl *, char *, int);
 
 

@@ -6,6 +6,12 @@ char *binsearch(struct tabl *table, int sz, char *word) {
 
 	if (isprint(word[0])) return word;
 
+	if (word[1] == '\0' && 0xf1 <= ((u_char*)word)[0] && ((u_char*)word)[0] <= 0xfa) {
+		/* is digit */
+		word[0] -= 0xc1;
+		return word;
+	}
+
 	lindex = 0 ;
 	hindex = sz ;
 
@@ -21,25 +27,6 @@ char *binsearch(struct tabl *table, int sz, char *word) {
 
 		if (lindex >= hindex) return NULL;
 	}
-}
-
-char *illdefault(struct tabl *table, char *wrd, int sz) {
-	
-	int i;
-	char *ostr;
-	char iwrd[2];
-	char *p;
-	
-	ostr = (char *) calloc(1000 , sizeof(char));
-
-	for(i = 0; i < strlen(wrd); i++) {
-		iwrd[0]=wrd[i];
-		iwrd[1]='\0';
-		if((p=binsearch(table, sz, iwrd)))
-			strcat(ostr,p);
-	}
-
-	return ostr;
 }
 
 int iscii2font(struct tabl *table, char *input, char *output, int sz) {

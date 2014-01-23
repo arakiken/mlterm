@@ -7,6 +7,7 @@ ver 3.3.3
 * Bug fixes:
   Fix the bug of scrolling on framebuffer. (enbugged at 3.3.2)
   Fix the failure of starting mlterm on Android 3.x.
+  Fix the conversion from unicode to ISCII characters with nukta.
 
 ver 3.3.2
 * Support 4bpp framebuffer on NetBSD/luna68k and OpenBSD/luna88k.

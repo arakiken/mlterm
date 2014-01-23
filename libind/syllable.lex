@@ -1,6 +1,6 @@
 %{
 #include "indian.h"
-char word[1000], string1[1000],outstr[1000];
+char word[1000], outstr[1000];
 int process_it(struct tabl *, int, char *);
 int my_yyinput(char *, int);
 #undef YY_INPUT 
@@ -22,6 +22,7 @@ VOWMOD [¡¢£]
 HALMWA [è]
 NUKTA [é]
 NON_DEV [^¡-é\n\t ]
+DIGIT [ñ-ú]
 
 %%
 
@@ -29,9 +30,8 @@ NON_DEV [^¡-é\n\t ]
 {CNS}{VOWMOD}?{HALMWA}?{NON_DEV} |
 ({CNS}{NUKTA}?{HALMWA})*{CNS}{NUKTA}?{HALMWA}?{HALMWA}?{MATRAS}?{VOWMOD}? |
 {MATRAS} |
+{DIGIT} |
 {CNS}?{HALMWA}{NUKTA}?{CNS}? process_it(table, sz, yytext);
-
-. illdefault(table, yytext, sz);
 
 %%
 
@@ -50,17 +50,36 @@ char *split(struct tabl *table, char *input1, int sz) {
 }
 
 int process_it(struct tabl *table, int sz, char *inpword) {
-	char* p;
-	sprintf(string1+strlen(string1),"%s",inpword);
-	if(!(p=binsearch(table, sz, string1))) {
-		strcat(outstr, (p=illdefault(table,string1,sz)));
-		free(p);
-	}
-	else {
-		strcat(outstr, p);
+	char *p;
+	size_t len;
+	char tmp;
+	int i;
+
+	len = strlen(inpword);
+	tmp = '\0';
+
+	while(1) {
+		for(i = len; i > 0; i--) {
+			tmp = inpword[i];
+			inpword[i] = '\0';
+			p = binsearch(table, sz, inpword);
+			inpword[i] = tmp;
+			if(p) {
+				strcat(outstr,p);
+				break;
+			}
+		}
+
+		if(i == 0) i = 1;
+
+		if((len -= i) > 0) {
+			inpword += i;
+		}
+		else {
+			break;
+		}
 	}
 
-	memset(string1,0,1000);
 	return 1;
 }
 
