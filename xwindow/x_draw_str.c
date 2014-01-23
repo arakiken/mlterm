@@ -683,18 +683,18 @@ fc_draw_str(
 			/*
 			 * clearing background
 			 */
-			if( updated_width)
+			if( bg_color == ML_BG_COLOR)
 			{
-				if( bg_color == ML_BG_COLOR)
+				if( updated_width)
 				{
 					x_window_clear( window ,
 						x , y , current_width - x , height) ;
 				}
-				else
-				{
-					x_window_fill_with( window , bg_xcolor ,
-						x , y , current_width - x , height) ;
-				}
+			}
+			else
+			{
+				x_window_fill_with( window , bg_xcolor ,
+					x , y , current_width - x , height) ;
 			}
 
 			/*
