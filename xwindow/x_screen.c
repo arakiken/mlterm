@@ -3704,6 +3704,7 @@ selecting_with_motion(
 					char_index -- ;
 				}
 			}
+		#if  0
 			else if( x_is_before_sel_left_base_pos( &screen->sel , char_index , row))
 			{
 				if( abs( char_index) < ml_line_end_char_index( line))
@@ -3711,6 +3712,7 @@ selecting_with_motion(
 					char_index ++ ;
 				}
 			}
+		#endif
 		}
 
 		selecting( screen , char_index , row) ;

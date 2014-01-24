@@ -1,5 +1,10 @@
 2014-01-24  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c: The behavior of selecting in mouse motion is changed like
+	  other X terminal emulators.
+
+2014-01-24  Araki Ken  <arakiken@users.sf.net>
+
 	* x_draw_str.c: Minor fixes of the previous commit.
 
 2014-01-23  Araki Ken  <arakiken@users.sf.net>
