@@ -6,10 +6,17 @@ char *binsearch(struct tabl *table, int sz, char *word) {
 
 	if (isprint(word[0])) return word;
 
-	if (word[1] == '\0' && 0xf1 <= ((u_char*)word)[0] && ((u_char*)word)[0] <= 0xfa) {
-		/* is digit */
-		word[0] -= 0xc1;
-		return word;
+	if (word[1] == '\0') {
+		if (0xf1 <= ((unsigned char*)word)[0] && ((unsigned char*)word)[0] <= 0xfa) {
+			/* is digit */
+			word[0] -= 0xc1;
+			return word;
+		}
+		else if ( ((unsigned char*)word)[0] == 0xea) {
+			/* full stop */
+			word[0] = 0x2a;
+			return word;
+		}
 	}
 
 	lindex = 0 ;

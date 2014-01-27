@@ -212,6 +212,7 @@ ml_iscii(
 	u_int  prev_font_filled ;
 	u_int  iscii_filled ;
 	mkf_charset_t  cs ;
+	mkf_charset_t  prev_cs ;
 
 	iscii_buf_len = src_len * 4 + 1 ;
 	if( ( iscii_buf = alloca( iscii_buf_len)) == NULL)
@@ -233,13 +234,17 @@ ml_iscii(
 
 	state->has_iscii = 0 ;
 	dst_pos = -1 ;
-	prev_font_filled = 0 ;
-	iscii_filled = 0 ;
-	cs = UNKNOWN_CS ;
+	prev_cs = cs = UNKNOWN_CS ;
 	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
 	{
 		cs = ml_char_cs( src + src_pos) ;
-		
+
+		if( prev_cs != cs)
+		{
+			prev_font_filled = iscii_filled = 0 ;
+			prev_cs = cs ;
+		}
+
 		if( IS_ISCII( cs))
 		{
 			u_int  font_filled ;
@@ -292,7 +297,6 @@ ml_iscii(
 		else
 		{
 			state->num_of_chars_array[++dst_pos] = 1 ;
-			prev_font_filled = iscii_filled = 0 ;
 		}
 	}
 

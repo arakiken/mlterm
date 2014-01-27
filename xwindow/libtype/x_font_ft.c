@@ -354,6 +354,7 @@ fc_pattern_create(
 #ifdef  USE_TYPE_XFT
 	if( encoding)
 	{
+		/* no meaning on xft2 */
 		FcPatternAddString( pattern , XFT_ENCODING , encoding) ;
 	}
 #endif
@@ -390,6 +391,12 @@ xft_font_open(
 		return  NULL ;
 	}
 
+	if( IS_ISCII(FONT_CS(font->id)))
+	{
+		/* no meaning on xft2 */
+		FcPatternAddString( pattern , XFT_ENCODING , "apple-roman") ;
+	}
+
 	match = XftFontMatch( font->display , DefaultScreen( font->display) , pattern ,
 				&result) ;
 	FcPatternDestroy( pattern) ;
@@ -408,7 +415,36 @@ xft_font_open(
 
 		return  NULL ;
 	}
-	
+
+#if  1
+	if( IS_ISCII(FONT_CS(font->id)))
+	{
+		FT_Face  face ;
+		int  count ;
+
+		face = XftLockFace( xfont) ;
+
+		for( count = 0 ; count < face->num_charmaps ; count++)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " ISCII font encoding %c%c%c%c\n" ,
+				((face->charmaps[count]->encoding) >> 24) & 0xff ,
+				((face->charmaps[count]->encoding) >> 16) & 0xff ,
+				((face->charmaps[count]->encoding) >> 8) & 0xff ,
+				(face->charmaps[count]->encoding & 0xff)) ;
+		#endif
+
+			if( face->charmaps[count]->encoding == FT_ENCODING_APPLE_ROMAN)
+			{
+				FT_Set_Charmap( face , face->charmaps[count]) ;
+				break ;
+			}
+		}
+
+		XftUnlockFace( xfont) ;
+	}
+#endif
+
 	return  xfont ;
 }
 
@@ -525,6 +561,34 @@ cairo_font_open(
 
 		return  NULL ;
 	}
+
+#if  1
+	if( IS_ISCII(FONT_CS(font->id)))
+	{
+		FT_Face  face ;
+		int  count ;
+
+		face = cairo_ft_scaled_font_lock_face( xfont) ;
+
+		for( count = 0 ; count < face->num_charmaps ; count++)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " ISCII font encoding %c%c%c%c\n" ,
+				((face->charmaps[count]->encoding) >> 24) & 0xff ,
+				((face->charmaps[count]->encoding) >> 16) & 0xff ,
+				((face->charmaps[count]->encoding) >> 8) & 0xff ,
+				(face->charmaps[count]->encoding & 0xff)) ;
+		#endif
+
+			if( face->charmaps[count]->encoding == FT_ENCODING_APPLE_ROMAN)
+			{
+				FT_Set_Charmap( face , face->charmaps[count]) ;
+			}
+		}
+
+		cairo_ft_scaled_font_unlock_face( xfont) ;
+	}
+#endif
 
 	return  xfont ;
 }

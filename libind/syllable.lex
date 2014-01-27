@@ -15,14 +15,14 @@ int my_yyinput(char *, int);
 
 %}
 
-CNS [ГДЕЖЗИЙКЛМНОПРСТУФХЦШЩЪЫЬЭЯабвдежзи]
-VOWELS [ЄЅІЇЈЉЊЋЌ­ЏЎАБВ]
-MATRAS [клмнопрстфухцч]
+CNS [Г-и]
+VOWELS [Є-В]
+MATRAS [к-ч]
 VOWMOD [ЁЂЃ]
 HALMWA [ш]
 NUKTA [щ]
-NON_DEV [^Ё-щ\n\t ]
-DIGIT [ё-њ]
+NON_DEV [M]
+DIGIT_STOP [ъё-њ]
 
 %%
 
@@ -30,7 +30,7 @@ DIGIT [ё-њ]
 {CNS}{VOWMOD}?{HALMWA}?{NON_DEV} |
 ({CNS}{NUKTA}?{HALMWA})*{CNS}{NUKTA}?{HALMWA}?{HALMWA}?{MATRAS}?{VOWMOD}? |
 {MATRAS} |
-{DIGIT} |
+{DIGIT_STOP} |
 {CNS}?{HALMWA}{NUKTA}?{CNS}? process_it(table, sz, yytext);
 
 %%

@@ -5032,7 +5032,7 @@ parse_vt100_sequence(
 
 			if( ret == 1)
 			{
-				if( ch.cs == ISCII_HINDI && ch.size == 2)
+				if( IS_ISCII(ch.cs) && ch.size == 2)
 				{
 					ch.size = 1 ;
 					put_char( vt100_parser , mkf_char_to_int(&ch) ,

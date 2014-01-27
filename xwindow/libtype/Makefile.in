@@ -87,3 +87,10 @@ clean:
 
 distclean: clean
 	rm -f Makefile
+
+libfc_wrapper.la: fc_wrapper.o
+	$(LIBTOOL_LINK) -o libfc_wrapper.la fc_wrapper.lo -rpath $(libdir)/mlterm \
+	-module -avoid-version `pkg-config freetype2 --libs`
+
+install_fc_wrapper : $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) libfc_wrapper.la $(LIBDIR)

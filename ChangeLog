@@ -1,3 +1,30 @@
+2014-01-27  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_ft.c: FT_Set_Charmap(FT_ENCODING_APPLE_ROMAN) is called for ISCII fonts.
+
+	* libtype/fc_wrapper.c, libtype/Makefile.in:
+	  libfc_wrapper.so which wraps libfontconfig.so by LD_PRELOAD and which
+	  overrides FcFreeTypeCharIndex() and FcCharSetHasChar() is added.
+
+	* ml_vt100_parser.c: Characters with nukta of ISCII character sets except
+	  devanagari are put to the screen buffer.
+
+	* ml_iscii.c: Each of ISCII_XXXX character sets is distinguished in ml_iscii().
+
+	* bengali.table:
+	  - Following entry is added.
+	    "\xb7\xe8\xb5\xe1" => "\xe5\x86"
+	    "\xce\xe1" => "\xe3\xcc\x5e"
+	    "\xce\xe5" => "\xe5\xcc\x5e\xe7"
+	  - Following entries are fixed.
+	    "\xc2\xe8\xcd*"
+	    "\xca\xe8\xcd*"
+	    "\xd1\xe8\xcd*"
+	    "\xd1\xe8\xd1\xe8\xcd\xde"
+	    "\xd7\xe8\xc3\xe8\xcd*"
+
+	* syllable.lex, indian.c: Full stop (ISCII 0xea, U+964) is supported.
+
 2014-01-24  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: The behavior of selecting in mouse motion is changed like
@@ -16,12 +43,12 @@
 	  x_window_clear() is called once to clear background in x_draw_str_to_eol().
 
 	* hindi.table:
-	  - Added following entries.
+	  - Following entries are added.
 	    "\xb3\xe8\xc2\xdc\xa2" => "\x48\xf2\xd3"
 	    "\xca\xe3" => "\xa4\xc9\xec"
 	    "\xd0\xe8\xcd" => "\xad\xaa\xc9"
 	    "\xd0\xe8\xcd\xda" => "\xad\xaa\xc9\xc9"
-	  - Fixed following entries.
+	  - Following entries are fixed.
 	    "\xbd\xe8\xbd*"
 
 	* assamese.table, bengali.table, gujarati.table, hindi.table, kannada.table,
