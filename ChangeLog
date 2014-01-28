@@ -1,3 +1,13 @@
+2014-01-29  Araki Ken  <arakiken@users.sf.net>
+
+	* bengali.table: Following entries are fixed.
+	  "\xc2\xe8"
+	  "\xcf\xe8\xc2\xe8"
+
+	* ml_vt100_parser.c: '\e9' -> '\xe9'
+
+	* README.indic:Updated.
+
 2014-01-27  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_ft.c: FT_Set_Charmap(FT_ENCODING_APPLE_ROMAN) is called for ISCII fonts.

@@ -9,7 +9,14 @@ Following is a instruction of setting up mlterm indic support.
   $ ./configure --enable-ind (--enable-anti-alias)
   $ make
   $ make install
-  
+
+  If you try indic scripts except devanagari, execute following steps
+  or rebuild fontconfig with http://mlterm.sf.net/fontconfig-2.8.0-fix4indic.patch
+  $ cd xwindow/libtype
+  $ make libfc_wrapper.la
+  $ make install_fc_wrapper
+  $ chmod 755 (INSTALLED DIRECTORY)/bin/mlterm
+
   Then, setup ~/.mlterm/font or ~/.mlterm/aafont.
   (etc/font.indic, etc/aafont.indic and etc/font.win32.indic in mlterm source
   tree are samples. Note that mlterm supports ISCII fonts alone. Unicode fonts
@@ -34,7 +41,11 @@ Following is a instruction of setting up mlterm indic support.
   inputting.
   IM_HOTKEY switches the loop Inscript => Phonetic => US ASCII => Inscript ...
 
+  If you try indic scripts except devanagari, start mlterm with LD_PRELOAD as follows.
+  $ LD_PRELOAD=(INSTALLED DIRECTORY)/lib/mlterm/libfc_wrapper.so mlterm ...
+
 * Notice
+  o Tamil support is broken.
   o We are not a native speaker and mlterm indic support itself may be still
     unstable.
     So if you find something strange or wrong about it, please report it without

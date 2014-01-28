@@ -766,7 +766,7 @@ put_char(
 
 	if( ( prop & MKF_COMBINING) &&
 	    ( vt100_parser->use_char_combining ||
-	      ( ch == '\e9' && IS_ISCII(cs)) /* nukta is always combined. */))
+	      ( ch == '\xe9' && IS_ISCII(cs)) /* nukta is always combined. */))
 	{
 		is_comb = 1 ;
 	}
