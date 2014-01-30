@@ -38,6 +38,7 @@ int  wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1 ;
 int  wskbd_repeat_N = DEFAULT_KEY_REPEAT_N ;
 #endif
 static int  orig_console_mode = WSDISPLAYIO_MODE_EMUL ;	/* 0 */
+static int  wskbd_mode_switch = 0 ;
 
 
 /* --- static functions --- */
@@ -197,19 +198,45 @@ process_wskbd_event(
 		/* XXX */
 		ksym = XK_BackSpace ;
 	}
-	else if( _display.key_state & ShiftMask)
-	{
-		ksym = keymap.map[ev->value].group1[1] ;
-	}
 	else
 	{
-		ksym = keymap.map[ev->value].group1[0] ;
-	}
+		keysym_t *  group ;
 
-	if( KS_f1 <= ksym && ksym <= KS_f20)
-	{
-		/* KS_f1 => KS_F1 */
-		ksym += 0x40 ;
+		if( wskbd_mode_switch)
+		{
+			group = keymap.map[ev->value].group2 ;
+		}
+		else
+		{
+			group = keymap.map[ev->value].group1 ;
+		}
+
+		if( _display.key_state & ShiftMask)
+		{
+			ksym = group[1] ;
+		}
+		else
+		{
+			ksym = group[0] ;
+		}
+
+		if( KS_f1 <= ksym && ksym <= KS_f20)
+		{
+			/* KS_f1 => KS_F1 */
+			ksym += (KS_F1 - KS_f1) ;
+		}
+		else if( _display.lock_state & CLKED)
+		{
+			if( KS_a <= ksym && ksym <= KS_z)
+			{
+				ksym += (KS_A - KS_a) ;
+			}
+			else if( KS_agrave <= ksym && ksym <= KS_thorn &&
+				 ksym != KS_division)
+			{
+				ksym += (KS_Agrave - KS_agrave) ;
+			}
+		}
 	}
 
 	if( ev->type == WSCONS_EVENT_KEY_DOWN)
@@ -221,14 +248,7 @@ process_wskbd_event(
 		}
 		else if( ksym == KS_Caps_Lock)
 		{
-			if( _display.key_state & ShiftMask)
-			{
-				_display.key_state &= ~ShiftMask ;
-			}
-			else
-			{
-				_display.key_state |= ShiftMask ;
-			}
+			_display.lock_state ^= CLKED ;
 		}
 		else if( ksym == KS_Control_R ||
 			 ksym == KS_Control_L)
@@ -239,6 +259,10 @@ process_wskbd_event(
 			 ksym == KS_Alt_L)
 		{
 			_display.key_state |= ModMask ;
+		}
+ 		else if( ksym == KS_Mode_switch)
+		{
+			wskbd_mode_switch = 1 ;
 		}
 		else if( ksym == KS_Num_Lock)
 		{
@@ -279,6 +303,10 @@ process_wskbd_event(
 			 ksym == KS_Alt_L)
 		{
 			_display.key_state &= ~ModMask ;
+		}
+ 		else if( ksym == KS_Mode_switch)
+		{
+			wskbd_mode_switch = 0 ;
 		}
 		else if( ev->value == prev_key_event.value)
 		{

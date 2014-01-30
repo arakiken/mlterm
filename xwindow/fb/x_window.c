@@ -1641,7 +1641,7 @@ x_window_get_str(
 				case  XK_KP_Left:
 					ch = '4' ;
 					break ;
-				case  XK_KP_5:
+				case  XK_KP_Begin:
 					ch = '5' ;
 					break ;
 				case  XK_KP_Right:

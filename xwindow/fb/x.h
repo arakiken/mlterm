@@ -539,19 +539,19 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_F2	0xffec	/* dummy */
 #define XK_KP_F3	0xffeb	/* dummy */
 #define XK_KP_F4	0xffea	/* dummy */
-#define XK_KP_Begin	0xffe9	/* dummy */
+#define XK_KP_Begin	(KEY_KP5 + 0x100)	/* dummy */
 #define XK_KP_Multiply	(KEY_KPASTERISK + 0x100)
 #define XK_KP_Add	(KEY_KPPLUS + 0x100)
 #define XK_KP_Separator	(KEY_KPCOMMA + 0x100)
 #define XK_KP_Subtract	(KEY_KPMINUS + 0x100)
-#define XK_KP_Decimal	0xffe8	/* dummy */
+#define XK_KP_Decimal	0xffe9	/* dummy */
 #define XK_KP_Divide	(KEY_KPSLASH + 0x100)
-#define XK_KP_0		0xffe7	/* dummy */
-#define XK_KP_1		0xffe6	/* dummy */
-#define XK_KP_2		0xffe5	/* dummy */
-#define XK_KP_3		0xffe4	/* dummy */
-#define XK_KP_4		0xffe3	/* dummy */
-#define XK_KP_5		(KEY_KP5 + 0x100)	/* dummy */
+#define XK_KP_0		0xffe8	/* dummy */
+#define XK_KP_1		0xffe7	/* dummy */
+#define XK_KP_2		0xffe6	/* dummy */
+#define XK_KP_3		0xffe5	/* dummy */
+#define XK_KP_4		0xffe4	/* dummy */
+#define XK_KP_5		0xffe3	/* dummy */
 #define XK_KP_6		0xffe1	/* dummy */
 #define XK_KP_7		0xffe0	/* dummy */
 #define XK_KP_8		0xffdf	/* dummy */

@@ -1,3 +1,10 @@
+2014-01-30  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_wscons.c: https://gist.github.com/steleto/8671862 is
+	  partially merged. (Thanks to @tristelo)
+
+	* x.h: KEY_KP5 is assigned to XK_KP_Begin not to XK_KP_5.
+
 2014-01-29  Araki Ken  <arakiken@users.sf.net>
 
 	* bengali.table: Following entries are fixed.
