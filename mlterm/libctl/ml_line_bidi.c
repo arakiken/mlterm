@@ -409,6 +409,14 @@ ml_line_bidi_is_rtl(
 	return  BASE_IS_RTL( line->ctl_info.bidi) ;
 }
 
+int
+ml_line_bidi_need_shape(
+	ml_line_t *  line
+	)
+{
+	return  HAS_RTL( line->ctl_info.bidi) ;
+}
+
 /*
  * This function is used only by a loader of this module (not used inside this module),
  * so it is assumed that ml_line_is_using_bidi() was already checked.

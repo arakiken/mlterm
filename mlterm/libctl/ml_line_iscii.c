@@ -306,3 +306,11 @@ ml_line_iscii_convert_logical_char_index_to_visual(
 
 	return  visual_char_index ;
 }
+
+int
+ml_line_iscii_need_shape(
+	ml_line_t *  line
+	)
+{
+	return  line->ctl_info.iscii->size > 0 && line->ctl_info.iscii->has_iscii ;
+}

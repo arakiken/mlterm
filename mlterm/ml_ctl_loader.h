@@ -24,6 +24,7 @@ typedef enum  ml_ctl_bidi_id
 	ML_IS_ARABIC_COMBINING ,
 	ML_BIDI_COPY ,
 	ML_BIDI_RESET ,
+	ML_LINE_BIDI_NEED_SHAPE ,
 	MAX_CTL_BIDI_FUNCS ,
 
 } ml_ctl_bidi_id_t ;
@@ -40,6 +41,7 @@ typedef enum  ml_ctl_iscii_id
 	ML_ISCII_SHAPE_NEW ,
 	ML_ISCII_COPY ,
 	ML_ISCII_RESET ,
+	ML_LINE_ISCII_NEED_SHAPE ,
 	MAX_CTL_ISCII_FUNCS ,
 
 } ml_ctl_iscii_id_t ;

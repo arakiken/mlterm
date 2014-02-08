@@ -20,7 +20,7 @@ static char *a2i_binsearch(struct a2i_tabl *a2i_table, char *word, int lindex, i
 static int matra(char *mstr) {
 	int i;
 	char mvowels[11] = { 'A', 'i', 'I', 'H', 'u', 'U', 'q', 'e', 'E', 'o', 'O'};
-	for (i=0;i<=11;i++)
+	for (i=0;i<11;i++)
 		if(mstr[0] == mvowels[i]) return 1;
 	
 	return 0;
@@ -40,10 +40,10 @@ char *iitk2iscii(struct a2i_tabl *a2i_table, char *buf, char *remem, int a2i_sz)
 		bufferi[2] = '\0';
 		sprintf(buffer1 + strlen(buffer1), "\b%s",a2i_binsearch(a2i_table, bufferi, 0, a2i_sz));
 	} else {
-	bzero(remem,5);
+	memset(remem,0,5);
 	strcpy(buffer1,a2i_binsearch(a2i_table, bufferi, 0, a2i_sz));
 	}
-	bzero(buf,8);
+	memset(buf,0,8);
 	strncpy(buf, buffer1, strlen(buffer1));
 	return buf;
 }
@@ -63,9 +63,8 @@ char *ins2iscii(struct a2i_tabl *a2i_table, char *kbuf, int a2i_sz) {
 
 	char *buffer1, *bufferi;
 
-        bufferi = (char *) malloc(1000 * sizeof(char));
-        bzero(bufferi,1000);
-        strcat(bufferi,kbuf);
+	bufferi = (char *) calloc(1000 , sizeof(char));
+	strcat(bufferi,kbuf);
 	buffer1=ins_process(a2i_table, bufferi, a2i_sz);
 	strncpy(kbuf,buffer1, strlen(buffer1));
 	free(bufferi);

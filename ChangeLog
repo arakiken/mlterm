@@ -1,3 +1,27 @@
+2014-02-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Indic scripts works if not_use_unicode_font=true.
+
+	* x_screen.c: Even if ml_line_shape() returns NULL, continue processing.
+
+	* ml_line.c: ml_line_shape() doesn't shape the line which doesn't
+	  contain RTL or ISCII characters.
+
+	* ml_ctl_loader.h, ml_functbl_{bidi|iscii}.c, libctl/ml_line_{bidi|iscii}.c:
+	  ML_LINE_{BIDI|ISCII}_NEED_SHAPE and ml_line_{bidi|iscii}_need_shape()
+	  are added.
+
+	* keyboard.c: bzero -> memset
+
+	* indian.c:
+	  - isprint() which can return true for ISCII characters on some
+	    environment is removed.
+	  - bzero -> memset
+
+	* bengali.table: The glyph index 0xe5 is mostly changed to 0xe6.
+
+	* font.win32.indic: Integrated to font.win32.
+
 2014-02-05  Araki Ken  <arakiken@users.sf.net>
 
 	* bengali.table: Entries containig 0xab, 0xae, 0xaf, 0xb2, 0xc7, 0xd0,

@@ -136,6 +136,21 @@ ml_bidi_reset(
 	return  (*func)( state) ;
 }
 
+static int
+ml_line_bidi_need_shape(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_NEED_SHAPE)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
 
 static int
 ml_line_set_use_iscii(
@@ -184,6 +199,21 @@ ml_iscii_reset(
 	return  (*func)( state) ;
 }
 
+static int
+ml_line_iscii_need_shape(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_iscii_func( ML_LINE_ISCII_NEED_SHAPE)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
 #else
 
 #ifndef  USE_FRIBIDI
@@ -191,6 +221,7 @@ ml_iscii_reset(
 #define  ml_line_bidi_convert_visual_char_index_to_logical( line , char_index)  (char_index)
 #define  ml_line_bidi_copy_logical_str( line , dst , beg , len)  (0)
 #define  ml_line_bidi_is_rtl( line)  (0)
+#define  ml_line_bidi_need_shape( line)  (0)
 #define  ml_bidi_copy( dst , src)  (0)
 #define  ml_bidi_reset( state)  (0)
 #else
@@ -199,6 +230,7 @@ int  ml_line_set_use_bidi( ml_line_t *  line , int  flag) ;
 int  ml_line_bidi_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 int  ml_line_bidi_copy_logical_str( ml_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
 int  ml_line_bidi_is_rtl( ml_line_t *  line) ;
+int  ml_line_bidi_need_shape( ml_line_t *  line) ;
 int  ml_bidi_copy( ml_bidi_state_t  dst , ml_bidi_state_t  src) ;
 int  ml_bidi_reset( ml_bidi_state_t  state) ;
 int  ml_line_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
@@ -209,6 +241,7 @@ int  ml_line_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int 
 #define  ml_line_set_use_iscii( line , flag)  (0)
 #define  ml_iscii_copy( dst , src)  (0)
 #define  ml_iscii_reset( state)  (0)
+#define  ml_line_iscii_need_shape( line)  (0)
 #else
 /* Link functions in libctl/ml_*iscii.c */
 int  ml_line_set_use_iscii( ml_line_t *  line , int  flag) ;
@@ -216,6 +249,7 @@ int  ml_iscii_copy( ml_iscii_state_t  dst , ml_iscii_state_t  src) ;
 int  ml_iscii_reset( ml_iscii_state_t  state) ;
 int  ml_line_iscii_convert_logical_char_index_to_visual( ml_line_t *  line ,
 	int  logical_char_index) ;
+int  ml_line_iscii_need_shape( ml_line_t *  line) ;
 #endif
 
 #endif	/* NO_DYNAMIC_LOAD_CTL */
@@ -1429,6 +1463,12 @@ ml_line_shape(
 {
 	ml_line_t *  orig ;
 	ml_char_t *  shaped ;
+
+	if( ( ! ml_line_is_using_bidi( line) || ! ml_line_bidi_need_shape( line)) &&
+	    ( ! ml_line_is_using_iscii( line) || ! ml_line_iscii_need_shape( line)))
+	{
+		return  NULL ;
+	}
 
 	if( ( orig = malloc( sizeof( ml_line_t))) == NULL)
 	{

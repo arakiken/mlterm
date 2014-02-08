@@ -209,12 +209,7 @@ convert_char_index_to_x_with_shape(
 
 	if( screen->term->shape)
 	{
-		if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_line_shape() failed.\n") ;
-		#endif
-		}
+		orig = ml_line_shape( line , screen->term->shape) ;
 	}
 	else
 	{
@@ -336,12 +331,7 @@ convert_x_to_char_index_with_shape(
 
 	if( screen->term->shape)
 	{
-		if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_line_shape() failed.\n") ;
-		#endif
-		}
+		orig = ml_line_shape( line , screen->term->shape) ;
 	}
 	else
 	{
@@ -474,10 +464,7 @@ draw_line(
 
 		if( screen->term->shape)
 		{
-			if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
-			{
-				return  0 ;
-			}
+			orig = ml_line_shape( line , screen->term->shape) ;
 		}
 		else
 		{
@@ -621,10 +608,7 @@ draw_cursor(
 
 	if( screen->term->shape)
 	{
-		if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
-		{
-			return  0 ;
-		}
+		orig = ml_line_shape( line , screen->term->shape) ;
 	}
 	else
 	{

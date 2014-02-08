@@ -765,8 +765,11 @@ put_char(
 #endif
 
 	if( ( prop & MKF_COMBINING) &&
-	    ( vt100_parser->use_char_combining ||
-	      ( ch == '\xe9' && IS_ISCII(cs)) /* nukta is always combined. */))
+	    ( vt100_parser->use_char_combining
+	#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
+	      || ( ch == '\xe9' && IS_ISCII(cs)) /* nukta is always combined. */
+	#endif
+	      ))
 	{
 		is_comb = 1 ;
 	}
@@ -5032,6 +5035,7 @@ parse_vt100_sequence(
 
 			if( ret == 1)
 			{
+			#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 				if( IS_ISCII(ch.cs) && ch.size == 2)
 				{
 					ch.size = 1 ;
@@ -5041,6 +5045,7 @@ parse_vt100_sequence(
 					/* nukta is always combined. */
 					ch.property |= MKF_COMBINING ;
 				}
+			#endif
 
 				put_char( vt100_parser , mkf_char_to_int(&ch) ,
 					ch.cs , ch.property) ;
@@ -5757,27 +5762,6 @@ ml_convert_to_internal_ch(
 			ch.cs = DEC_SPECIAL ;
 			ch.property = 0 ;
 		}
-		else if( unicode_policy & NOT_USE_UNICODE_FONT)
-		{
-			/* convert ucs4 to appropriate charset */
-
-			mkf_char_t  non_ucs ;
-
-			if( ! is_noconv_unicode( ch.ch) &&
-			    mkf_map_locale_ucs4_to( &non_ucs , &ch))
-			{
-				if( unicode_policy & USE_UNICODE_PROPERTY)
-				{
-					non_ucs.property = ch.property ;
-				}
-				else if( IS_FULLWIDTH_CS( non_ucs.cs))
-				{
-					non_ucs.property = MKF_FULLWIDTH ;
-				}
-
-				ch = non_ucs ;
-			}
-		}
 	#if  1
 		/* See http://github.com/saitoha/drcsterm/ */
 		else if( ch.ch[1] == 0x10 &&
@@ -5791,12 +5775,36 @@ ml_convert_to_internal_ch(
 			ch.property = 0 ;
 		}
 	#endif
-	#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 		else
 		{
-			u_int32_t  code ;
 			mkf_char_t  non_ucs ;
+		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
+			u_int32_t  code ;
+		#endif
 
+			if( unicode_policy & NOT_USE_UNICODE_FONT)
+			{
+				/* convert ucs4 to appropriate charset */
+
+				if( ! is_noconv_unicode( ch.ch) &&
+				    mkf_map_locale_ucs4_to( &non_ucs , &ch))
+				{
+					if( unicode_policy & USE_UNICODE_PROPERTY)
+					{
+						non_ucs.property = ch.property ;
+					}
+					else if( IS_FULLWIDTH_CS( non_ucs.cs))
+					{
+						non_ucs.property = MKF_FULLWIDTH ;
+					}
+
+					ch = non_ucs ;
+
+					goto  end ;
+				}
+			}
+
+		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 			if( 0x900 <= ( code = mkf_char_to_int( &ch)) && code <= 0xd7f)
 			{
 				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
@@ -5870,13 +5878,13 @@ ml_convert_to_internal_ch(
 					ch.cs = non_ucs.cs ;
 					ch.size = 2 ;
 					/* ch.property is not changed. */
-
-				end:
-					;
 				}
 			}
+		#endif
+
+		end:
+			;
 		}
-	#endif
 	}
 	else if( ch.cs != US_ASCII)
 	{

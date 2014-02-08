@@ -1,10 +1,7 @@
 #include "indian.h"
-#include <ctype.h>	/* isprint */
 
 char *binsearch(struct tabl *table, int sz, char *word) {
 	int result, index, lindex, hindex;
-
-	if (isprint(word[0])) return word;
 
 	if (word[1] == '\0') {
 		if (0xf1 <= ((unsigned char*)word)[0] && ((unsigned char*)word)[0] <= 0xfa) {
@@ -37,7 +34,7 @@ char *binsearch(struct tabl *table, int sz, char *word) {
 }
 
 int iscii2font(struct tabl *table, char *input, char *output, int sz) {
-	bzero(output,strlen(output));
-	strcat(output , (char *) split(table, input, sz));
+	memset(output, 0, strlen(output));
+	strcat(output, (char *) split(table, input, sz));
 	return strlen(output); 
 }
