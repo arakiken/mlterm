@@ -576,9 +576,28 @@ ml_term_set_use_bidi(
 	int  flag
 	)
 {
-	term->use_bidi = flag ;
+	if( ( term->use_bidi = flag))
+	{
+		/* disable iscii */
+		term->use_ind = 0 ;
 
-	ml_vt100_parser_set_use_bidi( term->parser , flag) ;
+		ml_vt100_parser_set_use_bidi( term->parser , flag) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_term_set_use_ind(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	if( ( term->use_ind = flag))
+	{
+		/* disable bidi */
+		ml_term_set_use_bidi( term , 0) ;
+	}
 
 	return  1 ;
 }

@@ -214,7 +214,7 @@ ml_line_iscii_need_shape(
 	return  (*func)( line) ;
 }
 
-#else
+#else	/* NO_DYNAMIC_LOAD_CTL */
 
 #ifndef  USE_FRIBIDI
 #define  ml_line_set_use_bidi( line , flag)  (0)
@@ -235,7 +235,7 @@ int  ml_bidi_copy( ml_bidi_state_t  dst , ml_bidi_state_t  src) ;
 int  ml_bidi_reset( ml_bidi_state_t  state) ;
 int  ml_line_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
 	int *  ltr_rtl_meet_pos) ;
-#endif
+#endif	/* USE_FRIBIDI */
 
 #ifndef  USE_IND
 #define  ml_line_set_use_iscii( line , flag)  (0)
@@ -245,12 +245,12 @@ int  ml_line_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int 
 #else
 /* Link functions in libctl/ml_*iscii.c */
 int  ml_line_set_use_iscii( ml_line_t *  line , int  flag) ;
+int  ml_line_iscii_need_shape( ml_line_t *  line) ;
 int  ml_iscii_copy( ml_iscii_state_t  dst , ml_iscii_state_t  src) ;
 int  ml_iscii_reset( ml_iscii_state_t  state) ;
 int  ml_line_iscii_convert_logical_char_index_to_visual( ml_line_t *  line ,
 	int  logical_char_index) ;
-int  ml_line_iscii_need_shape( ml_line_t *  line) ;
-#endif
+#endif	/* USE_IND */
 
 #endif	/* NO_DYNAMIC_LOAD_CTL */
 

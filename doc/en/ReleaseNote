@@ -4,6 +4,8 @@ ver 3.3.3
   which inverts the current value.
 * Support IME on Android. (Experimental)
 * Mlterm works without SD card on Android.
+* Merge patches:
+  https://gist.github.com/steleto/8671862 (Thanks to @tristelo)
 * Bug fixes:
   Fix the bug of scrolling on framebuffer. (enbugged at 3.3.2)
   Fix the failure of starting mlterm on Android 3.x.

@@ -1,5 +1,20 @@
 2014-02-09  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c: The rectangle of the unfocused cursor is fitted to the cell size.
+
+	* README.indic: Updated.
+
+	* x_main_config.c: The default value of use_bidi option is false instead of
+	  true if -ind option is specified.
+
+	* ml_term.[ch]: "use_ind = true" on the configuration protocol makes the
+	  value of use_bidi false, and vice versa.
+
+	* ml_line_iscii.c: The lines not only which has iscii characters but also
+	  which had ones are redrawn to the end.
+
+2014-02-09  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.c: Indic scripts works if not_use_unicode_font=true.
 
 	* x_screen.c: Even if ml_line_shape() returns NULL, continue processing.

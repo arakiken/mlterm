@@ -969,15 +969,28 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
-	main_config->use_bidi = 1 ;
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
+	if( ( value = kik_conf_get_value( conf , "use_ind")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config->use_ind = 1 ;
+		}
+	}
+#endif
 
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	if( ( value = kik_conf_get_value( conf , "use_bidi")))
 	{
-		if( strcmp( value , "false") == 0)
+		if( strcmp( value , "true") == 0)
 		{
-			main_config->use_bidi = 0 ;
+			main_config->use_bidi = 1 ;
+			main_config->use_ind = 0 ;
 		}
+	}
+	else if( ! main_config->use_ind)
+	{
+		main_config->use_bidi = 1 ;
 	}
 #endif
 
@@ -987,16 +1000,6 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "bidi_mode")))
 	{
 		main_config->bidi_mode = ml_get_bidi_mode( value) ;
-	}
-#endif
-
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-	if( ( value = kik_conf_get_value( conf , "use_ind")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			main_config->use_ind = 1 ;
-		}
 	}
 #endif
 

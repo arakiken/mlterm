@@ -110,7 +110,7 @@ int  ml_term_set_use_bidi( ml_term_t *  term , int  flag) ;
 
 #define  ml_term_get_bidi_mode( term)  ((term)->bidi_mode)
 
-#define  ml_term_set_use_ind( term , use)  ((term)->use_ind = (use))
+int  ml_term_set_use_ind( ml_term_t *  term , int  flag) ;
 
 #define  ml_term_is_using_ind( term)  ((term)->use_ind)
 
