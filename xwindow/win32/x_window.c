@@ -579,6 +579,29 @@ text_out(
 		/* TextOutW is supported in windows 9x. */
 		return  TextOutW( gc , x , y , (WCHAR*)str , len / 2) ;
 	}
+	else if( cs == ISCII_BENGALI || cs == ISCII_ASSAMESE)
+	{
+		u_int  count ;
+		u_int16_t *  str2 ;
+
+		str2 = alloca( len * 2) ;
+
+		/* char code -> glyph index in BN-TTDurga and AS-TTDurga fonts. */
+		for( count = 0 ; count < len ; count++)
+		{
+			if( str[count] <= 0x7e)
+			{
+				str2[count] = str[count] - 0x1d ;
+			}
+			else
+			{
+				str2[count] = str[count] - 0x1e ;
+			}
+		}
+
+		/* ExtTextOutA doesn't work correctly. */
+		return  ExtTextOutW( gc , x , y , ETO_GLYPH_INDEX , NULL , str2 , len , NULL) ;
+	}
 	else
 	{
 		return  TextOutA( gc , x , y , str , len) ;

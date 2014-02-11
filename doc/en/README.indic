@@ -10,8 +10,12 @@ Following is a instruction of setting up mlterm indic support.
   $ make
   $ make install
 
-  If you try indic scripts except devanagari, execute following steps
-  or rebuild fontconfig with http://mlterm.sf.net/fontconfig-2.8.0-fix4indic.patch
+  You can download mlterm for win32gdi which supports indic scripts from
+  http://mlterm.sf.net/bin.html
+
+  If you try bengali or assamese with --type=xft or --type=cairo option,
+  execute following steps or rebuild fontconfig with
+  http://mlterm.sf.net/fontconfig-2.8.0-fix4indic.patch
   $ cd xwindow/libtype
   $ make libfc_wrapper.la
     (You may need to change <freetype/freetype.h> to <freetype2/freetype.h>
@@ -19,10 +23,23 @@ Following is a instruction of setting up mlterm indic support.
   $ make install_fc_wrapper
   $ chmod 755 (INSTALLED DIRECTORY)/bin/mlterm
 
-  Then, setup ~/.mlterm/font or ~/.mlterm/aafont.
-  (etc/font.indic, etc/aafont.indic and etc/font.win32.indic in mlterm source
-  tree are samples. Note that mlterm supports ISCII fonts alone. Unicode fonts
-  of indic characters are not supported.)
+  Then, install indic fonts to your system and setup ~/.mlterm/font or
+  ~/.mlterm/aafont. (etc/font.indic, etc/aafont and etc/font.win32 in
+  mlterm source tree are sample files.)
+  Note that mlterm doesn't support modern OpenType fonts but supports
+  following old ISCII fonts.
+
+  Asdr0ntt.TTF for assamese (AS\-TTDurga)
+  DVYG0ntt.ttf for devanagari (DV\-TTYogesh)
+  DVSR0ntt.ttf for devanagari (DV\-TTSurekh)
+  GJAV0ntt.ttf for gujarati (GJ\-TTAvantika)
+  MLKR0ntt.ttf for malayalam (ML\-TTKarthika)
+  ORSR0ntt.ttf for oriya (OR\-TTSarala)
+  PNAM0ntt.ttf for pubjabi (PN\-TTAmar)
+  BNDR0ntt.ttf for bengali (BN\-TTDurga)
+  KNUM0ntt.ttf for kannada (KN\-TTUma)
+  TLHM0ntt.ttf for telugu (TL\-TTHemalatha)
+  TMVL0ntt.ttf for tamil (TM\-TTValluvar)
 
 * Usage
   $ mlterm -E utf8 -w 16 --im=kbd:isciihindi --lsp 6 --ind --type=xft
@@ -36,6 +53,7 @@ Following is a instruction of setting up mlterm indic support.
     a selected font. (optional)
   o --ind enables rendering indic characters.
   o --type=xft enables xft. --type=cairo is also available. (optional)
+    This option is not necessary on win32gdi.
   o If console applications you use don't support combining characters, try -m=false.
   o Don't specify -bi option which disables rendering indic scripts.
 
@@ -47,7 +65,7 @@ Following is a instruction of setting up mlterm indic support.
   $ LD_PRELOAD=(INSTALLED DIRECTORY)/lib/mlterm/libfc_wrapper.so mlterm ...
 
 * Notice
-  o Tamil support is broken.
+  o Support for indic scripts except devanagari and bengali is buggy.
   o We are not a native speaker and mlterm indic support itself may be still
     unstable.
     So if you find something strange or wrong about it, please report it without

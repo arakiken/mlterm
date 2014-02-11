@@ -7820,6 +7820,7 @@ static struct tabl  iscii_bengali_table[] =
 	{ "\xe6" , "\xe6\xec" } ,
 	{ "\xe6\xa2" , "\xe6\xec\x65" } ,
 	{ "\xe8" , "\xcb" } ,
+	{ "\xe8\xcd" , "\xee" } ,	/* for U+09B0 + U+200C + U+09CD + U+09AF */
 	{ "\xe8\xe9" , "\xcb" } ,
 	{ "\xe9" , "\xcc" } ,
 	{ "\xe9\xdd" , "\xcc\xc7" } ,

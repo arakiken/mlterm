@@ -1,3 +1,14 @@
+2014-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.indic: Updated.
+
+	* win32/x_window.c: ExtTextOutW(ETO_GLYPH_INDEX) is used for drawing
+	  ISCII_BENGALI and ISCII_ASSAMESE text.
+
+	* bengali.table: "\xe8\xcd" => "\xee" is added.
+
+	* ml_char.c: is_zerowidth is stored in attr.
+
 2014-02-09  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: The rectangle of the unfocused cursor is fitted to the cell size.

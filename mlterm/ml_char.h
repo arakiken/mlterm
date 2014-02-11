@@ -54,7 +54,8 @@ typedef struct ml_char
 			/*
 			 * attr member contents.
 			 * Total 23 bit
-			 * 3 bit : not used
+			 * 2 bit : not used
+			 * 1 bit : is_zerowidth(0 or 1)
 			 * 3 bit : unicode area(0x0 - 0x7)
 			 * 1 bit : is_italic(0 or 1)
 			 * 1 bit : is_bold(0 or 1)
@@ -134,7 +135,7 @@ ml_font_t  ml_char_font( ml_char_t *  ch) ;
 
 u_int  ml_char_cols( ml_char_t *  ch) ;
 
-u_int  ml_char_is_fullwidth( ml_char_t *  ch) ;
+int  ml_char_is_fullwidth( ml_char_t *  ch) ;
 
 ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
 

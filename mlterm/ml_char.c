@@ -9,7 +9,11 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
+#define  IS_ZEROWIDTH(attr)  ((attr) & (0x1 << 20))
+
+/* Combination of UNICODE_AREA, IS_ITALIC, IS_BOLD, IS_FULLWIDTH and CHARSET */
 #define  MLFONT(attr)  (((attr) >> 5) & 0x7fff)
+
 #define  IS_ITALIC(attr)  ((attr) & (0x1 << 16))
 #define  IS_BOLD(attr)  ((attr) & (0x1 << 15))
 #define  IS_FULLWIDTH(attr)  ((attr) & (0x1 << 14))
@@ -31,10 +35,10 @@
 #define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffe)
 #define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
-#define  COMPOUND_ATTR(charset,is_fullwidth,is_bold,is_italic,unicode_area,is_underlined,is_comb) \
-	( ((unicode_area) << 17) | ((is_italic) << 16) | ((is_bold) << 15) | \
-	  ((is_fullwidth) << 14) | ((charset) << 5) | ( 0x0 << 4) |  \
-	  ((is_underlined) << 3) | ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
+#define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,unicode_area,is_underlined,is_comb) \
+	( ((is_zerowidth) << 20) | ((unicode_area) << 17) | ((is_italic) << 16) | \
+	  ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
+	  ( 0x0 << 4) |  ((is_underlined) << 3) | ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
 
 
 /* --- static variables --- */
@@ -159,6 +163,8 @@ ml_char_set(
 	)
 {
 	u_int  idx ;
+	int  is_zerowidth ;
+
 	ml_char_final( ch) ;
 
 	ch->u.ch.code = code ;
@@ -186,8 +192,35 @@ ml_char_set(
 		idx = 0 ;
 	}
 
-	ch->u.ch.attr = COMPOUND_ATTR(cs,is_fullwidth!=0,is_bold!=0,is_italic!=0,idx,
-				is_underlined!=0,is_comb!=0) ;
+#if  1
+	/*
+	 * 0 should be returned for all zero-width characters of Unicode,
+	 * but 0 is returned for following characters alone for now.
+	 * 200C;ZERO WIDTH NON-JOINER
+	 * 200D;ZERO WIDTH JOINER
+	 * 200E;LEFT-TO-RIGHT MARK
+	 * 200F;RIGHT-TO-LEFT MARK
+	 * 202A;LEFT-TO-RIGHT EMBEDDING
+	 * 202B;RIGHT-TO-LEFT EMBEDDING
+	 * 202C;POP DIRECTIONAL FORMATTING
+	 * 202D;LEFT-TO-RIGHT OVERRIDE
+	 * 202E;RIGHT-TO-LEFT OVERRIDE
+	 *
+	 * see is_noconv_unicode() in ml_vt100_parser.c
+	 */
+	if( cs == ISO10646_UCS4_1 &&
+	    ( (0x200c <= code && code <= 0x200f) || (0x202a <= code && code <= 0x202e)))
+	{
+		is_zerowidth = 1 ;
+	}
+	else
+#endif
+	{
+		is_zerowidth = 0 ;
+	}
+
+	ch->u.ch.attr = COMPOUND_ATTR(cs,is_zerowidth,is_fullwidth!=0,is_bold!=0,
+				is_italic!=0,idx,is_underlined!=0,is_comb!=0) ;
 	ch->u.ch.fg_color = fg_color ;
 	ch->u.ch.bg_color = bg_color ;
 
@@ -231,6 +264,15 @@ ml_char_combine(
 
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
+		if( IS_ZEROWIDTH(ch->u.ch.attr))
+		{
+			/*
+			 * Zero width characters must not be combined to
+			 * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
+			 */
+			return  0 ;
+		}
+
 		if( ( multi_ch = malloc( sizeof( ml_char_t) * 2)) == NULL)
 		{
 		#ifdef  DEBUG
@@ -264,7 +306,16 @@ ml_char_combine(
 	else
 	{
 		u_int  comb_size ;
-		
+
+		if( IS_ZEROWIDTH(ch->u.multi_ch->u.ch.attr))
+		{
+			/*
+			 * Zero width characters must not be combined to
+			 * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
+			 */
+			return  0 ;
+		}
+
 		if( ( comb_size = get_comb_size( ch->u.multi_ch)) >= MAX_COMB_SIZE)
 		{
 		#ifdef  DEBUG
@@ -505,38 +556,14 @@ ml_char_cols(
 
 	if( IS_SINGLE_CH(attr))
 	{
-		if( use_multi_col_char && IS_FULLWIDTH(attr))
+		if( IS_ZEROWIDTH(attr))
+		{
+			return  0 ;
+		}
+		else if( use_multi_col_char && IS_FULLWIDTH(attr))
 		{
 			return  2 ;
 		}
-	#if  1
-		else if( CHARSET(attr) == ISO10646_UCS4_1)
-		{
-			/*
-			 * 0 should be returned for all zero-width characters of Unicode,
-			 * but 0 is returned for following characters alone for now.
-			 * 200C;ZERO WIDTH NON-JOINER
-			 * 200D;ZERO WIDTH JOINER
-			 * 200E;LEFT-TO-RIGHT MARK
-			 * 200F;RIGHT-TO-LEFT MARK
-			 * 202A;LEFT-TO-RIGHT EMBEDDING
-			 * 202B;RIGHT-TO-LEFT EMBEDDING
-			 * 202C;POP DIRECTIONAL FORMATTING
-			 * 202D;LEFT-TO-RIGHT OVERRIDE
-			 * 202E;RIGHT-TO-LEFT OVERRIDE
-			*/
-			u_int32_t  code ;
-
-			code = ch->u.ch.code ;
-
-			/* see is_noconv_unicode() in ml_vt100_parser.c */
-			if( ( 0x200c <= code && code <= 0x200f) ||
-			    ( 0x202a <= code && code <= 0x202e))
-			{
-				return  0 ;
-			}
-		}
-	#endif
 
 		return  1 ;
 	}
@@ -549,7 +576,7 @@ ml_char_cols(
 /*
  * 'use_multi_col_char' not concerned.
  */
-u_int
+int
 ml_char_is_fullwidth(
 	ml_char_t *  ch
 	)

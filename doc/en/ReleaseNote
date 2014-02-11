@@ -4,12 +4,14 @@ ver 3.3.3
   which inverts the current value.
 * Support IME on Android. (Experimental)
 * Mlterm works without SD card on Android.
+* Support devanagari and bengali on win32gdi.
 * Merge patches:
   https://gist.github.com/steleto/8671862 (Thanks to @tristelo)
 * Bug fixes:
   Fix the bug of scrolling on framebuffer. (enbugged at 3.3.2)
   Fix the failure of starting mlterm on Android 3.x.
   Fix the conversion from unicode to ISCII characters with nukta.
+  Fix the bug of unexpectedly large cursor shape in unfocused.
 
 ver 3.3.2
 * Support 4bpp framebuffer on NetBSD/luna68k and OpenBSD/luna88k.
