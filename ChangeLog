@@ -1,3 +1,12 @@
+2014-02-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_str_parser.c: DRCS is converted to Unicode Private Area code point
+	  in next_char().
+
+	* ml_vt100_parser.[ch]: CSI ? 8800 h and CSI ? 8800 l are supported, and
+	  the conversion from DRCS to Unicode Private Area is disabled by default.
+	  (See http://github.com/saitoha/drcsterm/blob/master/README.rst)
+
 2014-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* README.indic: Updated.

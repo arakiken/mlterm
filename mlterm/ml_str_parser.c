@@ -9,6 +9,7 @@
 #include  <kiklib/kik_debug.h>
 
 #include  "ml_char_encoding.h"		/* ml_is_msb_set */
+#include  "ml_drcs.h"
 
 
 typedef struct ml_str_parser
@@ -37,6 +38,7 @@ next_char(
 	ml_str_parser_t *  ml_str_parser ;
 	ml_char_t *  ml_ch ;
 	u_int  comb_size ;
+	u_int32_t  code ;
 
 	ml_str_parser = (ml_str_parser_t*) parser ;
 
@@ -108,12 +110,33 @@ next_char(
 	}
 
 	ch->cs = ml_char_cs( ml_ch) ;
-	ch->size = CS_SIZE(ch->cs) ;
-	mkf_int_to_bytes( ch->ch , ch->size , ml_char_code( ml_ch)) ;
 
-	if( ml_is_msb_set( ch->cs))
+#if  1
+	if( ml_drcs_get_glyph( ch->cs , ( code = ml_char_code( ml_ch))))
 	{
-		UNSET_MSB(ch->ch[0]) ;
+		/*
+		 * DRCS -> Unicode Private Area
+		 * (see ml_convert_to_internal_ch() in ml_vt100_parser.c)
+		 */
+
+		ch->ch[0] = 0x00 ;
+		ch->ch[1] = 0x10 ;
+		ch->ch[2] = ch->cs + 0x30 ;	/* see CS94SB_ID() in mkf_charset.h */
+		ch->ch[3] = code ;
+		ch->size = 4 ;
+		ch->cs = ISO10646_UCS4_1 ;
+	}
+	else
+#endif
+	{
+		ch->size = CS_SIZE(ch->cs) ;
+
+		mkf_int_to_bytes( ch->ch , ch->size , code) ;
+
+		if( ml_is_msb_set( ch->cs))
+		{
+			UNSET_MSB(ch->ch[0]) ;
+		}
 	}
 
 	/* XXX */

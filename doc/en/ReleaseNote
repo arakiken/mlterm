@@ -5,6 +5,9 @@ ver 3.3.3
 * Support IME on Android. (Experimental)
 * Mlterm works without SD card on Android.
 * Support devanagari and bengali on win32gdi.
+* Support CSI ? 8800 h and CSI ? 8800 l which enables / disables the conversion
+  from drcs to unicode private area. (Disabled by default.)
+  (See http://github.com/saitoha/drcsterm/blob/master/README.rst)
 * Merge patches:
   https://gist.github.com/steleto/8671862 (Thanks to @tristelo)
 * Bug fixes:

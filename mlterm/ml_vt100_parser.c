@@ -3177,6 +3177,11 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->col_size_of_width_a = 1 ;
 						}
+						else if( ps[count] == 8800)
+						{
+							vt100_parser->unicode_policy |=
+								USE_UNICODE_DRCS ;
+						}
 						else if( ps[count] == 9500)
 						{
 							/* "CSI ? 9500 h" */
@@ -3426,6 +3431,11 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 8428 l" (RLogin original) */
 
 							vt100_parser->col_size_of_width_a = 2 ;
+						}
+						else if( ps[count] == 8800)
+						{
+							vt100_parser->unicode_policy &=
+								~USE_UNICODE_DRCS ;
 						}
 						else if( ps[count] == 9500)
 						{
@@ -5764,11 +5774,17 @@ ml_convert_to_internal_ch(
 		}
 	#if  1
 		/* See http://github.com/saitoha/drcsterm/ */
-		else if( ch.ch[1] == 0x10 &&
+		else if( ( unicode_policy & USE_UNICODE_DRCS) &&
+		         ch.ch[1] == 0x10 &&
 			 0x40 <= ch.ch[2] && ch.ch[2] <= 0x7e &&
 			 0x20 <= ch.ch[3] && ch.ch[3] <= 0x7f &&
 			 ch.ch[0] == 0x00)
 		{
+			/*
+			 * Unicode Private Area -> DRCS
+			 * (see next_char() in ml_str_parser.c)
+			 */
+
 			ch.ch[0] = ch.ch[3] ;
 			ch.cs = CS94SB_ID(ch.ch[2]) ;
 			ch.size = 1 ;
