@@ -1,3 +1,7 @@
+2014-02-13  Araki Ken  <arakiken@users.sf.net>
+
+	* bengali.table: "\xcf\xe8\xcd\xe8\xcd*" entries are fixed.
+
 2014-02-12  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_str_parser.c: DRCS is converted to Unicode Private Area code point
