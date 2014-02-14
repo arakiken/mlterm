@@ -41,6 +41,8 @@
 
 #include  <mkf/mkf_iso2022_conv.h>	/* mkf_iso2022_illegal_char */
 
+#include  "ml_drcs.h"
+
 
 typedef struct  encoding_table
 {
@@ -249,6 +251,23 @@ ovrd_iso2022kr_parser_init(
 }
 
 static size_t
+iso2022_illegal_char(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	int *  is_full ,
+	mkf_char_t *  ch
+	)
+{
+	if( ch->cs == ISO10646_UCS4_1)
+	{
+		ml_convert_unicode_pua_to_drcs( ch) ;
+	}
+
+	return  mkf_iso2022_illegal_char( conv , dst , dst_size , is_full , ch) ;
+}
+
+static size_t
 non_iso2022_illegal_char(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
@@ -430,7 +449,7 @@ ml_conv_new(
 
 	if( IS_ENCODING_BASED_ON_ISO2022(encoding))
 	{
-		conv->illegal_char = mkf_iso2022_illegal_char ;
+		conv->illegal_char = iso2022_illegal_char ;
 
 		if( encoding == ML_ISO2022KR)
 		{

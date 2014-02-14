@@ -5775,20 +5775,9 @@ ml_convert_to_internal_ch(
 	#if  1
 		/* See http://github.com/saitoha/drcsterm/ */
 		else if( ( unicode_policy & USE_UNICODE_DRCS) &&
-		         ch.ch[1] == 0x10 &&
-			 0x40 <= ch.ch[2] && ch.ch[2] <= 0x7e &&
-			 0x20 <= ch.ch[3] && ch.ch[3] <= 0x7f &&
-			 ch.ch[0] == 0x00)
+		         ml_convert_unicode_pua_to_drcs( &ch))
 		{
-			/*
-			 * Unicode Private Area -> DRCS
-			 * (see next_char() in ml_str_parser.c)
-			 */
-
-			ch.ch[0] = ch.ch[3] ;
-			ch.cs = CS94SB_ID(ch.ch[2]) ;
-			ch.size = 1 ;
-			ch.property = 0 ;
+			/* do nothing */
 		}
 	#endif
 		else

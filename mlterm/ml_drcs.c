@@ -164,3 +164,51 @@ ml_drcs_add(
 
 	return  1 ;
 }
+
+int
+ml_convert_drcs_to_unicode_pua(
+	mkf_char_t *  ch
+	)
+{
+	if( ml_drcs_get_glyph( ch->cs , ch->ch[0]))
+	{
+		ch->ch[3] = ch->ch[0] ;
+		ch->ch[2] = ch->cs + 0x30 ;	/* see CS94SB_ID() in mkf_charset.h */
+		ch->ch[1] = 0x10 ;
+		ch->ch[0] = 0x00 ;
+		ch->cs = ISO10646_UCS4_1 ;
+		ch->size = 4 ;
+		ch->property = 0 ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
+ml_convert_unicode_pua_to_drcs(
+	mkf_char_t *  ch
+	)
+{
+	u_char *  c ;
+
+	c = ch->ch ;
+
+	if( c[1] == 0x10 && 0x40 <= c[2] && c[2] <= 0x7e &&
+	    0x20 <= c[3] && c[3] <= 0x7f && c[0] == 0x00)
+	{
+		c[0] = c[3] ;
+		ch->cs = CS94SB_ID(c[2]) ;
+		ch->size = 1 ;
+		ch->property = 0 ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}

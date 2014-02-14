@@ -35,3 +35,6 @@
 
 # Simplified Chinese speakers may want to enable the following setting.
 #ISO10646_UCS4_1_FULLWIDTH=AR PL SungtiL GB
+
+# For powerline.
+#U+E000-E0FF = PowerlineSymbols

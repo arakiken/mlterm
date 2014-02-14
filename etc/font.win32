@@ -1,4 +1,4 @@
-#DEFAULT=MS Gothic
+#DEFAULT	= MS Gothic
 #ISCII_ASSAMESE	= AS-TTDurga 26
 #ISCII_BENGALI	= BN-TTDurga 26
 #ISCII_GUJARATI	= GJ-TTAvantika 21
@@ -10,3 +10,4 @@
 #ISCII_ROMAN	= DV1-TTYogesh 18
 #ISCII_TAMIL	= TM-TTValluvar 18
 #ISCII_TELUGU	= TL-TTHemalatha 25
+#U+E000-E0FF	= PowerlineSymbols
