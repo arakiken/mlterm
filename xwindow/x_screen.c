@@ -8857,6 +8857,17 @@ x_screen_set_config(
 			ml_term_set_use_auto_detect( screen->term , flag) ;
 		}
 	}
+#ifdef  USE_FRAMEBUFFER
+	else if( strcmp( key , "rotate_display") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			x_display_rotate( flag) ;
+		}
+	}
+#endif
 	else
 	{
 		return  0 ;

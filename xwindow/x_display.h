@@ -99,6 +99,8 @@ XID  x_display_get_group_leader( x_display_t *  disp) ;
 void  x_display_set_use_ansi_colors( int  use) ;
 
 int  x_display_reset_cmap(void) ;
+
+void  x_display_rotate( int  rotate) ;
 #else
 #define  x_display_set_use_ansi_colors(use)  (0)
 #define  x_display_reset_cmap()  (0)

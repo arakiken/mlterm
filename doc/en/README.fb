@@ -118,6 +118,10 @@ Framebuffer support
     It is not recommended to use them on 1 bpp.
   o Available input method plugins are kbd, m17nlib, uim and iBus.
     (iBus is not tested on FreeBSD)
+  o You can rotate display by --rotate option. ("rotate_display = true" in
+    ~/.mlterm/main is also available.)
+    Following command rotates display dynamically.
+    $ mlcc rotate_display true
 
 * Unsupported features
   o 2,4 bpp

@@ -826,8 +826,16 @@ receive_mouse_event(void)
 			}
 
 			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_nsec / 1000000 ;
-			xev.x = _mouse.x ;
-			xev.y = _mouse.y ;
+			if( rotate_display)
+			{
+				xev.x = _mouse.y ;
+				xev.y = _display.width - _mouse.x - 1 ;
+			}
+			else
+			{
+				xev.x = _mouse.x ;
+				xev.y = _mouse.y ;
+			}
 			xev.state = _display.key_state ;
 
 		#ifdef  __DEBUG
@@ -914,8 +922,16 @@ receive_mouse_event(void)
 			update_mouse_cursor_state() ;
 
 			xev.type = MotionNotify ;
-			xev.x = _mouse.x ;
-			xev.y = _mouse.y ;
+			if( rotate_display)
+			{
+				xev.x = _mouse.y ;
+				xev.y = _display.width - _mouse.x - 1 ;
+			}
+			else
+			{
+				xev.x = _mouse.x ;
+				xev.y = _mouse.y ;
+			}
 			xev.time = ev.time.tv_sec * 1000 + ev.time.tv_nsec / 1000000 ;
 			xev.state = _mouse.button_state | _display.key_state ;
 

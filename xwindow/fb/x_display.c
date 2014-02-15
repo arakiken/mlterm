@@ -86,11 +86,9 @@
 #define  ENABLE_DOUBLE_BUFFER
 #endif
 
-/* Parameters of cursor_shape */
-#define  CURSOR_WIDTH   7
-#define  CURSOR_X_OFF   -3
-#define  CURSOR_HEIGHT  15
-#define  CURSOR_Y_OFF   -7
+/* Parameters of mouse cursor */
+#define  MAX_CURSOR_SHAPE_WIDTH  15
+#define  CURSOR_SHAPE_SIZE  (7*15*sizeof(u_int32_t))
 
 
 /* Note that this structure could be casted to Display */
@@ -119,7 +117,7 @@ typedef struct
 
 	} cursor ;
 
-	u_char  saved_image[sizeof(u_int32_t) * CURSOR_WIDTH * CURSOR_HEIGHT * 4] ;
+	u_char  saved_image[CURSOR_SHAPE_SIZE] ;
 	int  hidden_region_saved ;
 
 } Mouse ;
@@ -133,32 +131,60 @@ static Mouse  _mouse ;
 static x_display_t  _disp_mouse ;
 static x_display_t *  opened_disps[] = { &_disp , &_disp_mouse } ;
 static int  use_ansi_colors = 1 ;
+static int  rotate_display = 0 ;
 
 static struct termios  orig_tm ;
 
-static char *  cursor_shape =
+static const char  cursor_shape_normal[] =
+	"#######"
+	"#*****#"
+	"###*###"
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"  #*#  "
+	"###*###"
+	"#*****#"
+	"#######" ;
+
+static const char  cursor_shape_rotate[] =
+	"###         ###"
+	"#*#         #*#"
+	"#*###########*#"
+	"#*************#"
+	"#*###########*#"
+	"#*#         #*#"
+	"###         ###" ;
+
+static struct cursor_shape
 {
-	"#######"
-	"#*****#"
-	"###*###"
-	"  #*#  "
-	"  #*#  "
-	"  #*#  "
-	"  #*#  "
-	"  #*#  "
-	"  #*#  "
-	"  #*#  "
-	"  #*#  "
-	"  #*#  "
-	"###*###"
-	"#*****#"
-	"#######"
+	const char *  shape ;
+	u_int  width ;
+	u_int  height ;
+	int  x_off ;
+	int  y_off ;
+
+} cursor_shape =
+{
+	cursor_shape_normal ,
+	 7 ,	/* width */
+	15 ,	/* height */
+	-3 ,	/* x_off */
+	-7	/* y_off */
 } ;
 
 
 /* --- static functions --- */
 
-/* _disp.roots[1] is ignored. */
+/*
+ * _disp.roots[1] is ignored.
+ * x and y are rotated values.
+ */
 static inline x_window_t *
 get_window(
 	int  x ,	/* X in display */
@@ -493,36 +519,36 @@ put_image_124bpp(
 static void
 update_mouse_cursor_state(void)
 {
-	if( -CURSOR_X_OFF > _mouse.x)
+	if( -cursor_shape.x_off > _mouse.x)
 	{
 		_mouse.cursor.x = 0 ;
-		_mouse.cursor.x_off = -CURSOR_X_OFF - _mouse.x ;
+		_mouse.cursor.x_off = -cursor_shape.x_off - _mouse.x ;
 	}
 	else
 	{
-		_mouse.cursor.x = _mouse.x + CURSOR_X_OFF ;
+		_mouse.cursor.x = _mouse.x + cursor_shape.x_off ;
 		_mouse.cursor.x_off = 0 ;
 	}
 
-	_mouse.cursor.width = CURSOR_WIDTH - _mouse.cursor.x_off ;
+	_mouse.cursor.width = cursor_shape.width - _mouse.cursor.x_off ;
 	if( _mouse.cursor.x + _mouse.cursor.width > _display.width)
 	{
 		_mouse.cursor.width -=
 			(_mouse.cursor.x + _mouse.cursor.width - _display.width) ;
 	}
 
-	if( -CURSOR_Y_OFF > _mouse.y)
+	if( -cursor_shape.y_off > _mouse.y)
 	{
 		_mouse.cursor.y = 0 ;
-		_mouse.cursor.y_off = -CURSOR_Y_OFF - _mouse.y ;
+		_mouse.cursor.y_off = -cursor_shape.y_off - _mouse.y ;
 	}
 	else
 	{
-		_mouse.cursor.y = _mouse.y + CURSOR_Y_OFF ;
+		_mouse.cursor.y = _mouse.y + cursor_shape.y_off ;
 		_mouse.cursor.y_off = 0 ;
 	}
 
-	_mouse.cursor.height = CURSOR_HEIGHT - _mouse.cursor.y_off ;
+	_mouse.cursor.height = cursor_shape.height - _mouse.cursor.y_off ;
 	if( _mouse.cursor.y + _mouse.cursor.height > _display.height)
 	{
 		_mouse.cursor.height -=
@@ -578,14 +604,29 @@ restore_hidden_region(void)
 	else
 	{
 		x_window_t *  win ;
+		int  cursor_x ;
+		int  cursor_y ;
 
-		win = get_window( _mouse.x , _mouse.y) ;
+		if( rotate_display)
+		{
+			win = get_window( _mouse.y , _display.width - _mouse.x - 1) ;
+
+			cursor_x = _mouse.cursor.y ;
+			cursor_y = _display.width - _mouse.cursor.x - _mouse.cursor.width ;
+		}
+		else
+		{
+			win = get_window( _mouse.x , _mouse.y) ;
+
+			cursor_x = _mouse.cursor.x ;
+			cursor_y = _mouse.cursor.y ;
+		}
 
 		if( win->window_exposed)
 		{
 			(*win->window_exposed)( win ,
-				_mouse.cursor.x - win->x - win->hmargin ,
-				_mouse.cursor.y - win->y - win->vmargin ,
+				cursor_x - win->x - win->hmargin ,
+				cursor_y - win->y - win->vmargin ,
 				_mouse.cursor.width ,
 				_mouse.cursor.height) ;
 		}
@@ -637,14 +678,22 @@ draw_mouse_cursor_line(
 	u_char *  fb ;
 	x_window_t *  win ;
 	char *  shape ;
-	u_char  image[CURSOR_WIDTH * sizeof(u_int32_t)] ;
+	u_char  image[MAX_CURSOR_SHAPE_WIDTH * sizeof(u_int32_t)] ;
 	int  x ;
 
 	fb = get_fb( _mouse.cursor.x , _mouse.cursor.y + y) ;
 
-	win = get_window( _mouse.x , _mouse.y) ;
-	shape = cursor_shape +
-		((_mouse.cursor.y_off + y) * CURSOR_WIDTH + _mouse.cursor.x_off) ;
+	if( rotate_display)
+	{
+		win = get_window( _mouse.y , _display.width - _mouse.x - 1) ;
+	}
+	else
+	{
+		win = get_window( _mouse.x , _mouse.y) ;
+	}
+
+	shape = cursor_shape.shape +
+		((_mouse.cursor.y_off + y) * cursor_shape.width + _mouse.cursor.x_off) ;
 
 	for( x = 0 ; x < _mouse.cursor.width ; x++)
 	{
@@ -832,7 +881,7 @@ check_virtual_kbd(
 	XKeyEvent  kev ;
 	int  ret ;
 
-	if( ! ( ret = x_is_virtual_kbd_event( &_disp , bev)))
+	if( rotate_display || ! ( ret = x_is_virtual_kbd_event( &_disp , bev)))
 	{
 		return  0 ;
 	}
@@ -1253,6 +1302,15 @@ x_display_open(
 			_display.height) ;
 	#endif
 
+		if( rotate_display)
+		{
+			u_int  tmp ;
+
+			tmp = _disp.width ;
+			_disp.width = _disp.height ;
+			_disp.height = tmp ;
+		}
+
 		fcntl( STDIN_FILENO , F_SETFL ,
 			fcntl( STDIN_FILENO , F_GETFL , 0) | O_NONBLOCK) ;
 
@@ -1638,6 +1696,64 @@ x_display_set_cmap(
 	}
 }
 
+void
+x_display_rotate(
+	int  rotate
+	)
+{
+	int  tmp ;
+
+	if( rotate == rotate_display)
+	{
+		return ;
+	}
+
+	if( DISP_IS_INITED)
+	{
+		if( rotate)
+		{
+			if( _display.bytes_per_pixel < 2)
+			{
+				/* rotate is available for 16 or more bpp */
+
+				return ;
+			}
+
+			/* virual kbd is unavailable on the rotated display. */
+			x_virtual_kbd_hide() ;
+		}
+
+		tmp = _disp.width ;
+		_disp.width = _disp.height ;
+		_disp.height = tmp ;
+	}
+
+	rotate_display = rotate ;
+
+	if( rotate_display)
+	{
+		cursor_shape.shape = cursor_shape_rotate ;
+	}
+	else
+	{
+		cursor_shape.shape = cursor_shape_normal ;
+	}
+
+	tmp = cursor_shape.x_off ;
+	cursor_shape.x_off = cursor_shape.y_off ;
+	cursor_shape.y_off = tmp ;
+
+	tmp = cursor_shape.width ;
+	cursor_shape.width = cursor_shape.height ;
+	cursor_shape.height = tmp ;
+
+	if( _disp.num_of_roots > 0)
+	{
+		x_window_resize_with_margin( _disp.roots[0] ,
+			_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
+	}
+}
+
 
 u_long
 x_display_get_pixel(
@@ -1652,8 +1768,14 @@ x_display_get_pixel(
 	{
 		return  BG_MAGIC ;
 	}
-
-	fb = get_fb( x , y) ;
+	else if( rotate_display)
+	{
+		fb = get_fb( _disp.height - y - 1 , x) ;
+	}
+	else
+	{
+		fb = get_fb( x , y) ;
+	}
 
 	switch( _display.bytes_per_pixel)
 	{
@@ -1686,6 +1808,41 @@ x_display_put_image(
 	{
 		put_image_124bpp( x , y , image , size , 1 , need_fb_pixel) ;
 	}
+	else if( rotate_display)
+	{
+		u_char *  fb ;
+
+		fb = get_fb( _disp.height - y - 1 , x) ;
+
+		switch( _display.bytes_per_pixel)
+		{
+		case  1:
+			for( x = 0 ; x < size ; x++)
+			{
+				*fb = image[x] ;
+				fb += _display.line_length ;
+			}
+			break ;
+
+		case  2:
+			size /= 2 ;
+			for( x = 0 ; x < size ; x++)
+			{
+				*((u_int16_t*)fb) = ((u_int16_t*)image)[x] ;
+				fb += _display.line_length ;
+			}
+			break ;
+
+		case  4:
+			size /= 4 ;
+			for( x = 0 ; x < size ; x++)
+			{
+				*((u_int32_t*)fb) = ((u_int32_t*)image)[x] ;
+				fb += _display.line_length ;
+			}
+			break ;
+		}
+	}
 	else
 	{
 		memcpy( get_fb( x , y) , image , size) ;
@@ -1704,7 +1861,10 @@ x_display_put_image(
 	}
 }
 
-/* Check if bytes_per_pixel == 1 or not by the caller. */
+/*
+ * For 8 or less bpp.
+ * Check if bytes_per_pixel == 1 or not by the caller.
+ */
 void
 x_display_fill_with(
 	int  x ,
@@ -1714,16 +1874,16 @@ x_display_fill_with(
 	u_int8_t  pixel
 	)
 {
-	u_char *  fb_orig ;
 	u_char *  fb ;
 	u_int  ppb ;
 	u_char *  buf ;
 	int  y_off ;
 
-	fb_orig = fb = get_fb( x , y) ;
+	fb = get_fb( x , y) ;
 
 	if( ( ppb = _display.pixels_per_byte) > 1)
 	{
+		u_char *  fb_orig ;
 		u_int  bpp ;
 		int  plane ;
 		u_char *  fb_end ;
@@ -1736,6 +1896,7 @@ x_display_fill_with(
 
 		bpp = 8 / ppb ;
 		plane = 0 ;
+		fb_orig = fb ;
 		fb_end = get_fb( x + width , y) ;
 
 	#ifndef ENABLE_DOUBLE_BUFFER
@@ -1927,6 +2088,23 @@ x_display_copy_lines(
 
 	/* XXX cheap implementation. */
 	restore_hidden_region() ;
+
+	if( rotate_display)
+	{
+		int  tmp ;
+
+		tmp = src_x ;
+		src_x = _disp.height - src_y - height ;
+		src_y = tmp ;
+
+		tmp = dst_x ;
+		dst_x = _disp.height - dst_y - height ;
+		dst_y = tmp ;
+
+		tmp = height ;
+		height = width ;
+		width = tmp ;
+	}
 
 	/* XXX could be different from FB_WIDTH_BYTES(display, dst_x, width) */
 	copy_len = FB_WIDTH_BYTES(&_display, src_x, width) ;

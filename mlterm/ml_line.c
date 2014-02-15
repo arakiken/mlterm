@@ -1444,7 +1444,7 @@ ml_line_convert_logical_char_index_to_visual(
 	}
 
 	if( ml_line_is_using_iscii( line) &&
-	    ( iscii_func = ml_load_ctl_bidi_func(
+	    ( iscii_func = ml_load_ctl_iscii_func(
 				ML_LINE_ISCII_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
 	{
 		char_index = (*iscii_func)( line , char_index) ;

@@ -13,6 +13,7 @@ echo "Prepare to build for android. (project: ${PROJECT_PATH})"
 echo "Press enter key to continue."
 read
 
+mkdir -p ${PROJECT_PATH}
 cp build.sh ${PROJECT_PATH}/
 cp *.xml ${PROJECT_PATH}/
 

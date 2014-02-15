@@ -354,8 +354,16 @@ receive_mouse_event(void)
 				xev.state = _display.key_state ;
 			}
 
-			xev.x = _mouse.x ;
-			xev.y = _mouse.y ;
+			if( rotate_display)
+			{
+				xev.x = _mouse.y ;
+				xev.y = _display.width - _mouse.x - 1 ;
+			}
+			else
+			{
+				xev.x = _mouse.x ;
+				xev.y = _mouse.y ;
+			}
 
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
