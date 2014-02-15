@@ -2,6 +2,13 @@
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
 
+	* x_sb_screen.c: Segfault in changing "rotate_display" option dynamically
+	  is fixed.
+
+2014-02-16  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
 	* x_main_config.c, x_screen.c: "rotate_display" option is added.
 
 	* fb/x_display.c, fb/x_display_*.c: Display rotation is supported.

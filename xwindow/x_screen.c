@@ -1605,7 +1605,7 @@ window_resized(
 	u_int  height ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " term screen resized => width %d height %d.\n" ,
+	kik_debug_printf( KIK_DEBUG_TAG " window is resized => width %d height %d.\n" ,
 		win->width , win->height) ;
 #endif
 

@@ -82,14 +82,18 @@ window_resized(
 		actual_width = ACTUAL_WIDTH(win) - ACTUAL_WIDTH( &sb_screen->scrollbar.window)
 				- SEPARATOR_WIDTH ;
 	}
-	
-	x_window_resize_with_margin( &sb_screen->screen->window ,
-		actual_width , ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
 
+	/*
+	 * x_scrollbar_t should be resized before x_screen_t which can call callback
+	 * functions of x_scrollbar_t in resizing.
+	 */
 	x_window_resize_with_margin( &sb_screen->scrollbar.window ,
 		ACTUAL_WIDTH( &sb_screen->scrollbar.window) ,
 		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
 		
+	x_window_resize_with_margin( &sb_screen->screen->window ,
+		actual_width , ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
+
 	if( sb_screen->sb_mode == SBM_RIGHT)
 	{
 		move_scrollbar( sb_screen , 1) ;
