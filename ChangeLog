@@ -1,5 +1,8 @@
 2014-02-16  Araki Ken  <arakiken@users.sf.net>
 
+	* android/jni/x_event_source.c: ALooper_pollAll() doesn't block but
+	  exits in 750ms in order to show ime preedit or commit text immediately.
+
 	* bengali.table: "\xcf\xe8\xcd\xe8\xd6\xdb\xa2" entry is fixed.
 
 	* fb/x_display.c: The problem of drawing the mouse cursor in the rotated

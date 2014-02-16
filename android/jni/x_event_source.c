@@ -139,22 +139,13 @@ x_event_source_process(void)
 		}
 	}
 
-	if( preedit_text || commit_text)
-	{
-		for( count = 0 ; count < num_of_terms ; count++)
-		{
-			if( ml_term_is_attached( terms[count]))
-			{
-				update_ime_text( terms[count]) ;
-
-				break ;
-			}
-		}
-	}
-
-	/* Read all pending events. */
+	/*
+	 * Read all pending events.
+	 * Don't block ALooper_pollAll because commit_text or preedit_text can
+	 * be changed from main thread.
+	 */
 	if( ( ident = ALooper_pollAll(
-				-1 /* block forever waiting for events */ ,
+				750 /* milisec. -1 blocks forever waiting for events */ ,
 				NULL , &events, (void**)&source)) >= 0)
 	{
 		if( ! x_display_process_event( source , ident))
@@ -172,6 +163,24 @@ x_event_source_process(void)
 			if( ml_term_get_master_fd( terms[count]) + 1000 == ident)
 			{
 				ml_term_parse_vt100_sequence( terms[count]) ;
+
+				/*
+				 * Don't break here because some terms can have
+				 * the same master fd.
+				 */
+			}
+		}
+	}
+
+	if( preedit_text || commit_text)
+	{
+		for( count = 0 ; count < num_of_terms ; count++)
+		{
+			if( ml_term_is_attached( terms[count]))
+			{
+				update_ime_text( terms[count]) ;
+
+				break ;
 			}
 		}
 	}
