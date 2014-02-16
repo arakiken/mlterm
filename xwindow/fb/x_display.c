@@ -91,7 +91,12 @@
 #define  CURSOR_SHAPE_SIZE  (7*15*sizeof(u_int32_t))
 
 
-/* Note that this structure could be casted to Display */
+/*
+ * Note that this structure could be casted to Display.
+ *
+ * x, y, width and height are on the physical display.
+ * (rotate_display is not considered.)
+ */
 typedef struct
 {
 	int  fd ;	/* Same as Display */
@@ -606,6 +611,8 @@ restore_hidden_region(void)
 		x_window_t *  win ;
 		int  cursor_x ;
 		int  cursor_y ;
+		u_int  cursor_height ;
+		u_int  cursor_width ;
 
 		if( rotate_display)
 		{
@@ -613,6 +620,8 @@ restore_hidden_region(void)
 
 			cursor_x = _mouse.cursor.y ;
 			cursor_y = _display.width - _mouse.cursor.x - _mouse.cursor.width ;
+			cursor_width = _mouse.cursor.height ;
+			cursor_height = _mouse.cursor.width ;
 		}
 		else
 		{
@@ -620,6 +629,8 @@ restore_hidden_region(void)
 
 			cursor_x = _mouse.cursor.x ;
 			cursor_y = _mouse.cursor.y ;
+			cursor_width = _mouse.cursor.width ;
+			cursor_height = _mouse.cursor.height ;
 		}
 
 		if( win->window_exposed)
@@ -627,8 +638,8 @@ restore_hidden_region(void)
 			(*win->window_exposed)( win ,
 				cursor_x - win->x - win->hmargin ,
 				cursor_y - win->y - win->vmargin ,
-				_mouse.cursor.width ,
-				_mouse.cursor.height) ;
+				cursor_height ,
+				cursor_width) ;
 		}
 	}
 }
@@ -737,10 +748,14 @@ draw_mouse_cursor_line(
 		{
 			switch( _display.bytes_per_pixel)
 			{
+				int  tmp ;
 			case  1:
+				tmp = rotate_display ;
+				rotate_display = 0 ;
 				image[x] = x_display_get_pixel(
 						_mouse.cursor.x + x ,
 						_mouse.cursor.y + y) ;
+				rotate_display = tmp ;
 				break ;
 
 			case  2:
@@ -1808,50 +1823,76 @@ x_display_put_image(
 	{
 		put_image_124bpp( x , y , image , size , 1 , need_fb_pixel) ;
 	}
-	else if( rotate_display)
+	else if( ! rotate_display)
 	{
-		u_char *  fb ;
+		memcpy( get_fb( x , y) , image , size) ;
+	}
+	else
+	{
+		/* Display is rotated. */
 
-		fb = get_fb( _disp.height - y - 1 , x) ;
+		u_char *  fb ;
+		int  tmp ;
+
+		tmp = x ;
+		x = _disp.height - y - 1 ;
+		y = tmp ;
+
+		fb = get_fb( x , y) ;
 
 		switch( _display.bytes_per_pixel)
 		{
+			int  count ;
+
 		case  1:
-			for( x = 0 ; x < size ; x++)
+			for( count = 0 ; count < size ; count++)
 			{
-				*fb = image[x] ;
+				*fb = image[count] ;
 				fb += _display.line_length ;
 			}
 			break ;
 
 		case  2:
 			size /= 2 ;
-			for( x = 0 ; x < size ; x++)
+			for( count = 0 ; count < size ; count++)
 			{
-				*((u_int16_t*)fb) = ((u_int16_t*)image)[x] ;
+				*((u_int16_t*)fb) = ((u_int16_t*)image)[count] ;
 				fb += _display.line_length ;
 			}
 			break ;
 
-		case  4:
+		/* case  4: */
+		default:
 			size /= 4 ;
-			for( x = 0 ; x < size ; x++)
+			for( count = 0 ; count < size ; count++)
 			{
-				*((u_int32_t*)fb) = ((u_int32_t*)image)[x] ;
+				*((u_int32_t*)fb) = ((u_int32_t*)image)[count] ;
 				fb += _display.line_length ;
 			}
 			break ;
 		}
-	}
-	else
-	{
-		memcpy( get_fb( x , y) , image , size) ;
+
+		if( /* MOUSE_IS_INITED && */ _mouse.cursor.is_drawn &&
+		    _mouse.cursor.x <= x &&
+		    x < _mouse.cursor.x + _mouse.cursor.width)
+		{
+			if( y <= _mouse.cursor.y + _mouse.cursor.height &&
+			    _mouse.cursor.y < y + size)
+			{
+				_mouse.hidden_region_saved = 0 ;
+				/* draw_mouse_cursor() */
+			}
+		}
+
+		return ;
 	}
 
 	if( /* MOUSE_IS_INITED && */ _mouse.cursor.is_drawn &&
 	    _mouse.cursor.y <= y &&
 	    y < _mouse.cursor.y + _mouse.cursor.height)
 	{
+		size /= _display.bytes_per_pixel ;
+
 		if( x <= _mouse.cursor.x + _mouse.cursor.width &&
 		    _mouse.cursor.x < x + size)
 		{

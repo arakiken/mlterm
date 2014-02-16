@@ -853,6 +853,14 @@ x_display_set_use_ansi_colors(
 {
 }
 
+void
+x_display_rotate(
+	int  rotate
+	)
+{
+}
+
+
 int
 x_display_init(
 	struct android_app *  app

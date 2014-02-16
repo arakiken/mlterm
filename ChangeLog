@@ -1,5 +1,12 @@
 2014-02-16  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_display.c: The problem of drawing the mouse cursor in the rotated
+	  display is fixed.
+
+	* android/jni/x_display.c: The symbol of x_display_rotate() is added.
+
+2014-02-16  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
 
 	* x_sb_screen.c: Segfault in changing "rotate_display" option dynamically
