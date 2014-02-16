@@ -1,5 +1,7 @@
 2014-02-16  Araki Ken  <arakiken@users.sf.net>
 
+	* bengali.table: "\xcf\xe8\xcd\xe8\xd6\xdb\xa2" entry is fixed.
+
 	* fb/x_display.c: The problem of drawing the mouse cursor in the rotated
 	  display is fixed.
 
