@@ -1,3 +1,12 @@
+2014-02-17  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x_display.c, fb/x_display_*.c: Counterclockwise rotation is supported.
+
+	* x_screen.c, x_main_config.c: The value of "rotate_display" option is
+	  changed from true|false to none|right|left.
+
 2014-02-16  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/x_event_source.c: ALooper_pollAll() doesn't block but

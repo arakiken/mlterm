@@ -8860,12 +8860,9 @@ x_screen_set_config(
 #ifdef  USE_FRAMEBUFFER
 	else if( strcmp( key , "rotate_display") == 0)
 	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			x_display_rotate( flag) ;
-		}
+		x_display_rotate(
+			strcmp( value , "right") == 0 ? 1 :
+			( strcmp( value , "left") == 0 ? -1 : 0)) ;
 	}
 #endif
 	else

@@ -285,7 +285,7 @@ x_prepare_for_main_config(
 		"draw wall picture on another vram. (available on 4bpp) [false]") ;
 #endif
 #ifdef  USE_FRAMEBUFFER
-	kik_conf_add_opt( conf , '\0' , "rotate" , 1 , "rotate_display" ,
+	kik_conf_add_opt( conf , '\0' , "rotate" , 0 , "rotate_display" ,
 		"rotate display [false]") ;
 #endif
 #ifdef  USE_IM_CURSOR_COLOR
@@ -1380,7 +1380,9 @@ x_main_config_init(
 #ifdef  USE_FRAMEBUFFER
 	if( ( value = kik_conf_get_value( conf , "rotate_display")))
 	{
-		x_display_rotate( strcmp( value , "true") == 0) ;
+		x_display_rotate(
+			strcmp( value , "right") == 0 ? 1 :
+			( strcmp( value , "left") == 0 ? -1 : 0)) ;
 	}
 #endif
 

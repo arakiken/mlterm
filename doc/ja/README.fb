@@ -126,11 +126,13 @@ Framebuffer 対応に関するメモ
     (iBus を使用する場合は、あらかじめ、ibus-daemon -d 及び
      /usr/lib/ibus-*/ibus-engine-* & を手動で起動しておいてください。
      なお、iBus はFreeBSD 上ではテストしていません。)
-  o ディスプレイが 16 bpp 以上の場合は、--rotate オプションを付けて mlterm を起
-    動するか、~/.mlterm/main に
-    rotate_display = true
+  o ディスプレイが 16 bpp 以上の場合は、--rotate=right 又は --rotate=left オプシ
+    ョンを付けてmlterm を起動するか、~/.mlterm/main に
+    rotate_display = right 又は
+    rotate_display = left
     と指定することにより、90度回転することができます。mlterm 起動後に
-    $ mlcc rotate_display true
+    $ mlcc rotate_display right 又は
+    $ mlcc rotate_display left
     と実行する方法もあります。
     なお、回転中は、ソフトウェアキーボードは使用できません。
 

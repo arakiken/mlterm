@@ -356,8 +356,16 @@ receive_mouse_event(void)
 
 			if( rotate_display)
 			{
-				xev.x = _mouse.y ;
-				xev.y = _display.width - _mouse.x - 1 ;
+				if( rotate_display > 0)
+				{
+					xev.x = _mouse.y ;
+					xev.y = _display.width - _mouse.x - 1 ;
+				}
+				else
+				{
+					xev.x = _display.height - _mouse.y - 1 ;
+					xev.y = _mouse.x ;
+				}
 			}
 			else
 			{

@@ -618,8 +618,18 @@ restore_hidden_region(void)
 		{
 			win = get_window( _mouse.y , _display.width - _mouse.x - 1) ;
 
-			cursor_x = _mouse.cursor.y ;
-			cursor_y = _display.width - _mouse.cursor.x - _mouse.cursor.width ;
+			if( rotate_display > 0)
+			{
+				cursor_x = _mouse.cursor.y ;
+				cursor_y = _display.width - _mouse.cursor.x - _mouse.cursor.width ;
+			}
+			else
+			{
+				cursor_x = _display.height - _mouse.cursor.y -
+						_mouse.cursor.height ;
+				cursor_y = _mouse.cursor.x ;
+			}
+
 			cursor_width = _mouse.cursor.height ;
 			cursor_height = _mouse.cursor.width ;
 		}
@@ -696,7 +706,14 @@ draw_mouse_cursor_line(
 
 	if( rotate_display)
 	{
-		win = get_window( _mouse.y , _display.width - _mouse.x - 1) ;
+		if( rotate_display > 0)
+		{
+			win = get_window( _mouse.y , _display.width - _mouse.x - 1) ;
+		}
+		else
+		{
+			win = get_window( _display.height - _mouse.y - 1 , _mouse.x) ;
+		}
 	}
 	else
 	{
@@ -1713,19 +1730,17 @@ x_display_set_cmap(
 
 void
 x_display_rotate(
-	int  rotate
+	int  rotate	/* 1: clockwise, -1: counterclockwise */
 	)
 {
-	int  tmp ;
-
 	if( rotate == rotate_display)
 	{
 		return ;
 	}
 
-	if( DISP_IS_INITED)
+	if( rotate)
 	{
-		if( rotate)
+		if( DISP_IS_INITED)
 		{
 			if( _display.bytes_per_pixel < 2)
 			{
@@ -1738,15 +1753,6 @@ x_display_rotate(
 			x_virtual_kbd_hide() ;
 		}
 
-		tmp = _disp.width ;
-		_disp.width = _disp.height ;
-		_disp.height = tmp ;
-	}
-
-	rotate_display = rotate ;
-
-	if( rotate_display)
-	{
 		cursor_shape.shape = cursor_shape_rotate ;
 	}
 	else
@@ -1754,18 +1760,40 @@ x_display_rotate(
 		cursor_shape.shape = cursor_shape_normal ;
 	}
 
-	tmp = cursor_shape.x_off ;
-	cursor_shape.x_off = cursor_shape.y_off ;
-	cursor_shape.y_off = tmp ;
-
-	tmp = cursor_shape.width ;
-	cursor_shape.width = cursor_shape.height ;
-	cursor_shape.height = tmp ;
-
-	if( _disp.num_of_roots > 0)
+	if( rotate_display + rotate != 0)
 	{
-		x_window_resize_with_margin( _disp.roots[0] ,
-			_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
+		int  tmp ;
+
+		tmp = _disp.width ;
+		_disp.width = _disp.height ;
+		_disp.height = tmp ;
+
+		tmp = cursor_shape.x_off ;
+		cursor_shape.x_off = cursor_shape.y_off ;
+		cursor_shape.y_off = tmp ;
+
+		tmp = cursor_shape.width ;
+		cursor_shape.width = cursor_shape.height ;
+		cursor_shape.height = tmp ;
+
+		rotate_display = rotate ;
+
+		if( _disp.num_of_roots > 0)
+		{
+			x_window_resize_with_margin( _disp.roots[0] ,
+				_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
+		}
+	}
+	else
+	{
+		/* If rotate_display == -1 rotate == 1 or vice versa, don't swap. */
+
+		rotate_display = rotate ;
+
+		if( _disp.num_of_roots > 0)
+		{
+			x_window_update_all( _disp.roots[0]) ;
+		}
 	}
 }
 
@@ -1785,7 +1813,14 @@ x_display_get_pixel(
 	}
 	else if( rotate_display)
 	{
-		fb = get_fb( _disp.height - y - 1 , x) ;
+		if( rotate_display > 0)
+		{
+			fb = get_fb( _disp.height - y - 1 , x) ;
+		}
+		else
+		{
+			fb = get_fb( y , _disp.width - x - 1) ;
+		}
 	}
 	else
 	{
@@ -1833,12 +1868,26 @@ x_display_put_image(
 
 		u_char *  fb ;
 		int  tmp ;
+		int  line_length ;
 
 		tmp = x ;
-		x = _disp.height - y - 1 ;
-		y = tmp ;
+		if( rotate_display > 0)
+		{
+			x = _disp.height - y - 1 ;
+			y = tmp ;
+			line_length = _display.line_length ;
 
-		fb = get_fb( x , y) ;
+			fb = get_fb( x , y) ;
+		}
+		else
+		{
+			x = y ;
+			y = _disp.width - tmp - 1 ;
+			line_length = - _display.line_length ;
+
+			fb = get_fb( x , y) ;
+			y -= (size - 1) ;
+		}
 
 		switch( _display.bytes_per_pixel)
 		{
@@ -1848,7 +1897,7 @@ x_display_put_image(
 			for( count = 0 ; count < size ; count++)
 			{
 				*fb = image[count] ;
-				fb += _display.line_length ;
+				fb += line_length ;
 			}
 			break ;
 
@@ -1857,7 +1906,7 @@ x_display_put_image(
 			for( count = 0 ; count < size ; count++)
 			{
 				*((u_int16_t*)fb) = ((u_int16_t*)image)[count] ;
-				fb += _display.line_length ;
+				fb += line_length ;
 			}
 			break ;
 
@@ -1867,7 +1916,7 @@ x_display_put_image(
 			for( count = 0 ; count < size ; count++)
 			{
 				*((u_int32_t*)fb) = ((u_int32_t*)image)[count] ;
-				fb += _display.line_length ;
+				fb += line_length ;
 			}
 			break ;
 		}
@@ -2134,13 +2183,26 @@ x_display_copy_lines(
 	{
 		int  tmp ;
 
-		tmp = src_x ;
-		src_x = _disp.height - src_y - height ;
-		src_y = tmp ;
+		if( rotate_display > 0)
+		{
+			tmp = src_x ;
+			src_x = _disp.height - src_y - height ;
+			src_y = tmp ;
 
-		tmp = dst_x ;
-		dst_x = _disp.height - dst_y - height ;
-		dst_y = tmp ;
+			tmp = dst_x ;
+			dst_x = _disp.height - dst_y - height ;
+			dst_y = tmp ;
+		}
+		else
+		{
+			tmp = src_x ;
+			src_x = src_y ;
+			src_y = _disp.width - tmp - width ;
+
+			tmp = dst_x ;
+			dst_x = dst_y ;
+			dst_y = _disp.width - tmp - width ;
+		}
 
 		tmp = height ;
 		height = width ;
