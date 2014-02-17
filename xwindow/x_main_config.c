@@ -286,7 +286,7 @@ x_prepare_for_main_config(
 #endif
 #ifdef  USE_FRAMEBUFFER
 	kik_conf_add_opt( conf , '\0' , "rotate" , 0 , "rotate_display" ,
-		"rotate display [false]") ;
+		"rotate display. [none]") ;
 #endif
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,

@@ -124,6 +124,7 @@ Framebuffer support
     Following command rotates display dynamically.
     $ mlcc rotate_display right
     or $ mlcc rotate_display left
+    (To fall back to the default, $ mlcc rotate_display none)
     Software keyboard is unavailable in the rotated display.
 
 * Unsupported features

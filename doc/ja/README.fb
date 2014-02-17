@@ -133,7 +133,7 @@ Framebuffer 対応に関するメモ
     と指定することにより、90度回転することができます。mlterm 起動後に
     $ mlcc rotate_display right 又は
     $ mlcc rotate_display left
-    と実行する方法もあります。
+    と実行する方法もあります($ mlcc rotate_display none で元に戻ります)。
     なお、回転中は、ソフトウェアキーボードは使用できません。
 
 * 使えない機能

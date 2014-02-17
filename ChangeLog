@@ -1,5 +1,7 @@
 2014-02-18  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.fb, doc/ja/README.fb, x_main_config.c: Minor fixes.
+
 	* fb/x_display.c:
 	  - The width and height arguments of win->window_exposed
 	    was wrongly reversed.
