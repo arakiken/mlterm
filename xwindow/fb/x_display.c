@@ -648,8 +648,8 @@ restore_hidden_region(void)
 			(*win->window_exposed)( win ,
 				cursor_x - win->x - win->hmargin ,
 				cursor_y - win->y - win->vmargin ,
-				cursor_height ,
-				cursor_width) ;
+				cursor_width ,
+				cursor_height) ;
 		}
 	}
 }
@@ -1811,21 +1811,26 @@ x_display_get_pixel(
 	{
 		return  BG_MAGIC ;
 	}
-	else if( rotate_display)
+
+	if( rotate_display)
 	{
+		int  tmp ;
+
 		if( rotate_display > 0)
 		{
-			fb = get_fb( _disp.height - y - 1 , x) ;
+			tmp = x ;
+			x = _disp.height - y - 1 ;
+			y = tmp ;
 		}
 		else
 		{
-			fb = get_fb( y , _disp.width - x - 1) ;
+			tmp = x ;
+			x = y ;
+			y = _disp.width - tmp - 1 ;
 		}
 	}
-	else
-	{
-		fb = get_fb( x , y) ;
-	}
+
+	fb = get_fb( x , y) ;
 
 	switch( _display.bytes_per_pixel)
 	{
@@ -1869,6 +1874,7 @@ x_display_put_image(
 		u_char *  fb ;
 		int  tmp ;
 		int  line_length ;
+		size_t  count ;
 
 		tmp = x ;
 		if( rotate_display > 0)
@@ -1876,49 +1882,38 @@ x_display_put_image(
 			x = _disp.height - y - 1 ;
 			y = tmp ;
 			line_length = _display.line_length ;
-
-			fb = get_fb( x , y) ;
 		}
 		else
 		{
 			x = y ;
 			y = _disp.width - tmp - 1 ;
 			line_length = - _display.line_length ;
-
-			fb = get_fb( x , y) ;
-			y -= (size - 1) ;
 		}
 
-		switch( _display.bytes_per_pixel)
+		fb = get_fb( x , y) ;
+
+		if( _display.bytes_per_pixel == 2)
 		{
-			int  count ;
-
-		case  1:
-			for( count = 0 ; count < size ; count++)
-			{
-				*fb = image[count] ;
-				fb += line_length ;
-			}
-			break ;
-
-		case  2:
 			size /= 2 ;
 			for( count = 0 ; count < size ; count++)
 			{
 				*((u_int16_t*)fb) = ((u_int16_t*)image)[count] ;
 				fb += line_length ;
 			}
-			break ;
-
-		/* case  4: */
-		default:
+		}
+		else /* if( _display.bytes_per_pixel == 4) */
+		{
 			size /= 4 ;
 			for( count = 0 ; count < size ; count++)
 			{
 				*((u_int32_t*)fb) = ((u_int32_t*)image)[count] ;
 				fb += line_length ;
 			}
-			break ;
+		}
+
+		if( rotate_display < 0)
+		{
+			y -= (size - 1) ;
 		}
 
 		if( /* MOUSE_IS_INITED && */ _mouse.cursor.is_drawn &&

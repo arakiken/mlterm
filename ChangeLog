@@ -1,3 +1,12 @@
+2014-02-18  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c:
+	  - The width and height arguments of win->window_exposed
+	    was wrongly reversed.
+	  - Minor fixes of x_display_get_pixel() and x_display_put_image().
+
+	* android/jni/x_display.c: Display rotation is supported.
+
 2014-02-17  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.

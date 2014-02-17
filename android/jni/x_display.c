@@ -20,6 +20,7 @@
 
 static x_display_t  _disp ;
 static Display  _display ;
+static int  rotate_display ;
 static int  locked ;
 
 static int  visible_frame_changed ;
@@ -381,8 +382,24 @@ process_mouse_event(
 		}
 
 		xev.time = time / 1000000 ;
-		xev.x = x ;
-		xev.y = y ;
+		if( rotate_display)
+		{
+			if( rotate_display > 0)
+			{
+				xev.x = y ;
+				xev.y = _disp.height - x - 1 ;
+			}
+			else
+			{
+				xev.x = _disp.width - y - 1 ;
+				xev.y = x ;
+			}
+		}
+		else
+		{
+			xev.x = x ;
+			xev.y = y ;
+		}
 		xev.state = _display.key_state ;
 
 		if( xev.type == ButtonPress)
@@ -496,44 +513,26 @@ init_window(
 	{
 		_disp.width = ANativeWindow_getWidth( window) ;
 		_disp.height = ANativeWindow_getHeight( window) ;
+
+		if( rotate_display)
+		{
+			u_int  tmp ;
+
+			tmp = _disp.width ;
+			_disp.width = _disp.height ;
+			_disp.height = tmp ;
+		}
 	}
 	else
 	{
 		/* Changed in visibleFrameChanged. */
 	}
 
-#if  0
-	switch( ANativeWindow_getFormat( window))
-	{
-	case  WINDOW_FORMAT_RGBA_8888:
-		_disp.depth = 32 ;
-		_display.bytes_per_pixel = 4 ;
-		_display.rgbinfo = rgbinfos[1] ;
-		break ;
-
-	case  WINDOW_FORMAT_RGBX_8888:
-		_disp.depth = 24 ;
-		_display.bytes_per_pixel = 4 ;
-		_display.rgbinfo = rgbinfos[1] ;
-		break ;
-
-	case  WINDOW_FORMAT_RGB_565:
-	default:
-		_disp.depth = 16 ;
-		_display.bytes_per_pixel = 2 ;
-		_display.rgbinfo = rgbinfos[0] ;
-	}
-
-	ANativeWindow_setBuffersGeometry( window ,
-		_disp.width , _disp.height + _display.yoffset ,
-		ANativeWindow_getFormat( window)) ;
-#else
 	_disp.depth = 16 ;
 	_display.bytes_per_pixel = 2 ;
 	_display.rgbinfo = rgbinfos[0] ;
 
 	ANativeWindow_setBuffersGeometry( window , 0 , 0 , WINDOW_FORMAT_RGB_565) ;
-#endif
 
 	if( _display.buf.bits)
 	{
@@ -858,6 +857,38 @@ x_display_rotate(
 	int  rotate
 	)
 {
+	if( rotate == rotate_display)
+	{
+		return ;
+	}
+
+	if( rotate_display + rotate != 0)
+	{
+		u_int  tmp ;
+
+		tmp = _disp.width ;
+		_disp.width = _disp.height ;
+		_disp.height = tmp ;
+
+		rotate_display = rotate ;
+
+		if( _disp.num_of_roots > 0)
+		{
+			x_window_resize_with_margin( _disp.roots[0] ,
+				_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
+		}
+	}
+	else
+	{
+		/* If rotate_display == -1 rotate == 1 or vice versa, don't swap. */
+
+		rotate_display = rotate ;
+
+		if( _disp.num_of_roots > 0)
+		{
+			x_window_update_all( _disp.roots[0]) ;
+		}
+	}
 }
 
 
@@ -929,6 +960,7 @@ x_display_process_event(
 		_display.yoffset = new_yoffset ;
 		_disp.width = new_width ;
 		_disp.height = new_height ;
+
 		visible_frame_changed = 0 ;
 
 		if( _disp.num_of_roots > 0)
@@ -1045,6 +1077,24 @@ x_display_get_pixel(
 {
 	u_char *  fb ;
 
+	if( rotate_display)
+	{
+		int  tmp ;
+
+		if( rotate_display > 0)
+		{
+			tmp = x ;
+			x = _disp.height - y - 1 ;
+			y = tmp ;
+		}
+		else
+		{
+			tmp = x ;
+			x = y ;
+			y = _disp.width - tmp - 1 ;
+		}
+	}
+
 	fb = get_fb( x , y) ;
 
 	if( _display.bytes_per_pixel == 4)
@@ -1068,7 +1118,54 @@ x_display_put_image(
 {
 	if( display_lock())
 	{
-		memcpy( get_fb( x , y) , image , size) ;
+		if( rotate_display)
+		{
+			/* Display is rotated. */
+
+			u_char *  fb ;
+			int  tmp ;
+			int  line_length ;
+			size_t  count ;
+
+			tmp = x ;
+			if( rotate_display > 0)
+			{
+				x = _disp.height - y - 1 ;
+				y = tmp ;
+				line_length = _display.buf.stride * _display.bytes_per_pixel ;
+			}
+			else
+			{
+				x = y ;
+				y = _disp.width - tmp - 1 ;
+				line_length = -(_display.buf.stride * _display.bytes_per_pixel) ;
+			}
+
+			fb = get_fb( x , y) ;
+
+			if( _display.bytes_per_pixel == 2)
+			{
+				size /= 2 ;
+				for( count = 0 ; count < size ; count++)
+				{
+					*((u_int16_t*)fb) = ((u_int16_t*)image)[count] ;
+					fb += line_length ;
+				}
+			}
+			else /* if( _display.bytes_per_pixel == 4) */
+			{
+				size /= 4 ;
+				for( count = 0 ; count < size ; count++)
+				{
+					*((u_int32_t*)fb) = ((u_int32_t*)image)[count] ;
+					fb += line_length ;
+				}
+			}
+		}
+		else
+		{
+			memcpy( get_fb( x , y) , image , size) ;
+		}
 	}
 }
 
@@ -1100,6 +1197,36 @@ x_display_copy_lines(
 		u_int  copy_len ;
 		u_int  count ;
 		size_t  line_length ;
+
+		if( rotate_display)
+		{
+			int  tmp ;
+
+			if( rotate_display > 0)
+			{
+				tmp = src_x ;
+				src_x = _disp.height - src_y - height ;
+				src_y = tmp ;
+
+				tmp = dst_x ;
+				dst_x = _disp.height - dst_y - height ;
+				dst_y = tmp ;
+			}
+			else
+			{
+				tmp = src_x ;
+				src_x = src_y ;
+				src_y = _disp.width - tmp - width ;
+
+				tmp = dst_x ;
+				dst_x = dst_y ;
+				dst_y = _disp.width - tmp - width ;
+			}
+
+			tmp = height ;
+			height = width ;
+			width = tmp ;
+		}
 
 		copy_len = width * _display.bytes_per_pixel ;
 		line_length = _display.buf.stride * _display.bytes_per_pixel ;
@@ -1190,15 +1317,35 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 	if( _disp.roots)
 	{
 		/* XXX should synchronize */
+
 		new_yoffset = yoffset ;
-		new_width = width ;
-		new_height = height ;
+
+		if( rotate_display)
+		{
+			new_width = height ;
+			new_height = width ;
+		}
+		else
+		{
+			new_width = width ;
+			new_height = height ;
+		}
+
 		visible_frame_changed = 1 ;
 	}
 	else
 	{
 		_display.yoffset = yoffset ;
-		_disp.width = width ;
-		_disp.height = height ;
+
+		if( rotate_display)
+		{
+			_disp.width = height ;
+			_disp.height = width ;
+		}
+		else
+		{
+			_disp.width = width ;
+			_disp.height = height ;
+		}
 	}
 }

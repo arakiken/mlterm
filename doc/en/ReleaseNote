@@ -8,7 +8,7 @@ ver 3.3.3
 * Support CSI ? 8800 h and CSI ? 8800 l which enables / disables the conversion
   from drcs to unicode private area. (Disabled by default.)
   (See http://github.com/saitoha/drcsterm/blob/master/README.rst)
-* Add "rotate_display" option which rotates display.
+* Add "rotate_display" option which rotates display on framebuffer and android.
 * Merge patches:
   https://gist.github.com/steleto/8671862 (Thanks to @tristelo)
 * Bug fixes:
