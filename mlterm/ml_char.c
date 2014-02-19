@@ -169,13 +169,6 @@ ml_char_set(
 
 	ch->u.ch.code = code ;
 
-#ifdef  DEBUG
-	if( cs >= MAX_CHARSET)
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "charset(%x) is out of range\n", cs) ;
-	}
-#endif
-
 	if( unicode_areas && cs == ISO10646_UCS4_1)
 	{
 		for( idx = num_of_unicode_areas ; idx > 0 ; idx --)
@@ -252,13 +245,6 @@ ml_char_combine(
 	if( ! is_comb)
 	{
 		return  0 ;
-	}
-#endif
-
-#ifdef  DEBUG
-	if( cs >= MAX_CHARSET)
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "charset(%x) is out of range\n", cs) ;
 	}
 #endif
 

@@ -38,7 +38,7 @@
 	(__android_log_print( ANDROID_LOG_ERROR , "" , __VA_ARGS__) >= 0)
 
 #define  kik_msg_printf(...) \
-	(__android_log_print( ANDROID_LOG_DEFAULT , "" , __VA_ARGS__) >= 0)
+	(__android_log_print( ANDROID_LOG_INFO , "" , __VA_ARGS__) >= 0)
 
 #define kik_set_msg_log_file_name(name)  (0)
 

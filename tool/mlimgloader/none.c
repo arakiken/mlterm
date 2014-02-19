@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>	/* strstr */
-#include <stdlib.h>	/* malloc/free/atoi */
+#include <stdlib.h>	/* atoi */
 
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */

@@ -18,8 +18,12 @@
 #else	/* SIXEL_1BPP */
 #define  SIXEL_RGB(r,g,b)  ((((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
 #ifndef  CARD_HEAD_SIZE
+#ifdef  GDK_PIXBUF_VERSION
+#define  CARD_HEAD_SIZE  0
+#else
 #define  CARD_HEAD_SIZE  8
 #endif
+#endif	/* CARD_HEAD_SIZE */
 #define  pixel_t  u_int32_t
 #endif	/* SIXEL_1BPP */
 
@@ -99,13 +103,17 @@ realloc_pixels(
 	u_char *  p ;
 	int  y ;
 	int  n_copy_rows ;
-
-	n_copy_rows = K_MIN(new_height,cur_height) ;
+	size_t  new_line_len ;
+	size_t  cur_line_len ;
 
 	if( new_width == cur_width && new_height == cur_height)
 	{
 		return  1 ;
 	}
+
+	n_copy_rows = K_MIN(new_height,cur_height) ;
+	new_line_len = new_width * PIXEL_SIZE ;
+	cur_line_len = cur_width * PIXEL_SIZE ;
 
 	if( new_width < cur_width)
 	{
@@ -131,9 +139,9 @@ realloc_pixels(
 
 			for( y = 1 ; y < n_copy_rows ; y++)
 			{
-				memmove( *pixels + (y * new_width * PIXEL_SIZE) ,
-					*pixels + (y * cur_width * PIXEL_SIZE) ,
-					new_width * PIXEL_SIZE) ;
+				memmove( *pixels + (y * new_line_len) ,
+					*pixels + (y * cur_line_len) ,
+					new_line_len) ;
 			}
 
 			return  1 ;
@@ -146,11 +154,7 @@ realloc_pixels(
 		return  1 ;
 	}
 
-#ifdef  GDK_PIXBUF_VERSION
-	if( new_width > SSIZE_MAX / PIXEL_SIZE / new_height)
-#else
 	if( new_width > (SSIZE_MAX - CARD_HEAD_SIZE) / PIXEL_SIZE / new_height)
-#endif
 	{
 		/* integer overflow */
 		return  0 ;
@@ -167,16 +171,12 @@ realloc_pixels(
 		 * Cast to u_char* is necessary because this function can be
 		 * compiled by g++.
 		 */
-	#ifdef  GDK_PIXBUF_VERSION
-		if( ! ( p = (u_char*)realloc( *pixels , new_width * new_height * PIXEL_SIZE)))
-	#else
 		if( ( p = (u_char*)realloc( *pixels - CARD_HEAD_SIZE ,
-				CARD_HEAD_SIZE + new_width * new_height * PIXEL_SIZE)))
+				CARD_HEAD_SIZE + new_line_len * new_height)))
 		{
 			p += CARD_HEAD_SIZE ;
 		}
 		else
-	#endif
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " realloc failed.\n.") ;
@@ -184,7 +184,7 @@ realloc_pixels(
 			return  0 ;
 		}
 
-		memset( p + cur_width * cur_height * PIXEL_SIZE , 0 ,
+		memset( p + cur_line_len * cur_height , 0 ,
 			new_width * (new_height - cur_height)) ;
 	}
 	else
@@ -195,16 +195,11 @@ realloc_pixels(
 	#endif
 
 		/* Cast to u_char* is necessary because this function can be compiled by g++. */
-	#ifdef  GDK_PIXBUF_VERSION
-		if( ! ( p = (u_char*)calloc( new_width * new_height , PIXEL_SIZE)))
-	#else
-		if( ( p = (u_char*)calloc( CARD_HEAD_SIZE +
-				new_width * new_height * PIXEL_SIZE , 1)))
+		if( ( p = (u_char*)calloc( CARD_HEAD_SIZE + new_line_len * new_height , 1)))
 		{
 			p += CARD_HEAD_SIZE ;
 		}
 		else
-	#endif
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " calloc failed.\n.") ;
@@ -214,19 +209,15 @@ realloc_pixels(
 
 		for( y = 0 ; y < n_copy_rows ; y++)
 		{
-			memcpy( p + (y * new_width * PIXEL_SIZE) ,
-				(*pixels) + (y * cur_width * PIXEL_SIZE) ,
-				cur_width * PIXEL_SIZE) ;
+			memcpy( p + (y * new_line_len) ,
+				(*pixels) + (y * cur_line_len) ,
+				cur_line_len) ;
 		}
 
-	#ifdef  GDK_PIXBUF_VERSION
-		free( *pixels) ;
-	#else
 		if( *pixels)
 		{
 			free( (*pixels) - CARD_HEAD_SIZE) ;
 		}
-	#endif
 	}
 
 	*pixels = p ;
@@ -265,6 +256,11 @@ correct_height(
 	}
 }
 
+/*
+ * load_sixel_from_file() returns at least 1024*1024 pixels memory even if
+ * the actual image size is less than it.
+ * It is the caller that should shrink (realloc) it.
+ */
 static u_char *
 load_sixel_from_file(
 	const char *  path ,
@@ -280,6 +276,7 @@ load_sixel_from_file(
 	u_char *  pixels ;
 	int  params[5] ;
 	size_t  n ;	/* number of params */
+	int  init_width ;
 	int  pix_x ;
 	int  pix_y ;
 	int  cur_width ;
@@ -343,6 +340,7 @@ load_sixel_from_file(
 	p[len] = '\0' ;
 
 	pixels = NULL ;
+	init_width = 0 ;
 	cur_width = cur_height = 0 ;
 	width = 1024 ;
 	height = 1024 ;
@@ -630,16 +628,30 @@ body:
 				}
 			}
 		}
-		else if( *p == '$')
+		else if( *p == '$' || *p == '-')
 		{
 			pix_x = 0 ;
 			rep = asp_x ;
-		}
-		else if( *p == '-')
-		{
-			pix_x = 0 ;
-			pix_y += 6 ;
-			rep = asp_x ;
+
+			if( ! init_width && width > cur_width && cur_width > 0)
+			{
+				int  y ;
+
+				for( y = (pix_y == 0 ? 1 : pix_y) ; y < pix_y + 6 ; y++)
+				{
+					memmove( pixels + y * cur_width * PIXEL_SIZE ,
+						pixels + y * width * PIXEL_SIZE ,
+						cur_width * PIXEL_SIZE) ;
+				}
+
+				width = cur_width ;
+				init_width = 1 ;
+			}
+
+			if( *p == '-')
+			{
+				pix_y += 6 ;
+			}
 		}
 		else if( *p >= '?' && *p <= '\x7E')
 		{
@@ -650,8 +662,8 @@ body:
 			int  y ;
 
 			if( ! realloc_pixels( &pixels ,
-					(new_width = width < pix_x + rep ? width * 2 : width) ,
-					(new_height = height < pix_y + 6 ? height * 2 : height) ,
+					(new_width = width < pix_x + rep ? width + 512 : width) ,
+					(new_height = height < pix_y + 6 ? height + 512 : height) ,
 					width , height))
 			{
 				break ;
@@ -753,7 +765,8 @@ body:
 end:
 	free( file_data) ;
 
-	if( cur_width == 0)
+	if( cur_width == 0 ||
+	    ! realloc_pixels( &pixels , cur_width , cur_height , width , height))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Nothing is drawn.\n") ;
@@ -764,7 +777,6 @@ end:
 		return  NULL ;
 	}
 
-	realloc_pixels( &pixels , cur_width , cur_height , width , height) ;
 	correct_height( (pixel_t*)pixels , cur_width , &cur_height) ;
 
 	*width_ret = cur_width ;

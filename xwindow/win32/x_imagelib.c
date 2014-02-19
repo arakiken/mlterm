@@ -11,6 +11,7 @@
 
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>
 #if  defined(__CYGWIN__) || defined(__MSYS__)
 #include  <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
 #endif

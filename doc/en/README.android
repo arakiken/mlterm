@@ -21,3 +21,5 @@ Android support (Experimental)
   o Scrollbar is disabled.
   o You can show a software keyboard if you double-click the left mouse
     button (Button1) at the right bottom corner of the screen.
+  o You can rotate display by "rotate_display = right" or "rotate_display = left"
+    in ~/.mlterm/main.

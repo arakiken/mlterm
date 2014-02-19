@@ -14,6 +14,7 @@
 #include <math.h>               /* pow */
 #endif
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>
 
 #include  "x_display.h"		/* x_cmap_get_closest_color */
 
@@ -198,7 +199,141 @@ modify_pixmap(
 	}
 }
 
-/* For old machines and Android */
+/* For old machines and Android (not to use mlimgloader) */
+#if  defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
+
+#include  <string.h>
+#include  <kiklib/kik_util.h>
+#include  <kiklib/kik_def.h>	/* SSIZE_MAX */
+
+/*
+ * This function resizes the sixel image to the specified size and shrink
+ * pixmap->image.
+ * It frees pixmap->image in failure.
+ * Call resize_sixel() after load_sixel_from_file() because it returns at least
+ * 1024*1024 pixels memory even if the actual image size is less than 1024*1024.
+ */
+static int
+resize_sixel(
+	Pixmap  pixmap ,
+	u_int  width ,
+	u_int  height ,
+	u_int  bytes_per_pixel
+	)
+{
+	void *  p ;
+	size_t  line_len ;
+	size_t  old_line_len ;
+	size_t  image_len ;
+	size_t  old_image_len ;
+	u_char *  dst ;
+	u_char *  src ;
+	int  y ;
+
+	p = NULL ;
+
+	if( ( width == 0 || width == pixmap->width) &&
+	    ( height == 0 || height == pixmap->height))
+	{
+		goto  end ;
+	}
+
+	if( width > SSIZE_MAX / bytes_per_pixel / height)
+	{
+		goto  error ;
+	}
+
+	old_line_len = pixmap->width * bytes_per_pixel ;
+	line_len = width * bytes_per_pixel ;
+	image_len = line_len * height ;
+	old_image_len = old_line_len * pixmap->height ;
+
+	if( image_len > old_image_len)
+	{
+		if( ! ( p = realloc( pixmap->image , image_len)))
+		{
+			goto  error ;
+		}
+
+		pixmap->image = p ;
+	}
+
+	/* Tiling */
+
+	if( width > pixmap->width)
+	{
+		y = pixmap->height - 1 ;
+		src = pixmap->image + old_line_len * y ;
+		dst = pixmap->image + line_len * y ;
+
+		for( ; y >= 0 ; y--)
+		{
+			memmove( dst , src , line_len) ;
+			dst -= line_len ;
+			src -= old_line_len ;
+		}
+
+		src = pixmap->image ;
+		dst = src + old_line_len ;
+
+		for( y = 0 ; y < pixmap->height ; y++)
+		{
+			memcpy( dst , src , line_len - old_line_len) ;
+			dst += line_len ;
+			src += line_len ;
+		}
+	}
+	else if( width < pixmap->width)
+	{
+		src = pixmap->image + old_line_len ;
+		dst = pixmap->image + line_len ;
+
+		for( y = 1 ; y < pixmap->height ; y++)
+		{
+			memmove( dst , src , old_line_len) ;
+			dst += line_len ;
+			src += old_line_len ;
+		}
+	}
+
+	if( height > pixmap->height)
+	{
+		y = pixmap->height ;
+		src = pixmap->image ;
+		dst = src + line_len * y ;
+
+		for( ; y < height ; y++)
+		{
+			memcpy( dst , src , line_len) ;
+			dst += line_len ;
+			src += line_len ;
+		}
+	}
+
+	kik_msg_printf( "Resize sixel from %dx%d to %dx%d\n" ,
+		pixmap->width , pixmap->height , width , height) ;
+
+	pixmap->width = width ;
+	pixmap->height = height ;
+
+end:
+	/* Always realloate pixmap->image according to its width, height and bytes_per_pixel. */
+	if( ! p && ( p = realloc( pixmap->image ,
+				pixmap->width * pixmap->height * bytes_per_pixel)))
+	{
+		pixmap->image = p ;
+	}
+
+	return  1 ;
+
+error:
+	free( pixmap->image) ;
+
+	return  0 ;
+}
+#endif
+
+/* For old machines and Android (not to use mlimgloader) */
 #if  defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
 
 #ifndef  BUILTIN_IMAGELIB
@@ -210,7 +345,7 @@ modify_pixmap(
 
 #endif
 
-/* For old machines */
+/* For old machines (not to use mlimgloader) */
 #if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(USE_GRF)
 
 #ifndef  BUILTIN_IMAGELIB
@@ -223,11 +358,9 @@ modify_pixmap(
 /* depth should be checked by the caller. */
 static int
 load_sixel_with_mask_from_file_1bpp(
-	Display *  display ,
 	char *  path ,
 	u_int  width ,
 	u_int  height ,
-	x_picture_modifier_t *  pic_mod ,
 	Pixmap *  pixmap ,
 	PixmapMask *  mask
 	)
@@ -237,30 +370,16 @@ load_sixel_with_mask_from_file_1bpp(
 	u_char *  src ;
 	u_char *  dst ;
 
-	if( ! strstr( path , ".six") || pic_mod || ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
+	if( ! strstr( path , ".six") || ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		return  0 ;
 	}
 
 	if( ! ( src = (*pixmap)->image = load_sixel_from_file_1bpp( path ,
-						&(*pixmap)->width , &(*pixmap)->height)))
+						&(*pixmap)->width , &(*pixmap)->height)) ||
+	    /* resize_sixel() frees pixmap->image in failure. */
+	    ! resize_sixel( *pixmap , width , height , 1))
 	{
-		free( *pixmap) ;
-
-		return  0 ;
-	}
-
-	if( ( width != 0 && width != (*pixmap)->width) ||
-	    /* The height of sixel graphics is multiple of 6. */
-	    ( height != 0 && (height + 5) / 6 != ((*pixmap)->height + 5) / 6))
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG
-			" Picture size (%dx%d) doesn't match specified size (%dx%d)\n" ,
-			(*pixmap)->width , (*pixmap)->height , width , height) ;
-	#endif
-
-		free( (*pixmap)->image) ;
 		free( *pixmap) ;
 
 		return  0 ;
@@ -343,8 +462,8 @@ load_file(
 #if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(USE_GRF)
 	if( depth == 1)
 	{
-		if( load_sixel_with_mask_from_file_1bpp( display , path , width , height ,
-				pic_mod , pixmap , mask))
+		/* pic_mod is ignored. */
+		if( load_sixel_with_mask_from_file_1bpp( path , width , height , pixmap , mask))
 		{
 			return  1 ;
 		}
@@ -355,7 +474,9 @@ load_file(
 	if( strstr( path , ".six") && ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
-						&(*pixmap)->width , &(*pixmap)->height)))
+						&(*pixmap)->width , &(*pixmap)->height)) &&
+		    /* resize_sixel() frees pixmap->image in failure. */
+		    resize_sixel( *pixmap , width , height , 4))
 		{
 		#if  defined(__NetBSD__) || defined(__OpenBSD__)
 			x_display_set_cmap( sixel_cmap , sixel_cmap_size) ;

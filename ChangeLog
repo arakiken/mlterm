@@ -1,3 +1,22 @@
+2014-02-19  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_imagelib.c: resize_sixel() is added to resize the sixel image to
+	  the screen size.
+
+	* c_imagelib.c:
+	  - The sixel width is changed just after parsing the first line to
+	    reduce the cost of realloc_pixels() at the end of load_sixel_from_file().
+	  - The step of increasing the width and height of the sixel image is
+	    changed to 512.
+
+	* win32/x_imagelib.c, gdiplus.cpp, none.cpp: Minor fixes.
+
+	* android/jni/kik_debug.h: kik_msg_printf outputs messages at ANDROID_LOG_INFO level.
+
+	* android/build.sh: Minor fixes.
+
+	* ml_char.c: Minor fixes.
+
 2014-02-18  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb, x_main_config.c: Minor fixes.
