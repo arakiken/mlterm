@@ -522,6 +522,23 @@ put_image_124bpp(
 }
 
 static void
+rotate_mouse_cursor_shape(void)
+{
+	int  tmp ;
+
+	cursor_shape.shape = (cursor_shape.shape == cursor_shape_normal) ?
+				cursor_shape_rotate : cursor_shape_normal ;
+
+	tmp = cursor_shape.x_off ;
+	cursor_shape.x_off = cursor_shape.y_off ;
+	cursor_shape.y_off = tmp ;
+
+	tmp = cursor_shape.width ;
+	cursor_shape.width = cursor_shape.height ;
+	cursor_shape.height = tmp ;
+}
+
+static void
 update_mouse_cursor_state(void)
 {
 	if( -cursor_shape.x_off > _mouse.x)
@@ -1338,9 +1355,17 @@ x_display_open(
 		{
 			u_int  tmp ;
 
-			tmp = _disp.width ;
-			_disp.width = _disp.height ;
-			_disp.height = tmp ;
+			if( _display.bytes_per_pixel < 2)
+			{
+				rotate_display = 0 ;
+				rotate_mouse_cursor_shape() ;
+			}
+			else
+			{
+				tmp = _disp.width ;
+				_disp.width = _disp.height ;
+				_disp.height = tmp ;
+			}
 		}
 
 		fcntl( STDIN_FILENO , F_SETFL ,
@@ -1752,12 +1777,6 @@ x_display_rotate(
 			/* virual kbd is unavailable on the rotated display. */
 			x_virtual_kbd_hide() ;
 		}
-
-		cursor_shape.shape = cursor_shape_rotate ;
-	}
-	else
-	{
-		cursor_shape.shape = cursor_shape_normal ;
 	}
 
 	if( rotate_display + rotate != 0)
@@ -1768,13 +1787,7 @@ x_display_rotate(
 		_disp.width = _disp.height ;
 		_disp.height = tmp ;
 
-		tmp = cursor_shape.x_off ;
-		cursor_shape.x_off = cursor_shape.y_off ;
-		cursor_shape.y_off = tmp ;
-
-		tmp = cursor_shape.width ;
-		cursor_shape.width = cursor_shape.height ;
-		cursor_shape.height = tmp ;
+		rotate_mouse_cursor_shape() ;
 
 		rotate_display = rotate ;
 

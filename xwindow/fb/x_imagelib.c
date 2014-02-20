@@ -229,6 +229,7 @@ resize_sixel(
 	u_char *  dst ;
 	u_char *  src ;
 	int  y ;
+	u_int  min_height ;
 
 	p = NULL ;
 
@@ -260,27 +261,34 @@ resize_sixel(
 
 	/* Tiling */
 
+	min_height = K_MIN(height,pixmap->height) ;
+
 	if( width > pixmap->width)
 	{
-		y = pixmap->height - 1 ;
+		size_t  surplus ;
+		u_int  num_of_copy ;
+		u_int  count ;
+		u_char *  dst_next ;
+
+		y = min_height - 1 ;
 		src = pixmap->image + old_line_len * y ;
 		dst = pixmap->image + line_len * y ;
 
+		surplus = line_len % old_line_len ;
+		num_of_copy = line_len / old_line_len - 1 ;
+
 		for( ; y >= 0 ; y--)
 		{
-			memmove( dst , src , line_len) ;
+			dst_next = memmove( dst , src , old_line_len) ;
+
+			for( count = num_of_copy ; count > 0 ; count--)
+			{
+				memcpy( ( dst_next += old_line_len) , dst , old_line_len) ;
+			}
+			memcpy( dst_next + old_line_len , dst , surplus) ;
+
 			dst -= line_len ;
 			src -= old_line_len ;
-		}
-
-		src = pixmap->image ;
-		dst = src + old_line_len ;
-
-		for( y = 0 ; y < pixmap->height ; y++)
-		{
-			memcpy( dst , src , line_len - old_line_len) ;
-			dst += line_len ;
-			src += line_len ;
 		}
 	}
 	else if( width < pixmap->width)
@@ -288,7 +296,7 @@ resize_sixel(
 		src = pixmap->image + old_line_len ;
 		dst = pixmap->image + line_len ;
 
-		for( y = 1 ; y < pixmap->height ; y++)
+		for( y = 1 ; y < min_height ; y++)
 		{
 			memmove( dst , src , old_line_len) ;
 			dst += line_len ;

@@ -1,3 +1,15 @@
+2014-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c:
+	  - rotate_mouse_cursor_shape() is added.
+	  - if -rotate (right|left) option is specified on 8bpp or less
+	    framebuffer, rotate_display is set to 0 and rotate_mouse_cursor_shape()
+	    is called in x_display_open() to fall back to the normal shape.
+
+	* fb/x_imagelib.c: Illegal memory access in resize_sixel() is fixed.
+
+	* android/jni/Android.mk, java/Makefile.in: Minor fixes.
+
 2014-02-19  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_imagelib.c: resize_sixel() is added to resize the sixel image to
