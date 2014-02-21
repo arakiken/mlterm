@@ -1,3 +1,17 @@
+2014-02-22  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.3.3 released.
+	  (tag "rel-3_3_3")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.3.3.
+
+	* android/jni/x_display.c:
+	  Java_mlterm_native_1activity_MLActivity_visibleFrameChanged() doesn't
+	  change width and height of the display if new width or height is less
+	  than 50 pixels.
+
 2014-02-20  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c:

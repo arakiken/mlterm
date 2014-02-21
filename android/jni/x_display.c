@@ -1314,6 +1314,12 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 		_display.yoffset , _disp.width , _disp.height , yoffset , width , height) ;
 #endif
 
+	if( width < 50 || height < 50)
+	{
+		/* Don't resize because it may be impossible to show any characters. */
+		return ;
+	}
+
 	if( _disp.roots)
 	{
 		/* XXX should synchronize */
