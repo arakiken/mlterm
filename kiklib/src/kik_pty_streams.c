@@ -50,6 +50,47 @@
 #define  VDISABLE 255
 #endif
 
+/* For Android */
+#ifndef  CEOF
+#define  CEOF  ('d' & 0x1f)
+#endif
+#ifndef  CERASE
+#define  CERASE  0x7f
+#endif
+#ifndef  CINTR
+#define  CINTR  ('c' & 0x1f)
+#endif
+#ifndef  CKILL
+#define  CKILL  ('u' & 0x1f)
+#endif
+#ifndef  CQUIT
+#define  CQUIT  0x1c
+#endif
+#ifndef  CSTART
+#define  CSTART  ('q' & 0x1f)
+#endif
+#ifndef  CSTOP
+#define  CSTOP  ('s' & 0x1f)
+#endif
+#ifndef  CSUSP
+#define  CSUSP  ('z' & 0x1f)
+#endif
+#ifndef  CDSUSP
+#define  CDSUSP  ('y' & 0x1f)
+#endif
+#ifndef  CRPRNT
+#define  CRPRNT  ('r' & 0x1f)
+#endif
+#ifndef  CFLUSH
+#define  CFLUSH  ('o' & 0x1f)
+#endif
+#ifndef  CWERASE
+#define  CWERASE  ('w' & 0x1f)
+#endif
+#ifndef  CLNEXT
+#define  CLNEXT  ('v' & 0x1f)
+#endif
+
 
 /* --- global functions --- */
 
@@ -149,61 +190,44 @@ kik_pty_fork(
 	tio.c_lflag |= ECHOCTL ;
 #endif
 
-#if  defined(VEOF) && defined(CEOF)
 	tio.c_cc[VEOF] = CEOF ;
-#endif
-#if  defined(VEOL) && defined(VDISABLE)
 	tio.c_cc[VEOL] = VDISABLE ;
-#endif
-#if  defined(VERASE) && defined(CERASE)
 	tio.c_cc[VERASE] = CERASE ;
-#endif
-#if  defined(VINTR) && defined(CINTR)
 	tio.c_cc[VINTR] = CINTR ;
-#endif
-#if  defined(VKILL) && defined(CKILL)
 	tio.c_cc[VKILL] = CKILL ;
-#endif
-#if  defined(VQUIT) && defined(CQUIT)
 	tio.c_cc[VQUIT] = CQUIT ;
-#endif
-#if  defined(VSTART) && defined(CSTART)
 	tio.c_cc[VSTART] = CSTART ;
-#endif
-#if  defined(VSTOP) && defined(CSTOP)
 	tio.c_cc[VSTOP] = CSTOP ;
-#endif
-#if  defined(VSUSP) && defined(CSUSP)
 	tio.c_cc[VSUSP] = CSUSP ;
-#endif
-#if  defined(VDSUSP) && defined(CDSUSP)
+
+#ifdef VDSUSP
 	tio.c_cc[VDSUSP] = CDSUSP ;
 #endif
-#if  defined(VREPRINT) && defined(CRPRNT)
+#ifdef VREPRINT
 	tio.c_cc[VREPRINT] = CRPRNT ;
 #endif
-#if  defined(VRPRNT) && defined(CRPRNT)
+#ifdef VRPRNT
 	tio.c_cc[VRPRNT] = CRPRNT ;
 #endif
-#if  defined(VDISCARD) && defined(CFLUSH)
+#ifdef VDISCARD
 	tio.c_cc[VDISCARD] = CFLUSH ;
 #endif
-#if  defined(VFLUSHO) && defined(CFLUSH)
+#ifdef VFLUSHO
 	tio.c_cc[VFLUSHO] = CFLUSH ;
 #endif
-#if  defined(VWERASE) && defined(CWERASE)
+#ifdef VWERASE
 	tio.c_cc[VWERASE] = CWERASE ;
 #endif
-#if  defined(VLNEXT) && defined(CLNEXT)
+#ifdef VLNEXT
 	tio.c_cc[VLNEXT] = CLNEXT ;
 #endif
-#if  defined(VEOL2) && defined(VDISABLE)
+#ifdef VEOL2
 	tio.c_cc[VEOL2] = VDISABLE ;
 #endif
-#if  defined(VSWTC) && defined(VDISABLE)
+#ifdef VSWTC
 	tio.c_cc[VSWTC] = VDISABLE ;
 #endif
-#if  defined(VSWTCH) && defined(VDISABLE)
+#ifdef VSWTCH
 	tio.c_cc[VSWTCH] = VDISABLE ;
 #endif
 /*
