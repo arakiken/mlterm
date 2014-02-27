@@ -48,5 +48,7 @@ int  x_cmap_get_closest_color( u_long *  closest , int  red , int  green , int  
 int  x_cmap_get_pixel_rgb( u_int8_t *  red , u_int8_t *  green ,
 	u_int8_t *  blue , u_long  pixel) ;
 
+u_char *  x_display_get_bitmap( char *  path , u_int *  width , u_int *  height) ;
+
 
 #endif

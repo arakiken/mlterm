@@ -1,3 +1,15 @@
+2014-02-28  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_imagelib.c: load_file() calls x_display_get_bitmap() on Android
+	  instead of executing mlimgloader.
+
+	* MLActivity.java: getBitmap() which loads image files is added.
+
+	* android/jni/x_display.[ch]: x_display_get_bitmap() which calls
+	  MLActivity::getBitmap() is added.
+
+	* AndroidManifest.xml: android.permission.INTERNET is added.
+
 2014-02-27  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_pty_streams.c: Control characters defaults macros are added for Android.

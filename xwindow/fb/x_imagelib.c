@@ -499,6 +499,20 @@ load_file(
 	}
 #endif
 
+#ifdef  __ANDROID__
+	if( ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
+	{
+		return  0 ;
+	}
+
+	(*pixmap)->width = width ;
+	(*pixmap)->height = height ;
+	if( ! ( (*pixmap)->image = x_display_get_bitmap( path ,
+					&(*pixmap)->width , &(*pixmap)->height)))
+	{
+		goto  error ;
+	}
+#else
 	if( pipe( fds1) == -1)
 	{
 		return  0 ;
@@ -598,6 +612,7 @@ load_file(
 
 	close( fds2[0]) ;
 	close( fds1[1]) ;
+#endif
 
 loaded:
 	if( mask)

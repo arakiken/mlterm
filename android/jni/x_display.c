@@ -1298,6 +1298,55 @@ x_cmap_get_pixel_rgb(
 	return  0 ;
 }
 
+u_char *
+x_display_get_bitmap(
+	char *  path ,
+	u_int *  width ,
+	u_int *  height
+	)
+{
+	JNIEnv *  env ;
+	JavaVM *  vm ;
+	jobject  this ;
+	jintArray  jarray ;
+	char *  image ;
+
+	vm = _display.app->activity->vm ;
+	(*vm)->AttachCurrentThread( vm , &env , NULL) ;
+
+	this = _display.app->activity->clazz ;
+
+	image = NULL ;
+	if( ( jarray = (*env)->CallObjectMethod( env , this ,
+			(*env)->GetMethodID( env ,
+				(*env)->GetObjectClass( env , this) ,
+				"getBitmap" , "(Ljava/lang/String;II)[I") ,
+			(*env)->NewStringUTF( env , path) ,
+			*width , *height)))
+	{
+		jint  len ;
+
+		len = (*env)->GetArrayLength( env , jarray) ;
+
+		if( ( image = malloc( (len - 2) * sizeof(u_int32_t))))
+		{
+			jint *  elems ;
+
+			elems = (*env)->GetIntArrayElements( env , jarray , NULL) ;
+
+			*width = elems[len - 2] ;
+			*height = elems[len - 1] ;
+			memcpy( image , elems , (len - 2) * sizeof(u_int32_t)) ;
+
+			(*env)->ReleaseIntArrayElements( env , jarray , elems , 0) ;
+		}
+	}
+
+	(*vm)->DetachCurrentThread(vm) ;
+
+	return  image ;
+}
+
 
 /* Called in the main thread (not in the native activity thread) */
 void

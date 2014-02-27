@@ -18,7 +18,10 @@ import  android.text.InputType ;
 import  android.content.Context ;
 import  android.os.Bundle ;
 import  android.graphics.Rect ;
+import  android.graphics.BitmapFactory ;
+import  android.graphics.Bitmap ;
 import  android.util.AttributeSet ;
+import  java.net.URL ;
 import  java.io.* ;
 
 
@@ -184,7 +187,7 @@ public class MLActivity extends NativeActivity
 		showSoftInput() ;
 	}
 
-	public String saveUnifont()
+	private String saveUnifont()
 	{
 		File  file = getFileStreamPath( "unifont.pcf") ;
 		if( ! file.exists())
@@ -212,5 +215,44 @@ public class MLActivity extends NativeActivity
 		}
 
 		return  file.getPath() ;
+	}
+
+	private int[]  getBitmap( String  path , int  width , int  height)
+	{
+		try
+		{
+			InputStream  is ;
+
+			if( path.indexOf( "://") != -1)
+			{
+				URL  url = new URL( path) ;
+				is = url.openConnection().getInputStream() ;
+			}
+			else
+			{
+				is = new FileInputStream( path) ;
+			}
+			Bitmap  bmp = BitmapFactory.decodeStream( is) ;
+
+			if( width != 0 && height != 0)
+			{
+				bmp = Bitmap.createScaledBitmap( bmp , width , height , false) ;
+			}
+
+			width = bmp.getWidth() ;
+			height = bmp.getHeight() ;
+			int[]  pixels = new int[width * height + 2] ;
+
+			bmp.getPixels( pixels , 0 , width , 0 , 0 , width , height) ;
+			pixels[pixels.length - 2] = width ;
+			pixels[pixels.length - 1] = height ;
+
+			return  pixels ;
+		}
+		catch( Exception  e)
+		{
+			System.err.println( e) ;
+			return  null ;
+		}
 	}
 }
