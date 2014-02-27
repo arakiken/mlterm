@@ -1,5 +1,11 @@
 2014-02-28  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.android: Updated.
+
+	* android/jni/x_display.[ch]: locked = -1 on APP_CMD_TERM_WINDOW.
+
+2014-02-28  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_imagelib.c: load_file() calls x_display_get_bitmap() on Android
 	  instead of executing mlimgloader.
 

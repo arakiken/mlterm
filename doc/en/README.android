@@ -16,7 +16,6 @@ Android support (Experimental)
   Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
 
 * Note
-  o Only sixel graphics format is available for "wall_picture" option.
   o Indic support is unavailable.
   o Scrollbar is disabled.
   o You can show a software keyboard if you double-click the left mouse

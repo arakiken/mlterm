@@ -592,6 +592,8 @@ on_app_cmd(
 	#ifdef  DEBUG
 		kik_debug_printf( "TERM_WINDOW\n") ;
 	#endif
+		locked = -1 ;	/* Don't lock until APP_CMD_INIT_WINDOW after restart. */
+
 		break ;
 
 	case APP_CMD_WINDOW_REDRAW_NEEDED:
@@ -1003,7 +1005,7 @@ x_display_process_event(
 		kik_debug_printf( KIK_DEBUG_TAG " destroy requested.\n") ;
 	#endif
 
-		locked = -1 ;
+		locked = -1 ;	/* Don't lock until APP_CMD_INIT_WINDOW after restart. */
 
 		return  0 ;
 	}

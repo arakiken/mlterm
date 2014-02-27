@@ -109,7 +109,7 @@ public class MLActivity extends NativeActivity
 		}
 	}
 
-	public void showSoftInput()
+	private void showSoftInput()
 	{
 		((InputMethodManager)getSystemService( Context.INPUT_METHOD_SERVICE)).showSoftInput(
 			contentView , InputMethodManager.SHOW_FORCED) ;
