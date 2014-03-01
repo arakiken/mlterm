@@ -1,3 +1,13 @@
+2014-03-01  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.c, x_display_x68kgrf.c:
+	  - The default value "separate_wall_picture" option is changed to true.
+
+	* x_display_x68kgrf.c:
+	  - Merge https://gist.github.com/tsutsui/9285759.
+	    (Thanks to @tsutsuii san)
+	  - The default resolution is changed to 768x512x4.
+
 2014-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.android: Updated.

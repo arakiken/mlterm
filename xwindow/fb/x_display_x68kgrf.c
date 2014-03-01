@@ -72,10 +72,10 @@ typedef struct  fb_reg_conf
 /* --- static variables --- */
 
 static int  console_id = -1 ;
-u_int  fb_width = 640 ;
-u_int  fb_height = 480 ;
-u_int  fb_depth = 8 ;
-int  separate_wall_picture ;
+u_int  fb_width = 768 ;
+u_int  fb_height = 512 ;
+u_int  fb_depth = 4 ;
+int  separate_wall_picture = 1 ;
 static fb_reg_conf_t  orig_reg ;
 static int  grf0_fd = -1 ;
 static size_t  grf0_len ;
@@ -185,8 +185,15 @@ open_display(
 	struct rgb_info  rgb_info_15bpp = { 3 , 3 , 3 , 6 , 11 , 1 } ;
 	struct termios  tm ;
 
-	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/grf1" ,
-					O_RDWR)) < 0)
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+
+	_display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/grf1" , O_RDWR);
+
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
+
+	if( _display.fb_fd < 0)
 	{
 		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/grf1") ;
 
