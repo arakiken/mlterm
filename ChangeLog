@@ -1,3 +1,15 @@
+2014-03-04  Araki Ken  <arakiken@users.sf.net>
+
+	* */x_display*.c, kik_pty_streams.c: kik_msg_printf() -> kik_error_printf()
+
+	* kik_debug.c: strerror() is output in kik_error_printf().
+
+	* kiklib/configure.in, kik_config.h.in: errno.h check is added.
+
+	* gdiplus.cpp, gdk-pixbuf.c, none.c:
+	  Help message is output to stderr instead of stdout where mlterm waits
+	  for image data.
+
 2014-03-01  Araki Ken  <arakiken@users.sf.net>
 
 	* x_main_config.c, x_display_x68kgrf.c:

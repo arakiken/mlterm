@@ -201,7 +201,7 @@ open_event_device(
 
 	if( ( fd = open( event , O_RDONLY|O_NONBLOCK)) == -1)
 	{
-		kik_msg_printf( "Failed to open %s.\n" , event) ;
+		kik_error_printf( "Couldn't open %s.\n" , event) ;
 	}
 #if  0
 	else
@@ -232,7 +232,7 @@ open_display(
 	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0" ,
 					O_RDWR)) < 0)
 	{
-		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/fb0") ;
+		kik_error_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/fb0") ;
 
 		return  0 ;
 	}

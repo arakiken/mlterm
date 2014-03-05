@@ -195,7 +195,7 @@ open_display(
 
 	if( _display.fb_fd < 0)
 	{
-		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/grf1") ;
+		kik_error_printf( "Couldn't open %s.\n" , dev ? dev : "/dev/grf1") ;
 
 		return  0 ;
 	}
@@ -213,7 +213,7 @@ open_display(
 				PROT_WRITE|PROT_READ , MAP_FILE|MAP_SHARED ,
 				_display.fb_fd , (off_t)0)) == MAP_FAILED)
 	{
-		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
+		kik_error_printf( "Retry another mode of resolution and depth.\n") ;
 
 		goto  error ;
 	}

@@ -52,9 +52,10 @@ static const IID __uuid_inst =
 static void
 help(void)
 {
-	printf( "mlimgloader [window id] [width] [height] [file path] (-c)\n") ;
-	printf( "  window id: ignored.\n") ;
-	printf( "  -c       : output XA_CARDINAL format data to stdout.\n") ;
+	/* Don't output to stdout where mlterm waits for image data. */
+	fprintf( stderr , "mlimgloader [window id] [width] [height] [file path] (-c)\n") ;
+	fprintf( stderr , "  window id: ignored.\n") ;
+	fprintf( stderr , "  -c       : output XA_CARDINAL format data to stdout.\n") ;
 }
 
 static u_int32_t *
@@ -237,7 +238,9 @@ main(
 
 	if( argc != 6 || strcmp( argv[5] , "-c") != 0)
 	{
-		goto  error ;
+		help() ;
+
+		return  -1 ;
 	}
 
 	width = atoi( argv[2]) ;
@@ -293,6 +296,7 @@ main(
 	return  0 ;
 
 error:
-	help() ;
+	kik_error_printf( "Couldn't load %s\n" , argv[4]) ;
+
 	return  -1 ;
 }

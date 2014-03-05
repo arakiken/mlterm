@@ -350,7 +350,7 @@ open_display(
 	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : DEFAULT_FBDEV ,
 					O_RDWR)) < 0)
 	{
-		kik_msg_printf( "Couldn't open %s.\n" , dev ? dev : DEFAULT_FBDEV) ;
+		kik_error_printf( "Couldn't open %s.\n" , dev ? dev : DEFAULT_FBDEV) ;
 
 		return  0 ;
 	}
@@ -372,7 +372,7 @@ open_display(
 		if( ioctl( _display.fb_fd , WSDISPLAYIO_SETGFXMODE , &gfx_mode) == -1)
 		{
 			/* Always failed on OpenBSD/luna88k. */
-			kik_msg_printf( "Failed to set screen resolution (gfx mode).\n") ;
+			kik_error_printf( "Couldn't set screen resolution (gfx mode).\n") ;
 		}
 	}
 
@@ -489,7 +489,7 @@ open_display(
 				PROT_WRITE|PROT_READ , MAP_SHARED , _display.fb_fd , (off_t)0))
 				== MAP_FAILED)
 	{
-		kik_msg_printf( "Retry another mode of resolution and depth.\n") ;
+		kik_error_printf( "Retry another mode of resolution and depth.\n") ;
 
 		goto  error ;
 	}

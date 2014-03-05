@@ -83,7 +83,7 @@ error_handler(
 		 * mlterm doesn't stop.
 		 */
 		 
-		kik_msg_printf( "XLoad(Query)Font function is failed.\n") ;
+		kik_msg_printf( "XLoad(Query)Font failed.\n") ;
 
 		/* ignored anyway */
 		return  0 ;
@@ -118,7 +118,7 @@ open_display(
 	
 	if( ( disp->display = XOpenDisplay( name)) == NULL)
 	{
-		kik_msg_printf( " display %s couldn't be opened.\n" , name) ;
+		kik_error_printf( "Couldn't open display %s.\n" , name) ;
 
 		goto  error1 ;
 	}

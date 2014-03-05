@@ -113,7 +113,7 @@ kik_pty_fork(
 #endif
 	if( *master < 0)
 	{
-		kik_msg_printf( "Unable to open a master pseudo-terminal device.\n") ;
+		kik_error_printf( "Couldn't open a master pseudo-terminal device.\n") ;
 		return  -1;
 	}
 	kik_file_set_cloexec( *master) ;
@@ -140,7 +140,7 @@ kik_pty_fork(
 	}
 	if( ( ttydev = ptsname(*master)) == NULL)
 	{
-		kik_msg_printf( "Unable to open a slave pseudo-terminal device.\n") ;
+		kik_error_printf( "Couldn't open a slave pseudo-terminal device.\n") ;
 	#ifdef  __linux__
 		kik_msg_printf( "If your operating system is Linux, make sure your kernel was compiled with\n"
 			        "'CONFIG_UNIX98_PTYS=y' and devpts file system was mounted.\n");

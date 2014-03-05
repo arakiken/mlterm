@@ -54,9 +54,10 @@
 static void
 help(void)
 {
-	printf( "mlimgloader [window id] [width] [height] [src file] ([dst file]) (-c)\n") ;
-	printf( "  [dst file]: convert [src file] to [dst file].\n") ;
-	printf( "  -c        : output XA_CARDINAL format data to stdout.\n") ;
+	/* Don't output to stdout where mlterm waits for image data. */
+	fprintf( stderr , "mlimgloader [window id] [width] [height] [src file] ([dst file]) (-c)\n") ;
+	fprintf( stderr , "  [dst file]: convert [src file] to [dst file].\n") ;
+	fprintf( stderr , "  -c        : output XA_CARDINAL format data to stdout.\n") ;
 }
 
 /* create GdkPixbuf from the specified file path.
@@ -593,7 +594,9 @@ main(
 #endif
 	if( argc != 6)
 	{
-		goto  error ;
+		help() ;
+
+		return  -1 ;
 	}
 
 #if GDK_PIXBUF_MAJOR >= 2
@@ -712,6 +715,7 @@ main(
 	return  0 ;
 
 error:
-	help() ;
+	kik_error_printf( "Couldn't load %s\n" , argv[4]) ;
+
 	return  -1 ;
 }

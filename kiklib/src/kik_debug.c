@@ -9,6 +9,9 @@
 #include  <string.h>    /* strlen */
 #include  <unistd.h>	/* getpid */
 #include  <time.h>	/* time/ctime */
+#ifdef  HAVE_ERRNO_H
+#include  <errno.h>
+#endif
 
 #include  "kik_mem.h"	/* alloca */
 #include  "kik_util.h"	/* DIGIT_STR_LEN */
@@ -86,20 +89,27 @@ debug_printf(
 	va_list  arg_list
 	)
 {
-	char *  new_format ;
+	size_t  prefix_len ;
 	int  ret ;
 	FILE *  fp ;
 
-	if( ( new_format = alloca( strlen( prefix) + strlen( format) + 1)) == NULL)
+	if( ( prefix_len = strlen(prefix)) > 0)
 	{
-		/* error */
+		char *  new_format ;
 
-		return  0 ;
+		if( ( new_format = alloca( prefix_len + strlen( format) + 1)) == NULL)
+		{
+			/* error */
+
+			return  0 ;
+		}
+
+		sprintf( new_format , "%s%s" , prefix , format) ;
+		format = new_format ;
 	}
 
-	sprintf( new_format , "%s%s" , prefix , format) ;
 	fp = open_msg_file() ;
-	ret = vfprintf( fp , new_format , arg_list) ;
+	ret = vfprintf( fp , format , arg_list) ;
 	close_msg_file( fp) ;
 
 	return  ret ;
@@ -153,7 +163,13 @@ kik_error_printf(
 
 	va_start( arg_list , format) ;
 
-	return  debug_printf( "*** ERROR HAPPEND *** " , format , arg_list) ;
+#ifdef  HAVE_ERRNO_H
+	debug_printf( "ERROR(" , strerror( errno) , NULL) ;
+
+	return  debug_printf( "): " , format , arg_list) ;
+#else
+	return  debug_printf( "ERROR: " , format , arg_list) ;
+#endif
 }
 
 /*

@@ -21,6 +21,8 @@
 
 #undef  HAVE_WINDOWS_H
 
+#define  HAVE_ERRNO_H
+
 #undef  WORDS_BIGENDIAN
 
 #define  HAVE_STRSEP
