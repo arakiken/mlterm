@@ -1390,7 +1390,7 @@ x11_callback(
 	if( connect( display_sock , (struct sockaddr *)&addr , sizeof(addr)) < 0)
 	{
 	error:
-		kik_msg_printf( "Failed to connect X Server.\n") ;
+		kik_error_printf( "Failed to connect X Server.\n") ;
 		closesocket( display_sock) ;
 		display_sock = -1 ;
 
@@ -2199,6 +2199,9 @@ ml_pty_ssh_poll(
 	return  num_of_fds ;
 }
 
+/*
+ * The returned fds can contain -1 which means the failure of x11_callback().
+ */
 u_int
 ml_pty_ssh_get_x11_fds(
 	int **  fds

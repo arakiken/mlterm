@@ -119,11 +119,14 @@ receive_next_event(void)
 	#ifdef  USE_LIBSSH2
 		for( count = 0 ; count < num_of_xssh_fds ; count ++)
 		{
-			FD_SET( xssh_fds[count] , &read_fds) ;
-
-			if( xssh_fds[count] > maxfd)
+			if( xssh_fds[count] >= 0)
 			{
-				maxfd = xssh_fds[count] ;
+				FD_SET( xssh_fds[count] , &read_fds) ;
+
+				if( xssh_fds[count] > maxfd)
+				{
+					maxfd = xssh_fds[count] ;
+				}
 			}
 		}
 	#endif
@@ -236,7 +239,7 @@ receive_next_event(void)
 	for( count = num_of_xssh_fds ; count > 0 ; count--)
 	{
 		ml_pty_ssh_send_recv_x11( count - 1 ,
-			FD_ISSET( xssh_fds[count - 1] , &read_fds)) ;
+			xssh_fds[count - 1] >= 0 && FD_ISSET( xssh_fds[count - 1] , &read_fds)) ;
 	}
 #endif
 

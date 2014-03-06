@@ -1,5 +1,8 @@
 2014-03-06  Araki Ken  <arakiken@users.sf.net>
 
+	* x_event_source.c: The segfault caused by calling FD_ISSET(-1) if x11
+	  forwarding failed is fixed.
+
 	* im_uim.c: Hack for uim-mozc is added.
 
 	* x_screen.c: The bug of get_config_intern() returning invalid stack
