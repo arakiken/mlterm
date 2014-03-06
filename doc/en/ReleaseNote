@@ -1,4 +1,5 @@
 ver 3.3.4
+* Support not only sixel graphics but also other major image formats on Android.
 * Output strerror(errno) on error.
 * Merge patches:
   https://gist.github.com/tsutsui/9285759. (Thanks to @tsutsuii)
@@ -6,6 +7,7 @@ ver 3.3.4
   Change the default resolution on NetBSD/x68k from 512x512x8 to 768x512x4.
   Fix the bug which output help message to stdout where mlterm waits for image
   data and which made mlterm allocate too large memory. (enbugged at 3.3.3)
+  Fix the bug which disabled to start mlconfig. (enbugged at 3.3.3)
 
 ver 3.3.3
 * Double-clicking a picture sets it to the clipboard.

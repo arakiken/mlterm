@@ -1,3 +1,10 @@
+2014-03-06  Araki Ken  <arakiken@users.sf.net>
+
+	* im_uim.c: Hack for uim-mozc is added.
+
+	* x_screen.c: The bug of get_config_intern() returning invalid stack
+	  pointer is fixed.
+
 2014-03-04  Araki Ken  <arakiken@users.sf.net>
 
 	* */x_display*.c, kik_pty_streams.c: kik_msg_printf() -> kik_error_printf()
