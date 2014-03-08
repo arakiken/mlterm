@@ -1299,7 +1299,7 @@ cmap_init(void)
 #endif
 
 	_display.prev_pixel = 0xff000000 ;
-	_display.prev_closest_pixel = 0xff000000 ;
+	_display.prev_closest_color = 0 ;
 
 	return  1 ;
 }
@@ -1654,7 +1654,7 @@ int
 x_display_reset_cmap(void)
 {
 	_display.prev_pixel = 0xff000000 ;
-	_display.prev_closest_pixel = 0xff000000 ;
+	_display.prev_closest_color = 0 ;
 
 	return  _display.cmap && cmap_init()
 	#ifdef  USE_GRF
@@ -1747,7 +1747,12 @@ x_display_set_cmap(
 				(_display.cmap->green[count] >> 3) << 11 |
 				(_display.cmap->blue[count] >> 3) << 1 ;
 		}
+
+		gpal_init( ((fb_reg_t*)_display.fb)->gpal) ;
 	#endif
+
+		_display.prev_pixel = 0xff000000 ;
+		_display.prev_closest_color = 0 ;
 
 		kik_msg_printf( "Palette changed.\n") ;
 	}
@@ -2406,7 +2411,7 @@ x_cmap_get_closest_color(
 	if( (((pixel = (red << 16) | (green << 8) | blue) ^ _display.prev_pixel)
 	     & 0xfff8f8f8) == 0)
 	{
-		*closest = _display.prev_closest_pixel ;
+		*closest = _display.prev_closest_color ;
 
 		return  1 ;
 	}
@@ -2441,7 +2446,7 @@ x_cmap_get_closest_color(
 		}
 	}
 
-	_display.prev_closest_pixel = *closest ;
+	_display.prev_closest_color = *closest ;
 
 	return  1 ;
 }

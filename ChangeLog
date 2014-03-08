@@ -1,3 +1,12 @@
+2014-03-09  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: x_color_cache and x_color_manager are reloaded
+	  after loading a wall picture on NetBSD/OpenBSD 4bpp framebuffer.
+
+	* fb/x.h, fb/x_display.c: prev_closest_pixel -> prev_closest_color
+
+	* ml_vt100_parser.c: ReGIS sequence is stored in ~/.mlterm/*.rgs
+
 2014-03-06  Araki Ken  <arakiken@users.sf.net>
 
 	* x_event_source.c: The segfault caused by calling FD_ISSET(-1) if x11

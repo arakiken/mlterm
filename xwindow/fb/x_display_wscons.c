@@ -537,7 +537,7 @@ open_display(
 			ioctl( _display.fb_fd , FBIOPUTCMAP , _display.cmap) ;
 
 			_display.prev_pixel = 0xff000000 ;
-			_display.prev_closest_pixel = 0xff000000 ;
+			_display.prev_closest_color = 0 ;
 		}
 		else if( ! cmap_init())
 		{

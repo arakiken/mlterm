@@ -453,7 +453,7 @@ error2:
 			}
 		}
 
-		kik_msg_printf( "Failed to exec %s.\n" , cmd_path) ;
+		kik_error_printf( "Failed to exec %s.\n" , cmd_path) ;
 
 		exit(1) ;
 	}

@@ -1275,6 +1275,18 @@ set_wall_picture(
 		return  0 ;
 	}
 
+#if  defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+	if( screen->window.disp->depth == 4 && strstr( screen->pic_file_path , "six"))
+	{
+		/*
+		 * Color pallette of x_display can be changed by x_acquire_bg_picture().
+		 * (see x_display_set_cmap() called from fb/x_imagelib.c.)
+		 */
+		x_color_cache_unload( screen->color_man->color_cache) ;
+		x_color_manager_reload( screen->color_man) ;
+	}
+#endif
+
 	if( ! x_window_set_wall_picture( &screen->window , pic->pixmap))
 	{
 		x_release_picture( pic) ;

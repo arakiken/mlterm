@@ -487,6 +487,7 @@ load_file(
 		    resize_sixel( *pixmap , width , height , 4))
 		{
 		#if  defined(__NetBSD__) || defined(__OpenBSD__)
+			/* see set_wall_picture() in x_screen.c */
 			x_display_set_cmap( sixel_cmap , sixel_cmap_size) ;
 		#endif
 

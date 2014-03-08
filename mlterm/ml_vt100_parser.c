@@ -4498,10 +4498,14 @@ parse_vt100_escape_sequence(
 			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
 
 		#ifndef  NO_IMAGE
-			if( ( *str_p == 'q' /* sixel */
-			    /* || *str_p == 'p' */ ) &&		/* ReGis */
-			    ( path = get_home_file_path( ml_pty_get_slave_name(
-			                                   vt100_parser->pty) + 5 , "six")))
+			if( /* sixel */
+			    ( *str_p == 'q' &&
+			      ( path = get_home_file_path( ml_pty_get_slave_name(
+			                                   vt100_parser->pty) + 5 , "six"))) ||
+			    /* ReGIS */
+			    ( *str_p == 'p' &&
+			      ( path = get_home_file_path( ml_pty_get_slave_name(
+			                                   vt100_parser->pty) + 5 , "rgs"))))
 			{
 				int  is_end ;
 				FILE *  fp ;
@@ -4536,7 +4540,11 @@ parse_vt100_escape_sequence(
 							free( path) ;
 
 							memcpy( vt100_parser->r_buf.chars ,
-								"\x1bPq\0" , 4) ;
+								strcmp( path + strlen(path) - 4 ,
+									".six") == 0 ?
+									"\x1bPq\0" :
+									"\x1bPp\0" ,
+									4) ;
 							vt100_parser->r_buf.chars[4] = is_end ;
 							vt100_parser->r_buf.filled_len =
 								vt100_parser->r_buf.left = 5 ;

@@ -73,7 +73,7 @@ typedef struct
 	fb_cmap_t *  cmap_orig ;
 
 	u_long  prev_pixel ;
-	u_long  prev_closest_pixel ;
+	u_long  prev_closest_color ;
 
 	int  key_state ;
 	int  lock_state ;

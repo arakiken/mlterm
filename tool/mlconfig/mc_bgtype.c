@@ -106,12 +106,12 @@ mc_bgtype_config_widget_new(void)
     GtkWidget *radio;
     GSList *group ;
 
-	bgtype = get_bgtype() ;
+    bgtype = get_bgtype() ;
 
-	if( ( bg_color = mc_color_config_widget_new(MC_COLOR_BG)) == NULL)
-		return NULL ;
-	if( ( wall_picture = mc_wall_pic_config_widget_new()) == NULL)
-		return NULL ;
+    if( ( bg_color = mc_color_config_widget_new(MC_COLOR_BG)) == NULL)
+	return NULL ;
+    if( ( wall_picture = mc_wall_pic_config_widget_new()) == NULL)
+	return NULL ;
 	
     group = NULL;
 
