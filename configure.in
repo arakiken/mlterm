@@ -659,7 +659,7 @@ if test "${have_gtk}" = "yes" ; then
 	fi
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader"
+tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp"
 AC_ARG_WITH(tools,
 	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlterm-menu,mlcc@:>@],
 	[
@@ -772,6 +772,48 @@ mlimgloader)
 		MLIMGLOADER_LIB=none
 	fi
 	AC_SUBST(MLIMGLOADER_LIB)
+	;;
+registobmp)
+	PKG_CHECK_MODULES(SDLTTF, SDL_ttf, have_sdlttf=yes, have_sdlttf=no)
+	if test "$have_sdlttf" = "yes" ; then
+		AC_CHECK_PROG(sdl_config,sdl-config,yes)
+		if test "$sdl_config" = "yes" ; then
+			SDL_CFLAGS=`sdl-config --cflags`
+			SDL_LIBS=`sdl-config --libs`
+		else
+			continue
+		fi
+	else
+		PKG_CHECK_MODULES(SDLTTF, SDL2_ttf, have_sdlttf=yes, have_sdlttf=no)
+		if test "$have_sdlttf" = "yes" ; then
+			AC_CHECK_PROG(sdl2_config,sdl2-config,yes)
+			if test "$sdl2_config" = "yes" ; then
+				SDL_CFLAGS=`sdl2-config --cflags`
+				SDL_LIBS=`sdl2-config --libs`
+			else
+				continue
+			fi
+		else
+			continue
+		fi
+	fi
+
+	SDL_CFLAGS="`echo $SDL_CFLAGS $SDLTTF_CFLAGS | tr -d '\r'`"
+	SDL_LIBS="`echo $SDL_LIBS $SDLTTF_LIBS | tr -d '\r'`"
+	AC_SUBST(SDL_CFLAGS)
+	AC_SUBST(SDL_LIBS)
+
+	PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
+	if test "$have_fc" = "yes" ; then
+		FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+		FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+		AC_SUBST(FONTCONFIG_CFLAGS)
+		AC_SUBST(FONTCONFIG_LIBS)
+	fi
+
+	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
+	MAKE_DIRS="tool/registobmp ${MAKE_DIRS}"
+	tools_result="$tools_result $tool"
 	;;
 *)
 	echo "${tool} is unknown tool."

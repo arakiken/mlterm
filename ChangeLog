@@ -1,3 +1,11 @@
+2014-03-11  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c, mlimgloader/gdiplus.cpp, mlimgloader/none.c, ml_vt100_parser.c:
+	  ReGIS (partially) is supported by using registobmp.
+
+	* tool/registobmp/*, configure.in:
+	  registobmp is added.
+
 2014-03-09  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: x_color_cache and x_color_manager are reloaded

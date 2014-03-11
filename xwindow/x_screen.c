@@ -1283,7 +1283,17 @@ set_wall_picture(
 		 * (see x_display_set_cmap() called from fb/x_imagelib.c.)
 		 */
 		x_color_cache_unload( screen->color_man->color_cache) ;
+
 		x_color_manager_reload( screen->color_man) ;
+		x_window_set_fg_color( &screen->window ,
+			x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
+		x_xic_fg_color_changed( &screen->window) ;
+		/* XXX should change scrollbar fg color */
+
+		x_window_set_bg_color( &screen->window ,
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+		x_xic_bg_color_changed( &screen->window) ;
+		/* XXX should change scrollbar bg color */
 	}
 #endif
 

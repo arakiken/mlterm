@@ -4,7 +4,7 @@
 
 #include <sys/stat.h>	/* fstat */
 #include <kiklib/kik_util.h>	/* K_MIN */
-
+#include <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 
 #ifdef  BUILTIN_IMAGELIB
 
@@ -28,6 +28,10 @@
 #endif	/* SIXEL_1BPP */
 
 #define  PIXEL_SIZE  sizeof(pixel_t)
+
+#ifndef  LIBEXECDIR
+#define  LIBEXECDIR  "/usr/local/libexec"
+#endif
 
 
 /* --- static variables --- */
@@ -785,6 +789,31 @@ end:
 	return  pixels ;
 }
 
+static int
+convert_regis_to_bmp(
+	char *  new_path ,
+	const char *  path
+	)
+{
+	size_t  len ;
+	char *  cmd ;
+
+	len = strlen(path) ;
+
+	if( ( cmd = alloca( sizeof(LIBEXECDIR) + 20 + len * 2)))
+	{
+		strcpy( new_path + len - 3 , "bmp") ;
+		sprintf( cmd , LIBEXECDIR "/mlterm/registobmp %s %s" ,
+			path , new_path) ;
+		if( system( cmd) != -1)
+		{
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
 
 #ifndef  SIXEL_1BPP
 #ifdef  GDK_PIXBUF_VERSION
@@ -958,6 +987,17 @@ gdk_pixbuf_new_from(
 		}
 		else
 		{
+			if( strstr( path , ".rgs"))
+			{
+				char *  new_path ;
+
+				new_path = kik_str_alloca_dup( path) ;
+				if( convert_regis_to_bmp( new_path , path))
+				{
+					path = new_path ;
+				}
+			}
+
 			pixbuf = gdk_pixbuf_new_from_file( path , NULL) ;
 		}
 

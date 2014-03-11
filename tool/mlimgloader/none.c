@@ -63,6 +63,17 @@ main(
 		return  -1 ;
 	}
 
+	if( strstr( argv[4] , ".rgs"))
+	{
+		char *  new_path ;
+
+		new_path = kik_str_alloca_dup( argv[4]) ;
+		if( convert_regis_to_bmp( new_path , argv[4]))
+		{
+			argv[4] = new_path ;
+		}
+	}
+
 	if( ! ( cardinal = (u_char*)create_cardinals_from_sixel( argv[4])))
 	{
 	#if  defined(__CYGWIN__) || defined(__MSYS__)

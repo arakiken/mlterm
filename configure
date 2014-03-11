@@ -822,6 +822,14 @@ m17nlib
 UIM_LIBS
 UIM_CFLAGS
 DND_CFLAGS
+FONTCONFIG_LIBS
+FONTCONFIG_CFLAGS
+SDL_LIBS
+SDL_CFLAGS
+sdl2_config
+sdl_config
+SDLTTF_LIBS
+SDLTTF_CFLAGS
 MLIMGLOADER_LIB
 PERL
 XLFDSEL_OBJ
@@ -1043,6 +1051,10 @@ CAIRO_CFLAGS
 CAIRO_LIBS
 VTE_CFLAGS
 VTE_LIBS
+SDLTTF_CFLAGS
+SDLTTF_LIBS
+FONTCONFIG_CFLAGS
+FONTCONFIG_LIBS
 UIM_CFLAGS
 UIM_LIBS
 IBUS_CFLAGS
@@ -1757,6 +1769,13 @@ Some influential environment variables:
   CAIRO_LIBS  linker flags for CAIRO, overriding pkg-config
   VTE_CFLAGS  C compiler flags for VTE, overriding pkg-config
   VTE_LIBS    linker flags for VTE, overriding pkg-config
+  SDLTTF_CFLAGS
+              C compiler flags for SDLTTF, overriding pkg-config
+  SDLTTF_LIBS linker flags for SDLTTF, overriding pkg-config
+  FONTCONFIG_CFLAGS
+              C compiler flags for FONTCONFIG, overriding pkg-config
+  FONTCONFIG_LIBS
+              linker flags for FONTCONFIG, overriding pkg-config
   UIM_CFLAGS  C compiler flags for UIM, overriding pkg-config
   UIM_LIBS    linker flags for UIM, overriding pkg-config
   IBUS_CFLAGS C compiler flags for IBUS, overriding pkg-config
@@ -4606,7 +4625,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4609 "configure"' > conftest.$ac_ext
+  echo '#line 4628 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7175,11 +7194,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7178: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7197: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7182: \$? = $ac_status" >&5
+   echo "$as_me:7201: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7465,11 +7484,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7468: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7487: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7472: \$? = $ac_status" >&5
+   echo "$as_me:7491: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7569,11 +7588,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7572: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7591: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7576: \$? = $ac_status" >&5
+   echo "$as_me:7595: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9594,7 +9613,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9597 "configure"
+#line 9616 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9694,7 +9713,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9697 "configure"
+#line 9716 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12035,11 +12054,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12038: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12057: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12042: \$? = $ac_status" >&5
+   echo "$as_me:12061: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12139,11 +12158,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12142: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12161: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12146: \$? = $ac_status" >&5
+   echo "$as_me:12165: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13722,11 +13741,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13725: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13744: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13729: \$? = $ac_status" >&5
+   echo "$as_me:13748: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13826,11 +13845,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13829: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13848: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13833: \$? = $ac_status" >&5
+   echo "$as_me:13852: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15987,11 +16006,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15990: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16009: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15994: \$? = $ac_status" >&5
+   echo "$as_me:16013: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16277,11 +16296,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16280: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16299: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16284: \$? = $ac_status" >&5
+   echo "$as_me:16303: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16381,11 +16400,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16384: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16403: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16388: \$? = $ac_status" >&5
+   echo "$as_me:16407: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -21513,7 +21532,7 @@ fi
 	fi
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader"
+tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp"
 
 # Check whether --with-tools was given.
 if test "${with_tools+set}" = set; then :
@@ -21687,6 +21706,318 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		MLIMGLOADER_LIB=none
 	fi
 
+	;;
+registobmp)
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDLTTF" >&5
+$as_echo_n "checking for SDLTTF... " >&6; }
+
+if test -n "$SDLTTF_CFLAGS"; then
+    pkg_cv_SDLTTF_CFLAGS="$SDLTTF_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"SDL_ttf\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "SDL_ttf") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDLTTF_CFLAGS=`$PKG_CONFIG --cflags "SDL_ttf" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$SDLTTF_LIBS"; then
+    pkg_cv_SDLTTF_LIBS="$SDLTTF_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"SDL_ttf\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "SDL_ttf") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDLTTF_LIBS=`$PKG_CONFIG --libs "SDL_ttf" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SDLTTF_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "SDL_ttf" 2>&1`
+        else
+	        SDLTTF_PKG_ERRORS=`$PKG_CONFIG --print-errors "SDL_ttf" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SDLTTF_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_sdlttf=no
+elif test $pkg_failed = untried; then
+	have_sdlttf=no
+else
+	SDLTTF_CFLAGS=$pkg_cv_SDLTTF_CFLAGS
+	SDLTTF_LIBS=$pkg_cv_SDLTTF_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_sdlttf=yes
+fi
+	if test "$have_sdlttf" = "yes" ; then
+		# Extract the first word of "sdl-config", so it can be a program name with args.
+set dummy sdl-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_sdl_config+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$sdl_config"; then
+  ac_cv_prog_sdl_config="$sdl_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_sdl_config="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+sdl_config=$ac_cv_prog_sdl_config
+if test -n "$sdl_config"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $sdl_config" >&5
+$as_echo "$sdl_config" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+		if test "$sdl_config" = "yes" ; then
+			SDL_CFLAGS=`sdl-config --cflags`
+			SDL_LIBS=`sdl-config --libs`
+		else
+			continue
+		fi
+	else
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDLTTF" >&5
+$as_echo_n "checking for SDLTTF... " >&6; }
+
+if test -n "$SDLTTF_CFLAGS"; then
+    pkg_cv_SDLTTF_CFLAGS="$SDLTTF_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"SDL2_ttf\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "SDL2_ttf") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDLTTF_CFLAGS=`$PKG_CONFIG --cflags "SDL2_ttf" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$SDLTTF_LIBS"; then
+    pkg_cv_SDLTTF_LIBS="$SDLTTF_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"SDL2_ttf\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "SDL2_ttf") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDLTTF_LIBS=`$PKG_CONFIG --libs "SDL2_ttf" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SDLTTF_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "SDL2_ttf" 2>&1`
+        else
+	        SDLTTF_PKG_ERRORS=`$PKG_CONFIG --print-errors "SDL2_ttf" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SDLTTF_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_sdlttf=no
+elif test $pkg_failed = untried; then
+	have_sdlttf=no
+else
+	SDLTTF_CFLAGS=$pkg_cv_SDLTTF_CFLAGS
+	SDLTTF_LIBS=$pkg_cv_SDLTTF_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_sdlttf=yes
+fi
+		if test "$have_sdlttf" = "yes" ; then
+			# Extract the first word of "sdl2-config", so it can be a program name with args.
+set dummy sdl2-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_sdl2_config+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$sdl2_config"; then
+  ac_cv_prog_sdl2_config="$sdl2_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_sdl2_config="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+sdl2_config=$ac_cv_prog_sdl2_config
+if test -n "$sdl2_config"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $sdl2_config" >&5
+$as_echo "$sdl2_config" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+			if test "$sdl2_config" = "yes" ; then
+				SDL_CFLAGS=`sdl2-config --cflags`
+				SDL_LIBS=`sdl2-config --libs`
+			else
+				continue
+			fi
+		else
+			continue
+		fi
+	fi
+
+	SDL_CFLAGS="`echo $SDL_CFLAGS $SDLTTF_CFLAGS | tr -d '\r'`"
+	SDL_LIBS="`echo $SDL_LIBS $SDLTTF_LIBS | tr -d '\r'`"
+
+
+
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
+$as_echo_n "checking for FONTCONFIG... " >&6; }
+
+if test -n "$FONTCONFIG_CFLAGS"; then
+    pkg_cv_FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FONTCONFIG_LIBS"; then
+    pkg_cv_FONTCONFIG_LIBS="$FONTCONFIG_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "fontconfig" 2>&1`
+        else
+	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --print-errors "fontconfig" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FONTCONFIG_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_fc=no
+elif test $pkg_failed = untried; then
+	have_fc=no
+else
+	FONTCONFIG_CFLAGS=$pkg_cv_FONTCONFIG_CFLAGS
+	FONTCONFIG_LIBS=$pkg_cv_FONTCONFIG_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_fc=yes
+fi
+	if test "$have_fc" = "yes" ; then
+		FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+		FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+
+
+	fi
+
+	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
+	MAKE_DIRS="tool/registobmp ${MAKE_DIRS}"
+	tools_result="$tools_result $tool"
 	;;
 *)
 	echo "${tool} is unknown tool."

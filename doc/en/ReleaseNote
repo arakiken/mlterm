@@ -1,5 +1,6 @@
 ver 3.3.4
 * Support not only sixel graphics but also other major image formats on Android.
+* Support ReGIS partially. (depends on SDL(SDL2), SDL_ttf(SDL2_ttf) and fontconfig)
 * Output strerror(errno) on error.
 * Merge patches:
   https://gist.github.com/tsutsui/9285759. (Thanks to @tsutsuii)

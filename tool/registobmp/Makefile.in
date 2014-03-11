@@ -1,0 +1,53 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+LIBEXECDIR = $(DESTDIR)$(libexecdir)
+
+VPATH = $(top_srcdir)/tool/registobmp
+
+OBJ = main.o
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @SDL_CFLAGS@ \
+	@FONTCONFIG_CFLAGS@ -I/usr/local/include
+
+LIBS = $(LIBS_LOCAL) @SDL_LIBS@ @FONTCONFIG_LIBS@ -L/usr/local/lib -R/usr/local/lib
+
+PROG = registobmp
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(PROG)
+
+$(PROG): $(OBJ)
+	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ:.o=.lo) $(LIBS)
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+$(LIBEXECDIR)/mlterm:
+	mkdir -p $(LIBEXECDIR)/mlterm
+
+install: $(LIBEXECDIR)/mlterm
+	$(LIBTOOL_INSTALL) $(PROG) $(LIBEXECDIR)/mlterm
+
+uninstall:
+	rm -f $(LIBEXECDIR)/mlterm/$(PROG)
+
+wc:
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+clean:
+	rm -rf $(PROG) $(PROG).exe *core $(OBJ) $(OBJ:.o=.lo) .libs
+
+distclean: clean
+	rm -f Makefile

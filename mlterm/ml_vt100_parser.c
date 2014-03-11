@@ -4523,8 +4523,27 @@ parse_vt100_escape_sequence(
 				}
 				else
 				{
+					u_int8_t  red ;
+					u_int8_t  green ;
+					u_int8_t  blue ;
+
 					fp = fopen( path , "w") ;
 					is_end = 0 ;
+
+					if( strcmp( path + strlen(path) - 4 , ".rgs") == 0 &&
+					    HAS_XTERM_LISTENER(vt100_parser,get_rgb) &&
+					    (*vt100_parser->xterm_listener->get_rgb)(
+						vt100_parser->xterm_listener->self ,
+						&red , &green , &blue , ML_BG_COLOR))
+					{
+						char  clear_bg[23] ;	/* 13 + 3*3 + 1 */
+
+						fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
+						sprintf( clear_bg , "S(I(R%dG%dB%d))S(E)" ,
+							red , green , blue) ;
+						fwrite( clear_bg , 1 , strlen(clear_bg) , fp) ;
+						dcs_beg = str_p + 1 ;
+					}
 				}
 
 				while( 1)
@@ -4606,7 +4625,24 @@ parse_vt100_escape_sequence(
 
 				fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 				fclose( fp) ;
-				show_picture( vt100_parser , path , 0 , 0 , 0 , 0 , 0 , 0 , 1) ;
+
+				if( strcmp( path + strlen(path) - 4 , ".six") == 0)
+				{
+					show_picture( vt100_parser , path ,
+						0 , 0 , 0 , 0 , 0 , 0 , 1) ;
+				}
+				else
+				{
+					/* ReGIS */
+					int  orig_flag ;
+
+					orig_flag = vt100_parser->sixel_scrolling ;
+					vt100_parser->sixel_scrolling = 0 ;
+					show_picture( vt100_parser , path ,
+						0 , 0 , 0 , 0 , 0 , 0 , 1) ;
+					vt100_parser->sixel_scrolling = orig_flag ;
+				}
+
 				free( path) ;
 			}
 			else
