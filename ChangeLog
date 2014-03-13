@@ -1,7 +1,25 @@
+2014-03-12  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c: convert_regis_to_bmp() works on USE_WIN32API and __CYGWIN__.
+
+	* x_display_x68kgrf.c: kik_priv_{restore|change}_e{u|g}id() are called
+	  before and after open("/dev/grf0"). (Thanks to @tsutsuii san)
+
+	* registobmp/main.c:
+	  - Substitute strsep is added.
+	  - The default font is changed from "arial.ttf" to
+	    "c:\\Windows\\Fonts\\arial.ttf" on win32.
+	  - The implementation of strsep() is added in case it doesn't exist.
+
+	* registobmp/Makefile.in: @KIK_CFLAGS@ is added.
+
+	* ml_screen.c: BCE fg/bg color is reset in switching to the alternate
+	  screen buffer.
+
 2014-03-11  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c, mlimgloader/gdiplus.cpp, mlimgloader/none.c, ml_vt100_parser.c:
-	  ReGIS (partially) is supported by using registobmp.
+	  ReGIS is partially supported by using registobmp.
 
 	* tool/registobmp/*, configure.in:
 	  registobmp is added.

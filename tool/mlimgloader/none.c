@@ -68,7 +68,7 @@ main(
 		char *  new_path ;
 
 		new_path = kik_str_alloca_dup( argv[4]) ;
-		if( convert_regis_to_bmp( new_path , argv[4]))
+		if( convert_regis_to_bmp( new_path))
 		{
 			argv[4] = new_path ;
 		}

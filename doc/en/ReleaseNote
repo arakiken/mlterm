@@ -12,6 +12,7 @@ ver 3.3.4
   Fix the bug which caused segfault if x11 forwarding failed.
   Fix the bug which caused segfault in resuming on Android.
   Show candidate strings of uim-mozc correctly.
+  Fix the bug which disabled normal users from opening screen on NetBSD/x68k framebuffer.
 
 ver 3.3.3
 * Double-clicking a picture sets it to the clipboard.

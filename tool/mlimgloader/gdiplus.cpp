@@ -243,12 +243,13 @@ main(
 		return  -1 ;
 	}
 
+	/* kik_str_alloca_dup() fails by illegal cast from void* to char*. */
+	char  new_path[strlen(argv[4])] ;
+
 	if( strstr( argv[4] , ".rgs"))
 	{
-		char *  new_path ;
-
-		new_path = kik_str_alloca_dup( argv[4]) ;
-		if( convert_regis_to_bmp( new_path , argv[4]))
+		strcpy( new_path , argv[4]) ;
+		if( convert_regis_to_bmp( new_path))
 		{
 			argv[4] = new_path ;
 		}

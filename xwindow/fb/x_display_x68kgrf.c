@@ -670,7 +670,15 @@ x68k_tvram_set_wall_picture(
 	{
 		struct grfinfo  vinfo ;
 
-		if( image && ( grf0_fd = open( "/dev/grf0" , O_RDWR)) >= 0)
+		kik_priv_restore_euid() ;
+		kik_priv_restore_egid() ;
+
+		grf0_fd = open( "/dev/grf0" , O_RDWR) ;
+
+		kik_priv_change_euid( kik_getuid()) ;
+		kik_priv_change_egid( kik_getgid()) ;
+
+		if( grf0_fd >= 0)
 		{
 			kik_file_set_cloexec( grf0_fd) ;
 

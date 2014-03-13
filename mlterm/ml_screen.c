@@ -2163,6 +2163,13 @@ ml_screen_use_alternative_edit(
 {
 	screen->edit = &screen->alt_edit ;
 
+	/*
+	 * Reset bce fg/bg color in case the console application which
+	 * previously used the alternative buffer didn't reset it.
+	 */
+	ml_screen_set_bce_fg_color( screen , ML_FG_COLOR) ;
+	ml_screen_set_bce_bg_color( screen , ML_BG_COLOR) ;
+
 	ml_screen_goto_home( screen) ;
 	ml_screen_clear_below( screen) ;
 

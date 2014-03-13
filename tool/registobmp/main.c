@@ -5,11 +5,13 @@
 #define _BSD_SOURCE	/* for strsep */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>	/* atoi */
 #include <SDL.h>
 #include <SDL_ttf.h>
 #ifdef  USE_FONTCONFIG
 #include <fontconfig/fontconfig.h>
 #endif
+#include <kiklib/kik_config.h>
 
 
 #define  REGIS_RGB(r,g,b) \
@@ -48,6 +50,54 @@ static uint32_t  color_tbl[] =
 
 
 /* --- static functions --- */
+
+#ifndef  HAVE_STRSEP
+
+char *
+strsep(
+	char **  strp ,
+	const char *  delim
+	)
+{
+
+        char *  s ;
+        const char *  spanp ;
+        int  c ;
+	int  sc ;
+        char *  tok ;
+
+	if( ( s = *strp) == NULL)
+	{
+		return	NULL ;
+	}
+
+	for( tok = s ; ; )
+	{
+		c = *s++ ;
+		spanp = delim ;
+		do
+		{
+			if( ( sc = *spanp++) == c)
+			{
+				if( c == 0)
+				{
+					s = NULL ;
+				}
+				else
+				{
+					s[-1] = 0 ;
+				}
+
+				*strp = s ;
+
+				return  tok ;
+			}
+		}
+		while( sc != 0) ;
+	}
+}
+
+#endif
 
 static void
 help(void)
@@ -267,7 +317,7 @@ command_text(
 
 			if( ! ( file = getenv( "REGIS_FONT")))
 			{
-			#ifdef  USE_FONTCONFIG
+			#if  defined(USE_FONTCONFIG)
 				FcPattern *  pat ;
 				FcResult result ;
 
@@ -285,6 +335,8 @@ command_text(
 					FcPatternDestroy( mat) ;
 					file = "arial.ttf" ;
 				}
+			#elif  defined(USE_WIN32API)
+				file = "c:\\Windows\\Fonts\\arial.ttf" ;
 			#else
 				file = "arial.ttf" ;
 			#endif

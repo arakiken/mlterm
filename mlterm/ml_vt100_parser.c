@@ -983,7 +983,9 @@ restore_cursor(
 	if( src->is_saved)
 	{
 		vt100_parser->fg_color = src->fg_color ;
+		ml_screen_set_bce_fg_color( vt100_parser->screen , src->fg_color) ;
 		vt100_parser->bg_color = src->bg_color ;
+		ml_screen_set_bce_bg_color( vt100_parser->screen , src->bg_color) ;
 		vt100_parser->is_bold = src->is_bold ;
 		vt100_parser->is_italic = src->is_italic ;
 		vt100_parser->is_underlined = src->is_underlined ;
