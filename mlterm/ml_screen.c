@@ -2143,16 +2143,20 @@ ml_screen_use_normal_edit(
 	ml_screen_t *  screen
 	)
 {
-	screen->edit = &screen->normal_edit ;
-
-	if( screen->logvis)
+	if( screen->edit != &screen->normal_edit)
 	{
-		(*screen->logvis->init)( screen->logvis ,
-			&screen->edit->model , &screen->edit->cursor) ;
+		screen->normal_edit.bce_ch = screen->alt_edit.bce_ch ;
+		screen->edit = &screen->normal_edit ;
+
+		if( screen->logvis)
+		{
+			(*screen->logvis->init)( screen->logvis ,
+				&screen->edit->model , &screen->edit->cursor) ;
+		}
+
+		ml_edit_set_modified_all( screen->edit) ;
 	}
 
-	ml_edit_set_modified_all( screen->edit) ;
-	
 	return  1 ;
 }
 
@@ -2161,26 +2165,23 @@ ml_screen_use_alternative_edit(
 	ml_screen_t *  screen
 	)
 {
-	screen->edit = &screen->alt_edit ;
-
-	/*
-	 * Reset bce fg/bg color in case the console application which
-	 * previously used the alternative buffer didn't reset it.
-	 */
-	ml_screen_set_bce_fg_color( screen , ML_FG_COLOR) ;
-	ml_screen_set_bce_bg_color( screen , ML_BG_COLOR) ;
-
-	ml_screen_goto_home( screen) ;
-	ml_screen_clear_below( screen) ;
-
-	if( screen->logvis)
+	if( screen->edit != &screen->alt_edit)
 	{
-		(*screen->logvis->init)( screen->logvis ,
-			&screen->edit->model , &screen->edit->cursor) ;
+		screen->alt_edit.bce_ch = screen->normal_edit.bce_ch ;
+		screen->edit = &screen->alt_edit ;
+
+		ml_screen_goto_home( screen) ;
+		ml_screen_clear_below( screen) ;
+
+		if( screen->logvis)
+		{
+			(*screen->logvis->init)( screen->logvis ,
+				&screen->edit->model , &screen->edit->cursor) ;
+		}
+
+		ml_edit_set_modified_all( screen->edit) ;
 	}
 
-	ml_edit_set_modified_all( screen->edit) ;
-	
 	return  1 ;
 }
 

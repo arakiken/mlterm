@@ -813,6 +813,7 @@ convert_regis_to_bmp(
 
 	ZeroMemory(&si,sizeof(STARTUPINFO)) ;
 	si.cb = sizeof(STARTUPINFO) ;
+	si.dwFlags = STARTF_FORCEOFFFEEDBACK ;
 
 	if( CreateProcess( NULL , cmd , NULL , NULL , FALSE , CREATE_NO_WINDOW ,
 			NULL , NULL , &si , &pi))

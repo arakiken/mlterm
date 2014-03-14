@@ -1,3 +1,10 @@
+2014-03-15  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.c: normal_edit::bce_ch and alt_edit::bce_ch are synchronized
+	  when changing from normal buffer to alt buffer and vice versa.
+
+	* c_imagelib.c: STARTF_FORCEOFFFEEDBACK is set in executing registobmp.
+
 2014-03-12  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: convert_regis_to_bmp() works on USE_WIN32API and __CYGWIN__.

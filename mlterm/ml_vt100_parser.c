@@ -3153,7 +3153,9 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1049 h" */
 
-							if( use_alt_buffer)
+							if( use_alt_buffer &&
+							    ! ml_screen_is_alternative_edit(
+								vt100_parser->screen))
 							{
 								save_cursor( vt100_parser) ;
 								ml_screen_use_alternative_edit(
@@ -3389,7 +3391,9 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1047 l" */
 
-							if( use_alt_buffer)
+							if( use_alt_buffer &&
+							    ml_screen_is_alternative_edit(
+								vt100_parser->screen))
 							{
 								clear_display_all( vt100_parser) ;
 								ml_screen_use_normal_edit(
@@ -3409,7 +3413,9 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1049 l" */
 
-							if( use_alt_buffer)
+							if( use_alt_buffer &&
+							    ml_screen_is_alternative_edit(
+								vt100_parser->screen))
 							{
 								ml_screen_use_normal_edit(
 									vt100_parser->screen) ;

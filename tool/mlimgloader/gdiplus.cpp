@@ -244,7 +244,7 @@ main(
 	}
 
 	/* kik_str_alloca_dup() fails by illegal cast from void* to char*. */
-	char  new_path[strlen(argv[4])] ;
+	char  new_path[strlen(argv[4]) + 1] ;
 
 	if( strstr( argv[4] , ".rgs"))
 	{
