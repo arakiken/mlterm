@@ -1,5 +1,7 @@
 2014-03-15  Araki Ken  <arakiken@users.sf.net>
 
+	* registobmp/main.c: "F" and "C" commands are implemented.
+
 	* ml_screen.c: normal_edit::bce_ch and alt_edit::bce_ch are synchronized
 	  when changing from normal buffer to alt buffer and vice versa.
 

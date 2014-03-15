@@ -16,7 +16,7 @@ OBJ = main.o
 CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @SDL_CFLAGS@ \
 	@FONTCONFIG_CFLAGS@ -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @SDL_LIBS@ @FONTCONFIG_LIBS@ -L/usr/local/lib -R/usr/local/lib
+LIBS = $(LIBS_LOCAL) @SDL_LIBS@ @FONTCONFIG_LIBS@ -L/usr/local/lib -R/usr/local/lib -lm
 
 PROG = registobmp
 

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>	/* atoi */
+#include <math.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
 #ifdef  USE_FONTCONFIG
@@ -16,14 +17,20 @@
 
 #define  REGIS_RGB(r,g,b) \
 	(0xff000000 | (((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
+#define  MAGIC_COLOR  0x0
+
+#if  0
+#define  __TEST
+#endif
 
 
 /* --- static variables --- */
 
-static int pen_x ;
-static int pen_y ;
-static int max_x ;
-static int max_y ;
+static int  pen_x ;
+static int  pen_y ;
+static int  pen_x_stack[10] ;
+static int  pen_y_stack[10] ;
+static int  pen_stack_count ;
 static SDL_Surface *  regis ;
 
 static uint32_t  fg_color = 0xff000000 ;
@@ -108,35 +115,6 @@ help(void)
 }
 
 static void
-set_pixel(
-	int  x ,
-	int  y ,
-	uint32_t  value
-	)
-{
-	if( x < 0 || y < 0 || x >= regis->w || y >= regis->h)
-	{
-		return ;
-	}
-
-	((uint32_t*)regis->pixels)[y * regis->pitch / 4 + x] = value ;
-}
-
-static uint32_t
-get_pixel(
-	int  x ,
-	int  y
-	)
-{
-	if( x < 0 || y < 0 || x >= regis->w || y >= regis->h)
-	{
-		return  0 ;
-	}
-
-	return  ((uint32_t*)regis->pixels)[y * regis->pitch / 4 + x] ;
-}
-
-static void
 resize(
 	int  width ,
 	int  height
@@ -161,6 +139,35 @@ resize(
 	}
 
 	regis = new_regis ;
+}
+
+inline static void
+set_pixel(
+	int  x ,
+	int  y ,
+	uint32_t  value
+	)
+{
+	if( x < 0 || y < 0 || x >= regis->w || y >= regis->h)
+	{
+		return ;
+	}
+
+	((uint32_t*)regis->pixels)[y * regis->pitch / 4 + x] = value ;
+}
+
+inline static uint32_t
+get_pixel(
+	int  x ,
+	int  y
+	)
+{
+	if( x < 0 || y < 0 || x >= regis->w || y >= regis->h)
+	{
+		return  0 ;
+	}
+
+	return  ((uint32_t*)regis->pixels)[y * regis->pitch / 4 + x] ;
 }
 
 static void
@@ -217,59 +224,240 @@ draw_line(
 	}
 }
 
+static void
+draw_circle(
+	int  x ,
+	int  y ,
+	int  r ,
+	int  color
+	)
+{
+	int  d ;
+	int  dh ;
+	int  dd ;
+	int  cx ;
+	int  cy ;
+
+	d = 1 - r ;
+	dh = 3 ;
+	dd = 5 - 2 * r ;
+	cy = r ;
+
+	for( cx = 0 ; cx <= cy ; cx++)
+	{
+		if( d < 0)
+		{
+			d += dh ;
+			dh += 2 ;
+			dd += 2 ;
+		}
+		else
+		{
+			d += dd ;
+			dh += 2 ;
+			dd += 4 ;
+			cy -- ;
+		}
+
+		set_pixel( cy + x , cx + y , color) ;
+		set_pixel( cx + x , cy + y , color) ;
+		set_pixel( -cx + x , cy + y , color) ;
+		set_pixel( -cy + x , cx + y , color) ;
+		set_pixel( -cy + x , -cx + y , color) ;
+		set_pixel( -cx + x , -cy + y , color) ;
+		set_pixel( cx + x , -cy + y , color) ;
+		set_pixel( cy + x , -cx + y , color) ;
+	}
+}
+
+static int
+parse_options(
+	char **  options ,	/* 10 elements */
+	char **  cmd
+	)
+{
+	if( **cmd == '(')
+	{
+		u_int  num_of_options ;
+		int  skip_count ;
+		int  inside_bracket ;
+		char *  end ;
+
+		num_of_options = 0 ;
+		inside_bracket = skip_count = 0 ;
+		end = ++ (*cmd) ;
+
+		while( 1)
+		{
+			if( *end == '(')
+			{
+				skip_count ++ ;
+			}
+			else if( *end == ')')
+			{
+				if( skip_count == 0)
+				{
+					*end = '\0' ;
+					if( options)
+					{
+						options[num_of_options ++] = *cmd ;
+						options[num_of_options] = NULL ;
+					}
+					*cmd = end + 1 ;
+
+					return  1 ;
+				}
+				else
+				{
+					skip_count -- ;
+				}
+			}
+			else if( *end == '[')
+			{
+				inside_bracket = 1 ;
+			}
+			else if( *end == ']')
+			{
+				inside_bracket = 0 ;
+			}
+			else if( *end == ',')
+			{
+				if( skip_count == 0 && ! inside_bracket)
+				{
+					*end = '\0' ;
+					if( num_of_options < 8 && options)
+					{
+						options[num_of_options ++] = *cmd ;
+					}
+					*cmd = end + 1 ;
+				}
+			}
+			else if( *end == '\0')
+			{
+				if( options)
+				{
+					options[num_of_options ++] = *cmd ;
+					options[num_of_options] = NULL ;
+				}
+				*cmd = NULL ;
+
+				return  1 ;
+			}
+
+			end ++ ;
+		}
+	}
+
+	return  0 ;
+}
+
+static int
+parse_coordinate(
+	int *  x ,
+	int *  y ,
+	char **  cmd
+	)
+{
+	char *  xstr ;
+	char *  ystr ;
+
+	ystr = strsep( cmd , "]") ;
+	if( ! *cmd)
+	{
+		*cmd = ystr ;
+
+		return  0 ;
+	}
+
+	xstr = strsep( &ystr , ",") ;
+	if( *xstr == '\0')
+	{
+		xstr = "+0" ;
+	}
+
+	if( ystr == NULL)
+	{
+		ystr = "+0" ;
+	}
+
+	if( *xstr == '+' || *xstr == '-')
+	{
+		if( ( *x = atoi( xstr) + pen_x) < 0)
+		{
+			*x = 0 ;
+		}
+	}
+	else
+	{
+		*x = atoi( xstr) ;
+	}
+
+	if( *ystr == '+' || *ystr == '-')
+	{
+		if( ( *y = atoi( ystr) + pen_y) < 0)
+		{
+			*y = 0 ;
+		}
+	}
+	else
+	{
+		*y = atoi( ystr) ;
+	}
+
+	return  1 ;
+}
+
 static char *
 command_screen(
 	char *  cmd
 	)
 {
-	char *  code ;
+	char *  options[10] ;
 
-	code = strsep( &cmd , ")") + 1 ;
-	if( ! cmd)
+	if( parse_options( options , &cmd))
 	{
-		return  code ;
-	}
-	code ++ ;
+		int  count ;
 
-	if( *code == 'I')
-	{
-		int  idx ;
-
-		if( code[1] == '(')
+		for( count = 0 ; options[count] ; count++)
 		{
-			/* XXX Not standard command. */
+			char *  option ;
 
-			int  red ;
-			int  green ;
-			int  blue ;
+			option = options[count] ;
 
-			if( sscanf( code + 2 , "R%dG%dB%d" , &red , &green , &blue) == 3)
+			if( *option == 'I')
 			{
-				bg_color = 0xff000000 | (red << 16) | (green << 8) | blue ;
+				if( *(++option) == '(')
+				{
+					/* XXX Not standard command. */
+
+					int  red ;
+					int  green ;
+					int  blue ;
+
+					if( sscanf( option + 1 , "R%dG%dB%d" ,
+						&red , &green , &blue) == 3)
+					{
+						bg_color = 0xff000000 | (red << 16) |
+								(green << 8) | blue ;
+					}
+				}
+				else
+				{
+					bg_color = color_tbl[ atoi( option + 1)] ;
+				}
 			}
-
-			if( *cmd == ')')
+			else if( *option == 'E')
 			{
-				/* skip ')' */
-				cmd ++ ;
+				SDL_FillRect( regis , NULL , bg_color) ;
+			}
+			else if( *option == 'C')
+			{
+				/*
+				 * C0: turns the output cursor off.
+				 * C1: turns the output cursor on.
+				 */
 			}
 		}
-		else
-		{
-			idx = atoi( code + 1) ;
-			bg_color = color_tbl[idx] ;
-		}
-	}
-	else if( *code == 'E')
-	{
-		SDL_FillRect( regis , NULL , bg_color) ;
-	}
-	else if( *code == 'C')
-	{
-		/*
-		 * C0: turns the output cursor off.
-		 * C1: turns the output cursor on.
-		 */
 	}
 
 	return  cmd ;
@@ -280,23 +468,21 @@ command_text(
 	char *  cmd
 	)
 {
-	char *  text ;
-
-	text = cmd + 2 ;
-
-	if( cmd[1] == '\'')
+	if( *cmd == '\'')
 	{
 		static int  init_font ;
 		static TTF_Font *  font ;
+		char *  text ;
 		SDL_Surface *  image ;
 		SDL_Color color ;
 		SDL_Rect  image_rect ;
 		SDL_Rect  rect ;
 
-		strsep( &text , "\'") ;
-		if( ! text)
+		cmd ++ ;
+		text = strsep( &cmd , "\'") ;
+		if( ! cmd)
 		{
-			return  cmd + 1 ;
+			return  text - 1 ;
 		}
 
 		if( ! font)
@@ -310,7 +496,7 @@ command_text(
 
 			if( init_font)
 			{
-				return  cmd + 1 ;
+				return  cmd ;
 			}
 
 			init_font = 1 ;
@@ -365,7 +551,7 @@ command_text(
 			{
 				TTF_Quit() ;
 
-				return  cmd + 1 ;
+				return  cmd ;
 			}
 		}
 
@@ -375,7 +561,7 @@ command_text(
 	#if  SDL_MAJOR_VERSION > 1
 		color.a = (fg_color >> 24) & 0xff ;
 	#endif
-		image = TTF_RenderUTF8_Blended( font , cmd + 2 , color) ;
+		image = TTF_RenderUTF8_Blended( font , text , color) ;
 		image_rect.x = 0 ;
 		image_rect.y = 0 ;
 		image_rect.w = image->w ;
@@ -387,20 +573,12 @@ command_text(
 
 		SDL_BlitSurface( image , &image_rect , regis , &rect) ;
 	}
-	else if( cmd[1] == '(')
+	else if( *cmd == '(')
 	{
-		strsep( &text ,")") ;
-		if( ! text)
-		{
-			return  cmd + 1 ;
-		}
-	}
-	else
-	{
-		return  cmd + 1 ;
+		parse_options( NULL , &cmd) ;
 	}
 
-	return  text ;
+	return  cmd ;
 }
 
 static char *
@@ -408,25 +586,26 @@ command_w(
 	char *  cmd
 	)
 {
-	char *  code ;
+	char *  options[10] ;
 
-	code = strsep( &cmd , ")") + 1 ;
-	if( ! cmd)
+	if( parse_options( options , &cmd))
 	{
-		return  code ;
+		int  count ;
+
+		for( count = 0 ; options[count] ; count++)
+		{
+			char *  option ;
+
+			option = options[count] ;
+
+			if( *option == 'I')
+			{
+				fg_color = color_tbl[ atoi( option + 1)] ;
+			}
+		}
 	}
 
-	code ++ ;
-
-	if( *code == 'I')
-	{
-		int  idx ;
-
-		idx = atoi( code + 1) ;
-		fg_color = color_tbl[idx] ;
-	}
-
-	return  code ;
+	return  cmd ;
 }
 
 static char *
@@ -434,38 +613,25 @@ command_position(
 	char *  cmd
 	)
 {
-	char *  xstr ;
-	char *  ystr ;
 	int  new_x ;
 	int  new_y ;
 
-	xstr = strsep( &cmd , ",") + 1 ;
-	if( ! cmd)
+	if( *(cmd ++) == '[')
 	{
-		return  xstr ;
-	}
-	xstr ++ ;
+		if( ! parse_coordinate( &new_x , &new_y , &cmd))
+		{
+			return  cmd - 1 ;
+		}
 
-	ystr = strsep( &cmd , "]") ;
-	if( ! cmd)
+		pen_x = new_x ;
+		pen_y = new_y ;
+
+		return  cmd ;
+	}
+	else
 	{
-		return  ystr + 1 ;
+		return  cmd - 1 ;
 	}
-
-	new_x = atoi( xstr) ;
-	new_y = atoi( ystr) ;
-
-	if( ( pen_x = new_x) > max_x)
-	{
-		max_x = pen_x ;
-	}
-
-	if( ( pen_y = new_y) > max_y)
-	{
-		max_y = pen_y ;
-	}
-
-	return  ystr ;
 }
 
 static char *
@@ -473,45 +639,179 @@ command_vector(
 	char *  cmd
 	)
 {
-	char *  xstr ;
-	char *  ystr ;
 	int  new_x ;
 	int  new_y ;
 
-	if( strncmp( cmd , "v[]" , 3) == 0)
+	if( *cmd == '[')
 	{
-		return  cmd + 3 ;
+		cmd ++ ;
+		if( ! parse_coordinate( &new_x , &new_y , &cmd))
+		{
+			return  cmd - 1 ;
+		}
+
+		draw_line( pen_x , pen_y , new_x , new_y , fg_color) ;
+
+		pen_x = new_x ;
+		pen_y = new_y ;
+	}
+	else if( *cmd == '(' && *(cmd + 2) == ')')
+	{
+		if( *(cmd + 1) == 'B')
+		{
+			if( pen_stack_count < 10)
+			{
+				pen_x_stack[pen_stack_count] = pen_x ;
+				pen_y_stack[pen_stack_count] = pen_y ;
+			}
+
+			pen_stack_count ++ ;
+		}
+		else if( *(cmd + 1) == 'S')
+		{
+			if( pen_stack_count < 10)
+			{
+				pen_x_stack[pen_stack_count] = -1 ;
+			}
+
+			pen_stack_count ++ ;
+		}
+		else if( *(cmd + 1) == 'E')
+		{
+			pen_stack_count -- ;
+
+			if( pen_stack_count < 10 && pen_x_stack[pen_stack_count] >= 0)
+			{
+				draw_line( pen_x , pen_y ,
+					pen_x_stack[pen_stack_count] ,
+					pen_y_stack[pen_stack_count] ,
+					fg_color) ;
+				pen_x = pen_x_stack[pen_stack_count] ;
+				pen_y = pen_y_stack[pen_stack_count] ;
+			}
+		}
+
+		cmd += 3 ;
 	}
 
-	xstr = strsep( &cmd , ",") + 1 ;
-	if( ! cmd)
+	return  cmd ;
+}
+
+static char *
+command_circle(
+	char *  cmd
+	)
+{
+	if( *cmd == '[')
 	{
-		return  xstr ;
-	}
-	xstr ++ ;
+		int  x ;
+		int  y ;
+		int  r ;
 
-	ystr = strsep( &cmd , "]") ;
-	if( ! cmd)
+		cmd ++ ;
+		if( ! parse_coordinate( &x , &y , &cmd))
+		{
+			return  cmd - 1 ;
+		}
+
+		if( x == pen_x)
+		{
+			r = abs( y - pen_y) ;
+		}
+		else if( y == pen_y)
+		{
+			r = abs( x - pen_x) ;
+		}
+		else
+		{
+			r = sqrt( pow( abs(x - pen_x) , 2) + pow( abs(y - pen_y) , 2)) ;
+		}
+
+		draw_circle( pen_x , pen_y , r , fg_color) ;
+	}
+
+	return  cmd ;
+}
+
+static void
+fill(
+	int  x ,
+	int  y
+	)
+{
+	if( y >= 1 && get_pixel( x , y - 1) != MAGIC_COLOR)
 	{
-		return  ystr + 1 ;
+		set_pixel( x , y - 1 , MAGIC_COLOR) ;
+		fill( x , y - 1) ;
 	}
 
-	new_x = atoi( xstr) ;
-	new_y = atoi( ystr) ;
-
-	draw_line( pen_x , pen_y , new_x , new_y , fg_color) ;
-
-	if( ( pen_x = new_x) > max_x)
+	if( y < regis->h - 1 && get_pixel( x , y + 1) != MAGIC_COLOR)
 	{
-		max_x = pen_x ;
+		set_pixel( x , y + 1 , MAGIC_COLOR) ;
+		fill( x , y + 1) ;
 	}
 
-	if( ( pen_y = new_y) > max_y)
+	if( x >= 1 && get_pixel( x - 1 , y) != MAGIC_COLOR)
 	{
-		max_y = pen_y ;
+		set_pixel( x - 1 , y , MAGIC_COLOR) ;
+		fill( x - 1 , y) ;
 	}
 
-	return  ystr ;
+	if( x < regis->w + 1 && get_pixel( x + 1 , y) != MAGIC_COLOR)
+	{
+		set_pixel( x + 1 , y , MAGIC_COLOR) ;
+		fill( x + 1 , y) ;
+	}
+}
+
+static char *  command( char *  cmd) ;
+
+static char *
+command_fill(
+	char *  cmd
+	)
+{
+	char *  options[10] ;
+
+	if( parse_options( options , &cmd))
+	{
+		int  orig_fg_color ;
+		int  x ;
+		int  y ;
+
+		orig_fg_color = fg_color ;
+		fg_color = MAGIC_COLOR ;
+		while( *(options[0] = command( options[0]))) ;
+
+		fg_color = orig_fg_color ;
+
+		for( y = 0 ; y < regis->h ; y++)
+		{
+			for( x = 0 ; x < regis->w ; x++)
+			{
+				if( get_pixel( x , y) == MAGIC_COLOR &&
+				    y < 799 && get_pixel( x , y + 1) != MAGIC_COLOR)
+				{
+					fill( x , y + 1) ;
+
+					for( ; y < regis->h ; y++)
+					{
+						for( x = 0 ; x < regis->w ; x++)
+						{
+							if( get_pixel( x , y) == MAGIC_COLOR)
+							{
+								set_pixel( x , y , fg_color) ;
+							}
+						}
+					}
+
+					break ;
+				}
+			}
+		}
+	}
+
+	return  cmd ;
 }
 
 static char *
@@ -519,27 +819,98 @@ command(
 	char *  cmd
 	)
 {
-	switch( cmd[0])
+	static char *  (*command)( char *) ;
+
+	switch( *cmd)
 	{
-	case  'S':
-		return  command_screen(cmd) ;
-
-	case  'T':
-		return  command_text(cmd) ;
-
-	case  'W':
-		return  command_w(cmd) ;
-
-	case  'P':
-		return  command_position(cmd) ;
-
-	case  'v':
-		return  command_vector(cmd) ;
+		char *  orig_cmd ;
 
 	default:
-		return  cmd + 1 ;
+		orig_cmd = cmd ;
+		if( ! command || ( cmd = (*command)( orig_cmd)) == orig_cmd)
+		{
+			return  orig_cmd + 1 ;
+		}
+		else
+		{
+			return  cmd ;
+		}
+
+	case  'S':
+		command = command_screen ;
+		break ;
+
+	case  'T':
+		command = command_text ;
+		break ;
+
+	case  'W':
+		command = command_w ;
+		break ;
+
+	case  'P':
+		command = command_position ;
+		break ;
+
+	case  'v':
+	case  'V':
+		command = command_vector ;
+		break ;
+
+	case  'C':
+		command = command_circle ;
+		break ;
+
+	case  'F':
+		command = command_fill ;
+		break ;
+	}
+
+	return  (*command)( cmd + 1) ;
+}
+
+
+#ifdef  __TEST
+
+static void
+test_parse_options(void)
+{
+	char  cmd[] = "S(V(W(I(R,P))),S1)" ;
+	char *  p ;
+	char *  options[10] ;
+	int  count ;
+
+	p = cmd + 1 ;
+	parse_options( options , &p) ;
+
+	for( count = 0 ; options[count] ; count++)
+	{
+		fprintf(stderr,"%s %s\n",options[count],p) ;
 	}
 }
+
+static void
+test_parse_coordinate(void)
+{
+	char  cmd[] = "[100,200][300,400][+200,-300]" ;
+	char *  p ;
+	int  x ;
+	int  y ;
+
+	pen_x = 100 ;
+	pen_y = 200 ;
+	p = cmd ;
+	while( *(p ++) == '[')
+	{
+		parse_coordinate( &x , &y , &p) ;
+
+		fprintf( stderr , "%d %d\n" , x , y) ;
+	}
+	pen_x = 0 ;
+	pen_y = 0 ;
+}
+
+#endif
 
 
 /* --- global functions --- */
@@ -548,8 +919,13 @@ int
 main(int argc, char **  argv)
 {
 	FILE *  fp ;
-	char line[100] ;
-        char *  cmd ;
+	char line[256] ;
+	char *  cmd ;
+
+#ifdef  __TEST
+	test_parse_options() ;
+	test_parse_coordinate() ;
+#endif
 
 	if( argc != 3)
 	{

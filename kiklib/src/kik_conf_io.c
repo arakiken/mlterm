@@ -350,6 +350,14 @@ kik_conf_io_read(
 		
 		*val = kik_str_chop_spaces( line) ;
 
+		/* Remove #comment after key=value. */
+		if( ( line = strrchr( line , '#')) &&
+		    ( *(--line) == ' ' || *line == '\t'))
+		{
+			*line = '\0' ;
+			*val = kik_str_chop_spaces( *val) ;
+		}
+
 		return  1 ;
 	}
 }
