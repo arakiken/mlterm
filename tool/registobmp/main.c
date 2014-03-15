@@ -561,17 +561,19 @@ command_text(
 	#if  SDL_MAJOR_VERSION > 1
 		color.a = (fg_color >> 24) & 0xff ;
 	#endif
-		image = TTF_RenderUTF8_Blended( font , text , color) ;
-		image_rect.x = 0 ;
-		image_rect.y = 0 ;
-		image_rect.w = image->w ;
-		image_rect.h = image->h ;
-		rect.x = pen_x ;
-		rect.y = pen_y ;
-		rect.w = 0 ;
-		rect.h = 0 ;
+		if( ( image = TTF_RenderUTF8_Blended( font , text , color)))
+		{
+			image_rect.x = 0 ;
+			image_rect.y = 0 ;
+			image_rect.w = image->w ;
+			image_rect.h = image->h ;
+			rect.x = pen_x ;
+			rect.y = pen_y ;
+			rect.w = 0 ;
+			rect.h = 0 ;
 
-		SDL_BlitSurface( image , &image_rect , regis , &rect) ;
+			SDL_BlitSurface( image , &image_rect , regis , &rect) ;
+		}
 	}
 	else if( *cmd == '(')
 	{
