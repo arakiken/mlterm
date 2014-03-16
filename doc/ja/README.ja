@@ -238,6 +238,10 @@ comment $Id$
     キー入力に対する処理結果がコンソールアプリケーションから返ってくる前に、
     前もって画面に表示することにより、体感的な応答速度を向上します。
 
+  o ReGIS 及び Sixel Graphics
+    ReGIS の一部機能及び Sixel Graphics に対応しています。
+    ReGIS については、SDL, SDL_ttf 及び fontconfig が必要となります。
+
 * 設定
   o 設定ファイル
     ${SYSCONFDIR}/mlterm 以下、および、~/.mlterm 以下におかれます。

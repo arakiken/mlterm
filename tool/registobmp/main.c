@@ -2,22 +2,23 @@
  *	$Id$
  */
 
-#define _BSD_SOURCE	/* for strsep */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>	/* atoi */
+#include <stdint.h>
 #include <math.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
 #ifdef  USE_FONTCONFIG
 #include <fontconfig/fontconfig.h>
 #endif
-#include <kiklib/kik_config.h>
+#include <kiklib/kik_def.h>
 
-
+#define  pixel_at( x , y)  (((u_int32_t*)regis->pixels)[(y) * regis->w + (x)])
 #define  REGIS_RGB(r,g,b) \
 	(0xff000000 | (((r)*255/100) << 16) | (((g)*255/100) << 8) | ((b)*255/100))
 #define  MAGIC_COLOR  0x0
+
 
 #if  0
 #define  __TEST
@@ -31,11 +32,13 @@ static int  pen_y ;
 static int  pen_x_stack[10] ;
 static int  pen_y_stack[10] ;
 static int  pen_stack_count ;
+static int  circle_center ;
+static int  fontsize = 13 ;
 static SDL_Surface *  regis ;
 
-static uint32_t  fg_color = 0xff000000 ;
-static uint32_t  bg_color = 0xffffffff ;
-static uint32_t  color_tbl[] =
+static u_int32_t  fg_color = 0xff000000 ;
+static u_int32_t  bg_color = 0xffffffff ;
+static u_int32_t  color_tbl[] =
 {
 	REGIS_RGB(0,0,0) ,	/* BLACK */
 	REGIS_RGB(20,20,80) ,	/* BLUE */
@@ -58,60 +61,18 @@ static uint32_t  color_tbl[] =
 
 /* --- static functions --- */
 
-#ifndef  HAVE_STRSEP
-
-char *
-strsep(
-	char **  strp ,
-	const char *  delim
-	)
-{
-
-        char *  s ;
-        const char *  spanp ;
-        int  c ;
-	int  sc ;
-        char *  tok ;
-
-	if( ( s = *strp) == NULL)
-	{
-		return	NULL ;
-	}
-
-	for( tok = s ; ; )
-	{
-		c = *s++ ;
-		spanp = delim ;
-		do
-		{
-			if( ( sc = *spanp++) == c)
-			{
-				if( c == 0)
-				{
-					s = NULL ;
-				}
-				else
-				{
-					s[-1] = 0 ;
-				}
-
-				*strp = s ;
-
-				return  tok ;
-			}
-		}
-		while( sc != 0) ;
-	}
-}
-
-#endif
-
 static void
 help(void)
 {
 	fprintf( stderr , "registobmp [src: regis text file] [dst: bitmap file]\n") ;
 	fprintf( stderr , " (Environment variables) REGIS_FONT=[font path]\n") ;
-	fprintf( stderr , "                         REGIS_FONTSIZE=[font size]\n") ;
+}
+
+static void
+init_state(void)
+{
+	pen_stack_count = 0 ;
+	circle_center = 0 ;
 }
 
 static void
@@ -139,35 +100,6 @@ resize(
 	}
 
 	regis = new_regis ;
-}
-
-inline static void
-set_pixel(
-	int  x ,
-	int  y ,
-	uint32_t  value
-	)
-{
-	if( x < 0 || y < 0 || x >= regis->w || y >= regis->h)
-	{
-		return ;
-	}
-
-	((uint32_t*)regis->pixels)[y * regis->pitch / 4 + x] = value ;
-}
-
-inline static uint32_t
-get_pixel(
-	int  x ,
-	int  y
-	)
-{
-	if( x < 0 || y < 0 || x >= regis->w || y >= regis->h)
-	{
-		return  0 ;
-	}
-
-	return  ((uint32_t*)regis->pixels)[y * regis->pitch / 4 + x] ;
 }
 
 static void
@@ -202,7 +134,7 @@ draw_line(
 	{
 		int  err2 ;
 
-		set_pixel( cx , cy , color) ;
+		pixel_at( cx , cy) = color ;
 		if( cx == end_x && cy == end_y)
 		{
 			return ;
@@ -259,14 +191,14 @@ draw_circle(
 			cy -- ;
 		}
 
-		set_pixel( cy + x , cx + y , color) ;
-		set_pixel( cx + x , cy + y , color) ;
-		set_pixel( -cx + x , cy + y , color) ;
-		set_pixel( -cy + x , cx + y , color) ;
-		set_pixel( -cy + x , -cx + y , color) ;
-		set_pixel( -cx + x , -cy + y , color) ;
-		set_pixel( cx + x , -cy + y , color) ;
-		set_pixel( cy + x , -cx + y , color) ;
+		pixel_at( cy + x , cx + y) = color ;
+		pixel_at( cx + x , cy + y) = color ;
+		pixel_at( -cx + x , cy + y) = color ;
+		pixel_at( -cy + x , cx + y) = color ;
+		pixel_at( -cy + x , -cx + y) = color ;
+		pixel_at( -cx + x , -cy + y) = color ;
+		pixel_at( cx + x , -cy + y) = color ;
+		pixel_at( cy + x , -cx + y) = color ;
 	}
 }
 
@@ -276,79 +208,74 @@ parse_options(
 	char **  cmd
 	)
 {
-	if( **cmd == '(')
+	u_int  num_of_options ;
+	int  skip_count ;
+	int  inside_bracket ;
+	char *  end ;
+
+	num_of_options = 0 ;
+	inside_bracket = skip_count = 0 ;
+	end = (*cmd) ;
+
+	while( 1)
 	{
-		u_int  num_of_options ;
-		int  skip_count ;
-		int  inside_bracket ;
-		char *  end ;
-
-		num_of_options = 0 ;
-		inside_bracket = skip_count = 0 ;
-		end = ++ (*cmd) ;
-
-		while( 1)
+		if( *end == '(')
 		{
-			if( *end == '(')
+			skip_count ++ ;
+		}
+		else if( *end == ')')
+		{
+			if( skip_count == 0)
 			{
-				skip_count ++ ;
-			}
-			else if( *end == ')')
-			{
-				if( skip_count == 0)
-				{
-					*end = '\0' ;
-					if( options)
-					{
-						options[num_of_options ++] = *cmd ;
-						options[num_of_options] = NULL ;
-					}
-					*cmd = end + 1 ;
-
-					return  1 ;
-				}
-				else
-				{
-					skip_count -- ;
-				}
-			}
-			else if( *end == '[')
-			{
-				inside_bracket = 1 ;
-			}
-			else if( *end == ']')
-			{
-				inside_bracket = 0 ;
-			}
-			else if( *end == ',')
-			{
-				if( skip_count == 0 && ! inside_bracket)
-				{
-					*end = '\0' ;
-					if( num_of_options < 8 && options)
-					{
-						options[num_of_options ++] = *cmd ;
-					}
-					*cmd = end + 1 ;
-				}
-			}
-			else if( *end == '\0')
-			{
+				*end = '\0' ;
 				if( options)
 				{
 					options[num_of_options ++] = *cmd ;
 					options[num_of_options] = NULL ;
 				}
-				*cmd = NULL ;
+				*cmd = end + 1 ;
 
 				return  1 ;
 			}
-
-			end ++ ;
+			else
+			{
+				skip_count -- ;
+			}
 		}
-	}
+		else if( *end == '[')
+		{
+			inside_bracket = 1 ;
+		}
+		else if( *end == ']')
+		{
+			inside_bracket = 0 ;
+		}
+		else if( *end == ',')
+		{
+			if( skip_count == 0 && ! inside_bracket)
+			{
+				*end = '\0' ;
+				if( num_of_options < 8 && options)
+				{
+					options[num_of_options ++] = *cmd ;
+				}
+				*cmd = end + 1 ;
+			}
+		}
+		else if( *end == '\0')
+		{
+			if( options)
+			{
+				options[num_of_options ++] = *cmd ;
+				options[num_of_options] = NULL ;
+			}
+			*cmd = NULL ;
 
-	return  0 ;
+			return  1 ;
+		}
+
+		end ++ ;
+	}
 }
 
 static int
@@ -358,26 +285,32 @@ parse_coordinate(
 	char **  cmd
 	)
 {
+	char *  p ;
 	char *  xstr ;
 	char *  ystr ;
 
-	ystr = strsep( cmd , "]") ;
-	if( ! *cmd)
-	{
-		*cmd = ystr ;
+	xstr = *cmd ;
 
+	if( ! ( p = strchr( xstr , ']')))
+	{
 		return  0 ;
 	}
 
-	xstr = strsep( &ystr , ",") ;
+	*p = '\0' ;
+	*cmd = p + 1 ;
+
+	if( ! ( ystr = strchr( xstr , ',')) || *ystr == '\0')
+	{
+		ystr = "+0" ;
+	}
+	else
+	{
+		*(ystr++) = '\0' ;
+	}
+
 	if( *xstr == '\0')
 	{
 		xstr = "+0" ;
-	}
-
-	if( ystr == NULL)
-	{
-		ystr = "+0" ;
 	}
 
 	if( *xstr == '+' || *xstr == '-')
@@ -413,50 +346,59 @@ command_screen(
 	)
 {
 	char *  options[10] ;
+	int  count ;
 
-	if( parse_options( options , &cmd))
+	if( *cmd == '(')
 	{
-		int  count ;
-
-		for( count = 0 ; options[count] ; count++)
+		cmd ++ ;
+		if( ! parse_options( options , &cmd))
 		{
-			char *  option ;
+			return  cmd - 1 ;
+		}
+	}
+	else
+	{
+		return  cmd ;
+	}
 
-			option = options[count] ;
+	for( count = 0 ; options[count] ; count++)
+	{
+		char *  option ;
 
-			if( *option == 'I')
+		option = options[count] ;
+
+		if( *option == 'I')
+		{
+			if( *(++option) == '(')
 			{
-				if( *(++option) == '(')
+				/* XXX Not standard command. */
+
+				int  red ;
+				int  green ;
+				int  blue ;
+
+				if( sscanf( option + 1 , "R%dG%dB%d" ,
+					&red , &green , &blue) == 3)
 				{
-					/* XXX Not standard command. */
-
-					int  red ;
-					int  green ;
-					int  blue ;
-
-					if( sscanf( option + 1 , "R%dG%dB%d" ,
-						&red , &green , &blue) == 3)
-					{
-						bg_color = 0xff000000 | (red << 16) |
-								(green << 8) | blue ;
-					}
-				}
-				else
-				{
-					bg_color = color_tbl[ atoi( option + 1)] ;
+					bg_color = 0xff000000 | (red << 16) |
+							(green << 8) | blue ;
 				}
 			}
-			else if( *option == 'E')
+			else
 			{
-				SDL_FillRect( regis , NULL , bg_color) ;
+				bg_color = color_tbl[ atoi( option + 1)] ;
 			}
-			else if( *option == 'C')
-			{
-				/*
-				 * C0: turns the output cursor off.
-				 * C1: turns the output cursor on.
-				 */
-			}
+		}
+		else if( *option == 'E')
+		{
+			SDL_FillRect( regis , NULL , bg_color) ;
+		}
+		else if( *option == 'C')
+		{
+			/*
+			 * C0: turns the output cursor off.
+			 * C1: turns the output cursor on.
+			 */
 		}
 	}
 
@@ -464,47 +406,155 @@ command_screen(
 }
 
 static char *
+parse_quoted_text(
+	char *  text ,
+	char  quote
+	)
+{
+	int  skip_count ;
+
+	skip_count = 0 ;
+
+	while( 1)
+	{
+		if( *text == quote)
+		{
+			if( *(text + 1) == quote)
+			{
+				memmove( text , text + 1 , strlen(text + 1) + 1) ;
+				skip_count ++ ;
+			}
+			else
+			{
+				*(text ++) = '\0' ;
+
+				return  text + skip_count ;
+			}
+		}
+		else if( *text == '\0')
+		{
+			return  NULL ;
+		}
+
+		text ++ ;
+	}
+}
+
+static char *
 command_text(
 	char *  cmd
 	)
 {
-	if( *cmd == '\'')
+	static int  no_font ;
+	static TTF_Font *  font ;
+	char  quote ;
+	char *  text ;
+	SDL_Surface *  image ;
+	SDL_Color color ;
+	SDL_Rect  image_rect ;
+	SDL_Rect  rect ;
+
+	if( *cmd == '(')
 	{
-		static int  init_font ;
-		static TTF_Font *  font ;
-		char *  text ;
-		SDL_Surface *  image ;
-		SDL_Color color ;
-		SDL_Rect  image_rect ;
-		SDL_Rect  rect ;
+		char *  options[10] ;
+		int  count ;
 
 		cmd ++ ;
-		text = strsep( &cmd , "\'") ;
-		if( ! cmd)
+		if( ! parse_options( options , &cmd))
 		{
-			return  text - 1 ;
+			return  cmd - 1 ;
 		}
 
-		if( ! font)
+		for( count = 0 ; options[count] ; count++)
 		{
-			char *  file ;
-			char *  size_str ;
-			int  size ;
-		#ifdef  USE_FONTCONFIG
-			FcPattern *  mat = NULL ;
-		#endif
+			char *  option ;
 
-			if( init_font)
+			option = options[count] ;
+
+			if( *option == 'S')
 			{
-				return  cmd ;
+				int  size ;
+
+				if( *(++option) == '[')
+				{
+					int  w ;
+					int  h ;
+
+					option ++ ;
+					if( parse_coordinate( &w , &h , &option))
+					{
+						size = (h < w * 2 ? h : w * 2) * 3 / 4 ;
+
+						if( size != fontsize)
+						{
+							fontsize = size ;
+
+							if( font)
+							{
+								TTF_CloseFont( font) ;
+								font = NULL ;
+							}
+						}
+					}
+				}
+				else
+				{
+					int  height_tbl[] = { 10 , 20 , 30 , 45 , 60 , 75 ,
+						90 , 105 , 120 , 135 , 150 , 165 ,
+						180 , 195 , 210 , 225 , 240 } ;
+					int  width_tbl[] =  {  9 ,  9 , 18 , 27 , 36 , 45 ,
+						54 ,  63 ,  72 ,  81 ,  90 ,  99 ,
+						108 , 117 , 126 , 135 , 144 } ;
+					int  idx ;
+
+					idx = atoi( option) ;
+					if( 0 <= idx && idx <= 16)
+					{
+						size = (height_tbl[idx] < width_tbl[idx] * 2 ?
+							height_tbl[idx] : width_tbl[idx] * 2)
+							* 3 / 4 ;
+
+						if( size != fontsize)
+						{
+							fontsize = size ;
+
+							if( font)
+							{
+								TTF_CloseFont( font) ;
+								font = NULL ;
+							}
+						}
+					}
+				}
 			}
+		}
+	}
 
-			init_font = 1 ;
+	quote = *cmd ;
+	text = cmd + 1 ;
 
-			if( ! ( file = getenv( "REGIS_FONT")))
+	if( ( quote != '\'' && quote != '"') ||
+	    ! ( cmd = parse_quoted_text( text , quote)))
+	{
+		return  cmd ;
+	}
+
+	if( no_font)
+	{
+		return  cmd ;
+	}
+
+	if( ! font)
+	{
+		static char *  font_file ;
+
+		if( ! font_file)
+		{
+			if( ! ( font_file = getenv( "REGIS_FONT")))
 			{
 			#if  defined(USE_FONTCONFIG)
 				FcPattern *  pat ;
+				FcPattern *  mat = NULL ;
 				FcResult result ;
 
 				FcInit() ;
@@ -515,69 +565,58 @@ command_text(
 				mat = FcFontMatch( 0 , pat , &result) ;
 				FcPatternDestroy( pat) ;
 
-				if( FcPatternGetString( mat , FC_FILE , 0 , &file)
-				    != FcResultMatch)
+				if( FcPatternGetString( mat , FC_FILE , 0 , &font_file)
+				    != FcResultMatch ||
+				    ! ( font_file = strdup( font_file)))
 				{
-					FcPatternDestroy( mat) ;
-					file = "arial.ttf" ;
+					font_file = "arial.ttf" ;
 				}
+
+				FcPatternDestroy( mat) ;
 			#elif  defined(USE_WIN32API)
-				file = "c:\\Windows\\Fonts\\arial.ttf" ;
+				font_file = "c:\\Windows\\Fonts\\arial.ttf" ;
 			#else
-				file = "arial.ttf" ;
+				font_file = "arial.ttf" ;
 			#endif
 			}
 
-			if( ! ( size_str = getenv( "REGIS_FONTSIZE")) ||
-			    ( size = atoi( size_str)) == 0)
-			{
-				size = 12 ;
-			}
-
 			TTF_Init() ;
-			if( ! ( font = TTF_OpenFont( file , size)))
-			{
-				fprintf( stderr , "Not found %s.\n" , file) ; 
-			}
-
-		#ifdef  USE_FONTCONFIG
-			if( mat)
-			{
-				FcPatternDestroy( mat) ;
-			}
-		#endif
-
-			if( ! font)
-			{
-				TTF_Quit() ;
-
-				return  cmd ;
-			}
 		}
 
-		color.r = (fg_color >> 16) & 0xff ;
-		color.g = (fg_color >> 8) & 0xff ;
-		color.b = fg_color & 0xff ;
-	#if  SDL_MAJOR_VERSION > 1
-		color.a = (fg_color >> 24) & 0xff ;
-	#endif
-		if( ( image = TTF_RenderUTF8_Blended( font , text , color)))
+		if( ! ( font = TTF_OpenFont( font_file , fontsize)))
 		{
-			image_rect.x = 0 ;
-			image_rect.y = 0 ;
-			image_rect.w = image->w ;
-			image_rect.h = image->h ;
-			rect.x = pen_x ;
-			rect.y = pen_y ;
-			rect.w = 0 ;
-			rect.h = 0 ;
+			fprintf( stderr , "Not found %s.\n" , font_file) ; 
+		}
 
-			SDL_BlitSurface( image , &image_rect , regis , &rect) ;
+		if( ! font)
+		{
+			no_font = 1 ;
+			TTF_Quit() ;
+
+			return  cmd ;
 		}
 	}
-	else if( *cmd == '(')
+
+	color.r = (fg_color >> 16) & 0xff ;
+	color.g = (fg_color >> 8) & 0xff ;
+	color.b = fg_color & 0xff ;
+#if  SDL_MAJOR_VERSION > 1
+	color.a = (fg_color >> 24) & 0xff ;
+#endif
+	if( ( image = TTF_RenderUTF8_Blended( font , text , color)))
 	{
-		parse_options( NULL , &cmd) ;
+		image_rect.x = 0 ;
+		image_rect.y = 0 ;
+		image_rect.w = image->w ;
+		image_rect.h = image->h ;
+		rect.x = pen_x ;
+		rect.y = pen_y ;
+		rect.w = 0 ;
+		rect.h = 0 ;
+
+		SDL_BlitSurface( image , &image_rect , regis , &rect) ;
+
+		pen_x += image->w ;
 	}
 
 	return  cmd ;
@@ -589,21 +628,30 @@ command_w(
 	)
 {
 	char *  options[10] ;
+	int  count ;
 
-	if( parse_options( options , &cmd))
+	if( *cmd == '(')
 	{
-		int  count ;
-
-		for( count = 0 ; options[count] ; count++)
+		cmd ++ ;
+		if( ! parse_options( options , &cmd))
 		{
-			char *  option ;
+			return  cmd - 1 ;
+		}
+	}
+	else
+	{
+		return  cmd ;
+	}
 
-			option = options[count] ;
+	for( count = 0 ; options[count] ; count++)
+	{
+		char *  option ;
 
-			if( *option == 'I')
-			{
-				fg_color = color_tbl[ atoi( option + 1)] ;
-			}
+		option = options[count] ;
+
+		if( *option == 'I')
+		{
+			fg_color = color_tbl[ atoi( option + 1)] ;
 		}
 	}
 
@@ -729,7 +777,19 @@ command_circle(
 			r = sqrt( pow( abs(x - pen_x) , 2) + pow( abs(y - pen_y) , 2)) ;
 		}
 
-		draw_circle( pen_x , pen_y , r , fg_color) ;
+		if( circle_center)
+		{
+			draw_circle( x , y , r , fg_color) ;
+		}
+		else
+		{
+			draw_circle( pen_x , pen_y , r , fg_color) ;
+		}
+	}
+	else if( strncmp( cmd , "(C)" , 3) == 0)
+	{
+		circle_center = 1 ;
+		cmd += 3 ;
 	}
 
 	return  cmd ;
@@ -741,27 +801,27 @@ fill(
 	int  y
 	)
 {
-	if( y >= 1 && get_pixel( x , y - 1) != MAGIC_COLOR)
+	if( y >= 1 && pixel_at( x , y - 1) != MAGIC_COLOR)
 	{
-		set_pixel( x , y - 1 , MAGIC_COLOR) ;
+		pixel_at( x , y - 1) = MAGIC_COLOR ;
 		fill( x , y - 1) ;
 	}
 
-	if( y < regis->h - 1 && get_pixel( x , y + 1) != MAGIC_COLOR)
+	if( y < regis->h - 1 && pixel_at( x , y + 1) != MAGIC_COLOR)
 	{
-		set_pixel( x , y + 1 , MAGIC_COLOR) ;
+		pixel_at( x , y + 1) = MAGIC_COLOR ;
 		fill( x , y + 1) ;
 	}
 
-	if( x >= 1 && get_pixel( x - 1 , y) != MAGIC_COLOR)
+	if( x >= 1 && pixel_at( x - 1 , y) != MAGIC_COLOR)
 	{
-		set_pixel( x - 1 , y , MAGIC_COLOR) ;
+		pixel_at( x - 1 , y) = MAGIC_COLOR ;
 		fill( x - 1 , y) ;
 	}
 
-	if( x < regis->w + 1 && get_pixel( x + 1 , y) != MAGIC_COLOR)
+	if( x < regis->w + 1 && pixel_at( x + 1 , y) != MAGIC_COLOR)
 	{
-		set_pixel( x + 1 , y , MAGIC_COLOR) ;
+		pixel_at( x + 1 , y) = MAGIC_COLOR ;
 		fill( x + 1 , y) ;
 	}
 }
@@ -774,41 +834,50 @@ command_fill(
 	)
 {
 	char *  options[10] ;
+	int  orig_fg_color ;
+	int  x ;
+	int  y ;
 
-	if( parse_options( options , &cmd))
+	if( *cmd == '(')
 	{
-		int  orig_fg_color ;
-		int  x ;
-		int  y ;
-
-		orig_fg_color = fg_color ;
-		fg_color = MAGIC_COLOR ;
-		while( *(options[0] = command( options[0]))) ;
-
-		fg_color = orig_fg_color ;
-
-		for( y = 0 ; y < regis->h ; y++)
+		cmd ++ ;
+		if( ! parse_options( options , &cmd))
 		{
-			for( x = 0 ; x < regis->w ; x++)
-			{
-				if( get_pixel( x , y) == MAGIC_COLOR &&
-				    y < 799 && get_pixel( x , y + 1) != MAGIC_COLOR)
-				{
-					fill( x , y + 1) ;
+			return  cmd - 1 ;
+		}
+	}
+	else
+	{
+		return  cmd ;
+	}
 
-					for( ; y < regis->h ; y++)
+	orig_fg_color = fg_color ;
+	fg_color = MAGIC_COLOR ;
+	while( *(options[0] = command( options[0]))) ;
+
+	fg_color = orig_fg_color ;
+
+	for( y = 0 ; y < regis->h ; y++)
+	{
+		for( x = 0 ; x < regis->w ; x++)
+		{
+			if( pixel_at( x , y) == MAGIC_COLOR &&
+			    y < 799 && pixel_at( x , y + 1) != MAGIC_COLOR)
+			{
+				fill( x , y + 1) ;
+
+				for( ; y < regis->h ; y++)
+				{
+					for( x = 0 ; x < regis->w ; x++)
 					{
-						for( x = 0 ; x < regis->w ; x++)
+						if( pixel_at( x , y) == MAGIC_COLOR)
 						{
-							if( get_pixel( x , y) == MAGIC_COLOR)
-							{
-								set_pixel( x , y , fg_color) ;
-							}
+							pixel_at( x , y) = fg_color ;
 						}
 					}
-
-					break ;
 				}
+
+				break ;
 			}
 		}
 	}
@@ -868,6 +937,7 @@ command(
 		break ;
 	}
 
+	init_state() ;
 	return  (*command)( cmd + 1) ;
 }
 
@@ -882,7 +952,7 @@ test_parse_options(void)
 	char *  options[10] ;
 	int  count ;
 
-	p = cmd + 1 ;
+	p = cmd + 2 ;
 	parse_options( options , &p) ;
 
 	for( count = 0 ; options[count] ; count++)
@@ -894,7 +964,7 @@ test_parse_options(void)
 static void
 test_parse_coordinate(void)
 {
-	char  cmd[] = "[100,200][300,400][+200,-300]" ;
+	char  cmd[] = "[100,200][300,400][+200,-300][+200][,-300]" ;
 	char *  p ;
 	int  x ;
 	int  y ;
@@ -912,6 +982,31 @@ test_parse_coordinate(void)
 	pen_y = 0 ;
 }
 
+static void
+test_parse_quoted_text(void)
+{
+	char  text1[] = "\"don't\"" ;
+	char  text2[] = "\'\"stop\"\'" ;
+	char  text3[] = "'don''t'" ;
+	char  text4[] = "\"ditto (\"\")\"" ;
+
+	fprintf( stderr , "%s => " , text1) ;
+	parse_quoted_text( &text1[1] , text1[0]) ;
+	fprintf( stderr , "%s\n" , text1 + 1) ;
+
+	fprintf( stderr , "%s => " , text2) ;
+	parse_quoted_text( &text2[1] , text2[0]) ;
+	fprintf( stderr , "%s\n" , text2 + 1) ;
+
+	fprintf( stderr , "%s => " , text3) ;
+	parse_quoted_text( &text3[1] , text3[0]) ;
+	fprintf( stderr , "%s\n" , text3 + 1) ;
+
+	fprintf( stderr , "%s => " , text4) ;
+	parse_quoted_text( text4 + 1 , *text4) ;
+	fprintf( stderr , "%s\n" , text4 + 1) ;
+}
+
 #endif
 
 
@@ -927,6 +1022,7 @@ main(int argc, char **  argv)
 #ifdef  __TEST
 	test_parse_options() ;
 	test_parse_coordinate() ;
+	test_parse_quoted_text() ;
 #endif
 
 	if( argc != 3)

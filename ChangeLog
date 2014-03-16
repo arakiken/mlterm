@@ -1,5 +1,16 @@
 2014-03-16  Araki Ken  <arakiken@users.sf.net>
 
+	* registobmp/main.c:
+	  - (C) option of C command is supported.
+	  - (S) option of T command is supported.
+	  - "" quotation of T command is supported.
+
+	* registobmp/Makefile.in: @exec_prefix@ is added.
+
+	* README, doc/ja/README.ja: Updated.
+
+2014-03-16  Araki Ken  <arakiken@users.sf.net>
+
 	* registobmp/main.c: Error check of TTF_RenderUTF8_Blended() is added.
 
 2014-03-15  Araki Ken  <arakiken@users.sf.net>

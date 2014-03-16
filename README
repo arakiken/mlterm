@@ -84,6 +84,8 @@ Options for configure
 
   --with-tools
     Build specified tools in tool/ and contrib/tool/ directories
+    mlimgloader is necessary to show images if --with-imagelib option is not specified.
+    registobmp is necessary to process ReGIS.
 
   --disable-use-tools
     Don't build and use external tools.
