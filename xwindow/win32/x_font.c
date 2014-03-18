@@ -12,6 +12,7 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 #include  <mkf/mkf_ucs4_map.h>
+#include  <mkf/mkf_ucs_property.h>
 #include  <ml_char_encoding.h>	/* x_convert_to_xft_ucs4 */
 
 
@@ -342,6 +343,85 @@ next_char:
 	}
 	
 	return  1 ;
+}
+
+static u_int
+calculate_char_width(
+	x_font_t *  font ,
+	u_int32_t  ch ,
+	mkf_charset_t  cs
+	)
+{
+	SIZE  sz ;
+
+	if( ! display_gc)
+	{
+		/*
+		 * Cached as far as x_caculate_char_width is called.
+		 * display_gc is deleted in x_font_new or x_font_delete.
+		 */
+		display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
+	}
+
+	SelectObject( display_gc , font->fid) ;
+
+	if( cs != US_ASCII && ! IS_ISCII(cs))
+	{
+		u_int32_t  ucs4_code ;
+		u_char  utf16[4] ;
+
+		if( cs == ISO10646_UCS4_1)
+		{
+			ucs4_code = ch ;
+		}
+		else
+		{
+			mkf_char_t  non_ucs ;
+			mkf_char_t  ucs4 ;
+
+			non_ucs.size = CS_SIZE(cs) ;
+			non_ucs.property = 0 ;
+			non_ucs.cs = cs ;
+			mkf_int_to_bytes( non_ucs.ch , non_ucs.size , ch) ;
+
+			if( ml_is_msb_set( cs))
+			{
+				u_int  count ;
+
+				for( count = 0 ; count < non_ucs.size ; count ++)
+				{
+					non_ucs.ch[count] &= 0x7f ;
+				}
+			}
+
+			if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
+			{
+				ucs4_code = mkf_bytes_to_int( ucs4.ch , 4) ;
+			}
+			else
+			{
+				return  0 ;
+			}
+		}
+
+		if( ! GetTextExtentPointW( display_gc , utf16 ,
+			x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 , &sz))
+		{
+			return  0 ;
+		}
+	}
+	else
+	{
+		u_char  c ;
+
+		c = ch ;
+		if( ! GetTextExtentPointA( display_gc , &c , 1 , &sz))
+		{
+			return  0 ;
+		}
+	}
+
+	return  sz.cx ;
 }
 
 
@@ -785,82 +865,30 @@ x_calculate_char_width(
 	{
 		if( font->is_var_col_width)
 		{
-			SIZE  sz ;
+			u_int  width ;
 
-			if( ! display_gc)
+			if( ( width = calculate_char_width( font , ch , cs)) == 0)
 			{
-				/*
-				 * Cached as far as x_caculate_char_width is called.
-				 * display_gc is deleted in x_font_new or x_font_delete.
-				 */
-				display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
+				goto  fixed_col_width ;
 			}
 
-			SelectObject( display_gc , font->fid) ;
-
-			if( cs != US_ASCII && ! IS_ISCII(cs))
-			{
-				u_int32_t  ucs4_code ;
-				u_char  utf16[4] ;
-
-				if( cs == ISO10646_UCS4_1)
-				{
-					ucs4_code = ch ;
-				}
-				else
-				{
-					mkf_char_t  non_ucs ;
-					mkf_char_t  ucs4 ;
-
-					non_ucs.size = CS_SIZE(cs) ;
-					non_ucs.property = 0 ;
-					non_ucs.cs = cs ;
-					mkf_int_to_bytes( non_ucs.ch , non_ucs.size , ch) ;
-
-					if( ml_is_msb_set( cs))
-					{
-						u_int  count ;
-
-						for( count = 0 ; count < non_ucs.size ; count ++)
-						{
-							non_ucs.ch[count] &= 0x7f ;
-						}
-					}
-
-					if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
-					{
-						ucs4_code = mkf_bytes_to_int( ucs4.ch , 4) ;
-					}
-					else
-					{
-						goto  fixed_col_width ;
-					}
-				}
-
-				if( ! GetTextExtentPointW( display_gc , utf16 ,
-					x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 , &sz))
-				{
-					goto  fixed_col_width ;
-				}
-			}
-			else
-			{
-				u_char  c ;
-
-				c = ch ;
-				if( ! GetTextExtentPointA( display_gc , &c , 1 , &sz))
-				{
-					goto  fixed_col_width ;
-				}
-			}
-
-			return  sz.cx ;
+			return  width ;
 		}
 
 	fixed_col_width:
 		if( draw_alone)
 		{
 			*draw_alone = 1 ;
+		}
+	}
+	else if( draw_alone && cs == ISO10646_UCS4_1)
+	{
+		if( mkf_get_ucs_property( ch) & MKF_AWIDTH)
+		{
+			if( calculate_char_width( font , ch , cs) != font->width)
+			{
+				*draw_alone = 1 ;
+			}
 		}
 	}
 

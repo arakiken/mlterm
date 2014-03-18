@@ -3,6 +3,8 @@ ver 3.3.4
 * Support ReGIS partially. (depends on SDL(SDL2), SDL_ttf(SDL2_ttf) and fontconfig)
 * Output strerror(errno) on error.
 * Support "key=value #comment" style in the same line in ~/.mlterm/main.
+* Draw all ambiguous width characters one by one to fit the column width unless
+  -V option is specified.
 * Merge patches:
   https://gist.github.com/tsutsui/9285759. (Thanks to @tsutsuii)
 * Bug fixes:

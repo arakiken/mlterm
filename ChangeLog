@@ -1,3 +1,11 @@
+2014-03-17  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_font.c, win32/x_font.c:
+	  x_calculate_char_width() checks if characters whose width is ambiguous
+	  should be drawn one by one.
+
+	* registobmp/main.c: Minor fixes.
+
 2014-03-16  Araki Ken  <arakiken@users.sf.net>
 
 	* registobmp/main.c:

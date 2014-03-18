@@ -11,6 +11,7 @@
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 #include  <mkf/mkf_ucs4_map.h>
+#include  <mkf/mkf_ucs_property.h>
 #include  <ml_char_encoding.h>	/* ml_is_msb_set */
 
 #include  "../x_type_loader.h"
@@ -1219,17 +1220,18 @@ x_calculate_char_width(
 			*draw_alone = 1 ;
 		}
 	}
-	else if( cs == ISO10646_UCS4_1)
+	else if( draw_alone && cs == ISO10646_UCS4_1)
 	{
-		/* XXX U+2580-U+259f is full width in GNU Unifont. */
-		if( 0x2580 <= ch && ch <= 0x259f)
+		if( (( mkf_get_ucs_property( ch) & MKF_AWIDTH) ||
+		    /*
+		     * The width of U+2590 and U+2591 is narrow in EastAsianWidth-6.3.0
+		     * but the glyphs in GNU Unifont are full-width unexpectedly.
+		     */
+		    ch == 0x2590 || ch == 2591))
 		{
 			if( calculate_char_width( font , ch , cs) != font->width)
 			{
-				if( draw_alone)
-				{
-					*draw_alone = 1 ;
-				}
+				*draw_alone = 1 ;
 			}
 		}
 	}

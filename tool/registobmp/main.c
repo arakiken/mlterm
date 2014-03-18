@@ -33,7 +33,8 @@ static int  pen_x_stack[10] ;
 static int  pen_y_stack[10] ;
 static int  pen_stack_count ;
 static int  circle_center ;
-static int  fontsize = 13 ;
+/* XXX 3/4 */
+static int  fontsize = 18 * 3/4 ;
 static SDL_Surface *  regis ;
 
 static u_int32_t  fg_color = 0xff000000 ;
@@ -483,6 +484,7 @@ command_text(
 					option ++ ;
 					if( parse_coordinate( &w , &h , &option))
 					{
+						/* XXX 3/4 */
 						size = (h < w * 2 ? h : w * 2) * 3 / 4 ;
 
 						if( size != fontsize)
@@ -510,6 +512,7 @@ command_text(
 					idx = atoi( option) ;
 					if( 0 <= idx && idx <= 16)
 					{
+						/* XXX 3/4 */
 						size = (height_tbl[idx] < width_tbl[idx] * 2 ?
 							height_tbl[idx] : width_tbl[idx] * 2)
 							* 3 / 4 ;
@@ -587,6 +590,8 @@ command_text(
 		{
 			fprintf( stderr , "Not found %s.\n" , font_file) ; 
 		}
+
+		TTF_SetFontHinting( font , TTF_HINTING_MONO) ;
 
 		if( ! font)
 		{
