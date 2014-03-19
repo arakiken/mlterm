@@ -1,3 +1,7 @@
+2014-03-19  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_display.c: Compiler error is fixed if ENABLE_2_4_PPB is defined.
+
 2014-03-17  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_font.c, win32/x_font.c:

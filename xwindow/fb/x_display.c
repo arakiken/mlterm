@@ -366,11 +366,13 @@ put_image_124bpp(
 			}
 			else
 			{
+			#ifndef  ENABLE_2_4_PPB
 				if( _disp.depth > 1)
 				{
 					goto  round_number_1 ;
 				}
 				else
+			#endif
 				{
 					goto  round_number_2 ;
 				}
