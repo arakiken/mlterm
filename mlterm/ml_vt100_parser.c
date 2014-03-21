@@ -91,6 +91,10 @@
 #define  SUPPORT_VTE_CJK_WIDTH
 #endif
 
+#if  0
+#define  SUPPORT_ITERM2_OSC1337
+#endif
+
 
 /* --- static variables --- */
 
@@ -1456,6 +1460,86 @@ true_or_false(
 	}
 }
 
+static int
+base64_decode(
+	char *  decoded ,
+	char *  encoded ,
+	size_t  e_len
+	)
+{
+	size_t  d_pos ;
+	size_t  e_pos ;
+	/* ASCII -> Base64 order */
+	int8_t  conv_tbl[] =
+	{
+		/* 0x2b - */
+		62, -1, -1, -1, 63,
+		/* 0x30 - */
+		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -2, -1, -1,
+		/* 0x40 - */
+		-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+		/* 0x50 - */
+		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+		/* 0x60 - */
+		-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+		/* 0x70 - 7a */
+		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+	} ;
+
+	d_pos = e_pos = 0 ;
+
+	while( e_len >= e_pos + 4)
+	{
+		size_t  count ;
+		int8_t  bytes[4] ;
+
+		for( count = 0 ; count < 4 ; e_pos ++)
+		{
+			if( encoded[e_pos] < 0x2b || 0x7a < encoded[e_pos] ||
+			    (bytes[count] = conv_tbl[encoded[e_pos] - 0x2b]) == -1)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Illegal Base64 %s\n" , encoded) ;
+			#endif
+			}
+			else
+			{
+				count ++ ;
+			}
+		}
+
+		decoded[d_pos++] = (((bytes[0] << 2) & 0xfc) | ((bytes[1] >> 4) & 0x3)) ;
+
+		if( bytes[2] != -2)
+		{
+			decoded[d_pos++] =
+				(((bytes[1] << 4) & 0xf0) | ((bytes[2] >> 2) & 0xf)) ;
+		}
+		else
+		{
+			break ;
+		}
+
+		if( bytes[3] != -2)
+		{
+			decoded[d_pos++] = (((bytes[2] << 6) & 0xc0) | (bytes[3] & 0x3f)) ;
+		}
+		else
+		{
+			break ;
+		}
+	}
+
+#ifdef  DEBUG
+	decoded[d_pos] = '\0' ;
+	kik_debug_printf( KIK_DEBUG_TAG " Base64 Decode %s => %s\n" , encoded , decoded) ;
+#endif
+
+	return  d_pos ;
+}
+
+
 static void  soft_reset( ml_vt100_parser_t *  vt100_parser) ;
 
 /*
@@ -1857,6 +1941,84 @@ config_protocol_get(
 #endif
 }
 
+#ifdef  SUPPORT_ITERM2_OSC1337
+/*
+ * This function will destroy the content of pt.
+ */
+static void
+iterm2_proprietary_set(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt
+	)
+{
+	char *  path ;
+
+	if( strncmp( pt , "File=" , 5) == 0 &&
+	    ( path = get_home_file_path( ml_pty_get_slave_name( vt100_parser->pty) + 5 , "img")))
+	{
+		/* See http://www.iterm2.com/images.html (2014/03/20) */
+
+		char *  args ;
+		char *  encoded ;
+		char *  decoded ;
+		size_t  e_len ;
+		u_int  width ;
+		u_int  height ;
+
+		args = pt + 5 ;
+		width = height = 0 ;
+
+		if( ( encoded = strchr( args , ':')))
+		{
+			char *  beg ;
+			char *  end ;
+
+			*(encoded++) = '\0' ;
+
+			if( ( beg = strstr( args , "width=")) &&
+			    ( end = strchr( beg , ';')))
+			{
+				*(end--) = '\0' ;
+				if( '0' <= *end && *end <= '9')
+				{
+					width = atoi( beg + 6) ;
+				}
+			}
+
+			if( ( beg = strstr( args , "height=")) &&
+			    ( end = strchr( beg , ';')))
+			{
+				*(end--) = '\0' ;
+				if( '0' <= *end && *end <= '9')
+				{
+					height = atoi( beg + 7) ;
+				}
+			}
+		}
+
+		if( ( e_len = strlen( encoded)) > 0 && ( decoded = malloc( e_len)))
+		{
+			size_t  d_len ;
+			FILE *  fp ;
+
+			if( ( d_len = base64_decode( decoded , encoded , e_len)) > 0 &&
+			    ( fp = fopen( path , "w")))
+			{
+				fwrite( decoded , 1 , d_len , fp) ;
+				fclose( fp) ;
+
+				show_picture( vt100_parser , path ,
+						0 , 0 , 0 , 0 , width , height , 0) ;
+			}
+
+			free( decoded) ;
+		}
+
+		free( path) ;
+	}
+}
+#endif
+
 static int
 change_char_fine_color(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -2155,89 +2317,21 @@ set_selection(
 	if( HAS_XTERM_LISTENER(vt100_parser,set_selection))
 	{
 		size_t  e_len ;
+		size_t  d_len ;
 		u_char *  decoded ;
-		size_t  d_pos ;
-		size_t  e_pos ;
-		/* ASCII -> Base64 order */
-		int8_t  conv_tbl[] =
-		{
-			/* 0x2b - */
-			62, -1, -1, -1, 63,
-			/* 0x30 - */
-			52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -2, -1, -1,
-			/* 0x40 - */
-			-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-			/* 0x50 - */
-			15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-			/* 0x60 - */
-			-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-			/* 0x70 - 7a */
-			41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
-		} ;
 		mkf_char_t  ch ;
 		ml_char_t *  str ;
 		u_int  str_len ;
 
-		if( ( e_len = strlen( encoded)) < 4 || ! ( decoded = alloca( e_len)))
-		{
-			return ;
-		}
-
-		d_pos = e_pos = 0 ;
-
-		while( e_len >= e_pos + 4)
-		{
-			size_t  count ;
-			int8_t  bytes[4] ;
-
-			for( count = 0 ; count < 4 ; count++)
-			{
-				if( encoded[e_pos] < 0x2b || 0x7a < encoded[e_pos] ||
-				    (bytes[count] = conv_tbl[encoded[e_pos++] - 0x2b]) == -1)
-				{
-				#ifdef  DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-						" Illegal Base64 %s\n" , encoded) ;
-				#endif
-
-					return ;
-				}
-			}
-
-			decoded[d_pos++] = (((bytes[0] << 2) & 0xfc) | ((bytes[1] >> 4) & 0x3)) ;
-
-			if( bytes[2] != -2)
-			{
-				decoded[d_pos++] =
-					(((bytes[1] << 4) & 0xf0) | ((bytes[2] >> 2) & 0xf)) ;
-			}
-			else
-			{
-				break ;
-			}
-
-			if( bytes[3] != -2)
-			{
-				decoded[d_pos++] = (((bytes[2] << 6) & 0xc0) | (bytes[3] & 0x3f)) ;
-			}
-			else
-			{
-				break ;
-			}
-		}
-
-	#ifdef  DEBUG
-		decoded[d_pos] = '\0' ;
-		kik_debug_printf( KIK_DEBUG_TAG " Base64 Decode %s => %s\n" , encoded , decoded) ;
-	#endif
-
-		if( ! ( str = ml_str_new( d_pos)))
+		if( ( e_len = strlen( encoded)) < 4 || ! ( decoded = alloca( e_len)) ||
+		    ( d_len = base64_decode( decoded , encoded , e_len)) == 0 ||
+		    ! ( str = ml_str_new( d_len)))
 		{
 			return ;
 		}
 
 		str_len = 0 ;
-		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser , decoded , d_pos) ;
+		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser , decoded , d_len) ;
 		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
 			ml_char_set( &str[str_len++] , mkf_char_to_int(&ch) ,
@@ -2457,7 +2551,7 @@ get_pt_in_esc_seq(
 	pt = *str ;
 
 	/* UTF-8 uses 0x80-0x9f as printable characters. */
-	while( 0x20 <= **str && **str != 0x7f)
+	while( **str != CTL_ESC && **str != CTL_BEL)
 	{
 		if( ! increment_str( str , left))
 		{
@@ -4440,6 +4534,12 @@ parse_vt100_escape_sequence(
 						"cursor_bg_color" , "black") ;
 			}
 		#endif
+		#ifdef  SUPPORT_ITERM2_OSC1337
+			else if( ps == 1337)
+			{
+				iterm2_proprietary_set( vt100_parser , pt) ;
+			}
+		#endif
 			else if( ps == 5379)
 			{
 				/* "OSC 5379" set */
@@ -5520,9 +5620,10 @@ ml_reset_pending_vt100_sequence(
 {
 	if( vt100_parser->r_buf.left >= 2 &&
 	    ( vt100_parser->r_buf.chars[0] == 0x90 ||
-	      memcmp( vt100_parser->r_buf.chars , "\x1bP" , 2) == 0))
+	      memcmp( vt100_parser->r_buf.chars , "\x1bP" , 2) == 0 ||
+	      memcmp( vt100_parser->r_buf.chars , "\x1b]" , 2) == 0))
 	{
-		/* Reset DCS */
+		/* Reset DCS or OSC */
 		vt100_parser->r_buf.left = 0 ;
 	}
 }
