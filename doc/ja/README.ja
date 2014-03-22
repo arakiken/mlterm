@@ -1283,6 +1283,9 @@ comment $Id$
 
     スクロールバーは、マウスでドラッグすれば、スクロールされます。
 
+    インラインで表示している画像は、ダブルクリックすると、クリップボードにコピー
+    します。
+
 * 連絡先
   mlterm-dev-ja ML(http://lists.sourceforge.net/lists/listinfo/mlterm-dev-ja)
 

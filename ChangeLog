@@ -1,5 +1,14 @@
 2014-03-22  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.3.4 released.
+	  (tag "rel-3_3_4")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.3.4.
+
+2014-03-22  Araki Ken  <arakiken@users.sf.net>
+
 	* java/MLTermPty.java: env_for_dialog is explicitly set NULL after
 	  ml_term_open_pty().
 
