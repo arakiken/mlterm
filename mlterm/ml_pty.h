@@ -13,8 +13,12 @@
 
 #include  "ml_char_encoding.h"
 
-/* defined(__CYGWIN__) is not to link libpthread to mlterm for now. */
-#if  defined(USE_WIN32API) || (defined(HAVE_PTHREAD) && defined(__CYGWIN__))
+/*
+ * defined(__CYGWIN__) is not to link libpthread to mlterm for now.
+ * OPEN_PTY_SYNC is defined in java/Makefile.in
+ */
+#if  (defined(USE_WIN32API) && ! defined(OPEN_PTY_SYNC)) || \
+     (defined(HAVE_PTHREAD) && defined(__CYGWIN__))
 #define  OPEN_PTY_ASYNC
 #endif
 

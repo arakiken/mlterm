@@ -62,9 +62,11 @@ mlterm.jar : $(CLASS) $(TARGET@WIN32TAG@) manifest.mf
 		`find * -name "*.dll" -o -name "*.s*" -o -name "plink.exe"`
 
 $(TARGET_win32) : MLTermPty.h
+	(cd ../mlterm;rm -f ml_term.o;CFLAGS_LOCAL=-DOPEN_PTY_SYNC make ml_term.o)
 	$(CC) -Wl,--kill-at $(CFLAGS) -shared -o MLTermPty.dll \
 	$(top_srcdir)/java/MLTermPty.c ../mlterm/.libs/*.o ../kiklib/src/.libs/libkik.dll.a \
 	../mkf/lib/.libs/libmkf.dll.a -L/usr/local/lib @SSH2_LIBS_FOR_PROG@
+	(rm -f ../mlterm/ml_term.o)
 
 $(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
 	$(LIBTOOL_LINK) -o $(TARGET) -s $(OBJ:.o=.lo) -rpath $(libdir) \

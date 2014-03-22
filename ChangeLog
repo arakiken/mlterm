@@ -1,3 +1,10 @@
+2014-03-22  Araki Ken  <arakiken@users.sf.net>
+
+	* java/MLTermPty.java: env_for_dialog is explicitly set NULL after
+	  ml_term_open_pty().
+
+	* ml_pty.h, java/Makefile.in: OPEN_PTY_ASYNC is always disabled on java/win32.
+
 2014-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c:
