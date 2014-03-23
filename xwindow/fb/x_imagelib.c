@@ -344,24 +344,16 @@ error:
 /* For old machines and Android (not to use mlimgloader) */
 #if  defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
 
-#ifndef  BUILTIN_IMAGELIB
-#define  BUILTIN_IMAGELIB
-#endif
 #define  CARD_HEAD_SIZE  0
-#include  <string.h>	/* memset/memmove */
-#include  "../../common/c_imagelib.c"
+#include  "../../common/c_sixel.c"
 
 #endif
 
 /* For old machines (not to use mlimgloader) */
 #if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(USE_GRF)
 
-#ifndef  BUILTIN_IMAGELIB
-#define  BUILTIN_IMAGELIB
-#endif
 #define  SIXEL_1BPP
-#include  <string.h>	/* memset/memmove */
-#include  "../../common/c_imagelib.c"
+#include  "../../common/c_sixel.c"
 
 /* depth should be checked by the caller. */
 static int

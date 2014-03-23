@@ -1,3 +1,13 @@
+2014-03-23  Araki Ken  <arakiken@users.sf.net>
+
+	* x_imagelib.c: c_sixe.c is included instead of c_imagelib.c.
+
+	* c_sixel.c: Separated from c_imagelib.c.
+
+	* kik_debug.c: Whether errno is 0 or not is checked in kik_error_printf().
+
+	* version.h.in: 3.3.4 -> 3.3.4post
+
 2014-03-22  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.3.4 released.

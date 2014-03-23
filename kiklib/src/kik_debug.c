@@ -160,16 +160,23 @@ kik_error_printf(
 	)
 {
 	va_list  arg_list ;
+	char *  prefix ;
 
 	va_start( arg_list , format) ;
 
 #ifdef  HAVE_ERRNO_H
-	debug_printf( "ERROR(" , strerror( errno) , NULL) ;
-
-	return  debug_printf( "): " , format , arg_list) ;
-#else
-	return  debug_printf( "ERROR: " , format , arg_list) ;
+	if( errno != 0)
+	{
+		debug_printf( "ERROR(" , strerror( errno) , NULL) ;
+		prefix = "): " ;
+	}
+	else
 #endif
+	{
+		prefix = "ERROR: " ;
+	}
+
+	return  debug_printf( prefix , format , arg_list) ;
 }
 
 /*

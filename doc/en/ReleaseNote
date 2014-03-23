@@ -9,8 +9,8 @@ ver 3.3.4
   https://gist.github.com/tsutsui/9285759. (Thanks to @tsutsuii)
 * Bug fixes:
   Change the default resolution on NetBSD/x68k from 512x512x8 to 768x512x4.
-  Fix the bug which output help message to stdout where mlterm waits for image
-  data and which made mlterm allocate too large memory. (enbugged at 3.3.3)
+  Fix the bug of mlimgloader which output help message to stdout where mlterm waited
+  for image data and which made mlterm allocate too large memory. (enbugged at 3.3.3)
   Fix the bug which disabled to start mlconfig. (enbugged at 3.3.3)
   Fix the bug which caused segfault if x11 forwarding failed.
   Fix the bug which caused segfault in resuming on Android.
