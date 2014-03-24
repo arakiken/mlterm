@@ -1,3 +1,7 @@
+2014-03-24  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_debug.c: The bug of calling vfprintf(...,NULL) is fixed.
+
 2014-03-23  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib.c: c_sixe.c is included instead of c_imagelib.c.

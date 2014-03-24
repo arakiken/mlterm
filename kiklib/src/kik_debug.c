@@ -161,14 +161,24 @@ kik_error_printf(
 {
 	va_list  arg_list ;
 	char *  prefix ;
+	int  ret ;
 
 	va_start( arg_list , format) ;
 
 #ifdef  HAVE_ERRNO_H
 	if( errno != 0)
 	{
-		debug_printf( "ERROR(" , strerror( errno) , NULL) ;
-		prefix = "): " ;
+		char *  error ;
+
+		error = strerror( errno) ;
+
+		if( ! ( prefix = alloca( 6 + strlen( error) + 3 + 1)))
+		{
+			ret = 0 ;
+			goto  end ;
+		}
+
+		sprintf( prefix , "ERROR(%s): " , error) ;
 	}
 	else
 #endif
@@ -176,7 +186,12 @@ kik_error_printf(
 		prefix = "ERROR: " ;
 	}
 
-	return  debug_printf( prefix , format , arg_list) ;
+	ret = debug_printf( prefix , format , arg_list) ;
+
+end:
+	va_end( arg_list) ;
+
+	return  ret ;
 }
 
 /*
