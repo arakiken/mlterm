@@ -4157,9 +4157,9 @@ idling(
 
 	screen = (x_screen_t*) win ;
 
-	if( screen->cursor_blink_wait >= 0)
+	if( screen->cursor_blink_wait > 0)
 	{
-		if( screen->cursor_blink_wait == 5)
+		if( screen->cursor_blink_wait == 6)
 		{
 			if( screen->window.is_focused)
 			{
@@ -4174,17 +4174,22 @@ idling(
 			screen->cursor_blink_wait ++ ;
 		}
 	}
-	else
+	else if( screen->cursor_blink_wait < 0)
 	{
 		if( screen->cursor_blink_wait == -6)
 		{
-			x_window_update( &screen->window , UPDATE_SCREEN|UPDATE_CURSOR) ;
-			screen->cursor_blink_wait = 0 ;
+			x_window_update( &screen->window , UPDATE_CURSOR) ;
+			screen->cursor_blink_wait = 1 ;
 		}
 		else
 		{
 			screen->cursor_blink_wait -- ;
 		}
+	}
+
+	if( x_animate_inline_pictures( screen->term))
+	{
+		x_window_update( &screen->window , UPDATE_SCREEN) ;
 	}
 }
 
@@ -5783,7 +5788,7 @@ get_config_intern(
 	}
 	else if( strcmp( key , "blink_cursor") == 0)
 	{
-		if( screen->window.idling)
+		if( screen->cursor_blink_wait)
 		{
 			value = "true" ;
 		}
@@ -7312,6 +7317,7 @@ xterm_get_picture_data(
 		ml_char_t *  buf ;
 		int  max_num_of_cols ;
 
+		screen->prev_inline_pic = idx ;
 		idx <<= INLINEPIC_ID_SHIFT ;
 
 		max_num_of_cols = ml_term_get_cursor_line( screen->term)->num_of_chars -
@@ -7337,7 +7343,7 @@ xterm_get_picture_data(
 					ml_char_copy( buf_p , ml_sp_ch()) ;
 
 					ml_char_combine( buf_p ++ ,
-						idx | (col * (*num_of_rows) + row) ,
+						idx | MAKE_INLINEPIC_POS(col,row,*num_of_rows) ,
 						PICTURE_CHARSET , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
 				}
 			}
@@ -7348,8 +7354,43 @@ xterm_get_picture_data(
 
 	return  NULL ;
 }
+
+static void
+xterm_add_frame_to_animation(
+	void *  p ,
+	char *  file_path ,
+	int *  num_of_cols ,
+	int *  num_of_rows
+	)
+{
+	x_screen_t *  screen ;
+	u_int  width ;
+	u_int  height ;
+	u_int  col_width ;
+	u_int  line_height ;
+	int  idx ;
+
+	screen = p ;
+
+	if( ml_term_get_vertical_mode( screen->term) || screen->prev_inline_pic < 0)
+	{
+		return ;
+	}
+
+	width = (*num_of_cols) * (col_width = x_col_width(screen)) ;
+	height = (*num_of_rows) * (line_height = x_line_height(screen)) ;
+
+	if( ( idx = x_load_inline_picture( screen->window.disp , file_path ,
+			&width , &height , col_width , line_height , screen->term)) != -1 &&
+	    screen->prev_inline_pic != idx)
+	{
+		x_add_frame_to_animation( screen->prev_inline_pic , idx) ;
+		screen->prev_inline_pic = idx ;
+	}
+}
 #else
 #define  xterm_get_picture_data NULL
+#define  xterm_add_frame_to_animation NULL
 #endif	/* NO_IMAGE */
 
 
@@ -7555,6 +7596,7 @@ x_screen_new(
 	screen->xterm_listener.get_rgb = xterm_get_rgb ;
 	screen->xterm_listener.get_window_size = xterm_get_window_size ;
 	screen->xterm_listener.get_picture_data = xterm_get_picture_data ;
+	screen->xterm_listener.add_frame_to_animation = xterm_add_frame_to_animation ;
 
 	screen->config_listener.self = screen ;
 	screen->config_listener.exec = x_screen_exec_cmd ;
@@ -7634,9 +7676,11 @@ x_screen_new(
 #ifndef  DISABLE_XDND
 	screen->window.set_xdnd_config = set_xdnd_config ;
 #endif
+	screen->window.idling = idling ;
+
 	if( blink_cursor)
 	{
-		screen->window.idling = idling ;
+		screen->cursor_blink_wait = 1 ;
 	}
 
 	if( use_transbg)
@@ -7663,6 +7707,8 @@ x_screen_new(
 	screen->font_or_color_config_updated = 0 ;
 
 	screen->hide_underline = hide_underline ;
+
+	screen->prev_inline_pic = -1 ;
 
 	/*
 	 * for receiving selection.
@@ -8791,11 +8837,11 @@ x_screen_set_config(
 	{
 		if( true_or_false( value) > 0)
 		{
-			screen->window.idling = idling ;
+			screen->cursor_blink_wait = 1 ;
 		}
 		else
 		{
-			screen->window.idling = NULL ;
+			screen->cursor_blink_wait = 0 ;
 		}
 	}
 	else if( strcmp( key , "use_local_echo") == 0)

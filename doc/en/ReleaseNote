@@ -1,4 +1,7 @@
 ver 3.3.5
+* Support Animation GIF whose number of frames is <=10 and whose size is
+  <= 100kB on "show_picture" of OSC 5379.
+* Add "add_frame" to OSC 5379.
 * Bug fixes:
   Fix compiler error on NetBSD/OpenBSD framebuffer. (enbugged at 3.3.4)
 

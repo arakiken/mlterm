@@ -6,6 +6,10 @@
 
 #include  "c_sixel.c"
 
+#include  <fcntl.h>	/* open */
+#include  <unistd.h>	/* close */
+
+
 /* for registobmp on cygwin */
 #ifndef  BINDIR
 #define  BINDIR  "/bin"
@@ -15,6 +19,8 @@
 #ifndef  LIBEXECDIR
 #define  LIBEXECDIR  "/usr/local/libexec"
 #endif
+
+#define  MAX_GIF_FRAMES  10
 
 
 /* --- static functions --- */
@@ -96,6 +102,7 @@ convert_regis_to_bmp(
 
 		len = strlen( path) ;
 
+		/* Cast to char* is necessary because this function can be compiled by g++. */
 		if( ( new_path = (char*)malloc( len + 1)))
 		{
 			char *  argv[4] ;
@@ -133,9 +140,130 @@ convert_regis_to_bmp(
 #endif	/* USE_WIN32API */
 
 
+static void
+save_gif(
+	char *  path ,
+	u_char *  header ,
+	size_t  header_size ,
+	u_char *  body ,
+	size_t  body_size
+	)
+{
+	FILE *  fp ;
+
+	if( ( fp = fopen( path , "wb")))
+	{
+		fwrite( header , 1 , header_size , fp) ;
+		fwrite( body , 1 , body_size , fp) ;
+		fwrite( "\x3b" , 1 , 1 , fp) ;
+		fclose( fp) ;
+	}
+}
+
+static int
+split_animation_gif(
+	char *  path ,
+	char *  dir
+	)
+{
+	int  fd ;
+	struct stat  st ;
+	u_char *  header ;
+	size_t  header_size ;
+	u_char *  body ;
+	u_char *  p ;
+	ssize_t  len ;
+	int  num ;
+
+	if( ( fd = open( path , O_RDONLY)) < 0)
+	{
+		return  0 ;
+	}
+
+	/*
+	 * Cast to u_char* is necessary because this function can be compiled by g++.
+	 * Don't animate gif whose size is > 100kB.
+	 */
+	if( fstat( fd , &st) != 0 || st.st_size > 100 * 1024 ||
+	    ! ( p = header = (u_char*)malloc( st.st_size)))
+	{
+		close( fd) ;
+
+		return  0 ;
+	}
+
+	len = read( fd , p , st.st_size) ;
+	close( fd) ;
+
+	/* Header */
+
+	/* Cast to char* is necessary because this function can be compiled by g++. */
+	if( len != st.st_size || strncmp( (char*)p , "GIF89a" , 6) != 0)
+	{
+		free( header) ;
+
+		return  0 ;
+	}
+	p += 10 ;
+
+	if( *(p) & 0x80)
+	{
+		p += (3 * (2 << ((*p) & 0x7))) ;
+	}
+	p += 3 ;
+
+	header_size = p - header ;
+
+	/* Application Extension */
+
+	if( p[0] == 0x21 && p[1] == 0xff)
+	{
+		p += 19 ;
+	}
+
+	/* Other blocks */
+
+	body = NULL ;
+	num = -1 ;
+	path = (char*)alloca( strlen( dir) + 9 + 1 + 1) ;	/* anim-%d.gif (%d is 1 - 9) */
+
+	while( p + 2 < header + st.st_size)
+	{
+		if( *(p++) == 0x21 &&
+		    *(p++) == 0xf9 &&
+		    *(p++) == 0x04)
+		{
+			/* skip the first frame. */
+			if( body && num < MAX_GIF_FRAMES)
+			{
+				/* Graphic Control Extension */
+				sprintf( path , num == 0 ? "%sanim.gif" : "%sanim-%d.gif" ,
+					dir , num) ;
+				save_gif( path , header , header_size , body , p - 3 - body) ;
+			}
+
+			body = p - 3 ;
+			num ++ ;
+		}
+	}
+
+	if( body && num < MAX_GIF_FRAMES)
+	{
+		sprintf( path , num == 0 ? "%sanim.gif" : "%sanim-%d.gif" , dir , num) ;
+		save_gif( path , header , header_size , body ,
+			header + st.st_size - body - 1) ;
+	}
+
+	free( header) ;
+
+	return  1 ;
+}
+
+
 #ifdef  GDK_PIXBUF_VERSION
 
-#include <kiklib/kik_str.h>	/* kik_str_alloca_dup */
+#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
+#include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
 
 static void
 pixbuf_destroy_notify(
@@ -241,6 +369,42 @@ gdk_pixbuf_new_from(
 
 	if( ! strstr( path , ".six") || ! ( pixbuf = gdk_pixbuf_new_from_sixel( path)))
 	{
+		if( strcmp( path + strlen(path) - 4 , ".gif") == 0 &&
+		    ! strstr( path , "mlterm/anim-"))
+		{
+			/* Animation GIF */
+
+			char *  dir ;
+
+			if( ( dir = kik_get_user_rc_path( "mlterm/")))
+			{
+				if( strstr( path , "://"))
+				{
+					char *  cmd ;
+
+					if( ! ( cmd = alloca( 25 + strlen( path) +
+							strlen( dir) + 1)))
+					{
+						goto  end ;
+					}
+
+					sprintf( cmd , "curl -L -k -s %s > %sanim.gif" ,
+						path , dir) ;
+					if( system( cmd) != 0)
+					{
+						goto  end ;
+					}
+
+					path = cmd + 14 + strlen( path) + 3 ;
+				}
+
+				split_animation_gif( path , dir) ;
+
+			end:
+				free( dir) ;
+			}
+		}
+
 	#if GDK_PIXBUF_MAJOR >= 2
 
 		if( strstr( path , "://"))
@@ -335,7 +499,6 @@ gdk_pixbuf_new_from(
 
 #define  gdk_pixbuf_new_from_sixel(path)  (NULL)
 
-#if  CARD_HEAD_SIZE == 8
 static u_int32_t *
 create_cardinals_from_sixel(
 	const char *  path
@@ -357,7 +520,6 @@ create_cardinals_from_sixel(
 
 	return  cardinal ;
 }
-#endif
 
 #endif	/* GDK_PIXBUF_VERSION */
 
@@ -388,7 +550,7 @@ closest_color_index(
 		diff_r = red - (color_list[i].red >> 8) ;
 		diff_g = green - (color_list[i].green >> 8) ;
 		diff_b = blue - (color_list[i].blue >> 8) ;
-		diff = diff_r * diff_r *9 + diff_g * diff_g * 30 + diff_b * diff_b ;
+		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
 		if ( diff < min)
 		{
 			min = diff ;

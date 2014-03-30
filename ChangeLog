@@ -1,3 +1,30 @@
+2014-03-31  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL: Updated.
+
+	* x_screen.c:
+	  - x_window_t::idling is always set and whether blink_cursor is enabled
+	    or not is stored in x_screen_t::cursor_blink_wait.
+	    (cursor_blink_wait == 0 => disable blinking
+	     cursor_blink_wait < 0  => enable blinking (hide cursor)
+	     cursor_blink_wait > 0  => enable blinking (show cursor))
+	  - prev_inline_pic is added to x_screen_t.
+
+	* ml_vt100_parser.[ch]:
+	  - "add_frame" is added to OSC 5379.
+	  - add_frame_to_animation event is added to ml_xterm_event_listener_t.
+
+	* x_picture.[ch]:
+	  - next_frame and anim_wait are added to x_inline_picture_t.
+	  - x_add_frame_to_animation() and x_animate_inline_pictures() are added.
+
+	* gdiplus.c:
+	  - create_cardinals_from_file() supports Animation GIF.
+	  - Image::GetLastStatus() is checked after Image::FromStream() or
+	    Image::FromFile().
+
+	* c_imagelib.c: gdk_pixbuf_new_from() supports Animation GIF.
+
 2014-03-24  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_debug.c: The bug of calling vfprintf(...,NULL) is fixed.

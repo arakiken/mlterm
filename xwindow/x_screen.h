@@ -134,6 +134,8 @@ typedef struct  x_screen
 
 	x_icon_picture_t *  icon ;
 
+	int16_t  prev_inline_pic ;
+
 	char  prev_mouse_report_seq[5] ;
 
 	u_int8_t  fade_ratio ;

@@ -1603,7 +1603,8 @@ config_protocol_set(
 		}
 	}
 #ifndef  NO_IMAGE
-	else if( strncmp( pt , "show_picture " , 13) == 0)
+	else if( strncmp( pt , "show_picture " , 13) == 0 ||
+	         strncmp( pt , "add_frame " , 10) == 0)
 	{
 		int  clip_beg_col = 0 ;
 		int  clip_beg_row = 0 ;
@@ -1643,11 +1644,20 @@ config_protocol_set(
 			}
 		}
 
-		if( show_picture( vt100_parser , argv[1] ,
-			clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
-				img_cols , img_rows , 0))
+		if( *argv[0] == 's')
 		{
-			vt100_parser->yield = 1 ;
+			if( show_picture( vt100_parser , argv[1] ,
+				clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
+					img_cols , img_rows , 0))
+			{
+				vt100_parser->yield = 1 ;
+			}
+		}
+		else if( HAS_XTERM_LISTENER(vt100_parser,add_frame_to_animation))
+		{
+			(*vt100_parser->xterm_listener->add_frame_to_animation)(
+				vt100_parser->xterm_listener->self ,
+				argv[1] , &img_cols , &img_rows) ;
 		}
 	}
 #endif

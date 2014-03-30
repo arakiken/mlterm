@@ -65,6 +65,9 @@ typedef struct x_inline_picture
 	u_int8_t  col_width ;
 	u_int8_t  line_height ;
 
+	int16_t  next_frame ;
+	int16_t  anim_wait ;
+
 	u_int16_t  ref_count ;
 
 } x_inline_picture_t ;
@@ -73,7 +76,7 @@ typedef struct x_inline_picture
 #define  INLINEPIC_ID_SHIFT   14
 #define  INLINEPIC_ID(glyph)  ((glyph) >> 14 & 0x3ff)
 #define  INLINEPIC_POS(glyph) ((glyph) & 0x3fff)
-
+#define  MAKE_INLINEPIC_POS(col , row , num_of_rows)  ((col) * (num_of_rows) + (row))
 
 #ifdef  NO_IMAGE
 
@@ -109,6 +112,10 @@ int  x_load_inline_picture( x_display_t *  disp , char *  file_path ,
 	ml_term_t *  term) ;
 
 x_inline_picture_t *  x_get_inline_picture( int  idx) ;
+
+int  x_add_frame_to_animation( int  prev_idx , int  next_idx) ;
+
+int  x_animate_inline_pictures( ml_term_t *  term) ;
 
 #endif
 

@@ -2,7 +2,7 @@ comment -*- mode: text -*-
 comment $Id$
 
 mlterm configuration protocol
-version 20140222
+version 20140330
 
 * Protocol
   exec             = "\x1b" "]" "5379" ";" <command> "\x07"
@@ -31,6 +31,7 @@ version 20140222
                      mlclientx "<prefix options>" "<options>" |
                      search_prev <pattern> | search_next <pattern> | update_all |
                      show_picture "<file name>" "(WxH)" "(WxH+X+Y)" |
+                     add_frame "<file name>" "(WxH)" |
                      set_shortcut <key>=<operation>
                      scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                      "(<encoding name>)"

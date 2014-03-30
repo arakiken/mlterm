@@ -100,6 +100,7 @@ typedef struct  ml_xterm_event_listener
 	int (*get_rgb)( void * , u_int8_t * , u_int8_t * ,
 			u_int8_t * , ml_color_t) ;		/* called in logical context. */
 	ml_char_t *  (*get_picture_data)( void * , char * , int * , int *) ; /* called in logical context. */
+	void (*add_frame_to_animation)( void * , char * , int * , int *) ; /* called in logical context. */
 
 } ml_xterm_event_listener_t ;
 

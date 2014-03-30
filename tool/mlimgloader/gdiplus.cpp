@@ -8,6 +8,7 @@
 
 extern "C" {
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
 }
 
 #include  <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
@@ -24,6 +25,10 @@ extern "C" {
 #define  _WIN32_WINNT 0x0502	/* for SetDllDirectory */
 #include  <windows.h>
 #include  <gdiplus.h>
+
+#ifdef  USE_WIN32API
+#include  <malloc.h>	/* alloca */
+#endif
 
 using namespace Gdiplus ;
 
@@ -60,13 +65,15 @@ help(void)
 
 static u_int32_t *
 create_cardinals_from_file(
-	const char *  path ,
+	const char *  path ,	/* cygwin style path on cygwin/msys. win32 style path on win32. */
 	u_int  width ,
 	u_int  height
 	)
 {
 	wchar_t  wpath[MAX_PATH] ;
-	size_t  wpath_len ;
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+	char  winpath[MAX_PATH] ;
+#endif
 	Gdiplus::GdiplusStartupInput  startup ;
 	ULONG_PTR  token ;
 	HMODULE  module ;
@@ -82,8 +89,7 @@ create_cardinals_from_file(
 		return  cardinal ;
 	}
 
-	if( ((ssize_t)( wpath_len = mbstowcs( wpath , path , MAX_PATH))) <= 0 ||
-	    Gdiplus::GdiplusStartup( &token , &startup , NULL) != Gdiplus::Ok)
+	if( Gdiplus::GdiplusStartup( &token , &startup , NULL) != Gdiplus::Ok)
 	{
 		return  NULL ;
 	}
@@ -100,6 +106,8 @@ create_cardinals_from_file(
 		    ( create_url_moniker = (func)GetProcAddress( module ,
 							"CreateURLMonikerEx")))
 		{
+			mbstowcs( wpath , path , MAX_PATH) ;
+
 			if( (*create_url_moniker)( NULL , wpath , &moniker ,
 					URL_MK_UNIFORM) == S_OK)
 			{
@@ -124,6 +132,87 @@ create_cardinals_from_file(
 			}
 		}
 	}
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+	else
+	{
+		cygwin_conv_to_win32_path( path , winpath) ;
+		path = winpath ;
+	}
+#endif
+
+	if( strcmp( path + strlen(path) - 4 , ".gif") == 0 &&
+	    ! strstr( path , "mlterm\\anim-"))
+	{
+		/* Animation GIF */
+
+		char *  dir ;
+
+	#if  defined(__CYGWIN__) || defined(__MSYS__)
+		if( ( dir = kik_get_user_rc_path( "mlterm/")))
+	#else
+		if( ( dir = kik_get_user_rc_path( "mlterm\\")))
+	#endif
+		{
+			if( stream)
+			{
+				char *  new_path ;
+				FILE *  fp ;
+				BYTE  buf[10240] ;
+				ULONG  rd_len ;
+				HRESULT  res ;
+
+				if( ! ( new_path = (char*)alloca( strlen( dir) + 8 + 1)))
+				{
+					goto  end0 ;
+				}
+
+				sprintf( new_path , "%sanim.gif" , dir) ;
+
+				if( ! ( fp = fopen( new_path , "wb")))
+				{
+					goto  end0 ;
+				}
+
+				do
+				{
+					res = stream->Read( buf , sizeof(buf) , &rd_len) ;
+					fwrite( buf , 1 , rd_len , fp) ;
+				}
+				while( res == Gdiplus::Ok) ;
+
+				fclose( fp) ;
+
+				stream->Release() ;
+				ctx->Release() ;
+				moniker->Release() ;
+				FreeLibrary( module) ;
+				stream = NULL ;
+
+				path = new_path ;
+
+			#if  defined(__CYGWIN__) || defined(__MSYS__)
+				{
+					/*
+					 * MAX_PATH which is 260 (3+255+1+1) is
+					 * defined in win32 alone.
+					 */
+					cygwin_conv_to_win32_path( path , winpath) ;
+					path = winpath ;
+				}
+			#endif
+			}
+
+			split_animation_gif( (char*)path , dir) ;
+
+		end0:
+			free( dir) ;
+		}
+	}
+
+	if( ! stream)
+	{
+		mbstowcs( wpath , path , MAX_PATH) ;
+	}
 
 	cardinal = NULL ;
 
@@ -141,9 +230,10 @@ create_cardinals_from_file(
 		Image *  image ;
 		Graphics *  graphics ;
 
-		if( stream ?
-		    ! ( image = Image::FromStream( stream)) :
-		    ! ( image = Image::FromFile( wpath)) )
+		if( ( stream ?
+		      ! ( image = Image::FromStream( stream)) :
+		      ! ( image = Image::FromFile( wpath))) ||
+		    image->GetLastStatus() != Gdiplus::Ok)
 		{
 			goto  end1 ;
 		}
@@ -265,19 +355,11 @@ main(
 
 	if( ! ( cardinal = (u_char*)create_cardinals_from_file( argv[4] , width , height)))
 	{
-	#if  defined(__CYGWIN__) || defined(__MSYS__)
-		char  winpath[MAX_PATH] ;
-		cygwin_conv_to_win32_path( argv[4] , winpath) ;
-
-		if( ! ( cardinal = (u_char*)create_cardinals_from_file( winpath , width , height)))
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , argv[4]) ;
 	#endif
-		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Failed to load %s\n" , argv[4]) ;
-		#endif
 
-			goto  error ;
-		}
+		goto  error ;
 	}
 
 	width = ((u_int32_t*)cardinal)[0] ;

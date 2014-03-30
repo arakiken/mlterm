@@ -60,11 +60,9 @@ help(void)
 	fprintf( stderr , "  -c        : output XA_CARDINAL format data to stdout.\n") ;
 }
 
-/* create GdkPixbuf from the specified file path.
- *
- * The returned pixbuf shouled be unrefed by the caller
- * don't modify returned pixbuf since the pixbuf
- * is stored in the cache and may be reused.
+/*
+ * Create GdkPixbuf from the specified file path.
+ * The returned pixbuf shouled be unrefed by the caller.
  */
 static GdkPixbuf *
 load_file(
