@@ -1,5 +1,7 @@
 2014-03-31  Araki Ken  <arakiken@users.sf.net>
 
+	* c_imagelib.c: O_BINARY is added to open() in reading animation gif on win32.
+
 	* ml_vt100_parser.c: Accessing free'ed memory is fixed.
 
 2014-03-31  Araki Ken  <arakiken@users.sf.net>

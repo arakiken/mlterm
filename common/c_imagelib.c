@@ -175,7 +175,11 @@ split_animation_gif(
 	ssize_t  len ;
 	int  num ;
 
+#ifdef  USE_WIN32API
+	if( ( fd = open( path , O_RDONLY|O_BINARY)) < 0)
+#else
 	if( ( fd = open( path , O_RDONLY)) < 0)
+#endif
 	{
 		return  0 ;
 	}
