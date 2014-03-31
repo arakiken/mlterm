@@ -4674,14 +4674,13 @@ parse_vt100_escape_sequence(
 						if( ! receive_bytes( vt100_parser))
 						{
 							fclose( fp) ;
-							free( path) ;
-
 							memcpy( vt100_parser->r_buf.chars ,
 								strcmp( path + strlen(path) - 4 ,
 									".six") == 0 ?
 									"\x1bPq\0" :
 									"\x1bPp\0" ,
 									4) ;
+							free( path) ;
 							vt100_parser->r_buf.chars[4] = is_end ;
 							vt100_parser->r_buf.filled_len =
 								vt100_parser->r_buf.left = 5 ;

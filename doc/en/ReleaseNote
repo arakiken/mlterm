@@ -4,6 +4,8 @@ ver 3.3.5
 * Add "add_frame" to OSC 5379.
 * Bug fixes:
   Fix compiler error on NetBSD/OpenBSD framebuffer. (enbugged at 3.3.4)
+  Fix the bug which sometimes disabled to show large sixel graphics sequence.
+  (enbugged at 3.3.4)
 
 ver 3.3.4
 * Support not only sixel graphics but also other major image formats on Android.

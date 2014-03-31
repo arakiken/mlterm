@@ -1,5 +1,9 @@
 2014-03-31  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: Accessing free'ed memory is fixed.
+
+2014-03-31  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/en/PROTOCOL: Updated.
 
 	* x_screen.c:
