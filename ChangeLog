@@ -1,3 +1,10 @@
+2014-04-05  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_window.c: XSetClipMask(None) is called in x_window_update().
+
+	* x_picture.[ch], c_imagelib.c, gdiplus.cpp, xlib/x_imagelib.c, x_draw_str.c:
+	  The number of gif animation frames is unlimited.
+
 2014-03-31  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: O_BINARY is added to open() in reading animation gif on win32.

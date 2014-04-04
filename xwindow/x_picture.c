@@ -47,8 +47,6 @@
 #define  PIXMAP_IS_ACTIVE(inline_pic) \
 	((inline_pic).pixmap && (inline_pic).pixmap != DUMMY_PIXMAP)
 
-#define  MAX_GIF_FRAMES  10
-
 #if  0
 #define  __DEBUG
 #endif
@@ -74,7 +72,8 @@ static x_icon_picture_t **  icon_pics ;
 static u_int  num_of_icon_pics ;
 static x_inline_picture_t *  inline_pics ;
 static u_int  num_of_inline_pics ;
-static int  animation_exists ;
+static int  anim_wait ;
+static int  need_cleanup ;
 
 
 /* --- static functions --- */
@@ -264,23 +263,46 @@ delete_icon_picture(
 	return  1 ;
 }
 
-static void
+static int
 delete_inline_picture(
 	x_inline_picture_t *  pic	/* pic->pixmap mustn't be NULL. */
 	)
 {
-	/* pic->disp can be NULL by x_picture_display_closed(). */
+	if( strstr( pic->file_path , "mlterm/anim"))
+	{
+		/* GIF Animation frame */
+
+		unlink( pic->file_path) ;
+	}
+	else if( pic->pixmap == DUMMY_PIXMAP)
+	{
+		/* loading async */
+
+		return  0 ;
+	}
+
+	/* pic->disp can be NULL by x_picture_display_closed() and load_file(). */
 	if( pic->disp)
 	{
-		x_delete_image( pic->disp->display , pic->pixmap) ;
-		x_delete_mask( pic->disp->display , pic->mask) ;
+		if( pic->pixmap != DUMMY_PIXMAP)
+		{
+			x_delete_image( pic->disp->display , pic->pixmap) ;
+			x_delete_mask( pic->disp->display , pic->mask) ;
+		}
 
-		free( pic->file_path) ;
 		pic->disp = NULL ;
+	}
+
+	if( pic->file_path)
+	{
+		free( pic->file_path) ;
+		pic->file_path = NULL ;
 	}
 
 	/* pixmap == None means that the inline picture is empty. */
 	pic->pixmap = None ;
+
+	return  1 ;
 }
 
 static void
@@ -292,8 +314,7 @@ pty_closed(
 
 	for( count = 0 ; count < num_of_inline_pics ; count++)
 	{
-		if( inline_pics[count].term == term &&
-		    PIXMAP_IS_ACTIVE(inline_pics[count]))
+		if( inline_pics[count].term == term && inline_pics[count].pixmap)
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " delete inline picture %d (%d)\n" ,
@@ -313,7 +334,6 @@ cleanup_inline_pictures(
 	)
 {
 #define THRESHOLD  48
-	static int  need_cleanup ;
 	int  count ;
 	int  empty_idx ;
 	u_int8_t *  flags ;
@@ -367,21 +387,14 @@ cleanup_inline_pictures(
 					    ml_char_cs( comb) == PICTURE_CHARSET)
 					{
 						int  idx ;
-						x_inline_picture_t *  pic ;
 
 						idx = INLINEPIC_ID(ml_char_code( comb)) ;
-						if( ( pic = x_get_inline_picture( idx)) &&
-						    pic->next_frame >= 0)
+						do
 						{
-							while( pic->next_frame != idx)
-							{
-								flags[pic->next_frame] = 1 ;
-								pic = x_get_inline_picture(
-									pic->next_frame) ;
-							}
+							flags[idx] = 1 ;
+							idx = inline_pics[idx].next_frame ;
 						}
-
-						flags[idx] = 1 ;
+						while( idx >= 0 && flags[idx] == 0) ;
 					}
 				}
 			}
@@ -410,8 +423,7 @@ cleanup_inline_pictures(
 		{
 			/* do nothing */
 		}
-		else if( inline_pics[count].pixmap != DUMMY_PIXMAP &&
-		         ! flags[count] && inline_pics[count].term == term)
+		else if( ! flags[count] && inline_pics[count].term == term)
 		{
 			/*
 			 * Don't cleanup inline pictures refered twice or more times
@@ -433,7 +445,10 @@ cleanup_inline_pictures(
 					count , num_of_inline_pics) ;
 			#endif
 
-				delete_inline_picture( inline_pics + count) ;
+				if( ! delete_inline_picture( inline_pics + count))
+				{
+					continue ;
+				}
 
 				if( count == num_of_inline_pics - 1)
 				{
@@ -499,7 +514,7 @@ load_file(
 	height = inline_pics[idx].height ;
 
 	if( x_imagelib_load_file( inline_pics[idx].disp , inline_pics[idx].file_path ,
-		NULL , &pixmap , &mask , &width , &height))
+			NULL , &pixmap , &mask , &width , &height))
 	{
 		/* XXX pthread_mutex_lock( &mutex) is necessary. */
 		inline_pics[idx].pixmap = pixmap ;
@@ -508,8 +523,9 @@ load_file(
 		inline_pics[idx].height = height ;
 
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " new inline picture (%s %d %p %p) is created.\n" ,
-			inline_pics[idx].file_path , idx ,
+		kik_debug_printf( KIK_DEBUG_TAG
+			" new inline picture (%s %d %d %d %p %p) is created.\n" ,
+			inline_pics[idx].file_path , idx , width , height , 
 			inline_pics[idx].pixmap , inline_pics[idx].mask) ;
 	#endif
 
@@ -517,9 +533,8 @@ load_file(
 	}
 	else
 	{
-		free( inline_pics[idx].file_path) ;
-		inline_pics[idx].file_path = NULL ;
-		inline_pics[idx].pixmap = None ;	/* Mark as empty */
+		inline_pics[idx].disp = NULL ;
+		delete_inline_picture( inline_pics + idx) ;
 
 		return  0 ;
 	}
@@ -563,38 +578,93 @@ load_file_async(
 #endif
 
 static int
-next_frame(
-	x_inline_picture_t *  pic ,
+ensure_inline_picture(
+	x_display_t *  disp ,
+	char *  file_path ,
+	u_int *  width ,	/* can be 0 */
+	u_int *  height ,	/* can be 0 */
+	u_int  col_width ,
+	u_int  line_height ,
+	ml_term_t *  term
+	)
+{
+	int  idx ;
+
+	if( ( idx = cleanup_inline_pictures( term)) == -1)
+	{
+		void *  p ;
+
+		/* XXX pthread_mutex_lock( &mutex) is necessary. */
+		if( ! ( p = realloc( inline_pics ,
+				(num_of_inline_pics + 1) * sizeof(*inline_pics))))
+		{
+			return  -1 ;
+		}
+
+		inline_pics = p ;
+		idx = num_of_inline_pics ++ ;
+	}
+
+	inline_pics[idx].pixmap = None ;	/* mark as empty */
+	inline_pics[idx].file_path = strdup( file_path) ;
+	inline_pics[idx].width = *width ;
+	inline_pics[idx].height = *height ;
+	inline_pics[idx].disp = disp ;
+	inline_pics[idx].term = term ;
+	inline_pics[idx].col_width = col_width ;
+	inline_pics[idx].line_height = line_height ;
+	inline_pics[idx].next_frame = -1 ;
+	inline_pics[idx].ref_count = 1 ;
+
+	return  idx ;
+}
+
+static int
+hash_path(
+	char *  path
+	)
+{
+	int  hash ;
+
+	hash = 0 ;
+	while( *path)
+	{
+		hash += *(path++) ;
+	}
+
+	return  hash & 65535 /* 0xffff */ ;
+}
+
+static int
+next_frame_code(
+	x_inline_picture_t *  prev ,
+	x_inline_picture_t *  next ,
 	int  code
 	)
 {
-	x_inline_picture_t *  next ;
+	u_int  cur_rows ;
+	u_int  next_rows ;
+	int  pos ;
+	int  row ;
+	int  col ;
 
-	if( pic->anim_wait == 0 && pic->next_frame >= 0 &&
-	    ( next = x_get_inline_picture( pic->next_frame)))
+	cur_rows = ( prev->height + prev->line_height - 1) / prev->line_height ;
+	next_rows = ( next->height + next->line_height - 1) / next->line_height ;
+
+	pos = INLINEPIC_POS(code) ;
+	row = pos % cur_rows ;
+	col = pos / cur_rows ;
+
+	if( row < next_rows &&
+	    col < ( next->width + next->col_width - 1) / next->col_width)
 	{
-		u_int  cur_rows ;
-		u_int  next_rows ;
-		int  pos ;
-		int  row ;
-		int  col ;
-
-		cur_rows = ( pic->height + pic->line_height - 1) / pic->line_height ;
-		next_rows = ( next->height + next->line_height - 1) / next->line_height ;
-
-		pos = INLINEPIC_POS(code) ;
-		row = pos % cur_rows ;
-		col = pos / cur_rows ;
-
-		if( row < next_rows &&
-		    col < ( next->width + next->col_width - 1) / next->col_width)
-		{
-			return  MAKE_INLINEPIC_POS( col , row , next_rows) |
-				(pic->next_frame << INLINEPIC_ID_SHIFT) ;
-		}
+		return  MAKE_INLINEPIC_POS( col , row , next_rows) |
+			(prev->next_frame << INLINEPIC_ID_SHIFT) ;
 	}
-
-	return  -1 ;
+	else
+	{
+		return  -1 ;
+	}
 }
 
 
@@ -657,8 +727,6 @@ x_picture_display_closed(
 			 * Don't set x_inline_picture_t::pixmap = None here because
 			 * this inline picture can still exist in ml_term_t.
 			 */
-
-			free( inline_pics[count].file_path) ;
 			inline_pics[count].disp = NULL ;
 		}
 	}
@@ -904,7 +972,7 @@ x_load_inline_picture(
 	int  idx ;
 	inline_pic_args_t *  args ;
 
-	/* XXX Don't reuse ~/.mlterm/[pty name].six */
+	/* XXX Don't reuse ~/.mlterm/[pty name].six, [pty name].rgs and anim-*.gif */
 	if( ! strstr( file_path , "mlterm/"))
 	{
 		for( idx = 0 ; idx < num_of_inline_pics ; idx++)
@@ -935,36 +1003,10 @@ x_load_inline_picture(
 		}
 	}
 
-	if( ( idx = cleanup_inline_pictures( term)) == -1)
+	if( ( idx = ensure_inline_picture( disp , file_path , width , height ,
+			col_width , line_height , term)) == -1 ||
+	    ! ( args = malloc( sizeof(inline_pic_args_t))))
 	{
-		void *  p ;
-
-		/* XXX pthread_mutex_lock( &mutex) is necessary. */
-		if( ! ( p = realloc( inline_pics ,
-				(num_of_inline_pics + 1) * sizeof(*inline_pics))))
-		{
-			return  -1 ;
-		}
-
-		inline_pics = p ;
-		idx = num_of_inline_pics ++ ;
-	}
-
-	inline_pics[idx].file_path = strdup( file_path) ;
-	inline_pics[idx].width = *width ;
-	inline_pics[idx].height = *height ;
-	inline_pics[idx].disp = disp ;
-	inline_pics[idx].term = term ;
-	inline_pics[idx].col_width = col_width ;
-	inline_pics[idx].line_height = line_height ;
-	inline_pics[idx].next_frame = -1 ;
-	inline_pics[idx].anim_wait = 0 ;
-	inline_pics[idx].ref_count = 1 ;
-
-	if( ! ( args = malloc( sizeof(inline_pic_args_t))))
-	{
-		inline_pics[idx].pixmap = None ;	/* mark as empty */
-
 		return  -1 ;
 	}
 
@@ -1016,7 +1058,7 @@ x_load_inline_picture(
 		if( WaitForSingleObject( args->ev , 750) != WAIT_TIMEOUT &&
 		    PIXMAP_IS_ACTIVE(inline_pics[idx]))
 		{
-			goto  check_anim ;
+			goto  end ;
 		}
 	#else
 		if( fds[1] != -1)
@@ -1035,7 +1077,7 @@ x_load_inline_picture(
 
 			if( ret != 0 && PIXMAP_IS_ACTIVE(inline_pics[idx]))
 			{
-				goto  check_anim ;
+				goto  end ;
 			}
 		}
 	#endif
@@ -1057,42 +1099,55 @@ x_load_inline_picture(
 	return  -1 ;
 
 check_anim:
-	if( strcmp( file_path + strlen(file_path) - 4 , ".gif") == 0 &&
-	    ! strstr( file_path , "mlterm/anim-"))
+	if( strcmp( file_path + strlen(file_path) - 4 , ".gif") == 0)
 	{
 		/* Animation GIF */
 
 		char *  dir ;
 
 		if( ( dir = kik_get_user_rc_path( "mlterm/")) &&
-		    ( file_path = alloca( strlen( dir) + 9 + 1 + 1)))
+		    ( file_path = alloca( strlen( dir) + 10 + 5 + DIGIT_STR_LEN(int) + 1)))
 		{
+			int  hash ;
 			int  count ;
 			struct stat  st ;
 			int  i ;
 			int  prev_i ;
-			u_int  w ;
-			u_int  h ;
+
+			hash = hash_path( inline_pics[idx].file_path) ;
+
+			sprintf( file_path , "%sanim%d.gif" , dir , hash) ;
+			unlink( file_path) ;
 
 			prev_i = idx ;
-			for( count = 1 ; count < MAX_GIF_FRAMES ; count++)
+			for( count = 1 ; ; count++)
 			{
-				sprintf( file_path , "%sanim-%d.gif" , dir , count) ;
+				sprintf( file_path , "%sanim%d-%d.gif" , dir , hash , count) ;
 				if( stat( file_path , &st) != 0)
 				{
-					break ;
+					/* Don't dispose. The graphic is left in space. */
+					sprintf( file_path , "%sanimx%d-%d.gif" ,
+						dir , hash , count) ;
+					if( stat( file_path , &st) != 0)
+					{
+						break ;
+					}
 				}
 
-				w = *width ;
-				h = *height ;
-				if( ( i = x_load_inline_picture( disp , file_path ,
-						&w , &h , col_width ,
+				/*
+				 * Don't clean up because the 1st frame has not been set
+				 * to ml_term_t yet here.
+				 */
+				need_cleanup = 0 ;
+
+				if( ( i = ensure_inline_picture( disp , file_path ,
+						width , height , col_width ,
 						line_height , term)) >= 0 &&
 				    x_add_frame_to_animation( prev_i , i))
 				{
+					inline_pics[i].pixmap = DUMMY_PIXMAP ;
 					prev_i = i ;
 				}
-				unlink( file_path) ;
 			}
 		}
 
@@ -1146,10 +1201,8 @@ x_add_frame_to_animation(
 			prev_pic->next_frame = next_idx ;
 		}
 
-		/* make added frames anonymous */
-		next_pic->file_path[0] = '\0' ;
-
-		animation_exists = 1 ;
+		/* start animating */
+		anim_wait = 2 ;
 
 		return  1 ;
 	}
@@ -1165,38 +1218,16 @@ x_animate_inline_pictures(
 	)
 {
 	int  found ;
-	int  count ;
 	int  row ;
 	ml_line_t *  line ;
 
-	if( ! animation_exists)
+	if( ! anim_wait || -- anim_wait > 0)
 	{
 		return  0 ;
 	}
 
-	found = 0 ;
-
-	for( count = 0 ; count < num_of_inline_pics ; count++)
-	{
-		if( inline_pics[count].term == term)
-		{
-			/* 0.1sec * 2 */
-			if( inline_pics[count].anim_wait == 1)
-			{
-				inline_pics[count].anim_wait = 0 ;
-				found = 1 ;
-			}
-			else
-			{
-				inline_pics[count].anim_wait++ ;
-			}
-		}
-	}
-
-	if( ! found)
-	{
-		return  0 ;
-	}
+	/* 0.1sec * 2 */
+	anim_wait = 2 ;
 
 	found = 0 ;
 
@@ -1211,19 +1242,44 @@ x_animate_inline_pictures(
 			{
 				ml_char_t *  comb ;
 				u_int  size ;
-				x_inline_picture_t *  pic ;
-				int32_t  code ;
 
 				if( ( comb = ml_get_combining_chars(
 						line->chars + char_index , &size)) &&
-				    ml_char_cs( comb) == PICTURE_CHARSET &&
-				    ( pic = x_get_inline_picture(
-						INLINEPIC_ID( ( code = ml_char_code( comb))))) &&
-				    ( code = next_frame( pic , code)) >= 0)
+				    ml_char_cs( comb) == PICTURE_CHARSET)
 				{
-					ml_char_set_code( comb , code) ;
-					ml_line_set_modified( line , char_index , char_index) ;
-					found = 1 ;
+					int32_t  code ;
+					int  idx ;
+					int  next ;
+
+					code = ml_char_code( comb) ;
+					idx = INLINEPIC_ID( code) ;
+					if( ( next = inline_pics[idx].next_frame) == -1)
+					{
+						continue ;
+					}
+
+					if( inline_pics[next].pixmap == DUMMY_PIXMAP)
+					{
+						inline_pic_args_t  args ;
+
+						args.idx = next ;
+						if( ! load_file( &args))
+						{
+							continue ;
+						}
+
+						/* shorten waiting time. */
+						anim_wait = 1 ;
+					}
+
+					if( ( code = next_frame_code( inline_pics + idx ,
+							inline_pics + next , code)) >= 0)
+					{
+						ml_char_set_code( comb , code) ;
+						ml_line_set_modified( line ,
+							char_index , char_index) ;
+						found = 1 ;
+					}
 				}
 			}
 		}

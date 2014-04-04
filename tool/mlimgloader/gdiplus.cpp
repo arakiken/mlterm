@@ -83,6 +83,7 @@ create_cardinals_from_file(
 	Gdiplus::Bitmap *  bitmap ;
 	u_int32_t *  cardinal ;
 	u_int32_t *  p ;
+	int  hash ;
 
 	if( strstr( path , ".six") && ( cardinal = create_cardinals_from_sixel( path)))
 	{
@@ -94,6 +95,7 @@ create_cardinals_from_file(
 		return  NULL ;
 	}
 
+	hash = hash_path( path) ;
 	stream = NULL ;
 
 	if( strstr( path , "://"))
@@ -141,7 +143,7 @@ create_cardinals_from_file(
 #endif
 
 	if( strcmp( path + strlen(path) - 4 , ".gif") == 0 &&
-	    ! strstr( path , "mlterm\\anim-"))
+	    ! strstr( path , "mlterm\\anim"))
 	{
 		/* Animation GIF */
 
@@ -202,7 +204,7 @@ create_cardinals_from_file(
 			#endif
 			}
 
-			split_animation_gif( (char*)path , dir) ;
+			split_animation_gif( (char*)path , dir , hash) ;
 
 		end0:
 			free( dir) ;

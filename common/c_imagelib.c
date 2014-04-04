@@ -8,6 +8,9 @@
 
 #include  <fcntl.h>	/* open */
 #include  <unistd.h>	/* close */
+#include  <sys/stat.h>
+
+#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 
 
 /* for registobmp on cygwin */
@@ -19,8 +22,6 @@
 #ifndef  LIBEXECDIR
 #define  LIBEXECDIR  "/usr/local/libexec"
 #endif
-
-#define  MAX_GIF_FRAMES  10
 
 
 /* --- static functions --- */
@@ -140,6 +141,22 @@ convert_regis_to_bmp(
 #endif	/* USE_WIN32API */
 
 
+static int
+hash_path(
+	const char *  path
+	)
+{
+	int  hash ;
+
+	hash = 0 ;
+	while( *path)
+	{
+		hash += *(path++) ;
+	}
+
+	return  hash & 65535 /* 0xffff */ ;
+}
+
 static void
 save_gif(
 	char *  path ,
@@ -149,21 +166,26 @@ save_gif(
 	size_t  body_size
 	)
 {
-	FILE *  fp ;
+	int  fd ;
 
-	if( ( fp = fopen( path , "wb")))
+#ifdef  USE_WIN32API
+	if( ( fd = open( path , O_WRONLY|O_CREAT|O_BINARY , 0600)) >= 0)
+#else
+	if( ( fd = open( path , O_WRONLY|O_CREAT , 0600)) >= 0)
+#endif
 	{
-		fwrite( header , 1 , header_size , fp) ;
-		fwrite( body , 1 , body_size , fp) ;
-		fwrite( "\x3b" , 1 , 1 , fp) ;
-		fclose( fp) ;
+		write( fd , header , header_size) ;
+		write( fd , body , body_size) ;
+		write( fd , "\x3b" , 1) ;
+		close( fd) ;
 	}
 }
 
 static int
 split_animation_gif(
 	char *  path ,
-	char *  dir
+	char *  dir ,
+	int  hash
 	)
 {
 	int  fd ;
@@ -184,11 +206,8 @@ split_animation_gif(
 		return  0 ;
 	}
 
-	/*
-	 * Cast to u_char* is necessary because this function can be compiled by g++.
-	 * Don't animate gif whose size is > 100kB.
-	 */
-	if( fstat( fd , &st) != 0 || st.st_size > 100 * 1024 ||
+	/* Cast to u_char* is necessary because this function can be compiled by g++. */
+	if( fstat( fd , &st) != 0 ||
 	    ! ( p = header = (u_char*)malloc( st.st_size)))
 	{
 		close( fd) ;
@@ -229,7 +248,8 @@ split_animation_gif(
 
 	body = NULL ;
 	num = -1 ;
-	path = (char*)alloca( strlen( dir) + 9 + 1 + 1) ;	/* anim-%d.gif (%d is 1 - 9) */
+	/* animx-%d.gif */
+	path = (char*)alloca( strlen( dir) + 10 + 5 + DIGIT_STR_LEN(int) + 1) ;
 
 	while( p + 2 < header + st.st_size)
 	{
@@ -238,12 +258,17 @@ split_animation_gif(
 		    *(p++) == 0x04)
 		{
 			/* skip the first frame. */
-			if( body && num < MAX_GIF_FRAMES)
+			if( body)
 			{
 				/* Graphic Control Extension */
-				sprintf( path , num == 0 ? "%sanim.gif" : "%sanim-%d.gif" ,
-					dir , num) ;
-				save_gif( path , header , header_size , body , p - 3 - body) ;
+				sprintf( path ,
+					num == 0 ? "%sanim%d.gif" :
+					/* XXX *p & 4 => Regarded as no dispose. */
+					((*p & 0x4) ? "%sanimx%d-%d.gif" :
+					              "%sanim%d-%d.gif") ,
+					dir , hash , num) ;
+				save_gif( path , header , header_size ,
+					body , p - 3 - body) ;
 			}
 
 			body = p - 3 ;
@@ -251,9 +276,10 @@ split_animation_gif(
 		}
 	}
 
-	if( body && num < MAX_GIF_FRAMES)
+	if( body)
 	{
-		sprintf( path , num == 0 ? "%sanim.gif" : "%sanim-%d.gif" , dir , num) ;
+		sprintf( path , num == 0 ? "%sanim%d.gif" : "%sanim%d-%d.gif" ,
+			dir , hash , num) ;
 		save_gif( path , header , header_size , body ,
 			header + st.st_size - body - 1) ;
 	}
@@ -374,7 +400,7 @@ gdk_pixbuf_new_from(
 	if( ! strstr( path , ".six") || ! ( pixbuf = gdk_pixbuf_new_from_sixel( path)))
 	{
 		if( strcmp( path + strlen(path) - 4 , ".gif") == 0 &&
-		    ! strstr( path , "mlterm/anim-"))
+		    ! strstr( path , "mlterm/anim"))
 		{
 			/* Animation GIF */
 
@@ -382,6 +408,10 @@ gdk_pixbuf_new_from(
 
 			if( ( dir = kik_get_user_rc_path( "mlterm/")))
 			{
+				int  hash ;
+
+				hash = hash_path( path) ;
+
 				if( strstr( path , "://"))
 				{
 					char *  cmd ;
@@ -402,7 +432,7 @@ gdk_pixbuf_new_from(
 					path = cmd + 14 + strlen( path) + 3 ;
 				}
 
-				split_animation_gif( path , dir) ;
+				split_animation_gif( path , dir , hash) ;
 
 			end:
 				free( dir) ;

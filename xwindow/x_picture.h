@@ -66,7 +66,6 @@ typedef struct x_inline_picture
 	u_int8_t  line_height ;
 
 	int16_t  next_frame ;
-	int16_t  anim_wait ;
 
 	u_int16_t  ref_count ;
 

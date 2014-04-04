@@ -172,6 +172,12 @@ draw_picture(
 			src_height = line_height ;
 		}
 
+		if( strstr( cur_pic->file_path , "mlterm/animx") && cur_pic->next_frame >= 0)
+		{
+			/* Don't clear if cur_pic is 2nd or later GIF Animation frame. */
+			need_clear = 0 ;
+		}
+
 		if( (src_width = w) < ch_width && ! need_clear)
 		{
 			x_window_clear( window , dst_x , dst_y , ch_width , line_height) ;

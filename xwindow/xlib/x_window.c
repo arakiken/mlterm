@@ -2100,6 +2100,16 @@ x_window_update(
 	if( win->update_window)
 	{
 		(*win->update_window)( win, flag) ;
+
+		if( win->gc->mask)
+		{
+			/*
+			 * x_window_copy_area() can set win->gc->mask.
+			 * It can cause unexpected drawing in x_animate_inline_pictures().
+			 */
+			XSetClipMask( win->disp->display , win->gc->gc , None) ;
+			win->gc->mask = None ;
+		}
 	}
 
 	return  1 ;

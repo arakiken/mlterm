@@ -32,6 +32,7 @@
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>	/* strdup */
 #include <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include <kiklib/kik_mem.h>
 
 #include "x_display.h"		/* x_display_get_visual_info */
 
@@ -451,7 +452,7 @@ load_file(
 			return  NULL ;
 		}
 
-		/* XXX Don't cache ~/.mlterm/[pty name].six. */
+		/* XXX Don't cache ~/.mlterm/[pty name].six, [pty name].rgs and anim-*.gif */
 		if( ! strstr( path , "mlterm/"))
 		{
 		#ifdef  __DEBUG
