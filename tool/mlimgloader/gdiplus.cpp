@@ -143,7 +143,13 @@ create_cardinals_from_file(
 #endif
 
 	if( strcmp( path + strlen(path) - 4 , ".gif") == 0 &&
-	    ! strstr( path , "mlterm\\anim"))
+	#if  defined(__CYGWIN__) || defined(__MSYS__)
+	    /* converted to win32 by cygwin_conv_to_win32_path */
+	    ! strstr( path , "mlterm\\anim")
+	#else
+	    ! strstr( path , "mlterm/anim")
+	#endif
+	    )
 	{
 		/* Animation GIF */
 

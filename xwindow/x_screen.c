@@ -4187,10 +4187,19 @@ idling(
 		}
 	}
 
-	if( x_animate_inline_pictures( screen->term))
+#ifndef  NO_IMAGE
+	/*
+	 * 1-2: wait for the next frame. (0.1sec * 2)
+	 * 3: animate.
+	 */
+	if( ++screen->anim_wait == 3)
 	{
-		x_window_update( &screen->window , UPDATE_SCREEN) ;
+		if( ( screen->anim_wait = x_animate_inline_pictures( screen->term)))
+		{
+			x_window_update( &screen->window , UPDATE_SCREEN) ;
+		}
 	}
+#endif
 }
 
 

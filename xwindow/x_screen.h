@@ -148,6 +148,7 @@ typedef struct  x_screen
 	int8_t  cursor_blink_wait ;
 	int8_t  hide_underline ;
 	int8_t  processing_vtseq ;
+	int8_t  anim_wait ;
 
 } x_screen_t ;
 

@@ -72,7 +72,7 @@ static x_icon_picture_t **  icon_pics ;
 static u_int  num_of_icon_pics ;
 static x_inline_picture_t *  inline_pics ;
 static u_int  num_of_inline_pics ;
-static int  anim_wait ;
+static u_int  num_of_anims ;
 static int  need_cleanup ;
 
 
@@ -301,6 +301,11 @@ delete_inline_picture(
 
 	/* pixmap == None means that the inline picture is empty. */
 	pic->pixmap = None ;
+
+	if( pic->next_frame != -1)
+	{
+		num_of_anims -- ;
+	}
 
 	return  1 ;
 }
@@ -1188,21 +1193,22 @@ x_add_frame_to_animation(
 	if( ( prev_pic = x_get_inline_picture( prev_idx)) &&
 	    ( next_pic = x_get_inline_picture( next_idx)) &&
 	    /* Animation is stopped after adding next_idx which equals to prev_pic->next_frame */
-	    prev_pic->next_frame != next_idx)
+	    prev_pic->next_frame != next_idx &&
+	    /* Don't add a picture which has been already added to an animation. */
+	    next_pic->next_frame == -1)
 	{
 		if( prev_pic->next_frame == -1)
 		{
+			num_of_anims += 2 ;
 			prev_pic->next_frame = next_idx ;
 			next_pic->next_frame = prev_idx ;
 		}
 		else
 		{
+			num_of_anims ++ ;
 			next_pic->next_frame = prev_pic->next_frame ;
 			prev_pic->next_frame = next_idx ;
 		}
-
-		/* start animating */
-		anim_wait = 2 ;
 
 		return  1 ;
 	}
@@ -1217,19 +1223,16 @@ x_animate_inline_pictures(
 	ml_term_t *  term
 	)
 {
-	int  found ;
+	int  wait ;
 	int  row ;
 	ml_line_t *  line ;
 
-	if( ! anim_wait || -- anim_wait > 0)
+	if( ! num_of_anims)
 	{
 		return  0 ;
 	}
 
-	/* 0.1sec * 2 */
-	anim_wait = 2 ;
-
-	found = 0 ;
+	wait = 0 ;
 
 	for( row = 0 ; row < ml_term_get_rows( term) ; row++)
 	{
@@ -1269,7 +1272,7 @@ x_animate_inline_pictures(
 						}
 
 						/* shorten waiting time. */
-						anim_wait = 1 ;
+						wait = 2 ;
 					}
 
 					if( ( code = next_frame_code( inline_pics + idx ,
@@ -1278,14 +1281,18 @@ x_animate_inline_pictures(
 						ml_char_set_code( comb , code) ;
 						ml_line_set_modified( line ,
 							char_index , char_index) ;
-						found = 1 ;
+
+						if( wait == 0)
+						{
+							wait = 1 ;
+						}
 					}
 				}
 			}
 		}
 	}
 
-	return  found ;
+	return  wait ;
 }
 
 #endif	/* NO_IMAGE */

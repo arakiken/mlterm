@@ -1,5 +1,12 @@
 2014-04-05  Araki Ken  <arakiken@users.sf.net>
 
+	* x_picture.c, x_screen.[ch]: Waiting between animation frames is
+	  managed in x_screen.[ch] instead of x_picture.c.
+
+	* gdiplus.cpp: Fix for win32.
+
+2014-04-05  Araki Ken  <arakiken@users.sf.net>
+
 	* xlib/x_window.c: XSetClipMask(None) is called in x_window_update().
 
 	* x_picture.[ch], c_imagelib.c, gdiplus.cpp, xlib/x_imagelib.c, x_draw_str.c:
