@@ -6,7 +6,7 @@ comment $Id$
 * 必要なもの
   (Win32 以外)
   gdk-pixbuf >= 2.14
-  gvfs 又は curl
+  gvfs 又は curl (Animation GIFを表示するにはcurlが必須です)
 
   (Win32)
   GDI+

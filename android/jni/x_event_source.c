@@ -145,7 +145,7 @@ x_event_source_process(void)
 	 * be changed from main thread.
 	 */
 	if( ( ident = ALooper_pollAll(
-				750 /* milisec. -1 blocks forever waiting for events */ ,
+				100 , /* milisec. -1 blocks forever waiting for events */
 				NULL , &events, (void**)&source)) >= 0)
 	{
 		if( ! x_display_process_event( source , ident))
@@ -184,6 +184,8 @@ x_event_source_process(void)
 			}
 		}
 	}
+
+	x_display_idling( NULL) ;
 
 	x_display_unlock() ;
 

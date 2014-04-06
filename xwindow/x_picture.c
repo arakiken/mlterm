@@ -268,17 +268,18 @@ delete_inline_picture(
 	x_inline_picture_t *  pic	/* pic->pixmap mustn't be NULL. */
 	)
 {
-	if( strstr( pic->file_path , "mlterm/anim"))
+	if( pic->pixmap == DUMMY_PIXMAP)
 	{
-		/* GIF Animation frame */
-
-		unlink( pic->file_path) ;
-	}
-	else if( pic->pixmap == DUMMY_PIXMAP)
-	{
-		/* loading async */
-
-		return  0 ;
+		if( strstr( pic->file_path , "mlterm/anim"))
+		{
+			/* GIF Animation frame */
+			unlink( pic->file_path) ;
+		}
+		else
+		{
+			/* loading async */
+			return  0 ;
+		}
 	}
 
 	/* pic->disp can be NULL by x_picture_display_closed() and load_file(). */
@@ -513,13 +514,22 @@ load_file(
 	PixmapMask  mask ;
 	u_int  width ;
 	u_int  height ;
+	int  ret ;
 
 	idx = ((inline_pic_args_t*)p)->idx ;
 	width = inline_pics[idx].width ;
 	height = inline_pics[idx].height ;
 
-	if( x_imagelib_load_file( inline_pics[idx].disp , inline_pics[idx].file_path ,
-			NULL , &pixmap , &mask , &width , &height))
+	ret = x_imagelib_load_file( inline_pics[idx].disp , inline_pics[idx].file_path ,
+			NULL , &pixmap , &mask , &width , &height) ;
+
+	if( strstr( inline_pics[idx].file_path , "mlterm/anim"))
+	{
+		/* GIF Animation frame */
+		unlink( inline_pics[idx].file_path) ;
+	}
+
+	if( ret)
 	{
 		/* XXX pthread_mutex_lock( &mutex) is necessary. */
 		inline_pics[idx].pixmap = pixmap ;
@@ -533,16 +543,14 @@ load_file(
 			inline_pics[idx].file_path , idx , width , height , 
 			inline_pics[idx].pixmap , inline_pics[idx].mask) ;
 	#endif
-
-		return  1 ;
 	}
 	else
 	{
 		inline_pics[idx].disp = NULL ;
 		delete_inline_picture( inline_pics + idx) ;
-
-		return  0 ;
 	}
+
+	return  ret ;
 }
 
 #if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
@@ -1119,11 +1127,11 @@ check_anim:
 			int  i ;
 			int  prev_i ;
 
-			hash = hash_path( inline_pics[idx].file_path) ;
-
-			sprintf( file_path , "%sanim%d.gif" , dir , hash) ;
+			/* Already loaded. */
+			sprintf( file_path , "%sanim.gif" , dir) ;
 			unlink( file_path) ;
 
+			hash = hash_path( inline_pics[idx].file_path) ;
 			prev_i = idx ;
 			for( count = 1 ; ; count++)
 			{

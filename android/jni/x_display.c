@@ -12,8 +12,9 @@
 
 #include  "../x_window.h"
 
-
 #define  DISP_IS_INITED   (_disp.display)
+
+#include  "../../common/c_animgif.c"
 
 
 /* --- static functions --- */
@@ -780,14 +781,14 @@ x_display_remove_root(
 
 void
 x_display_idling(
-	x_display_t *  disp
+	x_display_t *  disp	/* ignored */
 	)
 {
 	u_int  count ;
 
-	for( count = 0 ; count < disp->num_of_roots ; count ++)
+	for( count = 0 ; count < _disp.num_of_roots ; count ++)
 	{
-		x_window_idling( disp->roots[count]) ;
+		x_window_idling( _disp.roots[count]) ;
 	}
 }
 
@@ -1405,4 +1406,18 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 			_disp.height = height ;
 		}
 	}
+}
+
+void
+Java_mlterm_native_1activity_MLActivity_splitAnimationGif(
+	JNIEnv *  env ,
+	jobject  this ,
+	jstring  jstr
+	)
+{
+	const char *  path ;
+
+	path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
+	split_animation_gif( path , "/sdcard/.mlterm/" , hash_path( path)) ;
+	(*env)->ReleaseStringUTFChars( env , jstr , path) ;
 }

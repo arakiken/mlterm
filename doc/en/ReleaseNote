@@ -1,5 +1,6 @@
 ver 3.3.5
 * Support Animation GIF on "show_picture" of OSC 5379.
+  (It works with https://bitbucket.org/arakiken/w3m/get/remoteimg.tar.gz)
 * Add "add_frame" to OSC 5379.
 * Bug fixes:
   Fix compiler error on NetBSD/OpenBSD framebuffer. (enbugged at 3.3.4)

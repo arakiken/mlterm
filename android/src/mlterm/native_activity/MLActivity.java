@@ -35,6 +35,7 @@ public class MLActivity extends NativeActivity
 	private native void  visibleFrameChanged( int  yoffset , int  width , int  height) ;
 	private native void  commitText( String  str) ;
 	private native void  preeditText( String  str) ;
+	private native void  splitAnimationGif( String  path) ;
 
 	private boolean  isPreediting ;
 	private String  keyString ;
@@ -221,17 +222,48 @@ public class MLActivity extends NativeActivity
 	{
 		try
 		{
-			InputStream  is ;
+			InputStream  is = null ;
 
 			if( path.indexOf( "://") != -1)
 			{
 				URL  url = new URL( path) ;
 				is = url.openConnection().getInputStream() ;
+
+				if( path.indexOf( ".gif") != -1)
+				{
+					File  dir = new File( "/sdcard/.mlterm") ;
+					if( ! dir.isDirectory())
+					{
+						dir.mkdir() ;
+					}
+
+					OutputStream  os = new FileOutputStream( "/sdcard/.mlterm/anim.gif") ;
+					int  len ;
+					byte[]  buf = new byte[10240] ;
+
+					while( ( len = is.read( buf)) >= 0)
+					{
+						os.write( buf , 0 , len) ;
+					}
+
+					os.close() ;
+					is.close() ;
+
+					path = "/sdcard/.mlterm/anim.gif" ;
+					is = null ;
+				}
 			}
-			else
+			else if( path.indexOf( ".gif") == -1)
 			{
 				is = new FileInputStream( path) ;
 			}
+
+			if( is == null)
+			{
+				splitAnimationGif( path) ;
+				is = new FileInputStream( path) ;
+			}
+
 			Bitmap  bmp = BitmapFactory.decodeStream( is) ;
 
 			if( width != 0 && height != 0)

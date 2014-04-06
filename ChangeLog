@@ -1,3 +1,12 @@
+2014-04-06  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c, c_animgif.c: ~/.mlterm/anim%d.gif => ~/.mlterm/anim.gif
+
+	* c_animgif.c: Separated from c_imagelib.c.
+
+	* android/jni/x_display.c, android/jni/x_event_source.c, MLActivity.java:
+	  Animation GIF is supported on Android.
+
 2014-04-05  Araki Ken  <arakiken@users.sf.net>
 
 	* x_picture.c, x_screen.[ch]: Waiting between animation frames is

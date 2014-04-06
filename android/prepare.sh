@@ -37,7 +37,8 @@ cp ../main/*.[ch] ${PROJECT_PATH}/jni/main/
 
 mkdir -p ${PROJECT_PATH}/jni/common
 cp ../common/c_imagelib.c ${PROJECT_PATH}/jni/common/
-cp ../common/c_sixelc ${PROJECT_PATH}/jni/common/
+cp ../common/c_sixel.c ${PROJECT_PATH}/jni/common/
+cp ../common/c_animgif.c ${PROJECT_PATH}/jni/common/
 
 cp jni/Android.mk ${PROJECT_PATH}/jni/
 cp jni/x_event_source.c ${PROJECT_PATH}/jni/xwindow/

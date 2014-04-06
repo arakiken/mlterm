@@ -169,7 +169,8 @@ create_cardinals_from_file(
 				ULONG  rd_len ;
 				HRESULT  res ;
 
-				if( ! ( new_path = (char*)alloca( strlen( dir) + 8 + 1)))
+				if( ! ( new_path = (char*)alloca( strlen( dir) + 8 +
+							DIGIT_STR_LEN(int) + 1)))
 				{
 					goto  end0 ;
 				}
