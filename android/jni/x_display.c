@@ -1418,6 +1418,7 @@ Java_mlterm_native_1activity_MLActivity_splitAnimationGif(
 	const char *  path ;
 
 	path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
-	split_animation_gif( path , "/sdcard/.mlterm/" , hash_path( path)) ;
+	split_animation_gif( "/sdcard/.mlterm/anim.gif" , "/sdcard/.mlterm/" ,
+		hash_path( path)) ;
 	(*env)->ReleaseStringUTFChars( env , jstr , path) ;
 }

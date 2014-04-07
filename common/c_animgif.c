@@ -68,7 +68,8 @@ split_animation_gif(
 	ssize_t  len ;
 	int  num ;
 	char *  split_path ;
-	char *  format ;
+	const char *  format ;
+	const char *  next_format ;
 
 #ifdef  USE_WIN32API
 	if( ( fd = open( path , O_RDONLY|O_BINARY)) < 0)
@@ -138,14 +139,15 @@ split_animation_gif(
 				save_gif( split_path , header , header_size ,
 					body , p - 3 - body) ;
 
-				/* XXX *p & 4 => Regarded as no dispose. */
-				format = (*p & 0x4) ? "%sanimx%d-%d.gif" : "%sanim%d-%d.gif" ;
+				format = next_format ;
 			}
 			else
 			{
 				format = "%sanim.gif" ;
 			}
 
+			/* XXX *p & 4 => Regarded as no dispose. */
+			next_format = (*p & 0x4) ? "%sanimx%d-%d.gif" : "%sanim%d-%d.gif" ;
 			body = p - 3 ;
 			num ++ ;
 		}

@@ -249,18 +249,17 @@ public class MLActivity extends NativeActivity
 					os.close() ;
 					is.close() ;
 
-					path = "/sdcard/.mlterm/anim.gif" ;
-					is = null ;
+					splitAnimationGif( path) ;
+					is = new FileInputStream( "/sdcard/.mlterm/anim.gif") ;
 				}
 			}
-			else if( path.indexOf( ".gif") == -1)
+			else
 			{
-				is = new FileInputStream( path) ;
-			}
+				if( path.indexOf( ".gif") != -1 && path.indexOf( "mlterm/anim") == -1)
+				{
+					splitAnimationGif( path) ;
+				}
 
-			if( is == null)
-			{
-				splitAnimationGif( path) ;
 				is = new FileInputStream( path) ;
 			}
 
