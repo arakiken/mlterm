@@ -55,7 +55,7 @@ save_gif(
 static int
 split_animation_gif(
 	const char *  path ,
-	const char *  dir ,
+	const char *  dir ,	/* must end with '/'. */
 	int  hash
 	)
 {

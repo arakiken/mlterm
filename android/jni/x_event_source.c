@@ -171,21 +171,23 @@ x_event_source_process(void)
 			}
 		}
 	}
-
-	if( preedit_text || commit_text)
+	else
 	{
-		for( count = 0 ; count < num_of_terms ; count++)
+		if( preedit_text || commit_text)
 		{
-			if( ml_term_is_attached( terms[count]))
+			for( count = 0 ; count < num_of_terms ; count++)
 			{
-				update_ime_text( terms[count]) ;
+				if( ml_term_is_attached( terms[count]))
+				{
+					update_ime_text( terms[count]) ;
 
-				break ;
+					break ;
+				}
 			}
 		}
-	}
 
-	x_display_idling( NULL) ;
+		x_display_idling( NULL) ;
+	}
 
 	x_display_unlock() ;
 

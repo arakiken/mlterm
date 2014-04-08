@@ -1412,7 +1412,7 @@ void
 Java_mlterm_native_1activity_MLActivity_splitAnimationGif(
 	JNIEnv *  env ,
 	jobject  this ,
-	jstring  jstr
+	jstring  jstr	/* must be original URL. (Don't specify /sdcard/.mlterm/anim*) */
 	)
 {
 	const char *  path ;
