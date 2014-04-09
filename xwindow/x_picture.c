@@ -275,7 +275,7 @@ delete_inline_picture(
 			/* GIF Animation frame */
 			unlink( pic->file_path) ;
 		}
-		else
+		else if( pic->disp)
 		{
 			/* loading async */
 			return  0 ;
@@ -303,7 +303,7 @@ delete_inline_picture(
 	/* pixmap == None means that the inline picture is empty. */
 	pic->pixmap = None ;
 
-	if( pic->next_frame != -1)
+	if( pic->next_frame >= 0)
 	{
 		num_of_anims -- ;
 	}
@@ -433,12 +433,12 @@ cleanup_inline_pictures(
 		{
 			/*
 			 * Don't cleanup inline pictures refered twice or more times
-			 * until num_of_inline_pics reaches 32 or more.
+			 * until num_of_inline_pics reaches THRESHOLD or more.
 			 */
-			if( inline_pics[count].ref_count >= 2 &&
+			if( inline_pics[count].weighting >= 2 &&
 			    num_of_inline_pics < THRESHOLD + 8)
 			{
-				inline_pics[count].ref_count /= 2 ;
+				inline_pics[count].weighting /= 2 ;
 
 				continue ;
 			}
@@ -532,10 +532,10 @@ load_file(
 	if( ret)
 	{
 		/* XXX pthread_mutex_lock( &mutex) is necessary. */
-		inline_pics[idx].pixmap = pixmap ;
 		inline_pics[idx].mask = mask ;
 		inline_pics[idx].width = width ;
 		inline_pics[idx].height = height ;
+		inline_pics[idx].pixmap = pixmap ;
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG
@@ -627,7 +627,8 @@ ensure_inline_picture(
 	inline_pics[idx].col_width = col_width ;
 	inline_pics[idx].line_height = line_height ;
 	inline_pics[idx].next_frame = -1 ;
-	inline_pics[idx].ref_count = 1 ;
+	/* Don't delete before being inserted to ml_term_t after loading async. */
+	inline_pics[idx].weighting = 2 ;
 
 	return  idx ;
 }
@@ -1002,7 +1003,7 @@ x_load_inline_picture(
 					file_path) ;
 			#endif
 
-				inline_pics[idx].ref_count ++ ;
+				inline_pics[idx].weighting ++ ;
 
 				if( inline_pics[idx].pixmap == DUMMY_PIXMAP)
 				{
@@ -1010,7 +1011,17 @@ x_load_inline_picture(
 				}
 				else
 				{
-					goto  end ;
+					if( strcmp( file_path + strlen(file_path) - 4 ,
+						".gif") == 0 &&
+					    /* If check_anim was processed, next_frame == -2. */
+					    inline_pics[idx].next_frame == -1)
+					{
+						goto  check_anim ;
+					}
+					else
+					{
+						goto  end ;
+					}
 				}
 			}
 		}
@@ -1026,8 +1037,7 @@ x_load_inline_picture(
 	args->idx = idx ;
 
 #if  defined(HAVE_PTHREAD) || defined(USE_WIN32API)
-	if( strstr( file_path , "://") &&
-	    strcmp( file_path + strlen(file_path) - 4 , ".gif") != 0)
+	if( strstr( file_path , "://"))
 	{
 		/* Loading a remote file asynchronously. */
 
@@ -1071,7 +1081,7 @@ x_load_inline_picture(
 		if( WaitForSingleObject( args->ev , 750) != WAIT_TIMEOUT &&
 		    PIXMAP_IS_ACTIVE(inline_pics[idx]))
 		{
-			goto  end ;
+			goto  check_anim ;
 		}
 	#else
 		if( fds[1] != -1)
@@ -1090,7 +1100,7 @@ x_load_inline_picture(
 
 			if( ret != 0 && PIXMAP_IS_ACTIVE(inline_pics[idx]))
 			{
-				goto  end ;
+				goto  check_anim ;
 			}
 		}
 	#endif
@@ -1117,6 +1127,9 @@ check_anim:
 		/* Animation GIF */
 
 		char *  dir ;
+
+		/* mark checked */
+		inline_pics[idx].next_frame = -2 ;
 
 		if( ( dir = kik_get_user_rc_path( "mlterm/")) &&
 		    ( file_path = alloca( strlen( dir) + 10 + 5 + DIGIT_STR_LEN(int) + 1)))
@@ -1203,9 +1216,9 @@ x_add_frame_to_animation(
 	    /* Animation is stopped after adding next_idx which equals to prev_pic->next_frame */
 	    prev_pic->next_frame != next_idx &&
 	    /* Don't add a picture which has been already added to an animation. */
-	    next_pic->next_frame == -1)
+	    next_pic->next_frame < 0)
 	{
-		if( prev_pic->next_frame == -1)
+		if( prev_pic->next_frame < 0)
 		{
 			num_of_anims += 2 ;
 			prev_pic->next_frame = next_idx ;
@@ -1264,7 +1277,7 @@ x_animate_inline_pictures(
 
 					code = ml_char_code( comb) ;
 					idx = INLINEPIC_ID( code) ;
-					if( ( next = inline_pics[idx].next_frame) == -1)
+					if( ( next = inline_pics[idx].next_frame) < 0)
 					{
 						continue ;
 					}

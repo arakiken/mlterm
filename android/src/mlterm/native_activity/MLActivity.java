@@ -222,7 +222,7 @@ public class MLActivity extends NativeActivity
 	{
 		try
 		{
-			InputStream  is = null ;
+			InputStream  is ;
 
 			if( path.indexOf( "://") != -1)
 			{
