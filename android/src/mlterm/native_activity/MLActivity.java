@@ -35,6 +35,7 @@ public class MLActivity extends NativeActivity
 	private native void  visibleFrameChanged( int  yoffset , int  width , int  height) ;
 	private native void  commitText( String  str) ;
 	private native void  preeditText( String  str) ;
+	private native int  hashPath( String  path) ;
 	private native void  splitAnimationGif( String  path) ;
 
 	private boolean  isPreediting ;
@@ -231,13 +232,10 @@ public class MLActivity extends NativeActivity
 
 				if( path.indexOf( ".gif") != -1)
 				{
-					File  dir = new File( "/sdcard/.mlterm") ;
-					if( ! dir.isDirectory())
-					{
-						dir.mkdir() ;
-					}
+					String  tmp = "/sdcard/.mlterm/anim" +
+									Integer.toString( hashPath( path)) + ".gif" ;
+					OutputStream  os = new FileOutputStream( tmp) ;
 
-					OutputStream  os = new FileOutputStream( "/sdcard/.mlterm/anim.gif") ;
 					int  len ;
 					byte[]  buf = new byte[10240] ;
 
@@ -250,12 +248,12 @@ public class MLActivity extends NativeActivity
 					is.close() ;
 
 					splitAnimationGif( path) ;
-					is = new FileInputStream( "/sdcard/.mlterm/anim.gif") ;
+					is = new FileInputStream( tmp) ;
 				}
 			}
 			else
 			{
-				if( path.indexOf( ".gif") != -1 && path.indexOf( "mlterm/anim") == -1)
+				if( path.indexOf( ".gif") != -1)
 				{
 					splitAnimationGif( path) ;
 				}
@@ -265,25 +263,30 @@ public class MLActivity extends NativeActivity
 
 			Bitmap  bmp = BitmapFactory.decodeStream( is) ;
 
-			if( width != 0 && height != 0)
+			/* decodeStream() can return null. */
+			if( bmp != null)
 			{
-				bmp = Bitmap.createScaledBitmap( bmp , width , height , false) ;
+				if( width != 0 && height != 0)
+				{
+					bmp = Bitmap.createScaledBitmap( bmp , width , height , false) ;
+				}
+
+				width = bmp.getWidth() ;
+				height = bmp.getHeight() ;
+				int[]  pixels = new int[width * height + 2] ;
+
+				bmp.getPixels( pixels , 0 , width , 0 , 0 , width , height) ;
+				pixels[pixels.length - 2] = width ;
+				pixels[pixels.length - 1] = height ;
+
+				return  pixels ;
 			}
-
-			width = bmp.getWidth() ;
-			height = bmp.getHeight() ;
-			int[]  pixels = new int[width * height + 2] ;
-
-			bmp.getPixels( pixels , 0 , width , 0 , 0 , width , height) ;
-			pixels[pixels.length - 2] = width ;
-			pixels[pixels.length - 1] = height ;
-
-			return  pixels ;
 		}
 		catch( Exception  e)
 		{
 			System.err.println( e) ;
-			return  null ;
 		}
+
+		return  null ;
 	}
 }

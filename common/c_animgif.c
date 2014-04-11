@@ -143,7 +143,7 @@ split_animation_gif(
 			}
 			else
 			{
-				format = "%sanim.gif" ;
+				format = "%sanim%d.gif" ;
 			}
 
 			/* XXX *p & 4 => Regarded as no dispose. */

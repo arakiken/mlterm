@@ -1,3 +1,9 @@
+2014-04-11  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.c, MLActivity.java, c_animgif.c, c_imagelib.c, gdiplus.cpp,
+	  x_picture.c: ~/.mlterm/anim.gif => ~/.mlterm/anim%d.gif to support
+	  asynchronous loading.
+
 2014-04-10  Araki Ken  <arakiken@users.sf.net>
 
 	* x_picture.[ch]: It is possible to load GIF files asynchronously.

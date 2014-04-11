@@ -170,12 +170,12 @@ create_cardinals_from_file(
 				HRESULT  res ;
 
 				if( ! ( new_path = (char*)alloca( strlen( dir) + 8 +
-							DIGIT_STR_LEN(int) + 1)))
+							5 + DIGIT_STR_LEN(int) + 1)))
 				{
 					goto  end0 ;
 				}
 
-				sprintf( new_path , "%sanim.gif" , dir) ;
+				sprintf( new_path , "%sanim%d.gif" , dir , hash) ;
 
 				if( ! ( fp = fopen( new_path , "wb")))
 				{

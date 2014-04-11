@@ -1034,7 +1034,6 @@ x_display_get_str(
 	JavaVM *  vm ;
 	jobject  this ;
 	jstring  jstr_key ;
-	char *  key ;
 	size_t  len ;
 
 	vm = _display.app->activity->vm ;
@@ -1048,6 +1047,8 @@ x_display_get_str(
 
 	if( jstr_key)
 	{
+		const char *  key ;
+
 		key = (*env)->GetStringUTFChars( env , jstr_key , NULL) ;
 
 		if( ( len = strlen(key)) > seq_len)
@@ -1408,6 +1409,23 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 	}
 }
 
+jint
+Java_mlterm_native_1activity_MLActivity_hashPath(
+	JNIEnv *  env ,
+	jobject  this ,
+	jstring  jstr	/* must be original URL. (Don't specify /sdcard/.mlterm/anim*) */
+	)
+{
+	const char *  path ;
+	jint  hash ;
+
+	path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
+	hash = hash_path( path) ;
+	(*env)->ReleaseStringUTFChars( env , jstr , path) ;
+
+	return  hash ;
+}
+
 void
 Java_mlterm_native_1activity_MLActivity_splitAnimationGif(
 	JNIEnv *  env ,
@@ -1415,10 +1433,21 @@ Java_mlterm_native_1activity_MLActivity_splitAnimationGif(
 	jstring  jstr	/* must be original URL. (Don't specify /sdcard/.mlterm/anim*) */
 	)
 {
+	const char *  str ;
 	const char *  path ;
+	char tmp[24 + 5 + 1] ;
+	int  hash ;
 
-	path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
-	split_animation_gif( "/sdcard/.mlterm/anim.gif" , "/sdcard/.mlterm/" ,
-		hash_path( path)) ;
-	(*env)->ReleaseStringUTFChars( env , jstr , path) ;
+	path = str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
+	hash = hash_path( path) ;
+
+	if( strstr( path , "://"))
+	{
+		sprintf( tmp , "/sdcard/.mlterm/anim%d.gif" , hash) ;
+		path = tmp ;
+	}
+
+	split_animation_gif( path , "/sdcard/.mlterm/" , hash) ;
+
+	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 }

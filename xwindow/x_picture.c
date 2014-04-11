@@ -1140,11 +1140,12 @@ check_anim:
 			int  i ;
 			int  prev_i ;
 
+			hash = hash_path( inline_pics[idx].file_path) ;
+
 			/* Already loaded. */
-			sprintf( file_path , "%sanim.gif" , dir) ;
+			sprintf( file_path , "%sanim%d.gif" , dir , hash) ;
 			unlink( file_path) ;
 
-			hash = hash_path( inline_pics[idx].file_path) ;
 			prev_i = idx ;
 			for( count = 1 ; ; count++)
 			{

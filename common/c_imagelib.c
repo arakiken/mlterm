@@ -264,14 +264,14 @@ gdk_pixbuf_new_from(
 				{
 					char *  cmd ;
 
-					if( ! ( cmd = alloca( 25 + strlen( path) +
-							strlen( dir) + DIGIT_STR_LEN(int) + 1)))
+					if( ! ( cmd = alloca( 25 + strlen( path) + strlen( dir) +
+								5 + DIGIT_STR_LEN(int) + 1)))
 					{
 						goto  end ;
 					}
 
-					sprintf( cmd , "curl -L -k -s %s > %sanim.gif" ,
-						path , dir) ;
+					sprintf( cmd , "curl -L -k -s %s > %sanim%d.gif" ,
+						path , dir , hash) ;
 					if( system( cmd) != 0)
 					{
 						goto  end ;
