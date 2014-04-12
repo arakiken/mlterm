@@ -365,6 +365,33 @@ gdk_pixbuf_new_from(
 			}
 
 			pixbuf = gdk_pixbuf_new_from_file( path , NULL) ;
+
+			if( strstr( path , "mlterm/anim"))
+			{
+				int  xoff ;
+				int  yoff ;
+				int  width ;
+				int  height ;
+
+				if( read_gif_info( path , &xoff , &yoff , &width , &height))
+				{
+					if( width > gdk_pixbuf_get_width( pixbuf) ||
+					    height > gdk_pixbuf_get_height( pixbuf))
+					{
+						GdkPixbuf *  new_pixbuf ;
+
+						new_pixbuf = gdk_pixbuf_new( GDK_COLORSPACE_RGB ,
+								TRUE , 8 , width , height) ;
+						gdk_pixbuf_fill( new_pixbuf , 0x00000000) ;
+						gdk_pixbuf_copy_area( pixbuf , 0 , 0 ,
+							gdk_pixbuf_get_width( pixbuf) ,
+							gdk_pixbuf_get_height( pixbuf) ,
+							new_pixbuf , xoff , yoff) ;
+						g_object_unref( pixbuf) ;
+						pixbuf = new_pixbuf ;
+					}
+				}
+			}
 		}
 
 	#else	/* GDK_PIXBUF_MAJOR */

@@ -1,3 +1,12 @@
+2014-04-12  Araki Ken  <arakiken@users.sf.net>
+
+	* c_anim.gif, c_imagelib.c: If gdk_pixbuf_new_from() reads a GIF
+	  Animation frame whose width and height are smaller than those of the
+	  first frame, it resizes appropriately. (gdk_pixbuf_new_from_file()
+	  ignores the logical width and height in the GIF header.)
+
+	* x_picture.c: If it fails to load an animation gif frame, skip it.
+
 2014-04-11  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.c, MLActivity.java, c_animgif.c, c_imagelib.c, gdiplus.cpp,

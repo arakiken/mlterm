@@ -52,6 +52,70 @@ save_gif(
 	}
 }
 
+static u_char *
+skip_gif_header(
+	u_char *  p
+	)
+{
+	/* Header */
+
+	p += 10 ;
+
+	if( *(p) & 0x80)
+	{
+		p += (3 * (2 << ((*p) & 0x7))) ;
+	}
+	p += 3 ;
+
+	return  p ;
+}
+
+#ifdef  GDK_PIXBUF_VERSION
+/* read gif information from mlterm/anim*.gif file. */
+static int
+read_gif_info(
+	const char *  path ,
+	int *  x_off ,
+	int *  y_off ,
+	int *  width ,
+	int *  height
+	)
+{
+	int  fd ;
+	u_char  data[1024] ;	/* enough to get necessary gif information */
+	ssize_t  len ;
+
+	if( ( fd = open( path , O_RDONLY)) < 0)
+	{
+		return  0 ;
+	}
+
+	len = read( fd , data , sizeof(data)) ;
+	close( fd) ;
+
+	/* Cast to char* is necessary because this function can be compiled by g++. */
+	if( len >= 6 && strncmp( (char*)data , "GIF89a" , 6) == 0)
+	{
+		u_char *  p ;
+
+		p = skip_gif_header( data) ;
+
+		if( p + 12 < data + len &&
+		    p[0] == 0x21 && p[1] == 0xf9 && p[2] == 0x04 && p[8] == 0x2c)
+		{
+			*x_off = (p[10] << 8) | p[9] ;
+			*y_off = (p[12] << 8) | p[11] ;
+			*width = (data[7] << 8) | data[6] ;
+			*height = (data[9] << 8) | data[8] ;
+
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+#endif
+
 static int
 split_animation_gif(
 	const char *  path ,
@@ -82,33 +146,27 @@ split_animation_gif(
 
 	/* Cast to u_char* is necessary because this function can be compiled by g++. */
 	if( fstat( fd , &st) != 0 ||
-	    ! ( p = header = (u_char*)malloc( st.st_size)))
+	    ! ( header = (u_char*)malloc( st.st_size)))
 	{
 		close( fd) ;
 
 		return  0 ;
 	}
 
-	len = read( fd , p , st.st_size) ;
+	len = read( fd , header , st.st_size) ;
 	close( fd) ;
 
 	/* Header */
 
 	/* Cast to char* is necessary because this function can be compiled by g++. */
-	if( len != st.st_size || strncmp( (char*)p , "GIF89a" , 6) != 0)
+	if( len != st.st_size || strncmp( (char*)header , "GIF89a" , 6) != 0)
 	{
 		free( header) ;
 
 		return  0 ;
 	}
-	p += 10 ;
 
-	if( *(p) & 0x80)
-	{
-		p += (3 * (2 << ((*p) & 0x7))) ;
-	}
-	p += 3 ;
-
+	p = skip_gif_header( header) ;
 	header_size = p - header ;
 
 	/* Application Extension */
@@ -127,9 +185,7 @@ split_animation_gif(
 
 	while( p + 2 < header + st.st_size)
 	{
-		if( *(p++) == 0x21 &&
-		    *(p++) == 0xf9 &&
-		    *(p++) == 0x04)
+		if( *(p++) == 0x21 && *(p++) == 0xf9 && *(p++) == 0x04)
 		{
 			/* skip the first frame. */
 			if( body)

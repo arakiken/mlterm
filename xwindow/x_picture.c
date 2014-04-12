@@ -303,6 +303,10 @@ delete_inline_picture(
 	/* pixmap == None means that the inline picture is empty. */
 	pic->pixmap = None ;
 
+	/*
+	 * Don't next_frame = -1 here because x_animate_inline_pictures() refers it
+	 * even if load_file() fails.
+	 */
 	if( pic->next_frame >= 0)
 	{
 		num_of_anims -- ;
@@ -514,23 +518,20 @@ load_file(
 	PixmapMask  mask ;
 	u_int  width ;
 	u_int  height ;
-	int  ret ;
 
 	idx = ((inline_pic_args_t*)p)->idx ;
 	width = inline_pics[idx].width ;
 	height = inline_pics[idx].height ;
 
-	ret = x_imagelib_load_file( inline_pics[idx].disp , inline_pics[idx].file_path ,
-			NULL , &pixmap , &mask , &width , &height) ;
-
-	if( strstr( inline_pics[idx].file_path , "mlterm/anim"))
+	if( x_imagelib_load_file( inline_pics[idx].disp , inline_pics[idx].file_path ,
+			NULL , &pixmap , &mask , &width , &height))
 	{
-		/* GIF Animation frame */
-		unlink( inline_pics[idx].file_path) ;
-	}
+		if( strstr( inline_pics[idx].file_path , "mlterm/anim"))
+		{
+			/* GIF Animation frame */
+			unlink( inline_pics[idx].file_path) ;
+		}
 
-	if( ret)
-	{
 		/* XXX pthread_mutex_lock( &mutex) is necessary. */
 		inline_pics[idx].mask = mask ;
 		inline_pics[idx].width = width ;
@@ -543,14 +544,16 @@ load_file(
 			inline_pics[idx].file_path , idx , width , height , 
 			inline_pics[idx].pixmap , inline_pics[idx].mask) ;
 	#endif
+
+		return  1 ;
 	}
 	else
 	{
 		inline_pics[idx].disp = NULL ;
 		delete_inline_picture( inline_pics + idx) ;
-	}
 
-	return  ret ;
+		return  0 ;
+	}
 }
 
 #if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
@@ -1283,6 +1286,7 @@ x_animate_inline_pictures(
 						continue ;
 					}
 
+				retry:
 					if( inline_pics[next].pixmap == DUMMY_PIXMAP)
 					{
 						inline_pic_args_t  args ;
@@ -1290,7 +1294,15 @@ x_animate_inline_pictures(
 						args.idx = next ;
 						if( ! load_file( &args))
 						{
-							continue ;
+							if( inline_pics[next].next_frame == idx)
+							{
+								inline_pics[idx].next_frame = -1 ;
+								continue ;
+							}
+
+							next = inline_pics[idx].next_frame =
+								inline_pics[next].next_frame ;
+							goto  retry ;
 						}
 
 						/* shorten waiting time. */
