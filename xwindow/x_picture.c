@@ -1014,7 +1014,7 @@ x_load_inline_picture(
 				}
 				else
 				{
-					if( strcmp( file_path + strlen(file_path) - 4 ,
+					if( strcasecmp( file_path + strlen(file_path) - 4 ,
 						".gif") == 0 &&
 					    /* If check_anim was processed, next_frame == -2. */
 					    inline_pics[idx].next_frame == -1)
@@ -1125,7 +1125,7 @@ x_load_inline_picture(
 	return  -1 ;
 
 check_anim:
-	if( strcmp( file_path + strlen(file_path) - 4 , ".gif") == 0)
+	if( strcasecmp( file_path + strlen(file_path) - 4 , ".gif") == 0)
 	{
 		/* Animation GIF */
 

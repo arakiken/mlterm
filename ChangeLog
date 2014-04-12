@@ -1,3 +1,10 @@
+2014-04-13  Araki Ken  <arakiken@users.sf.net>
+
+	* gdiplus.cpp, c_anim.gif: Hack for unexpected behavior of GDI+ in reading
+	  animation GIF frames is added.
+
+	* x_picture.c, c_imagelib.c: Minor fixes.
+
 2014-04-12  Araki Ken  <arakiken@users.sf.net>
 
 	* c_anim.gif, c_imagelib.c: If gdk_pixbuf_new_from() reads a GIF

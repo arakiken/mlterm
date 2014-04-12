@@ -35,6 +35,9 @@ save_gif(
 	size_t  header_size ,
 	u_char *  body ,
 	size_t  body_size
+#ifdef  USE_WIN32GUI
+	, int  colorkey
+#endif
 	)
 {
 	int  fd ;
@@ -47,6 +50,16 @@ save_gif(
 	{
 		write( fd , header , header_size) ;
 		write( fd , body , body_size) ;
+	#ifdef  USE_WIN32GUI
+		if( colorkey >= 0)
+		{
+			u_char  append[] =
+				"\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x08\x01\x00\x00" ;
+
+			append[12] = colorkey ;
+			write( fd , append , sizeof(append) - 1) ;
+		}
+	#endif
 		write( fd , "\x3b" , 1) ;
 		close( fd) ;
 	}
@@ -134,6 +147,9 @@ split_animation_gif(
 	char *  split_path ;
 	const char *  format ;
 	const char *  next_format ;
+#ifdef  USE_WIN32GUI
+	int  colorkey ;
+#endif
 
 #ifdef  USE_WIN32API
 	if( ( fd = open( path , O_RDONLY|O_BINARY)) < 0)
@@ -193,7 +209,11 @@ split_animation_gif(
 				/* Graphic Control Extension */
 				sprintf( split_path , format , dir , hash , num) ;
 				save_gif( split_path , header , header_size ,
-					body , p - 3 - body) ;
+					body , p - 3 - body
+				#ifdef  USE_WIN32GUI
+					, colorkey
+				#endif
+					) ;
 
 				format = next_format ;
 			}
@@ -205,6 +225,24 @@ split_animation_gif(
 			/* XXX *p & 4 => Regarded as no dispose. */
 			next_format = (*p & 0x4) ? "%sanimx%d-%d.gif" : "%sanim%d-%d.gif" ;
 			body = p - 3 ;
+
+		#ifdef  USE_WIN32GUI
+			/*
+			 * XXX
+			 * GDI+ which clears margin area with an opaque color if the 2nd
+			 * or later frame is smaller than the 1st one.
+			 * The hack of embedding a transparent color at x=0 y=0 fixes it.
+			 */
+			if( ((p[7] << 8) | p[6]) > 0 || ((p[9] << 8) | p[8]) > 0)
+			{
+				colorkey = p[3] ;
+			}
+			else
+			{
+				colorkey = -1 ;
+			}
+		#endif
+
 			num ++ ;
 		}
 	}
@@ -212,8 +250,12 @@ split_animation_gif(
 	if( body)
 	{
 		sprintf( split_path , format , dir , hash , num) ;
-		save_gif( split_path , header , header_size , body ,
-			header + st.st_size - body - 1) ;
+		save_gif( split_path , header , header_size ,
+			body , header + st.st_size - body - 1
+		#ifdef  USE_WIN32GUI
+			, colorkey
+		#endif
+			) ;
 	}
 
 	free( header) ;

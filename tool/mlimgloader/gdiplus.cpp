@@ -70,6 +70,7 @@ create_cardinals_from_file(
 	u_int  height
 	)
 {
+	/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
 	wchar_t  wpath[MAX_PATH] ;
 #if  defined(__CYGWIN__) || defined(__MSYS__)
 	char  winpath[MAX_PATH] ;
@@ -81,9 +82,9 @@ create_cardinals_from_file(
 	IMoniker *  moniker ;
 	IStream *  stream ;
 	Gdiplus::Bitmap *  bitmap ;
+	int  hash ;
 	u_int32_t *  cardinal ;
 	u_int32_t *  p ;
-	int  hash ;
 
 	if( strstr( path , ".six") && ( cardinal = create_cardinals_from_sixel( path)))
 	{
@@ -142,40 +143,37 @@ create_cardinals_from_file(
 	}
 #endif
 
-	if( strcmp( path + strlen(path) - 4 , ".gif") == 0 &&
-	#if  defined(__CYGWIN__) || defined(__MSYS__)
-	    /* converted to win32 by cygwin_conv_to_win32_path */
-	    ! strstr( path , "mlterm\\anim")
-	#else
-	    ! strstr( path , "mlterm/anim")
-	#endif
-	    )
+	if( strcmp( path + strlen(path) - 4 , ".gif") == 0)
 	{
 		/* Animation GIF */
 
 		char *  dir ;
 
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
-		if( ( dir = kik_get_user_rc_path( "mlterm/")))
+		/* converted to win32 by cygwin_conv_to_win32_path */
+		if( ! strstr( path , "mlterm\\anim") &&
+		    ( dir = kik_get_user_rc_path( "mlterm/")))
 	#else
-		if( ( dir = kik_get_user_rc_path( "mlterm\\")))
+		if( ! strstr( path , "mlterm/anim") &&
+		    ( dir = kik_get_user_rc_path( "mlterm\\")))
 	#endif
 		{
+			char *  new_path ;
+
+			if( ! ( new_path = (char*)alloca( strlen( dir) + 8 +
+						5 + DIGIT_STR_LEN(int) + 1)))
+			{
+				goto  end0 ;
+			}
+
+			sprintf( new_path , "%sanim%d.gif" , dir , hash) ;
+
 			if( stream)
 			{
-				char *  new_path ;
 				FILE *  fp ;
 				BYTE  buf[10240] ;
 				ULONG  rd_len ;
 				HRESULT  res ;
-
-				if( ! ( new_path = (char*)alloca( strlen( dir) + 8 +
-							5 + DIGIT_STR_LEN(int) + 1)))
-				{
-					goto  end0 ;
-				}
-
-				sprintf( new_path , "%sanim%d.gif" , dir , hash) ;
 
 				if( ! ( fp = fopen( new_path , "wb")))
 				{
@@ -198,20 +196,16 @@ create_cardinals_from_file(
 				stream = NULL ;
 
 				path = new_path ;
-
-			#if  defined(__CYGWIN__) || defined(__MSYS__)
-				{
-					/*
-					 * MAX_PATH which is 260 (3+255+1+1) is
-					 * defined in win32 alone.
-					 */
-					cygwin_conv_to_win32_path( path , winpath) ;
-					path = winpath ;
-				}
-			#endif
 			}
 
-			split_animation_gif( (char*)path , dir , hash) ;
+			split_animation_gif( path , dir , hash) ;
+
+		#if  defined(__CYGWIN__) || defined(__MSYS__)
+			cygwin_conv_to_win32_path( new_path , winpath) ;
+			new_path = winpath ;
+		#endif
+			/* Replace path by the splitted file. */
+			path = new_path ;
 
 		end0:
 			free( dir) ;
@@ -247,7 +241,7 @@ create_cardinals_from_file(
 			goto  end1 ;
 		}
 
-		if( ! ( bitmap = new Bitmap( width , height)))
+		if( ! ( bitmap = new Bitmap( width , height , PixelFormat32bppARGB)))
 		{
 			delete  image ;
 

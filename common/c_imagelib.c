@@ -245,9 +245,10 @@ gdk_pixbuf_new_from(
 {
 	GdkPixbuf *  pixbuf ;
 
-	if( ! strstr( path , ".six") || ! ( pixbuf = gdk_pixbuf_new_from_sixel( path)))
+	if( ! strcasecmp( path + strlen(path) - 4 , ".six") == 0 ||
+	    ! ( pixbuf = gdk_pixbuf_new_from_sixel( path)))
 	{
-		if( strcmp( path + strlen(path) - 4 , ".gif") == 0 &&
+		if( strcasecmp( path + strlen(path) - 4 , ".gif") == 0 &&
 		    ! strstr( path , "mlterm/anim"))
 		{
 			/* Animation GIF */
@@ -353,7 +354,7 @@ gdk_pixbuf_new_from(
 		}
 		else
 		{
-			if( strstr( path , ".rgs"))
+			if( strcasecmp( path + strlen(path) - 4 , ".rgs") == 0)
 			{
 				char *  new_path ;
 
