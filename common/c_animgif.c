@@ -227,19 +227,34 @@ split_animation_gif(
 			body = p - 3 ;
 
 		#ifdef  USE_WIN32GUI
-			/*
-			 * XXX
-			 * GDI+ which clears margin area with an opaque color if the 2nd
-			 * or later frame is smaller than the 1st one.
-			 * The hack of embedding a transparent color at x=0 y=0 fixes it.
-			 */
-			if( ((p[7] << 8) | p[6]) > 0 || ((p[9] << 8) | p[8]) > 0)
+			if( p + 13 < header + st.st_size)
 			{
-				colorkey = p[3] ;
-			}
-			else
-			{
-				colorkey = -1 ;
+				int  frame_xoff ;
+				int  frame_yoff ;
+				int  frame_width ;
+				int  frame_height ;
+
+				frame_xoff = ((p[7] << 8) | p[6]) ;
+				frame_yoff = ((p[9] << 8) | p[8]) ;
+				frame_width = ((p[11] << 8) | p[10]) ;
+				frame_height = ((p[13] << 8) | p[12]) ;
+
+				/*
+				 * XXX
+				 * GDI+ which clears margin area with an opaque color if the 2nd
+				 * or later frame is smaller than the 1st one.
+				 * The hack of embedding a transparent color at x=0 y=0 fixes it.
+				 */
+				if( frame_xoff > 0 || frame_yoff > 0 ||
+				    frame_xoff + frame_width < ((header[7] << 8) | header[6]) ||
+				    frame_yoff + frame_height < ((header[9] << 8) | header[8]))
+				{
+					colorkey = p[3] ;
+				}
+				else
+				{
+					colorkey = -1 ;
+				}
 			}
 		#endif
 
