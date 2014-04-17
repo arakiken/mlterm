@@ -1,3 +1,7 @@
+2014-04-17  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c: Minor fixes.
+
 2014-04-14  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: Hack for unexpected behavior of GDI+ in reading animation

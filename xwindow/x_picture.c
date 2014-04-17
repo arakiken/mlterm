@@ -263,6 +263,11 @@ delete_icon_picture(
 	return  1 ;
 }
 
+/*
+ * XXX
+ * This function should be called synchronously because both load_file_async()
+ * and cleanup_inline_pictures() can call this asynchronously.
+ */
 static int
 delete_inline_picture(
 	x_inline_picture_t *  pic	/* pic->pixmap mustn't be NULL. */
@@ -994,7 +999,7 @@ x_load_inline_picture(
 	{
 		for( idx = 0 ; idx < num_of_inline_pics ; idx++)
 		{
-			if( inline_pics[idx].pixmap &&
+			if( PIXMAP_IS_ACTIVE(inline_pics[idx]) &&
 			    disp == inline_pics[idx].disp &&
 			    strcmp( file_path , inline_pics[idx].file_path) == 0 &&
 			    term == inline_pics[idx].term &&
@@ -1008,23 +1013,16 @@ x_load_inline_picture(
 
 				inline_pics[idx].weighting ++ ;
 
-				if( inline_pics[idx].pixmap == DUMMY_PIXMAP)
+				if( strcasecmp( file_path + strlen(file_path) - 4 ,
+					".gif") == 0 &&
+				    /* If check_anim was processed, next_frame == -2. */
+				    inline_pics[idx].next_frame == -1)
 				{
-					return  -1 ;
+					goto  check_anim ;
 				}
 				else
 				{
-					if( strcasecmp( file_path + strlen(file_path) - 4 ,
-						".gif") == 0 &&
-					    /* If check_anim was processed, next_frame == -2. */
-					    inline_pics[idx].next_frame == -1)
-					{
-						goto  check_anim ;
-					}
-					else
-					{
-						goto  end ;
-					}
+					goto  end ;
 				}
 			}
 		}
