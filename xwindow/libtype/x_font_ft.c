@@ -268,16 +268,17 @@ get_fc_col_width(
 	u_int  letter_space
 	)
 {
-	if( percent > 0)
+	if( percent == 0)
 	{
-		return  DIVIDE_ROUNDING(fontsize_d * font->cols * percent , 100 * 2) +
-			letter_space ;
+		if( letter_space == 0 || font->is_var_col_width)
+		{
+			return  0 ;
+		}
+
+		percent = 100 ;
 	}
-	else if( letter_space == 0 || font->is_var_col_width)
-	{
-		return  0 ;
-	}
-	else if( strcmp( fc_size_type , FC_SIZE) == 0)
+
+	if( strcmp( fc_size_type , FC_SIZE) == 0)
 	{
 		double  dpi ;
 
@@ -296,11 +297,13 @@ get_fc_col_width(
 			dpi = (widthpix * 254) / (widthmm * 10) ;
 		}
 
-		return  DIVIDE_ROUNDINGUP(dpi * fontsize_d * font->cols , 72 * 2) + letter_space ;
+		return  DIVIDE_ROUNDINGUP(dpi * fontsize_d * font->cols * percent , 72 * 100 * 2) +
+			letter_space ;
 	}
 	else
 	{
-		return  DIVIDE_ROUNDINGUP(fontsize_d * font->cols , 2) + letter_space ;
+		return  DIVIDE_ROUNDINGUP(fontsize_d * font->cols * percent , 100 * 2) +
+			letter_space ;
 	}
 }
 
@@ -335,14 +338,15 @@ fc_pattern_create(
 	{
 		FcPatternAddInteger( pattern , FC_SLANT , slant) ;
 	}
-	FcPatternAddInteger( pattern , FC_SPACING , ch_width > 0 ? FC_MONO : FC_PROPORTIONAL) ;
 #ifdef  USE_TYPE_XFT
 	if( ch_width > 0)
 	{
+		FcPatternAddInteger( pattern , FC_SPACING , FC_CHARCELL) ;
 		/* XXX FC_CHAR_WIDTH doesn't make effect in cairo ... */
 		FcPatternAddInteger( pattern , FC_CHAR_WIDTH , ch_width) ;
 	}
 #endif
+
 	if( aa_opt)
 	{
 		FcPatternAddBool( pattern , FC_ANTIALIAS , aa_opt == 1 ? True : False) ;
@@ -880,10 +884,17 @@ font_found:
 		if( ch_width == 0)
 		{
 			/*
-			 * Proportional (font->is_var_col_width is true)
+			 * font->is_var_col_width is true or letter_space == 0.
+			 * (see get_fc_col_width())
 			 * letter_space is ignored in variable column width mode.
 			 */
 			font->width = xft_calculate_char_width( font , 'W') ;
+
+			if( ! font->is_proportional &&
+			    font->width > xft_calculate_char_width( font , 'l'))
+			{
+				font->is_proportional = 1 ;
+			}
 		}
 		else
 		{
@@ -937,6 +948,11 @@ font_found:
 				font->width *= 2 ;
 				font->x_off = font->width / 4 ;	/* Centering */
 			}
+			else if( ! font->is_proportional &&
+			         font->width > cairo_calculate_char_width( font , 'l'))
+			{
+				font->is_proportional = 1 ;
+			}
 		}
 
 		/*
@@ -961,12 +977,10 @@ font_found:
 
 			/*
 			 * XXX
-			 * Surrounded by #if 0 ... #endif,
-			 * because the case like ch_width = 12 and
-			 * extents.max_x_advance = 12.28(dealt as 13 though should be dealt as 12)
-			 * happens.
+			 * Note that ch_width = 12 and extents.max_x_advance = 12.28
+			 * (dealt as 13 though should be dealt as 12) may happen.
 			 */
-		#if  0
+		#if  1
 			font->is_proportional = 1 ;
 
 			if( font->width < ch_width)

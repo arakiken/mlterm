@@ -1,5 +1,14 @@
 2014-04-22  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c, etc/termcap: The default output string of XK_BackSpace is
+	  changed from '\x07' to '\x7f'.
+
+	* x_font_ft.c: Processing proportional fonts on cairo is improved.
+
+	* mlimgloader/none.c: Minor fixes.
+
+2014-04-22  Araki Ken  <arakiken@users.sf.net>
+
 	* x_event_source.c, xlib/x_display.c: Pending events in the event queue
 	  is read before select().
 

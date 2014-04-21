@@ -10,6 +10,7 @@
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
+#include <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #if  defined(__CYGWIN__) || defined(__MSYS__)
 #include <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
 #endif

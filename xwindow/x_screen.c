@@ -2677,7 +2677,7 @@ no_keypad:
 		{
 			if( ! (buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE)))
 			{
-				buf = "\x08" ;
+				buf = "\x7f" ;
 			}
 		}
 		else if( ksym == XK_Escape)
