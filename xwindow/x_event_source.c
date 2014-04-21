@@ -134,7 +134,13 @@ receive_next_event(void)
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{
 		#ifdef  X_PROTOCOL
-			/* XFlush() is necessary after using Xlib functions. */
+			/* Need to read pending events before waiting in select(). */
+			if( XEventsQueued( displays[count]->display , QueuedAlready))
+			{
+				x_display_receive_next_event( displays[count]) ;
+			}
+
+			/* Need flush events in output buffer before waiting in select(). */
 			XFlush( displays[count]->display) ;
 		#endif
 

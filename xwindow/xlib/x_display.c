@@ -466,34 +466,22 @@ x_display_receive_next_event(
 	x_display_t *  disp
 	)
 {
-	if( XEventsQueued( disp->display , QueuedAfterReading))
+	XEvent  event ;
+	int  count ;
+
+	do
 	{
-		XEvent  event ;
-		int  count ;
+		XNextEvent( disp->display , &event) ;
 
-		do
+		if( ! XFilterEvent( &event , None))
 		{
-			XNextEvent( disp->display , &event) ;
-
-			if( ! XFilterEvent( &event , None))
+			for( count = 0 ; count < disp->num_of_roots ; count ++)
 			{
-				for( count = 0 ; count < disp->num_of_roots ; count ++)
-				{
-					x_window_receive_event( disp->roots[count] , &event) ;
-				}
+				x_window_receive_event( disp->roots[count] , &event) ;
 			}
 		}
-		while( XEventsQueued( disp->display , QueuedAfterReading)) ;
 	}
-
-	/* XFlush() is called in x_event_source.c */
-#if  0
-	/*
-	 * If XEventsQueued() return 0, this should be done because events
-	 * should be flushed before waiting in select().
-	 */
-	XFlush( disp->display) ;
-#endif
+	while( XEventsQueued( disp->display , QueuedAfterReading)) ;
 
 	return  1 ;
 }
