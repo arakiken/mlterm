@@ -634,6 +634,7 @@ ft_font_open(
 
 u_int  xft_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 u_int  cairo_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
+int  xft_unset_font( x_font_t *  font) ;
 
 static int
 fc_set_font(
@@ -855,7 +856,7 @@ fc_set_font(
 
 font_found:
 
-	font->is_proportional = font->is_var_col_width ;
+	font->is_proportional = 0 ;
 
 	if( use_xft)
 	{
@@ -886,18 +887,41 @@ font_found:
 			/*
 			 * font->is_var_col_width is true or letter_space == 0.
 			 * (see get_fc_col_width())
-			 * letter_space is ignored in variable column width mode.
 			 */
+
 			font->width = xft_calculate_char_width( font , 'W') ;
 
-			if( ! font->is_proportional &&
-			    font->width > xft_calculate_char_width( font , 'l'))
+			if( font->width != xft_calculate_char_width( font , 'l'))
 			{
-				font->is_proportional = 1 ;
+				/* Regard it as proportional. */
+
+				if( font->is_var_col_width)
+				{
+					font->is_proportional = 1 ;
+				}
+				else
+				{
+					u_int  new_width ;
+
+					new_width = xft_calculate_char_width( font , 'N') ;
+					if( font->is_vertical)
+					{
+						new_width *= 2 ;
+					}
+
+					xft_unset_font( font) ;
+
+					/* reloading it as mono spacing. */
+					return  fc_set_font( font , fontname , fontsize ,
+							new_width , letter_space , aa_opt ,
+							use_xft) ;
+				}
 			}
 		}
 		else
 		{
+			/* Always mono space */
+
 			font->width = ch_width ;
 
 			if( font->is_vertical && font->cols == 1)
@@ -948,48 +972,53 @@ font_found:
 				font->width *= 2 ;
 				font->x_off = font->width / 4 ;	/* Centering */
 			}
-			else if( ! font->is_proportional &&
-			         font->width > cairo_calculate_char_width( font , 'l'))
+			else if( font->width != cairo_calculate_char_width( font , 'l'))
 			{
+				if( ! font->is_var_col_width)
+				{
+					font->width = cairo_calculate_char_width( font , 'N') ;
+				}
+
+				/* Regard it as proportional. */
 				font->is_proportional = 1 ;
 			}
 		}
 
-		/*
-		 * Set letter_space here because cairo_font_open() ignores it.
-		 * (FC_CHAR_WIDTH doesn't make effect in cairo.)
-		 * Then, column width for vertical mode should be set again here.
-		 */
-
-		/* letter_space is ignored in variable column width mode. */
-		if( ! font->is_var_col_width && letter_space > 0)
+		if( ! font->is_var_col_width)
 		{
-			font->is_proportional = 1 ;
-			font->width += (letter_space * font->cols) ;
-			font->x_off += (letter_space * font->cols / 2) ;  /* Centering */
-		}
-
-		if( col_width > 0 /* is not usascii */ && ! font->is_proportional &&
-		    ch_width != font->width)
-		{
-			kik_msg_printf( "Font(id %x) width(%d) is not matched with "
-				"standard width(%d).\n" , font->id , font->width , ch_width) ;
-
 			/*
-			 * XXX
-			 * Note that ch_width = 12 and extents.max_x_advance = 12.28
-			 * (dealt as 13 though should be dealt as 12) may happen.
+			 * Set letter_space here because cairo_font_open() ignores it.
+			 * (FC_CHAR_WIDTH doesn't make effect in cairo.)
+			 * Note that letter_space is ignored in variable column width mode.
 			 */
-		#if  1
-			font->is_proportional = 1 ;
-
-			if( font->width < ch_width)
+			if( letter_space > 0)
 			{
-				font->x_off = (ch_width - font->width) / 2 ;
+				font->is_proportional = 1 ;
+				font->width += (letter_space * font->cols) ;
+				font->x_off += (letter_space * font->cols / 2) ;  /* Centering */
 			}
-		#endif
 
-			font->width = ch_width ;
+			if( ch_width > 0 && ch_width != font->width)
+			{
+				kik_msg_printf( "Font(id %x) width(%d) is not matched with "
+					"standard width(%d).\n" ,
+					font->id , font->width , ch_width) ;
+
+				/*
+				 * XXX
+				 * Note that ch_width = 12 and extents.max_x_advance = 12.28
+				 * (dealt as 13 though should be dealt as 12) may happen.
+				 */
+
+				font->is_proportional = 1 ;
+
+				if( font->width < ch_width)
+				{
+					font->x_off = (ch_width - font->width) / 2 ;
+				}
+
+				font->width = ch_width ;
+			}
 		}
 	#endif	/* USE_TYPE_CAIRO */
 	}

@@ -1,3 +1,10 @@
+2014-04-23  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_ft.c:
+	  - Mono spacing is always forced on xft unless use_variable_column_width
+	    is true.
+	  - ":Percentage" after font names in ~/.mlterm/aafont works on cairo.
+
 2014-04-22  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c, etc/termcap: The default output string of XK_BackSpace is
