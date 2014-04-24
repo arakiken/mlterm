@@ -1,3 +1,7 @@
+2014-04-24  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c: The error of compiling mlimgloader/none.c is fixed.
+
 2014-04-23  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_ft.c:

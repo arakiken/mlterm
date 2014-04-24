@@ -62,7 +62,7 @@ convert_regis_to_bmp(
 	return  0 ;
 }
 
-#elif  defined(USE_WIN32GUI) || defined(GDK_PIXBUF_VERSION)
+#else
 
 #include  <unistd.h>	/* execve */
 #include  <sys/wait.h>
@@ -135,7 +135,7 @@ convert_regis_to_bmp(
 	return  0 ;
 }
 
-#endif	/* USE_WIN32API */
+#endif
 
 
 #ifdef  GDK_PIXBUF_VERSION
