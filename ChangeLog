@@ -1,4 +1,13 @@
-2014-04-24  Araki Ken  <arakiken@users.sf.net>
+2014-04-26  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.3.5 released.
+	  (tag "rel-3_3_5")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.3.5.
+
+2014-04-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_ft.c: The default width of proportional fonts is changed from the
 	  width of 'N' to 'M'.

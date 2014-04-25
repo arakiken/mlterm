@@ -7490,7 +7490,7 @@ x_screen_new(
 	int  use_vertical_cursor ,
 	int  big5_buggy ,
 	int  use_extended_scroll_shortcut ,
-	int  override_redirect ,
+	int  borderless ,
 	u_int  line_space ,
 	char *  input_method ,
 	int  allow_osc52 ,
@@ -7712,7 +7712,7 @@ x_screen_new(
 
 	screen->bel_mode = bel_mode ;
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
-	screen->borderless = override_redirect ;
+	screen->borderless = borderless ;
 	screen->font_or_color_config_updated = 0 ;
 
 	screen->hide_underline = hide_underline ;

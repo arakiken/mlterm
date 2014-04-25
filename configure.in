@@ -764,7 +764,7 @@ mlimgloader)
 		#include  <windows.h>
 		#include  <gdiplus.h>],,
 		have_gdiplus=yes,have_gdiplus=no)
-	if test "$have_gdiplus" = "yes" ; then
+	if test "$gui" = "win32" -a "$have_gdiplus" = "yes" ; then
 		MLIMGLOADER_LIB=gdiplus
 	elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
 		MLIMGLOADER_LIB=gdk-pixbuf
@@ -1125,7 +1125,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.3.4)
+AM_INIT_AUTOMAKE(mlterm,3.3.5)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

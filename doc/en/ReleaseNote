@@ -6,6 +6,10 @@ ver 3.3.5
   Fix compiler error on NetBSD/OpenBSD framebuffer. (enbugged at 3.3.4)
   Fix the bug which sometimes disabled to show large sixel graphics sequence.
   (enbugged at 3.3.4)
+  Output ^? instead of ^H on TERM=xterm by default in pressing backspace key.
+  Fix the bug which sometimes left X11 events untouched for a while.
+  Fix the bug of closing the input method window unexpectedly in pressing it.
+  ":Percentage" after font names in ~/.mlterm/aafont works on cairo.
 
 ver 3.3.4
 * Support not only sixel graphics but also other major image formats on Android.

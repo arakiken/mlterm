@@ -21698,7 +21698,7 @@ else
   have_gdiplus=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	if test "$have_gdiplus" = "yes" ; then
+	if test "$gui" = "win32" -a "$have_gdiplus" = "yes" ; then
 		MLIMGLOADER_LIB=gdiplus
 	elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
 		MLIMGLOADER_LIB=gdk-pixbuf
@@ -23552,7 +23552,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=mlterm
- VERSION=3.3.4
+ VERSION=3.3.5
 
 
 cat >>confdefs.h <<_ACEOF

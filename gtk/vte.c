@@ -3779,12 +3779,7 @@ vte_terminal_get_cursor_blink_mode(
 	VteTerminal *  terminal
 	)
 {
-	/*
-	 * XXX
-	 * Not work until x_display_idling is implemented.
-	 */
-
-	if( terminal->pvt->screen->window.idling)
+	if( terminal->pvt->screen->cursor_blink_wait)
 	{
 		return  VTE_CURSOR_BLINK_ON ;
 	}
