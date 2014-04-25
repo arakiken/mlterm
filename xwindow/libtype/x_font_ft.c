@@ -903,7 +903,7 @@ font_found:
 				{
 					u_int  new_width ;
 
-					new_width = xft_calculate_char_width( font , 'N') ;
+					new_width = xft_calculate_char_width( font , 'M') ;
 					if( font->is_vertical)
 					{
 						new_width *= 2 ;
@@ -976,7 +976,7 @@ font_found:
 			{
 				if( ! font->is_var_col_width)
 				{
-					font->width = cairo_calculate_char_width( font , 'N') ;
+					font->width = cairo_calculate_char_width( font , 'M') ;
 				}
 
 				/* Regard it as proportional. */

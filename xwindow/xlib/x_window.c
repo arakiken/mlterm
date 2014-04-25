@@ -1898,6 +1898,8 @@ x_window_set_override_redirect(
 		XMapWindow( root->disp->display , root->my_window) ;
 	}
 
+	win->is_focused = 1 ;	/* XXX Always focused not to execute XSetInputFocus(). */
+
 	return  1 ;
 }
 
@@ -2389,6 +2391,7 @@ x_window_receive_event(
 			win->prev_button_press_event = event->xbutton ;
 		}
 
+		/* XXX Note that win->is_focused is always true on override redirect mode. */
 		if( ! win->is_focused)
 		{
 			XSetInputFocus( win->disp->display , win->my_window ,

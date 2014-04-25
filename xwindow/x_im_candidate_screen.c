@@ -694,10 +694,7 @@ hide(
 	x_im_candidate_screen_t *  cand_screen
 	)
 {
-	if( ! cand_screen->window.is_focused)
-	{
-		x_window_unmap( &cand_screen->window) ;
-	}
+	x_window_unmap( &cand_screen->window) ;
 
 	return  1 ;
 }

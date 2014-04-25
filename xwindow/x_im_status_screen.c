@@ -122,10 +122,7 @@ hide(
 	x_im_status_screen_t *  stat_screen
 	)
 {
-	if( ! stat_screen->window.is_focused)
-	{
-		x_window_unmap( &stat_screen->window) ;
-	}
+	x_window_unmap( &stat_screen->window) ;
 
 	return  1 ;
 }

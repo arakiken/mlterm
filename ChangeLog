@@ -1,5 +1,17 @@
 2014-04-24  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font_ft.c: The default width of proportional fonts is changed from the
+	  width of 'N' to 'M'.
+
+	* xlib/x_window.c: win->is_focused is always true on override redirect mode
+	  in order not to call XSetInputFocus() in pressing input method window.
+
+	* x_im_candidate_screen.c, x_im_status_screen.c:
+	  Even if window is unfocused hide() always calls x_window_unmap() in order
+	  to hide input method window as soon as preedit string is removed all.
+
+2014-04-24  Araki Ken  <arakiken@users.sf.net>
+
 	* c_imagelib.c: The error of compiling mlimgloader/none.c is fixed.
 
 2014-04-23  Araki Ken  <arakiken@users.sf.net>
