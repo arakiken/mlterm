@@ -1,5 +1,12 @@
 2014-04-26  Araki Ken  <arakiken@users.sf.net>
 
+	* x_draw_str.c: The margin area of transparent frame of animation gif is
+	  never cleared.
+
+	* version.h.in: 3.3.5 -> 3.3.5post
+
+2014-04-26  Araki Ken  <arakiken@users.sf.net>
+
 	* 3.3.5 released.
 	  (tag "rel-3_3_5")
 

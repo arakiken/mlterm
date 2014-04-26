@@ -129,7 +129,7 @@ draw_picture(
 			}
 		}
 
-		if( need_clear)
+		if( need_clear > 0)
 		{
 			x_window_clear( window , dst_x , dst_y , dst_width , line_height) ;
 		}
@@ -175,7 +175,7 @@ draw_picture(
 		if( strstr( cur_pic->file_path , "mlterm/animx") && cur_pic->next_frame >= 0)
 		{
 			/* Don't clear if cur_pic is 2nd or later GIF Animation frame. */
-			need_clear = 0 ;
+			need_clear = -1 ;
 		}
 
 		if( (src_width = w) < ch_width && ! need_clear)
