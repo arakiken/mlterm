@@ -1,3 +1,11 @@
+2014-05-02  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_wscons.c: WSDISPLAYIO_MODE_DUMBFB is used instead of
+	  WSDISPLAYIO_MODE_MAPPED on NetBSD.
+
+	* x_font_ft.c: cairo_matrix_init_identity() + cairo_matrix_scale()
+	  => cairo_matrix_init_scale().
+
 2014-04-26  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c: The margin area of transparent frame of animation gif is

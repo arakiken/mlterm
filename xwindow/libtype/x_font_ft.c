@@ -547,8 +547,7 @@ cairo_font_open(
 	 */
 	pixel_size2 = DIVIDE_ROUNDINGUP(pixel_size,2.0) * 2 ;
 
-	cairo_matrix_init_identity( &font_matrix) ;
-	cairo_matrix_scale( &font_matrix , pixel_size2 , pixel_size2) ;
+	cairo_matrix_init_scale( &font_matrix , pixel_size2 , pixel_size2) ;
 	cairo_get_matrix( cairo , &ctm) ;
 
 	xfont = cairo_scaled_font_create( font_face , &font_matrix , &ctm , options) ;
