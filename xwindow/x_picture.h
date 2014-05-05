@@ -71,9 +71,7 @@ typedef struct x_inline_picture
 } x_inline_picture_t ;
 
 
-#define  INLINEPIC_ID_SHIFT   14
-#define  INLINEPIC_ID(glyph)  ((glyph) >> 14 & 0x3ff)
-#define  INLINEPIC_POS(glyph) ((glyph) & 0x3fff)
+#define  MAX_INLINE_PICTURES  (1 << PICTURE_ID_BITS)
 #define  MAKE_INLINEPIC_POS(col , row , num_of_rows)  ((col) * (num_of_rows) + (row))
 
 #ifdef  NO_IMAGE

@@ -8,8 +8,10 @@
 
 #ifndef  NO_IMAGE
 #include  "x_picture.h"
-#endif
 
+#define  INLINEPIC_ID(glyph)  (((glyph) >> PICTURE_POS_BITS) & (MAX_INLINE_PICTURES - 1))
+#define  INLINEPIC_POS(glyph) ((glyph) & ((1 << PICTURE_POS_BITS) - 1))
+#endif
 
 #if  0
 #define  PERF_DEBUG
@@ -334,7 +336,8 @@ get_state(
 	if( comb_chars && ml_char_cs( comb_chars) == PICTURE_CHARSET)
 	{
 		*draw_alone = 0 ;	/* forcibly set 0 regardless of xfont. */
-		*pic_glyph = ml_char_code( comb_chars) ;
+		*pic_glyph = ml_char_code( comb_chars) |
+		             (ml_char_picture_id( comb_chars) << PICTURE_POS_BITS) ;
 		*drcs_glyph = NULL ;
 
 		return  4 ;

@@ -403,7 +403,7 @@ cleanup_inline_pictures(
 					{
 						int  idx ;
 
-						idx = INLINEPIC_ID(ml_char_code( comb)) ;
+						idx = ml_char_picture_id( comb) ;
 						do
 						{
 							flags[idx] = 1 ;
@@ -616,7 +616,8 @@ ensure_inline_picture(
 		void *  p ;
 
 		/* XXX pthread_mutex_lock( &mutex) is necessary. */
-		if( ! ( p = realloc( inline_pics ,
+		if( num_of_inline_pics >= MAX_INLINE_PICTURES ||
+		    ! ( p = realloc( inline_pics ,
 				(num_of_inline_pics + 1) * sizeof(*inline_pics))))
 		{
 			return  -1 ;
@@ -658,30 +659,27 @@ hash_path(
 }
 
 static int
-next_frame_code(
+next_frame_pos(
 	x_inline_picture_t *  prev ,
 	x_inline_picture_t *  next ,
-	int  code
+	int  pos
 	)
 {
 	u_int  cur_rows ;
 	u_int  next_rows ;
-	int  pos ;
 	int  row ;
 	int  col ;
 
 	cur_rows = ( prev->height + prev->line_height - 1) / prev->line_height ;
 	next_rows = ( next->height + next->line_height - 1) / next->line_height ;
 
-	pos = INLINEPIC_POS(code) ;
 	row = pos % cur_rows ;
 	col = pos / cur_rows ;
 
 	if( row < next_rows &&
 	    col < ( next->width + next->col_width - 1) / next->col_width)
 	{
-		return  MAKE_INLINEPIC_POS( col , row , next_rows) |
-			(prev->next_frame << INLINEPIC_ID_SHIFT) ;
+		return  MAKE_INLINEPIC_POS( col , row , next_rows) ;
 	}
 	else
 	{
@@ -1273,12 +1271,12 @@ x_animate_inline_pictures(
 						line->chars + char_index , &size)) &&
 				    ml_char_cs( comb) == PICTURE_CHARSET)
 				{
-					int32_t  code ;
+					int32_t  pos ;
 					int  idx ;
 					int  next ;
 
-					code = ml_char_code( comb) ;
-					idx = INLINEPIC_ID( code) ;
+					pos = ml_char_code( comb) ;
+					idx = ml_char_picture_id( comb) ;
 					if( ( next = inline_pics[idx].next_frame) < 0)
 					{
 						continue ;
@@ -1307,10 +1305,11 @@ x_animate_inline_pictures(
 						wait = 2 ;
 					}
 
-					if( ( code = next_frame_code( inline_pics + idx ,
-							inline_pics + next , code)) >= 0)
+					if( ( pos = next_frame_pos( inline_pics + idx ,
+							inline_pics + next , pos)) >= 0)
 					{
-						ml_char_set_code( comb , code) ;
+						ml_char_set_code( comb , pos) ;
+						ml_char_set_picture_id( comb , next) ;
 						ml_line_set_modified( line ,
 							char_index , char_index) ;
 

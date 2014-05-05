@@ -3741,7 +3741,7 @@ selecting_picture(
 	    ! ( ch = ml_char_at( line , char_index)) ||
 	    ! ( ch = ml_get_combining_chars( ch , &comb_size)) ||
 	    ml_char_cs( ch) != PICTURE_CHARSET ||
-	    ! ( pic = x_get_inline_picture( INLINEPIC_ID(ml_char_code( ch)))))
+	    ! ( pic = x_get_inline_picture( ml_char_picture_id( ch))))
 	{
 		return  0 ;
 	}
@@ -7327,7 +7327,6 @@ xterm_get_picture_data(
 		int  max_num_of_cols ;
 
 		screen->prev_inline_pic = idx ;
-		idx <<= INLINEPIC_ID_SHIFT ;
 
 		max_num_of_cols = ml_term_get_cursor_line( screen->term)->num_of_chars -
 					ml_term_cursor_col( screen->term) ;
@@ -7351,9 +7350,8 @@ xterm_get_picture_data(
 				{
 					ml_char_copy( buf_p , ml_sp_ch()) ;
 
-					ml_char_combine( buf_p ++ ,
-						idx | MAKE_INLINEPIC_POS(col,row,*num_of_rows) ,
-						PICTURE_CHARSET , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
+					ml_char_combine_picture( buf_p ++ ,
+						idx , MAKE_INLINEPIC_POS(col,row,*num_of_rows)) ;
 				}
 			}
 

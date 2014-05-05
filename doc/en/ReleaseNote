@@ -1,6 +1,7 @@
 ver 3.3.6
 * Bug fixes:
   Fix partially corrupt screen in drawing animation gif.
+  Fix https://twitter.com/yoshikaw/status/462125454107738112
 
 ver 3.3.5
 * Support Animation GIF on "show_picture" of OSC 5379.

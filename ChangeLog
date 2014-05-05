@@ -1,3 +1,20 @@
+2014-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: The hack of continuing sixel sequence by FF, GS, RS and US
+	  after ST is removed.
+
+	* x_draw_str.c: INLINEPIC_ID and INLINEPIC_POS are defined. (Not in x_picture.h)
+
+	* x_picture.c, x_screen.c: Following macros in ml_char.h are used.
+
+	* ml_char.h:
+	  - PICTURE_ID_BITS and PICTURE_POS_BITS are defined. (Not in x_picture.h)
+	  - ml_char_combine_picture(), ml_char_picture_id() and ml_char_set_picture_id()
+	    macros are defined.
+
+	* x_picture.h: INLINEPIC_ID_SHIFT, INLINEPIC_ID and INLINEPIC_POS macros
+	  are removed.
+
 2014-05-02  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_wscons.c: WSDISPLAYIO_MODE_DUMBFB is used instead of

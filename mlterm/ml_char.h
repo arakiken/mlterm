@@ -32,6 +32,8 @@
 
 /* For inline pictures (see x_picture.c) */
 #define  PICTURE_CHARSET  0x1ff
+#define  PICTURE_ID_BITS   9	/* fg or bg color */
+#define  PICTURE_POS_BITS  23	/* code */
 
 
 /*
@@ -69,8 +71,8 @@ typedef struct ml_char
 			 * 1 bit : is_single_ch(0 or 1)
 			 */
 		#ifdef  WORDS_BIGENDIAN
-			u_int  code: 23 ;
-			u_int  fg_color: 9 ;
+			u_int  code: 23 ;	/* code == position and {fg|bg}_color == id */
+			u_int  fg_color: 9 ;	/* for PICTURE_CHARSET (see x_picture.h) */
 			u_int  bg_color: 9 ;
 			u_int  attr: 23 ;
 		#else
@@ -108,6 +110,10 @@ int  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
 	int  is_fullwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
 	int  is_bold , int  is_italic , int  is_underlined) ;
 
+/* set both fg and bg colors for reversing. */
+#define  ml_char_combine_picture( ch , id , pos) \
+	ml_char_combine( ch , pos , PICTURE_CHARSET , 0 , 0 ,  id , id , 0 , 0 , 0)
+
 int  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
 
 ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
@@ -140,6 +146,9 @@ int  ml_char_is_fullwidth( ml_char_t *  ch) ;
 ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
 
 int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  color) ;
+
+#define  ml_char_picture_id( ch)  ml_char_fg_color( ch)
+#define  ml_char_set_picture_id( ch , idx)  ml_char_set_fg_color( ch , idx)
 
 ml_color_t  ml_char_bg_color( ml_char_t *  ch) ;
 

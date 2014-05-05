@@ -4696,14 +4696,21 @@ parse_vt100_escape_sequence(
 
 					if( is_end == 2)
 					{
-						if( /* ^L (FF) */
-						    *str_p == 0x0c ||
-						    /* ^] (GS), ^^ (RS), ^_ (US) */
-						    ( 0x1d <= *str_p && *str_p <= 0x1f) ||
-						    *str_p == 0x90 ||
+						u_char *  p ;
+
+						p = str_p ;
+
+						/* \x38 == '8' */
+						if( strncmp( p , "\x1d\x38k @\x1f" , 6) == 0)
+						{
+							/* XXX Hack for biplane.six */
+							p += 6 ;
+						}
+
+						if( *p == 0x90 ||
 						    /* XXX If left == 0 and next char is 'P'... */
-						    ( *str_p == CTL_ESC && left > 1 &&
-						      *(str_p + 1) == 'P') )
+						    ( *p == CTL_ESC && left > p - str_p + 1 &&
+						      *(p + 1) == 'P') )
 						{
 							/* continued ... */
 							is_end = 0 ;
