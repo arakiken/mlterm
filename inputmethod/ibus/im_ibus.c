@@ -8,7 +8,6 @@
 #include  <kiklib/kik_list.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
-#include  <kiklib/kik_str.h>	/* kik_compare_str */
 
 #include  <x_im.h>
 

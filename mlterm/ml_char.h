@@ -71,8 +71,8 @@ typedef struct ml_char
 			 * 1 bit : is_single_ch(0 or 1)
 			 */
 		#ifdef  WORDS_BIGENDIAN
-			u_int  code: 23 ;	/* code == position and {fg|bg}_color == id */
-			u_int  fg_color: 9 ;	/* for PICTURE_CHARSET (see x_picture.h) */
+			u_int  code: 23 ;
+			u_int  fg_color: 9 ;
 			u_int  bg_color: 9 ;
 			u_int  attr: 23 ;
 		#else

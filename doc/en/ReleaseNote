@@ -1,4 +1,5 @@
 ver 3.3.6
+* Support fcitx on X11. (Experimental)
 * Bug fixes:
   Fix partially corrupt screen in drawing animation gif.
   Fix https://twitter.com/yoshikaw/status/462125454107738112

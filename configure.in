@@ -953,6 +953,40 @@ AC_SUBST(IBUS_CFLAGS)
 AC_SUBST(IBUS_LIBS)
 
 #
+# --- FCITX ---
+#
+AC_ARG_ENABLE(fcitx,
+	[  --enable-fcitx           FCITX (Experimental) @<:@default=disabled@:>@],
+	fcitx=$enable_fcitx)
+if test "$enable_shared" = "no" ; then
+	fcitx="no"
+fi
+
+if test "x$fcitx" = "xyes" ; then
+	AC_PROG_CXX
+	PKG_CHECK_MODULES(FCITX, fcitx-gclient, has_fcitx=yes, has_fcitx=no)
+	if test "x$has_fcitx" = xyes ; then
+		MAKE_DIRS="inputmethod/fcitx ${MAKE_DIRS}"
+		OUTPUT_FILES="inputmethod/fcitx/Makefile ${OUTPUT_FILES}"
+		if test "x$with_libltdl" != xno ; then
+			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/fcitx/libim-fcitx.la ${DL_LIBS_IM}"
+		fi
+		if test "$with_pthread" != "no" ; then
+			# NetBSD doesn't allow shared libraries to link libpthread
+			# without linking it to executables.
+			case "${host_os}" in
+			netbsd*)
+				PTHREAD_LIB="-lpthread"
+				;;
+			esac
+		fi
+		input_methods_result="$input_methods_result fcitx"
+	fi
+fi
+AC_SUBST(FCITX_CFLAGS)
+AC_SUBST(FCITX_LIBS)
+
+#
 # --- SCIM ---
 #
 AC_ARG_ENABLE(scim,

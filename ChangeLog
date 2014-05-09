@@ -1,3 +1,9 @@
+2014-05-10  Araki Ken  <arakiken@users.sf.net>
+
+	* inputmethod/fcitx: Added.
+
+	* configure.in: --enable-fcitx option is added.
+
 2014-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: The hack of continuing sixel sequence by FF, GS, RS and US
