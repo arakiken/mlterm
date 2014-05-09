@@ -20,6 +20,10 @@
 #define  IM_FCITX_DEBUG  1
 #endif
 
+#ifdef  USE_FRAMEBUFFER
+#define  KeyPress  2	/* see xwindow/fb/x_display.h */
+#endif
+
 
 typedef struct im_fcitx
 {
@@ -43,11 +47,6 @@ typedef struct im_fcitx
 
 	XKeyEvent  prev_key ;
 
-#ifdef  USE_FRAMEBUFFER
-	gchar *  prev_first_cand ;
-	u_int  prev_num_of_cands ;
-#endif
-
 }  im_fcitx_t ;
 
 
@@ -62,148 +61,6 @@ static int  mod_key_debug = 0 ;
 
 
 /* --- static functions --- */
-
-#ifdef  USE_FRAMEBUFFER
-
-static void
-show_lookup_table(
-	FcitxInputClient *  client ,
-	gpointer  data
-	)
-{
-	im_fcitx_t *  fcitx ;
-
-	fcitx = (im_fcitx_t*) data ;
-
-	if( fcitx->im.cand_screen)
-	{
-		(*fcitx->im.cand_screen->show)( fcitx->im.cand_screen) ;
-	}
-}
-
-static void
-hide_lookup_table(
-	FcitxInputClient *  client ,
-	gpointer  data
-	)
-{
-	im_fcitx_t *  fcitx ;
-
-	fcitx = (im_fcitx_t*) data ;
-
-	if( fcitx->im.cand_screen)
-	{
-		(*fcitx->im.cand_screen->hide)( fcitx->im.cand_screen) ;
-	}
-}
-
-static void
-update_lookup_table(
-	FcitxInputClient *  client ,
-	FcitxLookupTable *  table ,
-	gboolean  visible ,
-	gpointer  data
-	)
-{
-	im_fcitx_t *  fcitx ;
-	u_int  num_of_cands ;
-	int  cur_pos ;
-	u_int  i ;
-	int  x ;
-	int  y ;
-
-	fcitx = (im_fcitx_t*) data ;
-
-	if( ( num_of_cands = fcitx_lookup_table_get_number_of_candidates( table)) == 0)
-	{
-		return ;
-	}
-
-	cur_pos = fcitx_lookup_table_get_cursor_pos( table) ;
-
-	(*fcitx->im.listener->get_spot)( fcitx->im.listener->self ,
-				       fcitx->im.preedit.chars ,
-				       fcitx->im.preedit.segment_offset ,
-				       &x , &y) ;
-
-	if( fcitx->im.cand_screen == NULL)
-	{
-		if( cur_pos == 0)
-		{
-			return ;
-		}
-
-		if( ! ( fcitx->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				fcitx->im.disp , fcitx->im.font_man , fcitx->im.color_man ,
-				(*fcitx->im.listener->is_vertical)(fcitx->im.listener->self) ,
-				1 ,
-				(*fcitx->im.listener->get_unicode_policy)(fcitx->im.listener->self) ,
-				(*fcitx->im.listener->get_line_height)(fcitx->im.listener->self) ,
-				x , y)))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " x_im_candidate_screen_new() failed.\n") ;
-		#endif
-
-			return ;
-		}
-	}
-	else
-	{
-		(*fcitx->im.cand_screen->show)( fcitx->im.cand_screen) ;
-	}
-
-	if( ! (*fcitx->im.cand_screen->init)( fcitx->im.cand_screen , num_of_cands , 10))
-	{
-		(*fcitx->im.cand_screen->delete)( fcitx->im.cand_screen) ;
-		fcitx->im.cand_screen = NULL ;
-
-		return ;
-	}
-
-	(*fcitx->im.cand_screen->set_spot)( fcitx->im.cand_screen , x , y) ;
-
-	for( i = 0 ; i < num_of_cands ; i++)
-	{
-		u_char *  str ;
-
-		/* fcitx 1.4.1 on Ubuntu 12.10 can return NULL if num_of_cands > 0. */
-		if( ! ( str = fcitx_text_get_text( fcitx_lookup_table_get_candidate( table , i))))
-		{
-			continue ;
-		}
-
-		if( fcitx->term_encoding != ML_UTF8)
-		{
-			u_char *  p ;
-
-			(*parser_utf8->init)( parser_utf8) ;
-			(*fcitx->conv->init)( fcitx->conv) ;
-
-			if( im_convert_encoding( parser_utf8 , fcitx->conv ,
-						 str , &p ,
-						 strlen( str) + 1))
-			{
-				(*fcitx->im.cand_screen->set)(
-							fcitx->im.cand_screen ,
-							fcitx->parser_term ,
-							p , i) ;
-				free( p) ;
-			}
-		}
-		else
-		{
-			(*fcitx->im.cand_screen->set)( fcitx->im.cand_screen ,
-						     fcitx->parser_term ,
-						     str , i) ;
-		}
-	}
-
-	(*fcitx->im.cand_screen->select)( fcitx->im.cand_screen , cur_pos) ;
-}
-
-#endif	/* USE_FRAMEBUFFER */
-
 
 /*
  * methods of x_im_t
@@ -230,8 +87,6 @@ delete(
 	{
 		(*fcitx->parser_term->delete)( fcitx->parser_term) ;
 	}
-
-	free( fcitx->prev_first_cand) ;
 #endif
 
 	free( fcitx) ;
@@ -263,88 +118,88 @@ native_to_fcitx_ksym(
 	switch( ksym)
 	{
 	case  XK_BackSpace:
-		return  FCITX_BackSpace ;
+		return  FcitxKey_BackSpace ;
 
 	case  XK_Tab:
-		return  FCITX_Tab ;
+		return  FcitxKey_Tab ;
 
 	case  XK_Return:
-		return  FCITX_Return ;
+		return  FcitxKey_Return ;
 
 	case  XK_Escape:
-		return  FCITX_Escape ;
+		return  FcitxKey_Escape ;
 
 	case  XK_Zenkaku_Hankaku:
-		return  FCITX_Zenkaku_Hankaku ;
+		return  FcitxKey_Zenkaku_Hankaku ;
 
 	case  XK_Hiragana_Katakana:
-		return  FCITX_Hiragana_Katakana ;
+		return  FcitxKey_Hiragana_Katakana ;
 
 	case  XK_Muhenkan:
-		return  FCITX_Muhenkan ;
+		return  FcitxKey_Muhenkan ;
 
 	case  XK_Henkan_Mode:
-		return  FCITX_Henkan_Mode ;
+		return  FcitxKey_Henkan_Mode ;
 
 	case  XK_Home:
-		return  FCITX_Home ;
+		return  FcitxKey_Home ;
 
 	case  XK_Left:
-		return  FCITX_Left ;
+		return  FcitxKey_Left ;
 
 	case  XK_Up:
-		return  FCITX_Up ;
+		return  FcitxKey_Up ;
 
 	case  XK_Right:
-		return  FCITX_Right ;
+		return  FcitxKey_Right ;
 
 	case  XK_Down:
-		return  FCITX_Down ;
+		return  FcitxKey_Down ;
 
 	case  XK_Prior:
-		return  FCITX_Prior ;
+		return  FcitxKey_Prior ;
 
 	case  XK_Next:
-		return  FCITX_Next ;
+		return  FcitxKey_Next ;
 
 	case  XK_Insert:
-		return  FCITX_Insert ;
+		return  FcitxKey_Insert ;
 
 	case  XK_End:
-		return  FCITX_End ;
+		return  FcitxKey_End ;
 
 	case  XK_Num_Lock:
-		return  FCITX_Num_Lock ;
+		return  FcitxKey_Num_Lock ;
 
 	case  XK_Shift_L:
-		return  FCITX_Shift_L ;
+		return  FcitxKey_Shift_L ;
 
 	case  XK_Shift_R:
-		return  FCITX_Shift_R ;
+		return  FcitxKey_Shift_R ;
 
 	case  XK_Control_L:
-		return  FCITX_Control_L ;
+		return  FcitxKey_Control_L ;
 
 	case  XK_Control_R:
-		return  FCITX_Control_R ;
+		return  FcitxKey_Control_R ;
 
 	case  XK_Caps_Lock:
-		return  FCITX_Caps_Lock ;
+		return  FcitxKey_Caps_Lock ;
 
 	case  XK_Meta_L:
-		return  FCITX_Meta_L ;
+		return  FcitxKey_Meta_L ;
 
 	case  XK_Meta_R:
-		return  FCITX_Meta_R ;
+		return  FcitxKey_Meta_R ;
 
 	case  XK_Alt_L:
-		return  FCITX_Alt_L ;
+		return  FcitxKey_Alt_L ;
 
 	case  XK_Alt_R:
-		return  FCITX_Alt_R ;
+		return  FcitxKey_Alt_R ;
 
 	case  XK_Delete:
-		return  FCITX_Delete ;
+		return  FcitxKey_Delete ;
 
 	default:
 		return  ksym ;
@@ -381,7 +236,11 @@ key_event(
 			event->state ,
 		#endif
 			event->type == KeyPress ? FCITX_PRESS_KEY : FCITX_RELEASE_KEY ,
+		#ifdef  USE_FRAMEBUFFER
+			0L	/* CurrentTime */
+		#else
 			event->time
+		#endif
 			))
 	{
 		fcitx->is_enabled = TRUE ;
@@ -446,9 +305,9 @@ focused(
 
 	fcitx_client_focus_in( fcitx->client) ;
 
-	if( fcitx->im.cand_screen)
+	if( fcitx->im.stat_screen)
 	{
-		(*fcitx->im.cand_screen->show)( fcitx->im.cand_screen) ;
+		(*fcitx->im.stat_screen->show)( fcitx->im.stat_screen) ;
 	}
 }
 
@@ -463,9 +322,9 @@ unfocused(
 
 	fcitx_client_focus_out( fcitx->client) ;
 
-	if( fcitx->im.cand_screen)
+	if( fcitx->im.stat_screen)
 	{
-		(*fcitx->im.cand_screen->hide)( fcitx->im.cand_screen) ;
+		(*fcitx->im.stat_screen->hide)( fcitx->im.stat_screen) ;
 	}
 }
 
@@ -481,7 +340,11 @@ connected(
 	fcitx = data ;
 
 	fcitx_client_set_capacity( client ,
+	#ifdef  USE_FRAMEBUFFER
+		CAPACITY_CLIENT_SIDE_UI|CAPACITY_CLIENT_SIDE_CONTROL_STATE) ;
+	#else
 		CAPACITY_PREEDIT|CAPACITY_SURROUNDING_TEXT|CAPACITY_FORMATTED_PREEDIT) ;
+	#endif
 	fcitx_client_focus_in( client) ;
 }
 
@@ -497,10 +360,10 @@ disconnected(
 
 	fcitx->is_enabled = FALSE ;
 
-	if( fcitx->im.cand_screen)
+	if( fcitx->im.stat_screen)
 	{
-		(*fcitx->im.cand_screen->delete)( fcitx->im.cand_screen) ;
-		fcitx->im.cand_screen = NULL ;
+		(*fcitx->im.stat_screen->delete)( fcitx->im.stat_screen) ;
+		fcitx->im.stat_screen = NULL ;
 	}
 }
 
@@ -583,10 +446,10 @@ commit_string(
 	}
 
 #ifdef  USE_FRAMEBUFFER
-	if( fcitx->im.cand_screen)
+	if( fcitx->im.stat_screen)
 	{
-		(*fcitx->im.cand_screen->delete)( fcitx->im.cand_screen) ;
-		fcitx->im.cand_screen = NULL ;
+		(*fcitx->im.stat_screen->delete)( fcitx->im.stat_screen) ;
+		fcitx->im.stat_screen = NULL ;
 	}
 #endif
 }
@@ -620,8 +483,175 @@ forward_key(
 	}
 }
 
+#ifdef  USE_FRAMEBUFFER
+
 static void
-update_preedit_text(
+update_client_side_ui(
+	FcitxClient *  client ,
+	char *  auxup ,
+	char *  auxdown ,
+	char *  preedit ,
+	char *  candidateword ,
+	char *  imname ,
+	int  cursor_pos ,
+	void *  data
+	)
+{
+	im_fcitx_t *  fcitx ;
+	int  x ;
+	int  y ;
+	mkf_char_t  ch ;
+	ml_char_t *  p ;
+	u_int  num_of_chars ;
+	size_t  preedit_len ;
+
+	fcitx = (im_fcitx_t*) data ;
+
+	if( strlen( candidateword) == 0)
+	{
+	#ifdef  USE_FRAMEBUFFER
+		if( fcitx->im.stat_screen)
+		{
+			(*fcitx->im.stat_screen->delete)( fcitx->im.stat_screen) ;
+			fcitx->im.stat_screen = NULL ;
+		}
+	#endif
+	}
+	else
+	{
+		(*fcitx->im.listener->get_spot)( fcitx->im.listener->self ,
+					       fcitx->im.preedit.chars ,
+					       fcitx->im.preedit.segment_offset ,
+					       &x , &y) ;
+
+		if( fcitx->im.stat_screen == NULL)
+		{
+			if( ! ( fcitx->im.stat_screen = (*syms->x_im_status_screen_new)(
+					fcitx->im.disp , fcitx->im.font_man ,
+					fcitx->im.color_man ,
+					(*fcitx->im.listener->is_vertical)(
+						fcitx->im.listener->self) ,
+					(*fcitx->im.listener->get_line_height)(
+						fcitx->im.listener->self) ,
+					x , y)))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" x_im_candidate_screen_new() failed.\n") ;
+			#endif
+
+				return ;
+			}
+		}
+		else
+		{
+			(*fcitx->im.stat_screen->show)( fcitx->im.stat_screen) ;
+			(*fcitx->im.stat_screen->set_spot)( fcitx->im.stat_screen , x , y) ;
+		}
+
+		(*fcitx->im.stat_screen->set)( fcitx->im.stat_screen ,
+			parser_utf8 , candidateword) ;
+	}
+
+	if( ( preedit_len = strlen(preedit)) == 0)
+	{
+		if( fcitx->im.preedit.filled_len == 0)
+		{
+			return ;
+		}
+
+		/* Stop preediting. */
+		fcitx->im.preedit.filled_len = 0 ;
+	}
+	else
+	{
+		fcitx->im.preedit.cursor_offset = num_of_chars = 0 ;
+		(*parser_utf8->init)( parser_utf8) ;
+		(*parser_utf8->set_str)( parser_utf8 , preedit , preedit_len) ;
+		while( (*parser_utf8->next_char)( parser_utf8 , &ch))
+		{
+			if( preedit_len - parser_utf8->left > cursor_pos)
+			{
+				fcitx->im.preedit.cursor_offset = num_of_chars ;
+				cursor_pos = preedit_len ;	/* Not to enter here twice. */
+			}
+			num_of_chars ++ ;
+		}
+
+		if( ( p = realloc( fcitx->im.preedit.chars ,
+				sizeof(ml_char_t) * num_of_chars)) == NULL)
+		{
+			return ;
+		}
+
+		(*syms->ml_str_init)( fcitx->im.preedit.chars = p ,
+				fcitx->im.preedit.num_of_chars = num_of_chars) ;
+		fcitx->im.preedit.filled_len = 0 ;
+
+		(*parser_utf8->init)( parser_utf8) ;
+		(*parser_utf8->set_str)( parser_utf8 , preedit , preedit_len) ;
+
+		while( (*parser_utf8->next_char)( parser_utf8 , &ch))
+		{
+			int  is_fullwidth = 0 ;
+			int  is_comb = 0 ;
+
+			if( (*syms->ml_convert_to_internal_ch)( &ch ,
+				(*fcitx->im.listener->get_unicode_policy)(
+					fcitx->im.listener->self) ,
+				US_ASCII) <= 0)
+			{
+				continue ;
+			}
+
+			if( ch.property & MKF_FULLWIDTH)
+			{
+				is_fullwidth = 1 ;
+			}
+			else if( ch.property & MKF_AWIDTH)
+			{
+				/* TODO: check col_size_of_width_a */
+				is_fullwidth = 1 ;
+			}
+
+			if( ch.property & MKF_COMBINING)
+			{
+				is_comb = 1 ;
+
+				if( (*syms->ml_char_combine)( p - 1 ,
+					mkf_char_to_int(&ch) ,
+					ch.cs , is_fullwidth , is_comb ,
+					ML_FG_COLOR , ML_BG_COLOR ,
+					0 , 0 , 1))
+				{
+					continue ;
+				}
+
+				/*
+				 * if combining failed , char is normally appended.
+				 */
+			}
+
+			(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
+					      is_fullwidth , is_comb ,
+					      ML_FG_COLOR , ML_BG_COLOR ,
+					      0 , 0 , 1) ;
+
+			p ++ ;
+			fcitx->im.preedit.filled_len ++ ;
+		}
+	}
+
+	(*fcitx->im.listener->draw_preedit_str)( fcitx->im.listener->self ,
+					       fcitx->im.preedit.chars ,
+					       fcitx->im.preedit.filled_len ,
+					       fcitx->im.preedit.cursor_offset) ;
+}
+
+#else
+
+static void
+update_formatted_preedit(
 	FcitxClient *  client ,
 	GPtrArray *  list ,
 	int  cursor_pos ,
@@ -634,11 +664,11 @@ update_preedit_text(
 
 	if( list->len > 0)
 	{
+		FcitxPreeditItem *  item ;
+		mkf_char_t  ch ;
 		ml_char_t *  p ;
 		u_int  num_of_chars ;
 		guint  count ;
-
-		fcitx->im.preedit.cursor_offset = 0 ;
 
 		if( fcitx->im.preedit.filled_len == 0)
 		{
@@ -654,18 +684,23 @@ update_preedit_text(
 			}
 		}
 
-		num_of_chars = 0 ;
+		fcitx->im.preedit.cursor_offset = num_of_chars = 0 ;
 
 		for( count = 0 ; count < list->len ; count++)
 		{
-			FcitxPreeditItem *  item ;
-			mkf_char_t  ch ;
+			size_t  str_len ;
 
 			item = g_ptr_array_index( list , count) ;
 
+			str_len = strlen( item->string) ;
+
+			if( cursor_pos >= 0 && ( cursor_pos -= str_len) < 0)
+			{
+				fcitx->im.preedit.cursor_offset = num_of_chars ;
+			}
+
 			(*parser_utf8->init)( parser_utf8) ;
-			(*parser_utf8->set_str)( parser_utf8 , item->string ,
-				strlen( item->string)) ;
+			(*parser_utf8->set_str)( parser_utf8 , item->string , str_len) ;
 
 			while( (*parser_utf8->next_char)( parser_utf8 , &ch))
 			{
@@ -685,16 +720,11 @@ update_preedit_text(
 
 		for( count = 0 ; count < list->len ; count++)
 		{
-			FcitxPreeditItem *  item ;
-			mkf_char_t  ch ;
-			size_t  str_len ;
-
 			item = g_ptr_array_index( list , count) ;
 
-			str_len = strlen( item->string) ;
-
 			(*parser_utf8->init)( parser_utf8) ;
-			(*parser_utf8->set_str)( parser_utf8 , item->string , str_len) ;
+			(*parser_utf8->set_str)( parser_utf8 , item->string ,
+				strlen( item->string)) ;
 
 			while( (*parser_utf8->next_char)( parser_utf8 , &ch))
 			{
@@ -702,11 +732,6 @@ update_preedit_text(
 				int  is_comb = 0 ;
 				ml_color_t  fg_color ;
 				ml_color_t  bg_color ;
-
-				if( cursor_pos >= str_len)
-				{
-					fcitx->im.preedit.cursor_offset ++ ;
-				}
 
 				if( item->type != 0)
 				{
@@ -763,20 +788,10 @@ update_preedit_text(
 				p ++ ;
 				fcitx->im.preedit.filled_len ++ ;
 			}
-
-			cursor_pos -= str_len ;
 		}
 	}
 	else
 	{
-	#ifdef  USE_FRAMEBUFFER
-		if( fcitx->im.cand_screen)
-		{
-			(*fcitx->im.cand_screen->delete)( fcitx->im.cand_screen) ;
-			fcitx->im.cand_screen = NULL ;
-		}
-	#endif
-
 		if( fcitx->im.preedit.filled_len == 0)
 		{
 			return ;
@@ -791,6 +806,9 @@ update_preedit_text(
 					       fcitx->im.preedit.filled_len ,
 					       fcitx->im.preedit.cursor_offset) ;
 }
+
+#endif
+
 
 static void
 connection_handler(void)
@@ -855,12 +873,12 @@ im_fcitx_new(
 	g_signal_connect( fcitx->client , "close-im" , G_CALLBACK(close_im) , fcitx) ;
 	g_signal_connect( fcitx->client , "forward-key" , G_CALLBACK(forward_key) , fcitx) ;
 	g_signal_connect( fcitx->client , "commit-string" , G_CALLBACK(commit_string) , fcitx) ;
-#ifndef  USE_FRAMEBUFFER
-	g_signal_connect( fcitx->client , "update-formatted-preedit" ,
-		G_CALLBACK(update_preedit_text) , fcitx) ;
-#else
+#ifdef  USE_FRAMEBUFFER
 	g_signal_connect( fcitx->client , "update-client-side-ui" ,
-		G_CALLBACK(update_preedit_text) , fcitx) ;
+		G_CALLBACK(update_client_side_ui) , fcitx) ;
+#else
+	g_signal_connect( fcitx->client , "update-formatted-preedit" ,
+		G_CALLBACK(update_formatted_preedit) , fcitx) ;
 #endif
 
 	fcitx->term_encoding = term_encoding ;

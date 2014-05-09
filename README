@@ -109,6 +109,9 @@ Options for configure
   --enable-ibus
     Support iBUS (Intelligent Input Bus) if available
 
+  --enable-fcitx
+    Support Fcitx if available
+
   --enable-pty-helper
     Support gnome-pty-helper. (Note that it is impossible to enable
     gnome-pty-helper in BSD style pty system and that gnome-pty-helper must be

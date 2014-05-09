@@ -1,5 +1,11 @@
 2014-05-10  Araki Ken  <arakiken@users.sf.net>
 
+	* README, man/mlterm.1, README.ja: Updated.
+
+	* im_fcitx.c: fcitx plugin works on framebuffer.
+
+2014-05-10  Araki Ken  <arakiken@users.sf.net>
+
 	* x_im.c: Segmentation fault in exiting with fcitx is fixed.
 
 	* im_fcitx.c: connection_handler() is registerd to x_event_source
