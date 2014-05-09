@@ -566,12 +566,6 @@ delete(
 	ibus_proxy_destroy( (IBusProxy*)ibus->context) ;
 #endif
 
-	ref_count -- ;
-
-#ifdef  IM_IBUS_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
-#endif
-
 	kik_list_search_and_remove( im_ibus_t , ibus_list , ibus) ;
 
 	if( ibus->conv)
@@ -590,7 +584,7 @@ delete(
 
 	free( ibus) ;
 
-	if( ref_count == 0)
+	if( -- ref_count == 0)
 	{
 		int  fd ;
 
@@ -631,6 +625,10 @@ delete(
 			parser_utf8 = NULL ;
 		}
 	}
+
+#ifdef  IM_IBUS_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
+#endif
 
 	return  ref_count ;
 }

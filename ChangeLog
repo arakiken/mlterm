@@ -1,5 +1,14 @@
 2014-05-10  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im.c: Segmentation fault in exiting with fcitx is fixed.
+
+	* im_fcitx.c: connection_handler() is registerd to x_event_source
+	  only if the initialization of fcitx succeeds.
+
+	* im_ibus.c: Minor fixes.
+
+2014-05-10  Araki Ken  <arakiken@users.sf.net>
+
 	* inputmethod/fcitx: Added.
 
 	* configure.in: --enable-fcitx option is added.

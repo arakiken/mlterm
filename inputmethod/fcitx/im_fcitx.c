@@ -218,13 +218,7 @@ delete(
 
 	fcitx = (im_fcitx_t*) im ;
 
-	ref_count -- ;
-
 	g_object_unref( fcitx->client) ;
-
-#ifdef  IM_FCITX_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
-#endif
 
 	if( fcitx->conv)
 	{
@@ -242,7 +236,7 @@ delete(
 
 	free( fcitx) ;
 
-	if( ref_count == 0)
+	if( --ref_count == 0)
 	{
 		(*syms->x_event_source_remove_fd)( FCITX_ID) ;
 
@@ -252,6 +246,10 @@ delete(
 			parser_utf8 = NULL ;
 		}
 	}
+
+#ifdef  IM_FCITX_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
+#endif
 
 	return  ref_count ;
 }
@@ -828,15 +826,9 @@ im_fcitx_new(
 	}
 #endif
 
-	if( ref_count == 0)
+	if( ! syms)
 	{
 		syms = export_syms ;
-		(*syms->x_event_source_add_fd)( FCITX_ID , connection_handler) ;
-
-		if( ! ( parser_utf8 = (*syms->ml_parser_new)( ML_UTF8)))
-		{
-			goto  error ;
-		}
 
 		g_type_init() ;
 	}
@@ -899,7 +891,15 @@ im_fcitx_new(
 	fcitx->im.focused = focused ;
 	fcitx->im.unfocused = unfocused ;
 
-	ref_count ++;
+	if( ref_count++ == 0)
+	{
+		(*syms->x_event_source_add_fd)( FCITX_ID , connection_handler) ;
+
+		if( ! ( parser_utf8 = (*syms->ml_parser_new)( ML_UTF8)))
+		{
+			goto  error ;
+		}
+	}
 
 #ifdef  IM_FCITX_DEBUG
 	kik_debug_printf("New object was created. ref_count is %d.\n", ref_count) ;
@@ -921,6 +921,11 @@ error:
 			(*fcitx->parser_term->delete)( fcitx->parser_term) ;
 		}
 	#endif
+
+		if( fcitx->client)
+		{
+			g_object_unref( fcitx->client) ;
+		}
 
 		free( fcitx) ;
 	}

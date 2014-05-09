@@ -207,8 +207,10 @@ x_im_new(
 		 * So if im-ibus module is unloaded here, ibus_init()
 		 * will be called again and segfault will happen when
 		 * im-ibus module is loaded next time.
+		 * Fcitx is also the same.
 		 */
-		if( strcmp( im_name , "ibus") != 0)
+		if( strcmp( im_name , "ibus") != 0 &&
+		    strcmp( im_name , "fcitx") != 0)
 		{
 			kik_dl_close( handle) ;
 		}
@@ -247,15 +249,15 @@ x_im_delete(
 	)
 {
 	kik_dl_handle_t  handle ;
-	int  is_ibus ;
+	int  do_close ;
 
-	if( strcmp( im->name , "ibus") == 0)
+	if( strcmp( im->name , "ibus") == 0 || strcmp( im->name , "fcitx") == 0)
 	{
-		is_ibus = 1 ;
+		do_close = 0 ;
 	}
 	else
 	{
-		is_ibus = 0 ;
+		do_close = 1 ;
 	}
 
 	free( im->name) ;
@@ -280,10 +282,10 @@ x_im_delete(
 	(*im->delete)( im) ;
 
 	/*
-	 * Don't unload libim-ibus.so because it depends on glib which works
-	 * unexpectedly.
+	 * Don't unload libim-ibus.so or libim-fcitx.so because it depends
+	 * on glib which works unexpectedly.
 	 */
-	if( ! is_ibus)
+	if( do_close)
 	{
 		kik_dl_close( handle) ;
 	}
