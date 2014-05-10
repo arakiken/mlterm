@@ -1,5 +1,11 @@
 2014-05-11  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display_linux.c:
+	  - strstr() in get_event_device_num() is replaced by strcasestr().
+	  - If get_event_device_num() doesn't find kbd or mouse input event
+	    devices, it returns the default number of kbd or mouse device
+	    instead of -1.
+
 	* fb/x_window.c: x_display_check_visibility_of_im_window() is called
 	  not only from x_window_move() but also from x_window_resize().
 

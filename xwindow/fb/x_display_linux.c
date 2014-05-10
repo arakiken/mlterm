@@ -6,6 +6,8 @@
 #include  <linux/keyboard.h>
 #include  <linux/vt.h>	/* VT_GETSTATE */
 
+#define _GNU_SOURCE	/* strcasestr */
+#include  <string.h>
 
 #if  0
 #define  READ_CTRL_KEYMAP
@@ -157,7 +159,7 @@ get_event_device_num(
 					}
 				}
 
-				if( strstr( buf , "key"))
+				if( strcasestr( buf , "key"))
 				{
 					*kbd = count ;
 				}
@@ -167,11 +169,12 @@ get_event_device_num(
 						{ "mouse" , "ts" , "touch" } ;
 					u_int  idx ;
 
+					kik_debug_printf( "%s\n" , buf) ;
 					for( idx = 0 ;
 					     idx < sizeof(mouse_names) / sizeof(mouse_names[0]) ;
 					     idx++)
 					{
-						if( strstr( buf , mouse_names[idx]))
+						if( strcasestr( buf , mouse_names[idx]))
 						{
 							*mouse = count ;
 
@@ -183,6 +186,18 @@ get_event_device_num(
 
 			fclose( fp) ;
 		}
+	}
+
+	/* Set default value */
+
+	if( *kbd == -1)
+	{
+		*kbd = 1 ;
+	}
+
+	if( *mouse == -1)
+	{
+		*mouse = *kbd + 1 ;
 	}
 }
 
@@ -314,8 +329,7 @@ open_display(
 	/* Disable backscrolling of default console. */
 	set_use_console_backscroll( 0) ;
 
-	if( kbd_num == -1 ||
-	    ( _display.fd = open_event_device( kbd_num)) == -1)
+	if( ( _display.fd = open_event_device( kbd_num)) == -1)
 	{
 		_display.fd = STDIN_FILENO ;
 	}
@@ -326,11 +340,7 @@ open_display(
 
 	_disp.display = &_display ;
 
-	if( mouse_num == -1)
-	{
-		_mouse.fd = -1 ;
-	}
-	else if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
+	if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
 	{
 		kik_file_set_cloexec( _mouse.fd) ;
 		_mouse.x = _display.width / 2 ;
