@@ -11,6 +11,7 @@
 
 #define  MARGIN		3
 #define  LINE_SPACE	2
+#define  MAX_ROWS	5
 
 
 /* --- static variables --- */
@@ -26,31 +27,68 @@ draw_screen(
 	)
 {
 	x_font_t *  xfont ;
-	u_int  width = 0 ;
-	int  i ;
+	u_int  max_width ;
+	u_int  width ;
+	u_int  rows ;
+	int  heads[MAX_ROWS + 1] ;
+	u_int  i ;
+	u_int  line_height ;
 
 	/*
 	 * resize window
 	 */
 
 	/* width of window */
+
+	max_width = stat_screen->window.disp->width / 2 ;
+	width = 0 ;
+	heads[0] = 0 ;
+	rows = 1 ;
+
 	for( i = 0 ; i < stat_screen->filled_len ; i++)
 	{
-		x_font_t *  xfont ;
+		u_int  ch_width ;
 
-		xfont = x_get_font( stat_screen->font_man ,
-				    ml_char_font( &stat_screen->chars[i])) ;
+		ch_width = x_calculate_char_width(
+				x_get_font( stat_screen->font_man ,
+					ml_char_font( &stat_screen->chars[i])) ,
+				ml_char_code( &stat_screen->chars[i]) ,
+				ml_char_cs( &stat_screen->chars[i]) , NULL) ;
 
-		width += x_calculate_char_width(
-					xfont ,
-					ml_char_code( &stat_screen->chars[i]) ,
-					ml_char_cs( &stat_screen->chars[i]) , NULL) ;
+		if( width + ch_width > max_width)
+		{
+			if( rows == 1)
+			{
+				max_width = width ;
+			}
+
+			heads[rows++] = i ;
+
+			if( rows == MAX_ROWS)
+			{
+				break ;
+			}
+
+			width = ch_width ;
+		}
+		else
+		{
+			width += ch_width ;
+		}
 	}
 
+	if( rows > 1)
+	{
+		width = max_width ;
+	}
+
+	heads[rows] = stat_screen->filled_len ;	/* for following 'heads[i + 1] - heads[i]' */
+
 	xfont = x_get_usascii_font( stat_screen->font_man) ;
+	line_height = xfont->height + LINE_SPACE ;
 
 	if( x_window_resize( &stat_screen->window , width ,
-				xfont->height + LINE_SPACE, 0))
+				line_height * rows , 0))
 	{
 		/* Reset window position */
 
@@ -72,17 +110,20 @@ draw_screen(
 	#endif
 	}
 
-	x_draw_str_to_eol( &stat_screen->window ,
-			   stat_screen->font_man ,
-			   stat_screen->color_man ,
-			   stat_screen->chars ,
-			   stat_screen->filled_len ,
-			   0 , 0 ,
-			   xfont->height + LINE_SPACE ,
-			   xfont->ascent + LINE_SPACE / 2 ,
-			   LINE_SPACE / 2 ,
-			   LINE_SPACE / 2 + LINE_SPACE % 2 ,
-			   1 /* no need to draw underline */) ;
+	for( i = 0 ; i < rows ; i++)
+	{
+		x_draw_str_to_eol( &stat_screen->window ,
+				   stat_screen->font_man ,
+				   stat_screen->color_man ,
+				   stat_screen->chars + heads[i] ,
+				   heads[i + 1] - heads[i] ,
+				   0 , line_height * i ,
+				   line_height ,
+				   xfont->ascent + LINE_SPACE / 2 ,
+				   LINE_SPACE / 2 ,
+				   LINE_SPACE / 2 + LINE_SPACE % 2 ,
+				   1 /* no need to draw underline */) ;
+	}
 }
 
 

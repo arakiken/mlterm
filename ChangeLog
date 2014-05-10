@@ -1,5 +1,8 @@
 2014-05-10  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im_status_screen.c: draw_screen() wraps and draws status characters
+	  in multiple lines.
+
 	* README, man/mlterm.1, README.ja: Updated.
 
 	* im_fcitx.c: fcitx plugin works on framebuffer.
