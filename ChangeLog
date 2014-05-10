@@ -1,3 +1,15 @@
+2014-05-11  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c: x_display_check_visibility_of_im_window() is called
+	  not only from x_window_move() but also from x_window_resize().
+
+	* fb/x_display.c: The bug of clearing input method window unexpectedly
+	  in receive_event_for_multi_roots() is fixed.
+
+	* im_fcitx.c: Preedit text is drawn before candidate window in order
+	  not to clear candidate window by preedit text at the corner of the
+	  window.
+
 2014-05-10  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_status_screen.c: draw_screen() wraps and draws status characters

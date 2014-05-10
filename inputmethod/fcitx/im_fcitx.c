@@ -508,52 +508,6 @@ update_client_side_ui(
 
 	fcitx = (im_fcitx_t*) data ;
 
-	if( strlen( candidateword) == 0)
-	{
-	#ifdef  USE_FRAMEBUFFER
-		if( fcitx->im.stat_screen)
-		{
-			(*fcitx->im.stat_screen->delete)( fcitx->im.stat_screen) ;
-			fcitx->im.stat_screen = NULL ;
-		}
-	#endif
-	}
-	else
-	{
-		(*fcitx->im.listener->get_spot)( fcitx->im.listener->self ,
-					       fcitx->im.preedit.chars ,
-					       fcitx->im.preedit.segment_offset ,
-					       &x , &y) ;
-
-		if( fcitx->im.stat_screen == NULL)
-		{
-			if( ! ( fcitx->im.stat_screen = (*syms->x_im_status_screen_new)(
-					fcitx->im.disp , fcitx->im.font_man ,
-					fcitx->im.color_man ,
-					(*fcitx->im.listener->is_vertical)(
-						fcitx->im.listener->self) ,
-					(*fcitx->im.listener->get_line_height)(
-						fcitx->im.listener->self) ,
-					x , y)))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" x_im_candidate_screen_new() failed.\n") ;
-			#endif
-
-				return ;
-			}
-		}
-		else
-		{
-			(*fcitx->im.stat_screen->show)( fcitx->im.stat_screen) ;
-			(*fcitx->im.stat_screen->set_spot)( fcitx->im.stat_screen , x , y) ;
-		}
-
-		(*fcitx->im.stat_screen->set)( fcitx->im.stat_screen ,
-			parser_utf8 , candidateword) ;
-	}
-
 	if( ( preedit_len = strlen(preedit)) == 0)
 	{
 		if( fcitx->im.preedit.filled_len == 0)
@@ -647,6 +601,52 @@ update_client_side_ui(
 					       fcitx->im.preedit.chars ,
 					       fcitx->im.preedit.filled_len ,
 					       fcitx->im.preedit.cursor_offset) ;
+
+	if( strlen( candidateword) == 0)
+	{
+	#ifdef  USE_FRAMEBUFFER
+		if( fcitx->im.stat_screen)
+		{
+			(*fcitx->im.stat_screen->delete)( fcitx->im.stat_screen) ;
+			fcitx->im.stat_screen = NULL ;
+		}
+	#endif
+	}
+	else
+	{
+		(*fcitx->im.listener->get_spot)( fcitx->im.listener->self ,
+					       fcitx->im.preedit.chars ,
+					       fcitx->im.preedit.segment_offset ,
+					       &x , &y) ;
+
+		if( fcitx->im.stat_screen == NULL)
+		{
+			if( ! ( fcitx->im.stat_screen = (*syms->x_im_status_screen_new)(
+					fcitx->im.disp , fcitx->im.font_man ,
+					fcitx->im.color_man ,
+					(*fcitx->im.listener->is_vertical)(
+						fcitx->im.listener->self) ,
+					(*fcitx->im.listener->get_line_height)(
+						fcitx->im.listener->self) ,
+					x , y)))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" x_im_candidate_screen_new() failed.\n") ;
+			#endif
+
+				return ;
+			}
+		}
+		else
+		{
+			(*fcitx->im.stat_screen->show)( fcitx->im.stat_screen) ;
+			(*fcitx->im.stat_screen->set_spot)( fcitx->im.stat_screen , x , y) ;
+		}
+
+		(*fcitx->im.stat_screen->set)( fcitx->im.stat_screen ,
+			parser_utf8 , candidateword) ;
+	}
 }
 
 #else

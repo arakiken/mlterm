@@ -222,13 +222,9 @@ resize(
 			x_window_move( &cand_screen->window , x , y) ;
 		#endif
 		}
-	#ifdef  USE_FRAMEBUFFER
-		else
-		{
-			/* resized but position is not changed. */
-			x_window_clear_margin_area( &cand_screen->window) ;	/* XXX */
-		}
 
+	#ifdef  USE_FRAMEBUFFER
+		/* resized but position is not changed. */
 		x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
 					  cand_screen->window.width + MARGIN - 1 ,
 					  cand_screen->window.height + MARGIN - 1) ;

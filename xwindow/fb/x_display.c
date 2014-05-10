@@ -911,12 +911,13 @@ receive_event_for_multi_roots(
 		/* Restart drawing input method window */
 		_disp.roots[1]->is_mapped = 1 ;
 	}
-
-	if( x_display_check_visibility_of_im_window())
+	else if( ! x_display_check_visibility_of_im_window())
 	{
-		expose_window( _disp.roots[1] , _disp.roots[1]->x , _disp.roots[1]->y ,
-				ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
+		return ;
 	}
+
+	expose_window( _disp.roots[1] , _disp.roots[1]->x , _disp.roots[1]->y ,
+				ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
 }
 
 /*

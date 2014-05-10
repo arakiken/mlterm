@@ -102,6 +102,7 @@ draw_screen(
 			return ;
 		}
 
+		/* resized but position is not changed. */
 		x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
 					  stat_screen->window.width + MARGIN - 1 ,
 					  stat_screen->window.height + MARGIN - 1) ;

@@ -694,7 +694,8 @@ window_move(
 	win->x = x ;
 	win->y = y ;
 
-	if( expose)
+	if( expose &&
+	    win->disp->num_of_roots == 2 && win->disp->roots[1]->is_mapped)
 	{
 		/*
 		 * x_display_check_visibility_of_im_window() must be called after
@@ -1205,6 +1206,12 @@ x_window_resize(
 		 * cause segfault.
 		 */
 		clear_margin_area( win) ;
+	}
+
+	/* XXX If input method window is resized, clear it once before redrawing. */
+	if( win->disp->num_of_roots == 2 && win->disp->roots[1]->is_mapped)
+	{
+		x_display_check_visibility_of_im_window() ;
 	}
 
 	return  1 ;
