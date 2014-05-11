@@ -227,7 +227,8 @@ static void
 draw_screen_vertical(
 	x_im_candidate_screen_t *  cand_screen ,
 	u_int  top ,
-	u_int  last
+	u_int  last ,
+	int  do_resize
 	)
 {
 	x_font_t *  xfont ;
@@ -271,29 +272,37 @@ draw_screen_vertical(
 
 	xfont = x_get_usascii_font( cand_screen->font_man) ;
 
-	/* width of window */
-	win_width = xfont->width * (num_of_digits + 1) ;
-	win_width += max_candidate_width( cand_screen->font_man ,
-					  &cand_screen->candidates[top] ,
-					  last - top + 1) ;
-	if( win_width < ( MAX_NUM_OF_DIGITS * 2 + 1) * xfont->width)
+	if( do_resize)
 	{
-		win_width = ( MAX_NUM_OF_DIGITS * 2 + 1) * xfont->width ;
-	}
+		/* width of window */
+		win_width = xfont->width * (num_of_digits + 1) ;
+		win_width += max_candidate_width( cand_screen->font_man ,
+						  &cand_screen->candidates[top] ,
+						  last - top + 1) ;
+		if( win_width < ( MAX_NUM_OF_DIGITS * 2 + 1) * xfont->width)
+		{
+			win_width = ( MAX_NUM_OF_DIGITS * 2 + 1) * xfont->width ;
+		}
 
-	/* height of window */
-	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
-	{
-		win_height = (xfont->height + LINE_SPACE) *
-			     (cand_screen->num_per_window + 1) ;
+		/* height of window */
+		if( cand_screen->num_of_candidates > cand_screen->num_per_window)
+		{
+			win_height = (xfont->height + LINE_SPACE) *
+				     (cand_screen->num_per_window + 1) ;
+		}
+		else
+		{
+			win_height = (xfont->height + LINE_SPACE) *
+				     cand_screen->num_of_candidates ;
+		}
+
+		resize( cand_screen , win_width , win_height) ;
 	}
 	else
 	{
-		win_height = (xfont->height + LINE_SPACE) *
-			     cand_screen->num_of_candidates ;
+		win_width = cand_screen->window.width ;
+		win_height = cand_screen->window.height ;
 	}
-
-	resize( cand_screen , win_width , win_height) ;
 
 	/*
 	 * digits and candidates
@@ -458,7 +467,8 @@ static void
 draw_screen_horizontal(
 	x_im_candidate_screen_t *  cand_screen ,
 	u_int  top ,
-	u_int  last
+	u_int  last ,
+	int  do_resize
 	)
 {
 	x_font_t *  xfont ;
@@ -480,22 +490,30 @@ draw_screen_horizontal(
 
 	xfont = x_get_usascii_font( cand_screen->font_man) ;
 
-	/* width of window */
-	win_width = 0 ;
-	for( i = 1 ; i <= last - top + 1 ; i++)
+	if( do_resize)
 	{
-		u_int  num_of_digits ;
+		/* width of window */
+		win_width = 0 ;
+		for( i = 1 ; i <= last - top + 1 ; i++)
+		{
+			u_int  num_of_digits ;
 
-		NUM_OF_DIGITS( num_of_digits , i) ;
-		win_width += xfont->width * (num_of_digits + 2) ;
+			NUM_OF_DIGITS( num_of_digits , i) ;
+			win_width += xfont->width * (num_of_digits + 2) ;
+		}
+		win_width += total_candidate_width( cand_screen->font_man ,
+						    cand_screen->candidates ,
+						    top , last) ;
+		/* height of window */
+		win_height = xfont->height + LINE_SPACE ;
+
+		resize( cand_screen , win_width , win_height) ;
 	}
-	win_width += total_candidate_width( cand_screen->font_man ,
-					    cand_screen->candidates ,
-					    top , last) ;
-	/* height of window */
-	win_height = xfont->height + LINE_SPACE ;
-
-	resize( cand_screen , win_width , win_height) ;
+	else
+	{
+		win_width = cand_screen->window.width ;
+		win_height = cand_screen->window.height ;
+	}
 
 	for( i = top ; i <= last; i++)
 	{
@@ -576,7 +594,8 @@ draw_screen_horizontal(
 
 static void
 draw_screen(
-	x_im_candidate_screen_t *  cand_screen
+	x_im_candidate_screen_t *  cand_screen ,
+	int  do_resize
 	)
 {
 	u_int  top ;
@@ -589,11 +608,11 @@ draw_screen(
 
 	if( cand_screen->is_vertical_direction)
 	{
-		draw_screen_vertical( cand_screen , top , last) ;
+		draw_screen_vertical( cand_screen , top , last , do_resize) ;
 	}
 	else
 	{
-		draw_screen_horizontal( cand_screen , top , last) ;
+		draw_screen_horizontal( cand_screen , top , last , do_resize) ;
 	}
 }
 
@@ -902,7 +921,7 @@ select_candidate(
 
 	cand_screen->index = index ;
 
-	draw_screen( cand_screen) ;
+	draw_screen( cand_screen , 1) ;
 
 	return  1 ;
 }
@@ -939,7 +958,7 @@ window_exposed(
 	u_int  height
 	)
 {
-	draw_screen( (x_im_candidate_screen_t *) win) ;
+	draw_screen( (x_im_candidate_screen_t *) win , 0) ;
 
 	/* draw border (margin area has been already cleared in x_window.c) */
 	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,

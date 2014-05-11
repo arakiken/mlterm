@@ -38,6 +38,8 @@ typedef struct x_im_status_screen
 	int (*set_spot)( struct x_im_status_screen * , int  , int) ;
 	int (*set)( struct x_im_status_screen * , mkf_parser_t * , u_char *) ;
 
+	int  head_indexes[5] ;
+
 } x_im_status_screen_t ;
 
 x_im_status_screen_t * x_im_status_screen_new( x_display_t *  disp ,

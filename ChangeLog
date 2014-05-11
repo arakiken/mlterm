@@ -1,5 +1,10 @@
 2014-05-11  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im_{candidate|status}_screen.c: Calculating appropriate size of input
+	  method window in draw_screen() is skipped if window_exposed() calls it.
+
+2014-05-11  Araki Ken  <arakiken@users.sf.net>
+
 	* x_im_{candidate|status}_screen.c: x_window_move_no_expose() is removed.
 
 	* fb/x_window.c: x_window_move() works same as x_window_move_no_expose()

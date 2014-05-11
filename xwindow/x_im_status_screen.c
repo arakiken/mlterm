@@ -11,7 +11,6 @@
 
 #define  MARGIN		3
 #define  LINE_SPACE	2
-#define  MAX_ROWS	5
 
 
 /* --- static functions --- */
@@ -61,16 +60,19 @@ reset_screen(
 
 static void
 draw_screen(
-	x_im_status_screen_t *  stat_screen
+	x_im_status_screen_t *  stat_screen ,
+	int  do_resize
 	)
 {
+#define  MAX_ROWS ((sizeof(stat_screen->head_indexes) / sizeof(stat_screen->head_indexes[0])) - 1)
 	x_font_t *  xfont ;
-	u_int  max_width ;
-	u_int  width ;
-	u_int  rows ;
-	int  heads[MAX_ROWS + 1] ;
-	u_int  i ;
 	u_int  line_height ;
+	int *  heads ;
+	u_int  i ;
+
+	xfont = x_get_usascii_font( stat_screen->font_man) ;
+	line_height = xfont->height + LINE_SPACE ;
+	heads = stat_screen->head_indexes ;
 
 	/*
 	 * resize window
@@ -78,74 +80,79 @@ draw_screen(
 
 	/* width of window */
 
-	max_width = stat_screen->window.disp->width / 2 ;
-	width = 0 ;
-	heads[0] = 0 ;
-	rows = 1 ;
-
-	for( i = 0 ; i < stat_screen->filled_len ; i++)
+	if( do_resize)
 	{
-		u_int  ch_width ;
+		u_int  max_width ;
+		u_int  width ;
+		u_int  rows ;
 
-		ch_width = x_calculate_char_width(
-				x_get_font( stat_screen->font_man ,
-					ml_char_font( &stat_screen->chars[i])) ,
-				ml_char_code( &stat_screen->chars[i]) ,
-				ml_char_cs( &stat_screen->chars[i]) , NULL) ;
+		max_width = stat_screen->window.disp->width / 2 ;
+		width = 0 ;
+		heads[0] = 0 ;
+		rows = 1 ;
 
-		if( width + ch_width > max_width)
+		for( i = 0 ; i < stat_screen->filled_len ; i++)
 		{
-			if( rows == 1)
+			u_int  ch_width ;
+
+			ch_width = x_calculate_char_width(
+					x_get_font( stat_screen->font_man ,
+						ml_char_font( &stat_screen->chars[i])) ,
+					ml_char_code( &stat_screen->chars[i]) ,
+					ml_char_cs( &stat_screen->chars[i]) , NULL) ;
+
+			if( width + ch_width > max_width)
 			{
-				max_width = width ;
+				if( rows == 1)
+				{
+					max_width = width ;
+				}
+
+				heads[rows++] = i ;
+
+				if( rows == MAX_ROWS)
+				{
+					break ;
+				}
+
+				width = ch_width ;
+			}
+			else
+			{
+				width += ch_width ;
+			}
+		}
+
+		if( rows > 1)
+		{
+			width = max_width ;
+		}
+
+		/* for following 'heads[i + 1] - heads[i]' */
+		heads[rows] = stat_screen->filled_len ;
+
+		if( x_window_resize( &stat_screen->window , width ,
+					line_height * rows , 0))
+		{
+			int  x ;
+			int  y ;
+
+			x = stat_screen->x ;
+			y = stat_screen->y ;
+			adjust_window_position_by_size( stat_screen , &x , &y) ;
+
+			if( stat_screen->window.x != x || stat_screen->window.y != y)
+			{
+				x_window_move( &stat_screen->window , x , y) ;
 			}
 
-			heads[rows++] = i ;
-
-			if( rows == MAX_ROWS)
-			{
-				break ;
-			}
-
-			width = ch_width ;
-		}
-		else
-		{
-			width += ch_width ;
+		#ifdef  USE_FRAMEBUFFER
+			reset_screen( &stat_screen->window) ;
+		#endif
 		}
 	}
 
-	if( rows > 1)
-	{
-		width = max_width ;
-	}
-
-	heads[rows] = stat_screen->filled_len ;	/* for following 'heads[i + 1] - heads[i]' */
-
-	xfont = x_get_usascii_font( stat_screen->font_man) ;
-	line_height = xfont->height + LINE_SPACE ;
-
-	if( x_window_resize( &stat_screen->window , width ,
-				line_height * rows , 0))
-	{
-		int  x ;
-		int  y ;
-
-		x = stat_screen->x ;
-		y = stat_screen->y ;
-		adjust_window_position_by_size( stat_screen , &x , &y) ;
-
-		if( stat_screen->window.x != x || stat_screen->window.y != y)
-		{
-			x_window_move( &stat_screen->window , x , y) ;
-		}
-
-	#ifdef  USE_FRAMEBUFFER
-		reset_screen( &stat_screen->window) ;
-	#endif
-	}
-
-	for( i = 0 ; i < rows ; i++)
+	for( i = 0 ; heads[i] < stat_screen->filled_len ; i++)
 	{
 		x_draw_str_to_eol( &stat_screen->window ,
 				   stat_screen->font_man ,
@@ -220,7 +227,7 @@ set_spot(
 		x_window_move( &stat_screen->window , x , y) ;
 	#ifdef  USE_FRAMEBUFFER
 		reset_screen( &stat_screen->window) ;
-		draw_screen( stat_screen) ;
+		draw_screen( stat_screen , 0) ;
 	#endif
 
 		return  1 ;
@@ -330,7 +337,7 @@ set(
 		stat_screen->filled_len++ ;
 	}
 
-	draw_screen( stat_screen) ;
+	draw_screen( stat_screen , 1) ;
 
 	return  1 ;
 }
@@ -367,7 +374,7 @@ window_exposed(
 	u_int  height
 	)
 {
-	draw_screen( (x_im_status_screen_t *) win) ;
+	draw_screen( (x_im_status_screen_t *) win , 0) ;
 
 	/* draw border (margin area has been already cleared in x_window.c) */
 	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
