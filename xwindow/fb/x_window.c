@@ -678,56 +678,6 @@ clear_margin_area(
 }
 
 static int
-window_move(
-	x_window_t *  win ,
-	int  x ,
-	int  y ,
-	int  expose	/* 1=normal, 0=no */
-	)
-{
-	int  prev_x ;
-	int  prev_y ;
-
-	prev_x = win->x ;
-	prev_y = win->y ;
-
-	win->x = x ;
-	win->y = y ;
-
-	if( expose &&
-	    win->disp->num_of_roots == 2 && win->disp->roots[1]->is_mapped)
-	{
-		/*
-		 * x_display_check_visibility_of_im_window() must be called after
-		 * win->x and win->y is set because window_exposed event which is
-		 * called in expose_window() can call x_window_move() recursively.
-		 */
-		x_display_check_visibility_of_im_window() ;
-	}
-
-	clear_margin_area( win) ;
-
-	if( expose && win->window_exposed)
-	{
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-	}
-#if  0
-	else
-	{
-		x_window_clear_all( win) ;
-	}
-#endif
-
-	/* XXX */
-	if( win->parent)
-	{
-		clear_margin_area( win->parent) ;
-	}
-
-	return  1 ;
-}
-
-static int
 fix_rl_boundary(
 	x_window_t *  win ,
 	int  boundary_start ,
@@ -1207,17 +1157,6 @@ x_window_resize(
 		 */
 		clear_margin_area( win) ;
 	}
-	/*
-	 * XXX If input method window is resized (see x_im_{status|candidate}_screen.c),
-	 * clear it once before redrawing.
-	 * (x_im_{status|candidate_screen always calls x_window_resize() with flag == 0,
-	 *  so 'else if' is used instead of 'if'.)
-	 */
-	else if( win->disp->num_of_roots == 2 && win->disp->roots[1]->is_mapped)
-	{
-		x_display_check_visibility_of_im_window() ;
-		clear_margin_area( win) ;
-	}
 
 	return  1 ;
 }
@@ -1276,18 +1215,52 @@ x_window_move(
 	int  y
 	)
 {
-	return  window_move( win , x , y , 1) ;
-}
+	int  prev_x ;
+	int  prev_y ;
 
-/* XXX for x_im_candidate_screen */
-int
-x_window_move_no_expose(
-	x_window_t *  win ,
-	int  x ,
-	int  y
-	)
-{
-	return  window_move( win , x , y , 0) ;
+	prev_x = win->x ;
+	prev_y = win->y ;
+
+	win->x = x ;
+	win->y = y ;
+
+	/*
+	 * XXX
+	 * Check if win is input method window or not, because x_window_move()
+	 * can fall into the following infinite loop on framebuffer.
+	 * 1) x_im_stat_screen::draw_screen() ->
+	 *    x_window_move() ->
+	 *    x_im_stat_screen::window_exposed() ->
+	 *    x_im_stat_screen::draw_screen()
+	 * 2) x_im_candidate_screen::draw_screen() ->
+	 *    x_im_candidate_screen::resize() ->
+	 *    x_window_move() ->
+	 *    x_im_candidate_screen::window_exposed() ->
+	 *    x_im_candidate_screen::draw_screen()
+	 */
+	if( ( win->disp->num_of_roots == 1 || win != win->disp->roots[1]))
+	{
+		clear_margin_area( win) ;
+
+		if( win->window_exposed)
+		{
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
+	#if  0
+		else
+		{
+			x_window_clear_all( win) ;
+		}
+	#endif
+
+		/* XXX */
+		if( win->parent)
+		{
+			clear_margin_area( win->parent) ;
+		}
+	}
+
+	return  1 ;
 }
 
 int

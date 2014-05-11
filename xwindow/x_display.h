@@ -101,6 +101,8 @@ void  x_display_set_use_ansi_colors( int  use) ;
 int  x_display_reset_cmap(void) ;
 
 void  x_display_rotate( int  rotate) ;
+
+void  x_display_reset_input_method_window(void) ;
 #else
 #define  x_display_set_use_ansi_colors(use)  (0)
 #define  x_display_reset_cmap()  (0)

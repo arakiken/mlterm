@@ -1,5 +1,17 @@
 2014-05-11  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im_{candidate|status}_screen.c: x_window_move_no_expose() is removed.
+
+	* fb/x_window.c: x_window_move() works same as x_window_move_no_expose()
+	  for the input method window, and x_window_move_no_expose() is removed.
+
+	* fb/x_display.[ch]:
+	  - x_display_check_visibility_of_im_window() becomes static and renamed
+	    to check_visibility_of_im_window().
+	  - x_display_reset_input_method_window() is added.
+
+2014-05-11  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x_window.c: clear_margin_area() is called in x_window_resize() which
 	  is called from x_im_{status|candidate}_screen.c
 

@@ -891,6 +891,66 @@ expose_display(
 	}
 }
 
+static int
+check_visibility_of_im_window(void)
+{
+	static struct
+	{
+		int  saved ;
+		int  x ;
+		int  y ;
+		u_int  width ;
+		u_int  height ;
+
+	} im_region ;
+	int  redraw_im_win ;
+
+	redraw_im_win = 0 ;
+
+	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
+	{
+		if( im_region.saved)
+		{
+			if( im_region.x == _disp.roots[1]->x &&
+			    im_region.y == _disp.roots[1]->y &&
+			    im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
+			    im_region.height == ACTUAL_HEIGHT(_disp.roots[1]))
+			{
+				return  0 ;
+			}
+
+			if( im_region.x < _disp.roots[1]->x ||
+			    im_region.y < _disp.roots[1]->y ||
+			    im_region.x + im_region.width >
+				_disp.roots[1]->x + ACTUAL_WIDTH(_disp.roots[1]) ||
+			    im_region.y + im_region.height >
+				_disp.roots[1]->y + ACTUAL_HEIGHT(_disp.roots[1]))
+			{
+				expose_display( im_region.x , im_region.y ,
+					im_region.width , im_region.height) ;
+				redraw_im_win = 1 ;
+			}
+		}
+
+		im_region.saved = 1 ;
+		im_region.x = _disp.roots[1]->x ;
+		im_region.y = _disp.roots[1]->y ;
+		im_region.width = ACTUAL_WIDTH(_disp.roots[1]) ;
+		im_region.height = ACTUAL_HEIGHT(_disp.roots[1]) ;
+	}
+	else
+	{
+		if( im_region.saved)
+		{
+			expose_display( im_region.x , im_region.y ,
+				im_region.width , im_region.height) ;
+			im_region.saved = 0 ;
+		}
+	}
+
+	return  redraw_im_win ;
+}
+
 static void
 receive_event_for_multi_roots(
 	XEvent *  xev
@@ -898,7 +958,7 @@ receive_event_for_multi_roots(
 {
 	int  redraw_im_win ;
 
-	if( ( redraw_im_win = x_display_check_visibility_of_im_window()))
+	if( ( redraw_im_win = check_visibility_of_im_window()))
 	{
 		/* Stop drawing input method window */
 		_disp.roots[1]->is_mapped = 0 ;
@@ -911,7 +971,7 @@ receive_event_for_multi_roots(
 		/* Restart drawing input method window */
 		_disp.roots[1]->is_mapped = 1 ;
 	}
-	else if( ! x_display_check_visibility_of_im_window())
+	else if( ! check_visibility_of_im_window())
 	{
 		return ;
 	}
@@ -2337,57 +2397,16 @@ x_display_copy_lines(
 }
 
 /* XXX for input method window */
-int
-x_display_check_visibility_of_im_window(void)
+void
+x_display_reset_input_method_window(void)
 {
-	static struct
-	{
-		int  saved ;
-		int  x ;
-		int  y ;
-		u_int  width ;
-		u_int  height ;
-
-	} im_region ;
-	int  redraw_im_win ;
-
-	redraw_im_win = 0 ;
-
+#if  0
 	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
+#endif
 	{
-		if( im_region.saved)
-		{
-			if( im_region.x == _disp.roots[1]->x &&
-			    im_region.y == _disp.roots[1]->y &&
-			    im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
-			    im_region.height == ACTUAL_HEIGHT(_disp.roots[1]))
-			{
-				return  0 ;
-			}
-
-			expose_display( im_region.x , im_region.y ,
-				im_region.width , im_region.height) ;
-
-			redraw_im_win = 1 ;
-		}
-
-		im_region.saved = 1 ;
-		im_region.x = _disp.roots[1]->x ;
-		im_region.y = _disp.roots[1]->y ;
-		im_region.width = ACTUAL_WIDTH(_disp.roots[1]) ;
-		im_region.height = ACTUAL_HEIGHT(_disp.roots[1]) ;
+		check_visibility_of_im_window() ;
+		x_window_clear_margin_area( _disp.roots[1]) ;
 	}
-	else
-	{
-		if( im_region.saved)
-		{
-			expose_display( im_region.x , im_region.y ,
-				im_region.width , im_region.height) ;
-			im_region.saved = 0 ;
-		}
-	}
-
-	return  redraw_im_win ;
 }
 
 /* seek the closest color */

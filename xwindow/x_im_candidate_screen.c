@@ -197,34 +197,23 @@ resize(
 	u_int  height
 	)
 {
-	int  x ;
-	int  y ;
-
 	if( x_window_resize( &cand_screen->window , width , height , 0))
 	{
+		int  x ;
+		int  y ;
+
 		x = cand_screen->x ;
 		y = cand_screen->y ;
 		adjust_window_position_by_size( cand_screen , &x , &y) ;
 
 		if( x != cand_screen->window.x || y != cand_screen->window.y)
 		{
-		#ifdef  USE_FRAMEBUFFER
-			/*
-			 * In frmebuffer,
-			 * x_im_candidate_screen::draw_screen() ->
-			 * x_im_candidate_screen::resize() ->
-			 * x_window_move() ->
-			 * x_im_candidate_screen::window_exposed() ->
-			 * x_im_candidate_screen::draw_screen()
-			 */
-			x_window_move_no_expose( &cand_screen->window , x , y) ;
-		#else
 			x_window_move( &cand_screen->window , x , y) ;
-		#endif
 		}
 
 	#ifdef  USE_FRAMEBUFFER
 		/* resized but position is not changed. */
+		x_display_reset_input_method_window() ;
 		x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
 					  cand_screen->window.width + MARGIN - 1 ,
 					  cand_screen->window.height + MARGIN - 1) ;
@@ -710,14 +699,14 @@ set_spot(
 
 	if( cand_screen->window.x != x || cand_screen->window.y != y)
 	{
-	#ifdef  USE_FRAMEBUFFER
-		x_window_move_no_expose( &cand_screen->window , x , y) ;
-	#else
 		x_window_move( &cand_screen->window , x , y) ;
-	#endif
-	}
 
-	return  1 ;
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 static int

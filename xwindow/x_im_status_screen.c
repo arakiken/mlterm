@@ -14,12 +14,50 @@
 #define  MAX_ROWS	5
 
 
-/* --- static variables --- */
-
-
 /* --- static functions --- */
 
-static int  set_spot( x_im_status_screen_t *  stat_screen , int  x , int  y) ;
+static void
+adjust_window_position_by_size(
+	x_im_status_screen_t *  stat_screen ,
+	int *  x ,
+	int *  y
+	)
+{
+	if( *y + ACTUAL_HEIGHT(&stat_screen->window) >= stat_screen->window.disp->height)
+	{
+		*y -= ACTUAL_HEIGHT(&stat_screen->window) ;
+		if( ! stat_screen->is_vertical)
+		{
+			*y -= stat_screen->line_height ;
+		}
+	}
+
+	if( *x + ACTUAL_WIDTH(&stat_screen->window) >= stat_screen->window.disp->width)
+	{
+		if( stat_screen->is_vertical)
+		{
+			/* x_im_stat_screen doesn't know column width. */
+			*x -= (ACTUAL_WIDTH(&stat_screen->window) + stat_screen->line_height) ;
+		}
+		else
+		{
+			*x = stat_screen->window.disp->width - ACTUAL_WIDTH(&stat_screen->window) ;
+		}
+	}
+}
+
+#ifdef  USE_FRAMEBUFFER
+static void
+reset_screen(
+	x_window_t *  win
+	)
+{
+	x_display_reset_input_method_window() ;
+	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
+				  win->width + MARGIN - 1 ,
+				  win->height + MARGIN - 1) ;
+}
+#endif
 
 static void
 draw_screen(
@@ -90,24 +128,20 @@ draw_screen(
 	if( x_window_resize( &stat_screen->window , width ,
 				line_height * rows , 0))
 	{
-		/* Reset window position */
+		int  x ;
+		int  y ;
 
-	#ifdef  USE_FRAMEBUFFER
-		if( set_spot( stat_screen , stat_screen->x , stat_screen->y))
+		x = stat_screen->x ;
+		y = stat_screen->y ;
+		adjust_window_position_by_size( stat_screen , &x , &y) ;
+
+		if( stat_screen->window.x != x || stat_screen->window.y != y)
 		{
-			/*
-			 * set_spot() -> x_window_move() -> window_exposed() ->
-			 * draw_screen() and x_window_draw_rect_frame().
-			 */
-			return ;
+			x_window_move( &stat_screen->window , x , y) ;
 		}
 
-		/* resized but position is not changed. */
-		x_window_draw_rect_frame( &stat_screen->window , -MARGIN , -MARGIN ,
-					  stat_screen->window.width + MARGIN - 1 ,
-					  stat_screen->window.height + MARGIN - 1) ;
-	#else
-		set_spot( stat_screen , stat_screen->x , stat_screen->y) ;
+	#ifdef  USE_FRAMEBUFFER
+		reset_screen( &stat_screen->window) ;
 	#endif
 	}
 
@@ -179,31 +213,15 @@ set_spot(
 	stat_screen->x = x ;
 	stat_screen->y = y ;
 
-	if( y + ACTUAL_HEIGHT(&stat_screen->window) >= stat_screen->window.disp->height)
-	{
-		y -= ACTUAL_HEIGHT(&stat_screen->window) ;
-		if( ! stat_screen->is_vertical)
-		{
-			y -= stat_screen->line_height ;
-		}
-	}
-
-	if( x + ACTUAL_WIDTH(&stat_screen->window) >= stat_screen->window.disp->width)
-	{
-		if( stat_screen->is_vertical)
-		{
-			/* x_im_stat_screen doesn't know column width. */
-			x -= (ACTUAL_WIDTH(&stat_screen->window) + stat_screen->line_height) ;
-		}
-		else
-		{
-			x = stat_screen->window.disp->width - ACTUAL_WIDTH(&stat_screen->window) ;
-		}
-	}
+	adjust_window_position_by_size( stat_screen , &x , &y) ;
 
 	if( stat_screen->window.x != x || stat_screen->window.y != y)
 	{
 		x_window_move( &stat_screen->window , x , y) ;
+	#ifdef  USE_FRAMEBUFFER
+		reset_screen( &stat_screen->window) ;
+		draw_screen( stat_screen) ;
+	#endif
 
 		return  1 ;
 	}
