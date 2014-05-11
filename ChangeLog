@@ -1,5 +1,10 @@
 2014-05-11  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x_window.c: clear_margin_area() is called in x_window_resize() which
+	  is called from x_im_{status|candidate}_screen.c
+
+2014-05-11  Araki Ken  <arakiken@users.sf.net>
+
 	* x_display_linux.c:
 	  - strstr() in get_event_device_num() is replaced by strcasestr().
 	  - If get_event_device_num() doesn't find kbd or mouse input event

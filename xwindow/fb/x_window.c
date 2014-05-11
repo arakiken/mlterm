@@ -1207,11 +1207,16 @@ x_window_resize(
 		 */
 		clear_margin_area( win) ;
 	}
-
-	/* XXX If input method window is resized, clear it once before redrawing. */
-	if( win->disp->num_of_roots == 2 && win->disp->roots[1]->is_mapped)
+	/*
+	 * XXX If input method window is resized (see x_im_{status|candidate}_screen.c),
+	 * clear it once before redrawing.
+	 * (x_im_{status|candidate_screen always calls x_window_resize() with flag == 0,
+	 *  so 'else if' is used instead of 'if'.)
+	 */
+	else if( win->disp->num_of_roots == 2 && win->disp->roots[1]->is_mapped)
 	{
 		x_display_check_visibility_of_im_window() ;
+		clear_margin_area( win) ;
 	}
 
 	return  1 ;

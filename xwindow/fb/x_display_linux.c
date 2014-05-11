@@ -169,7 +169,6 @@ get_event_device_num(
 						{ "mouse" , "ts" , "touch" } ;
 					u_int  idx ;
 
-					kik_debug_printf( "%s\n" , buf) ;
 					for( idx = 0 ;
 					     idx < sizeof(mouse_names) / sizeof(mouse_names[0]) ;
 					     idx++)
