@@ -7242,16 +7242,27 @@ xterm_set_selection(
 	)
 {
 	x_screen_t *  screen ;
-	int  enable_clip_temp ;
+	int  use_clip_orig ;
 
 	screen = p ;
 
-	enable_clip_temp = 0 ;
+	use_clip_orig = x_is_using_clipboard_selection() ;
 
-	if( strchr( targets , 'c') && ! x_is_using_clipboard_selection())
+	if( strchr( targets , 'c'))
 	{
-		x_set_use_clipboard_selection( 1) ;
-		enable_clip_temp = 1 ;
+		if( ! use_clip_orig)
+		{
+			x_set_use_clipboard_selection( 1) ;
+		}
+	}
+	else if( ! strchr( targets , 's') && strchr( targets , 'p'))
+	{
+		/* 'p' is specified while 'c' and 's' aren't specified. */
+
+		if( use_clip_orig)
+		{
+			x_set_use_clipboard_selection( 0) ;
+		}
 	}
 
 	if( x_window_set_selection_owner( &screen->window , CurrentTime))
@@ -7265,9 +7276,9 @@ xterm_set_selection(
 		screen->sel.sel_len = len ;
 	}
 
-	if( enable_clip_temp)
+	if( use_clip_orig != x_is_using_clipboard_selection())
 	{
-		x_set_use_clipboard_selection( 0) ;
+		x_set_use_clipboard_selection( use_clip_orig) ;
 	}
 }
 

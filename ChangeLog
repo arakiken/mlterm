@@ -1,5 +1,10 @@
 2014-05-17  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c: If Pc of OSC 52 is 'p' and "use_clipboard" option is true,
+	  clipboard is disabled temporarily.
+
+2014-05-17  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.[ch], x_screen.c: If Pc of OSC 52 is 'c' and "use_clipboard"
 	  option is false, clipboard is enabled temporarily.
 
