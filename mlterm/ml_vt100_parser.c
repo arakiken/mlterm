@@ -27,7 +27,6 @@
 
 #include  "ml_iscii.h"
 #include  "ml_config_proto.h"
-#include  "ml_drcs.h"
 #include  "ml_str_parser.h"
 
 
@@ -2326,12 +2325,25 @@ set_selection(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_selection))
 	{
+		u_char *  p ;
+		u_char *  targets ;
 		size_t  e_len ;
 		size_t  d_len ;
 		u_char *  decoded ;
 		mkf_char_t  ch ;
 		ml_char_t *  str ;
 		u_int  str_len ;
+
+		if( ( p = strchr( encoded , ';')))
+		{
+			*p = '\0' ;
+			targets = encoded ;
+			encoded = p + 1 ;
+		}
+		else
+		{
+			targets = "s0" ;
+		}
 
 		if( ( e_len = strlen( encoded)) < 4 || ! ( decoded = alloca( e_len)) ||
 		    ( d_len = base64_decode( decoded , encoded , e_len)) == 0 ||
@@ -2358,7 +2370,7 @@ set_selection(
 	#endif
 
 		(*vt100_parser->xterm_listener->set_selection)(
-			vt100_parser->xterm_listener->self , str , str_len) ;
+			vt100_parser->xterm_listener->self , str , str_len , targets) ;
 
 	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
@@ -4518,13 +4530,6 @@ parse_vt100_escape_sequence(
 		#endif
 			else if( ps == 52)
 			{
-				u_char *  p ;
-
-				if( ( p = strchr( pt , ';')))
-				{
-					pt = p + 1 ;
-				}
-
 				set_selection( vt100_parser , pt) ;
 			}
 		#if  0
@@ -4776,7 +4781,7 @@ parse_vt100_escape_sequence(
 				/* DECDLD */
 
 				u_char *  pt ;
-				ml_drcs_t *  font ;
+				ml_drcs_font_t *  font ;
 				int  num ;
 				u_char *  p ;
 				int  ps[8] ;
@@ -4836,6 +4841,8 @@ parse_vt100_escape_sequence(
 					/* ESC ( SP Ft */
 					pt ++ ;
 				}
+
+				ml_drcs_select( vt100_parser->drcs) ;
 
 				if( num != 8)
 				{
@@ -5484,8 +5491,11 @@ ml_vt100_parser_new(
 
 	if( ( vt100_parser->cc_parser = ml_parser_new( encoding)) == NULL)
 	{
-		(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
+		goto  error ;
+	}
 
+	if( ( vt100_parser->drcs = ml_drcs_new()) == NULL)
+	{
 		goto  error ;
 	}
 
@@ -5518,6 +5528,16 @@ ml_vt100_parser_new(
 	return  vt100_parser ;
 
 error:
+	if( vt100_parser->cc_conv)
+	{
+		(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
+	}
+
+	if( vt100_parser->cc_parser)
+	{
+		(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
+	}
+
 	free( vt100_parser) ;
 
 	return  NULL ;
@@ -5531,6 +5551,8 @@ ml_vt100_parser_delete(
 	ml_str_final( vt100_parser->w_buf.chars , PTY_WR_BUFFER_SIZE) ;
 	(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
 	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
+
+	ml_drcs_delete( vt100_parser->drcs) ;
 
 	if( vt100_parser->log_file != -1)
 	{

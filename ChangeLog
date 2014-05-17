@@ -1,3 +1,14 @@
+2014-05-17  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch], x_screen.c: If Pc of OSC 52 is 'c' and "use_clipboard"
+	  option is false, clipboard is enabled temporarily.
+
+	* ml_drcs.[ch], ml_vt100_parser.[ch], x_screen.c: Each pty has its own drcs database.
+
+	* c_sixel.c: Fix http://twitter.com/kefir_/status/467340224628924416
+
+	* ml_pty.c: Minor hack is added to ml_pty_get_slave_name().
+
 2014-05-11  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_{candidate|status}_screen.c: Calculating appropriate size of input

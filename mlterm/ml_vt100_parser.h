@@ -13,6 +13,7 @@
 #include  "ml_pty.h"
 #include  "ml_screen.h"
 #include  "ml_char_encoding.h"
+#include  "ml_drcs.h"
 
 
 #define  PTY_WR_BUFFER_SIZE  100
@@ -95,7 +96,7 @@ typedef struct  ml_xterm_event_listener
 	void (*bel)( void *) ;				/* called in visual context. */
 	int (*im_is_active)( void *) ;			/* called in logical context. */
 	void (*switch_im_mode)( void *) ;		/* called in logical context. */
-	void (*set_selection)( void * , ml_char_t * , u_int) ;	/* called in logical context. */
+	void (*set_selection)( void * , ml_char_t * , u_int , u_char *) ;	/* called in logical context. */
 	int (*get_window_size)( void * , u_int * , u_int *) ;	/* called in logical context. */
 	int (*get_rgb)( void * , u_int8_t * , u_int8_t * ,
 			u_int8_t * , ml_color_t) ;		/* called in logical context. */
@@ -229,6 +230,8 @@ typedef struct  ml_vt100_parser
 	ml_vt100_saved_names_t  saved_win_names ;
 	ml_vt100_saved_names_t  saved_icon_names ;
 
+	ml_drcs_t *  drcs ;
+
 } ml_vt100_parser_t ;
 
 
@@ -339,6 +342,8 @@ int  ml_set_auto_detect_encodings( char *  encodings) ;
 
 int  ml_convert_to_internal_ch( mkf_char_t *  ch , ml_unicode_policy_t  unicode_policy ,
 		mkf_charset_t  gl) ;
+
+#define  ml_vt100_parser_select_drcs( vt100_parser)  ml_drcs_select( (vt100_parser)->drcs)
 
 
 #endif

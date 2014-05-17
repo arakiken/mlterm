@@ -1585,6 +1585,8 @@ window_exposed(
 		}
 	}
 
+	ml_term_select_drcs( screen->term) ;
+
 	redraw_screen( screen) ;
 
 	if( beg_row <= ml_term_cursor_row_in_screen( screen->term) &&
@@ -1603,6 +1605,8 @@ update_window(
 	x_screen_t *  screen ;
 
 	screen = (x_screen_t*)win ;
+
+	ml_term_select_drcs( screen->term) ;
 
 	if( flag & UPDATE_SCREEN)
 	{
@@ -1908,7 +1912,7 @@ receive_string_via_ucs(
 
 /* referred in shortcut_match */
 static void change_im( x_screen_t * , char *) ;
-static void xterm_set_selection( void *  p , ml_char_t *  str ,	u_int  len) ;
+static void xterm_set_selection( void * , ml_char_t * , u_int , u_char *) ;
 
 static int
 shortcut_match(
@@ -7233,25 +7237,38 @@ static void
 xterm_set_selection(
 	void *  p ,
 	ml_char_t *  str ,	/* Should be free'ed by the event listener. */
-	u_int  len
+	u_int  len ,
+	u_char *  targets
 	)
 {
 	x_screen_t *  screen ;
+	int  enable_clip_temp ;
 
 	screen = p ;
 
-	if( ! x_window_set_selection_owner( &screen->window , CurrentTime))
+	enable_clip_temp = 0 ;
+
+	if( strchr( targets , 'c') && ! x_is_using_clipboard_selection())
 	{
-		return ;
+		x_set_use_clipboard_selection( 1) ;
+		enable_clip_temp = 1 ;
 	}
 
-	if( screen->sel.sel_str)
+	if( x_window_set_selection_owner( &screen->window , CurrentTime))
 	{
-		ml_str_delete( screen->sel.sel_str , screen->sel.sel_len) ;
+		if( screen->sel.sel_str)
+		{
+			ml_str_delete( screen->sel.sel_str , screen->sel.sel_len) ;
+		}
+
+		screen->sel.sel_str = str ;
+		screen->sel.sel_len = len ;
 	}
 
-	screen->sel.sel_str = str ;
-	screen->sel.sel_len = len ;
+	if( enable_clip_temp)
+	{
+		x_set_use_clipboard_selection( 0) ;
+	}
 }
 
 static int

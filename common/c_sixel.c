@@ -126,7 +126,7 @@ realloc_pixels(
 
 		#ifdef  DEBUG
 			kik_error_printf( KIK_DEBUG_TAG
-				" Sixel width is shrinked (%d->%d) but"
+				" Sixel width is shrunk (%d->%d) but"
 				" height is lengthen (%d->%d)\n" ,
 				cur_width , cur_height , new_width , new_height) ;
 		#endif
@@ -642,12 +642,19 @@ body:
 			{
 				int  y ;
 
-				for( y = (pix_y == 0 ? 1 : pix_y) ; y < pix_y + 6 ; y++)
+			#ifdef  DEBUG
+				kik_debug_printf( "Sixel width is shrunk (%d -> %d)\n" ,
+					width , cur_width) ;
+			#endif
+
+				for( y = 1 ; y < cur_height ; y++)
 				{
 					memmove( pixels + y * cur_width * PIXEL_SIZE ,
 						pixels + y * width * PIXEL_SIZE ,
 						cur_width * PIXEL_SIZE) ;
 				}
+				memset( pixels + y * cur_width * PIXEL_SIZE , 0 ,
+					(cur_height * (width - cur_width) * PIXEL_SIZE)) ;
 
 				width = cur_width ;
 				init_width = 1 ;

@@ -12,16 +12,16 @@
 
 /* --- static variables --- */
 
-static ml_drcs_t *  drcs_fonts ;
-static u_int  num_of_drcs_fonts ;
+static ml_drcs_t *  cur_drcs ;
 static mkf_charset_t  cached_font_cs = UNKNOWN_CS ;
+static ml_drcs_font_t *  cached_font ;
 
 
 /* --- static functions --- */
 
 static int
 drcs_final(
-	ml_drcs_t *  font
+	ml_drcs_font_t *  font
 	)
 {
 	int  idx ;
@@ -45,13 +45,22 @@ drcs_final(
 
 /* --- global functions --- */
 
-ml_drcs_t *
+void
+ml_drcs_select(
+	ml_drcs_t *  drcs
+	)
+{
+	cur_drcs = drcs ;
+	/* Clear cache in ml_drcs_get(). */
+	cached_font_cs = UNKNOWN_CS ;
+}
+
+ml_drcs_font_t *
 ml_drcs_get_font(
 	mkf_charset_t  cs ,
 	int  create
 	)
 {
-	static ml_drcs_t *  cached_font ;
 	u_int  count ;
 	void *  p ;
 
@@ -62,29 +71,34 @@ ml_drcs_get_font(
 			return  cached_font ;
 		}
 	}
+	else if( ! cur_drcs)
+	{
+		return  NULL ;
+	}
 	else
 	{
-		for( count = 0 ; count < num_of_drcs_fonts ; count++)
+		for( count = 0 ; count < cur_drcs->num_of_fonts ; count++)
 		{
-			if( drcs_fonts[count].cs == cs)
+			if( cur_drcs->fonts[count].cs == cs)
 			{
-				return  &drcs_fonts[count] ;
+				return  &cur_drcs->fonts[count] ;
 			}
 		}
 	}
 
 	if( ! create ||
 	    /* XXX leaks */
-	    ! ( p = realloc( drcs_fonts , sizeof(ml_drcs_t) * (num_of_drcs_fonts + 1))))
+	    ! ( p = realloc( cur_drcs->fonts ,
+			sizeof(ml_drcs_font_t) * (cur_drcs->num_of_fonts + 1))))
 	{
 		return  NULL ;
 	}
 
-	drcs_fonts = p ;
-	memset( drcs_fonts + num_of_drcs_fonts , 0 , sizeof(ml_drcs_t)) ;
-	cached_font_cs = drcs_fonts[num_of_drcs_fonts].cs = cs ;
+	cur_drcs->fonts = p ;
+	memset( cur_drcs->fonts + cur_drcs->num_of_fonts , 0 , sizeof(ml_drcs_font_t)) ;
+	cached_font_cs = cur_drcs->fonts[cur_drcs->num_of_fonts].cs = cs ;
 
-	return  (cached_font = &drcs_fonts[num_of_drcs_fonts ++]) ;
+	return  (cached_font = &cur_drcs->fonts[cur_drcs->num_of_fonts ++]) ;
 }
 
 char *
@@ -93,7 +107,7 @@ ml_drcs_get_glyph(
 	u_char  idx
 	)
 {
-	ml_drcs_t *  font ;
+	ml_drcs_font_t *  font ;
 
 	/* msb can be set in ml_vt100_parser.c (e.g. ESC(I (JISX0201 kana)) */
 	if( ( font = ml_drcs_get_font( cs , 0)) && 0x20 <= (idx & 0x7f))
@@ -113,12 +127,12 @@ ml_drcs_final(
 {
 	u_int  count ;
 
-	for( count = 0 ; count < num_of_drcs_fonts ; count++)
+	for( count = 0 ; count < cur_drcs->num_of_fonts ; count++)
 	{
-		if( drcs_fonts[count].cs == cs)
+		if( cur_drcs->fonts[count].cs == cs)
 		{
-			drcs_final( drcs_fonts + count) ;
-			drcs_fonts[count] = drcs_fonts[--num_of_drcs_fonts] ;
+			drcs_final( cur_drcs->fonts + count) ;
+			cur_drcs->fonts[count] = cur_drcs->fonts[--cur_drcs->num_of_fonts] ;
 
 			return  1 ;
 		}
@@ -132,21 +146,22 @@ ml_drcs_final_full(void)
 {
 	u_int  count ;
 
-	for( count = 0 ; count < num_of_drcs_fonts ; count++)
+	for( count = 0 ; count < cur_drcs->num_of_fonts ; count++)
 	{
-		drcs_final( drcs_fonts + count) ;
+		drcs_final( cur_drcs->fonts + count) ;
 	}
 
-	free( drcs_fonts) ;
-	drcs_fonts = NULL ;
-	num_of_drcs_fonts = 0 ;
+	free( cur_drcs->fonts) ;
+	cur_drcs->fonts = NULL ;
+	cur_drcs->num_of_fonts = 0 ;
+	cur_drcs = NULL ;
 
 	return  1 ;
 }
 
 int
 ml_drcs_add(
-	ml_drcs_t *  font ,
+	ml_drcs_font_t *  font ,
 	int  idx ,
 	char *  seq ,
 	u_int  width ,

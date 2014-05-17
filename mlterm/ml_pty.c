@@ -383,7 +383,12 @@ ml_pty_get_slave_name(
 #endif
 
 	/* Virtual pty name */
+#ifdef  USE_LIBSSH2
+	sprintf( virt_name , "/dev/vpty%d" ,
+		(pty->child_pid >> 1 & 0xfff)) ;	/* child_pid == channel */
+#else
 	sprintf( virt_name , "/dev/vpty%d" , pty->master) ;
+#endif
 
 	return  virt_name ;
 }

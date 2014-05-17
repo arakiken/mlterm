@@ -337,6 +337,7 @@ int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		ml_screen_search_find( (term)->screen , beg_char_index , beg_row , \
 			end_char_index , end_row , regex , backward)
 
+#define  ml_term_select_drcs(term)  ml_vt100_parser_select_drcs((term)->parser)
 
 /*
  * Defined in ml_term_manager.c, but declared here because x_screen.c uses
