@@ -1,3 +1,8 @@
+2014-05-18  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: The current foreground color of the terminal is
+	  designated as the default value of the first entry of the sixel palette.
+
 2014-05-17  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: If Pc of OSC 52 is 'p' and "use_clipboard" option is true,

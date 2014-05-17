@@ -4646,6 +4646,8 @@ parse_vt100_escape_sequence(
 				}
 				else
 				{
+					char *  format ;
+					ml_color_t  color ;
 					u_int8_t  red ;
 					u_int8_t  green ;
 					u_int8_t  blue ;
@@ -4653,18 +4655,52 @@ parse_vt100_escape_sequence(
 					fp = fopen( path , "w") ;
 					is_end = 0 ;
 
-					if( strcmp( path + strlen(path) - 4 , ".rgs") == 0 &&
+					if( strcmp( path + strlen(path) - 4 , ".rgs") == 0)
+					{
+						/* Clear background by ML_BG_COLOR */
+
+						/* 13 + 3*3 + 1 = 23 */
+						format = "S(I(R%dG%dB%d))S(E)" ;
+						color = ML_BG_COLOR ;
+					}
+					else if( strcmp( path + strlen(path) - 4 , ".six") == 0)
+					{
+						/*
+						 * Set ML_FG_COLOR to the default value of
+						 * the first entry of the sixel palette.
+						 */
+
+						/* 7 + 3*3 + 1 = 17 */
+						format = "#0;2;%d;%d;%d" ;
+						color = ML_FG_COLOR ;
+					}
+					else
+					{
+						format = NULL ;
+					}
+
+					if( format &&
 					    HAS_XTERM_LISTENER(vt100_parser,get_rgb) &&
 					    (*vt100_parser->xterm_listener->get_rgb)(
 						vt100_parser->xterm_listener->self ,
-						&red , &green , &blue , ML_BG_COLOR))
+						&red , &green , &blue , color))
 					{
-						char  clear_bg[23] ;	/* 13 + 3*3 + 1 */
+						char  color_seq[23] ;
 
-						fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
-						sprintf( clear_bg , "S(I(R%dG%dB%d))S(E)" ,
+						if( color == ML_FG_COLOR)
+						{
+							/* sixel */
+							red = red * 100 / 255 ;
+							green = green * 100 / 255 ;
+							blue = blue * 100 / 255 ;
+						}
+
+						fwrite( dcs_beg , 1 ,
+							str_p - dcs_beg + 1 , fp) ;
+						sprintf( color_seq , format ,
 							red , green , blue) ;
-						fwrite( clear_bg , 1 , strlen(clear_bg) , fp) ;
+						fwrite( color_seq , 1 ,
+							strlen(color_seq) , fp) ;
 						dcs_beg = str_p + 1 ;
 					}
 				}
