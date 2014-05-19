@@ -10,8 +10,8 @@
 #include  "x_arrow_data.h"
 
 
-#define  TOP_MARGIN     14
-#define  BOTTOM_MARGIN  14
+#define  TOP_MARGIN     0
+#define  BOTTOM_MARGIN  28
 #define  HEIGHT_MARGIN  (TOP_MARGIN + BOTTOM_MARGIN)
 #define  WIDTH          13
 
@@ -33,10 +33,10 @@ get_geometry_hints(
 	*width = WIDTH ;
 	*top_margin = TOP_MARGIN ;
 	*bottom_margin = BOTTOM_MARGIN ;
-	*up_button_y = 0 ;
-	*up_button_height = TOP_MARGIN ;
-	*down_button_y = -BOTTOM_MARGIN ;
-	*down_button_height = BOTTOM_MARGIN ;
+	*up_button_y = -BOTTOM_MARGIN ;
+	*up_button_height = BOTTOM_MARGIN / 2 ;
+	*down_button_y = -(BOTTOM_MARGIN / 2) ;
+	*down_button_height = BOTTOM_MARGIN / 2 ;
 }
 
 static void
@@ -86,13 +86,13 @@ realized(
 			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 
 	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src ,
-				WIDTH , TOP_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_down = x_get_icon_pixmap( view , sample->gc , arrow_down_src ,
-				WIDTH , BOTTOM_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_up_dent = x_get_icon_pixmap( view , sample->gc , arrow_up_dent_src ,
-				WIDTH , TOP_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_down_dent = x_get_icon_pixmap( view , sample->gc , arrow_down_dent_src ,
-				WIDTH , BOTTOM_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 }
 
 static void
@@ -119,13 +119,13 @@ color_changed(
 		sample = (sample_sb_view_t*) view ;
 
 		x_draw_icon_pixmap_fg( view , sample->arrow_up , arrow_up_src ,
-			WIDTH , TOP_MARGIN) ;
+			WIDTH , BOTTOM_MARGIN / 2) ;
 		x_draw_icon_pixmap_fg( view , sample->arrow_down , arrow_down_src ,
-			WIDTH , BOTTOM_MARGIN) ;
+			WIDTH , BOTTOM_MARGIN / 2) ;
 		x_draw_icon_pixmap_fg( view , sample->arrow_up_dent , arrow_up_dent_src ,
-			WIDTH , TOP_MARGIN) ;
+			WIDTH , BOTTOM_MARGIN / 2) ;
 		x_draw_icon_pixmap_fg( view , sample->arrow_down_dent , arrow_down_dent_src ,
-			WIDTH , BOTTOM_MARGIN) ;
+			WIDTH , BOTTOM_MARGIN / 2) ;
 	}
 }
 
@@ -172,7 +172,7 @@ draw_arrow_up_icon(
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
-		0 , 0 , WIDTH , TOP_MARGIN , 0 , 0) ;
+		0 , 0 , WIDTH , BOTTOM_MARGIN / 2 , 0 , view->height - BOTTOM_MARGIN) ;
 }
 
 static void
@@ -196,7 +196,7 @@ draw_arrow_down_icon(
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
-		0 , 0 , WIDTH , BOTTOM_MARGIN , 0 , view->height - BOTTOM_MARGIN) ;
+		0 , 0 , WIDTH , BOTTOM_MARGIN / 2 , 0 , view->height - BOTTOM_MARGIN / 2) ;
 }
 
 static void
@@ -265,7 +265,7 @@ draw_down_button(
 /* --- global functions --- */
 
 x_sb_view_t *
-x_sample_sb_view_new(void)
+x_sample2_sb_view_new(void)
 {
 	sample_sb_view_t *  sample ;
 	
@@ -275,14 +275,14 @@ x_sample_sb_view_new(void)
 	}
 
 	sample->view.version = 1 ;
-
+	
 	sample->view.get_geometry_hints = get_geometry_hints ;
 	sample->view.get_default_color = get_default_color ;
 	sample->view.realized = realized ;
 	sample->view.resized = resized ;
 	sample->view.color_changed = color_changed ;
 	sample->view.delete = delete ;
-
+	
 	sample->view.draw_scrollbar = draw_scrollbar ;
 	sample->view.draw_background = draw_background ;
 	sample->view.draw_up_button = draw_up_button ;

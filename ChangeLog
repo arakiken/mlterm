@@ -1,3 +1,23 @@
+2014-05-19  Araki Ken  <arakiken@users.sf.net>
+
+	* x_sb_screen.c, win32/x_window.c: button_pressed() hack in x_sb_screen.c
+	  for USE_WIN32GUI is moved to x_window.c
+
+	* Android.mk, android/jni/x_display.c, x_screen_manager.c:
+	  Scrollbar is supported on Android.
+
+	* pixmap_engine.c, x_sb_view_factory.c, x_sb_view.h, main/dexport.map:
+	  The address of x_imagelib_load_file is passed to pixmap_engine
+	  via x_sb_view_conf_t instead of building mlterm with -export-dynamic.
+
+	* x_sb_view.h, x_scrollbar.c, x_simple_sb_view.c, main/dexport-fb.map,
+	  scrollbar/sample/:
+	 - "sample" scrollbar is linked to mlterm as "simple" one.
+	 - "sample2" scrollbar is renamed to "sample".
+
+	* xlib/x_simple_sb_view.c, win32/x_simple_sb_view.c, fb/x_simple_sb_view.c:
+	  The original "simple" scrollbar is removed.
+
 2014-05-18  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: The current foreground color of the terminal is

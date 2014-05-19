@@ -325,6 +325,34 @@ show_soft_input(
 	(*vm)->DetachCurrentThread(vm) ;
 }
 
+/*
+ * _disp.roots[1] is ignored.
+ * x and y are rotated values.
+ */
+static inline x_window_t *
+get_window(
+	int  x ,	/* X in display */
+	int  y		/* Y in display */
+	)
+{
+	x_window_t *  win ;
+	u_int  count ;
+
+	for( count = 0 ; count < _disp.roots[0]->num_of_children ; count++)
+	{
+		if( ( win = _disp.roots[0]->children[count])->is_mapped)
+		{
+			if( win->x <= x && x < win->x + ACTUAL_WIDTH(win) &&
+			    win->y <= y && y < win->y + ACTUAL_HEIGHT(win))
+			{
+				return  win ;
+			}
+		}
+	}
+
+	return  _disp.roots[0] ;
+}
+
 static int
 process_mouse_event(
 	int  source ,
@@ -338,6 +366,7 @@ process_mouse_event(
 	{
 		XButtonEvent  xev ;
 		static int  click_num ;
+		x_window_t *  win ;
 
 		switch( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK)
 		{
@@ -438,7 +467,11 @@ process_mouse_event(
 			xev.x , xev.y , xev.button , xev.time) ;
 	#endif
 
-		x_window_receive_event( _disp.roots[0] , &xev) ;
+		win = get_window( xev.x , xev.y) ;
+		xev.x -= win->x ;
+		xev.y -= win->y ;
+
+		x_window_receive_event( win , &xev) ;
 	}
 
 	return  1 ;

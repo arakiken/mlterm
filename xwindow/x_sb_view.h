@@ -16,6 +16,9 @@
 #include  "x.h"
 
 
+typedef struct x_display *  __x_display_ptr_t ;
+typedef struct x_window *  __x_window_ptr_t ;
+
 typedef struct  x_sb_view
 {
 	Display *  display ;
@@ -59,6 +62,9 @@ typedef struct  x_sb_view
 	void (*draw_up_button)( struct  x_sb_view * , int) ;
 	void (*draw_down_button)( struct  x_sb_view * , int) ;
 
+	/* x_scrollbar sets this after x_*_sb_view_new(). */
+	__x_window_ptr_t  win ;
+
 } x_sb_view_t ;
 
 typedef struct x_sb_view_rc
@@ -76,7 +82,12 @@ typedef struct  x_sb_view_conf
 	x_sb_view_rc_t *  rc ;
 	unsigned int  rc_num ;
 	unsigned int  use_count ;
-	
+
+	int  (*load_image)( __x_display_ptr_t  disp , char *  path ,
+		/* u_int32_t */ unsigned int **  cardinal ,
+		Pixmap *  pixmap , Pixmap *  mask ,
+		unsigned int *  width , unsigned int *  height) ;
+
 } x_sb_view_conf_t ;
 
 

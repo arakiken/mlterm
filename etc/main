@@ -114,7 +114,6 @@
 
 # (simple,sample,sample2,sample3,next,motif,athena,mozmodern)
 # scrollbar_view_name = simple
-scrollbar_view_name = sample
 
 # fg_color = black
 

@@ -2317,6 +2317,23 @@ x_window_receive_event(
 				}
 			}
 
+			/* XXX grandchild windows aren't regarded for now. */
+			for( count = 0 ; count < win->num_of_children ; count++)
+			{
+				if( bev.x <= win->children[count]->x &&
+				    bev.y <= win->children[count]->y &&
+				    win->children[count]->x + ACTUAL_WIDTH(win->children[count])
+				          <= bev.x + 1 &&
+				    win->children[count]->y + ACTUAL_HEIGHT(win->children[count])
+				          <= bev.y + 1)
+				{
+					win = win->children[count] ;
+					bev.x -= win->x ;
+					bev.y -= win->y ;
+					break ;
+				}
+			}
+
 			if( event->msg == WM_MOUSEWHEEL || event->msg == WM_LBUTTONDOWN ||
 				event->msg == WM_RBUTTONDOWN || event->msg == WM_MBUTTONDOWN)
 			{

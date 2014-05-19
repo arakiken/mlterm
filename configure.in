@@ -162,11 +162,7 @@ fi
 AC_SUBST(SUBSYSTEM)
 
 if test "$with_gnu_ld" = "yes" ; then
-	if test "$gui" = "fb" ; then
-		DEXPORT="-Wl,--version-script=\$(VPATH)/dexport-fb.map"
-	else
-		DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
-	fi
+	DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
 elif test "`$LD --version 2>&1 | $GREP Solaris`" != "" ; then
 	# This option is for SunOS 5.x (Solaris) or later.
 	DEXPORT="-Wl,-M -Wl,\$(VPATH)/dexport.map -Wl,-z -Wl,nodefs"
@@ -1045,11 +1041,6 @@ else
 	scrollbars=
 fi
 
-# sample scrollbar needs x_window_clear etc.
-if test "$gui" = "fb" -a "$scrollbars" != "" ; then
-	DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
-fi
-
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
@@ -1089,9 +1080,7 @@ pixmap_engine)
 			MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 			OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 			if test "x$with_libltdl" != "xno" ; then
-				DL_LIBS_SB="-export-dynamic -dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS_SB}"
-			else
-				DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
+				DL_LIBS_SB="-dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS_SB}"
 			fi
 			SB_CFLAGS="-DSUPPORT_PIXMAP_ENGINE"
 			scrollbars_result="$scrollbars_result $scrollbar"

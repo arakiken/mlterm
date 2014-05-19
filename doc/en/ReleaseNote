@@ -1,5 +1,8 @@
 ver 3.3.6
 * Support fcitx. (Experimental)
+* Support scrollbar on Android.
+* Remove the original "simple" scrollbar and link "sample" scrollbar statically
+  to mlterm as "simple" one. Rename "sample2" scrollbar to "sample".
 * Bug fixes:
   Fix partially corrupt screen in drawing animation gif.
   Fix https://twitter.com/yoshikaw/status/462125454107738112

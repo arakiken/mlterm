@@ -10,8 +10,8 @@
 #include  "x_arrow_data.h"
 
 
-#define  TOP_MARGIN     14
-#define  BOTTOM_MARGIN  14
+#define  TOP_MARGIN     0
+#define  BOTTOM_MARGIN  28
 #define  HEIGHT_MARGIN  (TOP_MARGIN + BOTTOM_MARGIN)
 #define  WIDTH          13
 
@@ -33,10 +33,10 @@ get_geometry_hints(
 	*width = WIDTH ;
 	*top_margin = TOP_MARGIN ;
 	*bottom_margin = BOTTOM_MARGIN ;
-	*up_button_y = 0 ;
-	*up_button_height = TOP_MARGIN ;
-	*down_button_y = -BOTTOM_MARGIN ;
-	*down_button_height = BOTTOM_MARGIN ;
+	*up_button_y = -BOTTOM_MARGIN ;
+	*up_button_height = BOTTOM_MARGIN / 2 ;
+	*down_button_y = -(BOTTOM_MARGIN / 2) ;
+	*down_button_height = BOTTOM_MARGIN / 2 ;
 }
 
 static void
@@ -74,13 +74,13 @@ realized(
 	sample->gc = CreateCompatibleDC( gc) ;
 	
 	sample->arrow_up = x_get_icon_pixmap( view , gc , sample->gc , arrow_up_src ,
-					WIDTH , TOP_MARGIN , 24 , 0 , 0) ;
+					WIDTH , BOTTOM_MARGIN / 2 , 24 , 0 , 0) ;
 	sample->arrow_down = x_get_icon_pixmap( view , gc , sample->gc , arrow_down_src ,
-					WIDTH , BOTTOM_MARGIN , 24 , 0 , 0) ;
+					WIDTH , BOTTOM_MARGIN / 2 , 24 , 0 , 0) ;
 	sample->arrow_up_dent = x_get_icon_pixmap( view , gc , sample->gc , arrow_up_dent_src ,
-					WIDTH , TOP_MARGIN , 24 , 0 , 0) ;
+					WIDTH , BOTTOM_MARGIN / 2 , 24 , 0 , 0) ;
 	sample->arrow_down_dent = x_get_icon_pixmap( view , gc , sample->gc , arrow_down_dent_src ,
-					WIDTH , BOTTOM_MARGIN , 24 , 0 , 0) ;
+					WIDTH , BOTTOM_MARGIN / 2 , 24 , 0 , 0) ;
 
 	ReleaseDC( window , gc) ;
 }
@@ -106,26 +106,27 @@ color_changed(
 	{
 		sample_sb_view_t *  sample ;
 		HPEN  pen ;
-		
+
 		sample = (sample_sb_view_t*) view ;
 
 		pen = SelectObject( view->gc , GetStockObject(NULL_PEN)) ;
 		SelectObject( sample->gc , pen) ;
-		
+
 		SelectObject( sample->gc , sample->arrow_up) ;
-		x_draw_icon_pixmap_fg( view , sample->gc , arrow_up_src , WIDTH , TOP_MARGIN) ;
-		
+		x_draw_icon_pixmap_fg( view , sample->gc , arrow_up_src ,
+			WIDTH , BOTTOM_MARGIN / 2) ;
+
 		SelectObject( sample->gc , sample->arrow_down) ;
 		x_draw_icon_pixmap_fg( view , sample->gc , arrow_down_src ,
-			WIDTH , BOTTOM_MARGIN) ;
-		
+			WIDTH , BOTTOM_MARGIN / 2) ;
+
 		SelectObject( sample->gc , sample->arrow_up_dent) ;
 		x_draw_icon_pixmap_fg( view , sample->gc , arrow_up_dent_src ,
-			WIDTH , TOP_MARGIN) ;
-		
+			WIDTH , BOTTOM_MARGIN / 2) ;
+
 		SelectObject( sample->gc , sample->arrow_down_dent) ;
 		x_draw_icon_pixmap_fg( view , sample->gc , arrow_down_dent_src ,
-			WIDTH , BOTTOM_MARGIN) ;
+			WIDTH , BOTTOM_MARGIN / 2) ;
 
 		SelectObject( view->gc , pen) ;
 	}
@@ -176,7 +177,8 @@ draw_arrow_up_icon(
 	}
 	
 	SelectObject( sample->gc , arrow) ;
-	BitBlt( view->gc , 0 , 0 , WIDTH , TOP_MARGIN , sample->gc , 0 , 0 , SRCCOPY) ;
+	BitBlt( view->gc , 0 , view->height - BOTTOM_MARGIN , WIDTH , BOTTOM_MARGIN / 2 ,
+		sample->gc , 0 , 0 , SRCCOPY) ;
 }
 
 static void
@@ -200,7 +202,7 @@ draw_arrow_down_icon(
 	}
 	
 	SelectObject( sample->gc , arrow) ;
-	BitBlt( view->gc , 0 , view->height - BOTTOM_MARGIN , WIDTH , BOTTOM_MARGIN ,
+	BitBlt( view->gc , 0 , view->height - BOTTOM_MARGIN / 2 , WIDTH , BOTTOM_MARGIN / 2 ,
 		sample->gc , 0 , 0 , SRCCOPY) ;
 }
 

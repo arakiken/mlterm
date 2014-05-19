@@ -12,6 +12,7 @@
 #include  <kiklib/kik_conf_io.h>
 
 #include  "x_simple_sb_view.h"
+#include  "x_imagelib.h"
 
 #ifndef  LIBDIR
 #define  SBLIB_DIR  "/usr/local/lib/mlterm/"
@@ -210,6 +211,8 @@ register_new_view_conf(
 	{
 		return  NULL ;
 	}
+
+	conf->load_image = x_imagelib_load_file ;
 
 	conf->sb_name = strdup( sb_name) ;
 

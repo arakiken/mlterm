@@ -1,8 +1,0 @@
-mlterm {
-global:
-	x_window_clear ;
-	x_window_fill ;
-	x_window_fill_with ;
-local:
-	* ;
-} ;

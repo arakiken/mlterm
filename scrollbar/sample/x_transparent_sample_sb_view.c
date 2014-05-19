@@ -10,8 +10,8 @@
 #include  "x_arrow_data.h"
 
 
-#define  TOP_MARGIN     14
-#define  BOTTOM_MARGIN  14
+#define  TOP_MARGIN     0
+#define  BOTTOM_MARGIN  28
 #define  HEIGHT_MARGIN  (TOP_MARGIN + BOTTOM_MARGIN)
 #define  WIDTH          13
 
@@ -33,10 +33,10 @@ get_geometry_hints(
 	*width = WIDTH ;
 	*top_margin = TOP_MARGIN ;
 	*bottom_margin = BOTTOM_MARGIN ;
-	*up_button_y = 0 ;
-	*up_button_height = TOP_MARGIN ;
-	*down_button_y = -BOTTOM_MARGIN ;
-	*down_button_height = BOTTOM_MARGIN ;
+	*up_button_y = -BOTTOM_MARGIN ;
+	*up_button_height = BOTTOM_MARGIN / 2 ;
+	*down_button_y = -(BOTTOM_MARGIN / 2) ;
+	*down_button_height = BOTTOM_MARGIN / 2 ;
 }
 
 static void
@@ -80,19 +80,19 @@ realized(
 
 	sample->gc = XCreateGC( view->display , view->window ,
 			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
-		
+	
 	XGetWindowAttributes( view->display , view->window , &attr) ;
 	XAllocColor( view->display , attr.colormap , &black) ;
 	XAllocColor( view->display , attr.colormap , &white) ;
 
 	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src ,
-				WIDTH , TOP_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_down = x_get_icon_pixmap( view , sample->gc , arrow_down_src ,
-				WIDTH , BOTTOM_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_up_dent = x_get_icon_pixmap( view , sample->gc , arrow_up_dent_src ,
-				WIDTH , TOP_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_down_dent = x_get_icon_pixmap( view , sample->gc , arrow_down_dent_src ,
-				WIDTH , BOTTOM_MARGIN , attr.depth , black.pixel , white.pixel) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 }
 
 static void
@@ -152,23 +152,25 @@ draw_arrow_up_icon(
 		arrow = sample->arrow_up ;
 		src = arrow_up_src ;
 	}
+	
+	XClearArea( view->display , view->window , 0 , view->height - BOTTOM_MARGIN ,
+			WIDTH , BOTTOM_MARGIN / 2 , 0) ;
 
-	XClearArea( view->display , view->window , 0 , 0 , WIDTH , TOP_MARGIN , 0) ;
-
-	for( y = 0 ; y < TOP_MARGIN ; y ++)
+	for( y = 0 ; y < BOTTOM_MARGIN / 2 ; y ++)
 	{
 		for( x = 0 ; x < WIDTH ; x ++)
 		{
 			if( src[y][x] == '-')
 			{
 				XCopyArea( view->display , view->window , arrow ,
-					view->gc , x , y , 1 , 1 , x , y) ;
+					view->gc , x , y + (view->height - BOTTOM_MARGIN) , 
+					1 , 1 , x , y) ;
 			}
 		}
 	}
 
 	XCopyArea( view->display , arrow , view->window , view->gc ,
-		0 , 0 , WIDTH , TOP_MARGIN , 0 , 0) ;
+		0 , 0 , WIDTH , BOTTOM_MARGIN / 2 , 0 , view->height - BOTTOM_MARGIN) ;
 }
 
 static void
@@ -195,25 +197,25 @@ draw_arrow_down_icon(
 		arrow = sample->arrow_down ;
 		src = arrow_down_src ;
 	}
+	
+	XClearArea( view->display , view->window , 0 , view->height - BOTTOM_MARGIN / 2 ,
+			WIDTH , BOTTOM_MARGIN / 2 , 0) ;
 
-	XClearArea( view->display , view->window , 0 , view->height - BOTTOM_MARGIN ,
-		WIDTH , BOTTOM_MARGIN , 0) ;
-
-	for( y = 0 ; y < BOTTOM_MARGIN ; y ++)
+	for( y = 0 ; y < BOTTOM_MARGIN / 2 ; y ++)
 	{
 		for( x = 0 ; x < WIDTH ; x ++)
 		{
 			if( src[y][x] == '-')
 			{
 				XCopyArea( view->display , view->window , arrow ,
-					view->gc , x , y + (view->height - BOTTOM_MARGIN) ,
+					view->gc , x , y + (view->height - BOTTOM_MARGIN / 2) ,
 					1 , 1 , x , y) ;
 			}
 		}
 	}
 
 	XCopyArea( view->display , arrow , view->window , view->gc ,
-		0 , 0 , WIDTH , BOTTOM_MARGIN , 0 , view->height - BOTTOM_MARGIN) ;
+		0 , 0 , WIDTH , BOTTOM_MARGIN / 2 , 0 , view->height - BOTTOM_MARGIN / 2) ;
 }
 
 static void
@@ -226,9 +228,9 @@ draw_scrollbar(
 	sample_sb_view_t *  sample ;
 
 	sample = (sample_sb_view_t*) view ;
-
-	XClearArea( view->display , view->window , 0 , TOP_MARGIN ,
-		WIDTH , view->height - HEIGHT_MARGIN , 0) ;
+	
+	XClearArea( view->display , view->window , 0 , TOP_MARGIN , WIDTH ,
+		view->height - HEIGHT_MARGIN , 0) ;
 
 	/* drawing bar */
 	
@@ -273,7 +275,7 @@ draw_down_button(
 /* --- global functions --- */
 
 x_sb_view_t *
-x_sample_transparent_sb_view_new(void)
+x_sample2_transparent_sb_view_new(void)
 {
 	sample_sb_view_t *  sample ;
 	
@@ -283,17 +285,17 @@ x_sample_transparent_sb_view_new(void)
 	}
 
 	sample->view.version = 1 ;
-
+	
 	sample->view.get_geometry_hints = get_geometry_hints ;
 	sample->view.get_default_color = get_default_color ;
 	sample->view.realized = realized ;
 	sample->view.resized = resized ;
 	sample->view.delete = delete ;
-
+	
 	sample->view.draw_scrollbar = draw_scrollbar ;
-	sample->view.draw_background = NULL ;
 	sample->view.draw_up_button = draw_up_button ;
 	sample->view.draw_down_button = draw_down_button ;
 
 	return  (x_sb_view_t*) sample ;
 }
+

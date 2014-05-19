@@ -128,6 +128,21 @@ typedef struct  pixmap_sb_view
 } pixmap_sb_view_t ;
 
 
+/* Minimum structure of x_display_t */
+typedef struct x_display
+{
+	Display *  display ;
+
+} x_display_t ;
+
+/* Minimum structure of x_window_t */
+typedef struct x_window
+{
+	x_display_t *  disp ;
+
+} x_window_t ;
+
+
 /* --- static variables --- */
 
 static shared_image_t **  shared_images ;
@@ -136,19 +151,10 @@ static unsigned int  num_of_shared_images ;
 
 /* --- static functions --- */
 
-/* XXX Hack (declared in x_display.h) */
-typedef struct x_display_t *  x_display_ptr_t ;
-x_display_ptr_t *  x_get_opened_displays( unsigned int *  num) ;
-
-/* XXX Hack (declared in x_imagelib.h) */
-int  x_imagelib_load_file( x_display_ptr_t  disp , char *  path ,
-	/* u_int32_t */ unsigned int **  cardinal /* Not used in this file */ ,
-	Pixmap *  pixmap , Pixmap *  mask , unsigned int *  width , unsigned int *  height) ;
-
 static void
 load_image(
-	Display *  display ,
-	const char *  dir ,
+	x_display_t *  disp ,
+	x_sb_view_conf_t *  conf ,
 	const char *  file ,
 	Pixmap *  pixmap ,	/* not NULL */
 	Pixmap *  mask ,	/* can be NULL */
@@ -158,39 +164,12 @@ load_image(
 {
 	char *  path ;
 	int  len ;
-	x_display_ptr_t *  disps ;
-	unsigned int  ndisps ;
-	unsigned int  count ;
 
-	len = strlen( dir) + strlen( file) + 5 ;
+	len = strlen( conf->dir) + strlen( file) + 5 ;
 	path = malloc( sizeof( char) * ( len + 1)) ;
-	sprintf( path , "%s/%s.png" , dir , file);
+	sprintf( path , "%s/%s.png" , conf->dir , file);
 
-	disps = x_get_opened_displays( &ndisps) ;
-	count = 0 ;
-	while( 1)
-	{
-		/*
-		 * XXX Hack
-		 * (*disps) == (x_display_t*) == (Display**)
-		 * (Display* is the first member of x_display_t.)
-		 */
-		if( *((Display**)(*disps)) == display)
-		{
-			break ;
-		}
-
-		if( ++count >= ndisps)
-		{
-			break ;
-		}
-		else
-		{
-			disps ++ ;
-		}
-	}
-	
-	if( ! x_imagelib_load_file( *disps , path , NULL , pixmap , mask ,
+	if( ! (*conf->load_image)( disp , path , NULL , pixmap , mask ,
 				width , height))
 	{
 #ifdef __DEBUG
@@ -208,7 +187,7 @@ load_image(
 
 static shared_image_t *
 acquire_shared_image(
-	Display *  display ,
+	x_display_t *  disp ,
 	x_sb_view_conf_t *  conf ,
 	unsigned int *  width ,		/* not NULL or 0 */
 	unsigned int *  btn_up_h ,	/* not NULL */
@@ -221,7 +200,7 @@ acquire_shared_image(
 
 	for( count = 0 ; count < num_of_shared_images ; count++)
 	{
-		if( shared_images[count]->display == display &&
+		if( shared_images[count]->display == disp->display &&
 			shared_images[count]->conf == conf)
 		{
 			if( *btn_up_h == 0)
@@ -255,35 +234,35 @@ acquire_shared_image(
 	shared_images = p ;
 	shared_images[num_of_shared_images++] = si ;
 
-	si->display = display ;
+	si->display = disp->display ;
 	si->conf = conf ;
 
 	/*
 	 * load background images (separated three parts: top, body and bottom.)
 	 */
-	load_image( display , si->conf->dir , "bg_top" , &si->bg_top , NULL ,
+	load_image( disp , si->conf , "bg_top" , &si->bg_top , NULL ,
 			width , &si->bg_top_h) ;
-	load_image( display , si->conf->dir , "bg_bottom" , &si->bg_bottom , NULL ,
+	load_image( disp , si->conf , "bg_bottom" , &si->bg_bottom , NULL ,
 				width , &si->bg_bottom_h) ;
 
 	/* up/down buttons */
-	load_image( display , si->conf->dir , "button_up" , &si->btn_up ,
+	load_image( disp , si->conf , "button_up" , &si->btn_up ,
 			&si->btn_up_mask , width , btn_up_h) ;
-	load_image( display , si->conf->dir , "button_down" , &si->btn_dw ,
+	load_image( disp , si->conf , "button_down" , &si->btn_dw ,
 			&si->btn_dw_mask , width , btn_dw_h) ;
-	load_image( display , si->conf->dir , "button_up_pressed" , &si->btn_up_pressed ,
+	load_image( disp , si->conf , "button_up_pressed" , &si->btn_up_pressed ,
 			&si->btn_up_pressed_mask , width , btn_up_h) ;
-	load_image( display , si->conf->dir , "button_down_pressed" , &si->btn_dw_pressed ,
+	load_image( disp , si->conf , "button_down_pressed" , &si->btn_dw_pressed ,
 			&si->btn_dw_pressed_mask , width , btn_dw_h) ;
 
 	/*
 	 * load slider images (separated three parts: top, body and bottom.)
 	 */
-	load_image( display , si->conf->dir , "slider_top" , &si->slider_top ,
+	load_image( disp , si->conf , "slider_top" , &si->slider_top ,
 		&si->slider_top_mask , &si->slider_width , &si->slider_top_h) ;
-	load_image( display , si->conf->dir , "slider_bottom" , &si->slider_bottom ,
+	load_image( disp , si->conf , "slider_bottom" , &si->slider_bottom ,
 		&si->slider_bottom_mask , &si->slider_width , &si->slider_bottom_h) ;
-	load_image( display , si->conf->dir , "slider_knob" , &si->slider_knob ,
+	load_image( disp , si->conf , "slider_knob" , &si->slider_knob ,
 		&si->slider_knob_mask , &si->slider_width , &si->slider_knob_h) ;
 
 	si->btn_up_h = *btn_up_h ;
@@ -399,7 +378,7 @@ create_bg_cache(
 		else /* ! ps->bg_tile (scale) */
 		{
 			free_pixmap( d , ps->bg_body) ;
-			load_image( d , ps->conf->dir , "bg_body" ,
+			load_image( ps->view.win->disp , ps->conf , "bg_body" ,
 				&ps->bg_body , NULL , &ps->width ,
 				&cached_body_h) ;
 			XCopyArea( d , ps->bg_body , ps->bg_cache , gc ,
@@ -467,7 +446,7 @@ resize_slider(
 			/* scale */
 			free_pixmap( d , ps->slider_body) ;
 			free_pixmap( d , ps->slider_body_mask) ;
-			load_image( d , ps->conf->dir , "slider_body" ,
+			load_image( ps->view.win->disp , ps->conf , "slider_body" ,
 				&ps->slider_body , &ps->slider_body_mask ,
 				&ps->si->slider_width , &body_height) ;
 		}
@@ -564,20 +543,20 @@ realized(
 	XGetWindowAttributes( view->display , view->window , &attr) ;
 	ps->depth = attr.depth ;
 
-	ps->si = acquire_shared_image( display , ps->conf , &ps->width ,
+	ps->si = acquire_shared_image( view->win->disp , ps->conf , &ps->width ,
 			&ps->btn_up_h , &ps->btn_dw_h) ;
 	
 	/*
 	 * load background images (separated three parts: top, body and bottom.)
 	 */
-	load_image( display , ps->conf->dir , "bg_body" , &ps->bg_body , NULL ,
+	load_image( view->win->disp , ps->conf , "bg_body" , &ps->bg_body , NULL ,
 			&ps->width , &ps->bg_body_h) ;
 	create_bg_cache( ps) ;
 
 	/*
 	 * load slider images (separated three parts: top, body and bottom.)
 	 */
-	load_image( display , ps->conf->dir , "slider_body" , &ps->slider_body ,
+	load_image( view->win->disp , ps->conf , "slider_body" , &ps->slider_body ,
 		&ps->slider_body_mask , &ps->si->slider_width , &ps->slider_body_h) ;
 
 	/*

@@ -864,6 +864,8 @@ x_scrollbar_init(
 	use_transbg = 0 ;
 
 view_created:
+	sb->view->win = &sb->window ;
+
 	sb->sb_listener = sb_listener ;
 
 	(*sb->view->get_geometry_hints)( sb->view , &width , &sb->top_margin , &sb->bottom_margin ,
@@ -1280,6 +1282,8 @@ x_scrollbar_change_view(
 		}
 	}
 
+	view->win = &sb->window ;
+
 	if( sb->view)
 	{
 		(*sb->view->delete)( sb->view) ;
@@ -1340,6 +1344,8 @@ x_scrollbar_set_transparent(
 		return  0 ;
 	}
 
+	view->win = &sb->window ;
+
 	if( sb->view)
 	{
 		(*sb->view->delete)( sb->view) ;
@@ -1378,6 +1384,8 @@ x_scrollbar_unset_transparent(
 		
 		return  0 ;
 	}
+
+	view->win = &sb->window ;
 
 	if( sb->view)
 	{
