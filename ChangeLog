@@ -1,3 +1,9 @@
+2014-05-22  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_config.c: changed_font_file argument is removed from read_all_conf().
+
+	* ml_char.[ch]: ml_char_add_unicode_area_font() -> ml_char_get_unicode_area_font()
+
 2014-05-19  Araki Ken  <arakiken@users.sf.net>
 
 	* x_sb_screen.c, win32/x_window.c: button_pressed() hack in x_sb_screen.c

@@ -87,17 +87,29 @@ ml_set_use_multi_col_char(
 }
 
 ml_font_t
-ml_char_add_unicode_area_font(
+ml_char_get_unicode_area_font(
 	u_int32_t  min ,
 	u_int32_t  max
 	)
 {
+	u_int  idx ;
 	void *  p ;
 
-	if( num_of_unicode_areas >= 7 ||
+	for( idx = num_of_unicode_areas ; idx > 0 ; idx--)
+	{
+		if( min == unicode_areas[idx - 1].min &&
+		    max == unicode_areas[idx - 1].max)
+		{
+			return  ISO10646_UCS4_1 | (idx << 12) ;
+		}
+	}
+
+	if( num_of_unicode_areas == 7 ||
 	    ! ( p = realloc( unicode_areas ,
 			sizeof(*unicode_areas) * (num_of_unicode_areas + 1))))
 	{
+		kik_msg_printf( "No more unicode areas.\n") ;
+
 		return  UNKNOWN_CS ;
 	}
 
