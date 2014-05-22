@@ -1,3 +1,8 @@
+2014-05-23  Araki Ken  <arakiken@users.sf.net>
+
+	* MLActivity.java: unifont.pcf which is older than the apk file
+	  is overwritten.
+
 2014-05-22  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_config.c: changed_font_file argument is removed from read_all_conf().

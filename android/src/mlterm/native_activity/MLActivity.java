@@ -192,7 +192,9 @@ public class MLActivity extends NativeActivity
 	private String saveUnifont()
 	{
 		File  file = getFileStreamPath( "unifont.pcf") ;
-		if( ! file.exists())
+		if( ! file.exists() ||
+		    /* If unifont.pcf is older than apk, rewrite unifont.pcf. */
+		    (new File( getApplicationInfo().publicSourceDir)).lastModified() > file.lastModified())
 		{
 			try
 			{
