@@ -510,7 +510,10 @@ read_conf(
 
 static int
 read_all_conf(
-	x_font_config_t *  font_config
+	x_font_config_t *  font_config ,
+	const char *  changed_font_file	/* If this function is called after a font file is
+	                                 * changed, specify it here to avoid re-read font files.
+					 * Otherwise specify NULL. */
 	)
 {
 	char *  font_rcfile ;
@@ -557,26 +560,35 @@ read_all_conf(
 		}
 	}
 
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+	if( ! changed_font_file)
 	{
-		read_conf( font_config , rcpath) ;
-		free( rcpath) ;
+		if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+		{
+			read_conf( font_config , rcpath) ;
+			free( rcpath) ;
+		}
 	}
 
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+	if( ! changed_font_file || changed_font_file == font_rcfile)
 	{
-		read_conf( font_config , rcpath) ;
-		free( rcpath) ;
+		if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+		{
+			read_conf( font_config , rcpath) ;
+			free( rcpath) ;
+		}
 	}
 
 	apply_custom_cache( font_config , font_rcfile) ;
 
 	if( font_rcfile2)
 	{
-		if( ( rcpath = kik_get_sys_rc_path( font_rcfile2)))
+		if( ! changed_font_file)
 		{
-			read_conf( font_config , rcpath) ;
-			free( rcpath) ;
+			if( ( rcpath = kik_get_sys_rc_path( font_rcfile2)))
+			{
+				read_conf( font_config , rcpath) ;
+				free( rcpath) ;
+			}
 		}
 
 		if( ( rcpath = kik_get_user_rc_path( font_rcfile2)))
@@ -1301,7 +1313,7 @@ x_acquire_font_config(
 	if( ( font_config = create_shared_font_config( type_engine , font_present)) == NULL)
 	{
 		if( ( font_config = x_font_config_new( type_engine , font_present)) == NULL ||
-			! read_all_conf( font_config) )
+			! read_all_conf( font_config , NULL) )
 		{
 			return  NULL ;
 		}
@@ -1687,7 +1699,7 @@ x_customize_font_file(
 			ret = 1 ;
 			for( count = 0 ; count < num_of_targets ; count++)
 			{
-				read_all_conf( targets[count]) ;
+				read_all_conf( targets[count] , file) ;
 			}
 		}
 		else
@@ -1714,7 +1726,7 @@ x_customize_font_file(
 		
 		for( count = 0 ; count < num_of_targets ; count++)
 		{
-			read_all_conf( targets[count]) ;
+			read_all_conf( targets[count] , file) ;
 		}
 	}
 	

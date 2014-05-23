@@ -1,5 +1,9 @@
 2014-05-23  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font_config.c: The change at 2014-05-22 is reverted.
+
+2014-05-23  Araki Ken  <arakiken@users.sf.net>
+
 	* MLActivity.java: unifont.pcf which is older than the apk file
 	  is overwritten.
 
