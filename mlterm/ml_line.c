@@ -287,7 +287,7 @@ ml_line_clone(
 	)
 {
 	ml_line_init( clone , num_of_chars) ;
-	ml_line_copy_line( clone , orig) ;
+	ml_line_copy( clone , orig) ;
 
 	return  1 ;
 }
@@ -1199,7 +1199,7 @@ ml_line_restore_color(
  * But bidi parameters are also copyed as it is.
  */
 int
-ml_line_copy_line(
+ml_line_copy(
 	ml_line_t *  dst ,	/* should be initialized ahead */
 	ml_line_t *  src
 	)
@@ -1248,6 +1248,21 @@ ml_line_copy_line(
 	{
 		ml_line_set_use_iscii( dst , 0) ;
 	}
+
+	return  1 ;
+}
+
+int
+ml_line_swap(
+	ml_line_t *  line1 ,
+	ml_line_t *  line2
+	)
+{
+	ml_line_t  tmp ;
+
+	tmp = *line1 ;
+	*line1 = *line2 ;
+	*line2 = tmp ;
 
 	return  1 ;
 }

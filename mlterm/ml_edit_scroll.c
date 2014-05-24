@@ -69,7 +69,7 @@ copy_lines(
 			dst_line = ml_model_get_line( &edit->model , dst_row + count) ;
 			src_line = ml_model_get_line( &edit->model , src_row + count) ;
 			
-			ml_line_copy_line( dst_line , src_line) ;
+			ml_line_swap( dst_line , src_line) ;
 			if( mark_changed)
 			{
 				ml_line_set_modified_all( dst_line) ;
@@ -83,7 +83,7 @@ copy_lines(
 			dst_line = ml_model_get_line( &edit->model , dst_row + count) ;
 			src_line = ml_model_get_line( &edit->model , src_row + count) ;
 			
-			ml_line_copy_line( dst_line , src_line) ;
+			ml_line_swap( dst_line , src_line) ;
 			if( mark_changed)
 			{
 				ml_line_set_modified_all( dst_line) ;

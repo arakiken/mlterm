@@ -1044,14 +1044,16 @@ fi
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
-	MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
-	OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
-	if test "x$with_libltdl" != "xno" ; then
-		for name in sample sample2 ; do
-			DL_LIBS_SB="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${DL_LIBS_SB}"
-		done
+	if test "$gui" != "fb" ; then
+		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
+		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
+		if test "x$with_libltdl" != "xno" ; then
+			for name in sample sample2 ; do
+				DL_LIBS_SB="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${DL_LIBS_SB}"
+			done
+		fi
+		scrollbars_result="$scrollbars_result $scrollbar"
 	fi
-	scrollbars_result="$scrollbars_result $scrollbar"
 	;;
 extra)
 	if test "$gui" = "xlib" ; then

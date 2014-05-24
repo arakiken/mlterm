@@ -122,7 +122,9 @@ int  ml_line_reverse_color( ml_line_t *  line , int  char_index) ;
 
 int  ml_line_restore_color( ml_line_t *  line , int  char_index) ;
 
-int  ml_line_copy_line( ml_line_t *  dst , ml_line_t *  src) ;
+int  ml_line_copy( ml_line_t *  dst , ml_line_t *  src) ;
+
+int  ml_line_swap( ml_line_t *  line1 , ml_line_t *  line2) ;
 
 int  ml_line_share( ml_line_t *  dst , ml_line_t *  src) ;
 

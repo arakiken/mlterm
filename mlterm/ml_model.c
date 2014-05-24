@@ -137,7 +137,7 @@ ml_model_resize(
 	{
 		ml_line_init( &lines_p[new_row] , num_of_cols) ;
 
-		ml_line_copy_line( &lines_p[new_row] , ml_model_get_line( model , old_row)) ;
+		ml_line_copy( &lines_p[new_row] , ml_model_get_line( model , old_row)) ;
 		old_row ++ ;
 		
 		ml_line_set_modified_all( &lines_p[new_row]) ;

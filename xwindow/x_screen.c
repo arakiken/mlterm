@@ -744,8 +744,6 @@ flush_scroll_cache(
 		return  1 ;
 	}
 
-	
-
 	if( scroll_actual_screen && x_window_is_scrollable( &screen->window))
 	{
 		if( ! ml_term_get_vertical_mode( screen->term))

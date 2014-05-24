@@ -727,7 +727,9 @@ fc_draw_str(
 			else /* if( state == 3) */
 			{
 				draw_drcs( window , drcs_glyphs , str_len ,
-					x , y , ch_width , height , fg_xcolor) ;
+					x , y + top_margin ,
+					ch_width , height - top_margin - bottom_margin ,
+					fg_xcolor) ;
 			}
 
 			if( comb_chars)
@@ -1192,7 +1194,9 @@ xcore_draw_str(
 				else /* if( state == 3) */
 				{
 					draw_drcs( window , drcs_glyphs , str_len ,
-						x , y , ch_width , height , fg_xcolor) ;
+						x , y + top_margin ,
+						ch_width , height - top_margin - bottom_margin ,
+						fg_xcolor) ;
 				}
 			}
 			else

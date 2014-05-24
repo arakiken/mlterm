@@ -799,19 +799,20 @@ ml_term_set_modified_region_in_screen(
 {
 	int  row ;
 	ml_line_t *  line ;
+	int  revert_to_visual ;
 
-#ifdef  DEBUG
-	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	/*
+	 * This function is usually called in visual context, and sometimes
+	 * called in logical context. (see flush_scroll_cache() in x_screen.c)
+	 */
+	if( ! ml_screen_logical_visual_is_reversible( term->screen) &&
+	    ml_screen_logical( term->screen))
 	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			" ml_term_set_modified_lines() should be called in visual context but"
-			" is called in logical context.\n") ;
+		revert_to_visual = 1 ;
 	}
-#endif
-
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	else
 	{
-		ml_screen_logical( term->screen) ;
+		revert_to_visual = 0 ;
 	}
 
 	for( row = beg_row ; row < beg_row + nrows ; row ++)
@@ -822,7 +823,7 @@ ml_term_set_modified_region_in_screen(
 		}
 	}
 
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	if( revert_to_visual)
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;
@@ -841,19 +842,20 @@ ml_term_set_modified_lines(
 {
 	int  row ;
 	ml_line_t *  line ;
+	int  revert_to_visual ;
 
-#ifdef  DEBUG
-	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	/*
+	 * This function is usually called in visual context, and sometimes
+	 * called in logical context. (see flush_scroll_cache() in x_screen.c)
+	 */
+	if( ! ml_screen_logical_visual_is_reversible( term->screen) &&
+	    ml_screen_logical( term->screen))
 	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			" ml_term_set_modified_lines() should be called in visual context but"
-			" is called in logical context.\n") ;
+		revert_to_visual = 1 ;
 	}
-#endif
-
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	else
 	{
-		ml_screen_logical( term->screen) ;
+		revert_to_visual = 0 ;
 	}
 
 	for( row = beg ; row <= end ; row ++)
@@ -864,7 +866,7 @@ ml_term_set_modified_lines(
 		}
 	}
 
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	if( revert_to_visual)
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;
@@ -882,19 +884,20 @@ ml_term_set_modified_lines_in_screen(
 {
 	int  row ;
 	ml_line_t *  line ;
+	int  revert_to_visual ;
 
-#ifdef  DEBUG
-	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	/*
+	 * This function is usually called in visual context, and sometimes
+	 * called in logical context. (see flush_scroll_cache() in x_screen.c)
+	 */
+	if( ! ml_screen_logical_visual_is_reversible( term->screen) &&
+	    ml_screen_logical( term->screen))
 	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			" ml_term_set_modified_lines_in_screen() should be called in visual "
-			" context but is called in logical context.\n") ;
+		revert_to_visual = 1 ;
 	}
-#endif
-
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	else
 	{
-		ml_screen_logical( term->screen) ;
+		revert_to_visual = 0 ;
 	}
 
 	for( row = beg ; row <= end ; row ++)
@@ -905,7 +908,7 @@ ml_term_set_modified_lines_in_screen(
 		}
 	}
 
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	if( revert_to_visual)
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;
@@ -919,23 +922,25 @@ ml_term_set_modified_all_lines_in_screen(
 	ml_term_t *  term
 	)
 {
-#ifdef  DEBUG
-	if( term->screen->logvis && ! term->screen->logvis->is_visual)
-	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			" ml_term_set_modified_all_lines_in_screen() should be called in "
-			" visual context but is called in logical context.\n") ;
-	}
-#endif
+	int  revert_to_visual ;
 
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	/*
+	 * This function is usually called in visual context, and sometimes
+	 * called in logical context. (see flush_scroll_cache() in x_screen.c)
+	 */
+	if( ! ml_screen_logical_visual_is_reversible( term->screen) &&
+	    ml_screen_logical( term->screen))
 	{
-		ml_screen_logical( term->screen) ;
+		revert_to_visual = 1 ;
+	}
+	else
+	{
+		revert_to_visual = 0 ;
 	}
 
 	ml_screen_set_modified_all( term->screen) ;
 
-	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	if( revert_to_visual)
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;

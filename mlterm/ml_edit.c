@@ -647,7 +647,7 @@ ml_edit_clone(
 			dst_edit->wraparound_ready_line = dst_line ;
 		}
 
-		ml_line_copy_line( dst_line , src_line) ;
+		ml_line_copy( dst_line , src_line) ;
 	}
 
 	return  1 ;

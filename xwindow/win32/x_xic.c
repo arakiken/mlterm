@@ -169,7 +169,12 @@ x_xic_set_spot(
 	XPoint  spot ;
 	COMPOSITIONFORM  cf ;
 
-	if( win->xic == NULL)
+	if( win->xic == NULL ||
+	    /*
+	     * Multiple windows can share the same input context, so windows except
+	     * the focused one don't call ImmSetCompositionWindow().
+	     */
+	    ! win->is_focused)
 	{
 		return  0 ;
 	}

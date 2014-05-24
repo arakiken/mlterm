@@ -219,7 +219,10 @@ Supported platforms
 USAGE
 =====
 
+  $ mlterm
+
   Read the manpage for detail.
+  See ~/.mlterm/msg.log on error.
 
 
 CONTACT

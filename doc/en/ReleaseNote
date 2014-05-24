@@ -8,6 +8,7 @@ ver 3.3.6
   Fix https://twitter.com/yoshikaw/status/462125454107738112
   Fix corrupt screen in drawing large images.
   Fix https://twitter.com/kefir_/status/467340224628924416
+  Fix the corrupt scrolling in vertical mode.
 
 ver 3.3.5
 * Support Animation GIF on "show_picture" of OSC 5379.

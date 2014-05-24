@@ -1,3 +1,20 @@
+2014-05-25  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_term.c: ml_screen_visual() is called in ml_term_set_modified_*()
+	  only if ml_screen_logical() succeeded, because ml_term_set_modified_*()
+	  can be called in logical context. (see flush_scroll_cache() in x_screen.c)
+
+	* x_draw_str.c: The position of drawing drcs glyphs is fixed.
+
+	* ml_line.[ch], ml_edit.c, ml_edit_scroll.c, ml_model.c:
+	  - ml_line_copy_line() -> ml_line_copy()
+	  - ml_line_swap() is added, and ml_line_copy_line() in copy_lines() in
+	    ml_edit_scroll.c is replaced by ml_line_swap().
+
+	* win32/x_xic.c: The focused window alone can call ImmSetCompositionWindow().
+
+	* README, README.ja: Minor fixes.
+
 2014-05-23  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_config.c: The change at 2014-05-22 is reverted.

@@ -246,6 +246,12 @@ comment $Id$
     ReGIS の一部機能及び Sixel Graphics に対応しています。
     ReGIS については、SDL, SDL_ttf 及び fontconfig が必要となります。
 
+* 使い方
+  $ mlterm
+
+  うまく動作しない場合は、~/.mlterm/msg.log にエラーメッセージが出ていないか確認
+  してください。
+
 * 設定
   o 設定ファイル
     ${SYSCONFDIR}/mlterm 以下、および、~/.mlterm 以下におかれます。
