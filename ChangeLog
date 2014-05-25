@@ -1,5 +1,19 @@
 2014-05-25  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.3.6 released.
+	  (tag "rel-3_3_6")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.3.6.
+
+	* x_transparent_sample_sb_view.c:
+	  x_transparent_sample2_sb_view_new() => x_transparent_sample_sb_view_new()
+
+	* x_sample_sb_view.c: x_sample2_sb_view_new() => x_sample_sb_view_new()
+
+2014-05-25  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_term.c: ml_screen_visual() is called in ml_term_set_modified_*()
 	  only if ml_screen_logical() succeeded, because ml_term_set_modified_*()
 	  can be called in logical context. (see flush_scroll_cache() in x_screen.c)

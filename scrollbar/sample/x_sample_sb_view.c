@@ -265,7 +265,7 @@ draw_down_button(
 /* --- global functions --- */
 
 x_sb_view_t *
-x_sample2_sb_view_new(void)
+x_sample_sb_view_new(void)
 {
 	sample_sb_view_t *  sample ;
 	

@@ -161,7 +161,7 @@ Supported platforms
   Platforms tested by developers.
 
   * NetBSD 3.0.1 / X (x86)
-  * NetBSD teokure 6.0.1 / frmebuffer (x86)
+  * NetBSD teokure 6.1.4 / X, frmebuffer (x86)
   * NetBSD 5.2 / framebuffer (hpcmips)
   * NetBSD 6.1 / framebuffer (xm6i 0.42)
   * OpenSolaris 2009.06 / X (CC=cc) (x86)
@@ -195,6 +195,7 @@ Supported platforms
   * EWS4800 (UX/4800 R13.5, 64bit) (CC=/usr/ccs64/bin/cc)
   * FreeBSD 3.3R
   * FreeBSD 4.4R
+  * NetBSD teokure 6.0.1 / frmebuffer (x86)
   * NetBSD 1.6Q current (x86)
   * NetBSD 1.6.2 (x86)
   * RedHat Linux 7.1
