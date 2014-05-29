@@ -239,8 +239,6 @@ void  ml_set_use_alt_buffer( int  use) ;
 
 void  ml_set_use_ansi_colors( int  use) ;
 
-void  ml_set_use_scp( int  use) ;
-
 int  ml_set_unicode_noconv_areas( char *  areas) ;
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,

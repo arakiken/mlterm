@@ -750,7 +750,7 @@ DEXPORT
 KIK_LIBS
 MKF_CHAR_LO
 NO_UNDEFINED_FLAG
-DL_LIBS
+MAKE_DIRS
 TABLE_CFLAGS
 DEB_CFLAGS
 KIK_CFLAGS
@@ -18676,8 +18676,9 @@ fi
 
 if test "$dl_table" = "no" ; then
 	TABLE_CFLAGS="${TABLE_CFLAGS} -DNO_DYNAMIC_LOAD_TABLE"
+	MAKE_DIRS="lib"
 else
-	DL_LIBS="libmkf_jajp.la libmkf_kokr.la libmkf_zh.la libmkf_8bits.la"
+	MAKE_DIRS="lib libtbl"
 fi
 
 

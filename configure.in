@@ -1165,9 +1165,9 @@ AC_SUBST(INTL_LIBS)
 # Because pic object files are fat, non-pic ones are linked unless --disable-static
 # option is specified.
 if test "$enable_static" = "no" ; then
-	XWINDOW_OBJ_SUFFIX=":.o=.lo"
+	MAIN_OBJ_SUFFIX=":.o=.lo"
 fi
-AC_SUBST(XWINDOW_OBJ_SUFFIX)
+AC_SUBST(MAIN_OBJ_SUFFIX)
 
 CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\(@<:@0-9@:>@*-@<:@0-9@:>@*-@<:@0-9@:>@*\).*$/\1/p'`
 AC_SUBST(CHANGE_DATE)

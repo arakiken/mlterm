@@ -757,7 +757,7 @@ IND_CFLAGS
 IND_LIBS
 subdirs
 CHANGE_DATE
-XWINDOW_OBJ_SUFFIX
+MAIN_OBJ_SUFFIX
 INTL_LIBS
 POSUB
 LTLIBINTL
@@ -25924,7 +25924,7 @@ fi
 # Because pic object files are fat, non-pic ones are linked unless --disable-static
 # option is specified.
 if test "$enable_static" = "no" ; then
-	XWINDOW_OBJ_SUFFIX=":.o=.lo"
+	MAIN_OBJ_SUFFIX=":.o=.lo"
 fi
 
 

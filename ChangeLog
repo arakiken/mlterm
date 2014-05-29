@@ -1,3 +1,12 @@
+2014-05-29  Araki Ken  <arakiken@users.sf.net>
+
+	* mkf/configure.in, mkf/Makefile.in: If --disable-dl-table is specified,
+	  'make' isn't executed under libtbl/.
+
+	* configure.in, main/Makefile.in: XWINDOW_OBJ_SUFFIX => MAIN_OBJ_SUFFIX
+
+	* version.h.in: 3.3.5 -> 3.3.5post
+
 2014-05-25  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.3.6 released.

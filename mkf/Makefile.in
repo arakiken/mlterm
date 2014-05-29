@@ -1,10 +1,9 @@
-BUILD_TOPDIR = ..
+MAKE_DIRS=@MAKE_DIRS@
 
 all .DEFAULT:
-	# "cd lib" must be enclosed by () because it may not return
+	# "cd $${dir}" must be enclosed by () because it may not return
 	# to the $(top_builddir) at the next line.
-	(cd lib ; $(MAKE) $@)
-	cd libtbl ; $(MAKE) $@
+	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
 distclean : clean
 	rm -f Makefile config.log config.cache config.status libtool config.mk lib/Makefile libtbl/Makefile
