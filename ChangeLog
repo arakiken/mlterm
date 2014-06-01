@@ -1,6 +1,6 @@
 2014-06-01  Araki Ken  <arakiken@users.sf.net>
 
-	* fb/x_display.c, x.h: x_display_get_closest_color() caches 512 + 64 pixels.
+	* fb/x_display.c, x.h: x_cmap_get_closest_color() caches 512 + 64 pixels.
 
 	* x_screen_manager.c: get_picture_data() for background terminals is set
 	  when they are detached from the window system.

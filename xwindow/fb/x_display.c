@@ -2471,7 +2471,7 @@ x_cmap_get_closest_color(
 
 	if( _display.color_cache->seg[arr_idx].segment == segment)
 	{
-		if( _display.color_cache->seg[arr_idx].offsets & (1U << offset_arr))
+		if( _display.color_cache->seg[arr_idx].flags & (1U << offset_arr))
 		{
 			*closest = _display.color_cache->seg_pixels[offset] ;
 		#ifdef  __DEBUG
@@ -2485,7 +2485,7 @@ x_cmap_get_closest_color(
 	else
 	{
 		_display.color_cache->seg[arr_idx].segment = segment ;
-		_display.color_cache->seg[arr_idx].offsets = 0U ;
+		_display.color_cache->seg[arr_idx].flags = 0U ;
 	}
 
 	for( color = 0 ; color < CMAP_SIZE(_display.cmap) ; color++)
@@ -2519,7 +2519,7 @@ x_cmap_get_closest_color(
 	_display.color_cache->seg_pixels[offset] =
 		_display.color_cache->pixels[segment] = *closest ;
 	_display.color_cache->offsets[segment] = (offset|0x80) ;
-	_display.color_cache->seg[arr_idx].offsets |= (1U << offset_arr) ;
+	_display.color_cache->seg[arr_idx].flags |= (1U << offset_arr) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( "NEW PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,

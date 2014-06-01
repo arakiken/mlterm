@@ -88,7 +88,7 @@ typedef struct
 		u_int8_t  seg_pixels[64] ;
 		struct
 		{
-			u_int32_t  offsets ;
+			u_int32_t  flags ;
 			u_int  segment ;
 
 		} seg[2] ;
