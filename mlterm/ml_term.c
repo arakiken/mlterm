@@ -344,6 +344,8 @@ ml_term_delete(
 	}
 #endif
 
+	free( term->user_data) ;
+
 	if( term->pty)
 	{
 		ml_pty_delete( term->pty) ;

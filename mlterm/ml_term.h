@@ -57,6 +57,8 @@ typedef struct ml_term
 	int8_t	return_special_pid ;
 #endif
 
+	void *  user_data ;
+
 } ml_term_t ;
 
 
@@ -336,6 +338,10 @@ int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		end_char_index , end_row , regex , backward) \
 		ml_screen_search_find( (term)->screen , beg_char_index , beg_row , \
 			end_char_index , end_row , regex , backward)
+
+#define  ml_term_get_user_data( term , key)  ((term)->user_data)
+
+#define  ml_term_set_user_data( term , key , val)  ((term)->user_data = (val))
 
 #define  ml_term_select_drcs(term)  ml_vt100_parser_select_drcs((term)->parser)
 

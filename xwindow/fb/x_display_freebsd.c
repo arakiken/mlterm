@@ -108,6 +108,8 @@ open_display(
 	if( _display.pixels_per_byte > 1 &&
 	    ! ( _display.back_fb = malloc( _display.smem_len)))
 	{
+		cmap_final() ;
+
 		goto  error ;
 	}
 #endif

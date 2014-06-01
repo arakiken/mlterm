@@ -412,6 +412,74 @@ open_pty_intern(
 	return  ret ;
 }
 
+
+#ifndef  NO_IMAGE
+
+static ml_char_t *
+get_picture_data(
+	void *  p ,
+	char *  file_path ,
+	int *  num_of_cols ,	/* can be 0 */
+	int *  num_of_rows	/* can be 0 */
+	)
+{
+	ml_char_t *  data ;
+
+	if( num_of_screens > 0)
+	{
+		ml_term_t *  orig_term ;
+
+		orig_term = screens[0]->term ;
+		screens[0]->term = p ;		/* XXX */
+		data = (*screens[0]->xterm_listener.get_picture_data)(
+				screens[0]->xterm_listener.self ,
+				file_path , num_of_cols , num_of_rows) ;
+		screens[0]->term = orig_term ;
+	}
+	else
+	{
+		data = NULL ;
+	}
+
+	return  data ;
+}
+
+static ml_term_t *
+detach_screen(
+	x_screen_t *  screen
+	)
+{
+	ml_term_t *  term ;
+
+	if( ( term = x_screen_detach( screen)))
+	{
+		ml_xterm_event_listener_t *  listener ;
+
+		if( ! ( listener = ml_term_get_user_data( term , term)))
+		{
+			if( ! ( listener = calloc( 1 , sizeof(ml_xterm_event_listener_t))))
+			{
+				return  term ;
+			}
+
+			listener->self = term ;
+			listener->get_picture_data = get_picture_data ;
+
+			ml_term_set_user_data( term , term , listener) ;
+		}
+
+		/* XXX */
+		term->parser->xterm_listener = listener ;
+	}
+
+	return  term ;
+}
+
+#define  x_screen_detach( screen)  detach_screen( screen)
+
+#endif
+
+
 static int
 close_screen_intern(
 	x_screen_t *  screen
