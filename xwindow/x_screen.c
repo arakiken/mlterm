@@ -64,6 +64,7 @@ enum
 
 static int  exit_backscroll_by_pty ;
 static int  allow_change_shortcut ;
+static char *  mod_meta_prefix = "\x1b" ;
 #ifdef  USE_IM_CURSOR_COLOR
 static char *  im_cursor_color = NULL ;
 #endif
@@ -2884,7 +2885,8 @@ write_buf:
 		{
 			if( screen->mod_meta_mode == MOD_META_OUTPUT_ESC)
 			{
-				write_to_pty( screen , "\x1b" , 1 , NULL) ;
+				write_to_pty( screen , mod_meta_prefix ,
+					strlen(mod_meta_prefix) , NULL) ;
 			}
 			else if( screen->mod_meta_mode == MOD_META_SET_MSB)
 			{
@@ -7473,6 +7475,14 @@ x_allow_change_shortcut(
 	)
 {
 	allow_change_shortcut = flag ;
+}
+
+void
+x_set_mod_meta_prefix(
+	const char *  prefix
+	)
+{
+	mod_meta_prefix = prefix ;
 }
 
 #ifdef  USE_IM_CURSOR_COLOR

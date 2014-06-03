@@ -410,71 +410,12 @@ x_shortcut_parse(
 	if( *oper == '"')
 	{
 		char *  str ;
-		char *  p ;
 		x_str_key_t *  str_map ;
 
-		if( ( str = malloc( strlen( oper))) == NULL)
+		if( ! ( str = kik_str_unescape( ++oper)))
 		{
 			return  0 ;
 		}
-
-		p = str ;
-
-		oper ++ ;
-
-		while( *oper != '"' && *oper != '\0')
-		{
-			u_int  digit ;
-
-			if( sscanf( oper , "\\x%2x" , &digit) == 1)
-			{
-				*p = (char)digit ;
-
-				oper += 4 ;
-			}
-			else
-			{
-				if( *oper == '\\')
-				{
-					oper ++ ;
-
-					if( *oper == '\0')
-					{
-						break ;
-					}
-					else if( *oper == 'n')
-					{
-						*p = '\n' ;
-					}
-					else if( *oper == 'r')
-					{
-						*p = '\r' ;
-					}
-					else if( *oper == 't')
-					{
-						*p = '\t' ;
-					}
-					else if( *oper == 'e')
-					{
-						*p = '\033' ;
-					}
-					else
-					{
-						*p = *oper ;
-					}
-				}
-				else
-				{
-					*p = *oper ;
-				}
-
-				oper ++ ;
-			}
-
-			p ++ ;
-		}
-
-		*p = '\0' ;
 
 		if( ! ( str_map = realloc( shortcut->str_map ,
 				   sizeof( x_str_key_t) * (shortcut->str_map_size + 1))))

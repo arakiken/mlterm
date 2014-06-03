@@ -511,3 +511,83 @@ kik_str_replace(
 
 	return  new_str ;
 }
+
+char *
+kik_str_unescape(
+	const char *  str
+	)
+{
+	char *  new_str ;
+	char *  p ;
+
+	if( ( new_str = malloc( strlen( str))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	/* *str != '"' is for x_shortcut.c */
+	for( p = new_str ; *str != '"' && *str != '\0' ; str++ , p++)
+	{
+		if( *str == '\\')
+		{
+			u_int  digit ;
+
+			if( *(++str) == '\0')
+			{
+				break ;
+			}
+			else if( sscanf( str , "x%2x" , &digit) == 1)
+			{
+				*p = (char)digit ;
+				str += 2 ;
+			}
+			else if( *str == 'n')
+			{
+				*p = '\n' ;
+			}
+			else if( *str == 'r')
+			{
+				*p = '\r' ;
+			}
+			else if( *str == 't')
+			{
+				*p = '\t' ;
+			}
+			else if( *str == 'e' || *str == 'E')
+			{
+				*p = '\033' ;
+			}
+			else
+			{
+				*p = *str ;
+			}
+		}
+		else if( *str == '^')
+		{
+			if( *(++str) == '\0')
+			{
+				break ;
+			}
+			else if( '@' <= *str && *str <= '_')
+			{
+				*p = *str - 'A' + 1 ;
+			}
+			else if( *str == '?')
+			{
+				*p = '\x7f' ;
+			}
+			else
+			{
+				*p = *str ;
+			}
+		}
+		else
+		{
+			*p = *str ;
+		}
+	}
+
+	*p = '\0' ;
+
+	return  new_str ;
+}

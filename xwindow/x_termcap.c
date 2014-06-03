@@ -57,69 +57,6 @@ static char *  tc_file = "mlterm/termcap" ;
 
 /* --- static functions --- */
 
-static char *
-parse_str_field_value(
-	char *  seq
-	)
-{
-	char *  new_seq ;
-	char *  p ;
-
-	if( ( new_seq = malloc( strlen( seq) + 1)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	p = new_seq ;
-
-	while( *seq)
-	{
-		if( *seq == '\\')
-		{
-			if( *(++ seq) == '\0')
-			{
-				break ;
-			}
-			
-			if( *seq == 'E')
-			{
-				*p = '\x1b' ;
-			}
-			else
-			{
-				*p = *seq ;
-			}
-		}
-		else if( *seq == '^')
-		{
-			if( *(++ seq) == '\0')
-			{
-				break ;
-			}
-
-			if( '@' <= *seq && *seq <= '_')
-			{
-				*p = *seq - 'A' + 1 ;
-			}
-			else if( *seq == '?')
-			{
-				*p = '\x7f' ;
-			}
-		}
-		else
-		{
-			*p = *seq ;
-		}
-
-		p ++ ;
-		seq ++ ;
-	}
-
-	*p = '\0' ;
-
-	return  new_seq ;
-}
-
 static int
 entry_init(
 	x_termcap_entry_t *  entry ,
@@ -183,7 +120,7 @@ parse_entry_db(
 			{
 				if( strcmp( key , str_field_table[count].name) == 0)
 				{
-					if( ( value = parse_str_field_value( value)))
+					if( ( value = kik_str_unescape( value)))
 					{
 						free( entry->str_fields[ str_field_table[count].field]) ;
 						entry->str_fields[ str_field_table[count].field] = value ;

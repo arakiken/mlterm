@@ -1,3 +1,11 @@
+2014-06-03  Araki Ken  <arakiken@users.sf.net>
+
+	* main_loop.c, x_screen.c: "mod_meta_prefix" option is added.
+
+	* x_shortcut.c, x_termcap.c: kik_str_unescape() is used.
+
+	* kik_str.[ch]: kik_str_unescape() is added.
+
 2014-06-01  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/x_display.c, x.h: x_cmap_get_closest_color() caches 512 + 64 pixels.

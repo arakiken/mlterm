@@ -157,6 +157,8 @@ void  x_exit_backscroll_by_pty( int  flag) ;
 
 void  x_allow_change_shortcut( int  flag) ;
 
+void  x_set_mod_meta_prefix( const char *  prefix) ;
+
 #ifdef  USE_IM_CURSOR_COLOR
 void  x_set_im_cursor_color( char *  color) ;
 #endif
