@@ -22,7 +22,10 @@
 #define  IS_ITALIC(attr)  ((attr) & (0x1 << 16))
 #define  IS_BOLD(attr)  ((attr) & (0x1 << 15))
 #define  IS_FULLWIDTH(attr)  ((attr) & (0x1 << 14))
-#define  CHARSET(attr)  (((attr) >> 5) & 0x1ff)
+#define  CHARSET(attr) \
+	((attr) & (0x1 << 17)) ?	/* is unicode area cs or not */ \
+	ISO10646_UCS4_1 : \
+	(((attr) >> 5) & 0x1ff)
 
 #define  IS_REVERSED(attr)  ((attr) & (0x1 << 4))
 #define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 4))

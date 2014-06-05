@@ -1,3 +1,7 @@
+2014-06-06  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_char.c: CHARSET() macro checks is_unicode_area_cs flag.
+
 2014-06-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_config_proto.[ch]: ml_parse_proto_prefix() checks challenge.
