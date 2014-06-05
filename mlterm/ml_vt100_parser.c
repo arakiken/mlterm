@@ -818,7 +818,8 @@ put_char(
 			if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 				ch , cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , is_bold ,
-				vt100_parser->is_italic , vt100_parser->is_underlined))
+				vt100_parser->is_italic , vt100_parser->is_underlined ,
+				vt100_parser->is_crossed_out))
 			{
 				return ;
 			}
@@ -829,7 +830,8 @@ put_char(
 				&vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ,
 				ch , cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , is_bold ,
-				vt100_parser->is_italic , vt100_parser->is_underlined))
+				vt100_parser->is_italic , vt100_parser->is_underlined ,
+				vt100_parser->is_crossed_out))
 			{
 				return ;
 			}
@@ -843,7 +845,8 @@ put_char(
 	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch ,
 		cs , is_fullwidth , is_comb ,
 		fg_color , bg_color , is_bold ,
-		vt100_parser->is_italic , vt100_parser->is_underlined) ;
+		vt100_parser->is_italic , vt100_parser->is_underlined ,
+		vt100_parser->is_crossed_out) ;
 
 	if( ! vt100_parser->screen->use_dynamic_comb && cs == ISO10646_UCS4_1)
 	{
@@ -888,7 +891,8 @@ put_char(
 				if( ml_char_combine( prev ,
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
-					vt100_parser->is_italic , vt100_parser->is_underlined))
+					vt100_parser->is_italic , vt100_parser->is_underlined ,
+					vt100_parser->is_crossed_out))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -902,7 +906,8 @@ put_char(
 				if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
-					vt100_parser->is_italic , vt100_parser->is_underlined))
+					vt100_parser->is_italic , vt100_parser->is_underlined ,
+					vt100_parser->is_crossed_out))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -967,7 +972,8 @@ save_cursor(
 	dest->is_bold  = vt100_parser->is_bold ;
 	dest->is_italic = vt100_parser->is_italic ;
 	dest->is_underlined = vt100_parser->is_underlined ;
-	dest->is_reversed   = vt100_parser->is_reversed ;
+	dest->is_reversed = vt100_parser->is_reversed ;
+	dest->is_crossed_out = vt100_parser->is_crossed_out ;
 	dest->cs = vt100_parser->cs ;
 
 	ml_screen_save_cursor( vt100_parser->screen) ;
@@ -993,6 +999,7 @@ restore_cursor(
 		vt100_parser->is_italic = src->is_italic ;
 		vt100_parser->is_underlined = src->is_underlined ;
 		vt100_parser->is_reversed = src->is_reversed ;
+		vt100_parser->is_crossed_out = src->is_crossed_out ;
 		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 		{
 			if( ( src->cs == DEC_SPECIAL)
@@ -1553,7 +1560,10 @@ config_protocol_set(
 {
 	char *  dev ;
 
-	dev = ml_parse_proto_prefix( &pt) ;
+	if( ml_parse_proto_prefix( &dev , &pt , save) == -1)
+	{
+		return ;
+	}
 
 	if( strcmp( pt , "gen_proto_challenge") == 0)
 	{
@@ -1689,7 +1699,7 @@ config_protocol_set(
 		char *  key ;
 		char *  val ;
 
-		if( ml_parse_proto( NULL , &key , &val , &pt , save , 0) && val &&
+		if( ml_parse_proto( NULL , &key , &val , &pt , 0 , 0) && val &&
 		    HAS_CONFIG_LISTENER(vt100_parser,set_font))
 		{
 			/*
@@ -1716,7 +1726,7 @@ config_protocol_set(
 		char *  key ;
 		char *  val ;
 
-		if( ml_parse_proto( NULL , &key , &val , &pt , save , 0) && val &&
+		if( ml_parse_proto( NULL , &key , &val , &pt , 0 , 0) && val &&
 		    HAS_CONFIG_LISTENER(vt100_parser,set_color))
 		{
 			/*
@@ -1772,7 +1782,7 @@ config_protocol_set(
 				char *  val ;
 
 				if( ! ml_parse_proto( dev ? NULL : &dev ,
-						&key , &val , &pt , save , 1))
+						&key , &val , &pt , 0 , 1))
 				{
 					break ;
 				}
@@ -2096,11 +2106,17 @@ change_char_attr(
 		vt100_parser->is_italic = 0 ;
 		vt100_parser->is_underlined = 0 ;
 		vt100_parser->is_reversed = 0 ;
+		vt100_parser->is_crossed_out = 0 ;
 	}
 	else if( flag == 1)
 	{
 		/* Bold */
 		vt100_parser->is_bold = 1 ;
+	}
+	else if( flag == 2)
+	{
+		/* XXX Faint */
+		vt100_parser->is_bold = 0 ;
 	}
 	else if( flag == 3)
 	{
@@ -2112,10 +2128,12 @@ change_char_attr(
 		/* Underscore */
 		vt100_parser->is_underlined = 1 ;
 	}
+#if  0
 	else if( flag == 5)
 	{
 		/* Blink */
 	}
+#endif
 	else if( flag == 7)
 	{
 		/* Inverse */
@@ -2127,6 +2145,15 @@ change_char_attr(
 		/* Hidden */
 	}
 #endif
+	else if( flag == 9)
+	{
+		vt100_parser->is_crossed_out = 1 ;
+	}
+	else if( flag == 21)
+	{
+		/* Double underscore */
+		vt100_parser->is_underlined = 2 ;
+	}
 	else if( flag == 22)
 	{
 		/* Bold */
@@ -2139,12 +2166,15 @@ change_char_attr(
 	}
 	else if( flag == 24)
 	{
+		/* Underline */
 		vt100_parser->is_underlined = 0 ;
 	}
+#if  0
 	else if( flag == 25)
 	{
 		/* blink */
 	}
+#endif
 	else if( flag == 27)
 	{
 		vt100_parser->is_reversed = 0 ;
@@ -2155,6 +2185,10 @@ change_char_attr(
 		/* Not hidden */
 	}
 #endif
+	else if( flag == 29)
+	{
+		vt100_parser->is_crossed_out = 0 ;
+	}
 	else if( use_ansi_colors)
 	{
 		/* Color attributes */
@@ -2357,7 +2391,7 @@ set_selection(
 		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
 			ml_char_set( &str[str_len++] , mkf_char_to_int(&ch) ,
-				ch.cs , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
+				ch.cs , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
 		}
 
 		/*
@@ -3631,53 +3665,70 @@ parse_vt100_escape_sequence(
 			}
 			else if( pre_ch == '$')
 			{
-				if( num >= 4)
-				{
-					int  count ;
+				int  count ;
 
-					/* Set the default values. */
-					for( count = 0 ; count < num ; count++)
+				if( *str_p == 'x')
+				{
+					int  tmp ;
+
+					/* Move Pc to the end. */
+					tmp = ps[0] ;
+					memmove( ps , ps + 1 , sizeof(ps[0]) * 4) ;
+					ps[4] = tmp ;
+				}
+
+				/* Set the default values to the 0-3 parameters. */
+				for( count = 0 ; count < 4 ; count++)
+				{
+					if( count >= num || ps[count] <= 0)
 					{
-						if( ps[count] <= 0)
+						if( count == 2)
 						{
-							if( count == 2)
-							{
-								ps[count] = ml_screen_get_rows(
-								            vt100_parser->screen) ;
-							}
-							else if( count == 3)
-							{
-								ps[count] = ml_screen_get_cols(
-								            vt100_parser->screen) ;
-							}
-							else
-							{
-								ps[count] = 1 ;
-							}
+							ps[count] = ml_screen_get_rows(
+								    vt100_parser->screen) ;
+						}
+						else if( count == 3)
+						{
+							ps[count] = ml_screen_get_cols(
+								    vt100_parser->screen) ;
+						}
+						else
+						{
+							ps[count] = 1 ;
 						}
 					}
+				}
 
-					if( ps[3] >= ps[1] && ps[2] >= ps[0])
+				if( ps[3] >= ps[1] && ps[2] >= ps[0])
+				{
+					if( *str_p == 'z')
 					{
-						if( *str_p == 'z')
-						{
-							ml_screen_erase_area(
-								vt100_parser->screen ,
-								ps[1] - 1 , ps[0] - 1 ,
-								ps[3] - ps[1] + 1 ,
-								ps[2] - ps[0] + 1) ;
-						}
-						else if( *str_p == 'v' && num == 8)
-						{
-							/* "CSI ... $ v" DECCRA */
-
-							ml_screen_copy_area(
-								vt100_parser->screen ,
-								ps[1] - 1 , ps[0] - 1 ,
-								ps[3] - ps[1] + 1 ,
-								ps[2] - ps[0] + 1 ,
-								ps[6] - 1 , ps[5] - 1) ;
-						}
+						/* "CSI ... $ z" DECERA */
+						ml_screen_erase_area(
+							vt100_parser->screen ,
+							ps[1] - 1 , ps[0] - 1 ,
+							ps[3] - ps[1] + 1 ,
+							ps[2] - ps[0] + 1) ;
+					}
+					else if( *str_p == 'v' && num >= 7)
+					{
+						/* "CSI ... $ v" DECCRA */
+						ml_screen_copy_area(
+							vt100_parser->screen ,
+							ps[1] - 1 , ps[0] - 1 ,
+							ps[3] - ps[1] + 1 ,
+							ps[2] - ps[0] + 1 ,
+							ps[6] - 1 , ps[5] - 1) ;
+					}
+					else if( *str_p == 'x' && num >= 1)
+					{
+						/* "CSI ... $ x" DECFRA */
+						ml_screen_fill_area(
+							vt100_parser->screen ,
+							ps[4] ,
+							ps[1] - 1 , ps[0] - 1 ,
+							ps[3] - ps[1] + 1 ,
+							ps[2] - ps[0] + 1) ;
 					}
 				}
 			}
@@ -5054,7 +5105,10 @@ parse_vt100_escape_sequence(
 							vt100_parser->screen , -1 , -1) ;
 						ml_screen_set_use_margin(
 							vt100_parser->screen , 0) ;
-						ml_screen_fill_all_with_e( vt100_parser->screen) ;
+						ml_screen_fill_area( vt100_parser->screen , 'E' ,
+							0 , 0 ,
+							ml_screen_get_cols(vt100_parser->screen) ,
+							ml_screen_get_rows(vt100_parser->screen)) ;
 					}
 				}
 				else if( *(str_p - ic_num) == '(' ||

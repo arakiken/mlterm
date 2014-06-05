@@ -920,19 +920,15 @@ font_found:
 		else
 		{
 			/* Always mono space */
-
 			font->width = ch_width ;
-
-			if( font->is_vertical && font->cols == 1)
-			{
-				font->x_off += ch_width / 4 ;	/* Centering */
-			}
-			else
-			{
-				font->x_off += letter_space * font->cols / 2 ;
-			}
 		}
 
+		font->x_off += (letter_space * font->cols / 2) ;
+
+		if( font->is_vertical && font->cols == 1)
+		{
+			font->x_off += (font->width / 4) ;	/* Centering */
+		}
 	#endif	/* USE_TYPE_XFT */
 	}
 	else
@@ -993,8 +989,18 @@ font_found:
 			if( letter_space > 0)
 			{
 				font->is_proportional = 1 ;
-				font->width += (letter_space * font->cols) ;
-				font->x_off += (letter_space * font->cols / 2) ;  /* Centering */
+
+				if( font->is_vertical)
+				{
+					letter_space *= 2 ;
+				}
+				else
+				{
+					letter_space *= font->cols ;
+				}
+
+				font->width += letter_space ;
+				font->x_off += (letter_space / 2) ; /* Centering */
 			}
 
 			if( ch_width > 0 && ch_width != font->width)
@@ -1013,7 +1019,7 @@ font_found:
 
 				if( font->width < ch_width)
 				{
-					font->x_off = (ch_width - font->width) / 2 ;
+					font->x_off += (ch_width - font->width) / 2 ;
 				}
 
 				font->width = ch_width ;

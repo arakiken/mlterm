@@ -1,3 +1,28 @@
+2014-06-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_config_proto.[ch]: ml_parse_proto_prefix() checks challenge.
+
+	* x_draw_str.c: draw_line() is added to draw underline, double-underline or
+	  crossed out line.
+
+	* ml_vt100_parser.[ch]:
+	  - SGR 9, 21, and 29 are processed.
+	  - is_crossed_out is added to ml_vt100_parser_t and ml_vt100_storable_states_t.
+	  - DECFRA is processed.
+
+	* ml_edit.[ch]: ml_edit_fill_all() -> ml_edit_fill_area()
+
+	* ml_screen.[ch]: ml_screen_fill_all_with_e() -> ml_screen_fill_area()
+
+	* ml_char.[ch]:
+	  - is_crossed_out is added to ml_char_t, ml_char_set() and ml_char_combine().
+	    ml_char_is_crossed_out() is added.
+	  - is_underlined == 2 means drawing underline doubly.
+
+	* x_im_{status|candidate}_screen.c: Minor fixes.
+
+	* x_font_ft.c: Fixes if font->is_vertical is true.
+
 2014-06-03  Araki Ken  <arakiken@users.sf.net>
 
 	* main_loop.c, x_screen.c: "mod_meta_prefix" option is added.

@@ -35,7 +35,7 @@ typedef enum ml_font
 	FONT_SEMICONDENSED	/* (default) normal */
 #endif
 
-	/* 0x1000 - 0x7000 is used for Unicode range mark. (see ml_char_add_unicode_range.) */
+	/* 0x1000 - is used for Unicode range mark. (see ml_char_add_unicode_range.) */
 
 } ml_font_t ;
 

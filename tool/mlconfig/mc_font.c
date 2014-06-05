@@ -53,10 +53,11 @@ static cs_info_t  cs_info_table[] =
 	{ "DEFAULT" , { NULL , NULL , NULL , } , } ,
 	
 	/*
-	 * ISO10646_1 => ISO10646_UCS4_1 in get_correct_cs().
+	 * UNICODE => ISO10646_UCS4_1 or U+XXXX-XXXX in get_correct_cs().
 	 */
-	{ "ISO10646_1" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "ISO10646_1_FULLWIDTH" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (FULLWIDTH)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (ARABIC)" , { "iso10646-1" , NULL , NULL , } , } ,
 
 	{ "DEC_SPECIAL" , { "iso8859-1" , NULL , NULL , } , } ,
 	{ "ISO8859_1" , { "iso8859-1" , NULL , NULL , } , } ,
@@ -202,6 +203,10 @@ get_correct_cs(
 	else if( idx == 2)
 	{
 		return  "ISO10646_UCS4_1_FULLWIDTH" ;
+	}
+	else if( idx == 3)
+	{
+		return  "U+0600-06FF" ;	/* Arabic */
 	}
 	else if( idx < sizeof(cs_info_table) / sizeof(cs_info_table[0]))
 	{
@@ -888,6 +893,25 @@ mc_update_font_name(mc_io_t  io)
 		{
 			mc_set_font_name( io , get_font_file() , new_fontsize ,
 				get_correct_cs( count) , new_fontname_list[count]) ;
+
+			if( count == 3)
+			{
+				/* Arabic Supplement */
+				mc_set_font_name( io , get_font_file() , new_fontsize ,
+					"U+0750-77F" , new_fontname_list[count]) ;
+				/* Arabic Extended-A */
+				mc_set_font_name( io , get_font_file() , new_fontsize ,
+					"U+08A0-8FF" , new_fontname_list[count]) ;
+				/* Arabic Presentation Forms-A */
+				mc_set_font_name( io , get_font_file() , new_fontsize ,
+					"U+FB50-FDFF" , new_fontname_list[count]) ;
+				/* Arabic Presentation Forms-B */
+				mc_set_font_name( io , get_font_file() , new_fontsize ,
+					"U+FE70-FEFF" , new_fontname_list[count]) ;
+				/* Arabic Mathematical Alphabetic Symbols */
+				mc_set_font_name( io , get_font_file() , new_fontsize ,
+					"U+1EE00-1EEFF" , new_fontname_list[count]) ;
+			}
 		}
 	}
 }

@@ -821,7 +821,7 @@ comment $Id$
       o CNS11643_1992_N    ... CNS11643_1992_Nフォント
       o ISO10646_UCS4_1    ... UNICODEフォント(1カラム用)
       o ISO10646_UCS4_1_FULLWIDTH ... UNICODEフォント(2カラム用)
-      o U+XXXX-XXXX        ... UNICODEフォント(指定した範囲。最大7個まで。)
+      o U+XXXX-XXXX        ... UNICODEフォント(指定した範囲。最大511個まで。)
 
       (*) KOI8_T,GEORGIAN_PS,CP125[0-8],CP874 は -u オプションを指定して
           Unicode フォントを使用する必要があります。

@@ -1345,22 +1345,6 @@ ml_edit_clear_above(
 }
 
 int
-ml_edit_fill_all(
-	ml_edit_t *  edit ,
-	ml_char_t *  ch
-	)
-{
-	int  row ;
-
-	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
-	{
-		ml_line_clear_with( ml_model_get_line( &edit->model , row) , 0 , ch) ;
-	}
-
-	return  1 ;
-}
-
-int
 ml_edit_set_scroll_region(
 	ml_edit_t *  edit ,
 	int  beg ,
@@ -1998,6 +1982,38 @@ ml_edit_restore_cursor(
 	{
 		return  0 ;
 	}
+}
+
+int
+ml_edit_fill_area(
+	ml_edit_t *  edit ,
+	ml_char_t *  ch ,
+	int  col ,
+	int  row ,
+	u_int  num_of_cols ,
+	u_int  num_of_rows
+	)
+{
+	int  char_index ;
+	u_int  cols_rest ;
+	ml_line_t *  line ;
+
+	for( ; num_of_rows > 0 ; num_of_rows --)
+	{
+		line = ml_model_get_line( &edit->model , row++) ;
+
+		char_index = ml_convert_col_to_char_index( line , &cols_rest , col ,
+				BREAK_BOUNDARY) ;
+		if( cols_rest > 0)
+		{
+			ml_line_fill( line , ml_sp_ch() , char_index , cols_rest) ;
+			char_index += cols_rest ;
+		}
+
+		ml_line_fill( line , ch , char_index , num_of_cols) ;
+	}
+
+	return  1 ;
 }
 
 int

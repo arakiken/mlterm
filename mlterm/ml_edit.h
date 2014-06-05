@@ -87,8 +87,6 @@ int  ml_edit_clear_line_to_left( ml_edit_t *  edit) ;
 int  ml_edit_clear_below( ml_edit_t *  edit) ;
 
 int  ml_edit_clear_above( ml_edit_t *  edit) ;
-
-int  ml_edit_fill_all( ml_edit_t *  edit , ml_char_t *  ch) ;
 	
 int  ml_edit_set_scroll_region( ml_edit_t *  edit , int  beg , int  end) ;
 
@@ -149,6 +147,9 @@ int  ml_edit_set_bce_bg_color( ml_edit_t *  edit , ml_color_t  bg_color) ;
 int  ml_edit_save_cursor( ml_edit_t *  edit) ;
 
 int  ml_edit_restore_cursor( ml_edit_t *  edit) ;
+
+int  ml_edit_fill_area( ml_edit_t *  edit , ml_char_t *  ch , int  col , int  row ,
+	u_int  num_of_cols , u_int  num_of_rows) ;
 
 int  ml_edit_copy_area( ml_edit_t *  edit , int  src_col , int  src_row ,
 	u_int  num_of_copy_cols , u_int  num_of_copy_rows , int  dst_col , int  dst_row) ;

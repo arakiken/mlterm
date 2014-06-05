@@ -315,7 +315,7 @@ set(
 		{
 			if( ml_char_combine( p - 1 , mkf_char_to_int(&ch) ,
 				ch.cs , is_fullwidth , is_comb , ML_FG_COLOR ,
-				ML_BG_COLOR , 0 , 0 , 0))
+				ML_BG_COLOR , 0 , 0 , 0 , 0))
 			{
 				continue;
 			}
@@ -331,7 +331,7 @@ set(
 		}
 
 		ml_char_set( p , mkf_char_to_int(&ch) , ch.cs , is_fullwidth ,
-			is_comb , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
+			is_comb , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0) ;
 
 		p++ ;
 		stat_screen->filled_len++ ;

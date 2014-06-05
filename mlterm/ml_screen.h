@@ -217,7 +217,7 @@ ml_char_t *  ml_screen_get_n_prev_char( ml_screen_t *  screen , int  n) ;
 int  ml_screen_combine_with_prev_char( ml_screen_t *  screen , u_int32_t  code ,
 	mkf_charset_t  cs , int  is_fullwidth , int  is_comb ,
 	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold ,
-	int  is_italic , int  is_underlined) ;
+	int  is_italic , int  is_underlined , int  is_crossed_out) ;
 
 int  ml_screen_insert_chars( ml_screen_t *  screen , ml_char_t *  chars , u_int  len) ;
 
@@ -319,7 +319,8 @@ int  ml_screen_local_echo_wait( ml_screen_t *  screen , int  msec) ;
 
 int  ml_screen_disable_local_echo( ml_screen_t *  screen) ;
 
-int  ml_screen_fill_all_with_e( ml_screen_t *  screen) ;
+int  ml_screen_fill_area( ml_screen_t *  screen , int  code ,
+	int  col , int  beg , u_int  num_of_cols , u_int  num_of_rows) ;
 
 #define  ml_screen_copy_area( screen , src_col , src_row , \
 		num_of_cols , num_of_rows , dst_col , dst_row) \

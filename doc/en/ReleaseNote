@@ -1,6 +1,10 @@
 ver 3.3.7
 * Enable image processing on background terminals.
 * Improve the performance of processing images on 8 or less bpp framebuffer.
+* Support SGR 9, 21 and 29.
+* Support DECFRA.
+* Bug fixes:
+  Fix the failure of saving font configurations from mlconfig.
 
 ver 3.3.6
 * Support fcitx. (Experimental)

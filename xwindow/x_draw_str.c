@@ -51,6 +51,88 @@ adjust_bd_ul_color(
 	return  0 ;
 }
 
+static void
+draw_line(
+	x_window_t *  window ,
+	x_color_t *  color ,
+	int  is_vertical ,
+	int  flag ,		/* 0 == underline 1 == double underline, 2 == crossed out */
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height ,
+	u_int  ascent ,
+	u_int  top_margin
+	)
+{
+	u_int  w ;
+	u_int  h ;
+	int  x2 ;
+	int  y2 ;
+
+	if( is_vertical)
+	{
+		w = 1 ;
+		h = height ;
+
+		if( flag == 1)	/* double */
+		{
+			x2 = x + 2 ;
+			y2 = y ;
+		}
+		else
+		{
+			w += ((ascent - top_margin) / 16) ;
+
+			if( flag == 2)	/* crossed out */
+			{
+				x += ((width - 1) / 2) ;
+			}
+		}
+	}
+	else
+	{
+		w = width ;
+		h = 1 ;
+
+		if( flag == 1)	/* double */
+		{
+			x2 = x ;
+
+			if( ascent + 2 >= height)
+			{
+				y2 = y + height - 1 ;
+				y = y2 - 2 ;
+			}
+			else
+			{
+				y += ascent ;
+				y2 = y + 2 ;
+			}
+		}
+		else
+		{
+			h += ((ascent - top_margin) / 16) ;
+
+			if( flag == 2)	/* crossed out */
+			{
+				y += ((height + 1) / 2) ;
+			}
+			else
+			{
+				y += ascent ;
+			}
+		}
+	}
+
+	x_window_fill_with( window , color , x , y , w , h) ;
+
+	if( flag == 1)	/* double */
+	{
+		x_window_fill_with( window , color , x2 , y2 , w , h) ;
+	}
+}
+
 #ifndef  NO_IMAGE
 static int
 draw_picture(
@@ -469,6 +551,7 @@ fc_draw_str(
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
 	int  is_underlined ;
+	int  is_crossed_out ;
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
 	int  draw_alone ;
@@ -483,6 +566,7 @@ fc_draw_str(
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
+	int  next_is_crossed_out ;
 	ml_char_t *  next_comb_chars ;
 	u_int  next_comb_size ;
 	u_int  next_ch_width ;
@@ -544,6 +628,7 @@ fc_draw_str(
 	bg_color = ml_char_bg_color( &chars[count]) ;
 
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
+	is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 
 	if( ! ( str8 = str32 = pic_glyphs = drcs_glyphs =
 		alloca( K_MAX(sizeof(*str8),K_MAX(sizeof(*str32),
@@ -611,6 +696,7 @@ fc_draw_str(
 			next_fg_color = ml_char_fg_color( &chars[count]) ;
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
+			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 			next_ch_width = x_calculate_char_width( next_xfont ,
 						ch_code , ch_cs , &next_draw_alone) ;
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
@@ -641,11 +727,13 @@ fc_draw_str(
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
 				|| next_is_underlined != is_underlined
+				|| next_is_crossed_out != is_crossed_out
 				/*
-				 * Eevn if both is_underline and next_is_underline are 1,
+				 * Eevn if both is_underline and next_is_underline are 1
 				 * underline is drawn one by one in vertical mode.
+				 * (is_crossed_out is the same.)
 				 */
-				|| (is_underlined && xfont->is_vertical)
+				|| ((is_underlined || is_crossed_out) && xfont->is_vertical)
 				|| state != next_state
 				|| draw_alone
 				|| next_draw_alone
@@ -754,18 +842,17 @@ fc_draw_str(
 
 			if( ! hide_underline && color_adjusted != 2 && is_underlined)
 			{
-				if( xfont->is_vertical)
-				{
-					x_window_fill_with( window , fg_xcolor ,
-						x , y , (ch_width >> 4) + 1 , height) ;
-				}
-				else
-				{
-					x_window_fill_with( window , fg_xcolor ,
-						x , y + ascent ,
-						current_width - x ,
-						((ascent - bottom_margin) >> 4) + 1 ) ;
-				}
+				draw_line( window , fg_xcolor , xfont->is_vertical ,
+					is_underlined == 2 ? 1 : 0 ,
+					x , y , current_width - x , height , ascent ,
+					top_margin) ;
+			}
+
+			if( is_crossed_out)
+			{
+				draw_line( window , fg_xcolor , xfont->is_vertical , 2 ,
+					x , y , current_width - x , height , ascent ,
+					top_margin) ;
 			}
 
 			if( color_adjusted)
@@ -793,6 +880,7 @@ fc_draw_str(
 		}
 
 		is_underlined = next_is_underlined ;
+		is_crossed_out = next_is_crossed_out ;
 		xfont = next_xfont ;
 		font = next_font ;
 		fg_color = next_fg_color ;
@@ -928,6 +1016,7 @@ xcore_draw_str(
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
 	int  is_underlined ;
+	int  is_crossed_out ;
 	int  draw_alone ;
 	u_int32_t  pic_glyph ;
 	u_int32_t *  pic_glyphs ;
@@ -943,6 +1032,7 @@ xcore_draw_str(
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
+	int  next_is_crossed_out ;
 	int  next_draw_alone ;
 #ifdef  PERF_DEBUG
 	int  draw_count = 0 ;
@@ -998,6 +1088,7 @@ xcore_draw_str(
 	fg_color = ml_char_fg_color( &chars[count]) ;
 	bg_color = ml_char_bg_color( &chars[count]) ;
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
+	is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 
 	if( ! ( str2b = str = pic_glyphs = drcs_glyphs =
 		/* '* 2' is for UTF16 surrogate pair. */
@@ -1064,6 +1155,7 @@ xcore_draw_str(
 			next_fg_color = ml_char_fg_color( &chars[count]) ;
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
+			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 			next_ch_width = x_calculate_char_width( next_xfont ,
 						ch_code , ch_cs , &next_draw_alone) ;
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
@@ -1093,11 +1185,13 @@ xcore_draw_str(
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
 				|| next_is_underlined != is_underlined
+				|| next_is_crossed_out != is_crossed_out
 				/*
 				 * Eevn if both is_underline and next_is_underline are 1,
 				 * underline is drawn one by one in vertical mode.
+				 * (is_crossed_out is the same.)
 				 */
-				|| (is_underlined && xfont->is_vertical)
+				|| ((is_underlined || is_crossed_out) && xfont->is_vertical)
 				|| next_state != state
 				|| draw_alone
 				|| next_draw_alone
@@ -1243,18 +1337,17 @@ xcore_draw_str(
 
 			if( ! hide_underline && color_adjusted != 2 && is_underlined)
 			{
-				if( xfont->is_vertical)
-				{
-					x_window_fill_with( window , fg_xcolor ,
-						x , y , (ch_width >> 4) + 1 , height) ;
-				}
-				else
-				{
-					x_window_fill_with( window , fg_xcolor ,
-						x , y + ascent ,
-						current_width - x ,
-						((ascent - bottom_margin) >> 4) + 1) ;
-				}
+				draw_line( window , fg_xcolor , xfont->is_vertical ,
+					is_underlined == 2 ? 1 : 0 ,
+					x , y , current_width - x , height , ascent ,
+					top_margin) ;
+			}
+
+			if( is_crossed_out)
+			{
+				draw_line( window , fg_xcolor , xfont->is_vertical , 2 ,
+					x , y , current_width - x , height , ascent ,
+					top_margin) ;
 			}
 
 			if( color_adjusted)
@@ -1286,6 +1379,7 @@ xcore_draw_str(
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
 		is_underlined = next_is_underlined ;
+		is_crossed_out = next_is_crossed_out ;
 		state = next_state ;
 		draw_alone = next_draw_alone ;
 		comb_chars = next_comb_chars ;

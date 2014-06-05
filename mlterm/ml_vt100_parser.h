@@ -135,6 +135,7 @@ typedef struct  ml_vt100_storable_states
 	int8_t  is_italic ;
 	int8_t  is_underlined ;
 	int8_t  is_reversed ;
+	int8_t  is_crossed_out ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
 	mkf_charset_t  cs ;
@@ -189,6 +190,7 @@ typedef struct  ml_vt100_parser
 	int8_t  is_italic ;
 	int8_t  is_underlined ;
 	int8_t  is_reversed ;
+	int8_t  is_crossed_out ;
 
 	u_int8_t  col_size_of_width_a ;	/* 1 or 2 */
 

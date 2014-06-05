@@ -5,26 +5,25 @@ mlterm configuration protocol
 version 20140330
 
 * Protocol
-  exec             = "\x1b" "]" "5379" ";" <command> "\x07"
-  set              = "\x1b" "]" "5379" ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
-  get(pty)         = "\x1b" "]" "5380" ";" <challenge> ";" ( "/dev/..." ":" ) <key> "\x07"
-  get(GUI menu)    = "\x1b" "]" "5381" ";" ( "/dev/..." ":" ) <key> "\x07"
-  set&save         = "\x1b" "]" "5383" ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
+  exec             = "\x1b]5379;" <command> "\x07"
+  set              = "\x1b]5379" ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
+  get(pty)         = "\x1b]5380;" <challenge> ";" ( "/dev/..." ":" ) <key> "\x07"
+  get(GUI menu)    = "\x1b]5381;" ( "/dev/..." ":" ) <key> "\x07"
+  set&save         = "\x1b]5383;" <challenge> ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
 
-  set font         = "\x1b" "]" "5379" ";" <font filename> ":" <key> "=" <value> "\x07"
-  get(pty)	   = "\x1b" "]" "5380" ";" <challenge> ";" <font filename> ":" <key> ","
-                     <fontsize> "\x07"
-  get(GUI menu)	   = "\x1b" "]" "5381" ";" <font filename> ":" <key> "," <fontsize> "\x07"
-  set&save         = "\x1b" "]" "5383" ";" <challenge> ";" <font filename> ":" <key> "=" <value> "\x07"
+  set font         = "\x1b]5379;" <font filename> ":" <key> "=" <value> "\x07"
+  get(pty)	   = "\x1b]5380;" <challenge> ";" <font filename> ":" <key> "," <fontsize> "\x07"
+  get(GUI menu)	   = "\x1b]5381;" <font filename> ":" <key> "," <fontsize> "\x07"
+  set&save         = "\x1b]5383;" <challenge> ";" <font filename> ":" <key> "=" <value> "\x07"
 
-  set color        = "\x1b" "]" "5379" ";" "color:" <key> "=" <value> "\x07"
+  set color        = "\x1b]5379;color:" <key> "=" <value> "\x07"
 #if  0
-  get(pty)	   = "\x1b" "]" "5380" ";" <challenge> ";" "color:" <key> "\x07"
-  get(GUI menu)	   = "\x1b" "]" "5381" ";" "color:" <key> "\x07"
+  get(pty)	   = "\x1b]5380;" <challenge> ";color:" <key> "\x07"
+  get(GUI menu)	   = "\x1b]5381;color:" <key> "\x07"
 #endif
-  set&save         = "\x1b" "]" "5383" ";" <challenge> ";" "color:" <key> "=" <value> "\x07"
+  set&save         = "\x1b]5383;" <challenge> ";color:" <key> "=" <value> "\x07"
 
-  return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a" | "#forbidden" "\x0a"
+  return value     = "#" <key> "=" <value> "\x0a" | "#error\x0a" | "#forbidden\x0a"
   exec command     = paste | select_pty <dev> | full_reset | open_pty | close_pty (<dev>) |
                      open_screen | snapshot ("<file name>") ("<encoding name>") |
                      gen_proto_challenge | mlclient "<prefix options>" "<options>" |

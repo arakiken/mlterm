@@ -1876,7 +1876,8 @@ ml_screen_combine_with_prev_char(
 	ml_color_t  bg_color ,
 	int  is_bold ,
 	int  is_italic ,
-	int  is_underlined
+	int  is_underlined ,
+	int  is_crossed_out
 	)
 {
 	int  char_index ;
@@ -1900,7 +1901,8 @@ ml_screen_combine_with_prev_char(
 	}
 	
 	if( ! ml_char_combine( ch , code , cs , is_fullwidth , is_comb ,
-		fg_color , bg_color , is_bold , is_italic , is_underlined))
+		fg_color , bg_color , is_bold , is_italic , is_underlined ,
+		is_crossed_out))
 	{
 		return  0 ;
 	}
@@ -2303,18 +2305,26 @@ ml_screen_disable_local_echo(
 }
 
 int
-ml_screen_fill_all_with_e(
-	ml_screen_t *  screen
+ml_screen_fill_area(
+	ml_screen_t *  screen ,
+	int  code ,	/* Unicode */
+	int  col ,
+	int  row ,
+	u_int  num_of_cols ,
+	u_int  num_of_rows
 	)
 {
-	ml_char_t  e_ch ;
+	ml_char_t  ch ;
 
-	ml_char_init( &e_ch) ;
-	ml_char_set( &e_ch , 'E' , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
+	ml_char_init( &ch) ;
 
-	ml_edit_fill_all( screen->edit , &e_ch) ;
+	ml_char_set( &ch , code ,
+		code <= 0x7f ? US_ASCII : ISO10646_UCS4_1 ,	/* XXX biwidth is not supported. */
+		0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0) ;
 
-	ml_char_final( &e_ch) ;
+	ml_edit_fill_area( screen->edit , &ch , col , row , num_of_cols , num_of_rows) ;
+
+	ml_char_final( &ch) ;
 
 	return  1 ;
 }

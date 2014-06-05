@@ -9,10 +9,15 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
+#define  IS_UNDERLINED(attr)  (((attr) >> 21) & 0x3)
+
 #define  IS_ZEROWIDTH(attr)  ((attr) & (0x1 << 20))
 
 /* Combination of UNICODE_AREA, IS_ITALIC, IS_BOLD, IS_FULLWIDTH and CHARSET */
-#define  MLFONT(attr)  (((attr) >> 5) & 0x7fff)
+#define  MLFONT(attr) \
+	((attr) & (0x1 << 17)) ?	/* is unicode area cs or not */ \
+	((((attr) >> 5) & 0xe00) | ISO10646_UCS4_1 | (((attr) << 7) & 0x1ff000)) : \
+	(((attr) >> 5) & 0xfff)
 
 #define  IS_ITALIC(attr)  ((attr) & (0x1 << 16))
 #define  IS_BOLD(attr)  ((attr) & (0x1 << 15))
@@ -23,7 +28,7 @@
 #define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 4))
 #define  RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 4))
 
-#define  IS_UNDERLINED(attr)  ((attr) & (0x1 << 3))
+#define  IS_CROSSED_OUT(attr)  ((attr) & (0x1 << 3))
 
 #define  IS_COMB(attr)  ((attr) & (0x1 << 2))
 
@@ -35,10 +40,10 @@
 #define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffe)
 #define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
-#define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,unicode_area,is_underlined,is_comb) \
-	( ((is_zerowidth) << 20) | ((unicode_area) << 17) | ((is_italic) << 16) | \
-	  ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
-	  ( 0x0 << 4) |  ((is_underlined) << 3) | ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
+#define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,is_unicode_area_cs,is_underlined,is_crossed_out,is_comb) \
+	( ((is_underlined) << 21) | ((is_zerowidth) << 20) | ((is_unicode_area_cs) << 17) | \
+	  ((is_italic) << 16) | ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
+	  ( 0x0 << 4) |  ((is_crossed_out) << 3) | ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
 
 
 /* --- static variables --- */
@@ -104,7 +109,7 @@ ml_char_get_unicode_area_font(
 		}
 	}
 
-	if( num_of_unicode_areas == 7 ||
+	if( num_of_unicode_areas == 511 /* Max is 2^9-1 */ ||
 	    ! ( p = realloc( unicode_areas ,
 			sizeof(*unicode_areas) * (num_of_unicode_areas + 1))))
 	{
@@ -171,7 +176,8 @@ ml_char_set(
 	ml_color_t  bg_color ,
 	int  is_bold ,
 	int  is_italic ,
-	int  is_underlined
+	int  is_underlined ,
+	int  is_crossed_out
 	)
 {
 	u_int  idx ;
@@ -188,6 +194,7 @@ ml_char_set(
 			if( unicode_areas[idx - 1].min <= code &&
 			    code <= unicode_areas[idx - 1].max)
 			{
+				cs = idx ;
 				break ;
 			}
 		}
@@ -225,7 +232,7 @@ ml_char_set(
 	}
 
 	ch->u.ch.attr = COMPOUND_ATTR(cs,is_zerowidth,is_fullwidth!=0,is_bold!=0,
-				is_italic!=0,idx,is_underlined!=0,is_comb!=0) ;
+				is_italic!=0,idx>0,is_underlined,is_crossed_out!=0,is_comb!=0) ;
 	ch->u.ch.fg_color = fg_color ;
 	ch->u.ch.bg_color = bg_color ;
 
@@ -243,7 +250,8 @@ ml_char_combine(
 	ml_color_t  bg_color ,
 	int  is_bold ,
 	int  is_italic ,
-	int  is_underlined
+	int  is_underlined ,
+	int  is_crossed_out
 	)
 {
 	ml_char_t *  multi_ch ;
@@ -296,7 +304,8 @@ ml_char_combine(
 
 		ml_char_init( multi_ch + 1) ;
 		if( ml_char_set( multi_ch + 1 , code , cs , is_fullwidth , is_comb ,
-			fg_color , bg_color , is_bold , is_italic , is_underlined) == 0)
+			fg_color , bg_color , is_bold , is_italic , is_underlined ,
+			is_crossed_out) == 0)
 		{
 			return  0 ;
 		}
@@ -344,7 +353,8 @@ ml_char_combine(
 		SET_COMB_TRAILING( multi_ch[comb_size].u.ch.attr) ;
 		ml_char_init( multi_ch + comb_size + 1) ;
 		if( ml_char_set( multi_ch + comb_size + 1 , code , cs , is_fullwidth ,
-			is_comb , fg_color , bg_color , is_bold , is_italic , is_underlined) == 0)
+			is_comb , fg_color , bg_color , is_bold , is_italic , is_underlined ,
+			is_crossed_out) == 0)
 		{
 			return  0 ;
 		}
@@ -366,7 +376,7 @@ ml_char_combine_simple(
 			IS_FULLWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
 			comb->u.ch.fg_color , comb->u.ch.bg_color ,
 			IS_BOLD(comb->u.ch.attr) , IS_ITALIC(comb->u.ch.attr) ,
-			IS_UNDERLINED(comb->u.ch.attr)) ;
+			IS_UNDERLINED(comb->u.ch.attr) , IS_CROSSED_OUT(comb->u.ch.attr)) ;
 }
 
 ml_char_t *
@@ -748,6 +758,21 @@ ml_char_is_underlined(
 }
 
 int
+ml_char_is_crossed_out(
+	ml_char_t *  ch
+	)
+{
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  IS_CROSSED_OUT(ch->u.ch.attr) ;
+	}
+	else
+	{
+		return  ml_char_is_crossed_out( ch->u.multi_ch) ;
+	}
+}
+
+int
 ml_char_reverse_color(
 	ml_char_t *  ch
 	)
@@ -940,7 +965,7 @@ ml_sp_ch(void)
 	{
 		ml_char_init( &sp_ch) ;
 		ml_char_set( &sp_ch , ' ' , US_ASCII , 0 , 0 ,
-			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0) ;
 	}
 
 	return  &sp_ch ;
@@ -955,7 +980,7 @@ ml_nl_ch(void)
 	{
 		ml_char_init( &nl_ch) ;
 		ml_char_set( &nl_ch , '\n' , US_ASCII , 0 , 0 ,
-			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0) ;
 	}
 
 	return  &nl_ch ;
