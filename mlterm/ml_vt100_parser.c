@@ -1562,6 +1562,8 @@ config_protocol_set(
 
 	if( ml_parse_proto_prefix( &dev , &pt , save) == -1)
 	{
+		kik_msg_printf( "Forbid config protocol.\n") ;
+
 		return ;
 	}
 

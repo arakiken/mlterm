@@ -56,6 +56,7 @@ mc_logsize_config_widget_new(void)
 		"256" ,
 		"512" ,
 		"1024" ,
+		"unlimited" ,
 	} ;
 
 	new_logsize = strdup( old_logsize = mc_get_str_value( "logsize")) ;

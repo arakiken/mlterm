@@ -1,3 +1,9 @@
+2014-06-07  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_logsize.c: "unlimited" is added.
+
+	* ml_config_proto.c, ml_vt100_parser.c: Minor fixes.
+
 2014-06-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_char.c: CHARSET() macro checks is_unicode_area_cs flag.

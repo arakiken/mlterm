@@ -63,16 +63,6 @@ read_challenge(void)
 	return  1 ;
 }
 
-static int
-challenge_it(
-	char *  chal
-	)
-{
-	return  ( challenge && strcmp( chal , challenge) == 0) ||
-	        /* Challenge could have been re-generated. */
-	        ( read_challenge() && challenge && strcmp( chal , challenge) == 0) ;
-}
-
 
 /* --- global functions --- */
 
@@ -152,14 +142,14 @@ ml_parse_proto_prefix(
 		{
 			*(p ++) = '\0' ;
 
-			if( challenge_it( chal))
+			if( ( challenge && strcmp( chal , challenge) == 0) ||
+			    /* Challenge could have been re-generated. */
+			    ( read_challenge() && challenge && strcmp( chal , challenge) == 0))
 			{
+				/* challenge succeeded. */
 				break ;
 			}
 		}
-
-		kik_msg_printf( "Config protocol is not permitted "
-			"because client password is wrong.\n") ;
 
 		return  -1 ;
 	}
