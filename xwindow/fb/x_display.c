@@ -2419,8 +2419,6 @@ x_display_reset_input_method_window(void)
 	}
 }
 
-#define  __DEBUG
-
 /* seek the closest color */
 int
 x_cmap_get_closest_color(
