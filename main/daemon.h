@@ -15,8 +15,6 @@ int  daemon_init(void) ;
 
 int  daemon_final(void) ;
 
-int  daemon_get_fd(void) ;
-
 #else
 
 #define  daemon_init()  (0)

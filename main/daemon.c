@@ -35,139 +35,6 @@ static char *  un_file ;
 
 /* --- static functions --- */
 
-static int
-start_daemon(void)
-{
-	pid_t  pid ;
-	int  fd ;
-	struct sockaddr_un  servaddr ;
-	char *  path ;
-
-	if( ( path = kik_get_user_rc_path( "mlterm/socket")) == NULL)
-	{
-		return  -1 ;
-	}
-
-	if( strlen( path) >= sizeof(servaddr.sun_path) || ! kik_mkdir_for_file( path , 0700))
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Failed mkdir for %s\n" , path) ;
-	#endif
-		free( path) ;
-		
-		return  -1 ;
-	}
-	
-	memset( &servaddr , 0 , sizeof( servaddr)) ;
-	servaddr.sun_family = AF_LOCAL ;
-	strcpy( servaddr.sun_path , path) ;
-	free( path) ;
-	path = servaddr.sun_path ;
-
-	if( ( fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " socket failed\n") ;
-	#endif
-		return  -1 ;
-	}
-	kik_file_set_cloexec( fd);
-	
-	for( ;;)
-	{
-		int  ret ;
-		int  saved_errno ;
-		mode_t  mode ;
-
-		mode = umask( 077) ;
-		ret = bind( fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) ;
-		saved_errno = errno ;
-		umask( mode) ;
-
-		if( ret == 0)
-		{
-			break ;
-		}
-		else if( saved_errno == EADDRINUSE)
-		{
-			if( connect( fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
-			{
-				close( fd) ;
-				
-				kik_msg_printf( "daemon is already running.\n") ;
-				
-				return  -1 ;
-			}
-
-			kik_msg_printf( "removing stale lock file %s.\n" , path) ;
-			
-			if( unlink( path) == 0)
-			{
-				continue ;
-			}
-		}
-		else
-		{
-			close( fd) ;
-
-			kik_msg_printf( "failed to lock file %s: %s\n" ,
-				path , strerror(saved_errno)) ;
-
-			return  -1 ;
-		}
-	}
-
-	pid = fork() ;
-
-	if( pid == -1)
-	{
-		return  -1 ;
-	}
-
-	if( pid != 0)
-	{
-		exit(0) ;
-	}
-	
-	/*
-	 * child
-	 */
-
-	/*
-	 * This process becomes a session leader and purged from control terminal.
-	 */
-	setsid() ;
-
-	/*
-	 * SIGHUP signal when the child process exits must not be sent to
-	 * the grandchild process.
-	 */
-	signal( SIGHUP , SIG_IGN) ;
-
-	pid = fork() ;
-
-	if( pid != 0)
-	{
-		exit(0) ;
-	}
-
-	/*
-	 * grandchild
-	 */
-
-	if( listen( fd , 1024) < 0)
-	{
-		close( fd) ;
-		unlink( path) ;
-		
-		return  -1 ;
-	}
-
-	un_file = strdup( path) ;
-
-	return  fd ;
-}
-
 static void
 client_connected(void)
 {
@@ -272,35 +139,150 @@ crit_error:
 int
 daemon_init(void)
 {
-	if( ( sock_fd = start_daemon()) < 0)
+	pid_t  pid ;
+	struct sockaddr_un  servaddr ;
+	char *  path ;
+
+	if( ( path = kik_get_user_rc_path( "mlterm/socket")) == NULL)
 	{
-		kik_msg_printf( "mlterm failed to become daemon.\n") ;
+		return  0 ;
+	}
+
+	if( strlen( path) >= sizeof(servaddr.sun_path) || ! kik_mkdir_for_file( path , 0700))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed mkdir for %s\n" , path) ;
+	#endif
+		free( path) ;
 
 		return  0 ;
 	}
 
+	memset( &servaddr , 0 , sizeof( servaddr)) ;
+	servaddr.sun_family = AF_LOCAL ;
+	strcpy( servaddr.sun_path , path) ;
+	free( path) ;
+	path = servaddr.sun_path ;
+
+	if( ( sock_fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " socket failed\n") ;
+	#endif
+
+		return  0 ;
+	}
+	kik_file_set_cloexec( sock_fd);
+
+	for( ;;)
+	{
+		int  ret ;
+		int  saved_errno ;
+		mode_t  mode ;
+
+		mode = umask( 077) ;
+		ret = bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) ;
+		saved_errno = errno ;
+		umask( mode) ;
+
+		if( ret == 0)
+		{
+			break ;
+		}
+		else if( saved_errno == EADDRINUSE)
+		{
+			if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
+			{
+				close( sock_fd) ;
+
+				kik_msg_printf( "daemon is already running.\n") ;
+
+				return  -1 ;
+			}
+
+			kik_msg_printf( "removing stale lock file %s.\n" , path) ;
+
+			if( unlink( path) == 0)
+			{
+				continue ;
+			}
+		}
+		else
+		{
+			kik_msg_printf( "failed to lock file %s: %s\n" ,
+				path , strerror(saved_errno)) ;
+
+			goto  error ;
+		}
+	}
+
+	pid = fork() ;
+
+	if( pid == -1)
+	{
+		goto  error ;
+	}
+
+	if( pid != 0)
+	{
+		exit(0) ;
+	}
+
+	/*
+	 * child
+	 */
+
+	/*
+	 * This process becomes a session leader and purged from control terminal.
+	 */
+	setsid() ;
+
+	/*
+	 * SIGHUP signal when the child process exits must not be sent to
+	 * the grandchild process.
+	 */
+	signal( SIGHUP , SIG_IGN) ;
+
+	pid = fork() ;
+
+	if( pid != 0)
+	{
+		exit(0) ;
+	}
+
+	/*
+	 * grandchild
+	 */
+
+	if( listen( sock_fd , 1024) < 0)
+	{
+		goto  error ;
+	}
+
+	/* Mark started as daemon. */
+	un_file = strdup( path) ;
+
 	x_event_source_add_fd( sock_fd , client_connected) ;
 
 	return  1 ;
+
+error:
+	close( sock_fd) ;
+
+	return  0 ;
 }
 
 int
 daemon_final(void)
 {
-	close( sock_fd) ;
-	
 	if( un_file)
 	{
+		close( sock_fd) ;
 		unlink( un_file) ;
+		free( un_file) ;
 	}
 
 	return  1 ;
-}
-
-int
-daemon_get_fd(void)
-{
-	return  sock_fd ;
 }
 
 #endif	/* USE_WIN32API */

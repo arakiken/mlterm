@@ -3,6 +3,7 @@ ver 3.3.7
 * Improve the performance of processing images on 8 or less bpp framebuffer.
 * Support SGR 9, 21 and 29.
 * Support DECFRA.
+* Starting mlterm with -j option executes mlclient if daemon process has already started.
 * Bug fixes:
   Fix the failure of saving font configurations from mlconfig.
 

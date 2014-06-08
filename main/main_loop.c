@@ -130,6 +130,7 @@ main_loop_init(
 	u_int  num_of_startup_screens ;
 	u_int  depth ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
+	char *  orig_argv ;
 
 	if( ! kik_locale_init(""))
 	{
@@ -198,7 +199,8 @@ main_loop_init(
 	kik_conf_add_opt( conf , '\0' , "metaprefix" , 0 , "mod_meta_prefix" ,
 		"prefix characters in pressing meta key if mod_meta_mode = esc") ;
 
-	if( ! kik_conf_parse_args( conf , &argc , &argv))
+	orig_argv = argv ;
+	if( ! kik_conf_parse_args( conf , &argc , &argv , 0))
 	{
 		kik_conf_delete( conf) ;
 
@@ -225,11 +227,15 @@ main_loop_init(
 #ifndef  USE_WIN32API
 	if( ( value = kik_conf_get_value( conf , "daemon_mode")))
 	{
+		int  ret ;
+
+		ret = 0 ;
+
 	#ifndef  USE_WIN32GUI
 		/* 'genuine' is not supported in win32. */
 		if( strcmp( value , "genuine") == 0)
 		{
-			if( daemon_init())
+			if( ( ret = daemon_init()) > 0)
 			{
 				is_genuine_daemon = 1 ;
 			}
@@ -238,13 +244,18 @@ main_loop_init(
 	#endif
 		if( strcmp( value , "blend") == 0)
 		{
-			daemon_init() ;
+			ret = daemon_init() ;
 		}
 	#if  0
 		else if( strcmp( value , "none") == 0)
 		{
 		}
 	#endif
+
+		if( ret == -1)
+		{
+			execvp( "mlclient" , orig_argv) ;
+		}
 	}
 #endif
 

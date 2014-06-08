@@ -1,3 +1,19 @@
+2014-06-09  Araki Ken  <arakiken@users.sf.net>
+
+	* main_loop.c: Starting mlterm with -j option executes mlclient if daemon
+	  process has already started.
+
+	* daemon.[ch]:
+	  - free(un_file) is called in daemon_final().
+	  - daemon_get_fd() is removed.
+
+	* x_screen_manager.c: mlclient permits unknown options.
+
+	* kik_conf.[ch]: ignore_unknown_opt argument is added to kik_conf_parse_args().
+
+	* ml_char.c, ml_vt100_parser.c: ML_BOLD_COLOR_MASK is set in ml_vt100_parser.c,
+	  not in ml_char.c.
+
 2014-06-07  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_logsize.c: "unlimited" is added.

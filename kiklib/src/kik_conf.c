@@ -398,7 +398,8 @@ int
 kik_conf_parse_args(
 	kik_conf_t *  conf ,
 	int *  argc ,
-	char ***  argv
+	char ***  argv ,
+	int  ignore_unknown_opt
 	)
 {
 	char *  opt_name ;
@@ -422,9 +423,12 @@ kik_conf_parse_args(
 			if( short_opt < ' ' ||
 			    ( opt = conf->arg_opts[CH2IDX(short_opt)]) == NULL)
 			{
-				kik_msg_printf( "%s is unknown option.\n" , opt_name) ;
-				
-				goto error ;
+				if( ignore_unknown_opt)
+				{
+					continue ;
+				}
+
+				goto  error_with_msg ;
 			}
 		}
 		else if( strlen( opt_name) > 1)
@@ -448,18 +452,24 @@ kik_conf_parse_args(
 
 			if( ! opt)
 			{
-				kik_msg_printf( "%s is unknown option.\n" , opt_name) ;
+				if( ignore_unknown_opt)
+				{
+					continue ;
+				}
 
-				goto error ;
+				goto  error_with_msg ;
 			}
 
 			short_opt = opt->opt ;
 		}
 		else
 		{
-			kik_msg_printf( "%s is unknown option.\n" , opt_name) ;
-			
-			goto error ;
+			if( ignore_unknown_opt)
+			{
+				continue ;
+			}
+
+			goto  error_with_msg ;
 		}
 
 		kik_map_get( conf->conf_entries , opt->key , pair) ;
@@ -557,7 +567,10 @@ kik_conf_parse_args(
 	}
 
 	return  1 ;
-	
+
+error_with_msg:
+	kik_msg_printf( "%s is unknown option.\n" , opt_name) ;
+
 error:
 	usage( conf) ;
 

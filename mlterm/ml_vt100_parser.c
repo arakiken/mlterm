@@ -799,11 +799,11 @@ put_char(
 	if( vt100_parser->is_reversed)
 	{
 		fg_color = vt100_parser->bg_color ;
-		bg_color = vt100_parser->fg_color ;
+		bg_color = vt100_parser->fg_color | (is_bold ? ML_BOLD_COLOR_MASK : 0) ;
 	}
 	else
 	{
-		fg_color = vt100_parser->fg_color ;
+		fg_color = vt100_parser->fg_color | (is_bold ? ML_BOLD_COLOR_MASK : 0) ;
 		bg_color = vt100_parser->bg_color ;
 	}
 

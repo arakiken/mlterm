@@ -35,8 +35,8 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 LIBNAME=libkik
 LIBNAME_DEB=libkik_deb
-MAJOR = 15
-MINOR = 2
+MAJOR = 16
+MINOR = 0
 
 SUBDIRS = config util io collection sys i18n
 

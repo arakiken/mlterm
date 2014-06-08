@@ -1189,7 +1189,7 @@ mlclient(
 		
 		x_prepare_for_main_config(conf) ;
 
-		if( ! kik_conf_parse_args( conf , &argc , &argv))
+		if( ! kik_conf_parse_args( conf , &argc , &argv , 1))
 		{
 			kik_conf_delete( conf) ;
 
