@@ -75,23 +75,13 @@ typedef struct
 	struct
 	{
 		/*
-		 * Closest color is searched by 15 bits.
-		 *   R(3)G(3)B(3): segment(9bits)
-		 *   R(2)G(2)B(2): offset(6bits)
+		 * Closest color is searched by 14 bits.
+		 *   R(1)G(1)B(1): segment(3bits)
+		 *   R(3)G(3)B(2): offset(11bits)
 		 */
 
-		/* Closest pixels cached by every segment. */
-		u_int8_t  pixels[512] ;		/* 2^9 */
-		u_int8_t  offsets[512] ;	/* 2^9 */
-
-		/* Closest pixels cached in recent segment. */
-		u_int8_t  seg_pixels[64] ;
-		struct
-		{
-			u_int32_t  flags ;
-			u_int  segment ;
-
-		} seg[2] ;
+		u_int8_t  pixels[2048] ;	/* 2^11 */
+		u_int8_t  segments[2048] ;	/* 2^11 */
 
 	} *  color_cache ;
 

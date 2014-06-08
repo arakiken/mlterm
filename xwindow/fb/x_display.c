@@ -2430,8 +2430,6 @@ x_cmap_get_closest_color(
 {
 	u_int  segment ;
 	u_int  offset ;
-	u_int  offset_arr ;
-	int  arr_idx ;
 	u_int  color ;
 	u_long  min = 0xffffff ;
 	u_long  diff ;
@@ -2442,50 +2440,28 @@ x_cmap_get_closest_color(
 		return  0 ;
 	}
 
-	/* R(3)G(3)B(3) */
-	segment = ((red << 1) & 0x1c0) | ((green >> 2) & 0x38) | ((blue >> 5) & 0x7) ;
-	/* R(2)G(2)B(2) */
-	offset = ((red << 1) & 0x30) | ((green >> 1) & 0xc) | ((blue >> 3) & 0x3) ;
+	/*
+	 * R        G        B
+	 * 11111111 11111111 11111111
+	 * ^        ^        ^
+	 */
+	segment = ((red >> 5) & 0x4) | ((green >> 6) & 0x2) | ((blue >> 7) & 0x1) ;
+	/*
+	 * R        G        B
+	 * 11111111 11111111 11111111
+	 *  ^^^^     ^^^^     ^^^
+	 */
+	offset = ((red << 4) & 0x780) | (green & 0x78) | ((blue >> 4) & 0x7) ;
 
-	if( _display.color_cache->offsets[segment] == (offset|0x80))
+	if( _display.color_cache->segments[offset] == (segment|0x80))
 	{
-		*closest = _display.color_cache->pixels[segment] ;
+		*closest = _display.color_cache->pixels[offset] ;
 	#ifdef  __DEBUG
-		kik_debug_printf( "CACHED PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,
+		kik_debug_printf( "CACHED2 PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,
 			*closest , red , green , blue , segment , offset) ;
 	#endif
 
 		return  1 ;
-	}
-
-	if( offset >= 32)
-	{
-		arr_idx = 1 ;
-		offset_arr = offset - 32 ;
-	}
-	else
-	{
-		arr_idx = 0 ;
-		offset_arr = offset ;
-	}
-
-	if( _display.color_cache->seg[arr_idx].segment == segment)
-	{
-		if( _display.color_cache->seg[arr_idx].flags & (1U << offset_arr))
-		{
-			*closest = _display.color_cache->seg_pixels[offset] ;
-		#ifdef  __DEBUG
-			kik_debug_printf( "CACHED2 PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,
-				*closest , red , green , blue , segment , offset) ;
-		#endif
-
-			return  1 ;
-		}
-	}
-	else
-	{
-		_display.color_cache->seg[arr_idx].segment = segment ;
-		_display.color_cache->seg[arr_idx].flags = 0U ;
 	}
 
 	for( color = 0 ; color < CMAP_SIZE(_display.cmap) ; color++)
@@ -2498,9 +2474,9 @@ x_cmap_get_closest_color(
 	#endif
 
 		/* lazy color-space conversion */
-		diff_r = red - WORD_COLOR_TO_BYTE(_display.cmap->red[color]) ;
-		diff_g = green - WORD_COLOR_TO_BYTE(_display.cmap->green[color]) ;
-		diff_b = blue - WORD_COLOR_TO_BYTE(_display.cmap->blue[color]) ;
+		diff_r = (red - WORD_COLOR_TO_BYTE(_display.cmap->red[color])) / 8 ;
+		diff_g = (green - WORD_COLOR_TO_BYTE(_display.cmap->green[color])) / 8 ;
+		diff_b = (blue - WORD_COLOR_TO_BYTE(_display.cmap->blue[color])) / 8 ;
 		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
 
 		if( diff < min)
@@ -2508,18 +2484,16 @@ x_cmap_get_closest_color(
 			min = diff ;
 			*closest = color ;
 
-			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
-			if( diff < 640)
+			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4)/(8^2) */
+			if( diff < 10)
 			{
 				break ;
 			}
 		}
 	}
 
-	_display.color_cache->seg_pixels[offset] =
-		_display.color_cache->pixels[segment] = *closest ;
-	_display.color_cache->offsets[segment] = (offset|0x80) ;
-	_display.color_cache->seg[arr_idx].flags |= (1U << offset_arr) ;
+	_display.color_cache->pixels[offset] = *closest ;
+	_display.color_cache->segments[offset] = (segment|0x80) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( "NEW PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,

@@ -1,5 +1,7 @@
 2014-06-09  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/x.h, fb/x_display.c: Caching in x_cmap_get_closest_color() is improved.
+
 	* main_loop.c: Starting mlterm with -j option executes mlclient if daemon
 	  process has already started.
 
