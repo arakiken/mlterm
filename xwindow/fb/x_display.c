@@ -2440,7 +2440,7 @@ x_cmap_get_closest_color(
 		return  0 ;
 	}
 
-#if  LARGE_CACHE
+#ifdef  LARGE_CACHE
 	segment = 0 ;
 	/*
 	 * R        G        B
