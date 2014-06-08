@@ -2419,6 +2419,8 @@ x_display_reset_input_method_window(void)
 	}
 }
 
+#define  __DEBUG
+
 /* seek the closest color */
 int
 x_cmap_get_closest_color(
@@ -2440,6 +2442,15 @@ x_cmap_get_closest_color(
 		return  0 ;
 	}
 
+#if  LARGE_CACHE
+	segment = 0 ;
+	/*
+	 * R        G        B
+	 * 11111111 11111111 11111111
+	 * ^^^^^    ^^^^^    ^^^^
+	 */
+	offset = ((red << 6) & 0x3e00) | ((green << 1) & 0x1f0) | ((blue >> 4) & 0xf) ;
+#else
 	/*
 	 * R        G        B
 	 * 11111111 11111111 11111111
@@ -2452,12 +2463,13 @@ x_cmap_get_closest_color(
 	 *  ^^^^     ^^^^     ^^^
 	 */
 	offset = ((red << 4) & 0x780) | (green & 0x78) | ((blue >> 4) & 0x7) ;
+#endif
 
 	if( _display.color_cache->segments[offset] == (segment|0x80))
 	{
 		*closest = _display.color_cache->pixels[offset] ;
 	#ifdef  __DEBUG
-		kik_debug_printf( "CACHED2 PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,
+		kik_debug_printf( "CACHED PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,
 			*closest , red , green , blue , segment , offset) ;
 	#endif
 
