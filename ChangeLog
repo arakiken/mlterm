@@ -1,5 +1,7 @@
 2014-06-09  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: ML_BOLD_COLOR_MASK is not set to ML_{FG|BG}_COLOR.
+
 	* xlib/x_color.c: Fix alloc_closest_xcolor_pseudo().
 
 	* fb/x.h, fb/x_display.c: #ifdef LARGE_CACHE => #ifndef COLOR_CACHE_MINIMUM.

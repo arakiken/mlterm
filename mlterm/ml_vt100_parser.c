@@ -799,11 +799,20 @@ put_char(
 	if( vt100_parser->is_reversed)
 	{
 		fg_color = vt100_parser->bg_color ;
-		bg_color = vt100_parser->fg_color | (is_bold ? ML_BOLD_COLOR_MASK : 0) ;
+		if( ! IS_FG_BG_COLOR( bg_color = vt100_parser->fg_color) &&
+		    is_bold)
+		{
+			bg_color |= ML_BOLD_COLOR_MASK ;
+		}
 	}
 	else
 	{
-		fg_color = vt100_parser->fg_color | (is_bold ? ML_BOLD_COLOR_MASK : 0) ;
+		if( ! IS_FG_BG_COLOR( fg_color = vt100_parser->fg_color) &&
+		    is_bold)
+		{
+			fg_color |= ML_BOLD_COLOR_MASK ;
+		}
+
 		bg_color = vt100_parser->bg_color ;
 	}
 
