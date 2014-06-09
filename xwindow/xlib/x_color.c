@@ -30,9 +30,9 @@ native_color_to_xcolor(
 static int
 alloc_closest_xcolor_pseudo(
 	x_display_t *  disp ,
-	unsigned short  red ,		/* 0 to 0xffff */
-	unsigned short  green ,		/* 0 to 0xffff */
-	unsigned short  blue ,		/* 0 to 0xffff */
+	int  red ,		/* 0 to 0xffff */
+	int  green ,		/* 0 to 0xffff */
+	int  blue ,		/* 0 to 0xffff */
 	x_color_t *  ret_xcolor
 	)
 {
@@ -40,9 +40,9 @@ alloc_closest_xcolor_pseudo(
 	XColor  closest_color ;
 
 	int  closest_index = -1 ;
-	unsigned long  min_diff = 0xffffffff ;
-	unsigned long  diff ;
-	unsigned long  diff_r = 0 , diff_g = 0 , diff_b = 0 ;
+	u_long  min_diff = 0xffffffff ;
+	u_long  diff ;
+	int  diff_r , diff_g , diff_b ;
 	int  ncells = disp->visual->map_entries ;
 	int  i ;
 
@@ -68,19 +68,28 @@ alloc_closest_xcolor_pseudo(
 	}
 	XQueryColors( disp->display , disp->colormap , all_colors, ncells) ;
 
+	red >>= 8 ;
+	green >>= 8 ;
+	blue >>= 8 ;
+
 	/* find the closest color */
 	for( i = 0 ; i < ncells ; i ++)
 	{
-		diff_r = (red - all_colors[i].red) >> 8 ;
-		diff_g = (green - all_colors[i].green) >> 8 ;
-		diff_b = (blue - all_colors[i].blue) >> 8 ;
+		diff_r = red - (all_colors[i].red >> 8) ;
+		diff_g = green - (all_colors[i].green >> 8) ;
+		diff_b = blue - (all_colors[i].blue >> 8) ;
+		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
 
-		diff = diff_r * diff_r + diff_g * diff_g + diff_b * diff_b ;
-
-		if ( diff < min_diff) /* closest ? */
+		if ( diff < min_diff)
 		{
 			min_diff = diff ;
 			closest_index = i ;
+
+			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
+			if( diff < 640)
+			{
+				break ;
+			}
 		}
 	}
 
@@ -189,7 +198,8 @@ x_load_rgb_xcolor(
 		if( ! XAllocColor( disp->display , disp->colormap , &ncolor))
 		{
 			/* try to find closest color */
-			return  alloc_closest_xcolor_pseudo( disp , red , green , blue , xcolor) ;
+			return  alloc_closest_xcolor_pseudo( disp ,
+					ncolor.red , ncolor.green , ncolor.blue , xcolor) ;
 		}
 
 		native_color_to_xcolor( xcolor , &ncolor) ;

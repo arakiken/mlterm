@@ -3,7 +3,11 @@ ver 3.3.7
 * Improve the performance of processing images on 8 or less bpp framebuffer.
 * Support SGR 9, 21 and 29.
 * Support DECFRA.
-* Starting mlterm with -j option executes mlclient if daemon process has already started.
+* Starting mlterm with -j option executes mlclient if daemon process has already
+  started.
+* Change the maximum number of "U+XXXX-XXXX" definitions from 7 to 511.
+* Add "unlimted" to "Backlog size" entry and add "UNICODE (ARABIC)" to
+  "Font name" entry in mlconfig.
 * Bug fixes:
   Fix the failure of saving font configurations from mlconfig.
 

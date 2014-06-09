@@ -74,9 +74,9 @@ typedef struct
 
 	struct
 	{
-	#ifdef  LARGE_CACHE
+	#ifndef  COLOR_CACHE_MINIMUM
 		u_int8_t  pixels[16384] ;	/* 2^14 */
-		u_int8_t  segments[16384] ;	/* 2^14 */
+		u_int32_t  flags[512] ;		/* 2^14/8/4 */
 	#else
 		/*
 		 * Closest color is searched by 14 bits.

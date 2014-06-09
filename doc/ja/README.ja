@@ -705,6 +705,8 @@ comment $Id$
         一方、genuine の場合、最後の端末ウィンドウが閉じられた後も、また、X
         が終了したのちも、daemon process として動作しつづけることが可能です。
 
+        なお、既にdaemon processが起動していた場合は、mlclientが実行されます。
+
       o use_extended_scroll_shortcut (true/*false*)
         スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット以
         外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショートカ

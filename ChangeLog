@@ -1,5 +1,13 @@
 2014-06-09  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/x_color.c: Fix alloc_closest_xcolor_pseudo().
+
+	* fb/x.h, fb/x_display.c: #ifdef LARGE_CACHE => #ifndef COLOR_CACHE_MINIMUM.
+
+	* README.ja, man/mlterm.1: Updated.
+
+2014-06-09  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/x.h, fb/x_display.c: LARGE_CACHE is added. (disabled by default.)
 
 2014-06-09  Araki Ken  <arakiken@users.sf.net>

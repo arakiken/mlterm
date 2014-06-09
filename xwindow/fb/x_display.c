@@ -2440,7 +2440,7 @@ x_cmap_get_closest_color(
 		return  0 ;
 	}
 
-#ifdef  LARGE_CACHE
+#ifndef  COLOR_CACHE_MINIMUM
 	segment = 0 ;
 	/*
 	 * R        G        B
@@ -2448,6 +2448,8 @@ x_cmap_get_closest_color(
 	 * ^^^^^    ^^^^^    ^^^^
 	 */
 	offset = ((red << 6) & 0x3e00) | ((green << 1) & 0x1f0) | ((blue >> 4) & 0xf) ;
+
+	if( _display.color_cache->flags[offset / 32] & (1 << (offset & 31)))
 #else
 	/*
 	 * R        G        B
@@ -2461,9 +2463,9 @@ x_cmap_get_closest_color(
 	 *  ^^^^     ^^^^     ^^^
 	 */
 	offset = ((red << 4) & 0x780) | (green & 0x78) | ((blue >> 4) & 0x7) ;
-#endif
 
 	if( _display.color_cache->segments[offset] == (segment|0x80))
+#endif
 	{
 		*closest = _display.color_cache->pixels[offset] ;
 	#ifdef  __DEBUG
@@ -2484,9 +2486,9 @@ x_cmap_get_closest_color(
 	#endif
 
 		/* lazy color-space conversion */
-		diff_r = (red - WORD_COLOR_TO_BYTE(_display.cmap->red[color])) / 8 ;
-		diff_g = (green - WORD_COLOR_TO_BYTE(_display.cmap->green[color])) / 8 ;
-		diff_b = (blue - WORD_COLOR_TO_BYTE(_display.cmap->blue[color])) / 8 ;
+		diff_r = red - WORD_COLOR_TO_BYTE(_display.cmap->red[color]) ;
+		diff_g = green - WORD_COLOR_TO_BYTE(_display.cmap->green[color]) ;
+		diff_b = blue - WORD_COLOR_TO_BYTE(_display.cmap->blue[color]) ;
 		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
 
 		if( diff < min)
@@ -2494,16 +2496,20 @@ x_cmap_get_closest_color(
 			min = diff ;
 			*closest = color ;
 
-			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4)/(8^2) */
-			if( diff < 10)
+			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
+			if( diff < 640)
 			{
 				break ;
 			}
 		}
 	}
 
-	_display.color_cache->pixels[offset] = *closest ;
+#ifndef  COLOR_CACHE_MINIMUM
+	_display.color_cache->flags[offset / 32] |= (1 << (offset & 31)) ;
+#else
 	_display.color_cache->segments[offset] = (segment|0x80) ;
+#endif
+	_display.color_cache->pixels[offset] = *closest ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( "NEW PIXEL %x <= r%x g%x b%x segment %x offset %x\n" ,
