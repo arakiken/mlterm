@@ -9,7 +9,7 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
-#define  IS_UNDERLINED(attr)  (((attr) >> 21) & 0x3)
+#define  UNDERLINE_STYLE(attr)  (((attr) >> 21) & 0x3)
 
 #define  IS_ZEROWIDTH(attr)  ((attr) & (0x1 << 20))
 
@@ -43,8 +43,8 @@
 #define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffe)
 #define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
-#define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,is_unicode_area_cs,is_underlined,is_crossed_out,is_comb) \
-	( ((is_underlined) << 21) | ((is_zerowidth) << 20) | ((is_unicode_area_cs) << 17) | \
+#define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,is_unicode_area_cs,underline_style,is_crossed_out,is_comb) \
+	( ((underline_style) << 21) | ((is_zerowidth) << 20) | ((is_unicode_area_cs) << 17) | \
 	  ((is_italic) << 16) | ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
 	  ( 0x0 << 4) |  ((is_crossed_out) << 3) | ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
 
@@ -179,7 +179,7 @@ ml_char_set(
 	ml_color_t  bg_color ,
 	int  is_bold ,
 	int  is_italic ,
-	int  is_underlined ,
+	int  underline_style ,
 	int  is_crossed_out
 	)
 {
@@ -235,7 +235,7 @@ ml_char_set(
 	}
 
 	ch->u.ch.attr = COMPOUND_ATTR(cs,is_zerowidth,is_fullwidth!=0,is_bold!=0,
-				is_italic!=0,idx>0,is_underlined,is_crossed_out!=0,is_comb!=0) ;
+				is_italic!=0,idx>0,underline_style,is_crossed_out!=0,is_comb!=0) ;
 	ch->u.ch.fg_color = fg_color ;
 	ch->u.ch.bg_color = bg_color ;
 
@@ -253,7 +253,7 @@ ml_char_combine(
 	ml_color_t  bg_color ,
 	int  is_bold ,
 	int  is_italic ,
-	int  is_underlined ,
+	int  underline_style ,
 	int  is_crossed_out
 	)
 {
@@ -307,7 +307,7 @@ ml_char_combine(
 
 		ml_char_init( multi_ch + 1) ;
 		if( ml_char_set( multi_ch + 1 , code , cs , is_fullwidth , is_comb ,
-			fg_color , bg_color , is_bold , is_italic , is_underlined ,
+			fg_color , bg_color , is_bold , is_italic , underline_style ,
 			is_crossed_out) == 0)
 		{
 			return  0 ;
@@ -356,7 +356,7 @@ ml_char_combine(
 		SET_COMB_TRAILING( multi_ch[comb_size].u.ch.attr) ;
 		ml_char_init( multi_ch + comb_size + 1) ;
 		if( ml_char_set( multi_ch + comb_size + 1 , code , cs , is_fullwidth ,
-			is_comb , fg_color , bg_color , is_bold , is_italic , is_underlined ,
+			is_comb , fg_color , bg_color , is_bold , is_italic , underline_style ,
 			is_crossed_out) == 0)
 		{
 			return  0 ;
@@ -379,7 +379,7 @@ ml_char_combine_simple(
 			IS_FULLWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
 			comb->u.ch.fg_color , comb->u.ch.bg_color ,
 			IS_BOLD(comb->u.ch.attr) , IS_ITALIC(comb->u.ch.attr) ,
-			IS_UNDERLINED(comb->u.ch.attr) , IS_CROSSED_OUT(comb->u.ch.attr)) ;
+			UNDERLINE_STYLE(comb->u.ch.attr) , IS_CROSSED_OUT(comb->u.ch.attr)) ;
 }
 
 ml_char_t *
@@ -706,17 +706,17 @@ ml_char_set_bg_color(
 }
 
 int
-ml_char_is_underlined(
+ml_char_underline_style(
 	ml_char_t *  ch
 	)
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  IS_UNDERLINED(ch->u.ch.attr) ;
+		return  UNDERLINE_STYLE(ch->u.ch.attr) ;
 	}
 	else
 	{
-		return  ml_char_is_underlined( ch->u.multi_ch) ;
+		return  ml_char_underline_style( ch->u.multi_ch) ;
 	}
 }
 

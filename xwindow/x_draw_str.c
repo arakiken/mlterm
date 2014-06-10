@@ -26,7 +26,7 @@ adjust_bd_ul_color(
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
 	int  is_bold ,
-	int  is_underlined
+	int  underline_style
 	)
 {
 	if( is_bold)
@@ -39,7 +39,7 @@ adjust_bd_ul_color(
 		}
 	}
 
-	if( is_underlined)
+	if( underline_style)
 	{
 		if( ( fg_color == ML_FG_COLOR || bg_color == ML_FG_COLOR) &&
 		    x_color_manager_adjust_ul_color( color_man))
@@ -550,7 +550,7 @@ fc_draw_str(
 	ml_font_t  font ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
-	int  is_underlined ;
+	int  underline_style ;
 	int  is_crossed_out ;
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
@@ -565,7 +565,7 @@ fc_draw_str(
 	ml_font_t  next_font ;
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
-	int  next_is_underlined ;
+	int  next_underline_style ;
 	int  next_is_crossed_out ;
 	ml_char_t *  next_comb_chars ;
 	u_int  next_comb_size ;
@@ -627,7 +627,7 @@ fc_draw_str(
 	fg_color = ml_char_fg_color( &chars[count]) ;
 	bg_color = ml_char_bg_color( &chars[count]) ;
 
-	is_underlined = ml_char_is_underlined( &chars[count]) ;
+	underline_style = ml_char_underline_style( &chars[count]) ;
 	is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 
 	if( ! ( str8 = str32 = pic_glyphs = drcs_glyphs =
@@ -695,7 +695,7 @@ fc_draw_str(
 			ch_cs = FONT_CS(next_font) ;
 			next_fg_color = ml_char_fg_color( &chars[count]) ;
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
-			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
+			next_underline_style = ml_char_underline_style( &chars[count]) ;
 			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 			next_ch_width = x_calculate_char_width( next_xfont ,
 						ch_code , ch_cs , &next_draw_alone) ;
@@ -726,14 +726,14 @@ fc_draw_str(
 			else if( next_xfont != xfont
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
-				|| next_is_underlined != is_underlined
+				|| next_underline_style != underline_style
 				|| next_is_crossed_out != is_crossed_out
 				/*
 				 * Eevn if both is_underline and next_is_underline are 1
 				 * underline is drawn one by one in vertical mode.
 				 * (is_crossed_out is the same.)
 				 */
-				|| ((is_underlined || is_crossed_out) && xfont->is_vertical)
+				|| ((underline_style || is_crossed_out) && xfont->is_vertical)
 				|| state != next_state
 				|| draw_alone
 				|| next_draw_alone
@@ -773,7 +773,7 @@ fc_draw_str(
 		#endif
 
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
-							font & FONT_BOLD , is_underlined) ;
+							font & FONT_BOLD , underline_style) ;
 			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
 			bg_xcolor = x_get_xcolor( color_man , bg_color) ;
 
@@ -840,10 +840,10 @@ fc_draw_str(
 					, y + ascent) ;
 			}
 
-			if( ! hide_underline && color_adjusted != 2 && is_underlined)
+			if( ! hide_underline && color_adjusted != 2 && underline_style)
 			{
 				draw_line( window , fg_xcolor , xfont->is_vertical ,
-					is_underlined == 2 ? 1 : 0 ,
+					underline_style == UNDERLINE_DOUBLE ? 1 : 0 ,
 					x , y , current_width - x , height , ascent ,
 					top_margin) ;
 			}
@@ -879,7 +879,7 @@ fc_draw_str(
 			break ;
 		}
 
-		is_underlined = next_is_underlined ;
+		underline_style = next_underline_style ;
 		is_crossed_out = next_is_crossed_out ;
 		xfont = next_xfont ;
 		font = next_font ;
@@ -1015,7 +1015,7 @@ xcore_draw_str(
 	ml_font_t  font ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
-	int  is_underlined ;
+	int  underline_style ;
 	int  is_crossed_out ;
 	int  draw_alone ;
 	u_int32_t  pic_glyph ;
@@ -1031,7 +1031,7 @@ xcore_draw_str(
 	ml_font_t  next_font ;
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
-	int  next_is_underlined ;
+	int  next_underline_style ;
 	int  next_is_crossed_out ;
 	int  next_draw_alone ;
 #ifdef  PERF_DEBUG
@@ -1087,7 +1087,7 @@ xcore_draw_str(
 
 	fg_color = ml_char_fg_color( &chars[count]) ;
 	bg_color = ml_char_bg_color( &chars[count]) ;
-	is_underlined = ml_char_is_underlined( &chars[count]) ;
+	underline_style = ml_char_underline_style( &chars[count]) ;
 	is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 
 	if( ! ( str2b = str = pic_glyphs = drcs_glyphs =
@@ -1154,7 +1154,7 @@ xcore_draw_str(
 			ch_cs = FONT_CS(next_font) ;
 			next_fg_color = ml_char_fg_color( &chars[count]) ;
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
-			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
+			next_underline_style = ml_char_underline_style( &chars[count]) ;
 			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
 			next_ch_width = x_calculate_char_width( next_xfont ,
 						ch_code , ch_cs , &next_draw_alone) ;
@@ -1184,14 +1184,14 @@ xcore_draw_str(
 			else if( next_xfont != xfont
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
-				|| next_is_underlined != is_underlined
+				|| next_underline_style != underline_style
 				|| next_is_crossed_out != is_crossed_out
 				/*
 				 * Eevn if both is_underline and next_is_underline are 1,
 				 * underline is drawn one by one in vertical mode.
 				 * (is_crossed_out is the same.)
 				 */
-				|| ((is_underlined || is_crossed_out) && xfont->is_vertical)
+				|| ((underline_style || is_crossed_out) && xfont->is_vertical)
 				|| next_state != state
 				|| draw_alone
 				|| next_draw_alone
@@ -1231,7 +1231,7 @@ xcore_draw_str(
 		#endif
 
 			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
-							font & FONT_BOLD , is_underlined) ;
+							font & FONT_BOLD , underline_style) ;
 
 			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
 
@@ -1335,10 +1335,10 @@ xcore_draw_str(
 					, y + ascent) ;
 			}
 
-			if( ! hide_underline && color_adjusted != 2 && is_underlined)
+			if( ! hide_underline && color_adjusted != 2 && underline_style)
 			{
 				draw_line( window , fg_xcolor , xfont->is_vertical ,
-					is_underlined == 2 ? 1 : 0 ,
+					underline_style == UNDERLINE_DOUBLE ? 1 : 0 ,
 					x , y , current_width - x , height , ascent ,
 					top_margin) ;
 			}
@@ -1378,7 +1378,7 @@ xcore_draw_str(
 		font = next_font ;
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
-		is_underlined = next_is_underlined ;
+		underline_style = next_underline_style ;
 		is_crossed_out = next_is_crossed_out ;
 		state = next_state ;
 		draw_alone = next_draw_alone ;

@@ -1,3 +1,8 @@
+2014-06-10  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm/ml_char.[ch], mlterm/ml_vt100_parser.[ch], xwindow/x_draw_str.c:
+	  is_underlined => underline_style
+
 2014-06-09  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: ML_BOLD_COLOR_MASK is not set to ML_{FG|BG}_COLOR.

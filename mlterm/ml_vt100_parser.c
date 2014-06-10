@@ -827,7 +827,7 @@ put_char(
 			if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 				ch , cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , is_bold ,
-				vt100_parser->is_italic , vt100_parser->is_underlined ,
+				vt100_parser->is_italic , vt100_parser->underline_style ,
 				vt100_parser->is_crossed_out))
 			{
 				return ;
@@ -839,7 +839,7 @@ put_char(
 				&vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ,
 				ch , cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , is_bold ,
-				vt100_parser->is_italic , vt100_parser->is_underlined ,
+				vt100_parser->is_italic , vt100_parser->underline_style ,
 				vt100_parser->is_crossed_out))
 			{
 				return ;
@@ -854,7 +854,7 @@ put_char(
 	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch ,
 		cs , is_fullwidth , is_comb ,
 		fg_color , bg_color , is_bold ,
-		vt100_parser->is_italic , vt100_parser->is_underlined ,
+		vt100_parser->is_italic , vt100_parser->underline_style ,
 		vt100_parser->is_crossed_out) ;
 
 	if( ! vt100_parser->screen->use_dynamic_comb && cs == ISO10646_UCS4_1)
@@ -900,7 +900,7 @@ put_char(
 				if( ml_char_combine( prev ,
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
-					vt100_parser->is_italic , vt100_parser->is_underlined ,
+					vt100_parser->is_italic , vt100_parser->underline_style ,
 					vt100_parser->is_crossed_out))
 				{
 					vt100_parser->w_buf.filled_len -- ;
@@ -915,7 +915,7 @@ put_char(
 				if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
-					vt100_parser->is_italic , vt100_parser->is_underlined ,
+					vt100_parser->is_italic , vt100_parser->underline_style ,
 					vt100_parser->is_crossed_out))
 				{
 					vt100_parser->w_buf.filled_len -- ;
@@ -980,7 +980,7 @@ save_cursor(
 	dest->bg_color = vt100_parser->bg_color ;
 	dest->is_bold  = vt100_parser->is_bold ;
 	dest->is_italic = vt100_parser->is_italic ;
-	dest->is_underlined = vt100_parser->is_underlined ;
+	dest->underline_style = vt100_parser->underline_style ;
 	dest->is_reversed = vt100_parser->is_reversed ;
 	dest->is_crossed_out = vt100_parser->is_crossed_out ;
 	dest->cs = vt100_parser->cs ;
@@ -1006,7 +1006,7 @@ restore_cursor(
 		ml_screen_set_bce_bg_color( vt100_parser->screen , src->bg_color) ;
 		vt100_parser->is_bold = src->is_bold ;
 		vt100_parser->is_italic = src->is_italic ;
-		vt100_parser->is_underlined = src->is_underlined ;
+		vt100_parser->underline_style = src->underline_style ;
 		vt100_parser->is_reversed = src->is_reversed ;
 		vt100_parser->is_crossed_out = src->is_crossed_out ;
 		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
@@ -2115,7 +2115,7 @@ change_char_attr(
 		bg_color = ML_BG_COLOR ;
 		vt100_parser->is_bold = 0 ;
 		vt100_parser->is_italic = 0 ;
-		vt100_parser->is_underlined = 0 ;
+		vt100_parser->underline_style = 0 ;
 		vt100_parser->is_reversed = 0 ;
 		vt100_parser->is_crossed_out = 0 ;
 	}
@@ -2137,7 +2137,7 @@ change_char_attr(
 	else if( flag == 4)
 	{
 		/* Underscore */
-		vt100_parser->is_underlined = 1 ;
+		vt100_parser->underline_style = UNDERLINE_NORMAL ;
 	}
 #if  0
 	else if( flag == 5)
@@ -2163,7 +2163,7 @@ change_char_attr(
 	else if( flag == 21)
 	{
 		/* Double underscore */
-		vt100_parser->is_underlined = 2 ;
+		vt100_parser->underline_style = UNDERLINE_DOUBLE ;
 	}
 	else if( flag == 22)
 	{
@@ -2178,7 +2178,7 @@ change_char_attr(
 	else if( flag == 24)
 	{
 		/* Underline */
-		vt100_parser->is_underlined = 0 ;
+		vt100_parser->underline_style = 0 ;
 	}
 #if  0
 	else if( flag == 25)
@@ -5785,7 +5785,7 @@ ml_vt100_parser_preedit(
 	size_t  len
 	)
 {
-	if( ! vt100_parser->is_underlined)
+	if( ! vt100_parser->underline_style)
 	{
 		char *  new_buf ;
 		size_t  new_len ;
@@ -5826,7 +5826,7 @@ ml_vt100_parser_local_echo(
 
 	ml_parse_vt100_sequence( vt100_parser) ;
 
-	if( ! vt100_parser->is_underlined)
+	if( ! vt100_parser->underline_style)
 	{
 		char *  new_buf ;
 		size_t  new_len ;
