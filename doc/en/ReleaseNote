@@ -2,7 +2,7 @@ ver 3.3.7
 * Enable image processing on background terminals.
 * Improve the performance of processing images on 8 or less bpp framebuffer.
 * Support SGR 9, 21 and 29.
-* Support DECFRA.
+* Support DECFRA, SL, SR.
 * Starting mlterm with -j option executes mlclient if daemon process has already
   started.
 * Change the maximum number of "U+XXXX-XXXX" definitions from 7 to 511.

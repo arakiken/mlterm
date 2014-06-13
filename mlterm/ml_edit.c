@@ -1404,6 +1404,48 @@ ml_edit_set_scroll_region(
 }
 
 int
+ml_edit_scroll_leftward(
+	ml_edit_t *  edit ,
+	u_int  size
+	)
+{
+	int  orig_mode ;
+
+	orig_mode = edit->is_relative_origin ;
+	edit->is_relative_origin = 1 ;	/* Compatible with RLogin */
+
+	ml_edit_copy_area( edit , size , 0 ,
+		ml_edit_get_cols( edit) - size , ml_edit_get_rows( edit) , 0 , 0) ;
+	ml_edit_erase_area( edit , ml_edit_get_cols( edit) - size , 0 ,
+		size , ml_edit_get_rows( edit)) ;
+
+	edit->is_relative_origin = orig_mode ;
+
+	return  1 ;
+}
+
+int
+ml_edit_scroll_rightward(
+	ml_edit_t *  edit ,
+	u_int  size
+	)
+{
+	int  orig_mode ;
+
+	orig_mode = edit->is_relative_origin ;
+	edit->is_relative_origin = 1 ;	/* Compatible with RLogin */
+
+	ml_edit_copy_area( edit , 0 , 0 ,
+		ml_edit_get_cols( edit) - size , ml_edit_get_rows( edit) , size , 0) ;
+	ml_edit_erase_area( edit , 0 , 0 ,
+		size , ml_edit_get_rows( edit)) ;
+
+	edit->is_relative_origin = orig_mode ;
+
+	return  1 ;
+}
+
+int
 ml_edit_scroll_upward(
 	ml_edit_t *  edit ,
 	u_int  size

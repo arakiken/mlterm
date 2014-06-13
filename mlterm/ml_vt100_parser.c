@@ -3840,6 +3840,8 @@ parse_vt100_escape_sequence(
 			{
 				if( *str_p == 'q')
 				{
+					/* CSI SP q */
+
 					if( ps[0] < 2)
 					{
 						config_protocol_set_simple( vt100_parser ,
@@ -3850,6 +3852,16 @@ parse_vt100_escape_sequence(
 						config_protocol_set_simple( vt100_parser ,
 							"blink_cursor" , "false") ;
 					}
+				}
+				else if( *str_p == '@')
+				{
+					/* CSI SP @ (SL) */
+					ml_screen_scroll_leftward( vt100_parser->screen , ps[0]) ;
+				}
+				else if( *str_p == 'A')
+				{
+					/* CSI SP A (SR) */
+					ml_screen_scroll_rightward( vt100_parser->screen , ps[0]) ;
 				}
 				else
 				{

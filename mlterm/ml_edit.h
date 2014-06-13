@@ -94,6 +94,10 @@ int  ml_edit_scroll_upward( ml_edit_t *  edit , u_int  size) ;
 
 int  ml_edit_scroll_downward( ml_edit_t *  edit , u_int  size) ;
 
+int  ml_edit_scroll_leftward( ml_edit_t *  edit , u_int  size) ;
+
+int  ml_edit_scroll_rightward( ml_edit_t *  edit , u_int  size) ;
+
 int  ml_edit_set_use_margin( ml_edit_t *  edit , int  use) ;
 
 int  ml_edit_set_margin( ml_edit_t *  edit , int  beg , int  end) ;

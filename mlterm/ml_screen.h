@@ -273,6 +273,10 @@ int  ml_screen_delete_lines( ml_screen_t *  screen , u_int  size) ;
 
 #define  ml_screen_scroll_downward( screen , size)  ml_edit_scroll_downward( (screen)->edit , size)
 
+#define  ml_screen_scroll_leftward( screen , size)  ml_edit_scroll_leftward( (screen)->edit , size)
+
+#define  ml_screen_scroll_rightward( screen , size)  ml_edit_scroll_rightward( (screen)->edit , size)
+
 int  ml_screen_go_forward( ml_screen_t *  screen , u_int  size) ;
 
 int  ml_screen_go_back( ml_screen_t *  screen , u_int  size) ;

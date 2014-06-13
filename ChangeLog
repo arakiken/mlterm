@@ -1,6 +1,12 @@
+2014-06-13  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.[ch], ml_screen.h, ml_vt100_parser.c:
+	  ml_{edit|screen}_scroll_{left|right}ward() are added and used to process
+	  SL and SR.
+
 2014-06-10  Araki Ken  <arakiken@users.sf.net>
 
-	* mlterm/ml_char.[ch], mlterm/ml_vt100_parser.[ch], xwindow/x_draw_str.c:
+	* ml_char.[ch], ml_vt100_parser.[ch], x_draw_str.c:
 	  is_underlined => underline_style
 
 2014-06-09  Araki Ken  <arakiken@users.sf.net>
