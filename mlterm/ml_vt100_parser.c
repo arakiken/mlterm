@@ -95,6 +95,14 @@
 #endif
 
 
+typedef struct area
+{
+	u_int32_t  min ;
+	u_int32_t  max ;
+
+} area_t ;
+
+
 /* --- static variables --- */
 
 static int  use_alt_buffer = 1 ;
@@ -139,13 +147,11 @@ static struct
 	{ 0x25c6 , '`' } ,
 } ;
 
-struct
-{
-	u_int32_t  min ;
-	u_int32_t  max ;
+static area_t *  unicode_noconv_areas ;
+static u_int  num_of_unicode_noconv_areas ;
 
-} *  unicode_noconv_areas ;
-u_int  num_of_unicode_noconv_areas ;
+static area_t *  full_width_areas ;
+static u_int  num_of_full_width_areas ;
 
 static struct
 {
@@ -244,6 +250,88 @@ convert_decsp_to_ucs(
 	return  0 ;
 }
 
+static area_t *
+set_area_to_table(
+	area_t *  area_table ,
+	u_int *  num ,
+	char *  areas
+	)
+{
+	char *  area ;
+
+	if( areas == NULL || *areas == '\0')
+	{
+		free( area_table) ;
+		area_table = NULL ;
+
+		return  NULL ;
+	}
+	else
+	{
+		void *  p ;
+
+		if( ! ( p = realloc( area_table ,
+				sizeof(*area_table) *
+				(kik_count_char_in_str( areas , ',') + 2))))
+		{
+			return  area_table ;
+		}
+
+		area_table = p ;
+	}
+
+	*num = 0 ;
+
+	while( ( area = kik_str_sep( &areas , ",")))
+	{
+		u_int  min ;
+		u_int  max ;
+
+		if( sscanf( area , "U+%x-%x" , &min , &max) == 2)
+		{
+			u_int  count ;
+
+			for( count = 0 ; count < *num ; count++)
+			{
+				if( area_table[count].min <= min &&
+				    area_table[count].max >= max)
+				{
+					break ;
+				}
+
+				if( min <= area_table[count].min &&
+				    max >= area_table[count].max)
+				{
+					area_table[count].min = min ;
+					area_table[count].max = max ;
+
+					break ;
+				}
+			}
+
+			if( count == *num)
+			{
+				area_table[*num].min = min ;
+				area_table[(*num)++].max = max ;
+			}
+		}
+	}
+
+#ifdef  __DEBUG
+	{
+		u_int  count ;
+
+		for( count = 0 ; count < *num ; count++)
+		{
+			kik_debug_printf( "AREA %d-%d\n" ,
+				area_table[count].min , area_table[count].max) ;
+		}
+	}
+#endif
+
+	return  area_table ;
+}
+
 static inline int
 is_noconv_unicode(
 	u_char *  ch
@@ -277,6 +365,37 @@ is_noconv_unicode(
 	}
 
 	return  0 ;
+}
+
+static inline mkf_property_t
+modify_ucs_property(
+	u_int32_t  code ,
+	mkf_property_t  prop
+	)
+{
+	if( full_width_areas && ! (prop & MKF_FULLWIDTH))
+	{
+		u_int  count ;
+
+		for( count = 0 ; count < num_of_full_width_areas ; count++)
+		{
+			if( full_width_areas[count].min <= code &&
+			    code <= full_width_areas[count].max)
+			{
+				return  (prop & ~MKF_AWIDTH) | MKF_FULLWIDTH ;
+			}
+		}
+	}
+
+	return  prop ;
+}
+
+static inline mkf_property_t
+get_ucs_property(
+	u_int32_t  code
+	)
+{
+	return  modify_ucs_property( code , mkf_get_ucs_property( code)) ;
 }
 
 static void
@@ -1847,6 +1966,10 @@ config_protocol_set(
 				else if( strcmp( key , "unicode_noconv_areas") == 0)
 				{
 					ml_set_unicode_noconv_areas( val) ;
+				}
+				else if( strcmp( key , "full_width_areas") == 0)
+				{
+					ml_set_full_width_areas( val) ;
 				}
 				else if( HAS_CONFIG_LISTENER(vt100_parser,set))
 				{
@@ -5495,72 +5618,22 @@ ml_set_use_ansi_colors(
 	use_ansi_colors = use ;
 }
 
-int
+void
 ml_set_unicode_noconv_areas(
 	char *  areas
 	)
 {
-	char *  area ;
+	unicode_noconv_areas = set_area_to_table( unicode_noconv_areas ,
+					&num_of_unicode_noconv_areas , areas) ;
+}
 
-	if( areas == NULL || *areas == '\0')
-	{
-		free( unicode_noconv_areas) ;
-		unicode_noconv_areas = NULL ;
-		num_of_unicode_noconv_areas = 0 ;
-
-		return  1 ;
-	}
-	else
-	{
-		void *  p ;
-
-		if( ! ( p = realloc(  unicode_noconv_areas ,
-				sizeof(*unicode_noconv_areas) *
-				(kik_count_char_in_str( areas , ',') + 1))))
-		{
-			return  0 ;
-		}
-
-		unicode_noconv_areas = p ;
-		num_of_unicode_noconv_areas = 0 ;
-	}
-
-	while( ( area = kik_str_sep( &areas , ",")))
-	{
-		u_int  min ;
-		u_int  max ;
-
-		if( sscanf( area , "U+%x-%x" , &min , &max) == 2)
-		{
-			u_int  count ;
-
-			for( count = 0 ; count < num_of_unicode_noconv_areas ; count++)
-			{
-				if( unicode_noconv_areas[count].min <= min &&
-				    unicode_noconv_areas[count].max >= max)
-				{
-					break ;
-				}
-
-				if( min <= unicode_noconv_areas[count].min &&
-				    max >= unicode_noconv_areas[count].max)
-				{
-					unicode_noconv_areas[count].min = min ;
-					unicode_noconv_areas[count].max = max ;
-
-					break ;
-				}
-			}
-
-			if( count == num_of_unicode_noconv_areas)
-			{
-				unicode_noconv_areas[num_of_unicode_noconv_areas].min = min ;
-				unicode_noconv_areas[num_of_unicode_noconv_areas++].max = max ;
-			}
-		}
-	}
-
-	return  1 ;
+void
+ml_set_full_width_areas(
+	char *  areas
+	)
+{
+	full_width_areas = set_area_to_table( full_width_areas ,
+					&num_of_full_width_areas , areas) ;
 }
 
 ml_vt100_parser_t *
@@ -6087,9 +6160,11 @@ ml_convert_to_internal_ch(
 		else
 		{
 			mkf_char_t  non_ucs ;
-		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 			u_int32_t  code ;
-		#endif
+
+			ch.property = modify_ucs_property(
+					(code = mkf_char_to_int( &ch)) ,
+					ch.property) ;
 
 			if( unicode_policy & NOT_USE_UNICODE_FONT)
 			{
@@ -6114,7 +6189,7 @@ ml_convert_to_internal_ch(
 			}
 
 		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-			if( 0x900 <= ( code = mkf_char_to_int( &ch)) && code <= 0xd7f)
+			if( 0x900 <= code && code <= 0xd7f)
 			{
 				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
 				{
@@ -6229,7 +6304,7 @@ ml_convert_to_internal_ch(
 					ch = ucs ;
 				}
 
-				ch.property = mkf_get_ucs_property( mkf_char_to_int(&ucs)) ;
+				ch.property = get_ucs_property( mkf_char_to_int(&ucs)) ;
 			}
 		}
 		else if( IS_FULLWIDTH_CS( ch.cs))
@@ -6301,7 +6376,7 @@ ml_convert_to_internal_ch(
 					mkf_int_to_bytes( ch.ch , 4 , ucs) ;
 					ch.size = 4 ;
 					ch.cs = ISO10646_UCS4_1 ;
-					ch.property = mkf_get_ucs_property( ucs) ;
+					ch.property = get_ucs_property( ucs) ;
 				}
 			}
 		}

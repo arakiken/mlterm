@@ -274,6 +274,8 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "locale" , 0 , "locale" , "set locale.") ;
 	kik_conf_add_opt( conf , '\0' , "ucsnoconv" , 0 , "unicode_noconv_areas" ,
 		"use unicode fonts partially regardless of -n option.") ;
+	kik_conf_add_opt( conf , '\0' , "fullwidth" , 0 , "full_width_areas" ,
+		"force full width regardless of EastAsianWidth.txt") ;
 	kik_conf_add_opt( conf , '\0' , "ade" , 0 , "auto_detect_encodings" ,
 		"encodings detected automatically.") ;
 	kik_conf_add_opt( conf , '\0' , "auto" , 1 , "use_auto_detect" ,
@@ -757,6 +759,11 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "unicode_noconv_areas")))
 	{
 		ml_set_unicode_noconv_areas( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "full_width_areas")))
+	{
+		ml_set_full_width_areas( value) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))
