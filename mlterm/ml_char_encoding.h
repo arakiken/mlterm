@@ -135,5 +135,7 @@ size_t  ml_char_encoding_convert( u_char *  dst , size_t  dst_len ,
 size_t  ml_char_encoding_convert_with_parser( u_char *  dst , size_t  dst_len ,
 		ml_char_encoding_t  dst_encoding , mkf_parser_t *  parser) ;
 
+int  ml_parse_unicode_area( const char *  str , u_int *  min , u_int *  max) ;
+
 
 #endif

@@ -1,3 +1,9 @@
+2014-06-16  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_config.c, ml_vt100_parser.c: ml_parse_unicode_area() is used.
+
+	* ml_char_encoding.[ch]: ml_parse_unicode_area() is added.
+
 2014-06-15  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.ja, man/mlterm.1, doc/en/PROTOCOL: Updated.

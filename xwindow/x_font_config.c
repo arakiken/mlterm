@@ -5,6 +5,7 @@
 #include  "x_font_config.h"
 
 #include  <string.h>		/* memset */
+
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
@@ -12,6 +13,7 @@
 #include  <kiklib/kik_file.h>
 
 #include  <ml_char.h>
+#include  <ml_char_encoding.h>	/* ml_parse_unicode_area */
 
 
 #define  DEFAULT_FONT  0x1ff	/* MAX_CHARSET */
@@ -255,10 +257,10 @@ parse_key(
 
 	if( key_len >= 3 && strncmp( key , "U+" , 2) == 0)
 	{
-		int  min ;
-		int  max ;
+		u_int  min ;
+		u_int  max ;
 
-		if( sscanf( key + 2 , "%x-%x" , &min , &max) == 2 &&
+		if( ml_parse_unicode_area( key , &min , &max) &&
 		    ( font = ml_char_get_unicode_area_font( min , max)) != UNKNOWN_CS)
 		{
 			goto  check_style ;

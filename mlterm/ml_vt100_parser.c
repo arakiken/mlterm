@@ -287,7 +287,7 @@ set_area_to_table(
 		u_int  min ;
 		u_int  max ;
 
-		if( sscanf( area , "U+%x-%x" , &min , &max) == 2)
+		if( ml_parse_unicode_area( area , &min , &max))
 		{
 			u_int  count ;
 

@@ -4,6 +4,8 @@
 
 #include  "ml_char_encoding.h"
 
+#include  <stdio.h>			/* sscanf */
+
 #include  <kiklib/kik_str.h>		/* kik_str_alloca_dup */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>		/* alloca */
@@ -540,4 +542,23 @@ ml_char_encoding_convert_with_parser(
 	(*conv->delete)( conv) ;
 
 	return  filled_len ;
+}
+
+int
+ml_parse_unicode_area(
+	const char *  str ,
+	u_int *  min ,
+	u_int *  max
+	)
+{
+	if( sscanf( str , "U+%x-%x" , min , max) != 2)
+	{
+		kik_msg_printf( "Illegal unicode area format: %s\n" , str) ;
+
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
+	}
 }
