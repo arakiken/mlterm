@@ -14,7 +14,7 @@
 #include  <ml_char.h>
 
 
-#define  DEFAULT_FONT (MAX_CHARSET + 1)
+#define  DEFAULT_FONT  0x1ff	/* MAX_CHARSET */
 
 #if  0
 #define  __DEBUG
@@ -296,21 +296,11 @@ parse_key(
 
 	font = NORMAL_FONT_OF(cs) ;
 
-	if( font & FONT_FULLWIDTH)
+	if( ! ( font & FONT_FULLWIDTH) &&
+	    ( strstr( key , "_BIWIDTH") || /* compat with 3.2.2 or before. */
+	      strstr( key , "_FULLWIDTH")))
 	{
-		if( strstr( key , "_NARROW") || /* compat with 3.2.2 or before. */
-		    strstr( key , "_HALFWIDTH"))
-		{
-			font &= ~FONT_FULLWIDTH ;
-		}
-	}
-	else
-	{
-		if( strstr( key , "_BIWIDTH") || /* compat with 3.2.2 or before. */
-		    strstr( key , "_FULLWIDTH"))
-		{
-			font |= FONT_FULLWIDTH ;
-		}
+		font |= FONT_FULLWIDTH ;
 	}
 
 check_style:
@@ -2059,12 +2049,8 @@ x_get_all_config_font_names(
 		/*
 		 * XXX
 		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
-		 * Also ignore XXXX_HALFWIDTH and XXX_FULLWIDTH except ISO10646_UCS4_1_FULLWIDTH.
 		 */
-		if( array[count]->key != DEFAULT_FONT &&
-		    (FONT_CS(array[count]->key) == ISO10646_UCS4_1 ||
-		     (IS_FULLWIDTH_CS(FONT_CS(array[count]->key)) ==
-		      ((array[count]->key & FONT_FULLWIDTH) == FONT_FULLWIDTH))) )
+		if( FONT_CS(array[count]->key) != DEFAULT_FONT)
 		{
 			strcpy( p , array[count]->value) ;
 			p += strlen( p) ;
@@ -2077,12 +2063,8 @@ x_get_all_config_font_names(
 		/*
 		 * XXX
 		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
-		 * Also ignore XXXX_NARROW and XXX_FULLWIDTH except ISO10646_UCS4_FULLWIDTH.
 		 */
-		if( d_array[count]->key != DEFAULT_FONT &&
-		    ( FONT_CS(d_array[count]->key) == ISO10646_UCS4_1 ||
-		      (IS_FULLWIDTH_CS(FONT_CS(d_array[count]->key)) ==
-		        ((d_array[count]->key & FONT_FULLWIDTH) == FONT_FULLWIDTH))) )
+		if( FONT_CS(d_array[count]->key) != DEFAULT_FONT)
 		{
 			sprintf( p , d_array[count]->value , font_size) ;
 			p += strlen( p) ;

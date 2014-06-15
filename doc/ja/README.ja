@@ -491,10 +491,6 @@ comment $Id$
       o only_use_unicode_font (true/*false*)
         すべての文字を UNICODE フォントだけを使って表示する
 
-      o use_unicode_property (true/*false*)
-        UTF-8 以外のエンコーディングの文字について、対応する UNICODE のプロパテ
-	ィ(文字幅等)を適用する。
-
       o iso88591_font_for_usascii (true/*false*)
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 
@@ -828,11 +824,6 @@ comment $Id$
       (*) KOI8_T,GEORGIAN_PS,CP125[0-8],CP874 は -u オプションを指定して
           Unicode フォントを使用する必要があります。
           UHC,JOHAB は 自動的に KSX1001 フォントが使用されます。
-      (*) 通常全角文字として扱う文字集合については、
-          JISX0208_1983_HALFWIDTH
-          のように、後に "_HALFWIDTH" をつけると、一部の文字を半角文字として扱う場
-          合(--ucsprop オプションによって EastAsianWidth.txt で定義された文字幅
-          を強制する場合)のフォントを指定することができます。
       (*) Unicode のインド諸語は、mlterm 内部で一旦 ISCII に変換され、ISCII_XXX
           フォントにより表示されます。
 
@@ -1221,7 +1212,6 @@ comment $Id$
        --ciphlist=value : cipher_list
        --x11(=bool)    : ssh_x11_forwarding
        --csp=value     : letter_space
-       --ucsprop(=bool): use_unicode_property
        --osc52(=bool)  : allow_osc52
        --blink(=bool)  : blink_cursor
        --border=value  : inner_border

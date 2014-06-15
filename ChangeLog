@@ -1,5 +1,14 @@
 2014-06-15  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/ja/README.ja, man/mlterm.1: Updated.
+
+	* x_font_config.c: "_HALFWIDTH" suffix is removed.
+
+	* ml_vt100_parser.[ch], x_main_config.c:
+	  "use_unicode_property" option is removed.
+
+	* mc_font.c: "UNICODE (EMOJI)" is added.
+
 	* ml_vt100_parser.[ch], x_main_config.c:
 	  "full_width_areas" option which forces full width regardless of
 	  EastAsianWidth.txt is added.

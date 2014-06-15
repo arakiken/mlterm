@@ -6173,11 +6173,7 @@ ml_convert_to_internal_ch(
 				if( ! is_noconv_unicode( ch.ch) &&
 				    mkf_map_locale_ucs4_to( &non_ucs , &ch))
 				{
-					if( unicode_policy & USE_UNICODE_PROPERTY)
-					{
-						non_ucs.property = ch.property ;
-					}
-					else if( IS_FULLWIDTH_CS( non_ucs.cs))
+					if( IS_FULLWIDTH_CS( non_ucs.cs))
 					{
 						non_ucs.property = MKF_FULLWIDTH ;
 					}
@@ -6193,11 +6189,6 @@ ml_convert_to_internal_ch(
 			{
 				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
 				{
-					if( unicode_policy & USE_UNICODE_PROPERTY)
-					{
-						non_ucs.property = ch.property ;
-					}
-
 					ch.ch[0] = non_ucs.ch[0] ;
 					/* non_ucs.cs is set if mkf_map_ucs4_to_iscii() fails. */
 					ch.cs = non_ucs.cs ;
@@ -6272,8 +6263,6 @@ ml_convert_to_internal_ch(
 	}
 	else if( ch.cs != US_ASCII)
 	{
-		int  conv_to_ucs ;
-
 		    /* XXX converting japanese gaiji to ucs. */
 		if( ( unicode_policy & ONLY_USE_UNICODE_FONT) ||
 		    ch.cs == JISC6226_1978_NEC_EXT ||
@@ -6286,24 +6275,11 @@ ml_convert_to_internal_ch(
 		#endif
 			)
 		{
-			conv_to_ucs = 1 ;
-		}
-		else
-		{
-			conv_to_ucs = 0 ;
-		}
-
-		if( conv_to_ucs || ( unicode_policy & USE_UNICODE_PROPERTY))
-		{
 			mkf_char_t  ucs ;
 
 			if( mkf_map_to_ucs4( &ucs , &ch))
 			{
-				if( conv_to_ucs)
-				{
-					ch = ucs ;
-				}
-
+				ch = ucs ;
 				ch.property = get_ucs_property( mkf_char_to_int(&ucs)) ;
 			}
 		}

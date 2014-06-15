@@ -245,8 +245,6 @@ x_prepare_for_main_config(
 #endif
 	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
 		"extra space between letters in pixels [0]") ;
-	kik_conf_add_opt( conf , '\0' , "ucsprop" , 1 , "use_unicode_property" ,
-		"use unicode property for characters [false]") ;
 	kik_conf_add_opt( conf , '\0' , "osc52" , 1 , "allow_osc52" ,
 		"allow access to clipboard by OSC 52 sequence [false]") ;
 	kik_conf_add_opt( conf , '\0' , "blink" , 1 , "blink_cursor" ,
@@ -782,23 +780,6 @@ x_main_config_init(
 			else
 			{
 				main_config->unicode_policy = ONLY_USE_UNICODE_FONT ;
-			}
-		}
-	}
-
-	if( ( value = kik_conf_get_value( conf , "use_unicode_property")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			if( main_config->unicode_policy == ONLY_USE_UNICODE_FONT)
-			{
-				kik_msg_printf(
-					"only_use_unicode_font and use_unicode_property "
-					"cannot be used at the same time.\n") ;
-			}
-			else
-			{
-				main_config->unicode_policy |= USE_UNICODE_PROPERTY ;
 			}
 		}
 	}

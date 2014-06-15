@@ -6,8 +6,10 @@ ver 3.3.7
 * Starting mlterm with -j option executes mlclient if daemon process has already
   started.
 * Change the maximum number of "U+XXXX-XXXX" definitions from 7 to 511.
-* Add "unlimted" to "Backlog size" entry and add "UNICODE (ARABIC)" to
-  "Font name" entry in mlconfig.
+* Add "unlimted" to "Backlog size" entry and add "UNICODE (ARABIC)" and
+  "UNICODE (EMOJI)" to "Font name" entry in mlconfig.
+* Disable "_HALFWIDTH" suffix in ~/.mlterm/(t,v)(aa)font files.
+* Remove --ucsprop/use_unicode_property option.
 * Bug fixes:
   Fix the failure of saving font configurations from mlconfig.
   Fix the bug which sometimes causes the failure of searching closest colors on X/8bpp.

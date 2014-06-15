@@ -58,6 +58,7 @@ static cs_info_t  cs_info_table[] =
 	{ "UNICODE" , { "iso10646-1" , NULL , NULL , } , } ,
 	{ "UNICODE (FULLWIDTH)" , { "iso10646-1" , NULL , NULL , } , } ,
 	{ "UNICODE (ARABIC)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (EMOJI)" , { "iso10646-1" , NULL , NULL , } , } ,
 
 	{ "DEC_SPECIAL" , { "iso8859-1" , NULL , NULL , } , } ,
 	{ "ISO8859_1" , { "iso8859-1" , NULL , NULL , } , } ,
@@ -207,6 +208,10 @@ get_correct_cs(
 	else if( idx == 3)
 	{
 		return  "U+0600-06FF" ;	/* Arabic */
+	}
+	else if( idx == 4)
+	{
+		return  "U+1F000-1F77F" ;	/* Emoji */
 	}
 	else if( idx < sizeof(cs_info_table) / sizeof(cs_info_table[0]))
 	{
