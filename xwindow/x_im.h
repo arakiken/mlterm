@@ -56,10 +56,10 @@ typedef struct x_im_export_syms
 	int (*ml_str_delete)( ml_char_t * , u_int) ;
 	int (*ml_char_combine)( ml_char_t * , u_int32_t ,
 				mkf_charset_t , int , int , ml_color_t ,
-				ml_color_t , int , int , int) ;
+				ml_color_t , int , int , int , int) ;
 	int (*ml_char_set)( ml_char_t * , u_int32_t ,
 			    mkf_charset_t  cs , int , int , ml_color_t ,
-			    ml_color_t , int , int , int) ;
+			    ml_color_t , int , int , int , int) ;
 	char * (*ml_get_char_encoding_name)( ml_char_encoding_t) ;
 	ml_char_encoding_t (*ml_get_char_encoding)( const char *) ;
 	int  (*ml_convert_to_internal_ch)( mkf_char_t * , ml_unicode_policy_t , mkf_charset_t) ;
@@ -133,7 +133,7 @@ void  x_im_delete( x_im_t *  xim) ;
 
 void  x_im_redraw_preedit( x_im_t *  im , int  is_focused) ;
 
-#define  IM_API_VERSION  0x09
+#define  IM_API_VERSION  0x0a
 #define  IM_API_COMPAT_CHECK_MAGIC				\
 	 (((IM_API_VERSION & 0x0f) << 28) |			\
 	  ((sizeof( x_im_t) & 0xff) << 20) |			\

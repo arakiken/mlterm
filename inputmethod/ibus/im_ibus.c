@@ -229,7 +229,7 @@ update_preedit_text(
 
 				if( (*syms->ml_char_combine)( p - 1 , mkf_char_to_int(&ch) ,
 					ch.cs , is_fullwidth , is_comb , fg_color , bg_color ,
-					0 , 0 , 1))
+					0 , 0 , 1 , 0))
 				{
 					continue ;
 				}
@@ -242,7 +242,7 @@ update_preedit_text(
 			(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
 					      is_fullwidth , is_comb ,
 					      fg_color , bg_color ,
-					      0 , 0 , 1) ;
+					      0 , 0 , 1 , 0) ;
 
 			p ++ ;
 			ibus->im.preedit.filled_len ++ ;

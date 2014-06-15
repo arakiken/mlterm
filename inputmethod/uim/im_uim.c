@@ -667,7 +667,7 @@ preedit_pushback(
 			if( (*syms->ml_char_combine)( p - 1 , mkf_char_to_int(&ch) ,
 						ch.cs , is_fullwidth , is_comb ,
 						fg_color , bg_color ,
-						0 , 0 , is_underline))
+						0 , 0 , is_underline , 0))
 			{
 				continue ;
 			}
@@ -680,7 +680,7 @@ preedit_pushback(
 		(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
 				      is_fullwidth , is_comb ,
 				      fg_color , bg_color ,
-				      0 , 0 , is_underline) ;
+				      0 , 0 , is_underline , 0) ;
 
 		p++ ;
 		uim->im.preedit.filled_len++;

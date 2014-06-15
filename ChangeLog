@@ -1,5 +1,8 @@
 2014-06-16  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im.h, im_*.c: is_crossed_out argument is added to x_im_export_syms_t::ml_char_set
+	  and ::ml_char_combine(), and IM_API_VERSION is changed from 0x09 to 0x0a.
+
 	* x_font_config.c, ml_vt100_parser.c: ml_parse_unicode_area() is used.
 
 	* ml_char_encoding.[ch]: ml_parse_unicode_area() is added.

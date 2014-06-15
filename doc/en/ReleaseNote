@@ -2,15 +2,16 @@ ver 3.3.7
 * Enable image processing on background terminals.
 * Improve the performance of processing images on 8 or less bpp framebuffer.
 * Support SGR 9, 21 and 29.
-* Support DECFRA, SL, SR.
+* Support DECFRA, SL and SR.
 * Starting mlterm with -j option executes mlclient if daemon process has already
   started.
-* Change the maximum number of "U+XXXX-XXXX" definitions from 7 to 511.
-* Add "unlimted" to "Backlog size" entry and add "UNICODE (ARABIC)" and
-  "UNICODE (EMOJI)" to "Font name" entry in mlconfig.
+* Change the maximum number of "U+XXXX-XXXX" in ~/.mlterm/(t,v,)(aa)font
+  from 7 to 511.
+* Add "unlimted" to "Backlog size" entry in mlconfig.
+  Add "UNICODE (ARABIC)" and "UNICODE (EMOJI)" to "Font name" entry.
 * Add --fullwidth/unicode_full_width_areas option.
 * Disable "_HALFWIDTH" suffix in ~/.mlterm/(t,v)(aa)font files.
-* Remove --ucsprop/use_unicode_property option.
+* Drop --ucsprop/use_unicode_property option.
 * Bug fixes:
   Fix the failure of saving font configurations from mlconfig.
   Fix the bug which sometimes causes the failure of searching closest colors on X/8bpp.
