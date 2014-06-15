@@ -1967,7 +1967,7 @@ config_protocol_set(
 				{
 					ml_set_unicode_noconv_areas( val) ;
 				}
-				else if( strcmp( key , "full_width_areas") == 0)
+				else if( strcmp( key , "unicode_full_width_areas") == 0)
 				{
 					ml_set_full_width_areas( val) ;
 				}

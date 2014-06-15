@@ -511,6 +511,10 @@ comment $Id$
         medium フォントを重ね打ちする場合の開始位置を1ピクセル左(デフォルトは右)
         からとする。
 
+      o unicode_full_width_areas
+        EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
+        に全角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
+
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
         擬似的な背景透過を行う。

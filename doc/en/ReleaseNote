@@ -8,6 +8,7 @@ ver 3.3.7
 * Change the maximum number of "U+XXXX-XXXX" definitions from 7 to 511.
 * Add "unlimted" to "Backlog size" entry and add "UNICODE (ARABIC)" and
   "UNICODE (EMOJI)" to "Font name" entry in mlconfig.
+* Add --fullwidth/unicode_full_width_areas option.
 * Disable "_HALFWIDTH" suffix in ~/.mlterm/(t,v)(aa)font files.
 * Remove --ucsprop/use_unicode_property option.
 * Bug fixes:

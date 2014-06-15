@@ -47,8 +47,8 @@ version 20140330
                      icon_path | logging_vt_seq | logging_msg | word_separators | use_clipboard |
                      auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
-                     box_drawing_font | use_urgent_bell | allow_osc52 | auto_detect_encodings |
-                     use_auto_detect
+                     unicode_full_width_areas | box_drawing_font | use_urgent_bell |
+                     allow_osc52 | auto_detect_encodings | use_auto_detect
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -119,6 +119,8 @@ version 20140330
   tabsize = <any ASCII decimal digit>
   type_engine = xcore | xft
   ul_color = <color name> | <color rgb>
+  unicode_noconv_areas = (U+XXXX-XXXX,)*
+  unicode_full_width_areas = (U+XXXX-XXXX,)*
   use_alt_buffer = true | false | switch
   use_ansi_colors = true | false | switch
   use_anti_alias = true | false | switch

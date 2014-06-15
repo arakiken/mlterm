@@ -272,7 +272,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "locale" , 0 , "locale" , "set locale.") ;
 	kik_conf_add_opt( conf , '\0' , "ucsnoconv" , 0 , "unicode_noconv_areas" ,
 		"use unicode fonts partially regardless of -n option.") ;
-	kik_conf_add_opt( conf , '\0' , "fullwidth" , 0 , "full_width_areas" ,
+	kik_conf_add_opt( conf , '\0' , "fullwidth" , 0 , "unicode_full_width_areas" ,
 		"force full width regardless of EastAsianWidth.txt") ;
 	kik_conf_add_opt( conf , '\0' , "ade" , 0 , "auto_detect_encodings" ,
 		"encodings detected automatically.") ;
@@ -759,7 +759,7 @@ x_main_config_init(
 		ml_set_unicode_noconv_areas( value) ;
 	}
 
-	if( ( value = kik_conf_get_value( conf , "full_width_areas")))
+	if( ( value = kik_conf_get_value( conf , "unicode_full_width_areas")))
 	{
 		ml_set_full_width_areas( value) ;
 	}
