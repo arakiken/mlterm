@@ -145,7 +145,8 @@ typedef struct  x_screen
 	int8_t  use_extended_scroll_shortcut ;
 	int8_t  borderless ;
 	int8_t  font_or_color_config_updated ;	/* 0x1 = font updated, 0x2 = color updated */
-	int8_t  cursor_blink_wait ;
+	int8_t  blink_wait ;
+	int8_t  blink_cursor ;
 	int8_t  hide_underline ;
 	int8_t  processing_vtseq ;
 	int8_t  anim_wait ;

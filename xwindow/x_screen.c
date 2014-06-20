@@ -4161,33 +4161,58 @@ idling(
 
 	screen = (x_screen_t*) win ;
 
-	if( screen->cursor_blink_wait > 0)
+	if( screen->blink_wait >= 0)
 	{
-		if( screen->cursor_blink_wait == 6)
+		if( screen->blink_wait == 5)
 		{
 			if( screen->window.is_focused)
 			{
-				unhighlight_cursor( screen , 1) ;
-				x_window_update( &screen->window , UPDATE_SCREEN) ;
+				int  update ;
+
+				update = ml_term_blink( screen->term) ;
+
+				if( screen->blink_cursor)
+				{
+					unhighlight_cursor( screen , 1) ;
+					update = 1 ;
+				}
+
+				if( update)
+				{
+					x_window_update( &screen->window , UPDATE_SCREEN) ;
+				}
 			}
 
-			screen->cursor_blink_wait = -1 ;
+			screen->blink_wait = -1 ;
 		}
 		else
 		{
-			screen->cursor_blink_wait ++ ;
+			screen->blink_wait ++ ;
 		}
 	}
-	else if( screen->cursor_blink_wait < 0)
+	else
 	{
-		if( screen->cursor_blink_wait == -6)
+		if( screen->blink_wait == -6)
 		{
-			x_window_update( &screen->window , UPDATE_CURSOR) ;
-			screen->cursor_blink_wait = 1 ;
+			int  flag ;
+
+			flag = ml_screen_blink( screen->term->screen) ? UPDATE_SCREEN : 0 ;
+
+			if( screen->blink_cursor)
+			{
+				flag |= UPDATE_CURSOR ;
+			}
+
+			if( flag)
+			{
+				x_window_update( &screen->window , flag) ;
+			}
+
+			screen->blink_wait = 0 ;
 		}
 		else
 		{
-			screen->cursor_blink_wait -- ;
+			screen->blink_wait -- ;
 		}
 	}
 
@@ -5801,7 +5826,7 @@ get_config_intern(
 	}
 	else if( strcmp( key , "blink_cursor") == 0)
 	{
-		if( screen->cursor_blink_wait)
+		if( screen->blink_cursor)
 		{
 			value = "true" ;
 		}
@@ -7721,10 +7746,7 @@ x_screen_new(
 #endif
 	screen->window.idling = idling ;
 
-	if( blink_cursor)
-	{
-		screen->cursor_blink_wait = 1 ;
-	}
+	screen->blink_cursor = blink_cursor ;
 
 	if( use_transbg)
 	{
@@ -8878,14 +8900,7 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "blink_cursor") == 0)
 	{
-		if( true_or_false( value) > 0)
-		{
-			screen->cursor_blink_wait = 1 ;
-		}
-		else
-		{
-			screen->cursor_blink_wait = 0 ;
-		}
+		screen->blink_cursor = (true_or_false( value) > 0) ;
 	}
 	else if( strcmp( key , "use_local_echo") == 0)
 	{

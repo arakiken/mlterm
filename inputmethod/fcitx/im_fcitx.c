@@ -577,7 +577,7 @@ update_client_side_ui(
 					mkf_char_to_int(&ch) ,
 					ch.cs , is_fullwidth , is_comb ,
 					ML_FG_COLOR , ML_BG_COLOR ,
-					0 , 0 , 1 , 0))
+					0 , 0 , 1 , 0 , 0))
 				{
 					continue ;
 				}
@@ -590,7 +590,7 @@ update_client_side_ui(
 			(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
 					      is_fullwidth , is_comb ,
 					      ML_FG_COLOR , ML_BG_COLOR ,
-					      0 , 0 , 1 , 0) ;
+					      0 , 0 , 1 , 0 , 0) ;
 
 			p ++ ;
 			fcitx->im.preedit.filled_len ++ ;
@@ -771,7 +771,7 @@ update_formatted_preedit(
 						mkf_char_to_int(&ch) ,
 						ch.cs , is_fullwidth , is_comb ,
 						fg_color , bg_color ,
-						0 , 0 , 1 , 0))
+						0 , 0 , 1 , 0 , 0))
 					{
 						continue ;
 					}
@@ -784,7 +784,7 @@ update_formatted_preedit(
 				(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
 						      is_fullwidth , is_comb ,
 						      fg_color , bg_color ,
-						      0 , 0 , 1 , 0) ;
+						      0 , 0 , 1 , 0 , 0) ;
 
 				p ++ ;
 				fcitx->im.preedit.filled_len ++ ;

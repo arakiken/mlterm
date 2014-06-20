@@ -20,6 +20,7 @@
 #include  <ml_color.h>
 
 #include  "../x_window.h"
+#include  "../x_picture.h"
 #include  "x_virtual_kbd.h"
 
 
@@ -1467,6 +1468,8 @@ x_display_close_all(void)
 {
 	if( DISP_IS_INITED)
 	{
+		x_picture_display_closed( &_disp.display) ;
+
 		x_virtual_kbd_hide() ;
 
 		if( MOUSE_IS_INITED)

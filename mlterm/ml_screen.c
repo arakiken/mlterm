@@ -1828,6 +1828,51 @@ ml_screen_search_find(
 	return  res ;
 }
 
+int
+ml_screen_blink(
+	ml_screen_t *  screen
+	)
+{
+	int  has_blinking_char ;
+
+	has_blinking_char = 0 ;
+
+	if( screen->has_blinking_char)
+	{
+		int  char_index ;
+		int  row ;
+		ml_line_t *  line ;
+
+		for( row = 0 ;
+		     row + screen->backscroll_rows < ml_edit_get_rows( screen->edit) ;
+		     row ++)
+		{
+			if( ( line = ml_screen_get_line( screen , row)) == NULL)
+			{
+				continue ;
+			}
+
+			for( char_index = 0 ; char_index < line->num_of_filled_chars ; char_index++)
+			{
+				if( ml_char_is_blinking( line->chars + char_index))
+				{
+					ml_char_blink( line->chars + char_index) ;
+					ml_line_set_modified( line , char_index , char_index) ;
+
+					has_blinking_char = 1 ;
+				}
+			}
+		}
+
+		if( screen->backscroll_rows == 0)
+		{
+			screen->has_blinking_char = has_blinking_char ;
+		}
+	}
+
+	return  has_blinking_char ;
+}
+
 
 /*
  * VT100 commands
@@ -1877,7 +1922,8 @@ ml_screen_combine_with_prev_char(
 	int  is_bold ,
 	int  is_italic ,
 	int  is_underlined ,
-	int  is_crossed_out
+	int  is_crossed_out ,
+	int  is_blinking
 	)
 {
 	int  char_index ;
@@ -1902,7 +1948,7 @@ ml_screen_combine_with_prev_char(
 	
 	if( ! ml_char_combine( ch , code , cs , is_fullwidth , is_comb ,
 		fg_color , bg_color , is_bold , is_italic , is_underlined ,
-		is_crossed_out))
+		is_crossed_out , is_blinking))
 	{
 		return  0 ;
 	}
@@ -2320,11 +2366,19 @@ ml_screen_fill_area(
 
 	ml_char_set( &ch , code ,
 		code <= 0x7f ? US_ASCII : ISO10646_UCS4_1 ,	/* XXX biwidth is not supported. */
-		0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0) ;
+		0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0 , 0) ;
 
 	ml_edit_fill_area( screen->edit , &ch , col , row , num_of_cols , num_of_rows) ;
 
 	ml_char_final( &ch) ;
 
 	return  1 ;
+}
+
+void
+ml_screen_enable_blinking(
+	ml_screen_t *  screen
+	)
+{
+	screen->has_blinking_char = 1 ;
 }

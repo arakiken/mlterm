@@ -947,7 +947,7 @@ put_char(
 				ch , cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , is_bold ,
 				vt100_parser->is_italic , vt100_parser->underline_style ,
-				vt100_parser->is_crossed_out))
+				vt100_parser->is_crossed_out , vt100_parser->is_blinking))
 			{
 				return ;
 			}
@@ -959,7 +959,7 @@ put_char(
 				ch , cs , is_fullwidth , is_comb ,
 				fg_color , bg_color , is_bold ,
 				vt100_parser->is_italic , vt100_parser->underline_style ,
-				vt100_parser->is_crossed_out))
+				vt100_parser->is_crossed_out , vt100_parser->is_blinking))
 			{
 				return ;
 			}
@@ -974,7 +974,7 @@ put_char(
 		cs , is_fullwidth , is_comb ,
 		fg_color , bg_color , is_bold ,
 		vt100_parser->is_italic , vt100_parser->underline_style ,
-		vt100_parser->is_crossed_out) ;
+		vt100_parser->is_crossed_out , vt100_parser->is_blinking) ;
 
 	if( ! vt100_parser->screen->use_dynamic_comb && cs == ISO10646_UCS4_1)
 	{
@@ -1020,7 +1020,7 @@ put_char(
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
 					vt100_parser->is_italic , vt100_parser->underline_style ,
-					vt100_parser->is_crossed_out))
+					vt100_parser->is_crossed_out , vt100_parser->is_blinking))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -1035,7 +1035,7 @@ put_char(
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
 					vt100_parser->is_italic , vt100_parser->underline_style ,
-					vt100_parser->is_crossed_out))
+					vt100_parser->is_crossed_out , vt100_parser->is_blinking))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -1102,6 +1102,7 @@ save_cursor(
 	dest->underline_style = vt100_parser->underline_style ;
 	dest->is_reversed = vt100_parser->is_reversed ;
 	dest->is_crossed_out = vt100_parser->is_crossed_out ;
+	dest->is_blinking = vt100_parser->is_blinking ;
 	dest->cs = vt100_parser->cs ;
 
 	ml_screen_save_cursor( vt100_parser->screen) ;
@@ -1128,6 +1129,7 @@ restore_cursor(
 		vt100_parser->underline_style = src->underline_style ;
 		vt100_parser->is_reversed = src->is_reversed ;
 		vt100_parser->is_crossed_out = src->is_crossed_out ;
+		vt100_parser->is_blinking = src->is_blinking ;
 		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 		{
 			if( ( src->cs == DEC_SPECIAL)
@@ -2241,6 +2243,7 @@ change_char_attr(
 		vt100_parser->underline_style = 0 ;
 		vt100_parser->is_reversed = 0 ;
 		vt100_parser->is_crossed_out = 0 ;
+		vt100_parser->is_blinking = 0 ;
 	}
 	else if( flag == 1)
 	{
@@ -2262,12 +2265,12 @@ change_char_attr(
 		/* Underscore */
 		vt100_parser->underline_style = UNDERLINE_NORMAL ;
 	}
-#if  0
-	else if( flag == 5)
+	else if( flag == 5 || flag == 6)
 	{
-		/* Blink */
+		/* Blink (6 is repidly blinking) */
+		vt100_parser->is_blinking = 1 ;
+		ml_screen_enable_blinking( vt100_parser->screen) ;
 	}
-#endif
 	else if( flag == 7)
 	{
 		/* Inverse */
@@ -2303,12 +2306,11 @@ change_char_attr(
 		/* Underline */
 		vt100_parser->underline_style = 0 ;
 	}
-#if  0
 	else if( flag == 25)
 	{
 		/* blink */
+		vt100_parser->is_blinking = 0 ;
 	}
-#endif
 	else if( flag == 27)
 	{
 		vt100_parser->is_reversed = 0 ;
@@ -2525,7 +2527,7 @@ set_selection(
 		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
 			ml_char_set( &str[str_len++] , mkf_char_to_int(&ch) ,
-				ch.cs , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
+				ch.cs , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0) ;
 		}
 
 		/*

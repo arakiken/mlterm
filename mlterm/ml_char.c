@@ -19,6 +19,8 @@
 	((((attr) >> 5) & 0xe00) | ISO10646_UCS4_1 | (((attr) << 7) & 0x1ff000)) : \
 	(((attr) >> 5) & 0xfff)
 
+#define  IS_CONCEALED(attr)  ((attr) & (0x1 << 19))
+#define  IS_BLINKING(attr)  ((attr) & (0x1 << 18))
 #define  IS_ITALIC(attr)  ((attr) & (0x1 << 16))
 #define  IS_BOLD(attr)  ((attr) & (0x1 << 15))
 #define  IS_FULLWIDTH(attr)  ((attr) & (0x1 << 14))
@@ -43,10 +45,11 @@
 #define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffe)
 #define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
-#define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,is_unicode_area_cs,underline_style,is_crossed_out,is_comb) \
-	( ((underline_style) << 21) | ((is_zerowidth) << 20) | ((is_unicode_area_cs) << 17) | \
-	  ((is_italic) << 16) | ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
-	  ( 0x0 << 4) |  ((is_crossed_out) << 3) | ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
+#define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,is_unicode_area_cs,underline_style,is_crossed_out,is_blinking,is_comb) \
+	( ((underline_style) << 21) | ((is_zerowidth) << 20) | ((is_blinking) << 18) | \
+	  ((is_unicode_area_cs) << 17) | ((is_italic) << 16) | ((is_bold) << 15) | \
+          ((is_fullwidth) << 14) | ((charset) << 5) | ( 0x0 << 4) |  ((is_crossed_out) << 3) | \
+          ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
 
 
 /* --- static variables --- */
@@ -180,7 +183,8 @@ ml_char_set(
 	int  is_bold ,
 	int  is_italic ,
 	int  underline_style ,
-	int  is_crossed_out
+	int  is_crossed_out ,
+	int  is_blinking
 	)
 {
 	u_int  idx ;
@@ -235,7 +239,8 @@ ml_char_set(
 	}
 
 	ch->u.ch.attr = COMPOUND_ATTR(cs,is_zerowidth,is_fullwidth!=0,is_bold!=0,
-				is_italic!=0,idx>0,underline_style,is_crossed_out!=0,is_comb!=0) ;
+				is_italic!=0,idx>0,underline_style,is_crossed_out!=0,
+				is_blinking!=0,is_comb!=0) ;
 	ch->u.ch.fg_color = fg_color ;
 	ch->u.ch.bg_color = bg_color ;
 
@@ -254,7 +259,8 @@ ml_char_combine(
 	int  is_bold ,
 	int  is_italic ,
 	int  underline_style ,
-	int  is_crossed_out
+	int  is_crossed_out ,
+	int  is_blinking
 	)
 {
 	ml_char_t *  multi_ch ;
@@ -308,7 +314,7 @@ ml_char_combine(
 		ml_char_init( multi_ch + 1) ;
 		if( ml_char_set( multi_ch + 1 , code , cs , is_fullwidth , is_comb ,
 			fg_color , bg_color , is_bold , is_italic , underline_style ,
-			is_crossed_out) == 0)
+			is_crossed_out , is_blinking) == 0)
 		{
 			return  0 ;
 		}
@@ -357,7 +363,7 @@ ml_char_combine(
 		ml_char_init( multi_ch + comb_size + 1) ;
 		if( ml_char_set( multi_ch + comb_size + 1 , code , cs , is_fullwidth ,
 			is_comb , fg_color , bg_color , is_bold , is_italic , underline_style ,
-			is_crossed_out) == 0)
+			is_crossed_out , is_blinking) == 0)
 		{
 			return  0 ;
 		}
@@ -379,7 +385,8 @@ ml_char_combine_simple(
 			IS_FULLWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
 			comb->u.ch.fg_color , comb->u.ch.bg_color ,
 			IS_BOLD(comb->u.ch.attr) , IS_ITALIC(comb->u.ch.attr) ,
-			UNDERLINE_STYLE(comb->u.ch.attr) , IS_CROSSED_OUT(comb->u.ch.attr)) ;
+			UNDERLINE_STYLE(comb->u.ch.attr) , IS_CROSSED_OUT(comb->u.ch.attr) ,
+			IS_BLINKING(comb->u.ch.attr)) ;
 }
 
 ml_char_t *
@@ -628,7 +635,14 @@ ml_char_fg_color(
 
 	if( IS_SINGLE_CH(attr))
 	{
-		return  IS_REVERSED(attr) ? ch->u.ch.bg_color : ch->u.ch.fg_color ;
+		if( IS_REVERSED(attr))
+		{
+			return  IS_CONCEALED(attr) ? ch->u.ch.fg_color : ch->u.ch.bg_color ;
+		}
+		else
+		{
+			return  IS_CONCEALED(attr) ? ch->u.ch.bg_color : ch->u.ch.fg_color ;
+		}
 	}
 	else
 	{
@@ -666,13 +680,9 @@ ml_char_bg_color(
 	ml_char_t *  ch
 	)
 {
-	u_int  attr ;
-
-	attr = ch->u.ch.attr ;
-
-	if( IS_SINGLE_CH(attr))
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  IS_REVERSED(attr) ? ch->u.ch.fg_color : ch->u.ch.bg_color ;
+		return  IS_REVERSED(ch->u.ch.attr) ? ch->u.ch.fg_color : ch->u.ch.bg_color ;
 	}
 	else
 	{
@@ -736,6 +746,45 @@ ml_char_is_crossed_out(
 }
 
 int
+ml_char_is_blinking(
+	ml_char_t *  ch
+	)
+{
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  IS_BLINKING(ch->u.ch.attr) ;
+	}
+	else
+	{
+		return  ml_char_is_blinking( ch->u.multi_ch) ;
+	}
+}
+
+int
+ml_char_blink(
+	ml_char_t *  ch
+	)
+{
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		if( IS_CONCEALED(ch->u.ch.attr))
+		{
+			ch->u.ch.attr &= ~(0x1 << 19) ;
+		}
+		else
+		{
+			ch->u.ch.attr |= (0x1 << 19) ;
+		}
+
+		return  1 ;
+	}
+	else
+	{
+		return  ml_char_blink( ch->u.multi_ch) ;
+	}
+}
+
+int
 ml_char_reverse_color(
 	ml_char_t *  ch
 	)
@@ -794,38 +843,6 @@ ml_char_restore_color(
 		}
 
 		return  1 ;
-	}
-}
-
-/* XXX only used in iscii_logical() */
-int
-ml_char_copy_color_reversed_flag(
-	ml_char_t *  dst ,
-	ml_char_t *  src
-	)
-{
-	if( IS_SINGLE_CH(src->u.ch.attr))
-	{
-		if( IS_REVERSED(src->u.ch.attr))
-		{
-			return  ml_char_reverse_color( dst) ;
-		}
-		else
-		{
-			return  ml_char_restore_color( dst) ;
-		}
-	}
-	else
-	{
-		/* See the first character only */
-		if( IS_REVERSED(src->u.multi_ch->u.ch.attr))
-		{
-			return  ml_char_reverse_color( dst) ;
-		}
-		else
-		{
-			return  ml_char_restore_color( dst) ;
-		}
 	}
 }
 
@@ -928,7 +945,7 @@ ml_sp_ch(void)
 	{
 		ml_char_init( &sp_ch) ;
 		ml_char_set( &sp_ch , ' ' , US_ASCII , 0 , 0 ,
-			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0) ;
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0 , 0) ;
 	}
 
 	return  &sp_ch ;
@@ -943,7 +960,7 @@ ml_nl_ch(void)
 	{
 		ml_char_init( &nl_ch) ;
 		ml_char_set( &nl_ch , '\n' , US_ASCII , 0 , 0 ,
-			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0) ;
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0 , 0) ;
 	}
 
 	return  &nl_ch ;

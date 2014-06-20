@@ -339,6 +339,8 @@ int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		ml_screen_search_find( (term)->screen , beg_char_index , beg_row , \
 			end_char_index , end_row , regex , backward)
 
+#define  ml_term_blink( term)  ml_screen_blink( term->screen)
+
 #define  ml_term_get_user_data( term , key)  ((term)->user_data)
 
 #define  ml_term_set_user_data( term , key , val)  ((term)->user_data = (val))

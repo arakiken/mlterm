@@ -1,3 +1,23 @@
+2014-06-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch], x_screen.[ch]: SGR 5 and 25 are supported.
+
+	* ml_term.h: ml_term_blink() is added.
+
+	* ml_screen.[ch]: ml_screen_blink() and ml_screen_enable_blinking() are added.
+
+	* im_fcitx.c, im_ibus.c, im_m17nlib.c, im_scim_mod_if.c, im_uim.c,
+	  ml_screen.[ch], x_im.h, x_im_{candidate|status}_screen.c:
+	  Fixes by is_blinking of ml_char_{set|combine}().
+
+	* ml_char.[ch]: is_blinking is added to ml_char_{set|combine}(), and
+	  ml_char_is_blinking() and ml_char_blink() are added.
+
+	* x_picture.c: ~/.mlterm/anim* are completely removed on exit.
+
+	* fb/x_display.c, win32/x_display.c: x_picture_display_closed() is called in
+	  x_display_close_all().
+
 2014-06-16  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im.h, im_*.c: is_crossed_out argument is added to x_im_export_syms_t::ml_char_set

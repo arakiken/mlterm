@@ -263,6 +263,58 @@ delete_icon_picture(
 	return  1 ;
 }
 
+static int
+hash_path(
+	char *  path
+	)
+{
+	int  hash ;
+
+	hash = 0 ;
+	while( *path)
+	{
+		hash += *(path++) ;
+	}
+
+	return  hash & 65535 /* 0xffff */ ;
+}
+
+static inline size_t
+get_anim_file_path_len(
+	char *  dir
+	)
+{
+	return  strlen( dir) + 10 + 5 + DIGIT_STR_LEN(int) + 1 ;
+}
+
+static int
+anim_file_exists(
+	char *  file_path ,
+	char *  dir ,
+	int  hash ,
+	int  count
+	)
+{
+	struct stat  st ;
+
+	if( count > 0)
+	{
+		sprintf( file_path , "%sanim%d-%d.gif" , dir , hash , count) ;
+		if( stat( file_path , &st) == 0)
+		{
+			return  1 ;
+		}
+
+		sprintf( file_path , "%sanimx%d-%d.gif" , dir , hash , count) ;
+	}
+	else
+	{
+		sprintf( file_path , "%sanim%d.gif" , dir , hash) ;
+	}
+
+	return  stat( file_path , &st) == 0 ;
+}
+
 /*
  * XXX
  * This function should be called synchronously because both load_file_async()
@@ -301,6 +353,35 @@ delete_inline_picture(
 
 	if( pic->file_path)
 	{
+		if( strcasecmp( pic->file_path + strlen( pic->file_path) - 4 , ".gif") == 0 &&
+		    /* If check_anim was processed, next_frame == -2. */
+		    pic->next_frame == -1)
+		{
+			char *  dir ;
+			char *  file_path ;
+
+			if( ( dir = kik_get_user_rc_path( "mlterm/")) &&
+			    ( file_path = alloca( get_anim_file_path_len( dir))))
+			{
+				int  hash ;
+				int  count ;
+
+				hash = hash_path( pic->file_path) ;
+
+				for( count = 0 ; ; count++)
+				{
+					if( ! anim_file_exists( file_path , dir , hash , count))
+					{
+						break ;
+					}
+
+					unlink( file_path) ;
+				}
+			}
+
+			free( dir) ;
+		}
+
 		free( pic->file_path) ;
 		pic->file_path = NULL ;
 	}
@@ -640,22 +721,6 @@ ensure_inline_picture(
 	inline_pics[idx].weighting = 2 ;
 
 	return  idx ;
-}
-
-static int
-hash_path(
-	char *  path
-	)
-{
-	int  hash ;
-
-	hash = 0 ;
-	while( *path)
-	{
-		hash += *(path++) ;
-	}
-
-	return  hash & 65535 /* 0xffff */ ;
 }
 
 static int
@@ -1131,33 +1196,27 @@ check_anim:
 		inline_pics[idx].next_frame = -2 ;
 
 		if( ( dir = kik_get_user_rc_path( "mlterm/")) &&
-		    ( file_path = alloca( strlen( dir) + 10 + 5 + DIGIT_STR_LEN(int) + 1)))
+		    ( file_path = alloca( get_anim_file_path_len( dir))))
 		{
 			int  hash ;
 			int  count ;
-			struct stat  st ;
 			int  i ;
 			int  prev_i ;
 
 			hash = hash_path( inline_pics[idx].file_path) ;
 
-			/* Already loaded. */
-			sprintf( file_path , "%sanim%d.gif" , dir , hash) ;
-			unlink( file_path) ;
+			if( anim_file_exists( file_path , dir , hash , 0))
+			{
+				/* The first frame has been already loaded. */
+				unlink( file_path) ;
+			}
 
 			prev_i = idx ;
 			for( count = 1 ; ; count++)
 			{
-				sprintf( file_path , "%sanim%d-%d.gif" , dir , hash , count) ;
-				if( stat( file_path , &st) != 0)
+				if( ! anim_file_exists( file_path , dir , hash , count))
 				{
-					/* Don't dispose. The graphic is left in space. */
-					sprintf( file_path , "%sanimx%d-%d.gif" ,
-						dir , hash , count) ;
-					if( stat( file_path , &st) != 0)
-					{
-						break ;
-					}
+					break ;
 				}
 
 				/*

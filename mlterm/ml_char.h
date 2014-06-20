@@ -65,7 +65,8 @@ typedef struct ml_char
 			 * Total 23 bit
 			 * 2 bit : underline_style(0 or 1 or 2)
 			 * 1 bit : is_zerowidth(0 or 1)
-			 * 2 bit : unused
+			 * 1 bit : is_concealed(0 or 1)
+			 * 1 bit : is_blinking(0 or 1)
 			 * 1 bit : is unicode area cs(0 or 1)
 			 * 1 bit : is_italic(0 or 1)
 			 * 1 bit : is_bold(0 or 1)
@@ -112,15 +113,17 @@ int  ml_char_final( ml_char_t *  ch) ;
 
 int  ml_char_set( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
 	int  is_fullwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
-	int  is_bold , int  is_italic , int  underline_style , int  is_crossed_out) ;
+	int  is_bold , int  is_italic , int  underline_style , int  is_crossed_out ,
+	int  is_blinking) ;
 
 int  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
 	int  is_fullwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
-	int  is_bold , int  is_italic , int  underline_style , int  is_crossed_out) ;
+	int  is_bold , int  is_italic , int  underline_style , int  is_crossed_out ,
+	int  is_blinking) ;
 
 /* set both fg and bg colors for reversing. */
 #define  ml_char_combine_picture( ch , id , pos) \
-	ml_char_combine( ch , pos , PICTURE_CHARSET , 0 , 0 ,  id , id , 0 , 0 , 0 , 0)
+	ml_char_combine( ch , pos , PICTURE_CHARSET , 0 , 0 ,  id , id , 0 , 0 , 0 , 0 , 0)
 
 int  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
 
@@ -166,11 +169,13 @@ int  ml_char_underline_style( ml_char_t *  ch) ;
 
 int  ml_char_is_crossed_out( ml_char_t *  ch) ;
 
+int  ml_char_is_blinking( ml_char_t *  ch) ;
+
+int  ml_char_blink( ml_char_t *  ch) ;
+
 int  ml_char_reverse_color( ml_char_t *  ch) ;
 
 int  ml_char_restore_color( ml_char_t *  ch) ;
-
-int  ml_char_copy_color_reversed_flag( ml_char_t *  dst , ml_char_t *  src) ;
 
 int  ml_char_is_null( ml_char_t *  ch) ;
 
