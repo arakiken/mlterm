@@ -2966,9 +2966,10 @@ set_color_cursor(
 static int
 set_colors(
 	VteTerminal *  terminal ,
-	const void *  palette ,
+	const char *  palette ,
 	glong palette_size ,
-	gchar *  (*to_string)( const void *)
+	size_t  color_size ,
+	gchar *  (*to_string)( const char *)
 	)
 {
 	if( palette_size != 0 && palette_size != 8 && palette_size != 16 &&
@@ -2991,7 +2992,7 @@ set_colors(
 			gchar *  rgb ;
 			char *  name ;
 
-			rgb = (*to_string)( palette + color) ;
+			rgb = (*to_string)( palette) ;
 			name = ml_get_color_name( color) ;
 
 		#ifdef  DEBUG
@@ -3001,6 +3002,7 @@ set_colors(
 			need_redraw |= ml_customize_color_file( name , rgb , 0) ;
 
 			g_free( rgb) ;
+			palette += color_size ;
 		}
 
 		if( need_redraw && GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
@@ -3516,7 +3518,8 @@ vte_terminal_set_colors(
 	glong palette_size
 	)
 {
-	if( set_colors( terminal , palette , palette_size , gdk_color_to_string))
+	if( set_colors( terminal , palette , palette_size , sizeof(GdkColor) ,
+		gdk_color_to_string))
 	{
 		if( foreground == NULL)
 		{
@@ -3592,7 +3595,7 @@ vte_terminal_set_colors_rgba(
 	gsize palette_size
 	)
 {
-	if( set_colors( terminal , palette , palette_size , gdk_rgba_to_string))
+	if( set_colors( terminal , palette , palette_size , sizeof(GdkRGBA) , gdk_rgba_to_string))
 	{
 		if( foreground == NULL)
 		{

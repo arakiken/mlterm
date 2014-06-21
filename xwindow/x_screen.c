@@ -7548,7 +7548,7 @@ x_allow_change_shortcut(
 
 void
 x_set_mod_meta_prefix(
-	const char *  prefix
+	char *  prefix
 	)
 {
 	mod_meta_prefix = prefix ;

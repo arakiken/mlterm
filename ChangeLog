@@ -1,5 +1,7 @@
 2014-06-21  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c: set_colors() is fixed.
+
 	* man/mlterm.1, doc/ja/README.ja: Updated.
 
 	* x_main_config.[ch]: --it/it_color, --bl/bl_color, --co/co_color and
