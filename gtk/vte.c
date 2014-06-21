@@ -3781,7 +3781,7 @@ vte_terminal_get_cursor_blink_mode(
 	VteTerminal *  terminal
 	)
 {
-	if( terminal->pvt->screen->cursor_blink_wait)
+	if( terminal->pvt->screen->blink_cursor)
 	{
 		return  VTE_CURSOR_BLINK_ON ;
 	}
