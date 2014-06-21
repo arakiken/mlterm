@@ -910,39 +910,10 @@ put_char(
 	}
 
 	fg_color = vt100_parser->fg_color ;
-
-	if( ( is_italic = vt100_parser->is_italic) &&
-	    ( vt100_parser->alt_color_mode & ALT_COLOR_ITALIC) &&
-	    fg_color == ML_FG_COLOR)
-	{
-		is_italic = 0 ;
-		fg_color = ML_ITALIC_COLOR ;
-	}
-
-	if( ( is_crossed_out = vt100_parser->is_crossed_out) &&
-	    ( vt100_parser->alt_color_mode & ALT_COLOR_CROSSED_OUT) &&
-	    fg_color == ML_FG_COLOR)
-	{
-		is_crossed_out = 0 ;
-		fg_color = ML_CROSSED_OUT_COLOR ;
-	}
-
-	if( ( is_blinking = vt100_parser->is_blinking) &&
-	    ( vt100_parser->alt_color_mode & ALT_COLOR_BLINKING) &&
-	    fg_color == ML_FG_COLOR)
-	{
-		is_blinking = 0 ;
-		fg_color = ML_BLINKING_COLOR ;
-	}
-
-	if( ( underline_style = vt100_parser->underline_style) &&
-	    ( vt100_parser->alt_color_mode & ALT_COLOR_UNDERLINE) &&
-	    fg_color == ML_FG_COLOR)
-	{
-		underline_style = UNDERLINE_NONE ;
-		fg_color = ML_UNDERLINE_COLOR ;
-	}
-
+	is_italic = vt100_parser->is_italic ;
+	is_crossed_out = vt100_parser->is_crossed_out ;
+	is_blinking = vt100_parser->is_blinking ;
+	underline_style = vt100_parser->underline_style ;
 	if( cs == ISO10646_UCS4_1 && 0x2580 <= ch && ch <= 0x259f)
 	{
 		/* prevent these block characters from being drawn doubly. */
@@ -950,18 +921,47 @@ put_char(
 	}
 	else
 	{
-		if( ( is_bold = vt100_parser->is_bold))
+		is_bold = vt100_parser->is_bold ;
+	}
+
+	if( fg_color == ML_FG_COLOR)
+	{
+		if( is_italic && (vt100_parser->alt_color_mode & ALT_COLOR_ITALIC))
 		{
-			if( ( vt100_parser->alt_color_mode & ALT_COLOR_BOLD) &&
-			    fg_color == ML_FG_COLOR)
-			{
-				is_bold = 0 ;
-				fg_color = ML_BOLD_COLOR ;
-			}
-			else if( IS_VTSYS_BASE_COLOR(fg_color))
-			{
-				fg_color |= ML_BOLD_COLOR_MASK ;
-			}
+			is_italic = 0 ;
+			fg_color = ML_ITALIC_COLOR ;
+		}
+
+		if( is_crossed_out && (vt100_parser->alt_color_mode & ALT_COLOR_CROSSED_OUT))
+		{
+			is_crossed_out = 0 ;
+			fg_color = ML_CROSSED_OUT_COLOR ;
+		}
+
+		if( is_blinking && (vt100_parser->alt_color_mode & ALT_COLOR_BLINKING))
+		{
+			is_blinking = 0 ;
+			fg_color = ML_BLINKING_COLOR ;
+		}
+
+		if( underline_style && (vt100_parser->alt_color_mode & ALT_COLOR_UNDERLINE))
+		{
+			underline_style = UNDERLINE_NONE ;
+			fg_color = ML_UNDERLINE_COLOR ;
+		}
+	}
+
+	if( is_bold)
+	{
+		if( ( vt100_parser->alt_color_mode & ALT_COLOR_BOLD) &&
+		    vt100_parser->fg_color == ML_FG_COLOR)
+		{
+			is_bold = 0 ;
+			fg_color = ML_BOLD_COLOR ;
+		}
+		else if( IS_VTSYS_BASE_COLOR(fg_color))
+		{
+			fg_color |= ML_BOLD_COLOR_MASK ;
 		}
 	}
 
