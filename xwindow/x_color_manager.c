@@ -15,11 +15,14 @@ enum
 {
 	_FG_COLOR = 0x0 ,
 	_BG_COLOR = 0x1 ,
-	_CUR_FG_COLOR = 0x2 ,
-	_CUR_BG_COLOR = 0x3 ,
-	_BD_COLOR = 0x4 ,
-	_UL_COLOR = 0x5 ,
-	MAX_SYS_COLORS = 0x6 ,
+	_BOLD_COLOR = 0x2 ,
+	_ITALIC_COLOR = 0x3 ,
+	_UNDERLINE_COLOR = 0x4 ,
+	_BLINKING_COLOR = 0x5 ,
+	_CROSSED_OUT_COLOR = 0x6 ,
+	_CUR_FG_COLOR = 0x7 ,
+	_CUR_BG_COLOR = 0x8 ,
+	MAX_SYS_COLORS = 0x9 ,
 } ;
 
 
@@ -109,8 +112,11 @@ x_color_manager_new(
 	char *  bg_color ,	/* can be NULL(If NULL, use "white".) */
 	char *  cursor_fg_color , /* can be NULL(If NULL, use reversed one of the char color.) */
 	char *  cursor_bg_color , /* can be NULL(If NULL, use reversed one of the char color.) */
-	char *  bd_color ,	/* can be NULL(If NULL, use reversed one of the char color.) */
-	char *  ul_color	/* can be NULL(If NULL, use reversed one of the char color.) */
+	char *  bd_color ,	/* can be NULL */
+	char *  it_color ,	/* can be NULL */
+	char *  ul_color ,	/* can be NULL */
+	char *  bl_color ,	/* can be NULL */
+	char *  co_color	/* can be NULL */
 	)
 {
 	x_color_manager_t *  color_man ;
@@ -137,8 +143,11 @@ x_color_manager_new(
 	sys_color_set( color_man , bg_color ? bg_color : "white" , _BG_COLOR) ;
 	sys_color_set( color_man , cursor_fg_color , _CUR_FG_COLOR) ;
 	sys_color_set( color_man , cursor_bg_color , _CUR_BG_COLOR) ;
-	sys_color_set( color_man , bd_color , _BD_COLOR) ;
-	sys_color_set( color_man , ul_color , _UL_COLOR) ;
+	sys_color_set( color_man , bd_color , _BOLD_COLOR) ;
+	sys_color_set( color_man , it_color , _ITALIC_COLOR) ;
+	sys_color_set( color_man , ul_color , _UNDERLINE_COLOR) ;
+	sys_color_set( color_man , bl_color , _BLINKING_COLOR) ;
+	sys_color_set( color_man , co_color , _CROSSED_OUT_COLOR) ;
 
 	return  color_man ;
 }
@@ -209,21 +218,13 @@ x_color_manager_set_cursor_bg_color(
 }
 
 int
-x_color_manager_set_bd_color(
+x_color_manager_set_alt_color(
 	x_color_manager_t *  color_man ,
-	char *  name	/* can be NULL */
+	ml_color_t  color ,	/* ML_BOLD_COLOR - ML_CROSSED_OUT_COLOR */
+	char *  name	/* never NULL */
 	)
 {
-	return  sys_color_set( color_man , name , _BD_COLOR) ;
-}
-
-int
-x_color_manager_set_ul_color(
-	x_color_manager_t *  color_man ,
-	char *  name	/* can be NULL */
-	)
-{
-	return  sys_color_set( color_man , name , _UL_COLOR) ;
+	return  sys_color_set( color_man , name , color - ML_FG_COLOR) ;
 }
 
 char *
@@ -259,19 +260,12 @@ x_color_manager_get_cursor_bg_color(
 }
 
 char *
-x_color_manager_get_bd_color(
-	x_color_manager_t *  color_man
+x_color_manager_get_alt_color(
+	x_color_manager_t *  color_man ,
+	ml_color_t   color	/* ML_BOLD_COLOR - ML_CROSSED_OUT_COLOR */
 	)
 {
-	return  color_man->sys_colors[_BD_COLOR].name ;
-}
-
-char *
-x_color_manager_get_ul_color(
-	x_color_manager_t *  color_man
-	)
-{
-	return  color_man->sys_colors[_UL_COLOR].name ;
+	return  color_man->sys_colors[color - ML_FG_COLOR].name ;
 }
 
 x_color_t *
@@ -292,13 +286,20 @@ x_get_xcolor(
 		}
 	}
 
-	if( color == ML_FG_COLOR)
+	if( IS_FG_BG_COLOR(color))
 	{
-		return  &color_man->sys_colors[_FG_COLOR].xcolor ;
+		return  &color_man->sys_colors[color - ML_FG_COLOR].xcolor ;
 	}
-	else if( color == ML_BG_COLOR)
+	else if( IS_ALT_COLOR(color))
 	{
-		return  &color_man->sys_colors[_BG_COLOR].xcolor ;
+		if( color_man->sys_colors[color - ML_FG_COLOR].name)
+		{
+			return  &color_man->sys_colors[color - ML_FG_COLOR].xcolor ;
+		}
+		else
+		{
+			return  &color_man->sys_colors[_FG_COLOR].xcolor ;
+		}
 	}
 	else
 	{
@@ -458,52 +459,6 @@ x_color_manager_adjust_cursor_bg_color(
 	color_man->sys_colors[_FG_COLOR] = color_man->sys_colors[_CUR_BG_COLOR] ;
 	color_man->sys_colors[_CUR_BG_COLOR] = tmp_color ;
 	
-	return  1 ;
-}
-
-/*
- * Swap the color of ML_BG_COLOR <=> that of bd color.
- * Deal ML_BG_COLOR as bd color.
- */
-int
-x_color_manager_adjust_bd_color(
-	x_color_manager_t *  color_man
-	)
-{
-	struct sys_color  tmp_color ;
-
-	if( ! color_man->sys_colors[_BD_COLOR].name)
-	{
-		return  0 ;
-	}
-
-	tmp_color = color_man->sys_colors[_FG_COLOR] ;
-	color_man->sys_colors[_FG_COLOR] = color_man->sys_colors[_BD_COLOR] ;
-	color_man->sys_colors[_BD_COLOR] = tmp_color ;
-
-	return  1 ;
-}
-
-/*
- * Swap the color of ML_BG_COLOR <=> that of bd color.
- * Deal ML_BG_COLOR as bd color.
- */
-int
-x_color_manager_adjust_ul_color(
-	x_color_manager_t *  color_man
-	)
-{
-	struct sys_color  tmp_color ;
-
-	if( ! color_man->sys_colors[_UL_COLOR].name)
-	{
-		return  0 ;
-	}
-
-	tmp_color = color_man->sys_colors[_FG_COLOR] ;
-	color_man->sys_colors[_FG_COLOR] = color_man->sys_colors[_UL_COLOR] ;
-	color_man->sys_colors[_UL_COLOR] = tmp_color ;
-
 	return  1 ;
 }
 

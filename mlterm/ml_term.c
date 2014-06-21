@@ -259,7 +259,8 @@ ml_term_new(
 	ml_vertical_mode_t  vertical_mode ,
 	int  use_local_echo ,
 	char *  win_name ,
-	char *  icon_name
+	char *  icon_name ,
+	ml_alt_color_mode_t  alt_color_mode
 	)
 {
 	ml_term_t *  term ;
@@ -284,7 +285,8 @@ ml_term_new(
 	}
 
 	if( ! ( term->parser = ml_vt100_parser_new( term->screen , encoding , policy , col_size_a ,
-				use_char_combining , use_multi_col_char , win_name , icon_name)))
+				use_char_combining , use_multi_col_char , win_name , icon_name ,
+				alt_color_mode)))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new failed.\n") ;

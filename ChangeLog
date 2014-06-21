@@ -1,3 +1,35 @@
+2014-06-21  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* x_main_config.[ch]: --it/it_color, --bl/bl_color, --co/co_color and
+	  --itfont/use_italic_font options are added.
+
+	* x_font_manager.[ch]: x_set_use_italic_font() is added.
+
+	* vte.c, MLTermPty.c, ml_term_manager.[ch]: Fixes by the change of
+	  the arguments of x_font_manager_new(), x_color_manager_new() and
+	  ml_create_term().
+
+	* x_draw_str.[ch]: adjust_bd_ul_color() is removed.
+
+	* x_color_manager.[ch]:
+	  - _ITALIC_COLOR, _BLINKING_COLOR and CROSSED_OUT_COLOR are managed in
+	    x_color_manager_t::sys_colors.
+	  - x_color_manager_{set|get}_{bd|ul}_color() ->
+	    x_color_manager_{set|get}_alt_color().
+	  - x_color_manager_adjust_{bd|ul}_color() are removed.
+
+	* ml_term.[ch]: ml_term_{set|get}_alt_color_mode() are added.
+
+	* ml_vt100_parser.[ch]:
+	  - ml_alt_color_mode_t is added.
+	  - ml_vt100_parser_{set|get}_alt_color_mode() are added.
+	  - vt100_parser->alt_color_mode is checked in put_char().
+
+	* ml_color.h: ML_BOLD_COLOR, ML_ITALIC_COLOR, ML_UNDERLINE_COLOR,
+	  ML_BLINKING_COLOR, ML_CROSSED_OUT_COLOR are added.
+
 2014-06-20  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.[ch], x_screen.[ch]: SGR 5 and 25 are supported.

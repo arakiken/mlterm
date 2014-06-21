@@ -846,6 +846,10 @@ put_char(
 	int  is_fullwidth ;
 	int  is_comb ;
 	int  is_bold ;
+	int  is_italic ;
+	int  underline_style ;
+	int  is_crossed_out ;
+	int  is_blinking ;
 
 	if( vt100_parser->w_buf.filled_len == PTY_WR_BUFFER_SIZE)
 	{
@@ -905,6 +909,40 @@ put_char(
 		vt100_parser->cs = cs ;
 	}
 
+	fg_color = vt100_parser->fg_color ;
+
+	if( ( is_italic = vt100_parser->is_italic) &&
+	    ( vt100_parser->alt_color_mode & ALT_COLOR_ITALIC) &&
+	    fg_color == ML_FG_COLOR)
+	{
+		is_italic = 0 ;
+		fg_color = ML_ITALIC_COLOR ;
+	}
+
+	if( ( is_crossed_out = vt100_parser->is_crossed_out) &&
+	    ( vt100_parser->alt_color_mode & ALT_COLOR_CROSSED_OUT) &&
+	    fg_color == ML_FG_COLOR)
+	{
+		is_crossed_out = 0 ;
+		fg_color = ML_CROSSED_OUT_COLOR ;
+	}
+
+	if( ( is_blinking = vt100_parser->is_blinking) &&
+	    ( vt100_parser->alt_color_mode & ALT_COLOR_BLINKING) &&
+	    fg_color == ML_FG_COLOR)
+	{
+		is_blinking = 0 ;
+		fg_color = ML_BLINKING_COLOR ;
+	}
+
+	if( ( underline_style = vt100_parser->underline_style) &&
+	    ( vt100_parser->alt_color_mode & ALT_COLOR_UNDERLINE) &&
+	    fg_color == ML_FG_COLOR)
+	{
+		underline_style = UNDERLINE_NONE ;
+		fg_color = ML_UNDERLINE_COLOR ;
+	}
+
 	if( cs == ISO10646_UCS4_1 && 0x2580 <= ch && ch <= 0x259f)
 	{
 		/* prevent these block characters from being drawn doubly. */
@@ -912,26 +950,28 @@ put_char(
 	}
 	else
 	{
-		is_bold = vt100_parser->is_bold ;
+		if( ( is_bold = vt100_parser->is_bold))
+		{
+			if( ( vt100_parser->alt_color_mode & ALT_COLOR_BOLD) &&
+			    fg_color == ML_FG_COLOR)
+			{
+				is_bold = 0 ;
+				fg_color = ML_BOLD_COLOR ;
+			}
+			else if( IS_VTSYS_BASE_COLOR(fg_color))
+			{
+				fg_color |= ML_BOLD_COLOR_MASK ;
+			}
+		}
 	}
 
 	if( vt100_parser->is_reversed)
 	{
+		bg_color = fg_color ;
 		fg_color = vt100_parser->bg_color ;
-		if( ! IS_FG_BG_COLOR( bg_color = vt100_parser->fg_color) &&
-		    is_bold)
-		{
-			bg_color |= ML_BOLD_COLOR_MASK ;
-		}
 	}
 	else
 	{
-		if( ! IS_FG_BG_COLOR( fg_color = vt100_parser->fg_color) &&
-		    is_bold)
-		{
-			fg_color |= ML_BOLD_COLOR_MASK ;
-		}
-
 		bg_color = vt100_parser->bg_color ;
 	}
 
@@ -945,9 +985,8 @@ put_char(
 			 */
 			if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 				ch , cs , is_fullwidth , is_comb ,
-				fg_color , bg_color , is_bold ,
-				vt100_parser->is_italic , vt100_parser->underline_style ,
-				vt100_parser->is_crossed_out , vt100_parser->is_blinking))
+				fg_color , bg_color , is_bold , is_italic ,
+				underline_style , is_crossed_out , is_blinking))
 			{
 				return ;
 			}
@@ -957,9 +996,8 @@ put_char(
 			if( ml_char_combine(
 				&vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ,
 				ch , cs , is_fullwidth , is_comb ,
-				fg_color , bg_color , is_bold ,
-				vt100_parser->is_italic , vt100_parser->underline_style ,
-				vt100_parser->is_crossed_out , vt100_parser->is_blinking))
+				fg_color , bg_color , is_bold , is_italic ,
+				underline_style , is_crossed_out , is_blinking))
 			{
 				return ;
 			}
@@ -972,9 +1010,8 @@ put_char(
 
 	ml_char_set( &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len++] , ch ,
 		cs , is_fullwidth , is_comb ,
-		fg_color , bg_color , is_bold ,
-		vt100_parser->is_italic , vt100_parser->underline_style ,
-		vt100_parser->is_crossed_out , vt100_parser->is_blinking) ;
+		fg_color , bg_color , is_bold , is_italic ,
+		underline_style , is_crossed_out , is_blinking) ;
 
 	if( ! vt100_parser->screen->use_dynamic_comb && cs == ISO10646_UCS4_1)
 	{
@@ -2474,6 +2511,10 @@ change_special_color(
 	else if( *pt == '1')
 	{
 		key = "ul_color" ;
+	}
+	else if( *pt == '2')
+	{
+		key = "bl_color" ;
 	}
 	else
 	{
@@ -5647,7 +5688,8 @@ ml_vt100_parser_new(
 	int  use_char_combining ,
 	int  use_multi_col_char ,
 	char *  win_name ,
-	char *  icon_name
+	char *  icon_name ,
+	ml_alt_color_mode_t  alt_color_mode
 	)
 {
 	ml_vt100_parser_t *  vt100_parser ;
@@ -5712,6 +5754,8 @@ ml_vt100_parser_new(
 #endif
 
 	vt100_parser->sixel_scrolling = 1 ;
+
+	vt100_parser->alt_color_mode = alt_color_mode ;
 
 	return  vt100_parser ;
 
@@ -6406,4 +6450,13 @@ ml_convert_to_internal_ch(
 	*orig_ch = ch ;
 
 	return  1 ;
+}
+
+void
+ml_vt100_parser_set_alt_color_mode(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_alt_color_mode_t  mode
+	)
+{
+	vt100_parser->alt_color_mode = mode ;
 }

@@ -59,6 +59,16 @@ typedef enum  ml_extended_mouse_report_mode
 
 } ml_extended_mouse_report_mode_t ;
 
+typedef enum  ml_alt_color_mode
+{
+	ALT_COLOR_BOLD = 0x1 ,
+	ALT_COLOR_ITALIC = 0x2 ,
+	ALT_COLOR_UNDERLINE = 0x4 ,
+	ALT_COLOR_BLINKING = 0x8 ,
+	ALT_COLOR_CROSSED_OUT = 0x10 ,
+
+} ml_alt_color_mode_t ;
+
 typedef struct  ml_write_buffer
 {
 	ml_char_t  chars[PTY_WR_BUFFER_SIZE] ;
@@ -193,6 +203,8 @@ typedef struct  ml_vt100_parser
 	int8_t  is_crossed_out ;
 	int8_t  is_blinking ;
 
+	int8_t  alt_color_mode ;
+
 	u_int8_t  col_size_of_width_a ;	/* 1 or 2 */
 
 	int8_t  use_char_combining ;
@@ -249,7 +261,7 @@ void  ml_set_full_width_areas( char *  areas) ;
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char ,
-	char *  win_name , char *  icon_name) ;
+	char *  win_name , char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 
@@ -347,6 +359,11 @@ int  ml_convert_to_internal_ch( mkf_char_t *  ch , ml_unicode_policy_t  unicode_
 		mkf_charset_t  gl) ;
 
 #define  ml_vt100_parser_select_drcs( vt100_parser)  ml_drcs_select( (vt100_parser)->drcs)
+
+void  ml_vt100_parser_set_alt_color_mode( ml_vt100_parser_t *  vt100_parser ,
+	ml_alt_color_mode_t  mode) ;
+
+#define  ml_vt100_parser_get_alt_color_mode( vt100_parser)  ((vt100_parser)->alt_color_mode)
 
 
 #endif

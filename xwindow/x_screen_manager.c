@@ -138,7 +138,8 @@ create_term_intern(void)
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,
 			main_config.vertical_mode , main_config.use_local_echo ,
-			main_config.title , main_config.icon_name)) == NULL)
+			main_config.title , main_config.icon_name ,
+			main_config.alt_color_mode)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -582,8 +583,8 @@ open_screen_intern(
 		main_config.type_engine , main_config.font_present ,
 		main_config.font_size , usascii_font_cs ,
 		main_config.use_multi_col_char ,
-		main_config.step_in_changing_font_size ,
-		main_config.letter_space , main_config.use_bold_font)) == NULL)
+		main_config.step_in_changing_font_size , main_config.letter_space ,
+		main_config.use_bold_font , main_config.use_italic_font)) == NULL)
 	{
 		char *  name ;
 
@@ -603,7 +604,9 @@ open_screen_intern(
 	if( ( color_man = x_color_manager_new( disp ,
 				main_config.fg_color , main_config.bg_color ,
 				main_config.cursor_fg_color , main_config.cursor_bg_color ,
-				main_config.bd_color , main_config.ul_color)) == NULL)
+				main_config.bd_color , main_config.it_color ,
+				main_config.ul_color , main_config.bl_color ,
+				main_config.co_color)) == NULL)
 	{
 		goto  error ;
 	}

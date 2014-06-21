@@ -526,6 +526,9 @@ cmd_r   |      FED CBA \-l ls $|
         (Upper case characters represent RTL ones.)
 .fi
 .TP
+\fB\-\-bl\fR=\fIvalue\fR
+Specify the color to use to display blinking characters.
+.TP
 \fB\-\-blink\fR(=\fIbool\fR)
 Blink cursor. The default is \fBfalse\fR.
 .TP
@@ -537,6 +540,9 @@ The maximum value is \fB224\fR.
 Use either unicode font or DEC Special font forcibly to draw box-drawing characters.
 \fBunicode\fR for unicode font and \fBdecsp\fR for DEC special font.
 The default is \fBnoconv\fR which draw them as they are.
+.TP
+\fB\-\-co\fR=\fIvalue\fR
+Specify the color to use to display crossed-out characters.
 .TP
 \fB\-\-colors\fR(=\fIbool\fR)
 Whether to recognize ANSI color change escape sequences.
@@ -566,6 +572,13 @@ e.g.) --fullwidth=U+1234-5678,U+0123-4567
 .TP
 \fB\-\-iconpath\fR=\fIpath\fR
 Specify the file to be used as a window icon.
+.TP
+\fB\-\-it\fR=\fIvalue\fR
+Specify the color to use to display italic characters.
+.TP
+\fB\-\-itfont\fR(=\fIbool\fR)
+Use italic font for characters with the italic attribute.
+The default is \fBtrue\fR.
 .TP
 \fB\-\-keepalive\fR=\fIvalue\fR
 Specify interval seconds to send keepalive message to ssh server.
@@ -1166,6 +1179,9 @@ Behavior when BEL (0x07) is received.
 \fBbd_color=\fIvalue\fR (\fB\-\-bd\fR) 
 Specify the color to use to display bold characters.
 .TP
+\fBbl_color=\fIvalue\fR (\fB\-\-bl\fR) 
+Specify the color to use to display blinking characters.
+.TP
 \fBbg_color=\fIcolor\fR (\fB\-b\fR, \fB\-\-bg\fR) 
 Background color.
 .TP
@@ -1189,6 +1205,9 @@ Don't draw window decorations.
 .TP
 \fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
 Specify ciphers (comma separated list) for encrypting the ssh session.
+.TP
+\fBco_color=\fIvalue\fR (\fB\-\-co\fR) 
+Specify the color to use to display crossed-out characters.
 .TP
 \fBcol_size_of_width_a=\fIvalue\fR (\fB\-a\fR, \fB\-\-ac\fR) 
 Number of columns of Unicode characters with EastAsianAmbiguous property.
@@ -1258,6 +1277,9 @@ Specify input method.
 .TP
 \fBiso88591_font_for_usascii=\fIbool\fR (\fB\-8\fR, \fB\-\-88591\fR) 
 Use ISO8859-1 fonts for US-ASCII part of various encodings.
+.TP
+\fBit_color=\fIvalue\fR (\fB\-\-it\fR) 
+Specify the color to use to display italic characters.
 .TP
 \fBleftward_double_drawing=\fIbool\fR (\fB\-\-ldd\fR)
 Embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.
@@ -1398,6 +1420,9 @@ Enable extended short cut keys for scrolling.
 .TP
 \fBuse_ind=\fIbool\fR (\fB\-C\fR, \fB\-\-ind\fR) 
 Use indic rendering on UTF8 or ISCII encoding.
+.TP
+\fBuse_italic_font=\fIbool\fR (\fB\-\-itfont\fR)
+Use italic font for characters with the italic attribute.
 .TP
 \fBuse_local_echo=\fIbool\fR (\fB\-\-loecho\fR) 
 Use local echo mode.

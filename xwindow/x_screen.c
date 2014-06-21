@@ -4847,26 +4847,21 @@ change_bg_color(
 }
 
 static void
-change_bd_color(
+change_alt_color(
 	x_screen_t *  screen ,
+	ml_color_t  color ,
 	char *  name
 	)
 {
-	if( x_color_manager_set_bd_color( screen->color_man , *name ? name : NULL))
+	if( x_color_manager_set_alt_color( screen->color_man , color , *name ? name : NULL))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-	}
-}
 
-static void
-change_ul_color(
-	x_screen_t *  screen ,
-	char *  name
-	)
-{
-	if( x_color_manager_set_ul_color( screen->color_man , *name ? name : NULL))
-	{
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+		ml_term_set_alt_color_mode( screen->term ,
+			*name ? (ml_term_get_alt_color_mode( screen->term) |
+					(1 << (color - ML_BOLD_COLOR))) :
+			        (ml_term_get_alt_color_mode( screen->term) &
+					~(1 << (color - ML_BOLD_COLOR)))) ;
 	}
 }
 
@@ -4903,6 +4898,18 @@ change_use_bold_font_flag(
 	)
 {
 	if( x_set_use_bold_font( screen->font_man , flag))
+	{
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+	}
+}
+
+static void
+change_use_italic_font_flag(
+	x_screen_t *  screen ,
+	int  flag
+	)
+{
+	if( x_set_use_italic_font( screen->font_man , flag))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
@@ -5401,14 +5408,40 @@ get_config_intern(
 	}
 	else if( strcmp( key , "bd_color") == 0)
 	{
-		if( ( value = x_color_manager_get_bd_color( screen->color_man)) == NULL)
+		if( ( value = x_color_manager_get_alt_color( screen->color_man ,
+					ML_BOLD_COLOR)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "it_color") == 0)
+	{
+		if( ( value = x_color_manager_get_alt_color( screen->color_man ,
+					ML_ITALIC_COLOR)) == NULL)
 		{
 			value = "" ;
 		}
 	}
 	else if( strcmp( key , "ul_color") == 0)
 	{
-		if( ( value = x_color_manager_get_ul_color( screen->color_man)) == NULL)
+		if( ( value = x_color_manager_get_alt_color( screen->color_man ,
+					ML_UNDERLINE_COLOR)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "bl_color") == 0)
+	{
+		if( ( value = x_color_manager_get_alt_color( screen->color_man ,
+					ML_BLINKING_COLOR)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "co_color") == 0)
+	{
+		if( ( value = x_color_manager_get_alt_color( screen->color_man ,
+					ML_CROSSED_OUT_COLOR)) == NULL)
 		{
 			value = "" ;
 		}
@@ -5656,6 +5689,17 @@ get_config_intern(
 	else if( strcmp( key , "use_bold_font") == 0)
 	{
 		if( x_is_using_bold_font( screen->font_man))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_italic_font") == 0)
+	{
+		if( x_is_using_italic_font( screen->font_man))
 		{
 			value = "true" ;
 		}
@@ -8494,11 +8538,23 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "bd_color") == 0)
 	{
-		change_bd_color( screen , value) ;
+		change_alt_color( screen , ML_BOLD_COLOR , value) ;
+	}
+	else if( strcmp( key , "it_color") == 0)
+	{
+		change_alt_color( screen , ML_ITALIC_COLOR , value) ;
 	}
 	else if( strcmp( key , "ul_color") == 0)
 	{
-		change_ul_color( screen , value) ;
+		change_alt_color( screen , ML_UNDERLINE_COLOR , value) ;
+	}
+	else if( strcmp( key , "bl_color") == 0)
+	{
+		change_alt_color( screen , ML_BLINKING_COLOR , value) ;
+	}
+	else if( strcmp( key , "co_color") == 0)
+	{
+		change_alt_color( screen , ML_CROSSED_OUT_COLOR , value) ;
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{
@@ -8798,6 +8854,15 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			change_use_bold_font_flag( screen , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_italic_font") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			change_use_italic_font_flag( screen , flag) ;
 		}
 	}
 	else if( strcmp( key , "col_size_of_width_a") == 0)

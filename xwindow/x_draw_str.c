@@ -20,37 +20,6 @@
 
 /* --- static functions --- */
 
-static int
-adjust_bd_ul_color(
-	x_color_manager_t *  color_man ,
-	ml_color_t  fg_color ,
-	ml_color_t  bg_color ,
-	int  is_bold ,
-	int  underline_style
-	)
-{
-	if( is_bold)
-	{
-		/* If bg_color == ML_FG_COLOR, it seems to be reversed. */
-		if( ( fg_color == ML_FG_COLOR || bg_color == ML_FG_COLOR) &&
-		    x_color_manager_adjust_bd_color( color_man))
-		{
-			return  1 ;
-		}
-	}
-
-	if( underline_style)
-	{
-		if( ( fg_color == ML_FG_COLOR || bg_color == ML_FG_COLOR) &&
-		    x_color_manager_adjust_ul_color( color_man))
-		{
-			return  2 ;
-		}
-	}
-
-	return  0 ;
-}
-
 static void
 draw_line(
 	x_window_t *  window ,
@@ -754,7 +723,6 @@ fc_draw_str(
 			 * status is changed.
 			 */
 
-			int  color_adjusted ;	/* 0 => None , 1 => BD , 2 => UL */
 			x_color_t *  fg_xcolor ;
 			x_color_t *  bg_xcolor ;
 
@@ -772,8 +740,6 @@ fc_draw_str(
 			}
 		#endif
 
-			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
-							font & FONT_BOLD , underline_style) ;
 			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
 			bg_xcolor = x_get_xcolor( color_man , bg_color) ;
 
@@ -840,7 +806,7 @@ fc_draw_str(
 					, y + ascent) ;
 			}
 
-			if( ! hide_underline && color_adjusted != 2 && underline_style)
+			if( ! hide_underline && underline_style)
 			{
 				draw_line( window , fg_xcolor , xfont->is_vertical ,
 					underline_style == UNDERLINE_DOUBLE ? 1 : 0 ,
@@ -853,18 +819,6 @@ fc_draw_str(
 				draw_line( window , fg_xcolor , xfont->is_vertical , 2 ,
 					x , y , current_width - x , height , ascent ,
 					top_margin) ;
-			}
-
-			if( color_adjusted)
-			{
-				if( color_adjusted == 1)
-				{
-					x_color_manager_adjust_bd_color( color_man) ;
-				}
-				else /* if( color_adjusted == 2) */
-				{
-					x_color_manager_adjust_ul_color( color_man) ;
-				}
 			}
 
 		end_draw:
@@ -1212,7 +1166,6 @@ xcore_draw_str(
 			 * status is changed.
 			 */
 
-			int  color_adjusted ;	/* 0 => None , 1 => BD , 2 => UL */
 			x_color_t *  fg_xcolor ;
 			x_color_t *  bg_xcolor ;
 
@@ -1229,9 +1182,6 @@ xcore_draw_str(
 				goto  end_draw ;
 			}
 		#endif
-
-			color_adjusted = adjust_bd_ul_color( color_man , fg_color , bg_color ,
-							font & FONT_BOLD , underline_style) ;
 
 			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
 
@@ -1335,7 +1285,7 @@ xcore_draw_str(
 					, y + ascent) ;
 			}
 
-			if( ! hide_underline && color_adjusted != 2 && underline_style)
+			if( ! hide_underline && underline_style)
 			{
 				draw_line( window , fg_xcolor , xfont->is_vertical ,
 					underline_style == UNDERLINE_DOUBLE ? 1 : 0 ,
@@ -1348,18 +1298,6 @@ xcore_draw_str(
 				draw_line( window , fg_xcolor , xfont->is_vertical , 2 ,
 					x , y , current_width - x , height , ascent ,
 					top_margin) ;
-			}
-
-			if( color_adjusted)
-			{
-				if( color_adjusted == 1)
-				{
-					x_color_manager_adjust_bd_color( color_man) ;
-				}
-				else /* if( color_adjusted == 2) */
-				{
-					x_color_manager_adjust_ul_color( color_man) ;
-				}
 			}
 
 		end_draw:

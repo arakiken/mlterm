@@ -198,6 +198,8 @@ x_prepare_for_main_config(
 		"step in changing font size in GUI configurator [1]") ;
 	kik_conf_add_opt( conf , '\0' , "bdfont" , 1 , "use_bold_font" ,
 		"use bold fonts [true]") ;
+	kik_conf_add_opt( conf , '\0' , "itfont" , 1 , "use_italic_font" ,
+		"use italic fonts [true]") ;
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
@@ -208,8 +210,14 @@ x_prepare_for_main_config(
 		"parent window") ;
 	kik_conf_add_opt( conf , '\0' , "bd" , 0 , "bd_color" ,
 		"Color to use to display bold characters (equivalent to colorBD)") ;
+	kik_conf_add_opt( conf , '\0' , "it" , 0 , "it_color" ,
+		"Color to use to display italic characters") ;
 	kik_conf_add_opt( conf , '\0' , "ul" , 0 , "ul_color" ,
 		"Color to use to display underlined characters (equivalent to colorUL)") ;
+	kik_conf_add_opt( conf , '\0' , "bl" , 0 , "bl_color" ,
+		"Color to use to display blinking characters (equivalent to colorBL)") ;
+	kik_conf_add_opt( conf , '\0' , "co" , 0 , "co_color" ,
+		"Color to use to display crossed-out characters") ;
 	kik_conf_add_opt( conf , '\0' , "noul" , 1 , "hide_underline" ,
 		"Don't draw underline [false]") ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
@@ -531,16 +539,38 @@ x_main_config_init(
 		main_config->cursor_bg_color = strdup( value) ;
 	}
 
+	main_config->alt_color_mode = 0 ;
+
 	if( ( value = kik_conf_get_value( conf , "bd_color")))
 	{
 		main_config->bd_color = strdup( value) ;
+		main_config->alt_color_mode |= ALT_COLOR_BOLD ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "it_color")))
+	{
+		main_config->it_color = strdup( value) ;
+		main_config->alt_color_mode |= ALT_COLOR_ITALIC ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "ul_color")))
 	{
 		main_config->ul_color = strdup( value) ;
+		main_config->alt_color_mode |= ALT_COLOR_UNDERLINE ;
 	}
-	
+
+	if( ( value = kik_conf_get_value( conf , "bl_color")))
+	{
+		main_config->ul_color = strdup( value) ;
+		main_config->alt_color_mode |= ALT_COLOR_BLINKING ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "co_color")))
+	{
+		main_config->ul_color = strdup( value) ;
+		main_config->alt_color_mode |= ALT_COLOR_CROSSED_OUT ;
+	}
+
 	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))
 	{
 		main_config->sb_fg_color = strdup( value) ;
@@ -1274,6 +1304,16 @@ x_main_config_init(
 		}
 	}
 
+	main_config->use_italic_font = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_italic_font")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			main_config->use_italic_font = 0 ;
+		}
+	}
+
 	if( ( value = kik_conf_get_value( conf , "hide_underline")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1411,16 +1451,21 @@ x_main_config_final(
 	free( main_config->title) ;
 	free( main_config->icon_name) ;
 	free( main_config->term_type) ;
+	free( main_config->scrollbar_view_name) ;
+	free( main_config->pic_file_path) ;
 	free( main_config->shortcut_strs[0]) ;
 	free( main_config->shortcut_strs[1]) ;
 	free( main_config->shortcut_strs[2]) ;
 	free( main_config->shortcut_strs[3]) ;
-	free( main_config->pic_file_path) ;
-	free( main_config->scrollbar_view_name) ;
 	free( main_config->fg_color) ;
 	free( main_config->bg_color) ;
 	free( main_config->cursor_fg_color) ;
 	free( main_config->cursor_bg_color) ;
+	free( main_config->bd_color) ;
+	free( main_config->it_color) ;
+	free( main_config->ul_color) ;
+	free( main_config->bl_color) ;
+	free( main_config->co_color) ;
 	free( main_config->sb_fg_color) ;
 	free( main_config->sb_bg_color) ;
 	free( main_config->mod_meta_key) ;

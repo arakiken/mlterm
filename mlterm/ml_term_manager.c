@@ -291,7 +291,8 @@ ml_create_term(
 	ml_vertical_mode_t  vertical_mode ,
 	int  use_local_echo ,
 	char *  win_name ,
-	char *  icon_name
+	char *  icon_name ,
+	ml_alt_color_mode_t  alt_color_mode
 	)
 {
 #if  ! defined(USE_WIN32API) && ! defined(DEBUG)
@@ -329,7 +330,7 @@ ml_create_term(
 						use_multi_col_char , use_bidi , bidi_mode ,
 						use_ind , use_bce , use_dynamic_comb ,
 						bs_mode , vertical_mode , use_local_echo ,
-						win_name , icon_name)))
+						win_name , icon_name , alt_color_mode)))
 					{
 						ml_term_plug_pty( terms[num_of_terms++] , pty) ;
 						ml_set_pty_winsize( pty , cols , rows) ;
@@ -370,7 +371,8 @@ ml_create_term(
 				is_auto_encoding ,
 				policy , col_size_a , use_char_combining , use_multi_col_char ,
 				use_bidi , bidi_mode , use_ind , use_bce , use_dynamic_comb ,
-				bs_mode , vertical_mode , use_local_echo , win_name , icon_name)))
+				bs_mode , vertical_mode , use_local_echo , win_name , icon_name ,
+				alt_color_mode)))
 	{
 		return  NULL ;
 	}

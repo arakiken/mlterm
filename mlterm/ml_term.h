@@ -70,7 +70,7 @@ ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  l
 	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , int  use_ind , int  use_bce , int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode , ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
-	char *  win_name , char *  icon_name) ;
+	char *  win_name , char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 
@@ -306,6 +306,12 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_set_use_auto_detect( term , use) \
 		ml_vt100_parser_set_use_auto_detect((term)->parser , use)
+
+#define  ml_term_set_alt_color_mode( term , mode) \
+		ml_vt100_parser_set_alt_color_mode((term)->parser , mode)
+
+#define  ml_term_get_alt_color_mode( term) \
+		ml_vt100_parser_get_alt_color_mode((term)->parser)
 
 int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 

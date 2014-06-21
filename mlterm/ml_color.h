@@ -18,7 +18,8 @@
 #define  IS_VTSYS_COLOR(color)  ((unsigned int)(color) <= 0xf)
 #define  IS_256_COLOR(color)  (0x10 <= (color) && (color) <= 0xff)
 #define  IS_VALID_COLOR_EXCEPT_FG_BG(color)  ((unsigned int)(color) <= 0xff)
-#define  IS_FG_BG_COLOR(color)  ((color) >= 0x100)
+#define  IS_FG_BG_COLOR(color)  (0x100 <= (color) && (color) <= 0x101)
+#define  IS_ALT_COLOR(color)  (0x102 <= (color))
 
 
 typedef enum  ml_color
@@ -49,8 +50,14 @@ typedef enum  ml_color
 	 */
 
 	ML_FG_COLOR = 0x100 ,
-	ML_BG_COLOR = 0x101
-	
+	ML_BG_COLOR = 0x101 ,
+
+	ML_BOLD_COLOR = 0x102 ,
+	ML_ITALIC_COLOR = 0x103 ,
+	ML_UNDERLINE_COLOR = 0x104 ,
+	ML_BLINKING_COLOR = 0x105 ,
+	ML_CROSSED_OUT_COLOR = 0x106 ,
+
 } ml_color_t ;
 
 

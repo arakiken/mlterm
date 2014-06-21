@@ -58,7 +58,10 @@ typedef struct x_main_config
 	char *  cursor_fg_color ;
 	char *  cursor_bg_color ;
 	char *  bd_color ;
+	char *  it_color ;
 	char *  ul_color ;
+	char *  bl_color ;
+	char *  co_color ;
 	char *  sb_fg_color ;
 	char *  sb_bg_color ;
 	char *  mod_meta_key ;
@@ -106,10 +109,12 @@ typedef struct x_main_config
 	u_int8_t  vmargin ;
 	int8_t  hide_underline ;
 	int8_t  use_bold_font ;
+	int8_t  use_italic_font ;
 	int8_t  use_local_echo ;
 	int8_t  use_x11_forwarding ;
 	int8_t  use_auto_detect ;
 	int8_t  unlimit_log_size ;
+	int8_t  alt_color_mode ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	int8_t  show_dialog ;
 #endif
