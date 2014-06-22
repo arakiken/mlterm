@@ -1,5 +1,10 @@
 2014-06-22  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_screen.[ch], ml_term.h, x_screen.c: 'visible' argument is added to
+	  ml_term_blink() and ml_screen_blink().
+
+	* ml_char.[ch]: ml_char_blink() => ml_char_set_visible()
+
 	* ml_vt100_parser.c: put_char() is fixed.
 
 2014-06-21  Araki Ken  <arakiken@users.sf.net>

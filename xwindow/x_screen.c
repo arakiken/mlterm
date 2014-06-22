@@ -4169,7 +4169,7 @@ idling(
 			{
 				int  update ;
 
-				update = ml_term_blink( screen->term) ;
+				update = ml_term_blink( screen->term , 0) ;
 
 				if( screen->blink_cursor)
 				{
@@ -4196,7 +4196,7 @@ idling(
 		{
 			int  flag ;
 
-			flag = ml_screen_blink( screen->term->screen) ? UPDATE_SCREEN : 0 ;
+			flag = ml_screen_blink( screen->term->screen , 1) ? UPDATE_SCREEN : 0 ;
 
 			if( screen->blink_cursor)
 			{

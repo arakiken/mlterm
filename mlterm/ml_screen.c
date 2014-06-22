@@ -1830,7 +1830,8 @@ ml_screen_search_find(
 
 int
 ml_screen_blink(
-	ml_screen_t *  screen
+	ml_screen_t *  screen ,
+	int  visible
 	)
 {
 	int  has_blinking_char ;
@@ -1856,7 +1857,7 @@ ml_screen_blink(
 			{
 				if( ml_char_is_blinking( line->chars + char_index))
 				{
-					ml_char_blink( line->chars + char_index) ;
+					ml_char_set_visible( line->chars + char_index , visible) ;
 					ml_line_set_modified( line , char_index , char_index) ;
 
 					has_blinking_char = 1 ;

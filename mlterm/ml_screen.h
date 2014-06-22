@@ -208,7 +208,7 @@ int  ml_screen_search_reset_position( ml_screen_t *  screen) ;
 int  ml_screen_search_find( ml_screen_t *  screen , int *  beg_char_index , int *  beg_row ,
 	int *  end_char_index , int *  end_row , void *  regex , int  backward) ;
 
-int  ml_screen_blink( ml_screen_t *  screen) ;
+int  ml_screen_blink( ml_screen_t *  screen , int  visible) ;
 
 
 /*

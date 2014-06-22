@@ -761,13 +761,14 @@ ml_char_is_blinking(
 }
 
 int
-ml_char_blink(
-	ml_char_t *  ch
+ml_char_set_visible(
+	ml_char_t *  ch ,
+	int  visible
 	)
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		if( IS_CONCEALED(ch->u.ch.attr))
+		if( ! visible)
 		{
 			ch->u.ch.attr &= ~(0x1 << 19) ;
 		}
@@ -780,7 +781,7 @@ ml_char_blink(
 	}
 	else
 	{
-		return  ml_char_blink( ch->u.multi_ch) ;
+		return  ml_char_set_visible( ch->u.multi_ch , visible) ;
 	}
 }
 

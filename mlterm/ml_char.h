@@ -171,7 +171,7 @@ int  ml_char_is_crossed_out( ml_char_t *  ch) ;
 
 int  ml_char_is_blinking( ml_char_t *  ch) ;
 
-int  ml_char_blink( ml_char_t *  ch) ;
+int  ml_char_set_visible( ml_char_t *  ch , int  visible) ;
 
 int  ml_char_reverse_color( ml_char_t *  ch) ;
 
