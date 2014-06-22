@@ -1,5 +1,7 @@
 2014-06-22  Araki Ken  <arakiken@users.sf.net>
 
+	* MLTermPty.c, MLTerm.java, Style.java: SGR 9 and 29 are supported.
+
 	* ml_screen.[ch], ml_term.h, x_screen.c: 'visible' argument is added to
 	  ml_term_blink() and ml_screen_blink().
 

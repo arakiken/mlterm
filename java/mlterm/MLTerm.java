@@ -485,6 +485,7 @@ public class MLTerm extends StyledText
 										colors[ region.styles[count].fg_color] ,
 										colors[ region.styles[count].bg_color]) ;
 					styles[count].underline = region.styles[count].underline ;
+					styles[count].strikeout = region.styles[count].strikeout ;
 					styles[count].fontStyle = (region.styles[count].bold ?
 												SWT.BOLD : SWT.NORMAL) |
 					                          (region.styles[count].italic ?

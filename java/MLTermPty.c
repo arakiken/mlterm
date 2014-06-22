@@ -530,7 +530,8 @@ need_style(
 
 	if( ml_char_fg_color( ch) != ML_FG_COLOR ||
 	    ml_char_bg_color( ch) != ML_BG_COLOR ||
-	    ml_char_is_underlined( ch) ||
+	    ml_char_underline_style( ch) ||
+	    ml_char_is_crossed_out( ch) ||
 	    (ml_char_font( ch) & (FONT_BOLD|FONT_ITALIC)))
 	{
 		need_style = 2 ;
@@ -543,7 +544,8 @@ need_style(
 	if( prev_ch &&
 	    ml_char_fg_color( ch) == ml_char_fg_color( prev_ch) &&
 	    ml_char_bg_color( ch) == ml_char_bg_color( prev_ch) &&
-	    ml_char_is_underlined( ch) == ml_char_is_underlined( prev_ch) &&
+	    ml_char_underline_style( ch) == ml_char_underline_style( prev_ch) &&
+	    ml_char_is_crossed_out( ch) == ml_char_is_crossed_out( prev_ch) &&
 	    (ml_char_font( ch) & (FONT_BOLD|FONT_ITALIC)) ==
 	    (ml_char_font( prev_ch) & (FONT_BOLD|FONT_ITALIC)) )
 	{
@@ -859,17 +861,6 @@ Java_mlterm_MLTermPty_nativeOpen(
 					else
 					{
 						unicode_policy = ONLY_USE_UNICODE_FONT ;
-					}
-				}
-			}
-
-			if( ( value = kik_conf_get_value( conf , "use_unicode_property")))
-			{
-				if( strcmp( value , "true") == 0)
-				{
-					if( unicode_policy != ONLY_USE_UNICODE_FONT)
-					{
-						unicode_policy |= USE_UNICODE_PROPERTY ;
 					}
 				}
 			}
@@ -1553,6 +1544,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 	static jfieldID  style_bg_color ;
 	static jfieldID  style_bg_pixel ;
 	static jfieldID  style_underline ;
+	static jfieldID  style_strikeout ;
 	static jfieldID  style_bold ;
 	static jfieldID  style_italic ;
 	jobjectArray  array ;
@@ -1666,6 +1658,8 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 								"bg_pixel" , "I") ;
 					style_underline = (*env)->GetFieldID( env , style_class ,
 								"underline" , "Z") ;
+					style_strikeout = (*env)->GetFieldID( env , style_class ,
+								"strikeout" , "Z") ;
 					style_bold = (*env)->GetFieldID( env , style_class ,
 								"bold" , "Z") ;
 					style_italic = (*env)->GetFieldID( env , style_class ,
@@ -1700,7 +1694,12 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 
 				(*env)->SetBooleanField( env , styles[num_of_styles - 1] ,
 					style_underline ,
-					ml_char_is_underlined( line->chars + mod_beg + count) ?
+					ml_char_underline_style( line->chars + mod_beg + count) ?
+						JNI_TRUE : JNI_FALSE) ;
+
+				(*env)->SetBooleanField( env , styles[num_of_styles - 1] ,
+					style_strikeout ,
+					ml_char_is_crossed_out( line->chars + mod_beg + count) ?
 						JNI_TRUE : JNI_FALSE) ;
 
 				(*env)->SetBooleanField( env , styles[num_of_styles - 1] ,

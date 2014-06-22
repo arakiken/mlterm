@@ -294,7 +294,7 @@ mc_set_font_name(
 	}
 
 	printf( "\x1b]%d;%s%s:%s=%s,%s\x07" , io , chal , file , cs , font_size , font_name) ;
-	fflush( NULL) ;
+	fflush( stdout) ;
 
 	return  1 ;
 }
