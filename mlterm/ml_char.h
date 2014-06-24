@@ -65,7 +65,7 @@ typedef struct ml_char
 			 * Total 23 bit
 			 * 2 bit : underline_style(0 or 1 or 2)
 			 * 1 bit : is_zerowidth(0 or 1)
-			 * 1 bit : is_concealed(0 or 1)
+			 * 1 bit : is_visible(0 or 1)
 			 * 1 bit : is_blinking(0 or 1)
 			 * 1 bit : is unicode area cs(0 or 1)
 			 * 1 bit : is_italic(0 or 1)
@@ -172,6 +172,8 @@ int  ml_char_is_crossed_out( ml_char_t *  ch) ;
 int  ml_char_is_blinking( ml_char_t *  ch) ;
 
 int  ml_char_set_visible( ml_char_t *  ch , int  visible) ;
+
+int  ml_char_is_visible( ml_char_t *  ch) ;
 
 int  ml_char_reverse_color( ml_char_t *  ch) ;
 

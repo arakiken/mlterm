@@ -763,7 +763,11 @@ fc_draw_str(
 			/*
 			 * drawing string
 			 */
-			if( state == 0)
+			if( ! ml_char_is_visible( &chars[count - 1]))
+			{
+				/* don't draw it */
+			}
+			else if( state == 0)
 			{
 				x_window_ft_draw_string8( window , xfont , fg_xcolor ,
 					x , y + ascent , str8 , str_len) ;
@@ -1220,7 +1224,11 @@ xcore_draw_str(
 						x , y , current_width - x , height) ;
 				}
 
-				if( state == 2)
+				if( ! ml_char_is_visible( &chars[count - 1]))
+				{
+					/* don't draw it */
+				}
+				else if( state == 2)
 				{
 					x_window_draw_string16( window , xfont , fg_xcolor ,
 						x , y + ascent , str2b , str_len) ;

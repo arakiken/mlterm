@@ -1,3 +1,11 @@
+2014-06-24  Araki Ken  <arakiken@users.sf.net>
+
+	* x_draw_str.c: If ml_char_is_visible() is false, text is not drawn.
+
+	* ml_char.[ch]:
+	  - IS_CONCEALED => IS_VISIBLE
+	  - ml_char_is_visible() is added.
+
 2014-06-22  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.c, MLTerm.java, Style.java: SGR 9 and 29 are supported.

@@ -19,7 +19,7 @@
 	((((attr) >> 5) & 0xe00) | ISO10646_UCS4_1 | (((attr) << 7) & 0x1ff000)) : \
 	(((attr) >> 5) & 0xfff)
 
-#define  IS_CONCEALED(attr)  ((attr) & (0x1 << 19))
+#define  IS_VISIBLE(attr)  ((attr) & (0x1 << 19))
 #define  IS_BLINKING(attr)  ((attr) & (0x1 << 18))
 #define  IS_ITALIC(attr)  ((attr) & (0x1 << 16))
 #define  IS_BOLD(attr)  ((attr) & (0x1 << 15))
@@ -46,10 +46,10 @@
 #define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
 #define  COMPOUND_ATTR(charset,is_zerowidth,is_fullwidth,is_bold,is_italic,is_unicode_area_cs,underline_style,is_crossed_out,is_blinking,is_comb) \
-	( ((underline_style) << 21) | ((is_zerowidth) << 20) | ((is_blinking) << 18) | \
-	  ((is_unicode_area_cs) << 17) | ((is_italic) << 16) | ((is_bold) << 15) | \
-          ((is_fullwidth) << 14) | ((charset) << 5) | ( 0x0 << 4) |  ((is_crossed_out) << 3) | \
-          ((is_comb) << 2) | ( 0x0 << 1) | 0x1)
+	( ((underline_style) << 21) | ((is_zerowidth) << 20) | (0x1 << 19) | \
+	  ((is_blinking) << 18) | ((is_unicode_area_cs) << 17) | ((is_italic) << 16) | \
+	  ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
+	  ((is_crossed_out) << 3) | ((is_comb) << 2) | 0x1)
 
 
 /* --- static variables --- */
@@ -637,11 +637,11 @@ ml_char_fg_color(
 	{
 		if( IS_REVERSED(attr))
 		{
-			return  IS_CONCEALED(attr) ? ch->u.ch.fg_color : ch->u.ch.bg_color ;
+			return  IS_VISIBLE(attr) ? ch->u.ch.bg_color : ch->u.ch.fg_color ;
 		}
 		else
 		{
-			return  IS_CONCEALED(attr) ? ch->u.ch.bg_color : ch->u.ch.fg_color ;
+			return  IS_VISIBLE(attr) ? ch->u.ch.fg_color : ch->u.ch.bg_color ;
 		}
 	}
 	else
@@ -782,6 +782,21 @@ ml_char_set_visible(
 	else
 	{
 		return  ml_char_set_visible( ch->u.multi_ch , visible) ;
+	}
+}
+
+int
+ml_char_is_visible(
+	ml_char_t *  ch
+	)
+{
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  IS_VISIBLE(ch->u.ch.attr) ;
+	}
+	else
+	{
+		return  ml_char_is_visible( ch->u.multi_ch) ;
 	}
 }
 
