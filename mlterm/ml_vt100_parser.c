@@ -5687,8 +5687,8 @@ ml_vt100_parser_new(
 	u_int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
-	char *  win_name ,
-	char *  icon_name ,
+	const char *  win_name ,
+	const char *  icon_name ,
 	ml_alt_color_mode_t  alt_color_mode
 	)
 {

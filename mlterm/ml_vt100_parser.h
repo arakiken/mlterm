@@ -261,7 +261,7 @@ void  ml_set_full_width_areas( char *  areas) ;
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char ,
-	char *  win_name , char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
+	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 

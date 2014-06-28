@@ -49,11 +49,6 @@ void (*ml_term_pty_closed_event)( ml_term_t *) ;
 
 /* --- static functions --- */
 
-static char *  bidi_separators ;
-
-
-/* --- static functions --- */
-
 #ifdef  OPEN_PTY_ASYNC
 
 static void
@@ -243,23 +238,6 @@ open_pty(
 
 /* --- global functions --- */
 
-void
-ml_set_bidi_separators(
-	const char *  separators
-	)
-{
-	free( bidi_separators) ;
-
-	if( separators && *separators)
-	{
-		bidi_separators = strdup( separators) ;
-	}
-	else
-	{
-		bidi_separators = NULL ;
-	}
-}
-
 ml_term_t *
 ml_term_new(
 	u_int  cols ,
@@ -274,14 +252,15 @@ ml_term_new(
 	int  use_multi_col_char ,
 	int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode ,
+	const char *  bidi_separators ,
 	int  use_ind ,
 	int  use_bce ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode ,
 	int  use_local_echo ,
-	char *  win_name ,
-	char *  icon_name ,
+	const char *  win_name ,
+	const char *  icon_name ,
 	ml_alt_color_mode_t  alt_color_mode
 	)
 {
@@ -326,6 +305,11 @@ ml_term_new(
 	#endif
 	
 		goto  error ;
+	}
+
+	if( bidi_separators)
+	{
+		term->bidi_separators = strdup( bidi_separators) ;
 	}
 
 	term->vertical_mode = vertical_mode ;
@@ -385,8 +369,8 @@ ml_term_delete(
 	}
 
 	free( term->uri) ;
-
 	free( term->icon_path) ;
+	free( term->bidi_separators) ;
 
 	ml_screen_delete( term->screen) ;
 	ml_vt100_parser_delete( term->parser) ;
@@ -1097,7 +1081,7 @@ ml_term_update_special_visual(
 	else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
 	{
 		if( ( term->shape = ml_arabic_shape_new()) &&
-		    ( logvis = ml_logvis_bidi_new( term->bidi_mode , bidi_separators)))
+		    ( logvis = ml_logvis_bidi_new( term->bidi_mode , term->bidi_separators)))
 		{
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
@@ -1201,13 +1185,39 @@ ml_term_enter_backscroll_mode(
 int
 ml_term_set_icon_path(
 	ml_term_t *  term ,
-	char *  path
+	const char *  path
 	)
 {
 	free( term->icon_path) ;
-	term->icon_path = strdup( path) ;
+
+	if( path && *path)
+	{
+		term->icon_path = strdup( path) ;
+	}
+	else
+	{
+		term->icon_path = NULL ;
+	}
 
 	return 1 ;
+}
+
+void
+ml_term_set_bidi_separators(
+	ml_term_t *  term ,
+	const char *  bidi_separators
+	)
+{
+	free( term->bidi_separators) ;
+
+	if( bidi_separators && *bidi_separators)
+	{
+		term->bidi_separators = strdup( bidi_separators) ;
+	}
+	else
+	{
+		term->bidi_separators = NULL ;
+	}
 }
 
 int

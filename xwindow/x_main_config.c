@@ -1028,12 +1028,12 @@ x_main_config_init(
 		if( strcmp( value , "cmd_l") == 0)
 		{
 			main_config->bidi_mode = BIDI_ALWAYS_LEFT ;
-			ml_set_bidi_separators( " ") ;
+			main_config->bidi_separators = strdup( " ") ;
 		}
 		else if( strcmp( value , "cmd_r") == 0)
 		{
 			main_config->bidi_mode = BIDI_ALWAYS_RIGHT ;
-			ml_set_bidi_separators( " ") ;
+			main_config->bidi_separators = strdup( " ") ;
 		}
 		else
 	#endif
@@ -1044,7 +1044,8 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "bidi_separators")))
 	{
-		ml_set_bidi_separators( value) ;
+		free( main_config->bidi_separators) ;
+		main_config->bidi_separators = strdup( value) ;
 	}
 #endif
 
@@ -1495,6 +1496,7 @@ x_main_config_final(
 	free( main_config->icon_path) ;
 	free( main_config->input_method) ;
 	free( main_config->init_str) ;
+	free( main_config->bidi_separators) ;
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	if( main_config->server_list)

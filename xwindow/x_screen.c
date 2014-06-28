@@ -5745,6 +5745,10 @@ get_config_intern(
 	{
 		value = ml_get_bidi_mode_name( ml_term_get_bidi_mode( term)) ;
 	}
+	else if( strcmp( key , "bidi_separators") == 0)
+	{
+		value = ml_term_get_bidi_separators( term) ;
+	}
 	else if( strcmp( key , "input_method") == 0)
 	{
 		if( screen->input_method)
@@ -8890,7 +8894,7 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "bidi_separators") == 0)
 	{
-		ml_set_bidi_separators( value) ;
+		ml_term_set_bidi_separators( screen->term , value) ;
 		if( update_special_visual( screen))
 		{
 			ml_term_set_modified_all_lines_in_screen( screen->term) ;

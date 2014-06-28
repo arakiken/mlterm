@@ -1,5 +1,19 @@
 2014-06-28  Araki Ken  <arakiken@users.sf.net>
 
+	* x_main_config.c, x_screen.c: ml_set_bidi_separators() is changed to
+	  ml_term_{get|set}_bidi_separators().
+
+	* ml_term.[ch], ml_term_manager.[ch], x_screen_manager.c:
+	  - bidi_separators variable is changed from static to the member of ml_term_t.
+	  - ml_term_{get|set}_bidi_separators() are added.
+	  - ml_set_bidi_separators() is removed.
+
+	* vte.c, MLTermpty.c: Arguments of ml_create_term() is fixed.
+
+	* ml_vt100_parser.[ch]: Minor fixes.
+
+2014-06-28  Araki Ken  <arakiken@users.sf.net>
+
 	* mlterm.1, README.ja: Updated.
 
 	* libctl/ml_bidi.[ch], ml_line_bidi.[ch], ml_logical_visual_bidi.c,

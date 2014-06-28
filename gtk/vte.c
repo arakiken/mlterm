@@ -2616,7 +2616,8 @@ vte_terminal_init(
 			main_config.encoding , main_config.is_auto_encoding , 
 			main_config.unicode_policy , main_config.col_size_of_width_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
-			main_config.use_bidi , main_config.bidi_mode , main_config.use_ind ,
+			main_config.use_bidi , main_config.bidi_mode ,
+			main_config.bidi_separators , main_config.use_ind ,
 			x_termcap_get_bool_field(
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,

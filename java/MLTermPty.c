@@ -1031,6 +1031,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 					is_auto_encoding , unicode_policy , col_size_a ,
 					use_char_combining , use_multi_col_char ,
 					0 /* use_bidi */ , 0 /* bidi_mode */ ,
+					NULL /* bidi_separators */ ,
 					0 /* use_ind */ , 1 /* use_bce */ ,
 					0 /* use_dynamic_comb */ , BSM_STATIC ,
 					0 /* vertical_mode */ , use_local_echo , NULL , NULL , 0)))

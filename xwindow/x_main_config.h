@@ -68,6 +68,7 @@ typedef struct x_main_config
 	char *  icon_path ;
 	char *  input_method ;
 	char *  init_str ;
+	char *  bidi_separators ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	char **  server_list ;
 	char *  default_server ;

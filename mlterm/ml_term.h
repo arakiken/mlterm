@@ -42,9 +42,8 @@ typedef struct ml_term
 	 */
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bidi_mode_t  bidi_mode ;
-
+	char *  bidi_separators ;
 	char *  icon_path ;
-
 	char *  uri ;
 
 	int8_t  use_bidi ;
@@ -65,14 +64,13 @@ typedef struct ml_term
 /* XXX */
 extern void (*ml_term_pty_closed_event)( ml_term_t *) ;
 
-void  ml_set_bidi_separators( const char *  separators) ;
-
 ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
 	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_policy_t  policy ,
 	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
-	ml_bidi_mode_t  bidi_mode , int  use_ind , int  use_bce , int  use_dynamic_comb ,
-	ml_bs_mode_t  bs_mode , ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
-	char *  win_name , char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
+	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators , int  use_ind ,
+	int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
+	ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
+	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 
@@ -315,7 +313,7 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 #define  ml_term_get_alt_color_mode( term) \
 		ml_vt100_parser_get_alt_color_mode((term)->parser)
 
-int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
+int  ml_term_set_icon_path( ml_term_t *  term , const char *  path) ;
 
 #define  ml_term_window_name( term)  ml_get_window_name((term)->parser)
 
@@ -332,6 +330,10 @@ int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 		ml_vt100_parser_set_unicode_policy((term)->parser , policy)
 
 #define  ml_term_get_unicode_policy( term)  ml_vt100_parser_get_unicode_policy((term)->parser)
+
+#define  ml_term_get_bidi_separators( term)  ((term)->bidi_separators)
+
+void  ml_term_set_bidi_separators( ml_term_t *  term , const char *  bidi_separators) ;
 
 int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		int  x , int  y , char *  display) ;
