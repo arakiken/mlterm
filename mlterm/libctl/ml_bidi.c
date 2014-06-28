@@ -77,6 +77,12 @@ log2vis(
 	{
 		if( type == FRIBIDI_TYPE_RTL)
 		{
+			/*
+			 * (Logical) "LLL/RRRNNN " ('/' is a separator)
+			 *                      ^-> endsp
+			 * => (Visual) "LLL/ NNNRRR" => "LLL/NNNRRR "
+			 */
+
 			u_int  endsp_num ;
 
 			for( pos = size ; pos > cur_pos ; pos--)
@@ -121,6 +127,12 @@ log2vis(
 
 		if( type == FRIBIDI_TYPE_LTR)
 		{
+			/*
+			 * (Logical) "RRRNNN/LLL " ('/' is a separator)
+			 *                      ^-> endsp
+			 * => (Visual) "LLL /NNNRRR" => " LLL/NNNRRR"
+			 */
+
 			u_int  endsp_num ;
 
 			for( pos = size ; pos > cur_pos ; pos--)
@@ -293,6 +305,13 @@ ml_bidi(
 
 	if( HAS_RTL(state))
 	{
+		log2vis( fri_src , size , &fri_type , fri_order , cur_pos , 0) ;
+
+		for( count = 0 ; count < size ; count ++)
+		{
+			state->visual_order[count] = fri_order[count] ;
+		}
+
 	#ifdef  __DEBUG
 		kik_msg_printf( "utf8 text => \n") ;
 		for( count = 0 ; count < size ; count ++)
@@ -300,18 +319,40 @@ ml_bidi(
 			kik_msg_printf( "%.4x " , fri_src[count]) ;
 		}
 		kik_msg_printf( "\n") ;
-	#endif
 
-		log2vis( fri_src , size , &fri_type , fri_order , cur_pos , 0) ;
-
+		kik_msg_printf( "visual order => ") ;
 		for( count = 0 ; count < size ; count ++)
 		{
-			state->visual_order[count] = fri_order[count] ;
+			kik_msg_printf( "%.2d " , state->visual_order[count]) ;
 		}
+		kik_msg_printf( "\n") ;
+	#endif
+
+	#ifdef  DEBUG
+		for( count = 0 ; count < size ; count ++)
+		{
+			if( state->visual_order[count] >= size)
+			{
+				kik_warn_printf( KIK_DEBUG_TAG
+					" visual order(%d) of %d is illegal.\n" ,
+					state->visual_order[count] , count) ;
+
+				kik_msg_printf( "returned order => ") ;
+				for( count = 0 ; count < size ; count ++)
+				{
+					kik_msg_printf( "%d " , state->visual_order[count]) ;
+				}
+				kik_msg_printf( "\n") ;
+
+				abort() ;
+			}
+
+		}
+	#endif
 	}
 	else
 	{
-		state->size = size = 0 ;
+		state->size = 0 ;
 	}
 
 	if( fri_type == FRIBIDI_TYPE_RTL)
@@ -324,36 +365,6 @@ ml_bidi(
 	}
 
 	state->bidi_mode = bidi_mode ;
-
-#ifdef  __DEBUG
-	kik_msg_printf( "visual order => ") ;
-	for( count = 0 ; count < size ; count ++)
-	{
-		kik_msg_printf( "%.2d " , state->visual_order[count]) ;
-	}
-	kik_msg_printf( "\n") ;
-#endif
-
-#ifdef  DEBUG
-	for( count = 0 ; count < size ; count ++)
-	{
-		if( state->visual_order[count] >= size)
-		{
-			kik_warn_printf( KIK_DEBUG_TAG " visual order(%d) of %d is illegal.\n" ,
-				state->visual_order[count] , count) ;
-
-			kik_msg_printf( "returned order => ") ;
-			for( count = 0 ; count < size ; count ++)
-			{
-				kik_msg_printf( "%d " , state->visual_order[count]) ;
-			}
-			kik_msg_printf( "\n") ;
-			
-			abort() ;
-		}
-
-	}
-#endif
 
 	return  1 ;
 }
