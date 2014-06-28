@@ -1,3 +1,17 @@
+2014-06-28  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm.1, README.ja: Updated.
+
+	* libctl/ml_bidi.[ch], ml_line_bidi.[ch], ml_logical_visual_bidi.c,
+	  mlterm/ml_bidi.[ch], ml_logical_visual.[ch], ml_term.[ch], x_screen.c,
+	  x_main_config.c:
+	  - bidi_separator option is added.
+	  - "left" and "right" are available as the value of bidi_mode option.
+
+	* libptyssh/ml_pty_ssh.c: Unread data in loopback pty isn't discarded.
+
+	* mc_io.c: HOEMPATH environmental variable is used instead of HOME in win32.
+
 2014-06-24  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c: If ml_char_is_visible() is false, text is not drawn.

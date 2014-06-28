@@ -50,23 +50,127 @@ ml_bidi_delete(
 	return  1 ;
 }
 
+static void
+log2vis(
+	FriBidiChar *  str ,
+	u_int  size ,
+	FriBidiCharType *  type_p ,
+	FriBidiStrIndex *  order ,
+	u_int  cur_pos ,
+	int  append
+	)
+{
+	FriBidiCharType  type ;
+	u_int  pos ;
+
+	type = FRIBIDI_TYPE_ON ;
+
+	fribidi_log2vis( str + cur_pos , size - cur_pos , &type , NULL ,
+		order + cur_pos , NULL , NULL) ;
+
+	if( *type_p == FRIBIDI_TYPE_ON)
+	{
+		*type_p = type ;
+	}
+
+	if( *type_p == FRIBIDI_TYPE_LTR)
+	{
+		if( type == FRIBIDI_TYPE_RTL)
+		{
+			u_int  endsp_num ;
+
+			for( pos = size ; pos > cur_pos ; pos--)
+			{
+				if( str[pos - 1] != ' ')
+				{
+					break ;
+				}
+
+				order[pos - 1] = pos - 1 ;
+			}
+
+			endsp_num = size - pos ;
+
+			for( pos = cur_pos ; pos < size - endsp_num ; pos++)
+			{
+				order[pos] = order[pos] + cur_pos - endsp_num ;
+			}
+		}
+		else if( cur_pos > 0)
+		{
+			for( pos = cur_pos ; pos < size ; pos++)
+			{
+				order[pos] += cur_pos ;
+			}
+		}
+
+		if( append)
+		{
+			order[size] = size ;
+		}
+	}
+	else /* if( *type_p == FRIBIDI_TYPE_RTL) */
+	{
+		if( cur_pos > 0)
+		{
+			for( pos = 0 ; pos < cur_pos ; pos++)
+			{
+				order[pos] += (size - cur_pos) ;
+			}
+		}
+
+		if( type == FRIBIDI_TYPE_LTR)
+		{
+			u_int  endsp_num ;
+
+			for( pos = size ; pos > cur_pos ; pos--)
+			{
+				if( str[pos - 1] != ' ')
+				{
+					break ;
+				}
+
+				order[pos - 1] = size - pos ;
+			}
+
+			endsp_num = size - pos ;
+			for( pos = cur_pos ; pos < size - endsp_num ; pos++)
+			{
+				order[pos] += endsp_num ;
+			}
+		}
+
+		if( append)
+		{
+			for( pos = 0 ; pos < size ; pos++)
+			{
+				order[pos] ++ ;
+			}
+
+			order[size] = 0 ;
+		}
+	}
+}
+
 int
 ml_bidi(
 	ml_bidi_state_t  state ,
 	ml_char_t *  src ,
 	u_int  size ,
-	ml_bidi_mode_t  bidi_mode
+	ml_bidi_mode_t  bidi_mode ,
+	const char *  separators
 	)
 {
 	FriBidiChar *  fri_src ;
 	FriBidiCharType  fri_type ;
 	FriBidiStrIndex *  fri_order ;
+	u_int  cur_pos ;
 	mkf_charset_t  cs ;
 	u_int32_t  code ;
 	u_int  count ;
 
 	state->rtl_state = 0 ;
-	
+
 	if( size == 0)
 	{
 		state->size = 0 ;
@@ -92,14 +196,47 @@ ml_bidi(
 		return  0 ;
 	}
 
-	for( count = 0 ; count < size ; count ++)
+	if( state->size != size)
+	{
+		void *  p ;
+
+		if( ! ( p = realloc( state->visual_order , sizeof( u_int16_t) * size)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " realloc() failed.\n") ;
+		#endif
+
+			state->size = 0 ;
+
+			return  0 ;
+		}
+
+		state->visual_order = p ;
+		state->size = size ;
+	}
+
+	if( bidi_mode == BIDI_ALWAYS_RIGHT)
+	{
+		SET_HAS_RTL(state) ;
+		fri_type = FRIBIDI_TYPE_RTL ;
+	}
+	else if( bidi_mode == BIDI_ALWAYS_LEFT)
+	{
+		fri_type = FRIBIDI_TYPE_LTR ;
+	}
+	else
+	{
+		fri_type = FRIBIDI_TYPE_ON ;
+	}
+
+	for( count = 0 , cur_pos = 0 ; count < size ; count ++)
 	{
 		cs = ml_char_cs( &src[count]) ;
 		code = ml_char_code( &src[count]) ;
 
 		if( cs == US_ASCII)
 		{
-			if( code == ' ')
+			if( ! isalpha(code))
 			{
 				ml_char_t *  comb ;
 				u_int  comb_size ;
@@ -107,31 +244,19 @@ ml_bidi(
 				if( ( comb = ml_get_combining_chars( &src[count] , &comb_size)) &&
 				    ml_char_cs( comb) == PICTURE_CHARSET)
 				{
-					/* Regarded as LTR character. */
 					fri_src[count] = 'a' ;
 				}
-				else if( bidi_mode == BIDI_CMD_MODE_L)
+				else if( separators && HAS_RTL(state) &&
+				         strchr( separators , code))
 				{
-					fri_src[count] = DIR_LTR_MARK ;
-				}
-				else if( bidi_mode == BIDI_CMD_MODE_R)
-				{
-					fri_src[count] = DIR_RTL_MARK ;
+					log2vis( fri_src , count , &fri_type ,
+							fri_order , cur_pos , 1) ;
+					cur_pos = count + 1 ;
 				}
 				else
 				{
-					fri_src[count] = ' ' ;
+					fri_src[count] = code ;
 				}
-			}
-			else if( bidi_mode == BIDI_CMD_MODE_R && ! isalpha(code))
-			{
-				/*
-				 * Without this hack, following NG happens.
-				 * $ ls test.txt test1.txt =>          test.txt ls $
-				 * ./text.txt ./test1.txt  => test1.txt/. text.txt/. <- NG
-				 *                                     ^^         ^^
-				 */
-				fri_src[count] = DIR_LTR_MARK ;
 			}
 			else
 			{
@@ -141,6 +266,12 @@ ml_bidi(
 		else if( cs == ISO10646_UCS4_1)
 		{
 			fri_src[count] = code ;
+
+			if( ! HAS_RTL(state) &&
+			    ( fribidi_get_type( fri_src[count]) & FRIBIDI_MASK_RTL))
+			{
+				SET_HAS_RTL( state) ;
+			}
 		}
 		else if( cs == DEC_SPECIAL)
 		{
@@ -158,55 +289,29 @@ ml_bidi(
 			 */
 			fri_src[count] = ' ' ;
 		}
+	}
 
-		if( ! HAS_RTL(state) && (fribidi_get_type( fri_src[count]) & FRIBIDI_MASK_RTL))
+	if( HAS_RTL(state))
+	{
+	#ifdef  __DEBUG
+		kik_msg_printf( "utf8 text => \n") ;
+		for( count = 0 ; count < size ; count ++)
 		{
-			SET_HAS_RTL( state) ;
+			kik_msg_printf( "%.4x " , fri_src[count]) ;
 		}
-	}
+		kik_msg_printf( "\n") ;
+	#endif
 
-#ifdef  __DEBUG
-	kik_msg_printf( "utf8 text => \n") ;
-	for( count = 0 ; count < size ; count ++)
-	{
-		kik_msg_printf( "%.4x " , fri_src[count]) ;
-	}
-	kik_msg_printf( "\n") ;
-#endif
+		log2vis( fri_src , size , &fri_type , fri_order , cur_pos , 0) ;
 
-	if( bidi_mode == BIDI_CMD_MODE_R)
-	{
-		fri_type = FRIBIDI_TYPE_RTL ;
+		for( count = 0 ; count < size ; count ++)
+		{
+			state->visual_order[count] = fri_order[count] ;
+		}
 	}
 	else
 	{
-		fri_type = FRIBIDI_TYPE_ON ;
-	}
-
-	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
-
-	if( state->size != size)
-	{
-		void *  p ;
-		
-		if( ( p = realloc( state->visual_order , sizeof( u_int16_t) * size)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " realloc() failed.\n") ;
-		#endif
-		
-			state->size = 0 ;
-			
-			return  0 ;
-		}
-		
-		state->visual_order = p ;
-		state->size = size ;
-	}
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		state->visual_order[count] = fri_order[count] ;
+		state->size = size = 0 ;
 	}
 
 	if( fri_type == FRIBIDI_TYPE_RTL)

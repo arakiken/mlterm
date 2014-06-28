@@ -13,7 +13,8 @@
 
 int  ml_line_set_use_bidi( ml_line_t *  line , int  flag) ;
 
-int  ml_line_bidi_render( ml_line_t *  line , ml_bidi_mode_t  bidi_mode) ;
+int  ml_line_bidi_render( ml_line_t *  line , ml_bidi_mode_t  bidi_mode ,
+	const char *  separators) ;
 
 int  ml_line_bidi_visual( ml_line_t *  line) ;
 

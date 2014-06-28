@@ -49,6 +49,11 @@ void (*ml_term_pty_closed_event)( ml_term_t *) ;
 
 /* --- static functions --- */
 
+static char *  bidi_separators ;
+
+
+/* --- static functions --- */
+
 #ifdef  OPEN_PTY_ASYNC
 
 static void
@@ -237,6 +242,23 @@ open_pty(
 
 
 /* --- global functions --- */
+
+void
+ml_set_bidi_separators(
+	const char *  separators
+	)
+{
+	free( bidi_separators) ;
+
+	if( separators && *separators)
+	{
+		bidi_separators = strdup( separators) ;
+	}
+	else
+	{
+		bidi_separators = NULL ;
+	}
+}
 
 ml_term_t *
 ml_term_new(
@@ -1075,7 +1097,7 @@ ml_term_update_special_visual(
 	else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
 	{
 		if( ( term->shape = ml_arabic_shape_new()) &&
-		    ( logvis = ml_logvis_bidi_new( term->bidi_mode)))
+		    ( logvis = ml_logvis_bidi_new( term->bidi_mode , bidi_separators)))
 		{
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{

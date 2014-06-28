@@ -77,6 +77,9 @@ typedef struct ml_pty_ssh
 	ssh_session_t *  session ;
 	LIBSSH2_CHANNEL *  channel ;
 
+	char *  lo_buf ;
+	size_t  lo_size ;
+
 } ml_pty_ssh_t ;
 
 typedef struct scp
@@ -821,6 +824,23 @@ read_pty(
 {
 	ssize_t  ret ;
 
+	if( ((ml_pty_ssh_t*)pty)->lo_buf)
+	{
+		if( ((ml_pty_ssh_t*)pty)->lo_size < len)
+		{
+			len = ((ml_pty_ssh_t*)pty)->lo_size ;
+		}
+
+		memcpy( buf , ((ml_pty_ssh_t*)pty)->lo_buf , len) ;
+
+		/* XXX */
+		free( ((ml_pty_ssh_t*)pty)->lo_buf) ;
+		((ml_pty_ssh_t*)pty)->lo_buf = NULL ;
+		((ml_pty_ssh_t*)pty)->lo_size = 0 ;
+
+		return  len ;
+	}
+
 	ret = libssh2_channel_read( ((ml_pty_ssh_t*)pty)->channel , buf , len) ;
 
 #ifdef  USE_WIN32API
@@ -1045,9 +1065,27 @@ unuse_loopback(
 	ml_pty_t *  pty
 	)
 {
+	char  buf[128] ;
+	ssize_t  len ;
+
 	if( ! pty->stored || --(pty->stored->ref_count) > 0)
 	{
 		return  1 ;
+	}
+
+	while( ( len = (*pty->read)( pty , buf , sizeof(buf))) > 0)
+	{
+		char *  p ;
+
+		if( ! ( p = realloc( ((ml_pty_ssh_t*)pty)->lo_buf ,
+				((ml_pty_ssh_t*)pty)->lo_size + len)))
+		{
+			break ;
+		}
+
+		memcpy( p + ((ml_pty_ssh_t*)pty)->lo_size , buf , len) ;
+		((ml_pty_ssh_t*)pty)->lo_buf = p ;
+		((ml_pty_ssh_t*)pty)->lo_size += len ;
 	}
 
 #ifdef  USE_WIN32API

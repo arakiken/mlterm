@@ -6,6 +6,8 @@
 #define   __KIK_PATH_H__
 
 
+#include  <ctype.h>	/* isalpha */
+
 #include  "kik_types.h"
 #include  "kik_def.h"
 

@@ -29,6 +29,7 @@ typedef struct  bidi_logical_visual
 	int  cursor_logical_col ;
 	int  ltr_rtl_meet_pos ;
 	ml_bidi_mode_t  bidi_mode ;
+	const char *  separators ;
 
 } bidi_logical_visual_t ;
 
@@ -118,7 +119,8 @@ bidi_render_line(
 	if( ml_line_is_modified( line) || need_render)
 	{
 		if( ! ml_line_bidi_render( line ,
-					((bidi_logical_visual_t*)logvis)->bidi_mode))
+			((bidi_logical_visual_t*)logvis)->bidi_mode ,
+			((bidi_logical_visual_t*)logvis)->separators))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
@@ -267,7 +269,8 @@ bidi_visual_line(
 
 ml_logical_visual_t *
 ml_logvis_bidi_new(
-	ml_bidi_mode_t  bidi_mode
+	ml_bidi_mode_t  bidi_mode ,
+	const char *  separators
 	)
 {
 	bidi_logical_visual_t *  bidi_logvis ;
@@ -278,6 +281,7 @@ ml_logvis_bidi_new(
 	}
 	
 	bidi_logvis->bidi_mode = bidi_mode ;
+	bidi_logvis->separators = separators ;
 
 	bidi_logvis->logvis.delete = bidi_delete ;
 	bidi_logvis->logvis.init = bidi_init ;

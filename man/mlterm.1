@@ -514,17 +514,11 @@ Use bold font for characters with the bold attribute.
 The default is \fBtrue\fR.
 .TP
 \fB\-\-bimode\fR=\fIvalue\fR
-Specify bidi mode. Valid values are: \fBnormal\fR, \fBcmd_l\fR and \fBcmd_r\fR.
+Specify bidi mode. Valid values are: \fBnormal\fR, \fBleft\fR and \fBright\fR.
 The default is \fBnormal\fR.
-.nf
-        +---------------------+
-logical |$ ls \-l ABC DEF      |
-normal  |$ ls \-l FED CBA      |
-cmd_l   |$ ls \-l CBA FED      |
-cmd_r   |      FED CBA \-l ls $|
-        +---------------------+
-        (Upper case characters represent RTL ones.)
-.fi
+.TP
+\fB\-\-bisep\fR=\fIvalue\fR
+Specify separator characters to render bidi text.
 .TP
 \fB\-\-bl\fR=\fIvalue\fR
 Specify the color to use to display blinking characters.
@@ -1187,6 +1181,9 @@ Background color.
 .TP
 \fBbidi_mode=\fImode\fR (\fB\-\-bimode\fR)
 Specify bidi mode.
+.TP
+\fBbidi_separators=\fImode\fR (\fB\-\-bisep\fR)
+Specify separator characters to render bidi text.
 .TP
 \fBblink_cursor=\fIbool\fR (\fB\-\-blink\fR)
 Blink cursor.

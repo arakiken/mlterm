@@ -18,7 +18,7 @@
 /* Order of this table must be same as x_bidi_mode_t. */
 static char *   bidi_mode_name_table[] =
 {
-	"normal" , "cmd_l" , "cmd_r" ,
+	"normal" , "left" , "right" ,
 } ;
 
 

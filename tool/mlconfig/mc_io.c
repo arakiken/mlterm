@@ -9,6 +9,8 @@
 #include  <kiklib/kik_unistd.h>		/* STDIN_FILENO */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>
+#include  <kiklib/kik_def.h>		/* USE_WIN32API */
+
 
 /* --- static variables --- */
 
@@ -26,12 +28,21 @@ load_challenge(void)
 	char  path[256] ;
 	static char  challenge[64] ;
 
-	if( ! ( homedir = getenv("HOME")))
+#ifdef  USE_WIN32API
+	if( ! ( homedir = getenv( "HOMEPATH")) || ! *homedir)
+#endif
 	{
-		return  "" ;
+		if( ! ( homedir = getenv("HOME")))
+		{
+			return  "" ;
+		}
 	}
 
+#ifdef  USE_WIN32API
+	snprintf( path , sizeof(path) , "%s\\mlterm\\challenge" , homedir) ;
+#else
 	snprintf( path , sizeof(path) , "%s/.mlterm/challenge" , homedir) ;
+#endif
 
 	if( ( fp = fopen( path , "r")))
 	{

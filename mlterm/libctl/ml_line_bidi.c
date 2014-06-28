@@ -87,7 +87,8 @@ ml_line_set_use_bidi(
 int
 ml_line_bidi_render(
 	ml_line_t *  line ,
-	ml_bidi_mode_t  bidi_mode
+	ml_bidi_mode_t  bidi_mode ,
+	const char *  separators
 	)
 {
 	int  base_is_rtl ;
@@ -104,7 +105,8 @@ ml_line_bidi_render(
 
 	base_is_rtl = BASE_IS_RTL( line->ctl_info.bidi) ;
 
-	if( ! ml_bidi( line->ctl_info.bidi , line->chars , line->num_of_filled_chars , bidi_mode))
+	if( ! ml_bidi( line->ctl_info.bidi , line->chars , line->num_of_filled_chars ,
+		bidi_mode , separators))
 	{
 		return  0 ;
 	}

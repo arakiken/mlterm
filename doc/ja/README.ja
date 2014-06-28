@@ -364,15 +364,11 @@ comment $Id$
         BiDi レンダリングを行う。
         (必要ない場合は false に設定することを推奨します。)
 
-      o bidi_mode  (*normal*/cmd_l/cmd_r)
-        BiDi レンダリングの方法を指定する。
-                +---------------------+
-        logical |$ ls -l ABC DEF      |
-        normal  |$ ls -l FED CBA      |
-        cmd_l   |$ ls -l CBA FED      |
-        cmd_r   |      FED CBA -l ls $|
-                +---------------------+
-                (大文字は RTL 文字を示します。)
+      o bidi_mode  (*normal*/left/right)
+        left 又は right を指定すると、全ての行を左寄せ又は右寄せで表示する。
+
+      o bidi_separators
+        BiDi レンダリングを行う範囲を区切る文字を指定する。
 
       o use_ind  (true/*false*) (#)
         インド諸語の表示を行う。
@@ -1218,6 +1214,7 @@ comment $Id$
        --itfont(=bool) : use_italic_font
        --iconpath=value : icon_path
        --bimode=value  : bidi_mode
+       --bisep=value   : bidi_separators
        --parent=value  : parent_window
        --bd=value      : bd_color
        --it=value      : it_color

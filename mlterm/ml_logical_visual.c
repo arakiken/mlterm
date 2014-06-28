@@ -1026,17 +1026,18 @@ ml_get_vertical_mode_name(
 
 ml_logical_visual_t *
 ml_logvis_bidi_new(
-	ml_bidi_mode_t   bidi_mode
+	ml_bidi_mode_t   bidi_mode ,
+	const char *  separators
 	)
 {
-	ml_logical_visual_t * (*func)( ml_bidi_mode_t) ;
+	ml_logical_visual_t * (*func)( ml_bidi_mode_t , const char *) ;
 
 	if( ! (func = ml_load_ctl_bidi_func( ML_LOGVIS_BIDI_NEW)))
 	{
 		return  NULL ;
 	}
 
-	return  (*func)( bidi_mode) ;
+	return  (*func)( bidi_mode , separators) ;
 }
 
 ml_logical_visual_t *

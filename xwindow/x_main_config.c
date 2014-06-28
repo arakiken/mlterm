@@ -205,6 +205,8 @@ x_prepare_for_main_config(
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	kik_conf_add_opt( conf , '\0' , "bimode" , 0 , "bidi_mode" ,
 		"bidi mode [normal]") ;
+	kik_conf_add_opt( conf , '\0' , "bisep" , 0 , "bidi_separators" ,
+		"Separator characters to render bidi text") ;
 #endif
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
 		"parent window") ;
@@ -1021,7 +1023,28 @@ x_main_config_init(
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	if( ( value = kik_conf_get_value( conf , "bidi_mode")))
 	{
-		main_config->bidi_mode = ml_get_bidi_mode( value) ;
+	#if  1
+		/* Compat with 3.3.6 or before. */
+		if( strcmp( value , "cmd_l") == 0)
+		{
+			main_config->bidi_mode = BIDI_ALWAYS_LEFT ;
+			ml_set_bidi_separators( " ") ;
+		}
+		else if( strcmp( value , "cmd_r") == 0)
+		{
+			main_config->bidi_mode = BIDI_ALWAYS_RIGHT ;
+			ml_set_bidi_separators( " ") ;
+		}
+		else
+	#endif
+		{
+			main_config->bidi_mode = ml_get_bidi_mode( value) ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "bidi_separators")))
+	{
+		ml_set_bidi_separators( value) ;
 	}
 #endif
 

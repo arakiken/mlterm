@@ -8888,6 +8888,14 @@ x_screen_set_config(
 		change_bidi_flag( screen , ml_term_is_using_bidi( term) ,
 			ml_get_bidi_mode( value)) ;
 	}
+	else if( strcmp( key , "bidi_separators") == 0)
+	{
+		ml_set_bidi_separators( value) ;
+		if( update_special_visual( screen))
+		{
+			ml_term_set_modified_all_lines_in_screen( screen->term) ;
+		}
+	}
 	else if( strcmp( key , "use_ind") == 0)
 	{
 		int  flag ;

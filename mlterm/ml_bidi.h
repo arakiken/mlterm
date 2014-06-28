@@ -12,8 +12,8 @@
 typedef enum
 {
 	BIDI_NORMAL_MODE = 0 ,
-	BIDI_CMD_MODE_L = 1 ,
-	BIDI_CMD_MODE_R = 2 ,
+	BIDI_ALWAYS_LEFT = 1 ,
+	BIDI_ALWAYS_RIGHT = 2 ,
 	BIDI_MODE_MAX ,
 
 } ml_bidi_mode_t ;
