@@ -121,6 +121,7 @@ ml_pty_unix_new(
 	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
 	char **  env ,		/* can be NULL */
 	const char *  host ,
+	const char *  work_dir ,
 	u_int  cols ,
 	u_int  rows
 	)
@@ -140,6 +141,11 @@ ml_pty_unix_new(
 	if( pid == 0)
 	{
 		/* child process */
+
+		if( work_dir)
+		{
+			chdir( work_dir) ;
+		}
 
 		/* reset signals and spin off the command interpreter */
 		signal(SIGINT, SIG_DFL) ;

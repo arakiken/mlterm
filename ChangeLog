@@ -1,3 +1,11 @@
+2014-06-30  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty.[ch], ml_pty_inter.h, ml_pty_unix.c, ml_term.[ch], x_main_config.[ch],
+	  x_screen_manager.c:
+	  chdir(work_dir) if --work-directory option is specified.
+
+	* mlterm.1, mlclient.1, README.ja, PROTOCOL, etc/main, etc/main.ja: Updated.
+
 2014-06-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_bidi.c: Minor fixes.

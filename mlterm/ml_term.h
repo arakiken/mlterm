@@ -77,7 +77,8 @@ int  ml_term_delete( ml_term_t *  term) ;
 int  ml_term_zombie( ml_term_t *  term) ;
 
 int  ml_term_open_pty( ml_term_t *  term , const char *  cmd_path , char ** argv , char **  env ,
-	const char *  host , const char *  pass , const char *  pubkey , const char *  privkey) ;
+	const char *  host , const char *  work_dir , const char *  pass ,
+	const char *  pubkey , const char *  privkey) ;
 
 int  ml_term_plug_pty( ml_term_t *  term , ml_pty_ptr_t  pty) ;
 

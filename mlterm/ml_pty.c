@@ -51,6 +51,7 @@ ml_pty_new(
 	char **  cmd_argv ,		/* can be NULL(only if cmd_path is NULL) */
 	char **  env ,			/* can be NULL */
 	const char *  host ,		/* DISPLAY env or remote host */
+	const char *  work_dir ,	/* can be NULL */
 	const char *  pass ,		/* can be NULL */
 	const char *  pubkey ,		/* can be NULL */
 	const char *  privkey ,		/* can be NULL */
@@ -63,7 +64,8 @@ ml_pty_new(
 #ifndef  USE_WIN32API
 	if( ! pass)
 	{
-		pty = ml_pty_unix_new( cmd_path , cmd_argv , env , host , cols , rows) ;
+		pty = ml_pty_unix_new( cmd_path , cmd_argv , env , host ,
+				work_dir , cols , rows) ;
 	}
 	else
 #endif

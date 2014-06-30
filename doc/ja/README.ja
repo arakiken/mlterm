@@ -795,6 +795,9 @@ comment $Id$
         OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にす
         る。
 
+      o working_directory
+        子プロセス(シェル)のカレントディレクトリを指定する。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1245,9 +1248,12 @@ comment $Id$
        --ucsnoconv=value : unicode_noconv_areas
        --ade=value     : auto_detect_encodings
        --auto(=bool)   : use_auto_detect
+       --ldd(=bool)    : leftward_double_drawing
+       --working-directory : working_directory
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)
+       --metaprefix    : mod_meta_prefix (X)
 
     -e ... : 指定したコマンドを起動
 

@@ -2750,6 +2750,7 @@ ml_term_open_pty_wrap(
 	const char *  cmd_path ,
 	char **  argv ,
 	char **  envv ,
+	const char *  work_dir ,
 	const char *  pass ,
 	const char *  pubkey ,
 	const char *  privkey
@@ -2823,7 +2824,7 @@ ml_term_open_pty_wrap(
 #endif
 
 	return  ml_term_open_pty( terminal->pvt->term , cmd_path , argv , envv ,
-				host , pass , pubkey , privkey) ;
+				host , work_dir , pass , pubkey , privkey) ;
 }
 
 static void
@@ -3076,7 +3077,7 @@ vte_terminal_fork_command(
 
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 
-		if( ! ml_term_open_pty_wrap( terminal , command , argv , envv ,
+		if( ! ml_term_open_pty_wrap( terminal , command , argv , envv , directory ,
 				NULL , NULL , NULL) )
 		{
 		#ifdef  DEBUG
@@ -3177,7 +3178,8 @@ vte_terminal_forkpty(
 	
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 		
-		if( ! ml_term_open_pty_wrap( terminal , NULL , NULL , envv , NULL , NULL , NULL))
+		if( ! ml_term_open_pty_wrap( terminal , NULL , NULL , envv ,
+				directory , NULL , NULL , NULL))
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " fork failed\n") ;

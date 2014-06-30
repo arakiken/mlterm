@@ -41,7 +41,7 @@ typedef struct  ml_pty
 
 
 ml_pty_t *  ml_pty_unix_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
-	const char *  host , u_int  cols , u_int  rows) ;
+	const char *  host , const char *  work_dir , u_int  cols , u_int  rows) ;
 
 ml_pty_t *  ml_pty_unix_new_with( int  master , int  slave , pid_t  child_pid ,
 	const char *  host , u_int  cols , u_int  rows) ;

@@ -77,6 +77,7 @@ typedef struct x_main_config
 	char *  public_key ;
 	char *  private_key ;
 #endif
+	char *  work_dir ;
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	

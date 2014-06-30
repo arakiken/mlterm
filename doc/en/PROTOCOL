@@ -37,13 +37,14 @@ version 20140330
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
                      fade_ratio | mod_meta_key | mod_meta_mode | bel_mode | type_engine |
                      use_anti_alias | use_variable_column_width | use_combining |
-                     use_transbg | use_bidi | bidi_mode | use_ind | receive_string_via_ucs |
-                     input_method | locale | wall_picture | brightness | gamma | contrast |
-                     line_space | letter_space | screen_width_ratio | screen_height_ratio |
-                     vertical_mode | scrollbar_mode | static_backscroll_mode |
-                     use_multi_column_char | col_size_of_width_a | scrollbar_view_name |
-                     sb_fg_color | sb_bg_color | use_dynamic_comb | cursor_fg_color |
-                     cursor_bg_color | bd_color | ul_color | use_bold_font | hide_underline |
+                     use_transbg | use_bidi | bidi_mode | bidi_separators | use_ind |
+                     receive_string_via_ucs | input_method | locale | wall_picture |
+                     brightness | gamma | contrast | line_space | letter_space |
+                     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
+                     static_backscroll_mode | use_multi_column_char | col_size_of_width_a |
+                     scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
+                     cursor_fg_color | cursor_bg_color | bd_color | it_color | ul_color |
+                     bl_color | co_color | use_bold_font | use_italic_font | hide_underline |
                      icon_path | logging_vt_seq | logging_msg | word_separators | use_clipboard |
                      auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
@@ -52,17 +53,17 @@ version 20140330
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
-                     use_combining | use_transbg | use_bidi | bidi_mode | use_ind |
-                     receive_string_via_ucs | input_method | locale | wall_picture |
+                     use_combining | use_transbg | use_bidi | bidi_mode | bidi_separators |
+                     use_ind | receive_string_via_ucs | input_method | locale | wall_picture |
                      pwd | brightness | gamma | contrast | line_space | letter_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | use_multi_column_char | col_size_of_width_a |
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
-                     rows | cols | cursor_fg_color | cursor_bg_color | bd_color | ul_color |
-                     use_bold_font | hide_underline | pty_list | pty_name | use_clipboard |
-                     icon_path | logging_vt_seq | gui | allow_osc52 |
-                     only_use_unicode_font | not_use_unicode_font | box_drawing_font |
-                     use_auto_detect
+                     rows | cols | cursor_fg_color | cursor_bg_color | bd_color |
+		     it_color | ul_color | bl_color | co_color | use_bold_font |
+                     use_italic_font | hide_underline | pty_list | pty_name | use_clipboard |
+                     icon_path | logging_vt_seq | gui | allow_osc52 | only_use_unicode_font |
+                     not_use_unicode_font | box_drawing_font | use_auto_detect
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -79,7 +80,9 @@ version 20140330
   allow_scp = true | false | switch
   auto_restart = true | false | switch | <restart command>
   auto_detect_encodings = (<encoding name>,)*
+  bidi_separatos = <any ASCII sign>*
   bd_color = <color name> | <color rgb>
+  bl_color = <color name> | <color rgb>
   bel_mode = none | sound | visual
   bg_color = <color name> | <color rgb>
   box_drawing_font = unicode | decsp | noconv
@@ -87,6 +90,7 @@ version 20140330
   cols = <any ASCII decimal digit>
   col_size_of_width_a = 1 | 2
   contrast = <any ASCII decimal digit>
+  co_colors = <color name> | <color rgb>
   cursor_bg_color = <color name> | <color rgb>
   cursor_fg_color = <color name> | <color rgb>
   encoding = <encoding name> | auto
@@ -97,6 +101,7 @@ version 20140330
   hide_underline = true | false | switch
   icon_path = <file path>
   input_method = <input method> ":" <input method specific options> ...
+  it_color = <color name> | <color rgb>
   line_space = <any ASCII decimal digit>
   locale = <locale name>
   logsize = <any ASCII decimal digit>
@@ -127,6 +132,7 @@ version 20140330
   use_auto_deetect = true | false | switch
   use_bidi = true | false | switch
   use_bold_font = true | false | switch
+  use_italic_font = true | false | switch
   use_ind = true | false | switch
   use_combining = true | false | switch
   use_dynamic_comb = true | false | switch

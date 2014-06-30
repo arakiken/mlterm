@@ -517,7 +517,7 @@ The default is \fBtrue\fR.
 Specify bidi mode. Valid values are: \fBnormal\fR, \fBleft\fR and \fBright\fR.
 The default is \fBnormal\fR.
 .TP
-\fB\-\-bisep\fR=\fIvalue\fR
+\fB\-\-bisep\fR=\fIcharacterlist\fR
 Specify separator characters to render bidi text.
 .TP
 \fB\-\-bl\fR=\fIvalue\fR
@@ -600,6 +600,10 @@ The default is \fB32\fR.
 
 See \fBMULTIPLE PTY\fR section for detail.
 .TP
+\fB\-\-metaprefix\fR=\fIvalue\fR
+Specify prefix characters in pressing meta key if mod_meta_mode = esc.
+The default is \fB\\x1b\fR.
+.TP
 \fB\-\-noul\fR(=\fIbool\fR)
 Don't draw underline.
 The default is \fBfalse\fR.
@@ -652,6 +656,9 @@ e.g.) --ucsnoconv=U+1234-5678,U+0123-4567
 \fB\-\-urgent\fR(=\fIbool\fR)
 Draw the user's attention when making a bell sound in the unfocused window.
 The default is \fBfalse\fR.
+.TP
+\fB\-\-working\-directory\fR=\fIvalue\fR
+Working directory.
 .TP
 \fB\-\-x11\fR(=\fIbool\fR)
 Enable x11 forwarding for ssh connection.
@@ -1182,7 +1189,7 @@ Background color.
 \fBbidi_mode=\fImode\fR (\fB\-\-bimode\fR)
 Specify bidi mode.
 .TP
-\fBbidi_separators=\fImode\fR (\fB\-\-bisep\fR)
+\fBbidi_separators=\fIcharacterlist\fR (\fB\-\-bisep\fR)
 Specify separator characters to render bidi text.
 .TP
 \fBblink_cursor=\fIbool\fR (\fB\-\-blink\fR)
@@ -1303,6 +1310,9 @@ Specify number of lines of backlog or "unlimited".
 .TP
 \fBmax_ptys=\fIvalue\fR (\fB\-\-maxptys\fR)
 Specify maximum number of ptys (sessions) to be opened simultaneously.
+.TP
+\fBmeta_prefix=\fIvalue\fR (\fB\-\-metaprefix\fR)
+Specify prefix characters in pressing meta key if mod_meta_mode = esc.
 .TP
 \fBmod_meta_mode=\fImode\fR (\fB\-k\fR, \fB\-\-meta\fR) 
 Behavior of META key.
@@ -1456,6 +1466,9 @@ Path for wallpaper image.
 .TP
 \fBword_separators=\fIcharacterlist\fR (\fB\-W\fR, \fB\-\-sep\fR) 
 Delimiter characters used for word selection.
+.TP
+\fBworking_directory=\fIvalue\fR (\fB\-\-working\-directory\fR)
+Working directory.
 .TP
 \fBstatic_backscroll_mode=\fIbool\fR (\fB\-6\fR, \fB\-\-stbs\fR)
 Don't exit backscroll mode when console applications output something.

@@ -385,7 +385,8 @@ open_pty_intern(
 		cmd_argv[1] = NULL ;
 	}
 
-	ret = ml_term_open_pty( term , cmd_path , cmd_argv , env , uri ? uri : display , pass ,
+	ret = ml_term_open_pty( term , cmd_path , cmd_argv , env , uri ? uri : display ,
+			main_config.work_dir , pass ,
 		#ifdef  USE_LIBSSH2
 			main_config.public_key , main_config.private_key
 		#else

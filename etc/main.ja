@@ -56,8 +56,11 @@
 # BiDi レンダリングを行う
 # use_bidi = true
 
-# BiDi レンダリングの方法(normal,cmd_l,cmd_r)
+# BiDi レンダリングの方法(normal,left,right)
 # bidi_mode = normal
+
+# BiDi レンダリングを行う範囲を区切る文字を指定する
+# bidi_separators =
 
 # インド諸語の表示を行う。
 # エンコーディングが UTF-8 の場合は use_bidi が false の場合のみ有効。
@@ -139,9 +142,15 @@
 # ボールドフォントを使用する。
 # use_bold_font = true
 
+# イタリックフォントを使用する。
+# use_italic_font = true
+
 # medium フォントを重ね打ちする場合の開始位置を1ピクセル左(デフォルトは右)からと
 # する。
 # leftward_double_drawing = false
+
+# EastAsianWidth.txt に関わらず、常に全角幅で表示する文字の範囲
+# unicode_full_width_areas =
 
 # -- Appearance 関連 --
 # 背景透過する
@@ -182,11 +191,20 @@ scrollbar_view_name = sample
 # 同背景色
 # cursor_bg_color =
 
-# ボールド文字を描画するのに使用する色
+# ボールドの代わりに文字に色を付けるのに使用する色
 # bd_color =
+
+# イタリックの代わりに文字に色を付けるのに使用する色
+# it_color =
 
 # アンダーラインの代わりに文字に色をつけるのに使用する色
 # ul_color =
+
+# 点滅の代わりに文字に色を付けるのに使用する色
+# bl_color =
+
+# 打ち消し線の代わりに文字に色を付けるのに使用する色
+# co_color =
 
 # アンダーラインを描画しない。
 # hide_underline = false
@@ -278,10 +296,6 @@ scrollbar_view_name = sample
 # mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力する。
 # logging_msg = true
 
-# UTF-8 以外のエンコーディングの文字について、対応する UNICODE のプロパティ(文字
-# 幅等)を適用する。
-# use_unicode_property = false
-
 # ssh 等により直接ログインするサーバのリストを指定する。
 # server_list =
 
@@ -326,3 +340,6 @@ scrollbar_view_name = sample
 
 # OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にする。
 # allow_change_shortcut = false
+
+# 子プロセス(シェル)のカレントディレクトリを指定する。
+# working_directory

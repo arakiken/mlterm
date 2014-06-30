@@ -11,7 +11,9 @@ ver 3.3.7
   Add "UNICODE (ARABIC)" and "UNICODE (EMOJI)" to "Font name" entry.
 * Add --it/it_color, --bl/bl_color and --co/co_color options.
 * Add --itfont/use_italic_font option.
+* Add --bisep/bidi_separators option.
 * Add --fullwidth/unicode_full_width_areas option.
+* Add --working-directory/working_directory option.
 * Disable "_HALFWIDTH" suffix in ~/.mlterm/(t,v)(aa)font files.
 * Drop --ucsprop/use_unicode_property option.
 * Bug fixes:

@@ -30,6 +30,7 @@ typedef struct
 	char **  argv ;
 	char **  env ;
 	char *  host ;
+	char *  work_dir ;
 	char *  pass ;
 	char *  pubkey ;
 	char *  privkey ;
@@ -60,6 +61,7 @@ pty_args_delete(
 
 	free( args->cmd_path) ;
 	free( args->host) ;
+	free( args->work_dir) ;
 	free( args->pass) ;
 	free( args->pubkey) ;
 	free( args->privkey) ;
@@ -92,6 +94,7 @@ pty_args_new(
 	char **  argv ,
 	char **  env ,
 	const char *  host ,
+	const char *  work_dir ,
 	const char *  pass ,
 	const char *  pubkey ,
 	const char *  privkey
@@ -116,6 +119,11 @@ pty_args_new(
 	if( host)
 	{
 		args->host = strdup( host) ;
+	}
+
+	if( work_dir)
+	{
+		args->work_dir = strdup( work_dir) ;
 	}
 
 	if( pass)
@@ -202,7 +210,7 @@ open_pty(
 	args = p ;
 
 	pty = ml_pty_new( args->cmd_path , args->argv , args->env , args->host ,
-			args->pass , args->pubkey , args->privkey ,
+			args->work_dir , args->pass , args->pubkey , args->privkey ,
 			ml_screen_get_logical_cols( args->term->screen) ,
 			ml_screen_get_logical_rows( args->term->screen)) ;
 
@@ -415,6 +423,7 @@ ml_term_open_pty(
 	char **  argv ,
 	char **  env ,
 	const char *  host ,
+	const char *  work_dir ,
 	const char *  pass ,
 	const char *  pubkey ,
 	const char *  privkey
@@ -425,8 +434,8 @@ ml_term_open_pty(
 	#ifdef  OPEN_PTY_ASYNC
 		pty_args_t *  args ;
 
-		if( ! ( args = pty_args_new( term , cmd_path , argv , env , host , pass ,
-						pubkey , privkey)))
+		if( ! ( args = pty_args_new( term , cmd_path , argv , env , host ,
+					work_dir , pass , pubkey , privkey)))
 		{
 			return  0 ;
 		}
@@ -462,7 +471,8 @@ ml_term_open_pty(
 	#else	/* OPEN_PTY_ASYNC */
 		ml_pty_ptr_t  pty ;
 
-		if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , pass , pubkey , privkey ,
+		if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , work_dir ,
+				pass , pubkey , privkey ,
 				ml_screen_get_logical_cols( term->screen) ,
 				ml_screen_get_logical_rows( term->screen))))
 		{

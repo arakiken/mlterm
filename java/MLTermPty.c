@@ -1149,7 +1149,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 #endif
 
 	ret = ml_term_open_pty( nativeObj->term , cmd_path , argv , envv ,
-			host , pass , public_key , private_key) ;
+			host , NULL , pass , public_key , private_key) ;
 
 #ifdef  USE_LIBSSH2
 	env_for_dialog = NULL ;

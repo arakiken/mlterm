@@ -42,8 +42,10 @@
 
 # use_bidi = true
 
-# (normal,cmd_l,cmd_r)
+# (normal,left,right)
 # bidi_mode = normal
+
+# bidi_separators =
 
 # use_ind = false
 
@@ -98,7 +100,11 @@
 
 # use_bold_font = true
 
+# use_italic_font = true
+
 # leftward_double_drawing = false
+
+# unicode_full_width_areas =
 
 # -- Appearance --
 # use_transbg = false
@@ -129,7 +135,13 @@
 
 # bd_color =
 
+# it_color =
+
 # ul_color =
+
+# bl_color =
+
+# co_color =
 
 # hide_underline = false
 
@@ -193,8 +205,6 @@
 
 # logging_msg = true
 
-# use_unicode_property = false
-
 # server_list =
 
 # default_server =
@@ -224,3 +234,5 @@
 # use_ansi_colors = true
 
 # allow_change_shortcut = false
+
+# working_directory =

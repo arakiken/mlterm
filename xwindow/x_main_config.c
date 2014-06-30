@@ -290,6 +290,8 @@ x_prepare_for_main_config(
 		"detect character encoding automatically.") ;
 	kik_conf_add_opt( conf , '\0' , "ldd" , 1 , "leftward_double_drawing" ,
 		"embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.") ;
+	kik_conf_add_opt( conf , '\0' , "working-directory" , 0 , "working_directory" ,
+		"working directory") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [true]") ;
@@ -1417,6 +1419,11 @@ x_main_config_init(
 		x_set_use_leftward_double_drawing( strcmp( value , "true") == 0) ;
 	}
 
+	if( ( value = kik_conf_get_value( conf , "working_directory")))
+	{
+		main_config->work_dir = strdup( value) ;
+	}
+
 #ifdef  USE_GRF
 	if( ( value = kik_conf_get_value( conf , "separate_wall_picture")))
 	{
@@ -1513,6 +1520,7 @@ x_main_config_final(
 	free( main_config->private_key) ;
 #endif
 
+	free( main_config->work_dir) ;
 	free( main_config->cmd_argv) ;
 
 	return  1 ;
