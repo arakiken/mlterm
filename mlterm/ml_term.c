@@ -317,7 +317,7 @@ ml_term_new(
 
 	if( bidi_separators)
 	{
-		term->bidi_separators = strdup( bidi_separators) ;
+		term->bidi_separators = kik_str_unescape( bidi_separators) ;
 	}
 
 	term->vertical_mode = vertical_mode ;
@@ -1222,7 +1222,7 @@ ml_term_set_bidi_separators(
 
 	if( bidi_separators && *bidi_separators)
 	{
-		term->bidi_separators = strdup( bidi_separators) ;
+		term->bidi_separators = kik_str_unescape( bidi_separators) ;
 	}
 	else
 	{

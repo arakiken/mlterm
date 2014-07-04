@@ -683,7 +683,7 @@ ml_set_word_separators(
 		default_word_separators = word_separators ;
 	}
 
-	word_separators = strdup( seps) ;
+	word_separators = kik_str_unescape( seps) ;
 
 	return  1 ;
 }

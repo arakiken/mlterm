@@ -50,11 +50,15 @@ ml_bidi_delete(
 	return  1 ;
 }
 
+/*
+ * Don't call this functions with type_p == FRIBIDI_TYPE_ON and size == cur_pos.
+ */
 static void
 log2vis(
 	FriBidiChar *  str ,
 	u_int  size ,
 	FriBidiCharType *  type_p ,
+	ml_bidi_mode_t  bidi_mode ,
 	FriBidiStrIndex *  order ,
 	u_int  cur_pos ,
 	int  append
@@ -63,14 +67,36 @@ log2vis(
 	FriBidiCharType  type ;
 	u_int  pos ;
 
-	type = FRIBIDI_TYPE_ON ;
-
-	fribidi_log2vis( str + cur_pos , size - cur_pos , &type , NULL ,
-		order + cur_pos , NULL , NULL) ;
-
-	if( *type_p == FRIBIDI_TYPE_ON)
+	if( size > cur_pos)
 	{
-		*type_p = type ;
+		if( bidi_mode == BIDI_ALWAYS_RIGHT)
+		{
+			type = FRIBIDI_TYPE_RTL ;
+		}
+		else if( bidi_mode == BIDI_ALWAYS_LEFT)
+		{
+			type = FRIBIDI_TYPE_LTR ;
+		}
+		else
+		{
+			type = FRIBIDI_TYPE_ON ;
+		}
+
+		fribidi_log2vis( str + cur_pos , size - cur_pos , &type , NULL ,
+			order + cur_pos , NULL , NULL) ;
+
+		if( *type_p == FRIBIDI_TYPE_ON)
+		{
+			*type_p = type ;
+		}
+	}
+	else
+	{
+		/*
+		 * This functions is never called if type_p == FRIBIDI_TYPE_ON and
+		 * size == cur_pos.
+		 */
+		type = *type_p ;
 	}
 
 	if( *type_p == FRIBIDI_TYPE_LTR)
@@ -164,6 +190,21 @@ log2vis(
 	}
 }
 
+static void
+log2log(
+	FriBidiStrIndex *  order ,
+	u_int  cur_pos ,
+	u_int  size
+	)
+{
+	u_int  pos ;
+
+	for( pos = cur_pos ; pos < size ; pos++)
+	{
+		order[pos] = pos ;
+	}
+}
+
 int
 ml_bidi(
 	ml_bidi_state_t  state ,
@@ -227,18 +268,11 @@ ml_bidi(
 		state->size = size ;
 	}
 
+	fri_type = FRIBIDI_TYPE_ON ;
+
 	if( bidi_mode == BIDI_ALWAYS_RIGHT)
 	{
 		SET_HAS_RTL(state) ;
-		fri_type = FRIBIDI_TYPE_RTL ;
-	}
-	else if( bidi_mode == BIDI_ALWAYS_LEFT)
-	{
-		fri_type = FRIBIDI_TYPE_LTR ;
-	}
-	else
-	{
-		fri_type = FRIBIDI_TYPE_ON ;
 	}
 
 	for( count = 0 , cur_pos = 0 ; count < size ; count ++)
@@ -258,11 +292,19 @@ ml_bidi(
 				{
 					fri_src[count] = 'a' ;
 				}
-				else if( separators && HAS_RTL(state) &&
-				         strchr( separators , code))
+				else if( separators && strchr( separators , code))
 				{
-					log2vis( fri_src , count , &fri_type ,
-							fri_order , cur_pos , 1) ;
+					if( HAS_RTL(state))
+					{
+						log2vis( fri_src , count , &fri_type , bidi_mode ,
+								fri_order , cur_pos , 1) ;
+					}
+					else
+					{
+						fri_type = FRIBIDI_TYPE_LTR ;
+						log2log( fri_order , cur_pos , count + 1) ;
+					}
+
 					cur_pos = count + 1 ;
 				}
 				else
@@ -277,18 +319,37 @@ ml_bidi(
 		}
 		else if( cs == ISO10646_UCS4_1)
 		{
-			fri_src[count] = code ;
-
-			if( ! HAS_RTL(state) &&
-			    ( fribidi_get_type( fri_src[count]) & FRIBIDI_MASK_RTL))
+			if( 0x2500 <= code && code <= 0x259f)
 			{
-				SET_HAS_RTL( state) ;
+				goto  decsp ;
+			}
+			else
+			{
+				fri_src[count] = code ;
+
+				if( ! HAS_RTL(state) &&
+				    ( fribidi_get_type( fri_src[count]) & FRIBIDI_MASK_RTL))
+				{
+					SET_HAS_RTL( state) ;
+				}
 			}
 		}
 		else if( cs == DEC_SPECIAL)
 		{
-			/* Regarded as LTR character. */
-			fri_src[count] = 'a' ;
+		decsp:
+			fri_type = FRIBIDI_TYPE_LTR ;
+
+			if( HAS_RTL(state))
+			{
+				log2vis( fri_src , count , &fri_type , bidi_mode ,
+						fri_order , cur_pos , 1) ;
+			}
+			else
+			{
+				log2log( fri_order , cur_pos , count + 1) ;
+			}
+
+			cur_pos = count + 1 ;
 		}
 		else
 		{
@@ -305,7 +366,7 @@ ml_bidi(
 
 	if( HAS_RTL(state))
 	{
-		log2vis( fri_src , size , &fri_type , fri_order , cur_pos , 0) ;
+		log2vis( fri_src , size , &fri_type , bidi_mode , fri_order , cur_pos , 0) ;
 
 		for( count = 0 ; count < size ; count ++)
 		{
