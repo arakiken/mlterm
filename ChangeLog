@@ -1,5 +1,14 @@
 2014-07-06  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.3.7 released.
+	  (tag "rel-3_3_7")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.3.7.
+
+2014-07-06  Araki Ken  <arakiken@users.sf.net>
+
 	* x_shortcut.c: Minor fixes.
 
 	* gtk/vte.c: If cmd_path is omittted in argv, argv[0] = cmd_path.
