@@ -1,5 +1,9 @@
 2014-07-05  Araki Ken  <arakiken@users.sf.net>
 
+	* kik_str.c, x_shortcut.c: kik_str_unescape() hack for x_shortcut.c is removed.
+
+2014-07-05  Araki Ken  <arakiken@users.sf.net>
+
 	* mlclient/main.c: Minor fixes.
 
 	* main_loop.c: --deffont option is added.

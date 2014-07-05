@@ -525,8 +525,7 @@ kik_str_unescape(
 		return  NULL ;
 	}
 
-	/* *str != '"' is for x_shortcut.c */
-	for( p = new_str ; *str != '"' && *str != '\0' ; str++ , p++)
+	for( p = new_str ; *str != '\0' ; str++ , p++)
 	{
 		if( *str == '\\')
 		{

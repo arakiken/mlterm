@@ -412,12 +412,14 @@ x_shortcut_parse(
 		char *  str ;
 		x_str_key_t *  str_map ;
 
-		if( ! ( str = kik_str_unescape( ++oper)))
+		if( ! ( str = strrchr( ++oper , '\"')))
 		{
 			return  0 ;
 		}
+		*str = '\0' ;
 
-		if( ! ( str_map = realloc( shortcut->str_map ,
+		if( ! ( str = kik_str_unescape( oper)) ||
+		    ! ( str_map = realloc( shortcut->str_map ,
 				   sizeof( x_str_key_t) * (shortcut->str_map_size + 1))))
 		{
 			free( str) ;
