@@ -1,5 +1,9 @@
 2014-07-05  Araki Ken  <arakiken@users.sf.net>
 
+	* mlclient/main.c: Minor fixes.
+
+	* main_loop.c: --deffont option is added.
+
 	* README.ja, mlterm.1: Updated.
 
 	* ml_bidi.c: U+2500-259f and DEC_SPECIAL characters are forcibly regarded as bidi

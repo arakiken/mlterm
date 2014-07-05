@@ -1250,7 +1250,8 @@ comment $Id$
        --ade=value     : auto_detect_encodings
        --auto(=bool)   : use_auto_detect
        --ldd(=bool)    : leftward_double_drawing
-       --working-directory : working_directory
+       --working-directory=value : working_directory
+       --deffont=value : DEFAULT in ~/.mlterm/*font
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)

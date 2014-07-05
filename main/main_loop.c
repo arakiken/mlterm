@@ -198,6 +198,7 @@ main_loop_init(
 #endif
 	kik_conf_add_opt( conf , '\0' , "metaprefix" , 0 , "mod_meta_prefix" ,
 		"prefix characters in pressing meta key if mod_meta_mode = esc") ;
+	kik_conf_add_opt( conf , '\0' , "deffont" , 0 , "default_font" , "default font") ;
 
 	orig_argv = argv ;
 	if( ! kik_conf_parse_args( conf , &argc , &argv , 0))
@@ -391,6 +392,13 @@ main_loop_init(
 	}
 
 	x_main_config_init( &main_config , conf , argc , argv) ;
+
+	if( ( value = kik_conf_get_value( conf , "default_font")))
+	{
+		x_customize_font_file(
+			main_config.type_engine == TYPE_XCORE ? "font" : "aafont" ,
+			"DEFAULT" , value , 0) ;
+	}
 
 	kik_conf_delete( conf) ;
 

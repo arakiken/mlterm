@@ -279,17 +279,17 @@ x_prepare_for_main_config(
 		"force unicode or decsp font for box-drawing characters. [noconv]") ;
 	kik_conf_add_opt( conf , '\0' , "urgent" , 1 , "use_urgent_bell" ,
 		"draw the user's attention when making a bell sound. [false]") ;
-	kik_conf_add_opt( conf , '\0' , "locale" , 0 , "locale" , "set locale.") ;
+	kik_conf_add_opt( conf , '\0' , "locale" , 0 , "locale" , "set locale") ;
 	kik_conf_add_opt( conf , '\0' , "ucsnoconv" , 0 , "unicode_noconv_areas" ,
-		"use unicode fonts partially regardless of -n option.") ;
+		"use unicode fonts partially regardless of -n option") ;
 	kik_conf_add_opt( conf , '\0' , "fullwidth" , 0 , "unicode_full_width_areas" ,
 		"force full width regardless of EastAsianWidth.txt") ;
 	kik_conf_add_opt( conf , '\0' , "ade" , 0 , "auto_detect_encodings" ,
-		"encodings detected automatically.") ;
+		"encodings detected automatically") ;
 	kik_conf_add_opt( conf , '\0' , "auto" , 1 , "use_auto_detect" ,
-		"detect character encoding automatically.") ;
+		"detect character encoding automatically") ;
 	kik_conf_add_opt( conf , '\0' , "ldd" , 1 , "leftward_double_drawing" ,
-		"embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.") ;
+		"embold glyphs by drawing doubly at 1 pixel leftward instead of rightward") ;
 	kik_conf_add_opt( conf , '\0' , "working-directory" , 0 , "working_directory" ,
 		"working directory") ;
 #ifdef  USE_GRF

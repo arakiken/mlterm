@@ -30,7 +30,9 @@ static char *  na_options[] =
 	"   --restart" ,
 	"   --depth" ,
 	"   --maxptys" ,
-	"   --keepalive"
+	"   --keepalive" ,
+	"   --metaprefix" ,
+	"   --deffont" ,
 } ;
 
 
