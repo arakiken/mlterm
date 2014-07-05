@@ -411,15 +411,11 @@ x_shortcut_parse(
 	if( *oper == '"')
 	{
 		char *  str ;
+		char *  p ;
 		x_str_key_t *  str_map ;
 
-		if( ! ( str = strrchr( ++oper , '\"')))
-		{
-			return  0 ;
-		}
-		*str = '\0' ;
-
-		if( ! ( str = kik_str_unescape( oper)) ||
+		if( ! ( str = kik_str_unescape( ++oper)) ||
+		    ! ( p = strrchr( str , '\"')) ||
 		    ! ( str_map = realloc( shortcut->str_map ,
 				   sizeof( x_str_key_t) * (shortcut->str_map_size + 1))))
 		{
@@ -428,6 +424,7 @@ x_shortcut_parse(
 			return  0 ;
 		}
 
+		*p = '\0' ;
 		str_map[shortcut->str_map_size].ksym = ksym ;
 		str_map[shortcut->str_map_size].state = state ;
 		str_map[shortcut->str_map_size].str = str ;

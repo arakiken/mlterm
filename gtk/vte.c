@@ -2758,26 +2758,53 @@ ml_term_open_pty_wrap(
 {
 	const char *  host ;
 	char **  env_p ;
-	u_int  num_of_env ;
+	u_int  num ;
 
 	host = gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ;
 
-	num_of_env = 0 ;
+	if( argv)
+	{
+		char **  argv_p ;
+
+		num = 0 ;
+		argv_p = argv ;
+		while( *(argv_p ++))
+		{
+			num ++ ;
+		}
+
+		if( num > 0 && ! strstr( cmd_path , argv[0]) &&
+		    ( argv_p = alloca( sizeof( char*) * ( num + 2))))
+		{
+			memcpy( argv_p + 1 , argv , sizeof(char*) * (num + 1)) ;
+			argv_p[0] = cmd_path ;
+			argv = argv_p ;
+
+		#if  0
+			for( argv_p = argv ; *argv_p ; argv_p ++)
+			{
+				kik_debug_printf( "%s\n" , *argv_p) ;
+			}
+		#endif
+		}
+	}
+
+	num = 0 ;
 	if( envv)
 	{
 		env_p = envv ;
 		while( *(env_p ++))
 		{
-			num_of_env ++ ;
+			num ++ ;
 		}
 	}
 
-	if( ( env_p = alloca( sizeof( char*) * (num_of_env + 5))))
+	if( ( env_p = alloca( sizeof( char*) * (num + 5))))
 	{
-		if( num_of_env > 0)
+		if( num > 0)
 		{
-			envv = memcpy( env_p , envv , sizeof(char*) * num_of_env) ;
-			env_p += num_of_env ;
+			envv = memcpy( env_p , envv , sizeof(char*) * num) ;
+			env_p += num ;
 		}
 		else
 		{

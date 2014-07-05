@@ -1,3 +1,9 @@
+2014-07-06  Araki Ken  <arakiken@users.sf.net>
+
+	* x_shortcut.c: Minor fixes.
+
+	* gtk/vte.c: If cmd_path is omittted in argv, argv[0] = cmd_path.
+
 2014-07-05  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_str.c: Illegal memory allocation is fixed.
@@ -269,7 +275,7 @@
 
 	* configure.in, main/Makefile.in: XWINDOW_OBJ_SUFFIX => MAIN_OBJ_SUFFIX
 
-	* version.h.in: 3.3.5 -> 3.3.5post
+	* version.h.in: 3.3.6 -> 3.3.6post
 
 2014-05-25  Araki Ken  <arakiken@users.sf.net>
 
