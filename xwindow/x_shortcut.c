@@ -102,13 +102,14 @@ read_conf(
 		 */
 		if( ! x_shortcut_parse( shortcut , key , value))
 		{
+		#ifdef  ENABLE_BACKWARD_COMPAT
 			/*
 			 * XXX
 			 * Backward compatibility with 2.4.0 or before.
 			 * [operation]=[shortcut key]
 			 */
-			 
 			x_shortcut_parse( shortcut , value , key) ;
+		#endif
 		}
 	}
 

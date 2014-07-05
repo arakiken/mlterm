@@ -1,5 +1,11 @@
 2014-07-05  Araki Ken  <arakiken@users.sf.net>
 
+	* kik_str.c: Illegal memory allocation is fixed.
+
+	* x_shortcut.c: [operation]=[key] format is obsoleted.
+
+2014-07-05  Araki Ken  <arakiken@users.sf.net>
+
 	* kik_str.c, x_shortcut.c: kik_str_unescape() hack for x_shortcut.c is removed.
 
 2014-07-05  Araki Ken  <arakiken@users.sf.net>

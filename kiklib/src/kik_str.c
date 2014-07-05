@@ -520,12 +520,12 @@ kik_str_unescape(
 	char *  new_str ;
 	char *  p ;
 
-	if( ( new_str = malloc( strlen( str))) == NULL)
+	if( ( new_str = malloc( strlen( str) + 1)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	for( p = new_str ; *str != '\0' ; str++ , p++)
+	for( p = new_str ; *str ; str++ , p++)
 	{
 		if( *str == '\\')
 		{
