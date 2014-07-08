@@ -1,5 +1,17 @@
 2014-07-08  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display_x68kgrf.c:
+	  - Keyboard events from /dev/kbd are processed instead of stdin.
+	  - x68k_set_use_tvram_colors() and x68k_set_tvram_cmap() resets
+	    _display.color_cache.
+
+	* x.h: KS_Print -> KS_Print_Screen
+
+	* x_display.c: Key squences on NetBSD/x68k are added to the table in
+	  receive_stdin_key_event().
+
+2014-07-08  Araki Ken  <arakiken@users.sf.net>
+
 	* libtype/Makefile.in: Compiling error is fixed.
 
 	* version.h.in: 3.3.7 -> 3.3.7post

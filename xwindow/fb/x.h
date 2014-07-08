@@ -309,7 +309,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Right	KS_Right
 #define XK_Down		KS_Down
 #define XK_Select	KS_Select
-#define XK_Print	KS_Print
+#define XK_Print	KS_Print_Screen
 #define XK_Execute	KS_Execute
 #define XK_Insert	KS_Insert
 #define XK_Delete	KS_Delete
