@@ -59,7 +59,7 @@ libtype_cairo.la: $(CAIRO_OBJ)
 libtype.a: $(NODL_OBJ)
 	$(LIBTOOL_LINK) -o libtype.a $(NODL_OBJ:.o=.lo)
 
-x_font_ft.o:
+x_font_ft.o: x_font_ft.c
 	$(LIBTOOL_CC) @TYPE_CFLAGS@ -c $<
 
 .SUFFIXES: .c .o
