@@ -11,10 +11,10 @@
 #include  <kiklib/kik_debug.h>
 
 #include  "../x_window.h"
+#include  "../../common/c_animgif.c"
+
 
 #define  DISP_IS_INITED   (_disp.display)
-
-#include  "../../common/c_animgif.c"
 
 
 /* --- static functions --- */

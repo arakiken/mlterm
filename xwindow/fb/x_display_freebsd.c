@@ -502,17 +502,6 @@ receive_key_event(void)
 				{
 					_display.key_state |= ShiftMask ;
 				}
-				else if( kcode == KEY_CAPSLOCK)
-				{
-					if( _display.key_state & ShiftMask)
-					{
-						_display.key_state &= ~ShiftMask ;
-					}
-					else
-					{
-						_display.key_state |= ShiftMask ;
-					}
-				}
 				else if( kcode == KEY_RIGHTCTRL ||
 					 kcode == KEY_LEFTCTRL)
 				{
