@@ -1,8 +1,7 @@
 ver 3.3.8
 * Read /dev/kbd on NetBSD/x68k framebuffer.
 * Bug fixes:
-  Fix drawing a background picture on Text VRAM of NetBSD/x68k by unexpectedly
-  cached pixels.
+  Fix weird background picture on NetBSD/x68k Text VRAM by unexpectedly cached pixels.
 
 ver 3.3.7
 * Enable image processing on background terminals.

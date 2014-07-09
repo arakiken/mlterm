@@ -1,3 +1,9 @@
+2014-07-10  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: "-lfontconfig -lfreetype" is added to CAIRO_LIBS and XFT_LIBS
+	  because mlterm has undefined symbols if --disable-shared is specified on
+	  some platforms where dependency_libs="" in libcairo.la.
+
 2014-07-09  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_freebsd.c: Duplicated capslock processing is fixed.

@@ -474,6 +474,10 @@ xft)
 				XFT_LIBS="-lXft -lfontconfig"
 				])
 		fi
+	elif test "$gui" = "xlib" -a "$enable_shared" = "no" ; then
+		# In case --disable-shared is specified on some platforms
+		# (e.g. ubuntu 14.04) where dependency_libs="" in libXft.la.
+		XFT_LIBS="$XFT_LIBS -lfontconfig -lfreetype"
 	fi
 
 	if test "$have_xft" = "yes" ; then
@@ -497,6 +501,10 @@ cairo)
 			# functions directly.
 			CAIRO_LIBS="-lcairo -lfontconfig"
 			])
+	elif test "$gui" = "xlib" -a "$enable_shared" = "no" ; then
+		# In case --disable-shared is specified on some platforms
+		# (e.g. ubuntu 14.04) where dependency_libs="" in libcairo.la.
+		CAIRO_LIBS="$CAIRO_LIBS -lfontconfig -lfreetype"
 	fi
 
 	if test "$have_cairo" = "yes" ; then
