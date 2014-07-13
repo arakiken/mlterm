@@ -522,6 +522,15 @@ open_display(
 
 					goto  error ;
 				}
+
+				if( ! ( _display.color_cache =
+						calloc( 1 , sizeof(*_display.color_cache))))
+				{
+					free( _display.cmap_orig) ;
+					free( _display.cmap) ;
+
+					goto  error ;
+				}
 			}
 
 			for( color = 0 ; color < num_of_colors ; color ++)

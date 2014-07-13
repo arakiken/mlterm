@@ -1,3 +1,8 @@
+2014-07-14  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_wscons.c: The null pointer bug of_display.color_cache in the case
+	  of vinfo.depth >= 2 && _disp.depth == 1 is fixed.
+
 2014-07-13  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Compiling error is fixed.
