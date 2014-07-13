@@ -1,5 +1,16 @@
 2014-07-13  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: Compiling error is fixed.
+
+	* ml_screen.c, x_screen.c:
+	  ml_term_get_cols(screen->term) - line->num_of_chars
+	  => ml_term_get_cols(screen->term) - ml_line_get_num_of_filled_cols(line)
+
+	* x_selection.c: conved flag is added in update_sel_region() instead of
+	  col != conved_col because it doesn't works if col == 0.
+
+2014-07-13  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_screen.[ch], ml_term.h, x_screen.c, x_selection.[ch]:
 	  Rectangle selection is supported.
 

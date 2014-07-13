@@ -1552,14 +1552,14 @@ snapshot(
 	beg = - ml_screen_get_num_of_logged_lines( vt100_parser->screen) ;
 	end = ml_screen_get_rows( vt100_parser->screen) ;
 
-	num = ml_screen_get_region_size( vt100_parser->screen , 0 , beg , 0 , end) ;
+	num = ml_screen_get_region_size( vt100_parser->screen , 0 , beg , 0 , end , 0) ;
 
 	if( ( buf = ml_str_alloca( num)) == NULL)
 	{
 		return ;
 	}
 
-	ml_screen_copy_region( vt100_parser->screen , buf , num , 0 , beg , 0 , end) ;
+	ml_screen_copy_region( vt100_parser->screen , buf , num , 0 , beg , 0 , end , 0) ;
 
 	if( ( path = alloca( 7 + strlen( file_name) + 4 + 1)) == NULL)
 	{

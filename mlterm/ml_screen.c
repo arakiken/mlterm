@@ -279,7 +279,8 @@ convert_col_to_char_index(
 	int  char_index ;
 
 	if( ml_line_is_rtl( line) &&
-	    ( padding = ml_screen_get_cols( screen) - line->num_of_chars) > 0)
+	    ( padding = ml_screen_get_cols( screen) -
+	                ml_line_get_num_of_filled_cols( line)) > 0)
 	{
 		beg_col -= padding ;
 		end_col -= padding ;

@@ -3555,20 +3555,18 @@ start_selection(
 		return ;
 	}
 
-	if( is_rect && ml_line_get_num_of_filled_chars_except_spaces( line) == 0)
+	if( is_rect)
 	{
-		if( ( ( line = ml_term_get_line( screen->term , row_r + 1)) ||
-		      ( line = ml_term_get_line( screen->term , row_r - 1))) &&
-		    ml_line_is_rtl( line))
+		if( col_r == 0 ||
+		    abs( col_r) + 1 == ml_term_get_cols( screen->term))
 		{
-			col_r = line->num_of_chars - 1 ;
+			col_l = col_r ;
 		}
 		else
 		{
-			col_r = 0 ;
+			col_l = col_r - 1 ;
 		}
 
-		col_l = col_r ;
 		row_l = row_r ;
 	}
 	else if( ( ! ml_line_is_rtl( line) && col_r == 0) ||
@@ -3702,7 +3700,7 @@ selecting_with_motion(
 
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
 
-	if( screen->sel.is_rect)
+	if( is_rect || screen->sel.is_rect)
 	{
 		/* converting char index to col. */
 
@@ -3710,7 +3708,8 @@ selecting_with_motion(
 
 		if( ml_line_is_rtl( line))
 		{
-			char_index += (ml_term_get_cols( screen->term) - line->num_of_chars) ;
+			char_index += (ml_term_get_cols( screen->term) -
+					ml_line_get_num_of_filled_cols( line)) ;
 			char_index -= (x_rest / x_col_width( screen)) ;
 		}
 		else

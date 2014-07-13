@@ -38,6 +38,7 @@ update_sel_region(
 
 	if( sel->is_rect)
 	{
+		int  conved ;
 		int  conved_col ;
 
 		(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
@@ -47,10 +48,12 @@ update_sel_region(
 		    ( col >= 0 && sel->base_col_r < 0))
 		{
 			conved_col = -col ;
+			conved = 1 ;
 		}
 		else
 		{
 			conved_col = col ;
+			conved = 0 ;
 		}
 
 		if( conved_col < sel->base_col_r)
@@ -66,7 +69,7 @@ update_sel_region(
 			{
 				sel->beg_col = conved_col ;
 				sel->beg_row = sel->base_row_l ;
-				if( col != conved_col)
+				if( conved)
 				{
 					sel->end_col = -sel->base_col_l ;
 				}
@@ -81,7 +84,7 @@ update_sel_region(
 		{
 			if( row <= sel->base_row_r)
 			{
-				if( col != conved_col)
+				if( conved)
 				{
 					sel->beg_col = -sel->base_col_r ;
 				}
