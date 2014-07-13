@@ -1,3 +1,19 @@
+2014-07-13  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.[ch], ml_term.h, x_screen.c, x_selection.[ch]:
+	  Rectangle selection is supported.
+
+	* win32/x_window.c: get_key_state() is set to XButtonEvent::state in
+	  x_window_receive_event().
+
+	* ml_line.c:
+	  - ml_line_{reverse|restore}_color() calls ml_line_set_modified()
+	    only if ml_char_{reverse|restore}_color() returns 1.
+	  - BREAK_BOUNDARY works in ml_convert_char_index_to_col() works even if
+	    specified line is empty.
+
+	* ml_char.c: Minor fixes.
+
 2014-07-10  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: "-lfontconfig -lfreetype" is added to CAIRO_LIBS and XFT_LIBS

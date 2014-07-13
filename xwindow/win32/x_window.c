@@ -2230,7 +2230,7 @@ x_window_receive_event(
 
 			bev.time = GetMessageTime() ;
 
-			bev.state = 0 ;
+			bev.state = get_key_state() ;
 		#if  0
 			if( event->wparam & MK_LBUTTON)
 			{
@@ -2393,7 +2393,7 @@ x_window_receive_event(
 			mev.x = LOWORD(event->lparam) - win->hmargin ;
 			mev.y = HIWORD(event->lparam) - win->vmargin ;
 
-			mev.state = 0 ;
+			mev.state = get_key_state() ;
 
 			if( event->wparam & MK_LBUTTON)
 			{

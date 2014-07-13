@@ -235,22 +235,25 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_set_tab_size( term , tab_size)  ml_screen_set_tab_size( (term)->screen , tab_size)
 
-#define  ml_term_reverse_color( term , beg_char_index , beg_row , end_char_index , end_row) \
+#define  ml_term_reverse_color( term , beg_char_index , beg_row , \
+		end_char_index , end_row , is_rect) \
 		ml_screen_reverse_color( (term)->screen , beg_char_index , beg_row , \
-			end_char_index , end_row)
+			end_char_index , end_row , is_rect)
 
-#define  ml_term_restore_color( term , beg_char_index , beg_row , end_char_index , end_row) \
+#define  ml_term_restore_color( term , beg_char_index , beg_row , \
+		end_char_index , end_row , is_rect) \
 		ml_screen_restore_color( (term)->screen , beg_char_index , beg_row , \
-			end_char_index , end_row)
+			end_char_index , end_row , is_rect)
 
 #define  ml_term_copy_region( term , chars , num_of_chars , beg_char_index , beg_row , \
-		end_char_index , end_row) \
+		end_char_index , end_row , is_rect) \
 		ml_screen_copy_region( (term)->screen , chars , num_of_chars , \
-			beg_char_index , beg_row , end_char_index , end_row)
+			beg_char_index , beg_row , end_char_index , end_row , is_rect)
 
-#define  ml_term_get_region_size( term , beg_char_index , beg_row , end_char_index , end_row) \
+#define  ml_term_get_region_size( term , beg_char_index , beg_row , \
+		end_char_index , end_row , is_rect) \
 		ml_screen_get_region_size( (term)->screen , beg_char_index , beg_row , \
-			end_char_index , end_row)
+			end_char_index , end_row , is_rect)
 
 #define  ml_term_get_line_region( term , beg_row , end_char_index , end_row , base_row) \
 		ml_screen_get_line_region( (term)->screen , beg_row , end_char_index , \

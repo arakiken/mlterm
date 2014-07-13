@@ -1,4 +1,5 @@
 ver 3.3.8
+* Support rectangle selection by pressing alt key while selecting.
 * Read /dev/kbd on NetBSD/x68k framebuffer.
 * Bug fixes:
   Fix weird background picture on NetBSD/x68k Text VRAM by unexpectedly cached pixels.

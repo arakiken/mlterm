@@ -901,7 +901,12 @@ ml_char_code_is(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		if( CHARSET(ch->u.ch.attr) == cs && ch->u.ch.code == code)
+		/*
+		 * XXX
+		 * gcc 4.8.2 output codes to cause unexpected result without
+		 * () before and after &&.
+		 */
+		if( ( CHARSET(ch->u.ch.attr) == cs) && (ch->u.ch.code == code))
 		{
 			return  1 ;
 		}

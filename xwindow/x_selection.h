@@ -12,18 +12,18 @@
 
 typedef enum
 {
-	SEL_CHAR = 1 ,
-	SEL_WORD = 2 ,
-	SEL_LINE = 3 ,
+	SEL_CHAR = 0x1 ,
+	SEL_WORD = 0x2 ,
+	SEL_LINE = 0x3 ,
 
 } x_sel_type_t ;
 
 typedef struct  x_sel_event_listener
 {
 	void *  self ;
-	int  (*select_in_window)( void * , ml_char_t ** , u_int *, int , int , int , int) ;
-	void  (*reverse_color)( void * , int , int , int , int) ;
-	void  (*restore_color)( void * , int , int , int , int) ;
+	int  (*select_in_window)( void * , ml_char_t ** , u_int *, int , int , int , int , int) ;
+	void  (*reverse_color)( void * , int , int , int , int , int) ;
+	void  (*restore_color)( void * , int , int , int , int , int) ;
 
 } x_sel_event_listener_t ;
 
@@ -58,6 +58,7 @@ typedef struct  x_selection
 	int8_t  is_selecting ;	/* x_sel_type_t is stored */
 	int8_t  is_reversed ;
 	int8_t  is_locked ;
+	int8_t  is_rect ;
 
 }  x_selection_t ;
 
@@ -67,7 +68,7 @@ int  x_sel_init( x_selection_t *  sel , x_sel_event_listener_t *  listener) ;
 int  x_sel_final( x_selection_t *  sel) ;
 
 int  x_start_selection( x_selection_t *  sel , int  col_l , int  row_l ,
-		int  col_r , int  row_r , x_sel_type_t  type) ;
+		int  col_r , int  row_r , x_sel_type_t  type , int  is_rect) ;
 
 int  x_selecting( x_selection_t *  sel , int  col , int  row) ;
 

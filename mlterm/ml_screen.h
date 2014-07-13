@@ -181,16 +181,17 @@ int  ml_screen_backscroll_downward( ml_screen_t *  screen , u_int  size) ;
 		ml_edit_set_tab_size( (screen)->edit , tab_size)
 
 int  ml_screen_restore_color( ml_screen_t *  screen , int  beg_char_index , int  beg_row ,
-	int  end_char_index , int  end_row) ;
+	int  end_char_index , int  end_row , int  is_rect) ;
 
 int  ml_screen_reverse_color( ml_screen_t *  screen , int  beg_char_index , int  beg_row ,
-	int  end_char_index , int  end_row) ;
+	int  end_char_index , int  end_row , int  is_rect) ;
 
 u_int  ml_screen_copy_region( ml_screen_t *  screen , ml_char_t *  chars ,
-	u_int  num_of_chars , int  beg_char_index , int  beg_row , int  end_char_index , int  end_row) ;
+	u_int  num_of_chars , int  beg_char_index , int  beg_row ,
+	int  end_char_index , int  end_row , int  is_rect) ;
 
 u_int  ml_screen_get_region_size( ml_screen_t *  screen , int  beg_char_index ,
-	int  beg_row , int  end_char_index , int  end_row) ;
+	int  beg_row , int  end_char_index , int  end_row , int  is_rect) ;
 
 int  ml_screen_get_line_region( ml_screen_t *  screen , int *  beg_row ,
 	int *  end_char_index , int *  end_row , int  base_row) ;

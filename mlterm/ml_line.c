@@ -1060,11 +1060,6 @@ ml_convert_char_index_to_col(
 	int  count ;
 	int  col ;
 
-	if( IS_EMPTY(line))
-	{
-		return  0 ;
-	}
-
 	if( char_index >= line->num_of_chars)
 	{
 	#ifdef  __DEBUG
@@ -1169,9 +1164,10 @@ ml_line_reverse_color(
 		return  0 ;
 	}
 
-	ml_char_reverse_color( line->chars + char_index) ;
-
-	ml_line_set_modified( line , char_index , char_index) ;
+	if( ml_char_reverse_color( line->chars + char_index))
+	{
+		ml_line_set_modified( line , char_index , char_index) ;
+	}
 
 	return  1 ;
 }
@@ -1187,9 +1183,10 @@ ml_line_restore_color(
 		return  0 ;
 	}
 
-	ml_char_restore_color( line->chars + char_index) ;
-
-	ml_line_set_modified( line , char_index , char_index) ;
+	if( ml_char_restore_color( line->chars + char_index))
+	{
+		ml_line_set_modified( line , char_index , char_index) ;
+	}
 
 	return  1 ;
 }

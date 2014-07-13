@@ -36,6 +36,78 @@ update_sel_region(
 	int  rs_end_row ;
 	int  do_restore ;
 
+	if( sel->is_rect)
+	{
+		int  conved_col ;
+
+		(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
+			sel->beg_col , sel->beg_row , sel->end_col , sel->end_row , 1) ;
+
+		if( ( col < 0 && sel->base_col_r >= 0) ||
+		    ( col >= 0 && sel->base_col_r < 0))
+		{
+			conved_col = -col ;
+		}
+		else
+		{
+			conved_col = col ;
+		}
+
+		if( conved_col < sel->base_col_r)
+		{
+			if( row <= sel->base_row_r)
+			{
+				sel->beg_col = col ;
+				sel->beg_row = row ;
+				sel->end_col = sel->base_col_l ;
+				sel->end_row = sel->base_row_l ;
+			}
+			else
+			{
+				sel->beg_col = conved_col ;
+				sel->beg_row = sel->base_row_l ;
+				if( col != conved_col)
+				{
+					sel->end_col = -sel->base_col_l ;
+				}
+				else
+				{
+					sel->end_col = sel->base_col_l ;
+				}
+				sel->end_row = row ;
+			}
+		}
+		else
+		{
+			if( row <= sel->base_row_r)
+			{
+				if( col != conved_col)
+				{
+					sel->beg_col = -sel->base_col_r ;
+				}
+				else
+				{
+					sel->beg_col = sel->base_col_r ;
+				}
+				sel->beg_row = row ;
+				sel->end_col = conved_col ;
+				sel->end_row = sel->base_row_r ;
+			}
+			else
+			{
+				sel->beg_col = sel->base_col_r ;
+				sel->beg_row = sel->base_row_r ;
+				sel->end_col = col ;
+				sel->end_row = row ;
+			}
+		}
+
+		(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
+			sel->beg_col , sel->beg_row , sel->end_col , sel->end_row , 1) ;
+
+		return  1 ;
+	}
+
 	do_reverse = 0 ;
 	do_restore = 0 ;
 
@@ -117,7 +189,7 @@ update_sel_region(
 	if( do_reverse)
 	{
 		(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
-			rv_beg_col , rv_beg_row , rv_end_col , rv_end_row) ;
+			rv_beg_col , rv_beg_row , rv_end_col , rv_end_row , 0) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " reversing %d %d %d %d\n" ,
@@ -128,7 +200,7 @@ update_sel_region(
 	if( do_restore)
 	{
 		(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
-			rs_beg_col , rs_beg_row , rs_end_col , rs_end_row) ;
+			rs_beg_col , rs_beg_row , rs_end_col , rs_end_row , 0) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " restoring %d %d %d %d\n" ,
@@ -145,7 +217,7 @@ update_sel_region(
 					sel->sel_listener->self ,
 					rs_beg_col , rs_beg_row ,
 					(sel->end_col = sel->lock_col) ,
-					(sel->end_row = sel->lock_row)) ;
+					(sel->end_row = sel->lock_row) , 0) ;
 			}
 		}
 		else if( sel->is_locked == -1)
@@ -158,7 +230,7 @@ update_sel_region(
 					sel->sel_listener->self ,
 					(sel->beg_col = sel->lock_col) ,
 					(sel->beg_row = sel->lock_row) ,
-					rs_end_col , rs_end_row) ;
+					rs_end_col , rs_end_row , 0) ;
 			}
 		}
 	}
@@ -207,11 +279,13 @@ x_start_selection(
 	int  row_l ,
 	int  col_r ,
 	int  row_r ,
-	x_sel_type_t  type
+	x_sel_type_t  type ,
+	int  is_rect
 	)
 {
 	sel->is_reversed = 1 ;
 	sel->is_selecting = type ;
+	sel->is_rect = is_rect ;
 
 	sel->base_col_r = sel->beg_col = sel->end_col = sel->prev_col = col_r ;
 	sel->base_row_r = sel->beg_row = sel->end_row = sel->prev_row = row_r ;
@@ -219,7 +293,8 @@ x_start_selection(
 	sel->base_row_l = row_l ;
 
 	(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
-		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
+		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row ,
+		sel->is_rect) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " selection started => %d %d\n" , sel->beg_col , sel->beg_row) ;
@@ -269,7 +344,6 @@ x_stop_selecting(
 	}
 
 	sel->is_selecting = 0 ;
-
 	sel->is_locked = 0 ;
 
 	if( sel->sel_str)
@@ -278,7 +352,8 @@ x_stop_selecting(
 	}
 
 	if( ! (*sel->sel_listener->select_in_window)( sel->sel_listener->self ,
-		&sel->sel_str , &sel->sel_len , sel->beg_col , sel->beg_row , sel->end_col , sel->end_row))
+		&sel->sel_str , &sel->sel_len , sel->beg_col , sel->beg_row ,
+		sel->end_col , sel->end_row , sel->is_rect))
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " select_in_window() failed.\n") ;
@@ -347,7 +422,7 @@ x_restore_selected_region_color_except_logs(
 	}
 	
 	(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
-		beg_col , beg_row , sel->end_col , sel->end_row) ;
+		beg_col , beg_row , sel->end_col , sel->end_row , sel->is_rect) ;
 
 	return  1 ;
 }
@@ -381,7 +456,7 @@ x_reverse_selected_region_color_except_logs(
 	}
 
 	(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
-		beg_col , beg_row , sel->end_col , sel->end_row) ;
+		beg_col , beg_row , sel->end_col , sel->end_row , sel->is_rect) ;
 
 	return  1 ;
 }
@@ -402,7 +477,7 @@ x_restore_selected_region_color(
 #endif
 
 	(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
-		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
+		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row , sel->is_rect) ;
 
 	sel->is_reversed = 0 ;
 
@@ -429,7 +504,7 @@ x_reverse_selected_region_color(
 #endif
 
 	(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
-		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
+		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row , sel->is_rect) ;
 
 	sel->is_reversed = 1 ;
 
@@ -533,13 +608,20 @@ x_is_after_sel_right_base_pos(
 	int  row
 	)
 {
-	if( sel->base_row_r < row || (sel->base_row_r == row && sel->base_col_r < col))
+	if( sel->is_rect)
 	{
-		return  1 ;
+		return  sel->base_col_r < col ;
 	}
 	else
 	{
-		return  0 ;
+		if( sel->base_row_r < row || (sel->base_row_r == row && sel->base_col_r < col))
+		{
+			return  1 ;
+		}
+		else
+		{
+			return  0 ;
+		}
 	}
 }
 
@@ -550,13 +632,20 @@ x_is_before_sel_left_base_pos(
 	int  row
 	)
 {
-	if( sel->base_row_l > row || (sel->base_row_l == row && sel->base_col_l > col))
+	if( sel->is_rect)
 	{
-		return  1 ;
+		return  sel->base_col_l > col ;
 	}
 	else
 	{
-		return  0 ;
+		if( sel->base_row_l > row || (sel->base_row_l == row && sel->base_col_l > col))
+		{
+			return  1 ;
+		}
+		else
+		{
+			return  0 ;
+		}
 	}
 }
 

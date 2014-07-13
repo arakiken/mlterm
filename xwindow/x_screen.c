@@ -3534,7 +3534,8 @@ start_selection(
 	x_screen_t *  screen ,
 	int  col_r ,
 	int  row_r ,
-	x_sel_type_t  type
+	x_sel_type_t  type ,
+	int  is_rect
 	)
 {
 	int  col_l ;
@@ -3554,11 +3555,27 @@ start_selection(
 		return ;
 	}
 
-	if( ( ! ml_line_is_rtl( line) && col_r == 0) ||
-		( ml_line_is_rtl( line) && abs( col_r) == ml_line_end_char_index( line)))
+	if( is_rect && ml_line_get_num_of_filled_chars_except_spaces( line) == 0)
+	{
+		if( ( ( line = ml_term_get_line( screen->term , row_r + 1)) ||
+		      ( line = ml_term_get_line( screen->term , row_r - 1))) &&
+		    ml_line_is_rtl( line))
+		{
+			col_r = line->num_of_chars - 1 ;
+		}
+		else
+		{
+			col_r = 0 ;
+		}
+
+		col_l = col_r ;
+		row_l = row_r ;
+	}
+	else if( ( ! ml_line_is_rtl( line) && col_r == 0) ||
+	         ( ml_line_is_rtl( line) && abs( col_r) == ml_line_end_char_index( line)))
 	{
 		if( ( line = ml_term_get_line( screen->term , row_r - 1)) == NULL ||
-			ml_line_is_empty( line))
+		    ml_line_is_empty( line))
 		{
 			/* XXX col_l can be underflowed, but anyway it works. */
 			col_l = col_r - 1 ;
@@ -3583,7 +3600,7 @@ start_selection(
 		row_l = row_r ;
 	}
 
-	if( x_start_selection( &screen->sel , col_l , row_l , col_r , row_r , type))
+	if( x_start_selection( &screen->sel , col_l , row_l , col_r , row_r , type , is_rect))
 	{
 		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
@@ -3616,7 +3633,8 @@ selecting_with_motion(
 	x_screen_t *  screen ,
 	int  x ,
 	int  y ,
-	Time  time
+	Time  time ,
+	int  is_rect
 	)
 {
 	int  char_index ;
@@ -3684,7 +3702,23 @@ selecting_with_motion(
 
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
 
-	if( char_index == ml_line_end_char_index( line) && x_rest > 0)
+	if( screen->sel.is_rect)
+	{
+		/* converting char index to col. */
+
+		char_index = ml_convert_char_index_to_col( line , char_index , 0) ;
+
+		if( ml_line_is_rtl( line))
+		{
+			char_index += (ml_term_get_cols( screen->term) - line->num_of_chars) ;
+			char_index -= (x_rest / x_col_width( screen)) ;
+		}
+		else
+		{
+			char_index += (x_rest / x_col_width( screen)) ;
+		}
+	}
+	else if( char_index == ml_line_end_char_index( line) && x_rest > 0)
 	{
 		x_is_outside = 1 ;
 
@@ -3700,7 +3734,8 @@ selecting_with_motion(
 	if( ! x_is_selecting( &screen->sel))
 	{
 		restore_selected_region_color_instantly( screen) ;
-		start_selection( screen , char_index , row , SEL_CHAR) ;
+		start_selection( screen , char_index , row ,
+			SEL_CHAR , is_rect) ;
 	}
 	else
 	{
@@ -3820,7 +3855,7 @@ selecting_word(
 	if( ! x_is_selecting( &screen->sel))
 	{
 		restore_selected_region_color_instantly( screen) ;
-		start_selection( screen , beg_char_index , beg_row , SEL_WORD) ;
+		start_selection( screen , beg_char_index , beg_row , SEL_WORD , 0) ;
 		selecting( screen , end_char_index , end_row) ;
 		x_sel_lock( &screen->sel) ;
 	}
@@ -3885,7 +3920,7 @@ selecting_line(
 	if( ! x_is_selecting( &screen->sel))
 	{
 		restore_selected_region_color_instantly( screen) ;
-		start_selection( screen , beg_char_index , beg_row , SEL_LINE) ;
+		start_selection( screen , beg_char_index , beg_row , SEL_LINE , 0) ;
 		selecting( screen , end_char_index , end_row) ;
 		x_sel_lock( &screen->sel) ;
 	}
@@ -3984,7 +4019,8 @@ button_motion(
 			if( ! (event->state & Button3Mask) || ! IS_LIBVTE(screen))
 			{
 				selecting_with_motion( screen ,
-					event->x , event->y , event->time) ;
+					event->x , event->y , event->time ,
+					event->state & ModMask) ;
 			}
 
 			break ;
@@ -4004,7 +4040,8 @@ button_press_continued(
 
 	if( x_is_selecting( &screen->sel) && (event->y < 0 || win->height < event->y))
 	{
-		selecting_with_motion( screen , event->x , event->y , event->time) ;
+		selecting_with_motion( screen , event->x , event->y , event->time ,
+			event->state & ModMask) ;
 	}
 }
 
@@ -4063,7 +4100,7 @@ button_pressed(
 			/* expand if current selection exists. */
 			/* FIXME: move sel.* stuff should be in x_selection.c */
 			screen->sel.is_selecting = SEL_CHAR ;
-			selecting_with_motion( screen, event->x, event->y, event->time);
+			selecting_with_motion( screen , event->x , event->y , event->time , 0) ;
 			/* keep sel as selected to handle succeeding MotionNotify */
 		}
 	}
@@ -4391,7 +4428,7 @@ search_find(
 		#endif
 
 			x_sel_clear( &screen->sel) ;
-			start_selection( screen , beg_char_index , beg_row , SEL_CHAR) ;
+			start_selection( screen , beg_char_index , beg_row , SEL_CHAR , 0) ;
 			selecting( screen , end_char_index , end_row) ;
 			x_stop_selecting( &screen->sel) ;
 
@@ -6081,7 +6118,8 @@ reverse_color(
 	int  beg_char_index ,
 	int  beg_row ,
 	int  end_char_index ,
-	int  end_row
+	int  end_row ,
+	int  is_rect
 	)
 {
 	x_screen_t *  screen ;
@@ -6109,7 +6147,7 @@ reverse_color(
 #endif
 
 	ml_term_reverse_color( screen->term , beg_char_index , beg_row ,
-		end_char_index , end_row) ;
+		end_char_index , end_row , is_rect) ;
 }
 
 static void
@@ -6118,7 +6156,8 @@ restore_color(
 	int  beg_char_index ,
 	int  beg_row ,
 	int  end_char_index ,
-	int  end_row
+	int  end_row ,
+	int  is_rect
 	)
 {
 	x_screen_t *  screen ;
@@ -6146,7 +6185,7 @@ restore_color(
 #endif
 
 	ml_term_restore_color( screen->term , beg_char_index , beg_row ,
-		end_char_index , end_row) ;
+		end_char_index , end_row , is_rect) ;
 }
 
 static int
@@ -6157,7 +6196,8 @@ select_in_window(
 	int  beg_char_index ,
 	int  beg_row ,
 	int  end_char_index ,
-	int  end_row
+	int  end_row ,
+	int  is_rect
 	)
 {
 	x_screen_t *  screen ;
@@ -6181,7 +6221,7 @@ select_in_window(
 	}
 
 	if( ( size = ml_term_get_region_size( screen->term , beg_char_index , beg_row ,
-			end_char_index , end_row)) == 0)
+			end_char_index , end_row , is_rect)) == 0)
 	{
 		return  0 ;
 	}
@@ -6192,7 +6232,7 @@ select_in_window(
 	}
 
 	*len = ml_term_copy_region( screen->term , *chars , size , beg_char_index ,
-		beg_row , end_char_index , end_row) ;
+		beg_row , end_char_index , end_row , is_rect) ;
 
 #ifdef  DEBUG
 	kik_debug_printf( "SELECTION: ") ;
