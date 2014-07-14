@@ -1,3 +1,7 @@
+2014-07-15  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.c: convert_col_to_char_index() is fixed.
+
 2014-07-14  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_wscons.c: The null pointer bug of_display.color_cache in the case

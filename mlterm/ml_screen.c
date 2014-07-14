@@ -270,13 +270,15 @@ convert_col_to_char_index(
 	ml_screen_t *  screen ,		/* visual */
 	ml_line_t *  line ,
 	int *  beg_char_index ,
-	int *  end_char_index ,		/* end + 1 */
+	int *  end_char_index ,	/* end + 1 */
 	int  beg_col ,
 	int  end_col
 	)
 {
 	int  padding ;
-	int  char_index ;
+	int  beg ;
+	int  end ;
+	u_int  rest ;
 
 	if( ml_line_is_rtl( line) &&
 	    ( padding = ml_screen_get_cols( screen) -
@@ -286,24 +288,22 @@ convert_col_to_char_index(
 		end_col -= padding ;
 	}
 
-	*beg_char_index = ml_convert_col_to_char_index( line , NULL , beg_col , 0) ;
-	if( ( char_index = ml_line_beg_char_index_regarding_rtl( line)) > *beg_char_index)
+	*beg_char_index = ml_convert_col_to_char_index( line , &rest , beg_col , 0) ;
+
+	if( ( end = ml_line_get_num_of_filled_chars_except_spaces( line)) <= *beg_char_index ||
+	         ( end == *beg_char_index + 1 && rest > 0))
 	{
-		*beg_char_index = char_index ;
+		*beg_char_index = end ;
+	}
+	else if( ( beg = ml_line_beg_char_index_regarding_rtl( line)) > *beg_char_index)
+	{
+		*beg_char_index = beg ;
 	}
 
 	*end_char_index = ml_convert_col_to_char_index( line , NULL , end_col , 0) + 1 ;
-	if( ( char_index = ml_line_get_num_of_filled_chars_except_spaces( line))
-	    < *end_char_index)
+	if( end < *end_char_index)
 	{
-		if( char_index > *beg_char_index)
-		{
-			*end_char_index = char_index ;
-		}
-		else
-		{
-			*end_char_index = *beg_char_index ;
-		}
+		*end_char_index = end ;
 	}
 }
 
