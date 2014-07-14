@@ -1,5 +1,8 @@
 2014-07-15  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c: ml_line_is_empty() in start_selection() and selecting_with_motion()
+	  is removed.
+
 	* ml_screen.c: convert_col_to_char_index() is fixed.
 
 2014-07-14  Araki Ken  <arakiken@users.sf.net>

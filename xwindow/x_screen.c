@@ -3550,7 +3550,7 @@ start_selection(
 		return ;
 	}
 
-	if( ( line = ml_term_get_line( screen->term , row_r)) == NULL || ml_line_is_empty( line))
+	if( ( line = ml_term_get_line( screen->term , row_r)) == NULL)
 	{
 		return ;
 	}
@@ -3687,13 +3687,6 @@ selecting_with_motion(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " line(%d) not found.\n" , row) ;
 	#endif
-
-		return ;
-	}
-
-	if( ml_line_is_empty( line))
-	{
-		selecting( screen , 0 , row) ;
 
 		return ;
 	}
