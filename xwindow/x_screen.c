@@ -5776,7 +5776,10 @@ get_config_intern(
 	}
 	else if( strcmp( key , "bidi_separators") == 0)
 	{
-		value = ml_term_get_bidi_separators( term) ;
+		if( ( value = ml_term_get_bidi_separators( term)) == NULL)
+		{
+			value = "" ;
+		}
 	}
 	else if( strcmp( key , "input_method") == 0)
 	{
@@ -5856,7 +5859,10 @@ get_config_intern(
 	}
 	else if( strcmp( key , "icon_path") == 0)
 	{
-		value = ml_term_icon_path( term) ;
+		if( ( value = ml_term_icon_path( term)) == NULL)
+		{
+			value = "" ;
+		}
 	}
 	else if( strcmp( key , "logging_vt_seq") == 0)
 	{
@@ -5970,6 +5976,13 @@ get_config_intern(
 		else
 		{
 			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "auto_detect_encodings") == 0)
+	{
+		if( ( value = ml_get_auto_detect_encodings()) == NULL)
+		{
+			value = "" ;
 		}
 	}
 

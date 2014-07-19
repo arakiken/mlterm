@@ -20,24 +20,24 @@ typedef enum {
 } mc_io_t;
 
 
-int  mc_exec( char *  cmd) ;
+int  mc_exec(const char *  cmd) ;
 
-int  mc_set_str_value( char *  key , char *  value) ;
+int  mc_set_str_value(const char *  key , const char *  value) ;
 
-int  mc_set_flag_value( char *  key , int  flag_val) ;
+int  mc_set_flag_value(const char *  key , int  flag_val) ;
 
 int  mc_flush(mc_io_t  io) ;
 
-char *  mc_get_str_value( char *  key) ;
+char *  mc_get_str_value(const char *  key) ;
 
-int  mc_get_flag_value( char *  key) ;
+int  mc_get_flag_value(const char *  key) ;
 
 int  mc_gui_is_win32(void) ;
 
-int  mc_set_font_name( mc_io_t  io , char *  file , char *  font_size , char *  cs ,
-	char *  font_name) ;
+int  mc_set_font_name(mc_io_t  io , const char *  file , const char *  font_size ,
+	const char *  cs , const char *  font_name) ;
 
-char *  mc_get_font_name( char *  file , char *  font_size , char *  cs) ;
+char *  mc_get_font_name(const char *  file , const char *  font_size , const char *  cs) ;
 
 
 #endif

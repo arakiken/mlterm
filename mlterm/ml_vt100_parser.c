@@ -153,6 +153,7 @@ static u_int  num_of_unicode_noconv_areas ;
 static area_t *  full_width_areas ;
 static u_int  num_of_full_width_areas ;
 
+static char *  auto_detect_encodings ;
 static struct
 {
 	ml_char_encoding_t  encoding ;
@@ -6122,6 +6123,19 @@ ml_set_auto_detect_encodings(
 		auto_detect_count = 0 ;
 	}
 
+	free( auto_detect_encodings) ;
+
+	if( *encodings == '\0')
+	{
+		auto_detect_encodings = NULL ;
+
+		return  1 ;
+	}
+	else
+	{
+		auto_detect_encodings = strdup( encodings) ;
+	}
+
 	if( ! ( auto_detect = malloc( sizeof(*auto_detect) *
 					(kik_count_char_in_str( encodings , ',') + 1))))
 	{
@@ -6150,6 +6164,12 @@ ml_set_auto_detect_encodings(
 	}
 
 	return  1 ;
+}
+
+char *
+ml_get_auto_detect_encodings(void)
+{
+	return  auto_detect_encodings ;
 }
 
 /*
@@ -6217,7 +6237,9 @@ ml_convert_to_internal_ch(
 				/* convert ucs4 to appropriate charset */
 
 				if( ! is_noconv_unicode( ch.ch) &&
-				    mkf_map_locale_ucs4_to( &non_ucs , &ch))
+				    mkf_map_locale_ucs4_to( &non_ucs , &ch) &&
+				    non_ucs.cs != ISO8859_6_R &&	/* ARABIC */
+				    non_ucs.cs != ISO8859_8_R)		/* HEBREW */
 				{
 					if( IS_FULLWIDTH_CS( non_ucs.cs))
 					{
@@ -6309,12 +6331,15 @@ ml_convert_to_internal_ch(
 	}
 	else if( ch.cs != US_ASCII)
 	{
-		    /* XXX converting japanese gaiji to ucs. */
 		if( ( unicode_policy & ONLY_USE_UNICODE_FONT) ||
+		    /* XXX converting japanese gaiji to ucs. */
 		    ch.cs == JISC6226_1978_NEC_EXT ||
 		    ch.cs == JISC6226_1978_NECIBM_EXT ||
 		    ch.cs == JISX0208_1983_MAC_EXT ||
-		    ch.cs == SJIS_IBM_EXT
+		    ch.cs == SJIS_IBM_EXT ||
+		    /* XXX converting RTL characters to ucs. */
+		    ch.cs == ISO8859_6_R ||	/* Arabic */
+		    ch.cs == ISO8859_8_R	/* Hebrew */
 		#if  0
 		    /* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
 		    || ( encoding == ML_GB18030 && ch.cs == GBK)

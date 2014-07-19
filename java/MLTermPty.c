@@ -238,6 +238,19 @@ set_config(
 			ml_term_set_use_local_echo( nativeObj->term , flag) ;
 		}
 	}
+	else if( strcmp( key , "auto_detect_encodings") == 0)
+	{
+		ml_set_auto_detect_encodings( value) ;
+	}
+	else if( strcmp( key , "use_auto_detect") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_term_set_use_auto_detect( nativeObj->term , flag) ;
+		}
+	}
 }
 
 static void
@@ -362,6 +375,24 @@ get_config(
 		else
 		{
 			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_auto_detect") == 0)
+	{
+		if( ml_term_is_using_auto_detect( nativeObj->term))
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "auto_detect_encodings") == 0)
+	{
+		if( ( value = ml_get_auto_detect_encodings()) == NULL)
+		{
+			value = "" ;
 		}
 	}
 
@@ -710,6 +741,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 	static int  use_login_shell ;
 	static int  logging_vt_seq ;
 	static int  use_local_echo ;
+	static int  use_auto_detect ;
 	static char *  public_key ;
 	static char *  private_key ;
 	static char **  default_argv ;
@@ -762,11 +794,9 @@ Java_mlterm_MLTermPty_nativeOpen(
 		utf16_conv = mkf_utf16le_conv_new() ;
 	#endif
 
-		logging_vt_seq = 0 ;
 		tab_size = 8 ;
 		encoding_default = ml_get_char_encoding( "auto") ;
 		is_auto_encoding_default = 1 ;
-		unicode_policy = 0 ;
 
 		if( strcmp( kik_get_lang() , "ja") == 0)
 		{
@@ -779,7 +809,6 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 		use_char_combining = 1 ;
 		use_multi_col_char = 1 ;
-		use_login_shell = 0 ;
 	#ifdef  USE_LOCAL_ECHO_BY_DEFAULT
 		use_local_echo = 1 ;
 	#else
@@ -925,6 +954,19 @@ Java_mlterm_MLTermPty_nativeOpen(
 				}
 			}
 
+			if( ( value = kik_conf_get_value( conf , "auto_detect_encodings")))
+			{
+				ml_set_auto_detect_encodings( value) ;
+			}
+
+			if( ( value = kik_conf_get_value( conf , "use_auto_detect")))
+			{
+				if( strcmp( value , "true") == 0)
+				{
+					use_auto_detect = 1 ;
+				}
+			}
+
 		#ifdef  USE_LIBSSH2
 			if( ( value = kik_conf_get_value( conf , "ssh_public_key")))
 			{
@@ -1041,7 +1083,12 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 	if( logging_vt_seq)
 	{
-		ml_term_set_logging_vt_seq( nativeObj->term , logging_vt_seq) ;
+		ml_term_set_logging_vt_seq( nativeObj->term , 1) ;
+	}
+
+	if( use_auto_detect)
+	{
+		ml_term_set_use_auto_detect( nativeObj->term , 1) ;
 	}
 
 	nativeObj->pty_listener.self = nativeObj ;

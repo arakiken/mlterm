@@ -63,7 +63,8 @@ version 20140706
 		     it_color | ul_color | bl_color | co_color | use_bold_font |
                      use_italic_font | hide_underline | pty_list | pty_name | use_clipboard |
                      icon_path | logging_vt_seq | gui | allow_osc52 | only_use_unicode_font |
-                     not_use_unicode_font | box_drawing_font | use_auto_detect
+                     not_use_unicode_font | box_drawing_font | auto_detect_encodings |
+                     use_auto_detect
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 

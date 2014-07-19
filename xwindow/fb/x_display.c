@@ -1273,6 +1273,10 @@ cmap_new(
 	return  cmap ;
 }
 
+/*
+ * Note that x_display_wscons.c has its own cmap_init() because vinfo.depth != _disp.depth
+ * on NetBSD/luna68k etc.
+ */
 static int
 cmap_init(void)
 {

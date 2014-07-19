@@ -226,6 +226,9 @@ public class MLTerm extends StyledText
 	{
 		if( getTextLimit() != -1 && getTextLimit() < getCharCount() + num)
 		{
+			/* Clear bufOffset, bufStr and bufReplaceLen before removing old text. */
+			replaceTextBuffering( 0 , 0 , null , null) ;
+
 			/* 500 is for buffer. */
 			getContent().replaceTextRange( 0 , getCharCount() + num + 500 - getTextLimit() , "") ;
 

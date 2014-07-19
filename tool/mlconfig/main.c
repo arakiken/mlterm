@@ -11,6 +11,7 @@
 #include  <c_intl.h>
 
 #include  "mc_char_encoding.h"
+#include  "mc_auto_detect.h"
 #include  "mc_color.h"
 #include  "mc_bgtype.h"
 #include  "mc_alpha.h"
@@ -28,7 +29,6 @@
 #include  "mc_bel.h"
 #include  "mc_sb.h"
 #include  "mc_im.h"
-#include  "mc_check.h"
 #include  "mc_sb_view.h"
 #include  "mc_io.h"
 #include  "mc_pty.h"
@@ -84,6 +84,7 @@ update(
 	)
 {
     mc_update_char_encoding() ;
+    mc_update_auto_detect() ;
     mc_update_color(MC_COLOR_FG) ;
     /*
      * alpha must be updated before bgtype because transparent or wall picture
@@ -585,6 +586,9 @@ show(void)
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
+	if (!(config_widget = mc_auto_detect_config_widget_new())) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_im_config_widget_new())) return 0;
 	gtk_widget_show(config_widget);

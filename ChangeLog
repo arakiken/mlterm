@@ -1,3 +1,24 @@
+2014-07-19  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTermPty.c:
+	  - "use_auto_detect" and "auto_detect_encodings" are supported.
+	  - replaceTextBuffering(0,0,null,null) is called in checkTextLimit().
+
+	* x_screen.c, doc/en/PROTOCOL: "auto_detect_encodings" is added to OSC 5380 and 5381.
+
+	* ml_vt100_parser.[ch]:
+	  - ml_get_auto_detect_encodings() is added.
+	  - ISO8859_6_R (arabic) and ISO8859_8_R (hebrew) are always converted to
+	    unicode because they need bidi rendering.
+
+	* mc_io.[ch]: 'const' is added.
+
+	* mc_auto_detect.[ch]: Added.
+
+	* mc_check.[ch]: Removed.
+
+	* ml_pty.c: Parenthesis is added.
+
 2014-07-15  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: ml_line_is_empty() in start_selection() and selecting_with_motion()

@@ -62,8 +62,8 @@ load_challenge(void)
 
 static int
 append_value(
-	char *  key ,
-	char *  value
+	const char *  key ,
+	const char *  value
 	)
 {
 	if( message == NULL)
@@ -97,7 +97,7 @@ append_value(
 
 static char *
 get_value(
-	char *  key ,
+	const char *  key ,
 	mc_io_t  io
 	)
 {
@@ -152,7 +152,7 @@ get_value(
 
 int
 mc_exec(
-	char *  cmd
+	const char *  cmd
 	)
 {
 #ifdef __DEBUG
@@ -167,8 +167,8 @@ mc_exec(
 
 int
 mc_set_str_value(
-	char *  key ,
-	char *  value
+	const char *  key ,
+	const char *  value
 	)
 {
 	if (value == NULL) return 0;
@@ -182,7 +182,7 @@ mc_set_str_value(
 
 int
 mc_set_flag_value(
-	char *  key ,
+	const char *  key ,
 	int  flag_val
 	)
 {
@@ -223,7 +223,7 @@ mc_flush(mc_io_t  io)
 
 char *
 mc_get_str_value(
-	char *  key
+	const char *  key
 	)
 {
 	char *  value ;
@@ -240,7 +240,7 @@ mc_get_str_value(
 
 int
 mc_get_flag_value(
-	char *  key
+	const char *  key
 	)
 {
 	char *  value ;
@@ -291,10 +291,10 @@ mc_gui_is_win32(void)
 int
 mc_set_font_name(
 	mc_io_t  io ,
-	char *  file ,
-	char *  font_size ,
-	char *  cs ,
-	char *  font_name
+	const char *  file ,
+	const char *  font_size ,
+	const char *  cs ,
+	const char *  font_name
 	)
 {
 	char *  chal = "" ;
@@ -312,9 +312,9 @@ mc_set_font_name(
 
 char *
 mc_get_font_name(
-	char *  file ,
-	char *  font_size ,
-	char *  cs
+	const char *  file ,
+	const char *  font_size ,
+	const char *  cs
 	)
 {
 	size_t  len ;

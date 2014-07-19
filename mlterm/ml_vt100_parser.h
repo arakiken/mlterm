@@ -350,6 +350,8 @@ int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser 
 
 int  ml_set_auto_detect_encodings( char *  encodings) ;
 
+char *  ml_get_auto_detect_encodings(void) ;
+
 #define  ml_vt100_parser_set_use_auto_detect( vt100_parser , use) \
 		((vt100_parser)->use_auto_detect = (use))
 
