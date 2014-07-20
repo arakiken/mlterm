@@ -1058,7 +1058,7 @@ x_load_inline_picture(
 	inline_pic_args_t *  args ;
 
 	/* XXX Don't reuse ~/.mlterm/[pty name].six, [pty name].rgs and anim-*.gif */
-	if( ! strstr( file_path , "mlterm/"))
+	if( ! strstr( file_path , "mlterm/") || strstr( file_path , "mlterm/macro"))
 	{
 		for( idx = 0 ; idx < num_of_inline_pics ; idx++)
 		{

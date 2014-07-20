@@ -36,6 +36,7 @@
  * (see ml_parse_vt100_sequence)
  */
 #define  PTY_RD_BUFFER_SIZE  3072
+#define  MAX_READ_COUNT  3
 
 #define  CTL_BEL	0x07
 #define  CTL_BS		0x08
@@ -462,18 +463,20 @@ change_read_buffer_size(
 
 static char *
 get_home_file_path(
+	const char *  prefix ,
 	const char *  name ,
 	const char *  suffix
 	)
 {
 	char *  file_name ;
 
-	if( ! ( file_name = alloca( 7 + strlen( name) + 1 + strlen( suffix) + 1)))
+	if( ! ( file_name = alloca( 7 + strlen( prefix) + 1 + strlen( name) + 1 +
+				strlen( suffix) + 1)))
 	{
 		return  NULL ;
 	}
 
-	sprintf( file_name , "mlterm/%s.%s" , name , suffix) ;
+	sprintf( file_name , "mlterm/%s%s.%s" , prefix , name , suffix) ;
 	str_replace( file_name + 7 , '/' , '_') ;
 
 	return  kik_get_user_rc_path( file_name) ;
@@ -658,7 +661,9 @@ receive_bytes(
 		/* Buffer is full => Expand buffer */
 
 		if( ! change_read_buffer_size( &vt100_parser->r_buf ,
-			vt100_parser->r_buf.len + PTY_RD_BUFFER_SIZE))
+			vt100_parser->r_buf.len +
+			(vt100_parser->r_buf.len >= PTY_RD_BUFFER_SIZE * MAX_READ_COUNT ?
+			 PTY_RD_BUFFER_SIZE * 10 : PTY_RD_BUFFER_SIZE)))
 		{
 			return  1 ;
 		}
@@ -683,8 +688,9 @@ receive_bytes(
 		{
 			char *  path ;
 
-			if( ! ( path = get_home_file_path( ml_pty_get_slave_name(
-			                                     vt100_parser->pty) + 5 , "log")))
+			if( ! ( path = get_home_file_path( "" ,
+						ml_pty_get_slave_name( vt100_parser->pty) + 5 ,
+						"log")))
 			{
 				goto  end ;
 			}
@@ -2147,7 +2153,8 @@ iterm2_proprietary_set(
 	char *  path ;
 
 	if( strncmp( pt , "File=" , 5) == 0 &&
-	    ( path = get_home_file_path( ml_pty_get_slave_name( vt100_parser->pty) + 5 , "img")))
+	    ( path = get_home_file_path( "" ,
+			ml_pty_get_slave_name( vt100_parser->pty) + 5 , "img")))
 	{
 		/* See http://www.iterm2.com/images.html (2014/03/20) */
 
@@ -2590,6 +2597,292 @@ set_selection(
 	}
 }
 
+static void
+delete_macro(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  id		/* should be less than vt100_parser->num_of_macros */
+	)
+{
+	if( vt100_parser->macros[id].is_sixel)
+	{
+		unlink( vt100_parser->macros[id].str) ;
+		vt100_parser->macros[id].is_sixel = 0 ;
+		vt100_parser->macros[id].sixel_num ++ ;
+	}
+
+	free( vt100_parser->macros[id].str) ;
+	vt100_parser->macros[id].str = NULL ;
+}
+
+static void
+delete_all_macros(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < vt100_parser->num_of_macros ; count++)
+	{
+		delete_macro( vt100_parser , count) ;
+	}
+
+	free( vt100_parser->macros) ;
+	vt100_parser->macros = NULL ;
+	vt100_parser->num_of_macros = 0 ;
+}
+
+static u_char *
+hex_to_text(
+	u_char *  hex
+	)
+{
+	u_char *  text ;
+	u_char *  p ;
+	size_t  len ;
+	size_t  count ;
+	int  rep_count ;
+	u_char *  rep_beg ;
+
+	len = strlen( hex) / 2 + 1 ;
+	if( ! ( text = malloc( len)))
+	{
+		return  NULL ;
+	}
+
+	count = 0 ;
+	rep_count = 1 ;
+	rep_beg = NULL ;
+
+	while( 1)
+	{
+		if( *hex == '!')
+		{
+			if( ( p = strchr( ++hex , ';')))
+			{
+				*p = '\0' ;
+				if( ( rep_count = atoi( hex)) > 1)
+				{
+					rep_beg = text + count ;
+				}
+				hex = p + 1 ;
+
+				continue ;
+			}
+		}
+		else if( *hex == ';' || *hex == '\0')
+		{
+			if( rep_beg)
+			{
+				size_t  rep_len ;
+
+				if( ( rep_len = text + count - rep_beg) > 0)
+				{
+					len += rep_len * (rep_count - 1) ;
+					if( ! ( p = realloc( text , len)))
+					{
+						free( text) ;
+
+						return  NULL ;
+					}
+					rep_beg += (p - text) ;
+					text = p ;
+
+					while( --rep_count > 0)
+					{
+						strncpy( text + count , rep_beg , rep_len) ;
+						count += rep_len ;
+					}
+				}
+
+				rep_beg = NULL ;
+			}
+
+			if( *hex == '\0')
+			{
+				break ;
+			}
+		}
+		else
+		{
+			int  d[2] ;
+			int  sub_count ;
+
+			/* Don't use sscanf() here because it works too slow. */
+			for( sub_count = 0 ; sub_count < 2 ; sub_count++ , hex++)
+			{
+				if( '0' <= *hex && *hex <= '9')
+				{
+					d[sub_count] = *hex - '0' ;
+				}
+				else
+				{
+					*hex &= 0xcf ;
+					if( 'A' <= *hex && *hex <= 'F')
+					{
+						d[sub_count] = *hex - 'A' + 10 ;
+					}
+					else if( *hex == '\0')
+					{
+						goto  end ;
+					}
+					else
+					{
+						goto  next ;
+					}
+				}
+			}
+
+			text[count++] = (d[0] << 4) + d[1] ;
+
+			continue ;
+		}
+
+	next:
+		hex++ ;
+	}
+
+end:
+	text[count] = '\0' ;
+
+	return  text ;
+}
+
+#define  MAX_NUM_OF_MACRO  1024
+#define  MAX_DIGIT_OF_MACRO  4
+
+static void
+define_macro(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  param ,
+	u_char *  data
+	)
+{
+	u_char *  p ;
+	int  ps[3] = { 0 , 0 , 0 } ;
+	int  num ;
+
+	p = param ;
+	num = 0 ;
+	for( p = param ; *p != 'z' ; p++)
+	{
+		if( ( *p == ';' || *p == '!') && num < 3)
+		{
+			*p = '\0' ;
+			ps[num++] = atoi( param) ;
+			param = p + 1 ;
+		}
+	}
+
+	if( ps[0] >= MAX_NUM_OF_MACRO)
+	{
+		return ;
+	}
+
+	if( ps[1] == 1)
+	{
+		delete_all_macros( vt100_parser) ;
+	}
+
+	if( ps[0] >= vt100_parser->num_of_macros)
+	{
+		void *  p ;
+
+		if( ! ( p = realloc( vt100_parser->macros ,
+				(ps[0] + 1) * sizeof(*vt100_parser->macros))))
+		{
+			return ;
+		}
+
+		memset( p + vt100_parser->num_of_macros * sizeof(*vt100_parser->macros) , 0 ,
+			(ps[0] + 1 - vt100_parser->num_of_macros) * sizeof(*vt100_parser->macros)) ;
+		vt100_parser->macros = p ;
+		vt100_parser->num_of_macros = ps[0] + 1 ;
+	}
+	else
+	{
+		delete_macro( vt100_parser , ps[0]) ;
+	}
+
+	if( ps[2] == 1)
+	{
+		p = vt100_parser->macros[ps[0]].str = hex_to_text( data) ;
+
+	#ifndef  NO_IMAGE
+		if( p &&
+		    ( *p == 0x90 || ( *(p++) == '\x1b' && *p == 'P')))
+		{
+			for( p++ ; *p == ';' || ('0' <= *p && *p <= '9') ; p++) ;
+
+			if( *p == 'q' &&
+			    ( strrchr( p , 0x9c) ||
+			      (( p = strrchr( p , '\\')) && *(p - 1) == '\x1b')))
+			{
+				char  prefix[5 + MAX_DIGIT_OF_MACRO + 1 +
+					DIGIT_STR_LEN(vt100_parser->macros[0].sixel_num) + 2] ;
+				char *  path ;
+
+				sprintf( prefix , "macro%d_%d_" , ps[0] ,
+					vt100_parser->macros[ps[0]].sixel_num) ;
+
+				if( ( path = get_home_file_path( prefix ,
+						ml_pty_get_slave_name(
+							vt100_parser->pty) + 5 , "six")))
+				{
+					FILE *  fp ;
+
+					if( ( fp = fopen( path , "w")))
+					{
+						fwrite( vt100_parser->macros[ps[0]].str , 1 ,
+							strlen( vt100_parser->macros[ps[0]].str) ,
+							fp) ;
+						fclose( fp) ;
+
+						free( vt100_parser->macros[ps[0]].str) ;
+						vt100_parser->macros[ps[0]].str = path ;
+						vt100_parser->macros[ps[0]].is_sixel = 1 ;
+
+					#ifdef  DEBUG
+						kik_debug_printf( KIK_DEBUG_TAG
+							" Register %s to macro %d\n" ,
+								path , ps[0]) ;
+					#endif
+					}
+				}
+			}
+		}
+	#endif
+	}
+	else
+	{
+		vt100_parser->macros[ps[0]].str = strdup( data) ;
+	}
+}
+
+static int  write_loopback( ml_vt100_parser_t *  vt100_parser ,
+	u_char *  buf , size_t  len , int  enable_local_echo , int  is_visual) ;
+
+static void
+invoke_macro(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  id
+	)
+{
+	if( id < vt100_parser->num_of_macros && vt100_parser->macros[id].str)
+	{
+	#ifndef  NO_IMAGE
+		if( vt100_parser->macros[id].is_sixel)
+		{
+			show_picture( vt100_parser , vt100_parser->macros[id].str ,
+				0 , 0 , 0 , 0 , 0 , 0 , 1) ;
+		}
+		else
+	#endif
+		{
+			write_loopback( vt100_parser , vt100_parser->macros[id].str ,
+				strlen( vt100_parser->macros[id].str) , 0 , 0) ;
+		}
+	}
+}
 
 static void
 clear_line_all(
@@ -2773,10 +3066,15 @@ inc_str_in_esc_seq(
 	}
 }
 
+/*
+ * Set use_c1=0 for 0x9c not to be regarded as ST if str can be encoded by utf8.
+ * (UTF-8 uses 0x80-0x9f as printable characters.)
+ */
 static char *
 get_pt_in_esc_seq(
 	u_char **  str ,
 	size_t *  left ,
+	int  use_c1 ,
 	int  bel_terminate	/* OSC is terminated by not only ST(ESC \) but also BEL. */
 	)
 {
@@ -2784,39 +3082,37 @@ get_pt_in_esc_seq(
 
 	pt = *str ;
 
-	/* UTF-8 uses 0x80-0x9f as printable characters. */
-	while( **str != CTL_ESC && **str != CTL_BEL)
+	while( 1)
 	{
+		if( ( bel_terminate && **str == CTL_BEL) ||
+		    ( use_c1 && **str == 0x9c))
+		{
+			**str = '\0' ;
+
+			break ;
+		}
+
+		if( **str == CTL_ESC)
+		{
+			if( *left > 1 && *((*str) + 1) == '\\')
+			{
+				**str = '\0' ;
+				increment_str( str , left) ;
+
+				break ;
+			}
+
+			/* Reset position ahead of unprintable character for compat with xterm. */
+			(*str) -- ;
+			(*left) ++ ;
+
+			return  NULL ;
+		}
+
 		if( ! increment_str( str , left))
 		{
 			return  NULL ;
 		}
-	}
-
-	if( bel_terminate && **str == CTL_BEL)
-	{
-		**str = '\0' ;
-	}
-	else if(
-		/*
-		 * 0x9c is not regarded as ST here, because it is used by utf8 encoding
-		 * for non control characters.
-		 */
-	#if  0
-		**str == 0x9c ||
-	#endif
-	         ( **str == CTL_ESC && *left > 1 && *((*str) + 1) == '\\'))
-	{
-		**str = '\0' ;
-		increment_str( str , left) ;
-	}
-	else
-	{
-		/* Reset position ahead of unprintable character for compat with xterm. */
-		(*str) -- ;
-		(*left) ++ ;
-
-		return  NULL ;
 	}
 
 	return  pt ;
@@ -3080,6 +3376,7 @@ parse_vt100_escape_sequence(
 
 			soft_reset( vt100_parser) ;
 			clear_display_all( vt100_parser) ; /* cursor goes home in it. */
+			delete_all_macros( vt100_parser) ;
 		}
 	#if  0
 		else if( *str_p == 'l')
@@ -4037,6 +4334,18 @@ parse_vt100_escape_sequence(
 					 */
 				}
 			}
+			else if( pre_ch == '*')
+			{
+				if( ps[0] == -1)
+				{
+					ps[0] = 0 ;
+				}
+
+				if( *str_p == 'z')
+				{
+					invoke_macro( vt100_parser , ps[0]) ;
+				}
+			}
 			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
 			else if( pre_ch)
 			{
@@ -4637,7 +4946,7 @@ parse_vt100_escape_sequence(
 				ps = -1 ;
 			}
 
-			if( ! ( pt = get_pt_in_esc_seq( &str_p , &left , 1)))
+			if( ! ( pt = get_pt_in_esc_seq( &str_p , &left , 0 , 1)))
 			{
 				if( left == 0)
 				{
@@ -4861,15 +5170,48 @@ parse_vt100_escape_sequence(
 			}
 			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
 
+			if( *str_p == '!' && *(str_p + 1) == 'z')
+			{
+				u_char *  data ;
+
+				if( left <= 2)
+				{
+					left = 0 ;
+
+					return  0 ;
+				}
+
+				left -= 2 ;
+				data = (str_p += 2) ;
+
+				if( left > PTY_RD_BUFFER_SIZE)
+				{
+					str_p += (left - PTY_RD_BUFFER_SIZE) ;
+					left = PTY_RD_BUFFER_SIZE ;
+				}
+
+				if( get_pt_in_esc_seq( &str_p , &left , 1 , 0))
+				{
+					define_macro( vt100_parser ,
+						dcs_beg + (*dcs_beg == '\x1b' ? 2 : 1) , data) ;
+				}
+				else if( left == 0)
+				{
+					return  0 ;
+				}
+			}
+			else
 		#ifndef  NO_IMAGE
 			if( /* sixel */
 			    ( *str_p == 'q' &&
-			      ( path = get_home_file_path( ml_pty_get_slave_name(
-			                                   vt100_parser->pty) + 5 , "six"))) ||
+			      ( path = get_home_file_path( "" ,
+						ml_pty_get_slave_name( vt100_parser->pty) + 5 ,
+						"six"))) ||
 			    /* ReGIS */
 			    ( *str_p == 'p' &&
-			      ( path = get_home_file_path( ml_pty_get_slave_name(
-			                                   vt100_parser->pty) + 5 , "rgs"))))
+			      ( path = get_home_file_path( "" ,
+						ml_pty_get_slave_name( vt100_parser->pty) + 5 ,
+						"rgs"))))
 			{
 				int  is_end ;
 				FILE *  fp ;
@@ -4950,6 +5292,12 @@ parse_vt100_escape_sequence(
 				{
 					if( ! increment_str( &str_p , &left))
 					{
+						if( is_end == 2)
+						{
+							left ++ ;
+							break ;
+						}
+
 						fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 
 						vt100_parser->r_buf.left = 0 ;
@@ -5222,7 +5570,7 @@ parse_vt100_escape_sequence(
 					}
 				}
 			}
-			else if( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0)
+			else if( ! get_pt_in_esc_seq( &str_p , &left , 1 , 0) && left == 0)
 			{
 				return  0 ;
 			}
@@ -5235,7 +5583,7 @@ parse_vt100_escape_sequence(
 			 * "ESC _" APC
 			 */
 			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) ||
-			    ( ! get_pt_in_esc_seq( &str_p , &left , 0) && left == 0))
+			    ( ! get_pt_in_esc_seq( &str_p , &left , 1 , 0) && left == 0))
 			{
 				return  0 ;
 			}
@@ -5596,7 +5944,8 @@ write_loopback(
 	ml_vt100_parser_t *  vt100_parser ,
 	u_char *  buf ,
 	size_t  len ,
-	int  enable_local_echo
+	int  enable_local_echo ,
+	int  is_visual
 	)
 {
 	char *  orig_buf ;
@@ -5621,7 +5970,11 @@ write_loopback(
 	memcpy( vt100_parser->r_buf.chars , buf , len) ;
 	vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left = len ;
 
-	start_vt100_cmd( vt100_parser , 1) ;
+	if( is_visual)
+	{
+		start_vt100_cmd( vt100_parser , 1) ;
+	}
+
 	if( enable_local_echo)
 	{
 		ml_screen_enable_local_echo( vt100_parser->screen) ;
@@ -5632,7 +5985,11 @@ write_loopback(
 	 * the second argument of it shoule be 0.
 	 */
 	parse_vt100_sequence( vt100_parser) ;
-	stop_vt100_cmd( vt100_parser , 1) ;
+
+	if( is_visual)
+	{
+		stop_vt100_cmd( vt100_parser , 1) ;
+	}
 
 	if( orig_left > 0)
 	{
@@ -5786,6 +6143,7 @@ ml_vt100_parser_delete(
 	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
 
 	ml_drcs_delete( vt100_parser->drcs) ;
+	delete_all_macros( vt100_parser) ;
 
 	if( vt100_parser->log_file != -1)
 	{
@@ -5875,7 +6233,7 @@ ml_parse_vt100_sequence(
 	#if  (! defined(__NetBSD__) && ! defined(__OpenBSD__)) || ! defined(USE_FRAMEBUFFER)
 	       /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
 	       vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
-	       (++count) < 3 &&
+	       (++count) < MAX_READ_COUNT &&
 	#endif
 	       receive_bytes( vt100_parser)) ;
 
@@ -5906,7 +6264,7 @@ ml_vt100_parser_write_loopback(
 	size_t  len
 	)
 {
-	return  write_loopback( vt100_parser , buf , len , 0) ;
+	return  write_loopback( vt100_parser , buf , len , 0 , 1) ;
 }
 
 #ifdef  __ANDROID__
@@ -5932,7 +6290,7 @@ ml_vt100_parser_preedit(
 		}
 	}
 
-	return  write_loopback( vt100_parser , buf , len , 1) ;
+	return  write_loopback( vt100_parser , buf , len , 1 , 1) ;
 }
 #endif
 
@@ -5973,7 +6331,7 @@ ml_vt100_parser_local_echo(
 		}
 	}
 
-	return  write_loopback( vt100_parser , buf , len , 1) ;
+	return  write_loopback( vt100_parser , buf , len , 1 , 1) ;
 }
 
 int

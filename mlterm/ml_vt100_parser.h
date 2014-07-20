@@ -152,12 +152,20 @@ typedef struct  ml_vt100_storable_states
 
 } ml_vt100_storable_states_t ;
 
-typedef struct ml_vt100_saved_names
+typedef struct  ml_vt100_saved_names
 {
 	char **  names ;
 	u_int  num ;
 
 } ml_vt100_saved_names_t ;
+
+typedef struct  ml_macro
+{
+	u_char *  str ;
+	int8_t  is_sixel ;
+	u_int8_t  sixel_num ;
+
+} ml_macro_t ;
 
 typedef struct  ml_vt100_parser
 {
@@ -246,6 +254,9 @@ typedef struct  ml_vt100_parser
 	ml_vt100_saved_names_t  saved_icon_names ;
 
 	ml_drcs_t *  drcs ;
+
+	ml_macro_t *  macros ;
+	u_int  num_of_macros ;
 
 } ml_vt100_parser_t ;
 

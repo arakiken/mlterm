@@ -1,3 +1,12 @@
+2014-07-21  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c, xlib/x_imagelib.c: ~/.mlterm/macro_*.six is cached.
+
+	* ml_vt100_parser.[ch]:
+	  - DECDMAC/DECINVM are supported.
+	  - If DECDMAC defines sixel graphics data, store it in ~/.mlterm/macro_*.six and
+	    show it by DECINVM.
+
 2014-07-19  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.c:

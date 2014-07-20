@@ -453,7 +453,7 @@ load_file(
 		}
 
 		/* XXX Don't cache ~/.mlterm/[pty name].six, [pty name].rgs and anim-*.gif */
-		if( ! strstr( path , "mlterm/"))
+		if( ! strstr( path , "mlterm/") || strstr( path , "mlterm/macro"))
 		{
 		#ifdef  __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG " adding a pixbuf to cache(%s)\n" , path) ;
