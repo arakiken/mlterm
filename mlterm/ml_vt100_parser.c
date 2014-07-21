@@ -2782,7 +2782,8 @@ define_macro(
 	{
 		void *  p ;
 
-		if( ! ( p = realloc( vt100_parser->macros ,
+		if( *data == '\0' ||
+		    ! ( p = realloc( vt100_parser->macros ,
 				(ps[0] + 1) * sizeof(*vt100_parser->macros))))
 		{
 			return ;
@@ -2796,6 +2797,11 @@ define_macro(
 	else
 	{
 		delete_macro( vt100_parser , ps[0]) ;
+
+		if( *data == '\0')
+		{
+			return ;
+		}
 	}
 
 	if( ps[2] == 1)

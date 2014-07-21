@@ -1,6 +1,8 @@
 2014-07-21  Araki Ken  <arakiken@users.sf.net>
 
-	* ml_vt100_parser.c: hex_to_text() is optimized.
+	* ml_vt100_parser.c:
+	  - hex_to_text() is optimized.
+	  - define_macro() deletes specified entry if *data is '\0'.
 
 2014-07-21  Araki Ken  <arakiken@users.sf.net>
 
