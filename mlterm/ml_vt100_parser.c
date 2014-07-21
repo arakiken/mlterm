@@ -2642,6 +2642,8 @@ hex_to_text(
 	size_t  count ;
 	int  rep_count ;
 	u_char *  rep_beg ;
+	int  d[2] ;
+	int  sub_count ;
 
 	len = strlen( hex) / 2 + 1 ;
 	if( ! ( text = malloc( len)))
@@ -2652,92 +2654,85 @@ hex_to_text(
 	count = 0 ;
 	rep_count = 1 ;
 	rep_beg = NULL ;
+	sub_count = 0 ;
 
+	/* Don't use sscanf() here because it works too slow. */
 	while( 1)
 	{
-		if( *hex == '!')
+		if( '0' <= *hex && *hex <= '9')
 		{
-			if( ( p = strchr( ++hex , ';')))
-			{
-				*p = '\0' ;
-				if( ( rep_count = atoi( hex)) > 1)
-				{
-					rep_beg = text + count ;
-				}
-				hex = p + 1 ;
-
-				continue ;
-			}
-		}
-		else if( *hex == ';' || *hex == '\0')
-		{
-			if( rep_beg)
-			{
-				size_t  rep_len ;
-
-				if( ( rep_len = text + count - rep_beg) > 0)
-				{
-					len += rep_len * (rep_count - 1) ;
-					if( ! ( p = realloc( text , len)))
-					{
-						free( text) ;
-
-						return  NULL ;
-					}
-					rep_beg += (p - text) ;
-					text = p ;
-
-					while( --rep_count > 0)
-					{
-						strncpy( text + count , rep_beg , rep_len) ;
-						count += rep_len ;
-					}
-				}
-
-				rep_beg = NULL ;
-			}
-
-			if( *hex == '\0')
-			{
-				break ;
-			}
+			d[sub_count++] = *hex - '0' ;
 		}
 		else
 		{
-			int  d[2] ;
-			int  sub_count ;
+			u_char  masked_hex ;
 
-			/* Don't use sscanf() here because it works too slow. */
-			for( sub_count = 0 ; sub_count < 2 ; sub_count++ , hex++)
+			masked_hex = (*hex) & 0xcf ;
+			if( 'A' <= masked_hex && masked_hex <= 'F')
 			{
-				if( '0' <= *hex && *hex <= '9')
+				d[sub_count++] = masked_hex - 'A' + 10 ;
+			}
+			else
+			{
+				sub_count = 0 ;
+
+				if( *hex == '!')
 				{
-					d[sub_count] = *hex - '0' ;
-				}
-				else
-				{
-					*hex &= 0xcf ;
-					if( 'A' <= *hex && *hex <= 'F')
+					rep_beg = NULL ;
+
+					if( ( p = strchr( hex + 1 , ';')))
 					{
-						d[sub_count] = *hex - 'A' + 10 ;
+						*p = '\0' ;
+						if( ( rep_count = atoi( hex + 1)) > 1)
+						{
+							rep_beg = text + count ;
+						}
+						hex = p ;
 					}
-					else if( *hex == '\0')
+				}
+				else if( *hex == ';' || *hex == '\0')
+				{
+					if( rep_beg)
+					{
+						size_t  rep_len ;
+
+						if( ( rep_len = text + count - rep_beg) > 0)
+						{
+							len += rep_len * (rep_count - 1) ;
+							if( ! ( p = realloc( text , len)))
+							{
+								free( text) ;
+
+								return  NULL ;
+							}
+							rep_beg += (p - text) ;
+							text = p ;
+
+							while( --rep_count > 0)
+							{
+								strncpy( text + count ,
+									rep_beg , rep_len) ;
+								count += rep_len ;
+							}
+						}
+
+						rep_beg = NULL ;
+					}
+
+					if( *hex == '\0')
 					{
 						goto  end ;
 					}
-					else
-					{
-						goto  next ;
-					}
 				}
 			}
-
-			text[count++] = (d[0] << 4) + d[1] ;
-
-			continue ;
 		}
 
-	next:
+		if( sub_count == 2)
+		{
+			text[count++] = (d[0] << 4) + d[1] ;
+			sub_count = 0 ;
+		}
+
 		hex++ ;
 	}
 
