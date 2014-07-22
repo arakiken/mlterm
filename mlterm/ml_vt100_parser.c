@@ -2860,7 +2860,7 @@ define_macro(
 }
 
 static int  write_loopback( ml_vt100_parser_t *  vt100_parser ,
-	u_char *  buf , size_t  len , int  enable_local_echo , int  is_visual) ;
+	const u_char *  buf , size_t  len , int  enable_local_echo , int  is_visual) ;
 
 static void
 invoke_macro(
@@ -5943,7 +5943,7 @@ parse_vt100_sequence(
 static int
 write_loopback(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_char *  buf ,
+	const u_char *  buf ,
 	size_t  len ,
 	int  enable_local_echo ,
 	int  is_visual
@@ -6261,7 +6261,7 @@ ml_reset_pending_vt100_sequence(
 int
 ml_vt100_parser_write_loopback(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_char *  buf ,
+	const u_char *  buf ,
 	size_t  len
 	)
 {
@@ -6272,7 +6272,7 @@ ml_vt100_parser_write_loopback(
 int
 ml_vt100_parser_preedit(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_char *  buf ,
+	const u_char *  buf ,
 	size_t  len
 	)
 {
@@ -6298,7 +6298,7 @@ ml_vt100_parser_preedit(
 int
 ml_vt100_parser_local_echo(
 	ml_vt100_parser_t *  vt100_parser ,
-	u_char *  buf ,
+	const u_char *  buf ,
 	size_t  len
 	)
 {

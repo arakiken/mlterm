@@ -163,7 +163,7 @@ int
 ml_drcs_add(
 	ml_drcs_font_t *  font ,
 	int  idx ,
-	char *  seq ,
+	const char *  seq ,
 	u_int  width ,
 	u_int  height
 	)

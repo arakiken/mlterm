@@ -39,7 +39,7 @@ int  ml_drcs_final( mkf_charset_t  cs) ;
 int  ml_drcs_final_full(void) ;
 
 int  ml_drcs_add( ml_drcs_font_t *  font ,
-	int  idx , char *  seq , u_int  width , u_int  height) ;
+	int  idx , const char *  seq , u_int  width , u_int  height) ;
 
 int  ml_convert_drcs_to_unicode_pua( mkf_char_t *  ch) ;
 

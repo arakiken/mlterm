@@ -290,10 +290,11 @@ void  ml_reset_pending_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 
 /* Must be called in visual context. */
 int  ml_vt100_parser_write_loopback( ml_vt100_parser_t *  vt100_parser ,
-	u_char *  buf , size_t  len) ;
+	const u_char *  buf , size_t  len) ;
 
 /* Must be called in visual context. */
-int  ml_vt100_parser_local_echo( ml_vt100_parser_t *  vt100_parser , u_char *  buf , size_t  len) ;
+int  ml_vt100_parser_local_echo( ml_vt100_parser_t *  vt100_parser ,
+	const u_char *  buf , size_t  len) ;
 
 int  ml_vt100_parser_change_encoding( ml_vt100_parser_t *  vt100_parser ,
 	ml_char_encoding_t  encoding) ;
