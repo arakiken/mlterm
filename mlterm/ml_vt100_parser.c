@@ -437,6 +437,22 @@ stop_vt100_cmd(
 	}
 }
 
+static void
+interrupt_vt100_cmd(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	ml_screen_render( vt100_parser->screen) ;
+	ml_screen_visual( vt100_parser->screen) ;
+
+	if( HAS_XTERM_LISTENER(vt100_parser,interrupt))
+	{
+		(*vt100_parser->xterm_listener->interrupt)( vt100_parser->xterm_listener->self) ;
+	}
+
+	ml_screen_logical( vt100_parser->screen) ;
+}
+
 static int
 change_read_buffer_size(
 	ml_read_buffer_t *  r_buf ,
@@ -643,39 +659,57 @@ detect:
 	}
 }
 
+inline static int
+is_dcs_or_osc(
+	u_char *  str	/* The length should be 2 or more. */
+	)
+{
+	return  *str == 0x90 ||
+	        memcmp( str , "\x1bP" , 2) == 0 ||
+	        memcmp( str , "\x1b]" , 2) == 0 ;
+}
+
 static int
 receive_bytes(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	size_t  ret ;
+	size_t  len ;
 
-	if( 0 < vt100_parser->r_buf.left &&
-	    vt100_parser->r_buf.left < vt100_parser->r_buf.filled_len)
-	{
-		memmove( vt100_parser->r_buf.chars , CURRENT_STR_P(vt100_parser) ,
-			vt100_parser->r_buf.left * sizeof( u_char)) ;
-	}
-	else if( vt100_parser->r_buf.left == vt100_parser->r_buf.len)
+	if( vt100_parser->r_buf.left == vt100_parser->r_buf.len)
 	{
 		/* Buffer is full => Expand buffer */
 
+		len = vt100_parser->r_buf.len >= PTY_RD_BUFFER_SIZE * MAX_READ_COUNT ?
+			 PTY_RD_BUFFER_SIZE * 10 : PTY_RD_BUFFER_SIZE ;
+
 		if( ! change_read_buffer_size( &vt100_parser->r_buf ,
-			vt100_parser->r_buf.len +
-			(vt100_parser->r_buf.len >= PTY_RD_BUFFER_SIZE * MAX_READ_COUNT ?
-			 PTY_RD_BUFFER_SIZE * 10 : PTY_RD_BUFFER_SIZE)))
+			vt100_parser->r_buf.len + len))
 		{
-			return  1 ;
+			return  0 ;
+		}
+	}
+	else
+	{
+		if( 0 < vt100_parser->r_buf.left &&
+		    vt100_parser->r_buf.left < vt100_parser->r_buf.filled_len)
+		{
+			memmove( vt100_parser->r_buf.chars , CURRENT_STR_P(vt100_parser) ,
+				vt100_parser->r_buf.left * sizeof( u_char)) ;
+		}
+
+		/* vt100_parser->r_buf.left must be always less than vt100_parser->r_buf.len */
+		if( ( len = vt100_parser->r_buf.len - vt100_parser->r_buf.left) >
+			PTY_RD_BUFFER_SIZE &&
+		    ! is_dcs_or_osc( vt100_parser->r_buf.chars))
+		{
+			len = PTY_RD_BUFFER_SIZE ;
 		}
 	}
 
-	if( ( ret = ml_read_pty( vt100_parser->pty ,
-			vt100_parser->r_buf.chars + vt100_parser->r_buf.left ,
-			/*
-			 * vt100_parser->r_buf.left must be always less than
-			 * vt100_parser->r_buf.len
-			 */
-			vt100_parser->r_buf.len - vt100_parser->r_buf.left)) == 0)
+	if( ( vt100_parser->r_buf.new_len =
+		ml_read_pty( vt100_parser->pty ,
+			vt100_parser->r_buf.chars + vt100_parser->r_buf.left , len)) == 0)
 	{
 		vt100_parser->r_buf.filled_len = vt100_parser->r_buf.left ;
 	
@@ -710,7 +744,8 @@ receive_bytes(
 		}
 
 		write( vt100_parser->log_file ,
-			vt100_parser->r_buf.chars + vt100_parser->r_buf.left , ret) ;
+			vt100_parser->r_buf.chars + vt100_parser->r_buf.left ,
+			vt100_parser->r_buf.new_len) ;
 	#ifndef  USE_WIN32API
 		fsync( vt100_parser->log_file) ;
 	#endif
@@ -725,16 +760,13 @@ receive_bytes(
         }
 
 end:
-	vt100_parser->r_buf.filled_len = ( vt100_parser->r_buf.left += ret) ;
+	vt100_parser->r_buf.filled_len =
+		( vt100_parser->r_buf.left += vt100_parser->r_buf.new_len) ;
 
 	if( vt100_parser->r_buf.filled_len <= PTY_RD_BUFFER_SIZE)
 	{
 		/* Shrink buffer */
-
-		if( ! change_read_buffer_size( &vt100_parser->r_buf , PTY_RD_BUFFER_SIZE))
-		{
-			return  1 ;
-		}
+		change_read_buffer_size( &vt100_parser->r_buf , PTY_RD_BUFFER_SIZE) ;
 	}
 
 	if( vt100_parser->use_auto_detect && auto_detect_count > 0)
@@ -1422,8 +1454,29 @@ report_window_size(
 	}
 }
 
-#ifndef  NO_IMAGE
 static int
+cursor_char_is_picture(
+	ml_screen_t *  screen
+	)
+{
+	ml_line_t *  line ;
+	ml_char_t *  ch ;
+
+	if( ( line = ml_screen_get_cursor_line( screen)) &&
+	    ml_line_is_modified( line) &&
+	    ( ch = ml_char_at( line , ml_screen_cursor_char_index( screen))) &&
+	    ml_get_picture_char( ch))
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+#ifndef  NO_IMAGE
+static void
 show_picture(
 	ml_vt100_parser_t *  vt100_parser ,
 	char *  file_path ,
@@ -1436,10 +1489,6 @@ show_picture(
 	int  is_sixel
 	)
 {
-	int  ret ;
-
-	ret = 0 ;
-
 	if( HAS_XTERM_LISTENER(vt100_parser,get_picture_data))
 	{
 		ml_char_t *  data ;
@@ -1483,6 +1532,11 @@ show_picture(
 				ml_screen_go_upward( vt100_parser->screen ,
 					ml_screen_cursor_row( vt100_parser->screen)) ;
 				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+			}
+
+			if( cursor_char_is_picture( vt100_parser->screen))
+			{
+				interrupt_vt100_cmd( vt100_parser) ;
 			}
 
 			cursor_col = ml_screen_cursor_col( vt100_parser->screen) ;
@@ -1531,11 +1585,9 @@ show_picture(
 
 			ml_str_delete( data , img_cols * img_rows) ;
 
-			ret = 1 ;
+			vt100_parser->yield = 1 ;
 		}
 	}
-
-	return  ret ;
 }
 #endif
 
@@ -1831,12 +1883,9 @@ config_protocol_set(
 
 		if( *argv[0] == 's')
 		{
-			if( show_picture( vt100_parser , argv[1] ,
+			show_picture( vt100_parser , argv[1] ,
 				clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
-					img_cols , img_rows , 0))
-			{
-				vt100_parser->yield = 1 ;
-			}
+					img_cols , img_rows , 0) ;
 		}
 		else if( HAS_XTERM_LISTENER(vt100_parser,add_frame_to_animation))
 		{
@@ -3075,7 +3124,7 @@ static char *
 get_pt_in_esc_seq(
 	u_char **  str ,
 	size_t *  left ,
-	int  use_c1 ,
+	int  use_c1 ,		/* OSC is terminated by not only ST(ESC \) but also 0x9c. */
 	int  bel_terminate	/* OSC is terminated by not only ST(ESC \) but also BEL. */
 	)
 {
@@ -3095,17 +3144,24 @@ get_pt_in_esc_seq(
 
 		if( **str == CTL_ESC)
 		{
-			if( *left > 1 && *((*str) + 1) == '\\')
+			if( ! increment_str( str , left))
 			{
-				**str = '\0' ;
-				increment_str( str , left) ;
+				return  NULL ;
+			}
+
+			if( **str == '\\')
+			{
+				*((*str) - 1) = '\0' ;
 
 				break ;
 			}
 
-			/* Reset position ahead of unprintable character for compat with xterm. */
-			(*str) -- ;
-			(*left) ++ ;
+			/*
+			 * Reset position ahead of unprintable character for compat with xterm.
+			 * e.g.) "\x1bP\x1b[A" is parsed as "\x1b[A"
+			 */
+			(*str) -= 2 ;
+			(*left) += 2 ;
 
 			return  NULL ;
 		}
@@ -4947,7 +5003,18 @@ parse_vt100_escape_sequence(
 				ps = -1 ;
 			}
 
-			if( ! ( pt = get_pt_in_esc_seq( &str_p , &left , 0 , 1)))
+			pt = str_p ;
+			/*
+			 * +1 in case str_p[left - vt100_parser->r_buf.new_len] points
+			 * "\\" of "\x1b\\".
+			 */
+			if( left > vt100_parser->r_buf.new_len + 1)
+			{
+				str_p += (left - vt100_parser->r_buf.new_len - 1) ;
+				left = vt100_parser->r_buf.new_len + 1 ;
+			}
+
+			if( ! get_pt_in_esc_seq( &str_p , &left , 0 , 1))
 			{
 				if( left == 0)
 				{
@@ -5171,37 +5238,6 @@ parse_vt100_escape_sequence(
 			}
 			while( *str_p == ';' || ('0' <= *str_p && *str_p <= '9')) ;
 
-			if( *str_p == '!' && *(str_p + 1) == 'z')
-			{
-				u_char *  data ;
-
-				if( left <= 2)
-				{
-					left = 0 ;
-
-					return  0 ;
-				}
-
-				left -= 2 ;
-				data = (str_p += 2) ;
-
-				if( left > PTY_RD_BUFFER_SIZE)
-				{
-					str_p += (left - PTY_RD_BUFFER_SIZE) ;
-					left = PTY_RD_BUFFER_SIZE ;
-				}
-
-				if( get_pt_in_esc_seq( &str_p , &left , 1 , 0))
-				{
-					define_macro( vt100_parser ,
-						dcs_beg + (*dcs_beg == '\x1b' ? 2 : 1) , data) ;
-				}
-				else if( left == 0)
-				{
-					return  0 ;
-				}
-			}
-			else
 		#ifndef  NO_IMAGE
 			if( /* sixel */
 			    ( *str_p == 'q' &&
@@ -5315,8 +5351,6 @@ parse_vt100_escape_sequence(
 							vt100_parser->r_buf.chars[4] = is_end ;
 							vt100_parser->r_buf.filled_len =
 								vt100_parser->r_buf.left = 5 ;
-
-							vt100_parser->yield = 1 ;
 
 							return  0 ;
 						}
@@ -5571,9 +5605,57 @@ parse_vt100_escape_sequence(
 					}
 				}
 			}
-			else if( ! get_pt_in_esc_seq( &str_p , &left , 1 , 0) && left == 0)
+			else
 			{
-				return  0 ;
+				u_char *  data ;
+
+				if( *str_p == '!' && *(str_p + 1) == 'z')
+				{
+					/* DECDMAC */
+
+					if( left <= 2)
+					{
+						left = 0 ;
+
+						return  0 ;
+					}
+
+					data = (str_p += 2) ;
+					left -= 2 ;
+				}
+				else
+				{
+					if( ! increment_str( &str_p , &left))
+					{
+						return  0 ;
+					}
+
+					data = NULL ;
+				}
+
+				/*
+				 * +1 in case str_p[left - vt100_parser->r_buf.new_len] points
+				 * "\\" of "\x1b\\".
+				 */
+				if( left > vt100_parser->r_buf.new_len + 1)
+				{
+					str_p += (left - vt100_parser->r_buf.new_len - 1) ;
+					left = vt100_parser->r_buf.new_len + 1 ;
+				}
+
+				if( get_pt_in_esc_seq( &str_p , &left , 1 , 0))
+				{
+					if( data)
+					{
+						define_macro( vt100_parser ,
+							dcs_beg + (*dcs_beg == '\x1b' ? 2 : 1) ,
+							data) ;
+					}
+				}
+				else if( left == 0)
+				{
+					return  0 ;
+				}
 			}
 		}
 		else if( *str_p == 'X' || *str_p == '^' || *str_p == '_')
@@ -5583,8 +5665,19 @@ parse_vt100_escape_sequence(
 			 * "ESC ^" PM
 			 * "ESC _" APC
 			 */
-			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) ||
-			    ( ! get_pt_in_esc_seq( &str_p , &left , 1 , 0) && left == 0))
+			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
+			{
+				return  0 ;
+			}
+
+			/* +1 in case str_p[left - new_len] points "\\" of "\x1b\\". */
+			if( left > vt100_parser->r_buf.new_len + 1)
+			{
+				str_p += (left - vt100_parser->r_buf.new_len - 1) ;
+				left = vt100_parser->r_buf.new_len + 1 ;
+			}
+
+			if( ! get_pt_in_esc_seq( &str_p , &left , 1 , 0) && left == 0)
 			{
 				return  0 ;
 			}
@@ -5922,22 +6015,7 @@ parse_vt100_sequence(
 		}
 	}
 
-	/*
-	 * It is not necessary to process pending events for other windows on
-	 * framebuffer because there is only one active window.
-	 */
-#ifndef  USE_FRAMEBUFFER
-	if( vt100_parser->yield)
-	{
-		vt100_parser->yield = 0 ;
-
-		return  0 ;
-	}
-	else
-#endif
-	{
-		return  1 ;
-	}
+	return  1 ;
 }
 
 static int
@@ -6232,11 +6310,14 @@ ml_parse_vt100_sequence(
 		* on framebuffer on old machines.
 		*/
 	#if  (! defined(__NetBSD__) && ! defined(__OpenBSD__)) || ! defined(USE_FRAMEBUFFER)
+	       vt100_parser->yield == 0 &&
 	       /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
 	       vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
 	       (++count) < MAX_READ_COUNT &&
 	#endif
 	       receive_bytes( vt100_parser)) ;
+
+	vt100_parser->yield = 0 ;
 
 	stop_vt100_cmd( vt100_parser , 1) ;
 
@@ -6248,10 +6329,7 @@ ml_reset_pending_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	if( vt100_parser->r_buf.left >= 2 &&
-	    ( vt100_parser->r_buf.chars[0] == 0x90 ||
-	      memcmp( vt100_parser->r_buf.chars , "\x1bP" , 2) == 0 ||
-	      memcmp( vt100_parser->r_buf.chars , "\x1b]" , 2) == 0))
+	if( vt100_parser->r_buf.left >= 2 && is_dcs_or_osc( vt100_parser->r_buf.chars))
 	{
 		/* Reset DCS or OSC */
 		vt100_parser->r_buf.left = 0 ;

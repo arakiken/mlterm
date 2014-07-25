@@ -424,6 +424,25 @@ ml_get_combining_chars(
 	}
 }
 
+ml_char_t *
+ml_get_picture_char(
+	ml_char_t *  ch
+	)
+{
+	if( ! IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		ch = ch->u.multi_ch ;
+
+		if( IS_COMB_TRAILING(ch->u.ch.attr) &&
+		    CHARSET(ch[1].u.ch.attr) == PICTURE_CHARSET)
+		{
+			return  ch + 1 ;
+		}
+	}
+
+	return  NULL ;
+}
+
 /*
  * Not used for now.
  */

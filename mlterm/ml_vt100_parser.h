@@ -87,6 +87,7 @@ typedef struct  ml_read_buffer
 	size_t  len ;
 	size_t  filled_len ;
 	size_t  left ;
+	size_t  new_len ;
 
 } ml_read_buffer_t ;
 
@@ -96,7 +97,8 @@ typedef struct  ml_xterm_event_listener
 
 	void (*start)( void *) ;	/* called in *visual* context. (Note that not logical) */
 	void (*stop)( void *) ;		/* called in visual context. */
-	
+	void (*interrupt)( void *) ;	/* called in visual context. */
+
 	void (*resize)( void * , u_int , u_int) ;	/* called in visual context. */
 	void (*reverse_video)( void * , int) ;		/* called in visual context. */
 	void (*set_mouse_report)( void * , ml_mouse_report_mode_t) ;/* called in visual context. */
@@ -241,7 +243,6 @@ typedef struct  ml_vt100_parser
 #endif
 
 	int8_t  sixel_scrolling ;
-
 	int8_t  yield ;
 
 	int8_t  use_auto_detect ;

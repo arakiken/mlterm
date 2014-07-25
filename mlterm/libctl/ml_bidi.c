@@ -284,11 +284,7 @@ ml_bidi(
 		{
 			if( ! isalpha(code))
 			{
-				ml_char_t *  comb ;
-				u_int  comb_size ;
-
-				if( ( comb = ml_get_combining_chars( &src[count] , &comb_size)) &&
-				    ml_char_cs( comb) == PICTURE_CHARSET)
+				if( ml_get_picture_char( &src[count]))
 				{
 					fri_src[count] = 'a' ;
 				}

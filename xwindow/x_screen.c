@@ -3770,8 +3770,7 @@ selecting_picture(
 	if( ! ( line = ml_term_get_line( screen->term , row)) ||
 	    ml_line_is_empty( line) ||
 	    ! ( ch = ml_char_at( line , char_index)) ||
-	    ! ( ch = ml_get_combining_chars( ch , &comb_size)) ||
-	    ml_char_cs( ch) != PICTURE_CHARSET ||
+	    ! ( ch = ml_get_picture_char( ch)) ||
 	    ! ( pic = x_get_inline_picture( ml_char_picture_id( ch))))
 	{
 		return  0 ;
@@ -7087,7 +7086,7 @@ start_vt100_cmd(
 		if( ! ml_term_logical_visual_is_reversible( screen->term))
 		{
 			/*
-			 * If indic logical<=>visual conversion is enabled, x_window_update()
+			 * If vertical logical<=>visual conversion is enabled, x_window_update()
 			 * in stop_vt100_cmd() can't reflect x_restore_selected_region_color*()
 			 * functions above to screen.
 			 */
@@ -7150,6 +7149,22 @@ stop_vt100_cmd(
 	screen->font_or_color_config_updated = 0 ;
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
+}
+
+static void
+interrupt_vt100_cmd(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	x_window_update( &screen->window , UPDATE_SCREEN) ;
+
+#ifdef  X_PROTOCOL
+	XFlush( screen->window.disp->display) ;
+#endif
 }
 
 static void
@@ -7745,6 +7760,7 @@ x_screen_new(
 	screen->xterm_listener.self = screen ;
 	screen->xterm_listener.start = start_vt100_cmd ;
 	screen->xterm_listener.stop = stop_vt100_cmd ;
+	screen->xterm_listener.interrupt = interrupt_vt100_cmd ;
 	screen->xterm_listener.resize = xterm_resize ;
 	screen->xterm_listener.reverse_video = xterm_reverse_video ;
 	screen->xterm_listener.set_mouse_report = xterm_set_mouse_report ;

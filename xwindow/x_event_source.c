@@ -103,15 +103,13 @@ receive_next_event(void)
 		tval.tv_sec = 0 ;
 
 	#ifdef  USE_LIBSSH2
-		if( ( ret = ml_pty_ssh_poll( &read_fds)) > 0)
+		if( ml_pty_ssh_poll( &read_fds) > 0)
 		{
 			num_of_displays = 0 ;	/* Don't check FD_ISSET(x_display_fd) */
 
 			break ;
 		}
 	#endif
-
-		displays = x_get_opened_displays( &num_of_displays) ;
 
 		maxfd = 0 ;
 		FD_ZERO( &read_fds) ;
@@ -130,6 +128,8 @@ receive_next_event(void)
 			}
 		}
 	#endif
+
+		displays = x_get_opened_displays( &num_of_displays) ;
 
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{

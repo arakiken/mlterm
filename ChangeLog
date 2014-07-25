@@ -1,3 +1,20 @@
+2014-07-25  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_bidi.c, x_picture.c: ml_get_picture_char() is used.
+
+	* ml_char.[ch]: ml_get_picture_char() is added.
+
+	* x_screen.c: interrupt_vt100_cmd() is added.
+
+	* ml_vt100_parser.[ch]:
+	  - interrupt event is added to ml_xterm_event_listener_t.
+	  - ml_xterm_event_listener_t::interrupt is called if sixel graphics is drawn
+	    by DECINVM.
+	  - The amount of reading data from pty once is shrinked if buffered data
+	    isn't DCS or OSC.
+	  - new_len is added to ml_read_buffer_t, and only newly received data is
+	    parsed in restarting to parse DCS or OSC in  parse_vt100_escape_sequence().
+
 2014-07-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_drcs.[ch], ml_vt100_parser.[ch]: const is added to some arguments.

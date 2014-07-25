@@ -131,6 +131,8 @@ ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
 
 ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
 
+ml_char_t *  ml_get_picture_char( ml_char_t *  ch) ;
+
 #if  0
 /*
  * Not used for now.

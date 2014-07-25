@@ -475,16 +475,13 @@ cleanup_inline_pictures(
 			{
 				for( count = 0 ; count < line->num_of_filled_chars ; count++)
 				{
-					ml_char_t *  comb ;
-					u_int  size ;
+					ml_char_t *  ch ;
 
-					if( ( comb = ml_get_combining_chars( line->chars + count ,
-								&size)) &&
-					    ml_char_cs( comb) == PICTURE_CHARSET)
+					if( ( ch = ml_get_picture_char( line->chars + count)))
 					{
 						int  idx ;
 
-						idx = ml_char_picture_id( comb) ;
+						idx = ml_char_picture_id( ch) ;
 						do
 						{
 							flags[idx] = 1 ;
@@ -1323,19 +1320,16 @@ x_animate_inline_pictures(
 			for( char_index = 0 ; char_index < line->num_of_filled_chars ;
 			     char_index++)
 			{
-				ml_char_t *  comb ;
-				u_int  size ;
+				ml_char_t *  ch ;
 
-				if( ( comb = ml_get_combining_chars(
-						line->chars + char_index , &size)) &&
-				    ml_char_cs( comb) == PICTURE_CHARSET)
+				if( ( ch = ml_get_picture_char( line->chars + char_index)))
 				{
 					int32_t  pos ;
 					int  idx ;
 					int  next ;
 
-					pos = ml_char_code( comb) ;
-					idx = ml_char_picture_id( comb) ;
+					pos = ml_char_code( ch) ;
+					idx = ml_char_picture_id( ch) ;
 					if( ( next = inline_pics[idx].next_frame) < 0)
 					{
 						continue ;
@@ -1367,8 +1361,8 @@ x_animate_inline_pictures(
 					if( ( pos = next_frame_pos( inline_pics + idx ,
 							inline_pics + next , pos)) >= 0)
 					{
-						ml_char_set_code( comb , pos) ;
-						ml_char_set_picture_id( comb , next) ;
+						ml_char_set_code( ch , pos) ;
+						ml_char_set_picture_id( ch , next) ;
 						ml_line_set_modified( line ,
 							char_index , char_index) ;
 
