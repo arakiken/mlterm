@@ -9,6 +9,7 @@
 #include  <stdlib.h>		/* atoi */
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* write */
+#include  <sys/time.h>		/* gettimeofday */
 #ifdef  DEBUG
 #include  <stdarg.h>		/* va_list */
 #endif
