@@ -5424,6 +5424,16 @@ parse_vt100_escape_sequence(
 							strlen(color_seq) , fp) ;
 						dcs_beg = str_p + 1 ;
 					}
+
+					/*
+					 * +1 in case str_p[left - vt100_parser->r_buf.new_len]
+					 * points "\\" of "\x1b\\".
+					 */
+					if( left > vt100_parser->r_buf.new_len + 1)
+					{
+						str_p += (left - vt100_parser->r_buf.new_len - 1) ;
+						left = vt100_parser->r_buf.new_len + 1 ;
+					}
 				}
 
 				while( 1)
@@ -5439,6 +5449,9 @@ parse_vt100_escape_sequence(
 						if( vt100_parser->logging_vt_seq &&
 						    use_ttyrec_format)
 						{
+							fclose( fp) ;
+							free( path) ;
+
 							return  0 ;
 						}
 

@@ -1,5 +1,12 @@
 2014-07-26  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/ja/README.ja, man/mlterm.1: Updated.
+
+	* ml_vt100_parser.c: fclose(fp) and free(path) are called before return 0
+	  in processing sixel sequence.
+
+2014-07-26  Araki Ken  <arakiken@users.sf.net>
+
 	* x_main_config.c, x_screen.c: --seqfmt/vt_seq_format option is added.
 
 	* ml_vt100_parser.[ch]: ml_set_use_ttyrec_format() enables or disables to log

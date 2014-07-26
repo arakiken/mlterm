@@ -2,6 +2,7 @@ ver 3.3.8
 * Support rectangle selection by pressing alt key while selecting.
 * Support DECDMAC/DECINVM.
 * Add "Auto detect" entry to "Encoding" tab of mlconfig.
+* Add --seqfmt/vt_seq_format option.
 * Read /dev/kbd on NetBSD/x68k framebuffer.
 * Bug fixes:
   Fix weird background picture on NetBSD/x68k Text VRAM by unexpectedly cached pixels.

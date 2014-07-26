@@ -644,6 +644,11 @@ Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SI
 or SIGILL is received.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-seqfmt\fR=\fIvalue\fR
+Specify the format of logging vt100 sequence. \fBraw\fR for logging as it is
+and \fBttyrec\fR for logging by ttyrec format.
+The default is \fBraw\fR.
+.TP
 \fB\-\-shortcut\fR(=\fIbool\fR)
 Whether to allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
 The default is \fBfalse\fR.
@@ -1475,6 +1480,9 @@ Working directory.
 .TP
 \fBstatic_backscroll_mode=\fIbool\fR (\fB\-6\fR, \fB\-\-stbs\fR)
 Don't exit backscroll mode when console applications output something.
+.TP
+\fBvt_seq_format=\fIvalue\fR (\fB\-\-seqfmt\fR)
+Specify the format of logging vt100 sequence.
 .\" ******************************************************
 .SS Font Configuration Files
 The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",

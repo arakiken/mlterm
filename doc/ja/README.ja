@@ -736,6 +736,10 @@ comment $Id$
       o logging_vt_seq (true/*false*)
         pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 
+      o vt_seq_format (*raw*/ttyrec)
+        ~/.mlterm/[device].log に記録するフォーマットを指定する。
+        rawはそのまま、ttyrecはttyrec形式で保存する。
+
       o use_clipboard (true/*false*)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 
@@ -1251,6 +1255,7 @@ comment $Id$
        --auto(=bool)   : use_auto_detect
        --ldd(=bool)    : leftward_double_drawing
        --working-directory=value : working_directory
+       --seqfmt=value  : vt_seq_format
        --deffont=value : DEFAULT in ~/.mlterm/*font
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
