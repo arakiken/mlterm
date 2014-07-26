@@ -163,6 +163,8 @@ static struct
 } *  auto_detect ;
 static u_int  auto_detect_count ;
 
+static int  use_ttyrec_format ;
+
 
 /* --- static functions --- */
 
@@ -669,6 +671,51 @@ is_dcs_or_osc(
 	        memcmp( str , "\x1b]" , 2) == 0 ;
 }
 
+static void
+write_ttyrec_header(
+	int  fd ,
+	size_t  len ,
+	int  keep_time
+	)
+{
+	u_int32_t  buf[3] ;
+
+	if( ! keep_time)
+	{
+		struct timeval  tval ;
+
+		gettimeofday( &tval , NULL) ;
+	#ifdef  WORDS_BIGENDIAN
+		buf[0] = LE32DEC(((u_char*)&tval.tv_sec)) ;
+		buf[1] = LE32DEC(((u_char*)&tval.tv_usec)) ;
+		buf[2] = LE32DEC(((u_char*)&len)) ;
+	#else
+		buf[0] = tval.tv_sec ;
+		buf[1] = tval.tv_usec ;
+		buf[2] = len ;
+	#endif
+
+	#if  __DEBUG
+		kik_debug_printf( "write len %d at %d\n" ,
+			len , lseek( fd , 0 , SEEK_CUR)) ;
+	#endif
+
+		write( fd , buf , 12) ;
+	}
+	else
+	{
+		lseek( fd , 8 , SEEK_CUR) ;
+
+	#ifdef  WORDS_BIGENDIAN
+		buf[0] = LE32DEC(((u_char*)&len)) ;
+	#else
+		buf[0] = len ;
+	#endif
+
+		write( fd , buf , 4) ;
+	}
+}
+
 static int
 receive_bytes(
 	ml_vt100_parser_t *  vt100_parser
@@ -731,7 +778,7 @@ receive_bytes(
 
 
 			if( ( vt100_parser->log_file =
-				open( path , O_CREAT | O_APPEND | O_WRONLY , 0600)) == -1)
+				open( path , O_CREAT | O_WRONLY , 0600)) == -1)
 			{
 				free( path) ;
 
@@ -740,12 +787,65 @@ receive_bytes(
 
 			free( path) ;
 
+			/*
+			 * O_APPEND in open() forces lseek(0,SEEK_END) in write()
+			 * and disables lseek(pos,SEEK_SET) before calling write().
+			 * So don't specify O_APPEND in open() and call lseek(0,SEEK_END)
+			 * manually after open().
+			 */
+			lseek( vt100_parser->log_file , 0 , SEEK_END) ;
 			kik_file_set_cloexec( vt100_parser->log_file) ;
+
+			if( use_ttyrec_format)
+			{
+				char  seq[6 + DIGIT_STR_LEN(int) * 2 + 1] ;
+
+				sprintf( seq , "\x1b[8;%d;%dt" ,
+					ml_screen_get_rows( vt100_parser->screen) ,
+					ml_screen_get_cols( vt100_parser->screen)) ;
+				write_ttyrec_header( vt100_parser->log_file ,
+					strlen( seq) , 0) ;
+				write( vt100_parser->log_file , seq , strlen(seq)) ;
+			}
 		}
 
-		write( vt100_parser->log_file ,
-			vt100_parser->r_buf.chars + vt100_parser->r_buf.left ,
-			vt100_parser->r_buf.new_len) ;
+		if( use_ttyrec_format)
+		{
+			if( vt100_parser->r_buf.left > 0)
+			{
+				lseek( vt100_parser->log_file ,
+					lseek( vt100_parser->log_file , 0 , SEEK_CUR) -
+						vt100_parser->r_buf.filled_len - 12 ,
+					SEEK_SET) ;
+
+				if( vt100_parser->r_buf.left < vt100_parser->r_buf.filled_len)
+				{
+					write_ttyrec_header( vt100_parser->log_file ,
+						vt100_parser->r_buf.filled_len -
+						vt100_parser->r_buf.left , 1) ;
+
+					lseek( vt100_parser->log_file ,
+						lseek( vt100_parser->log_file , 0 , SEEK_CUR) +
+							vt100_parser->r_buf.filled_len -
+							vt100_parser->r_buf.left ,
+						SEEK_SET) ;
+				}
+			}
+
+			write_ttyrec_header( vt100_parser->log_file ,
+				vt100_parser->r_buf.left + vt100_parser->r_buf.new_len , 0) ;
+
+			write( vt100_parser->log_file ,
+				vt100_parser->r_buf.chars ,
+				vt100_parser->r_buf.left + vt100_parser->r_buf.new_len) ;
+		}
+		else
+		{
+			write( vt100_parser->log_file ,
+				vt100_parser->r_buf.chars + vt100_parser->r_buf.left ,
+				vt100_parser->r_buf.new_len) ;
+		}
+
 	#ifndef  USE_WIN32API
 		fsync( vt100_parser->log_file) ;
 	#endif
@@ -5335,6 +5435,12 @@ parse_vt100_escape_sequence(
 							break ;
 						}
 
+						if( vt100_parser->logging_vt_seq &&
+						    use_ttyrec_format)
+						{
+							return  0 ;
+						}
+
 						fwrite( dcs_beg , 1 , str_p - dcs_beg + 1 , fp) ;
 
 						vt100_parser->r_buf.left = 0 ;
@@ -6114,6 +6220,14 @@ ml_set_full_width_areas(
 {
 	full_width_areas = set_area_to_table( full_width_areas ,
 					&num_of_full_width_areas , areas) ;
+}
+
+void
+ml_set_use_ttyrec_format(
+	int  use
+	)
+{
+	use_ttyrec_format = use ;
 }
 
 ml_vt100_parser_t *

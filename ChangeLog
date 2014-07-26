@@ -1,3 +1,10 @@
+2014-07-26  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.c, x_screen.c: --seqfmt/vt_seq_format option is added.
+
+	* ml_vt100_parser.[ch]: ml_set_use_ttyrec_format() enables or disables to log
+	  vt100 sequence by ttyrec format.
+
 2014-07-25  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_bidi.c, x_picture.c: ml_get_picture_char() is used.

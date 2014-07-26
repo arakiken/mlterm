@@ -270,6 +270,8 @@ void  ml_set_unicode_noconv_areas( char *  areas) ;
 
 void  ml_set_full_width_areas( char *  areas) ;
 
+void  ml_set_use_ttyrec_format( int  use) ;
+
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char ,

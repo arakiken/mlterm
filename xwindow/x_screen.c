@@ -3764,7 +3764,6 @@ selecting_picture(
 {
 	ml_line_t *  line ;
 	ml_char_t *  ch ;
-	size_t  comb_size ;
 	x_inline_picture_t *  pic ;
 
 	if( ! ( line = ml_term_get_line( screen->term , row)) ||
@@ -9004,6 +9003,10 @@ x_screen_set_config(
 		{
 			ml_term_set_logging_vt_seq( term , flag) ;
 		}
+	}
+	else if( strcmp( key , "vt_seq_format") == 0)
+	{
+		ml_set_use_ttyrec_format( strcmp( value , "ttyrec") == 0) ;
 	}
 	else if( strcmp( key , "use_clipboard") == 0)
 	{

@@ -292,6 +292,8 @@ x_prepare_for_main_config(
 		"embold glyphs by drawing doubly at 1 pixel leftward instead of rightward") ;
 	kik_conf_add_opt( conf , '\0' , "working-directory" , 0 , "working_directory" ,
 		"working directory") ;
+	kik_conf_add_opt( conf , '\0' , "seqfmt" , 0 , "vt_seq_format" ,
+		"format of logging vt100 sequence. [raw]") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [true]") ;
@@ -443,6 +445,11 @@ x_main_config_init(
 		{
 			main_config->logging_vt_seq = 1 ;
 		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "vt_seq_format")))
+	{
+		ml_set_use_ttyrec_format( strcmp( value , "ttyrec") == 0) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "logging_msg")) &&
