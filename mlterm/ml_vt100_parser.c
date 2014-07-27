@@ -1686,7 +1686,11 @@ show_picture(
 
 			ml_str_delete( data , img_cols * img_rows) ;
 
-			vt100_parser->yield = 1 ;
+			if( strstr( file_path , "://"))
+			{
+				/* Showing remote image is very heavy. */
+				vt100_parser->yield = 1 ;
+			}
 		}
 	}
 }
@@ -5472,6 +5476,9 @@ parse_vt100_escape_sequence(
 							vt100_parser->r_buf.filled_len =
 								vt100_parser->r_buf.left = 5 ;
 
+							/* No more data in pty. */
+							vt100_parser->yield = 1 ;
+
 							return  0 ;
 						}
 
@@ -6135,6 +6142,19 @@ parse_vt100_sequence(
 		}
 	}
 
+	/*
+	 * It is not necessary to process pending events for other windows on
+	 * framebuffer because there is only one active window.
+	 */
+#ifndef  USE_FRAMEBUFFER
+	if( vt100_parser->yield)
+	{
+		vt100_parser->yield = 0 ;
+
+		return  0 ;
+	}
+#endif
+
 	return  1 ;
 }
 
@@ -6438,14 +6458,11 @@ ml_parse_vt100_sequence(
 		* on framebuffer on old machines.
 		*/
 	#if  (! defined(__NetBSD__) && ! defined(__OpenBSD__)) || ! defined(USE_FRAMEBUFFER)
-	       vt100_parser->yield == 0 &&
 	       /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
 	       vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
 	       (++count) < MAX_READ_COUNT &&
 	#endif
 	       receive_bytes( vt100_parser)) ;
-
-	vt100_parser->yield = 0 ;
 
 	stop_vt100_cmd( vt100_parser , 1) ;
 
