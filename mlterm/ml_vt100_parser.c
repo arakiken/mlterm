@@ -1637,7 +1637,9 @@ show_picture(
 
 			if( cursor_char_is_picture( vt100_parser->screen))
 			{
+				/* Perhaps it is animation sixel. */
 				interrupt_vt100_cmd( vt100_parser) ;
+				vt100_parser->yield = 1 ;
 			}
 
 			cursor_col = ml_screen_cursor_col( vt100_parser->screen) ;
