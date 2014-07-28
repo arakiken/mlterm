@@ -80,6 +80,14 @@ void  x_display_idling( x_display_t *  disp) ;
 
 int  x_display_receive_next_event( x_display_t *  disp) ;
 
+#if  defined(USE_FRAMEBUFFER)
+#define  x_display_sync(disp)  (0)
+#elif  defined(USE_WIN32GUI)
+#define  x_display_sync(disp)  x_display_receive_next_event(disp)
+#else
+void  x_display_sync( x_display_t *  disp) ;
+#endif
+
 
 /*
  * Folloing functions called from x_window.c

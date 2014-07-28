@@ -1,3 +1,10 @@
+2014-07-28  Araki Ken  <arakiken@users.sf.net>
+
+	* x_event_source.c, x_screen.c: x_display_sync() is called in receive_next_event()
+	  and interrupt_vt100_cmd().
+
+	* x_display.[ch]: x_display_sync() is added.
+
 2014-07-27  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Minor fixes around ml_vt100_parser_t::yield.

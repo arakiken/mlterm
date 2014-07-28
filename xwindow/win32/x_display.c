@@ -196,7 +196,7 @@ x_display_close_all(void)
 		return  0 ;
 	}
 
-	x_picture_display_closed( &_disp.display) ;
+	x_picture_display_closed( _disp.display) ;
 
 	x_gc_delete( _disp.gc) ;
 

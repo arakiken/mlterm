@@ -7161,9 +7161,8 @@ interrupt_vt100_cmd(
 
 	x_window_update( &screen->window , UPDATE_SCREEN) ;
 
-#ifdef  X_PROTOCOL
-	XFlush( screen->window.disp->display) ;
-#endif
+	/* Forcibly reflect to the screen. */
+	x_display_sync( screen->window.disp) ;
 }
 
 static void

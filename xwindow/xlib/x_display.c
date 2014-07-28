@@ -486,6 +486,19 @@ x_display_receive_next_event(
 	return  1 ;
 }
 
+void
+x_display_sync(
+	x_display_t *  disp
+	)
+{
+	if( XEventsQueued( disp->display , QueuedAlready))
+	{
+		x_display_receive_next_event( disp) ;
+	}
+
+	XFlush( disp->display) ;
+}
+
 
 /*
  * Folloing functions called from x_window.c

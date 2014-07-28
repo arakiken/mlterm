@@ -134,14 +134,11 @@ receive_next_event(void)
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{
 		#ifdef  X_PROTOCOL
-			/* Need to read pending events before waiting in select(). */
-			if( XEventsQueued( displays[count]->display , QueuedAlready))
-			{
-				x_display_receive_next_event( displays[count]) ;
-			}
-
-			/* Need flush events in output buffer before waiting in select(). */
-			XFlush( displays[count]->display) ;
+			/*
+			 * Need to read pending events and to flush events in
+			 * output buffer on X11 before waiting in select().
+			 */
+			x_display_sync( displays[count]) ;
 		#endif
 
 			xfd = x_display_fd( displays[count]) ;
