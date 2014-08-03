@@ -853,7 +853,7 @@ mc_font_config_widget_new(void)
 	g_signal_connect(fontname_entry , "changed" ,
 		G_CALLBACK(fontname_entry_edit) , NULL) ;
 
-	select_font_button = gtk_button_new_with_label( _("Select")) ;
+	select_font_button = gtk_button_new_with_label( _(" Select ")) ;
 	gtk_widget_show( select_font_button) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , select_font_button , TRUE , TRUE , 1) ;
 	g_signal_connect(select_font_button , "clicked" ,

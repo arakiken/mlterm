@@ -83,12 +83,12 @@ mc_mod_meta_config_widget_new(void)
 
 	mod_meta_mode = mc_get_str_value( "mod_meta_mode") ;
 
-	hbox = gtk_hbox_new(FALSE , 0) ;
+	hbox = gtk_hbox_new(FALSE , 5) ;
 
-	label = gtk_label_new( _("Meta key outputs:")) ;
+	label = gtk_label_new( _("Meta key outputs")) ;
 	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 0) ;
-	
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
+
 	group = NULL ;
 
 	radio = gtk_radio_button_new_with_label( group , _("None")) ;

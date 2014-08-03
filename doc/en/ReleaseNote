@@ -4,6 +4,7 @@ ver 3.3.8
 * Add "Auto detect" entry to "Encoding" tab of mlconfig.
 * Add --seqfmt/vt_seq_format option.
 * Read /dev/kbd on NetBSD/x68k framebuffer.
+* Add "Local echo" checkbox to "Others" tab in mlconfig.
 * Bug fixes:
   Fix weird background picture on NetBSD/x68k Text VRAM by unexpectedly cached pixels.
 

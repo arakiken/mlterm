@@ -281,7 +281,7 @@ msgid "Backlog size (lines)"
 msgstr "حجم السجل (أسطر)"
 
 #: tool/mlconfig/mc_mod_meta.c:88
-msgid "Meta key outputs:"
+msgid "Meta key outputs"
 msgstr "خرج مفتاح Meta"
 
 #: tool/mlconfig/mc_mod_meta.c:105

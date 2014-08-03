@@ -1,5 +1,13 @@
 2014-08-03  Araki Ken  <arakiken@users.sf.net>
 
+	* mlconfig/po/*.po: Updated.
+
+	* mlconfig/main.c, mc_flags.[ch]: "Local echo" checkbox is added to "Others" tab.
+
+	* mc_bel.c, mc_mod_meta.c: The position of showing label is adjusted.
+
+2014-08-03  Araki Ken  <arakiken@users.sf.net>
+
 	* mc_wall_pic.c: escape_path() is added for win32.
 
 	* doc/en/PROTOCOL: Updated.

@@ -21,6 +21,7 @@ static int is_changed;
 
 /* --- static functions --- */
 
+#ifdef  G_PLATFORM_WIN32
 static char *
 escape_path(
 	char *  path
@@ -53,6 +54,7 @@ escape_path(
 		path ++ ;
 	}
 }
+#endif
 
 static gint
 button_clicked(

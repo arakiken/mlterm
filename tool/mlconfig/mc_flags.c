@@ -33,7 +33,8 @@ static char *configname[MC_FLAG_MODES] = {
 	"use_bidi" ,
 	"use_ind" ,
 	"col_size_of_width_a" ,
-	"use_clipboard"
+	"use_clipboard" ,
+	"use_local_echo" ,
 };
 
 static char *label[MC_FLAG_MODES] = {
@@ -48,7 +49,8 @@ static char *label[MC_FLAG_MODES] = {
 	N_("Bidi (UTF8 only)"),
 	N_("Indic"),
 	N_("Ambiguouswidth = fullwidth (UTF8 only)"),
-	N_("CLIPBOARD Selection")
+	N_("CLIPBOARD Selection"),
+	N_("Local echo")
 };
 
 static GtkWidget *widget[MC_FLAG_MODES];

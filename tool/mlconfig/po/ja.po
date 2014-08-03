@@ -263,6 +263,14 @@ msgstr "Bidi (UTF8のみ)"
 msgid "Ambiguouswidth = fullwidth (UTF8 only)"
 msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
 
+#: tool/mlconfig/mc_flags.c:52
+msgid "CLIPBOARD Selection"
+msgstr "選択文字列をクリップボードに保存"
+
+#: tool/mlconfig/mc_flags.c:53
+msgid "Local echo"
+msgstr "ローカルエコー"
+
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"
@@ -270,10 +278,6 @@ msgstr "フォントサイズ(ピクセル)"
 #: tool/mlconfig/mc_font.c:62
 msgid "Font name"
 msgstr "フォント名"
-
-#: tool/mlconfig/mc_font.c:62
-msgid "Select"
-msgstr "選択"
 
 #: tool/mlconfig/mc_gamma.c:69
 msgid "Gamma"
@@ -296,7 +300,7 @@ msgid "Backlog size (lines)"
 msgstr "ログサイズ(行)"
 
 #: tool/mlconfig/mc_mod_meta.c:88
-msgid "Meta key outputs:"
+msgid "Meta key outputs"
 msgstr "メタキー"
 
 #: tool/mlconfig/mc_mod_meta.c:105

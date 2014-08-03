@@ -118,6 +118,7 @@ update(
     mc_update_flag_mode(MC_FLAG_IND);
     mc_update_flag_mode(MC_FLAG_AWIDTH);
     mc_update_flag_mode(MC_FLAG_CLIPBOARD);
+    mc_update_flag_mode(MC_FLAG_LOCALECHO);
 
     mc_flush(io) ;
 
@@ -805,10 +806,20 @@ show(void)
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
+
+	hbox = gtk_hbox_new(TRUE, 5);
+	gtk_widget_show(hbox);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+
 	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_CLIPBOARD)))
 	    return 0;
 	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
+
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_LOCALECHO)))
+	    return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
 
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
@@ -856,10 +867,6 @@ main(
 #endif
 
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
-
-#ifndef  DEBUG
-	fclose( stderr) ;
-#endif
 
 	gtk_init( &argc , &argv) ;
 

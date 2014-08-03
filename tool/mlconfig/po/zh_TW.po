@@ -286,7 +286,7 @@ msgid "Backlog size (lines)"
 msgstr "歷史大小 (行數)"
 
 #: tool/mlconfig/mc_mod_meta.c:88
-msgid "Meta key outputs:"
+msgid "Meta key outputs"
 msgstr "Meta 鍵輸出："
 
 #: tool/mlconfig/mc_mod_meta.c:105
