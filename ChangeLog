@@ -1,4 +1,6 @@
-2014-08-02  Araki Ken  <arakiken@users.sf.net>
+2014-08-03  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_wall_pic.c: escape_path() is added for win32.
 
 	* doc/en/PROTOCOL: Updated.
 

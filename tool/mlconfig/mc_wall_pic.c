@@ -21,6 +21,39 @@ static int is_changed;
 
 /* --- static functions --- */
 
+static char *
+escape_path(
+	char *  path
+	)
+{
+	char *  escaped_path ;
+	char *  p ;
+
+	if( ! ( p = escaped_path = malloc( strlen(path) +
+					kik_count_char_in_str( path , '\\') + 1)))
+	{
+		return  path ;
+	}
+
+	while( 1)
+	{
+		*(p++) = *path ;
+
+		if( *path == '\0')
+		{
+			g_free( path) ;
+
+			return  escaped_path ;
+		}
+		else if( *path == '\\')
+		{
+			*(p++) = '\\' ;
+		}
+
+		path ++ ;
+	}
+}
+
 static gint
 button_clicked(
 	GtkWidget *  widget ,
@@ -91,6 +124,10 @@ mc_update_wall_pic(void)
 	char *  new_wall_pic ;
 
 	new_wall_pic = gtk_editable_get_chars(GTK_EDITABLE(entry), 0, -1);
+
+#ifdef  G_PLATFORM_WIN32
+	new_wall_pic = escape_path( new_wall_pic) ;
+#endif
 
 	if( strcmp( old_wall_pic , new_wall_pic) != 0) is_changed = 1;
 
