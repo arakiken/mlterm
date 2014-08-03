@@ -17,7 +17,6 @@
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
 #include  "ml_screen.h"
-#include  "ml_config_menu.h"
 
 
 typedef struct ml_term
@@ -30,7 +29,6 @@ typedef struct ml_term
 	
 	ml_vt100_parser_t *  parser ;
 	ml_screen_t *  screen ;
-	ml_config_menu_t  config_menu ;
 
 	/*
 	 * public(read/write)
@@ -49,7 +47,6 @@ typedef struct ml_term
 	int8_t  use_bidi ;
 	int8_t  use_ind ;
 	int8_t  use_dynamic_comb ;
-	int8_t  is_auto_encoding ;
 	int8_t  use_local_echo ;
 	int8_t  is_attached ;
 #ifdef  OPEN_PTY_ASYNC
@@ -65,7 +62,8 @@ typedef struct ml_term
 extern void (*ml_term_pty_closed_event)( ml_term_t *) ;
 
 ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
-	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_policy_t  policy ,
+	ml_char_encoding_t  encoding , int  is_auto_encoding , int  use_auto_detect ,
+	int  logging_vt_seq , ml_unicode_policy_t  policy ,
 	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators , int  use_ind ,
 	int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
@@ -96,14 +94,13 @@ int  ml_term_detach( ml_term_t *  term) ;
 #define  ml_term_reset_pending_vt100_sequence( term) \
 		ml_reset_pending_vt100_sequence( (term)->parser)
 
+#define  ml_term_response_config( term , key , value , to_menu) \
+		ml_response_config( (term)->pty , key , value , to_menu)
+
 #define  ml_term_change_encoding( term , encoding) \
 		ml_vt100_parser_change_encoding( (term)->parser , encoding)
 
 #define  ml_term_get_encoding( term)  ml_vt100_parser_get_encoding( (term)->parser)
-
-int  ml_term_set_auto_encoding( ml_term_t *  term , int  is_auto_encoding) ;
-
-#define  ml_term_is_auto_encoding( term)  ((term)->is_auto_encoding)
 
 int  ml_term_set_use_bidi( ml_term_t *  term , int  flag) ;
 
@@ -125,11 +122,6 @@ int  ml_term_set_use_ind( ml_term_t *  term , int  flag) ;
 
 #define  ml_term_is_using_dynamic_comb( term)  ((term)->use_dynamic_comb)
 
-/* Must be called in visual context. */
-int  ml_term_set_use_local_echo( ml_term_t *  term , int  flag) ;
-
-#define  ml_term_is_using_local_echo( term)  ((term)->use_local_echo)
-
 #define  ml_term_convert_to( term , dst , len , _parser) \
 		ml_vt100_parser_convert_to( (term)->parser , dst , len , _parser)
 
@@ -145,7 +137,7 @@ char *  ml_term_get_slave_name( ml_term_t *  term) ;
 
 pid_t  ml_term_get_child_pid( ml_term_t *  term) ;
 
-size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len , int  to_menu) ;
+size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
 
 /* Must be called in visual context. */
 #define  ml_term_write_loopback( term , buf , len) \
@@ -217,8 +209,6 @@ int  ml_term_update_special_visual( ml_term_t *  term) ;
 
 #define  ml_term_is_backscrolling( term)  ml_screen_is_backscrolling( (term)->screen)
 
-#define  ml_term_set_backscroll_mode( term , mode)  ml_set_backscroll_mode( (term)->screen , mode)
-
 int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_exit_backscroll_mode( term)  ml_exit_backscroll_mode( (term)->screen)
@@ -230,10 +220,6 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 #define  ml_term_backscroll_downward( term , size) \
 		ml_screen_backscroll_downward( (term)->screen , size)
-
-#define  ml_term_get_tab_size( term)  ml_screen_get_tab_size( (term)->screen)
-
-#define  ml_term_set_tab_size( term , tab_size)  ml_screen_set_tab_size( (term)->screen , tab_size)
 
 #define  ml_term_reverse_color( term , beg_char_index , beg_row , \
 		end_char_index , end_row , is_rect) \
@@ -264,28 +250,11 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 		ml_screen_get_word_region( (term)->screen , beg_char_index , beg_row , \
 			end_char_index , end_row , base_char_index , base_row)
 
-#define  ml_term_set_col_size_of_width_a( term , col_size_a) \
-		ml_vt100_parser_set_col_size_of_width_a( (term)->parser , col_size_a)
-
-#define  ml_term_get_col_size_of_width_a( term) \
-		ml_vt100_parser_get_col_size_of_width_a( (term)->parser)
-
-#define  ml_term_set_use_char_combining( term , flag) \
-		ml_vt100_parser_set_use_char_combining( (term)->parser , flag)
-
-#define  ml_term_is_using_char_combining( term) \
-		ml_vt100_parser_is_using_char_combining((term)->parser)
-
 #define  ml_term_set_use_multi_col_char( term , flag) \
 		ml_vt100_parser_set_use_multi_col_char( (term)->parser , flag)
 
 #define  ml_term_is_using_multi_col_char( term) \
 		ml_vt100_parser_is_using_multi_col_char((term)->parser)
-
-#define  ml_term_is_logging_vt_seq( term)  ml_vt100_parser_is_logging_vt_seq( (term)->parser)
-
-#define  ml_term_set_logging_vt_seq( term , flag) \
-		ml_vt100_parser_set_logging_vt_seq( (term)->parser , flag)
 
 #define  ml_term_get_mouse_report_mode( term) \
 		ml_vt100_parser_get_mouse_report_mode((term)->parser)
@@ -304,12 +273,6 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 #define  ml_term_want_focus_event( term)  ml_vt100_parser_want_focus_event((term)->parser)
 
 #define  ml_term_modify_other_keys( term)  ml_vt100_parser_modify_other_keys((term)->parser)
-
-#define  ml_term_is_using_auto_detect( term) \
-		ml_vt100_parser_is_using_auto_detect((term)->parser)
-
-#define  ml_term_set_use_auto_detect( term , use) \
-		ml_vt100_parser_set_use_auto_detect((term)->parser , use)
 
 #define  ml_term_set_alt_color_mode( term , mode) \
 		ml_vt100_parser_set_alt_color_mode((term)->parser , mode)
@@ -335,12 +298,15 @@ int  ml_term_set_icon_path( ml_term_t *  term , const char *  path) ;
 
 #define  ml_term_get_unicode_policy( term)  ml_vt100_parser_get_unicode_policy((term)->parser)
 
-#define  ml_term_get_bidi_separators( term)  ((term)->bidi_separators)
-
 void  ml_term_set_bidi_separators( ml_term_t *  term , const char *  bidi_separators) ;
 
-int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
-		int  x , int  y , char *  display) ;
+#define  ml_term_start_config_menu( term , cmd_path , x , y , display) \
+		ml_start_config_menu( (term)->pty , cmd_path , x , y , display)
+
+int  ml_term_get_config( ml_term_t *  term , ml_term_t *  output , char *  key ,
+	int  to_menu , int *  flag) ;
+
+int  ml_term_set_config( ml_term_t *  term , char *  key , char *  value) ;
 
 #define  ml_term_search_init( term , match)  ml_screen_search_init( (term)->screen , match)
 
@@ -360,12 +326,6 @@ int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 #define  ml_term_set_user_data( term , key , val)  ((term)->user_data = (val))
 
 #define  ml_term_select_drcs(term)  ml_vt100_parser_select_drcs((term)->parser)
-
-/*
- * Defined in ml_term_manager.c, but declared here because x_screen.c uses
- * following functions.
- */
-int  ml_set_auto_restart_cmd( char *  cmd) ;
 
 
 #endif

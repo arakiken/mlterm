@@ -6,14 +6,14 @@
 
 #include  <signal.h>
 #include  <stdio.h>		/* sprintf */
-#include  <unistd.h>            /* getcwd */
+#include  <unistd.h>            /* fork/execvp */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup, kik_snprintf */
 #include  <kiklib/kik_util.h>	/* K_MIN */
-#include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <kiklib/kik_def.h>	/* PATH_MAX */
 #include  <kiklib/kik_args.h>	/* kik_arg_str_to_array */
+#include  <kiklib/kik_locale.h>	/* kik_get_codeset_win32 */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
 #ifdef  USE_WIN32GUI
@@ -21,6 +21,7 @@
 #include  <mkf/mkf_utf16_parser.h>
 #endif
 #include  <ml_str_parser.h>
+#include  <ml_term_manager.h>
 
 #include  "x_xic.h"
 #include  "x_draw_str.h"
@@ -71,25 +72,6 @@ static char *  im_cursor_color = NULL ;
 
 
 /* --- static functions --- */
-
-static int
-true_or_false(
-	char *  str
-	)
-{
-	if( strcmp( str , "true") == 0)
-	{
-		return  1 ;
-	}
-	else if( strcmp( str , "false") == 0)
-	{
-		return  0 ;
-	}
-	else
-	{
-		return  -1 ;
-	}
-}
 
 static int
 convert_row_to_y(
@@ -1221,7 +1203,7 @@ write_to_pty(
 			}
 		#endif
 
-			ml_term_write( screen->term , conv_buf , filled_len , 0) ;
+			ml_term_write( screen->term , conv_buf , filled_len) ;
 		}
 	}
 	else if( str)
@@ -1239,7 +1221,7 @@ write_to_pty(
 		}
 	#endif
 
-		ml_term_write( screen->term , str , len , 0) ;
+		ml_term_write( screen->term , str , len) ;
 	}
 	else
 	{
@@ -5379,14 +5361,12 @@ get_config_intern(
 	ml_term_t *  term ;
 	char *  value ;
 	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
-	char  cwd[PATH_MAX] ;
-	
-	if( dev && HAS_SYSTEM_LISTENER(screen,get_pty))
+
+	if( dev)
 	{
-		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
-				dev)) == NULL)
+		if( ! ( term = ml_get_term( dev)))
 		{
-			return ;
+			goto  error ;
 		}
 	}
 	else
@@ -5394,24 +5374,14 @@ get_config_intern(
 		term = screen->term ;
 	}
 
+	if( ml_term_get_config( term , screen->term , key , to_menu , flag))
+	{
+		return ;
+	}
+
 	value = NULL ;
 
-	if( strcmp( key , "encoding") == 0)
-	{
-		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
-	}
-	else if( strcmp( key , "is_auto_encoding") == 0)
-	{
-		if( ml_term_is_auto_encoding( term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "fg_color") == 0)
+	if( strcmp( key , "fg_color") == 0)
 	{
 		value = x_color_manager_get_fg_color( screen->color_man) ;
 	}
@@ -5508,23 +5478,6 @@ get_config_intern(
 			value = "false" ;
 		}
 	}
-	else if( strcmp( key , "tabsize") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_tab_size( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "logsize") == 0)
-	{
-		if( ml_term_log_size_is_unlimited( term))
-		{
-			value = "unlimited" ;
-		}
-		else
-		{
-			sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
-			value = digit ;
-		}
-	}
 	else if( strcmp( key , "fontsize") == 0)
 	{
 		sprintf( digit , "%d" , x_get_font_size( screen->font_man)) ;
@@ -5581,10 +5534,6 @@ get_config_intern(
 	{
 		value = x_get_bel_mode_name( screen->bel_mode) ;
 	}
-	else if( strcmp( key , "vertical_mode") == 0)
-	{
-		value = ml_get_vertical_mode_name( ml_term_get_vertical_mode( term)) ;
-	}
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
 		if( screen->screen_scroll_listener &&
@@ -5596,28 +5545,6 @@ get_config_intern(
 		else
 		{
 			value = x_get_sb_mode_name( SBM_NONE) ;
-		}
-	}
-	else if( strcmp( key , "use_combining") == 0)
-	{
-		if( ml_term_is_using_char_combining( term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "use_dynamic_comb") == 0)
-	{
-		if( ml_term_is_using_dynamic_comb( term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
@@ -5735,50 +5662,6 @@ get_config_intern(
 			value = "false" ;
 		}
 	}
-	else if( strcmp( key , "col_size_of_width_a") == 0)
-	{
-		if( ml_term_get_col_size_of_width_a( term) == 2)
-		{
-			value = "2" ;
-		}
-		else
-		{
-			value = "1" ;
-		}
-	}
-	else if( strcmp( key , "use_bidi") == 0)
-	{
-		if( ml_term_is_using_bidi( term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "use_ind") == 0)
-	{
-		if( ml_term_is_using_ind( term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "bidi_mode") == 0)
-	{
-		value = ml_get_bidi_mode_name( ml_term_get_bidi_mode( term)) ;
-	}
-	else if( strcmp( key , "bidi_separators") == 0)
-	{
-		if( ( value = ml_term_get_bidi_separators( term)) == NULL)
-		{
-			value = "" ;
-		}
-	}
 	else if( strcmp( key , "input_method") == 0)
 	{
 		if( screen->input_method)
@@ -5793,10 +5676,6 @@ get_config_intern(
 	else if( strcmp( key , "default_xim_name") == 0)
 	{
 		value = x_xic_get_default_xim_name() ;
-	}
-	else if( strcmp( key , "locale") == 0)
-	{
-		value = kik_get_locale() ;
 	}
 	else if( strcmp( key , "borderless") == 0)
 	{
@@ -5818,59 +5697,6 @@ get_config_intern(
 		else
 		{
 			value = "" ;
-		}
-	}
-	else if( strcmp( key , "pwd") == 0)
-	{
-		value = getcwd( cwd , sizeof(cwd)) ;
-	}
-	else if( strcmp( key , "rows") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_logical_rows( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "cols") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_logical_cols( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "pty_list") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,pty_list))
-		{
-			value = (*screen->system_listener->pty_list)( screen->system_listener->self) ;
-		}
-	}
-	else if( strcmp( key , "pty_name") == 0)
-	{
-		if( dev)
-		{
-			if( ( value = ml_term_window_name( term)) == NULL)
-			{
-				value = dev ;
-			}
-		}
-		else
-		{
-			value = ml_term_get_slave_name( term) ;
-		}
-	}
-	else if( strcmp( key , "icon_path") == 0)
-	{
-		if( ( value = ml_term_icon_path( term)) == NULL)
-		{
-			value = "" ;
-		}
-	}
-	else if( strcmp( key , "logging_vt_seq") == 0)
-	{
-		if( ml_term_is_logging_vt_seq( term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "gui") == 0)
@@ -5916,101 +5742,26 @@ get_config_intern(
 			value = "false" ;
 		}
 	}
-	else if( strcmp( key , "use_local_echo") == 0)
+	else if( strcmp( key , "pty_list") == 0)
 	{
-		if( ml_term_is_using_local_echo( screen->term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "not_use_unicode_font") == 0)
-	{
-		if( ml_term_get_unicode_policy( screen->term) & NOT_USE_UNICODE_FONT)
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "only_use_unicode_font") == 0)
-	{
-		if( ml_term_get_unicode_policy( screen->term) & ONLY_USE_UNICODE_FONT)
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "box_drawing_font") == 0)
-	{
-		if( ml_term_get_unicode_policy( screen->term) & NOT_USE_UNICODE_BOXDRAW_FONT)
-		{
-			value = "decsp" ;
-		}
-		else if( ml_term_get_unicode_policy( screen->term) &
-		         ONLY_USE_UNICODE_BOXDRAW_FONT)
-		{
-			value = "unicode" ;
-		}
-		else
-		{
-			value = "noconv" ;
-		}
-	}
-	else if( strcmp( key , "use_auto_detect") == 0)
-	{
-		if( ml_term_is_using_auto_detect( screen->term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "auto_detect_encodings") == 0)
-	{
-		if( ( value = ml_get_auto_detect_encodings()) == NULL)
-		{
-			value = "" ;
-		}
+		value = ml_get_pty_list() ;
 	}
 
-	if( to_menu >= 0)
+	if( value)
 	{
-		if( value == NULL)
+		if( flag)
 		{
-			ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
-
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
-		#endif
+			*flag = value ? true_or_false( value) : -1 ;
 		}
 		else
 		{
-			ml_term_write( screen->term , "#" , 1 , to_menu) ;
-			ml_term_write( screen->term , key , strlen( key) , to_menu) ;
-			ml_term_write( screen->term , "=" , 1 , to_menu) ;
-			ml_term_write( screen->term , value , strlen( value) , to_menu) ;
-			ml_term_write( screen->term , "\n" , 1 , to_menu) ;
-
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
-		#endif
+			ml_term_response_config( screen->term , key , value , to_menu) ;
 		}
 	}
-
-	if( flag)
+	else
 	{
-		*flag = value ? true_or_false( value) : -1 ;
+	error:
+		ml_term_response_config( screen->term , "error" , NULL , to_menu) ;
 	}
 }
 
@@ -6056,26 +5807,22 @@ get_font_config(
 	x_screen_t *  screen ;
 	char *  font_name ;
 	u_int  font_size ;
+	char *  key ;
 
 	screen = p ;
 
-	if( sscanf( font_size_str , "%u" , &font_size) != 1)
+	if( ! ( key = alloca( strlen(cs) + 1 + strlen(font_size_str) + 1)) ||
+	    sscanf( font_size_str , "%u" , &font_size) != 1)
 	{
-		goto  error ;
+		ml_term_response_config( screen->term , "error" , NULL , to_menu) ;
+
+		return ;
 	}
 
 	font_name = x_get_config_font_name2( file , font_size , cs) ;
+	sprintf( key , "%s,%s" , cs , font_size_str) ;
 
-	ml_term_write( screen->term , "#" , 1 , to_menu) ;
-	ml_term_write( screen->term , cs , strlen( cs) , to_menu) ;
-	ml_term_write( screen->term , "," , 1 , to_menu) ;
-	ml_term_write( screen->term , font_size_str , strlen( font_size_str) , to_menu) ;
-	ml_term_write( screen->term , "=" , 1 , to_menu) ;
-	if( font_name)
-	{
-		ml_term_write( screen->term , font_name , strlen( font_name) , to_menu) ;
-	}
-	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+	ml_term_response_config( screen->term , key , font_name ? font_name : "" , to_menu) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " #%s,%s=%s (%s)\n" , cs , font_size_str , font_name ,
@@ -6085,9 +5832,6 @@ get_font_config(
 	free( font_name) ;
 
 	return ;
-
-error:
-	ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
 }
 
 static void
@@ -7038,7 +6782,7 @@ write_to_term(
 	}
 #endif
 
-	ml_term_write( screen->term , str , len , 0) ;
+	ml_term_write( screen->term , str , len) ;
 }
 
 static ml_unicode_policy_t
@@ -8154,44 +7898,22 @@ x_screen_attached(
 	return  (screen->term != NULL) ;
 }
 
-int
+void
 x_set_system_listener(
 	x_screen_t *  screen ,
 	x_system_event_listener_t *  system_listener
 	)
 {
-	if( screen->system_listener)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " system listener is already set.\n") ;
-	#endif
-
-		return  0 ;
-	}
-
 	screen->system_listener = system_listener ;
-
-	return  1 ;
 }
 
-int
+void
 x_set_screen_scroll_listener(
 	x_screen_t *  screen ,
 	x_screen_scroll_event_listener_t *  screen_scroll_listener
 	)
 {
-	if( screen->screen_scroll_listener)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " screen scroll listener is already set.\n") ;
-	#endif
-
-		return  0 ;
-	}
-
 	screen->screen_scroll_listener = screen_scroll_listener ;
-
-	return  1 ;
 }
 
 
@@ -8525,11 +8247,7 @@ x_screen_set_config(
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
 #endif
 
-	if( value == NULL)
-	{
-		value = "" ;
-	}
-	else if( strcmp( value , "switch") == 0)
+	if( strcmp( value , "switch") == 0)
 	{
 		int  flag ;
 
@@ -8543,10 +8261,6 @@ x_screen_set_config(
 		{
 			value = "true" ;
 		}
-		else
-		{
-			return  1 ;
-		}
 	}
 
 	/*
@@ -8557,11 +8271,7 @@ x_screen_set_config(
 #if  0
 	if( dev && HAS_SYSTEM_LISTENER(screen,get_pty))
 	{
-		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
-				dev)) == NULL)
-		{
-			return  1 ;
-		}
+		term = (*screen->system_listener->get_pty)( screen->system_listener->self , dev) ;
 	}
 	else
 #endif
@@ -8569,15 +8279,17 @@ x_screen_set_config(
 		term = screen->term ;
 	}
 
-	if( strcmp( key , "encoding") == 0)
+	if( term &&	/* In case term is not attached yet. (for vte.c) */
+	    ml_term_set_config( term , key , value))
+	{
+		/* do nothing */
+	}
+	else if( strcmp( key , "encoding") == 0)
 	{
 		ml_char_encoding_t  encoding ;
 
 		if( ( encoding = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
 		{
-			ml_term_set_auto_encoding( term ,
-				strcasecmp( value , "auto") == 0 ? 1 : 0) ;
-
 			change_char_encoding( screen , encoding) ;
 		}
 	}
@@ -8634,15 +8346,6 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			change_hide_underline_flag( screen , flag) ;
-		}
-	}
-	else if( strcmp( key , "tabsize") == 0)
-	{
-		u_int  tab_size ;
-
-		if( kik_str_to_uint( &tab_size , value))
-		{
-			ml_term_set_tab_size( screen->term , tab_size) ;
 		}
 	}
 	else if( strcmp( key , "logsize") == 0)
@@ -8738,25 +8441,6 @@ x_screen_set_config(
 	{
 		change_sb_mode( screen , x_get_sb_mode_by_name( value)) ;
 	}
-	else if( strcmp( key , "static_backscroll_mode") == 0)
-	{
-		ml_bs_mode_t  mode ;
-		
-		if( strcmp( value , "true") == 0)
-		{
-			mode = BSM_STATIC ;
-		}
-		else if( strcmp( value , "false") == 0)
-		{
-			mode = BSM_DEFAULT ;
-		}
-		else
-		{
-			return  1 ;
-		}
-		
-		ml_term_set_backscroll_mode( term , mode) ;
-	}
 	else if( strcmp( key , "exit_backscroll_by_pty") == 0)
 	{
 		int  flag ;
@@ -8764,15 +8448,6 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			x_exit_backscroll_by_pty( flag) ;
-		}
-	}
-	else if( strcmp( key , "use_combining") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_use_char_combining( screen->term , flag) ;
 		}
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
@@ -8928,15 +8603,6 @@ x_screen_set_config(
 			change_use_italic_font_flag( screen , flag) ;
 		}
 	}
-	else if( strcmp( key , "col_size_of_width_a") == 0)
-	{
-		u_int  size ;
-
-		if( kik_str_to_uint( &size , value))
-		{
-			ml_term_set_col_size_of_width_a( term , size) ;
-		}
-	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
 		int  flag ;
@@ -8972,10 +8638,6 @@ x_screen_set_config(
 	{
 		change_im( screen , value) ;
 	}
-	else if( strcmp( key , "locale") == 0)
-	{
-		kik_locale_init( value) ;
-	}
 	else if( strcmp( key , "borderless") == 0)
 	{
 		int  flag ;
@@ -8993,19 +8655,6 @@ x_screen_set_config(
 	{
 		ml_term_set_icon_path( term , value) ;
 		set_icon( screen) ;
-	}
-	else if( strcmp( key , "logging_vt_seq") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_logging_vt_seq( term , flag) ;
-		}
-	}
-	else if( strcmp( key , "vt_seq_format") == 0)
-	{
-		ml_set_use_ttyrec_format( strcmp( value , "ttyrec") == 0) ;
 	}
 	else if( strcmp( key , "use_clipboard") == 0)
 	{
@@ -9042,15 +8691,6 @@ x_screen_set_config(
 	{
 		screen->blink_cursor = (true_or_false( value) > 0) ;
 	}
-	else if( strcmp( key , "use_local_echo") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_use_local_echo( screen->term , flag) ;
-		}
-	}
 	else if( strcmp( key , "use_urgent_bell") == 0)
 	{
 		int  flag ;
@@ -9059,28 +8699,6 @@ x_screen_set_config(
 		{
 			x_set_use_urgent_bell( flag) ;
 		}
-	}
-	else if( strcmp( key , "box_drawing_font") == 0)
-	{
-		ml_unicode_policy_t  policy ;
-
-		policy = ml_term_get_unicode_policy( screen->term) ;
-
-		if( strcmp( value , "unicode") == 0)
-		{
-			policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
-		}
-		else if( strcmp( value , "decsp") == 0)
-		{
-			policy |= NOT_USE_UNICODE_BOXDRAW_FONT ;
-		}
-		else
-		{
-			policy &= (~NOT_USE_UNICODE_BOXDRAW_FONT &
-			           ~ONLY_USE_UNICODE_BOXDRAW_FONT) ;
-		}
-
-		ml_term_set_unicode_policy( screen->term , policy) ;
 	}
 	else if( strstr( key , "_use_unicode_font"))
 	{
@@ -9116,19 +8734,6 @@ x_screen_set_config(
 			}
 
 			usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
-		}
-	}
-	else if( strcmp( key , "auto_detect_encodings") == 0)
-	{
-		ml_set_auto_detect_encodings( value) ;
-	}
-	else if( strcmp( key , "use_auto_detect") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_use_auto_detect( screen->term , flag) ;
 		}
 	}
 #ifdef  USE_FRAMEBUFFER

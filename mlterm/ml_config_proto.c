@@ -117,8 +117,14 @@ ml_gen_proto_challenge(void)
 	return  1 ;
 }
 
+char *
+ml_get_proto_challenge(void)
+{
+	return  challenge ;
+}
+
 /*
- * Returns 0 if dev is not found.
+ * Returns 0 if illegal format.
  * Returns -1 if do_challenge is 1 and challenge failed.
  */
 int
@@ -156,9 +162,9 @@ ml_parse_proto_prefix(
 
 	*str = p ;	/* for no_dev */
 
-	if( strncmp( p , "/dev" , 4) == 0)
+	if( strncmp( p , "/dev/" , 5) == 0)
 	{
-		p += 3 ;
+		p += 4 ;
 		while( *(++p) != ':')
 		{
 			/* Don't contain ';' in "/dev/...". */
@@ -216,11 +222,11 @@ no_dev:
 		*dev = NULL ;
 	}
 
-	return  0 ;
+	return  1 ;
 }
 
 /*
- * Returns 0 if error happens.
+ * Returns 0 if illegal format.
  * Returns -1 if do_challenge is 1 and challenge failed.
  * If finished parsing str, *str is set NULL(see *str = strchr( p , ';')).
  */

@@ -23,6 +23,7 @@
 #include  <kiklib/kik_conf.h>
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
+#include  <ml_pty_intern.h>	/* XXX for config_menu.pid */
 #include  <x_screen.h>
 #include  <x_xic.h>
 #include  <x_main_config.h>
@@ -237,7 +238,8 @@ selection(
 {
 	x_sel_clear( sel) ;
 
-	x_start_selection( sel , char_index_1 - 1 , row_1 , char_index_1 , row_1 , SEL_CHAR) ;
+	x_start_selection( sel , char_index_1 - 1 , row_1 , char_index_1 , row_1 ,
+		SEL_CHAR , 0) ;
 	x_selecting( sel , char_index_2 , row_2) ;
 	x_stop_selecting( sel) ;
 
@@ -549,14 +551,6 @@ open_pty(
 			}
 		}
 	}
-}
-
-static char *
-pty_list(
-	void *  p
-	)
-{
-	return  ml_get_pty_list() ;
 }
 
 /*
@@ -1220,9 +1214,10 @@ vte_terminal_filter(
 			}
 			
 			/* XXX Hack for waiting for config menu program exiting. */
-			if( config_menu_pid != terminal->pvt->term->config_menu.pid)
+			if( terminal->pvt->term->pty &&
+			    config_menu_pid != terminal->pvt->term->pty->config_menu.pid)
 			{
-				if( ( config_menu_pid = terminal->pvt->term->config_menu.pid))
+				if( ( config_menu_pid = terminal->pvt->term->pty->config_menu.pid))
 				{
 					vte_reaper_add_child( config_menu_pid) ;
 				}
@@ -1465,7 +1460,6 @@ init_screen(
 	terminal->pvt->system_listener.font_config_updated = font_config_updated ;
 	terminal->pvt->system_listener.color_config_updated = color_config_updated ;
 	terminal->pvt->system_listener.open_pty = open_pty ;
-	terminal->pvt->system_listener.pty_list = pty_list ;
 	terminal->pvt->system_listener.exit = __exit ;
 	x_set_system_listener( terminal->pvt->screen , &terminal->pvt->system_listener) ;
 
@@ -2613,7 +2607,8 @@ vte_terminal_init(
 	terminal->pvt->term =
 		ml_create_term( main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
-			main_config.encoding , main_config.is_auto_encoding , 
+			main_config.encoding , main_config.is_auto_encoding ,
+			main_config.use_auto_detect , main_config.logging_vt_seq ,
 			main_config.unicode_policy , main_config.col_size_of_width_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
 			main_config.use_bidi , main_config.bidi_mode ,
@@ -2639,11 +2634,6 @@ vte_terminal_init(
 		}
 
 		init_inherit_ptys = 1 ;
-	}
-
-	if( main_config.logging_vt_seq)
-	{
-		ml_term_set_logging_vt_seq( terminal->pvt->term , main_config.logging_vt_seq) ;
 	}
 
 	if( main_config.unlimit_log_size)
@@ -3324,7 +3314,10 @@ vte_terminal_paste_clipboard(
 	VteTerminal *  terminal
 	)
 {
-	x_screen_exec_cmd( terminal->pvt->screen , "paste") ;
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		x_screen_exec_cmd( terminal->pvt->screen , "paste") ;
+	}
 }
 
 void

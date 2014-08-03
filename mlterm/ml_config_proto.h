@@ -16,6 +16,8 @@ int  ml_config_proto_final(void) ;
 
 int  ml_gen_proto_challenge(void) ;
 
+char *  ml_get_proto_challenge(void) ;
+
 int  ml_parse_proto_prefix( char **  dev , char **  str , int  do_challenge) ;
 
 int  ml_parse_proto( char **  dev , char **  key , char **  val , char **  str ,

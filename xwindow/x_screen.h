@@ -37,9 +37,6 @@ typedef struct x_system_event_listener
 	
 	void  (*pty_closed)( void * , x_screen_ptr_t) ;
 
-	ml_term_t *  (*get_pty)( void * , char *) ;
-	char *  (*pty_list)( void *) ;
-
 	int  (*mlclient)( void * , x_screen_ptr_t , char * , FILE *) ;
 
 	void  (*font_config_updated)(void) ;
@@ -184,10 +181,10 @@ int  x_screen_attached( x_screen_t *  screen) ;
 
 ml_term_t *  x_screen_detach( x_screen_t *  screen) ;
 
-int  x_set_system_listener( x_screen_t *  screen ,
+void  x_set_system_listener( x_screen_t *  screen ,
 	x_system_event_listener_t *  system_listener) ;
 
-int  x_set_screen_scroll_listener( x_screen_t *  screen ,
+void  x_set_screen_scroll_listener( x_screen_t *  screen ,
 	x_screen_scroll_event_listener_t *  screen_scroll_listener) ;
 
 	

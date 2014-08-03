@@ -54,9 +54,8 @@ end_application(
 {
 	gtk_main_quit() ;
 
-	return  FALSE ;
+	return  0 ;
 }
-
 
 static gint
 bidi_flag_checked(
@@ -533,7 +532,7 @@ show(void)
 	GtkWidget *  separator ;
 	
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
-	g_signal_connect( window , "delete_event" , G_CALLBACK(end_application) , NULL) ;
+	g_signal_connect( window , "delete-event" , G_CALLBACK(end_application) , NULL) ;
 	gtk_window_set_title( GTK_WINDOW(window) , _("mlterm configuration")) ;
 	gtk_container_set_border_width( GTK_CONTAINER(window) , 0) ;
 
@@ -818,6 +817,11 @@ show(void)
 #endif
 	gtk_widget_show(window);
 
+#ifdef  USE_WIN32GUI
+	/* XXX */
+	gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+#endif
+
 	gtk_main();
 
 	return  1;
@@ -849,6 +853,12 @@ main(
 			fprintf( stderr , "%s\n" , argv[count]) ;
 		}
 	}
+#endif
+
+	kik_set_msg_log_file_name( "mlterm/msg.log") ;
+
+#ifndef  DEBUG
+	fclose( stderr) ;
 #endif
 
 	gtk_init( &argc , &argv) ;

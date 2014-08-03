@@ -312,7 +312,8 @@ parse_font_name(
 					}
 				}
 
-				if( *p != '0') /* In case of "DevLys 010" font family. */
+				if( *p != '0' || /* In case of "DevLys 010" font family. */
+				    *(p + 1) == '\0')	/* "MS Gothic 0" => "MS Gothic" + "0" */
 				{
 					char *  end ;
 					double  size ;
@@ -323,7 +324,10 @@ parse_font_name(
 						/* p has no more parameters. */
 
 						*orig_p = '\0' ;
-						*font_size = size ;
+						if( size > 0)
+						{
+							*font_size = size ;
+						}
 
 						break ;
 					}

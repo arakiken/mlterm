@@ -243,6 +243,21 @@ open_pty(
 
 #endif
 
+/* Must be called in visual context. */
+static void
+set_use_local_echo(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	if( term->use_local_echo != flag && ! ( term->use_local_echo = flag))
+	{
+		ml_screen_logical( term->screen) ;
+		ml_screen_disable_local_echo( term->screen) ;
+		ml_screen_visual( term->screen) ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -254,6 +269,8 @@ ml_term_new(
 	u_int  log_size ,
 	ml_char_encoding_t  encoding ,
 	int  is_auto_encoding ,
+	int  use_auto_detect ,
+	int  logging_vt_seq ,
 	ml_unicode_policy_t  policy ,
 	u_int  col_size_a ,
 	int  use_char_combining ,
@@ -293,9 +310,10 @@ ml_term_new(
 		goto  error ;
 	}
 
-	if( ! ( term->parser = ml_vt100_parser_new( term->screen , encoding , policy , col_size_a ,
-				use_char_combining , use_multi_col_char , win_name , icon_name ,
-				alt_color_mode)))
+	if( ! ( term->parser = ml_vt100_parser_new( term->screen , encoding , is_auto_encoding ,
+				use_auto_detect , logging_vt_seq ,
+				policy , col_size_a , use_char_combining , use_multi_col_char ,
+				win_name , icon_name , alt_color_mode)))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new failed.\n") ;
@@ -305,15 +323,6 @@ ml_term_new(
 	}
 
 	ml_vt100_parser_set_use_bidi( term->parser , use_bidi) ;
-
-	if( ! ml_config_menu_init( &term->config_menu))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_config_menu_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
 
 	if( bidi_separators)
 	{
@@ -325,9 +334,6 @@ ml_term_new(
 	term->use_bidi = use_bidi ;
 	term->use_ind = use_ind ;
 	term->use_dynamic_comb = use_dynamic_comb ;
-
-	term->is_auto_encoding = is_auto_encoding ;
-
 	term->use_local_echo = use_local_echo ;
 
 	return  term ;
@@ -382,8 +388,6 @@ ml_term_delete(
 
 	ml_screen_delete( term->screen) ;
 	ml_vt100_parser_delete( term->parser) ;
-
-	ml_config_menu_final( &term->config_menu) ;
 
 	free( term) ;
 
@@ -580,17 +584,6 @@ ml_term_detach(
 }
 
 int
-ml_term_set_auto_encoding(
-	ml_term_t *  term ,
-	int  is_auto_encoding
-	)
-{
-	term->is_auto_encoding = is_auto_encoding ;
-
-	return  1 ;
-}
-
-int
 ml_term_set_use_bidi(
 	ml_term_t *  term ,
 	int  flag
@@ -617,22 +610,6 @@ ml_term_set_use_ind(
 	{
 		/* disable bidi */
 		ml_term_set_use_bidi( term , 0) ;
-	}
-
-	return  1 ;
-}
-
-int
-ml_term_set_use_local_echo(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	if( term->use_local_echo != flag && ! ( term->use_local_echo = flag))
-	{
-		ml_screen_logical( term->screen) ;
-		ml_screen_disable_local_echo( term->screen) ;
-		ml_screen_visual( term->screen) ;
 	}
 
 	return  1 ;
@@ -702,28 +679,20 @@ size_t
 ml_term_write(
 	ml_term_t *  term ,
 	u_char *  buf ,
-	size_t  len ,
-	int  to_menu
+	size_t  len
 	)
 {
-	if( to_menu)
+	if( term->pty == NULL)
 	{
-		return  ml_config_menu_write( &term->config_menu , buf , len) ;
+		return  0 ;
 	}
-	else
+
+	if( term->use_local_echo)
 	{
-		if( term->pty == NULL)
-		{
-			return  0 ;
-		}
-
-		if( term->use_local_echo)
-		{
-			ml_vt100_parser_local_echo( term->parser , buf , len) ;
-		}
-
-		return  ml_write_to_pty( term->pty , buf , len) ;
+		ml_vt100_parser_local_echo( term->parser , buf , len) ;
 	}
+
+	return  ml_write_to_pty( term->pty , buf , len) ;
 }
 
 int
@@ -1145,10 +1114,10 @@ ml_term_update_special_visual(
 	#endif
 	}
 
-	if( need_comb && ! ml_term_is_using_char_combining( term))
+	if( need_comb && ! ml_vt100_parser_is_using_char_combining( term->parser))
 	{
 		kik_msg_printf( "Set use_combining=true forcibly.\n") ;
-		ml_term_set_use_char_combining( term , 1) ;
+		ml_vt100_parser_set_use_char_combining( term->parser , 1) ;
 	}
 
 	if( ! has_logvis)
@@ -1231,14 +1200,152 @@ ml_term_set_bidi_separators(
 }
 
 int
-ml_term_start_config_menu(
+ml_term_get_config(
 	ml_term_t *  term ,
-	char *  cmd_path ,
-	int  x ,
-	int  y ,
-	char *  display
+	ml_term_t *  output ,
+	char *  key ,
+	int  to_menu ,
+	int *  flag
 	)
 {
-	return  ml_config_menu_start( &term->config_menu , cmd_path ,
-				x , y , display , term->pty) ;
+	char *  value ;
+
+	if( ml_vt100_parser_get_config( term->parser , output->pty , key , to_menu , flag))
+	{
+		return  1 ;
+	}
+
+	if( strcmp( key , "vertical_mode") == 0)
+	{
+		value = ml_get_vertical_mode_name( term->vertical_mode) ;
+	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		if( term->use_dynamic_comb)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		if( term->use_bidi)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_ind") == 0)
+	{
+		if( term->use_ind)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "bidi_mode") == 0)
+	{
+		value = ml_get_bidi_mode_name( term->bidi_mode) ;
+	}
+	else if( strcmp( key , "bidi_separators") == 0)
+	{
+		if( ( value = term->bidi_separators) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "pty_name") == 0)
+	{
+		if( term != output)
+		{
+			if( ( value = ml_get_window_name( term->parser)) == NULL)
+			{
+				value = "" ;
+			}
+		}
+		else
+		{
+			value = ml_term_get_slave_name( term) ;
+		}
+	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		if( ( value = term->icon_path) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "use_local_echo") == 0)
+	{
+		if( term->use_local_echo)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else
+	{
+		/* Continue to process it in x_screen.c */
+		return  0 ;
+	}
+
+	/* value is never set NULL above. */
+#if  0
+	if( ! value)
+	{
+		ml_response_config( term->pty , "error" , NULL , to_menu) ;
+	}
+#endif
+
+	if( flag)
+	{
+		*flag = value ? true_or_false( value) : -1 ;
+	}
+	else
+	{
+		ml_response_config( term->pty , key , value , to_menu) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_term_set_config(
+	ml_term_t *  term ,
+	char *  key ,
+	char *  value
+	)
+{
+	if( ml_vt100_parser_set_config( term->parser , key , value))
+	{
+		/* do nothing */
+	}
+	else if( strcmp( key , "use_local_echo") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			set_use_local_echo( term , flag) ;
+		}
+	}
+	else
+	{
+		/* Continue to process it in x_screen.c */
+		return  0 ;
+	}
+
+	return  1 ;
 }

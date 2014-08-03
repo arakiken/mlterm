@@ -6,6 +6,7 @@
 #define  __ML_PTY_INTERN_H__
 
 #include  "ml_pty.h"
+#include  "ml_config_menu.h"
 
 
 typedef struct  ml_pty
@@ -25,6 +26,8 @@ typedef struct  ml_pty
 	ssize_t (*read)( ml_pty_ptr_t , u_char * , size_t) ;
 
 	ml_pty_event_listener_t *  pty_listener ;
+
+	ml_config_menu_t  config_menu ;
 
 	struct
 	{

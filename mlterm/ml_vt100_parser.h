@@ -126,7 +126,7 @@ typedef struct  ml_config_event_listener
 
 	/* Assume that exec, set and get affect each window. */
 	int (*exec)( void * , char *) ;
-	void (*set)( void * , char * , char * , char *) ;
+	int (*set)( void * , char * , char * , char *) ;
 	void (*get)( void * , char * , char * , int) ;
 
 	/* Assume that saved, set_font and set_color affect all window. */
@@ -137,6 +137,8 @@ typedef struct  ml_config_event_listener
 	void (*set_color)( void * , char * , char * , char * , int) ;
 
 } ml_config_event_listener_t ;
+
+typedef struct  ml_vt100_parser *  ml_vt100_parser_ptr_t ;
 
 typedef struct  ml_vt100_storable_states
 {
@@ -245,6 +247,7 @@ typedef struct  ml_vt100_parser
 	int8_t  sixel_scrolling ;
 	int8_t  yield ;
 
+	int8_t  is_auto_encoding ;
 	int8_t  use_auto_detect ;
 
 	/* for save/restore cursor */
@@ -273,18 +276,19 @@ void  ml_set_full_width_areas( char *  areas) ;
 void  ml_set_use_ttyrec_format( int  use) ;
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
+	int  is_auto_encoding , int  use_auto_detect , int  logging_vt_seq ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char ,
 	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 
-int  ml_vt100_parser_set_pty( ml_vt100_parser_t *  vt100_parser , ml_pty_ptr_t  pty) ;
+void  ml_vt100_parser_set_pty( ml_vt100_parser_t *  vt100_parser , ml_pty_ptr_t  pty) ;
 
-int  ml_vt100_parser_set_xterm_listener( ml_vt100_parser_t *  vt100_parser ,
+void  ml_vt100_parser_set_xterm_listener( ml_vt100_parser_t *  vt100_parser ,
 	ml_xterm_event_listener_t *  xterm_listener) ;
 
-int  ml_vt100_parser_set_config_listener( ml_vt100_parser_t *  vt100_parser ,
+void  ml_vt100_parser_set_config_listener( ml_vt100_parser_t *  vt100_parser ,
 	ml_config_event_listener_t *  config_listener) ;
 
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
@@ -295,6 +299,11 @@ void  ml_reset_pending_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 int  ml_vt100_parser_write_loopback( ml_vt100_parser_t *  vt100_parser ,
 	const u_char *  buf , size_t  len) ;
 
+#ifdef  __ANDROID__
+int  ml_vt100_parser_preedit( ml_vt100_parser_t *  vt100_parser ,
+	const u_char *  buf , size_t  len) ;
+#endif
+
 /* Must be called in visual context. */
 int  ml_vt100_parser_local_echo( ml_vt100_parser_t *  vt100_parser ,
 	const u_char *  buf , size_t  len) ;
@@ -302,7 +311,7 @@ int  ml_vt100_parser_local_echo( ml_vt100_parser_t *  vt100_parser ,
 int  ml_vt100_parser_change_encoding( ml_vt100_parser_t *  vt100_parser ,
 	ml_char_encoding_t  encoding) ;
 
-ml_char_encoding_t  ml_vt100_parser_get_encoding( ml_vt100_parser_t *  vt100_parser) ;
+#define  ml_vt100_parser_get_encoding( vt100_parser)  ((vt100_parser)->encoding)
 
 size_t  ml_vt100_parser_convert_to( ml_vt100_parser_t *  vt100_parser ,
 	u_char *  dst , size_t  len , mkf_parser_t *  parser) ;
@@ -315,12 +324,6 @@ int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
 
 #define  ml_get_icon_name( vt100_parser)  ((vt100_parser)->icon_name)
 
-int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser ,
-	u_int  col_size_a) ;
-
-#define  ml_vt100_parser_get_col_size_of_width_a( vt100_parser) \
-		((vt100_parser)->col_size_of_width_a)
-
 #define  ml_vt100_parser_set_use_char_combining( vt100_parser , use) \
 		((vt100_parser)->use_char_combining = (use))
 
@@ -332,11 +335,6 @@ int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser 
 
 #define  ml_vt100_parser_is_using_multi_col_char( vt100_parser) \
 		((vt100_parser)->use_multi_col_char)
-
-#define  ml_vt100_parser_set_logging_vt_seq( vt100_parser , flag) \
-		((vt100_parser)->logging_vt_seq = (flag))
-
-#define  ml_vt100_parser_is_logging_vt_seq( vt100_parser)  ((vt100_parser)->logging_vt_seq)
 
 #define  ml_vt100_parser_get_mouse_report_mode( vt100_parser)  ((vt100_parser)->mouse_mode)
 
@@ -365,13 +363,6 @@ int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser 
 
 int  ml_set_auto_detect_encodings( char *  encodings) ;
 
-char *  ml_get_auto_detect_encodings(void) ;
-
-#define  ml_vt100_parser_set_use_auto_detect( vt100_parser , use) \
-		((vt100_parser)->use_auto_detect = (use))
-
-#define  ml_vt100_parser_is_using_auto_detect( vt100_parser) ((vt100_parser)->use_auto_detect)
-
 int  ml_convert_to_internal_ch( mkf_char_t *  ch , ml_unicode_policy_t  unicode_policy ,
 		mkf_charset_t  gl) ;
 
@@ -381,6 +372,13 @@ void  ml_vt100_parser_set_alt_color_mode( ml_vt100_parser_t *  vt100_parser ,
 	ml_alt_color_mode_t  mode) ;
 
 #define  ml_vt100_parser_get_alt_color_mode( vt100_parser)  ((vt100_parser)->alt_color_mode)
+
+int  true_or_false( const char *  str) ;
+
+int  ml_vt100_parser_get_config( ml_vt100_parser_t *  vt100_parser , ml_pty_ptr_t  output ,
+	char *  key , int  to_menu , int *  flag) ;
+
+int  ml_vt100_parser_set_config( ml_vt100_parser_t *  vt100_parser , char *  key , char *  val) ;
 
 
 #endif

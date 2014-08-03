@@ -141,25 +141,6 @@ dialog_callback(
 #endif
 
 
-static int
-true_or_false(
-	char *  str
-	)
-{
-	if( strcmp( str , "true") == 0)
-	{
-		return  1 ;
-	}
-	else if( strcmp( str , "false") == 0)
-	{
-		return  0 ;
-	}
-	else
-	{
-		return  -1 ;
-	}
-}
-
 static void
 set_config(
 	void *  p ,
@@ -172,34 +153,17 @@ set_config(
 
 	nativeObj = p ;
 
-	if( strcmp( key , "encoding") == 0)
+	if( ml_term_set_config( nativeObj->term , key , value))
+	{
+		/* do nothing */
+	}
+	else if( strcmp( key , "encoding") == 0)
 	{
 		ml_char_encoding_t  encoding ;
 
 		if( ( encoding = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
 		{
-			ml_term_set_auto_encoding( nativeObj->term ,
-				strcasecmp( value , "auto") == 0 ? 1 : 0) ;
-
 			ml_term_change_encoding( nativeObj->term , encoding) ;
-		}
-	}
-	else if( strcmp( key , "tabsize") == 0)
-	{
-		u_int  tab_size ;
-
-		if( kik_str_to_uint( &tab_size , value))
-		{
-			ml_term_set_tab_size( nativeObj->term , tab_size) ;
-		}
-	}
-	else if( strcmp( key , "use_combining") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_use_char_combining( nativeObj->term , flag) ;
 		}
 	}
 	else if( strcmp( key , "use_multi_column_char") == 0)
@@ -209,46 +173,6 @@ set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			ml_term_set_use_multi_col_char( nativeObj->term , flag) ;
-		}
-	}
-	else if( strcmp( key , "col_size_of_width_a") == 0)
-	{
-		u_int  size ;
-
-		if( kik_str_to_uint( &size , value))
-		{
-			ml_term_set_col_size_of_width_a( nativeObj->term , size) ;
-		}
-	}
-	else if( strcmp( key , "logging_vt_seq") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_logging_vt_seq( nativeObj->term , flag) ;
-		}
-	}
-	else if( strcmp( key , "use_local_echo") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_use_local_echo( nativeObj->term , flag) ;
-		}
-	}
-	else if( strcmp( key , "auto_detect_encodings") == 0)
-	{
-		ml_set_auto_detect_encodings( value) ;
-	}
-	else if( strcmp( key , "use_auto_detect") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_term_set_use_auto_detect( nativeObj->term , flag) ;
 		}
 	}
 }
@@ -262,21 +186,33 @@ get_config(
 	)
 {
 	native_obj_t *  nativeObj ;
+	ml_term_t *  term ;
 	char *  value ;
-	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
-	char  cwd[PATH_MAX] ;
 
 	nativeObj = p ;
 
+	if( dev)
+	{
+		if( ! ( term = ml_get_term( dev)))
+		{
+			return ;
+		}
+	}
+	else
+	{
+		term = nativeObj->term ;
+	}
+
+	if( ml_term_get_config( term , nativeObj->term , key , to_menu , NULL))
+	{
+		return ;
+	}
+
 	value = NULL ;
 
-	if( strcmp( key , "encoding") == 0)
+	if( strcmp( key , "use_multi_column_char") == 0)
 	{
-		value = ml_get_char_encoding_name( ml_term_get_encoding( nativeObj->term)) ;
-	}
-	else if( strcmp( key , "is_auto_encoding") == 0)
-	{
-		if( ml_term_is_auto_encoding( nativeObj->term))
+		if( ml_term_is_using_multi_col_char( term))
 		{
 			value = "true" ;
 		}
@@ -285,128 +221,18 @@ get_config(
 			value = "false" ;
 		}
 	}
-	else if( strcmp( key , "tabsize") == 0)
+	else if( strcmp( key , "pty_list") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_tab_size( nativeObj->term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "use_combining") == 0)
-	{
-		if( ml_term_is_using_char_combining( nativeObj->term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "use_multi_column_char") == 0)
-	{
-		if( ml_term_is_using_multi_col_char( nativeObj->term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "col_size_of_width_a") == 0)
-	{
-		if( ml_term_get_col_size_of_width_a( nativeObj->term) == 2)
-		{
-			value = "2" ;
-		}
-		else
-		{
-			value = "1" ;
-		}
-	}
-	else if( strcmp( key , "locale") == 0)
-	{
-		value = kik_get_locale() ;
-	}
-	else if( strcmp( key , "pwd") == 0)
-	{
-		value = getcwd( cwd , sizeof(cwd)) ;
-	}
-	else if( strcmp( key , "rows") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_logical_rows( nativeObj->term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "cols") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_logical_cols( nativeObj->term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "pty_name") == 0)
-	{
-		if( dev)
-		{
-			if( ( value = ml_term_window_name( nativeObj->term)) == NULL)
-			{
-				value = dev ;
-			}
-		}
-		else
-		{
-			value = ml_term_get_slave_name( nativeObj->term) ;
-		}
-	}
-	else if( strcmp( key , "logging_vt_seq") == 0)
-	{
-		if( ml_term_is_logging_vt_seq( nativeObj->term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "use_local_echo") == 0)
-	{
-		if( ml_term_is_using_local_echo( nativeObj->term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "use_auto_detect") == 0)
-	{
-		if( ml_term_is_using_auto_detect( nativeObj->term))
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "auto_detect_encodings") == 0)
-	{
-		if( ( value = ml_get_auto_detect_encodings()) == NULL)
-		{
-			value = "" ;
-		}
+		value = ml_get_pty_list() ;
 	}
 
 	if( ! value)
 	{
-		ml_term_write( nativeObj->term , "#error\n" , 7 , to_menu) ;
+		ml_term_response_config( nativeObj->term , "error" , NULL , to_menu) ;
 	}
 	else
 	{
-		ml_term_write( nativeObj->term , "#" , 1 , to_menu) ;
-		ml_term_write( nativeObj->term , key , strlen(key) , to_menu) ;
-		ml_term_write( nativeObj->term , "=" , 1 , to_menu) ;
-		ml_term_write( nativeObj->term , value , strlen(value) , to_menu) ;
-		ml_term_write( nativeObj->term , "\n" , 1 , to_menu) ;
+		ml_term_response_config( nativeObj->term , key , value , to_menu) ;
 	}
 }
 
@@ -1070,7 +896,8 @@ Java_mlterm_MLTermPty_nativeOpen(
 	}
 
 	if( ! ( nativeObj->term = ml_create_term( cols , rows , tab_size , 0 , encoding ,
-					is_auto_encoding , unicode_policy , col_size_a ,
+					is_auto_encoding , use_auto_detect , logging_vt_seq ,
+					unicode_policy , col_size_a ,
 					use_char_combining , use_multi_col_char ,
 					0 /* use_bidi */ , 0 /* bidi_mode */ ,
 					NULL /* bidi_separators */ ,
@@ -1079,16 +906,6 @@ Java_mlterm_MLTermPty_nativeOpen(
 					0 /* vertical_mode */ , use_local_echo , NULL , NULL , 0)))
 	{
 		goto  error ;
-	}
-
-	if( logging_vt_seq)
-	{
-		ml_term_set_logging_vt_seq( nativeObj->term , 1) ;
-	}
-
-	if( use_auto_detect)
-	{
-		ml_term_set_use_auto_detect( nativeObj->term , 1) ;
 	}
 
 	nativeObj->pty_listener.self = nativeObj ;
@@ -1518,7 +1335,7 @@ Java_mlterm_MLTermPty_nativeWrite(
 	if( *str == '\0')
 	{
 		/* Control+space */
-		ml_term_write( ((native_obj_t*)nativeObj)->term , str , 1 , 0) ;
+		ml_term_write( ((native_obj_t*)nativeObj)->term , str , 1) ;
 	}
 	else
 	{
@@ -1528,7 +1345,7 @@ Java_mlterm_MLTermPty_nativeWrite(
 		       ( len = ml_term_convert_to( ((native_obj_t*)nativeObj)->term ,
 					buf , sizeof(buf) , utf8_parser)) > 0)
 		{
-			ml_term_write( ((native_obj_t*)nativeObj)->term , buf , len , 0) ;
+			ml_term_write( ((native_obj_t*)nativeObj)->term , buf , len) ;
 		}
 
 	#if  0
@@ -2150,7 +1967,7 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 			seq_len = strlen( seq) ;
 		}
 
-		ml_term_write( nativeObj->term , seq , seq_len , 0) ;
+		ml_term_write( nativeObj->term , seq , seq_len) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;

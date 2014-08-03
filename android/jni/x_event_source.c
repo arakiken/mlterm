@@ -22,8 +22,6 @@ static mkf_parser_t *  utf8_parser ;
 
 /* --- static functions --- */
 
-int  ml_vt100_parser_preedit( ml_vt100_parser_t * , u_char * , size_t) ;
-
 static void
 update_ime_text(
 	ml_term_t *  term
@@ -39,11 +37,11 @@ update_ime_text(
 
 	(*utf8_parser->init)( utf8_parser) ;
 
-	ml_term_set_use_local_echo( term , 0) ;
+	ml_term_set_config( term , "use_local_echo" , "false") ;
 
 	if( preedit_text)
 	{
-		ml_term_set_use_local_echo( term , 1) ;
+		ml_term_set_config( term , "use_local_echo" , "true") ;
 
 		(*utf8_parser->set_str)( utf8_parser , preedit_text , strlen(preedit_text)) ;
 		while( ! utf8_parser->is_eos &&
@@ -63,7 +61,7 @@ update_ime_text(
 		while( ! utf8_parser->is_eos &&
 		       ( len = ml_term_convert_to( term , buf , sizeof(buf) , utf8_parser)) > 0)
 		{
-			ml_term_write( term , buf , len , 0) ;
+			ml_term_write( term , buf , len) ;
 		}
 
 		free( commit_text) ;

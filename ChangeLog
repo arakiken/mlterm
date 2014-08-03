@@ -1,3 +1,35 @@
+2014-08-02  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL: Updated.
+
+	* MLTermPty.c, gtk/vte.c: Minor fixes.
+
+	* win32/x_font.c, libtype/x_font_ft.c: Font name like "Hoge 0" is parsed
+	  correctly and "0" is ignored.
+
+	* x_screen.[ch]: x_system_event_listener_t::get_pty() and ::pty_list() are
+	  removed and ml_get_term() and ml_get_pty_list() are called from x_screen.c
+	  directly.
+
+	* ml_vt100_parser.[ch], ml_term.[ch], ml_term_manager.[ch], x_screen.c:
+	  - ml_{term|vt100_parser}_{set|get}_config() are added.
+	  - {get|set}_config in x_screen.c calls ml_term_{set|get}_config().
+	  - use_auto_detect and logging_vt_seq arguments are added to ml_create_term(),
+	    ml_term_new() and ml_vt100_parser_new().
+
+	* ml_pty.[ch], ml_pty_intern.h:
+	  - ml_config_menu is managed by ml_pty instead of ml_term.
+	  - ml_response_config() is added.
+
+	* ml_config_proto.[ch]:
+	  - ml_get_proto_challenge() is added.
+	  - ml_parse_proto_prefix() returns 1 instead of 0 if dev is not found in
+	    the sequence.
+
+	* ml_edit.c: The result of https://gist.github.com/ttdoda/5798565
+	  and https://gist.github.com/ttdoda/5902671 becomes the same as TeraTerm.
+	  (Compatibility with VT525 is improved.)
+
 2014-07-28  Araki Ken  <arakiken@users.sf.net>
 
 	* x_event_source.c, x_screen.c: x_display_sync() is called in receive_next_event()

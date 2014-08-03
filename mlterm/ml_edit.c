@@ -22,6 +22,10 @@
 #define  CURSOR_DEBUG
 #endif
 
+#if  0
+#define  COMPAT_XTERM
+#endif
+
 /*
  * ml_edit_t::tab_stops
  * e.g.)
@@ -76,7 +80,16 @@ insert_chars(
 
 	buf_len = edit->model.num_of_cols ;
 
-	num_of_cols = edit->margin_end + 1 ;
+#ifndef  COMPAT_XTERM
+	if( edit->cursor.col > edit->margin_end)
+	{
+		num_of_cols = edit->model.num_of_cols ;
+	}
+	else
+#endif
+	{
+		num_of_cols = edit->margin_end + 1 ;
+	}
 
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
@@ -141,7 +154,15 @@ insert_chars(
 		filled_cols += cols ;
 	}
 
-	last_index = filled_len ;
+	if( edit->cursor.char_index + filled_len == num_of_cols)
+	{
+		/* cursor position doesn't proceed. */
+		last_index = filled_len - 1 ;
+	}
+	else
+	{
+		last_index = filled_len ;
+	}
 
 	/*
 	 * cursor char
@@ -749,13 +770,15 @@ ml_edit_insert_chars(
 {
 	reset_wraparound_checker( edit) ;
 
-	if( CURSOR_IS_INSIDE_MARGIN(edit))
-	{
-		return  insert_chars( edit , ins_chars , num_of_ins_chars , 1) ;
-	}
-	else
+#ifdef  COMPAT_XTERM
+	if( ! CURSOR_IS_INSIDE_MARGIN(edit))
 	{
 		return  ml_edit_overwrite_chars( edit , ins_chars , num_of_ins_chars) ;
+	}
+	else
+#endif
+	{
+		return  insert_chars( edit , ins_chars , num_of_ins_chars , 1) ;
 	}
 }
 
@@ -832,13 +855,13 @@ ml_edit_overwrite_chars(
 
 	buf_len = num_of_ow_chars + edit->model.num_of_cols ;
 
-	if( CURSOR_IS_INSIDE_MARGIN(edit))
+	if( edit->cursor.col > edit->margin_end)
 	{
-		num_of_cols = edit->margin_end + 1 ;
+		num_of_cols = edit->model.num_of_cols ;
 	}
 	else
 	{
-		num_of_cols = edit->model.num_of_cols ;
+		num_of_cols = edit->margin_end + 1 ;
 	}
 
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)

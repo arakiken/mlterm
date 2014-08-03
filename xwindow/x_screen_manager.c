@@ -130,7 +130,8 @@ create_term_intern(void)
 	
 	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
-			main_config.encoding , main_config.is_auto_encoding , 
+			main_config.encoding , main_config.is_auto_encoding ,
+			main_config.use_auto_detect , main_config.logging_vt_seq ,
 			main_config.unicode_policy , main_config.col_size_of_width_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
 			main_config.use_bidi , main_config.bidi_mode ,
@@ -148,16 +149,6 @@ create_term_intern(void)
 	if( main_config.icon_path)
 	{
 		ml_term_set_icon_path( term , main_config.icon_path) ;
-	}
-
-	if( main_config.logging_vt_seq)
-	{
-		ml_term_set_logging_vt_seq( term , 1) ;
-	}
-
-	if( main_config.use_auto_detect)
-	{
-		ml_term_set_use_auto_detect( term , 1) ;
 	}
 
 	if( main_config.unlimit_log_size)
@@ -637,11 +628,8 @@ open_screen_intern(
 
 	/* Override config event listener. */
 	screen->config_listener.saved = config_saved ;
-	
-	if( ! x_set_system_listener( screen , &system_listener))
-	{
-		goto  error ;
-	}
+
+	x_set_system_listener( screen , &system_listener) ;
 
 	if( main_config.use_scrollbar &&
 	    ( sb_screen = x_sb_screen_new( screen ,
@@ -729,7 +717,7 @@ open_screen_intern(
 		if( main_config.init_str)
 		{
 			ml_term_write( term , main_config.init_str ,
-				strlen( main_config.init_str) , 0) ;
+				strlen( main_config.init_str)) ;
 		}
 	}
 
@@ -1083,23 +1071,6 @@ close_screen(
 	}
 }
 
-static ml_term_t *
-get_pty(
-	void *  p ,
-	char *  dev
-	)
-{
-	return  ml_get_term( dev) ;
-}
-
-static char *
-pty_list(
-	void *  p
-	)
-{
-	return  ml_get_pty_list() ;
-}
-
 static int
 mlclient(
 	void *  self ,
@@ -1354,8 +1325,6 @@ x_screen_manager_init(
 	system_listener.prev_pty = prev_pty ;
 	system_listener.close_pty = close_pty ;
 	system_listener.pty_closed = pty_closed ;
-	system_listener.get_pty = get_pty ;
-	system_listener.pty_list = pty_list ;
 	system_listener.mlclient = mlclient ;
 	system_listener.font_config_updated = font_config_updated ;
 	system_listener.color_config_updated = color_config_updated ;

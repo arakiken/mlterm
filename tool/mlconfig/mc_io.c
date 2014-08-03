@@ -20,46 +20,6 @@ static int  gui_is_win32 ;
 
 /* --- static functions --- */
 
-static char *
-load_challenge(void)
-{
-	FILE *  fp ;
-	char *  homedir ;
-	char  path[256] ;
-	static char  challenge[64] ;
-
-#ifdef  USE_WIN32API
-	if( ! ( homedir = getenv( "HOMEPATH")) || ! *homedir)
-#endif
-	{
-		if( ! ( homedir = getenv("HOME")))
-		{
-			return  "" ;
-		}
-	}
-
-#ifdef  USE_WIN32API
-	snprintf( path , sizeof(path) , "%s\\mlterm\\challenge" , homedir) ;
-#else
-	snprintf( path , sizeof(path) , "%s/.mlterm/challenge" , homedir) ;
-#endif
-
-	if( ( fp = fopen( path , "r")))
-	{
-		size_t  len ;
-
-		if( ( len = fread( challenge , 1 , sizeof(challenge) - 2 , fp)) > 0)
-		{
-			challenge[len++] = ';' ;
-			challenge[len] = '\0' ;
-		}
-
-		fclose( fp) ;
-	}
-
-	return  challenge ;
-}
-
 static int
 append_value(
 	const char *  key ,
@@ -196,19 +156,22 @@ mc_set_flag_value(
 int
 mc_flush(mc_io_t  io)
 {
-	char *  chal = "" ;
+	char *  chal ;
 
 	if( message == NULL)
 	{
 		return  1 ;
 	}
 
-	if( io == mc_io_set_save)
+	if( io == mc_io_set_save && ( chal = get_value( "challenge" , mc_io_get)))
 	{
-		chal = load_challenge() ;
+		printf( "\x1b]%d;%s;%s\x07" , io , chal , message);
+	}
+	else
+	{
+		printf( "\x1b]%d;%s\x07" , io , message);
 	}
 
-	printf( "\x1b]%d;%s%s\x07" , io , chal , message);
 	fflush( stdout) ;
 
 #if  0
@@ -297,14 +260,19 @@ mc_set_font_name(
 	const char *  font_name
 	)
 {
-	char *  chal = "" ;
+	char *  chal ;
 
-	if( io == mc_io_set_save_font)
+	if( io == mc_io_set_save_font && ( chal = get_value( "challenge" , mc_io_get)))
 	{
-		chal = load_challenge() ;
+		printf( "\x1b]%d;%s;%s:%s=%s,%s\x07" ,
+			io , chal , file , cs , font_size , font_name) ;
+	}
+	else
+	{
+		printf( "\x1b]%d;%s:%s=%s,%s\x07" ,
+			io , file , cs , font_size , font_name) ;
 	}
 
-	printf( "\x1b]%d;%s%s:%s=%s,%s\x07" , io , chal , file , cs , font_size , font_name) ;
 	fflush( stdout) ;
 
 	return  1 ;

@@ -8,7 +8,7 @@
 #include  <string.h>		/* memmove */
 #include  <stdlib.h>		/* atoi */
 #include  <fcntl.h>		/* open */
-#include  <unistd.h>		/* write */
+#include  <unistd.h>		/* write/getcwd */
 #include  <sys/time.h>		/* gettimeofday */
 #ifdef  DEBUG
 #include  <stdarg.h>		/* va_list */
@@ -21,6 +21,7 @@
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #include  <kiklib/kik_args.h>
 #include  <kiklib/kik_unistd.h>	/* kik_usleep */
+#include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_ucs4_map.h>	/* mkf_map_to_ucs4 */
 #include  <mkf/mkf_ucs_property.h>
 #include  <mkf/mkf_locale_ucs4_map.h>
@@ -1781,25 +1782,6 @@ snapshot(
 
 
 static int
-true_or_false(
-	char *  str
-	)
-{
-	if( strcmp( str , "true") == 0)
-	{
-		return  1 ;
-	}
-	else if( strcmp( str , "false") == 0)
-	{
-		return  0 ;
-	}
-	else
-	{
-		return  -1 ;
-	}
-}
-
-static int
 base64_decode(
 	char *  decoded ,
 	char *  encoded ,
@@ -1879,6 +1861,27 @@ base64_decode(
 }
 
 
+static void
+set_col_size_of_width_a(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_int  col_size_a
+	)
+{
+	if( col_size_a == 1 || col_size_a == 2)
+	{
+		vt100_parser->col_size_of_width_a = col_size_a ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" col size should be 1 or 2. default value 1 is used.\n") ;
+	#endif
+
+		vt100_parser->col_size_of_width_a = 1 ;
+	}
+}
+
 static void  soft_reset( ml_vt100_parser_t *  vt100_parser) ;
 
 /*
@@ -1891,11 +1894,19 @@ config_protocol_set(
 	int  save
 	)
 {
+	int  ret ;
 	char *  dev ;
 
-	if( ml_parse_proto_prefix( &dev , &pt , save) == -1)
+	ret = ml_parse_proto_prefix( &dev , &pt , save) ;
+	if( ret <= 0)
 	{
-		kik_msg_printf( "Forbid config protocol.\n") ;
+		/*
+		 * ret == -1: do_challenge failed.
+		 * ret ==  0: illegal format.
+		 * to_menu is necessarily 0 because it is pty that msg should be returned to.
+		 */
+		ml_response_config( vt100_parser->pty ,
+			ret < 0 ? "forbidden" : "error" , NULL , 0) ;
 
 		return ;
 	}
@@ -2128,57 +2139,16 @@ config_protocol_set(
 					}
 				}
 
-				/*
-				 * Here process options whose 'get' protocol doesn't
-				 * exist and which are stored in static variables.
-				 */
-				if( strcmp( key , "logging_msg") == 0)
+				if( val == NULL)
 				{
-					if( true_or_false( val) > 0)
-					{
-						kik_set_msg_log_file_name( "mlterm/msg.log") ;
-					}
-					else
-					{
-						kik_set_msg_log_file_name( NULL) ;
-					}
+					val = "" ;
 				}
-				else if( strcmp( key , "word_separators") == 0)
-				{
-					ml_set_word_separators( val) ;
-				}
-				else if( strcmp( key , "use_alt_buffer") == 0)
-				{
-					int  flag ;
 
-					if( ( flag = true_or_false( val)) != -1)
-					{
-						use_alt_buffer = flag ;
-					}
-				}
-				else if( strcmp( key , "use_ansi_colors") == 0)
-				{
-					int  flag ;
-
-					if( ( flag = true_or_false( val)) != -1)
-					{
-						use_ansi_colors = flag ;
-					}
-				}
-				else if( strcmp( key , "unicode_noconv_areas") == 0)
-				{
-					ml_set_unicode_noconv_areas( val) ;
-				}
-				else if( strcmp( key , "unicode_full_width_areas") == 0)
-				{
-					ml_set_full_width_areas( val) ;
-				}
-				else if( HAS_CONFIG_LISTENER(vt100_parser,set))
-				{
-					(*vt100_parser->config_listener->set)(
+				if( HAS_CONFIG_LISTENER(vt100_parser,set) &&
+				    (*vt100_parser->config_listener->set)(
 						vt100_parser->config_listener->self ,
-						dev , key , val) ;
-
+						dev , key , val))
+				{
 					if( ! vt100_parser->config_listener)
 					{
 						/* pty changed. */
@@ -2229,7 +2199,8 @@ static void
 config_protocol_get(
 	ml_vt100_parser_t *  vt100_parser ,
 	char *  pt ,
-	int  to_menu
+	int  to_menu ,
+	int *  flag
 	)
 {
 	char *  dev ;
@@ -2246,23 +2217,17 @@ config_protocol_get(
 #endif
 
 	ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0 , 0) ;
-	if( ret == -1)
+	if( ret <= 0)
 	{
 		/*
-		 * do_challenge is failed.
-		 * to_menu is necessarily 0, so it is pty that msg should be returned to.
+		 * ret == -1: do_challenge failed.
+		 * ret ==  0: illegal format.
+		 * to_menu is necessarily 0 because it is pty that msg should be returned to.
 		 */
-
-		char  msg[] = "#forbidden\n" ;
-
-		ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
+		ml_response_config( vt100_parser->pty ,
+			ret < 0 ? "forbidden" : "error" , NULL , 0) ;
 
 		return ;
-	}
-
-	if( ret == 0)
-	{
-		key = "error" ;
 	}
 
 	if( dev && strlen( dev) <= 7 && strstr( dev , "font"))
@@ -5290,13 +5255,13 @@ parse_vt100_escape_sequence(
 			{
 				/* "OSC 5380" get */
 
-				config_protocol_get( vt100_parser , pt , 0) ;
+				config_protocol_get( vt100_parser , pt , 0 , NULL) ;
 			}
 			else if( ps == 5381)
 			{
 				/* "OSC 5381" get(menu) */
 
-				config_protocol_get( vt100_parser , pt , 1) ;
+				config_protocol_get( vt100_parser , pt , 1 , NULL) ;
 			}
 			else if( ps == 5383)
 			{
@@ -6270,6 +6235,9 @@ ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
 	ml_char_encoding_t  encoding ,
+	int  is_auto_encoding ,
+	int  use_auto_detect ,
+	int  logging_vt_seq ,
 	ml_unicode_policy_t  policy ,
 	u_int  col_size_a ,
 	int  use_char_combining ,
@@ -6298,7 +6266,8 @@ ml_vt100_parser_new(
 	vt100_parser->bg_color = ML_BG_COLOR ;
 	vt100_parser->use_char_combining = use_char_combining ;
 	vt100_parser->use_multi_col_char = use_multi_col_char ;
-
+	vt100_parser->use_auto_detect = use_auto_detect ;
+	vt100_parser->logging_vt_seq = logging_vt_seq ;
 	vt100_parser->unicode_policy = policy ;
 
 	if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
@@ -6332,7 +6301,7 @@ ml_vt100_parser_new(
 	vt100_parser->g0 = US_ASCII ;
 	vt100_parser->g1 = US_ASCII ;
 
-	ml_vt100_parser_set_col_size_of_width_a( vt100_parser , col_size_a) ;
+	set_col_size_of_width_a( vt100_parser , col_size_a) ;
 
 #if  0
 	/* Default value of modify_*_keys except modify_other_keys is 2. */
@@ -6357,6 +6326,11 @@ error:
 		(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
 	}
 
+	if( vt100_parser->drcs)
+	{
+		ml_drcs_delete( vt100_parser->drcs) ;
+	}
+
 	free( vt100_parser) ;
 
 	return  NULL ;
@@ -6370,7 +6344,6 @@ ml_vt100_parser_delete(
 	ml_str_final( vt100_parser->w_buf.chars , PTY_WR_BUFFER_SIZE) ;
 	(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
 	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
-
 	ml_drcs_delete( vt100_parser->drcs) ;
 	delete_all_macros( vt100_parser) ;
 
@@ -6391,37 +6364,31 @@ ml_vt100_parser_delete(
 	return  1 ;
 }
 
-int
+void
 ml_vt100_parser_set_pty(
 	ml_vt100_parser_t *  vt100_parser ,
 	ml_pty_ptr_t  pty
 	)
 {
 	vt100_parser->pty = pty ;
-	
-	return  1 ;
 }
 
-int
+void
 ml_vt100_parser_set_xterm_listener(
 	ml_vt100_parser_t *  vt100_parser ,
 	ml_xterm_event_listener_t *  xterm_listener
 	)
 {
 	vt100_parser->xterm_listener = xterm_listener ;
-
-	return  1 ;
 }
 
-int
+void
 ml_vt100_parser_set_config_listener(
 	ml_vt100_parser_t *  vt100_parser ,
 	ml_config_event_listener_t *  config_listener
 	)
 {
 	vt100_parser->config_listener = config_listener ;
-
-	return  1 ;
 }
 
 int
@@ -6610,14 +6577,6 @@ ml_vt100_parser_change_encoding(
 	return  1 ;
 }
 
-ml_char_encoding_t
-ml_vt100_parser_get_encoding(
-	ml_vt100_parser_t *  vt100_parser
-	)
-{
-	return  vt100_parser->encoding ;
-}
-
 size_t
 ml_vt100_parser_convert_to(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -6660,29 +6619,6 @@ ml_init_encoding_conv(
 	if( IS_STATEFUL_ENCODING(vt100_parser->encoding))
 	{
 		ml_init_encoding_parser(vt100_parser) ;
-	}
-
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_col_size_of_width_a(
-	ml_vt100_parser_t *  vt100_parser ,
-	u_int  col_size_a
-	)
-{
-	if( col_size_a == 1 || col_size_a == 2)
-	{
-		vt100_parser->col_size_of_width_a = col_size_a ;
-	}
-	else
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" col size should be 1 or 2. default value 1 is used.\n") ;
-	#endif
-	
-		vt100_parser->col_size_of_width_a = 1 ;
 	}
 
 	return  1 ;
@@ -6748,12 +6684,6 @@ ml_set_auto_detect_encodings(
 	}
 
 	return  1 ;
-}
-
-char *
-ml_get_auto_detect_encodings(void)
-{
-	return  auto_detect_encodings ;
 }
 
 /*
@@ -7068,4 +6998,419 @@ ml_vt100_parser_set_alt_color_mode(
 	)
 {
 	vt100_parser->alt_color_mode = mode ;
+}
+
+int
+true_or_false(
+	const char *  str
+	)
+{
+	if( strcmp( str , "true") == 0)
+	{
+		return  1 ;
+	}
+	else if( strcmp( str , "false") == 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  -1 ;
+	}
+}
+
+int
+ml_vt100_parser_get_config(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_pty_ptr_t  output ,
+	char *  key ,
+	int  to_menu ,
+	int *  flag
+	)
+{
+	char *  value ;
+	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
+	char  cwd[PATH_MAX] ;
+
+	if( strcmp( key , "encoding") == 0)
+	{
+		value = ml_get_char_encoding_name( vt100_parser->encoding) ;
+	}
+	else if( strcmp( key , "is_auto_encoding") == 0)
+	{
+		if( vt100_parser->is_auto_encoding)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_alt_buffer") == 0)
+	{
+		if( use_alt_buffer)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_ansi_colors") == 0)
+	{
+		if( use_ansi_colors)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_screen_get_tab_size( vt100_parser->screen)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		if( ml_screen_log_size_is_unlimited( vt100_parser->screen))
+		{
+			value = "unlimited" ;
+		}
+		else
+		{
+			sprintf( digit , "%d" ,
+				ml_screen_get_log_size( vt100_parser->screen)) ;
+			value = digit ;
+		}
+	}
+	else if( strcmp( key , "static_backscroll_mode") == 0)
+	{
+		if( ml_screen_is_backscrolling( vt100_parser->screen) == BSM_STATIC)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		if( vt100_parser->use_char_combining)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "col_size_of_width_a") == 0)
+	{
+		if( vt100_parser->col_size_of_width_a == 2)
+		{
+			value = "2" ;
+		}
+		else
+		{
+			value = "1" ;
+		}
+	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		value = kik_get_locale() ;
+	}
+	else if( strcmp( key , "pwd") == 0)
+	{
+		value = getcwd( cwd , sizeof(cwd)) ;
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		if( vt100_parser->logging_vt_seq)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "vt_seq_format") == 0)
+	{
+		if( use_ttyrec_format)
+		{
+			value = "ttyrec" ;
+		}
+		else
+		{
+			value = "raw" ;
+		}
+	}
+	else if( strcmp( key , "rows") == 0)
+	{
+		sprintf( digit , "%d" ,
+			ml_screen_get_logical_rows( vt100_parser->screen)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "cols") == 0)
+	{
+		sprintf( digit , "%d" ,
+			ml_screen_get_logical_cols( vt100_parser->screen)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "not_use_unicode_font") == 0)
+	{
+		if( vt100_parser->unicode_policy & NOT_USE_UNICODE_FONT)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "only_use_unicode_font") == 0)
+	{
+		if( vt100_parser->unicode_policy & ONLY_USE_UNICODE_FONT)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "box_drawing_font") == 0)
+	{
+		if( vt100_parser->unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT)
+		{
+			value = "decsp" ;
+		}
+		else if( vt100_parser->unicode_policy & ONLY_USE_UNICODE_BOXDRAW_FONT)
+		{
+			value = "unicode" ;
+		}
+		else
+		{
+			value = "noconv" ;
+		}
+	}
+	else if( strcmp( key , "auto_detect_encodings") == 0)
+	{
+		if( ( value = auto_detect_encodings) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "use_auto_detect") == 0)
+	{
+		if( vt100_parser->use_auto_detect)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+	else if( strcmp( key , "challenge") == 0)
+	{
+		if( to_menu)
+		{
+			value = ml_get_proto_challenge() ;
+		}
+		else
+		{
+			value = "" ;
+		}
+	}
+	else
+	{
+		/* Continue to process it in x_screen.c */
+		return  0 ;
+	}
+
+	/* value is never set NULL above. */
+#if  0
+	if( ! value)
+	{
+		ml_response_config( term->pty , "error" , NULL , to_menu) ;
+	}
+#endif
+
+	if( flag)
+	{
+		*flag = value ? true_or_false( value) : -1 ;
+	}
+	else
+	{
+		ml_response_config( output , key , value , to_menu) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_config(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  key ,
+	char *  value
+	)
+{
+	if( strcmp( key , "encoding") == 0)
+	{
+		if( strcmp( value , "auto") == 0)
+		{
+			vt100_parser->is_auto_encoding = 
+				strcasecmp( value , "auto") == 0 ? 1 : 0 ;
+		}
+
+		return  0 ;	/* Continue to process it in x_screen.c */
+	}
+	else if( strcmp( key , "logging_msg") == 0)
+	{
+		if( true_or_false( value) > 0)
+		{
+			kik_set_msg_log_file_name( "mlterm/msg.log") ;
+		}
+		else
+		{
+			kik_set_msg_log_file_name( NULL) ;
+		}
+	}
+	else if( strcmp( key , "word_separators") == 0)
+	{
+		ml_set_word_separators( value) ;
+	}
+	else if( strcmp( key , "use_alt_buffer") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			use_alt_buffer = flag ;
+		}
+	}
+	else if( strcmp( key , "use_ansi_colors") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			use_ansi_colors = flag ;
+		}
+	}
+	else if( strcmp( key , "unicode_noconv_areas") == 0)
+	{
+		ml_set_unicode_noconv_areas( value) ;
+	}
+	else if( strcmp( key , "unicode_full_width_areas") == 0)
+	{
+		ml_set_full_width_areas( value) ;
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		u_int  tab_size ;
+
+		if( kik_str_to_uint( &tab_size , value))
+		{
+			ml_screen_set_tab_size( vt100_parser->screen ,
+				tab_size) ;
+		}
+	}
+	else if( strcmp( key , "static_backscroll_mode") == 0)
+	{
+		ml_bs_mode_t  mode ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			mode = BSM_STATIC ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			mode = BSM_DEFAULT ;
+		}
+		else
+		{
+			return  1 ;
+		}
+
+		ml_set_backscroll_mode( vt100_parser->screen , mode) ;
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			vt100_parser->use_char_combining = flag ;
+		}
+	}
+	else if( strcmp( key , "col_size_of_width_a") == 0)
+	{
+		u_int  size ;
+
+		if( kik_str_to_uint( &size , value))
+		{
+			set_col_size_of_width_a( vt100_parser , size) ;
+		}
+	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		kik_locale_init( value) ;
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			vt100_parser->logging_vt_seq = flag ;
+		}
+	}
+	else if( strcmp( key , "vt_seq_format") == 0)
+	{
+		use_ttyrec_format = (strcmp( value , "ttyrec") == 0) ;
+	}
+	else if( strcmp( key , "box_drawing_font") == 0)
+	{
+		if( strcmp( value , "unicode") == 0)
+		{
+			vt100_parser->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
+		}
+		else if( strcmp( value , "decsp") == 0)
+		{
+			vt100_parser->unicode_policy |= NOT_USE_UNICODE_BOXDRAW_FONT ;
+		}
+		else
+		{
+			vt100_parser->unicode_policy &=
+				(~NOT_USE_UNICODE_BOXDRAW_FONT &
+			         ~ONLY_USE_UNICODE_BOXDRAW_FONT) ;
+		}
+	}
+	else if( strcmp( key , "auto_detect_encodings") == 0)
+	{
+		ml_set_auto_detect_encodings( value) ;
+	}
+	else if( strcmp( key , "use_auto_detect") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			vt100_parser->use_auto_detect = flag ;
+		}
+	}
+	else
+	{
+		/* Continue to process it in x_screen.c */
+		return  0 ;
+	}
+
+	return  1 ;
 }

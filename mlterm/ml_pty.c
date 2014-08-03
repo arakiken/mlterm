@@ -80,6 +80,8 @@ ml_pty_new(
 	#endif
 	}
 
+	ml_config_menu_init( &pty->config_menu) ;
+
 	return  pty ;
 }
 
@@ -106,6 +108,8 @@ ml_pty_new_with(
 		pty = NULL ;
 	}
 
+	ml_config_menu_init( &pty->config_menu) ;
+
 	return  pty ;
 }
 
@@ -131,6 +135,7 @@ ml_pty_delete(
 #endif
 
 	free( pty->buf) ;
+	ml_config_menu_final( &pty->config_menu) ;
 
 	(*pty->final)( pty) ;
 
@@ -340,6 +345,50 @@ ml_read_pty(
 	}
 }
 
+void
+ml_response_config(
+	ml_pty_t *  pty ,
+	char *  key ,
+	char *  value ,
+	int  to_menu
+	)
+{
+	char *  res ;
+	char *  fmt ;
+	size_t  res_len ;
+
+	res_len = 1 + strlen(key) + 1 ;
+	if( value)
+	{
+		res_len += (1 + strlen(value)) ;
+		fmt = "#%s=%s\n" ;
+	}
+	else
+	{
+		fmt = "#%s\n" ;
+	}
+
+	if( ! ( res = alloca( res_len + 1)))
+	{
+		res = "#error\n" ;
+	}
+
+	sprintf( res , fmt , key , value) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , res) ;
+#endif
+
+	if( to_menu)
+	{
+		ml_config_menu_write( &pty->config_menu , res , res_len) ;
+	}
+	else
+	{
+		ml_write_to_pty( pty , res , res_len) ;
+	}
+}
+
 pid_t
 ml_pty_get_pid(
   	ml_pty_t *  pty
@@ -393,4 +442,17 @@ ml_pty_get_slave_name(
 #endif
 
 	return  virt_name ;
+}
+
+int
+ml_start_config_menu(
+	ml_pty_t *  pty ,
+	char *  cmd_path ,
+	int  x ,
+	int  y ,
+	char *  display
+	)
+{
+	return  ml_config_menu_start( &pty->config_menu , cmd_path ,
+				x , y , display , pty) ;
 }

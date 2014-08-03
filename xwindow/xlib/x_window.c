@@ -2392,7 +2392,8 @@ x_window_receive_event(
 		}
 
 		/* XXX Note that win->is_focused is always true on override redirect mode. */
-		if( ! win->is_focused)
+		if( ! win->is_focused && event->xbutton.button == Button1 &&
+		    ! event->xbutton.state)
 		{
 			XSetInputFocus( win->disp->display , win->my_window ,
 				RevertToParent , CurrentTime) ;

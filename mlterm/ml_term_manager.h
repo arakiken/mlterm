@@ -13,8 +13,11 @@ int  ml_term_manager_init( u_int  multiple) ;
 
 int  ml_term_manager_final( void) ;
 
+int  ml_set_auto_restart_cmd( char *  cmd) ;
+
 ml_term_t *  ml_create_term( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
-	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_policy_t  policy ,
+	ml_char_encoding_t  encoding , int  is_auto_encoding , int  use_auto_detect ,
+	int  logging_vt_seq , ml_unicode_policy_t  policy ,
 	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators , int  use_ind ,
 	int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,

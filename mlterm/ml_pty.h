@@ -13,6 +13,7 @@
 
 #include  "ml_char_encoding.h"
 
+
 /*
  * defined(__CYGWIN__) is not to link libpthread to mlterm for now.
  * OPEN_PTY_SYNC is defined in java/Makefile.in
@@ -54,6 +55,8 @@ size_t  ml_write_to_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  len) ;
 
 size_t  ml_read_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  left) ;
 
+void  ml_response_config( ml_pty_ptr_t  pty , char *  key , char *  value , int  to_menu) ;
+
 pid_t  ml_pty_get_pid( ml_pty_ptr_t  pty) ;
 
 int  ml_pty_get_master_fd( ml_pty_ptr_t  pty) ;
@@ -61,6 +64,9 @@ int  ml_pty_get_master_fd( ml_pty_ptr_t  pty) ;
 int  ml_pty_get_slave_fd( ml_pty_ptr_t  pty) ;
 
 char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
+
+int  ml_start_config_menu( ml_pty_ptr_t  pty , char *  cmd_path ,
+	int  x , int  y , char *  display) ;
 
 #ifdef  USE_LIBSSH2
 void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;
