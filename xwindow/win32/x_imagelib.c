@@ -115,6 +115,8 @@ load_file(
 	)
 {
 	char *  cmd_line ;
+	WSTR  w_cmd_line ;
+	int  num ;
 	SECURITY_ATTRIBUTES  sa ;
 	HANDLE  output_write ;
 	HANDLE  output_read ;
@@ -136,6 +138,16 @@ load_file(
 	}
 
 	sprintf( cmd_line , CMD_LINE_FMT , *width , *height , path) ;
+
+	/* Assume that path is UTF-8 */
+	if( ( num = MultiByteToWideChar( CP_UTF8 , 0 , cmd_line , strlen(cmd_line) + 1 ,
+				NULL , 0)) == 0 ||
+	    ! ( w_cmd_line = alloca( sizeof(WCHAR) * num)))
+	{
+		return  0 ;
+	}
+
+	MultiByteToWideChar( CP_UTF8 , 0 , cmd_line , strlen(cmd_line) + 1 , w_cmd_line , num) ;
 
 	/* Set up the security attributes struct. */
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -159,7 +171,7 @@ load_file(
 	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE) ;
 	si.hStdError = GetStdHandle(STD_ERROR_HANDLE) ;
 
-	if( ! CreateProcess( NULL , cmd_line ,
+	if( ! CreateProcessW( NULL , w_cmd_line ,
 		NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL , NULL , &si , &pi))
 	{
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
@@ -171,22 +183,40 @@ load_file(
 		char *  new_cmd_line ;
 
 		cygwin_conv_to_win32_path( BINDIR , bindir) ;
-		if( ! ( new_cmd_line = alloca( strlen(bindir) + 1 + strlen(cmd_line) + 1)) ||
-		    sprintf( new_cmd_line , "%s\\%s" , bindir , cmd_line) < 0 ||
-		    ! CreateProcess( NULL , new_cmd_line ,
-			NULL , NULL , TRUE , CREATE_NO_WINDOW , NULL , NULL , &si , &pi))
-	#endif
+		if( ! ( new_cmd_line = alloca( strlen(bindir) + 1 + strlen(cmd_line) + 1)))
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
-		#endif
+			sprintf( new_cmd_line , "%s\\%s" , bindir , cmd_line) ;
 
-			CloseHandle( output_write) ;
+			num = MultiByteToWideChar( CP_UTF8 , 0 ,
+					new_cmd_line , strlen(new_cmd_line) + 1 ,
+					NULL , 0) ;
+			if( ( w_cmd_line = alloca( sizeof(WCHAR) * num)))
+			{
+				MultiByteToWideChar( CP_UTF8 , 0 ,
+					new_cmd_line , strlen(new_cmd_line) + 1 ,
+					w_cmd_line , num) ;
 
-			goto  error ;
+				if( CreateProcessW( NULL , w_cmd_line ,
+					NULL , NULL , TRUE , CREATE_NO_WINDOW ,
+					NULL , NULL , &si , &pi))
+				{
+					goto  success ;
+				}
+			}
 		}
+	#endif
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" CreateProcess() failed.\n") ;
+	#endif
+
+		CloseHandle( output_write) ;
+
+		goto  error ;
 	}
 
+success:
 	CloseHandle( output_write) ;
 	CloseHandle( pi.hProcess) ;
 	CloseHandle( pi.hThread) ;

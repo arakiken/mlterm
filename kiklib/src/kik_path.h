@@ -12,13 +12,16 @@
 #include  "kik_def.h"
 
 
-#ifdef  USE_WIN32API
 /* PathIsRelative() is not used to avoid link shlwapi.lib */
-#define  IS_RELATIVE_PATH(path) \
+#define  IS_RELATIVE_PATH_DOS(path) \
 	(isalpha((path)[0]) ? ( (path)[1] != ':' || (path)[2] != '\\') : \
 	                      ( (path)[0] != '\\'))
+#define  IS_RELATIVE_PATH_UNIX(path)  (*(path) != '/')
+
+#ifdef  USE_WIN32API
+#define  IS_RELATIVE_PATH(path)  IS_RELATIVE_PATH_DOS(path)
 #else
-#define  IS_RELATIVE_PATH(path)  (*(path) != '/')
+#define  IS_RELATIVE_PATH(path)  IS_RELATIVE_PATH_UNIX(path)
 #endif
 
 

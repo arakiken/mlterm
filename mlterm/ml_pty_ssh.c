@@ -8,7 +8,7 @@
 #include  "libptyssh/ml_pty_ssh.c"
 #else  /* NO_DYNAMIC_LOAD_SSH */
 
-#include  "ml_pty.h"
+#include  "ml_pty_intern.h"
 
 #include  <stdio.h>		/* snprintf */
 #include  <string.h>		/* strcmp */
@@ -343,7 +343,7 @@ ml_pty_ssh_scp(
 		return  0 ;
 	}
 
-	if( IS_RELATIVE_PATH(dst_path))
+	if( IS_RELATIVE_PATH_UNIX(dst_path))	/* dst_path is always unix style. */
 	{
 		char *  prefix ;
 
@@ -376,7 +376,7 @@ ml_pty_ssh_scp(
 
 		dst_path = p ;
 	}
-	else if( ! use_scp_full)
+	else if( ! pty->stored /* not using loopback */ && ! use_scp_full)
 	{
 		return  0 ;
 	}

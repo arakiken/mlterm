@@ -5,6 +5,7 @@
 #include  <stdio.h>
 #include  <unistd.h>	/* STDOUT_FILENO */
 #include  <stdlib.h>	/* mbstowcs_s */
+#include  <wchar.h>	/* wcslen */
 
 extern "C" {
 #include  <kiklib/kik_debug.h>
@@ -109,7 +110,8 @@ create_cardinals_from_file(
 		    ( create_url_moniker = (func)GetProcAddress( module ,
 							"CreateURLMonikerEx")))
 		{
-			mbstowcs( wpath , path , MAX_PATH) ;
+			MultiByteToWideChar( CP_UTF8 , 0 , path , strlen(path) + 1 ,
+				wpath , MAX_PATH) ;
 
 			if( (*create_url_moniker)( NULL , wpath , &moniker ,
 					URL_MK_UNIFORM) == S_OK)
@@ -136,8 +138,9 @@ create_cardinals_from_file(
 		}
 	}
 #if  defined(__CYGWIN__) || defined(__MSYS__)
-	else
+	else if( strchr( path , '/'))	/* In case win32 style path is specified on cygwin/msys. */
 	{
+		/* cygwin style path => win32 style path. */
 		cygwin_conv_to_win32_path( path , winpath) ;
 		path = winpath ;
 	}
@@ -214,7 +217,7 @@ create_cardinals_from_file(
 
 	if( ! stream)
 	{
-		mbstowcs( wpath , path , MAX_PATH) ;
+		MultiByteToWideChar( CP_UTF8 , 0 , path , strlen(path) + 1 , wpath , MAX_PATH) ;
 	}
 
 	cardinal = NULL ;
@@ -314,12 +317,18 @@ end1:
 
 /* --- global functions --- */
 
-int
-main(
-	int  argc ,
-	char **  argv
+int PASCAL
+WinMain(
+	HINSTANCE  hinst ,
+	HINSTANCE  hprev ,
+	char *  cmdline ,
+	int  cmdshow
 	)
 {
+	WCHAR **  w_argv ;
+	char **  argv ;
+	int  argc ;
+	int  count ;
 	u_char *  cardinal ;
 	u_int  width ;
 	u_int  height ;
@@ -328,6 +337,29 @@ main(
 #if  0
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
 #endif
+
+	w_argv = CommandLineToArgvW( GetCommandLineW() , &argc) ;
+	if( argc == 0 || ! ( argv = (char**)alloca( sizeof(*argv) * argc)))
+	{
+		GlobalFree( w_argv) ;
+
+		return  -1 ;
+	}
+
+	for( count = 0 ; count < argc ; count++)
+	{
+		int  len ;
+
+		len = WideCharToMultiByte( CP_UTF8 , 0 , w_argv[count] ,
+			wcslen( w_argv[count]) + 1 , NULL , 0 , NULL , NULL) ;
+		if( ( argv[count] = (char*)alloca( len)))
+		{
+			WideCharToMultiByte( CP_UTF8 , 0 , w_argv[count] ,
+				wcslen( w_argv[count]) + 1 , argv[count] , len , NULL , NULL) ;
+		}
+	}
+
+	GlobalFree( w_argv) ;
 
 	if( argc != 6 || strcmp( argv[5] , "-c") != 0)
 	{

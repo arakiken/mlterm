@@ -512,6 +512,41 @@ kik_str_replace(
 	return  new_str ;
 }
 
+#if  0
+char *
+kik_str_escape_backslash(
+	char *  str
+	)
+{
+	char *  escaped_str ;
+	char *  p ;
+
+	if( ! ( p = escaped_str = malloc( strlen(str) +
+					kik_count_char_in_str( str , '\\') + 1)))
+	{
+		return  str ;
+	}
+
+	while( 1)
+	{
+		*(p++) = *str ;
+
+		if( *str == '\0')
+		{
+			g_free( str) ;
+
+			return  escaped_str ;
+		}
+		else if( *str == '\\')
+		{
+			*(p++) = '\\' ;
+		}
+
+		str ++ ;
+	}
+}
+#endif
+
 char *
 kik_str_unescape(
 	const char *  str

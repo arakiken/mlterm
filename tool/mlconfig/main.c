@@ -828,11 +828,6 @@ show(void)
 #endif
 	gtk_widget_show(window);
 
-#ifdef  USE_WIN32GUI
-	/* XXX */
-	gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
-#endif
-
 	gtk_main();
 
 	return  1;

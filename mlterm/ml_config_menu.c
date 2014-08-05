@@ -432,7 +432,12 @@ error2:
 
 			exit(1) ;
 		}
-		
+
+	#if  (defined(__CYGWIN__) || defined(__MSYS__)) && ! defined(DEBUG)
+		/* Suppress error message */
+		close( STDERR_FILENO) ;
+	#endif
+
 	       	execv( cmd_path , args) ;
 
 		/* failed */

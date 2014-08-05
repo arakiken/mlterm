@@ -1,3 +1,24 @@
+2014-08-06  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_imagelib.c: CreateProcess() => CreateProcessW()
+
+	* gdiplus.cpp:
+	  - mbstowcs() => MultiByteToWideChar()
+	  - CommandLineToArgvW(GetCommandLineW()) is used.
+
+	* ml_pty_ssh.c:
+	  - IS_RELATIVE_PATH() => IS_RELATIVE_PATH_UNIX().
+	  - scp works fully from mlconfig even if use_scp_full = false.
+
+	* kik_path.h: IS_RELATIVE_PATH_{DOS|UNIX}() are added.
+
+	* mlconfig/main.c: gtk_window_set_keep_above() is removed.
+
+	* ml_config_menu.c: close(STDERR_FILENO) is added.
+
+	* mc_wall_pic.c, gdiplus.cpp: Change of mc_wall_pic.c at 2014-08-03 is reverted,
+	  and strchr(path,'/') is checked before cygwin_conv_to_win32_path() in gdiplus.cpp.
+
 2014-08-03  Araki Ken  <arakiken@users.sf.net>
 
 	* mlconfig/po/*.po: Updated.
