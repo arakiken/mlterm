@@ -115,7 +115,7 @@ load_file(
 	)
 {
 	char *  cmd_line ;
-	WSTR  w_cmd_line ;
+	WCHAR *  w_cmd_line ;
 	int  num ;
 	SECURITY_ATTRIBUTES  sa ;
 	HANDLE  output_write ;
