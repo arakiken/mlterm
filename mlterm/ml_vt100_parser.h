@@ -275,6 +275,10 @@ void  ml_set_full_width_areas( char *  areas) ;
 
 void  ml_set_use_ttyrec_format( int  use) ;
 
+#ifdef  USE_LIBSSH2
+void  ml_set_use_scp_full( int  use) ;
+#endif
+
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
 	int  is_auto_encoding , int  use_auto_detect , int  logging_vt_seq ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
@@ -379,6 +383,8 @@ int  ml_vt100_parser_get_config( ml_vt100_parser_t *  vt100_parser , ml_pty_ptr_
 	char *  key , int  to_menu , int *  flag) ;
 
 int  ml_vt100_parser_set_config( ml_vt100_parser_t *  vt100_parser , char *  key , char *  val) ;
+
+int  ml_vt100_parser_exec_cmd( ml_vt100_parser_t *  vt100_parser , char *  cmd) ;
 
 
 #endif

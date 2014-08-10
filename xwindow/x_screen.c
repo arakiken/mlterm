@@ -3259,9 +3259,27 @@ set_xdnd_config(
 
 	screen = (x_screen_t*)win ;
 
-	x_screen_set_config( screen , dev , key , value) ;
+	if( strcmp( key , "scp") == 0)
+	{
+		if( ml_term_get_slave_fd( screen->term) == -1)	/* connecting to remote host. */
+		{
+			/* value is always UTF-8 */
+			ml_term_scp( screen->term , "." , value , ML_UTF8) ;
+		}
+		/* utf8 -> utf16 convertion is necessary on win32. */
+	#ifndef  USE_WIN32GUI
+		else
+		{
+			utf_selection_notified( win , value , strlen(value)) ;
+		}
+	#endif
+	}
+	else
+	{
+		x_screen_set_config( screen , dev , key , value) ;
 
-	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
+	}
 }
 #endif
 
@@ -8033,7 +8051,11 @@ x_screen_exec_cmd(
 {
 	char *  arg ;
 
-	if( strncmp( cmd , "mlclient" , 8) == 0)
+	if( ml_term_exec_cmd( screen->term , cmd))
+	{
+		return  1 ;
+	}
+	else if( strncmp( cmd , "mlclient" , 8) == 0)
 	{
 		if( HAS_SYSTEM_LISTENER(screen,mlclient))
 		{
@@ -8684,6 +8706,22 @@ x_screen_set_config(
 			else
 			{
 				screen->xterm_listener.set_selection = NULL ;
+			}
+		}
+	}
+	else if( strcmp( key , "allow_scp") == 0)
+	{
+		/*
+		 * processing_vtseq == -1: process vtseq in loopback.
+		 * processing_vtseq == 0 : stop processing vtseq.
+		 */
+		if( screen->processing_vtseq <= 0)
+		{
+			int  flag ;
+
+			if( ( flag = true_or_false( value)) >= 0)
+			{
+				ml_set_use_scp_full( flag) ;
 			}
 		}
 	}

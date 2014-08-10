@@ -799,6 +799,13 @@ write_to_pty(
 {
 	ssize_t  ret ;
 
+#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
+	if( ((ml_pty_ssh_t*)pty)->session->doing_scp)
+	{
+		return  0 ;
+	}
+#endif
+
 	ret = libssh2_channel_write( ((ml_pty_ssh_t*)pty)->channel , buf , len) ;
 
 	if( ret == LIBSSH2_ERROR_SOCKET_SEND ||
@@ -841,6 +848,13 @@ read_pty(
 		return  len ;
 	}
 
+#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
+	if( ((ml_pty_ssh_t*)pty)->session->doing_scp)
+	{
+		return  0 ;
+	}
+#endif
+
 	ret = libssh2_channel_read( ((ml_pty_ssh_t*)pty)->channel , buf , len) ;
 
 #ifdef  USE_WIN32API
@@ -866,7 +880,7 @@ scp_stop(
 	ml_pty_ssh_t *  pty_ssh
 	)
 {
-	pty_ssh->session->doing_scp = 0 ;
+	pty_ssh->session->doing_scp = -1 ;
 
 	return  1 ;
 }
@@ -1123,10 +1137,11 @@ scp_thread(
 {
 	scp_t *  scp ;
 	size_t  rd_len ;
-	char  buf[1024] ;
+	char  buf[8192] ;
 	int  progress ;
 	char  msg1[] = "\x1b[?25l\r\nTransferring data.\r\n|" ;
 	char  msg2[] = "**************************************************|\x1b[?25h\r\n" ;
+	char  err_msg[] = "\r\nInterrupted.\x1b[?25h\r\n" ;
 
 #if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 	pthread_detach( pthread_self()) ;
@@ -1139,7 +1154,7 @@ scp_thread(
 
 	ml_write_to_pty( &scp->pty_ssh->pty , msg1 , sizeof(msg1) - 1) ;
 
-	while( rd_len < scp->src_size && scp->pty_ssh->session->doing_scp)
+	while( rd_len < scp->src_size && scp->pty_ssh->session->doing_scp > 0)
 	{
 		int  new_progress ;
 		ssize_t  len ;
@@ -1201,7 +1216,15 @@ scp_thread(
 		#endif
 		}
 	}
-	ml_write_to_pty( &scp->pty_ssh->pty , msg2 , sizeof(msg2) - 1) ;
+
+	if( scp->pty_ssh->session->doing_scp > 0)
+	{
+		ml_write_to_pty( &scp->pty_ssh->pty , msg2 , sizeof(msg2) - 1) ;
+	}
+	else
+	{
+		ml_write_to_pty( &scp->pty_ssh->pty , err_msg , sizeof(err_msg) - 1) ;
+	}
 
 #if  1
 	kik_usleep( 100000) ;	/* Expect to switch to main thread and call ml_read_pty(). */
@@ -2015,6 +2038,7 @@ ml_pty_ssh_scp_intern(
 {
 	scp_t *  scp ;
 	struct stat  st ;
+	char *  msg ;
 
 	/* Note that session is non-block mode in this context. */
 
@@ -2102,6 +2126,14 @@ ml_pty_ssh_scp_intern(
 		while( libssh2_channel_free( scp->remote) == LIBSSH2_ERROR_EAGAIN) ;
 
 		goto  error ;
+	}
+
+	if( ( msg = alloca( 24 + strlen(src_path) + strlen(dst_path) + 1)))
+	{
+		sprintf( msg , "\r\nSCP: %s%s => %s%s" ,
+			src_is_remote ? "remote:" : "local:" , src_path ,
+			src_is_remote ? "local:" : "remote:" , dst_path) ;
+		ml_write_to_pty( pty , msg , strlen(msg)) ;
 	}
 
 #if  defined(USE_WIN32API)
@@ -2206,10 +2238,12 @@ ml_pty_ssh_poll(
 	{
 		u_int  idx ;
 
+	#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
 		if( sessions[count]->doing_scp)
 		{
 			continue ;
 		}
+	#endif
 
 		for( idx = 0 ; idx < sessions[count]->num_of_ptys ; idx++)
 		{
@@ -2313,6 +2347,13 @@ ml_pty_ssh_send_recv_x11(
 	}
 
 	session = sessions[count] ;
+
+#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
+	if( session->doing_scp)
+	{
+		return  0 ;
+	}
+#endif
 
 	if( session->x11_fds[idx] == -1 ||	/* Failed to connect X server */
 	    ! ( ( ! bidirection ||

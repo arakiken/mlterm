@@ -49,7 +49,7 @@ version 20140706
                      auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
                      unicode_full_width_areas | box_drawing_font | use_urgent_bell |
-                     allow_osc52 | auto_detect_encodings | use_auto_detect
+                     allow_osc52 | allow_scp | auto_detect_encodings | use_auto_detect
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -58,13 +58,12 @@ version 20140706
                      pwd | brightness | gamma | contrast | line_space | letter_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | static_backscroll_mode | use_multi_column_char |
-                     col_size_of_width_a |
-                     scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
-                     rows | cols | cursor_fg_color | cursor_bg_color | bd_color |
-		     it_color | ul_color | bl_color | co_color | use_bold_font |
+                     col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
+                     use_dynamic_comb | rows | cols | cursor_fg_color | cursor_bg_color |
+                     bd_color | it_color | ul_color | bl_color | co_color | use_bold_font |
                      use_italic_font | hide_underline | pty_list | pty_name | use_clipboard |
-                     use_alt_buffer | use_ansi_colors |
-                     icon_path | logging_vt_seq | gui | allow_osc52 | only_use_unicode_font |
+                     use_alt_buffer | use_ansi_colors | icon_path | logging_vt_seq | gui |
+                     allow_osc52 | allow_scp | only_use_unicode_font |
                      not_use_unicode_font | box_drawing_font | auto_detect_encodings |
                      use_auto_detect
   value            = <values for each key>

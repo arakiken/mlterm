@@ -97,6 +97,14 @@ int  ml_term_detach( ml_term_t *  term) ;
 #define  ml_term_response_config( term , key , value , to_menu) \
 		ml_response_config( (term)->pty , key , value , to_menu)
 
+#ifdef  USE_LIBSSH2
+#define  ml_term_scp( term , dst_path , src_path , path_encoding) \
+		ml_pty_ssh_scp( (term)->pty , ml_term_get_encoding( term) , \
+			path_encoding , dst_path , src_path , 1)
+#else
+#define  ml_term_scp( term , dst_path , src_path , path_encoding)  (0)
+#endif
+
 #define  ml_term_change_encoding( term , encoding) \
 		ml_vt100_parser_change_encoding( (term)->parser , encoding)
 
@@ -307,6 +315,8 @@ int  ml_term_get_config( ml_term_t *  term , ml_term_t *  output , char *  key ,
 	int  to_menu , int *  flag) ;
 
 int  ml_term_set_config( ml_term_t *  term , char *  key , char *  value) ;
+
+#define  ml_term_exec_cmd( term , cmd)  ml_vt100_parser_exec_cmd( term->parser , cmd)
 
 #define  ml_term_search_init( term , match)  ml_screen_search_init( (term)->screen , match)
 

@@ -1,3 +1,23 @@
+2014-08-09  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.ja, man/mlterm.1: Updated.
+
+	* x_screen.c: "scp" is executed in set_xdnd_config() if a local file is
+	  dropped on ssh client window.
+
+	* xlib/x_dnd.c: "text/uri-list" triggers set_xdnd_config("scp").
+
+	* win32/x_dnd.c: Shift+DnD triggers set_xdnd_config("scp").
+
+	* ml_term.h: ml_term_exec_cmd() and ml_term_scp() are added.
+
+	* ml_vt100_parser.[ch]: ml_vt100_parser_exec_cmd() is added.
+
+	* libptyssh/ml_pty_ssh.c, ml_pty_ssh.c:
+	  - read/write on ssh session is blocked while scp thread is working.
+	  - Outputting "SCP: src -> dst" message is moved from ml_pty_ssh.c to
+	    libptyssh/ml_pty_ssh.c
+
 2014-08-06  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_imagelib.c: CreateProcess() => CreateProcessW()

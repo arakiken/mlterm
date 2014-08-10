@@ -106,7 +106,7 @@ adjust_pixmap(
 
 static int
 load_file(
-	char *  path ,
+	char *  path ,	/* must be UTF-8 */
 	u_int *  width ,
 	u_int *  height ,
 	x_picture_modifier_t *  pic_mod ,

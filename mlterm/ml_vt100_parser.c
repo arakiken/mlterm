@@ -167,6 +167,10 @@ static u_int  auto_detect_count ;
 
 static int  use_ttyrec_format ;
 
+#ifdef  USE_LIBSSH2
+static int  use_scp_full ;
+#endif
+
 
 /* --- static functions --- */
 
@@ -1911,133 +1915,7 @@ config_protocol_set(
 		return ;
 	}
 
-	if( strcmp( pt , "gen_proto_challenge") == 0)
-	{
-		ml_gen_proto_challenge() ;
-	}
-	else if( strcmp( pt , "full_reset") == 0)
-	{
-		soft_reset( vt100_parser) ;
-	}
-	else if( strncmp( pt , "snapshot" , 8) == 0)
-	{
-		char **  argv ;
-		int  argc ;
-		ml_char_encoding_t  encoding ;
-		char *  file ;
-
-		argv = kik_arg_str_to_array( &argc , pt) ;
-
-		if( argc >= 3)
-		{
-			encoding = ml_get_char_encoding( argv[2]) ;
-		}
-		else
-		{
-			encoding = ML_UNKNOWN_ENCODING ;
-		}
-
-		if( argc >= 2)
-		{
-			file = argv[1] ;
-		}
-		else
-		{
-			/* skip /dev/ */
-			file = ml_pty_get_slave_name( vt100_parser->pty) + 5 ;
-		}
-
-		if( strstr( file , ".."))
-		{
-			/* insecure file name */
-			kik_msg_printf( "%s is insecure file name.\n" , file) ;
-		}
-		else
-		{
-			snapshot( vt100_parser , encoding , file) ;
-		}
-	}
-#ifndef  NO_IMAGE
-	else if( strncmp( pt , "show_picture " , 13) == 0 ||
-	         strncmp( pt , "add_frame " , 10) == 0)
-	{
-		int  clip_beg_col = 0 ;
-		int  clip_beg_row = 0 ;
-		int  clip_cols = 0 ;
-		int  clip_rows = 0 ;
-		int  img_cols = 0 ;
-		int  img_rows = 0 ;
-		char **  argv ;
-		int  argc ;
-
-		argv = kik_arg_str_to_array( &argc , pt) ;
-		if( argc == 1)
-		{
-			return ;
-		}
-
-		if( argc >= 3)
-		{
-			int  has_img_size ;
-
-			if( strchr( argv[argc - 1] , '+'))
-			{
-				sscanf( argv[argc - 1] , "%dx%d+%d+%d" ,
-					&clip_cols , &clip_rows ,
-					&clip_beg_col , &clip_beg_row) ;
-
-				has_img_size = (argc >= 4) ;
-			}
-			else
-			{
-				has_img_size = 1 ;
-			}
-
-			if( has_img_size)
-			{
-				sscanf( argv[2] , "%dx%d" , &img_cols , &img_rows) ;
-			}
-		}
-
-		if( *argv[0] == 's')
-		{
-			show_picture( vt100_parser , argv[1] ,
-				clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
-					img_cols , img_rows , 0) ;
-		}
-		else if( HAS_XTERM_LISTENER(vt100_parser,add_frame_to_animation))
-		{
-			(*vt100_parser->xterm_listener->add_frame_to_animation)(
-				vt100_parser->xterm_listener->self ,
-				argv[1] , &img_cols , &img_rows) ;
-		}
-	}
-#endif
-#ifdef  USE_LIBSSH2
-	else if( strncmp( pt , "scp " , 4) == 0)
-	{
-		char **  argv ;
-		int  argc ;
-
-		argv = kik_arg_str_to_array( &argc , pt) ;
-
-		if( argc == 3 || argc == 4)
-		{
-			ml_char_encoding_t  encoding ;
-
-			if( ! argv[3] ||
-			    ( encoding = ml_get_char_encoding( argv[3]))
-			      == ML_UNKNOWN_ENCODING)
-			{
-				encoding = vt100_parser->encoding ;
-			}
-
-			ml_pty_ssh_scp( vt100_parser->pty ,
-				vt100_parser->encoding , encoding , argv[2] , argv[1]) ;
-		}
-	}
-#endif
-	else if( dev && strlen( dev) <= 7 && strstr( dev , "font"))
+	if( dev && strlen( dev) <= 7 && strstr( dev , "font"))
 	{
 		char *  key ;
 		char *  val ;
@@ -6231,6 +6109,16 @@ ml_set_use_ttyrec_format(
 	use_ttyrec_format = use ;
 }
 
+#ifdef  USE_LIBSSH2
+void
+ml_set_use_scp_full(
+	int  use
+	)
+{
+	use_scp_full = use ;
+}
+#endif
+
 ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
@@ -7217,6 +7105,17 @@ ml_vt100_parser_get_config(
 			value = "false" ;
 		}
 	}
+	else if( strcmp( key , "allow_scp") == 0)
+	{
+		if( use_scp_full)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
 	else if( strcmp( key , "challenge") == 0)
 	{
 		if( to_menu)
@@ -7409,6 +7308,147 @@ ml_vt100_parser_set_config(
 	else
 	{
 		/* Continue to process it in x_screen.c */
+		return  0 ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_vt100_parser_exec_cmd(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  cmd
+	)
+{
+	if( strcmp( cmd , "gen_proto_challenge") == 0)
+	{
+		ml_gen_proto_challenge() ;
+	}
+	else if( strcmp( cmd , "full_reset") == 0)
+	{
+		soft_reset( vt100_parser) ;
+	}
+	else if( strncmp( cmd , "snapshot" , 8) == 0)
+	{
+		char **  argv ;
+		int  argc ;
+		ml_char_encoding_t  encoding ;
+		char *  file ;
+
+		argv = kik_arg_str_to_array( &argc , cmd) ;
+
+		if( argc >= 3)
+		{
+			encoding = ml_get_char_encoding( argv[2]) ;
+		}
+		else
+		{
+			encoding = ML_UNKNOWN_ENCODING ;
+		}
+
+		if( argc >= 2)
+		{
+			file = argv[1] ;
+		}
+		else
+		{
+			/* skip /dev/ */
+			file = ml_pty_get_slave_name( vt100_parser->pty) + 5 ;
+		}
+
+		if( strstr( file , ".."))
+		{
+			/* insecure file name */
+			kik_msg_printf( "%s is insecure file name.\n" , file) ;
+		}
+		else
+		{
+			snapshot( vt100_parser , encoding , file) ;
+		}
+	}
+#ifndef  NO_IMAGE
+	else if( strncmp( cmd , "show_picture " , 13) == 0 ||
+	         strncmp( cmd , "add_frame " , 10) == 0)
+	{
+		int  clip_beg_col = 0 ;
+		int  clip_beg_row = 0 ;
+		int  clip_cols = 0 ;
+		int  clip_rows = 0 ;
+		int  img_cols = 0 ;
+		int  img_rows = 0 ;
+		char **  argv ;
+		int  argc ;
+
+		argv = kik_arg_str_to_array( &argc , cmd) ;
+		if( argc == 1)
+		{
+			return  1 ;
+		}
+
+		if( argc >= 3)
+		{
+			int  has_img_size ;
+
+			if( strchr( argv[argc - 1] , '+'))
+			{
+				sscanf( argv[argc - 1] , "%dx%d+%d+%d" ,
+					&clip_cols , &clip_rows ,
+					&clip_beg_col , &clip_beg_row) ;
+
+				has_img_size = (argc >= 4) ;
+			}
+			else
+			{
+				has_img_size = 1 ;
+			}
+
+			if( has_img_size)
+			{
+				sscanf( argv[2] , "%dx%d" , &img_cols , &img_rows) ;
+			}
+		}
+
+		if( *argv[0] == 's')
+		{
+			show_picture( vt100_parser , argv[1] ,
+				clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
+					img_cols , img_rows , 0) ;
+		}
+		else if( HAS_XTERM_LISTENER(vt100_parser,add_frame_to_animation))
+		{
+			(*vt100_parser->xterm_listener->add_frame_to_animation)(
+				vt100_parser->xterm_listener->self ,
+				argv[1] , &img_cols , &img_rows) ;
+		}
+	}
+#endif
+#ifdef  USE_LIBSSH2
+	else if( strncmp( cmd , "scp " , 4) == 0)
+	{
+		char **  argv ;
+		int  argc ;
+
+		argv = kik_arg_str_to_array( &argc , cmd) ;
+
+		if( argc == 3 || argc == 4)
+		{
+			ml_char_encoding_t  encoding ;
+
+			if( ! argv[3] ||
+			    ( encoding = ml_get_char_encoding( argv[3]))
+			      == ML_UNKNOWN_ENCODING)
+			{
+				encoding = vt100_parser->encoding ;
+			}
+
+			ml_pty_ssh_scp( vt100_parser->pty ,
+				vt100_parser->encoding , encoding , argv[2] , argv[1] ,
+				use_scp_full) ;
+		}
+	}
+#endif
+	else
+	{
 		return  0 ;
 	}
 

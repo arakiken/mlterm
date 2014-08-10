@@ -80,7 +80,10 @@ ml_pty_new(
 	#endif
 	}
 
-	ml_config_menu_init( &pty->config_menu) ;
+	if( pty)
+	{
+		ml_config_menu_init( &pty->config_menu) ;
+	}
 
 	return  pty ;
 }

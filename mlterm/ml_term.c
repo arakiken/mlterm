@@ -7,6 +7,7 @@
 #include  <kiklib/kik_mem.h>	/* malloc/free */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
+#include  <kiklib/kik_sig_child.h>
 
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
@@ -20,7 +21,6 @@
 #else
 #include  <pthread.h>
 #endif
-#include  <kiklib/kik_sig_child.h>
 
 
 typedef struct

@@ -265,23 +265,14 @@ ml_pty_ssh_send_recv_x11(
 #endif	/* NO_DYNAMIC_LOAD_SSH */
 
 
-static int  use_scp_full ;
-
-void
-ml_set_use_scp_full(
-	int  use
-	)
-{
-	use_scp_full = use ;
-}
-
 int
 ml_pty_ssh_scp(
 	ml_pty_ptr_t  pty ,
 	ml_char_encoding_t  pty_encoding ,	/* Not ML_UNKNOWN_ENCODING */
 	ml_char_encoding_t  path_encoding ,	/* Not ML_UNKNOWN_ENCODING */
 	char *  dst_path ,
-	char *  src_path
+	char *  src_path ,
+	int  use_scp_full
 	)
 {
 	int  dst_is_remote ;
@@ -343,7 +334,11 @@ ml_pty_ssh_scp(
 		return  0 ;
 	}
 
-	if( IS_RELATIVE_PATH_UNIX(dst_path))	/* dst_path is always unix style. */
+	if( pty->stored /* using loopback */ || use_scp_full)
+	{
+		/* do nothing */
+	}
+	else if( IS_RELATIVE_PATH_UNIX(dst_path))	/* dst_path is always unix style. */
 	{
 		char *  prefix ;
 
@@ -375,10 +370,6 @@ ml_pty_ssh_scp(
 		}
 
 		dst_path = p ;
-	}
-	else if( ! pty->stored /* not using loopback */ && ! use_scp_full)
-	{
-		return  0 ;
 	}
 
 	/* scp /tmp/TEST /home/user => scp /tmp/TEST /home/user/TEST */
@@ -473,15 +464,6 @@ ml_pty_ssh_scp(
 	if( ssh_scp && (*ssh_scp)( pty , src_is_remote , dst_path , src_path))
 #endif
 	{
-		len = 24 + strlen( _src_path) + strlen( _dst_path) + 1 ;
-		if( ( p = alloca( len)))
-		{
-			sprintf( p , "\r\nSCP: %s%s => %s%s" ,
-				src_is_remote ? "remote:" : "local:" , _src_path ,
-				src_is_remote ? "local:" : "remote:" , _dst_path) ;
-			ml_write_to_pty( pty , p , len - 1) ;
-		}
-
 		return  1 ;
 	}
 	else

@@ -13,6 +13,7 @@
 #include  <string.h>
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
+#include  <kiklib/kik_types.h>
 #include  <kiklib/kik_debug.h>
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
@@ -42,7 +43,7 @@ typedef struct x_dnd_context {
 
 typedef struct dnd_parser {
 	char *  atomname ;
-	int  (*parser)(x_window_t *, unsigned char *, int) ;
+	int  (*parser)(x_window_t *, u_char *, int) ;
 } dnd_parser_t ;
 
 /********************** parsers **********************************/
@@ -50,13 +51,13 @@ typedef struct dnd_parser {
 static int
 parse_text_unicode(
 	x_window_t *  win,
-	unsigned char *  src,
+	u_char *  src,
 	int  len)
 {
 	int filled_len ;
 	mkf_parser_t * parser ;
 	mkf_conv_t * conv ;
-	unsigned char conv_buf[512] = {0};
+	u_char conv_buf[512] = {0};
 
 	if( !(win->utf_selection_notified))
 		return  FAILURE ;
@@ -114,7 +115,7 @@ parse_text_unicode(
 			/* XXX: it's not spec comformant and someteime fails */
 			u_int16_t BOM[] =  {0xFEFF};
 
-			(parser->set_str)( parser , (unsigned char *)BOM , 2) ;
+			(parser->set_str)( parser , (u_char *)BOM , 2) ;
 			(parser->next_char)( parser , NULL) ;
 		}
 	}
@@ -150,51 +151,89 @@ parse_text_unicode(
 	return  SUCCESS ;
 }
 
+static void
+unescape(
+	u_char *  src
+	)
+{
+	u_char *  dst ;
+	int  c ;
+
+	dst = src ;
+
+	while( *src)
+	{
+		if( *src == '%' && sscanf( src , "%%%2x" , &c) == 1)
+		{
+			*(dst++) = c ;
+			src += 3 ;
+		}
+		else
+		{
+			*(dst++) = *(src++) ;
+		}
+	}
+	*dst = '\0' ;
+}
+
 static int
 parse_text_uri_list(
 	x_window_t *  win,
-	unsigned char *  src,	/* src[len - 1] is not necessarily NULL. */
+	u_char *  src,
 	int  len)
 {
-	unsigned char *  pos ;
-	unsigned char *  end ;
+	u_char *  pos ;
+	u_char *  end ;
 
 	if( len <= 0)
-		return  FAILURE ;
-	if( !(win->utf_selection_notified))
 		return  FAILURE ;
 	pos = src ;
 	end = src + len ;
 
 	while( pos < end)
 	{
-		unsigned char *  delim ;
+		u_char *  delim ;
 
 		/* 
 		 * According to RFC, 0x0d is the delimiter.
 		 */
 		if( ( delim = strchr( pos , 0x0d)))
 		{
-			/* Output one ' ' as a separator. */
-			*delim++ = ' ' ;
+			*delim++ = '\0' ;
 		}
 		else
 		{
 			delim = end ;
 		}
 
-		if( pos + 5 < end && strncmp( (char *)pos , "file:" , 5) == 0)
+		if( pos + 7 < end && strncmp( (char *)pos , "file://" , 7) == 0)
 		{
 			/*
 			 * Skip "file:".
-			 * But if pos == 'file:'(with no trailing bytes), not skipped
-			 * by checking pos + 5 < end because it doesn't conform to
-			 * "file:/..." format.
+			 * But if pos == 'file://'(with no trailing bytes), not skipped
+			 * by checking pos + 7 < end because it doesn't conform to
+			 * "file://..." format.
 			 */
-			pos += 5 ;
+			pos += 7 ;
 		}
-		
-		(*win->utf_selection_notified)( win , (unsigned char *)pos, delim - pos) ;
+
+		unescape( pos) ;
+
+	#if  1
+		if( win->set_xdnd_config)
+		{
+			(*win->set_xdnd_config)( win , NULL , "scp" , pos) ;
+		}
+		else
+	#endif
+		if( win->utf_selection_notified)
+		{
+			(*win->utf_selection_notified)( win , pos , strlen( pos)) ;
+		}
+		else
+		{
+			return  FAILURE ;
+		}
 
 		/* skip trailing 0x0A */
 		pos = delim + 1 ;
@@ -206,7 +245,7 @@ parse_text_uri_list(
 static int
 parse_compound_text(
 	x_window_t *  win,
-	unsigned char *  src,
+	u_char *  src,
 	int  len)
 {
 	if( !(win->xct_selection_notified))
@@ -217,22 +256,9 @@ parse_compound_text(
 }
 
 static int
-parse_text(
-	x_window_t *  win,
-	unsigned char *  src,
-	int  len)
-{
-	if( !(win->utf_selection_notified))
-		return  FAILURE ;
-	(*win->utf_selection_notified)( win , src , len) ;
-
-	return  SUCCESS ;
-}
-
-static int
 parse_utf8_string(
 	x_window_t *  win,
-	unsigned char *  src,
+	u_char *  src,
 	int  len)
 {
 	if( !(win->utf_selection_notified))
@@ -245,7 +271,7 @@ parse_utf8_string(
 static int
 parse_mlterm_config(
 	x_window_t *  win,
-	unsigned char *  src,
+	u_char *  src,
 	int  len)
 {
 	char *  value ;
@@ -272,11 +298,11 @@ parse_mlterm_config(
 static int
 parse_app_color(
 	x_window_t *  win,
-	unsigned char *  src,
+	u_char *  src,
 	int  len)
 {
 	u_int16_t *r, *g, *b;
-	unsigned char buffer[25];
+	u_char buffer[25];
 
 	r = (u_int16_t *)src ;
 	g = r + 1 ;
@@ -296,7 +322,7 @@ parse_app_color(
 static int
 parse_prop_bgimage(
 	x_window_t *  win,
-	unsigned char *  src,
+	u_char *  src,
 	int  len)
 {
 	char *  head ;
@@ -319,7 +345,7 @@ parse_prop_bgimage(
 		if( !(head = strstr( (char *)src, "/")))
 			return  FAILURE ;
 		/* and <host> should be localhost and safely ignored.*/
-		src = (unsigned char *)head ;
+		src = (u_char *)head ;
 
 		/* remove trailing garbage */
 		if( (head = strstr( (char *)src, "\r")))
@@ -346,7 +372,7 @@ parse_prop_bgimage(
 static int
 parse_debug(
 	x_window_t *  win,
-	unsigned char *  src,
+	u_char *  src,
 	int  len)
 {
 	int i;
@@ -364,7 +390,7 @@ static dnd_parser_t dnd_parsers[] ={
 	{"text/x-mlterm.config"  , parse_mlterm_config } ,
 	{"UTF8_STRING"  , parse_utf8_string } ,
 	{"COMPOUND_TEXT", parse_compound_text } ,
-	{"TEXT"         , parse_text } ,
+	{"TEXT"         , parse_utf8_string } ,
 	{"application/x-color"  , parse_app_color } ,
 	{"property/bgimage"  , parse_prop_bgimage } ,
 	{"x-special/gnome-reset-background"  , parse_prop_bgimage },
@@ -544,7 +570,7 @@ finish(
 static int
 parse(
 	x_window_t * win,
-	unsigned char *src,
+	u_char *src,
 	int len)
 {
 	dnd_parser_t *  proc_entry ;
@@ -635,8 +661,6 @@ choose_atom(
 	return atom_list[i] ;
 }
 
-/* --- global functions --- */
-
 /**set/reset the window's dnd awareness
  *\param win mlterm window
  *\param flag awareness is set when true
@@ -651,7 +675,7 @@ awareness(
 	XChangeProperty( win->disp->display, win->my_window,
 			 XInternAtom( win->disp->display, "XdndAware", False),
 			 XA_ATOM, 32, PropModeReplace,
-			 (unsigned char *)(&version), 1) ;
+			 (u_char *)(&version), 1) ;
 	set_badwin_handler(0) ;
 }
 
@@ -681,7 +705,7 @@ enter(
 					     0L, 1024L, False, XA_ATOM,
 					     &act_type,
 					     &act_format, &nitems, &left,
-					     (unsigned char **)(&dat)) ;
+					     (u_char **)(&dat)) ;
 		set_badwin_handler(0) ;
 
 		if( result != Success)

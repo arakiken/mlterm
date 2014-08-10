@@ -770,8 +770,11 @@ comment $Id$
       o ssh_x11_forwarding (true/*false*)
         ssh 接続で x11 forwarding を有効にする。
 
-      o allow_scp (false)
+      o allow_scp (true/*false*)
         ssh 接続時に OSC 5379 scp を許可する。
+
+        false の場合でも、転送先ホストの "." (~/.mlterm/scp) ディレクトリ以下に
+        保存することは可能です。
 
       o auto_restart (*true*/false)
         SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
@@ -1314,6 +1317,10 @@ comment $Id$
     Button で領域選択できます。
 
     Mod(Alt)を押しながらマウスでドラッグすると矩形領域を選択できます。
+
+    ファイルをドラッグし、mlterm の画面にドロップすると、そのファイルのパスをペ
+    ーストします。ssh 接続中の画面にドロップした場合は、リモートホストに scp し
+    ます。
 
     Ctrl+左ボタン(ボタン1)で、メニューがでます。 
     Ctrl+右ボタン(ボタン3)で、設定画面がでます。
