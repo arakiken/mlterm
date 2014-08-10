@@ -84,7 +84,7 @@ x_dnd_filter_event(
 	}
 
 	/* Shift+DnD => SCP */
-	do_scp = GetKeyState(VK_SHIFT) ;
+	do_scp = (GetKeyState(VK_SHIFT) < 0) ;
 
 #ifndef  USE_WIN32API
 	utf8_parser = mkf_utf8_parser_new() ;

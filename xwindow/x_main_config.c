@@ -9,6 +9,8 @@
 #include  <kiklib/kik_str.h>	/* kik_str_to_uint */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
 
+#include  "ml_term_manager.h"
+
 
 /* --- global functions --- */
 
