@@ -28,6 +28,10 @@
 #define  LIBEXECDIR  "/usr/local/libexec"
 #endif
 
+#if  1
+#define  EMBEDDING_SIXEL
+#endif
+
 
 /* --- static functions --- */
 
@@ -199,8 +203,7 @@ modify_pixmap(
 	}
 }
 
-/* For old machines and Android (not to use mlimgloader) */
-#if  defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
+#ifdef  EMBEDDING_SIXEL
 
 #include  <string.h>
 #include  <kiklib/kik_util.h>
@@ -339,15 +342,11 @@ error:
 
 	return  0 ;
 }
-#endif
-
-/* For old machines and Android (not to use mlimgloader) */
-#if  defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
 
 #define  CARD_HEAD_SIZE  0
 #include  "../../common/c_sixel.c"
 
-#endif
+#endif	/* EMBEDDING_SIXEL */
 
 /* For old machines (not to use mlimgloader) */
 #if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(USE_GRF)
@@ -470,8 +469,13 @@ load_file(
 	}
 	else
 #endif
-#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ANDROID__)
-	if( strstr( path , ".six") && ( *pixmap = calloc( 1 , sizeof(**pixmap))))
+#ifdef  EMBEDDING_SIXEL
+	if( strstr( path , ".six") &&
+	    /* For old machines and Android (not to use mlimgloader) */
+	#if  ! defined(__NetBSD__) && ! defined(__OpenBSD__) && ! defined(__ANDROID__)
+	    width == 0 && height == 0 &&
+	#endif
+	    ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
 						&(*pixmap)->width , &(*pixmap)->height)) &&

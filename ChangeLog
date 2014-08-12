@@ -1,3 +1,12 @@
+2014-08-12  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.ja: Updated.
+
+	* xlib/x_dnd.c, x_screen.c: DnD without Shift doesn't start scp.
+
+	* fb/x_imagelib.c, win32/x_imagelib.c: Sixel parser is embeded instead of
+	  using mlimgloader.
+
 2014-08-09  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.ja, man/mlterm.1: Updated.

@@ -3266,13 +3266,6 @@ set_xdnd_config(
 			/* value is always UTF-8 */
 			ml_term_scp( screen->term , "." , value , ML_UTF8) ;
 		}
-		/* utf8 -> utf16 convertion is necessary on win32. */
-	#ifndef  USE_WIN32GUI
-		else
-		{
-			utf_selection_notified( win , value , strlen(value)) ;
-		}
-	#endif
 	}
 	else
 	{

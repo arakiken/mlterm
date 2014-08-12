@@ -2,6 +2,7 @@
  *	$Id$
  */
 
+#include <string.h>	/* memcpy */
 #include <sys/stat.h>	/* fstat */
 #include <kiklib/kik_util.h>	/* K_MIN */
 

@@ -19,6 +19,9 @@
 
 /* --- static functions --- */
 
+#define  CARD_HEAD_SIZE  0
+#include  "../../common/c_sixel.c"
+
 static void
 value_table_refresh(
 	u_char *  value_table ,		/* 256 bytes */
@@ -129,6 +132,13 @@ load_file(
 	HDC  hdc ;
 	BYTE *  image ;
 
+	if( strstr( path , ".six") && *width == 0 && *height == 0 &&
+	    /* XXX fopen() in load_sixel_from_file() on win32api doesn't support UTF-8. */
+	    ( image = (u_int32_t*)load_sixel_from_file( path , width , height)))
+	{
+		goto  loaded ;
+	}
+
 #define  CMD_LINE_FMT  "mlimgloader.exe 0 %u %u \"%s\" -c"
 
 	if( ! ( cmd_line = alloca( sizeof( CMD_LINE_FMT) + DIGIT_STR_LEN(int) * 2 +
@@ -200,7 +210,7 @@ load_file(
 					NULL , NULL , TRUE , CREATE_NO_WINDOW ,
 					NULL , NULL , &si , &pi))
 				{
-					goto  success ;
+					goto  executed ;
 				}
 			}
 		}
@@ -216,7 +226,7 @@ load_file(
 		goto  error ;
 	}
 
-success:
+executed:
 	CloseHandle( output_write) ;
 	CloseHandle( pi.hProcess) ;
 	CloseHandle( pi.hThread) ;
@@ -262,6 +272,7 @@ success:
 
 	CloseHandle( output_read) ;
 
+loaded:
 	adjust_pixmap( image , *width , *height , pic_mod) ;
 
 	if( hbmp_mask)

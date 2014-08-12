@@ -39,6 +39,7 @@ typedef struct x_dnd_context {
 	int  is_incr ;
 	mkf_parser_t * parser ;
 	mkf_conv_t * conv ;
+	Atom  action ;
 } x_dnd_context_t ;
 
 typedef struct dnd_parser {
@@ -219,14 +220,14 @@ parse_text_uri_list(
 
 		unescape( pos) ;
 
-	#if  1
-		if( win->set_xdnd_config)
+		/* XdndActionMove == Shift+DnD */
+		if( win->dnd->action ==
+			XInternAtom( win->disp->display, "XdndActionMove", False) &&
+		    win->set_xdnd_config)
 		{
 			(*win->set_xdnd_config)( win , NULL , "scp" , pos) ;
 		}
-		else
-	#endif
-		if( win->utf_selection_notified)
+		else if( win->utf_selection_notified)
 		{
 			(*win->utf_selection_notified)( win , pos , strlen( pos)) ;
 		}
@@ -506,8 +507,7 @@ reply(
 		msg.data.l[1] = 0x1 | 0x2 ; /* accept the drop | use [2][3] */
 		msg.data.l[2] = 0 ;
 		msg.data.l[3] = 0 ;
-		msg.data.l[4] = XInternAtom( win->disp->display,
-					     "XdndActionCopy", False) ;
+		msg.data.l[4] = win->dnd->action ;
 	}
 	else
 	{
@@ -545,7 +545,7 @@ finish(
 	msg.data.l[0] = win->my_window ;
 	/* setting bit 0 means success */
 	msg.data.l[1] = 1 ;
-	msg.data.l[2] = XInternAtom( win->disp->display, "XdndActionCopy", False) ;
+	msg.data.l[2] = win->dnd->action ;
 	msg.type = ClientMessage ;
 	msg.format = 32 ;
 	msg.window = win->dnd->source ;
@@ -769,6 +769,8 @@ position(
 
 		return  FAILURE ;
 	}
+
+	win->dnd->action = event->xclient.data.l[4] ;
 
 	reply( win) ;
 
