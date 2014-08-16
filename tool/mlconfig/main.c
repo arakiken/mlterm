@@ -45,16 +45,13 @@
 
 /* --- static functions --- */
 
-static gint
+static void
 end_application(
 	GtkWidget *  widget ,
-	GdkEvent *  event ,
 	gpointer  data
 	)
 {
 	gtk_main_quit() ;
-
-	return  0 ;
 }
 
 static gint
@@ -533,7 +530,7 @@ show(void)
 	GtkWidget *  separator ;
 	
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
-	g_signal_connect( window , "delete-event" , G_CALLBACK(end_application) , NULL) ;
+	g_signal_connect( window , "destroy" , G_CALLBACK(end_application) , NULL) ;
 	gtk_window_set_title( GTK_WINDOW(window) , _("mlterm configuration")) ;
 	gtk_container_set_border_width( GTK_CONTAINER(window) , 0) ;
 

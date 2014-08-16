@@ -7107,11 +7107,13 @@ ml_vt100_parser_get_config(
 	}
 	else if( strcmp( key , "allow_scp") == 0)
 	{
+	#ifdef  USE_LIBSSH2
 		if( use_scp_full)
 		{
 			value = "true" ;
 		}
 		else
+	#endif
 		{
 			value = "false" ;
 		}

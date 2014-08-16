@@ -277,6 +277,8 @@ void  ml_set_use_ttyrec_format( int  use) ;
 
 #ifdef  USE_LIBSSH2
 void  ml_set_use_scp_full( int  use) ;
+#else
+#define  ml_set_use_scp_full(use)  (0)
 #endif
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,

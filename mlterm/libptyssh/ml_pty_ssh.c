@@ -22,6 +22,9 @@
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* close/pipe */
 #include  <stdio.h>		/* sprintf */
+#ifdef  __CYGWIN__
+#include  <sys/wait.h>
+#endif
 
 
 #ifndef  USE_WIN32API
@@ -980,6 +983,22 @@ error1:
 }
 #endif	/* USE_WIN32API */
 
+#ifdef  __CYGWIN__
+static void
+check_sig_child(
+	pid_t  pid
+	)
+{
+	/* SIGCHLD signal isn't delivered on cygwin even if mlconfig exits. */
+	int  status ;
+
+	if( pid > 0 && waitpid( pid , &status , WNOHANG) == pid)
+	{
+		kik_trigger_sig_child( pid) ;
+	}
+}
+#endif
+
 static ssize_t
 lo_read_pty(
 	ml_pty_t *  pty ,
@@ -987,6 +1006,10 @@ lo_read_pty(
 	size_t  len
 	)
 {
+#ifdef  __CYGWIN__
+	check_sig_child( pty->config_menu.pid) ;
+#endif
+
 	return  read( pty->master , buf , len) ;
 }
 
@@ -997,6 +1020,10 @@ lo_write_to_pty(
 	size_t  len
 	)
 {
+#ifdef  __CYGWIN__
+	check_sig_child( pty->config_menu.pid) ;
+#endif
+
 	if( len == 1 && buf[0] == '\x03')
 	{
 		/* ^C */
