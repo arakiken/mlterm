@@ -201,6 +201,9 @@
 
 # logging_vt_seq = false
 
+# (raw,ttyrec)
+# vt_seq_format = raw
+
 # use_clipboard = false
 
 # logging_msg = true

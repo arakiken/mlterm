@@ -1,5 +1,16 @@
 2014-08-16  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.3.8 released.
+	  (tag "rel-3_3_8")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.3.8.
+
+	* etc/main, etc/main.ja: Updated.
+
+2014-08-16  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_vt100_parser.[ch]: Compiling error if mlterm is built without
 	  --enable-ssh2 is fixed.
 

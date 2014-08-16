@@ -603,7 +603,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 	{
 		kik_conf_t *  conf ;
 
-		kik_init_prog( "mlterm" , "3.3.7") ;
+		kik_init_prog( "mlterm" , "3.3.8") ;
 		kik_set_sys_conf_dir( CONFIG_PATH) ;
 		kik_locale_init( "") ;
 		kik_sig_child_init() ;

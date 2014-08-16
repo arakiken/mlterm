@@ -290,6 +290,9 @@ scrollbar_view_name = sample
 # pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 # logging_vt_seq = false
 
+# ~/.mlterm/[device].log に記録するフォーマットを指定する。(raw,ttyrec)
+# vt_seq_format = raw
+
 # 領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 # use_clipboard = false
 
