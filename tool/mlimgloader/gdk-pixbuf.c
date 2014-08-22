@@ -631,6 +631,7 @@ main(
 		u_char *  cardinal ;
 		ssize_t  size ;
 
+	#if  GDK_PIXBUF_MAJOR >= 2
 		if( strcmp( argv[5] , "-c") != 0)
 		{
 			char *  type ;
@@ -652,6 +653,7 @@ main(
 
 			return  0 ;
 		}
+	#endif
 
 		if( ! ( cardinal = (u_char*)create_cardinals_from_pixbuf( pixbuf)))
 		{

@@ -35,9 +35,6 @@
 #define CONFIG_PATH "/etc"
 #endif
 
-#define  MOUSE_POS_LIMIT  (0xff - 0x20)
-#define  EXT_MOUSE_POS_LIMIT  (0x7ff - 0x20)
-
 /* Same as those defined in SWT.java */
 #define  AltMask (1 << 16)
 #define  ShiftMask  (1 << 17)
@@ -68,7 +65,8 @@ typedef struct  native_obj
 	ml_screen_event_listener_t  screen_listener ;
 	ml_xterm_event_listener_t  xterm_listener ;
 
-	char  prev_mouse_report_seq[5] ;
+	int16_t  prev_mouse_report_col ;
+	int16_t  prev_mouse_report_row ;
 
 } native_obj_t ;
 
@@ -337,13 +335,13 @@ resize(
 
 static void
 set_mouse_report(
-	void *  p ,
-	ml_mouse_report_mode_t  mode
+	void *  p
 	)
 {
-	if( ! mode)
+	if( ! ml_term_get_mouse_report_mode( ((native_obj_t*)p)->term))
 	{
-		memset( ((native_obj_t*)p)->prev_mouse_report_seq , 0 , 5) ;
+		((native_obj_t*)p)->prev_mouse_report_col =
+		((native_obj_t*)p)->prev_mouse_report_row = -1 ;
 	}
 }
 
@@ -923,6 +921,8 @@ Java_mlterm_MLTermPty_nativeOpen(
 	nativeObj->xterm_listener.resize = resize ;
 	nativeObj->xterm_listener.set_mouse_report = set_mouse_report ;
 	nativeObj->xterm_listener.bel = bel ;
+
+	nativeObj->prev_mouse_report_col = nativeObj->prev_mouse_report_row = -1 ;
 
 	ml_term_attach( nativeObj->term , &nativeObj->xterm_listener ,
 		&nativeObj->config_listener , &nativeObj->screen_listener ,
@@ -1786,12 +1786,6 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 	ml_line_t *  line ;
 	int  col ;
 	int  key_state ;
-	/*
-	 * Max length is SGR style => ESC [ < %d ; %d(col) ; %d(row) ; %c('M' or 'm') NULL
-	 *                            1   1 1 3  1 3       1  3      1 1              1
-	 */
-	u_char  seq[17] ;
-	size_t  seq_len ;
 
 	nativeObj = nobj ;
 
@@ -1802,6 +1796,13 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 		return ;
 	}
 #endif
+
+	if( ml_term_get_mouse_report_mode( nativeObj->term) >= LOCATOR_CHARCELL_REPORT)
+	{
+		/* Not supported */
+
+		return ;
+	}
 
 	/*
 	 * XXX
@@ -1843,13 +1844,10 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 	 * Following is the same as x_screen.c:report_mouse_tracking().
 	 */
 
-	if( ( isReleased && ml_term_get_extended_mouse_report_mode( nativeObj->term) !=
-				EXTENDED_MOUSE_REPORT_SGR) ||
-	    ( isMotion && button == 0) )
+	if( /* isMotion && */ button == 0)
 	{
-		/* ButtonRelease or PointerMotion */
+		/* PointerMotion */
 		key_state = 0 ;
-		button = 3 ;
 	}
 	else
 	{
@@ -1866,120 +1864,26 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(
 				((state & AltMask) ? 8 : 0) +
 				((state & ControlMask) ? 16 : 0) +
 				(isMotion ? 32 : 0) ;
-
-		if( isReleased)
-		{
-			/* is EXTENDED_MOUSE_REPORT_SGR */
-			key_state += 0x80 ;
-		}
-
-		/* if( button > 0) */
-		{
-			/* ButtonPress */
-			button -- ;	/* Button1 = 1 -> 0 */
-
-			while( button >= 3)
-			{
-				/* Wheel mouse */
-				key_state += 64 ;
-				button -= 3 ;
-			}
-		}
 	}
 
 	/* count starts from 1, not 0 */
 	col ++ ;
 	row ++ ;
 
-	/* clear all bytes of seq to compare with prev_mouse_report_seq. */
-	memcpy( seq , "\x1b[M\0\0\0\0\0" , 8) ;
-
-	seq[3] = 0x20 + button + key_state ;
-
-	if( ml_term_get_extended_mouse_report_mode( nativeObj->term))
+	if( isMotion &&
+	    button <= 3 &&	/* not wheel mouse */
+	    nativeObj->prev_mouse_report_col == col &&
+	    nativeObj->prev_mouse_report_row == row)
 	{
-		int  ch ;
-		u_char *  p ;
-
-		p = seq + 4 ;
-
-		if( col > EXT_MOUSE_POS_LIMIT)
-		{
-			col = EXT_MOUSE_POS_LIMIT ;
-		}
-
-		if( (ch = 0x20 + col) >= 0x80)
-		{
-			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
-			*(p ++) = (ch & 0x3f) | 0x80 ;
-		}
-		else
-		{
-			*(p ++) = ch ;
-		}
-
-		if( row > EXT_MOUSE_POS_LIMIT)
-		{
-			row = EXT_MOUSE_POS_LIMIT ;
-		}
-
-		if( (ch = 0x20 + row) >= 0x80)
-		{
-			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
-			*p = (ch & 0x3f) | 0x80 ;
-		}
-		else
-		{
-			*p = ch ;
-		}
-
-		seq_len = p - seq + 1 ;
-	}
-	else
-	{
-		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col : MOUSE_POS_LIMIT) ;
-		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row : MOUSE_POS_LIMIT) ;
-		seq_len = 6 ;
+		/* Pointer is not moved. */
+		return ;
 	}
 
-	if( key_state >= 64 ||						/* Wheeling mouse */
-	    memcmp( nativeObj->prev_mouse_report_seq , seq + 3 , 5) != 0) /* Position is changed */
-	{
-		memcpy( nativeObj->prev_mouse_report_seq , seq + 3 , 5) ;
+	ml_term_report_mouse_tracking( nativeObj->term , col , row , button ,
+		isReleased , key_state , 0) ;
 
-		if( ml_term_get_extended_mouse_report_mode( nativeObj->term) >
-			EXTENDED_MOUSE_REPORT_UTF8)
-		{
-			if( ml_term_get_extended_mouse_report_mode( nativeObj->term) ==
-				EXTENDED_MOUSE_REPORT_SGR)
-			{
-				sprintf( seq , "\x1b[<%d;%d;%d%c" ,
-					(button + key_state) & 0x7f , col , row ,
-					((button + key_state) & 0x80) ? 'm' : 'M') ;
-			}
-			else /* if( ml_term_get_extended_mouse_report_mode( nativeObj->term) ==
-					EXTENDED_MOUSE_REPORT_URXVT) */
-			{
-				sprintf( seq , "\x1b[%d;%d;%dM" ,
-					0x20 + button + key_state , col , row) ;
-			}
-
-			seq_len = strlen( seq) ;
-		}
-
-		ml_term_write( nativeObj->term , seq , seq_len) ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
-	#endif
-	}
-#ifdef  __DEBUG
-	else
-	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			" cursor pos %d %d is not changed and not reported.\n") ;
-	}
-#endif
+	nativeObj->prev_mouse_report_col = col ;
+	nativeObj->prev_mouse_report_row = row ;
 }
 
 JNIEXPORT jlong JNICALL

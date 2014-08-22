@@ -369,7 +369,8 @@ load_sixel_with_mask_from_file_1bpp(
 	u_char *  src ;
 	u_char *  dst ;
 
-	if( ! strstr( path , ".six") || ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
+	if( strcasecmp( path + strlen(path) - 4 , ".six") != 0 ||
+	    ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
 		return  0 ;
 	}
@@ -470,7 +471,7 @@ load_file(
 	else
 #endif
 #ifdef  EMBEDDING_SIXEL
-	if( strstr( path , ".six") &&
+	if( strcasecmp( path + strlen(path) - 4 , ".six") == 0 &&
 	    /* For old machines and Android (not to use mlimgloader) */
 	#if  ! defined(__NetBSD__) && ! defined(__OpenBSD__) && ! defined(__ANDROID__)
 	    width == 0 && height == 0 &&

@@ -33,9 +33,6 @@
 #define  HAS_SCROLL_LISTENER(screen,function) \
 	((screen)->screen_scroll_listener && (screen)->screen_scroll_listener->function)
 
-#define  MOUSE_POS_LIMIT  (0xff - 0x20)
-#define  EXT_MOUSE_POS_LIMIT  (0x7ff - 0x20)
-
 #define  IS_LIBVTE(screen)  ( ! (screen)->window.parent && (screen)->window.parent_window)
 
 #if  1
@@ -3276,7 +3273,7 @@ set_xdnd_config(
 }
 #endif
 
-static int
+static void
 report_mouse_tracking(
 	x_screen_t *  screen ,
 	int  x ,
@@ -3284,33 +3281,20 @@ report_mouse_tracking(
 	int  button ,
 	int  state ,
 	int  is_motion ,
-	int  is_released
+	int  is_released	/* is_released is 0 if PointerMotion */
 	)
 {
 	int  key_state ;
+	int  button_state ;
 	ml_line_t *  line ;
 	int  col ;
 	int  row ;
 	u_int  x_rest ;
-	/*
-	 * Max length is SGR style => ESC [ < %d ; %d(col) ; %d(row) ; %c('M' or 'm') NULL
-	 *                            1   1 1 3  1 3       1  3      1 1              1
-	 */
-	u_char  seq[17] ;
-	size_t  seq_len ;
 
-	if( is_released &&
-	    ml_term_get_extended_mouse_report_mode( screen->term) != EXTENDED_MOUSE_REPORT_SGR)
-	{
-		/* ButtonRelease */
-		key_state = 0 ;
-		button = 3 ;
-	}
-	else if( is_motion && button == 0)
+	if( /* is_motion && */ button == 0)
 	{
 		/* PointerMotion */
-		key_state = 0 ;
-		button = 3 + 32 ;
+		key_state = button_state = 0 ;
 	}
 	else
 	{
@@ -3329,24 +3313,35 @@ report_mouse_tracking(
 				(is_motion /* && (state & (Button1Mask|Button2Mask|Button3Mask)) */
 					? 32 : 0) ;
 
-		if( is_released)
+		/* for LOCATOR_REPORT */
+		button_state = (1 << (button - Button1)) ;
+		if( state & Button1Mask)
 		{
-			/* is EXTENDED_MOUSE_REPORT_SGR */
-			key_state += 0x80 ;
+			button_state |= 1 ;
+		}
+		if( state & Button2Mask)
+		{
+			button_state |= 2 ;
+		}
+		if( state & Button3Mask)
+		{
+			button_state |= 4 ;
+		}
+	}
+
+	if( ml_term_get_mouse_report_mode( screen->term) == LOCATOR_PIXEL_REPORT)
+	{
+		screen->prev_mouse_report_col = x + 1 ;
+		screen->prev_mouse_report_row = y + 1 ;
+
+		if( ! is_motion)
+		{
+			ml_term_report_mouse_tracking( screen->term ,
+				x + 1 , y + 1 , button , is_released ,
+				key_state , button_state) ;
 		}
 
-		/* if( button > 0) */
-		{
-			/* ButtonPress */
-			button -= Button1 ;
-
-			while( button >= 3)
-			{
-				/* Wheel mouse */
-				key_state += 64 ;
-				button -= 3 ;
-			}
-		}
+		return ;
 	}
 
 	if( ml_term_get_vertical_mode( screen->term))
@@ -3365,7 +3360,7 @@ report_mouse_tracking(
 
 		if( ( line = ml_term_get_line_in_screen( screen->term , col)) == NULL)
 		{
-			return  0 ;
+			return ;
 		}
 
 		row = ml_convert_char_index_to_col( line ,
@@ -3396,7 +3391,7 @@ report_mouse_tracking(
 
 		if( ( line = ml_term_get_line_in_screen( screen->term , row)) == NULL)
 		{
-			return  0 ;
+			return ;
 		}
 
 		char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
@@ -3425,97 +3420,24 @@ report_mouse_tracking(
 	col ++ ;
 	row ++ ;
 
-	/* clear all bytes of seq to compare with prev_mouse_report_seq. */
-	memcpy( seq , "\x1b[M\0\0\0\0\0" , 8) ;
-
-	seq[3] = 0x20 + button + key_state ;
-
-	if( ml_term_get_extended_mouse_report_mode( screen->term))
+	if( is_motion &&
+	    button <= Button3 &&	/* not wheel mouse */
+	    screen->prev_mouse_report_col == col &&
+	    screen->prev_mouse_report_row == row)
 	{
-		int  ch ;
-		u_char *  p ;
-
-		p = seq + 4 ;
-
-		if( col > EXT_MOUSE_POS_LIMIT)
-		{
-			col = EXT_MOUSE_POS_LIMIT ;
-		}
-
-		if( (ch = 0x20 + col) >= 0x80)
-		{
-			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
-			*(p ++) = (ch & 0x3f) | 0x80 ;
-		}
-		else
-		{
-			*(p ++) = ch ;
-		}
-
-		if( row > EXT_MOUSE_POS_LIMIT)
-		{
-			row = EXT_MOUSE_POS_LIMIT ;
-		}
-
-		if( (ch = 0x20 + row) >= 0x80)
-		{
-			*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
-			*p = (ch & 0x3f) | 0x80 ;
-		}
-		else
-		{
-			*p = ch ;
-		}
-
-		seq_len = p - seq + 1 ;
-	}
-	else
-	{
-		seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col : MOUSE_POS_LIMIT) ;
-		seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row : MOUSE_POS_LIMIT) ;
-		seq_len = 6 ;
+		/* pointer is not moved. */
+		return ;
 	}
 
-	if( key_state >= 64 ||						/* Wheeling mouse */
-	    memcmp( screen->prev_mouse_report_seq , seq + 3 , 5) != 0)	/* Position is changed */
+	if( ml_term_get_mouse_report_mode( screen->term) != LOCATOR_CHARCELL_REPORT ||
+	    ! is_motion)
 	{
-		memcpy( screen->prev_mouse_report_seq , seq + 3 , 5) ;
-
-		if( ml_term_get_extended_mouse_report_mode( screen->term) >
-			EXTENDED_MOUSE_REPORT_UTF8)
-		{
-			if( ml_term_get_extended_mouse_report_mode( screen->term) ==
-				EXTENDED_MOUSE_REPORT_SGR)
-			{
-				sprintf( seq , "\x1b[<%d;%d;%d%c" ,
-					(button + key_state) & 0x7f , col , row ,
-					((button + key_state) & 0x80) ? 'm' : 'M') ;
-			}
-			else /* if( ml_term_get_extended_mouse_report_mode( screen->term) ==
-					EXTENDED_MOUSE_REPORT_URXVT) */
-			{
-				sprintf( seq , "\x1b[%d;%d;%dM" ,
-					0x20 + button + key_state , col , row) ;
-			}
-
-			seq_len = strlen( seq) ;
-		}
-
-		write_to_pty( screen , seq , seq_len , NULL) ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
-	#endif
+		ml_term_report_mouse_tracking( screen->term , col , row , button ,
+				is_released , key_state , button_state) ;
 	}
-#ifdef  __DEBUG
-	else
-	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			" cursor pos %d %d is not changed and not reported.\n") ;
-	}
-#endif
 
-	return  1 ;
+	screen->prev_mouse_report_col = col ;
+	screen->prev_mouse_report_row = row ;
 }
 
 /*
@@ -3928,7 +3850,7 @@ pointer_motion(
 	screen = (x_screen_t*) win ;
 
 	if( ! (event->state & (ShiftMask|ControlMask)) &&
-		ml_term_get_mouse_report_mode( screen->term) == ANY_EVENT_MOUSE_REPORT)
+		ml_term_get_mouse_report_mode( screen->term) >= ANY_EVENT_MOUSE_REPORT)
 	{
 		restore_selected_region_color_instantly( screen) ;
 		report_mouse_tracking( screen , event->x , event->y , 0 , event->state , 1 , 0) ;
@@ -6990,15 +6912,14 @@ xterm_reverse_video(
 
 static void
 xterm_set_mouse_report(
-	void *  p ,
-	ml_mouse_report_mode_t  mode
+	void *  p
 	)
 {
 	x_screen_t *  screen ;
 
 	screen = p ;
 
-	if( mode)
+	if( ml_term_get_mouse_report_mode( screen->term))
 	{
 		x_stop_selecting( &screen->sel) ;
 		restore_selected_region_color_instantly( screen) ;
@@ -7006,12 +6927,12 @@ xterm_set_mouse_report(
 	}
 	else
 	{
-		memset( screen->prev_mouse_report_seq , 0 , 5) ;
+		screen->prev_mouse_report_col = screen->prev_mouse_report_row = -1 ;
 	}
 
 	if( screen->window.pointer_motion)
 	{
-		if( mode != ANY_EVENT_MOUSE_REPORT)
+		if( ml_term_get_mouse_report_mode( screen->term) < ANY_EVENT_MOUSE_REPORT)
 		{
 			screen->window.pointer_motion = NULL ;
 			x_window_remove_event_mask( &screen->window , PointerMotionMask) ;
@@ -7019,12 +6940,43 @@ xterm_set_mouse_report(
 	}
 	else
 	{
-		if( mode == ANY_EVENT_MOUSE_REPORT)
+		if( ml_term_get_mouse_report_mode( screen->term) >= ANY_EVENT_MOUSE_REPORT)
 		{
 			screen->window.pointer_motion = pointer_motion ;
 			x_window_add_event_mask( &screen->window , PointerMotionMask) ;
 		}
 	}
+}
+
+static void
+xterm_request_locator(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+	int  button ;
+	int  button_state ;
+	int  is_released ;
+
+	screen = p ;
+
+	is_released = 0 ;
+
+	if( screen->window.button_is_pressing)
+	{
+		button = screen->window.prev_clicked_button ;
+		button_state = (1 << (button - Button1)) ;
+	}
+	else
+	{
+		/* PointerMotion */
+		button = button_state = 0 ;
+	}
+
+	ml_term_report_mouse_tracking( screen->term ,
+		screen->prev_mouse_report_col ,
+		screen->prev_mouse_report_row ,
+		button , is_released , 0 , button_state) ;
 }
 
 static void
@@ -7517,6 +7469,7 @@ x_screen_new(
 	screen->xterm_listener.resize = xterm_resize ;
 	screen->xterm_listener.reverse_video = xterm_reverse_video ;
 	screen->xterm_listener.set_mouse_report = xterm_set_mouse_report ;
+	screen->xterm_listener.request_locator = xterm_request_locator ;
 	screen->xterm_listener.set_window_name = xterm_set_window_name ;
 	screen->xterm_listener.set_icon_name = x_set_icon_name ;
 	screen->xterm_listener.bel = xterm_bel ;
@@ -7703,6 +7656,8 @@ x_screen_new(
 #endif
 
 	screen->receive_string_via_ucs = receive_string_via_ucs ;
+
+	screen->prev_mouse_report_col = screen->prev_mouse_report_row = -1 ;
 
 	return  screen ;
 
@@ -8091,6 +8046,8 @@ x_screen_exec_cmd(
 						 */
 						&& strcmp( p + 4 , "\"cat\"") != 0
 						&& strcmp( p + 5 , "\"cat\"") != 0
+						/* for w3m */
+						&& strncmp( p + 4 , "\"w3m\"" , 5) != 0
 					    #endif
 						)))
 					{

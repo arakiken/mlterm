@@ -267,9 +267,6 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 #define  ml_term_get_mouse_report_mode( term) \
 		ml_vt100_parser_get_mouse_report_mode((term)->parser)
 
-#define  ml_term_get_extended_mouse_report_mode( term) \
-		ml_vt100_parser_get_extended_mouse_report_mode((term)->parser)
-
 #define  ml_term_is_app_keypad( term) \
 		ml_vt100_parser_is_app_keypad((term)->parser)
 
@@ -316,7 +313,12 @@ int  ml_term_get_config( ml_term_t *  term , ml_term_t *  output , char *  key ,
 
 int  ml_term_set_config( ml_term_t *  term , char *  key , char *  value) ;
 
-#define  ml_term_exec_cmd( term , cmd)  ml_vt100_parser_exec_cmd( term->parser , cmd)
+#define  ml_term_exec_cmd( term , cmd)  ml_vt100_parser_exec_cmd( (term)->parser , cmd)
+
+#define  ml_term_report_mouse_tracking( term , col , row , button , is_released , \
+		key_state , button_state) \
+		ml_vt100_parser_report_mouse_tracking( (term)->parser , col , row , \
+			button , is_released , key_state , button_state)
 
 #define  ml_term_search_init( term , match)  ml_screen_search_init( (term)->screen , match)
 

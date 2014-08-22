@@ -46,6 +46,8 @@ typedef enum  ml_mouse_report_mode
 	MOUSE_REPORT = 0x1 ,
 	BUTTON_EVENT_MOUSE_REPORT = 0x2 ,
 	ANY_EVENT_MOUSE_REPORT = 0x3 ,
+	LOCATOR_CHARCELL_REPORT = 0x4 ,
+	LOCATOR_PIXEL_REPORT = 0x5 ,
 
 } ml_mouse_report_mode_t ;
 
@@ -58,6 +60,14 @@ typedef enum  ml_extended_mouse_report_mode
 	EXTENDED_MOUSE_REPORT_URXVT = 0x3 ,
 
 } ml_extended_mouse_report_mode_t ;
+
+typedef enum  ml_locator_report_mode
+{
+	LOCATOR_BUTTON_DOWN = 0x1 ,
+	LOCATOR_BUTTON_UP = 0x2 ,
+	LOCATOR_ONESHOT = 0x8 ,
+
+} ml_locator_report_mode_t ;
 
 typedef enum  ml_alt_color_mode
 {
@@ -101,7 +111,8 @@ typedef struct  ml_xterm_event_listener
 
 	void (*resize)( void * , u_int , u_int) ;	/* called in visual context. */
 	void (*reverse_video)( void * , int) ;		/* called in visual context. */
-	void (*set_mouse_report)( void * , ml_mouse_report_mode_t) ;/* called in visual context. */
+	void (*set_mouse_report)( void *) ;	/* called in visual context. */
+	void (*request_locator)( void *) ;	/* called in visual context. */
 	void (*set_window_name)( void * , u_char *) ;	/* called in logical context. */
 	void (*set_icon_name)( void * , u_char *) ;	/* called in logical context. */
 	void (*bel)( void *) ;				/* called in visual context. */
@@ -201,6 +212,7 @@ typedef struct  ml_vt100_parser
 
 	/* ml_mouse_report_mode_t */ int8_t  mouse_mode ;
 	/* ml_extended_mouse_report_mode_t */ int8_t  ext_mouse_mode ;
+	/* ml_locator_report_mode_t */ int8_t  locator_mode ;
 
 	/* Used for non iso2022 encoding */
 	mkf_charset_t  gl ;
@@ -344,9 +356,6 @@ int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
 
 #define  ml_vt100_parser_get_mouse_report_mode( vt100_parser)  ((vt100_parser)->mouse_mode)
 
-#define  ml_vt100_parser_get_extended_mouse_report_mode( vt100_parser) \
-		((vt100_parser)->ext_mouse_mode)
-
 #define  ml_vt100_parser_is_app_keypad( vt100_parser)  ((vt100_parser)->is_app_keypad)
 
 #define  ml_vt100_parser_is_app_cursor_keys( vt100_parser)  ((vt100_parser)->is_app_cursor_keys)
@@ -387,6 +396,10 @@ int  ml_vt100_parser_get_config( ml_vt100_parser_t *  vt100_parser , ml_pty_ptr_
 int  ml_vt100_parser_set_config( ml_vt100_parser_t *  vt100_parser , char *  key , char *  val) ;
 
 int  ml_vt100_parser_exec_cmd( ml_vt100_parser_t *  vt100_parser , char *  cmd) ;
+
+void  ml_vt100_parser_report_mouse_tracking( ml_vt100_parser_t *  vt100_parser ,
+	int  col , int  row , int  button , int  is_released ,
+	int  key_state , int  button_state) ;
 
 
 #endif

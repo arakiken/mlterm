@@ -1415,9 +1415,25 @@ set_mouse_report(
 	{
 		stop_vt100_cmd( vt100_parser , 0) ;
 
+		vt100_parser->mouse_mode = mode ;
 		(*vt100_parser->xterm_listener->set_mouse_report)(
-			vt100_parser->xterm_listener->self ,
-			(vt100_parser->mouse_mode = mode)) ;
+			vt100_parser->xterm_listener->self) ;
+
+		start_vt100_cmd( vt100_parser , 0) ;
+	}
+}
+
+static void
+request_locator(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,request_locator))
+	{
+		stop_vt100_cmd( vt100_parser , 0) ;
+
+		(*vt100_parser->xterm_listener->request_locator)(
+			vt100_parser->xterm_listener->self) ;
 
 		start_vt100_cmd( vt100_parser , 0) ;
 	}
@@ -4351,6 +4367,71 @@ parse_vt100_escape_sequence(
 				if( *str_p == 'z')
 				{
 					invoke_macro( vt100_parser , ps[0]) ;
+				}
+			}
+			else if( pre_ch == '\'')
+			{
+				if( *str_p == '|')
+				{
+					/* DECRQLP */
+
+					request_locator( vt100_parser) ;
+				}
+				else if( *str_p == '{')
+				{
+					/* DECSLE */
+
+					if( ps[0] == 1)
+					{
+						vt100_parser->locator_mode |= LOCATOR_BUTTON_DOWN ;
+					}
+					else if( ps[0] == 2)
+					{
+						vt100_parser->locator_mode &= ~LOCATOR_BUTTON_DOWN ;
+					}
+					else if( ps[0] == 3)
+					{
+						vt100_parser->locator_mode |= LOCATOR_BUTTON_UP ;
+					}
+					else if( ps[0] == 4)
+					{
+						vt100_parser->locator_mode &= ~LOCATOR_BUTTON_UP ;
+					}
+					else
+					{
+						vt100_parser->locator_mode &=
+							~(LOCATOR_BUTTON_UP|LOCATOR_BUTTON_DOWN) ;
+					}
+				}
+			#if  0
+				else if( *str_p == 'w')
+				{
+					/* DECEFR Filter Rectangle */
+				}
+			#endif
+				else if( *str_p == 'z')
+				{
+					/* DECELR */
+
+					if( ps[0] <= 0)
+					{
+						if( vt100_parser->mouse_mode >=
+							LOCATOR_CHARCELL_REPORT)
+						{
+							set_mouse_report( vt100_parser , 0) ;
+							vt100_parser->locator_mode = 0 ;
+						}
+					}
+					else
+					{
+						vt100_parser->locator_mode =
+							ps[0] == 2 ? LOCATOR_ONESHOT : 0 ;
+
+						set_mouse_report( vt100_parser ,
+							(num == 1 || ps[1] <= 0 || ps[1] == 2) ?
+								LOCATOR_CHARCELL_REPORT :
+								LOCATOR_PIXEL_REPORT) ;
+					}
 				}
 			}
 			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
@@ -7455,4 +7536,169 @@ ml_vt100_parser_exec_cmd(
 	}
 
 	return  1 ;
+}
+
+#define  MOUSE_POS_LIMIT  (0xff - 0x20)
+#define  EXT_MOUSE_POS_LIMIT  (0x7ff - 0x20)
+
+void
+ml_vt100_parser_report_mouse_tracking(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  col ,
+	int  row ,
+	int  button ,
+	int  is_released ,
+	int  key_state ,
+	int  button_state
+	)
+{
+	if( vt100_parser->mouse_mode >= LOCATOR_CHARCELL_REPORT)
+	{
+		char  seq[10 + DIGIT_STR_LEN(int) * 4 + 1] ;
+		int  ev ;
+
+		if( ( is_released &&
+		      ! (vt100_parser->locator_mode & LOCATOR_BUTTON_UP)) ||
+		    ( ! is_released &&
+		      ! (vt100_parser->locator_mode & LOCATOR_BUTTON_DOWN)))
+		{
+			return ;
+		}
+
+		if( button == 1)
+		{
+			ev = is_released ? 3 : 2 ;
+		}
+		else if( button == 2)
+		{
+			ev = is_released ? 5 : 4 ;
+		}
+		else if( button == 3)
+		{
+			ev = is_released ? 7 : 6 ;
+		}
+		else
+		{
+			ev = 1 ;
+		}
+
+		sprintf( seq , "\x1b[%d;%d;%d;%d;0&w" , ev , button_state , row , col) ;
+
+		ml_write_to_pty( vt100_parser->pty , seq , strlen(seq)) ;
+
+		if( vt100_parser->locator_mode & LOCATOR_ONESHOT)
+		{
+			set_mouse_report( vt100_parser , 0) ;
+			vt100_parser->locator_mode = 0 ;
+		}
+	}
+	else
+	{
+		/*
+		 * Max length is SGR style => ESC [ < %d ; %d(col) ; %d(row) ; %c('M' or 'm') NULL
+		 *                            1   1 1 3  1 3       1  3      1 1              1
+		 */
+		u_char  seq[17] ;
+		size_t  seq_len ;
+
+		if( is_released &&
+		    vt100_parser->ext_mouse_mode != EXTENDED_MOUSE_REPORT_SGR)
+		{
+			key_state = 0 ;
+			button = 3 ;
+		}
+		else if( button == 0)
+		{
+			/* PointerMotion */
+			button = 3 + 32 ;
+		}
+		else
+		{
+			if( is_released)
+			{
+				/* for EXTENDED_MOUSE_REPORT_SGR */
+				key_state += 0x80 ;
+			}
+
+			button -- ;	/* button1 == 0, button2 == 1, button3 == 2 */
+
+			while( button >= 3)
+			{
+				/* Wheel mouse */
+				key_state += 64 ;
+				button -= 3 ;
+			}
+		}
+
+		if( vt100_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_SGR)
+		{
+			sprintf( seq , "\x1b[<%d;%d;%d%c" ,
+				(button + key_state) & 0x7f , col , row ,
+				((button + key_state) & 0x80) ? 'm' : 'M') ;
+			seq_len = strlen(seq) ;
+		}
+		else if( vt100_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_URXVT)
+		{
+			sprintf( seq , "\x1b[%d;%d;%dM" ,
+				0x20 + button + key_state , col , row) ;
+			seq_len = strlen(seq) ;
+		}
+		else
+		{
+			memcpy( seq , "\x1b[M" , 3) ;
+			seq[3] = 0x20 + button + key_state ;
+
+			if( vt100_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_UTF8)
+			{
+				int  ch ;
+				u_char *  p ;
+
+				p = seq + 4 ;
+
+				if( col > EXT_MOUSE_POS_LIMIT)
+				{
+					col = EXT_MOUSE_POS_LIMIT ;
+				}
+
+				if( (ch = 0x20 + col) >= 0x80)
+				{
+					*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
+					*(p ++) = (ch & 0x3f) | 0x80 ;
+				}
+				else
+				{
+					*(p ++) = ch ;
+				}
+
+				if( row > EXT_MOUSE_POS_LIMIT)
+				{
+					row = EXT_MOUSE_POS_LIMIT ;
+				}
+
+				if( (ch = 0x20 + row) >= 0x80)
+				{
+					*(p ++) = ((ch >> 6) & 0x1f) | 0xc0 ;
+					*p = (ch & 0x3f) | 0x80 ;
+				}
+				else
+				{
+					*p = ch ;
+				}
+
+				seq_len = p - seq + 1 ;
+			}
+			else
+			{
+				seq[4] = 0x20 + (col < MOUSE_POS_LIMIT ? col : MOUSE_POS_LIMIT) ;
+				seq[5] = 0x20 + (row < MOUSE_POS_LIMIT ? row : MOUSE_POS_LIMIT) ;
+				seq_len = 6 ;
+			}
+		}
+
+		ml_write_to_pty( vt100_parser->pty , seq , seq_len) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
+	#endif
+	}
 }

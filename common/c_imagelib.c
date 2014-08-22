@@ -289,7 +289,6 @@ gdk_pixbuf_new_from(
 		}
 
 	#if GDK_PIXBUF_MAJOR >= 2
-
 		if( strstr( path , "://"))
 		{
 		#ifdef  __G_IO_H__
@@ -353,6 +352,7 @@ gdk_pixbuf_new_from(
 		#endif
 		}
 		else
+	#endif	/* GDK_PIXBUF_MAJOR */
 		{
 			if( strcasecmp( path + strlen(path) - 4 , ".rgs") == 0)
 			{
@@ -365,7 +365,11 @@ gdk_pixbuf_new_from(
 				}
 			}
 
+		#if GDK_PIXBUF_MAJOR >= 2
 			pixbuf = gdk_pixbuf_new_from_file( path , NULL) ;
+		#else
+			pixbuf = gdk_pixbuf_new_from_file( path) ;
+		#endif
 
 			if( strstr( path , "mlterm/anim"))
 			{
@@ -394,12 +398,6 @@ gdk_pixbuf_new_from(
 				}
 			}
 		}
-
-	#else	/* GDK_PIXBUF_MAJOR */
-
-		pixbuf = gdk_pixbuf_new_from_file( path) ;
-
-	#endif	/* GDK_PIXBUF_MAJOR */
 	}
 
 	return  pixbuf ;

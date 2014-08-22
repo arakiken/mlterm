@@ -295,6 +295,10 @@ if test "$gdk_pixbuf_version" != "" ; then
 
 	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+
+elif test "$have_gdk_pixbuf2" != "yes" -a "$have_gdk_pixbuf1" = "yes" ; then
+	GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags|tr -d '\r'`"
+	GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs|tr -d '\r'`"
 fi
 
 # Used by mlimgloader.

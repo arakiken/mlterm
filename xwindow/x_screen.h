@@ -133,7 +133,8 @@ typedef struct  x_screen
 
 	int16_t  prev_inline_pic ;
 
-	char  prev_mouse_report_seq[5] ;
+	int16_t  prev_mouse_report_col ;
+	int16_t  prev_mouse_report_row ;
 
 	u_int8_t  fade_ratio ;
 	u_int8_t  line_space ;

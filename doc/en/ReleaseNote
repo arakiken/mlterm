@@ -1,3 +1,6 @@
+ver 3.3.9
+* Support DEC Locator mode except filter rectangle.
+
 ver 3.3.8
 * Support rectangle selection by pressing alt key while selecting.
 * Support DECDMAC/DECINVM.

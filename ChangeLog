@@ -1,3 +1,20 @@
+2014-08-23  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_imagelib.c: Sixel graphics without any modifiers is processed in
+	  mlterm instead of calling mlimgloader.
+
+	* gdk-pixbuf.c: Compiling error with gdk-pixbuf-1.x is fixed.
+
+	* x_screen.c, MLTermPty.c: ml_term_report_mouse_tracking() is used.
+
+	* ml_term.h: ml_term_report_mouse_tracking() is added.
+
+	* ml_vt100_parser.[ch]:
+	  - DEC Locator is partially supported.
+	  - ml_vt100_parser_report_mouse_tracking() is added.
+
+	* version.h.in: 3.3.7 -> 3.3.7post
+
 2014-08-16  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.3.8 released.

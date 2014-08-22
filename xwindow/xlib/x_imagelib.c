@@ -85,6 +85,10 @@
 	 ((((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) & (rgbinfo).g_mask) | \
 	 ((((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset) & (rgbinfo).b_mask) )
 
+#if  1
+#define  EMBEDDING_SIXEL
+#endif
+
 
 typedef struct  rgb_info
 {
@@ -1195,6 +1199,122 @@ modify_image(
 
 #else	/* NO_TOOLS */
 
+#ifdef  EMBEDDING_SIXEL
+
+#define  CARD_HEAD_SIZE  0
+#include  "../../common/c_sixel.c"
+
+static int
+load_sixel(
+	x_display_t *  disp ,
+	char *  path ,
+	Pixmap *  pixmap ,
+	Pixmap *  mask		/* Can be NULL */
+	)
+{
+	XImage *  image ;
+	u_int32_t *  data ;
+	u_int32_t *  in ;
+	u_char *  out ;
+	u_int  width ;
+	u_int  height ;
+	u_int  x ;
+	u_int  y ;
+	XVisualInfo *  vinfo ;
+	rgb_info_t  rgbinfo ;
+	int  bytes_per_pixel ;
+	GC  mask_gc ;
+	XGCValues  gcv ;
+
+	if( disp->depth < 16 ||
+	    ! ( data = in = out = load_sixel_from_file( path , &width , &height)))
+	{
+		return  0 ;
+	}
+
+	vinfo = x_display_get_visual_info( disp) ;
+	rgb_info_init( vinfo , &rgbinfo) ;
+	XFree( vinfo) ;
+
+	if( disp->depth == 16)
+	{
+		bytes_per_pixel = 2 ;
+	}
+	else
+	{
+		bytes_per_pixel = 4 ;
+	}
+
+	if( mask)
+	{
+		*mask = None ;
+	}
+
+	for( y = 0 ; y < height ; y++)
+	{
+		for( x = 0 ; x < width ; x++)
+		{
+			u_int32_t  pixel ;
+
+			if( mask && in[0] <= 0x7fffffff)
+			{
+				if( *mask == None)
+				{
+					*mask = XCreatePixmap( disp->display ,
+							x_display_get_group_leader( disp) ,
+							width , height , 1) ;
+					mask_gc = XCreateGC( disp->display , *mask ,
+							0 , &gcv) ;
+
+					XSetForeground( disp->display , mask_gc , 1) ;
+					XFillRectangle( disp->display , *mask , mask_gc ,
+						0 , 0 , width , height) ;
+					XSetForeground( disp->display , mask_gc , 0) ;
+				}
+
+				XDrawPoint( disp->display , *mask , mask_gc , x , y) ;
+			}
+
+			pixel = RGB_TO_PIXEL( (in[0] >> 16) & 0xff ,
+					(in[0] >> 8) & 0xff , in[0] & 0xff , rgbinfo) ;
+
+			if( bytes_per_pixel == 2)
+			{
+				*((u_int16_t*)out) = pixel ;
+			}
+			else /* if( bytes_per_pixel == 4) */
+			{
+				*((u_int32_t*)out) = (pixel | (in[0] & 0xff000000)) ;
+			}
+
+			in ++ ;
+			out += bytes_per_pixel ;
+		}
+	}
+
+	if( mask && *mask)
+	{
+		XFreeGC( disp->display , mask_gc) ;
+	}
+
+	image = XCreateImage( disp->display , disp->visual ,
+			disp->depth , ZPixmap , 0 , data , width , height ,
+			/* in case depth isn't multiple of 8 */
+			bytes_per_pixel * 8 ,
+			width * bytes_per_pixel) ;
+
+	*pixmap = XCreatePixmap( disp->display , x_display_get_group_leader( disp) ,
+			width , height , disp->depth) ;
+
+	XPutImage( disp->display , *pixmap , disp->gc->gc , image ,
+			0 , 0 , 0 , 0 , width , height) ;
+	XDestroyImage( image) ;
+
+	return  1 ;
+}
+
+#endif	/* EMBEDDING_SIXEL */
+
 static pid_t
 exec_mlimgloader(
 	int *  read_fd ,
@@ -1294,6 +1414,15 @@ load_file(
 	Pixmap  pixmap_tmp ;
 	Pixmap  mask_tmp ;
 	ssize_t  size ;
+
+#ifdef  EMBEDDING_SIXEL
+	if( strcasecmp( path + strlen(path) - 4 , ".six") == 0 &&
+	    width == 0 && height == 0 && x_picture_modifier_is_normal( pic_mod) &&
+	    load_sixel( disp , path , pixmap , mask))
+	{
+		return  1 ;
+	}
+#endif
 
 	if( exec_mlimgloader( &read_fd , &write_fd ,
 			x_display_get_group_leader( disp) ,
