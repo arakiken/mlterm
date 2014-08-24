@@ -7547,7 +7547,7 @@ ml_vt100_parser_report_mouse_tracking(
 	int  col ,
 	int  row ,
 	int  button ,
-	int  is_released ,
+	int  is_released ,	/* is_released is 0 if PointerMotion */
 	int  key_state ,
 	int  button_state
 	)
@@ -7557,10 +7557,11 @@ ml_vt100_parser_report_mouse_tracking(
 		char  seq[10 + DIGIT_STR_LEN(int) * 4 + 1] ;
 		int  ev ;
 
-		if( ( is_released &&
-		      ! (vt100_parser->locator_mode & LOCATOR_BUTTON_UP)) ||
-		    ( ! is_released &&
-		      ! (vt100_parser->locator_mode & LOCATOR_BUTTON_DOWN)))
+		if( button > 0 &&
+		    ( ( is_released &&
+		        ! (vt100_parser->locator_mode & LOCATOR_BUTTON_UP)) ||
+		      ( ! is_released &&
+		        ! (vt100_parser->locator_mode & LOCATOR_BUTTON_DOWN))))
 		{
 			return ;
 		}

@@ -1,3 +1,7 @@
+2014-08-24  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: locator_mode is not checked if button == 0.
+
 2014-08-23  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_imagelib.c: Sixel graphics without any modifiers is processed in
