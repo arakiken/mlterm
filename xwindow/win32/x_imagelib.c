@@ -16,6 +16,10 @@
 #include  <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
 #endif
 
+#if  1
+#define  BUILTIN_SIXEL
+#endif
+
 
 /* --- static functions --- */
 
@@ -132,12 +136,14 @@ load_file(
 	HDC  hdc ;
 	BYTE *  image ;
 
+#ifdef  BUILTIN_SIXEL
 	if( strstr( path , ".six") && *width == 0 && *height == 0 &&
 	    /* XXX fopen() in load_sixel_from_file() on win32api doesn't support UTF-8. */
 	    ( image = (u_int32_t*)load_sixel_from_file( path , width , height)))
 	{
 		goto  loaded ;
 	}
+#endif
 
 #define  CMD_LINE_FMT  "mlimgloader.exe 0 %u %u \"%s\" -c"
 

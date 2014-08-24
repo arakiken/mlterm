@@ -1,5 +1,7 @@
 2014-08-24  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/x_imagelib.c: load_sixel() is called regardless of BUILTIN_IMAGELIB.
+
 	* x_screen.[ch], MLTermPty.c: The default value of prev_mouse_report_{col|row}
 	  is changed from -1 to 0.
 

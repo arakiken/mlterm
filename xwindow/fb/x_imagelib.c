@@ -29,7 +29,7 @@
 #endif
 
 #if  1
-#define  EMBEDDING_SIXEL
+#define  BUILTIN_SIXEL
 #endif
 
 
@@ -203,7 +203,7 @@ modify_pixmap(
 	}
 }
 
-#ifdef  EMBEDDING_SIXEL
+#ifdef  BUILTIN_SIXEL
 
 #include  <string.h>
 #include  <kiklib/kik_util.h>
@@ -346,7 +346,7 @@ error:
 #define  CARD_HEAD_SIZE  0
 #include  "../../common/c_sixel.c"
 
-#endif	/* EMBEDDING_SIXEL */
+#endif	/* BUILTIN_SIXEL */
 
 /* For old machines (not to use mlimgloader) */
 #if  (defined(__NetBSD__) || defined(__OpenBSD__)) && ! defined(USE_GRF)
@@ -470,7 +470,7 @@ load_file(
 	}
 	else
 #endif
-#ifdef  EMBEDDING_SIXEL
+#ifdef  BUILTIN_SIXEL
 	if( strcasecmp( path + strlen(path) - 4 , ".six") == 0 &&
 	    /* For old machines and Android (not to use mlimgloader) */
 	#if  ! defined(__NetBSD__) && ! defined(__OpenBSD__) && ! defined(__ANDROID__)
