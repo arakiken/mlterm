@@ -6927,7 +6927,7 @@ xterm_set_mouse_report(
 	}
 	else
 	{
-		screen->prev_mouse_report_col = screen->prev_mouse_report_row = -1 ;
+		screen->prev_mouse_report_col = screen->prev_mouse_report_row = 0 ;
 	}
 
 	if( screen->window.pointer_motion)
@@ -6974,8 +6974,8 @@ xterm_request_locator(
 	}
 
 	ml_term_report_mouse_tracking( screen->term ,
-		screen->prev_mouse_report_col ,
-		screen->prev_mouse_report_row ,
+		screen->prev_mouse_report_col > 0 ? screen->prev_mouse_report_col : 1 ,
+		screen->prev_mouse_report_row > 0 ? screen->prev_mouse_report_row : 1 ,
 		button , is_released , 0 , button_state) ;
 }
 
@@ -7656,8 +7656,6 @@ x_screen_new(
 #endif
 
 	screen->receive_string_via_ucs = receive_string_via_ucs ;
-
-	screen->prev_mouse_report_col = screen->prev_mouse_report_row = -1 ;
 
 	return  screen ;
 

@@ -65,8 +65,8 @@ typedef struct  native_obj
 	ml_screen_event_listener_t  screen_listener ;
 	ml_xterm_event_listener_t  xterm_listener ;
 
-	int16_t  prev_mouse_report_col ;
-	int16_t  prev_mouse_report_row ;
+	u_int16_t  prev_mouse_report_col ;
+	u_int16_t  prev_mouse_report_row ;
 
 } native_obj_t ;
 
@@ -341,7 +341,7 @@ set_mouse_report(
 	if( ! ml_term_get_mouse_report_mode( ((native_obj_t*)p)->term))
 	{
 		((native_obj_t*)p)->prev_mouse_report_col =
-		((native_obj_t*)p)->prev_mouse_report_row = -1 ;
+		((native_obj_t*)p)->prev_mouse_report_row = 0 ;
 	}
 }
 
@@ -921,8 +921,6 @@ Java_mlterm_MLTermPty_nativeOpen(
 	nativeObj->xterm_listener.resize = resize ;
 	nativeObj->xterm_listener.set_mouse_report = set_mouse_report ;
 	nativeObj->xterm_listener.bel = bel ;
-
-	nativeObj->prev_mouse_report_col = nativeObj->prev_mouse_report_row = -1 ;
 
 	ml_term_attach( nativeObj->term , &nativeObj->xterm_listener ,
 		&nativeObj->config_listener , &nativeObj->screen_listener ,

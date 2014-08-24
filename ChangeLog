@@ -1,5 +1,8 @@
 2014-08-24  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.[ch], MLTermPty.c: The default value of prev_mouse_report_{col|row}
+	  is changed from -1 to 0.
+
 	* ml_vt100_parser.c: locator_mode is not checked if button == 0.
 
 2014-08-23  Araki Ken  <arakiken@users.sf.net>
