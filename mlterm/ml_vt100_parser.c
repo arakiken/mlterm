@@ -1428,7 +1428,8 @@ request_locator(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	if( HAS_XTERM_LISTENER(vt100_parser,request_locator))
+	if( vt100_parser->mouse_mode >= LOCATOR_CHARCELL_REPORT &&
+	    HAS_XTERM_LISTENER(vt100_parser,request_locator))
 	{
 		stop_vt100_cmd( vt100_parser , 0) ;
 
