@@ -1428,13 +1428,29 @@ request_locator(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	if( vt100_parser->mouse_mode >= LOCATOR_CHARCELL_REPORT &&
-	    HAS_XTERM_LISTENER(vt100_parser,request_locator))
+	if( HAS_XTERM_LISTENER(vt100_parser,request_locator))
 	{
+		ml_mouse_report_mode_t  orig ;
+
 		stop_vt100_cmd( vt100_parser , 0) ;
+
+		if( vt100_parser->mouse_mode < LOCATOR_CHARCELL_REPORT)
+		{
+			orig = vt100_parser->mouse_mode ;
+			vt100_parser->mouse_mode = LOCATOR_CHARCELL_REPORT ;
+		}
+		else
+		{
+			orig = 0 ;
+		}
 
 		(*vt100_parser->xterm_listener->request_locator)(
 			vt100_parser->xterm_listener->self) ;
+
+		if( orig)
+		{
+			orig = vt100_parser->mouse_mode ;
+		}
 
 		start_vt100_cmd( vt100_parser , 0) ;
 	}
@@ -4381,27 +4397,36 @@ parse_vt100_escape_sequence(
 				else if( *str_p == '{')
 				{
 					/* DECSLE */
+					int  count ;
 
-					if( ps[0] == 1)
+					for( count = 0 ; count < num ; count++)
 					{
-						vt100_parser->locator_mode |= LOCATOR_BUTTON_DOWN ;
-					}
-					else if( ps[0] == 2)
-					{
-						vt100_parser->locator_mode &= ~LOCATOR_BUTTON_DOWN ;
-					}
-					else if( ps[0] == 3)
-					{
-						vt100_parser->locator_mode |= LOCATOR_BUTTON_UP ;
-					}
-					else if( ps[0] == 4)
-					{
-						vt100_parser->locator_mode &= ~LOCATOR_BUTTON_UP ;
-					}
-					else
-					{
-						vt100_parser->locator_mode &=
-							~(LOCATOR_BUTTON_UP|LOCATOR_BUTTON_DOWN) ;
+						if( ps[count] == 1)
+						{
+							vt100_parser->locator_mode |=
+								LOCATOR_BUTTON_DOWN ;
+						}
+						else if( ps[count] == 2)
+						{
+							vt100_parser->locator_mode &=
+								~LOCATOR_BUTTON_DOWN ;
+						}
+						else if( ps[count] == 3)
+						{
+							vt100_parser->locator_mode |=
+								LOCATOR_BUTTON_UP ;
+						}
+						else if( ps[count] == 4)
+						{
+							vt100_parser->locator_mode &=
+								~LOCATOR_BUTTON_UP ;
+						}
+						else
+						{
+							vt100_parser->locator_mode &=
+								~(LOCATOR_BUTTON_UP|
+								  LOCATOR_BUTTON_DOWN) ;
+						}
 					}
 				}
 			#if  0
@@ -4420,12 +4445,11 @@ parse_vt100_escape_sequence(
 							LOCATOR_CHARCELL_REPORT)
 						{
 							set_mouse_report( vt100_parser , 0) ;
-							vt100_parser->locator_mode = 0 ;
 						}
 					}
 					else
 					{
-						vt100_parser->locator_mode =
+						vt100_parser->locator_mode |=
 							ps[0] == 2 ? LOCATOR_ONESHOT : 0 ;
 
 						set_mouse_report( vt100_parser ,

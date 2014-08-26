@@ -1,3 +1,10 @@
+2014-08-26  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c:
+	  - DECLRP is returned by DECRQLP even if DECELR isn't sent.
+	  - DECSLE accepts Pm instead of Ps.
+	  - locator_mode is not reset by DECELR.
+
 2014-08-24  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: vt100_parser->mouse_mode >= LOCATOR_CHARCELL_REPORT is
