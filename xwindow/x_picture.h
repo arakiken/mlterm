@@ -113,6 +113,11 @@ int  x_add_frame_to_animation( int  prev_idx , int  next_idx) ;
 
 int  x_animate_inline_pictures( ml_term_t *  term) ;
 
+int  x_load_tmp_picture( x_display_t *  disp , char *  file_path , Pixmap *  pixmap ,
+	PixmapMask *  mask , u_int *  width , u_int *  height) ;
+
+void  x_delete_tmp_picture( x_display_t *  disp , Pixmap  pixmap , PixmapMask  mask) ;
+
 #endif
 
 #define  x_picture_modifier_is_normal(pic_mod) (x_picture_modifiers_equal((pic_mod), NULL))

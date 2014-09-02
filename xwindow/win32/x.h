@@ -317,6 +317,8 @@ typedef LPLOGFONT XFontSet ;
 
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152
+#define XC_sb_v_double_arrow 116
+#define XC_left_ptr 68
 
 /* Same as definition in X11/Xutil.h */
 #define NoValue         0x0000
@@ -361,10 +363,6 @@ typedef LPLOGFONT XFontSet ;
 #else /* UTF16_IME_CHAR */
  #define  __(a) _T(a)
 #endif	/* UTF16_IME_CHAR */
-
-
-#define  XC_sb_v_double_arrow  0
-#define  XC_left_ptr  0
 
 
 int  XParseGeometry( char *  str , int *  x , int *  y ,

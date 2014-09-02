@@ -1364,7 +1364,20 @@ x_window_set_cursor(
 	u_int  cursor_shape
 	)
 {
-	win->cursor_shape = cursor_shape ;
+	if( win->my_window == None)
+	{
+		win->cursor_shape = cursor_shape ;
+	}
+	else
+	{
+		Cursor  cursor ;
+
+		if( ( cursor = x_display_get_cursor( win->disp ,
+				( win->cursor_shape = cursor_shape))))
+		{
+			XDefineCursor( win->disp->display , win->my_window , cursor) ;
+		}
+	}
 
 	return  1 ;
 }

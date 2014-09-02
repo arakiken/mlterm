@@ -11,6 +11,7 @@
 #include  "x.h"
 #include  "x_gc.h"
 
+#define  XC_nil	 1000
 
 /* Defined in x_window.h */
 typedef struct  x_window *  x_window_ptr_t ;
@@ -54,8 +55,8 @@ typedef struct  x_display
 
 	x_modifier_mapping_t  modmap ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
-	Cursor  cursors[3] ;
+#ifndef  USE_FRAMEBUFFER
+	Cursor  cursors[4] ;
 #endif
 
 } x_display_t ;

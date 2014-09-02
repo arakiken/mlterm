@@ -144,7 +144,8 @@ ml_line_t *  ml_screen_get_line( ml_screen_t *  screen , int  row) ;
 
 ml_line_t *  ml_screen_get_line_in_screen( ml_screen_t *  screen , int  row) ;
 
-ml_line_t *  ml_screen_get_cursor_line( ml_screen_t *  screen) ;
+#define  ml_screen_get_cursor_line( screen) \
+		ml_edit_get_line( (screen)->edit , ml_cursor_row( (screen)->edit))
 
 int  ml_screen_set_modified_all( ml_screen_t *  screen) ;
 
@@ -291,9 +292,11 @@ int  ml_screen_go_downward( ml_screen_t *  screen , u_int  size) ;
 
 #define  ml_screen_goto_beg_of_line( screen)  ml_edit_goto_beg_of_line( (screen)->edit)
 
-int  ml_screen_go_horizontally( ml_screen_t *  screen , int  col) ;
+#define  ml_screen_go_horizontally( screen , col) \
+		ml_screen_goto( screen , col , ml_cursor_row( (screen)->edit))
 
-int  ml_screen_go_vertically( ml_screen_t *  screen , int  row) ;
+#define  ml_screen_go_vertically( screen , row) \
+		ml_screen_goto( screen , ml_cursor_col( (screen)->edit) , row)
 
 #define  ml_screen_goto_home( screen)  ml_edit_goto_home( (screen)->edit)
 

@@ -594,6 +594,7 @@ x_display_get_cursor(
 	/*
 	 * XXX
 	 * cursor[0] == XC_xterm / cursor[1] == XC_sb_v_double_arrow / cursor[2] == XC_left_ptr
+	 * cursor[3] == XC_nil
 	 * Mlterm uses only these shapes.
 	 */
 	 
@@ -609,14 +610,36 @@ x_display_get_cursor(
 	{
 		idx = 2 ;
 	}
+	else if( shape == XC_nil)
+	{
+		idx = 3 ;
+	}
 	else
 	{
 		return  None ;
 	}
-	
+
 	if( ! disp->cursors[idx])
 	{
-		disp->cursors[idx] = XCreateFontCursor( disp->display , shape) ;
+		if( idx == 3)
+		{
+			XFontStruct *  font ;
+			XColor  dummy ;
+
+			if( ! ( font = XLoadQueryFont( disp->display , "nil2")))
+			{
+				return  None ;
+			}
+
+			disp->cursors[idx] = XCreateGlyphCursor( disp->display ,
+						font->fid , font->fid ,
+						'X', ' ', &dummy , &dummy) ;
+			XFreeFont( disp->display , font) ;
+		}
+		else
+		{
+			disp->cursors[idx] = XCreateFontCursor( disp->display , shape) ;
+		}
 	}
 
 	return  disp->cursors[idx] ;

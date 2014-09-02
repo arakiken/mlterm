@@ -1379,4 +1379,38 @@ x_animate_inline_pictures(
 	return  wait ;
 }
 
+int
+x_load_tmp_picture(
+	x_display_t *  disp ,
+	char *  file_path ,
+	Pixmap *  pixmap ,
+	PixmapMask *  mask ,
+	u_int *  width ,
+	u_int *  height
+	)
+{
+	*width = *height = 0 ;
+
+	if( x_imagelib_load_file( disp , file_path , NULL , pixmap , mask ,
+			width , height))
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+void
+x_delete_tmp_picture(
+	x_display_t *  disp ,
+	Pixmap  pixmap ,
+	PixmapMask  mask
+	)
+{
+	x_delete_image( disp->display , pixmap) ;
+	x_delete_mask( disp->display , mask) ;
+}
+
 #endif	/* NO_IMAGE */

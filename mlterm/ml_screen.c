@@ -1082,14 +1082,6 @@ ml_screen_get_line_in_screen(
 	}
 }
 
-ml_line_t *
-ml_screen_get_cursor_line(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_get_line( screen->edit , ml_cursor_row( screen->edit)) ;
-}
-
 int
 ml_screen_set_modified_all(
 	ml_screen_t *  screen
@@ -2286,24 +2278,6 @@ ml_screen_go_downward(
 	}
 
 	return  1 ;
-}
-
-int
-ml_screen_go_horizontally(
-	ml_screen_t *  screen ,
-	int  col
-	)
-{
-	return  ml_screen_goto( screen , col , ml_cursor_row( screen->edit)) ;
-}
-
-int
-ml_screen_go_vertically(
-	ml_screen_t *  screen ,
-	int  row
-	)
-{
-	return  ml_screen_goto( screen , ml_cursor_col( screen->edit) , row) ;
 }
 
 int

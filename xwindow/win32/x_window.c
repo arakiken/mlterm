@@ -24,6 +24,7 @@
 #include  "../x_dnd.h"
 #endif
 
+#include  "x_display.h"		/* x_display_get_cursor */
 #include  "x_gdiobj_pool.h"
 
 
@@ -1128,9 +1129,6 @@ x_window_unset_transparent(
 	return  0 ;
 }
 
-/*
- * XXX Cursor is not changeable for now.
- */
 int
 x_window_set_cursor(
 	x_window_t *  win ,
@@ -1291,6 +1289,7 @@ x_window_show(
 	)
 {
 	u_int  count ;
+	Cursor  cursor ;
 
 	if( win->my_window)
 	{
@@ -2463,7 +2462,27 @@ x_window_receive_event(
 		}
 		
 		return  1 ;
-		
+
+	case  WM_SETCURSOR:
+		{
+			Cursor  cursor ;
+
+			if( win->cursor_shape == XC_nil)
+			{
+				SetCursor( NULL) ;
+			}
+			else if( ( cursor = x_display_get_cursor( win->disp , win->cursor_shape)))
+			{
+				SetCursor( cursor) ;
+			}
+			else
+			{
+				break ;
+			}
+
+			return  1 ;
+		}
+
 	case  WM_RENDERALLFORMATS:
 		OpenClipboard( win->my_window) ;
 		EmptyClipboard() ;
@@ -2817,10 +2836,27 @@ x_window_copy_area(
 	int  dst_y	/* >= 0 */
 	)
 {
+#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+	int  tmp_gc ;
+#endif
+
 	if( dst_x >= win->width || dst_y >= win->height)
 	{
 		return  0 ;
 	}
+
+	/* for xterm_show_picture() */
+#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+	if( win->gc->gc == None)
+	{
+		x_set_gc( win->gc , GetDC( win->my_window)) ;
+		tmp_gc = 1 ;
+	}
+	else
+	{
+		tmp_gc = 0 ;
+	}
+#endif
 
 	if( dst_x + width > win->width)
 	{
@@ -2843,6 +2879,14 @@ x_window_copy_area(
 		BitBlt( win->gc->gc , win->hmargin + dst_x , win->vmargin + dst_y ,
 			width , height , src , src_x , src_y , SRCCOPY) ;
 	}
+
+#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+	if( tmp_gc)
+	{
+		ReleaseDC( win->my_window , win->gc->gc) ;
+		x_set_gc( win->gc , None) ;
+	}
+#endif
 
 	return  1 ;
 }

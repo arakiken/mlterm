@@ -123,14 +123,14 @@ x_display_open(
 
 	_display.hinst = GetModuleHandle(NULL) ;
 
-  	/* Prepare window class */
-  	ZeroMemory( &wc , sizeof(WNDCLASS)) ;
-  	wc.lpfnWndProc = window_proc ;
+	/* Prepare window class */
+	ZeroMemory( &wc , sizeof(WNDCLASS)) ;
+	wc.lpfnWndProc = window_proc ;
 	wc.style = CS_HREDRAW | CS_VREDRAW ;
-  	wc.hInstance = _display.hinst ;
-  	wc.hIcon = LoadIcon( _display.hinst , "MLTERM_ICON") ;
-  	wc.hCursor = LoadCursor(NULL,IDC_ARROW) ;
-  	wc.hbrBackground = 0 ;
+	wc.hInstance = _display.hinst ;
+	wc.hIcon = LoadIcon( _display.hinst , "MLTERM_ICON") ;
+	_disp.cursors[2] = wc.hCursor = LoadCursor( NULL , IDC_ARROW) ;
+	wc.hbrBackground = 0 ;
 	wc.lpszClassName = __("MLTERM") ;
 
 	if( ! RegisterClass(&wc))
@@ -207,6 +207,14 @@ x_display_close_all(void)
 	}
 
 	free( _disp.roots) ;
+
+	for( count = 0 ; count < (sizeof(_disp.cursors)/sizeof(_disp.cursors[0])) ; count++)
+	{
+		if( _disp.cursors[count])
+		{
+			CloseHandle( _disp.cursors[count]) ;
+		}
+	}
 
 	if( _display.fd != -1)
 	{
@@ -432,6 +440,50 @@ x_display_update_modifier_mapping(
 	)
 {
 	/* dummy */
+}
+
+Cursor
+x_display_get_cursor(
+	x_display_t *  disp ,
+	u_int  shape
+	)
+{
+	int  idx ;
+	LPCTSTR  name ;
+
+	/*
+	 * XXX
+	 * cursor[0] == XC_xterm / cursor[1] == XC_sb_v_double_arrow / cursor[2] == XC_left_ptr
+	 * cursor[3] == not used
+	 * Mlterm uses only these shapes.
+	 */
+
+	if( shape == XC_xterm)
+	{
+		idx = 0 ;
+		name = IDC_IBEAM ;
+	}
+	else if( shape == XC_sb_v_double_arrow)
+	{
+		idx = 1 ;
+		name = IDC_CROSS ;
+	}
+	else if( shape == XC_left_ptr)
+	{
+		idx = 2 ;
+		name = IDC_ARROW ;	/* already loaded in x_display_open() */
+	}
+	else
+	{
+		return  None ;
+	}
+
+	if( ! disp->cursors[idx])
+	{
+		disp->cursors[idx] = LoadCursor( NULL , name) ;
+	}
+
+	return  disp->cursors[idx] ;
 }
 
 XID

@@ -1,3 +1,32 @@
+2014-09-02  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_display.h: Added.
+
+	* win32/x_display.c: x_display_get_cursor() is added.
+
+	* win32/x.h, fb/x.h: XC_sb_v_double_arrow and XC_left_ptr are defined
+	  as the same value in X11/cursorfont.h.
+
+	* xlib/x_window.c: x_window_set_cursor() calls XDefineCursor() in changing
+	  the current cursor shape.
+
+	* x_display.h: XC_nil which hides pointer is defined.
+
+	* x_screen.c: xterm_show_picture() is added.
+
+	* x_picture.[ch]: x_{load|delete}_tmp_picture() are added.
+
+	* win32/x_window.c:
+	  - x_window_copy_area() draws it directly without x_window_update().
+	  - WM_SETCURSOR message is processed.
+
+	* ml_vt100_parser.[ch]: Animation sixel frames are drawn by
+	  ml_xterm_event_listener_t::show_picture instead of
+	  ml_xterm_event_listener_t::get_picture_data.
+
+	* ml_screen.[ch]: ml_screen_get_cursor_line(), ml_screen_go_horizontally()
+	  and ml_screen_go_vertiacally() are changed from function to macro.
+
 2014-08-26  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c:

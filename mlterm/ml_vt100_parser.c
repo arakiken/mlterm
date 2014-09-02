@@ -450,15 +450,15 @@ interrupt_vt100_cmd(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	ml_screen_render( vt100_parser->screen) ;
-	ml_screen_visual( vt100_parser->screen) ;
-
 	if( HAS_XTERM_LISTENER(vt100_parser,interrupt))
 	{
-		(*vt100_parser->xterm_listener->interrupt)( vt100_parser->xterm_listener->self) ;
-	}
+		ml_screen_render( vt100_parser->screen) ;
+		ml_screen_visual( vt100_parser->screen) ;
 
-	ml_screen_logical( vt100_parser->screen) ;
+		(*vt100_parser->xterm_listener->interrupt)( vt100_parser->xterm_listener->self) ;
+
+		ml_screen_logical( vt100_parser->screen) ;
+	}
 }
 
 static int
@@ -1594,7 +1594,7 @@ report_window_size(
 }
 
 static int
-cursor_char_is_picture(
+cursor_char_is_picture_and_modified(
 	ml_screen_t *  screen
 	)
 {
@@ -1604,6 +1604,29 @@ cursor_char_is_picture(
 	if( ( line = ml_screen_get_cursor_line( screen)) &&
 	    ml_line_is_modified( line) &&
 	    ( ch = ml_char_at( line , ml_screen_cursor_char_index( screen))) &&
+	    ml_get_picture_char( ch))
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+static int
+is_picture_and_nortl(
+	ml_screen_t *  screen ,
+	int  char_index ,
+	int  row
+	)
+{
+	ml_line_t *  line ;
+	ml_char_t *  ch ;
+
+	if( ( line = ml_screen_get_line( screen , row)) &&
+	    ! ml_line_is_rtl( line) &&
+	    ( ch = ml_char_at( line , char_index)) &&
 	    ml_get_picture_char( ch))
 	{
 		return  1 ;
@@ -1625,9 +1648,70 @@ show_picture(
 	int  clip_rows ,
 	int  img_cols ,
 	int  img_rows ,
-	int  is_sixel
+	int  is_sixel ,
+	int  is_macro
 	)
 {
+#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+	static int  prev_char_index = -1 ;
+	static int  prev_row = -1 ;
+
+	if( is_sixel &&
+	    ! is_macro &&	/* See xterm_show_picture() in x_screen.c. */
+	    HAS_XTERM_LISTENER(vt100_parser,show_picture))
+	{
+		struct timeval  tv ;
+
+		if( vt100_parser->sixel_scrolling)
+		{
+			if( prev_char_index !=
+				ml_screen_cursor_char_index( vt100_parser->screen) ||
+			    prev_row !=
+				ml_screen_cursor_row( vt100_parser->screen))
+			{
+				goto  get_picture_data ;
+			}
+
+			if( prev_char_index > 0)
+			{
+				ml_screen_render( vt100_parser->screen) ;
+				ml_screen_visual( vt100_parser->screen) ;
+			}
+		}
+
+		if( is_picture_and_nortl( vt100_parser->screen , prev_char_index , prev_row) &&
+		    gettimeofday( &tv , NULL) == 0)
+		{
+			static struct timeval  prev_tv ;
+
+			if( tv.tv_sec <= prev_tv.tv_sec + 2)
+			{
+				prev_tv = tv ;
+
+				/* It seems animation sixel. */
+
+				(*vt100_parser->xterm_listener->show_picture)(
+					vt100_parser->xterm_listener->self , file_path ,
+					prev_char_index , prev_row ,
+					vt100_parser->sixel_scrolling) ;
+
+				if( prev_char_index != 0 && vt100_parser->sixel_scrolling)
+				{
+					ml_screen_logical( vt100_parser->screen) ;
+				}
+
+				vt100_parser->yield = 1 ;
+
+				return ;
+			}
+
+			prev_tv = tv ;
+		}
+	}
+
+get_picture_data:
+#endif	/* DONT_OPTIMIZE_DRAWING_PICTURE */
+
 	if( HAS_XTERM_LISTENER(vt100_parser,get_picture_data))
 	{
 		ml_char_t *  data ;
@@ -1664,16 +1748,34 @@ show_picture(
 			p = data + (img_cols * clip_beg_row) ;
 			row = 0 ;
 
-			if( is_sixel && ! vt100_parser->sixel_scrolling)
+			if( is_sixel)
 			{
-				ml_screen_save_cursor( vt100_parser->screen) ;
-				ml_screen_cursor_invisible( vt100_parser->screen) ;
-				ml_screen_go_upward( vt100_parser->screen ,
-					ml_screen_cursor_row( vt100_parser->screen)) ;
-				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+				if( ! vt100_parser->sixel_scrolling)
+				{
+					ml_screen_save_cursor( vt100_parser->screen) ;
+					ml_screen_cursor_invisible( vt100_parser->screen) ;
+					ml_screen_go_upward( vt100_parser->screen ,
+						ml_screen_cursor_row( vt100_parser->screen)) ;
+					ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+
+				#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+					prev_char_index = prev_row = 0 ;
+				#endif
+				}
+			#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+				else
+				{
+					prev_char_index =
+						ml_screen_cursor_char_index(
+							vt100_parser->screen) ;
+					prev_row = ml_screen_cursor_row(
+							vt100_parser->screen) ;
+				}
+			#endif
 			}
 
-			if( cursor_char_is_picture( vt100_parser->screen))
+			if( is_macro &&	/* Sequence packet of macros contains many images. */
+			    cursor_char_is_picture_and_modified( vt100_parser->screen))
 			{
 				/* Perhaps it is animation sixel. */
 				interrupt_vt100_cmd( vt100_parser) ;
@@ -2240,7 +2342,7 @@ iterm2_proprietary_set(
 				fclose( fp) ;
 
 				show_picture( vt100_parser , path ,
-						0 , 0 , 0 , 0 , width , height , 0) ;
+						0 , 0 , 0 , 0 , width , height , 0 , 0) ;
 			}
 
 			free( decoded) ;
@@ -2906,7 +3008,7 @@ invoke_macro(
 		if( vt100_parser->macros[id].is_sixel)
 		{
 			show_picture( vt100_parser , vt100_parser->macros[id].str ,
-				0 , 0 , 0 , 0 , 0 , 0 , 1) ;
+				0 , 0 , 0 , 0 , 0 , 0 , 1 , 1) ;
 		}
 		else
 	#endif
@@ -4333,10 +4435,21 @@ parse_vt100_escape_sequence(
 						set_modkey_mode( vt100_parser , ps[0] , -1) ;
 					}
 				}
+				else if( *str_p == 'p')
+				{
+					/* "CSI > p" pointer mode */
+
+					if( HAS_XTERM_LISTENER(vt100_parser,hide_cursor))
+					{
+						(*vt100_parser->xterm_listener->hide_cursor)(
+							vt100_parser->xterm_listener->self ,
+							ps[0] == 2 ? 1 : 0) ;
+					}
+				}
 				else
 				{
 					/*
-					 * "CSI > T", "CSI > c", "CSI > p", "CSI > t"
+					 * "CSI > T", "CSI > c", "CSI > t"
 					 */
 				}
 			}
@@ -5496,7 +5609,7 @@ parse_vt100_escape_sequence(
 				if( strcmp( path + strlen(path) - 4 , ".six") == 0)
 				{
 					show_picture( vt100_parser , path ,
-						0 , 0 , 0 , 0 , 0 , 0 , 1) ;
+						0 , 0 , 0 , 0 , 0 , 0 , 1 , 0) ;
 				}
 				else
 				{
@@ -5506,7 +5619,7 @@ parse_vt100_escape_sequence(
 					orig_flag = vt100_parser->sixel_scrolling ;
 					vt100_parser->sixel_scrolling = 0 ;
 					show_picture( vt100_parser , path ,
-						0 , 0 , 0 , 0 , 0 , 0 , 1) ;
+						0 , 0 , 0 , 0 , 0 , 0 , 1 , 0) ;
 					vt100_parser->sixel_scrolling = orig_flag ;
 				}
 
@@ -7520,7 +7633,7 @@ ml_vt100_parser_exec_cmd(
 		{
 			show_picture( vt100_parser , argv[1] ,
 				clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
-					img_cols , img_rows , 0) ;
+					img_cols , img_rows , 0 , 0) ;
 		}
 		else if( HAS_XTERM_LISTENER(vt100_parser,add_frame_to_animation))
 		{

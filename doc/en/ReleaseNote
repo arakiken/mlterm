@@ -1,5 +1,8 @@
 ver 3.3.9
 * Support DEC Locator mode except filter rectangle.
+* Support CSI > 2 p.
+* Change the default mouse pointer on a mlterm window from IDC_ARROW to IDC_IBEAM
+  on win32.
 
 ver 3.3.8
 * Support rectangle selection by pressing alt key while selecting.
