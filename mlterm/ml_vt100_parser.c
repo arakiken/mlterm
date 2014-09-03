@@ -1653,11 +1653,15 @@ show_picture(
 	)
 {
 #ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+	static ml_vt100_parser_t *  prev_parser ;
 	static int  prev_char_index = -1 ;
 	static int  prev_row = -1 ;
+	static int  prev_end_col = -1 ;
+	static int  prev_end_row = -1 ;
 
 	if( is_sixel &&
 	    ! is_macro &&	/* See xterm_show_picture() in x_screen.c. */
+	    prev_parser == vt100_parser &&
 	    HAS_XTERM_LISTENER(vt100_parser,show_picture))
 	{
 		struct timeval  tv ;
@@ -1695,9 +1699,15 @@ show_picture(
 					prev_char_index , prev_row ,
 					vt100_parser->sixel_scrolling) ;
 
-				if( prev_char_index != 0 && vt100_parser->sixel_scrolling)
+				if( vt100_parser->sixel_scrolling)
 				{
-					ml_screen_logical( vt100_parser->screen) ;
+					if( prev_char_index > 0)
+					{
+						ml_screen_logical( vt100_parser->screen) ;
+					}
+
+					ml_screen_goto( vt100_parser->screen ,
+						prev_end_col , prev_end_row) ;
 				}
 
 				vt100_parser->yield = 1 ;
@@ -1771,6 +1781,8 @@ get_picture_data:
 					prev_row = ml_screen_cursor_row(
 							vt100_parser->screen) ;
 				}
+
+				prev_parser = vt100_parser ;
 			#endif
 			}
 
@@ -1818,11 +1830,20 @@ get_picture_data:
 					ml_screen_line_feed( vt100_parser->screen) ;
 					ml_screen_go_horizontally( vt100_parser->screen ,
 						cursor_col) ;
+				#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+					prev_end_col = ml_screen_cursor_col(
+							vt100_parser->screen) ;
+					prev_end_row = ml_screen_cursor_row(
+							vt100_parser->screen) ;
+				#endif
 				}
 				else
 				{
 					ml_screen_restore_cursor( vt100_parser->screen) ;
 					ml_screen_cursor_visible( vt100_parser->screen) ;
+				#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
+					prev_end_col = prev_end_row = 0 ;
+				#endif
 				}
 			}
 
@@ -4443,7 +4464,7 @@ parse_vt100_escape_sequence(
 					{
 						(*vt100_parser->xterm_listener->hide_cursor)(
 							vt100_parser->xterm_listener->self ,
-							ps[0] == 2 ? 1 : 0) ;
+							ps[0] == 4 ? 1 : 0) ;
 					}
 				}
 				else
