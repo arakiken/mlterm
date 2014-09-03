@@ -199,6 +199,8 @@ main_loop_init(
 	kik_conf_add_opt( conf , '\0' , "metaprefix" , 0 , "mod_meta_prefix" ,
 		"prefix characters in pressing meta key if mod_meta_mode = esc") ;
 	kik_conf_add_opt( conf , '\0' , "deffont" , 0 , "default_font" , "default font") ;
+	kik_conf_add_opt( conf , '\0' , "point" , 1 , "use_point_size" ,
+		"treat fontsize as point instead of pixel") ;
 
 	orig_argv = argv ;
 	if( ! kik_conf_parse_args( conf , &argc , &argv , 0))
@@ -398,6 +400,14 @@ main_loop_init(
 		x_customize_font_file(
 			main_config.type_engine == TYPE_XCORE ? "font" : "aafont" ,
 			"DEFAULT" , value , 0) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_point_size")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			x_font_use_point_size_for_fc( 1) ;
+		}
 	}
 
 	kik_conf_delete( conf) ;

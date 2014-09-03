@@ -1,6 +1,7 @@
 ver 3.3.9
 * Support DEC Locator mode except filter rectangle.
 * Add CSI > 4 p (for QEMU-Sixel) which always hides mouse pointer even if it is moved.
+* Add --point/use_point_size option.
 * Change the default mouse pointer on a mlterm window from IDC_ARROW to IDC_IBEAM
   on win32.
 

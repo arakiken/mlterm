@@ -1,5 +1,9 @@
 2014-09-03  Araki Ken  <arakiken@users.sf.net>
 
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* main_loop.c: --point/use_point_size option is added.
+
 	* mlterm/ml_vt100_parser.c:
 	  - OSC>2p => OSC>4p
 	  - show_picture() moves cursor in showing animation frames.

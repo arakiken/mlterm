@@ -619,6 +619,11 @@ The default is \fBfalse\fR.
 Specify parent Window ID.
 The default is \fB0\fR.
 .TP
+\fB\-\-point\fR(=\fIbool\fR)
+Treat the value of \-w option as point instead of pixel.
+Note that this option works on xft or cairo.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-scp\fR(=\fIbool\fR)
 Allow OSC 5379 scp.
 The default is \fBfalse\fR.
@@ -1449,6 +1454,9 @@ Whether to use login shell or not.
 .TP
 \fBuse_multi_column_char=\fIbool\fR (\fB\-Z\fR, \fB\-\-multicol\fR) 
 Process full width characters.
+.TP
+\fBuse_point_size=\fIbool\fR (\fB\-\-point\fR)
+Treat the value of \-w option as point instead of pixel.
 .TP
 \fBuse_scrollbar=\fIbool\fR (\fB\-s\fR, \fB\-\-sb\fR) 
 Use scrollbar.

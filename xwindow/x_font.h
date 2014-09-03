@@ -110,11 +110,15 @@ u_int  x_calculate_char_width( x_font_t *  font , u_int32_t  ch ,
 
 #if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_WIN32GUI)
 char **  x_font_get_encoding_names( mkf_charset_t  cs) ;
-#endif
 
 void  x_font_use_point_size_for_fc( int  bool) ;
 
 void  x_font_set_dpi_for_fc( double  dpi) ;
+#else
+#define  x_font_get_encoding_names(cs)  (0)
+#define  x_font_use_point_size_for_fc(bool)  (0)
+#define  x_font_set_dpi_for_fc(dpi)  (0)
+#endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 int  x_use_cp932_ucs_for_xft(void) ;

@@ -451,6 +451,10 @@ comment $Id$
       o step_in_changing_font_size (*1*)
         larger,smaller ボタンでのフォントサイズの変化量(*1*)
 
+      o use_point_size
+        fontsizeオプションで指定した数値をピクセルでなくポイントとして扱う。
+        (cairo又はxftの場合のみ有効)
+
       o use_variable_column_width  (*false*) (#)
         可変長コラム幅を使用する
 

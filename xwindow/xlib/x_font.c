@@ -1256,7 +1256,6 @@ x_font_get_encoding_names(
 	}
 }
 
-/* For mlterm-libvte */
 void
 x_font_use_point_size_for_fc(
 	int  bool
@@ -1265,6 +1264,7 @@ x_font_use_point_size_for_fc(
 	use_point_size_for_fc = bool ;
 }
 
+/* For mlterm-libvte */
 void
 x_font_set_dpi_for_fc(
 	double  dpi
