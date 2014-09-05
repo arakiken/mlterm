@@ -1,3 +1,7 @@
+2014-09-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Clean up.
+
 2014-09-03  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja: Updated.

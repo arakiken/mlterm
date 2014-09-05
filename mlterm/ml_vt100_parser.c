@@ -1593,6 +1593,7 @@ report_window_size(
 	}
 }
 
+#ifndef  NO_IMAGE
 static int
 cursor_char_is_picture_and_modified(
 	ml_screen_t *  screen
@@ -1637,7 +1638,32 @@ is_picture_and_nortl(
 	}
 }
 
-#ifndef  NO_IMAGE
+static int
+check_sixel_anim(
+	u_char *  str ,
+	size_t  left
+	)
+{
+	while( --left > 0)
+	{
+		if( *(++str) == '\x1b')
+		{
+			if( --left == 0)
+			{
+				break ;
+			}
+
+			if( *(++str) == 'P')
+			{
+				/* It seems animation sixel. */
+				return  1 ;
+			}
+		}
+	}
+
+	return  0 ;
+}
+
 static void
 show_picture(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -1648,78 +1674,56 @@ show_picture(
 	int  clip_rows ,
 	int  img_cols ,
 	int  img_rows ,
-	int  is_sixel ,
-	int  is_macro
+	int  is_sixel	/* 0: not sixel, 1: sixel, 2: sixel anim, 3: macro */
 	)
 {
 #ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
 	static ml_vt100_parser_t *  prev_parser ;
-	static int  prev_char_index = -1 ;
-	static int  prev_row = -1 ;
 	static int  prev_end_col = -1 ;
 	static int  prev_end_row = -1 ;
 
-	if( is_sixel &&
-	    ! is_macro &&	/* See xterm_show_picture() in x_screen.c. */
+	if( is_sixel == 2 &&
 	    prev_parser == vt100_parser &&
-	    HAS_XTERM_LISTENER(vt100_parser,show_picture))
+	    HAS_XTERM_LISTENER(vt100_parser,show_picture) &&
+	    is_picture_and_nortl( vt100_parser->screen ,
+		ml_screen_cursor_char_index( vt100_parser->screen) ,
+		ml_screen_cursor_row( vt100_parser->screen)))
 	{
-		struct timeval  tv ;
+		int  visualized ;
+
+		if( vt100_parser->sixel_scrolling &&
+		    ml_screen_cursor_char_index( vt100_parser->screen) > 0)
+		{
+			ml_screen_render( vt100_parser->screen) ;
+			ml_screen_visual( vt100_parser->screen) ;
+			visualized = 1 ;
+		}
+		else
+		{
+			visualized = 0 ;
+		}
+
+		(*vt100_parser->xterm_listener->show_picture)(
+			vt100_parser->xterm_listener->self , file_path ,
+			ml_screen_cursor_char_index( vt100_parser->screen) ,
+			ml_screen_cursor_row( vt100_parser->screen) ,
+			vt100_parser->sixel_scrolling) ;
 
 		if( vt100_parser->sixel_scrolling)
 		{
-			if( prev_char_index !=
-				ml_screen_cursor_char_index( vt100_parser->screen) ||
-			    prev_row !=
-				ml_screen_cursor_row( vt100_parser->screen))
+			if( visualized)
 			{
-				goto  get_picture_data ;
+				ml_screen_logical( vt100_parser->screen) ;
 			}
 
-			if( prev_char_index > 0)
-			{
-				ml_screen_render( vt100_parser->screen) ;
-				ml_screen_visual( vt100_parser->screen) ;
-			}
+			ml_screen_goto( vt100_parser->screen ,
+				prev_end_col , prev_end_row) ;
 		}
 
-		if( is_picture_and_nortl( vt100_parser->screen , prev_char_index , prev_row) &&
-		    gettimeofday( &tv , NULL) == 0)
-		{
-			static struct timeval  prev_tv ;
+		vt100_parser->yield = 1 ;
 
-			if( tv.tv_sec <= prev_tv.tv_sec + 2)
-			{
-				prev_tv = tv ;
-
-				/* It seems animation sixel. */
-
-				(*vt100_parser->xterm_listener->show_picture)(
-					vt100_parser->xterm_listener->self , file_path ,
-					prev_char_index , prev_row ,
-					vt100_parser->sixel_scrolling) ;
-
-				if( vt100_parser->sixel_scrolling)
-				{
-					if( prev_char_index > 0)
-					{
-						ml_screen_logical( vt100_parser->screen) ;
-					}
-
-					ml_screen_goto( vt100_parser->screen ,
-						prev_end_col , prev_end_row) ;
-				}
-
-				vt100_parser->yield = 1 ;
-
-				return ;
-			}
-
-			prev_tv = tv ;
-		}
+		return ;
 	}
-
-get_picture_data:
 #endif	/* DONT_OPTIMIZE_DRAWING_PICTURE */
 
 	if( HAS_XTERM_LISTENER(vt100_parser,get_picture_data))
@@ -1767,26 +1771,13 @@ get_picture_data:
 					ml_screen_go_upward( vt100_parser->screen ,
 						ml_screen_cursor_row( vt100_parser->screen)) ;
 					ml_screen_goto_beg_of_line( vt100_parser->screen) ;
-
-				#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
-					prev_char_index = prev_row = 0 ;
-				#endif
 				}
 			#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
-				else
-				{
-					prev_char_index =
-						ml_screen_cursor_char_index(
-							vt100_parser->screen) ;
-					prev_row = ml_screen_cursor_row(
-							vt100_parser->screen) ;
-				}
-
 				prev_parser = vt100_parser ;
 			#endif
 			}
 
-			if( is_macro &&	/* Sequence packet of macros contains many images. */
+			if( is_sixel == 3 && /* Sequence packet of macros contains many images. */
 			    cursor_char_is_picture_and_modified( vt100_parser->screen))
 			{
 				/* Perhaps it is animation sixel. */
@@ -2363,7 +2354,7 @@ iterm2_proprietary_set(
 				fclose( fp) ;
 
 				show_picture( vt100_parser , path ,
-						0 , 0 , 0 , 0 , width , height , 0 , 0) ;
+						0 , 0 , 0 , 0 , width , height , 0) ;
 			}
 
 			free( decoded) ;
@@ -3029,7 +3020,7 @@ invoke_macro(
 		if( vt100_parser->macros[id].is_sixel)
 		{
 			show_picture( vt100_parser , vt100_parser->macros[id].str ,
-				0 , 0 , 0 , 0 , 0 , 0 , 1 , 1) ;
+				0 , 0 , 0 , 0 , 0 , 0 , 3) ;
 		}
 		else
 	#endif
@@ -5630,7 +5621,8 @@ parse_vt100_escape_sequence(
 				if( strcmp( path + strlen(path) - 4 , ".six") == 0)
 				{
 					show_picture( vt100_parser , path ,
-						0 , 0 , 0 , 0 , 0 , 0 , 1 , 0) ;
+						0 , 0 , 0 , 0 , 0 , 0 ,
+						check_sixel_anim( str_p , left) ? 2 : 1) ;
 				}
 				else
 				{
@@ -5640,7 +5632,7 @@ parse_vt100_escape_sequence(
 					orig_flag = vt100_parser->sixel_scrolling ;
 					vt100_parser->sixel_scrolling = 0 ;
 					show_picture( vt100_parser , path ,
-						0 , 0 , 0 , 0 , 0 , 0 , 1 , 0) ;
+						0 , 0 , 0 , 0 , 0 , 0 , 1) ;
 					vt100_parser->sixel_scrolling = orig_flag ;
 				}
 
@@ -7654,7 +7646,7 @@ ml_vt100_parser_exec_cmd(
 		{
 			show_picture( vt100_parser , argv[1] ,
 				clip_beg_col , clip_beg_row , clip_cols , clip_rows ,
-					img_cols , img_rows , 0 , 0) ;
+					img_cols , img_rows , 0) ;
 		}
 		else if( HAS_XTERM_LISTENER(vt100_parser,add_frame_to_animation))
 		{
