@@ -7230,12 +7230,9 @@ xterm_get_picture_data(
 
 #ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
 static void
-xterm_show_picture(
+xterm_show_sixel(
 	void *  p ,
-	char *  file_path ,
-	int  char_index ,
-	int  row ,
-	int  scrollable
+	char *  file_path
 	)
 {
 	x_screen_t *  screen ;
@@ -7250,55 +7247,18 @@ xterm_show_picture(
 	    x_load_tmp_picture( screen->window.disp , file_path , &pixmap , &mask ,
 			&width , &height))
 	{
-		int  dst_x ;
-		int  dst_y ;
-		int  src_y ;
-		u_int  line_height ;
-
-		if( char_index > 0)
-		{
-			dst_x = convert_char_index_to_x_with_shape( screen ,
-					ml_term_get_line( screen->term , row) ,
-					char_index) ;
-		}
-		else
-		{
-			dst_x = 0 ;
-		}
-
-		line_height = x_line_height( screen) ;
-
-		/* Same as convert_row_to_y( screen , row) */
-		dst_y = row * line_height ;
-
-		if( scrollable &&
-		    dst_y + height + line_height > screen->window.height)
-		{
-			src_y = dst_y + height + line_height - screen->window.height ;
-			if( height <= src_y)
-			{
-				return ;
-			}
-
-			height -= src_y ;
-		}
-		else
-		{
-			src_y = 0 ;
-		}
-
 		x_window_copy_area( &screen->window , pixmap , mask ,
-			0 , src_y , width , height , dst_x , dst_y) ;
+			0 , 0 , width , height , 0 , 0) ;
 		x_delete_tmp_picture( screen->window.disp , pixmap , mask) ;
 
 		/*
-		 * x_display_sync() is not necessary here because xterm_show_picture()
+		 * x_display_sync() is not necessary here because xterm_show_sixel()
 		 * is never called by DECINVM.
 		 */
 	}
 }
 #else
-#define  xterm_show_picture NULL
+#define  xterm_show_sixel NULL
 #endif
 
 static void
@@ -7336,7 +7296,7 @@ xterm_add_frame_to_animation(
 }
 #else
 #define  xterm_get_picture_data NULL
-#define  xterm_show_picture NULL
+#define  xterm_show_sixel NULL
 #define  xterm_add_frame_to_animation NULL
 #endif	/* NO_IMAGE */
 
@@ -7573,7 +7533,7 @@ x_screen_new(
 	screen->xterm_listener.get_rgb = xterm_get_rgb ;
 	screen->xterm_listener.get_window_size = xterm_get_window_size ;
 	screen->xterm_listener.get_picture_data = xterm_get_picture_data ;
-	screen->xterm_listener.show_picture = xterm_show_picture ;
+	screen->xterm_listener.show_sixel = xterm_show_sixel ;
 	screen->xterm_listener.add_frame_to_animation = xterm_add_frame_to_animation ;
 	screen->xterm_listener.hide_cursor = xterm_hide_cursor ;
 

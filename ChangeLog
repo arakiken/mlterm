@@ -1,3 +1,14 @@
+2014-09-07  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: xterm_show_picture() is renamed to x_term_show_sixel()
+	  and char_index, row and scrollable arguments are removed.
+
+	* ml_vt100_parser.[ch]:
+	  - ml_xterm_event_listener_t::show_picture is renamed to
+	    ml_xterm_event_listener_t::show_sixel.
+	  - ml_xterm_event_listener_t::show_sixel is called only if
+	    sixel scrolling is off by OSC?80h.
+
 2014-09-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Clean up.

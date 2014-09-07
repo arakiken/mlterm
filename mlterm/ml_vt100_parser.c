@@ -1615,48 +1615,35 @@ cursor_char_is_picture_and_modified(
 	}
 }
 
+/* Don't call this if vt100_parser->sixel_scrolling is true. */
 static int
-is_picture_and_nortl(
+check_sixel_anim(
 	ml_screen_t *  screen ,
-	int  char_index ,
-	int  row
+	u_char *  str ,
+	size_t  left
 	)
 {
 	ml_line_t *  line ;
 	ml_char_t *  ch ;
 
-	if( ( line = ml_screen_get_line( screen , row)) &&
-	    ! ml_line_is_rtl( line) &&
-	    ( ch = ml_char_at( line , char_index)) &&
+	if( ( line = ml_screen_get_line( screen , 0)) &&
+	    ( ch = ml_char_at( line , 0)) &&
 	    ml_get_picture_char( ch))
 	{
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-static int
-check_sixel_anim(
-	u_char *  str ,
-	size_t  left
-	)
-{
-	while( --left > 0)
-	{
-		if( *(++str) == '\x1b')
+		while( --left > 0)
 		{
-			if( --left == 0)
+			if( *(++str) == '\x1b')
 			{
-				break ;
-			}
+				if( --left == 0)
+				{
+					break ;
+				}
 
-			if( *(++str) == 'P')
-			{
-				/* It seems animation sixel. */
-				return  1 ;
+				if( *(++str) == 'P')
+				{
+					/* It seems animation sixel. */
+					return  1 ;
+				}
 			}
 		}
 	}
@@ -1678,47 +1665,10 @@ show_picture(
 	)
 {
 #ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
-	static ml_vt100_parser_t *  prev_parser ;
-	static int  prev_end_col = -1 ;
-	static int  prev_end_row = -1 ;
-
-	if( is_sixel == 2 &&
-	    prev_parser == vt100_parser &&
-	    HAS_XTERM_LISTENER(vt100_parser,show_picture) &&
-	    is_picture_and_nortl( vt100_parser->screen ,
-		ml_screen_cursor_char_index( vt100_parser->screen) ,
-		ml_screen_cursor_row( vt100_parser->screen)))
+	if( is_sixel == 2)
 	{
-		int  visualized ;
-
-		if( vt100_parser->sixel_scrolling &&
-		    ml_screen_cursor_char_index( vt100_parser->screen) > 0)
-		{
-			ml_screen_render( vt100_parser->screen) ;
-			ml_screen_visual( vt100_parser->screen) ;
-			visualized = 1 ;
-		}
-		else
-		{
-			visualized = 0 ;
-		}
-
-		(*vt100_parser->xterm_listener->show_picture)(
-			vt100_parser->xterm_listener->self , file_path ,
-			ml_screen_cursor_char_index( vt100_parser->screen) ,
-			ml_screen_cursor_row( vt100_parser->screen) ,
-			vt100_parser->sixel_scrolling) ;
-
-		if( vt100_parser->sixel_scrolling)
-		{
-			if( visualized)
-			{
-				ml_screen_logical( vt100_parser->screen) ;
-			}
-
-			ml_screen_goto( vt100_parser->screen ,
-				prev_end_col , prev_end_row) ;
-		}
+		(*vt100_parser->xterm_listener->show_sixel)(
+			vt100_parser->xterm_listener->self , file_path) ;
 
 		vt100_parser->yield = 1 ;
 
@@ -1762,25 +1712,18 @@ show_picture(
 			p = data + (img_cols * clip_beg_row) ;
 			row = 0 ;
 
-			if( is_sixel)
+			if( is_sixel && ! vt100_parser->sixel_scrolling)
 			{
-				if( ! vt100_parser->sixel_scrolling)
-				{
-					ml_screen_save_cursor( vt100_parser->screen) ;
-					ml_screen_cursor_invisible( vt100_parser->screen) ;
-					ml_screen_go_upward( vt100_parser->screen ,
-						ml_screen_cursor_row( vt100_parser->screen)) ;
-					ml_screen_goto_beg_of_line( vt100_parser->screen) ;
-				}
-			#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
-				prev_parser = vt100_parser ;
-			#endif
+				ml_screen_save_cursor( vt100_parser->screen) ;
+				ml_screen_cursor_invisible( vt100_parser->screen) ;
+				ml_screen_go_upward( vt100_parser->screen ,
+					ml_screen_cursor_row( vt100_parser->screen)) ;
+				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
 			}
 
-			if( is_sixel == 3 && /* Sequence packet of macros contains many images. */
-			    cursor_char_is_picture_and_modified( vt100_parser->screen))
+			if( cursor_char_is_picture_and_modified( vt100_parser->screen))
 			{
-				/* Perhaps it is animation sixel. */
+				/* Perhaps it is animation. */
 				interrupt_vt100_cmd( vt100_parser) ;
 				vt100_parser->yield = 1 ;
 			}
@@ -1821,20 +1764,11 @@ show_picture(
 					ml_screen_line_feed( vt100_parser->screen) ;
 					ml_screen_go_horizontally( vt100_parser->screen ,
 						cursor_col) ;
-				#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
-					prev_end_col = ml_screen_cursor_col(
-							vt100_parser->screen) ;
-					prev_end_row = ml_screen_cursor_row(
-							vt100_parser->screen) ;
-				#endif
 				}
 				else
 				{
 					ml_screen_restore_cursor( vt100_parser->screen) ;
 					ml_screen_cursor_visible( vt100_parser->screen) ;
-				#ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
-					prev_end_col = prev_end_row = 0 ;
-				#endif
 				}
 			}
 
@@ -5622,7 +5556,9 @@ parse_vt100_escape_sequence(
 				{
 					show_picture( vt100_parser , path ,
 						0 , 0 , 0 , 0 , 0 , 0 ,
-						check_sixel_anim( str_p , left) ? 2 : 1) ;
+						(! vt100_parser->sixel_scrolling &&
+						check_sixel_anim( vt100_parser->screen ,
+							str_p , left)) ? 2 : 1) ;
 				}
 				else
 				{
