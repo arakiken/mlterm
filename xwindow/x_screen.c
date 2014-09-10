@@ -2664,8 +2664,6 @@ no_keypad:
 		}
 		else if( ksym == XK_Escape)
 		{
-			ml_term_reset_pending_vt100_sequence( screen->term) ;
-
 			if( ml_term_is_app_escape( screen->term))
 			{
 				buf = "\x1bO[" ;
@@ -2679,6 +2677,15 @@ no_keypad:
 		 * following ksym is processed only if no key string is received
 		 * (size == 0)
 		 */
+	#if  1
+		else if( ksym == XK_Pause)
+		{
+			if( modcode == 0)
+			{
+				ml_term_reset_pending_vt100_sequence( screen->term) ;
+			}
+		}
+	#endif
 		else if( ksym == XK_Up)
 		{
 			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
@@ -4138,7 +4145,7 @@ idling(
 		{
 			int  flag ;
 
-			flag = ml_screen_blink( screen->term->screen , 1) ? UPDATE_SCREEN : 0 ;
+			flag = ml_term_blink( screen->term , 1) ? UPDATE_SCREEN : 0 ;
 
 			if( screen->blink_cursor)
 			{

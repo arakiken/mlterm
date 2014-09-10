@@ -6499,7 +6499,8 @@ ml_reset_pending_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	if( vt100_parser->r_buf.left >= 2 && is_dcs_or_osc( vt100_parser->r_buf.chars))
+	if( vt100_parser->r_buf.left >= 2 &&
+	    is_dcs_or_osc( CURRENT_STR_P(vt100_parser)))
 	{
 		/* Reset DCS or OSC */
 		vt100_parser->r_buf.left = 0 ;

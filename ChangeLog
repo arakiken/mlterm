@@ -1,3 +1,8 @@
+2014-09-10  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: ml_term_reset_pending_sequence() is called in pressing Pause key
+	  instead of ESC key.
+
 2014-09-07  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: xterm_show_picture() is renamed to x_term_show_sixel()
