@@ -699,12 +699,14 @@ int
 ml_term_resize(
 	ml_term_t *  term ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	if( term->pty)
 	{
-		ml_set_pty_winsize( term->pty , cols , rows) ;
+		ml_set_pty_winsize( term->pty , cols , rows , width_pix , height_pix) ;
 	}
 
 	ml_screen_logical( term->screen) ;
@@ -713,6 +715,31 @@ ml_term_resize(
 	ml_screen_visual( term->screen) ;
 
 	return  1 ;
+}
+
+void
+ml_term_set_winsize(
+	ml_term_t *  term ,
+	u_int  width_pix ,	/* Vertical mode is not considered. */
+	u_int  height_pix	/* Vertical mode is not considered. */
+	)
+{
+	if( term->pty)
+	{
+		if( term->vertical_mode)
+		{
+			u_int  tmp ;
+
+			tmp = width_pix ;
+			width_pix = height_pix ;
+			height_pix = tmp ;
+		}
+
+		 ml_set_pty_winsize( term->pty ,
+			ml_screen_get_logical_cols( term->screen) , \
+			ml_screen_get_logical_rows( term->screen) , \
+			width_pix , height_pix) ;
+	}
 }
 
 int

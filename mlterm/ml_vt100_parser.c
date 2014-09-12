@@ -1372,7 +1372,6 @@ resize(
 				height = ml_screen_get_rows( vt100_parser->screen) ;
 			}
 
-			ml_set_pty_winsize( vt100_parser->pty , width , height) ;
 			ml_screen_resize( vt100_parser->screen , width , height) ;
 
 			/*

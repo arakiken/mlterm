@@ -1,3 +1,9 @@
+2014-09-13  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty.[ch], ml_pty_intern.h, ml_pty_unix.c, ml_term.[ch], ml_vt100_parser.c,
+	  ml_screen.c, ml_screen_manager.c, ml_pty_ssh.c, MLTermPty.c, vte.c:
+	  Window width and height by pixel are set to struct winsize::ws_{x|y}pixel.
+
 2014-09-10  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: ml_term_reset_pending_sequence() is called in pressing Pause key

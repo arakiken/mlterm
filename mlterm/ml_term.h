@@ -151,7 +151,10 @@ size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
 #define  ml_term_write_loopback( term , buf , len) \
 		ml_vt100_parser_write_loopback( (term)->parser , buf , len)
 
-int  ml_term_resize( ml_term_t *  term , u_int  cols , u_int  rows) ;
+int  ml_term_resize( ml_term_t *  term , u_int  cols , u_int  rows ,
+	u_int  width_pix , u_int  height_pix) ;
+
+void  ml_term_set_winsize( ml_term_t *  term , u_int  width_pix , u_int  height_pix) ;
 
 #define  ml_term_cursor_col( term)  ml_screen_cursor_col( (term)->screen)
 

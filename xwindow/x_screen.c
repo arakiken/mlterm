@@ -1631,8 +1631,14 @@ window_resized(
 
 	if( ml_term_get_vertical_mode( screen->term))
 	{
+		u_int  tmp ;
+
 		rows = width / x_col_width( screen) ;
 		cols = height / x_line_height( screen) ;
+
+		tmp = width ;
+		width = height ;
+		height = tmp ;
 	}
 	else
 	{
@@ -1640,7 +1646,7 @@ window_resized(
 		rows = height / x_line_height( screen) ;
 	}
 
-	ml_term_resize( screen->term , cols , rows) ;
+	ml_term_resize( screen->term , cols , rows , width , height) ;
 
 	set_wall_picture( screen) ;
 

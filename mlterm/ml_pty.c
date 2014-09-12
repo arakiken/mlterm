@@ -151,10 +151,12 @@ int
 ml_set_pty_winsize(
 	ml_pty_t *  pty ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
-	return  (*pty->set_winsize)( pty , cols , rows) ;
+	return  (*pty->set_winsize)( pty , cols , rows , width_pix , height_pix) ;
 }
 
 int

@@ -1043,6 +1043,8 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 	if( ret)
 	{
+		ml_term_set_winsize( nativeObj->term , 0 , 0) ;
+
 		return  nativeObj ;
 	}
 

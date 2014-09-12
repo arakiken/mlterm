@@ -714,6 +714,8 @@ open_screen_intern(
 			return  NULL ;
 		}
 
+		ml_term_set_winsize( term , screen->window.width , screen->window.height) ;
+
 		if( main_config.init_str)
 		{
 			ml_term_write( term , main_config.init_str ,

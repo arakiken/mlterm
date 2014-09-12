@@ -64,19 +64,22 @@ static int
 set_winsize(
 	ml_pty_t *  pty ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	struct winsize  ws ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " win size cols %d rows %d.\n" , cols , rows) ;
+	kik_debug_printf( KIK_DEBUG_TAG " win size cols %d rows %d width %d height %d.\n" ,
+		cols , rows , width_pix , height_pix) ;
 #endif
 
 	ws.ws_col = cols ;
 	ws.ws_row = rows ;
-	ws.ws_xpixel = 0 ;
-	ws.ws_ypixel = 0 ;
+	ws.ws_xpixel = width_pix ;
+	ws.ws_ypixel = height_pix ;
 	
 	if( ioctl( pty->master , TIOCSWINSZ , &ws) < 0)
 	{
@@ -254,12 +257,14 @@ ml_pty_unix_new_with(
 		}
 	#endif
 
-		if( set_winsize( pty , cols , rows) == 0)
+	#if  0
+		if( set_winsize( pty , cols , rows , 0 , 0) == 0)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
 		#endif
 		}
+	#endif
 	}
 
 	return  pty ;

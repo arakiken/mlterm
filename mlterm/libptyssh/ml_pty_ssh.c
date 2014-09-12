@@ -785,10 +785,18 @@ static int
 set_winsize(
 	ml_pty_t *  pty ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
-	libssh2_channel_request_pty_size( ((ml_pty_ssh_t*)pty)->channel , cols , rows) ;
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " win size cols %d rows %d width %d height %d.\n" ,
+		cols , rows , width_pix , height_pix) ;
+#endif
+
+	libssh2_channel_request_pty_size_ex( ((ml_pty_ssh_t*)pty)->channel ,
+		cols , rows , width_pix , height_pix) ;
 
 	return  1 ;
 }
@@ -1950,12 +1958,14 @@ ml_pty_ssh_new(
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;
 
-	if( set_winsize( &pty->pty , cols , rows) == 0)
+#if  0
+	if( set_winsize( &pty->pty , cols , rows , 0 , 0) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
 	#endif
 	}
+#endif
 
 	if( keepalive_msec >= 1000)
 	{

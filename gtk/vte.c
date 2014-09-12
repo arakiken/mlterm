@@ -2840,8 +2840,19 @@ ml_term_open_pty_wrap(
 	}
 #endif
 
-	return  ml_term_open_pty( terminal->pvt->term , cmd_path , argv , envv ,
-				host , work_dir , pass , pubkey , privkey) ;
+	if( ml_term_open_pty( terminal->pvt->term , cmd_path , argv , envv ,
+				host , work_dir , pass , pubkey , privkey))
+	{
+		ml_term_set_winsize( terminal->pvt->term ,
+			terminal->pvt->screen->window.width ,
+			terminal->pvt->screen->window.height) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 static void
@@ -3393,7 +3404,12 @@ vte_terminal_set_size(
 	kik_debug_printf( KIK_DEBUG_TAG " set cols %d rows %d\n" , columns , rows) ;
 #endif
 
-	ml_term_resize( terminal->pvt->term , columns , rows) ;
+	ml_term_resize( terminal->pvt->term , columns , rows ,
+		/*
+		 * Vertical writing mode and screen_(width|height)_ratio option aren't supported.
+		 * See reset_vte_size_member().
+		 */
+		terminal->char_width * columns , terminal->char_height * rows) ;
 	reset_vte_size_member( terminal) ;
 
 	/* gnome-terminal(2.29.6 or later ?) is not resized correctly without this. */

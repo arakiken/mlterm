@@ -49,7 +49,8 @@ int  ml_pty_delete( ml_pty_ptr_t  pty) ;
 
 int  ml_pty_set_listener( ml_pty_ptr_t  pty,  ml_pty_event_listener_t *  pty_listener) ;
 
-int  ml_set_pty_winsize( ml_pty_ptr_t  pty , u_int  cols , u_int  rows) ;
+int  ml_set_pty_winsize( ml_pty_ptr_t  pty , u_int  cols , u_int  rows ,
+	u_int  width_pix , u_int  height_pix) ;
 
 size_t  ml_write_to_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  len) ;
 

@@ -21,7 +21,7 @@ typedef struct  ml_pty
 	size_t  size ;
 
 	int (*final)( ml_pty_ptr_t) ;
-	int (*set_winsize)( ml_pty_ptr_t , u_int , u_int) ;
+	int (*set_winsize)( ml_pty_ptr_t , u_int , u_int , u_int , u_int) ;
 	ssize_t (*write)( ml_pty_ptr_t , u_char * , size_t) ;
 	ssize_t (*read)( ml_pty_ptr_t , u_char * , size_t) ;
 
