@@ -338,7 +338,7 @@ ml_create_term(
 						alt_color_mode)))
 					{
 						ml_term_plug_pty( terms[num_of_terms++] , pty) ;
-						ml_set_pty_winsize( pty , cols , rows) ;
+						ml_set_pty_winsize( pty , cols , rows , 0 , 0) ;
 
 						continue ;
 					}

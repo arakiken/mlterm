@@ -1,3 +1,7 @@
+2014-09-14  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_term_manager.c: Fix compiling error.
+
 2014-09-13  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty.[ch], ml_pty_intern.h, ml_pty_unix.c, ml_term.[ch], ml_vt100_parser.c,
