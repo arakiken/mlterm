@@ -1,5 +1,13 @@
 2014-09-14  Araki Ken  <arakiken@users.sf.net>
 
+	* Makefile.in: "./configure;make install" executes "make all" automatically
+	  before "make install".
+
+	* ml_term_manager.c: Don't restart mlterm in segv twice or more times
+	  if auto_restart=true.
+
+2014-09-14  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_term_manager.c: Fix compiling error.
 
 2014-09-13  Araki Ken  <arakiken@users.sf.net>

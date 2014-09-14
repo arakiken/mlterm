@@ -5,14 +5,18 @@ all .DEFAULT:
 	# to the $(top_builddir) at the next line.
 	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) $@) ; fi
 	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) $@) ; fi
-	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
+	(for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done) && \
+	if test "$@" != "clean" ; then touch BUILD_SUCCESS ; else rm BUILD_SUCCESS ; fi
 
-install:
+BUILD_SUCCESS: Makefile
+	$(MAKE) all
+
+install: BUILD_SUCCESS
 	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) install-la) ; fi
 	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) install-la) ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
-install-fb:
+install-fb: BUILD_SUCESS
 	for dir in main scrollbar/* inputmethod/* ; do (cd $${dir} ; $(MAKE) install) || exit $? ; done
 
 distclean:

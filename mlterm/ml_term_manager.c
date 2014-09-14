@@ -29,6 +29,10 @@
 #define  __DEBUG
 #endif
 
+#if  0
+#define  INFINIT_RESTART
+#endif
+
 
 /* --- static variables --- */
 
@@ -229,7 +233,11 @@ ml_set_auto_restart_cmd(
 	)
 {
 #if  ! defined(USE_WIN32API) && ! defined(DEBUG)
-	if( cmd && *cmd)
+	if(
+	#ifndef  INFINIT_RESTART
+	    ! getenv( "INHERIT_PTY_LIST") &&
+	#endif
+	    cmd && *cmd)
 	{
 		if( ! auto_restart_cmd)
 		{
@@ -353,7 +361,9 @@ ml_create_term(
 			}
 		}
 
+	#ifdef  INFINIT_RESTART
 		kik_unsetenv( "INHERIT_PTY_LIST") ;
+	#endif
 
 		if( num_of_terms > 0)
 		{
