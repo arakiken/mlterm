@@ -669,6 +669,9 @@ comment $Id$
         ibus:[conversion engine]
         [conversion engine] に変換エンジン(anthy, prime, hangul2など)を指定しま
         す。指定しなかった場合は ibus のデフォルト変換エンジンが使用されます。
+        (ibusを使用する際の注意点)
+        ibus の preferences 画面からキーボードショートカットを設定する場合、モデ
+        ィファイアの Release にはチェックを付けないでください。
 
         fcitx の場合:
         fcitx (オプション無し)

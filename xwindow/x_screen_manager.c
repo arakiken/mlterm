@@ -165,7 +165,9 @@ open_pty_intern(
 	char *  cmd_path ,
 	char **  cmd_argv ,
 	char *  display ,
-	Window  window
+	Window  window ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	char *  env[6] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,COLORFGBG,NULL */
@@ -379,11 +381,11 @@ open_pty_intern(
 	ret = ml_term_open_pty( term , cmd_path , cmd_argv , env , uri ? uri : display ,
 			main_config.work_dir , pass ,
 		#ifdef  USE_LIBSSH2
-			main_config.public_key , main_config.private_key
+			main_config.public_key , main_config.private_key ,
 		#else
-			NULL , NULL
+			NULL , NULL ,
 		#endif
-			) ;
+			width_pix , height_pix) ;
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	if( uri)
@@ -692,7 +694,8 @@ open_screen_intern(
 	else
 	{
 		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			DisplayString( disp->display) , root->my_window))
+			DisplayString( disp->display) , root->my_window ,
+			screen->window.width , screen->window.height))
 		{
 			x_screen_detach( screen) ;
 			ml_destroy_term( term) ;
@@ -713,8 +716,6 @@ open_screen_intern(
 
 			return  NULL ;
 		}
-
-		ml_term_set_winsize( term , screen->window.width , screen->window.height) ;
 
 		if( main_config.init_str)
 		{
@@ -856,7 +857,8 @@ open_pty(
 		ret = open_pty_intern( new , main_config.cmd_path ,
 			main_config.cmd_argv ,
 			DisplayString( screen->window.disp->display) ,
-			x_get_root_window( &screen->window)->my_window) ;
+			x_get_root_window( &screen->window)->my_window ,
+			screen->window.width , screen->window.height) ;
 
 	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 		main_config.default_server = default_server ;

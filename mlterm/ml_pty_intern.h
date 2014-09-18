@@ -44,14 +44,17 @@ typedef struct  ml_pty
 
 
 ml_pty_t *  ml_pty_unix_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
-	const char *  host , const char *  work_dir , u_int  cols , u_int  rows) ;
+	const char *  host , const char *  work_dir , u_int  cols , u_int  rows ,
+	u_int  width_pix , u_int  height_pix) ;
 
 ml_pty_t *  ml_pty_unix_new_with( int  master , int  slave , pid_t  child_pid ,
-	const char *  host , u_int  cols , u_int  rows) ;
+	const char *  host , u_int  cols , u_int  rows ,
+	u_int  width_pix , u_int  height_pix) ;
 
 ml_pty_t *  ml_pty_ssh_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
 	const char *  host , const char *  pass ,
-	const char *  pubkey , const char *  privkey , u_int  cols , u_int  rows) ;
+	const char *  pubkey , const char *  privkey , u_int  cols , u_int  rows ,
+	u_int  width_pix , u_int  height_pix) ;
 
 ml_pty_t *  ml_pty_pipe_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
 	const char *  host , const char *  pass , u_int  cols , u_int  rows) ;

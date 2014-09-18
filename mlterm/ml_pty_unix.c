@@ -126,7 +126,9 @@ ml_pty_unix_new(
 	const char *  host ,
 	const char *  work_dir ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	ml_pty_t *  pty ;
@@ -209,7 +211,8 @@ ml_pty_unix_new(
 	/* parent process */
 
 return_pty:
-	if( ! ( pty = ml_pty_unix_new_with( master , slave , pid , host , cols , rows)))
+	if( ! ( pty = ml_pty_unix_new_with( master , slave , pid , host , cols , rows ,
+			width_pix , height_pix)))
 	{
 		close( master) ;
 		close( slave) ;
@@ -225,7 +228,9 @@ ml_pty_unix_new_with(
 	pid_t  child_pid ,
 	const char *  host ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	ml_pty_t *  pty ;
@@ -257,14 +262,12 @@ ml_pty_unix_new_with(
 		}
 	#endif
 
-	#if  0
-		if( set_winsize( pty , cols , rows , 0 , 0) == 0)
+		if( set_winsize( pty , cols , rows , width_pix , height_pix) == 0)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
 		#endif
 		}
-	#endif
 	}
 
 	return  pty ;

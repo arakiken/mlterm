@@ -40,10 +40,11 @@ typedef struct  ml_pty *  ml_pty_ptr_t ;
 
 ml_pty_ptr_t  ml_pty_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
 	const char *  host , const char *  work_dir , const char *  pass ,
-	const char *  pubkey , const char *  privkey , u_int  cols , u_int  rows) ;
+	const char *  pubkey , const char *  privkey , u_int  cols , u_int  rows ,
+	u_int  width_pix , u_int  height_pix) ;
 
 ml_pty_ptr_t  ml_pty_new_with( int  master , int  slave , pid_t  child_pid ,
-	u_int  cols , u_int  rows) ;
+	u_int  cols , u_int  rows , u_int  width_pix , u_int  height_pix) ;
 
 int  ml_pty_delete( ml_pty_ptr_t  pty) ;
 

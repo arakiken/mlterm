@@ -34,6 +34,8 @@ typedef struct
 	char *  pass ;
 	char *  pubkey ;
 	char *  privkey ;
+	u_int  width_pix ;
+	u_int  height_pix ;
 
 } pty_args_t ;
 
@@ -97,7 +99,9 @@ pty_args_new(
 	const char *  work_dir ,
 	const char *  pass ,
 	const char *  pubkey ,
-	const char *  privkey
+	const char *  privkey ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	pty_args_t *  args ;
@@ -140,6 +144,9 @@ pty_args_new(
 	{
 		args->privkey = strdup( privkey) ;
 	}
+
+	args->width_pix = width_pix ;
+	args->height_pix = height_pix ;
 
 	if( argv)
 	{
@@ -212,7 +219,8 @@ open_pty(
 	pty = ml_pty_new( args->cmd_path , args->argv , args->env , args->host ,
 			args->work_dir , args->pass , args->pubkey , args->privkey ,
 			ml_screen_get_logical_cols( args->term->screen) ,
-			ml_screen_get_logical_rows( args->term->screen)) ;
+			ml_screen_get_logical_rows( args->term->screen) ,
+			args->width_pix , args->height_pix) ;
 
 	if( pty)
 	{
@@ -430,16 +438,28 @@ ml_term_open_pty(
 	const char *  work_dir ,
 	const char *  pass ,
 	const char *  pubkey ,
-	const char *  privkey
+	const char *  privkey ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
+	if( term->vertical_mode)
+	{
+		u_int  tmp ;
+
+		tmp = width_pix ;
+		width_pix = height_pix ;
+		height_pix = tmp ;
+	}
+
 	if( ! term->pty)
 	{
 	#ifdef  OPEN_PTY_ASYNC
 		pty_args_t *  args ;
 
 		if( ! ( args = pty_args_new( term , cmd_path , argv , env , host ,
-					work_dir , pass , pubkey , privkey)))
+					work_dir , pass , pubkey , privkey ,
+					width_pix , height_pix)))
 		{
 			return  0 ;
 		}
@@ -478,11 +498,12 @@ ml_term_open_pty(
 		if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , work_dir ,
 				pass , pubkey , privkey ,
 				ml_screen_get_logical_cols( term->screen) ,
-				ml_screen_get_logical_rows( term->screen))))
+				ml_screen_get_logical_rows( term->screen) ,
+				width_pix , height_pix)))
 		{
-		#ifdef  DEBUG
+	//	#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;
-		#endif
+	//	#endif
 
 			return  0 ;
 		}
@@ -715,31 +736,6 @@ ml_term_resize(
 	ml_screen_visual( term->screen) ;
 
 	return  1 ;
-}
-
-void
-ml_term_set_winsize(
-	ml_term_t *  term ,
-	u_int  width_pix ,	/* Vertical mode is not considered. */
-	u_int  height_pix	/* Vertical mode is not considered. */
-	)
-{
-	if( term->pty)
-	{
-		if( term->vertical_mode)
-		{
-			u_int  tmp ;
-
-			tmp = width_pix ;
-			width_pix = height_pix ;
-			height_pix = tmp ;
-		}
-
-		 ml_set_pty_winsize( term->pty ,
-			ml_screen_get_logical_cols( term->screen) , \
-			ml_screen_get_logical_rows( term->screen) , \
-			width_pix , height_pix) ;
-	}
 }
 
 int

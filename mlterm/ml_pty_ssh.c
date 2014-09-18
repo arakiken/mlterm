@@ -32,7 +32,7 @@
 /* --- static variables --- */
 
 static ml_pty_ptr_t (*ssh_new)( const char * , char ** , char ** , const char * ,
-		const char * , const char * , const char * , u_int , u_int) ;
+		const char * , const char * , const char * , u_int , u_int , u_int , u_int) ;
 static void * (*search_ssh_session)( const char * , const char * , const char *) ;
 static int  (*set_use_loopback)( ml_pty_ptr_t , int) ;
 static int  (*ssh_scp)( ml_pty_ptr_t , int , char * , char *) ;
@@ -93,7 +93,9 @@ ml_pty_ssh_new(
 	const char *  pubkey ,
 	const char *  privkey ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	if( ! is_tried)
@@ -104,7 +106,7 @@ ml_pty_ssh_new(
 	if( ssh_new)
 	{
 		return  (*ssh_new)( cmd_path , cmd_argv , env , uri , pass ,
-				pubkey , privkey , cols , rows) ;
+				pubkey , privkey , cols , rows , width_pix , height_pix) ;
 	}
 	else
 	{

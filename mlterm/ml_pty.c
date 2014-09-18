@@ -56,7 +56,9 @@ ml_pty_new(
 	const char *  pubkey ,		/* can be NULL */
 	const char *  privkey ,		/* can be NULL */
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	ml_pty_t *  pty ;
@@ -65,14 +67,14 @@ ml_pty_new(
 	if( ! pass)
 	{
 		pty = ml_pty_unix_new( cmd_path , cmd_argv , env , host ,
-				work_dir , cols , rows) ;
+				work_dir , cols , rows , width_pix , height_pix) ;
 	}
 	else
 #endif
 	{
 	#if  defined(USE_LIBSSH2)
 		pty = ml_pty_ssh_new( cmd_path , cmd_argv , env , host , pass ,
-				pubkey , privkey , cols , rows) ;
+				pubkey , privkey , cols , rows , width_pix , height_pix) ;
 	#elif  defined(USE_WIN32API)
 		pty = ml_pty_pipe_new( cmd_path , cmd_argv , env , host , pass , cols , rows) ;
 	#else
@@ -94,7 +96,9 @@ ml_pty_new_with(
 	int  slave ,
 	pid_t  child_pid ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	ml_pty_t *  pty ;
@@ -103,7 +107,7 @@ ml_pty_new_with(
 	if( ptsname( master))
 	{
 		pty = ml_pty_unix_new_with( master , slave , child_pid ,
-				":0.0" , cols , rows) ;
+				":0.0" , cols , rows , width_pix , height_pix) ;
 	}
 	else
 #endif

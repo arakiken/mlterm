@@ -76,7 +76,7 @@ int  ml_term_zombie( ml_term_t *  term) ;
 
 int  ml_term_open_pty( ml_term_t *  term , const char *  cmd_path , char ** argv , char **  env ,
 	const char *  host , const char *  work_dir , const char *  pass ,
-	const char *  pubkey , const char *  privkey) ;
+	const char *  pubkey , const char *  privkey , u_int  width_pix , u_int  height_pix) ;
 
 int  ml_term_plug_pty( ml_term_t *  term , ml_pty_ptr_t  pty) ;
 
@@ -153,8 +153,6 @@ size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
 
 int  ml_term_resize( ml_term_t *  term , u_int  cols , u_int  rows ,
 	u_int  width_pix , u_int  height_pix) ;
-
-void  ml_term_set_winsize( ml_term_t *  term , u_int  width_pix , u_int  height_pix) ;
 
 #define  ml_term_cursor_col( term)  ml_screen_cursor_col( (term)->screen)
 

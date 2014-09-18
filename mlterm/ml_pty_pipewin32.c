@@ -440,7 +440,9 @@ static int
 set_winsize(
 	ml_pty_t *  pty ,
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	if( ((ml_pty_pipe_t*)pty)->is_plink)
@@ -708,7 +710,7 @@ ml_pty_pipe_new(
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;
 
-	if( set_winsize( &pty->pty , cols , rows) == 0)
+	if( set_winsize( &pty->pty , cols , rows , 0 , 0) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;

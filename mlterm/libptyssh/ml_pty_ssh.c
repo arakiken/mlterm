@@ -376,6 +376,7 @@ ssh_connect(
 #endif
 
 	libssh2_session_set_blocking( session->obj , 1) ;
+	libssh2_session_set_timeout( session->obj , 10000) ;	/* 10 sec */
 
 	if( cipher_list)
 	{
@@ -1757,7 +1758,9 @@ ml_pty_ssh_new(
 	const char *  pubkey ,	/* can be NULL */
 	const char *  privkey ,	/* can be NULL */
 	u_int  cols ,
-	u_int  rows
+	u_int  rows ,
+	u_int  width_pix ,
+	u_int  height_pix
 	)
 {
 	ml_pty_ssh_t *  pty ;
@@ -1958,14 +1961,12 @@ ml_pty_ssh_new(
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;
 
-#if  0
-	if( set_winsize( &pty->pty , cols , rows , 0 , 0) == 0)
+	if( set_winsize( &pty->pty , cols , rows , width_pix , height_pix) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
 	#endif
 	}
-#endif
 
 	if( keepalive_msec >= 1000)
 	{

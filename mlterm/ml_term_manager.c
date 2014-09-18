@@ -333,7 +333,7 @@ ml_create_term(
 				 * cols + 1 is for redrawing screen by ml_set_pty_winsize() below.
 				 */
 				if( ( pty = ml_pty_new_with( master , slave , child_pid ,
-							cols + 1 , rows)))
+							cols + 1 , rows , 0 , 0)))
 				{
 					if( ( terms[num_of_terms] = ml_term_new( cols , rows ,
 						tab_size , log_size , encoding , is_auto_encoding ,
