@@ -68,6 +68,12 @@
 #define  IS_INHERIT_TRANSPARENT(win) \
 		( use_inherit_transparent && x_picture_modifier_is_normal( (win)->pic_mod))
 
+/* win->width is not multiples of (win)->width_inc if window is maximized. */
+#define  RIGHT_MARGIN(win) \
+	((win)->width_inc ? ((win)->width - (win)->min_width) % (win)->width_inc : 0)
+#define  BOTTOM_MARGIN(win) \
+	((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
+
 
 typedef struct {
 	u_int32_t  flags ;
@@ -2081,7 +2087,9 @@ x_window_blank(
 	restore_fg_color( win) ;
 
 	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-		win->hmargin , win->vmargin , win->width , win->height) ;
+		win->hmargin , win->vmargin ,
+		win->width - RIGHT_MARGIN(win) ,
+		win->height - BOTTOM_MARGIN(win)) ;
 
 	return  1 ;
 }

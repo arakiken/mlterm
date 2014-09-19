@@ -1,3 +1,12 @@
+2014-09-20  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c: x_window_bell() supports BEL_VISUAL.
+
+	* xlib/x_window.c, fb/x_window.c:
+	  x_window_blank() doesn't blank RIGHT_MARGIN and BOTTOM_MARGIN.
+
+	* ml_pty_ssh.c: libssh2_session_set_timeout(10000) => libssh2_session_set_timeout(30000)
+
 2014-09-18  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty.[ch], ml_pty_intern.h, ml_pty_ssh.c, ml_pty_pipewin32.c, ml_pty_unix.c,

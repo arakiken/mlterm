@@ -7,6 +7,7 @@
 #include  <string.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_unistd.h>	/* kik_usleep */
 
 #include  "x_display.h"
 #include  "x_font.h"
@@ -1379,7 +1380,9 @@ x_window_blank(
 	x_window_t *  win
 	)
 {
-	return  x_window_fill_with( win , &win->fg_color , 0 , 0 , win->width , win->height) ;
+	return  x_window_fill_with( win , &win->fg_color , 0 , 0 ,
+			win->width - RIGHT_MARGIN(win) ,
+			win->height - BOTTOM_MARGIN(win)) ;
 }
 
 int
@@ -2133,9 +2136,16 @@ x_window_get_mod_meta_mask(
 int
 x_window_bell(
 	x_window_t *  win ,
-	x_bel_mode_t  bel_mode
+	x_bel_mode_t  mode
 	)
 {
+	if( mode & BEL_VISUAL)
+	{
+		x_window_blank( win) ;
+		kik_usleep( 100000) ;	/* 100 mili sec */
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+
 	return  1 ;
 }
 

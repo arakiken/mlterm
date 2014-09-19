@@ -376,7 +376,7 @@ ssh_connect(
 #endif
 
 	libssh2_session_set_blocking( session->obj , 1) ;
-	libssh2_session_set_timeout( session->obj , 10000) ;	/* 10 sec */
+	libssh2_session_set_timeout( session->obj , 30000) ;	/* 30 sec */
 
 	if( cipher_list)
 	{
