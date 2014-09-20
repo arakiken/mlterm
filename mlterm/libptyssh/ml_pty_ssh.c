@@ -660,6 +660,7 @@ ssh_connect(
 		sessions = p ;
 	}
 
+	libssh2_session_set_timeout( session->obj , 0) ;
 	libssh2_session_set_blocking( session->obj , 0) ;
 
 	session->host = strdup( host) ;

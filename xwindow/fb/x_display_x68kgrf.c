@@ -921,7 +921,8 @@ x68k_tvram_set_wall_picture(
 	pl3 = pl2 + 0x20000 ;
 	img = image ;
 
-	for( y = 0 , img_y = 0 ; y < _disp.height ; y++ , img_y++)
+	/* Don't use _disp.height because this function doesn't concern display rotation. */
+	for( y = 0 , img_y = 0 ; y < _display.height ; y++ , img_y++)
 	{
 		int  x ;
 		int  img_x ;
