@@ -375,7 +375,7 @@ load_sixel_with_mask_from_file_1bpp(
 		return  0 ;
 	}
 
-	if( ! ( src = (*pixmap)->image = load_sixel_from_file_1bpp( path ,
+	if( ! ( (*pixmap)->image = load_sixel_from_file_1bpp( path ,
 						&(*pixmap)->width , &(*pixmap)->height)) ||
 	    /* resize_sixel() frees pixmap->image in failure. */
 	    ! resize_sixel( *pixmap , width , height , 1))
@@ -385,6 +385,9 @@ load_sixel_with_mask_from_file_1bpp(
 		return  0 ;
 	}
 
+	src = (*pixmap)->image ;
+
+#if  0
 	if( mask && ( dst = *mask = calloc( 1 , (*pixmap)->width * (*pixmap)->height)))
 	{
 		int  has_tp ;
@@ -428,6 +431,52 @@ load_sixel_with_mask_from_file_1bpp(
 			}
 		}
 	}
+#else
+	{
+		u_char  bg_color ;
+		u_char *  p ;
+
+		if( mask)
+		{
+			*mask = None ;
+		}
+
+		bg_color = 0 ;
+		p = src ;
+
+		/* Guess the current screen background color. */
+		for( y = 0 ; y < (*pixmap)->height ; y++)
+		{
+			for( x = 0 ; x < (*pixmap)->width ; x++)
+			{
+				if( *p >= 0x80)
+				{
+					bg_color = (((*p) & 0x7f) == 1) ? 0 : 1 ;
+					break ;
+				}
+
+				p ++ ;
+			}
+		}
+
+		for( y = 0 ; y < (*pixmap)->height ; y++)
+		{
+			for( x = 0 ; x < (*pixmap)->width ; x++)
+			{
+				if( *src >= 0x80)
+				{
+					/* clear opaque mark */
+					*(src ++) &= 0x7f ;
+				}
+				else
+				{
+					/* replace transparent pixel by the background color */
+					*(src ++) = bg_color ;
+				}
+			}
+		}
+	}
+#endif
 
 	return  1 ;
 }
