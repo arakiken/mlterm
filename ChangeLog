@@ -1,5 +1,7 @@
 2014-09-21  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/x_window.c: clear_margin_area() cleargs RIGHT_MARGIN and BOTTOM_MARGIN.
+
 	* x_display_x68kgrf.c: _disp.height is replaced by _display.height to fix
 	  segv in x68k_tvram_set_wall_picture().
 
