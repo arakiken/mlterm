@@ -109,7 +109,8 @@ Framebuffer support
 
   (Common)
   o You can use a software keyboard if you double-click the left mouse button
-    (Button1) at the right bottom corner of the screen.
+    (Button1) at the right bottom corner of the screen. (Not supported on 1, 2
+    and 4 bpp)
   o If you want to change fonts dynamically by mlcc, execute mlcc with "font"
     (not "font-fb") argument.
   o To redraw the screen completely, execute a following command.

@@ -297,8 +297,6 @@ start_virtual_kbd(
 		height = disp->height / 2 ;
 	}
 
-	disp->height -= height ;
-
 	if( ! ( kbd_win = malloc( sizeof(x_window_t))))
 	{
 		goto  error ;
@@ -309,7 +307,7 @@ start_virtual_kbd(
 
 	kbd_win->disp = disp ;
 	kbd_win->x = 0 ;
-	kbd_win->y = disp->height ;
+	kbd_win->y = disp->height - height ;
 
 	x_window_show( kbd_win , 0) ;
 	x_window_clear_all( kbd_win) ;
@@ -320,7 +318,7 @@ start_virtual_kbd(
 
 	if( disp->num_of_roots > 0)
 	{
-		x_window_resize_with_margin( disp->roots[0] , disp->width , disp->height ,
+		x_window_resize_with_margin( disp->roots[0] , disp->width , disp->height - height ,
 			NOTIFY_TO_MYSELF) ;
 	}
 
@@ -361,8 +359,6 @@ x_virtual_kbd_hide(void)
 	pressed_pixmap = NULL ;
 #endif
 
-	kbd_win->disp->height += kbd_win->height ;
-
 	if( kbd_win->disp->num_of_roots > 0)
 	{
 		x_window_resize_with_margin( kbd_win->disp->roots[0] ,
@@ -393,7 +389,7 @@ x_is_virtual_kbd_event(
 
 		if( bev->type == ButtonPress)
 		{
-			if( bev->x + bev->y + 20 >= disp->display->width + disp->display->height)
+			if( bev->x + bev->y + 20 >= disp->width + disp->height)
 			{
 				if( click_num == 0)
 				{

@@ -1,5 +1,10 @@
 2014-09-21  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/x_display.c, fb/x_virtual_kbd.c: Software keyboard is available on
+	  rotated display.
+
 	* xlib/x_window.c: clear_margin_area() cleargs RIGHT_MARGIN and BOTTOM_MARGIN.
 
 	* x_display_x68kgrf.c: _disp.height is replaced by _display.height to fix

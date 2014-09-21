@@ -994,7 +994,7 @@ check_virtual_kbd(
 	XKeyEvent  kev ;
 	int  ret ;
 
-	if( rotate_display || ! ( ret = x_is_virtual_kbd_event( &_disp , bev)))
+	if( ! ( ret = x_is_virtual_kbd_event( &_disp , bev)))
 	{
 		return  0 ;
 	}
@@ -1444,7 +1444,7 @@ x_display_open(
 		{
 			u_int  tmp ;
 
-			if( _display.bytes_per_pixel < 2)
+			if( _display.pixels_per_byte > 1)
 			{
 				rotate_display = 0 ;
 				rotate_mouse_cursor_shape() ;
@@ -1858,25 +1858,16 @@ x_display_rotate(
 	int  rotate	/* 1: clockwise, -1: counterclockwise */
 	)
 {
-	if( rotate == rotate_display)
+	if( rotate == rotate_display ||
+	    /* rotate is available for 8 or more bpp */
+	    _display.pixels_per_byte > 1)
 	{
 		return ;
 	}
 
-	if( rotate)
+	if( DISP_IS_INITED)
 	{
-		if( DISP_IS_INITED)
-		{
-			if( _display.bytes_per_pixel < 2)
-			{
-				/* rotate is available for 16 or more bpp */
-
-				return ;
-			}
-
-			/* virual kbd is unavailable on the rotated display. */
-			x_virtual_kbd_hide() ;
-		}
+		x_virtual_kbd_hide() ;
 	}
 
 	if( rotate_display + rotate != 0)
@@ -2005,7 +1996,15 @@ x_display_put_image(
 
 		fb = get_fb( x , y) ;
 
-		if( _display.bytes_per_pixel == 2)
+		if( _display.bytes_per_pixel == 1)
+		{
+			for( count = 0 ; count < size ; count++)
+			{
+				*fb = image[count] ;
+				fb += line_length ;
+			}
+		}
+		else if( _display.bytes_per_pixel == 2)
 		{
 			size /= 2 ;
 			for( count = 0 ; count < size ; count++)
@@ -2253,6 +2252,24 @@ x_display_fill_with(
 	}
 	else
 	{
+		if( rotate_display)
+		{
+			u_int  tmp ;
+
+			if( rotate_display > 0)
+			{
+				fb = get_fb( _disp.height - y - height , x) ;
+			}
+			else /* if( rotate_display < 0) */
+			{
+				fb = get_fb( y , _disp.width - x - width) ;
+			}
+
+			tmp = width ;
+			width = height ;
+			height = tmp ;
+		}
+
 		if( ! ( buf = alloca( width)))
 		{
 			return ;
