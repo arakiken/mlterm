@@ -8,6 +8,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_sig_child.h>
+#include  <kiklib/kik_path.h>	/* kik_parse_uri */
 
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
@@ -455,66 +456,80 @@ ml_term_open_pty(
 	if( ! term->pty)
 	{
 	#ifdef  OPEN_PTY_ASYNC
-		pty_args_t *  args ;
+		char *  user ;
+		char *  server ;
+		char *  port ;
 
-		if( ! ( args = pty_args_new( term , cmd_path , argv , env , host ,
-					work_dir , pass , pubkey , privkey ,
-					width_pix , height_pix)))
+		if( pass &&
+		    kik_parse_uri( NULL , &user , &server , &port , NULL , NULL ,
+			kik_str_alloca_dup( host)) &&
+		    ! ml_search_ssh_session( host , port , user))
 		{
-			return  0 ;
-		}
+			pty_args_t *  args ;
 
-	#ifdef  USE_WIN32API
-		{
-			HANDLE  thrd ;
-			u_int  tid ;
-
-			if( ( thrd = _beginthreadex( NULL , 0 , open_pty , args , 0 , &tid)))
-			{
-				CloseHandle( thrd) ;
-
-				return  1 ;
-			}
-
-			return  0 ;
-		}
-	#else
-		{
-			pthread_t  thrd ;
-
-			if( pthread_create( &thrd , NULL , open_pty , args) == 0)
-			{
-				return  1 ;
-			}
-			else
+			if( ! ( args = pty_args_new( term , cmd_path , argv , env , host ,
+						work_dir , pass , pubkey , privkey ,
+						width_pix , height_pix)))
 			{
 				return  0 ;
 			}
-		}
-	#endif
-	#else	/* OPEN_PTY_ASYNC */
-		ml_pty_ptr_t  pty ;
 
-		if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , work_dir ,
-				pass , pubkey , privkey ,
-				ml_screen_get_logical_cols( term->screen) ,
-				ml_screen_get_logical_rows( term->screen) ,
-				width_pix , height_pix)))
+		#ifdef  USE_WIN32API
+			{
+				HANDLE  thrd ;
+				u_int  tid ;
+
+				if( ( thrd = _beginthreadex( NULL , 0 , open_pty , args , 0 , &tid)))
+				{
+					CloseHandle( thrd) ;
+
+					return  1 ;
+				}
+
+				return  0 ;
+			}
+		#else
+			{
+				pthread_t  thrd ;
+
+				if( pthread_create( &thrd , NULL , open_pty , args) == 0)
+				{
+					return  1 ;
+				}
+				else
+				{
+					return  0 ;
+				}
+			}
+		#endif
+		}
+		else
+	#endif /* OPEN_PTY_ASYNC */
 		{
-	//	#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;
-	//	#endif
+			ml_pty_ptr_t  pty ;
 
-			return  0 ;
+			if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , work_dir ,
+					pass , pubkey , privkey ,
+					ml_screen_get_logical_cols( term->screen) ,
+					ml_screen_get_logical_rows( term->screen) ,
+					width_pix , height_pix)))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;
+			#endif
+
+				return  0 ;
+			}
+
+		#ifndef  OPEN_PTY_ASYNC
+			if( pass)
+			{
+				term->uri = strdup( host) ;
+			}
+		#endif
+
+			ml_term_plug_pty( term , pty) ;
 		}
-
-		if( pass)
-		{
-			term->uri = strdup( host) ;
-		}
-
-		ml_term_plug_pty( term , pty) ;
-	#endif	/* OPEN_PTY_ASYNC */
 	}
 
 	return  1 ;

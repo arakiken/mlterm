@@ -850,8 +850,27 @@ expose_window(
 
 	if( win->window_exposed)
 	{
-		(*win->window_exposed)( win , x - win->x - win->hmargin ,
-			y - win->y - win->vmargin , width , height) ;
+		if( x < win->x + win->hmargin)
+		{
+			width -= (win->x + win->hmargin - x) ;
+			x = 0 ;
+		}
+		else
+		{
+			x -= (win->x + win->hmargin) ;
+		}
+
+		if( y < win->y + win->vmargin)
+		{
+			height -= (win->y + win->vmargin - y) ;
+			y = 0 ;
+		}
+		else
+		{
+			y -= (win->y + win->vmargin) ;
+		}
+
+		(*win->window_exposed)( win , x , y , width , height) ;
 	}
 }
 
@@ -886,7 +905,8 @@ expose_display(
 		height = _disp.height - y ;
 	}
 
-	if( ( win2 = get_window( x + width - 1 , y + height - 1)) != win1)
+	if( ( win2 = x_is_virtual_kbd_area( y + height - 1)) ||
+	    ( win2 = get_window( x + width - 1 , y + height - 1)) != win1)
 	{
 		expose_window( win2 , x , y , width , height) ;
 	}

@@ -226,6 +226,19 @@ update_state(
 	}
 }
 
+static void
+window_exposed(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	x_window_copy_area( win , normal_pixmap , None , x - x_off , y ,
+		width , height , x , y) ;
+}
+
 static int
 start_virtual_kbd(
 	x_display_t *  disp
@@ -304,6 +317,7 @@ start_virtual_kbd(
 
 	x_window_init( kbd_win , disp->width , height , disp->width ,
 		height , disp->width , height , 0 , 0 , 0) ;
+	kbd_win->window_exposed = window_exposed ;
 
 	kbd_win->disp = disp ;
 	kbd_win->x = 0 ;
@@ -553,4 +567,19 @@ x_virtual_kbd_read(
 	is_pressed = 0 ;
 
 	return  0 ;
+}
+
+x_window_t *
+x_is_virtual_kbd_area(
+	int  y
+	)
+{
+	if( kbd_win && y > kbd_win->y)
+	{
+		return  kbd_win ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }

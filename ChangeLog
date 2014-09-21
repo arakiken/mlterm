@@ -1,5 +1,11 @@
 2014-09-22  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_term.c: Opening pty asynchronously is disabled in opening a new pty
+	  channel on an exsiting session.
+
+	* x_virtual_kbd.[ch], fb/x_display.c: Software keyboard is redrawn when
+	  it is partially exposed.
+
 	* fb/x_imagelib.c: Transparent pixels are replaced by the current background
 	  color on 1bpp.
 
