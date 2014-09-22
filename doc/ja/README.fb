@@ -20,7 +20,7 @@ Framebuffer 対応に関するメモ
   sudo make install
   (インストール先は、X 版 mlterm と同じディレクトリで構いません。
    この場合、すでに X版 mlterm がインストールされていれば、全てのファイルを
-   make install しなくても、make install-fb で、mlterm-fb, libsample-fb.so 及び
+   make install しなくても、make install-fb で、mlterm-fb 及び
    libim-*-fb.so ファイルだけインストールしても、問題ありません。)
 
 * 設定
@@ -119,14 +119,14 @@ Framebuffer 対応に関するメモ
   o 画面にゴミが残ったり、8 bpp での cmap の設定が変わってしまった場合には、
     $ mlcc exec update_all
     としてください。
-  o 使用可能なスクロールバーは、simpleとsampleのみです。
+  o 使用可能なスクロールバーは、simpleのみです。
     ただし、1 bpp の場合は、スクロールバーありの状態で画面スクロールを行うと、ス
     クロールバーの表示が乱れることがあるため、使用は推奨しません。
   o 使用可能なInput method pluginは、kbd、m17nlib、uim及びiBusのみです。
     (iBus を使用する場合は、あらかじめ、ibus-daemon -d 及び
      /usr/lib/ibus-*/ibus-engine-* & を手動で起動しておいてください。
      なお、iBus はFreeBSD 上ではテストしていません。)
-  o ディスプレイが 16 bpp 以上の場合は、--rotate=right 又は --rotate=left オプシ
+  o ディスプレイが 8 bpp 以上の場合は、--rotate=right 又は --rotate=left オプシ
     ョンを付けてmlterm を起動するか、~/.mlterm/main に
     rotate_display = right 又は
     rotate_display = left
@@ -134,7 +134,6 @@ Framebuffer 対応に関するメモ
     $ mlcc rotate_display right 又は
     $ mlcc rotate_display left
     と実行する方法もあります($ mlcc rotate_display none で元に戻ります)。
-    なお、回転中は、ソフトウェアキーボードは使用できません。
 
 * 使えない機能
   o プロポーショナルフォント

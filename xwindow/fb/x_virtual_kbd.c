@@ -235,6 +235,32 @@ window_exposed(
 	u_int  height
 	)
 {
+	if( x < x_off)
+	{
+		x_window_clear( win , x , y , width , height) ;
+
+		if( width <= x_off - x)
+		{
+			return ;
+		}
+
+		width -= (x_off - x) ;
+		x = x_off ;
+	}
+
+	if( x + width > x_off + normal_pixmap->width)
+	{
+		x_window_clear( win , x_off + normal_pixmap->width , y ,
+			x_off + 1 , height) ;
+
+		if( x >= x_off + normal_pixmap->width)
+		{
+			return ;
+		}
+
+		width = x_off + normal_pixmap->width - x ;
+	}
+
 	x_window_copy_area( win , normal_pixmap , None , x - x_off , y ,
 		width , height , x , y) ;
 }
@@ -430,6 +456,16 @@ x_is_virtual_kbd_event(
 
 	if( bev->y < kbd_win->y)
 	{
+		return  0 ;
+	}
+
+	if( kbd_win->disp->num_of_roots > 0 &&
+	    kbd_win->disp->roots[0]->y + kbd_win->disp->roots[0]->height > kbd_win->y)
+	{
+		/* disp->roots[0] seems to be resized. */
+
+		x_virtual_kbd_hide() ;
+
 		return  0 ;
 	}
 

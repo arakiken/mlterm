@@ -1,5 +1,13 @@
 2014-09-22  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/ja/README.fb, doc/en/README.fb: Updated.
+
+	* Makefile.in: Minor fix for install-fb target.
+
+	* x_virtual_kbd.c, fb/x_display.c: Software keyboard area is correctly redrawn.
+
+2014-09-22  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_term.c: Opening pty asynchronously is disabled in opening a new pty
 	  channel on an exsiting session.
 

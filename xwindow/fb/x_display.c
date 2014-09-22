@@ -882,8 +882,9 @@ expose_display(
 	u_int  height
 	)
 {
-	x_window_t *  win1 ;
-	x_window_t *  win2 ;
+	x_window_t *  win1 ;	/* maybe scrollbar */
+	x_window_t *  win2 ;	/* maybe terminal screen */
+	x_window_t *  win3 ;	/* maybe software keyboard */
 
 	win1 = get_window( x , y) ;
 	expose_window( win1 , x , y , width , height) ;
@@ -900,15 +901,21 @@ expose_display(
 		width = _disp.width - x ;
 	}
 
+	if( ( win2 = get_window( x + width - 1 , y)) != win1)
+	{
+		expose_window( win2 , x , y , width , height) ;
+	}
+
 	if( y + height > _disp.height)
 	{
 		height = _disp.height - y ;
 	}
 
-	if( ( win2 = x_is_virtual_kbd_area( y + height - 1)) ||
-	    ( win2 = get_window( x + width - 1 , y + height - 1)) != win1)
+	if( ( win3 = x_is_virtual_kbd_area( y + height - 1)) ||
+	    ( ( win3 = get_window( x + width - 1 , y + height - 1)) != win1 &&
+	      win3 != win2))
 	{
-		expose_window( win2 , x , y , width , height) ;
+		expose_window( win3 , x , y , width , height) ;
 	}
 }
 

@@ -19,10 +19,9 @@ Framebuffer support
   make
   sudo make install
   (Framebuffer version and X11 version can coexist in the same directory.
-   So you can install main/mlterm-fb, scrollbar/sample/libsample-fb.so and
-   inputmethod/*/*-fb.so alone by 'make install-fb' to the directory where
-   mlterm (X11 version) has been already installed instead of installing
-   all files by 'make install'.)
+   So you can install main/mlterm-fb and inputmethod/*/*-fb.so alone by
+   'make install-fb' to the directory where mlterm (X11 version) has been
+   already installed instead of installing all files by 'make install'.)
 
 * Configuration
   Configuration of framebuffer version is the same as that of X11 version
@@ -115,7 +114,7 @@ Framebuffer support
     (not "font-fb") argument.
   o To redraw the screen completely, execute a following command.
     $ mlcc exec update_all
-  o Available scrollbars are "simple" and "sample" alone.
+  o Available scrollbars are "simple" alone.
     It is not recommended to use them on 1 bpp.
   o Available input method plugins are kbd, m17nlib, uim and iBus.
     (iBus is not tested on FreeBSD)
@@ -126,7 +125,6 @@ Framebuffer support
     $ mlcc rotate_display right
     or $ mlcc rotate_display left
     (To fall back to the default, $ mlcc rotate_display none)
-    Software keyboard is unavailable in the rotated display.
 
 * Unsupported features
   o 2,4 bpp
