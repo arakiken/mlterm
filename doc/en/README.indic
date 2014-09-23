@@ -72,6 +72,9 @@ Following is a instruction of setting up mlterm indic support.
     reservation to Mlterm-dev-en.
     (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en)
 
+* Other resources
+  (Mlterm with Indic support)
+  https://gist.github.com/bdsatish/ab5a1b17b53c633a3edc
 
 Following e-mail describes how to setup mlterm to show and input hindi characters.
 (Thanks to sumeet inani)

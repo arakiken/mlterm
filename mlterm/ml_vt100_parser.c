@@ -4388,7 +4388,7 @@ parse_vt100_escape_sequence(
 					{
 						(*vt100_parser->xterm_listener->hide_cursor)(
 							vt100_parser->xterm_listener->self ,
-							ps[0] == 4 ? 1 : 0) ;
+							ps[0] == 2 ? 1 : 0) ;
 					}
 				}
 				else

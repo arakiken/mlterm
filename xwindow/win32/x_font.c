@@ -139,6 +139,8 @@ static cs_info_t  cs_info_table[] =
 
 static GC  display_gc ;
 
+static int  use_point_size ;
+
 
 /* --- static functions --- */
 
@@ -571,7 +573,15 @@ x_font_new(
 		font_family = "Courier New" ;
 	}
 
-  	font->fid = CreateFont( (int)fontsize_d ,	/* Height */
+	if( ! display_gc)
+	{
+		display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
+	}
+
+  	font->fid = CreateFont( use_point_size ?	/* Height */
+				-MulDiv( (int)fontsize_d ,
+					GetDeviceCaps( display_gc , LOGPIXELSY) , 72) :
+				(int)fontsize_d ,
 			#if  0
 				col_width ? (font->is_vertical ? col_width / 2 : col_width) :
 					(int)fontsize_d / 2 ,
@@ -606,11 +616,6 @@ x_font_new(
 		SIZE  w_sz ;
 		SIZE  l_sz ;
 
-		if( ! display_gc)
-		{
-			display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
-		}
-
 		SelectObject( display_gc , font->fid) ;
 
 		GetTextMetrics( display_gc , &tm) ;
@@ -636,9 +641,6 @@ x_font_new(
 			font->is_proportional = 0 ;
 		}
 		
-		DeleteDC( display_gc) ;
-		display_gc = None ;
-
 	#if  0
 		kik_debug_printf(
 		"Family %s Size %d CS %x => AveCharWidth %d MaxCharWidth %d Height %d Ascent %d ExLeading %d InLeading %d Pitch&Family %d Weight %d\n" ,
@@ -897,6 +899,14 @@ x_calculate_char_width(
 	}
 
 	return  font->width ;
+}
+
+void
+x_font_use_point_size(
+	int  bool
+	)
+{
+	use_point_size = bool ;
 }
 
 /* Return written size */

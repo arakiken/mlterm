@@ -199,8 +199,10 @@ main_loop_init(
 	kik_conf_add_opt( conf , '\0' , "metaprefix" , 0 , "mod_meta_prefix" ,
 		"prefix characters in pressing meta key if mod_meta_mode = esc") ;
 	kik_conf_add_opt( conf , '\0' , "deffont" , 0 , "default_font" , "default font") ;
+#ifndef  USE_FRAMEBUFFER
 	kik_conf_add_opt( conf , '\0' , "point" , 1 , "use_point_size" ,
 		"treat fontsize as point instead of pixel") ;
+#endif
 
 	orig_argv = argv ;
 	if( ! kik_conf_parse_args( conf , &argc , &argv , 0))
@@ -402,13 +404,15 @@ main_loop_init(
 			"DEFAULT" , value , 0) ;
 	}
 
+#ifndef  USE_FRAMEBUFFER
 	if( ( value = kik_conf_get_value( conf , "use_point_size")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			x_font_use_point_size_for_fc( 1) ;
+			x_font_use_point_size( 1) ;
 		}
 	}
+#endif
 
 	kik_conf_delete( conf) ;
 

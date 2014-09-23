@@ -1,3 +1,13 @@
+2014-09-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: CSI>4p is changed to CSI>2p for Xsixel.
+
+	* main_loop.c, x_font.h, win32/x_font.c, xlib/x_font.c:
+	  - x_font_use_point_size_for_fc() is renamed to x_font_use_point_size().
+	  - "use_point_size" option works on win32.
+
+	* MLTermPty.c: Compiling error is fixed.
+
 2014-09-22  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.fb, doc/en/README.fb: Updated.

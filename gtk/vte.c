@@ -2841,7 +2841,7 @@ ml_term_open_pty_wrap(
 #endif
 
 	if( ml_term_open_pty( terminal->pvt->term , cmd_path , argv , envv ,
-				host , work_dir , pass , pubkey , privkey))
+				host , work_dir , pass , pubkey , privkey , 0 , 0))
 	{
 		ml_term_set_winsize( terminal->pvt->term ,
 			terminal->pvt->screen->window.width ,

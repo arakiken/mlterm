@@ -1,10 +1,15 @@
 ver 3.3.9
-* Support DEC Locator mode except filter rectangle.
-* Add CSI > 4 p (for QEMU-Sixel) which always hides mouse pointer even if it is moved.
+* Support DEC Locator mode (which is necessary for Xsixel
+  (http://github.com/saitoha/xserver-SIXEL)) except filter rectangle.
+* Support CSI > 2 p (for SDL-sixel and Xsixel) which always hides mouse pointer
+  even if it is moved. (Not compatible with xterm though.)
 * Add --point/use_point_size option.
 * Support software keyboard on rotated display.
 * Change the default mouse pointer on a mlterm window from IDC_ARROW to IDC_IBEAM
   on win32.
+* Embed sixel processing to mlterm which is built without --with-imagelib option
+  instead of using 'mlimgloader' to improve performance.
+* './configure;make install' (without 'make') is available.
 
 ver 3.3.8
 * Support rectangle selection by pressing alt key while selecting.

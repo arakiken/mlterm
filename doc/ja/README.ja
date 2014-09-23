@@ -453,7 +453,7 @@ comment $Id$
 
       o use_point_size
         fontsizeオプションで指定した数値をピクセルでなくポイントとして扱う。
-        (cairo又はxftの場合のみ有効)
+        (cairo、xft又はwin32の場合のみ有効)
 
       o use_variable_column_width  (*false*) (#)
         可変長コラム幅を使用する

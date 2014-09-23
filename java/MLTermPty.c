@@ -1011,7 +1011,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 #endif
 
 	ret = ml_term_open_pty( nativeObj->term , cmd_path , argv , envv ,
-			host , NULL , pass , public_key , private_key) ;
+			host , NULL , pass , public_key , private_key , 0 , 0) ;
 
 #ifdef  USE_LIBSSH2
 	env_for_dialog = NULL ;
@@ -1043,8 +1043,6 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 	if( ret)
 	{
-		ml_term_set_winsize( nativeObj->term , 0 , 0) ;
-
 		return  nativeObj ;
 	}
 
@@ -1369,7 +1367,7 @@ Java_mlterm_MLTermPty_nativeResize(
 	)
 {
 	if( nativeObj && ((native_obj_t*)nativeObj)->term &&
-	    ml_term_resize( ((native_obj_t*)nativeObj)->term , cols , rows))
+	    ml_term_resize( ((native_obj_t*)nativeObj)->term , cols , rows , 0 , 0))
 	{
 		return  JNI_TRUE ;
 	}
