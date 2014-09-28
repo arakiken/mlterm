@@ -1687,6 +1687,7 @@ show_picture(
 			ml_char_t *  p ;
 			int  row ;
 			int  cursor_col ;
+			int  orig_auto_wrap ;
 
 			if( clip_cols == 0)
 			{
@@ -1727,6 +1728,8 @@ show_picture(
 				vt100_parser->yield = 1 ;
 			}
 
+			orig_auto_wrap = ml_screen_is_auto_wrap( vt100_parser->screen) ;
+			ml_screen_set_auto_wrap( vt100_parser->screen , 0) ;
 			cursor_col = ml_screen_cursor_col( vt100_parser->screen) ;
 
 			while( 1)
@@ -1772,6 +1775,8 @@ show_picture(
 			}
 
 			ml_str_delete( data , img_cols * img_rows) ;
+
+			ml_screen_set_auto_wrap( vt100_parser->screen , orig_auto_wrap) ;
 
 			if( strstr( file_path , "://"))
 			{

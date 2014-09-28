@@ -144,6 +144,8 @@ int  ml_edit_set_absolute_origin( ml_edit_t *  edit) ;
 
 int  ml_edit_set_auto_wrap( ml_edit_t *  edit , int  flag) ;
 
+#define  ml_edit_is_auto_wrap( edit)  ((edit)->is_auto_wrap)
+
 int  ml_edit_set_bce_fg_color( ml_edit_t *  edit , ml_color_t  fg_color) ;
 
 int  ml_edit_set_bce_bg_color( ml_edit_t *  edit , ml_color_t  bg_color) ;

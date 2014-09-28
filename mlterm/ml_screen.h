@@ -308,6 +308,8 @@ int  ml_screen_go_downward( ml_screen_t *  screen , u_int  size) ;
 
 #define  ml_screen_set_auto_wrap( screen , flag)  ml_edit_set_auto_wrap( (screen)->edit , flag)
 
+#define  ml_screen_is_auto_wrap( screen)  ml_edit_is_auto_wrap( (screen)->edit)
+
 #define  ml_screen_save_cursor( screen)  ml_edit_save_cursor( (screen)->edit)
 
 #define  ml_screen_restore_cursor( screen)  ml_edit_restore_cursor( (screen)->edit)

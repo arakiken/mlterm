@@ -1,3 +1,8 @@
+2014-09-28  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c, ml_edit.h, ml_screen.h:
+	  Auto wrap is disabled in putting sixel images to the screen.
+
 2014-09-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: CSI>4p is changed to CSI>2p for Xsixel.
