@@ -351,6 +351,8 @@ typedef struct
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152
 
+#define XC_left_ptr 0
+
 /* Same as definition in X11/Xutil.h */
 #define NoValue         0x0000
 #define XValue          0x0001
@@ -360,10 +362,6 @@ typedef struct
 #define AllValues       0x000F
 #define XNegative       0x0010
 #define YNegative       0x0020
-
-
-#define  XC_sb_v_double_arrow  0
-#define  XC_left_ptr  0
 
 
 int  XParseGeometry( char *  str , int *  x , int *  y ,

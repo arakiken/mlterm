@@ -317,7 +317,6 @@ typedef LPLOGFONT XFontSet ;
 
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152
-#define XC_sb_v_double_arrow 116
 #define XC_left_ptr 68
 
 /* Same as definition in X11/Xutil.h */

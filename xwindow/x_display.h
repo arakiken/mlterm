@@ -56,7 +56,7 @@ typedef struct  x_display
 	x_modifier_mapping_t  modmap ;
 
 #ifndef  USE_FRAMEBUFFER
-	Cursor  cursors[4] ;
+	Cursor  cursors[3] ;
 #endif
 
 } x_display_t ;

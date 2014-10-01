@@ -453,8 +453,7 @@ x_display_get_cursor(
 
 	/*
 	 * XXX
-	 * cursor[0] == XC_xterm / cursor[1] == XC_sb_v_double_arrow / cursor[2] == XC_left_ptr
-	 * cursor[3] == not used
+	 * cursor[0] == XC_xterm / cursor[1] == XC_left_ptr / cursor[2] == not used
 	 * Mlterm uses only these shapes.
 	 */
 
@@ -463,14 +462,9 @@ x_display_get_cursor(
 		idx = 0 ;
 		name = IDC_IBEAM ;
 	}
-	else if( shape == XC_sb_v_double_arrow)
-	{
-		idx = 1 ;
-		name = IDC_CROSS ;
-	}
 	else if( shape == XC_left_ptr)
 	{
-		idx = 2 ;
+		idx = 1 ;
 		name = IDC_ARROW ;	/* already loaded in x_display_open() */
 	}
 	else

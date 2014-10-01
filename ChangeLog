@@ -1,3 +1,9 @@
+2014-10-02  Araki Ken  <arakiken@users.sf.net>
+
+	* display.h, android/jni/x.h, fb/x.h, win32/x.h, win32/x_display.c,
+	  xlib/x_display.c, x_scrollbar.c:
+	  XC_sb_v_double_arrow is removed.
+
 2014-09-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c, ml_edit.h, ml_screen.h:

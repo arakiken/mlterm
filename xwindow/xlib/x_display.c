@@ -593,8 +593,7 @@ x_display_get_cursor(
 	
 	/*
 	 * XXX
-	 * cursor[0] == XC_xterm / cursor[1] == XC_sb_v_double_arrow / cursor[2] == XC_left_ptr
-	 * cursor[3] == XC_nil
+	 * cursor[0] == XC_xterm / cursor[1] == XC_left_ptr / cursor[2] == XC_nil
 	 * Mlterm uses only these shapes.
 	 */
 	 
@@ -602,17 +601,13 @@ x_display_get_cursor(
 	{
 		idx = 0 ;
 	}
-	else if( shape == XC_sb_v_double_arrow)
+	else if( shape == XC_left_ptr)
 	{
 		idx = 1 ;
 	}
-	else if( shape == XC_left_ptr)
-	{
-		idx = 2 ;
-	}
 	else if( shape == XC_nil)
 	{
-		idx = 3 ;
+		idx = 2 ;
 	}
 	else
 	{
@@ -621,7 +616,7 @@ x_display_get_cursor(
 
 	if( ! disp->cursors[idx])
 	{
-		if( idx == 3)
+		if( idx == 2)
 		{
 			XFontStruct *  font ;
 			XColor  dummy ;
