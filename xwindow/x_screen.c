@@ -3936,9 +3936,15 @@ button_motion(
 			 */
 			if( ! (event->state & Button3Mask) || ! IS_LIBVTE(screen))
 			{
+				int  is_alt ;
+				int  is_meta ;
+
 				selecting_with_motion( screen ,
 					event->x , event->y , event->time ,
-					event->state & ModMask) ;
+					( compare_key_state_with_modmap( screen , event->state ,
+						NULL , NULL , NULL , &is_alt ,
+						&is_meta, NULL , NULL , NULL) &&
+					  (is_alt || is_meta))) ;
 			}
 
 			break ;
@@ -3958,8 +3964,14 @@ button_press_continued(
 
 	if( x_is_selecting( &screen->sel) && (event->y < 0 || win->height < event->y))
 	{
+		int  is_alt ;
+		int  is_meta ;
+
 		selecting_with_motion( screen , event->x , event->y , event->time ,
-			event->state & ModMask) ;
+			( compare_key_state_with_modmap( screen , event->state ,
+				NULL , NULL , NULL , &is_alt ,
+				&is_meta, NULL , NULL , NULL) &&
+			  (is_alt || is_meta))) ;
 	}
 }
 

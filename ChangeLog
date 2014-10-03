@@ -1,3 +1,7 @@
+2014-10-04  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: event->state & ModMask => compare_key_state_with_modmap().
+
 2014-10-02  Araki Ken  <arakiken@users.sf.net>
 
 	* display.h, android/jni/x.h, fb/x.h, win32/x.h, win32/x_display.c,
