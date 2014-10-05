@@ -342,9 +342,15 @@ copy_area(
 			continue ;
 		}
 
+		/* Beginning of src line */
+
 		src_char_index = ml_convert_col_to_char_index( src_line ,
 					&src_cols_rest , src_col , BREAK_BOUNDARY) ;
-		if( src_cols_rest > 0)
+		if( src_char_index >= src_line->num_of_filled_chars)
+		{
+			src_cols_after = num_of_copy_cols ;
+		}
+		else if( src_cols_rest > 0)
 		{
 			src_cols_after = ml_char_cols( src_line->chars + src_char_index) -
 						src_cols_rest ;
@@ -355,42 +361,58 @@ copy_area(
 			src_cols_after = 0 ;
 		}
 
+		/* Beginning of dst line */
+
 		dst_char_index = ml_convert_col_to_char_index( dst_line ,
 					&dst_cols_rest , dst_col , 0) ;
 
-		if( dst_cols_rest + src_cols_rest > 0)
+		/* Fill rest at the beginning */
+
+		if( dst_cols_rest + src_cols_after > 0)
 		{
 			ml_line_fill( dst_line , ml_sp_ch() , dst_char_index ,
 				dst_cols_rest + src_cols_after) ;
+			if( src_char_index >= src_line->num_of_filled_chars)
+			{
+				continue ;
+			}
+
 			dst_char_index += (dst_cols_rest + src_cols_after) ;
 		}
 
-		if( src_line->num_of_filled_chars > src_char_index)
+		/* End of src line */
+
+		num_of_src_chars = ml_convert_col_to_char_index( src_line ,
+					&src_cols_rest , /* original value is replaced. */
+					src_col + num_of_copy_cols - 1 , 0)
+					+ 1 - src_char_index ;
+		if( src_cols_rest == 0)
 		{
-			num_of_src_chars = ml_convert_col_to_char_index( src_line ,
-						&src_cols_rest ,
-						src_col + num_of_copy_cols - 1 , 0)
-						+ 1 - src_char_index ;
-			num_of_src_cols = num_of_copy_cols - src_cols_rest ;
+			src_cols_rest = ml_char_cols( src_line->chars +
+						src_char_index + num_of_src_chars - 1) - 1 ;
 		}
 		else
 		{
-			num_of_src_chars = 0 ;
-			num_of_src_cols = 0 ;
+			src_cols_rest = 0 ;
 		}
+		num_of_src_cols = num_of_copy_cols - src_cols_after - src_cols_rest ;
+
+		/* Copy src to dst */
 
 		if( num_of_src_cols > 0)
 		{
 			ml_line_overwrite( dst_line , dst_char_index ,
 				src_line->chars + src_char_index ,
-				num_of_src_chars , num_of_src_cols - src_cols_after) ;
+				num_of_src_chars , num_of_src_cols) ;
 		}
 
-		if( num_of_src_cols + src_cols_after < num_of_copy_cols)
+		/* Fill rest at the end */
+
+		if( src_cols_rest > 0)
 		{
 			ml_line_fill( dst_line , ml_sp_ch() ,
 				dst_char_index + num_of_src_chars ,
-				num_of_copy_cols - num_of_src_cols) ;
+				src_cols_rest) ;
 		}
 	}
 

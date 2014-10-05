@@ -1,3 +1,8 @@
+2014-10-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c: Corrupt scrolling in Left-right margin which contains
+	  full width characters is fixed.
+
 2014-10-04  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: event->state & ModMask => compare_key_state_with_modmap().
