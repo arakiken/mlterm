@@ -1,5 +1,10 @@
 2014-10-07  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c, x_picture.c: The previous fix is moved from x_picture.c
+	  to x_screen.c.
+
+2014-10-07  Araki Ken  <arakiken@users.sf.net>
+
 	* x_picture.c: Inline pictures in back logs (except recent 1024 lines)
 	  are removed.
 

@@ -464,7 +464,14 @@ cleanup_inline_pictures(
 
 		memset( flags , 0 , num_of_inline_pics) ;
 
-		beg = - ml_term_get_num_of_logged_lines( term) ;
+		/*
+		 * Inline pictures in back logs except recent MAX_INLINE_PICTURES*2 lines
+		 * are deleted in line_scrolled_out() in x_screen.c.
+		 */
+		if( ( beg = -ml_term_get_num_of_logged_lines( term)) < -(MAX_INLINE_PICTURES * 2))
+		{
+			beg = -(MAX_INLINE_PICTURES * 2) ;
+		}
 		end = ml_term_get_rows( term) ;
 		restore_alt_edit = 0 ;
 
@@ -479,22 +486,15 @@ cleanup_inline_pictures(
 
 					if( ( ch = ml_get_picture_char( line->chars + count)))
 					{
-						if( row >= -(MAX_INLINE_PICTURES*2))
-						{
-							int  idx ;
+						int  idx ;
 
-							idx = ml_char_picture_id( ch) ;
-							do
-							{
-								flags[idx] = 1 ;
-								idx = inline_pics[idx].next_frame ;
-							}
-							while( idx >= 0 && flags[idx] == 0) ;
-						}
-						else
+						idx = ml_char_picture_id( ch) ;
+						do
 						{
-							ml_char_copy( ch , ml_sp_ch()) ;
+							flags[idx] = 1 ;
+							idx = inline_pics[idx].next_frame ;
 						}
+						while( idx >= 0 && flags[idx] == 0) ;
 					}
 				}
 			}
