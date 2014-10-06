@@ -479,15 +479,22 @@ cleanup_inline_pictures(
 
 					if( ( ch = ml_get_picture_char( line->chars + count)))
 					{
-						int  idx ;
-
-						idx = ml_char_picture_id( ch) ;
-						do
+						if( row >= -(MAX_INLINE_PICTURES*2))
 						{
-							flags[idx] = 1 ;
-							idx = inline_pics[idx].next_frame ;
+							int  idx ;
+
+							idx = ml_char_picture_id( ch) ;
+							do
+							{
+								flags[idx] = 1 ;
+								idx = inline_pics[idx].next_frame ;
+							}
+							while( idx >= 0 && flags[idx] == 0) ;
 						}
-						while( idx >= 0 && flags[idx] == 0) ;
+						else
+						{
+							ml_char_copy( ch , ml_sp_ch()) ;
+						}
 					}
 				}
 			}

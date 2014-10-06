@@ -1,3 +1,8 @@
+2014-10-07  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c: Inline pictures in back logs (except recent 1024 lines)
+	  are removed.
+
 2014-10-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c: Corrupt scrolling in Left-right margin which contains
