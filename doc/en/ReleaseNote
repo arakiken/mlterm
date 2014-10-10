@@ -12,6 +12,7 @@ ver 3.3.9
 * './configure;make install' (without 'make') is available.
 * Bug fixes:
   Fix corrupt scrolling within left-right margin which contains full-width characters.
+  Fix a bug which disabled to show inline pictures if logsize=unlimited.
 
 ver 3.3.8
 * Support rectangle selection by pressing alt key while selecting.

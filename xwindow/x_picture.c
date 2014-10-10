@@ -468,9 +468,9 @@ cleanup_inline_pictures(
 		 * Inline pictures in back logs except recent MAX_INLINE_PICTURES*2 lines
 		 * are deleted in line_scrolled_out() in x_screen.c.
 		 */
-		if( ( beg = -ml_term_get_num_of_logged_lines( term)) < -(MAX_INLINE_PICTURES * 2))
+		if( ( beg = -ml_term_get_num_of_logged_lines( term)) < INLINEPIC_AVAIL_ROW)
 		{
-			beg = -(MAX_INLINE_PICTURES * 2) ;
+			beg = INLINEPIC_AVAIL_ROW ;
 		}
 		end = ml_term_get_rows( term) ;
 		restore_alt_edit = 0 ;

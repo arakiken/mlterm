@@ -6028,15 +6028,16 @@ line_scrolled_out(
 
 	x_sel_line_scrolled_out( &screen->sel , -((int)ml_term_get_log_size( screen->term))) ;
 
+#ifndef  NO_IMAGE
 	/*
 	 * Note that scrolled out line hasn't been added to ml_logs_t yet here.
 	 * (see receive_scrolled_out_line() in ml_screen.c)
 	 */
-	if( ml_term_get_num_of_logged_lines( screen->term) >= MAX_INLINE_PICTURES * 2)
+	if( ml_term_get_num_of_logged_lines( screen->term) >= -INLINEPIC_AVAIL_ROW)
 	{
 		ml_line_t *  line ;
 
-		if( ( line = ml_term_get_line( screen->term , -(MAX_INLINE_PICTURES * 2))))
+		if( ( line = ml_term_get_line( screen->term , INLINEPIC_AVAIL_ROW)))
 		{
 			int  count ;
 
@@ -6051,6 +6052,7 @@ line_scrolled_out(
 			}
 		}
 	}
+#endif
 }
 
 #ifdef  WINDOW_CLEAR
