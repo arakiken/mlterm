@@ -10,6 +10,9 @@ ver 3.3.9
 * Embed sixel processing to mlterm which is built without --with-imagelib option
   instead of using 'mlimgloader' to improve performance.
 * './configure;make install' (without 'make') is available.
+* Build with fribidi, xft and cairo by default.
+* Change the default value of "type_engine" option from "xcore" to "xft".
+  (If you want to use xcore, add "type_engine = xcore" to ~/.mlterm/main.)
 * Bug fixes:
   Fix corrupt scrolling within left-right margin which contains full-width characters.
   Fix a bug which disabled to show inline pictures if logsize=unlimited.

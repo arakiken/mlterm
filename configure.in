@@ -383,8 +383,8 @@ AC_SUBST(LMLTERM_CORE)
 AC_SUBST(CTL_LOADER_OBJ)
 
 AC_ARG_ENABLE(fribidi,
-	[  --enable-fribidi        bidi @<:@default=disabled@:>@],
-	fribidi=$enable_fribidi, fribidi="no")
+	[  --disable-fribidi        bidi @<:@default=enabled@:>@],
+	fribidi=$enable_fribidi, fribidi="yes")
 if test "$fribidi" = "yes" ; then
 	PKG_CHECK_MODULES(FRIBIDI, fribidi, have_fribidi=yes, have_fribidi=no)
 	if test "$have_fribidi" != "yes" ; then
@@ -441,21 +441,21 @@ AC_SUBST(TYPE_LOADER_OBJ)
 
 # --enable-anti-alias is backward compatibility for --with-type-engines
 AC_ARG_ENABLE(anti_alias,
-	[  --enable-anti-alias     (obsoleted by --with-type-engines)anti alias @<:@default=disabled@:>@],
-	anti_alias=$enable_anti_alias)
+	[  --enable-anti-alias     (obsoleted by --with-type-engines)anti alias @<:@default=enabled@:>@],
+	anti_alias=$enable_anti_alias, anti_alias="yes")
 
 AC_ARG_WITH(type_engines,
-	[  --with-type-engines@<:@=ARG@:>@ type engines (xcore, xft, cairo) @<:@default=xcore@:>@],
+	[  --with-type-engines@<:@=ARG@:>@ type engines (xcore, xft, cairo) @<:@default=xcore,xft,cairo@:>@],
 	type_engines=$with_type_engines)
 
 if test "$gui" != "xlib" ; then
 	type_engines="xcore"
-elif  test "$anti_alias" = "yes" ; then
-	type_engines="xcore xft"
+elif  test "$anti_alias" = "no" ; then
+	type_engines="xcore"
 fi
 
 if test "$type_engines" = ""; then
-	type_engines="xcore"
+	type_engines="xcore,xft,cairo"
 fi
 
 type_engines=`echo ${type_engines} | sed 's/,/ /g'`

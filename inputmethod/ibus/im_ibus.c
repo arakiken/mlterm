@@ -547,6 +547,79 @@ update_lookup_table(
 #endif	/* USE_FRAMEBUFFER */
 
 
+static void
+connection_handler(void)
+{
+#ifdef  DBUS_H
+	DBusConnection *  connection ;
+
+	connection = ibus_connection_get_connection( ibus_bus_get_connection( ibus_bus)) ;
+
+	dbus_connection_read_write( connection , 0) ;
+
+	while( dbus_connection_dispatch( connection) == DBUS_DISPATCH_DATA_REMAINS) ;
+#else
+#if  0
+	g_dbus_connection_flush_sync( ibus_bus_get_connection( ibus_bus) , NULL , NULL) ;
+#endif
+	g_main_context_iteration( g_main_context_default() , FALSE) ;
+#endif
+}
+
+static int
+add_event_source(void)
+{
+	int  fd ;
+
+#ifdef  DBUS_H
+	if( ! dbus_connection_get_unix_fd( ibus_connection_get_connection(
+			ibus_bus_get_connection( ibus_bus)) , &fd))
+	{
+		return  0 ;
+	}
+#else
+	/*
+	 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
+	 * regarded as GSocketConnection.
+	 */
+	if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
+			g_dbus_connection_get_stream(
+				ibus_bus_get_connection( ibus_bus))))) == -1)
+	{
+		return  0 ;
+	}
+#endif
+	(*syms->x_event_source_add_fd)( fd , connection_handler) ;
+	(*syms->x_event_source_add_fd)( IBUS_ID , connection_handler) ;
+
+	return  1 ;
+}
+
+static void
+remove_event_source(void)
+{
+	int  fd ;
+
+#ifdef  DBUS_H
+	if( dbus_connection_get_unix_fd( ibus_connection_get_connection(
+			ibus_bus_get_connection( ibus_bus)) , &fd))
+#else
+	/*
+	 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
+	 * regarded as GSocketConnection.
+	 */
+	if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
+			g_dbus_connection_get_stream(
+				ibus_bus_get_connection( ibus_bus))))) != -1)
+#endif
+	{
+		(*syms->x_event_source_remove_fd)( fd) ;
+	}
+
+	(*syms->x_event_source_remove_fd)( IBUS_ID) ;
+}
+
+
 /*
  * methods of x_im_t
  */
@@ -560,11 +633,14 @@ delete(
 
 	ibus = (im_ibus_t*) im ;
 
-#ifdef  DBUS_H
-	ibus_object_destroy( (IBusObject*)ibus->context) ;
-#else
-	ibus_proxy_destroy( (IBusProxy*)ibus->context) ;
-#endif
+	if( ibus->context)
+	{
+	#ifdef  DBUS_H
+		ibus_object_destroy( (IBusObject*)ibus->context) ;
+	#else
+		ibus_proxy_destroy( (IBusProxy*)ibus->context) ;
+	#endif
+	}
 
 	kik_list_search_and_remove( im_ibus_t , ibus_list , ibus) ;
 
@@ -586,25 +662,7 @@ delete(
 
 	if( -- ref_count == 0)
 	{
-		int  fd ;
-
-	#ifdef  DBUS_H
-		if( dbus_connection_get_unix_fd( ibus_connection_get_connection(
-				ibus_bus_get_connection( ibus_bus)) , &fd))
-	#else
-		/*
-		 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
-		 * regarded as GSocketConnection.
-		 */
-		if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
-				g_dbus_connection_get_stream(
-					ibus_bus_get_connection( ibus_bus))))) != -1)
-	#endif
-		{
-			(*syms->x_event_source_remove_fd)( fd) ;
-		}
-
-		(*syms->x_event_source_remove_fd)( IBUS_ID) ;
+		remove_event_source() ;
 
 		ibus_object_destroy( (IBusObject*)ibus_bus) ;
 		ibus_bus = NULL ;
@@ -745,6 +803,11 @@ key_event(
 
 	ibus = (im_ibus_t*) im ;
 
+	if( ! ibus->context)
+	{
+		return  1 ;
+	}
+
 	if( event->state & IBUS_IGNORED_MASK)
 	{
 		/* Is put back in forward_key_event */
@@ -820,6 +883,11 @@ next_engine(
 	IBusConfig *  config ;
 	GVariant *  var ;
 
+	if( ! ibus->context)
+	{
+		return ;
+	}
+
 	config = ibus_bus_get_config( ibus_bus) ;
 	if( ( var = ibus_config_get_value( config , "general" , "preload-engines")))
 	{
@@ -875,6 +943,11 @@ switch_mode(
 
 	ibus =  (im_ibus_t*)  im ;
 
+	if( ! ibus->context)
+	{
+		return  0 ;
+	}
+
 #if  IBUS_CHECK_VERSION(1,5,0)
 	next_engine( ibus) ;
 #else
@@ -910,6 +983,11 @@ focused(
 
 	ibus =  (im_ibus_t*)  im ;
 
+	if( ! ibus->context)
+	{
+		return ;
+	}
+
 	ibus_input_context_focus_in( ibus->context) ;
 
 	if( ibus->im.cand_screen)
@@ -927,6 +1005,11 @@ unfocused(
 
 	ibus = (im_ibus_t*)  im ;
 
+	if( ! ibus->context)
+	{
+		return ;
+	}
+
 	ibus_input_context_focus_out( ibus->context) ;
 
 	if( ibus->im.cand_screen)
@@ -936,23 +1019,97 @@ unfocused(
 }
 
 
-static void
-connection_handler(void)
+static IBusInputContext *
+context_new(
+	im_ibus_t *  ibus ,
+	char *  engine
+	)
 {
-#ifdef  DBUS_H
-	DBusConnection *  connection ;
+	IBusInputContext *  context ;
 
-	connection = ibus_connection_get_connection( ibus_bus_get_connection( ibus_bus)) ;
+	context = ibus_bus_create_input_context( ibus_bus , "mlterm") ;
+	ibus_input_context_set_capabilities( context ,
+	#ifdef  USE_FRAMEBUFFER
+		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_LOOKUP_TABLE
+	#else
+		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT
+	#endif
+		) ;
 
-	dbus_connection_read_write( connection , 0) ;
-
-	while( dbus_connection_dispatch( connection) == DBUS_DISPATCH_DATA_REMAINS) ;
-#else
-#if  0
-	g_dbus_connection_flush_sync( ibus_bus_get_connection( ibus_bus) , NULL , NULL) ;
+	g_signal_connect( context , "update-preedit-text" ,
+			G_CALLBACK( update_preedit_text) , ibus) ;
+	g_signal_connect( context , "hide-preedit-text" ,
+			G_CALLBACK( hide_preedit_text) , ibus) ;
+	g_signal_connect( context , "commit-text" , G_CALLBACK( commit_text) , ibus) ;
+	g_signal_connect( context , "forward-key-event" ,
+			G_CALLBACK( forward_key_event) , ibus) ;
+#ifdef  USE_FRAMEBUFFER
+	g_signal_connect( context , "update-lookup-table" ,
+			G_CALLBACK( update_lookup_table) , ibus) ;
+	g_signal_connect( context , "show-lookup-table" ,
+			G_CALLBACK( show_lookup_table) , ibus) ;
+	g_signal_connect( context , "hide-lookup-table" ,
+			G_CALLBACK( hide_lookup_table) , ibus) ;
 #endif
-	g_main_context_iteration( g_main_context_default() , FALSE) ;
+
+	if( engine)
+	{
+		set_engine( context , engine) ;
+	}
+#if  defined(USE_FRAMEBUFFER) && IBUS_CHECK_VERSION(1,5,0)
+	else
+	{
+		next_engine( ibus) ;
+	}
 #endif
+
+	return  context ;
+}
+
+static void
+connected(
+	IBusBus *  bus ,
+	gpointer  data
+	)
+{
+	KIK_ITERATOR( im_ibus_t)  iterator ;
+
+	if( bus != ibus_bus || ! ibus_bus_is_connected( ibus_bus) || ! add_event_source())
+	{
+		return ;
+	}
+
+	for( iterator = ibus_list->first ; iterator ; iterator = iterator->next)
+	{
+		iterator->object->context = context_new( iterator->object , NULL) ;
+	}
+}
+
+static void
+disconnected(
+	IBusBus *  bus ,
+	gpointer  data
+	)
+{
+	KIK_ITERATOR( im_ibus_t)  iterator ;
+
+	if( bus != ibus_bus)
+	{
+		return ;
+	}
+
+	remove_event_source() ;
+
+	for( iterator = ibus_list->first ; iterator ; iterator = iterator->next)
+	{
+	#ifdef  DBUS_H
+		ibus_object_destroy( (IBusObject*)iterator->object->context) ;
+	#else
+		ibus_proxy_destroy( (IBusProxy*)iterator->object->context) ;
+	#endif
+		iterator->object->context = NULL ;
+		iterator->object->is_enabled = 0 ;
+	}
 }
 
 
@@ -993,8 +1150,6 @@ im_ibus_new(
 
 	if( ! ibus_bus)
 	{
-		int  fd ;
-
 		syms = export_syms ;
 
 		/* g_getenv( "DISPLAY") will be called in ibus_get_socket_path(). */
@@ -1011,26 +1166,10 @@ im_ibus_new(
 			goto  error ;
 		}
 
-	#ifdef  DBUS_H
-		if( ! dbus_connection_get_unix_fd( ibus_connection_get_connection(
-				ibus_bus_get_connection( ibus_bus)) , &fd))
+		if( ! add_event_source())
 		{
 			goto  error ;
 		}
-	#else
-		/*
-		 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
-		 * regarded as GSocketConnection.
-		 */
-		if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
-				g_dbus_connection_get_stream(
-					ibus_bus_get_connection( ibus_bus))))) == -1)
-		{
-			goto  error ;
-		}
-	#endif
-		(*syms->x_event_source_add_fd)( fd , connection_handler) ;
-		(*syms->x_event_source_add_fd)( IBUS_ID , connection_handler) ;
 
 		kik_list_new( im_ibus_t , ibus_list) ;
 
@@ -1038,6 +1177,11 @@ im_ibus_new(
 		{
 			goto  error ;
 		}
+
+		g_signal_connect( ibus_bus , "connected" ,
+				G_CALLBACK( connected) , NULL) ;
+		g_signal_connect( ibus_bus , "disconnected" ,
+				G_CALLBACK( disconnected) , NULL) ;
 	}
 
 	if( ! ( ibus = calloc( 1 , sizeof( im_ibus_t))))
@@ -1049,30 +1193,7 @@ im_ibus_new(
 		goto  error ;
 	}
 
-	ibus->context = ibus_bus_create_input_context( ibus_bus , "mlterm") ;
-	ibus_input_context_set_capabilities( ibus->context ,
-	#ifdef  USE_FRAMEBUFFER
-		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_LOOKUP_TABLE
-	#else
-		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT
-	#endif
-		) ;
-
-	g_signal_connect( ibus->context , "update-preedit-text" ,
-			G_CALLBACK( update_preedit_text) , ibus) ;
-	g_signal_connect( ibus->context , "hide-preedit-text" ,
-			G_CALLBACK( hide_preedit_text) , ibus) ;
-	g_signal_connect( ibus->context , "commit-text" , G_CALLBACK( commit_text) , ibus) ;
-	g_signal_connect( ibus->context , "forward-key-event" ,
-			G_CALLBACK( forward_key_event) , ibus) ;
-#ifdef  USE_FRAMEBUFFER
-	g_signal_connect( ibus->context , "update-lookup-table" ,
-			G_CALLBACK( update_lookup_table) , ibus) ;
-	g_signal_connect( ibus->context , "show-lookup-table" ,
-			G_CALLBACK( show_lookup_table) , ibus) ;
-	g_signal_connect( ibus->context , "hide-lookup-table" ,
-			G_CALLBACK( hide_lookup_table) , ibus) ;
-#endif
+	ibus->context = context_new( ibus , engine) ;
 
 	ibus->term_encoding = term_encoding ;
 	ibus->is_enabled = FALSE ;
@@ -1101,17 +1222,6 @@ im_ibus_new(
 	ibus->im.is_active = is_active ;
 	ibus->im.focused = focused ;
 	ibus->im.unfocused = unfocused ;
-
-	if( engine)
-	{
-		set_engine( ibus->context , engine) ;
-	}
-#if  defined(USE_FRAMEBUFFER) && IBUS_CHECK_VERSION(1,5,0)
-	else
-	{
-		next_engine( ibus) ;
-	}
-#endif
 
 	kik_list_insert_head( im_ibus_t , ibus_list , ibus) ;
 

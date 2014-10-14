@@ -64,12 +64,12 @@ x_prepare_for_main_config(
 		"override redirect [false]") ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
 		"type engine "
-	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-		"[xcore]"
-	#elif  ! defined(USE_TYPE_XFT) && defined(USE_TYPE_CAIRO)
+	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+		"[xft]"
+	#elif  ! defined(USE_TYPE_XCORE) && defined(USE_TYPE_CAIRO)
 		"[cairo]"
 	#else
-		"[xft]"
+		"[xcore]"
 	#endif
 		) ;
 #endif	/* USE_WIN32GUI/USE_FRAMEBUFFER */
@@ -480,10 +480,10 @@ x_main_config_init(
 		}
 	}
 
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-	main_config->type_engine = TYPE_XCORE ;
-#elif   defined(USE_TYPE_XFT)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	main_config->type_engine = TYPE_XFT ;
+#elif   defined(USE_TYPE_XCORE)
+	main_config->type_engine = TYPE_XCORE ;
 #else
 	main_config->type_engine = TYPE_CAIRO ;
 #endif

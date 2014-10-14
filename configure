@@ -1695,9 +1695,9 @@ Optional Features:
   --enable-debug          debug [default=disabled]
   --disable-image         show image [default=enabled]
   --disable-dl-ctl        dynamic loading ctl library [default=enable]
-  --enable-fribidi        bidi [default=disabled]
+  --disable-fribidi        bidi [default=enabled]
   --disable-dl-type       dynamic loading type engine library [default=enable]
-  --enable-anti-alias     (obsoleted by --with-type-engines)anti alias [default=disabled]
+  --enable-anti-alias     (obsoleted by --with-type-engines)anti alias [default=enabled]
   --enable-ssh2           libssh2 [default=disabled]
   --enable-utmp           utmp (Experimental) [default=disabled]
   --enable-pty-helper     use pty helper [default=disabled]
@@ -1730,7 +1730,7 @@ Optional Packages:
   --with-gtk[=ARG]        gtk+ version (2.0|3.0)
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
-  --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore]
+  --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore,xft,cairo]
   --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlterm-menu,mlcc]
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra]
@@ -20718,7 +20718,7 @@ fi
 if test "${enable_fribidi+set}" = set; then :
   enableval=$enable_fribidi; fribidi=$enable_fribidi
 else
-  fribidi="no"
+  fribidi="yes"
 fi
 
 if test "$fribidi" = "yes" ; then
@@ -20890,6 +20890,8 @@ fi
 # Check whether --enable-anti_alias was given.
 if test "${enable_anti_alias+set}" = set; then :
   enableval=$enable_anti_alias; anti_alias=$enable_anti_alias
+else
+  anti_alias="yes"
 fi
 
 
@@ -20902,12 +20904,12 @@ fi
 
 if test "$gui" != "xlib" ; then
 	type_engines="xcore"
-elif  test "$anti_alias" = "yes" ; then
-	type_engines="xcore xft"
+elif  test "$anti_alias" = "no" ; then
+	type_engines="xcore"
 fi
 
 if test "$type_engines" = ""; then
-	type_engines="xcore"
+	type_engines="xcore,xft,cairo"
 fi
 
 type_engines=`echo ${type_engines} | sed 's/,/ /g'`

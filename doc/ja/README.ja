@@ -65,15 +65,15 @@ comment $Id$
 
     --with-type-engines=(xcore|xft|cairo)
       テキストレンダリングエンジンを指定します。
-      (旧来の --enable-anti-alias オプションは、--with-type-engines=xcore,xft
-      と同義です。)
+      (なお、--disable-anti-alias オプションは --with-type-engines=xcore と同じ
+      です)
 
     --disable-dl-type
       type engine モジュールの動的ローディングを無効にし、mlterm 本体にリンクする
       ようにします。
 
-    --enable-fribidi
-      Fribidi を用いて Bidi レンダリングを行ないます。
+    --disable-fribidi
+      Fribidi を用いた Bidi レンダリングを無効にします。
 
     --enable-ind
       インド諸語の表示を行います。
@@ -461,8 +461,8 @@ comment $Id$
 	なお、vertical_mode が cjk 又は mongol に設定されている場合は、
 	自動的に false に設定されます。
 
-      o type_engine (*xcore*/xft/cairo)
-        xcore フォントか xft フォントのいずれを使用するかを指定する。
+      o type_engine (xcore/*xft*/cairo)
+        xcore, xft 又は cairoのいずれによりフォントを描画するかを指定する。
         なお、use_anti_alias = true にした場合は、自動的に type_engine = xft と
         なります。
       
