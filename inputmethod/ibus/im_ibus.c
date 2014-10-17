@@ -62,6 +62,7 @@ KIK_LIST_TYPEDEF( im_ibus_t) ;
 
 static int  is_init ;
 static IBusBus *  ibus_bus ;
+static int  ibus_bus_fd = -1 ;
 static KIK_LIST( im_ibus_t)  ibus_list = NULL ;
 static int  ref_count = 0 ;
 static mkf_parser_t *  parser_utf8 = NULL ;
@@ -569,11 +570,9 @@ connection_handler(void)
 static int
 add_event_source(void)
 {
-	int  fd ;
-
 #ifdef  DBUS_H
 	if( ! dbus_connection_get_unix_fd( ibus_connection_get_connection(
-			ibus_bus_get_connection( ibus_bus)) , &fd))
+			ibus_bus_get_connection( ibus_bus)) , &ibus_bus_fd))
 	{
 		return  0 ;
 	}
@@ -582,41 +581,34 @@ add_event_source(void)
 	 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
 	 * regarded as GSocketConnection.
 	 */
-	if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
-			g_dbus_connection_get_stream(
-				ibus_bus_get_connection( ibus_bus))))) == -1)
+	if( ( ibus_bus_fd = g_socket_get_fd( g_socket_connection_get_socket(
+				g_dbus_connection_get_stream(
+					ibus_bus_get_connection( ibus_bus))))) == -1)
 	{
 		return  0 ;
 	}
 #endif
-	(*syms->x_event_source_add_fd)( fd , connection_handler) ;
+	(*syms->x_event_source_add_fd)( ibus_bus_fd , connection_handler) ;
 	(*syms->x_event_source_add_fd)( IBUS_ID , connection_handler) ;
 
 	return  1 ;
 }
 
 static void
-remove_event_source(void)
+remove_event_source(
+	int  complete
+	)
 {
-	int  fd ;
-
-#ifdef  DBUS_H
-	if( dbus_connection_get_unix_fd( ibus_connection_get_connection(
-			ibus_bus_get_connection( ibus_bus)) , &fd))
-#else
-	/*
-	 * GIOStream returned by g_dbus_connection_get_stream() is forcibly
-	 * regarded as GSocketConnection.
-	 */
-	if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
-			g_dbus_connection_get_stream(
-				ibus_bus_get_connection( ibus_bus))))) != -1)
-#endif
+	if( ibus_bus_fd >= 0)
 	{
-		(*syms->x_event_source_remove_fd)( fd) ;
+		(*syms->x_event_source_remove_fd)( ibus_bus_fd) ;
+		ibus_bus_fd = -1 ;
 	}
 
-	(*syms->x_event_source_remove_fd)( IBUS_ID) ;
+	if( complete)
+	{
+		(*syms->x_event_source_remove_fd)( IBUS_ID) ;
+	}
 }
 
 
@@ -662,7 +654,7 @@ delete(
 
 	if( -- ref_count == 0)
 	{
-		remove_event_source() ;
+		remove_event_source(1) ;
 
 		ibus_object_destroy( (IBusObject*)ibus_bus) ;
 		ibus_bus = NULL ;
@@ -1098,7 +1090,7 @@ disconnected(
 		return ;
 	}
 
-	remove_event_source() ;
+	remove_event_source(0) ;
 
 	for( iterator = ibus_list->first ; iterator ; iterator = iterator->next)
 	{

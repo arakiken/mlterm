@@ -2,7 +2,7 @@ ver 3.3.9
 * Support DEC Locator mode (which is necessary for Xsixel
   (http://github.com/saitoha/xserver-SIXEL)).
 * Support CSI > 2 p (for SDL-sixel and Xsixel) which always hides mouse pointer
-  even if it is moved. (Not compatible with xterm though.)
+  even if it moves. (Not compatible with xterm though.)
 * Add --point/use_point_size option.
 * Support software keyboard on rotated display.
 * Change the default mouse pointer on a mlterm window from IDC_ARROW to IDC_IBEAM
@@ -16,6 +16,7 @@ ver 3.3.9
 * Bug fixes:
   Fix corrupt scrolling within left-right margin which contains full-width characters.
   Fix a bug which disabled to show inline pictures if logsize=unlimited.
+  Fix a bug which calls select(2) with an invalid file descriptor after restarting ibus.
 
 ver 3.3.8
 * Support rectangle selection by pressing alt key while selecting.

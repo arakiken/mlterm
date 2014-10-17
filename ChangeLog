@@ -1,3 +1,8 @@
+2014-10-18  Araki Ken  <arakiken@users.sf.net>
+
+	* im_ibus.c: Calling select(2) with an invalid file descriptor after
+	  restarting ibus is fixed.
+
 2014-10-17  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.[ch], x_screen.c: DECEFR is supported.
