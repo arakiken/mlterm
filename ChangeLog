@@ -1,3 +1,7 @@
+2014-10-17  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch], x_screen.c: DECEFR is supported.
+
 2014-10-13  Araki Ken  <arakiken@users.sf.net>
 
 	* README, doc/ja/README.ja: Updated.

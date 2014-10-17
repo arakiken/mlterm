@@ -1443,8 +1443,12 @@ request_locator(
 			orig = 0 ;
 		}
 
+		vt100_parser->locator_mode |= LOCATOR_REQUEST ;
+
 		(*vt100_parser->xterm_listener->request_locator)(
 			vt100_parser->xterm_listener->self) ;
+
+		vt100_parser->locator_mode |= LOCATOR_REQUEST ;
 
 		if( orig)
 		{
@@ -4492,16 +4496,27 @@ parse_vt100_escape_sequence(
 						}
 					}
 				}
-			#if  0
 				else if( *str_p == 'w')
 				{
 					/* DECEFR Filter Rectangle */
+
+					if( num == 4)
+					{
+						vt100_parser->loc_filter.top = ps[0] ;
+						vt100_parser->loc_filter.left = ps[1] ;
+						vt100_parser->loc_filter.bottom = ps[2] ;
+						vt100_parser->loc_filter.right = ps[3] ;
+					}
+
+					vt100_parser->locator_mode |= LOCATOR_FILTER_RECT ;
 				}
-			#endif
 				else if( *str_p == 'z')
 				{
 					/* DECELR */
 
+					vt100_parser->locator_mode &= ~LOCATOR_FILTER_RECT ;
+					memset( &vt100_parser->loc_filter , 0 ,
+						sizeof(vt100_parser->loc_filter)) ;
 					if( ps[0] <= 0)
 					{
 						if( vt100_parser->mouse_mode >=
@@ -7648,31 +7663,65 @@ ml_vt100_parser_report_mouse_tracking(
 	{
 		char  seq[10 + DIGIT_STR_LEN(int) * 4 + 1] ;
 		int  ev ;
+		int  is_outside_filter_rect ;
 
-		if( button > 0 &&
-		    ( ( is_released &&
-		        ! (vt100_parser->locator_mode & LOCATOR_BUTTON_UP)) ||
-		      ( ! is_released &&
-		        ! (vt100_parser->locator_mode & LOCATOR_BUTTON_DOWN))))
+		is_outside_filter_rect = 0 ;
+		if( vt100_parser->loc_filter.top > row ||
+		    vt100_parser->loc_filter.left > col ||
+		    vt100_parser->loc_filter.bottom < row ||
+		    vt100_parser->loc_filter.right < col)
 		{
-			return ;
+			vt100_parser->loc_filter.top = vt100_parser->loc_filter.bottom = row ;
+			vt100_parser->loc_filter.left = vt100_parser->loc_filter.right = col ;
+
+			if( vt100_parser->locator_mode & LOCATOR_FILTER_RECT)
+			{
+				vt100_parser->locator_mode &= ~LOCATOR_FILTER_RECT ;
+				is_outside_filter_rect = 1 ;
+			}
 		}
 
-		if( button == 1)
+		if( button == 0)
 		{
-			ev = is_released ? 3 : 2 ;
-		}
-		else if( button == 2)
-		{
-			ev = is_released ? 5 : 4 ;
-		}
-		else if( button == 3)
-		{
-			ev = is_released ? 7 : 6 ;
+			if( is_outside_filter_rect)
+			{
+				ev = 10 ;
+			}
+			else if( vt100_parser->locator_mode & LOCATOR_REQUEST)
+			{
+				ev = 1 ;
+			}
+			else
+			{
+				return ;
+			}
 		}
 		else
 		{
-			ev = 1 ;
+			if( ( is_released &&
+		              ! (vt100_parser->locator_mode & LOCATOR_BUTTON_UP)) ||
+		            ( ! is_released &&
+		              ! (vt100_parser->locator_mode & LOCATOR_BUTTON_DOWN)))
+			{
+				return ;
+			}
+
+			if( button == 1)
+			{
+				ev = is_released ? 3 : 2 ;
+			}
+			else if( button == 2)
+			{
+				ev = is_released ? 5 : 4 ;
+			}
+			else if( button == 3)
+			{
+				ev = is_released ? 7 : 6 ;
+			}
+			else
+			{
+				ev = 1 ;
+			}
 		}
 
 		sprintf( seq , "\x1b[%d;%d;%d;%d;0&w" , ev , button_state , row , col) ;

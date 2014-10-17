@@ -1,6 +1,6 @@
 ver 3.3.9
 * Support DEC Locator mode (which is necessary for Xsixel
-  (http://github.com/saitoha/xserver-SIXEL)) except filter rectangle.
+  (http://github.com/saitoha/xserver-SIXEL)).
 * Support CSI > 2 p (for SDL-sixel and Xsixel) which always hides mouse pointer
   even if it is moved. (Not compatible with xterm though.)
 * Add --point/use_point_size option.

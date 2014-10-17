@@ -65,7 +65,9 @@ typedef enum  ml_locator_report_mode
 {
 	LOCATOR_BUTTON_DOWN = 0x1 ,
 	LOCATOR_BUTTON_UP = 0x2 ,
-	LOCATOR_ONESHOT = 0x8 ,
+	LOCATOR_ONESHOT = 0x4 ,
+	LOCATOR_REQUEST = 0x8 ,
+	LOCATOR_FILTER_RECT = 0x10 ,
 
 } ml_locator_report_mode_t ;
 
@@ -209,6 +211,15 @@ typedef struct  ml_vt100_parser
 
 	char *  win_name ;
 	char *  icon_name ;
+
+	struct
+	{
+		u_int16_t  top ;
+		u_int16_t  left ;
+		u_int16_t  bottom ;
+		u_int16_t  right ;
+
+	} loc_filter ;
 
 	/* ml_unicode_policy_t */ int8_t  unicode_policy ;
 

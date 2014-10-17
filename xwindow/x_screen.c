@@ -3347,12 +3347,9 @@ report_mouse_tracking(
 		screen->prev_mouse_report_col = x + 1 ;
 		screen->prev_mouse_report_row = y + 1 ;
 
-		if( ! is_motion)
-		{
-			ml_term_report_mouse_tracking( screen->term ,
-				x + 1 , y + 1 , button , is_released ,
-				key_state , button_state) ;
-		}
+		ml_term_report_mouse_tracking( screen->term ,
+			x + 1 , y + 1 , button , is_released ,
+			key_state , button_state) ;
 
 		return ;
 	}
@@ -3442,12 +3439,8 @@ report_mouse_tracking(
 		return ;
 	}
 
-	if( ml_term_get_mouse_report_mode( screen->term) != LOCATOR_CHARCELL_REPORT ||
-	    ! is_motion)
-	{
-		ml_term_report_mouse_tracking( screen->term , col , row , button ,
-				is_released , key_state , button_state) ;
-	}
+	ml_term_report_mouse_tracking( screen->term , col , row , button ,
+			is_released , key_state , button_state) ;
 
 	screen->prev_mouse_report_col = col ;
 	screen->prev_mouse_report_row = row ;
@@ -7007,11 +7000,8 @@ xterm_request_locator(
 	x_screen_t *  screen ;
 	int  button ;
 	int  button_state ;
-	int  is_released ;
 
 	screen = p ;
-
-	is_released = 0 ;
 
 	if( screen->window.button_is_pressing)
 	{
@@ -7027,7 +7017,7 @@ xterm_request_locator(
 	ml_term_report_mouse_tracking( screen->term ,
 		screen->prev_mouse_report_col > 0 ? screen->prev_mouse_report_col : 1 ,
 		screen->prev_mouse_report_row > 0 ? screen->prev_mouse_report_row : 1 ,
-		button , is_released , 0 , button_state) ;
+		button , 0 , 0 , button_state) ;
 }
 
 static void
