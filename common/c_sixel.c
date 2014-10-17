@@ -609,9 +609,90 @@ body:
 			{
 				if( params[1] == 1)
 				{
-					/* XXX HLS */
+					/* HLS */
+					int  h ;
+					u_int32_t  l ;
+					u_int32_t  s ;
+					u_int8_t  rgb[3] ;
+
+					h = K_MIN(params[2],360) ;
+					l = K_MIN(params[3],100) ;
+					s = K_MIN(params[4],100) ;
+
+					if( s == 0)
+					{
+						rgb[0] = rgb[1] = rgb[2] = l * 255 / 100 ;
+					}
+					else
+					{
+						u_int32_t  m1 ;
+						u_int32_t  m2 ;
+						int  count ;
+
+						if( l < 50)
+						{
+							m2 = l * (100 + s) ;
+						}
+						else
+						{
+							m2 = (l + s) * 100 - l * s ;
+						}
+						m1 = l * 200 - m2 ;
+
+						if( ( h += 120) > 360)
+						{
+							h -= 360 ;
+						}
+
+						for( count = 0 ; count < 3 ; count++)
+						{
+							u_int32_t  pc ;
+
+							if( h < 60)
+							{
+								pc = m1 + (m2 - m1) * h / 60 ;
+							}
+							else if( h < 180)
+							{
+								pc = m2 ;
+							}
+							else if( h < 240)
+							{
+								pc = m1 + (m2 - m1) *
+								          (240 - h) / 60 ;
+							}
+							else
+							{
+								pc = m1 ;
+							}
+							rgb[count] = pc * 255 / 10000 ;
+
+							if( ( h -= 120) < 0)
+							{
+								h += 360 ;
+							}
+						}
+					}
+
+					color_tbl[color] = (rgb[0] << 16) |
+					                   (rgb[1] << 8) |
+					                   rgb[2] ;
+
+				#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && \
+					defined(USE_FRAMEBUFFER) && ! defined(SIXEL_1BPP)
+					if( sixel_cmap_size >= color)
+					{
+						sixel_cmap_size = color + 1 ;
+					}
+				#endif
+
+				#ifdef  __DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+						" Set rgb %x for color %d.\n" ,
+						color_tbl[color] , color) ;
+				#endif
 				}
-				else if( params[1] == 2 )
+				else if( params[1] == 2)
 				{
 					/* RGB */
 					color_tbl[color] = SIXEL_RGB(K_MIN(params[2],100),

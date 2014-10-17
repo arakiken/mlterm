@@ -1,5 +1,7 @@
 2014-10-18  Araki Ken  <arakiken@users.sf.net>
 
+	* c_sixel.c: HLS is supported.
+
 	* im_ibus.c: Calling select(2) with an invalid file descriptor after
 	  restarting ibus is fixed.
 

@@ -5,6 +5,7 @@ ver 3.3.9
   even if it moves. (Not compatible with xterm though.)
 * Add --point/use_point_size option.
 * Support software keyboard on rotated display.
+* Support HLS in sixel sequence.
 * Change the default mouse pointer on a mlterm window from IDC_ARROW to IDC_IBEAM
   on win32.
 * Embed sixel processing to mlterm which is built without --with-imagelib option

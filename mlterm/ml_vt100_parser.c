@@ -4502,6 +4502,18 @@ parse_vt100_escape_sequence(
 
 					if( num == 4)
 					{
+					#if  0
+						if( top > ps[0] || left > ps[1] ||
+						    bottom < ps[2] || right < ps[3])
+						{
+							/*
+							 * XXX
+							 * An outside rectangle event should
+							 * be sent immediately.
+							 */
+						}
+					#endif
+
 						vt100_parser->loc_filter.top = ps[0] ;
 						vt100_parser->loc_filter.left = ps[1] ;
 						vt100_parser->loc_filter.bottom = ps[2] ;
