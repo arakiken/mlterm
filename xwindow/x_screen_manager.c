@@ -416,7 +416,8 @@ get_picture_data(
 	void *  p ,
 	char *  file_path ,
 	int *  num_of_cols ,	/* can be 0 */
-	int *  num_of_rows	/* can be 0 */
+	int *  num_of_rows ,	/* can be 0 */
+	u_int32_t **  sixel_palette
 	)
 {
 	ml_char_t *  data ;
@@ -429,7 +430,7 @@ get_picture_data(
 		screens[0]->term = p ;		/* XXX */
 		data = (*screens[0]->xterm_listener.get_picture_data)(
 				screens[0]->xterm_listener.self ,
-				file_path , num_of_cols , num_of_rows) ;
+				file_path , num_of_cols , num_of_rows , sixel_palette) ;
 		screens[0]->term = orig_term ;
 	}
 	else

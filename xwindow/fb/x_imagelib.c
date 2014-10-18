@@ -367,7 +367,9 @@ load_sixel_with_mask_from_file_1bpp(
 	int  x ;
 	int  y ;
 	u_char *  src ;
+#if  0
 	u_char *  dst ;
+#endif
 
 	if( strcasecmp( path + strlen(path) - 4 , ".six") != 0 ||
 	    ! ( *pixmap = calloc( 1 , sizeof(**pixmap))))
@@ -527,14 +529,28 @@ load_file(
 	#endif
 	    ( *pixmap = calloc( 1 , sizeof(**pixmap))))
 	{
+	#if  defined(__NetBSD__) || defined(__OpenBSD__)
+		u_int32_t *  sixel_cmap ;
+
+		if( ! (sixel_cmap = custom_palette) &&
+		  ( sixel_cmap = alloca( sizeof(*sixel_cmap) * 257)))
+		{
+			sixel_cmap[256] = 0 ;	/* No active palette */
+			custom_palette = sixel_cmap ;
+		}
+	#endif
+
 		if( ( (*pixmap)->image = load_sixel_from_file( path ,
 						&(*pixmap)->width , &(*pixmap)->height)) &&
 		    /* resize_sixel() frees pixmap->image in failure. */
 		    resize_sixel( *pixmap , width , height , 4))
 		{
 		#if  defined(__NetBSD__) || defined(__OpenBSD__)
-			/* see set_wall_picture() in x_screen.c */
-			x_display_set_cmap( sixel_cmap , sixel_cmap_size) ;
+			if( sixel_cmap)
+			{
+				/* see set_wall_picture() in x_screen.c */
+				x_display_set_cmap( sixel_cmap , sixel_cmap[256]) ;
+			}
 		#endif
 
 			goto  loaded ;

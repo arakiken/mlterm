@@ -1685,7 +1685,8 @@ show_picture(
 
 		if( ( data = (*vt100_parser->xterm_listener->get_picture_data)(
 				vt100_parser->xterm_listener->self ,
-				file_path , &img_cols , &img_rows)) &&
+				file_path , &img_cols , &img_rows ,
+				is_sixel ? &vt100_parser->sixel_palette : NULL)) &&
 		    clip_beg_row < img_rows && clip_beg_col < img_cols)
 		{
 			ml_char_t *  p ;
@@ -6433,6 +6434,7 @@ ml_vt100_parser_delete(
 	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
 	ml_drcs_delete( vt100_parser->drcs) ;
 	delete_all_macros( vt100_parser) ;
+	free( vt100_parser->sixel_palette) ;
 
 	if( vt100_parser->log_file != -1)
 	{

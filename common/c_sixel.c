@@ -35,10 +35,8 @@
 
 /* --- static variables --- */
 
-#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && \
-	defined(USE_FRAMEBUFFER) && ! defined(SIXEL_1BPP)
-static pixel_t  sixel_cmap[256] ;
-static u_int  sixel_cmap_size ;
+#ifndef  SIXEL_1BPP
+static pixel_t *  custom_palette ;
 #endif
 
 
@@ -291,7 +289,7 @@ load_sixel_from_file(
 	int  color ;
 	int  asp_x ;
 	/* VT340 Default Color Map */
-	static pixel_t  default_color_tbl[] =
+	static pixel_t  default_palette[] =
 	{
 		SIXEL_RGB(0,0,0) ,	/* BLACK */
 		SIXEL_RGB(20,20,80) ,	/* BLUE */
@@ -306,17 +304,11 @@ load_sixel_from_file(
 		SIXEL_RGB(60,26,26) , /* RED* */
 		SIXEL_RGB(33,60,33) , /* GREEN* */
 		SIXEL_RGB(60,33,60) , /* MAGENTA* */
-		SIXEL_RGB(33,60,60) , /* CYAN*/
+		SIXEL_RGB(33,60,60) , /* CYAN* */
 		SIXEL_RGB(60,60,33) , /* YELLOW* */
 		SIXEL_RGB(80,80,80)   /* GRAY 75% */
 	} ;
-#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && \
-	defined(USE_FRAMEBUFFER) && ! defined(SIXEL_1BPP)
-#define  color_tbl  sixel_cmap
-	sixel_cmap_size = 16 ;
-#else
-	pixel_t  color_tbl[256] ;
-#endif
+	pixel_t *  palette ;
 
 	if( ! ( fp = fopen( path , "r")))
 	{
@@ -358,8 +350,24 @@ load_sixel_from_file(
 		return  NULL ;
 	}
 
-	memcpy( color_tbl , default_color_tbl , sizeof(default_color_tbl)) ;
-	memset( color_tbl + 16 , 0 , sizeof(color_tbl) - sizeof(default_color_tbl)) ;
+#ifndef  SIXEL_1BPP
+	if( custom_palette)
+	{
+		palette = custom_palette ;
+		if( palette[256] == 0)	/* No active palette */
+		{
+			memcpy( palette , default_palette , sizeof(default_palette)) ;
+			memset( palette + 16 , 0 ,
+				sizeof(pixel_t) * 256 - sizeof(default_palette)) ;
+		}
+	}
+	else
+#endif
+	{
+		palette = alloca( sizeof(pixel_t) * 256) ;
+		memcpy( palette , default_palette , sizeof(default_palette)) ;
+		memset( palette + 16 , 0 , sizeof(pixel_t) * 256 - sizeof(default_palette)) ;
+	}
 
 restart:
 	while( 1)
@@ -674,45 +682,37 @@ body:
 						}
 					}
 
-					color_tbl[color] = (rgb[0] << 16) |
-					                   (rgb[1] << 8) |
-					                   rgb[2] ;
-
-				#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && \
-					defined(USE_FRAMEBUFFER) && ! defined(SIXEL_1BPP)
-					if( sixel_cmap_size >= color)
-					{
-						sixel_cmap_size = color + 1 ;
-					}
-				#endif
-
-				#ifdef  __DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-						" Set rgb %x for color %d.\n" ,
-						color_tbl[color] , color) ;
-				#endif
+					palette[color] = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2] ;
 				}
 				else if( params[1] == 2)
 				{
 					/* RGB */
-					color_tbl[color] = SIXEL_RGB(K_MIN(params[2],100),
+					palette[color] = SIXEL_RGB(K_MIN(params[2],100),
 					                             K_MIN(params[3],100),
 								     K_MIN(params[4],100)) ;
-
-				#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && \
-					defined(USE_FRAMEBUFFER) && ! defined(SIXEL_1BPP)
-					if( sixel_cmap_size >= color)
-					{
-						sixel_cmap_size = color + 1 ;
-					}
-				#endif
-
-				#ifdef  __DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-						" Set rgb %x for color %d.\n" ,
-						color_tbl[color] , color) ;
-				#endif
 				}
+				else
+				{
+					continue ;
+				}
+
+
+			#ifndef  SIXEL_1BPP
+				if( palette == custom_palette && palette[256] <= color)
+				{
+					/*
+					 * Set max active palette number for NetBSD/OpenBSD.
+					 * (See load_file() in fb/x_imagelib.c)
+					 */
+					palette[256] = color + 1 ;
+				}
+			#endif
+
+			#ifdef  __DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Set rgb %x for color %d.\n" ,
+					palette[color] , color) ;
+			#endif
 			}
 		}
 		else if( *p == '$' || *p == '-')
@@ -781,25 +781,25 @@ body:
 						/* RGBA */
 						pixels[((pix_y + y) * width + pix_x + x) *
 							PIXEL_SIZE] =
-							(color_tbl[color] >> 16) & 0xff ;
+							(palette[color] >> 16) & 0xff ;
 						pixels[((pix_y + y) * width + pix_x + x) *
 							PIXEL_SIZE + 1] =
-							(color_tbl[color] >> 8) & 0xff ;
+							(palette[color] >> 8) & 0xff ;
 						pixels[((pix_y + y) * width + pix_x + x) *
 							PIXEL_SIZE + 2] =
-							(color_tbl[color]) & 0xff ;
+							(palette[color]) & 0xff ;
 						pixels[((pix_y + y) * width + pix_x + x) *
 							PIXEL_SIZE + 3] = 0xff ;
 					#elif  defined(SIXEL_1BPP)
 						/* 0x80 is opaque mark */
 						((pixel_t*)pixels)[(pix_y + y) * width +
 							pix_x + x] =
-							0x80 | color_tbl[color] ;
+							0x80 | palette[color] ;
 					#else
 						/* ARGB (cardinal) */
 						((pixel_t*)pixels)[(pix_y + y) * width +
 							pix_x + x] =
-							0xff000000 | color_tbl[color] ;
+							0xff000000 | palette[color] ;
 					#endif
 					}
 				}
@@ -859,6 +859,10 @@ body:
 end:
 	free( file_data) ;
 
+#ifndef  SIXEL_1BPP
+	custom_palette = NULL ;
+#endif
+
 	if( cur_width == 0 ||
 	    ! realloc_pixels( &pixels , cur_width , cur_height , width , height))
 	{
@@ -879,7 +883,23 @@ end:
 	return  pixels ;
 }
 
-#undef  color_tbl
+#ifndef  SIXEL_1BPP
+
+pixel_t *
+x_set_custom_sixel_palette(
+	pixel_t *  palette	/* NULL -> Create new palette */
+	)
+{
+	if( ! palette)
+	{
+		palette = calloc( sizeof(pixel_t) , 257) ;
+	}
+
+	return  (custom_palette = palette) ;
+}
+
+#endif
+
 #undef  realloc_pixels
 #undef  correct_height
 #undef  load_sixel_from_file

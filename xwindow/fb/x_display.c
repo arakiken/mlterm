@@ -1791,6 +1791,8 @@ x_display_set_use_ansi_colors(
 	use_ansi_colors = use ;
 }
 
+#if  defined(__NetBSD__) || defined(__OpenBSD__)
+
 void
 x_display_enable_to_change_cmap(
 	int  flag
@@ -1879,6 +1881,8 @@ x_display_set_cmap(
 		kik_msg_printf( "Palette changed.\n") ;
 	}
 }
+
+#endif
 
 void
 x_display_rotate(

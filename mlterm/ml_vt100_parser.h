@@ -124,7 +124,8 @@ typedef struct  ml_xterm_event_listener
 	int (*get_window_size)( void * , u_int * , u_int *) ;	/* called in logical context. */
 	int (*get_rgb)( void * , u_int8_t * , u_int8_t * ,
 			u_int8_t * , ml_color_t) ;		/* called in logical context. */
-	ml_char_t *  (*get_picture_data)( void * , char * , int * , int *) ; /* called in logical context. */
+	ml_char_t *  (*get_picture_data)( void * , char * ,
+			int * , int * , u_int32_t **) ; /* called in logical context. */
 	void (*show_sixel)( void * , char *) ;		/* called in logical context. */
 	void (*add_frame_to_animation)( void * , char * , int * , int *) ; /* called in logical context. */
 	void (*hide_cursor)( void * , int) ;		/* called in logical context. */
@@ -286,6 +287,8 @@ typedef struct  ml_vt100_parser
 
 	ml_macro_t *  macros ;
 	u_int  num_of_macros ;
+
+	u_int32_t *  sixel_palette ;
 
 } ml_vt100_parser_t ;
 

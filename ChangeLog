@@ -1,3 +1,17 @@
+2014-10-19  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c, x_screen_manager.c:
+	  sixel_palette argument is added to get_picture_data().
+
+	* ml_vt100_parser.[ch]:
+	  - ml_vt100_parser_t::sixel_palette is added.
+	  - sixel_palette argument is added to ml_xterm_event_listener_t::get_picture_data().
+
+	* c_sixel.c, x_picture.h, fb/x_imagelib.c:
+	  - "custom_palette" static variable is introduced and x_set_custom_sixel_palette()
+	    is added.
+	  - "#define color_tbl sixel_cmap" is removed.
+
 2014-10-18  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c: HLS is supported.

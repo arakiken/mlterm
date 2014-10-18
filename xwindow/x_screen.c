@@ -7207,7 +7207,8 @@ xterm_get_picture_data(
 	void *  p ,
 	char *  file_path ,
 	int *  num_of_cols ,	/* can be 0 */
-	int *  num_of_rows	/* can be 0 */
+	int *  num_of_rows ,	/* can be 0 */
+	u_int32_t **  sixel_palette
 	)
 {
 	x_screen_t *  screen ;
@@ -7226,6 +7227,11 @@ xterm_get_picture_data(
 
 	width = (*num_of_cols) * (col_width = x_col_width(screen)) ;
 	height = (*num_of_rows) * (line_height = x_line_height(screen)) ;
+
+	if( sixel_palette)
+	{
+		*sixel_palette = x_set_custom_sixel_palette( *sixel_palette) ;
+	}
 
 	if( ( idx = x_load_inline_picture( screen->window.disp , file_path ,
 			&width , &height , col_width , line_height , screen->term)) != -1)

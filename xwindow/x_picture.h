@@ -89,6 +89,9 @@ typedef struct x_inline_picture
 
 #else
 
+/* defined in c_sixel.c */
+u_int32_t *  x_set_custom_sixel_palette( u_int32_t *  palette) ;
+
 int  x_picture_display_opened( Display *  display) ;
 
 int  x_picture_display_closed( Display *  display) ;
