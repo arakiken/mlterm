@@ -39,6 +39,8 @@ void *  kik_mem_calloc( size_t  number , size_t  size , const char *  file , int
 
 void *  kik_mem_realloc( void *  ptr , size_t  size , const char *  file , int  line , const char *  func) ;
 
+void   kik_mem_remove( void *  ptr , const char *  file , int  line , const char *  func) ;
+
 void   kik_mem_free( void *  ptr , const char *  file , int  line , const char *  func) ;
 
 #ifdef  KIK_DEBUG

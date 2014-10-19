@@ -1,5 +1,9 @@
 2014-10-19  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/x_imagelib.c: kik_mem_malloc() etc are enabled if KIK_DEBUG is defined.
+
+	* kik_mem.[ch]: kik_mem_remove() is added.
+
 	* x_screen.c, x_screen_manager.c:
 	  sixel_palette argument is added to get_picture_data().
 

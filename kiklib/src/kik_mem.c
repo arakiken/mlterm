@@ -411,6 +411,42 @@ kik_mem_calloc(
 }
 
 void
+kik_mem_remove(
+	void *  ptr ,
+	const char *  file ,	/* should be allocated memory. */
+	int  line ,
+	const char *  func	/* should be allocated memory. */
+	)
+{
+	if( ptr)
+	{
+		mem_log_t *  log ;
+
+		if( ( log = search_mem_log( ptr)) == NULL)
+		{
+		#ifdef  DEBUG
+			fprintf( stderr ,
+				" %p is freed at %s[l.%d in %s] but not logged.\n" ,
+				ptr , func , line , file) ;
+		#endif
+		}
+		else
+		{
+		#ifdef  __DEBUG
+			fprintf( stderr ,
+				" %p(size %d , alloced at %s[l.%d in %s] and freed at"
+				" %s[l.%d in %s] logged in %p) was successfully freed.\n" ,
+				ptr , log->size , log->func , log->line ,
+				log->file , file , line , func , log) ;
+		#endif
+			kik_list_search_and_remove( mem_log_t , get_mem_logs() , log) ;
+			memset( ptr , 0xff , log->size) ;
+			free( log) ;
+		}
+	}
+}
+
+void
 kik_mem_free(
 	void *  ptr ,
 	const char *  file ,	/* should be allocated memory. */
@@ -418,34 +454,8 @@ kik_mem_free(
 	const char *  func	/* should be allocated memory. */
 	)
 {
-	mem_log_t *  log ;
-
-	if( ptr == NULL)
-	{
-		free( ptr) ;
-	}
-	else if( ( log = search_mem_log( ptr)) == NULL)
-	{
-	#ifdef  DEBUG
-		fprintf( stderr , " %p is freed at %s[l.%d in %s] but not logged.\n" ,
-			ptr , func , line , file) ;
-	#endif
-	
-		free( ptr) ;
-	}
-	else
-	{
-	#ifdef  __DEBUG
-		fprintf( stderr , 
-			" %p(size %d , alloced at %s[l.%d in %s] and freed at %s[l.%d in %s] logged in %p) was successfully freed.\n" ,
-			ptr , log->size , log->func , log->line , log->file , file , line , func , log) ;
-	#endif
-		
-		kik_list_search_and_remove( mem_log_t , get_mem_logs() , log) ;
-		memset( ptr , 0xff , log->size) ;
-		free( log) ;
-		free( ptr) ;
-	}
+	kik_mem_remove( ptr , file , line , func) ;
+	free( ptr) ;
 }
 
 void *
