@@ -1,4 +1,4 @@
-ver 3.3.9
+ver 3.4.0
 * Support DEC Locator mode (which is necessary for Xsixel
   (http://github.com/saitoha/xserver-SIXEL)).
 * Support CSI > 2 p (for SDL-sixel and Xsixel) which always hides mouse pointer

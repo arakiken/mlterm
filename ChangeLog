@@ -1,3 +1,7 @@
+2014-10-24  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1: .TP was missing.
+
 2014-10-19  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_imagelib.c: kik_mem_malloc() etc are enabled if KIK_DEBUG is defined.
