@@ -1,3 +1,8 @@
+2014-10-25  Araki Ken  <arakiken@users.sf.net>
+
+	* im_ibus.c: Cursor position passed to ibus_input_context_set_cursor_location()
+	  is fixed.
+
 2014-10-24  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c: Hue 120=Red, 240=Green, 0=Blue

@@ -148,8 +148,13 @@ update_preedit_text(
 			if( (*ibus->im.listener->get_spot)(
 					ibus->im.listener->self , NULL , 0 , &x , &y))
 			{
+				u_int  line_height ;
+
+				line_height = (*ibus->im.listener->get_line_height)(
+						ibus->im.listener->self) ;
 				ibus_input_context_set_cursor_location(
-					ibus->context , x , y , 10 , 10) ;
+					ibus->context ,
+					x , y - line_height , 0 , line_height) ;
 			}
 		}
 		
