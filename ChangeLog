@@ -1,5 +1,7 @@
 2014-10-24  Araki Ken  <arakiken@users.sf.net>
 
+	* c_sixel.c: Hue 120=Red, 240=Green, 0=Blue
+
 	* man/mlterm.1: .TP was missing.
 
 2014-10-19  Araki Ken  <arakiken@users.sf.net>

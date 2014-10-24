@@ -647,11 +647,6 @@ body:
 						}
 						m1 = l * 200 - m2 ;
 
-						if( ( h += 120) > 360)
-						{
-							h -= 360 ;
-						}
-
 						for( count = 0 ; count < 3 ; count++)
 						{
 							u_int32_t  pc ;
