@@ -451,11 +451,11 @@ comment $Id$
       o step_in_changing_font_size (*1*)
         larger,smaller ボタンでのフォントサイズの変化量(*1*)
 
-      o use_point_size
+      o use_point_size (true/*false*)
         fontsizeオプションで指定した数値をピクセルでなくポイントとして扱う。
         (cairo、xft又はwin32の場合のみ有効)
 
-      o use_variable_column_width  (*false*) (#)
+      o use_variable_column_width  (true/*false*) (#)
         可変長コラム幅を使用する
 
 	なお、vertical_mode が cjk 又は mongol に設定されている場合は、
@@ -595,7 +595,7 @@ comment $Id$
       o gamma (*100*) (#)
         背景画像(透過処理含む)のガンマ値(百分率)[0-100]
 
-      o alpha (*255*)
+      o alpha (*255*) (#)
         背景画像使用時及び透過処理時に、bg_color で指定した色と背景をブレンドす
         る比率[0-255]
         なお、背景画像又は擬似的な背景透過を使用する際、このオプションがデフォ
@@ -747,7 +747,7 @@ comment $Id$
         ~/.mlterm/[device].log に記録するフォーマットを指定する。
         rawはそのまま、ttyrecはttyrec形式で保存する。
 
-      o use_clipboard (true/*false*)
+      o use_clipboard (true/*false*) (#)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 
       o logging_msg (*true*/false)
@@ -794,7 +794,7 @@ comment $Id$
         なお、このオプションを動的に変更するには、"proto:allow_osc52=switch"
         ショートカットキーを使用する必要があります。
 
-      o use_local_echo (true/*false*)
+      o use_local_echo (true/*false*) (#)
         local echo mode を有効にする。
 
       o use_alt_buffer (*true*/false)

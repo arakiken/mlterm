@@ -79,7 +79,9 @@
 # font_size_range = 6-30
 
 # step_in_changing_font_size = 1
-  
+
+# use_point_size = false
+
 # use_variable_column_width = false 
 
 # type_engine = xcore

@@ -359,6 +359,29 @@ gdk_color_to_string(
 }
 #endif
 
+#if  GTK_CHECK_VERSION(2,99,0)
+static gchar *
+gdk_rgba_to_string2(
+	const GdkRGBA *  color
+	)
+{
+	gchar *  str ;
+
+	if( ( str = g_malloc( 10)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	sprintf( str , color->alpha > 0.999 ? "#%02x%02x%02x" : "#%02x%02x%02x%02x" ,
+		(int)((color->red > 0.999 ? 1 : color->red) * 255 + 0.5) ,
+		(int)((color->green > 0.999 ? 1 : color->green) * 255 + 0.5) ,
+		(int)((color->blue > 0.999 ? 1 : color->blue) * 255 + 0.5) ,
+		(int)((color->alpha > 0.999 ? 1 : color->alpha) * 255 + 0.5)) ;
+
+	return  str ;
+}
+#endif
+
 static int
 is_initial_allocation(
 	GtkAllocation *  allocation
@@ -2059,7 +2082,7 @@ vte_terminal_class_init(
 	x_shortcut_parse( &shortcut , "Button3" , "\"none\"") ;
 	x_termcap_init( &termcap) ;
 	x_xim_init( 1) ;
-	x_font_use_point_size_for_fc( 1) ;
+	x_font_use_point_size( 1) ;
 
 	kik_init_prog( g_get_prgname() , VERSION) ;
 
@@ -2660,7 +2683,7 @@ vte_terminal_init(
 					ml_term_get_encoding(terminal->pvt->term)) ;
 	}
 
-	/* related to x_font_use_point_size_for_fc(1) in vte_terminal_class_init. */
+	/* related to x_font_use_point_size(1) in vte_terminal_class_init. */
 	if( ( dpi = gdk_screen_get_resolution(
 			gtk_widget_get_screen( GTK_WIDGET(terminal)))) != -1)
 	{
@@ -2841,12 +2864,10 @@ ml_term_open_pty_wrap(
 #endif
 
 	if( ml_term_open_pty( terminal->pvt->term , cmd_path , argv , envv ,
-				host , work_dir , pass , pubkey , privkey , 0 , 0))
+				host , work_dir , pass , pubkey , privkey ,
+				terminal->pvt->screen->window.width ,
+				terminal->pvt->screen->window.height))
 	{
-		ml_term_set_winsize( terminal->pvt->term ,
-			terminal->pvt->screen->window.width ,
-			terminal->pvt->screen->window.height) ;
-
 		return  1 ;
 	}
 	else
@@ -2881,6 +2902,49 @@ set_alpha(
 		terminal->pvt->screen->pic_mod.alpha = alpha ;
 		x_change_true_transbg_alpha( terminal->pvt->screen->color_man , alpha) ;
 	}
+}
+
+static void
+set_color_bold(
+	VteTerminal *  terminal ,
+	const void *  bold ,
+	gchar *  (*to_string)( const void *)
+	)
+{
+	gchar *  str ;
+
+	if( ! bold)
+	{
+		str = strdup( "") ;
+	}
+	else
+	{
+		/* #rrrrggggbbbb */
+		str = (*to_string)( bold) ;
+	}
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " set_color_bold %s\n" , str) ;
+#endif
+
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		x_screen_set_config( terminal->pvt->screen , NULL , "bd_color" , str) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
+	}
+	else
+	{
+		if( x_color_manager_set_alt_color( terminal->pvt->screen->color_man ,
+			ML_BOLD_COLOR , *str ? str : NULL))
+		{
+			ml_term_set_alt_color_mode( terminal->pvt->term ,
+				*str ? (ml_term_get_alt_color_mode( terminal->pvt->term) | 1) :
+				       (ml_term_get_alt_color_mode( terminal->pvt->term) & ~1)) ;
+		}
+	}
+
+	g_free( str) ;
 }
 
 static void
@@ -3511,6 +3575,7 @@ vte_terminal_set_color_bold(
 	const GdkColor *  bold
 	)
 {
+	set_color_bold( terminal , bold , gdk_color_to_string) ;
 }
 
 void
@@ -3596,6 +3661,7 @@ vte_terminal_set_color_bold_rgba(
 	const GdkRGBA *  bold
 	)
 {
+	set_color_bold( terminal , bold , gdk_rgba_to_string2) ;
 }
 
 void
@@ -3604,7 +3670,7 @@ vte_terminal_set_color_foreground_rgba(
 	const GdkRGBA *  foreground
 	)
 {
-	set_color_foreground( terminal , foreground , gdk_rgba_to_string) ;
+	set_color_foreground( terminal , foreground , gdk_rgba_to_string2) ;
 }
 
 void
@@ -3613,7 +3679,7 @@ vte_terminal_set_color_background_rgba(
 	const GdkRGBA *  background
 	)
 {
-	set_color_background( terminal , background , gdk_rgba_to_string) ;
+	set_color_background( terminal , background , gdk_rgba_to_string2) ;
 }
 
 void
@@ -3622,7 +3688,7 @@ vte_terminal_set_color_cursor_rgba(
 	const GdkRGBA *  cursor_background
 	)
 {
-	set_color_cursor( terminal , cursor_background , gdk_rgba_to_string) ;
+	set_color_cursor( terminal , cursor_background , gdk_rgba_to_string2) ;
 }
 
 void
@@ -3634,7 +3700,8 @@ vte_terminal_set_colors_rgba(
 	gsize palette_size
 	)
 {
-	if( set_colors( terminal , palette , palette_size , sizeof(GdkRGBA) , gdk_rgba_to_string))
+	if( set_colors( terminal , palette , palette_size , sizeof(GdkRGBA) ,
+		gdk_rgba_to_string2))
 	{
 		if( foreground == NULL)
 		{

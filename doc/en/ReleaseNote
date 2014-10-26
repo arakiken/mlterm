@@ -18,6 +18,7 @@ ver 3.4.0
   Fix corrupt scrolling within left-right margin which contains full-width characters.
   Fix a bug which disabled to show inline pictures if logsize=unlimited.
   Fix a bug which calls select(2) with an invalid file descriptor after restarting ibus.
+  Fix a libvte bug which disabled color configurations on roxterm or sakura.
 
 ver 3.3.8
 * Support rectangle selection by pressing alt key while selecting.

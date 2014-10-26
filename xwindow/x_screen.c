@@ -5182,21 +5182,8 @@ change_alpha(
 	u_int  alpha
 	)
 {
-	if( screen->pic_mod.alpha == alpha)
-	{
-		/* not changed */
-		return ;
-	}
-
-	screen->pic_mod.alpha = alpha ;
-
-	if( x_window_has_wall_picture( &screen->window) ||
-	    ! change_true_transbg_alpha( screen , alpha))
-	{
-		/* True transparency doesn't work. */
-		picture_modifier_changed( screen) ;
-	}
-	else
+	if( ! x_window_has_wall_picture( &screen->window) &&
+	    change_true_transbg_alpha( screen , alpha))
 	{
 		/* True transparency works. */
 		if( alpha == 255)
@@ -5204,6 +5191,23 @@ change_alpha(
 			/* Completely opaque. => reset pic_mod.alpha. */
 			screen->pic_mod.alpha = 0 ;
 		}
+		else
+		{
+			screen->pic_mod.alpha = alpha ;
+		}
+	}
+	else
+	{
+		/* True transparency doesn't work. */
+		if( screen->pic_mod.alpha == alpha)
+		{
+			/* not changed */
+			return ;
+		}
+
+		screen->pic_mod.alpha = alpha ;
+
+		picture_modifier_changed( screen) ;
 	}
 }
 

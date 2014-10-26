@@ -1,3 +1,18 @@
+2014-10-26  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/main, etc/main.ja, gtk/INSTALL, doc/ja/README.ja: Updated.
+
+	* x_screen.c: change_true_transbg_alpha() is always called (except when
+	  x_window_has_wall_picture() is true) even if screen->pic_mod.alpha == alpha.
+
+	* vte.c:
+	  - gdk_rgba_to_string() is replaced by gdk_rgba_to_string2() which returns
+	    the format mlterm can recognize.
+	  - vte_terminal_set_color_bold() and vte_terminal_set_color_bold_rgba() are
+	    implemented.
+	  - x_font_use_point_size_for_fc() -> x_font_use_point_size()
+	    ml_term_set_winsize() is removed.
+
 2014-10-25  Araki Ken  <arakiken@users.sf.net>
 
 	* im_ibus.c: Cursor position passed to ibus_input_context_set_cursor_location()
