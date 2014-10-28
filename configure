@@ -20838,6 +20838,9 @@ else
 	have_fribidi="no"
 fi
 if test "$have_fribidi" = "yes" ; then
+	# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+	FRIBIDI_CFLAGS="`echo $FRIBIDI_CFLAGS | tr -d '\r'`"
+	FRIBIDI_LIBS="`echo $FRIBIDI_LIBS | tr -d '\r'`"
 	if test "$dl_ctl" = "yes" ; then
 		CTL_LIBS="libctl_bidi.la ${CTL_LIBS}"
 	else
@@ -20848,9 +20851,6 @@ if test "$have_fribidi" = "yes" ; then
 	fi
 fi
 
-# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
-FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
 
 
 
@@ -21079,6 +21079,10 @@ fi
 	fi
 
 	if test "$have_xft" = "yes" ; then
+		# "tr ..." is hack for cygwin.
+		# (removing \r which is output by win32 native pkg-config.)
+	        XFT_CFLAGS="`echo $XFT_CFLAGS | tr -d '\r'`"
+	        XFT_LIBS="`echo $XFT_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_xft.la ${TYPE_LIBS}"
 		else
@@ -21210,6 +21214,10 @@ fi
 	fi
 
 	if test "$have_cairo" = "yes" ; then
+		# "tr ..." is hack for cygwin.
+		# (removing \r which is output by win32 native pkg-config.)
+	        CAIRO_CFLAGS="`echo $CAIRO_CFLAGS | tr -d '\r'`"
+	        CAIRO_LIBS="`echo $CAIRO_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_cairo.la ${TYPE_LIBS}"
 			if test "$with_pthread" != "no" ; then
@@ -21960,6 +21968,7 @@ fi
 
 
 
+	if test "$gui" != "win32" ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
@@ -22027,11 +22036,12 @@ else
 $as_echo "yes" >&6; }
 	have_fc=yes
 fi
-	if test "$have_fc" = "yes" ; then
-		FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
-		FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+		if test "$have_fc" = "yes" ; then
+			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
 
 
+		fi
 	fi
 
 	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
@@ -23924,7 +23934,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=mlterm
- VERSION=3.3.8
+ VERSION=3.4.0
 
 
 cat >>confdefs.h <<_ACEOF

@@ -399,6 +399,9 @@ else
 	have_fribidi="no"
 fi
 if test "$have_fribidi" = "yes" ; then
+	# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+	FRIBIDI_CFLAGS="`echo $FRIBIDI_CFLAGS | tr -d '\r'`"
+	FRIBIDI_LIBS="`echo $FRIBIDI_LIBS | tr -d '\r'`"
 	if test "$dl_ctl" = "yes" ; then
 		CTL_LIBS="libctl_bidi.la ${CTL_LIBS}"
 	else
@@ -409,9 +412,6 @@ if test "$have_fribidi" = "yes" ; then
 	fi
 fi
 
-# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
-FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
 AC_SUBST(FRIBIDI_CFLAGS)
 AC_SUBST(FRIBIDI_LIBS)
 AC_SUBST(CTL_CFLAGS)
@@ -485,6 +485,10 @@ xft)
 	fi
 
 	if test "$have_xft" = "yes" ; then
+		# "tr ..." is hack for cygwin.
+		# (removing \r which is output by win32 native pkg-config.)
+	        XFT_CFLAGS="`echo $XFT_CFLAGS | tr -d '\r'`"
+	        XFT_LIBS="`echo $XFT_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_xft.la ${TYPE_LIBS}"
 		else
@@ -512,6 +516,10 @@ cairo)
 	fi
 
 	if test "$have_cairo" = "yes" ; then
+		# "tr ..." is hack for cygwin.
+		# (removing \r which is output by win32 native pkg-config.)
+	        CAIRO_CFLAGS="`echo $CAIRO_CFLAGS | tr -d '\r'`"
+	        CAIRO_LIBS="`echo $CAIRO_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_cairo.la ${TYPE_LIBS}"
 			if test "$with_pthread" != "no" ; then
@@ -811,12 +819,14 @@ registobmp)
 	AC_SUBST(SDL_CFLAGS)
 	AC_SUBST(SDL_LIBS)
 
-	PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
-	if test "$have_fc" = "yes" ; then
-		FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
-		FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
-		AC_SUBST(FONTCONFIG_CFLAGS)
-		AC_SUBST(FONTCONFIG_LIBS)
+	if test "$gui" != "win32" ; then
+		PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
+		if test "$have_fc" = "yes" ; then
+			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+			AC_SUBST(FONTCONFIG_CFLAGS)
+			AC_SUBST(FONTCONFIG_LIBS)
+		fi
 	fi
 
 	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
@@ -1162,7 +1172,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.3.8)
+AM_INIT_AUTOMAKE(mlterm,3.4.0)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

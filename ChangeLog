@@ -1,3 +1,16 @@
+2014-10-28  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.4.0 released.
+	  (tag "rel-3_4_0")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.4.0.
+
+2014-10-28  Araki Ken  <arakiken@users.sf.net>
+
+	* registobmp/main.c, Makefile.in: USE_WIN32API -> USE_WIN32GUI
+
 2014-10-26  Araki Ken  <arakiken@users.sf.net>
 
 	* etc/main, etc/main.ja, gtk/INSTALL, doc/ja/README.ja: Updated.
