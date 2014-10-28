@@ -14,7 +14,7 @@ VPATH = $(top_srcdir)/tool/registobmp
 
 OBJ = main.o
 
-CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @SDL_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @SDL_CFLAGS@ @GUI_CFLAGS@ \
 	@FONTCONFIG_CFLAGS@ -I/usr/local/include
 
 LIBS = $(LIBS_LOCAL) @SDL_LIBS@ @FONTCONFIG_LIBS@ -L/usr/local/lib -R/usr/local/lib -lm

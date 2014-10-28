@@ -576,7 +576,7 @@ command_text(
 				}
 
 				FcPatternDestroy( mat) ;
-			#elif  defined(USE_WIN32API)
+			#elif  defined(USE_WIN32GUI)
 				font_file = "c:\\Windows\\Fonts\\arial.ttf" ;
 			#else
 				font_file = "arial.ttf" ;
