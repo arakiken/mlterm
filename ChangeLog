@@ -1,3 +1,10 @@
+2014-11-02  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_term.c, ml_vt100_parser.c: Pty to be responsed to by OSC 5381 is
+	  fixed.
+
+	* version.h.in: 3.4.0 -> 3.4.0post
+
 2014-10-28  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.4.0 released.
@@ -286,7 +293,7 @@
 	  - DEC Locator is partially supported.
 	  - ml_vt100_parser_report_mouse_tracking() is added.
 
-	* version.h.in: 3.3.7 -> 3.3.7post
+	* version.h.in: 3.3.8 -> 3.3.8post
 
 2014-08-16  Araki Ken  <arakiken@users.sf.net>
 

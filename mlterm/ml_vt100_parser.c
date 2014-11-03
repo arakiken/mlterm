@@ -7341,7 +7341,7 @@ ml_vt100_parser_get_config(
 #if  0
 	if( ! value)
 	{
-		ml_response_config( term->pty , "error" , NULL , to_menu) ;
+		ml_response_config( output , "error" , NULL , to_menu) ;
 	}
 #endif
 

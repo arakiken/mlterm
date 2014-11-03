@@ -1343,7 +1343,7 @@ ml_term_get_config(
 #if  0
 	if( ! value)
 	{
-		ml_response_config( term->pty , "error" , NULL , to_menu) ;
+		ml_response_config( output->pty , "error" , NULL , to_menu) ;
 	}
 #endif
 
@@ -1353,7 +1353,7 @@ ml_term_get_config(
 	}
 	else
 	{
-		ml_response_config( term->pty , key , value , to_menu) ;
+		ml_response_config( output->pty , key , value , to_menu) ;
 	}
 
 	return  1 ;
