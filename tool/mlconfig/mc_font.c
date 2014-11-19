@@ -5,6 +5,7 @@
 #include  "mc_font.h"
 
 #include  <stdio.h>
+#include  <ctype.h>
 #include  <kiklib/kik_str.h>
 #include  <kiklib/kik_mem.h>		/* free */
 #include  <kiklib/kik_debug.h>
@@ -18,6 +19,7 @@
 #include  "mc_combo.h"
 #include  "mc_flags.h"
 #include  "mc_vertical.h"
+#include  "mc_char_encoding.h"
 
 
 #if  0
@@ -373,6 +375,98 @@ fontsize_selected(
 	return  1 ;
 }
 
+static void
+fontcs_changed(void)
+{
+	dont_change_new_fontname_list = 1 ;
+
+	if( new_fontname_list[selected_cs])
+	{
+		gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
+			new_fontname_list[selected_cs]) ;
+	}
+	else
+	{
+		gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
+			g_locale_to_utf8(
+				mc_get_font_name( get_font_file() ,
+					new_fontsize ,
+					get_correct_cs(selected_cs)) ,
+				-1 , NULL , NULL , NULL) ) ;
+	}
+
+	dont_change_new_fontname_list = 0 ;
+}
+
+/* compare two encoding names, returns non-zero if equal
+ */
+static int compare(const char *e1, const char *e2)
+{
+	while(1) {
+		/* ')' is for "auto (currently EUC-JP)" */
+		if (*e1 == '-' || *e1 == '_' || *e1 == ')') {e1++; continue;}
+		if (*e2 == '-' || *e2 == '_' || *e2 == ')') {e2++; continue;}
+		if ((*e1 == 0 || *e1 == ' ') && (*e2 == 0 || *e2 == ' '))
+			return 1;
+		if (toupper(*e1) != toupper(*e2)) return 0;
+		e1++; e2++;
+	}
+}
+
+static void
+fontcs_map(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	char *  encoding ;
+	int  count ;
+
+	encoding = mc_get_char_encoding() ;
+
+	if( strstr( encoding , "UTF"))
+	{
+		if( selected_cs == 1)
+		{
+			return ;
+		}
+
+		selected_cs = 1 ;	/* UNICODE */
+	}
+	else
+	{
+		for( count = 0 ; count < sizeof(cs_info_table)/sizeof(cs_info_table[0]) ; count++)
+		{
+			if( strcmp( cs_info_table[count].cs , "JISX0201_KATA") == 0)
+			{
+				break ;
+			}
+			else if( compare( encoding , cs_info_table[count].cs))
+			{
+				if( selected_cs == count)
+				{
+					return ;
+				}
+
+				selected_cs = count ;
+
+				goto  update_cs ;
+			}
+		}
+
+		if( selected_cs == 0)
+		{
+			return ;
+		}
+
+		selected_cs = 0 ;
+	}
+
+update_cs:
+	gtk_entry_set_text(GTK_ENTRY(widget), cs_info_table[selected_cs].cs) ;
+	fontcs_changed() ;
+}
+
 static gint
 fontcs_selected(
 	GtkWidget *  widget ,
@@ -398,24 +492,7 @@ fontcs_selected(
 
 				selected_cs = count ;
 
-				dont_change_new_fontname_list = 1 ;
-
-				if( new_fontname_list[selected_cs])
-				{
-					gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
-						new_fontname_list[selected_cs]) ;
-				}
-				else
-				{
-					gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
-						g_locale_to_utf8(
-							mc_get_font_name( get_font_file() ,
-								new_fontsize ,
-								get_correct_cs(selected_cs)) ,
-							-1 , NULL , NULL , NULL) ) ;
-				}
-
-				dont_change_new_fontname_list = 0 ;
+				fontcs_changed() ;
 
 			#if  0
 				kik_debug_printf( "After: cs %s fontname %s\n" ,
@@ -834,10 +911,10 @@ mc_font_config_widget_new(void)
 		{
 			cslist[count] = cs_info_table[count].cs ;
 		}
-		
-		combo = mc_combo_new_with_width(_("Font name") , cslist , count ,
+
+		combo = mc_combo_new_full(_("Font name") , cslist , count ,
 				cslist[selected_cs] , 1 ,
-				fontcs_selected, NULL, 110) ;
+				fontcs_selected, fontcs_map, NULL, 110) ;
 		gtk_box_pack_start(GTK_BOX(hbox) , combo , TRUE , TRUE , 0) ;
 	}
 

@@ -1,3 +1,11 @@
+ver 3.4.1
+* Update unicode properties to 7.0.0.
+* Automatically select an appropriate character set in selecting font on mlconfig
+  according to a selected character encoding.
+* Bug fixes:
+  Fix a bug which disabled "\x1b]5381;/dev/...;pty_name\x07". (enbugged at 3.3.8)
+  Fix "is_auto_encoding" of OSC 5379 which didn't work.
+
 ver 3.4.0
 * Support DEC Locator mode (which is necessary for Xsixel
   (http://github.com/saitoha/xserver-SIXEL)).

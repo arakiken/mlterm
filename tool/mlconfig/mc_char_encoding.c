@@ -232,3 +232,14 @@ mc_update_char_encoding(void)
 		old_encoding_idx = new_encoding_idx;
 	}
 }
+
+char *
+mc_get_char_encoding(void)
+{
+	if (strncmp(encodings[new_encoding_idx], "auto", 4) == 0) {
+		return encodings[new_encoding_idx] + 16;
+	}
+	else {
+		return encodings[new_encoding_idx];
+	}
+}

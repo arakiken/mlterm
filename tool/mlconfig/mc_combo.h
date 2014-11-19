@@ -23,5 +23,12 @@ GtkWidget * mc_combo_new_with_width( const char * label_name, char ** item_names
 	gint (*callback)(GtkWidget *, gpointer), gpointer data,
 	int entry_width);
 
+GtkWidget * mc_combo_new_full( const char * label_name, char ** item_names,
+	u_int item_num, char * selected_item_name, int is_readonly,
+	gint (*callback_changed)(GtkWidget *, gpointer),
+	gint (*callback_map)(GtkWidget *, gpointer),
+	gpointer data,
+	int entry_width);
+
 
 #endif

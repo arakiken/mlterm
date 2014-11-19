@@ -1,3 +1,15 @@
+2014-11-19  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_font.c, mc_char_encoding.c: An appropriate character set is automatically
+	  selected in selecting font on mlconfig according to a selected character
+	  encoding.
+
+	* ml_vt100_parser.c: ml_vt100_parser_t::is_auto_encoding is set in
+	  ml_vt100_parser_new() and ml_vt100_parser_change_encoding().
+
+	* mkf_ucs_property.table: Updated to Unicode 7.0.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
 2014-11-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_term.c, ml_vt100_parser.c: Pty to be responsed to by OSC 5381 is

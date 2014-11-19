@@ -6354,6 +6354,7 @@ ml_vt100_parser_new(
 	vt100_parser->bg_color = ML_BG_COLOR ;
 	vt100_parser->use_char_combining = use_char_combining ;
 	vt100_parser->use_multi_col_char = use_multi_col_char ;
+	vt100_parser->is_auto_encoding = is_auto_encoding;
 	vt100_parser->use_auto_detect = use_auto_detect ;
 	vt100_parser->logging_vt_seq = logging_vt_seq ;
 	vt100_parser->unicode_policy = policy ;
@@ -6663,7 +6664,9 @@ ml_vt100_parser_change_encoding(
 	vt100_parser->g0 = US_ASCII ;
 	vt100_parser->g1 = US_ASCII ;
 	vt100_parser->is_so = 0 ;
-	
+
+	vt100_parser->is_auto_encoding = 0 ;
+
 	return  1 ;
 }
 

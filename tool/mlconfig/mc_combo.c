@@ -15,13 +15,13 @@ mc_combo_new(
 	u_int  item_num ,
 	char *  selected_item_name ,
 	int  is_readonly ,
-	gint (*callback)(GtkWidget * , gpointer) ,
+	gint (*callback_changed)(GtkWidget * , gpointer) ,
 	gpointer  data
 	)
 {
-	return mc_combo_new_with_width(label_name, item_names, item_num,
-				       selected_item_name, is_readonly,
-				       callback, data, 0);
+	return mc_combo_new_full(label_name, item_names, item_num,
+	                 selected_item_name, is_readonly,
+			 callback_changed, NULL, data, 0);
 }
 
 GtkWidget *
@@ -31,9 +31,27 @@ mc_combo_new_with_width(
 	u_int  item_num ,
 	char *  selected_item_name ,
 	int  is_readonly ,
-	gint (*callback)(GtkWidget * , gpointer) ,
-	gpointer  data,
-	int entry_width
+	gint (*callback_changed)(GtkWidget * , gpointer) ,
+	gpointer  data ,
+	int  entry_width
+	)
+{
+	return mc_combo_new_full(label_name, item_names, item_num,
+	                 selected_item_name, is_readonly,
+			 callback_changed, NULL, data, entry_width);
+}
+
+GtkWidget *
+mc_combo_new_full(
+	const char *  label_name ,
+	char **  item_names ,
+	u_int  item_num ,
+	char *  selected_item_name ,
+	int  is_readonly ,
+	gint (*callback_changed)(GtkWidget * , gpointer) ,
+	gint (*callback_map)(GtkWidget * , gpointer) ,
+	gpointer  data ,
+	int  entry_width
 	)
 {
 	GtkWidget * hbox;
@@ -88,9 +106,18 @@ mc_combo_new_with_width(
 	}
 
 	gtk_combo_box_set_active( GTK_COMBO_BOX(combo) , 0) ;
-	
-	g_signal_connect( gtk_bin_get_child( GTK_BIN(combo)),
-		"changed", G_CALLBACK(callback), data);
+
+	if( callback_changed)
+	{
+		g_signal_connect( gtk_bin_get_child( GTK_BIN(combo)),
+			"changed", G_CALLBACK(callback_changed), data);
+	}
+
+	if( callback_map)
+	{
+		g_signal_connect( gtk_bin_get_child( GTK_BIN(combo)),
+			"map", G_CALLBACK(callback_map), data) ;
+	}
 
 	if( is_readonly)
 	{
