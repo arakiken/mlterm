@@ -56,7 +56,7 @@ msgid " New "
 msgstr "新規"
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid " Select "
+msgid "Select"
 msgstr "選択"
 
 #: tool/mlconfig/main.c:316
@@ -66,6 +66,14 @@ msgstr "mltermの設定"
 #: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
 msgid "Encoding"
 msgstr "エンコーディング"
+
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
+msgid "Auto detect"
+msgstr "自動判定"
+
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
+msgid "Encoding list"
+msgstr "対象エンコーディング"
 
 #: tool/mlconfig/main.c:404
 msgid "Font"
@@ -92,7 +100,7 @@ msgid "Others"
 msgstr "その他"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid " Bel mode "
+msgid "Bell mode"
 msgstr "ベル"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
@@ -108,6 +116,34 @@ msgstr "音"
 msgid "Visual"
 msgstr "表示"
 
+#: tool/mlconfig/mc_radio.c:115
+msgid "Font policy"
+msgstr "表示フォント"
+
+#: tool/mlconfig/mc_radio.c:115
+msgid "Always unicode"
+msgstr "Unicodeのみ"
+
+#: tool/mlconfig/mc_radio.c:115
+msgid "Never unicode"
+msgstr "Unicode以外"
+
+#: tool/mlconfig/mc_radio.c:115
+msgid "Box drawing"
+msgstr "罫線"
+
+#: tool/mlconfig/mc_radio.c:115
+msgid "As it is"
+msgstr "そのまま表示"
+
+#: tool/mlconfig/mc_radio.c:115
+msgid "Unicode"
+msgstr "Unicodeに変換"
+
+#: tool/mlconfig/mc_radio.c:115
+msgid "DEC Special"
+msgstr "DEC Specialに変換"
+
 #: tool/mlconfig/mc_bgtype.c:118
 msgid "Background type"
 msgstr "背景のタイプ"
@@ -122,7 +158,7 @@ msgstr "壁紙"
 
 #: tool/mlconfig/mc_bgtype.c:156
 msgid "Pseudo transparent"
-msgstr "透明"
+msgstr "擬似透明"
 
 #: tool/mlconfig/mc_brightness.c:71
 msgid "Brightness"
@@ -176,55 +212,39 @@ msgid "Background color"
 msgstr "背景色"
 
 #: tool/mlconfig/mc_color.c:46
-msgid "black"
-msgstr "黒"
+msgid "Cursor color"
+msgstr "カーソル"
+
+#: tool/mlconfig/mc_color.c:46
+msgid "Substituting color"
+msgstr "文字属性に代えて表示する色"
+
+#: tool/mlconfig/mc_color.c:46
+msgid "Bold "
+msgstr "ボールド"
 
 #: tool/mlconfig/mc_color.c:47
-msgid "red"
-msgstr "赤"
+msgid "Underline"
+msgstr "下線"
 
 #: tool/mlconfig/mc_color.c:48
-msgid "green"
-msgstr "緑"
+msgid "Italic"
+msgstr "イタリック"
 
 #: tool/mlconfig/mc_color.c:49
-msgid "yellow"
-msgstr "黄"
+msgid "Blink"
+msgstr "点滅"
 
 #: tool/mlconfig/mc_color.c:50
-msgid "blue"
-msgstr "青"
+msgid "Cross out"
+msgstr "取消線"
 
-#: tool/mlconfig/mc_color.c:51
-msgid "magenta"
-msgstr "紫"
-
-#: tool/mlconfig/mc_color.c:52
-msgid "cyan"
-msgstr "水色"
-
-#: tool/mlconfig/mc_color.c:53
-msgid "white"
-msgstr "白"
-
-#: tool/mlconfig/mc_color.c:54
-msgid "gray"
-msgstr "灰色"
-
-#: tool/mlconfig/mc_color.c:55
-msgid "lightgray"
-msgstr "明るい灰色"
-
-#: tool/mlconfig/mc_color.c:56
-msgid "pink"
-msgstr "ピンク"
-
-#: tool/mlconfig/mc_color.c:57
-msgid "brown"
-msgstr "茶色"
+#: tool/mlconfig/mc_color.c:46
+msgid "VT basic 16 colors"
+msgstr "カラーパレット(16色)"
 
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast"
+msgid "Contrast  "
 msgstr "コントラスト"
 
 #: tool/mlconfig/mc_fade.c:69
@@ -271,6 +291,10 @@ msgstr "選択文字列をクリップボードに保存"
 msgid "Local echo"
 msgstr "ローカルエコー"
 
+#: tool/mlconfig/mc_flags.c:53
+msgid "Blink cursor"
+msgstr "カーソル点滅"
+
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"
@@ -282,6 +306,10 @@ msgstr "フォント名"
 #: tool/mlconfig/mc_gamma.c:69
 msgid "Gamma"
 msgstr "ガンマ"
+
+#: tool/mlconfig/mc_alpha.c:69
+msgid "Alpha"
+msgstr "アルファ"
 
 #: tool/mlconfig/mc_iscii_lang.c:71
 msgid "ISCII language"
@@ -310,6 +338,22 @@ msgstr "Esc"
 #: tool/mlconfig/mc_mod_meta.c:116
 msgid "8bit"
 msgstr "8ビット"
+
+#: tool/mlconfig/mc_vtseq.c:88
+msgid "Save log"
+msgstr "ログを保存"
+
+#: tool/mlconfig/mc_vtseq.c:105
+msgid "No"
+msgstr "保存しない"
+
+#: tool/mlconfig/mc_vtseq.c:116
+msgid "Raw format"
+msgstr "そのまま保存"
+
+#: tool/mlconfig/mc_vtseq.c:116
+msgid "Ttyrec format"
+msgstr "ttyrec形式で保存"
 
 #: tool/mlconfig/mc_sb.c:88
 msgid "Position"

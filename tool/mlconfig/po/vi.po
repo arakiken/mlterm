@@ -56,7 +56,7 @@ msgid " New "
 msgstr " Mới "
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid " Select "
+msgid "Select"
 msgstr " Chọn "
 
 #: tool/mlconfig/main.c:316
@@ -92,7 +92,7 @@ msgid "Others"
 msgstr "Khác"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid " Bel mode "
+msgid "Bell mode"
 msgstr " Chế độ chuông "
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
@@ -175,56 +175,8 @@ msgstr "Màu chữ"
 msgid "Background color"
 msgstr "Màu nền"
 
-#: tool/mlconfig/mc_color.c:46
-msgid "black"
-msgstr "đen"
-
-#: tool/mlconfig/mc_color.c:47
-msgid "red"
-msgstr "đỏ"
-
-#: tool/mlconfig/mc_color.c:48
-msgid "green"
-msgstr "xanh lá cây"
-
-#: tool/mlconfig/mc_color.c:49
-msgid "yellow"
-msgstr "vàng"
-
-#: tool/mlconfig/mc_color.c:50
-msgid "blue"
-msgstr "xanh da trời"
-
-#: tool/mlconfig/mc_color.c:51
-msgid "magenta"
-msgstr "đỏ tươi"
-
-#: tool/mlconfig/mc_color.c:52
-msgid "cyan"
-msgstr "xanh cyan"
-
-#: tool/mlconfig/mc_color.c:53
-msgid "white"
-msgstr "trắng"
-
-#: tool/mlconfig/mc_color.c:54
-msgid "gray"
-msgstr "xám"
-
-#: tool/mlconfig/mc_color.c:55
-msgid "lightgray"
-msgstr "xám nhạt"
-
-#: tool/mlconfig/mc_color.c:56
-msgid "pink"
-msgstr "hồng"
-
-#: tool/mlconfig/mc_color.c:57
-msgid "brown"
-msgstr "nâu"
-
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast"
+msgid "Contrast  "
 msgstr "Độ tương phản"
 
 #: tool/mlconfig/mc_fade.c:69

@@ -1,3 +1,25 @@
+2014-11-23  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_color.[ch]: mc_{cursor|substitute}_color_config_widget_new(),
+	  mc_vtcolor_config_widget_new(), mc_update_{cursor|substitute}_color()
+	  and mc_update_vtcolor() are added.
+
+	* mc_{letter|line}_space.[ch]: Integrated to mc_space.[ch].
+
+	* mc_mod_meta.[ch], mc_vertical.[ch], mc_sb.[ch], mc_bel.[ch]:
+	  Integrated to mc_radio.[ch].
+
+	* mc_brightness.[ch], mc_contrast.[ch], mc_fade.[ch], mc_gamma.[ch],
+	  mc_screen_ratio.[ch]: Integrated to mc_ratio.[ch].
+
+	* mc_io.c: "font_policy" and "logging_vt_seq" wrappers are added to
+	  mc_{set|get}_str_value().
+
+	* ml_vt100_parser.[ch], x_screen.c: get_color is added to ml_config_event_listener_t.
+
+	* ml_term.c, ml_vt100_parser.c: 'output' argument of ml_{term|vt100_parser}_get_config()
+	  is NULL if term == output.
+
 2014-11-19  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_font.c, mc_char_encoding.c: An appropriate character set is automatically

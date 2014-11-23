@@ -50,6 +50,8 @@ tabsize_selected(
 GtkWidget *
 mc_tabsize_config_widget_new(void)
 {
+	GtkWidget *  combo ;
+	GtkWidget *  entry ;
 	char *  tabsizes[] =
 	{
 		"8" ,
@@ -58,11 +60,14 @@ mc_tabsize_config_widget_new(void)
 	} ;
 
 	new_tabsize = strdup( old_tabsize = mc_get_str_value( "tabsize")) ;
-	is_changed = 0;
+	is_changed = 0 ;
 
-	return  mc_combo_new_with_width( _("Tab width (columns)"), tabsizes,
-		sizeof(tabsizes) / sizeof(tabsizes[0]),
-		new_tabsize, 0, tabsize_selected, NULL, 80);
+	combo = mc_combo_new_with_width( _("Tab width (columns)") , tabsizes ,
+		sizeof(tabsizes) / sizeof(tabsizes[0]) ,
+		new_tabsize , 0 , 80 , &entry) ;
+	g_signal_connect( entry , "changed" , G_CALLBACK(tabsize_selected) , NULL) ;
+
+	return  combo ;
 }
 
 void

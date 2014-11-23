@@ -60,8 +60,7 @@ mc_wall_pic_config_widget_new(void)
 
 	wall_pic = mc_get_str_value( "wall_picture") ;
 	
-	hbox = gtk_hbox_new( FALSE , 5) ;
-	gtk_widget_show(hbox) ;
+	hbox = gtk_hbox_new( FALSE , 0) ;
  
 #if 0
 	label = gtk_label_new(_("Picture")) ;
@@ -74,7 +73,7 @@ mc_wall_pic_config_widget_new(void)
 	gtk_box_pack_start( GTK_BOX(hbox) , entry , TRUE , TRUE , 2) ;
 	gtk_entry_set_text( GTK_ENTRY(entry) , wall_pic) ;
 	
-	button = gtk_button_new_with_label( _(" Select ")) ;
+	button = gtk_button_new_with_label( _("Select")) ;
 	gtk_widget_show(button) ;
 	g_signal_connect(button , "clicked" , G_CALLBACK(button_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;

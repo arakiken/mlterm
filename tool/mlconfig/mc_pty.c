@@ -80,6 +80,8 @@ mc_pty_config_widget_new(void)
 	char *  pty_list ;
 	char *  ptys[MAX_TERMS];
 	int num;
+	GtkWidget *combo;
+	GtkWidget *entry;
 
 	my_pty = mc_get_str_value( "pty_name") ;
 	pty_list = mc_get_str_value( "pty_list") ;
@@ -107,7 +109,10 @@ mc_pty_config_widget_new(void)
 
 	new_pty = strdup( old_pty = strdup(my_pty + 5));
 
-	return mc_combo_new("", ptys, num, new_pty, 1, selected, NULL);
+	combo = mc_combo_new("", ptys, num, new_pty, 1, &entry);
+	g_signal_connect(entry, "changed", G_CALLBACK(selected), NULL);
+
+	return  combo;
 }
 
 void

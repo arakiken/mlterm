@@ -228,6 +228,8 @@ kbd_callback(
 static void  x11_callback( LIBSSH2_SESSION *  session , LIBSSH2_CHANNEL *  channel ,
 	char *  shost , int  sport , void **  abstract) ;
 
+static void  set_use_multi_thread( int  use) ;
+
 /*
  * Return session which is non-blocking mode because opening a new channel
  * can work as multi threading.
@@ -264,6 +266,8 @@ ssh_connect(
 	{
 		return  session ;
 	}
+
+	set_use_multi_thread( 1) ;
 
 	if( ! ( session = calloc( 1 , sizeof(ssh_session_t))))
 	{
@@ -1795,8 +1799,6 @@ ml_pty_ssh_new(
 		goto  error1 ;
 	}
 
-	set_use_multi_thread( 1) ;
-
 	if( ( pty->session = ssh_connect( host , port ? port : "22" , user , pass ,
 					pubkey , privkey)) == NULL)
 	{
@@ -2010,7 +2012,6 @@ ml_pty_ssh_new(
 	return  &pty->pty ;
 
 error3:
-	libssh2_session_set_blocking( pty->session->obj , 1) ;
 	libssh2_channel_free( pty->channel) ;
 
 error2:

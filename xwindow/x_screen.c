@@ -5329,7 +5329,7 @@ get_config_intern(
 		term = screen->term ;
 	}
 
-	if( ml_term_get_config( term , screen->term , key , to_menu , flag))
+	if( ml_term_get_config( term , dev ? screen->term : NULL , key , to_menu , flag))
 	{
 		return ;
 	}
@@ -5785,8 +5785,6 @@ get_font_config(
 #endif
 
 	free( font_name) ;
-
-	return ;
 }
 
 static void
@@ -5807,6 +5805,40 @@ set_color_config(
 	{
 		screen->font_or_color_config_updated |= 0x2 ;
 	}
+}
+
+static void
+get_color_config(
+	void *  p ,
+	char *  key ,
+	int  to_menu
+	)
+{
+	x_screen_t *  screen ;
+	ml_color_t  color ;
+	x_color_t *  xcolor ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
+	u_int8_t  alpha ;
+	char  rgba[10] ;
+
+	screen = p ;
+
+	if( ( color = ml_get_color( key)) == ML_UNKNOWN_COLOR ||
+	    ! ( xcolor = x_get_xcolor( screen->color_man , color)) ||
+	    ! x_get_xcolor_rgba( &red , &green , &blue , &alpha , xcolor))
+	{
+		ml_term_response_config( screen->term , "error" , NULL , to_menu) ;
+
+		return ;
+	}
+
+	sprintf( rgba ,
+		alpha == 255 ? "#%.2x%.2x%.2x" : "#%.2x%.2x%.2x%.2x" ,
+		red , green , blue , alpha) ;
+
+	ml_term_response_config( screen->term , key , rgba , to_menu) ;
 }
 
 
@@ -7596,6 +7628,7 @@ x_screen_new(
 	screen->config_listener.set_font = set_font_config ;
 	screen->config_listener.get_font = get_font_config ;
 	screen->config_listener.set_color = set_color_config ;
+	screen->config_listener.get_color = get_color_config ;
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;

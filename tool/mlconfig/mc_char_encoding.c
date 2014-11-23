@@ -197,6 +197,7 @@ mc_char_encoding_config_widget_new(void)
 	int isauto, idx;
 	char *encoding;
 	GtkWidget *widget;
+	GtkWidget *entry;
 
 	isauto = mc_get_flag_value("is_auto_encoding");
 	encoding = mc_get_str_value("encoding");
@@ -213,8 +214,8 @@ mc_char_encoding_config_widget_new(void)
 	prepare_encodings_l10n();
 	widget = mc_combo_new(_("Encoding"), encodings_l10n,
 		sizeof(encodings) / sizeof(encodings[0]) - 1,
-		encodings_l10n[idx], 1, encoding_selected, NULL);
-	if (widget == NULL) return NULL;
+		encodings_l10n[idx], 1, &entry);
+	g_signal_connect(entry, "changed", G_CALLBACK(encoding_selected), NULL);
 
 	new_encoding_idx = old_encoding_idx = idx;
 	is_changed = 0;

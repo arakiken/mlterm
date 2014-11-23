@@ -50,6 +50,8 @@ logsize_selected(
 GtkWidget *
 mc_logsize_config_widget_new(void)
 {
+	GtkWidget *  combo ;
+	GtkWidget *  entry ;
 	char *  logsizes[] =
 	{
 		"128" ,
@@ -60,11 +62,14 @@ mc_logsize_config_widget_new(void)
 	} ;
 
 	new_logsize = strdup( old_logsize = mc_get_str_value( "logsize")) ;
-	is_changed = 0;
+	is_changed = 0 ;
 
-	return  mc_combo_new_with_width(_("Backlog size (lines)"), logsizes,
-		sizeof(logsizes) / sizeof(logsizes[0]),
-		new_logsize, 0, logsize_selected, NULL, 80);
+	combo = mc_combo_new_with_width(_("Backlog size (lines)") , logsizes ,
+		sizeof(logsizes) / sizeof(logsizes[0]) ,
+		new_logsize , 0 , 80 , &entry) ;
+	g_signal_connect( entry , "changed" , G_CALLBACK(logsize_selected) , NULL) ;
+
+	return  combo ;
 }
 
 void

@@ -239,6 +239,7 @@ xim_widget_new(const char *xim_name, const char *xim_locale, const char *cur_loc
 	GtkWidget *label;
 	GtkWidget *entry;
 	GtkWidget *combo;
+	GtkWidget *combo_entry;
 	int count;
 
 	default_xim_name = mc_get_str_value("default_xim_name");
@@ -304,7 +305,8 @@ xim_widget_new(const char *xim_name, const char *xim_locale, const char *cur_loc
 	snprintf(selected_xim_name, STR_LEN,
 		 "%s", xim_name ? xim_name : xim_auto_str);
 	combo = mc_combo_new(_("XIM Server"), xims, num_of_xims,
-			     selected_xim_name, 0, xim_selected, entry);
+			     selected_xim_name, 0, &combo_entry);
+	g_signal_connect(combo_entry, "changed", G_CALLBACK(xim_selected), entry);
 
 	label = gtk_label_new(_("XIM locale"));
 
@@ -352,6 +354,7 @@ static GtkWidget *
 im_widget_new(int nth_im, const char *value, char *locale)
 {
 	GtkWidget *combo;
+	GtkWidget *entry;
 	im_info_t *info;
 	int i;
 	int selected = 0;
@@ -392,7 +395,8 @@ im_widget_new(int nth_im, const char *value, char *locale)
 
 	combo = mc_combo_new(_("Option"), info->readable_args,
 			     info->num_of_args, info->readable_args[selected],
-			     1, im_selected, NULL);
+			     1, &entry);
+	g_signal_connect(entry, "changed", G_CALLBACK(im_selected), NULL);
 
 	return combo;
 }

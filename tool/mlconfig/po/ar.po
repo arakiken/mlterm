@@ -57,7 +57,7 @@ msgid " New "
 msgstr " جديد"
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid " Select "
+msgid "Select"
 msgstr " اختر"
 
 #: tool/mlconfig/main.c:316
@@ -93,7 +93,7 @@ msgid "Others"
 msgstr "أخرى"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid " Bel mode "
+msgid "Bell mode"
 msgstr " نمط الجرس "
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
@@ -176,56 +176,8 @@ msgstr "لون المقدمة"
 msgid "Background color"
 msgstr "لون الخلفية"
 
-#: tool/mlconfig/mc_color.c:46
-msgid "black"
-msgstr "أسود"
-
-#: tool/mlconfig/mc_color.c:47
-msgid "red"
-msgstr "أحمر"
-
-#: tool/mlconfig/mc_color.c:48
-msgid "green"
-msgstr "أخضر"
-
-#: tool/mlconfig/mc_color.c:49
-msgid "yellow"
-msgstr "أصفر"
-
-#: tool/mlconfig/mc_color.c:50
-msgid "blue"
-msgstr "أزرق"
-
-#: tool/mlconfig/mc_color.c:51
-msgid "magenta"
-msgstr "قرمزى"
-
-#: tool/mlconfig/mc_color.c:52
-msgid "cyan"
-msgstr "سيان"
-
-#: tool/mlconfig/mc_color.c:53
-msgid "white"
-msgstr "أبيض"
-
-#: tool/mlconfig/mc_color.c:54
-msgid "gray"
-msgstr "رمادى"
-
-#: tool/mlconfig/mc_color.c:55
-msgid "lightgray"
-msgstr "رمادى فاتح"
-
-#: tool/mlconfig/mc_color.c:56
-msgid "pink"
-msgstr "وردى"
-
-#: tool/mlconfig/mc_color.c:57
-msgid "brown"
-msgstr "بنى"
-
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast"
+msgid "Contrast  "
 msgstr "التباين"
 
 #: tool/mlconfig/mc_fade.c:69

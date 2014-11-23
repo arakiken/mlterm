@@ -17,10 +17,8 @@ version 20140816
   set&save         = "\x1b]5383;" <challenge> ";" <font filename> ":" <key> "=" <value> "\x07"
 
   set color        = "\x1b]5379;color:" <key> "=" <value> "\x07"
-#if  0
   get(pty)	   = "\x1b]5380;" <challenge> ";color:" <key> "\x07"
   get(GUI menu)	   = "\x1b]5381;color:" <key> "\x07"
-#endif
   set&save         = "\x1b]5383;" <challenge> ";color:" <key> "=" <value> "\x07"
 
   return value     = "#" <key> "=" <value> "\x0a" | "#error\x0a" | "#forbidden\x0a"
@@ -45,11 +43,12 @@ version 20140816
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
                      cursor_fg_color | cursor_bg_color | bd_color | it_color | ul_color |
                      bl_color | co_color | use_bold_font | use_italic_font | hide_underline |
-                     icon_path | logging_vt_seq | logging_msg | word_separators | use_clipboard |
-                     auto_restart | use_alt_buffer | use_ansi_colors | exit_backscroll_by_pty |
-                     only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
-                     unicode_full_width_areas | box_drawing_font | use_urgent_bell |
-                     allow_osc52 | allow_scp | auto_detect_encodings | use_auto_detect
+                     icon_path | logging_vt_seq | vt_seq_format | logging_msg | word_separators |
+                     use_clipboard | auto_restart | use_alt_buffer | use_ansi_colors |
+                     exit_backscroll_by_pty | only_use_unicode_font | not_use_unicode_font |
+                     unicode_noconv_areas | unicode_full_width_areas | box_drawing_font |
+                     use_urgent_bell | allow_osc52 | allow_scp | auto_detect_encodings |
+                     use_auto_detect
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -62,8 +61,8 @@ version 20140816
                      use_dynamic_comb | rows | cols | cursor_fg_color | cursor_bg_color |
                      bd_color | it_color | ul_color | bl_color | co_color | use_bold_font |
                      use_italic_font | hide_underline | pty_list | pty_name | use_clipboard |
-                     use_alt_buffer | use_ansi_colors | icon_path | logging_vt_seq | gui |
-                     allow_osc52 | allow_scp | only_use_unicode_font |
+                     use_alt_buffer | use_ansi_colors | icon_path | logging_vt_seq |
+                     vt_seq_format | gui | allow_osc52 | allow_scp | only_use_unicode_font |
                      not_use_unicode_font | box_drawing_font | auto_detect_encodings |
                      use_auto_detect
   value            = <values for each key>
@@ -82,7 +81,7 @@ version 20140816
   allow_scp = true | false | switch
   auto_restart = true | false | switch | <restart command>
   auto_detect_encodings = (<encoding name>,)*
-  bidi_separatos = <any ASCII sign>*
+  bidi_separators = <any ASCII sign>*
   bd_color = <color name> | <color rgb>
   bl_color = <color name> | <color rgb>
   bel_mode = none | sound | visual
@@ -142,6 +141,7 @@ version 20140816
   use_transbg = true | false | switch
   use_variable_column_width = true | false | switch
   vertical_mode = none | cjk | mongol
+  vt_seq_format = raw | ttyrec
   wall_picture = <file path>
   logging_vt_seq = true | false | switch
   logging_msg = true | false | switch

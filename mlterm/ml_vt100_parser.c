@@ -2218,6 +2218,14 @@ config_protocol_get(
 				dev , key /* font size */ , cs , to_menu) ;
 		}
 	}
+	else if( dev && strcmp( dev , "color") == 0)
+	{
+		if( HAS_CONFIG_LISTENER(vt100_parser,get_color))
+		{
+			(*vt100_parser->config_listener->get_color)(
+				vt100_parser->config_listener->self , key , to_menu) ;
+		}
+	}
 	else if( HAS_CONFIG_LISTENER(vt100_parser,get))
 	{
 		(*vt100_parser->config_listener->get)(
@@ -7115,7 +7123,7 @@ true_or_false(
 int
 ml_vt100_parser_get_config(
 	ml_vt100_parser_t *  vt100_parser ,
-	ml_pty_ptr_t  output ,
+	ml_pty_ptr_t  output ,	/* if vt100_parser->pty == output, NULL is set */
 	char *  key ,
 	int  to_menu ,
 	int *  flag
@@ -7340,6 +7348,11 @@ ml_vt100_parser_get_config(
 		return  0 ;
 	}
 
+	if( ! output)
+	{
+		output = vt100_parser->pty ;
+	}
+
 	/* value is never set NULL above. */
 #if  0
 	if( ! value)
@@ -7486,10 +7499,12 @@ ml_vt100_parser_set_config(
 	{
 		if( strcmp( value , "unicode") == 0)
 		{
+			vt100_parser->unicode_policy &= ~NOT_USE_UNICODE_BOXDRAW_FONT ;
 			vt100_parser->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
 		}
 		else if( strcmp( value , "decsp") == 0)
 		{
+			vt100_parser->unicode_policy &= ~ONLY_USE_UNICODE_BOXDRAW_FONT ;
 			vt100_parser->unicode_policy |= NOT_USE_UNICODE_BOXDRAW_FONT ;
 		}
 		else

@@ -57,7 +57,7 @@ msgid " New "
 msgstr "新增"
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid " Select "
+msgid "Select"
 msgstr "選擇"
 
 #: tool/mlconfig/main.c:316
@@ -93,8 +93,8 @@ msgid "Others"
 msgstr "其他"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid " Bel mode "
-msgstr "Bel 模式"
+msgid "Bell mode"
+msgstr "Bell 模式"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
 #: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
@@ -177,56 +177,8 @@ msgstr "文字顏色"
 msgid "Background color"
 msgstr "背景顏色"
 
-#: tool/mlconfig/mc_color.c:46
-msgid "black"
-msgstr "黑"
-
-#: tool/mlconfig/mc_color.c:47
-msgid "red"
-msgstr "紅"
-
-#: tool/mlconfig/mc_color.c:48
-msgid "green"
-msgstr "綠"
-
-#: tool/mlconfig/mc_color.c:49
-msgid "yellow"
-msgstr "黃"
-
-#: tool/mlconfig/mc_color.c:50
-msgid "blue"
-msgstr "藍"
-
-#: tool/mlconfig/mc_color.c:51
-msgid "magenta"
-msgstr "洋紅"
-
-#: tool/mlconfig/mc_color.c:52
-msgid "cyan"
-msgstr "靛"
-
-#: tool/mlconfig/mc_color.c:53
-msgid "white"
-msgstr "白"
-
-#: tool/mlconfig/mc_color.c:54
-msgid "gray"
-msgstr "灰"
-
-#: tool/mlconfig/mc_color.c:55
-msgid "lightgray"
-msgstr "淺灰"
-
-#: tool/mlconfig/mc_color.c:56
-msgid "pink"
-msgstr "粉紅"
-
-#: tool/mlconfig/mc_color.c:57
-msgid "brown"
-msgstr "棕"
-
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast"
+msgid "Contrast  "
 msgstr "對比"
 
 # FIXME weird translation

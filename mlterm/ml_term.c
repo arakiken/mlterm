@@ -1240,7 +1240,7 @@ ml_term_set_bidi_separators(
 int
 ml_term_get_config(
 	ml_term_t *  term ,
-	ml_term_t *  output ,
+	ml_term_t *  output ,	/* if term == output, NULL is set */
 	char *  key ,
 	int  to_menu ,
 	int *  flag
@@ -1248,7 +1248,8 @@ ml_term_get_config(
 {
 	char *  value ;
 
-	if( ml_vt100_parser_get_config( term->parser , output->pty , key , to_menu , flag))
+	if( ml_vt100_parser_get_config( term->parser , output ? output->pty : NULL ,
+		key , to_menu , flag))
 	{
 		return  1 ;
 	}
@@ -1303,7 +1304,7 @@ ml_term_get_config(
 	}
 	else if( strcmp( key , "pty_name") == 0)
 	{
-		if( term != output)
+		if( output)
 		{
 			if( ( value = ml_get_window_name( term->parser)) == NULL)
 			{
@@ -1337,6 +1338,11 @@ ml_term_get_config(
 	{
 		/* Continue to process it in x_screen.c */
 		return  0 ;
+	}
+
+	if( ! output)
+	{
+		output = term ;
 	}
 
 	/* value is never set NULL above. */

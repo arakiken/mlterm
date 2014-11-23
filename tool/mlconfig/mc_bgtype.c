@@ -108,11 +108,11 @@ mc_bgtype_config_widget_new(void)
 
     bgtype = get_bgtype() ;
 
-    if( ( bg_color = mc_color_config_widget_new(MC_COLOR_BG)) == NULL)
-	return NULL ;
-    if( ( wall_picture = mc_wall_pic_config_widget_new()) == NULL)
-	return NULL ;
-	
+    bg_color = mc_color_config_widget_new(MC_COLOR_BG);
+    gtk_widget_show(bg_color);
+    wall_picture = mc_wall_pic_config_widget_new();
+    gtk_widget_show(wall_picture);
+
     group = NULL;
 
     frame = gtk_frame_new(_("Background type"));
@@ -190,4 +190,10 @@ mc_update_bgtype(void)
 		mc_wall_pic_none();
 	    }
 	}
+}
+
+int
+mc_is_color_bg(void)
+{
+	return  bgtype == MC_BG_COLOR ;
 }

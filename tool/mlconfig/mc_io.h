@@ -39,5 +39,9 @@ int  mc_set_font_name(mc_io_t  io , const char *  file , const char *  font_size
 
 char *  mc_get_font_name(const char *  file , const char *  font_size , const char *  cs) ;
 
+int  mc_set_color_name(mc_io_t  io , const char *  color , const char *  value) ;
+
+char *  mc_get_color_name(const char *  color) ;
+
 
 #endif

@@ -56,7 +56,7 @@ msgid " New "
 msgstr " Neu "
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid " Select "
+msgid "Select"
 msgstr " Auswahl "
 
 #: tool/mlconfig/main.c:316
@@ -92,7 +92,7 @@ msgid "Others"
 msgstr "Sonstiges"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid " Bel mode "
+msgid "Bell mode"
 msgstr "Signalglocke"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
@@ -175,56 +175,8 @@ msgstr "Vordergrundfarbe"
 msgid "Background color"
 msgstr "Hintergrundfarbe"
 
-#: tool/mlconfig/mc_color.c:46
-msgid "black"
-msgstr "Schwarz"
-
-#: tool/mlconfig/mc_color.c:47
-msgid "red"
-msgstr "Rot"
-
-#: tool/mlconfig/mc_color.c:48
-msgid "green"
-msgstr "Grün"
-
-#: tool/mlconfig/mc_color.c:49
-msgid "yellow"
-msgstr "Gelb"
-
-#: tool/mlconfig/mc_color.c:50
-msgid "blue"
-msgstr "Blau"
-
-#: tool/mlconfig/mc_color.c:51
-msgid "magenta"
-msgstr "Magenta"
-
-#: tool/mlconfig/mc_color.c:52
-msgid "cyan"
-msgstr "Cyan"
-
-#: tool/mlconfig/mc_color.c:53
-msgid "white"
-msgstr "Weiß"
-
-#: tool/mlconfig/mc_color.c:54
-msgid "gray"
-msgstr "Grau"
-
-#: tool/mlconfig/mc_color.c:55
-msgid "lightgray"
-msgstr "Hellgrau"
-
-#: tool/mlconfig/mc_color.c:56
-msgid "pink"
-msgstr "Pink"
-
-#: tool/mlconfig/mc_color.c:57
-msgid "brown"
-msgstr "Braun"
-
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast"
+msgid "Contrast  "
 msgstr "Kontrast"
 
 #: tool/mlconfig/mc_fade.c:69

@@ -34,8 +34,8 @@ alpha_selected(
 	gpointer  data
 	)
 {
-	g_free( new_alpha);
-	new_alpha = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
+	g_free( new_alpha) ;
+	new_alpha = gtk_editable_get_chars( GTK_EDITABLE(widget) , 0 , -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s alpha is selected.\n" , new_alpha) ;
@@ -50,6 +50,8 @@ alpha_selected(
 GtkWidget *
 mc_alpha_config_widget_new(void)
 {
+	GtkWidget *  combo ;
+	GtkWidget *  entry ;
 	char *  alphas[] =
 	{
 		"255" ,
@@ -64,19 +66,25 @@ mc_alpha_config_widget_new(void)
 	} ;
 
 	new_alpha = strdup( old_alpha = mc_get_str_value( "alpha")) ;
-	is_changed = 0;
+	is_changed = 0 ;
 
-	return  mc_combo_new_with_width(_("Alpha"), alphas,
-		sizeof(alphas) / sizeof(alphas[0]), 
-		new_alpha, 0, alpha_selected , NULL , 50);
+	combo = mc_combo_new_with_width(_("Alpha") , alphas ,
+			sizeof(alphas) / sizeof(alphas[0]) ,
+			new_alpha , 0 , 50 , &entry) ;
+	g_signal_connect( entry , "changed" , G_CALLBACK(alpha_selected) , NULL) ;
+
+	return  combo ;
 }
 
 void
 mc_update_alpha(void)
 {
-	if (strcmp(new_alpha, old_alpha)) is_changed = 1;
+	if( strcmp( new_alpha , old_alpha))
+	{
+		is_changed = 1 ;
+	}
 
-	if (is_changed)
+	if( is_changed)
 	{
 		mc_set_str_value( "alpha" , new_alpha) ;
 		free( old_alpha) ;

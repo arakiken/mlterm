@@ -74,24 +74,23 @@ mc_auto_detect_config_widget_new(void)
 	GtkWidget *check;
 	GtkWidget *label;
 
-	hbox = gtk_hbox_new(FALSE, 5);
+	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_widget_show(hbox);
 
 	old_flag = mc_get_flag_value("use_auto_detect");
 	check = gtk_check_button_new_with_label(_("Auto detect"));
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check), old_flag) ;
 	gtk_widget_show(check);
-	gtk_box_pack_start(GTK_BOX(hbox), check, FALSE, FALSE, 5);
+	gtk_box_pack_start(GTK_BOX(hbox), check, FALSE, FALSE, 0);
 
 	label = gtk_label_new(_("Encoding list"));
 	gtk_widget_show(label);
-	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 1);
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 5);
 
 	entry = gtk_entry_new();
 	old_encodings = mc_get_str_value("auto_detect_encodings");
 	gtk_entry_set_text(GTK_ENTRY(entry), old_encodings);
 	gtk_widget_show(entry);
-	gtk_widget_set_size_request(entry, 100, -1);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 1);
 
 	if (!old_flag) gtk_widget_set_sensitive(entry, 0);

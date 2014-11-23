@@ -125,6 +125,8 @@ mc_sb_view_config_widget_new(void)
 	char *sb_view_names[MAX_SCROLLBARS];
 	char *userdir;
 	int n;
+	GtkWidget *combo;
+	GtkWidget *entry;
 
 	for (n=0; n<sizeof(sb_view0)/sizeof(sb_view0[0]); n++) {
 		sb_view_names[n] = sb_view0[n];
@@ -134,12 +136,13 @@ mc_sb_view_config_widget_new(void)
 	if (userdir) n = read_sb_names(userdir, sb_view_names, n);
 	n = read_sb_names(SB_DIR, sb_view_names, n);
 
-	new_sb_view_name =
-		strdup( old_sb_view_name = mc_get_str_value( "scrollbar_view_name")) ;
+	new_sb_view_name = strdup(old_sb_view_name = mc_get_str_value( "scrollbar_view_name"));
 	is_changed = 0;
 
-	return  mc_combo_new( _("View") , sb_view_names , n,
-		new_sb_view_name , 0 , sb_view_name_selected , NULL) ;
+	combo = mc_combo_new(_("View"), sb_view_names, n, new_sb_view_name, 0, &entry);
+	g_signal_connect(entry, "changed", G_CALLBACK(sb_view_name_selected), NULL);
+
+	return  combo;
 }
 
 void

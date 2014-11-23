@@ -131,7 +131,39 @@ mc_set_str_value(
 	const char *  value
 	)
 {
-	if (value == NULL) return 0;
+	if( value == NULL)
+	{
+		return  0 ;
+	}
+
+	if( strcmp( key , "font_policy") == 0)
+	{
+		if( strcmp( value , "unicode") == 0)
+		{
+			return  mc_set_flag_value( "only_use_unicode_font" , 1) ;
+		}
+		else if( strcmp( value , "nounicode") == 0)
+		{
+			return  mc_set_flag_value( "not_use_unicode_font" , 1) ;
+		}
+		else
+		{
+			return  mc_set_flag_value( "only_use_unicode_font" , 0) &&
+			        mc_set_flag_value( "not_use_unicode_font" , 0) ;
+		}
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		if( strcmp( key , "no") == 0)
+		{
+			return  mc_set_flag_value( "logging_vt_seq" , 0) ;
+		}
+		else
+		{
+			return  mc_set_flag_value( "logging_vt_seq" , 1) &&
+        			mc_set_str_value( "vt_seq_format" , value) ;
+		}
+	}
 
 #ifdef __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
@@ -190,7 +222,34 @@ mc_get_str_value(
 	)
 {
 	char *  value ;
-	
+
+	if( strcmp( key , "font_policy") == 0)
+	{
+		if( mc_get_flag_value( "only_use_unicode_font"))
+		{
+			return  strdup( "unicode") ;
+		}
+		else if( mc_get_flag_value( "not_use_unicode_font"))
+		{
+			return  strdup( "nounicode") ;
+		}
+		else
+		{
+			return  strdup( "noconv") ;
+		}
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		if( mc_get_flag_value( "logging_vt_seq"))
+		{
+			return  mc_get_str_value( "vt_seq_format") ;
+		}
+		else
+		{
+			return  strdup( "no") ;
+		}
+	}
+
 	if( ( value = get_value( key , mc_io_get)) == NULL)
 	{
 		return  strdup( "error") ;
@@ -295,22 +354,62 @@ mc_get_font_name(
 		len += (strlen(file) + 1) ;
 	}
 	
-	if( ( key = alloca( len)) == NULL)
+	if( ( key = alloca( len)))
 	{
-		return  strdup( "error") ;
+		sprintf( key , "%s%s%s,%s" ,
+			file ? file : "" ,
+			file ? ":" : "" ,
+			cs , font_size) ;
+
+		if( ( value = get_value( key , mc_io_get_font)))
+		{
+			return  value ;
+		}
 	}
 
-	sprintf( key , "%s%s%s,%s" ,
-		file ? file : "" ,
-		file ? ":" : "" ,
-		cs , font_size) ;
-	
-	if( ( value = get_value( key , mc_io_get_font)) == NULL)
+	return  strdup( "error") ;
+}
+
+int
+mc_set_color_name(
+	mc_io_t  io ,
+	const char *  color ,
+	const char *  value
+	)
+{
+	char *  chal ;
+
+	if( io == mc_io_set_save_font && ( chal = get_value( "challenge" , mc_io_get)))
 	{
-		return  strdup( "error") ;
+		printf( "\x1b]%d;%s;color:%s=%s\x07" , io , chal , color , value) ;
 	}
 	else
 	{
-		return  value ;
+		printf( "\x1b]%d;color:%s=%s\x07" , io , color , value) ;
 	}
+
+	fflush( stdout) ;
+
+	return  1 ;
+}
+
+char *
+mc_get_color_name(
+	const char *  color
+	)
+{
+	char *  key ;
+	char *  value ;
+
+	if( ( key = alloca( 6 + strlen(color) + 1)))
+	{
+		sprintf( key , "color:%s" , color) ;
+
+		if( ( value = get_value( key , mc_io_get_color)))
+		{
+			return  value ;
+		}
+	}
+
+	return  strdup( "error") ;
 }
