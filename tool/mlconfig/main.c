@@ -596,11 +596,9 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
-#ifndef  USE_WIN32GUI
 	config_widget = mc_im_config_widget_new() ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-#endif
 
 
 	hbox = gtk_hbox_new( FALSE , 0) ;

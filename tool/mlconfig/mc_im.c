@@ -93,6 +93,66 @@ is_im_plugin(char *file_name)
 	return 0;
 }
 
+#ifdef  USE_WIN32API
+im_info_t *
+get_kbd_info(char *locale, char *encoding)
+{
+	im_info_t *result;
+
+	if (!(result = malloc(sizeof(im_info_t)))) {
+		return NULL ;
+	}
+
+	result->num_of_args = 14;
+
+	if (!(result->args = malloc(sizeof(char*) * result->num_of_args))) {
+		free(result);
+		return NULL;
+	}
+
+	if (!(result->readable_args = malloc(sizeof(char*) * result->num_of_args))) {
+		free(result->args);
+		free(result);
+		return NULL;
+	}
+
+	result->readable_args[0] = strdup("Unknown");
+	result->readable_args[1] = strdup("Arabic");
+	result->readable_args[2] = strdup("Hebrew");
+	result->readable_args[3] = strdup("Indic (ASSAMESE)");
+	result->readable_args[4] = strdup("Indic (BENGALI)");
+	result->readable_args[5] = strdup("Indic (GUJARATI)");
+	result->readable_args[6] = strdup("Indic (HINDI)");
+	result->readable_args[7] = strdup("Indic (KANNADA)");
+	result->readable_args[8] = strdup("Indic (MALAYALAM)");
+	result->readable_args[9] = strdup("Indic (ORIYA)");
+	result->readable_args[10] = strdup("Indic (PUNJABI)");
+	result->readable_args[11] = strdup("Indic (ROMAN)");
+	result->readable_args[12] = strdup("Indic (TAMIL)");
+	result->readable_args[13] = strdup("Indic (TELUGU)");
+
+	result->args[0] = strdup("");
+	result->args[1] = strdup("arabic");
+	result->args[2] = strdup("hebrew");
+	result->args[3] = strdup("isciiassamese");
+	result->args[4] = strdup("isciibengali");
+	result->args[5] = strdup("isciigujarati");
+	result->args[6] = strdup("isciihindi");
+	result->args[7] = strdup("isciikannada");
+	result->args[8] = strdup("isciimalayalam");
+	result->args[9] = strdup("isciioriya");
+	result->args[10] = strdup("isciipunjabi");
+	result->args[11] = strdup("isciiroman");
+	result->args[12] = strdup("isciitamil");
+	result->args[13] = strdup("isciitelugu");
+
+	result->id = strdup("kbd");
+	result->name = strdup("keyboard");
+
+	return  result;
+}
+#endif
+
 static int
 get_im_info(char *locale, char *encoding)
 {
@@ -102,9 +162,17 @@ get_im_info(char *locale, char *encoding)
 
 	if ((dir = opendir(IM_DIR))) {
 		im_dir_path = IM_DIR;
+#if 0
 	} else if ((dir = opendir("."))) {
 		im_dir_path = "";
+#endif
 	} else {
+	#ifdef  USE_WIN32API
+		if ((im_info_table[num_of_info] = get_kbd_info(locale, encoding))) {
+			num_of_info++;
+			return 1;
+		}
+	#endif
 		return 0;
 	}
 
@@ -408,10 +476,10 @@ static gint
 button_xim_checked(GtkWidget *widget, gpointer data)
 {
 	if(gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) {
-		gtk_widget_show(GTK_WIDGET(data));
+		if (data) gtk_widget_show(GTK_WIDGET(data));
 		im_type = IM_XIM;
 	} else {
-		gtk_widget_hide(GTK_WIDGET(data));
+		if (data) gtk_widget_hide(GTK_WIDGET(data));
 	}
 
 	is_changed = 1;
@@ -498,7 +566,11 @@ mc_im_config_widget_new(void)
 	}
 	cur_im_type = im_type ;
 
-	xim = xim_widget_new(xim_name, xim_locale, cur_locale);
+	if (mc_gui_is_win32()) {
+		xim = NULL;
+	} else {
+		xim = xim_widget_new(xim_name, xim_locale, cur_locale);
+	}
 	for (i = 0; i < num_of_info; i++) {
 		if (index == i)
 			im_opt_widget[i] = im_widget_new(i, value, cur_locale);
@@ -517,7 +589,7 @@ mc_im_config_widget_new(void)
 	gtk_widget_show(vbox);
 
 	hbox = gtk_hbox_new(FALSE, 5);
-	radio = gtk_radio_button_new_with_label(NULL, "XIM");
+	radio = gtk_radio_button_new_with_label(NULL, xim ? "XIM" : "MS IME");
 	g_signal_connect(radio, "toggled",
 			   G_CALLBACK(button_xim_checked), xim);
 	gtk_widget_show(GTK_WIDGET(radio));
@@ -553,19 +625,19 @@ mc_im_config_widget_new(void)
 
 	switch (im_type) {
 	case IM_XIM:
-		gtk_widget_show(xim);
+		if (xim) gtk_widget_show(xim);
 		for (i = 0; i < num_of_info; i++)
 			if (im_opt_widget[i])
 				gtk_widget_hide(im_opt_widget[i]);
 		break;
 	case IM_NONE:
-		gtk_widget_hide(xim);
+		if (xim) gtk_widget_hide(xim);
 		for (i = 0; i < num_of_info; i++)
 			if (im_opt_widget[i])
 				gtk_widget_hide(im_opt_widget[i]);
 		break;
 	default: /* OTHER */
-		gtk_widget_hide(xim);
+		if (xim) gtk_widget_hide(xim);
 		for (i = 0; i < num_of_info; i++) {
 			if (!im_opt_widget[i])
 				continue;
@@ -578,7 +650,7 @@ mc_im_config_widget_new(void)
 		break;
 	}
 
-	gtk_box_pack_start(GTK_BOX(vbox), xim, TRUE, TRUE, 0);
+	if (xim) gtk_box_pack_start(GTK_BOX(vbox), xim, TRUE, TRUE, 0);
 	for (i = 0; i < num_of_info; i++)
 		if (im_opt_widget[i])
 			gtk_box_pack_start(GTK_BOX(vbox), im_opt_widget[i],

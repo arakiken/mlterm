@@ -64,6 +64,26 @@ static char *  labelname[MC_COLOR_MODES] =
 
 /* --- static functions --- */
 
+#if  ! GTK_CHECK_VERSION(2,12,0)
+/* gdk_color_to_string() was not supported by gtk+ < 2.12. */
+static gchar *
+gdk_color_to_string(
+	const GdkColor *  color
+	)
+{
+	gchar *  str ;
+
+	if( ( str = g_malloc( 14)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	sprintf( str , "#%04x%04x%04x" , color->red , color->green , color->blue) ;
+
+	return  str ;
+}
+#endif
+
 static char *
 color_strncpy(
 	char *  dst ,

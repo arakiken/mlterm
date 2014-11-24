@@ -1332,8 +1332,9 @@ ml_line_get_num_of_filled_cols(
 }
 
 u_int
-ml_line_get_num_of_filled_chars_except_spaces(
-	ml_line_t *  line
+ml_line_get_num_of_filled_chars_except_spaces_with_func(
+	ml_line_t *  line ,
+	int (*func)( ml_char_t * , ml_char_t *)
 	)
 {
 	if( IS_EMPTY(line))
@@ -1352,7 +1353,7 @@ ml_line_get_num_of_filled_chars_except_spaces(
 		{
 		#if  1
 			/* >= 3.0.6 */
-			if( ! ml_char_code_equal( line->chars + char_index , ml_sp_ch()))
+			if( ! (*func)( line->chars + char_index , ml_sp_ch()))
 		#else
 			/* <= 3.0.5 */
 			if( ! ml_char_equal( line->chars + char_index , ml_sp_ch()))

@@ -113,7 +113,9 @@ receive_scrolled_out_line(
 	}
 	else
 	{
-		line->num_of_filled_chars = ml_line_get_num_of_filled_chars_except_spaces( line) ;
+		line->num_of_filled_chars =
+			ml_line_get_num_of_filled_chars_except_spaces_with_func(
+				line , ml_char_equal) ;
 	}
 	
 	ml_log_add( &screen->logs , line) ;

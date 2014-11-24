@@ -823,8 +823,6 @@ im_kbd_get_info(
 		return  NULL ;
 	}
 
-	result->id = strdup( "kbd") ;
-	result->name = strdup( "keyboard") ;
 	result->num_of_args = 14 ;
 
 	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
@@ -879,20 +877,23 @@ im_kbd_get_info(
 	result->readable_args[13] = strdup("Indic (TELUGU)") ;
 
 
-	result->args[0] = strdup( "") ;
+	result->args[0] = strdup("") ;
 	result->args[1] = strdup("arabic") ;
 	result->args[2] = strdup("hebrew") ;
-	result->args[3] = strdup( "isciiassamese") ;
-	result->args[4] = strdup( "isciibengali") ;
-	result->args[5] = strdup( "isciigujarati") ;
-	result->args[6] = strdup( "isciihindi") ;
-	result->args[7] = strdup( "isciikannada") ;
-	result->args[8] = strdup( "isciimalayalam") ;
-	result->args[9] = strdup( "isciioriya") ;
-	result->args[10] = strdup( "isciipunjabi") ;
-	result->args[11] = strdup( "isciiroman") ;
-	result->args[12] = strdup( "isciitamil") ;
-	result->args[13] = strdup( "isciitelugu") ;
+	result->args[3] = strdup("isciiassamese") ;
+	result->args[4] = strdup("isciibengali") ;
+	result->args[5] = strdup("isciigujarati") ;
+	result->args[6] = strdup("isciihindi") ;
+	result->args[7] = strdup("isciikannada") ;
+	result->args[8] = strdup("isciimalayalam") ;
+	result->args[9] = strdup("isciioriya") ;
+	result->args[10] = strdup("isciipunjabi") ;
+	result->args[11] = strdup("isciiroman") ;
+	result->args[12] = strdup("isciitamil") ;
+	result->args[13] = strdup("isciitelugu") ;
+
+	result->id = strdup( "kbd") ;
+	result->name = strdup( "keyboard") ;
 
 	return  result ;
 }

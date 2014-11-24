@@ -1199,8 +1199,6 @@ im_m17nlib_get_info(
 		goto  error ;
 	}
 
-	result->id = strdup( "m17nlib") ;
-	result->name = strdup( "m17n library") ;
 	result->num_of_args = num_of_ims + 1;
 	if( ! ( result->args = calloc( result->num_of_args , sizeof(char*))))
 	{
@@ -1266,6 +1264,9 @@ im_m17nlib_get_info(
 	}
 
 	M17N_FINI() ;
+
+	result->id = strdup( "m17nlib") ;
+	result->name = strdup( "m17n library") ;
 
 	return  result ;
 

@@ -6,6 +6,7 @@ ver 3.4.1
 * Add "Color" tab which customizes cursor colors , vt 16 colors and so on to mlconfig.
 * Add "Font policy" and "Box drawing font" entries to "Font" tab of mlconfig.
 * Support OSC 5380;color:key and OSC 5381;color:key.
+* 'mlcc color [color name]' returns current rgb of specified colors.
 * Bug fixes:
   Fix a bug which disabled "\x1b]5381;/dev/...;pty_name\x07". (enbugged at 3.3.8)
   Fix "is_auto_encoding" of OSC 5379 which didn't work.

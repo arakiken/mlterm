@@ -52,16 +52,17 @@ int query_exit(window_t *parent);
 int init_data(config_data_t *data);
 
 static void help_msg(void){
-	printf( "[Usage]\n");
-	printf( " mlcc               : Show configuration screen.\n");
-	printf( " mlcc -h/--help     : Show this message.\n");
-	printf( " mlcc exec [command]: Execute mlterm command. (full_reset, mlclient, open_pty and so on)\n") ;
-	printf( " mlcc [key]         : Get current value of [key].\n");
-	printf( " mlcc [key] [value] : Set [value] for [key].\n");
-	printf( " mlcc [font file name] [charset],[font size] : Get font name of [charset] and [font size] in [font file name].\n");
-	printf( " mlcc [font file name] [charset] [font name] : Set [font name] for [charset] in [font file name].\n");
-	printf( " mlcc color [color name] [rgb] : Set [rgb] for [color name].\n") ;
-	printf( " (See doc/en/PROTOCOL, PROTOCOL.font and PROTOCOL.color for configuration details.)\n") ;
+	printf("[Usage]\n");
+	printf(" mlcc               : Show configuration screen.\n");
+	printf(" mlcc -h/--help     : Show this message.\n");
+	printf(" mlcc exec [command]: Execute mlterm command. (full_reset, mlclient, open_pty and so on)\n");
+	printf(" mlcc [key]         : Get current value of [key].\n");
+	printf(" mlcc [key] [value] : Set [value] for [key].\n");
+	printf(" mlcc [font file name] [charset],[font size] : Get font name of [charset] and [font size] in [font file name].\n");
+	printf(" mlcc [font file name] [charset] [font name] : Set [font name] for [charset] in [font file name].\n");
+	printf(" mlcc color [color name] [rgb] : Set [rgb] for [color name].\n");
+	printf(" mlcc color [color name] : Get rgb of [color name].\n");
+	printf(" (See doc/en/PROTOCOL, PROTOCOL.font and PROTOCOL.color for configuration details.)\n");
 }
 
 /*
@@ -385,7 +386,7 @@ int main(int argc, char **argv){
 		size_t cmd_len = 0;
 		for (i = 2; i < argc; i++){
 			/* +3 is for "" and space(or NULL terminator). */
-			cmd_len += (strlen(argv[i]) + 3) ;
+			cmd_len += (strlen(argv[i]) + 3);
 		}
 		cmd = alloca(cmd_len);
 		i = 2;

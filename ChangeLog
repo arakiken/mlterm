@@ -1,3 +1,38 @@
+2014-11-24  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.c: line->num_of_filled_chars is reset by
+	  ml_line_get_num_of_filled_chars_except_spaces_with_func(ml_char_equal)
+	  instead of ml_line_get_num_of_filled_chars_except_spaces()
+	  in receive_scrolled_out_line().
+
+	* ml_line.[ch]: ml_line_get_num_of_filled_chars_except_spaces_with_func()
+	  is added.
+
+	* mc_im.c:
+	  - get_kbd_info() which is implemented similarly to im_kbd_get_info()
+	    is used if cygim-kbd.dll isn't found.
+	  - If mlterm is built with win32gdi, "MS IME" is shown instead of "XIM".
+
+	* mc_color.c: gdk_color_to_string() is added for gtk+ < 2.12.
+
+	* mlconfig/main.c: mc_im_config_widget_new() is called if USE_WIN32GUI
+	  is defined.
+
+	* ml_term.h: ml_reset_pending_vt100_sequence() is called before
+	  ml_start_config_menu().
+
+	* ml_vt100_parser.c:
+	  - ml_reset_pending_vt100_sequence() is called and sixel_scrolling is
+	    set to 1 in OSC 5379 full_reset.
+	  - Cursor position is not moved by soft_reset().
+
+	* ml_edit.c: If use == -1, ml_edit_set_use_margin() resets states
+	  except cursor position.
+
+	* mlcc/comm.c: mlterm_get_color_param() is implemented.
+
+	* im_kbd.c, im_uim.c, im_m17nlib.c: Fix memory leaks on error.
+
 2014-11-23  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_color.[ch]: mc_{cursor|substitute}_color_config_widget_new(),

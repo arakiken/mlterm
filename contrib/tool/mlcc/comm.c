@@ -225,10 +225,6 @@ int term_size(int *w, int *h){
 }
 
 char * mlterm_get_color_param(const char * key){
-	/*
-	 * XXX Not implemented in mlterm.
-	 */
-#if  0
 	reload_passwd() ;
 
 	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;color:%s\007",
@@ -237,9 +233,6 @@ char * mlterm_get_color_param(const char * key){
 	csi(internal_buffer);
 
 	return read_param();
-#else
-	return NULL;
-#endif
 }
 
 char * mlterm_get_font_param(const char * file, const char * key){

@@ -1548,7 +1548,7 @@ ml_edit_set_use_margin(
 	int  use
 	)
 {
-	if( ! use)
+	if( use <= 0)
 	{
 		edit->use_margin = 0 ;
 		edit->margin_beg = 0 ;
@@ -1559,7 +1559,10 @@ ml_edit_set_use_margin(
 		edit->use_margin = 1 ;
 	}
 
-	ml_edit_goto_home( edit) ;
+	if( use >= 0)
+	{
+		ml_edit_goto_home( edit) ;
+	}
 
 	return  1 ;
 }

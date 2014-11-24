@@ -1751,9 +1751,7 @@ im_uim_get_info(
 		goto  error ;
 	}
 
-	result->id = strdup( "uim") ;
-	result->name = strdup( "uim") ;
-	result->num_of_args = uim_get_nr_im( u) + 1;
+	result->num_of_args = uim_get_nr_im( u) + 1 ;
 	if( ! ( result->args = calloc( result->num_of_args , sizeof( char*))))
 	{
 		goto  error ;
@@ -1795,6 +1793,9 @@ im_uim_get_info(
 	uim_release_context( u) ;
 
 	uim_quit() ;
+
+	result->id = strdup( "uim") ;
+	result->name = strdup( "uim") ;
 
 	return  result ;
 

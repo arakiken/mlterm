@@ -1976,8 +1976,6 @@ set_col_size_of_width_a(
 	}
 }
 
-static void  soft_reset( ml_vt100_parser_t *  vt100_parser) ;
-
 /*
  * This function will destroy the content of pt.
  */
@@ -3035,8 +3033,8 @@ soft_reset(
 	/* "CSI r" (DECSTBM) */
 	ml_screen_set_scroll_region( vt100_parser->screen , -1 , -1) ;
 
-	/* "CSI ? 69 l" */
-	ml_screen_set_use_margin( vt100_parser->screen , 0) ;
+	/* "CSI ? 69 l" (XXX Not described in vt510 manual.) */
+	ml_screen_set_use_margin( vt100_parser->screen , -1 /* Don't move cursor. */) ;
 
 	/* "CSI m" (SGR) */
 	change_char_attr( vt100_parser , 0) ;
@@ -5916,7 +5914,8 @@ parse_vt100_escape_sequence(
 						ml_screen_set_scroll_region(
 							vt100_parser->screen , -1 , -1) ;
 						ml_screen_set_use_margin(
-							vt100_parser->screen , 0) ;
+							vt100_parser->screen ,
+							-1 /* Don't move cursor. */) ;
 						ml_screen_fill_area( vt100_parser->screen , 'E' ,
 							0 , 0 ,
 							ml_screen_get_cols(vt100_parser->screen) ,
@@ -7549,6 +7548,8 @@ ml_vt100_parser_exec_cmd(
 	else if( strcmp( cmd , "full_reset") == 0)
 	{
 		soft_reset( vt100_parser) ;
+		ml_reset_pending_vt100_sequence( vt100_parser) ;
+		vt100_parser->sixel_scrolling = 1 ;
 	}
 	else if( strncmp( cmd , "snapshot" , 8) == 0)
 	{
