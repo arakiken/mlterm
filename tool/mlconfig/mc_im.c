@@ -568,6 +568,7 @@ mc_im_config_widget_new(void)
 
 	if (mc_gui_is_win32()) {
 		xim = NULL;
+		if (im_type == IM_NONE) im_type = IM_XIM;
 	} else {
 		xim = xim_widget_new(xim_name, xim_locale, cur_locale);
 	}
@@ -611,14 +612,16 @@ mc_im_config_widget_new(void)
 						    TRUE);
 	}
 
-	group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
-	radio = gtk_radio_button_new_with_label(group, _("None"));
-	g_signal_connect(radio, "toggled",
+	if (!mc_gui_is_win32()) {
+		group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+		radio = gtk_radio_button_new_with_label(group, _("None"));
+		g_signal_connect(radio, "toggled",
 			   G_CALLBACK(button_im_checked), NULL);
-	gtk_widget_show(GTK_WIDGET(radio));
-	gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
-	if (im_type == IM_NONE)
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio) , TRUE);
+		gtk_widget_show(GTK_WIDGET(radio));
+		gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
+		if (im_type == IM_NONE)
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio) , TRUE);
+	}
 
 	gtk_widget_show(GTK_WIDGET(hbox));
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);

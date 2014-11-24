@@ -141,7 +141,7 @@ x_xic_font_set_changed(
 	x_window_t *  win
 	)
 {
-	if( HAS_XIM_LISTENER(win,get_fontset))
+	if( win->xic && HAS_XIM_LISTENER(win,get_fontset))
 	{
 		if( ImmSetCompositionFont( win->xic->ic ,
 			(*win->xim_listener->get_fontset)( win->xim_listener->self)))
@@ -203,6 +203,11 @@ x_xic_get_str(
 	)
 {
 	size_t  len ;
+
+	if( win->xic == NULL)
+	{
+		goto  zero_return ;
+	}
 
 	*keysym = win->xic->prev_keydown_wparam ;
 
