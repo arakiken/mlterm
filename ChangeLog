@@ -1,3 +1,13 @@
+2014-11-27  Araki Ken  <arakiken@users.sf.net>
+
+	* mlconfig/main.c, mc_font.c: "Box drawing" and "Font policy" radio buttons
+	  are moved from main.c to mc_font.c
+
+	* mc_radio.[ch]:
+	  - mc_is_vertical(), mc_always_unicode_font() and mc_never_unicode_font()
+	    are removed.
+	  - mc_radio_set_callback() and mc_radio_get_value() are added.
+
 2014-11-25  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_im.c: "None" is removed from "Input Method" on win32.

@@ -82,8 +82,6 @@ update(
 	mc_update_radio(MC_RADIO_MOD_META_MODE) ;
 	mc_update_radio(MC_RADIO_BELL_MODE) ;
 	mc_update_radio(MC_RADIO_SB_MODE) ;
-	mc_update_radio(MC_RADIO_BOX_DRAWING) ;
-	mc_update_radio(MC_RADIO_FONT_POLICY) ;
 	mc_update_radio(MC_RADIO_LOG_VTSEQ) ;
 	mc_update_ratio(MC_RATIO_BRIGHTNESS) ;
 	mc_update_ratio(MC_RATIO_CONTRAST) ;
@@ -649,16 +647,6 @@ show(void)
 	config_widget = mc_space_config_widget_new( MC_SPACE_LETTER) ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
-
-
-	config_widget = mc_radio_config_widget_new( MC_RADIO_FONT_POLICY) ;
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-
-
-	config_widget = mc_radio_config_widget_new( MC_RADIO_BOX_DRAWING) ;
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
 	frame = gtk_frame_new( _("Screen ratio against font size")) ;

@@ -165,13 +165,14 @@ static int is_fontsize_changed ;
 static char *  new_fontname_list[sizeof(cs_info_table)/sizeof(cs_info_table[0])] ;
 static int  dont_change_new_fontname_list = 0 ;
 static int  selected_cs = 0 ;	/* 0 = DEFAULT */
+static GtkWidget *  fontcs_entry ;
 static GtkWidget *  fontname_entry ;
 static GtkWidget *  select_font_button ;
 static GtkWidget *  xft_flag ;
 static GtkWidget *  cairo_flag ;
 static GtkWidget *  aa_flag ;
 static GtkWidget *  vcol_flag ;
-static int  block_change_type_engine ;
+static int  dont_change_type_engine ;
 
 
 /* --- static functions  --- */
@@ -237,7 +238,7 @@ get_font_file(void)
 		{
 			return "vaafont" ;
 		}
-		else if( mc_is_vertical())
+		else if( mc_radio_get_value( MC_RADIO_VERTICAL_MODE))
 		{
 			return "taafont" ;
 		}
@@ -252,7 +253,7 @@ get_font_file(void)
 		{
 			return "vfont" ;
 		}
-		else if( mc_is_vertical())
+		else if( mc_radio_get_value( MC_RADIO_VERTICAL_MODE))
 		{
 			return "tfont" ;
 		}
@@ -299,11 +300,11 @@ xft_flag_checked(
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
 	}
-	else if( ! block_change_type_engine)
+	else if( ! dont_change_type_engine)
 	{
-		block_change_type_engine = 1 ;
+		dont_change_type_engine = 1 ;
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(cairo_flag) , 0) ;
-		block_change_type_engine = 0 ;
+		dont_change_type_engine = 0 ;
 	}
 
 	reset_fontname_list() ;
@@ -327,11 +328,11 @@ cairo_flag_checked(
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
 	}
-	else if( ! block_change_type_engine)
+	else if( ! dont_change_type_engine)
 	{
-		block_change_type_engine = 1 ;
+		dont_change_type_engine = 1 ;
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 0) ;
-		block_change_type_engine = 0 ;
+		dont_change_type_engine = 0 ;
 	}
 
 	reset_fontname_list() ;
@@ -358,6 +359,27 @@ vcol_flag_checked(
 			-1 , NULL , NULL , NULL) ) ;
 
 	return  1 ;
+}
+
+static void
+vertical_mode_changed(void)
+{
+	reset_fontname_list() ;
+	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
+		g_locale_to_utf8(
+			mc_get_font_name( get_font_file() , new_fontsize ,
+						get_correct_cs( selected_cs)) ,
+			-1 , NULL , NULL , NULL) ) ;
+
+	if( mc_radio_get_value( MC_RADIO_VERTICAL_MODE))
+	{
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(vcol_flag) , 0) ;
+		gtk_widget_set_sensitive( vcol_flag , 0) ;
+	}
+	else
+	{
+		gtk_widget_set_sensitive( vcol_flag , 1) ;
+	}
 }
 
 static gint
@@ -451,8 +473,8 @@ fontcs_map(
 
 	encoding = mc_get_char_encoding() ;
 
-	if( ( strstr( encoding , "UTF") && ! mc_never_unicode_font()) ||
-	    mc_always_unicode_font())
+	if( ( strstr( encoding , "UTF") && mc_radio_get_value(MC_RADIO_FONT_POLICY) != 2) ||
+	    mc_radio_get_value(MC_RADIO_FONT_POLICY) == 1)
 	{
 		if( selected_cs == 1)
 		{
@@ -491,8 +513,14 @@ fontcs_map(
 	}
 
 update_cs:
-	gtk_entry_set_text(GTK_ENTRY(widget), cs_info_table[selected_cs].cs) ;
+	gtk_entry_set_text( GTK_ENTRY(widget) , cs_info_table[selected_cs].cs) ;
 	fontcs_changed() ;
+}
+
+static void
+font_policy_changed(void)
+{
+	fontcs_map( fontcs_entry , NULL) ;
 }
 
 static gint
@@ -534,7 +562,6 @@ fontcs_selected(
 
 	return  0 ;
 }
-
 
 #if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0)
 
@@ -859,6 +886,7 @@ mc_font_config_widget_new(void)
 	GtkWidget *  fgcolor ;
 	GtkWidget *  combo ;
 	GtkWidget *  entry ;
+	GtkWidget *  radio ;
 	char *  fontlist[] =
 	{
 		"6" , "7" , "8" , "9" , "10" ,
@@ -929,13 +957,13 @@ mc_font_config_widget_new(void)
 	gtk_box_pack_start( GTK_BOX(hbox) , vcol_flag , FALSE , FALSE , 0) ;
 	g_signal_connect( vcol_flag , "toggled" ,
 		G_CALLBACK(vcol_flag_checked) , NULL) ;
-
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 
 
-	hbox = mc_radio_config_widget_new( MC_RADIO_VERTICAL_MODE) ;
-	gtk_widget_show( hbox) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+	radio = mc_radio_config_widget_new( MC_RADIO_VERTICAL_MODE) ;
+	gtk_widget_show( radio) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , radio , FALSE , FALSE , 0) ;
+	mc_radio_set_callback( MC_RADIO_VERTICAL_MODE , vertical_mode_changed) ;
 
 
 	hbox = gtk_hbox_new( FALSE , 0) ;
@@ -952,9 +980,9 @@ mc_font_config_widget_new(void)
 		}
 
 		combo = mc_combo_new_with_width( _("Font name") , cslist , count ,
-				cslist[selected_cs] , 1 , 90 , &entry) ;
-		g_signal_connect( entry , "changed" , G_CALLBACK(fontcs_selected) , NULL) ;
-		g_signal_connect( entry , "map" , G_CALLBACK(fontcs_map) , NULL) ;
+				cslist[selected_cs] , 1 , 90 , &fontcs_entry) ;
+		g_signal_connect( fontcs_entry , "changed" , G_CALLBACK(fontcs_selected) , NULL) ;
+		g_signal_connect( fontcs_entry , "map" , G_CALLBACK(fontcs_map) , NULL) ;
 		gtk_box_pack_start( GTK_BOX(hbox) , combo , FALSE , FALSE , 0) ;
 	}
 
@@ -976,6 +1004,18 @@ mc_font_config_widget_new(void)
 		G_CALLBACK(select_font) , NULL) ;
 
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
+
+
+	radio = mc_radio_config_widget_new( MC_RADIO_FONT_POLICY) ;
+	gtk_widget_show( radio) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , radio , FALSE , FALSE , 0) ;
+	mc_radio_set_callback( MC_RADIO_FONT_POLICY , font_policy_changed) ;
+
+
+	radio = mc_radio_config_widget_new( MC_RADIO_BOX_DRAWING) ;
+	gtk_widget_show( radio) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , radio , FALSE , FALSE , 0) ;
+
 
 	return  vbox ;
 }
@@ -1001,6 +1041,8 @@ mc_update_font_misc(void)
 	mc_update_flag_mode( MC_FLAG_XFT) ;
 	mc_update_flag_mode( MC_FLAG_CAIRO) ;
 	mc_update_radio( MC_RADIO_VERTICAL_MODE) ;
+	mc_update_radio(MC_RADIO_BOX_DRAWING) ;
+	mc_update_radio(MC_RADIO_FONT_POLICY) ;
 }
 
 void

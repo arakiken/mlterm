@@ -23,6 +23,7 @@
 static int  new_values[MC_RADIOS] ;
 static int  old_values[MC_RADIOS] ;
 static int  is_changed[MC_RADIOS] ;
+static void (*funcs[MC_RADIOS])(void) ;
 
 static char *  config_keys[MC_RADIOS] =
 {
@@ -60,6 +61,23 @@ static char *  labels[MC_RADIOS][4] =
 
 /* --- static functions --- */
 
+static void
+update_value(
+	int *  data ,
+	int  num
+	)
+{
+	int  id ;
+
+	id = data - new_values ;
+	*data = num ;
+
+	if( funcs[id])
+	{
+		(*funcs[id])() ;
+	}
+}
+
 static gint
 button1_checked(
 	GtkWidget *  widget ,
@@ -68,7 +86,7 @@ button1_checked(
 {
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
-		*((int*)data) = 0 ;
+		update_value( data , 0) ;
 	}
 
 	return  1 ;
@@ -82,7 +100,7 @@ button2_checked(
 {
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
-		*((int*)data) = 1 ;
+		update_value( data , 1) ;
 	}
 
 	return  1 ;
@@ -96,7 +114,7 @@ button3_checked(
 {
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
-		*((int*)data) = 2 ;
+		update_value( data , 2) ;
 	}
 
 	return  1 ;
@@ -218,19 +236,18 @@ mc_update_radio(
 }
 
 int
-mc_is_vertical(void)
+mc_radio_get_value(
+	int  id
+	)
 {
-	return  new_values[MC_RADIO_VERTICAL_MODE] ;
+	return  new_values[id] ;
 }
 
-int
-mc_always_unicode_font(void)
+void
+mc_radio_set_callback(
+	int  id ,
+	void (*func)(void)
+	)
 {
-	return  new_values[MC_RADIO_FONT_POLICY] == 1 ;
-}
-
-int
-mc_never_unicode_font(void)
-{
-	return  new_values[MC_RADIO_FONT_POLICY] == 2 ;
+	funcs[id] = func ;
 }

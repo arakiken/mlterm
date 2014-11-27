@@ -24,11 +24,9 @@ GtkWidget *  mc_radio_config_widget_new( int id) ;
 
 void  mc_update_radio( int id) ;
 
-int  mc_is_vertical(void) ;
+void  mc_radio_set_callback( int  id , void (*func)(void)) ;
 
-int  mc_always_unicode_font(void) ;
-
-int  mc_never_unicode_font(void) ;
+int  mc_radio_get_value( int  id) ;
 
 
 #endif
