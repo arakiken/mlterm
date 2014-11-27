@@ -964,6 +964,10 @@ mc_font_config_widget_new(void)
 	gtk_widget_show( radio) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , radio , FALSE , FALSE , 0) ;
 	mc_radio_set_callback( MC_RADIO_VERTICAL_MODE , vertical_mode_changed) ;
+	if (mc_radio_get_value( MC_RADIO_VERTICAL_MODE))
+	{
+		gtk_widget_set_sensitive( vcol_flag , 0) ;
+	}
 
 
 	hbox = gtk_hbox_new( FALSE , 0) ;
@@ -1037,12 +1041,13 @@ mc_update_font_misc(void)
 	 * invalid in some environments.
 	 */
 	mc_update_flag_mode( MC_FLAG_AA) ;
+	mc_update_radio( MC_RADIO_VERTICAL_MODE) ;
+	/* vcol is forcibly disabled in vertical mode, so update after vertical mode. */
 	mc_update_flag_mode( MC_FLAG_VCOL) ;
 	mc_update_flag_mode( MC_FLAG_XFT) ;
 	mc_update_flag_mode( MC_FLAG_CAIRO) ;
-	mc_update_radio( MC_RADIO_VERTICAL_MODE) ;
-	mc_update_radio(MC_RADIO_BOX_DRAWING) ;
-	mc_update_radio(MC_RADIO_FONT_POLICY) ;
+	mc_update_radio( MC_RADIO_BOX_DRAWING) ;
+	mc_update_radio( MC_RADIO_FONT_POLICY) ;
 }
 
 void
