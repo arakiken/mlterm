@@ -2927,7 +2927,7 @@ write_buf:
 		{
 			write_to_pty( screen , buf , strlen(buf) , NULL) ;
 		}
-		else
+		else if( size > 0)
 		{
 			if( parser && receive_string_via_ucs(screen))
 			{

@@ -515,7 +515,8 @@ public class MLTerm extends StyledText
 						boolean  isMotion , boolean  isReleased)
 	{
 		if( ( stateMask & (SWT.CONTROL|SWT.SHIFT)) != 0 ||
-		    ! pty.isTrackingMouse( button , isMotion))
+			/* This method can be called just after closing pty. */
+		    pty == null || ! pty.isTrackingMouse( button , isMotion))
 		{
 			return  false ;
 		}
@@ -1591,11 +1592,17 @@ public class MLTerm extends StyledText
 		{
 			while( display.readAndDispatch()) ;
 
-			for( int  count = 0 ; count < numOfMLTerms ; count++)
+			/*
+			 * count must be descending-order because numOfMLTerms can be
+			 * decreased inside this loop.
+			 */
+			for( int  count = numOfMLTerms - 1 ; count >= 0 ; count--)
 			{
+				shell = mlterms[count].getShell() ;
+				/* updatePty() can call ptyClosed() via isActive() -> closePty() */
 				if( ! mlterms[count].updatePty())
 				{
-					mlterms[count].getShell().dispose() ;
+					shell.dispose() ;
 				}
 			}
 

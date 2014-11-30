@@ -1,3 +1,12 @@
+2014-11-30  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java: Null pointer exception in closing one of multiple opened
+	  ptys is fixed.
+
+	* c_sixel.c: Compiling error by g++ is fixed.
+
+	* x_screen.c: SF Bug #72
+
 2014-11-27  Araki Ken  <arakiken@users.sf.net>
 
 	* mlconfig/main.c, mc_font.c: "Box drawing" and "Font policy" radio buttons

@@ -364,7 +364,7 @@ load_sixel_from_file(
 	else
 #endif
 	{
-		palette = alloca( sizeof(pixel_t) * 256) ;
+		palette = (pixel_t*)alloca( sizeof(pixel_t) * 256) ;
 		memcpy( palette , default_palette , sizeof(default_palette)) ;
 		memset( palette + 16 , 0 , sizeof(pixel_t) * 256 - sizeof(default_palette)) ;
 	}
@@ -887,7 +887,7 @@ x_set_custom_sixel_palette(
 {
 	if( ! palette)
 	{
-		palette = calloc( sizeof(pixel_t) , 257) ;
+		palette = (pixel_t*)calloc( sizeof(pixel_t) , 257) ;
 	}
 
 	return  (custom_palette = palette) ;
