@@ -267,12 +267,12 @@ ssh_connect(
 		return  session ;
 	}
 
-	set_use_multi_thread( 1) ;
-
 	if( ! ( session = calloc( 1 , sizeof(ssh_session_t))))
 	{
 		return  NULL ;
 	}
+
+	set_use_multi_thread( 1) ;
 
 	if( num_of_sessions == 0 && libssh2_init( 0) != 0)
 	{
@@ -689,6 +689,7 @@ error2:
 	}
 
 error1:
+	set_use_multi_thread( 0) ;
 	free( session) ;
 
 	return  NULL ;
@@ -1777,26 +1778,26 @@ ml_pty_ssh_new(
 	void *  p ;
 	int  ret ;
 
-	if( ( pty = calloc( 1 , sizeof( ml_pty_ssh_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
 	if( ! kik_parse_uri( &proto , &user , &host , &port , NULL , NULL ,
 			kik_str_alloca_dup( uri)))
 	{
-		goto  error1 ;
+		return  NULL ;
 	}
 
 	/* USER: unix , USERNAME: win32 */
 	if( ! user && ! (user = getenv( "USER")) && ! (user = getenv( "USERNAME")))
 	{
-		goto  error1 ;
+		return  NULL ;
 	}
 
 	if( proto && strcmp( proto , "ssh") != 0)
 	{
-		goto  error1 ;
+		return  NULL ;
+	}
+
+	if( ( pty = calloc( 1 , sizeof( ml_pty_ssh_t))) == NULL)
+	{
+		return  NULL ;
 	}
 
 	if( ( pty->session = ssh_connect( host , port ? port : "22" , user , pass ,
@@ -1808,7 +1809,7 @@ ml_pty_ssh_new(
 	if( ! ( p = realloc( pty->session->pty_channels ,
 			(pty->session->num_of_ptys + 1) * sizeof(LIBSSH2_CHANNEL*))))
 	{
-		goto  error1 ;
+		goto  error2 ;
 	}
 
 	pty->session->pty_channels = p ;
@@ -2012,15 +2013,15 @@ ml_pty_ssh_new(
 	return  &pty->pty ;
 
 error3:
+	libssh2_session_set_blocking( pty->session->obj , 1) ;	/* unblock in ssh_disconnect */
 	libssh2_channel_free( pty->channel) ;
 
 error2:
 	ssh_disconnect( pty->session) ;
+	set_use_multi_thread( 0) ;
 
 error1:
 	free( pty) ;
-
-	set_use_multi_thread( 0) ;
 
 	return  NULL ;
 }
