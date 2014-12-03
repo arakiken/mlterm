@@ -1,3 +1,9 @@
+2014-12-04  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/ReleaseNote: Fix typo.
+
+	* version.h.in: 3.4.1 -> 3.4.1post
+
 2014-12-03  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.4.1 released.
