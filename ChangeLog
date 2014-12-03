@@ -1,3 +1,14 @@
+2014-12-03  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.4.1 released.
+	  (tag "rel-3_4_1")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.4.1.
+
+	* man/mlterm.1: Updated.
+
 2014-12-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty_ssh.c: Minor fixes around handling error cases.
