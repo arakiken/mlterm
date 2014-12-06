@@ -1,3 +1,7 @@
+ver 3.4.2
+* Add "Word separators" entry to "Others" tab of mlconfig.
+* Add "word_separators" to OSC 5380/5381.
+
 ver 3.4.1
 * Update unicode properties to 7.0.0.
 * Automatically select an appropriate character set in selecting font on mlconfig

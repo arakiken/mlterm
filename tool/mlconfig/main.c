@@ -17,6 +17,7 @@
 #include  "mc_alpha.h"
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
+#include  "mc_wordsep.h"
 #include  "mc_font.h"
 #include  "mc_space.h"
 #include  "mc_im.h"
@@ -74,6 +75,7 @@ update(
 	mc_update_color(MC_COLOR_SBBG) ;
 	mc_update_tabsize() ;
 	mc_update_logsize() ;
+	mc_update_wordsep() ;
 	mc_update_font_misc() ;
 	mc_update_space(MC_SPACE_LINE) ;
 	mc_update_space(MC_SPACE_LETTER) ;
@@ -786,12 +788,21 @@ show(void)
 	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show( vbox) ;
 
+
+	hbox = gtk_hbox_new( FALSE , 0) ;
+	gtk_widget_show( hbox) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+
 	config_widget = mc_tabsize_config_widget_new() ;
 	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-
+	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
 
 	config_widget = mc_logsize_config_widget_new() ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
+
+
+	config_widget = mc_wordsep_config_widget_new() ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 

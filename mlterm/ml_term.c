@@ -1334,6 +1334,10 @@ ml_term_get_config(
 			value = "false" ;
 		}
 	}
+	else if( strcmp( key , "word_separators") == 0)
+	{
+		value = ml_get_word_separators() ;
+	}
 	else
 	{
 		/* Continue to process it in x_screen.c */

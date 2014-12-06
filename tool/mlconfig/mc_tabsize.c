@@ -64,7 +64,7 @@ mc_tabsize_config_widget_new(void)
 
 	combo = mc_combo_new_with_width( _("Tab width (columns)") , tabsizes ,
 		sizeof(tabsizes) / sizeof(tabsizes[0]) ,
-		new_tabsize , 0 , 80 , &entry) ;
+		new_tabsize , 0 , 20 , &entry) ;
 	g_signal_connect( entry , "changed" , G_CALLBACK(tabsize_selected) , NULL) ;
 
 	return  combo ;

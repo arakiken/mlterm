@@ -822,6 +822,12 @@ ml_set_word_separators(
 	return  1 ;
 }
 
+char *
+ml_get_word_separators(void)
+{
+	return  word_separators ;
+}
+
 
 ml_screen_t *
 ml_screen_new(

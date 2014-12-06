@@ -66,7 +66,7 @@ mc_logsize_config_widget_new(void)
 
 	combo = mc_combo_new_with_width(_("Backlog size (lines)") , logsizes ,
 		sizeof(logsizes) / sizeof(logsizes[0]) ,
-		new_logsize , 0 , 80 , &entry) ;
+		new_logsize , 0 , 60 , &entry) ;
 	g_signal_connect( entry , "changed" , G_CALLBACK(logsize_selected) , NULL) ;
 
 	return  combo ;

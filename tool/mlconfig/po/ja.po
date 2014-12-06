@@ -327,6 +327,10 @@ msgstr "字間(ピクセル)"
 msgid "Backlog size (lines)"
 msgstr "ログサイズ(行)"
 
+#: tool/mlconfig/mc_wordsep.c:63
+msgid "Word separators"
+msgstr "単語区切り文字"
+
 #: tool/mlconfig/mc_mod_meta.c:88
 msgid "Meta key outputs"
 msgstr "メタキー"
