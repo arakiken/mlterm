@@ -46,7 +46,7 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 OBJ = main.o mc_combo.o mc_char_encoding.o mc_im.o mc_tabsize.o mc_logsize.o \
-	mc_font.o mc_color.o mc_radio.o mc_space.o mc_alpha.o \
+	mc_font.o mc_color.o mc_radio.o mc_space.o mc_alpha.o mc_bidi.o \
 	mc_sb_view.o mc_wall_pic.o mc_bgtype.o mc_io.o mc_pty.o \
 	mc_flags.o mc_auto_detect.o mc_ratio.o mc_wordsep.o @XLFDSEL_OBJ@
 

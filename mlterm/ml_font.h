@@ -12,7 +12,7 @@
 #undef  MAX_CHARSET
 #define  MAX_CHARSET  0x1ff
 #define  FONT_CS(font)  ((font) & MAX_CHARSET)
-#define  FONT_STYLE_INDEX(font)  ((((font) & (FONT_BOLD|FONT_ITALIC)) >> 13) - 1)
+#define  FONT_STYLE_INDEX(font)  ((((font) & (FONT_BOLD|FONT_ITALIC)) >> 10) - 1)
 #define  HAS_UNICODE_AREA(font)  ((font) >= 0x1000)
 #define  NORMAL_FONT_OF(cs)  (IS_FULLWIDTH_CS(cs) ? (cs) | FONT_FULLWIDTH : (cs))
 

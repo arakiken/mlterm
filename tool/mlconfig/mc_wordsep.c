@@ -127,6 +127,9 @@ mc_wordsep_config_widget_new(void)
 	gtk_entry_set_text( GTK_ENTRY(entry) , old_wordsep) ;
 	gtk_widget_show( entry);
 	gtk_box_pack_start( GTK_BOX(hbox) , entry , TRUE , TRUE , 1) ;
+#if  GTK_CHECK_VERSION(2,12,0)
+	gtk_widget_set_tooltip_text( entry , "ASCII characters only") ;
+#endif
 
 	return hbox ;
 }
@@ -134,9 +137,9 @@ mc_wordsep_config_widget_new(void)
 void
 mc_update_wordsep(void)
 {
-	char *  new_wordsep ;
+	const char *  new_wordsep ;
 
-	new_wordsep = strdup(gtk_entry_get_text( GTK_ENTRY( entry))) ;
+	new_wordsep = gtk_entry_get_text( GTK_ENTRY( entry)) ;
 
 	if( strcmp( new_wordsep , old_wordsep))
 	{
@@ -145,8 +148,7 @@ mc_update_wordsep(void)
 
 	if( is_changed)
 	{
-		set_str_value( new_wordsep) ;
 		free( old_wordsep) ;
-		old_wordsep = new_wordsep ;
+		set_str_value( ( old_wordsep = strdup( new_wordsep))) ;
 	}
 }

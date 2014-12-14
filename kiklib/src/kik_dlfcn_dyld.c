@@ -8,7 +8,7 @@
 #include  <string.h>		/* strlen */
 
 #include  "kik_mem.h"		/* alloca() */
-#include  "kik_list.h"
+#include  "kik_slist.h"
 #ifdef  DEBUG
 #include  "kik_debug.h"
 #endif
@@ -23,13 +23,15 @@ typedef struct  loaded_module
 
 	u_int  ref_count ;
 
+	struct loaded_module *  next ;
+
 }  loaded_module_t ;
 
-KIK_LIST_TYPEDEF( loaded_module_t) ;
 
 /* --- static functions --- */
 
-static KIK_LIST( loaded_module_t)  module_list = NULL ;
+static loaded_module_t *  module_list = NULL ;
+
 
 /* --- global functions --- */
 
@@ -39,35 +41,23 @@ kik_dl_open(
 	const char *  name
 	)
 {
-	NSObjectFileImage  file_image;
-	NSObjectFileImageReturnCode  ret;
-	loaded_module_t *  module = NULL ;
-	kik_dl_handle_t  handle = NULL ;
-	KIK_ITERATOR( loaded_module_t)  iterator = NULL ;
+	NSObjectFileImage  file_image ;
+	NSObjectFileImageReturnCode  ret ;
+	loaded_module_t *  module ;
+	kik_dl_handle_t  handle ;
 	char *  path ;
 
-	if( ! module_list)
+	module = module_list ;
+	while( module)
 	{
-		kik_list_new( loaded_module_t , module_list) ;
-	}
-
-	iterator = kik_list_first( module_list) ;
-	while( iterator)
-	{
-		if( kik_iterator_indirect( iterator) == NULL)
+		if( strcmp( module->dirpath , dirpath) == 0 &&
+		    strcmp( module->name , name) == 0)
 		{
-			kik_error_printf(
-				"iterator found , but it has no logs."
-				"don't you cross over memory boundaries anywhere?\n") ;
-		}
-		else if ( strcmp( kik_iterator_indirect( iterator)->dirpath , dirpath) == 0 &&
-			  strcmp( kik_iterator_indirect( iterator)->name , name) == 0)
-		{
-			kik_iterator_indirect( iterator)->ref_count ++ ;
-			return  kik_iterator_indirect( iterator)->handle ;
+			module->ref_count ++ ;
+			return  module->handle ;
 		}
 
-		iterator = kik_iterator_next( iterator) ;
+		module = kik_slist_next( module) ;
 	}
 
 	if( ! ( module = malloc( sizeof(loaded_module_t))))
@@ -114,7 +104,7 @@ kik_dl_open(
 		goto  error ;
 	}
 
-	kik_list_insert_head( loaded_module_t , module_list , module) ;
+	kik_slist_insert_head( module_list , module) ;
 	module->handle = handle ;
 	module->ref_count ++ ;
 
@@ -128,12 +118,6 @@ error:
 		free( module) ;
 	}
 
-	if( module_list && kik_list_is_empty( module_list))
-	{
-		kik_list_delete( loaded_module_t , module_list) ;
-		module_list = NULL ;
-	}
-
 	return  NULL ;
 }
 
@@ -142,7 +126,6 @@ kik_dl_close(
 	kik_dl_handle_t  handle
 	)
 {
-	KIK_ITERATOR( loaded_module_t)  iterator = NULL ;
 	loaded_module_t *  module ;
 
 	if( ! module_list)
@@ -150,19 +133,11 @@ kik_dl_close(
 		return  1 ;
 	}
 
-	iterator = kik_list_first( module_list) ;
-	while( iterator)
+	module = module_list ;
+	while( module)
 	{
-		if( kik_iterator_indirect( iterator) == NULL)
+		if( module->handle == handle)
 		{
-			kik_error_printf(
-				"iterator found , but it has no logs."
-				"don't you cross over memory boundaries anywhere?\n") ;
-		}
-		else if ( kik_iterator_indirect( iterator)->handle == handle)
-		{
-			module = kik_iterator_indirect( iterator) ;
-
 			module->ref_count -- ;
 
 			if( module->ref_count)
@@ -173,7 +148,7 @@ kik_dl_close(
 			break ;
 		}
 
-		iterator = kik_iterator_next( iterator) ;
+		module = kik_slist_next( module) ;
 	}
 
 	if( NSUnLinkModule( (NSModule)module->handle , NSUNLINKMODULE_OPTION_NONE) == 0)
@@ -184,16 +159,10 @@ kik_dl_close(
 		return  1 ;
 	}
 
+	kik_slist_remove( module_list , module) ;
 	free( module->dirpath) ;
 	free( module->name) ;
 	free( module) ;
-	kik_list_remove( loaded_module_t , module_list , iterator) ;
-
-	if( kik_list_is_empty( module_list))
-	{
-		kik_list_delete( loaded_module_t , module_list) ;
-		module_list = NULL ;
-	}
 
 	return  0 ;
 }

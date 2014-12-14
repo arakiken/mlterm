@@ -173,9 +173,8 @@ static u_int  num_of_customs ;
 
 /* --- static functions --- */
 
-#ifdef  DEBUG
-static void  TEST_write_conf(void) ;
-static void  TEST_create_value(void) ;
+#ifdef  KIK_DEBUG
+static void  TEST_font_config(void) ;
 #endif
 
 
@@ -1259,11 +1258,6 @@ x_set_font_size_range(
 	min_font_size = min_fsize ;
 	max_font_size = max_fsize ;
 
-#ifdef  DEBUG
-	TEST_write_conf() ;
-	TEST_create_value() ;
-#endif
-	
 	return  1 ;
 }
 
@@ -1287,6 +1281,8 @@ x_acquire_font_config(
 {
 	x_font_config_t *  font_config ;
 	void *  p ;
+
+	KIK_TESTIT_ONCE(font_config, ())
 
 	if( ( font_config = find_font_config( type_engine , font_present)))
 	{
@@ -2105,7 +2101,11 @@ x_get_charset_name(
 	return  NULL ;
 }
 
-#ifdef  DEBUG
+
+#ifdef  KIK_DEBUG
+
+#include  <assert.h>
+
 static void
 TEST_write_conf(void)
 {
@@ -2131,6 +2131,7 @@ TEST_write_conf(void)
 		{
 			kik_debug_printf( KIK_DEBUG_TAG " Test failed(write conf(%s) => %s).\n" ,
 				data[count].data1 , p) ;
+			abort() ;
 		}
 	}
 }
@@ -2182,6 +2183,7 @@ TEST_create_value(void)
 				kik_debug_printf( KIK_DEBUG_TAG
 					" Test failed(create_value(%s + %s) => %s).\n" ,
 					data[count].data1 , data[count].data2 , ret) ;
+				abort() ;
 			}
 		}
 		else if( strcmp( data[count].ow_result , ret) != 0)
@@ -2189,6 +2191,7 @@ TEST_create_value(void)
 			kik_debug_printf( KIK_DEBUG_TAG
 				" Test failed(create_value(%s + %s) => %s).\n" ,
 				data[count].data1 , data[count].data2 , ret) ;
+			abort() ;
 		}
 		else if( is_changed != data[count].ow_changed)
 		{
@@ -2196,6 +2199,7 @@ TEST_create_value(void)
 				" Test failed(create_value(%s + %s) => %s : %s ?).\n" ,
 				data[count].data1 , data[count].data2 , ret ,
 				is_changed ? "is changed" : "is not changed") ;
+			abort() ;
 		}
 
 		free( ret) ;
@@ -2211,6 +2215,7 @@ TEST_create_value(void)
 				kik_debug_printf( KIK_DEBUG_TAG
 					" Test failed(create_value(%s - %s) => %s).\n" ,
 					data[count].data1 , data[count].data2 , ret) ;
+				abort() ;
 			}
 		}
 		else if( strcmp( data[count].rm_result , ret) != 0)
@@ -2218,6 +2223,7 @@ TEST_create_value(void)
 			kik_debug_printf( KIK_DEBUG_TAG
 				" Test failed(create_value(%s - %s) => %s).\n" ,
 				data[count].data1 , data[count].data2 , ret) ;
+			abort() ;
 		}
 		else if( is_changed != data[count].rm_changed)
 		{
@@ -2225,9 +2231,38 @@ TEST_create_value(void)
 				" Test failed(create_value(%s - %s) => %s : %s ?).\n" ,
 				data[count].data1 , data[count].data2 , ret ,
 				is_changed ? "is changed" : "is not changed") ;
+			abort() ;
 		}
 
 		free( ret) ;
 	}
 }
+
+static void
+TEST_font_config(void)
+{
+	x_font_config_t *  font_config ;
+	char *  value ;
+
+	font_config = x_font_config_new( TYPE_XCORE , 0) ;
+	x_customize_font_name( font_config , ISO8859_1_R , "-hoge-medium-r-fuga-" , 12) ;
+
+	value = x_get_config_font_name( font_config , 12 , ISO8859_1_R|FONT_BOLD) ;
+	assert( strcmp( "-hoge-bold-r-fuga-" , value) == 0) ;
+	free( value) ;
+
+	value = x_get_config_font_name( font_config , 12 , ISO8859_1_R|FONT_ITALIC) ;
+	assert( strcmp( "-hoge-medium-i-fuga-" , value) == 0) ;
+	free( value) ;
+
+	value = x_get_config_font_name( font_config , 12 , ISO8859_1_R|FONT_BOLD|FONT_ITALIC) ;
+	assert( strcmp( "-hoge-bold-i-fuga-" , value) == 0) ;
+	free( value) ;
+
+	x_font_config_delete( font_config) ;
+
+	TEST_create_value() ;
+	TEST_write_conf() ;
+}
+
 #endif

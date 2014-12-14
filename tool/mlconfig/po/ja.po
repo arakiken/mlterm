@@ -279,6 +279,10 @@ msgstr "全角文字の論理幅を(1ではなく)2にする"
 msgid "Bidi (UTF8 only)"
 msgstr "Bidi (UTF8のみ)"
 
+#: tool/mlconfig/mc_bidi.c:41
+msgid "Separators"
+msgstr "区切り文字"
+
 #: tool/mlconfig/mc_flags.c:45
 msgid "Ambiguouswidth = fullwidth (UTF8 only)"
 msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"

@@ -1,3 +1,26 @@
+2014-12-13  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_wordsep.c: Memory leak is fixed.
+
+	* mc_bidi.[ch]: Added for "Separators" of BiDi.
+
+	* ml_font.h: Fix FONT_STYLE_INDEX() macro. (Enbugged at 3.3.0)
+
+	* kik_str.c: kik_str_replace() replaces multiple 'orig' strings by 'new'.
+
+	* x_font_config.c, x_dnd.c: TEST_xxx functions are fixed.
+
+	* kik_debug.h: KIK_TESTIT and KIK_TESTIT_ONCE are added.
+
+	* kik_map.h: Minor fixes.
+
+	* im_ibus.c, im_uim.c, kik_mem.c, kik_dlfcn_dyld.c:
+	  Use kik_slist instead of kik_list.
+
+	* kik_slist.h: Added.
+
+	* kik_list.h, kik_iterator.h: Removed.
+
 2014-12-07  Araki Ken  <arakiken@users.sf.net>
 
 	* mlconfig/main.c: "Word separators" entry is added to "Others" tab.

@@ -39,7 +39,7 @@
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
-#include  <kiklib/kik_list.h>
+#include  <kiklib/kik_slist.h>
 
 #include  <x_im.h>
 
@@ -80,15 +80,14 @@ typedef struct im_uim
 
 	int  is_mozc ;
 
-}  im_uim_t ;
+	struct im_uim *  next ;
 
-KIK_LIST_TYPEDEF( im_uim_t) ;
+}  im_uim_t ;
 
 
 /* --- static variables --- */
 
-static KIK_LIST( im_uim_t)  uim_list = NULL ;
-
+static im_uim_t *  uim_list = NULL ;
 static int  ref_count = 0 ;
 static int  initialized = 0 ;
 static int  helper_fd = -1 ;
@@ -982,7 +981,7 @@ delete(
 	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
 #endif
 
-	kik_list_search_and_remove( im_uim_t , uim_list , uim) ;
+	kik_slist_remove( uim_list , uim) ;
 
 	free( uim->encoding_name);
 	free( uim) ;
@@ -994,16 +993,6 @@ delete(
 		helper_fd = -1 ;
 
 		uim_quit() ;
-
-		if( ! kik_list_is_empty( uim_list))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " uim list is not empty.\n") ;
-		#endif
-		}
-
-		kik_list_delete( im_uim_t , uim_list) ;
-		uim_list = NULL ;
 
 		initialized = 0 ;
 	}
@@ -1305,28 +1294,15 @@ helper_im_changed(
 	else if( strcmp( request , "im_change_whole_desktop") == 0 ||
 		 strcmp( request , "im_change_this_application_only") == 0)
 	{
-		KIK_ITERATOR( im_uim_t)  iterator = NULL ;
+		im_uim_t *  uim ;
 
-		iterator = kik_list_first( uim_list) ;
-		while( iterator)
+		uim = uim_list ;
+		while( uim)
 		{
-			if( kik_iterator_indirect( iterator) == NULL)
-			{
-				kik_error_printf(
-					"iterator found, but it has no logs. "
-					"don't you cross over memory "
-					"boundaries anywhere?\n") ;
-			}
-			else
-			{
-				im_uim_t *  uim ;
-				uim = kik_iterator_indirect( iterator) ;
-				(*uim->im.listener->im_changed)(
-							uim->im.listener->self ,
-							buf) ;
-			}
-
-			iterator = kik_iterator_next( iterator) ;
+			(*uim->im.listener->im_changed)(
+						uim->im.listener->self ,
+						buf) ;
+			uim = kik_slist_next( uim) ;
 		}
 	}
 }
@@ -1337,25 +1313,13 @@ helper_update_custom(
 	char *  value
 	)
 {
-	KIK_ITERATOR( im_uim_t)  iterator = NULL ;
+	im_uim_t *  uim ;
 
-	iterator = kik_list_first( uim_list) ;
-
-	while( iterator)
+	uim = uim_list ;
+	while( uim)
 	{
-		if( kik_iterator_indirect( iterator) == NULL)
-		{
-			kik_error_printf(
-				"iterator found, but it has no logs. "
-				"don't you cross over memory "
-				"boundaries anywhere?\n") ;
-		}
-		else
-		{
-			uim_prop_update_custom( kik_iterator_indirect( iterator)->context , custom , value) ;
-		}
-
-		iterator = kik_iterator_next( iterator) ;
+		uim_prop_update_custom( uim->context , custom , value) ;
+		uim = kik_slist_next( uim) ;
 	}
 
 }
@@ -1549,8 +1513,6 @@ im_uim_new(
 
 		syms = export_syms ;
 
-		kik_list_new( im_uim_t , uim_list) ;
-
 		initialized = 1 ;
 	}
 
@@ -1587,7 +1549,7 @@ im_uim_new(
 		goto  error ;
 	}
 
-	if( ! ( uim = malloc( sizeof( im_uim_t))))
+	if( ! ( uim = calloc( 1 , sizeof( im_uim_t))))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -1598,12 +1560,7 @@ im_uim_new(
 
 	uim->term_encoding = term_encoding ;
 	uim->encoding_name = encoding_name ;
-	uim->parser_uim = NULL ;
-	uim->parser_term = NULL ;
-	uim->conv = NULL ;
-	uim->pressing_mod_key = 0 ;
 	uim->mod_ignore_mask =  mod_ignore_mask ;
-	uim->cand_limit = 0 ;
 
 	if( uim->term_encoding != encoding)
 	{
@@ -1666,7 +1623,7 @@ im_uim_new(
 	uim->im.focused = focused ;
 	uim->im.unfocused = unfocused ;
 
-	kik_list_insert_head( im_uim_t , uim_list , uim) ;
+	kik_slist_insert_head( uim_list , uim) ;
 
 	ref_count ++;
 

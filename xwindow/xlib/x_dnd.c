@@ -47,6 +47,12 @@ typedef struct dnd_parser {
 	int  (*parser)(x_window_t *, u_char *, int) ;
 } dnd_parser_t ;
 
+
+#ifdef  KIK_DEBUG
+static void TEST_dnd( x_display_t *  disp) ;
+#endif
+
+
 /********************** parsers **********************************/
 /* XXX: to properly support DnD spec v5, parsers should accept "codeset"*/
 static int
@@ -859,6 +865,14 @@ incr(
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "INCR: %d\n", ct.nitems) ;
 #endif
+
+	/*
+	 * (man XGetWindowProperty)
+	 * XGetWindowProperty always allocates one extra byte in prop_return (even
+	 * if the property is zero length) and sets it to zero so that simple
+	 * properties consisting of characters do not have to be copied into yet
+	 * another string before use.
+	 */
 	parse( win, ct.value, ct.nitems) ;
 
 	if( ct.nitems == 0)
@@ -966,6 +980,8 @@ x_dnd_filter_event(
 	x_window_t *  win
 	)
 {
+	KIK_TESTIT_ONCE(dnd, (win->disp)) ;
+
 	switch( event->type )
 	{
 /*	case CreateNotify:*/
@@ -1043,7 +1059,10 @@ x_dnd_filter_event(
 	return  1 ;
 }
 
-#ifdef  SELF_TEST
+#ifdef  KIK_DEBUG
+
+#include  <assert.h>
+
 static void
 TEST_parse_text_uri_list_utf_selection_notified(
 	x_window_t *  win ,
@@ -1051,40 +1070,48 @@ TEST_parse_text_uri_list_utf_selection_notified(
 	size_t  len
 	)
 {
-	kik_msg_printf( "[") ;
-	write( 2 , data , len) ;
-	kik_msg_printf( "]\n") ;
+	static int  count ;
+	u_char *  urls[] = { "http://hoge.com/foo.bar" , "http://abcdefg" , "/hijklmn" , } ;
+
+	data[len] = '\0' ;
+	assert( strcmp( urls[count] , data) == 0) ;
+
+	count ++ ;
 }
 
-static int
-TEST_parse_text_uri_list(void)
+static void
+TEST_parse_text_uri_list(
+	x_display_t *  disp
+	)
 {
 	x_window_t   win ;
+	x_dnd_context_t  dnd ;
+	u_char *  urls[] = { "http://hoge.com/foo.bar" , "http://abcdefg\r\nfile:///hijklmn" , } ;
 	u_char  buf[100] ;
-	u_char *  data[] =
-	{ "http://abcdefg\r\nfile:///hijklmn" , } ;
 	int  count ;
-	
+
 	memset( &win , 0 , sizeof(win)) ;
+	/* disp is used in l.231: XInternAtom( win->disp->display, "XdndActionMove", False) */
+	win.disp = disp ;
 	win.utf_selection_notified = TEST_parse_text_uri_list_utf_selection_notified ;
+	memset( &dnd , 0 , sizeof(dnd)) ;
+	win.dnd = &dnd ;
 
-	for( count = 0 ; count < sizeof(data) / sizeof(data[0]) ; count++)
+	for( count = 0 ; count < sizeof(urls) / sizeof(urls[0]) ; count++)
 	{
-		memset( buf , 0xff , sizeof(buf)) ;
-		memcpy( buf , data[count] , strlen(data[count])) ;
-		parse_text_uri_list( &win , buf , strlen(data[count])) ;
+		strcpy( buf , urls[count]) ;
+		parse_text_uri_list( &win , buf , strlen(urls[count])) ;
 	}
-
-	return  1 ;
 }
 
-int
-main(void)
+static void
+TEST_dnd(
+	x_display_t *  disp
+	)
 {
-	TEST_parse_text_uri_list() ;
-
-	return  0 ;
+	TEST_parse_text_uri_list( disp) ;
 }
+
 #endif
 
 #endif	/* DISABLE_XDND */

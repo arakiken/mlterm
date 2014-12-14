@@ -26,6 +26,26 @@
 #endif
 
 
+#ifdef  KIK_DEBUG
+
+#define  KIK_TESTIT(func, args)  TEST_ ## func args
+#define  KIK_TESTIT_ONCE(func, args) \
+	{ \
+		static int  func ## _tested ; \
+		if( ! func ## _tested) \
+		{ \
+			func ## _tested = 1 ; \
+			TEST_ ## func args ; \
+		} \
+	}
+#else
+
+#define  KIK_TESTIT(func, args)
+#define  KIK_TESTIT_ONCE(func, args)
+
+#endif
+
+
 int  kik_debug_printf( const char *  format , ...) ;
 
 int  kik_warn_printf( const char *  format , ...) ;

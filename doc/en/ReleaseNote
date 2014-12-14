@@ -1,6 +1,10 @@
 ver 3.4.2
+* Add "Bidi Separators" entry to "Encoding" tab of mlconfig.
 * Add "Word separators" entry to "Others" tab of mlconfig.
 * Add "word_separators" to OSC 5380/5381.
+* Bug fixes:
+  Fix incorrect result of searching bold or italic fonts when type_engine == xcore.
+  (enbugged at 3.3.0)
 
 ver 3.4.1
 * Update unicode properties to 7.0.0.

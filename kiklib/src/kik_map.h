@@ -46,13 +46,8 @@ typedef struct  __ ## name ## _map \
 
 #define  kik_map_new_with_size( key_type , val_type , map , __hash_func , __compare_func , size) \
 { \
-	if( ( map = malloc( sizeof( *(map)))) == NULL) \
-	{ \
-		kik_error_printf( "malloc() failed in kik_map_new().\n") ; \
-		abort() ; \
-	} \
-	\
-	if( ( (map)->pairs = calloc( size , sizeof( *(map)->pairs))) == NULL) \
+	if( ( map = malloc( sizeof( *(map)))) == NULL || \
+	    ( (map)->pairs = calloc( size , sizeof( *(map)->pairs))) == NULL) \
 	{ \
 		kik_error_printf( "malloc() failed in kik_map_new().\n") ; \
 		abort() ; \
@@ -88,8 +83,8 @@ typedef struct  __ ## name ## _map \
  */
 #define  kik_map_delete( map) \
 { \
-	free( map->pairs) ; \
-	free( map->pairs_array) ; \
+	free( (map)->pairs) ; \
+	free( (map)->pairs_array) ; \
 	free( map) ; \
 }
 

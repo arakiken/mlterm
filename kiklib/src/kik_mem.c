@@ -13,7 +13,7 @@
 #include  <stdio.h>	/* fprintf */
 #include  <string.h>	/* memset */
 
-#include  "kik_list.h"
+#include  "kik_slist.h"
 
 
 #if  0
@@ -275,52 +275,34 @@ typedef struct  mem_log
 	int  line ;
 	const char *  func ;
 
+	struct mem_log *  next ;
+
 } mem_log_t ;
-
-
-KIK_LIST_TYPEDEF( mem_log_t) ;
 
 
 /* --- static variables --- */
 
-static KIK_LIST(mem_log_t)  mem_logs = NULL ;
+static mem_log_t *  mem_logs = NULL ;
 
 
 /* --- static functions --- */
-
-static KIK_LIST(mem_log_t) 
-get_mem_logs(void)
-{
-	if( mem_logs == NULL)
-	{
-		kik_list_new( mem_log_t , mem_logs) ;
-	}
-
-	return  mem_logs ;
-}
 
 static mem_log_t *
 search_mem_log(
 	void *  ptr
 	)
 {
-	KIK_ITERATOR(mem_log_t)   iterator = NULL ;
+	mem_log_t *  log ;
 
-	iterator = kik_list_first( get_mem_logs()) ;
-	while( iterator)
+	log = mem_logs ;
+	while( log)
 	{
-		if( kik_iterator_indirect( iterator) == NULL)
+		if( log->ptr == ptr)
 		{
-			kik_error_printf(
-				"iterator found , but it has no logs."
-				"don't you cross over memory boundaries anywhere?\n") ;
-		}
-		else if( kik_iterator_indirect( iterator)->ptr == ptr)
-		{
-			return  kik_iterator_indirect( iterator) ;
+			return  log ;
 		}
 
-		iterator = kik_iterator_next( iterator) ;
+		log = kik_slist_next( log) ;
 	}
 
 	return  NULL ;
@@ -337,7 +319,7 @@ kik_mem_malloc(
 	const char *  func	/* should be allocated memory. */
 	)
 {
-	mem_log_t *  log = NULL ;
+	mem_log_t *  log ;
 
 	if( ( log = malloc( sizeof( mem_log_t))) == NULL)
 	{
@@ -358,7 +340,7 @@ kik_mem_malloc(
 	log->line = line ;
 	log->func = func ;
 
-	kik_list_insert_head( mem_log_t , get_mem_logs() , log) ;
+	kik_slist_insert_head( mem_logs , log) ;
 
 #ifdef  __DEBUG
 	fprintf( stderr ,
@@ -439,7 +421,7 @@ kik_mem_remove(
 				ptr , log->size , log->func , log->line ,
 				log->file , file , line , func , log) ;
 		#endif
-			kik_list_search_and_remove( mem_log_t , get_mem_logs() , log) ;
+			kik_slist_remove( mem_logs , log) ;
 			memset( ptr , 0xff , log->size) ;
 			free( log) ;
 		}
@@ -467,8 +449,8 @@ kik_mem_realloc(
 	const char *  func	/* should be allocated memory. */
 	)
 {
-	void *  new_ptr = NULL ;
-	mem_log_t *  log = NULL ;
+	void *  new_ptr ;
+	mem_log_t *  log ;
 
 	if( ptr == NULL)
 	{
@@ -481,7 +463,6 @@ kik_mem_realloc(
 		fprintf( stderr , " %p is reallocated at %s[l.%d in %s] but not logged.\n" ,
 			ptr , func , line , file) ;
 	#endif
-
 		return  realloc( ptr , size) ;
 	}
 
@@ -513,49 +494,34 @@ kik_mem_realloc(
 void
 kik_mem_dump_all(void)
 {
-	KIK_ITERATOR( mem_log_t)   iterator = NULL ;
+	mem_log_t *  log ;
 
-	iterator = kik_list_first( get_mem_logs()) ;
-	if( iterator)
+	log = mem_logs ;
+	while( log)
 	{
-		while( iterator)
-		{
-			fprintf( stderr , "%p(size %d , alloced at %s[l.%d in %s] is allocated.\n" ,
-				kik_iterator_indirect( iterator)->ptr ,
-				(int)kik_iterator_indirect( iterator)->size ,
-				kik_iterator_indirect( iterator)->func ,
-				kik_iterator_indirect( iterator)->line ,
-				kik_iterator_indirect( iterator)->file) ;
-
-			iterator = kik_iterator_next( iterator) ;
-		}
+		fprintf( stderr , "%p(size %d , alloced at %s[l.%d in %s] is allocated.\n" ,
+			log->ptr , (int)log->size , log->func , log->line , log->file) ;
+		log = kik_slist_next( log) ;
 	}
 }
 
 int
 kik_mem_free_all(void)
 {
-	KIK_ITERATOR( mem_log_t)   iterator = NULL ;
+	mem_log_t *  log ;
 
-	iterator = kik_list_first( get_mem_logs()) ;
-	if( iterator)
+	if( ( log = mem_logs))
 	{
-		while( iterator)
+		do
 		{
-			fprintf( stderr , "%p(size %d , alloced at %s[l.%d in %s] is not freed.\n" ,
-				kik_iterator_indirect( iterator)->ptr ,
-				(int)kik_iterator_indirect( iterator)->size ,
-				kik_iterator_indirect( iterator)->func ,
-				kik_iterator_indirect( iterator)->line ,
-				kik_iterator_indirect( iterator)->file) ;
-
-			free( kik_iterator_indirect( iterator)->ptr) ;
-			free( kik_iterator_indirect( iterator)) ;
-			
-			iterator = kik_iterator_next( iterator) ;
+			fprintf( stderr ,
+				"%p(size %d , alloced at %s[l.%d in %s] is not freed.\n" ,
+				log->ptr , (int)log->size , log->func , log->line , log->file) ;
+			free( log->ptr) ;
+			free( log) ;
 		}
+		while( ( log = kik_slist_next( log))) ;
 
-		kik_list_delete( mem_log_t , get_mem_logs()) ;
 		mem_logs = NULL ;
 
 		return  0 ;
@@ -566,9 +532,6 @@ kik_mem_free_all(void)
 		fprintf( stderr , "YOUR MEMORY MANAGEMENT IS PERFECT!") ;
 	#endif
 
-		kik_list_delete( mem_log_t , get_mem_logs()) ;
-		mem_logs = NULL ;
-	
 		return  1 ;
 	}
 }

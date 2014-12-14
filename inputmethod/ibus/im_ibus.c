@@ -5,7 +5,7 @@
 #include  <stdio.h>
 #include  <ibus.h>
 
-#include  <kiklib/kik_list.h>
+#include  <kiklib/kik_slist.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 
@@ -53,9 +53,9 @@ typedef struct im_ibus
 	u_int  prev_num_of_cands ;
 #endif
 
-}  im_ibus_t ;
+	struct im_ibus *  next ;
 
-KIK_LIST_TYPEDEF( im_ibus_t) ;
+}  im_ibus_t ;
 
 
 /* --- static variables --- */
@@ -63,7 +63,7 @@ KIK_LIST_TYPEDEF( im_ibus_t) ;
 static int  is_init ;
 static IBusBus *  ibus_bus ;
 static int  ibus_bus_fd = -1 ;
-static KIK_LIST( im_ibus_t)  ibus_list = NULL ;
+static im_ibus_t *  ibus_list = NULL ;
 static int  ref_count = 0 ;
 static mkf_parser_t *  parser_utf8 = NULL ;
 static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
@@ -639,7 +639,7 @@ delete(
 	#endif
 	}
 
-	kik_list_search_and_remove( im_ibus_t , ibus_list , ibus) ;
+	kik_slist_remove( ibus_list , ibus) ;
 
 	if( ibus->conv)
 	{
@@ -663,16 +663,6 @@ delete(
 
 		ibus_object_destroy( (IBusObject*)ibus_bus) ;
 		ibus_bus = NULL ;
-
-		if( ! kik_list_is_empty( ibus_list))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ibus list is not empty.\n") ;
-		#endif
-		}
-
-		kik_list_delete( im_ibus_t , ibus_list) ;
-		ibus_list = NULL ;
 
 		if( parser_utf8)
 		{
@@ -1024,7 +1014,11 @@ context_new(
 {
 	IBusInputContext *  context ;
 
-	context = ibus_bus_create_input_context( ibus_bus , "mlterm") ;
+	if( ! ( context = ibus_bus_create_input_context( ibus_bus , "mlterm")))
+	{
+		return  NULL ;
+	}
+
 	ibus_input_context_set_capabilities( context ,
 	#ifdef  USE_FRAMEBUFFER
 		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_LOOKUP_TABLE
@@ -1069,16 +1063,16 @@ connected(
 	gpointer  data
 	)
 {
-	KIK_ITERATOR( im_ibus_t)  iterator ;
+	im_ibus_t *  ibus ;
 
 	if( bus != ibus_bus || ! ibus_bus_is_connected( ibus_bus) || ! add_event_source())
 	{
 		return ;
 	}
 
-	for( iterator = ibus_list->first ; iterator ; iterator = iterator->next)
+	for( ibus = ibus_list ; ibus ; ibus = kik_slist_next( ibus_list))
 	{
-		iterator->object->context = context_new( iterator->object , NULL) ;
+		ibus->context = context_new( ibus , NULL) ;
 	}
 }
 
@@ -1088,7 +1082,7 @@ disconnected(
 	gpointer  data
 	)
 {
-	KIK_ITERATOR( im_ibus_t)  iterator ;
+	im_ibus_t *  ibus ;
 
 	if( bus != ibus_bus)
 	{
@@ -1097,15 +1091,15 @@ disconnected(
 
 	remove_event_source(0) ;
 
-	for( iterator = ibus_list->first ; iterator ; iterator = iterator->next)
+	for( ibus = ibus_list ; ibus ; ibus = kik_slist_next( ibus_list))
 	{
 	#ifdef  DBUS_H
-		ibus_object_destroy( (IBusObject*)iterator->object->context) ;
+		ibus_object_destroy( (IBusObject*)ibus->context) ;
 	#else
-		ibus_proxy_destroy( (IBusProxy*)iterator->object->context) ;
+		ibus_proxy_destroy( (IBusProxy*)ibus->context) ;
 	#endif
-		iterator->object->context = NULL ;
-		iterator->object->is_enabled = 0 ;
+		ibus->context = NULL ;
+		ibus->is_enabled = 0 ;
 	}
 }
 
@@ -1168,8 +1162,6 @@ im_ibus_new(
 			goto  error ;
 		}
 
-		kik_list_new( im_ibus_t , ibus_list) ;
-
 		if( ! ( parser_utf8 = (*syms->ml_parser_new)( ML_UTF8)))
 		{
 			goto  error ;
@@ -1190,11 +1182,6 @@ im_ibus_new(
 		goto  error ;
 	}
 
-	ibus->context = context_new( ibus , engine) ;
-
-	ibus->term_encoding = term_encoding ;
-	ibus->is_enabled = FALSE ;
-
 	if( term_encoding != ML_UTF8)
 	{
 		if( ! ( ibus->conv = (*syms->ml_conv_new)( term_encoding)))
@@ -1210,6 +1197,15 @@ im_ibus_new(
 	}
 #endif
 
+	ibus->term_encoding = term_encoding ;
+
+	if( ! ( ibus->context = context_new( ibus , engine)))
+	{
+		goto  error ;
+	}
+
+	ibus->is_enabled = FALSE ;
+
 	/*
 	 * set methods of x_im_t
 	 */
@@ -1220,7 +1216,7 @@ im_ibus_new(
 	ibus->im.focused = focused ;
 	ibus->im.unfocused = unfocused ;
 
-	kik_list_insert_head( im_ibus_t , ibus_list , ibus) ;
+	kik_slist_insert_head( ibus_list , ibus) ;
 
 	ref_count ++;
 
@@ -1233,6 +1229,8 @@ im_ibus_new(
 error:
 	if( ref_count == 0)
 	{
+		remove_event_source( 1) ;
+
 		ibus_object_destroy( (IBusObject*)ibus_bus) ;
 		ibus_bus = NULL ;
 

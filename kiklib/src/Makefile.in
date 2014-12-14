@@ -27,7 +27,7 @@ COMOBJ = kik_debug.o kik_map.o kik_args.o kik_mem.o kik_conf.o kik_file.o kik_pa
 DEPOBJ = kik_pty_@PTY_NAME@.o kik_utmp_@UTMP_NAME@.o kik_dlfcn_@DL_LOADER@.o
 OBJ = $(COMOBJ) $(DEPOBJ)
 
-INC = $(COMOBJ:.o=.h) kik_list.h kik_iterator.h kik_types.h kik_util.h kik_def.h kik_net.h kik_pty.h kik_utmp.h kik_dlfcn.h
+INC = $(COMOBJ:.o=.h) kik_slist.h kik_types.h kik_util.h kik_def.h kik_net.h kik_pty.h kik_utmp.h kik_dlfcn.h
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(LIBS) @LDFLAGS@

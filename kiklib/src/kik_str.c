@@ -493,21 +493,49 @@ kik_compare_str(
 char *
 kik_str_replace(
 	const char *  str ,
-	const char *  orig ,
+	const char *  orig ,	/* Don't specify "". */
 	const char *  new
 	)
 {
-	char *  p ;
+	size_t  orig_len ;
+	size_t  new_len ;
+	int  diff ;
+	const char *  p ;
 	char *  new_str ;
+	char *  dst ;
 
-	if( ! ( p = strstr( str , orig)) ||
-	    ! ( new_str = malloc( strlen( str) + strlen(new) - strlen(orig) + 1)))
+	orig_len = strlen( orig) ;
+	new_len = strlen( new) ;
+	if( ( diff = new_len - orig_len) != 0)
+	{
+		int  num ;
+
+		for( num = 0 , p = str ; ( p = strstr( p , orig)) ; num++ , p += orig_len) ;
+
+		if( num == 0)
+		{
+			return  NULL ;
+		}
+
+		diff *= num ;
+	}
+
+	if( ! ( dst = new_str = malloc( strlen( str) + diff + 1)) ||
+	    ! ( p = strstr( str , orig)))
 	{
 		return  NULL ;
 	}
 
-	strncpy( new_str , str , p - str) ;
-	sprintf( new_str + (p - str) , "%s%s" , new , p + strlen(orig)) ;
+	do
+	{
+		memcpy( dst , str , p - str) ;
+		dst += (p - str) ;
+		memcpy( dst , new , new_len) ;
+		dst += new_len ;
+		str = p + orig_len ;
+	}
+	while( ( p = strstr( str , orig))) ;
+	strcpy( dst , str) ;
 
 	return  new_str ;
 }
