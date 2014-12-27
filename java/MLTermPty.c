@@ -893,14 +893,13 @@ Java_mlterm_MLTermPty_nativeOpen(
 		(*env)->ReleaseStringUTFChars( env , jstr_encoding , p) ;
 	}
 
-	if( ! ( nativeObj->term = ml_create_term( cols , rows , tab_size , 0 , encoding ,
+	if( ! ( nativeObj->term = ml_create_term( "xterm" , cols , rows , tab_size , 0 , encoding ,
 					is_auto_encoding , use_auto_detect , logging_vt_seq ,
 					unicode_policy , col_size_a ,
 					use_char_combining , use_multi_col_char ,
 					0 /* use_bidi */ , 0 /* bidi_mode */ ,
 					NULL /* bidi_separators */ ,
-					0 /* use_ind */ , 1 /* use_bce */ ,
-					0 /* use_dynamic_comb */ , BSM_STATIC ,
+					0 /* use_ind */ , 0 /* use_dynamic_comb */ , BSM_STATIC ,
 					0 /* vertical_mode */ , use_local_echo , NULL , NULL , 0)))
 	{
 		goto  error ;
@@ -1358,6 +1357,177 @@ Java_mlterm_MLTermPty_nativeWrite(
 }
 
 JNIEXPORT jboolean JNICALL
+Java_mlterm_MLTermPty_nativeWriteModifiedKey(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nativeObj ,
+	jint  key ,
+	jint  modcode
+	)
+{
+	if( ml_term_write_modified_key( ((native_obj_t*)nativeObj)->term , key , modcode))
+	{
+		return  JNI_TRUE ;
+	}
+	else
+	{
+		return  JNI_FALSE ;
+	}
+}
+
+JNIEXPORT jboolean JNICALL
+Java_mlterm_MLTermPty_nativeWriteSpecialKey(
+	JNIEnv *  env ,
+	jobject  obj ,
+	jlong  nativeObj ,
+	jint  key ,
+	jint  modcode
+	)
+{
+	ml_special_key_t  spkey ;
+	u_int8_t  keys[] =
+	{
+		SPKEY_UP ,
+		SPKEY_DOWN ,
+		SPKEY_LEFT ,
+		SPKEY_RIGHT ,
+		SPKEY_PRIOR ,
+		SPKEY_NEXT ,
+		SPKEY_HOME ,
+		SPKEY_END ,
+		SPKEY_INSERT ,
+		SPKEY_F1 ,
+		SPKEY_F2 ,
+		SPKEY_F3 ,
+		SPKEY_F4 ,
+		SPKEY_F5 ,
+		SPKEY_F6 ,
+		SPKEY_F7 ,
+		SPKEY_F8 ,
+		SPKEY_F9 ,
+		SPKEY_F10 ,
+		SPKEY_F11 ,
+		SPKEY_F12 ,
+		SPKEY_F13 ,
+		SPKEY_F14 ,
+		SPKEY_F15 ,
+		SPKEY_F16 ,
+		SPKEY_F17 ,
+		SPKEY_F18 ,
+		SPKEY_F19 ,
+		SPKEY_F20 ,
+	} ;
+
+	u_int8_t  keypad_keys[] =
+	{
+		SPKEY_KP_MULTIPLY ,
+		SPKEY_KP_ADD ,
+		SPKEY_KP_MULTIPLY ,
+		SPKEY_KP_ADD ,
+		SPKEY_KP_SUBTRACT ,
+		SPKEY_KP_DELETE ,
+		SPKEY_KP_DIVIDE ,
+		SPKEY_KP_INSERT ,	/* 0 */
+		SPKEY_KP_END ,		/* 1 */
+		SPKEY_KP_DOWN ,		/* 2 */
+		SPKEY_KP_NEXT ,		/* 3 */
+		SPKEY_KP_LEFT ,		/* 4 */
+		SPKEY_KP_BEGIN ,	/* 5 */
+		SPKEY_KP_RIGHT ,	/* 6 */
+		SPKEY_KP_HOME ,		/* 7 */
+		SPKEY_KP_UP ,		/* 8 */
+		SPKEY_KP_PRIOR ,	/* 9 */
+	} ;
+
+	/* Definitions in SWT.java */
+	enum
+	{
+		KEYCODE_BIT = (1 << 24) ,
+		ARROW_UP = KEYCODE_BIT + 1 ,
+		ARROW_DOWN = KEYCODE_BIT + 2 ,
+		ARROW_LEFT = KEYCODE_BIT + 3 ,
+		ARROW_RIGHT = KEYCODE_BIT + 4 ,
+		PAGE_UP = KEYCODE_BIT + 5 ,
+		PAGE_DOWN = KEYCODE_BIT + 6 ,
+		HOME = KEYCODE_BIT + 7 ,
+		END = KEYCODE_BIT + 8 ,
+		INSERT = KEYCODE_BIT + 9 ,
+		F1 = KEYCODE_BIT + 10 ,
+		F2 = KEYCODE_BIT + 11 ,
+		F3 = KEYCODE_BIT + 12 ,
+		F4 = KEYCODE_BIT + 13 ,
+		F5 = KEYCODE_BIT + 14 ,
+		F6 = KEYCODE_BIT + 15 ,
+		F7 = KEYCODE_BIT + 16 ,
+		F8 = KEYCODE_BIT + 17 ,
+		F9 = KEYCODE_BIT + 18 ,
+		F10 = KEYCODE_BIT + 19 ,
+		F11 = KEYCODE_BIT + 20 ,
+		F12 = KEYCODE_BIT + 21 ,
+		F13 = KEYCODE_BIT + 22 ,
+		F14 = KEYCODE_BIT + 23 ,
+		F15 = KEYCODE_BIT + 24 ,
+		F16 = KEYCODE_BIT + 25 ,
+		F17 = KEYCODE_BIT + 26 ,
+		F18 = KEYCODE_BIT + 27 ,
+		F19 = KEYCODE_BIT + 28 ,
+		F20 = KEYCODE_BIT + 29 ,
+
+		KEYPAD_MULTIPLY = KEYCODE_BIT + 42 ,
+		KEYPAD_ADD = KEYCODE_BIT + 43 ,
+		KEYPAD_SUBTRACT = KEYCODE_BIT + 45 ,
+		KEYPAD_DECIMAL = KEYCODE_BIT + 46 ,
+		KEYPAD_DIVIDE = KEYCODE_BIT + 47 ,
+		KEYPAD_0 = KEYCODE_BIT + 48 ,
+		KEYPAD_1 = KEYCODE_BIT + 49 ,
+		KEYPAD_2 = KEYCODE_BIT + 50 ,
+		KEYPAD_3 = KEYCODE_BIT + 51 ,
+		KEYPAD_4 = KEYCODE_BIT + 52 ,
+		KEYPAD_5 = KEYCODE_BIT + 53 ,
+		KEYPAD_6 = KEYCODE_BIT + 54 ,
+		KEYPAD_7 = KEYCODE_BIT + 55 ,
+		KEYPAD_8 = KEYCODE_BIT + 56 ,
+		KEYPAD_9 = KEYCODE_BIT + 57 ,
+		KEYPAD_EQUAL = KEYCODE_BIT + 61 ,
+		KEYPAD_CR = KEYCODE_BIT + 80 ,
+		HELP = KEYCODE_BIT + 81 ,
+		CAPS_LOCK = KEYCODE_BIT + 82 ,
+		NUM_LOCK = KEYCODE_BIT + 83 ,
+		SCROLL_LOCK = KEYCODE_BIT + 84 ,
+		PAUSE = KEYCODE_BIT + 85 ,
+		BREAK = KEYCODE_BIT + 86 ,
+		PRINT_SCREEN = KEYCODE_BIT + 87 ,
+	} ;
+
+	if( ARROW_UP <= key && key <= F20)
+	{
+		spkey = keys[key - ARROW_UP] ;
+	}
+	else if( KEYPAD_MULTIPLY <= key && key <= KEYPAD_9)
+	{
+		spkey = keypad_keys[key - KEYPAD_MULTIPLY] ;
+	}
+	else if( key == '\x1b')
+	{
+		spkey = SPKEY_ESCAPE ;
+	}
+	else
+	{
+		return  JNI_FALSE ;
+	}
+
+	if( ml_term_write_special_key( ((native_obj_t*)nativeObj)->term ,
+			spkey , modcode , 0))
+	{
+		return  JNI_TRUE ;
+	}
+	else
+	{
+		return  JNI_FALSE ;
+	}
+}
+
+JNIEXPORT jboolean JNICALL
 Java_mlterm_MLTermPty_nativeResize(
 	JNIEnv *  env ,
 	jobject  obj ,
@@ -1719,23 +1889,6 @@ Java_mlterm_MLTermPty_nativeGetCaretCol(
 	else
 	{
 		return  0 ;
-	}
-}
-
-JNIEXPORT jboolean JNICALL
-Java_mlterm_MLTermPty_nativeIsAppCursorKeys(
-	JNIEnv *  env ,
-	jobject  obj ,
-	jlong  nativeObj
-	)
-{
-	if( ml_term_is_app_cursor_keys( ((native_obj_t*)nativeObj)->term))
-	{
-		return  JNI_TRUE ;
-	}
-	else
-	{
-		return  JNI_FALSE ;
 	}
 }
 

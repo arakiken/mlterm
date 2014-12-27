@@ -11,6 +11,7 @@
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_file.h>
+#include  <kiklib/kik_debug.h>
 
 #include  <ml_char.h>
 #include  <ml_char_encoding.h>	/* ml_parse_unicode_area */
@@ -1282,7 +1283,7 @@ x_acquire_font_config(
 	x_font_config_t *  font_config ;
 	void *  p ;
 
-	KIK_TESTIT_ONCE(font_config, ())
+	KIK_TESTIT_ONCE(font_config, ()) ;
 
 	if( ( font_config = find_font_config( type_engine , font_present)))
 	{

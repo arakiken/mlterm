@@ -61,12 +61,13 @@ typedef struct ml_term
 /* XXX */
 extern void (*ml_term_pty_closed_event)( ml_term_t *) ;
 
-ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
-	ml_char_encoding_t  encoding , int  is_auto_encoding , int  use_auto_detect ,
+ml_term_t *  ml_term_new( const char *  term_type , u_int  cols , u_int  rows ,
+	u_int  tab_size , u_int  log_size , ml_char_encoding_t  encoding ,
+	int  is_auto_encoding , int  use_auto_detect ,
 	int  logging_vt_seq , ml_unicode_policy_t  policy ,
 	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators , int  use_ind ,
-	int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
+	int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
 	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
 
@@ -146,6 +147,12 @@ char *  ml_term_get_slave_name( ml_term_t *  term) ;
 pid_t  ml_term_get_child_pid( ml_term_t *  term) ;
 
 size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
+
+#define  ml_term_write_modified_key( term , key , modcode) \
+	ml_vt100_parser_write_modified_key( (term)->parser , key , modcode)
+
+#define  ml_term_write_special_key( term , key , modcode , is_numlock) \
+	ml_vt100_parser_write_special_key( (term)->parser , key , modcode , is_numlock)
 
 /* Must be called in visual context. */
 #define  ml_term_write_loopback( term , buf , len) \
@@ -268,17 +275,7 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 #define  ml_term_get_mouse_report_mode( term) \
 		ml_vt100_parser_get_mouse_report_mode((term)->parser)
 
-#define  ml_term_is_app_keypad( term) \
-		ml_vt100_parser_is_app_keypad((term)->parser)
-
-#define  ml_term_is_app_cursor_keys( term) \
-		ml_vt100_parser_is_app_cursor_keys((term)->parser)
-
-#define  ml_term_is_app_escape( term)  ml_vt100_parser_is_app_escape((term)->parser)
-
 #define  ml_term_want_focus_event( term)  ml_vt100_parser_want_focus_event((term)->parser)
-
-#define  ml_term_modify_other_keys( term)  ml_vt100_parser_modify_other_keys((term)->parser)
 
 #define  ml_term_set_alt_color_mode( term , mode) \
 		ml_vt100_parser_set_alt_color_mode((term)->parser , mode)

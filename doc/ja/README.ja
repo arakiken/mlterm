@@ -985,6 +985,11 @@ comment $Id$
 	オプションをつけて mlterm を起動し、かつ、ISO10646_UCS4_1 に、記号文字が
 	全角になっている Unicode フォントを指定する必要があります。
 
+        Unicode の U+1F000-1F6FF については、~/.mlterm/emoji 以下に 1fXXX.png と
+        いう画像ファイルがあれば、それを適宜拡縮して表示します。画像ファイルは、
+        https://github.com/github/gemoji/archive/master.zip 内の
+        images/emoji/unicode/*.png をコピーしてください。
+
         X Input Method のフォントは、なるべく端末画面で使用されているそれと同じ
         ものが使用されます。
         アンチエイリアス中は、font , vfont から適当なフォントを探します。

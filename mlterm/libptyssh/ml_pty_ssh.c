@@ -221,14 +221,117 @@ kbd_callback(
 	(void)abstract ;
 }
 
+#ifdef  OPEN_PTY_ASYNC
+
+#ifdef  USE_WIN32API
+
+static HANDLE *  openssl_locks ;
+
+static void
+openssl_lock_callback(
+	int  mode ,
+	int  type ,
+	const char *  file ,
+	int  line
+	)
+{
+	if( mode & 1 /* CRYPTO_LOCK */)
+	{
+		WaitForSingleObject( openssl_locks[type] , INFINITE) ;
+	}
+	else
+	{
+		ReleaseMutex( openssl_locks[type]) ;
+	}
+}
+
+#else
+
+static pthread_mutex_t *  openssl_locks ;
+
+static void
+openssl_lock_callback(
+	int  mode ,
+	int  type ,
+	const char *  file ,
+	int  line
+	)
+{
+	if( mode & 1 /* CRYPTO_LOCK */)
+	{
+		pthread_mutex_lock( &openssl_locks[type]) ;
+	}
+	else
+	{
+		pthread_mutex_unlock( &openssl_locks[type]) ;
+	}
+}
+
+#endif
+
+int  CRYPTO_num_locks(void) ;
+void  CRYPTO_set_locking_callback( void (*func)( int , int , const char * , int)) ;
+
+/* gcrypt is not supported. */
+static void
+set_use_multi_thread(
+	int  use
+	)
+{
+	static int  num_locks ;
+	int  count ;
+
+	if( use)
+	{
+		num_locks = CRYPTO_num_locks() ;
+
+		if( ( openssl_locks = malloc( num_locks * sizeof(*openssl_locks))))
+		{
+			for( count = 0 ; count < num_locks ; count++)
+			{
+			#ifdef  USE_WIN32API
+				openssl_locks[count] = CreateMutex( NULL , FALSE , NULL) ;
+			#else
+				openssl_locks[count] = PTHREAD_MUTEX_INITIALIZER ;
+			#endif
+			}
+
+			CRYPTO_set_locking_callback( openssl_lock_callback) ;
+		}
+		else
+		{
+			num_locks = 0 ;
+		}
+	}
+	else
+	{
+		if( openssl_locks)
+		{
+			CRYPTO_set_locking_callback( NULL) ;
+
+		#ifdef  USE_WIN32API
+			for( count = 0 ; count < num_locks ; count++)
+			{
+				CloseHandle( openssl_locks[count]) ;
+			}
+		#endif
+
+			free( openssl_locks) ;
+			openssl_locks = NULL ;
+		}
+	}
+}
+
+#else
+#define  set_use_multi_thread(use)  (0)
+#endif
+
 #ifdef  AI_PASSIVE
 #define  HAVE_GETADDRINFO
 #endif
 
 static void  x11_callback( LIBSSH2_SESSION *  session , LIBSSH2_CHANNEL *  channel ,
 	char *  shost , int  sport , void **  abstract) ;
-
-static void  set_use_multi_thread( int  use) ;
 
 /*
  * Return session which is non-blocking mode because opening a new channel
@@ -1643,111 +1746,6 @@ ssh_to_xserver(
 	}
 }
 
-#ifdef  OPEN_PTY_ASYNC
-
-#ifdef  USE_WIN32API
-
-static HANDLE *  openssl_locks ;
-
-static void
-openssl_lock_callback(
-	int  mode ,
-	int  type ,
-	const char *  file ,
-	int  line
-	)
-{
-	if( mode & 1 /* CRYPTO_LOCK */)
-	{
-		WaitForSingleObject( openssl_locks[type] , INFINITE) ;
-	}
-	else
-	{
-		ReleaseMutex( openssl_locks[type]) ;
-	}
-}
-
-#else
-
-static pthread_mutex_t *  openssl_locks ;
-
-static void
-openssl_lock_callback(
-	int  mode ,
-	int  type ,
-	const char *  file ,
-	int  line
-	)
-{
-	if( mode & 1 /* CRYPTO_LOCK */)
-	{
-		pthread_mutex_lock( &openssl_locks[type]) ;
-	}
-	else
-	{
-		pthread_mutex_unlock( &openssl_locks[type]) ;
-	}
-}
-
-#endif
-
-int  CRYPTO_num_locks(void) ;
-void  CRYPTO_set_locking_callback( void (*func)( int , int , const char * , int)) ;
-
-/* gcrypt is not supported. */
-static void
-set_use_multi_thread(
-	int  use
-	)
-{
-	static int  num_locks ;
-	int  count ;
-
-	if( use)
-	{
-		num_locks = CRYPTO_num_locks() ;
-
-		if( ( openssl_locks = malloc( num_locks * sizeof(*openssl_locks))))
-		{
-			for( count = 0 ; count < num_locks ; count++)
-			{
-			#ifdef  USE_WIN32API
-				openssl_locks[count] = CreateMutex( NULL , FALSE , NULL) ;
-			#else
-				openssl_locks[count] = PTHREAD_MUTEX_INITIALIZER ;
-			#endif
-			}
-
-			CRYPTO_set_locking_callback( openssl_lock_callback) ;
-		}
-		else
-		{
-			num_locks = 0 ;
-		}
-	}
-	else
-	{
-		if( openssl_locks)
-		{
-			CRYPTO_set_locking_callback( NULL) ;
-
-		#ifdef  USE_WIN32API
-			for( count = 0 ; count < num_locks ; count++)
-			{
-				CloseHandle( openssl_locks[count]) ;
-			}
-		#endif
-
-			free( openssl_locks) ;
-			openssl_locks = NULL ;
-		}
-	}
-}
-
-#else
-#define  set_use_multi_thread(use)  (0)
-#endif
-
 
 /* --- global functions --- */
 
@@ -1814,7 +1812,15 @@ ml_pty_ssh_new(
 
 	pty->session->pty_channels = p ;
 
+#if  0
 	while( ! ( pty->channel = libssh2_channel_open_session( pty->session->obj)))
+#else
+	while( ! ( pty->channel = libssh2_channel_open_ex( pty->session->obj ,
+					"session" , sizeof("session") - 1 ,
+					/* RLogin's window size */
+					64 * LIBSSH2_CHANNEL_PACKET_DEFAULT ,
+					LIBSSH2_CHANNEL_PACKET_DEFAULT , NULL , 0)))
+#endif
 	{
 		if( libssh2_session_last_errno( pty->session->obj) != LIBSSH2_ERROR_EAGAIN)
 		{

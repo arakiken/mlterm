@@ -14,7 +14,6 @@
 #include  "x_window.h"
 #include  "x_selection.h"
 #include  "x_shortcut.h"
-#include  "x_termcap.h"
 #include  "x_mod_meta_mode.h"
 #include  "x_bel_mode.h"
 #include  "x_sb_mode.h"
@@ -93,7 +92,6 @@ typedef struct  x_screen
 	x_im_event_listener_t  im_listener ;
 
 	x_shortcut_t *  shortcut ;
-	x_termcap_entry_t *  termcap ;
 
 	char *  input_method ;
 	x_im_t *  im ;
@@ -163,9 +161,8 @@ void  x_set_im_cursor_color( char *  color) ;
 #endif
 
 x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
-	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
-	u_int  brightness , u_int contrast , u_int gamma , u_int  alpha ,
-	u_int  fade_ratio , x_shortcut_t *  shortcut ,
+	x_color_manager_t *  color_man , u_int  brightness , u_int contrast ,
+	u_int gamma , u_int  alpha , u_int  fade_ratio , x_shortcut_t *  shortcut ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,

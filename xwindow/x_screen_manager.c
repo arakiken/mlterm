@@ -29,7 +29,6 @@
 
 #include  "x_sb_screen.h"
 #include  "x_display.h"
-#include  "x_termcap.h"
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 #include  "x_connect_dialog.h"
@@ -62,7 +61,6 @@ static x_system_event_listener_t  system_listener ;
 static x_main_config_t  main_config ;
 
 static x_shortcut_t  shortcut ;
-static x_termcap_t  termcap ;
 
 
 /* --- static functions --- */
@@ -128,7 +126,7 @@ create_term_intern(void)
 {
 	ml_term_t *  term ;
 	
-	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
+	if( ( term = ml_create_term( main_config.term_type , main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
 			main_config.encoding , main_config.is_auto_encoding ,
 			main_config.use_auto_detect , main_config.logging_vt_seq ,
@@ -136,8 +134,6 @@ create_term_intern(void)
 			main_config.use_char_combining , main_config.use_multi_col_char ,
 			main_config.use_bidi , main_config.bidi_mode ,
 			main_config.bidi_separators , main_config.use_ind ,
-			x_termcap_get_bool_field(
-				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,
 			main_config.vertical_mode , main_config.use_local_echo ,
 			main_config.title , main_config.icon_name ,
@@ -608,7 +604,6 @@ open_screen_intern(
 	}
 
 	if( ( screen = x_screen_new( term , font_man , color_man ,
-			x_termcap_get_entry( &termcap , main_config.term_type) ,
 			main_config.brightness , main_config.contrast , main_config.gamma ,
 			main_config.alpha , main_config.fade_ratio , &shortcut ,
 			main_config.screen_width_ratio , main_config.screen_height_ratio ,
@@ -1289,15 +1284,6 @@ x_screen_manager_init(
 	}
 #endif
 
-	if( ! x_termcap_init( &termcap))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_termcap_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
 	if( *main_config.disp_name)
 	{
 		/*
@@ -1365,7 +1351,6 @@ x_screen_manager_final(void)
 
 	ml_color_config_final() ;
 	x_shortcut_final( &shortcut) ;
-	x_termcap_final( &termcap) ;
 
 	return  1 ;
 }

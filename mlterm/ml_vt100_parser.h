@@ -14,6 +14,7 @@
 #include  "ml_screen.h"
 #include  "ml_char_encoding.h"
 #include  "ml_drcs.h"
+#include  "ml_termcap.h"
 
 
 #define  PTY_WR_BUFFER_SIZE  100
@@ -126,6 +127,7 @@ typedef struct  ml_xterm_event_listener
 			u_int8_t * , ml_color_t) ;		/* called in logical context. */
 	ml_char_t *  (*get_picture_data)( void * , char * ,
 			int * , int * , u_int32_t **) ; /* called in logical context. */
+	int (*get_emoji_data)( void * , ml_char_t * , ml_char_t *) ;	/* called in logical context. */
 	void (*show_sixel)( void * , char *) ;		/* called in logical context. */
 	void (*add_frame_to_animation)( void * , char * , int * , int *) ; /* called in logical context. */
 	void (*hide_cursor)( void * , int) ;		/* called in logical context. */
@@ -194,8 +196,9 @@ typedef struct  ml_vt100_parser
 	ml_write_buffer_t  w_buf ;
 	
 	ml_pty_ptr_t  pty ;
-	
+
 	ml_screen_t *  screen ;
+	ml_termcap_entry_t *  termcap ;
 
 	mkf_parser_t *  cc_parser ;	/* char code parser */
 	mkf_conv_t *  cc_conv ;		/* char code converter */
@@ -310,7 +313,8 @@ void  ml_set_use_scp_full( int  use) ;
 #define  ml_set_use_scp_full(use)  (0)
 #endif
 
-ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
+ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen ,
+	ml_termcap_entry_t *  termcap , ml_char_encoding_t  encoding ,
 	int  is_auto_encoding , int  use_auto_detect , int  logging_vt_seq ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char ,
@@ -329,6 +333,13 @@ void  ml_vt100_parser_set_config_listener( ml_vt100_parser_t *  vt100_parser ,
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 
 void  ml_reset_pending_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
+
+
+int  ml_vt100_parser_write_modified_key( ml_vt100_parser_t *  vt100_parser ,
+	int  key , int  modcode) ;
+
+int  ml_vt100_parser_write_special_key( ml_vt100_parser_t *  vt100_parser ,
+	ml_special_key_t  key , int  modcode , int  is_numlock) ;
 
 /* Must be called in visual context. */
 int  ml_vt100_parser_write_loopback( ml_vt100_parser_t *  vt100_parser ,
@@ -373,18 +384,10 @@ int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
 
 #define  ml_vt100_parser_get_mouse_report_mode( vt100_parser)  ((vt100_parser)->mouse_mode)
 
-#define  ml_vt100_parser_is_app_keypad( vt100_parser)  ((vt100_parser)->is_app_keypad)
-
-#define  ml_vt100_parser_is_app_cursor_keys( vt100_parser)  ((vt100_parser)->is_app_cursor_keys)
-
-#define  ml_vt100_parser_is_app_escape( vt100_parser)  ((vt100_parser)->is_app_escape)
-
 #define  ml_vt100_parser_is_bracketed_paste_mode( vt100_parser) \
 		((vt100_parser)->is_bracketed_paste_mode)
 
 #define  ml_vt100_parser_want_focus_event( vt100_parser)  ((vt100_parser)->want_focus_event)
-
-#define  ml_vt100_parser_modify_other_keys( vt100_parser)  ((vt100_parser)->modify_other_keys)
 
 #define  ml_vt100_parser_set_unicode_policy( vt100_parser , policy) \
 		((vt100_parser)->unicode_policy = (policy))

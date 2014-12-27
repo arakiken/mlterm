@@ -1158,7 +1158,86 @@ put_char(
 		fg_color , bg_color , is_bold , is_italic ,
 		underline_style , is_crossed_out , is_blinking) ;
 
-	if( ! vt100_parser->screen->use_dynamic_comb && cs == ISO10646_UCS4_1)
+	if( cs != ISO10646_UCS4_1)
+	{
+		return ;
+	}
+
+	if( 0x1f000 <= ch && ch <= 0x1f6ff &&
+	    HAS_XTERM_LISTENER(vt100_parser,get_emoji_data))
+	{
+		/*
+		 * Emoji pictures (mostly U+1F000-1F6FF) provided by
+		 * http://github.com/githuub/gemoji
+		 */
+
+		ml_char_t *  emoji1 ;
+		ml_char_t *  emoji2 ;
+
+		emoji1 = &vt100_parser->w_buf.chars[vt100_parser->w_buf.filled_len - 1] ;
+		emoji2 = NULL ;
+
+		if( 0x1f1e6 <= ch && ch <= 0x1f1ff)
+		{
+			ml_char_t *  prev_ch ;
+
+			if( vt100_parser->w_buf.filled_len <= 1)
+			{
+				prev_ch = ml_screen_get_n_prev_char( vt100_parser->screen , 1) ;
+			}
+			else
+			{
+				prev_ch = emoji1 - 1 ;
+			}
+
+			if( prev_ch)
+			{
+				if( 0x1f1e6 <= ml_char_code(prev_ch) &&
+				    ml_char_code(prev_ch) <= 0x1f1ff)
+				{
+					emoji2 = emoji1 ;
+					emoji1 = prev_ch ;
+				}
+			}
+		}
+
+		if( (*vt100_parser->xterm_listener->get_emoji_data)(
+			vt100_parser->xterm_listener->self , emoji1 , emoji2))
+		{
+			if( emoji2)
+			{
+				/* Base char: emoji1, Comb1: picture, Comb2: emoji2 */
+				if( emoji2 == emoji1 + 1)
+				{
+					ml_char_combine( emoji1 ,
+						ch , cs , is_fullwidth , is_comb ,
+						fg_color , bg_color , is_bold ,
+						is_italic , underline_style ,
+						is_crossed_out , is_blinking) ;
+				}
+				else
+				{
+					/*
+					 * ml_line_set_modified() is done in
+					 * ml_screen_combine_with_prev_char() internally.
+					 */
+					ml_screen_combine_with_prev_char( vt100_parser->screen ,
+						ch , cs , is_fullwidth , is_comb ,
+						fg_color , bg_color , is_bold ,
+						is_italic , underline_style ,
+						is_crossed_out , is_blinking) ;
+				}
+				vt100_parser->w_buf.filled_len -- ;
+			}
+
+			/*
+			 * Flush buffer before searching and deleting unused pictures
+			 * in x_picture.c.
+			 */
+			flush_buffer( vt100_parser) ;
+		}
+	}
+	else if( ! vt100_parser->screen->use_dynamic_comb)
 	{
 		/*
 		 * Arabic combining
@@ -1201,8 +1280,8 @@ put_char(
 				if( ml_char_combine( prev ,
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
-					vt100_parser->is_italic , vt100_parser->underline_style ,
-					vt100_parser->is_crossed_out , vt100_parser->is_blinking))
+					is_italic , underline_style ,
+					is_crossed_out , is_blinking))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -1216,8 +1295,8 @@ put_char(
 				if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 					ch , cs , is_fullwidth , is_comb ,
 					fg_color , bg_color , is_bold ,
-					vt100_parser->is_italic , vt100_parser->underline_style ,
-					vt100_parser->is_crossed_out , vt100_parser->is_blinking))
+					is_italic , underline_style ,
+					is_crossed_out , is_blinking))
 				{
 					vt100_parser->w_buf.filled_len -- ;
 				}
@@ -2980,6 +3059,190 @@ invoke_macro(
 	}
 }
 
+static int
+response_termcap(
+	ml_pty_ptr_t  pty ,
+	u_char *  key ,
+	u_char *  value
+	)
+{
+	u_char *  response ;
+
+	if( ( response = alloca( 5 + strlen(key) + 1 + strlen(value) * 2 + 3)))
+	{
+		u_char *  dst ;
+
+		sprintf( response , "\x1bP1+r%s=" , key) ;
+		for( dst = response + strlen(response) ; *value ; value++ , dst += 2)
+		{
+			dst[0] = (value[0] >> 4) & 0xf ;
+			dst[0] = (dst[0] > 9) ? (dst[0] + 'A' - 10) : (dst[0] + '0') ;
+			dst[1] = value[0] & 0xf ;
+			dst[1] = (dst[1] > 9) ? (dst[1] + 'A' - 10) : (dst[1] + '0') ;
+		}
+		strcpy( dst , "\x1b\\") ;
+
+		ml_write_to_pty( pty , response , strlen(response)) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+#define  TO_INT(a)  (((a)|0x20) - ((a) <= '9' ? '0' : ('a' - 10)))
+
+static void
+request_termcap(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  key
+	)
+{
+	u_char *  deckey ;
+	u_char *  src ;
+	u_char *  dst ;
+
+	if( ( deckey = alloca( strlen(key) / 2 + 1)))
+	{
+		struct
+		{
+			u_char *  tckey ;
+			u_char *  tikey ;
+			int16_t  spkey ;	/* ml_special_key_t */
+			int16_t  modcode ;
+
+		} db[] =
+		{
+			{ "%1" , "khlp" , SPKEY_F15 , 0 } ,
+			{ "#1" , "kHLP" , SPKEY_F15 , 2 } ,
+			{ "@0" , "kfnd" , SPKEY_FIND , 0 } ,
+			{ "*0" , "kFND" , SPKEY_FIND , 2 } ,
+			{ "*6" , "kslt" , SPKEY_SELECT , 0 } ,
+			{ "#6" , "kSLT" , SPKEY_SELECT , 2 } ,
+
+			{ "kh" , "khome" , SPKEY_HOME , 0 } ,
+			{ "#2" , "kHOM" , SPKEY_HOME , 2 } ,
+			{ "@7" , "kend" , SPKEY_END , 0 } ,
+			{ "*7" , "kEND" , SPKEY_END , 2 } ,
+
+			{ "kl" , "kcub1" , SPKEY_LEFT , 0 } ,
+			{ "kr" , "kcuf1" , SPKEY_RIGHT , 0 } ,
+			{ "ku" , "kcuu1" , SPKEY_UP , 0 } ,
+			{ "kd" , "kcud1" , SPKEY_DOWN , 0 } ,
+
+			{ "#4" , "kLFT" , SPKEY_LEFT , 2 } ,
+			{ "%i" , "kRIT" , SPKEY_RIGHT , 2 } ,
+			{ "kF" , "kind" , SPKEY_DOWN , 2 } ,
+			{ "kR" , "kri" , SPKEY_UP , 2 } ,
+
+			{ "k1" , "kf1" , SPKEY_F1 , 0 } ,
+			{ "k2" , "kf2" , SPKEY_F2 , 0 } ,
+			{ "k3" , "kf3" , SPKEY_F3 , 0 } ,
+			{ "k4" , "kf4" , SPKEY_F4 , 0 } ,
+			{ "k5" , "kf5" , SPKEY_F5 , 0 } ,
+			{ "k6" , "kf6" , SPKEY_F6 , 0 } ,
+			{ "k7" , "kf7" , SPKEY_F7 , 0 } ,
+			{ "k8" , "kf8" , SPKEY_F8 , 0 } ,
+			{ "k9" , "kf9" , SPKEY_F9 , 0 } ,
+			{ "k;" , "kf10" , SPKEY_F10 , 0 } ,
+
+			{ "F1" , "kf11" , SPKEY_F11 , 0 } ,
+			{ "F2" , "kf12" , SPKEY_F12 , 0 } ,
+			{ "F3" , "kf13" , SPKEY_F13 , 0 } ,
+			{ "F4" , "kf14" , SPKEY_F14 , 0 } ,
+			{ "F5" , "kf15" , SPKEY_F15 , 0 } ,
+			{ "F6" , "kf16" , SPKEY_F16 , 0 } ,
+			{ "F7" , "kf17" , SPKEY_F17 , 0 } ,
+			{ "F8" , "kf18" , SPKEY_F18 , 0 } ,
+			{ "F9" , "kf19" , SPKEY_F19 , 0 } ,
+			{ "FA" , "kf20" , SPKEY_F20 , 0 } ,
+			{ "FB" , "kf21" , SPKEY_F21 , 0 } ,
+			{ "FC" , "kf22" , SPKEY_F22 , 0 } ,
+			{ "FD" , "kf23" , SPKEY_F23 , 0 } ,
+			{ "FE" , "kf24" , SPKEY_F24 , 0 } ,
+			{ "FF" , "kf25" , SPKEY_F25 , 0 } ,
+			{ "FG" , "kf26" , SPKEY_F26 , 0 } ,
+			{ "FH" , "kf27" , SPKEY_F27 , 0 } ,
+			{ "FI" , "kf28" , SPKEY_F28 , 0 } ,
+			{ "FJ" , "kf29" , SPKEY_F29 , 0 } ,
+			{ "FK" , "kf30" , SPKEY_F30 , 0 } ,
+			{ "FL" , "kf31" , SPKEY_F31 , 0 } ,
+			{ "FM" , "kf32" , SPKEY_F32 , 0 } ,
+			{ "FN" , "kf33" , SPKEY_F33 , 0 } ,
+			{ "FO" , "kf34" , SPKEY_F34 , 0 } ,
+			{ "FP" , "kf35" , SPKEY_F35 , 0 } ,
+			{ "FQ" , "kf36" , SPKEY_F36 , 0 } ,
+			{ "FR" , "kf37" , SPKEY_F37 , 0 } ,
+
+			{ "K1" , "ka1" , SPKEY_KP_HOME , 0 } ,
+			{ "K4" , "kc1" , SPKEY_KP_END , 0 } ,
+			{ "K3" , "ka3" , SPKEY_KP_PRIOR , 0 } ,
+			{ "K5" , "kc3" , SPKEY_KP_NEXT , 0 } ,
+			{ "kB" , "kcbt" , SPKEY_ISO_LEFT_TAB , 0 } ,
+			/* { "kC" , "kclr" , SPKEY_CLEAR , 0 } , */
+			{ "kD" , "kdch1" , SPKEY_DELETE , 0 } ,
+			{ "kI" , "kich1" , SPKEY_INSERT , 0 } ,
+
+			{ "kN" , "knp" , SPKEY_NEXT , 0 } ,
+			{ "kP" , "kpp" , SPKEY_PRIOR , 0 } ,
+			{ "%c" , "kNXT" , SPKEY_NEXT , 2 } ,
+			{ "%e" , "kPRV" , SPKEY_PRIOR , 2 } ,
+
+			/* { "&8" , "kund" , SPKEY_UNDO , 0 } , */
+			{ "kb" , "kbs" , SPKEY_BACKSPACE , 0 } ,
+
+			{ "Co" , "colors" , -1 , 0 } ,
+			{ "TN" , "name" , -2 , 0 } ,
+		} ;
+		int  idx ;
+		u_char *  value ;
+
+		for( src = key , dst = deckey ; src[0] && src[1] ; src += 2)
+		{
+			*(dst++) = TO_INT(src[0]) * 16 + TO_INT(src[1]) ;
+		}
+		*dst = '\0' ;
+
+		value = NULL ;
+
+		for( idx = 0 ; idx < sizeof(db) / sizeof(db[0]) ; idx++)
+		{
+			if( strcmp( deckey , db[idx].tckey) == 0 ||
+			    strcmp( deckey , db[idx].tikey) == 0)
+			{
+				if( db[idx].spkey == -1)
+				{
+					value = "256" ;
+				}
+				else if( db[idx].spkey == -2)
+				{
+					value = "mlterm" ;
+				}
+				else
+				{
+					value = ml_termcap_special_key_to_seq(
+							vt100_parser->termcap ,
+							db[idx].spkey ,
+							db[idx].modcode ,
+							/* vt100_parser->is_app_keypad */ 0 ,
+							vt100_parser->is_app_cursor_keys , 0) ;
+				}
+
+				break ;
+			}
+		}
+
+		if( value && response_termcap( vt100_parser->pty , key , value))
+		{
+			return ;
+		}
+	}
+
+	ml_write_to_pty( vt100_parser->pty , "\x1bP0+r\x1b\\" , 7) ;
+}
+
 static void
 clear_line_all(
 	ml_vt100_parser_t *  vt100_parser
@@ -3067,18 +3330,19 @@ send_device_attributes(
 	{
 		/* vt100 answerback */
 	#ifndef  NO_IMAGE
-		seq = "\x1b[?1;2;4;7c" ;
+		seq = "\x1b[?1;2;3;4;7;29c" ;
 	#else
-		seq = "\x1b[?1;2;7c" ;
+		seq = "\x1b[?1;2;7;29c" ;
 	#endif
 	}
 	else if( rank == 2)
 	{
 		/*
-		 * If Pv is greater than 95, vim sets ttymouse=xterm2
-		 * automatically.
+		 * >=96: vim sets ttymouse=xterm2
+		 * >=141: vim uses tcap-query.
+		 * >=277: vim uses sgr mouse tracking.
 		 */
-		seq = "\x1b[>1;96;0c" ;
+		seq = "\x1b[>1;277;0c" ;
 	}
 	else
 	{
@@ -5785,12 +6049,14 @@ parse_vt100_escape_sequence(
 			}
 			else
 			{
-				u_char *  data ;
+				u_char *  macro ;
+				u_char *  tckey ;
 
-				if( *str_p == '!' && *(str_p + 1) == 'z')
+				macro = tckey = NULL ;
+
+				if( ( *str_p == '!' && *(str_p + 1) == 'z') ||
+				    ( *str_p == '+' && *(str_p + 1) == 'q'))
 				{
-					/* DECDMAC */
-
 					if( left <= 2)
 					{
 						left = 0 ;
@@ -5798,8 +6064,19 @@ parse_vt100_escape_sequence(
 						return  0 ;
 					}
 
-					data = (str_p += 2) ;
+					str_p += 2 ;
 					left -= 2 ;
+
+					if( *(str_p - 2) == '!' /* && *(str_p - 1) == 'z' */)
+					{
+						/* DECDMAC */
+						macro = str_p ;
+					}
+					else
+					{
+						/* Termcap query */
+						tckey = str_p ;
+					}
 				}
 				else
 				{
@@ -5807,8 +6084,6 @@ parse_vt100_escape_sequence(
 					{
 						return  0 ;
 					}
-
-					data = NULL ;
 				}
 
 				/*
@@ -5823,11 +6098,15 @@ parse_vt100_escape_sequence(
 
 				if( get_pt_in_esc_seq( &str_p , &left , 1 , 0))
 				{
-					if( data)
+					if( macro)
 					{
 						define_macro( vt100_parser ,
 							dcs_beg + (*dcs_beg == '\x1b' ? 2 : 1) ,
-							data) ;
+							macro) ;
+					}
+					else if( tckey)
+					{
+						request_termcap( vt100_parser , tckey) ;
 					}
 				}
 				else if( left == 0)
@@ -6329,6 +6608,7 @@ ml_set_use_scp_full(
 ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
+	ml_termcap_entry_t *  termcap ,
 	ml_char_encoding_t  encoding ,
 	int  is_auto_encoding ,
 	int  use_auto_detect ,
@@ -6353,6 +6633,7 @@ ml_vt100_parser_new(
 	vt100_parser->w_buf.output_func = ml_screen_overwrite_chars ;
 
 	vt100_parser->screen = screen ;
+	vt100_parser->termcap = termcap ;
 
 	vt100_parser->log_file = -1 ;
 	
@@ -6545,6 +6826,56 @@ ml_reset_pending_vt100_sequence(
 	{
 		/* Reset DCS or OSC */
 		vt100_parser->r_buf.left = 0 ;
+	}
+}
+
+int
+ml_vt100_parser_write_modified_key(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  key ,	/* should be less than 0x80 */
+	int  modcode
+	)
+{
+	if( vt100_parser->modify_other_keys == 2)
+	{
+		char *  buf ;
+
+		if( ! ( (modcode - 1) == 1 /* is shift */ &&
+		        ( key < 'A' || ('Z' < key && key < 'a') || 'z' < key)) &&
+		    ( buf = alloca( 10)))
+		{
+			sprintf( buf , "\x1b[%d;%du" , key , modcode) ;
+
+			ml_write_to_pty( vt100_parser->pty , buf , strlen(buf)) ;
+
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
+int
+ml_vt100_parser_write_special_key(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_special_key_t  key ,
+	int  modcode ,
+	int  is_numlock
+	)
+{
+	char *  buf ;
+
+	if( ( buf = ml_termcap_special_key_to_seq( vt100_parser->termcap , key ,
+			modcode , (vt100_parser->is_app_keypad && ! is_numlock) ,
+			vt100_parser->is_app_cursor_keys , vt100_parser->is_app_escape)))
+	{
+		ml_write_to_pty( vt100_parser->pty , buf , strlen(buf)) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 

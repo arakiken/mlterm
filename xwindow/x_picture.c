@@ -686,7 +686,7 @@ load_file_async(
 static int
 ensure_inline_picture(
 	x_display_t *  disp ,
-	char *  file_path ,
+	const char *  file_path ,
 	u_int *  width ,	/* can be 0 */
 	u_int *  height ,	/* can be 0 */
 	u_int  col_width ,
@@ -1062,7 +1062,8 @@ x_load_inline_picture(
 	inline_pic_args_t *  args ;
 
 	/* XXX Don't reuse ~/.mlterm/[pty name].six, [pty name].rgs and anim-*.gif */
-	if( ! strstr( file_path , "mlterm/") || strstr( file_path , "mlterm/macro"))
+	if( ! strstr( file_path , "mlterm/") || strstr( file_path , "mlterm/macro") ||
+	    strstr( file_path , "mlterm/emoji/"))
 	{
 		for( idx = 0 ; idx < num_of_inline_pics ; idx++)
 		{
@@ -1178,7 +1179,13 @@ x_load_inline_picture(
 	{
 		int  ret ;
 
+	#ifdef  BUILTIN_IMAGELIB
 		ret = load_file(args) ;
+	#else
+		struct stat  st ;
+
+		ret = (stat( file_path , &st) == 0 && load_file(args)) ;
+	#endif
 		free( args) ;
 
 		if( ret)

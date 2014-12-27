@@ -1289,7 +1289,6 @@ x_window_show(
 	)
 {
 	u_int  count ;
-	Cursor  cursor ;
 
 	if( win->my_window)
 	{
@@ -2068,11 +2067,11 @@ x_window_receive_event(
 					}
 				}
 				else if( ( kev.state & ControlMask) &&
-				         '2' <= kev.ch && kev.ch <= '8')
+				         '0' <= kev.ch && kev.ch <= '9')
 				{
 					/*
 					 * - See x_xic_get_str() in win32/x_xic.c.
-					 * - Control+2-8 (which doesn't cause WM_*_CHAR message.
+					 * - Control+0-9 (which doesn't cause WM_*_CHAR message.
 					 */
 				}
 				else
@@ -2089,7 +2088,12 @@ x_window_receive_event(
 					 * VK_OEM_XXX doesn't cause WM_*_CHAR message
 					 * in WM_SYSKEYDOWN.
 					 */
-					kev.ch = oem_key_to_char( event->wparam) ;
+					if( ( kev.ch = oem_key_to_char( event->wparam)))
+					{
+						event->wparam = kev.ch ;
+						x_xic_filter_event( x_get_root_window( win) ,
+							event) ;
+					}
 				}
 				else
 				{
@@ -2101,25 +2105,54 @@ x_window_receive_event(
 					break ;
 				}
 			}
+			else if( VK_SHIFT <= event->wparam && event->wparam <= VK_MENU)
+			{
+				/* Don't call key_pressed event */
+				break ;
+			}
 			else
 			{
+				kev.ch = 0 ;
+
 				/*
 				 * - See x_xic_get_str() in win32/x_xic.c.
-				 * - Following keys don't cause WM_*_CHAR message.
 				 * - Ctrl+Alt+key(AltGr+key) can cause WM_*_CHAR message later.
 				 */
 				if( ! ( kev.state & ModMask) &&
-				    ( kev.state & ControlMask) &&
-				    ( event->wparam == VK_OEM_2 ||	/* Ctl+/ */
-				      event->wparam == VK_OEM_3 ||	/* Ctl+@ */
-				      event->wparam == VK_OEM_7 ||	/* Ctl+^ */
-				      event->wparam == VK_OEM_102))	/* Ctl+_ */
+				    ( kev.state & ControlMask))
 				{
-					kev.ch = oem_key_to_char( event->wparam) ;
-				}
-				else
-				{
-					kev.ch = 0 ;
+					if( ( kev.ch = oem_key_to_char( event->wparam)))
+					{
+						/*
+						 * VK_OEM_1 <= event->wparam &&
+						 * event->wparam <= VK_OEM_102
+						 */
+						int  orig_wparam ;
+
+						orig_wparam = event->wparam ;
+						event->wparam = kev.ch ;
+						x_xic_filter_event( x_get_root_window( win) ,
+							event) ;
+
+						if( orig_wparam == VK_OEM_4 ||	/* Ctl+[ */
+						    orig_wparam == VK_OEM_5 ||	/* Ctl+\ */
+						    orig_wparam == VK_OEM_6 ||	/* Ctl+] */
+						    ( orig_wparam == VK_OEM_102 && /* Ctl+_ */
+						      ! (kev.state & ShiftMask)) ||
+						    ( orig_wparam == VK_OEM_MINUS && /* Ctrl+- */
+						      (kev.state & ShiftMask)))
+						{
+							break ;
+						}
+						else
+						{
+							/*
+							 * keys except VK_OEM_{4|5|6} and
+							 * Shift+VK_OEM_102 don't
+							 * cause WM_*_CHAR message.
+							 */
+						}
+					}
 				}
 			}
 

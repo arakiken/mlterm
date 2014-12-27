@@ -1,3 +1,36 @@
+2014-12-27  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty_ssh.c:
+	  - Compiling error when OPEN_PTY_ASYNC is not defined is fixed.
+	  - libssh2_channel_open_ex(window_size = 64 * LIBSSH2_CHANNEL_PACKET_DEFAULT)
+	    is called instead of libssh2_channel_open_session() in order to
+	    improve performance.
+
+	* win32/x_window.c, win32/x_xic.c:
+	  Ctrl+0, Ctrl+1, Ctrl+9 and so on are processed for modify other keys.
+
+	* MLTermPty.c, MLTerm.java, MLTermPty.java:
+	  writeModifiedKey() and writeSpecialKey() are added to MLTermPty.
+	  modifyOtherKeys feature is supported.
+
+	* x_picture.c: Image files in ~/.mlterm/emoji are cachable.
+
+	* ml_vt100_parser.[ch]:
+	  - get_emoji_data() which is called in processing U+1F000-1F6FF is added
+	    to ml_xterm_event_listener_t.
+	  - tcap query is supported.
+	  - DA2 response is changed from "1;96;0" to "1;277;0"
+	  - DA response is changed from "1;2;4;7" to "1;2;3;4;7;29"
+	  - ml_vt100_parser_write_modified_key() and ml_vt100_parser_write_special_key()
+	    are added.
+
+	* x_screen.[ch], x_screen_manager.c ml_term.[ch], ml_term_manager.c, vte.c:
+	  x_termcap is replaced by ml_termcap.
+
+	* ml_termcap.[ch]: Added.
+
+	* x_termcap.[ch]: Removed.
+
 2014-12-13  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_wordsep.c: Memory leak is fixed.

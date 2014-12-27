@@ -229,7 +229,7 @@ x_xic_get_str(
 	}
 	else if( event->state & ControlMask)
 	{
-		if( event->ch == '2' || event->ch == ' ')
+		if( event->ch == '2' || event->ch == ' ' || event->ch == '@')
 		{
 			event->ch = 0 ;
 		}
@@ -242,9 +242,10 @@ x_xic_get_str(
 		{
 			event->ch = 0x7f ;
 		}
-		else if( event->ch == '@')
+		else if( event->ch == '0' || event->ch == '1' || event->ch == '9')
 		{
-			event->ch = 0x0 ;
+			/* For modifyOtherKeys */
+			goto  zero_return ;
 		}
 		else if( event->ch == '^')
 		{
@@ -283,10 +284,13 @@ x_xic_get_str(
 #endif
 
 	/* wparam doesn't tell upper case from lower case. */
-	if( 'a' <= event->ch && event->ch <= 'z')
+	if( 'A' <= *keysym && *keysym <= 'Z')
 	{
-		/* Upper to Lower case */
-		*keysym += 0x20 ;
+		if( event->ch < 'A' || 'Z' < event->ch)
+		{
+			/* Upper to Lower case */
+			*keysym += 0x20 ;
+		}
 	}
 
 	*parser = win->xic->parser ;

@@ -14,6 +14,7 @@
 #include  <kiklib/kik_def.h>	/* PATH_MAX */
 #include  <kiklib/kik_args.h>	/* kik_arg_str_to_array */
 #include  <kiklib/kik_locale.h>	/* kik_get_codeset_win32 */
+#include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
 #ifdef  USE_WIN32GUI
@@ -2408,34 +2409,12 @@ key_pressed(
 
 	if( ! shortcut_match( screen , ksym , masked_state))
 	{
-		int  is_app_keypad ;
-		int  is_app_cursor_keys ;
-		char *  buf ;
-		/*
-		 *    intermediate_ch
-		 *      /
-		 * ESC [ Ps ; Ps ~
-		 *        \    \  \
-		 *       param  \  final_ch
-		 *             modcode
-		 */
-		char  buf_escseq[15] ;
-		char  intermediate_ch ;
-		char  final_ch ;
-		int  param ;
 		int  modcode ;
-		#define KEY_ESCSEQ( i , p , f) do {	\
-			intermediate_ch = (i) ;		\
-			param = ( p) ;			\
-			final_ch = ( f) ;		\
-		} while ( 0)
+		ml_special_key_t  spkey ;
+		int  is_numlock ;
 
-		buf = NULL ;
-		intermediate_ch = 0 ;
 		modcode = 0 ;
-
-		is_app_cursor_keys = ml_term_is_app_cursor_keys( screen->term) ;
-		is_app_keypad = ml_term_is_app_keypad( screen->term) ;
+		spkey = -1 ;
 
 		if( event->state)	/* Check unmasked (raw) state of event. */
 		{
@@ -2443,7 +2422,6 @@ key_pressed(
 			int  is_meta ;
 			int  is_alt ;
 			int  is_ctl ;
-			int  is_numlock ;
 
 			if( compare_key_state_with_modmap( screen , event->state ,
 						       &is_shift , NULL ,
@@ -2451,38 +2429,31 @@ key_pressed(
 						       &is_meta , &is_numlock , NULL ,
 						       NULL) &&
 			    /* compatible with xterm (Modifier codes in input.c) */
-			    ( modcode = (is_shift ? 1 : 0) + (is_alt   ? 2 : 0) +
-						(is_ctl   ? 4 : 0) + (is_meta  ? 8 : 0)))
+			    ( modcode = (is_shift ? 1 : 0) + (is_alt ? 2 : 0) +
+						(is_ctl ? 4 : 0) + (is_meta ? 8 : 0)))
 			{
 				modcode++ ;
+				int  key ;
 
-				if( ml_term_modify_other_keys(screen->term) == 2)
+				if( ( key = ksym) < 0x80 ||
+				    /*
+				     * XK_BackSpace, XK_Tab and XK_Return are defined as
+				     * 0xffXX in keysymdef.h, while they are less than
+				     * 0x80 on win32 and framebuffer.
+				     */
+				    ( size == 1 && ( key = kstr[0]) < 0x20))
 				{
-					if( size == 1
-				#if  defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
-					    || ( size == 2 && kstr[0] == 0)
-				#endif
-					    )
+					if( ml_term_write_modified_key( screen->term ,
+						key , modcode))
 					{
-						u_char  kchar ;
-
-						if( ( kchar = kstr[size - 1]) < 0x20)
-						{
-							kchar += (is_shift ? 0 : 0x20) +
-							         (is_ctl ? 0x40 : 0) ;
-						}
-
-						KEY_ESCSEQ( '[' , kchar , 'u') ;
-
-						goto  write_buf ;
+						return ;
 					}
 				}
 			}
-			
-			if( is_numlock)
-			{
-				is_app_keypad = 0 ;
-			}
+		}
+		else
+		{
+			is_numlock = 0 ;
 		}
 		
 		if( screen->use_vertical_cursor)
@@ -2525,118 +2496,92 @@ key_pressed(
 
 		if( IsKeypadKey( ksym))
 		{
-			if( is_app_keypad)
+			if( ksym == XK_KP_Multiply)
 			{
-				if( ksym == XK_KP_Multiply)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'j') ;
-				}
-				else if( ksym == XK_KP_Add)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'k') ;
-				}
-				else if( ksym == XK_KP_Separator)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'l') ;
-				}
-				else if( ksym == XK_KP_Subtract)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'm') ;
-				}
-				else if( (ksym == XK_KP_Decimal || ksym == XK_KP_Delete))
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'n') ;
-				}
-				else if( ksym == XK_KP_Divide)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'o') ;
-				}
-				else if( ksym == XK_KP_F1)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'P') ;
-				}
-				else if( ksym == XK_KP_F2)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'Q') ;
-				}
-				else if( ksym == XK_KP_F3)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'R') ;
-				}
-				else if( ksym == XK_KP_F4)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'S') ;
-				}
-				else if( ksym == XK_KP_Insert)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'p') ;
-				}
-				else if( ksym == XK_KP_End)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'q') ;
-				}
-				else if( ksym == XK_KP_Down)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'r') ;
-				}
-				else if( ksym == XK_KP_Next)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 's') ;
-				}
-				else if( ksym == XK_KP_Left)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 't') ;
-				}
-				else if( ksym == XK_KP_Begin)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'u') ;
-				}
-				else if( ksym == XK_KP_Right)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'v') ;
-				}
-				else if( ksym == XK_KP_Home)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'w') ;
-				}
-				else if( ksym == XK_KP_Up)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'x') ;
-				}
-				else if( ksym == XK_KP_Prior)
-				{
-					KEY_ESCSEQ( 'O' , 0 , 'y') ;
-				}
-				else
-				{
-					goto  no_keypad ;
-				}
-				
-				goto  write_buf ;
+				spkey = SPKEY_KP_MULTIPLY ;
+			}
+			else if( ksym == XK_KP_Add)
+			{
+				spkey = SPKEY_KP_ADD ;
+			}
+			else if( ksym == XK_KP_Separator)
+			{
+				spkey = SPKEY_KP_SEPARATOR ;
+			}
+			else if( ksym == XK_KP_Subtract)
+			{
+				spkey = SPKEY_KP_SUBTRACT ;
+			}
+			else if( ksym == XK_KP_Decimal || ksym == XK_KP_Delete)
+			{
+				spkey = SPKEY_KP_DELETE ;
+			}
+			else if( ksym == XK_KP_Divide)
+			{
+				spkey = SPKEY_KP_DIVIDE ;
+			}
+			else if( ksym == XK_KP_F1)
+			{
+				spkey = SPKEY_KP_F1 ;
+			}
+			else if( ksym == XK_KP_F2)
+			{
+				spkey = SPKEY_KP_F2 ;
+			}
+			else if( ksym == XK_KP_F3)
+			{
+				spkey = SPKEY_KP_F3 ;
+			}
+			else if( ksym == XK_KP_F4)
+			{
+				spkey = SPKEY_KP_F4 ;
+			}
+			else if( ksym == XK_KP_Insert)
+			{
+				spkey = SPKEY_KP_INSERT ;
+			}
+			else if( ksym == XK_KP_End)
+			{
+				spkey = SPKEY_KP_END ;
+			}
+			else if( ksym == XK_KP_Down)
+			{
+				spkey = SPKEY_KP_DOWN ;
+			}
+			else if( ksym == XK_KP_Next)
+			{
+				spkey = SPKEY_KP_NEXT ;
+			}
+			else if( ksym == XK_KP_Left)
+			{
+				spkey = SPKEY_KP_LEFT ;
+			}
+			else if( ksym == XK_KP_Begin)
+			{
+				spkey = SPKEY_KP_BEGIN ;
+			}
+			else if( ksym == XK_KP_Right)
+			{
+				spkey = SPKEY_KP_RIGHT ;
+			}
+			else if( ksym == XK_KP_Home)
+			{
+				spkey = SPKEY_KP_HOME ;
+			}
+			else if( ksym == XK_KP_Up)
+			{
+				spkey = SPKEY_KP_UP ;
+			}
+			else if( ksym == XK_KP_Prior)
+			{
+				spkey = SPKEY_KP_PRIOR ;
 			}
 			else
 			{
-				ksym_conv_t  table[] =
-				{
-					{ XK_KP_F1 ,	XK_F1 , } ,
-					{ XK_KP_F2 ,	XK_F2 , } ,
-					{ XK_KP_F3 ,	XK_F3 , } ,
-					{ XK_KP_F4 ,	XK_F4 , } ,
-					{ XK_KP_Insert , XK_Insert , } ,
-					{ XK_KP_End ,	XK_End , } ,
-					{ XK_KP_Down ,	XK_Down , } ,
-					{ XK_KP_Next ,	XK_Next , } ,
-					{ XK_KP_Left ,	XK_Left , } ,
-					{ XK_KP_Begin ,	XK_Begin , } ,
-					{ XK_KP_Right ,	XK_Right , } ,
-					{ XK_KP_Home ,	XK_Home , } ,
-					{ XK_KP_Up ,	XK_Up , } ,
-					{ XK_KP_Prior ,	XK_Prior , } ,
-				} ;
-
-				ksym = convert_ksym( ksym , table ,
-						sizeof(table) / sizeof(table[0])) ;
+				goto  no_keypad ;
 			}
+
+			goto  write_buf ;
 		}
 
 no_keypad:
@@ -2650,11 +2595,7 @@ no_keypad:
 		#endif
 			) || ksym == XK_KP_Delete)
 		{
-			if( modcode ||
-			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_DELETE)))
-			{
-				KEY_ESCSEQ( '[' , 3 , '~') ;
-			}
+			spkey = SPKEY_DELETE ;
 		}
 		/*
 		 * XXX
@@ -2663,17 +2604,11 @@ no_keypad:
 		 */
 		else if( ksym == XK_BackSpace && size == 1 && kstr[0] == 0x8)
 		{
-			if( ! (buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE)))
-			{
-				buf = "\x7f" ;
-			}
+			spkey = SPKEY_BACKSPACE ;
 		}
 		else if( ksym == XK_Escape)
 		{
-			if( ml_term_is_app_escape( screen->term))
-			{
-				buf = "\x1bO[" ;
-			}
+			spkey = SPKEY_ESCAPE ;
 		}
 		else if( size > 0)
 		{
@@ -2694,151 +2629,82 @@ no_keypad:
 	#endif
 		else if( ksym == XK_Up)
 		{
-			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
-				    modcode ? 1 : 0 , 'A') ;
+			spkey = SPKEY_UP ;
 		}
 		else if( ksym == XK_Down)
 		{
-			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
-				    modcode ? 1 : 0 , 'B') ;
+			spkey = SPKEY_DOWN ;
 		}
 		else if( ksym == XK_Right)
 		{
-			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
-				    modcode ? 1 : 0 , 'C') ;
+			spkey = SPKEY_RIGHT ;
 		}
 		else if( ksym == XK_Left)
 		{
-			KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
-				    modcode ? 1 : 0 , 'D') ;
+			spkey = SPKEY_LEFT ;
 		}
 		else if( ksym == XK_Begin)
 		{
-			KEY_ESCSEQ( '[' , modcode ? 1 : 0 , 'E') ;
+			spkey = SPKEY_BEGIN ;
 		}
 		else if( ksym == XK_End)
 		{
-			if( modcode ||
-			    ! is_app_cursor_keys ||
-			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_END)) )
-			{
-				KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
-				            modcode ? 1 : 0 , 'F') ;
-			}
+			spkey = SPKEY_END ;
 		}
 		else if( ksym == XK_Home)
 		{
-			if( modcode ||
-			    ! is_app_cursor_keys ||
-			    ! (buf = x_termcap_get_str_field( screen->termcap , ML_HOME)) )
-			{
-				KEY_ESCSEQ( (is_app_cursor_keys && ! modcode) ? 'O' : '[' ,
-				            modcode ? 1 : 0 , 'H') ;
-			}
+			spkey = SPKEY_HOME ;
 		}
 		else if( ksym == XK_Prior)
 		{
-			KEY_ESCSEQ( '[' , 5 , '~') ;
+			spkey = SPKEY_PRIOR ;
 		}
 		else if( ksym == XK_Next)
 		{
-			KEY_ESCSEQ( '[' , 6 , '~') ;
+			spkey = SPKEY_NEXT ;
 		}
 		else if( ksym == XK_Insert)
 		{
-			KEY_ESCSEQ( '[' , 2 , '~') ;
+			spkey = SPKEY_INSERT ;
 		}
 		else if( ksym == XK_Find)
 		{
-			KEY_ESCSEQ( '[' , 1 , '~') ;
+			spkey = SPKEY_FIND ;
 		}
 		else if( ksym == XK_Execute)
 		{
-			KEY_ESCSEQ( '[' , 3 , '~') ;
+			spkey = SPKEY_EXECUTE ;
 		}
 		else if( ksym == XK_Select)
 		{
-			KEY_ESCSEQ( '[' , 4 , '~') ;
+			spkey = SPKEY_SELECT ;
 		}
 	#ifdef  XK_ISO_Left_Tab
 		else if( ksym == XK_ISO_Left_Tab)
 		{
-			KEY_ESCSEQ( '[' , 0 , 'Z') ;
-			modcode = 0 ;
+			spkey = SPKEY_ISO_LEFT_TAB ;
 		}
 	#endif
 		else if( ksym == XK_F15 || ksym == XK_Help)
 		{
-			KEY_ESCSEQ( '[' , 28 , '~') ;
+			spkey = SPKEY_F15 ;
 		}
 		else if( ksym == XK_F16 || ksym == XK_Menu)
 		{
-			KEY_ESCSEQ( '[' , 29 , '~') ;
+			spkey = SPKEY_F16 ;
 		}
 		else if( XK_F1 <= ksym && ksym <= XK_FMAX)
 		{
-			if( ksym <= XK_F5)
-			{
-				if( modcode ||
-				    ! (buf = x_termcap_get_str_field( screen->termcap ,
-							ML_F1 + ksym - XK_F1)))
-				{
-					if( ksym == XK_F5)
-					{
-						/* 15 */
-						KEY_ESCSEQ( '[' , 15 , '~') ;
-					}
-					else
-					{
-						/* PQRS */
-						KEY_ESCSEQ( 'O' , modcode , (ksym - XK_F1) + 'P') ;
-
-						/*
-						 * Shift+F1 is not ^[O1;2P but ^[O2P.
-						 * So 'modcode' is copied to 'param' varaiable
-						 * above and then cleared to 0 here.
-						 */
-						modcode = 0 ;
-					}
-				}
-			}
-			else if( ksym <= XK_F10)
-			{
-				/* 17 - 21 */
-				KEY_ESCSEQ( '[' , (ksym - XK_F6) + 17 , '~') ;
-			}
-			else if( ksym <= XK_F14)
-			{
-				/* 23 - 26 */
-				KEY_ESCSEQ( '[' , (ksym - XK_F11) + 23 , '~') ;
-			}
-			else
-		#if  XK_FMAX > XK_F20
-			if( ksym <= XK_F20)
-		#endif
-			{
-				/* 31 - 34 */
-				KEY_ESCSEQ( '[' , (ksym - XK_F17) + 31 , '~') ;
-			}
-		#if  XK_FMAX > XK_F20
-			else /* if( ksym <= XK_FMAX) */
-			{
-				/*
-				 * X11: 42 - 56(F35)
-				 * W32: 42 - 45(F24)
-				 */
-				KEY_ESCSEQ( '[' , (ksym - XK_F21) + 42 , '~') ;
-			}
-		#endif
+			spkey = SPKEY_F1 + ksym - XK_F1 ;
 		}
 	#ifdef SunXK_F36
 		else if( ksym == SunXK_F36)
 		{
-			KEY_ESCSEQ( '[' , 57 , '~') ;
+			spkey = SPKEY_F36 ;
 		}
 		else if( ksym == SunXK_F37)
 		{
-			KEY_ESCSEQ( '[' , 58 , '~') ;
+			spkey = SPKEY_F37 ;
 		}
 	#endif
 		else
@@ -2847,33 +2713,8 @@ no_keypad:
 		}
 
 write_buf:
-		if( intermediate_ch)
-		{
-			if( modcode) /* ESC <intermediate> Ps ; Ps <final> */
-			{
-				kik_snprintf( buf_escseq , sizeof(buf_escseq) ,
-					      "\x1b%c%d;%d%c" ,
-					      intermediate_ch , param ,
-					      modcode , final_ch) ;
-			}
-			else if( param) /* ESC <intermediate> Ps <final> */
-			{
-				kik_snprintf( buf_escseq , sizeof(buf_escseq) ,
-					      "\x1b%c%d%c" ,
-					      intermediate_ch , param ,
-					      final_ch) ;
-			}
-			else /* ESC <intermediate> <final> */
-			{
-				kik_snprintf( buf_escseq , sizeof(buf_escseq) ,
-					      "\x1b%c%c" ,
-					      intermediate_ch , final_ch) ;
-			}
-
-			buf = buf_escseq ;
-		}
 		/* Check unmasked (raw) state of event. */
-		else if( screen->mod_meta_mask & event->state)
+		if( screen->mod_meta_mask & event->state)
 		{
 			if( screen->mod_meta_mode == MOD_META_OUTPUT_ESC)
 			{
@@ -2923,11 +2764,13 @@ write_buf:
 			}
 		}
 
-		if( buf)
+		if( spkey != -1 &&
+		    ml_term_write_special_key( screen->term , spkey , modcode , is_numlock))
 		{
-			write_to_pty( screen , buf , strlen(buf) , NULL) ;
+			return ;
 		}
-		else if( size > 0)
+
+		if( size > 0)
 		{
 			if( parser && receive_string_via_ucs(screen))
 			{
@@ -7311,6 +7154,55 @@ xterm_get_picture_data(
 	return  NULL ;
 }
 
+static int
+xterm_get_emoji_data(
+	void *  p ,
+	ml_char_t *  ch1 ,
+	ml_char_t *  ch2
+	)
+{
+	x_screen_t *  screen ;
+	char *  file_path ;
+	u_int  width ;
+	u_int  height ;
+	int  idx ;
+
+	screen = p ;
+
+	width = x_col_width(screen) * ml_char_cols(ch1) ;
+	height = x_line_height(screen) ;
+
+	if( ( file_path = alloca( 18 + DIGIT_STR_LEN(u_int32_t) * 2 + 1)))
+	{
+		if( ch2)
+		{
+			sprintf( file_path , "mlterm/emoji/%x-%x.png" ,
+				ml_char_code(ch1) , ml_char_code(ch2)) ;
+		}
+		else
+		{
+			sprintf( file_path , "mlterm/emoji/%x.png" , ml_char_code(ch1)) ;
+		}
+
+		if( ( file_path = kik_get_user_rc_path( file_path)))
+		{
+			idx = x_load_inline_picture( screen->window.disp , file_path ,
+					&width , &height , width / ml_char_cols(ch1) , height ,
+					screen->term) ;
+			free( file_path) ;
+
+			if( idx != -1)
+			{
+				ml_char_combine_picture( ch1 , idx , 0) ;
+
+				return  1 ;
+			}
+		}
+	}
+
+	return  0 ;
+}
+
 #ifndef  DONT_OPTIMIZE_DRAWING_PICTURE
 static void
 xterm_show_sixel(
@@ -7320,7 +7212,7 @@ xterm_show_sixel(
 {
 	x_screen_t *  screen ;
 	Pixmap  pixmap ;
-	Pixmap  mask ;
+	PixmapMask  mask ;
 	u_int  width ;
 	u_int  height ;
 
@@ -7379,6 +7271,7 @@ xterm_add_frame_to_animation(
 }
 #else
 #define  xterm_get_picture_data NULL
+#define  xterm_get_emoji_data NULL
 #define  xterm_show_sixel NULL
 #define  xterm_add_frame_to_animation NULL
 #endif	/* NO_IMAGE */
@@ -7481,7 +7374,6 @@ x_screen_new(
 	ml_term_t *  term ,		/* can be NULL */
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
-	x_termcap_entry_t *  termcap ,
 	u_int  brightness ,
 	u_int  contrast ,
 	u_int  gamma ,
@@ -7616,6 +7508,7 @@ x_screen_new(
 	screen->xterm_listener.get_rgb = xterm_get_rgb ;
 	screen->xterm_listener.get_window_size = xterm_get_window_size ;
 	screen->xterm_listener.get_picture_data = xterm_get_picture_data ;
+	screen->xterm_listener.get_emoji_data = xterm_get_emoji_data ;
 	screen->xterm_listener.show_sixel = xterm_show_sixel ;
 	screen->xterm_listener.add_frame_to_animation = xterm_add_frame_to_animation ;
 	screen->xterm_listener.hide_cursor = xterm_hide_cursor ;
@@ -7710,7 +7603,6 @@ x_screen_new(
 	}
 
 	screen->shortcut = shortcut ;
-	screen->termcap = termcap ;
 
 	if( mod_meta_key && strcmp( mod_meta_key , "none") != 0)
 	{

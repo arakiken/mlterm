@@ -51,14 +51,14 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		mlterm/ml_edit_scroll.c mlterm/ml_cursor.c mlterm/ml_logical_visual.c \
 		mlterm/ml_logs.c mlterm/ml_screen.c mlterm/ml_shape.c mlterm/ml_str_parser.c \
 		mlterm/ml_term.c mlterm/ml_vt100_parser.c mlterm/ml_term_manager.c mlterm/ml_bidi.c \
-		mlterm/ml_iscii.c mlterm/ml_config_menu.c mlterm/ml_config_proto.c mlterm/ml_pty.c \
+		mlterm/ml_iscii.c mlterm/ml_config_menu.c mlterm/ml_config_proto.c \
+		mlterm/ml_termcap.c mlterm/ml_pty.c \
 		mlterm/ml_pty_unix.c mlterm/ml_drcs.c \
 		$(FRIBIDI_SRC_FILES) \
 		xwindow/fb/x.c xwindow/fb/x_font.c xwindow/x_mod_meta_mode.c xwindow/x_shortcut.c \
 		xwindow/x_bel_mode.c xwindow/x_font_cache.c xwindow/x_picture.c \
 		xwindow/fb/x_color.c xwindow/x_font_config.c xwindow/x_sb_mode.c \
-		xwindow/x_termcap.c xwindow/x_color_cache.c \
-		xwindow/x_font_manager.c xwindow/x_type_engine.c \
+		xwindow/x_color_cache.c xwindow/x_font_manager.c xwindow/x_type_engine.c \
 		xwindow/x_color_manager.c xwindow/fb/x_gc.c xwindow/x_type_loader.c \
 		xwindow/fb/x_connect_dialog.c xwindow/x_im.c \
 		xwindow/fb/x_window.c xwindow/fb/x_display.c xwindow/x_im_candidate_screen.c \

@@ -2058,7 +2058,6 @@ ml_screen_get_n_prev_char(
 {
 	int  char_index ;
 	int  row ;
-	ml_char_t *  ch ;
 	ml_line_t *  line ;
 
 	if( ! get_n_prev_char_pos( screen , &char_index , &row , 1))
@@ -2071,12 +2070,7 @@ ml_screen_get_n_prev_char(
 		return  NULL ;
 	}
 
-	if( ( ch = ml_char_at( line , char_index)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	return  ch ;
+	return  ml_char_at( line , char_index) ;
 }
 
 int

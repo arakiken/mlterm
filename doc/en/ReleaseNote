@@ -1,4 +1,6 @@
 ver 3.4.2
+* Support colorful emoji with the use of http://github.com/github/gemoji.
+* Support tcap query. (DCS + q Pt ST)
 * Add "Bidi Separators" entry to "Encoding" tab of mlconfig.
 * Add "Word separators" entry to "Others" tab of mlconfig.
 * Add "word_separators" to OSC 5380/5381.

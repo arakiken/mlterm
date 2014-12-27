@@ -893,8 +893,8 @@ public class MLTerm extends StyledText
 
 					if( false)
 					{
-						System.out.printf( "MASK %x KCODE %x\n" ,
-							event.stateMask , event.keyCode) ;
+						System.out.printf( "MASK %x KCODE %x CHAR %x\n" ,
+							event.stateMask , event.keyCode , (int)event.character) ;
 					}
 
 					if( (event.keyCode & 0x70000) != 0)
@@ -943,142 +943,83 @@ public class MLTerm extends StyledText
 						/* XXX Shift+tab event is received only at TraverseListener. */
 						return ;
 					}
-					else if( event.stateMask == SWT.CONTROL && event.keyCode == ' ')
-					{
-						/* Control + space is not converted to 0x00 automatically. */
-						str = "" ;
-					}
 					else if( event.stateMask == SWT.SHIFT && event.keyCode == SWT.INSERT)
 					{
 						str = (String) clipboard.getContents(
 										TextTransfer.getInstance() , DND.CLIPBOARD) ;
 					}
-					else if( event.keyCode == SWT.ARROW_UP)
-					{
-						if( pty.isAppCursorKeys())
-						{
-							str = "\u001bOA" ;
-						}
-						else
-						{
-							str = "\u001b[A" ;
-						}
-					}
-					else if( event.keyCode == SWT.ARROW_DOWN)
-					{
-						if( pty.isAppCursorKeys())
-						{
-							str = "\u001bOB" ;
-						}
-						else
-						{
-							str = "\u001b[B" ;
-						}
-					}
-					else if( event.keyCode == SWT.ARROW_LEFT)
-					{
-						if( pty.isAppCursorKeys())
-						{
-							str = "\u001bOD" ;
-						}
-						else
-						{
-							str = "\u001b[D" ;
-						}
-					}
-					else if( event.keyCode == SWT.ARROW_RIGHT)
-					{
-						if( pty.isAppCursorKeys())
-						{
-							str = "\u001bOC" ;
-						}
-						else
-						{
-							str = "\u001b[C" ;
-						}
-					}
-					else if( event.keyCode == SWT.PAGE_UP)
-					{
-						str = "\u001b[5~" ;
-					}
-					else if( event.keyCode == SWT.PAGE_DOWN)
-					{
-						str = "\u001b[6~" ;
-					}
-					else if( event.keyCode == SWT.HOME)
-					{
-						if( pty.isAppCursorKeys())
-						{
-							str = "\u001bOH" ;
-						}
-						else
-						{
-							str = "\u001b[H" ;
-						}
-					}
-					else if( event.keyCode == SWT.END)
-					{
-						if( pty.isAppCursorKeys())
-						{
-							str = "\u001bOF" ;
-						}
-						else
-						{
-							str = "\u001b[F" ;
-						}
-					}
-					else if( SWT.F1 <= event.keyCode && event.keyCode <= SWT.F20)
-					{
-						char  im = '[' ;
-						int  param = 0 ;
-						char  ft = '~' ;
-						StringBuilder  tmp = new StringBuilder( "\u001b") ;
-
-						if( event.keyCode <= SWT.F4)
-						{
-							/* PQRS */
-							im = 'O' ;
-							ft = (char)((event.keyCode - SWT.F1) + (int)'P') ;
-						}
-						else if( event.keyCode == SWT.F5)
-						{
-							param = 15 ;
-						}
-						else if( event.keyCode <= SWT.F10)
-						{
-							/* 17 - 21 */
-							param = (event.keyCode - SWT.F6) + 17 ;
-						}
-						else if( event.keyCode <= SWT.F14)
-						{
-							/* 23 - 26 */
-							param = (event.keyCode - SWT.F11) + 23 ;
-						}
-						else if( event.keyCode <= SWT.F16)
-						{
-							/* 28 - 29 */
-							param = (event.keyCode - SWT.F15) + 28 ;
-						}
-						else /* if( event.keyCode <= SWT.F20) */
-						{
-							/* 31 - 34 */
-							param = (event.keyCode - SWT.F17) + 31 ;
-						}
-
-						tmp.append( im) ;
-
-						if( param > 0)
-						{
-							tmp.append( String.valueOf( param)) ;
-						}
-
-						tmp.append( ft) ;
-
-						str = tmp.toString() ;
-					}
 					else
 					{
-						str = String.valueOf( event.character) ;
+						int  otherkey ;
+						int  modcode ;
+
+						otherkey = (int)event.character ;
+						modcode = 0 ;
+						if( ( event.stateMask & SWT.SHIFT) == SWT.SHIFT)
+						{
+							modcode |= 1 ;
+						}
+						if( ( event.stateMask & SWT.ALT) == SWT.ALT)
+						{
+							modcode |= 2 ;
+						}
+						if( ( event.stateMask & SWT.CONTROL) == SWT.CONTROL)
+						{
+							modcode |= 4 ;
+							if( otherkey < 0x20 && 0x20 <= event.keyCode && event.keyCode < 0x80)
+							{
+								otherkey = event.keyCode ;
+								/* For win32 which doesn't tell upper case from lower case. */
+								if( 0x61 <= otherkey && otherkey <= 0x7a &&
+								    ( event.stateMask & SWT.SHIFT) == SWT.SHIFT)
+								{
+									otherkey -= 0x20 ;
+								}
+							}
+							/* 2, ' ' and @ has been converted to "" above. */
+							else if( '3' <= otherkey && otherkey <= '7')
+							{
+								event.character = (char)((int)otherkey - 0x18) ;
+							}
+							else if( otherkey == '8')
+							{
+								event.character = '\u007f' ;
+							}
+							else if( otherkey == '^')
+							{
+								event.character = '\u001d' ;
+							}
+							else if( /* otherkey == '_' || */ otherkey == '/')
+							{
+								event.character = '\u001f' ;
+							}
+							else if( otherkey == ' ' || otherkey == '2' || otherkey == '@')
+							{
+								event.character = '\u0000' ;
+							}
+						}
+						if( modcode > 0)
+						{
+							modcode ++ ;
+						}
+
+						if( modcode > 0 && otherkey < 0x80 &&
+							pty.writeModifiedKey( otherkey , modcode))
+						{
+							str = null ;
+						}
+						else if( pty.writeSpecialKey( event.keyCode , modcode))
+						{
+							str = null ;
+						}
+						else if( event.character == '\u0000')
+						{
+							str = "" ;
+						}
+						else
+						{
+							str = String.valueOf( event.character) ;
+						}
 					}
 
 					if( str != null)

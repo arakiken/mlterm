@@ -272,6 +272,18 @@ public class  MLTermPty
 		return  nativeWrite( nativeObj , str) ;
 	}
 
+	private native boolean  nativeWriteModifiedKey( long  obj , int  key , int  modcode) ;
+	public boolean  writeModifiedKey( int  key , int  modcode)
+	{
+		return  nativeWriteModifiedKey( nativeObj , key , modcode) ;
+	}
+
+	private native boolean  nativeWriteSpecialKey( long  obj , int  key , int  modcode) ;
+	public boolean  writeSpecialKey( int  key , int  modcode)
+	{
+		return  nativeWriteSpecialKey( nativeObj , key , modcode) ;
+	}
+
 	private native boolean  nativeResize( long  obj , int  cols , int  rows) ;
 	public void resize( int  cols , int  rows)
 	{
@@ -306,12 +318,6 @@ public class  MLTermPty
 	public int  getCaretCol()
 	{
 		return  nativeGetCaretCol( nativeObj) ;
-	}
-
-	private native boolean  nativeIsAppCursorKeys( long  obj) ;
-	public boolean  isAppCursorKeys()
-	{
-		return  nativeIsAppCursorKeys( nativeObj) ;
 	}
 
 	private native boolean  nativeIsTrackingMouse( long  obj , int  button , boolean  isMotion) ;

@@ -123,8 +123,10 @@ draw_picture(
 	u_int  src_height ;
 	u_int  dst_width ;
 	int  need_clear ;
+	int  is_end ;
 
 	cur_pic = NULL ;
+	is_end = 0 ;
 
 	for( count = 0 ; count < num_of_glyphs ; count++)
 	{
@@ -180,6 +182,8 @@ draw_picture(
 			{
 				continue ;
 			}
+
+			is_end = 1 ;
 		}
 
 		if( need_clear > 0)
@@ -199,6 +203,11 @@ draw_picture(
 
 			x_window_copy_area( window , cur_pic->pixmap , cur_pic->mask ,
 				src_x , src_y , src_width , src_height , dst_x , dst_y) ;
+		}
+
+		if( is_end)
+		{
+			return  1 ;
 		}
 
 		dst_x += dst_width ;
@@ -236,6 +245,21 @@ draw_picture(
 			x_window_clear( window , dst_x , dst_y , ch_width , line_height) ;
 		}
 	}
+
+	if( need_clear > 0)
+	{
+		x_window_clear( window , dst_x , dst_y , dst_width , line_height) ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf(
+		"Drawing picture at %d %d (pix %p mask %p x %d y %d w %d h %d)\n" ,
+		dst_x , dst_y , cur_pic->pixmap , cur_pic->mask ,
+		src_x , src_y , src_width , src_height) ;
+#endif
+
+	x_window_copy_area( window , cur_pic->pixmap , cur_pic->mask ,
+		src_x , src_y , src_width , src_height , dst_x , dst_y) ;
 
 	return  1 ;
 }

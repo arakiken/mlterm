@@ -272,6 +272,7 @@ set_use_local_echo(
 
 ml_term_t *
 ml_term_new(
+	const char *  term_type ,
 	u_int  cols ,
 	u_int  rows ,
 	u_int  tab_size ,
@@ -288,7 +289,6 @@ ml_term_new(
 	ml_bidi_mode_t  bidi_mode ,
 	const char *  bidi_separators ,
 	int  use_ind ,
-	int  use_bce ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode ,
@@ -298,7 +298,13 @@ ml_term_new(
 	ml_alt_color_mode_t  alt_color_mode
 	)
 {
+	ml_termcap_entry_t *  termcap ;
 	ml_term_t *  term ;
+
+	if( ! ( termcap = ml_termcap_get( term_type)))
+	{
+		return  NULL ;
+	}
 
 	if( ( term = calloc( 1 , sizeof( ml_term_t))) == NULL)
 	{
@@ -309,8 +315,9 @@ ml_term_new(
 		return  NULL ;
 	}
 
-	if( ( term->screen = ml_screen_new( cols , rows ,
-				tab_size , log_size , use_bce , bs_mode)) == NULL)
+	if( ! ( term->screen = ml_screen_new( cols , rows , tab_size ,
+				log_size , bs_mode ,
+				ml_termcap_get_bool_field( termcap , TC_BCE))))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_screen_new failed.\n") ;
@@ -319,8 +326,8 @@ ml_term_new(
 		goto  error ;
 	}
 
-	if( ! ( term->parser = ml_vt100_parser_new( term->screen , encoding , is_auto_encoding ,
-				use_auto_detect , logging_vt_seq ,
+	if( ! ( term->parser = ml_vt100_parser_new( term->screen , termcap , encoding ,
+				is_auto_encoding , use_auto_detect , logging_vt_seq ,
 				policy , col_size_a , use_char_combining , use_multi_col_char ,
 				win_name , icon_name , alt_color_mode)))
 	{
