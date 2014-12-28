@@ -1,9 +1,14 @@
 ver 3.4.2
 * Support colorful emoji with the use of http://github.com/github/gemoji.
+  (Copy images/emoji/unicode/*.png in https://github.com/github/gemoji/archive/master.zip
+   to ~/.mlterm/emoji/ in advance.)
 * Support tcap query. (DCS + q Pt ST)
+* Support CSI?8452h and CSI?8452l.
+* Support CSI?117h and CSI?117l.
 * Add "Bidi Separators" entry to "Encoding" tab of mlconfig.
 * Add "Word separators" entry to "Others" tab of mlconfig.
 * Add "word_separators" to OSC 5380/5381.
+* Improve performance of drawing text with cairo.
 * Bug fixes:
   Fix incorrect result of searching bold or italic fonts when type_engine == xcore.
   (enbugged at 3.3.0)

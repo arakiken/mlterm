@@ -2036,9 +2036,8 @@ x_window_receive_event(
 			kev.state = get_key_state() ;
 
 			if( ( 0x30 <= event->wparam && event->wparam <= VK_DIVIDE) ||
-				event->wparam == VK_BACK || event->wparam == VK_TAB ||
-				event->wparam == VK_RETURN || event->wparam == VK_ESCAPE ||
-				event->wparam == VK_SPACE)
+			    event->wparam == VK_BACK || event->wparam == VK_RETURN ||
+			    event->wparam == VK_ESCAPE || event->wparam == VK_SPACE)
 			{
 				kev.ch = event->wparam ;
 
@@ -2071,8 +2070,28 @@ x_window_receive_event(
 				{
 					/*
 					 * - See x_xic_get_str() in win32/x_xic.c.
-					 * - Control+0-9 (which doesn't cause WM_*_CHAR message.
+					 * - Control+0-9 doesn't cause WM_*_CHAR message.
 					 */
+				}
+				else
+				{
+					/* wait for WM_*_CHAR message. */
+					break ;
+				}
+			}
+			else if( event->wparam == VK_TAB)
+			{
+				kev.ch = event->wparam ;
+
+				if( kev.state & ShiftMask)
+				{
+					event->wparam = XK_ISO_Left_Tab ;
+					x_xic_filter_event( x_get_root_window( win), event) ;
+				}
+
+				if( kev.state & ControlMask)
+				{
+					/* (Shift+)Control+Tab doesn't cause WM_*_CHAR message. */
 				}
 				else
 				{
@@ -2178,10 +2197,11 @@ x_window_receive_event(
 
 			kev.state = get_key_state() ;
 
-			if( ( kev.state & (ControlMask|ModMask)) && event->wparam > 0x20)
+			if( ( kev.state & (ControlMask|Mod1Mask)) == ControlMask|Mod1Mask &&
+			    0x20 < event->wparam && event->wparam != 0x7f)
 			{
-				/* Ctrl+Alt+key => AltGr+key */
-				kev.state &= ~(ControlMask|ModMask) ;
+				/* AltGr+key sends Ctrl+Alt+char */
+				kev.state &= ~(ControlMask|Mod1Mask) ;
 			}
 
 		#if  0

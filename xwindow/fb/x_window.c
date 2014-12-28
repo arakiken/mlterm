@@ -1659,6 +1659,12 @@ x_window_get_str(
 			}
 		}
 	}
+	else if( *keysym == XK_Tab && (event->state & ShiftMask))
+	{
+		*keysym = XK_ISO_Left_Tab ;
+
+		return  0 ;
+	}
 
 	/*
 	 * Control + '@'(0x40) ... '_'(0x5f) -> 0x00 ... 0x1f

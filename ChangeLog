@@ -1,3 +1,19 @@
+2014-12-29  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_ft.c, x_window_cairo.c: The performance of drawing proportional
+	  font's glyphs is improved.
+
+	* ml_char_encoding.c: ml_parse_unicode_area() parses not only "U+NNNN-NNNN"
+	  but also "U+NNNN".
+
+	* fb/x_window.c: Shift + Tab works.
+
+	* win32/x_window.c, win32/x_xic.c: Ctrl or Shift + Tab works.
+
+	* ml_vt100_parser.[ch]: CSI?8452h, CSI?8452l CSI?117h and CSI?117l are supported.
+
+	* ml_screen.h, ml_edit.h: ml_{edit|screen}_set_use_bce() are added.
+
 2014-12-27  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty_ssh.c:

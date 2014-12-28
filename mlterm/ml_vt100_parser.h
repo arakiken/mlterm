@@ -275,6 +275,7 @@ typedef struct  ml_vt100_parser
 #endif
 
 	int8_t  sixel_scrolling ;
+	int8_t  cursor_to_right_of_sixel ;
 	int8_t  yield ;
 
 	int8_t  is_auto_encoding ;

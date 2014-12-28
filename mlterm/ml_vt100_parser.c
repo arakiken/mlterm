@@ -1847,9 +1847,12 @@ show_picture(
 			{
 				if( vt100_parser->sixel_scrolling)
 				{
-					ml_screen_line_feed( vt100_parser->screen) ;
-					ml_screen_go_horizontally( vt100_parser->screen ,
-						cursor_col) ;
+					if( ! vt100_parser->cursor_to_right_of_sixel)
+					{
+						ml_screen_line_feed( vt100_parser->screen) ;
+						ml_screen_go_horizontally( vt100_parser->screen ,
+							cursor_col) ;
+					}
 				}
 				else
 				{
@@ -4044,6 +4047,12 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->sixel_scrolling = 0 ;
 						}
+						else if( ps[count] == 117)
+						{
+							/* "CSI ? 117 h" */
+							ml_screen_set_use_bce(
+								vt100_parser->screen , 0) ;
+						}
 						else if( ps[count] == 1000)
 						{
 							/* "CSI ? 1000 h" */
@@ -4172,6 +4181,11 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 8428 h" (RLogin original) */
 
 							vt100_parser->col_size_of_width_a = 1 ;
+						}
+						else if( ps[count] == 8452)
+						{
+							/* "CSI ? 8452 l" (RLogin original) */
+							vt100_parser->cursor_to_right_of_sixel = 1 ;
 						}
 						else if( ps[count] == 8800)
 						{
@@ -4322,6 +4336,12 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->sixel_scrolling = 1 ;
 						}
+						else if( ps[count] == 117)
+						{
+							/* "CSI ? 117 l" */
+							ml_screen_set_use_bce(
+								vt100_parser->screen , 1) ;
+						}
 						else if( ps[count] == 1000 ||
 							ps[count] == 1002 || ps[count] == 1003)
 						{
@@ -4431,6 +4451,11 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 8428 l" (RLogin original) */
 
 							vt100_parser->col_size_of_width_a = 2 ;
+						}
+						else if( ps[count] == 8452)
+						{
+							/* "CSI ? 8452 l" (RLogin original) */
+							vt100_parser->cursor_to_right_of_sixel = 0 ;
 						}
 						else if( ps[count] == 8800)
 						{
@@ -6841,7 +6866,8 @@ ml_vt100_parser_write_modified_key(
 		char *  buf ;
 
 		if( ! ( (modcode - 1) == 1 /* is shift */ &&
-		        ( key < 'A' || ('Z' < key && key < 'a') || 'z' < key)) &&
+		        ( (' ' <= key && key < 'A') || ('Z' < key && key < 'a') ||
+			  ('z' < key && key <= '~'))) &&
 		    ( buf = alloca( 10)))
 		{
 			sprintf( buf , "\x1b[%d;%du" , key , modcode) ;

@@ -2679,12 +2679,10 @@ no_keypad:
 		{
 			spkey = SPKEY_SELECT ;
 		}
-	#ifdef  XK_ISO_Left_Tab
 		else if( ksym == XK_ISO_Left_Tab)
 		{
 			spkey = SPKEY_ISO_LEFT_TAB ;
 		}
-	#endif
 		else if( ksym == XK_F15 || ksym == XK_Help)
 		{
 			spkey = SPKEY_F15 ;

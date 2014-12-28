@@ -975,7 +975,11 @@ font_found:
 			{
 				if( ! font->is_var_col_width)
 				{
+				#if  CAIRO_VERSION_ENCODE(1,8,0) <= CAIRO_VERSION
+					font->width = cairo_calculate_char_width( font , 'N') ;
+				#else
 					font->width = cairo_calculate_char_width( font , 'M') ;
+				#endif
 				}
 
 				/* Regard it as proportional. */
@@ -1028,6 +1032,13 @@ font_found:
 
 				font->width = ch_width ;
 			}
+
+		#if  CAIRO_VERSION_ENCODE(1,8,0) <= CAIRO_VERSION
+			if( font->is_proportional && ! font->is_var_col_width)
+			{
+				font->is_proportional = 0 ;
+			}
+		#endif
 		}
 	#endif	/* USE_TYPE_CAIRO */
 	}

@@ -577,7 +577,7 @@ typedef int XFontSet ;	/* dummy */
 
 #endif	/* FreeBSD/Linux/NetBSD */
 
-#define XK_ISO_Level3_Lock	0xffa3	/* dummy */
+#define XK_ISO_Left_Tab	0xffa3	/* dummy */
 
 
 /* Same as definition in X11/X.h */

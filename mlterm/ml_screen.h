@@ -102,6 +102,10 @@ int  ml_screen_set_listener( ml_screen_t *  screen , ml_screen_event_listener_t 
 
 int  ml_screen_resize( ml_screen_t *  screen , u_int  cols , u_int  rows) ;
 
+#define  ml_screen_set_use_bce( screen , use) \
+		ml_edit_set_use_bce( &(screen)->normal_edit , \
+			ml_edit_set_use_bce( &(screen)->normal_edit , use))
+
 #define  ml_screen_set_bce_fg_color( screen , fg_color) \
 		ml_edit_set_bce_fg_color( (screen)->edit , fg_color)
 

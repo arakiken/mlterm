@@ -326,7 +326,7 @@ typedef int XFontSet ;	/* dummy */
 #define IsKeypadKey(ksym)	(1)
 #define IsModifierKey(ksym)      (0)
 
-#define XK_ISO_Level3_Lock	0xffae	/* dummy */
+#define XK_ISO_Left_Tab	0xffae	/* dummy */
 
 
 /* Same as definition in X11/X.h */

@@ -227,6 +227,10 @@ x_xic_get_str(
 	{
 		goto  zero_return ;
 	}
+	else if( (event->state & ShiftMask) && *keysym == XK_ISO_Left_Tab)
+	{
+		goto  zero_return ;
+	}
 	else if( event->state & ControlMask)
 	{
 		if( event->ch == '2' || event->ch == ' ' || event->ch == '@')

@@ -299,7 +299,7 @@ typedef LPLOGFONT XFontSet ;
 	((ksym) == XK_KP_0 || (XK_KP_1 <= (ksym) && (ksym) <= XK_KP_Divide))
 #define IsModifierKey(ksym)  (0)
 
-#define XK_ISO_Level3_Lock	0xffd9	/* dummy */
+#define XK_ISO_Left_Tab	0xffd9
 
 
 /* XPoint(short x, short y) in Xlib. POINT(long x, long y) in win32. */
