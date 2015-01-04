@@ -840,7 +840,7 @@ ml_screen_new(
 	)
 {
 	ml_screen_t *  screen ;
-	
+
 	if( ( screen = calloc( 1 , sizeof( ml_screen_t))) == NULL)
 	{
 	#ifdef  DEBUG

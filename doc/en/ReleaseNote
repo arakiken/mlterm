@@ -2,16 +2,20 @@ ver 3.4.2
 * Support colorful emoji with the use of http://github.com/github/gemoji.
   (Copy images/emoji/unicode/*.png in https://github.com/github/gemoji/archive/master.zip
    to ~/.mlterm/emoji/ in advance.)
-* Support tcap query. (DCS + q Pt ST)
+* Support DCS + q Pt ST which requests termcap/terminfo string.
 * Support CSI?8452h and CSI?8452l.
 * Support CSI?117h and CSI?117l.
 * Add "Bidi Separators" entry to "Encoding" tab of mlconfig.
-* Add "Word separators" entry to "Others" tab of mlconfig.
-* Add "word_separators" to OSC 5380/5381.
+* Add "Unicode areas you won't convert to other charsets" entry to "Font" tab of mlconfig.
+* Add "Word separators", "Don't scroll automatically in scrolling back" and
+  "Set full width areas manually" entries to "Others" tab of mlconfig.
+* Add "word_separators", "unicode_noconv_areas" and "unicode_full_width_areas"
+  to OSC 5380/5381.
 * Improve performance of drawing text with cairo.
 * Bug fixes:
   Fix incorrect result of searching bold or italic fonts when type_engine == xcore.
   (enbugged at 3.3.0)
+  Fix segfault in opening a new channel over an opened session on win32.
 
 ver 3.4.1
 * Update unicode properties to 7.0.0.

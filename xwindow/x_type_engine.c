@@ -5,6 +5,7 @@
 #include  "x_type_engine.h"
 
 #include  <string.h>		/* strcmp */
+#include  <kiklib/kik_types.h>	/* u_int */
 
 
 /* --- static variables --- */
@@ -45,7 +46,7 @@ x_get_type_engine_name(
 	x_type_engine_t  engine
 	)
 {
-	if( engine < 0 || TYPE_ENGINE_MAX <= engine)
+	if( (u_int)engine >= TYPE_ENGINE_MAX)
 	{
 		/* default value */
 		engine = TYPE_XCORE ;

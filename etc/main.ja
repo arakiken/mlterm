@@ -130,6 +130,10 @@
 # UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
 # not_use_unicode_font = false
 
+# not_use_unicode_font を true とした場合でも、このオプションで指定した範囲の
+# 文字は、常に UNICODE のまま表示する。
+# unicode_noconv_areas =
+
 # すべての文字を UNICODE フォントだけを使って表示する
 # only_use_unicode_font = false
 

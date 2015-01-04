@@ -38,6 +38,7 @@ static char *  config_keys[MC_FLAG_MODES] =
 	"use_clipboard" ,
 	"use_local_echo" ,
 	"blink_cursor" ,
+	"static_backscroll_mode" ,
 } ;
 
 static char *labels[MC_FLAG_MODES] =
@@ -56,6 +57,7 @@ static char *labels[MC_FLAG_MODES] =
 	N_("CLIPBOARD Selection"),
 	N_("Local echo"),
 	N_("Blink cursor"),
+	N_("Don't scroll automatically in scrolling back"),
 } ;
 
 static GtkWidget *  widgets[MC_FLAG_MODES];

@@ -92,7 +92,6 @@ int  ml_pty_ssh_poll( void *  fds) ;
 u_int  ml_pty_ssh_get_x11_fds( int **  fds) ;
 
 int  ml_pty_ssh_send_recv_x11( int  idx , int  bidirection) ;
-
 #endif
 
 

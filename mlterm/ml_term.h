@@ -61,6 +61,10 @@ typedef struct ml_term
 /* XXX */
 extern void (*ml_term_pty_closed_event)( ml_term_t *) ;
 
+#define  ml_term_init()  ml_vt100_parser_init()
+
+void  ml_term_final(void) ;
+
 ml_term_t *  ml_term_new( const char *  term_type , u_int  cols , u_int  rows ,
 	u_int  tab_size , u_int  log_size , ml_char_encoding_t  encoding ,
 	int  is_auto_encoding , int  use_auto_detect ,

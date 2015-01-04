@@ -1,3 +1,35 @@
+2015-01-04  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/vte.c: vte_terminal_set_scrollback_lines() is implemented.
+
+	* mlconfig/main.c: mc_char_width_config_widget_new() and
+	  mc_flag_config_widget_new(MC_FLAG_STATICBACKSCROLL) are used.
+
+	* mc_font.c: "Unicode areas you won't convert to other charsets" entry is added.
+
+	* mc_flags.[ch]: MC_FLAG_STATAICBACKSCROLL is added.
+
+	* mc_unicode_areas.[ch], mc_char_width.[ch]: Added.
+
+	* ml_vt100_parser.[ch]:
+	  - "unicode_noconv_areas" and "unicode_full_width_areas" are added to
+	    OSC 5380 or 5381.
+	  - ml_get_backscroll_mode() is used for OSC 5380 or 5381 "static_backscroll_mode"
+	    instead of ml_screen_is_backscrolling().
+	  - ml_vt100_parser_{init|final}() are added.
+
+	* ml_screen.h:
+	  ml_get_backscroll_mode() is added.
+
+	* ml_pty_ssh.c:
+	  ml_pty_ssh_t::doing_scp is renamed to ml_pty_ssh_t::suspended, and
+	  ml_pty_ssh_t::suspended = 1 in use_loopback().
+
+	* ml_term.c:
+	  - ml_term_final() is added.
+	  - The order of arguments of ml_screen_new() is fixed.
+	  - ml_search_ssh_session(host,port,user) -> ml_search_ssh_session(server,port,user)
+
 2014-12-29  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_ft.c, x_window_cairo.c: The performance of drawing proportional

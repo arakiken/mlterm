@@ -314,6 +314,10 @@ void  ml_set_use_scp_full( int  use) ;
 #define  ml_set_use_scp_full(use)  (0)
 #endif
 
+void  ml_vt100_parser_init(void) ;
+
+void  ml_vt100_parser_final(void) ;
+
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen ,
 	ml_termcap_entry_t *  termcap , ml_char_encoding_t  encoding ,
 	int  is_auto_encoding , int  use_auto_detect , int  logging_vt_seq ,

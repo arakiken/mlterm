@@ -272,7 +272,7 @@ set_area_to_table(
 	if( areas == NULL || *areas == '\0')
 	{
 		free( area_table) ;
-		area_table = NULL ;
+		*num = 0 ;
 
 		return  NULL ;
 	}
@@ -340,6 +340,50 @@ set_area_to_table(
 #endif
 
 	return  area_table ;
+}
+
+static void
+response_area_table(
+	ml_pty_ptr_t  pty ,
+	u_char *  key ,
+	area_t *  area_table ,
+	u_int  num ,
+	int  to_menu
+	)
+{
+	u_char *  value ;
+
+	/* 20: U+FFFFFFFF-FFFFFFFF, */
+	if( num > 0 && ( value = alloca( 20 * num)))
+	{
+		u_int  count ;
+		u_char *  p ;
+
+		p = value ;
+		count = 0 ;
+		while( 1)
+		{
+			sprintf( p ,
+				area_table[count].min == area_table[count].max ?
+					"U+%x" : "U+%x-%x" ,
+				area_table[count].min , area_table[count].max) ;
+			p += strlen(p) ;
+			if( ++count < num)
+			{
+				*(p++) = ',' ;
+			}
+			else
+			{
+				break ;
+			}
+		}
+	}
+	else
+	{
+		value = "" ;
+	}
+
+	ml_response_config( pty , key , value , to_menu) ;
 }
 
 static inline int
@@ -6630,6 +6674,26 @@ ml_set_use_scp_full(
 }
 #endif
 
+void
+ml_vt100_parser_init(void)
+{
+	ml_config_proto_init() ;
+}
+
+void
+ml_vt100_parser_final(void)
+{
+	ml_config_proto_final() ;
+
+	free( unicode_noconv_areas) ;
+	num_of_unicode_noconv_areas = 0 ;
+
+	free( full_width_areas) ;
+	num_of_full_width_areas = 0 ;
+
+	ml_set_auto_detect_encodings( "") ;
+}
+
 ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
@@ -7546,7 +7610,7 @@ ml_vt100_parser_get_config(
 	}
 	else if( strcmp( key , "static_backscroll_mode") == 0)
 	{
-		if( ml_screen_is_backscrolling( vt100_parser->screen) == BSM_STATIC)
+		if( ml_get_backscroll_mode( vt100_parser->screen) == BSM_STATIC)
 		{
 			value = "true" ;
 		}
@@ -7686,6 +7750,20 @@ ml_vt100_parser_get_config(
 		{
 			value = "false" ;
 		}
+	}
+	else if( strcmp( key , "unicode_noconv_areas") == 0)
+	{
+		response_area_table( vt100_parser->pty , key , unicode_noconv_areas ,
+			num_of_unicode_noconv_areas , to_menu) ;
+
+		return  1 ;
+	}
+	else if( strcmp( key , "unicode_full_width_areas") == 0)
+	{
+		response_area_table( vt100_parser->pty , key , full_width_areas ,
+			num_of_full_width_areas , to_menu) ;
+
+		return  1 ;
 	}
 	else if( strcmp( key , "challenge") == 0)
 	{

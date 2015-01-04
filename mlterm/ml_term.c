@@ -270,6 +270,13 @@ set_use_local_echo(
 
 /* --- global functions --- */
 
+void
+ml_term_final(void)
+{
+	ml_vt100_parser_final() ;
+	ml_termcap_final() ;
+}
+
 ml_term_t *
 ml_term_new(
 	const char *  term_type ,
@@ -316,8 +323,8 @@ ml_term_new(
 	}
 
 	if( ! ( term->screen = ml_screen_new( cols , rows , tab_size ,
-				log_size , bs_mode ,
-				ml_termcap_get_bool_field( termcap , TC_BCE))))
+				log_size , ml_termcap_get_bool_field( termcap , TC_BCE) ,
+				bs_mode)))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_screen_new failed.\n") ;
@@ -470,7 +477,7 @@ ml_term_open_pty(
 		if( pass &&
 		    kik_parse_uri( NULL , &user , &server , &port , NULL , NULL ,
 			kik_str_alloca_dup( host)) &&
-		    ! ml_search_ssh_session( host , port , user))
+		    ! ml_search_ssh_session( server , port , user))
 		{
 			pty_args_t *  args ;
 
@@ -528,12 +535,10 @@ ml_term_open_pty(
 				return  0 ;
 			}
 
-		#ifndef  OPEN_PTY_ASYNC
 			if( pass)
 			{
 				term->uri = strdup( host) ;
 			}
-		#endif
 
 			ml_term_plug_pty( term , pty) ;
 		}

@@ -92,6 +92,8 @@
 
 # not_use_unicode_font = false
 
+# unicode_noconv_areas =
+
 # only_use_unicode_font = false
 
 # iso88591_font_for_usascii = false

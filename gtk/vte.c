@@ -3917,6 +3917,18 @@ vte_terminal_set_scrollback_lines(
 	glong  lines
 	)
 {
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		char  value[DIGIT_STR_LEN(glong) + 1] ;
+
+		sprintf( value , "%ld" , lines) ;
+
+		x_screen_set_config( terminal->pvt->screen , NULL , "logsize" , value) ;
+	}
+	else
+	{
+		ml_term_change_log_size( terminal->pvt->term , lines) ;
+	}
 }
 
 void

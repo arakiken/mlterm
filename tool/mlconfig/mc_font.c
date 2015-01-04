@@ -21,6 +21,7 @@
 #include  "mc_radio.h"
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
+#include  "mc_unicode_areas.h"
 
 
 #if  0
@@ -173,6 +174,8 @@ static GtkWidget *  cairo_flag ;
 static GtkWidget *  aa_flag ;
 static GtkWidget *  vcol_flag ;
 static int  dont_change_type_engine ;
+static GtkWidget *  noconv_areas_button ;
+static char *  noconv_areas ;
 
 
 /* --- static functions  --- */
@@ -521,6 +524,12 @@ static void
 font_policy_changed(void)
 {
 	fontcs_map( fontcs_entry , NULL) ;
+
+	if( noconv_areas_button)
+	{
+		gtk_widget_set_sensitive( noconv_areas_button ,
+			( mc_radio_get_value( MC_RADIO_FONT_POLICY) == 2)) ;
+	}
 }
 
 static gint
@@ -529,7 +538,7 @@ fontcs_selected(
 	gpointer  data
 	)
 {
-	char *  cs ;
+	const char *  cs ;
 	int  count ;
 
 	cs = gtk_entry_get_text(GTK_ENTRY(widget)) ;
@@ -636,7 +645,7 @@ set_current_font_name(
 	GtkWidget *  dialog
 	)
 {
-	gchar *  font_name ;
+	const gchar *  font_name ;
 
 	font_name = gtk_entry_get_text(GTK_ENTRY(fontname_entry)) ;
 	if( font_name && *font_name)
@@ -754,7 +763,7 @@ my_gtk_font_selection_dialog_get_font_name(
 
 static char *
 get_gtk_font_name(
-	char *  font_name
+	const char *  font_name
 	)
 {
 	int  count ;
@@ -791,7 +800,7 @@ fontname_entry_edit(
 
 	if( ! dont_change_new_fontname_list)
 	{
-		char *  name ;
+		const char *  name ;
 
 		if( ! ( name = gtk_entry_get_text(GTK_ENTRY(fontname_entry))))
 		{
@@ -875,6 +884,34 @@ select_font(
 	}
 }
 
+static void
+edit_noconv_areas(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	char *  cur_areas ;
+	char *  new_areas ;
+
+	if( noconv_areas)
+	{
+		cur_areas = strdup( noconv_areas) ;
+	}
+	else
+	{
+		cur_areas = mc_get_str_value( "unicode_noconv_areas") ;
+	}
+
+	if( ( new_areas = mc_get_unicode_areas( cur_areas)) &&
+	    kik_compare_str( noconv_areas , new_areas) != 0)
+	{
+		free( noconv_areas) ;
+		noconv_areas = new_areas ;
+	}
+
+	free( cur_areas) ;
+}
+
 
 /* --- global functions --- */
 
@@ -887,6 +924,7 @@ mc_font_config_widget_new(void)
 	GtkWidget *  combo ;
 	GtkWidget *  entry ;
 	GtkWidget *  radio ;
+	GtkWidget *  label ;
 	char *  fontlist[] =
 	{
 		"6" , "7" , "8" , "9" , "10" ,
@@ -964,7 +1002,7 @@ mc_font_config_widget_new(void)
 	gtk_widget_show( radio) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , radio , FALSE , FALSE , 0) ;
 	mc_radio_set_callback( MC_RADIO_VERTICAL_MODE , vertical_mode_changed) ;
-	if (mc_radio_get_value( MC_RADIO_VERTICAL_MODE))
+	if( mc_radio_get_value( MC_RADIO_VERTICAL_MODE))
 	{
 		gtk_widget_set_sensitive( vcol_flag , 0) ;
 	}
@@ -1009,12 +1047,27 @@ mc_font_config_widget_new(void)
 
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 
-
 	radio = mc_radio_config_widget_new( MC_RADIO_FONT_POLICY) ;
 	gtk_widget_show( radio) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , radio , FALSE , FALSE , 0) ;
 	mc_radio_set_callback( MC_RADIO_FONT_POLICY , font_policy_changed) ;
 
+	hbox = gtk_hbox_new( FALSE , 0) ;
+	gtk_widget_show( hbox) ;
+
+	label = gtk_label_new( _("Unicode areas you won't convert to other charsets")) ;
+	gtk_widget_show( label) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
+	noconv_areas_button = gtk_button_new_with_label( _(" Edit ")) ;
+	gtk_widget_show( noconv_areas_button) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , noconv_areas_button , FALSE , FALSE , 0) ;
+	g_signal_connect( noconv_areas_button , "clicked" , G_CALLBACK(edit_noconv_areas) , NULL) ;
+	if( mc_radio_get_value( MC_RADIO_FONT_POLICY) != 2)
+	{
+		gtk_widget_set_sensitive( noconv_areas_button , 0) ;
+	}
+
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 
 	radio = mc_radio_config_widget_new( MC_RADIO_BOX_DRAWING) ;
 	gtk_widget_show( radio) ;
@@ -1048,6 +1101,11 @@ mc_update_font_misc(void)
 	mc_update_flag_mode( MC_FLAG_CAIRO) ;
 	mc_update_radio( MC_RADIO_BOX_DRAWING) ;
 	mc_update_radio( MC_RADIO_FONT_POLICY) ;
+
+	if( noconv_areas)
+	{
+		mc_set_str_value( "unicode_noconv_areas" , noconv_areas) ;
+	}
 }
 
 void

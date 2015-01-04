@@ -287,6 +287,10 @@ msgstr "区切り文字"
 msgid "Ambiguouswidth = fullwidth (UTF8 only)"
 msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
 
+#: tool/mlconfig/mc_flags.c:45
+msgid "Don't scroll automatically in scrolling back"
+msgstr "スクロールバック中は自動的にスクロールしない"
+
 #: tool/mlconfig/mc_flags.c:52
 msgid "CLIPBOARD Selection"
 msgstr "選択文字列をクリップボードに保存"
@@ -299,6 +303,10 @@ msgstr "ローカルエコー"
 msgid "Blink cursor"
 msgstr "カーソル点滅"
 
+#: tool/mlconfig/mc_flags.c:45
+msgid "Set full width\nareas manually"
+msgstr "全角幅文字の範\n囲を手動設定"
+
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"
@@ -306,6 +314,18 @@ msgstr "フォントサイズ(ピクセル)"
 #: tool/mlconfig/mc_font.c:62
 msgid "Font name"
 msgstr "フォント名"
+
+#: tool/mlconfig/mc_font.c:62
+msgid "Unicode areas you won't convert to other charsets"
+msgstr "Unicodeから他の文字集合に変換しない範囲"
+
+#: tool/mlconfig/mc_font.c:62
+msgid " Edit "
+msgstr "編集"
+
+#: tool/mlconfig/mc_font.c:62
+msgid "Set unicode area in the following format.\nFormat: U+XXXX-XXXX or U+XXXX (U+ is optional)"
+msgstr "次の形式でUnicodeの範囲を指定してください\n U+XXXX-XXXX又はU+XXXX (U+はなくても構いません)"
 
 #: tool/mlconfig/mc_gamma.c:69
 msgid "Gamma"

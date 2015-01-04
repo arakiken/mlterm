@@ -63,8 +63,9 @@ version 20141203
                      use_italic_font | hide_underline | pty_list | pty_name | use_clipboard |
                      use_alt_buffer | use_ansi_colors | icon_path | logging_vt_seq |
                      vt_seq_format | word_separators | gui | allow_osc52 | allow_scp |
-                     only_use_unicode_font | not_use_unicode_font | box_drawing_font |
-                     auto_detect_encodings | use_auto_detect
+                     only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
+                     unicode_full_width_areas | box_drawing_font | auto_detect_encodings |
+                     use_auto_detect
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 

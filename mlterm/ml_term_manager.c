@@ -15,8 +15,6 @@
 #include  <kiklib/kik_file.h>	/* kik_file_unset_cloexec */
 #include  <kiklib/kik_unistd.h>	/* kik_setenv/kik_unsetenv */
 
-#include  "ml_config_proto.h"
-
 
 #define  MAX_TERMS  (MTU * max_terms_multiple)	/* Default MAX_TERMS is 32. */
 #define  MTU        (8 * sizeof(*dead_mask))	/* MAX_TERMS unit */
@@ -190,7 +188,7 @@ ml_term_manager_init(
 	}
 
 	kik_add_sig_child_listener( NULL , sig_child) ;
-	ml_config_proto_init() ;
+	ml_term_init() ;
 
 	return  1 ;
 }
@@ -201,8 +199,7 @@ ml_term_manager_final(void)
 	int  count ;
 
 	kik_remove_sig_child_listener( NULL , sig_child) ;
-	ml_config_proto_final() ;
-	ml_termcap_final() ;
+	ml_term_final() ;
 
 	for( count = num_of_terms - 1 ; count >= 0 ; count --)
 	{

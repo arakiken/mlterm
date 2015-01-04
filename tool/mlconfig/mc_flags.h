@@ -8,7 +8,7 @@
 
 #include  <gtk/gtk.h>
 
-#define  MC_FLAG_MODES        14
+#define  MC_FLAG_MODES        15
 
 #define  MC_FLAG_XFT           0
 #define  MC_FLAG_CAIRO         1
@@ -24,7 +24,7 @@
 #define  MC_FLAG_CLIPBOARD    11
 #define  MC_FLAG_LOCALECHO    12
 #define  MC_FLAG_BLINKCURSOR  13
-
+#define  MC_FLAG_STATICBACKSCROLL  14
 
 GtkWidget *  mc_flag_config_widget_new( int id) ;
 

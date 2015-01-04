@@ -62,7 +62,7 @@ typedef struct ssh_session
 
 	int  use_x11_forwarding ;
 
-	int  doing_scp ;
+	int  suspended ;
 
 	LIBSSH2_CHANNEL **  pty_channels ;
 	u_int  num_of_ptys ;
@@ -920,12 +920,10 @@ write_to_pty(
 {
 	ssize_t  ret ;
 
-#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
-	if( ((ml_pty_ssh_t*)pty)->session->doing_scp)
+	if( ((ml_pty_ssh_t*)pty)->session->suspended)
 	{
 		return  0 ;
 	}
-#endif
 
 	ret = libssh2_channel_write( ((ml_pty_ssh_t*)pty)->channel , buf , len) ;
 
@@ -969,12 +967,10 @@ read_pty(
 		return  len ;
 	}
 
-#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
-	if( ((ml_pty_ssh_t*)pty)->session->doing_scp)
+	if( ((ml_pty_ssh_t*)pty)->session->suspended)
 	{
 		return  0 ;
 	}
-#endif
 
 	ret = libssh2_channel_read( ((ml_pty_ssh_t*)pty)->channel , buf , len) ;
 
@@ -1001,7 +997,7 @@ scp_stop(
 	ml_pty_ssh_t *  pty_ssh
 	)
 {
-	pty_ssh->session->doing_scp = -1 ;
+	pty_ssh->session->suspended = -1 ;
 
 	return  1 ;
 }
@@ -1216,6 +1212,8 @@ use_loopback(
 
 	pty->stored->ref_count = 1 ;
 
+	((ml_pty_ssh_t*)pty)->session->suspended = 1 ;
+
 	return  1 ;
 }
 
@@ -1268,6 +1266,8 @@ unuse_loopback(
 	free( pty->stored) ;
 	pty->stored = NULL ;
 
+	((ml_pty_ssh_t*)pty)->session->suspended = 0 ;
+
 	return  1 ;
 }
 
@@ -1299,7 +1299,7 @@ scp_thread(
 
 	ml_write_to_pty( &scp->pty_ssh->pty , msg1 , sizeof(msg1) - 1) ;
 
-	while( rd_len < scp->src_size && scp->pty_ssh->session->doing_scp > 0)
+	while( rd_len < scp->src_size && scp->pty_ssh->session->suspended > 0)
 	{
 		int  new_progress ;
 		ssize_t  len ;
@@ -1362,7 +1362,7 @@ scp_thread(
 		}
 	}
 
-	if( scp->pty_ssh->session->doing_scp > 0)
+	if( scp->pty_ssh->session->suspended > 0)
 	{
 		ml_write_to_pty( &scp->pty_ssh->pty , msg2 , sizeof(msg2) - 1) ;
 	}
@@ -1382,7 +1382,7 @@ scp_thread(
 
 	unuse_loopback( &scp->pty_ssh->pty) ;
 
-	scp->pty_ssh->session->doing_scp = 0 ;
+	scp->pty_ssh->session->suspended = 0 ;
 
 	free( scp) ;
 
@@ -1804,6 +1804,11 @@ ml_pty_ssh_new(
 		goto  error1 ;
 	}
 
+	if( pty->session->suspended)
+	{
+		goto  error2 ;
+	}
+
 	if( ! ( p = realloc( pty->session->pty_channels ,
 			(pty->session->num_of_ptys + 1) * sizeof(LIBSSH2_CHANNEL*))))
 	{
@@ -1832,7 +1837,7 @@ ml_pty_ssh_new(
 		}
 	}
 
-	pty->session->doing_scp = 0 ;
+	pty->session->suspended = 0 ;
 
 #ifdef  LIBSSH2_FORWARD_AGENT
 	if( auth_agent_is_available)
@@ -2067,7 +2072,14 @@ ml_pty_set_use_loopback(
 {
 	if( use)
 	{
-		return  use_loopback( pty) ;
+		if( ((ml_pty_ssh_t*)pty)->session->suspended)
+		{
+			return  0 ;
+		}
+		else
+		{
+			return  use_loopback( pty) ;
+		}
 	}
 	else
 	{
@@ -2095,7 +2107,7 @@ ml_pty_ssh_scp_intern(
 		return  0 ;
 	}
 
-	if( ((ml_pty_ssh_t*)pty)->session->doing_scp)
+	if( ((ml_pty_ssh_t*)pty)->session->suspended)
 	{
 		kik_msg_printf( "SCP: Another scp process is working.\n") ;
 
@@ -2108,7 +2120,7 @@ ml_pty_ssh_scp_intern(
 	}
 	scp->pty_ssh = (ml_pty_ssh_t*)pty ;
 
-	scp->pty_ssh->session->doing_scp = 1 ;
+	scp->pty_ssh->session->suspended = 1 ;
 
 	if( src_is_remote)
 	{
@@ -2206,7 +2218,7 @@ ml_pty_ssh_scp_intern(
 	return  1 ;
 
 error:
-	scp->pty_ssh->session->doing_scp = 0 ;
+	scp->pty_ssh->session->suspended = 0 ;
 	free( scp) ;
 
 	return  0 ;
@@ -2285,12 +2297,10 @@ ml_pty_ssh_poll(
 	{
 		u_int  idx ;
 
-	#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
-		if( sessions[count]->doing_scp)
+		if( sessions[count]->suspended)
 		{
 			continue ;
 		}
-	#endif
 
 		for( idx = 0 ; idx < sessions[count]->num_of_ptys ; idx++)
 		{
@@ -2395,12 +2405,10 @@ ml_pty_ssh_send_recv_x11(
 
 	session = sessions[count] ;
 
-#if  defined(USE_WIN32API) || defined(HAVE_PTHREAD)
-	if( session->doing_scp)
+	if( session->suspended)
 	{
 		return  0 ;
 	}
-#endif
 
 	if( session->x11_fds[idx] == -1 ||	/* Failed to connect X server */
 	    ! ( ( ! bidirection ||

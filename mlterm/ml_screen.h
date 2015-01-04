@@ -172,6 +172,8 @@ ml_bs_mode_t  ml_screen_is_backscrolling( ml_screen_t *  screen) ;
 
 int  ml_set_backscroll_mode( ml_screen_t *  screen , ml_bs_mode_t  mode) ;
 
+#define  ml_get_backscroll_mode( screen)  ((screen)->backscroll_mode)
+
 int  ml_enter_backscroll_mode( ml_screen_t *  screen) ;
 
 int  ml_exit_backscroll_mode( ml_screen_t *  screen) ;
