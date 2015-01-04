@@ -2197,7 +2197,7 @@ x_window_receive_event(
 
 			kev.state = get_key_state() ;
 
-			if( ( kev.state & (ControlMask|Mod1Mask)) == ControlMask|Mod1Mask &&
+			if( ( kev.state & (ControlMask|Mod1Mask)) == (ControlMask|Mod1Mask) &&
 			    0x20 < event->wparam && event->wparam != 0x7f)
 			{
 				/* AltGr+key sends Ctrl+Alt+char */

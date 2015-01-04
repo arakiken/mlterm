@@ -2432,8 +2432,9 @@ key_pressed(
 			    ( modcode = (is_shift ? 1 : 0) + (is_alt ? 2 : 0) +
 						(is_ctl ? 4 : 0) + (is_meta ? 8 : 0)))
 			{
-				modcode++ ;
 				int  key ;
+
+				modcode++ ;
 
 				if( ( key = ksym) < 0x80 ||
 				    /*

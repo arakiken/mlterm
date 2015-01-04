@@ -157,6 +157,9 @@ typedef LPLOGFONT XFontSet ;
 #ifndef  VK_OEM_1
 #define  VK_OEM_1  0xba
 #endif
+#ifndef  VK_OEM_MINUS
+#define  VK_OEM_MINUS  0xbd
+#endif
 #ifndef  VK_OEM_2
 #define  VK_OEM_2  0xbf
 #endif
@@ -165,6 +168,12 @@ typedef LPLOGFONT XFontSet ;
 #endif
 #ifndef  VK_OEM_4
 #define  VK_OEM_4  0xdb
+#endif
+#ifndef  VK_OEM_5
+#define  VK_OEM_5  0xdc
+#endif
+#ifndef  VK_OEM_6
+#define  VK_OEM_6  0xdd
 #endif
 #ifndef  VK_OEM_7
 #define  VK_OEM_7  0xde

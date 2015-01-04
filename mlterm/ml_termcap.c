@@ -595,8 +595,6 @@ ml_termcap_special_key_to_seq(
 		}
 		else /* if( key <= SPKEY_F37) */
 		{
-			intermed_ch = '[' ;
-			final_ch = '~' ;
 			char  params[] =
 			{
 				/* F6 - F15 */
@@ -609,6 +607,8 @@ ml_termcap_special_key_to_seq(
 				57 , 58 ,
 
 			} ;
+			intermed_ch = '[' ;
+			final_ch = '~' ;
 
 			param = params[key -  SPKEY_F6] ;
 		}

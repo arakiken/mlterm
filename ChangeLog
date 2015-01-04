@@ -1,5 +1,10 @@
 2015-01-04  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_termcap.c, win32/x.h, win32/x_window.c, x_screen.c:
+	  Compiling error is fixed.
+
+2015-01-04  Araki Ken  <arakiken@users.sf.net>
+
 	* gtk/vte.c: vte_terminal_set_scrollback_lines() is implemented.
 
 	* mlconfig/main.c: mc_char_width_config_widget_new() and
