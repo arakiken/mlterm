@@ -442,11 +442,15 @@ error2:
 
 		/* failed */
 
-		/* specified program name without path. */
+		/* If program name was specified without directory, prepend LIBEXECDIR to it. */
 		if( strchr( cmd_path , '/') == NULL)
 		{
 			char *  p ;
+		#if  defined(__CYGWIN__) || defined(__MSYS__)
+			char  dir[] = LIBEXECDIR "/../bin" ;
+		#else
 			char  dir[] = LIBEXECDIR "/mlterm" ;
+		#endif
 
 			if( ( p = alloca( sizeof(dir) + strlen( cmd_path) + 1)))
 			{
