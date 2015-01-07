@@ -1,3 +1,19 @@
+2015-01-07  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_imagelib.c:
+	  - It is enabled to show regis without mlimgloader.exe.
+	  - *mask = NULL after LoadImage() succeeds.
+
+	* main_loop.c: Not only DEFAULT but also ISO10646_UCS4_1 font setting is
+	  customized by --deffont option.
+
+	* vte.c: Not only DEFAULT but also ISO10646_UCS4_1 font setting is
+	  customized by vte_terminal_set_font_from_string().
+
+	* c_regis.c: Separated from c_imagelib.c.
+
+	* version.h.in: 3.4.2 -> 3.4.2post
+
 2015-01-06  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.4.2 released.
@@ -5,7 +21,7 @@
 
 	* configure.in, mlterm.spec, main/version.h.in,
 	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
-	  updated for 3.4.1.
+	  updated for 3.4.2.
 
 	* mlterm.1, doc/en/PROTOCOL: Updated.
 

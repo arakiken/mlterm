@@ -3975,6 +3975,7 @@ vte_terminal_set_font_from_string(
 
 	if( x_customize_font_file( "aafont" , "DEFAULT" , name , 0))
 	{
+		x_customize_font_file( "aafont" , "ISO10646_UCS4_1" , name , 0) ;
 		x_font_cache_unload_all() ;
 	
 		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))

@@ -402,6 +402,9 @@ main_loop_init(
 		x_customize_font_file(
 			main_config.type_engine == TYPE_XCORE ? "font" : "aafont" ,
 			"DEFAULT" , value , 0) ;
+		x_customize_font_file(
+			main_config.type_engine == TYPE_XCORE ? "font" : "aafont" ,
+			"ISO10646_UCS4_1" , value , 0) ;
 	}
 
 #ifndef  USE_FRAMEBUFFER

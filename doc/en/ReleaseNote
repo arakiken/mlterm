@@ -1,3 +1,8 @@
+ver 3.4.3
+* --deffont/default_font option and vte_terminal_set_font* functions of libvte compatible
+ library overwrite the default font of "ISO10646_UCS4_1" not only "DEFAULT".
+* 
+
 ver 3.4.2
 * Support colorful emoji with the use of http://github.com/github/gemoji.
   (Copy images/emoji/unicode/*.png in https://github.com/github/gemoji/archive/master.zip

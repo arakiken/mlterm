@@ -87,7 +87,8 @@ create_cardinals_from_file(
 	u_int32_t *  cardinal ;
 	u_int32_t *  p ;
 
-	if( strstr( path , ".six") && ( cardinal = create_cardinals_from_sixel( path)))
+	if( strcasecmp( path + strlen(path) - 4 , ".six") == 0 &&
+	    ( cardinal = create_cardinals_from_sixel( path)))
 	{
 		return  cardinal ;
 	}

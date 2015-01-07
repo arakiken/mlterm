@@ -25,6 +25,7 @@
 
 #define  CARD_HEAD_SIZE  0
 #include  "../../common/c_sixel.c"
+#include  "../../common/c_regis.c"
 
 static void
 value_table_refresh(
@@ -121,6 +122,7 @@ load_file(
 	HBITMAP *  hbmp_mask
 	)
 {
+	char *  suffix ;
 	char *  cmd_line ;
 	WCHAR *  w_cmd_line ;
 	int  num ;
@@ -136,14 +138,21 @@ load_file(
 	HDC  hdc ;
 	BYTE *  image ;
 
+	suffix = path + strlen(path) - 4 ;
 #ifdef  BUILTIN_SIXEL
-	if( strstr( path , ".six") && *width == 0 && *height == 0 &&
+	if( strcasecmp( suffix , ".six") == 0 &&
+	    *width == 0 && *height == 0 &&
 	    /* XXX fopen() in load_sixel_from_file() on win32api doesn't support UTF-8. */
 	    ( image = (u_int32_t*)load_sixel_from_file( path , width , height)))
 	{
 		goto  loaded ;
 	}
 #endif
+
+	if( strcasecmp( suffix , ".rgs") == 0)
+	{
+		convert_regis_to_bmp( path) ;
+	}
 
 #define  CMD_LINE_FMT  "mlimgloader.exe 0 %u %u \"%s\" -c"
 
@@ -488,6 +497,11 @@ x_imagelib_load_file(
 		GetObject( hbmp , sizeof(BITMAP) , &bmp) ;
 		*width = bmp.bmWidth ;
 		*height = bmp.bmHeight ;
+
+		if( mask)
+		{
+			*mask = NULL ;
+		}
 	}
 
 	hdc = GetDC( NULL) ;
