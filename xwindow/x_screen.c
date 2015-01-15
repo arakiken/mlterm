@@ -5596,8 +5596,8 @@ static void
 get_font_config(
 	void *  p ,
 	char *  file ,		/* can be NULL */
-	char *  font_size_str ,	/* can be "error" */
-	char *  cs ,		/* can be "error" */
+	char *  font_size_str ,	/* can be NULL */
+	char *  cs ,
 	int  to_menu
 	)
 {
@@ -5608,16 +5608,30 @@ get_font_config(
 
 	screen = p ;
 
-	if( ! ( key = alloca( strlen(cs) + 1 + strlen(font_size_str) + 1)) ||
-	    sscanf( font_size_str , "%u" , &font_size) != 1)
+	if( font_size_str)
 	{
-		ml_term_response_config( screen->term , "error" , NULL , to_menu) ;
+		if( sscanf( font_size_str , "%u" , &font_size) != 1)
+		{
+			goto  error ;
+		}
+	}
+	else
+	{
+		font_size = x_get_font_size( screen->font_man) ;
+	}
 
-		return ;
+	if( strcmp( cs , "USASCII") == 0)
+	{
+		cs = x_get_charset_name( x_get_current_usascii_font_cs( screen->font_man)) ;
+	}
+
+	if( ! ( key = alloca( strlen(cs) + 1 + DIGIT_STR_LEN(u_int) /* fontsize */ + 1)))
+	{
+		goto  error ;
 	}
 
 	font_name = x_get_config_font_name2( file , font_size , cs) ;
-	sprintf( key , "%s,%s" , cs , font_size_str) ;
+	sprintf( key , "%s,%d" , cs , font_size) ;
 
 	ml_term_response_config( screen->term , key , font_name ? font_name : "" , to_menu) ;
 
@@ -5627,6 +5641,13 @@ get_font_config(
 #endif
 
 	free( font_name) ;
+
+	return ;
+
+error:
+	ml_term_response_config( screen->term , "error" , NULL , to_menu) ;
+
+	return ;
 }
 
 static void

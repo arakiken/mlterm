@@ -75,6 +75,8 @@ int  x_set_use_italic_font( x_font_manager_t *  font_man , int  use_italic_font)
 
 XFontSet  x_get_fontset( x_font_manager_t *  font_man) ;
 
+#define  x_get_current_usascii_font_cs( font_man)  ((font_man)->font_cache->usascii_font_cs)
+
 mkf_charset_t  x_get_usascii_font_cs( ml_char_encoding_t  encoding) ;
 
 

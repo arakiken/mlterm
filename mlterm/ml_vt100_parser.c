@@ -2326,15 +2326,8 @@ config_protocol_get(
 	{
 		char *  cs ;
 
-		if( ret == 0)
-		{
-			cs = key ;
-		}
-		else if( ! ( cs = kik_str_sep( &key , ",")) || ! key)
-		{
-			return ;
-		}
-		
+		cs = kik_str_sep( &key , ",") ;
+
 		if( HAS_CONFIG_LISTENER(vt100_parser,get_font))
 		{
 			(*vt100_parser->config_listener->get_font)(

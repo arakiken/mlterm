@@ -15,7 +15,7 @@ Framebuffer 対応に関するメモ
   OpenBSD 5.3
 
 * ビルド
-  ./configure --with-gui=fb ...
+  ./configure --with-gui=fb (--enable-anti-alias) ...
   make
   sudo make install
   (インストール先は、X 版 mlterm と同じディレクトリで構いません。
@@ -28,10 +28,13 @@ Framebuffer 対応に関するメモ
   なお、mlterm-fb を起動する前に、必ずフォントの設定を行ってください。
 
   o フォントの設定方法
-    ~/.mlterm/font でなく、~/.mlterm/font-fb に、使用するフォントを設定してくだ
-    さい。font-fb のフォーマットは font と基本的には同じですが、XLFD ではなく、
-    使用するフォントファイルのパスを記載します。
+    ~/.mlterm/font でなく、~/.mlterm/font-fb に、使用したい pcf 又は true type
+    フォントを設定してください。font-fb のフォーマットは font と基本的には同じ
+    ですが、XLFD ではなく、使用するフォントファイルのパスを記載します。
     (etc/font-fb がサンプルです。)
+    なお、true type フォントを使用する場合は、mlterm-fb を
+    ./configure --enable-anti-alias
+    してビルドしてください。
 
 * 起動方法
   mlterm-fb (-fg white -bg black -sb=false)

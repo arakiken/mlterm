@@ -198,23 +198,33 @@ typedef struct
 {
 	char *  file ;
 
-	int32_t  format ;
+	int32_t  format ;	/* XXX (fontsize|FONT_BOLD|FONT_ITALIC) on freetype. */
 
 	int32_t  num_of_glyphs ;
 	unsigned char *  glyphs ;
-	int32_t *  glyph_offsets ;
-	int32_t  glyph_width_bytes ;
 
-	int16_t  min_char_or_byte2 ;
-	int16_t  max_char_or_byte2 ;
-	int16_t  min_byte1 ;
-	int16_t  max_byte1 ;
-	int16_t *  glyph_indeces ;
+	int32_t  glyph_width_bytes ;
 
 	unsigned char  width ;
 	unsigned char  width_full ;
 	unsigned char  height ;
 	unsigned char  ascent ;
+
+	int16_t *  glyph_indeces ;
+
+	/* for pcf */
+	int16_t  min_char_or_byte2 ;
+	int16_t  max_char_or_byte2 ;
+	int16_t  min_byte1 ;
+	int16_t  max_byte1 ;
+	int32_t *  glyph_offsets ;
+
+#ifdef  USE_FREETYPE
+	/* for freetype */
+	void *  face ;
+	u_int32_t  num_of_indeces ;
+	u_int32_t  glyph_size ;
+#endif
 
 	unsigned int  ref_count ;
 

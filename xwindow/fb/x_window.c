@@ -282,7 +282,11 @@ draw_string(
 
 #if  1
 	/* Optimization for most cases */
-	if( src_bg_is_set && ! font->double_draw_gap)
+	if( src_bg_is_set && ! font->double_draw_gap
+	#ifdef  USE_FREETYPE
+		&& ! xfont->face
+	#endif
+		)
 	{
 		u_char *  bitmap_line ;
 		int  x_off ;
@@ -460,6 +464,84 @@ draw_string(
 					}
 				}
 			}
+		#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
+			else if( xfont->face)
+			{
+				Display *  d ;
+
+				d = win->disp->display ;
+
+				for( x_off = 0 ; x_off < font_width ; x_off++ , p += bpp)
+				{
+					u_long  pixel ;
+
+					if( font->x_off <= x_off &&
+					    x_off < font->x_off + x_get_bitmap_width( font->xfont))
+					{
+						int  a1 = *(bitmap_line++) ;
+						int  a2 = *(bitmap_line++) ;
+						int  a3 = *(bitmap_line++) ;
+						u_long  fg ;
+						u_long  bg ;
+						int  r1 ;
+						int  g1 ;
+						int  b1 ;
+						int  r2 ;
+						int  g2 ;
+						int  b2 ;
+
+						/* "> 20" is to avoid garbages in screen. */
+						if( a1 > 20 || a2 > 20 || a3 > 20)
+						{
+							fg = fg_color->pixel ;
+							if( src_bg_is_set)
+							{
+								if( picture)
+								{
+									bg = (bpp == 2) ?
+									     *((u_int16_t*)p) :
+									     *((u_int32_t*)p) ;
+								}
+								else
+								{
+									bg = bg_color->pixel ;
+								}
+							}
+							else
+							{
+								bg = x_display_get_pixel(
+									x + x_off , y + y_off) ;
+							}
+
+#define  BLEND(fg,bg,alpha)  ((bg) + ((fg) - (bg)) * (alpha) / 255)
+							r1 = PIXEL_RED(fg,d->rgbinfo) & 0xff ;
+							g1 = PIXEL_GREEN(fg,d->rgbinfo) & 0xff ;
+							b1 = PIXEL_BLUE(fg,d->rgbinfo) & 0xff ;
+							r2 = PIXEL_RED(bg,d->rgbinfo) & 0xff ;
+							g2 = PIXEL_GREEN(bg,d->rgbinfo) & 0xff ;
+							b2 = PIXEL_BLUE(bg,d->rgbinfo) & 0xff ;
+
+							pixel = RGB_TO_PIXEL(
+									BLEND(r1,r2,a1),
+									BLEND(g1,g2,a2),
+									BLEND(b1,b2,a3),
+									d->rgbinfo) ;
+
+							copy_pixel( p , pixel , bpp) ;
+
+							continue ;
+						}
+					}
+
+					if( ! src_bg_is_set)
+					{
+						pixel = x_display_get_pixel(
+							x + x_off , y + y_off) ;
+						copy_pixel( p , pixel , bpp) ;
+					}
+				}
+			}
+		#endif
 			else
 			{
 				int  force_fg ;

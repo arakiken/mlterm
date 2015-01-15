@@ -49,6 +49,8 @@
 #endif
 
 
+/* ===== PCF ===== */
+
 /* --- static variables --- */
 
 static XFontStruct **  xfonts ;
@@ -637,33 +639,493 @@ end:
 	return  0 ;
 }
 
-static int
+static void
 unload_pcf(
 	XFontStruct *  xfont
 	)
 {
-	if( xfont->file)
+	free( xfont->file) ;
+	free( xfont->glyphs) ;
+	free( xfont->glyph_offsets) ;
+	free( xfont->glyph_indeces) ;
+}
+
+
+/* ===== FREETYPE ===== */
+
+#ifdef  USE_FREETYPE
+
+#include  <ft2build.h>
+#include  FT_FREETYPE_H
+
+
+/* 0 - 511 */
+#define  SEG(idx)   (((idx) >> 7) & 0x1ff)
+/* 0 - 127 */
+#define  OFF(idx)   ((idx) & 0x7f)
+
+
+/* --- static variables --- */
+
+static FT_Library  library ;
+
+
+/* --- static functions --- */
+
+static int
+load_char(
+	FT_Face  face ,
+	int32_t  format ,
+	u_int32_t  code
+	)
+{
+	FT_Load_Char( face , code , FT_LOAD_NO_BITMAP) ;
+
+#ifdef  USE_ANTI_ALIAS
+	if( face->glyph->format == FT_GLYPH_FORMAT_BITMAP)
 	{
-		free( xfont->file) ;
+		return  0 ;
+	}
+#endif
+
+	if( format & FONT_ITALIC)
+	{
+		FT_Matrix  matrix ;
+		matrix.xx = 1 << 16 ;
+		matrix.xy = 0x3000 ;
+		matrix.yx = 0 ;
+		matrix.yy = 1 << 16 ;
+		FT_Outline_Transform( &face->glyph->outline , &matrix) ;
 	}
 
-	if( xfont->glyphs)
+	if( format & FONT_BOLD)
 	{
-		free( xfont->glyphs) ;
+		FT_Outline_Embolden( &face->glyph->outline , 1 << 5) ;
 	}
 
-	if( xfont->glyph_offsets)
-	{
-		free( xfont->glyph_offsets) ;
-	}
-
-	if( xfont->glyph_indeces)
-	{
-		free( xfont->glyph_indeces) ;
-	}
+#ifdef  USE_ANTI_ALIAS
+	FT_Render_Glyph( face->glyph , FT_RENDER_MODE_LCD) ;
+#else
+	FT_Render_Glyph( face->glyph , FT_RENDER_MODE_MONO) ;
+#endif
 
 	return  1 ;
 }
+
+static int
+load_ft(
+	XFontStruct *  xfont ,
+	const char *  file_path ,
+	int32_t  format
+	)
+{
+	u_int  count ;
+	FT_Face  face ;
+	u_int  fontsize ;
+
+	if( ! library)
+	{
+		if( FT_Init_FreeType( &library))
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG "FT_Init_FreeType() failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+	}
+
+	for( count = 0 ; count < num_of_xfonts ; count++)
+	{
+		if( strcmp( xfonts[count]->file , file_path) == 0)
+		{
+			face = xfonts[count]->face ;
+
+			goto  face_found ;
+		}
+	}
+
+	if( FT_New_Face( library , file_path , 0 , &face))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG "FT_New_Face() failed.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+face_found:
+	fontsize = (format & ~(FONT_BOLD|FONT_ITALIC)) ;
+	FT_Set_Pixel_Sizes( face , fontsize , fontsize) ;
+
+	xfont->format = format ;
+	xfont->face = face ;
+
+	if( ! load_char( face , format , 'W'))
+	{
+		kik_msg_printf( "%s doesn't have outline glyphs.\n" , file_path) ;
+
+		return  0 ;
+	}
+
+	xfont->num_of_indeces = 0x1000 ;
+
+	if( ! ( xfont->file = strdup( file_path)) ||
+	    ! ( xfont->glyph_indeces = calloc( xfont->num_of_indeces , sizeof(u_int16_t))) ||
+	    ! ( xfont->glyphs = calloc( 512 , sizeof(u_char*))))
+	{
+		FT_Done_Face( face) ;
+		free( xfont->file) ;
+		free( xfont->glyph_indeces) ;
+
+		return  0 ;
+	}
+
+	face->generic.data = ((int)face->generic.data) + 1 ;	/* ref_count */
+
+	xfont->width_full = (face->max_advance_width * face->size->metrics.x_ppem
+	                     + face->units_per_EM - 1) / face->units_per_EM ;
+#ifdef  USE_ANTI_ALIAS
+	xfont->glyph_width_bytes = xfont->width_full * 3 ;
+	xfont->width = face->glyph->bitmap.width / 3 ;
+#else
+	xfont->glyph_width_bytes = (xfont->width_full + 7) / 8 ;
+	xfont->width = face->glyph->bitmap.width ;
+#endif
+
+	xfont->height = (face->max_advance_height * face->size->metrics.y_ppem
+			+ face->units_per_EM - 1) / face->units_per_EM ;
+	xfont->ascent = (face->ascender * face->size->metrics.y_ppem
+			+ face->units_per_EM - 1) / face->units_per_EM ;
+
+	if( load_char( face , format , 'j'))
+	{
+		int  descent ;
+
+		descent = face->glyph->bitmap.rows - face->glyph->bitmap_top ;
+		if( descent > xfont->height - xfont->ascent)
+		{
+			xfont->height = xfont->ascent + descent ;
+		}
+	}
+
+#ifdef  USE_ANTI_ALIAS
+	xfont->glyph_size = xfont->glyph_width_bytes * xfont->height ;
+#else
+	/* for the last 'dst[count] = ...' in get_ft_bitmap(). */
+	xfont->glyph_size = xfont->glyph_width_bytes * xfont->height + 1 ;
+#endif
+
+#if  0
+	kik_debug_printf( "w %d %d h %d a %d\n" ,
+		xfont->width , xfont->width_full , xfont->height , xfont->ascent) ;
+#endif
+
+	return  1 ;
+}
+
+static void
+init_iscii_ft(
+	FT_Face  face
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < face->num_charmaps ; count++)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " ISCII font encoding %c%c%c%c\n" ,
+			((face->charmaps[count]->encoding) >> 24) & 0xff ,
+			((face->charmaps[count]->encoding) >> 16) & 0xff ,
+			((face->charmaps[count]->encoding) >> 8) & 0xff ,
+			(face->charmaps[count]->encoding & 0xff)) ;
+	#endif
+
+		if( face->charmaps[count]->encoding == FT_ENCODING_APPLE_ROMAN)
+		{
+			FT_Set_Charmap( face , face->charmaps[count]) ;
+
+			return ;
+		}
+	}
+}
+
+static void
+unload_ft(
+	XFontStruct *  xfont
+	)
+{
+	FT_Face  face ;
+	int  count ;
+
+	free( xfont->file) ;
+
+	face = xfont->face ;
+	face->generic.data = ((int)face->generic.data) - 1 ;
+	if( ! face->generic.data)
+	{
+		FT_Done_Face( xfont->face) ;
+	}
+
+	for( count = 0 ; ((u_char**)xfont->glyphs)[count] ; count ++)
+	{
+		free( ((u_char**)xfont->glyphs)[count]) ;
+	}
+
+	free( xfont->glyphs) ;
+	free( xfont->glyph_indeces) ;
+
+	if( num_of_xfonts == 0 && library)
+	{
+		FT_Done_FreeType( library) ;
+		library = NULL ;
+	}
+}
+
+static u_char *
+get_ft_bitmap(
+	XFontStruct *  xfont ,
+	u_char *  ch ,
+	size_t  len
+	)
+{
+	u_int32_t  code ;
+	u_int16_t *  indeces ;
+	int  idx ;
+	u_char **  glyphs ;
+	u_char *  glyph ;
+
+	code = mkf_bytes_to_int( ch , len) ;
+
+	if( code == 0x20)
+	{
+		return  NULL ;
+	}
+
+	if( code >= xfont->num_of_indeces)
+	{
+		if( ! ( indeces = realloc( xfont->glyph_indeces ,
+					sizeof(u_int16_t) * (code + 1))))
+		{
+			return  NULL ;
+		}
+		memset( indeces + xfont->num_of_indeces , 0 ,
+			sizeof(u_int16_t) * (code + 1 - xfont->num_of_indeces)) ;
+		xfont->num_of_indeces = code + 1 ;
+		xfont->glyph_indeces = indeces ;
+	}
+	else
+	{
+		indeces = xfont->glyph_indeces ;
+	}
+
+	glyphs = xfont->glyphs ;
+
+	if( ! ( idx = indeces[code]))
+	{
+		FT_Face  face ;
+		int  y ;
+		u_char *  src ;
+		u_char *  dst ;
+		int  left_pitch ;
+		int  pitch ;
+		int  rows ;
+
+		if( xfont->num_of_glyphs >= 128 * 512 - 1)
+		{
+			kik_msg_printf( "Unable to show U+%x because glyph cache is full.\n" ,
+				code) ;
+
+			return  NULL ;
+		}
+
+		face = xfont->face ;
+
+		if( ! load_char( face , xfont->format , code))
+		{
+			return  NULL ;
+		}
+
+		if( OFF(xfont->num_of_glyphs) == 0)
+		{
+			if( ! ( glyphs[SEG(xfont->num_of_glyphs)] =
+					calloc( 128 , xfont->glyph_size)))
+			{
+				return  NULL ;
+			}
+		}
+
+		idx = ++xfont->num_of_glyphs ;
+
+	#if  0
+		kik_debug_printf( "%x %c w %d %d(%d) h %d(%d) at %d %d\n" ,
+			code , code ,
+			face->glyph->bitmap.width ,
+			face->glyph->bitmap.pitch ,
+			xfont->glyph_width_bytes ,
+			face->glyph->bitmap.rows ,
+			xfont->height ,
+			face->glyph->bitmap_left ,
+			face->glyph->bitmap_top) ;
+	#endif
+
+		indeces[code] = idx ;
+
+	#ifdef  USE_ANTI_ALIAS
+		left_pitch = face->glyph->bitmap_left * 3 ;
+
+		if( face->glyph->bitmap.pitch < xfont->glyph_width_bytes)
+		{
+			pitch = face->glyph->bitmap.pitch ;
+
+			if( pitch + left_pitch > xfont->glyph_width_bytes)
+			{
+				left_pitch = xfont->glyph_width_bytes - pitch ;
+			}
+		}
+		else
+		{
+			pitch = xfont->glyph_width_bytes ;
+			left_pitch = 0 ;
+		}
+	#else
+		if( face->glyph->bitmap.pitch <= xfont->glyph_width_bytes)
+		{
+			pitch = face->glyph->bitmap.pitch ;
+
+			/* XXX left_pitch is 7 at most. */
+			if( ( left_pitch = face->glyph->bitmap_left) > 7)
+			{
+				left_pitch = 7 ;
+			}
+		}
+		else
+		{
+			pitch = xfont->glyph_width_bytes ;
+			left_pitch = 0 ;
+		}
+	#endif
+
+		if( xfont->ascent > face->glyph->bitmap_top)
+		{
+			y = xfont->ascent - face->glyph->bitmap_top ;
+		}
+		else
+		{
+			y = 0 ;
+		}
+
+		if( face->glyph->bitmap.rows < xfont->height)
+		{
+			rows = face->glyph->bitmap.rows ;
+
+			if( rows + y > xfont->height)
+			{
+				y = xfont->height - rows ;
+			}
+		}
+		else
+		{
+			rows = xfont->height ;
+			y = 0 ;
+		}
+
+		glyph = glyphs[SEG(idx - 1)] + xfont->glyph_size * OFF(idx - 1) ;
+
+		src = face->glyph->bitmap.buffer ;
+		dst = glyph + (xfont->glyph_width_bytes * y) ;
+
+		for( y = 0 ; y < rows ; y++)
+		{
+		#ifdef  USE_ANTI_ALIAS
+			memcpy( dst + left_pitch , src , pitch) ;
+		#else
+			int  count ;
+
+			if( left_pitch == 0)
+			{
+				memcpy( dst , src , pitch) ;
+			}
+			else
+			{
+				dst += (left_pitch / 8) ;
+				dst[0] = (src[0] >> left_pitch) ;
+				for( count = 1 ; count < pitch ; count++)
+				{
+					dst[count] = (src[count-1] << (8-left_pitch)) |
+						 (src[count] >> left_pitch) ;
+				}
+				dst[count] = (src[count-1] << (8-left_pitch)) ;
+			}
+		#endif
+			src += face->glyph->bitmap.pitch ;
+			dst += xfont->glyph_width_bytes ;
+		}
+	}
+	else
+	{
+		glyph = glyphs[SEG(idx - 1)] + xfont->glyph_size * OFF(idx - 1) ;
+	}
+
+	return  glyph ;
+}
+
+static int
+load_xfont(
+	XFontStruct *  xfont ,
+	const char *  file_path ,
+	int32_t  format ,
+	u_int  bytes_per_pixel ,
+	mkf_charset_t  cs
+	)
+{
+	if( bytes_per_pixel > 1 && (cs == ISO10646_UCS4_1 || IS_ISCII(cs)) &&
+	    strcasecmp( file_path + strlen(file_path) - 6 , "pcf.gz") != 0 &&
+	    strcasecmp( file_path + strlen(file_path) - 3 , "pcf") != 0)
+	{
+		if( load_ft( xfont , file_path , format))
+		{
+			if( IS_ISCII(cs))
+			{
+				init_iscii_ft( xfont->face) ;
+			}
+
+			return  1 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+	else
+	{
+		return  load_pcf( xfont , file_path) ;
+	}
+}
+
+static void
+unload_xfont(
+	XFontStruct *  xfont
+	)
+{
+	if( xfont->face)
+	{
+		unload_ft( xfont) ;
+	}
+	else
+	{
+		unload_pcf( xfont) ;
+	}
+}
+
+#else
+
+#define  load_xfont( xfont , file_path , format , bytes_per_pixel , cs) \
+		load_pcf( xfont , file_path)
+#define  unload_xfont( xfont)  unload_pcf( xfont)
+
+#endif	/* USE_FREETYPE */
+
 
 
 /* --- global functions --- */
@@ -689,6 +1151,9 @@ x_font_new(
 	u_int  letter_space	/* Ignored for now. */
 	)
 {
+#ifdef  __ANDROID__
+	extern char *  unifont_path ;	/* XXX defined in main.c */
+#endif
 	char *  font_file ;
 	u_int  percent ;
 	x_font_t *  font ;
@@ -738,8 +1203,6 @@ x_font_new(
 				percent = 0 ;
 			}
 		#elif  defined(__ANDROID__)
-			extern char *  unifont_path ;	/* XXX defined in main.c */
-
 			font_file = unifont_path ;
 			percent = 100 ;
 		#else /* __linux__ */
@@ -789,7 +1252,12 @@ x_font_new(
 
 	for( count = 0 ; count < num_of_xfonts ; count++)
 	{
-		if( strcmp( xfonts[count]->file , font_file) == 0)
+		if( strcmp( xfonts[count]->file , font_file) == 0
+		#ifdef  USE_FREETYPE
+		    && xfonts[count]->face
+		    && xfonts[count]->format == (fontsize | (id & (FONT_BOLD|FONT_ITALIC)))
+		#endif
+		    )
 		{
 			font->xfont = xfonts[count] ;
 			xfonts[count]->ref_count ++ ;
@@ -807,10 +1275,28 @@ x_font_new(
 
 	font->display = display ;
 
-	if( ! load_pcf( font->xfont , font_file) ||
-	    ! ( p = realloc( xfonts , sizeof(XFontStruct*) * (num_of_xfonts + 1))))
+	if( ! load_xfont( font->xfont , font_file , fontsize | (id & (FONT_BOLD|FONT_ITALIC)) ,
+		display->bytes_per_pixel , FONT_CS(id)))
 	{
-		unload_pcf( font->xfont) ;
+		free( font->xfont) ;
+		free( font) ;
+
+		if( fontname)
+		{
+			return  x_font_new( display , id , type_engine , font_present ,
+					NULL /* Fall back to the default font */ ,
+					fontsize , col_width , use_medium_for_bold ,
+					letter_space) ;
+		}
+		else
+		{
+			return  NULL ;
+		}
+	}
+
+	if( ! ( p = realloc( xfonts , sizeof(XFontStruct*) * (num_of_xfonts + 1))))
+	{
+		unload_xfont( font->xfont) ;
 		free( font->xfont) ;
 		free( font) ;
 
@@ -835,8 +1321,7 @@ xfont_loaded:
 		font->cols = 1 ;
 	}
 
-	/* XXX is_var_col_width is not supported. */
-#if  0
+#if  1
 	if( ( font_present & FONT_VAR_WIDTH) || IS_ISCII(FONT_CS(font->id)))
 	{
 		font->is_var_col_width = 1 ;
@@ -1053,7 +1538,7 @@ x_font_delete(
 
 		for( count = 0 ; count < num_of_xfonts ; count++)
 		{
-			if( strcmp( xfonts[count]->file , font->xfont->file) == 0)
+			if( xfonts[count] == font->xfont)
 			{
 				if( -- num_of_xfonts > 0)
 				{
@@ -1075,7 +1560,7 @@ x_font_delete(
 			font->xfont->file , num_of_xfonts) ;
 	#endif
 
-		unload_pcf( font->xfont) ;
+		unload_xfont( font->xfont) ;
 		free( font->xfont) ;
 	}
 
@@ -1222,6 +1707,13 @@ x_get_bitmap(
 	int16_t  glyph_idx ;
 	int32_t  glyph_offset ;
 
+#ifdef  USE_FREETYPE
+	if( xfont->face)
+	{
+		return  get_ft_bitmap( xfont , ch , len) ;
+	}
+	else
+#endif
 	if( len == 1)
 	{
 		ch_idx = ch[0] - xfont->min_char_or_byte2 ;

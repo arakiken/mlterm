@@ -160,8 +160,13 @@ static cs_table_t  cs_table[] =
 static x_font_config_t **  font_configs ;
 static u_int  num_of_configs ;
 
+#ifdef  __ANDROID__
+static u_int  min_font_size = 10 ;
+static u_int  max_font_size = 40 ;
+#else
 static u_int  min_font_size = 6 ;
 static u_int  max_font_size = 30 ;
+#endif
 
 /*
  * These will be leaked unless operate_custom_cache( ... , 1 [remove]) deletes them.
@@ -2242,6 +2247,7 @@ TEST_create_value(void)
 static void
 TEST_font_config(void)
 {
+#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_WIN32GUI)
 	x_font_config_t *  font_config ;
 	char *  value ;
 
@@ -2264,6 +2270,7 @@ TEST_font_config(void)
 
 	TEST_create_value() ;
 	TEST_write_conf() ;
+#endif
 }
 
 #endif

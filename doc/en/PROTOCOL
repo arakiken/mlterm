@@ -12,8 +12,8 @@ version 20150106
   set&save         = "\x1b]5383;" <challenge> ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
 
   set font         = "\x1b]5379;" <font filename> ":" <key> "=" <value> "\x07"
-  get(pty)	   = "\x1b]5380;" <challenge> ";" <font filename> ":" <key> "," <fontsize> "\x07"
-  get(GUI menu)	   = "\x1b]5381;" <font filename> ":" <key> "," <fontsize> "\x07"
+  get(pty)	   = "\x1b]5380;" <challenge> ";" <font filename> ":" <key> ("," <fontsize>) "\x07"
+  get(GUI menu)	   = "\x1b]5381;" <font filename> ":" <key> ("," <fontsize>) "\x07"
   set&save         = "\x1b]5383;" <challenge> ";" <font filename> ":" <key> "=" <value> "\x07"
 
   set color        = "\x1b]5379;color:" <key> "=" <value> "\x07"

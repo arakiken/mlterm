@@ -442,7 +442,22 @@ AC_SUBST(TYPE_LOADER_OBJ)
 # --enable-anti-alias is backward compatibility for --with-type-engines
 AC_ARG_ENABLE(anti_alias,
 	[  --enable-anti-alias     (obsoleted by --with-type-engines)anti alias @<:@default=enabled@:>@],
-	anti_alias=$enable_anti_alias, anti_alias="yes")
+	anti_alias=$enable_anti_alias, anti_alias="auto")
+
+if test "$anti_alias" = "yes" -a "$gui" = "fb" ; then
+	PKG_CHECK_MODULES(FT, freetype2, have_ft=yes, have_ft=no)
+	if test "$have_ft" = "no" ; then
+		PKG_CHECK_MODULES(FT, freetype, have_ft=yes, have_ft=no)
+	fi
+	if test "$have_ft" = "yes" ; then
+		# "tr ..." is hack for cygwin.
+		# (removing \r which is output by win32 native pkg-config.)
+		FT_CFLAGS="-DUSE_FREETYPE `echo $FT_CFLAGS | tr -d '\r'`"
+		FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
+		AC_SUBST(FT_CFLAGS)
+		AC_SUBST(FT_LIBS)
+	fi
+fi
 
 AC_ARG_WITH(type_engines,
 	[  --with-type-engines@<:@=ARG@:>@ type engines (xcore, xft, cairo) @<:@default=xcore,xft,cairo@:>@],
@@ -450,11 +465,11 @@ AC_ARG_WITH(type_engines,
 
 if test "$gui" != "xlib" ; then
 	type_engines="xcore"
-elif  test "$anti_alias" = "no" ; then
+elif test "$anti_alias" = "no" ; then
 	type_engines="xcore"
 fi
 
-if test "$type_engines" = ""; then
+if test "$type_engines" = "" ; then
 	type_engines="xcore,xft,cairo"
 fi
 

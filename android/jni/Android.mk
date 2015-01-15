@@ -13,6 +13,13 @@ ifeq ($(ENABLE_FRIBIDI),true)
 		mlterm/libctl/ml_line_bidi.c
 	CTL_CFLAGS=-DUSE_FRIBIDI
 endif
+ifeq ($(TARGET_ARCH_ABI),mips)
+	FT_CFLAGS :=
+	FT_LDLIBS :=
+else
+	FT_CFLAGS := -DUSE_FREETYPE -Ifreetype/$(TARGET_ARCH_ABI)/include/freetype2
+	FT_LDLIBS := freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a
+endif
 LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		kiklib/src/kik_mem.c kiklib/src/kik_conf.c kiklib/src/kik_file.c \
 		kiklib/src/kik_path.c kiklib/src/kik_conf_io.c kiklib/src/kik_str.c \
@@ -69,8 +76,8 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		xwindow/x_sb_screen.c xwindow/x_simple_sb_view.c \
 		xwindow/x_sb_view_factory.c xwindow/x_scrollbar.c \
 		main/daemon.c main/main_loop.c main/main.c
-LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL $(CTL_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER #-DKIK_DEBUG -DDEBUG
-LOCAL_LDLIBS := -llog -landroid
+LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL $(CTL_CFLAGS) $(FT_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER #-DKIK_DEBUG -DDEBUG
+LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS)
 LOCAL_C_INCLUDES := kiklib mkf mlterm xwindow fribidi
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 

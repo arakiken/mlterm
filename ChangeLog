@@ -1,3 +1,29 @@
+2015-01-12  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb, doc/en/README.android:
+	  Updated.
+
+	* x_font_config.c: The default value of "font_size_range" option is changed
+	  from 6-30 to 10-40 on Android.
+
+	* configure.in, main/Makefile.in, xwindow/Makefile.in:
+	  --enable-anti-alias option of configure enables freetype on framebuffer.
+
+	* Android.mk: freetype support is enabled.
+
+	* fb/x_font.[ch], fb/x_window.c: freetype2 is supported.
+
+	* fb/x_font.c: font->is_var_col_width works if multiple size fonts are used
+	  at the same time.
+
+	* fb/x.h, android/jni/x.h: FT_Face is stored in XFontStruct.
+
+	* x_screen.c, x_font_manager.h: "USASCII" key is supported by OSC 5380 and
+	  5381.
+
+	* ml_vt100_parser.c: OSC 5380 and 5381 doesn't require ",<fontsize>" which
+	  is automatically complemented by the current font size.
+
 2015-01-07  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_imagelib.c:

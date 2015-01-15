@@ -307,7 +307,7 @@ x_font_cache_get_xfont(
 
 		next_font = font ;
 
-	#ifndef  USE_WIN32GUI
+	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 		if( font_cache->font_config->type_engine == TYPE_XCORE)
 		{
 			/*
