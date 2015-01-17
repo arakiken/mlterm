@@ -765,7 +765,7 @@ face_found:
 	{
 		kik_msg_printf( "%s doesn't have outline glyphs.\n" , file_path) ;
 
-		return  0 ;
+		goto  error ;
 	}
 
 	xfont->num_of_indeces = 0x1000 ;
@@ -774,11 +774,7 @@ face_found:
 	    ! ( xfont->glyph_indeces = calloc( xfont->num_of_indeces , sizeof(u_int16_t))) ||
 	    ! ( xfont->glyphs = calloc( 512 , sizeof(u_char*))))
 	{
-		FT_Done_Face( face) ;
-		free( xfont->file) ;
-		free( xfont->glyph_indeces) ;
-
-		return  0 ;
+		goto  error ;
 	}
 
 	face->generic.data = ((int)face->generic.data) + 1 ;	/* ref_count */
@@ -812,7 +808,7 @@ face_found:
 #ifdef  USE_ANTI_ALIAS
 	xfont->glyph_size = xfont->glyph_width_bytes * xfont->height ;
 #else
-	/* for the last 'dst[count] = ...' in get_ft_bitmap(). */
+	/* +1 is for the last 'dst[count] = ...' in get_ft_bitmap(). */
 	xfont->glyph_size = xfont->glyph_width_bytes * xfont->height + 1 ;
 #endif
 
@@ -822,6 +818,13 @@ face_found:
 #endif
 
 	return  1 ;
+
+error:
+	FT_Done_Face( face) ;
+	free( xfont->file) ;
+	free( xfont->glyph_indeces) ;
+
+	return  0 ;
 }
 
 static void
@@ -885,17 +888,13 @@ unload_ft(
 static u_char *
 get_ft_bitmap(
 	XFontStruct *  xfont ,
-	u_char *  ch ,
-	size_t  len
+	u_int32_t  code
 	)
 {
-	u_int32_t  code ;
 	u_int16_t *  indeces ;
 	int  idx ;
 	u_char **  glyphs ;
 	u_char *  glyph ;
-
-	code = mkf_bytes_to_int( ch , len) ;
 
 	if( code == 0x20)
 	{
@@ -972,7 +971,10 @@ get_ft_bitmap(
 		indeces[code] = idx ;
 
 	#ifdef  USE_ANTI_ALIAS
-		left_pitch = face->glyph->bitmap_left * 3 ;
+		if( ( left_pitch = face->glyph->bitmap_left * 3) < 0)
+		{
+			left_pitch = 0 ;
+		}
 
 		if( face->glyph->bitmap.pitch < xfont->glyph_width_bytes)
 		{
@@ -997,6 +999,10 @@ get_ft_bitmap(
 			if( ( left_pitch = face->glyph->bitmap_left) > 7)
 			{
 				left_pitch = 7 ;
+			}
+			else if( left_pitch < 0)
+			{
+				left_pitch = 0 ;
 			}
 		}
 		else
@@ -1061,6 +1067,39 @@ get_ft_bitmap(
 			src += face->glyph->bitmap.pitch ;
 			dst += xfont->glyph_width_bytes ;
 		}
+
+	#ifdef  USE_ANTI_ALIAS
+		if( xfont->glyph_size == xfont->glyph_width_bytes * xfont->height + 3)
+		{
+			/* Storing glyph position info. (ISCII) */
+
+			dst = glyph + xfont->glyph_size - 3 ;
+
+			dst[0] = (face->glyph->advance.x >> 6) ; /* advance */
+			dst[2] = (face->glyph->bitmap.width + left_pitch) / 3 ;	/* width */
+			if( dst[2] > xfont->width_full)
+			{
+				dst[2] = xfont->width_full ;	/* == glyph_width_bytes / 3 */
+			}
+
+			if( dst[0] > 0 && face->glyph->bitmap_left >= 0)
+			{
+				dst[1] = 0 ;	/* retreat */
+			}
+			else
+			{
+				dst[1] = dst[2] - dst[0] ;	/* retreat */
+			}
+
+		#if  0
+			kik_debug_printf( "%x %c A %d R %d W %d-> A %d R %d W %d\n" ,
+				code , code , face->glyph->advance.x >> 6 ,
+				face->glyph->bitmap_left ,
+				face->glyph->bitmap.width ,
+				dst[0] , dst[1] , dst[2]) ;
+		#endif
+		}
+	#endif
 	}
 	else
 	{
@@ -1083,19 +1122,7 @@ load_xfont(
 	    strcasecmp( file_path + strlen(file_path) - 6 , "pcf.gz") != 0 &&
 	    strcasecmp( file_path + strlen(file_path) - 3 , "pcf") != 0)
 	{
-		if( load_ft( xfont , file_path , format))
-		{
-			if( IS_ISCII(cs))
-			{
-				init_iscii_ft( xfont->face) ;
-			}
-
-			return  1 ;
-		}
-		else
-		{
-			return  0 ;
-		}
+		return  load_ft( xfont , file_path , format) ;
 	}
 	else
 	{
@@ -1322,7 +1349,17 @@ xfont_loaded:
 	}
 
 #if  1
-	if( ( font_present & FONT_VAR_WIDTH) || IS_ISCII(FONT_CS(font->id)))
+#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
+	if( IS_ISCII(FONT_CS(font->id)) && font->xfont->face)
+	{
+		font->is_var_col_width = 1 ;
+		font->is_proportional = 1 ;
+		init_iscii_ft( font->xfont->face) ;
+		font->xfont->glyph_size += 3 ;	/* +3 is for storing glyph position info. */
+	}
+	else
+#endif
+	if( ( font_present & FONT_VAR_WIDTH))
 	{
 		font->is_var_col_width = 1 ;
 	}
@@ -1614,6 +1651,25 @@ x_calculate_char_width(
 		}
 	}
 
+#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
+	if( font->is_proportional && font->is_var_col_width)
+	{
+		u_char *  glyph ;
+
+		if( ( glyph = get_ft_bitmap( font->xfont , ch)))
+		{
+			if( font->width < glyph[font->xfont->glyph_size - 3])
+			{
+				return  font->width ;
+			}
+			else
+			{
+				return  glyph[font->xfont->glyph_size - 3] ;
+			}
+		}
+	}
+#endif
+
 	return  font->width ;
 }
 
@@ -1710,7 +1766,7 @@ x_get_bitmap(
 #ifdef  USE_FREETYPE
 	if( xfont->face)
 	{
-		return  get_ft_bitmap( xfont , ch , len) ;
+		return  get_ft_bitmap( xfont , 	mkf_bytes_to_int( ch , len)) ;
 	}
 	else
 #endif

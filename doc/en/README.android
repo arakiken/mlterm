@@ -16,8 +16,9 @@ Android support (Experimental)
   Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
 
 * Note
-  o Indic support is unavailable.
   o You can show a software keyboard if you double-click the left mouse
     button (Button1) at the right bottom corner of the screen.
   o You can rotate display by "rotate_display = right" or "rotate_display = left"
     in /sdcard/.mlterm/main.
+  o The default value of "font_size_range" option is 10-40 on Android while 6-30 
+    on other platforms.

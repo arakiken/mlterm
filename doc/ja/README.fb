@@ -139,8 +139,6 @@ Framebuffer 対応に関するメモ
     と実行する方法もあります($ mlcc rotate_display none で元に戻ります)。
 
 * 使えない機能
-  o プロポーショナルフォント
-    (use_variable_column_width 及び use_ind オプションも使用できません。)
   o ssh2 client (パスフレーズ入力画面を実装していないため)
   o Daemon mode
   o mlclient (mlclientxは使えます。)

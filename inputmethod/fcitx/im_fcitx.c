@@ -680,8 +680,12 @@ update_formatted_preedit(
 			if( (*fcitx->im.listener->get_spot)(
 					fcitx->im.listener->self , NULL , 0 , &x , &y))
 			{
+				u_int  line_height ;
+
+				line_height = (*fcitx->im.listener->get_line_height)(
+						fcitx->im.listener->self) ;
 				fcitx_client_set_cursor_rect(
-					fcitx->client , x , y , 10 , 10) ;
+					fcitx->client , x , y - line_height , 0 , line_height) ;
 			}
 		}
 

@@ -59,27 +59,24 @@ scroll_region(
 	return  1 ;
 }
 
-static inline void
-copy_pixel(
-	u_char *  dst ,		/* should be aligned */
-	u_long  pixel ,
-	u_int  bpp
-	)
-{
-	switch( bpp)
-	{
-	case  1:
-		*dst = pixel ;
-		return ;
-	case  2:
-		*((u_int16_t*)dst) = pixel ;
-		return ;
-
-	/* case  4: */
-	default:
-		*((u_int32_t*)dst) = pixel ;
-	}
-}
+/*
+ * copy_pixel() is called more than twice, so if it is implemented as a function
+ * it may be uninlined in compiling.
+ * dst should be aligned.
+ */
+#define  copy_pixel( dst , pixel , bpp) \
+	switch( bpp) \
+	{ \
+	case  1: \
+		*(dst) = pixel ; \
+		break ; \
+	case  2: \
+		*((u_int16_t*)(dst)) = (pixel) ; \
+		break ; \
+	/* case  4: */ \
+	default: \
+		*((u_int32_t*)(dst)) = (pixel) ; \
+	} \
 
 static inline u_int16_t *
 memset16(
@@ -114,6 +111,53 @@ memset32(
 
 	return  dst ;
 }
+
+#if  defined(USE_FRAMEBUFFER) && defined(USE_FREETYPE)
+#define  BLEND(fg,bg,alpha)  ((bg) + ((fg) - (bg)) * (alpha) / 255)
+static int
+copy_blended_pixel(
+	Display *  display ,
+	u_char *  dst ,
+	u_char **  bitmap ,
+	u_long  fg ,
+	u_long  bg ,
+	u_int  bpp
+	)
+{
+	int  a1 = *((*bitmap)++) ;
+	int  a2 = *((*bitmap)++) ;
+	int  a3 = *((*bitmap)++) ;
+
+	/* "> 20" is to avoid garbages in screen. */
+	if( a1 > 20 || a2 > 20 || a3 > 20)
+	{
+		int  r1 ;
+		int  g1 ;
+		int  b1 ;
+		int  r2 ;
+		int  g2 ;
+		int  b2 ;
+
+		r1 = PIXEL_RED(fg,display->rgbinfo) & 0xff ;
+		g1 = PIXEL_GREEN(fg,display->rgbinfo) & 0xff ;
+		b1 = PIXEL_BLUE(fg,display->rgbinfo) & 0xff ;
+		r2 = PIXEL_RED(bg,display->rgbinfo) & 0xff ;
+		g2 = PIXEL_GREEN(bg,display->rgbinfo) & 0xff ;
+		b2 = PIXEL_BLUE(bg,display->rgbinfo) & 0xff ;
+
+		copy_pixel( dst ,
+			RGB_TO_PIXEL( BLEND(r1,r2,a1) , BLEND(g1,g2,a2) ,
+				BLEND(b1,b2,a3) , display->rgbinfo) ,
+			bpp) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+#endif
 
 static int
 draw_string(
@@ -467,33 +511,118 @@ draw_string(
 		#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
 			else if( xfont->face)
 			{
-				Display *  d ;
-
-				d = win->disp->display ;
-
-				for( x_off = 0 ; x_off < font_width ; x_off++ , p += bpp)
+				if( font->is_proportional && font->is_var_col_width)
 				{
-					u_long  pixel ;
+					static int  prev_crowded_out ;	/* XXX */
+					int  retreat ;
+					int  advance ;
+					int  width ;
 
-					if( font->x_off <= x_off &&
-					    x_off < font->x_off + x_get_bitmap_width( font->xfont))
+					if( ( retreat = bitmaps[count][xfont->glyph_size - 2]) > 0)
 					{
-						int  a1 = *(bitmap_line++) ;
-						int  a2 = *(bitmap_line++) ;
-						int  a3 = *(bitmap_line++) ;
-						u_long  fg ;
-						u_long  bg ;
-						int  r1 ;
-						int  g1 ;
-						int  b1 ;
-						int  r2 ;
-						int  g2 ;
-						int  b2 ;
+						u_int  filled ;
 
-						/* "> 20" is to avoid garbages in screen. */
-						if( a1 > 20 || a2 > 20 || a3 > 20)
+						if( ( filled = (p - src) / bpp) < retreat)
 						{
-							fg = fg_color->pixel ;
+							bitmap_line += (retreat - filled) ;
+							x_off = -filled ;
+							p = src ;
+						}
+						else
+						{
+							x_off = -retreat ;
+							p -= (retreat * bpp) ;
+						}
+					}
+					else
+					{
+						x_off = 0 ;
+					}
+
+					width = bitmaps[count][xfont->glyph_size - 1] ;
+
+					/* width - retreat */
+					for( ; x_off < width - retreat ; x_off++ , p += bpp)
+					{
+						u_long  bg ;
+
+						if( src_bg_is_set)
+						{
+							if( picture)
+							{
+								bg = (bpp == 2) ?
+								     *((u_int16_t*)p) :
+								     *((u_int32_t*)p) ;
+							}
+							else
+							{
+								bg = bg_color->pixel ;
+							}
+						}
+						else
+						{
+							bg = x_display_get_pixel(
+								x + x_off , y + y_off) ;
+						}
+
+						if( copy_blended_pixel( win->disp->display ,
+							p , &bitmap_line , fg_color->pixel ,
+							bg , bpp))
+						{
+							continue ;
+						}
+						else if( ! src_bg_is_set &&
+						         ( count == 0 ||
+						           x_off >= prev_crowded_out))
+						{
+							copy_pixel( p , bg , bpp) ;
+						}
+					}
+
+					if( ( advance = bitmaps[count][xfont->glyph_size - 3]) >
+					    font_width)
+					{
+						/*
+						 * advance <= font_width because the size of
+						 * src is 'len * font_width * bpp'.
+						 */
+						advance = font_width ;
+					}
+
+					if( prev_crowded_out > advance)
+					{
+						prev_crowded_out -= advance ;
+					}
+					else
+					{
+						prev_crowded_out = 0 ;
+					}
+
+					if( advance > 0 && x_off != advance)
+					{
+						p += ((advance - x_off) * bpp) ;
+
+						if( x_off > advance &&
+						    prev_crowded_out < x_off - advance)
+						{
+							prev_crowded_out = x_off - advance ;
+						}
+					}
+
+					x = x + advance - font_width ;
+				}
+				else
+				{
+					for( x_off = 0 ; x_off < font_width ; x_off++ , p += bpp)
+					{
+						u_long  pixel ;
+
+						if( font->x_off <= x_off &&
+						    x_off < font->x_off +
+						            x_get_bitmap_width( font->xfont))
+						{
+							u_long  bg ;
+
 							if( src_bg_is_set)
 							{
 								if( picture)
@@ -513,31 +642,22 @@ draw_string(
 									x + x_off , y + y_off) ;
 							}
 
-#define  BLEND(fg,bg,alpha)  ((bg) + ((fg) - (bg)) * (alpha) / 255)
-							r1 = PIXEL_RED(fg,d->rgbinfo) & 0xff ;
-							g1 = PIXEL_GREEN(fg,d->rgbinfo) & 0xff ;
-							b1 = PIXEL_BLUE(fg,d->rgbinfo) & 0xff ;
-							r2 = PIXEL_RED(bg,d->rgbinfo) & 0xff ;
-							g2 = PIXEL_GREEN(bg,d->rgbinfo) & 0xff ;
-							b2 = PIXEL_BLUE(bg,d->rgbinfo) & 0xff ;
-
-							pixel = RGB_TO_PIXEL(
-									BLEND(r1,r2,a1),
-									BLEND(g1,g2,a2),
-									BLEND(b1,b2,a3),
-									d->rgbinfo) ;
-
-							copy_pixel( p , pixel , bpp) ;
-
-							continue ;
+							if( copy_blended_pixel(
+								win->disp->display ,
+								p , &bitmap_line ,
+								fg_color->pixel ,
+								bg , bpp))
+							{
+								continue ;
+							}
 						}
-					}
 
-					if( ! src_bg_is_set)
-					{
-						pixel = x_display_get_pixel(
-							x + x_off , y + y_off) ;
-						copy_pixel( p , pixel , bpp) ;
+						if( ! src_bg_is_set)
+						{
+							pixel = x_display_get_pixel(
+								x + x_off , y + y_off) ;
+							copy_pixel( p , pixel , bpp) ;
+						}
 					}
 				}
 			}

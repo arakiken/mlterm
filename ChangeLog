@@ -1,3 +1,12 @@
+2015-01-18  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb, doc/en/README.android:
+	  Updated.
+
+	* im_fcitx.c: The position of a candidate window is fixed. (Thanks to @msmhrt)
+
+	* fb/x_font.c, fb/x_window.c: ISCII fonts are supported with freetype.
+
 2015-01-12  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb, doc/en/README.android:

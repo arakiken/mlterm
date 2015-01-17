@@ -1,9 +1,13 @@
 ver 3.4.3
-* Support true type fonts with the use of freetype library on framebuffer and Android.
+* Support true type fonts with the use of freetype library (./configure --enable-anti-alias)
+  on framebuffer and Android.
+* Support ISCII proportional fonts with the use of freetype library on framebuffer.
 * --deffont/default_font option and vte_terminal_set_font* functions of libvte compatible
  library overwrite the default font of "ISO10646_UCS4_1" not only "DEFAULT".
 * Simplify font configuration of OSC 5380 and 5381.
   (e.g.) 'mlcc font USASCII' returns "#ISO8859_1,12=-mplus-*-medium-r-*--12-*-iso8859-1")
+* Bug fixes:
+  Fix the position of a candidate window of fcitx. (Thanks to @msmhrt)
 
 ver 3.4.2
 * Support colorful emoji with the use of http://github.com/github/gemoji.
