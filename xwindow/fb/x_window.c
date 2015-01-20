@@ -458,6 +458,10 @@ draw_string(
 
 	for( ; y_off < font_height ; y_off++)
 	{
+	#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
+		int  prev_crowded_out = 0 ;
+	#endif
+
 		if( src_bg_is_set)
 		{
 			if( picture)
@@ -513,7 +517,6 @@ draw_string(
 			{
 				if( font->is_proportional && font->is_var_col_width)
 				{
-					static int  prev_crowded_out ;	/* XXX */
 					int  retreat ;
 					int  advance ;
 					int  width ;

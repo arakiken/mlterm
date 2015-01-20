@@ -26,6 +26,8 @@
 
 # Japanese speakers may want to enable the following setting.
 #ISO10646_UCS4_1_FULLWIDTH=Kochi Gothic
+# Unicode Hankaku kana.
+#U+FF61-FF9F=Kochi Gothic
 
 # Korean speakers may want to enable the following setting.
 #ISO10646_UCS4_1_FULLWIDTH=dotum

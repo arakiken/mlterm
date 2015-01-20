@@ -1,3 +1,30 @@
+2015-01-20  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.indic: Updated.
+
+	* etc/aafont: U+FF61-FF9F (Hankaku kana) is added.
+
+	* etc/font-fb: ISCII fonts are added.
+
+	* Android.mk: Files and options related to ISCII rendering are added.
+
+	* libctl/ml_iscii.c: Indic tables are statically linked if STATIC_LINK_INDIC_TABLES
+	  macro is defined. (for Android)
+
+	* ml_iscii.c: If both NO_DYNAMIC_LOAD_CTL and USE_IND are defined,
+	  #include "libctl/ml_iscii.c".
+
+	* mc_font.c: "UNICODE (HANKAKU KANA)" is added to "Font name" combo box.
+
+	* fb/x_font.c: Unexpected behavior in loading a ISCII font in multiple times
+	  is fixed.
+
+	* fb/x_window.c: Minor fixes.
+
+	* x_screen.c: Not only png but also gif files are supported for emoji.
+
+	* Makefile.in: Typo is fixed. (Thanks to @msmhrt)
+
 2015-01-18  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb, doc/en/README.android:

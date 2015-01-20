@@ -1,7 +1,8 @@
 ver 3.4.3
 * Support true type fonts with the use of freetype library (./configure --enable-anti-alias)
   on framebuffer and Android.
-* Support ISCII proportional fonts with the use of freetype library on framebuffer.
+* Support ISCII proportional fonts with the use of freetype library on framebuffer and
+  Android.
 * --deffont/default_font option and vte_terminal_set_font* functions of libvte compatible
  library overwrite the default font of "ISO10646_UCS4_1" not only "DEFAULT".
 * Simplify font configuration of OSC 5380 and 5381.

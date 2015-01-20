@@ -8,10 +8,9 @@ ifeq ($(ENABLE_FRIBIDI),true)
 		fribidi/fribidi-deprecated.c fribidi/fribidi-joining.c \
 		fribidi/fribidi-joining-types.c fribidi/fribidi-mem.c \
 		fribidi/fribidi-mirroring.c fribidi/fribidi-run.c fribidi/fribidi-shape.c \
-		mlterm/libctl/ml_bidi.c mlterm/libctl/ml_functbl_bidi.c \
-		mlterm/libctl/ml_logical_visual_bidi.c mlterm/libctl/ml_shape_bidi.c \
-		mlterm/libctl/ml_line_bidi.c
-	CTL_CFLAGS=-DUSE_FRIBIDI
+		mlterm/libctl/ml_bidi.c mlterm/libctl/ml_logical_visual_bidi.c \
+		mlterm/libctl/ml_shape_bidi.c mlterm/libctl/ml_line_bidi.c
+	FRIBIDI_CFLAGS=-DUSE_FRIBIDI
 endif
 ifeq ($(TARGET_ARCH_ABI),mips)
 	FT_CFLAGS :=
@@ -58,9 +57,11 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		mlterm/ml_edit_scroll.c mlterm/ml_cursor.c mlterm/ml_logical_visual.c \
 		mlterm/ml_logs.c mlterm/ml_screen.c mlterm/ml_shape.c mlterm/ml_str_parser.c \
 		mlterm/ml_term.c mlterm/ml_vt100_parser.c mlterm/ml_term_manager.c mlterm/ml_bidi.c \
-		mlterm/ml_iscii.c mlterm/ml_config_menu.c mlterm/ml_config_proto.c \
-		mlterm/ml_termcap.c mlterm/ml_pty.c \
-		mlterm/ml_pty_unix.c mlterm/ml_drcs.c \
+		mlterm/ml_config_menu.c mlterm/ml_config_proto.c \
+		mlterm/ml_termcap.c mlterm/ml_pty.c mlterm/ml_pty_unix.c mlterm/ml_drcs.c \
+		libind/indian.c libind/lex.split.c mlterm/libctl/ml_iscii.c \
+		mlterm/libctl/ml_logical_visual_iscii.c mlterm/libctl/ml_shape_iscii.c \
+		mlterm/libctl/ml_line_iscii.c \
 		$(FRIBIDI_SRC_FILES) \
 		xwindow/fb/x.c xwindow/fb/x_font.c xwindow/x_mod_meta_mode.c xwindow/x_shortcut.c \
 		xwindow/x_bel_mode.c xwindow/x_font_cache.c xwindow/x_picture.c \
@@ -76,7 +77,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		xwindow/x_sb_screen.c xwindow/x_simple_sb_view.c \
 		xwindow/x_sb_view_factory.c xwindow/x_scrollbar.c \
 		main/daemon.c main/main_loop.c main/main.c
-LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL $(CTL_CFLAGS) $(FT_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER #-DKIK_DEBUG -DDEBUG
+LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER #-DKIK_DEBUG -DDEBUG
 LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS)
 LOCAL_C_INCLUDES := kiklib mkf mlterm xwindow fribidi
 LOCAL_STATIC_LIBRARIES := android_native_app_glue

@@ -6,12 +6,15 @@ mlterm indic support
 Following is a instruction of setting up mlterm indic support.
 
 * Installation
-  $ ./configure --enable-ind (--enable-anti-alias)
+  $ ./configure --enable-ind (--enable-anti-alias) (--with-gui=fb)
   $ make
   $ make install
 
   You can download mlterm for win32gdi which supports indic scripts from
   http://mlterm.sf.net/bin.html
+
+  If you build mlterm without --enable-anti-alias, install xfstt in advance
+  to specify true type fonts by XLFD.
 
   If you try bengali or assamese with --type=xft or --type=cairo option,
   execute following steps or rebuild fontconfig with
@@ -23,9 +26,9 @@ Following is a instruction of setting up mlterm indic support.
   $ make install_fc_wrapper
   $ chmod 755 (INSTALLED DIRECTORY)/bin/mlterm
 
-  Then, install indic fonts to your system and setup ~/.mlterm/font or
-  ~/.mlterm/aafont. (etc/font.indic, etc/aafont and etc/font.win32 in
-  mlterm source tree are sample files.)
+  Then, install indic fonts to your system and setup ~/.mlterm/font,
+  ~/.mlterm/aafont or ~/.mlterm/font-fb. (etc/font.indic, etc/aafont,
+  etc/font.win32 and etc/font-fb in mlterm source tree are sample files.)
   Note that mlterm doesn't support modern OpenType fonts but supports
   following old ISCII fonts.
 
@@ -42,7 +45,7 @@ Following is a instruction of setting up mlterm indic support.
   TMVL0ntt.ttf for tamil (TM\-TTValluvar)
 
 * Usage
-  $ mlterm -E utf8 -w 16 --im=kbd:isciihindi --lsp 6 --ind --type=xft
+  $ mlterm -E utf8 -w 16 --im=kbd:isciihindi --lsp 6 --ind (--type=xft)
 
   o -E option specifies character encoding.
     "utf8" or "isciixxx"(like "isciihindi") are available.
@@ -53,7 +56,7 @@ Following is a instruction of setting up mlterm indic support.
     a selected font. (optional)
   o --ind enables rendering indic characters.
   o --type=xft enables xft. --type=cairo is also available. (optional)
-    This option is not necessary on win32gdi.
+    This option is not necessary on win32gdi or framebuffer.
   o If console applications you use don't support combining characters, try -m=false.
   o Don't specify -bi option which disables rendering indic scripts.
 

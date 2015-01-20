@@ -16,7 +16,7 @@ install: BUILD_SUCCESS
 	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) install-la) ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
-install-fb: BUILD_SUCESS
+install-fb: BUILD_SUCCESS
 	for dir in main inputmethod/* ; do (cd $${dir} ; $(MAKE) install) || exit $? ; done
 
 distclean:

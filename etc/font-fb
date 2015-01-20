@@ -8,3 +8,14 @@ JISX0213_2000_1 = &JISX0208_1983
 
 #ISO10646_UCS4_1 = /usr/share/fonts/X11/misc/unifont.pcf.gz:100
 ISO10646_UCS4_1_FULLWIDTH = &ISO10646_UCS4_1
+
+#ISCII_ASSAMESE = /usr/share/fonts/truetype/Asdr0ntt.ttf:120
+#ISCII_BENGALI = /usr/share/fonts/truetype/BNDR0ntt.ttf:120
+#ISCII_GUJARATI = /usr/share/fonts/truetype/GJAV0ntt.ttf:120
+#ISCII_HINDI = /usr/share/fonts/truetype/DVYG0ntt.ttf:120
+#ISCII_KANNADA = /usr/share/fonts/truetype/KNUM0ntt.ttf:120
+#ISCII_MALAYALAM = /usr/share/fonts/truetype/MLKR0ntt.ttf:120
+#ISCII_ORIYA = /usr/share/fonts/truetype/ORSR0ntt.ttf:120
+#ISCII_PUNJABI = /usr/share/fonts/truetype/PNAM0ntt.ttf:120
+#ISCII_TAMIL = /usr/share/fonts/truetype/TMVL0ntt.ttf:120
+#ISCII_TELUGU = /usr/share/fonts/truetype/TLHM0ntt.ttf:120

@@ -7,6 +7,7 @@
 #include  <signal.h>
 #include  <stdio.h>		/* sprintf */
 #include  <unistd.h>            /* fork/execvp */
+#include  <sys/stat.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup, kik_snprintf */
@@ -7196,16 +7197,23 @@ xterm_get_emoji_data(
 	{
 		if( ch2)
 		{
-			sprintf( file_path , "mlterm/emoji/%x-%x.png" ,
+			sprintf( file_path , "mlterm/emoji/%x-%x.gif" ,
 				ml_char_code(ch1) , ml_char_code(ch2)) ;
 		}
 		else
 		{
-			sprintf( file_path , "mlterm/emoji/%x.png" , ml_char_code(ch1)) ;
+			sprintf( file_path , "mlterm/emoji/%x.gif" , ml_char_code(ch1)) ;
 		}
 
 		if( ( file_path = kik_get_user_rc_path( file_path)))
 		{
+			struct stat  st ;
+
+			if( stat( file_path , &st) != 0)
+			{
+				strcpy( file_path + strlen(file_path) - 3 , "png") ;
+			}
+
 			idx = x_load_inline_picture( screen->window.disp , file_path ,
 					&width , &height , width / ml_char_cols(ch1) , height ,
 					screen->term) ;

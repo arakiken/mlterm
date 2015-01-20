@@ -35,6 +35,86 @@ struct  ml_isciikey_state
 } ;
 
 
+#ifdef  STATIC_LINK_INDIC_TABLES
+
+/* for Android */
+
+#include  <table/bengali.table>
+#include  <table/hindi.table>
+#if  0
+#include  <table/assamese.table>
+#include  <table/gujarati.table>
+#include  <table/kannada.table>
+#include  <table/malayalam.table>
+#include  <table/oriya.table>
+#include  <table/punjabi.table>
+#include  <table/roman.table>
+#include  <table/tamil.table>
+#include  <table/telugu.table>
+#endif
+
+
+/* --- static variables --- */
+
+static struct
+{
+	struct tabl *  tabl ;
+	size_t  size ;
+
+} tables[] =
+{
+#if  0
+	{ iscii_assamese_table , sizeof( iscii_assamese_table) / sizeof( struct tabl) , } ,
+	{ iscii_bengali_table , sizeof( iscii_bengali_table) / sizeof( struct tabl) , } ,
+	{ iscii_gujarati_table , sizeof( iscii_gujarati_table) / sizeof( struct tabl) , } ,
+	{ iscii_hindi_table , sizeof( iscii_hindi_table) / sizeof( struct tabl) , } ,
+	{ iscii_kannada_table , sizeof( iscii_kannada_table) / sizeof( struct tabl) , } ,
+	{ iscii_malayalam_table , sizeof( iscii_malayalam_table) / sizeof( struct tabl) , } ,
+	{ iscii_oriya_table , sizeof( iscii_oriya_table) / sizeof( struct tabl) , } ,
+	{ iscii_punjabi_table , sizeof( iscii_punjabi_table) / sizeof( struct tabl) , } ,
+	{ iscii_roman_table , sizeof( iscii_roman_table) / sizeof( struct tabl) , } ,
+	{ iscii_tamil_table , sizeof( iscii_tamil_table) / sizeof( struct tabl) , } ,
+	{ iscii_telugu_table , sizeof( iscii_telugu_table) / sizeof( struct tabl) , } ,
+#else
+	{ NULL , 0 , } ,
+	{ iscii_bengali_table , sizeof( iscii_bengali_table) / sizeof( struct tabl) , } ,
+	{ NULL , 0 , } ,
+	{ iscii_hindi_table , sizeof( iscii_hindi_table) / sizeof( struct tabl) , } ,
+	{ NULL , 0 , } ,
+	{ NULL , 0 , } ,
+	{ NULL , 0 , } ,
+	{ NULL , 0 , } ,
+	{ NULL , 0 , } ,
+	{ NULL , 0 , } ,
+	{ NULL , 0 , } ,
+#endif
+} ;
+
+
+/* --- static functions --- */
+
+static struct tabl *
+get_iscii_table(
+	int  idx ,
+	size_t *  size
+	)
+{
+	*size = tables[idx].size ;
+
+	return  tables[idx].tabl ;
+}
+
+static struct a2i_tabl *
+get_isciikey_table(
+	int  is_inscript ,
+	size_t *  size
+	)
+{
+	return  NULL ;
+}
+
+#else	/* STATIC_LINK_INDIC_TABLES */
+
 /* --- static variables --- */
 
 static char *  iscii_table_files[] =
@@ -127,6 +207,8 @@ get_isciikey_table(
 		return  (*get_iitkeyb_table)( size) ;
 	}
 }
+
+#endif	/* STATIC_LINK_INDIC_TABLES */
 
 
 /* --- global functions --- */

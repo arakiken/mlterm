@@ -61,7 +61,11 @@ ml_convert_ascii_to_iscii(
 	return  (*func)( state , iscii , iscii_len , ascii , ascii_len) ;
 }
 
-#elif  ! defined(USE_IND)
+#else
+
+#ifdef  USE_IND
+#include  "libctl/ml_iscii.c"
+#else
 
 /*
  * Dummy functions are necessary for x_im.c
@@ -95,4 +99,5 @@ ml_convert_ascii_to_iscii(
 	return  0 ;
 }
 
+#endif
 #endif

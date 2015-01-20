@@ -663,6 +663,9 @@ unload_pcf(
 #define  SEG(idx)   (((idx) >> 7) & 0x1ff)
 /* 0 - 127 */
 #define  OFF(idx)   ((idx) & 0x7f)
+/* +3 is for storing glyph position info. */
+#define  IS_PROPORTIONAL(xfont) \
+	((xfont)->glyph_size == (xfont)->glyph_width_bytes * (xfont)->height + 3)
 
 
 /* --- static variables --- */
@@ -1069,7 +1072,7 @@ get_ft_bitmap(
 		}
 
 	#ifdef  USE_ANTI_ALIAS
-		if( xfont->glyph_size == xfont->glyph_width_bytes * xfont->height + 3)
+		if( IS_PROPORTIONAL(xfont))
 		{
 			/* Storing glyph position info. (ISCII) */
 
@@ -1186,6 +1189,9 @@ x_font_new(
 	x_font_t *  font ;
 	void *  p ;
 	u_int  count ;
+#ifdef  USE_FREETYPE
+	u_int  format ;
+#endif
 
 	if( ! fontname)
 	{
@@ -1277,12 +1283,24 @@ x_font_new(
 		return  NULL ;
 	}
 
+#ifdef  USE_FREETYPE
+	if( percent > 0)
+	{
+		format = DIVIDE_ROUNDING( fontsize * percent , 100) |
+		         (id & (FONT_BOLD|FONT_ITALIC)) ;
+	}
+	else
+	{
+		format = fontsize | (id & (FONT_BOLD|FONT_ITALIC)) ;
+	}
+#endif
+
 	for( count = 0 ; count < num_of_xfonts ; count++)
 	{
 		if( strcmp( xfonts[count]->file , font_file) == 0
 		#ifdef  USE_FREETYPE
 		    && xfonts[count]->face
-		    && xfonts[count]->format == (fontsize | (id & (FONT_BOLD|FONT_ITALIC)))
+		    && xfonts[count]->format == format
 		#endif
 		    )
 		{
@@ -1302,7 +1320,7 @@ x_font_new(
 
 	font->display = display ;
 
-	if( ! load_xfont( font->xfont , font_file , fontsize | (id & (FONT_BOLD|FONT_ITALIC)) ,
+	if( ! load_xfont( font->xfont , font_file , format ,
 		display->bytes_per_pixel , FONT_CS(id)))
 	{
 		free( font->xfont) ;
@@ -1350,12 +1368,18 @@ xfont_loaded:
 
 #if  1
 #if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
-	if( IS_ISCII(FONT_CS(font->id)) && font->xfont->face)
+	if( IS_ISCII(FONT_CS(font->id)) && font->xfont->face &&
+	    ( font->xfont->ref_count == 1 || IS_PROPORTIONAL(font->xfont)))
 	{
 		font->is_var_col_width = 1 ;
 		font->is_proportional = 1 ;
-		init_iscii_ft( font->xfont->face) ;
-		font->xfont->glyph_size += 3 ;	/* +3 is for storing glyph position info. */
+
+		if( font->xfont->ref_count == 1)
+		{
+			init_iscii_ft( font->xfont->face) ;
+			/* +3 is for storing glyph position info. */
+			font->xfont->glyph_size += 3 ;
+		}
 	}
 	else
 #endif
