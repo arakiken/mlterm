@@ -951,6 +951,12 @@ ml_screen_resize(
 	ml_edit_resize( &screen->normal_edit , cols , rows) ;
 	ml_edit_resize( &screen->alt_edit , cols , rows) ;
 
+	if( screen->stored_edits)
+	{
+		ml_edit_resize( &screen->stored_edits->normal_edit , cols , rows) ;
+		ml_edit_resize( &screen->stored_edits->alt_edit , cols , rows) ;
+	}
+
 	return  1 ;
 }
 

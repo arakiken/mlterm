@@ -32,8 +32,7 @@ static char *  config_keys[MC_FLAG_MODES] =
 	"use_dynamic_comb",
 	"receive_string_via_ucs",
 	"use_multi_column_char",
-	"use_bidi" ,
-	"use_ind" ,
+	"use_ctl" ,
 	"col_size_of_width_a" ,
 	"use_clipboard" ,
 	"use_local_echo" ,
@@ -51,9 +50,8 @@ static char *labels[MC_FLAG_MODES] =
 	N_("Combining = 1 (or 0) logical column(s)"),
 	N_("Process received strings via Unicode"),
 	N_("Fullwidth = 2 (or 1) logical column(s)"),
-	N_("Bidi (UTF8 only)"),
-	N_("Indic"),
-	N_("Ambiguouswidth = fullwidth (UTF8 only)"),
+	N_("Complex Text Layout"),
+	N_("Ambiguouswidth = fullwidth"),
 	N_("CLIPBOARD Selection"),
 	N_("Local echo"),
 	N_("Blink cursor"),
@@ -61,30 +59,6 @@ static char *labels[MC_FLAG_MODES] =
 } ;
 
 static GtkWidget *  widgets[MC_FLAG_MODES];
-
-
-/* --- static functions --- */
-
-static gint
-bidi_flag_checked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	GtkWidget *  ind_flag ;
-
-	ind_flag = data ;
-
-	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
-	{
-		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(ind_flag) , 0) ;
-	}
-
-	gtk_widget_set_sensitive( ind_flag ,
-		! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) ;
-
-	return  1 ;
-}
 
 
 /* --- global functions --- */
@@ -119,18 +93,6 @@ mc_flag_config_widget_new(
 	if( old_flag_modes[id])
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(widgets[id]) , TRUE) ;
-	}
-
-	if( id == MC_FLAG_BIDI || id == MC_FLAG_IND)
-	{
-		if( widgets[MC_FLAG_BIDI] && widgets[MC_FLAG_IND])
-		{
-			g_signal_connect( widgets[MC_FLAG_BIDI] , "toggled" ,
-				G_CALLBACK(bidi_flag_checked) , widgets[MC_FLAG_IND]) ;
-			gtk_widget_set_sensitive( widgets[MC_FLAG_IND] ,
-				! gtk_toggle_button_get_active(
-					GTK_TOGGLE_BUTTON(widgets[MC_FLAG_BIDI]))) ;
-		}
 	}
 
 	return widgets[id] ;

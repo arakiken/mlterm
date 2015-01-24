@@ -12,7 +12,7 @@
 
 #include  "mc_char_encoding.h"
 #include  "mc_auto_detect.h"
-#include  "mc_bidi.h"
+#include  "mc_ctl.h"
 #include  "mc_color.h"
 #include  "mc_bgtype.h"
 #include  "mc_alpha.h"
@@ -95,13 +95,12 @@ update(
 	mc_update_im() ;
 	mc_update_cursor_color() ;
 	mc_update_substitute_color() ;
-	mc_update_bidi() ;
+	mc_update_ctl() ;
 	mc_update_char_width() ;
 
 	mc_update_flag_mode(MC_FLAG_COMB) ;
 	mc_update_flag_mode(MC_FLAG_DYNCOMB) ;
 	mc_update_flag_mode(MC_FLAG_RECVUCS) ;
-	mc_update_flag_mode(MC_FLAG_IND) ;
 	mc_update_flag_mode(MC_FLAG_CLIPBOARD) ;
 	mc_update_flag_mode(MC_FLAG_LOCALECHO) ;
 	mc_update_flag_mode(MC_FLAG_BLINKCURSOR) ;
@@ -604,7 +603,7 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
-	config_widget = mc_bidi_config_widget_new() ;
+	config_widget = mc_ctl_config_widget_new() ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
@@ -612,10 +611,6 @@ show(void)
 	hbox = gtk_hbox_new( FALSE , 0) ;
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
-
-	config_widget = mc_flag_config_widget_new( MC_FLAG_IND) ;
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
 
 	config_widget = mc_flag_config_widget_new( MC_FLAG_COMB) ;
 	gtk_widget_show( config_widget) ;

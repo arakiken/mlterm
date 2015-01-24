@@ -26,6 +26,8 @@ mkdir -p ${PROJECT_PATH}/jni/mkf/mkf
 cp -R ../mkf/lib ../mkf/libtbl ${PROJECT_PATH}/jni/mkf/
 cp ${PROJECT_PATH}/jni/mkf/lib/*.h ${PROJECT_PATH}/jni/mkf/mkf/
 
+cp -R ../libind ${PROJECT_PATH}/jni/
+
 cp -R ../mlterm ${PROJECT_PATH}/jni/
 
 mkdir -p ${PROJECT_PATH}/jni/xwindow/fb

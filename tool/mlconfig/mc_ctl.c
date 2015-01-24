@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mc_bidi.h"
+#include  "mc_ctl.h"
 
 #include  <kiklib/kik_str.h>
 #include  <kiklib/kik_mem.h>		/* free */
@@ -61,7 +61,7 @@ toggled(
 /* --- global functions --- */
 
 GtkWidget *
-mc_bidi_config_widget_new(void)
+mc_ctl_config_widget_new(void)
 {
 	GtkWidget *  hbox ;
 	GtkWidget *  check ;
@@ -70,16 +70,17 @@ mc_bidi_config_widget_new(void)
 	hbox = gtk_hbox_new( FALSE , 0) ;
 	gtk_widget_show( hbox) ;
 
-	check = mc_flag_config_widget_new( MC_FLAG_BIDI) ;
+	check = mc_flag_config_widget_new( MC_FLAG_CTL) ;
 	gtk_widget_show( check) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , check , FALSE , FALSE , 0) ;
 	g_signal_connect( check , "toggled" , G_CALLBACK(toggled) , NULL) ;
 
-	label = gtk_label_new( _("Separators")) ;
+	label = gtk_label_new( _("Bidi separators")) ;
 	gtk_widget_show( label) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
 
 	entry = gtk_entry_new() ;
+	gtk_widget_set_size_request( entry , 50 , -1) ;
 	old_bidisep = mc_get_str_value( "bidi_separators") ;
 	gtk_entry_set_text( GTK_ENTRY(entry) , old_bidisep) ;
 	gtk_widget_show( entry);
@@ -88,15 +89,15 @@ mc_bidi_config_widget_new(void)
 	gtk_widget_set_tooltip_text( entry , "Separator characters (ASCII only) to reorder every separated area by bidi algorithm respectively.") ;
 #endif
 
-	return hbox ;
+	return  hbox ;
 }
 
 void
-mc_update_bidi(void)
+mc_update_ctl(void)
 {
 	const char *  new_bidisep ;
 
-	mc_update_flag_mode(MC_FLAG_BIDI) ;
+	mc_update_flag_mode(MC_FLAG_CTL) ;
 
 	new_bidisep = gtk_entry_get_text( GTK_ENTRY( entry)) ;
 

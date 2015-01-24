@@ -208,10 +208,6 @@ msgstr "العمليات تتلقى النص عن طريق يونيكود"
 msgid "Fullwidth = 2 (or 1) logical column(s)"
 msgstr "العرض الكامل = 2 (أو 1) أعمدة منطقية"
 
-#: tool/mlconfig/mc_flags.c:41
-msgid "Bidi (UTF8 only)"
-msgstr "ثنائية اﻹتجاه (UTF8 فقط)"
-
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "حجم الخط (بكسل)"

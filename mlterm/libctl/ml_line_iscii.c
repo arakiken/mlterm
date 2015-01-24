@@ -48,26 +48,18 @@ ml_line_set_use_iscii(
 	return  1 ;
 }
 
+/* The caller should check ml_line_is_using_iscii() in advance. */
 int
 ml_line_iscii_render(
 	ml_line_t *  line
 	)
 {
 	int  had_iscii ;
-
-	if( ! ml_line_is_using_iscii( line))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" Rendering failed. ctl_info_type isn't VINFO_ISCII.\n") ;
-	#endif
-
-		return  0 ;
-	}
+	int  ret ;
 
 	had_iscii = line->ctl_info.iscii->has_iscii ;
 
-	if( ! ml_iscii( line->ctl_info.iscii , line->chars , line->num_of_filled_chars))
+	if( ! ( ret = ml_iscii( line->ctl_info.iscii , line->chars , line->num_of_filled_chars)))
 	{
 		return  0 ;
 	}
@@ -94,9 +86,10 @@ ml_line_iscii_render(
 			line->num_of_chars) ;
 	}
 
-	return  1 ;
+	return  ret ;
 }
 
+/* The caller should check ml_line_is_using_iscii() in advance. */
 int
 ml_line_iscii_visual(
 	ml_line_t *  line
@@ -109,8 +102,7 @@ ml_line_iscii_visual(
 	int  dst_pos ;
 	int  src_pos ;
 
-	if( ! ml_line_is_using_iscii( line) ||
-	    line->ctl_info.iscii->size == 0 ||
+	if( line->ctl_info.iscii->size == 0 ||
 	    ! line->ctl_info.iscii->has_iscii)
 	{
 	#ifdef  __DEBUG
@@ -211,6 +203,7 @@ ml_line_iscii_visual(
 	return  1 ;
 }
 
+/* The caller should check ml_line_is_using_iscii() in advance. */
 int
 ml_line_iscii_logical(
 	ml_line_t *  line
@@ -221,8 +214,7 @@ ml_line_iscii_logical(
 	ml_char_t *  dst ;
 	int  src_pos ;
 
-	if( ! ml_line_is_using_iscii( line) ||
-	    line->ctl_info.iscii->size == 0 ||
+	if( line->ctl_info.iscii->size == 0 ||
 	    ! line->ctl_info.iscii->has_iscii)
 	{
 	#ifdef  __DEBUG
@@ -284,6 +276,7 @@ ml_line_iscii_logical(
 	return  1 ;
 }
 
+/* The caller should check ml_line_is_using_iscii() in advance. */
 int
 ml_line_iscii_convert_logical_char_index_to_visual(
 	ml_line_t *  line ,
@@ -298,8 +291,7 @@ ml_line_iscii_convert_logical_char_index_to_visual(
 		return  0 ;
 	}
 
-	if( ! ml_line_is_using_iscii( line) ||
-	    line->ctl_info.iscii->size == 0 ||
+	if( line->ctl_info.iscii->size == 0 ||
 	    ! line->ctl_info.iscii->has_iscii)
 	{
 	#ifdef  __DEBUG

@@ -19,8 +19,8 @@ ml_term_t *  ml_create_term( const char *  term_type , u_int  cols , u_int  rows
 	u_int  tab_size , u_int  log_size , ml_char_encoding_t  encoding ,
 	int  is_auto_encoding , int  use_auto_detect ,
 	int  logging_vt_seq , ml_unicode_policy_t  policy ,
-	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
-	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators , int  use_ind ,
+	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_ctl ,
+	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators ,
 	int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
 	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;

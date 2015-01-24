@@ -291,10 +291,9 @@ ml_create_term(
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
-	int  use_bidi ,
+	int  use_ctl ,
 	ml_bidi_mode_t  bidi_mode ,
 	const char *  bidi_separators ,
-	int  use_ind ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode ,
@@ -338,7 +337,7 @@ ml_create_term(
 						is_auto_encoding , use_auto_detect ,
 						logging_vt_seq , policy , col_size_a ,
 						use_char_combining , use_multi_col_char ,
-						use_bidi , bidi_mode , bidi_separators , use_ind ,
+						use_ctl , bidi_mode , bidi_separators ,
 						use_dynamic_comb , bs_mode , vertical_mode ,
 						use_local_echo , win_name , icon_name ,
 						alt_color_mode)))
@@ -383,8 +382,8 @@ ml_create_term(
 	if( ! ( terms[num_of_terms] = ml_term_new( term_type , cols , rows , tab_size ,
 				log_size , encoding , is_auto_encoding , use_auto_detect ,
 				logging_vt_seq , policy , col_size_a , use_char_combining ,
-				use_multi_col_char , use_bidi , bidi_mode , bidi_separators ,
-				use_ind , use_dynamic_comb , bs_mode , vertical_mode ,
+				use_multi_col_char , use_ctl , bidi_mode , bidi_separators ,
+				use_dynamic_comb , bs_mode , vertical_mode ,
 				use_local_echo , win_name , icon_name , alt_color_mode)))
 	{
 		return  NULL ;

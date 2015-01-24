@@ -42,15 +42,10 @@ A valid value for \fIcolor\fR is a color name or a RGB value.
 The color name should be defined in rgb.txt or "\fBcolor\fR" configuration file.
 The RGB value's format should be "#RRGGBB", "#RRGGBBAA", "rgb:RR/GG/BB" or "rgba:RR/GG/BB/AA".
 .TP
-\fB\-C\fR, \fB\-\-ind\fR(=\fIbool\fR)
-Enable indic rendering.
-The default is \fBfalse\fR. (Note that this option is avaialable
-only if \-\-bi option is disabled.)
-.TP
-\fB\-D\fR, \fB\-\-bi\fR(=\fIbool\fR)
-Enable BiDi (bi-directional) processing on UTF8 encoding
-to support RTL (right-to-left) languages such as
-Arabic and Hebrew.  The default is \fBtrue\fR.
+\fB\-C\fR, \fB\-\-ctl\fR(=\fIbool\fR)
+Enable complex text layouting on UTF8 encoding to support indic scripts and
+RTL (right-to-let) languages such as Arabic and Hebrew.
+The default is \fBtrue\fR.
 .TP
 \fB\-E\fR, \fB\-\-km\fR=\fIencoding\fR
 Specify encoding.
@@ -1477,9 +1472,6 @@ Recognize ANSI color change escape sequences.
 \fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR)
 Use anti alias font.
 .TP
-\fBuse_bidi=\fIbool\fR (\fB\-D\fR, \fB\-\-bi\fR)
-Use BiDi rendering on UTF8 encoding.
-.TP
 \fBuse_bold_font=\fIbool\fR (\fB\-\-bdfont\fR)
 Use bold font for characters with the bold attribute.
 .TP
@@ -1498,8 +1490,8 @@ Enable dynamic character combining.
 \fBuse_extended_scroll_shortcut=\fIbool\fR (\fB\-q\fR, \fB\-\-extkey\fR)
 Enable extended short cut keys for scrolling.
 .TP
-\fBuse_ind=\fIbool\fR (\fB\-C\fR, \fB\-\-ind\fR)
-Use indic rendering on UTF8 or ISCII encoding.
+\fBuse_ctl=\fIbool\fR (\fB\-C\fR, \fB\-\-ctl\fR)
+Enable complex text layouting on UTF8 encoding.
 .TP
 \fBuse_italic_font=\fIbool\fR (\fB\-\-itfont\fR)
 Use italic font for characters with the italic attribute.

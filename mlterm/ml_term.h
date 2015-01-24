@@ -31,11 +31,6 @@ typedef struct ml_term
 	ml_screen_t *  screen ;
 
 	/*
-	 * public(read/write)
-	 */
-	ml_shape_t *  shape ;
-
-	/*
 	 * private
 	 */
 	ml_vertical_mode_t  vertical_mode ;
@@ -44,8 +39,7 @@ typedef struct ml_term
 	char *  icon_path ;
 	char *  uri ;
 
-	int8_t  use_bidi ;
-	int8_t  use_ind ;
+	int8_t  use_ctl ;
 	int8_t  use_dynamic_comb ;
 	int8_t  use_local_echo ;
 	int8_t  is_attached ;
@@ -69,8 +63,8 @@ ml_term_t *  ml_term_new( const char *  term_type , u_int  cols , u_int  rows ,
 	u_int  tab_size , u_int  log_size , ml_char_encoding_t  encoding ,
 	int  is_auto_encoding , int  use_auto_detect ,
 	int  logging_vt_seq , ml_unicode_policy_t  policy ,
-	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
-	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators , int  use_ind ,
+	u_int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_ctl ,
+	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators ,
 	int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
 	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
@@ -115,17 +109,13 @@ int  ml_term_detach( ml_term_t *  term) ;
 
 #define  ml_term_get_encoding( term)  ml_vt100_parser_get_encoding( (term)->parser)
 
-int  ml_term_set_use_bidi( ml_term_t *  term , int  flag) ;
+int  ml_term_set_use_ctl( ml_term_t *  term , int  flag) ;
 
-#define  ml_term_is_using_bidi( term)  ((term)->use_bidi)
+#define  ml_term_is_using_ctl( term)  ((term)->use_ctl)
 
 #define  ml_term_set_bidi_mode( term , mode)  ((term)->bidi_mode = (mode))
 
 #define  ml_term_get_bidi_mode( term)  ((term)->bidi_mode)
-
-int  ml_term_set_use_ind( ml_term_t *  term , int  flag) ;
-
-#define  ml_term_is_using_ind( term)  ((term)->use_ind)
 
 #define  ml_term_set_vertical_mode( term , mode)  ((term)->vertical_mode = (mode))
 

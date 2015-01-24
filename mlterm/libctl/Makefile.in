@@ -16,8 +16,8 @@ LIBS = $(LIBS_LOCAL) @LKIK@ @LMKF@
 LIBS_BIDI = @FRIBIDI_LIBS@
 LIBS_ISCII = ../../libind/indian.lo ../../libind/keyboard.lo ../../libind/lex.split.lo
 
-BIDI_OBJ = ml_bidi.o ml_logical_visual_bidi.o ml_line_bidi.o ml_shape_bidi.o
-ISCII_OBJ = ml_iscii.o ml_logical_visual_iscii.o ml_line_iscii.o ml_shape_iscii.o
+BIDI_OBJ = ml_bidi.o ml_line_bidi.o ml_shape_bidi.o
+ISCII_OBJ = ml_iscii.o ml_line_iscii.o ml_shape_iscii.o
 
 CC = @CC@
 INSTALL = @INSTALL@

@@ -12,34 +12,26 @@
 #include  "ml_iscii.h"
 
 
-typedef struct  ml_shape
-{
-	u_int (*shape)( struct ml_shape * , ml_char_t * , u_int , ml_char_t * , u_int) ;
-	int  (*delete)( struct ml_shape *) ;
-
-} ml_shape_t ;
-
-
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 
-ml_shape_t *  ml_arabic_shape_new(void) ;
+u_int  ml_shape_arabic( ml_char_t *  dst , u_int  dst_len , ml_char_t *  src , u_int  src_len) ;
 
 u_int16_t  ml_is_arabic_combining( ml_char_t *  prev2 , ml_char_t *  prev , ml_char_t *  ch) ;
 
 #else
 
-#define  ml_arabic_shape_new()  (NULL)
-#define  ml_is_arabic_combining( a , b , c)  (NULL)
+#define  ml_shape_arabic  (NULL)
+#define  ml_is_arabic_combining( a , b , c)  (0)
 
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 
-ml_shape_t *  ml_iscii_shape_new( void) ;
+u_int  ml_shape_iscii( ml_char_t *  dst , u_int  dst_len , ml_char_t *  src , u_int  src_len) ;
 
 #else
 
-#define  ml_iscii_shape_new()  (NULL)
+#define  ml_shape_iscii  (NULL)
 
 #endif
 

@@ -208,8 +208,8 @@ msgid "Fullwidth = 2 (or 1) logical column(s)"
 msgstr "Độ rộng đầy đủ = 2 (hoặc 1) cột logic"
 
 #: tool/mlconfig/mc_flags.c:41
-msgid "Bidi (UTF8 only)"
-msgstr "Bidi (chỉ UTF8)"
+msgid "Complex Text Layout"
+msgstr "Complex Text Layout"
 
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"

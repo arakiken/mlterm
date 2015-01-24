@@ -292,10 +292,9 @@ ml_term_new(
 	u_int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
-	int  use_bidi ,
+	int  use_ctl ,
 	ml_bidi_mode_t  bidi_mode ,
 	const char *  bidi_separators ,
-	int  use_ind ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode ,
@@ -345,7 +344,7 @@ ml_term_new(
 		goto  error ;
 	}
 
-	ml_vt100_parser_set_use_bidi( term->parser , use_bidi) ;
+	ml_vt100_parser_set_use_ctl( term->parser , use_ctl) ;
 
 	if( bidi_separators)
 	{
@@ -354,8 +353,7 @@ ml_term_new(
 
 	term->vertical_mode = vertical_mode ;
 	term->bidi_mode = bidi_mode ;
-	term->use_bidi = use_bidi ;
-	term->use_ind = use_ind ;
+	term->use_ctl = use_ctl ;
 	term->use_dynamic_comb = use_dynamic_comb ;
 	term->use_local_echo = use_local_echo ;
 
@@ -398,11 +396,6 @@ ml_term_delete(
 	else if( term->pty_listener)
 	{
 		(*term->pty_listener->closed)( term->pty_listener->self) ;
-	}
-	
-	if( term->shape)
-	{
-		(*term->shape->delete)( term->shape) ;
 	}
 
 	free( term->uri) ;
@@ -632,32 +625,14 @@ ml_term_detach(
 }
 
 int
-ml_term_set_use_bidi(
+ml_term_set_use_ctl(
 	ml_term_t *  term ,
 	int  flag
 	)
 {
-	if( ( term->use_bidi = flag))
+	if( ( term->use_ctl = flag))
 	{
-		/* disable iscii */
-		term->use_ind = 0 ;
-
-		ml_vt100_parser_set_use_bidi( term->parser , flag) ;
-	}
-
-	return  1 ;
-}
-
-int
-ml_term_set_use_ind(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	if( ( term->use_ind = flag))
-	{
-		/* disable bidi */
-		ml_term_set_use_bidi( term , 0) ;
+		ml_vt100_parser_set_use_ctl( term->parser , flag) ;
 	}
 
 	return  1 ;
@@ -1042,12 +1017,6 @@ ml_term_update_special_visual(
 	int  has_logvis = 0 ;
 	int  need_comb = 0 ;
 
-	if( term->shape)
-	{
-		(*term->shape->delete)( term->shape) ;
-		term->shape = NULL ;
-	}
-
 	term->screen->use_dynamic_comb = 0 ;
 	had_logvis = ml_screen_delete_logical_visual( term->screen) ;
 
@@ -1107,10 +1076,9 @@ ml_term_update_special_visual(
 		}
 	#endif
 	}
-	else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
+	else if( term->use_ctl && ml_term_get_encoding( term) == ML_UTF8)
 	{
-		if( ( term->shape = ml_arabic_shape_new()) &&
-		    ( logvis = ml_logvis_bidi_new( term->bidi_mode , term->bidi_separators)))
+		if( ( logvis = ml_logvis_ctl_new( term->bidi_mode , term->bidi_separators)))
 		{
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
@@ -1129,37 +1097,7 @@ ml_term_update_special_visual(
 	#ifdef  DEBUG
 		else
 		{
-			kik_warn_printf( KIK_DEBUG_TAG
-				" x_arabic_shape_new()/ml_logvis_bidi_new() failed.\n") ;
-		}
-	#endif
-	}
-	else if( IS_ISCII_ENCODING( ml_term_get_encoding( term))
-	         || (/* ! term->use_bidi && */ term->use_ind &&
-	             ml_term_get_encoding( term) == ML_UTF8) )
-	{
-		if( ( term->shape = ml_iscii_shape_new()) &&
-		    ( logvis = ml_logvis_iscii_new()))
-		{
-			if( ml_screen_add_logical_visual( term->screen , logvis))
-			{
-				has_logvis = 1 ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" ml_screen_add_logical_visual failed.\n") ;
-			#endif
-
-				(*logvis->delete)( logvis) ;
-			}
-		}
-	#ifdef  DEBUG
-		else
-		{
-			kik_warn_printf( KIK_DEBUG_TAG
-				" ml_iscii_shape_new()/ml_logvis_iscii_new() failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_ctl_new() failed.\n") ;
 		}
 	#endif
 	}
@@ -1172,12 +1110,6 @@ ml_term_update_special_visual(
 
 	if( ! has_logvis)
 	{
-		if( term->shape)
-		{
-			(*term->shape->delete)( term->shape) ;
-			term->shape = NULL ;
-		}
-
 		term->screen->use_dynamic_comb = 0 ;
 		ml_screen_delete_logical_visual( term->screen) ;
 	}
@@ -1281,20 +1213,9 @@ ml_term_get_config(
 			value = "false" ;
 		}
 	}
-	else if( strcmp( key , "use_bidi") == 0)
+	else if( strcmp( key , "use_ctl") == 0)
 	{
-		if( term->use_bidi)
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-	else if( strcmp( key , "use_ind") == 0)
-	{
-		if( term->use_ind)
+		if( term->use_ctl)
 		{
 			value = "true" ;
 		}

@@ -45,7 +45,7 @@ Following is a instruction of setting up mlterm indic support.
   TMVL0ntt.ttf for tamil (TM\-TTValluvar)
 
 * Usage
-  $ mlterm -E utf8 -w 16 --im=kbd:isciihindi --lsp 6 --ind (--type=xft)
+  $ mlterm -E utf8 -w 16 --im=kbd:isciihindi --lsp 6 -C (--type=xft)
 
   o -E option specifies character encoding.
     "utf8" or "isciixxx"(like "isciihindi") are available.
@@ -54,7 +54,7 @@ Following is a instruction of setting up mlterm indic support.
     method.
   o --lsp [line space size] specifies pixels of line space according to appearance of
     a selected font. (optional)
-  o --ind enables rendering indic characters.
+  o -C enables rendering indic scripts.
   o --type=xft enables xft. --type=cairo is also available. (optional)
     This option is not necessary on win32gdi or framebuffer.
   o If console applications you use don't support combining characters, try -m=false.
@@ -78,40 +78,3 @@ Following is a instruction of setting up mlterm indic support.
 * Other resources
   (Mlterm with Indic support)
   https://gist.github.com/bdsatish/ab5a1b17b53c633a3edc
-
-Following e-mail describes how to setup mlterm to show and input hindi characters.
-(Thanks to sumeet inani)
-Note that -V option is no longer necessary since mlterm version 3.0.9.
---------------------------------------------------------------------------------
-Date: Tue, 9 Aug 2011 12:33:22 +0530
-Subject: Re: installing mterm with indic support
-From: sumeet inani
-To: Araki Ken <arakiken@users.sf.net>
-
-Success achieved with your inputs.
-
-Here is what I did
-(1)installed mlterm-3.0.6post-20110807 using (output logs attached)
-
-./configure --enable-fribidi --enable-ind --enable-m17nlib --enable-scim
---enable-anti-alias
-make
-make install
-(2)Created file ~/.mlter/aafont containing ' ISCII_HINDI = DV\-TTYogesh 23 '
-Installed font DVYG0ntt.ttf from http://mlterm.sf.net/DVYG0ntt.ttf
-Created another file ~/.mlterm/key containing  ' Shift+space=IM_HOTKEY '  .
-Though I use scim-transliteration.
-(3)Now i ran
-mlterm -E utf8 --im=scim  --bi=false --ind --type=xft -V
-
-Result.jpg shows beautiful hindi letters .
-
-
-I read meaning of those options.
--V variable column width
-xft rendering engine
-indic rendering enabled , while right-to-left language disabled.
-
-You can forward this when you come across another newbie.
-
-Thank You . Very much.

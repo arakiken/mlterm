@@ -207,10 +207,6 @@ msgstr "Prozess empfängt Strings als Unicode"
 msgid "Fullwidth = 2 (or 1) logical column(s)"
 msgstr "Volle Breite = 2 (oder 1) logische Spalte(n)"
 
-#: tool/mlconfig/mc_flags.c:41
-msgid "Bidi (UTF8 only)"
-msgstr "Bidirektional (nur in UTF8)"
-
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "Fontgröße (Pixel)"

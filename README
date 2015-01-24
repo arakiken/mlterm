@@ -45,6 +45,9 @@ Options for configure
     is specified with --disable-dl-type option.
     (--disable-anti-alias is the same as --with-type-engines=xcore)
 
+  --enable-anti-alias
+    Same as --with-type-engines=xcore,xft,cairo
+
   --disable-dl-type
     Disable dynamic loading of type engine modules,
     which are statically linked to mlterm.

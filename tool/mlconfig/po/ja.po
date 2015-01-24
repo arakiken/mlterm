@@ -276,15 +276,15 @@ msgid "Fullwidth = 2 (or 1) logical column(s)"
 msgstr "全角文字の論理幅を(1ではなく)2にする"
 
 #: tool/mlconfig/mc_flags.c:41
-msgid "Bidi (UTF8 only)"
-msgstr "Bidi (UTF8のみ)"
+msgid "Complex Text Layout"
+msgstr "Complex Text Layout"
 
 #: tool/mlconfig/mc_bidi.c:41
-msgid "Separators"
-msgstr "区切り文字"
+msgid "BiDi separators"
+msgstr "BiDiの区切り文字"
 
 #: tool/mlconfig/mc_flags.c:45
-msgid "Ambiguouswidth = fullwidth (UTF8 only)"
+msgid "Ambiguouswidth = fullwidth"
 msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
 
 #: tool/mlconfig/mc_flags.c:45

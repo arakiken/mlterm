@@ -16,13 +16,16 @@ Android support (Experimental)
   Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
 
 * Note
+  o Available font formats are pcf and ttf.
+  o mlterm uses /system/fonts/DroidSansMono.ttf by default.
+    If you want to customize it, add "DEFAULT=/foo/bar/font.ttf" to /sdcard/.mlterm/font-fb.
+    Then if you want to change the size of it, add "fontsize=20" to /sdcard/.mlterm/main.
   o mlterm-android-YYYYMMDD.apk contains the feature of rendering bidi and
     indic (hindi and bengali) scripts.
     Following steps are necessary to enable indic scripts.
     - Install DVYG0ntt.ttf and BNDR0ntt.ttf.
     - Add "ISCII_HINDI=.../DVYG0ntt.ttf:120" and "ISCII_BENGALI=.../BNDR0ntt.ttf:120"
       to /sdcard/.mlterm/font-fb
-    - Add "use_ind=true" and "line_space=6" to /sdcard/.mlterm/main.
   o You can show a software keyboard if you double-click the left mouse
     button (Button1) at the right bottom corner of the screen.
   o You can rotate display by "rotate_display = right" or "rotate_display = left"

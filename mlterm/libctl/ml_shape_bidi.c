@@ -160,12 +160,14 @@ get_arabic_present(
 	return  NULL ;
 }
 
+
+/* --- global functions --- */
+
 /*
  * 'src' characters are right to left (visual) order.
  */
-static u_int
-shape_arabic(
-	ml_shape_t *  shape ,
+u_int
+ml_shape_arabic(
 	ml_char_t *  dst ,
 	u_int  dst_len ,
 	ml_char_t *  src ,
@@ -299,35 +301,6 @@ shape_arabic(
 	}
 
 	return  count ;
-}
-
-static int
-arabic_delete(
-	ml_shape_t *  shape
-	)
-{
-	free( shape) ;
-
-	return  1 ;
-}
-
-
-/* --- global functions --- */
-
-ml_shape_t *
-ml_arabic_shape_new(void)
-{
-	ml_shape_t *  shape ;
-	
-	if( ( shape = malloc( sizeof( ml_shape_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	shape->shape = shape_arabic ;
-	shape->delete = arabic_delete ;
-
-	return  shape ;
 }
 
 u_int16_t

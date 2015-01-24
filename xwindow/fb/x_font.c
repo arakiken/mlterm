@@ -20,6 +20,9 @@
 #include  <kiklib/kik_conf_io.h>/* kik_get_user_rc_path */
 #include  <kiklib/kik_util.h>	/* TOINT32 */
 #include  <mkf/mkf_char.h>
+#ifdef  __ANDROID__
+#include  <dirent.h>
+#endif
 
 
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
@@ -1181,9 +1184,6 @@ x_font_new(
 	u_int  letter_space	/* Ignored for now. */
 	)
 {
-#ifdef  __ANDROID__
-	extern char *  unifont_path ;	/* XXX defined in main.c */
-#endif
 	char *  font_file ;
 	u_int  percent ;
 	x_font_t *  font ;
@@ -1236,8 +1236,51 @@ x_font_new(
 				percent = 0 ;
 			}
 		#elif  defined(__ANDROID__)
-			font_file = unifont_path ;
-			percent = 100 ;
+			if( stat( "/system/fonts/DroidSansMono.ttf" , &st) == 0)
+			{
+				font_file = "/system/fonts/DroidSansMono.ttf" ;
+			}
+			else
+			{
+				DIR *  dir ;
+				struct dirent *  entry ;
+				const char *  cand ;
+
+				if( ( dir = opendir( "/system/fonts")) == NULL)
+				{
+					return  NULL ;
+				}
+
+				cand = NULL ;
+
+				while( ( entry = readdir( dir)))
+				{
+					if( strcasestr( entry->d_name , ".tt"))
+					{
+						if( cand == NULL)
+						{
+							cand = kik_str_alloca_dup( entry->d_name) ;
+						}
+						else if( strcasestr( entry->d_name , "Mono"))
+						{
+							cand = kik_str_alloca_dup( entry->d_name) ;
+							break ;
+						}
+					}
+				}
+
+				closedir( dir) ;
+
+				if( cand == NULL ||
+				    ! ( font_file = alloca( 14 + strlen(cand) + 1)))
+				{
+					return  NULL ;
+				}
+
+				strcpy( font_file , "/system/fonts") ;
+				font_file[13] = '/' ;
+				strcpy( font_file + 14 , cand) ;
+			}
 		#else /* __linux__ */
 			if( stat( "/usr/share/fonts/X11/misc/unifont.pcf.gz" , &st) == 0)
 			{

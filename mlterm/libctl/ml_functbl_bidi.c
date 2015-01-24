@@ -14,6 +14,9 @@ void  ml_line_bidi_is_rtl(void) ;
 void  ml_bidi_copy(void) ;
 void  ml_bidi_reset(void) ;
 void  ml_line_bidi_need_shape(void) ;
+void  ml_line_bidi_render(void) ;
+void  ml_line_bidi_visual(void) ;
+void  ml_line_bidi_logical(void) ;
 
 
 /* --- global variables --- */
@@ -26,11 +29,13 @@ void *  ml_ctl_bidi_func_table[MAX_CTL_BIDI_FUNCS] =
 	ml_line_bidi_convert_visual_char_index_to_logical ,
 	ml_line_bidi_copy_logical_str ,
 	ml_line_bidi_is_rtl ,
-	ml_logvis_bidi_new ,
-	ml_arabic_shape_new ,
+	ml_shape_arabic ,
 	ml_is_arabic_combining ,
 	ml_bidi_copy ,
 	ml_bidi_reset ,
 	ml_line_bidi_need_shape ,
+	ml_line_bidi_render ,
+	ml_line_bidi_visual ,
+	ml_line_bidi_logical ,
 
 } ;

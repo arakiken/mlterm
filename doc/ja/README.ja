@@ -360,8 +360,8 @@ comment $Id$
           調べ、適当なエンコーディングを選択します。
           ENCODING 指定を行なわなかった場合も同様です。
 
-      o use_bidi  (*true*/false) (#)
-        BiDi レンダリングを行う。
+      o use_ctl  (*true*/false) (#)
+        BiDi 及び インド諸語 のレンダリングを行う。
         (必要ない場合は false に設定することを推奨します。)
 
       o bidi_mode  (*normal*/left/right)
@@ -370,10 +370,6 @@ comment $Id$
       o bidi_separators
         BiDi レンダリングを行う範囲を区切る文字を指定する。
 	('\x'から始まる16進数の使用も可)
-
-      o use_ind  (true/*false*) (#)
-        インド諸語の表示を行う。
-	use_bidi と use_ind の両方を true にすると、use_bidi のみが有効になります。
 
       o use_combining  (*true*/false) (#)
         結合文字を処理する
@@ -1186,8 +1182,7 @@ comment $Id$
     -@/--screens=value : startup_screens (X)
     -A/--aa(=bool)     : use_anti_alias
     -B/--sbbg=value    : sb_bg_color
-    -C/--ind(=bool)    : use_ind
-    -D/--bi(=bool)     : use_bidi
+    -C/--ctl(=bool)    : use_ctl
     -E/--km=value      : ENCODING
     -F/--sbfg=value    : sb_fg_color
     -G/--vertical=value: vertical_mode

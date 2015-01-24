@@ -8,7 +8,9 @@
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* K_MIN */
+
 #include  "ml_ctl_loader.h"
+#include  "ml_shape.h"
 
 
 #ifdef  DEBUG
@@ -151,6 +153,53 @@ ml_line_bidi_need_shape(
 	return  (*func)( line) ;
 }
 
+static int
+ml_line_bidi_render(
+	ml_line_t *  line ,
+	ml_bidi_mode_t  bidi_mode ,
+	const char *  separators
+	)
+{
+	int (*func)( ml_line_t * , ml_bidi_mode_t , const char *) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_RENDER)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line , bidi_mode , separators) ;
+}
+
+static int
+ml_line_bidi_visual(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_VISUAL)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
+static int
+ml_line_bidi_logical(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_LOGICAL)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
 
 static int
 ml_line_set_use_iscii(
@@ -214,6 +263,51 @@ ml_line_iscii_need_shape(
 	return  (*func)( line) ;
 }
 
+static int
+ml_line_iscii_render(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_iscii_func( ML_LINE_ISCII_RENDER)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
+static int
+ml_line_iscii_visual(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_iscii_func( ML_LINE_ISCII_VISUAL)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
+static int
+ml_line_iscii_logical(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_iscii_func( ML_LINE_ISCII_LOGICAL)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
 #else	/* NO_DYNAMIC_LOAD_CTL */
 
 #ifndef  USE_FRIBIDI
@@ -224,6 +318,9 @@ ml_line_iscii_need_shape(
 #define  ml_line_bidi_need_shape( line)  (0)
 #define  ml_bidi_copy( dst , src)  (0)
 #define  ml_bidi_reset( state)  (0)
+#define  ml_line_bidi_render( line , bidi_mode , separators)  (0)
+#define  ml_line_bidi_visual( line)  (0)
+#define  ml_line_bidi_logical( line)  (0)
 #else
 /* Link functions in libctl/ml_*bidi.c */
 int  ml_line_set_use_bidi( ml_line_t *  line , int  flag) ;
@@ -235,13 +332,19 @@ int  ml_bidi_copy( ml_bidi_state_t  dst , ml_bidi_state_t  src) ;
 int  ml_bidi_reset( ml_bidi_state_t  state) ;
 int  ml_line_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
 	int *  ltr_rtl_meet_pos) ;
+int  ml_line_bidi_render( ml_line_t *  line , ml_bidi_mode_t  bidi_mode , const char *  separators) ;
+int  ml_line_bidi_visual( ml_line_t *  line) ;
+int  ml_line_bidi_logical( ml_line_t *  line) ;
 #endif	/* USE_FRIBIDI */
 
 #ifndef  USE_IND
 #define  ml_line_set_use_iscii( line , flag)  (0)
+#define  ml_line_iscii_need_shape( line)  (0)
 #define  ml_iscii_copy( dst , src)  (0)
 #define  ml_iscii_reset( state)  (0)
-#define  ml_line_iscii_need_shape( line)  (0)
+#define  ml_line_iscii_render( line)  (0)
+#define  ml_line_iscii_visual( line)  (0)
+#define  ml_line_iscii_logical( line)  (0)
 #else
 /* Link functions in libctl/ml_*iscii.c */
 int  ml_line_set_use_iscii( ml_line_t *  line , int  flag) ;
@@ -250,6 +353,9 @@ int  ml_iscii_copy( ml_iscii_state_t  dst , ml_iscii_state_t  src) ;
 int  ml_iscii_reset( ml_iscii_state_t  state) ;
 int  ml_line_iscii_convert_logical_char_index_to_visual( ml_line_t *  line ,
 	int  logical_char_index) ;
+int  ml_line_iscii_render( ml_line_t *  line) ;
+int  ml_line_iscii_visual( ml_line_t *  line) ;
+int  ml_line_iscii_logical( ml_line_t *  line) ;
 #endif	/* USE_IND */
 
 #endif	/* NO_DYNAMIC_LOAD_CTL */
@@ -301,8 +407,7 @@ ml_line_final(
 	{
 		ml_line_set_use_bidi( line , 0) ;
 	}
-
-	if( ml_line_is_using_iscii( line))
+	else if( ml_line_is_using_iscii( line))
 	{
 		ml_line_set_use_iscii( line , 0) ;
 	}
@@ -429,8 +534,7 @@ ml_line_reset(
 	{
 		ml_bidi_reset( line->ctl_info.bidi) ;
 	}
-
-	if( ml_line_is_using_iscii( line))
+	else if( ml_line_is_using_iscii( line))
 	{
 		ml_iscii_reset( line->ctl_info.iscii) ;
 	}
@@ -1430,37 +1534,48 @@ ml_line_convert_logical_char_index_to_visual(
 	)
 {
 #ifdef  NO_DYNAMIC_LOAD_CTL
-	return
-	#ifdef  USE_IND
-		ml_line_iscii_convert_logical_char_index_to_visual( line ,
-	#endif
-		#ifdef  USE_FRIBIDI
-				ml_line_bidi_convert_logical_char_index_to_visual( line ,
-		#endif
-					char_index
-		#ifdef  USE_FRIBIDI
-					, meet_pos)
-		#endif
-	#ifdef  USE_IND
-			)
-	#endif
-			;
-#else
-	int (*bidi_func)( ml_line_t * , int , int *) ;
-	int (*iscii_func)( ml_line_t * , int) ;
-
-	if( ml_line_is_using_bidi( line) &&
-	    ( bidi_func = ml_load_ctl_bidi_func(
-				ML_LINE_BIDI_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
+	if( line->ctl_info_type)
 	{
-		char_index = (*bidi_func)( line , char_index , meet_pos) ;
+		if( ml_line_is_using_bidi( line))
+		{
+		#ifdef  USE_FRIBIDI
+			char_index = ml_line_bidi_convert_logical_char_index_to_visual(
+					line , char_index , meet_pos) ;
+		#endif
+		}
+		else /* if( ml_line_is_using_iscii( line)) */
+		{
+		#ifdef  USE_IND
+			char_index = ml_line_iscii_convert_logical_char_index_to_visual(
+					line , char_index) ;
+		#endif
+		}
 	}
 
-	if( ml_line_is_using_iscii( line) &&
-	    ( iscii_func = ml_load_ctl_iscii_func(
-				ML_LINE_ISCII_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
+	return  char_index ;
+#else
+	if( line->ctl_info_type)
 	{
-		char_index = (*iscii_func)( line , char_index) ;
+		if( ml_line_is_using_bidi( line))
+		{
+			int (*bidi_func)( ml_line_t * , int , int *) ;
+
+			if( ( bidi_func = ml_load_ctl_bidi_func(
+					ML_LINE_BIDI_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
+			{
+				char_index = (*bidi_func)( line , char_index , meet_pos) ;
+			}
+		}
+		else /* if( ml_line_is_using_iscii( line) */
+		{
+			int (*iscii_func)( ml_line_t * , int) ;
+
+			if( ( iscii_func = ml_load_ctl_iscii_func(
+					ML_LINE_ISCII_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
+			{
+				char_index = (*iscii_func)( line , char_index) ;
+			}
+		}
 	}
 
 	return  char_index ;
@@ -1470,38 +1585,57 @@ ml_line_convert_logical_char_index_to_visual(
 
 ml_line_t *
 ml_line_shape(
-	ml_line_t *  line ,
-	ml_shape_t *  shape
+	ml_line_t *  line
 	)
 {
 	ml_line_t *  orig ;
 	ml_char_t *  shaped ;
+	u_int  (*func)( ml_char_t * , u_int , ml_char_t * , u_int) ;
 
-	if( ( ! ml_line_is_using_bidi( line) || ! ml_line_bidi_need_shape( line)) &&
-	    ( ! ml_line_is_using_iscii( line) || ! ml_line_iscii_need_shape( line)))
+	if( line->ctl_info_type)
 	{
-		return  NULL ;
+		if( ml_line_is_using_bidi( line))
+		{
+			if( ! ml_line_bidi_need_shape( line))
+			{
+				return  NULL ;
+			}
+
+			func = ml_shape_arabic ;
+		}
+		else /* if( ml_line_is_using_iscii( line)) */
+		{
+			if( ! ml_line_iscii_need_shape( line))
+			{
+				return  NULL ;
+			}
+
+			func = ml_shape_iscii ;
+		}
+
+		if( ( orig = malloc( sizeof( ml_line_t))) == NULL)
+		{
+			return  NULL ;
+		}
+
+		ml_line_share( orig , line) ;
+
+		if( ( shaped = ml_str_new( line->num_of_chars)) == NULL)
+		{
+			free( orig) ;
+
+			return  NULL ;
+		}
+
+		line->num_of_filled_chars = (*func)( shaped , line->num_of_chars ,
+							line->chars , line->num_of_filled_chars) ;
+
+		line->chars = shaped ;
+
+		return  orig ;
 	}
 
-	if( ( orig = malloc( sizeof( ml_line_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	ml_line_share( orig , line) ;
-	
-	if( ( shaped = ml_str_new( line->num_of_chars)) == NULL)
-	{
-		free( orig) ;
-
-		return  NULL ;
-	}
-
-	line->num_of_filled_chars = (*shape->shape)( shape , shaped , line->num_of_chars ,
-					line->chars , line->num_of_filled_chars) ;
-	line->chars = shaped ;
-
-	return  orig ;
+	return  NULL ;
 }
 
 int
@@ -1520,6 +1654,125 @@ ml_line_unshape(
 	return  1 ;
 }
 
+int
+ml_line_unuse_ctl(
+	ml_line_t *  line
+	)
+{
+	if( line->ctl_info_type)
+	{
+		if( ml_line_is_using_bidi( line))
+		{
+			return  ml_line_set_use_bidi( line , 0) ;
+		}
+		else /* if( ml_line_is_using_iscii( line)) */
+		{
+			return  ml_line_set_use_iscii( line , 0) ;
+		}
+	}
+
+	return  0 ;
+}
+
+int
+ml_line_ctl_render(
+	ml_line_t *  line ,
+	ml_bidi_mode_t  bidi_mode ,
+	const char *  separators
+	)
+{
+	if( ! ml_line_is_using_ctl( line))
+	{
+		if( ! ml_line_set_use_bidi( line , 1) && ! ml_line_set_use_iscii( line , 1))
+		{
+			return  0 ;
+		}
+	}
+
+	if( line->ctl_info_type)
+	{
+		int  ret ;
+
+		if( ml_line_is_using_bidi( line))
+		{
+			if( ( ret = ml_line_bidi_render( line , bidi_mode , separators)) < 0
+			#if  ! defined(NO_DYNAMIC_LOAD_CTL)
+			    && ml_load_ctl_iscii_func( ML_LINE_SET_USE_ISCII)
+			#elif  ! defined(USE_FRIBIDI)
+			    && 0
+			#endif
+			    )
+			{
+				ml_line_set_use_bidi( line , 0) ;
+				ml_line_set_use_iscii( line , 1) ;
+
+				return  ml_line_iscii_render( line) ;
+			}
+
+			return  ret ;
+		}
+		else /* if( ml_line_is_using_iscii( line)) */
+		{
+			if( ( ret = ml_line_iscii_render( line)) < 0
+			#if  ! defined(NO_DYNAMIC_LOAD_CTL)
+			    && ml_load_ctl_bidi_func( ML_LINE_SET_USE_BIDI)
+			#elif  ! defined(USE_FRIBIDI)
+			    && 0
+			#endif
+			    )
+			{
+				ml_line_set_use_iscii( line , 0) ;
+				ml_line_set_use_bidi( line , 1) ;
+
+				return  ml_line_bidi_render( line , bidi_mode , separators) ;
+			}
+
+			return  ret ;
+		}
+	}
+
+	return  0 ;
+}
+
+int
+ml_line_ctl_visual(
+	ml_line_t *  line
+	)
+{
+	if( line->ctl_info_type)
+	{
+		if( ml_line_is_using_bidi( line))
+		{
+			return  ml_line_bidi_visual( line) ;
+		}
+		else /* if( ml_line_is_using_iscii( line)) */
+		{
+			return  ml_line_iscii_visual( line) ;
+		}
+	}
+
+	return  0 ;
+}
+
+int
+ml_line_ctl_logical(
+	ml_line_t *  line
+	)
+{
+	if( line->ctl_info_type)
+	{
+		if( ml_line_is_using_bidi( line))
+		{
+			return  ml_line_bidi_logical( line) ;
+		}
+		else /* if( ml_line_is_using_iscii( line)) */
+		{
+			return  ml_line_iscii_logical( line) ;
+		}
+	}
+
+	return  0 ;
+}
 
 #ifdef  DEBUG
 

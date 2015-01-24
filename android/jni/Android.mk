@@ -8,8 +8,8 @@ ifeq ($(ENABLE_FRIBIDI),true)
 		fribidi/fribidi-deprecated.c fribidi/fribidi-joining.c \
 		fribidi/fribidi-joining-types.c fribidi/fribidi-mem.c \
 		fribidi/fribidi-mirroring.c fribidi/fribidi-run.c fribidi/fribidi-shape.c \
-		mlterm/libctl/ml_bidi.c mlterm/libctl/ml_logical_visual_bidi.c \
-		mlterm/libctl/ml_shape_bidi.c mlterm/libctl/ml_line_bidi.c
+		mlterm/libctl/ml_bidi.c mlterm/libctl/ml_shape_bidi.c \
+		mlterm/libctl/ml_line_bidi.c
 	FRIBIDI_CFLAGS=-DUSE_FRIBIDI
 endif
 ifeq ($(TARGET_ARCH_ABI),mips)
@@ -60,8 +60,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		mlterm/ml_config_menu.c mlterm/ml_config_proto.c \
 		mlterm/ml_termcap.c mlterm/ml_pty.c mlterm/ml_pty_unix.c mlterm/ml_drcs.c \
 		libind/indian.c libind/lex.split.c mlterm/libctl/ml_iscii.c \
-		mlterm/libctl/ml_logical_visual_iscii.c mlterm/libctl/ml_shape_iscii.c \
-		mlterm/libctl/ml_line_iscii.c \
+		mlterm/libctl/ml_shape_iscii.c mlterm/libctl/ml_line_iscii.c \
 		$(FRIBIDI_SRC_FILES) \
 		xwindow/fb/x.c xwindow/fb/x_font.c xwindow/x_mod_meta_mode.c xwindow/x_shortcut.c \
 		xwindow/x_bel_mode.c xwindow/x_font_cache.c xwindow/x_picture.c \

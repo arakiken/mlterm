@@ -11,17 +11,22 @@
 
 #ifndef  NO_DYNAMIC_LOAD_CTL
 
-ml_shape_t *
-ml_arabic_shape_new(void)
+u_int
+ml_shape_arabic(
+	ml_char_t *  dst ,
+	u_int  dst_len ,
+	ml_char_t *  src ,
+	u_int  src_len
+	)
 {
-	ml_shape_t * (*func)(void) ;
+	u_int (*func)( ml_char_t *  dst , u_int  dst_len , ml_char_t *  src , u_int  src_len) ;
 
-	if( ! (func = ml_load_ctl_bidi_func( ML_ARABIC_SHAPE_NEW)))
+	if( ! (func = ml_load_ctl_bidi_func( ML_SHAPE_ARABIC)))
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
-	return  (*func)() ;
+	return  (*func)( dst , dst_len , src , src_len) ;
 }
 
 u_int16_t
@@ -41,17 +46,22 @@ ml_is_arabic_combining(
 	return  (*func)( prev2 , prev , ch) ;
 }
 
-ml_shape_t *
-ml_iscii_shape_new(void)
+u_int
+ml_shape_iscii(
+	ml_char_t *  dst ,
+	u_int  dst_len ,
+	ml_char_t *  src ,
+	u_int  src_len
+	)
 {
-	ml_shape_t * (*func)(void) ;
+	u_int (*func)( ml_char_t *  dst , u_int  dst_len , ml_char_t *  src , u_int  src_len) ;
 
-	if( ! (func = ml_load_ctl_iscii_func( ML_ISCII_SHAPE_NEW)))
+	if( ! (func = ml_load_ctl_iscii_func( ML_SHAPE_ISCII)))
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
-	return  (*func)() ;
+	return  (*func)( dst , dst_len , src , src_len) ;
 }
 
 #endif

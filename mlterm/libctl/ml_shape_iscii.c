@@ -10,11 +10,10 @@
 #include  "ml_iscii.h"
 
 
-/* --- static functions --- */
+/* --- global functions --- */
 
-static u_int
-shape_iscii(
-	ml_shape_t *  shape ,
+u_int
+ml_shape_iscii(
 	ml_char_t *  dst ,
 	u_int  dst_len ,
 	ml_char_t *  src ,
@@ -162,33 +161,4 @@ shape_iscii(
 	}
 
 	return  dst_filled ;
-}
-
-static int
-iscii_delete(
-	ml_shape_t *  shape
-	)
-{
-	free( shape) ;
-
-	return  1 ;
-}
-
-
-/* --- global functions --- */
-
-ml_shape_t *
-ml_iscii_shape_new(void)
-{
-	ml_shape_t *  shape ;
-	
-	if( ( shape = malloc( sizeof( ml_shape_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	shape->shape = shape_iscii ;
-	shape->delete = iscii_delete ;
-
-	return  shape ;
 }

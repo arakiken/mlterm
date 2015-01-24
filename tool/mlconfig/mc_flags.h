@@ -18,13 +18,12 @@
 #define  MC_FLAG_DYNCOMB       5
 #define  MC_FLAG_RECVUCS       6
 #define  MC_FLAG_MCOL          7
-#define  MC_FLAG_BIDI          8
-#define  MC_FLAG_IND           9
-#define  MC_FLAG_AWIDTH       10
-#define  MC_FLAG_CLIPBOARD    11
-#define  MC_FLAG_LOCALECHO    12
-#define  MC_FLAG_BLINKCURSOR  13
-#define  MC_FLAG_STATICBACKSCROLL  14
+#define  MC_FLAG_CTL           8
+#define  MC_FLAG_AWIDTH        9
+#define  MC_FLAG_CLIPBOARD    10
+#define  MC_FLAG_LOCALECHO    11
+#define  MC_FLAG_BLINKCURSOR  12
+#define  MC_FLAG_STATICBACKSCROLL  13
 
 GtkWidget *  mc_flag_config_widget_new( int id) ;
 

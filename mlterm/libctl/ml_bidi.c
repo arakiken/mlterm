@@ -347,6 +347,10 @@ ml_bidi(
 
 			cur_pos = count + 1 ;
 		}
+		else if( IS_ISCII(cs))
+		{
+			return  -1 ;
+		}
 		else
 		{
 		#ifdef  __DEBUG

@@ -7,7 +7,6 @@
 
 
 #include  "ml_str.h"
-#include  "ml_shape.h"
 #include  "ml_bidi.h"	/* ml_bidi_state_t */
 #include  "ml_iscii.h"	/* ml_iscii_state_t */
 
@@ -146,6 +145,8 @@ int  ml_line_get_word_pos( ml_line_t *  line , int *  beg_char_index , int *  en
 	int  char_index) ;
 
 
+#define  ml_line_is_using_ctl( line)  ((line)->ctl_info_type)
+
 int  ml_line_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 
 int  ml_line_is_rtl( ml_line_t *  line) ;
@@ -156,9 +157,18 @@ int  ml_line_convert_logical_char_index_to_visual( ml_line_t *  line , int  logi
 			int *  meet_pos) ;
 
 
-ml_line_t *  ml_line_shape( ml_line_t *  line , ml_shape_t *  shape) ;
+ml_line_t *  ml_line_shape( ml_line_t *  line) ;
 
 int  ml_line_unshape( ml_line_t *  line , ml_line_t *  orig) ;
+
+int  ml_line_unuse_ctl( ml_line_t *  line) ;
+
+int  ml_line_ctl_render( ml_line_t *  line , ml_bidi_mode_t  bidi_mode ,
+	const char *  separators) ;
+
+int  ml_line_ctl_visual( ml_line_t *  line) ;
+
+int  ml_line_ctl_logical( ml_line_t *  line) ;
 
 #ifdef  DEBUG
 

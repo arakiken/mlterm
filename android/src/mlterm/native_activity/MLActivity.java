@@ -163,10 +163,6 @@ public class MLActivity extends NativeActivity
 					Rect  r = new Rect() ;
 					v.getWindowVisibleDisplayFrame(r) ;
 					visibleFrameChanged( r.top , r.right , r.bottom - r.top) ;
-					if( isPreediting)
-					{
-						commitText( "") ;	/* Stop preediting. */
-					}
 				}
 			}) ;
 	}
@@ -189,7 +185,7 @@ public class MLActivity extends NativeActivity
 		showSoftInput() ;
 	}
 
-	private String saveUnifont()
+	private String saveDefaultFont()
 	{
 		File  file = getFileStreamPath( "unifont.pcf") ;
 		if( ! file.exists() ||

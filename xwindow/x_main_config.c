@@ -102,13 +102,9 @@ x_prepare_for_main_config(
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-	kik_conf_add_opt( conf , 'C' , "ind" , 1 , "use_ind" , 
-		"use indic (ligature text) [false]") ;
-#endif
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
-	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" ,
-		"use bidi (bi-directional text) [true]") ;
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND)
+	kik_conf_add_opt( conf , 'C' , "ctl" , 1 , "use_ctl" ,
+		"use complex text layouting [true]") ;
 #endif
 	kik_conf_add_opt( conf , 'E' , "km" , 0 , "encoding" ,
 		"character encoding (AUTO/ISO-8859-*/EUC-*/UTF-8/...) [AUTO]") ;
@@ -1004,28 +1000,15 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-	if( ( value = kik_conf_get_value( conf , "use_ind")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			main_config->use_ind = 1 ;
-		}
-	}
-#endif
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND)
+	main_config->use_ctl = 1 ;
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
-	if( ( value = kik_conf_get_value( conf , "use_bidi")))
+	if( ( value = kik_conf_get_value( conf , "use_ctl")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , "false") == 0)
 		{
-			main_config->use_bidi = 1 ;
-			main_config->use_ind = 0 ;
+			main_config->use_ctl = 0 ;
 		}
-	}
-	else if( ! main_config->use_ind)
-	{
-		main_config->use_bidi = 1 ;
 	}
 #endif
 

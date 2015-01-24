@@ -189,14 +189,7 @@ convert_char_index_to_x_with_shape(
 	ml_line_t *  orig ;
 	int  x ;
 
-	if( screen->term->shape)
-	{
-		orig = ml_line_shape( line , screen->term->shape) ;
-	}
-	else
-	{
-		orig = NULL ;
-	}
+	orig = ml_line_shape( line) ;
 
 	x = convert_char_index_to_x( screen , line , char_index) ;
 
@@ -311,14 +304,7 @@ convert_x_to_char_index_with_shape(
 	ml_line_t *  orig ;
 	int  char_index ;
 
-	if( screen->term->shape)
-	{
-		orig = ml_line_shape( line , screen->term->shape) ;
-	}
-	else
-	{
-		orig = NULL ;
-	}
+	orig = ml_line_shape( line) ;
 
 	char_index = convert_x_to_char_index( screen , line , x_rest , x) ;
 
@@ -444,14 +430,7 @@ draw_line(
 		ml_line_t *  orig ;
 		x_font_present_t  present ;
 
-		if( screen->term->shape)
-		{
-			orig = ml_line_shape( line , screen->term->shape) ;
-		}
-		else
-		{
-			orig = NULL ;
-		}
+		orig = ml_line_shape( line) ;
 
 		present = x_get_font_present( screen->font_man) ;
 
@@ -588,14 +567,7 @@ draw_cursor(
 		return  0 ;
 	}
 
-	if( screen->term->shape)
-	{
-		orig = ml_line_shape( line , screen->term->shape) ;
-	}
-	else
-	{
-		orig = NULL ;
-	}
+	orig = ml_line_shape( line) ;
 
 	/* don't use _with_shape function since line is already shaped */
 	x = convert_char_index_to_x( screen , line , ml_term_cursor_char_index( screen->term)) ;
@@ -4840,15 +4812,15 @@ change_multi_col_char_flag(
 }
 
 static void
-change_bidi_flag(
+change_ctl_flag(
 	x_screen_t *  screen ,
-	int  use_bidi ,
+	int  use_ctl ,
 	ml_bidi_mode_t  bidi_mode
 	)
 {
 	int  do_update ;
 	
-	if( ml_term_is_using_bidi( screen->term) == use_bidi &&
+	if( ml_term_is_using_ctl( screen->term) == use_ctl &&
 	    ml_term_get_bidi_mode( screen->term) == bidi_mode)
 	{
 		/* not changed */
@@ -4857,37 +4829,16 @@ change_bidi_flag(
 	}
 
 	/*
-	 * If use_bidi flag is false and not changed, it is not necessary to update even if
+	 * If use_ctl flag is false and not changed, it is not necessary to update even if
 	 * bidi_mode flag is changed.
 	 */
-	do_update = ( use_bidi != ml_term_is_using_bidi( screen->term)) ||
-			ml_term_is_using_bidi( screen->term) ;
+	do_update = ( use_ctl != ml_term_is_using_ctl( screen->term)) ||
+			ml_term_is_using_ctl( screen->term) ;
 
-	ml_term_set_use_bidi( screen->term , use_bidi) ;
+	ml_term_set_use_ctl( screen->term , use_ctl) ;
 	ml_term_set_bidi_mode( screen->term , bidi_mode) ;
 	
 	if( do_update && update_special_visual( screen))
-	{
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-	}
-}
-
-static void
-change_ind_flag(
-	x_screen_t *  screen ,
-	int  use_ind
-	)
-{
-	if( ml_term_is_using_ind( screen->term) == use_ind)
-	{
-		/* not changed */
-
-		return ;
-	}
-
-	ml_term_set_use_ind( screen->term , use_ind) ;
-
-	if( update_special_visual( screen))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
@@ -8633,18 +8584,18 @@ x_screen_set_config(
 			change_use_italic_font_flag( screen , flag) ;
 		}
 	}
-	else if( strcmp( key , "use_bidi") == 0)
+	else if( strcmp( key , "use_ctl") == 0)
 	{
 		int  flag ;
 
 		if( ( flag = true_or_false( value)) != -1)
 		{
-			change_bidi_flag( screen , flag , ml_term_get_bidi_mode( term)) ;
+			change_ctl_flag( screen , flag , ml_term_get_bidi_mode( term)) ;
 		}
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
-		change_bidi_flag( screen , ml_term_is_using_bidi( term) ,
+		change_ctl_flag( screen , ml_term_is_using_ctl( term) ,
 			ml_get_bidi_mode( value)) ;
 	}
 	else if( strcmp( key , "bidi_separators") == 0)
@@ -8653,15 +8604,6 @@ x_screen_set_config(
 		if( update_special_visual( screen))
 		{
 			ml_term_set_modified_all_lines_in_screen( screen->term) ;
-		}
-	}
-	else if( strcmp( key , "use_ind") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			change_ind_flag( screen , flag) ;
 		}
 	}
 	else if( strcmp( key , "input_method") == 0)

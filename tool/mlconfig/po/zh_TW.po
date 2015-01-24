@@ -214,8 +214,8 @@ msgstr "全形字佔兩個邏輯直行 (否則只佔一個)"
 
 # FIXME
 #: tool/mlconfig/mc_flags.c:41
-msgid "Bidi (UTF8 only)"
-msgstr "Bidi (只限 UTF8)"
+msgid "Complex Text Layout"
+msgstr "Complex Text Layout"
 
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"

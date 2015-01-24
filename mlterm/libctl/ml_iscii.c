@@ -295,6 +295,7 @@ ml_iscii(
 	u_int  iscii_filled ;
 	mkf_charset_t  cs ;
 	mkf_charset_t  prev_cs ;
+	int  has_ucs ;
 
 	iscii_buf_len = src_len * 4 + 1 ;
 	if( ( iscii_buf = alloca( iscii_buf_len)) == NULL)
@@ -317,6 +318,7 @@ ml_iscii(
 	state->has_iscii = 0 ;
 	dst_pos = -1 ;
 	prev_cs = cs = UNKNOWN_CS ;
+	has_ucs = 0 ;
 	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
 	{
 		cs = ml_char_cs( src + src_pos) ;
@@ -378,13 +380,18 @@ ml_iscii(
 		}
 		else
 		{
+			if( cs == ISO10646_UCS4_1)
+			{
+				has_ucs = 1 ;
+			}
+
 			state->num_of_chars_array[++dst_pos] = 1 ;
 		}
 	}
 
 	state->size = dst_pos + 1 ;
 
-	return  1 ;
+	return  (! state->has_iscii && has_ucs) ? -1 : 1 ;
 }
 
 int

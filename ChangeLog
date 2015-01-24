@@ -1,3 +1,46 @@
+2015-01-24  Araki Ken  <arakiken@users.sf.net>
+
+	* README, PROTOCOL, README.android, README.indic, README.ja, man/mlterm.1:
+	  Updated.
+
+	* android/jni/main.c, MLActivity.java: unifont.pcf is not saved in starting.
+
+	* vte.c: Minor fixes.
+
+	* mc_flags.[ch]: MC_FLAG_BIDI and MC_FLAG_IND are integrated to MC_FLAG_CTL.
+
+	* mc_bidi.[ch]: Renamed to mc_ctl.[ch].
+
+	* x_main_config.[ch], x_screen.c, x_screen_manager.c, ml_term.[ch],
+	  ml_term_manager.[ch], ml_vt100_parser.[ch]:
+	  "use_bidi" and "use_iscii" are integrated to "use_ctl".
+
+	* ml_line.c:
+	  - ml_line_unuse_ctl() and ml_line_ctl_{render|visual|logical}() are added.
+	  - shape argument is remove from ml_line_shape().
+
+	* ml_ctl_loader.h, ml_functbl_bidi.c:
+	  - ml_logvis_bidi_new and ml_arabic_shape_new are removed and ml_shape_arabic
+	    and ml_line_bidi_{render|visual|logical} are added.
+	  - CTL_API_VERSION is changed from 0x01 to 0x02.
+
+	* ml_logical_visual.[ch]: Add ml_ctl_logical_visual which is integrated from
+	  ml_bidi_logical_visual and ml_iscii_logical_visual.
+
+	* ml_logical_visual_{bidi|iscii}.c: Removed.
+
+	* ml_shape_bidi.c, ml_shape_iscii.c, ml_shape.[ch]:
+	  ml_shape_t is removed. ml_shape_{arabic|iscii}() are added.
+
+	* libctl/ml_iscii.c, libctl/ml_line_iscii.c: If ISO10646_UCS4_1 charset is
+	  found and ISCII_XXX charset is not found, ml_iscii() and ml_line_iscii_render()
+	  return -1.
+
+	* libctl/ml_bidi.c, libctl/ml_line_bidi.c: If ISCII_XXX charset is found,
+	  ml_bidi() and ml_line_bidi_render() return -1.
+
+	* ml_screen.c: ml_screen_resize() resizes ml_screen_t::stored_edits.
+
 2015-01-20  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.indic: Updated.

@@ -84,6 +84,7 @@ ml_line_set_use_bidi(
 	return  1 ;
 }
 
+/* The caller should check ml_line_is_using_bidi() in advance. */
 int
 ml_line_bidi_render(
 	ml_line_t *  line ,
@@ -91,24 +92,15 @@ ml_line_bidi_render(
 	const char *  separators
 	)
 {
+	int  ret ;
 	int  base_is_rtl ;
-
-	if( ! ml_line_is_using_bidi( line))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" Rendering failed. ctl_info_type isn't VINFO_BIDI.\n") ;
-	#endif
-
-		return  0 ;
-	}
 
 	base_is_rtl = BASE_IS_RTL( line->ctl_info.bidi) ;
 
-	if( ! ml_bidi( line->ctl_info.bidi , line->chars , line->num_of_filled_chars ,
-		bidi_mode , separators))
+	if( ( ret = ml_bidi( line->ctl_info.bidi , line->chars , line->num_of_filled_chars ,
+			bidi_mode , separators)) <= 0)
 	{
-		return  0 ;
+		return  ret ;
 	}
 
 	/* Conforming line->change_{beg|end}_col to visual mode. */
@@ -133,6 +125,7 @@ ml_line_bidi_render(
 	return  1 ;
 }
 
+/* The caller should check ml_line_is_using_bidi() in advance. */
 int
 ml_line_bidi_visual(
 	ml_line_t *  line
@@ -141,8 +134,7 @@ ml_line_bidi_visual(
 	int  count ;
 	ml_char_t *  src ;
 	
-	if( ! ml_line_is_using_bidi( line) ||
-	    line->ctl_info.bidi->size == 0 ||
+	if( line->ctl_info.bidi->size == 0 ||
 	    ! HAS_RTL( line->ctl_info.bidi))
 	{
 	#ifdef  __DEBUG
@@ -172,6 +164,7 @@ ml_line_bidi_visual(
 	return  1 ;
 }
 
+/* The caller should check ml_line_is_using_bidi() in advance. */
 int
 ml_line_bidi_logical(
 	ml_line_t *  line
@@ -180,8 +173,7 @@ ml_line_bidi_logical(
 	int  count ;
 	ml_char_t *  src ;
 	
-	if( ! ml_line_is_using_bidi( line) ||
-	    line->ctl_info.bidi->size == 0 ||
+	if( line->ctl_info.bidi->size == 0 ||
 	    ! HAS_RTL( line->ctl_info.bidi))
 	{
 	#ifdef  __DEBUG
@@ -216,6 +208,7 @@ ml_line_bidi_logical(
 	return  1 ;
 }
 
+/* The caller should check ml_line_is_using_bidi() in advance. */
 int
 ml_line_bidi_convert_logical_char_index_to_visual(
 	ml_line_t *  line ,
@@ -223,8 +216,7 @@ ml_line_bidi_convert_logical_char_index_to_visual(
 	int *  ltr_rtl_meet_pos
 	)
 {
-	if( ml_line_is_using_bidi( line) &&
-	    (u_int)char_index < line->ctl_info.bidi->size &&  /* same as 0 <= char_index < size */
+	if( (u_int)char_index < line->ctl_info.bidi->size &&  /* same as 0 <= char_index < size */
 	    HAS_RTL( line->ctl_info.bidi))
 	{
 		int  count ;

@@ -17,12 +17,22 @@
 #endif
 
 
-char *  unifont_path ;
+#if  0
+#define  SAVE_DEFAULT_FONT
+#endif
+
+
+#ifdef  SAVE_DEFAULT_FONT
+
+/* --- global variables --- */
+
+char *  default_font_path ;
+
 
 /* --- static functions --- */
 
 static inline void
-save_unifont(
+save_default_font(
 	ANativeActivity *  activity
 	)
 {
@@ -32,7 +42,7 @@ save_unifont(
 	jstring  jstr ;
 	const char *  path ;
 
-	if( unifont_path)
+	if( default_font_path)
 	{
 		return ;
 	}
@@ -43,14 +53,16 @@ save_unifont(
 	this = activity->clazz ;
 	jstr = (*env)->CallObjectMethod( env , this ,
 		(*env)->GetMethodID( env , (*env)->GetObjectClass( env , this) ,
-			"saveUnifont" , "()Ljava/lang/String;")) ;
+			"saveDefaultFont" , "()Ljava/lang/String;")) ;
 
 	path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
-	unifont_path = strdup( path) ;
+	default_font_path = strdup( path) ;
 	(*env)->ReleaseStringUTFChars( env , jstr , path) ;
 
 	(*vm)->DetachCurrentThread(vm) ;
 }
+
+#endif	/* SAVE_DEFAULT_FONT */
 
 
 /* --- global functions --- */
@@ -69,7 +81,9 @@ android_main(
 
 	kik_set_sys_conf_dir( CONFIG_PATH) ;
 
-	save_unifont( app->activity) ;
+#ifdef  SAVE_DEFAULT_FONT
+	save_default_font( app->activity) ;
+#endif
 
 	if( x_display_init( app) &&		/* x_display_init() returns 1 only once. */
 	    ! main_loop_init( argc , argv))	/* main_loop_init() is called once. */

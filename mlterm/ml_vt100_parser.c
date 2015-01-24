@@ -30,6 +30,7 @@
 #include  "ml_iscii.h"
 #include  "ml_config_proto.h"
 #include  "ml_str_parser.h"
+#include  "ml_shape.h"		/* ml_is_arabic_combining */
 
 
 /*
@@ -1317,7 +1318,7 @@ put_char(
 			prev2 = ml_screen_get_n_prev_char( vt100_parser->screen , ++n) ;
 		}
 		
-		if( vt100_parser->use_bidi && ml_is_arabic_combining( prev2 , prev , cur))
+		if( vt100_parser->use_ctl && ml_is_arabic_combining( prev2 , prev , cur))
 		{
 			if( vt100_parser->w_buf.filled_len >= 2)
 			{
