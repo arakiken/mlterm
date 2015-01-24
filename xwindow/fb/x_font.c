@@ -1281,6 +1281,7 @@ x_font_new(
 				font_file[13] = '/' ;
 				strcpy( font_file + 14 , cand) ;
 			}
+			percent = 0 ;
 		#else /* __linux__ */
 			if( stat( "/usr/share/fonts/X11/misc/unifont.pcf.gz" , &st) == 0)
 			{
