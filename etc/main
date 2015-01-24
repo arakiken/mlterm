@@ -40,14 +40,12 @@
 #  ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO)
 # ENCODING = auto
 
-# use_bidi = true
+# use_ctl = true
 
 # (normal,left,right)
 # bidi_mode = normal
 
 # bidi_separators =
-
-# use_ind = false
 
 # use_combining = true
 

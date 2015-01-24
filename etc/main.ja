@@ -53,18 +53,14 @@
 #  ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO)
 # ENCODING = auto
 
-# BiDi レンダリングを行う
-# use_bidi = true
+# Complext Text Layouting を有効にする
+# use_ctl = true
 
 # BiDi レンダリングの方法(normal,left,right)
 # bidi_mode = normal
 
 # BiDi レンダリングを行う範囲を区切る文字を指定する
 # bidi_separators =
-
-# インド諸語の表示を行う。
-# エンコーディングが UTF-8 の場合は use_bidi が false の場合のみ有効。
-# use_ind = false
 
 # 結合文字を処理する  
 # use_combining = true

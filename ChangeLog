@@ -1,3 +1,10 @@
+2015-01-25  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/main, etc/main.ja: Updated.
+
+	* ml_term.c: ml_logvis_ctl is created if terminal encoding is not only UTF-8
+	  but also ISCII_XXX.
+
 2015-01-24  Araki Ken  <arakiken@users.sf.net>
 
 	* README, PROTOCOL, README.android, README.indic, README.ja, man/mlterm.1:

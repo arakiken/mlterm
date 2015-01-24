@@ -1076,7 +1076,9 @@ ml_term_update_special_visual(
 		}
 	#endif
 	}
-	else if( term->use_ctl && ml_term_get_encoding( term) == ML_UTF8)
+	else if( term->use_ctl &&
+	         ( ml_term_get_encoding( term) == ML_UTF8 ||
+		   IS_ISCII_ENCODING( ml_term_get_encoding( term))))
 	{
 		if( ( logvis = ml_logvis_ctl_new( term->bidi_mode , term->bidi_separators)))
 		{
