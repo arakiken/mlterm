@@ -33,5 +33,7 @@ Android support (Experimental)
     button (Button1) at the right bottom corner of the screen.
   o You can rotate display by "rotate_display = right" or "rotate_display = left"
     in /sdcard/.mlterm/main.
-  o The default value of "font_size_range" option is 10-40 on Android while 6-30 
-    on other platforms.
+  o The default values of following options are as below on Android.
+    "font_size_range"       => 10-40
+    "only_use_unicode_font" => "true"
+    "box_drawing_font"      => "unicode"

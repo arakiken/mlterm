@@ -1,4 +1,21 @@
+2015-01-28  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1: Updated.
+
+	* doc/ja/README.w3m: Removed.
+
+	* MLActivity.java: visibleFrameChanged() is not called if isPreediting is true.
+
+	* x_event_source.c: ALooper_wake() is removed and pthread_mutex_{un}lock()
+	  are called before and after changing commit_text and preedit_text.
+
+	* x_main_config.c:
+	  - The default value of "only_use_unicode_font" is "true" on Android.
+	  - The default value of "box_drawing_font" is "unicode" on Android.
+
 2015-01-25  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_font.c: percent = 0 in x_font_new() on android.
 
 	* etc/main, etc/main.ja: Updated.
 

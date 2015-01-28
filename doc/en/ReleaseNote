@@ -4,7 +4,7 @@ ver 3.4.3
 * Support ISCII proportional fonts with the use of freetype library on framebuffer and
   Android.
 * Drop -C/--ind/use_ind and -D/--bi/use_bidi options. Add -C/--ctl/use_ctl option which
-  enables or disables rendering bi-directional text and indic scripts.
+  enables or disables both rendering bi-directional text and indic scripts.
 * --deffont/default_font option and vte_terminal_set_font* functions of libvte compatible
  library overwrite the default font of "ISO10646_UCS4_1" not only "DEFAULT".
 * Simplify font configuration of OSC 5380 and 5381.

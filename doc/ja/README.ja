@@ -47,8 +47,8 @@ comment $Id$
       この場合、UNICODE <=> 各種文字集合の変換等を扱えなくなります。
 
     --without-prop-table
-      文字プロパティテーブルを組み込みません。
-      この場合、結合文字や BIDI 等を扱えなくなります。
+      Unicode の文字プロパティテーブルを組み込みません。
+      この場合、結合文字等を扱えなくなります。
 
     --with-gui
       GUI ライブラリとして xlib / win32 / fb のいずれを使用するか指定します。
@@ -65,8 +65,10 @@ comment $Id$
 
     --with-type-engines=(xcore|xft|cairo)
       テキストレンダリングエンジンを指定します。
-      (なお、--disable-anti-alias オプションは --with-type-engines=xcore と同じ
-      です)
+
+    --enable-anti-alias
+      --with-type-engines=xcore,xft,cairoと同じ。
+      (なお、--disable-anti-alias オプションは --with-type-engines=xcore と同じ)
 
     --disable-dl-type
       type engine モジュールの動的ローディングを無効にし、mlterm 本体にリンクする

@@ -16,8 +16,9 @@
 
 static char *  commit_text ;
 static char *  preedit_text ;
-static ALooper *  looper ;
 static mkf_parser_t *  utf8_parser ;
+/* main and native activity threads changes commit_text/preedit_text from at the same time. */
+static pthread_mutex_t  mutex = PTHREAD_MUTEX_INITIALIZER ;
 
 
 /* --- static functions --- */
@@ -71,6 +72,7 @@ update_ime_text(
 
 static void
 ALooper_removeFds(
+	ALooper *  looper ,
 	int *  fds ,
 	u_int  num_of_fds
 	)
@@ -101,6 +103,7 @@ x_event_source_final(void)
 int
 x_event_source_process(void)
 {
+	ALooper *  looper ;
 	int  ident ;
 	int  events ;
 	struct android_poll_source *  source ;
@@ -116,7 +119,7 @@ x_event_source_process(void)
 	{
 		void *  p ;
 
-		ALooper_removeFds( fds , prev_num_of_terms) ;
+		ALooper_removeFds( looper , fds , prev_num_of_terms) ;
 		prev_num_of_terms = 0 ;
 
 		if( num_of_terms == 0)
@@ -148,7 +151,7 @@ x_event_source_process(void)
 	{
 		if( ! x_display_process_event( source , ident))
 		{
-			ALooper_removeFds( fds , prev_num_of_terms) ;
+			ALooper_removeFds( looper , fds , prev_num_of_terms) ;
 			prev_num_of_terms = 0 ;
 			free( fds) ;
 			fds = NULL ;
@@ -171,6 +174,8 @@ x_event_source_process(void)
 	}
 	else
 	{
+		pthread_mutex_lock( &mutex) ;
+
 		if( preedit_text || commit_text)
 		{
 			for( count = 0 ; count < num_of_terms ; count++)
@@ -183,6 +188,8 @@ x_event_source_process(void)
 				}
 			}
 		}
+
+		pthread_mutex_unlock( &mutex) ;
 
 		x_display_idling( NULL) ;
 	}
@@ -215,6 +222,7 @@ x_event_source_remove_fd(
 	return  0 ;
 }
 
+
 void
 Java_mlterm_native_1activity_MLActivity_commitText(
 	JNIEnv *  env ,
@@ -224,6 +232,8 @@ Java_mlterm_native_1activity_MLActivity_commitText(
 {
 	const char *  str ;
 
+	pthread_mutex_lock( &mutex) ;
+
 	free( commit_text) ;
 	str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
 	commit_text = strdup( str) ;
@@ -232,7 +242,7 @@ Java_mlterm_native_1activity_MLActivity_commitText(
 	free( preedit_text) ;
 	preedit_text = NULL ;
 
-	ALooper_wake( looper) ;
+	pthread_mutex_unlock( &mutex) ;
 }
 
 #if  0
@@ -250,6 +260,8 @@ Java_mlterm_native_1activity_MLActivity_preeditText(
 	str1 = (*env)->GetStringUTFChars( env , jstr1 , NULL) ;
 	str2 = (*env)->GetStringUTFChars( env , jstr2 , NULL) ;
 
+	pthread_mutex_lock( &mutex) ;
+
 	free( preedit_text) ;
 	if( ( preedit_text = malloc( strlen(str1) + 2 + strlen(str2) + 2 + 1)))
 	{
@@ -259,7 +271,7 @@ Java_mlterm_native_1activity_MLActivity_preeditText(
 	(*env)->ReleaseStringUTFChars( env , jstr1 , str1) ;
 	(*env)->ReleaseStringUTFChars( env , jstr2 , str2) ;
 
-	ALooper_wake( looper) ;
+	pthread_mutex_unlock( &mutex) ;
 }
 #else
 void
@@ -271,11 +283,13 @@ Java_mlterm_native_1activity_MLActivity_preeditText(
 {
 	const char *  str ;
 
+	pthread_mutex_lock( &mutex) ;
+
 	free( preedit_text) ;
 	str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
 	preedit_text = strdup( str) ;
 	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 
-	ALooper_wake( looper) ;
+	pthread_mutex_unlock( &mutex) ;
 }
 #endif

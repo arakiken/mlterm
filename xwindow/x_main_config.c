@@ -822,6 +822,12 @@ x_main_config_init(
 			}
 		}
 	}
+#ifdef  __ANDROID__
+	else
+	{
+		main_config->unicode_policy = ONLY_USE_UNICODE_FONT ;
+	}
+#endif
 
 	if( ( value = kik_conf_get_value( conf , "box_drawing_font")))
 	{
@@ -834,6 +840,12 @@ x_main_config_init(
 			main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
 		}
 	}
+#ifdef  __ANDROID__
+	else
+	{
+		main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
+	}
+#endif
 
 	if( ( value = kik_conf_get_value( conf , "receive_string_via_ucs")))
 	{

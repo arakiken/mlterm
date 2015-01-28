@@ -21,7 +21,7 @@ Options for configure
     Remove character mapping table
 
   --without-prop-table
-    Remove character property table
+    Remove unicode character property table
 
   --with-gui=(xlib|win32|fb)
     Use specified gui library
@@ -43,10 +43,10 @@ Options for configure
     Use specified type engines for rendering text.
     xcore is possible to disable only when --with-type-engines=(except xcore)
     is specified with --disable-dl-type option.
-    (--disable-anti-alias is the same as --with-type-engines=xcore)
 
   --enable-anti-alias
     Same as --with-type-engines=xcore,xft,cairo
+    (--disable-anti-alias is the same as --with-type-engines=xcore)
 
   --disable-dl-type
     Disable dynamic loading of type engine modules,
