@@ -160,12 +160,9 @@ public class MLActivity extends NativeActivity
 						int  right , int  bottom , int  oldLeft , int  oldTop ,
 						int  oldRight , int  oldBottom)
 				{
-					if( ! isPreediting)
-					{
-						Rect  r = new Rect() ;
-						v.getWindowVisibleDisplayFrame(r) ;
-						visibleFrameChanged( r.top , r.right , r.bottom - r.top) ;
-					}
+					Rect  r = new Rect() ;
+					v.getWindowVisibleDisplayFrame(r) ;
+					visibleFrameChanged( r.top , r.right , r.bottom - r.top) ;
 				}
 			}) ;
 	}

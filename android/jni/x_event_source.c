@@ -14,8 +14,6 @@
 
 /* --- static variables --- */
 
-static char *  commit_text ;
-static char *  preedit_text ;
 static mkf_parser_t *  utf8_parser ;
 /* main and native activity threads changes commit_text/preedit_text from at the same time. */
 static pthread_mutex_t  mutex = PTHREAD_MUTEX_INITIALIZER ;
@@ -25,7 +23,9 @@ static pthread_mutex_t  mutex = PTHREAD_MUTEX_INITIALIZER ;
 
 static void
 update_ime_text(
-	ml_term_t *  term
+	ml_term_t *  term ,
+	char *  preedit_text ,
+	char *  commit_text
 	)
 {
 	u_char  buf[128] ;
@@ -42,6 +42,11 @@ update_ime_text(
 
 	if( preedit_text)
 	{
+		if( *preedit_text == '\0')
+		{
+			return ;
+		}
+
 		ml_term_set_config( term , "use_local_echo" , "true") ;
 
 		(*utf8_parser->set_str)( utf8_parser , preedit_text , strlen(preedit_text)) ;
@@ -52,9 +57,6 @@ update_ime_text(
 		}
 
 		x_window_update( term->parser->xterm_listener->self , 3) ;
-
-		free( preedit_text) ;
-		preedit_text = NULL ;
 	}
 	else /* if( commit_text) */
 	{
@@ -64,9 +66,29 @@ update_ime_text(
 		{
 			ml_term_write( term , buf , len) ;
 		}
+	}
+}
 
-		free( commit_text) ;
-		commit_text = NULL ;
+static void
+update_ime_text_on_active_term(
+	char *  preedit_text ,
+	char *  commit_text
+	)
+{
+	ml_term_t **  terms ;
+	u_int  num_of_terms ;
+	u_int  count ;
+
+	num_of_terms = ml_get_all_terms( &terms) ;
+
+	for( count = 0 ; count < num_of_terms ; count++)
+	{
+		if( ml_term_is_attached( terms[count]))
+		{
+			update_ime_text( terms[count] , preedit_text , commit_text) ;
+
+			return ;
+		}
 	}
 }
 
@@ -145,9 +167,13 @@ x_event_source_process(void)
 	 * Don't block ALooper_pollAll because commit_text or preedit_text can
 	 * be changed from main thread.
 	 */
-	if( ( ident = ALooper_pollAll(
+	ident = ALooper_pollAll(
 				100 , /* milisec. -1 blocks forever waiting for events */
-				NULL , &events, (void**)&source)) >= 0)
+				NULL , &events, (void**)&source) ;
+
+	pthread_mutex_lock( &mutex) ;
+
+	if( ident >= 0)
 	{
 		if( ! x_display_process_event( source , ident))
 		{
@@ -156,6 +182,8 @@ x_event_source_process(void)
 			free( fds) ;
 			fds = NULL ;
 
+			pthread_mutex_unlock( &mutex) ;
+
 			return  0 ;
 		}
 
@@ -163,6 +191,12 @@ x_event_source_process(void)
 		{
 			if( ml_term_get_master_fd( terms[count]) + 1000 == ident)
 			{
+				if( terms[count]->use_local_echo)
+				{
+					ml_term_set_config( terms[count] ,
+						"use_local_echo" , "false") ;
+				}
+
 				ml_term_parse_vt100_sequence( terms[count]) ;
 
 				/*
@@ -174,25 +208,10 @@ x_event_source_process(void)
 	}
 	else
 	{
-		pthread_mutex_lock( &mutex) ;
-
-		if( preedit_text || commit_text)
-		{
-			for( count = 0 ; count < num_of_terms ; count++)
-			{
-				if( ml_term_is_attached( terms[count]))
-				{
-					update_ime_text( terms[count]) ;
-
-					break ;
-				}
-			}
-		}
-
-		pthread_mutex_unlock( &mutex) ;
-
 		x_display_idling( NULL) ;
 	}
+
+	pthread_mutex_unlock( &mutex) ;
 
 	x_display_unlock() ;
 
@@ -224,56 +243,39 @@ x_event_source_remove_fd(
 
 
 void
+Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
+	JNIEnv *  env ,
+	jobject  this ,
+	jint  yoffset ,
+	jint  width ,
+	jint  height
+	)
+{
+	pthread_mutex_lock( &mutex) ;
+
+	x_display_resize( yoffset , width , height) ;
+
+	pthread_mutex_unlock( &mutex) ;
+}
+
+void
 Java_mlterm_native_1activity_MLActivity_commitText(
 	JNIEnv *  env ,
 	jobject  this ,
 	jstring  jstr
 	)
 {
-	const char *  str ;
+	char *  str ;
 
 	pthread_mutex_lock( &mutex) ;
 
-	free( commit_text) ;
 	str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
-	commit_text = strdup( str) ;
+	update_ime_text_on_active_term( NULL , str) ;
 	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 
-	free( preedit_text) ;
-	preedit_text = NULL ;
-
 	pthread_mutex_unlock( &mutex) ;
 }
 
-#if  0
-void
-Java_mlterm_native_1activity_MLActivity_preeditText(
-	JNIEnv *  env ,
-	jobject  this ,
-	jstring  jstr1 ,
-	jstring  jstr2
-	)
-{
-	const char *  str1 ;
-	const char *  str2 ;
-
-	str1 = (*env)->GetStringUTFChars( env , jstr1 , NULL) ;
-	str2 = (*env)->GetStringUTFChars( env , jstr2 , NULL) ;
-
-	pthread_mutex_lock( &mutex) ;
-
-	free( preedit_text) ;
-	if( ( preedit_text = malloc( strlen(str1) + 2 + strlen(str2) + 2 + 1)))
-	{
-		sprintf( preedit_text , "%s\x1b\x37%s\x1b\x38" , str1 , str2) ;
-	}
-
-	(*env)->ReleaseStringUTFChars( env , jstr1 , str1) ;
-	(*env)->ReleaseStringUTFChars( env , jstr2 , str2) ;
-
-	pthread_mutex_unlock( &mutex) ;
-}
-#else
 void
 Java_mlterm_native_1activity_MLActivity_preeditText(
 	JNIEnv *  env ,
@@ -281,15 +283,13 @@ Java_mlterm_native_1activity_MLActivity_preeditText(
 	jstring  jstr
 	)
 {
-	const char *  str ;
+	char *  str ;
 
 	pthread_mutex_lock( &mutex) ;
 
-	free( preedit_text) ;
 	str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
-	preedit_text = strdup( str) ;
+	update_ime_text_on_active_term( str , NULL) ;
 	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 
 	pthread_mutex_unlock( &mutex) ;
 }
-#endif

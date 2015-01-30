@@ -1,3 +1,17 @@
+2015-01-31  Araki Ken  <arakiken@users.sf.net>
+
+	* x_event_source.c:
+	  - ml_term_set_config("use_local_echo", "false") is called before
+	    ml_term_parse_vt100_sequence() if term->use_local_echo is true.
+	  - Java_mlterm_native_1activity_MLActivity_{commit|preedit}Text()
+	    calls update_ime_text() with the use of pthread_mutex_lock().
+
+	* android/jni/x_display.[ch], x_event_source.c:
+	  Java_mlterm_native_1activity_MLActivity_visibleFrameChanged() is moved to
+	  x_event_source.c while its implementation is left as x_display_resize().
+
+	* MLActivity.java: visibleFrameChanged() is called even if isPreediting is true.
+
 2015-01-28  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1: Updated.

@@ -24,11 +24,6 @@ static Display  _display ;
 static int  rotate_display ;
 static int  locked ;
 
-static int  visible_frame_changed ;
-static int  new_yoffset ;
-static u_int  new_width ;
-static u_int  new_height ;
-
 
 /* --- static functions --- */
 
@@ -990,22 +985,6 @@ x_display_process_event(
 	int  ident
 	)
 {
-	if( visible_frame_changed)
-	{
-		/* XXX should synchronize */
-		_display.yoffset = new_yoffset ;
-		_disp.width = new_width ;
-		_disp.height = new_height ;
-
-		visible_frame_changed = 0 ;
-
-		if( _disp.num_of_roots > 0)
-		{
-			x_window_resize_with_margin( _disp.roots[0] ,
-				_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
-		}
-	}
-
 	/* Process this event. */
 	if( source)
 	{
@@ -1384,17 +1363,17 @@ x_display_get_bitmap(
 	return  image ;
 }
 
-
-/* Called in the main thread (not in the native activity thread) */
 void
-Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
-	JNIEnv *  env ,
-	jobject  this ,
-	jint  yoffset ,
-	jint  width ,
-	jint  height
+x_display_resize(
+	int  yoffset ,
+	int  width ,
+	int  height
 	)
 {
+	int  new_yoffset ;
+	u_int  new_width ;
+	u_int  new_height ;
+
 #ifdef  DEBUG
 	kik_debug_printf( "Visible frame changed yoff %d w %d h %d => yoff %d w %d h %d\n" ,
 		_display.yoffset , _disp.width , _disp.height , yoffset , width , height) ;
@@ -1406,26 +1385,7 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 		return ;
 	}
 
-	if( _disp.roots)
-	{
-		/* XXX should synchronize */
-
-		new_yoffset = yoffset ;
-
-		if( rotate_display)
-		{
-			new_width = height ;
-			new_height = width ;
-		}
-		else
-		{
-			new_width = width ;
-			new_height = height ;
-		}
-
-		visible_frame_changed = 1 ;
-	}
-	else
+	if( ! _disp.roots)
 	{
 		_display.yoffset = yoffset ;
 
@@ -1439,8 +1399,36 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 			_disp.width = width ;
 			_disp.height = height ;
 		}
+
+		return ;
+	}
+
+	new_yoffset = yoffset ;
+
+	if( rotate_display)
+	{
+		new_width = height ;
+		new_height = width ;
+	}
+	else
+	{
+		new_width = width ;
+		new_height = height ;
+	}
+
+	_display.yoffset = new_yoffset ;
+	_disp.width = new_width ;
+	_disp.height = new_height ;
+
+	if( _disp.num_of_roots > 0)
+	{
+		x_window_resize_with_margin( _disp.roots[0] ,
+			_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
 	}
 }
+
+
+/* Called in the main thread (not in the native activity thread) */
 
 jint
 Java_mlterm_native_1activity_MLActivity_hashPath(
