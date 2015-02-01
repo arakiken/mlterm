@@ -211,11 +211,11 @@ x_event_source_process(void)
 		x_display_idling( NULL) ;
 	}
 
+	ml_close_dead_terms() ;
+
 	pthread_mutex_unlock( &mutex) ;
 
 	x_display_unlock() ;
-
-	ml_close_dead_terms() ;
 
 	return  1 ;
 }

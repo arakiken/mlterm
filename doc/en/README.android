@@ -37,3 +37,4 @@ Android support (Experimental)
     "font_size_range"       => 10-40
     "only_use_unicode_font" => "true"
     "box_drawing_font"      => "unicode"
+  o "use_local_echo" option is unavailable.

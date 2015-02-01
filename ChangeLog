@@ -1,3 +1,11 @@
+2015-02-01  Araki Ken  <arakiken@users.sf.net>
+
+	* README.android: Updated.
+
+	* MLActivity.java: forceAsciiInput() which x_xic_switch_mode() uses is added.
+
+	* android/jni/x_xic.c: Added.
+
 2015-01-31  Araki Ken  <arakiken@users.sf.net>
 
 	* x_event_source.c:

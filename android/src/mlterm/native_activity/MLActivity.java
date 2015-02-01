@@ -38,9 +38,10 @@ public class MLActivity extends NativeActivity
 	private native int  hashPath( String  path) ;
 	private native void  splitAnimationGif( String  path) ;
 
-	private boolean  isPreediting ;
 	private String  keyString ;
 	private View  contentView ;
+	private int  inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE ;
+	private int  imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION | EditorInfo.IME_ACTION_DONE ;
 
 	private class TextInputConnection extends BaseInputConnection
 	{
@@ -54,7 +55,6 @@ public class MLActivity extends NativeActivity
 		{
 			super.commitText( text , newCursorPosition) ;
 
-			isPreediting = false ;
 			commitText( text.toString()) ;
 
 			return  true ;
@@ -65,18 +65,7 @@ public class MLActivity extends NativeActivity
 		{
 			super.setComposingText( text , newCursorPosition) ;
 
-			isPreediting = true ;
 			preeditText( text.toString()) ;
-
-			return  true ;
-		}
-
-		@Override
-		public boolean finishComposingText()
-		{
-			super.finishComposingText() ;
-
-			isPreediting = false ;
 
 			return  true ;
 		}
@@ -103,12 +92,29 @@ public class MLActivity extends NativeActivity
 		@Override
 		public InputConnection onCreateInputConnection( EditorInfo  outAttrs)
 		{
-			outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE ;
-			outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION |
-			                      EditorInfo.IME_ACTION_DONE ;
+			outAttrs.inputType = inputType ;
+			outAttrs.imeOptions = imeOptions ;
 
 			return  new TextInputConnection( this , true) ;
 		}
+	}
+
+	private void forceAsciiInput()
+	{
+		inputType &= ~InputType.TYPE_CLASS_TEXT ;
+		if( true)
+		{
+			inputType |= InputType.TYPE_TEXT_VARIATION_URI ;
+		}
+		else
+		{
+			inputType |= InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ;
+		}
+
+		imeOptions |= 0x80000000 ; /* EditorInfo.IME_FLAG_FORCE_ASCII ; (API level 16) */
+
+		((InputMethodManager)getSystemService( Context.INPUT_METHOD_SERVICE)).restartInput(
+				contentView) ;
 	}
 
 	private void showSoftInput()

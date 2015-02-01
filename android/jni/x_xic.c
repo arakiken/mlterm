@@ -4,6 +4,8 @@
 
 #include  "../x_xic.h"
 
+#include  <kiklib/kik_debug.h>
+
 
 /* --- global functions --- */
 
@@ -135,7 +137,7 @@ x_xic_is_active(
 	x_window_t *  win
 	)
 {
-	return  0 ;
+	return  1 ;
 }
 
 int
@@ -143,7 +145,19 @@ x_xic_switch_mode(
 	x_window_t *  win
 	)
 {
-	return  0 ;
+	JNIEnv *  env ;
+	JavaVM *  vm ;
+	jobject  this ;
+	jboolean  is_active ;
+
+	vm = win->disp->display->app->activity->vm ;
+	(*vm)->AttachCurrentThread( vm , &env , NULL) ;
+
+	this = win->disp->display->app->activity->clazz ;
+	(*env)->CallVoidMethod( env , this ,
+			(*env)->GetMethodID( env , (*env)->GetObjectClass( env , this) ,
+				"forceAsciiInput" , "()V")) ;
+	(*vm)->DetachCurrentThread(vm) ;
 }
 
 #if  0
