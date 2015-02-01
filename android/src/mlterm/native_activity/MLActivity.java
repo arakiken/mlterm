@@ -101,7 +101,6 @@ public class MLActivity extends NativeActivity
 
 	private void forceAsciiInput()
 	{
-		inputType &= ~InputType.TYPE_CLASS_TEXT ;
 		if( true)
 		{
 			inputType |= InputType.TYPE_TEXT_VARIATION_URI ;

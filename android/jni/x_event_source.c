@@ -6,6 +6,7 @@
 
 #include  <stdio.h>	/* sprintf */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_str.h>
 #include  <ml_char_encoding.h>
 #include  <ml_term_manager.h>
 
@@ -17,6 +18,7 @@
 static mkf_parser_t *  utf8_parser ;
 /* main and native activity threads changes commit_text/preedit_text from at the same time. */
 static pthread_mutex_t  mutex = PTHREAD_MUTEX_INITIALIZER ;
+static char *  cur_preedit_text ;
 
 
 /* --- static functions --- */
@@ -44,19 +46,28 @@ update_ime_text(
 	{
 		if( *preedit_text == '\0')
 		{
-			return ;
+			preedit_text = NULL ;
 		}
-
-		ml_term_set_config( term , "use_local_echo" , "true") ;
-
-		(*utf8_parser->set_str)( utf8_parser , preedit_text , strlen(preedit_text)) ;
-		while( ! utf8_parser->is_eos &&
-		       ( len = ml_term_convert_to( term , buf , sizeof(buf) , utf8_parser)) > 0)
+		else
 		{
-			ml_vt100_parser_preedit( term->parser , buf , len) ;
-		}
+			if( kik_compare_str( preedit_text , cur_preedit_text) == 0)
+			{
+				return ;
+			}
 
-		x_window_update( term->parser->xterm_listener->self , 3) ;
+			ml_term_set_config( term , "use_local_echo" , "true") ;
+
+			(*utf8_parser->set_str)( utf8_parser , preedit_text ,
+				strlen(preedit_text)) ;
+			while( ! utf8_parser->is_eos &&
+			       ( len = ml_term_convert_to( term , buf , sizeof(buf) ,
+						utf8_parser)) > 0)
+			{
+				ml_vt100_parser_preedit( term->parser , buf , len) ;
+			}
+
+			x_window_update( term->parser->xterm_listener->self , 3) ;
+		}
 	}
 	else /* if( commit_text) */
 	{
@@ -67,6 +78,9 @@ update_ime_text(
 			ml_term_write( term , buf , len) ;
 		}
 	}
+
+	free( cur_preedit_text) ;
+	cur_preedit_text = preedit_text ? strdup( preedit_text) : NULL ;
 }
 
 static void
@@ -191,13 +205,22 @@ x_event_source_process(void)
 		{
 			if( ml_term_get_master_fd( terms[count]) + 1000 == ident)
 			{
-				if( terms[count]->use_local_echo)
+				if( cur_preedit_text)
 				{
 					ml_term_set_config( terms[count] ,
 						"use_local_echo" , "false") ;
 				}
 
 				ml_term_parse_vt100_sequence( terms[count]) ;
+
+				if( cur_preedit_text)
+				{
+					char *  preedit_text ;
+
+					preedit_text = cur_preedit_text ;
+					cur_preedit_text = NULL ;
+					update_ime_text( terms[count] , preedit_text , NULL) ;
+				}
 
 				/*
 				 * Don't break here because some terms can have

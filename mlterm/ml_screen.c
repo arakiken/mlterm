@@ -2479,7 +2479,7 @@ ml_screen_disable_local_echo(
 		    ( old_line = ml_edit_get_line( screen->edit , row)) &&
 		    ( ml_line_is_modified( old_line) ||
 		      old_line->num_of_filled_chars != new_line->num_of_filled_chars
-		#if  0
+		#if  1
 		      || ! ml_str_bytes_equal( old_line->chars , new_line->chars ,
 				new_line->num_of_filled_chars)
 		#endif

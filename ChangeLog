@@ -1,3 +1,10 @@
+2015-02-02  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.c: ml_str_bytes_equal() check is enabled in ml_screen_disable_local_echo().
+
+	* android/jni/x_event_source.c: Current preediting text is restored
+	  after ml_term_parse_vt100_sequence().
+
 2015-02-01  Araki Ken  <arakiken@users.sf.net>
 
 	* README.android: Updated.
