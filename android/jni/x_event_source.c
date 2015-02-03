@@ -11,6 +11,12 @@
 #include  <ml_term_manager.h>
 
 #include  "x_display.h"
+#include  "x_window.h"
+
+
+#define  XWINDOW_OF(term) \
+	((term)->parser->xterm_listener ? \
+	 (term)->parser->xterm_listener->self : NULL)
 
 
 /* --- static variables --- */
@@ -63,11 +69,11 @@ update_ime_text(
 			       ( len = ml_term_convert_to( term , buf , sizeof(buf) ,
 						utf8_parser)) > 0)
 			{
-				ml_vt100_parser_preedit( term->parser , buf , len) ;
+				ml_term_preedit( term , buf , len) ;
 			}
-
-			x_window_update( term->parser->xterm_listener->self , 3) ;
 		}
+
+		x_window_update( term->parser->xterm_listener->self , 3) ;
 	}
 	else /* if( commit_text) */
 	{
@@ -118,6 +124,56 @@ ALooper_removeFds(
 	for( count = 0 ; count < num_of_fds ; count++)
 	{
 		ALooper_removeFd( looper , fds[count]) ;
+	}
+}
+
+static int
+need_resize(
+	u_int  cur_width ,	/* contains scrollbar width and margin area */
+	u_int  cur_height ,	/* contains margin area */
+	u_int  new_width ,	/* contains scrollbar width and margin area */
+	u_int  new_height	/* contains margin area */
+	)
+{
+	ml_term_t **  terms ;
+	u_int  num_of_terms ;
+	u_int  count ;
+
+	num_of_terms = ml_get_all_terms( &terms) ;
+
+	for( count = 0 ; count < num_of_terms ; count++)
+	{
+		if( ml_term_is_attached( terms[count]))
+		{
+			if( cur_height > new_height)
+			{
+				x_window_t *  win ;
+
+				if( ml_term_get_vertical_mode( terms[count]))
+				{
+					return  0 ;
+				}
+
+				if( ( win = XWINDOW_OF(terms[count])) &&
+				    ( ml_term_cursor_row( terms[count]) + 1) *
+			            ( win->height / ml_term_get_rows( terms[count])) +
+				    win->vmargin <= new_height)
+				{
+					return  0 ;
+				}
+			}
+
+			break ;
+		}
+	}
+
+	if( cur_width > new_width)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
 	}
 }
 
@@ -276,7 +332,8 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 {
 	pthread_mutex_lock( &mutex) ;
 
-	x_display_resize( yoffset , width , height) ;
+	x_display_resize( yoffset , width , height ,
+		cur_preedit_text ? need_resize : NULL) ;
 
 	pthread_mutex_unlock( &mutex) ;
 }

@@ -16,6 +16,7 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_pty.h>
 #include  <kiklib/kik_path.h>	/* kik_basename */
+#include  <kiklib/kik_unistd.h>	/* kik_killpg */
 #ifdef  USE_UTMP
 #include  <kiklib/kik_utmp.h>
 #endif
@@ -90,7 +91,24 @@ set_winsize(
 		return  0 ;
 	}
 
-	kill( pty->child_pid , SIGWINCH) ;
+	if( pty->child_pid > 1)
+	{
+		int  pgrp ;
+
+	#ifdef  TIOCGPGRP
+		if( ioctl( pty->master , TIOCGPGRP , &pgrp) != -1)
+		{
+			if( pgrp > 0)
+			{
+				kik_killpg( pgrp , SIGWINCH) ;
+			}
+		}
+		else
+	#endif
+		{
+			kik_killpg( pty->child_pid , SIGWINCH) ;
+		}
+	}
 
 	return  1 ;
 }

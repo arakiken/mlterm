@@ -50,7 +50,8 @@ int  x_cmap_get_pixel_rgb( u_int8_t *  red , u_int8_t *  green ,
 
 u_char *  x_display_get_bitmap( char *  path , u_int *  width , u_int *  height) ;
 
-void  x_display_resize( int  yoffset , int  width , int  height) ;
+void  x_display_resize( int  yoffset , int  width , int  height ,
+	int (*need_resize)( u_int , u_int , u_int , u_int)) ;
 
 
 #endif

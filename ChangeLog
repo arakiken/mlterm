@@ -1,3 +1,19 @@
+2015-02-04  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty_unix.c: kik_killpg(SIGWINCH) is used instead of kill(SIGWINCH).
+
+	* jni/x_event_source.c: need_resize() is implemented and passed to x_display_resize().
+
+	* android/jni/x_display.[ch]: need_resize is added to the arguments of x_display_resize().
+
+	* kik_unistd.h: kik_killpg is added.
+
+	* kik_config.h.in, android/jni/kik_config.h: HAVE_KILLPG is added.
+
+	* kiklib/configure.in: killpg is added to AC_CHECK_FUNCS().
+
+	* MLActivity.java: finishComposingText() is revived.
+
 2015-02-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_screen.c: ml_str_bytes_equal() check is enabled in ml_screen_disable_local_echo().

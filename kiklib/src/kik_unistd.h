@@ -99,4 +99,18 @@ gid_t  __kik_getgid( void) ;
 #endif
 
 
+/* XXX ml_pty_unix.c which uses kik_killpg() has already included it. */
+/* #include  <signal.h> */
+
+#ifdef  HAVE_KILLPG
+
+#define  kik_killpg( pid , sig)  killpg( pid , sig)
+
+#else
+
+#define  kik_killpg( pid , sig)  kill( -pid , sig)
+
+#endif
+
+
 #endif

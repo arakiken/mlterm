@@ -152,6 +152,11 @@ size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
 #define  ml_term_write_loopback( term , buf , len) \
 		ml_vt100_parser_write_loopback( (term)->parser , buf , len)
 
+#ifdef  __ANDROID__
+/* Must be called in visual context. */
+#define  ml_term_preedit( term , buf , len)  ml_vt100_parser_preedit( (term)->parser , buf , len)
+#endif
+
 int  ml_term_resize( ml_term_t *  term , u_int  cols , u_int  rows ,
 	u_int  width_pix , u_int  height_pix) ;
 

@@ -351,6 +351,7 @@ int  ml_vt100_parser_write_loopback( ml_vt100_parser_t *  vt100_parser ,
 	const u_char *  buf , size_t  len) ;
 
 #ifdef  __ANDROID__
+/* Must be called in visual context. */
 int  ml_vt100_parser_preedit( ml_vt100_parser_t *  vt100_parser ,
 	const u_char *  buf , size_t  len) ;
 #endif

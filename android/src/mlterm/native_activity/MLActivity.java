@@ -69,6 +69,16 @@ public class MLActivity extends NativeActivity
 
 			return  true ;
 		}
+
+		@Override
+		public boolean finishComposingText()
+		{
+			super.finishComposingText() ;
+
+			preeditText( "") ;
+
+			return  true ;
+		}
 	}
 
 	private class NativeContentView extends View

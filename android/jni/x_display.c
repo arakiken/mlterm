@@ -1363,14 +1363,17 @@ x_display_get_bitmap(
 	return  image ;
 }
 
+
+/* Called in the main thread (not in the native activity thread) */
+
 void
 x_display_resize(
 	int  yoffset ,
 	int  width ,
-	int  height
+	int  height ,
+	int  (*need_resize)( u_int , u_int , u_int , u_int)
 	)
 {
-	int  new_yoffset ;
 	u_int  new_width ;
 	u_int  new_height ;
 
@@ -1385,10 +1388,10 @@ x_display_resize(
 		return ;
 	}
 
-	if( ! _disp.roots)
-	{
-		_display.yoffset = yoffset ;
+	_display.yoffset = yoffset ;
 
+	if( _disp.num_of_roots == 0)
+	{
 		if( rotate_display)
 		{
 			_disp.width = height ;
@@ -1403,8 +1406,6 @@ x_display_resize(
 		return ;
 	}
 
-	new_yoffset = yoffset ;
-
 	if( rotate_display)
 	{
 		new_width = height ;
@@ -1416,19 +1417,18 @@ x_display_resize(
 		new_height = height ;
 	}
 
-	_display.yoffset = new_yoffset ;
+	if( need_resize &&
+	    ! (*need_resize)( _disp.width , _disp.height , new_width , new_height))
+	{
+		return ;
+	}
+
 	_disp.width = new_width ;
 	_disp.height = new_height ;
 
-	if( _disp.num_of_roots > 0)
-	{
-		x_window_resize_with_margin( _disp.roots[0] ,
+	x_window_resize_with_margin( _disp.roots[0] ,
 			_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
-	}
 }
-
-
-/* Called in the main thread (not in the native activity thread) */
 
 jint
 Java_mlterm_native_1activity_MLActivity_hashPath(

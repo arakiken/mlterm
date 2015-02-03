@@ -75,6 +75,8 @@
 
 #define  HAVE_FLOCK
 
+#define  HAVE_KILLPG
+
 #undef  HAVE_POSIX_OPENPT
 
 #undef  USE_WIN32API
