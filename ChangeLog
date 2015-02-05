@@ -1,3 +1,7 @@
+2015-02-05  Araki Ken  <arakiken@users.sf.net>
+
+	* jni/x_event_source.c: Minor fixes.
+
 2015-02-04  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty_unix.c: kik_killpg(SIGWINCH) is used instead of kill(SIGWINCH).

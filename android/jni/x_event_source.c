@@ -50,6 +50,8 @@ update_ime_text(
 
 	if( preedit_text)
 	{
+		x_window_t *  win ;
+
 		if( *preedit_text == '\0')
 		{
 			preedit_text = NULL ;
@@ -73,7 +75,10 @@ update_ime_text(
 			}
 		}
 
-		x_window_update( term->parser->xterm_listener->self , 3) ;
+		if( ( win = XWINDOW_OF(term)))
+		{
+			x_window_update( win , 3) ;
+		}
 	}
 	else /* if( commit_text) */
 	{
