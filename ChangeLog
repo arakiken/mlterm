@@ -1,3 +1,24 @@
+2015-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.4.3 released.
+	  (tag "rel-3_4_3")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.4.3.
+
+	* mlterm.1, doc/en/PROTOCOL: Updated.
+
+	* fb/x_font.[ch], fb/x_window.c, fb/x.h, android/jni/x.h:
+	  - USE_ANTI_ALIAS is removed and is_aa flag is added to XFontStruct.
+	  - Fixes for rendering proportional fonts.
+
+	* x_draw_str.c: If xfont->is_proportional is true (== ISCII),
+	  x_window_draw_string() with x_window_clear() is used instead of
+	  x_window_draw_image_string().
+
+	* bengali.table: Add an entry.
+
 2015-02-05  Araki Ken  <arakiken@users.sf.net>
 
 	* jni/x_event_source.c: Minor fixes.

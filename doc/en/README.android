@@ -23,6 +23,9 @@ Android support (Experimental)
     If you want to change the size of it, add "fontsize=<pixel size>" to
     /sdcard/.mlterm/main or append ":<percent>" (":100" means the normal size) to
     a font path in /sdcard/.mlterm/font-fb.
+  o If you want to show emoji, copy images/emoji/unicode/*.png in
+    https://github.com/github/gemoji/archive/master.zip to /sdcard/.mlterm/emoji/
+    in advance.
   o mlterm-android-YYYYMMDD.apk contains the feature of rendering bidi and
     indic (hindi and bengali) scripts.
     Following steps are necessary to enable indic scripts.

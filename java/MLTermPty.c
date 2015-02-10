@@ -601,7 +601,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 	{
 		kik_conf_t *  conf ;
 
-		kik_init_prog( "mlterm" , "3.4.2") ;
+		kik_init_prog( "mlterm" , "3.4.3") ;
 		kik_set_sys_conf_dir( CONFIG_PATH) ;
 		kik_locale_init( "") ;
 		kik_sig_child_init() ;
@@ -897,9 +897,9 @@ Java_mlterm_MLTermPty_nativeOpen(
 					is_auto_encoding , use_auto_detect , logging_vt_seq ,
 					unicode_policy , col_size_a ,
 					use_char_combining , use_multi_col_char ,
-					0 /* use_bidi */ , 0 /* bidi_mode */ ,
+					0 /* use_ctl */ , 0 /* bidi_mode */ ,
 					NULL /* bidi_separators */ ,
-					0 /* use_ind */ , 0 /* use_dynamic_comb */ , BSM_STATIC ,
+					0 /* use_dynamic_comb */ , BSM_STATIC ,
 					0 /* vertical_mode */ , use_local_echo , NULL , NULL , 0)))
 	{
 		goto  error ;

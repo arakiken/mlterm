@@ -112,7 +112,7 @@ memset32(
 	return  dst ;
 }
 
-#if  defined(USE_FRAMEBUFFER) && defined(USE_FREETYPE)
+#ifdef  USE_FREETYPE
 #define  BLEND(fg,bg,alpha)  ((bg) + ((fg) - (bg)) * (alpha) / 255)
 static int
 copy_blended_pixel(
@@ -196,14 +196,32 @@ draw_string(
 
 	bpp = win->disp->display->bytes_per_pixel ;
 	font_width = font->width ;
+	xfont = font->xfont ;
 
-	if( ! ( src = alloca( ( size = len * font_width * bpp))) ||
+#if  defined(USE_FREETYPE)
+	if( xfont->is_aa && font->is_proportional)
+	{
+		u_int  width ;
+
+		/* width_full == glyph_width_bytes / 3 */
+		if( x + ( width = len * xfont->width_full) > win->width)
+		{
+			width = win->width - x ;
+		}
+
+		size = width * bpp ;
+	}
+	else
+#endif
+	{
+		size = len * font_width * bpp ;
+	}
+
+	if( ! ( src = alloca( size)) ||
 	    ! ( bitmaps = alloca( ( len * sizeof(*bitmaps)))))
 	{
 		return  0 ;
 	}
-
-	xfont = font->xfont ;
 
 	if( ch_len == 1)
 	{
@@ -458,7 +476,7 @@ draw_string(
 
 	for( ; y_off < font_height ; y_off++)
 	{
-	#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
+	#if  defined(USE_FREETYPE)
 		int  prev_crowded_out = 0 ;
 	#endif
 
@@ -512,11 +530,16 @@ draw_string(
 					}
 				}
 			}
-		#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
-			else if( xfont->face)
+		#if  defined(USE_FREETYPE)
+			else if( xfont->is_aa)
 			{
-				if( font->is_proportional && font->is_var_col_width)
+				if( font->is_proportional)
 				{
+					/*
+					 * src_bg_is_set is always false
+					 * (see #ifdef USE_FRAMEBUFFER #ifdef USE_FREETYPE
+					 * #endif #endif in xcore_draw_str() in x_draw_str.c)
+					 */
 					int  retreat ;
 					int  advance ;
 					int  width ;
@@ -549,24 +572,7 @@ draw_string(
 					{
 						u_long  bg ;
 
-						if( src_bg_is_set)
-						{
-							if( picture)
-							{
-								bg = (bpp == 2) ?
-								     *((u_int16_t*)p) :
-								     *((u_int32_t*)p) ;
-							}
-							else
-							{
-								bg = bg_color->pixel ;
-							}
-						}
-						else
-						{
-							bg = x_display_get_pixel(
-								x + x_off , y + y_off) ;
-						}
+						bg = x_display_get_pixel( x + x_off , y + y_off) ;
 
 						if( copy_blended_pixel( win->disp->display ,
 							p , &bitmap_line , fg_color->pixel ,
@@ -574,22 +580,25 @@ draw_string(
 						{
 							continue ;
 						}
-						else if( ! src_bg_is_set &&
-						         ( count == 0 ||
-						           x_off >= prev_crowded_out))
+						else if( count == 0 ||
+						         x_off >= prev_crowded_out)
 						{
 							copy_pixel( p , bg , bpp) ;
 						}
 					}
 
-					if( ( advance = bitmaps[count][xfont->glyph_size - 3]) >
-					    font_width)
+					advance = bitmaps[count][xfont->glyph_size - 3] ;
+
+					for( ; x_off < advance ; x_off++ , p += bpp)
 					{
-						/*
-						 * advance <= font_width because the size of
-						 * src is 'len * font_width * bpp'.
-						 */
-						advance = font_width ;
+						if( count == 0 ||
+						    x_off >= prev_crowded_out)
+						{
+							copy_pixel( p ,
+								x_display_get_pixel(
+									x + x_off , y + y_off) ,
+								bpp) ;
+						}
 					}
 
 					if( prev_crowded_out > advance)

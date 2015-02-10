@@ -163,6 +163,7 @@ typedef struct
 	void *  face ;
 	u_int32_t  num_of_indeces ;
 	u_int32_t  glyph_size ;
+	int  is_aa ;
 #endif
 
 	unsigned int  ref_count ;

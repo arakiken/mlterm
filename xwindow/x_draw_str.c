@@ -1226,12 +1226,18 @@ xcore_draw_str(
 			}
 
 			if(
-			#ifndef  USE_FRAMEBUFFER
-			    ( x_window_has_wall_picture( window) &&
-			           bg_color == ML_BG_COLOR) ||
+		#ifdef  USE_FRAMEBUFFER
+			#ifdef  USE_FREETYPE
+			    xfont->is_proportional ||	/* ISCII */
 			#endif
-				bottom_margin + top_margin > 0 /* == line space XXX */ ||
-				draw_alone || state == 3)
+			    /* draw_alone || */ /* draw_alone is always false on framebuffer. */
+		#else
+			    ( x_window_has_wall_picture( window) &&
+			      bg_color == ML_BG_COLOR) ||
+			    draw_alone ||
+		#endif
+			    bottom_margin + top_margin > 0 /* == line space XXX */ ||
+			    state == 3)
 			{
 				if( bg_color == ML_BG_COLOR)
 				{
@@ -1240,10 +1246,6 @@ xcore_draw_str(
 				}
 				else
 				{
-				#ifdef  __DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG "prop font is used.\n") ;
-				#endif
-
 					x_window_fill_with( window , bg_xcolor ,
 						x , y , current_width - x , height) ;
 				}

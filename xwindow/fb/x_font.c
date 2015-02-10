@@ -682,17 +682,57 @@ static int
 load_char(
 	FT_Face  face ,
 	int32_t  format ,
-	u_int32_t  code
+	u_int32_t  code ,
+	int  is_aa
 	)
 {
-	FT_Load_Char( face , code , FT_LOAD_NO_BITMAP) ;
-
-#ifdef  USE_ANTI_ALIAS
-	if( face->glyph->format == FT_GLYPH_FORMAT_BITMAP)
+	if( is_aa)
 	{
-		return  0 ;
+		u_int32_t  idx ;
+
+		if( ( idx = FT_Get_Char_Index( face , code)) == 0)
+		{
+			/* XXX Some glyph indeces of ISCII fonts becomes 0 wrongly. */
+			if( 0x80 <= code && code <= 0xff)
+			{
+				u_int32_t  prev_idx ;
+				u_int32_t  next_idx ;
+				u_int32_t  c ;
+
+				for( c = code + 1 ; c <= 0xff ; c++)
+				{
+					if( ( next_idx = FT_Get_Char_Index( face , c)) > 0)
+					{
+						for( c = code - 1 ; c >= 80 ; c--)
+						{
+							if( ( prev_idx = FT_Get_Char_Index(
+										face , c)) > 0)
+							{
+								if( prev_idx + 1 < next_idx)
+								{
+									idx = prev_idx + 1 ;
+									break ;
+								}
+							}
+						}
+
+						break ;
+					}
+				}
+			}
+		}
+
+		FT_Load_Glyph( face , idx , FT_LOAD_NO_BITMAP) ;
+
+		if( face->glyph->format == FT_GLYPH_FORMAT_BITMAP)
+		{
+			return  0 ;
+		}
 	}
-#endif
+	else
+	{
+		FT_Load_Char( face , code , 0) ;
+	}
 
 	if( format & FONT_ITALIC)
 	{
@@ -709,11 +749,14 @@ load_char(
 		FT_Outline_Embolden( &face->glyph->outline , 1 << 5) ;
 	}
 
-#ifdef  USE_ANTI_ALIAS
-	FT_Render_Glyph( face->glyph , FT_RENDER_MODE_LCD) ;
-#else
-	FT_Render_Glyph( face->glyph , FT_RENDER_MODE_MONO) ;
-#endif
+	if( is_aa)
+	{
+		FT_Render_Glyph( face->glyph , FT_RENDER_MODE_LCD) ;
+	}
+	else
+	{
+		FT_Render_Glyph( face->glyph , FT_RENDER_MODE_MONO) ;
+	}
 
 	return  1 ;
 }
@@ -722,7 +765,8 @@ static int
 load_ft(
 	XFontStruct *  xfont ,
 	const char *  file_path ,
-	int32_t  format
+	int32_t  format ,
+	int  is_aa
 	)
 {
 	u_int  count ;
@@ -766,8 +810,9 @@ face_found:
 
 	xfont->format = format ;
 	xfont->face = face ;
+	xfont->is_aa = is_aa ;
 
-	if( ! load_char( face , format , 'W'))
+	if( ! load_char( face , format , 'W' , is_aa))
 	{
 		kik_msg_printf( "%s doesn't have outline glyphs.\n" , file_path) ;
 
@@ -787,20 +832,23 @@ face_found:
 
 	xfont->width_full = (face->max_advance_width * face->size->metrics.x_ppem
 	                     + face->units_per_EM - 1) / face->units_per_EM ;
-#ifdef  USE_ANTI_ALIAS
-	xfont->glyph_width_bytes = xfont->width_full * 3 ;
-	xfont->width = face->glyph->bitmap.width / 3 ;
-#else
-	xfont->glyph_width_bytes = (xfont->width_full + 7) / 8 ;
-	xfont->width = face->glyph->bitmap.width ;
-#endif
+	if( is_aa)
+	{
+		xfont->glyph_width_bytes = xfont->width_full * 3 ;
+		xfont->width = face->glyph->bitmap.width / 3 ;
+	}
+	else
+	{
+		xfont->glyph_width_bytes = (xfont->width_full + 7) / 8 ;
+		xfont->width = face->glyph->bitmap.width ;
+	}
 
 	xfont->height = (face->max_advance_height * face->size->metrics.y_ppem
 			+ face->units_per_EM - 1) / face->units_per_EM ;
 	xfont->ascent = (face->ascender * face->size->metrics.y_ppem
 			+ face->units_per_EM - 1) / face->units_per_EM ;
 
-	if( load_char( face , format , 'j'))
+	if( load_char( face , format , 'j' , is_aa))
 	{
 		int  descent ;
 
@@ -811,12 +859,15 @@ face_found:
 		}
 	}
 
-#ifdef  USE_ANTI_ALIAS
-	xfont->glyph_size = xfont->glyph_width_bytes * xfont->height ;
-#else
-	/* +1 is for the last 'dst[count] = ...' in get_ft_bitmap(). */
-	xfont->glyph_size = xfont->glyph_width_bytes * xfont->height + 1 ;
-#endif
+	if( is_aa)
+	{
+		xfont->glyph_size = xfont->glyph_width_bytes * xfont->height ;
+	}
+	else
+	{
+		/* +1 is for the last 'dst[count] = ...' in get_ft_bitmap(). */
+		xfont->glyph_size = xfont->glyph_width_bytes * xfont->height + 1 ;
+	}
 
 #if  0
 	kik_debug_printf( "w %d %d h %d a %d\n" ,
@@ -946,7 +997,7 @@ get_ft_bitmap(
 
 		face = xfont->face ;
 
-		if( ! load_char( face , xfont->format , code))
+		if( ! load_char( face , xfont->format , code , xfont->is_aa))
 		{
 			return  NULL ;
 		}
@@ -976,47 +1027,50 @@ get_ft_bitmap(
 
 		indeces[code] = idx ;
 
-	#ifdef  USE_ANTI_ALIAS
-		if( ( left_pitch = face->glyph->bitmap_left * 3) < 0)
+		if( xfont->is_aa)
 		{
-			left_pitch = 0 ;
-		}
-
-		if( face->glyph->bitmap.pitch < xfont->glyph_width_bytes)
-		{
-			pitch = face->glyph->bitmap.pitch ;
-
-			if( pitch + left_pitch > xfont->glyph_width_bytes)
+			if( ( left_pitch = face->glyph->bitmap_left * 3) < 0)
 			{
-				left_pitch = xfont->glyph_width_bytes - pitch ;
+				left_pitch = 0 ;
 			}
-		}
-		else
-		{
-			pitch = xfont->glyph_width_bytes ;
-			left_pitch = 0 ;
-		}
-	#else
-		if( face->glyph->bitmap.pitch <= xfont->glyph_width_bytes)
-		{
-			pitch = face->glyph->bitmap.pitch ;
 
-			/* XXX left_pitch is 7 at most. */
-			if( ( left_pitch = face->glyph->bitmap_left) > 7)
+			if( face->glyph->bitmap.pitch < xfont->glyph_width_bytes)
 			{
-				left_pitch = 7 ;
+				pitch = face->glyph->bitmap.pitch ;
+
+				if( pitch + left_pitch > xfont->glyph_width_bytes)
+				{
+					left_pitch = xfont->glyph_width_bytes - pitch ;
+				}
 			}
-			else if( left_pitch < 0)
+			else
 			{
+				pitch = xfont->glyph_width_bytes ;
 				left_pitch = 0 ;
 			}
 		}
 		else
 		{
-			pitch = xfont->glyph_width_bytes ;
-			left_pitch = 0 ;
+			if( face->glyph->bitmap.pitch <= xfont->glyph_width_bytes)
+			{
+				pitch = face->glyph->bitmap.pitch ;
+
+				/* XXX left_pitch is 7 at most. */
+				if( ( left_pitch = face->glyph->bitmap_left) > 7)
+				{
+					left_pitch = 7 ;
+				}
+				else if( left_pitch < 0)
+				{
+					left_pitch = 0 ;
+				}
+			}
+			else
+			{
+				pitch = xfont->glyph_width_bytes ;
+				left_pitch = 0 ;
+			}
 		}
-	#endif
 
 		if( xfont->ascent > face->glyph->bitmap_top)
 		{
@@ -1047,65 +1101,78 @@ get_ft_bitmap(
 		src = face->glyph->bitmap.buffer ;
 		dst = glyph + (xfont->glyph_width_bytes * y) ;
 
-		for( y = 0 ; y < rows ; y++)
+		if( xfont->is_aa)
 		{
-		#ifdef  USE_ANTI_ALIAS
-			memcpy( dst + left_pitch , src , pitch) ;
-		#else
-			int  count ;
+			for( y = 0 ; y < rows ; y++)
+			{
+				memcpy( dst + left_pitch , src , pitch) ;
 
-			if( left_pitch == 0)
-			{
-				memcpy( dst , src , pitch) ;
+				src += face->glyph->bitmap.pitch ;
+				dst += xfont->glyph_width_bytes ;
 			}
-			else
+
+			if( IS_PROPORTIONAL(xfont))
 			{
-				dst += (left_pitch / 8) ;
-				dst[0] = (src[0] >> left_pitch) ;
-				for( count = 1 ; count < pitch ; count++)
+				/* Storing glyph position info. (ISCII) */
+
+				dst = glyph + xfont->glyph_size - 3 ;
+
+				dst[0] = (face->glyph->advance.x >> 6) ; /* advance */
+				dst[2] = (face->glyph->bitmap.width + left_pitch) / 3 ;	/* width */
+				if( dst[2] > xfont->width_full)
 				{
-					dst[count] = (src[count-1] << (8-left_pitch)) |
-						 (src[count] >> left_pitch) ;
+					dst[2] = xfont->width_full ; /* == glyph_width_bytes / 3 */
 				}
-				dst[count] = (src[count-1] << (8-left_pitch)) ;
-			}
-		#endif
-			src += face->glyph->bitmap.pitch ;
-			dst += xfont->glyph_width_bytes ;
-		}
 
-	#ifdef  USE_ANTI_ALIAS
-		if( IS_PROPORTIONAL(xfont))
+				if( face->glyph->bitmap_left < 0)
+				{
+					dst[1] = -face->glyph->bitmap_left ; /* retreat */
+				}
+				else
+				{
+					dst[1] = 0 ;
+				}
+
+				if( dst[0] == 0 && dst[2] > dst[0] + dst[1])
+				{
+					dst[1] = dst[2] - dst[0] ;	/* retreat */
+				}
+
+			#if  0
+				kik_debug_printf( "%x %c A %d R %d W %d-> A %d R %d W %d\n" ,
+					code , code , face->glyph->advance.x >> 6 ,
+					face->glyph->bitmap_left ,
+					face->glyph->bitmap.width ,
+					dst[0] , dst[1] , dst[2]) ;
+			#endif
+			}
+		}
+		else
 		{
-			/* Storing glyph position info. (ISCII) */
-
-			dst = glyph + xfont->glyph_size - 3 ;
-
-			dst[0] = (face->glyph->advance.x >> 6) ; /* advance */
-			dst[2] = (face->glyph->bitmap.width + left_pitch) / 3 ;	/* width */
-			if( dst[2] > xfont->width_full)
+			for( y = 0 ; y < rows ; y++)
 			{
-				dst[2] = xfont->width_full ;	/* == glyph_width_bytes / 3 */
-			}
+				int  count ;
 
-			if( dst[0] > 0 && face->glyph->bitmap_left >= 0)
-			{
-				dst[1] = 0 ;	/* retreat */
-			}
-			else
-			{
-				dst[1] = dst[2] - dst[0] ;	/* retreat */
-			}
+				if( left_pitch == 0)
+				{
+					memcpy( dst , src , pitch) ;
+				}
+				else
+				{
+					dst += (left_pitch / 8) ;
+					dst[0] = (src[0] >> left_pitch) ;
+					for( count = 1 ; count < pitch ; count++)
+					{
+						dst[count] = (src[count-1] << (8-left_pitch)) |
+							 (src[count] >> left_pitch) ;
+					}
+					dst[count] = (src[count-1] << (8-left_pitch)) ;
+				}
 
-		#if  0
-			kik_debug_printf( "%x %c A %d R %d W %d-> A %d R %d W %d\n" ,
-				code , code , face->glyph->advance.x >> 6 ,
-				face->glyph->bitmap_left ,
-				face->glyph->bitmap.width ,
-				dst[0] , dst[1] , dst[2]) ;
-		#endif
+				src += face->glyph->bitmap.pitch ;
+				dst += xfont->glyph_width_bytes ;
+			}
 		}
-	#endif
 	}
 	else
 	{
@@ -1124,11 +1191,11 @@ load_xfont(
 	mkf_charset_t  cs
 	)
 {
-	if( bytes_per_pixel > 1 && (cs == ISO10646_UCS4_1 || IS_ISCII(cs)) &&
+	if( (cs == ISO10646_UCS4_1 || IS_ISCII(cs)) &&
 	    strcasecmp( file_path + strlen(file_path) - 6 , "pcf.gz") != 0 &&
 	    strcasecmp( file_path + strlen(file_path) - 3 , "pcf") != 0)
 	{
-		return  load_ft( xfont , file_path , format) ;
+		return  load_ft( xfont , file_path , format , (bytes_per_pixel > 1)) ;
 	}
 	else
 	{
@@ -1367,6 +1434,8 @@ x_font_new(
 	if( ! load_xfont( font->xfont , font_file , format ,
 		display->bytes_per_pixel , FONT_CS(id)))
 	{
+		kik_msg_printf( "Failed to load %s.\n" , font_file) ;
+
 		free( font->xfont) ;
 		free( font) ;
 
@@ -1410,11 +1479,16 @@ xfont_loaded:
 		font->cols = 1 ;
 	}
 
+	/*
+	 * font->is_var_col_width == false and font->is_proportional == true
+	 * is impossible on framebuffer.
+	 */
 #if  1
-#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
-	if( IS_ISCII(FONT_CS(font->id)) && font->xfont->face &&
+#ifdef  USE_FREETYPE
+	if( IS_ISCII(FONT_CS(font->id)) && font->xfont->is_aa &&
 	    ( font->xfont->ref_count == 1 || IS_PROPORTIONAL(font->xfont)))
 	{
+		/* Proportional glyph is available on ISCII alone for now. */
 		font->is_var_col_width = 1 ;
 		font->is_proportional = 1 ;
 
@@ -1429,6 +1503,10 @@ xfont_loaded:
 #endif
 	if( ( font_present & FONT_VAR_WIDTH))
 	{
+		/*
+		 * If you use fixed-width fonts whose width is differnet from
+		 * each other.
+		 */
 		font->is_var_col_width = 1 ;
 	}
 	else
@@ -1709,31 +1787,17 @@ x_calculate_char_width(
 {
 	if( draw_alone)
 	{
-		if( font->is_proportional && ! font->is_var_col_width)
-		{
-			*draw_alone = 1 ;
-		}
-		else
-		{
-			*draw_alone = 0 ;
-		}
+		*draw_alone = 0 ;
 	}
 
-#if  defined(USE_FREETYPE) && defined(USE_ANTI_ALIAS)
-	if( font->is_proportional && font->is_var_col_width)
+#if  defined(USE_FREETYPE)
+	if( font->xfont->is_aa && font->is_proportional)
 	{
 		u_char *  glyph ;
 
 		if( ( glyph = get_ft_bitmap( font->xfont , ch)))
 		{
-			if( font->width < glyph[font->xfont->glyph_size - 3])
-			{
-				return  font->width ;
-			}
-			else
-			{
-				return  glyph[font->xfont->glyph_size - 3] ;
-			}
+			return  glyph[font->xfont->glyph_size - 3] ;
 		}
 	}
 #endif
