@@ -21605,6 +21605,76 @@ if test -n "$VTE_CFLAGS"; then
     pkg_cv_VTE_CFLAGS="$VTE_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.91\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.91") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_CFLAGS=`$PKG_CONFIG --cflags "vte-2.91" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$VTE_LIBS"; then
+    pkg_cv_VTE_LIBS="$VTE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.91\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.91") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_LIBS=`$PKG_CONFIG --libs "vte-2.91" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "vte-2.91" 2>&1`
+        else
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --print-errors "vte-2.91" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$VTE_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_vte=no
+elif test $pkg_failed = untried; then
+	have_vte=no
+else
+	VTE_CFLAGS=$pkg_cv_VTE_CFLAGS
+	VTE_LIBS=$pkg_cv_VTE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_vte=yes
+fi
+		if test "$have_vte" = "yes" ; then
+			LIBVTE_SUFFIX=2_91
+		else
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for VTE" >&5
+$as_echo_n "checking for VTE... " >&6; }
+
+if test -n "$VTE_CFLAGS"; then
+    pkg_cv_VTE_CFLAGS="$VTE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.90\""; } >&5
   ($PKG_CONFIG --exists --print-errors "vte-2.90") 2>&5
   ac_status=$?
@@ -21663,7 +21733,8 @@ else
 $as_echo "yes" >&6; }
 	have_vte=yes
 fi
-		LIBVTE_SUFFIX=2_90
+			LIBVTE_SUFFIX=2_90
+		fi
 
 	else
 

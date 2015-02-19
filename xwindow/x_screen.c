@@ -684,7 +684,7 @@ flush_scroll_cache(
 	 * 8) scroll_region()
 	 *   - XCopyArea
 	 *   - Wait and process GraphicsExpose caused by 3).
-	 * 9)flush_scroll_cache()
+	 * 9) flush_scroll_cache()
 	 * 10)scroll_region() <- avoid this by screen->scroll_cache_rows = 0.
 	 *   - XCopyArea
 	 */

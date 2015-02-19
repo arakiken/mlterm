@@ -1619,8 +1619,8 @@ x_window_show(
 
 		size_hints.width_inc = total_width_inc( win) ;
 		size_hints.height_inc = total_height_inc( win) ;
-		size_hints.min_width = total_min_width( win) ;
-		size_hints.min_height = total_min_height( win) ;
+		size_hints.min_width = total_min_width( win) + size_hints.width_inc ;
+		size_hints.min_height = total_min_height( win) + size_hints.height_inc ;
 		size_hints.base_width = size_hints.min_width > size_hints.width_inc ?
 					size_hints.min_width - size_hints.width_inc : 0 ;
 		size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
@@ -1877,8 +1877,8 @@ x_window_set_normal_hints(
 	 */
 	size_hints.width_inc = total_width_inc( root) ;
 	size_hints.height_inc = total_height_inc( root) ;
-	size_hints.min_width = total_min_width( root) ;
-	size_hints.min_height = total_min_height( root) ;
+	size_hints.min_width = total_min_width( root) + size_hints.width_inc ;
+	size_hints.min_height = total_min_height( root) + size_hints.height_inc ;
 	size_hints.base_width = size_hints.min_width - size_hints.width_inc ;
 	size_hints.base_height = size_hints.min_height - size_hints.height_inc ;
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
@@ -2451,9 +2451,9 @@ x_window_receive_event(
 		int  nskip = 0 ;
 	#endif
 
-		/* Optimize redrawing. (Don't check GraphicsExpose) */
+		/* Optimize redrawing. */
 		while( XCheckTypedWindowEvent( win->disp->display , win->my_window ,
-			Expose , &next_ev))
+			event->type , &next_ev))
 		{
 			XEvent  ev ;
 			int  diff ;

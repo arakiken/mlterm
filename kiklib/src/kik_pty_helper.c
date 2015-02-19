@@ -27,6 +27,10 @@
 #define  LIBEXECDIR  "/usr/local/libexec"
 #endif
 
+#if  0
+#define  __DEBUG
+#endif
+
 
 typedef enum
 {
@@ -54,6 +58,7 @@ typedef struct
 
 /* --- static variables --- */
 
+static pid_t myself = -1 ;
 static pid_t pty_helper_pid = -1 ;
 static int pty_helper_tunnel = -1 ;
 static pty_helper_tag_t *  pty_helper_tags = NULL ;
@@ -73,14 +78,8 @@ setup_child(
 	tty = ttyname( fd) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG " Setting up child pty(name:%s, fd:%d)\n" ,
+	kik_debug_printf( KIK_DEBUG_TAG " Setting up child pty(name:%s, fd:%d)\n" ,
 				tty ? tty : "(none)", fd) ;
-#endif
-
-	/* Start a new session and become process group leader. */
-#if defined(HAVE_SETSID) && defined(HAVE_SETPGID)
-	setsid() ;
-	setpgid( 0 , 0) ;
 #endif
 
 	/* Try to reopen the pty to acquire it as our controlling terminal. */
@@ -103,6 +102,12 @@ setup_child(
 	{
 		exit( EXIT_FAILURE) ;
 	}
+
+	/* Start a new session and become process group leader. */
+#if defined(HAVE_SETSID) && defined(HAVE_SETPGID)
+	setsid() ;
+	setpgid( 0 , 0) ;
+#endif
 
 #ifdef TIOCSCTTY
 	ioctl( fd , TIOCSCTTY , fd) ;
@@ -373,8 +378,13 @@ stop_pty_helper(void)
 		
 		close(pty_helper_tunnel) ;
 		pty_helper_tunnel = -1 ;
-		
-		kill(pty_helper_pid, SIGTERM) ;
+
+		/* child processes might trigger this function on exit(). */
+		if( myself == getpid())
+		{
+			kill(pty_helper_pid , SIGTERM) ;
+		}
+
 		pty_helper_pid = -1 ;
 	}
 }
@@ -442,11 +452,12 @@ start_pty_helper(void)
 		
 		exit( EXIT_SUCCESS) ;
 	}
-	
-	close(tunnel);
-	
+
+	close(tunnel) ;
+
+	myself = getpid() ;
 	atexit( stop_pty_helper);
-	
+
 	return  1 ;
 }
 
@@ -479,7 +490,7 @@ kik_pty_fork(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG " Sent request to helper.\n");
+	kik_debug_printf( KIK_DEBUG_TAG " Sent request to helper.\n");
 #endif
 
 	/* Read back the response. */
@@ -489,7 +500,7 @@ kik_pty_fork(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG " Received response from helper.\n");
+	kik_debug_printf( KIK_DEBUG_TAG " Received response from helper.\n");
 #endif
 
 	if( ret == 0)
@@ -498,7 +509,7 @@ kik_pty_fork(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG " Helper returns success.\n");
+	kik_debug_printf( KIK_DEBUG_TAG " Helper returns success.\n");
 #endif
 
 	/* Read back a tag. */
@@ -508,7 +519,7 @@ kik_pty_fork(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG " Tag = %p.\n" , tag);
+	kik_debug_printf( KIK_DEBUG_TAG " Tag = %p.\n" , tag);
 #endif
 
 	/* Receive the master and slave ptys. */
@@ -522,7 +533,7 @@ kik_pty_fork(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG " Master pty %d / Slave pty %d.\n" , *master , *slave) ;
+	kik_debug_printf( KIK_DEBUG_TAG " Master pty %d / Slave pty %d.\n" , *master , *slave) ;
 #endif
 
 	pty_helper_tags = realloc( pty_helper_tags ,

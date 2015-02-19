@@ -1,3 +1,30 @@
+2015-02-19  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/x_window.c: size_hints.min_width and min_height are fixed.
+
+	* gtk/INSTALL: Updated.
+
+	* configure.in: vte-2.91 is supported.
+
+	* vte.c:
+	  - vte-2.91 is supported. (Experimental)
+	  - Following functions are implemented.
+	    vte_terminal_feed
+	    vte_terminal_feed_child
+	    vte_terminal_feed_child_binary
+	    vte_terminal_set_scroll_on_output
+	    vte_terminal_write_contents(_sync)
+	  - window.width_inc,min_width,height_inc,min_height are reset in
+	    vte_terminal_set_font_from_string().
+	  - g_object_ref(terminal->pvt->pty) is replaced by g_object_ref(pty) in
+	    vte_terminal_set_pty(_object)().
+
+	* kik_pty_helper.c:
+	  - kill(pty_helper_pid, SIGTERM) isn't called by child processes.
+	  - setsid() and setpgid() are moved after reopening pty like vte-0.39.1/src/pty.c.
+
+	* version.h.in: 3.4.3 -> 3.4.3post
+
 2015-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.4.3 released.

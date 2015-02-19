@@ -21,8 +21,11 @@ How to build & install libvte compatible library using mlterm engine.
   $ cd kiklib ; make install
   $ cd mkf ; make install
   $ cd gtk ; make install
-  $ ln -sf [where libvte of mlterm is installed]/libvte.so.9.0.0 \
+  $ ln -sf [where libvte of mlterm is installed]/libvte.so.9 \
 	   [where official libvte is installed]/libvte.so.9
+    or
+    ln -sf [where libvte of mlterm is installed]/libvte2_90.so.9 \
+	   [where official libvte is installed]/libvte2_90.so.9
 
 * Start terminal emulators using libvte
   $ gnome-terminal (roxterm, synaptic or etc)
@@ -42,7 +45,7 @@ How to build & install libvte compatible library using mlterm engine.
 
   o Default value of following options are not same as that of normal mlterm.
     [Option]       [Default Value]                     [Normal mlterm]
-    type_engine => xft or cairo (if compiled with it)  (xcore)
+    type_engine => xft or cairo (if compiled with it)  (xft)
   
   o Following functions which normal mlterm provides are not available.
     - Daemon mode
@@ -66,23 +69,21 @@ How to build & install libvte compatible library using mlterm engine.
     is caused. (uim 1.5.7)
 
   o Unsupported vte api functions
-    - vte_terminal_feed
-    - vte_terminal_feed_child
-    - vte_terminal_feed_child_binary
     - vte_terminal_copy_primary
+    - vte_terminal_set_font_scale
+    - vte_terminal_get_font_scale
     - vte_terminal_set_scroll_background
-    - vte_terminal_set_scroll_on_output
     - vte_terminal_set_scroll_on_keystroke
-    - vte_terminal_set_color_dim
+    - vte_terminal_set_rewrap_on_resize
+    - vte_terminal_get_rewrap_on_resize
     - vte_terminal_set_color_highlight
+    - vte_terminal_set_color_highlight_foreground
     - vte_terminal_set_default_colors
     - vte_terminal_set_background_tint_color
     - vte_terminal_set_cursor_shape
-    - vte_terminal_im_append_menuitems
     - vte_terminal_get_font
     - vte_terminal_set_allow_bold
     - vte_terminal_get_allow_bold
-    - vte_terminal_is_word_char
     - vte_terminal_set_mouse_autohide
     - vte_terminal_get_mouse_autohide
     - vte_terminal_get_text
@@ -95,13 +96,14 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_match_set_cursor_name
     - vte_terminal_match_remove
     - vte_terminal_match_check (incomplete)
-    - vte_terminal_set_emulation
+    - vte_terminal_match_check_event
+    - vte_terminal_search_set_wrap_around
+    - vte_terminal_search_get_wrap_around
+    - vte_get_user_shell
     - vte_terminal_get_status_line
-    - vte_terminal_set_pty
     - vte_terminal_get_child_exit_status
-    - vte_terminal_match_add
     - vte_terminal_set_alternate_screen_scroll
-    - vte_pty_new_foreign
+    - vte_pty_new_foreign_sync
     - vte_pty_close
 
   o Unsupported vte signals and properties

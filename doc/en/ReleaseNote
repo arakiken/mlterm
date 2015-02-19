@@ -1,3 +1,9 @@
+ver 3.4.4
+* libvte compatible library supports vte-2.91 (vte 0.38 or later).
+* Bug fixes:
+  Fix unexpected erasure at the bottom line of the screen if you use gnome-terminal
+  3.6.2 with libvte compatible library.
+
 ver 3.4.3
 * Support true type fonts with the use of freetype library (./configure --enable-anti-alias)
   on framebuffer and Android.
