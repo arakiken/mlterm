@@ -9,11 +9,13 @@ How to build & install libvte compatible library using mlterm engine.
     (gnome-terminal, roxterm, synaptic or etc)
 
 * Build
-  $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf ...)
+  $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper ...)
     (Xft and cairo are not required, but strongly recommended because it is
     impossible to change font settings from preferences menu without them.
     In addition, you should choose what gtk+ and pango installed to your
-    system depend on such as gdk-pixbuf.)
+    system depend on such as gdk-pixbuf.
+    If you want to use gnome-pty-helper, specify --enable-pty-helper option and
+    place gnome-pty-helper (or its symbolic link file) at ${libexecdir}/mlterm/.)
   $ make
   $ cd gtk ; make
 

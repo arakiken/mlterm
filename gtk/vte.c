@@ -3383,7 +3383,7 @@ vte_terminal_feed(
 	)
 {
 	ml_term_write_loopback( terminal->pvt->term , data ,
-		length == -1 ? strlen(data) : length) ;
+		length == -1 ? strlen(data) : length , 0) ;
 }
 
 void

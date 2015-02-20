@@ -1,3 +1,21 @@
+2015-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/INSTALL: Updated.
+
+	* man/mlterm.1, doc/ja/README.ja, etc/main, etc/main.ja: Updated.
+
+	* x_window.c, x_main_config.c: The default value of "use_clipboard" option is
+	  changed from "false" to "true".
+
+	* x_screen.c: "Config: key=value" is shown if configuration is changed by
+	  "proto:" shortcut.
+
+	* ml_vt100_parser.[ch], ml_term.h:
+	  ml_{vt100_parser|term}_show_message() is added.
+
+	* ml_term.h:
+	  (term)->pty check is added to ml_term_write_{modified_key|special_key|loopback}().
+
 2015-02-19  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/x_window.c: size_hints.min_width and min_height are fixed.

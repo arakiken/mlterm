@@ -350,6 +350,9 @@ int  ml_vt100_parser_write_special_key( ml_vt100_parser_t *  vt100_parser ,
 int  ml_vt100_parser_write_loopback( ml_vt100_parser_t *  vt100_parser ,
 	const u_char *  buf , size_t  len) ;
 
+/* Must be called in visual context. */
+int  ml_vt100_parser_show_message( ml_vt100_parser_t *  vt100_parser , char *  msg) ;
+
 #ifdef  __ANDROID__
 /* Must be called in visual context. */
 int  ml_vt100_parser_preedit( ml_vt100_parser_t *  vt100_parser ,

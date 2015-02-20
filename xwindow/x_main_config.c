@@ -133,7 +133,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
 		"scrollbar mode (none/left/right) [none]") ;
 	kik_conf_add_opt( conf , 'P' , "clip" , 1 , "use_clipboard" ,
-		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
+		"use CLIPBOARD (not only PRIMARY) selection [true]") ;
 	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
 		"rearrange cursor key for vertical mode [false]") ;
 	kik_conf_add_opt( conf , 'S' , "sbview" , 0 , "scrollbar_view_name" , 
@@ -1359,7 +1359,10 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
 	{
-		x_set_use_clipboard_selection( strcmp( value , "true") == 0) ;
+		if( strcmp( value , "false") == 0)
+		{
+			x_set_use_clipboard_selection( 0) ;
+		}
 	}
 
 	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||

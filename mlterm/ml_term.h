@@ -143,14 +143,18 @@ pid_t  ml_term_get_child_pid( ml_term_t *  term) ;
 size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
 
 #define  ml_term_write_modified_key( term , key , modcode) \
-	ml_vt100_parser_write_modified_key( (term)->parser , key , modcode)
+	(term)->pty ? ml_vt100_parser_write_modified_key( (term)->parser , key , modcode) : 0
 
 #define  ml_term_write_special_key( term , key , modcode , is_numlock) \
-	ml_vt100_parser_write_special_key( (term)->parser , key , modcode , is_numlock)
+	(term)->pty ? \
+		ml_vt100_parser_write_special_key( (term)->parser , key , modcode , is_numlock) : 0
 
 /* Must be called in visual context. */
 #define  ml_term_write_loopback( term , buf , len) \
-		ml_vt100_parser_write_loopback( (term)->parser , buf , len)
+	ml_vt100_parser_write_loopback( (term)->parser , buf , len)
+
+/* Must be called in visual context. */
+#define  ml_term_show_message( term , msg)  ml_vt100_parser_show_message( (term)->parser , msg)
 
 #ifdef  __ANDROID__
 /* Must be called in visual context. */

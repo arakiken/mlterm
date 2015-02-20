@@ -297,7 +297,7 @@ scrollbar_view_name = sample
 # vt_seq_format = raw
 
 # 領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
-# use_clipboard = false
+# use_clipboard = true
 
 # mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力する。
 # logging_msg = true

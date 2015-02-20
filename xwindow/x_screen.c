@@ -8737,6 +8737,28 @@ x_screen_set_config(
 		return  0 ;
 	}
 
+	/*
+	 * processing_vtseq == -1 means loopback processing of vtseq.
+	 * If processing_vtseq is -1, it is not set 1 in start_vt100_cmd()
+	 * which is called from ml_term_write_loopback().
+	 */
+	if( screen->processing_vtseq == -1)
+	{
+		char *  msg ;
+
+		if( ( msg = alloca( 8 + strlen(key) + 1 + strlen(value) + 1)))
+		{
+			sprintf( msg , "Config: %s=%s" , key , value) ;
+			ml_term_show_message( screen->term , msg) ;
+
+			/*
+			 * screen->processing_vtseq = 0 in
+			 * ml_term_show_message() -> stop_vt100_cmd().
+			 */
+			screen->processing_vtseq = -1 ;
+		}
+	}
+
 	return  1 ;
 }
 

@@ -6973,6 +6973,34 @@ ml_vt100_parser_write_loopback(
 	return  write_loopback( vt100_parser , buf , len , 0 , 1) ;
 }
 
+int
+ml_vt100_parser_show_message(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  msg
+	)
+{
+	char *  buf ;
+	size_t  len ;
+
+	if( ! ( buf = alloca( ( len = 3 + strlen( msg) + 4))))
+	{
+		return  0 ;
+	}
+
+	if( vt100_parser->screen->stored_edits)
+	{
+		sprintf( buf , "\r\n%s\x1b[K" , msg) ;
+
+		return  write_loopback( vt100_parser , buf , len - 2 , 0 , 1) ;
+	}
+	else
+	{
+		sprintf( buf , "\x1b[H%s\x1b[K" , msg) ;
+
+		return  write_loopback( vt100_parser , buf , len - 1 , 1 , 1) ;
+	}
+}
+
 #ifdef  __ANDROID__
 int
 ml_vt100_parser_preedit(

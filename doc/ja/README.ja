@@ -745,7 +745,7 @@ comment $Id$
         ~/.mlterm/[device].log に記録するフォーマットを指定する。
         rawはそのまま、ttyrecはttyrec形式で保存する。
 
-      o use_clipboard (true/*false*) (#)
+      o use_clipboard (*true*/false) (#)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 
       o logging_msg (*true*/false)

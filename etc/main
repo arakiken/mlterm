@@ -206,7 +206,7 @@
 # (raw,ttyrec)
 # vt_seq_format = raw
 
-# use_clipboard = false
+# use_clipboard = true
 
 # logging_msg = true
 

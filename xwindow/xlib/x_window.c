@@ -103,7 +103,7 @@ typedef struct {
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 /* ParentRelative isn't used for transparency by default */
 static int  use_inherit_transparent = 0 ;
-static int  use_clipboard = 0 ;
+static int  use_clipboard = 1 ;
 static int  use_urgent_bell = 0 ;
 
 static struct

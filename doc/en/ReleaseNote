@@ -1,8 +1,11 @@
 ver 3.4.4
+* Change the default value of "use_clipboard" option from "false" to "true".
 * libvte compatible library supports vte-2.91 (vte 0.38 or later).
+* Show message on screen if you change settings by "proto:" shortcut.
 * Bug fixes:
   Fix unexpected erasure at the bottom line of the screen if you use gnome-terminal
   3.6.2 with libvte compatible library.
+  Fix segfault in opening multiple ptys with the use of gnome-pty-helper.
 
 ver 3.4.3
 * Support true type fonts with the use of freetype library (./configure --enable-anti-alias)
