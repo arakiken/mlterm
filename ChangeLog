@@ -1,3 +1,18 @@
+2015-02-21  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in:
+	  LIBVTE_SUFFIX=2.91 -> LIBVTE_SUFFIX=-2.91
+
+	* vte.c:
+	  - Compiling error in vte_terminal_feed() is fixed.
+	    (enbugged at the previous commit.)
+	  - vte_terminal_get_geometry_hints() is implemented.
+	  - vte_terminal_{set|get}_input_enabled() are added.
+	  - vte_terminal_screen_changed() event handler is added.
+	  - "inner-border" style is removed since vte 0.38.0.
+
+	* vtetypebuiltins.c: vte-2.91 types are added.
+
 2015-02-20  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/INSTALL: Updated.
@@ -22,7 +37,7 @@
 
 	* gtk/INSTALL: Updated.
 
-	* configure.in: vte-2.91 is supported.
+	* configure.in: vte-2.91 api functions are added partially.
 
 	* vte.c:
 	  - vte-2.91 is supported. (Experimental)

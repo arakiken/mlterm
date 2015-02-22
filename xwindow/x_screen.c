@@ -7375,8 +7375,8 @@ x_screen_new(
 	char *  input_method ,
 	int  allow_osc52 ,
 	int  blink_cursor ,
-	int  hmargin ,
-	int  vmargin ,
+	u_int  hmargin ,
+	u_int  vmargin ,
 	int  hide_underline
 	)
 {

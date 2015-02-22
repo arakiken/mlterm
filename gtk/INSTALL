@@ -105,6 +105,7 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_get_status_line
     - vte_terminal_get_child_exit_status
     - vte_terminal_set_alternate_screen_scroll
+    - vte_terminal_set_geometry_hints
     - vte_pty_new_foreign_sync
     - vte_pty_close
 

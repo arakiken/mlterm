@@ -5,7 +5,6 @@
 
 #undef  VTE_SEAL_ENABLE
 #include  <vte/vte.h>
-#include  <vte/reaper.h>
 
 #include  <pwd.h>			/* getpwuid */
 #include  <X11/keysym.h>
@@ -34,6 +33,15 @@
 #include  "../main/version.h"
 
 #include  "marshal.h"
+
+#if  ! VTE_CHECK_VERSION(0,38,0)
+#include  <vte/reaper.h>
+#else
+typedef struct _VteReaper  VteReaper ;
+VteReaper *  vte_reaper_get(void) ;
+int  vte_reaper_add_child( GPid  pid) ;
+#endif
+
 
 #ifdef  SYSCONFDIR
 #define CONFIG_PATH SYSCONFDIR
@@ -83,13 +91,12 @@
 /* XXX Hack to distinguish x_screen_t from x_{candidate|status}_screent_t */
 #define  IS_MLTERM_SCREEN(win)  (! PARENT_WINDOWID_IS_TOP(win))
 
-#define  WINDOW_MARGIN  1
-
 #ifndef  VTE_CHECK_VERSION
 #define  VTE_CHECK_VERSION(a,b,c)  (0)
 #endif
 
 #if ! VTE_CHECK_VERSION(0,38,0)
+#define  WINDOW_MARGIN  1
 #define  VteCursorBlinkMode  VteTerminalCursorBlinkMode
 #define  VteCursorShape  VteTerminalCursorShape
 #define  VteEraseBinding  VteTerminalEraseBinding
@@ -1046,9 +1053,11 @@ reset_vte_size_member(
 	 * Processing similar to vte_terminal_get_preferred_{width|height}().
 	 */
 	GTK_WIDGET(terminal)->requisition.width =
-		terminal->m_column_count * terminal->m_char_width + WINDOW_MARGIN * 2 ;
+		terminal->m_column_count * terminal->m_char_width +
+		terminal->pvt->screen->window.hmargin * 2 ;
 	GTK_WIDGET(terminal)->requisition.height =
-		terminal->m_row_count * terminal->m_char_height + WINDOW_MARGIN * 2 ;
+		terminal->m_row_count * terminal->m_char_height +
+		terminal->pvt->screen->window.vmargin * 2 ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG
@@ -1059,24 +1068,6 @@ reset_vte_size_member(
 		GTK_WIDGET(terminal)->requisition.height) ;
 #endif
 #endif	/* ! GTK_CHECK_VERSION(2,90,0) */
-
-#if  defined(__DEBUG) && VTE_CHECK_VERSION(0,23,2)
-	{
-		GtkBorder *  border = NULL ;
-		
-		gtk_widget_style_get( GTK_WIDGET(terminal) , "inner-border" , &border , NULL) ;
-		if( border)
-		{
-			kik_debug_printf( " inner-border is { %d, %d, %d, %d }\n",
-				border->left, border->right, border->top, border->bottom) ;
-			gtk_border_free(border) ;
-		}
-		else
-		{
-			kik_debug_printf( " inner-border is not found.\n") ;
-		}
-	}
-#endif
 }
 
 static gboolean
@@ -1478,6 +1469,23 @@ init_screen(
 	x_color_manager_t *  color_man
 	)
 {
+	u_int  hmargin ;
+	u_int  vmargin ;
+
+#if  VTE_CHECK_VERSION(0,38,0)
+	GtkBorder  padding ;
+
+	gtk_style_context_get_padding(
+		gtk_widget_get_style_context( GTK_WIDGET(terminal)) ,
+		gtk_widget_get_state_flags( GTK_WIDGET(terminal)) ,
+		&padding) ;
+	hmargin = K_MIN(padding.left , padding.right) ;
+	vmargin = K_MIN(padding.top , padding.bottom) ;
+#else
+	hmargin = WINDOW_MARGIN ;
+	vmargin = WINDOW_MARGIN ;
+#endif
+
 	/*
 	 * XXX
 	 * terminal->pvt->term is specified to x_screen_new in order to set
@@ -1495,7 +1503,7 @@ init_screen(
 			main_config.big5_buggy , main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
 			main_config.input_method , main_config.allow_osc52 ,
-			main_config.blink_cursor , WINDOW_MARGIN , WINDOW_MARGIN ,
+			main_config.blink_cursor , hmargin , vmargin ,
 			main_config.hide_underline) ;
 	if( terminal->pvt->term)
 	{
@@ -1868,7 +1876,8 @@ vte_terminal_get_preferred_width(
 
 	if( minimum_width)
 	{
-		*minimum_width = VTE_TERMINAL(widget)->m_char_width + WINDOW_MARGIN * 2 ;
+		*minimum_width = VTE_TERMINAL(widget)->m_char_width +
+				VTE_TERMINAL(widget)->pvt->screen->window.hmargin * 2 ;
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " preferred minimum width %d\n" , *minimum_width) ;
@@ -1879,7 +1888,7 @@ vte_terminal_get_preferred_width(
 	{
 		*natural_width =
 			VTE_TERMINAL(widget)->m_column_count * VTE_TERMINAL(widget)->m_char_width +
-			WINDOW_MARGIN * 2 ;
+			VTE_TERMINAL(widget)->pvt->screen->window.hmargin * 2 ;
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " preferred natural width %d\n" , *natural_width) ;
@@ -1937,7 +1946,8 @@ vte_terminal_get_preferred_height(
 
 	if( minimum_height)
 	{
-		*minimum_height = VTE_TERMINAL(widget)->m_char_height + WINDOW_MARGIN * 2 ;
+		*minimum_height = VTE_TERMINAL(widget)->m_char_height +
+				VTE_TERMINAL(widget)->pvt->screen->window.vmargin * 2 ;
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " preferred minimum height %d\n" ,
@@ -1949,7 +1959,7 @@ vte_terminal_get_preferred_height(
 	{
 		*natural_height =
 			VTE_TERMINAL(widget)->m_row_count * VTE_TERMINAL(widget)->m_char_height +
-			WINDOW_MARGIN * 2 ;
+			VTE_TERMINAL(widget)->pvt->screen->window.vmargin * 2 ;
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " preferred natural height %d\n" ,
@@ -2056,6 +2066,33 @@ vte_terminal_size_allocate(
 		 */
 	}
 }
+
+#if  VTE_CHECK_VERSION(0,38,0)
+static void
+vte_terminal_screen_changed(
+	GtkWidget *  widget ,
+	GdkScreen *  previous_screen
+	)
+{
+	GdkScreen *  screen ;
+	GtkSettings *  settings ;
+
+	screen = gtk_widget_get_screen( widget) ;
+	if( previous_screen != NULL &&
+	    ( screen != previous_screen || screen == NULL))
+	{
+		settings = gtk_settings_get_for_screen( previous_screen) ;
+		g_signal_handlers_disconnect_matched(
+			settings , G_SIGNAL_MATCH_DATA , 0 , 0 , NULL , NULL , widget) ;
+	}
+
+	if( GTK_WIDGET_CLASS(vte_terminal_parent_class)->screen_changed)
+	{
+		GTK_WIDGET_CLASS(vte_terminal_parent_class)->screen_changed(
+			widget , previous_screen) ;
+	}
+}
+#endif
 
 static gboolean
 vte_terminal_key_press(
@@ -2279,6 +2316,9 @@ vte_terminal_class_init(
 	wclass->get_preferred_height = vte_terminal_get_preferred_height ;
 	wclass->get_preferred_width_for_height = vte_terminal_get_preferred_width_for_height ;
 	wclass->get_preferred_height_for_width = vte_terminal_get_preferred_height_for_width ;
+#if  VTE_CHECK_VERSION(0,38,0)
+	wclass->screen_changed = vte_terminal_screen_changed ;
+#endif
 #else
 	wclass->size_request = vte_terminal_size_request ;
 #endif
@@ -2584,20 +2624,25 @@ vte_terminal_class_init(
 	 * is since 0.24.0, but actually it is added at Nov 30 2009 (between 0.23.1 and 0.23.2)
 	 * in ChangeLog.
 	 */
+
+#if  ! VTE_CHECK_VERSION(0,38,0)
 	gtk_widget_class_install_style_property( wclass ,
 		g_param_spec_boxed( "inner-border" , NULL , NULL , GTK_TYPE_BORDER ,
 			G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)) ;
+#endif
 
 #if  GTK_CHECK_VERSION(2,90,0)
 	vclass->priv = G_TYPE_CLASS_GET_PRIVATE(vclass , VTE_TYPE_TERMINAL ,
 				VteTerminalClassPrivate) ;
 	vclass->priv->style_provider = GTK_STYLE_PROVIDER(gtk_css_provider_new()) ;
+#if  ! VTE_CHECK_VERSION(0,38,0)
 	gtk_css_provider_load_from_data( GTK_CSS_PROVIDER(vclass->priv->style_provider) ,
 		"VteTerminal {\n"
 		"-VteTerminal-inner-border: " KIK_INT_TO_STR(WINDOW_MARGIN) ";\n"
 		"}\n" ,
 		-1 , NULL) ;
-#else
+#endif
+#else	/* VTE_CHECK_VERSION(0,23,2) */
 	gtk_rc_parse_string( "style \"vte-default-style\" {\n"
 			"VteTerminal::inner-border = { "
 			KIK_INT_TO_STR(WINDOW_MARGIN) " , "
@@ -2638,6 +2683,10 @@ vte_terminal_init(
 	gdouble  dpi ;
 
 	GTK_WIDGET_SET_CAN_FOCUS( GTK_WIDGET(terminal)) ;
+#if  VTE_CHECK_VERSION(0,38,0)
+	gtk_widget_set_app_paintable( GTK_WIDGET(terminal) , TRUE) ;
+	gtk_widget_set_redraw_on_allocate( GTK_WIDGET(terminal) , FALSE) ;
+#endif
 
 	terminal->pvt = G_TYPE_INSTANCE_GET_PRIVATE( terminal , VTE_TYPE_TERMINAL ,
 				VteTerminalPrivate) ;
@@ -2657,14 +2706,10 @@ vte_terminal_init(
 		G_CALLBACK(vte_terminal_hierarchy_changed) , NULL) ;
 
 #if  GTK_CHECK_VERSION(2,90,0)
-	{
-		GtkStyleContext *  context ;
-
-		context = gtk_widget_get_style_context( GTK_WIDGET(terminal)) ;
-		gtk_style_context_add_provider( context ,
-			VTE_TERMINAL_GET_CLASS(terminal)->priv->style_provider ,
-			GTK_STYLE_PROVIDER_PRIORITY_APPLICATION) ;
-	}
+	gtk_style_context_add_provider(
+		gtk_widget_get_style_context( GTK_WIDGET(terminal)) ,
+		VTE_TERMINAL_GET_CLASS(terminal)->priv->style_provider ,
+		GTK_STYLE_PROVIDER_PRIORITY_APPLICATION) ;
 #endif
 
 	terminal->pvt->term =
@@ -3383,7 +3428,7 @@ vte_terminal_feed(
 	)
 {
 	ml_term_write_loopback( terminal->pvt->term , data ,
-		length == -1 ? strlen(data) : length , 0) ;
+		length == -1 ? strlen(data) : length) ;
 }
 
 void
@@ -4809,8 +4854,8 @@ vte_terminal_get_padding(
 	int *  ypad
 	)
 {
-	*xpad = WINDOW_MARGIN * 2 /* left + right */ ;
-	*ypad = WINDOW_MARGIN * 2 /* top + bottom */ ;
+	*xpad = terminal->pvt->screen->window.hmargin * 2 /* left + right */ ;
+	*ypad = terminal->pvt->screen->window.vmargin * 2 /* top + bottom */ ;
 }
 
 void
@@ -5364,6 +5409,22 @@ vte_terminal_watch_child(
 
 #if  VTE_CHECK_VERSION(0,38,0)
 void
+vte_terminal_set_input_enabled(
+	VteTerminal *  terminal ,
+	gboolean  enabled
+	)
+{
+}
+
+gboolean
+vte_terminal_get_input_enabled(
+	VteTerminal *  terminal
+	)
+{
+	return  TRUE ;
+}
+
+void
 vte_terminal_get_geometry_hints(
 	VteTerminal *  terminal ,
 	GdkGeometry *  hints ,
@@ -5371,6 +5432,12 @@ vte_terminal_get_geometry_hints(
 	int  min_columns
 	)
 {
+	hints->base_width = terminal->pvt->screen->window.hmargin * 2 ;
+	hints->base_height = terminal->pvt->screen->window.vmargin * 2 ;
+	hints->width_inc = terminal->m_char_width ;
+	hints->height_inc = terminal->m_char_height ;
+	hints->min_width = hints->base_width + hints->width_inc * min_columns ;
+	hints->min_height = hints->base_height + hints->height_inc * min_rows ;
 }
 
 void
