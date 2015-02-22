@@ -1100,6 +1100,22 @@ toplevel_configure(
 	return  FALSE ;
 }
 
+#if  VTE_CHECK_VERSION(0,38,0)
+static void
+set_rgba_visual(
+	GtkWidget *  widget
+	)
+{
+	GdkScreen *  screen ;
+
+	if( ( screen = gtk_widget_get_screen(widget)) &&
+	    gdk_screen_is_composited( screen))
+	{
+		gtk_widget_set_visual( widget , gdk_screen_get_rgba_visual( screen)) ;
+	}
+}
+#endif
+
 static void
 vte_terminal_hierarchy_changed(
 	GtkWidget *  widget ,
@@ -1112,9 +1128,17 @@ vte_terminal_hierarchy_changed(
 		g_signal_handlers_disconnect_by_func( old_toplevel , toplevel_configure ,
 			widget) ;
 	}
-	
+
 	g_signal_connect_swapped( gtk_widget_get_toplevel( widget) , "configure-event" ,
 		G_CALLBACK(toplevel_configure) , VTE_TERMINAL(widget)) ;
+
+	/*
+	 * Though vte 0.38.0 or later doesn't support rgba visual,
+	 * this forcibly enables it.
+	 */
+#if  VTE_CHECK_VERSION(0,38,0)
+	set_rgba_visual( gtk_widget_get_toplevel(widget)) ;
+#endif
 }
 
 static gboolean
@@ -1761,11 +1785,14 @@ vte_terminal_realize(
 			disp.visual , disp.colormap , disp.depth) ;
 	#endif
 
-		if( depth_is_changed)
+		if( depth_is_changed &&
+		    /* see x_screen_new() */
+		    ! VTE_TERMINAL(widget)->pvt->screen->window.is_transparent &&
+		    ! VTE_TERMINAL(widget)->pvt->screen->pic_file_path)
 		{
 			x_change_true_transbg_alpha(
 				VTE_TERMINAL(widget)->pvt->screen->color_man ,
-				VTE_TERMINAL(widget)->pvt->screen->pic_mod.alpha) ;
+				main_config.alpha) ;
 			x_color_manager_reload( VTE_TERMINAL(widget)->pvt->screen->color_man) ;
 
 			/* No colors are cached for now. */
