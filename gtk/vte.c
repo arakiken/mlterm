@@ -5476,6 +5476,26 @@ vte_terminal_set_geometry_hints_for_window(
 }
 #endif
 
+#if  VTE_CHECK_VERSION(0,39,0)
+guint
+vte_get_major_version(void)
+{
+	return  VTE_MAJOR_VERSION ;
+}
+
+guint
+vte_get_minor_version(void)
+{
+	return  VTE_MINOR_VERSION ;
+}
+
+guint
+vte_get_micro_version(void)
+{
+	return  VTE_MICRO_VERSION ;
+}
+#endif
+
 #if  VTE_CHECK_VERSION(0,34,0)
 const char *
 vte_terminal_get_current_directory_uri(

@@ -1,5 +1,9 @@
 2015-02-22  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c: vte_get_{major|minor|micro}_version() are implemented.
+
+2015-02-22  Araki Ken  <arakiken@users.sf.net>
+
 	* vte.c: gtk_widget_set_visual(toplevel window, rgba_visual) is called
 	  in vte_terminal_hierarchy_changed() to enable true transparency forcibly
 	  on vte-2.91.
