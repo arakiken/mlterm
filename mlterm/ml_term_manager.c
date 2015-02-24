@@ -231,9 +231,11 @@ ml_set_auto_restart_cmd(
 	)
 {
 #if  ! defined(USE_WIN32API) && ! defined(DEBUG)
+	char *  env ;
+
 	if(
 	#ifndef  INFINIT_RESTART
-	    ! getenv( "INHERIT_PTY_LIST") &&
+	    ( ! ( env = getenv( "INHERIT_PTY_LIST")) || *env == '\0') &&
 	#endif
 	    cmd && *cmd)
 	{

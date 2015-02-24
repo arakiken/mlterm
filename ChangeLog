@@ -1,3 +1,9 @@
+2015-02-25  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/INSTALL: Updated.
+
+	* ml_term_manager.c, xlib/x_window.c: Minor fixes.
+
 2015-02-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: vte_get_{major|minor|micro}_version() are implemented.

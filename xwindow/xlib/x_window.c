@@ -312,7 +312,7 @@ set_transparent(
 		}
 		else
 		{
-			kik_msg_printf( "_X_ROOTPMAP_ID is not found."
+			kik_msg_printf( "_XROOTPMAP_ID is not found."
 				" Trying ParentRelative for transparency instead.\n") ;
 
 			if( ! x_picture_modifier_is_normal( win->pic_mod))
