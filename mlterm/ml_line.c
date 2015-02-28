@@ -602,7 +602,7 @@ ml_line_clear_with(
 int
 ml_line_overwrite(
 	ml_line_t *  line ,
-	int  beg_char_index ,
+	int  beg_char_index ,	/* >= line->num_of_filled_chars is OK */
 	ml_char_t *  chars ,
 	u_int  len ,
 	u_int  cols
@@ -621,24 +621,30 @@ ml_line_overwrite(
 		return  1 ;
 	}
 
-	if( beg_char_index > line->num_of_filled_chars)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " beg_char_index[%d] is over filled region.\n" ,
-			beg_char_index) ;
-	#endif
-	
-		beg_char_index = line->num_of_filled_chars ;
-	}
-	
 	if( beg_char_index + len > line->num_of_chars)
 	{
+		if( beg_char_index >= line->num_of_chars)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " beg[%d] is over num_of_chars[%d].\n" ,
+				beg_char_index , line->num_of_chars) ;
+		#endif
+
+			return  0 ;
+		}
+
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " beg_char_index[%d] + len[%d] is over line capacity.\n" ,
-			beg_char_index , len) ;
+		kik_warn_printf( KIK_DEBUG_TAG
+			" beg_char_index[%d] + len[%d] is over num_of_chars[%d].\n" ,
+			beg_char_index , len , line->num_of_chars) ;
 	#endif
-	
+
 		len = line->num_of_chars - beg_char_index ;
+	}
+
+	if( beg_char_index > 0)
+	{
+		ml_line_assure_boundary( line , beg_char_index - 1) ;
 	}
 
 #ifdef  OPTIMIZE_REDRAWING
@@ -788,7 +794,7 @@ int
 ml_line_fill(
 	ml_line_t *  line ,
 	ml_char_t *  ch ,
-	int  beg ,
+	int  beg ,		/* >= line->num_of_filled_chars is OK */
 	u_int  num
 	)
 {
@@ -802,15 +808,19 @@ ml_line_fill(
 		return  1 ;
 	}
 
-	if( beg > line->num_of_filled_chars || beg >= line->num_of_chars)
+	if( beg >= line->num_of_chars)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " beg[%d] is illegal since it is over"
-			" num_of_filled_chars[%d] or num_of_chars[%d].\n" ,
-			beg , line->num_of_filled_chars , line->num_of_chars) ;
+		kik_warn_printf( KIK_DEBUG_TAG " beg[%d] is over num_of_chars[%d].\n" ,
+			beg , line->num_of_chars) ;
 	#endif
-	
+
 		return  0 ;
+	}
+
+	if( beg > 0)
+	{
+		ml_line_assure_boundary( line , beg - 1) ;
 	}
 
 #ifdef  OPTIMIZE_REDRAWING

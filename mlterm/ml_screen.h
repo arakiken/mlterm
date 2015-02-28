@@ -237,11 +237,11 @@ int  ml_screen_insert_chars( ml_screen_t *  screen , ml_char_t *  chars , u_int 
 #define  ml_screen_insert_blank_chars( screen , len) \
 		ml_edit_insert_blank_chars( (screen)->edit , len)
 
-#define  ml_screen_vertical_forward_tabs( screen , num) \
-		ml_edit_vertical_forward_tabs( (screen)->edit , num) \
+#define  ml_screen_forward_tabs( screen , num) \
+		ml_edit_forward_tabs( (screen)->edit , num) \
 
-#define  ml_screen_vertical_backward_tabs( screen , num) \
-		ml_edit_vertical_backward_tabs( (screen)->edit , num) \
+#define  ml_screen_backward_tabs( screen , num) \
+		ml_edit_backward_tabs( (screen)->edit , num) \
 
 #define  ml_screen_set_tab_stop( screen)  ml_edit_set_tab_stop( (screen)->edit)
 
@@ -269,14 +269,14 @@ int  ml_screen_delete_lines( ml_screen_t *  screen , u_int  size) ;
 
 #define  ml_screen_clear_above( screen)  ml_edit_clear_above( (screen)->edit)
 
-#define  ml_screen_set_scroll_region( screen , beg , end) \
-		ml_edit_set_scroll_region( (screen)->edit , beg , end)
+#define  ml_screen_set_vmargin( screen , beg , end) \
+		ml_edit_set_vmargin( (screen)->edit , beg , end)
 
-#define  ml_screen_set_use_margin( screen , use) \
-		ml_edit_set_use_margin( (screen)->edit , use)
+#define  ml_screen_set_use_hmargin( screen , use) \
+		ml_edit_set_use_hmargin( (screen)->edit , use)
 
-#define  ml_screen_set_margin( screen , beg , end) \
-		ml_edit_set_margin( (screen)->edit , beg , end)
+#define  ml_screen_set_hmargin( screen , beg , end) \
+		ml_edit_set_hmargin( (screen)->edit , beg , end)
 
 #define  ml_screen_index( screen)  ml_edit_go_downward( (screen)->edit , SCROLL)
 
@@ -290,9 +290,15 @@ int  ml_screen_delete_lines( ml_screen_t *  screen , u_int  size) ;
 
 #define  ml_screen_scroll_rightward( screen , size)  ml_edit_scroll_rightward( (screen)->edit , size)
 
-int  ml_screen_go_forward( ml_screen_t *  screen , u_int  size) ;
+#define  ml_screen_scroll_leftward_from_cursor( screen , size) \
+	ml_edit_scroll_leftward_from_cursor( (screen)->edit , size)
 
-int  ml_screen_go_back( ml_screen_t *  screen , u_int  size) ;
+#define  ml_screen_scroll_rightward_from_cursor( screen , size) \
+	ml_edit_scroll_rightward_from_cursor( (screen)->edit , size)
+
+int  ml_screen_go_forward( ml_screen_t *  screen , u_int  size , int  scroll) ;
+
+int  ml_screen_go_back( ml_screen_t *  screen , u_int  size , int  scroll) ;
 
 int  ml_screen_go_upward( ml_screen_t *  screen , u_int  size) ;
 
@@ -350,6 +356,17 @@ int  ml_screen_fill_area( ml_screen_t *  screen , int  code ,
 
 #define  ml_screen_erase_area( screen , col , row , num_of_cols , num_of_rows) \
 		ml_edit_erase_area( (screen)->edit , col , row , num_of_cols , num_of_rows)
+
+#define  ml_screen_change_attr_area( screen , col , row , num_of_cols , num_of_rows , attr) \
+	ml_edit_change_attr_area( (screen)->edit , col , row , num_of_cols , num_of_rows , \
+		ml_char_change_attr , attr)
+
+#define  ml_screen_reverse_attr_area( screen , col , row , num_of_cols , num_of_rows , attr) \
+	ml_edit_change_attr_area( (screen)->edit , col , row , num_of_cols , num_of_rows , \
+		ml_char_reverse_attr , attr)
+
+#define  ml_screen_set_use_rect_attr_select( screen , use) \
+	ml_edit_set_use_rect_attr_select( (screen)->edit , use)
 
 void  ml_screen_enable_blinking( ml_screen_t *  screen) ;
 

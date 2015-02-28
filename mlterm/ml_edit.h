@@ -39,19 +39,20 @@ typedef struct  ml_edit
 	/* used for line overlapping */
 	ml_line_t *  wraparound_ready_line ;
 
-	int16_t  scroll_region_beg ;
-	int16_t  scroll_region_end ;
+	int16_t  vmargin_beg ;
+	int16_t  vmargin_end ;
 
 	ml_edit_scroll_event_listener_t *  scroll_listener ;
 
-	int16_t  margin_beg ;
-	int16_t  margin_end ;
+	int16_t  hmargin_beg ;
+	int16_t  hmargin_end ;
 	int8_t  use_margin ;
 
 	int8_t  is_logging ;
 	int8_t  is_relative_origin ;
 	int8_t  is_auto_wrap ;
 	int8_t  use_bce ;
+	int8_t  use_rect_attr_select ;
 
 } ml_edit_t ;
 
@@ -87,8 +88,8 @@ int  ml_edit_clear_line_to_left( ml_edit_t *  edit) ;
 int  ml_edit_clear_below( ml_edit_t *  edit) ;
 
 int  ml_edit_clear_above( ml_edit_t *  edit) ;
-	
-int  ml_edit_set_scroll_region( ml_edit_t *  edit , int  beg , int  end) ;
+
+int  ml_edit_set_vmargin( ml_edit_t *  edit , int  beg , int  end) ;
 
 int  ml_edit_scroll_upward( ml_edit_t *  edit , u_int  size) ;
 
@@ -98,13 +99,17 @@ int  ml_edit_scroll_leftward( ml_edit_t *  edit , u_int  size) ;
 
 int  ml_edit_scroll_rightward( ml_edit_t *  edit , u_int  size) ;
 
-int  ml_edit_set_use_margin( ml_edit_t *  edit , int  use) ;
+int  ml_edit_scroll_leftward_from_cursor( ml_edit_t *  edit , u_int  size) ;
 
-int  ml_edit_set_margin( ml_edit_t *  edit , int  beg , int  end) ;
+int  ml_edit_scroll_rightward_from_cursor( ml_edit_t *  edit , u_int  size) ;
 
-int  ml_edit_vertical_forward_tabs( ml_edit_t *  edit , u_int  num) ;
+int  ml_edit_set_use_hmargin( ml_edit_t *  edit , int  use) ;
 
-int  ml_edit_vertical_backward_tabs( ml_edit_t *  edit , u_int  num) ;
+int  ml_edit_set_hmargin( ml_edit_t *  edit , int  beg , int  end) ;
+
+int  ml_edit_forward_tabs( ml_edit_t *  edit , u_int  num) ;
+
+int  ml_edit_backward_tabs( ml_edit_t *  edit , u_int  num) ;
 
 #define  ml_edit_get_tab_size( edit)  ((edit)->tab_size)
 
@@ -165,15 +170,21 @@ int  ml_edit_copy_area( ml_edit_t *  edit , int  src_col , int  src_row ,
 int  ml_edit_erase_area( ml_edit_t *  edit , int  col , int  row ,
 	u_int  num_of_cols , u_int  num_of_rows) ;
 
+int  ml_edit_change_attr_area( ml_edit_t *  edit , int  col , int  row ,
+	u_int  num_of_cols , u_int  num_of_rows ,
+	void (*func)( ml_char_t * , int , int , int , int) , int  attr) ;
+
+#define  ml_edit_set_use_rect_attr_select( edit , use)  ((edit)->use_rect_attr_select = (use))
+
 #define  ml_cursor_char_index( edit)  ((edit)->cursor.char_index)
 
 #define  ml_cursor_col( edit)  ((edit)->cursor.col)
 
 #define  ml_cursor_row( edit)  ((edit)->cursor.row)
 
-#define  ml_cursor_relative_col( edit)  ((edit)->cursor.col - (edit)->margin_beg)
+#define  ml_cursor_relative_col( edit)  ((edit)->cursor.col - (edit)->hmargin_beg)
 
-#define  ml_cursor_relative_row( edit)  ((edit)->cursor.row - (edit)->scroll_region_beg)
+#define  ml_cursor_relative_row( edit)  ((edit)->cursor.row - (edit)->vmargin_beg)
 
 #ifdef  DEBUG
 

@@ -3335,10 +3335,10 @@ soft_reset(
 	ml_screen_set_auto_wrap( vt100_parser->screen , 1) ;
 
 	/* "CSI r" (DECSTBM) */
-	ml_screen_set_scroll_region( vt100_parser->screen , -1 , -1) ;
+	ml_screen_set_vmargin( vt100_parser->screen , -1 , -1) ;
 
 	/* "CSI ? 69 l" (XXX Not described in vt510 manual.) */
-	ml_screen_set_use_margin( vt100_parser->screen , -1 /* Don't move cursor. */) ;
+	ml_screen_set_use_hmargin( vt100_parser->screen , -1 /* Don't move cursor. */) ;
 
 	/* "CSI m" (SGR) */
 	change_char_attr( vt100_parser , 0) ;
@@ -3446,7 +3446,7 @@ inc_str_in_esc_seq(
 			}
 			else if( **str_p == CTL_BS)
 			{
-				ml_screen_go_back( screen , 1) ;
+				ml_screen_go_back( screen , 1 , 0) ;
 			}
 			else if( want_ctrl)
 			{
@@ -3570,11 +3570,11 @@ parse_vt52_escape_sequence(
 	}
 	else if( *str_p == 'C')
 	{
-		ml_screen_go_forward( vt100_parser->screen , 1) ;
+		ml_screen_go_forward( vt100_parser->screen , 1 , 0) ;
 	}
 	else if( *str_p == 'D')
 	{
-		ml_screen_go_back( vt100_parser->screen , 1) ;
+		ml_screen_go_back( vt100_parser->screen , 1 , 0) ;
 	}
 	else if( *str_p == 'F')
 	{
@@ -3717,7 +3717,13 @@ parse_vt100_escape_sequence(
 			return  0 ;
 		}
 
-		if( *str_p == '7')
+		if( *str_p == '6')
+		{
+			/* "ESC 6" DECBI */
+
+			ml_screen_go_back( vt100_parser->screen , 1 , 1) ;
+		}
+		else if( *str_p == '7')
 		{
 			/* "ESC 7" save cursor */
 
@@ -3728,6 +3734,12 @@ parse_vt100_escape_sequence(
 			/* "ESC 8" restore cursor */
 
 			restore_cursor( vt100_parser) ;
+		}
+		else if( *str_p == '9')
+		{
+			/* "ESC 9" DECFI */
+
+			ml_screen_go_forward( vt100_parser->screen , 1 , 1) ;
 		}
 		else if( *str_p == '=')
 		{
@@ -4076,7 +4088,7 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 69 h" */
 
-							ml_screen_set_use_margin(
+							ml_screen_set_use_hmargin(
 								vt100_parser->screen , 1) ;
 						}
 						else if( ps[count] == 80)
@@ -4365,7 +4377,7 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 69 l" */
 
-							ml_screen_set_use_margin(
+							ml_screen_set_use_hmargin(
 								vt100_parser->screen , 0) ;
 						}
 						else if( ps[count] == 80)
@@ -4529,6 +4541,51 @@ parse_vt100_escape_sequence(
 							sizeof(msg) - 1) ;
 					}
 				}
+				/* XXX DECSCA is not supported for now. */
+			#if  0
+				else if( *str_p == 'J')
+				{
+					/* "CSI ? J" DECSED (Selective Erase Display) */
+
+					if( ps[0] <= 0)
+					{
+						ml_screen_clear_below( vt100_parser->screen) ;
+					}
+					else if( ps[0] == 1)
+					{
+						ml_screen_clear_above( vt100_parser->screen) ;
+					}
+					else if( ps[0] == 2)
+					{
+						clear_display_all( vt100_parser) ;
+					}
+				}
+				else if( *str_p == 'K')
+				{
+					/* "CSI ? K" DECSEL (Selective Erase Line) */
+
+					if( ps[0] <= 0)
+					{
+						ml_screen_clear_line_to_right(
+							vt100_parser->screen) ;
+					}
+					else if( ps[0] == 1)
+					{
+						ml_screen_clear_line_to_left(
+							vt100_parser->screen) ;
+					}
+					else if( ps[0] == 2)
+					{
+						clear_line_all( vt100_parser) ;
+					}
+				}
+			#endif
+				else if( *str_p == 'W')
+				{
+					/* "CSI ? 5 W"  DECST8C */
+
+					ml_screen_set_tab_size( vt100_parser->screen , 8) ;
+				}
 			#if  0
 				else if( *str_p == 'r')
 				{
@@ -4606,9 +4663,17 @@ parse_vt100_escape_sequence(
 
 				if( ps[3] >= ps[1] && ps[2] >= ps[0])
 				{
-					if( *str_p == 'z')
+					if( *str_p == 'z'
+					/* XXX DECSCA is not supported for now. */
+					#if  0
+					    || *str_p == '{'
+					#endif
+					    )
 					{
-						/* "CSI ... $ z" DECERA */
+						/*
+						 * "CSI ... $ z" DECERA
+						 * "CSI ... $ {" DECSERA
+						 */
 						ml_screen_erase_area(
 							vt100_parser->screen ,
 							ps[1] - 1 , ps[0] - 1 ,
@@ -4634,6 +4699,34 @@ parse_vt100_escape_sequence(
 							ps[1] - 1 , ps[0] - 1 ,
 							ps[3] - ps[1] + 1 ,
 							ps[2] - ps[0] + 1) ;
+					}
+					else if( *str_p == 'r')
+					{
+						/* "CSI Pt;Pl;Pb;Pr;...$r" DECCARA */
+
+						for( count = 4 ; count < num ; count++)
+						{
+							ml_screen_change_attr_area(
+								vt100_parser->screen ,
+								ps[1] - 1 , ps[0] -1 ,
+								ps[3] - ps[1] + 1 ,
+								ps[2] - ps[0] + 1 ,
+								ps[count]) ;
+						}
+					}
+					else if( *str_p == 't')
+					{
+						/* "CSI Pt;Pl;Pb;Pr;...$t" DECRARA */
+
+						for( count = 4 ; count < num ; count++)
+						{
+							ml_screen_reverse_attr_area(
+								vt100_parser->screen ,
+								ps[1] - 1 , ps[0] -1 ,
+								ps[3] - ps[1] + 1 ,
+								ps[2] - ps[0] + 1 ,
+								ps[count]) ;
+						}
 					}
 				}
 			}
@@ -4784,7 +4877,16 @@ parse_vt100_escape_sequence(
 
 				if( *str_p == 'z')
 				{
+					/* "CSI Pn * z" DECINVM */
+
 					invoke_macro( vt100_parser , ps[0]) ;
+				}
+				else if( *str_p == 'x')
+				{
+					/* "CSI Pn * x " DECSACE */
+
+					ml_screen_set_use_rect_attr_select(
+						vt100_parser->screen , ps[0] == 2) ;
 				}
 			}
 			else if( pre_ch == '\'')
@@ -4829,6 +4931,30 @@ parse_vt100_escape_sequence(
 								  LOCATOR_BUTTON_DOWN) ;
 						}
 					}
+				}
+				else if( *str_p == '}')
+				{
+					/* "CSI ' ~" DECIC */
+
+					if( ps[0] <= 0)
+					{
+						ps[0] = 1 ;
+					}
+
+					ml_screen_scroll_rightward_from_cursor(
+						vt100_parser->screen , ps[0]) ;
+				}
+				else if( *str_p == '~')
+				{
+					/* "CSI ' ~" DECDC */
+
+					if( ps[0] <= 0)
+					{
+						ps[0] = 1 ;
+					}
+
+					ml_screen_scroll_leftward_from_cursor(
+						vt100_parser->screen , ps[0]) ;
 				}
 				else if( *str_p == 'w')
 				{
@@ -4939,7 +5065,7 @@ parse_vt100_escape_sequence(
 					ps[0] = 1 ;
 				}
 
-				ml_screen_go_forward( vt100_parser->screen , ps[0]) ;
+				ml_screen_go_forward( vt100_parser->screen , ps[0] , 0) ;
 			}
 			else if( *str_p == 'D' || *str_p == 'j')
 			{
@@ -4950,7 +5076,7 @@ parse_vt100_escape_sequence(
 					ps[0] = 1 ;
 				}
 
-				ml_screen_go_back( vt100_parser->screen , ps[0]) ;
+				ml_screen_go_back( vt100_parser->screen , ps[0] , 0) ;
 			}
 			else if( *str_p == 'E')
 			{
@@ -5019,7 +5145,7 @@ parse_vt100_escape_sequence(
 					ps[0] = 1 ;
 				}
 
-				ml_screen_vertical_forward_tabs( vt100_parser->screen , ps[0]) ;
+				ml_screen_forward_tabs( vt100_parser->screen , ps[0]) ;
 			}
 			else if( *str_p == 'J')
 			{
@@ -5134,7 +5260,7 @@ parse_vt100_escape_sequence(
 					ps[0] = 1 ;
 				}
 
-				ml_screen_vertical_backward_tabs( vt100_parser->screen , ps[0]) ;
+				ml_screen_backward_tabs( vt100_parser->screen , ps[0]) ;
 			}
 			else if( *str_p == 'b')
 			{
@@ -5288,7 +5414,7 @@ parse_vt100_escape_sequence(
 					ps[1] = 0 ;
 				}
 
-				if( ml_screen_set_scroll_region( vt100_parser->screen ,
+				if( ml_screen_set_vmargin( vt100_parser->screen ,
 						ps[0] - 1 , ps[1] - 1))
 				{
 					ml_screen_goto( vt100_parser->screen , 0 , 0) ;
@@ -5303,7 +5429,7 @@ parse_vt100_escape_sequence(
 					ps[1] = ml_screen_get_cols( vt100_parser->screen) ;
 				}
 
-				if( ! ml_screen_set_margin( vt100_parser->screen ,
+				if( ! ml_screen_set_hmargin( vt100_parser->screen ,
 						ps[0] <= 0 ? 0 : ps[0] - 1 , ps[1] - 1)
 				    && num == 1 && ps[0] == -1)
 				{
@@ -6253,11 +6379,13 @@ parse_vt100_escape_sequence(
 					{
 						/* "ESC # 8" DEC screen alignment test */
 
-						ml_screen_set_scroll_region(
+					#if  0
+						ml_screen_set_vmargin(
 							vt100_parser->screen , -1 , -1) ;
-						ml_screen_set_use_margin(
+						ml_screen_set_use_hmargin(
 							vt100_parser->screen ,
 							-1 /* Don't move cursor. */) ;
+					#endif
 						ml_screen_fill_area( vt100_parser->screen , 'E' ,
 							0 , 0 ,
 							ml_screen_get_cols(vt100_parser->screen) ,
@@ -6381,7 +6509,7 @@ parse_vt100_escape_sequence(
 		kik_debug_printf( KIK_DEBUG_TAG " receiving TAB\n") ;
 	#endif
 
-		ml_screen_vertical_forward_tabs( vt100_parser->screen , 1) ;
+		ml_screen_forward_tabs( vt100_parser->screen , 1) ;
 	}
 	else if( *str_p == CTL_BS)
 	{
@@ -6389,7 +6517,7 @@ parse_vt100_escape_sequence(
 		kik_debug_printf( KIK_DEBUG_TAG " receiving BS\n") ;
 	#endif
 
-		ml_screen_go_back( vt100_parser->screen , 1) ;
+		ml_screen_go_back( vt100_parser->screen , 1 , 0) ;
 	}
 	else if( *str_p == CTL_BEL)
 	{

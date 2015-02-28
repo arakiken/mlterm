@@ -39,10 +39,13 @@
 
 #define  MARGIN_IS_ENABLED(edit) \
 	( (edit)->use_margin && \
-	  ( 0 < (edit)->margin_beg || (edit)->margin_end + 1 < (edit)->model.num_of_cols))
+	  ( 0 < (edit)->hmargin_beg || (edit)->hmargin_end + 1 < (edit)->model.num_of_cols))
 
-#define  CURSOR_IS_INSIDE_MARGIN(edit) \
-	( (edit)->margin_beg <= (edit)->cursor.col && (edit)->cursor.col <= (edit)->margin_end)
+#define  CURSOR_IS_INSIDE_HMARGIN(edit) \
+	( (edit)->hmargin_beg <= (edit)->cursor.col && (edit)->cursor.col <= (edit)->hmargin_end)
+
+#define  CURSOR_IS_INSIDE_VMARGIN(edit) \
+	( (edit)->vmargin_beg <= (edit)->cursor.row && (edit)->cursor.row <= (edit)->vmargin_end)
 
 
 /* --- static functions --- */
@@ -81,14 +84,14 @@ insert_chars(
 	buf_len = edit->model.num_of_cols ;
 
 #ifndef  COMPAT_XTERM
-	if( edit->cursor.col > edit->margin_end)
+	if( edit->cursor.col > edit->hmargin_end)
 	{
 		num_of_cols = edit->model.num_of_cols ;
 	}
 	else
 #endif
 	{
-		num_of_cols = edit->margin_end + 1 ;
+		num_of_cols = edit->hmargin_end + 1 ;
 	}
 
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
@@ -243,7 +246,7 @@ line_full:
 }
 
 static int
-vertical_tabs(
+horizontal_tabs(
 	ml_edit_t *  edit ,
 	u_int  num ,
 	int  is_forward
@@ -252,13 +255,13 @@ vertical_tabs(
 	int  col ;
 	u_int  count ;
 
-	if( edit->cursor.col < edit->margin_beg)
+	if( edit->cursor.col < edit->hmargin_beg)
 	{
-		ml_cursor_goto_by_col( &edit->cursor , edit->margin_beg , edit->cursor.row) ;
+		ml_cursor_goto_by_col( &edit->cursor , edit->hmargin_beg , edit->cursor.row) ;
 	}
-	else if( edit->cursor.col > edit->margin_end)
+	else if( edit->cursor.col > edit->hmargin_end)
 	{
-		ml_cursor_goto_by_col( &edit->cursor , edit->margin_end , edit->cursor.row) ;
+		ml_cursor_goto_by_col( &edit->cursor , edit->hmargin_end , edit->cursor.row) ;
 	}
 
 	col = edit->cursor.col ;
@@ -269,7 +272,7 @@ vertical_tabs(
 		{
 			if( is_forward)
 			{
-				if( col >= edit->margin_end)
+				if( col >= edit->hmargin_end)
 				{
 					return  1 ;
 				}
@@ -443,15 +446,9 @@ erase_area(
 		char_index = ml_convert_col_to_char_index( line , &cols_rest , col ,
 					BREAK_BOUNDARY) ;
 
-		if( char_index >= line->num_of_filled_chars)
+		if( char_index >= line->num_of_filled_chars && ! edit->use_bce)
 		{
-			if( ! edit->use_bce)
-			{
-				continue ;
-			}
-
-			ml_line_fill( line , ml_sp_ch() , char_index ,
-					char_index + 1 - line->num_of_filled_chars) ;
+			continue ;
 		}
 
 		if( cols_rest > 0)
@@ -474,45 +471,45 @@ scroll_downward_region(
 	int  is_cursor_beg
 	)
 {
-	int  scroll_region_beg ;
+	int  vmargin_beg ;
 
 	if( is_cursor_beg)
 	{
-		if( edit->cursor.row < edit->scroll_region_beg)
+		if( edit->cursor.row < edit->vmargin_beg)
 		{
 			return  0 ;
 		}
 
-		scroll_region_beg = edit->cursor.row ;
+		vmargin_beg = edit->cursor.row ;
 	}
 	else
 	{
-		scroll_region_beg = edit->scroll_region_beg ;
+		vmargin_beg = edit->vmargin_beg ;
 	}
 
 	/*
 	 * XXX
-	 * CURSOR_IS_INSIDE_MARGIN(edit) disables vim to scroll the right side of
+	 * CURSOR_IS_INSIDE_HMARGIN(edit) disables vim to scroll the right side of
 	 * vertically splitted window.
 	 */
-	if( /* CURSOR_IS_INSIDE_MARGIN(edit) && */
-	    edit->cursor.row >= scroll_region_beg &&
-	    edit->cursor.row <= edit->scroll_region_end)
+	if( /* CURSOR_IS_INSIDE_HMARGIN(edit) && */
+	    edit->cursor.row >= vmargin_beg &&
+	    edit->cursor.row <= edit->vmargin_end)
 	{
-		if( size > edit->scroll_region_end - scroll_region_beg + 1)
+		if( size > edit->vmargin_end - vmargin_beg + 1)
 		{
-			size = edit->scroll_region_end - scroll_region_beg + 1 ;
+			size = edit->vmargin_end - vmargin_beg + 1 ;
 		}
 		else
 		{
-			copy_area( edit , edit->margin_beg , scroll_region_beg ,
-				edit->margin_end - edit->margin_beg + 1 ,
-				edit->scroll_region_end - scroll_region_beg + 1 - size ,
-				edit->margin_beg , scroll_region_beg + size) ;
+			copy_area( edit , edit->hmargin_beg , vmargin_beg ,
+				edit->hmargin_end - edit->hmargin_beg + 1 ,
+				edit->vmargin_end - vmargin_beg + 1 - size ,
+				edit->hmargin_beg , vmargin_beg + size) ;
 		}
 
-		erase_area( edit , edit->margin_beg , scroll_region_beg ,
-			edit->margin_end - edit->margin_beg + 1 , size) ;
+		erase_area( edit , edit->hmargin_beg , vmargin_beg ,
+			edit->hmargin_end - edit->hmargin_beg + 1 , size) ;
 
 		return  1 ;
 	}
@@ -529,45 +526,45 @@ scroll_upward_region(
 	int  is_cursor_beg
 	)
 {
-	int  scroll_region_beg ;
+	int  vmargin_beg ;
 
 	if( is_cursor_beg)
 	{
-		if( edit->cursor.row < edit->scroll_region_beg)
+		if( edit->cursor.row < edit->vmargin_beg)
 		{
 			return  0 ;
 		}
 
-		scroll_region_beg = edit->cursor.row ;
+		vmargin_beg = edit->cursor.row ;
 	}
 	else
 	{
-		scroll_region_beg = edit->scroll_region_beg ;
+		vmargin_beg = edit->vmargin_beg ;
 	}
 
 	/*
 	 * XXX
-	 * CURSOR_IS_INSIDE_MARGIN(edit) disables vim to scroll the right side of
+	 * CURSOR_IS_INSIDE_HMARGIN(edit) disables vim to scroll the right side of
 	 * vertical splitted window.
 	 */
-	if( /* CURSOR_IS_INSIDE_MARGIN(edit) && */
-	    edit->cursor.row >= scroll_region_beg &&
-	    edit->cursor.row <= edit->scroll_region_end)
+	if( /* CURSOR_IS_INSIDE_HMARGIN(edit) && */
+	    edit->cursor.row >= vmargin_beg &&
+	    edit->cursor.row <= edit->vmargin_end)
 	{
-		if( size > edit->scroll_region_end - scroll_region_beg + 1)
+		if( size > edit->vmargin_end - vmargin_beg + 1)
 		{
-			size = edit->scroll_region_end - scroll_region_beg + 1 ;
+			size = edit->vmargin_end - vmargin_beg + 1 ;
 		}
 		else
 		{
-			copy_area( edit , edit->margin_beg , scroll_region_beg + size ,
-				edit->margin_end - edit->margin_beg + 1 ,
-				edit->scroll_region_end - scroll_region_beg + 1 - size ,
-				edit->margin_beg , scroll_region_beg) ;
+			copy_area( edit , edit->hmargin_beg , vmargin_beg + size ,
+				edit->hmargin_end - edit->hmargin_beg + 1 ,
+				edit->vmargin_end - vmargin_beg + 1 - size ,
+				edit->hmargin_beg , vmargin_beg) ;
 		}
 
-		erase_area( edit , edit->margin_beg , edit->scroll_region_end + 1 - size ,
-			edit->margin_end - edit->margin_beg + 1 , size) ;
+		erase_area( edit , edit->hmargin_beg , edit->vmargin_end + 1 - size ,
+			edit->hmargin_end - edit->hmargin_beg + 1 , size) ;
 
 		return  1 ;
 	}
@@ -575,6 +572,37 @@ scroll_upward_region(
 	{
 		return  0 ;
 	}
+}
+
+static int
+apply_relative_origin(
+	ml_edit_t *  edit ,
+	int *  col ,
+	int *  row ,
+	u_int *  num_of_cols ,
+	u_int *  num_of_rows
+	)
+{
+	if( edit->is_relative_origin)
+	{
+		if( ( (*row) += edit->vmargin_beg) > edit->vmargin_end ||
+		    ( (*col) += edit->hmargin_beg) > edit->hmargin_end)
+		{
+			return  0 ;
+		}
+
+		if( (*row) + (*num_of_rows) > edit->vmargin_end + 1)
+		{
+			(*num_of_rows) = edit->vmargin_end + 1 - (*row) ;
+		}
+
+		if( (*col) + (*num_of_cols) > edit->hmargin_end + 1)
+		{
+			(*num_of_cols) = edit->hmargin_end + 1 - (*col) ;
+		}
+	}
+
+	return  1 ;
 }
 
 
@@ -609,13 +637,13 @@ ml_edit_init(
 
 	reset_wraparound_checker( edit) ;
 
-	edit->scroll_region_beg = 0 ;
-	edit->scroll_region_end = ml_model_end_row( &edit->model) ;
+	edit->vmargin_beg = 0 ;
+	edit->vmargin_end = ml_model_end_row( &edit->model) ;
 	edit->scroll_listener = scroll_listener ;
 
 	edit->use_margin = 0 ;
-	edit->margin_beg = 0 ;
-	edit->margin_end = num_of_cols - 1 ;
+	edit->hmargin_beg = 0 ;
+	edit->hmargin_end = num_of_cols - 1 ;
 
 	if( ( edit->tab_stops = malloc( TAB_STOPS_SIZE(edit))) == NULL)
 	{
@@ -760,12 +788,12 @@ ml_edit_resize(
 
 	reset_wraparound_checker( edit) ;
 	
-	edit->scroll_region_beg = 0 ;
-	edit->scroll_region_end = ml_model_end_row( &edit->model) ;
+	edit->vmargin_beg = 0 ;
+	edit->vmargin_end = ml_model_end_row( &edit->model) ;
 
 	edit->use_margin = 0 ;
-	edit->margin_beg = 0 ;
-	edit->margin_end = num_of_cols - 1 ;
+	edit->hmargin_beg = 0 ;
+	edit->hmargin_end = num_of_cols - 1 ;
 
 	free( edit->tab_stops) ;
 
@@ -793,7 +821,7 @@ ml_edit_insert_chars(
 	reset_wraparound_checker( edit) ;
 
 #ifdef  COMPAT_XTERM
-	if( ! CURSOR_IS_INSIDE_MARGIN(edit))
+	if( ! CURSOR_IS_INSIDE_HMARGIN(edit))
 	{
 		return  ml_edit_overwrite_chars( edit , ins_chars , num_of_ins_chars) ;
 	}
@@ -814,7 +842,7 @@ ml_edit_insert_blank_chars(
 	ml_char_t *  blank_chars ;
 	ml_char_t *  sp_ch ;
 
-	if( ! CURSOR_IS_INSIDE_MARGIN(edit))
+	if( ! CURSOR_IS_INSIDE_HMARGIN(edit))
 	{
 		return  0 ;
 	}
@@ -877,13 +905,13 @@ ml_edit_overwrite_chars(
 
 	buf_len = num_of_ow_chars + edit->model.num_of_cols ;
 
-	if( edit->cursor.col > edit->margin_end)
+	if( edit->cursor.col > edit->hmargin_end)
 	{
 		num_of_cols = edit->model.num_of_cols ;
 	}
 	else
 	{
-		num_of_cols = edit->margin_end + 1 ;
+		num_of_cols = edit->hmargin_end + 1 ;
 	}
 
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
@@ -945,7 +973,7 @@ ml_edit_overwrite_chars(
 
 			ml_line_set_continued_to_next( line , 1) ;
 
-			if( edit->cursor.row + 1 > edit->scroll_region_end)
+			if( edit->cursor.row + 1 > edit->vmargin_end)
 			{
 				if( MARGIN_IS_ENABLED(edit) ?
 				    ! scroll_upward_region( edit , 1 , 0) :
@@ -955,10 +983,10 @@ ml_edit_overwrite_chars(
 				}
 
 				/*
-				 * If edit->cursor.row == edit->scroll_region_end in this situation,
-				 * scroll_region_beg == scroll_region_end.
+				 * If edit->cursor.row == edit->vmargin_end in this situation,
+				 * vmargin_beg == vmargin_end.
 				 */
-				if( edit->cursor.row + 1 <= edit->scroll_region_end)
+				if( edit->cursor.row + 1 <= edit->vmargin_end)
 				{
 					edit->cursor.row ++ ;
 				}
@@ -968,9 +996,9 @@ ml_edit_overwrite_chars(
 				edit->cursor.row ++ ;
 			}
 
-			if( edit->margin_beg > 0)
+			if( edit->hmargin_beg > 0)
 			{
-				ml_cursor_goto_by_col( &edit->cursor , edit->margin_beg ,
+				ml_cursor_goto_by_col( &edit->cursor , edit->hmargin_beg ,
 					edit->cursor.row) ;
 			}
 			else
@@ -1004,7 +1032,7 @@ ml_edit_overwrite_chars(
 		/*
 		 * Don't use ml_line_end_char_index() instead of
 		 * new_char_index --, because num_of_cols is not
-		 * ml_model::num_of_cols but is ml_edit_t::margin_end + 1.
+		 * ml_model::num_of_cols but is ml_edit_t::hmargin_end + 1.
 		 */
 		new_char_index -- ;
 		edit->wraparound_ready_line = line ;
@@ -1140,20 +1168,20 @@ ml_edit_delete_cols(
 			u_int  count ;
 			u_int  copy_len ;
 
-			if( ! CURSOR_IS_INSIDE_MARGIN(edit))
+			if( ! CURSOR_IS_INSIDE_HMARGIN(edit))
 			{
 				return  0 ;
 			}
 
 			while( cols < del_cols &&
-			       edit->cursor.col + cols < edit->margin_end + 1 &&
+			       edit->cursor.col + cols < edit->hmargin_end + 1 &&
 			       char_index < cursor_line->num_of_filled_chars)
 			{
 				cols += ml_char_cols( ml_char_at( cursor_line , char_index ++)) ;
 			}
 
 			copy_len = 0 ;
-			while( edit->cursor.col + cols < edit->margin_end + 1 &&
+			while( edit->cursor.col + cols < edit->hmargin_end + 1 &&
 			       char_index + copy_len < cursor_line->num_of_filled_chars)
 			{
 				cols += ml_char_cols( ml_char_at( cursor_line ,
@@ -1390,7 +1418,7 @@ ml_edit_clear_above(
 }
 
 int
-ml_edit_set_scroll_region(
+ml_edit_set_vmargin(
 	ml_edit_t *  edit ,
 	int  beg ,
 	int  end
@@ -1442,8 +1470,8 @@ ml_edit_set_scroll_region(
 		end = ml_model_end_row( &edit->model) ;
 	}
 
-	edit->scroll_region_beg = beg ;
-	edit->scroll_region_end = end ;
+	edit->vmargin_beg = beg ;
+	edit->vmargin_end = end ;
 
 	return  1 ;
 }
@@ -1459,10 +1487,27 @@ ml_edit_scroll_leftward(
 	orig_mode = edit->is_relative_origin ;
 	edit->is_relative_origin = 1 ;	/* Compatible with RLogin */
 
-	ml_edit_copy_area( edit , size , 0 ,
-		ml_edit_get_cols( edit) - size , ml_edit_get_rows( edit) , 0 , 0) ;
-	ml_edit_erase_area( edit , ml_edit_get_cols( edit) - size , 0 ,
-		size , ml_edit_get_rows( edit)) ;
+#if  0
+	if( ! edit->is_relative_origin)
+	{
+		ml_edit_copy_area( edit , size , 0 ,
+			ml_edit_get_cols( edit) - size , ml_edit_get_rows( edit) ,
+			0 , 0) ;
+		ml_edit_erase_area( edit ,
+			ml_edit_get_cols( edit) - size , 0 ,
+			size , ml_edit_get_rows( edit)) ;
+	}
+	else
+#endif
+	{
+		ml_edit_copy_area( edit , size , 0 ,
+			edit->hmargin_end - edit->hmargin_beg + 1 - size ,
+			edit->vmargin_end - edit->vmargin_beg + 1 ,
+			0 , 0) ;
+		ml_edit_erase_area( edit ,
+			edit->hmargin_end - edit->hmargin_beg + 1 - size , 0 ,
+			size , edit->vmargin_end - edit->vmargin_beg + 1) ;
+	}
 
 	edit->is_relative_origin = orig_mode ;
 
@@ -1480,12 +1525,97 @@ ml_edit_scroll_rightward(
 	orig_mode = edit->is_relative_origin ;
 	edit->is_relative_origin = 1 ;	/* Compatible with RLogin */
 
-	ml_edit_copy_area( edit , 0 , 0 ,
-		ml_edit_get_cols( edit) - size , ml_edit_get_rows( edit) , size , 0) ;
-	ml_edit_erase_area( edit , 0 , 0 ,
-		size , ml_edit_get_rows( edit)) ;
+#if  0
+	if( ! edit->is_relative_origin)
+	{
+		ml_edit_copy_area( edit , 0 , 0 ,
+			ml_edit_get_cols( edit) - size , ml_edit_get_rows( edit) ,
+			size , 0) ;
+		ml_edit_erase_area( edit , 0 , 0 ,
+			size , ml_edit_get_rows( edit)) ;
+	}
+	else
+#endif
+	{
+		ml_edit_copy_area( edit , 0 , 0 ,
+			edit->hmargin_end - edit->hmargin_beg + 1 - size ,
+			edit->vmargin_end - edit->vmargin_beg + 1 ,
+			size , 0) ;
+		ml_edit_erase_area( edit , 0 , 0 ,
+			size , edit->vmargin_end - edit->vmargin_beg + 1) ;
+	}
 
 	edit->is_relative_origin = orig_mode ;
+
+	return  1 ;
+}
+
+int
+ml_edit_scroll_leftward_from_cursor(
+	ml_edit_t *  edit ,
+	u_int  width
+	)
+{
+	int  src ;
+	u_int  height ;
+
+	if( ! CURSOR_IS_INSIDE_HMARGIN(edit) ||
+	    ! CURSOR_IS_INSIDE_VMARGIN(edit))
+	{
+		return  0 ;
+	}
+
+	height = edit->vmargin_end - edit->vmargin_beg + 1 ;
+
+	if( ( src = edit->cursor.col + width) <= edit->hmargin_end)
+	{
+		copy_area( edit ,
+			src , edit->vmargin_beg ,
+			edit->hmargin_end - src + 1 , height ,
+			edit->cursor.col , edit->vmargin_beg) ;
+	}
+	else
+	{
+		width = edit->hmargin_end - edit->cursor.col + 1 ;
+	}
+
+	erase_area( edit , edit->hmargin_end - width + 1 , edit->vmargin_beg ,
+		width , height) ;
+
+	return  1 ;
+}
+
+int
+ml_edit_scroll_rightward_from_cursor(
+	ml_edit_t *  edit ,
+	u_int  width
+	)
+{
+	int  dst ;
+	u_int  height ;
+
+	if( ! CURSOR_IS_INSIDE_HMARGIN(edit) ||
+	    ! CURSOR_IS_INSIDE_VMARGIN(edit))
+	{
+		return  0 ;
+	}
+
+	height = edit->vmargin_end - edit->vmargin_beg + 1 ;
+
+	if( ( dst = edit->cursor.col + width) <= edit->hmargin_end)
+	{
+		copy_area( edit ,
+			edit->cursor.col , edit->vmargin_beg ,
+			edit->hmargin_end - dst + 1 , height ,
+			dst , edit->vmargin_beg) ;
+	}
+	else
+	{
+		width = edit->hmargin_end - edit->cursor.col + 1 ;
+	}
+
+	erase_area( edit , edit->hmargin_beg , edit->vmargin_beg ,
+		width , height) ;
 
 	return  1 ;
 }
@@ -1543,7 +1673,7 @@ ml_edit_scroll_downward(
 }
 
 int
-ml_edit_set_use_margin(
+ml_edit_set_use_hmargin(
 	ml_edit_t *  edit ,
 	int  use
 	)
@@ -1551,8 +1681,8 @@ ml_edit_set_use_margin(
 	if( use <= 0)
 	{
 		edit->use_margin = 0 ;
-		edit->margin_beg = 0 ;
-		edit->margin_end = edit->model.num_of_cols - 1 ;
+		edit->hmargin_beg = 0 ;
+		edit->hmargin_end = edit->model.num_of_cols - 1 ;
 	}
 	else
 	{
@@ -1568,7 +1698,7 @@ ml_edit_set_use_margin(
 }
 
 int
-ml_edit_set_margin(
+ml_edit_set_hmargin(
 	ml_edit_t *  edit ,
 	int  beg ,
 	int  end
@@ -1576,8 +1706,8 @@ ml_edit_set_margin(
 {
 	if( edit->use_margin && 0 <= beg && beg < end && end < edit->model.num_of_cols)
 	{
-		edit->margin_beg = beg ;
-		edit->margin_end = end ;
+		edit->hmargin_beg = beg ;
+		edit->hmargin_end = end ;
 
 		ml_edit_goto_home( edit) ;
 
@@ -1590,21 +1720,21 @@ ml_edit_set_margin(
 }
 
 int
-ml_edit_vertical_forward_tabs(
+ml_edit_forward_tabs(
 	ml_edit_t *  edit ,
 	u_int  num
 	)
 {
-	return  vertical_tabs( edit , num , 1) ;
+	return  horizontal_tabs( edit , num , 1) ;
 }
 
 int
-ml_edit_vertical_backward_tabs(
+ml_edit_backward_tabs(
 	ml_edit_t *  edit ,
 	u_int  num
 	)
 {
-	return  vertical_tabs( edit , num , 0) ;
+	return  horizontal_tabs( edit , num , 0) ;
 }
 
 int
@@ -1722,10 +1852,10 @@ ml_edit_goto_beg_of_line(
 {
 	reset_wraparound_checker( edit) ;
 
-	if( edit->margin_beg > 0 && edit->cursor.col >= edit->margin_beg)
+	if( edit->hmargin_beg > 0 && edit->cursor.col >= edit->hmargin_beg)
 	{
 		return  ml_cursor_goto_by_col( &edit->cursor ,
-				edit->margin_beg , edit->cursor.row) ;
+				edit->hmargin_beg , edit->cursor.row) ;
 	}
 	else
 	{
@@ -1760,9 +1890,9 @@ ml_edit_go_forward(
 	ml_cursor_dump( &edit->cursor) ;
 #endif
 
-	if( CURSOR_IS_INSIDE_MARGIN(edit))
+	if( CURSOR_IS_INSIDE_HMARGIN(edit))
 	{
-		num_of_cols = edit->margin_end + 1 ;
+		num_of_cols = edit->hmargin_end + 1 ;
 	}
 	else
 	{
@@ -1771,35 +1901,30 @@ ml_edit_go_forward(
 
 	reset_wraparound_checker( edit) ;
 
-	if( ! ml_cursor_go_forward( &edit->cursor))
+	if( edit->cursor.col + 1 >= num_of_cols)
 	{
-		if( ml_line_get_num_of_filled_cols( CURSOR_LINE(edit)) < num_of_cols)
+		if( ! ( flag & WRAPAROUND))
 		{
-			/* This must succeed since the condition above is passed. */
-			ml_line_break_boundary( CURSOR_LINE(edit) , 1) ;
-
-			ml_cursor_go_forward( &edit->cursor) ;
+			return  0 ;
 		}
-		else
+
+		if( ml_is_scroll_lowerlimit( edit , edit->cursor.row))
 		{
-			if( ! ( flag & WRAPAROUND))
+			if( ! ( flag & SCROLL) ||
+			    ( MARGIN_IS_ENABLED(edit) ?
+			      ! scroll_upward_region( edit , 1 , 0) :
+			      ! ml_edsl_scroll_upward( edit , 1)) )
 			{
 				return  0 ;
 			}
-
-			if( ml_is_scroll_lowerlimit( edit , edit->cursor.row))
-			{
-				if( ! ( flag & SCROLL) ||
-				    ( MARGIN_IS_ENABLED(edit) ?
-				      ! scroll_upward_region( edit , 1 , 0) :
-				      ! ml_edsl_scroll_upward( edit , 1)) )
-				{
-					return  0 ;
-				}
-			}
-
-			ml_cursor_cr_lf( &edit->cursor) ;
 		}
+
+		ml_cursor_cr_lf( &edit->cursor) ;
+	}
+	else if( ! ml_cursor_go_forward( &edit->cursor))
+	{
+		ml_line_break_boundary( CURSOR_LINE(edit) , 1) ;
+		ml_cursor_go_forward( &edit->cursor) ;
 	}
 	
 #ifdef  CURSOR_DEBUG
@@ -1848,7 +1973,7 @@ ml_edit_go_back(
 	 * moving backward.
 	 */
 	 
-	if( edit->cursor.char_index == 0 || edit->cursor.char_index == edit->margin_beg)
+	if( edit->cursor.char_index == 0 || edit->cursor.char_index == edit->hmargin_beg)
 	{
 		if( ! ( flag & WRAPAROUND))
 		{
@@ -1986,14 +2111,14 @@ ml_edit_goto(
 
 	if( edit->is_relative_origin)
 	{
-		if( ( row += edit->scroll_region_beg) > edit->scroll_region_end)
+		if( ( row += edit->vmargin_beg) > edit->vmargin_end)
 		{
-			row = edit->scroll_region_end ;
+			row = edit->vmargin_end ;
 		}
 
-		if( ( col += edit->margin_beg) > edit->margin_end)
+		if( ( col += edit->hmargin_beg) > edit->hmargin_end)
 		{
-			col = edit->margin_end ;
+			col = edit->hmargin_end ;
 		}
 	}
 	
@@ -2088,6 +2213,11 @@ ml_edit_fill_area(
 	u_int  cols_rest ;
 	ml_line_t *  line ;
 
+	if( ! apply_relative_origin( edit , &col , &row , &num_of_cols , &num_of_rows))
+	{
+		return  1 ;
+	}
+
 	for( ; num_of_rows > 0 ; num_of_rows --)
 	{
 		line = ml_model_get_line( &edit->model , row++) ;
@@ -2119,32 +2249,32 @@ ml_edit_copy_area(
 {
 	if( edit->is_relative_origin)
 	{
-		if( (src_row += edit->scroll_region_beg) > edit->scroll_region_end ||
-		    (dst_row += edit->scroll_region_beg) > edit->scroll_region_end ||
-		    (src_col += edit->margin_beg) > edit->margin_end ||
-		    (dst_col += edit->margin_beg) > edit->margin_end)
+		if( (src_row += edit->vmargin_beg) > edit->vmargin_end ||
+		    (dst_row += edit->vmargin_beg) > edit->vmargin_end ||
+		    (src_col += edit->hmargin_beg) > edit->hmargin_end ||
+		    (dst_col += edit->hmargin_beg) > edit->hmargin_end)
 		{
 			return  1 ;
 		}
 
-		if( src_row + num_of_copy_rows > edit->scroll_region_end + 1)
+		if( src_row + num_of_copy_rows > edit->vmargin_end + 1)
 		{
-			num_of_copy_rows = edit->scroll_region_end + 1 - src_row ;
+			num_of_copy_rows = edit->vmargin_end + 1 - src_row ;
 		}
 
-		if( dst_row + num_of_copy_rows > edit->scroll_region_end + 1)
+		if( dst_row + num_of_copy_rows > edit->vmargin_end + 1)
 		{
-			num_of_copy_rows = edit->scroll_region_end + 1 - dst_row ;
+			num_of_copy_rows = edit->vmargin_end + 1 - dst_row ;
 		}
 
-		if( src_col + num_of_copy_cols > edit->margin_end + 1)
+		if( src_col + num_of_copy_cols > edit->hmargin_end + 1)
 		{
-			num_of_copy_cols = edit->margin_end + 1 - src_col ;
+			num_of_copy_cols = edit->hmargin_end + 1 - src_col ;
 		}
 
-		if( dst_col + num_of_copy_cols > edit->margin_end + 1)
+		if( dst_col + num_of_copy_cols > edit->hmargin_end + 1)
 		{
-			num_of_copy_cols = edit->margin_end + 1 - dst_col ;
+			num_of_copy_cols = edit->hmargin_end + 1 - dst_col ;
 		}
 	}
 
@@ -2160,29 +2290,142 @@ ml_edit_erase_area(
 	u_int  num_of_cols ,
 	u_int  num_of_rows
 	)
-{	
-	if( edit->is_relative_origin)
+{
+	if( ! apply_relative_origin( edit , &col , &row , &num_of_cols , &num_of_rows))
 	{
-		if( ( row += edit->scroll_region_beg) > edit->scroll_region_end ||
-		    ( col += edit->margin_beg) > edit->margin_end)
-		{
-			return  1 ;
-		}
-
-		if( row + num_of_rows > edit->scroll_region_end + 1)
-		{
-			num_of_rows = edit->scroll_region_end + 1 - row ;
-		}
-
-		if( col + num_of_cols > edit->margin_end + 1)
-		{
-			num_of_cols = edit->margin_end + 1 - col ;
-		}
+		return  1 ;
 	}
 
 	return  erase_area( edit , col , row , num_of_cols , num_of_rows) ;
 }
 
+int
+ml_edit_change_attr_area(
+	ml_edit_t *  edit ,
+	int  col ,
+	int  row ,
+	u_int  num_of_cols ,
+	u_int  num_of_rows ,
+	void (*func)( ml_char_t * , int , int , int , int) ,
+	int  attr
+	)
+{
+	u_int  count ;
+	ml_line_t *  line ;
+	int  char_index ;
+	int  end_char_index ;
+	u_int  cols_rest ;
+	int  bold ;
+	int  underlined ;
+	int  blinking ;
+	int  reversed ;
+
+	if( attr == 0)
+	{
+		bold = underlined = blinking = reversed = -1 ;
+	}
+	else
+	{
+		bold = underlined = blinking = reversed = 0 ;
+
+		if( attr == 1)
+		{
+			bold = 1 ;
+		}
+		else if( attr == 4)
+		{
+			underlined = 1 ;
+		}
+		else if( attr == 5)
+		{
+			blinking = 1 ;
+		}
+		else if( attr == 7)
+		{
+			reversed = 1 ;
+		}
+		else if( attr == 22)
+		{
+			bold = -1 ;
+		}
+		else if( attr == 24)
+		{
+			underlined = -1 ;
+		}
+		else if( attr == 25)
+		{
+			blinking = -1 ;
+		}
+		else if( attr == 27)
+		{
+			reversed = -1 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+
+	if( ! apply_relative_origin( edit , &col , &row , &num_of_cols , &num_of_rows))
+	{
+		return  1 ;
+	}
+
+	for( count = 0 ; count < num_of_rows ; count++)
+	{
+		if( count == 1 && ! edit->use_rect_attr_select)
+		{
+			int  old_col ;
+
+			old_col = col ;
+			col = edit->is_relative_origin ? edit->hmargin_beg : 0 ;
+			num_of_cols += (old_col - col) ;
+		}
+
+		if( ! (line = ml_edit_get_line( edit , row + count)))
+		{
+			continue ;
+		}
+
+		char_index = ml_convert_col_to_char_index( line , &cols_rest , col ,
+					BREAK_BOUNDARY) ;
+		if( char_index >= line->num_of_filled_chars && attr > 7)
+		{
+			continue ;
+		}
+
+		if( cols_rest > 0)
+		{
+			char_index ++ ;
+		}
+
+		if( edit->use_rect_attr_select || count + 1 == num_of_rows)
+		{
+			end_char_index = ml_convert_col_to_char_index( line , NULL ,
+						col + num_of_cols - 1 , BREAK_BOUNDARY) ;
+		}
+		else
+		{
+			end_char_index = ml_convert_col_to_char_index( line , NULL ,
+						edit->is_relative_origin ?
+							edit->hmargin_end :
+							ml_edit_get_cols( edit) - 1 ,
+						BREAK_BOUNDARY) ;
+		}
+
+		ml_line_assure_boundary( line , end_char_index) ;
+
+		ml_line_set_modified( line , char_index , end_char_index) ;
+
+		for( ; char_index <= end_char_index ; char_index++)
+		{
+			(*func)( ml_char_at( line , char_index) ,
+				bold , underlined , blinking , reversed) ;
+		}
+	}
+
+	return  1 ;
+}
 
 /*
  * for debugging.

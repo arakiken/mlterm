@@ -1,3 +1,23 @@
+2015-02-28  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: DECBI, DECFI, DECIC, DECDC, DECST8C, DECSACE,
+	  DECRARA and DECCARA are supported.
+
+	* ml_screen.c: 'scroll' argument is added to ml_screen_go_{forward|back}().
+
+	* ml_edit.[ch]:
+	  - ml_edit_scroll_{left|right}ward_from_cursor() are added.
+	  - ml_edit_change_attr_area() is added.
+	  - ml_edit_set_use_rect_attr_select() is added.
+	  - {h|v}margins are applied in ml_edit_go_forward().
+	  - scroll_region_{beg|end} => vmargin_{beg|end}
+	    margin_{beg|end} => hmargin_{beg|end}
+
+	* ml_line.c: ml_line_{overwrite|fill}() allows 'beg_char_index' argument
+	  to exceed line->num_of_filled_chars.
+
+	* ml_char.[ch]: ml_char_{change|reverse}_attr() are added.
+
 2015-02-25  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/INSTALL: Updated.

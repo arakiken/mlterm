@@ -1,5 +1,7 @@
 ver 3.4.4
 * libvte compatible library supports vte-2.91 (vte 0.38 or later).
+* Support DECBI (ESC 6), DECFI (ESC 9), DECIC(CSI'}), DECDC(CSI'~), DECST8C(CSI?W),
+  DECSACE(CSI*x), DECRARA(CSI$t) and DECCARA(CSI$r).
 * Change the default value of "use_clipboard" option from "false" to "true".
 * Show message on screen if you change settings by "proto:" shortcut.
 * Bug fixes:

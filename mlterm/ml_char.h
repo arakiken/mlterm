@@ -116,6 +116,12 @@ int  ml_char_set( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
 	int  is_bold , int  is_italic , int  underline_style , int  is_crossed_out ,
 	int  is_blinking) ;
 
+void  ml_char_change_attr( ml_char_t *  ch , int  is_bold , int  is_underlined ,
+	int  is_blinking , int  is_reversed) ;
+
+void  ml_char_reverse_attr( ml_char_t *  ch , int  bold , int  underlined ,
+	int  blinking , int  reversed) ;
+
 int  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
 	int  is_fullwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
 	int  is_bold , int  is_italic , int  underline_style , int  is_crossed_out ,

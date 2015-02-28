@@ -13,9 +13,11 @@
 
 #define  IS_ZEROWIDTH(attr)  ((attr) & (0x1 << 20))
 
+#define  IS_UNICODE_AREA_CS(attr)  ((attr) & (0x1 << 17))
+
 /* Combination of UNICODE_AREA, IS_ITALIC, IS_BOLD, IS_FULLWIDTH and CHARSET */
 #define  MLFONT(attr) \
-	((attr) & (0x1 << 17)) ?	/* is unicode area cs or not */ \
+	IS_UNICODE_AREA_CS(attr) ? \
 	((((attr) >> 5) & 0xe00) | ISO10646_UCS4_1 | (((attr) << 7) & 0x1ff000)) : \
 	(((attr) >> 5) & 0xfff)
 
@@ -25,7 +27,7 @@
 #define  IS_BOLD(attr)  ((attr) & (0x1 << 15))
 #define  IS_FULLWIDTH(attr)  ((attr) & (0x1 << 14))
 #define  CHARSET(attr) \
-	((attr) & (0x1 << 17)) ?	/* is unicode area cs or not */ \
+	IS_UNICODE_AREA_CS(attr) ? \
 	ISO10646_UCS4_1 : \
 	(((attr) >> 5) & 0x1ff)
 
@@ -245,6 +247,66 @@ ml_char_set(
 	ch->u.ch.bg_color = bg_color ;
 
 	return  1 ;
+}
+
+void
+ml_char_change_attr(
+	ml_char_t *  ch ,
+	int  is_bold ,		/* 0: don't change, 1: set, -1: unset*/
+	int  is_underlined ,	/* 0: don't change, 1: set, -1: unset*/
+	int  is_blinking ,	/* 0: don't change, 1: set, -1: unset*/
+	int  is_reversed	/* 0: don't change, 1: set, -1: unset*/
+	)
+{
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr))
+	{
+		ch->u.ch.attr = COMPOUND_ATTR( CHARSET(attr) , IS_ZEROWIDTH(attr) ,
+					IS_FULLWIDTH(attr) ,
+					is_bold ? is_bold > 0 : IS_BOLD(attr) ,
+					IS_ITALIC(attr) , IS_UNICODE_AREA_CS(attr) ,
+					is_underlined ? is_underlined > 0 : UNDERLINE_STYLE(attr) ,
+					IS_CROSSED_OUT(attr) ,
+					is_blinking ? is_blinking > 0 : IS_BLINKING(attr) ,
+					IS_COMB(attr)) |
+				(is_reversed ?
+				   (is_reversed > 0 ? IS_REVERSED(0xffffff) : IS_REVERSED(0)) :
+				   IS_REVERSED(attr)) ;
+	}
+}
+
+void
+ml_char_reverse_attr(
+	ml_char_t *  ch ,
+	int  bold ,
+	int  underlined ,
+	int  blinking ,
+	int  reversed
+	)
+{
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr))
+	{
+		ch->u.ch.attr = COMPOUND_ATTR( CHARSET(attr) , IS_ZEROWIDTH(attr) ,
+					IS_FULLWIDTH(attr) ,
+					bold ? ! IS_BOLD(attr) : IS_BOLD(attr) ,
+					IS_ITALIC(attr) , IS_UNICODE_AREA_CS(attr) ,
+					underlined ?
+					  (UNDERLINE_STYLE(attr) ? 0 : UNDERLINE_NORMAL) :
+					  UNDERLINE_STYLE(attr) ,
+					IS_CROSSED_OUT(attr) ,
+					blinking ? ! IS_BLINKING(attr) : IS_BLINKING(attr) ,
+					IS_COMB(attr)) |
+				(reversed ?
+				   (IS_REVERSED(attr) ? IS_REVERSED(0) : IS_REVERSED(0xffffff)) :
+				   IS_REVERSED(attr)) ;
+	}
 }
 
 int

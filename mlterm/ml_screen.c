@@ -2199,7 +2199,8 @@ ml_screen_delete_lines(
 int
 ml_screen_go_forward(
 	ml_screen_t *  screen ,
-	u_int  size
+	u_int  size ,
+	int  scroll
 	)
 {
 	u_int  count ;
@@ -2208,8 +2209,27 @@ ml_screen_go_forward(
 	{
 		if( ! ml_edit_go_forward( screen->edit , 0))
 		{
+			if( scroll)
+			{
+				if( size > ml_edit_get_cols( screen->edit))
+				{
+					size = ml_edit_get_cols( screen->edit) ;
+					if( size <= count)
+					{
+						break ;
+					}
+				}
+
+				ml_edit_scroll_leftward( screen->edit , size - count) ;
+
+				break ;
+			}
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go forward any more.\n") ;
+			else
+			{
+				kik_warn_printf( KIK_DEBUG_TAG
+					" cursor cannot go forward any more.\n") ;
+			}
 		#endif
 		
 			return  0 ;
@@ -2222,7 +2242,8 @@ ml_screen_go_forward(
 int
 ml_screen_go_back(
 	ml_screen_t *  screen ,
-	u_int  size
+	u_int  size ,
+	int  scroll
 	)
 {
 	u_int  count ;
@@ -2231,8 +2252,27 @@ ml_screen_go_back(
 	{
 		if( ! ml_edit_go_back( screen->edit , 0))
 		{
+			if( scroll)
+			{
+				if( size > ml_edit_get_cols( screen->edit))
+				{
+					size = ml_edit_get_cols( screen->edit) ;
+					if( size <= count)
+					{
+						break ;
+					}
+				}
+
+				ml_edit_scroll_rightward( screen->edit , size - count) ;
+
+				break ;
+			}
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go back any more.\n") ;
+			else
+			{
+				kik_warn_printf( KIK_DEBUG_TAG
+					" cursor cannot go back any more.\n") ;
+			}
 		#endif
 					
 			return  0 ;
