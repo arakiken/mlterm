@@ -393,6 +393,7 @@ copy_area(
 		{
 			src_cols_rest = ml_char_cols( src_line->chars +
 						src_char_index + num_of_src_chars - 1) - 1 ;
+			num_of_src_chars -- ;
 		}
 		else
 		{

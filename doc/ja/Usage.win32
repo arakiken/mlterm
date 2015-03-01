@@ -146,11 +146,10 @@ mlcc exec mlclient --serv user@host:port
   ドにコピーすることができます。
 
 * その他 Tips
-  o http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip には、mlconfig を
-    同梱していません(mlconfig は windows 版の gtk+ に依存するため)。
-    このため、設定を変更する場合は、直接 ~/.mlterm/main を編集する必要があります。
-    雛型は、http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip に含まれる
-    etc/mlterm/main を利用してください。
+  o 設定を変更する場合は、Ctrl+右クリックで mlconfig を起動するか、直接
+    ~/.mlterm/main を編集する必要があります。
+    設定ファイルの雛型は、http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip
+    に含まれる etc/mlterm/main を利用してください。
 
     設定を動的に変更する場合には、mlcc コマンドを次のように使用してください。
     $ mlcc encoding eucjp

@@ -1,3 +1,9 @@
+2015-03-01  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c: Minor fix of copy_area().
+
+	* ml_char.c: Arguments of COMPOUND_ATTR() are fixed.
+
 2015-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: DECBI, DECFI, DECIC, DECDC, DECST8C, DECSACE,

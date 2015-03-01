@@ -264,14 +264,14 @@ ml_char_change_attr(
 
 	if( IS_SINGLE_CH(attr))
 	{
-		ch->u.ch.attr = COMPOUND_ATTR( CHARSET(attr) , IS_ZEROWIDTH(attr) ,
-					IS_FULLWIDTH(attr) ,
-					is_bold ? is_bold > 0 : IS_BOLD(attr) ,
-					IS_ITALIC(attr) , IS_UNICODE_AREA_CS(attr) ,
+		ch->u.ch.attr = COMPOUND_ATTR( CHARSET(attr) , IS_ZEROWIDTH(attr)!=0,
+					IS_FULLWIDTH(attr)!=0 ,
+					is_bold ? is_bold > 0 : IS_BOLD(attr)!=0 ,
+					IS_ITALIC(attr)!=0 , IS_UNICODE_AREA_CS(attr)!=0 ,
 					is_underlined ? is_underlined > 0 : UNDERLINE_STYLE(attr) ,
-					IS_CROSSED_OUT(attr) ,
-					is_blinking ? is_blinking > 0 : IS_BLINKING(attr) ,
-					IS_COMB(attr)) |
+					IS_CROSSED_OUT(attr)!=0 ,
+					is_blinking ? is_blinking > 0 : IS_BLINKING(attr)!=0 ,
+					IS_COMB(attr)!=0) |
 				(is_reversed ?
 				   (is_reversed > 0 ? IS_REVERSED(0xffffff) : IS_REVERSED(0)) :
 				   IS_REVERSED(attr)) ;
@@ -293,16 +293,16 @@ ml_char_reverse_attr(
 
 	if( IS_SINGLE_CH(attr))
 	{
-		ch->u.ch.attr = COMPOUND_ATTR( CHARSET(attr) , IS_ZEROWIDTH(attr) ,
-					IS_FULLWIDTH(attr) ,
-					bold ? ! IS_BOLD(attr) : IS_BOLD(attr) ,
-					IS_ITALIC(attr) , IS_UNICODE_AREA_CS(attr) ,
+		ch->u.ch.attr = COMPOUND_ATTR( CHARSET(attr) , IS_ZEROWIDTH(attr)!=0 ,
+					IS_FULLWIDTH(attr)!=0 ,
+					bold ? ! IS_BOLD(attr) : IS_BOLD(attr)!=0 ,
+					IS_ITALIC(attr)!=0 , IS_UNICODE_AREA_CS(attr)!=0 ,
 					underlined ?
 					  (UNDERLINE_STYLE(attr) ? 0 : UNDERLINE_NORMAL) :
 					  UNDERLINE_STYLE(attr) ,
-					IS_CROSSED_OUT(attr) ,
-					blinking ? ! IS_BLINKING(attr) : IS_BLINKING(attr) ,
-					IS_COMB(attr)) |
+					IS_CROSSED_OUT(attr)!=0 ,
+					blinking ? ! IS_BLINKING(attr) : IS_BLINKING(attr)!=0 ,
+					IS_COMB(attr)!=0) |
 				(reversed ?
 				   (IS_REVERSED(attr) ? IS_REVERSED(0) : IS_REVERSED(0xffffff)) :
 				   IS_REVERSED(attr)) ;
