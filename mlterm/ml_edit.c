@@ -391,9 +391,11 @@ copy_area(
 					+ 1 - src_char_index ;
 		if( src_cols_rest == 0)
 		{
-			src_cols_rest = ml_char_cols( src_line->chars +
-						src_char_index + num_of_src_chars - 1) - 1 ;
-			num_of_src_chars -- ;
+			if( ( src_cols_rest = ml_char_cols( src_line->chars +
+						src_char_index + num_of_src_chars - 1) - 1) > 0)
+			{
+				num_of_src_chars -- ;
+			}
 		}
 		else
 		{
