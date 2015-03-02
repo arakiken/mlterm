@@ -6,9 +6,13 @@ bindir = @bindir@
 
 VPATH = ${top_srcdir}/tool/mlclient
 
+LKIK = @LKIK@
+LKIK_DEB = -lkik_deb
+
 CC = @CC@
+LIBTOOL = @LIBTOOL@
 CFLAGS = @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @GUI_CFLAGS@
-LIBS = @SOCK_LIBS@
+LIBS = $(LKIK) @SOCK_LIBS@
 INSTALL = @INSTALL@
 
 BINDIR = $(DESTDIR)$(bindir)
@@ -17,16 +21,20 @@ OBJ = main.o
 
 PROG = mlclient
 
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
 all: $(PROG)
 
 $(PROG): $(OBJ)
-	$(CC) -o $(PROG) $(OBJ) $(LIBS) @LDFLAGS@
-	cp $(PROG) $(PROG)x
+	$(LIBTOOL_LINK) -o $(PROG) $(OBJ:.o=.lo) $(LIBS)
+	$(LIBTOOL_LINK) -o $(PROG)x $(OBJ:.o=.lo) $(LIBS)
 
 .SUFFIXES: .c.o
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(LIBTOOL_CC) $(CFLAGS) -c $<
 
 clean:
 	rm -f $(OBJ) $(PROG) $(PROG).exe $(PROG)x $(PROG)x.exe *core 
@@ -38,7 +46,7 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 install: $(BINDIR)
-	$(INSTALL) -m 755 $(PROG) $(PROG)x $(BINDIR)
+	$(LIBTOOL_INSTALL) -m 755 $(PROG) $(PROG)x $(BINDIR)
 
 uninstall:
 	rm -f $(BINDIR)/$(PROG) $(BINDIR)/$(PROG)x

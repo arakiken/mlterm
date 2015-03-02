@@ -73,20 +73,21 @@ set_daemon_socket_path(
 	struct sockaddr_un *  addr
 	)
 {
-	const char name[] = "/.mlterm/socket" ;
-	const char *  dir ;
+	char *  path ;
 
-	if( ( dir = getenv( "HOME")) == NULL || '/' != dir[0] )
+	if( ( path = kik_get_user_rc_path( "mlterm/socket")) == NULL)
 	{
 	       return  0 ;
 	}
 
-	if( strlen( dir) + sizeof(name) > sizeof( addr->sun_path))
+	if( strlen( path) >= sizeof( addr->sun_path))
 	{
+	       free( path) ;
 	       return  0 ;
 	}
 
-	sprintf( addr->sun_path , "%s%s" , dir , name) ;
+	strcpy( addr->sun_path , path) ;
+	free( path) ;
 	
 	return  1 ;
 }

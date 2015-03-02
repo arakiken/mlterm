@@ -336,13 +336,13 @@ ml_edsl_scroll_upward(
 	 * XXX
 	 * Can this cause unexpected result ?
 	 */
-	if( edit->scroll_region_beg > edit->cursor.row || edit->cursor.row > edit->scroll_region_end)
+	if( edit->vmargin_beg > edit->cursor.row || edit->cursor.row > edit->vmargin_end)
 	{
 		return  0 ;
 	}
 #endif
 
-	return  scroll_upward_region( edit , edit->scroll_region_beg , edit->scroll_region_end , size) ;
+	return  scroll_upward_region( edit , edit->vmargin_beg , edit->vmargin_end , size) ;
 }
 
 int
@@ -356,13 +356,13 @@ ml_edsl_scroll_downward(
 	 * XXX
 	 * Can this cause unexpected result ?
 	 */
-	if( edit->scroll_region_beg > edit->cursor.row || edit->cursor.row > edit->scroll_region_end)
+	if( edit->vmargin_beg > edit->cursor.row || edit->cursor.row > edit->vmargin_end)
 	{
 		return  0 ;
 	}
 #endif
 	
-	return  scroll_downward_region( edit , edit->scroll_region_beg , edit->scroll_region_end , size) ;
+	return  scroll_downward_region( edit , edit->vmargin_beg , edit->vmargin_end , size) ;
 }
 
 /*
@@ -395,7 +395,7 @@ ml_is_scroll_upperlimit(
 	int  row
 	)
 {
-	return  (row == edit->scroll_region_beg) ;
+	return  (row == edit->vmargin_beg) ;
 }
 
 int
@@ -404,7 +404,7 @@ ml_is_scroll_lowerlimit(
 	int  row
 	)
 {
-	return  (row == edit->scroll_region_end) ;
+	return  (row == edit->vmargin_end) ;
 }
 
 int
@@ -416,15 +416,15 @@ ml_edsl_insert_new_line(
 	int  start_col ;
 	int  end_row ;
 
-	if( edit->cursor.row < edit->scroll_region_beg ||
-	    edit->scroll_region_end < edit->cursor.row)
+	if( edit->cursor.row < edit->vmargin_beg ||
+	    edit->vmargin_end < edit->cursor.row)
 	{
 		return  0 ;
 	}
 
 	start_row = edit->cursor.row ;
 	start_col = edit->cursor.col ;
-	end_row = edit->scroll_region_end ;
+	end_row = edit->vmargin_end ;
 
 	scroll_downward_region( edit , start_row , end_row , 1) ;
 	ml_cursor_goto_by_col( &edit->cursor , start_col , start_row) ;
@@ -443,8 +443,8 @@ ml_edsl_delete_line(
 	int  end_row ;
 	int  is_logging ;
 
-	if( edit->cursor.row < edit->scroll_region_beg ||
-	    edit->scroll_region_end < edit->cursor.row)
+	if( edit->cursor.row < edit->vmargin_beg ||
+	    edit->vmargin_end < edit->cursor.row)
 	{
 		return  0 ;
 	}
@@ -454,7 +454,7 @@ ml_edsl_delete_line(
 
 	start_row = edit->cursor.row ;
 	start_col = edit->cursor.col ;
-	end_row = edit->scroll_region_end ;
+	end_row = edit->vmargin_end ;
 
 	scroll_upward_region( edit , start_row , end_row , 1) ;
 	ml_edit_clear_lines( edit , end_row , 1) ;

@@ -1,3 +1,11 @@
+2015-03-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit_scroll.c: scroll_region_{beg|end} => vmargin_{beg|end}
+
+	* mlclien/main.c, mlclient/Makefile.in:
+	  https://gist.github.com/hattya/97df7df875d72d8030bb is merged.
+	  (Thanks to @hattya)
+
 2015-03-01  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c: Minor fix of copy_area().
