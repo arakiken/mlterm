@@ -1789,7 +1789,7 @@ x_window_resize(
 	/* Max width of each window is DisplayWidth(). */
 	if( (flag & LIMIT_RESIZE) && win->disp->width < width)
 	{
-		win->width = win->disp->width ;
+		win->width = win->disp->width - win->hmargin * 2 ;
 	}
 	else
 	{
@@ -1799,7 +1799,7 @@ x_window_resize(
 	/* Max height of each window is DisplayHeight(). */
 	if( (flag & LIMIT_RESIZE) && win->disp->height < height)
 	{
-		win->height = win->disp->height ;
+		win->height = win->disp->height - win->vmargin * 2 ;
 	}
 	else
 	{

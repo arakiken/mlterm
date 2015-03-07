@@ -306,6 +306,8 @@ int  ml_term_set_icon_path( ml_term_t *  term , const char *  path) ;
 
 void  ml_term_set_bidi_separators( ml_term_t *  term , const char *  bidi_separators) ;
 
+#define  ml_term_get_cmd_line( term)  ml_pty_get_cmd_line( (term)->pty)
+
 #define  ml_term_start_config_menu( term , cmd_path , x , y , display) \
 		ml_reset_pending_vt100_sequence( (term)->parser) ; \
 		ml_start_config_menu( (term)->pty , cmd_path , x , y , display)

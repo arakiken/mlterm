@@ -51,6 +51,12 @@
 	GetSystemMetrics(SM_CYCAPTION)
 #endif
 
+/* win->width is not multiples of (win)->width_inc if window is maximized. */
+#define  RIGHT_MARGIN(win) \
+	((win)->width_inc ? ((win)->width - (win)->min_width) % (win)->width_inc : 0)
+#define  BOTTOM_MARGIN(win) \
+	((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
+
 #if  0
 #define  DEBUG_SCROLLABLE
 #endif
@@ -373,7 +379,12 @@ notify_move_to_children(
 {
 	int  count ;
 
-	if( ! win->parent)
+	
+	if( win->wall_picture)
+	{
+		/* If win->wall_picture is set, is_scrollable is always 0. */
+	}
+	else if( ! win->parent)
 	{
 		int  is_scrollable ;
 
@@ -716,57 +727,74 @@ clear_margin_area(
 	x_window_t *  win
 	)
 {
+	u_int  right_margin ;
+	u_int  bottom_margin ;
+	u_int  win_width ;
+	u_int  win_height ;
+
 	if( win->gc->gc == None)
 	{
 		return  0 ;
 	}
 
+	right_margin = RIGHT_MARGIN(win) ;
+	bottom_margin = BOTTOM_MARGIN(win) ;
+	win_width = win->width - right_margin ;
+	win_height = win->height - bottom_margin ;
+
 	if( win->wall_picture)
 	{
-		if( win->hmargin > 0)
+		if( win->hmargin > 0 || right_margin > 0)
 		{
-			BitBlt( win->gc->gc , 0 , 0 , win->hmargin , ACTUAL_HEIGHT(win) ,
+			BitBlt( win->gc->gc , 0 , 0 ,
+				win->hmargin , ACTUAL_HEIGHT(win) + right_margin ,
 				win->wall_picture , 0 , 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc , win->width + win->hmargin , 0 ,
-				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				win->wall_picture , win->width + win->hmargin , 0 ,
-				SRCCOPY) ;
+			BitBlt( win->gc->gc , win_width + win->hmargin , 0 ,
+				win->hmargin + right_margin ,
+				ACTUAL_HEIGHT(win) + bottom_margin ,
+				win->wall_picture ,
+				win_width + win->hmargin , 0 , SRCCOPY) ;
 		}
 
-		if( win->vmargin > 0)
+		if( win->vmargin > 0 || bottom_margin > 0)
 		{
 			BitBlt( win->gc->gc , win->hmargin , 0 ,
-				win->width + win->hmargin , win->vmargin ,
-				win->wall_picture , win->hmargin , 0 , SRCCOPY) ;
-			BitBlt( win->gc->gc, win->hmargin , win->height + win->vmargin ,
-				win->width + win->hmargin , ACTUAL_HEIGHT(win) ,
-				win->wall_picture , win->hmargin , win->height + win->vmargin ,
-				SRCCOPY) ;
+				win_width , win->vmargin ,
+				win->wall_picture ,
+				win->hmargin , 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc , win->hmargin , win_height + win->vmargin ,
+				win_width , win->vmargin + bottom_margin ,
+				win->wall_picture ,
+				win->hmargin , win_height + win->vmargin , SRCCOPY) ;
 		}
 	}
 	else
 	{
 		HBRUSH  brush ;
 		RECT  r ;
+		int  right ;
+		int  bottom ;
 
 		brush = x_acquire_brush( win->bg_color.pixel) ;
+		right = ACTUAL_WIDTH(win) + right_margin ;
+		bottom = ACTUAL_HEIGHT(win) + bottom_margin ;
 
-		if( win->hmargin > 0)
+		if( win->hmargin > 0 || right_margin > 0)
 		{
-			SetRect( &r , 0 , 0 , win->hmargin , ACTUAL_HEIGHT(win)) ;
+			SetRect( &r , 0 , 0 , win->hmargin , bottom) ;
 			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r , win->width + win->hmargin , 0 ,
-				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+			SetRect( &r , win_width + win->hmargin , 0 ,
+				right , bottom) ;
 			FillRect( win->gc->gc , &r , brush) ;
 		}
 
-		if( win->vmargin > 0)
+		if( win->vmargin > 0 || bottom_margin > 0)
 		{
 			SetRect( &r , win->hmargin , 0 ,
-				win->width + win->hmargin , win->vmargin) ;
+				win_width + win->hmargin , win->vmargin) ;
 			FillRect( win->gc->gc , &r , brush) ;
-			SetRect( &r , win->hmargin , win->height + win->vmargin ,
-				win->width + win->hmargin , ACTUAL_HEIGHT(win)) ;
+			SetRect( &r , win->hmargin , win_height + win->vmargin ,
+				win_width + win->hmargin , bottom) ;
 			FillRect( win->gc->gc , &r , brush) ;
 		}
 
@@ -1443,7 +1471,7 @@ x_window_resize(
 	/* Max width of each window is screen width. */
 	if( (flag & LIMIT_RESIZE) && win->disp->width < width)
 	{
-		win->width = win->disp->width ;
+		win->width = win->disp->width - win->hmargin * 2 ;
 	}
 	else
 	{
@@ -1453,7 +1481,7 @@ x_window_resize(
 	/* Max height of each window is screen height. */
 	if( (flag & LIMIT_RESIZE) && win->disp->height < height)
 	{
-		win->height = win->disp->height ;
+		win->height = win->disp->height - win->vmargin * 2 ;
 	}
 	else
 	{
@@ -2609,58 +2637,44 @@ x_window_receive_event(
 			u_int  height ;
 			u_int  min_width ;
 			u_int  min_height ;
-			u_int  old_width ;
-			u_int  old_height ;
 
 			width = LOWORD(event->lparam) ;
 			height = HIWORD(event->lparam) ;
 
 			min_width = total_min_width(win) ;
 			min_height = total_min_height(win) ;
-			old_width = ACTUAL_WIDTH(win) ;
-			old_height = ACTUAL_HEIGHT(win) ;
-
-		#if  0
-			kik_debug_printf( "WM_SIZE resized from %d %d to %d %d\n" ,
-				old_width, old_height, width, height) ;
-		#endif
 		
-			if( width < min_width || height < min_height)
+			if( width < min_width + win->hmargin * 2 ||
+			    height < min_height + win->vmargin * 2)
 			{
 				x_window_resize( win,
-					K_MAX(min_width,width) - win->hmargin * 2,
-					K_MAX(min_height,height) - win->vmargin * 2,
+					K_MAX(min_width + win->hmargin * 2 , width) -
+						win->hmargin * 2 ,
+					K_MAX(min_height + win->vmargin * 2 , height) -
+						win->vmargin * 2 ,
 					NOTIFY_TO_MYSELF) ;
 			}
-			else if( width != old_width || height != old_height)
+			else if( width != ACTUAL_WIDTH(win) ||
+			         height != ACTUAL_HEIGHT(win))
 			{
 				u_int  width_surplus ;
 				u_int  height_surplus ;
 
-				if( width >= old_width)
+				if( IsZoomed( x_get_root_window( win)->my_window))
 				{
-					width_surplus = (width - old_width) %
-							total_width_inc(win) ;
+					width_surplus = height_surplus = 0 ;
 				}
 				else
 				{
-					width_surplus = total_width_inc(win) -
-							( (old_width - width) %
-							  total_width_inc(win) ) ;
-				}
+					width_surplus = (width - min_width -
+							 win->hmargin * 2) %
+							total_width_inc(win) ;
 
-				if( height >= old_height)
-				{
-					height_surplus = (height - old_height) %
+					height_surplus = (height - min_height -
+							  win->vmargin * 2) %
 							total_height_inc(win) ;
 				}
-				else
-				{
-					height_surplus = total_height_inc(win) -
-							( (old_height - height) %
-							  total_height_inc(win) ) ;
-				}
-				
+
 				win->width = width - win->hmargin * 2 ;
 				win->height = height - win->vmargin * 2 ;
 

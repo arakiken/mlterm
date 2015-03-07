@@ -70,6 +70,8 @@ char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
 int  ml_start_config_menu( ml_pty_ptr_t  pty , char *  cmd_path ,
 	int  x , int  y , char *  display) ;
 
+char *  ml_pty_get_cmd_line( ml_pty_ptr_t  pty) ;
+
 #ifdef  USE_LIBSSH2
 void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;
 

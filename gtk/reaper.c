@@ -32,7 +32,36 @@
  */
 
 #include "marshal.h"
-#include <vte/reaper.h>
+
+#include  <vte/vte.h>
+#ifndef  VTE_CHECK_VERSION
+#define  VTE_CHECK_VERSION(a,b,c)  (0)
+#endif
+
+#if  ! VTE_CHECK_VERSION(0,38,0)
+#include  <vte/reaper.h>
+#else
+struct _VteReaper
+{
+	GObject  object ;
+} ;
+typedef struct _VteReaper  VteReaper ;
+
+struct _VteReaperClass
+{
+	GObjectClass  parent_class ;
+
+	/* <private> */
+	guint  child_exited_signal ;
+} ;
+typedef struct _VteReaperClass  VteReaperClass ;
+
+#define  VTE_TYPE_REAPER  (vte_reaper_get_type())
+#define  VTE_REAPER(obj)  (G_TYPE_CHECK_INSTANCE_CAST((obj), VTE_TYPE_REAPER, VteReaper))
+
+VteReaper *  vte_reaper_get(void) ;
+#endif
+
 /* In case GTK_CHECK_CAST which is defined in gtktypeutils.h is used in VTE_REAPER macro. */
 #include <gtk/gtk.h>
 

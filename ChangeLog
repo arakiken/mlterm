@@ -1,3 +1,34 @@
+2015-03-06  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/INSTALL: Updated.
+
+	* gtk/reaper.c: Compiling error on vte-2.91 is fixed.
+
+	* win32/x_window.c: Extra margin area at the right and bottom edges is cleared
+	  in maximizing a window.
+
+	* mc_combo.c: gtk_entry_set_width_chars() is used on GTK+-3.x instead of
+	  gtk_widget_set_size_request().
+
+	* mlconfig/main.c: Failure in compiling with GTK+-3.x and libssh2 is fixed.
+
+	* x_screen_manager.c: The same command as the current screen is executed
+	  in open_{screen|pty}().
+
+	* ml_term.h: ml_term_get_cmd_line() is added.
+
+	* ml_pty.[ch]: ml_pty_get_cmd_line() is added.
+
+	* libptyssh/ml_pty_ssh.c: ml_pty_t::cmd_line is stored.
+
+	* ml_pty_intern.h: cmd_line is added to ml_pty_t.
+
+	* vte.c: vte_terminal_set_font_from_string() accepts "[FONT LIST] [FONT SIZE]" format.
+
+	* configure.in:
+	  - Both gtk+-2.0 and gtk+-3.0 are checked.
+	  - The default value of --with-gtk option is changed from 2.0 to 3.0.
+
 2015-03-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit_scroll.c: scroll_region_{beg|end} => vmargin_{beg|end}

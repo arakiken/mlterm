@@ -220,7 +220,11 @@ drag_data_received(
 	gchar **  uris ;
 	gchar *  filename ;
 
+#if  GTK_CHECK_VERSION(2,14,0)
+	uris = g_uri_list_extract_uris( gtk_selection_data_get_data( data)) ;
+#else
 	uris = g_uri_list_extract_uris( data->data) ;
+#endif
 	filename = g_filename_from_uri( uris[0] , NULL , NULL) ;
 	gtk_entry_set_text( GTK_ENTRY(widget) , filename) ;
 	g_free( filename) ;
@@ -245,7 +249,7 @@ ssh_scp_clicked(
 		{ "text/uri-list" , 0 , 0 } ,
 	} ;
 
-	gtk_widget_hide_all( gtk_widget_get_toplevel( widget)) ;
+	gtk_widget_hide( gtk_widget_get_toplevel( widget)) ;
 	
 	dialog = gtk_dialog_new() ;
 	gtk_window_set_title( GTK_WINDOW(dialog) , "mlconfig") ;
@@ -254,19 +258,23 @@ ssh_scp_clicked(
 	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Return") , MY_RESPONSE_RETURN) ;
 	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Exit") , MY_RESPONSE_EXIT) ;
 
+#if  GTK_CHECK_VERSION(2,14,0)
+	content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog)) ;
+#else
 	content_area = GTK_DIALOG(dialog)->vbox ;
-	
+#endif
+
 	hbox = gtk_hbox_new(FALSE , 0) ;
 	gtk_widget_show(hbox) ;
 
 	label = gtk_label_new( _("Local")) ;
 	gtk_widget_show(label) ;
-	gtk_widget_set_usize( label , 70 , 0) ;
+	gtk_widget_set_size_request( label , 70 , -1) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 1) ;
 	
 	local_entry = gtk_entry_new() ;
 	gtk_widget_show(local_entry) ;
-	gtk_widget_set_usize( local_entry , 280 , 0) ;
+	gtk_widget_set_size_request( local_entry , 280 , -1) ;
 	gtk_drag_dest_set( local_entry , GTK_DEST_DEFAULT_ALL ,
 		local_targets , 1 , GDK_ACTION_COPY) ;
 	g_signal_connect( local_entry , "drag-data-received" ,
@@ -280,12 +288,13 @@ ssh_scp_clicked(
 
 	label = gtk_label_new( _("Remote")) ;
 	gtk_widget_show(label) ;
-	gtk_widget_set_usize( label , 70 , 0) ;
+	gtk_widget_set_size_request( label , 70 , -1) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 1) ;
 
 	remote_entry = gtk_entry_new() ;
 	gtk_widget_show(remote_entry) ;
-	gtk_widget_set_usize( remote_entry , 280 , 0) ;
+	gtk_widget_set_size_request( remote_entry , 280 , -1) ;
+
 	gtk_box_pack_start(GTK_BOX(hbox) , remote_entry , FALSE , FALSE , 1) ;
 
 	gtk_container_add( GTK_CONTAINER(content_area) , hbox) ;

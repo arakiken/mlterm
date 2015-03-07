@@ -173,13 +173,18 @@ AC_ARG_WITH(gtk,
 	[  --with-gtk@<:@=ARG@:>@        gtk+ version (2.0|3.0)],
 	gtk_version=$with_gtk)
 if test "$gtk_version" = "" ; then
-	gtk_version=2.0
-elif test "$gtk_version" != "2.0" -a "$gtk_version" != "3.0" ; then
-	echo "GTK+ $gtk_version is not supported. Use GTK+ 2.0."
-	gtk_version=2.0
+	gtk_version=3.0
+fi
+PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
+if test "$have_gtk" != "yes"; then
+	if test "$gtk_version" = "3.0"; then
+		gtk_version=2.0
+	else
+		gtk_version=3.0
+	fi
+	PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
 fi
 
-PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
 GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
 GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
@@ -693,6 +698,8 @@ if test "${have_gtk}" = "yes" ; then
 		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
 		AC_SUBST(VTE_CFLAGS)
 	fi
+else
+	have_vte=no
 fi
 
 tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp"
@@ -1283,5 +1290,7 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
+echo "GTK+                              : $have_gtk ($gtk_version)"
+echo "libvte                            : $have_vte (libvte${LIBVTE_SUFFIX}.la)"
 echo "VT52                              : $vt52"
 echo

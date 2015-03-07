@@ -142,6 +142,7 @@ ml_pty_delete(
 #endif
 
 	free( pty->buf) ;
+	free( pty->cmd_line) ;
 	ml_config_menu_final( &pty->config_menu) ;
 
 	(*pty->final)( pty) ;
@@ -464,4 +465,12 @@ ml_start_config_menu(
 {
 	return  ml_config_menu_start( &pty->config_menu , cmd_path ,
 				x , y , display , pty) ;
+}
+
+char *
+ml_pty_get_cmd_line(
+	ml_pty_t *  pty
+	)
+{
+	return  pty->cmd_line ;
 }

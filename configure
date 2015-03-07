@@ -19954,12 +19954,8 @@ if test "${with_gtk+set}" = set; then :
 fi
 
 if test "$gtk_version" = "" ; then
-	gtk_version=2.0
-elif test "$gtk_version" != "2.0" -a "$gtk_version" != "3.0" ; then
-	echo "GTK+ $gtk_version is not supported. Use GTK+ 2.0."
-	gtk_version=2.0
+	gtk_version=3.0
 fi
-
 
 
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
@@ -20143,6 +20139,81 @@ else
 $as_echo "yes" >&6; }
 	have_gtk=yes
 fi
+if test "$have_gtk" != "yes"; then
+	if test "$gtk_version" = "3.0"; then
+		gtk_version=2.0
+	else
+		gtk_version=3.0
+	fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
+$as_echo_n "checking for GTK... " >&6; }
+
+if test -n "$GTK_CFLAGS"; then
+    pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-\$gtk_version\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-$gtk_version") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-$gtk_version" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$GTK_LIBS"; then
+    pkg_cv_GTK_LIBS="$GTK_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-\$gtk_version\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-$gtk_version") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-$gtk_version" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk+-$gtk_version" 2>&1`
+        else
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk+-$gtk_version" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$GTK_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_gtk=no
+elif test $pkg_failed = untried; then
+	have_gtk=no
+else
+	GTK_CFLAGS=$pkg_cv_GTK_CFLAGS
+	GTK_LIBS=$pkg_cv_GTK_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_gtk=yes
+fi
+fi
+
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
 GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
 GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
@@ -21812,6 +21883,8 @@ fi
 		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
 
 	fi
+else
+	have_vte=no
 fi
 
 tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp"
@@ -28001,5 +28074,7 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
+echo "GTK+                              : $have_gtk ($gtk_version)"
+echo "libvte                            : $have_vte (libvte${LIBVTE_SUFFIX}.la)"
 echo "VT52                              : $vt52"
 echo

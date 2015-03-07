@@ -828,9 +828,13 @@ open_pty(
 	}
 	else
 	{
+		ml_char_encoding_t  encoding ;
 	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 		char *  default_server ;
 		int  show_dialog ;
+		char *  new_cmd_line ;
+		char *  cmd_path ;
+		char **  cmd_argv ;
 	#endif
 		int  ret ;
 
@@ -839,6 +843,8 @@ open_pty(
 			return ;
 		}
 
+		encoding = main_config.encoding ;
+		main_config.encoding = ml_term_get_encoding( screen->term) ;
 	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 		default_server = main_config.default_server ;
 		main_config.default_server = ml_term_get_uri( screen->term) ;
@@ -848,6 +854,18 @@ open_pty(
 		 */
 		show_dialog = main_config.show_dialog ;
 		main_config.show_dialog = 0 ;
+
+		if( ( new_cmd_line = ml_term_get_cmd_line( screen->term)) &&
+		    ( new_cmd_line = kik_str_alloca_dup( new_cmd_line)))
+		{
+			int  argc ;
+
+			cmd_path = main_config.cmd_path ;
+			cmd_argv = main_config.cmd_argv ;
+
+			main_config.cmd_argv = kik_arg_str_to_array( &argc , new_cmd_line) ;
+			main_config.cmd_path = main_config.cmd_argv[0] ;
+		}
 	#endif
 
 		ret = open_pty_intern( new , main_config.cmd_path ,
@@ -856,9 +874,16 @@ open_pty(
 			x_get_root_window( &screen->window)->my_window ,
 			screen->window.width , screen->window.height) ;
 
+		main_config.encoding = encoding ;
 	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 		main_config.default_server = default_server ;
 		main_config.show_dialog = show_dialog ;
+
+		if( new_cmd_line)
+		{
+			main_config.cmd_path = cmd_path ;
+			main_config.cmd_argv = cmd_argv ;
+		}
 	#endif
 
 		if( ! ret)
@@ -1010,13 +1035,19 @@ open_screen(
 	)
 {
 	char *  disp_name ;
+	ml_char_encoding_t  encoding ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	char *  default_server ;
 	int  show_dialog ;
+	char *  new_cmd_line ;
+	char *  cmd_path ;
+	char **  cmd_argv ;
 #endif
 
 	disp_name = main_config.disp_name ;
 	main_config.disp_name = cur_screen->window.disp->name ;
+	encoding = main_config.encoding ;
+	main_config.encoding = ml_term_get_encoding( cur_screen->term) ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	default_server = main_config.default_server ;
 	main_config.default_server = ml_term_get_uri( cur_screen->term) ;
@@ -1026,6 +1057,18 @@ open_screen(
 	 */
 	show_dialog = main_config.show_dialog ;
 	main_config.show_dialog = 0 ;
+
+	if( ( new_cmd_line = ml_term_get_cmd_line( cur_screen->term)) &&
+	    ( new_cmd_line = kik_str_alloca_dup( new_cmd_line)))
+	{
+		int  argc ;
+
+		cmd_path = main_config.cmd_path ;
+		cmd_argv = main_config.cmd_argv ;
+
+		main_config.cmd_argv = kik_arg_str_to_array( &argc , new_cmd_line) ;
+		main_config.cmd_path = main_config.cmd_argv[0] ;
+	}
 #endif
 
 	if( ! open_screen_intern( NULL))
@@ -1036,9 +1079,16 @@ open_screen(
 	}
 
 	main_config.disp_name = disp_name ;
+	main_config.encoding = encoding ;
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	main_config.default_server = default_server ;
 	main_config.show_dialog = show_dialog ;
+
+	if( new_cmd_line)
+	{
+		main_config.cmd_path = cmd_path ;
+		main_config.cmd_argv = cmd_argv ;
+	}
 #endif
 }
 

@@ -1830,7 +1830,7 @@ ml_pty_ssh_new(
 		if( libssh2_session_last_errno( pty->session->obj) != LIBSSH2_ERROR_EAGAIN)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Unable to open a session\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG " Unable to open a channel\n") ;
 		#endif
 
 			goto  error2 ;
@@ -1894,7 +1894,8 @@ ml_pty_ssh_new(
 		if( ret != LIBSSH2_ERROR_EAGAIN)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Failed to request pty\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG " Failed to request pty. (Err %d)\n" ,
+				ret) ;
 		#endif
 
 			goto  error3 ;
@@ -1912,8 +1913,7 @@ ml_pty_ssh_new(
 	if( cmd_path)
 	{
 		int  count ;
-		char *   cmd_line ;
-		size_t   cmd_line_len ;
+		size_t  cmd_line_len ;
 
 		/* Because cmd_path == cmd_argv[0], cmd_argv[0] is ignored. */
 
@@ -1925,26 +1925,27 @@ ml_pty_ssh_new(
 			cmd_line_len += (strlen(cmd_argv[count]) + 3) ;
 		}
 
-		if( ( cmd_line = alloca( sizeof(char) * cmd_line_len)) == NULL)
+		if( ( pty->pty.cmd_line = malloc( sizeof(char) * cmd_line_len)) == NULL)
 		{
 			goto  error3 ;
 		}
 
-		strcpy( cmd_line, cmd_path) ;
+		strcpy( pty->pty.cmd_line , cmd_path) ;
 		for( count = 1 ; cmd_argv[count] != NULL ; count ++)
 		{
-			sprintf( cmd_line + strlen(cmd_line) ,
+			sprintf( pty->pty.cmd_line + strlen(pty->pty.cmd_line) ,
 				strchr( cmd_argv[count] , ' ') ? " \"%s\"" : " %s" ,
 				cmd_argv[count]) ;
 		}
 
-		while( ( ret = libssh2_channel_exec( pty->channel , cmd_line)) < 0)
+		while( ( ret = libssh2_channel_exec( pty->channel , pty->pty.cmd_line)) < 0)
 		{
 			if( ret != LIBSSH2_ERROR_EAGAIN)
 			{
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
-					" Unable to exec %s on allocated pty\n" , cmd_line) ;
+					" Unable to exec %s on allocated pty. (Err %d)\n" ,
+					pty->pty.cmd_line , ret) ;
 			#endif
 
 				goto  error3 ;
@@ -1960,7 +1961,8 @@ ml_pty_ssh_new(
 			{
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
-					" Unable to request shell on allocated pty\n") ;
+					" Unable to request shell on allocated pty. (Err %d)\n" ,
+					ret) ;
 			#endif
 
 				goto  error3 ;

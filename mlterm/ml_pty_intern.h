@@ -40,6 +40,8 @@ typedef struct  ml_pty
 
 	} *  stored ;
 
+	char *  cmd_line ;
+
 } ml_pty_t ;
 
 

@@ -5,6 +5,9 @@
 
 #undef  VTE_SEAL_ENABLE
 #include  <vte/vte.h>
+#ifndef  VTE_CHECK_VERSION
+#define  VTE_CHECK_VERSION(a,b,c)  (0)
+#endif
 
 #include  <pwd.h>			/* getpwuid */
 #include  <X11/keysym.h>
@@ -90,10 +93,6 @@ int  vte_reaper_add_child( GPid  pid) ;
 #define  VTE_WIDGET(screen)  ((VteTerminal*)(screen)->system_listener->self)
 /* XXX Hack to distinguish x_screen_t from x_{candidate|status}_screent_t */
 #define  IS_MLTERM_SCREEN(win)  (! PARENT_WINDOWID_IS_TOP(win))
-
-#ifndef  VTE_CHECK_VERSION
-#define  VTE_CHECK_VERSION(a,b,c)  (0)
-#endif
 
 #if ! VTE_CHECK_VERSION(0,38,0)
 #define  WINDOW_MARGIN  1
@@ -4181,6 +4180,8 @@ vte_terminal_set_font_from_string(
 	const char *  name
 	)
 {
+	char *  p ;
+
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_font_from_string %s\n" , name) ;
 #endif
@@ -4188,6 +4189,36 @@ vte_terminal_set_font_from_string(
 	if( ! name)
 	{
 		name = "monospace" ;
+	}
+	else if( ( p = strchr( name , ',')))
+	{
+		/*
+		 * name contains font list like "Ubuntu Mono,monospace 13"
+		 * (see manual of pango_font_description_from_string())
+		 */
+		char *  new_name ;
+
+		if( ! ( new_name = alloca( p - name + 1)))
+		{
+			return ;
+		}
+
+		memcpy( new_name , name , p - name) ;
+		new_name[p - name] = '\0' ;
+
+		p = name + strlen(name) - 1 ;
+		if( '0' <= *p && *p <= '9')
+		{
+			do
+			{
+				p -- ;
+			}
+			while( '0' <= *p && *p <= '9') ;
+
+			strcat( new_name , p) ;
+		}
+
+		name = new_name ;
 	}
 
 	if( x_customize_font_file( "aafont" , "DEFAULT" , name , 0))
