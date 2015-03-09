@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/select.h>	/* select */
+#include <sys/stat.h>
 #include <string.h> /* memset, strchr */
 #include <stdlib.h> /* atoi */
 #include <termios.h> /* tcgetattr/tcsetattr */
 #include "comm.h"
 
 static char internal_buffer[512];
-static char mlterm_pass[64];
+static char mlterm_pass[65];
 #define COLORID_DEFAULT 9
 
 static int choosed_color = 2;
@@ -41,11 +42,20 @@ static void csi(const char *str){
 static void reload_passwd(void){
 	FILE * file;
 	char local_buffer[256];
+	size_t len;
+	struct stat st;
 	if( mlterm_pass[0])
 		return;
+	if( !getenv("MLTERM"))
+		return;		/* is on remote host. */
 	if( !getenv("HOME"))
-		return ;
-	sprintf(local_buffer, "%s%s", getenv("HOME"), "/.mlterm/challenge");
+		return;
+	snprintf(local_buffer, sizeof(local_buffer), "%s%s", getenv("HOME"), "/.config/mlterm");
+	if( stat(local_buffer, &st) == 0 && sizeof(local_buffer) - strlen(local_buffer) >= 11)
+		strcat(local_buffer, "/challenge");
+	else
+		snprintf(local_buffer, sizeof(local_buffer), "%s%s",
+			getenv("HOME"), "/.mlterm/challenge");
 	file = fopen(local_buffer, "r");
 	if( !file){
 		csi("]5379;gen_proto_challange\007");
@@ -55,8 +65,10 @@ static void reload_passwd(void){
 	if( !file){
 		mlterm_pass[0] = 0 ;
 		return;
-	}	
-	fread(mlterm_pass, 1, 63, file);	
+	}
+	len = fread(mlterm_pass, 1, sizeof(mlterm_pass) - 2, file);
+	mlterm_pass[len] = ';';
+	mlterm_pass[len+1] = '\0';
 	/*fprintf( stderr, "%d\n",fread(mlterm_pass, 1, 63, file) );*/
 	/*fprintf( stderr, "%s\n", mlterm_pass);*/
 	fclose(file);
@@ -227,7 +239,7 @@ int term_size(int *w, int *h){
 char * mlterm_get_color_param(const char * key){
 	reload_passwd() ;
 
-	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;color:%s\007",
+	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%scolor:%s\007",
 		mlterm_pass, key);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
@@ -238,7 +250,7 @@ char * mlterm_get_color_param(const char * key){
 char * mlterm_get_font_param(const char * file, const char * key){
 	reload_passwd() ;
 
-	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;%s:%s\007",
+	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s%s:%s\007",
 		mlterm_pass, file, key);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
@@ -249,7 +261,7 @@ char * mlterm_get_font_param(const char * file, const char * key){
 char * mlterm_get_param(const char * key){
 	reload_passwd() ;
 
-	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;%s\007", mlterm_pass, key);
+	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s%s\007", mlterm_pass, key);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
 

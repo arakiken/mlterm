@@ -169,12 +169,22 @@ utf16_parser_next_char(
 		}
 		else
 		{
+			mkf_parser_n_increment( parser , 2) ;
+
+			if( ( ucs4 = mkf_bytes_to_int( ch , 2)) <= 0x7f)
+			{
+				ucs4_ch->ch[0] = ucs4 ;
+				ucs4_ch->cs = US_ASCII ;
+				ucs4_ch->size = 1 ;
+				ucs4_ch->property = 0 ;
+
+				return  1 ;
+			}
+
 			ucs4_ch->ch[0] = 0x0 ;
 			ucs4_ch->ch[1] = 0x0 ;
 			ucs4_ch->ch[2] = ch[0] ;
 			ucs4_ch->ch[3] = ch[1] ;
-
-			ucs4 = mkf_bytes_to_int( ch , 2) ;
 
 			mkf_parser_n_increment( parser , 2) ;
 		}

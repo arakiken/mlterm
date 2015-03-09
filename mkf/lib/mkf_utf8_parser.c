@@ -38,9 +38,15 @@ utf8_parser_next_char(
 	else if( ( utf8_ch[0] & 0x80) == 0)
 	{
 		/* 0x00 - 0x7f */
-		
-		bytes = 1 ;
-		ucs4_int = utf8_ch[0] ;
+
+		ucs4_ch->ch[0] = utf8_ch[0] ;
+		mkf_parser_n_increment( utf8_parser , 1) ;
+
+		ucs4_ch->size = 1 ;
+		ucs4_ch->cs = US_ASCII ;
+		ucs4_ch->property = 0 ;
+
+		return  1 ;
 	}
 	else if( ( utf8_ch[0] & 0xe0) == 0xc0)
 	{

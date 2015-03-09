@@ -389,7 +389,16 @@ ml_response_config(
 	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , res) ;
 #endif
 
-	if( to_menu)
+	if( to_menu < 0)
+	{
+		if( pty->pty_listener && pty->pty_listener->show_config)
+		{
+			/* '\n' -> '\0' */
+			res[strlen(res) - 1] = '\0' ;
+			(*pty->pty_listener->show_config)( pty->pty_listener->self , res + 1) ;
+		}
+	}
+	else if( to_menu > 0)
 	{
 		ml_config_menu_write( &pty->config_menu , res , res_len) ;
 	}

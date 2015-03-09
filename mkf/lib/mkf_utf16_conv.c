@@ -62,7 +62,8 @@ convert_to_utf16(
 		{
 			return  filled_size ;
 		}
-		
+
+	#if  0
 		if( ch.cs == ISO10646_UCS2_1)
 		{
 			if( filled_size + 2 > dst_size)
@@ -75,6 +76,22 @@ convert_to_utf16(
 			(*dst++) = ch.ch[0] ;
 			(*dst++) = ch.ch[1] ;
 			
+			filled_size += 2 ;
+		}
+		else
+	#endif
+		if( ch.cs == US_ASCII)
+		{
+			if( filled_size + 2 > dst_size)
+			{
+				mkf_parser_reset( parser) ;
+
+				return  filled_size ;
+			}
+
+			(*dst++) = '\0' ;
+			(*dst++) = ch.ch[0] ;
+
 			filled_size += 2 ;
 		}
 		else

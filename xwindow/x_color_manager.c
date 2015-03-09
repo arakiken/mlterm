@@ -503,7 +503,13 @@ x_change_true_transbg_alpha(
 
 #else
 
-#ifndef  USE_WIN32GUI
+#ifdef  USE_WIN32GUI
+	if( alpha == 0)
+	{
+		/* If alpha == 0, window disappears completely. */
+		return  0 ;
+	}
+#else
 	if( color_man->color_cache->disp->depth != 32)
 	{
 		return  0 ;

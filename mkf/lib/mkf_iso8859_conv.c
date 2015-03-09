@@ -12,7 +12,6 @@
 #include  "mkf_iso2022_intern.h"
 #include  "mkf_viet_map.h"
 #include  "mkf_ru_map.h"
-#include  "mkf_ucs4_usascii.h"
 #include  "mkf_ucs4_iso8859.h"
 #include  "mkf_ucs4_map.h"
 
@@ -29,8 +28,7 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( mkf_map_ucs4_to_us_ascii( &c , mkf_char_to_int( ch)) ||
-			mkf_map_ucs4_to_cs( &c , ch , gr_cs))
+		if( mkf_map_ucs4_to_cs( &c , ch , gr_cs))
 		{
 			*ch = c ;
 

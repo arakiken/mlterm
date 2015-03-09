@@ -5337,7 +5337,14 @@ get_config_intern(
 	}
 	else if( strcmp( key , "alpha") == 0)
 	{
-		sprintf( digit , "%d" , screen->pic_mod.alpha) ;
+		if( screen->window.disp->depth < 32)
+		{
+			sprintf( digit , "%d" , screen->color_man->alpha) ;
+		}
+		else
+		{
+			sprintf( digit , "%d" , screen->pic_mod.alpha) ;
+		}
 		value = digit ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)
@@ -7305,6 +7312,15 @@ pty_closed(
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
 
+static void
+show_config(
+	void *  p ,
+	char *  msg
+	)
+{
+	ml_term_show_message( ((x_screen_t*)p)->term , msg) ;
+}
+
 
 /* --- global functions --- */
 
@@ -7504,6 +7520,7 @@ x_screen_new(
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
+	screen->pty_listener.show_config = show_config ;
 
 	if( screen->term)
 	{

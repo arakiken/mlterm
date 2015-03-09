@@ -4,7 +4,7 @@ comment $Id$
 Framebuffer support
 
 * Tested environment
-  Ubuntu 12.10
+  Ubuntu 14.10
   CentOS 5
   (Linux kernel 2.6 or later)
 

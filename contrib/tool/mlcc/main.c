@@ -444,7 +444,14 @@ int main(int argc, char **argv){
 			exit(0);
 		}
 	}
-	
+
+	if(!getenv("MLTERM")){
+		printf("MLTERM env var is not set.\n");
+		printf("(mlcc doesn't work on terminal emulators except mlterm or "
+		       "on a remote host.)\n");
+		exit(1);
+	}
+
 	sigemptyset(&(act.sa_mask));
 	sigaddset(&act.sa_mask,SIGINT | SIGWINCH);
 	act.sa_flags = SA_RESTART;

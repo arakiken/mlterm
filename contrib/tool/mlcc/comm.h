@@ -1,4 +1,4 @@
-#ifndef _COMM_H
+#ifndef _COMM_H_
 
 #define _COMM_H_
 typedef struct Window{

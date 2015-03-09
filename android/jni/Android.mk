@@ -45,7 +45,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		mkf/lib/mkf_uk_map.c mkf/lib/mkf_tg_map.c mkf/lib/mkf_ucs_property.c \
 		mkf/lib/mkf_jisx0208_1983_property.c mkf/lib/mkf_jisx0213_2000_property.c \
 		mkf/lib/mkf_char.c mkf/lib/mkf_sjis_env.c mkf/lib/mkf_tblfunc_loader.c \
-		mkf/lib/mkf_ucs4_usascii.c mkf/lib/mkf_ucs4_iso8859.c mkf/lib/mkf_ucs4_viscii.c \
+		mkf/lib/mkf_ucs4_iso8859.c mkf/lib/mkf_ucs4_viscii.c \
 		mkf/lib/mkf_ucs4_tcvn5712_1.c mkf/lib/mkf_ucs4_koi8.c mkf/lib/mkf_ucs4_georgian_ps.c \
 		mkf/lib/mkf_ucs4_cp125x.c mkf/lib/mkf_ucs4_iscii.c mkf/lib/mkf_ucs4_jisx0201.c \
 		mkf/lib/mkf_ucs4_jisx0208.c mkf/lib/mkf_ucs4_jisx0212.c mkf/lib/mkf_ucs4_jisx0213.c \

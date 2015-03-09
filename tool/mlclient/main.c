@@ -5,11 +5,14 @@
 #include  <stdio.h>
 #include  <stdlib.h>		/* free */
 #include  <sys/types.h>
+#include  <sys/stat.h>
 #include  <unistd.h>		/* write */
 #include  <string.h>		/* memset */
-#include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
-#ifndef  USE_WIN32API
-#include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
+#include  <sys/socket.h>
+#include  <sys/un.h>
+
+#ifndef  AF_LOCAL
+#define  AF_LOCAL  AF_UNIX
 #endif
 
 
@@ -67,31 +70,41 @@ help(void)
 	printf( "   available in mlclientx.)\n") ;
 }
 
-#ifndef  USE_WIN32API
 static int
 set_daemon_socket_path(
 	struct sockaddr_un *  addr
 	)
 {
-	char *  path ;
+	const char  subdir[] = "/.config/mlterm" ;
+	const char *  dir ;
+	size_t  len ;
+	struct stat  st ;
 
-	if( ( path = kik_get_user_rc_path( "mlterm/socket")) == NULL)
+	if( ( dir = getenv( "HOME")) == NULL || '/' != dir[0] )
 	{
 	       return  0 ;
 	}
 
-	if( strlen( path) >= sizeof( addr->sun_path))
+	if( ( len = strlen( dir) + sizeof( subdir) + 1 + 6) <= sizeof( addr->sun_path))
 	{
-	       free( path) ;
-	       return  0 ;
+		sprintf( addr->sun_path , "%s%s" , dir , subdir) ;
+		if( stat( addr->sun_path , &st) == 0)
+		{
+			strcat( addr->sun_path , "/socket") ;
+
+			return  1 ;
+		}
 	}
 
-	strcpy( addr->sun_path , path) ;
-	free( path) ;
-	
+	if( len - 7 > sizeof(addr->sun_path))
+	{
+		return  0 ;
+	}
+
+	sprintf( addr->sun_path , "%s/.mlterm/socket" , dir) ;
+
 	return  1 ;
 }
-#endif
 
 static int
 write_argv(
@@ -196,7 +209,6 @@ main(
 		}
 	}
 
-#ifndef  USE_WIN32API
 	if( strstr( argv[0] , "mlclientx") == NULL)
 	{
 		int  fd ;
@@ -243,7 +255,6 @@ main(
 
 config_proto:
 	fprintf( stderr , "Retrying by configuration protocol.\n") ;
-#endif
 
 	write( STDOUT_FILENO , "\x1b]5379;" , 7) ;
 	write_argv( argc , argv , STDOUT_FILENO) ;

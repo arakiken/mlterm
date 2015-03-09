@@ -64,14 +64,23 @@ convert_to_utf32(
 		{
 			return  filled_size ;
 		}
-		
-		if( ch.cs == ISO10646_UCS2_1)
+
+		if( ch.cs == US_ASCII)
+		{
+			dst[0] = 0x0 ;
+			dst[1] = 0x0 ;
+			dst[2] = 0x0 ;
+			dst[3] = ch.ch[0] ;
+		}
+	#if  0
+		else if( ch.cs == ISO10646_UCS2_1)
 		{
 			dst[0] = 0x0 ;
 			dst[1] = 0x0 ;
 			dst[2] = ch.ch[0] ;
 			dst[3] = ch.ch[1] ;
 		}
+	#endif
 		else if( ch.cs == ISO10646_UCS4_1)
 		{
 			dst[0] = ch.ch[0] ;

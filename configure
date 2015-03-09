@@ -21951,9 +21951,11 @@ mlterm-menu)
 	fi
 	;;
 mlclient)
-	MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
-	OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
-	tools_result="$tools_result $tool"
+	if test "$ml_cv_is_posix" = "yes" ; then
+		MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
+		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
+		tools_result="$tools_result $tool"
+	fi
 	;;
 w3mmlconfig)
 	# Extract the first word of "perl", so it can be a program name with args.
@@ -28069,7 +28071,16 @@ echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
 echo "utmp support                      : $utmp"
-echo "Type engines                      :$type_engines_result"
+if test "$gui" = "fb"; then
+	echo -n "Supported font formats            : "
+	if test "$have_ft" = "yes"; then
+		echo "pcf ttf"
+	else
+		echo "pcf"
+	fi
+elif test "$gui" != "win32"; then
+	echo "Type engines                      :$type_engines_result"
+fi
 echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"

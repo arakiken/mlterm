@@ -6,7 +6,6 @@
 
 #include  "mkf_iso2022_intern.h"
 #include  "mkf_ucs4_map.h"
-#include  "mkf_ucs4_usascii.h"
 #include  "mkf_ucs4_ksc5601.h"
 #include  "mkf_ucs4_uhc.h"
 #include  "mkf_ucs4_johab.h"
@@ -19,7 +18,6 @@
  */
 static mkf_map_ucs4_to_func_t  map_ucs4_to_funcs[] =
 {
-	mkf_map_ucs4_to_us_ascii ,
 	mkf_map_ucs4_to_johab ,
 	mkf_map_ucs4_to_ksc5601_1987 ,
 	mkf_map_ucs4_to_uhc ,

@@ -12,20 +12,26 @@
 
 /* --- static functions --- */
 
-static void
+static int
 remap_unsupported_charset(
 	mkf_char_t *  ch
 	)
 {
 	mkf_char_t  c ;
 
-	if( ch->cs != ISO10646_UCS4_1 && ch->cs != ISO10646_UCS2_1)
+	if( ch->cs != US_ASCII && ch->cs != ISO10646_UCS4_1 /* && ch->cs != ISO10646_UCS2_1 */)
 	{
 		if( mkf_map_to_ucs4( &c , ch))
 		{
 			*ch = c ;
 		}
+		else
+		{
+			return  0 ;
+		}
 	}
+
+	return  1 ;
 }
 
 static size_t
@@ -42,12 +48,10 @@ convert_to_utf8(
 	filled_size = 0 ;
 	while( mkf_parser_next_char( parser , &ch))
 	{
-		remap_unsupported_charset( &ch) ;
-		
 		/*
 		 * utf8 encoding
 		 */
-		if( ch.cs == ISO10646_UCS4_1 || ch.cs == ISO10646_UCS2_1)
+		if( remap_unsupported_charset( &ch))
 		{
 			u_int32_t  ucs_ch ;
 

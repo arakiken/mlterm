@@ -100,6 +100,15 @@ pty_closed(
 #endif
 }
 
+static void
+show_config(
+	void *  p ,
+	char *  msg
+	)
+{
+	ml_term_show_message( ((native_obj_t *)p)->term , msg) ;
+}
+
 
 #ifdef  USE_LIBSSH2
 static JNIEnv *  env_for_dialog ;
@@ -907,6 +916,7 @@ Java_mlterm_MLTermPty_nativeOpen(
 
 	nativeObj->pty_listener.self = nativeObj ;
 	nativeObj->pty_listener.closed = pty_closed ;
+	nativeObj->pty_listener.show_config = show_config ;
 
 	nativeObj->config_listener.self = nativeObj ;
 	nativeObj->config_listener.set = set_config ;

@@ -5,8 +5,17 @@
 #include "data_entry_numeric.h"
 
 void entry_numeric_reset(entry_t *entry){
-	entry_numeric_t * data = entry->data;
-	mlterm_set_value(entry->key, data->initial);
+	/*
+	 * XXX
+	 * Initial value of "alpha" might be 0 which is the default value of
+	 * x_picture_modifier_t::alpha but mlterm_set_value("alpha", "0")
+	 * unexpectedly changes alpha of true transparency on x composite
+	 * extension or win32.
+	 */
+	if(strcmp(entry->key, "alpha") != 0){
+		entry_numeric_t * data = entry->data;
+		mlterm_set_value(entry->key, data->initial);
+	}
 }
 
 void entry_numeric_apply(entry_t *entry){

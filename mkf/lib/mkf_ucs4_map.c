@@ -7,7 +7,6 @@
 #include  <string.h>
 #include  <kiklib/kik_debug.h>
 
-#include  "mkf_ucs4_usascii.h"
 #include  "mkf_ucs4_iso8859.h"
 #include  "mkf_ucs4_viscii.h"
 #include  "mkf_ucs4_koi8.h"
@@ -40,7 +39,6 @@ typedef struct  map
 
 static map_t  map_table[] =
 {
-	{ US_ASCII , mkf_map_ucs4_to_us_ascii , mkf_map_us_ascii_to_ucs4 } ,
 	{ ISO8859_1_R , mkf_map_ucs4_to_iso8859_1_r , mkf_map_iso8859_1_r_to_ucs4 } ,
 	{ ISO8859_2_R , mkf_map_ucs4_to_iso8859_2_r , mkf_map_iso8859_2_r_to_ucs4 } ,
 	{ ISO8859_3_R , mkf_map_ucs4_to_iso8859_3_r , mkf_map_iso8859_3_r_to_ucs4 } ,

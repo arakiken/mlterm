@@ -7,7 +7,6 @@
 #include  <kiklib/kik_debug.h>
 
 #include  "mkf_ucs4_map.h"
-#include  "mkf_ucs4_usascii.h"
 #include  "mkf_ucs4_cns11643.h"
 #include  "mkf_ucs4_big5.h"
 
@@ -16,7 +15,6 @@
 
 static mkf_map_ucs4_to_func_t  map_ucs4_to_funcs[] =
 {
-	mkf_map_ucs4_to_us_ascii ,
 	mkf_map_ucs4_to_big5 ,
 	mkf_map_ucs4_to_cns11643_1992_1 ,
 	mkf_map_ucs4_to_cns11643_1992_2 ,

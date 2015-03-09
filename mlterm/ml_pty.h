@@ -33,6 +33,8 @@ typedef struct  ml_pty_event_listener
 	/* Called when ml_pty_delete. */
 	void  (*closed)( void *) ;
 
+	void  (*show_config)( void * , char *) ;
+
 } ml_pty_event_listener_t ;
 
 typedef struct  ml_pty *  ml_pty_ptr_t ;

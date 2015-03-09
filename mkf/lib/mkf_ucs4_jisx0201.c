@@ -6,8 +6,6 @@
 
 #include  "mkf_ucs4_jisx0201.h"
 
-#include  "mkf_ucs4_usascii.h"
-
 
 /*
  * XXX
@@ -55,8 +53,6 @@ mkf_map_jisx0201_roman_to_ucs4(
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
-
-		return  1 ;
 	}
 	else if( jis == 0x7e)
 	{
@@ -64,13 +60,16 @@ mkf_map_jisx0201_roman_to_ucs4(
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
-
-		return  1 ;
 	}
 	else
 	{
-		return  mkf_map_us_ascii_to_ucs4( ucs4 , jis) ;
+		ucs4->ch[0] = jis ;
+		ucs4->size = 1 ;
+		ucs4->cs = US_ASCII ;
+		ucs4->property = 0 ;
 	}
+
+	return  1 ;
 }
 
 int

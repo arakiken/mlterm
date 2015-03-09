@@ -7,7 +7,6 @@
 #include  "mkf_ja_jp_map.h"
 
 #include  "mkf_ucs4_map.h"
-#include  "mkf_ucs4_usascii.h"
 #include  "mkf_ucs4_jisx0201.h"
 #include  "mkf_ucs4_jisx0208.h"
 #include  "mkf_ucs4_jisx0212.h"
@@ -18,7 +17,6 @@
 
 static mkf_map_ucs4_to_func_t  map_ucs4_to_funcs[] =
 {
-	mkf_map_ucs4_to_us_ascii ,
 	mkf_map_ucs4_to_jisx0201_roman ,
 	mkf_map_ucs4_to_jisx0201_kata ,
 	mkf_map_ucs4_to_jisx0208_1983 ,

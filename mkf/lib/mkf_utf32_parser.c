@@ -104,24 +104,36 @@ utf32_parser_next_char(
 	}
 	else
 	{
-		if( utf32_parser->is_big_endian)
+		u_int32_t  ucs4 ;
+
+		if( ( ucs4 = mkf_bytes_to_int( ucs4_ch->ch , 4)) <= 0x7f)
 		{
-			memcpy( ucs4_ch->ch , parser->str , 4) ;
+			ucs4_ch->ch[0] = ucs4 ;
+			ucs4_ch->cs = US_ASCII ;
+			ucs4_ch->size = 1 ;
+			ucs4_ch->property = 0 ;
 		}
 		else
 		{
-			ucs4_ch->ch[0] = parser->str[3] ;
-			ucs4_ch->ch[1] = parser->str[2] ;
-			ucs4_ch->ch[2] = parser->str[1] ;
-			ucs4_ch->ch[3] = parser->str[0] ;
+			if( utf32_parser->is_big_endian)
+			{
+				memcpy( ucs4_ch->ch , parser->str , 4) ;
+			}
+			else
+			{
+				ucs4_ch->ch[0] = parser->str[3] ;
+				ucs4_ch->ch[1] = parser->str[2] ;
+				ucs4_ch->ch[2] = parser->str[1] ;
+				ucs4_ch->ch[3] = parser->str[0] ;
+			}
 		}
-
-		mkf_parser_n_increment( parser , 4) ;
 
 		ucs4_ch->cs = ISO10646_UCS4_1 ;
 		ucs4_ch->size = 4 ;
-		ucs4_ch->property = mkf_get_ucs_property( mkf_bytes_to_int( ucs4_ch->ch , 4)) ;
-		
+		ucs4_ch->property = mkf_get_ucs_property( ucs4) ;
+
+		mkf_parser_n_increment( parser , 4) ;
+
 		return  1 ;
 	}
 }

@@ -34,7 +34,7 @@ MAP_OBJ = mkf_ucs4_map.o mkf_locale_ucs4_map.o mkf_zh_cn_map.o mkf_zh_tw_map.o m
 
 PROP_OBJ = mkf_ucs_property.o mkf_jisx0208_1983_property.o mkf_jisx0213_2000_property.o
 
-UCS_TABLE_OBJ = mkf_ucs4_usascii.o mkf_ucs4_iso8859.o mkf_ucs4_viscii.o mkf_ucs4_tcvn5712_1.o \
+UCS_TABLE_OBJ = mkf_ucs4_iso8859.o mkf_ucs4_viscii.o mkf_ucs4_tcvn5712_1.o \
 	mkf_ucs4_koi8.o mkf_ucs4_georgian_ps.o mkf_ucs4_cp125x.o mkf_ucs4_iscii.o \
 	mkf_ucs4_jisx0201.o mkf_ucs4_jisx0208.o mkf_ucs4_jisx0212.o \
 	mkf_ucs4_jisx0213.o mkf_ucs4_ksc5601.o mkf_ucs4_uhc.o mkf_ucs4_johab.o \

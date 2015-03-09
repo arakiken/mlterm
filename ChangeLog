@@ -1,3 +1,43 @@
+2015-03-08  Araki Ken  <arakiken@users.sf.net>
+
+	* mlclient/Makefile.in, mlclient/main.c:
+	  - mlclient doesn't depend on kiklib.
+	  - ~/.config/mlterm/socket is supported.
+
+	* mlcc/data_entry_numeric.c: entry_numeric_reset() does nothing for "alpha".
+
+	* mlcc/comm.c:
+	  - ~/.config/mlterm/challenge is supported.
+	  - OSC 5380 is sent without challenge if mlcc works on a remote host.
+
+	* mlcc/comm.h: _COMM_H -> _COMM_H_
+
+	* mlcc/Makefile, mlclient/Makefile: Added. (For building mlcc or mlclient alone.)
+
+	* x_screen.c, MLTermPty.c: ml_pty_event_listener_t::show_config is implemented.
+
+	* ml_vt100_parser.c:
+	  - If OSC 5380 is received without challenge, to_menu = -1 which calls
+	    ml_pty_event_listener_t::show_config.
+	  - vt100_parser->cs is set before ml_convert_to_internal_ch().
+	  - ml_vt100_parser_show_message() calls {start|stop}_vt100_cmd() with
+	    trigger_xterm_event == 0.
+
+	* ml_pty.[ch]: show_config is added to ml_pty_event_listener_t.
+
+	* mkf_utf8_parser.c, mkf_utf8_conv.c, mkf_utf16_parser.c, mkf_utf16_conv.c,
+	  mkf_utf32_parser.c, mkf_utf32_conv.c:
+	  0x0 - 0x7f characters are treated as US_ASCII instead of ISO10646_UCS4_1.
+
+	* mkf_iso8859_conv.c, mkf_ja_jp_map.c, mkf_ko_kr_map.c, mkf_ru_map.c,
+	  mkf_tg_map.c, mkf_ucs4_jisx0201.c, mkf_ucs4_map.c, mkf_uk_map.c,
+	  mkf_viet_map.c, mkf_zh_cn_map.c, mkf_zh_hk_map.c, mkf_zh_tw_map.c:
+	  mkf_map_ucs4_to_us_ascii() and mkf_map_us_ascii_to_ucs4() are removed.
+
+	* mkf_ucs4_usascii.[ch]: Removed.
+
+	* configure.in: mlclient is not built on win32 mingw.
+
 2015-03-06  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/INSTALL: Updated.

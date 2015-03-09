@@ -1094,11 +1094,6 @@ put_char(
 		is_comb = 0 ;
 	}
 
-	if( vt100_parser->cs != cs)
-	{
-		vt100_parser->cs = cs ;
-	}
-
 	fg_color = vt100_parser->fg_color ;
 	is_italic = vt100_parser->is_italic ;
 	is_crossed_out = vt100_parser->is_crossed_out ;
@@ -2300,13 +2295,23 @@ config_protocol_get(
 	char *  key ;
 	int  ret ;
 
-	/*
-	 * It is assumed that screen is not redrawn not in
-	 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
-	 * is not held between stop_vt100_cmd and start_vt100_cmd.
-	 */
+	if( strchr( pt , ';') == NULL)
+	{
+		/* pt doesn't have challenge */
+		to_menu = -1 ;
+
+		stop_vt100_cmd( vt100_parser , 0) ;
+	}
 #if  0
-	stop_vt100_cmd( vt100_parser , 0) ;
+	else
+	{
+		/*
+		 * It is assumed that screen is not redrawn not in
+		 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
+		 * is not held between stop_vt100_cmd and start_vt100_cmd.
+		 */
+		stop_vt100_cmd( vt100_parser , 0) ;
+	}
 #endif
 
 	ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0 , 0) ;
@@ -2320,7 +2325,7 @@ config_protocol_get(
 		ml_response_config( vt100_parser->pty ,
 			ret < 0 ? "forbidden" : "error" , NULL , 0) ;
 
-		return ;
+		goto  end ;
 	}
 
 	if( dev && strlen( dev) <= 7 && strstr( dev , "font"))
@@ -2350,8 +2355,16 @@ config_protocol_get(
 			vt100_parser->config_listener->self , dev , key , to_menu) ;
 	}
 
+end:
+	if( to_menu == -1)
+	{
+		start_vt100_cmd( vt100_parser , 0) ;
+	}
 #if  0
-	start_vt100_cmd( vt100_parser , 0) ;
+	else
+	{
+		start_vt100_cmd( vt100_parser , 0) ;
+	}
 #endif
 }
 
@@ -6585,12 +6598,24 @@ parse_vt100_sequence(
 		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
 			int  ret ;
+			mkf_charset_t  orig_cs ;
 
+			orig_cs = ch.cs ;
 			ret = ml_convert_to_internal_ch( &ch ,
 				vt100_parser->unicode_policy , vt100_parser->gl) ;
 
 			if( ret == 1)
 			{
+				if( vt100_parser->gl != US_ASCII && orig_cs == US_ASCII)
+				{
+					orig_cs = vt100_parser->gl ;
+				}
+
+				if( vt100_parser->cs != orig_cs)
+				{
+					vt100_parser->cs = orig_cs ;
+				}
+
 			#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 				if( IS_ISCII(ch.cs) && ch.size == 2)
 				{
@@ -6686,7 +6711,7 @@ write_loopback(
 	const u_char *  buf ,
 	size_t  len ,
 	int  enable_local_echo ,
-	int  is_visual
+	int  is_visual	/* 1: stop_vt100_cmd(1), -1: stop_vt100_cmd(0) */
 	)
 {
 	char *  orig_buf ;
@@ -6729,7 +6754,7 @@ write_loopback(
 
 	if( is_visual)
 	{
-		stop_vt100_cmd( vt100_parser , 1) ;
+		stop_vt100_cmd( vt100_parser , is_visual > 0) ;
 	}
 
 	if( orig_left > 0)
@@ -7119,13 +7144,13 @@ ml_vt100_parser_show_message(
 	{
 		sprintf( buf , "\r\n%s\x1b[K" , msg) ;
 
-		return  write_loopback( vt100_parser , buf , len - 2 , 0 , 1) ;
+		return  write_loopback( vt100_parser , buf , len - 2 , 0 , -1) ;
 	}
 	else
 	{
 		sprintf( buf , "\x1b[H%s\x1b[K" , msg) ;
 
-		return  write_loopback( vt100_parser , buf , len - 1 , 1 , 1) ;
+		return  write_loopback( vt100_parser , buf , len - 1 , 1 , -1) ;
 	}
 }
 
@@ -7384,15 +7409,7 @@ ml_convert_to_internal_ch(
 	{
 		u_char  decsp ;
 
-		if( ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f &&
-		    ch.ch[1] == 0x00 && ch.ch[0] == 0x00)
-		{
-			/* this is always done */
-			ch.ch[0] = ch.ch[3] ;
-			ch.size = 1 ;
-			ch.cs = US_ASCII ;
-		}
-		else if( ( unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT) &&
+		if( ( unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT) &&
 			 ( decsp = convert_ucs_to_decsp( mkf_char_to_int(&ch))))
 		{
 			ch.ch[0] = decsp ;

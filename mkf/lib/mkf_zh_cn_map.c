@@ -6,7 +6,6 @@
 
 #include  "mkf_iso2022_intern.h"
 #include  "mkf_ucs4_map.h"
-#include  "mkf_ucs4_usascii.h"
 #include  "mkf_ucs4_gb2312.h"
 #include  "mkf_ucs4_gbk.h"
 
@@ -15,7 +14,6 @@
 
 static  mkf_map_ucs4_to_func_t  map_ucs4_to_funcs[] =
 {
-	mkf_map_ucs4_to_us_ascii ,
 	mkf_map_ucs4_to_gb2312_80 ,
 	mkf_map_ucs4_to_gbk ,
 } ;
