@@ -1107,6 +1107,7 @@ comment $Id$
       Mod4
       Mod5
       Mod  (Mod1Mask - Mod5Mask まですべてにマッチします)
+      Alt  (Modと同じ)
 
       e.g.)
       Control+n=OPEN_SCREEN

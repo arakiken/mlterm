@@ -1,3 +1,14 @@
+2015-03-10  Araki Kena  <arakiken@users.sf.net>
+
+	* 3.4.4 released.
+	  (tag "rel-3_4_4")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.4.4.
+
+	* x_shortcut.c: "Alt" which equals to "Mod" is available in ~/.mlterm/key.
+
 2015-03-08  Araki Ken  <arakiken@users.sf.net>
 
 	* mlclient/Makefile.in, mlclient/main.c:

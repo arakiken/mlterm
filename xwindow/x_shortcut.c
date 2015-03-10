@@ -330,7 +330,8 @@ x_shortcut_parse(
 		{
 			state |= ShiftMask ;
 		}
-		else if( strcmp( key , "Mod") == 0)
+		else if( strcmp( key , "Mod") == 0 ||
+		         strcmp( key , "Alt") == 0)
 		{
 			state |= ModMask ;
 		}

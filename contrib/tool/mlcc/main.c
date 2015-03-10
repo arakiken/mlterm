@@ -446,9 +446,9 @@ int main(int argc, char **argv){
 	}
 
 	if(!getenv("MLTERM")){
-		printf("MLTERM env var is not set.\n");
-		printf("(mlcc doesn't work on terminal emulators except mlterm or "
-		       "on a remote host.)\n");
+		printf("MLTERM environment variable not set.\n");
+		printf("mlcc without options doesn't work on a terminal except mlterm "
+		       "or on a remote host.\n");
 		exit(1);
 	}
 

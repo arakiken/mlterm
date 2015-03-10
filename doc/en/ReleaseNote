@@ -9,6 +9,7 @@ ver 3.4.4
   executes the same command as the current screen connecting to a remote host via libssh2.
 * OSC 5380 without challenge doesn't return "#forbidden" but shows "key=value" on
   the screen temporarily.
+* "Alt" which equals to "Mod" is available in ~/.mlterm/key.
 * Bug fixes:
   Fix unexpected erasure at the bottom line of the screen if you use gnome-terminal
   3.6.2 with libvte compatible library.
