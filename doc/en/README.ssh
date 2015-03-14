@@ -18,3 +18,12 @@ Memo about ssh2
   o Support Agent Forwarding.
   o Support pageant on cygwin.
   o Minor bug fixes.
+
+  "mlterm for win32" in http://mlterm.sf.net/bin.html contains libssh2 camellia
+ branch.
+  If you want to add camellia to preferred cipher list, specify
+ "cipher_list = camellia,..." in ~/.mlterm/main.
+  If you want to use Agent Forwarding,
+  1) Start pageant.
+  2) Input "ssh -A host" to "ExecCmd" entry of the connection dialog.
+  3) Press "OK" button with empty "Pass" entry.

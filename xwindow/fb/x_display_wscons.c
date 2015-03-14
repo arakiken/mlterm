@@ -347,8 +347,15 @@ open_display(
 	struct termios  tm ;
 	static struct wscons_keymap  map[KS_NUMKEYCODES] ;
 
-	if( ( _display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : DEFAULT_FBDEV ,
-					O_RDWR)) < 0)
+	kik_priv_restore_euid() ;
+	kik_priv_restore_egid() ;
+
+	_display.fb_fd = open( ( dev = getenv("FRAMEBUFFER")) ? dev : DEFAULT_FBDEV , O_RDWR) ;
+
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
+
+	if( _display.fb_fd < 0)
 	{
 		kik_error_printf( "Couldn't open %s.\n" , dev ? dev : DEFAULT_FBDEV) ;
 

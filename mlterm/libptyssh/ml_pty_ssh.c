@@ -24,6 +24,7 @@
 #include  <stdio.h>		/* sprintf */
 #ifdef  __CYGWIN__
 #include  <sys/wait.h>
+#include  <windows.h>	/* GetModuleHandle */
 #endif
 
 
@@ -1098,7 +1099,7 @@ error1:
 #endif	/* USE_WIN32API */
 
 #ifdef  __CYGWIN__
-static void
+static int
 check_sig_child(
 	pid_t  pid
 	)
@@ -1109,6 +1110,12 @@ check_sig_child(
 	if( pid > 0 && waitpid( pid , &status , WNOHANG) == pid)
 	{
 		kik_trigger_sig_child( pid) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 #endif
@@ -1121,7 +1128,14 @@ lo_read_pty(
 	)
 {
 #ifdef  __CYGWIN__
-	check_sig_child( pty->config_menu.pid) ;
+	if( check_sig_child( pty->config_menu.pid))
+	{
+		/*
+		 * ml_pty_set_use_loopback(0) is called from sig_child()
+		 * in ml_config_menu.c is called
+		 */
+		return  0 ;
+	}
 #endif
 
 	return  read( pty->master , buf , len) ;
@@ -1135,7 +1149,14 @@ lo_write_to_pty(
 	)
 {
 #ifdef  __CYGWIN__
-	check_sig_child( pty->config_menu.pid) ;
+	if( check_sig_child( pty->config_menu.pid))
+	{
+		/*
+		 * ml_pty_set_use_loopback(0) is called from sig_child()
+		 * in ml_config_menu.c is called
+		 */
+		return  0 ;
+	}
 #endif
 
 	if( len == 1 && buf[0] == '\x03')
@@ -1839,19 +1860,38 @@ ml_pty_ssh_new(
 
 	pty->session->suspended = 0 ;
 
-#ifdef  LIBSSH2_FORWARD_AGENT
 	if( auth_agent_is_available)
 	{
+	#if  defined(__CYGWIN__)
+		static int  (*func)( LIBSSH2_CHANNEL *) ;
+		static int  is_tried ;
+
+		if( ! is_tried)
+		{
+			func = GetProcAddress( GetModuleHandle("cygssh2-1") ,
+					"libssh2_channel_request_auth_agent") ;
+			is_tried = 1 ;
+		}
+
+		if( func)
+		{
+			while( ( ret = (*func)( pty->channel)) == LIBSSH2_ERROR_EAGAIN) ;
+			if( ret == 0)
+			{
+				kik_msg_printf( "Agent forwarding.\n") ;
+			}
+		}
+	#elif  defined(LIBSSH2_FORWARD_AGENT)
 		while( ( ret = libssh2_channel_request_auth_agent( pty->channel))
 				== LIBSSH2_ERROR_EAGAIN) ;
 		if( ret == 0)
 		{
 			kik_msg_printf( "Agent forwarding.\n") ;
 		}
+	#endif
 
 		auth_agent_is_available = 0 ;
 	}
-#endif
 
 	term = NULL ;
 	if( env)

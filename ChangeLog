@@ -1,3 +1,25 @@
+2015-03-14  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.4.5 released.
+	  (tag "rel-3_4_5")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.4.5.
+
+	* ml_vt100_parser.c: to_menu = -1 (show key=value temporarily on the screen)
+	  only if OSC 5380.
+
+	* libptyssh/ml_pty_ssh.c:
+	  - If waitpid() == config_menu.pid and kik_trigger_sig_child() is called,
+	    lo_{read|write_to}_pty() returns without reading pty->master or writing
+	    to pty->slave because kik_trigger_sig_child() disables loopback.
+	  - libssh2_channel_request_auth_agent is called if its symbol is found in
+	    cygssh2-1.dll on cygwin.
+
+	* x_display_{linux|freebsd|wscons}.c: open(FRAMEBUFFER) is held between
+	  kik_priv_restore_{euid|egid}() and kik_priv_change_{euid|egid}().
+
 2015-03-10  Araki Kena  <arakiken@users.sf.net>
 
 	* 3.4.4 released.

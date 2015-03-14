@@ -187,8 +187,7 @@ receive_next_event(void)
 				/* error happened */
 
 			#ifdef  DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " error happened in select. ") ;
-				perror( NULL) ;
+				kik_debug_printf( KIK_DEBUG_TAG " error happened in select.\n") ;
 			#endif
 
 				return ;

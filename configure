@@ -24264,7 +24264,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=mlterm
- VERSION=3.4.4
+ VERSION=3.4.5
 
 
 cat >>confdefs.h <<_ACEOF

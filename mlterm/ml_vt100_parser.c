@@ -2295,7 +2295,7 @@ config_protocol_get(
 	char *  key ;
 	int  ret ;
 
-	if( strchr( pt , ';') == NULL)
+	if( to_menu == 0 && strchr( pt , ';') == NULL)
 	{
 		/* pt doesn't have challenge */
 		to_menu = -1 ;

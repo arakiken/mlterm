@@ -1,3 +1,9 @@
+ver 3.4.5
+* Fix a bug which disabled to start mlconfig. (Enbugged at 3.4.4)
+* Fix hangup when mlconfig exits on cygwin+win32gdi+libssh2.
+* Enable to open a framebuffer device even if normal users aren't permitted to
+  open it on Linux, FreeBSD and {Net|Open}BSD/wscons.
+
 ver 3.4.4
 * Support DECBI(ESC 6), DECFI(ESC 9), DECIC(CSI'}), DECDC(CSI'~), DECST8C(CSI?W),
   DECSACE(CSI*x), DECRARA(CSI$t) and DECCARA(CSI$r).
