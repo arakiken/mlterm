@@ -128,21 +128,12 @@ mlcc exec mlclient --serv user@host:port
   Control+F5="proto:mlclient -sbmod=none --serv user@host:port -e /usr/.../bin/emacsclient -t"
 
 * 画像の利用
-  mlterm は sixel graphics に対応しているので、各種画像を次のように sixel に変換
-  し、リモートホスト上で cat することで画像を表示することができます。
-  $ convert -colors 256 a.png ppm:- | ppmtosixel > a.six
+  cygwin/win32gdi 版も Sixel Graphics に対応しており、これにより画像を表示するこ
+  とができます。(Sixel Graphics による画像表示については、
+  http://qiita.com/arakiken/items/3e4bc9a6e43af0198e46 を参照してください。)
 
-  tw (http://shokai.github.io/tw/) を sixel に対応させた
-  http://bitbucket.org/arakiken/tw/get/sixel.tar.gz をインストールし、ゲスト OS
-  上で動かせば、画像付きでツイートを表示することもできます。
-
-  また、mlterm の独自拡張機能を使用するものですが、
-  http://bitbucket.org/arakiken/w3m/get/remoteimg.tar.gz
-  をインストールすれば、ゲスト OS 上の w3m で画像を表示することもできます。
-  (詳細は http://bitbucket.org/arakiken/mlterm/raw/tip/doc/ja/README.w3m を参照)
-
-  なお、3.3.3以降であれば、表示した画像は、ダブルクリックすることでクリップボー
-  ドにコピーすることができます。
+  なお、表示した画像は、ダブルクリックすることでクリップボードにコピーすることが
+  できます(3.3.3 以降)。
 
 * その他 Tips
   o 設定を変更する場合は、Ctrl+右クリックで mlconfig を起動するか、直接

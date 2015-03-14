@@ -1,3 +1,11 @@
+2015-03-15  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_wscons.c: WSDISPLAYIO_GET_FBINFO is supported.
+
+	* Usage.win32: Updated.
+
+	* version.h.in: 3.4.5 -> 3.4.5post
+
 2015-03-14  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.4.5 released.
