@@ -105,9 +105,33 @@ receive_next_event(void)
 	#ifdef  USE_LIBSSH2
 		if( ml_pty_ssh_poll( &read_fds) > 0)
 		{
-			num_of_displays = 0 ;	/* Don't check FD_ISSET(x_display_fd) */
+			/*
+			 * Call ml_pty_ssh_send_recv_x11() and ml_term_parse_vt100_sequence()
+			 * instead of 'break' here because 'break' here suppresses
+			 * checking x_display etc if use_local_echo option which
+			 * stops receive_bytes in ml_term_parse_vt100_sequence() is enabled.
+			 */
 
-			break ;
+			for( count = num_of_xssh_fds ; count > 0 ; count--)
+			{
+				ml_pty_ssh_send_recv_x11( count - 1 ,
+					xssh_fds[count - 1] >= 0 &&
+					FD_ISSET( xssh_fds[count - 1] , &read_fds)) ;
+			}
+
+			for( count = 0 ; count < num_of_terms ; count ++)
+			{
+				ptyfd = ml_term_get_master_fd( terms[count]) ;
+			#ifdef  OPEN_PTY_ASYNC
+				if( ptyfd >= 0)
+			#endif
+				{
+					if( FD_ISSET( ptyfd , &read_fds))
+					{
+						ml_term_parse_vt100_sequence( terms[count]) ;
+					}
+				}
+			}
 		}
 	#endif
 

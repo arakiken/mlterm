@@ -220,11 +220,15 @@ x_connect_dialog(
 	{
 		*uri = strdup( def_server) ;
 		*exec_cmd = NULL ;
-	}
 
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " Connecting to %s %s\n" , *uri , *pass) ;
-#endif
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Connecting to %s %s\n" , *uri , *pass) ;
+	#endif
+	}
+	else
+	{
+		free( *pass) ;
+	}
 
 	return  ret ;
 }

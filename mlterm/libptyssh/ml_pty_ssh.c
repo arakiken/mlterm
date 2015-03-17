@@ -714,8 +714,7 @@ ssh_connect(
 
 	if( ! auth_success && strstr( userauthlist , "keyboard-interactive"))
 	{
-		free( pass_response) ;
-		pass_response = strdup( pass) ;
+		pass_response = pass ;
 
 		if( libssh2_userauth_keyboard_interactive(
 			session->obj , user , &kbd_callback) == 0)

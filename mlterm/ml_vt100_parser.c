@@ -731,6 +731,7 @@ write_ttyrec_header(
 {
 	u_int32_t  buf[3] ;
 
+#ifdef  HAVE_GETTIMEOFDAY
 	if( ! keep_time)
 	{
 		struct timeval  tval ;
@@ -754,6 +755,7 @@ write_ttyrec_header(
 		write( fd , buf , 12) ;
 	}
 	else
+#endif
 	{
 		lseek( fd , 8 , SEEK_CUR) ;
 
@@ -7140,7 +7142,7 @@ ml_vt100_parser_show_message(
 		return  0 ;
 	}
 
-	if( vt100_parser->screen->stored_edits)
+	if( ml_screen_is_local_echo_mode( vt100_parser->screen))
 	{
 		sprintf( buf , "\r\n%s\x1b[K" , msg) ;
 
@@ -7194,9 +7196,6 @@ ml_vt100_parser_local_echo(
 	{
 		if( buf[count] < 0x20)
 		{
-			ml_screen_local_echo_wait( vt100_parser->screen , 0) ;
-			ml_parse_vt100_sequence( vt100_parser) ;
-
 			return  1 ;
 		}
 	}

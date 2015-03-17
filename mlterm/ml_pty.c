@@ -35,14 +35,6 @@
 #endif
 
 
-/* --- static functions --- */
-
-#ifdef  USE_LIBSSH2
-
-
-#endif	/* USE_LIBSSH2 */
-
-
 /* --- global functions --- */
 
 ml_pty_t *

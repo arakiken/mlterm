@@ -5,6 +5,7 @@
 #include  "ml_screen.h"
 
 #include  <stdlib.h>		/* abs */
+#include  <sys/time.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc/free */
 #include  <kiklib/kik_str.h>	/* strdup */
@@ -781,6 +782,21 @@ check_or_copy_region(
 	return  region_size ;
 }
 
+static u_int32_t
+get_msec_time(void)
+{
+#ifdef  HAVE_GETTIMEOFDAY
+	struct timeval  tv ;
+
+	gettimeofday( &tv , NULL) ;
+
+	/* XXX '/ 1000' => '>> 10' and '* 1000' => '<< 10' */
+	return  (tv.tv_sec << 10) + (tv.tv_usec >> 10) ;
+#else
+	return  time(NULL) << 10 ;
+#endif
+}
+
 
 /* --- global functions --- */
 
@@ -951,10 +967,9 @@ ml_screen_resize(
 	ml_edit_resize( &screen->normal_edit , cols , rows) ;
 	ml_edit_resize( &screen->alt_edit , cols , rows) ;
 
-	if( screen->stored_edits)
+	if( screen->stored_edit)
 	{
-		ml_edit_resize( &screen->stored_edits->normal_edit , cols , rows) ;
-		ml_edit_resize( &screen->stored_edits->alt_edit , cols , rows) ;
+		ml_edit_resize( &screen->stored_edit->edit , cols , rows) ;
 	}
 
 	return  1 ;
@@ -2384,6 +2399,8 @@ ml_screen_use_normal_edit(
 {
 	if( screen->edit != &screen->normal_edit)
 	{
+		ml_screen_disable_local_echo( screen) ;
+
 		screen->normal_edit.bce_ch = screen->alt_edit.bce_ch ;
 		screen->edit = &screen->normal_edit ;
 
@@ -2406,6 +2423,8 @@ ml_screen_use_alternative_edit(
 {
 	if( screen->edit != &screen->alt_edit)
 	{
+		ml_screen_disable_local_echo( screen) ;
+
 		screen->alt_edit.bce_ch = screen->normal_edit.bce_ch ;
 		screen->edit = &screen->alt_edit ;
 
@@ -2424,63 +2443,54 @@ ml_screen_use_alternative_edit(
 	return  1 ;
 }
 
+/*
+ * This function must be called in logical context in order to swap
+ * stored_edit->edit and screen->edit in the same conditions.
+ */
 int
 ml_screen_enable_local_echo(
 	ml_screen_t *  screen
 	)
 {
-	if( screen->stored_edits)
+	if( ! screen->stored_edit)
 	{
-		screen->stored_edits->time = clock() / (CLOCKS_PER_SEC/10) ;
+		if( ! ( screen->stored_edit = malloc( sizeof( ml_stored_edit_t))))
+		{
+			return  0 ;
+		}
 
-		return  1 ;
+		screen->stored_edit->edit = *screen->edit ;
+
+		/*
+		 * New data is allocated in screen->edit, not in stored_edit->edit
+		 * because screen->edit allocated here will be deleted and
+		 * stored_edit->edit will be revived in ml_screen_disable_local_echo().
+		 */
+		if( ! ml_edit_clone( screen->edit , &screen->stored_edit->edit))
+		{
+			free( screen->stored_edit) ;
+			screen->stored_edit = NULL ;
+
+			return  0 ;
+		}
+
+		screen->edit->is_logging = 0 ;
 	}
 
-	if( ! ( screen->stored_edits = malloc( sizeof( ml_stored_edits_t))))
-	{
-		return  0 ;
-	}
-
-	screen->stored_edits->normal_edit = screen->normal_edit ;
-	screen->stored_edits->alt_edit = screen->alt_edit ;
-
-	if( ! ml_edit_clone( &screen->normal_edit , &screen->stored_edits->normal_edit))
-	{
-		goto  error1 ;
-	}
-
-	if( ! ml_edit_clone( &screen->alt_edit , &screen->stored_edits->alt_edit))
-	{
-		goto  error2 ;
-	}
-
-	screen->stored_edits->time = clock() / (CLOCKS_PER_SEC/10) ;
+	screen->stored_edit->time = get_msec_time() ;
 
 	return  1 ;
-
-error2:
-	ml_edit_final( &screen->stored_edits->normal_edit) ;
-
-error1:
-	free( screen->stored_edits) ;
-	screen->stored_edits = NULL ;
-
-	return  0 ;
 }
 
 int
 ml_screen_local_echo_wait(
 	ml_screen_t *  screen ,
-	int  msec		/* If 0 is specified, time is reset. */
+	int  msec
 	)
 {
-	if( screen->stored_edits)
+	if( screen->stored_edit)
 	{
-		if( msec == 0)
-		{
-			screen->stored_edits->time = 0 ;
-		}
-		else if( screen->stored_edits->time + msec / 100 >= clock() / (CLOCKS_PER_SEC/10))
+		if( screen->stored_edit->time + msec >= get_msec_time())
 		{
 			return  1 ;
 		}
@@ -2489,6 +2499,10 @@ ml_screen_local_echo_wait(
 	return  0 ;
 }
 
+/*
+ * This function must be called in logical context in order to swap
+ * stored_edit->edit and screen->edit in the same conditions.
+ */
 int
 ml_screen_disable_local_echo(
 	ml_screen_t *  screen
@@ -2499,9 +2513,9 @@ ml_screen_disable_local_echo(
 	ml_line_t *  old_line ;
 	ml_line_t *  new_line ;
 
-	if( ! screen->stored_edits)
+	if( ! screen->stored_edit)
 	{
-		return  1 ;
+		return  0 ;
 	}
 
 	num_of_rows = ml_edit_get_rows( screen->edit) ;
@@ -2512,10 +2526,7 @@ ml_screen_disable_local_echo(
 	 */
 	for( row = 0 ; row < num_of_rows ; row++)
 	{
-		if( ( new_line = ml_edit_get_line(
-					( screen->edit == &screen->normal_edit ?
-					  &screen->stored_edits->normal_edit :
-					  &screen->stored_edits->alt_edit) , row)) &&
+		if( ( new_line = ml_edit_get_line( &screen->stored_edit->edit , row)) &&
 		    ( old_line = ml_edit_get_line( screen->edit , row)) &&
 		    ( ml_line_is_modified( old_line) ||
 		      old_line->num_of_filled_chars != new_line->num_of_filled_chars
@@ -2529,14 +2540,11 @@ ml_screen_disable_local_echo(
 		}
 	}
 
-	ml_edit_final( &screen->normal_edit) ;
-	ml_edit_final( &screen->alt_edit) ;
+	ml_edit_final( screen->edit) ;
+	*screen->edit = screen->stored_edit->edit ;
 
-	screen->normal_edit = screen->stored_edits->normal_edit ;
-	screen->alt_edit = screen->stored_edits->alt_edit ;
-
-	free( screen->stored_edits) ;
-	screen->stored_edits = NULL ;
+	free( screen->stored_edit) ;
+	screen->stored_edit = NULL ;
 
 	return  1 ;
 }

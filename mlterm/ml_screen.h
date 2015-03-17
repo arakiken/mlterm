@@ -35,13 +35,12 @@ typedef enum  ml_bs_mode
 	
 } ml_bs_mode_t ;
 
-typedef struct  ml_stored_edits
+typedef struct  ml_stored_edit
 {
-	ml_edit_t  normal_edit ;
-	ml_edit_t  alt_edit ;
-	clock_t  time ;
+	ml_edit_t  edit ;
+	u_int32_t  time ;
 
-} ml_stored_edits_t ;
+} ml_stored_edit_t ;
 
 typedef struct  ml_screen
 {
@@ -54,7 +53,7 @@ typedef struct  ml_screen
 
 	ml_edit_t  normal_edit ;
 	ml_edit_t  alt_edit ;
-	ml_stored_edits_t *  stored_edits ;	/* Store logical edits. */
+	ml_stored_edit_t *  stored_edit ;	/* Store logical edits. */
 
 	ml_edit_scroll_event_listener_t  edit_scroll_listener ;
 	
@@ -339,6 +338,8 @@ int  ml_screen_use_normal_edit( ml_screen_t *  screen) ;
 int  ml_screen_use_alternative_edit( ml_screen_t *  screen) ;
 
 int  ml_screen_is_alternative_edit( ml_screen_t *  screen) ;
+
+#define  ml_screen_is_local_echo_mode( screen)  ((screen)->stored_edit)
 
 int  ml_screen_enable_local_echo( ml_screen_t *  screen) ;
 

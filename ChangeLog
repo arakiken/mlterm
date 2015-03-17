@@ -1,3 +1,22 @@
+2015-03-17  Araki Ken  <arakiken@users.sf.net>
+
+	* x_event_source.c: If ml_pty_ssh_poll() > 0, ml_pty_ssh_send_recv_x11() and
+	  ml_term_parse_vt100_sequence() are called immediately instead of 'break'
+	  in order not to skip select().
+
+	* xlib/x_connect_dialog.c: Memory leak is fixed.
+
+	* ml_screen.[ch]:
+	  - gettimeofday() is used instead of clock() in
+	    ml_screen_enable_local_echo() and ml_screen_local_echo_wait().
+	  - ml_stored_edit stores a current edit, not both normal and alt edits.
+	  - ml_screen_is_local_echo_mode() is added.
+
+	* kiklib/configure.in, kik_config.h.in, android/jni/kik_config.h:
+	  Whether gettimeofday exists or not is checked. (HAVE_GETTIMEOFDAY macro)
+
+	* libptyssh/ml_pty_ssh.c, ml_pty.c, ml_vt100_parser.c: Minor fixes.
+
 2015-03-15  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_wscons.c: WSDISPLAYIO_GET_FBINFO is supported.

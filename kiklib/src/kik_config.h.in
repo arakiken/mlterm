@@ -79,6 +79,8 @@
 
 #undef  HAVE_POSIX_OPENPT
 
+#undef  HAVE_GETTIMEOFDAY
+
 #undef  USE_WIN32API
 
 #undef  HAVE_STDINT_H
