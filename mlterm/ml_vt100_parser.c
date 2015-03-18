@@ -7196,6 +7196,9 @@ ml_vt100_parser_local_echo(
 	{
 		if( buf[count] < 0x20)
 		{
+			ml_screen_local_echo_wait( vt100_parser->screen , 0) ;
+			ml_parse_vt100_sequence( vt100_parser) ;
+
 			return  1 ;
 		}
 	}

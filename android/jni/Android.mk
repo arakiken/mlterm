@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := mlterm
-ifeq ($(ENABLE_FRIBIDI),true)
+ifneq (,$(wildcard fribidi/fribidi.c))
 	FRIBIDI_SRC_FILES := fribidi/fribidi.c fribidi/fribidi-arabic.c \
 		fribidi/fribidi-bidi.c fribidi/fribidi-bidi-types.c \
 		fribidi/fribidi-deprecated.c fribidi/fribidi-joining.c \
@@ -10,14 +10,14 @@ ifeq ($(ENABLE_FRIBIDI),true)
 		fribidi/fribidi-mirroring.c fribidi/fribidi-run.c fribidi/fribidi-shape.c \
 		mlterm/libctl/ml_bidi.c mlterm/libctl/ml_shape_bidi.c \
 		mlterm/libctl/ml_line_bidi.c
-	FRIBIDI_CFLAGS=-DUSE_FRIBIDI
+	FRIBIDI_CFLAGS := -DUSE_FRIBIDI
 endif
-ifeq ($(TARGET_ARCH_ABI),mips)
-	FT_CFLAGS :=
-	FT_LDLIBS :=
-else
+ifneq (,$(wildcard freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a))
 	FT_CFLAGS := -DUSE_FREETYPE -Ifreetype/$(TARGET_ARCH_ABI)/include/freetype2
 	FT_LDLIBS := freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a
+else
+	FT_CFLAGS :=
+	FT_LDLIBS :=
 endif
 LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		kiklib/src/kik_mem.c kiklib/src/kik_conf.c kiklib/src/kik_file.c \

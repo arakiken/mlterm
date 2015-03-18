@@ -6,10 +6,7 @@ export JAVA_HOME=c:\\Program\ Files\\Java\\jdk1.7.0_02
 
 # Requires android-11 or later.
 "${ANDROID_SDK_PATH}/tools/android.bat" update project --path . --target android-11
-if test -d jni/fribidi ; then
-	FRIBIDI_OPT="ENABLE_FRIBIDI=true"
-fi
-(cd jni ; ${ANDROID_NDK_PATH}/ndk-build $FRIBIDI_OPT APP_ABI=all V=1)
+(cd jni ; ${ANDROID_NDK_PATH}/ndk-build APP_ABI=all V=1)
 ant release
 
 jarsigner -verbose -sigalg MD5withRSA -digestalg SHA1 bin/mlterm-release-unsigned.apk mlterm

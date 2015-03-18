@@ -2485,12 +2485,16 @@ ml_screen_enable_local_echo(
 int
 ml_screen_local_echo_wait(
 	ml_screen_t *  screen ,
-	int  msec
+	int  msec	/* 0: stored_edit->time = 0 (>= get_msec_time() is always false.) */
 	)
 {
 	if( screen->stored_edit)
 	{
-		if( screen->stored_edit->time + msec >= get_msec_time())
+		if( msec == 0)
+		{
+			screen->stored_edit->time = 0 ;
+		}
+		else if( screen->stored_edit->time + msec >= get_msec_time())
 		{
 			return  1 ;
 		}

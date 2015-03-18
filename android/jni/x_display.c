@@ -9,6 +9,7 @@
 #include  <linux/keyboard.h>
 
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_conf_io.h>
 
 #include  "../x_window.h"
 #include  "../../common/c_animgif.c"
@@ -1456,19 +1457,28 @@ Java_mlterm_native_1activity_MLActivity_splitAnimationGif(
 {
 	const char *  str ;
 	const char *  path ;
-	char tmp[24 + 5 + 1] ;
+	char *  dir ;
+	char *  tmp ;
 	int  hash ;
+
+	if( ! ( dir = kik_get_user_rc_path( "/")))
+	{
+		return ;
+	}
 
 	path = str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
 	hash = hash_path( path) ;
 
-	if( strstr( path , "://"))
+	if( strstr( path , "://") &&
+	    ( tmp = alloca( strlen( dir) + 8 + 5 /* hash <= 65535 */ + 1)))
 	{
-		sprintf( tmp , "/sdcard/.mlterm/anim%d.gif" , hash) ;
+		sprintf( tmp , "%sanim%d.gif" , dir , hash) ;
 		path = tmp ;
 	}
 
-	split_animation_gif( path , "/sdcard/.mlterm/" , hash) ;
+	split_animation_gif( path , dir , hash) ;
+
+	free( dir) ;
 
 	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 }

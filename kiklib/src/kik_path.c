@@ -7,7 +7,9 @@
 #include  <stdio.h>	/* NULL */
 #include  <string.h>
 #include  <ctype.h>	/* isdigit */
-#ifdef  USE_WIN32API
+#if  defined(__ANDROID__)
+#include  <sys/stat.h>
+#elif defined(USE_WIN32API)
 #include  <sys/stat.h>
 #include  <windows.h>	/* IsDBCSLeadByte */
 #endif
@@ -318,11 +320,31 @@ kik_parse_uri(
 char *
 kik_get_home_dir(void)
 {
+#ifdef  __ANDROID__
+	static char *  dir ;
+
+	if( ! dir)
+	{
+		struct stat  st ;
+
+		if( stat( "/sdcard" , &st) == 0)
+		{
+			dir = "/sdcard" ;
+		}
+		else if( stat( "/mnt/sdcard" , &st) == 0)
+		{
+			dir = "/mnt/sdcard" ;
+		}
+		else
+		{
+			dir = "/extsdcard" ;
+		}
+	}
+
+	return  dir ;
+#else
 	char *  dir ;
 
-#ifdef  __ANDROID__
-	return  "/sdcard" ;
-#else
 #ifdef  USE_WIN32API
 	if( ( dir = getenv( "HOMEPATH")) && *dir)
 	{
