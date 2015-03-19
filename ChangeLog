@@ -1,3 +1,12 @@
+2015-03-20  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.c: HAVE_PTHREAD is defined on android.
+
+	* x_display.c, MLActivity.java: hashPath() -> convertToTmpPath() in order to
+	  support not only /sdcard but also /mnt/sdcard and /extsdcard.
+
+	* jni/Android.mk: -DBUILTIN_IMAGELIB is added.
+
 2015-03-18  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_path.c, android/jni/x_display.c:

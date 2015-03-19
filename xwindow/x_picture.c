@@ -24,12 +24,12 @@
  * Threading is not supported for 8 or less bpp framebuffer imaging
  * because of x_display_enable_to_change_cmap() and x_display_set_cmap().
  */
-#if ! defined(__CYGWIN__) || ! defined(USE_WIN32GUI)
-#undef  HAVE_PTHREAD
+#if  (defined(__CYGWIN__) && defined(USE_WIN32GUI)) || defined(__ANDROID__)
+#ifndef  HAVE_PTHREAD
+#define  HAVE_PTHREAD
 #endif
-
-#ifdef  X_PROTOCOL
-#undef  HAVE_WINDOWS_H
+#else
+#undef  HAVE_PTHREAD
 #endif
 
 #if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
@@ -38,6 +38,10 @@
 #include  <sys/select.h>
 #include  <unistd.h>
 #endif
+#endif
+
+#ifdef  X_PROTOCOL
+#undef  HAVE_WINDOWS_H
 #endif
 
 #include  "x_imagelib.h"
@@ -1184,8 +1188,13 @@ x_load_inline_picture(
 	#else
 		struct stat  st ;
 
-		ret = (stat( file_path , &st) == 0 && load_file(args)) ;
+		ret =  (
+		#if  ! defined(HAVE_PTHREAD) && ! defined(USE_WIN32API)
+			strstr( file_path , "://") ||
+		#endif
+			stat( file_path , &st) == 0) && load_file(args) ;
 	#endif
+
 		free( args) ;
 
 		if( ret)

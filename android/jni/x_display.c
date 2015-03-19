@@ -1431,21 +1431,41 @@ x_display_resize(
 			_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
 }
 
-jint
-Java_mlterm_native_1activity_MLActivity_hashPath(
+jstring
+Java_mlterm_native_1activity_MLActivity_convertToTmpPath(
 	JNIEnv *  env ,
 	jobject  this ,
 	jstring  jstr	/* must be original URL. (Don't specify /sdcard/.mlterm/anim*) */
 	)
 {
-	const char *  path ;
-	jint  hash ;
+	char *  dst_path ;
+	char *  dir ;
 
-	path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
-	hash = hash_path( path) ;
-	(*env)->ReleaseStringUTFChars( env , jstr , path) ;
+	if( ! ( dir = kik_get_user_rc_path( "mlterm/")))
+	{
+		return  NULL ;
+	}
 
-	return  hash ;
+	if( ! ( dst_path = alloca( strlen(dir) + 8 + 5 /* hash <= 65535 */ + 1)))
+	{
+		jstr = NULL ;
+	}
+	else
+	{
+		const char *  src_path ;
+		jint  hash ;
+
+		src_path = (*env)->GetStringUTFChars( env , jstr , NULL) ;
+		hash = hash_path( src_path) ;
+		(*env)->ReleaseStringUTFChars( env , jstr , src_path) ;
+
+		sprintf( dst_path , "%sanim%d.gif" , dir , hash) ;
+		jstr = ((*env)->NewStringUTF)( env , dst_path) ;
+	}
+
+	free( dir) ;
+
+	return  jstr ;
 }
 
 void
@@ -1461,7 +1481,7 @@ Java_mlterm_native_1activity_MLActivity_splitAnimationGif(
 	char *  tmp ;
 	int  hash ;
 
-	if( ! ( dir = kik_get_user_rc_path( "/")))
+	if( ! ( dir = kik_get_user_rc_path( "mlterm/")))
 	{
 		return ;
 	}

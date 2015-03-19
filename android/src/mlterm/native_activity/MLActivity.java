@@ -35,7 +35,7 @@ public class MLActivity extends NativeActivity
 	private native void  visibleFrameChanged( int  yoffset , int  width , int  height) ;
 	private native void  commitText( String  str) ;
 	private native void  preeditText( String  str) ;
-	private native int  hashPath( String  path) ;
+	private native String  convertToTmpPath( String  path) ;
 	private native void  splitAnimationGif( String  path) ;
 
 	private String  keyString ;
@@ -245,8 +245,7 @@ public class MLActivity extends NativeActivity
 
 				if( path.indexOf( ".gif") != -1)
 				{
-					String  tmp = "/sdcard/.mlterm/anim" +
-									Integer.toString( hashPath( path)) + ".gif" ;
+					String  tmp = convertToTmpPath( path) ;
 					OutputStream  os = new FileOutputStream( tmp) ;
 
 					int  len ;
