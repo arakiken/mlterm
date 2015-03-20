@@ -265,7 +265,7 @@ public class MLActivity extends NativeActivity
 			}
 			else
 			{
-				if( path.indexOf( ".gif") != -1)
+				if( path.indexOf( "mlterm/anim") == -1 && path.indexOf( ".gif") != -1)
 				{
 					splitAnimationGif( path) ;
 				}
