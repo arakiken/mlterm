@@ -125,7 +125,7 @@ Framebuffer 対応に関するメモ
   o 使用可能なスクロールバーは、simpleのみです。
     ただし、1 bpp の場合は、スクロールバーありの状態で画面スクロールを行うと、ス
     クロールバーの表示が乱れることがあるため、使用は推奨しません。
-  o 使用可能なInput method pluginは、kbd、m17nlib、uim及びiBusのみです。
+  o 使用可能なInput method pluginは、kbd、m17nlib、uim、iBus及びfcitxです。
     (iBus を使用する場合は、あらかじめ、ibus-daemon -d 及び
      /usr/lib/ibus-*/ibus-engine-* & を手動で起動しておいてください。
      なお、iBus はFreeBSD 上ではテストしていません。)

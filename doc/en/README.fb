@@ -118,7 +118,7 @@ Framebuffer support
     $ mlcc exec update_all
   o Available scrollbars are "simple" alone.
     It is not recommended to use them on 1 bpp.
-  o Available input method plugins are kbd, m17nlib, uim and iBus.
+  o Available input method plugins are kbd, m17nlib, uim, iBus and fcitx.
     (iBus is not tested on FreeBSD)
   o You can rotate display (>= 16bpp) by --rotate=right or --rotate=left option.
     ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is

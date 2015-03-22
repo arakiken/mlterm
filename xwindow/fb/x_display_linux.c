@@ -62,7 +62,6 @@ kcode_to_ksym(
 	else if( kcode <= KEY_SLASH || kcode == KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO)
 	{
 		struct kbentry  ent ;
-		int  ret ;
 
 		if( state & ShiftMask)
 		{
@@ -81,11 +80,42 @@ kcode_to_ksym(
 
 		ent.kb_index = kcode ;
 
-		ret = ioctl( STDIN_FILENO , KDGKBENT , &ent) ;
-
-		if( ret != -1 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP)
+		if( ioctl( STDIN_FILENO , KDGKBENT , &ent) == 0 &&
+		    ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP)
 		{
 			ent.kb_value &= 0xff ;
+
+		#if  1
+			/* XXX linux returns KEY_GRAVE for HankakuZenkaku key. */
+			if( kcode == KEY_GRAVE && ent.kb_value == '\x1b')
+			{
+				static int  is_jp106 = -1 ;
+
+				if( is_jp106 == -1)
+				{
+					struct kbentry  ent ;
+
+					is_jp106 = 0 ;
+
+					ent.kb_table = (1 << KG_SHIFT) ;
+					ent.kb_index = KEY_MINUS ;
+
+					if( ioctl( STDIN_FILENO , KDGKBENT , &ent) == 0 &&
+					    ent.kb_value != K_HOLE &&
+					    ent.kb_value != K_NOSUCHMAP &&
+					    ent.kb_value == '=')
+					{
+						/* is jp106 or netherland */
+						is_jp106 = 1 ;
+					}
+				}
+
+				if( is_jp106)
+				{
+					return  KEY_ZENKAKUHANKAKU + 0x100 ;
+				}
+			}
+		#endif
 
 			return  ent.kb_value ;
 		}

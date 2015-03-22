@@ -1,3 +1,11 @@
+2015-03-22  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_linux.c: Hack for HankakuZenkaku key is added.
+
+	* im_ibus.c:
+	  - The argument of next_engine() is changed from im_ibus_t * to IBusInputContext *.
+	  - ibus->is_enabled is reversed in switch_mode() on IBus 1.5.x.
+
 2015-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* MLActivity.java: /sdcard/.mlterm/anim*.gif isn't splited any more.

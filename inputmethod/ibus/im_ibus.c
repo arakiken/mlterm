@@ -864,26 +864,21 @@ set_engine(
 #if  IBUS_CHECK_VERSION(1,5,0)
 static void
 next_engine(
-	im_ibus_t *  ibus
+	IBusInputContext *  context
 	)
 {
 	IBusConfig *  config ;
 	GVariant *  var ;
 
-	if( ! ibus->context)
+	if( ( config = ibus_bus_get_config( ibus_bus)) &&
+	    ( var = ibus_config_get_value( config , "general" , "preload-engines")))
 	{
-		return ;
-	}
-
-	config = ibus_bus_get_config( ibus_bus) ;
-	if( ( var = ibus_config_get_value( config , "general" , "preload-engines")))
-	{
-		gchar *  cur_name ;
+		const gchar *  cur_name ;
 		GVariantIter *  iter ;
 		gchar *  name ;
 
 		cur_name = ibus_engine_desc_get_name(
-				ibus_input_context_get_engine( ibus->context)) ;
+				ibus_input_context_get_engine( context)) ;
 
 		g_variant_get( var , "as" , &iter) ;
 
@@ -910,7 +905,7 @@ next_engine(
 			}
 			while( loop) ;
 
-			set_engine( ibus->context , name) ;
+			set_engine( context , name) ;
 
 			free( first_name) ;
 		}
@@ -936,7 +931,8 @@ switch_mode(
 	}
 
 #if  IBUS_CHECK_VERSION(1,5,0)
-	next_engine( ibus) ;
+	next_engine( ibus->context) ;
+	ibus->is_enabled = ! ibus->is_enabled ;
 #else
 	if( ibus->is_enabled)
 	{
@@ -1050,7 +1046,7 @@ context_new(
 #if  defined(USE_FRAMEBUFFER) && IBUS_CHECK_VERSION(1,5,0)
 	else
 	{
-		next_engine( ibus) ;
+		next_engine( context) ;
 	}
 #endif
 
@@ -1099,7 +1095,7 @@ disconnected(
 		ibus_proxy_destroy( (IBusProxy*)ibus->context) ;
 	#endif
 		ibus->context = NULL ;
-		ibus->is_enabled = 0 ;
+		ibus->is_enabled = FALSE ;
 	}
 }
 
