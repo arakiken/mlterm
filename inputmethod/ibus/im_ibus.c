@@ -873,6 +873,7 @@ next_engine(
 	if( ( config = ibus_bus_get_config( ibus_bus)) &&
 	    ( var = ibus_config_get_value( config , "general" , "preload-engines")))
 	{
+		static int  show_engines = 1 ;
 		const gchar *  cur_name ;
 		GVariantIter *  iter ;
 		gchar *  name ;
@@ -881,6 +882,20 @@ next_engine(
 				ibus_input_context_get_engine( context)) ;
 
 		g_variant_get( var , "as" , &iter) ;
+
+		if( show_engines)
+		{
+			kik_msg_printf( "iBus engines: ") ;
+			while( g_variant_iter_loop( iter , "s" , &name))
+			{
+				kik_msg_printf( name) ;
+				kik_msg_printf( ",") ;
+			}
+			kik_msg_printf( "\n") ;
+
+			g_variant_iter_init( iter , var) ;
+			show_engines = 0 ;
+		}
 
 		if( g_variant_iter_loop( iter , "s" , &name))
 		{

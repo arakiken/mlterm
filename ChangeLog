@@ -1,3 +1,7 @@
+2015-03-24  Araki Ken  <arakiken@users.sf.net>
+
+	* im_fcitx.c, im_ibus.c: Minor fixes.
+
 2015-03-22  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_linux.c: Hack for HankakuZenkaku key is added.

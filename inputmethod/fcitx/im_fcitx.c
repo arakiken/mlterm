@@ -75,6 +75,7 @@ delete(
 
 	fcitx = (im_fcitx_t*) im ;
 
+	g_signal_handlers_disconnect_by_data( fcitx->client , fcitx) ;
 	g_object_unref( fcitx->client) ;
 
 	if( fcitx->conv)
@@ -230,11 +231,10 @@ key_event(
 			native_to_fcitx_ksym( ksym) ,
 		#ifdef  USE_FRAMEBUFFER
 			event->keycode ,
-			event->state ,
 		#else
 			event->keycode - 8 ,
-			event->state ,
 		#endif
+			event->state ,
 			event->type == KeyPress ? FCITX_PRESS_KEY : FCITX_RELEASE_KEY ,
 		#ifdef  USE_FRAMEBUFFER
 			0L	/* CurrentTime */
