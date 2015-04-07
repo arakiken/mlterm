@@ -1,5 +1,6 @@
 ver 3.4.6
 * Support WSDISPLAYIO_GET_FBINFO on NetBSD/framebuffer.
+* Support Canna as an input method plugin.
 * HankakuZenkaku key works on Linux/framebuffer.
 * Bug fixes:
   Fix stiff behavior of "use_local_echo=true" on ssh connection by libssh2.

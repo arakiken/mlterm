@@ -7,6 +7,7 @@
 #include  "ml_str.h"
 
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>	/* malloc */
 
 
 /* --- global functions --- */

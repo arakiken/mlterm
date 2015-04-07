@@ -24,6 +24,9 @@
 #define  KeyPress  2	/* see xwindow/fb/x_display.h */
 #endif
 
+/* When fcitx encoding is the same as terminal, conv is NULL. */
+#define  NEED_TO_CONV(fcitx)  ((fcitx)->conv)
+
 
 typedef struct im_fcitx
 {
@@ -520,6 +523,8 @@ update_client_side_ui(
 	}
 	else
 	{
+		u_char *  tmp = NULL ;
+
 		fcitx->im.preedit.cursor_offset = num_of_chars = 0 ;
 		(*parser_utf8->init)( parser_utf8) ;
 		(*parser_utf8->set_str)( parser_utf8 , preedit , preedit_len) ;
@@ -539,17 +544,28 @@ update_client_side_ui(
 			return ;
 		}
 
+		if( NEED_TO_CONV( fcitx))
+		{
+			(*parser_utf8->init)( parser_utf8) ;
+			if( im_convert_encoding( parser_utf8 , fcitx->conv ,
+						 preedit , &tmp , preedit_len + 1))
+			{
+				preedit = tmp ;
+				preedit_len = strlen( preedit) ;
+			}
+		}
+
 		(*syms->ml_str_init)( fcitx->im.preedit.chars = p ,
 				fcitx->im.preedit.num_of_chars = num_of_chars) ;
 		fcitx->im.preedit.filled_len = 0 ;
 
-		(*parser_utf8->init)( parser_utf8) ;
-		(*parser_utf8->set_str)( parser_utf8 , preedit , preedit_len) ;
+		(*fcitx->parser_term->init)( fcitx->parser_term) ;
+		(*fcitx->parser_term->set_str)( fcitx->parser_term , preedit , preedit_len) ;
 
-		while( (*parser_utf8->next_char)( parser_utf8 , &ch))
+		while( (*fcitx->parser_term->next_char)( fcitx->parser_term , &ch))
 		{
-			int  is_fullwidth = 0 ;
-			int  is_comb = 0 ;
+			int  is_fullwidth ;
+			int  is_comb ;
 
 			if( (*syms->ml_convert_to_internal_ch)( &ch ,
 				(*fcitx->im.listener->get_unicode_policy)(
@@ -567,6 +583,10 @@ update_client_side_ui(
 			{
 				/* TODO: check col_size_of_width_a */
 				is_fullwidth = 1 ;
+			}
+			else
+			{
+				is_fullwidth = IS_FULLWIDTH_CS(ch.cs) ;
 			}
 
 			if( ch.property & MKF_COMBINING)
@@ -586,6 +606,10 @@ update_client_side_ui(
 				 * if combining failed , char is normally appended.
 				 */
 			}
+			else
+			{
+				is_comb = 0 ;
+			}
 
 			(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
 					      is_fullwidth , is_comb ,
@@ -594,6 +618,11 @@ update_client_side_ui(
 
 			p ++ ;
 			fcitx->im.preedit.filled_len ++ ;
+		}
+
+		if( tmp)
+		{
+			free( tmp) ;
 		}
 	}
 
@@ -614,6 +643,8 @@ update_client_side_ui(
 	}
 	else
 	{
+		u_char *  tmp = NULL ;
+
 		(*fcitx->im.listener->get_spot)( fcitx->im.listener->self ,
 					       fcitx->im.preedit.chars ,
 					       fcitx->im.preedit.segment_offset ,
@@ -644,8 +675,24 @@ update_client_side_ui(
 			(*fcitx->im.stat_screen->set_spot)( fcitx->im.stat_screen , x , y) ;
 		}
 
+		if( NEED_TO_CONV( fcitx))
+		{
+			(*parser_utf8->init)( parser_utf8) ;
+			if( im_convert_encoding( parser_utf8 , fcitx->conv ,
+						 candidateword , &tmp ,
+						 strlen(candidateword) + 1))
+			{
+				candidateword = tmp ;
+			}
+		}
+
 		(*fcitx->im.stat_screen->set)( fcitx->im.stat_screen ,
-			parser_utf8 , candidateword) ;
+			fcitx->parser_term , candidateword) ;
+
+		if( tmp)
+		{
+			free( tmp) ;
+		}
 	}
 }
 

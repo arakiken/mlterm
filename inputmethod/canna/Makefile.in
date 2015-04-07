@@ -1,0 +1,68 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+
+VPATH = ${top_srcdir}/inputmethod/canna
+
+IM_CANNA_OBJ = im_canna.o
+
+CFLAGS = $(CFLAGS_LOCAL) 		\
+	 @KIK_CFLAGS@			\
+	 @MKF_CFLAGS@			\
+	 @DEB_CFLAGS@			\
+	 @X_CFLAGS@			\
+	 @GUI_CFLAGS@			\
+	 @CFLAGS@			\
+	 @CPPFLAGS@			\
+	 @IM_CFLAGS@			\
+	 @CANNA_CFLAGS@			\
+	 -I$(top_srcdir)/mlterm		\
+	 -I${top_srcdir}/xwindow	\
+	 -I/usr/local/include
+
+LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @CANNA_LIBS@
+
+TARGET_xlib = libim-canna.la
+TARGET_fb = libim-canna-fb.la
+
+TARGET = $(TARGET_@GUI@)
+
+CC      = @CC@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+LIBTOOL_CC      = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK    = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+.SUFFIXES: .o .c
+
+all: $(TARGET)
+
+$(TARGET): $(IM_CANNA_OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) $(IM_CANNA_OBJ:.o=.lo) \
+	-rpath $(libdir)/mlterm \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
+
+install: $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
+
+uninstall:
+	rm -f $(LIBDIR)/*im-canna*
+
+clean:
+	rm -rf $(IM_CANNA_OBJ) $(IM_CANNA_OBJ:.o=.lo) *im-canna* *.core .libs
+
+distclean: clean
+	rm -f Makefile
+

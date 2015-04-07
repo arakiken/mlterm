@@ -8,7 +8,6 @@
 
 #include  <kiklib/kik_types.h>
 #include  <kiklib/kik_def.h>	/* WORDS_BIGENDIAN */
-#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 
 #include  "ml_font.h"

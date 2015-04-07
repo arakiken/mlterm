@@ -7,6 +7,7 @@
 #ifdef  USE_IM_PLUGIN
 
 #include  "ml_str.h"
+#include  "ml_vt100_parser.h"
 #include  "x_draw_str.h"
 
 #define  MARGIN		3
@@ -58,10 +59,19 @@ reset_screen(
 }
 #endif
 
+static int
+is_nl(
+	ml_char_t *  ch
+	)
+{
+	return  ml_char_cs( ch) == US_ASCII && ml_char_code( ch) == '\n' ;
+}
+
 static void
 draw_screen(
 	x_im_status_screen_t *  stat_screen ,
-	int  do_resize
+	int  do_resize ,
+	int  modified_beg
 	)
 {
 #define  MAX_ROWS ((sizeof(stat_screen->head_indexes) / sizeof(stat_screen->head_indexes[0])) - 1)
@@ -83,44 +93,70 @@ draw_screen(
 	if( do_resize)
 	{
 		u_int  max_width ;
+		u_int  tmp_max_width ;
 		u_int  width ;
 		u_int  rows ;
 
 		max_width = stat_screen->window.disp->width / 2 ;
+		tmp_max_width = 0 ;
 		width = 0 ;
 		heads[0] = 0 ;
 		rows = 1 ;
 
 		for( i = 0 ; i < stat_screen->filled_len ; i++)
 		{
-			u_int  ch_width ;
-
-			ch_width = x_calculate_char_width(
-					x_get_font( stat_screen->font_man ,
-						ml_char_font( &stat_screen->chars[i])) ,
-					ml_char_code( &stat_screen->chars[i]) ,
-					ml_char_cs( &stat_screen->chars[i]) , NULL) ;
-
-			if( width + ch_width > max_width)
+			if( is_nl( &stat_screen->chars[i]))
 			{
-				if( rows == 1)
+				if( rows == 1 || tmp_max_width < width)
 				{
-					max_width = width ;
+					tmp_max_width = width ;
 				}
 
-				heads[rows++] = i ;
+				heads[rows++] = i + 1 ;
 
 				if( rows == MAX_ROWS)
 				{
 					break ;
 				}
 
-				width = ch_width ;
+				width = 0 ;
 			}
 			else
 			{
-				width += ch_width ;
+				u_int  ch_width ;
+
+				ch_width = x_calculate_char_width(
+						x_get_font( stat_screen->font_man ,
+							ml_char_font( &stat_screen->chars[i])) ,
+						ml_char_code( &stat_screen->chars[i]) ,
+						ml_char_cs( &stat_screen->chars[i]) , NULL) ;
+
+				if( width + ch_width > max_width)
+				{
+					if( rows == 1)
+					{
+						tmp_max_width = max_width = width ;
+					}
+
+					heads[rows++] = i ;
+
+					if( rows == MAX_ROWS)
+					{
+						break ;
+					}
+
+					width = ch_width ;
+				}
+				else
+				{
+					width += ch_width ;
+				}
 			}
+		}
+
+		if( tmp_max_width > 0)
+		{
+			max_width = tmp_max_width ;
 		}
 
 		if( rows > 1)
@@ -154,17 +190,29 @@ draw_screen(
 
 	for( i = 0 ; heads[i] < stat_screen->filled_len ; i++)
 	{
-		x_draw_str_to_eol( &stat_screen->window ,
+		if( heads[i + 1] > modified_beg)
+		{
+			u_int  len ;
+
+			len = heads[i + 1] - heads[i] ;
+
+			if( is_nl( &stat_screen->chars[heads[i + 1] - 1]))
+			{
+				len -- ;
+			}
+
+			x_draw_str_to_eol( &stat_screen->window ,
 				   stat_screen->font_man ,
 				   stat_screen->color_man ,
 				   stat_screen->chars + heads[i] ,
-				   heads[i + 1] - heads[i] ,
+				   len ,
 				   0 , line_height * i ,
 				   line_height ,
 				   xfont->ascent + LINE_SPACE / 2 ,
 				   LINE_SPACE / 2 ,
 				   LINE_SPACE / 2 + LINE_SPACE % 2 ,
 				   1 /* no need to draw underline */) ;
+		}
 	}
 }
 
@@ -227,7 +275,7 @@ set_spot(
 		x_window_move( &stat_screen->window , x , y) ;
 	#ifdef  USE_FRAMEBUFFER
 		reset_screen( &stat_screen->window) ;
-		draw_screen( stat_screen , 0) ;
+		draw_screen( stat_screen , 0 , 0) ;
 	#endif
 
 		return  1 ;
@@ -248,6 +296,10 @@ set(
 	int  count = 0 ;
 	mkf_char_t  ch ;
 	ml_char_t *  p ;
+	ml_char_t *  old_chars ;
+	u_int  old_num_of_chars ;
+	u_int  old_filled_len ;
+	int  modified_beg ;
 
 	/*
 	 * count number of characters to allocate status[index].chars
@@ -261,12 +313,9 @@ set(
 		count++ ;
 	}
 
-	if( stat_screen->chars)
-	{
-		ml_str_delete( stat_screen->chars , stat_screen->num_of_chars) ;
-		stat_screen->num_of_chars = 0 ;
-		stat_screen->filled_len = 0 ;
-	}
+	old_chars = stat_screen->chars ;
+	old_num_of_chars = stat_screen->num_of_chars ;
+	old_filled_len = stat_screen->filled_len ;
 
 	if( ! ( stat_screen->chars = ml_str_new( count)))
 	{
@@ -276,6 +325,9 @@ set(
 
 		return  0 ;
 	}
+
+	stat_screen->num_of_chars = count ;
+	stat_screen->filled_len = 0 ;
 
 	/*
 	 * u_char -> ml_char_t
@@ -293,22 +345,20 @@ set(
 		int  is_fullwidth = 0 ;
 		int  is_comb = 0 ;
 
-		if( ch.cs == ISO10646_UCS4_1)
+		/* -1 (== control sequence) is permitted for \n. */
+		if( ! ml_convert_to_internal_ch( &ch , 0 /* unicode policy */ , US_ASCII))
 		{
-			if( ch.property & MKF_FULLWIDTH)
-			{
-				is_fullwidth = 1 ;
-			}
-			else if( ch.property & MKF_AWIDTH)
-			{
-				/* TODO: check col_size_of_width_a */
-				is_fullwidth = 1 ;
-			}
+			continue ;
 		}
 
-		if( ch.property & MKF_COMBINING)
+		if( ch.property & MKF_FULLWIDTH)
 		{
-			is_comb = 1 ;
+			is_fullwidth = 1 ;
+		}
+		else if( ch.property & MKF_AWIDTH)
+		{
+			/* TODO: check col_size_of_width_a */
+			is_fullwidth = 1 ;
 		}
 
 		if( is_comb)
@@ -337,7 +387,18 @@ set(
 		stat_screen->filled_len++ ;
 	}
 
-	draw_screen( stat_screen , 1) ;
+	for( modified_beg = 0 ;
+	     modified_beg < stat_screen->filled_len &&
+	     modified_beg < old_filled_len &&
+	     ml_char_code_equal( old_chars + modified_beg , stat_screen->chars + modified_beg) ;
+	     modified_beg ++) ;
+
+	if( old_chars)
+	{
+		ml_str_delete( old_chars , old_num_of_chars) ;
+	}
+
+	draw_screen( stat_screen , 1 , modified_beg) ;
 
 	return  1 ;
 }
@@ -374,7 +435,7 @@ window_exposed(
 	u_int  height
 	)
 {
-	draw_screen( (x_im_status_screen_t *) win , 0) ;
+	draw_screen( (x_im_status_screen_t *) win , 0 , 0) ;
 
 	/* draw border (margin area has been already cleared in x_window.c) */
 	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,

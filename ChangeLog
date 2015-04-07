@@ -1,3 +1,15 @@
+2015-04-07  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: --enable-canna is added.
+
+	* x_im_status_screen.[ch]:
+	  - modified_beg is added to arguments of draw_screen().
+	  - It is supported to draw multiple lines by '\n'.
+
+	* inputmethod/canna/*: Added.
+
+	* im_fcitx.c: Candidate or preedited text is converted to a terminal encoding.
+
 2015-03-24  Araki Ken  <arakiken@users.sf.net>
 
 	* im_fcitx.c, im_ibus.c: Minor fixes.

@@ -7,6 +7,7 @@
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* K_MIN */
+#include  <kiklib/kik_mem.h>	/* malloc */
 
 
 #define  UNDERLINE_STYLE(attr)  (((attr) >> 21) & 0x3)
