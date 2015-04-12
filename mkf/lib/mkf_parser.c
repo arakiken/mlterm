@@ -76,6 +76,11 @@ __mkf_parser_reset(
 	mkf_parser_t *  parser
 	)
 {
+	if( parser->is_eos && parser->marked_left > parser->left)
+	{
+		parser->is_eos = 0 ;
+	}
+
 	parser->str -= (parser->marked_left - parser->left) ;
 	parser->left = parser->marked_left ;
 }

@@ -838,6 +838,8 @@ KIK_LIBS_FOR_MODULE
 NO_UNDEFINED_FLAG
 DL_LIBS_SB
 SB_CFLAGS
+WNN_LIBS
+WNN_CFLAGS
 CANNA_LIBS
 CANNA_CFLAGS
 DL_LIBS_IM
@@ -1046,6 +1048,7 @@ enable_ibus
 enable_fcitx
 enable_scim
 enable_canna
+enable_wnn
 with_scrollbars
 enable_vt52
 enable_optimize_redrawing
@@ -1744,6 +1747,7 @@ Optional Features:
   --enable-fcitx           FCITX (Experimental) [default=disabled]
   --enable-scim           SCIM (Experimental) [default=disabled]
   --enable-canna           CANNA (Experimental) [default=disabled]
+  --enable-wnn           WNN (Experimental) [default=disabled]
   --enable-vt52           enable VT52 emulation [default=disabled]
   --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
   --disable-dependency-tracking  speeds up one-time build
@@ -4676,7 +4680,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4679 "configure"' > conftest.$ac_ext
+  echo '#line 4683 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7244,11 +7248,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7247: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7251: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7251: \$? = $ac_status" >&5
+   echo "$as_me:7255: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7534,11 +7538,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7537: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7541: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7541: \$? = $ac_status" >&5
+   echo "$as_me:7545: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7638,11 +7642,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7641: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7645: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7645: \$? = $ac_status" >&5
+   echo "$as_me:7649: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9663,7 +9667,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9666 "configure"
+#line 9670 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9763,7 +9767,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9766 "configure"
+#line 9770 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12104,11 +12108,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12107: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12111: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12111: \$? = $ac_status" >&5
+   echo "$as_me:12115: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12208,11 +12212,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12211: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12215: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12215: \$? = $ac_status" >&5
+   echo "$as_me:12219: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13791,11 +13795,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13794: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13798: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13798: \$? = $ac_status" >&5
+   echo "$as_me:13802: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13895,11 +13899,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13898: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13902: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13902: \$? = $ac_status" >&5
+   echo "$as_me:13906: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16056,11 +16060,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16059: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16063: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16063: \$? = $ac_status" >&5
+   echo "$as_me:16067: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16346,11 +16350,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16349: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16353: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16353: \$? = $ac_status" >&5
+   echo "$as_me:16357: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16450,11 +16454,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16453: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16457: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16457: \$? = $ac_status" >&5
+   echo "$as_me:16461: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -23228,6 +23232,52 @@ fi
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/canna/libim-canna.la ${DL_LIBS_IM}"
 		fi
 		input_methods_result="$input_methods_result canna"
+	fi
+fi
+
+
+
+
+#
+# --- WNN ---
+#
+# Check whether --enable-wnn was given.
+if test "${enable_wnn+set}" = set; then :
+  enableval=$enable_wnn; wnn=$enable_wnn
+fi
+
+if test "$enable_shared" = "no" ; then
+	wnn="no"
+fi
+
+if test "x$wnn" = "xyes" ; then
+	ac_fn_c_check_header_mongrel "$LINENO" "wnn/jllib.h" "ac_cv_header_wnn_jllib_h" "$ac_includes_default"
+if test "x$ac_cv_header_wnn_jllib_h" = xyes; then :
+  has_wnn=yes
+else
+  has_wnn=no
+fi
+
+
+	if test "x$has_wnn" = xyes ; then
+		WNN_LIBS="-ljd"
+		if test -d /usr/pkg/share/wnn ; then
+			WNN_CFLAGS="-DWNNLIBDIR=\\\"/usr/pkg/share\\\""
+		elif test -d /usr/local/share/wnn ; then
+			WNN_CFLAGS="-DWNNLIBDIR=\\\"/usr/local/share\\\""
+		elif test -d /usr/local/lib/wnn ; then
+			WNN_CFLAGS="-DWNNLIBDIR=\\\"/usr/local/lib\\\""
+		elif test -d /usr/share/wnn ; then
+			WNN_CFLAGS="-DWNNLIBDIR=\\\"/usr/share\\\""
+		else
+			WNN_CFLAGS="-DWNNLIBDIR=\\\"/usr/lib\\\""
+		fi
+		MAKE_DIRS="inputmethod/wnn ${MAKE_DIRS}"
+		OUTPUT_FILES="inputmethod/wnn/Makefile ${OUTPUT_FILES}"
+		if test "x$with_libltdl" != xno ; then
+			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/wnn/libim-wnn.la ${DL_LIBS_IM}"
+		fi
+		input_methods_result="$input_methods_result wnn"
 	fi
 fi
 

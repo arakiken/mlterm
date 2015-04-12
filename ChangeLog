@@ -1,3 +1,15 @@
+2015-04-12  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja, man/mlterm.1: Updated.
+
+	* configure.in: --enable-wnn is added.
+
+	* input_method/wnn/*: Added.
+
+	* im_canna.c: Cleanup.
+
+	* mkf_parser.c: mkf_parser_reset() resets parser->is_eos.
+
 2015-04-07  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: --enable-canna is added.

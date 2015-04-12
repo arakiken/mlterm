@@ -141,7 +141,9 @@ comment $Id$
 
     --enable-canna
       Canna をサポートします。
-      canna-gclient が必要です。
+
+    --enable-wnn
+      Freewnn をサポートします。
 
     --enable-pty-helper
       gnome-pty-helper をサポートします。(BSD style pty のシステムでは無効です。)
@@ -196,9 +198,9 @@ comment $Id$
     (see doc/ja/README.xim)
 
   o インプットメソッド プラグイン
-    uim、m17n library、scim、ibus、fcitx 及び canna に対応しています。プラグイン
-    として使用時だけロードされます。マルチXIMと同様に動的変更が可能で端末のエン
-    コーディングに依存しません。
+    uim、m17n library、scim、ibus、fcitx、canna 及び wnn に対応しています。プラ
+    グインとして使用時だけロードされます。マルチXIMと同様に動的変更が可能で端末
+    のエンコーディングに依存しません。
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。

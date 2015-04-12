@@ -41,11 +41,6 @@ typedef struct im_canna
 	mkf_parser_t *  parser_term ;	/* for term encoding */
 	mkf_conv_t *  conv ;		/* for term encoding */
 
-	u_int  pressing_mod_key ;
-	u_int  mod_ignore_mask ;
-
-	u_int  cand_limit ;
-
 }  im_canna_t ;
 
 
@@ -53,7 +48,6 @@ typedef struct im_canna
 
 static int  ref_count = 0 ;
 static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
-static int  mod_key_debug = 0 ;
 static mkf_parser_t *  parser_eucjp = NULL ;
 
 
@@ -78,10 +72,10 @@ change_mode(
 static void
 preedit(
 	im_canna_t *  canna ,
-	char *  preedit ,	/* eucjp */
+	char *  preedit ,	/* eucjp(null terminated) */
 	int  rev_pos ,
 	int  rev_len ,
-	char *  candidateword	/* eucjp */
+	char *  candidateword	/* eucjp(null terminated) */
 	)
 {
 	int  x ;
@@ -163,7 +157,7 @@ preedit(
 		{
 			(*parser_eucjp->init)( parser_eucjp) ;
 			if( im_convert_encoding( parser_eucjp , canna->conv ,
-						 preedit , &tmp , preedit_len + 1))
+						 preedit , &tmp , preedit_len))
 			{
 				preedit = tmp ;
 				preedit_len = strlen( preedit) ;
@@ -309,7 +303,7 @@ candidate:
 			(*parser_eucjp->init)( parser_eucjp) ;
 			if( im_convert_encoding( parser_eucjp , canna->conv ,
 						 candidateword , &tmp ,
-						 strlen(candidateword) + 1))
+						 strlen(candidateword)))
 			{
 				candidateword = tmp ;
 			}
@@ -327,11 +321,10 @@ candidate:
 
 static void
 commit(
-	void *  p ,
+	im_canna_t *  canna ,
 	const char *  str
 	)
 {
-	im_canna_t *  canna ;
 	u_char  conv_buf[256] ;
 	size_t  filled_len ;
 	size_t  len ;
@@ -339,8 +332,6 @@ commit(
 #ifdef  IM_CANNA_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "str: %s\n", str);
 #endif
-
-	canna = (im_canna_t*) p ;
 
 	len = strlen( str) ;
 
@@ -699,8 +690,6 @@ focused(
 	{
 		(*canna->im.cand_screen->show)( canna->im.cand_screen) ;
 	}
-
-	canna->pressing_mod_key = 0 ;
 }
 
 static void
@@ -739,11 +728,6 @@ im_canna_new(
 		return  NULL ;
 	}
 
-	if( getenv( "MOD_KEY_DEBUG"))
-	{
-		mod_key_debug = 1 ;
-	}
-
 	if( ref_count == 0)
 	{
 		jrKanjiControl( 0 , KC_INITIALIZE , 0) ;
@@ -766,7 +750,6 @@ im_canna_new(
 
 	canna->term_encoding = term_encoding ;
 	canna->encoding_name = (*syms->ml_get_char_encoding_name)( term_encoding) ;
-	canna->mod_ignore_mask =  mod_ignore_mask ;
 
 	if( canna->term_encoding != ML_EUCJP)
 	{
