@@ -401,7 +401,7 @@ insert_char(
 		wchar  e ;
 		wchar  o ;
 
-	}  table[] =
+	}  kana_table[] =
 	{
 		/* a */    /* i */  /* u */  /* e */  /* o */
 		{ 0xa4a2 , 0xa4a4 , 0xa4a6 , 0xa4a8 , 0xa4aa } ,
@@ -431,6 +431,22 @@ insert_char(
 		{ 0xa4e4 , 0 ,      0xa4e6 , 0      , 0xa4e8 } , /* y */
 		{ 0xa4b6 , 0xa4b8 , 0xa4ba , 0xa4bc , 0xa4be } , /* z */
 	} ;
+	static wchar  sign_table1[] =
+	{
+	                 0xa1aa , 0xa1c9 , 0xa1f4 , 0xa1f0 , 0xa1f3 , 0xa1f5 , 0xa1c7 ,
+		0xa1ca , 0xa1cb , 0xa1f6 , 0xa1dc , 0xa1a4 , 0xa1bd , 0xa1a3 , 0xa1bf ,
+		0xa3b0 , 0xa3b1 , 0xa3b2 , 0xa3b3 , 0xa3b4 , 0xa3b5 , 0xa3b6 , 0xa3b7 ,
+		0xa3b8 , 0xa3b9 , 0xa1a7 , 0xa1a8 , 0xa1e3 , 0xa1e1 , 0xa1e4 , 0xa1a9 ,
+		0xa1f7 ,
+	} ;
+	static wchar  sign_table2[] =
+	{
+		0xa1ce , 0xa1ef , 0xa1cf , 0xa1b0 , 0xa1b2 ,
+	} ;
+	static wchar  sign_table3[] =
+	{
+		0xa1d0 , 0xa1c3 , 0xa1d1 , 0xa1c1 ,
+	} ;
 	wchar  wch ;
 
 	if( wnn->dan)
@@ -440,28 +456,51 @@ insert_char(
 
 	if( key_char == 'a')
 	{
-		wch = table[wnn->dan].a ;
+		wch = kana_table[wnn->dan].a ;
 		wnn->dan = 0 ;
 	}
 	else if( key_char == 'i')
 	{
-		wch = table[wnn->dan].i ;
+		wch = kana_table[wnn->dan].i ;
 		wnn->dan = 0 ;
 	}
 	else if( key_char == 'u')
 	{
-		wch = table[wnn->dan].u ;
+		wch = kana_table[wnn->dan].u ;
 		wnn->dan = 0 ;
 	}
 	else if( key_char == 'e')
 	{
-		wch = table[wnn->dan].e ;
+		wch = kana_table[wnn->dan].e ;
 		wnn->dan = 0 ;
 	}
 	else if( key_char == 'o')
 	{
-		wch = table[wnn->dan].o ;
+		wch = kana_table[wnn->dan].o ;
 		wnn->dan = 0 ;
+	}
+	else if( ( '!' <= key_char && key_char <= '@') ||
+	         ( '[' <= key_char && key_char <= '_') ||
+		 ( '{' <= key_char && key_char <= '~'))
+	{
+		if( wnn->dan)
+		{
+			jcInsertChar( wnn->convbuf , wnn->dan + 'a') ;
+			wnn->dan = 0 ;
+		}
+
+		if( key_char <= '@')
+		{
+			wch = sign_table1[key_char - '!'] ;
+		}
+		else if( key_char <= '_')
+		{
+			wch = sign_table2[key_char - '['] ;
+		}
+		else
+		{
+			wch = sign_table3[key_char - '{'] ;
+		}
 	}
 	else
 	{
@@ -509,14 +548,13 @@ insert_char(
 			}
 		}
 		else
-	normal:
-		if( wnn->dan)
 		{
-			wch = wnn->dan + 'a' ;
-			wnn->dan = key_char - 'a' ;
-		}
-		else
-		{
+		normal:
+			if( wnn->dan)
+			{
+				jcInsertChar( wnn->convbuf , wnn->dan + 'a') ;
+			}
+
 			wch = key_char ;
 			wnn->dan = key_char - 'a' ;
 		}
@@ -633,6 +671,7 @@ key_event(
 	{
 		if( wnn->convbuf->displayEnd > wnn->convbuf->displayBuf)
 		{
+			wnn->dan = 0 ;
 			wnn->is_cand = 0 ;
 			preedit( wnn , "" , 0 , 0 , 0 , "" , 0) ;
 			commit( wnn , wnn->convbuf->displayBuf ,
@@ -649,6 +688,7 @@ key_event(
 	{
 		if( wnn->im.preedit.filled_len > 0)
 		{
+			wnn->dan = 0 ;
 			wnn->is_cand = 0 ;
 
 			if( jcIsConverted( wnn->convbuf , 0))
@@ -698,6 +738,7 @@ key_event(
 				cand = kanji ;
 				cand_len = 2 ;
 
+				wnn->dan = 0 ;
 				wnn->is_cand = 0 ;
 			}
 			else
@@ -777,6 +818,7 @@ key_event(
 				jcMove( wnn->convbuf , 0 , JC_FORWARD) ;
 			}
 
+			wnn->dan = 0 ;
 			wnn->is_cand = 0 ;
 		}
 		else if( ksym == XK_Left)
@@ -790,6 +832,7 @@ key_event(
 				jcMove( wnn->convbuf , 0 , JC_BACKWARD) ;
 			}
 
+			wnn->dan = 0 ;
 			wnn->is_cand = 0 ;
 		}
 		else
