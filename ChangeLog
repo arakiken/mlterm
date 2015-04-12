@@ -1,5 +1,13 @@
 2015-04-13  Araki Ken  <arakiken@users.sf.net>
 
+	* im_wnn.c:
+	  - Preedit characters are fixed when a new character is inserted if
+	    jcIsConverted() is true.
+	  - Candidate window is changed correctly in changing a candidate word
+	    by XK_Up.
+
+2015-04-13  Araki Ken  <arakiken@users.sf.net>
+
 	* im_wnn.c: Sign characters are converted to full width.
 
 2015-04-12  Araki Ken  <arakiken@users.sf.net>

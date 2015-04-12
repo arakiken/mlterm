@@ -575,6 +575,28 @@ insert_char(
 	return  0 ;
 }
 
+static int
+fix(
+	im_wnn_t *  wnn
+	)
+{
+	if( wnn->convbuf->displayEnd > wnn->convbuf->displayBuf)
+	{
+		wnn->dan = 0 ;
+		wnn->is_cand = 0 ;
+		preedit( wnn , "" , 0 , 0 , 0 , "" , 0) ;
+		commit( wnn , wnn->convbuf->displayBuf ,
+			(wnn->convbuf->displayEnd - wnn->convbuf->displayBuf) * 2) ;
+		jcFix( wnn->convbuf) ;
+		jcClear( wnn->convbuf) ;
+
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
+	}
+}
 
 /*
  * methods of x_im_t
@@ -669,20 +691,7 @@ key_event(
 
 	if( key_char == '\r' || key_char == '\n')
 	{
-		if( wnn->convbuf->displayEnd > wnn->convbuf->displayBuf)
-		{
-			wnn->dan = 0 ;
-			wnn->is_cand = 0 ;
-			preedit( wnn , "" , 0 , 0 , 0 , "" , 0) ;
-			commit( wnn , wnn->convbuf->displayBuf ,
-				(wnn->convbuf->displayEnd - wnn->convbuf->displayBuf) * 2) ;
-			jcFix( wnn->convbuf) ;
-			jcClear( wnn->convbuf) ;
-		}
-		else
-		{
-			return  1 ;
-		}
+		return  fix( wnn) ;
 	}
 	else if( ksym == XK_BackSpace || ksym == XK_Delete)
 	{
@@ -708,7 +717,14 @@ key_event(
 	}
 	else if( key_char != ' ' && key_char != '\0')
 	{
-		wnn->is_cand = 0 ;
+		if( wnn->im.preedit.filled_len > 0 && jcIsConverted( wnn->convbuf , 0))
+		{
+			fix( wnn) ;
+		}
+		else
+		{
+			wnn->is_cand = 0 ;
+		}
 
 		if( insert_char( wnn , key_char) != 0)
 		{
@@ -755,7 +771,10 @@ key_event(
 				}
 
 				if( jcCandidateInfo( wnn->convbuf , 0 , &ncand , &curcand) == 0 &&
-				    ( ! wnn->is_cand || curcand % 5 == 0))
+				    ( ! wnn->is_cand ||
+				      ( ksym == XK_Up ?
+				          (curcand % 5 == 4 || curcand == ncand - 1) :
+				          (curcand % 5 == 0))))
 				{
 					wchar  tmp[1024] ;
 					wchar *  src ;
@@ -775,7 +794,8 @@ key_event(
 								cand_len ++ ;
 							}
 
-							if( count < 4)
+							if( count < 4 &&
+							    beg + count < ncand - 1)
 							{
 								cand_len ++ ;	/* '\n' */
 							}
@@ -797,7 +817,8 @@ key_event(
 									*(dst++) = *src ;
 								}
 
-								if( count < 4)
+								if( count < 4 &&
+								    beg + count < ncand - 1)
 								{
 									*(dst++) = '\n' ;
 								}
