@@ -6181,7 +6181,6 @@ draw_preedit_str(
 	u_int  start ;
 	u_int  beg_row ;
 	u_int  end_row ;
-	u_int  row ;
 	int  preedit_cursor_x ;
 	int  preedit_cursor_y ;
 
@@ -6189,21 +6188,9 @@ draw_preedit_str(
 
 	if( screen->is_preediting)
 	{
-		if( ! ml_term_get_vertical_mode( screen->term))
-		{
-			for( row = screen->im_preedit_beg_row ; row <= screen->im_preedit_end_row ; row++)
-			{
-				if( ( line = ml_term_get_line_in_screen( screen->term , row)))
-				{
-					y = convert_row_to_y( screen , row) ;
-					draw_line( screen , line , y) ;
-				}
-			}
-		}
-		else
-		{
-			x_window_update( &screen->window, UPDATE_SCREEN) ;
-		}
+		ml_term_set_modified_lines_in_screen( screen->term ,
+			screen->im_preedit_beg_row , screen->im_preedit_end_row) ;
+		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 
 	if( ! num_of_chars)
@@ -6260,6 +6247,10 @@ draw_preedit_str(
 	preedit_cursor_y = y ;
 
 	total_width = 0 ;
+
+#ifdef  USE_WIN32GUI
+	x_set_gc( screen->window.gc , GetDC( screen->window.my_window)) ;
+#endif
 
 	for( i = 0 , start = 0 ; i < num_of_chars ; i++)
 	{
@@ -6336,7 +6327,7 @@ draw_preedit_str(
 					x_line_bottom_margin( screen) ,
 					screen->hide_underline))
 			{
-				return  0 ;
+				break ;
 			}
 
 			x = _x ;
@@ -6361,7 +6352,7 @@ draw_preedit_str(
 					x_line_bottom_margin( screen) ,
 					screen->hide_underline))
 			{
-				return  0 ;
+				break ;
 			}
 		}
 
@@ -6406,7 +6397,10 @@ draw_preedit_str(
 		}
 	}
 
-	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
+#ifdef  USE_WIN32GUI
+	ReleaseDC( screen->window.my_window , screen->window.gc->gc) ;
+	x_set_gc( screen->window.gc , None) ;
+#endif
 
 	screen->im_preedit_beg_row = beg_row ;
 	screen->im_preedit_end_row = end_row ;

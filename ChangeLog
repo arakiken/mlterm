@@ -1,3 +1,11 @@
+2015-04-18  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: GetDC/ReleaseDC are called in draw_preedit_str().
+
+	* im_wnn.c:
+	  - Ctrl+c or Ctrl+g cancels preediting.
+	  - Current mode (Kana or Kanji) is shown if there is no preedited text.
+
 2015-04-13  Araki Ken  <arakiken@users.sf.net>
 
 	* im_wnn.c:

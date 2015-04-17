@@ -207,7 +207,6 @@ preedit(
 
 		(*wnn->parser_term->init)( wnn->parser_term) ;
 		(*wnn->parser_term->set_str)( wnn->parser_term , preedit , preedit_len) ;
-
 		while( (*wnn->parser_term->next_char)( wnn->parser_term , &ch))
 		{
 			int  is_fullwidth ;
@@ -674,6 +673,7 @@ key_event(
 	im_wnn_t *  wnn ;
 	wchar *  cand = NULL ;
 	size_t  cand_len = 0 ;
+	int  ret = 0 ;
 
 	wnn = (im_wnn_t*) im ;
 
@@ -681,17 +681,18 @@ key_event(
 	{
 		switch_mode( im) ;
 
-		return  0 ;
+		if( ! wnn->is_enabled)
+		{
+			return  0 ;
+		}
 	}
-
-	if( ! wnn->is_enabled)
+	else if( ! wnn->is_enabled)
 	{
 		return  1 ;
 	}
-
-	if( key_char == '\r' || key_char == '\n')
+	else if( key_char == '\r' || key_char == '\n')
 	{
-		return  fix( wnn) ;
+		ret = fix( wnn) ;
 	}
 	else if( ksym == XK_BackSpace || ksym == XK_Delete)
 	{
@@ -712,27 +713,49 @@ key_event(
 		}
 		else
 		{
-			return  1 ;
+			ret = 1 ;
 		}
 	}
 	else if( key_char != ' ' && key_char != '\0')
 	{
 		if( wnn->im.preedit.filled_len > 0 && jcIsConverted( wnn->convbuf , 0))
 		{
-			fix( wnn) ;
+			if( key_char < ' ')
+			{
+				if( key_char == 0x03 || key_char == 0x07) /* Ctrl+c, Ctrl+g */
+				{
+					jcCancel( wnn->convbuf) ;
+					jcBottom( wnn->convbuf) ;
+				}
+
+				ret = 1 ;
+			}
+			else
+			{
+				fix( wnn) ;
+			}
+		}
+		else if( key_char < ' ')
+		{
+			ret = 1 ;
 		}
 		else
 		{
 			wnn->is_cand = 0 ;
 		}
 
-		if( insert_char( wnn , key_char) != 0)
+		if( ret == 0 && insert_char( wnn , key_char) != 0)
 		{
-			return  1 ;
+			ret = 1 ;
 		}
 	}
 	else
 	{
+		if( key_char == ' ' && wnn->im.preedit.filled_len == 0)
+		{
+			ret = 1 ;
+		}
+
 		if( key_char == ' ' || ksym == XK_Up || ksym == XK_Down)
 		{
 			if( ! jcIsConverted( wnn->convbuf , 0))
@@ -741,7 +764,7 @@ key_event(
 
 				if( key_char != ' ')
 				{
-					return  0 ;
+					ret = 1 ;
 				}
 
 				if( jcConvert( wnn->convbuf , 0 , 0 , 0) != 0)
@@ -858,7 +881,7 @@ key_event(
 		}
 		else
 		{
-			return  1 ;
+			ret = 1 ;
 		}
 	}
 
@@ -879,7 +902,7 @@ key_event(
 			jcDotOffset( wnn->convbuf) , 0 , (char*)kana , sizeof(kana)) ;
 	}
 
-	return  0 ;
+	return  ret ;
 }
 
 static int

@@ -26,6 +26,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @CANNA_LIBS@
 
+TARGET_win32 = libim-wnn.la
 TARGET_xlib = libim-canna.la
 TARGET_fb = libim-canna-fb.la
 
