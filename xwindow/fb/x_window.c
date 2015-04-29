@@ -916,6 +916,42 @@ fix_rl_boundary(
 	return  1 ;
 }
 
+static void
+reset_input_focus(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+	if( win->is_focused)
+	{
+		win->is_focused = 0 ;
+
+		if( win->window_unfocused)
+		{
+			(*win->window_unfocused)( win) ;
+		}
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		reset_input_focus( win->children[count]) ;
+	}
+}
+
+static void
+focus_window(
+	x_window_t *  win
+	)
+{
+	reset_input_focus( x_get_root_window( win)) ;
+	win->is_focused = 1 ;
+	if( win->window_focused)
+	{
+		(*win->window_focused)( win) ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -930,7 +966,8 @@ x_window_init(
 	u_int  height_inc ,
 	u_int  hmargin ,
 	u_int  vmargin ,
-	int  create_gc
+	int  create_gc ,
+	int  input_focus
 	)
 {
 	memset( win , 0 , sizeof( x_window_t)) ;
@@ -1186,11 +1223,34 @@ x_window_add_child(
 	child->parent = win ;
 	child->x = x ;
 	child->y = y ;
-	child->is_mapped = map ;
+	child->is_focused = child->is_mapped = map ;
 
 	win->children[ win->num_of_children ++] = child ;
 
 	return  1 ;
+}
+
+int
+x_window_remove_child(
+	x_window_t *  win ,
+	x_window_t *  child
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		if( win->children[count] == child)
+		{
+			child->parent = NULL ;
+
+			win->children[count] = win->children[--win->num_of_children] ;
+
+			return  1 ;
+		}
+	}
+
+	return  0 ;
 }
 
 x_window_t *
@@ -1291,7 +1351,12 @@ x_window_map(
 	if( ! win->is_mapped)
 	{
 		win->is_mapped = 1 ;
+
+		(*win->window_exposed)( win ,
+			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 		clear_margin_area( win) ;
+
+		focus_window( win) ;
 	}
 
 	return  1 ;
@@ -1769,6 +1834,12 @@ x_window_receive_event(
 			/* button_is_pressing flag is on except wheel mouse (Button4/Button5). */
 			win->button_is_pressing = 1 ;
 			win->prev_button_press_event = event->xbutton ;
+		}
+
+		if( ! win->is_focused && event->xbutton.button == Button1 &&
+		    ! event->xbutton.state)
+		{
+			focus_window( win) ;
 		}
 	}
 

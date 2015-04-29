@@ -488,9 +488,12 @@ close_screen_intern(
 	root = x_get_root_window( &screen->window) ;
 	disp = root->disp ;
 
-	x_display_remove_root( disp, root) ;
-
-	if( disp->num_of_roots == 0)
+	if( ! x_display_remove_root( disp, root))
+	{
+		x_window_unmap( root) ;
+		x_window_final( root) ;
+	}
+	else if( disp->num_of_roots == 0)
 	{
 		x_display_close( disp) ;
 	}
@@ -500,13 +503,14 @@ close_screen_intern(
 
 static x_screen_t *
 open_screen_intern(
-	char *  pty
+	char *  pty ,
+	x_sb_screen_t *  sb_screen ,
+	int  vertical
 	)
 {
 	ml_term_t *  term ;
 	x_display_t *  disp ;
 	x_screen_t *  screen ;
-	x_sb_screen_t *  sb_screen ;
 	x_font_manager_t *  font_man ;
 	x_color_manager_t *  color_man ;
 	x_window_t *  root ;
@@ -520,7 +524,6 @@ open_screen_intern(
 	font_man = NULL ;
 	color_man = NULL ;
 	screen = NULL ;
-	sb_screen = NULL ;
 	root = NULL ;
 
 	if( MAX_SCREENS <= num_of_screens)
@@ -629,27 +632,41 @@ open_screen_intern(
 
 	x_set_system_listener( screen , &system_listener) ;
 
-	if( main_config.use_scrollbar &&
-	    ( sb_screen = x_sb_screen_new( screen ,
-				main_config.scrollbar_view_name ,
-				main_config.sb_fg_color , main_config.sb_bg_color ,
-				main_config.sb_mode)))
+	if( sb_screen)
 	{
+		if( ! x_sb_screen_add_child( sb_screen , screen , vertical))
+		{
+			sb_screen = NULL ;
+
+			goto  error ;
+		}
+
 		root = &sb_screen->window ;
 	}
 	else
 	{
-		root = &screen->window ;
-	}
+		if( main_config.use_scrollbar &&
+		    ( sb_screen = x_sb_screen_new( screen ,
+					main_config.scrollbar_view_name ,
+					main_config.sb_fg_color , main_config.sb_bg_color ,
+					main_config.sb_mode)))
+		{
+			root = &sb_screen->window ;
+		}
+		else
+		{
+			root = &screen->window ;
+		}
 
-	if( ! x_display_show_root( disp, root, main_config.x, main_config.y,
-		main_config.geom_hint, main_config.app_name , main_config.parent_window))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_display_show_root() failed.\n") ;
-	#endif
-	
-		goto  error ;
+		if( ! x_display_show_root( disp, root, main_config.x, main_config.y,
+			main_config.geom_hint, main_config.app_name , main_config.parent_window))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " x_display_show_root() failed.\n") ;
+		#endif
+
+			goto  error ;
+		}
 	}
 
 	if( ( p = realloc( screens , sizeof( x_screen_t*) * (num_of_screens + 1))) == NULL)
@@ -998,7 +1015,15 @@ pty_closed(
 			#ifdef  __DEBUG
 				kik_debug_printf( " no detached term. closing screen.\n") ;
 			#endif
-			
+
+				if( screen->window.parent)
+				{
+					x_sb_screen_remove_child(
+						(x_sb_screen_t*)x_get_root_window(
+							&screen->window) ,
+						screen) ;
+				}
+
 			#ifdef  USE_WIN32GUI
 				/*
 				 * XXX Hack
@@ -1007,7 +1032,8 @@ pty_closed(
 				 * (see window_unfocused())
 				 */
 				screen->window.window_unfocused = NULL ;
-				SendMessage( x_get_root_window( &screen->window)->my_window,
+				SendMessage(
+					x_get_root_window( &screen->window)->my_window,
 					WM_CLOSE, 0, 0) ;
 			#else
 				screens[count] = screens[--num_of_screens] ;
@@ -1029,9 +1055,11 @@ pty_closed(
 }
 
 static void
-open_screen(
+open_or_split_screen(
 	void *  p ,
-	x_screen_t *  cur_screen	/* Screen which triggers this event. */
+	x_screen_t *  cur_screen ,	/* Screen which triggers this event. */
+	x_sb_screen_t *  sb_screen ,
+	int  vertical
 	)
 {
 	char *  disp_name ;
@@ -1071,7 +1099,7 @@ open_screen(
 	}
 #endif
 
-	if( ! open_screen_intern( NULL))
+	if( ! open_screen_intern( NULL , sb_screen , vertical))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
@@ -1090,6 +1118,26 @@ open_screen(
 		main_config.cmd_argv = cmd_argv ;
 	}
 #endif
+}
+
+static void
+open_screen(
+	void *  p ,
+	x_screen_t *  cur_screen	/* Screen which triggers this event. */
+	)
+{
+	open_or_split_screen( p , cur_screen , NULL , 0) ;
+}
+
+static void
+split_screen(
+	void *  p ,
+	x_screen_t *  cur_screen ,	/* Screen which triggers this event. */
+	int  vertical
+	)
+{
+	open_or_split_screen( p , cur_screen ,
+		(x_sb_screen_t*)cur_screen->window.parent , vertical) ;
 }
 
 static void
@@ -1238,7 +1286,7 @@ mlclient(
 		}
 		else
 		{
-			if( ! open_screen_intern( pty))
+			if( ! open_screen_intern( pty , NULL , 0))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
@@ -1360,6 +1408,7 @@ x_screen_manager_init(
 #else
 	system_listener.open_screen = open_screen ;
 #endif
+	system_listener.split_screen = split_screen ;
 	system_listener.close_screen = close_screen ;
 	system_listener.open_pty = open_pty ;
 	system_listener.next_pty = next_pty ;
@@ -1389,6 +1438,14 @@ x_screen_manager_final(void)
 	
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
+		if( screens[count]->window.parent)
+		{
+			x_sb_screen_remove_child(
+				(x_sb_screen_t*)x_get_root_window(
+					&screens[count]->window) ,
+				screens[count]) ;
+		}
+
 		close_screen_intern( screens[count]) ;
 	}
 
@@ -1450,7 +1507,7 @@ x_screen_manager_startup(void)
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
-		if( ! open_screen_intern( NULL))
+		if( ! open_screen_intern( NULL , NULL , 0))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;

@@ -1889,6 +1889,26 @@ shortcut_match(
 
 		return  1 ;
 	}
+	else if( x_shortcut_match( screen->shortcut , VSPLIT_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,split_screen))
+		{
+			(*screen->system_listener->split_screen)(
+				screen->system_listener->self , screen , 1) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , HSPLIT_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,split_screen))
+		{
+			(*screen->system_listener->split_screen)(
+				screen->system_listener->self , screen , 0) ;
+		}
+
+		return  1 ;
+	}
 	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
@@ -7466,7 +7486,7 @@ x_screen_new(
 		screen->term ? screen_width( screen) : col_width ,
 		screen->term ? screen_height( screen) : line_height ,
 		col_width , line_height , col_width , line_height ,
-		hmargin , vmargin , 0) == 0) /* min: 1x1 */
+		hmargin , vmargin , 0 , 1) == 0) /* min: 1x1 */
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;

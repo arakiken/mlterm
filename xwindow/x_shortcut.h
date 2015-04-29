@@ -19,6 +19,8 @@ typedef enum  x_key_func
 	IM_HOTKEY ,
 	EXT_KBD ,
 	OPEN_SCREEN ,
+	VSPLIT_SCREEN ,
+	HSPLIT_SCREEN ,
 	OPEN_PTY ,
 	NEXT_PTY ,
 	PREV_PTY ,

@@ -1,3 +1,28 @@
+2015-04-29  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen_manager.c: x_system_event_listener_t::split_screen is implemented.
+
+	* x_screen.[ch], x_shortcut.[ch]:
+	  - VSPLIT_SCREEN and HSPLIT_SCREEN shortcuts are supported.
+	  - split_screen is added to x_system_event_listener_t.
+
+	* x_sb_screen.[ch]: It is supported to manage multiple sets of screen
+	  and scrollbar.
+
+	* x_window.h, xlib/x_window.c:
+	  - has_input_focus is added to x_window_t.
+	  - x_window_t::is_focused is off except when x_window_t::has_input_focus is on.
+
+	* fb/x_window.c:
+	  - focus_window() which focuses a specified window is called when
+	    mouse button is clicked on it and when x_window_map() is called.
+	  - x_window_remove_child() is added.
+	  - input_focus is added to arguments of x_window_init().
+
+	* win32/x_window.c: input_focus is added to arguments of x_window_init().
+
+	* fb/x_display.c: get_window() searches child windows recursively.
+
 2015-04-18  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: GetDC/ReleaseDC are called in draw_preedit_str().

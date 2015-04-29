@@ -982,7 +982,8 @@ x_window_init(
 	u_int  height_inc ,
 	u_int  hmargin ,
 	u_int  vmargin ,
-	int  create_gc	/* ignored */
+	int  create_gc ,	/* ignored */
+	int  input_focus
 	)
 {
 	memset( win , 0 , sizeof( x_window_t)) ;

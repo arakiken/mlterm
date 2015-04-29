@@ -46,6 +46,8 @@ static key_func_table_t  key_func_table[] =
 	{ "IM_HOTKEY" , IM_HOTKEY , } ,
 	{ "EXT_KBD" , EXT_KBD , } ,
 	{ "OPEN_SCREEN" , OPEN_SCREEN , } ,
+	{ "VSPLIT_SCREEN" , VSPLIT_SCREEN , } ,
+	{ "HSPLIT_SCREEN" , HSPLIT_SCREEN , } ,
 	{ "OPEN_PTY" , OPEN_PTY , } ,
 	{ "NEXT_PTY" , NEXT_PTY , } ,
 	{ "PREV_PTY" , PREV_PTY , } ,
@@ -138,6 +140,12 @@ x_shortcut_init(
 		
 		/* OPEN_SCREEN */
 		{ XK_F1 , ControlMask , 1 , } ,
+
+		/* VSPLIT_SCREEN */
+		{ XK_F5 , ControlMask , 1 , } ,
+
+		/* HSPLIT_SCREEN */
+		{ XK_F6 , ControlMask , 1 , } ,
 
 		/* OPEN_PTY */
 		{ XK_F2 , ControlMask , 1 , } ,

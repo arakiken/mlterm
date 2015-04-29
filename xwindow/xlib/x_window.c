@@ -396,7 +396,7 @@ notify_focus_in_to_children(
 {
 	u_int  count ;
 
-	if( ! win->is_focused)
+	if( ! win->is_focused && win->has_input_focus)
 	{
 		win->is_focused = 1 ;
 
@@ -838,6 +838,21 @@ right_shift(
 	return  shift ;
 }
 
+static void
+reset_input_focus(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+	win->has_input_focus = 0 ;
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		reset_input_focus( win->children[count]) ;
+	}
+}
+
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE)
 
@@ -1006,7 +1021,8 @@ x_window_init(
 	u_int  height_inc ,
 	u_int  hmargin ,
 	u_int  vmargin ,
-	int  create_gc
+	int  create_gc ,
+	int  input_focus
 	)
 {
 	memset( win , 0 , sizeof( x_window_t)) ;
@@ -1020,6 +1036,7 @@ x_window_init(
 	/* If wall picture is set, scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
+#if  0
 	/*
 	 * is_focus member shoule be 0 by default in order to call
 	 * XSetICFocus(x_xic_set_focus) in startup FocusIn event.
@@ -1027,6 +1044,9 @@ x_window_init(
 	 * in XFilterEvent.
 	 */
 	win->is_focused = 0 ;
+#endif
+
+	win->has_input_focus = input_focus ;
 
 	/* This flag will map window automatically in x_window_show() */
 	win->is_mapped = 1 ;
@@ -1468,11 +1488,37 @@ x_window_add_child(
 	child->parent = win ;
 	child->x = x ;
 	child->y = y ;
-	child->is_mapped = map ;
+
+	if( ! ( child->is_mapped = map))
+	{
+		child->has_input_focus = 0 ;
+	}
 
 	win->children[ win->num_of_children ++] = child ;
 
 	return  1 ;
+}
+
+int
+x_window_remove_child(
+	x_window_t *  win ,
+	x_window_t *  child
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		if( win->children[count] == child)
+		{
+			child->parent = NULL ;
+			win->children[count] = win->children[--win->num_of_children] ;
+
+			return  1 ;
+		}
+	}
+
+	return  0 ;
 }
 
 x_window_t *
@@ -1733,6 +1779,11 @@ x_window_show(
 	{
 		XMapWindow( win->disp->display , win->my_window) ;
 
+		if( win->has_input_focus)
+		{
+			reset_input_focus( x_get_root_window( win)) ;
+			win->has_input_focus = 1 ;
+		}
 	#if  0
 		x_window_clear_all( win) ;
 	#endif
@@ -1932,7 +1983,9 @@ x_window_set_override_redirect(
 		XMapWindow( root->disp->display , root->my_window) ;
 	}
 
-	win->is_focused = 1 ;	/* XXX Always focused not to execute XSetInputFocus(). */
+	reset_input_focus( root) ;
+	/* XXX Always focused not to execute XSetInputFocus(). */
+	win->has_input_focus = win->is_focused = 1 ;
 
 	return  1 ;
 }
@@ -2431,6 +2484,8 @@ x_window_receive_event(
 		if( ! win->is_focused && event->xbutton.button == Button1 &&
 		    ! event->xbutton.state)
 		{
+			reset_input_focus( x_get_root_window( win)) ;
+			win->has_input_focus = 1 ;
 			XSetInputFocus( win->disp->display , win->my_window ,
 				RevertToParent , CurrentTime) ;
 		}

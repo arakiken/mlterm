@@ -155,6 +155,7 @@ typedef struct  x_window
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
 	int8_t  is_focused ;
+	int8_t  has_input_focus ;
 	int8_t  is_mapped ;
 	int8_t  create_gc ;
 
@@ -198,7 +199,7 @@ typedef struct  x_window
 int  x_window_init( x_window_t *  win ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
 	u_int  width_inc , u_int  height_inc , u_int  hmargin , u_int  vmargin ,
-	int  create_gc) ;
+	int  create_gc , int  input_focus) ;
 
 int  x_window_final( x_window_t *  win) ;
 
@@ -235,6 +236,8 @@ int  x_window_set_fg_color( x_window_t *  win , x_color_t *  fg_color) ;
 int  x_window_set_bg_color( x_window_t *  win , x_color_t *  bg_color) ;
 
 int  x_window_add_child( x_window_t *  win , x_window_t *  child , int  x , int  y , int  map) ;
+
+int  x_window_remove_child( x_window_t *  win , x_window_t *  child) ;
 
 x_window_t *  x_get_root_window( x_window_t *  win) ;
 

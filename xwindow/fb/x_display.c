@@ -187,6 +187,33 @@ static struct cursor_shape
 
 /* --- static functions --- */
 
+static inline x_window_t *
+get_window_intern(
+	x_window_t *  win ,
+	int  x ,
+	int  y
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		x_window_t *  child ;
+
+		if( ( child = win->children[count])->is_mapped)
+		{
+			if( child->x <= x && x < child->x + ACTUAL_WIDTH(child) &&
+			    child->y <= y && y < child->y + ACTUAL_HEIGHT(child))
+			{
+				return  get_window_intern( child ,
+						x - child->x , y - child->y) ;
+			}
+		}
+	}
+
+	return  win ;
+}
+
 /*
  * _disp.roots[1] is ignored.
  * x and y are rotated values.
@@ -197,22 +224,7 @@ get_window(
 	int  y		/* Y in display */
 	)
 {
-	x_window_t *  win ;
-	u_int  count ;
-
-	for( count = 0 ; count < _disp.roots[0]->num_of_children ; count++)
-	{
-		if( ( win = _disp.roots[0]->children[count])->is_mapped)
-		{
-			if( win->x <= x && x < win->x + ACTUAL_WIDTH(win) &&
-			    win->y <= y && y < win->y + ACTUAL_HEIGHT(win))
-			{
-				return  win ;
-			}
-		}
-	}
-
-	return  _disp.roots[0] ;
+	return  get_window_intern( _disp.roots[0] , x , y) ;
 }
 
 static inline u_char *
