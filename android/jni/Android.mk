@@ -73,7 +73,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		xwindow/x_im_status_screen.c xwindow/x_screen_manager.c xwindow/x_draw_str.c \
 		xwindow/fb/x_imagelib.c xwindow/x_event_source.c \
 		xwindow/x_main_config.c xwindow/x_selection.c \
-		xwindow/x_sb_screen.c xwindow/x_simple_sb_view.c \
+		xwindow/x_layout.c xwindow/x_simple_sb_view.c \
 		xwindow/x_sb_view_factory.c xwindow/x_scrollbar.c \
 		main/daemon.c main/main_loop.c main/main.c
 LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB #-DKIK_DEBUG -DDEBUG

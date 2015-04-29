@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __X_SB_TERM_SCREEN_H__
-#define  __X_SB_TERM_SCREEN_H__
+#ifndef  __X_LAYOUT_H__
+#define  __X_LAYOUT_H__
 
 
 #include  <kiklib/kik_types.h>		/* int8_t */
@@ -13,7 +13,7 @@
 #include  "x_color_manager.h"
 
 
-typedef struct  x_sb_screen
+typedef struct  x_layout
 {
 	x_window_t  window ;
 
@@ -35,17 +35,17 @@ typedef struct  x_sb_screen
 
 	void (*line_scrolled_out)( void *) ;
 	
-} x_sb_screen_t ;
+} x_layout_t ;
 
 
-x_sb_screen_t *  x_sb_screen_new( x_screen_t *  screen ,
+x_layout_t *  x_layout_new( x_screen_t *  screen ,
 	char *  view_name , char *  fg_color , char *  bg_color , x_sb_mode_t  mode) ;
 
-int  x_sb_screen_delete( x_sb_screen_t *  sb_screen) ;
+int  x_layout_delete( x_layout_t *  layout) ;
 
-int  x_sb_screen_add_child( x_sb_screen_t *  sb_screen , x_screen_t *  screen , int  vertical) ;
+int  x_layout_add_child( x_layout_t *  layout , x_screen_t *  screen , int  vertical) ;
 
-int  x_sb_screen_remove_child( x_sb_screen_t *  sb_screen , x_screen_t *  screen) ;
+int  x_layout_remove_child( x_layout_t *  layout , x_screen_t *  screen) ;
 
 
 #endif

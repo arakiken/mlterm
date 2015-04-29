@@ -10,7 +10,7 @@
 #include  <kiklib/kik_conf.h>
 #include  <ml_term.h>
 
-#include  "x_sb_screen.h"
+#include  "x_layout.h"
 
 
 typedef struct x_main_config

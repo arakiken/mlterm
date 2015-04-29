@@ -20,7 +20,7 @@ OBJ1 = x_screen_manager.o x_event_source.o x_display.o x_window.o x_screen.o \
 	x_xic.o x_color_manager.o x_font_manager.o x_picture.o x_font.o \
 	x_color.o x_selection.o x_font_config.o x_main_config.o \
 	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o x_font_cache.o \
-	x_draw_str.o x_gc.o x_color_cache.o x_dnd.o x_scrollbar.o x_sb_screen.o \
+	x_draw_str.o x_gc.o x_color_cache.o x_dnd.o x_scrollbar.o x_layout.o \
 	x_sb_view_factory.o x_simple_sb_view.o x_imagelib.o x_connect_dialog.o \
 	x_type_engine.o x_im.o x_im_candidate_screen.o x_im_status_screen.o @TYPE_LOADER_OBJ@
 

@@ -27,7 +27,7 @@
 #include  <ml_term_manager.h>
 #include  <ml_char_encoding.h>
 
-#include  "x_sb_screen.h"
+#include  "x_layout.h"
 #include  "x_display.h"
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
@@ -504,7 +504,7 @@ close_screen_intern(
 static x_screen_t *
 open_screen_intern(
 	char *  pty ,
-	x_sb_screen_t *  sb_screen ,
+	x_layout_t *  layout ,
 	int  vertical
 	)
 {
@@ -632,26 +632,26 @@ open_screen_intern(
 
 	x_set_system_listener( screen , &system_listener) ;
 
-	if( sb_screen)
+	if( layout)
 	{
-		if( ! x_sb_screen_add_child( sb_screen , screen , vertical))
+		if( ! x_layout_add_child( layout , screen , vertical))
 		{
-			sb_screen = NULL ;
+			layout = NULL ;
 
 			goto  error ;
 		}
 
-		root = &sb_screen->window ;
+		root = &layout->window ;
 	}
 	else
 	{
 		if( main_config.use_scrollbar &&
-		    ( sb_screen = x_sb_screen_new( screen ,
+		    ( layout = x_layout_new( screen ,
 					main_config.scrollbar_view_name ,
 					main_config.sb_fg_color , main_config.sb_bg_color ,
 					main_config.sb_mode)))
 		{
-			root = &sb_screen->window ;
+			root = &layout->window ;
 		}
 		else
 		{
@@ -764,9 +764,9 @@ error:
 			x_screen_delete( screen) ;
 		}
 
-		if( sb_screen)
+		if( layout)
 		{
-			x_sb_screen_delete( sb_screen) ;
+			x_layout_delete( layout) ;
 		}
 	}
 
@@ -1018,8 +1018,8 @@ pty_closed(
 
 				if( screen->window.parent)
 				{
-					x_sb_screen_remove_child(
-						(x_sb_screen_t*)x_get_root_window(
+					x_layout_remove_child(
+						(x_layout_t*)x_get_root_window(
 							&screen->window) ,
 						screen) ;
 				}
@@ -1058,7 +1058,7 @@ static void
 open_or_split_screen(
 	void *  p ,
 	x_screen_t *  cur_screen ,	/* Screen which triggers this event. */
-	x_sb_screen_t *  sb_screen ,
+	x_layout_t *  layout ,
 	int  vertical
 	)
 {
@@ -1099,7 +1099,7 @@ open_or_split_screen(
 	}
 #endif
 
-	if( ! open_screen_intern( NULL , sb_screen , vertical))
+	if( ! open_screen_intern( NULL , layout , vertical))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
@@ -1137,7 +1137,7 @@ split_screen(
 	)
 {
 	open_or_split_screen( p , cur_screen ,
-		(x_sb_screen_t*)cur_screen->window.parent , vertical) ;
+		(x_layout_t*)cur_screen->window.parent , vertical) ;
 }
 
 static void
@@ -1440,8 +1440,8 @@ x_screen_manager_final(void)
 	{
 		if( screens[count]->window.parent)
 		{
-			x_sb_screen_remove_child(
-				(x_sb_screen_t*)x_get_root_window(
+			x_layout_remove_child(
+				(x_layout_t*)x_get_root_window(
 					&screens[count]->window) ,
 				screens[count]) ;
 		}
