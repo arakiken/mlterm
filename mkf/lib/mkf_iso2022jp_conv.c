@@ -116,7 +116,7 @@ convert_to_iso2022jp(
 		{
 			if( filled_size >= dst_size)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 			
 				return  filled_size ;
 			}
@@ -133,7 +133,7 @@ convert_to_iso2022jp(
 			{
 				if( filled_size + ch.size > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -152,7 +152,7 @@ convert_to_iso2022jp(
 					
 					if( filled_size + ch.size + 2 >= dst_size)
 					{
-						mkf_parser_reset( parser) ;
+						mkf_parser_full_reset( parser) ;
 
 						return  filled_size ;
 					}
@@ -168,7 +168,7 @@ convert_to_iso2022jp(
 					
 					if( filled_size + ch.size + 3 >= dst_size)
 					{
-						mkf_parser_reset( parser) ;
+						mkf_parser_full_reset( parser) ;
 
 						return  filled_size ;
 					}
@@ -189,7 +189,7 @@ convert_to_iso2022jp(
 				{
 					if( filled_size + ch.size + 3 >= dst_size)
 					{
-						mkf_parser_reset( parser) ;
+						mkf_parser_full_reset( parser) ;
 
 						return  filled_size ;
 					}
@@ -207,7 +207,7 @@ convert_to_iso2022jp(
 				{
 					if( filled_size + ch.size + 2 >= dst_size)
 					{
-						mkf_parser_reset( parser) ;
+						mkf_parser_full_reset( parser) ;
 
 						return  filled_size ;
 					}
@@ -223,7 +223,7 @@ convert_to_iso2022jp(
 					/* for ISO2022JP-2(rfc1154) */
 					if( filled_size + ch.size + 2 >= dst_size)
 					{
-						mkf_parser_reset( parser) ;
+						mkf_parser_full_reset( parser) ;
 
 						return  filled_size ;
 					}
@@ -243,7 +243,7 @@ convert_to_iso2022jp(
 							&is_full , &ch) ;
 					if( is_full)
 					{
-						mkf_parser_reset( parser) ;
+						mkf_parser_full_reset( parser) ;
 
 						return  filled_size ;
 					}

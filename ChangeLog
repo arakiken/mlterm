@@ -1,3 +1,38 @@
+2015-05-03  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* MLActivity.java, jni/x_display.[ch], fb/x_window.c:
+	  Copy&paste via clipboard is supported.
+
+	* jni/x_event_source.c:
+	  - update_ime_text_on_active_term() searches not only attached but also
+	    focused window.
+	  - ALooper_removeFds() is called everytime before closing fds in
+	    x_event_source_process().
+
+	* mkf_*_conv.c: mkf_parser_reset() -> mkf_parser_full_reset().
+
+	* mkf_parser.c: mkf_parser_full_reset() which resets ml_parser_t::is_eos
+	  is added.
+
+	* mkf/lib/Makefile.in: 16.0 -> 16.1
+
+	* win32/x_window.c:
+	  - x_window_remove_child() is added.
+	  - SetFocus() is called in receiving Button1 event.
+
+	* x_im_{candidate|status}_screen.c: Compiling error is fixed.
+
+	* x_shortcut.[ch], x_screen.c: CLOSE_SCREEN shortcut is supported.
+
+	* x_layout.c: The size of a removed child window is reverted to the original
+	  in x_layout_remove_child().
+
+	* x_main_config.c: "exec_cmd" option is avalable in ~/.mlterm/main.
+
+	* x_screen_manager.c: Fixes for win32.
+
 2015-04-30  Araki Ken  <arakiken@users.sf.net>
 
 	* x_sb_screen.[ch]: renamed to x_layout.[ch].

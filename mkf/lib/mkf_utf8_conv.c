@@ -64,7 +64,7 @@ convert_to_utf8(
 				
 				if( filled_size + 1 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -78,7 +78,7 @@ convert_to_utf8(
 
 				if( filled_size + 2 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -91,7 +91,7 @@ convert_to_utf8(
 			{
 				if( filled_size + 3 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -105,7 +105,7 @@ convert_to_utf8(
 			{
 				if( filled_size + 4 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -120,7 +120,7 @@ convert_to_utf8(
 			{
 				if( filled_size + 5 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -136,7 +136,7 @@ convert_to_utf8(
 			{
 				if( filled_size + 6 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -157,7 +157,7 @@ convert_to_utf8(
 
 				if( filled_size >= dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -174,7 +174,7 @@ convert_to_utf8(
 			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
 			if( is_full)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}

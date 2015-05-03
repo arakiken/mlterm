@@ -21,6 +21,7 @@ typedef enum  x_key_func
 	OPEN_SCREEN ,
 	VSPLIT_SCREEN ,
 	HSPLIT_SCREEN ,
+	CLOSE_SCREEN ,
 	OPEN_PTY ,
 	NEXT_PTY ,
 	PREV_PTY ,

@@ -105,7 +105,7 @@ convert_to_utf32(
 						&is_full , &ch) ;
 				if( is_full)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}

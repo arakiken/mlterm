@@ -473,13 +473,55 @@ detach_screen(
 #endif
 
 
-static int
+#ifdef  USE_WIN32GUI
+static void
+close_screen_win32(
+	x_screen_t *  screen
+	)
+{
+	int  is_orphan ;
+
+	if( screen->window.parent &&
+	    x_layout_remove_child(
+		(x_layout_t*)x_get_root_window( &screen->window) , screen))
+	{
+		is_orphan = 1 ;
+	}
+	else
+	{
+		is_orphan = 0 ;
+
+		/*
+		 * XXX Hack
+		 * In case SendMessage(WM_CLOSE) causes WM_KILLFOCUS
+		 * and operates screen->term which was already deleted.
+		 * (see window_unfocused())
+		 */
+		screen->window.window_unfocused = NULL ;
+	}
+
+	SendMessage( x_get_root_window( &screen->window)->my_window , WM_CLOSE , 0 , 0) ;
+
+	if( is_orphan && screen->window.window_deleted)
+	{
+		(*screen->window.window_deleted)( &screen->window) ;
+	}
+}
+#endif
+
+static void
 close_screen_intern(
 	x_screen_t *  screen
 	)
 {
 	x_window_t *  root ;
 	x_display_t *  disp ;
+	ml_term_t *  term ;
+
+	if( screen->window.parent)
+	{
+		x_layout_remove_child( (x_layout_t*)x_get_root_window( &screen->window) , screen) ;
+	}
 
 	x_screen_detach( screen) ;
 	x_font_manager_delete( screen->font_man) ;
@@ -488,7 +530,7 @@ close_screen_intern(
 	root = x_get_root_window( &screen->window) ;
 	disp = root->disp ;
 
-	if( ! x_display_remove_root( disp, root))
+	if( ! x_display_remove_root( disp , root))
 	{
 		x_window_unmap( root) ;
 		x_window_final( root) ;
@@ -497,18 +539,15 @@ close_screen_intern(
 	{
 		x_display_close( disp) ;
 	}
-
-	return  1 ;
 }
 
 static x_screen_t *
 open_screen_intern(
-	char *  pty ,
+	ml_term_t *  term ,
 	x_layout_t *  layout ,
 	int  vertical
 	)
 {
-	ml_term_t *  term ;
 	x_display_t *  disp ;
 	x_screen_t *  screen ;
 	x_font_manager_t *  font_man ;
@@ -531,21 +570,10 @@ open_screen_intern(
 		return  NULL ;
 	}
 
-	if( pty)
+	if( ! term)
 	{
-		if( ( term = ml_get_detached_term( pty)) == NULL)
-		{
-			return  NULL ;
-		}
-	}
-	else
-	{
-	#ifdef  __ANDROID__
-		if( ( term = ml_get_detached_term( NULL)) == NULL &&
-			( term = create_term_intern()) == NULL)
-	#else
-		if( ( term = create_term_intern()) == NULL)
-	#endif
+		if( ( ! layout || ( term = ml_get_detached_term( NULL)) == NULL) &&
+		    ( term = create_term_intern()) == NULL)
 		{
 			return  NULL ;
 		}
@@ -686,7 +714,7 @@ open_screen_intern(
 	 * New screen is successfully created here except ml_pty.
 	 */
 
-	if( pty)
+	if( ml_term_pty_is_opened( term))
 	{
 	#if  0
 		/* mlclient /dev/... -e foo */
@@ -714,15 +742,8 @@ open_screen_intern(
 			ml_destroy_term( term) ;
 
 		#ifdef  USE_WIN32GUI
-			/*
-			 * XXX Hack
-			 * In case SendMessage(WM_CLOSE) causes WM_KILLFOCUS
-			 * and operates screen->term which was already deleted.
-			 * (see window_unfocused())
-			 */
 			screens[num_of_screens++] = screen ;
-			screen->window.window_unfocused = NULL ;
-			SendMessage( root->my_window , WM_CLOSE , 0 , 0) ;
+			close_screen_win32( screen) ;
 		#else
 			close_screen_intern( screen) ;
 		#endif
@@ -1016,25 +1037,8 @@ pty_closed(
 				kik_debug_printf( " no detached term. closing screen.\n") ;
 			#endif
 
-				if( screen->window.parent)
-				{
-					x_layout_remove_child(
-						(x_layout_t*)x_get_root_window(
-							&screen->window) ,
-						screen) ;
-				}
-
 			#ifdef  USE_WIN32GUI
-				/*
-				 * XXX Hack
-				 * In case SendMessage(WM_CLOSE) causes WM_KILLFOCUS
-				 * and operates screen->term which was already deleted.
-				 * (see window_unfocused())
-				 */
-				screen->window.window_unfocused = NULL ;
-				SendMessage(
-					x_get_root_window( &screen->window)->my_window,
-					WM_CLOSE, 0, 0) ;
+				close_screen_win32( screen) ;
 			#else
 				screens[count] = screens[--num_of_screens] ;
 				close_screen_intern( screen) ;
@@ -1215,7 +1219,7 @@ mlclient(
 		num = ml_get_all_terms( &terms) ;
 		for( count = 0 ; count < num ; count ++)
 		{
-			fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
+			fprintf( fp , "#%s" , ml_term_get_slave_name( terms[count])) ;
 			if( ml_term_window_name( terms[count]))
 			{
 				fprintf( fp , "(whose title is %s)" ,
@@ -1286,7 +1290,10 @@ mlclient(
 		}
 		else
 		{
-			if( ! open_screen_intern( pty , NULL , 0))
+			ml_term_t *  term = NULL ;
+
+			if( ( pty && ! ( term = ml_get_detached_term( pty))) ||
+			    ! open_screen_intern( term , NULL , 0))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
@@ -1438,14 +1445,6 @@ x_screen_manager_final(void)
 	
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
-		if( screens[count]->window.parent)
-		{
-			x_layout_remove_child(
-				(x_layout_t*)x_get_root_window(
-					&screens[count]->window) ,
-				screens[count]) ;
-		}
-
 		close_screen_intern( screens[count]) ;
 	}
 
@@ -1502,12 +1501,16 @@ x_screen_manager_startup(void)
 	{
 		/* reload ~/.mlterm/main. */
 		config_saved() ;
+		x_shortcut_final( &shortcut) ;
+		x_shortcut_init( &shortcut) ;
+		ml_color_config_final() ;
+		ml_color_config_init() ;
 	}
 #endif
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
-		if( ! open_screen_intern( NULL , NULL , 0))
+		if( ! open_screen_intern( ml_get_detached_term( NULL) , NULL , 0))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;

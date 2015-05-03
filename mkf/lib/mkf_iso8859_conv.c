@@ -62,7 +62,7 @@ convert_to_iso8859(
 		{
 			if( filled_size >= dst_size)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}
@@ -74,7 +74,7 @@ convert_to_iso8859(
 		{
 			if( filled_size >= dst_size)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}
@@ -90,7 +90,7 @@ convert_to_iso8859(
 			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
 			if( is_full)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}

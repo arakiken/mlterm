@@ -1364,6 +1364,57 @@ x_display_get_bitmap(
 	return  image ;
 }
 
+void
+x_display_request_text_selection(void)
+{
+	JNIEnv *  env ;
+	JavaVM *  vm ;
+	jobject  this ;
+
+	vm = _display.app->activity->vm ;
+
+	(*vm)->AttachCurrentThread( vm , &env , NULL) ;
+
+	this = _display.app->activity->clazz ;
+	(*env)->CallVoidMethod( env , this ,
+		(*env)->GetMethodID( env , (*env)->GetObjectClass( env , this) ,
+			"getTextFromClipboard" , "()V")) ;
+
+	(*vm)->DetachCurrentThread(vm) ;
+}
+
+void
+x_display_send_text_selection(
+	u_char *  sel_data ,
+	size_t  sel_len
+	)
+{
+	u_char *  p ;
+	JNIEnv *  env ;
+	JavaVM *  vm ;
+	jobject  this ;
+	jstring  str ;
+
+	if( ! ( p = alloca( sel_len + 1)))
+	{
+		return ;
+	}
+
+	sel_data = memcpy( p , sel_data , sel_len) ;
+	sel_data[sel_len] = '\0' ;
+
+	vm = _display.app->activity->vm ;
+
+	(*vm)->AttachCurrentThread( vm , &env , NULL) ;
+
+	this = _display.app->activity->clazz ;
+	(*env)->CallVoidMethod( env , this ,
+		(*env)->GetMethodID( env , (*env)->GetObjectClass( env , this) ,
+			"setTextToClipboard" , "(Ljava/lang/String;)V") ,
+		(*env)->NewStringUTF( env , sel_data)) ;
+
+	(*vm)->DetachCurrentThread(vm) ;
+}
 
 /* Called in the main thread (not in the native activity thread) */
 

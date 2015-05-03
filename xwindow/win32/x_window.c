@@ -1255,6 +1255,28 @@ x_window_add_child(
 	return  1 ;
 }
 
+int
+x_window_remove_child(
+	x_window_t *  win ,
+	x_window_t *  child
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		if( win->children[count] == child)
+		{
+			child->parent = NULL ;
+			win->children[count] = win->children[--win->num_of_children] ;
+
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
 x_window_t *
 x_get_root_window(
 	x_window_t *  win
@@ -2459,6 +2481,11 @@ x_window_receive_event(
 					" mouse released... state %d x %d y %d\n",
 					bev.state, bev.x, bev.y) ;
 			#endif
+			}
+
+			if( ! win->is_focused && bev.button == Button1 && ! bev.state)
+			{
+				SetFocus( win->my_window) ;
 			}
 		}
 

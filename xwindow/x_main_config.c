@@ -8,6 +8,7 @@
 #include  <kiklib/kik_mem.h>	/* malloc/realloc */
 #include  <kiklib/kik_str.h>	/* kik_str_to_uint */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
+#include  <kiklib/kik_args.h>
 
 #include  "ml_term_manager.h"
 
@@ -1459,20 +1460,37 @@ x_main_config_init(
 	}
 #endif
 
-	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
+	if( ( value = kik_conf_get_value( conf , "exec_cmd")))
 	{
-		if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1))))
+		if( strcmp( value , "true") == 0)
 		{
-			/*
-			 * !! Notice !!
-			 * cmd_path and strings in cmd_argv vector should be allocated
-			 * by the caller.
-			 */
-			 
-			main_config->cmd_path = argv[0] ;
-			
-			memcpy( &main_config->cmd_argv[0] , argv , sizeof( char*) * argc) ;
-			main_config->cmd_argv[argc] = NULL ;
+			if( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1)))
+			{
+				/*
+				 * !! Notice !!
+				 * cmd_path and strings in cmd_argv vector should be allocated
+				 * by the caller.
+				 */
+
+				main_config->cmd_path = argv[0] ;
+
+				memcpy( &main_config->cmd_argv[0] , argv , sizeof( char*) * argc) ;
+				main_config->cmd_argv[argc] = NULL ;
+			}
+		}
+		else
+		{
+			u_int  argc ;
+
+			argc = kik_count_char_in_str( value , ' ') + 1 ;
+
+			if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1) +
+							strlen( value) + 1)))
+			{
+				value = strcpy( main_config->cmd_argv + argc + 1 , value) ;
+				_kik_arg_str_to_array( main_config->cmd_argv , &argc , value) ;
+				main_config->cmd_path = main_config->cmd_argv[0] ;
+			}
 		}
 	}
 

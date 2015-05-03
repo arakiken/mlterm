@@ -108,7 +108,10 @@ update_ime_text_on_active_term(
 
 	for( count = 0 ; count < num_of_terms ; count++)
 	{
-		if( ml_term_is_attached( terms[count]))
+		x_window_t *  win ;
+
+		if( ml_term_is_attached( terms[count]) &&
+		    ( win = XWINDOW_OF(terms[count])) && win->is_focused)
 		{
 			update_ime_text( terms[count] , preedit_text , commit_text) ;
 
@@ -212,30 +215,31 @@ x_event_source_process(void)
 
 	looper = ALooper_forThread() ;
 
-	if( ( num_of_terms = ml_get_all_terms( &terms)) != prev_num_of_terms)
+	if( ( num_of_terms = ml_get_all_terms( &terms)) == 0)
+	{
+		x_display_final() ;
+		free( fds) ;
+		fds = NULL ;
+	}
+	else
 	{
 		void *  p ;
 
-		ALooper_removeFds( looper , fds , prev_num_of_terms) ;
-		prev_num_of_terms = 0 ;
-
-		if( num_of_terms == 0)
-		{
-			x_display_final() ;
-		}
-		else if( ( p = realloc( fds , sizeof(int) * num_of_terms)))
+		if( prev_num_of_terms != num_of_terms &&
+		    ( p = realloc( fds , sizeof(int) * num_of_terms)))
 		{
 			fds = p ;
-			prev_num_of_terms = num_of_terms ;
+		}
 
-			for( count = 0 ; count < num_of_terms ; count++)
-			{
-				fds[count] = ml_term_get_master_fd( terms[count]) ;
-				ALooper_addFd( looper , fds[count] , 1000 + fds[count] ,
-					ALOOPER_EVENT_INPUT , NULL , NULL) ;
-			}
+		for( count = 0 ; count < num_of_terms ; count++)
+		{
+			fds[count] = ml_term_get_master_fd( terms[count]) ;
+			ALooper_addFd( looper , fds[count] , 1000 + fds[count] ,
+				ALOOPER_EVENT_INPUT , NULL , NULL) ;
 		}
 	}
+
+	prev_num_of_terms = num_of_terms ;
 
 	/*
 	 * Read all pending events.
@@ -252,7 +256,7 @@ x_event_source_process(void)
 	{
 		if( ! x_display_process_event( source , ident))
 		{
-			ALooper_removeFds( looper , fds , prev_num_of_terms) ;
+			ALooper_removeFds( looper , fds , num_of_terms) ;
 			prev_num_of_terms = 0 ;
 			free( fds) ;
 			fds = NULL ;
@@ -295,7 +299,14 @@ x_event_source_process(void)
 		x_display_idling( NULL) ;
 	}
 
+	if( num_of_terms > 0)
+	{
+		ALooper_removeFds( looper , fds , num_of_terms) ;
+	}
+
 	ml_close_dead_terms() ;
+
+	x_close_dead_screens() ;
 
 	pthread_mutex_unlock( &mutex) ;
 
@@ -359,6 +370,20 @@ Java_mlterm_native_1activity_MLActivity_commitText(
 	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 
 	pthread_mutex_unlock( &mutex) ;
+}
+
+void
+Java_mlterm_native_1activity_MLActivity_commitTextNoLock(
+	JNIEnv *  env ,
+	jobject  this ,
+	jstring  jstr
+	)
+{
+	char *  str ;
+
+	str = (*env)->GetStringUTFChars( env , jstr , NULL) ;
+	update_ime_text_on_active_term( NULL , str) ;
+	(*env)->ReleaseStringUTFChars( env , jstr , str) ;
 }
 
 void

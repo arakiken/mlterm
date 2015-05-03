@@ -84,7 +84,7 @@ convert_to_iso2022kr(
 		{
 			if( filled_size + ch.size > dst_size)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}
@@ -97,7 +97,7 @@ convert_to_iso2022kr(
 			{
 				if( filled_size + ch.size >= dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -112,7 +112,7 @@ convert_to_iso2022kr(
 			{
 				if( filled_size + ch.size >= dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -132,7 +132,7 @@ convert_to_iso2022kr(
 					&is_full , &ch) ;
 				if( is_full)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}

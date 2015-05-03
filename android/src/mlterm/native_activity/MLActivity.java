@@ -16,7 +16,11 @@ import  android.view.View ;
 import  android.view.ViewGroup ;
 import  android.text.InputType ;
 import  android.content.Context ;
+import  android.content.ClipboardManager ;
+import  android.content.ClipData ;
+import  android.content.ClipDescription ;
 import  android.os.Bundle ;
+import  android.os.Handler ;
 import  android.graphics.Rect ;
 import  android.graphics.BitmapFactory ;
 import  android.graphics.Bitmap ;
@@ -34,6 +38,7 @@ public class MLActivity extends NativeActivity
 
 	private native void  visibleFrameChanged( int  yoffset , int  width , int  height) ;
 	private native void  commitText( String  str) ;
+	private native void  commitTextNoLock( String  str) ;
 	private native void  preeditText( String  str) ;
 	private native String  convertToTmpPath( String  path) ;
 	private native void  splitAnimationGif( String  path) ;
@@ -42,6 +47,7 @@ public class MLActivity extends NativeActivity
 	private View  contentView ;
 	private int  inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE ;
 	private int  imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION | EditorInfo.IME_ACTION_DONE ;
+	private ClipboardManager  clipMan ;
 
 	private class TextInputConnection extends BaseInputConnection
 	{
@@ -132,6 +138,27 @@ public class MLActivity extends NativeActivity
 			contentView , InputMethodManager.SHOW_FORCED) ;
 	}
 
+	private void setTextToClipboard( String  str)
+	{
+		ClipData.Item  item = new ClipData.Item( str) ;
+		String[]  mimeType = new String[1] ;
+		mimeType[0] = ClipDescription.MIMETYPE_TEXT_PLAIN ;
+		ClipData  cd = new ClipData(
+						new ClipDescription( "text_data" , mimeType) , item) ;
+		clipMan.setPrimaryClip( cd) ;
+	}
+
+	private void getTextFromClipboard()
+	{
+		ClipData  cd = clipMan.getPrimaryClip() ;
+		if( cd != null)
+		{
+			ClipData.Item  item = cd.getItemAt( 0) ;
+
+			commitTextNoLock( item.getText().toString()) ;
+		}
+	}
+
 	@Override
 	public boolean dispatchKeyEvent( KeyEvent  event)
 	{
@@ -180,6 +207,12 @@ public class MLActivity extends NativeActivity
 					visibleFrameChanged( r.top , r.right , r.bottom - r.top) ;
 				}
 			}) ;
+
+		/*
+		 * It is prohibited to call getSystemService(CLIPBOARD_SERVICE)
+		 * in native activity thread.
+		 */
+		clipMan = (ClipboardManager)getSystemService( Context.CLIPBOARD_SERVICE) ;
 	}
 
 	@Override

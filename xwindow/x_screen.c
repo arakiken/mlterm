@@ -1909,6 +1909,16 @@ shortcut_match(
 
 		return  1 ;
 	}
+	else if( x_shortcut_match( screen->shortcut , CLOSE_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,close_screen))
+		{
+			(*screen->system_listener->close_screen)(
+				screen->system_listener->self , screen) ;
+		}
+
+		return  1 ;
+	}
 	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
@@ -7653,7 +7663,11 @@ x_screen_new(
 		goto  error ;
 	}
 
+#ifdef  __ANDROID__
+	if( ( screen->xct_parser = ml_parser_new( ML_UTF8)) == NULL)
+#else
 	if( ( screen->xct_parser = mkf_xct_parser_new()) == NULL)
+#endif
 	{
 		goto  error ;
 	}

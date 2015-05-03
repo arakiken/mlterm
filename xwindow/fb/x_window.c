@@ -2293,7 +2293,14 @@ x_window_set_selection_owner(
 	Time  time
 	)
 {
+#ifdef  __ANDROID__
+	if( win->utf_selection_requested)
+	{
+		(*win->utf_selection_requested)( win , NULL , 0) ;
+	}
+#else
 	win->is_sel_owner = 1 ;
+#endif
 
 	return  1 ;
 }
@@ -2304,6 +2311,10 @@ x_window_xct_selection_request(
 	Time  time
 	)
 {
+#ifdef  __ANDROID__
+	x_display_request_text_selection() ;
+#endif
+
 	return  1 ;
 }
 
@@ -2313,6 +2324,10 @@ x_window_utf_selection_request(
 	Time  time
 	)
 {
+#ifdef  __ANDROID__
+	x_display_request_text_selection() ;
+#endif
+
 	return  1 ;
 }
 
@@ -2336,6 +2351,10 @@ x_window_send_text_selection(
 	Atom  sel_type
 	)
 {
+#ifdef  __ANDROID__
+	x_display_send_text_selection( sel_data , sel_len) ;
+#endif
+
 	return  1 ;
 }
 

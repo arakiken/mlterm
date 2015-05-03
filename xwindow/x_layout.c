@@ -397,11 +397,13 @@ key_pressed(
 	)
 {
 	x_layout_t *  layout ;
+	x_window_t *  child ;
 
 	layout = (x_layout_t*) win ;
+	child = get_focused_window( layout) ;
 
 	/* dispatch to screen */
-	(*layout->term.screen->window.key_pressed)( get_focused_window(layout) , event) ;
+	(*child->key_pressed)( child , event) ;
 }
 
 static void
@@ -412,12 +414,13 @@ utf_selection_notified(
 	)
 {
 	x_layout_t *  layout ;
+	x_window_t *  child ;
 
 	layout = (x_layout_t*) win ;
+	child = get_focused_window( layout) ;
 
 	/* dispatch to screen */
-	(*layout->term.screen->window.utf_selection_notified)(
-		get_focused_window(layout) , buf , len) ;
+	(*child->utf_selection_notified)( child , buf , len) ;
 }
 
 static void
@@ -428,12 +431,13 @@ xct_selection_notified(
 	)
 {
 	x_layout_t *  layout ;
+	x_window_t *  child ;
 
 	layout = (x_layout_t*) win ;
+	child = get_focused_window( layout) ;
 
 	/* dispatch to screen */
-	(*layout->term.screen->window.xct_selection_notified)(
-		get_focused_window(layout) , buf , len) ;
+	(*child->xct_selection_notified)( child , buf , len) ;
 }
 
 #ifndef  DISABLE_XDND
@@ -446,12 +450,13 @@ set_xdnd_config(
 	)
 {
 	x_layout_t *  layout ;
+	x_window_t *  child ;
 
 	layout = (x_layout_t*) win ;
+	child = get_focused_window( layout) ;
 
 	/* dispatch to screen */
-	(*layout->term.screen->window.set_xdnd_config)(
-		get_focused_window(layout) , dev, buf , value) ;
+	(*child->set_xdnd_config)( child , dev, buf , value) ;
 }
 #endif
 
@@ -1335,12 +1340,24 @@ x_layout_remove_child(
 	}
 
 	x_window_remove_child( &layout->window , &term->scrollbar.window) ;
-	free( term) ;
-
 	x_window_remove_child( &layout->window , &screen->window) ;
+	x_window_unmap( &screen->window) ;
 
 	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(&layout->window) ,
 		ACTUAL_HEIGHT(&layout->window)) ;
+
+#ifndef  USE_FRAMEBUFFER
+	if( x_screen_attached( screen))
+	{
+		/* Revert to the original size. */
+		x_window_resize_with_margin( &screen->window ,
+			ACTUAL_WIDTH(&layout->window) -
+				(term->sb_mode != SBM_NONE ?
+					ACTUAL_WIDTH(&term->scrollbar.window) : 0) ,
+			ACTUAL_HEIGHT(&layout->window) , NOTIFY_TO_MYSELF) ;
+	}
+#endif
+	free( term) ;
 
 	return  1 ;
 }

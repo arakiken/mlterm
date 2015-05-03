@@ -1048,7 +1048,7 @@ x_im_candidate_screen_new(
 
 	if( ! x_window_init( &cand_screen->window , MARGIN * 2 , MARGIN * 2 ,
 			     MARGIN * 2 , MARGIN * 2 , 0 , 0 ,
-			     MARGIN , MARGIN , /* ceate_gc */ 1))
+			     MARGIN , MARGIN , /* ceate_gc */ 1 , 0))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;

@@ -77,7 +77,7 @@ convert_to_hz(
 		{
 			if( filled_size + ch.size - 1 > dst_size)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}
@@ -90,7 +90,7 @@ convert_to_hz(
 			{
 				if( filled_size + ch.size + 1 >= dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -104,7 +104,7 @@ convert_to_hz(
 			{
 				if( filled_size + ch.size + 1 >= dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -123,7 +123,7 @@ convert_to_hz(
 						&is_full , &ch) ;
 				if( is_full)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}

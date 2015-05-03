@@ -68,7 +68,7 @@ convert_to_utf16(
 		{
 			if( filled_size + 2 > dst_size)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}
@@ -84,7 +84,7 @@ convert_to_utf16(
 		{
 			if( filled_size + 2 > dst_size)
 			{
-				mkf_parser_reset( parser) ;
+				mkf_parser_full_reset( parser) ;
 
 				return  filled_size ;
 			}
@@ -117,7 +117,7 @@ convert_to_utf16(
 							&is_full , &ch) ;
 					if( is_full)
 					{
-						mkf_parser_reset( parser) ;
+						mkf_parser_full_reset( parser) ;
 
 						return  filled_size ;
 					}
@@ -132,7 +132,7 @@ convert_to_utf16(
 				
 				if( filled_size + 2 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}
@@ -151,7 +151,7 @@ convert_to_utf16(
 				
 				if( filled_size + 4 > dst_size)
 				{
-					mkf_parser_reset( parser) ;
+					mkf_parser_full_reset( parser) ;
 
 					return  filled_size ;
 				}

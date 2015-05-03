@@ -79,6 +79,8 @@ int  ml_term_open_pty( ml_term_t *  term , const char *  cmd_path , char ** argv
 
 int  ml_term_plug_pty( ml_term_t *  term , ml_pty_ptr_t  pty) ;
 
+#define  ml_term_pty_is_opened( term)  ((term)->pty != NULL)
+
 int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
 	ml_config_event_listener_t *  config_listener ,
 	ml_screen_event_listener_t *  screen_listener ,
