@@ -3370,6 +3370,7 @@ soft_reset(
 	vt100_parser->is_app_cursor_keys = 0 ;
 	vt100_parser->is_app_escape = 0 ;
 	vt100_parser->is_bracketed_paste_mode = 0 ;
+	vt100_parser->allow_deccolm = 0 ;
 
 	vt100_parser->im_is_active = 0 ;
 }
@@ -4006,11 +4007,13 @@ parse_vt100_escape_sequence(
 						else if( ps[count] == 3)
 						{
 							/* "CSI ? 3 h" */
+							if( vt100_parser->allow_deccolm)
+							{
+								/* XTERM compatibility [#1048321] */
+								clear_display_all( vt100_parser) ;
 
-							/* XTERM compatibility [#1048321] */
-							clear_display_all( vt100_parser) ;
-
-							resize( vt100_parser , 132 , 0 , 1) ;
+								resize( vt100_parser , 132 , 0 , 1) ;
+							}
 						}
 					#if  0
 						else if( ps[count] == 4)
@@ -4069,12 +4072,11 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 35 h" shift keys */
 						}
 					#endif
-					#if  0
 						else if( ps[count] == 40)
 						{
-							/* "CSI ? 40 h" 80 <-> 132 */
+							/* "CSI ? 40 h" Allow DECCOLM */
+							vt100_parser->allow_deccolm = 1 ;
 						}
-					#endif
 						else if( ps[count] == 47)
 						{
 							/*
@@ -4296,11 +4298,13 @@ parse_vt100_escape_sequence(
 						else if( ps[count] == 3)
 						{
 							/* "CSI ? 3 l" */
+							if( vt100_parser->allow_deccolm)
+							{
+								/* XTERM compatibility [#1048321] */
+								clear_display_all( vt100_parser) ;
 
-							/* XTERM compatibility [#1048321] */
-							clear_display_all( vt100_parser) ;
-
-							resize( vt100_parser , 80 , 0 , 1) ;
+								resize( vt100_parser , 80 , 0 , 1) ;
+							}
 						}
 					#if  0
 						else if( ps[count] == 4)
@@ -4360,12 +4364,11 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 35 l" shift keys */
 						}
 					#endif
-					#if  0
 						else if( ps[count] == 40)
 						{
-							/* "CSI ? 40 l" 80 <-> 132 */
+							/* "CSI ? 40 l" Disallow DECCOLM */
+							vt100_parser->allow_deccolm = 0 ;
 						}
-					#endif
 						else if( ps[count] == 47)
 						{
 							/* "CSI ? 47 l" Use normal screen buffer */

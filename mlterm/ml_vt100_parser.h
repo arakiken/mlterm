@@ -257,6 +257,7 @@ typedef struct  ml_vt100_parser
 	int8_t  is_app_cursor_keys ;
 	int8_t  is_app_escape ;
 	int8_t  is_bracketed_paste_mode ;
+	int8_t  allow_deccolm ;
 
 	int8_t  want_focus_event ;
 
