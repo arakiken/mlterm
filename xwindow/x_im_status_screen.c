@@ -16,6 +16,38 @@
 
 /* --- static functions --- */
 
+#ifdef  USE_FRAMEBUFFER
+
+#include  "x_im.h"
+
+static x_window_t *
+search_window(
+	x_window_t *  win ,
+	int  x ,
+	int  y
+	)
+{
+	u_int  count ;
+
+	if( win->x <= x && x <= win->x + ACTUAL_WIDTH(win) &&
+	    win->y <= y && y <= win->y + ACTUAL_HEIGHT(win))
+	{
+		for( count = 0 ; count < win->num_of_children ; count++)
+		{
+			x_window_t *  hit ;
+
+			if( ( hit = search_window( win->children[count] , x , y)))
+			{
+				return  hit ;
+			}
+		}
+
+		return  win ;
+	}
+
+	return  NULL ;
+}
+
 static void
 adjust_window_position_by_size(
 	x_im_status_screen_t *  stat_screen ,
@@ -23,7 +55,15 @@ adjust_window_position_by_size(
 	int *  y
 	)
 {
-	if( *y + ACTUAL_HEIGHT(&stat_screen->window) >= stat_screen->window.disp->height)
+	x_window_t *  term_win ;
+
+	term_win = search_window( stat_screen->window.disp->roots[0] , *x , *y) ;
+
+	if( *y < term_win->y)
+	{
+		*y = term_win->y ;
+	}
+	else if( *y + ACTUAL_HEIGHT(&stat_screen->window) > term_win->y + ACTUAL_HEIGHT(term_win))
 	{
 		*y -= ACTUAL_HEIGHT(&stat_screen->window) ;
 		if( ! stat_screen->is_vertical)
@@ -32,7 +72,55 @@ adjust_window_position_by_size(
 		}
 	}
 
-	if( *x + ACTUAL_WIDTH(&stat_screen->window) >= stat_screen->window.disp->width)
+	if( *x < term_win->x)
+	{
+		*x = term_win->x ;
+	}
+	else if( *x + ACTUAL_WIDTH(&stat_screen->window) > term_win->x + ACTUAL_WIDTH(term_win))
+	{
+		if( stat_screen->is_vertical)
+		{
+			/* x_im_stat_screen doesn't know column width. */
+			*x -= (ACTUAL_WIDTH(&stat_screen->window) + stat_screen->line_height) ;
+		}
+		else
+		{
+			*x = term_win->x + ACTUAL_WIDTH(term_win) -
+				ACTUAL_WIDTH(&stat_screen->window) ;
+		}
+	}
+}
+
+static void
+reset_screen(
+	x_window_t *  win
+	)
+{
+	x_display_reset_input_method_window() ;
+	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
+				  win->width + MARGIN - 1 ,
+				  win->height + MARGIN - 1) ;
+}
+
+#else
+
+static void
+adjust_window_position_by_size(
+	x_im_status_screen_t *  stat_screen ,
+	int *  x ,
+	int *  y
+	)
+{
+	if( *y + ACTUAL_HEIGHT(&stat_screen->window) > stat_screen->window.disp->height)
+	{
+		*y -= ACTUAL_HEIGHT(&stat_screen->window) ;
+		if( ! stat_screen->is_vertical)
+		{
+			*y -= stat_screen->line_height ;
+		}
+	}
+
+	if( *x + ACTUAL_WIDTH(&stat_screen->window) > stat_screen->window.disp->width)
 	{
 		if( stat_screen->is_vertical)
 		{
@@ -46,17 +134,6 @@ adjust_window_position_by_size(
 	}
 }
 
-#ifdef  USE_FRAMEBUFFER
-static void
-reset_screen(
-	x_window_t *  win
-	)
-{
-	x_display_reset_input_method_window() ;
-	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,
-				  win->width + MARGIN - 1 ,
-				  win->height + MARGIN - 1) ;
-}
 #endif
 
 static int

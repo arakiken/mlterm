@@ -1,3 +1,33 @@
+2015-05-06  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL, man/mlterm.1, ja/README.ja: Updated.
+
+	* x_screen.[ch], x_screen_manager.c, x_shortcut.c:
+	  - VRESIZE_SCREEN and HRESIZE_SCREEN shortcuts are supported.
+	  - "vsplit_screen", "hsplit_screen", "vresize_screen" and "hresize_screen"
+	    are added to OSC 5379.
+
+	* x_shortcut.[ch]: The default shortcut keys are changed as follows.
+	  VSPLIT_SCREEN: Ctrl+F5 -> Shift+F1
+	  HSPLIT_SCREEN: Ctrl+F6 -> Shift+F2
+
+	* x_layout.[ch]:
+	  - x_layout_resize() and x_layout_get_next_screen() are added.
+	  - sep_str is added to the arguments of x_layout_add_child().
+	  - get_separator_x() round sep_x to multiples of 8 on 8 planes framebuffer.
+
+	* fb/x_window.c, xlib/x_window.c, win32/x_window.c, x_window.h:
+	  x_window_set_input_focus() is added.
+
+	* fb/x_window.c: If x_window_move() moves a window outside of the display,
+	  it doesn't try to redraw a window.
+
+	* x_im_{candidate|status}_screen.c: adjust_window_position_by_size() adjusts
+	  an input method window within x_screen_t::x_window_t::{x|y|width|height}
+	  instead of x_display_t::{width|height} on framebuffer.
+
+	* x_virtual_kbd.c: Compiling error is fixed.
+
 2015-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.[ch]:

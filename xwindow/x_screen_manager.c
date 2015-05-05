@@ -481,9 +481,8 @@ close_screen_win32(
 {
 	int  is_orphan ;
 
-	if( screen->window.parent &&
-	    x_layout_remove_child(
-		(x_layout_t*)x_get_root_window( &screen->window) , screen))
+	if( X_SCREEN_TO_LAYOUT(screen) &&
+	    x_layout_remove_child( X_SCREEN_TO_LAYOUT(screen) , screen))
 	{
 		is_orphan = 1 ;
 	}
@@ -516,11 +515,10 @@ close_screen_intern(
 {
 	x_window_t *  root ;
 	x_display_t *  disp ;
-	ml_term_t *  term ;
 
-	if( screen->window.parent)
+	if( X_SCREEN_TO_LAYOUT(screen))
 	{
-		x_layout_remove_child( (x_layout_t*)x_get_root_window( &screen->window) , screen) ;
+		x_layout_remove_child( X_SCREEN_TO_LAYOUT(screen) , screen) ;
 	}
 
 	x_screen_detach( screen) ;
@@ -545,7 +543,8 @@ static x_screen_t *
 open_screen_intern(
 	ml_term_t *  term ,
 	x_layout_t *  layout ,
-	int  vertical
+	int  vertical ,
+	const char *  sep
 	)
 {
 	x_display_t *  disp ;
@@ -662,7 +661,7 @@ open_screen_intern(
 
 	if( layout)
 	{
-		if( ! x_layout_add_child( layout , screen , vertical))
+		if( ! x_layout_add_child( layout , screen , vertical , sep))
 		{
 			layout = NULL ;
 
@@ -1060,10 +1059,10 @@ pty_closed(
 
 static void
 open_or_split_screen(
-	void *  p ,
 	x_screen_t *  cur_screen ,	/* Screen which triggers this event. */
 	x_layout_t *  layout ,
-	int  vertical
+	int  vertical ,
+	const char *  sep
 	)
 {
 	char *  disp_name ;
@@ -1103,7 +1102,7 @@ open_or_split_screen(
 	}
 #endif
 
-	if( ! open_screen_intern( NULL , layout , vertical))
+	if( ! open_screen_intern( NULL , layout , vertical , sep))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
@@ -1127,31 +1126,42 @@ open_or_split_screen(
 static void
 open_screen(
 	void *  p ,
-	x_screen_t *  cur_screen	/* Screen which triggers this event. */
+	x_screen_t *  screen	/* Screen which triggers this event. */
 	)
 {
-	open_or_split_screen( p , cur_screen , NULL , 0) ;
+	open_or_split_screen( screen , NULL , 0 , 0) ;
 }
 
 static void
 split_screen(
 	void *  p ,
-	x_screen_t *  cur_screen ,	/* Screen which triggers this event. */
-	int  vertical
+	x_screen_t *  screen ,	/* Screen which triggers this event. */
+	int  vertical ,
+	const char *  sep
 	)
 {
-	open_or_split_screen( p , cur_screen ,
-		(x_layout_t*)cur_screen->window.parent , vertical) ;
+	if( X_SCREEN_TO_LAYOUT(screen))
+	{
+		open_or_split_screen( screen , X_SCREEN_TO_LAYOUT(screen) , vertical , sep) ;
+	}
 }
 
 static void
 close_screen(
 	void *  p ,
-	x_screen_t *  screen	/* Screen which triggers this event. */
+	x_screen_t *  screen ,	/* Screen which triggers this event. */
+	int  force
 	)
 {
 	u_int  count ;
-	
+
+	if( ! force &&
+	    ( ! X_SCREEN_TO_LAYOUT(screen) ||
+	      x_layout_has_one_child( X_SCREEN_TO_LAYOUT(screen))))
+	{
+		return ;
+	}
+
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
 		u_int  idx ;
@@ -1170,6 +1180,35 @@ close_screen(
 		dead_mask[idx] |= (1 << (count - MSU * idx)) ;
 
 		return ;
+	}
+}
+
+static void
+next_screen(
+	void *  self ,
+	x_screen_t *  screen
+	)
+{
+	x_screen_t *  next ;
+
+	if( X_SCREEN_TO_LAYOUT(screen) &&
+	    ( next = x_layout_get_next_screen( X_SCREEN_TO_LAYOUT(screen) , screen)))
+	{
+		x_window_set_input_focus( &next->window) ;
+	}
+}
+
+static void
+resize_screen(
+	void *  self ,
+	x_screen_t *  screen ,
+	int  vertical ,
+	int  step
+	)
+{
+	if( X_SCREEN_TO_LAYOUT(screen))
+	{
+		x_layout_resize( X_SCREEN_TO_LAYOUT(screen) , screen , vertical , step) ;
 	}
 }
 
@@ -1293,7 +1332,7 @@ mlclient(
 			ml_term_t *  term = NULL ;
 
 			if( ( pty && ! ( term = ml_get_detached_term( pty))) ||
-			    ! open_screen_intern( term , NULL , 0))
+			    ! open_screen_intern( term , NULL , 0 , 0))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
@@ -1417,6 +1456,8 @@ x_screen_manager_init(
 #endif
 	system_listener.split_screen = split_screen ;
 	system_listener.close_screen = close_screen ;
+	system_listener.next_screen = next_screen ;
+	system_listener.resize_screen = resize_screen ;
 	system_listener.open_pty = open_pty ;
 	system_listener.next_pty = next_pty ;
 	system_listener.prev_pty = prev_pty ;
@@ -1510,7 +1551,7 @@ x_screen_manager_startup(void)
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
-		if( ! open_screen_intern( ml_get_detached_term( NULL) , NULL , 0))
+		if( ! open_screen_intern( ml_get_detached_term( NULL) , NULL , 0 , 0))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;

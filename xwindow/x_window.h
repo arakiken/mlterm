@@ -96,8 +96,8 @@ typedef struct  x_window
 
 	long  event_mask ;
 
-	int  x ;
-	int  y ;
+	int  x ;			/* relative to a root window. */
+	int  y ;			/* relative to a root window. */
 	u_int  width ;
 	u_int  height ;
 	u_int  min_width ;
@@ -410,6 +410,8 @@ int  x_window_bell( x_window_t *  win , x_bel_mode_t  mode) ;
 
 int  x_window_translate_coordinates( x_window_t *  win, int x, int y,
 	int *  global_x, int *  global_y, Window *  child) ;
+
+void  x_window_set_input_focus( x_window_t *  win) ;
 
 #ifdef  DEBUG
 void  x_window_dump_children( x_window_t *  win) ;

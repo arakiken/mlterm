@@ -1739,7 +1739,7 @@ window_deleted(
 	if( HAS_SYSTEM_LISTENER(screen,close_screen))
 	{
 		(*screen->system_listener->close_screen)(
-			screen->system_listener->self , screen) ;
+			screen->system_listener->self , screen , 1) ;
 	}
 }
 
@@ -1889,36 +1889,6 @@ shortcut_match(
 
 		return  1 ;
 	}
-	else if( x_shortcut_match( screen->shortcut , VSPLIT_SCREEN , ksym , state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,split_screen))
-		{
-			(*screen->system_listener->split_screen)(
-				screen->system_listener->self , screen , 1) ;
-		}
-
-		return  1 ;
-	}
-	else if( x_shortcut_match( screen->shortcut , HSPLIT_SCREEN , ksym , state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,split_screen))
-		{
-			(*screen->system_listener->split_screen)(
-				screen->system_listener->self , screen , 0) ;
-		}
-
-		return  1 ;
-	}
-	else if( x_shortcut_match( screen->shortcut , CLOSE_SCREEN , ksym , state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,close_screen))
-		{
-			(*screen->system_listener->close_screen)(
-				screen->system_listener->self , screen) ;
-		}
-
-		return  1 ;
-	}
 	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
@@ -1945,6 +1915,46 @@ shortcut_match(
 		{
 			(*screen->system_listener->prev_pty)( screen->system_listener->self ,
 				screen) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , CLOSE_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,close_screen))
+		{
+			(*screen->system_listener->close_screen)(
+				screen->system_listener->self , screen , 0) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , VSPLIT_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,split_screen))
+		{
+			(*screen->system_listener->split_screen)(
+				screen->system_listener->self , screen , 1 , NULL) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , HSPLIT_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,split_screen))
+		{
+			(*screen->system_listener->split_screen)(
+				screen->system_listener->self , screen , 0 , NULL) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , NEXT_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,next_screen))
+		{
+			(*screen->system_listener->next_screen)(
+				screen->system_listener->self , screen) ;
 		}
 
 		return  1 ;
@@ -6218,9 +6228,16 @@ draw_preedit_str(
 
 	if( screen->is_preediting)
 	{
+		x_im_t *  im ;
+
 		ml_term_set_modified_lines_in_screen( screen->term ,
 			screen->im_preedit_beg_row , screen->im_preedit_end_row) ;
+
+		/* Avoid recursive call of x_im_redraw_preedit() in redraw_screen(). */
+		im = screen->im ;
+		screen->im = NULL ;
 		x_window_update( &screen->window, UPDATE_SCREEN) ;
+		screen->im = im ;
 	}
 
 	if( ! num_of_chars)
@@ -8190,6 +8207,29 @@ x_screen_exec_cmd(
 		{
 			(*screen->system_listener->open_screen)(
 				screen->system_listener->self , screen) ;
+		}
+	}
+	else if( strcmp( cmd + 1 , "split_screen") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,split_screen))
+		{
+			(*screen->system_listener->split_screen)(
+				screen->system_listener->self , screen ,
+				*cmd == 'v' , arg) ;
+		}
+	}
+	else if( strcmp( cmd + 1 , "resize_screen") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,resize_screen))
+		{
+			int  step ;
+
+			if( kik_str_to_int( &step , arg + (*arg == '+' ? 1 : 0)))
+			{
+				(*screen->system_listener->resize_screen)(
+					screen->system_listener->self , screen ,
+					*cmd == 'v' , step) ;
+			}
 		}
 	}
 	else if( strncmp( cmd , "search_" , 7) == 0)

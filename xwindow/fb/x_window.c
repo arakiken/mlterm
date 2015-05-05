@@ -939,19 +939,6 @@ reset_input_focus(
 	}
 }
 
-static void
-focus_window(
-	x_window_t *  win
-	)
-{
-	reset_input_focus( x_get_root_window( win)) ;
-	win->is_focused = 1 ;
-	if( win->window_focused)
-	{
-		(*win->window_focused)( win) ;
-	}
-}
-
 
 /* --- global functions --- */
 
@@ -1356,7 +1343,7 @@ x_window_map(
 			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 		clear_margin_area( win) ;
 
-		focus_window( win) ;
+		x_window_set_input_focus( win) ;
 	}
 
 	return  1 ;
@@ -1495,14 +1482,23 @@ x_window_move(
 	int  y
 	)
 {
-	int  prev_x ;
-	int  prev_y ;
-
-	prev_x = win->x ;
-	prev_y = win->y ;
+	if( win->x == x && win->y == y)
+	{
+		return  1 ;
+	}
 
 	win->x = x ;
 	win->y = y ;
+
+	if( win->x + ACTUAL_WIDTH(win) > win->disp->width ||
+	    win->y + ACTUAL_HEIGHT(win) > win->disp->height)
+	{
+		/*
+		 * XXX Hack
+		 * (Expect the caller to call x_window_resize() immediately after this.)
+		 */
+		return  1 ;
+	}
 
 	/*
 	 * XXX
@@ -1839,7 +1835,7 @@ x_window_receive_event(
 		if( ! win->is_focused && event->xbutton.button == Button1 &&
 		    ! event->xbutton.state)
 		{
-			focus_window( win) ;
+			x_window_set_input_focus( win) ;
 		}
 	}
 
@@ -2473,6 +2469,19 @@ x_window_translate_coordinates(
 	*global_y = y + win->y ;
 
 	return  0 ;
+}
+
+void
+x_window_set_input_focus(
+	x_window_t *  win
+	)
+{
+	reset_input_focus( x_get_root_window( win)) ;
+	win->is_focused = 1 ;
+	if( win->window_focused)
+	{
+		(*win->window_focused)( win) ;
+	}
 }
 
 

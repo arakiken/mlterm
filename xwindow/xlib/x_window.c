@@ -571,6 +571,7 @@ total_min_width(
 	{
 		if( win->children[count]->is_mapped)
 		{
+			/* XXX */
 			min_width += total_min_width( win->children[count]) ;
 		}
 	}
@@ -592,6 +593,7 @@ total_min_height(
 	{
 		if( win->children[count]->is_mapped)
 		{
+			/* XXX */
 			min_height += total_min_height( win->children[count]) ;
 		}
 	}
@@ -2484,10 +2486,7 @@ x_window_receive_event(
 		if( ! win->is_focused && event->xbutton.button == Button1 &&
 		    ! event->xbutton.state)
 		{
-			reset_input_focus( x_get_root_window( win)) ;
-			win->has_input_focus = 1 ;
-			XSetInputFocus( win->disp->display , win->my_window ,
-				RevertToParent , CurrentTime) ;
+			x_window_set_input_focus( win) ;
 		}
 	}
 	else if( event->type == NoExpose)
@@ -4345,6 +4344,17 @@ x_window_translate_coordinates(
 		DefaultRootWindow( win->disp->display) , x , y , global_x , global_y , child) ;
 	
 	return  1 ;
+}
+
+void
+x_window_set_input_focus(
+	x_window_t *  win
+	)
+{
+	reset_input_focus( x_get_root_window( win)) ;
+	win->has_input_focus = 1 ;
+	XSetInputFocus( win->disp->display , win->my_window ,
+		RevertToParent , CurrentTime) ;
 }
 
 #ifdef  DEBUG

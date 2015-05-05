@@ -5,10 +5,11 @@
 #include  "x_layout.h"
 
 #include  <kiklib/kik_types.h>		/* u_int */
+#include  <kiklib/kik_str.h>
 
 
 #define  SEPARATOR_WIDTH  1
-#define  SCREEN_TO_LAYOUT(screen)  ((x_layout_t*)(screen)->window.parent)
+#define  SCROLLBAR_WIDTH(scrollbar)  (ACTUAL_WIDTH(&(scrollbar).window) + SEPARATOR_WIDTH)
 
 
 /* --- static functions --- */
@@ -48,8 +49,7 @@ reset_layout(
 			modify_separator( term->separator_x , width ,
 				x_col_width( term->next[0]->screen) +
 				(term->next[0]->sb_mode != SBM_NONE ?
-					ACTUAL_WIDTH(&term->next[0]->scrollbar.window) +
-					SEPARATOR_WIDTH : 0)) ;
+					SCROLLBAR_WIDTH(term->next[0]->scrollbar) : 0)) ;
 	}
 	else
 	{
@@ -72,29 +72,25 @@ reset_layout(
 		if( term->sb_mode == SBM_RIGHT)
 		{
 			x_window_move( &term->scrollbar.window ,
-				x + child_width - ACTUAL_WIDTH(&term->scrollbar.window) -
-					SEPARATOR_WIDTH ,
-				y) ;
+				x + child_width - SCROLLBAR_WIDTH(term->scrollbar) , y) ;
 			x_window_move( &term->screen->window , x , y) ;
 		}
 		else
 		{
 			x_window_move( &term->scrollbar.window , x , y) ;
 			x_window_move( &term->screen->window ,
-				x + ACTUAL_WIDTH(&term->scrollbar.window) + SEPARATOR_WIDTH ,
-				y) ;
+				x + SCROLLBAR_WIDTH(term->scrollbar) , y) ;
 		}
 
 		x_window_resize_with_margin( &term->scrollbar.window ,
 			ACTUAL_WIDTH(&term->scrollbar.window) ,
 			child_height , NOTIFY_TO_MYSELF) ;
 		x_window_resize_with_margin( &term->screen->window ,
-			child_width - ACTUAL_WIDTH(&term->scrollbar.window) - SEPARATOR_WIDTH ,
+			child_width - SCROLLBAR_WIDTH(term->scrollbar) ,
 			child_height , NOTIFY_TO_MYSELF) ;
 	}
 	else
 	{
-		x_window_unmap( &term->scrollbar.window) ;
 		x_window_move( &term->screen->window , x , y) ;
 
 		x_window_resize_with_margin( &term->screen->window ,
@@ -107,7 +103,8 @@ reset_layout(
 		{
 			reset_layout( term->next[1] , x , y + term->separator_y + SEPARATOR_WIDTH ,
 				width , height - term->separator_y - SEPARATOR_WIDTH) ;
-			x_window_fill( term->screen->window.parent , x , y + term->separator_y ,
+			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				x , y + term->separator_y ,
 				width , SEPARATOR_WIDTH) ;
 		}
 
@@ -115,7 +112,8 @@ reset_layout(
 		{
 			reset_layout( term->next[0] , x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , child_height) ;
-			x_window_fill( term->screen->window.parent , x + term->separator_x , y ,
+			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				x + term->separator_x , y ,
 				SEPARATOR_WIDTH , child_height) ;
 		}
 	}
@@ -125,7 +123,8 @@ reset_layout(
 		{
 			reset_layout( term->next[0] , x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , height) ;
-			x_window_fill( term->screen->window.parent , x + term->separator_x , y ,
+			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				x + term->separator_x , y ,
 				SEPARATOR_WIDTH , height) ;
 		}
 
@@ -133,7 +132,8 @@ reset_layout(
 		{
 			reset_layout( term->next[1] , x , y + term->separator_y + SEPARATOR_WIDTH ,
 				child_width , height - term->separator_y - SEPARATOR_WIDTH) ;
-			x_window_fill( term->screen->window.parent , x , y + term->separator_y ,
+			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				x , y + term->separator_y ,
 				child_width , SEPARATOR_WIDTH) ;
 		}
 	}
@@ -183,6 +183,51 @@ search_parent_term(
 	return  NULL ;
 }
 
+static x_screen_t *
+search_next_screen(
+	struct terminal *  term ,
+	x_screen_t *  screen ,
+	int *  found
+	)
+{
+	x_screen_t *  hit ;
+	int  idx ;
+	int  count ;
+
+	if( term->screen == screen)
+	{
+		*found = 1 ;
+	}
+
+	if( term->yfirst)
+	{
+		idx = 0 ;
+	}
+	else
+	{
+		idx = 1 ;
+	}
+
+	for( count = 0 ; count < 2 ; count++)
+	{
+		if( term->next[idx])
+		{
+			if( *found)
+			{
+				return  term->next[idx]->screen ;
+			}
+			else if( ( hit = search_next_screen( term->next[idx] , screen , found)))
+			{
+				return  hit ;
+			}
+		}
+
+		idx = ! idx ;
+	}
+
+	return  NULL ;
+}
+
 static struct terminal *
 get_current_term(
 	struct terminal *  term
@@ -190,7 +235,7 @@ get_current_term(
 {
 	struct terminal *  current ;
 
-#if  defined(USE_FRAMEBUFFER) || defined(USE_WIN32GUI)
+#ifdef  USE_FRAMEBUFFER
 	if( term->screen->window.is_focused)
 #else
 	if( term->screen->window.has_input_focus)
@@ -228,7 +273,8 @@ get_focused_window(
 static u_int
 get_separator_x(
 	x_screen_t *  screen ,
-	x_scrollbar_t *  scrollbar
+	u_int  sb_width ,
+	u_int  percent		/* < 100 */
 	)
 {
 	u_int  width ;
@@ -236,24 +282,31 @@ get_separator_x(
 	u_int  sep_x ;
 
 	width = screen->window.width ;
-	fixed_width = screen->window.hmargin * 2 ;
-	if( scrollbar)
-	{
-		fixed_width += (ACTUAL_WIDTH(&scrollbar->window) + SEPARATOR_WIDTH) ;
-	}
+	fixed_width = screen->window.hmargin * 2 + sb_width ;
 
-	sep_x = (width + fixed_width) / 2 ;
+	sep_x = (width + fixed_width) * percent / 100 ;
 	if( sep_x < fixed_width + x_col_width( screen))
 	{
 		return  0 ;
 	}
 
-	return  sep_x - (sep_x - fixed_width) % x_col_width( screen) ;
+#if  defined(USE_FRAMEBUFFER) && ! defined(__ANDROID__)
+	if( screen->window.disp->display->pixels_per_byte > 1)
+	{
+		return  sep_x - sep_x % screen->window.disp->display->pixels_per_byte -
+			SEPARATOR_WIDTH ;
+	}
+	else
+#endif
+	{
+		return  sep_x - (sep_x - fixed_width) % x_col_width( screen) ;
+	}
 }
 
 static u_int
 get_separator_y(
-	x_screen_t *  screen
+	x_screen_t *  screen ,
+	u_int  percent		/* < 100 */
 	)
 {
 	u_int  height ;
@@ -263,7 +316,7 @@ get_separator_y(
 	height = screen->window.height ;
 	fixed_height = screen->window.vmargin * 2 ;
 
-	sep_y = (height + fixed_height) / 2 ;
+	sep_y = (height + fixed_height) * percent / 100 ;
 	if( sep_y < fixed_height + x_line_height( screen))
 	{
 		return  0 ;
@@ -298,9 +351,7 @@ window_resized(
 
 	layout = (x_layout_t*) win ;
 
-	reset_layout( &layout->term , 0 , 0 ,
-		ACTUAL_WIDTH(&layout->window) ,
-		ACTUAL_HEIGHT(&layout->window)) ;
+	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 }
 
 static void
@@ -504,7 +555,7 @@ line_scrolled_out(
 	x_layout_t *  layout ;
 	struct terminal *  term ;
 
-	layout = SCREEN_TO_LAYOUT( (x_screen_t*)p) ;
+	layout = X_SCREEN_TO_LAYOUT( (x_screen_t*)p) ;
 
 	(*layout->line_scrolled_out)( p) ;
 
@@ -818,6 +869,47 @@ total_height(
 	return  height ;
 }
 
+/* XXX */
+static void
+total_min_size(
+	struct terminal *  term ,
+	u_int *  width ,
+	u_int *  height
+	)
+{
+	if( term->sb_mode != SBM_NONE)
+	{
+		*width += SEPARATOR_WIDTH ;
+	}
+
+	if( term->next[0])
+	{
+		*width += SEPARATOR_WIDTH ;
+
+		total_min_size( term->next[0] , width , height) ;
+	}
+
+	if( term->next[1])
+	{
+		*height += SEPARATOR_WIDTH ;
+
+		total_min_size( term->next[1] , width , height) ;
+	}
+}
+
+static void
+update_normal_hints(
+	x_layout_t *  layout
+	)
+{
+	u_int  min_width = 0 ;
+	u_int  min_height = 0 ;
+
+	total_min_size( &layout->term , &min_width , &min_height) ;
+
+	x_window_set_normal_hints( &layout->window , min_width , min_height , 0 , 0) ;
+}
+
 static void
 change_sb_mode(
 	void *  p ,
@@ -846,19 +938,18 @@ change_sb_mode(
 
 	#ifndef  USE_FRAMEBUFFER
 		/* The screen size is changed to the one without scrollbar. */
-		x_window_resize_with_margin( term->screen->window.parent /* layout */ ,
+		x_window_resize_with_margin( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 			total_width( term) , total_height( term) , NOTIFY_TO_MYSELF) ;
 	#endif
 
-		x_window_set_normal_hints( term->screen->window.parent /* layout */ ,
-			0 , 0 , 0 , 0) ;
+		update_normal_hints( X_SCREEN_TO_LAYOUT( term->screen)) ;
 
 	#ifdef  USE_FRAMEBUFFER
 		/*
 		 * The screen size is not changed.
 		 * As a result the size of term->screen gets larger.
 		 */
-		window_resized( term->screen->window.parent /* layout */) ;
+		window_resized( &X_SCREEN_TO_LAYOUT(term->screen)->window) ;
 	#endif
 	}
 	else
@@ -869,25 +960,23 @@ change_sb_mode(
 
 		#ifndef  USE_FRAMEBUFFER
 			/* The screen size is changed to the one with scrollbar. */
-			x_window_resize_with_margin( term->screen->window.parent /* layout */ ,
+			x_window_resize_with_margin( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				total_width( term) , total_height( term) , NOTIFY_TO_MYSELF) ;
 		#else
 			/*
 			 * The screen size is not changed.
 			 * As a result the size of term->screen gets smaller.
 			 */
-			window_resized( term->screen->window.parent /* layout */) ;
+			window_resized( &X_SCREEN_TO_LAYOUT(term->screen)->window) ;
 		#endif
 
-			x_window_set_normal_hints( term->screen->window.parent /* layout */ ,
-				SEPARATOR_WIDTH , term->screen->window.parent->min_height , 0 , 0) ;
+			update_normal_hints( X_SCREEN_TO_LAYOUT( term->screen)) ;
 		}
 		else
 		{
-			reset_layout( &((x_layout_t*)term->screen->window.parent)->term ,
-				0 , 0 ,
-				ACTUAL_WIDTH(term->screen->window.parent) ,
-				ACTUAL_HEIGHT(term->screen->window.parent)) ;
+			reset_layout( &X_SCREEN_TO_LAYOUT( term->screen)->term , 0 , 0 ,
+				ACTUAL_WIDTH( &X_SCREEN_TO_LAYOUT( term->screen)->window) ,
+				ACTUAL_HEIGHT( &X_SCREEN_TO_LAYOUT( term->screen)->window)) ;
 		}
 	}
 }
@@ -1011,8 +1100,8 @@ x_layout_new(
 	}
 	else
 	{
-		actual_width = (ACTUAL_WIDTH( &screen->window) +
-				ACTUAL_WIDTH( &layout->term.scrollbar.window) + SEPARATOR_WIDTH) ;
+		actual_width = ACTUAL_WIDTH( &screen->window) +
+		               SCROLLBAR_WIDTH( layout->term.scrollbar) ;
 
 		min_width = SEPARATOR_WIDTH ;
 	}
@@ -1110,11 +1199,37 @@ int
 x_layout_add_child(
 	x_layout_t *  layout ,
 	x_screen_t *  screen ,
-	int  vertical
+	int  vertical ,
+	const char *  sep_str	/* "XX%" or "XX" */
 	)
 {
 	struct terminal *  next ;
 	struct terminal *  term ;
+	u_int  sep = 50 ;
+	int  is_percent = 1 ;
+
+	if( sep_str)
+	{
+		char *  p ;
+
+		if( ( p = strchr( sep_str , '%')))
+		{
+			if( ! kik_str_n_to_uint( &sep , sep_str , p - sep_str) ||
+			    sep >= 100 || sep == 0)
+			{
+				return  0 ;
+			}
+		}
+		else
+		{
+			if( ! kik_str_to_uint( &sep , sep_str) || sep == 0)
+			{
+				return  0 ;
+			}
+
+			is_percent = 0 ;
+		}
+	}
 
 	if( ! ( next = calloc( 1 , sizeof(struct terminal))))
 	{
@@ -1128,11 +1243,27 @@ x_layout_add_child(
 
 	if( vertical)
 	{
-		if( term->separator_x > 0 ||
-		    ( term->separator_x = get_separator_x( term->screen ,
-						(term->sb_mode != SBM_NONE ?
-							&term->scrollbar : NULL))) == 0)
+		u_int  orig_separator_x ;
+		u_int  sb_width ;
+
+		orig_separator_x = term->separator_x ;
+
+		if( term->sb_mode != SBM_NONE)
 		{
+			sb_width = SCROLLBAR_WIDTH( term->scrollbar) ;
+		}
+		else
+		{
+			sb_width = 0 ;
+		}
+
+		if( is_percent ?
+			( ( term->separator_x = get_separator_x( term->screen , sb_width ,
+							sep)) == 0) :
+			( ( term->separator_x = x_col_width( term->screen) * sep + sb_width) >=
+				ACTUAL_WIDTH(&term->screen->window) + sb_width))
+		{
+			term->separator_x = orig_separator_x ;
 			free( next) ;
 
 			return  0 ;
@@ -1140,12 +1271,24 @@ x_layout_add_child(
 
 		next->next[0] = term->next[0] ;
 		term->next[0] = next ;
+
+		if( orig_separator_x > 0)
+		{
+			next->separator_x = orig_separator_x - term->separator_x ;
+		}
 	}
 	else
 	{
-		if( term->separator_y > 0 ||
-		    ( ( term->separator_y = get_separator_y( term->screen)) == 0))
+		u_int  orig_separator_y ;
+
+		orig_separator_y = term->separator_y ;
+
+		if( is_percent ?
+			( ( term->separator_y = get_separator_y( term->screen , sep)) == 0) :
+			( ( term->separator_y = x_line_height( term->screen) * sep) >=
+				ACTUAL_HEIGHT(&term->screen->window)))
 		{
+			term->separator_y = orig_separator_y ;
 			free( next) ;
 
 			return  0 ;
@@ -1158,6 +1301,11 @@ x_layout_add_child(
 
 		next->next[1] = term->next[1] ;
 		term->next[1] = next ;
+
+		if( orig_separator_y > 0)
+		{
+			next->separator_y = orig_separator_y - term->separator_y ;
+		}
 	}
 
 	next->sb_listener = term->sb_listener ;
@@ -1190,6 +1338,8 @@ x_layout_add_child(
 
 	x_window_map( &next->scrollbar.window) ;
 	x_window_map( &screen->window) ;
+
+	update_normal_hints( layout) ;
 
 	return  1 ;
 }
@@ -1346,6 +1496,8 @@ x_layout_remove_child(
 	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(&layout->window) ,
 		ACTUAL_HEIGHT(&layout->window)) ;
 
+	update_normal_hints( layout) ;
+
 #ifndef  USE_FRAMEBUFFER
 	if( x_screen_attached( screen))
 	{
@@ -1353,11 +1505,111 @@ x_layout_remove_child(
 		x_window_resize_with_margin( &screen->window ,
 			ACTUAL_WIDTH(&layout->window) -
 				(term->sb_mode != SBM_NONE ?
-					ACTUAL_WIDTH(&term->scrollbar.window) : 0) ,
+					SCROLLBAR_WIDTH(term->scrollbar) : 0) ,
 			ACTUAL_HEIGHT(&layout->window) , NOTIFY_TO_MYSELF) ;
 	}
 #endif
+
 	free( term) ;
+
+	x_window_set_input_focus( &layout->term.screen->window) ;
+
+	return  1 ;
+}
+
+x_screen_t *
+x_layout_get_next_screen(
+	x_layout_t *  layout ,
+	x_screen_t *  screen
+	)
+{
+	x_screen_t *  next ;
+	int  found = 0 ;
+
+	if( ! layout->term.next[0] && ! layout->term.next[1])
+	{
+		return  NULL ;
+	}
+
+	if( ( next = search_next_screen( &layout->term , screen , &found)))
+	{
+		return  next ;
+	}
+
+	return  layout->term.screen ;
+}
+
+int
+x_layout_resize(
+	x_layout_t *  layout ,
+	x_screen_t *  screen ,
+	int  vertical ,
+	int  step
+	)
+{
+	struct terminal *  term ;
+
+	if( step == 0)
+	{
+		return  0 ;
+	}
+
+	if( ! ( term = get_current_term( &layout->term)))
+	{
+		term = &layout->term ;
+	}
+
+	if( vertical)
+	{
+		if( term->separator_x == 0)
+		{
+			if( ! ( term = search_parent_term( &layout->term , term)) ||
+			    term->separator_x == 0)
+			{
+				return  0 ;
+			}
+			else
+			{
+				step = -step ;
+			}
+		}
+
+		step *= x_col_width( term->screen) ;
+
+		if( step < 0 && term->separator_x < abs(step))
+		{
+			return  0 ;
+		}
+
+		term->separator_x += step ;
+	}
+	else
+	{
+		if( term->separator_y == 0)
+		{
+			if( ! ( term = search_parent_term( &layout->term , term)) ||
+			    term->separator_y == 0)
+			{
+				return  0 ;
+			}
+			else
+			{
+				step = -step ;
+			}
+		}
+
+		step *= x_line_height( term->screen) ;
+
+		if( step < 0 && term->separator_y < abs(step))
+		{
+			return  0 ;
+		}
+
+		term->separator_y += step ;
+	}
+
+	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(&layout->window) ,
+		ACTUAL_HEIGHT(&layout->window)) ;
 
 	return  1 ;
 }

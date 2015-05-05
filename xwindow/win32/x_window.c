@@ -310,31 +310,36 @@ notify_focus_in_to_children(
 {
 	int  count ;
 
-	if( win->is_focused)
+	if( ! win->is_focused)
 	{
-		return ;
-	}
-
-	win->is_focused = 1 ;
-
-	/* If win->wall_picture is set, is_scrollable is always 0. */
-	if( ! win->wall_picture)
-	{
-		if( ! win->parent)
+		if( win->has_input_focus ||
+		    win->parent == NULL)	/* check_scrollable checks root->is_focused */
 		{
-			win->is_scrollable = check_scrollable( win) ;
+			win->is_focused = 1 ;
 		}
-		else
+
+		/* If win->wall_picture is set, is_scrollable is always 0. */
+		if( ! win->wall_picture)
 		{
-			win->is_scrollable = win->parent->is_scrollable ;
+			if( ! win->parent)
+			{
+				win->is_scrollable = check_scrollable( win) ;
+			}
+			else
+			{
+				win->is_scrollable = win->parent->is_scrollable ;
+			}
 		}
-	}
 
-	x_xic_set_focus( win) ;
+		if( win->has_input_focus)
+		{
+			x_xic_set_focus( win) ;
 
-	if( win->window_focused)
-	{
-		(*win->window_focused)( win) ;
+			if( win->window_focused)
+			{
+				(*win->window_focused)( win) ;
+			}
+		}
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -350,20 +355,18 @@ notify_focus_out_to_children(
 {
 	int  count ;
 
-	if( ! win->is_focused)
+	if( win->is_focused)
 	{
-		return ;
-	}
-	
-	win->is_focused = 0 ;
+		win->is_focused = 0 ;
 
-	win->is_scrollable = 0 ;
+		win->is_scrollable = 0 ;
 
-	x_xic_unset_focus( win) ;
+		x_xic_unset_focus( win) ;
 
-	if( win->window_unfocused)
-	{
-		(*win->window_unfocused)( win) ;
+		if( win->window_unfocused)
+		{
+			(*win->window_unfocused)( win) ;
+		}
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -466,6 +469,7 @@ total_min_width(
 	{
 		if( win->children[count]->is_mapped)
 		{
+			/* XXX */
 			min_width += total_min_width( win->children[count]) ;
 		}
 	}
@@ -487,6 +491,7 @@ total_min_height(
 	{
 		if( win->children[count]->is_mapped)
 		{
+			/* XXX */
 			min_height += total_min_height( win->children[count]) ;
 		}
 	}
@@ -968,6 +973,21 @@ invoke_selection_request(
 	return  0 ;
 }
 
+static void
+reset_input_focus(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+	win->has_input_focus = 0 ;
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		reset_input_focus( win->children[count]) ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -993,6 +1013,8 @@ x_window_init(
 
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
+
+	win->has_input_focus = input_focus ;
 
 	/* This flag will map window automatically in x_window_show(). */
 	win->is_mapped = 1 ;
@@ -1248,7 +1270,11 @@ x_window_add_child(
 	child->parent = win ;
 	child->x = x ;
 	child->y = y ;
-	child->is_mapped = map ;
+
+	if( ! ( child->is_mapped = map))
+	{
+		child->has_input_focus = 0 ;
+	}
 
 	win->children[ win->num_of_children ++] = child ;
 
@@ -1432,6 +1458,12 @@ x_window_show(
 	if( win->is_mapped)
 	{
 		ShowWindow( win->my_window , win->cmd_show) ;
+
+		if( win->has_input_focus)
+		{
+			reset_input_focus( x_get_root_window( win)) ;
+			win->has_input_focus = 1 ;
+		}
 
 	#if  0
 		x_window_clear_all( win) ;
@@ -2281,14 +2313,8 @@ x_window_receive_event(
 		kik_debug_printf( "FOCUS IN %p\n" , win->my_window) ;
 	#endif
 
-	#if  0
-		/* root window event only */
-		if( win->parent == NULL)
-	#endif
-		{
-			urgent_bell( win , 0) ;
-			notify_focus_in_to_children( win) ;
-		}
+		urgent_bell( win , 0) ;
+		notify_focus_in_to_children( x_get_root_window( win)) ;
 
 		break ;
 
@@ -2297,13 +2323,7 @@ x_window_receive_event(
 		kik_debug_printf( "FOCUS OUT %p\n" , win->my_window) ;
 	#endif
 
-	#if  0
-		/* root window event only */
-		if( win->parent == NULL)
-	#endif
-		{
-			notify_focus_out_to_children( win) ;
-		}
+		notify_focus_out_to_children( x_get_root_window( win)) ;
 
 		break ;
 
@@ -2485,7 +2505,7 @@ x_window_receive_event(
 
 			if( ! win->is_focused && bev.button == Button1 && ! bev.state)
 			{
-				SetFocus( win->my_window) ;
+				x_window_set_input_focus( win) ;
 			}
 		}
 
@@ -3540,6 +3560,16 @@ x_window_translate_coordinates(
 	*child = None ;
 	
 	return  0 ;
+}
+
+void
+x_window_set_input_focus(
+	x_window_t *  win
+	)
+{
+	reset_input_focus( x_get_root_window( win)) ;
+	win->has_input_focus = 1 ;
+	SetFocus( win->my_window) ;
 }
 
 #ifdef  DEBUG

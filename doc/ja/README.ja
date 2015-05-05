@@ -1068,18 +1068,20 @@ comment $Id$
         OPEN_SCREEN と同じ。2.6.0 以降 obsoleted.
       o OPEN_SCREEN(Ctrl+F1)
         新しいPTYを、新しい画面上に開きます。
-      o VSPLIT_SCREEN(Ctrl+F5)
-        新しいPTYを、新しく縦分割した画面上に開きます。
-      o VSPLIT_SCREEN(Ctrl+F6)
-        新しいPTYを、新しく横分割した画面上に開きます。
-      o CLOSE_SCREEN(Ctrl+F7)
-        現在の画面を閉じます。
       o OPEN_PTY(Ctrl+F2)
         新しいPTYを、現在の画面上に開きます。
       o NEXT_PTY(Ctrl+F3)
         Background の PTY を現在の画面上に表示します。
       o PREV_PTY(Ctrl+F4)
         Background の PTY を現在の画面上に表示します。
+      o VSPLIT_SCREEN(Shift+F1)
+        新しいPTYを、新しく縦分割した画面上に開きます。
+      o VSPLIT_SCREEN(Shift+F2)
+        新しいPTYを、新しく横分割した画面上に開きます。
+      o NEXT_SCREEN(Shift+F3)
+        分割された画面のうちフォーカスを持っていない画面にフォーカスを移します。
+      o CLOSE_SCREEN(Ctrl+F5)
+        分割された画面のうち現在選択された画面を閉じます。
       o PAGE_UP(Shift+Prior)
         ページアップ
       o SCROLL_UP(Shift+Up)

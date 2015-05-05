@@ -2,8 +2,12 @@ ver 3.4.6
 * Support WSDISPLAYIO_GET_FBINFO on NetBSD/framebuffer.
 * Support Canna and Freewnn as input method plugins.
 * Support vertical and horizontal splitting of a screen.
-* Add VSPLIT_SCREEN(Ctrl+F5), HSPLIT_SCREEN(Ctrl+F6) and CLOSE_SCREEN(Ctrl+F7)
-  to shortcut key settings.
+* Add VSPLIT_SCREEN(Shift+F1), HSPLIT_SCREEN(Shift+F2), NEXT_SCREEN(Shift+F3)
+  and CLOSE_SCREEN(Shift+F5) to shortcut key settings.
+* Add "vsplit_screen", "hsplit_screen", "vresize_screen" and "hresize_screen"
+  to OSC 5379.
+* Support Allow132 (CSI?40h, CSI?40l).
+  (Merge https://gist.github.com/saitoha/4b320b9cb6d637d14dbc)
 * HankakuZenkaku key works on Linux/framebuffer.
 * Bug fixes:
   Fix stiff behavior of "use_local_echo=true" on ssh connection by libssh2.

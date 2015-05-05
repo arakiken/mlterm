@@ -13,6 +13,9 @@
 #include  "x_color_manager.h"
 
 
+#define  X_SCREEN_TO_LAYOUT(screen)  ((x_layout_t*)(screen)->window.parent)
+
+
 typedef struct  x_layout
 {
 	x_window_t  window ;
@@ -43,9 +46,18 @@ x_layout_t *  x_layout_new( x_screen_t *  screen ,
 
 int  x_layout_delete( x_layout_t *  layout) ;
 
-int  x_layout_add_child( x_layout_t *  layout , x_screen_t *  screen , int  vertical) ;
+int  x_layout_add_child( x_layout_t *  layout , x_screen_t *  screen ,
+	int  vertical , const char *  percent) ;
 
 int  x_layout_remove_child( x_layout_t *  layout , x_screen_t *  screen) ;
+
+x_screen_t *  x_layout_get_next_screen( x_layout_t *  layout , x_screen_t *  screen) ;
+
+int  x_layout_resize( x_layout_t *  layout , x_screen_t *  screen ,
+	int  vertical , int  step) ;
+
+#define  x_layout_has_one_child( layout) \
+	((layout)->term.next[0] == NULL && ((layout)->term.next[1]) == NULL)
 
 
 #endif

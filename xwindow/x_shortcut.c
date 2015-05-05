@@ -46,12 +46,13 @@ static key_func_table_t  key_func_table[] =
 	{ "IM_HOTKEY" , IM_HOTKEY , } ,
 	{ "EXT_KBD" , EXT_KBD , } ,
 	{ "OPEN_SCREEN" , OPEN_SCREEN , } ,
-	{ "VSPLIT_SCREEN" , VSPLIT_SCREEN , } ,
-	{ "HSPLIT_SCREEN" , HSPLIT_SCREEN , } ,
-	{ "CLOSE_SCREEN" , CLOSE_SCREEN , } ,
 	{ "OPEN_PTY" , OPEN_PTY , } ,
 	{ "NEXT_PTY" , NEXT_PTY , } ,
 	{ "PREV_PTY" , PREV_PTY , } ,
+	{ "CLOSE_SCREEN" , CLOSE_SCREEN , } ,
+	{ "VSPLIT_SCREEN" , VSPLIT_SCREEN , } ,
+	{ "HSPLIT_SCREEN" , HSPLIT_SCREEN , } ,
+	{ "NEXT_SCREEN" , NEXT_SCREEN , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
 	{ "PAGE_DOWN" , PAGE_DOWN , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
@@ -142,15 +143,6 @@ x_shortcut_init(
 		/* OPEN_SCREEN */
 		{ XK_F1 , ControlMask , 1 , } ,
 
-		/* VSPLIT_SCREEN */
-		{ XK_F5 , ControlMask , 1 , } ,
-
-		/* HSPLIT_SCREEN */
-		{ XK_F6 , ControlMask , 1 , } ,
-
-		/* CLOSE_SCREEN */
-		{ XK_F7 , ControlMask , 1 , } ,
-
 		/* OPEN_PTY */
 		{ XK_F2 , ControlMask , 1 , } ,
 
@@ -159,6 +151,18 @@ x_shortcut_init(
 
 		/* PREV_PTY */
 		{ XK_F4 , ControlMask , 1 , } ,
+
+		/* VSPLIT_SCREEN */
+		{ XK_F1 , ShiftMask , 1 , } ,
+
+		/* HSPLIT_SCREEN */
+		{ XK_F2 , ShiftMask , 1 , } ,
+
+		/* NEXT_SCREEN */
+		{ XK_F3 , ShiftMask , 1 , } ,
+
+		/* CLOSE_SCREEN */
+		{ XK_F5 , ShiftMask , 1 , } ,
 
 		/* PAGE_UP(compatible with kterm) */
 		{ XK_Prior , ShiftMask , 1 , } ,

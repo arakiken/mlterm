@@ -23,7 +23,10 @@ version 20150310
 
   return value     = "#" <key> "=" <value> "\x0a" | "#error\x0a" | "#forbidden\x0a"
   exec command     = paste | select_pty <dev> | full_reset | open_pty | close_pty (<dev>) |
-                     open_screen | snapshot ("<file name>") ("<encoding name>") |
+                     open_screen | vsplit_screen (<columns>|<percent>%) |
+		     hsplit_screen (<rows>|<percent>%) |
+		     vresize_screen (+<columns>|-<columns>) | hresize_screen (+<rows>|-<rows>) |
+		     snapshot ("<file name>") ("<encoding name>") |
                      gen_proto_challenge | mlclient "<prefix options>" "<options>" |
                      mlclientx "<prefix options>" "<options>" |
                      search_prev <pattern> | search_next <pattern> | update_all |
