@@ -1,4 +1,4 @@
-ver 3.4.6
+ver 3.5.0
 * Support WSDISPLAYIO_GET_FBINFO on NetBSD/framebuffer.
 * Support Canna and Freewnn as input method plugins.
 * Support vertical and horizontal splitting of a screen.

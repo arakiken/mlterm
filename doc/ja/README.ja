@@ -680,6 +680,14 @@ comment $Id$
         fcitx の場合:
         fcitx (オプション無し)
 
+        wnn の場合:
+        wnn (オプション無し)
+        なお、JSERVER 環境変数により接続するかな漢字変換サーバを、WNNENVRC 環境
+        変数により wnnenvrc ファイルの場所を指定することができます。
+
+        canna の場合:
+        canna (オプション無し)
+
         kbd の場合:
         kbd:[mode]
         [mode]には、isciixxx、arabic 又は hebrew を指定します。

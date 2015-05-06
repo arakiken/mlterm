@@ -1,3 +1,14 @@
+2015-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja, etc/key: Updated.
+
+	* jni/x_display.c: Henkan or Muhenkan keycode from Nihongo Full Keyboard
+	  is supported.
+
+	* x_layout.c: Minor fixes.
+
+	* jni/x_event_source.c: Minor fixes.
+
 2015-05-06  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/PROTOCOL, man/mlterm.1, ja/README.ja: Updated.

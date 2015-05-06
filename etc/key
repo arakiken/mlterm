@@ -4,6 +4,10 @@
 # Control+F2=OPEN_PTY
 # Control+F3=NEXT_PTY
 # Control+F4=PREV_PTY
+# Shift+F1=VSPLIT_SCREEN
+# Shift+F2=HSPLIT_SCREEN
+# Shift+F3=NEXT_SCREEN
+# Shift+F5=CLOSE_SCREEN
 # Shift+Prior=PAGE_UP
 # Shift+Up=SCROLL_UP
 # Shift+Insert=INSERT_SELECTION
@@ -30,3 +34,5 @@
 # Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe"
 # Button4="\x1bOA\x1bOA"
 # Button5="\x1bOB\x1bOB"
+# Shift+F6="proto:vsplit_screen 40%"
+# Shift+F7="proto:vresize_screen +5"

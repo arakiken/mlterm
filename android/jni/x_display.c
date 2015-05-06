@@ -204,7 +204,24 @@ kcode_to_ksym(
 			return  '\x1b' ;
 
 		default:
-			return  kcode + 0x100 ;
+			if( kcode == -0x3ed)
+			{
+				/* XXX for Nihongo Full Keyboard */
+				return  XK_Henkan_Mode ;
+			}
+			else if( kcode == -0x3ec)
+			{
+				/* XXX for Nihongo Full Keyboard */
+				return  XK_Muhenkan ;
+			}
+			else if( kcode < 0)
+			{
+				return  0 ;
+			}
+			else
+			{
+				return  kcode + 0x100 ;
+			}
 		}
 	}
 }

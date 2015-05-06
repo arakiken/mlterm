@@ -151,21 +151,26 @@ need_resize(
 
 	for( count = 0 ; count < num_of_terms ; count++)
 	{
-		if( ml_term_is_attached( terms[count]))
+		x_window_t *  win ;
+
+		if( ml_term_is_attached( terms[count]) &&
+		    ( win = XWINDOW_OF(terms[count])) && win->is_focused)
 		{
 			if( cur_height > new_height)
 			{
-				x_window_t *  win ;
+				u_int  line_height ;
 
 				if( ml_term_get_vertical_mode( terms[count]))
 				{
 					return  0 ;
 				}
 
-				if( ( win = XWINDOW_OF(terms[count])) &&
-				    ( ml_term_cursor_row( terms[count]) + 1) *
-			            ( win->height / ml_term_get_rows( terms[count])) +
-				    win->vmargin <= new_height)
+				/* XXX */
+				line_height = win->height / ml_term_get_rows( terms[count]) ;
+
+				if( new_height <= win->y + line_height ||
+				    ( ml_term_cursor_row( terms[count]) + 1) * line_height +
+					win->y + win->vmargin <= new_height)
 				{
 					return  0 ;
 				}
@@ -270,7 +275,10 @@ x_event_source_process(void)
 		{
 			if( ml_term_get_master_fd( terms[count]) + 1000 == ident)
 			{
-				if( cur_preedit_text)
+				x_window_t *  win ;
+
+				if( cur_preedit_text &&
+				    ( win = XWINDOW_OF(terms[count])) && win->is_focused)
 				{
 					ml_term_set_config( terms[count] ,
 						"use_local_echo" , "false") ;
@@ -278,7 +286,7 @@ x_event_source_process(void)
 
 				ml_term_parse_vt100_sequence( terms[count]) ;
 
-				if( cur_preedit_text)
+				if( cur_preedit_text && win && win->is_focused)
 				{
 					char *  preedit_text ;
 
@@ -308,9 +316,9 @@ x_event_source_process(void)
 
 	x_close_dead_screens() ;
 
-	pthread_mutex_unlock( &mutex) ;
-
 	x_display_unlock() ;
+
+	pthread_mutex_unlock( &mutex) ;
 
 	return  1 ;
 }
@@ -372,6 +380,7 @@ Java_mlterm_native_1activity_MLActivity_commitText(
 	pthread_mutex_unlock( &mutex) ;
 }
 
+/* Called in the native activity thread for copy&paste. */
 void
 Java_mlterm_native_1activity_MLActivity_commitTextNoLock(
 	JNIEnv *  env ,

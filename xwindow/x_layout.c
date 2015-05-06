@@ -47,6 +47,7 @@ reset_layout(
 	{
 		term->separator_x = child_width =
 			modify_separator( term->separator_x , width ,
+				term->next[0]->screen->window.hmargin * 2 +
 				x_col_width( term->next[0]->screen) +
 				(term->next[0]->sb_mode != SBM_NONE ?
 					SCROLLBAR_WIDTH(term->next[0]->scrollbar) : 0)) ;
@@ -60,6 +61,7 @@ reset_layout(
 	{
 		term->separator_y = child_height =
 			modify_separator( term->separator_y , height ,
+				term->next[1]->screen->window.vmargin * 2 +
 				x_line_height( term->next[1]->screen)) ;
 	}
 	else
