@@ -1934,7 +1934,7 @@ shortcut_match(
 		if( HAS_SYSTEM_LISTENER(screen,split_screen))
 		{
 			(*screen->system_listener->split_screen)(
-				screen->system_listener->self , screen , 1 , NULL) ;
+				screen->system_listener->self , screen , 0 , NULL) ;
 		}
 
 		return  1 ;
@@ -1944,7 +1944,7 @@ shortcut_match(
 		if( HAS_SYSTEM_LISTENER(screen,split_screen))
 		{
 			(*screen->system_listener->split_screen)(
-				screen->system_listener->self , screen , 0 , NULL) ;
+				screen->system_listener->self , screen , 1 , NULL) ;
 		}
 
 		return  1 ;
@@ -1954,6 +1954,16 @@ shortcut_match(
 		if( HAS_SYSTEM_LISTENER(screen,next_screen))
 		{
 			(*screen->system_listener->next_screen)(
+				screen->system_listener->self , screen) ;
+		}
+
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , PREV_SCREEN , ksym , state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,prev_screen))
+		{
+			(*screen->system_listener->prev_screen)(
 				screen->system_listener->self , screen) ;
 		}
 
@@ -8215,7 +8225,7 @@ x_screen_exec_cmd(
 		{
 			(*screen->system_listener->split_screen)(
 				screen->system_listener->self , screen ,
-				*cmd == 'v' , arg) ;
+				*cmd == 'h' , arg) ;
 		}
 	}
 	else if( strcmp( cmd + 1 , "resize_screen") == 0)
@@ -8228,8 +8238,24 @@ x_screen_exec_cmd(
 			{
 				(*screen->system_listener->resize_screen)(
 					screen->system_listener->self , screen ,
-					*cmd == 'v' , step) ;
+					*cmd == 'h' , step) ;
 			}
+		}
+	}
+	else if( strcmp( cmd , "next_screen") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,next_screen))
+		{
+			(*screen->system_listener->next_screen)(
+				screen->system_listener->self , screen) ;
+		}
+	}
+	else if( strcmp( cmd , "prev_screen") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,prev_screen))
+		{
+			(*screen->system_listener->prev_screen)(
+				screen->system_listener->self , screen) ;
 		}
 	}
 	else if( strncmp( cmd , "search_" , 7) == 0)

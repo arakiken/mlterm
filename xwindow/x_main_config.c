@@ -181,8 +181,12 @@ x_prepare_for_main_config(
 		"use extended scroll shortcut keys [false]") ;
 	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
 		"fade ratio in percent when window unfocued [100]") ;
-	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , 
+	kik_conf_add_opt( conf , 's' , "mdi" , 1 , "use_mdi" ,
+		"use multiple document interface [true]") ;
+#if  1
+	kik_conf_add_opt( conf , '\0' , "sb" , 1 , "use_scrollbar" ,
 		"use scrollbar [true]") ;
+#endif
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , 
 		"use transparent background [false]") ;
 	kik_conf_add_opt( conf , 'u' , "onlyucsfont" , 1 , "only_use_unicode_font" ,
@@ -759,14 +763,21 @@ x_main_config_init(
 		}
 	}
 
-	main_config->use_scrollbar = 1 ;
+	main_config->use_mdi = 1 ;
 
+#if  1
 	if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
 	{
 		if( strcmp( value , "false") == 0)
 		{
-			main_config->use_scrollbar = 0 ;
+			main_config->use_mdi = 0 ;
 		}
+	}
+#endif
+
+	if( ( value = kik_conf_get_value( conf , "use_mdi")))
+	{
+		main_config->use_mdi = (strcmp( value , "true") == 0) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "scrollbar_mode")))

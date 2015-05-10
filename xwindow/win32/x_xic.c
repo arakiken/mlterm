@@ -42,6 +42,12 @@ get_spot(
 	spot->x = x + win->hmargin ;
 	spot->y = y + win->vmargin ;
 
+	if( win->parent && GetFocus() == x_get_root_window( win)->my_window)
+	{
+		spot->x += win->x ;
+		spot->y += win->y ;
+	}
+
 	return  1 ;
 }
 
@@ -183,8 +189,6 @@ x_xic_set_spot(
 	{
 		return  0 ;
 	}
-
-	MapWindowPoints( win->my_window, x_get_root_window( win)->my_window, &spot, 1) ;
 
 	cf.ptCurrentPos = spot ;
 	cf.dwStyle = CFS_FORCE_POSITION ;

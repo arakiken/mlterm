@@ -53,6 +53,7 @@ static key_func_table_t  key_func_table[] =
 	{ "VSPLIT_SCREEN" , VSPLIT_SCREEN , } ,
 	{ "HSPLIT_SCREEN" , HSPLIT_SCREEN , } ,
 	{ "NEXT_SCREEN" , NEXT_SCREEN , } ,
+	{ "PREV_SCREEN" , PREV_SCREEN , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
 	{ "PAGE_DOWN" , PAGE_DOWN , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
@@ -152,14 +153,17 @@ x_shortcut_init(
 		/* PREV_PTY */
 		{ XK_F4 , ControlMask , 1 , } ,
 
-		/* VSPLIT_SCREEN */
+		/* HSPLIT_SCREEN */
 		{ XK_F1 , ShiftMask , 1 , } ,
 
-		/* HSPLIT_SCREEN */
+		/* VSPLIT_SCREEN */
 		{ XK_F2 , ShiftMask , 1 , } ,
 
 		/* NEXT_SCREEN */
 		{ XK_F3 , ShiftMask , 1 , } ,
+
+		/* PREV_SCREEN */
+		{ XK_F4 , ShiftMask , 1 , } ,
 
 		/* CLOSE_SCREEN */
 		{ XK_F5 , ShiftMask , 1 , } ,
@@ -258,26 +262,15 @@ x_shortcut_match(
 	{
 		return  0 ;
 	}
-	
-	if( shortcut->map[func].state != 0)
-	{
-		/* ingoring except these masks */
-		state &= (ModMask|ControlMask|ShiftMask|button_mask) ;
-		
-		if( ((shortcut->map[func].state & ModMask) == ModMask) &&
-		     (state & ModMask))
-		{
-			/* all ModNMasks are set. */
-			state |= ModMask ;
-		}
 
-		if( state != shortcut->map[func].state)
-		{
-			return  0 ;
-		}
-	}
+	/* ingoring except these masks */
+	state &= (ModMask|ControlMask|ShiftMask|button_mask) ;
 
-	if( shortcut->map[func].ksym == ksym)
+	if( shortcut->map[func].ksym == ksym &&
+	    shortcut->map[func].state ==
+	      ( state |
+	        ( (state & ModMask) &&
+	          (shortcut->map[func].state & ModMask) == ModMask ? ModMask : 0)) )
 	{
 		return  1 ;
 	}

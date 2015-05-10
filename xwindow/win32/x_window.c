@@ -308,11 +308,11 @@ notify_focus_in_to_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( ! win->is_focused)
 	{
-		if( win->has_input_focus ||
+		if( win->inputtable > 0 ||
 		    win->parent == NULL)	/* check_scrollable checks root->is_focused */
 		{
 			win->is_focused = 1 ;
@@ -331,7 +331,7 @@ notify_focus_in_to_children(
 			}
 		}
 
-		if( win->has_input_focus)
+		if( win->inputtable > 0)
 		{
 			x_xic_set_focus( win) ;
 
@@ -353,7 +353,7 @@ notify_focus_out_to_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( win->is_focused)
 	{
@@ -980,7 +980,14 @@ reset_input_focus(
 {
 	u_int  count ;
 
-	win->has_input_focus = 0 ;
+	if( win->inputtable)
+	{
+		win->inputtable = -1 ;
+	}
+	else
+	{
+		win->inputtable = 0 ;
+	}
 
 	for( count = 0 ; count < win->num_of_children ; count++)
 	{
@@ -1003,7 +1010,7 @@ x_window_init(
 	u_int  hmargin ,
 	u_int  vmargin ,
 	int  create_gc ,	/* ignored */
-	int  input_focus
+	int  inputtable
 	)
 {
 	memset( win , 0 , sizeof( x_window_t)) ;
@@ -1014,7 +1021,7 @@ x_window_init(
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
-	win->has_input_focus = input_focus ;
+	win->inputtable = inputtable ;
 
 	/* This flag will map window automatically in x_window_show(). */
 	win->is_mapped = 1 ;
@@ -1271,9 +1278,9 @@ x_window_add_child(
 	child->x = x ;
 	child->y = y ;
 
-	if( ! ( child->is_mapped = map))
+	if( ! ( child->is_mapped = map) && child->inputtable > 0)
 	{
-		child->has_input_focus = 0 ;
+		child->inputtable = -1 ;
 	}
 
 	win->children[ win->num_of_children ++] = child ;
@@ -1459,15 +1466,19 @@ x_window_show(
 	{
 		ShowWindow( win->my_window , win->cmd_show) ;
 
-		if( win->has_input_focus)
+		if( win->inputtable > 0)
 		{
 			reset_input_focus( x_get_root_window( win)) ;
-			win->has_input_focus = 1 ;
+			win->inputtable = 1 ;
 		}
 
 	#if  0
 		x_window_clear_all( win) ;
 	#endif
+	}
+	else
+	{
+		ShowWindow( win->my_window , SW_HIDE) ;
 	}
 
 	if( win->is_transparent)
@@ -1646,6 +1657,11 @@ x_window_move(
 	int  y
 	)
 {
+	if( win->x == x && win->y == y)
+	{
+		return  0 ;
+	}
+
 	win->x = x ;
 	win->y = y ;
 
@@ -1781,11 +1797,12 @@ x_window_fill_with(
 		return  0 ;
 	}
 
-	if( height == 1)
+	if( height == 1 || width == 1)
 	{
 		x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( color->pixel))) ;
 		MoveToEx( win->gc->gc , win->hmargin + x , win->vmargin + y , NULL) ;
-		LineTo( win->gc->gc , win->hmargin + x + width , win->vmargin + y) ;
+		LineTo( win->gc->gc , win->hmargin + x + (width == 1 ? 0 : width) ,
+		                      win->vmargin + y + (width == 1 ? height : 0)) ;
 	}
 	else
 	{
@@ -1886,14 +1903,7 @@ x_window_update_all(
 {
 	u_int  count ;
 
-	clear_margin_area( win) ;
-
-#if  0
-	if( win->window_exposed)
-	{
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-	}
-#endif
+	InvalidateRect( win->my_window , NULL , FALSE) ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -2503,7 +2513,8 @@ x_window_receive_event(
 			#endif
 			}
 
-			if( ! win->is_focused && bev.button == Button1 && ! bev.state)
+			if( ! win->is_focused && win->inputtable &&
+			    bev.button == Button1 && ! bev.state)
 			{
 				x_window_set_input_focus( win) ;
 			}
@@ -3568,7 +3579,7 @@ x_window_set_input_focus(
 	)
 {
 	reset_input_focus( x_get_root_window( win)) ;
-	win->has_input_focus = 1 ;
+	win->inputtable = 1 ;
 	SetFocus( win->my_window) ;
 }
 

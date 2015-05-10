@@ -90,7 +90,7 @@ typedef struct x_main_config
 	u_int8_t  fade_ratio ;
 	u_int8_t  line_space ;
 	u_int8_t  letter_space ;
-	int8_t  use_scrollbar ;
+	int8_t  use_mdi ;
 	int8_t  use_login_shell ;
 	int8_t  use_ctl ;
 	int8_t  big5_buggy ;

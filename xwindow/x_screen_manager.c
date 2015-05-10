@@ -543,7 +543,7 @@ static x_screen_t *
 open_screen_intern(
 	ml_term_t *  term ,
 	x_layout_t *  layout ,
-	int  vertical ,
+	int  horizontal ,
 	const char *  sep
 	)
 {
@@ -661,7 +661,7 @@ open_screen_intern(
 
 	if( layout)
 	{
-		if( ! x_layout_add_child( layout , screen , vertical , sep))
+		if( ! x_layout_add_child( layout , screen , horizontal , sep))
 		{
 			layout = NULL ;
 
@@ -672,7 +672,7 @@ open_screen_intern(
 	}
 	else
 	{
-		if( main_config.use_scrollbar &&
+		if( main_config.use_mdi &&
 		    ( layout = x_layout_new( screen ,
 					main_config.scrollbar_view_name ,
 					main_config.sb_fg_color , main_config.sb_bg_color ,
@@ -1061,7 +1061,7 @@ static void
 open_or_split_screen(
 	x_screen_t *  cur_screen ,	/* Screen which triggers this event. */
 	x_layout_t *  layout ,
-	int  vertical ,
+	int  horizontal ,
 	const char *  sep
 	)
 {
@@ -1102,7 +1102,7 @@ open_or_split_screen(
 	}
 #endif
 
-	if( ! open_screen_intern( NULL , layout , vertical , sep))
+	if( ! open_screen_intern( NULL , layout , horizontal , sep))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
@@ -1136,13 +1136,13 @@ static void
 split_screen(
 	void *  p ,
 	x_screen_t *  screen ,	/* Screen which triggers this event. */
-	int  vertical ,
+	int  horizontal ,
 	const char *  sep
 	)
 {
 	if( X_SCREEN_TO_LAYOUT(screen))
 	{
-		open_or_split_screen( screen , X_SCREEN_TO_LAYOUT(screen) , vertical , sep) ;
+		open_or_split_screen( screen , X_SCREEN_TO_LAYOUT(screen) , horizontal , sep) ;
 	}
 }
 
@@ -1189,12 +1189,21 @@ next_screen(
 	x_screen_t *  screen
 	)
 {
-	x_screen_t *  next ;
-
-	if( X_SCREEN_TO_LAYOUT(screen) &&
-	    ( next = x_layout_get_next_screen( X_SCREEN_TO_LAYOUT(screen) , screen)))
+	if( X_SCREEN_TO_LAYOUT(screen))
 	{
-		x_window_set_input_focus( &next->window) ;
+		x_layout_switch_screen( X_SCREEN_TO_LAYOUT(screen) , 0) ;
+	}
+}
+
+static void
+prev_screen(
+	void *  self ,
+	x_screen_t *  screen
+	)
+{
+	if( X_SCREEN_TO_LAYOUT(screen))
+	{
+		x_layout_switch_screen( X_SCREEN_TO_LAYOUT(screen) , 1) ;
 	}
 }
 
@@ -1202,13 +1211,13 @@ static void
 resize_screen(
 	void *  self ,
 	x_screen_t *  screen ,
-	int  vertical ,
+	int  horizontal ,
 	int  step
 	)
 {
 	if( X_SCREEN_TO_LAYOUT(screen))
 	{
-		x_layout_resize( X_SCREEN_TO_LAYOUT(screen) , screen , vertical , step) ;
+		x_layout_resize( X_SCREEN_TO_LAYOUT(screen) , screen , horizontal , step) ;
 	}
 }
 
@@ -1457,6 +1466,7 @@ x_screen_manager_init(
 	system_listener.split_screen = split_screen ;
 	system_listener.close_screen = close_screen ;
 	system_listener.next_screen = next_screen ;
+	system_listener.prev_screen = prev_screen ;
 	system_listener.resize_screen = resize_screen ;
 	system_listener.open_pty = open_pty ;
 	system_listener.next_pty = next_pty ;

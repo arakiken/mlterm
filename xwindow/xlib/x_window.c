@@ -396,7 +396,7 @@ notify_focus_in_to_children(
 {
 	u_int  count ;
 
-	if( ! win->is_focused && win->has_input_focus)
+	if( ! win->is_focused && win->inputtable > 0)
 	{
 		win->is_focused = 1 ;
 
@@ -847,7 +847,14 @@ reset_input_focus(
 {
 	u_int  count ;
 
-	win->has_input_focus = 0 ;
+	if( win->inputtable)
+	{
+		win->inputtable = -1 ;
+	}
+	else
+	{
+		win->inputtable = 0 ;
+	}
 
 	for( count = 0 ; count < win->num_of_children ; count++)
 	{
@@ -1024,7 +1031,7 @@ x_window_init(
 	u_int  hmargin ,
 	u_int  vmargin ,
 	int  create_gc ,
-	int  input_focus
+	int  inputtable
 	)
 {
 	memset( win , 0 , sizeof( x_window_t)) ;
@@ -1048,7 +1055,7 @@ x_window_init(
 	win->is_focused = 0 ;
 #endif
 
-	win->has_input_focus = input_focus ;
+	win->inputtable = inputtable ;
 
 	/* This flag will map window automatically in x_window_show() */
 	win->is_mapped = 1 ;
@@ -1491,9 +1498,9 @@ x_window_add_child(
 	child->x = x ;
 	child->y = y ;
 
-	if( ! ( child->is_mapped = map))
+	if( ! ( child->is_mapped = map) && child->inputtable > 0)
 	{
-		child->has_input_focus = 0 ;
+		child->inputtable = -1 ;
 	}
 
 	win->children[ win->num_of_children ++] = child ;
@@ -1781,11 +1788,12 @@ x_window_show(
 	{
 		XMapWindow( win->disp->display , win->my_window) ;
 
-		if( win->has_input_focus)
+		if( win->inputtable > 0)
 		{
 			reset_input_focus( x_get_root_window( win)) ;
-			win->has_input_focus = 1 ;
+			win->inputtable = 1 ;
 		}
+
 	#if  0
 		x_window_clear_all( win) ;
 	#endif
@@ -1987,7 +1995,7 @@ x_window_set_override_redirect(
 
 	reset_input_focus( root) ;
 	/* XXX Always focused not to execute XSetInputFocus(). */
-	win->has_input_focus = win->is_focused = 1 ;
+	win->inputtable = win->is_focused = 1 ;
 
 	return  1 ;
 }
@@ -2046,6 +2054,11 @@ x_window_move(
 	int  y
 	)
 {
+	if( win->x == x && win->y == y)
+	{
+		return  0 ;
+	}
+
 	win->x = x ;
 	win->y = y ;
 
@@ -2483,7 +2496,7 @@ x_window_receive_event(
 		}
 
 		/* XXX Note that win->is_focused is always true on override redirect mode. */
-		if( ! win->is_focused && event->xbutton.button == Button1 &&
+		if( ! win->is_focused && win->inputtable && event->xbutton.button == Button1 &&
 		    ! event->xbutton.state)
 		{
 			x_window_set_input_focus( win) ;
@@ -4352,7 +4365,7 @@ x_window_set_input_focus(
 	)
 {
 	reset_input_focus( x_get_root_window( win)) ;
-	win->has_input_focus = 1 ;
+	win->inputtable = 1 ;
 	XSetInputFocus( win->disp->display , win->my_window ,
 		RevertToParent , CurrentTime) ;
 }

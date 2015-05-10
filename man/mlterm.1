@@ -449,9 +449,10 @@ Specify fading ratio for unfocused windows.
 \fB100\fR means no fading and \fB0\fR means darkest.
 The default is \fB100\fR
 .TP
-\fB\-s\fR, \fB\-\-sb\fR(=\fIbool\fR)
-Whether to use a scrollbar.
+\fB\-s\fR, \fB\-\-mdi\fR(=\fIbool\fR)
+Whether to use multiple document interface.
 The default is \fBtrue\fR.
+If you disable this option, scrollbar and screen separation are unavailable.
 .TP
 \fB\-t\fR, \fB\-\-transbg\fR(=\fIbool\fR)
 Whether to enable pseudo transparent background.
@@ -1522,8 +1523,8 @@ Process full width characters.
 \fBuse_point_size=\fIbool\fR (\fB\-\-point\fR)
 Treat the value of \-w option as point instead of pixel.
 .TP
-\fBuse_scrollbar=\fIbool\fR (\fB\-s\fR, \fB\-\-sb\fR)
-Use scrollbar.
+\fBuse_mdi=\fIbool\fR (\fB\-s\fR, \fB\-\-mdi\fR)
+Use multiple document interface.
 .TP
 \fBuse_transbg=\fIbool\fR (\fB\-t\fR, \fB\-\-transbg\fR)
 Use pseudo transparent background.
@@ -1739,14 +1740,17 @@ Switch to a next free pty (default \fBCtrl+F3\fR).
 \fBPREV_PTY\fR
 Switch to a previous free pty (default \fBCtrl+F4\fR).
 .TP
-\fBVSPLIT_SCREEN\fR
-Open new pty in vertically splitted screen (default \fBShift+F1\fR).
-.TP
 \fBHSPLIT_SCREEN\fR
-Open new pty in horizonally splitted screen (default \fBShift+F2\fR).
+Open new pty in horizontally splitted screen (default \fBShift+F1\fR).
+.TP
+\fBVSPLIT_SCREEN\fR
+Open new pty in vertically splitted screen (default \fBShift+F2\fR).
 .TP
 \fBNEXT_SCREEN\fR
 Switch to a next unfocused screen (default \fBShift+F3\fR).
+.TP
+\fBPREV_SCREEN\fR
+Switch to a previous unfocused screen (default \fBShift+F4\fR).
 .TP
 \fBCLOSE_SCREEN\fR
 Close current screen (default \fBShift+F5\fR).

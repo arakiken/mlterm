@@ -923,6 +923,15 @@ reset_input_focus(
 {
 	u_int  count ;
 
+	if( win->inputtable)
+	{
+		win->inputtable = -1 ;
+	}
+	else
+	{
+		win->inputtable = 0 ;
+	}
+
 	if( win->is_focused)
 	{
 		win->is_focused = 0 ;
@@ -954,7 +963,7 @@ x_window_init(
 	u_int  hmargin ,
 	u_int  vmargin ,
 	int  create_gc ,
-	int  input_focus
+	int  inputtable
 	)
 {
 	memset( win , 0 , sizeof( x_window_t)) ;
@@ -963,6 +972,7 @@ x_window_init(
 	win->is_scrollable = 1 ;
 
 	win->is_focused = 1 ;
+	win->inputtable = inputtable ;
 	win->is_mapped = 1 ;
 
 	win->create_gc = create_gc ;
@@ -1342,8 +1352,6 @@ x_window_map(
 		(*win->window_exposed)( win ,
 			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 		clear_margin_area( win) ;
-
-		x_window_set_input_focus( win) ;
 	}
 
 	return  1 ;
@@ -1484,7 +1492,7 @@ x_window_move(
 {
 	if( win->x == x && win->y == y)
 	{
-		return  1 ;
+		return  0 ;
 	}
 
 	win->x = x ;
@@ -1832,7 +1840,7 @@ x_window_receive_event(
 			win->prev_button_press_event = event->xbutton ;
 		}
 
-		if( ! win->is_focused && event->xbutton.button == Button1 &&
+		if( ! win->is_focused && win->inputtable && event->xbutton.button == Button1 &&
 		    ! event->xbutton.state)
 		{
 			x_window_set_input_focus( win) ;
@@ -2477,7 +2485,7 @@ x_window_set_input_focus(
 	)
 {
 	reset_input_focus( x_get_root_window( win)) ;
-	win->is_focused = 1 ;
+	win->inputtable = win->is_focused = 1 ;
 	if( win->window_focused)
 	{
 		(*win->window_focused)( win) ;

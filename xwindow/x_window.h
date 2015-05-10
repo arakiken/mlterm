@@ -155,7 +155,7 @@ typedef struct  x_window
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
 	int8_t  is_focused ;
-	int8_t  has_input_focus ;
+	int8_t  inputtable ;	/* 1: focused, -1: unfocused */
 	int8_t  is_mapped ;
 	int8_t  create_gc ;
 
@@ -199,7 +199,7 @@ typedef struct  x_window
 int  x_window_init( x_window_t *  win ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
 	u_int  width_inc , u_int  height_inc , u_int  hmargin , u_int  vmargin ,
-	int  create_gc , int  input_focus) ;
+	int  create_gc , int  inputtable) ;
 
 int  x_window_final( x_window_t *  win) ;
 

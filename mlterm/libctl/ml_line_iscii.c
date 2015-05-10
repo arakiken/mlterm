@@ -4,6 +4,7 @@
 
 #include  "ml_line_iscii.h"
 
+#include  <stdio.h>			/* NULL */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>		/* K_MIN */
 

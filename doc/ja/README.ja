@@ -527,12 +527,11 @@ comment $Id$
       o use_transbg (true/*false*) (#)
         擬似的な背景透過を行う。
 
-      o use_scrollbar (*true*/false)
-        スクロールバーをつける
+      o use_mdi (*true*/false)
+        スクロールバー及び画面分割を有効にする。
 
         scrollbar_mode , scrollbar_view_name オプションは、これが true の場合の
         み有効です。
-        2.2.0 以前との互換オプションです。
 
       o scrollbar_mode (none/*left*/right) (#)
         スクロールバーのつけ方
@@ -1082,12 +1081,14 @@ comment $Id$
         Background の PTY を現在の画面上に表示します。
       o PREV_PTY(Ctrl+F4)
         Background の PTY を現在の画面上に表示します。
-      o VSPLIT_SCREEN(Shift+F1)
-        新しいPTYを、新しく縦分割した画面上に開きます。
+      o HSPLIT_SCREEN(Shift+F1)
+        新しいPTYを、新しく横方向に分割した画面上に開きます。
       o VSPLIT_SCREEN(Shift+F2)
-        新しいPTYを、新しく横分割した画面上に開きます。
+        新しいPTYを、新しく縦方向に分割した画面上に開きます。
       o NEXT_SCREEN(Shift+F3)
-        分割された画面のうちフォーカスを持っていない画面にフォーカスを移します。
+        分割された画面のうちフォーカスを持っていない次の画面にフォーカスを移します。
+      o NEXT_SCREEN(Shift+F4)
+        分割された画面のうちフォーカスを持っていない前の画面にフォーカスを移します。
       o CLOSE_SCREEN(Ctrl+F5)
         分割された画面のうち現在選択された画面を閉じます。
       o PAGE_UP(Shift+Prior)

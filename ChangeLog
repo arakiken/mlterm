@@ -1,3 +1,29 @@
+2015-05-10  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.[ch], x_screen_manager.c: use_scrollbar -> use_mdi
+
+	* x_screen.c: "next_screen" is added to OSC 5379.
+
+	* x_screen.c, x_screen_manager.c, x_layout.[ch], x_shortcut.[ch]:
+	  - hsplit or hresize <=> vsplit or vresize
+	  - PREV_SCREEN is added to shortcut key settings.
+
+	* x_layout.c:
+	  - Slightly broken screen in changing the position of a scrollbar is fixed.
+	  - struct terminal::sb_mode is inherited from a current terminal in
+	    x_layout_add_child().
+
+	* win32/x_xic.c: If a specified window has focus, get_spot() returns cursor
+	  position relative to it.
+
+	* */x_window.c, x_window.h:
+	  - x_window_move() returns 0 if both win->x and win->y aren't changed.
+	  - x_window_t::has_input_focus -> inputtable.
+
+	* win32/x_window.c: x_window_update_all() calls InvaidateRect(NULL).
+
+	* ml_line_iscii.c: Compiling error is fixed.
+
 2015-05-07  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja, etc/key: Updated.
