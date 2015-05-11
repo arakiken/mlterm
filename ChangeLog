@@ -1,3 +1,8 @@
+2015-05-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x_layout.c:
+	  x_window_fill() -> x_window_fill_with( x_layout_t::screen::window::fg_color)
+
 2015-05-10  Araki Ken  <arakiken@users.sf.net>
 
 	* x_main_config.[ch], x_screen_manager.c: use_scrollbar -> use_mdi

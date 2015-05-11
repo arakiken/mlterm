@@ -98,7 +98,8 @@ reset_layout(
 			child_height , NOTIFY_TO_MYSELF) ;
 
 	#if  defined(USE_FRAMEBUFFER)
-		x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+		x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				sep_x , y , SEPARATOR_WIDTH , child_height) ;
 	#elif  defined(USE_WIN32GUI)
 		/*
@@ -130,7 +131,8 @@ reset_layout(
 			reset_layout( term->next[1] , x , y + term->separator_y + SEPARATOR_WIDTH ,
 				width , height - term->separator_y - SEPARATOR_WIDTH) ;
 		#ifdef  USE_FRAMEBUFFER
-			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x , y + term->separator_y ,
 				width , SEPARATOR_WIDTH) ;
 		#endif
@@ -141,7 +143,8 @@ reset_layout(
 			reset_layout( term->next[0] , x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , child_height) ;
 		#ifdef  USE_FRAMEBUFFER
-			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x + term->separator_x , y ,
 				SEPARATOR_WIDTH , child_height) ;
 		#endif
@@ -154,7 +157,8 @@ reset_layout(
 			reset_layout( term->next[0] , x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , height) ;
 		#ifdef  USE_FRAMEBUFFER
-			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x + term->separator_x , y ,
 				SEPARATOR_WIDTH , height) ;
 		#endif
@@ -165,7 +169,8 @@ reset_layout(
 			reset_layout( term->next[1] , x , y + term->separator_y + SEPARATOR_WIDTH ,
 				child_width , height - term->separator_y - SEPARATOR_WIDTH) ;
 		#ifdef  USE_FRAMEBUFFER
-			x_window_fill( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x , y + term->separator_y ,
 				child_width , SEPARATOR_WIDTH) ;
 		#endif
@@ -507,7 +512,8 @@ window_exposed(
 	u_int  height
 	)
 {
-	x_window_fill( win , x , y , width , height) ;
+	x_window_fill_with( win , &((x_layout_t*)win)->term.screen->window.fg_color ,
+		x , y , width , height) ;
 }
 
 static void
