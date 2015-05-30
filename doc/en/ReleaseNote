@@ -4,11 +4,12 @@ ver 3.5.0
 * Support vertical and horizontal screen separation.
   (Note that -s=false option disables not only scrollbar but also screen separation.)
 * Add HSPLIT_SCREEN(Shift+F1), VSPLIT_SCREEN(Shift+F2), NEXT_SCREEN(Shift+F3),
-  PREV_SCREEN(Shift+F4) and CLOSE_SCREEN(Shift+F5) to shortcut key settings.
+  PREV_SCREEN(Shift+F4), CLOSE_SCREEN(Shift+F5), HEXPAND_SCREEN(Shift+F6) and
+  VEXPAND_SCREEN(Shift+F7) to shortcut key settings.
 * Add "hsplit_screen", "vsplit_screen", "hresize_screen", "vresize_screen" and
   "next_screen" to OSC 5379.
-* Rename "use_scrollbar" to "use_mdi" which enables not only scrollbar but also
-  screen separation.
+* Rename "use_scrollbar" option to "use_mdi" which enables not only scrollbar but
+  also screen separation.
 * Support Allow132 (CSI?40h, CSI?40l).
   (Merge https://gist.github.com/saitoha/4b320b9cb6d637d14dbc)
 * HankakuZenkaku key works on Linux/framebuffer.

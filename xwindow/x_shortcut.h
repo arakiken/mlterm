@@ -27,6 +27,8 @@ typedef enum  x_key_func
 	NEXT_SCREEN ,
 	PREV_SCREEN ,
 	CLOSE_SCREEN ,
+	HEXPAND_SCREEN ,
+	VEXPAND_SCREEN ,
 	PAGE_UP ,
 	PAGE_DOWN ,
 	SCROLL_UP ,

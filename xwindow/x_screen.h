@@ -29,10 +29,10 @@ typedef struct x_system_event_listener
 
 	void  (*open_screen)( void * , x_screen_ptr_t) ;
 	void  (*split_screen)( void * , x_screen_ptr_t , int , const char *) ;
-	void  (*close_screen)( void * , x_screen_ptr_t , int) ;
-	void  (*next_screen)( void * , x_screen_ptr_t) ;
-	void  (*prev_screen)( void * , x_screen_ptr_t) ;
-	void  (*resize_screen)( void * , x_screen_ptr_t , int , int) ;
+	int  (*close_screen)( void * , x_screen_ptr_t , int) ;
+	int  (*next_screen)( void * , x_screen_ptr_t) ;
+	int  (*prev_screen)( void * , x_screen_ptr_t) ;
+	int  (*resize_screen)( void * , x_screen_ptr_t , int , int) ;
 	void  (*open_pty)( void * , x_screen_ptr_t , char *) ;
 	void  (*next_pty)( void * , x_screen_ptr_t) ;
 	void  (*prev_pty)( void * , x_screen_ptr_t) ;

@@ -176,11 +176,6 @@ ml_pty_unix_new(
 		signal(SIGCHLD, SIG_DFL) ;
 		signal(SIGPIPE, SIG_DFL) ;
 
-		if( ! cmd_path)
-		{
-			goto  return_pty ;
-		}
-
 		/*
 		 * setting environmental variables.
 		 */
@@ -209,6 +204,11 @@ ml_pty_unix_new(
 		signal(SIGTTIN , SIG_IGN) ;
 		signal(SIGTTOU , SIG_IGN) ;
 	#endif
+
+		if( ! cmd_path)
+		{
+			goto  return_pty ;
+		}
 
 		if( strchr( cmd_path , '/') == NULL)
 		{

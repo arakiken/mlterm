@@ -2921,7 +2921,7 @@ ml_term_open_pty_wrap(
 		}
 	}
 
-	if( ( env_p = alloca( sizeof( char*) * (num + 5))))
+	if( ( env_p = alloca( sizeof( char*) * (num + 6))))
 	{
 		if( num > 0)
 		{
@@ -2932,6 +2932,8 @@ ml_term_open_pty_wrap(
 		{
 			envv = env_p ;
 		}
+
+		*(env_p ++) = "MLTERM=" VERSION ;
 
 		/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
 		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)) &&
@@ -2953,6 +2955,7 @@ ml_term_open_pty_wrap(
 			sprintf( *(env_p ++) , "DISPLAY=%s" , host) ;
 		}
 
+		/* "TERM="(5) + NULL(1) */
 		if( ( *env_p = alloca( 5 + strlen( main_config.term_type) + 1)))
 		{
 			sprintf( *(env_p ++) , "TERM=%s" , main_config.term_type) ;

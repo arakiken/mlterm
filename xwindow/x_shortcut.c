@@ -49,11 +49,13 @@ static key_func_table_t  key_func_table[] =
 	{ "OPEN_PTY" , OPEN_PTY , } ,
 	{ "NEXT_PTY" , NEXT_PTY , } ,
 	{ "PREV_PTY" , PREV_PTY , } ,
-	{ "CLOSE_SCREEN" , CLOSE_SCREEN , } ,
 	{ "VSPLIT_SCREEN" , VSPLIT_SCREEN , } ,
 	{ "HSPLIT_SCREEN" , HSPLIT_SCREEN , } ,
 	{ "NEXT_SCREEN" , NEXT_SCREEN , } ,
 	{ "PREV_SCREEN" , PREV_SCREEN , } ,
+	{ "CLOSE_SCREEN" , CLOSE_SCREEN , } ,
+	{ "HEXPAND_SCREEN" , HEXPAND_SCREEN , } ,
+	{ "VEXPAND_SCREEN" , VEXPAND_SCREEN , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
 	{ "PAGE_DOWN" , PAGE_DOWN , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
@@ -167,6 +169,12 @@ x_shortcut_init(
 
 		/* CLOSE_SCREEN */
 		{ XK_F5 , ShiftMask , 1 , } ,
+
+		/* HEXPAND_SCREEN */
+		{ XK_F6 , ShiftMask , 1 , } ,
+
+		/* VEXPAND_SCREEN */
+		{ XK_F7 , ShiftMask , 1 , } ,
 
 		/* PAGE_UP(compatible with kterm) */
 		{ XK_Prior , ShiftMask , 1 , } ,

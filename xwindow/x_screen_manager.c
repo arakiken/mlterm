@@ -1146,7 +1146,7 @@ split_screen(
 	}
 }
 
-static void
+static int
 close_screen(
 	void *  p ,
 	x_screen_t *  screen ,	/* Screen which triggers this event. */
@@ -1159,7 +1159,7 @@ close_screen(
 	    ( ! X_SCREEN_TO_LAYOUT(screen) ||
 	      x_layout_has_one_child( X_SCREEN_TO_LAYOUT(screen))))
 	{
-		return ;
+		return  0 ;
 	}
 
 	for( count = 0 ; count < num_of_screens ; count ++)
@@ -1179,11 +1179,13 @@ close_screen(
 		idx = count / MSU ;	/* count / 8 */
 		dead_mask[idx] |= (1 << (count - MSU * idx)) ;
 
-		return ;
+		break ;
 	}
+
+	return  1 ;
 }
 
-static void
+static int
 next_screen(
 	void *  self ,
 	x_screen_t *  screen
@@ -1191,11 +1193,15 @@ next_screen(
 {
 	if( X_SCREEN_TO_LAYOUT(screen))
 	{
-		x_layout_switch_screen( X_SCREEN_TO_LAYOUT(screen) , 0) ;
+		return  x_layout_switch_screen( X_SCREEN_TO_LAYOUT(screen) , 0) ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 
-static void
+static int
 prev_screen(
 	void *  self ,
 	x_screen_t *  screen
@@ -1203,11 +1209,15 @@ prev_screen(
 {
 	if( X_SCREEN_TO_LAYOUT(screen))
 	{
-		x_layout_switch_screen( X_SCREEN_TO_LAYOUT(screen) , 1) ;
+		return  x_layout_switch_screen( X_SCREEN_TO_LAYOUT(screen) , 1) ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 
-static void
+static int
 resize_screen(
 	void *  self ,
 	x_screen_t *  screen ,
@@ -1217,7 +1227,11 @@ resize_screen(
 {
 	if( X_SCREEN_TO_LAYOUT(screen))
 	{
-		x_layout_resize( X_SCREEN_TO_LAYOUT(screen) , screen , horizontal , step) ;
+		return  x_layout_resize( X_SCREEN_TO_LAYOUT(screen) , screen , horizontal , step) ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 

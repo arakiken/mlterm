@@ -1919,16 +1919,6 @@ shortcut_match(
 
 		return  1 ;
 	}
-	else if( x_shortcut_match( screen->shortcut , CLOSE_SCREEN , ksym , state))
-	{
-		if( HAS_SYSTEM_LISTENER(screen,close_screen))
-		{
-			(*screen->system_listener->close_screen)(
-				screen->system_listener->self , screen , 0) ;
-		}
-
-		return  1 ;
-	}
 	else if( x_shortcut_match( screen->shortcut , VSPLIT_SCREEN , ksym , state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,split_screen))
@@ -1949,24 +1939,39 @@ shortcut_match(
 
 		return  1 ;
 	}
-	else if( x_shortcut_match( screen->shortcut , NEXT_SCREEN , ksym , state))
+	else if( x_shortcut_match( screen->shortcut , NEXT_SCREEN , ksym , state) &&
+	         HAS_SYSTEM_LISTENER(screen,next_screen) &&
+		 (*screen->system_listener->next_screen)(
+				screen->system_listener->self , screen))
 	{
-		if( HAS_SYSTEM_LISTENER(screen,next_screen))
-		{
-			(*screen->system_listener->next_screen)(
-				screen->system_listener->self , screen) ;
-		}
-
 		return  1 ;
 	}
-	else if( x_shortcut_match( screen->shortcut , PREV_SCREEN , ksym , state))
+	else if( x_shortcut_match( screen->shortcut , PREV_SCREEN , ksym , state) &&
+	         HAS_SYSTEM_LISTENER(screen,prev_screen) &&
+		 (*screen->system_listener->prev_screen)(
+				screen->system_listener->self , screen))
 	{
-		if( HAS_SYSTEM_LISTENER(screen,prev_screen))
-		{
-			(*screen->system_listener->prev_screen)(
-				screen->system_listener->self , screen) ;
-		}
-
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , CLOSE_SCREEN , ksym , state) &&
+	         HAS_SYSTEM_LISTENER(screen,close_screen) &&
+		 (*screen->system_listener->close_screen)(
+				screen->system_listener->self , screen , 0))
+	{
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , HEXPAND_SCREEN , ksym , state) &&
+	         HAS_SYSTEM_LISTENER(screen,resize_screen) &&
+		 (*screen->system_listener->resize_screen)(
+				screen->system_listener->self , screen , 1 , 1))
+	{
+		return  1 ;
+	}
+	else if( x_shortcut_match( screen->shortcut , VEXPAND_SCREEN , ksym , state) &&
+	         HAS_SYSTEM_LISTENER(screen,resize_screen) &&
+		 (*screen->system_listener->resize_screen)(
+				screen->system_listener->self , screen , 0 , 1))
+	{
 		return  1 ;
 	}
 	/* for backward compatibility */

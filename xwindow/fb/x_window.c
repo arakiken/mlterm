@@ -1674,6 +1674,11 @@ x_window_update(
 	int  flag
 	)
 {
+	if( ! win->is_mapped)
+	{
+		return  0 ;
+	}
+
 	if( win->update_window)
 	{
 		(*win->update_window)( win, flag) ;
@@ -1688,6 +1693,11 @@ x_window_update_all(
 	)
 {
 	u_int  count ;
+
+	if( ! win->is_mapped)
+	{
+		return  0 ;
+	}
 
 	if( ! win->parent)
 	{

@@ -1097,6 +1097,10 @@ comment $Id$
         分割された画面のうちフォーカスを持っていない前の画面にフォーカスを移します。
       o CLOSE_SCREEN(Ctrl+F5)
         分割された画面のうち現在選択された画面を閉じます。
+      o HEXPAND_SCREEN(Shift+F6)
+        分割された画面のうち現在選択された画面を横方向に広げます。
+      o VEXPAND_SCREEN(Shift+F7)
+        分割された画面のうち現在選択された画面を縦方向に広げます。
       o PAGE_UP(Shift+Prior)
         ページアップ
       o SCROLL_UP(Shift+Up)

@@ -1,3 +1,21 @@
+2015-05-26  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, etc/README.ja: Updated.
+
+	* x_screen.[ch], x_shortcut.[ch], x_screen_manager.c:
+	  - HEXPAND_SCREEN and VEXPAND_SCREEN are added to shortcut keys.
+	  - NEXT_SCREEN, PREV_SCREEN, CLOSE_SCREEN, HEXPAND_SCREEN, VEXPAND_SCREEN
+	    shortcuts are ignored if screen isn't splited.
+
+	* x_layout.c: The position of a separator is adjusted to cell width and height.
+
+	* fb/x_window.c: x_window_update() and x_window_update_all() do nothing if
+	  x_window_t::is_mapped is 0.
+
+	* vte.c: "MLTERM=X.X.X" environmental variable is set in ml_term_open_pty_wrap().
+
+	* ml_pty_unix.c: "goto return_pty" is called after putenv(), not before it.
+
 2015-05-17  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja: Updated.

@@ -34,5 +34,3 @@
 # Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe"
 # Button4="\x1bOA\x1bOA"
 # Button5="\x1bOB\x1bOB"
-# Shift+F6="proto:vsplit_screen 40%"
-# Shift+F7="proto:vresize_screen +5"
