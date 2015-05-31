@@ -57,6 +57,8 @@
 #define  BOTTOM_MARGIN(win) \
 	((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
 
+#define  ParentRelative  (1L)
+
 #if  0
 #define  DEBUG_SCROLLABLE
 #endif
@@ -749,28 +751,45 @@ clear_margin_area(
 
 	if( win->wall_picture)
 	{
+		Pixmap  pic ;
+		int  src_x ;
+		int  src_y ;
+
+		if( win->wall_picture == ParentRelative)
+		{
+			pic = win->parent->wall_picture ;
+			src_x = win->x ;
+			src_y = win->y ;
+		}
+		else
+		{
+			pic = win->wall_picture ;
+			src_x = src_y = 0 ;
+		}
+
 		if( win->hmargin > 0 || right_margin > 0)
 		{
 			BitBlt( win->gc->gc , 0 , 0 ,
 				win->hmargin , ACTUAL_HEIGHT(win) + right_margin ,
-				win->wall_picture , 0 , 0 , SRCCOPY) ;
+				pic , src_x , src_y , SRCCOPY) ;
 			BitBlt( win->gc->gc , win_width + win->hmargin , 0 ,
 				win->hmargin + right_margin ,
 				ACTUAL_HEIGHT(win) + bottom_margin ,
-				win->wall_picture ,
-				win_width + win->hmargin , 0 , SRCCOPY) ;
+				pic ,
+				src_x + win_width + win->hmargin , src_y , SRCCOPY) ;
 		}
 
 		if( win->vmargin > 0 || bottom_margin > 0)
 		{
 			BitBlt( win->gc->gc , win->hmargin , 0 ,
 				win_width , win->vmargin ,
-				win->wall_picture ,
-				win->hmargin , 0 , SRCCOPY) ;
+				pic ,
+				src_x + win->hmargin , src_y , SRCCOPY) ;
 			BitBlt( win->gc->gc , win->hmargin , win_height + win->vmargin ,
 				win_width , win->vmargin + bottom_margin ,
-				win->wall_picture ,
-				win->hmargin , win_height + win->vmargin , SRCCOPY) ;
+				pic ,
+				src_x + win->hmargin , src_y + win_height + win->vmargin ,
+				SRCCOPY) ;
 		}
 	}
 	else
@@ -1140,15 +1159,23 @@ x_window_ungrab_pointer(
 int
 x_window_set_wall_picture(
 	x_window_t *  win ,
-	Pixmap  pic
+	Pixmap  pic ,
+	int  do_expose
 	)
 {
+	u_int  count ;
+
 	win->is_scrollable = 0 ;
 	win->wall_picture = pic ;
 
-	if( win->my_window != None)
+	if( win->my_window != None && do_expose)
 	{
 		InvalidateRect( win->my_window, NULL, FALSE) ;
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		x_window_set_wall_picture( win->children[count] , ParentRelative , do_expose) ;
 	}
 
 	return  1 ;
@@ -1156,15 +1183,23 @@ x_window_set_wall_picture(
 
 int
 x_window_unset_wall_picture(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  do_expose
 	)
 {
+	u_int  count ;
+
 	win->is_scrollable = check_scrollable( win) ;
 	win->wall_picture = None ;
 
 	if( win->my_window != None)
 	{
 		InvalidateRect( win->my_window, NULL, FALSE) ;
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		x_window_set_wall_picture( win->children[count] , ParentRelative , do_expose) ;
 	}
 
 	return  1 ;
@@ -1431,6 +1466,12 @@ x_window_show(
 #ifndef  DISABLE_XDND
 	DragAcceptFiles( win->my_window , TRUE) ;
 #endif
+
+	if( win->parent && ! win->parent->is_transparent &&
+	    win->parent->wall_picture)
+	{
+		x_window_set_wall_picture( win , ParentRelative , 0) ;
+	}
 
 	/*
 	 * This should be called after Window Manager settings, because
@@ -1742,12 +1783,27 @@ x_window_clear(
 	}
 	else
 	{
-
 		if( win->wall_picture)
 		{
+			Pixmap  pic ;
+			int  src_x ;
+			int  src_y ;
+
+			if( win->wall_picture == ParentRelative)
+			{
+				pic = win->parent->wall_picture ;
+				src_x = win->x ;
+				src_y = win->y ;
+			}
+			else
+			{
+				pic = win->wall_picture ;
+				src_x = src_y = 0 ;
+			}
+
 			BitBlt( win->gc->gc ,
 				r.left , r.top , r.right - r.left , r.bottom - r.top ,
-				win->wall_picture , r.left , r.top , SRCCOPY) ;
+				pic , src_x + r.left , src_y + r.top , SRCCOPY) ;
 		}
 		else
 		{

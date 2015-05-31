@@ -1,3 +1,18 @@
+2015-05-31  Araki Ken  <arakiken@users.sf.net>
+
+	* x_layout.c:
+	  - If x_layout_t has multiple x_screen_t windows which have a wall picture,
+	    x_layout_t plunders it.
+	  - total_min_size() -> total_hint_size().
+
+	* x_screen.[ch]: x_screen_reload_color_cache() is added.
+
+	* x_window.h, */x_window.c:
+	  - do_expose is added to arguments of x_window_(un)set_wall_picture().
+	  - If wall picture is set to a root window, ParentRelative is set to
+	    its child windows.
+	  - configure_root is added to x_window_t for xlib.
+
 2015-05-26  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, etc/README.ja: Updated.

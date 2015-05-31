@@ -886,11 +886,12 @@ x_acquire_bg_picture(
 	char *  file_path		/* "root" means transparency. */
 	)
 {
-	u_int  count ;
 	x_picture_t **  p ;
 
 	if( strcmp( file_path , "root") != 0) /* Transparent background is not cached. */
 	{
+		u_int  count ;
+
 		for( count = 0 ; count < num_of_pics ; count++)
 		{
 			if( strcmp( file_path , pics[count]->file_path) == 0 &&

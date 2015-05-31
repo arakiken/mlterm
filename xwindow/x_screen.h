@@ -215,6 +215,10 @@ int  x_screen_set_config( x_screen_t *  screen , char *  dev , char *  key , cha
 
 int  x_screen_reset_view( x_screen_t *  screen) ;
 
+#if  defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+void  x_screen_reload_color_cache( x_screen_t *  screen , int  do_unload) ;
+#endif
+
 
 x_picture_modifier_t *  x_screen_get_picture_modifier( x_screen_t *  screen) ;
 

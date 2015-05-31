@@ -1222,7 +1222,7 @@ set_wall_picture(
 		free( screen->pic_file_path) ;
 		screen->pic_file_path = NULL ;
 
-		x_window_unset_wall_picture( &screen->window) ;
+		x_window_unset_wall_picture( &screen->window , 1) ;
 
 		return  0 ;
 	}
@@ -1234,22 +1234,11 @@ set_wall_picture(
 		 * Color pallette of x_display can be changed by x_acquire_bg_picture().
 		 * (see x_display_set_cmap() called from fb/x_imagelib.c.)
 		 */
-		x_color_cache_unload( screen->color_man->color_cache) ;
-
-		x_color_manager_reload( screen->color_man) ;
-		x_window_set_fg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
-		x_xic_fg_color_changed( &screen->window) ;
-		/* XXX should change scrollbar fg color */
-
-		x_window_set_bg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
-		x_xic_bg_color_changed( &screen->window) ;
-		/* XXX should change scrollbar bg color */
+		x_screen_reload_color_cache( screen , 1) ;
 	}
 #endif
 
-	if( ! x_window_set_wall_picture( &screen->window , pic->pixmap))
+	if( ! x_window_set_wall_picture( &screen->window , pic->pixmap , 1))
 	{
 		x_release_picture( pic) ;
 		
@@ -4932,7 +4921,7 @@ change_wall_picture(
 	if( *file_path == '\0')
 	{
 		screen->pic_file_path = NULL ;
-		x_window_unset_wall_picture( &screen->window) ;
+		x_window_unset_wall_picture( &screen->window , 1) ;
 	}
 	else
 	{
@@ -8895,6 +8884,32 @@ x_screen_reset_view(
 
 	return  1 ;
 }
+
+
+#if  defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+void
+x_screen_reload_color_cache(
+	x_screen_t *  screen ,
+	int  do_unload
+	)
+{
+	if( do_unload)
+	{
+		x_color_cache_unload( screen->color_man->color_cache) ;
+	}
+
+	x_color_manager_reload( screen->color_man) ;
+	x_window_set_fg_color( &screen->window ,
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
+	x_xic_fg_color_changed( &screen->window) ;
+	/* XXX should change scrollbar fg color */
+
+	x_window_set_bg_color( &screen->window ,
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+	x_xic_bg_color_changed( &screen->window) ;
+	/* XXX should change scrollbar bg color */
+}
+#endif
 
 
 x_picture_modifier_t *

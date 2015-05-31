@@ -150,6 +150,7 @@ typedef struct  x_window
 #else
 	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
 	int8_t  wait_copy_area_response ;	/* Used for XCopyArea() */
+	int8_t  configure_root ;
 #endif
 	int8_t  is_sel_owner ;
 	int8_t  is_transparent ;
@@ -215,9 +216,9 @@ int  x_window_remove_event_mask( x_window_t *  win , long  event_mask) ;
 
 int  x_window_ungrab_pointer( x_window_t *  win) ;
 
-int  x_window_set_wall_picture( x_window_t *  win , Pixmap  pic) ;
+int  x_window_set_wall_picture( x_window_t *  win , Pixmap  pic , int  do_expose) ;
 
-int  x_window_unset_wall_picture( x_window_t *  win) ;
+int  x_window_unset_wall_picture( x_window_t *  win , int  do_expose) ;
 
 #if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER)
 #define  x_window_has_wall_picture( win)  ((win)->wall_picture != None)

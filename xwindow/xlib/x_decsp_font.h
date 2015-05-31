@@ -3,7 +3,7 @@
  */
 
 #ifndef  __X_DECSP_FONT_H__
-#define  __X_DECFP_FONT_H__
+#define  __X_DECSP_FONT_H__
 
 
 #include  "../x.h"

@@ -222,7 +222,7 @@ set_transparent_picture(
 	 */
 	win->is_transparent = 0 ;
 
-	if( ! x_window_set_wall_picture( win , pixmap))
+	if( ! x_window_set_wall_picture( win , pixmap , 1))
 	{
 		win->pic_mod = NULL ;
 
@@ -287,7 +287,7 @@ unset_transparent(
 	win->is_transparent = 0 ;
 	win->pic_mod = NULL ;
 
-	return  x_window_unset_wall_picture( win) ;
+	return  x_window_unset_wall_picture( win , 1) ;
 }
 
 static int
@@ -1240,9 +1240,12 @@ x_window_ungrab_pointer(
 int
 x_window_set_wall_picture(
 	x_window_t *  win ,
-	Pixmap  pic
+	Pixmap  pic ,
+	int  do_expose
 	)
 {
+	u_int  count ;
+
 	if( win->is_transparent)
 	{
 		/*
@@ -1256,27 +1259,38 @@ x_window_set_wall_picture(
 	win->wall_picture_is_set = 1 ;
 	win->is_scrollable = 0 ;
 
-	clear_margin_area( win) ;
+	if( do_expose)
+	{
+		clear_margin_area( win) ;
 
-	if( win->window_exposed)
-	{
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		if( win->window_exposed)
+		{
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
+	#if  0
+		else
+		{
+			x_window_clear_all( win) ;
+		}
+	#endif
 	}
-#if  0
-	else
+
+	for( count = 0 ; count < win->num_of_children ; count++)
 	{
-		x_window_clear_all( win) ;
+		x_window_set_wall_picture( win->children[count] , ParentRelative , do_expose) ;
 	}
-#endif
 
 	return  1 ;
 }
 
 int
 x_window_unset_wall_picture(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  do_expose
 	)
 {
+	u_int  count ;
+
 	/*
 	 * win->wall_picture_is_set == 0 doesn't mean that following codes
 	 * to disable wall picture is already processed.
@@ -1311,18 +1325,26 @@ x_window_unset_wall_picture(
 	win->wall_picture_is_set = 0 ;
 	win->is_scrollable = 1 ;
 
-	clear_margin_area( win) ;
+	if( do_expose)
+	{
+		clear_margin_area( win) ;
 
-	if( win->window_exposed)
-	{
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		if( win->window_exposed)
+		{
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
+	#if  0
+		else
+		{
+			x_window_clear_all( win) ;
+		}
+	#endif
 	}
-#if  0
-	else
+
+	for( count = 0 ; count < win->num_of_children ; count++)
 	{
-		x_window_clear_all( win) ;
+		x_window_unset_wall_picture( win->children[count] , do_expose) ;
 	}
-#endif
 
 	return  1 ;
 }
@@ -1746,6 +1768,12 @@ x_window_show(
 		XSetWMProtocols( win->disp->display , win->my_window , protocols , 2) ;
 	}
 
+	if( win->parent && ! win->parent->is_transparent &&
+	    win->parent->wall_picture_is_set)
+	{
+		x_window_set_wall_picture( win , ParentRelative , 0) ;
+	}
+
 	/*
 	 * This should be called after Window Manager settings, because
 	 * x_set_{window|icon}_name() can be called in win->window_realized().
@@ -1886,6 +1914,11 @@ x_window_resize(
 		cairo_resize( win) ;
 	}
 #endif
+
+	if( ! win->configure_root && ! (flag & NOTIFY_TO_PARENT) && win->parent)
+	{
+		notify_configure_to_children( win) ;
+	}
 
 	return  1 ;
 }
@@ -2063,6 +2096,11 @@ x_window_move(
 	win->y = y ;
 
 	XMoveWindow( win->disp->display , win->my_window , x , y) ;
+
+	if( ! win->configure_root && win->parent)
+	{
+		notify_configure_to_children( win) ;
+	}
 
 	return  1 ;
 }
@@ -2756,7 +2794,9 @@ x_window_receive_event(
 
 			if( win->window_resized)
 			{
+				win->configure_root = 1 ;
 				(*win->window_resized)( win) ;
+				win->configure_root = 0 ;
 			}
 
 			is_changed = 1 ;

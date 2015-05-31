@@ -765,16 +765,6 @@ x_main_config_init(
 
 	main_config->use_mdi = 1 ;
 
-#if  1
-	if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			main_config->use_mdi = 0 ;
-		}
-	}
-#endif
-
 	if( ( value = kik_conf_get_value( conf , "use_mdi")))
 	{
 		main_config->use_mdi = (strcmp( value , "true") == 0) ;
@@ -786,7 +776,18 @@ x_main_config_init(
 	}
 	else
 	{
-		main_config->sb_mode = SBM_LEFT ;
+		/* XXX Backward compatibility with 3.4.5 or before */
+	#if  1
+		if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
+		{
+			main_config->sb_mode =
+				(strcmp( value , "true") == 0 ? SBM_LEFT : SBM_NONE) ;
+		}
+		else
+	#endif
+		{
+			main_config->sb_mode = SBM_LEFT ;
+		}
 	}
 
 	if( ( value = kik_conf_get_value( conf , "iso88591_font_for_usascii")))
@@ -1475,7 +1476,7 @@ x_main_config_init(
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			if( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1)))
+			if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1))))
 			{
 				/*
 				 * !! Notice !!

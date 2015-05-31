@@ -37,6 +37,10 @@ typedef struct  x_layout
 
 	} term ;
 
+	char *  pic_file_path ;
+	x_picture_modifier_t  pic_mod ;
+	x_picture_t *  bg_pic ;
+
 	void (*line_scrolled_out)( void *) ;
 	
 } x_layout_t ;

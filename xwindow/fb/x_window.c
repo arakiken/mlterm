@@ -25,6 +25,9 @@
 static x_color_t  black = { TP_COLOR , 0 , 0 , 0 , 0 } ;
 #endif
 
+#define  ParentRelative  (1L)
+#define  DummyPixmap  (2L)
+
 
 /* --- static variables --- */
 
@@ -320,12 +323,29 @@ draw_string(
 	if( wall_picture_bg)
 	{
 		/* bg_color is always NULL */
+		Pixmap  pic ;
+		int  pic_x ;
+		int  pic_y ;
 
-		picture_line_len = win->wall_picture->width * bpp ;
-		picture = win->wall_picture->image +
-		          (y + y_off - win->y) * picture_line_len +
+		if( win->wall_picture == ParentRelative)
+		{
+			pic = win->parent->wall_picture ;
+			pic_x = x ;
+			pic_y = y ;
+		}
+		else
+		{
+			pic = win->wall_picture ;
+			pic_x = x - win->x ;
+			pic_y = y - win->y ;
+		}
+
+		picture_line_len = pic->width * bpp ;
+		picture = pic->image +
+			  (pic_y + y_off) * picture_line_len +
 			  /* - picture_line_len is for picture += picture_line_len below. */
-			  (x - win->x) * bpp - picture_line_len ;
+			  pic_x * bpp - picture_line_len ;
+
 		src_bg_is_set = 1 ;
 	}
 	else
@@ -1062,15 +1082,17 @@ x_window_ungrab_pointer(
 int
 x_window_set_wall_picture(
 	x_window_t *  win ,
-	Pixmap  pic
+	Pixmap  pic ,
+	int  do_expose
 	)
 {
+	u_int  count ;
 #ifdef  USE_GRF
 	int  ret ;
 
 	if( ( ret = x68k_tvram_set_wall_picture( pic->image , pic->width , pic->height)))
 	{
-		win->wall_picture = 0x1 ;	/* dummy */
+		win->wall_picture = DummyPixmap ;	/* dummy */
 
 		/* Don't set is_scrollable = 0. */
 
@@ -1092,27 +1114,38 @@ x_window_set_wall_picture(
 	win->wall_picture = pic ;
 	win->is_scrollable = 0 ;
 
-	clear_margin_area( win) ;
+	if( do_expose)
+	{
+		clear_margin_area( win) ;
 
-	if( win->window_exposed)
-	{
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		if( win->window_exposed)
+		{
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
+	#if  0
+		else
+		{
+			x_window_clear_all( win) ;
+		}
+	#endif
 	}
-#if  0
-	else
+
+	for( count = 0 ; count < win->num_of_children ; count++)
 	{
-		x_window_clear_all( win) ;
+		x_window_set_wall_picture( win->children[count] , ParentRelative , do_expose) ;
 	}
-#endif
 
 	return  1 ;
 }
 
 int
 x_window_unset_wall_picture(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  do_expose
 	)
 {
+	u_int  count ;
+
 #ifdef  USE_GRF
 	x68k_tvram_set_wall_picture( NULL , 0 , 0) ;
 #endif
@@ -1120,18 +1153,26 @@ x_window_unset_wall_picture(
 	win->wall_picture = None ;
 	win->is_scrollable = 1 ;
 
-	clear_margin_area( win) ;
+	if( do_expose)
+	{
+		clear_margin_area( win) ;
 
-	if( win->window_exposed)
-	{
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		if( win->window_exposed)
+		{
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
+	#if  0
+		else
+		{
+			x_window_clear_all( win) ;
+		}
+	#endif
 	}
-#if  0
-	else
+
+	for( count = 0 ; count < win->num_of_children ; count++)
 	{
-		x_window_clear_all( win) ;
+		x_window_unset_wall_picture( win->children[count] , do_expose) ;
 	}
-#endif
 
 	return  1 ;
 }
@@ -1303,6 +1344,12 @@ x_window_show(
 	}
 
 	win->my_window = win ;	/* dummy */
+
+	if( win->parent && ! win->parent->is_transparent &&
+	    win->parent->wall_picture)
+	{
+		x_window_set_wall_picture( win , ParentRelative , 0) ;
+	}
 
 	/*
 	 * This should be called after Window Manager settings, because
@@ -1569,8 +1616,25 @@ x_window_clear(
 	}
 	else
 	{
-		return  copy_area( win , win->wall_picture , None ,
-				x , y , width , height , x , y , 1) ;
+		Pixmap  pic ;
+		int  src_x ;
+		int  src_y ;
+
+		if( win->wall_picture == ParentRelative)
+		{
+			src_x = x + win->x ;
+			src_y = y + win->y ;
+			pic = win->parent->wall_picture ;
+		}
+		else
+		{
+			pic = win->wall_picture ;
+			src_x = x ;
+			src_y = y ;
+		}
+
+		return  copy_area( win , pic , None , src_x , src_y ,
+				width , height , x , y , 1) ;
 	}
 
 	return  1 ;

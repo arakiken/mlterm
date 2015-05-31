@@ -436,14 +436,56 @@ window_finalized(
 	x_layout_delete( layout) ;
 }
 
+#if  defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+static void
+reload_color_cache(
+	struct terminal *  term ,
+	int  do_unload
+	)
+{
+	x_screen_reload_color_cache( term->screen , do_unload) ;
+
+	if( term->next[0])
+	{
+		reload_color_cache( term->next[0] , 0) ;
+	}
+
+	if( term->next[1])
+	{
+		reload_color_cache( term->next[1] , 0) ;
+	}
+}
+#endif
+
 static void
 window_resized(
 	x_window_t *  win
 	)
 {
 	x_layout_t *  layout ;
+	x_picture_t *  pic ;
 
 	layout = (x_layout_t*) win ;
+
+	if( layout->bg_pic &&
+	    ( pic = x_acquire_bg_picture( &layout->window ,
+			&layout->pic_mod , layout->pic_file_path)))
+	{
+		x_window_set_wall_picture( &layout->window , pic->pixmap , 0) ;
+		x_release_picture( layout->bg_pic) ;
+		layout->bg_pic = pic ;
+
+	#if  defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+		if( layout->window.disp->depth == 4 && strstr( layout->pic_file_path , "six"))
+		{
+			/*
+			 * Color pallette of x_display can be changed by x_acquire_bg_picture().
+			 * (see x_display_set_cmap() called from fb/x_imagelib.c.)
+			 */
+			reload_color_cache( &layout->term , 1) ;
+		}
+	#endif
+	}
 
 	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 }
@@ -988,12 +1030,26 @@ total_height(
 
 /* XXX */
 static void
-total_min_size(
+total_hint_size(
 	struct terminal *  term ,
 	u_int *  width ,
-	u_int *  height
+	u_int *  height ,
+	u_int *  width_inc ,
+	u_int *  height_inc
 	)
 {
+	u_int  size ;
+
+	if( *width_inc < (size = x_col_width( term->screen)))
+	{
+		*width_inc = size ;
+	}
+
+	if( *height_inc < (size = x_line_height( term->screen)))
+	{
+		*height_inc = size ;
+	}
+
 	if( term->sb_mode != SBM_NONE)
 	{
 		*width += SEPARATOR_WIDTH ;
@@ -1003,14 +1059,14 @@ total_min_size(
 	{
 		*width += SEPARATOR_WIDTH ;
 
-		total_min_size( term->next[0] , width , height) ;
+		total_hint_size( term->next[0] , width , height , width_inc , height_inc) ;
 	}
 
 	if( term->next[1])
 	{
 		*height += SEPARATOR_WIDTH ;
 
-		total_min_size( term->next[1] , width , height) ;
+		total_hint_size( term->next[1] , width , height , width_inc , height_inc) ;
 	}
 }
 
@@ -1021,10 +1077,13 @@ update_normal_hints(
 {
 	u_int  min_width = 0 ;
 	u_int  min_height = 0 ;
+	u_int  width_inc = 0 ;
+	u_int  height_inc = 0 ;
 
-	total_min_size( &layout->term , &min_width , &min_height) ;
+	total_hint_size( &layout->term , &min_width , &min_height , &width_inc , &height_inc) ;
 
-	x_window_set_normal_hints( &layout->window , min_width , min_height , 0 , 0) ;
+	x_window_set_normal_hints( &layout->window , min_width , min_height ,
+		width_inc , height_inc) ;
 }
 
 static void
@@ -1147,6 +1206,55 @@ delete_term(
 		delete_term( term->next[1]) ;
 		free( term->next[1]) ;
 	}
+}
+
+static void
+delete_screen_bg_pic(
+	x_screen_t *  screen
+	)
+{
+	free( screen->pic_file_path) ;
+	screen->pic_file_path = NULL ;
+	x_release_picture( screen->bg_pic) ;
+	screen->bg_pic = NULL ;
+}
+
+static void
+delete_layout_bg_pic(
+	x_layout_t *  layout
+	)
+{
+	free( layout->pic_file_path) ;
+	layout->pic_file_path = NULL ;
+	x_release_picture( layout->bg_pic) ;
+	layout->bg_pic = NULL ;
+}
+
+static void
+save_screen_bg_pic(
+	x_layout_t *  layout
+	)
+{
+	/* layout->bg_pic has been already set. */
+	x_release_picture( layout->term.screen->bg_pic) ;
+	layout->term.screen->bg_pic = NULL ;
+
+	layout->pic_file_path = layout->term.screen->pic_file_path ;
+	layout->term.screen->pic_file_path = NULL ;
+
+	layout->pic_mod = layout->term.screen->pic_mod ;
+}
+
+static void
+restore_screen_bg_pic(
+	x_layout_t *  layout
+	)
+{
+	layout->term.screen->pic_file_path = layout->pic_file_path ;
+	layout->pic_file_path = NULL ;
+	layout->term.screen->bg_pic = layout->bg_pic ;
+	layout->bg_pic = NULL ;
+	layout->term.screen->pic_mod = layout->pic_mod ;
 }
 
 
@@ -1308,6 +1416,11 @@ x_layout_delete(
 	x_layout_t *  layout
 	)
 {
+	if( layout->bg_pic)
+	{
+		delete_layout_bg_pic( layout) ;
+	}
+
 	delete_term( &layout->term) ;
 	free( layout) ;
 
@@ -1451,7 +1564,38 @@ x_layout_add_child(
 	x_set_screen_scroll_listener( screen , &next->screen_scroll_listener) ;
 	screen->screen_listener.line_scrolled_out = line_scrolled_out ;
 	x_window_add_child( &layout->window , &screen->window , 0 , 0 , 0) ;
+
+	if( screen->pic_file_path)
+	{
+		delete_screen_bg_pic( screen) ;
+	}
+
 	x_window_show( &screen->window , 0) ;
+
+	if( ! x_window_has_wall_picture( &layout->window) &&
+	    layout->term.screen->pic_file_path)
+	{
+		if( ( layout->bg_pic = x_acquire_bg_picture( &layout->window ,
+					&layout->term.screen->pic_mod ,
+					layout->term.screen->pic_file_path)))
+		{
+			save_screen_bg_pic( layout) ;
+			x_window_set_wall_picture( &layout->window , layout->bg_pic->pixmap , 0) ;
+
+		#if  defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+			if( layout->window.disp->depth == 4 &&
+			    strstr( layout->pic_file_path , "six"))
+			{
+				/*
+				 * Color pallette of x_display can be changed by
+				 * x_acquire_bg_picture().
+				 * (see x_display_set_cmap() called from fb/x_imagelib.c.)
+				 */
+				reload_color_cache( &layout->term , 1) ;
+			}
+		#endif
+		}
+	}
 
 	next->sb_mode = term->sb_mode ;
 
@@ -1621,6 +1765,14 @@ x_layout_remove_child(
 	x_window_remove_child( &layout->window , &term->scrollbar.window) ;
 	x_window_remove_child( &layout->window , &screen->window) ;
 	x_window_unmap( &screen->window) ;
+
+	if( layout->bg_pic &&
+	    layout->term.next[0] == NULL &&
+	    layout->term.next[1] == NULL)
+	{
+		restore_screen_bg_pic( layout) ;
+		x_window_unset_wall_picture( &layout->window , 0) ;
+	}
 
 #ifndef  USE_FRAMEBUFFER
 	if( ! layout->term.next[0] && ! layout->term.next[1])
