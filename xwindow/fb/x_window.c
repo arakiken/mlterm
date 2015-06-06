@@ -968,6 +968,31 @@ reset_input_focus(
 	}
 }
 
+static int
+check_child_window_area(
+	x_window_t *  win
+	)
+{
+	if( win->num_of_children > 0)
+	{
+		u_int  count ;
+		u_int  sum ;
+
+		for( sum = 0 , count = 1 ; count < win->num_of_children ; count++)
+		{
+			sum += (ACTUAL_WIDTH(win->children[count]) *
+			        ACTUAL_HEIGHT(win->children[count])) ;
+		}
+
+		if( sum < win->disp->width * win->disp->height * 0.9)
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -1545,7 +1570,8 @@ x_window_move(
 	win->x = x ;
 	win->y = y ;
 
-	if( win->x + ACTUAL_WIDTH(win) > win->disp->width ||
+	if( ! check_child_window_area( x_get_root_window( win)) ||
+	    win->x + ACTUAL_WIDTH(win) > win->disp->width ||
 	    win->y + ACTUAL_HEIGHT(win) > win->disp->height)
 	{
 		/*

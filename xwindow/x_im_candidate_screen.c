@@ -158,56 +158,6 @@ total_candidate_width(
 	return  total_width ;
 }
 
-#ifdef  USE_FRAMEBUFFER
-
-#include  "x_im.h"
-
-static void
-adjust_window_position_by_size(
-	x_im_candidate_screen_t *  cand_screen ,
-	int *  x ,
-	int *  y
-	)
-{
-	x_window_t *  term_win ;
-
-	term_win = ((x_im_t*)cand_screen->listener.self)->listener->self ;
-
-	if( *x < term_win->x)
-	{
-		*x = term_win->x ;
-	}
-	else if( *x + ACTUAL_WIDTH(&cand_screen->window) > term_win->x + ACTUAL_WIDTH(term_win))
-	{
-		if( cand_screen->is_vertical_term)
-		{
-			/* x_im_candidate_screen doesn't know column width. */
-			*x -= (ACTUAL_WIDTH(&cand_screen->window) + cand_screen->line_height) ;
-		}
-		else
-		{
-			*x = term_win->x + ACTUAL_WIDTH(term_win) -
-				ACTUAL_WIDTH(&cand_screen->window) ;
-		}
-	}
-
-	if( *y < term_win->y)
-	{
-		*y = term_win->y ;
-	}
-	else if( *y + ACTUAL_HEIGHT(&cand_screen->window) > term_win->y + ACTUAL_HEIGHT(term_win))
-	{
-		*y -= ACTUAL_HEIGHT(&cand_screen->window) ;
-
-		if( ! cand_screen->is_vertical_term)
-		{
-			*y -= cand_screen->line_height ;
-		}
-	}
-}
-
-#else
-
 static void
 adjust_window_position_by_size(
 	x_im_candidate_screen_t *  cand_screen ,
@@ -239,8 +189,6 @@ adjust_window_position_by_size(
 		}
 	}
 }
-
-#endif
 
 static void
 resize(

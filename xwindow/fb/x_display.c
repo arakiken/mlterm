@@ -853,6 +853,12 @@ expose_window(
 	u_int  height
 	)
 {
+	if( x + width <= win->x || win->x + ACTUAL_WIDTH(win) < x ||
+	    y + height <= win->y || win->y + ACTUAL_HEIGHT(win) < y)
+	{
+		return ;
+	}
+
 	if( x < win->x + win->hmargin || y < win->y + win->vmargin ||
 	    x - win->x + width > win->hmargin + win->width ||
 	    y - win->y + height > win->vmargin + win->height)
@@ -894,12 +900,8 @@ expose_display(
 	u_int  height
 	)
 {
-	x_window_t *  win1 ;	/* maybe scrollbar */
-	x_window_t *  win2 ;	/* maybe terminal screen */
-	x_window_t *  win3 ;	/* maybe software keyboard */
-
-	win1 = get_window( x , y) ;
-	expose_window( win1 , x , y , width , height) ;
+	u_int  count ;
+	x_window_t *  kbd ;	/* maybe software keyboard */
 
 	/*
 	 * XXX
@@ -913,21 +915,21 @@ expose_display(
 		width = _disp.width - x ;
 	}
 
-	if( ( win2 = get_window( x + width - 1 , y)) != win1)
-	{
-		expose_window( win2 , x , y , width , height) ;
-	}
-
 	if( y + height > _disp.height)
 	{
 		height = _disp.height - y ;
 	}
 
-	if( ( win3 = x_is_virtual_kbd_area( y + height - 1)) ||
-	    ( ( win3 = get_window( x + width - 1 , y + height - 1)) != win1 &&
-	      win3 != win2))
+	expose_window( _disp.roots[0] , x , y , width , height) ;
+
+	for( count = 0 ; count < _disp.roots[0]->num_of_children ; count++)
 	{
-		expose_window( win3 , x , y , width , height) ;
+		expose_window( _disp.roots[0]->children[count] , x , y , width , height) ;
+	}
+
+	if( ( kbd = x_is_virtual_kbd_area( y + height - 1)))
+	{
+		expose_window( kbd , x , y , width , height) ;
 	}
 }
 

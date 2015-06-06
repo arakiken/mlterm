@@ -1,3 +1,12 @@
+2015-06-06  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/x_window.c: x_window_move() doesn't redraw screen if the area of
+	  child windows fills less than 90% of a parent window.
+
+	* fb/x_display.c: expose_window(all child winodws) in expose_display().
+
+	* x_im_{candidate|status}_screen.c: The change at 2015/05/06 is reverted.
+
 2015-05-31  Araki Ken  <arakiken@users.sf.net>
 
 	* x_layout.c:
