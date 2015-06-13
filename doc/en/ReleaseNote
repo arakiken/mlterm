@@ -1,3 +1,7 @@
+ver 3.5.1
+* Improve romaji-kana conversion in using wnn as an input method.
+  (Merge https://gist.github.com/tsutsui/1d4f9af3b4a53c906eb4)
+
 ver 3.5.0
 * Support WSDISPLAYIO_GET_FBINFO on NetBSD/framebuffer.
 * Support Canna (--im canna) and Freewnn (--im wnn) as input method plugins.

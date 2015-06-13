@@ -1,3 +1,9 @@
+2015-06-13  Araki Ken  <arakiken@users.sf.net>
+
+	* wnn/im_wnn.c:
+	  - https://gist.github.com/tsutsui/1d4f9af3b4a53c906eb4 is merged.
+	  - Small "tsu" is available.
+
 2015-06-07  Araki Ken  <arakiken@users.sf.net>
 
 	* Makefile.in: 'make install-fb' error is fixed.
