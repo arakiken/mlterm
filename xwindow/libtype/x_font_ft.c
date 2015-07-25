@@ -329,6 +329,8 @@ fc_pattern_create(
 		return  NULL ;
 	}
 
+	FcConfigSubstitute( NULL , pattern , FcMatchPattern) ;
+
 	if( family)
 	{
 		FcPatternAddString( pattern , FC_FAMILY , family) ;
@@ -460,6 +462,13 @@ xft_font_open(
 
 #ifdef  USE_TYPE_CAIRO
 
+typedef struct
+{
+	FcCharSet *  charset ;
+	cairo_scaled_font_t *  next ;
+
+} user_data_t ;
+
 static cairo_scaled_font_t *
 cairo_font_open(
 	x_font_t *  font ,
@@ -483,14 +492,13 @@ cairo_font_open(
 	cairo_scaled_font_t *  xfont ;
 	double  pixel_size ;
 	int  pixel_size2 ;
+	FcCharSet *  charset ;
 
 	if( ! ( pattern = fc_pattern_create( family , size , encoding , weight , slant ,
 				ch_width , aa_opt)))
 	{
 		return  NULL ;
 	}
-
-	FcConfigSubstitute( NULL , pattern , FcMatchPattern) ;
 
 	if( ! ( cairo = cairo_create( cairo_xlib_surface_create( font->display ,
 				DefaultRootWindow( font->display) ,
@@ -524,11 +532,13 @@ cairo_font_open(
 
 	FcDefaultSubstitute( pattern) ;
 
-	if( ! ( match = FcFontMatch( NULL , pattern , &result)))
+	match = FcFontMatch( NULL , pattern , &result) ;
+	FcPatternDestroy( pattern) ;
+
+	if( ! match)
 	{
 		cairo_destroy( cairo) ;
 		cairo_font_options_destroy( options) ;
-		FcPatternDestroy( pattern) ;
 
 		return  NULL ;
 	}
@@ -559,7 +569,6 @@ cairo_font_open(
 	cairo_destroy( cairo) ;
 	cairo_font_options_destroy( options) ;
 	cairo_font_face_destroy( font_face) ;
-	FcPatternDestroy( pattern) ;
 	FcPatternDestroy( match) ;
 
 	if( cairo_scaled_font_status( xfont))
@@ -567,6 +576,19 @@ cairo_font_open(
 		cairo_scaled_font_destroy( xfont) ;
 
 		return  NULL ;
+	}
+
+	if( FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) == FcResultMatch)
+	{
+		user_data_t *  user_data ;
+
+		if( ( user_data = malloc( sizeof(*user_data))))
+		{
+			user_data->charset = FcCharSetCopy( charset) ;
+			user_data->next = NULL ;
+
+			cairo_scaled_font_set_user_data( xfont , 1 , user_data , NULL) ;
+		}
 	}
 
 #if  1
@@ -1170,7 +1192,27 @@ cairo_unset_font(
 	x_font_t *  font
 	)
 {
-	cairo_scaled_font_destroy( font->cairo_font) ;
+	user_data_t *  user_data ;
+	cairo_scaled_font_t *  xfont ;
+
+	xfont = font->cairo_font ;
+
+	while( xfont)
+	{
+		user_data = cairo_scaled_font_get_user_data( xfont , 1) ;
+
+		cairo_scaled_font_destroy( xfont) ;
+
+		if( ! user_data)
+		{
+			break ;
+		}
+
+		FcCharSetDestroy( user_data->charset) ;
+		xfont = user_data->next ;
+		free( user_data) ;
+	}
+
 	font->cairo_font = NULL ;
 
 	return  1 ;

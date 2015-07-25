@@ -1,6 +1,15 @@
+2015-07-25  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_cairo.c: If a character code is not found in FC_CHARSET,
+	  another font which contains it is searched and used automatically.
+
+	* x_font_ft.c: FC_CHARSET is set to cairo_scaled_font_t as a user data.
+
+	* im_wnn.c: Illegal memory access by pressing 'A' - 'Z' is fixed.
+
 2015-06-13  Araki Ken  <arakiken@users.sf.net>
 
-	* wnn/im_wnn.c:
+	* im_wnn.c:
 	  - https://gist.github.com/tsutsui/1d4f9af3b4a53c906eb4 is merged.
 	  - Small "tsu" is available.
 

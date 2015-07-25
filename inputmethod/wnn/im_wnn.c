@@ -681,7 +681,15 @@ insert_char(
 			}
 
 			wch = key_char ;
-			wnn->dan = key_char - 'a' ;
+
+			if( 'a' <= key_char && key_char <= 'z')
+			{
+				wnn->dan = key_char - 'a' ;
+			}
+			else
+			{
+				wnn->dan = 0 ;
+			}
 		}
 	}
 
