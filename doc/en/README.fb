@@ -40,16 +40,16 @@ Framebuffer support
 
 * Note
   (for Linux)
-  o If mlterm can't open /dev/input/event* of the keyboard, shortcut keys are
+  o If mlterm can't open /dev/input/event<num> of the keyboard, shortcut keys
+    are disabled.
+    (If the string in /sys/class/input/input<num>/name contains "key",
+    /dev/input/event<num> is regarded as the keyboard.
+     You can specify <num> by "KBD_INPUT_NUM" environmental variable.)
+  o If mlterm can't open /dev/input/event<num> of the mouse, mouse operation is
     disabled.
-    (If the string in /sys/class/input/input*/name contains "key" (which you can
-     change by "KBD_INPUT_NAME" environmental variable), /dev/input/event* is
-     regarded as the keyboard.)
-  o If mlterm can't open /dev/input/event* of the mouse, mouse operation is
-    disabled.
-    (If the string in /sys/class/input/input*/name contains "mouse" (which you
-     can change by "MOUSE_INPUT_NAME" environmental variable), /dev/input/event*
-     is regarded as the mouse.)
+    (If the string in /sys/class/input/input<num>/name contains "mouse",
+     /dev/input/event<num> is regarded as the mouse.
+     You can specify <num> by "MOUSE_INPUT_NUM" environmental variable.)
   o If you want to use mouse, disable gpm in advance. (/etc/init.d/gpm stop)
 
   (for FreeBSD)

@@ -154,20 +154,10 @@ get_event_device_num(
 	)
 {
 	char  class[] = "/sys/class/input/inputN/name" ;
-	char *  kbd_name ;
-	char *  mouse_name ;
 	int  count ;
 	FILE *  fp ;
 
-	if( ! ( kbd_name = getenv( "KBD_INPUT_NAME")))
-	{
-		kbd_name = "key" ;
-	}
-
-	mouse_name = getenv( "MOUSE_INPUT_NAME") ;
-
-	*kbd = -1 ;
-	*mouse = -1 ;
+	*kbd = *mouse = -1 ;
 
 	for( count = 0 ; ; count++)
 	{
@@ -183,11 +173,11 @@ get_event_device_num(
 
 			if( fgets( buf , sizeof(buf) , fp))
 			{
-				if( *kbd_name && strcasestr( buf , kbd_name))
+				if( strcasestr( buf , "key"))
 				{
 					*kbd = count ;
 				}
-				else if( mouse_name == NULL)
+				else
 				{
 					static char *  mouse_names[] =
 						{ "mouse" , "ts" , "touch" } ;
@@ -204,10 +194,6 @@ get_event_device_num(
 							break ;
 						}
 					}
-				}
-				else if( *mouse_name && strcasestr( buf , mouse_name))
-				{
-					*mouse = count ;
 				}
 			}
 
@@ -257,6 +243,22 @@ open_event_device(
 	kik_priv_change_egid( kik_getgid()) ;
 
 	return  fd ;
+}
+
+static void
+convert_input_num(
+	int *  num ,
+	const char *  str
+	)
+{
+	if( strcmp( str , "-1") == 0)
+	{
+		*num = -1 ;
+	}
+	else if( '0' <= *str && *str <= '9')
+	{
+		*num = atoi( str) ;
+	}
 }
 
 static int
@@ -352,6 +354,16 @@ open_display(
 
 	get_event_device_num( &kbd_num , &mouse_num) ;
 
+	if( ( dev = getenv( "KBD_INPUT_NUM")))
+	{
+		convert_input_num( &kbd_num , dev) ;
+	}
+
+	if( ( dev = getenv( "MOUSE_INPUT_NUM")))
+	{
+		convert_input_num( &mouse_num , dev) ;
+	}
+
 	tcgetattr( STDIN_FILENO , &tm) ;
 	orig_tm = tm ;
 	tm.c_iflag = tm.c_oflag = 0 ;
@@ -365,7 +377,7 @@ open_display(
 	/* Disable backscrolling of default console. */
 	set_use_console_backscroll( 0) ;
 
-	if( ( _display.fd = open_event_device( kbd_num)) == -1)
+	if( kbd_num == -1 || ( _display.fd = open_event_device( kbd_num)) == -1)
 	{
 		_display.fd = STDIN_FILENO ;
 	}
@@ -376,7 +388,11 @@ open_display(
 
 	_disp.display = &_display ;
 
-	if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
+	if( mouse_num == -1)
+	{
+		_mouse.fd = -1 ;
+	}
+	else if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
 	{
 		kik_file_set_cloexec( _mouse.fd) ;
 		_mouse.x = _display.width / 2 ;

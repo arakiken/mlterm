@@ -1,5 +1,11 @@
 2015-08-02  Araki Ken  <arakiken@users.sf.net>
 
+	* x_display_linux.c:
+	  KBD_INUPT_NAME => KBD_INPUT_NUM
+	  MOUSE_INUPT_NAME => MOUSE_INPUT_NUM
+
+2015-08-02  Araki Ken  <arakiken@users.sf.net>
+
 	* x_display_linux.c: Keyboard or mouse input device name is
 	  configurable by "KBD_INPUT_NAME" or "MOUSE_INPUT_NAME" environmental
 	  variable.
