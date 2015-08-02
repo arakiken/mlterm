@@ -1,3 +1,9 @@
+2015-08-02  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display_linux.c: Keyboard or mouse input device name is
+	  configurable by "KBD_INPUT_NAME" or "MOUSE_INPUT_NAME" environmental
+	  variable.
+
 2015-08-01  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_cairo.c, x_font_ft.c, x_font.h:

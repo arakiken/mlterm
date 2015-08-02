@@ -44,11 +44,15 @@ Framebuffer 対応に関するメモ
   o キーボードに対応する /dev/input/event* が存在しない、又はアクセスする権限
     がない場合、ショートカットキーは使用できません。
     なお、キーボードに対応する /dev/input/event* は、/sys/class/input/input*/name
-    の文字列に key が含まれているかどうかで判定しています。
+    の文字列に "key" が含まれているかどうかで判定しています。
+    なお、"key" 以外の文字列を使用したい場合は KBD_INPUT_NAME 環境変数に使用
+    したい文字列を指定してください。
   o マウスに対応する /dev/input/event* が存在しない、又はアクセスする権限がない
     場合、マウスを使うことはできません。
     なお、マウスに対応する /dev/input/event* は、/sys/class/input/input*/name
-    の文字列に mouse が含まれているかどうかで判定しています。
+    の文字列に "mouse" が含まれているかどうかで判定しています。
+    なお、"mouse" 以外の文字列を使用したい場合は MOUSE_INPUT_NAME 環境変数に
+    使用したい文字列を指定してください。
   o マウスを使用する場合、gpm は停止しておいてください。
     (/etc/init.d/gpm stop)
 

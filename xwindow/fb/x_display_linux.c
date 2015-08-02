@@ -154,8 +154,17 @@ get_event_device_num(
 	)
 {
 	char  class[] = "/sys/class/input/inputN/name" ;
+	char *  kbd_name ;
+	char *  mouse_name ;
 	int  count ;
 	FILE *  fp ;
+
+	if( ! ( kbd_name = getenv( "KBD_INPUT_NAME")))
+	{
+		kbd_name = "key" ;
+	}
+
+	mouse_name = getenv( "MOUSE_INPUT_NAME") ;
 
 	*kbd = -1 ;
 	*mouse = -1 ;
@@ -174,26 +183,11 @@ get_event_device_num(
 
 			if( fgets( buf , sizeof(buf) , fp))
 			{
-				char *  p ;
-
-				/* To lower case */
-				for( p = buf ; *p ; p++)
-				{
-					/*
-					 * "0x41 <=" is not necessary to check if
-					 * "mouse" or "key" exits in buf.
-					 */
-					if( /* 0x41 <= *p && */ *p <= 0x5a)
-					{
-						*p += 0x20 ;
-					}
-				}
-
-				if( strcasestr( buf , "key"))
+				if( *kbd_name && strcasestr( buf , kbd_name))
 				{
 					*kbd = count ;
 				}
-				else
+				else if( mouse_name == NULL)
 				{
 					static char *  mouse_names[] =
 						{ "mouse" , "ts" , "touch" } ;
@@ -210,6 +204,10 @@ get_event_device_num(
 							break ;
 						}
 					}
+				}
+				else if( *mouse_name && strcasestr( buf , mouse_name))
+				{
+					*mouse = count ;
 				}
 			}
 
