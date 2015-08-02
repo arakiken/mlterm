@@ -1,3 +1,11 @@
+2015-08-01  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_cairo.c, x_font_ft.c, x_font.h:
+	  - user_data_t is removed.
+	  - compl_fonts and pattern are added to x_font_t.
+	  - compl_fonts and pattern are created only if charset isn't US_ASCII,
+	    ISO8859_1_R or ISCII.
+
 2015-07-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_cairo.c: If a character code is not found in FC_CHARSET,

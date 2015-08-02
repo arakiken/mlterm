@@ -31,6 +31,8 @@ typedef enum x_font_present
 
 typedef struct _XftFont *  xft_font_ptr_t ;
 typedef struct _cairo_scaled_font *  cairo_scaled_font_ptr_t ;
+typedef struct _FcCharSet *  fc_charset_ptr_t ;
+typedef struct _FcPattern *  fc_pattern_ptr_t ;
 
 /* defined in xlib/x_decsp_font.h */
 typedef struct x_decsp_font *  x_decsp_font_ptr_t ;
@@ -59,6 +61,15 @@ typedef struct x_font
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	XFontStruct *  xfont ;
+#endif
+#if  defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+	fc_pattern_ptr_t  pattern ;
+	struct
+	{
+		fc_charset_ptr_t  charset ;
+		void *  next ;
+
+	} *  compl_fonts ;
 #endif
 #endif
 

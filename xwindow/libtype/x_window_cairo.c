@@ -13,12 +13,6 @@
 
 #define  DIVIDE_ROUNDINGUP(a,b) ( ((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)) )
 
-typedef struct
-{
-	FcCharSet *  charset ;
-	cairo_scaled_font_t *  next ;
-
-} user_data_t ;
 
 /* Implemented in x_font_ft.c */
 size_t  x_convert_ucs4_to_utf8( u_char *  utf8 , u_int32_t  ucs) ;
@@ -169,15 +163,17 @@ show_text(
 }
 
 
-static cairo_scaled_font_t *
+static int
 cairo_font_open(
-	Display *  display ,
-	cairo_scaled_font_t *  orig_xfont ,
+	x_font_t *  font ,
+	int  num_of_compl_fonts ,
+	FcPattern *  orig_pattern ,
 	int  ch
 	)
 {
+	int  count ;
+	cairo_t *  cairo = NULL ;
 	cairo_font_options_t *  options ;
-	cairo_t *  cairo ;
 	FcPattern *  pattern ;
 	FcPattern *  match ;
 	FcResult  result ;
@@ -188,42 +184,14 @@ cairo_font_open(
 	double  pixel_size ;
 	int  pixel_size2 ;
 	FcCharSet *  charset ;
+	int  ret = 0 ;
 
-	if( ! ( pattern = FcPatternCreate()))
+	if( ! ( pattern = FcPatternDuplicate( orig_pattern)))
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
-	FcConfigSubstitute( NULL , pattern , FcMatchPattern) ;
-
-	if( ! ( cairo = cairo_create( cairo_xlib_surface_create( display ,
-				DefaultRootWindow( display) ,
-				DefaultVisual( display , DefaultScreen( display)) ,
-				DisplayWidth( display , DefaultScreen( display)) ,
-				DisplayHeight( display , DefaultScreen( display))))))
-	{
-		FcPatternDestroy( pattern) ;
-
-		return  NULL ;
-	}
-
-	options = cairo_font_options_create() ;
-	cairo_scaled_font_get_font_options( orig_xfont , options) ;
-	/* For performance */
-	cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ;
-	cairo_ft_font_options_substitute( options , pattern) ;
-
-	FcDefaultSubstitute( pattern) ;
-
-#if  1
-	FcPatternRemove( pattern , FC_FAMILYLANG , 0) ;
-	FcPatternRemove( pattern , FC_STYLELANG , 0) ;
-	FcPatternRemove( pattern , FC_FULLNAMELANG , 0) ;
-	FcPatternRemove( pattern , FC_NAMELANG , 0) ;
-	FcPatternRemove( pattern , FC_LANG , 0) ;
-#endif
-
-	while( 1)
+	for( count = 0 ; ; count++)
 	{
 		FcValue  val ;
 
@@ -233,22 +201,37 @@ cairo_font_open(
 		}
 		else
 		{
-			FcPatternDestroy( pattern) ;
-			cairo_destroy( cairo) ;
-			cairo_font_options_destroy( options) ;
-
-			return  NULL ;
+			break ;
 		}
 
-		match = FcFontMatch( NULL , pattern , &result) ;
-
-		if( ! match)
+		if( ! ( match = FcFontMatch( NULL , pattern , &result)))
 		{
-			FcPatternDestroy( pattern) ;
-			cairo_destroy( cairo) ;
-			cairo_font_options_destroy( options) ;
+			break ;
+		}
 
-			return  NULL ;
+		result = FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) ;
+
+		if( result == FcResultMatch)
+		{
+			void *  p ;
+
+			if( ! FcCharSetHasChar( charset , ch))
+			{
+				FcPatternDestroy( match) ;
+
+				continue ;
+			}
+			else if( ( p = realloc( font->compl_fonts ,
+					sizeof(*font->compl_fonts) * (num_of_compl_fonts + 1))))
+			{
+				font->compl_fonts = p ;
+			}
+			else
+			{
+				FcPatternDestroy( match) ;
+
+				break ;
+			}
 		}
 
 	#if  0
@@ -269,78 +252,100 @@ cairo_font_open(
 		 */
 		pixel_size2 = DIVIDE_ROUNDINGUP(pixel_size,2.0) * 2 ;
 
+		FcPatternDestroy( match) ;
+
 		cairo_matrix_init_scale( &font_matrix , pixel_size2 , pixel_size2) ;
+
+		if( ! cairo)
+		{
+			if( ! ( cairo = cairo_create( cairo_xlib_surface_create( font->display ,
+						DefaultRootWindow( font->display) ,
+						DefaultVisual( font->display ,
+							DefaultScreen( font->display)) ,
+						DisplayWidth( font->display ,
+							DefaultScreen( font->display)) ,
+						DisplayHeight( font->display ,
+							DefaultScreen( font->display))))))
+			{
+				break ;
+			}
+
+			options = cairo_font_options_create() ;
+			cairo_get_font_options( cairo , options) ;
+			/* For performance */
+			cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ;
+		}
+
 		cairo_get_matrix( cairo , &ctm) ;
 
-		xfont = cairo_scaled_font_create( font_face , &font_matrix , &ctm , options) ;
+		if( ! ( xfont = cairo_scaled_font_create( font_face ,
+					&font_matrix , &ctm , options)))
+		{
+			break ;
+		}
 
 		cairo_font_face_destroy( font_face) ;
 
 		if( cairo_scaled_font_status( xfont))
 		{
-			FcPatternDestroy( match) ;
 			cairo_scaled_font_destroy( xfont) ;
 
-			return  NULL ;
+			break ;
 		}
 
-		result = FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) ;
+		font->compl_fonts[num_of_compl_fonts - 1].next = xfont ;
+		font->compl_fonts[num_of_compl_fonts].charset = FcCharSetCopy( charset) ;
+		font->compl_fonts[num_of_compl_fonts].next = NULL ;
 
-		FcPatternDestroy( match) ;
-
-		if( result == FcResultMatch)
-		{
-			user_data_t *  user_data ;
-
-			if( ! FcCharSetHasChar( charset , ch))
-			{
-				cairo_scaled_font_destroy( xfont) ;
-
-				continue ;
-			}
-			else if( ( user_data = malloc( sizeof(*user_data))))
-			{
-				user_data->charset = FcCharSetCopy( charset) ;
-				user_data->next = NULL ;
-
-				cairo_scaled_font_set_user_data( xfont , 1 , user_data , NULL) ;
-			}
-		}
+		FcPatternRemove( orig_pattern , FC_FAMILY , count) ;
+		ret = 1 ;
 
 		break ;
 	}
 
 	FcPatternDestroy( pattern) ;
-	cairo_font_options_destroy( options) ;
-	cairo_destroy( cairo) ;
 
-	return  xfont ;
+	if( cairo)
+	{
+		cairo_font_options_destroy( options) ;
+		cairo_destroy( cairo) ;
+	}
+
+	return  ret ;
 }
 
-static cairo_scaled_font_t *
+static int
 search_next_font(
-	Display *  display ,
-	cairo_scaled_font_t *  orig_xfont ,
-	user_data_t *  user_data ,
+	x_font_t *  font ,
 	int  ch
 	)
 {
-	while( user_data->next)
+	int  count ;
+
+	if( ! font->compl_fonts)
 	{
-		cairo_scaled_font_t *  xfont ;
+		return  -1 ;
+	}
 
-		if( ! ( user_data = cairo_scaled_font_get_user_data( (xfont = user_data->next) , 1)))
+	for( count = 0 ; font->compl_fonts[count].next ; count++)
+	{
+		if( FcCharSetHasChar( font->compl_fonts[count + 1].charset , ch))
 		{
-			return  NULL ;
-		}
-
-		if( FcCharSetHasChar( user_data->charset , ch))
-		{
-			return  xfont ;
+			return  count ;
 		}
 	}
 
-	return  (user_data->next = cairo_font_open( display , orig_xfont , ch)) ;
+	if( cairo_font_open( font , count + 1 , font->pattern , ch))
+	{
+		return  count ;
+	}
+	else
+	{
+		/* To avoid to research it. */
+		FcCharSetAddChar( font->compl_fonts[0].charset , ch) ;
+
+		return  -1 ;
+	}
 }
 
 static int
@@ -469,45 +474,43 @@ x_window_cairo_draw_string32(
 	)
 {
 	cairo_scaled_font_t *  xfont ;
-	user_data_t *  user_data ;
 
 	xfont = font->cairo_font ;
 
-	if( ( user_data = cairo_scaled_font_get_user_data( xfont , 1)))
+	if( font->compl_fonts)
 	{
 		u_int  count ;
 
 		for( count = 0 ; count < len ; count++)
 		{
-			if( ! FcCharSetHasChar( user_data->charset , str[count]))
+			if( ! FcCharSetHasChar( font->compl_fonts[0].charset , str[count]))
 			{
-				cairo_scaled_font_t *  next_xfont ;
+				int  compl_idx ;
 
-				if( ( next_xfont = search_next_font( win->disp->display ,
-								xfont , user_data , str[count])))
+				if( ( compl_idx = search_next_font( font , str[count])) >= 0)
 				{
 					FcChar32 *  substr ;
-					user_data_t *  next_user_data ;
 
 					if( count > 0)
 					{
 						x += draw_string32( win , xfont , font , fg_color ,
-							x + font->x_off , y ,
-							str , count) ;
+							x + font->x_off , y , str , count) ;
 					}
 
 					substr = str + count ;
-					next_user_data = cairo_scaled_font_get_user_data(
-								next_xfont , 1) ;
 
 					for( count ++ ; count < len &&
-					       ! FcCharSetHasChar( user_data->charset , str[count]) &&
-					       FcCharSetHasChar( next_user_data->charset , str[count]) ;
+					       ! FcCharSetHasChar( font->compl_fonts[0].charset ,
+							str[count]) &&
+					       FcCharSetHasChar(
+							font->compl_fonts[compl_idx+1].charset ,
+							str[count]) ;
 					       count ++) ;
 
-					x += draw_string32( win , next_xfont , font , fg_color ,
-							x + font->x_off , y , substr ,
-							substr - str + count) ;
+					x += draw_string32( win ,
+						font->compl_fonts[compl_idx].next , font ,
+						fg_color , x + font->x_off , y ,
+						substr , substr - str + count) ;
 					str += count ;
 					len -= count ;
 					count = 0 ;

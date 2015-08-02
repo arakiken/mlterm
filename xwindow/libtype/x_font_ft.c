@@ -329,8 +329,6 @@ fc_pattern_create(
 		return  NULL ;
 	}
 
-	FcConfigSubstitute( NULL , pattern , FcMatchPattern) ;
-
 	if( family)
 	{
 		FcPatternAddString( pattern , FC_FAMILY , family) ;
@@ -371,6 +369,8 @@ fc_pattern_create(
 #if  0
 	FcPatternAddBool( pattern , "embeddedbitmap" , True) ;
 #endif
+
+	FcConfigSubstitute( NULL , pattern , FcMatchPattern) ;
 
 	return  pattern ;
 }
@@ -462,13 +462,6 @@ xft_font_open(
 
 #ifdef  USE_TYPE_CAIRO
 
-typedef struct
-{
-	FcCharSet *  charset ;
-	cairo_scaled_font_t *  next ;
-
-} user_data_t ;
-
 static cairo_scaled_font_t *
 cairo_font_open(
 	x_font_t *  font ,
@@ -493,6 +486,7 @@ cairo_font_open(
 	double  pixel_size ;
 	int  pixel_size2 ;
 	FcCharSet *  charset ;
+	mkf_charset_t  cs ;
 
 	if( ! ( pattern = fc_pattern_create( family , size , encoding , weight , slant ,
 				ch_width , aa_opt)))
@@ -506,9 +500,7 @@ cairo_font_open(
 				DisplayWidth( font->display , DefaultScreen( font->display)) ,
 				DisplayHeight( font->display , DefaultScreen( font->display))))))
 	{
-		FcPatternDestroy( pattern) ;
-
-		return  NULL ;
+		goto  error ;
 	}
 
 	options = cairo_font_options_create() ;
@@ -533,14 +525,13 @@ cairo_font_open(
 	FcDefaultSubstitute( pattern) ;
 
 	match = FcFontMatch( NULL , pattern , &result) ;
-	FcPatternDestroy( pattern) ;
 
 	if( ! match)
 	{
 		cairo_destroy( cairo) ;
 		cairo_font_options_destroy( options) ;
 
-		return  NULL ;
+		goto  error ;
 	}
 
 #if  0
@@ -571,28 +562,22 @@ cairo_font_open(
 	cairo_font_face_destroy( font_face) ;
 	FcPatternDestroy( match) ;
 
+	if( ! xfont)
+	{
+		goto  error ;
+	}
+
 	if( cairo_scaled_font_status( xfont))
 	{
 		cairo_scaled_font_destroy( xfont) ;
 
-		return  NULL ;
+		goto  error ;
 	}
 
-	if( FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) == FcResultMatch)
-	{
-		user_data_t *  user_data ;
-
-		if( ( user_data = malloc( sizeof(*user_data))))
-		{
-			user_data->charset = FcCharSetCopy( charset) ;
-			user_data->next = NULL ;
-
-			cairo_scaled_font_set_user_data( xfont , 1 , user_data , NULL) ;
-		}
-	}
+	cs = FONT_CS(font->id) ;
 
 #if  1
-	if( IS_ISCII(FONT_CS(font->id)))
+	if( IS_ISCII(cs))
 	{
 		FT_Face  face ;
 		int  count ;
@@ -617,9 +602,36 @@ cairo_font_open(
 
 		cairo_ft_scaled_font_unlock_face( xfont) ;
 	}
+	else
 #endif
+	if( cs != US_ASCII && cs != ISO8859_1_R &&
+	    FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) == FcResultMatch &&
+	    ( font->compl_fonts = malloc( sizeof(*font->compl_fonts))))
+	{
+		font->compl_fonts[0].charset = FcCharSetCopy( charset) ;
+		font->compl_fonts[0].next = NULL ;
+
+	#if  1
+		FcPatternRemove( pattern , FC_FAMILYLANG , 0) ;
+		FcPatternRemove( pattern , FC_STYLELANG , 0) ;
+		FcPatternRemove( pattern , FC_FULLNAMELANG , 0) ;
+		FcPatternRemove( pattern , FC_NAMELANG , 0) ;
+		FcPatternRemove( pattern , FC_LANG , 0) ;
+	#endif
+
+		font->pattern = pattern ;
+	}
+	else
+	{
+		FcPatternDestroy( pattern) ;
+	}
 
 	return  xfont ;
+
+error:
+	FcPatternDestroy( pattern) ;
+
+	return  NULL ;
 }
 
 #endif
@@ -1192,28 +1204,31 @@ cairo_unset_font(
 	x_font_t *  font
 	)
 {
-	user_data_t *  user_data ;
-	cairo_scaled_font_t *  xfont ;
+	cairo_scaled_font_destroy( font->cairo_font) ;
+	font->cairo_font = NULL ;
 
-	xfont = font->cairo_font ;
-
-	while( xfont)
+	if( font->compl_fonts)
 	{
-		user_data = cairo_scaled_font_get_user_data( xfont , 1) ;
+		int  count ;
+		cairo_scaled_font_t *  xfont ;
 
-		cairo_scaled_font_destroy( xfont) ;
-
-		if( ! user_data)
+		for( count = 0 ; ; count++)
 		{
-			break ;
+			FcCharSetDestroy( font->compl_fonts[count].charset) ;
+			if( ! ( xfont = font->compl_fonts[count].next))
+			{
+				break ;
+			}
+			cairo_scaled_font_destroy( xfont) ;
 		}
 
-		FcCharSetDestroy( user_data->charset) ;
-		xfont = user_data->next ;
-		free( user_data) ;
+		free( font->compl_fonts) ;
 	}
 
-	font->cairo_font = NULL ;
+	if( font->pattern)
+	{
+		FcPatternDestroy( font->pattern) ;
+	}
 
 	return  1 ;
 }
