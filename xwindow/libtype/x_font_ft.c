@@ -500,7 +500,7 @@ cairo_font_open(
 				DisplayWidth( font->display , DefaultScreen( font->display)) ,
 				DisplayHeight( font->display , DefaultScreen( font->display))))))
 	{
-		goto  error ;
+		goto  error1 ;
 	}
 
 	options = cairo_font_options_create() ;
@@ -531,7 +531,7 @@ cairo_font_open(
 		cairo_destroy( cairo) ;
 		cairo_font_options_destroy( options) ;
 
-		goto  error ;
+		goto  error1 ;
 	}
 
 #if  0
@@ -560,18 +560,17 @@ cairo_font_open(
 	cairo_destroy( cairo) ;
 	cairo_font_options_destroy( options) ;
 	cairo_font_face_destroy( font_face) ;
-	FcPatternDestroy( match) ;
 
 	if( ! xfont)
 	{
-		goto  error ;
+		goto  error2 ;
 	}
 
 	if( cairo_scaled_font_status( xfont))
 	{
 		cairo_scaled_font_destroy( xfont) ;
 
-		goto  error ;
+		goto  error2 ;
 	}
 
 	cs = FONT_CS(font->id) ;
@@ -626,9 +625,14 @@ cairo_font_open(
 		FcPatternDestroy( pattern) ;
 	}
 
+	FcPatternDestroy( match) ;
+
 	return  xfont ;
 
-error:
+error2:
+	FcPatternDestroy( match) ;
+
+error1:
 	FcPatternDestroy( pattern) ;
 
 	return  NULL ;
