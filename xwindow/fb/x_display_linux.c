@@ -201,8 +201,8 @@ get_event_device_num(
 		}
 	}
 
+#if  0
 	/* Set default value */
-
 	if( *kbd == -1)
 	{
 		*kbd = 1 ;
@@ -212,6 +212,7 @@ get_event_device_num(
 	{
 		*mouse = *kbd + 1 ;
 	}
+#endif
 }
 
 static int
