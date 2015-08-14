@@ -108,6 +108,8 @@ typedef struct x_main_config
 	int8_t  blink_cursor ;
 	u_int8_t  hmargin ;
 	u_int8_t  vmargin ;
+	u_int8_t  layout_hmargin ;
+	u_int8_t  layout_vmargin ;
 	int8_t  hide_underline ;
 	int8_t  use_bold_font ;
 	int8_t  use_italic_font ;

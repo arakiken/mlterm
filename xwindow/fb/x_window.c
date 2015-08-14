@@ -1284,8 +1284,8 @@ x_window_add_child(
 	win->children = p ;
 
 	child->parent = win ;
-	child->x = x ;
-	child->y = y ;
+	child->x = x + win->hmargin ;
+	child->y = y + win->vmargin ;
 	child->is_focused = child->is_mapped = map ;
 
 	win->children[ win->num_of_children ++] = child ;
@@ -1567,8 +1567,16 @@ x_window_move(
 		return  0 ;
 	}
 
-	win->x = x ;
-	win->y = y ;
+	if( win->parent)
+	{
+		win->x = x + win->parent->hmargin ;
+		win->y = y + win->parent->vmargin ;
+	}
+	else
+	{
+		win->x = x ;
+		win->y = y ;
+	}
 
 	if( ! check_child_window_area( x_get_root_window( win)) ||
 	    win->x + ACTUAL_WIDTH(win) > win->disp->width ||

@@ -487,7 +487,7 @@ window_resized(
 	#endif
 	}
 
-	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	reset_layout( &layout->term , 0 , 0 , win->width , win->height) ;
 }
 
 static void
@@ -504,8 +504,8 @@ child_window_resized(
 	if( layout->term.next[0] || layout->term.next[1])
 	{
 		reset_layout( &layout->term , 0 , 0 ,
-			ACTUAL_WIDTH(&layout->window) ,
-			ACTUAL_HEIGHT(&layout->window)) ;
+			layout->window.width ,
+			layout->window.height) ;
 
 		return ;
 	}
@@ -989,6 +989,24 @@ sb_mode(
 	return  term->sb_mode ;
 }
 
+static void
+screen_color_changed(
+	void *  p
+	)
+{
+	x_layout_t *  layout ;
+
+	layout = X_SCREEN_TO_LAYOUT(((struct terminal*)p)->screen) ;
+
+	if( &layout->term == p)
+	{
+		x_window_set_fg_color( &layout->window ,
+			&layout->term.screen->window.fg_color) ;
+		x_window_set_bg_color( &layout->window ,
+			&layout->term.screen->window.bg_color) ;
+	}
+}
+
 static u_int
 total_width(
 	struct terminal *  term
@@ -1135,8 +1153,8 @@ change_sb_mode(
 	}
 
 	reset_layout( &X_SCREEN_TO_LAYOUT( term->screen)->term , 0 , 0 ,
-		ACTUAL_WIDTH( &X_SCREEN_TO_LAYOUT( term->screen)->window) ,
-		ACTUAL_HEIGHT( &X_SCREEN_TO_LAYOUT( term->screen)->window)) ;
+		X_SCREEN_TO_LAYOUT( term->screen)->window.width ,
+		X_SCREEN_TO_LAYOUT( term->screen)->window.height) ;
 
 	if( new_mode == SBM_NONE)
 	{
@@ -1165,8 +1183,8 @@ change_sb_mode(
 	{
 	noresize:
 		reset_layout( &X_SCREEN_TO_LAYOUT( term->screen)->term , 0 , 0 ,
-			ACTUAL_WIDTH( &X_SCREEN_TO_LAYOUT( term->screen)->window) ,
-			ACTUAL_HEIGHT( &X_SCREEN_TO_LAYOUT( term->screen)->window)) ;
+			X_SCREEN_TO_LAYOUT( term->screen)->window.width ,
+			X_SCREEN_TO_LAYOUT( term->screen)->window.height) ;
 	}
 #endif
 
@@ -1266,7 +1284,9 @@ x_layout_new(
 	char *  view_name ,
 	char *  fg_color ,
 	char *  bg_color ,
-	x_sb_mode_t  mode
+	x_sb_mode_t  mode ,
+	u_int  hmargin ,
+	u_int  vmargin
 	)
 {
 	x_layout_t *  layout ;
@@ -1329,6 +1349,7 @@ x_layout_new(
 	layout->term.screen_scroll_listener.sb_mode = sb_mode ;
 	layout->term.screen_scroll_listener.change_sb_mode = change_sb_mode ;
 	layout->term.screen_scroll_listener.term_changed = term_changed ;
+	layout->term.screen_scroll_listener.screen_color_changed = screen_color_changed ;
 
 	x_set_screen_scroll_listener( screen ,
 		&layout->term.screen_scroll_listener) ;
@@ -1354,7 +1375,7 @@ x_layout_new(
 
 	if( x_window_init( &layout->window ,
 		actual_width , ACTUAL_HEIGHT( &screen->window) ,
-		min_width , 0 , 0 , 0 , 0 , 0 , 0 , 0) == 0)
+		min_width , 0 , 0 , 0 , hmargin , vmargin , 0 , 0) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init() failed.\n") ;
@@ -1599,8 +1620,8 @@ x_layout_add_child(
 
 	next->sb_mode = term->sb_mode ;
 
-	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(&layout->window) ,
-		ACTUAL_HEIGHT(&layout->window)) ;
+	reset_layout( &layout->term , 0 , 0 , layout->window.width ,
+		layout->window.height) ;
 
 	if( term->sb_mode != SBM_NONE)
 	{
@@ -1800,8 +1821,8 @@ x_layout_remove_child(
 	else
 #endif
 	{
-		reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(&layout->window) ,
-			ACTUAL_HEIGHT(&layout->window)) ;
+		reset_layout( &layout->term , 0 , 0 , layout->window.width ,
+			layout->window.height) ;
 	}
 
 	update_normal_hints( layout) ;
@@ -1931,8 +1952,8 @@ x_layout_resize(
 		term->separator_y += step ;
 	}
 
-	reset_layout( &layout->term , 0 , 0 , ACTUAL_WIDTH(&layout->window) ,
-		ACTUAL_HEIGHT(&layout->window)) ;
+	reset_layout( &layout->term , 0 , 0 , layout->window.width ,
+		layout->window.height) ;
 
 	return  1 ;
 }

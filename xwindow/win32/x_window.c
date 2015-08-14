@@ -1310,8 +1310,8 @@ x_window_add_child(
 	win->children = p ;
 
 	child->parent = win ;
-	child->x = x ;
-	child->y = y ;
+	child->x = x + win->hmargin ;
+	child->y = y + win->vmargin ;
 
 	if( ! ( child->is_mapped = map) && child->inputtable > 0)
 	{
@@ -1703,12 +1703,20 @@ x_window_move(
 		return  0 ;
 	}
 
-	win->x = x ;
-	win->y = y ;
+	if( win->parent)
+	{
+		win->x = x + win->parent->hmargin ;
+		win->y = y + win->parent->vmargin ;
+	}
+	else
+	{
+		win->x = x ;
+		win->y = y ;
+	}
 
 	update_decorate_size( win) ;
 
-	SetWindowPos( win->my_window , 0 , x , y ,
+	SetWindowPos( win->my_window , 0 , win->x , win->y ,
 		win->parent ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win) ,
 		win->parent ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win) ,
 		SWP_NOSIZE | SWP_NOZORDER) ;

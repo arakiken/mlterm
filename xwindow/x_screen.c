@@ -1394,6 +1394,12 @@ window_realized(
 	x_window_set_fg_color( win , x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
+	if( HAS_SCROLL_LISTENER(screen,screen_color_changed))
+	{
+		(*screen->screen_scroll_listener->screen_color_changed)(
+			screen->screen_scroll_listener->self) ;
+	}
+
 	x_get_xcolor_rgba( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
 			&screen->pic_mod.blend_blue , NULL ,
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
@@ -4638,6 +4644,12 @@ change_fg_color(
 		x_xic_fg_color_changed( &screen->window) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+
+		if( HAS_SCROLL_LISTENER(screen,screen_color_changed))
+		{
+			(*screen->screen_scroll_listener->screen_color_changed)(
+				screen->screen_scroll_listener->self) ;
+		}
 	}
 }
 
@@ -4662,6 +4674,12 @@ change_bg_color(
 		picture_modifier_changed( screen) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+
+		if( HAS_SCROLL_LISTENER(screen,screen_color_changed))
+		{
+			(*screen->screen_scroll_listener->screen_color_changed)(
+				screen->screen_scroll_listener->self) ;
+		}
 	}
 }
 

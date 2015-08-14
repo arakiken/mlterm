@@ -676,7 +676,8 @@ open_screen_intern(
 		    ( layout = x_layout_new( screen ,
 					main_config.scrollbar_view_name ,
 					main_config.sb_fg_color , main_config.sb_bg_color ,
-					main_config.sb_mode)))
+					main_config.sb_mode ,
+					main_config.layout_hmargin , main_config.layout_vmargin)))
 		{
 			root = &layout->window ;
 		}

@@ -1517,8 +1517,8 @@ x_window_add_child(
 	win->children = p ;
 
 	child->parent = win ;
-	child->x = x ;
-	child->y = y ;
+	child->x = x + win->hmargin ;
+	child->y = y + win->vmargin ;
 
 	if( ! ( child->is_mapped = map) && child->inputtable > 0)
 	{
@@ -2092,10 +2092,18 @@ x_window_move(
 		return  0 ;
 	}
 
-	win->x = x ;
-	win->y = y ;
+	if( win->parent)
+	{
+		win->x = x + win->parent->hmargin ;
+		win->y = y + win->parent->vmargin ;
+	}
+	else
+	{
+		win->x = x ;
+		win->y = y ;
+	}
 
-	XMoveWindow( win->disp->display , win->my_window , x , y) ;
+	XMoveWindow( win->disp->display , win->my_window , win->x , win->y) ;
 
 	if( ! win->configure_root && win->parent)
 	{

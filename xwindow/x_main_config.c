@@ -264,6 +264,8 @@ x_prepare_for_main_config(
 		"blink cursor [false]") ;
 	kik_conf_add_opt( conf , '\0' , "border" , 0 , "inner_border" ,
 		"inner border [2]") ;
+	kik_conf_add_opt( conf , '\0' , "lborder" , 0 , "layout_inner_border" ,
+		"inner border of layout manager [0]") ;
 	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" ,
 		"restart mlterm automatically if an error like segv happens. [true]") ;
 	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
@@ -1334,6 +1336,28 @@ x_main_config_init(
 		else if( kik_str_to_uint( &hmargin , value) && hmargin <= 224)
 		{
 			main_config->hmargin = main_config->vmargin = hmargin ;
+		}
+	}
+
+	main_config->layout_hmargin = main_config->layout_vmargin = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "layout_inner_border")))
+	{
+		u_int  hmargin ;
+		u_int  vmargin ;
+
+		/* 640x480 => (640-224*2)x(480-224*2) => 192x32 on framebuffer. */
+		if( sscanf( value , "%d,%d" , &hmargin , &vmargin) == 2)
+		{
+			if( hmargin <= 224 && vmargin <= 224)
+			{
+				main_config->layout_hmargin = hmargin ;
+				main_config->layout_vmargin = vmargin ;
+			}
+		}
+		else if( kik_str_to_uint( &hmargin , value) && hmargin <= 224)
+		{
+			main_config->layout_hmargin = main_config->layout_vmargin = hmargin ;
 		}
 	}
 

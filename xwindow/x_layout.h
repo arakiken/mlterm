@@ -47,7 +47,8 @@ typedef struct  x_layout
 
 
 x_layout_t *  x_layout_new( x_screen_t *  screen ,
-	char *  view_name , char *  fg_color , char *  bg_color , x_sb_mode_t  mode) ;
+	char *  view_name , char *  fg_color , char *  bg_color , x_sb_mode_t  mode ,
+	u_int  hmargin , u_int  vmargin) ;
 
 int  x_layout_delete( x_layout_t *  layout) ;
 

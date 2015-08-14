@@ -71,6 +71,7 @@ typedef struct  x_screen_scroll_event_listener
 	x_sb_mode_t  (*sb_mode)( void *) ;
 	void  (*change_sb_mode)( void * , x_sb_mode_t) ;
 	void  (*term_changed)( void * , u_int , u_int) ;
+	void  (*screen_color_changed)( void *) ;
 
 } x_screen_scroll_event_listener_t ;
 
