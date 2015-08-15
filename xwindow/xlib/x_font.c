@@ -1227,7 +1227,7 @@ x_calculate_char_width(
 		     * The width of U+2590 and U+2591 is narrow in EastAsianWidth-6.3.0
 		     * but the glyphs in GNU Unifont are full-width unexpectedly.
 		     */
-		    ch == 0x2590 || ch == 2591))
+		    ch == 0x2590 || ch == 0x2591))
 		{
 			if( calculate_char_width( font , ch , cs) != font->width)
 			{

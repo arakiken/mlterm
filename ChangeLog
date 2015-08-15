@@ -1,5 +1,12 @@
 2015-08-15  Araki Ken  <arakiken@users.sf.net>
 
+	* mkf_ucs_property.table: Updated to Unicode 8.0.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
+	* xlib/x_font.c: Fix typo.
+
+2015-08-15  Araki Ken  <arakiken@users.sf.net>
+
 	* win32/x_window.c: Improvement for an input method window.
 
 	* x_screen.c, mlconfig/main.c, mc_flags.[ch]:
