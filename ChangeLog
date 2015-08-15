@@ -1,3 +1,15 @@
+2015-08-15  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_window.c: Improvement for an input method window.
+
+	* x_screen.c, mlconfig/main.c, mc_flags.[ch]:
+	  It is enabled to change the value of "use_extended_scroll_shortcut" option
+	  dynamically, and a checkbox of it is added to mlconfig.
+
+	* im_wnn.c: Ctrl+h works.
+
+	* x_screen_manager.c: X11 forwarding of an opened ssh session isn't disabled.
+
 2015-08-14  Araki Ken  <arakiken@users.sf.net>
 
 	* */x_window.c, x_layout.[ch], x_main_config.[ch], x_screen.[ch],

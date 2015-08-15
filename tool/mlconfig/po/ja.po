@@ -307,6 +307,10 @@ msgstr "カーソル点滅"
 msgid "Set full width\nareas manually"
 msgstr "全角幅文字の範\n囲を手動設定"
 
+#: tool/mlconfig/mc_flags.c:44
+msgid "Scroll by Shift+Up or Shift+Down"
+msgstr "Shift+Up又はShift+Downによるスクロール"
+
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"

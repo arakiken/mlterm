@@ -24,6 +24,7 @@
 #define  MC_FLAG_LOCALECHO    11
 #define  MC_FLAG_BLINKCURSOR  12
 #define  MC_FLAG_STATICBACKSCROLL  13
+#define  MC_FLAG_EXTSCROLLSHORTCUT  14
 
 GtkWidget *  mc_flag_config_widget_new( int id) ;
 

@@ -233,7 +233,10 @@ open_pty_intern(
 			pass = strdup( "") ;
 			exec_cmd = NULL ;
 
-			ml_pty_ssh_set_use_x11_forwarding( session , x11_fwd) ;
+			if( x11_fwd)
+			{
+				ml_pty_ssh_set_use_x11_forwarding( session , x11_fwd) ;
+			}
 		}
 		else
 	#endif

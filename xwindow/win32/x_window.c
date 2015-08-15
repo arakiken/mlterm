@@ -1498,8 +1498,9 @@ x_window_show(
 	/* Don't place this before x_window_show(children). */
 	if( update_decorate_size( win))
 	{
-		SetWindowPos( win->my_window , 0 , 0 , 0 ,
-			ACTUAL_WINDOW_WIDTH(win) , ACTUAL_WINDOW_HEIGHT(win) ,
+		SetWindowPos( win->my_window , win->cmd_show == SW_SHOWNA ? HWND_TOPMOST : 0 ,
+			0 , 0 , ACTUAL_WINDOW_WIDTH(win) , ACTUAL_WINDOW_HEIGHT(win) ,
+			(win->cmd_show == SW_SHOWNA ? SWP_NOACTIVATE : 0) |
 			SWP_NOMOVE | SWP_NOZORDER) ;
 	}
 
@@ -1601,10 +1602,10 @@ x_window_resize(
 	}
 
 	update_decorate_size( win) ;
-	SetWindowPos( win->my_window , 0 , 0 , 0 ,
+	SetWindowPos( win->my_window , win->cmd_show == SW_SHOWNA ? HWND_TOPMOST : 0 , 0 , 0 ,
 		win->parent ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win) ,
 		win->parent ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win) ,
-		SWP_NOMOVE | SWP_NOZORDER) ;
+		(win->cmd_show == SW_SHOWNA ? SWP_NOACTIVATE : 0) | SWP_NOMOVE | SWP_NOZORDER) ;
 		
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{
@@ -1658,12 +1659,20 @@ x_window_set_override_redirect(
 
 	if( ( root = x_get_root_window( win))->my_window)
 	{
-		ShowWindow( root->my_window , SW_HIDE) ;
+	#if  0
+		if( root->is_mapped)
+		{
+			ShowWindow( root->my_window , SW_HIDE) ;
+		}
+	#endif
 
 		if( flag)
 		{
 			SetWindowLong( root->my_window , GWL_STYLE , 0) ;
 			win->cmd_show = SW_SHOWNA ;
+
+			SetWindowPos( root->my_window , HWND_TOPMOST , 0 , 0 , 0 , 0 ,
+				SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER) ;
 		}
 		else
 		{
@@ -1672,7 +1681,12 @@ x_window_set_override_redirect(
 			win->cmd_show = SW_SHOWNORMAL ;
 		}
 
-		ShowWindow( root->my_window , win->cmd_show) ;
+	#if  0
+		if( root->is_mapped)
+		{
+			ShowWindow( root->my_window , win->cmd_show) ;
+		}
+	#endif
 
 		return  1 ;
 	}
@@ -1719,7 +1733,7 @@ x_window_move(
 	SetWindowPos( win->my_window , 0 , win->x , win->y ,
 		win->parent ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win) ,
 		win->parent ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win) ,
-		SWP_NOSIZE | SWP_NOZORDER) ;
+		(win->cmd_show == SW_SHOWNA ? SWP_NOACTIVATE : 0) | SWP_NOSIZE | SWP_NOZORDER) ;
 
 	return  1 ;
 }

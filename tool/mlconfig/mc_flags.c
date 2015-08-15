@@ -38,6 +38,7 @@ static char *  config_keys[MC_FLAG_MODES] =
 	"use_local_echo" ,
 	"blink_cursor" ,
 	"static_backscroll_mode" ,
+	"use_extended_scroll_shortcut" ,
 } ;
 
 static char *labels[MC_FLAG_MODES] =
@@ -56,6 +57,7 @@ static char *labels[MC_FLAG_MODES] =
 	N_("Local echo"),
 	N_("Blink cursor"),
 	N_("Don't scroll automatically in scrolling back"),
+	N_("Scroll by Shift+Up or Shift+Down"),
 } ;
 
 static GtkWidget *  widgets[MC_FLAG_MODES];

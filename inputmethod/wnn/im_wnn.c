@@ -828,7 +828,7 @@ key_event(
 	{
 		ret = fix( wnn) ;
 	}
-	else if( ksym == XK_BackSpace || ksym == XK_Delete)
+	else if( ksym == XK_BackSpace || ksym == XK_Delete || key_char == 0x08 /* Ctrl+h */)
 	{
 		if( wnn->im.preedit.filled_len > 0)
 		{

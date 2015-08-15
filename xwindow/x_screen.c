@@ -5560,6 +5560,17 @@ get_config_intern(
 			value = "false" ;
 		}
 	}
+	else if( strcmp( key , "use_extended_scroll_shortcut") == 0)
+	{
+		if( screen->use_extended_scroll_shortcut)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
 	else if( strcmp( key , "pty_list") == 0)
 	{
 		value = ml_get_pty_list() ;
@@ -8809,6 +8820,15 @@ x_screen_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			x_set_use_urgent_bell( flag) ;
+		}
+	}
+	else if( strcmp( key , "use_extended_scroll_shortcut") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			screen->use_extended_scroll_shortcut = flag ;
 		}
 	}
 	else if( strstr( key , "_use_unicode_font"))
