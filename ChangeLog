@@ -1,3 +1,7 @@
+2015-08-17  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_font.c: "Font width" buttons are added.
+
 2015-08-15  Araki Ken  <arakiken@users.sf.net>
 
 	* mkf_ucs_property.table: Updated to Unicode 8.0.0 (UnicodeData.txt and

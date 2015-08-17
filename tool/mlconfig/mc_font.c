@@ -414,6 +414,100 @@ fontsize_selected(
 }
 
 static void
+specify_width(
+	GtkWidget *  widget ,
+	int  flag
+	)
+{
+	gchar *  fontname ;
+
+	if( ( ( fontname = new_fontname_list[selected_cs]) ||
+	      ( fontname = gtk_entry_get_text(GTK_ENTRY(fontname_entry)))) &&
+	    *fontname)
+	{
+		gchar *  p ;
+		int  percent ;
+		size_t  len ;
+
+		if( ! ( p = strrchr( fontname , ':')) ||
+		    ( percent = atoi( p + 1)) == 0)
+		{
+			if( flag == 0)
+			{
+				return ;
+			}
+
+			len = strlen( fontname) ;
+			percent = (flag < 0 ? 100 : 110) ;
+		}
+		else
+		{
+			len = p - fontname ;
+
+			if( flag == 0)
+			{
+				percent = 0 ;
+			}
+			else
+			{
+				percent += (flag < 0 ? -10 : 10) ;
+
+				if( percent <= 0 || 200 < percent)
+				{
+					return ;
+				}
+			}
+		}
+
+		if( ( p = malloc( len + 5)))
+		{
+			strncpy( p , fontname , len) ;
+			if( percent == 0)
+			{
+				p[len] = '\0' ;
+			}
+			else
+			{
+				sprintf( p + len , ":%d" , percent) ;
+			}
+			free( new_fontname_list[selected_cs]) ;
+			new_fontname_list[selected_cs] = p ;
+
+			dont_change_new_fontname_list = 1 ;
+			gtk_entry_set_text( GTK_ENTRY(fontname_entry) , p) ;
+			dont_change_new_fontname_list = 0 ;
+		}
+	}
+}
+
+static void
+widen_width(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	specify_width( widget , 1) ;
+}
+
+static void
+narrow_width(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	specify_width( widget , -1) ;
+}
+
+static void
+default_width(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	specify_width( widget , 0) ;
+}
+
+static void
 fontcs_changed(void)
 {
 	dont_change_new_fontname_list = 1 ;
@@ -930,6 +1024,7 @@ mc_font_config_widget_new(void)
 	GtkWidget *  entry ;
 	GtkWidget *  radio ;
 	GtkWidget *  label ;
+	GtkWidget *  button ;
 	char *  fontlist[] =
 	{
 		"6" , "7" , "8" , "9" , "10" ,
@@ -1051,6 +1146,32 @@ mc_font_config_widget_new(void)
 		G_CALLBACK(select_font) , NULL) ;
 
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
+
+
+	hbox = gtk_hbox_new( FALSE , 0) ;
+	gtk_widget_show( hbox) ;
+
+	label = gtk_label_new( _("Font width")) ;
+	gtk_widget_show( label) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
+
+	button = gtk_button_new_with_label( _("Narrow")) ;
+	gtk_widget_show( button) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , button , FALSE , FALSE , 5) ;
+	g_signal_connect( button , "clicked" , G_CALLBACK(narrow_width) , NULL) ;
+
+	button = gtk_button_new_with_label( _("Widen")) ;
+	gtk_widget_show( button) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , button , FALSE , FALSE , 5) ;
+	g_signal_connect( button , "clicked" , G_CALLBACK(widen_width) , NULL) ;
+
+	button = gtk_button_new_with_label( _("Default")) ;
+	gtk_widget_show( button) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , button , FALSE , FALSE , 5) ;
+	g_signal_connect( button , "clicked" , G_CALLBACK(default_width) , NULL) ;
+
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
+
 
 	radio = mc_radio_config_widget_new( MC_RADIO_FONT_POLICY) ;
 	gtk_widget_show( radio) ;

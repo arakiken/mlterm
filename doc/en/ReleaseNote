@@ -1,7 +1,12 @@
 ver 3.5.1
+* Support font fallback on cairo.
 * Improve romaji-kana conversion in using wnn as an input method.
   (Merge https://gist.github.com/tsutsui/1d4f9af3b4a53c906eb4)
+* KBD_INPUT_NUM or MOUSE_INPUT_NUM environmental variables enable to specify N
+  of /dev/input/eventN on Linux/framebuffer.
 * Update unicode properties to 8.0.0.
+* Add "layout_inner_border" / --lborder option.
+* Add "use_extended_scroll_shortcut" to OSC 5379 and 5380.
 
 ver 3.5.0
 * Support WSDISPLAYIO_GET_FBINFO on NetBSD/framebuffer.

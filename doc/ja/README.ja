@@ -740,7 +740,7 @@ comment $Id$
 
         なお、既にdaemon processが起動していた場合は、mlclientが実行されます。
 
-      o use_extended_scroll_shortcut (true/*false*)
+      o use_extended_scroll_shortcut (true/*false*) (#)
         スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット以
         外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショートカ
         ットを有効にするかどうか
@@ -751,16 +751,16 @@ comment $Id$
       o click_interval (*250*)
         ダブルクリックの間隔(ミリ秒)
 
-      o static_backscroll_mode (true/*false*)
+      o static_backscroll_mode (true/*false*) (#)
         バックスクロール時に端末出力があっても画面が流れないようにする。
 
       o exit_backscroll_by_pty (true/*false*)
         バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
 
-      o logging_vt_seq (true/*false*)
+      o logging_vt_seq (true/*false*) (#)
         pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 
-      o vt_seq_format (*raw*/ttyrec)
+      o vt_seq_format (*raw*/ttyrec) (#)
         ~/.mlterm/[device].log に記録するフォーマットを指定する。
         rawはそのまま、ttyrecはttyrec形式で保存する。
 
