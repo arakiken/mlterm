@@ -19,12 +19,13 @@ How to build & install libvte compatible library using mlterm engine.
     place gnome-pty-helper (or its symbolic link file) at ${libexecdir}/mlterm/.
     If libvte on your system depends on gtk+-2.x, specify --with-gtk=2.0 option)
   $ make
+    (You can change VTE ABI version by 'make VTE_ABI=(|2.90|2.91)')
   $ cd gtk ; make
 
 * Install (Replace official libvte)
   $ cd kiklib ; make install
   $ cd mkf ; make install
-  $ cd gtk ; make install
+  $ cd gtk ; make (VTE_ABI=(|2.90|2.91)) install
   $ ln -sf [where libvte of mlterm is installed]/libvte.so.9 \
 	   [where official libvte is installed]/libvte.so.9
     or

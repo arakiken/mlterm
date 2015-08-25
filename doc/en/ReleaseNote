@@ -7,6 +7,10 @@ ver 3.5.1
 * Update unicode properties to 8.0.0.
 * Add "layout_inner_border" / --lborder option.
 * Add "use_extended_scroll_shortcut" to OSC 5379 and 5380.
+* Add "Scroll by Shift+Up or Shift+Down" to "Others" tab of mlconfig.
+* Add "Font width" (Narrow/Widen/Default) entry to "Font" tab of mlconfig.
+* Bug fixes:
+  Change the version of libvte 2.91 compatible library from 9.0.0 to 0.0.0
 
 ver 3.5.0
 * Support WSDISPLAYIO_GET_FBINFO on NetBSD/framebuffer.

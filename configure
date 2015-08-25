@@ -868,7 +868,7 @@ MLIMGLOADER_LIB
 PERL
 XLFDSEL_OBJ
 TOOLS_CFLAGS
-LIBVTE_SUFFIX
+VTE_ABI
 VTE_LIBS
 VTE_CFLAGS
 INSTALL_OPT
@@ -21743,7 +21743,7 @@ $as_echo "yes" >&6; }
 	have_vte=yes
 fi
 		if test "$have_vte" = "yes" ; then
-			LIBVTE_SUFFIX=-2.91
+			VTE_ABI=2.91
 		else
 
 pkg_failed=no
@@ -21812,9 +21812,10 @@ else
 $as_echo "yes" >&6; }
 	have_vte=yes
 fi
-			LIBVTE_SUFFIX=2_90
+			if test "$have_vte" = "yes"; then
+				VTE_ABI=2.90
+			fi
 		fi
-
 	else
 
 pkg_failed=no
@@ -21886,9 +21887,6 @@ fi
 	fi
 	if test "$have_vte" = "yes" ; then
 		OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
-		# "tr ..." is hack for cygwin.
-		# (removing \r which is output by win32 native pkg-config.)
-		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
 
 	fi
 else

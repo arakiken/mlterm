@@ -9,6 +9,7 @@
 #define  VTE_CHECK_VERSION(a,b,c)  (0)
 #endif
 
+#include  <sys/wait.h>			/* waitpid */
 #include  <pwd.h>			/* getpwuid */
 #include  <X11/keysym.h>
 #include  <gdk/gdkx.h>
@@ -5242,6 +5243,8 @@ vte_terminal_set_pty_object(
 	VtePty *  pty
 	)
 {
+	pid_t  pid ;
+
 	if( terminal->pvt->pty || ! pty)
 	{
 		return ;
@@ -5254,20 +5257,29 @@ vte_terminal_set_pty_object(
 	vte_pty_set_term( pty , vte_terminal_get_emulation( terminal)) ;
 #endif
 
-	if( vte_terminal_forkpty( terminal , NULL , NULL ,
+	pid = vte_terminal_forkpty( terminal , NULL , NULL ,
 				(pty->flags & VTE_PTY_NO_LASTLOG) ? FALSE : TRUE ,
 				(pty->flags & VTE_PTY_NO_UTMP) ? FALSE : TRUE ,
-				(pty->flags & VTE_PTY_NO_WTMP) ? FALSE : TRUE) == 0)
+				(pty->flags & VTE_PTY_NO_WTMP) ? FALSE : TRUE) ;
+
+	if( pid == 0)
 	{
-		/* child */
+		/* Child process exits, but master and slave fds survives. */
 		exit(0) ;
 	}
 
+#if  1
+	if( pid > 0)
+	{
+		waitpid( pid , NULL , WNOHANG) ;
+	}
+#else
 	if( terminal->pvt->term->pty)
 	{
 		/* Don't catch exit(0) above. */
 		terminal->pvt->term->pty->child_pid = -1 ;
 	}
+#endif
 }
 
 VtePty *
@@ -5319,6 +5331,11 @@ vte_pty_close(
 {
 }
 
+#if  (! defined(HAVE_SETSID) && defined(TIOCNOTTY)) || ! defined(TIOCSCTTY)
+#include  <fcntl.h>
+#endif
+
+/* Child process (before exec()) */
 void
 vte_pty_child_setup(
 	VtePty *  pty
@@ -5351,7 +5368,14 @@ vte_pty_child_setup(
 	slave = ml_term_get_slave_fd( pty->terminal->pvt->term) ;
 
 #ifdef  TIOCSCTTY
-	ioctl( slave, TIOCSCTTY, NULL) ;
+	while( ioctl( slave , TIOCSCTTY , NULL) == -1)
+	{
+		/*
+		 * Child process which exits in vte_terminal_set_pty() may still have
+		 * controll terminal.
+		 */
+		kik_usleep( 100) ;
+	}
 #else
 	if( ( fd = open( "/dev/tty" , O_RDWR|O_NOCTTY)) >= 0)
 	{
@@ -5375,13 +5399,6 @@ vte_pty_child_setup(
 	{
 		close(slave) ;
 	}
-
-	/* Already set in kik_pty_fork() from vte_terminal_forkpty(). */
-#if  0
-	cfsetispeed( &tio , B9600) ;
-	cfsetospeed( &tio , B9600) ;
-	tcsetattr( STDIN_FILENO, TCSANOW , &tio) ;
-#endif
 
 	close( master) ;
 }

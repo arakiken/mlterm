@@ -37,7 +37,7 @@ public class MLActivity extends NativeActivity
 	}
 
 	private native void  visibleFrameChanged( int  yoffset , int  width , int  height) ;
-	private native void  commitText( String  str) ;
+	private native void  commitTextLock( String  str) ;
 	private native void  commitTextNoLock( String  str) ;
 	private native void  preeditText( String  str) ;
 	private native String  convertToTmpPath( String  path) ;
@@ -61,7 +61,7 @@ public class MLActivity extends NativeActivity
 		{
 			super.commitText( text , newCursorPosition) ;
 
-			commitText( text.toString()) ;
+			commitTextLock( text.toString()) ;
 
 			return  true ;
 		}

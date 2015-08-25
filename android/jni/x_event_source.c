@@ -363,7 +363,7 @@ Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(
 }
 
 void
-Java_mlterm_native_1activity_MLActivity_commitText(
+Java_mlterm_native_1activity_MLActivity_commitTextLock(
 	JNIEnv *  env ,
 	jobject  this ,
 	jstring  jstr

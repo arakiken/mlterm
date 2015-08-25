@@ -1,3 +1,13 @@
+2015-08-25  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, gtk/Makefile.in:
+	  - 'make VTE_ABI=(|2.90|2.91)' can change VTE ABI version to be built.
+	  - libvte-2.91.so.9 -> libvte-2.91.so.0
+
+	* vte.c: Failure of ioctl(slave, TIOCSCTTY) in vte_pty_child_setup() is fixed.
+
+	* MLActivity.java, android/jni/x_event_source.c: Ambiguous method name is fixed.
+
 2015-08-17  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_font.c: "Font width" buttons are added.
