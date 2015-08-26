@@ -1360,6 +1360,11 @@ echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
 echo "GTK+                              : $have_gtk ($gtk_version)"
-echo "libvte                            : $have_vte (libvte${LIBVTE_SUFFIX}.la)"
+echo -n "libvte                            : $have_vte"
+if test "$VTE_ABI" = ""; then
+	echo ""
+else
+	echo " (${VTE_ABI})"
+fi
 echo "VT52                              : $vt52"
 echo

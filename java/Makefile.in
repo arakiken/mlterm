@@ -3,8 +3,8 @@ JAVAC = javac # -source 1.5 -target 1.5
 CLASSPATH_win32 = .\;swt.jar
 CLASSPATH = .:swt.jar
 JAVA_HOME_win32 = /cygdrive/c/Program\ Files/Java/jdk1.7.0_02
-JAVA_HOME = /usr/lib/jvm/java-7-openjdk-i386
-SWT_JAR = /usr/lib/java/swt-gtk-3.8.2.jar
+JAVA_HOME = /usr/lib/jvm/java-8-openjdk-i386
+SWT_JAR = /usr/lib/java/swt-gtk-4.3.2.jar
 
 # Don't edit anything below.
 prefix = @prefix@
@@ -25,7 +25,7 @@ CFLAGS = @CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -D_JNI_IMPLEMENTATION \
 	-I../kiklib/include -I../mkf/include -I$(top_srcdir)/mlterm -I. \
 	-I$(JAVA_HOME@WIN32TAG@)/include -I$(JAVA_HOME@WIN32TAG@)/include/win32 \
-	$(CFLAGS2@WIN32TAG@) $(CFLAGS_LOCAL)
+	-I$(JAVA_HOME@WIN32TAG@)/include/linux $(CFLAGS2@WIN32TAG@) $(CFLAGS_LOCAL)
 
 # for Cygwin
 CFLAGS2_win32 = -I/cygdrive/$(JAVA_HOME)/include -I/cygdrive/$(JAVA_HOME)/include/win32
