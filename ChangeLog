@@ -1,3 +1,9 @@
+2015-08-29  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_utmp_sysv.c: Error of pututxline() is ignored if errno is ECHILD on NetBSD.
+
+	* configure.in, x_font_ft.c: Minor fixes.
+
 2015-08-26  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, java/Makefile.in: Minor fixes.

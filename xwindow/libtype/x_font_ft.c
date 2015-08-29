@@ -614,7 +614,9 @@ cairo_font_open(
 		FcPatternRemove( pattern , FC_FAMILYLANG , 0) ;
 		FcPatternRemove( pattern , FC_STYLELANG , 0) ;
 		FcPatternRemove( pattern , FC_FULLNAMELANG , 0) ;
+	#ifdef  FC_NAMELANG
 		FcPatternRemove( pattern , FC_NAMELANG , 0) ;
+	#endif
 		FcPatternRemove( pattern , FC_LANG , 0) ;
 	#endif
 

@@ -31,6 +31,9 @@
 #include "kik_privilege.h"
 #include "kik_debug.h"
 
+#ifdef _PATH_UTMP_UPDATE
+#include <errno.h>
+#endif
 
 #ifdef UTMPX
 #define LINE_WIDTH 32
@@ -43,6 +46,27 @@ struct  kik_utmp
         char  ut_line[LINE_WIDTH];
         char  ut_pos[4];
 };
+
+/* --- static functions --- */
+
+static const char *
+get_pw_name(void)
+{
+  struct passwd * pwent;
+
+  if (
+      ((pwent = getpwuid(getuid())) == NULL) ||
+      (pwent->pw_name == NULL)
+     )
+  {
+    return "?" ;
+  }
+  else
+  {
+    return pwent->pw_name ;
+  }
+}
+
 
 /* --- global functions --- */
 
@@ -58,34 +82,19 @@ kik_utmp_new(
 #else
   struct utmp	ut;
 #endif
-
   kik_utmp_t      utmp;
-  struct passwd * pwent;
-  char          * pw_name;
+  const char    * pw_name;
   char          * tty_num;
-
   struct timeval timenow;
 
   gettimeofday(&timenow, NULL);
 
-  if ( (utmp = malloc(sizeof(*utmp))) == NULL )
+  if ( (utmp = calloc(1, sizeof(*utmp))) == NULL )
   {
     return NULL;
   }
 
   memset( &ut, 0, sizeof(ut) );
-
-  if (
-      ((pwent = getpwuid(getuid())) == NULL) ||
-      (pwent->pw_name == NULL)
-     )
-  {
-    pw_name = "?" ;
-  }
-  else
-  {
-    pw_name = pwent->pw_name ;
-  }
 
   if( (strncmp(tty, "/dev/", 5)) == 0)
   {
@@ -120,6 +129,7 @@ kik_utmp_new(
     return NULL;
   }
 
+  pw_name = get_pw_name();
   strncpy( ut.ut_user, pw_name, K_MIN(sizeof(ut.ut_user), strlen(pw_name)) );
   memcpy( ut.ut_id, tty_num, K_MIN(sizeof(ut.ut_id), strlen(tty_num)) );
   memcpy( ut.ut_line, tty, K_MIN(sizeof(ut.ut_line), strlen(tty)) );
@@ -158,8 +168,14 @@ kik_utmp_new(
 #ifdef UTMPX
   if ( !pututxline(&ut) )
   {
-    free(utmp);
-    utmp = NULL;
+#ifdef _PATH_UTMP_UPDATE
+    /* NetBSD calls waitpid() for utmp_update which is executed as root(SUID) and fails(ECHILD). */
+    if (errno != ECHILD)
+#endif
+    {
+      free(utmp);
+      utmp = NULL;
+    }
   }
 #else
   /* pututline doesn't return value in XPG2 and SVID2 */
@@ -197,14 +213,16 @@ kik_utmp_delete(
 #else
   struct utmp	ut;
 #endif
+  const char *  pw_name;
 
   memset( &ut, 0, sizeof(ut) );
 
+  pw_name = get_pw_name();
+  strncpy( ut.ut_user, pw_name, K_MIN(sizeof(ut.ut_user), strlen(pw_name)));
   memcpy( ut.ut_id, utmp->ut_pos,
 	  K_MIN(sizeof(ut.ut_id), sizeof(utmp->ut_pos)) );
   memcpy( ut.ut_line, utmp->ut_line,
 	  K_MIN(sizeof(ut.ut_line), sizeof(utmp->ut_line)) );
-  memset( ut.ut_user, 0, sizeof(ut.ut_user));
 
   ut.ut_pid	= getpid();
   ut.ut_type	= DEAD_PROCESS;
