@@ -330,6 +330,12 @@ comment $Id$
         "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
         定できます。
 
+      o layout_inner_border (*0*)
+        Layout Manager の inner border (0-224)
+
+        "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
+        定できます。
+
       -- Terminal 関連 --
       o use_login_shell  (true/*false*)
         ログインシェルを使うかどうか
@@ -1286,6 +1292,7 @@ comment $Id$
        --osc52(=bool)  : allow_osc52
        --blink(=bool)  : blink_cursor
        --border=value  : inner_border
+       --lborder=value : layout_inner_border
        --restart(=bool): auto_restart
        --logmsg(=bool) : logging_msg
        --loecho(=bool) : use_local_echo

@@ -31,6 +31,9 @@
 # ウィンドウの内側のボーダー幅
 # inner_border = 2
 
+# レイアウトマネージャの内側のボーダー幅
+# layout_inner_border = 0
+
 # -- Terminal 関連 --
 # ログインシェルを使うかどうか
 # use_login_shell = false

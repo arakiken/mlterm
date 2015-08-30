@@ -1,5 +1,16 @@
 2015-08-29  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.5.1 released.
+	  (tag "rel-3_5_1")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h, doc/en/ReleaseNote:
+	  updated for 3.5.1.
+
+	* man/mlterm.1, etc/main, etc/main.ja, doc/ja/README.ja: Updated.
+
+2015-08-29  Araki Ken  <arakiken@users.sf.net>
+
 	* kik_utmp_sysv.c: Error of pututxline() is ignored if errno is ECHILD on NetBSD.
 
 	* configure.in, x_font_ft.c: Minor fixes.

@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2015-06-07"
+.TH MLTERM 1 "2015-08-29"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -583,6 +583,10 @@ The default is \fBtrue\fR.
 \fB\-\-keepalive\fR=\fIvalue\fR
 Specify interval seconds to send keepalive message to ssh server.
 The default is \fB0\fR.
+.TP
+\fB\-\-lborder\fR=\fIvalue\fR
+Specify inner border width of a layout manager. The default is \fB0\fR.
+The maximum value is \fB224\fR.
 .TP
 \fB\-\-ldd\fR(=\fIbool\fR)
 Embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.
@@ -1367,6 +1371,9 @@ Use ISO8859-1 fonts for US-ASCII part of various encodings.
 .TP
 \fBit_color=\fIvalue\fR (\fB\-\-it\fR)
 Specify the color to use to display italic characters.
+.TP
+\fBlayout_inner_border=\fIvalue\fR (\fB\-\-lborder\fR)
+Specify inner border width of a layout manager.
 .TP
 \fBleftward_double_drawing=\fIbool\fR (\fB\-\-ldd\fR)
 Embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.

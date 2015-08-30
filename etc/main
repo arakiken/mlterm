@@ -22,6 +22,8 @@
 
 # inner_border = 2
 
+# layout_inner_border = 0
+
 # -- Terminal --
 # use_login_shell = false
 
