@@ -354,7 +354,7 @@ int  ml_vt100_parser_write_loopback( ml_vt100_parser_t *  vt100_parser ,
 /* Must be called in visual context. */
 int  ml_vt100_parser_show_message( ml_vt100_parser_t *  vt100_parser , char *  msg) ;
 
-#ifdef  __ANDROID__
+#if  defined(__ANDROID__) || defined(__APPLE__)
 /* Must be called in visual context. */
 int  ml_vt100_parser_preedit( ml_vt100_parser_t *  vt100_parser ,
 	const u_char *  buf , size_t  len) ;

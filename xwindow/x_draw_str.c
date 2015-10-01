@@ -1226,7 +1226,9 @@ xcore_draw_str(
 			}
 
 			if(
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_QUARTZ)
+			    1 ||
+		#elif  defined(USE_FRAMEBUFFER)
 			#ifdef  USE_FREETYPE
 			    xfont->is_proportional ||	/* ISCII */
 			#endif

@@ -31,7 +31,7 @@ Pixmap  x_imagelib_pixbuf_to_pixmap( x_window_t *  win , x_picture_modifier_t * 
 
 int  x_delete_image( Display *  display , Pixmap  pixmap) ;
 
-#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 #define  x_delete_mask(display, mask)  ((mask) && x_delete_image(display, mask))
 #else
 int  x_delete_mask( Display *  display , PixmapMask  mask) ;

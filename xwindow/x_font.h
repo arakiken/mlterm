@@ -49,9 +49,11 @@ typedef struct x_font
 	 */
 	ml_font_t  id ;
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI)
 	Font  fid ;
 	mkf_conv_t *  conv ;
+#elif  defined(USE_QUARTZ)
+	void *  cg_font ;
 #else
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	xft_font_ptr_t  xft_font ;
@@ -129,7 +131,7 @@ void  x_font_set_dpi_for_fc( double  dpi) ;
 #endif
 
 #ifndef  USE_FRAMEBUFFER
-void  x_font_use_point_size( int  bool) ;
+void  x_font_use_point_size( int  use) ;
 #else
 #define  x_font_use_point_size(bool)  (0)
 #endif

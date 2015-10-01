@@ -16,7 +16,11 @@ BINDIR = $(DESTDIR)$(bindir)
 
 VPATH = $(top_srcdir)/main
 
-OBJ = daemon.o main_loop.o main.o
+OBJ_xlib = main.o
+OBJ_win32 = main.o
+OBJ_fb = main.o
+OBJ_quartz = main-cocoa.o
+OBJ = daemon.o main_loop.o $(OBJ_@GUI@)
 
 LKIK = @LKIK@
 LMKF = @LMKF@
@@ -42,11 +46,14 @@ LIBS2_fb = @MATH_LIBS@ @DL_LIBS_SB@ @FT_LIBS@
 
 LIBS2_win32 = -mwindows -limm32 @SUBSYSTEM@ ../xwindow/winrs.o
 
+LIBS2_quartz = -framework Foundation -framework Cocoa
+
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
 PROG_xlib = mlterm
 PROG_win32 = mlterm
 PROG_fb = mlterm-fb
+PROG_quartz = mlterm
 
 INSTALL_OPT = @INSTALL_OPT@
 
@@ -64,8 +71,12 @@ $(PROG_@GUI@): $(OBJ) $(LMLTERM) $(LXWINDOW)
 		$(LIBS) @CTL_LIBS_FOR_PROG@
 
 .SUFFIXES: .c .o
+.SUFFIXES: .m .o
 
 .c.o:
+	$(LIBTOOL_CC) -c $<
+
+.m.o:
 	$(LIBTOOL_CC) -c $<
 
 $(BINDIR):

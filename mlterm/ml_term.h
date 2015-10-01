@@ -158,7 +158,7 @@ size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
 /* Must be called in visual context. */
 #define  ml_term_show_message( term , msg)  ml_vt100_parser_show_message( (term)->parser , msg)
 
-#ifdef  __ANDROID__
+#if  defined(__ANDROID__) || defined(__APPLE__)
 /* Must be called in visual context. */
 #define  ml_term_preedit( term , buf , len)  ml_vt100_parser_preedit( (term)->parser , buf , len)
 #endif

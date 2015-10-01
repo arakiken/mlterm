@@ -336,22 +336,14 @@ ml_get_char_encoding(
 	/*
 	 * duplicating name so as not to destroy its memory.
 	 */
-	if( ( _name = kik_str_alloca_dup( name)) == NULL)
+	if( ( _name = kik_str_alloca_dup( name)) == NULL ||
+	    ( encoding = alloca( strlen( name) + 1)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
 	#endif
 
-		return  1 ;
-	}
-
-	if( ( encoding = alloca( strlen( name) + 1)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
-	#endif
-
-		return  1 ;
+		return  ML_UNKNOWN_ENCODING ;
 	}
 	encoding[0] = '\0' ;
 
@@ -369,10 +361,12 @@ ml_get_char_encoding(
 
 	if( strcasecmp( encoding , "auto") == 0)
 	{
-	#if  defined(__CYGWIN__) || defined(__MSYS__) || defined(__ANDROID__)
+	#if  defined(__CYGWIN__) || defined(__MSYS__) || defined(__ANDROID__) || defined(__APPLE__)
 		/*
 		 * XXX
-		 * UTF-8 is used by default in cygwin and msys.
+		 * UTF-8 is used by default in cygwin, msys, android and osx.
+		 * (On osx, if mlterm.app is started from Finder, ml_get_char_encoding("auto")
+		 * returns ML_ISO88591.)
 		 */
 		return  ML_UTF8 ;
 	#else

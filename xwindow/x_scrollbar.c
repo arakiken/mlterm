@@ -986,7 +986,7 @@ x_scrollbar_final(
 	free( sb->fg_color) ;
 	free( sb->bg_color) ;
 	free( sb->view_name) ;
-	
+
 	return  1 ;
 }
 
@@ -1159,6 +1159,11 @@ x_scrollbar_move(
 	else if( row + (int)sb->num_of_filled_log_lines < 0)
 	{
 		row = -(sb->num_of_filled_log_lines) ;
+	}
+
+	if( sb->current_row == row)
+	{
+		return  0 ;
 	}
 
 	sb->current_row = row ;

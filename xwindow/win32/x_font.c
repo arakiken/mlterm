@@ -903,10 +903,10 @@ x_calculate_char_width(
 
 void
 x_font_use_point_size(
-	int  bool
+	int  use
 	)
 {
-	use_point_size = bool ;
+	use_point_size = use ;
 }
 
 /* Return written size */

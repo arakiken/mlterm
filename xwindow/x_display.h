@@ -34,7 +34,7 @@ typedef struct  x_display
 
 	Window  my_window ;	/* DefaultRootWindow */
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	/* Only one visual, colormap or depth is permitted per display. */
 	Visual *  visual ;
 	Colormap  colormap ;
@@ -81,7 +81,7 @@ void  x_display_idling( x_display_t *  disp) ;
 
 int  x_display_receive_next_event( x_display_t *  disp) ;
 
-#if  defined(USE_FRAMEBUFFER)
+#if  defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
 #define  x_display_sync(disp)  (0)
 #elif  defined(USE_WIN32GUI)
 #define  x_display_sync(disp)  x_display_receive_next_event(disp)

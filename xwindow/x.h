@@ -14,6 +14,10 @@
 
 #include  "fb/x.h"
 
+#elif  defined(USE_QUARTZ)
+
+#include  "quartz/x.h"
+
 #else	/* USE_WIN32GUI/USE_FRAMEBUFFER */
 
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */

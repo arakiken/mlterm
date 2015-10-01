@@ -12,7 +12,7 @@
 #include  "x_display.h"
 
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI) || defined(USE_QUARTZ)
 
 typedef struct x_color
 {

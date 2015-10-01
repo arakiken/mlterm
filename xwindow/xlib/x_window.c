@@ -2087,21 +2087,19 @@ x_window_move(
 	int  y
 	)
 {
+	if( win->parent)
+	{
+		x += win->parent->hmargin ;
+		y += win->parent->vmargin ;
+	}
+
 	if( win->x == x && win->y == y)
 	{
 		return  0 ;
 	}
 
-	if( win->parent)
-	{
-		win->x = x + win->parent->hmargin ;
-		win->y = y + win->parent->vmargin ;
-	}
-	else
-	{
-		win->x = x ;
-		win->y = y ;
-	}
+	win->x = x ;
+	win->y = y ;
 
 	XMoveWindow( win->disp->display , win->my_window , win->x , win->y) ;
 
@@ -3067,7 +3065,6 @@ x_window_receive_event(
 				exit(0) ;
 			}
 		}
-		
 #if  0
 		else if( event->xclient.format == 32 &&
 			event->xclient.data.l[0] == XA_TAKE_FOCUS( win->disp->display))

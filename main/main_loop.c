@@ -15,7 +15,7 @@
 #include  <x_font.h>	/* x_use_cp932_ucs_fot_xft */
 #include  <x_screen_manager.h>
 #include  <x_event_source.h>
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 #include  <xlib/x_xim.h>
 #endif
 
@@ -123,7 +123,7 @@ main_loop_init(
 	x_main_config_t  main_config ;
 	kik_conf_t *  conf ;
 	char *  value ;
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	int  use_xim ;
 #endif
 	u_int  max_screens_multiple ;
@@ -166,7 +166,7 @@ main_loop_init(
 		"show version message") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
 		"font size range for GUI configurator [6-30]") ;
-#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font [false]") ;
 #endif
@@ -174,7 +174,7 @@ main_loop_init(
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"use CP932-Unicode mapping table for JISX0208 [false]") ;
 #endif
-#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if  ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
 		"use XIM (X Input Method) [true]") ;
 #endif
@@ -264,7 +264,7 @@ main_loop_init(
 	}
 #endif
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	use_xim = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_xim")))
@@ -278,7 +278,7 @@ main_loop_init(
 	x_xim_init( use_xim) ;
 #endif
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -450,7 +450,7 @@ main_loop_final(void)
 
 	kik_set_msg_log_file_name( NULL) ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	x_xim_final() ;
 #endif
 

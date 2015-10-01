@@ -528,7 +528,7 @@ x_get_fontset(
 	x_font_manager_t *  font_man
 	)
 {
-#if  defined(USE_FRAMEBUFFER)
+#if  defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
 
 	return  None ;
 

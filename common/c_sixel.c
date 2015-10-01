@@ -772,7 +772,7 @@ body:
 
 					for( x = 0 ; x < rep ; x ++)
 					{
-					#if  defined(GDK_PIXBUF_VERSION)
+					#if  defined(GDK_PIXBUF_VERSION) || defined(USE_QUARTZ)
 						/* RGBA */
 						pixels[((pix_y + y) * width + pix_x + x) *
 							PIXEL_SIZE] =

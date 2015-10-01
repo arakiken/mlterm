@@ -7159,7 +7159,7 @@ ml_vt100_parser_show_message(
 	}
 }
 
-#ifdef  __ANDROID__
+#if  defined(__ANDROID__) || defined(__APPLE__)
 int
 ml_vt100_parser_preedit(
 	ml_vt100_parser_t *  vt100_parser ,

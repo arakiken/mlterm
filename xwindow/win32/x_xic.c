@@ -81,6 +81,9 @@ x_xic_activate(
 	if( ( win->xic->parser = mkf_utf16_parser_new()) == NULL)
 #endif
 	{
+		free( win->xic) ;
+		win->xic = NULL ;
+
 		return  0 ;
 	}
 

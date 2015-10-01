@@ -1176,7 +1176,7 @@ change_sb_mode(
 		goto  noresize ;
 	}
 
-	if( ! x_window_resize_with_margin( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
+	if( ! x_window_resize( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 		total_width( &X_SCREEN_TO_LAYOUT(term->screen)->term) ,
 		total_height( &X_SCREEN_TO_LAYOUT(term->screen)->term) ,
 		NOTIFY_TO_MYSELF))
@@ -1424,6 +1424,7 @@ x_layout_new(
 #ifndef  DISABLE_XDND
 	layout->window.set_xdnd_config = set_xdnd_config ;
 #endif
+
 	return  layout ;
 
 error:
@@ -1715,7 +1716,9 @@ x_layout_remove_child(
 		x_set_screen_scroll_listener( term->screen , &term->screen_scroll_listener) ;
 		term->sb_listener.self = term ;
 		term->scrollbar.sb_listener = &term->sb_listener ;
+	#ifndef  USE_QUARTZ
 		term->scrollbar.view->win = &term->scrollbar.window ;
+	#endif
 
 		term = next ;
 	}

@@ -1258,10 +1258,10 @@ x_font_get_encoding_names(
 
 void
 x_font_use_point_size(
-	int  bool
+	int  use
 	)
 {
-	use_point_size_for_fc = bool ;
+	use_point_size_for_fc = use ;
 }
 
 /* For mlterm-libvte */

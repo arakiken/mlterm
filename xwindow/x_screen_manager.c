@@ -528,8 +528,8 @@ close_screen_intern(
 	x_font_manager_delete( screen->font_man) ;
 	x_color_manager_delete( screen->color_man) ;
 
-	root = x_get_root_window( &screen->window) ;
 	disp = root->disp ;
+	root = x_get_root_window( &screen->window) ;
 
 	if( ! x_display_remove_root( disp , root))
 	{

@@ -19921,7 +19921,7 @@ fi
 	;;
 *)
 	CYGPATHW=echo
-	if test "$gui" != "xlib" -a "$gui" != "fb" ; then
+	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "quartz" ; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
@@ -20786,6 +20786,10 @@ fi
 
 	LDFLAGS="$ldflags" CFLAGS="$cflags"
 
+elif test "$gui" = "quartz" ; then
+	GUI="quartz"
+	GUI_CFLAGS="-DUSE_QUARTZ"
+	X_CFLAGS=""
 else
 	GUI="fb"
 	ac_fn_c_check_header_mongrel "$LINENO" "machine/grfioctl.h" "ac_cv_header_machine_grfioctl_h" "$ac_includes_default"
@@ -23289,8 +23293,6 @@ fi
 DL_LIBS_SB=""
 SB_CFLAGS=""
 
-scrollbars="sample,extra"  # default
-
 
 # Check whether --with-scrollbars was given.
 if test "${with_scrollbars+set}" = set; then :
@@ -23318,9 +23320,7 @@ sample)
 		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
-			for name in sample sample2 ; do
-				DL_LIBS_SB="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${DL_LIBS_SB}"
-			done
+			DL_LIBS_SB="-dlopen \$(top_builddir)/scrollbar/sample/libsample.la ${DL_LIBS_SB}"
 		fi
 		scrollbars_result="$scrollbars_result $scrollbar"
 	fi

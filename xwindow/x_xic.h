@@ -8,7 +8,7 @@
 
 #include  <kiklib/kik_types.h>		/* size_t */
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI) || defined(USE_QUARTZ)
 #include  <ml_char_encoding.h>
 #endif
 
@@ -19,9 +19,11 @@
 typedef struct  x_xic
 {
 	XIC  ic ;
-	
-#ifdef  USE_WIN32GUI
+
+#if defined(USE_WIN32GUI)
 	WORD  prev_keydown_wparam ;
+	mkf_parser_t *  parser ;
+#elif defined(USE_QUARTZ)
 	mkf_parser_t *  parser ;
 #else
 	XFontSet  fontset ;

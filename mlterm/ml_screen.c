@@ -1347,6 +1347,11 @@ ml_screen_backscroll_upward(
 		size = screen->backscroll_rows ;
 	}
 
+	if( size == 0)
+	{
+		return  0 ;
+	}
+
 	screen->backscroll_rows -= size ;
 
 	if( ! screen->screen_listener ||
@@ -1404,6 +1409,11 @@ ml_screen_backscroll_downward(
 	if( ml_get_num_of_logged_lines( &screen->logs) < screen->backscroll_rows + size)
 	{
 		size = ml_get_num_of_logged_lines( &screen->logs) - screen->backscroll_rows ;
+	}
+
+	if( size == 0)
+	{
+		return  0 ;
 	}
 
 	screen->backscroll_rows += size ;

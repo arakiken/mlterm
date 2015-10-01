@@ -114,9 +114,11 @@ typedef struct  x_window
 	x_xim_event_listener_t *  xim_listener ;
 	x_xic_ptr_t  xic ;	/* Only root window manages xic in win32 */
 
-#ifdef  USE_WIN32GUI
+#if  defined(USE_WIN32GUI)
 	WORD  update_window_flag ;
 	int  cmd_show ;
+#elif  defined(USE_QUARTZ)
+	int  update_window_flag ;
 #endif
 
 	/* button */
@@ -139,13 +141,12 @@ typedef struct  x_window
 	 * XClassHint
 	 */
 	char *  app_name ;
-
 	
 	/*
 	 * flags etc.
 	 */
 
-#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER)
+#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
 	Pixmap  wall_picture ;
 #else
 	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
@@ -220,7 +221,7 @@ int  x_window_set_wall_picture( x_window_t *  win , Pixmap  pic , int  do_expose
 
 int  x_window_unset_wall_picture( x_window_t *  win , int  do_expose) ;
 
-#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER)
+#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
 #define  x_window_has_wall_picture( win)  ((win)->wall_picture != None)
 #else
 #define  x_window_has_wall_picture( win)  ((win)->wall_picture_is_set)

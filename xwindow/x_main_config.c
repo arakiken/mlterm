@@ -746,9 +746,13 @@ x_main_config_init(
 			kik_msg_printf( invalid_msg , "tab size" , value) ;
 		}
 	}
-	
+
+#ifdef  USE_QUARTZ
+	main_config->use_login_shell = 1 ;
+#else
 	main_config->use_login_shell = 0 ;
-	
+#endif
+
 	if( ( value = kik_conf_get_value( conf , "use_login_shell")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -767,10 +771,12 @@ x_main_config_init(
 
 	main_config->use_mdi = 1 ;
 
+#ifndef  USE_QUARTZ
 	if( ( value = kik_conf_get_value( conf , "use_mdi")))
 	{
 		main_config->use_mdi = (strcmp( value , "true") == 0) ;
 	}
+#endif
 
 	if( ( value = kik_conf_get_value( conf , "scrollbar_mode")))
 	{
@@ -837,7 +843,7 @@ x_main_config_init(
 			}
 		}
 	}
-#ifdef  __ANDROID__
+#if  defined(__ANDROID__) || defined(USE_QUARTZ)
 	else
 	{
 		main_config->unicode_policy = ONLY_USE_UNICODE_FONT ;
@@ -855,13 +861,16 @@ x_main_config_init(
 			main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
 		}
 	}
-#ifdef  __ANDROID__
+#if  defined(__ANDROID__) || defined(USE_QUARTZ)
 	else
 	{
 		main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT ;
 	}
 #endif
 
+#ifdef  USE_QUARTZ
+	main_config->receive_string_via_ucs = 1 ;
+#else
 	if( ( value = kik_conf_get_value( conf , "receive_string_via_ucs")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -869,6 +878,7 @@ x_main_config_init(
 			main_config->receive_string_via_ucs = 1 ;
 		}
 	}
+#endif
 
 	/* "cn" and "ko" ? */
 	if( strcmp( kik_get_lang() , "ja") == 0)

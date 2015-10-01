@@ -1562,21 +1562,19 @@ x_window_move(
 	int  y
 	)
 {
+	if( win->parent)
+	{
+		x += win->parent->hmargin ;
+		y += win->parent->vmargin ;
+	}
+
 	if( win->x == x && win->y == y)
 	{
 		return  0 ;
 	}
 
-	if( win->parent)
-	{
-		win->x = x + win->parent->hmargin ;
-		win->y = y + win->parent->vmargin ;
-	}
-	else
-	{
-		win->x = x ;
-		win->y = y ;
-	}
+	win->x = x ;
+	win->y = y ;
 
 	if( ! check_child_window_area( x_get_root_window( win)) ||
 	    win->x + ACTUAL_WIDTH(win) > win->disp->width ||

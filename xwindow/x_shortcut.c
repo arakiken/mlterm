@@ -14,6 +14,10 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 
 
+#ifndef  CommandMask
+#define  CommandMask  (0)
+#endif
+
 /*
  * !! Notice !!
  * Mod1Mask - Mod5Mask are not distinguished.
@@ -143,6 +147,19 @@ x_shortcut_init(
 		/* EXT_KBD(obsolete) */
 		{ 0 , 0 , 0 , } ,
 
+	#ifdef  USE_QUARTZ
+		/* OPEN_SCREEN */
+		{ XK_F1 , CommandMask , 1 , } ,
+
+		/* OPEN_PTY */
+		{ XK_F2 , CommandMask , 1 , } ,
+
+		/* NEXT_PTY */
+		{ XK_F3 , CommandMask , 1 , } ,
+
+		/* PREV_PTY */
+		{ XK_F4 , CommandMask , 1 , } ,
+	#else
 		/* OPEN_SCREEN */
 		{ XK_F1 , ControlMask , 1 , } ,
 
@@ -154,6 +171,7 @@ x_shortcut_init(
 
 		/* PREV_PTY */
 		{ XK_F4 , ControlMask , 1 , } ,
+	#endif
 
 		/* HSPLIT_SCREEN */
 		{ XK_F1 , ShiftMask , 1 , } ,
@@ -272,7 +290,7 @@ x_shortcut_match(
 	}
 
 	/* ingoring except these masks */
-	state &= (ModMask|ControlMask|ShiftMask|button_mask) ;
+	state &= (ModMask|ControlMask|ShiftMask|CommandMask|button_mask) ;
 
 	if( shortcut->map[func].ksym == ksym &&
 	    shortcut->map[func].state ==
@@ -298,7 +316,7 @@ x_shortcut_str(
 	u_int  count ;
 
 	/* ingoring except these masks */
-	state &= (ModMask|ControlMask|ShiftMask|button_mask) ;
+	state &= (ModMask|ControlMask|ShiftMask|CommandMask|button_mask) ;
 
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{
@@ -381,6 +399,10 @@ x_shortcut_parse(
 				break;
 		#endif
 			}
+		}
+		else if( strcmp( key , "Command") == 0)
+		{
+			state |= CommandMask ;
 		}
 	#ifdef  DEBUG
 		else

@@ -157,7 +157,7 @@ receive_next_event(void)
 
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{
-		#ifdef  X_PROTOCOL
+		#if  defined(X_PROTOCOL) && ! defined(USE_QUARTZ)
 			/*
 			 * Need to read pending events and to flush events in
 			 * output buffer on X11 before waiting in select().

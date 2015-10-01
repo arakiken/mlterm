@@ -3973,8 +3973,10 @@ button_released(
 		}
 	}
 
-	x_stop_selecting( &screen->sel) ;
-	highlight_cursor( screen) ;
+	if( x_stop_selecting( &screen->sel))
+	{
+		x_window_update( &screen->window , UPDATE_CURSOR) ;
+	}
 }
 
 static void
@@ -4827,7 +4829,7 @@ change_transparent_flag(
 	)
 {
 	if( screen->window.is_transparent == is_transparent
-	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
 	    /*
 	     * If wall picture is not still set, do set it.
 	     * This is necessary for gnome-terminal, because ConfigureNotify event never
@@ -5978,27 +5980,6 @@ line_scrolled_out(
 	}
 #endif
 }
-
-#ifdef  WINDOW_CLEAR
-static void
-window_clear(
-	void *  p ,
-	int  row ,
-	u_int  num
-	)
-{
-	x_screen_t *  screen ;
-	int  y ;
-	u_int  height ;
-
-	screen = p ;
-
-	y = row * x_line_height( screen) ;
-	height = num * x_line_height( screen) ;
-
-	x_window_clear( &screen->window , 0 , y , screen->window.width , height) ;
-}
-#endif
 
 
 /*
@@ -7955,7 +7936,6 @@ x_screen_detach(
 	
 	term = screen->term ;
 	screen->term = NULL ;
-	x_window_clear_all( &screen->window) ;
 
 	return  term ;
 }

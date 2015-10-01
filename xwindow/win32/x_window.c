@@ -770,11 +770,10 @@ clear_margin_area(
 		if( win->hmargin > 0 || right_margin > 0)
 		{
 			BitBlt( win->gc->gc , 0 , 0 ,
-				win->hmargin , ACTUAL_HEIGHT(win) + right_margin ,
+				win->hmargin , ACTUAL_HEIGHT(win) ,
 				pic , src_x , src_y , SRCCOPY) ;
 			BitBlt( win->gc->gc , win_width + win->hmargin , 0 ,
-				win->hmargin + right_margin ,
-				ACTUAL_HEIGHT(win) + bottom_margin ,
+				win->hmargin + right_margin , ACTUAL_HEIGHT(win) ,
 				pic ,
 				src_x + win_width + win->hmargin , src_y , SRCCOPY) ;
 		}
@@ -796,19 +795,15 @@ clear_margin_area(
 	{
 		HBRUSH  brush ;
 		RECT  r ;
-		int  right ;
-		int  bottom ;
 
 		brush = x_acquire_brush( win->bg_color.pixel) ;
-		right = ACTUAL_WIDTH(win) + right_margin ;
-		bottom = ACTUAL_HEIGHT(win) + bottom_margin ;
 
 		if( win->hmargin > 0 || right_margin > 0)
 		{
-			SetRect( &r , 0 , 0 , win->hmargin , bottom) ;
+			SetRect( &r , 0 , 0 , win->hmargin , ACTUAL_HEIGHT(win)) ;
 			FillRect( win->gc->gc , &r , brush) ;
 			SetRect( &r , win_width + win->hmargin , 0 ,
-				right , bottom) ;
+				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 			FillRect( win->gc->gc , &r , brush) ;
 		}
 
@@ -818,7 +813,7 @@ clear_margin_area(
 				win_width + win->hmargin , win->vmargin) ;
 			FillRect( win->gc->gc , &r , brush) ;
 			SetRect( &r , win->hmargin , win_height + win->vmargin ,
-				win_width + win->hmargin , bottom) ;
+				win_width + win->hmargin , ACTUAL_HEIGHT(win)) ;
 			FillRect( win->gc->gc , &r , brush) ;
 		}
 
@@ -1712,21 +1707,19 @@ x_window_move(
 	int  y
 	)
 {
+	if( win->parent)
+	{
+		x += win->parent->hmargin ;
+		y += win->parent->vmargin ;
+	}
+
 	if( win->x == x && win->y == y)
 	{
 		return  0 ;
 	}
 
-	if( win->parent)
-	{
-		win->x = x + win->parent->hmargin ;
-		win->y = y + win->parent->vmargin ;
-	}
-	else
-	{
-		win->x = x ;
-		win->y = y ;
-	}
+	win->x = x ;
+	win->y = y ;
 
 	update_decorate_size( win) ;
 

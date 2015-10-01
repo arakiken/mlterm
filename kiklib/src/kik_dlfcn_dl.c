@@ -37,6 +37,7 @@ kik_dl_open(
 		return  (kik_dl_handle_t)ret ;
 	}
 
+#ifndef  __APPLE__
 	sprintf( path , "%slib%s.sl" , dirpath , name) ;
 	if( ( ret = dlopen( path , RTLD_LAZY)))
 	{
@@ -54,6 +55,27 @@ kik_dl_open(
 	{
 		return  (kik_dl_handle_t)ret ;
 	}
+#else
+	{
+		char *  p ;
+
+		/* XXX Hack */
+		if( ( ( p = strstr( dirpath , "mkf/")) || ( p = strstr( dirpath , "mlterm/"))) &&
+		    ( path = alloca( 21 + strlen(p) + 3 + strlen(name) + 3 + 1)))
+		{
+			sprintf( path , "@executable_path/lib/%slib%s.so" , p , name) ;
+		}
+		else
+		{
+			return  NULL ;
+		}
+
+		if( ( ret = dlopen( path , RTLD_LAZY)))
+		{
+			return  (kik_dl_handle_t)ret ;
+		}
+	}
+#endif
 
 	return  NULL ;
 }
