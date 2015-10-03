@@ -328,19 +328,33 @@ open_pty_intern(
 	 */
 	if( ! uri && ! cmd_path)
 	{
-		/*
-		 * SHELL env var -> /etc/passwd -> /bin/sh
-		 */
-		if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
-		{
-		#ifndef  USE_WIN32API
-			struct passwd *  pw ;
+	#ifdef  USE_QUARTZ
+		char *  user ;
 
-			if( ( pw = getpwuid(getuid())) == NULL ||
-				*( cmd_path = pw->pw_shell) == '\0')
-		#endif
+		if( ( user = getenv("USER")) && ( cmd_argv = alloca( sizeof(char*) * 4)))
+		{
+			cmd_argv[0] = cmd_path = "login" ;
+			cmd_argv[1] = "-fp" ;
+			cmd_argv[2] = user ;
+			cmd_argv[3] = NULL ;
+		}
+		else
+	#endif
+		{
+			/*
+			 * SHELL env var -> /etc/passwd -> /bin/sh
+			 */
+			if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
 			{
-				cmd_path = "/bin/sh" ;
+			#ifndef  USE_WIN32API
+				struct passwd *  pw ;
+
+				if( ( pw = getpwuid(getuid())) == NULL ||
+					*( cmd_path = pw->pw_shell) == '\0')
+			#endif
+				{
+					cmd_path = "/bin/sh" ;
+				}
 			}
 		}
 	}
@@ -528,8 +542,8 @@ close_screen_intern(
 	x_font_manager_delete( screen->font_man) ;
 	x_color_manager_delete( screen->color_man) ;
 
-	disp = root->disp ;
 	root = x_get_root_window( &screen->window) ;
+	disp = root->disp ;
 
 	if( ! x_display_remove_root( disp , root))
 	{

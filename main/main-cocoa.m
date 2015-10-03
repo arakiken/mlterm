@@ -24,11 +24,6 @@ main(
 	const char *  argv[]
 	)
 {
-	if( getenv( "HOME"))
-	{
-		chdir( getenv( "HOME")) ;
-	}
-
 	kik_set_sys_conf_dir( CONFIG_PATH) ;
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
 

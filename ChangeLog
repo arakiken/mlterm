@@ -1,3 +1,10 @@
+2015-10-04  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen_manager.c:
+	  - "login -fp $USER" is used instead of "$SHELL" environmental variable.
+	  - Uncertainty of "disp = root->disp" in close_screen_intern() is fixed.
+	    (Enbugged at 2015-10-02 commit)
+
 2015-10-03  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.cocoa: Added.
