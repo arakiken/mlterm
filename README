@@ -23,7 +23,7 @@ Options for configure
   --without-prop-table
     Remove unicode character property table
 
-  --with-gui=(xlib|win32|fb)
+  --with-gui=(xlib|win32|fb|quartz)
     Use specified gui library
   
   --with-imagelib=(gdk-pixbuf)
@@ -183,6 +183,7 @@ Supported platforms
   * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
   * MS Windows 7 + Cygwin 1.7.26 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
   * MS Windows 7 + Cygwin 1.7.26 / X (x86)
+  * MacOSX 10.6 (x86)
 
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.

@@ -40,20 +40,17 @@
 				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{100, 100}</string>
 				<object class="NSView" key="NSWindowView" id="979264719">
-					<reference key="NSNextResponder"/>
+					<nil key="NSNextResponder"/>
 					<int key="NSvFlags">18</int>
 					<array class="NSMutableArray" key="NSSubviews">
 						<object class="NSCustomView" id="822961112">
 							<reference key="NSNextResponder" ref="979264719"/>
 							<string key="NSFrameSize">{400, 400}</string>
 							<reference key="NSSuperview" ref="979264719"/>
-							<reference key="NSWindow"/>
 							<string key="NSClassName">MLTermView</string>
 						</object>
 					</array>
 					<string key="NSFrameSize">{400, 400}</string>
-					<reference key="NSSuperview"/>
-					<reference key="NSWindow"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
 				<string key="NSMinSize">{100, 122}</string>

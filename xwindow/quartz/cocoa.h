@@ -43,9 +43,7 @@ void  view_scroll( void *  view , int  src_x , int  src_y , u_int  width , u_int
 
 void  view_set_input_focus( void *  view) ;
 
-void  view_resize( void *  view , int  width_diff , int  height_diff) ;
-
-void  view_move( void *  view , int  x_diff , int  y_diff) ;
+void  view_set_rect( void *  view , int  x , int  y , u_int  width , u_int  height) ;
 
 void  view_set_hidden( void *  view , int  flag) ;
 

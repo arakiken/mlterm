@@ -1,3 +1,6 @@
+ver 3.6.0
+* Support MacOSX/Cocoa.
+
 ver 3.5.1
 * Support font fallback on cairo.
 * Improve romaji-kana conversion in using wnn as an input method.

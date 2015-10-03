@@ -16,15 +16,7 @@ x_gc_new(
 	Drawable  drawable
 	)
 {
-	x_gc_t *  gc ;
-
-	if( ( gc = calloc( 1 , sizeof(x_gc_t))))
-	{
-		/* XXX dummy */
-		gc->gc = 1 ;
-	}
-
-	return  gc ;
+	return  NULL ;
 }
 
 int

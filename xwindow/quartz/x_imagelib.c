@@ -170,6 +170,7 @@ load_file(
 		CGColorSpaceRelease( cs) ;
 
 		*pixmap = CGBitmapContextCreateImage( ctx) ;
+		CGContextRelease( ctx) ;
 	}
 	else
 #endif
@@ -222,58 +223,29 @@ x_imagelib_load_file_for_background(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-#if  0
-	u_int  width ;
-	u_int  height ;
-	HBITMAP  hbmp ;
-	HBITMAP  hbmp_w ;
-	HDC  hdc ;
-	HDC  hmdc_tmp ;
-	HDC  hmdc ;
+	Pixmap  pixmap ;
+	u_int  width = 0 ;
+	u_int  height = 0 ;
 
-	width = height = 0 ;
-	if( ! load_file( path , &width , &height , pic_mod , &hbmp , NULL))
+	if( ! load_file( path , &width , &height , NULL , &pixmap , NULL))
 	{
-		BITMAP  bmp ;
-	#if  defined(__CYGWIN__) || defined(__MSYS__)
-		/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
-		char  winpath[MAX_PATH] ;
-		cygwin_conv_to_win32_path( path , winpath) ;
-		path = winpath ;
-	#endif
-
-		if( ! ( hbmp = LoadImage( 0 , path , IMAGE_BITMAP , 0 , 0 , LR_LOADFROMFILE)))
-		{
-			return  None ;
-		}
-
-		GetObject( hbmp , sizeof(BITMAP) , &bmp) ;
-		width = bmp.bmWidth ;
-		height = bmp.bmHeight ;
+		return  None ;
 	}
 
-	hdc = GetDC( win->my_window) ;
+	CGColorSpaceRef  cs = CGImageGetColorSpace( pixmap) ;
+	CGContextRef  ctx = CGBitmapContextCreate( NULL ,
+				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+				CGImageGetBitsPerComponent( pixmap) ,
+				CGImageGetBytesPerRow( pixmap) , cs ,
+				CGImageGetAlphaInfo( pixmap)) ;
 
-	hmdc_tmp = CreateCompatibleDC( hdc) ;
-	SelectObject( hmdc_tmp , hbmp) ;
+	CGContextDrawImage( ctx ,
+		CGRectMake( 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) , pixmap) ;
+	CGImageRelease( pixmap) ;
+	Pixmap  resized = CGBitmapContextCreateImage( ctx) ;
+	CGContextRelease( ctx) ;
 
-	hbmp_w = CreateCompatibleBitmap( hdc , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-	hmdc = CreateCompatibleDC( hdc) ;
-	SelectObject( hmdc , hbmp_w) ;
-
-	ReleaseDC( win->my_window , hdc) ;
-
-	SetStretchBltMode( hmdc , COLORONCOLOR) ;
-	StretchBlt( hmdc , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-		hmdc_tmp , 0 , 0 , width , height , SRCCOPY) ;
-
-	DeleteDC( hmdc_tmp) ;
-	DeleteObject( hbmp) ;
-
-	return  hmdc ;
-#else
-	return  None ;
-#endif
+	return  resized ;
 }
 
 int

@@ -1,3 +1,25 @@
+2015-10-03  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.cocoa: Added.
+
+	* quartz/x_xic.c: Control+space and Alt+x work on MacOSX/Cocoa.
+
+	* x_screen.c: Delete key works on MacOSX/Cocoa.
+
+	* cocoa.[mh]:
+	  - view_resize() and view_move() are integrated to view_set_rect().
+	  - Position and size of each subview is reset when a top window is resized.
+	  - MLTermView::pasteboard() is implemented.
+
+	* quartz/x_window.c, quartz/x_display.c, quartz/x_gc.c:
+	  - x_window_t::gc is always NULL.
+
+	* quartz/x_window.c:
+	  win->wall_picture is drawn in x_window_clear() and clear_margin_area().
+
+	* quartz/x_imagelib.c:
+	  x_imagelib_load_file_for_background() is implemented.
+
 2015-10-02  Araki Ken  <arakiken@users.sf.net>
 
 	* Cocoa is supported. (experimental)

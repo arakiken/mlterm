@@ -1,0 +1,26 @@
+comment -*- mode: text -*-
+comment update: <>
+comment $Id$
+
+MacOS X/Cocoa support (Experimental)
+
+* Tested environment
+  MacOS X 10.6
+
+* Build
+  ./configure --with-gui=quartz (--config-cache) --prefix=/foo/bar
+  make
+  make install
+  $(top_srcdir)/cocoa/install /foo/bar
+
+* Start
+  open -a $HOME/mlterm.app
+
+* Caution
+  o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
+  o It is impossible to disable -s/--mdi option.
+  o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
+    Command+F1, Command+F2, Command+F3 and Command+F4.
+
+* Executable binaries
+  http://mlterm.sf.net/bin.html

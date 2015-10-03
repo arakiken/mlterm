@@ -270,11 +270,6 @@ clear_margin_area(
 	u_int  win_width ;
 	u_int  win_height ;
 
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
 	right_margin = RIGHT_MARGIN(win) ;
 	bottom_margin = BOTTOM_MARGIN(win) ;
 	win_width = win->width - right_margin ;
@@ -300,31 +295,25 @@ clear_margin_area(
 
 		if( win->hmargin > 0 || right_margin > 0)
 		{
-		#if  0
-			BitBlt( win->gc->gc , 0 , 0 ,
-				win->hmargin , ACTUAL_HEIGHT(win) + right_margin ,
-				pic , src_x , src_y , SRCCOPY) ;
-			BitBlt( win->gc->gc , win_width + win->hmargin , 0 ,
+			view_copy_area( win->my_window , pic ,
+				src_x , src_y , win->hmargin , ACTUAL_HEIGHT(win) , 0 , 0) ;
+			view_copy_area( win->my_window , pic ,
+				src_x + win_width + win->hmargin , src_y ,
 				win->hmargin + right_margin ,
-				ACTUAL_HEIGHT(win) + bottom_margin ,
-				pic ,
-				src_x + win_width + win->hmargin , src_y , SRCCOPY) ;
-		#endif
+				ACTUAL_HEIGHT(win) ,
+				win_width + win->hmargin , 0) ;
 		}
 
 		if( win->vmargin > 0 || bottom_margin > 0)
 		{
-		#if  0
-			BitBlt( win->gc->gc , win->hmargin , 0 ,
+			view_copy_area( win->my_window , pic ,
+				src_x + win->hmargin , src_y ,
 				win_width , win->vmargin ,
-				pic ,
-				src_x + win->hmargin , src_y , SRCCOPY) ;
-			BitBlt( win->gc->gc , win->hmargin , win_height + win->vmargin ,
-				win_width , win->vmargin + bottom_margin ,
-				pic ,
+				win->hmargin , 0) ;
+			view_copy_area( win->my_window , pic ,
 				src_x + win->hmargin , src_y + win_height + win->vmargin ,
-				SRCCOPY) ;
-		#endif
+				win_width , win->vmargin + bottom_margin ,
+				win->hmargin , win_height + win->vmargin) ;
 		}
 	}
 	else
@@ -578,7 +567,7 @@ x_window_set_wall_picture(
 	if( win->my_window != None && do_expose)
 	{
 	#if  0
-		InvalidateRect( win->my_window, NULL, FALSE) ;
+		view_update( win->my_window , 1) ;
 	#endif
 	}
 
@@ -756,42 +745,6 @@ x_get_root_window(
 	}
 
 	return  win ;
-}
-
-GC
-x_window_get_fg_gc(
-	x_window_t *  win
-	)
-{
-	if( win->gc->gc == None)
-	{
-		return  None ;
-	}
-
-#if  0
-	x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( win->fg_color.pixel))) ;
-	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->fg_color.pixel))) ;
-#endif
-
-	return  win->gc->gc ;
-}
-
-GC
-x_window_get_bg_gc(
-	x_window_t *  win
-	)
-{
-	if( win->gc->gc == None)
-	{
-		return  None ;
-	}
-
-#if  0
-	x_release_pen( x_gc_set_pen( win->gc , GetStockObject(NULL_PEN))) ;
-	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->bg_color.pixel))) ;
-#endif
-
-	return  win->gc->gc ;
 }
 
 int
@@ -991,8 +944,9 @@ x_window_resize(
 
 	if( win->parent)
 	{
-		view_resize( win->my_window , ((int)ACTUAL_WIDTH(win)) - old_width ,
-			((int)ACTUAL_HEIGHT(win)) - old_height) ;
+		view_set_rect( win->my_window , win->x ,
+			ACTUAL_HEIGHT(win->parent) - ACTUAL_HEIGHT(win) - win->y ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 		if( (flag & NOTIFY_TO_PARENT) && win->parent->child_window_resized)
 		{
@@ -1117,13 +1071,15 @@ x_window_move(
 		return  0 ;
 	}
 
-	if( win->parent)
-	{
-		view_move( win->my_window , x - win->x , y - win->y) ;
-	}
-
 	win->x = x ;
 	win->y = y ;
+
+	if( win->parent)
+	{
+		view_set_rect( win->my_window , x ,
+			ACTUAL_HEIGHT(win->parent) - ACTUAL_HEIGHT(win) - y ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	}
 
 	return  1 ;
 }
@@ -1180,7 +1136,6 @@ x_window_clear(
 
 	if( win->wall_picture)
 	{
-	#if  0
 		Pixmap  pic ;
 		int  src_x ;
 		int  src_y ;
@@ -1197,10 +1152,8 @@ x_window_clear(
 			src_x = src_y = 0 ;
 		}
 
-		BitBlt( win->gc->gc ,
-			r.left , r.top , r.right - r.left , r.bottom - r.top ,
-			pic , src_x + r.left , src_y + r.top , SRCCOPY) ;
-	#endif
+		view_copy_area( win->my_window , pic ,
+			src_x + x , src_y + y , width , height , x , y) ;
 	}
 	else
 	{
@@ -1240,11 +1193,6 @@ x_window_fill_with(
 	u_int	height
 	)
 {
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
 	view_fill_with( win->my_window , color , x + win->hmargin , y + win->vmargin ,
 		width , height) ;
 
@@ -1724,62 +1672,6 @@ x_window_draw_string(
 	u_int  len
 	)
 {
-#if  0
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
-	/* Removing trailing spaces. */
-	while( 1)
-	{
-		if( len == 0)
-		{
-			return  1 ;
-		}
-
-		if( *(str + len - 1) == ' ')
-		{
-			len-- ;
-		}
-		else
-		{
-			break ;
-		}
-	}
-
-	x_gc_set_fid( win->gc, font->fid) ;
-	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
-	
-	/*
-	 * XXX Hack
-	 * In case US_ASCII characters is drawn by Unicode font.
-	 * 8 bit charcter => 16 bit character.
-	 */
-	if( FONT_CS(font->id) == ISO10646_UCS4_1)
-	{
-		u_char *  dbl_str ;
-
-		if( ( dbl_str = alloca( len * 2)))
-		{
-			u_int  count ;
-
-			for( count = 0 ; count < len ; count++)
-			{
-				/* Little Endian */
-				dbl_str[count * 2] = str[count] ;
-				dbl_str[count * 2 + 1] = 0x0 ;
-			}
-
-			draw_string( win , font , x , y , dbl_str , len * 2 , 1) ;
-		}
-	}
-	else
-	{
-		draw_string( win , font , x , y , str , len , 1) ;
-	}
-#endif
-
 	view_draw_string( win->my_window , font , fg_color ,
 		x + win->hmargin , y + win->vmargin , str , len) ;
 
@@ -1797,18 +1689,6 @@ x_window_draw_string16(
 	u_int  len
 	)
 {
-#if  0
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
-	x_gc_set_fid( win->gc, font->fid) ;
-	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
-	
-	draw_string( win , font , x , y , (u_char*)str , len * 2 , 1) ;
-#endif
-
 	view_draw_string16( win->my_window , font , fg_color ,
 		x + win->hmargin , y + win->vmargin , str , len) ;
 
@@ -1827,45 +1707,6 @@ x_window_draw_image_string(
 	u_int  len
 	)
 {
-#if  0
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
-	x_gc_set_fid( win->gc, font->fid) ;
-	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
-	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
-
-	/*
-	 * XXX Hack
-	 * In case US_ASCII characters is drawn by Unicode font.
-	 * 8 bit charcter => 16 bit character.
-	 */
-	if( FONT_CS(font->id) == ISO10646_UCS4_1)
-	{
-		u_char *  dbl_str ;
-
-		if( ( dbl_str = alloca( len * 2)))
-		{
-			u_int  count ;
-
-			for( count = 0 ; count < len ; count++)
-			{
-				/* Little Endian */
-				dbl_str[count * 2] = str[count] ;
-				dbl_str[count * 2 + 1] = 0x0 ;
-			}
-
-			draw_string( win , font , x , y , dbl_str , len * 2 , 0) ;
-		}
-	}
-	else
-	{
-		draw_string( win , font , x , y , str , len , 0) ;
-	}
-#endif
-
 	view_draw_string( win->my_window , font , fg_color ,
 		x + win->hmargin , y + win->vmargin , str , len) ;
 
@@ -1884,19 +1725,6 @@ x_window_draw_image_string16(
 	u_int  len
 	)
 {
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
-#if  0
-	x_gc_set_fid( win->gc, font->fid) ;
-	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
-	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
-
-	draw_string( win, font, x, y, (u_char*)str, len * 2 , 0) ;
-#endif
-
 	view_draw_string16( win->my_window , font , fg_color ,
 		x + win->hmargin , y + win->vmargin , str , len) ;
 
@@ -1912,11 +1740,6 @@ x_window_draw_rect_frame(
 	int  y2
 	)
 {
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-
 	view_draw_rect_frame( win->my_window , &win->fg_color ,
 		x1 + win->hmargin , y1 + win->vmargin ,
 		x2 + win->hmargin , y2 + win->vmargin) ;

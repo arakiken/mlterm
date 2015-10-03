@@ -132,11 +132,24 @@ x_xic_get_str(
 
 		return  0 ;
 	}
+	else if( event->utf8 == NULL)
+	{
+		*seq = event->keysym ;
+		*parser = NULL ;
+
+		return  1 ;
+	}
 	else
 	{
 		size_t  len = strlen( event->utf8) ;
 
-		if( len <= seq_len)
+		if( len == 0 && (event->state & ControlMask))
+		{
+			*seq = '\0' ;
+			len = 1 ;
+			*parser = NULL ;
+		}
+		else if( len <= seq_len)
 		{
 			memcpy( seq , event->utf8 , seq_len) ;
 			*parser = win->xic->parser ;

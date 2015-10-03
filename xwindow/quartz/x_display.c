@@ -86,11 +86,6 @@ x_display_open(
 #endif
 	_disp.depth = 24 ;
 
-	if( ( _disp.gc = x_gc_new( &_display , None)) == NULL)
-	{
-		return  NULL ;
-	}
-
 	/* _disp is initialized successfully. */
 	_display.fd = -1 ;
 	_disp.display = &_display ;

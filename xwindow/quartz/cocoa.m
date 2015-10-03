@@ -334,6 +334,27 @@ remove_all_observers(
 	[super dealloc] ;
 }
 
+static void
+reset_position(
+	x_window_t *  xwindow
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < xwindow->num_of_children ; count++)
+	{
+		x_window_t *  child = xwindow->children[count] ;
+
+		[((NSView*)child->my_window)
+			setFrame:NSMakeRect( child->x ,
+				((int)ACTUAL_HEIGHT(xwindow)) -
+					((int)ACTUAL_HEIGHT(child)) - child->y ,
+				ACTUAL_WIDTH(child) , ACTUAL_HEIGHT(child))] ;
+
+		reset_position( child) ;
+	}
+}
+
 - (void)resized:(NSNotification*)note
 {
 	if( ! xwindow->parent || ! ((x_screen_t*)xwindow)->term)
@@ -343,24 +364,12 @@ remove_all_observers(
 	}
 
 	xwindow->parent->width = ((NSView*)[self window].contentView).frame.size.width -
-					xwindow->parent->hmargin * 2 ;
+				xwindow->parent->hmargin * 2 ;
 	xwindow->parent->height = ((NSView*)[self window].contentView).frame.size.height -
 					xwindow->parent->vmargin * 2 ;
 
-	struct terminal *  term = ((x_screen_t*)xwindow)->screen_scroll_listener->self ;
-	NSScroller *  scroller = term->scrollbar.window.my_window ;
-
-	CGPoint  p1 = self.frame.origin ;
-	CGPoint  p2 = scroller.frame.origin ;
-
-	float  new_y = ((int)ACTUAL_HEIGHT(xwindow->parent)) - xwindow->y -
-			((int)ACTUAL_HEIGHT(xwindow)) ;
-	p2.y += (new_y - p1.y) ;
-	p1.y = new_y ;
-	[self setFrameOrigin:p1] ;
-	[scroller setFrameOrigin:p2] ;
-
 	(*xwindow->parent->window_resized)( xwindow->parent) ;
+	reset_position( xwindow->parent) ;
 }
 
 - (void)viewDidMoveToWindow
@@ -459,6 +468,9 @@ remove_all_observers(
 
 		[[self window] makeKeyAndOrderFront:self] ;
 	}
+
+	/* Adjust scroller position */
+	[scroller setFrameOrigin:NSMakePoint(term->scrollbar.window.x,y)] ;
 }
 - (void)scrollerAction:(id)sender
 {
@@ -676,26 +688,35 @@ remove_all_observers(
 		return ;
 	}
 
-	XKeyEvent  kev ;
-
-	kev.type = X_KEY_PRESS ;
-	kev.state = event.modifierFlags &
-			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask|NSCommandKeyMask) ;
-	kev.keysym = [[event characters] characterAtIndex:0] ;
-
 	[self interpretKeyEvents:[NSArray arrayWithObject:event]] ;
 
 	if( markedText)
 	{
 		return ;
 	}
-	else if( commitText)
+
+	XKeyEvent  kev ;
+
+	kev.type = X_KEY_PRESS ;
+	kev.state = event.modifierFlags &
+			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask|NSCommandKeyMask) ;
+	if( ( kev.state & NSAlternateKeyMask) && ! ( kev.state & NSControlKeyMask))
 	{
-		kev.utf8 = commitText.UTF8String ;
+		kev.keysym = [[event charactersIgnoringModifiers] characterAtIndex:0] ;
+		kev.utf8 = NULL ;
 	}
 	else
 	{
-		kev.utf8 = [event characters].UTF8String ;
+		kev.keysym = [[event characters] characterAtIndex:0] ;
+
+		if( commitText)
+		{
+			kev.utf8 = commitText.UTF8String ;
+		}
+		else
+		{
+			kev.utf8 = [event characters].UTF8String ;
+		}
 	}
 
 	x_window_receive_event( xwindow , (XEvent*)&kev) ;
@@ -713,6 +734,16 @@ remove_all_observers(
 	return  YES ;
 }
 #endif
+
+- (void)pasteboard:(NSPasteboard*)sender provideDataForType:(NSString *)type
+{
+	XSelectionRequestEvent  ev ;
+
+	ev.type = X_SELECTION_REQUESTED ;
+	ev.sender = sender ;
+
+	x_window_receive_event( xwindow , (XEvent*)&ev) ;
+}
 
 - (NSUInteger)characterIndexForPoint:(NSPoint)point
 {
@@ -1097,30 +1128,21 @@ view_set_input_focus(
 }
 
 void
-view_resize(
+view_set_rect(
 	NSView *  view ,
-	int  width_diff ,
-	int  height_diff
+	int  x ,
+	int  y ,	/* The origin is left-botom. */
+	u_int  width ,
+	u_int  height
 	)
 {
-	CGRect  r = view.frame ;
-	r.size.width += width_diff ;
-	r.size.height += height_diff ;
-	r.origin.y -= height_diff ;
-	[view setFrame:r] ;
-}
-
-void
-view_move(
-	NSView *  view ,
-	int  x_diff ,
-	int  y_diff
-	)
-{
-	CGPoint  p = view.frame.origin ;
-	p.x += x_diff ;
-	p.y -= y_diff ;
-	[view setFrameOrigin:p] ;
+#if  0
+	/* Scrollbar position is corrupt in spliting screen vertically. */
+	[view setFrame:NSMakeRect(x,y,width,height)] ;
+#else
+	[view setFrameSize:NSMakeSize(width,height)] ;
+	[view setFrameOrigin:NSMakePoint(x,y)] ;
+#endif
 }
 
 void
@@ -1242,7 +1264,7 @@ cocoa_clipboard_set(
 	NSString *  str = [[NSString alloc] initWithBytes:utf8 length:len encoding:NSUTF8StringEncoding] ;
 
 	[pasteboard setString:str forType:NSPasteboardTypeString] ;
-	[NSString release] ;
+	[str release] ;
 }
 
 const char *
