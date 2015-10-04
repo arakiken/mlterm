@@ -1,3 +1,8 @@
+2015-10-05  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/cocoa.m: [view release] is called in view_alloc() to decrement its
+	  reference count.
+
 2015-10-04  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/x_window.c:
@@ -11,7 +16,7 @@
 
 	* quartz/x_color.c: x_get_xcolor_rgba() is implemented.
 
-	* cocoa.[ch]:
+	* cocoa.[mh]:
 	  - window_set_alpha() is removed.
 	  - view_bg_color_changed() and MLTermView::bgColorChanged() are added.
 	  - True transparency is supported.

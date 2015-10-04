@@ -1071,6 +1071,7 @@ view_alloc(
 
 	MLTermView *  view = [[MLTermView alloc] initWithFrame:NSMakeRect(0,0,400,400)] ;
 	[((NSWindow*)xwindow->parent->my_window).contentView addSubview:view] ;
+	[view release] ;
 }
 
 void
