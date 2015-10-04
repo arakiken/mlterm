@@ -661,7 +661,7 @@ x_window_set_bg_color(
 
 	win->bg_color = *bg_color ;
 
-	if( win->my_window)
+	if( win->my_window && IS_XSCREEN(win))
 	{
 		view_bg_color_changed( win->my_window) ;
 		x_window_update_all( win) ;
