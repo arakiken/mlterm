@@ -22433,7 +22433,7 @@ if test "${enable_kbd+set}" = set; then :
   enableval=$enable_kbd; kbd=$enable_kbd
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	kbd="no"
 fi
 
@@ -22454,7 +22454,7 @@ if test "${enable_uim+set}" = set; then :
   enableval=$enable_uim; uim=$enable_uim
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	uim="no"
 fi
 
@@ -22546,7 +22546,7 @@ if test "${enable_m17nlib+set}" = set; then :
   enableval=$enable_m17nlib; m17nlib=$enable_m17nlib
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	m17nlib="no"
 fi
 
@@ -22655,7 +22655,7 @@ if test "${enable_ibus+set}" = set; then :
   enableval=$enable_ibus; ibus=$enable_ibus
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	ibus="no"
 fi
 
@@ -22756,7 +22756,7 @@ if test "${enable_fcitx+set}" = set; then :
   enableval=$enable_fcitx; fcitx=$enable_fcitx
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	fcitx="no"
 fi
 
@@ -22857,7 +22857,7 @@ if test "${enable_scim+set}" = set; then :
   enableval=$enable_scim; scim=$enable_scim
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	scim="no"
 fi
 
@@ -23213,7 +23213,7 @@ if test "${enable_canna+set}" = set; then :
   enableval=$enable_canna; canna=$enable_canna
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	canna="no"
 fi
 
@@ -23248,7 +23248,7 @@ if test "${enable_wnn+set}" = set; then :
   enableval=$enable_wnn; wnn=$enable_wnn
 fi
 
-if test "$enable_shared" = "no" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	wnn="no"
 fi
 

@@ -101,19 +101,16 @@ x_get_xcolor_rgba(
 	x_color_t *  xcolor
 	)
 {
-#if  0
-	*red = GetRValue( xcolor->pixel) ;
-	*green = GetGValue( xcolor->pixel) ;
-	*blue = GetBValue( xcolor->pixel) ;
 	if( alpha)
 	{
 		*alpha = (xcolor->pixel >> 24) & 0xff ;
 	}
 
-	return  1 ;
-#else
+	*red = (xcolor->pixel >> 16) & 0xff ;
+	*green = (xcolor->pixel >> 8) & 0xff ;
+	*blue = xcolor->pixel & 0xff ;
+
 	return  0 ;
-#endif
 }
 
 int

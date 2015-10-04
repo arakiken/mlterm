@@ -114,6 +114,49 @@ adjust_pixmap(
 	}
 }
 
+static void
+adjust_cgimage(
+	u_char *  image ,
+	u_int  width ,
+	u_int  height ,
+	x_picture_modifier_t *  pic_mod
+	)
+{
+	u_char *  value_table ;
+	u_int  y ;
+	u_int  x ;
+	u_char  r , g , b ;
+
+	if( ! x_picture_modifier_is_normal( pic_mod) &&
+	    ( value_table = alloca( 256)))
+	{
+		value_table_refresh( value_table , pic_mod) ;
+	}
+	else
+	{
+		return ;
+	}
+
+	for( y = 0 ; y < height ; y++)
+	{
+		for( x = 0 ; x < width ; x++)
+		{
+			r = image[0] ;
+			g = image[1] ;
+			b = image[2] ;
+
+			image[0] = (value_table[r] * (255 - pic_mod->alpha) +
+				pic_mod->blend_red * pic_mod->alpha) / 255 ;
+			image[1] = (value_table[g] * (255 - pic_mod->alpha) +
+				pic_mod->blend_green * pic_mod->alpha) / 255 ;
+			image[2] = (value_table[b] * (255 - pic_mod->alpha) +
+				pic_mod->blend_blue * pic_mod->alpha) / 255 ;
+
+			image += 4 ;
+		}
+	}
+}
+
 static int
 check_has_alpha(
 	u_char *  image ,
@@ -181,9 +224,41 @@ load_file(
 		}
 
 		/* XXX pic_mod is ignored */
-		*pixmap = cocoa_load_image( path , width , height) ;
+		if( ! ( *pixmap = cocoa_load_image( path , width , height)))
+		{
+			return  0 ;
+		}
 
 		info = CGImageGetAlphaInfo( *pixmap) ;
+
+		if( ! x_picture_modifier_is_normal( pic_mod))
+		{
+			CGDataProviderRef  provider = CGImageGetDataProvider( *pixmap) ;
+			CFDataRef  data = CGDataProviderCopyData( provider) ;
+			image = (u_char*)CFDataGetBytePtr( data) ;
+
+			adjust_cgimage( image , *width , *height , pic_mod) ;
+
+			CFDataRef  new_data = CFDataCreate( NULL , image ,
+						CFDataGetLength( data)) ;
+			CGDataProviderRef  new_provider =
+				CGDataProviderCreateWithCFData( new_data) ;
+			CGImageRef  new_image = CGImageCreate( *width , *height ,
+							CGImageGetBitsPerComponent( *pixmap) ,
+							CGImageGetBitsPerPixel( *pixmap) ,
+							CGImageGetBytesPerRow( *pixmap) ,
+							CGImageGetColorSpace( *pixmap) ,
+							CGImageGetBitmapInfo( *pixmap) ,
+							new_provider , NULL ,
+							CGImageGetShouldInterpolate( *pixmap) ,
+							CGImageGetRenderingIntent( *pixmap)) ;
+			CGImageRelease( *pixmap) ;
+			CFRelease( new_provider) ;
+			CFRelease( data) ;
+			CFRelease( new_data) ;
+
+			*pixmap = new_image ;
+		}
 	}
 
 	if( info == kCGImageAlphaPremultipliedLast ||
@@ -227,7 +302,7 @@ x_imagelib_load_file_for_background(
 	u_int  width = 0 ;
 	u_int  height = 0 ;
 
-	if( ! load_file( path , &width , &height , NULL , &pixmap , NULL))
+	if( ! load_file( path , &width , &height , pic_mod , &pixmap , NULL))
 	{
 		return  None ;
 	}

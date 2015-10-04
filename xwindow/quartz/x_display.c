@@ -84,7 +84,7 @@ x_display_open(
 	_disp.width = GetSystemMetrics( SM_CXSCREEN) ;
 	_disp.height = GetSystemMetrics( SM_CYSCREEN) ;
 #endif
-	_disp.depth = 24 ;
+	_disp.depth = 32 ;
 
 	/* _disp is initialized successfully. */
 	_display.fd = -1 ;

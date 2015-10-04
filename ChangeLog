@@ -1,5 +1,25 @@
 2015-10-04  Araki Ken  <arakiken@users.sf.net>
 
+	* quartz/x_window.c:
+	  - view_update() is called in x_window_update_all() only if
+	    win is x_screen_t.
+	  - window_set_alpha() -> view_bg_color_changed() in x_window_set_bg_color().
+
+	* quartz/x_imagelib.c: adjust_cgimage() is added to apply pic_mod to CGImage.
+
+	* quartz/x_display.c: _disp.depth = 24 -> 32.
+
+	* quartz/x_color.c: x_get_xcolor_rgba() is implemented.
+
+	* cocoa.[ch]:
+	  - window_set_alpha() is removed.
+	  - view_bg_color_changed() and MLTermView::bgColorChanged() are added.
+	  - True transparency is supported.
+
+	* configure.in: Input method plugins are disabled on MacOSX/cocoa.
+
+2015-10-04  Araki Ken  <arakiken@users.sf.net>
+
 	* x_screen_manager.c:
 	  - "login -fp $USER" is used instead of "$SHELL" environmental variable.
 	  - Uncertainty of "disp = root->disp" in close_screen_intern() is fixed.

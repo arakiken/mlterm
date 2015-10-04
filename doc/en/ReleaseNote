@@ -1,5 +1,5 @@
 ver 3.6.0
-* Support MacOSX/Cocoa.
+* Support MacOSX/Cocoa. (See doc/en/README.cocoa)
 
 ver 3.5.1
 * Support font fallback on cairo.

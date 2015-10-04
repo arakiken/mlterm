@@ -39,6 +39,7 @@
 - (void)scroll:(int)src_x:(int)src_y:(u_int)width:(u_int)height:(int)dst_x:(int)dst_y ;
 #endif
 - (void)update:(int)flag ;
+- (void)bgColorChanged ;
 @end
 
 
@@ -60,9 +61,13 @@ static x_window_t *  xwindow_for_mlterm_view ;
 
 #define  set_fill_color( color) \
 	CGContextSetRGBFillColor( ctx , \
-		1.0 * (((color)->pixel >> 16) & 0xff) / 255.0 , \
-		1.0 * (((color)->pixel >> 8) & 0xff) / 255.0 , \
-		1.0 * ((color)->pixel & 0xff) / 255.0 , 1.0)
+		(((color)->pixel >> 16) & 0xff) / 255.0 , \
+		(((color)->pixel >> 8) & 0xff) / 255.0 , \
+		((color)->pixel & 0xff) / 255.0 , 1.0) ;
+
+#define  IS_OPAQUE  ( (xwindow->bg_color.pixel & 0xff000000) == 0xff000000 || \
+                      x_window_has_wall_picture(xwindow))
+
 
 static void
 exit_program(void)
@@ -460,10 +465,9 @@ reset_position(
 		[[self window] setResizeIncrements:
 			NSMakeSize(xwindow->width_inc , xwindow->height_inc)] ;
 
-		int  alpha = (xwindow->bg_color.pixel >> 24) & 0xff ;
-		if( alpha < 255)
+		if( ! IS_OPAQUE)
 		{
-			[[self window] setAlphaValue:(1.0 * alpha / 255.0)] ;
+			[self bgColorChanged] ;
 		}
 
 		[[self window] makeKeyAndOrderFront:self] ;
@@ -537,7 +541,12 @@ reset_position(
 
 - (BOOL)isOpaque
 {
-	return  YES ;
+	return  IS_OPAQUE ? YES : NO ;
+}
+
+- (BOOL)wantsDefaultClipping
+{
+	return  IS_OPAQUE ? YES : NO ;
 }
 
 - (void)focused:(NSNotification *)note
@@ -922,12 +931,26 @@ reset_position(
 	color->pixel += (0x10 * (count++)) ;
 #endif
 
-	set_fill_color( color) ;
+	if( IS_OPAQUE)
+	{
+		set_fill_color( color) ;
 
-	CGRect  rect = CGRectMake( x , ACTUAL_HEIGHT(xwindow) - y - height ,
-				width , height) ;
-	CGContextAddRect( ctx , rect) ;
-	CGContextFillPath( ctx) ;
+		CGRect  rect = CGRectMake( x , ACTUAL_HEIGHT(xwindow) - y - height ,
+					width , height) ;
+		CGContextAddRect( ctx , rect) ;
+		CGContextFillPath( ctx) ;
+	}
+	else
+	{
+		[[NSColor colorWithDeviceRed:((color->pixel >> 16) & 0xff) / 255.0
+					green:((color->pixel >> 8) & 0xff) / 255.0
+					blue:(color->pixel & 0xff) / 255.0
+					alpha:((color->pixel >> 24) & 0xff) / 255.0] set] ;
+
+		NSRectFillUsingOperation(
+			NSMakeRect( x , ACTUAL_HEIGHT(xwindow) - y - height , width , height) ,
+			NSCompositeCopy) ;
+	}
 }
 
 - (void)drawRectFrame:(x_color_t*)color:(int)x1:(int)y1:(int)x2:(int)y2
@@ -997,7 +1020,41 @@ reset_position(
 - (void)update:(int)flag
 {
 	forceExpose |= flag ;
-	[self setNeedsDisplay:YES] ;
+
+	if( IS_OPAQUE || forceExpose)
+	{
+		[self setNeedsDisplay:YES] ;
+	}
+	else
+	{
+		int  x ;
+		int  y ;
+
+		if( ! xwindow->xim_listener ||
+		    ! (*xwindow->xim_listener->get_spot)( xwindow->xim_listener->self , &x , &y))
+		{
+			x = y = 0 ;
+		}
+
+		x += (xwindow->hmargin) ;
+		y += (xwindow->vmargin) ;
+
+		[self setNeedsDisplayInRect:NSMakeRect( x , ACTUAL_HEIGHT(xwindow) - y , 1 , 1)] ;
+	}
+}
+
+- (void)bgColorChanged
+{
+	if( IS_OPAQUE)
+	{
+		[[self window] setBackgroundColor:[NSColor whiteColor]] ;
+		[[self window] setOpaque:YES] ;
+	}
+	else
+	{
+		[[self window] setBackgroundColor:[NSColor clearColor]] ;
+		[[self window] setOpaque:NO] ;
+	}
 }
 
 @end
@@ -1120,6 +1177,15 @@ view_scroll(
 }
 
 void
+view_bg_color_changed(
+	MLTermView *  view
+	)
+{
+	[view bgColorChanged] ;
+}
+
+
+void
 view_set_input_focus(
 	NSView *  view
 	)
@@ -1190,15 +1256,6 @@ window_resize(
 	wr.size.width = width + diff_x ;
 	wr.size.height = height + diff_y ;
 	[window setFrame:wr display:YES] ;
-}
-
-void
-window_set_alpha(
-	NSWindow *  window ,
-	int  alpha
-	)
-{
-	[window setAlphaValue:(1.0 * alpha / 255.0)] ;
 }
 
 
@@ -1297,6 +1354,11 @@ cocoa_load_image(
 {
 	NSString *  nspath = [NSString stringWithCString:path encoding:NSUTF8StringEncoding] ;
 	NSImage *  nsimg = [[NSImage alloc] initWithContentsOfFile:nspath] ;
+	if( ! nsimg)
+	{
+		return  nil ;
+	}
+
 	CGImageRef  cgimg = [nsimg CGImageForProposedRect:NULL context:nil hints:nil] ;
 
 	CGImageRetain( cgimg) ;

@@ -661,15 +661,10 @@ x_window_set_bg_color(
 
 	win->bg_color = *bg_color ;
 
-	if( win->my_window != None)
+	if( win->my_window)
 	{
-		int  alpha = (bg_color->pixel >> 24) & 0xff ;
-		window_set_alpha( x_get_root_window( win)->my_window , alpha) ;
-
-		if( IS_XSCREEN(win))
-		{
-			x_window_update_all( win) ;
-		}
+		view_bg_color_changed( win->my_window) ;
+		x_window_update_all( win) ;
 	}
 
 	return  1 ;
@@ -918,9 +913,6 @@ x_window_resize(
 	{
 		return  0 ;
 	}
-
-	int  old_height = ACTUAL_HEIGHT(win) ;
-	int  old_width = ACTUAL_WIDTH(win) ;
 
 	/* Max width of each window is screen width. */
 	if( (flag & LIMIT_RESIZE) && win->disp->width < width)
@@ -1278,7 +1270,10 @@ x_window_update_all(
 {
 	u_int  count ;
 
-	view_update( win->my_window , 1) ;
+	if( IS_XSCREEN(win))
+	{
+		view_update( win->my_window , 1) ;
+	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{

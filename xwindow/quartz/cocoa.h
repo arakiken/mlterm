@@ -38,6 +38,8 @@ void  view_copy_area( void *  view , Pixmap  src , int  src_x , int  src_y ,
 void  view_scroll( void *  view , int  src_x , int  src_y , u_int  width , u_int  height ,
 	int  dst_x , int  dst_y) ;
 
+void  view_bg_color_changed( void *  view) ;
+
 
 /* for NSView */
 
@@ -55,8 +57,6 @@ void  window_alloc( x_window_t *  root) ;
 void  window_dealloc( void *  window) ;
 
 void  window_resize( void *  window , u_int  width , u_int  height) ;
-
-void  window_set_alpha( void *  window , int  alpha) ;
 
 
 /* for NSApp */
