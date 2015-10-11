@@ -12,6 +12,13 @@
 
 #ifndef  NO_DYNAMIC_LOAD_CTL
 
+#ifdef  __APPLE__
+ml_isciikey_state_t  ml_isciikey_state_new( int) __attribute__((weak)) ;
+int  ml_isciikey_state_delete( ml_isciikey_state_t) __attribute__((weak)) ;
+size_t  ml_convert_ascii_to_iscii( ml_isciikey_state_t ,
+	u_char * , size_t , u_char * , size_t) __attribute__((weak)) ;
+#endif
+
 ml_isciikey_state_t
 ml_isciikey_state_new(
 	int  is_inscript

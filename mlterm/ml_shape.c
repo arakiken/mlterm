@@ -11,6 +11,12 @@
 
 #ifndef  NO_DYNAMIC_LOAD_CTL
 
+#ifdef  __APPLE__
+u_int  ml_shape_arabic( ml_char_t * , u_int , ml_char_t * , u_int) __attribute__((weak)) ;
+u_int16_t  ml_is_arabic_combining( ml_char_t * , ml_char_t * , ml_char_t *) __attribute__((weak)) ;
+u_int  ml_shape_iscii( ml_char_t * , u_int , ml_char_t * , u_int) __attribute__((weak)) ;
+#endif
+
 u_int
 ml_shape_arabic(
 	ml_char_t *  dst ,

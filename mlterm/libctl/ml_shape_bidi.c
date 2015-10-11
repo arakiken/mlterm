@@ -32,10 +32,6 @@ typedef struct arabic_comb
 } arabic_comb_t ;
 
 
-/* declared here because it is used in shape_arabic(). */
-u_int16_t  ml_is_arabic_combining( ml_char_t *  prev2 ,	ml_char_t *  prev , ml_char_t *  ch) ;
-
-
 /* --- static variables --- */
 
 static arabic_present_t  arabic_present_table[] =

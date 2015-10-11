@@ -60,7 +60,8 @@ kik_dl_open(
 		char *  p ;
 
 		/* XXX Hack */
-		if( ( ( p = strstr( dirpath , "mkf/")) || ( p = strstr( dirpath , "mlterm/"))) &&
+		if( ( strcmp( (p = dirpath + strlen(dirpath) - 4), "mkf/") == 0 ||
+		      strcmp( (p -= 3) , "mlterm/") == 0) &&
 		    ( path = alloca( 21 + strlen(p) + 3 + strlen(name) + 3 + 1)))
 		{
 			sprintf( path , "@executable_path/lib/%slib%s.so" , p , name) ;
