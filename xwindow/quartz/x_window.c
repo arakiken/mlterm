@@ -1395,7 +1395,16 @@ x_window_receive_event(
 		if( win->utf_selection_requested)
 		{
 			(*win->utf_selection_requested)( win ,
-				(XSelectionRequestEvent*)&event , 0) ;
+				(XSelectionRequestEvent*)event , 0) ;
+		}
+		break ;
+
+	case  X_SELECTION_NOTIFIED:
+		if( win->utf_selection_notified)
+		{
+			(*win->utf_selection_notified)( win ,
+				((XSelectionNotifyEvent*)event)->data ,
+				((XSelectionNotifyEvent*)event)->len) ;
 		}
 		break ;
 
@@ -1797,7 +1806,7 @@ x_window_utf_selection_request(
 	Time  time
 	)
 {
-	if( win->xct_selection_notified)
+	if( win->utf_selection_notified)
 	{
 		const char *  str ;
 

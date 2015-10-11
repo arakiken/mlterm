@@ -308,6 +308,8 @@ remove_all_observers(
 
 	[super initWithFrame:frame] ;
 
+	[self registerForDraggedTypes:[NSArray arrayWithObjects: NSFilenamesPboardType, nil]] ;
+
 	ignoreKeyDown = FALSE ;
 	markedText = nil ;
 	markedRange = NSMakeRange(NSNotFound , 0) ;
@@ -753,6 +755,50 @@ reset_position(
 
 	x_window_receive_event( xwindow , (XEvent*)&ev) ;
 }
+
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
+{
+	NSPasteboard *  pboard = [sender draggingPasteboard] ;
+	NSDragOperation  sourceMask = [sender draggingSourceOperationMask] ;
+
+	if( [[pboard types] containsObject:NSFilenamesPboardType])
+	{
+		if( sourceMask & NSDragOperationLink)
+		{
+			return  NSDragOperationLink ;
+		}
+		else if( sourceMask & NSDragOperationCopy)
+		{
+			return  NSDragOperationCopy ;
+		}
+	}
+
+	return  NSDragOperationNone ;
+}
+
+- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
+{
+	NSPasteboard *  pboard = [sender draggingPasteboard] ;
+
+	if( [[pboard types] containsObject:NSFilenamesPboardType])
+	{
+		NSArray *  files = [pboard propertyListForType:NSFilenamesPboardType] ;
+		int  count ;
+		XSelectionNotifyEvent  ev ;
+
+		ev.type = X_SELECTION_NOTIFIED ;
+		for( count = 0 ; count < [files count] ; count++)
+		{
+			ev.data = [[files objectAtIndex:count] UTF8String] ;
+			ev.len = strlen( ev.data) ;
+
+			x_window_receive_event( xwindow , (XEvent*)&ev) ;
+		}
+	}
+
+	return  YES ;
+}
+
 
 - (NSUInteger)characterIndexForPoint:(NSPoint)point
 {

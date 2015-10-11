@@ -1,5 +1,11 @@
 2015-10-12  Araki Ken  <arakiken@users.sf.net>
 
+	* cocoa.m, x_window.c: DnD is supported.
+
+	* x.h: X_SELECTION_NOTIFIED and struct XSelectionNotifyEvent are added.
+
+2015-10-12  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_iscii.c, ml_shape.c: __attribute__((weak)) is added to function declarations
 	  on MacOS X because they are bounded to the same name symbols in
 	  ml_ctl_{bidi|iscii}_func_table without it.

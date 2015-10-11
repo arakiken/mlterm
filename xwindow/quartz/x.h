@@ -247,6 +247,8 @@ typedef struct		/* Same as definition in X11/X.h */
 #define  X_SELECTION_REQUESTED	8
 #define  X_CLOSE_WINDOW		9
 #define  X_KEY_FOCUS_IN		10
+#define  X_SELECTION_NOTIFIED	11
+
 
 typedef struct
 {
@@ -305,6 +307,14 @@ typedef struct
 	void *  sender ;
 
 } XSelectionRequestEvent ;
+
+typedef struct
+{
+	int  type ;
+	char *  data ;
+	unsigned int  len ;
+
+} XSelectionNotifyEvent ;
 
 typedef int XFontSet ;	/* dummy */
 
