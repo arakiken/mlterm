@@ -286,6 +286,19 @@ x_font_new(
 		CGFontGetXHeight( font->cg_font)) ;
 #endif
 
+	font->pointsize = fontsize ;
+
+	float  scale = screen_get_user_space_scale_factor() ;
+	if( scale > 0.0)
+	{
+		fontsize = fontsize * scale + 0.5 ;
+	}
+
+#if  0
+	kik_debug_printf( "pont size %d -> SCALE %f -> pixel size %d\n" ,
+		font->pointsize , scale , fontsize) ;
+#endif
+
 	int  ascent = CGFontGetAscent( font->cg_font) ;
 	int  descent = CGFontGetDescent( font->cg_font) ;	/* minus value */
 	font->height = fontsize ;

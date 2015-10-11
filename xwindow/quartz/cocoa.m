@@ -24,7 +24,7 @@
 	CGContextRef  ctx ;
 	int  forceExpose ;
 
-	NSString *  commitText ;
+	BOOL  ignoreKeyDown ;
 	NSString *  markedText ;
 	NSRange  markedRange ;
 	NSRange  selectedRange ;
@@ -209,7 +209,7 @@ drawUnistr(
 		points[count] = CGPointMake((x + font->width * count) , y) ;
 	}
 
-	CGContextSetFontSize( ctx , font->height) ;
+	CGContextSetFontSize( ctx , font->pointsize) ;
 
 	CGContextShowGlyphsAtPositions( ctx , glyphs , points , len) ;
 
@@ -248,6 +248,7 @@ update_ime_text(
 			return ;
 		}
 
+		ml_term_parse_vt100_sequence( term) ;
 		ml_term_set_config( term , "use_local_echo" , "true") ;
 
 		(*utf8_parser->set_str)( utf8_parser , preedit_text ,
@@ -307,7 +308,8 @@ remove_all_observers(
 
 	[super initWithFrame:frame] ;
 
-	markedText = commitText = nil ;
+	ignoreKeyDown = FALSE ;
+	markedText = nil ;
 	markedRange = NSMakeRange(NSNotFound , 0) ;
 	selectedRange = NSMakeRange(NSNotFound , 0) ;
 
@@ -323,7 +325,15 @@ remove_all_observers(
 		[NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask
 			handler:^(NSEvent* event)
 			{
-				[event.window.firstResponder keyDown:event] ;
+				switch( event.keyCode)
+				{
+				case  0x66:	/* Eisu */
+				case  0x68:	/* Kana */
+					break ;
+				default:
+					[event.window.firstResponder keyDown:event] ;
+					break ;
+				}
 
 				return  (NSEvent*)nil ;
 			}] ;
@@ -699,41 +709,31 @@ reset_position(
 
 	[self interpretKeyEvents:[NSArray arrayWithObject:event]] ;
 
-	if( markedText)
+	if( ignoreKeyDown)
 	{
-		return ;
+		ignoreKeyDown = FALSE ;
 	}
-
-	XKeyEvent  kev ;
-
-	kev.type = X_KEY_PRESS ;
-	kev.state = event.modifierFlags &
-			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask|NSCommandKeyMask) ;
-	if( ( kev.state & NSAlternateKeyMask) && ! ( kev.state & NSControlKeyMask))
+	else if( ! markedText)
 	{
-		kev.keysym = [[event charactersIgnoringModifiers] characterAtIndex:0] ;
-		kev.utf8 = NULL ;
-	}
-	else
-	{
-		kev.keysym = [[event characters] characterAtIndex:0] ;
+		XKeyEvent  kev ;
 
-		if( commitText)
+		kev.type = X_KEY_PRESS ;
+		kev.state = event.modifierFlags &
+				(NSShiftKeyMask|NSControlKeyMask|
+				 NSAlternateKeyMask|NSCommandKeyMask) ;
+
+		if( ( kev.state & NSAlternateKeyMask) && ! ( kev.state & NSControlKeyMask))
 		{
-			kev.utf8 = commitText.UTF8String ;
+			kev.keysym = [[event charactersIgnoringModifiers] characterAtIndex:0] ;
+			kev.utf8 = NULL ;
 		}
 		else
 		{
+			kev.keysym = [[event characters] characterAtIndex:0] ;
 			kev.utf8 = [event characters].UTF8String ;
 		}
-	}
 
-	x_window_receive_event( xwindow , (XEvent*)&kev) ;
-
-	if( commitText)
-	{
-		[commitText release] ;
-		commitText = nil ;
+		x_window_receive_event( xwindow , (XEvent*)&kev) ;
 	}
 }
 
@@ -832,17 +832,11 @@ reset_position(
 
 	selectedRange = selected ;
 
-	const char *  utf8 = [string UTF8String] ;
-
-	if( strlen( utf8) == 0)
-	{
-		markedRange = NSMakeRange(NSNotFound , 0) ;
-	}
-	else
+	if( [string length] > 0)
 	{
 		char *  p ;
 
-		if( ! ( p = alloca( strlen( utf8) + 10)))
+		if( ! ( p = alloca( strlen( [string UTF8String]) + 10)))
 		{
 			return ;
 		}
@@ -868,15 +862,29 @@ reset_position(
 						selectedRange.length)] UTF8String]) ;
 		}
 
-		markedRange = NSMakeRange( 0 , [string length]) ;
-
-		utf8 = p ;
+		update_ime_text( xwindow , p ,
+			markedText ? markedText.UTF8String : NULL) ;
+	}
+	else if( markedText)
+	{
+		update_ime_text( xwindow , "" , markedText.UTF8String) ;
 	}
 
-	update_ime_text( xwindow , utf8 ,
-		markedText ? [markedText UTF8String] : NULL) ;
+	if( markedText)
+	{
+		[markedText release] ;
+		markedText = nil ;
+	}
 
-	markedText = [string copy] ;
+	if( [string length] > 0)
+	{
+		markedText = [string copy] ;
+		markedRange = NSMakeRange( 0 , [string length]) ;
+	}
+	else
+	{
+		markedRange = NSMakeRange(NSNotFound , 0) ;
+	}
 }
 
 - (void)doCommandBySelector: (SEL)selector
@@ -886,7 +894,20 @@ reset_position(
 - (void)insertText: (id)string replacementRange:(NSRange)replacementRange
 {
 	[self unmarkText] ;
-	commitText = [string copy] ;
+
+	if( [string length] > 0)
+	{
+		XKeyEvent  kev ;
+
+		kev.type = X_KEY_PRESS ;
+		kev.state = 0 ;
+		kev.keysym = 0 ;
+		kev.utf8 = [string UTF8String] ;
+
+		x_window_receive_event( xwindow , (XEvent*)&kev) ;
+
+		ignoreKeyDown = TRUE ;
+	}
 }
 
 
@@ -1284,6 +1305,13 @@ scroller_update(
 	)
 {
 	[scroller setFloatValue:pos knobProportion:knob] ;
+}
+
+
+float
+screen_get_user_space_scale_factor(void)
+{
+	return  [NSScreen mainScreen].userSpaceScaleFactor ;
 }
 
 

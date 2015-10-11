@@ -1,3 +1,16 @@
+2015-10-11  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_termcap.c: If $prefix/etc/mlterm/termcap is not found, default settings
+	  are applied on macosx and android.
+
+	* cocoa.m:
+	  - 0x66(Eisu) and 0x68(Kana) keycodes are ignored in keyDown event.
+	  - x_window_receive_event(KeyEvent) is called immediately in insertText(),
+	    not in keyDown().
+
+	* x_font.h, quartz/x_font.c, cocoa.m:
+	  x_font_t:{height|ascent|width} are multiplied by NSScreen.userSpaceScaleFactor.
+
 2015-10-05  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/cocoa.m: [view release] is called in view_alloc() to decrement its

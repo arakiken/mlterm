@@ -63,7 +63,7 @@ static char *  tc_file = "mlterm/termcap" ;
 static int
 entry_init(
 	ml_termcap_entry_t *  entry ,
-	char *  name
+	const char *  name
 	)
 {
 	memset( entry , 0 , sizeof(ml_termcap_entry_t)) ;
@@ -303,11 +303,53 @@ termcap_init(void)
 		return  0 ;
 	}
 
+	entries[0].bool_fields[TC_BCE] = 1 ;
 	num_of_entries = 1 ;
 
 	if( ( rcpath = kik_get_sys_rc_path( tc_file)))
 	{
-		read_conf( rcpath) ;
+		if( ! read_conf( rcpath))
+		{
+		#if  defined(__APPLE__) || defined(__ANDROID__)
+		#define  MAX_DB_LEN_IDX  2
+			const char *  db[] =
+			{
+				"k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~" ,
+				"ut" ,
+				"kh=\E[7~:@7=\E[8~:k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~:ut" ,
+				"kb=^H:kD=^?:k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~" ,
+			} ;
+
+			const char *  names[] =
+			{
+				"mlterm" ,
+				"xterm" ,
+				"rxvt" ,
+				"kterm" ,
+			} ;
+
+			void *  p ;
+			char *  buf ;
+
+			if( ( p = realloc( entries ,
+				sizeof(ml_termcap_entry_t) * sizeof(db) / sizeof(db[0]))) &&
+			    ( buf = alloca( strlen( db[MAX_DB_LEN_IDX]) + 1)))
+			{
+				size_t  count ;
+
+				entries = p ;
+				num_of_entries = sizeof(db) / sizeof(db[0]) + 1 ;
+
+				for( count = 0 ; count < sizeof(db) / sizeof(db[0]) ; count++)
+				{
+					entry_init( entries + count + 1 , names[count]) ;
+					strcpy( buf , db[count]) ;
+					parse_entry_db( entries + count + 1 , buf) ;
+				}
+			}
+		#endif
+		}
+
 		free( rcpath) ;
 	}
 

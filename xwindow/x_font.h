@@ -54,6 +54,7 @@ typedef struct x_font
 	mkf_conv_t *  conv ;
 #elif  defined(USE_QUARTZ)
 	void *  cg_font ;
+	u_int  pointsize ;
 #else
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	xft_font_ptr_t  xft_font ;

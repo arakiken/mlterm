@@ -80,6 +80,11 @@ const char *  cocoa_clipboard_get(void) ;
 
 #ifdef  __X_FONT_H__
 
+/* for NSScreen */
+
+float  screen_get_user_space_scale_factor(void) ;
+
+
 /* for CGFont */
 
 void *  cocoa_create_font( const char *  font_family) ;
