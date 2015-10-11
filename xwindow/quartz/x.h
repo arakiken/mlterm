@@ -365,7 +365,7 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Super_R	0xfffd	/* dummy */
 #define XK_Hyper_L	0xfffc	/* dummy */
 #define XK_Hyper_R	0xfffb	/* dummy */
-#define XK_BackSpace	NSBackspaceCharacter
+#define XK_BackSpace	NSDeleteCharacter
 #define XK_Tab		NSTabCharacter
 #define XK_Clear	NSClearDisplayFunctionKey
 #define XK_Linefeed	0xfffa	/* dummy */

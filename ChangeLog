@@ -1,5 +1,7 @@
 2015-10-11  Araki Ken  <arakiken@users.sf.net>
 
+	* x.h: XK_BackSpace = NSDeleteCharacter instead of NSBackspaceCharacter.
+
 	* ml_termcap.c: If $prefix/etc/mlterm/termcap is not found, default settings
 	  are applied on macosx and android.
 
