@@ -709,7 +709,14 @@ reset_position(
 		return ;
 	}
 
-	[self interpretKeyEvents:[NSArray arrayWithObject:event]] ;
+	u_int  flags = event.modifierFlags ;
+
+	/* Alt+x isn't interpreted unless preediting. */
+	if( markedText ||
+	    ! ( flags & NSAlternateKeyMask) || ( flags & NSControlKeyMask))
+	{
+		[self interpretKeyEvents:[NSArray arrayWithObject:event]] ;
+	}
 
 	if( ignoreKeyDown)
 	{
@@ -720,11 +727,15 @@ reset_position(
 		XKeyEvent  kev ;
 
 		kev.type = X_KEY_PRESS ;
-		kev.state = event.modifierFlags &
-				(NSShiftKeyMask|NSControlKeyMask|
-				 NSAlternateKeyMask|NSCommandKeyMask) ;
+		kev.state = flags & (NSShiftKeyMask|NSControlKeyMask|
+					NSAlternateKeyMask|NSCommandKeyMask) ;
 
-		if( ( kev.state & NSAlternateKeyMask) && ! ( kev.state & NSControlKeyMask))
+		if( kev.state & NSControlKeyMask)
+		{
+			kev.keysym = [[event charactersIgnoringModifiers] characterAtIndex:0] ;
+			kev.utf8 = [event characters].UTF8String ;
+		}
+		else if( kev.state & NSAlternateKeyMask)
 		{
 			kev.keysym = [[event charactersIgnoringModifiers] characterAtIndex:0] ;
 			kev.utf8 = NULL ;
@@ -733,6 +744,11 @@ reset_position(
 		{
 			kev.keysym = [[event characters] characterAtIndex:0] ;
 			kev.utf8 = [event characters].UTF8String ;
+		}
+
+		if( ( kev.state & NSShiftKeyMask) && 'A' <= kev.keysym && kev.keysym <= 'Z')
+		{
+			kev.keysym += 0x20 ;
 		}
 
 		x_window_receive_event( xwindow , (XEvent*)&kev) ;

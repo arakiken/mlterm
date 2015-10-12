@@ -307,6 +307,16 @@ if test -z "$UTMP_NAME" ; then
 		UTMP_LIBS="-lutempter -lutil"
 		], [])
 fi
+#  setutxent()  (SysV)
+if test -z "$UTMP_NAME" ; then
+	AC_CHECK_FUNC(setutxent,
+		[
+		UTMP_NAME=sysv
+		UTMP_LIBS=
+		UTMP_CFLAGS=-DUSE_UTMPX
+		], [])
+	AC_SUBST(UTMP_CFLAGS)
+fi
 #  setutent()  (SysV)
 if test -z "$UTMP_NAME" ; then
 	AC_CHECK_FUNC(setutent,

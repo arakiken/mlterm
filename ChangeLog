@@ -1,5 +1,23 @@
 2015-10-12  Araki Ken  <arakiken@users.sf.net>
 
+	* cocoa.m: Alt+x isn't interpreted by NSView::interpretKeyEvents unless preediting.
+
+	* mlconfig/main.c: "Columns" and "Rows" entries are added to "Others" tab.
+
+	* mc_geometry.[ch]: Added.
+
+	* mc_wordsep.c: Entry width is limited.
+
+	* mc_ratio.c, mc_space.c: Constant value => macro (MAX_VALUE_LEN)
+
+	* ml_vt100_parser.c: "geometry" is added to OSC 5379.
+
+	* configure.in: Minor fixes.
+
+	* kiklib/configure.in, kik_utmp_sysv.c: USE_UTMPX is defined if setutxline() exists.
+
+2015-10-12  Araki Ken  <arakiken@users.sf.net>
+
 	* cocoa.m, x_window.c: DnD is supported.
 
 	* x.h: X_SELECTION_NOTIFIED and struct XSelectionNotifyEvent are added.

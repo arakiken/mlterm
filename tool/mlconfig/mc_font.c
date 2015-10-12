@@ -1044,7 +1044,7 @@ mc_font_config_widget_new(void)
 
 	combo = mc_combo_new_with_width(_("Font size (pixels)") , fontlist ,
 		sizeof(fontlist) / sizeof(fontlist[0]) , new_fontsize , 1 ,
-		50 , &entry) ;
+		30 , &entry) ;
 	g_signal_connect( entry , "changed" , G_CALLBACK(fontsize_selected) , NULL) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , combo , FALSE , FALSE , 0) ;
 #if  GTK_CHECK_VERSION(2,12,0)

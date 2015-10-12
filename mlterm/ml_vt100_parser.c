@@ -1473,7 +1473,7 @@ resize(
 	int  by_char
 	)
 {
-	if( HAS_XTERM_LISTENER(vt100_parser,resize))
+	if( width > 0 && height > 0 && HAS_XTERM_LISTENER(vt100_parser,resize))
 	{
 		if( by_char)
 		{
@@ -8100,6 +8100,16 @@ ml_vt100_parser_set_config(
 	else if( strcmp( key , "vt_seq_format") == 0)
 	{
 		use_ttyrec_format = (strcmp( value , "ttyrec") == 0) ;
+	}
+	else if( strcmp( key , "geometry") == 0)
+	{
+		u_int  cols ;
+		u_int  rows ;
+
+		if( sscanf( value , "%ux%u" , &cols , &rows) == 2)
+		{
+			resize( vt100_parser , cols , rows , 1) ;
+		}
 	}
 	else if( strcmp( key , "box_drawing_font") == 0)
 	{

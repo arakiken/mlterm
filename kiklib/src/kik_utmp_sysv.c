@@ -6,10 +6,6 @@
                            finger doesn't (WHY ??)
  */
 
-#if 1
-#define UTMPX
-#endif
-
 #include "kik_utmp.h"
 
 #include <stdio.h>	/* NULL */
@@ -17,7 +13,7 @@
 #include <string.h>	/* strncmp */
 #include <time.h>	/* time */
 
-#ifdef UTMPX
+#ifdef USE_UTMPX
 #include <utmpx.h>	/* getut*, setut*, etc */
 #else
 #include <utmp.h>	/* getut*, setut*, etc */
@@ -35,7 +31,7 @@
 #include <errno.h>
 #endif
 
-#ifdef UTMPX
+#ifdef USE_UTMPX
 #define LINE_WIDTH 32
 #else
 #define LINE_WIDTH 12
@@ -77,7 +73,7 @@ kik_utmp_new(
 	int  pty_fd
 	)
 {
-#ifdef UTMPX
+#ifdef USE_UTMPX
   struct utmpx	ut;
 #else
   struct utmp	ut;
@@ -137,16 +133,18 @@ kik_utmp_new(
   ut.ut_pid	= getpid();
   ut.ut_type	= USER_PROCESS;
 
-#ifdef UTMPX
+#ifdef USE_UTMPX
   ut.ut_tv.tv_sec	= timenow.tv_sec;
   ut.ut_tv.tv_usec	= timenow.tv_usec;
 #else
   ut.ut_time	= time(NULL);
 #endif
 
-#ifdef UTMPX
+#ifdef USE_UTMPX
   memcpy(ut.ut_host, host, K_MIN(sizeof(ut.ut_host), strlen(host)));
+#if ! defined(__FreeBSD__) && ! defined(__APPLE__)
   ut.ut_session = getsid(0) ;
+#endif
 #endif
 
   memcpy( utmp->ut_line, tty,
@@ -158,14 +156,14 @@ kik_utmp_new(
   kik_priv_restore_egid();
 
   /* reset the input stream to the beginning of the file */
-#ifdef UTMPX
+#ifdef USE_UTMPX
   setutxent();
 #else
   setutent();
 #endif
 
   /* insert new entry */
-#ifdef UTMPX
+#ifdef USE_UTMPX
   if ( !pututxline(&ut) )
   {
 #ifdef _PATH_UTMP_UPDATE
@@ -191,7 +189,7 @@ kik_utmp_new(
   }
 #endif
 
-#ifdef UTMPX
+#ifdef USE_UTMPX
   endutxent();
 #else
   endutent();
@@ -208,7 +206,7 @@ kik_utmp_delete(
 		kik_utmp_t utmp
 	       )
 {
-#ifdef UTMPX
+#ifdef USE_UTMPX
   struct utmpx	ut;
 #else
   struct utmp	ut;
@@ -227,7 +225,7 @@ kik_utmp_delete(
   ut.ut_pid	= getpid();
   ut.ut_type	= DEAD_PROCESS;
 
-#ifdef UTMPX
+#ifdef USE_UTMPX
   ut.ut_tv.tv_sec  = 0;
   ut.ut_tv.tv_usec = 0;
 #else
@@ -238,7 +236,7 @@ kik_utmp_delete(
   kik_priv_restore_egid();
 
   /* reset the input stream to the beginning of the file */
-#ifdef UTMPX
+#ifdef USE_UTMPX
   setutxent();
   pututxline(&ut);
   endutxent();

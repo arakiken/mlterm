@@ -40,7 +40,7 @@ version 20150829
                      use_anti_alias | use_variable_column_width | use_combining |
                      use_transbg | use_ctl | bidi_mode | bidi_separators |
                      receive_string_via_ucs | input_method | locale | wall_picture |
-                     brightness | gamma | contrast | line_space | letter_space |
+                     brightness | gamma | contrast | line_space | letter_space | geometry |
                      screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
                      static_backscroll_mode | use_multi_column_char | col_size_of_width_a |
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |

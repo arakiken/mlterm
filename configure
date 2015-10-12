@@ -19840,9 +19840,8 @@ if test "$gui" = "fb" ; then
 	MAKE_DIRS="doc/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="doc/kbd/Makefile ${OUTPUT_FILES}"
 elif test "$gui" = "quartz" ; then
-	(cd xwindow; \
-	 if test -f x_event_source.c ; then \
-	 mv -f x_event_source.c x_sb_view_factory.c x_scrollbar.c x_simple_sb_view.c xlib/ ; fi)
+	(cd xwindow/quartz/ && \
+	 for file in `ls *.c` ; do if test -f ../$file ; then mv ../$file ../xlib/ ; fi ; done)
 fi
 
 ml_cv_is_posix="yes"

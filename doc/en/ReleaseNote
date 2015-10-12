@@ -1,5 +1,7 @@
 ver 3.6.0
 * Support MacOSX/Cocoa. (See doc/en/README.cocoa)
+* Add "geometry" to OSC 5379.
+* Add "Columns" and "Rows" to "Others" tab of mlconfig.
 
 ver 3.5.1
 * Support font fallback on cairo.

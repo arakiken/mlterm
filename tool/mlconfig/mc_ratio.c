@@ -19,10 +19,13 @@
 #endif
 
 
+#define  MAX_VALUE_LEN  3
+
+
 /* --- static variables --- */
 
-static char  new_values[MC_RATIOS][4] ;	/* 0 - 100 */
-static char  old_values[MC_RATIOS][4] ;	/* 0 - 100 */
+static char  new_values[MC_RATIOS][MAX_VALUE_LEN + 1] ;	/* 0 - 100 */
+static char  old_values[MC_RATIOS][MAX_VALUE_LEN + 1] ;	/* 0 - 100 */
 static int  is_changed[MC_RATIOS] ;
 
 static char *  config_keys[MC_RATIOS] =
@@ -57,7 +60,7 @@ ratio_selected(
 	gchar *  text ;
 
 	text = gtk_editable_get_chars( GTK_EDITABLE(widget) , 0 , -1) ;
-	if( strlen(text) <= 3)
+	if( strlen(text) <= MAX_VALUE_LEN)
 	{
 		strcpy( data , text) ;
 	}
@@ -96,7 +99,7 @@ mc_ratio_config_widget_new(
 	} ;
 
 	value = mc_get_str_value( config_keys[id]) ;
-	if( strlen(value) <= 3)
+	if( strlen(value) <= MAX_VALUE_LEN)
 	{
 		strcpy( new_values[id] , value) ;
 		strcpy( old_values[id] , value) ;

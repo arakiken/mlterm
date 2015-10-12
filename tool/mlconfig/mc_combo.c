@@ -6,7 +6,7 @@
 #include  "mc_combo.h"
 
 
-#define  CHAR_WIDTH  16
+#define  CHAR_WIDTH  10
 
 
 /* --- global functions --- */

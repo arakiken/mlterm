@@ -19,10 +19,13 @@
 #endif
 
 
+#define  MAX_VALUE_LEN  2
+
+
 /* --- static variables --- */
 
-static char *  new_values[MC_SPACES][3] ;	/* 0 - 99 */
-static char *  old_values[MC_SPACES][3] ;	/* 0 - 99 */
+static char  new_values[MC_SPACES][MAX_VALUE_LEN + 1] ;	/* 0 - 99 */
+static char  old_values[MC_SPACES][MAX_VALUE_LEN + 1] ;	/* 0 - 99 */
 static int  is_changed[MC_SPACES] ;
 
 static char *  config_keys[MC_SPACES] =
@@ -49,7 +52,7 @@ space_selected(
 	gchar *  text ;
 
 	text = gtk_editable_get_chars( GTK_EDITABLE(widget) , 0 , -1) ;
-	if( strlen(text) <= 2)
+	if( strlen(text) <= MAX_VALUE_LEN)
 	{
 		strcpy( data , text) ;
 	}
@@ -84,7 +87,7 @@ mc_space_config_widget_new(
 	} ;
 
 	value = mc_get_str_value( config_keys[id]) ;
-	if( strlen(value) <= 2)
+	if( strlen(value) <= MAX_VALUE_LEN)
 	{
 		strcpy( new_values[id] , value) ;
 		strcpy( old_values[id] , value) ;

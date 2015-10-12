@@ -29,6 +29,7 @@
 #include  "mc_ratio.h"
 #include  "mc_radio.h"
 #include  "mc_char_width.h"
+#include  "mc_geometry.h"
 
 
 #if  0
@@ -78,6 +79,7 @@ update(
 	mc_update_tabsize() ;
 	mc_update_logsize() ;
 	mc_update_wordsep() ;
+	mc_update_geometry() ;
 	mc_update_font_misc() ;
 	mc_update_space(MC_SPACE_LINE) ;
 	mc_update_space(MC_SPACE_LETTER) ;
@@ -811,9 +813,17 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
 
 
+	hbox = gtk_hbox_new( FALSE , 0) ;
+	gtk_widget_show( hbox) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+
+	config_widget = mc_geometry_config_widget_new() ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
+
 	config_widget = mc_wordsep_config_widget_new() ;
 	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
 
 
 	config_widget = mc_radio_config_widget_new( MC_RADIO_MOD_META_MODE) ;
