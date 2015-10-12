@@ -764,12 +764,19 @@ reset_position(
 
 - (void)pasteboard:(NSPasteboard*)sender provideDataForType:(NSString *)type
 {
-	XSelectionRequestEvent  ev ;
+	/*
+	 * If this view exits with owning pasteboard, this method is called
+	 * after x_screen_t::term is deleted.
+	 */
+	if( ((x_screen_t*)xwindow)->term)
+	{
+		XSelectionRequestEvent  ev ;
 
-	ev.type = X_SELECTION_REQUESTED ;
-	ev.sender = sender ;
+		ev.type = X_SELECTION_REQUESTED ;
+		ev.sender = sender ;
 
-	x_window_receive_event( xwindow , (XEvent*)&ev) ;
+		x_window_receive_event( xwindow , (XEvent*)&ev) ;
+	}
 }
 
 - (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
