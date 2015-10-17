@@ -12,7 +12,7 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
-#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0)
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0) && ! defined(USE_QUARTZ)
 #include  "gtkxlfdsel.h"
 #endif
 
@@ -671,7 +671,7 @@ fontcs_selected(
 	return  0 ;
 }
 
-#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0)
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0) && ! defined(USE_QUARTZ)
 
 static gchar *
 get_xlfd_font_name(
@@ -970,7 +970,7 @@ select_font(
 	gpointer  p
 	)
 {
-#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0)
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0) && ! defined(USE_QUARTZ)
 	if( ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(xft_flag)) &&
 	    ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(cairo_flag)))
 	{

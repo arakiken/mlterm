@@ -56,7 +56,7 @@ void  window_alloc( x_window_t *  root) ;
 
 void  window_dealloc( void *  window) ;
 
-void  window_resize( void *  window , u_int  width , u_int  height) ;
+void  window_resize( void *  window , int  width , int  height) ;
 
 
 /* for NSApp */
@@ -79,11 +79,6 @@ const char *  cocoa_clipboard_get(void) ;
 #endif	/* __X_WINDOW_H__ */
 
 #ifdef  __X_FONT_H__
-
-/* for NSScreen */
-
-float  screen_get_user_space_scale_factor(void) ;
-
 
 /* for CGFont */
 

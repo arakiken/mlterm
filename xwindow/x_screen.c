@@ -2174,6 +2174,10 @@ shortcut_match(
 	return  1 ;
 }
 
+#ifdef  USE_QUARTZ
+const char *  cocoa_get_bundle_path(void) ;
+#endif
+
 static int
 shortcut_str(
 	x_screen_t *  screen ,
@@ -2206,6 +2210,22 @@ shortcut_str(
 		 * fails without this.
 		 */
 		x_window_ungrab_pointer( &screen->window) ;
+
+	#ifdef  USE_QUARTZ
+		/* If program name was specified without directory, prepend LIBEXECDIR to it. */
+		if( strchr( str , '/') == NULL)
+		{
+			char *  new_str ;
+			char *  bundle_path ;
+
+			bundle_path = cocoa_get_bundle_path() ;
+			if( ( new_str = alloca( strlen( bundle_path) + 16 + strlen(str) + 1)))
+			{
+				sprintf( new_str , "%s/Contents/MacOS/%s" , bundle_path , str) ;
+				str = new_str ;
+			}
+		}
+	#endif
 
 		ml_term_start_config_menu( screen->term , str , global_x , global_y ,
 			DisplayString( screen->window.disp->display)) ;

@@ -110,7 +110,7 @@ x_get_xcolor_rgba(
 	*green = (xcolor->pixel >> 8) & 0xff ;
 	*blue = xcolor->pixel & 0xff ;
 
-	return  0 ;
+	return  1 ;
 }
 
 int

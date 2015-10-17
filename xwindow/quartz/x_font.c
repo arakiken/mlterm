@@ -148,6 +148,9 @@ x_compose_dec_special_font(void)
 }
 
 
+/* Undocumented */
+bool CGFontGetGlyphsForUnichars( CGFontRef , u_int16_t[] , CGGlyph[] , size_t) ;
+
 x_font_t *
 x_font_new(
 	Display *  display ,
@@ -279,30 +282,29 @@ x_font_new(
 	}
 
 #if  0
-	kik_debug_printf( "%d %d %d %d %d\n" , CGFontGetAscent( font->cg_font) ,
+	kik_debug_printf( "%d %d %d %d %d %d\n" , CGFontGetAscent( font->cg_font) ,
 		CGFontGetDescent( font->cg_font) ,
 		CGFontGetLeading( font->cg_font) ,
 		CGFontGetCapHeight( font->cg_font) ,
-		CGFontGetXHeight( font->cg_font)) ;
+		CGFontGetXHeight( font->cg_font) ,
+		CGFontGetUnitsPerEm( font->cg_font)) ;
 #endif
 
 	font->pointsize = fontsize ;
 
-	float  scale = screen_get_user_space_scale_factor() ;
-	if( scale > 0.0)
-	{
-		fontsize = fontsize * scale + 0.5 ;
-	}
-
-#if  0
-	kik_debug_printf( "pont size %d -> SCALE %f -> pixel size %d\n" ,
-		font->pointsize , scale , fontsize) ;
-#endif
-
 	int  ascent = CGFontGetAscent( font->cg_font) ;
 	int  descent = CGFontGetDescent( font->cg_font) ;	/* minus value */
-	font->height = fontsize ;
-	font->ascent = (fontsize * ascent) / (ascent - descent) ;
+	int  units = CGFontGetUnitsPerEm( font->cg_font) ;
+
+	font->height = ((float)fontsize * (ascent - descent)) / ((float)units) + 0.5 ;
+	font->ascent = (font->height * ascent) / (ascent - descent) ;
+
+	CGGlyph  glyphs[1] ;
+	u_int16_t  ch = 'M' ;
+	int  advance ;
+	CGFontGetGlyphsForUnichars( font->cg_font , &ch , glyphs , 1) ;
+	CGFontGetGlyphAdvances( font->cg_font , glyphs , 1 , &advance) ;
+	fontsize = ((float)fontsize * advance * 2) / ((float)units) + 0.5 ;
 
 	/*
 	 * Following processing is same as x_font.c:set_xfont()
@@ -324,11 +326,11 @@ x_font_new(
 				 * !! Notice !!
 				 * The width of full and half character font is the same.
 				 */
-				ch_width = fontsize * percent / 100 ;
+				ch_width = font->height * percent / 100 ;
 			}
 			else
 			{
-				ch_width = fontsize * percent / 200 ;
+				ch_width = font->height * percent / 200 ;
 			}
 
 			font->width = ch_width ;

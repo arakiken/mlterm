@@ -74,8 +74,6 @@ update(
 		mc_update_alpha() ;
 		mc_update_bgtype() ;
 	}
-	mc_update_color(MC_COLOR_SBFG) ;
-	mc_update_color(MC_COLOR_SBBG) ;
 	mc_update_tabsize() ;
 	mc_update_logsize() ;
 	mc_update_wordsep() ;
@@ -87,13 +85,11 @@ update(
 	mc_update_ratio(MC_RATIO_SCREEN_HEIGHT) ;
 	mc_update_radio(MC_RADIO_MOD_META_MODE) ;
 	mc_update_radio(MC_RADIO_BELL_MODE) ;
-	mc_update_radio(MC_RADIO_SB_MODE) ;
 	mc_update_radio(MC_RADIO_LOG_VTSEQ) ;
 	mc_update_ratio(MC_RATIO_BRIGHTNESS) ;
 	mc_update_ratio(MC_RATIO_CONTRAST) ;
 	mc_update_ratio(MC_RATIO_GAMMA) ;
 	mc_update_ratio(MC_RATIO_FADE) ;
-	mc_update_sb_view_name() ;
 	mc_update_im() ;
 	mc_update_cursor_color() ;
 	mc_update_substitute_color() ;
@@ -108,6 +104,13 @@ update(
 	mc_update_flag_mode(MC_FLAG_BLINKCURSOR) ;
 	mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL) ;
 	mc_update_flag_mode(MC_FLAG_EXTSCROLLSHORTCUT) ;
+
+#ifndef  USE_QUARTZ
+	mc_update_color(MC_COLOR_SBFG) ;
+	mc_update_color(MC_COLOR_SBBG) ;
+	mc_update_radio(MC_RADIO_SB_MODE) ;
+	mc_update_sb_view_name() ;
+#endif
 
 	mc_flush(io) ;
 
@@ -757,6 +760,7 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
+#ifndef  USE_QUARTZ
 	/* contents of the "Scrollbar" tab */
 	
 	label = gtk_label_new( _("Scrollbar")) ;
@@ -788,6 +792,7 @@ show(void)
 	config_widget = mc_color_config_widget_new( MC_COLOR_SBBG) ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
+#endif
 
 
 	/* contents of the "Others" tab */
@@ -884,7 +889,12 @@ show(void)
 #if ! GTK_CHECK_VERSION(2 ,90 ,0)
 	gtk_window_set_policy( GTK_WINDOW(window) , 0 , 0 , 0) ;
 #endif
+
 	gtk_widget_show( window) ;
+
+#if  defined(UES_WIN32GUI) || defined(USE_QUARTZ)
+	gtk_window_set_keep_above( GTK_WINDOW(window) , TRUE) ;
+#endif
 
 	gtk_main() ;
 

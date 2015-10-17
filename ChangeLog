@@ -1,3 +1,30 @@
+2015-10-17  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c:
+	  - cocoa_get_bundle_path() + "/Contents/MacOS/" is appended to mlconfig path
+	    on quartz.
+
+	* quartz/x_font.c:
+	  - screen_get_user_space_scale_factor() is not used to determine width and height
+	    by pixel.
+	  - CGFontGetUnitsPerEm() and CGFontGetGlyphAdvances() are additionally used
+	    to determine width and height by pixel.
+
+	* cocoa.[ch]:
+	  - screen_get_user_space_scale_factor() is removed.
+	  - monitor_pty() is called only once.
+	  - http://flex.phys.tohoku.ac.jp/~okuyama/mlterm-30ef99499785.patch is merged.
+	    (Thanks to @LabDrunker)
+	  - PANGO_LIBDIR is set for mlconfig bundled in mlterm.app.
+	  - menuForEvent() event is handled.
+	  - cocoa_get_bundle_path() is added.
+
+	* mc_font.c: gtkxlfdsel.[ch] aren't used on quartz.
+
+	* mlconfig/main.c:
+	  - "Scrollbar" tab is disabled on quartz.
+	  - gtk_window_set_keep_above(TRUE) is called on win32 or quartz.
+
 2015-10-12  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: Alt+x isn't interpreted by NSView::interpretKeyEvents unless preediting.

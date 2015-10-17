@@ -319,8 +319,13 @@ remove_all_observers(
 	{
 		xwindow_for_mlterm_view = NULL ;
 	}
-	else
+
+	static int  inited = 0 ;
+
+	if( ! inited)
 	{
+		inited = 1 ;
+
 		monitor_pty() ;
 
 	#if  1
@@ -331,15 +336,17 @@ remove_all_observers(
 				{
 				case  0x66:	/* Eisu */
 				case  0x68:	/* Kana */
-					break ;
-				default:
-					[event.window.firstResponder keyDown:event] ;
-					break ;
+					ignoreKeyDown = TRUE ;
 				}
+
+				[event.window.firstResponder keyDown:event] ;
 
 				return  (NSEvent*)nil ;
 			}] ;
 	#endif
+
+		/* for mlconfig */
+		setenv( "PANGO_LIBDIR" , [[[NSBundle mainBundle] bundlePath] UTF8String] , 1) ;
 	}
 
 	return  self ;
@@ -468,14 +475,13 @@ reset_position(
 
 		r = [self window].frame ;
 		r.size.width = ACTUAL_WIDTH(xwindow->parent) + diff_x ;
-		float  new_height = ACTUAL_HEIGHT(xwindow) + diff_y +
-					xwindow->parent->vmargin * 2 ;
+		float  new_height = ACTUAL_HEIGHT(xwindow->parent) + diff_y ;
 		r.origin.y += (r.size.height - new_height) ;
 		r.size.height = new_height ;
 
-		[[self window] setFrame:r display:NO] ;
 		[[self window] setResizeIncrements:
 			NSMakeSize(xwindow->width_inc , xwindow->height_inc)] ;
+		[[self window] setFrame:r display:NO] ;
 
 		if( ! IS_OPAQUE)
 		{
@@ -483,11 +489,25 @@ reset_position(
 		}
 
 		[[self window] makeKeyAndOrderFront:self] ;
+
+		/*
+		 * Adjust by xwindow->parent->{x,y} after [window setFrame:r] above adjusted
+		 * window position.
+		 */
+		if( xwindow->parent->x > 0 || xwindow->parent->y > 0)
+		{
+			r = [self window].frame ;
+			r.origin.x += xwindow->parent->x ;
+			r.origin.y -= xwindow->parent->y ;
+
+			[[self window] setFrame:r display:NO] ;
+		}
 	}
 
 	/* Adjust scroller position */
 	[scroller setFrameOrigin:NSMakePoint(term->scrollbar.window.x,y)] ;
 }
+
 - (void)scrollerAction:(id)sender
 {
 	struct terminal *  term = ((x_screen_t*)xwindow)->screen_scroll_listener->self ;
@@ -679,6 +699,25 @@ reset_position(
 	}
 
 	x_window_receive_event( xwindow , (XEvent*)&bev) ;
+}
+
+- (NSMenu*)menuForEvent:(NSEvent*)event
+{
+	NSPoint loc = [event locationInWindow] ;
+	XButtonEvent  bev ;
+
+	bev.type = X_BUTTON_PRESS ;
+	bev.time = event.timestamp * 1000 ;
+	bev.x = loc.x - self.frame.origin.x ;
+	bev.y = ACTUAL_HEIGHT(xwindow) - loc.y - /* self.frame.origin.y - */ 1 ;
+	bev.state = event.modifierFlags &
+			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
+	bev.button = 3 ;
+	bev.click_count = event.clickCount ;
+
+	x_window_receive_event( xwindow , (XEvent*)&bev) ;
+
+	return  (NSMenu*)nil ;
 }
 
 - (void)mouseDragged:(NSEvent *)event
@@ -1335,8 +1374,8 @@ window_dealloc(
 void
 window_resize(
 	NSWindow *  window ,
-	u_int  width ,
-	u_int  height
+	int  width ,
+	int  height
 	)
 {
 	CGRect  wr = window.frame ;
@@ -1344,6 +1383,7 @@ window_resize(
 	int  diff_x = wr.size.width - vs.width ;
 	int  diff_y = wr.size.height - vs.height ;
 
+	wr.origin.y += (vs.height - height) ;
 	wr.size.width = width + diff_x ;
 	wr.size.height = height + diff_y ;
 	[window setFrame:wr display:YES] ;
@@ -1374,13 +1414,6 @@ scroller_update(
 	)
 {
 	[scroller setFloatValue:pos knobProportion:knob] ;
-}
-
-
-float
-screen_get_user_space_scale_factor(void)
-{
-	return  [NSScreen mainScreen].userSpaceScaleFactor ;
 }
 
 
@@ -1529,4 +1562,10 @@ cocoa_remove_fd(
 	}
 
 	return  0 ;
+}
+
+const char *
+cocoa_get_bundle_path(void)
+{
+	return  [[[NSBundle mainBundle] bundlePath] UTF8String] ;
 }
