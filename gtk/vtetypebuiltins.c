@@ -195,7 +195,9 @@ vte_terminal_cursor_blink_mode_get_type (void)
     
   return g_define_type_id__volatile;
 }
+#endif
 
+#if  VTE_CHECK_VERSION(0,20,0)
 GType
 vte_terminal_cursor_shape_get_type (void)
 {

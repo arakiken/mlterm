@@ -105,10 +105,10 @@ update(
 	mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL) ;
 	mc_update_flag_mode(MC_FLAG_EXTSCROLLSHORTCUT) ;
 
+	mc_update_radio(MC_RADIO_SB_MODE) ;
 #ifndef  USE_QUARTZ
 	mc_update_color(MC_COLOR_SBFG) ;
 	mc_update_color(MC_COLOR_SBBG) ;
-	mc_update_radio(MC_RADIO_SB_MODE) ;
 	mc_update_sb_view_name() ;
 #endif
 
@@ -760,7 +760,6 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
-#ifndef  USE_QUARTZ
 	/* contents of the "Scrollbar" tab */
 	
 	label = gtk_label_new( _("Scrollbar")) ;
@@ -776,6 +775,7 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
+#ifndef  USE_QUARTZ
 	config_widget = mc_sb_view_config_widget_new() ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;

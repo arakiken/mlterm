@@ -69,8 +69,11 @@ clean:
 distclean: clean
 	rm -f Makefile
 
-install:
+install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGET).la $(LIBDIR)
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
 
 uninstall:
 	rm -f $(LIBDIR)/$(TARGET).*

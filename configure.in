@@ -168,7 +168,7 @@ if test "$with_gnu_ld" = "yes" ; then
 	DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
 elif test "`$LD --version 2>&1 | $GREP Solaris`" != "" ; then
 	# This option is for SunOS 5.x (Solaris) or later.
-	DEXPORT="-Wl,-M -Wl,\$(VPATH)/dexport.map -Wl,-z -Wl,nodefs"
+	DEXPORT="-Wl,-M -Wl,\$(VPATH)/dexport-sun.map -Wl,-z -Wl,nodefs"
 fi
 AC_SUBST(DEXPORT)
 
@@ -806,22 +806,24 @@ mlterm-zoom)
 	fi
 	;;
 mlimgloader)
-	OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
-	MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
-	tools_result="$tools_result $tool"
+	if test "$gui" != "quartz" ; then
+		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+		MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+		tools_result="$tools_result $tool"
 
-	AC_TRY_COMPILE([
-		#include  <windows.h>
-		#include  <gdiplus.h>],,
-		have_gdiplus=yes,have_gdiplus=no)
-	if test "$gui" = "win32" -a "$have_gdiplus" = "yes" ; then
-		MLIMGLOADER_LIB=gdiplus
-	elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
-		MLIMGLOADER_LIB=gdk-pixbuf
-	else
-		MLIMGLOADER_LIB=none
+		AC_TRY_COMPILE([
+			#include  <windows.h>
+			#include  <gdiplus.h>],,
+			have_gdiplus=yes,have_gdiplus=no)
+		if test "$gui" = "win32" -a "$have_gdiplus" = "yes" ; then
+			MLIMGLOADER_LIB=gdiplus
+		elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+			MLIMGLOADER_LIB=gdk-pixbuf
+		else
+			MLIMGLOADER_LIB=none
+		fi
+		AC_SUBST(MLIMGLOADER_LIB)
 	fi
-	AC_SUBST(MLIMGLOADER_LIB)
 	;;
 registobmp)
 	PKG_CHECK_MODULES(SDLTTF, SDL_ttf, have_sdlttf=yes, have_sdlttf=no)

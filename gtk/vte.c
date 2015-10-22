@@ -2235,8 +2235,10 @@ vte_terminal_class_init(
 		 * because button3 is disabled by
 		 * x_shortcut_parse( &shortcut , "Button3" , "\"none\"") above.
 		 */
-		char *  keys[] = { "Control+Button1" , "Control+Button2" ,
-					"Control+Button3" } ;
+		char  key0[] = "Control+Button1" ;
+		char  key1[] = "Control+Button2" ;
+		char  key2[] = "Control+Button3" ;
+		char *  keys[] = { key0 , key1 , key2 , } ;
 
 		for( count = 0 ; count < sizeof(keys) / sizeof(keys[0]) ; count ++)
 		{
@@ -4130,7 +4132,9 @@ vte_terminal_get_cursor_blink_mode(
 		return  VTE_CURSOR_BLINK_OFF ;
 	}
 }
+#endif
 
+#if  VTE_CHECK_VERSION(0,20,0)
 void
 vte_terminal_set_cursor_shape(
 	VteTerminal *  terminal ,

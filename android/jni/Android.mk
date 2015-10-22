@@ -53,7 +53,8 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		mkf/lib/mkf_ucs4_gb2312.c mkf/lib/mkf_ucs4_gbk.c mkf/lib/mkf_ucs4_big5.c \
 		mkf/lib/mkf_ucs4_cns11643.c mkf/lib/mkf_gb18030_2000_intern.c \
 		mlterm/ml_char.c mlterm/ml_str.c mlterm/ml_line.c mlterm/ml_model.c \
-		mlterm/ml_char_encoding.c mlterm/ml_color.c mlterm/ml_edit.c mlterm/ml_edit_util.c \
+		mlterm/ml_char_encoding.c mlterm/ml_color.c mlterm/ml_edit.c \
+		mlterm/ml_line_shape.c mlterm/ml_edit_util.c \
 		mlterm/ml_edit_scroll.c mlterm/ml_cursor.c mlterm/ml_logical_visual.c \
 		mlterm/ml_logs.c mlterm/ml_screen.c mlterm/ml_shape.c mlterm/ml_str_parser.c \
 		mlterm/ml_term.c mlterm/ml_vt100_parser.c mlterm/ml_term_manager.c mlterm/ml_bidi.c \
