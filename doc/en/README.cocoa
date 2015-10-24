@@ -11,7 +11,7 @@ MacOS X/Cocoa support (Experimental)
   ./configure --with-gui=quartz (--config-cache) --prefix=/foo/bar
   make
   make install
-  $(top_srcdir)/cocoa/install /foo/bar
+  $(top_srcdir)/cocoa/install.sh /foo/bar
 
 * Start
   open -a $HOME/mlterm.app

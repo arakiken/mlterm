@@ -1,5 +1,12 @@
 2015-10-25  Araki Ken  <arakiken@users.sf.net>
 
+	* mlconfig/Makefile.in, mlterm-menu/Makefile.in:
+	  "LIBS2_quartz = $(LKIK)" is added.
+
+	* version.h.in: 3.6.0 -> 3.6.0post
+
+2015-10-25  Araki Ken  <arakiken@users.sf.net>
+
 	* 3.6.0 released.
 	  (tag "rel-3_6_0")
 
