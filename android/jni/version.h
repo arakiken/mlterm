@@ -10,8 +10,8 @@
 
 
 #define  MAJOR_VERSION	3
-#define  MINOR_VERSION	5
-#define  REVISION	1
+#define  MINOR_VERSION	6
+#define  REVISION	0
 #define  PATCH_LEVEL	0
 
 #if  0
