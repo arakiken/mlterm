@@ -1,3 +1,9 @@
+2015-10-24  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: x_screen_exec_cmd() supports "mlconfig" command.
+
+	* cocoa.m: "Config" and "Paste" menu items are added to the main menu.
+
 2015-10-22  Araki Ken  <arakiken@users.sf.net>
 
 	* mlconfig/main.c: "Scrollbar" tab is revived on MacOSX/Cocoa.

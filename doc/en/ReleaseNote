@@ -1,6 +1,7 @@
 ver 3.6.0
 * Support MacOSX/Cocoa. (See doc/en/README.cocoa)
 * Add "geometry" to OSC 5379.
+* Add "mlconfig" to OSC 5379.
 * Add "Columns" and "Rows" to "Others" tab of mlconfig.
 * Bug fixes:
   Fix segfault of libvte compatible library if conf_menu_path_N option is specified.

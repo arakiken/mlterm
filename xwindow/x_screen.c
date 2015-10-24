@@ -2178,6 +2178,47 @@ shortcut_match(
 const char *  cocoa_get_bundle_path(void) ;
 #endif
 
+static void
+start_menu(
+	x_screen_t *  screen ,
+	char *  str ,
+	int  x ,
+	int  y
+	)
+{
+	int  global_x ;
+	int  global_y ;
+	Window  child ;
+
+	x_window_translate_coordinates( &screen->window ,
+		x , y , &global_x , &global_y , &child) ;
+
+	/*
+	 * XXX I don't know why but XGrabPointer() in child processes
+	 * fails without this.
+	 */
+	x_window_ungrab_pointer( &screen->window) ;
+
+#ifdef  USE_QUARTZ
+	/* If program name was specified without directory, prepend LIBEXECDIR to it. */
+	if( strchr( str , '/') == NULL)
+	{
+		char *  new_str ;
+		const char *  bundle_path ;
+
+		bundle_path = cocoa_get_bundle_path() ;
+		if( ( new_str = alloca( strlen( bundle_path) + 16 + strlen(str) + 1)))
+		{
+			sprintf( new_str , "%s/Contents/MacOS/%s" , bundle_path , str) ;
+			str = new_str ;
+		}
+	}
+#endif
+
+	ml_term_start_config_menu( screen->term , str , global_x , global_y ,
+		DisplayString( screen->window.disp->display)) ;
+}
+
 static int
 shortcut_str(
 	x_screen_t *  screen ,
@@ -2196,39 +2237,7 @@ shortcut_str(
 
 	if( strncmp( str , "menu:" , 5) == 0)
 	{
-		int  global_x ;
-		int  global_y ;
-		Window  child ;
-
-		str += 5 ;
-
-		x_window_translate_coordinates( &screen->window ,
-			x , y , &global_x , &global_y , &child) ;
-
-		/*
-		 * XXX I don't know why but XGrabPointer() in child processes
-		 * fails without this.
-		 */
-		x_window_ungrab_pointer( &screen->window) ;
-
-	#ifdef  USE_QUARTZ
-		/* If program name was specified without directory, prepend LIBEXECDIR to it. */
-		if( strchr( str , '/') == NULL)
-		{
-			char *  new_str ;
-			char *  bundle_path ;
-
-			bundle_path = cocoa_get_bundle_path() ;
-			if( ( new_str = alloca( strlen( bundle_path) + 16 + strlen(str) + 1)))
-			{
-				sprintf( new_str , "%s/Contents/MacOS/%s" , bundle_path , str) ;
-				str = new_str ;
-			}
-		}
-	#endif
-
-		ml_term_start_config_menu( screen->term , str , global_x , global_y ,
-			DisplayString( screen->window.disp->display)) ;
+		start_menu( screen , str + 5 , x , y) ;
 	}
 	else if( strncmp( str , "exesel:" , 7) == 0)
 	{
@@ -8105,6 +8114,12 @@ x_screen_exec_cmd(
 
 	if( ml_term_exec_cmd( screen->term , cmd))
 	{
+		return  1 ;
+	}
+	else if( strcmp( cmd , "mlconfig") == 0)
+	{
+		start_menu( screen , cmd , screen->window.width / 2 , screen->window.height / 2) ;
+
 		return  1 ;
 	}
 	else if( strncmp( cmd , "mlclient" , 8) == 0)

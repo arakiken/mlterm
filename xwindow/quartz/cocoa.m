@@ -56,6 +56,9 @@ static u_int  num_of_additional_fds ;
 
 static x_window_t *  xwindow_for_mlterm_view ;
 
+static NSMenuItem *  configMenuItem ;
+static NSMenuItem *  pasteMenuItem ;
+
 
 /* --- static functions --- */
 
@@ -320,12 +323,8 @@ remove_all_observers(
 		xwindow_for_mlterm_view = NULL ;
 	}
 
-	static int  inited = 0 ;
-
-	if( ! inited)
+	if( ! configMenuItem)
 	{
-		inited = 1 ;
-
 		monitor_pty() ;
 
 	#if  1
@@ -347,6 +346,17 @@ remove_all_observers(
 
 		/* for mlconfig */
 		setenv( "PANGO_LIBDIR" , [[[NSBundle mainBundle] bundlePath] UTF8String] , 1) ;
+
+		NSMenu *  appmenu = [[NSMenu alloc] initWithTitle:@""] ;
+		configMenuItem = [appmenu addItemWithTitle:@"Config"
+					action:@selector(configMenu:) keyEquivalent:@"C"] ;
+		pasteMenuItem = [appmenu addItemWithTitle:@"Paste"
+					action:@selector(pasteMenu:) keyEquivalent:@"P"] ;
+		[configMenuItem setTarget:self] ;
+		[pasteMenuItem setTarget:self] ;
+		NSMenu *  menu = [[NSMenu alloc] initWithTitle:@""] ;
+		[[menu addItemWithTitle:@"" action:nil keyEquivalent:@""] setSubmenu:appmenu] ;
+		[[NSApplication sharedApplication] setMainMenu:menu] ;
 	}
 
 	return  self ;
@@ -356,6 +366,24 @@ remove_all_observers(
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self] ;
 	[super dealloc] ;
+}
+
+- (void)configMenu:(id)sender
+{
+	/* if by any change */
+	if( ((x_screen_t*)xwindow)->term)
+	{
+		x_screen_exec_cmd( (x_screen_t*)xwindow , "mlconfig") ;
+	}
+}
+
+- (void)pasteMenu:(id)sender
+{
+	/* if by any change */
+	if( ((x_screen_t*)xwindow)->term)
+	{
+		x_screen_exec_cmd( (x_screen_t*)xwindow , "paste") ;
+	}
 }
 
 static void
@@ -581,6 +609,31 @@ reset_position(
 	return  IS_OPAQUE ? YES : NO ;
 }
 
+static x_window_t *
+get_current_window(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+	if( win->inputtable > 0)
+	{
+		return  win ;
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		x_window_t *  hit ;
+
+		if( ( hit = get_current_window( win->children[count])))
+		{
+			return  hit ;
+		}
+	}
+
+	return  NULL ;
+}
+
 - (void)focused:(NSNotification *)note
 {
 	if( ! xwindow->parent || ! ((x_screen_t*)xwindow)->term)
@@ -594,6 +647,14 @@ reset_position(
 	ev.type = X_FOCUS_IN ;
 
 	x_window_receive_event( x_get_root_window( xwindow) , &ev) ;
+
+	x_window_t *  focused ;
+
+	if( ( focused = get_current_window( x_get_root_window( xwindow))))
+	{
+		[configMenuItem setTarget:focused->my_window] ;
+		[pasteMenuItem setTarget:focused->my_window] ;
+	}
 }
 
 - (void)unfocused:(NSNotification *)note
@@ -623,6 +684,9 @@ reset_position(
 	ev.type = X_KEY_FOCUS_IN ;
 
 	x_window_receive_event( xwindow , &ev) ;
+
+	[configMenuItem setTarget:xwindow->my_window] ;
+	[pasteMenuItem setTarget:xwindow->my_window] ;
 
 	return  YES ;
 }

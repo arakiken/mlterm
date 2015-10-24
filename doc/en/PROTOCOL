@@ -31,8 +31,8 @@ version 20150829
                      mlclientx "<prefix options>" "<options>" |
                      search_prev <pattern> | search_next <pattern> | update_all |
                      show_picture "<file name>" "(WxH)" "(WxH+X+Y)" |
-                     add_frame "<file name>" "(WxH)" |
-                     set_shortcut <key>=<operation>
+                     add_frame "<file name>" "(WxH)" | mlconfig |
+                     set_shortcut <key>=<operation> |
                      scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                      "(<encoding name>)"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
