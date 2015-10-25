@@ -1,5 +1,13 @@
 2015-10-25  Araki Ken  <arakiken@users.sf.net>
 
+	* x_layout.c: x_window_update_all() is called in reset_layout()
+	  if true transparency is enabled on MacOSX/Cocoa because x_window_move()
+	  clears screen.
+
+	* cocoa/install.sh: mlconfig is installed if exits.
+
+2015-10-25  Araki Ken  <arakiken@users.sf.net>
+
 	* mlconfig/Makefile.in, mlterm-menu/Makefile.in:
 	  "LIBS2_quartz = $(LKIK)" is added.
 

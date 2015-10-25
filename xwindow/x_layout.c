@@ -144,6 +144,14 @@ reset_layout(
 			child_width , child_height , NOTIFY_TO_MYSELF) ;
 	}
 
+#ifdef  USE_QUARTZ
+	/* x_window_move() clears screen in true transparency on MacOSX/Cocoa. */
+	if( term->screen->color_man->alpha < 255)
+	{
+		x_window_update_all( &term->screen->window) ;
+	}
+#endif
+
 	if( term->yfirst)
 	{
 		if( term->next[1] && term->separator_y > 0)
