@@ -3304,11 +3304,7 @@ clear_line_all(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	/*
-	 * XXX
-	 * cursor position should be restored.
-	 */
-	ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+	ml_screen_clear_line_to_left( vt100_parser->screen) ;
 	ml_screen_clear_line_to_right( vt100_parser->screen) ;
 }
 
@@ -3317,12 +3313,9 @@ clear_display_all(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	/*
-	 * XXX
-	 * cursor position should be restored.
-	 */
-	ml_screen_goto_home( vt100_parser->screen) ;
 	ml_screen_clear_below( vt100_parser->screen) ;
+	ml_screen_clear_above( vt100_parser->screen) ;
+	ml_screen_clear_size_attr( vt100_parser->screen) ;
 }
 
 static void
@@ -6393,7 +6386,47 @@ parse_vt100_escape_sequence(
 			{
 				if( ic_num == 1 && *(str_p - 1) == '#')
 				{
-					if( *str_p == '8')
+					if( '3' <= *str_p && *str_p <= '6')
+					{
+						ml_line_t *  line ;
+
+						line = ml_screen_get_cursor_line(
+							vt100_parser->screen) ;
+						if( *str_p == '3')
+						{
+							/*
+							 * "ESC # 3" DEC double-height line,
+							 * top half (DECDHL)
+							 */
+							ml_line_set_size_attr( line ,
+								DOUBLE_HEIGHT_TOP) ;
+						}
+						else if( *str_p == '4')
+						{
+							/*
+							 * "ESC # 4" DEC double-height line,
+							 * bottom half (DECDHL)
+							 */
+							ml_line_set_size_attr( line ,
+								DOUBLE_HEIGHT_BOTTOM) ;
+						}
+						else if( *str_p == '5')
+						{
+							/*
+							 * "ESC # 5" DEC single-with line (DECDWL)
+							 */
+							ml_line_set_size_attr( line , 0) ;
+						}
+						else /* if( *str_p == '6') */
+						{
+							/*
+							 * "ESC # 6" DEC double-with line (DECDWL)
+							 */
+							ml_line_set_size_attr( line ,
+								DOUBLE_WIDTH) ;
+						}
+					}
+					else if( *str_p == '8')
 					{
 						/* "ESC # 8" DEC screen alignment test */
 

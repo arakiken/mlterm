@@ -2430,6 +2430,19 @@ ml_edit_change_attr_area(
 	return  1 ;
 }
 
+void
+ml_edit_clear_size_attr(
+	ml_edit_t *  edit
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < edit->model.num_of_rows ; count++)
+	{
+		ml_line_set_size_attr( ml_edit_get_line( edit , count) , 0) ;
+	}
+}
+
 /*
  * for debugging.
  */

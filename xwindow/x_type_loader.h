@@ -20,6 +20,8 @@ typedef enum  x_type_id
 	X_SET_FONT ,
 	X_UNSET_FONT ,
 	X_CALCULATE_CHAR_WIDTH ,
+	X_WINDOW_SET_CLIP ,
+	X_WINDOW_UNSET_CLIP ,
 	MAX_TYPE_FUNCS ,
 
 } x_type_id_t ;

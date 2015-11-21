@@ -197,6 +197,15 @@ x_font_manager_delete(
 	return  1 ;
 }
 
+void
+x_font_manager_set_size_attr(
+	x_font_manager_t *  font_man ,
+	int  size_attr
+	)
+{
+	font_man->size_attr = size_attr ;
+}
+
 x_font_t *
 x_get_font(
 	x_font_manager_t *  font_man ,
@@ -215,7 +224,8 @@ x_get_font(
 		font &= ~FONT_ITALIC ;
 	}
 
-	if( ( xfont = x_font_cache_get_xfont( font_man->font_cache , font)))
+	if( ( xfont = x_font_cache_get_xfont( font_man->font_cache ,
+				SIZE_ATTR_FONT(font , font_man->size_attr))))
 	{
 		return  xfont ;
 	}

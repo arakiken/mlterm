@@ -445,6 +445,7 @@ x_font_t *
 x_font_new(
 	Display *  display ,
 	ml_font_t  id ,
+	int  size_attr ,
 	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present ,
 	const char *  fontname ,
@@ -542,6 +543,16 @@ x_font_new(
 		is_italic = FALSE ;
 	}
 
+	if( size_attr)
+	{
+		if( size_attr >= DOUBLE_HEIGHT_TOP)
+		{
+			fontsize *= 2 ;
+		}
+
+		col_width *= 2 ;
+	}
+
 	font_family = NULL ;
 	percent = 0 ;
 	fontsize_d = (double)fontsize ;
@@ -586,7 +597,12 @@ x_font_new(
 				col_width ? (font->is_vertical ? col_width / 2 : col_width) :
 					(int)fontsize_d / 2 ,
 			#else
-				0 ,			/* Width (0=auto) */
+				size_attr == DOUBLE_WIDTH ?
+					(use_point_size ?
+						-MulDiv( (int)fontsize_d ,
+						GetDeviceCaps( display_gc , LOGPIXELSY) , 72) :
+						(int)fontsize_d) :
+					0 ,		/* Width (0=auto) */
 			#endif
 				0 ,			/* text angle */
 				0 ,			/* char angle */
@@ -772,6 +788,8 @@ x_font_new(
 			}
 		}
 	}
+
+	font->size_attr = size_attr ;
 
 
 	if( wincsinfo->cs == ANSI_CHARSET || wincsinfo->cs == SYMBOL_CHARSET ||

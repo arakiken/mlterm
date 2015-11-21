@@ -1,3 +1,51 @@
+2015-11-21  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: x_font_manager_set_size_attr() is called before x_get_font().
+
+	* x_draw_str.c:
+	  - If xfont->size_attr >= DOUBLE_HEIGHT_TOP, x_window_draw_{image}_string*()
+	    aren't used.
+	  - Drawing height and ascent is modified according to font_man->size_attr
+	    in x_draw_str() and x_draw_str_to_eol().
+
+	* x_font_manager.[ch]: x_font_manager_set_size_attr() is added.
+
+	* x_functbl_{cairo|xft}.c, x_window_{cairo|xft}.c:
+	  {xft|cairo}_{un}set_clip() are added.
+
+	* x_type_loader.h: X_WINDOW_SET_CLIP and XWINDOW_UNSET_CLIP are added.
+
+	* cocoa.m:
+	  - setClip and unsetClip are added to MLTermView.
+	  - view_set_clip() and view_unset_clip() are added.
+	  - Glyph size is transformed according to x_font_t::size_attr.
+
+	* x_window.h, fb/x_window.c, win32/x_window.c, xlib/x_window.c, quartz/x_window.c:
+	  x_window_set_clip() and x_window_unset_clip() are added.
+
+	* x_font.h, fb/x_font.c, win32/x_font.c, xlib/x_font.c, quartz/x_font.c:
+	  - size_attr is added to x_font_t and to arguments of x_font_new().
+	  - Large fonts are loaded according to size_attr.
+
+	* ml_font.h: DOUBLE_WIDTH, DOUBLE_HEIGHT_TOP and DOUBLE_HEIGHT_BOTTOM are added.
+
+	* ml_screen.h: ml_screen_clear_size_attr() is added.
+
+	* ml_screen.c: size_attr of newly scrolled in line is reset in
+	  receive_scrolled_out_line().
+
+	* ml_edit.[ch]: ml_edit_clear_size_attr() is added.
+
+	* ml_line.[ch]:
+	  - size_attr is added to ml_line_t.
+	  - ml_line_set_size_attr() is added.
+
+	* ml_vt100_parser.c:
+	  - clear_line_all() and clear_display_all() doesn't change cursor position.
+	  - DECDHL and DECDWL (ESC # 3 - 6) are supported.
+
+	* cocoa/install.sh: mlterm and mlconfig are installed correctly.
+
 2015-10-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_layout.c: x_window_update_all() is called in reset_layout()

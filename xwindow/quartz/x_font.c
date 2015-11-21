@@ -155,6 +155,7 @@ x_font_t *
 x_font_new(
 	Display *  display ,
 	ml_font_t  id ,
+	int  size_attr ,
 	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present ,
 	const char *  fontname ,
@@ -374,6 +375,20 @@ x_font_new(
 			FONT_CS(font->id)) ;
 
 	}
+
+	if( size_attr)
+	{
+		font->width *= 2 ;
+		font->x_off *= 2 ;
+
+		if( size_attr >= DOUBLE_HEIGHT_TOP)
+		{
+			font->height *= 2 ;
+			font->ascent *= 2 ;
+		}
+	}
+
+	font->size_attr = size_attr ;
 
 	return  font ;
 }

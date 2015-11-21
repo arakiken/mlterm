@@ -109,6 +109,11 @@ typedef struct  x_window
 	u_int16_t  hmargin ;
 	u_int16_t  vmargin ;
 
+#ifdef  USE_FRAMEBUFFER
+	u_int  clip_y ;
+	u_int  clip_height ;
+#endif
+
 	/* used by x_xim */
 	x_xim_ptr_t  xim ;
 	x_xim_event_listener_t *  xim_listener ;
@@ -323,6 +328,10 @@ int  x_window_scroll_rightward( x_window_t *  win , u_int  width) ;
 
 int  x_window_copy_area( x_window_t *  win , Pixmap  src , PixmapMask  mask ,
 	int  src_x , int  src_y , u_int  width , u_int  height , int  dst_x , int  dst_y) ;
+
+void  x_window_set_clip( x_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
+
+void  x_window_unset_clip( x_window_t *  win) ;
 
 int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , u_char *  str , u_int  len) ;

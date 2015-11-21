@@ -15,6 +15,15 @@
 #define  FONT_STYLE_INDEX(font)  ((((font) & (FONT_BOLD|FONT_ITALIC)) >> 10) - 1)
 #define  HAS_UNICODE_AREA(font)  ((font) >= 0x1000)
 #define  NORMAL_FONT_OF(cs)  (IS_FULLWIDTH_CS(cs) ? (cs) | FONT_FULLWIDTH : (cs))
+#define  SIZE_ATTR_FONT(font , size_attr)  ((font) | ((size_attr) << 12))
+
+
+enum
+{
+	DOUBLE_WIDTH = 0x1 ,
+	DOUBLE_HEIGHT_TOP = 0x2 ,
+	DOUBLE_HEIGHT_BOTTOM = 0x3 ,
+} ;
 
 
 typedef enum ml_font
@@ -35,7 +44,10 @@ typedef enum ml_font
 	FONT_SEMICONDENSED	/* (default) normal */
 #endif
 
-	/* 0x1000 - is used for Unicode range mark. (see ml_char_get_unicode_area_font.) */
+	/*
+	 * 0x1000 - is used for Unicode range mark (see ml_char_get_unicode_area_font)
+	 * or size_attr (see x_font_manager.c)
+	 */
 
 } ml_font_t ;
 

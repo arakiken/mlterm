@@ -17,8 +17,12 @@ libs="lib/libkik.[0-9]*.dylib lib/libmkf.[0-9]*.dylib lib/libmlterm_core.dylib l
 
 mkdir -p lib/mkf
 mkdir -p lib/mlterm
-for file in $libs lib/mkf/lib*.so mlterm mlconfig ; do
+for file in $libs lib/mkf/lib*.so ; do
 	cp -f $prefix/$file `dirname $file`/
+done
+
+for file in bin/mlterm libexec/mlterm/mlconfig ; do
+	cp -f $prefix/$file .
 done
 
 for file in $libs mlterm mlconfig ; do

@@ -3088,6 +3088,30 @@ x_window_copy_area(
 	return  1 ;
 }
 
+void
+x_window_set_clip(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	HRGN  r = CreateRectRgn( x + win->hmargin , y + win->vmargin ,
+			x + width + win->hmargin , y + height + win->vmargin) ;
+
+	SelectClipRgn( win->gc->gc , r) ;
+	DeleteObject( r) ;
+}
+
+void
+x_window_unset_clip(
+	x_window_t *  win
+	)
+{
+	SelectClipRgn( win->gc->gc , NULL) ;
+}
+
 int
 x_window_draw_decsp_string(
 	x_window_t *  win ,

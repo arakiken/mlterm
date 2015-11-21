@@ -924,6 +924,40 @@ x_window_xft_draw_string32(
 	return  (*func)( win , font , fg_color , x , y , str , len) ;
 }
 
+static void
+xft_set_clip(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	void (*func)( x_window_t * , int , int , u_int , u_int) ;
+
+	if( ! ( func = x_load_type_xft_func( X_WINDOW_SET_CLIP)))
+	{
+		return ;
+	}
+
+	(*func)( win , x , y , width , height) ;
+}
+
+static void
+xft_unset_clip(
+	x_window_t *  win
+	)
+{
+	void (*func)( x_window_t *) ;
+
+	if( ! ( func = x_load_type_xft_func( X_WINDOW_UNSET_CLIP)))
+	{
+		return ;
+	}
+
+	(*func)( win) ;
+}
+
 static int
 x_window_set_use_cairo(
 	x_window_t *  win ,
@@ -998,6 +1032,40 @@ cairo_resize(
 	return  (*func)( win) ;
 }
 
+static void
+cairo_set_clip(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	void (*func)( x_window_t * , int , int , u_int , u_int) ;
+
+	if( ! ( func = x_load_type_cairo_func( X_WINDOW_SET_CLIP)))
+	{
+		return ;
+	}
+
+	(*func)( win , x , y , width , height) ;
+}
+
+static void
+cairo_unset_clip(
+	x_window_t *  win
+	)
+{
+	void (*func)( x_window_t *) ;
+
+	if( ! ( func = x_load_type_cairo_func( X_WINDOW_UNSET_CLIP)))
+	{
+		return ;
+	}
+
+	(*func)( win) ;
+}
+
 #else  /* NO_DYNAMIC_LOAD_TYPE */
 #ifdef  USE_TYPE_XFT
 int  x_window_set_use_xft( x_window_t *  win , int  use_xft) ;
@@ -1005,6 +1073,8 @@ int  x_window_xft_draw_string8( x_window_t *  win , x_font_t *  font , x_color_t
 	int  x , int  y , u_char *  str , size_t  len) ;
 int  x_window_xft_draw_string32( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
 	int  x , int  y , u_int32_t *  str , size_t  len) ;
+void  xft_set_clip( x_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
+void  xft_unset_clip( x_window_t *  win) ;
 #endif
 #ifdef  USE_TYPE_CAIRO
 int  x_window_set_use_cairo( x_window_t *  win , int  use_cairo) ;
@@ -1013,6 +1083,8 @@ int  x_window_cairo_draw_string8( x_window_t *  win , x_font_t *  font , x_color
 int  x_window_cairo_draw_string32( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
 	int  x , int  y , u_int32_t *  str , size_t  len) ;
 int  cairo_resize( x_window_t *  win) ;
+void  cairo_set_clip( x_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
+void  cairo_unset_clip( x_window_t *  win) ;
 #endif
 #endif /* NO_DYNAMIC_LOAD_TYPE */
 
@@ -3386,6 +3458,66 @@ x_window_copy_area(
 		src_x , src_y , width , height , dst_x + win->hmargin , dst_y + win->vmargin) ;
 
 	return  1 ;
+}
+
+void
+x_window_set_clip(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+	if( win->cairo_draw)
+	{
+		cairo_set_clip( win , x + win->hmargin , y + win->vmargin , width , height) ;
+	}
+	else
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	if( win->xft_draw)
+	{
+		xft_set_clip( win , x + win->hmargin , y + win->vmargin , width , height) ;
+	}
+	else
+#endif
+	{
+		XRectangle  rect ;
+
+		rect.x = 0 ;
+		rect.y = 0 ;
+		rect.width = width ;
+		rect.height = height ;
+
+		XSetClipRectangles( win->disp->display , win->gc->gc ,
+			x + win->hmargin , y + win->vmargin , &rect , 1 , YSorted) ;
+	}
+}
+
+void
+x_window_unset_clip(
+	x_window_t *  win
+	)
+{
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+	if( win->cairo_draw)
+	{
+		cairo_unset_clip( win) ;
+	}
+	else
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	if( win->xft_draw)
+	{
+		xft_unset_clip( win) ;
+	}
+	else
+#endif
+	{
+		XSetClipMask( win->disp->display , win->gc->gc , None) ;
+	}
 }
 
 int

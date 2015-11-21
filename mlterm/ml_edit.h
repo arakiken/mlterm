@@ -174,6 +174,8 @@ int  ml_edit_change_attr_area( ml_edit_t *  edit , int  col , int  row ,
 	u_int  num_of_cols , u_int  num_of_rows ,
 	void (*func)( ml_char_t * , int , int , int , int) , int  attr) ;
 
+void  ml_edit_clear_size_attr( ml_edit_t *  edit) ;
+
 #define  ml_edit_set_use_rect_attr_select( edit , use)  ((edit)->use_rect_attr_select = (use))
 
 #define  ml_cursor_char_index( edit)  ((edit)->cursor.char_index)

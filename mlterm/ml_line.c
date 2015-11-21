@@ -505,7 +505,8 @@ ml_line_reset(
 	}
 
 	line->is_continued_to_next = 0 ;
-	
+	line->size_attr = 0 ;
+
 	return 1 ;
 }
 
@@ -546,6 +547,7 @@ ml_line_clear(
 	ml_char_copy( line->chars + char_index , ml_sp_ch()) ;
 	line->num_of_filled_chars = char_index + 1 ;
 	line->is_continued_to_next = 0 ;
+	line->size_attr = 0 ;
 
 	return  1 ;
 }
@@ -1292,6 +1294,7 @@ ml_line_copy(
 	
 	dst->is_modified = src->is_modified ;
 	dst->is_continued_to_next = src->is_continued_to_next ;
+	dst->size_attr = src->size_attr ;
 
 	if( ml_line_is_using_bidi( src))
 	{
@@ -1443,6 +1446,19 @@ ml_line_get_num_of_filled_chars_except_spaces_with_func(
 		}
 
 		return  0 ;
+	}
+}
+
+void
+ml_line_set_size_attr(
+	ml_line_t *  line ,
+	int  size_attr
+	)
+{
+	if( line->size_attr != size_attr)
+	{
+		line->size_attr = size_attr ;
+		ml_line_set_modified_all( line) ;
 	}
 }
 

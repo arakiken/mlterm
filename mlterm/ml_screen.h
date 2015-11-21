@@ -369,6 +369,8 @@ int  ml_screen_fill_area( ml_screen_t *  screen , int  code ,
 #define  ml_screen_set_use_rect_attr_select( screen , use) \
 	ml_edit_set_use_rect_attr_select( (screen)->edit , use)
 
+#define  ml_screen_clear_size_attr( screen)   ml_edit_clear_size_attr( (screen)->edit)
+
 void  ml_screen_enable_blinking( ml_screen_t *  screen) ;
 
 

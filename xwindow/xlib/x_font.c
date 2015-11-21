@@ -990,6 +990,7 @@ x_font_t *
 x_font_new(
 	Display *  display ,
 	ml_font_t  id ,
+	int  size_attr ,
 	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present , /* FONT_VAR_WIDTH is never set if FONT_VERTICAL is set. */
 	const char *  fontname ,
@@ -1050,6 +1051,12 @@ x_font_new(
 	font->cairo_font = NULL ;
 #endif
 	font->decsp_font = NULL ;
+
+	if( size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		fontsize *= 2 ;
+		col_width *= 2 ;
+	}
 
 	switch( type_engine)
 	{
@@ -1117,6 +1124,23 @@ x_font_new(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 end:
 #endif
+	if( size_attr == DOUBLE_WIDTH)
+	{
+		if( type_engine == TYPE_CAIRO)
+		{
+			font->x_off *= 2 ;
+		}
+		else
+		{
+			font->x_off += (font->width / 2) ;
+			font->is_proportional = 1 ;
+			font->is_var_col_width = 0 ;
+		}
+		font->width *= 2 ;
+	}
+
+	font->size_attr = size_attr ;
+
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
 		kik_msg_printf(

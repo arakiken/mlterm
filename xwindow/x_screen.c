@@ -137,6 +137,8 @@ convert_char_index_to_x(
 	int  count ;
 	int  x ;
 
+	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+
 	if( ml_line_is_rtl( line))
 	{
 		x = screen->window.width ;
@@ -217,6 +219,8 @@ convert_x_to_char_index(
 	int  count ;
 	u_int  width ;
 	int  end_char_index ;
+
+	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
 
 	end_char_index = ml_line_end_char_index(line) ;
 
@@ -455,6 +459,8 @@ draw_line(
 		/* don't use _with_shape function since line is already shaped */
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
 
+		x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+
 		if( is_cleared_to_end)
 		{
 			if( ml_line_is_rtl( line))
@@ -607,6 +613,7 @@ draw_cursor(
 		ml_char_reverse_color( &ch) ;
 	}
 
+	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
 	x_draw_str( &screen->window , screen->font_man ,
 		screen->color_man , &ch , 1 , x , y ,
 		x_line_height( screen) ,
@@ -3308,6 +3315,7 @@ report_mouse_tracking(
 
 		col = ml_convert_char_index_to_col( line , char_index , 0) ;
 
+		x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
 		width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
 				ml_char_code( ml_sp_ch()) , US_ASCII , NULL) ;
@@ -6155,6 +6163,7 @@ get_im_spot(
 
 	if( ! ml_term_get_vertical_mode( screen->term))
 	{
+		x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
 		for( i = 0 ; i < segment_offset ; i++)
 		{
 			u_int  width ;
@@ -6341,6 +6350,8 @@ draw_preedit_str(
 #ifdef  USE_WIN32GUI
 	x_set_gc( screen->window.gc , GetDC( screen->window.my_window)) ;
 #endif
+
+	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
 
 	for( i = 0 , start = 0 ; i < num_of_chars ; i++)
 	{

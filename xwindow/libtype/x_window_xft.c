@@ -130,3 +130,37 @@ x_window_xft_draw_string32(
 
 	return  1 ;
 }
+
+void
+xft_set_clip(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	XRectangle  rect ;
+
+	rect.x = 0 ;
+	rect.y = 0 ;
+	rect.width = width ;
+	rect.height = height ;
+
+	XftDrawSetClipRectangles( win->xft_draw , x , y , &rect , 1) ;
+}
+
+void
+xft_unset_clip(
+	x_window_t *  win
+	)
+{
+	XRectangle  rect ;
+
+	rect.x = 0 ;
+	rect.y = 0 ;
+	rect.width = ACTUAL_WIDTH(win) ;
+	rect.height = ACTUAL_HEIGHT(win) ;
+
+	XftDrawSetClipRectangles( win->xft_draw , 0 , 0 , &rect , 1) ;
+}

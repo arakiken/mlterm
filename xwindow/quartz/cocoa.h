@@ -20,6 +20,10 @@ void  view_dealloc( void *  view) ;
 
 void  view_update( void *  view , int  flag) ;
 
+void  view_set_clip( void *  view , int  x , int  y , u_int  width , u_int  height) ;
+
+void  view_unset_clip( void *  view) ;
+
 void  view_draw_string( void *  view , x_font_t *  font , x_color_t *  fg_color ,
 	int  x , int  y , char *  str , size_t  len) ;
 

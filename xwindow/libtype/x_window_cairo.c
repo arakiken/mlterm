@@ -97,6 +97,13 @@ show_text(
 	#endif
 	}
 
+	if( font->size_attr == DOUBLE_WIDTH)
+	{
+		x /= 2 ;
+		font->width /= 2 ;
+		cairo_scale( cr , 2.0 , 1.0) ;
+	}
+
 #if  CAIRO_VERSION_ENCODE(1,8,0) > CAIRO_VERSION
 	cairo_move_to( cr , x , y) ;
 	cairo_show_text( cr , str) ;
@@ -105,6 +112,12 @@ show_text(
 	{
 		cairo_move_to( cr , x + double_draw_gap , y) ;
 		cairo_show_text( cr , str) ;
+	}
+
+	if( font->size_attr == DOUBLE_WIDTH)
+	{
+		font->width *= 2 ;
+		cairo_scale( cr , 0.5 , 1.0) ;
 	}
 
 	return  1 ;
@@ -149,6 +162,12 @@ show_text(
 	if( orig_glyphs != glyphs)
 	{
 		cairo_glyph_free( orig_glyphs) ;
+	}
+
+	if( font->size_attr == DOUBLE_WIDTH)
+	{
+		font->width *= 2 ;
+		cairo_scale( cr , 0.5 , 1.0) ;
 	}
 
 	if( num_of_glyphs > 0)
@@ -533,4 +552,25 @@ cairo_resize(
 			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	return  1 ;
+}
+
+void
+cairo_set_clip(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	cairo_rectangle( win->cairo_draw , x , y , width , height) ;
+	cairo_clip( win->cairo_draw) ;
+}
+
+void
+cairo_unset_clip(
+	x_window_t *  win
+	)
+{
+	cairo_reset_clip( win->cairo_draw) ;
 }

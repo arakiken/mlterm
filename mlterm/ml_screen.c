@@ -136,7 +136,11 @@ receive_scrolled_out_line(
 			line->num_of_chars - ml_screen_get_logical_cols( screen)) ;
 		line->num_of_chars = ml_screen_get_logical_cols( screen) ;
 	}
+	else
 #endif
+	{
+		ml_line_set_size_attr( line , 0) ;
+	}
 
 	if( ml_screen_is_backscrolling( screen) == BSM_STATIC)
 	{

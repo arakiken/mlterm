@@ -191,6 +191,7 @@ draw_string(
 	u_int  count ;
 	int  src_bg_is_set ;
 	int  orig_x ;
+	u_int  clip_bottom ;
 
 	if( ! win->is_mapped)
 	{
@@ -283,20 +284,38 @@ draw_string(
 	font_ascent = font->ascent ;
 	font_height = font->height ;
 
-	if( y >= win->height)
+	if( win->clip_height == 0)
 	{
-		font_ascent -= (y - win->height + 1) ;
-		font_height -= (y - win->height + 1) ;
+		clip_bottom = win->height ;
+	}
+	else
+	{
+		clip_bottom = win->clip_y + win->clip_height ;
 	}
 
-	if( y + font_height - font_ascent > win->height)
+	if( y >= clip_bottom + font_ascent)
 	{
-		font_height = win->height - y + font_ascent ;
+		return  0 ;
+	}
+	else if( y + font_height - font_ascent >= clip_bottom)
+	{
+		font_height -= (y + font_height - font_ascent - clip_bottom + 1) ;
+
+		if( font_height < font_ascent)
+		{
+			/* XXX I don't know why but without -1 causes line gap */
+			y -= (font_ascent - font_height - 1) ;
+			font_ascent = font_height ;
+		}
 	}
 
-	if( y < font_ascent)
+	if( y + font_height - font_ascent < win->clip_y)
 	{
-		y_off = font_ascent - y ;
+		return  0 ;
+	}
+	else if( y < win->clip_y + font_ascent)
+	{
+		y_off = win->clip_y + font_ascent - y ;
 	}
 	else
 	{
@@ -2260,6 +2279,27 @@ x_window_copy_area(
 	)
 {
 	return  copy_area( win , src , mask , src_x , src_y , width , height , dst_x , dst_y , 0) ;
+}
+
+void
+x_window_set_clip(
+	x_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	win->clip_y = y ;
+	win->clip_height = height ;
+}
+
+void
+x_window_unset_clip(
+	x_window_t *  win
+	)
+{
+	win->clip_y = win->clip_height = 0 ;
 }
 
 int

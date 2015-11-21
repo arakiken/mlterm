@@ -357,7 +357,7 @@ x_font_cache_get_xfont(
 	}
 
 found:
-	if( ( xfont = x_font_new( font_cache->display , font ,
+	if( ( xfont = x_font_new( font_cache->display , (font & 0xfff) , ((font >> 12) & 0x3) ,
 				font_cache->font_config->type_engine ,
 				font_cache->font_config->font_present , fontname ,
 				font_cache->font_size , col_width , use_medium_for_bold ,

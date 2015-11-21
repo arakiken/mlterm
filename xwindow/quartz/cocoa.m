@@ -38,6 +38,8 @@
 #if  0
 - (void)scroll:(int)src_x:(int)src_y:(u_int)width:(u_int)height:(int)dst_x:(int)dst_y ;
 #endif
+- (void)setClip:(int)x:(int)y:(u_int)width:(u_int)height ;
+- (void)unsetClip ;
 - (void)update:(int)flag ;
 - (void)bgColorChanged ;
 @end
@@ -203,16 +205,35 @@ drawUnistr(
 	CGFontGetGlyphsForUnichars( font->cg_font , str , glyphs , len) ;
 
 	CGContextSetFont( ctx , font->cg_font) ;
-	CGContextSetTextMatrix( ctx , CGAffineTransformIdentity) ;
+
+	CGAffineTransform  t = CGAffineTransformIdentity ;
+	u_int  width = font->width ;
+
+	u_int  pointsize = font->pointsize ;
+	switch( font->size_attr)
+	{
+	case DOUBLE_WIDTH:
+		width /= 2 ;
+		x = (x + 1) / 2 ;
+		t = CGAffineTransformScale( t , 2.0 , 1.0) ;
+		break ;
+
+	case DOUBLE_HEIGHT_TOP:
+	case DOUBLE_HEIGHT_BOTTOM:
+		pointsize *= 2 ;
+		break ;
+	}
+
+	CGContextSetTextMatrix( ctx , t) ;
 
 	CGPoint  points[len] ;
 	u_int  count ;
 	for( count = 0 ; count < len ; count++)
 	{
-		points[count] = CGPointMake((x + font->width * count) , y) ;
+		points[count] = CGPointMake((x + width * count) , y) ;
 	}
 
-	CGContextSetFontSize( ctx , font->pointsize) ;
+	CGContextSetFontSize( ctx , pointsize) ;
 
 	CGContextShowGlyphsAtPositions( ctx , glyphs , points , len) ;
 
@@ -1236,6 +1257,26 @@ get_current_window(
 	}
 }
 
+- (void)setClip:(int)x:(int)y:(u_int)width:(u_int)height
+{
+	CGContextSaveGState( ctx) ;
+
+	y = ACTUAL_HEIGHT(xwindow) - y ;
+
+	CGContextBeginPath( ctx) ;
+	CGContextMoveToPoint( ctx , x , y) ;
+	CGContextAddLineToPoint( ctx , x + width , y) ;
+	CGContextAddLineToPoint( ctx , x + width , y - height) ;
+	CGContextAddLineToPoint( ctx , x , y - height) ;
+	CGContextClosePath( ctx) ;
+	CGContextClip( ctx) ;
+}
+
+- (void)unsetClip
+{
+	CGContextRestoreGState( ctx) ;
+}
+
 - (void)bgColorChanged
 {
 	if( IS_OPAQUE)
@@ -1283,6 +1324,26 @@ view_update(
 	)
 {
 	[view update:flag] ;
+}
+
+void
+view_set_clip(
+	MLTermView *  view ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	[view setClip:x:y:width:height] ;
+}
+
+void
+view_unset_clip(
+	MLTermView *  view
+	)
+{
+	[view unsetClip] ;
 }
 
 void

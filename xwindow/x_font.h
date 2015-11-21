@@ -97,13 +97,15 @@ typedef struct x_font
 	int8_t  is_proportional ;
 	int8_t  is_vertical ;
 	int8_t  double_draw_gap ;
+	int8_t  size_attr ;
 
 } x_font_t ;
 
 
 int  x_compose_dec_special_font(void) ;
 
-x_font_t *  x_font_new( Display *  display , ml_font_t  id , x_type_engine_t  type_engine ,
+x_font_t *  x_font_new( Display *  display , ml_font_t  id , int  size_attr ,
+	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold , u_int  letter_space) ;
 

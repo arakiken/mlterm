@@ -1239,6 +1239,7 @@ xcore_draw_str(
 			    draw_alone ||
 		#endif
 			    bottom_margin + top_margin > 0 /* == line space XXX */ ||
+			    xfont->size_attr >= DOUBLE_HEIGHT_TOP ||
 			    state == 3)
 			{
 				if( bg_color == ML_BG_COLOR)
@@ -1394,39 +1395,51 @@ x_draw_str(
 	)
 {
 	u_int  updated_width ;
+	int  ret ;
+
+	if( font_man->size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		x_window_set_clip( window , x , y , window->width - x , height) ;
+		ascent = height - (height - ascent) * 2 ;
+
+		if( font_man->size_attr == DOUBLE_HEIGHT_TOP)
+		{
+			ascent += height ;
+		}
+	}
 
 	switch( x_get_type_engine( font_man))
 	{
 	default:
-		return  0 ;
+		ret = 0 ;
+		break ;
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
-		if( ! fc_draw_str( window , font_man , color_man , &updated_width ,
+		ret = fc_draw_str( window , font_man , color_man , &updated_width ,
 			chars , num_of_chars , x , y , height , ascent ,
-			top_margin , bottom_margin , hide_underline))
-		{
-			return  0 ;
-		}
+			top_margin , bottom_margin , hide_underline) ;
 
 		break ;
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
-		if( ! xcore_draw_str( window , font_man , color_man , &updated_width ,
+		ret = xcore_draw_str( window , font_man , color_man , &updated_width ,
 			chars , num_of_chars , x , y , height , ascent ,
-			top_margin , bottom_margin , hide_underline))
-		{
-			return  0 ;
-		}
+			top_margin , bottom_margin , hide_underline) ;
 
 		break ;
 #endif
 	}
-	
-	return  1 ;
+
+	if( font_man->size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		x_window_unset_clip( window) ;
+	}
+
+	return  ret ;
 }
 
 int
@@ -1446,36 +1459,43 @@ x_draw_str_to_eol(
 	)
 {
 	u_int  updated_width ;
+	int  ret ;
+
+	if( font_man->size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		x_window_set_clip( window , x , y , window->width - x , height) ;
+		ascent = height - (height - ascent) * 2 ;
+
+		if( font_man->size_attr == DOUBLE_HEIGHT_TOP)
+		{
+			ascent += height ;
+		}
+	}
 
 	switch( x_get_type_engine( font_man))
 	{
 	default:
-		return  0 ;
+		ret = 0 ;
+		break ;
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
 		x_window_clear( window , x , y , window->width - x , height) ;
 
-		if( ! fc_draw_str( window , font_man , color_man ,
+		ret = fc_draw_str( window , font_man , color_man ,
 			NULL /* NULL disables x_window_clear() in fc_draw_str() */ ,
 			chars , num_of_chars , x , y , height , ascent ,
-			top_margin , bottom_margin , hide_underline))
-		{
-			return  0 ;
-		}
+			top_margin , bottom_margin , hide_underline) ;
 
 		break ;
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
-		if( ! xcore_draw_str( window , font_man , color_man , &updated_width ,
+		ret = xcore_draw_str( window , font_man , color_man , &updated_width ,
 			chars , num_of_chars , x , y , height , ascent ,
-			top_margin , bottom_margin , hide_underline))
-		{
-			return	0 ;
-		}
+			top_margin , bottom_margin , hide_underline) ;
 
 		if( updated_width < window->width)
 		{
@@ -1487,5 +1507,10 @@ x_draw_str_to_eol(
 #endif
 	}
 
-	return	1 ;
+	if( font_man->size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		x_window_unset_clip( window) ;
+	}
+
+	return	ret ;
 }

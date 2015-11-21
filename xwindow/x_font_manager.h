@@ -23,6 +23,7 @@ typedef struct  x_font_manager
 	u_int8_t  step_in_changing_font_size ;
 	int8_t  use_bold_font ;
 	int8_t  use_italic_font ;
+	int8_t  size_attr ;
 
 }  x_font_manager_t ;
 
@@ -34,7 +35,9 @@ x_font_manager_t *  x_font_manager_new( Display *  display , x_type_engine_t  ty
 	
 int  x_font_manager_delete( x_font_manager_t *  font_man) ;
 
-x_font_t *  x_get_font( x_font_manager_t *  font_man , ml_font_t  fontattr) ;
+void  x_font_manager_set_size_attr( x_font_manager_t *  font_man , int  size_attr) ;
+
+x_font_t *  x_get_font( x_font_manager_t *  font_man , ml_font_t  font) ;
 
 #define  x_get_usascii_font( font_man)  ((font_man)->font_cache->usascii_font)
 

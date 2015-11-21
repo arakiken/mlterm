@@ -18,7 +18,6 @@ enum
 	SCROLL         = 0x04
 } ;
 
-
 enum
 {
 	VINFO_BIDI = 0x01 ,
@@ -62,6 +61,9 @@ typedef struct  ml_line
 
 	int8_t  is_modified ;
 	int8_t  is_continued_to_next ;
+
+	/* public */
+	int8_t  size_attr ;
 
 } ml_line_t ;
 
@@ -141,8 +143,7 @@ u_int  ml_line_get_num_of_filled_chars_except_spaces_with_func(
 #define  ml_line_get_num_of_filled_chars_except_spaces(line) \
 	ml_line_get_num_of_filled_chars_except_spaces_with_func( (line) , ml_char_code_equal)
 
-int  ml_line_get_word_pos( ml_line_t *  line , int *  beg_char_index , int *  end_char_index ,
-	int  char_index) ;
+void  ml_line_set_size_attr( ml_line_t *  line , int  size_attr) ;
 
 
 #define  ml_line_is_using_ctl( line)  ((line)->ctl_info_type)

@@ -785,9 +785,12 @@ load_ft(
 		}
 	}
 
+	fontsize = (format & ~(FONT_BOLD|FONT_ITALIC)) ;
+
 	for( count = 0 ; count < num_of_xfonts ; count++)
 	{
-		if( strcmp( xfonts[count]->file , file_path) == 0)
+		if( strcmp( xfonts[count]->file , file_path) == 0 &&
+		    (xfonts[count]->format & ~(FONT_BOLD|FONT_ITALIC)) == fontsize)
 		{
 			face = xfonts[count]->face ;
 
@@ -805,7 +808,6 @@ load_ft(
 	}
 
 face_found:
-	fontsize = (format & ~(FONT_BOLD|FONT_ITALIC)) ;
 	FT_Set_Pixel_Sizes( face , fontsize , fontsize) ;
 
 	xfont->format = format ;
@@ -1242,6 +1244,7 @@ x_font_t *
 x_font_new(
 	Display *  display ,
 	ml_font_t  id ,
+	int  size_attr ,
 	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present ,
 	const char *  fontname ,
@@ -1394,11 +1397,17 @@ x_font_new(
 		return  NULL ;
 	}
 
+	if( size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		fontsize *= 2 ;
+		col_width *= 2 ;
+	}
+
 #ifdef  USE_FREETYPE
 	if( percent > 0)
 	{
 		format = DIVIDE_ROUNDING( fontsize * percent , 100) |
-		         (id & (FONT_BOLD|FONT_ITALIC)) ;
+			 (id & (FONT_BOLD|FONT_ITALIC)) ;
 	}
 	else
 	{
@@ -1441,7 +1450,13 @@ x_font_new(
 
 		if( fontname)
 		{
-			return  x_font_new( display , id , type_engine , font_present ,
+			if( size_attr >= DOUBLE_HEIGHT_TOP)
+			{
+				fontsize /= 2 ;
+				col_width /= 2 ;
+			}
+
+			return  x_font_new( display , id , size_attr , type_engine , font_present ,
 					NULL /* Fall back to the default font */ ,
 					fontsize , col_width , use_medium_for_bold ,
 					letter_space) ;
@@ -1669,6 +1684,15 @@ xfont_loaded:
 			}
 		}
 	}
+
+
+	if( size_attr == DOUBLE_WIDTH)
+	{
+		font->x_off += (font->width / 2) ;
+		font->width *= 2 ;
+	}
+
+	font->size_attr = size_attr ;
 
 
 	/*

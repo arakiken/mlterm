@@ -1,3 +1,6 @@
+ver 3.6.1
+* Support DECDHL and DECDWL.
+
 ver 3.6.0
 * Support MacOSX/Cocoa. (See doc/en/README.cocoa)
 * Add "geometry" to OSC 5379.
