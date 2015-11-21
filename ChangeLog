@@ -4,8 +4,6 @@
 
 	* doc/term: Removed.
 
-	* ml_vt100_parser.c: Conversion from Unicode to ISCII is disabled if use_ctl = false.
-
 2015-11-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Mistake of revision 2510 commit is reverted.

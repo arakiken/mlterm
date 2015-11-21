@@ -7493,7 +7493,7 @@ ml_convert_to_internal_ch(
 			}
 
 		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-			if( vt100_parser->use_ctl && 0x900 <= code && code <= 0xd7f)
+			if( 0x900 <= code && code <= 0xd7f)
 			{
 				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
 				{
