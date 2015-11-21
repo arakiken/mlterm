@@ -1473,7 +1473,7 @@ resize(
 	int  by_char
 	)
 {
-	if( width > 0 && height > 0 && HAS_XTERM_LISTENER(vt100_parser,resize))
+	if( HAS_XTERM_LISTENER(vt100_parser,resize))
 	{
 		if( by_char)
 		{

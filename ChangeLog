@@ -1,5 +1,9 @@
 2015-11-21  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c: Mistake of revision 2510 commit is reverted.
+
+2015-11-21  Araki Ken  <arakiken@users.sf.net>
+
 	* x_screen.c: x_font_manager_set_size_attr() is called before x_get_font().
 
 	* x_draw_str.c:
