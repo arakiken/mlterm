@@ -1,5 +1,9 @@
 ver 3.6.1
 * Support DECDHL and DECDWL.
+* Disable conversion from Unicode to ISCII if use_ctl = false.
+* Drop mlterm.ti and mlterm.tc which haven't been maintained recently.
+* Bug fixes:
+  Fix a bug which disabled CSI?3h and CSI?3l. (Enbugged at 3.6.0)
 
 ver 3.6.0
 * Support MacOSX/Cocoa. (See doc/en/README.cocoa)

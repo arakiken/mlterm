@@ -342,8 +342,6 @@ comment $Id$
 
       o termtype (*xterm*)
         端末タイプ
-        なお、termtype=mlterm とする場合の terminfo 及び termcap のデータベース
-        は、それぞれ doc/term/mlterm.ti 及び doc/term/mlterm.tc にあります。
 
       o max_ptys (*32*)
         同時に立ち上げることができる pty の最大数 (32の倍数で指定)
