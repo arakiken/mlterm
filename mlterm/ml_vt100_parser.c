@@ -6163,7 +6163,7 @@ parse_vt100_escape_sequence(
 
 					if( ps[7] == 0)
 					{
-						idx = ps[1] == 0 ? 1 : ps[1] ;
+						idx = (ps[1] == 0 ? 1 : ps[1]) ;
 						cs = CS94SB_ID(*pt) ;
 					}
 					else
@@ -6478,6 +6478,23 @@ parse_vt100_escape_sequence(
 					}
 
 					vt100_parser->g1 = CS94SB_ID(*str_p) ;
+
+					if( vt100_parser->is_so)
+					{
+						vt100_parser->gl = vt100_parser->g1 ;
+					}
+				}
+				else if( *(str_p - ic_num) == '-')
+				{
+					/* "ESC -"(Registered CS) or "ESC - SP"(DRCS) */
+
+					if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+					{
+						/* ESC ) will be processed in mkf. */
+						return  1 ;
+					}
+
+					vt100_parser->g1 = CS96SB_ID(*str_p) ;
 
 					if( vt100_parser->is_so)
 					{

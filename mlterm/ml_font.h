@@ -16,7 +16,7 @@
 #define  HAS_UNICODE_AREA(font)  ((font) >= 0x1000)
 #define  NORMAL_FONT_OF(cs)  (IS_FULLWIDTH_CS(cs) ? (cs) | FONT_FULLWIDTH : (cs))
 #define  SIZE_ATTR_FONT(font , size_attr)  ((font) | ((size_attr) << 12))
-
+#define  SIZE_ATTR_OF(font)  (((font) >> 12) & 0x3)
 
 enum
 {

@@ -285,10 +285,21 @@ draw_drcs(
 	int  y ,
 	u_int  ch_width ,
 	u_int  line_height ,
-	x_color_t *  fg_xcolor
+	x_color_t *  fg_xcolor ,
+	int  size_attr
 	)
 {
 	int  y_off ;
+
+	if( size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		if( size_attr == DOUBLE_HEIGHT_BOTTOM)
+		{
+			y_off = line_height ;
+		}
+
+		line_height *= 2 ;
+	}
 
 	for( y_off = 0 ; y_off < line_height ; y_off++)
 	{
@@ -331,10 +342,21 @@ draw_drcs(
 				}
 			}
 
-			left_x = ((int)((double)(x_off * glyph_width) /
-					(double)ch_width * 10 + 5)) / 10 - smpl_width / 2 ;
-			top_y = ((int)((double)(y_off * glyph_height) /
-					(double)line_height * 10 + 5)) / 10 - smpl_height / 2 ;
+			left_x = (x_off * glyph_width * 10 / ch_width + 5) / 10 - smpl_width / 2 ;
+			top_y = (y_off * glyph_height * 10 / line_height + 5) / 10
+					- smpl_height / 2 ;
+			/*
+			 * If top_y < 0 or top_y >= glyph_height, w is always 0
+			 * regardless of content of glyph.
+			 */
+			if( top_y < 0)
+			{
+				top_y = 0 ;
+			}
+			else if( top_y >= glyph_height)
+			{
+				top_y = glyph_height - 1 ;
+			}
 
 		#if  0
 			kik_debug_printf( KIK_DEBUG_TAG
@@ -354,9 +376,9 @@ draw_drcs(
 				for( smpl_x = 0 ; smpl_x < smpl_width ; smpl_x++)
 				{
 					if( 0 <= left_x + smpl_x &&
-					    left_x + smpl_x <= glyph_width &&
+					    left_x + smpl_x < glyph_width &&
 					    0 <= top_y + smpl_y &&
-					    top_y + smpl_y <= glyph_height)
+					    top_y + smpl_y < glyph_height)
 					{
 						if( get_drcs_bitmap( glyph , glyph_width ,
 							left_x + smpl_x , top_y + smpl_y))
@@ -387,8 +409,33 @@ draw_drcs(
 				continue ;
 			}
 
-			x_window_fill_with( window , fg_xcolor ,
-				x + x_off_sum - w , y + y_off , w , 1) ;
+			if( size_attr >= DOUBLE_HEIGHT_TOP)
+			{
+				int  exp_y ;
+
+				if( size_attr == DOUBLE_HEIGHT_TOP)
+				{
+					if( y_off >= line_height / 2)
+					{
+						return  1 ;
+					}
+
+					exp_y = y + y_off ;
+				}
+				else
+				{
+					exp_y = y + y_off - line_height / 2 ;
+				}
+
+				x_window_fill_with( window , fg_xcolor ,
+					x + x_off_sum - w , exp_y , w , 1) ;
+			}
+			else
+			{
+				x_window_fill_with( window , fg_xcolor ,
+					x + x_off_sum - w , y + y_off , w , 1) ;
+			}
+
 			w = 0 ;
 		}
 	}
@@ -811,7 +858,7 @@ fc_draw_str(
 				draw_drcs( window , drcs_glyphs , str_len ,
 					x , y + top_margin ,
 					ch_width , height - top_margin - bottom_margin ,
-					fg_xcolor) ;
+					fg_xcolor , font_man->size_attr) ;
 			}
 
 			if( comb_chars)
@@ -1277,7 +1324,7 @@ xcore_draw_str(
 					draw_drcs( window , drcs_glyphs , str_len ,
 						x , y + top_margin ,
 						ch_width , height - top_margin - bottom_margin ,
-						fg_xcolor) ;
+						fg_xcolor , font_man->size_attr) ;
 				}
 			}
 			else
