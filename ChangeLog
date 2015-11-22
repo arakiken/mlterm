@@ -1,3 +1,7 @@
+2015-11-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_font.h, x_font_cache.c: The position of size_attr in ml_font_t is changed.
+
 2015-11-22  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_cache.c: If size_attr > 0, x_font_cache_get_xfont() loads USASCII font

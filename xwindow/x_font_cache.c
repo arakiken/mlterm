@@ -360,7 +360,7 @@ x_font_cache_get_xfont(
 found:
 	size_attr = SIZE_ATTR_OF(font) ;
 
-	if( ( xfont = x_font_new( font_cache->display , (font & 0xfff) , size_attr ,
+	if( ( xfont = x_font_new( font_cache->display , FONT_WITHOUT_SIZE_ATTR(font) , size_attr ,
 				font_cache->font_config->type_engine ,
 				font_cache->font_config->font_present , fontname ,
 				font_cache->font_size , col_width , use_medium_for_bold ,
