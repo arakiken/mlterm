@@ -113,7 +113,15 @@ next_char(
 
 	mkf_int_to_bytes( ch->ch , ch->size , ml_char_code( ml_ch)) ;
 
-#if  1
+	/*
+	 * Android doesn't support PUA as follows. (tested on Android 4.0)
+	 *
+	 * e.g.) UTF8:0x4f88819a (U+10805a)
+	 * W/dalvikvm( 4527): JNI WARNING: input is not valid Modified UTF-8: illegal start byte 0xf4
+	 * I/dalvikvm( 4527):   at dalvik.system.NativeStart.run(Native Method)
+	 * E/dalvikvm( 4527): VM aborting
+	 */
+#ifndef  __ANDROID__
 	if( ! ml_convert_drcs_to_unicode_pua( ch))
 #endif
 	{

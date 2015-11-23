@@ -6626,13 +6626,6 @@ parse_vt100_escape_sequence(
 	return  1 ;
 }
 
-/*
- * XXX
- * mkf_map_ucs4_to_iscii() in mkf_ucs4_iscii.h is used directly in
- * parse_vt100_sequence(), though it should be used internally in mkf library
- */
-int  mkf_map_ucs4_to_iscii( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
-
 static int
 parse_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
@@ -7436,6 +7429,13 @@ ml_set_auto_detect_encodings(
 
 	return  1 ;
 }
+
+/*
+ * XXX
+ * mkf_map_ucs4_to_iscii() in mkf_ucs4_iscii.h is used directly in
+ * ml_convert_to_internal_ch(), though it should be used internally in mkf library
+ */
+int  mkf_map_ucs4_to_iscii( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
 
 /*
  * Return value

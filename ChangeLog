@@ -1,5 +1,16 @@
 2015-11-23  Araki Ken  <arakiken@users.sf.net>
 
+	* x_draw_str.c: (bottom_margin + top_margin > 0 || xfont->size_attr >= DOUBLE_HEIGHT_TOP)
+	  is replaced by (xfont->height != height).
+
+	* ml_str_parser.c: ml_convert_drcs_to_unicode_pua() isn't called on Android.
+
+	* ml_char.c: It is disabled to combine ISCII character to another charset.
+
+	* tamil.table: Fix.
+
+2015-11-23  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_font.h, x_font_cache.c: The position of size_attr in ml_font_t is changed.
 
 2015-11-22  Araki Ken  <arakiken@users.sf.net>

@@ -9374,7 +9374,7 @@ static struct tabl  iscii_tamil_table[] =
 	{ "\xe6" , "\xaa\xa0\xf7" } ,
 	{ "\xe6\xa2" , "\xaa\xa0\xf7" } ,
 	{ "\xe7" , "\xa0\xa3" } ,
-	{ "\xe8" , "\xa0\xa2" } ,
+	{ "\xe8" , "\x23\xf3" } ,
 	{ "\xe8\xe9" , "\xa0\xa2\xa0" } ,
 	{ "\xe9" , "\xa0" } ,
 	{ "\xe9\xdd" , "\xa0\xa0\xa7" } ,

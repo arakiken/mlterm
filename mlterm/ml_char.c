@@ -342,6 +342,11 @@ ml_char_combine(
 
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
+		if( IS_ISCII(cs) && ! IS_ISCII(CHARSET(ch->u.ch.attr)))
+		{
+			return  0 ;
+		}
+
 		if( IS_ZEROWIDTH(ch->u.ch.attr))
 		{
 			/*

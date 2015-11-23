@@ -1285,8 +1285,7 @@ xcore_draw_str(
 			      bg_color == ML_BG_COLOR) ||
 			    draw_alone ||
 		#endif
-			    bottom_margin + top_margin > 0 /* == line space XXX */ ||
-			    xfont->size_attr >= DOUBLE_HEIGHT_TOP ||
+			    xfont->height != height ||
 			    state == 3)
 			{
 				if( bg_color == ML_BG_COLOR)
