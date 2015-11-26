@@ -786,6 +786,22 @@ get_current_window(
 	x_window_receive_event( xwindow , (XEvent*)&bev) ;
 }
 
+- (void)rightMouseUp:(NSEvent *)event
+{
+	NSPoint loc = [event locationInWindow] ;
+	XButtonEvent  bev ;
+
+	bev.type = X_BUTTON_RELEASE ;
+	bev.time = event.timestamp * 1000 ;
+	bev.x = loc.x - self.frame.origin.x ;
+	bev.y = ACTUAL_HEIGHT(xwindow) - loc.y - /* self.frame.origin.y - */ 1 ;
+	bev.state = event.modifierFlags &
+			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
+	bev.button = 3 ;
+
+	x_window_receive_event( xwindow , (XEvent*)&bev) ;
+}
+
 - (NSMenu*)menuForEvent:(NSEvent*)event
 {
 	NSPoint loc = [event locationInWindow] ;
@@ -816,12 +832,40 @@ get_current_window(
 	mev.y = ACTUAL_HEIGHT(xwindow) - loc.y - self.frame.origin.y - 1 ;
 	if( event.type == NSLeftMouseDragged)
 	{
-		mev.state = Button1MotionMask ;
+		mev.state = Button1Mask ;
 	}
 	else
 	{
-		mev.state = Button3MotionMask ;
+		mev.state = Button3Mask ;
 	}
+
+	x_window_receive_event( xwindow , (XEvent*)&mev) ;
+}
+
+- (void)rightMouseDragged:(NSEvent *)event
+{
+	NSPoint loc = [event locationInWindow] ;
+	XMotionEvent  mev ;
+
+	mev.type = X_BUTTON_MOTION ;
+	mev.time = event.timestamp * 1000 ;
+	mev.x = loc.x - self.frame.origin.x ;
+	mev.y = ACTUAL_HEIGHT(xwindow) - loc.y - self.frame.origin.y - 1 ;
+	mev.state = Button3Mask ;
+
+	x_window_receive_event( xwindow , (XEvent*)&mev) ;
+}
+
+- (void)mouseMoved:(NSEvent *)event
+{
+	NSPoint loc = [event locationInWindow] ;
+	XMotionEvent  mev ;
+
+	mev.type = X_POINTER_MOTION ;
+	mev.time = event.timestamp * 1000 ;
+	mev.x = loc.x - self.frame.origin.x ;
+	mev.y = ACTUAL_HEIGHT(xwindow) - loc.y - self.frame.origin.y - 1 ;
+	mev.state = 0 ;
 
 	x_window_receive_event( xwindow , (XEvent*)&mev) ;
 }
@@ -1512,6 +1556,15 @@ window_resize(
 	wr.size.width = width + diff_x ;
 	wr.size.height = height + diff_y ;
 	[window setFrame:wr display:YES] ;
+}
+
+void
+window_accepts_mouse_moved_events(
+	NSWindow *  window ,
+	int  accept
+	)
+{
+	window.acceptsMouseMovedEvents = (accept ? YES : NO) ;
 }
 
 

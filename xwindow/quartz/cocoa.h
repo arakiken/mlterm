@@ -62,6 +62,8 @@ void  window_dealloc( void *  window) ;
 
 void  window_resize( void *  window , int  width , int  height) ;
 
+void  window_accepts_mouse_moved_events( void *  window , int  accept) ;
+
 
 /* for NSApp */
 void  app_urgent_bell( int  on) ;

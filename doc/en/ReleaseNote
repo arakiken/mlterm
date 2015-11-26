@@ -1,5 +1,7 @@
 ver 3.6.1
 * Support DECDHL and DECDWL.
+* Support button event mouse tracking (CSI?1002) and any event mouse tracking (CSI?1003)
+  in MacOSX/Cocoa.
 * Disable conversion from Unicode to ISCII if use_ctl = false.
 * Drop mlterm.ti and mlterm.tc which haven't been maintained recently.
 * Bug fixes:

@@ -248,6 +248,7 @@ typedef struct		/* Same as definition in X11/X.h */
 #define  X_CLOSE_WINDOW		9
 #define  X_KEY_FOCUS_IN		10
 #define  X_SELECTION_NOTIFIED	11
+#define  X_POINTER_MOTION	12
 
 
 typedef struct

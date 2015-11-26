@@ -4977,6 +4977,11 @@ change_wall_picture(
 
 	if( *file_path == '\0')
 	{
+		if( ! screen->pic_file_path)
+		{
+			return ;
+		}
+
 		screen->pic_file_path = NULL ;
 		x_window_unset_wall_picture( &screen->window , 1) ;
 	}

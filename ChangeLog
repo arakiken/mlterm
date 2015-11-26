@@ -1,3 +1,17 @@
+2015-11-26  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/x_window.c, quartz/x.h:
+	  - x_window_{add|remove}_event_mask() calls window_accepts_mouse_moved_events()
+	    if event_mask has PointerMotionMask.
+	  - X_POINTER_MOTION event is processed in x_window_receive_event().
+
+	* cocoa.[mh]:
+	  - window_accepts_mouse_moved_events() is added.
+	  - rightMouseUp, rightMouesDragged and mouesMoved are implemented.
+	  - mev.state is correctly set in menuForEvent().
+
+	* x_screen.c: Minor fixes.
+
 2015-11-23  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c: (bottom_margin + top_margin > 0 || xfont->size_attr >= DOUBLE_HEIGHT_TOP)

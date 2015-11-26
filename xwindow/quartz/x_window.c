@@ -533,6 +533,11 @@ x_window_add_event_mask(
 	long  event_mask
 	)
 {
+	if( event_mask & PointerMotionMask)
+	{
+		window_accepts_mouse_moved_events( x_get_root_window( win)->my_window , 1) ;
+	}
+
 	return  1 ;
 }
 
@@ -542,6 +547,11 @@ x_window_remove_event_mask(
 	long  event_mask
 	)
 {
+	if( event_mask & PointerMotionMask)
+	{
+		window_accepts_mouse_moved_events( x_get_root_window( win)->my_window , 0) ;
+	}
+
 	return  1 ;
 }
 
@@ -1377,6 +1387,19 @@ x_window_receive_event(
 			mev->y -= win->vmargin ;
 
 			(*win->button_motion)( win , mev) ;
+		}
+		break ;
+
+	case  X_POINTER_MOTION:
+		if( win->pointer_motion)
+		{
+			XMotionEvent *  mev ;
+
+			mev = (XMotionEvent*)event ;
+			mev->x -= win->hmargin ;
+			mev->y -= win->vmargin ;
+
+			(*win->pointer_motion)( win , mev) ;
 		}
 		break ;
 
