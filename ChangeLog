@@ -1,3 +1,19 @@
+2015-11-28  Araki Ken  <arakiken@users.sf.net>
+
+	* x_draw_str.c: Fix a bug of draw_drcs().
+
+	* quartz/x_window.c: x_window_t::button_pressing and prev_button_press_event
+	  are set.
+
+	* quartz/x_display.c: x_display_idling() uses static variable _disp.
+
+	* cocoa.m: x_display_idling(NULL) is called at 0.1 sec intervals.
+
+	* MLActivity.java: IME_FLAG_NO_FULLSCREEN is set.
+
+	* android/jni/x_display.c: The area of the right bottom corner is expanded
+	  according to the screen size.
+
 2015-11-26  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/x_window.c, quartz/x.h:

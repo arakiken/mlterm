@@ -265,9 +265,9 @@ x_display_idling(
 {
 	u_int  count ;
 
-	for( count = 0 ; count < disp->num_of_roots ; count ++)
+	for( count = 0 ; count < _disp.num_of_roots ; count ++)
 	{
-		x_window_idling( disp->roots[count]) ;
+		x_window_idling( _disp.roots[count]) ;
 	}
 }
 

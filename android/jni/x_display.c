@@ -447,7 +447,9 @@ process_mouse_event(
 
 		if( xev.type == ButtonPress)
 		{
-			if( xev.x + xev.y + 20 >= _disp.width + _disp.height)
+			/* 800x600 display => (800+600) / 64 = 21 */
+			if( xev.x + xev.y + (_disp.width + _disp.height) / 64 >=
+			    _disp.width + _disp.height)
 			{
 				if( click_num == 0)
 				{

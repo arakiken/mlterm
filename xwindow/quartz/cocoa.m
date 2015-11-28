@@ -141,6 +141,10 @@ monitor_pty(void)
 						}
 					}
 				}
+				else if( ret == 0)
+				{
+					x_display_idling( NULL) ;
+				}
 
 				FD_ZERO( &read_fds) ;
 				maxfd = -1 ;
@@ -171,7 +175,7 @@ monitor_pty(void)
 			}) ;
 
 			struct timeval  tval ;
-			tval.tv_usec = 500000 ;
+			tval.tv_usec = 100000 ;		/* 0.1 sec */
 			tval.tv_sec = 0 ;
 
 			if( maxfd == -1 ||

@@ -46,7 +46,8 @@ public class MLActivity extends NativeActivity
 	private String  keyString ;
 	private View  contentView ;
 	private int  inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE ;
-	private int  imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION | EditorInfo.IME_ACTION_DONE ;
+	private int  imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION | EditorInfo.IME_ACTION_DONE |
+								EditorInfo.IME_FLAG_NO_FULLSCREEN ;
 	private ClipboardManager  clipMan ;
 
 	private class TextInputConnection extends BaseInputConnection

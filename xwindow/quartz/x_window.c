@@ -1361,6 +1361,9 @@ x_window_receive_event(
 			bev->y -= win->vmargin ;
 
 			(*win->button_pressed)( win , bev , bev->click_count) ;
+
+			win->button_is_pressing = 1 ;
+			win->prev_button_press_event = *bev ;
 		}
 		break ;
 
@@ -1374,6 +1377,8 @@ x_window_receive_event(
 			bev->y -= win->vmargin ;
 
 			(*win->button_released)( win , bev) ;
+
+			win->button_is_pressing = 0 ;
 		}
 		break ;
 
@@ -1387,6 +1392,11 @@ x_window_receive_event(
 			mev->y -= win->vmargin ;
 
 			(*win->button_motion)( win , mev) ;
+
+			/* following button motion ... */
+			win->prev_button_press_event.x = mev->x ;
+			win->prev_button_press_event.y = mev->y ;
+			win->prev_button_press_event.time = mev->time ;
 		}
 		break ;
 

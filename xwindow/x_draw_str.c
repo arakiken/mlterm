@@ -289,7 +289,7 @@ draw_drcs(
 	int  size_attr
 	)
 {
-	int  y_off ;
+	int  y_off = 0 ;
 
 	if( size_attr >= DOUBLE_HEIGHT_TOP)
 	{
@@ -301,7 +301,7 @@ draw_drcs(
 		line_height *= 2 ;
 	}
 
-	for( y_off = 0 ; y_off < line_height ; y_off++)
+	for( ; y_off < line_height ; y_off++)
 	{
 		u_int  w ;
 		int  x_off_sum ;	/* x_off for all glyphs */
