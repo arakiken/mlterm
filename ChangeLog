@@ -1,3 +1,19 @@
+2015-12-05  Araki Ken  <arakiken@users.sf.net>
+
+	* x_draw_str.c: Minor fixes around draw_drcs().
+
+	* win32/x_dnd.c: Minor fixes.
+
+	* x_font_ft.c: font->compl_fonts and font->pattern is always initialized.
+
+	* bengali.table, hindi.table: Minor fixes.
+
+	* configure.in:
+	  - 'extra' and 'pixmap_engine' scrollbars are built by default.
+	  - Following options are enabled by default.
+	    --enable-ind, --enable-ssh2, --enable-utmp, --enable-uim, --enable-m17nlib,
+	    --enable-scim, --enable-ibus, --enable-fcitx, --enable-canna, --enable-wnn
+
 2015-11-28  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c: Fix a bug of draw_drcs().

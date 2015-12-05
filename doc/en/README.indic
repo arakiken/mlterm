@@ -15,6 +15,8 @@ Following is a instruction of setting up mlterm indic support.
 
   If you build mlterm without --enable-anti-alias, install xfstt in advance
   to specify true type fonts by XLFD.
+  http://mlterm.sf.net/BNDR0ntt.pcf (for bengali) and
+  http://mlterm.sf.net/DVYG0ntt.pcf (for hindi) are available instead.
 
   If you try bengali or assamese with --type=xft or --type=cairo option,
   execute following steps or rebuild fontconfig with

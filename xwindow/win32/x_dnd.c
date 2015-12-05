@@ -12,11 +12,12 @@
 #include  <kiklib/kik_path.h>	/* cygwin_conv_to_posix_path */
 #endif
 
-#ifndef  USE_WIN32API
 #include  <mkf/mkf_utf8_conv.h>
+#include  <mkf/mkf_utf16_parser.h>
+
+#ifndef  USE_WIN32API
 #include  <mkf/mkf_utf8_parser.h>
 #include  <mkf/mkf_utf16_conv.h>
-#include  <mkf/mkf_utf16_parser.h>
 #endif
 
 

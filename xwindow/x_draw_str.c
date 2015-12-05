@@ -856,8 +856,7 @@ fc_draw_str(
 			else /* if( state == 3) */
 			{
 				draw_drcs( window , drcs_glyphs , str_len ,
-					x , y + top_margin ,
-					ch_width , height - top_margin - bottom_margin ,
+					x , y , ch_width , height ,
 					fg_xcolor , font_man->size_attr) ;
 			}
 
@@ -1321,8 +1320,7 @@ xcore_draw_str(
 				else /* if( state == 3) */
 				{
 					draw_drcs( window , drcs_glyphs , str_len ,
-						x , y + top_margin ,
-						ch_width , height - top_margin - bottom_margin ,
+						x , y , ch_width , height ,
 						fg_xcolor , font_man->size_attr) ;
 				}
 			}

@@ -575,6 +575,9 @@ cairo_font_open(
 
 	cs = FONT_CS(font->id) ;
 
+	font->compl_fonts = NULL ;
+	font->pattern = NULL ;
+
 #if  1
 	if( IS_ISCII(cs))
 	{

@@ -77,15 +77,16 @@ comment $Id$
     --disable-fribidi
       Fribidi を用いた Bidi レンダリングを無効にします。
 
-    --enable-ind
-      インド諸語の表示を行います。
+    --disable-ind
+      インド諸語の表示を無効にします。
 
     --disable-dl-ctl
       BiDi 及び インド諸語を表示するためのモジュールの動的ローディングを無効にし、
       mlterm 本体にリンクするようにします。
 
-    --enable-ssh2
-      libssh2 (http://www.libssh2.org) を用いて ssh サーバに接続できるようにします。
+    --disable-ssh2
+      libssh2 (http://www.libssh2.org) を用いて ssh サーバに接続する機能を無効に
+      します。
       なお、共通鍵暗号方式として camellia を使用したい場合や SSH agent forwarding
       を行いたい場合は、https://bitbucket.org/arakiken/libssh2/downloads にある
       camellia branch の libssh2 をダウンロードしてインストールしてください。
@@ -94,8 +95,8 @@ comment $Id$
       ssh サーバとの (doc/en/PROTOCOL の scp コマンドによる) secure copy において
       pthread を使用しません。
 
-    --enable-utmp
-      utmp に対応します。
+    --disable-utmp
+      utmp を無効にします。
 
     --enable-debug
       デバッグバージョンをビルドします。
@@ -120,30 +121,30 @@ comment $Id$
     --disable-kdb
       kbd (アラビア語/ヘブライ語/インド諸語用インプットメソッド)を無効にします。
 
-    --enable-uim
-      uim をサポートします。libuim が必要です。
+    --disable-uim
+      uim を無効にします。libuim が必要です。
 
-    --enable-m17nlib
-      m17n library が提供するインプットメソッドをサポートします。
+    --disable-m17nlib
+      m17n library が提供するインプットメソッドを無効にします。
       m17n-lib と m17n-db が必要です。
 
-    --enable-scim
-      SCIM (Smart Common Input Method platform) をサポートします。
+    --disable-scim
+      SCIM (Smart Common Input Method platform) を無効にします。
       libscim が必要です。
 
-    --enable-ibus
-      iBUS (Intelligent Input Bus) をサポートします。
+    --disable-ibus
+      iBUS (Intelligent Input Bus) を無効にします。
       libibus が必要です。
 
-    --enable-fcitx
-      Fcitx をサポートします。
+    --disable-fcitx
+      Fcitx を無効にします。
       fcitx-gclient が必要です。
 
-    --enable-canna
-      Canna をサポートします。
+    --disable-canna
+      Canna を無効にします。
 
-    --enable-wnn
-      Freewnn をサポートします。
+    --disable-wnn
+      Freewnn を無効にします。
 
     --enable-pty-helper
       gnome-pty-helper をサポートします。(BSD style pty のシステムでは無効です。)

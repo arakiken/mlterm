@@ -10,7 +10,6 @@ VPATH = ${top_srcdir}/scrollbar/sample
 
 _SAMPLE_OBJ_xlib = x_sample_sb_view.o x_transparent_sample_sb_view.o x_sample_sb_view_lib.o
 _SAMPLE_OBJ_win32 = x_sample_sb_view_win32.o x_sample_sb_view_lib_win32.o
-_SAMPLE_OBJ_fb = x_sample_sb_view_fb.o
 SAMPLE_OBJ = $(_SAMPLE_OBJ_@GUI@)
 
 _TARGETS_xlib = libsample.la

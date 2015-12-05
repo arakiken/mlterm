@@ -1732,29 +1732,29 @@ Optional Features:
   --enable-debug          debug [default=disabled]
   --disable-image         show image [default=enabled]
   --disable-dl-ctl        dynamic loading ctl library [default=enable]
-  --disable-fribidi        bidi [default=enabled]
+  --disable-fribidi       bidi [default=enabled]
   --disable-dl-type       dynamic loading type engine library [default=enable]
   --enable-anti-alias     (obsoleted by --with-type-engines)anti alias [default=enabled]
-  --enable-ssh2           libssh2 [default=disabled]
-  --enable-utmp           utmp (Experimental) [default=disabled]
+  --disable-ssh2          libssh2 [default=enabled]
+  --disable-utmp          utmp [default=enabled]
   --enable-pty-helper     use pty helper [default=disabled]
   --disable-use-tools     don't build and use external tools [default=enabled]
   --disable-dnd           dnd [default=enabled]
   --disable-kbd           input method for Arabic and Indic [default=enabled]
-  --enable-uim            uim (Experimental) [default=disabled]
-  --enable-m17nlib        m17n library (Experimental) [default=disabled]
-  --enable-ibus           IBUS (Experimental) [default=disabled]
-  --enable-fcitx           FCITX (Experimental) [default=disabled]
-  --enable-scim           SCIM (Experimental) [default=disabled]
-  --enable-canna           CANNA (Experimental) [default=disabled]
-  --enable-wnn           WNN (Experimental) [default=disabled]
+  --disable-uim           uim [default=enabled]
+  --disable-m17nlib       m17n library [default=enabled]
+  --disable-ibus          IBUS [default=enabled]
+  --disable-fcitx         FCITX [default=enabled]
+  --disable-scim          SCIM [default=enabled]
+  --disable-canna         CANNA [default=enabled]
+  --disable-wnn           WNN [default=enabled]
   --enable-vt52           enable VT52 emulation [default=disabled]
   --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
-  --enable-ind            libind [default=disabled]
+  --disable-ind           libind [default=enabled]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1770,9 +1770,9 @@ Optional Packages:
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
   --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore,xft,cairo]
-  --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlterm-menu,mlcc]
+  --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp]
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
-  --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra]
+  --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
   --with-gnu-ld           assume the C compiler uses GNU ld default=no
   --with-libiconv-prefix[=DIR]  search for libiconv in DIR/include and DIR/lib
   --without-libiconv-prefix     don't search for libiconv in includedir and libdir
@@ -21542,7 +21542,7 @@ fi
 if test "${enable_ssh2+set}" = set; then :
   enableval=$enable_ssh2; ssh2=$enable_ssh2
 else
-  ssh2="no"
+  ssh2="yes"
 fi
 
 if test "$ssh2" = "yes" ; then
@@ -21653,7 +21653,7 @@ fi
 if test "${enable_utmp+set}" = set; then :
   enableval=$enable_utmp; utmp=$enable_utmp
 else
-  utmp="no"
+  utmp="yes"
 fi
 
 # Check whether --enable-pty_helper was given.
@@ -22463,7 +22463,7 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	uim="no"
 fi
 
-if test "x$uim" = xyes ; then
+if test "x$uim" != xno ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for UIM" >&5
@@ -22555,7 +22555,7 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	m17nlib="no"
 fi
 
-if test "x$m17nlib" = xyes ; then
+if test "x$m17nlib" != xno ; then
 	# Extract the first word of "m17n-config", so it can be a program name with args.
 set dummy m17n-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -22594,8 +22594,6 @@ $as_echo "no" >&6; }
 fi
 
 
-fi
-if test "x$m17nlib" = xyes ; then
 	m17n_saved_libs="$LIBS"
 	M17NLIB_LIBS=`m17n-config --libs`
 	LIBS="$LIBS $M17NLIB_LIBS"
@@ -22664,7 +22662,7 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	ibus="no"
 fi
 
-if test "x$ibus" = "xyes" ; then
+if test "x$ibus" != "xno" ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for IBUS" >&5
@@ -22765,7 +22763,7 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	fcitx="no"
 fi
 
-if test "x$fcitx" = "xyes" ; then
+if test "x$fcitx" != "xno" ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FCITX" >&5
@@ -22866,7 +22864,7 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	scim="no"
 fi
 
-if test "x$scim" = "xyes" -a "$gui" != "fb" ; then
+if test "x$scim" != "xno" -a "$gui" != "fb" ; then
 	ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -23222,7 +23220,7 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	canna="no"
 fi
 
-if test "x$canna" = "xyes" ; then
+if test "x$canna" != "xno" ; then
 	ac_fn_c_check_header_mongrel "$LINENO" "canna/jrkanji.h" "ac_cv_header_canna_jrkanji_h" "$ac_includes_default"
 if test "x$ac_cv_header_canna_jrkanji_h" = xyes; then :
   has_canna=yes
@@ -23257,7 +23255,7 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 	wnn="no"
 fi
 
-if test "x$wnn" = "xyes" ; then
+if test "x$wnn" != "xno" ; then
 	ac_fn_c_check_header_mongrel "$LINENO" "wnn/jllib.h" "ac_cv_header_wnn_jllib_h" "$ac_includes_default"
 if test "x$ac_cv_header_wnn_jllib_h" = xyes; then :
   has_wnn=yes
@@ -23298,6 +23296,8 @@ fi
 DL_LIBS_SB=""
 SB_CFLAGS=""
 
+scrollbars="sample,extra,pixmap_engine"
+
 
 # Check whether --with-scrollbars was given.
 if test "${with_scrollbars+set}" = set; then :
@@ -23321,7 +23321,7 @@ fi
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
-	if test "$gui" != "fb" ; then
+	if test "$gui" != "fb" -a "$gui" != "quartz" ; then
 		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
@@ -25884,7 +25884,7 @@ OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Ma
 if test "${enable_ind+set}" = set; then :
   enableval=$enable_ind; ind=$enable_ind
 else
-  ind="no"
+  ind="yes"
 fi
 
 if test "$ind" = "yes" ; then

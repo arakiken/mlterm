@@ -5,6 +5,10 @@ ver 3.6.1
 * Support blinking cursor in MacOSX/Cocoa.
 * Disable conversion from Unicode to ISCII if use_ctl = false.
 * Drop mlterm.ti and mlterm.tc which haven't been maintained recently.
+* Build 'extra' and 'pixmap_engine' scrollbars by default.
+* Enable following configure options by default.
+  --enable-ind, --enable-ssh2, --enable-utmp, --enable-uim, --enable-m17nlib,
+  --enable-scim, --enable-ibus, --enable-fcitx, --enable-canna, --enable-wnn
 * Bug fixes:
   Fix a bug which disabled CSI?3h and CSI?3l. (Enbugged at 3.6.0)
 
