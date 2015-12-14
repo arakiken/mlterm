@@ -212,8 +212,6 @@ int  x_window_final( x_window_t *  win) ;
 
 int  x_window_set_type_engine( x_window_t *  win , x_type_engine_t  type_engine) ;
 
-int  x_window_init_event_mask( x_window_t *  win , long  event_mask) ;
-
 int  x_window_add_event_mask( x_window_t *  win , long  event_mask) ;
 
 int  x_window_remove_event_mask( x_window_t *  win , long  event_mask) ;

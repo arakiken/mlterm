@@ -1,14 +1,17 @@
 ver 3.6.1
 * Support DECDHL and DECDWL.
 * Support button event mouse tracking (CSI?1002) and any event mouse tracking (CSI?1003)
-  in MacOSX/Cocoa.
+  in MacOSX/Cocoa and Android.
 * Support blinking cursor in MacOSX/Cocoa.
+* Add 'autohide' value to 'scrollbar_mode' option.
 * Disable conversion from Unicode to ISCII if use_ctl = false.
 * Drop mlterm.ti and mlterm.tc which haven't been maintained recently.
 * Build 'extra' and 'pixmap_engine' scrollbars by default.
 * Enable following configure options by default.
   --enable-ind, --enable-ssh2, --enable-utmp, --enable-uim, --enable-m17nlib,
   --enable-scim, --enable-ibus, --enable-fcitx, --enable-canna, --enable-wnn
+* Support ssh2 connection on framebuffer.
+* Set XID of text screen instead of top window as the value of WINDOWID environmental variable.
 * Bug fixes:
   Fix a bug which disabled CSI?3h and CSI?3l. (Enbugged at 3.6.0)
 

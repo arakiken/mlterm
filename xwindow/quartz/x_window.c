@@ -407,6 +407,29 @@ expose(
 	}
 }
 
+static int
+need_pointer_motion_mask(
+	x_window_t *  win
+	)
+{
+	u_int  count ;
+
+	if( win->event_mask & PointerMotionMask)
+	{
+		return  1 ;
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		if( need_pointer_motion_mask( win->children[count]))
+		{
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
 
 /* --- global functions --- */
 
@@ -519,15 +542,6 @@ x_window_set_type_engine(
 }
 
 int
-x_window_init_event_mask(
-	x_window_t *  win ,
-	long  event_mask
-	)
-{
-	return  1 ;
-}
-
-int
 x_window_add_event_mask(
 	x_window_t *  win ,
 	long  event_mask
@@ -535,7 +549,13 @@ x_window_add_event_mask(
 {
 	if( event_mask & PointerMotionMask)
 	{
-		window_accepts_mouse_moved_events( x_get_root_window( win)->my_window , 1) ;
+		win->event_mask = PointerMotionMask ;
+
+		if( x_get_root_window( win)->my_window)
+		{
+			window_accepts_mouse_moved_events(
+				x_get_root_window( win)->my_window , 1) ;
+		}
 	}
 
 	return  1 ;
@@ -549,7 +569,15 @@ x_window_remove_event_mask(
 {
 	if( event_mask & PointerMotionMask)
 	{
-		window_accepts_mouse_moved_events( x_get_root_window( win)->my_window , 0) ;
+		x_window_t *  root ;
+
+		win->event_mask = 0 ;
+
+		root = x_get_root_window( win) ;
+		if( root->my_window && ! need_pointer_motion_mask( root))
+		{
+			window_accepts_mouse_moved_events( root->my_window , 0) ;
+		}
 	}
 
 	return  1 ;
@@ -904,6 +932,9 @@ x_window_unmap(
 	if( win->parent)
 	{
 		view_set_hidden( win->my_window , 1) ;
+
+		/* Scrollbar position is corrupt without this. */
+		x_window_move( win , -1 , -1) ;
 	}
 
 	win->is_mapped = 0 ;

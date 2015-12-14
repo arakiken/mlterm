@@ -987,6 +987,7 @@ reset_input_focus(
 	}
 }
 
+#if  0
 static int
 check_child_window_area(
 	x_window_t *  win
@@ -1011,6 +1012,7 @@ check_child_window_area(
 
 	return  1 ;
 }
+#endif
 
 
 /* --- global functions --- */
@@ -1089,20 +1091,13 @@ x_window_set_type_engine(
 }
 
 int
-x_window_init_event_mask(
-	x_window_t *  win ,
-	long  event_mask
-	)
-{
-	return  1 ;
-}
-
-int
 x_window_add_event_mask(
 	x_window_t *  win ,
 	long  event_mask
 	)
 {
+	win->event_mask |= event_mask ;
+
 	return  1 ;
 }
 
@@ -1112,6 +1107,8 @@ x_window_remove_event_mask(
 	long  event_mask
 	)
 {
+	win->event_mask &= ~event_mask ;
+
 	return  1 ;
 }
 
@@ -1387,7 +1384,7 @@ x_window_show(
 		win->gc = win->parent->gc ;
 	}
 
-	win->my_window = win ;	/* dummy */
+	win->my_window = win ;	/* Note that x_connect_dialog.c uses this. */
 
 	if( win->parent && ! win->parent->is_transparent &&
 	    win->parent->wall_picture)
@@ -1595,7 +1592,7 @@ x_window_move(
 	win->x = x ;
 	win->y = y ;
 
-	if( ! check_child_window_area( x_get_root_window( win)) ||
+	if( /* ! check_child_window_area( x_get_root_window( win)) || */
 	    win->x + ACTUAL_WIDTH(win) > win->disp->width ||
 	    win->y + ACTUAL_HEIGHT(win) > win->disp->height)
 	{
@@ -1910,7 +1907,7 @@ x_window_receive_event(
 			win->prev_button_press_event.y = event->xmotion.y ;
 			win->prev_button_press_event.time = event->xmotion.time ;
 		}
-		else if( win->pointer_motion)
+		else if( (win->event_mask & PointerMotionMask) && win->pointer_motion)
 		{
 			event->xmotion.x -= win->hmargin ;
 			event->xmotion.y -= win->vmargin ;

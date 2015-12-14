@@ -50,7 +50,7 @@ all: $(TARGET).la
 $(TARGET).la: $(OBJ)
 	$(LIBTOOL_LINK) -o $(TARGET).la $(OBJ:.o=.lo) ../mlterm/*.lo \
 	`echo ../xwindow/*.lo| \
-	sed 's/..\/xwindow\/x_sb_screen.lo//g' | \
+	sed 's/..\/xwindow\/x_layout.lo//g' | \
 	sed 's/..\/xwindow\/x_scrollbar.lo//g' | \
 	sed 's/..\/xwindow\/x_sb_view_factory.lo//g' | \
 	sed 's/..\/xwindow\/x_connect_dialog.lo//g' | \

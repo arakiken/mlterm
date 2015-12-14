@@ -36,26 +36,26 @@ static char *  config_keys[MC_RADIOS] =
 	"logging_vt_seq" ,
 } ;
 
-static char *  config_values[MC_RADIOS][3] =
+static char *  config_values[MC_RADIOS][4] =
 {
-	{ "none" , "esc" , "8bit" , } ,
-	{ "none" , "sound" , "visual" , } ,
-	{ "none" , "left" , "right" , } ,
-	{ "none" , "cjk" , "mongol" , } ,
-	{ "noconv" , "unicode" , "decsp" , } ,
-	{ "noconv" , "unicode" , "nounicode" , } ,
+	{ "none" , "esc" , "8bit" , NULL , } ,
+	{ "none" , "sound" , "visual" , NULL , } ,
+	{ "none" , "left" , "right" , "autohide" , } ,
+	{ "none" , "cjk" , "mongol" , NULL , } ,
+	{ "noconv" , "unicode" , "decsp" , NULL , } ,
+	{ "noconv" , "unicode" , "nounicode" , NULL , } ,
 	{ "no" , "raw" , "ttyrec" , } ,
 } ;
 
-static char *  labels[MC_RADIOS][4] =
+static char *  labels[MC_RADIOS][5] =
 {
-	{ N_("Meta key outputs") , N_("None") , N_("Esc") , N_("8bit") , } ,
-	{ N_("Bell mode") , N_("None") , N_("Sound") , N_("Visual") , } ,
-	{ N_("Position") , N_("None") , N_("Left") , N_("Right") , } ,
-	{ N_("Vertical mode") , N_("None") , N_("CJK") , N_("Mongol") , } ,
-	{ N_("Box drawing") , N_("As it is") , N_("Unicode") , N_("DEC Special") , } ,
-	{ N_("Font policy") , N_("As it is") , N_("Always unicode") , N_("Never unicode") , } ,
-	{ N_("Save log") , N_("No") , N_("Raw format") , N_("Ttyrec format") , } ,
+	{ N_("Meta key outputs") , N_("None") , N_("Esc") , N_("8bit") , NULL , } ,
+	{ N_("Bell mode") , N_("None") , N_("Sound") , N_("Visual") , NULL , } ,
+	{ N_("Position") , N_("None") , N_("Left") , N_("Right") , N_("Auto hide") , } ,
+	{ N_("Vertical mode") , N_("None") , N_("CJK") , N_("Mongol") , NULL , } ,
+	{ N_("Box drawing") , N_("As it is") , N_("Unicode") , N_("DEC Special") , NULL , } ,
+	{ N_("Font policy") , N_("As it is") , N_("Always unicode") , N_("Never unicode") , NULL , } ,
+	{ N_("Save log") , N_("No") , N_("Raw format") , N_("Ttyrec format") , NULL , } ,
 } ;
 
 
@@ -120,6 +120,20 @@ button3_checked(
 	return  1 ;
 }
 
+static gint
+button4_checked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
+	{
+		update_value( data , 3) ;
+	}
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -178,6 +192,22 @@ mc_radio_config_widget_new(
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 		new_values[id] = old_values[id] = 2 ;
+	}
+
+	if( config_values[id][3])
+	{
+		radio = gtk_radio_button_new_with_label( group , _(labels[id][4])) ;
+		group = gtk_radio_button_get_group( GTK_RADIO_BUTTON(radio)) ;
+		g_signal_connect( radio , "toggled" , G_CALLBACK(button4_checked) ,
+			&new_values[id]) ;
+		gtk_widget_show( GTK_WIDGET(radio)) ;
+		gtk_box_pack_start( GTK_BOX(hbox) , radio , TRUE , FALSE , 0) ;
+
+		if( strcmp( value , config_values[id][3]) == 0)
+		{
+			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
+			new_values[id] = old_values[id] = 3 ;
+		}
 	}
 
 #if  GTK_CHECK_VERSION(2,12,0)

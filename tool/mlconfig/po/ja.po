@@ -399,6 +399,10 @@ msgstr "左"
 msgid "Right"
 msgstr "右"
 
+#: tool/mlconfig/mc_sb.c:116
+msgid "Auto hide"
+msgstr "自動的に隠す"
+
 #: tool/mlconfig/mc_sb_view.c:137
 msgid "View"
 msgstr "見かけ"

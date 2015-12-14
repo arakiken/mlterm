@@ -462,6 +462,11 @@ reset_position(
 	if( ! xwindow->parent->my_window)
 	{
 		[[self window] orderOut:self] ;
+
+		if( xwindow->event_mask & PointerMotionMask)
+		{
+			[self window].acceptsMouseMovedEvents = YES ;
+		}
 	}
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
@@ -751,7 +756,7 @@ get_current_window(
 	bev.type = X_BUTTON_PRESS ;
 	bev.time = event.timestamp * 1000 ;
 	bev.x = loc.x - self.frame.origin.x ;
-	bev.y = ACTUAL_HEIGHT(xwindow) - loc.y - /* self.frame.origin.y - */ 1 ;
+	bev.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y - */ 1 ;
 	bev.state = event.modifierFlags &
 			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
 	if( event.type == NSLeftMouseDown)
@@ -775,7 +780,7 @@ get_current_window(
 	bev.type = X_BUTTON_RELEASE ;
 	bev.time = event.timestamp * 1000 ;
 	bev.x = loc.x - self.frame.origin.x ;
-	bev.y = ACTUAL_HEIGHT(xwindow) - loc.y - /* self.frame.origin.y - */ 1 ;
+	bev.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y - */ 1 ;
 	bev.state = event.modifierFlags &
 			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
 	if( event.type == NSLeftMouseUp)
@@ -798,7 +803,7 @@ get_current_window(
 	bev.type = X_BUTTON_RELEASE ;
 	bev.time = event.timestamp * 1000 ;
 	bev.x = loc.x - self.frame.origin.x ;
-	bev.y = ACTUAL_HEIGHT(xwindow) - loc.y - /* self.frame.origin.y - */ 1 ;
+	bev.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y - */ 1 ;
 	bev.state = event.modifierFlags &
 			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
 	bev.button = 3 ;
@@ -814,7 +819,7 @@ get_current_window(
 	bev.type = X_BUTTON_PRESS ;
 	bev.time = event.timestamp * 1000 ;
 	bev.x = loc.x - self.frame.origin.x ;
-	bev.y = ACTUAL_HEIGHT(xwindow) - loc.y - /* self.frame.origin.y - */ 1 ;
+	bev.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y - */ 1 ;
 	bev.state = event.modifierFlags &
 			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
 	bev.button = 3 ;
@@ -833,7 +838,7 @@ get_current_window(
 	mev.type = X_BUTTON_MOTION ;
 	mev.time = event.timestamp * 1000 ;
 	mev.x = loc.x - self.frame.origin.x ;
-	mev.y = ACTUAL_HEIGHT(xwindow) - loc.y - self.frame.origin.y - 1 ;
+	mev.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y */ - 1 ;
 	if( event.type == NSLeftMouseDragged)
 	{
 		mev.state = Button1Mask ;
@@ -854,7 +859,7 @@ get_current_window(
 	mev.type = X_BUTTON_MOTION ;
 	mev.time = event.timestamp * 1000 ;
 	mev.x = loc.x - self.frame.origin.x ;
-	mev.y = ACTUAL_HEIGHT(xwindow) - loc.y - self.frame.origin.y - 1 ;
+	mev.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y */ - 1 ;
 	mev.state = Button3Mask ;
 
 	x_window_receive_event( xwindow , (XEvent*)&mev) ;
@@ -868,7 +873,7 @@ get_current_window(
 	mev.type = X_POINTER_MOTION ;
 	mev.time = event.timestamp * 1000 ;
 	mev.x = loc.x - self.frame.origin.x ;
-	mev.y = ACTUAL_HEIGHT(xwindow) - loc.y - self.frame.origin.y - 1 ;
+	mev.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y */ - 1 ;
 	mev.state = 0 ;
 
 	x_window_receive_event( xwindow , (XEvent*)&mev) ;

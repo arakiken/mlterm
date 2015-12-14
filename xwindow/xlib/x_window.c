@@ -1226,36 +1226,6 @@ x_window_set_type_engine(
 }
 
 int
-x_window_init_event_mask(
-	x_window_t *  win ,
-	long  event_mask
-	)
-{
-	if( win->my_window)
-	{
-		/*
-		 * Don't use this function after x_window_show().
-		 * After x_window_show(), use x_window_{add|remove}_event_mask().
-		 */
-
-		return  0 ;
-	}
-
-#if  0
-	if( event_mask & ButtonMotionMask)
-	{
-		event_mask &= ~ButtonMotionMask ;
-		event_mask |= ( Button1MotionMask | Button2MotionMask |
-			Button3MotionMask | Button4MotionMask | Button5MotionMask) ;
-	}
-#endif
-
-	win->event_mask |= event_mask ;
-
-	return  1 ;
-}
-
-int
 x_window_add_event_mask(
 	x_window_t *  win ,
 	long  event_mask
@@ -1272,7 +1242,10 @@ x_window_add_event_mask(
 
 	win->event_mask |= event_mask ;
 
-	XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
+	if( win->my_window)
+	{
+		XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
+	}
 
 	return  1 ;
 }
@@ -1294,7 +1267,10 @@ x_window_remove_event_mask(
 
 	win->event_mask &= ~event_mask ;
 
-	XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
+	if( win->my_window)
+	{
+		XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
+	}
 
 	return  1 ;
 }
@@ -1768,8 +1744,8 @@ x_window_show(
 
 		size_hints.width_inc = total_width_inc( win) ;
 		size_hints.height_inc = total_height_inc( win) ;
-		size_hints.min_width = total_min_width( win) + size_hints.width_inc ;
-		size_hints.min_height = total_min_height( win) + size_hints.height_inc ;
+		size_hints.min_width = total_min_width( win) ;
+		size_hints.min_height = total_min_height( win) ;
 		size_hints.base_width = size_hints.min_width > size_hints.width_inc ?
 					size_hints.min_width - size_hints.width_inc : 0 ;
 		size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
@@ -2043,10 +2019,12 @@ x_window_set_normal_hints(
 	 */
 	size_hints.width_inc = total_width_inc( root) ;
 	size_hints.height_inc = total_height_inc( root) ;
-	size_hints.min_width = total_min_width( root) + size_hints.width_inc ;
-	size_hints.min_height = total_min_height( root) + size_hints.height_inc ;
-	size_hints.base_width = size_hints.min_width - size_hints.width_inc ;
-	size_hints.base_height = size_hints.min_height - size_hints.height_inc ;
+	size_hints.min_width = total_min_width( root) ;
+	size_hints.min_height = total_min_height( root) ;
+	size_hints.base_width = size_hints.min_width > size_hints.width_inc ?
+				size_hints.min_width - size_hints.width_inc : 0 ;
+	size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
+				size_hints.min_height - size_hints.height_inc : 0 ;
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
 
 #ifdef  DEBUG

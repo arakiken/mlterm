@@ -1,3 +1,43 @@
+2015-12-13  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/Makefile.in: x_sb_screen.lo -> x_layout.lo
+
+	* vte.c:
+	  catch_child_exited() calls ml_close_dead_terms() via g_timeout_add()
+	  because gnome-terminal() exits with segfault.
+
+	* README.ja, man/mlterm.1: Updated.
+
+	* mc_radio.c: "autohide" value of scrollbar_mode option is supported.
+
+	* x_layout.[ch], x_screen.c:
+	  If sb_mode is SBM_AUTOHIDE, scrollbar is hidden or unhidden according to
+	  the position of the mouse pointer.
+
+	* x_sb_mode.[ch]: SBM_AUTOHIDE is added.
+
+	* cocoa.m: The position of the mouse pointer is fixed.
+
+	* x_window.h, */x_window.c:
+	  - x_window_init_event_mask() is removed.
+	  - x_window_{add|remove}_event_mask() are fixed.
+
+	* x_event_source.c: If need_resize() returns true, "use_local_echo" is
+	  forcibly disabled.
+
+	* jni/x_display.c: Pointer motion event is handled.
+
+	* configure.in: utmp and ind options are disabled by default on MacOSX/Cocoa.
+
+	* x_screen_manager.c:
+	  - "mlclientx --serv ..." is available.
+	  - WINDOWID environmental variable = window id of x_screen_t instead of a top window.
+
+	* fb/x_connect_dialog.c: Inputting password is implemented.
+
+	* fb/x_window.c: check_child_window_area() which was added at revision 2480
+	  is removed.
+
 2015-12-05  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c: Minor fixes around draw_drcs().

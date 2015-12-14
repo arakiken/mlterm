@@ -3747,6 +3747,8 @@ selecting_line(
 	}
 }
 
+static void  change_sb_mode( x_screen_t *  screen , x_sb_mode_t  sb_mode) ;
+
 static void
 pointer_motion(
 	x_window_t *  win ,
@@ -6932,21 +6934,17 @@ xterm_set_mouse_report(
 		screen->prev_mouse_report_col = screen->prev_mouse_report_row = 0 ;
 	}
 
-	if( screen->window.pointer_motion)
+	if( ml_term_get_mouse_report_mode( screen->term) < ANY_EVENT_MOUSE_REPORT)
 	{
-		if( ml_term_get_mouse_report_mode( screen->term) < ANY_EVENT_MOUSE_REPORT)
+		/* pointer_motion may be overridden by x_layout */
+		if( screen->window.pointer_motion == pointer_motion)
 		{
-			screen->window.pointer_motion = NULL ;
 			x_window_remove_event_mask( &screen->window , PointerMotionMask) ;
 		}
 	}
 	else
 	{
-		if( ml_term_get_mouse_report_mode( screen->term) >= ANY_EVENT_MOUSE_REPORT)
-		{
-			screen->window.pointer_motion = pointer_motion ;
-			x_window_add_event_mask( &screen->window , PointerMotionMask) ;
-		}
+		x_window_add_event_mask( &screen->window , PointerMotionMask) ;
 	}
 }
 
@@ -7662,7 +7660,7 @@ x_screen_new(
 	 * event call backs.
 	 */
 
-	x_window_init_event_mask( &screen->window ,
+	x_window_add_event_mask( &screen->window ,
 		ButtonPressMask | ButtonMotionMask | ButtonReleaseMask | KeyPressMask) ;
 
 	screen->window.window_realized = window_realized ;
@@ -7675,7 +7673,7 @@ x_screen_new(
 	screen->window.window_unfocused = window_unfocused ;
 	screen->window.key_pressed = key_pressed ;
 	screen->window.window_resized = window_resized ;
-	screen->window.pointer_motion = NULL ;
+	screen->window.pointer_motion = pointer_motion ;
 	screen->window.button_motion = button_motion ;
 	screen->window.button_released = button_released ;
 	screen->window.button_pressed = button_pressed ;

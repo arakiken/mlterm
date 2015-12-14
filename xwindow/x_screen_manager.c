@@ -59,6 +59,9 @@ static u_int  num_of_startup_screens ;
 static x_system_event_listener_t  system_listener ;
 
 static x_main_config_t  main_config ;
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+static const char *  cur_default_server ;
+#endif
 
 static x_shortcut_t  shortcut ;
 
@@ -406,6 +409,10 @@ open_pty_intern(
 		if( ret && kik_compare_str( uri , main_config.default_server) != 0)
 		{
 			x_main_config_add_to_server_list( &main_config , uri) ;
+			if( cur_default_server == main_config.default_server)
+			{
+				cur_default_server = uri ;
+			}
 			free( main_config.default_server) ;
 			main_config.default_server = uri ;
 		}
@@ -752,7 +759,7 @@ open_screen_intern(
 	else
 	{
 		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			DisplayString( disp->display) , root->my_window ,
+			DisplayString( disp->display) , screen->window.my_window ,
 			screen->window.width , screen->window.height))
 		{
 			x_screen_detach( screen) ;
@@ -902,13 +909,18 @@ open_pty(
 		main_config.encoding = ml_term_get_encoding( screen->term) ;
 	#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 		default_server = main_config.default_server ;
-		main_config.default_server = ml_term_get_uri( screen->term) ;
-		/*
-		 * If show_dialog == 1, main_config.default_server can be
-		 * free'ed in open_pty_intern.
-		 */
 		show_dialog = main_config.show_dialog ;
-		main_config.show_dialog = 0 ;
+
+		if( ! main_config.default_server ||
+		    kik_compare_str( main_config.default_server , cur_default_server) == 0)
+		{
+			main_config.default_server = ml_term_get_uri( screen->term) ;
+			/*
+			 * If show_dialog == 1, main_config.default_server can be
+			 * free'ed in open_pty_intern.
+			 */
+			main_config.show_dialog = 0 ;
+		}
 
 		if( ( new_cmd_line = ml_term_get_cmd_line( screen->term)) &&
 		    ( new_cmd_line = kik_str_alloca_dup( new_cmd_line)))
@@ -926,7 +938,7 @@ open_pty(
 		ret = open_pty_intern( new , main_config.cmd_path ,
 			main_config.cmd_argv ,
 			DisplayString( screen->window.disp->display) ,
-			x_get_root_window( &screen->window)->my_window ,
+			screen->window.my_window ,
 			screen->window.width , screen->window.height) ;
 
 		main_config.encoding = encoding ;
@@ -1413,7 +1425,10 @@ x_screen_manager_init(
 	depth = _depth ;
 
 	main_config = *_main_config ;
-	
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+	cur_default_server = main_config.default_server ;
+#endif
+
 	max_screens_multiple = _max_screens_multiple ;
 
 	if( ( dead_mask = calloc( sizeof( *dead_mask) , max_screens_multiple)) == NULL)

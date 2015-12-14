@@ -13,7 +13,7 @@
 /* Order of this table must be same as x_sb_mode_t. */
 static char *   sb_mode_name_table[] =
 {
-	"none" , "left" , "right" ,
+	"none" , "left" , "right" , "autohide" ,
 } ;
 
 

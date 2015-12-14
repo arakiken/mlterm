@@ -416,6 +416,7 @@ process_mouse_event(
 			_display.button_state = 0 ;
 			break ;
 
+		case  7 /* AMOTION_EVENT_ACTION_HOVER_MOVE */:
 		case  AMOTION_EVENT_ACTION_MOVE:
 			xev.type = MotionNotify ;
 			break ;

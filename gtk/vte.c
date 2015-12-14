@@ -431,6 +431,15 @@ is_initial_allocation(
 		 allocation->width == 1 && allocation->height == 1) ;
 }
 
+static gboolean
+close_dead_terms(
+	gpointer  data
+	)
+{
+	ml_close_dead_terms() ;
+
+	return  FALSE ;		/* Never repeat to call this function. */
+}
 
 static void
 catch_child_exited(
@@ -441,6 +450,8 @@ catch_child_exited(
 	)
 {
 	kik_trigger_sig_child( pid) ;
+
+	g_timeout_add_full( G_PRIORITY_HIGH , 0 , close_dead_terms , NULL , NULL) ;
 }
 
 /*

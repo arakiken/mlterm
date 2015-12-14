@@ -11,6 +11,7 @@ typedef enum  x_sb_mode
 	SBM_NONE ,
 	SBM_LEFT ,
 	SBM_RIGHT ,
+	SBM_AUTOHIDE ,
 
 	SBM_MAX
 

@@ -488,8 +488,6 @@ x_im_status_screen_new(
 		goto  error ;
 	}
 
-	x_window_init_event_mask( &stat_screen->window , 0) ;
-
 
 	/*
 	 * +------------+

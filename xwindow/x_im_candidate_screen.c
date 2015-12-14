@@ -1057,7 +1057,7 @@ x_im_candidate_screen_new(
 		goto  error ;
 	}
 
-	x_window_init_event_mask( &cand_screen->window ,
+	x_window_add_event_mask( &cand_screen->window ,
 				  ButtonPressMask | ButtonReleaseMask) ;
 
 

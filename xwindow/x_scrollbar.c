@@ -948,7 +948,7 @@ view_created:
 	/*
 	 * event callbacks.
 	 */
-	x_window_init_event_mask( &sb->window , ButtonPressMask | ButtonReleaseMask | ButtonMotionMask) ;
+	x_window_add_event_mask( &sb->window , ButtonPressMask | ButtonReleaseMask | ButtonMotionMask) ;
 	sb->window.window_realized = window_realized ;
 	sb->window.button_pressed = button_pressed ;
 	sb->window.button_released = button_released ;

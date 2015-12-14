@@ -544,8 +544,10 @@ comment $Id$
         scrollbar_mode , scrollbar_view_name オプションは、これが true の場合の
         み有効です。
 
-      o scrollbar_mode (none/*left*/right) (#)
+      o scrollbar_mode (none/*left*/right/autohide) (#)
         スクロールバーのつけ方
+        autohide の場合、マウスカーソルを画面の右端に近づけたときだけ一時的にスク
+        ロールバーを表示します。
 
       o scrollbar_view_name (*simple*/sample/sample2/sample3/next/motif/athena/mozmodern) (#)
         使いたいスクロールバーの名前

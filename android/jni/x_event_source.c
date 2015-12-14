@@ -186,6 +186,11 @@ need_resize(
 	}
 	else
 	{
+		if( count < num_of_terms)
+		{
+			ml_term_set_config( terms[count] , "use_local_echo" , "false") ;
+		}
+
 		return  1 ;
 	}
 }

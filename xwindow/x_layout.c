@@ -32,7 +32,11 @@ modify_separator(
 
 	if( ( surplus = (separator - fixed) % unit) > 0)
 	{
-		if( separator - fixed > surplus)
+		if( surplus > unit / 2)
+		{
+			separator += (unit - surplus) ;
+		}
+		else if( separator - fixed > surplus)
 		{
 			separator -= surplus ;
 		}
@@ -687,6 +691,52 @@ window_deleted(
 	window_deleted_intern( &layout->term) ;
 }
 
+#ifndef  USE_QUARTZ
+static void  change_sb_mode_intern( struct terminal *  term ,
+		x_sb_mode_t  new_mode , int  dynamic_change) ;
+
+static void
+check_scrollbar_visible(
+	struct terminal *  term
+	)
+{
+	if( term->autohide_scrollbar && term->sb_mode == SBM_RIGHT)
+	{
+		if( term->scrollbar.window.button_is_pressing)
+		{
+			term->idling_count = 0 ;
+		}
+		else if( ++term->idling_count == 30)
+		{
+			term->idling_count = 0 ;
+			change_sb_mode_intern( term , SBM_NONE , 1) ;
+		}
+	}
+
+	if( term->next[0])
+	{
+		check_scrollbar_visible( term->next[0]) ;
+	}
+
+	if( term->next[1])
+	{
+		check_scrollbar_visible( term->next[1]) ;
+	}
+}
+
+static void
+window_idling(
+	x_window_t *  win
+	)
+{
+	x_layout_t *  layout ;
+
+	layout = (x_layout_t*) win ;
+
+	check_scrollbar_visible( &layout->term) ;
+}
+#endif
+
 
 #if  0
 /*
@@ -993,8 +1043,15 @@ sb_mode(
 	struct terminal *  term ;
 
 	term = p ;
-	
-	return  term->sb_mode ;
+
+	if( term->autohide_scrollbar)
+	{
+		return  SBM_AUTOHIDE ;
+	}
+	else
+	{
+		return  term->sb_mode ;
+	}
 }
 
 static void
@@ -1112,16 +1169,65 @@ update_normal_hints(
 		width_inc , height_inc) ;
 }
 
-static void
-change_sb_mode(
-	void *  p ,
-	x_sb_mode_t  new_mode
+#ifndef  USE_QUARTZ
+static int
+need_idling_event(
+	struct terminal *  term
 	)
 {
-	struct terminal *  term ;
+	if( ! term->autohide_scrollbar &&
+	    ( ! term->next[0] || ! need_idling_event( term->next[0])) &&
+	    ( ! term->next[1] || ! need_idling_event( term->next[1])))
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
+	}
+}
+#endif
+
+static void
+change_sb_mode_intern(
+	struct terminal *  term ,
+	x_sb_mode_t  new_mode ,
+	int  dynamic_change
+	)
+{
+	x_layout_t *  layout ;
 	x_sb_mode_t  old_mode ;
 
-	term = p ;
+	layout = X_SCREEN_TO_LAYOUT(term->screen) ;
+
+	if( new_mode == SBM_AUTOHIDE)
+	{
+		if( term->autohide_scrollbar)
+		{
+			return ;
+		}
+
+		new_mode = SBM_NONE ;
+		term->autohide_scrollbar = 1 ;
+		x_window_add_event_mask( &term->screen->window , PointerMotionMask) ;
+	#ifndef  USE_QUARTZ
+		layout->window.idling = window_idling ;
+	#endif
+	}
+	else if( ! dynamic_change)
+	{
+		term->autohide_scrollbar = 0 ;
+		x_window_remove_event_mask( &term->screen->window , PointerMotionMask) ;
+		(*term->screen->xterm_listener.set_mouse_report)(
+			term->screen->xterm_listener.self) ;
+
+	#ifndef  USE_QUARTZ
+		if( ! need_idling_event( &layout->term))
+		{
+			layout->window.idling = NULL ;
+		}
+	#endif
+	}
 
 	if( (old_mode = term->sb_mode) == new_mode)
 	{
@@ -1160,9 +1266,7 @@ change_sb_mode(
 		}
 	}
 
-	reset_layout( &X_SCREEN_TO_LAYOUT( term->screen)->term , 0 , 0 ,
-		X_SCREEN_TO_LAYOUT( term->screen)->window.width ,
-		X_SCREEN_TO_LAYOUT( term->screen)->window.height) ;
+	reset_layout( &layout->term , 0 , 0 , layout->window.width , layout->window.height) ;
 
 	if( new_mode == SBM_NONE)
 	{
@@ -1184,19 +1288,28 @@ change_sb_mode(
 		goto  noresize ;
 	}
 
-	if( ! x_window_resize( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
-		total_width( &X_SCREEN_TO_LAYOUT(term->screen)->term) ,
-		total_height( &X_SCREEN_TO_LAYOUT(term->screen)->term) ,
-		NOTIFY_TO_MYSELF))
+	if( ( term->screen->window.x + ACTUAL_WIDTH(&term->screen->window) +
+	      (old_mode != SBM_NONE ? SCROLLBAR_WIDTH(term->scrollbar) : 0) <
+		ACTUAL_WIDTH(&layout->window)) ||
+	    ! x_window_resize( &layout->window , total_width( &layout->term) ,
+		total_height( &layout->term) , NOTIFY_TO_MYSELF))
 	{
 	noresize:
-		reset_layout( &X_SCREEN_TO_LAYOUT( term->screen)->term , 0 , 0 ,
-			X_SCREEN_TO_LAYOUT( term->screen)->window.width ,
-			X_SCREEN_TO_LAYOUT( term->screen)->window.height) ;
+		reset_layout( &layout->term , 0 , 0 , layout->window.width ,
+			layout->window.height) ;
 	}
 #endif
 
-	update_normal_hints( X_SCREEN_TO_LAYOUT( term->screen)) ;
+	update_normal_hints( layout) ;
+}
+
+static void
+change_sb_mode(
+	void *  p ,
+	x_sb_mode_t  new_mode
+	)
+{
+	change_sb_mode_intern( p , new_mode , 0) ;
 }
 
 static void
@@ -1213,6 +1326,50 @@ term_changed(
 	x_scrollbar_set_num_of_log_lines( &term->scrollbar , log_size) ;
 	x_scrollbar_set_num_of_filled_log_lines( &term->scrollbar , logged_lines) ;
 }
+
+
+static void
+screen_pointer_motion(
+	x_window_t *  win ,
+	XMotionEvent *  event
+	)
+{
+	struct terminal *  term ;
+	x_layout_t *  layout ;
+
+	layout = X_SCREEN_TO_LAYOUT((x_screen_t*)win) ;
+	(*layout->pointer_motion)( win , event) ;
+
+	term = search_term( &layout->term , (x_screen_t*)win) ;
+
+	if( term->autohide_scrollbar)
+	{
+		x_sb_mode_t  mode ;
+
+		if( ((int)win->width) - 2 <= event->x &&
+		    0 <= event->y && event->y < win->height)
+		{
+			if( term->scrollbar.window.is_mapped)
+			{
+				return ;
+			}
+
+			mode = SBM_RIGHT ;
+		}
+		else
+		{
+			if( ! term->scrollbar.window.is_mapped)
+			{
+				return ;
+			}
+
+			mode = SBM_NONE ;
+		}
+
+		change_sb_mode_intern( term , mode , 1) ;
+	}
+}
+
 
 static void
 delete_term(
@@ -1365,7 +1522,17 @@ x_layout_new(
 	layout->line_scrolled_out = screen->screen_listener.line_scrolled_out ;
 	screen->screen_listener.line_scrolled_out = line_scrolled_out ;
 
-	layout->term.sb_mode = mode ;
+	if( mode == SBM_AUTOHIDE)
+	{
+		layout->term.sb_mode = SBM_NONE ;
+		layout->term.autohide_scrollbar = 1 ;
+	}
+	else
+	{
+		layout->term.sb_mode = mode ;
+	}
+	layout->pointer_motion = screen->window.pointer_motion ;
+	screen->window.pointer_motion = screen_pointer_motion ;
 
 	if( layout->term.sb_mode == SBM_NONE)
 	{
@@ -1420,7 +1587,7 @@ x_layout_new(
 	/*
 	 * event call backs.
 	 */
-	x_window_init_event_mask( &layout->window , KeyPressMask) ;
+	x_window_add_event_mask( &layout->window , KeyPressMask) ;
 	layout->window.window_finalized = window_finalized ;
 	layout->window.window_resized = window_resized ;
 	layout->window.child_window_resized = child_window_resized ;
@@ -1432,6 +1599,14 @@ x_layout_new(
 #ifndef  DISABLE_XDND
 	layout->window.set_xdnd_config = set_xdnd_config ;
 #endif
+
+	if( layout->term.autohide_scrollbar)
+	{
+	#ifndef  USE_QUARTZ
+		layout->window.idling = window_idling ;
+	#endif
+		x_window_add_event_mask( &screen->window , PointerMotionMask) ;
+	}
 
 	return  layout ;
 
@@ -1628,6 +1803,12 @@ x_layout_add_child(
 	}
 
 	next->sb_mode = term->sb_mode ;
+	if( ( next->autohide_scrollbar = term->autohide_scrollbar))
+	{
+		x_window_add_event_mask( &screen->window , PointerMotionMask) ;
+	}
+	screen->window.pointer_motion = screen_pointer_motion ;
+
 
 	reset_layout( &layout->term , 0 , 0 , layout->window.width ,
 		layout->window.height) ;
@@ -1637,6 +1818,8 @@ x_layout_add_child(
 		x_window_map( &next->scrollbar.window) ;
 	}
 	x_window_map( &screen->window) ;
+
+	x_window_set_input_focus( &term->screen->window) ;
 
 	update_normal_hints( layout) ;
 
@@ -1853,6 +2036,13 @@ x_layout_remove_child(
 	free( term) ;
 
 	x_window_set_input_focus( &layout->term.screen->window) ;
+
+#ifndef  USE_QUARTZ
+	if( layout->window.idling && ! need_idling_event( &layout->term))
+	{
+		layout->window.idling = NULL ;
+	}
+#endif
 
 	return  1 ;
 }

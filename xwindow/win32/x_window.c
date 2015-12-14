@@ -1117,20 +1117,13 @@ x_window_set_type_engine(
 }
 
 int
-x_window_init_event_mask(
-	x_window_t *  win ,
-	long  event_mask
-	)
-{
-	return  1 ;
-}
-
-int
 x_window_add_event_mask(
 	x_window_t *  win ,
 	long  event_mask
 	)
 {
+	win->event_mask |= event_mask ;
+
 	return  1 ;
 }
 
@@ -1140,6 +1133,8 @@ x_window_remove_event_mask(
 	long  event_mask
 	)
 {
+	win->event_mask &= ~event_mask ;
+
 	return  1 ;
 }
 
@@ -2594,7 +2589,8 @@ x_window_receive_event(
 		return  1 ;
 
 	case  WM_MOUSEMOVE:
-		if( win->button_is_pressing || win->pointer_motion)
+		if( win->button_is_pressing ||
+		    ((win->event_mask & PointerMotionMask) && win->pointer_motion))
 		{
 			XMotionEvent  mev ;
 

@@ -22,8 +22,8 @@ typedef struct  x_layout
 
 	struct terminal
 	{
-		x_screen_t *  screen ;
 		x_scrollbar_t  scrollbar ;
+		x_screen_t *  screen ;
 		x_sb_mode_t  sb_mode ;
 		x_scrollbar_event_listener_t  sb_listener ;
 		x_screen_scroll_event_listener_t  screen_scroll_listener ;
@@ -31,6 +31,8 @@ typedef struct  x_layout
 		u_int16_t  separator_x ;
 		u_int16_t  separator_y ;
 		int  yfirst ;
+		int8_t  autohide_scrollbar ;
+		int8_t  idling_count ;
 
 		/* 0: right, 1: down */
 		struct terminal *  next[2] ;
@@ -42,7 +44,8 @@ typedef struct  x_layout
 	x_picture_t *  bg_pic ;
 
 	void (*line_scrolled_out)( void *) ;
-	
+	void (*pointer_motion)( x_window_t * , XMotionEvent *) ;
+
 } x_layout_t ;
 
 
