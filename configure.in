@@ -1192,13 +1192,9 @@ pixmap_engine)
 	if test "x$allow_undefined_flag" = "xunsupported" ; then
 		echo ""
 		echo "** ERROR **"
-		echo "pixmap_engine has undefined symbols. $host_os does NOT allow it. Please retry"
-		echo "to run configure scripts without pixmap_engine"
-		echo "(e.g.  --with-scrllbars=sample,extra)"
+		echo "pixmap_engine has undefined symbols. $host_os does NOT allow it."
 		echo ""
-		exit 1
-	fi
-	if test "$gui" = "xlib" ; then
+	elif test "$gui" = "xlib" ; then
 		if test "$have_gdk_pixbuf1" = "yes" -o "$have_gdk_pixbuf2" = "yes" ; then
 			MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 			OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
@@ -1212,7 +1208,6 @@ pixmap_engine)
 			echo "** ERROR **"
 			echo "To use pixmap_engine for scrollbar, you need gdk-pixbuf library."
 			echo ""
-			exit 1
 		fi
 	fi
 	;;
@@ -1271,7 +1266,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.6.0)
+AM_INIT_AUTOMAKE(mlterm,3.6.1)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)
