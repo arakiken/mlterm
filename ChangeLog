@@ -1,3 +1,25 @@
+2015-12-20  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja: Updated.
+
+	* vte.c:
+	  - vte_terminal_{set|get}_word_char_exceptions() are added.
+	  - "child-exited" signal is triggered with exit status on vte-0.38 or later.
+
+	* main-cocoa.m: LANG environmental variable is set.
+
+	* x_main_config.c: The default value of "type_engine" option is changed
+	  from xft to cairo on xlib.
+
+	* ml_char.c: ml_char_combine() calls ml_normalize().
+
+	* mlterm/Makefile.in, configure.in: ml_normalize.o is added to OBJ_CORE
+	  on MacOSX.
+
+	* ml_normalize.m: Added. (available on MacOSX alone.)
+
+	* version.h.in: 3.6.1 -> 3.6.1post
+
 2015-12-15  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.6.1 released.

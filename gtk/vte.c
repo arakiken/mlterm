@@ -1,4 +1,3 @@
-
 /*
  *	$Id$
  */
@@ -553,7 +552,11 @@ pty_closed(
 	}
 	else
 	{
+	#if  VTE_CHECK_VERSION(0,38,0)
+		g_signal_emit_by_name( VTE_WIDGET(screen) , "child-exited" , 0) ;
+	#else
 		g_signal_emit_by_name( VTE_WIDGET(screen) , "child-exited") ;
+	#endif
 
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " pty is closed\n") ;
@@ -2384,12 +2387,21 @@ vte_terminal_class_init(
 #if  ! GTK_CHECK_VERSION(2,90,0)
 	vclass->child_exited_signal =
 #endif
+#if  VTE_CHECK_VERSION(0,38,0)
+		g_signal_new( I_("child-exited") ,
+			G_OBJECT_CLASS_TYPE(vclass) ,
+			G_SIGNAL_RUN_LAST ,
+			G_STRUCT_OFFSET( VteTerminalClass , child_exited) ,
+			NULL , NULL , g_cclosure_marshal_VOID__INT ,
+			G_TYPE_NONE , 1 , G_TYPE_INT) ;
+#else
 		g_signal_new( I_("child-exited") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
 			G_STRUCT_OFFSET( VteTerminalClass , child_exited) ,
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
+#endif
 
 #if  ! GTK_CHECK_VERSION(2,90,0)
 	vclass->window_title_changed_signal =
@@ -4343,6 +4355,25 @@ vte_terminal_get_has_selection(
 	}
 }
 
+#if  VTE_CHECK_VERSION(0,40,0)
+void
+vte_terminal_set_word_char_exceptions(
+	VteTerminal *  terminal ,
+	const char *  spec
+	)
+{
+	ml_set_word_separators( spec) ;
+}
+
+const char *
+vte_terminal_get_word_chars_exceptions(
+	VteTerminal *  terminal
+	)
+{
+	return  ml_get_word_separators() ;
+}
+#endif
+
 #if  ! VTE_CHECK_VERSION(0,38,0)
 void
 vte_terminal_set_word_chars(
@@ -4425,7 +4456,7 @@ vte_terminal_set_backspace_binding(
 	char *  seq ;
 
 #ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " set backtrace binding => %d\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " set backtrace binding => %d\n" , binding) ;
 #endif
 
 	if( binding == VTE_ERASE_ASCII_BACKSPACE)

@@ -5,6 +5,7 @@
 #include  "../x_window.h"
 
 #include  <X11/Xft/Xft.h>
+#include  <kiklib/kik_mem.h>	/* alloca */
 
 
 #define  x_color_to_xft(xcolor)  _x_color_to_xft( alloca(sizeof(XftColor)) , (xcolor))

@@ -16,6 +16,7 @@
 #include  <kiklib/kik_privilege.h>	/* kik_priv_change_e(u|g)id */
 #include  <kiklib/kik_unistd.h>		/* kik_getuid */
 #include  <kiklib/kik_file.h>
+#include  <kiklib/kik_mem.h>		/* alloca */
 
 #include  <ml_color.h>
 

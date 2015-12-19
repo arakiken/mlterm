@@ -65,10 +65,10 @@ x_prepare_for_main_config(
 		"override redirect [false]") ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
 		"type engine "
-	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-		"[xft]"
-	#elif  ! defined(USE_TYPE_XCORE) && defined(USE_TYPE_CAIRO)
+	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 		"[cairo]"
+	#elif  ! defined(USE_TYPE_XCORE) && defined(USE_TYPE_XFT)
+		"[xft]"
 	#else
 		"[xcore]"
 	#endif
@@ -483,12 +483,12 @@ x_main_config_init(
 		}
 	}
 
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-	main_config->type_engine = TYPE_XFT ;
-#elif   defined(USE_TYPE_XCORE)
-	main_config->type_engine = TYPE_XCORE ;
-#else
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	main_config->type_engine = TYPE_CAIRO ;
+#elif  ! defined(USE_TYPE_XCORE) && defined(USE_TYPE_XFT)
+	main_config->type_engine = TYPE_XFT ;
+#else
+	main_config->type_engine = TYPE_XCORE ;
 #endif
 
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
@@ -505,10 +505,10 @@ x_main_config_init(
 			if( main_config->type_engine == TYPE_XCORE)
 			{
 				/* forcibly use xft or cairo */
-			#if  ! defined(USE_TYPE_XFT) && defined(USE_TYPE_CAIRO)
-				main_config->type_engine = TYPE_CAIRO ;
-			#else
+			#if  defined(USE_TYPE_XFT) && ! defined(USE_TYPE_CAIRO)
 				main_config->type_engine = TYPE_XFT ;
+			#else
+				main_config->type_engine = TYPE_CAIRO ;
 			#endif
 			}
 		}

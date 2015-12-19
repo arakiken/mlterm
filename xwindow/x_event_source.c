@@ -14,7 +14,7 @@
 #endif
 
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc/free */
+#include  <kiklib/kik_mem.h>	/* realloc/free */
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <ml_term_manager.h>
 

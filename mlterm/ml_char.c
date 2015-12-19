@@ -310,6 +310,11 @@ ml_char_reverse_attr(
 	}
 }
 
+#ifdef  __APPLE__
+#include  <kiklib/kik_mem.h>
+int  ml_normalize( u_int16_t *  str , int  num) ;
+#endif
+
 int
 ml_char_combine(
 	ml_char_t *  ch ,
@@ -439,6 +444,33 @@ ml_char_combine(
 
 	ch->u.multi_ch = multi_ch ;
 	USE_MULTI_CH(ch->u.ch.attr) ;	/* necessary for 64bit big endian */
+
+#ifdef  __APPLE__
+	{
+		u_int16_t *  str ;
+		u_int  num ;
+
+		num = get_comb_size( multi_ch) ;
+
+		if( ( str = alloca( sizeof(*str) * (num + 1))))
+		{
+			u_int  count ;
+
+			for( count = 0 ; count < num + 1 ; count++)
+			{
+				str[count] = ml_char_code( multi_ch + count) ;
+			}
+
+			if( ml_normalize( str , num + 1) == 1)
+			{
+				*ch = *multi_ch ;
+				ch->u.ch.code = str[0] ;
+				UNSET_COMB_TRAILING(ch->u.ch.attr) ;
+				free( multi_ch) ;
+			}
+		}
+	}
+#endif
 
 	return  1 ;
 }

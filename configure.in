@@ -159,6 +159,13 @@ esac
 AC_SUBST(WIN32TAG)
 AC_SUBST(CYGPATHW)
 
+case "${host_os}" in
+*darwin*)
+	ML_NORM_OBJ="ml_normalize.o"
+	AC_SUBST(ML_NORM_OBJ)
+	;;
+esac
+
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
 fi

@@ -5,6 +5,7 @@
 #ifdef  BUILTIN_IMAGELIB
 
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include  <kiklib/kik_mem.h>	/* alloca */
 
 #include  "c_sixel.c"
 #include  "c_regis.c"

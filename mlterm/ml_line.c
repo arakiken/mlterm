@@ -5,7 +5,6 @@
 #include  "ml_line.h"
 
 #include  <string.h>		/* memset */
-#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* K_MIN */
 

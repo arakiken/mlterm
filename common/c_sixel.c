@@ -5,6 +5,7 @@
 #include <string.h>	/* memcpy */
 #include <sys/stat.h>	/* fstat */
 #include <kiklib/kik_util.h>	/* K_MIN */
+#include <kiklib/kik_mem.h>	/* alloca */
 
 
 #ifdef  SIXEL_1BPP

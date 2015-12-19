@@ -4,6 +4,7 @@
 
 #include  "x_draw_str.h"
 
+#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <ml_drcs.h>
 
 #ifndef  NO_IMAGE

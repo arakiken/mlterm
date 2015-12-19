@@ -806,7 +806,7 @@ get_msec_time(void)
 
 int
 ml_set_word_separators(
-	char *  seps
+	const char *  seps
 	)
 {
 	static char *  default_word_separators ;

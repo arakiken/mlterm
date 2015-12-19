@@ -85,7 +85,7 @@ typedef struct  ml_screen
 } ml_screen_t ;
 
 
-int  ml_set_word_separators( char *  seps) ;
+int  ml_set_word_separators( const char *  seps) ;
 
 char *  ml_get_word_separators(void) ;
 

@@ -8,6 +8,7 @@
 #include  <cairo/cairo-ft.h>	/* FcChar32 */
 #include  <cairo/cairo-xlib.h>
 
+#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <ml_char.h>	/* UTF_MAX_SIZE */
 
 

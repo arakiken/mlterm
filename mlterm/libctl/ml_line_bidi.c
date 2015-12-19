@@ -6,6 +6,7 @@
 
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>	/* alloca */
 
 
 /* --- static functions --- */

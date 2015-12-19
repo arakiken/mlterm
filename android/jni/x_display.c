@@ -10,6 +10,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_mem.h>
 
 #include  "../x_window.h"
 #include  "../../common/c_animgif.c"
