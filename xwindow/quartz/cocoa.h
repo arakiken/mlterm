@@ -44,6 +44,8 @@ void  view_scroll( void *  view , int  src_x , int  src_y , u_int  width , u_int
 
 void  view_bg_color_changed( void *  view) ;
 
+void  view_visual_bell( void *  view) ;
+
 
 /* for NSView */
 
@@ -81,6 +83,8 @@ int  cocoa_clipboard_own( void *  view) ;
 void  cocoa_clipboard_set( const u_char *  utf8 , size_t  len) ;
 
 const char *  cocoa_clipboard_get(void) ;
+
+void  cocoa_beep(void) ;
 
 #endif	/* __X_WINDOW_H__ */
 

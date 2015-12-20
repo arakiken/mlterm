@@ -22,7 +22,7 @@
 {
 	x_window_t *  xwindow ;
 	CGContextRef  ctx ;
-	int  forceExpose ;
+	int  forceExpose ;	/* 2 = visual bell */
 
 	BOOL  ignoreKeyDown ;
 	NSString *  markedText ;
@@ -292,7 +292,7 @@ update_ime_text(
 		}
 	}
 
-	x_window_update( xwindow , 3) ;
+	x_window_update( xwindow , 3) ;	/* UPDATE_SCREEN|UPDATE_CURSOR */
 }
 
 static void
@@ -615,6 +615,18 @@ reset_position(
 	kik_debug_printf( "%f %f %f %f %f %f\n" ,
 		t.a , t.b , t.c , t.d , t.tx , t.ty) ;
 #endif
+
+	if( forceExpose & 2)
+	{
+		[self fillWith:&xwindow->fg_color:xwindow->hmargin:xwindow->vmargin:
+			xwindow->width:xwindow->height] ;
+		CGContextFlush( ctx) ;
+
+		kik_usleep( 100000) ;	/* 100 msec */
+
+		forceExpose = 1 ;
+		xwindow->update_window_flag = 0 ;
+	}
 
 	ev.type = X_EXPOSE ;
 	ev.x = rect.origin.x ;
@@ -1492,6 +1504,14 @@ view_bg_color_changed(
 	[view bgColorChanged] ;
 }
 
+void
+view_visual_bell(
+	MLTermView *  view
+	)
+{
+	[view update:2] ;
+}
+
 
 void
 view_set_input_focus(
@@ -1660,6 +1680,12 @@ cocoa_clipboard_get(void)
 	}
 
 	return  NULL ;
+}
+
+void
+cocoa_beep(void)
+{
+	NSBeep() ;
 }
 
 

@@ -1,5 +1,13 @@
 2015-12-20  Araki Ken  <arakiken@users.sf.net>
 
+	* quartz/x_window.c: x_window_bell() is implemented.
+
+	* cocoa.[hm]: view_visual_bell() and cocoa_beep() are added.
+
+	* win32/x_window.c: x_window_blank() is fixed.
+
+2015-12-20  Araki Ken  <arakiken@users.sf.net>
+
 	* man/mlterm.1, README.ja: Updated.
 
 	* vte.c:

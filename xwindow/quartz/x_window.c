@@ -9,7 +9,6 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
 #include  <kiklib/kik_util.h>	/* K_MIN/K_MAX */
-#include  <kiklib/kik_dialog.h>
 
 #include  "../x_xic.h"
 #include  "../x_picture.h"
@@ -815,36 +814,6 @@ x_window_show(
 	}
 #endif
 
-#ifdef  __DEBUG
-	kik_debug_printf( "X: EDGE%d BORDER%d FRAME%d Y: EDGE%d BORDER%d FRAME%d CAPTION%d\n",
-		GetSystemMetrics(SM_CXEDGE),
-		GetSystemMetrics(SM_CXBORDER), GetSystemMetrics(SM_CXFRAME),
-		GetSystemMetrics(SM_CYEDGE), GetSystemMetrics(SM_CYBORDER),
-		GetSystemMetrics(SM_CYFRAME), GetSystemMetrics(SM_CYCAPTION)) ;
-#endif
-
-#if  0
-	win->my_window = CreateWindowEx( 0 , __("MLTERM") , win->app_name ,
-				PARENT_WINDOWID_IS_TOP(win) ?
-					WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE ,
-				PARENT_WINDOWID_IS_TOP(win) && ! (hint & XValue) ?
-					CW_USEDEFAULT : win->x ,
-				PARENT_WINDOWID_IS_TOP(win) && ! (hint & YValue) ?
-					CW_USEDEFAULT : win->y ,
-				PARENT_WINDOWID_IS_TOP(win) ?
-					ACTUAL_WINDOW_WIDTH(win) : ACTUAL_WIDTH(win) ,
-				PARENT_WINDOWID_IS_TOP(win) ?
-					ACTUAL_WINDOW_HEIGHT(win) : ACTUAL_HEIGHT(win) ,
-				win->parent_window , NULL , win->disp->display->hinst , NULL) ;
-
-	if( ! win->my_window)
-	{
-		kik_dialog( KIK_DIALOG_ALERT , "Failed to create window.") ;
-
-		return  0 ;
-	}
-#endif
-
 #ifndef  DISABLE_XDND
 	/* DragAcceptFiles( win->my_window , TRUE) ; */
 #endif
@@ -1240,33 +1209,6 @@ x_window_blank(
 	x_window_t *  win
 	)
 {
-#if  0
-	int  get_dc ;
-	HBRUSH  brush ;
-	RECT  r ;
-
-	if( win->gc->gc == None)
-	{
-		x_set_gc( win->gc , GetDC( win->my_window)) ;
-		get_dc = 1 ;
-	}
-	else
-	{
-		get_dc = 0 ;
-	}
-
-	brush = x_acquire_brush( win->fg_color.pixel) ;
-	SetRect( &r , win->hmargin , win->vmargin , win->width , win->height) ;
-	FillRect( win->gc->gc , &r , brush) ;
-	x_release_brush( brush) ;
-
-	if( get_dc)
-	{
-		ReleaseDC( win->my_window , win->gc->gc) ;
-		x_set_gc( win->gc , None) ;
-	}
-#endif
-
 	return  1 ;
 }
 
@@ -2091,32 +2033,15 @@ x_window_bell(
 {
 	urgent_bell( win , 1) ;
 
-#if  0
 	if( mode & BEL_VISUAL)
 	{
-		int  count ;
-
-		x_set_gc( win->gc, GetDC( win->my_window)) ;
-
-		/* win->gc is used in x_window_blank(). */
-		x_window_blank( win) ;
-
-		for( count = 0 ; count < 10 ; count++)
-		{
-			Sleep( 10) ;
-		}
-
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-
-		ReleaseDC( win->my_window, win->gc->gc) ;
-		x_set_gc( win->gc, None) ;
+		view_visual_bell( win->my_window) ;
 	}
 
 	if( mode & BEL_SOUND)
 	{
-		Beep( 800 , 200) ;
+		cocoa_beep() ;
 	}
-#endif
 
 	return  1 ;
 }

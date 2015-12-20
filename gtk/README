@@ -27,10 +27,13 @@ How to build & install libvte compatible library using mlterm engine.
   $ cd mkf ; make install
   $ cd gtk ; make (VTE_ABI=(|2.90|2.91)) install
   $ ln -sf [where libvte of mlterm is installed]/libvte.so.9 \
-	   [where official libvte is installed]/libvte.so.9
+           [where official libvte is installed]/libvte.so.9
     or
     ln -sf [where libvte of mlterm is installed]/libvte2_90.so.9 \
-	   [where official libvte is installed]/libvte2_90.so.9
+           [where official libvte is installed]/libvte2_90.so.9
+    or
+    ln -sf [where libvte of mlterm is installed]/libvte2_91.so.9 \
+           [where official libvte is installed]/libvte2_91.so.9
 
 * Start terminal emulators using libvte
   $ gnome-terminal (roxterm, synaptic or etc)
@@ -161,13 +164,14 @@ How to build & install libvte compatible library using mlterm engine.
       "visible-bell"
 
 * Tested terminals using vte.
-  o gnome-terminal 3.14.2 on Ubuntu 15.04	... OK
+  o gnome-terminal 3.16.2 on Ubuntu 15.10	... OK
   o gnome-terminal 2.16.0 on CentOS 5		... OK
-  o roxterm 2.9.5 on Ubuntu 15.04		... OK
-  o sakura 3.1.5 on Ubuntu 15.04                ... OK
+  o roxterm 3.1.4 on Ubuntu 15.10		... OK
+  o sakura 3.2.0 on Ubuntu 15.10                ... OK
 
   Following platforms are not actually tested by developers, but were tested
   in the past.
+  o gnome-terminal 3.14.2 on Ubuntu 15.04	... OK
   o gnome-terminal 3.15.0 on Ubuntu 14.10
   o gnome-terminal 3.6.2 on Ubuntu 14.10
   o gnome-terminal 3.6.2 on Ubuntu 13.10
@@ -176,6 +180,7 @@ How to build & install libvte compatible library using mlterm engine.
   o gnome-terminal 3.4.1.1-0ubuntu1 on Ubuntu 12.04
   o gnome-terminal 3.0.1 on Ubuntu 11.10
   o gnome-terminal 2.32.0 on Ubuntu 10.10
+  o roxterm 2.9.5 on Ubuntu 15.04		... OK
   o roxterm 2.8.2 on Ubuntu 14.10
   o roxterm 2.7.2 on Ubuntu 13.10
   o roxterm 2.6.5-1 on Ubuntu 13.04
@@ -193,6 +198,7 @@ How to build & install libvte compatible library using mlterm engine.
   o evilvte 0.5.0-1 on Ubuntu 12.04
   o evilvte 0.4.8 on Ubuntu 11.10
   o evilvte 0.4.9pre4 on NetBSD 3.0.1
+  o sakura 3.1.5 on Ubuntu 15.04                ... OK
   o sakura 3.1.0 on Ubuntu 13.10
   o sakura 3.0.4-2 on Ubuntu 13.04
   o sakura 3.0.3-2 on Ubuntu 12.04

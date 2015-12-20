@@ -1908,7 +1908,8 @@ x_window_blank(
 	}
 
 	brush = x_acquire_brush( win->fg_color.pixel) ;
-	SetRect( &r , win->hmargin , win->vmargin , win->width , win->height) ;
+	SetRect( &r , win->hmargin , win->vmargin ,
+		win->width - RIGHT_MARGIN(win) , win->height - BOTTOM_MARGIN(win)) ;
 	FillRect( win->gc->gc , &r , brush) ;
 	x_release_brush( brush) ;
 
