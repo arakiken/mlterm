@@ -39,7 +39,7 @@ static char *  config_keys[MC_RADIOS] =
 static char *  config_values[MC_RADIOS][4] =
 {
 	{ "none" , "esc" , "8bit" , NULL , } ,
-	{ "none" , "sound" , "visual" , NULL , } ,
+	{ "none" , "sound" , "visual" , "sound|visual" , } ,
 	{ "none" , "left" , "right" , "autohide" , } ,
 	{ "none" , "cjk" , "mongol" , NULL , } ,
 	{ "noconv" , "unicode" , "decsp" , NULL , } ,
@@ -50,7 +50,7 @@ static char *  config_values[MC_RADIOS][4] =
 static char *  labels[MC_RADIOS][5] =
 {
 	{ N_("Meta key outputs") , N_("None") , N_("Esc") , N_("8bit") , NULL , } ,
-	{ N_("Bell mode") , N_("None") , N_("Sound") , N_("Visual") , NULL , } ,
+	{ N_("Bell mode") , N_("None") , N_("Sound") , N_("Visual") , N_("Both") , } ,
 	{ N_("Position") , N_("None") , N_("Left") , N_("Right") , N_("Auto hide") , } ,
 	{ N_("Vertical mode") , N_("None") , N_("CJK") , N_("Mongol") , NULL , } ,
 	{ N_("Box drawing") , N_("As it is") , N_("Unicode") , N_("DEC Special") , NULL , } ,

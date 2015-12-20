@@ -1,5 +1,6 @@
 ver 3.6.2
 * Support composition of normalized unicode characters on MacOSX.
+* Support visual and audible bell on MacOSX/Cocoa.
 * Change the default value of "type_engine" option from "xft" to "cairo".
 * Add vte_terminal_{set|get}_word_char_exceptions() to libvte compatible library.
 * Bug fixes:

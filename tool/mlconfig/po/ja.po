@@ -116,6 +116,10 @@ msgstr "音"
 msgid "Visual"
 msgstr "表示"
 
+#: tool/mlconfig/mc_bel.c:115
+msgid "Both"
+msgstr "両方"
+
 #: tool/mlconfig/mc_radio.c:115
 msgid "Font policy"
 msgstr "表示フォント"
