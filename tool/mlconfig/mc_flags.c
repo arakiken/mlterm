@@ -39,6 +39,7 @@ static char *  config_keys[MC_FLAG_MODES] =
 	"blink_cursor" ,
 	"static_backscroll_mode" ,
 	"use_extended_scroll_shortcut" ,
+	"regard_uri_as_word" ,
 } ;
 
 static char *labels[MC_FLAG_MODES] =
@@ -58,6 +59,7 @@ static char *labels[MC_FLAG_MODES] =
 	N_("Blink cursor"),
 	N_("Don't scroll automatically in scrolling back"),
 	N_("Scroll by Shift+Up or Shift+Down"),
+	N_("Select URI by double click"),
 } ;
 
 static GtkWidget *  widgets[MC_FLAG_MODES];

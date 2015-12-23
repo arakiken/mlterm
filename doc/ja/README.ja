@@ -715,10 +715,14 @@ comment $Id$
         ログの行数
         unlimited を指定するとログの行数は無制限になります。
 
-      o word_separators  ( ,.:;/|@()[]{})
+      o word_separators  ( ,.:;/|@()[]{}) (#)
         単語の区切り文字を指定('\x'から始まる16進数の使用も可)
 
         マウスのダブルクリックで、単語選択する際に使用されます。
+
+      o regard_uri_as_word (true/*false*) (#)
+        URI をダブルクリックすると、word_separators オプションに関わらず、当該
+	URI を一単語として選択する。
 
       o mod_meta_key (*none*/mod1/mod2/mod3/mod4/meta/alt/super/hyper)
         Meta キーとして使用するキーを指定

@@ -259,6 +259,9 @@ scrollbar_view_name = sample
 # 単語の区切り文字を指定
 # word_separators = " ,.:;/@"
 
+# ダブルクリックで URI を選択
+# regard_uri_as_word = false
+
 # Meta キーとして使用するキーを指定
 # (none,mod1,mod2,mod3,mod4,meta,alt,super,hyper)
 # mod_meta_key = none

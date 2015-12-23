@@ -1,3 +1,19 @@
+2015-12-23  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated
+
+	* mlconfig/main.c: "Select URI by double click" checkbox is added to "Others" tab.
+
+	* mc_flags.[ch]: MC_FLAG_REGARDURIASWORD is added.
+
+	* x_main_config.c: "regard_uri_as_word" / --uriword option is added.
+
+	* ml_vt100_parser.c: "regard_uri_as_word" is added to OSC 5379-5383.
+
+	* ml_screen.[ch]:
+	  - ml_{set|get}_regard_uri_as_word() are added.
+	  - If regard_uri_as_word is true, ml_screen_get_word_region() regards uri as word.
+
 2015-12-20  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_radio.c: "sound|visual" value is added to bel_mode option.

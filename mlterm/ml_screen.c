@@ -25,6 +25,7 @@
 /* --- static variables --- */
 
 static char *  word_separators = " .,:;/|@()[]{}" ;
+static int  regard_uri_as_word = 0 ;
 
 
 /* --- static functions --- */
@@ -848,6 +849,20 @@ ml_get_word_separators(void)
 	return  word_separators ;
 }
 
+void
+ml_set_regard_uri_as_word(
+	int  flag
+	)
+{
+	regard_uri_as_word = flag ;
+}
+
+int
+ml_get_regard_uri_as_word(void)
+{
+	return  regard_uri_as_word ;
+}
+
 
 ml_screen_t *
 ml_screen_new(
@@ -1629,6 +1644,62 @@ ml_screen_get_word_region(
 		ml_line_is_empty( base_line))
 	{
 		return  0 ;
+	}
+
+	if( regard_uri_as_word)
+	{
+		char *  orig ;
+		u_int  len ;
+		ml_char_t *  str ;
+
+		orig = word_separators ;
+		word_separators = "\" '`<>#|" ;
+		regard_uri_as_word = 0 ;
+
+		/* Not return 0 */
+		ml_screen_get_word_region( screen , beg_char_index , beg_row ,
+			end_char_index , end_row , base_char_index , base_row) ;
+
+		word_separators = orig ;
+		regard_uri_as_word = 1 ;
+
+		if( ( len = check_or_copy_region( screen , NULL , 0 ,
+				*beg_char_index , *beg_row ,
+				*end_char_index , *end_row)) > 0 &&
+		    ( str = ml_str_alloca( len)))
+		{
+			u_int  count ;
+			int  slash_num ;
+
+			check_or_copy_region( screen , str , len , *beg_char_index , *beg_row ,
+				*end_char_index , *end_row) ;
+
+			for( slash_num = 0 , count = 0 ; count < len ; count++)
+			{
+				if( ml_char_cs( str + count) == US_ASCII)
+				{
+					u_int  code ;
+
+					switch( ml_char_code( str + count))
+					{
+					case  '/':
+						if( ++ slash_num == 1)
+						{
+							continue ;
+						}
+
+						/* Fall through */
+
+					case  '@':
+						ml_str_final( str , len) ;
+
+						return  1 ;
+					}
+				}
+			}
+
+			ml_str_final( str , len) ;
+		}
 	}
 
 	if( is_word_separator( ml_char_at( base_line , base_char_index)))

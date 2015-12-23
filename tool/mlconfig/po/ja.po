@@ -315,6 +315,10 @@ msgstr "全角幅文字の範\n囲を手動設定"
 msgid "Scroll by Shift+Up or Shift+Down"
 msgstr "Shift+Up又はShift+Downによるスクロール"
 
+#: tool/mlconfig/mc_flags.c:44
+msgid "Select URI by double click"
+msgstr "ダブルクリックでURIを選択"
+
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"

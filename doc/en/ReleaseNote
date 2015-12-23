@@ -1,8 +1,11 @@
 ver 3.6.2
 * Support composition of normalized unicode characters on MacOSX.
 * Support visual and audible bell on MacOSX/Cocoa.
+* Add "regard_uri_as_word" / --uriword option which enables to select URI by double click
+  regardless of "word_separators" option.
 * Change the default value of "type_engine" option from "xft" to "cairo".
 * Add vte_terminal_{set|get}_word_char_exceptions() to libvte compatible library.
+* Add "Select URI by double click" to "Others" tab of mlconfig.
 * Bug fixes:
   Fix "child-exited" signal of libvte (0.38 or later) compatible library.
 

@@ -89,6 +89,10 @@ int  ml_set_word_separators( const char *  seps) ;
 
 char *  ml_get_word_separators(void) ;
 
+void  ml_set_regard_uri_as_word( int  flag) ;
+
+int  ml_get_regard_uri_as_word(void) ;
+
 #define  ml_free_word_separators()  ml_set_word_separators(NULL)
 
 

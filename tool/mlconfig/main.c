@@ -104,6 +104,7 @@ update(
 	mc_update_flag_mode(MC_FLAG_BLINKCURSOR) ;
 	mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL) ;
 	mc_update_flag_mode(MC_FLAG_EXTSCROLLSHORTCUT) ;
+	mc_update_flag_mode(MC_FLAG_REGARDURIASWORD) ;
 
 	mc_update_radio(MC_RADIO_SB_MODE) ;
 #ifndef  USE_QUARTZ
@@ -631,6 +632,10 @@ show(void)
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
 
+	config_widget = mc_flag_config_widget_new( MC_FLAG_DYNCOMB) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
+
 
 	config_widget = mc_flag_config_widget_new( MC_FLAG_RECVUCS) ;
 	gtk_widget_show( config_widget) ;
@@ -851,11 +856,6 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
-	config_widget = mc_flag_config_widget_new( MC_FLAG_DYNCOMB) ;
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-
-
 	hbox = gtk_hbox_new( FALSE , 0) ;
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
@@ -881,6 +881,11 @@ show(void)
 
 
 	config_widget = mc_flag_config_widget_new( MC_FLAG_EXTSCROLLSHORTCUT) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+
+	config_widget = mc_flag_config_widget_new( MC_FLAG_REGARDURIASWORD) ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 

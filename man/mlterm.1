@@ -674,6 +674,10 @@ e.g.) --ucsnoconv=U+1234-5678,U+0123-4567
 Draw the user's attention when making a bell sound in the unfocused window.
 The default is \fBfalse\fR.
 .TP
+\fB\-\-uriword\fR(=\fIbool\fR)
+Select URI by double clicking it regardless of \fB\-W\fR option.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-working\-directory\fR=\fIvalue\fR
 Working directory.
 .TP
@@ -1421,6 +1425,9 @@ current mlterm encoding, in order to identify equivalent characters
 (i.e., characters which share the same codepoint in Unicode) from various
 character sets.
 See \fBSELECTION\fR section below for detail.
+.TP
+\fBregard_uri_as_word=\fIbool\fR (\fB\-\-uriword\fR)
+Select URI by double clicking it regardless of \-\-W option.
 .TP
 \fBsb_bg_color=\fIcolor\fR (\fB\-B\fR, \fB\-\-sbbg\fR)
 Background color for scrollbar.

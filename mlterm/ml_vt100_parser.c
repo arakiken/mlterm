@@ -7790,6 +7790,21 @@ ml_vt100_parser_get_config(
 			value = "false" ;
 		}
 	}
+	else if( strcmp( key , "word_separators") == 0)
+	{
+		value = ml_get_word_separators() ;
+	}
+	else if( strcmp( key , "regard_uri_as_word") == 0)
+	{
+		if( ml_get_regard_uri_as_word())
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
 	else if( strcmp( key , "use_alt_buffer") == 0)
 	{
 		if( use_alt_buffer)
@@ -8060,6 +8075,15 @@ ml_vt100_parser_set_config(
 	else if( strcmp( key , "word_separators") == 0)
 	{
 		ml_set_word_separators( value) ;
+	}
+	else if( strcmp( key , "regard_uri_as_word") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_set_regard_uri_as_word( flag) ;
+		}
 	}
 	else if( strcmp( key , "use_alt_buffer") == 0)
 	{

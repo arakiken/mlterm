@@ -299,6 +299,8 @@ x_prepare_for_main_config(
 		"working directory") ;
 	kik_conf_add_opt( conf , '\0' , "seqfmt" , 0 , "vt_seq_format" ,
 		"format of logging vt100 sequence. [raw]") ;
+	kik_conf_add_opt( conf , '\0' , "uriword" , 0 , "regard_uri_as_word" ,
+		"select uri by double-clicking it [false]") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [true]") ;
@@ -1402,6 +1404,14 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "word_separators")))
 	{
 		ml_set_word_separators( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "regard_uri_as_word")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			ml_set_regard_uri_as_word( 1) ;
+		}
 	}
 
 	if( ( value = kik_conf_get_value( conf , "use_clipboard")))

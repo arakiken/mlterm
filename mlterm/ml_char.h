@@ -14,7 +14,7 @@
 #include  "ml_color.h"
 
 
-#define  MAX_COMB_SIZE	7	/* Used in ml_shape.c,x_screen.c */
+#define  MAX_COMB_SIZE	7	/* Used in ml_shape.c,x_screen.c,ml_screen.c */
 #define  UTF_MAX_SIZE	6
 /*
  * XXX
