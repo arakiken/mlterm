@@ -26,6 +26,7 @@ typedef struct  ml_pty
 	ssize_t (*read)( ml_pty_ptr_t , u_char * , size_t) ;
 
 	ml_pty_event_listener_t *  pty_listener ;
+	ml_pty_hook_t *  hook ;
 
 	ml_config_menu_t  config_menu ;
 

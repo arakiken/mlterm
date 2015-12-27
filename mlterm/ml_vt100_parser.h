@@ -196,9 +196,10 @@ typedef struct  ml_vt100_parser
 	ml_write_buffer_t  w_buf ;
 	
 	ml_pty_ptr_t  pty ;
+	ml_pty_hook_t  pty_hook ;
 
 	ml_screen_t *  screen ;
-	ml_termcap_entry_t *  termcap ;
+	ml_termcap_ptr_t  termcap ;
 
 	mkf_parser_t *  cc_parser ;	/* char code parser */
 	mkf_conv_t *  cc_conv ;		/* char code converter */
@@ -320,7 +321,7 @@ void  ml_vt100_parser_init(void) ;
 void  ml_vt100_parser_final(void) ;
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen ,
-	ml_termcap_entry_t *  termcap , ml_char_encoding_t  encoding ,
+	ml_termcap_ptr_t  termcap , ml_char_encoding_t  encoding ,
 	int  is_auto_encoding , int  use_auto_detect , int  logging_vt_seq ,
 	ml_unicode_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char ,

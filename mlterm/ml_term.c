@@ -19,6 +19,7 @@
 
 #ifdef  USE_WIN32API
 #include  <windows.h>
+#include  <process.h>	/* _beginthreadex */
 #else
 #include  <pthread.h>
 #endif
@@ -304,7 +305,7 @@ ml_term_new(
 	ml_alt_color_mode_t  alt_color_mode
 	)
 {
-	ml_termcap_entry_t *  termcap ;
+	ml_termcap_ptr_t  termcap ;
 	ml_term_t *  term ;
 
 	if( ! ( termcap = ml_termcap_get( term_type)))
@@ -322,7 +323,7 @@ ml_term_new(
 	}
 
 	if( ! ( term->screen = ml_screen_new( cols , rows , tab_size ,
-				log_size , ml_termcap_get_bool_field( termcap , TC_BCE) ,
+				log_size , ml_termcap_bce_is_enabled( termcap) ,
 				bs_mode)))
 	{
 	#ifdef  DEBUG

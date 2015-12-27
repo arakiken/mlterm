@@ -2719,6 +2719,8 @@ change_color_rgb(
 			{
 				get_rgb( vt100_parser , 4 , color) ;
 			}
+
+			return ;
 		}
 		else
 		{
@@ -2727,11 +2729,26 @@ change_color_rgb(
 			if( ( p = alloca( 6 + strlen( pt) + 1)))
 			{
 				sprintf( p , "color:%s" , pt) ;
-
-				config_protocol_set( vt100_parser , p , 0) ;
+			}
+			else
+			{
+				return ;
 			}
 		}
 	}
+	else
+	{
+		if( ( p = alloca( 7 + strlen( pt) + 1)))
+		{
+			sprintf( p , "color:%s=" , pt) ;
+		}
+		else
+		{
+			return ;
+		}
+	}
+
+	config_protocol_set( vt100_parser , p , 0) ;
 }
 
 static void
@@ -2763,6 +2780,10 @@ change_special_color(
 	    strcmp( ++pt , "?") != 0)	/* ?: query rgb */
 	{
 		config_protocol_set_simple( vt100_parser , key , pt) ;
+	}
+	else
+	{
+		config_protocol_set_simple( vt100_parser , key , "") ;
 	}
 }
 
@@ -3369,6 +3390,79 @@ soft_reset(
 }
 
 static void
+send_device_status(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  num
+	)
+{
+	char *  seq ;
+	char  amb[] = "\x1b[?884Xn" ;
+
+	if( num == 6)
+	{
+		if( ( seq = alloca( 6 + DIGIT_STR_LEN(int) + 1)))
+		{
+			sprintf( seq , "\x1b[%d;%d;1R" ,
+				ml_screen_cursor_row( vt100_parser->screen) ,
+				ml_screen_cursor_col( vt100_parser->screen)) ;
+		}
+		else
+		{
+			return ;
+		}
+	}
+	else if( num == 15)
+	{
+		seq = "\x1b[?13n" ;	/* No printer */
+	}
+	else if( num == 25)
+	{
+		seq = "\x1b[?21n" ;	/* UDKs are locked */
+	}
+	else if( num == 26)
+	{
+		seq = "\x1b[?27;1;0;0n" ;	/* North American, Keyboard ready */
+	}
+	else if( num == 53 || num == 55)
+	{
+		seq = "\x1b[?53n" ;	/* Locator ready */
+	}
+	else if( num == 56)
+	{
+		seq = "\x1b[?57;1n" ;	/* Locator exists */
+	}
+	else if( num == 62)
+	{
+		seq = "\x1b[0*{" ;	/* Macro Space = 0 */
+	}
+	else if( num == 63)
+	{
+		seq = "\x1bP0!~0000\x1b\\" ;	/* checksum = 0 */
+	}
+	else if( num == 75)
+	{
+		seq = "\x1b[?70n" ;	/* Ready */
+	}
+	else if( num == 85)
+	{
+		seq = "\x1b[?83n" ;	/* Not multiple-session */
+	}
+	else if( num == 8840)
+	{
+		/* "CSI ? 8840 n" (TNREPTAMB) */
+
+		amb[6] = vt100_parser->col_size_of_width_a + 0x30 ;
+		seq = amb ;
+	}
+	else
+	{
+		return ;
+	}
+
+	ml_write_to_pty( vt100_parser->pty , seq , strlen(seq)) ;
+}
+
+static void
 send_device_attributes(
 	ml_pty_ptr_t  pty ,
 	int  rank
@@ -3393,6 +3487,10 @@ send_device_attributes(
 		 * >=277: vim uses sgr mouse tracking.
 		 */
 		seq = "\x1b[>1;277;0c" ;
+	}
+	else if( rank == 3)
+	{
+		seq = "\x1bP!|000000\x1b\\" ;
 	}
 	else
 	{
@@ -4053,6 +4151,13 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 9 h" X10 mouse reporting */
 						}
 					#endif
+						else if( ps[count] == 12)
+						{
+							/* "CSI ? 12 h" XT_CBLINK */
+
+							config_protocol_set_simple( vt100_parser ,
+								"blink_cursor" , "false") ;
+						}
 						else if( ps[count] == 25)
 						{
 							/* "CSI ? 25 h" */
@@ -4088,12 +4193,16 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 66 h" application key pad */
 							vt100_parser->is_app_keypad = 1 ;
 						}
-					#if  0
 						else if( ps[count] == 67)
 						{
 							/* "CSI ? 67 h" have back space */
+
+							/* XXX Affects all terms sharing termcap */
+							ml_termcap_set_key_seq(
+								vt100_parser->termcap ,
+								SPKEY_BACKSPACE ,
+								"\x08") ;
 						}
-					#endif
 						else if( ps[count] == 69)
 						{
 							/* "CSI ? 69 h" */
@@ -4344,6 +4453,13 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 9 l" X10 mouse reporting */
 						}
 					#endif
+						else if( ps[count] == 12)
+						{
+							/* "CSI ? 12 h" XT_CBLINK */
+
+							config_protocol_set_simple( vt100_parser ,
+								"blink_cursor" , "true") ;
+						}
 						else if( ps[count] == 25)
 						{
 							/* "CSI ? 25 l" */
@@ -4378,12 +4494,16 @@ parse_vt100_escape_sequence(
 
 							vt100_parser->is_app_keypad = 0 ;
 						}
-					#if  0
 						else if( ps[count] == 67)
 						{
 							/* "CSI ? 67 l" have back space */
+
+							/* XXX Affects all terms sharing termcap */
+							ml_termcap_set_key_seq(
+								vt100_parser->termcap ,
+								SPKEY_BACKSPACE ,
+								"\x7f") ;
 						}
-					#endif
 						else if( ps[count] == 69)
 						{
 							/* "CSI ? 69 l" */
@@ -4541,16 +4661,9 @@ parse_vt100_escape_sequence(
 				}
 				else if( *str_p == 'n')
 				{
-					if( ps[0] == 8840)
-					{
-						/* "CSI ? 8840 n" (TNREPTAMB) */
+					/* "CSI ? n" */
 
-						char  msg[] = "\x1b[?884Xn" ;
-
-						msg[6] = vt100_parser->col_size_of_width_a + 0x30 ;
-						ml_write_to_pty( vt100_parser->pty , msg ,
-							sizeof(msg) - 1) ;
-					}
+					send_device_status( vt100_parser , ps[0]) ;
 				}
 				/* XXX DECSCA is not supported for now. */
 			#if  0
@@ -5020,6 +5133,15 @@ parse_vt100_escape_sequence(
 					}
 				}
 			}
+			else if( pre_ch == '=')
+			{
+				if( *str_p == 'c')
+				{
+					/* "CSI = c" Tertiary DA */
+
+					send_device_attributes( vt100_parser->pty , 3) ;
+				}
+			}
 			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
 			else if( pre_ch)
 			{
@@ -5333,12 +5455,23 @@ parse_vt100_escape_sequence(
 
 				for( count = 0 ; count < num ; count++)
 				{
-					if( ps[count] == 4)
+					if( ps[count] == 2)
+					{
+						ml_pty_set_hook( vt100_parser->pty , NULL) ;
+					}
+					else if( ps[count] == 4)
 					{
 						/* replace mode */
 
 						vt100_parser->w_buf.output_func =
 							ml_screen_overwrite_chars ;
+					}
+					else if( ps[count] == 12)
+					{
+						vt100_parser->pty_hook.pre_write =
+							ml_vt100_parser_write_loopback ;
+						ml_pty_set_hook( vt100_parser->pty ,
+							&vt100_parser->pty_hook) ;
 					}
 				}
 			}
@@ -5349,12 +5482,22 @@ parse_vt100_escape_sequence(
 
 				for( count = 0 ; count < num ; count++)
 				{
-					if( ps[count] == 4)
+					if( ps[count] == 2)
+					{
+						vt100_parser->pty_hook.pre_write = NULL ;
+						ml_pty_set_hook( vt100_parser->pty ,
+							&vt100_parser->pty_hook) ;
+					}
+					else if( ps[count] == 4)
 					{
 						/* insert mode */
 
 						vt100_parser->w_buf.output_func =
 							ml_screen_insert_chars ;
+					}
+					else if( ps[count] == 12)
+					{
+						ml_pty_set_hook( vt100_parser->pty , NULL) ;
 					}
 				#ifdef  DEBUG
 					else
@@ -5364,6 +5507,12 @@ parse_vt100_escape_sequence(
 					}
 				#endif
 				}
+			}
+			else if( *str_p == 'i')
+			{
+				char  seq[] = "snapshot" ;
+
+				ml_vt100_parser_exec_cmd( vt100_parser , seq) ;
 			}
 			else if( *str_p == 'm')
 			{
@@ -5766,6 +5915,14 @@ parse_vt100_escape_sequence(
 			else if( ps == 52)
 			{
 				set_selection( vt100_parser , pt) ;
+			}
+			else if( ps == 104)
+			{
+				change_color_rgb( vt100_parser , pt) ;
+			}
+			else if( ps == 105)
+			{
+				change_special_color( vt100_parser , pt) ;
 			}
 		#if  0
 			else if( ps == 110)
@@ -6892,7 +7049,7 @@ ml_vt100_parser_final(void)
 ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
-	ml_termcap_entry_t *  termcap ,
+	ml_termcap_ptr_t  termcap ,
 	ml_char_encoding_t  encoding ,
 	int  is_auto_encoding ,
 	int  use_auto_detect ,
@@ -6915,6 +7072,8 @@ ml_vt100_parser_new(
 
 	ml_str_init( vt100_parser->w_buf.chars , PTY_WR_BUFFER_SIZE) ;
 	vt100_parser->w_buf.output_func = ml_screen_overwrite_chars ;
+
+	vt100_parser->pty_hook.self = vt100_parser ;
 
 	vt100_parser->screen = screen ;
 	vt100_parser->termcap = termcap ;

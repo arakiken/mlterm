@@ -37,6 +37,14 @@ typedef struct  ml_pty_event_listener
 
 } ml_pty_event_listener_t ;
 
+typedef struct  ml_pty_hook
+{
+	void *  self ;
+
+	size_t  (*pre_write)( void * , u_char * , size_t) ;
+
+} ml_pty_hook_t ;
+
 typedef struct  ml_pty *  ml_pty_ptr_t ;
 
 
@@ -73,6 +81,8 @@ int  ml_start_config_menu( ml_pty_ptr_t  pty , char *  cmd_path ,
 	int  x , int  y , char *  display) ;
 
 char *  ml_pty_get_cmd_line( ml_pty_ptr_t  pty) ;
+
+void  ml_pty_set_hook( ml_pty_ptr_t  pty , ml_pty_hook_t *  hook) ;
 
 #ifdef  USE_LIBSSH2
 void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;

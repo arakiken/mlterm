@@ -1,3 +1,19 @@
+2015-12-27  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch]:
+	  - ml_pty_hook_t is added to ml_vt100_parser_t.
+	  - KAM(CSI2h, CSI2l), SRM (CSI12h, CSI12l), DECBKM(CSI?67h, CSI?67l),
+	    DA3(CSI=c), DECDSR(CSI?n), OSC 104 and OSC 105 are supported.
+
+	* ml_pty.[ch], ml_pty_intern.h:
+	  ml_pty_set_hook() and ml_pty_hook_t are added.
+
+	* ml_termcap.[ch]:
+	  - ml_termcap_entry_t * => ml_termcap_ptr_t
+	  - ml_termcap_get_{str|bool}_field() are removed.
+	  - ml_termcap_bce_is_enabled() and ml_termcap_set_key_seq() are added.
+	  - ml_termcap_{str|bool}_field is moved from ml_termcap.h to ml_termcap.c.
+
 2015-12-23  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated

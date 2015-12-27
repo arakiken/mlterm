@@ -1678,8 +1678,6 @@ ml_screen_get_word_region(
 			{
 				if( ml_char_cs( str + count) == US_ASCII)
 				{
-					u_int  code ;
-
 					switch( ml_char_code( str + count))
 					{
 					case  '/':

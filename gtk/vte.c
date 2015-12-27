@@ -4452,7 +4452,6 @@ vte_terminal_set_backspace_binding(
 	VteEraseBinding  binding
 	)
 {
-	ml_termcap_entry_t *  entry ;
 	char *  seq ;
 
 #ifdef  DEBUG
@@ -4482,10 +4481,8 @@ vte_terminal_set_backspace_binding(
 		return ;
 	}
 
-	entry = terminal->pvt->term->parser->termcap ;
-	free( entry->str_fields[TC_BACKSPACE]) ;
-	/* ^H (compatible with libvte) */
-	entry->str_fields[TC_BACKSPACE] = strdup(seq) ;
+	ml_termcap_set_key_seq( terminal->pvt->term->parser->termcap ,
+		SPKEY_BACKSPACE , seq) ;
 }
 
 void
@@ -4494,7 +4491,6 @@ vte_terminal_set_delete_binding(
 	VteEraseBinding  binding
 	)
 {
-	ml_termcap_entry_t *  entry ;
 	char *  seq ;
 
 	if( binding == VTE_ERASE_ASCII_BACKSPACE)
@@ -4520,10 +4516,8 @@ vte_terminal_set_delete_binding(
 		return ;
 	}
 
-	entry = terminal->pvt->term->parser->termcap ;
-	free( entry->str_fields[TC_DELETE]) ;
-	/* ^H (compatible with libvte) */
-	entry->str_fields[TC_DELETE] = strdup(seq) ;
+	ml_termcap_set_key_seq( terminal->pvt->term->parser->termcap ,
+		SPKEY_DELETE , seq) ;
 }
 
 void

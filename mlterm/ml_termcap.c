@@ -12,24 +12,57 @@
 #include  <kiklib/kik_conf_io.h>
 
 
+typedef enum  str_field
+{
+	TC_DELETE ,
+	TC_BACKSPACE ,
+	TC_HOME ,
+	TC_END ,
+	TC_F1 ,
+	TC_F2 ,
+	TC_F3 ,
+	TC_F4 ,
+	TC_F5 ,
+
+	MAX_TERMCAP_STR_FIELDS
+
+} str_field_t ;
+
+typedef enum  bool_field
+{
+	TC_BCE ,
+
+	MAX_TERMCAP_BOOL_FIELDS
+
+} bool_field_t ;
+
 typedef struct  str_field_table
 {
 	char *  name ;
-	ml_termcap_str_field_t  field ;
+	str_field_t  field ;
 
 } str_field_table_t ;
 
 typedef struct  bool_field_table
 {
 	char *  name ;
-	ml_termcap_bool_field_t  field ;
+	bool_field_t  field ;
 
 } bool_field_table_t ;
+
+typedef struct  ml_termcap
+{
+	char *  name ;
+
+	char *  str_fields[MAX_TERMCAP_STR_FIELDS] ;
+	int8_t  bool_fields[MAX_TERMCAP_BOOL_FIELDS] ;
+
+} ml_termcap_t ;
 
 
 /* --- static variables --- */
 
-static ml_termcap_entry_t *  entries ;
+static ml_termcap_t *  entries ;
 static u_int  num_of_entries ;
 
 static str_field_table_t  str_field_table[] =
@@ -62,43 +95,43 @@ static char *  tc_file = "mlterm/termcap" ;
 
 static int
 entry_init(
-	ml_termcap_entry_t *  entry ,
+	ml_termcap_t *  termcap ,
 	const char *  name
 	)
 {
-	memset( entry , 0 , sizeof(ml_termcap_entry_t)) ;
-	entry->name = strdup( name) ;
+	memset( termcap , 0 , sizeof(ml_termcap_t)) ;
+	termcap->name = strdup( name) ;
 
 	return  1 ;
 }
 
 static int
 entry_final(
-	ml_termcap_entry_t *  entry
+	ml_termcap_t *  termcap
 	)
 {
 	int  count ;
 
-	free( entry->name) ;
+	free( termcap->name) ;
 
 	for( count = 0 ; count < MAX_TERMCAP_STR_FIELDS ; count ++)
 	{
-		free( entry->str_fields[count]) ;
+		free( termcap->str_fields[count]) ;
 	}
 
 	return  1 ;
 }
 
 static int
-parse_entry_db(
-	ml_termcap_entry_t *  entry ,
-	char *  entry_db
+parse_termcap_db(
+	ml_termcap_t *  termcap ,
+	char *  termcap_db
 	)
 {
 	char *  field ;
 	int  count ;
 
-	while( ( field = kik_str_sep( &entry_db , ":")))
+	while( ( field = kik_str_sep( &termcap_db , ":")))
 	{
 		char *  key ;
 		char *  value ;
@@ -111,7 +144,7 @@ parse_entry_db(
 			{
 				if( strcmp( key , bool_field_table[count].name) == 0)
 				{
-					entry->bool_fields[ bool_field_table[count].field] = 1 ;
+					termcap->bool_fields[ bool_field_table[count].field] = 1 ;
 
 					break ;
 				}
@@ -125,8 +158,8 @@ parse_entry_db(
 				{
 					if( ( value = kik_str_unescape( value)))
 					{
-						free( entry->str_fields[ str_field_table[count].field]) ;
-						entry->str_fields[ str_field_table[count].field] = value ;
+						free( termcap->str_fields[ str_field_table[count].field]) ;
+						termcap->str_fields[ str_field_table[count].field] = value ;
 					}
 
 					break ;
@@ -138,8 +171,8 @@ parse_entry_db(
 	return  1 ;
 }
 
-static ml_termcap_entry_t *
-search_entry(
+static ml_termcap_t *
+search_termcap(
 	const char *  name
 	)
 {
@@ -189,7 +222,7 @@ read_conf(
 	kik_file_t *  from ;
 	char *  line ;
 	size_t  len ;
-	char *  entry_db ;
+	char *  termcap_db ;
 	size_t  db_len ;
 
 	if( ! ( from = kik_file_open( filename , "r")))
@@ -201,7 +234,7 @@ read_conf(
 		return  0 ;
 	}
 
-	entry_db = NULL ;
+	termcap_db = NULL ;
 	db_len = 0 ;
 
 	while( ( line = kik_file_get_line( from , &len)))
@@ -227,50 +260,50 @@ read_conf(
 		len = strlen( line) ;
 
 		/* + 1 is for NULL terminator */
-		if( ( p = realloc( entry_db , db_len + len + 1)) == NULL)
+		if( ( p = realloc( termcap_db , db_len + len + 1)) == NULL)
 		{
-			free( entry_db) ;
+			free( termcap_db) ;
 			kik_file_close( from) ;
 
 			return  0 ;
 		}
 
-		entry_db = p ;
+		termcap_db = p ;
 
-		strncpy( &entry_db[db_len] , line , len) ;
+		strncpy( &termcap_db[db_len] , line , len) ;
 		db_len += len ;
 
-		if( entry_db[db_len - 1] == '\\')
+		if( termcap_db[db_len - 1] == '\\')
 		{
 			db_len -- ;
 		}
 		else
 		{
-			ml_termcap_entry_t *  entry ;
+			ml_termcap_t *  termcap ;
 			char *  field ;
 			char *  db_p ;
 
-			entry_db[db_len] = '\0' ;
-			db_p = entry_db ;
+			termcap_db[db_len] = '\0' ;
+			db_p = termcap_db ;
 
 			if( ( field = kik_str_sep( &db_p , ":")))
 			{
-				if( ( entry = search_entry( field)))
+				if( ( termcap = search_termcap( field)))
 				{
 				#if  0
-					entry_final( entry) ;
-					entry_init( entry , field) ;
+					entry_final( termcap) ;
+					entry_init( termcap , field) ;
 				#endif
-					parse_entry_db( entry , db_p) ;
+					parse_termcap_db( termcap , db_p) ;
 				}
 				else if( ( p = realloc( entries ,
-					sizeof( ml_termcap_entry_t) * (num_of_entries + 1))))
+					sizeof( ml_termcap_t) * (num_of_entries + 1))))
 				{
 					entries = p ;
-					entry = &entries[num_of_entries] ;
+					termcap = &entries[num_of_entries] ;
 
-					if( entry_init( entry , field) &&
-						parse_entry_db( entry , db_p))
+					if( entry_init( termcap , field) &&
+						parse_termcap_db( termcap , db_p))
 					{
 						num_of_entries ++ ;
 					}
@@ -281,7 +314,7 @@ read_conf(
 		}
 	}
 
-	free( entry_db) ;
+	free( termcap_db) ;
 
 	kik_file_close( from) ;
 
@@ -293,7 +326,7 @@ termcap_init(void)
 {
 	char *  rcpath ;
 
-	if( ( entries = malloc( sizeof( ml_termcap_entry_t))) == NULL)
+	if( ( entries = malloc( sizeof( ml_termcap_t))) == NULL)
 	{
 		return  0 ;
 	}
@@ -332,7 +365,7 @@ termcap_init(void)
 			char *  buf ;
 
 			if( ( p = realloc( entries ,
-				sizeof(ml_termcap_entry_t) * sizeof(db) / sizeof(db[0]))) &&
+				sizeof(ml_termcap_t) * sizeof(db) / sizeof(db[0]))) &&
 			    ( buf = alloca( strlen( db[MAX_DB_LEN_IDX]) + 1)))
 			{
 				size_t  count ;
@@ -344,7 +377,7 @@ termcap_init(void)
 				{
 					entry_init( entries + count + 1 , names[count]) ;
 					strcpy( buf , db[count]) ;
-					parse_entry_db( entries + count + 1 , buf) ;
+					parse_termcap_db( entries + count + 1 , buf) ;
 				}
 			}
 		#endif
@@ -365,12 +398,12 @@ termcap_init(void)
 
 /* --- global functions --- */
 
-ml_termcap_entry_t *
+ml_termcap_t *
 ml_termcap_get(
 	const char *  name
 	)
 {
-	ml_termcap_entry_t *  entry ;
+	ml_termcap_t *  termcap ;
 
 	if( entries == NULL)
 	{
@@ -380,9 +413,9 @@ ml_termcap_get(
 		}
 	}
 
-	if( ( entry = search_entry( name)))
+	if( ( termcap = search_termcap( name)))
 	{
-		return  entry ;
+		return  termcap ;
 	}
 
 	/* '*' */
@@ -402,41 +435,45 @@ ml_termcap_final(void)
 	free( entries) ;
 }
 
-char *
-ml_termcap_get_str_field(
-	ml_termcap_entry_t *  entry ,
-	ml_termcap_str_field_t  field
-	)
-{
-	if( (u_int)field < MAX_TERMCAP_STR_FIELDS)
-	{
-		return  entry->str_fields[field] ;
-	}
-	else
-	{
-		return  NULL ;
-	}
-}
-
 int
-ml_termcap_get_bool_field(
-	ml_termcap_entry_t *  entry ,
-	ml_termcap_bool_field_t  field
+ml_termcap_set_key_seq(
+	ml_termcap_t *  termcap ,
+	ml_special_key_t  key ,
+	const char *  str
 	)
 {
-	if( (u_int)field < MAX_TERMCAP_BOOL_FIELDS)
+	str_field_t  field ;
+
+	if( key == SPKEY_DELETE)
 	{
-		return  entry->bool_fields[field] ;
+		field = TC_DELETE ;
+	}
+	else if( key == SPKEY_BACKSPACE)
+	{
+		field = TC_BACKSPACE ;
 	}
 	else
 	{
 		return  0 ;
 	}
+
+	free( termcap->str_fields[field]) ;
+	termcap->str_fields[field] = strdup( str) ;
+
+	return  1 ;
+}
+
+int
+ml_termcap_bce_is_enabled(
+	ml_termcap_t *  termcap
+	)
+{
+	return  termcap->bool_fields[TC_BCE] ;
 }
 
 char *
 ml_termcap_special_key_to_seq(
-	ml_termcap_entry_t *  entry ,
+	ml_termcap_t *  termcap ,
 	ml_special_key_t  key ,
 	int  modcode ,
 	int  is_app_keypad ,
@@ -454,7 +491,7 @@ ml_termcap_special_key_to_seq(
 	{
 	case  SPKEY_DELETE:
 		if( modcode ||
-		    ! (seq = ml_termcap_get_str_field( entry , TC_DELETE)))
+		    ! (seq = termcap->str_fields[TC_DELETE]))
 		{
 			intermed_ch = '[' ;
 			param = 3 ;
@@ -467,7 +504,7 @@ ml_termcap_special_key_to_seq(
 		}
 
 	case  SPKEY_BACKSPACE:
-		if( ! (seq = ml_termcap_get_str_field( entry , TC_BACKSPACE)))
+		if( ! (seq = termcap->str_fields[TC_BACKSPACE]))
 		{
 			seq = "\x7f" ;
 		}
@@ -487,7 +524,7 @@ ml_termcap_special_key_to_seq(
 	case  SPKEY_END:
 		if( modcode ||
 		    ! is_app_cursor_keys ||
-		    ! (seq = ml_termcap_get_str_field( entry , TC_END)))
+		    ! (seq = termcap->str_fields[TC_END]))
 		{
 			intermed_ch = (is_app_cursor_keys && ! modcode) ? 'O' : '[' ;
 			param = modcode ? 1 : 0 ;
@@ -502,7 +539,7 @@ ml_termcap_special_key_to_seq(
 	case  SPKEY_HOME:
 		if( modcode ||
 		    ! is_app_cursor_keys ||
-		    ! (seq = ml_termcap_get_str_field( entry , TC_HOME)))
+		    ! (seq = termcap->str_fields[TC_HOME]))
 		{
 			intermed_ch = (is_app_cursor_keys && ! modcode) ? 'O' : '[' ;
 			param = modcode ? 1 : 0 ;
@@ -587,7 +624,7 @@ ml_termcap_special_key_to_seq(
 					return  NULL ;
 				}
 
-				return  ml_termcap_special_key_to_seq( entry ,
+				return  ml_termcap_special_key_to_seq( termcap ,
 						key , modcode , is_app_keypad ,
 						is_app_cursor_keys , is_app_escape) ;
 			}
@@ -607,7 +644,7 @@ ml_termcap_special_key_to_seq(
 		else if( key <= SPKEY_F5)
 		{
 			if( modcode ||
-			    ! (seq = ml_termcap_get_str_field( entry , TC_F1 + key - SPKEY_F1)))
+			    ! (seq = termcap->str_fields[TC_F1 + key - SPKEY_F1]))
 			{
 				if( key == SPKEY_F5)
 				{

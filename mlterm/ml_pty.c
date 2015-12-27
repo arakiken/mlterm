@@ -258,7 +258,24 @@ ml_write_to_pty(
 	}
 #endif
 
+	if( pty->hook)
+	{
+		if( ! pty->hook->pre_write)
+		{
+			written_size = w_buf_size ;
+
+			goto  written ;
+		}
+		else
+		{
+			written_size = (*pty->hook->pre_write)(
+					pty->hook->self , w_buf , w_buf_size) ;
+		}
+	}
+
 	written_size = (*pty->write)( pty , w_buf , w_buf_size) ;
+
+written:
 	if( written_size < 0)
 	{
 	#ifdef  DEBUG
@@ -474,4 +491,13 @@ ml_pty_get_cmd_line(
 	)
 {
 	return  pty->cmd_line ;
+}
+
+void
+ml_pty_set_hook(
+	ml_pty_t *  pty ,
+	ml_pty_hook_t *  hook
+	)
+{
+	pty->hook = hook ;
 }
