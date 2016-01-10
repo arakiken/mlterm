@@ -94,6 +94,10 @@ void  cocoa_beep(void) ;
 
 void *  cocoa_create_font( const char *  font_family) ;
 
+void *  cocoa_create_otf( void *  cg_font) ;
+
+void  cocoa_release_font( void *  cg_font) ;
+
 #endif
 
 #ifdef  __X_IMAGELIB_H__

@@ -12,6 +12,7 @@
 
 #define  ml_line_is_using_bidi( line)  ((line)->ctl_info_type == VINFO_BIDI)
 #define  ml_line_is_using_iscii( line)  ((line)->ctl_info_type == VINFO_ISCII)
+#define  ml_line_is_using_gsub( line)  ((line)->ctl_info_type == VINFO_GSUB)
 
 
 /* --- static functions --- */
@@ -66,6 +67,14 @@ int  ml_line_iscii_need_shape( ml_line_t *  line) ;
 
 #endif
 
+static int
+ml_line_gsub_need_shape(
+	ml_line_t *  line
+	)
+{
+	return  line->ctl_info.gsub->size > 0 && line->ctl_info.gsub->has_gsub ;
+}
+
 
 /* --- global functions --- */
 
@@ -76,10 +85,22 @@ ml_line_shape(
 {
 	ml_line_t *  orig ;
 	ml_char_t *  shaped ;
-	u_int  (*func)( ml_char_t * , u_int , ml_char_t * , u_int) ;
+	u_int  (*func)( ml_char_t * , u_int , ml_char_t * , u_int , ctl_info_t) ;
 
 	if( line->ctl_info_type)
 	{
+	#ifdef  USE_GSUB
+		if( ml_line_is_using_gsub( line))
+		{
+			if( ! ml_line_gsub_need_shape( line))
+			{
+				return  NULL ;
+			}
+
+			func = ml_shape_gsub ;
+		}
+		else
+	#endif
 		if( ml_line_is_using_bidi( line))
 		{
 			if( ! ml_line_bidi_need_shape( line))
@@ -114,7 +135,8 @@ ml_line_shape(
 		}
 
 		line->num_of_filled_chars = (*func)( shaped , line->num_of_chars ,
-							line->chars , line->num_of_filled_chars) ;
+						line->chars , line->num_of_filled_chars ,
+						line->ctl_info) ;
 
 		line->chars = shaped ;
 

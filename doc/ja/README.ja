@@ -534,6 +534,15 @@ comment $Id$
         EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
         に全角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
 
+      o use_gsub (true/*false*)
+        Open Type フォントの置換グリフを使ってテキストを表示します。
+
+      o gsub_script (latn)
+        グリフ置換を行う場合の script を指定します。
+
+      o gsub_features (liga,clig,dlig,hlig,rlig)
+        グリフ置換を行う場合の feature を指定します。
+
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
         擬似的な背景透過を行う。
@@ -1287,6 +1296,9 @@ comment $Id$
        --bl=value      : bl_color
        --co=value      : co_color
        --noul(=bool)   : hide_underline
+       --gsub(=bool)   : use_gsub
+       --gst=value     : gsub_script
+       --gft=value     : gsub_features
        --servlist=value : server_list
        --serv=value    : default_server
        --pubkey=value  : ssh_public_key

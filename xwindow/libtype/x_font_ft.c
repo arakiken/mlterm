@@ -14,9 +14,13 @@
 #include  <cairo/cairo-xlib.h>
 #endif
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_mem.h>	/* realloc */
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/memset/strncasecmp */
 #include  <ml_char.h>		/* UTF_MAX_SIZE */
+
+#ifdef  USE_GSUB
+#include  <otf.h>
+#endif
 
 
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
@@ -1148,6 +1152,38 @@ xft_unset_font(
 	return  1 ;
 }
 
+int
+xft_set_otf(
+	x_font_t *  font
+	)
+{
+#ifdef  USE_GSUB
+	font->otf = OTF_open_ft_face( XftLockFace( font->xft_font)) ;
+	XftUnlockFace( font->xft_font) ;
+
+	if( ! font->otf)
+	{
+		font->otf_not_found = 1 ;
+
+		return  0 ;
+	}
+
+	if( OTF_check_table( font->otf , "GSUB") != 0 ||
+	    OTF_check_table( font->otf , "cmap") != 0)
+	{
+		OTF_close( font->otf) ;
+		font->otf = NULL ;
+		font->otf_not_found = 1 ;
+
+		return  0 ;
+	}
+
+	return  1 ;
+#else
+	return  0 ;
+#endif
+}
+
 u_int
 xft_calculate_char_width(
 	x_font_t *  font ,
@@ -1213,6 +1249,12 @@ cairo_unset_font(
 	x_font_t *  font
 	)
 {
+#ifdef  USE_GSUB
+	if( font->otf)
+	{
+		OTF_close( font->otf) ;
+	}
+
 	cairo_scaled_font_destroy( font->cairo_font) ;
 	font->cairo_font = NULL ;
 
@@ -1240,6 +1282,41 @@ cairo_unset_font(
 	}
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
+}
+
+int
+cairo_set_otf(
+	x_font_t *  font
+	)
+{
+#ifdef  USE_GSUB
+	font->otf = OTF_open_ft_face( cairo_ft_scaled_font_lock_face( font->cairo_font)) ;
+	cairo_ft_scaled_font_unlock_face( font->cairo_font) ;
+
+	if( ! font->otf)
+	{
+		font->otf_not_found = 1 ;
+
+		return  0 ;
+	}
+
+	if( OTF_check_table( font->otf , "GSUB") != 0 ||
+	    OTF_check_table( font->otf , "cmap") != 0)
+	{
+		OTF_close( font->otf) ;
+		font->otf = NULL ;
+		font->otf_not_found = 1 ;
+
+		return  0 ;
+	}
+
+	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 size_t
@@ -1316,8 +1393,21 @@ cairo_calculate_char_width(
 	cairo_text_extents_t  extents ;
 	int  width ;
 
-	utf8[ x_convert_ucs4_to_utf8( utf8 , ch)] = '\0' ;
-	cairo_scaled_font_text_extents( font->cairo_font , utf8 , &extents) ;
+#ifdef  USE_GSUB
+	if( font->use_gsub && font->otf)
+	{
+		cairo_glyph_t  glyph ;
+
+		glyph.index = ch ;
+		glyph.x = glyph.y = 0 ;
+		cairo_scaled_font_glyph_extents( font->cairo_font , &glyph , 1 , &extents) ;
+	}
+	else
+#endif
+	{
+		utf8[ x_convert_ucs4_to_utf8( utf8 , ch)] = '\0' ;
+		cairo_scaled_font_text_extents( font->cairo_font , utf8 , &extents) ;
+	}
 
 #if  0
 	kik_debug_printf( KIK_DEBUG_TAG " CHAR(%x) x_bearing %f width %f x_advance %f\n" ,
@@ -1336,3 +1426,75 @@ cairo_calculate_char_width(
 }
 
 #endif
+
+u_int
+ft_convert_text_to_glyphs(
+	x_font_t *  font ,
+	u_int32_t *  gsub ,
+	u_int  gsub_len ,
+	u_int32_t *  cmap ,
+	u_int32_t *  src ,
+	u_int  src_len ,
+	const char *  script ,
+	const char *  features
+	)
+{
+#ifdef  USE_GSUB
+	static OTF_Glyph *  glyphs ;
+	OTF_GlyphString  otfstr ;
+	u_int  count ;
+
+	otfstr.size = otfstr.used = src_len ;
+
+/* Avoid kik_mem memory management */
+#undef  realloc
+	if( ! ( otfstr.glyphs = realloc( glyphs , otfstr.size * sizeof(*otfstr.glyphs))))
+	{
+		return  0 ;
+	}
+#ifdef  KIK_DEBUG
+#define  realloc( ptr , size)  kik_mem_realloc( ptr , size , __FILE__ , __LINE__ , __FUNCTION)
+#endif
+
+	glyphs = otfstr.glyphs ;
+	memset( otfstr.glyphs , 0 , otfstr.size * sizeof(*otfstr.glyphs)) ;
+
+	if( src)
+	{
+		for( count = 0 ; count < src_len ; count++)
+		{
+			otfstr.glyphs[count].c = src[count] ;
+		}
+
+		OTF_drive_cmap( font->otf , &otfstr) ;
+
+		if( cmap)
+		{
+			for( count = 0 ; count < otfstr.used ; count++)
+			{
+				cmap[count] = otfstr.glyphs[count].glyph_id ;
+			}
+
+			return  otfstr.used ;
+		}
+	}
+	else /* if( cmap) */
+	{
+		for( count = 0 ; count < src_len ; count++)
+		{
+			otfstr.glyphs[count].glyph_id = cmap[count] ;
+		}
+	}
+
+	OTF_drive_gsub( font->otf , &otfstr , script , NULL , features) ;
+
+	for( count = 0 ; count < otfstr.used ; count++)
+	{
+		gsub[count] = otfstr.glyphs[count].glyph_id ;
+	}
+
+	return  otfstr.used ;
+#else
+	return  0 ;
+#endif
+}

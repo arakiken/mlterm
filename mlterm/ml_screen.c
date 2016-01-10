@@ -1653,7 +1653,7 @@ ml_screen_get_word_region(
 		ml_char_t *  str ;
 
 		orig = word_separators ;
-		word_separators = "\" '`<>#|" ;
+		word_separators = "\" '`<>|" ;
 		regard_uri_as_word = 0 ;
 
 		/* Not return 0 */

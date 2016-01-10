@@ -51,7 +51,8 @@ version 20151025
                      exit_backscroll_by_pty | only_use_unicode_font | not_use_unicode_font |
                      unicode_noconv_areas | unicode_full_width_areas | box_drawing_font |
                      use_urgent_bell | allow_osc52 | allow_scp | auto_detect_encodings |
-                     use_auto_detect | use_extended_scroll_shortcut | regard_uri_as_word
+                     use_auto_detect | use_extended_scroll_shortcut | use_gsub |
+                     gsub_script | gsub_features | regard_uri_as_word
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -103,6 +104,8 @@ version 20151025
   fg_color = <color name> | <color rgb>
   fontsize = <any ASCII decimal digit> | larger | smaller
   gamma = <any ASCII decimal digit>
+  gsub_script = <script name>
+  gsub_features = (<feature>,)*
   hide_underline = true | false | switch
   icon_path = <file path>
   input_method = <input method> ":" <input method specific options> ...
@@ -138,6 +141,7 @@ version 20151025
   use_auto_deetect = true | false | switch
   use_ctl = true | false | switch
   use_bold_font = true | false | switch
+  use_gsub = true | false
   use_italic_font = true | false | switch
   use_combining = true | false | switch
   use_dynamic_comb = true | false | switch

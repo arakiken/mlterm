@@ -50,6 +50,11 @@
 #define  IM_UIM_DEBUG  1
 #endif
 
+#if  0
+/* Experimental (for twm, framebuffer etc where it's impossible to show status on system tray.) */
+#define  SHOW_STATUS_SCREEN
+#endif
+
 
 /*
  * When uim encoding is the same as terminal, parser_uim and conv are NULL,
@@ -80,6 +85,10 @@ typedef struct im_uim
 
 	int  is_mozc ;
 
+#ifdef  SHOW_STATUS_SCREEN
+	int  mode ;
+#endif
+
 	struct im_uim *  next ;
 
 }  im_uim_t ;
@@ -97,6 +106,60 @@ static int  mod_key_debug = 0 ;
 
 
 /* --- static functions --- */
+
+#ifdef  SHOW_STATUS_SCREEN
+static void
+update_stat_screen(
+	im_uim_t *  uim ,
+	int  mode_changed
+	)
+{
+	if( ! uim->im.cand_screen)
+	{
+		if( uim->mode == 0 /* direct input */ /* || uim->im.preedit.filled_len == 0 */)
+		{
+			if( uim->im.stat_screen)
+			{
+				(*uim->im.stat_screen->delete)( uim->im.stat_screen) ;
+				uim->im.stat_screen = NULL ;
+			}
+
+			return ;
+		}
+
+		if( ! uim->im.stat_screen)
+		{
+			int  x ;
+			int  y ;
+
+			(*uim->im.listener->get_spot)( uim->im.listener->self ,
+						NULL , 0 , &x , &y) ;
+
+			if( ! ( uim->im.stat_screen = (*syms->x_im_status_screen_new)(
+							uim->im.disp , uim->im.font_man ,
+							uim->im.color_man ,
+							(*uim->im.listener->is_vertical)(
+								uim->im.listener->self) ,
+							(*uim->im.listener->get_line_height)(
+								uim->im.listener->self) ,
+							x , y)))
+			{
+				return ;
+			}
+		}
+		else if( ! mode_changed)
+		{
+			return ;
+		}
+
+		(*uim->im.stat_screen->set)( uim->im.stat_screen ,
+			uim->parser_uim ,
+			(u_char*)uim_get_mode_name( uim->context , uim->mode)) ;
+	}
+}
+#else
+#define  update_stat_screen( uim , mode_changed)  (0)
+#endif
 
 static int
 find_engine(
@@ -444,6 +507,22 @@ prop_label_update(
 #undef  PROP_LABEL_FORMAT
 }
 
+#ifdef  SHOW_STATUS_SCREEN
+static void
+mode_update(
+	void *  p ,
+	int  mode
+	)
+{
+	im_uim_t *  uim = NULL ;
+
+	uim = (im_uim_t*) p ;
+
+	uim->mode = mode ;
+
+	update_stat_screen( uim , 1) ;
+}
+#endif
 
 static void
 commit(
@@ -518,6 +597,8 @@ preedit_clear(
 	uim->im.preedit.filled_len = 0 ;
 	uim->im.preedit.segment_offset = 0 ;
 	uim->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
+
+	update_stat_screen( uim , 0) ;
 }
 
 static void
@@ -572,8 +653,8 @@ preedit_pushback(
 	{
 		/* uim encoding -> term encoding */
 		(*uim->parser_uim->init)( uim->parser_uim) ;
-		if( ! (im_convert_encoding( uim->parser_uim , uim->conv ,
-					    (u_char*)_str , &str , len + 1)))
+		if( ! im_convert_encoding( uim->parser_uim , uim->conv ,
+					    (u_char*)_str , &str , len + 1))
 		{
 			return ;
 		}
@@ -704,7 +785,9 @@ preedit_update(
 					       uim->im.preedit.chars ,
 					       uim->im.preedit.filled_len ,
 					       uim->im.preedit.cursor_offset) ;
+	update_stat_screen( uim , 0) ;
 }
+
 
 /*
  * callback for candidate screen events
@@ -749,6 +832,12 @@ candidate_activate(
 				       uim->im.preedit.chars ,
 				       uim->im.preedit.segment_offset ,
 				       &x , &y) ;
+
+	if( uim->im.stat_screen)
+	{
+		(*uim->im.stat_screen->delete)( uim->im.stat_screen) ;
+		uim->im.stat_screen = NULL ;
+	}
 
 	if( uim->im.cand_screen == NULL)
 	{
@@ -1131,7 +1220,16 @@ is_active(
 	x_im_t *  im
 	)
 {
-	return  0 ;
+#ifdef  SHOW_STATUS_SCREEN
+	if( ((im_uim_t*)im)->mode > 0)
+	{
+		return  1 ;
+	}
+	else
+#endif
+	{
+		return  0 ;
+	}
 }
 
 static void
@@ -1155,6 +1253,8 @@ focused(
 		(*uim->im.cand_screen->show)( uim->im.cand_screen) ;
 	}
 
+	update_stat_screen( uim , 0) ;
+
 	uim->pressing_mod_key = 0 ;
 }
 
@@ -1173,6 +1273,13 @@ unfocused(
 	{
 		(*uim->im.cand_screen->hide)( uim->im.cand_screen) ;
 	}
+
+#ifdef  SHOW_STATUS_SCREEN
+	if( uim->im.stat_screen)
+	{
+		(*uim->im.stat_screen->hide)( uim->im.stat_screen) ;
+	}
+#endif
 
 	uim->pressing_mod_key = 0 ;
 }
@@ -1609,6 +1716,10 @@ im_uim_new(
 
 	uim_set_prop_list_update_cb( uim->context , prop_list_update) ;
 	uim_set_prop_label_update_cb( uim->context , prop_label_update) ;
+
+#ifdef  SHOW_STATUS_SCREEN
+	uim_set_mode_cb( uim->context , mode_update) ;
+#endif
 
 	focused_uim = uim ;
 	uim_prop_list_update( uim->context) ;

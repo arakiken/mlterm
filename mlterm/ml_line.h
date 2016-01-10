@@ -9,6 +9,7 @@
 #include  "ml_str.h"
 #include  "ml_bidi.h"	/* ml_bidi_state_t */
 #include  "ml_iscii.h"	/* ml_iscii_state_t */
+#include  "ml_gsub.h"	/* ml_gsub_state_t */
 
 
 enum
@@ -21,13 +22,15 @@ enum
 enum
 {
 	VINFO_BIDI = 0x01 ,
-	VINFO_ISCII = 0x02
+	VINFO_ISCII = 0x02 ,
+	VINFO_GSUB = 0x03 ,
 } ;
 
 typedef union  ctl_info
 {
 	ml_bidi_state_t  bidi ;
 	ml_iscii_state_t  iscii ;
+	ml_gsub_state_t  gsub ;
 
 } ctl_info_t ;
 
@@ -67,6 +70,8 @@ typedef struct  ml_line
 
 } ml_line_t ;
 
+
+void  ml_set_use_gsub( int  flag) ;
 
 int  ml_line_init( ml_line_t *  line , u_int  num_of_chars) ;
 
@@ -148,6 +153,9 @@ void  ml_line_set_size_attr( ml_line_t *  line , int  size_attr) ;
 
 #define  ml_line_is_using_ctl( line)  ((line)->ctl_info_type)
 
+#define  ml_line_has_gsub( line) \
+	((line)->ctl_info_type == VINFO_GSUB && (line)->ctl_info.gsub->has_gsub)
+
 int  ml_line_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 
 int  ml_line_is_rtl( ml_line_t *  line) ;
@@ -165,7 +173,7 @@ int  ml_line_unshape( ml_line_t *  line , ml_line_t *  orig) ;
 int  ml_line_unuse_ctl( ml_line_t *  line) ;
 
 int  ml_line_ctl_render( ml_line_t *  line , ml_bidi_mode_t  bidi_mode ,
-	const char *  separators) ;
+	const char *  separators , void *  term) ;
 
 int  ml_line_ctl_visual( ml_line_t *  line) ;
 

@@ -198,6 +198,11 @@ ml_term_manager_final(void)
 {
 	int  count ;
 
+#ifdef  USE_GSUB
+	ml_set_gsub_attr( NULL , GSUB_SCRIPT) ;
+	ml_set_gsub_attr( NULL , GSUB_FEATURES) ;
+#endif
+
 	kik_remove_sig_child_listener( NULL , sig_child) ;
 	ml_term_final() ;
 

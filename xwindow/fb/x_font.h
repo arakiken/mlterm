@@ -9,7 +9,7 @@
 #include  "../x_font.h"
 
 
-u_char *  x_get_bitmap( XFontStruct *  xfont , u_char *  ch , size_t  len) ;
+u_char *  x_get_bitmap( XFontStruct *  xfont , u_char *  ch , size_t  len , int  use_gsub) ;
 
 
 #define  x_get_bitmap_line( xfont , bitmap , y , bitmap_line) \

@@ -205,8 +205,18 @@ drawUnistr(
 	int  y
 	)
 {
-	CGGlyph  glyphs[len] ;
-	CGFontGetGlyphsForUnichars( font->cg_font , str , glyphs , len) ;
+	CGGlyph  glyphs_buf[len] ;
+	CGGlyph *  glyphs ;
+
+	if( font->use_gsub && font->otf)
+	{
+		glyphs = str ;
+	}
+	else
+	{
+		CGFontGetGlyphsForUnichars( font->cg_font , str , glyphs_buf , len) ;
+		glyphs = glyphs_buf ;
+	}
 
 	CGContextSetFont( ctx , font->cg_font) ;
 
@@ -1635,6 +1645,39 @@ cocoa_create_font(
 	return  CGFontCreateWithFontName( ns_font_family) ;
 }
 
+#ifdef  USE_GSUB
+#include  "otfwrap.h"
+
+void *
+cocoa_create_otf(
+	CGFontRef  cg_font
+	)
+{
+	CTFontDescriptorRef  desc =
+		CTFontDescriptorCreateWithNameAndSize( CGFontCopyFullName( cg_font) , 14) ;
+	CFURLRef  url = (CFURLRef)CTFontDescriptorCopyAttribute( desc , kCTFontURLAttribute) ;
+	const char *  path = [((NSString*)CFURLGetString( url)) UTF8String] ;
+	if( strncmp( path , "file://localhost" , 16) == 0)
+	{
+		path += 16 ;
+	}
+
+	void *  otf = otf_open( path) ;
+
+	CFRelease( url) ;
+	CFRelease( desc) ;
+
+	return  otf ;
+}
+#endif	/* USE_GSUB */
+
+void
+cocoa_release_font(
+	CGFontRef  cg_font
+	)
+{
+	CFRelease( cg_font) ;
+}
 
 int
 cocoa_clipboard_own(

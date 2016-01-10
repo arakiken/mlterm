@@ -1,3 +1,85 @@
+2016-01-10  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.ja, man/mlterm.1: Updated.
+
+	* x_main_config.c: "use_gsub", "gsub_script" and "gsub_features" options
+	  are added.
+
+	* x_screen.c: gsub_get_gsub_font() is added.
+
+	* x_type_loader.[ch]:
+	  - Moved to xwindow/xlib/.
+	  - X_SET_OTF and X_CONVRET_TEXT_TO_GLYPHS are added to x_type_id_t.
+
+	* xlib/x_font.c, libtype/x_font_ft.c:
+	  - x_font_has_gsub_table(), x_convert_text_to_glyphs(),
+	    {xft|cairo}_set_otf and {xft|cairo}_convert_text_to_glyphs() are added.
+
+	* fb/x_font.c:
+	  - load_char() -> load_glyph()
+	  - get_glyph_index(), x_font_has_gsub_table() and x_convert_text_to_glyphs()
+	    are added.
+	  - get_ft_bitmap() accepts glyph index if use_gsub argument is true.
+
+	* x_font_manager.[ch]:
+	  - use_gsub is added to x_font_manager_t.
+	  - x_font_manager_set_size_attr() is renamed to x_font_manager_set_attr().
+
+	* x_font.h: otf, otf_not_found and use_gsub are added to x_font_t.
+
+	* ml_vt100_parser.c:
+	  - CSI33h / CSI33l are supported.
+	  - "use_gsub" is added to OSC 5379.
+
+	* ml_term_manager.c: ml_set_gsub_attr(NULL) is called in
+	  ml_term_manager_final() to free memory.
+
+	* ml_logical_visual.[ch]: ml_term_t is added to ml_logvis_ctl_new()
+	  in order to pass it to ml_line_ctl_render().
+
+	* ml_line_shape.c:
+	  - ml_line_gsub_need_shape() is added.
+	  - ml_line_shape() uses ml_shape_gsub().
+
+	* ml_shape.[ch]: ml_shape_gsub() is added.
+
+	* ml_line.[ch]:
+	  - ml_gsub_state_t is added to ml_line_t.
+	  - ml_set_use_gsub(), ml_line_set_use_gsub(), ml_line_gsub_render(),
+	    ml_gsub_visual(), ml_line_gsub_logical(), ml_line_has_gsub() and
+	    ml_line_gsub_convert_logical_char_index_to_visual() are added.
+	  - ml_term_t is added to arguments of ml_line_ctl_render() in order
+	    to pass it to ml_line_gsub_render().
+
+	* ml_char.[ch]: ml_char_set_cs() is added.
+
+	* libctl/ml_iscii.c, mlterm/ml_iscii.c:
+	  ml_iscii_copy() doesn't copy ml_iscii_state_t if optimize argument
+	  is true and source ml_iscii_state_t doesn't have rtl characters.
+
+	* ml_ctl_loader.h: ML_IS_RTL_CHAR is added.
+
+	* libctl/ml_bidi.c, mlterm/ml_bidi.c:
+	  - ml_bidi() returns -1 if ISCII character is found.
+	  - ml_bidi_copy() doesn't copy ml_bidi_state_t if optimize argument
+	    is true and source ml_bidi_state_t doesn't have rtl characters.
+	  - ml_is_rtl_char() is added.
+
+	* ml_gsub.[ch]: Added.
+
+	* main/Makefile.in, mlterm/Makefile.in, xwindow/Makefile.in:
+	  @GSUB_CFLAGS@ and @GSUB_LIBS@ are added.
+
+	* configure.in: libotf is checked.
+
+	* Android.mk: libotf files are added to LOCAL_SRC_FILES and
+	  USE_GSUB is added to LOCAL_CFLAGS.
+
+	* im_uim.c: Experimental implementation of showing not only candidate screen
+	  but also status one is added.
+
+	* ml_normalize.m: Added.
+
 2015-12-27  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.[ch]:

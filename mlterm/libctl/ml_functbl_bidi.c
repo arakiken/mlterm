@@ -31,6 +31,7 @@ void *  ml_ctl_bidi_func_table[MAX_CTL_BIDI_FUNCS] =
 	ml_line_bidi_is_rtl ,
 	ml_shape_arabic ,
 	ml_is_arabic_combining ,
+	ml_is_rtl_char ,
 	ml_bidi_copy ,
 	ml_bidi_reset ,
 	ml_line_bidi_need_shape ,

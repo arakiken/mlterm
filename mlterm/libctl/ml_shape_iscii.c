@@ -6,7 +6,6 @@
 
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>	/* kik_msg_printf */
-#include  <mkf/mkf_char.h>
 #include  "ml_iscii.h"
 
 
@@ -155,7 +154,6 @@ ml_shape_iscii(
 		
 		for( count = 0 ; count < font_filled ; count ++)
 		{
-			ml_char_copy( dst_shaped + count , dst_shaped) ;
 			ml_char_set_code( dst_shaped + count , font_buf[count]) ;
 		}
 	}

@@ -118,15 +118,33 @@ x_window_xft_draw_string32(
 
 	xftcolor = x_color_to_xft( fg_color) ;
 
-	XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
-		x + font->x_off + win->hmargin ,
-		y + win->vmargin , str , len) ;
+	if( font->use_gsub && font->otf)
+	{
+		XftDrawGlyphs( win->xft_draw , xftcolor , font->xft_font ,
+			x + font->x_off + win->hmargin ,
+			y + win->vmargin , str , len) ;
+	}
+	else
+	{
+		XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
+			x + font->x_off + win->hmargin ,
+			y + win->vmargin , str , len) ;
+	}
 
 	if( font->double_draw_gap)
 	{
-		XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
-			x + font->x_off + win->hmargin + font->double_draw_gap ,
-			y + win->vmargin , str , len) ;
+		if( font->use_gsub && font->otf)
+		{
+			XftDrawGlyphs( win->xft_draw , xftcolor , font->xft_font ,
+				x + font->x_off + win->hmargin ,
+				y + win->vmargin , str , len) ;
+		}
+		else
+		{
+			XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
+				x + font->x_off + win->hmargin + font->double_draw_gap ,
+				y + win->vmargin , str , len) ;
+		}
 	}
 
 	return  1 ;

@@ -178,6 +178,10 @@ x_font_manager_new(
 
 	font_man->use_bold_font = use_bold_font ;
 	font_man->use_italic_font = use_italic_font ;
+	font_man->size_attr = 0 ;
+#ifdef  USE_GSUB
+	font_man->use_gsub = 0 ;
+#endif
 
 	return  font_man ;
 }
@@ -198,12 +202,16 @@ x_font_manager_delete(
 }
 
 void
-x_font_manager_set_size_attr(
+x_font_manager_set_attr(
 	x_font_manager_t *  font_man ,
-	int  size_attr
+	int  size_attr ,
+	int  use_gsub
 	)
 {
 	font_man->size_attr = size_attr ;
+#ifdef  USE_GSUB
+	font_man->use_gsub = use_gsub ;
+#endif
 }
 
 x_font_t *
@@ -224,15 +232,17 @@ x_get_font(
 		font &= ~FONT_ITALIC ;
 	}
 
-	if( ( xfont = x_font_cache_get_xfont( font_man->font_cache ,
+	if( ! ( xfont = x_font_cache_get_xfont( font_man->font_cache ,
 				SIZE_ATTR_FONT(font , font_man->size_attr))))
 	{
-		return  xfont ;
+		xfont = font_man->font_cache->usascii_font ;
 	}
-	else
-	{
-		return  font_man->font_cache->usascii_font ;
-	}
+
+#ifdef  USE_GSUB
+	xfont->use_gsub = font_man->use_gsub ;
+#endif
+
+	return  xfont ;
 }
 
 int

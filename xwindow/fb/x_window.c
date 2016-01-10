@@ -192,6 +192,7 @@ draw_string(
 	int  src_bg_is_set ;
 	int  orig_x ;
 	u_int  clip_bottom ;
+	int  use_gsub ;
 
 	if( ! win->is_mapped)
 	{
@@ -227,11 +228,13 @@ draw_string(
 		return  0 ;
 	}
 
+	use_gsub = (font->use_gsub && font->otf) ;
+
 	if( ch_len == 1)
 	{
 		for( count = 0 ; count < len ; count++)
 		{
-			bitmaps[count] = x_get_bitmap( xfont , str + count , 1) ;
+			bitmaps[count] = x_get_bitmap( xfont , str + count , 1 , use_gsub) ;
 		}
 	}
 	else /* if( ch_len == 2) */
@@ -266,7 +269,7 @@ draw_string(
 				}
 			}
 
-			bitmaps[count] = x_get_bitmap( xfont , str , ch_len) ;
+			bitmaps[count] = x_get_bitmap( xfont , str , ch_len , use_gsub) ;
 
 			str += ch_len ;
 			ch_len = 2 ;

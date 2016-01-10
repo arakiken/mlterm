@@ -61,22 +61,26 @@ typedef struct x_font
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	cairo_scaled_font_ptr_t  cairo_font ;
-#endif
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-	XFontStruct *  xfont ;
-#endif
-#if  defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-	fc_pattern_ptr_t  pattern ;
 	struct
 	{
 		fc_charset_ptr_t  charset ;
 		void *  next ;
 
 	} *  compl_fonts ;
+	fc_pattern_ptr_t  pattern ;
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
+	XFontStruct *  xfont ;
 #endif
 #endif
 
 	x_decsp_font_ptr_t  decsp_font ;
+
+#ifdef  USE_GSUB
+	void *  otf ;
+	int8_t  otf_not_found ;
+	int8_t  use_gsub ;
+#endif
 
 	/*
 	 * These members are never zero.
@@ -123,6 +127,12 @@ int  x_change_font_cols( x_font_t *  font , u_int  cols) ;
 
 u_int  x_calculate_char_width( x_font_t *  font , u_int32_t  ch ,
 	mkf_charset_t  cs , int *  draw_alone) ;
+
+int  x_font_has_gsub_table( x_font_t *  font) ;
+
+u_int  x_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  gsub , u_int  gsub_len ,
+	u_int32_t *  cmap , u_int32_t *  src , u_int  src_len ,
+	const char *  script , const char *  features) ;
 
 #if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_WIN32GUI)
 char **  x_font_get_encoding_names( mkf_charset_t  cs) ;

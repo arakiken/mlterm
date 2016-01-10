@@ -72,6 +72,27 @@ static char *  im_cursor_color = NULL ;
 
 /* --- static functions --- */
 
+#ifdef  USE_GSUB
+static void *
+gsub_get_gsub_font(
+	ml_term_t *  term ,
+	ml_font_t  font
+	)
+{
+	x_font_t *  xfont ;
+
+	if( ! term->screen->screen_listener ||
+	    ! ( xfont = x_get_font( ((x_screen_t*)term->screen->screen_listener->self)->font_man ,
+				font)) ||
+	    ! x_font_has_gsub_table( xfont))
+	{
+		return  NULL ;
+	}
+
+	return  xfont ;
+}
+#endif
+
 static int
 convert_row_to_y(
 	x_screen_t *  screen ,
@@ -137,7 +158,8 @@ convert_char_index_to_x(
 	int  count ;
 	int  x ;
 
-	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+	x_font_manager_set_attr( screen->font_man , line->size_attr ,
+		ml_line_has_gsub( line)) ;
 
 	if( ml_line_is_rtl( line))
 	{
@@ -220,7 +242,8 @@ convert_x_to_char_index(
 	u_int  width ;
 	int  end_char_index ;
 
-	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+	x_font_manager_set_attr( screen->font_man , line->size_attr ,
+		ml_line_has_gsub( line)) ;
 
 	end_char_index = ml_line_end_char_index(line) ;
 
@@ -459,7 +482,8 @@ draw_line(
 		/* don't use _with_shape function since line is already shaped */
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
 
-		x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+		x_font_manager_set_attr( screen->font_man , line->size_attr ,
+			ml_line_has_gsub( line)) ;
 
 		if( is_cleared_to_end)
 		{
@@ -613,7 +637,9 @@ draw_cursor(
 		ml_char_reverse_color( &ch) ;
 	}
 
-	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+	x_font_manager_set_attr( screen->font_man , line->size_attr ,
+		ml_line_has_gsub( line)) ;
+
 	x_draw_str( &screen->window , screen->font_man ,
 		screen->color_man , &ch , 1 , x , y ,
 		x_line_height( screen) ,
@@ -3315,7 +3341,8 @@ report_mouse_tracking(
 
 		col = ml_convert_char_index_to_col( line , char_index , 0) ;
 
-		x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+		x_font_manager_set_attr( screen->font_man , line->size_attr ,
+			ml_line_has_gsub( line)) ;
 		width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
 				ml_char_code( ml_sp_ch()) , US_ASCII , NULL) ;
@@ -6170,7 +6197,8 @@ get_im_spot(
 
 	if( ! ml_term_get_vertical_mode( screen->term))
 	{
-		x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+		x_font_manager_set_attr( screen->font_man , line->size_attr ,
+			ml_line_has_gsub( line)) ;
 		for( i = 0 ; i < segment_offset ; i++)
 		{
 			u_int  width ;
@@ -6358,7 +6386,8 @@ draw_preedit_str(
 	x_set_gc( screen->window.gc , GetDC( screen->window.my_window)) ;
 #endif
 
-	x_font_manager_set_size_attr( screen->font_man , line->size_attr) ;
+	x_font_manager_set_attr( screen->font_man , line->size_attr ,
+		ml_line_has_gsub( line)) ;
 
 	for( i = 0 , start = 0 ; i < num_of_chars ; i++)
 	{
@@ -7497,6 +7526,10 @@ x_screen_new(
 	x_screen_t *  screen ;
 	u_int  col_width ;
 	u_int  line_height ;
+
+#ifdef  USE_GSUB
+	ml_gsub_set_shape_func( x_convert_text_to_glyphs , gsub_get_gsub_font) ;
+#endif
 
 	if( ( screen = calloc( 1 , sizeof( x_screen_t))) == NULL)
 	{

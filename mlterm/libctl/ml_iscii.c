@@ -4,7 +4,6 @@
 
 #include  "ml_iscii.h"
 
-#include  <ctype.h>		/* isdigit */
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_dlfcn.h>
 #include  <kiklib/kik_mem.h>
@@ -252,19 +251,7 @@ ml_iscii_shape(
 ml_iscii_state_t
 ml_iscii_new(void)
 {
-	ml_iscii_state_t  state ;
-	
-	if( ! ( state = malloc( sizeof( *state))))
-	{
-		return  NULL ;
-	}
-
-	state->num_of_chars_array = NULL ;
-	state->size = 0 ;
-
-	state->has_iscii = 0 ;
-
-	return  state ;
+	return  calloc( 1 , sizeof( struct ml_iscii_state)) ;
 }
 
 int
@@ -288,7 +275,6 @@ ml_iscii(
 	int  dst_pos ;
 	int  src_pos ;
 	u_char *  iscii_buf ;
-	u_int  iscii_buf_len ;
 	u_char *  font_buf ;
 	u_int  font_buf_len ;
 	u_int  prev_font_filled ;
@@ -297,13 +283,12 @@ ml_iscii(
 	mkf_charset_t  prev_cs ;
 	int  has_ucs ;
 
-	iscii_buf_len = src_len * 4 + 1 ;
-	if( ( iscii_buf = alloca( iscii_buf_len)) == NULL)
+	if( ( iscii_buf = alloca( src_len * MAX_COMB_SIZE + 1)) == NULL)
 	{
 		return  0 ;
 	}
 
-	font_buf_len = src_len * 4 + 1 ;
+	font_buf_len = src_len * MAX_COMB_SIZE + 1 ;
 	if( ( font_buf = alloca( font_buf_len)) == NULL)
 	{
 		return  0 ;
@@ -397,12 +382,19 @@ ml_iscii(
 int
 ml_iscii_copy(
 	ml_iscii_state_t  dst ,
-	ml_iscii_state_t  src
+	ml_iscii_state_t  src ,
+	int  optimize
 	)
 {
 	u_int8_t *  p ;
 
-	if( src->size == 0)
+	if( optimize && ! src->has_iscii)
+	{
+		ml_iscii_delete( dst) ;
+
+		return  -1 ;
+	}
+	else if( src->size == 0)
 	{
 		free( dst->num_of_chars_array) ;
 		p = NULL ;

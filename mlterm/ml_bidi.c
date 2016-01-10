@@ -1,4 +1,3 @@
-
 /*
  *	$Id$
  */
@@ -6,6 +5,8 @@
 #include  "ml_bidi.h"
 
 #include  <string.h>		/* strcmp */
+
+#include  "ml_ctl_loader.h"
 
 
 #if  0
@@ -56,3 +57,26 @@ ml_get_bidi_mode_name(
 
 	return  bidi_mode_name_table[mode] ;
 }
+
+#ifndef  NO_DYNAMIC_LOAD_CTL
+
+#ifdef  __APPLE__
+int  ml_is_rtl_char( u_int32_t  code) __attribute__((weak)) ;
+#endif
+
+int
+ml_is_rtl_char(
+	u_int32_t  code
+	)
+{
+	int (*func)( u_int32_t) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_IS_RTL_CHAR)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( code) ;
+}
+
+#endif

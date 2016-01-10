@@ -67,6 +67,7 @@ typedef struct  ctl_logical_visual
 	int  ltr_rtl_meet_pos ;
 	ml_bidi_mode_t  bidi_mode ;
 	const char *  separators ;
+	void *  term ;
 
 } ctl_logical_visual_t ;
 
@@ -945,7 +946,8 @@ ctl_render_line(
 	{
 		ml_line_ctl_render( line ,
 			((ctl_logical_visual_t*)logvis)->bidi_mode ,
-			((ctl_logical_visual_t*)logvis)->separators) ;
+			((ctl_logical_visual_t*)logvis)->separators ,
+			((ctl_logical_visual_t*)logvis)->term) ;
 	}
 }
 
@@ -1268,7 +1270,8 @@ ml_get_vertical_mode_name(
 ml_logical_visual_t *
 ml_logvis_ctl_new(
 	ml_bidi_mode_t  bidi_mode ,
-	const char *  separators
+	const char *  separators ,
+	void *  term
 	)
 {
 	ctl_logical_visual_t *  ctl_logvis ;
@@ -1288,6 +1291,7 @@ ml_logvis_ctl_new(
 
 	ctl_logvis->bidi_mode = bidi_mode ;
 	ctl_logvis->separators = separators ;
+	ctl_logvis->term = term ;
 
 	ctl_logvis->logvis.delete = ctl_delete ;
 	ctl_logvis->logvis.init = ctl_init ;

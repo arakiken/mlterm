@@ -73,9 +73,10 @@ ml_vertical_mode_t  ml_get_vertical_mode( char *  name) ;
 char *  ml_get_vertical_mode_name( ml_vertical_mode_t  mode) ;
 
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND)
-ml_logical_visual_t *  ml_logvis_ctl_new( ml_bidi_mode_t  mode , const char *  separators) ;
+ml_logical_visual_t *  ml_logvis_ctl_new( ml_bidi_mode_t  mode ,
+	const char *  separators , void *  term) ;
 #else
-#define  ml_logvis_ctl_new( mode , separators)  (0)
+#define  ml_logvis_ctl_new( mode , separators , term)  (0)
 #endif
 
 #endif	/* __ML_LOGICAL_VISUAL_H__ */

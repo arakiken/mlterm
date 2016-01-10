@@ -225,6 +225,14 @@ x_prepare_for_main_config(
 		"Color to use to display crossed-out characters") ;
 	kik_conf_add_opt( conf , '\0' , "noul" , 1 , "hide_underline" ,
 		"Don't draw underline [false]") ;
+#ifdef  USE_GSUB
+	kik_conf_add_opt( conf , '\0' , "gsub" , 1 , "use_gsub" ,
+		"Show substituting glyphs in open type fonts [false]") ;
+	kik_conf_add_opt( conf , '\0' , "gst" , 0 , "gsub_script" ,
+		"Script of glyph subsutitution [latn]") ;
+	kik_conf_add_opt( conf , '\0' , "gft" , 0 , "gsub_features" ,
+		"Features of glyph subsutitution [liga,clig,dlig,hlig,rlig]") ;
+#endif
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	kik_conf_add_opt( conf , '\0' , "servlist" , 0 , "server_list" ,
 		"list of servers to connect") ;
@@ -1487,6 +1495,26 @@ x_main_config_init(
 	{
 		main_config->work_dir = strdup( value) ;
 	}
+
+#ifdef  USE_GSUB
+	if( ( value = kik_conf_get_value( conf , "use_gsub")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			ml_set_use_gsub( 1) ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "gsub_script")))
+	{
+		ml_set_gsub_attr( value , GSUB_SCRIPT) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "gsub_features")))
+	{
+		ml_set_gsub_attr( value , GSUB_FEATURES) ;
+	}
+#endif
 
 #ifdef  USE_GRF
 	if( ( value = kik_conf_get_value( conf , "separate_wall_picture")))

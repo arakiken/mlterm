@@ -210,7 +210,7 @@ typedef struct
 	unsigned char  height ;
 	unsigned char  ascent ;
 
-	int16_t *  glyph_indeces ;
+	u_int16_t *  glyph_indeces ;
 
 	/* for pcf */
 	int16_t  min_char_or_byte2 ;

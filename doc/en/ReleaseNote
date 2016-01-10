@@ -2,8 +2,11 @@ ver 3.6.2
 * Support composition of normalized unicode characters on MacOSX.
 * Support visual and audible bell on MacOSX/Cocoa.
 * Support KAM(CSI2h, CSI2l), SRM (CSI12h, CSI12l), DECBKM(CSI?67h, CSI?67l), DA3(CSI=c),
-  DECDSR(CSI?n), OSC 104 and OSC 105.
+  DECDSR(CSI?n), WYSTCURM(CSI33h, CSI33l) OSC 104 and OSC 105.
 * Snapshot screen and backlog by MC(CSI i).
+* Add "use_gsub" / --gsub option which enables to show substituting glyphs with the
+  use of libotf in open type fonts on X11, framebuffer and MacOSX/Cocoa.
+* Add "gsub_script" / --gst and "gsub_features" / --gft.
 * Add "regard_uri_as_word" / --uriword option which enables to select URI by double click
   regardless of "word_separators" option.
 * Change the default value of "type_engine" option from "xft" to "cairo".

@@ -153,6 +153,8 @@ int  ml_char_set_code( ml_char_t *  ch , u_int32_t  code) ;
 
 mkf_charset_t  ml_char_cs( ml_char_t *  ch) ;
 
+int  ml_char_set_cs( ml_char_t *  ch , mkf_charset_t  cs) ;
+
 int  ml_char_is_comb( ml_char_t *  ch) ;
 
 ml_font_t  ml_char_font( ml_char_t *  ch) ;

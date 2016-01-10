@@ -8,6 +8,8 @@
 #include  <cairo/cairo-ft.h>	/* FcChar32 */
 #include  <cairo/cairo-xlib.h>
 
+#include  <otf.h>
+
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <ml_char.h>	/* UTF_MAX_SIZE */
 
@@ -68,10 +70,15 @@ show_text(
 	x_color_t *  fg_color ,
 	int  x ,
 	int  y ,
-	u_char *  str ,		/* NULL-terminated UTF8 */
+	u_char *  str ,		/* NULL-terminated UTF8 or FcChar32* */
+	u_int  str_len ,
 	int  double_draw_gap
 	)
 {
+#if  CAIRO_VERSION_ENCODE(1,8,0) <= CAIRO_VERSION
+	int  drawn_x ;
+#endif
+
 #if  CAIRO_VERSION_ENCODE(1,4,0) <= CAIRO_VERSION
 	if( cairo_get_user_data( cr , 1) != xfont)
 #endif
@@ -123,46 +130,106 @@ show_text(
 
 	return  1 ;
 #else
-	static cairo_glyph_t *  glyphs ;
-	static int  num_of_glyphs ;
-	cairo_glyph_t *  orig_glyphs ;
-	u_char *  str2 ;
-	size_t  str_len ;
-
-	orig_glyphs = glyphs ;
-
-	if( ! ( str2 = alloca( (str_len = strlen(str)) + 2)))
+	if( font->use_gsub && font->otf)
 	{
-		return  0 ;
-	}
+		cairo_glyph_t *  glyphs ;
+		u_int  count ;
+		cairo_text_extents_t  extent ;
 
-	memcpy( str2 , str , str_len) ;
-	str2[str_len] = ' ' ;	/* dummy */
-	str2[str_len + 1] = '\0' ;
+		if( ! ( glyphs = alloca( sizeof(*glyphs) * str_len)))
+		{
+			return  0 ;
+		}
 
-	if( cairo_scaled_font_text_to_glyphs( xfont , x , y , str2 , str_len + 1 ,
-			&glyphs , &num_of_glyphs , NULL , NULL , NULL) == CAIRO_STATUS_SUCCESS)
-	{
-		adjust_glyphs( font , glyphs , num_of_glyphs) ;
-		num_of_glyphs -- ;	/* remove dummy */
-		cairo_show_glyphs( cr , glyphs , num_of_glyphs) ;
+		for( count = 0 ; count < str_len ; count++)
+		{
+			glyphs[count].index = ((FcChar32*)str)[count] ;
+			glyphs[count].y = y ;
+			if( count == 0)
+			{
+				glyphs[count].x = x ;
+			}
+			else
+			{
+				glyphs[count].x = glyphs[count - 1].x + extent.x_advance ;
+			}
+
+			cairo_glyph_extents( cr , glyphs + count , 1 , &extent) ;
+		}
+
+		adjust_glyphs( font , glyphs , str_len) ;
+		cairo_show_glyphs( cr , glyphs , str_len) ;
 
 		if( double_draw_gap)
 		{
-			int  count ;
-
-			for( count = 0 ; count < num_of_glyphs ; count++)
+			for( count = 0 ; count < str_len ; count++)
 			{
 				glyphs[count].x += double_draw_gap ;
 			}
 
-			cairo_show_glyphs( cr , glyphs , num_of_glyphs) ;
+			cairo_show_glyphs( cr , glyphs , str_len) ;
+		}
+
+		if( str_len > 0)
+		{
+			drawn_x = glyphs[str_len - 1].x + extent.x_advance ;
+		}
+		else
+		{
+			drawn_x = 0 ;
 		}
 	}
-
-	if( orig_glyphs != glyphs)
+	else
 	{
-		cairo_glyph_free( orig_glyphs) ;
+		static cairo_glyph_t *  glyphs ;
+		static int  num_of_glyphs ;
+		cairo_glyph_t *  orig_glyphs ;
+		u_char *  str2 ;
+
+		orig_glyphs = glyphs ;
+
+		if( ! ( str2 = alloca( str_len + 2)))
+		{
+			return  0 ;
+		}
+
+		memcpy( str2 , str , str_len) ;
+		str2[str_len] = ' ' ;	/* dummy */
+		str2[str_len + 1] = '\0' ;
+
+		if( cairo_scaled_font_text_to_glyphs( xfont , x , y , str2 , str_len + 1 ,
+				&glyphs , &num_of_glyphs , NULL , NULL , NULL) == CAIRO_STATUS_SUCCESS)
+		{
+			adjust_glyphs( font , glyphs , num_of_glyphs) ;
+			num_of_glyphs -- ;	/* remove dummy */
+			cairo_show_glyphs( cr , glyphs , num_of_glyphs) ;
+
+			if( double_draw_gap)
+			{
+				int  count ;
+
+				for( count = 0 ; count < num_of_glyphs ; count++)
+				{
+					glyphs[count].x += double_draw_gap ;
+				}
+
+				cairo_show_glyphs( cr , glyphs , num_of_glyphs) ;
+			}
+		}
+
+		if( orig_glyphs != glyphs)
+		{
+			cairo_glyph_free( orig_glyphs) ;
+		}
+
+		if( num_of_glyphs > 0)
+		{
+			drawn_x = glyphs[num_of_glyphs].x ;
+		}
+		else
+		{
+			drawn_x = 0 ;
+		}
 	}
 
 	if( font->size_attr == DOUBLE_WIDTH)
@@ -171,14 +238,7 @@ show_text(
 		cairo_scale( cr , 0.5 , 1.0) ;
 	}
 
-	if( num_of_glyphs > 0)
-	{
-		return  glyphs[num_of_glyphs].x ;
-	}
-	else
-	{
-		return  0 ;
-	}
+	return  drawn_x ;
 #endif
 }
 
@@ -384,20 +444,28 @@ draw_string32(
 	u_int  count ;
 	char *  p ;
 
-	if( ! ( p = buf = alloca( UTF_MAX_SIZE * len + 1)))
+	if( font->use_gsub && font->otf)
 	{
-		return  0 ;
+		buf = str ;
 	}
+	else
+	{
+		if( ! ( p = buf = alloca( UTF_MAX_SIZE * len + 1)))
+		{
+			return  0 ;
+		}
 
-	for( count = 0 ; count < len ; count++)
-	{
-		p += x_convert_ucs4_to_utf8( p , str[count]) ;
+		for( count = 0 ; count < len ; count++)
+		{
+			p += x_convert_ucs4_to_utf8( p , str[count]) ;
+		}
+		*p = '\0' ;
+		len = strlen( buf) ;
 	}
-	*p = '\0' ;
 
 	return  show_text( win->cairo_draw , xfont , font , fg_color ,
 			x + win->hmargin ,
-			y + win->vmargin , buf , font->double_draw_gap) ;
+			y + win->vmargin , buf , len , font->double_draw_gap) ;
 }
 
 
@@ -477,7 +545,7 @@ x_window_cairo_draw_string8(
 
 	show_text( win->cairo_draw , font->cairo_font , font , fg_color ,
 		x + font->x_off + win->hmargin ,
-		y + win->vmargin , buf , font->double_draw_gap) ;
+		y + win->vmargin , buf , strlen(buf) , font->double_draw_gap) ;
 
 	return  1 ;
 }
@@ -497,7 +565,9 @@ x_window_cairo_draw_string32(
 
 	xfont = font->cairo_font ;
 
-	if( font->compl_fonts)
+	/* draw_string32() before 1.8.0 doesn't return x position. */
+#if  CAIRO_VERSION_ENCODE(1,8,0) <= CAIRO_VERSION
+	if( ( ! font->use_gsub || ! font->otf) && font->compl_fonts)
 	{
 		u_int  count ;
 
@@ -538,6 +608,7 @@ x_window_cairo_draw_string32(
 			}
 		}
 	}
+#endif
 
 	draw_string32( win , xfont , font , fg_color , x + font->x_off , y , str , len) ;
 

@@ -6,6 +6,8 @@
 #define  __ML_STR_H__
 
 
+#include  <kiklib/kik_mem.h>	/* alloca */
+
 #include  "ml_char.h"
 
 

@@ -659,6 +659,30 @@ ml_char_cs(
 	}
 }
 
+int
+ml_char_set_cs(
+	ml_char_t *  ch ,
+	mkf_charset_t  cs
+	)
+{
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		if( IS_UNICODE_AREA_CS(ch->u.ch.attr))
+		{
+			return  0 ;
+		}
+
+		ch->u.ch.attr &= ~(MAX_CHARSET << 5) ;	/* ~0x1ff (ml_font.h) */
+		ch->u.ch.attr |= (cs << 5) ;
+	}
+	else
+	{
+		ml_char_set_cs( ch->u.multi_ch , cs) ;
+	}
+
+	return  1 ;
+}
+
 ml_font_t
 ml_char_font(
 	ml_char_t *  ch

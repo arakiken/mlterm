@@ -883,6 +883,9 @@ TYPE_LIBS_FOR_VTE
 TYPE_LIBS_FOR_PROG
 TYPE_LIBS
 TYPE_CFLAGS
+GSUB_CFLAGS
+GSUB_LIBS
+libotf_config
 CAIRO_LIBS
 CAIRO_CFLAGS
 xft_config
@@ -4681,7 +4684,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4684 "configure"' > conftest.$ac_ext
+  echo '#line 4687 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7249,11 +7252,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7252: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7255: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7256: \$? = $ac_status" >&5
+   echo "$as_me:7259: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7539,11 +7542,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7542: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7545: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7546: \$? = $ac_status" >&5
+   echo "$as_me:7549: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7643,11 +7646,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7646: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7649: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7650: \$? = $ac_status" >&5
+   echo "$as_me:7653: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9668,7 +9671,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9671 "configure"
+#line 9674 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9768,7 +9771,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9771 "configure"
+#line 9774 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12109,11 +12112,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12112: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12115: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12116: \$? = $ac_status" >&5
+   echo "$as_me:12119: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12213,11 +12216,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12216: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12219: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12220: \$? = $ac_status" >&5
+   echo "$as_me:12223: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13796,11 +13799,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13799: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13802: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13803: \$? = $ac_status" >&5
+   echo "$as_me:13806: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13900,11 +13903,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13903: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13906: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13907: \$? = $ac_status" >&5
+   echo "$as_me:13910: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16061,11 +16064,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16064: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16067: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16068: \$? = $ac_status" >&5
+   echo "$as_me:16071: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16351,11 +16354,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16354: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16357: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16358: \$? = $ac_status" >&5
+   echo "$as_me:16361: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16455,11 +16458,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16458: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16461: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16462: \$? = $ac_status" >&5
+   echo "$as_me:16465: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19949,9 +19952,9 @@ esac
 case "${host_os}" in
 *darwin*)
 	ML_NORM_OBJ="ml_normalize.o"
-
 	;;
 esac
+
 
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
@@ -21525,9 +21528,59 @@ xcore)
 esac
 done
 
+if test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
+	echo "libotf is not available."
+elif test "$gui" = "win32"; then
+	echo "libotf is not available."
+else
+	# Extract the first word of "libotf-config", so it can be a program name with args.
+set dummy libotf-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_libotf_config+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$libotf_config"; then
+  ac_cv_prog_libotf_config="$libotf_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_libotf_config="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+libotf_config=$ac_cv_prog_libotf_config
+if test -n "$libotf_config"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libotf_config" >&5
+$as_echo "$libotf_config" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	if test "$libotf_config" = "yes" ; then
+		GSUB_CFLAGS="`libotf-config --cflags` -DUSE_GSUB"
+		GSUB_LIBS="`libotf-config --libs`"
+	fi
+fi
+
+
+
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS}"
+	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${OTF_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then
@@ -23230,7 +23283,7 @@ if test "${enable_canna+set}" = set; then :
   enableval=$enable_canna; canna=$enable_canna
 fi
 
-if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" -o "$ml_cv_is_posix" = "no" ; then
 	canna="no"
 fi
 
@@ -23265,7 +23318,7 @@ if test "${enable_wnn+set}" = set; then :
   enableval=$enable_wnn; wnn=$enable_wnn
 fi
 
-if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" -o "$ml_cv_is_posix" = "no" ; then
 	wnn="no"
 fi
 
@@ -27659,16 +27712,20 @@ echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
+if test "$GSUB_LIBS" != ""; then
+	echo "Substituting glyphs               : yes"
+else
+	echo "Substituting glyphs               : no"
+fi
 echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
 echo "utmp support                      : $utmp"
 if test "$gui" = "fb"; then
-	echo -n "Supported font formats            : "
 	if test "$have_ft" = "yes"; then
-		echo "pcf ttf"
+		echo "Supported font formats            : pcf ttf"
 	else
-		echo "pcf"
+		echo "Supported font formats            : pcf"
 	fi
 elif test "$gui" != "win32"; then
 	echo "Type engines                      :$type_engines_result"

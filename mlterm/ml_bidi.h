@@ -25,5 +25,11 @@ ml_bidi_mode_t  ml_get_bidi_mode( const char *  name) ;
 
 char *  ml_get_bidi_mode_name( ml_bidi_mode_t  mode) ;
 
+#if ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
+int  ml_is_rtl_char( u_int32_t  code) ;
+#else
+#define  ml_is_rtl_char( code)  (0)
+#endif
+
 
 #endif

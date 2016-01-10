@@ -162,9 +162,9 @@ AC_SUBST(CYGPATHW)
 case "${host_os}" in
 *darwin*)
 	ML_NORM_OBJ="ml_normalize.o"
-	AC_SUBST(ML_NORM_OBJ)
 	;;
 esac
+AC_SUBST(ML_NORM_OBJ)
 
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
@@ -583,9 +583,23 @@ xcore)
 esac
 done
 
+if test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
+	echo "libotf is not available."
+elif test "$gui" = "win32"; then
+	echo "libotf is not available."
+else
+	AC_CHECK_PROG(libotf_config,libotf-config,yes)
+	if test "$libotf_config" = "yes" ; then
+		GSUB_CFLAGS="`libotf-config --cflags` -DUSE_GSUB"
+		GSUB_LIBS="`libotf-config --libs`"
+	fi
+fi
+AC_SUBST(GSUB_LIBS)
+AC_SUBST(GSUB_CFLAGS)
+
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS}"
+	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${OTF_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then
@@ -1088,7 +1102,7 @@ AC_SUBST(DL_LIBS_IM)
 AC_ARG_ENABLE(canna,
 	[  --disable-canna         CANNA @<:@default=enabled@:>@],
 	canna=$enable_canna)
-if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" -o "$ml_cv_is_posix" = "no" ; then
 	canna="no"
 fi
 
@@ -1114,7 +1128,7 @@ AC_SUBST(CANNA_LIBS)
 AC_ARG_ENABLE(wnn,
 	[  --disable-wnn           WNN @<:@default=enabled@:>@],
 	wnn=$enable_wnn)
-if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
+if test "$enable_shared" = "no" -o "$gui" = "quartz" -o "$ml_cv_is_posix" = "no" ; then
 	wnn="no"
 fi
 
@@ -1362,16 +1376,20 @@ echo "Build static libraries            : $enable_static"
 dnl echo "Optimization for redrawing a line : $optimize_redrawing"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
+if test "$GSUB_LIBS" != ""; then
+	echo "Substituting glyphs               : yes"
+else
+	echo "Substituting glyphs               : no"
+fi
 echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
 echo "utmp support                      : $utmp"
 if test "$gui" = "fb"; then
-	echo -n "Supported font formats            : "
 	if test "$have_ft" = "yes"; then
-		echo "pcf ttf"
+		echo "Supported font formats            : pcf ttf"
 	else
-		echo "pcf"
+		echo "Supported font formats            : pcf"
 	fi
 elif test "$gui" != "win32"; then
 	echo "Type engines                      :$type_engines_result"

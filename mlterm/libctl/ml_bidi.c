@@ -349,7 +349,7 @@ ml_bidi(
 		}
 		else if( IS_ISCII(cs))
 		{
-			return  -1 ;
+			return  -2 ;
 		}
 		else
 		{
@@ -427,18 +427,25 @@ ml_bidi(
 
 	state->bidi_mode = bidi_mode ;
 
-	return  1 ;
+	return  (state->size == 0) ? -1 : 1 ;
 }
 
 int
 ml_bidi_copy(
 	ml_bidi_state_t  dst ,
-	ml_bidi_state_t  src
+	ml_bidi_state_t  src ,
+	int  optimize
 	)
 {
 	u_int16_t *  p ;
 
-	if( src->size == 0)
+	if( optimize && ! HAS_RTL(src))
+	{
+		ml_bidi_delete( dst) ;
+
+		return  -1 ;
+	}
+	else if( src->size == 0)
 	{
 		free( dst->visual_order) ;
 		p = NULL ;
@@ -485,4 +492,12 @@ ml_bidi_get_mirror_char(
 	{
 		return  0 ;
 	}
+}
+
+int
+ml_is_rtl_char(
+	u_int32_t  ch
+	)
+{
+	return  ( fribidi_get_bidi_type( ch) & FRIBIDI_MASK_RTL) == FRIBIDI_MASK_RTL ;
 }

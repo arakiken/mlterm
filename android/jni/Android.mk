@@ -12,6 +12,10 @@ ifneq (,$(wildcard fribidi/fribidi.c))
 		mlterm/libctl/ml_line_bidi.c
 	FRIBIDI_CFLAGS := -DUSE_FRIBIDI
 endif
+ifneq (,$(wildcard libotf/otfopen.c))
+	OTF_SRC_FILES := libotf/otfopen.c libotf/otfdrive.c libotf/otferror.c
+	OTF_CFLAGS := -Ilibotf -DUSE_GSUB
+endif
 ifneq (,$(wildcard freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a))
 	FT_CFLAGS := -DUSE_FREETYPE -Ifreetype/$(TARGET_ARCH_ABI)/include/freetype2
 	FT_LDLIBS := freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a
@@ -62,12 +66,13 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		mlterm/ml_termcap.c mlterm/ml_pty.c mlterm/ml_pty_unix.c mlterm/ml_drcs.c \
 		libind/indian.c libind/lex.split.c mlterm/libctl/ml_iscii.c \
 		mlterm/libctl/ml_shape_iscii.c mlterm/libctl/ml_line_iscii.c \
-		$(FRIBIDI_SRC_FILES) \
+		mlterm/ml_gsub.c \
+		$(OTF_SRC_FILES) $(FRIBIDI_SRC_FILES) \
 		xwindow/fb/x.c xwindow/fb/x_font.c xwindow/x_mod_meta_mode.c xwindow/x_shortcut.c \
 		xwindow/x_bel_mode.c xwindow/x_font_cache.c xwindow/x_picture.c \
 		xwindow/fb/x_color.c xwindow/x_font_config.c xwindow/x_sb_mode.c \
 		xwindow/x_color_cache.c xwindow/x_font_manager.c xwindow/x_type_engine.c \
-		xwindow/x_color_manager.c xwindow/fb/x_gc.c xwindow/x_type_loader.c \
+		xwindow/x_color_manager.c xwindow/fb/x_gc.c \
 		xwindow/fb/x_connect_dialog.c xwindow/x_im.c \
 		xwindow/fb/x_window.c xwindow/fb/x_display.c xwindow/x_im_candidate_screen.c \
 		xwindow/x_screen.c xwindow/fb/x_xic.c xwindow/fb/x_dnd.c \
@@ -77,7 +82,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		xwindow/x_layout.c xwindow/x_simple_sb_view.c \
 		xwindow/x_sb_view_factory.c xwindow/x_scrollbar.c \
 		main/daemon.c main/main_loop.c main/main.c
-LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB #-DKIK_DEBUG -DDEBUG
+LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTF_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB #-DKIK_DEBUG -DDEBUG
 LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS)
 LOCAL_C_INCLUDES := kiklib mkf mlterm xwindow fribidi
 LOCAL_STATIC_LIBRARIES := android_native_app_glue

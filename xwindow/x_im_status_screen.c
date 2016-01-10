@@ -243,9 +243,7 @@ show(
 	x_im_status_screen_t *  stat_screen
 	)
 {
-	x_window_map( &stat_screen->window) ;
-
-	return  1 ;
+	return  x_window_map( &stat_screen->window) ;
 }
 
 static int
@@ -253,9 +251,7 @@ hide(
 	x_im_status_screen_t *  stat_screen
 	)
 {
-	x_window_unmap( &stat_screen->window) ;
-
-	return  1 ;
+	return  x_window_unmap( &stat_screen->window) ;
 }
 
 static int

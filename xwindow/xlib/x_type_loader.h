@@ -6,8 +6,8 @@
 #define  __X_TYPE_LOADER_H__
 
 
-#include  "x_font.h"
-#include  "x_window.h"
+#include  "../x_font.h"
+#include  "../x_window.h"
 
 
 typedef enum  x_type_id
@@ -22,6 +22,8 @@ typedef enum  x_type_id
 	X_CALCULATE_CHAR_WIDTH ,
 	X_WINDOW_SET_CLIP ,
 	X_WINDOW_UNSET_CLIP ,
+	X_SET_OTF ,
+	X_CONVERT_TEXT_TO_GLYPHS ,
 	MAX_TYPE_FUNCS ,
 
 } x_type_id_t ;

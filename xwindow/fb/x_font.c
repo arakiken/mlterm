@@ -24,6 +24,9 @@
 #include  <dirent.h>
 #endif
 
+#ifdef  USE_GSUB
+#include  <otf.h>
+#endif
 
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
 #define  DIVIDE_ROUNDINGUP(a,b) ( ((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)) )
@@ -679,7 +682,50 @@ static FT_Library  library ;
 /* --- static functions --- */
 
 static int
-load_char(
+get_glyph_index(
+	FT_Face  face ,
+	u_int32_t  code
+	)
+{
+	int  idx ;
+
+	if( ( idx = FT_Get_Char_Index( face , code)) == 0)
+	{
+		/* XXX Some glyph indeces of ISCII fonts becomes 0 wrongly. */
+		if( 0x80 <= code && code <= 0xff)
+		{
+			u_int32_t  prev_idx ;
+			u_int32_t  next_idx ;
+			u_int32_t  c ;
+
+			for( c = code + 1 ; c <= 0xff ; c++)
+			{
+				if( ( next_idx = FT_Get_Char_Index( face , c)) > 0)
+				{
+					for( c = code - 1 ; c >= 80 ; c--)
+					{
+						if( ( prev_idx = FT_Get_Char_Index(
+									face , c)) > 0)
+						{
+							if( prev_idx + 1 < next_idx)
+							{
+								idx = prev_idx + 1 ;
+								break ;
+							}
+						}
+					}
+
+					break ;
+				}
+			}
+		}
+	}
+
+	return  idx ;
+}
+
+static int
+load_glyph(
 	FT_Face  face ,
 	int32_t  format ,
 	u_int32_t  code ,
@@ -688,41 +734,7 @@ load_char(
 {
 	if( is_aa)
 	{
-		u_int32_t  idx ;
-
-		if( ( idx = FT_Get_Char_Index( face , code)) == 0)
-		{
-			/* XXX Some glyph indeces of ISCII fonts becomes 0 wrongly. */
-			if( 0x80 <= code && code <= 0xff)
-			{
-				u_int32_t  prev_idx ;
-				u_int32_t  next_idx ;
-				u_int32_t  c ;
-
-				for( c = code + 1 ; c <= 0xff ; c++)
-				{
-					if( ( next_idx = FT_Get_Char_Index( face , c)) > 0)
-					{
-						for( c = code - 1 ; c >= 80 ; c--)
-						{
-							if( ( prev_idx = FT_Get_Char_Index(
-										face , c)) > 0)
-							{
-								if( prev_idx + 1 < next_idx)
-								{
-									idx = prev_idx + 1 ;
-									break ;
-								}
-							}
-						}
-
-						break ;
-					}
-				}
-			}
-		}
-
-		FT_Load_Glyph( face , idx , FT_LOAD_NO_BITMAP) ;
+		FT_Load_Glyph( face , code , FT_LOAD_NO_BITMAP) ;
 
 		if( face->glyph->format == FT_GLYPH_FORMAT_BITMAP)
 		{
@@ -731,7 +743,7 @@ load_char(
 	}
 	else
 	{
-		FT_Load_Char( face , code , 0) ;
+		FT_Load_Glyph( face , code , 0) ;
 	}
 
 	if( format & FONT_ITALIC)
@@ -814,7 +826,7 @@ face_found:
 	xfont->face = face ;
 	xfont->is_aa = is_aa ;
 
-	if( ! load_char( face , format , 'W' , is_aa))
+	if( ! load_glyph( face , format , get_glyph_index( face , 'W') , is_aa))
 	{
 		kik_msg_printf( "%s doesn't have outline glyphs.\n" , file_path) ;
 
@@ -850,7 +862,7 @@ face_found:
 	xfont->ascent = (face->ascender * face->size->metrics.y_ppem
 			+ face->units_per_EM - 1) / face->units_per_EM ;
 
-	if( load_char( face , format , 'j' , is_aa))
+	if( load_glyph( face , format , get_glyph_index( face , 'j') , is_aa))
 	{
 		int  descent ;
 
@@ -947,7 +959,8 @@ unload_ft(
 static u_char *
 get_ft_bitmap(
 	XFontStruct *  xfont ,
-	u_int32_t  code
+	u_int32_t  code ,
+	int  use_gsub
 	)
 {
 	u_int16_t *  indeces ;
@@ -955,9 +968,14 @@ get_ft_bitmap(
 	u_char **  glyphs ;
 	u_char *  glyph ;
 
-	if( code == 0x20)
+	if( ! use_gsub)
 	{
-		return  NULL ;
+		if( code == 0x20)
+		{
+			return  NULL ;
+		}
+
+		code = get_glyph_index( xfont->face , code) ;
 	}
 
 	if( code >= xfont->num_of_indeces)
@@ -999,7 +1017,7 @@ get_ft_bitmap(
 
 		face = xfont->face ;
 
-		if( ! load_char( face , xfont->format , code , xfont->is_aa))
+		if( ! load_glyph( face , xfont->format , code , xfont->is_aa))
 		{
 			return  NULL ;
 		}
@@ -1727,7 +1745,7 @@ xfont_loaded:
 		font_file , num_of_xfonts) ;
 #endif
 
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	x_font_dump( font) ;
 #endif
 
@@ -1801,6 +1819,112 @@ x_change_font_cols(
 	return  1 ;
 }
 
+#ifdef  USE_GSUB
+
+int
+x_font_has_gsub_table(
+	x_font_t *  font
+	)
+{
+	if( font->xfont->face)
+	{
+		if( ! font->otf)
+		{
+			if( font->otf_not_found ||
+			    ! ( font->otf = OTF_open_ft_face( font->xfont->face)))
+			{
+				font->otf_not_found = 1 ;
+
+				return  0 ;
+			}
+
+			if( OTF_check_table( font->otf , "GSUB") != 0 ||
+			    OTF_check_table( font->otf , "cmap") != 0)
+			{
+				OTF_close( font->otf) ;
+				font->otf = NULL ;
+				font->otf_not_found = 1 ;
+
+				return  0 ;
+			}
+		}
+
+		return  1 ;
+	}
+
+	return  0 ;
+}
+
+u_int
+x_convert_text_to_glyphs(
+	x_font_t *  font ,
+	u_int32_t *  gsub ,
+	u_int  gsub_len ,
+	u_int32_t *  cmap ,
+	u_int32_t *  src ,
+	u_int  src_len ,
+	const char *  script ,
+	const char *  features
+	)
+{
+	static OTF_Glyph *  glyphs ;
+	OTF_GlyphString  otfstr ;
+	u_int  count ;
+
+	otfstr.size = otfstr.used = src_len ;
+
+/* Avoid kik_mem memory management */
+#undef  realloc
+	if( ! ( otfstr.glyphs = realloc( glyphs , otfstr.size * sizeof(*otfstr.glyphs))))
+	{
+		return  0 ;
+	}
+#ifdef  KIK_DEBUG
+#define  realloc( ptr , size)  kik_mem_realloc( ptr , size , __FILE__ , __LINE__ , __FUNCTION)
+#endif
+
+	glyphs = otfstr.glyphs ;
+	memset( otfstr.glyphs , 0 , otfstr.size * sizeof(*otfstr.glyphs)) ;
+
+	if( src)
+	{
+		for( count = 0 ; count < src_len ; count++)
+		{
+			otfstr.glyphs[count].c = src[count] ;
+		}
+
+		OTF_drive_cmap( font->otf , &otfstr) ;
+
+		if( cmap)
+		{
+			for( count = 0 ; count < otfstr.used ; count++)
+			{
+				cmap[count] = otfstr.glyphs[count].glyph_id ;
+			}
+
+			return  otfstr.used ;
+		}
+	}
+	else /* if( cmap) */
+	{
+		for( count = 0 ; count < src_len ; count++)
+		{
+			otfstr.glyphs[count].glyph_id = cmap[count] ;
+		}
+	}
+
+	OTF_drive_gsub( font->otf , &otfstr , script , NULL , features) ;
+
+	for( count = 0 ; count < otfstr.used ; count++)
+	{
+		gsub[count] = otfstr.glyphs[count].glyph_id ;
+	}
+
+	return  otfstr.used ;
+}
+
+#endif
+
 u_int
 x_calculate_char_width(
 	x_font_t *  font ,
@@ -1819,7 +1943,7 @@ x_calculate_char_width(
 	{
 		u_char *  glyph ;
 
-		if( ( glyph = get_ft_bitmap( font->xfont , ch)))
+		if( ( glyph = get_ft_bitmap( font->xfont , ch , (font->use_gsub && font->otf))))
 		{
 			return  glyph[font->xfont->glyph_size - 3] ;
 		}
@@ -1912,7 +2036,8 @@ u_char *
 x_get_bitmap(
 	XFontStruct *  xfont ,
 	u_char *  ch ,
-	size_t  len
+	size_t  len ,
+	int  use_gsub
 	)
 {
 	size_t  ch_idx ;
@@ -1922,7 +2047,7 @@ x_get_bitmap(
 #ifdef  USE_FREETYPE
 	if( xfont->face)
 	{
-		return  get_ft_bitmap( xfont , 	mkf_bytes_to_int( ch , len)) ;
+		return  get_ft_bitmap( xfont , mkf_bytes_to_int( ch , len) , use_gsub) ;
 	}
 	else
 #endif

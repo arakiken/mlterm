@@ -14,8 +14,7 @@
 #include  <mkf/mkf_ucs_property.h>
 #include  <ml_char_encoding.h>	/* ml_is_msb_set */
 
-#include  "../x_type_loader.h"
-
+#include  "x_type_loader.h"
 #include  "x_decsp_font.h"
 
 
@@ -868,11 +867,57 @@ xft_set_font(
 			aa_opt , use_point_size_for_fc , dpi_for_fc) ;
 }
 
+static int
+xft_set_otf(
+	x_font_t *  font
+	)
+{
+	int (*func)( x_font_t *) ;
+
+	if( ! ( func = x_load_type_xft_func( X_SET_OTF)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( font) ;
+}
+
+static u_int
+xft_convert_text_to_glyphs(
+	x_font_t *  font ,
+	u_int32_t *  gsub ,
+	u_int  gsub_len ,
+	u_int32_t *  cmap ,
+	u_int32_t *  src ,
+	u_int  src_len ,
+	const char *  script ,
+	const char *  features
+	)
+{
+	int (*func)( x_font_t * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
+		const char * , const char *) ;
+
+	if( ! ( func = x_load_type_xft_func( X_CONVERT_TEXT_TO_GLYPHS)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( font , gsub , gsub_len , cmap , src , src_len , script , features) ;
+}
+
 #elif  defined(USE_TYPE_XFT)
 u_int  xft_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  xft_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , u_int  letter_space , int  aa_opt ,
 	int  use_point_size_for_fc , double  dpi_for_fc) ;
+int  xft_set_otf( x_font_t *  font) ;
+#define  xft_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+		src , src_len , script , features) \
+	ft_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+		src , src_len , script , features)
+u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  gsub , u_int  gsub_len ,
+	u_int32_t *  cmap , u_int32_t *  src , u_int  src_len ,
+	const char *  script , const char *  features) ;
 #endif
 
 
@@ -917,11 +962,59 @@ cairo_set_font(
 			aa_opt , use_point_size_for_fc , dpi_for_fc) ;
 }
 
+static int
+cairo_set_otf(
+	x_font_t *  font
+	)
+{
+	int (*func)( x_font_t *) ;
+
+	if( ! ( func = x_load_type_cairo_func( X_SET_OTF)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( font) ;
+}
+
+static u_int
+cairo_convert_text_to_glyphs(
+	x_font_t *  font ,
+	u_int32_t *  gsub ,
+	u_int  gsub_len ,
+	u_int32_t *  cmap ,
+	u_int32_t *  src ,
+	u_int  src_len ,
+	const char *  script ,
+	const char *  features
+	)
+{
+	int (*func)( x_font_t * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
+		const char * , const char *) ;
+
+	if( ! ( func = x_load_type_cairo_func( X_CONVERT_TEXT_TO_GLYPHS)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( font , gsub , gsub_len , cmap , src , src_len , script , features) ;
+}
+
 #elif  defined(USE_TYPE_CAIRO)
 u_int  cairo_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , u_int  letter_space , int  aa_opt , int  use_point_size_for_fc ,
 	double  dpi_for_fc) ;
+int  cairo_set_otf( x_font_t *  font) ;
+#define  cairo_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+		src , src_len , script , features) \
+	ft_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+		src , src_len , script , features)
+#ifndef  USE_TYPE_XFT
+u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  gsub , u_int  gsub_len ,
+	u_int32_t *  cmap , u_int32_t *  src , u_int  src_len ,
+	const char *  script , const char *  features) ;
+#endif
 #endif
 
 static u_int
@@ -1050,6 +1143,10 @@ x_font_new(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	font->cairo_font = NULL ;
 #endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO) || defined(USE_TYPE_XFT)
+	font->otf = NULL ;
+	font->otf_not_found = 0 ;
+#endif
 	font->decsp_font = NULL ;
 
 	if( size_attr >= DOUBLE_HEIGHT_TOP)
@@ -1140,6 +1237,9 @@ end:
 	}
 
 	font->size_attr = size_attr ;
+#ifdef  USE_GSUB
+	font->use_gsub = 0 ;
+#endif
 
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
@@ -1286,6 +1386,73 @@ x_font_use_point_size(
 	)
 {
 	use_point_size_for_fc = use ;
+}
+
+int
+x_font_has_gsub_table(
+	x_font_t *  font
+	)
+{
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+	if( font->cairo_font)
+	{
+		if( ! font->otf)
+		{
+			if( font->otf_not_found || ! cairo_set_otf( font))
+			{
+				return  0 ;
+			}
+		}
+
+		return  1 ;
+	}
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	if( font->xft_font)
+	{
+		if( ! font->otf)
+		{
+			if( font->otf_not_found || ! xft_set_otf( font))
+			{
+				return  0 ;
+			}
+		}
+
+		return  1 ;
+	}
+#endif
+
+	return  0 ;
+}
+
+u_int
+x_convert_text_to_glyphs(
+	x_font_t *  font ,	/* always has otf */
+	u_int32_t *  gsub ,
+	u_int  gsub_len ,
+	u_int32_t *  cmap ,
+	u_int32_t *  src ,
+	u_int  src_len ,
+	const char *  script ,
+	const char *  features
+	)
+{
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+	if( font->cairo_font)
+	{
+		return  cairo_convert_text_to_glyphs( font , gsub , gsub_len , cmap ,
+				src , src_len , script , features) ;
+	}
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	if( font->xft_font)
+	{
+		return  xft_convert_text_to_glyphs( font , gsub , gsub_len , cmap ,
+				src , src_len , script , features) ;
+	}
+#endif
+
+	return  0 ;
 }
 
 /* For mlterm-libvte */

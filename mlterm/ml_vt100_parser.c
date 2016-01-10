@@ -5473,6 +5473,13 @@ parse_vt100_escape_sequence(
 						ml_pty_set_hook( vt100_parser->pty ,
 							&vt100_parser->pty_hook) ;
 					}
+					else if( ps[count] == 33)
+					{
+						/* WYSTCURM (TeraTerm original) */
+
+						config_protocol_set_simple( vt100_parser ,
+							"blink_cursor" , "true") ;
+					}
 				}
 			}
 			else if( *str_p == 'h')
@@ -5498,6 +5505,13 @@ parse_vt100_escape_sequence(
 					else if( ps[count] == 12)
 					{
 						ml_pty_set_hook( vt100_parser->pty , NULL) ;
+					}
+					else if( ps[count] == 33)
+					{
+						/* WYSTCURM (TeraTerm original) */
+
+						config_protocol_set_simple( vt100_parser ,
+							"blink_cursor" , "false") ;
 					}
 				#ifdef  DEBUG
 					else
@@ -8376,6 +8390,25 @@ ml_vt100_parser_set_config(
 			vt100_parser->use_auto_detect = flag ;
 		}
 	}
+#ifdef  USE_GSUB
+	else if( strcmp( key , "use_gsub") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_set_use_gsub( flag) ;
+		}
+	}
+	else if( strcmp( key , "gsub_script") == 0)
+	{
+		ml_set_gsub_attr( value , GSUB_SCRIPT) ;
+	}
+	else if( strcmp( key , "gsub_features") == 0)
+	{
+		ml_set_gsub_attr( value , GSUB_FEATURES) ;
+	}
+#endif
 	else
 	{
 		/* Continue to process it in x_screen.c */

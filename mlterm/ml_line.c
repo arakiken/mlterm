@@ -7,8 +7,10 @@
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* K_MIN */
+#include  <kiklib/kik_mem.h>	/* alloca */
 
 #include  "ml_ctl_loader.h"
+#include  "ml_gsub.h"
 
 
 #ifdef  DEBUG
@@ -25,6 +27,7 @@
 
 #define  ml_line_is_using_bidi( line)  ((line)->ctl_info_type == VINFO_BIDI)
 #define  ml_line_is_using_iscii( line)  ((line)->ctl_info_type == VINFO_ISCII)
+#define  ml_line_is_using_gsub( line)  ((line)->ctl_info_type == VINFO_GSUB)
 
 #if  0
 #define  __DEBUG
@@ -33,6 +36,13 @@
 /* You can specify this macro by configure script option. */
 #if  0
 #define  OPTIMIZE_REDRAWING
+#endif
+
+
+/* --- static variables --- */
+
+#ifdef  USE_GSUB
+static int  use_gsub ;
 #endif
 
 
@@ -108,17 +118,18 @@ ml_line_bidi_is_rtl(
 static int
 ml_bidi_copy(
 	ml_bidi_state_t  dst ,
-	ml_bidi_state_t  src
+	ml_bidi_state_t  src ,
+	int  optimize_ctl_info
 	)
 {
-	int (*func)( ml_bidi_state_t , ml_bidi_state_t) ;
+	int (*func)( ml_bidi_state_t , ml_bidi_state_t , int) ;
 
 	if( ! (func = ml_load_ctl_bidi_func( ML_BIDI_COPY)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( dst , src) ;
+	return  (*func)( dst , src , optimize_ctl_info) ;
 }
 
 static int
@@ -203,17 +214,18 @@ ml_line_set_use_iscii(
 static int
 ml_iscii_copy(
 	ml_iscii_state_t  dst ,
-	ml_iscii_state_t  src
+	ml_iscii_state_t  src ,
+	int  optimize_ctl_info
 	)
 {
-	int (*func)( ml_iscii_state_t , ml_iscii_state_t) ;
-	
+	int (*func)( ml_iscii_state_t , ml_iscii_state_t , int) ;
+
 	if( ! (func = ml_load_ctl_iscii_func( ML_ISCII_COPY)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( dst , src) ;
+	return  (*func)( dst , src , optimize_ctl_info) ;
 }
 
 static int
@@ -283,7 +295,7 @@ ml_line_iscii_logical(
 #define  ml_line_bidi_convert_visual_char_index_to_logical( line , char_index)  (char_index)
 #define  ml_line_bidi_copy_logical_str( line , dst , beg , len)  (0)
 #define  ml_line_bidi_is_rtl( line)  (0)
-#define  ml_bidi_copy( dst , src)  (0)
+#define  ml_bidi_copy( dst , src , optimize)  (0)
 #define  ml_bidi_reset( state)  (0)
 #define  ml_line_bidi_render( line , bidi_mode , separators)  (0)
 #define  ml_line_bidi_visual( line)  (0)
@@ -294,7 +306,7 @@ int  ml_line_set_use_bidi( ml_line_t *  line , int  flag) ;
 int  ml_line_bidi_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 int  ml_line_bidi_copy_logical_str( ml_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
 int  ml_line_bidi_is_rtl( ml_line_t *  line) ;
-int  ml_bidi_copy( ml_bidi_state_t  dst , ml_bidi_state_t  src) ;
+int  ml_bidi_copy( ml_bidi_state_t  dst , ml_bidi_state_t  src , int  optimize) ;
 int  ml_bidi_reset( ml_bidi_state_t  state) ;
 int  ml_line_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
 	int *  ltr_rtl_meet_pos) ;
@@ -305,7 +317,7 @@ int  ml_line_bidi_logical( ml_line_t *  line) ;
 
 #ifndef  USE_IND
 #define  ml_line_set_use_iscii( line , flag)  (0)
-#define  ml_iscii_copy( dst , src)  (0)
+#define  ml_iscii_copy( dst , src , optimize)  (0)
 #define  ml_iscii_reset( state)  (0)
 #define  ml_line_iscii_render( line)  (0)
 #define  ml_line_iscii_visual( line)  (0)
@@ -313,7 +325,7 @@ int  ml_line_bidi_logical( ml_line_t *  line) ;
 #else
 /* Link functions in libctl/ml_*iscii.c */
 int  ml_line_set_use_iscii( ml_line_t *  line , int  flag) ;
-int  ml_iscii_copy( ml_iscii_state_t  dst , ml_iscii_state_t  src) ;
+int  ml_iscii_copy( ml_iscii_state_t  dst , ml_iscii_state_t  src , int  optimize) ;
 int  ml_iscii_reset( ml_iscii_state_t  state) ;
 int  ml_line_iscii_convert_logical_char_index_to_visual( ml_line_t *  line ,
 	int  logical_char_index) ;
@@ -324,8 +336,428 @@ int  ml_line_iscii_logical( ml_line_t *  line) ;
 
 #endif	/* NO_DYNAMIC_LOAD_CTL */
 
+#ifdef  USE_GSUB
+
+static int
+ml_line_set_use_gsub(
+	ml_line_t *  line ,
+	int  flag
+	)
+{
+	if( flag)
+	{
+		if( ml_line_is_using_gsub( line))
+		{
+			return  1 ;
+		}
+		else if( line->ctl_info_type != 0)
+		{
+			return  0 ;
+		}
+
+		if( ( line->ctl_info.gsub = ml_gsub_new()) == NULL)
+		{
+			return  0 ;
+		}
+
+		line->ctl_info_type = VINFO_GSUB ;
+	}
+	else
+	{
+		if( ml_line_is_using_gsub( line))
+		{
+			ml_gsub_delete( line->ctl_info.gsub) ;
+			line->ctl_info_type = 0 ;
+		}
+	}
+
+	return  1 ;
+}
+
+static int  ml_line_gsub_convert_logical_char_index_to_visual( ml_line_t *  line ,
+		int  logical_char_index) ;
+
+/* The caller should check ml_line_is_using_gsub() in advance. */
+static int
+ml_line_gsub_render(
+	ml_line_t *  line ,
+	void *  term
+	)
+{
+	int  had_gsub ;
+	int  ret ;
+
+	had_gsub = line->ctl_info.gsub->has_gsub ;
+	line->ctl_info.gsub->term = term ;
+
+	if( ! ( ret = ml_gsub( line->ctl_info.gsub , line->chars , line->num_of_filled_chars)))
+	{
+		return  0 ;
+	}
+
+	/*
+	 * Not only has_gsub but also had_gsub should be checked.
+	 *
+	 * Lower case: ASCII
+	 * Upper case: GSUB
+	 *    (Logical) AAA == (Visual) BBBBB
+	 * => (Logical) aaa == (Visual) aaa
+	 * In this case ml_line_is_cleared_to_end() returns 0, so "BB" remains on
+	 * the screen unless following ml_line_set_modified().
+	 */
+	if( ml_line_is_modified( line))
+	{
+		if( line->ctl_info.gsub->has_gsub)
+		{
+			/*
+			 * Conforming line->change_{beg|end}_col to visual mode.
+			 * If this line contains GSUB chars, it should be redrawn to
+			 * the end of line.
+			 */
+			ml_line_set_modified( line ,
+				ml_line_gsub_convert_logical_char_index_to_visual( line ,
+					ml_line_get_beg_of_modified( line)) ,
+				line->num_of_chars) ;
+		}
+		else if( had_gsub)
+		{
+			/*
+			 * D => EFG
+			 * HAD_GSUB: ABCD
+			 * HAS_GSUB: ABCEFG
+			 */
+			ml_line_set_modified_all( line) ;
+		}
+	}
+
+	return  ret ;
+}
+
+/* The caller should check ml_line_is_using_gsub() in advance. */
+static int
+ml_line_gsub_visual(
+	ml_line_t *  line
+	)
+{
+	ml_char_t *  src ;
+	u_int  src_len ;
+	ml_char_t *  dst ;
+	u_int  dst_len ;
+	int  dst_pos ;
+	int  src_pos ;
+
+	if( line->ctl_info.gsub->size == 0 ||
+	    ! line->ctl_info.gsub->has_gsub)
+	{
+	#ifdef  __DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Not need to visualize.\n") ;
+	#endif
+
+		return  1 ;
+	}
+
+	src_len = line->num_of_filled_chars ;
+	if( ( src = ml_str_alloca( src_len)) == NULL)
+	{
+		return  0 ;
+	}
+
+	ml_str_copy( src , line->chars , src_len) ;
+
+	dst_len = line->ctl_info.gsub->size ;
+	if( line->num_of_chars < dst_len)
+	{
+		ml_char_t *  chars ;
+
+		if( ( chars = ml_str_new( dst_len)))
+		{
+			/* XXX => shrunk at ml_screen.c and ml_logical_visual_gsub.c */
+			ml_str_delete( line->chars , line->num_of_chars) ;
+			line->chars = chars ;
+			line->num_of_chars = dst_len ;
+		}
+		else
+		{
+			dst_len = line->num_of_chars ;
+		}
+	}
+
+	dst = line->chars ;
+
+	src_pos = 0 ;
+	for( dst_pos = 0 ; dst_pos < dst_len ; dst_pos ++)
+	{
+		if( line->ctl_info.gsub->num_of_chars_array[dst_pos] == 0)
+		{
+			ml_char_copy( dst + dst_pos , ml_get_base_char( src + src_pos - 1)) ;
+			/* NULL */
+			ml_char_set_code( dst + dst_pos , 0) ;
+		}
+		else
+		{
+			u_int  count ;
+
+			ml_char_copy( dst + dst_pos , src + (src_pos ++)) ;
+
+			for( count = 1 ;
+			     count < line->ctl_info.gsub->num_of_chars_array[dst_pos] ; count++)
+			{
+				ml_char_t *  comb ;
+				u_int  num ;
+
+			#ifdef  DEBUG
+				if( ml_char_is_comb( ml_get_base_char( src + src_pos)))
+				{
+					kik_debug_printf( KIK_DEBUG_TAG " illegal gsub\n") ;
+				}
+			#endif
+				ml_char_combine_simple( dst + dst_pos ,
+					ml_get_base_char( src + src_pos)) ;
+
+				if( ( comb = ml_get_combining_chars( src + (src_pos ++) , &num)))
+				{
+					for( ; num > 0 ; num--)
+					{
+					#ifdef  DEBUG
+						if( ! ml_char_is_comb( comb))
+						{
+							kik_debug_printf( KIK_DEBUG_TAG
+								" illegal gsub\n") ;
+						}
+					#endif
+						ml_char_combine_simple( dst + dst_pos , comb ++) ;
+					}
+				}
+			}
+		}
+	}
+
+#ifdef  DEBUG
+	if( src_pos != src_len)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG "ml_line_gsub_visual() failed: %d -> %d\n" ,
+			src_len , src_pos) ;
+	}
+#endif
+
+	ml_str_final( src , src_len) ;
+
+	line->num_of_filled_chars = dst_pos ;
+
+	return  1 ;
+}
+
+/* The caller should check ml_line_is_using_gsub() in advance. */
+static int
+ml_line_gsub_logical(
+	ml_line_t *  line
+	)
+{
+	ml_char_t *  src ;
+	u_int  src_len ;
+	ml_char_t *  dst ;
+	int  src_pos ;
+
+	if( line->ctl_info.gsub->size == 0 ||
+	    ! line->ctl_info.gsub->has_gsub)
+	{
+	#ifdef  __DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Not need to logicalize.\n") ;
+	#endif
+
+		return  1 ;
+	}
+
+	src_len = line->num_of_filled_chars ;
+	if( ( src = ml_str_alloca( src_len)) == NULL)
+	{
+		return  0 ;
+	}
+
+	ml_str_copy( src , line->chars , src_len) ;
+	dst = line->chars ;
+
+	for( src_pos = 0 ; src_pos < line->ctl_info.gsub->size ; src_pos++)
+	{
+		ml_char_t *  comb ;
+		u_int  num ;
+
+		if( line->ctl_info.gsub->num_of_chars_array[src_pos] == 0)
+		{
+			continue ;
+		}
+		else if( line->ctl_info.gsub->num_of_chars_array[src_pos] == 1)
+		{
+			ml_char_copy( dst , src + src_pos) ;
+		}
+		else
+		{
+			ml_char_copy( dst , ml_get_base_char( src + src_pos)) ;
+
+			if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+			{
+				for( ; num > 0 ; num-- , comb++)
+				{
+					if( ml_char_is_comb( comb))
+					{
+						ml_char_combine_simple( dst , comb) ;
+					}
+					else
+					{
+						ml_char_copy( ++ dst , comb) ;
+					}
+				}
+			}
+		}
+
+		dst++ ;
+	}
+
+	ml_str_final( src , src_len) ;
+
+	line->num_of_filled_chars = dst - line->chars ;
+
+	return  1 ;
+}
+
+/* The caller should check ml_line_is_using_gsub() in advance. */
+static int
+ml_line_gsub_convert_logical_char_index_to_visual(
+	ml_line_t *  line ,
+	int  logical_char_index
+	)
+{
+	int  visual_char_index ;
+	int  end_char_index ;
+
+	if( ml_line_is_empty(line))
+	{
+		return  0 ;
+	}
+
+	if( line->ctl_info.gsub->size == 0 ||
+	    ! line->ctl_info.gsub->has_gsub)
+	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " logical char_index is same as visual one.\n") ;
+	#endif
+		return  logical_char_index ;
+	}
+
+	end_char_index = ml_line_end_char_index( line) ;
+	for( visual_char_index = 0 ; visual_char_index < end_char_index ; visual_char_index++)
+	{
+		if( ( logical_char_index -=
+			line->ctl_info.gsub->num_of_chars_array[visual_char_index]) < 0)
+		{
+			break ;
+		}
+	}
+
+	return  visual_char_index ;
+}
+
+#endif	/* USE_GSUB */
+
+static void
+copy_line(
+	ml_line_t *  dst ,
+	ml_line_t *  src ,
+	int  optimize_ctl_info
+	)
+{
+	u_int  copy_len ;
+
+	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_chars) ;
+
+	ml_str_copy( dst->chars , src->chars , copy_len) ;
+	dst->num_of_filled_chars = copy_len ;
+
+	dst->change_beg_col = K_MIN(src->change_beg_col,dst->num_of_chars) ;
+	dst->change_end_col = K_MIN(src->change_end_col,dst->num_of_chars) ;
+
+	dst->is_modified = src->is_modified ;
+	dst->is_continued_to_next = src->is_continued_to_next ;
+	dst->size_attr = src->size_attr ;
+
+	if( ml_line_is_using_bidi( src))
+	{
+		if( ml_line_is_using_bidi( dst) || ml_line_set_use_bidi( dst , 1))
+		{
+			/*
+			 * Don't use ml_line_bidi_render() here,
+			 * or it is impossible to call this function in visual context.
+			 */
+			if( ml_bidi_copy( dst->ctl_info.bidi , src->ctl_info.bidi ,
+				optimize_ctl_info) == -1)
+			{
+				dst->ctl_info_type = 0 ;
+				dst->ctl_info.bidi = NULL ;
+			}
+		}
+	}
+	else if( ml_line_is_using_bidi( dst))
+	{
+		ml_line_set_use_bidi( dst , 0) ;
+	}
+
+	if( ml_line_is_using_iscii( src))
+	{
+		if( ml_line_is_using_iscii( dst) || ml_line_set_use_iscii( dst , 1))
+		{
+			/*
+			 * Don't use ml_line_iscii_render() here,
+			 * or it is impossible to call this function in visual context.
+			 */
+			if( ml_iscii_copy( dst->ctl_info.iscii , src->ctl_info.iscii ,
+				optimize_ctl_info) == -1)
+			{
+				dst->ctl_info_type = 0 ;
+				dst->ctl_info.iscii = NULL ;
+			}
+		}
+	}
+	else if( ml_line_is_using_iscii( dst))
+	{
+		ml_line_set_use_iscii( dst , 0) ;
+	}
+
+#ifdef  USE_GSUB
+	if( ml_line_is_using_gsub( src))
+	{
+		if( ml_line_is_using_gsub( dst) || ml_line_set_use_gsub( dst , 1))
+		{
+			/*
+			 * Don't use ml_line_gsub_render() here,
+			 * or it is impossible to call this function in visual context.
+			 */
+			if( ml_gsub_copy( dst->ctl_info.gsub , src->ctl_info.gsub ,
+				optimize_ctl_info) == -1)
+			{
+				dst->ctl_info_type = 0 ;
+				dst->ctl_info.gsub = NULL ;
+			}
+		}
+	}
+	else if( ml_line_is_using_gsub( dst))
+	{
+		ml_line_set_use_gsub( dst , 0) ;
+	}
+#endif
+}
+
 
 /* --- global functions --- */
+
+void
+ml_set_use_gsub(
+	int  flag
+	)
+{
+#ifdef  USE_GSUB
+	use_gsub = flag ;
+#endif
+}
 
 /*
  * Functions which doesn't have to care about visual order.
@@ -357,7 +789,7 @@ ml_line_clone(
 	)
 {
 	ml_line_init( clone , num_of_chars) ;
-	ml_line_copy( clone , orig) ;
+	copy_line( clone , orig , 1 /* clone->ctl_info can be uncopied. */) ;
 
 	return  1 ;
 }
@@ -375,6 +807,12 @@ ml_line_final(
 	{
 		ml_line_set_use_iscii( line , 0) ;
 	}
+#ifdef  USE_GSUB
+	else if( ml_line_is_using_gsub( line))
+	{
+		ml_line_set_use_gsub( line , 0) ;
+	}
+#endif
 
 	if( line->chars)
 	{
@@ -425,7 +863,7 @@ ml_line_break_boundary(
 	}
 
 	/*
-	 * change_{beg|end}_col is not updated , because space has no glyph.
+	 * change_{beg|end}_col is not updated , because space has no gsub.
 	 */
 #if  0
 	ml_line_set_modified( line , END_CHAR_INDEX(line) + 1 , END_CHAR_INDEX(line) + size) ;
@@ -502,6 +940,12 @@ ml_line_reset(
 	{
 		ml_iscii_reset( line->ctl_info.iscii) ;
 	}
+#ifdef  USE_GSUB
+	else if( ml_line_is_using_gsub( line))
+	{
+		ml_gsub_reset( line->ctl_info.gsub) ;
+	}
+#endif
 
 	line->is_continued_to_next = 0 ;
 	line->size_attr = 0 ;
@@ -1281,51 +1725,7 @@ ml_line_copy(
 	ml_line_t *  src
 	)
 {
-	u_int  copy_len ;
-
-	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_chars) ;
-
-	ml_str_copy( dst->chars , src->chars , copy_len) ;
-	dst->num_of_filled_chars = copy_len ;
-
-	dst->change_beg_col = K_MIN(src->change_beg_col,dst->num_of_chars) ;
-	dst->change_end_col = K_MIN(src->change_end_col,dst->num_of_chars) ;
-	
-	dst->is_modified = src->is_modified ;
-	dst->is_continued_to_next = src->is_continued_to_next ;
-	dst->size_attr = src->size_attr ;
-
-	if( ml_line_is_using_bidi( src))
-	{
-		if( ml_line_is_using_bidi( dst) || ml_line_set_use_bidi( dst , 1))
-		{
-			/*
-			 * Don't use ml_line_bidi_render() here,
-			 * or it is impossible to call this function in visual context.
-			 */
-			ml_bidi_copy( dst->ctl_info.bidi , src->ctl_info.bidi) ;
-		}
-	}
-	else if( ml_line_is_using_bidi( dst))
-	{
-		ml_line_set_use_bidi( dst , 0) ;
-	}
-
-	if( ml_line_is_using_iscii( src))
-	{
-		if( ml_line_is_using_iscii( dst) || ml_line_set_use_iscii( dst , 1))
-		{
-			/*
-			 * Don't use ml_line_iscii_render() here,
-			 * or it is impossible to call this function in visual context.
-			 */
-			ml_iscii_copy( dst->ctl_info.iscii , src->ctl_info.iscii) ;
-		}
-	}
-	else if( ml_line_is_using_iscii( dst))
-	{
-		ml_line_set_use_iscii( dst , 0) ;
-	}
+	copy_line( dst , src , 0) ;
 
 	return  1 ;
 }
@@ -1526,6 +1926,14 @@ ml_line_convert_logical_char_index_to_visual(
 #ifdef  NO_DYNAMIC_LOAD_CTL
 	if( line->ctl_info_type)
 	{
+	#ifdef  USE_GSUB
+		if( ml_line_is_using_gsub( line))
+		{
+			char_index = ml_line_gsub_convert_logical_char_index_to_visual(
+					line , char_index) ;
+		}
+		else
+	#endif
 		if( ml_line_is_using_bidi( line))
 		{
 		#ifdef  USE_FRIBIDI
@@ -1546,6 +1954,14 @@ ml_line_convert_logical_char_index_to_visual(
 #else
 	if( line->ctl_info_type)
 	{
+	#ifdef  USE_GSUB
+		if( ml_line_is_using_gsub( line))
+		{
+			char_index = ml_line_gsub_convert_logical_char_index_to_visual(
+					line , char_index) ;
+		}
+		else
+	#endif
 		if( ml_line_is_using_bidi( line))
 		{
 			int (*bidi_func)( ml_line_t * , int , int *) ;
@@ -1556,7 +1972,7 @@ ml_line_convert_logical_char_index_to_visual(
 				char_index = (*bidi_func)( line , char_index , meet_pos) ;
 			}
 		}
-		else /* if( ml_line_is_using_iscii( line) */
+		else /* if( ml_line_is_using_iscii( line)) */
 		{
 			int (*iscii_func)( ml_line_t * , int) ;
 
@@ -1580,6 +1996,13 @@ ml_line_unuse_ctl(
 {
 	if( line->ctl_info_type)
 	{
+	#ifdef  USE_GSUB
+		if( ml_line_is_using_gsub( line))
+		{
+			return  ml_line_set_use_gsub( line , 0) ;
+		}
+		else
+	#endif
 		if( ml_line_is_using_bidi( line))
 		{
 			return  ml_line_set_use_bidi( line , 0) ;
@@ -1597,12 +2020,20 @@ int
 ml_line_ctl_render(
 	ml_line_t *  line ,
 	ml_bidi_mode_t  bidi_mode ,
-	const char *  separators
+	const char *  separators ,
+	void *  term
 	)
 {
+	int  ret ;
+	int  (*set_use_ctl)( ml_line_t * , int) ;
+
 	if( ! ml_line_is_using_ctl( line))
 	{
-		if( ! ml_line_set_use_bidi( line , 1) && ! ml_line_set_use_iscii( line , 1))
+		if(
+		#ifdef  USE_GSUB
+		    (! use_gsub || ! ml_line_set_use_gsub( line , 1)) &&
+		#endif
+		    ! ml_line_set_use_bidi( line , 1) && ! ml_line_set_use_iscii( line , 1))
 		{
 			return  0 ;
 		}
@@ -1610,47 +2041,136 @@ ml_line_ctl_render(
 
 	if( line->ctl_info_type)
 	{
-		int  ret ;
-
-		if( ml_line_is_using_bidi( line))
+	#ifdef  USE_GSUB
+		if( ml_line_is_using_gsub( line))
 		{
-			if( ( ret = ml_line_bidi_render( line , bidi_mode , separators)) < 0
-			#if  ! defined(NO_DYNAMIC_LOAD_CTL)
-			    && ml_load_ctl_iscii_func( ML_LINE_SET_USE_ISCII)
-			#elif  ! defined(USE_FRIBIDI)
-			    && 0
-			#endif
-			    )
+			if( ! use_gsub)
 			{
-				ml_line_set_use_bidi( line , 0) ;
-				ml_line_set_use_iscii( line , 1) ;
-
-				return  ml_line_iscii_render( line) ;
+				ret = -1 ;
+			}
+			else if( ( ret = ml_line_gsub_render( line , term)) >= 0)
+			{
+				return  ret ;
 			}
 
-			return  ret ;
+			set_use_ctl = ml_line_set_use_gsub ;
+
+			if( ret == -1)
+			{
+				goto  render_bidi ;
+			}
+			else /* if( ret == -2) */
+			{
+				goto  render_iscii ;
+			}
+		}
+		else
+	#endif
+		if( ml_line_is_using_bidi( line))
+		{
+			if( ( ret = ml_line_bidi_render( line , bidi_mode , separators)) >= 0)
+			{
+				return  ret ;
+			}
+
+			set_use_ctl = ml_line_set_use_bidi ;
+
+			if( ret == -1)
+			{
+			#ifdef  USE_GSUB
+				if( ! use_gsub)
+				{
+					return  1 ;
+				}
+
+				goto  render_gsub ;
+			#else
+				return  1 ;
+			#endif
+			}
+			else /* if( ret == -2) */
+			{
+				goto  render_iscii ;
+			}
 		}
 		else /* if( ml_line_is_using_iscii( line)) */
 		{
-			if( ( ret = ml_line_iscii_render( line)) < 0
-			#if  ! defined(NO_DYNAMIC_LOAD_CTL)
-			    && ml_load_ctl_bidi_func( ML_LINE_SET_USE_BIDI)
-			#elif  ! defined(USE_FRIBIDI)
-			    && 0
-			#endif
-			    )
+			if( ( ret = ml_line_iscii_render( line)) >= 0)
 			{
-				ml_line_set_use_iscii( line , 0) ;
-				ml_line_set_use_bidi( line , 1) ;
-
-				return  ml_line_bidi_render( line , bidi_mode , separators) ;
+				return  ret ;
 			}
 
-			return  ret ;
+			set_use_ctl = ml_line_set_use_iscii ;
+
+		#ifdef  USE_GSUB
+			if( use_gsub)
+			{
+				goto  render_gsub ;
+			}
+			else
+		#endif
+			{
+				goto  render_bidi ;
+			}
 		}
 	}
 
 	return  0 ;
+
+#ifdef  USE_GSUB
+render_gsub:
+	(*set_use_ctl)( line , 0) ;
+	ml_line_set_use_gsub( line , 1) ;
+
+	if( ( ret = ml_line_gsub_render( line , term) != -1))
+	{
+		return  ret ;
+	}
+
+	/* Fall through */
+#endif
+
+render_bidi:
+	if(
+	#if  ! defined(NO_DYNAMIC_LOAD_CTL)
+	    ml_load_ctl_bidi_func( ML_LINE_SET_USE_BIDI)
+	#elif  defined(USE_FRIBIDI)
+	    1
+	#else
+	    0
+	#endif
+	    )
+	{
+		(*set_use_ctl)( line , 0) ;
+		ml_line_set_use_bidi( line , 1) ;
+
+		return  ml_line_bidi_render( line , bidi_mode , separators) ;
+	}
+	else
+	{
+		return  0 ;
+	}
+
+render_iscii:
+	if(
+	#if  ! defined(NO_DYNAMIC_LOAD_CTL)
+	    ml_load_ctl_iscii_func( ML_LINE_SET_USE_ISCII)
+	#elif  defined(USE_ISCII)
+	    1
+	#else
+	    0
+	#endif
+	    )
+	{
+		(*set_use_ctl)( line , 0) ;
+		ml_line_set_use_iscii( line , 1) ;
+
+		return  ml_line_iscii_render( line) ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 int
@@ -1660,6 +2180,13 @@ ml_line_ctl_visual(
 {
 	if( line->ctl_info_type)
 	{
+	#ifdef  USE_GSUB
+		if( ml_line_is_using_gsub( line))
+		{
+			return  ml_line_gsub_visual( line) ;
+		}
+		else
+	#endif
 		if( ml_line_is_using_bidi( line))
 		{
 			return  ml_line_bidi_visual( line) ;
@@ -1680,6 +2207,13 @@ ml_line_ctl_logical(
 {
 	if( line->ctl_info_type)
 	{
+	#ifdef  USE_GSUB
+		if( ml_line_is_using_gsub( line))
+		{
+			return  ml_line_gsub_logical( line) ;
+		}
+		else
+	#endif
 		if( ml_line_is_using_bidi( line))
 		{
 			return  ml_line_bidi_logical( line) ;
@@ -1692,6 +2226,7 @@ ml_line_ctl_logical(
 
 	return  0 ;
 }
+
 
 #ifdef  DEBUG
 
