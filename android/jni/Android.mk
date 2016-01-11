@@ -12,16 +12,21 @@ ifneq (,$(wildcard fribidi/fribidi.c))
 		mlterm/libctl/ml_line_bidi.c
 	FRIBIDI_CFLAGS := -DUSE_FRIBIDI
 endif
-ifneq (,$(wildcard libotf/otfopen.c))
-	OTF_SRC_FILES := libotf/otfopen.c libotf/otfdrive.c libotf/otferror.c
-	OTF_CFLAGS := -Ilibotf -DUSE_GSUB
-endif
 ifneq (,$(wildcard freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a))
 	FT_CFLAGS := -DUSE_FREETYPE -Ifreetype/$(TARGET_ARCH_ABI)/include/freetype2
 	FT_LDLIBS := freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a
+	ifneq (,$(wildcard libotf/otfopen.c))
+		OTF_SRC_FILES := libotf/otfopen.c libotf/otfdrive.c libotf/otferror.c
+		OTF_CFLAGS := -Ilibotf -DUSE_GSUB
+	else
+		OTF_SRC_FILES :=
+		OTF_CFLAGS :=
+	endif
 else
 	FT_CFLAGS :=
 	FT_LDLIBS :=
+	OTF_SRC_FILES :=
+	OTF_CFLAGS :=
 endif
 LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		kiklib/src/kik_mem.c kiklib/src/kik_conf.c kiklib/src/kik_file.c \

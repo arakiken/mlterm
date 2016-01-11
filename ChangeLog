@@ -1,5 +1,11 @@
 2016-01-11  Araki Ken  <arakiken@users.sf.net>
 
+	* etc/main, etc/main.ja: Updated.
+
+	* fb/x_window.c: Compiling error is fixed.
+
+	* jni/Android.mk: OTF_SRC_FILES and OTF_CFLAGS are cleared once on every arch.
+
 	* x_font_ft.c: XftGlyphExtents() is used if ch is glyph index.
 
 	* main/Makefile.in: Mistake of the previous commit is reverted.

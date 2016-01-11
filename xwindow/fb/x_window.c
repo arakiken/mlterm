@@ -228,7 +228,11 @@ draw_string(
 		return  0 ;
 	}
 
+#ifdef  USE_GSUB
 	use_gsub = (font->use_gsub && font->otf) ;
+#else
+	use_gsub = 0 ;
+#endif
 
 	if( ch_len == 1)
 	{
