@@ -213,8 +213,11 @@ ml_gsub(
 					}
 				}
 			}
+
+			/* store glyph index in ucs_buf. */
 			ml_gsub_shape( xfont , NULL , 0 , ucs_buf + ucs_filled - num - 1 ,
 				ucs_buf + ucs_filled - num - 1 , num + 1) ;
+			/* apply gsub to glyph indeces in ucs_buf. */
 			gsub_filled = ml_gsub_shape( xfont , gsub_buf , gsub_buf_len ,
 						ucs_buf , NULL , ucs_filled) ;
 

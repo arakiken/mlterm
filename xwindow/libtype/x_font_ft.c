@@ -1192,6 +1192,24 @@ xft_calculate_char_width(
 {
 	XGlyphInfo  extents ;
 
+#ifdef  USE_GSUB
+	if( font->use_gsub && font->otf)
+	{
+		if( sizeof(FT_UInt) != sizeof(u_int32_t))
+		{
+			FT_UInt  idx ;
+
+			idx = ch ;
+
+			XftGlyphExtents( font->display , font->xft_font , &idx , 1 , &extents) ;
+		}
+		else
+		{
+			XftGlyphExtents( font->display , font->xft_font , &ch , 1 , &extents) ;
+		}
+	}
+	else
+#endif
 	if( ch < 0x100)
 	{
 		u_char  c ;

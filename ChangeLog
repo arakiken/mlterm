@@ -1,3 +1,9 @@
+2016-01-11  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_ft.c: XftGlyphExtents() is used if ch is glyph index.
+
+	* main/Makefile.in: Mistake of the previous commit is reverted.
+
 2016-01-10  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.ja, man/mlterm.1: Updated.
