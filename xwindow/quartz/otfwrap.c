@@ -2,6 +2,8 @@
  *	$Id$
  */
 
+#ifdef  USE_GSUB
+
 #include  "otfwrap.h"
 
 #include  <otf.h>
@@ -27,6 +29,7 @@ otf_open(
 	)
 {
 	static int  is_tried ;
+	OTF *  otf ;
 
 	if( ! is_tried)
 	{
@@ -52,11 +55,27 @@ otf_open(
 		    ! ( drive_cmap = dlsym( handle , "OTF_drive_cmap")) ||
 		    ! ( drive_gsub = dlsym( handle , "OTF_drive_gsub")))
 		{
+			open = NULL ;
 			dlclose( handle) ;
 		}
 	}
+	else if( ! open)
+	{
+		return  NULL ;
+	}
 
-	return  (*open)( name) ;
+	if( ( otf = (*open)( name)))
+	{
+		if( (*check_table)( otf , "GSUB") == 0 &&
+		    (*check_table)( otf , "cmap") == 0)
+		{
+			return  otf ;
+		}
+
+		(*close)( otf) ;
+	}
+
+	return  NULL ;
 }
 
 void
@@ -65,15 +84,6 @@ otf_close(
 	)
 {
 	return  (*close)( otf) ;
-}
-
-int
-otf_check_table(
-	void *  otf ,
-	const char *  name
-	)
-{
-	return  (*check_table)( otf , name) ;
 }
 
 u_int
@@ -138,3 +148,5 @@ otf_convert_text_to_glyphs(
 
 	return  otfstr.used ;
 }
+
+#endif

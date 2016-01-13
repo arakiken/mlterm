@@ -455,16 +455,6 @@ x_font_has_gsub_table(
 
 			return  0 ;
 		}
-
-		if( otf_check_table( font->otf , "GSUB") != 0 ||
-		    otf_check_table( font->otf , "cmap") != 0)
-		{
-			otf_close( font->otf) ;
-			font->otf = NULL ;
-			font->otf_not_found = 1 ;
-
-			return  0 ;
-		}
 	}
 
 	return  1 ;
