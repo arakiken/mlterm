@@ -590,13 +590,22 @@ text_out(
 	int  y ,
 	u_char *  str ,
 	u_int  len ,
-	mkf_charset_t  cs	/* FONT_CS(font->id) */
+	mkf_charset_t  cs ,	/* FONT_CS(font->id) */
+	int  is_glyph
 	)
 {
 	if( cs == ISO10646_UCS4_1)
 	{
-		/* TextOutW is supported in windows 9x. */
-		return  TextOutW( gc , x , y , (WCHAR*)str , len / 2) ;
+		if( is_glyph)
+		{
+			return  ExtTextOutW( gc , x , y , ETO_GLYPH_INDEX , NULL ,
+					(WCHAR*)str , len / 2 , NULL) ;
+		}
+		else
+		{
+			/* TextOutW is supported in windows 9x. */
+			return  TextOutW( gc , x , y , (WCHAR*)str , len / 2) ;
+		}
 	}
 	else if( cs == ISCII_BENGALI || cs == ISCII_ASSAMESE)
 	{
@@ -639,7 +648,8 @@ draw_string(
 	)
 {
 	u_char *  str2 ;
-	
+	int  is_glyph ;
+
 	str2 = NULL ;
 
 	if( font->conv)
@@ -665,8 +675,14 @@ draw_string(
 		SetBkMode( win->gc->gc , TRANSPARENT) ;
 	}
 
+#ifdef  USE_GSUB
+	is_glyph = (font->use_gsub && font->otf) ;
+#else
+	is_glyph = 0 ;
+#endif
+
 	text_out( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin ,
-		y + win->vmargin , str , len , FONT_CS(font->id)) ;
+		y + win->vmargin , str , len , FONT_CS(font->id) , is_glyph) ;
 	
 	if( font->double_draw_gap)
 	{
@@ -675,7 +691,7 @@ draw_string(
 		text_out( win->gc->gc ,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin +
 				font->double_draw_gap ,
-			y + win->vmargin , str , len , FONT_CS(font->id)) ;
+			y + win->vmargin , str , len , FONT_CS(font->id) , is_glyph) ;
 
 		SetBkMode( win->gc->gc , OPAQUE) ;
 	}

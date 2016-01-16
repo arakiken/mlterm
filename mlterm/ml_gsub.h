@@ -10,7 +10,6 @@
 
 #include  "ml_font.h"
 #include  "ml_char.h"
-#include  "ml_bidi.h"
 
 
 typedef enum ml_gsub_attr

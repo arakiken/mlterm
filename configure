@@ -21530,8 +21530,6 @@ done
 
 if test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
 	echo "libotf is not available."
-elif test "$gui" = "win32"; then
-	echo "libotf is not available."
 else
 	# Extract the first word of "libotf-config", so it can be a program name with args.
 set dummy libotf-config; ac_word=$2
@@ -21580,7 +21578,7 @@ fi
 
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${OTF_LIBS}"
+	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${GSUB_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then

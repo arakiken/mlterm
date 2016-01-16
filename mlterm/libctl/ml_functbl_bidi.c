@@ -11,6 +11,7 @@ void  ml_line_bidi_convert_logical_char_index_to_visual(void) ;
 void  ml_line_bidi_convert_visual_char_index_to_logical(void) ;
 void  ml_line_bidi_copy_logical_str(void) ;
 void  ml_line_bidi_is_rtl(void) ;
+void  ml_is_rtl_char(void) ;
 void  ml_bidi_copy(void) ;
 void  ml_bidi_reset(void) ;
 void  ml_line_bidi_need_shape(void) ;

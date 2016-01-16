@@ -22,11 +22,11 @@ CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
 	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DBINDIR=\"$(bindir)\" \
 	-DLIBDIR=\"$(libdir)\"
 
-OBJ_CORE = ml_char.o ml_str.o ml_line.o ml_model.o @ML_NORM_OBJ@ @CTL_LOADER_OBJ@
+OBJ_CORE = ml_char.o ml_str.o ml_line.o ml_model.o ml_gsub.o @ML_NORM_OBJ@ @CTL_LOADER_OBJ@
 OBJ = ml_char_encoding.o ml_color.o ml_edit.o ml_edit_util.o ml_edit_scroll.o \
 	ml_cursor.o ml_logical_visual.o ml_logs.o ml_screen.o ml_shape.o \
 	ml_str_parser.o ml_term.o ml_vt100_parser.o ml_term_manager.o \
-	ml_bidi.o ml_iscii.o ml_gsub.o ml_config_menu.o ml_config_proto.o ml_drcs.o \
+	ml_bidi.o ml_iscii.o ml_config_menu.o ml_config_proto.o ml_drcs.o \
 	ml_pty.o ml_termcap.o ml_line_shape.o @ML_PTY_OBJ@
 
 LIBNAME = libmlterm

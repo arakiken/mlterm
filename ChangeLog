@@ -1,3 +1,22 @@
+2016-01-16  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_bidi.[ch], ml_gsub.c:
+	  ml_load_ctl_bidi_func(ML_IS_RTL_CHAR) is moved from ml_bidi.c to ml_gsub.c
+	  in order to link ml_gsub.o to libmlterm_core.so
+
+	* mlterm/Makefile.in: ml_gsub.o is linked to libmlterm_core.so.
+
+	* win32/x_window.c:
+	  is_glyph argument is added to text_out().
+
+	* win32/x_font.c:
+	  - x_font_has_gsub_table() and x_convert_text_to_glyphs() are added.
+	  - GetTextExtentPoint -> GetTextExtentPoint32
+	  - font->width = w_sz.cx instead of tm.tmAveCharWidth because w_sz.cx of
+	    PragmataPro is 1 pixel larger than tm.tmAveCharWidth.
+
+	* win32/otfwrap.[ch]: Added.
+
 2016-01-13  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/otfwrap.[ch], quartz/x_font.c:

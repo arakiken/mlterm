@@ -585,8 +585,6 @@ done
 
 if test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
 	echo "libotf is not available."
-elif test "$gui" = "win32"; then
-	echo "libotf is not available."
 else
 	AC_CHECK_PROG(libotf_config,libotf-config,yes)
 	if test "$libotf_config" = "yes" ; then
@@ -599,7 +597,7 @@ AC_SUBST(GSUB_CFLAGS)
 
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${OTF_LIBS}"
+	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${GSUB_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then

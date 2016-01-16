@@ -15,6 +15,7 @@
 #include  <mkf/mkf_ucs_property.h>
 #include  <ml_char_encoding.h>	/* x_convert_to_xft_ucs4 */
 
+#include  "otfwrap.h"
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
 	for( (font_encoding_p) = &csinfo->encoding_names[0] ; *(font_encoding_p) ; (font_encoding_p) ++)
@@ -410,7 +411,7 @@ calculate_char_width(
 			}
 		}
 
-		if( ! GetTextExtentPointW( display_gc , utf16 ,
+		if( ! GetTextExtentPoint32W( display_gc , utf16 ,
 			x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 , &sz))
 		{
 			return  0 ;
@@ -421,7 +422,7 @@ calculate_char_width(
 		u_char  c ;
 
 		c = ch ;
-		if( ! GetTextExtentPointA( display_gc , &c , 1 , &sz))
+		if( ! GetTextExtentPoint32A( display_gc , &c , 1 , &sz))
 		{
 			return  0 ;
 		}
@@ -641,9 +642,19 @@ x_font_new(
 		 * MS Gothic is regarded as VARIABLE_PITCH. (tm.tmPitchAndFamily)
 		 * So "w" and "l" width is compared to check if font is proportional or not.
 		 */
-		if( GetTextExtentPointA( display_gc , "w" , 1 , &w_sz) &&
-		    GetTextExtentPointA( display_gc , "l" , 1 , &l_sz) &&
-		    w_sz.cx != l_sz.cx)
+		GetTextExtentPoint32A( display_gc , "w" , 1 , &w_sz) ;
+		GetTextExtentPoint32A( display_gc , "l" , 1 , &l_sz) ;
+
+	#if  0
+		kik_debug_printf(
+		"Family %s Size %d CS %x => AveCharWidth %d MaxCharWidth %d 'w' width %d 'l' width %d Height %d Ascent %d ExLeading %d InLeading %d Pitch&Family %d Weight %d\n" ,
+		font_family , fontsize , wincsinfo->cs ,
+		tm.tmAveCharWidth , tm.tmMaxCharWidth , w_sz.cx , l_sz.cx ,
+		tm.tmHeight , tm.tmAscent , tm.tmExternalLeading , tm.tmInternalLeading ,
+		tm.tmPitchAndFamily , tm.tmWeight) ;
+	#endif
+
+		if( w_sz.cx != l_sz.cx)
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
@@ -651,22 +662,14 @@ x_font_new(
 		#endif
 
 			font->is_proportional = 1 ;
+			font->width = tm.tmAveCharWidth * font->cols ;
 		}
 		else
 		{
 			font->is_proportional = 0 ;
+			font->width = w_sz.cx * font->cols ;
 		}
-		
-	#if  0
-		kik_debug_printf(
-		"Family %s Size %d CS %x => AveCharWidth %d MaxCharWidth %d Height %d Ascent %d ExLeading %d InLeading %d Pitch&Family %d Weight %d\n" ,
-		font_family , fontsize , wincsinfo->cs ,
-		tm.tmAveCharWidth , tm.tmMaxCharWidth , tm.tmHeight , tm.tmAscent ,
-		tm.tmExternalLeading , tm.tmInternalLeading ,
-		tm.tmPitchAndFamily , tm.tmWeight) ;
-	#endif
 
-		font->width = tm.tmAveCharWidth * font->cols ;
 		font->height = tm.tmHeight ;
 		font->ascent = tm.tmAscent ;
 
@@ -809,6 +812,9 @@ x_font_new(
 	}
 	
 	font->decsp_font = NULL ;
+#ifdef  USE_GSUB
+	font->otf = NULL ;
+#endif
 
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
@@ -826,9 +832,16 @@ x_font_delete(
 	x_font_t *  font
 	)
 {
+#ifdef  USE_GSUB
+	if( font->otf)
+	{
+		otf_close( font->otf) ;
+	}
+#endif
+
 	if( font->fid)
 	{
-		DeleteObject(font->fid) ;
+		DeleteObject( font->fid) ;
 	}
 	
 	if( font->conv)
@@ -871,6 +884,87 @@ x_change_font_cols(
 
 	return  1 ;
 }
+
+#ifdef  USE_GSUB
+int
+x_font_has_gsub_table(
+	x_font_t *  font
+	)
+{
+	if( ! font->otf)
+	{
+		u_char  buf[4] ;
+		void *  font_data ;
+		u_int  size ;
+		int  is_ttc ;
+
+		if( font->otf_not_found)
+		{
+			return  0 ;
+		}
+
+		SelectObject( display_gc , font->fid) ;
+
+#define  TTC_TAG  ('t' << 0) + ('t' << 8) + ('c' << 16) + ('f' << 24)
+
+		if( GetFontData( display_gc , TTC_TAG , 0 , &buf , 1) == 1)
+		{
+			is_ttc = 1 ;
+			size = GetFontData( display_gc , TTC_TAG , 0 , NULL , 0) ;
+		}
+		else
+		{
+			is_ttc = 0 ;
+			size = GetFontData( display_gc , 0 , 0 , NULL , 0) ;
+		}
+
+		if( ! ( font_data = malloc( size)))
+		{
+			font->otf = NULL ;
+		}
+		else
+		{
+			if( is_ttc)
+			{
+				GetFontData( display_gc , TTC_TAG , 0 , font_data , size) ;
+			}
+			else
+			{
+				GetFontData( display_gc , 0 , 0 , font_data , size) ;
+			}
+
+			font->otf = otf_open( font_data , size) ;
+
+			free( font_data) ;
+		}
+
+		if( ! font->otf)
+		{
+			font->otf_not_found = 1 ;
+
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
+u_int
+x_convert_text_to_glyphs(
+	x_font_t *  font ,
+	u_int32_t *  gsub ,
+	u_int  gsub_len ,
+	u_int32_t *  cmap ,
+	u_int32_t *  src ,
+	u_int  src_len ,
+	const char *  script ,
+	const char *  features
+	)
+{
+	return  otf_convert_text_to_glyphs( font->otf , gsub , gsub_len , cmap ,
+			src , src_len , script , features) ;
+}
+#endif	/* USE_GSUB */
 
 u_int
 x_calculate_char_width(

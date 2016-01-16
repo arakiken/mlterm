@@ -11,6 +11,8 @@
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 
+#include  "ml_ctl_loader.h"
+
 
 #if  0
 #define  __DEBUG
@@ -24,6 +26,37 @@ static u_int  (*shape_func)( void * , u_int32_t * , u_int , u_int32_t * , u_int3
 static void *  (*get_font_func)( void * , ml_font_t) ;
 static char *  gsub_attrs[] = { "latn" , "liga,clig,dlig,hlig,rlig" } ;
 static int8_t  gsub_attr_changed[2] ;
+
+
+/* --- static functions --- */
+
+#ifndef  NO_DYNAMIC_LOAD_CTL
+
+static int
+ml_is_rtl_char(
+	u_int32_t  code
+	)
+{
+	int (*func)( u_int32_t) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_IS_RTL_CHAR)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( code) ;
+}
+
+#elif  defined(USE_FRIBIDI)
+
+/* Defined in libctl/ml_bidi.c */
+int  ml_is_rtl_char( u_int32_t  code) ;
+
+#else
+
+#define  ml_is_rtl_char(code)  (0)
+
+#endif
 
 
 /* --- global functions --- */
