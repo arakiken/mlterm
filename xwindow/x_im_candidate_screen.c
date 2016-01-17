@@ -93,6 +93,7 @@ candidate_width(
 	}
 
 	width = 0 ;
+	x_font_manager_set_attr( font_man , 0 , 0) ;
 
 	for( i = 0 ; i < candidate->filled_len ; i++)
 	{

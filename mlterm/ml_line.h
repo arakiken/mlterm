@@ -56,7 +56,7 @@ typedef struct  ml_line
 	u_int16_t  change_beg_col ;		/* 0 - 65535 */
 	u_int16_t  change_end_col ;		/* 0 - 65535 */
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || defined(USE_GSUB)
 	/* Don't touch from ml_line.c. ctl_info is used by ml_line_bidi.c and ml_line_iscii.c. */
 	ctl_info_t  ctl_info ;
 #endif

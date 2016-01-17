@@ -536,6 +536,7 @@ comment $Id$
 
       o use_gsub (true/*false*)
         Open Type フォントの置換グリフを使ってテキストを表示します。
+        use_ctl オプションを有効にしておく必要があります。
 
       o gsub_script (latn)
         グリフ置換を行う場合の script を指定します。

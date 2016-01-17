@@ -80,6 +80,7 @@ draw_screen(
 	int *  heads ;
 	u_int  i ;
 
+	x_font_manager_set_attr( stat_screen->font_man , 0 , 0) ;
 	xfont = x_get_usascii_font( stat_screen->font_man) ;
 	line_height = xfont->height + LINE_SPACE ;
 	heads = stat_screen->head_indexes ;

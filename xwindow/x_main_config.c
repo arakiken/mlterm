@@ -103,7 +103,7 @@ x_prepare_for_main_config(
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_GSUB)
 	kik_conf_add_opt( conf , 'C' , "ctl" , 1 , "use_ctl" ,
 		"use complex text layouting [true]") ;
 #endif
@@ -1047,7 +1047,7 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_GSUB)
 	main_config->use_ctl = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_ctl")))

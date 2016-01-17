@@ -579,9 +579,6 @@ cairo_font_open(
 
 	cs = FONT_CS(font->id) ;
 
-	font->compl_fonts = NULL ;
-	font->pattern = NULL ;
-
 #if  1
 	if( IS_ISCII(cs))
 	{
@@ -746,7 +743,6 @@ fc_set_font(
 	 * x_off related to percent is set before ft_font_open while
 	 * x_off related to is_vertical and letter_space is set after.
 	 */
-	font->x_off = 0 ;
 
 	if( fontname)
 	{
@@ -791,7 +787,7 @@ fc_set_font(
 				ch_width = get_fc_col_width( font , fontsize_d , percent ,
 								letter_space) ;
 
-				if( percent > 100 && use_xft)  /* cairo ignores percent. */
+				if( percent > 100)
 				{
 					/*
 					 * Centering
@@ -906,24 +902,16 @@ fc_set_font(
 
 font_found:
 
-	font->is_proportional = 0 ;
-
 	if( use_xft)
 	{
 	#ifdef  USE_TYPE_XFT
-	#if  defined(FC_EMBOLDEN) /* Synthetic emboldening (fontconfig >= 2.3.0) */
-		font->double_draw_gap = 0 ;
-	#else	/* FC_EMBOLDEN */
+	#ifndef  FC_EMBOLDEN /* Synthetic emboldening (fontconfig >= 2.3.0) */
 		if( weight == FC_WEIGHT_BOLD &&
 		    XftPatternGetInteger( xfont->pattern , FC_WEIGHT , 0 , &weight) ==
 			XftResultMatch &&
 		    weight != FC_WEIGHT_BOLD)
 		{
 			font->double_draw_gap = 1 ;
-		}
-		else
-		{
-			font->double_draw_gap = 0 ;
 		}
 	#endif	/* FC_EMBOLDEN */
 
@@ -992,11 +980,7 @@ font_found:
 		{
 			font->double_draw_gap = 1 ;
 		}
-		else
 	#endif
-		{
-			font->double_draw_gap = 0 ;
-		}
 
 		font->cairo_font = xfont ;
 

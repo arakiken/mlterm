@@ -1,3 +1,14 @@
+2016-01-17  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja: Updated.
+
+	* x_font_ft.c: ":Percentage" in ~/.mlterm/aafont is enabled on cairo.
+
+	* xlib/x_font.c, x_font_ft.c, win32/x_font.c:
+	  x_font_t is created by calloc instead of malloc.
+
+	* ml_logical_visual.[ch], ml_line.c, x_main_config.c: defined(USE_GSUB) is added.
+
 2016-01-16  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_bidi.[ch], ml_gsub.c:

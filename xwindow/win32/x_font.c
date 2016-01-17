@@ -464,7 +464,7 @@ x_font_new(
 	double  fontsize_d ;
 	u_int  percent ;
 	
-	if( type_engine != TYPE_XCORE || ( font = malloc( sizeof( x_font_t))) == NULL)
+	if( type_engine != TYPE_XCORE || ( font = calloc( 1 , sizeof( x_font_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
@@ -656,17 +656,11 @@ x_font_new(
 
 		if( w_sz.cx != l_sz.cx)
 		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" w-width %d l-width %d\n" , w_sz.cx , l_sz.cx) ;
-		#endif
-
 			font->is_proportional = 1 ;
 			font->width = tm.tmAveCharWidth * font->cols ;
 		}
 		else
 		{
-			font->is_proportional = 0 ;
 			font->width = w_sz.cx * font->cols ;
 		}
 
@@ -677,17 +671,11 @@ x_font_new(
 		{
 			font->double_draw_gap = 1 ;
 		}
-		else
-		{
-			font->double_draw_gap = 0 ;
-		}
 	}
 
 	/*
 	 * Following processing is same as x_font.c:set_xfont()
 	 */
-	 
-	font->x_off = 0 ;
 
 	if( col_width == 0)
 	{
@@ -795,12 +783,8 @@ x_font_new(
 	font->size_attr = size_attr ;
 
 
-	if( wincsinfo->cs == ANSI_CHARSET || wincsinfo->cs == SYMBOL_CHARSET ||
-	    FONT_CS(font->id) == ISO10646_UCS4_1)
-	{
-		font->conv = NULL ;
-	}
-	else
+	if( wincsinfo->cs != ANSI_CHARSET && wincsinfo->cs != SYMBOL_CHARSET &&
+	    FONT_CS(font->id) != ISO10646_UCS4_1)
 	{
 		if( ! ( font->conv = ml_conv_new( wincsinfo->encoding)))
 		{
@@ -810,11 +794,6 @@ x_font_new(
 		#endif
 		}
 	}
-	
-	font->decsp_font = NULL ;
-#ifdef  USE_GSUB
-	font->otf = NULL ;
-#endif
 
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
@@ -901,6 +880,15 @@ x_font_has_gsub_table(
 		if( font->otf_not_found)
 		{
 			return  0 ;
+		}
+
+		if( ! display_gc)
+		{
+			/*
+			 * Cached as far as x_caculate_char_width is called.
+			 * display_gc is deleted in x_font_new or x_font_delete.
+			 */
+			display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
 		}
 
 		SelectObject( display_gc , font->fid) ;

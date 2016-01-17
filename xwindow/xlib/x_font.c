@@ -1095,7 +1095,7 @@ x_font_new(
 {
 	x_font_t *  font ;
 
-	if( ( font = malloc( sizeof( x_font_t))) == NULL)
+	if( ( font = calloc( 1 , sizeof( x_font_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
@@ -1120,34 +1120,11 @@ x_font_new(
 	{
 		font->is_var_col_width = 1 ;
 	}
-	else
-	{
-		font->is_var_col_width = 0 ;
-	}
 
 	if( font_present & FONT_VERTICAL)
 	{
 		font->is_vertical = 1 ;
 	}
-	else
-	{
-		font->is_vertical = 0 ;
-	}
-
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-	font->xfont = NULL ;
-#endif
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-	font->xft_font = NULL ;
-#endif
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
-	font->cairo_font = NULL ;
-#endif
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO) || defined(USE_TYPE_XFT)
-	font->otf = NULL ;
-	font->otf_not_found = 0 ;
-#endif
-	font->decsp_font = NULL ;
 
 	if( size_attr >= DOUBLE_HEIGHT_TOP)
 	{
@@ -1237,9 +1214,6 @@ end:
 	}
 
 	font->size_attr = size_attr ;
-#ifdef  USE_GSUB
-	font->use_gsub = 0 ;
-#endif
 
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
