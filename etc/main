@@ -110,14 +110,11 @@
 
 # unicode_full_width_areas =
 
-# Open Type フォントの置換グリフを使ってテキストを表示します。
-# use_gsub = false
+# use_ot_layout = false
 
-# グリフ置換を行う場合の script を指定します。
-# gsub_script = latn
+# ot_script = latn
 
-# グリフ置換を行う場合の feature を指定します。
-# gsub_features = liga,clig,dlig,hlig,rlig
+# ot_features = liga,clig,dlig,hlig,rlig
 
 # -- Appearance --
 # use_transbg = false

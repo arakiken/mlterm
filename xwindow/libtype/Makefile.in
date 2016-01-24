@@ -21,18 +21,17 @@ CAIRO_OBJ = x_window_cairo.o x_font_cairo.o x_functbl_cairo.o
 NODL_OBJ = @NODL_OBJ@ x_font_ft.o
 
 LKIK = ${top_builddir}/kiklib/src/libkik.la
-LMKF = ${top_builddir}/mkf/lib/libmkf.la
 LKIK_DEB = -lkik_deb
-LMKF_DEB = -lmkf_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @X_CFLAGS@ @XFT_CFLAGS@ \
-	@CAIRO_CFLAGS@ @TYPE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @GSUB_CFLAGS@ \
-	-I/usr/local/include -I${top_srcdir}/mlterm
+	@CAIRO_CFLAGS@ @TYPE_CFLAGS@ @OT_LAYOUT_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-DLIBDIR=\"$(libdir)\" \
+	-I/usr/local/include -I${top_srcdir}/mlterm -I${top_srcdir}/xwindow/libotl
 
 XFT_LIBS = @XFT_LIBS@
 CAIRO_LIBS = @CAIRO_LIBS@
-LIBS = $(LIBS_LOCAL) @GSUB_LIBS@ $(LMKF) $(LKIK) -L/usr/local/lib -R/usr/local/lib
+LIBS = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib
 
 INSTALL_OPT = -m 755
 

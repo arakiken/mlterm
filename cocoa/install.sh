@@ -13,7 +13,7 @@ fi
 cd $HOME/mlterm.app/Contents/MacOS
 
 prefix="${1}"
-libs="lib/libkik.[0-9]*.dylib lib/libmkf.[0-9]*.dylib lib/libmlterm_core.dylib lib/mlterm/lib*.so"
+libs="lib/libkik.[0-9]*.dylib lib/libmkf.[0-9]*.dylib lib/libmlterm_core.dylib lib/mlterm/libctl*.so lib/mlterm/libotl.so"
 
 mkdir -p lib/mkf
 mkdir -p lib/mlterm

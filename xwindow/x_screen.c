@@ -72,9 +72,9 @@ static char *  im_cursor_color = NULL ;
 
 /* --- static functions --- */
 
-#ifdef  USE_GSUB
+#ifdef  USE_OT_LAYOUT
 static void *
-gsub_get_gsub_font(
+ot_layout_get_ot_layout_font(
 	ml_term_t *  term ,
 	ml_font_t  font
 	)
@@ -84,7 +84,7 @@ gsub_get_gsub_font(
 	if( ! term->screen->screen_listener ||
 	    ! ( xfont = x_get_font( ((x_screen_t*)term->screen->screen_listener->self)->font_man ,
 				font)) ||
-	    ! x_font_has_gsub_table( xfont))
+	    ! x_font_has_ot_layout_table( xfont))
 	{
 		return  NULL ;
 	}
@@ -159,7 +159,7 @@ convert_char_index_to_x(
 	int  x ;
 
 	x_font_manager_set_attr( screen->font_man , line->size_attr ,
-		ml_line_has_gsub( line)) ;
+		ml_line_has_ot_layout( line)) ;
 
 	if( ml_line_is_rtl( line))
 	{
@@ -243,7 +243,7 @@ convert_x_to_char_index(
 	int  end_char_index ;
 
 	x_font_manager_set_attr( screen->font_man , line->size_attr ,
-		ml_line_has_gsub( line)) ;
+		ml_line_has_ot_layout( line)) ;
 
 	end_char_index = ml_line_end_char_index(line) ;
 
@@ -483,7 +483,7 @@ draw_line(
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
 
 		x_font_manager_set_attr( screen->font_man , line->size_attr ,
-			ml_line_has_gsub( line)) ;
+			ml_line_has_ot_layout( line)) ;
 
 		if( is_cleared_to_end)
 		{
@@ -638,7 +638,7 @@ draw_cursor(
 	}
 
 	x_font_manager_set_attr( screen->font_man , line->size_attr ,
-		ml_line_has_gsub( line)) ;
+		ml_line_has_ot_layout( line)) ;
 
 	x_draw_str( &screen->window , screen->font_man ,
 		screen->color_man , &ch , 1 , x , y ,
@@ -3342,7 +3342,7 @@ report_mouse_tracking(
 		col = ml_convert_char_index_to_col( line , char_index , 0) ;
 
 		x_font_manager_set_attr( screen->font_man , line->size_attr ,
-			ml_line_has_gsub( line)) ;
+			ml_line_has_ot_layout( line)) ;
 		width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
 				ml_char_code( ml_sp_ch()) , US_ASCII , NULL) ;
@@ -6198,7 +6198,7 @@ get_im_spot(
 	if( ! ml_term_get_vertical_mode( screen->term))
 	{
 		x_font_manager_set_attr( screen->font_man , line->size_attr ,
-			ml_line_has_gsub( line)) ;
+			ml_line_has_ot_layout( line)) ;
 		for( i = 0 ; i < segment_offset ; i++)
 		{
 			u_int  width ;
@@ -6386,8 +6386,7 @@ draw_preedit_str(
 	x_set_gc( screen->window.gc , GetDC( screen->window.my_window)) ;
 #endif
 
-	x_font_manager_set_attr( screen->font_man , line->size_attr ,
-		ml_line_has_gsub( line)) ;
+	x_font_manager_set_attr( screen->font_man , line->size_attr , 0) ;
 
 	for( i = 0 , start = 0 ; i < num_of_chars ; i++)
 	{
@@ -7527,8 +7526,8 @@ x_screen_new(
 	u_int  col_width ;
 	u_int  line_height ;
 
-#ifdef  USE_GSUB
-	ml_gsub_set_shape_func( x_convert_text_to_glyphs , gsub_get_gsub_font) ;
+#ifdef  USE_OT_LAYOUT
+	ml_ot_layout_set_shape_func( x_convert_text_to_glyphs , ot_layout_get_ot_layout_font) ;
 #endif
 
 	if( ( screen = calloc( 1 , sizeof( x_screen_t))) == NULL)

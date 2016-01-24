@@ -179,8 +179,8 @@ x_font_manager_new(
 	font_man->use_bold_font = use_bold_font ;
 	font_man->use_italic_font = use_italic_font ;
 	font_man->size_attr = 0 ;
-#ifdef  USE_GSUB
-	font_man->use_gsub = 0 ;
+#ifdef  USE_OT_LAYOUT
+	font_man->use_ot_layout = 0 ;
 #endif
 
 	return  font_man ;
@@ -205,12 +205,12 @@ void
 x_font_manager_set_attr(
 	x_font_manager_t *  font_man ,
 	int  size_attr ,
-	int  use_gsub
+	int  use_ot_layout
 	)
 {
 	font_man->size_attr = size_attr ;
-#ifdef  USE_GSUB
-	font_man->use_gsub = use_gsub ;
+#ifdef  USE_OT_LAYOUT
+	font_man->use_ot_layout = use_ot_layout ;
 #endif
 }
 
@@ -238,8 +238,15 @@ x_get_font(
 		xfont = font_man->font_cache->usascii_font ;
 	}
 
-#ifdef  USE_GSUB
-	xfont->use_gsub = font_man->use_gsub ;
+#ifdef  USE_OT_LAYOUT
+	if( FONT_CS(font) == ISO10646_UCS4_1_V)
+	{
+		xfont->use_ot_layout = 1 ;
+	}
+	else
+	{
+		xfont->use_ot_layout = font_man->use_ot_layout ;
+	}
 #endif
 
 	return  xfont ;

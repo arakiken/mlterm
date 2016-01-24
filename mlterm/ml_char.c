@@ -16,10 +16,10 @@
 
 #define  IS_UNICODE_AREA_CS(attr)  ((attr) & (0x1 << 17))
 
-/* Combination of UNICODE_AREA, IS_ITALIC, IS_BOLD, IS_FULLWIDTH and CHARSET */
+/* Combination of IS_ITALIC, IS_BOLD, IS_FULLWIDTH, CS_REVISION_1 and CHARSET(UNICODE AREA) */
 #define  MLFONT(attr) \
 	IS_UNICODE_AREA_CS(attr) ? \
-	((((attr) >> 5) & 0xe00) | ISO10646_UCS4_1 | (((attr) << 7) & 0x1ff000)) : \
+	((((attr) >> 5) & 0xf00) | ISO10646_UCS4_1 | (((attr) << 7) & 0xff000)) : \
 	(((attr) >> 5) & 0xfff)
 
 #define  IS_VISIBLE(attr)  ((attr) & (0x1 << 19))
@@ -29,7 +29,7 @@
 #define  IS_FULLWIDTH(attr)  ((attr) & (0x1 << 14))
 #define  CHARSET(attr) \
 	IS_UNICODE_AREA_CS(attr) ? \
-	ISO10646_UCS4_1 : \
+	(ISO10646_UCS4_1 | (((attr) >> 5) & 0x100)) : \
 	(((attr) >> 5) & 0x1ff)
 
 #define  IS_REVERSED(attr)  ((attr) & (0x1 << 4))
@@ -118,7 +118,7 @@ ml_char_get_unicode_area_font(
 		}
 	}
 
-	if( num_of_unicode_areas == 511 /* Max is 2^9-1 */ ||
+	if( num_of_unicode_areas == 255 /* Max is 2^8-1 */ ||
 	    ! ( p = realloc( unicode_areas ,
 			sizeof(*unicode_areas) * (num_of_unicode_areas + 1))))
 	{
@@ -669,11 +669,20 @@ ml_char_set_cs(
 	{
 		if( IS_UNICODE_AREA_CS(ch->u.ch.attr))
 		{
-			return  0 ;
+			if( cs == ISO10646_UCS4_1_V)
+			{
+				ch->u.ch.attr |= (0x100 << 5) ;
+			}
+			else /* if( cs == ISO10646_UCS4_1) */
+			{
+				ch->u.ch.attr &= ~(0x100 << 5) ;
+			}
 		}
-
-		ch->u.ch.attr &= ~(MAX_CHARSET << 5) ;	/* ~0x1ff (ml_font.h) */
-		ch->u.ch.attr |= (cs << 5) ;
+		else
+		{
+			ch->u.ch.attr &= ~(MAX_CHARSET << 5) ;	/* ~0x1ff (ml_font.h) */
+			ch->u.ch.attr |= (cs << 5) ;
+		}
 	}
 	else
 	{
@@ -1172,14 +1181,10 @@ ml_char_dump(
 	}
 #endif
 
-	if( ( comb_chars = ml_get_combining_chars( ch , &comb_size)) != NULL)
+	comb_chars = ml_get_combining_chars( ch , &comb_size) ;
+	for( ; comb_size > 0 ; comb_size --)
 	{
-		int  count ;
-
-		for( count = 0 ; count < comb_size ; count ++)
-		{
-			ml_char_dump( &comb_chars[count]) ;
-		}
+		ml_char_dump( comb_chars++) ;
 	}
 }
 

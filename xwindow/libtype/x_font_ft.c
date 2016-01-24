@@ -18,8 +18,8 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/memset/strncasecmp */
 #include  <ml_char.h>		/* UTF_MAX_SIZE */
 
-#ifdef  USE_GSUB
-#include  <otf.h>
+#ifdef  USE_OT_LAYOUT
+#include  <otl.h>
 #endif
 
 
@@ -1130,6 +1130,13 @@ xft_unset_font(
 	x_font_t *  font
 	)
 {
+#ifdef  USE_OT_LAYOUT
+	if( font->ot_font)
+	{
+		otl_close( font->ot_font) ;
+	}
+#endif
+
 	XftFontClose( font->display , font->xft_font) ;
 	font->xft_font = NULL ;
 
@@ -1137,32 +1144,15 @@ xft_unset_font(
 }
 
 int
-xft_set_otf(
+xft_set_ot_font(
 	x_font_t *  font
 	)
 {
-#ifdef  USE_GSUB
-	font->otf = OTF_open_ft_face( XftLockFace( font->xft_font)) ;
+#ifdef  USE_OT_LAYOUT
+	font->ot_font = otl_open( XftLockFace( font->xft_font) , 0) ;
 	XftUnlockFace( font->xft_font) ;
 
-	if( ! font->otf)
-	{
-		font->otf_not_found = 1 ;
-
-		return  0 ;
-	}
-
-	if( OTF_check_table( font->otf , "GSUB") != 0 ||
-	    OTF_check_table( font->otf , "cmap") != 0)
-	{
-		OTF_close( font->otf) ;
-		font->otf = NULL ;
-		font->otf_not_found = 1 ;
-
-		return  0 ;
-	}
-
-	return  1 ;
+	return  (font->ot_font != NULL) ;
 #else
 	return  0 ;
 #endif
@@ -1176,8 +1166,8 @@ xft_calculate_char_width(
 {
 	XGlyphInfo  extents ;
 
-#ifdef  USE_GSUB
-	if( font->use_gsub && font->otf)
+#ifdef  USE_OT_LAYOUT
+	if( font->use_ot_layout /* && font->ot_font */)
 	{
 		if( sizeof(FT_UInt) != sizeof(u_int32_t))
 		{
@@ -1251,11 +1241,12 @@ cairo_unset_font(
 	x_font_t *  font
 	)
 {
-#ifdef  USE_GSUB
-	if( font->otf)
+#ifdef  USE_OT_LAYOUT
+	if( font->ot_font)
 	{
-		OTF_close( font->otf) ;
+		otl_close( font->ot_font) ;
 	}
+#endif
 
 	cairo_scaled_font_destroy( font->cairo_font) ;
 	font->cairo_font = NULL ;
@@ -1284,38 +1275,18 @@ cairo_unset_font(
 	}
 
 	return  1 ;
-#else
-	return  0 ;
-#endif
 }
 
 int
-cairo_set_otf(
+cairo_set_ot_font(
 	x_font_t *  font
 	)
 {
-#ifdef  USE_GSUB
-	font->otf = OTF_open_ft_face( cairo_ft_scaled_font_lock_face( font->cairo_font)) ;
+#ifdef  USE_OT_LAYOUT
+	font->ot_font = otl_open( cairo_ft_scaled_font_lock_face( font->cairo_font) , 0) ;
 	cairo_ft_scaled_font_unlock_face( font->cairo_font) ;
 
-	if( ! font->otf)
-	{
-		font->otf_not_found = 1 ;
-
-		return  0 ;
-	}
-
-	if( OTF_check_table( font->otf , "GSUB") != 0 ||
-	    OTF_check_table( font->otf , "cmap") != 0)
-	{
-		OTF_close( font->otf) ;
-		font->otf = NULL ;
-		font->otf_not_found = 1 ;
-
-		return  0 ;
-	}
-
-	return  1 ;
+	return  (font->ot_font != NULL) ;
 #else
 	return  0 ;
 #endif
@@ -1395,8 +1366,8 @@ cairo_calculate_char_width(
 	cairo_text_extents_t  extents ;
 	int  width ;
 
-#ifdef  USE_GSUB
-	if( font->use_gsub && font->otf)
+#ifdef  USE_OT_LAYOUT
+	if( font->use_ot_layout /* && font->ot_font */)
 	{
 		cairo_glyph_t  glyph ;
 
@@ -1432,70 +1403,18 @@ cairo_calculate_char_width(
 u_int
 ft_convert_text_to_glyphs(
 	x_font_t *  font ,
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
 	const char *  features
 	)
 {
-#ifdef  USE_GSUB
-	static OTF_Glyph *  glyphs ;
-	OTF_GlyphString  otfstr ;
-	u_int  count ;
-
-	otfstr.size = otfstr.used = src_len ;
-
-/* Avoid kik_mem memory management */
-#undef  realloc
-	if( ! ( otfstr.glyphs = realloc( glyphs , otfstr.size * sizeof(*otfstr.glyphs))))
-	{
-		return  0 ;
-	}
-#ifdef  KIK_DEBUG
-#define  realloc( ptr , size)  kik_mem_realloc( ptr , size , __FILE__ , __LINE__ , __FUNCTION)
-#endif
-
-	glyphs = otfstr.glyphs ;
-	memset( otfstr.glyphs , 0 , otfstr.size * sizeof(*otfstr.glyphs)) ;
-
-	if( src)
-	{
-		for( count = 0 ; count < src_len ; count++)
-		{
-			otfstr.glyphs[count].c = src[count] ;
-		}
-
-		OTF_drive_cmap( font->otf , &otfstr) ;
-
-		if( cmap)
-		{
-			for( count = 0 ; count < otfstr.used ; count++)
-			{
-				cmap[count] = otfstr.glyphs[count].glyph_id ;
-			}
-
-			return  otfstr.used ;
-		}
-	}
-	else /* if( cmap) */
-	{
-		for( count = 0 ; count < src_len ; count++)
-		{
-			otfstr.glyphs[count].glyph_id = cmap[count] ;
-		}
-	}
-
-	OTF_drive_gsub( font->otf , &otfstr , script , NULL , features) ;
-
-	for( count = 0 ; count < otfstr.used ; count++)
-	{
-		gsub[count] = otfstr.glyphs[count].glyph_id ;
-	}
-
-	return  otfstr.used ;
+#ifdef  USE_OT_LAYOUT
+	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , cmapped ,
+			src , src_len , script , features) ;
 #else
 	return  0 ;
 #endif

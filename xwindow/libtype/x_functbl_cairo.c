@@ -15,7 +15,7 @@ void  cairo_unset_font(void) ;
 void  cairo_calculate_char_width(void) ;
 void  cairo_set_clip(void) ;
 void  cairo_unset_clip(void) ;
-void  cairo_set_otf(void) ;
+void  cairo_set_ot_font(void) ;
 void  ft_convert_text_to_glyphs(void) ;
 
 
@@ -33,7 +33,7 @@ void *  x_type_cairo_func_table[MAX_TYPE_FUNCS] =
 	cairo_calculate_char_width ,
 	cairo_set_clip ,
 	cairo_unset_clip ,
-	cairo_set_otf ,
+	cairo_set_ot_font ,
 	ft_convert_text_to_glyphs ,
 
 } ;

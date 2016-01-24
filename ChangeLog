@@ -1,3 +1,84 @@
+2016-01-24  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.ja, man/mlterm.1, etc/main, etc/main.ja, doc/en/README.indic:
+	  Updated.
+
+	* x_font_cache.c, x_font_manager.c:
+	  ISO10646_UCS4_1_V font is treated as FONT_VAR_WIDTH forcibly in
+	  x_font_cache_get_xfont() and x_get_font().
+
+	* win32/x_font.c: GetTextExtentPointIW() is used for glyph index.
+
+	* cocoa.[hm], quartz/x_font.c:
+	  ot_font is created in x_font.c, not in cocoa.m
+	  (cocoa_create_otf() is removed. cocoa_get_font_path() is added.)
+
+	* */x_font.c, x_font_ft.c, */x_window.c, x_window_{cairo|xft}.c:
+	  'if( font->ot_font && font->use_ot_layout)' => 'if( font->use_ot_layout)'
+	  (font->ot_font can be NULL if its charset is ISO10646_UCS4_1_V)
+
+	* x_window_cairo.c: Centering of the last glyph under font->use_ot_layout == 1
+	  in show_text() is fixed.
+
+	* fb/x_font.c:
+	  A font for ISO10646_UCS4_1_V is treated as proportional.
+	  (If XFontStruct for ISO10646_UCS4_1_V has been already used for ISO10646_UCS4_1
+	  (fixed-pitch), loaded glyphs are cleared by clear_glyph_cache_ft() becauase
+	  glyph_size is 3bytes different from fixed-pitch font to proportional one.)
+
+	* */x_font.c, x_font_ft.c: libotl is used.
+
+	* quartz/otfwrap.[ch], win32/otfwrap.[ch]: Removed.
+
+	* libotl/: Added.
+
+	* ml_vt100_parser.c: If USE_HARFBUZZ is defined, Unicode->ISCII conversion is
+	  disabled.
+
+	* ml_shape.c:
+	  If src code is 0x900-0xd7f, ISO10646_UCS4_1_V is set.
+
+	* ml_line.c, ml_shape.c:
+	  The algorithm of ml_line_ot_visual(), ml_line_ot_logical() and
+	  ml_shape_ot_layout() is changed.
+
+	* x_main_config.c:
+	  - "use_gsub", "gsub_script" and "gsub_features" => "use_ot_layout",
+	    "ot_script" and "ot_features".
+	  - use_ctl is forcibly enabled if use_gsub is true.
+
+	* x_screen.c: The 3rd argument (use_ot_layout) of x_font_manager_set_attr()
+	  is always false in draw_preedit_str().
+
+	* ml_line[ch], ml_line_shape.c, ml_logical_visual.[ch], ml_shape.[ch],
+	  ml_vt100_parser.c, x_font.h, */x_font.[ch], libtype/x_font_ft.c,
+	  */x_window.c, x_window_{xft|cairo}.c, x_functbl_*.c, x_type_loader.h,
+	  x_font_manager.c, x_screen.c:
+	  - ml_gsub -> ml_ot_layout
+	  - x_font_t::otf -> x_font_t::ot_font
+	  - {xft|cairo}_set_otf -> {xft|cairo}_set_ot_font
+
+	* ml_gsub.[ch]: Renamed to ml_ot_layout.[ch].
+
+	* ml_char.[ch]:
+	  Max number of unicode areas is changed from 511 to 255 and
+	  1 bit is used for CS_REVISION_1. (ISO10646_UCS4_1_V)
+
+	* ml_str_parser.c: Null character is skipped.
+
+	* libctl/Makefile.in, libtype/Makefile.in: LMKF is removed.
+
+	* libtbl/mkf_ucs4_iscii.c: 0xa00-a7f => ISCII_PUBJABI.
+
+	* mkf_charset.h: ISO10646_UCS4_1_V is added to draw indic scripts
+	  in variable column width all the time.
+
+	* main/Makefile.in:
+	  @GSUB_LIBS@ is removed from LIBS2_fb.
+
+	* tamil.c, tamil.table, roman.c, roman.table, im_kbd.c, ml_iscii.c:
+	  tamil and roman in libind are removed.
+
 2016-01-17  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja: Updated.

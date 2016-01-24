@@ -18,11 +18,11 @@ VPATH = $(top_srcdir)/mlterm
 # @FRIBIDI_CFLAGS@ and @IND_CFLAGS@ are for NO_DYNAMIC_LOAD_CTL.
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
 	@UTMP_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ @CTL_CFLAGS@ @VT52_CFLAGS@ \
-	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @GUI_CFLAGS@ @GSUB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @GUI_CFLAGS@ @OT_LAYOUT_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DBINDIR=\"$(bindir)\" \
 	-DLIBDIR=\"$(libdir)\"
 
-OBJ_CORE = ml_char.o ml_str.o ml_line.o ml_model.o ml_gsub.o @ML_NORM_OBJ@ @CTL_LOADER_OBJ@
+OBJ_CORE = ml_char.o ml_str.o ml_line.o ml_model.o ml_ot_layout.o @ML_NORM_OBJ@ @CTL_LOADER_OBJ@
 OBJ = ml_char_encoding.o ml_color.o ml_edit.o ml_edit_util.o ml_edit_scroll.o \
 	ml_cursor.o ml_logical_visual.o ml_logs.o ml_screen.o ml_shape.o \
 	ml_str_parser.o ml_term.o ml_vt100_parser.o ml_term_manager.o \

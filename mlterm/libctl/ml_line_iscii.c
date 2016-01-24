@@ -171,19 +171,17 @@ ml_line_iscii_visual(
 				ml_char_combine_simple( dst + dst_pos ,
 					ml_get_base_char( src + src_pos)) ;
 
-				if( ( comb = ml_get_combining_chars( src + (src_pos ++) , &num)))
+				comb = ml_get_combining_chars( src + (src_pos ++) , &num) ;
+				for( ; num > 0 ; num--)
 				{
-					for( ; num > 0 ; num--)
+				#ifdef  DEBUG
+					if( ! ml_char_is_comb( comb))
 					{
-					#ifdef  DEBUG
-						if( ! ml_char_is_comb( comb))
-						{
-							kik_debug_printf( KIK_DEBUG_TAG
-								" illegal iscii\n") ;
-						}
-					#endif
-						ml_char_combine_simple( dst + dst_pos , comb ++) ;
+						kik_debug_printf( KIK_DEBUG_TAG
+							" illegal iscii\n") ;
 					}
+				#endif
+					ml_char_combine_simple( dst + dst_pos , comb ++) ;
 				}
 			}
 		}
@@ -251,18 +249,16 @@ ml_line_iscii_logical(
 		{
 			ml_char_copy( dst , ml_get_base_char( src + src_pos)) ;
 
-			if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+			comb = ml_get_combining_chars( src + src_pos , &num) ;
+			for( ; num > 0 ; num-- , comb++)
 			{
-				for( ; num > 0 ; num-- , comb++)
+				if( ml_char_is_comb( comb))
 				{
-					if( ml_char_is_comb( comb))
-					{
-						ml_char_combine_simple( dst , comb) ;
-					}
-					else
-					{
-						ml_char_copy( ++ dst , comb) ;
-					}
+					ml_char_combine_simple( dst , comb) ;
+				}
+				else
+				{
+					ml_char_copy( ++ dst , comb) ;
 				}
 			}
 		}

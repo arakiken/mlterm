@@ -872,8 +872,6 @@ im_kbd_get_info(
 	result->readable_args[8] = strdup("Indic (MALAYALAM)") ;
 	result->readable_args[9] = strdup("Indic (ORIYA)") ;
 	result->readable_args[10] = strdup("Indic (PUNJABI)") ;
-	result->readable_args[11] = strdup("Indic (ROMAN)") ;
-	result->readable_args[12] = strdup("Indic (TAMIL)") ;
 	result->readable_args[13] = strdup("Indic (TELUGU)") ;
 
 
@@ -888,8 +886,6 @@ im_kbd_get_info(
 	result->args[8] = strdup("isciimalayalam") ;
 	result->args[9] = strdup("isciioriya") ;
 	result->args[10] = strdup("isciipunjabi") ;
-	result->args[11] = strdup("isciiroman") ;
-	result->args[12] = strdup("isciitamil") ;
 	result->args[13] = strdup("isciitelugu") ;
 
 	result->id = strdup( "kbd") ;

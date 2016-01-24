@@ -980,7 +980,7 @@ xcore_draw_combining_chars(
 			c = ch_code ;
 			x_window_draw_string( window , xfont , xcolor , x , y , &c , 1) ;
 		}
-		else if( ch_cs != ISO10646_UCS4_1)
+		else if( ! IS_ISO10646_UCS4(ch_cs))
 		{
 			XChar2b  xch ;
 
@@ -1146,7 +1146,7 @@ xcore_draw_str(
 				drcs_glyphs[str_len++] = drcs_glyph ;
 			}
 		}
-		else if( ch_cs != ISO10646_UCS4_1)
+		else if( ! IS_ISO10646_UCS4(ch_cs))
 		{
 			str2b[str_len].byte1 = (ch_code >> 8) & 0xff ;
 			str2b[str_len].byte2 = ch_code & 0xff ;

@@ -871,7 +871,7 @@ vert_visual_line(
 }
 
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_GSUB)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_OT_LAYOUT)
 
 /*
  * Ctl logical <=> visual methods
@@ -1265,7 +1265,7 @@ ml_get_vertical_mode_name(
 }
 
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_GSUB)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_OT_LAYOUT)
 
 ml_logical_visual_t *
 ml_logvis_ctl_new(
@@ -1276,7 +1276,7 @@ ml_logvis_ctl_new(
 {
 	ctl_logical_visual_t *  ctl_logvis ;
 
-#ifndef  USE_GSUB
+#ifndef  USE_OT_LAYOUT
 #ifndef  NO_DYNAMIC_LOAD_CTL
 	if( ! ml_load_ctl_bidi_func( ML_LINE_SET_USE_BIDI) &&
 	    ! ml_load_ctl_iscii_func( ML_LINE_SET_USE_ISCII))

@@ -118,7 +118,7 @@ x_window_xft_draw_string32(
 
 	xftcolor = x_color_to_xft( fg_color) ;
 
-	if( font->use_gsub && font->otf)
+	if( font->use_ot_layout /* && font->ot_font */)
 	{
 		XftDrawGlyphs( win->xft_draw , xftcolor , font->xft_font ,
 			x + font->x_off + win->hmargin ,
@@ -133,7 +133,7 @@ x_window_xft_draw_string32(
 
 	if( font->double_draw_gap)
 	{
-		if( font->use_gsub && font->otf)
+		if( font->use_ot_layout /* && font->ot_font */)
 		{
 			XftDrawGlyphs( win->xft_draw , xftcolor , font->xft_font ,
 				x + font->x_off + win->hmargin ,

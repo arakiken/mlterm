@@ -47,8 +47,6 @@ struct  ml_isciikey_state
 #include  <table/malayalam.table>
 #include  <table/oriya.table>
 #include  <table/punjabi.table>
-#include  <table/roman.table>
-#include  <table/tamil.table>
 #include  <table/telugu.table>
 #endif
 
@@ -71,8 +69,6 @@ static struct
 	{ iscii_malayalam_table , sizeof( iscii_malayalam_table) / sizeof( struct tabl) , } ,
 	{ iscii_oriya_table , sizeof( iscii_oriya_table) / sizeof( struct tabl) , } ,
 	{ iscii_punjabi_table , sizeof( iscii_punjabi_table) / sizeof( struct tabl) , } ,
-	{ iscii_roman_table , sizeof( iscii_roman_table) / sizeof( struct tabl) , } ,
-	{ iscii_tamil_table , sizeof( iscii_tamil_table) / sizeof( struct tabl) , } ,
 	{ iscii_telugu_table , sizeof( iscii_telugu_table) / sizeof( struct tabl) , } ,
 #else
 	{ NULL , 0 , } ,
@@ -126,8 +122,6 @@ static char *  iscii_table_files[] =
 	"ind_malayalam" ,
 	"ind_oriya" ,
 	"ind_punjabi" ,
-	"ind_roman" ,
-	"ind_tamil" ,
 	"ind_telugu" ,
 } ;
 
@@ -322,14 +316,13 @@ ml_iscii(
 			u_int  num ;
 
 			iscii_buf[iscii_filled ++] = ml_char_code( src + src_pos) ;
-			if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+			comb = ml_get_combining_chars( src + src_pos , &num) ;
+			for( ; num > 0 ; num--)
 			{
-				for( count = 0 ; count < num ; count++)
-				{
-					iscii_buf[iscii_filled ++] = ml_char_code( comb + count) ;
-				}
+				iscii_buf[iscii_filled ++] = ml_char_code( comb++) ;
 			}
 			iscii_buf[iscii_filled] = '\0' ;
+
 			font_filled = ml_iscii_shape( cs , font_buf , font_buf_len , iscii_buf) ;
 
 			if( font_filled < prev_font_filled)

@@ -264,6 +264,8 @@ x_font_cache_get_xfont(
 	ml_font_t  font
 	)
 {
+	x_font_present_t  font_present ;
+	ml_font_t  font_for_config ;
 	int  result ;
 	x_font_t *  xfont ;
 	KIK_PAIR( x_font)  fn_pair ;
@@ -272,10 +274,24 @@ x_font_cache_get_xfont(
 	u_int  col_width ;
 	int  size_attr ;
 
+	font_present = font_cache->font_config->font_present ;
+
 	if( FONT_CS(font) == US_ASCII)
 	{
 		font &= ~US_ASCII ;
 		font |= font_cache->usascii_font_cs ;
+		font_for_config = font ;
+	}
+	else
+	{
+		font_for_config = font ;
+
+		if( FONT_CS(font) == ISO10646_UCS4_1_V)
+		{
+			font_present |= FONT_VAR_WIDTH ;
+			font_for_config &= ~ISO10646_UCS4_1_V ;
+			font_for_config |= ISO10646_UCS4_1 ;
+		}
 	}
 
 	if( font_cache->prev_cache.xfont && font_cache->prev_cache.font == font)
@@ -301,12 +317,12 @@ x_font_cache_get_xfont(
 	use_medium_for_bold = 0 ;
 
 	if( ( fontname = x_get_config_font_name( font_cache->font_config ,
-				font_cache->font_size , font)) == NULL)
+				font_cache->font_size , font_for_config)) == NULL)
 	{
 		ml_font_t  next_font ;
 		int  scalable ;
 
-		next_font = font ;
+		next_font = font_for_config ;
 
 	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 		if( font_cache->font_config->type_engine == TYPE_XCORE)
@@ -362,14 +378,14 @@ found:
 
 	if( ( xfont = x_font_new( font_cache->display , FONT_WITHOUT_SIZE_ATTR(font) , size_attr ,
 				font_cache->font_config->type_engine ,
-				font_cache->font_config->font_present , fontname ,
+				font_present , fontname ,
 				font_cache->font_size , col_width , use_medium_for_bold ,
 				font_cache->letter_space)) ||
 	    ( size_attr &&
 	      ( xfont = x_font_new( font_cache->display ,
 				NORMAL_FONT_OF(font_cache->usascii_font_cs) , size_attr ,
 				font_cache->font_config->type_engine ,
-				font_cache->font_config->font_present , fontname ,
+				font_present , fontname ,
 				font_cache->font_size , col_width , use_medium_for_bold ,
 				font_cache->letter_space))))
 	{

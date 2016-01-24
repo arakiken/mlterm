@@ -70,7 +70,9 @@ typedef struct ml_char
 			 * 1 bit : is_italic(0 or 1)
 			 * 1 bit : is_bold(0 or 1)
 			 * 1 bit : is_fullwidth(0 or 1)
-			 * 9 bit : charset(0x0 - 0x1ff)
+			 * 9 bit : charset(0x0 - 0x1ff) or
+			 *         1 bit: CS_REVISION_1(ISO10646_UCS4_1_V)
+			 *         8 bit: unicode area id
 			 * 1 bit : is_reversed(0 or 1)	... used for X Selection
 			 * 1 bit : is_crossed_out
 			 * 1 bit : is_comb(0 or 1)

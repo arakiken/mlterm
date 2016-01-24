@@ -7682,7 +7682,9 @@ ml_convert_to_internal_ch(
 				}
 			}
 
-		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
+		#ifdef  USE_HARFBUZZ
+			/* Don't conver to ISCII */
+		#elif  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 			if( 0x900 <= code && code <= 0xd7f)
 			{
 				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
@@ -8390,23 +8392,23 @@ ml_vt100_parser_set_config(
 			vt100_parser->use_auto_detect = flag ;
 		}
 	}
-#ifdef  USE_GSUB
-	else if( strcmp( key , "use_gsub") == 0)
+#ifdef  USE_OT_LAYOUT
+	else if( strcmp( key , "use_ot_layout") == 0)
 	{
 		int  flag ;
 
 		if( ( flag = true_or_false( value)) != -1)
 		{
-			ml_set_use_gsub( flag) ;
+			ml_set_use_ot_layout( flag) ;
 		}
 	}
-	else if( strcmp( key , "gsub_script") == 0)
+	else if( strcmp( key , "ot_script") == 0)
 	{
-		ml_set_gsub_attr( value , GSUB_SCRIPT) ;
+		ml_set_ot_layout_attr( value , OT_SCRIPT) ;
 	}
-	else if( strcmp( key , "gsub_features") == 0)
+	else if( strcmp( key , "ot_features") == 0)
 	{
-		ml_set_gsub_attr( value , GSUB_FEATURES) ;
+		ml_set_ot_layout_attr( value , OT_FEATURES) ;
 	}
 #endif
 	else

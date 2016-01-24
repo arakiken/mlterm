@@ -16,8 +16,9 @@ ifneq (,$(wildcard freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a))
 	FT_CFLAGS := -DUSE_FREETYPE -Ifreetype/$(TARGET_ARCH_ABI)/include/freetype2
 	FT_LDLIBS := freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a
 	ifneq (,$(wildcard libotf/otfopen.c))
-		OTF_SRC_FILES := libotf/otfopen.c libotf/otfdrive.c libotf/otferror.c
-		OTF_CFLAGS := -Ilibotf -DUSE_GSUB
+		OTF_SRC_FILES := libotf/otfopen.c libotf/otfdrive.c libotf/otferror.c \
+				xwindow/libotl/otf.c
+		OTF_CFLAGS := -Ilibotf -DUSE_OT_LAYOUT
 	else
 		OTF_SRC_FILES :=
 		OTF_CFLAGS :=
@@ -71,7 +72,7 @@ LOCAL_SRC_FILES := kiklib/src/kik_map.c kiklib/src/kik_args.c \
 		mlterm/ml_termcap.c mlterm/ml_pty.c mlterm/ml_pty_unix.c mlterm/ml_drcs.c \
 		libind/indian.c libind/lex.split.c mlterm/libctl/ml_iscii.c \
 		mlterm/libctl/ml_shape_iscii.c mlterm/libctl/ml_line_iscii.c \
-		mlterm/ml_gsub.c \
+		mlterm/ml_ot_layout.c \
 		$(OTF_SRC_FILES) $(FRIBIDI_SRC_FILES) \
 		xwindow/fb/x.c xwindow/fb/x_font.c xwindow/x_mod_meta_mode.c xwindow/x_shortcut.c \
 		xwindow/x_bel_mode.c xwindow/x_font_cache.c xwindow/x_picture.c \

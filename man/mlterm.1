@@ -565,19 +565,6 @@ Force full width regardless of EastAsianWidth.txt.
 
 e.g.) --fullwidth=U+1234-5678,U+0123-4567
 .TP
-\fB\-\-gft\fR=\fIvalue\fR
-Specify features of glyph substitution.
-The default is \fBfliga,clig,dlig,hlig,rlig\fR.
-.TP
-\fB\-\-gst\fR=\fIvalue\fR
-Specify script of glyph substitution.
-The default is \fBflatn\fR.
-.TP
-\fB\-\-gsub\fR(=\fIbool\fR)
-Whether to show substituting glyphs in open type fonts with the use of libotf.
-Don't specify \-\-ctl=false if you want to use substituting glyphs.
-The default is \fBfalse\fR.
-.TP
 \fB\-\-iconpath\fR=\fIpath\fR
 Specify the file to be used as a window icon.
 .TP
@@ -626,8 +613,21 @@ The default is \fB\\x1b\fR.
 Don't draw underline.
 The default is \fBfalse\fR.
 .TP
+\fB\-\-oft\fR=\fIvalue\fR
+Specify features of glyph substitution.
+The default is \fBfliga,clig,dlig,hlig,rlig\fR.
+.TP
 \fB\-\-osc52\fR(=\fIbool\fR)
 Allow access to clipboard(selection) by OSC 52 sequence.
+The default is \fBfalse\fR.
+.TP
+\fB\-\-ost\fR=\fIvalue\fR
+Specify script of glyph substitution.
+The default is \fBflatn\fR.
+.TP
+\fB\-\-otl\fR(=\fIbool\fR)
+Whether to show substituting glyphs in open type fonts with the use of libotf or harfbuzz.
+Don't specify \-\-ctl=false if you want to use substituting glyphs.
 The default is \fBfalse\fR.
 .TP
 \fB\-\-parent\fR=\fIvalue\fR
@@ -1363,12 +1363,6 @@ Gamma of background image in percent.
 \fBgeometry=\fIvalue\fR (\fB\-g\fR, \fB\-\-geometry\fR)
 Specify size and position of the window; see \fBX\fR(7).
 .TP
-\fBgsub_features=\fIvalue\fR (\-\-gft\fR)
-Specify features of glyph substitution.
-.TP
-\fBgsub_features=\fIvalue\fR (\-\-gst\fR)
-Specify script of glyph substitution.
-.TP
 \fBhide_underline=\fIbool\fR (\fB\-\-noul\fR)
 Don't draw underline.
 .TP
@@ -1433,6 +1427,12 @@ Use non-Unicode fonts even when \fBmlterm\fR encoding is UTF-8.
 .TP
 \fBonly_use_unicode_font=\fIbool\fR (\fB\-u\fR, \fB\-\-onlyucsfont\fR)
 Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
+.TP
+\fBot_features=\fIvalue\fR (\-\-gft\fR)
+Specify features of glyph substitution.
+.TP
+\fBot_features=\fIvalue\fR (\-\-gst\fR)
+Specify script of glyph substitution.
 .TP
 \fBparent_window=\fIvalue\fR (\fB\-\-parent\fR)
 Specify parent Window ID.
@@ -1536,8 +1536,8 @@ Enable extended short cut keys for scrolling.
 \fBuse_ctl=\fIbool\fR (\fB\-C\fR, \fB\-\-ctl\fR)
 Enable complex text layouting on UTF8 encoding.
 .TP
-\fBuse_gsub=\fIbool\fR (\-\-gsub\fR)
-Whether to show substituting glyphs in open type fonts with the use of libotf.
+\fBuse_ot_layout=\fIbool\fR (\-\-otl\fR)
+Whether to show substituting glyphs in open type fonts with the use of libotf or harfbuzz.
 .TP
 \fBuse_italic_font=\fIbool\fR (\fB\-\-itfont\fR)
 Use italic font for characters with the italic attribute.

@@ -868,13 +868,13 @@ xft_set_font(
 }
 
 static int
-xft_set_otf(
+xft_set_ot_font(
 	x_font_t *  font
 	)
 {
 	int (*func)( x_font_t *) ;
 
-	if( ! ( func = x_load_type_xft_func( X_SET_OTF)))
+	if( ! ( func = x_load_type_xft_func( X_SET_OT_FONT)))
 	{
 		return  0 ;
 	}
@@ -885,9 +885,9 @@ xft_set_otf(
 static u_int
 xft_convert_text_to_glyphs(
 	x_font_t *  font ,
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
@@ -902,7 +902,7 @@ xft_convert_text_to_glyphs(
 		return  0 ;
 	}
 
-	return  (*func)( font , gsub , gsub_len , cmap , src , src_len , script , features) ;
+	return  (*func)( font , shaped , shaped_len , cmapped , src , src_len , script , features) ;
 }
 
 #elif  defined(USE_TYPE_XFT)
@@ -910,13 +910,13 @@ u_int  xft_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  xft_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , u_int  letter_space , int  aa_opt ,
 	int  use_point_size_for_fc , double  dpi_for_fc) ;
-int  xft_set_otf( x_font_t *  font) ;
-#define  xft_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+int  xft_set_ot_font( x_font_t *  font) ;
+#define  xft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
 		src , src_len , script , features) \
-	ft_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+	ft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
 		src , src_len , script , features)
-u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  gsub , u_int  gsub_len ,
-	u_int32_t *  cmap , u_int32_t *  src , u_int  src_len ,
+u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , u_int  shaped_len ,
+	u_int32_t *  cmapped , u_int32_t *  src , u_int  src_len ,
 	const char *  script , const char *  features) ;
 #endif
 
@@ -963,13 +963,13 @@ cairo_set_font(
 }
 
 static int
-cairo_set_otf(
+cairo_set_ot_font(
 	x_font_t *  font
 	)
 {
 	int (*func)( x_font_t *) ;
 
-	if( ! ( func = x_load_type_cairo_func( X_SET_OTF)))
+	if( ! ( func = x_load_type_cairo_func( X_SET_OT_FONT)))
 	{
 		return  0 ;
 	}
@@ -980,9 +980,9 @@ cairo_set_otf(
 static u_int
 cairo_convert_text_to_glyphs(
 	x_font_t *  font ,
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
@@ -997,7 +997,7 @@ cairo_convert_text_to_glyphs(
 		return  0 ;
 	}
 
-	return  (*func)( font , gsub , gsub_len , cmap , src , src_len , script , features) ;
+	return  (*func)( font , shaped , shaped_len , cmapped , src , src_len , script , features) ;
 }
 
 #elif  defined(USE_TYPE_CAIRO)
@@ -1005,14 +1005,14 @@ u_int  cairo_calculate_char_width( x_font_t *  font , u_int32_t  ch) ;
 int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , u_int  letter_space , int  aa_opt , int  use_point_size_for_fc ,
 	double  dpi_for_fc) ;
-int  cairo_set_otf( x_font_t *  font) ;
-#define  cairo_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+int  cairo_set_ot_font( x_font_t *  font) ;
+#define  cairo_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
 		src , src_len , script , features) \
-	ft_convert_text_to_glyphs( font , gsub , gsub_len , cmap , \
+	ft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
 		src , src_len , script , features)
 #ifndef  USE_TYPE_XFT
-u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  gsub , u_int  gsub_len ,
-	u_int32_t *  cmap , u_int32_t *  src , u_int  src_len ,
+u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , u_int  shaped_len ,
+	u_int32_t *  cmapped , u_int32_t *  src , u_int  src_len ,
 	const char *  script , const char *  features) ;
 #endif
 #endif
@@ -1363,16 +1363,16 @@ x_font_use_point_size(
 }
 
 int
-x_font_has_gsub_table(
+x_font_has_ot_layout_table(
 	x_font_t *  font
 	)
 {
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	if( font->cairo_font)
 	{
-		if( ! font->otf)
+		if( ! font->ot_font)
 		{
-			if( font->otf_not_found || ! cairo_set_otf( font))
+			if( font->ot_font_not_found || ! cairo_set_ot_font( font))
 			{
 				return  0 ;
 			}
@@ -1384,9 +1384,9 @@ x_font_has_gsub_table(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	if( font->xft_font)
 	{
-		if( ! font->otf)
+		if( ! font->ot_font)
 		{
-			if( font->otf_not_found || ! xft_set_otf( font))
+			if( font->ot_font_not_found || ! xft_set_ot_font( font))
 			{
 				return  0 ;
 			}
@@ -1401,10 +1401,10 @@ x_font_has_gsub_table(
 
 u_int
 x_convert_text_to_glyphs(
-	x_font_t *  font ,	/* always has otf */
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	x_font_t *  font ,	/* always has ot_font */
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
@@ -1414,14 +1414,14 @@ x_convert_text_to_glyphs(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	if( font->cairo_font)
 	{
-		return  cairo_convert_text_to_glyphs( font , gsub , gsub_len , cmap ,
+		return  cairo_convert_text_to_glyphs( font , shaped , shaped_len , cmapped ,
 				src , src_len , script , features) ;
 	}
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	if( font->xft_font)
 	{
-		return  xft_convert_text_to_glyphs( font , gsub , gsub_len , cmap ,
+		return  xft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped ,
 				src , src_len , script , features) ;
 	}
 #endif
@@ -1448,7 +1448,7 @@ convert_to_ucs4(
 	mkf_charset_t  cs
 	)
 {
-	if( cs == ISO10646_UCS4_1 /* || cs == ISO10646_UCS2_1 */)
+	if( IS_ISO10646_UCS4(cs) /* || cs == ISO10646_UCS2_1 */)
 	{
 		return  ch ;
 	}
@@ -1481,8 +1481,6 @@ convert_to_ucs4(
 			return  0 ;
 		}
 	}
-
-	return  1 ;
 }
 
 int

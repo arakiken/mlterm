@@ -158,14 +158,14 @@
 # EastAsianWidth.txt に関わらず、常に全角幅で表示する文字の範囲
 # unicode_full_width_areas =
 
-# Open Type フォントの置換グリフを使ってテキストを表示
-# use_gsub = false
+# Open Type フォントの置換グリフ等を使ってテキストを表示
+# use_ot_layout = false
 
-# グリフ置換を行う場合の script を指定
-# gsub_script = latn
+# Open Type フォントの置換グリフ等を使う場合の script を指定
+# ot_script = latn
 
-# グリフ置換を行う場合の feature を指定
-# gsub_features = liga,clig,dlig,hlig,rlig
+# Open Type フォントの置換グリフ等を使う場合の feature を指定
+# ot_features = liga,clig,dlig,hlig,rlig
 
 
 # -- Appearance 関連 --

@@ -24,8 +24,8 @@
 #include  <dirent.h>
 #endif
 
-#ifdef  USE_GSUB
-#include  <otf.h>
+#ifdef  USE_OT_LAYOUT
+#include  <otl.h>
 #endif
 
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
@@ -48,6 +48,10 @@
 #define  PCF_SWIDTHS		(1<<6)
 #define  PCF_GLYPH_NAMES	(1<<7)
 #define  PCF_BDF_ACCELERATORS	(1<<8)
+
+#define  MAX_GLYPH_TABLES  512
+#define  GLYPH_TABLE_SIZE  128
+#define  INITIAL_GLYPH_INDEX_TABLE_SIZE  0x1000
 
 
 #if  0
@@ -833,11 +837,11 @@ face_found:
 		goto  error ;
 	}
 
-	xfont->num_of_indeces = 0x1000 ;
+	xfont->num_of_indeces = INITIAL_GLYPH_INDEX_TABLE_SIZE ;
 
 	if( ! ( xfont->file = strdup( file_path)) ||
 	    ! ( xfont->glyph_indeces = calloc( xfont->num_of_indeces , sizeof(u_int16_t))) ||
-	    ! ( xfont->glyphs = calloc( 512 , sizeof(u_char*))))
+	    ! ( xfont->glyphs = calloc( MAX_GLYPH_TABLES , sizeof(u_char*))))
 	{
 		goto  error ;
 	}
@@ -925,6 +929,23 @@ init_iscii_ft(
 }
 
 static void
+clear_glyph_cache_ft(
+	XFontStruct *  xfont
+	)
+{
+	int  count ;
+
+	for( count = 0 ; ((u_char**)xfont->glyphs)[count] ; count ++)
+	{
+		free( ((u_char**)xfont->glyphs)[count]) ;
+	}
+
+	memset( xfont->glyphs , 0 , MAX_GLYPH_TABLES * sizeof(u_char*)) ;
+	xfont->num_of_glyphs = 0 ;
+	memset( xfont->glyph_indeces , 0 , xfont->num_of_indeces * sizeof(u_int16_t)) ;
+}
+
+static void
 unload_ft(
 	XFontStruct *  xfont
 	)
@@ -960,7 +981,7 @@ static u_char *
 get_ft_bitmap(
 	XFontStruct *  xfont ,
 	u_int32_t  code ,
-	int  use_gsub
+	int  use_ot_layout
 	)
 {
 	u_int16_t *  indeces ;
@@ -968,7 +989,7 @@ get_ft_bitmap(
 	u_char **  glyphs ;
 	u_char *  glyph ;
 
-	if( ! use_gsub)
+	if( ! use_ot_layout)
 	{
 		if( code == 0x20)
 		{
@@ -1007,7 +1028,7 @@ get_ft_bitmap(
 		int  pitch ;
 		int  rows ;
 
-		if( xfont->num_of_glyphs >= 128 * 512 - 1)
+		if( xfont->num_of_glyphs >= GLYPH_TABLE_SIZE * MAX_GLYPH_TABLES - 1)
 		{
 			kik_msg_printf( "Unable to show U+%x because glyph cache is full.\n" ,
 				code) ;
@@ -1025,7 +1046,7 @@ get_ft_bitmap(
 		if( OFF(xfont->num_of_glyphs) == 0)
 		{
 			if( ! ( glyphs[SEG(xfont->num_of_glyphs)] =
-					calloc( 128 , xfont->glyph_size)))
+					calloc( GLYPH_TABLE_SIZE , xfont->glyph_size)))
 			{
 				return  NULL ;
 			}
@@ -1133,7 +1154,7 @@ get_ft_bitmap(
 
 			if( IS_PROPORTIONAL(xfont))
 			{
-				/* Storing glyph position info. (ISCII) */
+				/* Storing glyph position info. (ISCII or ISO10646_UCS4_1_V) */
 
 				dst = glyph + xfont->glyph_size - 3 ;
 
@@ -1272,6 +1293,7 @@ x_font_new(
 	u_int  letter_space	/* Ignored for now. */
 	)
 {
+	mkf_charset_t  cs ;
 	char *  font_file ;
 	u_int  percent ;
 	x_font_t *  font ;
@@ -1281,13 +1303,15 @@ x_font_new(
 	u_int  format ;
 #endif
 
+	cs = FONT_CS(id) ;
+
 	if( ! fontname)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Font file is not specified.\n") ;
 	#endif
 
-		if( FONT_CS(id) == ISO10646_UCS4_1 || FONT_CS(id) == ISO8859_1_R)
+		if( IS_ISO10646_UCS4(cs) || cs == ISO8859_1_R)
 		{
 			struct stat  st ;
 
@@ -1459,7 +1483,7 @@ x_font_new(
 	font->display = display ;
 
 	if( ! load_xfont( font->xfont , font_file , format ,
-		display->bytes_per_pixel , FONT_CS(id)))
+		display->bytes_per_pixel , cs))
 	{
 		kik_msg_printf( "Failed to load %s.\n" , font_file) ;
 
@@ -1518,7 +1542,7 @@ xfont_loaded:
 	 */
 #if  1
 #ifdef  USE_FREETYPE
-	if( IS_ISCII(FONT_CS(font->id)) && font->xfont->is_aa &&
+	if( IS_ISCII(cs) && font->xfont->is_aa &&
 	    ( font->xfont->ref_count == 1 || IS_PROPORTIONAL(font->xfont)))
 	{
 		/* Proportional glyph is available on ISCII alone for now. */
@@ -1541,32 +1565,38 @@ xfont_loaded:
 		 * each other.
 		 */
 		font->is_var_col_width = 1 ;
+
+		if( cs == ISO10646_UCS4_1_V)
+		{
+			font->is_proportional = 1 ;
+
+			if( font->xfont->ref_count == 1)
+			{
+				/* +3 is for storing glyph position info. */
+				font->xfont->glyph_size += 3 ;
+			}
+			else if( ! IS_PROPORTIONAL(font->xfont))
+			{
+				clear_glyph_cache_ft( font->xfont) ;
+
+				/* +3 is for storing glyph position info. */
+				font->xfont->glyph_size += 3 ;
+			}
+		}
 	}
-	else
 #endif
-	{
-		font->is_var_col_width = 0 ;
-	}
 
 	if( font_present & FONT_VERTICAL)
 	{
 		font->is_vertical = 1 ;
-	}
-	else
-	{
-		font->is_vertical = 0 ;
 	}
 
 	if( use_medium_for_bold)
 	{
 		font->double_draw_gap = 1 ;
 	}
-	else
-	{
-		font->double_draw_gap = 0 ;
-	}
 
-	if( ( id & FONT_FULLWIDTH) && FONT_CS(id) == ISO10646_UCS4_1 &&
+	if( ( id & FONT_FULLWIDTH) && IS_ISO10646_UCS4(cs) &&
 	    font->xfont->width_full > 0)
 	{
 		font->width = font->xfont->width_full ;
@@ -1578,8 +1608,6 @@ xfont_loaded:
 
 	font->height = font->xfont->height ;
 	font->ascent = font->xfont->ascent ;
-
-	font->x_off = 0 ;
 
 	if( col_width == 0)
 	{
@@ -1789,6 +1817,13 @@ x_font_delete(
 		free( font->xfont) ;
 	}
 
+#ifdef  USE_OT_LAYOUT
+	if( font->ot_font)
+	{
+		otl_close( font->ot_font) ;
+	}
+#endif
+
 	free( font) ;
 
 	return  1 ;
@@ -1819,31 +1854,21 @@ x_change_font_cols(
 	return  1 ;
 }
 
-#ifdef  USE_GSUB
+#ifdef  USE_OT_LAYOUT
 
 int
-x_font_has_gsub_table(
+x_font_has_ot_layout_table(
 	x_font_t *  font
 	)
 {
 	if( font->xfont->face)
 	{
-		if( ! font->otf)
+		if( ! font->ot_font)
 		{
-			if( font->otf_not_found ||
-			    ! ( font->otf = OTF_open_ft_face( font->xfont->face)))
+			if( font->ot_font_not_found ||
+			    ! ( font->ot_font = otl_open( font->xfont->face , 0)))
 			{
-				font->otf_not_found = 1 ;
-
-				return  0 ;
-			}
-
-			if( OTF_check_table( font->otf , "GSUB") != 0 ||
-			    OTF_check_table( font->otf , "cmap") != 0)
-			{
-				OTF_close( font->otf) ;
-				font->otf = NULL ;
-				font->otf_not_found = 1 ;
+				font->ot_font_not_found = 1 ;
 
 				return  0 ;
 			}
@@ -1858,69 +1883,17 @@ x_font_has_gsub_table(
 u_int
 x_convert_text_to_glyphs(
 	x_font_t *  font ,
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
 	const char *  features
 	)
 {
-	static OTF_Glyph *  glyphs ;
-	OTF_GlyphString  otfstr ;
-	u_int  count ;
-
-	otfstr.size = otfstr.used = src_len ;
-
-/* Avoid kik_mem memory management */
-#undef  realloc
-	if( ! ( otfstr.glyphs = realloc( glyphs , otfstr.size * sizeof(*otfstr.glyphs))))
-	{
-		return  0 ;
-	}
-#ifdef  KIK_DEBUG
-#define  realloc( ptr , size)  kik_mem_realloc( ptr , size , __FILE__ , __LINE__ , __FUNCTION)
-#endif
-
-	glyphs = otfstr.glyphs ;
-	memset( otfstr.glyphs , 0 , otfstr.size * sizeof(*otfstr.glyphs)) ;
-
-	if( src)
-	{
-		for( count = 0 ; count < src_len ; count++)
-		{
-			otfstr.glyphs[count].c = src[count] ;
-		}
-
-		OTF_drive_cmap( font->otf , &otfstr) ;
-
-		if( cmap)
-		{
-			for( count = 0 ; count < otfstr.used ; count++)
-			{
-				cmap[count] = otfstr.glyphs[count].glyph_id ;
-			}
-
-			return  otfstr.used ;
-		}
-	}
-	else /* if( cmap) */
-	{
-		for( count = 0 ; count < src_len ; count++)
-		{
-			otfstr.glyphs[count].glyph_id = cmap[count] ;
-		}
-	}
-
-	OTF_drive_gsub( font->otf , &otfstr , script , NULL , features) ;
-
-	for( count = 0 ; count < otfstr.used ; count++)
-	{
-		gsub[count] = otfstr.glyphs[count].glyph_id ;
-	}
-
-	return  otfstr.used ;
+	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , cmapped ,
+			src , src_len , script , features) ;
 }
 
 #endif
@@ -1943,7 +1916,8 @@ x_calculate_char_width(
 	{
 		u_char *  glyph ;
 
-		if( ( glyph = get_ft_bitmap( font->xfont , ch , (font->use_gsub && font->otf))))
+		if( ( glyph = get_ft_bitmap( font->xfont , ch ,
+				(font->use_ot_layout /* && font->ot_font */))))
 		{
 			return  glyph[font->xfont->glyph_size - 3] ;
 		}
@@ -2037,7 +2011,7 @@ x_get_bitmap(
 	XFontStruct *  xfont ,
 	u_char *  ch ,
 	size_t  len ,
-	int  use_gsub
+	int  use_ot_layout
 	)
 {
 	size_t  ch_idx ;
@@ -2047,7 +2021,7 @@ x_get_bitmap(
 #ifdef  USE_FREETYPE
 	if( xfont->face)
 	{
-		return  get_ft_bitmap( xfont , mkf_bytes_to_int( ch , len) , use_gsub) ;
+		return  get_ft_bitmap( xfont , mkf_bytes_to_int( ch , len) , use_ot_layout) ;
 	}
 	else
 #endif

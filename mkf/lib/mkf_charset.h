@@ -161,6 +161,7 @@ typedef enum  mkf_charset
 	
 	/* Revision 1 */
 	JISX0208_1990 = CS_REVISION_1( JISX0208_1983) ,
+	ISO10646_UCS4_1_V = CS_REVISION_1( ISO10646_UCS4_1) ,	/* mkf original */
 
 
 	/* Followings are mkf original classifications */

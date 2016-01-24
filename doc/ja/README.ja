@@ -534,14 +534,14 @@ comment $Id$
         EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
         に全角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
 
-      o use_gsub (true/*false*)
-        Open Type フォントの置換グリフを使ってテキストを表示します。
+      o use_ot_layout (true/*false*)
+        Open Type フォントの置換グリフ等を使ってテキストを表示します。
         use_ctl オプションを有効にしておく必要があります。
 
-      o gsub_script (latn)
+      o ot_script (latn)
         グリフ置換を行う場合の script を指定します。
 
-      o gsub_features (liga,clig,dlig,hlig,rlig)
+      o ot_features (liga,clig,dlig,hlig,rlig)
         グリフ置換を行う場合の feature を指定します。
 
       -- Appearance 関連 --
@@ -887,7 +887,7 @@ comment $Id$
       o CNS11643_1992_N    ... CNS11643_1992_Nフォント
       o ISO10646_UCS4_1    ... UNICODEフォント(1カラム用)
       o ISO10646_UCS4_1_FULLWIDTH ... UNICODEフォント(2カラム用)
-      o U+XXXX-XXXX        ... UNICODEフォント(指定した範囲。最大511個まで。)
+      o U+XXXX-XXXX        ... UNICODEフォント(指定した範囲。最大255個まで。)
 
       (*) KOI8_T,GEORGIAN_PS,CP125[0-8],CP874 は -u オプションを指定して
           Unicode フォントを使用する必要があります。
@@ -1297,9 +1297,9 @@ comment $Id$
        --bl=value      : bl_color
        --co=value      : co_color
        --noul(=bool)   : hide_underline
-       --gsub(=bool)   : use_gsub
-       --gst=value     : gsub_script
-       --gft=value     : gsub_features
+       --otl(=bool)    : use_ot_layout
+       --ost=value     : ot_script
+       --oft=value     : ot_features
        --servlist=value : server_list
        --serv=value    : default_server
        --pubkey=value  : ssh_public_key

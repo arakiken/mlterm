@@ -142,6 +142,11 @@ next_char(
 	/* hack for mkf_parser_reset */
 	parser->left = ml_str_parser->left ;
 
+	if( ml_char_is_null( ml_ch))
+	{
+		return  next_char( parser , ch) ;
+	}
+
 	return  1 ;
 
 err:

@@ -36,7 +36,7 @@ u_int  ml_shape_iscii( ml_char_t *  dst , u_int  dst_len , ml_char_t *  src , u_
 
 #endif
 
-u_int  ml_shape_gsub( ml_char_t *  dst , u_int  dst_len ,
+u_int  ml_shape_ot_layout( ml_char_t *  dst , u_int  dst_len ,
 		ml_char_t *  src , u_int  src_len , ctl_info_t  ctl_info) ;
 
 

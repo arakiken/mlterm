@@ -10,7 +10,7 @@
 #include  <kiklib/kik_mem.h>	/* alloca */
 
 #include  "ml_ctl_loader.h"
-#include  "ml_gsub.h"
+#include  "ml_ot_layout.h"
 
 
 #ifdef  DEBUG
@@ -27,7 +27,7 @@
 
 #define  ml_line_is_using_bidi( line)  ((line)->ctl_info_type == VINFO_BIDI)
 #define  ml_line_is_using_iscii( line)  ((line)->ctl_info_type == VINFO_ISCII)
-#define  ml_line_is_using_gsub( line)  ((line)->ctl_info_type == VINFO_GSUB)
+#define  ml_line_is_using_ot_layout( line)  ((line)->ctl_info_type == VINFO_OT_LAYOUT)
 
 #if  0
 #define  __DEBUG
@@ -41,8 +41,8 @@
 
 /* --- static variables --- */
 
-#ifdef  USE_GSUB
-static int  use_gsub ;
+#ifdef  USE_OT_LAYOUT
+static int  use_ot_layout ;
 #endif
 
 
@@ -336,17 +336,17 @@ int  ml_line_iscii_logical( ml_line_t *  line) ;
 
 #endif	/* NO_DYNAMIC_LOAD_CTL */
 
-#ifdef  USE_GSUB
+#ifdef  USE_OT_LAYOUT
 
 static int
-ml_line_set_use_gsub(
+ml_line_set_use_ot_layout(
 	ml_line_t *  line ,
 	int  flag
 	)
 {
 	if( flag)
 	{
-		if( ml_line_is_using_gsub( line))
+		if( ml_line_is_using_ot_layout( line))
 		{
 			return  1 ;
 		}
@@ -355,18 +355,18 @@ ml_line_set_use_gsub(
 			return  0 ;
 		}
 
-		if( ( line->ctl_info.gsub = ml_gsub_new()) == NULL)
+		if( ( line->ctl_info.ot_layout = ml_ot_layout_new()) == NULL)
 		{
 			return  0 ;
 		}
 
-		line->ctl_info_type = VINFO_GSUB ;
+		line->ctl_info_type = VINFO_OT_LAYOUT ;
 	}
 	else
 	{
-		if( ml_line_is_using_gsub( line))
+		if( ml_line_is_using_ot_layout( line))
 		{
-			ml_gsub_delete( line->ctl_info.gsub) ;
+			ml_ot_layout_delete( line->ctl_info.ot_layout) ;
 			line->ctl_info_type = 0 ;
 		}
 	}
@@ -374,68 +374,9 @@ ml_line_set_use_gsub(
 	return  1 ;
 }
 
-static int  ml_line_gsub_convert_logical_char_index_to_visual( ml_line_t *  line ,
-		int  logical_char_index) ;
-
-/* The caller should check ml_line_is_using_gsub() in advance. */
+/* The caller should check ml_line_is_using_ot_layout() in advance. */
 static int
-ml_line_gsub_render(
-	ml_line_t *  line ,
-	void *  term
-	)
-{
-	int  had_gsub ;
-	int  ret ;
-
-	had_gsub = line->ctl_info.gsub->has_gsub ;
-	line->ctl_info.gsub->term = term ;
-
-	if( ! ( ret = ml_gsub( line->ctl_info.gsub , line->chars , line->num_of_filled_chars)))
-	{
-		return  0 ;
-	}
-
-	/*
-	 * Not only has_gsub but also had_gsub should be checked.
-	 *
-	 * Lower case: ASCII
-	 * Upper case: GSUB
-	 *    (Logical) AAA == (Visual) BBBBB
-	 * => (Logical) aaa == (Visual) aaa
-	 * In this case ml_line_is_cleared_to_end() returns 0, so "BB" remains on
-	 * the screen unless following ml_line_set_modified().
-	 */
-	if( ml_line_is_modified( line))
-	{
-		if( line->ctl_info.gsub->has_gsub)
-		{
-			/*
-			 * Conforming line->change_{beg|end}_col to visual mode.
-			 * If this line contains GSUB chars, it should be redrawn to
-			 * the end of line.
-			 */
-			ml_line_set_modified( line ,
-				ml_line_gsub_convert_logical_char_index_to_visual( line ,
-					ml_line_get_beg_of_modified( line)) ,
-				line->num_of_chars) ;
-		}
-		else if( had_gsub)
-		{
-			/*
-			 * D => EFG
-			 * HAD_GSUB: ABCD
-			 * HAS_GSUB: ABCEFG
-			 */
-			ml_line_set_modified_all( line) ;
-		}
-	}
-
-	return  ret ;
-}
-
-/* The caller should check ml_line_is_using_gsub() in advance. */
-static int
-ml_line_gsub_visual(
+ml_line_ot_layout_visual(
 	ml_line_t *  line
 	)
 {
@@ -446,8 +387,8 @@ ml_line_gsub_visual(
 	int  dst_pos ;
 	int  src_pos ;
 
-	if( line->ctl_info.gsub->size == 0 ||
-	    ! line->ctl_info.gsub->has_gsub)
+	if( line->ctl_info.ot_layout->size == 0 ||
+	    ! line->ctl_info.ot_layout->has_ot_layout)
 	{
 	#ifdef  __DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " Not need to visualize.\n") ;
@@ -464,14 +405,14 @@ ml_line_gsub_visual(
 
 	ml_str_copy( src , line->chars , src_len) ;
 
-	dst_len = line->ctl_info.gsub->size ;
+	dst_len = line->ctl_info.ot_layout->size ;
 	if( line->num_of_chars < dst_len)
 	{
 		ml_char_t *  chars ;
 
 		if( ( chars = ml_str_new( dst_len)))
 		{
-			/* XXX => shrunk at ml_screen.c and ml_logical_visual_gsub.c */
+			/* XXX => shrunk at ml_screen.c and ml_logical_visual_ot_layout.c */
 			ml_str_delete( line->chars , line->num_of_chars) ;
 			line->chars = chars ;
 			line->num_of_chars = dst_len ;
@@ -485,22 +426,44 @@ ml_line_gsub_visual(
 	dst = line->chars ;
 
 	src_pos = 0 ;
-	for( dst_pos = 0 ; dst_pos < dst_len ; dst_pos ++)
+	for( dst_pos = 0 ; dst_pos < dst_len ; dst_pos++ , dst++)
 	{
-		if( line->ctl_info.gsub->num_of_chars_array[dst_pos] == 0)
+		if( line->ctl_info.ot_layout->num_of_chars_array[dst_pos] == 0)
 		{
-			ml_char_copy( dst + dst_pos , ml_get_base_char( src + src_pos - 1)) ;
+		#if  0
+			/*
+			 * (logical)ACD -> (visual)ACD -> (shaped)acd
+			 *          B              B
+			 *                         0              b
+			 * (B, 0 and b are combining chars)
+			 */
+			ml_char_t  ch ;
+
+			ml_char_init( &ch) ;
+			ml_char_copy( &ch , ml_get_base_char( src + src_pos - 1)) ;
 			/* NULL */
-			ml_char_set_code( dst + dst_pos , 0) ;
+			ml_char_set_code( &ch , 0) ;
+
+			ml_char_combine_simple( --dst , &ch) ;
+		#else
+			/*
+			 * (logical)ACD -> (visual)A0CD -> (shaped)abcd
+			 *          B              B
+			 * (B is combining char)
+			 */
+			ml_char_copy( dst , ml_get_base_char( src + src_pos - 1)) ;
+			ml_char_set_code( dst , 0) ;
+		#endif
 		}
 		else
 		{
 			u_int  count ;
 
-			ml_char_copy( dst + dst_pos , src + (src_pos ++)) ;
+			ml_char_copy( dst , src + (src_pos ++)) ;
 
 			for( count = 1 ;
-			     count < line->ctl_info.gsub->num_of_chars_array[dst_pos] ; count++)
+			     count < line->ctl_info.ot_layout->num_of_chars_array[dst_pos] ;
+			     count ++)
 			{
 				ml_char_t *  comb ;
 				u_int  num ;
@@ -508,25 +471,23 @@ ml_line_gsub_visual(
 			#ifdef  DEBUG
 				if( ml_char_is_comb( ml_get_base_char( src + src_pos)))
 				{
-					kik_debug_printf( KIK_DEBUG_TAG " illegal gsub\n") ;
+					kik_debug_printf( KIK_DEBUG_TAG " illegal ot_layout\n") ;
 				}
 			#endif
-				ml_char_combine_simple( dst + dst_pos ,
-					ml_get_base_char( src + src_pos)) ;
 
-				if( ( comb = ml_get_combining_chars( src + (src_pos ++) , &num)))
+				ml_char_combine_simple( dst , ml_get_base_char( src + src_pos)) ;
+
+				comb = ml_get_combining_chars( src + (src_pos ++) , &num) ;
+				for( ; num > 0 ; num--)
 				{
-					for( ; num > 0 ; num--)
+				#ifdef  DEBUG
+					if( ! ml_char_is_comb( comb))
 					{
-					#ifdef  DEBUG
-						if( ! ml_char_is_comb( comb))
-						{
-							kik_debug_printf( KIK_DEBUG_TAG
-								" illegal gsub\n") ;
-						}
-					#endif
-						ml_char_combine_simple( dst + dst_pos , comb ++) ;
+						kik_debug_printf( KIK_DEBUG_TAG
+							" illegal ot_layout\n") ;
 					}
+				#endif
+					ml_char_combine_simple( dst , comb ++) ;
 				}
 			}
 		}
@@ -535,21 +496,22 @@ ml_line_gsub_visual(
 #ifdef  DEBUG
 	if( src_pos != src_len)
 	{
-		kik_debug_printf( KIK_DEBUG_TAG "ml_line_gsub_visual() failed: %d -> %d\n" ,
+		kik_debug_printf( KIK_DEBUG_TAG "ml_line_ot_layout_visual() failed: %d -> %d\n" ,
 			src_len , src_pos) ;
 	}
 #endif
 
 	ml_str_final( src , src_len) ;
 
-	line->num_of_filled_chars = dst_pos ;
+	/* If '#if 0' above is '#if 1', line->chars + dst_pos != dst */
+	line->num_of_filled_chars = (dst - line->chars) ;
 
 	return  1 ;
 }
 
-/* The caller should check ml_line_is_using_gsub() in advance. */
+/* The caller should check ml_line_is_using_ot_layout() in advance. */
 static int
-ml_line_gsub_logical(
+ml_line_ot_layout_logical(
 	ml_line_t *  line
 	)
 {
@@ -558,8 +520,8 @@ ml_line_gsub_logical(
 	ml_char_t *  dst ;
 	int  src_pos ;
 
-	if( line->ctl_info.gsub->size == 0 ||
-	    ! line->ctl_info.gsub->has_gsub)
+	if( line->ctl_info.ot_layout->size == 0 ||
+	    ! line->ctl_info.ot_layout->has_ot_layout)
 	{
 	#ifdef  __DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " Not need to logicalize.\n") ;
@@ -577,35 +539,30 @@ ml_line_gsub_logical(
 	ml_str_copy( src , line->chars , src_len) ;
 	dst = line->chars ;
 
-	for( src_pos = 0 ; src_pos < line->ctl_info.gsub->size ; src_pos++)
+	for( src_pos = 0 ; src_pos < src_len ; src_pos++)
 	{
 		ml_char_t *  comb ;
 		u_int  num ;
 
-		if( line->ctl_info.gsub->num_of_chars_array[src_pos] == 0)
+		if( ml_char_is_null( src + src_pos))
 		{
 			continue ;
 		}
-		else if( line->ctl_info.gsub->num_of_chars_array[src_pos] == 1)
-		{
-			ml_char_copy( dst , src + src_pos) ;
-		}
-		else
-		{
-			ml_char_copy( dst , ml_get_base_char( src + src_pos)) ;
 
-			if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+		ml_char_copy( dst , ml_get_base_char( src + src_pos)) ;
+
+		comb = ml_get_combining_chars( src + src_pos , &num) ;
+		for( ; num > 0 ; num-- , comb++)
+		{
+			if( ! ml_char_is_null( comb))
 			{
-				for( ; num > 0 ; num-- , comb++)
+				if( ml_char_is_comb( comb))
 				{
-					if( ml_char_is_comb( comb))
-					{
-						ml_char_combine_simple( dst , comb) ;
-					}
-					else
-					{
-						ml_char_copy( ++ dst , comb) ;
-					}
+					ml_char_combine_simple( dst , comb) ;
+				}
+				else
+				{
+					ml_char_copy( ++ dst , comb) ;
 				}
 			}
 		}
@@ -620,23 +577,24 @@ ml_line_gsub_logical(
 	return  1 ;
 }
 
-/* The caller should check ml_line_is_using_gsub() in advance. */
+/* The caller should check ml_line_is_using_ot_layout() in advance. */
 static int
-ml_line_gsub_convert_logical_char_index_to_visual(
-	ml_line_t *  line ,
+ml_line_ot_layout_convert_logical_char_index_to_visual(
+	ml_line_t *  line ,		/* visual context */
 	int  logical_char_index
 	)
 {
 	int  visual_char_index ;
 	int  end_char_index ;
+	ml_char_t *  str ;
 
 	if( ml_line_is_empty(line))
 	{
 		return  0 ;
 	}
 
-	if( line->ctl_info.gsub->size == 0 ||
-	    ! line->ctl_info.gsub->has_gsub)
+	if( line->ctl_info.ot_layout->size == 0 ||
+	    ! line->ctl_info.ot_layout->has_ot_layout)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " logical char_index is same as visual one.\n") ;
@@ -645,19 +603,98 @@ ml_line_gsub_convert_logical_char_index_to_visual(
 	}
 
 	end_char_index = ml_line_end_char_index( line) ;
-	for( visual_char_index = 0 ; visual_char_index < end_char_index ; visual_char_index++)
+	str = line->chars ;
+
+	for( visual_char_index = 0 ; visual_char_index < end_char_index ;
+	     visual_char_index++ , str++)
 	{
-		if( ( logical_char_index -=
-			line->ctl_info.gsub->num_of_chars_array[visual_char_index]) < 0)
+		ml_char_t *  comb ;
+		u_int  num ;
+
+		if( ml_char_is_null( str))
+		{
+			continue ;
+		}
+
+		if( -- logical_char_index < 0)
 		{
 			break ;
+		}
+
+		comb = ml_get_combining_chars( str , &num) ;
+		for( ; num > 0 ; num-- , comb++)
+		{
+			if( ! ml_char_is_null( comb) &&
+			    ! ml_char_is_comb( comb) &&
+			    -- logical_char_index < 0)
+			{
+				return  visual_char_index ;
+			}
 		}
 	}
 
 	return  visual_char_index ;
 }
 
-#endif	/* USE_GSUB */
+/* The caller should check ml_line_is_using_ot_layout() in advance. */
+static int
+ml_line_ot_layout_render(
+	ml_line_t *  line ,
+	void *  term
+	)
+{
+	int  had_ot_layout ;
+	int  ret ;
+
+	had_ot_layout = line->ctl_info.ot_layout->has_ot_layout ;
+	line->ctl_info.ot_layout->term = term ;
+
+	if( ! ( ret = ml_ot_layout( line->ctl_info.ot_layout , line->chars , line->num_of_filled_chars)))
+	{
+		return  0 ;
+	}
+
+	/*
+	 * Not only has_ot_layout but also had_ot_layout should be checked.
+	 *
+	 * Lower case: ASCII
+	 * Upper case: OT_LAYOUT
+	 *    (Logical) AAA == (Visual) BBBBB
+	 * => (Logical) aaa == (Visual) aaa
+	 * In this case ml_line_is_cleared_to_end() returns 0, so "BB" remains on
+	 * the screen unless following ml_line_set_modified().
+	 */
+	if( ml_line_is_modified( line))
+	{
+		if( had_ot_layout)
+		{
+			/*
+			 * D => EFG
+			 * HAD_OT_LAYOUT: ABCD
+			 * HAS_OT_LAYOUT: ABCEFG
+			 */
+			ml_line_set_modified_all( line) ;
+		}
+		else if( line->ctl_info.ot_layout->has_ot_layout)
+		{
+			/*
+			 * Conforming line->change_{beg|end}_col to visual mode.
+			 * If this line contains OT_LAYOUT chars, it should be redrawn to
+			 * the end of line.
+			 */
+			ml_line_ot_layout_visual( line) ;
+			ml_line_set_modified( line ,
+				ml_line_ot_layout_convert_logical_char_index_to_visual( line ,
+					ml_line_get_beg_of_modified( line)) ,
+				line->num_of_chars) ;
+			ml_line_ot_layout_logical( line) ;
+		}
+	}
+
+	return  ret ;
+}
+
+#endif	/* USE_OT_LAYOUT */
 
 static void
 copy_line(
@@ -722,26 +759,26 @@ copy_line(
 		ml_line_set_use_iscii( dst , 0) ;
 	}
 
-#ifdef  USE_GSUB
-	if( ml_line_is_using_gsub( src))
+#ifdef  USE_OT_LAYOUT
+	if( ml_line_is_using_ot_layout( src))
 	{
-		if( ml_line_is_using_gsub( dst) || ml_line_set_use_gsub( dst , 1))
+		if( ml_line_is_using_ot_layout( dst) || ml_line_set_use_ot_layout( dst , 1))
 		{
 			/*
-			 * Don't use ml_line_gsub_render() here,
+			 * Don't use ml_line_ot_layout_render() here,
 			 * or it is impossible to call this function in visual context.
 			 */
-			if( ml_gsub_copy( dst->ctl_info.gsub , src->ctl_info.gsub ,
+			if( ml_ot_layout_copy( dst->ctl_info.ot_layout , src->ctl_info.ot_layout ,
 				optimize_ctl_info) == -1)
 			{
 				dst->ctl_info_type = 0 ;
-				dst->ctl_info.gsub = NULL ;
+				dst->ctl_info.ot_layout = NULL ;
 			}
 		}
 	}
-	else if( ml_line_is_using_gsub( dst))
+	else if( ml_line_is_using_ot_layout( dst))
 	{
-		ml_line_set_use_gsub( dst , 0) ;
+		ml_line_set_use_ot_layout( dst , 0) ;
 	}
 #endif
 }
@@ -750,12 +787,12 @@ copy_line(
 /* --- global functions --- */
 
 void
-ml_set_use_gsub(
+ml_set_use_ot_layout(
 	int  flag
 	)
 {
-#ifdef  USE_GSUB
-	use_gsub = flag ;
+#ifdef  USE_OT_LAYOUT
+	use_ot_layout = flag ;
 #endif
 }
 
@@ -807,10 +844,10 @@ ml_line_final(
 	{
 		ml_line_set_use_iscii( line , 0) ;
 	}
-#ifdef  USE_GSUB
-	else if( ml_line_is_using_gsub( line))
+#ifdef  USE_OT_LAYOUT
+	else if( ml_line_is_using_ot_layout( line))
 	{
-		ml_line_set_use_gsub( line , 0) ;
+		ml_line_set_use_ot_layout( line , 0) ;
 	}
 #endif
 
@@ -863,7 +900,7 @@ ml_line_break_boundary(
 	}
 
 	/*
-	 * change_{beg|end}_col is not updated , because space has no gsub.
+	 * change_{beg|end}_col is not updated , because space has no ot_layout.
 	 */
 #if  0
 	ml_line_set_modified( line , END_CHAR_INDEX(line) + 1 , END_CHAR_INDEX(line) + size) ;
@@ -940,10 +977,10 @@ ml_line_reset(
 	{
 		ml_iscii_reset( line->ctl_info.iscii) ;
 	}
-#ifdef  USE_GSUB
-	else if( ml_line_is_using_gsub( line))
+#ifdef  USE_OT_LAYOUT
+	else if( ml_line_is_using_ot_layout( line))
 	{
-		ml_gsub_reset( line->ctl_info.gsub) ;
+		ml_ot_layout_reset( line->ctl_info.ot_layout) ;
 	}
 #endif
 
@@ -1926,10 +1963,10 @@ ml_line_convert_logical_char_index_to_visual(
 #ifdef  NO_DYNAMIC_LOAD_CTL
 	if( line->ctl_info_type)
 	{
-	#ifdef  USE_GSUB
-		if( ml_line_is_using_gsub( line))
+	#ifdef  USE_OT_LAYOUT
+		if( ml_line_is_using_ot_layout( line))
 		{
-			char_index = ml_line_gsub_convert_logical_char_index_to_visual(
+			char_index = ml_line_ot_layout_convert_logical_char_index_to_visual(
 					line , char_index) ;
 		}
 		else
@@ -1954,10 +1991,10 @@ ml_line_convert_logical_char_index_to_visual(
 #else
 	if( line->ctl_info_type)
 	{
-	#ifdef  USE_GSUB
-		if( ml_line_is_using_gsub( line))
+	#ifdef  USE_OT_LAYOUT
+		if( ml_line_is_using_ot_layout( line))
 		{
-			char_index = ml_line_gsub_convert_logical_char_index_to_visual(
+			char_index = ml_line_ot_layout_convert_logical_char_index_to_visual(
 					line , char_index) ;
 		}
 		else
@@ -1996,10 +2033,10 @@ ml_line_unuse_ctl(
 {
 	if( line->ctl_info_type)
 	{
-	#ifdef  USE_GSUB
-		if( ml_line_is_using_gsub( line))
+	#ifdef  USE_OT_LAYOUT
+		if( ml_line_is_using_ot_layout( line))
 		{
-			return  ml_line_set_use_gsub( line , 0) ;
+			return  ml_line_set_use_ot_layout( line , 0) ;
 		}
 		else
 	#endif
@@ -2030,8 +2067,8 @@ ml_line_ctl_render(
 	if( ! ml_line_is_using_ctl( line))
 	{
 		if(
-		#ifdef  USE_GSUB
-		    (! use_gsub || ! ml_line_set_use_gsub( line , 1)) &&
+		#ifdef  USE_OT_LAYOUT
+		    (! use_ot_layout || ! ml_line_set_use_ot_layout( line , 1)) &&
 		#endif
 		    ! ml_line_set_use_bidi( line , 1) && ! ml_line_set_use_iscii( line , 1))
 		{
@@ -2041,19 +2078,19 @@ ml_line_ctl_render(
 
 	if( line->ctl_info_type)
 	{
-	#ifdef  USE_GSUB
-		if( ml_line_is_using_gsub( line))
+	#ifdef  USE_OT_LAYOUT
+		if( ml_line_is_using_ot_layout( line))
 		{
-			if( ! use_gsub)
+			if( ! use_ot_layout)
 			{
 				ret = -1 ;
 			}
-			else if( ( ret = ml_line_gsub_render( line , term)) >= 0)
+			else if( ( ret = ml_line_ot_layout_render( line , term)) >= 0)
 			{
 				return  ret ;
 			}
 
-			set_use_ctl = ml_line_set_use_gsub ;
+			set_use_ctl = ml_line_set_use_ot_layout ;
 
 			if( ret == -1)
 			{
@@ -2077,13 +2114,13 @@ ml_line_ctl_render(
 
 			if( ret == -1)
 			{
-			#ifdef  USE_GSUB
-				if( ! use_gsub)
+			#ifdef  USE_OT_LAYOUT
+				if( ! use_ot_layout)
 				{
 					return  1 ;
 				}
 
-				goto  render_gsub ;
+				goto  render_ot_layout ;
 			#else
 				return  1 ;
 			#endif
@@ -2102,10 +2139,10 @@ ml_line_ctl_render(
 
 			set_use_ctl = ml_line_set_use_iscii ;
 
-		#ifdef  USE_GSUB
-			if( use_gsub)
+		#ifdef  USE_OT_LAYOUT
+			if( use_ot_layout)
 			{
-				goto  render_gsub ;
+				goto  render_ot_layout ;
 			}
 			else
 		#endif
@@ -2117,12 +2154,12 @@ ml_line_ctl_render(
 
 	return  0 ;
 
-#ifdef  USE_GSUB
-render_gsub:
+#ifdef  USE_OT_LAYOUT
+render_ot_layout:
 	(*set_use_ctl)( line , 0) ;
-	ml_line_set_use_gsub( line , 1) ;
+	ml_line_set_use_ot_layout( line , 1) ;
 
-	if( ( ret = ml_line_gsub_render( line , term) != -1))
+	if( ( ret = ml_line_ot_layout_render( line , term) != -1))
 	{
 		return  ret ;
 	}
@@ -2180,10 +2217,10 @@ ml_line_ctl_visual(
 {
 	if( line->ctl_info_type)
 	{
-	#ifdef  USE_GSUB
-		if( ml_line_is_using_gsub( line))
+	#ifdef  USE_OT_LAYOUT
+		if( ml_line_is_using_ot_layout( line))
 		{
-			return  ml_line_gsub_visual( line) ;
+			return  ml_line_ot_layout_visual( line) ;
 		}
 		else
 	#endif
@@ -2207,10 +2244,10 @@ ml_line_ctl_logical(
 {
 	if( line->ctl_info_type)
 	{
-	#ifdef  USE_GSUB
-		if( ml_line_is_using_gsub( line))
+	#ifdef  USE_OT_LAYOUT
+		if( ml_line_is_using_ot_layout( line))
 		{
-			return  ml_line_gsub_logical( line) ;
+			return  ml_line_ot_layout_logical( line) ;
 		}
 		else
 	#endif

@@ -103,7 +103,7 @@ x_prepare_for_main_config(
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_GSUB)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_OT_LAYOUT)
 	kik_conf_add_opt( conf , 'C' , "ctl" , 1 , "use_ctl" ,
 		"use complex text layouting [true]") ;
 #endif
@@ -225,12 +225,12 @@ x_prepare_for_main_config(
 		"Color to use to display crossed-out characters") ;
 	kik_conf_add_opt( conf , '\0' , "noul" , 1 , "hide_underline" ,
 		"Don't draw underline [false]") ;
-#ifdef  USE_GSUB
-	kik_conf_add_opt( conf , '\0' , "gsub" , 1 , "use_gsub" ,
-		"Show substituting glyphs in open type fonts [false]") ;
-	kik_conf_add_opt( conf , '\0' , "gst" , 0 , "gsub_script" ,
+#ifdef  USE_OT_LAYOUT
+	kik_conf_add_opt( conf , '\0' , "otl" , 1 , "use_ot_layout" ,
+		"OpenType shape [false]") ;
+	kik_conf_add_opt( conf , '\0' , "ost" , 0 , "ot_script" ,
 		"Script of glyph subsutitution [latn]") ;
-	kik_conf_add_opt( conf , '\0' , "gft" , 0 , "gsub_features" ,
+	kik_conf_add_opt( conf , '\0' , "oft" , 0 , "ot_features" ,
 		"Features of glyph subsutitution [liga,clig,dlig,hlig,rlig]") ;
 #endif
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
@@ -1047,13 +1047,17 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_GSUB)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_OT_LAYOUT)
 	main_config->use_ctl = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_ctl")))
 	{
 		if( strcmp( value , "false") == 0)
 		{
+			/*
+			 * If use_ot_layout is true, use_ctl = true forcibly.
+			 * See processing "use_ot_layout" option.
+			 */
 			main_config->use_ctl = 0 ;
 		}
 	}
@@ -1496,23 +1500,24 @@ x_main_config_init(
 		main_config->work_dir = strdup( value) ;
 	}
 
-#ifdef  USE_GSUB
-	if( ( value = kik_conf_get_value( conf , "use_gsub")))
+#ifdef  USE_OT_LAYOUT
+	if( ( value = kik_conf_get_value( conf , "use_ot_layout")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			ml_set_use_gsub( 1) ;
+			ml_set_use_ot_layout( 1) ;
+			main_config->use_ctl = 1 ;
 		}
 	}
 
-	if( ( value = kik_conf_get_value( conf , "gsub_script")))
+	if( ( value = kik_conf_get_value( conf , "ot_script")))
 	{
-		ml_set_gsub_attr( value , GSUB_SCRIPT) ;
+		ml_set_ot_layout_attr( value , OT_SCRIPT) ;
 	}
 
-	if( ( value = kik_conf_get_value( conf , "gsub_features")))
+	if( ( value = kik_conf_get_value( conf , "ot_features")))
 	{
-		ml_set_gsub_attr( value , GSUB_FEATURES) ;
+		ml_set_ot_layout_attr( value , OT_FEATURES) ;
 	}
 #endif
 

@@ -6,7 +6,72 @@
 
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  "ml_ctl_loader.h"
-#include  "ml_gsub.h"
+#include  "ml_ot_layout.h"
+
+
+/* --- static functions --- */
+
+static int
+combine_replacing_code(
+	ml_char_t *  dst ,
+	ml_char_t *  src ,
+	u_int  new_code ,
+	int  was_vcol
+	)
+{
+	ml_char_t  ch ;
+	u_int  code ;
+
+	ml_char_init( &ch) ;
+	ml_char_copy( &ch , src) ;
+
+	code = ml_char_code( &ch) ;
+
+	if( ( 0x900 <= code && code <= 0xd7f) ||
+	    ( code == 0 && was_vcol))
+	{
+		ml_char_set_cs( &ch , ISO10646_UCS4_1_V) ;
+		was_vcol = 1 ;
+	}
+	else
+	{
+		ml_char_set_cs( &ch , ISO10646_UCS4_1) ;
+		was_vcol = 0 ;
+	}
+
+	ml_char_set_code( &ch , new_code) ;
+	ml_char_combine_simple( dst , &ch) ;
+
+	return  was_vcol ;
+}
+
+static int
+replace_code(
+	ml_char_t *  ch ,
+	u_int  new_code ,
+	int  was_vcol
+	)
+{
+	u_int  code ;
+
+	code = ml_char_code( ch) ;
+
+	if( ( 0x900 <= code && code <= 0xd7f) ||
+	    ( code == 0 && was_vcol))
+	{
+		ml_char_set_cs( ch , ISO10646_UCS4_1_V) ;
+		was_vcol = 1 ;
+	}
+	else
+	{
+		ml_char_set_cs( ch , ISO10646_UCS4_1) ;
+		was_vcol = 0 ;
+	}
+
+	ml_char_set_code( ch , new_code) ;
+
+	return  was_vcol ;
+}
 
 
 /* --- global functions --- */
@@ -75,9 +140,9 @@ ml_shape_iscii(
 #endif
 
 
-#ifdef  USE_GSUB
+#ifdef  USE_OT_LAYOUT
 u_int
-ml_shape_gsub(
+ml_shape_ot_layout(
 	ml_char_t *  dst ,
 	u_int  dst_len ,
 	ml_char_t *  src ,
@@ -89,14 +154,18 @@ ml_shape_gsub(
 	u_int  dst_filled ;
 	u_int32_t *  ucs_buf ;
 	u_int  ucs_filled ;
-	u_int32_t *  gsub_buf ;
-	u_int  gsub_filled ;
+	u_int32_t *  shaped_buf ;
+	u_int  shaped_filled ;
 	ml_char_t *  ch ;
 	ml_char_t *  dst_shaped ;
 	u_int  count ;
 	ml_font_t  prev_font ;
 	ml_font_t  cur_font ;
 	void *  xfont ;
+	ml_char_t *  comb ;
+	u_int  comb_size ;
+	int  src_pos_mark ;
+	int  was_vcol ;
 
 	if( ( ucs_buf = alloca( src_len * (MAX_COMB_SIZE + 1) * sizeof(*ucs_buf))) == NULL)
 	{
@@ -104,7 +173,7 @@ ml_shape_gsub(
 	}
 
 #define  DST_LEN  (dst_len * (MAX_COMB_SIZE + 1))
-	if( ( gsub_buf = alloca( DST_LEN * sizeof(*ucs_buf))) == NULL)
+	if( ( shaped_buf = alloca( DST_LEN * sizeof(*ucs_buf))) == NULL)
 	{
 		return  0 ;
 	}
@@ -121,7 +190,7 @@ ml_shape_gsub(
 
 		if( FONT_CS(cur_font) == US_ASCII)
 		{
-			cur_font &= ~MAX_CHARSET ;
+			cur_font &= ~US_ASCII ;
 			cur_font |= ISO10646_UCS4_1 ;
 		}
 
@@ -129,17 +198,17 @@ ml_shape_gsub(
 		{
 			if( ucs_filled)
 			{
-				gsub_filled = ml_gsub_shape( xfont , gsub_buf , DST_LEN ,
+				shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , DST_LEN ,
 							NULL , ucs_buf , ucs_filled) ;
 
 				/*
-				 * If EOL char is a gsub byte which presents two gsubs and
-				 * its second gsub is out of screen, 'gsub_filled' is greater
+				 * If EOL char is a ot_layout byte which presents two ot_layouts and
+				 * its second ot_layout is out of screen, 'shaped_filled' is greater
 				 * than 'dst + dst_len - dst_shaped'.
 				 */
-				if( gsub_filled > dst + dst_len - dst_shaped)
+				if( shaped_filled > dst + dst_len - dst_shaped)
 				{
-					gsub_filled = dst + dst_len - dst_shaped ;
+					shaped_filled = dst + dst_len - dst_shaped ;
 				}
 
 			#ifdef  __DEBUG
@@ -152,19 +221,35 @@ ml_shape_gsub(
 					}
 					kik_msg_printf( "=>\n") ;
 
-					for( i = 0 ; i < gsub_filled ; i ++)
+					for( i = 0 ; i < shaped_filled ; i ++)
 					{
-						kik_msg_printf( "%.2x " , gsub_buf[i]) ;
+						kik_msg_printf( "%.2x " , shaped_buf[i]) ;
 					}
 					kik_msg_printf( "\n") ;
 				}
 			#endif
 
-				for( count = 0 ; count < gsub_filled ; count ++)
+				was_vcol = 0 ;
+				for( count = 0 ; count < shaped_filled ; dst_shaped ++)
 				{
-					ml_char_set_cs( dst_shaped , ISO10646_UCS4_1) ;
-					ml_char_set_code( dst_shaped ++ , gsub_buf[count]) ;
+					was_vcol = replace_code( dst_shaped ,
+							shaped_buf[count++] , was_vcol) ;
+
+					comb = ml_get_combining_chars( &src[src_pos_mark++] ,
+							&comb_size) ;
+					for( ; comb_size > 0 ; comb_size -- , comb++)
+					{
+						if( ml_char_is_null( comb))
+						{
+							was_vcol = combine_replacing_code(
+									dst_shaped , comb ,
+									shaped_buf[count++] ,
+									was_vcol) ;
+						}
+					}
 				}
+
+				dst_filled = dst_shaped - dst ;
 
 				ucs_filled = 0 ;
 				dst_shaped = NULL ;
@@ -172,7 +257,7 @@ ml_shape_gsub(
 
 			if( FONT_CS(cur_font) == ISO10646_UCS4_1)
 			{
-				xfont = ml_gsub_get_font( ctl_info.gsub->term , cur_font) ;
+				xfont = ml_ot_layout_get_font( ctl_info.ot_layout->term , cur_font) ;
 			}
 			else
 			{
@@ -184,12 +269,10 @@ ml_shape_gsub(
 
 		if( xfont)
 		{
-			ml_char_t *  comb ;
-			u_int  comb_size ;
-
 			if( dst_shaped == NULL)
 			{
 				dst_shaped = &dst[dst_filled] ;
+				src_pos_mark = src_pos ;
 			}
 
 			if( ! ml_char_is_null( ch))
@@ -199,8 +282,11 @@ ml_shape_gsub(
 				comb = ml_get_combining_chars( ch , &comb_size) ;
 				for( count = 0 ; count < comb_size ; count ++)
 				{
-					ucs_buf[ucs_filled ++] =
-						ml_char_code( &comb[count]) ;
+					if( ! ml_char_is_null( &comb[count]))
+					{
+						ucs_buf[ucs_filled ++] =
+							ml_char_code( &comb[count]) ;
+					}
 				}
 			}
 
@@ -224,24 +310,38 @@ ml_shape_gsub(
 
 	if( ucs_filled)
 	{
-		gsub_filled = ml_gsub_shape( xfont , gsub_buf , DST_LEN ,
+		shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , DST_LEN ,
 					NULL , ucs_buf , ucs_filled) ;
 
 		/*
-		 * If EOL char is a gsub byte which presents two gsubs and its second
-		 * gsub is out of screen, 'gsub_filled' is greater then
+		 * If EOL char is a ot_layout byte which presents two ot_layouts and its second
+		 * ot_layout is out of screen, 'shaped_filled' is greater then
 		 * 'dst + dst_len - dst_shaped'.
 		 */
-		if( gsub_filled > dst + dst_len - dst_shaped)
+		if( shaped_filled > dst + dst_len - dst_shaped)
 		{
-			gsub_filled = dst + dst_len - dst_shaped ;
+			shaped_filled = dst + dst_len - dst_shaped ;
 		}
 
-		for( count = 0 ; count < gsub_filled ; count ++)
+		was_vcol = 0 ;
+		for( count = 0 ; count < shaped_filled ; dst_shaped ++)
 		{
-			ml_char_set_cs( dst_shaped + count , ISO10646_UCS4_1) ;
-			ml_char_set_code( dst_shaped + count , gsub_buf[count]) ;
+			was_vcol = replace_code( dst_shaped , shaped_buf[count++] ,
+					was_vcol) ;
+
+			comb = ml_get_combining_chars( &src[src_pos_mark++] , &comb_size) ;
+			for( ; comb_size > 0 ; comb_size -- , comb++)
+			{
+				if( ml_char_is_null( comb))
+				{
+					was_vcol = combine_replacing_code( dst_shaped ,
+							comb , shaped_buf[count++] ,
+							was_vcol) ;
+				}
+			}
 		}
+
+		dst_filled = dst_shaped - dst ;
 	}
 
 	return  dst_filled ;

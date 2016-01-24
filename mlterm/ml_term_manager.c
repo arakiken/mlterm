@@ -198,9 +198,9 @@ ml_term_manager_final(void)
 {
 	int  count ;
 
-#ifdef  USE_GSUB
-	ml_set_gsub_attr( NULL , GSUB_SCRIPT) ;
-	ml_set_gsub_attr( NULL , GSUB_FEATURES) ;
+#ifdef  USE_OT_LAYOUT
+	ml_set_ot_layout_attr( NULL , OT_SCRIPT) ;
+	ml_set_ot_layout_attr( NULL , OT_FEATURES) ;
 #endif
 
 	kik_remove_sig_child_listener( NULL , sig_child) ;

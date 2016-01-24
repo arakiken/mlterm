@@ -12,7 +12,7 @@ CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ \
 	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @CTL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I/usr/local/include -DLIBDIR=\"$(libdir)\" \
 
-LIBS = $(LIBS_LOCAL) @LKIK@ @LMKF@
+LIBS = $(LIBS_LOCAL) @LKIK@
 LIBS_BIDI = @FRIBIDI_LIBS@
 LIBS_ISCII = ../../libind/indian.lo ../../libind/keyboard.lo ../../libind/lex.split.lo
 

@@ -295,7 +295,11 @@ mkf_map_ucs4_to_iscii(
 	{
 		non_ucs->cs = ISCII_BENGALI ;
 	}
-	else if( 0xa80 <= ucs4_code && ucs4_code <= 0xaff)
+	else if( /* 0xa00 <= ucs4_code && */ ucs4_code <= 0xa7f)
+	{
+		non_ucs->cs = ISCII_PUNJABI ;
+	}
+	else if( /* 0xa80 <= ucs4_code && */ ucs4_code <= 0xaff)
 	{
 		non_ucs->cs = ISCII_GUJARATI ;
 	}

@@ -3,6 +3,25 @@ comment $Id$
 
 mlterm indic support
 
+Build mlterm with harfbuzz library and start it with -otl option since mlterm-3.6.3.
+
+1) Build
+ $ ./configure ...
+ OpenType Layout                   : yes (harfbuzz)
+ $ make; sudo make install
+
+2) Configuation
+~/.mlterm/aafont
+ ISO10646_UCS4_1 = <TrueType font including indic glyphs>
+ ("U+900-d7f = <TrueType font including indic glyphs>" is also avaialbe.)
+
+~/.mlterm/main
+ #use_ctl = true  # enabled by default
+ use_ot_layout = true
+ #type_engine = cairo  # cairo is the default value. xft is also available.
+
+=== (Following old instruction is not recommended since mlterm-3.6.3)
+
 Following is a instruction of setting up mlterm indic support.
 
 * Installation
@@ -23,8 +42,7 @@ Following is a instruction of setting up mlterm indic support.
   http://mlterm.sf.net/fontconfig-2.8.0-fix4indic.patch
   $ cd xwindow/libtype
   $ make libfc_wrapper.la
-    (You may need to change <freetype/freetype.h> to <freetype2/freetype.h>
-     in fc_wrapper.c according to your environment.)
+    (You may need to change <freetype.h> in fc_wrapper.c according to your environment.)
   $ make install_fc_wrapper
   $ chmod 755 (INSTALLED DIRECTORY)/bin/mlterm
 
@@ -67,6 +85,7 @@ Following is a instruction of setting up mlterm indic support.
   IM_HOTKEY switches the loop Inscript => Phonetic => US ASCII => Inscript ...
 
   If you try indic scripts except devanagari, start mlterm with LD_PRELOAD as follows.
+  $ sudo chmod 755 (INSTALLED DIRECTORY)/bin/mlterm
   $ LD_PRELOAD=(INSTALLED DIRECTORY)/lib/mlterm/libfc_wrapper.so mlterm ...
 
 * Notice

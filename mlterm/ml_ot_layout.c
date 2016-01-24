@@ -2,9 +2,9 @@
  *	$Id$
  */
 
-#ifdef  USE_GSUB
+#ifdef  USE_OT_LAYOUT
 
-#include  "ml_gsub.h"
+#include  "ml_ot_layout.h"
 
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_dlfcn.h>
@@ -24,8 +24,8 @@
 static u_int  (*shape_func)( void * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
 			const char * , const char *) ;
 static void *  (*get_font_func)( void * , ml_font_t) ;
-static char *  gsub_attrs[] = { "latn" , "liga,clig,dlig,hlig,rlig" } ;
-static int8_t  gsub_attr_changed[2] ;
+static char *  ot_layout_attrs[] = { "latn" , "liga,clig,dlig,hlig,rlig" } ;
+static int8_t  ot_layout_attr_changed[2] ;
 
 
 /* --- static functions --- */
@@ -62,29 +62,26 @@ int  ml_is_rtl_char( u_int32_t  code) ;
 /* --- global functions --- */
 
 void
-ml_set_gsub_attr(
+ml_set_ot_layout_attr(
 	char *  value ,
-	ml_gsub_attr_t  attr
+	ml_ot_layout_attr_t  attr
 	)
 {
-	if( 0 <= attr && attr < MAX_GSUB_ATTRS)
+	if( 0 <= attr && attr < MAX_OT_ATTRS)
 	{
-		if( gsub_attr_changed[attr])
+		if( ot_layout_attr_changed[attr])
 		{
-			free( gsub_attrs[attr]) ;
+			free( ot_layout_attrs[attr]) ;
 		}
 		else
 		{
-			gsub_attr_changed[attr] = 1 ;
+			ot_layout_attr_changed[attr] = 1 ;
 		}
 
-		if( value)
+		if( ! value || (attr == OT_SCRIPT && strlen(value) != 4) ||
+		    ! ( ot_layout_attrs[attr] = strdup( value)))
 		{
-			gsub_attrs[attr] = strdup( value) ;
-		}
-		else
-		{
-			gsub_attrs[attr] = (attr == GSUB_SCRIPT) ?
+			ot_layout_attrs[attr] = (attr == OT_SCRIPT) ?
 						"latn" :
 						"liga,clig,dlig,hlig,rlig" ;
 		}
@@ -92,7 +89,7 @@ ml_set_gsub_attr(
 }
 
 void
-ml_gsub_set_shape_func(
+ml_ot_layout_set_shape_func(
 	u_int  (*func1)( void * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
 		const char * , const char *) ,
 	void *  (*func2)( void * , ml_font_t)
@@ -103,11 +100,11 @@ ml_gsub_set_shape_func(
 }
 
 u_int
-ml_gsub_shape(
+ml_ot_layout_shape(
 	void *  font ,
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len
 	)
@@ -117,12 +114,12 @@ ml_gsub_shape(
 		return  0 ;
 	}
 
-	return  (*shape_func)( font , gsub , gsub_len , cmap , src , src_len ,
-			gsub_attrs[GSUB_SCRIPT] , gsub_attrs[GSUB_FEATURES]) ;
+	return  (*shape_func)( font , shaped , shaped_len , cmapped , src , src_len ,
+			ot_layout_attrs[OT_SCRIPT] , ot_layout_attrs[OT_FEATURES]) ;
 }
 
 void *
-ml_gsub_get_font(
+ml_ot_layout_get_font(
 	void *  term ,
 	ml_font_t  font
 	)
@@ -135,15 +132,15 @@ ml_gsub_get_font(
 	return  (*get_font_func)( term , font) ;
 }
 
-ml_gsub_state_t
-ml_gsub_new(void)
+ml_ot_layout_state_t
+ml_ot_layout_new(void)
 {
-	return  calloc( 1 , sizeof( struct ml_gsub_state)) ;
+	return  calloc( 1 , sizeof( struct ml_ot_layout_state)) ;
 }
 
 int
-ml_gsub_delete(
-	ml_gsub_state_t  state
+ml_ot_layout_delete(
+	ml_ot_layout_state_t  state
 	)
 {
 	free( state->num_of_chars_array) ;
@@ -153,8 +150,8 @@ ml_gsub_delete(
 }
 
 int
-ml_gsub(
-	ml_gsub_state_t  state ,
+ml_ot_layout(
+	ml_ot_layout_state_t  state ,
 	ml_char_t *  src ,
 	u_int  src_len
 	)
@@ -162,9 +159,9 @@ ml_gsub(
 	int  dst_pos ;
 	int  src_pos ;
 	u_int32_t *  ucs_buf ;
-	u_int32_t *  gsub_buf ;
-	u_int  gsub_buf_len ;
-	u_int  prev_gsub_filled ;
+	u_int32_t *  shaped_buf ;
+	u_int  shaped_buf_len ;
+	u_int  prev_shaped_filled ;
 	u_int  ucs_filled ;
 	ml_font_t  font ;
 	ml_font_t  prev_font ;
@@ -175,19 +172,19 @@ ml_gsub(
 		return  0 ;
 	}
 
-	gsub_buf_len = src_len * MAX_COMB_SIZE + 1 ;
-	if( ( gsub_buf = alloca( gsub_buf_len * sizeof(*gsub_buf))) == NULL)
+	shaped_buf_len = src_len * MAX_COMB_SIZE + 1 ;
+	if( ( shaped_buf = alloca( shaped_buf_len * sizeof(*shaped_buf))) == NULL)
 	{
 		return  0 ;
 	}
 
 	if( ( state->num_of_chars_array = realloc( state->num_of_chars_array ,
-						gsub_buf_len * sizeof(u_int8_t))) == NULL)
+						shaped_buf_len * sizeof(u_int8_t))) == NULL)
 	{
 		return  0 ;
 	}
 
-	state->has_gsub = 0 ;
+	state->has_ot_layout = 0 ;
 	dst_pos = -1 ;
 	prev_font = font = UNKNOWN_CS ;
 	xfont = NULL ;
@@ -196,25 +193,25 @@ ml_gsub(
 		font = ml_char_font( src + src_pos) ;
 		if( FONT_CS(font) == US_ASCII && ml_char_code( src + src_pos) != ' ')
 		{
-			font &= ~MAX_CHARSET ;
+			font &= ~US_ASCII ;
 			font |= ISO10646_UCS4_1 ;
 		}
 
 		if( prev_font != font)
 		{
 			if( xfont &&
-			    ( prev_gsub_filled != ucs_filled ||
-			      memcmp( gsub_buf , ucs_buf , prev_gsub_filled) != 0))
+			    ( prev_shaped_filled != ucs_filled ||
+			      memcmp( shaped_buf , ucs_buf , prev_shaped_filled) != 0))
 			{
-				state->has_gsub = 1 ;
+				state->has_ot_layout = 1 ;
 			}
 
-			prev_gsub_filled = ucs_filled = 0 ;
+			prev_shaped_filled = ucs_filled = 0 ;
 			prev_font = font ;
 
 			if( FONT_CS(font) == ISO10646_UCS4_1)
 			{
-				xfont = ml_gsub_get_font( state->term , font) ;
+				xfont = ml_ot_layout_get_font( state->term , font) ;
 			}
 			else
 			{
@@ -224,7 +221,7 @@ ml_gsub(
 
 		if( xfont)
 		{
-			u_int  gsub_filled ;
+			u_int  shaped_filled ;
 			u_int  count ;
 			ml_char_t *  comb ;
 			u_int  num ;
@@ -235,39 +232,37 @@ ml_gsub(
 				return  -1 ;
 			}
 
-			if( ( comb = ml_get_combining_chars( src + src_pos , &num)))
+			comb = ml_get_combining_chars( src + src_pos , &num) ;
+			for( ; num > 0 ; num--)
 			{
-				for( count = 0 ; count < num ; count++)
+				ucs_buf[ucs_filled] = ml_char_code( comb++) ;
+				if( ml_is_rtl_char( ucs_buf[ucs_filled++]))
 				{
-					ucs_buf[ucs_filled] = ml_char_code( comb + count) ;
-					if( ml_is_rtl_char( ucs_buf[ucs_filled++]))
-					{
-						return  -1 ;
-					}
+					return  -1 ;
 				}
 			}
 
 			/* store glyph index in ucs_buf. */
-			ml_gsub_shape( xfont , NULL , 0 , ucs_buf + ucs_filled - num - 1 ,
+			ml_ot_layout_shape( xfont , NULL , 0 , ucs_buf + ucs_filled - num - 1 ,
 				ucs_buf + ucs_filled - num - 1 , num + 1) ;
-			/* apply gsub to glyph indeces in ucs_buf. */
-			gsub_filled = ml_gsub_shape( xfont , gsub_buf , gsub_buf_len ,
+			/* apply ot_layout to glyph indeces in ucs_buf. */
+			shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , shaped_buf_len ,
 						ucs_buf , NULL , ucs_filled) ;
 
-			if( gsub_filled < prev_gsub_filled)
+			if( shaped_filled < prev_shaped_filled)
 			{
-				dst_pos -= (prev_gsub_filled - gsub_filled) ;
+				dst_pos -= (prev_shaped_filled - shaped_filled) ;
 
-				for( count = 1 ; count <= prev_gsub_filled - gsub_filled ; count++)
+				for( count = 1 ; count <= prev_shaped_filled - shaped_filled ; count++)
 				{
 					state->num_of_chars_array[dst_pos] +=
 						state->num_of_chars_array[dst_pos + count] ;
 				}
 
-				prev_gsub_filled = gsub_filled ; /* goto to the next if block */
+				prev_shaped_filled = shaped_filled ; /* goto to the next if block */
 			}
 
-			if( dst_pos >= 0 && gsub_filled == prev_gsub_filled)
+			if( dst_pos >= 0 && shaped_filled == prev_shaped_filled)
 			{
 				state->num_of_chars_array[dst_pos] ++ ;
 			}
@@ -275,13 +270,13 @@ ml_gsub(
 			{
 				state->num_of_chars_array[++dst_pos] = 1 ;
 
-				for( count = 1 ; count < gsub_filled - prev_gsub_filled ; count++)
+				for( count = 1 ; count < shaped_filled - prev_shaped_filled ; count++)
 				{
 					state->num_of_chars_array[++dst_pos] = 0 ;
 				}
 			}
 
-			prev_gsub_filled = gsub_filled ;
+			prev_shaped_filled = shaped_filled ;
 		}
 		else if( IS_ISCII(FONT_CS(font)))
 		{
@@ -294,10 +289,10 @@ ml_gsub(
 	}
 
 	if( xfont &&
-	    ( prev_gsub_filled != ucs_filled ||
-	      memcmp( gsub_buf , ucs_buf , prev_gsub_filled) != 0))
+	    ( prev_shaped_filled != ucs_filled ||
+	      memcmp( shaped_buf , ucs_buf , prev_shaped_filled) != 0))
 	{
-		state->has_gsub = 1 ;
+		state->has_ot_layout = 1 ;
 	}
 
 	state->size = dst_pos + 1 ;
@@ -306,17 +301,17 @@ ml_gsub(
 }
 
 int
-ml_gsub_copy(
-	ml_gsub_state_t  dst ,
-	ml_gsub_state_t  src ,
+ml_ot_layout_copy(
+	ml_ot_layout_state_t  dst ,
+	ml_ot_layout_state_t  src ,
 	int  optimize
 	)
 {
 	u_int8_t *  p ;
 
-	if( optimize && ! src->has_gsub)
+	if( optimize && ! src->has_ot_layout)
 	{
-		ml_gsub_delete( dst) ;
+		ml_ot_layout_delete( dst) ;
 
 		return  -1 ;
 	}
@@ -337,14 +332,14 @@ ml_gsub_copy(
 	dst->num_of_chars_array = p ;
 	dst->term = src->term ;
 	dst->size = src->size ;
-	dst->has_gsub = src->has_gsub ;
+	dst->has_ot_layout = src->has_ot_layout ;
 
 	return  1 ;
 }
 
 int
-ml_gsub_reset(
-	ml_gsub_state_t  state
+ml_ot_layout_reset(
+	ml_ot_layout_state_t  state
 	)
 {
 	state->size = 0 ;

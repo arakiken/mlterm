@@ -76,10 +76,11 @@ typedef struct x_font
 
 	x_decsp_font_ptr_t  decsp_font ;
 
-#ifdef  USE_GSUB
-	void *  otf ;
-	int8_t  otf_not_found ;
-	int8_t  use_gsub ;
+#ifdef  USE_OT_LAYOUT
+	/* ot_font == NULL and use_ot_layout == true is possible in ISO10646_UCS4_1_V font. */
+	void *  ot_font ;
+	int8_t  ot_font_not_found ;
+	int8_t  use_ot_layout ;
 #endif
 
 	/*
@@ -128,10 +129,10 @@ int  x_change_font_cols( x_font_t *  font , u_int  cols) ;
 u_int  x_calculate_char_width( x_font_t *  font , u_int32_t  ch ,
 	mkf_charset_t  cs , int *  draw_alone) ;
 
-int  x_font_has_gsub_table( x_font_t *  font) ;
+int  x_font_has_ot_layout_table( x_font_t *  font) ;
 
-u_int  x_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  gsub , u_int  gsub_len ,
-	u_int32_t *  cmap , u_int32_t *  src , u_int  src_len ,
+u_int  x_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , u_int  shaped_len ,
+	u_int32_t *  cmapped , u_int32_t *  src , u_int  src_len ,
 	const char *  script , const char *  features) ;
 
 #if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_WIN32GUI)

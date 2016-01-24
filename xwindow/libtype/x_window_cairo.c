@@ -8,8 +8,6 @@
 #include  <cairo/cairo-ft.h>	/* FcChar32 */
 #include  <cairo/cairo-xlib.h>
 
-#include  <otf.h>
-
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <ml_char.h>	/* UTF_MAX_SIZE */
 
@@ -130,34 +128,30 @@ show_text(
 
 	return  1 ;
 #else
-	if( font->use_gsub && font->otf)
+	if( font->use_ot_layout /* && font->ot_font */)
 	{
 		cairo_glyph_t *  glyphs ;
 		u_int  count ;
 		cairo_text_extents_t  extent ;
 
-		if( ! ( glyphs = alloca( sizeof(*glyphs) * str_len)))
+		if( ! ( glyphs = alloca( sizeof(*glyphs) * (str_len + 1))))
 		{
 			return  0 ;
 		}
 
-		for( count = 0 ; count < str_len ; count++)
+		glyphs[0].x = x ;
+		for( count = 0 ; count < str_len ; )
 		{
 			glyphs[count].index = ((FcChar32*)str)[count] ;
 			glyphs[count].y = y ;
-			if( count == 0)
-			{
-				glyphs[count].x = x ;
-			}
-			else
-			{
-				glyphs[count].x = glyphs[count - 1].x + extent.x_advance ;
-			}
-
 			cairo_glyph_extents( cr , glyphs + count , 1 , &extent) ;
+
+			count ++ ;
+
+			glyphs[count].x = glyphs[count - 1].x + extent.x_advance ;
 		}
 
-		adjust_glyphs( font , glyphs , str_len) ;
+		adjust_glyphs( font , glyphs , str_len + 1) ;
 		cairo_show_glyphs( cr , glyphs , str_len) ;
 
 		if( double_draw_gap)
@@ -444,7 +438,7 @@ draw_string32(
 	u_int  count ;
 	char *  p ;
 
-	if( font->use_gsub && font->otf)
+	if( font->use_ot_layout /* && font->ot_font */)
 	{
 		buf = str ;
 	}
@@ -567,7 +561,7 @@ x_window_cairo_draw_string32(
 
 	/* draw_string32() before 1.8.0 doesn't return x position. */
 #if  CAIRO_VERSION_ENCODE(1,8,0) <= CAIRO_VERSION
-	if( ( ! font->use_gsub || ! font->otf) && font->compl_fonts)
+	if( ( ! font->use_ot_layout /* || ! font->ot_font */) && font->compl_fonts)
 	{
 		u_int  count ;
 

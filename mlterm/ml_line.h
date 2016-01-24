@@ -9,7 +9,7 @@
 #include  "ml_str.h"
 #include  "ml_bidi.h"	/* ml_bidi_state_t */
 #include  "ml_iscii.h"	/* ml_iscii_state_t */
-#include  "ml_gsub.h"	/* ml_gsub_state_t */
+#include  "ml_ot_layout.h"	/* ml_ot_layout_state_t */
 
 
 enum
@@ -23,14 +23,14 @@ enum
 {
 	VINFO_BIDI = 0x01 ,
 	VINFO_ISCII = 0x02 ,
-	VINFO_GSUB = 0x03 ,
+	VINFO_OT_LAYOUT = 0x03 ,
 } ;
 
 typedef union  ctl_info
 {
 	ml_bidi_state_t  bidi ;
 	ml_iscii_state_t  iscii ;
-	ml_gsub_state_t  gsub ;
+	ml_ot_layout_state_t  ot_layout ;
 
 } ctl_info_t ;
 
@@ -56,7 +56,7 @@ typedef struct  ml_line
 	u_int16_t  change_beg_col ;		/* 0 - 65535 */
 	u_int16_t  change_end_col ;		/* 0 - 65535 */
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || defined(USE_GSUB)
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || defined(USE_OT_LAYOUT)
 	/* Don't touch from ml_line.c. ctl_info is used by ml_line_bidi.c and ml_line_iscii.c. */
 	ctl_info_t  ctl_info ;
 #endif
@@ -71,7 +71,7 @@ typedef struct  ml_line
 } ml_line_t ;
 
 
-void  ml_set_use_gsub( int  flag) ;
+void  ml_set_use_ot_layout( int  flag) ;
 
 int  ml_line_init( ml_line_t *  line , u_int  num_of_chars) ;
 
@@ -153,8 +153,8 @@ void  ml_line_set_size_attr( ml_line_t *  line , int  size_attr) ;
 
 #define  ml_line_is_using_ctl( line)  ((line)->ctl_info_type)
 
-#define  ml_line_has_gsub( line) \
-	((line)->ctl_info_type == VINFO_GSUB && (line)->ctl_info.gsub->has_gsub)
+#define  ml_line_has_ot_layout( line) \
+	((line)->ctl_info_type == VINFO_OT_LAYOUT && (line)->ctl_info.ot_layout->has_ot_layout)
 
 int  ml_line_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 

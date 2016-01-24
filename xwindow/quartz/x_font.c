@@ -16,8 +16,8 @@
 #include  <mkf/mkf_ucs_property.h>
 #include  <ml_char_encoding.h>	/* x_convert_to_xft_ucs4 */
 
-#ifdef  USE_GSUB
-#include  "otfwrap.h"
+#ifdef  USE_OT_LAYOUT
+#include  <otl.h>
 #endif
 
 #include  "cocoa.h"
@@ -401,10 +401,10 @@ x_font_delete(
 	x_font_t *  font
 	)
 {
-#ifdef  USE_GSUB
-	if( font->otf)
+#ifdef  USE_OT_LAYOUT
+	if( font->ot_font)
 	{
-		otf_close( font->otf) ;
+		otl_close( font->ot_font) ;
 	}
 #endif
 
@@ -440,18 +440,29 @@ x_change_font_cols(
 	return  1 ;
 }
 
-#ifdef  USE_GSUB
+#ifdef  USE_OT_LAYOUT
 int
-x_font_has_gsub_table(
+x_font_has_ot_layout_table(
 	x_font_t *  font
 	)
 {
-	if( ! font->otf)
+	if( ! font->ot_font)
 	{
-		if( font->otf_not_found ||
-		    ! ( font->otf = cocoa_create_otf( font->cg_font)))
+		char *  path ;
+
+		if( font->ot_font_not_found ||
+		    ! ( path = cocoa_get_font_path( font->cg_font)))
 		{
-			font->otf_not_found = 1 ;
+			return  0 ;
+		}
+
+		font->ot_font = otl_open( path , 0) ;
+
+		free( path) ;
+
+		if( ! font->ot_font)
+		{
+			font->ot_font_not_found = 1 ;
 
 			return  0 ;
 		}
@@ -463,19 +474,19 @@ x_font_has_gsub_table(
 u_int
 x_convert_text_to_glyphs(
 	x_font_t *  font ,
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
 	const char *  features
 	)
 {
-	return  otf_convert_text_to_glyphs( font->otf , gsub , gsub_len , cmap ,
+	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , cmapped ,
 			src , src_len , script , features) ;
 }
-#endif	/* USE_GSUB */
+#endif	/* USE_OT_LAYOUT */
 
 u_int
 x_calculate_char_width(

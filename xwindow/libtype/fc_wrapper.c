@@ -1,5 +1,5 @@
 #include  <ft2build.h>
-#include  <freetype/freetype.h>
+#include  <freetype.h>
 #include  <fontconfig/fontconfig.h>
 
 FT_UInt

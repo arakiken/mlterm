@@ -675,8 +675,8 @@ draw_string(
 		SetBkMode( win->gc->gc , TRANSPARENT) ;
 	}
 
-#ifdef  USE_GSUB
-	is_glyph = (font->use_gsub && font->otf) ;
+#ifdef  USE_OT_LAYOUT
+	is_glyph = (font->use_ot_layout /* && font->ot_font */) ;
 #else
 	is_glyph = 0 ;
 #endif

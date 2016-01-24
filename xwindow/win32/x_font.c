@@ -15,7 +15,10 @@
 #include  <mkf/mkf_ucs_property.h>
 #include  <ml_char_encoding.h>	/* x_convert_to_xft_ucs4 */
 
-#include  "otfwrap.h"
+#ifdef  USE_OT_LAYOUT
+#include  "otl.h"
+#endif
+
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
 	for( (font_encoding_p) = &csinfo->encoding_names[0] ; *(font_encoding_p) ; (font_encoding_p) ++)
@@ -376,6 +379,7 @@ calculate_char_width(
 	{
 		u_int32_t  ucs4_code ;
 		u_char  utf16[4] ;
+		int  len ;
 
 		if( cs == ISO10646_UCS4_1)
 		{
@@ -411,8 +415,11 @@ calculate_char_width(
 			}
 		}
 
-		if( ! GetTextExtentPoint32W( display_gc , utf16 ,
-			x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 , &sz))
+		len = x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 ;
+
+		if( ( font->use_ot_layout /* && font->ot_font */) ?
+		    ! GetTextExtentPointIW( display_gc , utf16 , len , &sz) :
+		    ! GetTextExtentPoint32W( display_gc , utf16 , len , &sz))
 		{
 			return  0 ;
 		}
@@ -811,10 +818,10 @@ x_font_delete(
 	x_font_t *  font
 	)
 {
-#ifdef  USE_GSUB
-	if( font->otf)
+#ifdef  USE_OT_LAYOUT
+	if( font->ot_font)
 	{
-		otf_close( font->otf) ;
+		otl_close( font->ot_font) ;
 	}
 #endif
 
@@ -864,20 +871,20 @@ x_change_font_cols(
 	return  1 ;
 }
 
-#ifdef  USE_GSUB
+#ifdef  USE_OT_LAYOUT
 int
-x_font_has_gsub_table(
+x_font_has_ot_layout_table(
 	x_font_t *  font
 	)
 {
-	if( ! font->otf)
+	if( ! font->ot_font)
 	{
 		u_char  buf[4] ;
 		void *  font_data ;
 		u_int  size ;
 		int  is_ttc ;
 
-		if( font->otf_not_found)
+		if( font->ot_font_not_found)
 		{
 			return  0 ;
 		}
@@ -908,7 +915,7 @@ x_font_has_gsub_table(
 
 		if( ! ( font_data = malloc( size)))
 		{
-			font->otf = NULL ;
+			font->ot_font = NULL ;
 		}
 		else
 		{
@@ -921,14 +928,14 @@ x_font_has_gsub_table(
 				GetFontData( display_gc , 0 , 0 , font_data , size) ;
 			}
 
-			font->otf = otf_open( font_data , size) ;
+			font->ot_font = otl_open( font_data , size) ;
 
 			free( font_data) ;
 		}
 
-		if( ! font->otf)
+		if( ! font->ot_font)
 		{
-			font->otf_not_found = 1 ;
+			font->ot_font_not_found = 1 ;
 
 			return  0 ;
 		}
@@ -940,19 +947,19 @@ x_font_has_gsub_table(
 u_int
 x_convert_text_to_glyphs(
 	x_font_t *  font ,
-	u_int32_t *  gsub ,
-	u_int  gsub_len ,
-	u_int32_t *  cmap ,
+	u_int32_t *  shaped ,
+	u_int  shaped_len ,
+	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
 	const char *  features
 	)
 {
-	return  otf_convert_text_to_glyphs( font->otf , gsub , gsub_len , cmap ,
+	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , cmapped ,
 			src , src_len , script , features) ;
 }
-#endif	/* USE_GSUB */
+#endif	/* USE_OT_LAYOUT */
 
 u_int
 x_calculate_char_width(

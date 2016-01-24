@@ -584,20 +584,34 @@ esac
 done
 
 if test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
-	echo "libotf is not available."
+	echo "libotf/libharfbuzz is not available."
 else
-	AC_CHECK_PROG(libotf_config,libotf-config,yes)
-	if test "$libotf_config" = "yes" ; then
-		GSUB_CFLAGS="`libotf-config --cflags` -DUSE_GSUB"
-		GSUB_LIBS="`libotf-config --libs`"
+	PKG_CHECK_MODULES(HB, harfbuzz, have_hb=yes, have_hb=no)
+	if test "$have_hb" = "yes" ; then
+		OT_LAYOUT_CFLAGS="$HB_CFLAGS -DUSE_HARFBUZZ -DUSE_OT_LAYOUT"
+		OT_LAYOUT_LIBS="$HB_LIBS"
+		OT_LAYOUT_OBJ=hb.o
+	else
+		AC_CHECK_PROG(libotf_config,libotf-config,yes)
+		if test "$libotf_config" = "yes" ; then
+			OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
+			OT_LAYOUT_LIBS="`libotf-config --libs`"
+			OT_LAYOUT_OBJ=otf.o
+		fi
 	fi
 fi
-AC_SUBST(GSUB_LIBS)
-AC_SUBST(GSUB_CFLAGS)
+AC_SUBST(OT_LAYOUT_LIBS)
+AC_SUBST(OT_LAYOUT_CFLAGS)
+AC_SUBST(OT_LAYOUT_OBJ)
+
+if test "$OT_LAYOUT_OBJ" != "" ; then
+	MAKE_DIRS="xwindow/libotl ${MAKE_DIRS}"
+	OUTPUT_FILES="xwindow/libotl/Makefile ${OUTPUT_FILES}"
+fi
 
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${GSUB_LIBS}"
+	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${OT_LAYOUT_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then
@@ -1374,10 +1388,12 @@ echo "Build static libraries            : $enable_static"
 dnl echo "Optimization for redrawing a line : $optimize_redrawing"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
-if test "$GSUB_LIBS" != ""; then
-	echo "Substituting glyphs               : yes"
+if test "$OT_LAYOUT_OBJ" = "hb.o"; then
+	echo "OpenType Layout                   : yes (harfbuzz)"
+elif test "$OT_LAYOUT_OBJ" = "otf.o"; then
+	echo "OpenType Layout                   : yes (libotf)"
 else
-	echo "Substituting glyphs               : no"
+	echo "OpenType Layout                   : no"
 fi
 echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"

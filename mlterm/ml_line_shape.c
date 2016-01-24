@@ -12,7 +12,7 @@
 
 #define  ml_line_is_using_bidi( line)  ((line)->ctl_info_type == VINFO_BIDI)
 #define  ml_line_is_using_iscii( line)  ((line)->ctl_info_type == VINFO_ISCII)
-#define  ml_line_is_using_gsub( line)  ((line)->ctl_info_type == VINFO_GSUB)
+#define  ml_line_is_using_ot_layout( line)  ((line)->ctl_info_type == VINFO_OT_LAYOUT)
 
 
 /* --- static functions --- */
@@ -68,11 +68,11 @@ int  ml_line_iscii_need_shape( ml_line_t *  line) ;
 #endif
 
 static int
-ml_line_gsub_need_shape(
+ml_line_ot_layout_need_shape(
 	ml_line_t *  line
 	)
 {
-	return  line->ctl_info.gsub->size > 0 && line->ctl_info.gsub->has_gsub ;
+	return  line->ctl_info.ot_layout->size > 0 && line->ctl_info.ot_layout->has_ot_layout ;
 }
 
 
@@ -89,15 +89,15 @@ ml_line_shape(
 
 	if( line->ctl_info_type)
 	{
-	#ifdef  USE_GSUB
-		if( ml_line_is_using_gsub( line))
+	#ifdef  USE_OT_LAYOUT
+		if( ml_line_is_using_ot_layout( line))
 		{
-			if( ! ml_line_gsub_need_shape( line))
+			if( ! ml_line_ot_layout_need_shape( line))
 			{
 				return  NULL ;
 			}
 
-			func = ml_shape_gsub ;
+			func = ml_shape_ot_layout ;
 		}
 		else
 	#endif
