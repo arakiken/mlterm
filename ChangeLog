@@ -1,5 +1,14 @@
 2016-01-29  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_vt100_parser.c:
+	  - Unicode => ISCII conversion is enabled only if ml_is_using_ot_layout()
+	    is false.
+	  - "use_ot_layout" option is added to ml_vt100_parser_get_config().
+
+	* ml_line.[ch]: ml_is_using_ot_layout() is added.
+
+	* fb/x_font.c: Minor fixes.
+
 	* otf.c, win32/x_font.c: Compiling error is fixed.
 
 2016-01-28  Araki Ken  <arakiken@users.sf.net>

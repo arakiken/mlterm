@@ -7682,9 +7682,14 @@ ml_convert_to_internal_ch(
 				}
 			}
 
+		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 		#ifdef  USE_HARFBUZZ
-			/* Don't conver to ISCII */
-		#elif  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
+			if( ml_is_using_ot_layout())
+			{
+				/* Don't conver to ISCII */
+			}
+			else
+		#endif
 			if( 0x900 <= code && code <= 0xd7f)
 			{
 				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
@@ -8150,6 +8155,19 @@ ml_vt100_parser_get_config(
 			value = "false" ;
 		}
 	}
+#ifdef  USE_OT_LAYOUT
+	else if( strcmp( key , "use_ot_layout") == 0)
+	{
+		if( ml_is_using_ot_layout())
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+#endif
 	else if( strcmp( key , "allow_scp") == 0)
 	{
 	#ifdef  USE_LIBSSH2

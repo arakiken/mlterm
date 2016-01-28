@@ -1540,7 +1540,6 @@ xfont_loaded:
 	 * font->is_var_col_width == false and font->is_proportional == true
 	 * is impossible on framebuffer.
 	 */
-#if  1
 #ifdef  USE_FREETYPE
 	if( IS_ISCII(cs) && font->xfont->is_aa &&
 	    ( font->xfont->ref_count == 1 || IS_PROPORTIONAL(font->xfont)))
@@ -1565,6 +1564,7 @@ xfont_loaded:
 		 */
 		font->is_var_col_width = 1 ;
 
+	#ifdef  USE_FREETYPE
 		if( cs == ISO10646_UCS4_1_V)
 		{
 			font->is_proportional = 1 ;
@@ -1582,8 +1582,8 @@ xfont_loaded:
 				font->xfont->glyph_size += 3 ;
 			}
 		}
+	#endif
 	}
-#endif
 
 	if( font_present & FONT_VERTICAL)
 	{

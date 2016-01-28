@@ -73,6 +73,8 @@ typedef struct  ml_line
 
 void  ml_set_use_ot_layout( int  flag) ;
 
+int  ml_is_using_ot_layout(void) ;
+
 int  ml_line_init( ml_line_t *  line , u_int  num_of_chars) ;
 
 int  ml_line_clone( ml_line_t *  clone , ml_line_t *  orig , u_int  num_of_chars) ;

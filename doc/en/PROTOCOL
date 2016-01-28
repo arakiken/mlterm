@@ -69,7 +69,7 @@ version 20151025
                      vt_seq_format | word_separators | gui | allow_osc52 | allow_scp |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
                      unicode_full_width_areas | box_drawing_font | auto_detect_encodings |
-                     use_auto_detect | regard_uri_as_word
+                     use_auto_detect | use_ot_layout | regard_uri_as_word
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -138,14 +138,14 @@ version 20151025
   use_alt_buffer = true | false | switch
   use_ansi_colors = true | false | switch
   use_anti_alias = true | false | switch
-  use_auto_deetect = true | false | switch
+  use_auto_detect = true | false | switch
   use_bold_font = true | false | switch
   use_ctl = true | false | switch
   use_combining = true | false | switch
   use_italic_font = true | false | switch
   use_dynamic_comb = true | false | switch
   use_multi_column_char = true | false | switch
-  use_ot_layout = true | false
+  use_ot_layout = true | false | switch
   use_transbg = true | false | switch
   use_variable_column_width = true | false | switch
   vertical_mode = none | cjk | mongol

@@ -773,6 +773,16 @@ ml_set_use_ot_layout(
 #endif
 }
 
+int
+ml_is_using_ot_layout(void)
+{
+#ifdef  USE_OT_LAYOUT
+	return  use_ot_layout ;
+#else
+	return  0 ;
+#endif
+}
+
 /*
  * Functions which doesn't have to care about visual order.
  */
