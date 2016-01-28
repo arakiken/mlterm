@@ -417,7 +417,7 @@ calculate_char_width(
 		len = x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 ;
 
 		if( ( font->use_ot_layout /* && font->ot_font */) ?
-		    ! GetTextExtentPointIW( display_gc , utf16 , len , &sz) :
+		    ! GetTextExtentPointI( display_gc , utf16 , len , &sz) :
 		    ! GetTextExtentPoint32W( display_gc , utf16 , len , &sz))
 		{
 			return  0 ;

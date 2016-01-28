@@ -7,19 +7,6 @@
 #include  <kiklib/kik_mem.h>
 
 
-/* --- static functions --- */
-
-#ifdef  USE_WIN32GUI
-static void *
-OTF_open_win32(
-	void *  obj ,
-	u_int  size
-	)
-{
-}
-#endif
-
-
 /* --- global functions --- */
 
 #ifdef  NO_DYNAMIC_LOAD_OTL
@@ -42,16 +29,16 @@ otl_open(
 		return  NULL ;
 	}
 
-	if( FT_New_Memory_Face)( ftlib , font_data , font_data_size , 0 , &face) != 0)
+	if( FT_New_Memory_Face( ftlib , obj , size , 0 , &face) != 0)
 	{
 		otf = NULL ;
 	}
-	else if( ( otf = OTF_open( face)))
+	else if( ( otf = OTF_open_ft_face( face)))
 	{
 		if( OTF_get_table( otf , "GSUB") != 0 ||
 		    OTF_get_table( otf , "cmap") != 0)
 		{
-			(*close)( otf) ;
+			OTF_close( otf) ;
 			otf = NULL ;
 		}
 
@@ -153,8 +140,8 @@ otl_convert_text_to_glyphs(
 			else
 		#endif
 			{
-				memcpy( offsets , 0 , shaped_len * sizeof(*offsets)) ;
-				memcpy( widths , 0 , shaped_len * sizeof(*widths)) ;
+				memset( offsets , 0 , shaped_len * sizeof(*offsets)) ;
+				memset( widths , 0 , shaped_len * sizeof(*widths)) ;
 			}
 		}
 	}

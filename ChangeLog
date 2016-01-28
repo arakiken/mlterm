@@ -1,3 +1,7 @@
+2016-01-29  Araki Ken  <arakiken@users.sf.net>
+
+	* otf.c, win32/x_font.c: Compiling error is fixed.
+
 2016-01-28  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: x_calculate_char_width() -> x_calculate_mlchar_width()
