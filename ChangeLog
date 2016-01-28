@@ -1,3 +1,35 @@
+2016-01-28  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: x_calculate_char_width() -> x_calculate_mlchar_width()
+
+	* x_draw_str.[ch]: x_calculate_mlchar_width() is added.
+
+	* x_font.h, xlib/x_font.c, fb/x_font.c, win32/x_font.c, quartz/x_font.c,
+	  x_font_ft.c, otl.h, otf.c, hb.c:
+	  offsets and widths arguments are added to x_convert_text_to_glyphs().
+
+	* ml_line.c: ml_line_ot_layout_{visual|logical|convert_logical_char_index_to_visual}
+	  are reverted.
+
+	* ml_char_encoding.[ch], x_font_config.c, x_font_manager.c:
+	  ML_ISCII_ROMAN and ML_ISCII_TAMIL are removed.
+
+	* ml_char.[ch]:
+	  - new_comb() is separated from ml_char_combine().
+	  - ml_char_combine_simple() uses new_comb().
+	  - ml_char_get_offset(), ml_char_get_width() and ml_char_set_position() are added.
+
+	* mkf_8bit_conv.[ch], mkf_8bit_parser.[ch], mkf_charset.h, mkf_ucs4_iscii.[ch],
+	  mkf_ucs4_map.c: Functions related to ISCII_ROMAN are removed.
+
+	* mkf/lib/Makefile.in: 16.1 -> 17.0
+
+	* libctl/ml_iscii.c: iscii_tamil_table is revived.
+
+	* libind/tamil.c: Revived.
+
+	* table/tamil.table: Revived with minimum.
+
 2016-01-24  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.ja, man/mlterm.1, etc/main, etc/main.ja, doc/en/README.indic:

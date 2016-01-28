@@ -25,7 +25,6 @@ mkf_map_func( 8bits , mkf_map_iscii_kannada_to_ucs4 , 16)
 mkf_map_func( 8bits , mkf_map_iscii_malayalam_to_ucs4 , 16)
 mkf_map_func( 8bits , mkf_map_iscii_oriya_to_ucs4 , 16)
 mkf_map_func( 8bits , mkf_map_iscii_punjabi_to_ucs4 , 16)
-mkf_map_func( 8bits , mkf_map_iscii_roman_to_ucs4 , 16)
 mkf_map_func( 8bits , mkf_map_iscii_tamil_to_ucs4 , 16)
 mkf_map_func( 8bits , mkf_map_iscii_telugu_to_ucs4 , 16)
 

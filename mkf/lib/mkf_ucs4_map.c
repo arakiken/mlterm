@@ -67,7 +67,6 @@ static map_t  map_table[] =
 	{ ISCII_MALAYALAM , mkf_map_ucs4_to_iscii , mkf_map_iscii_malayalam_to_ucs4 } ,
 	{ ISCII_ORIYA , mkf_map_ucs4_to_iscii , mkf_map_iscii_oriya_to_ucs4 } ,
 	{ ISCII_PUNJABI , mkf_map_ucs4_to_iscii , mkf_map_iscii_punjabi_to_ucs4 } ,
-	{ ISCII_ROMAN , mkf_map_ucs4_to_iscii , mkf_map_iscii_roman_to_ucs4 } ,
 	{ ISCII_TAMIL , mkf_map_ucs4_to_iscii , mkf_map_iscii_tamil_to_ucs4 } ,
 	{ ISCII_TELUGU , mkf_map_ucs4_to_iscii , mkf_map_iscii_telugu_to_ucs4 } ,
 	{ KOI8_T , mkf_map_ucs4_to_koi8_t , mkf_map_koi8_t_to_ucs4 } ,

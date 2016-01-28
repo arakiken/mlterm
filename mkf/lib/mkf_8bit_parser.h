@@ -55,8 +55,6 @@ mkf_parser_t *  mkf_iscii_oriya_parser_new(void) ;
 
 mkf_parser_t *  mkf_iscii_punjabi_parser_new(void) ;
 
-mkf_parser_t *  mkf_iscii_roman_parser_new(void) ;
-
 mkf_parser_t *  mkf_iscii_tamil_parser_new(void) ;
 
 mkf_parser_t *  mkf_iscii_telugu_parser_new(void) ;

@@ -98,7 +98,6 @@ static cs_info_t  cs_info_table[] =
 	{ "ISCII_MALAYALAM" , { NULL , NULL , NULL , } , } ,
 	{ "ISCII_ORIYA" , { NULL , NULL , NULL , } , } ,
 	{ "ISCII_PUNJABI" , { NULL , NULL , NULL , } , } ,
-	{ "ISCII_ROMAN" , { NULL , NULL , NULL , } , } ,
 	{ "ISCII_TAMIL" , { NULL , NULL , NULL , } , } ,
 	{ "ISCII_TELUGU" , { NULL , NULL , NULL , } , } ,
 	{ "VISCII" , { "viscii-1" , NULL , NULL , } , } ,

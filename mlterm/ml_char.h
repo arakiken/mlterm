@@ -123,7 +123,7 @@ void  ml_char_change_attr( ml_char_t *  ch , int  is_bold , int  is_underlined ,
 void  ml_char_reverse_attr( ml_char_t *  ch , int  bold , int  underlined ,
 	int  blinking , int  reversed) ;
 
-int  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
+ml_char_t *  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
 	int  is_fullwidth , int  is_comb , ml_color_t  fg_color , ml_color_t  bg_color ,
 	int  is_bold , int  is_italic , int  underline_style , int  is_crossed_out ,
 	int  is_blinking) ;
@@ -132,7 +132,7 @@ int  ml_char_combine( ml_char_t *  ch , u_int32_t  code , mkf_charset_t  cs ,
 #define  ml_char_combine_picture( ch , id , pos) \
 	ml_char_combine( ch , pos , PICTURE_CHARSET , 0 , 0 ,  id , id , 0 , 0 , 0 , 0 , 0)
 
-int  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
+ml_char_t *  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
 
 ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
 
@@ -175,6 +175,12 @@ int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  color) ;
 ml_color_t  ml_char_bg_color( ml_char_t *  ch) ;
 
 int  ml_char_set_bg_color( ml_char_t *  ch , ml_color_t  color) ;
+
+int  ml_char_get_offset( ml_char_t *  ch) ;
+
+u_int  ml_char_get_width( ml_char_t *  ch) ;
+
+int  ml_char_set_position( ml_char_t *  ch , u_int8_t  offset , u_int8_t  width) ;
 
 int  ml_char_underline_style( ml_char_t *  ch) ;
 

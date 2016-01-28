@@ -1546,8 +1546,7 @@ xfont_loaded:
 	    ( font->xfont->ref_count == 1 || IS_PROPORTIONAL(font->xfont)))
 	{
 		/* Proportional glyph is available on ISCII alone for now. */
-		font->is_var_col_width = 1 ;
-		font->is_proportional = 1 ;
+		font->is_var_col_width = font->is_proportional = 1 ;
 
 		if( font->xfont->ref_count == 1)
 		{
@@ -1885,6 +1884,8 @@ x_convert_text_to_glyphs(
 	x_font_t *  font ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -1892,8 +1893,8 @@ x_convert_text_to_glyphs(
 	const char *  features
 	)
 {
-	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , cmapped ,
-			src , src_len , script , features) ;
+	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , offsets ,
+			widths , cmapped , src , src_len , script , features) ;
 }
 
 #endif

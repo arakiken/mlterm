@@ -498,11 +498,11 @@ get_state(
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
-static int
+static void
 fc_draw_combining_chars(
 	x_window_t *  window ,
 	x_font_manager_t *  font_man ,
-	x_color_manager_t *  color_man ,
+	x_color_t *  xcolor ,		/* fg color */
 	ml_char_t *  chars ,
 	u_int  size ,
 	int  x ,
@@ -513,7 +513,6 @@ fc_draw_combining_chars(
 	u_int32_t  ch_code ;
 	mkf_charset_t  ch_cs ;
 	x_font_t *  xfont ;
-	x_color_t *  xcolor ;
 
 	for( count = 0 ; count < size ; count ++)
 	{
@@ -525,7 +524,6 @@ fc_draw_combining_chars(
 		ch_code = ml_char_code( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 		xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
-		xcolor = x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ;
 
 		if( ch_cs == DEC_SPECIAL)
 		{
@@ -546,15 +544,19 @@ fc_draw_combining_chars(
 		{
 			/* FcChar32 */ u_int32_t  ucs4 ;
 
-			if( ( ucs4 = x_convert_to_xft_ucs4( ch_code , ch_cs)))
+			if( ch_cs == ISO10646_UCS4_1_V)
+			{
+				x_window_ft_draw_string32( window , xfont , xcolor ,
+					x + ml_char_get_offset( &chars[count]) , y ,
+					&ch_code , 1) ;
+			}
+			else if( ( ucs4 = x_convert_to_xft_ucs4( ch_code , ch_cs)))
 			{
 				x_window_ft_draw_string32( window , xfont , xcolor ,
 					x , y , &ucs4 , 1) ;
 			}
 		}
 	}
-
-	return  1 ;
 }
 
 static int
@@ -642,7 +644,7 @@ fc_draw_str(
 	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 	ch_cs = FONT_CS(font) ;
 
-	ch_width = x_calculate_char_width( xfont , ch_code , ch_cs , &draw_alone) ;
+	ch_width = x_calculate_mlchar_width( xfont , &chars[count] , &draw_alone) ;
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -738,8 +740,8 @@ fc_draw_str(
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_underline_style = ml_char_underline_style( &chars[count]) ;
 			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
-			next_ch_width = x_calculate_char_width( next_xfont ,
-						ch_code , ch_cs , &next_draw_alone) ;
+			next_ch_width = x_calculate_mlchar_width( next_xfont ,
+						&chars[count] , &next_draw_alone) ;
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
 							&next_comb_size) ;
 
@@ -863,22 +865,23 @@ fc_draw_str(
 
 			if( comb_chars)
 			{
-				fc_draw_combining_chars( window , font_man , color_man ,
-					comb_chars , comb_size ,
-				/*
-				 * 'current_width' is for some thai fonts which automatically
-				 * draw combining chars.
-				 * e.g.)
-				 *  -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
-				 *  (distributed by ZzzThai http://zzzthai.fedu.uec.ac.jp/ZzzThai/)
-				 *  win32 unicode font.
-				 */
-				#if  0
-					current_width
-				#else
-					current_width - ch_width
-				#endif
-					, y + ascent) ;
+				fc_draw_combining_chars( window , font_man ,
+						fg_xcolor , comb_chars , comb_size ,
+					/*
+					 * 'current_width' is for some thai fonts which
+					 * automatically draw combining chars.
+					 * e.g.)
+					 *  -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
+					 *  (distributed by ZzzThai
+					 *   http://zzzthai.fedu.uec.ac.jp/ZzzThai/)
+					 *  win32 unicode font.
+					 */
+					#if  0
+						current_width
+					#else
+						current_width - ch_width
+					#endif
+						, y + ascent) ;
 			}
 
 			if( ! hide_underline && underline_style)
@@ -941,7 +944,7 @@ static int
 xcore_draw_combining_chars(
 	x_window_t *  window ,
 	x_font_manager_t *  font_man ,
-	x_color_manager_t *  color_man ,
+	x_color_t *  xcolor ,	/* fg color */
 	ml_char_t *  chars ,
 	u_int  size ,
 	int  x ,
@@ -952,7 +955,6 @@ xcore_draw_combining_chars(
 	u_int32_t  ch_code ;
 	mkf_charset_t  ch_cs ;
 	x_font_t *  xfont ;
-	x_color_t *  xcolor ;
 
 	for( count = 0 ; count < size ; count ++)
 	{
@@ -964,7 +966,6 @@ xcore_draw_combining_chars(
 		ch_code = ml_char_code( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 		xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
-		xcolor = x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ;
 
 		if( ch_cs == DEC_SPECIAL)
 		{
@@ -1001,7 +1002,9 @@ xcore_draw_combining_chars(
 			if( ( len = (x_convert_ucs4_to_utf16( xch , ch_code) / 2)) > 0)
 			{
 				x_window_draw_string16( window , xfont , xcolor ,
-					x , y , xch , len) ;
+					x + (ch_cs == ISO10646_UCS4_1_V ?
+						ml_char_get_offset( &chars[count]) : 0) ,
+					y , xch , len) ;
 			}
 		}
 	}
@@ -1092,7 +1095,11 @@ xcore_draw_str(
 	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 	ch_cs = FONT_CS(font) ;
 
+#if defined(USE_FRAMEBUFFER) && defined(USE_QUARTZ) && defined(USE_WIN32GUI)
+	ch_width = x_calculate_mlchar_width( xfont , &chars[count] , &draw_alone) ;
+#else
 	ch_width = x_calculate_char_width( xfont , ch_code , ch_cs , &draw_alone) ;
+#endif
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -1185,8 +1192,13 @@ xcore_draw_str(
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_underline_style = ml_char_underline_style( &chars[count]) ;
 			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
-			next_ch_width = x_calculate_char_width( next_xfont ,
+		#if defined(USE_FRAMEBUFFER) && defined(USE_QUARTZ) && defined(USE_WIN32GUI)
+			next_ch_width = x_calculate_mlchar_width( next_xfont ,
 						ch_code , ch_cs , &next_draw_alone) ;
+		#else
+			next_ch_width = x_calculate_mlchar_width( next_xfont ,
+						&chars[count] , &next_draw_alone) ;
+		#endif
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
 							&next_comb_size) ;
 
@@ -1349,7 +1361,7 @@ xcore_draw_str(
 
 			if( comb_chars)
 			{
-				xcore_draw_combining_chars( window , font_man , color_man ,
+				xcore_draw_combining_chars( window , font_man , fg_xcolor ,
 					comb_chars , comb_size ,
 				/*
 				 * 'current_width' is for some thai fonts which automatically
@@ -1558,4 +1570,44 @@ x_draw_str_to_eol(
 	}
 
 	return	ret ;
+}
+
+u_int
+x_calculate_mlchar_width(
+	x_font_t *  font ,
+	ml_char_t *  ch ,
+	int *  draw_alone
+	)
+{
+	mkf_charset_t  cs ;
+	u_int  width ;
+
+	cs = FONT_CS(font->id) ;
+	width = x_calculate_char_width( font , ml_char_code( ch) , cs , draw_alone) ;
+
+	if( cs == ISO10646_UCS4_1_V)
+	{
+		u_int  num ;
+		ml_char_t *  comb ;
+		int  w ;
+
+		comb = ml_get_combining_chars( ch , &num) ;
+		for( ; num > 0 ; num-- , comb++)
+		{
+		#if  0
+			if( ml_char_cs( comb) != ISO10646_UCS4_1_V)
+			{
+				continue ;
+			}
+		#endif
+
+			if( ( w = ml_char_get_offset( comb) +
+			          (int)ml_char_get_width( comb)) > (int)width)
+			{
+				width = w ;
+			}
+		}
+	}
+
+	return  width ;
 }

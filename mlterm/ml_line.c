@@ -412,7 +412,7 @@ ml_line_ot_layout_visual(
 
 		if( ( chars = ml_str_new( dst_len)))
 		{
-			/* XXX => shrunk at ml_screen.c and ml_logical_visual_ot_layout.c */
+			/* XXX => shrunk at ml_screen.c and ml_logical_visual_ctl.c */
 			ml_str_delete( line->chars , line->num_of_chars) ;
 			line->chars = chars ;
 			line->num_of_chars = dst_len ;
@@ -426,40 +426,23 @@ ml_line_ot_layout_visual(
 	dst = line->chars ;
 
 	src_pos = 0 ;
-	for( dst_pos = 0 ; dst_pos < dst_len ; dst_pos++ , dst++)
+	for( dst_pos = 0 ; dst_pos < dst_len ; dst_pos++)
 	{
 		if( line->ctl_info.ot_layout->num_of_chars_array[dst_pos] == 0)
 		{
-		#if  0
-			/*
-			 * (logical)ACD -> (visual)ACD -> (shaped)acd
-			 *          B              B
-			 *                         0              b
-			 * (B, 0 and b are combining chars)
-			 */
-			ml_char_t  ch ;
-
-			ml_char_init( &ch) ;
-			ml_char_copy( &ch , ml_get_base_char( src + src_pos - 1)) ;
-			/* NULL */
-			ml_char_set_code( &ch , 0) ;
-
-			ml_char_combine_simple( --dst , &ch) ;
-		#else
 			/*
 			 * (logical)ACD -> (visual)A0CD -> (shaped)abcd
 			 *          B              B
 			 * (B is combining char)
 			 */
-			ml_char_copy( dst , ml_get_base_char( src + src_pos - 1)) ;
-			ml_char_set_code( dst , 0) ;
-		#endif
+			ml_char_copy( dst + dst_pos , ml_get_base_char( src + src_pos - 1)) ;
+			ml_char_set_code( dst + dst_pos , 0) ;
 		}
 		else
 		{
 			u_int  count ;
 
-			ml_char_copy( dst , src + (src_pos ++)) ;
+			ml_char_copy( dst + dst_pos , src + (src_pos ++)) ;
 
 			for( count = 1 ;
 			     count < line->ctl_info.ot_layout->num_of_chars_array[dst_pos] ;
@@ -475,7 +458,8 @@ ml_line_ot_layout_visual(
 				}
 			#endif
 
-				ml_char_combine_simple( dst , ml_get_base_char( src + src_pos)) ;
+				ml_char_combine_simple( dst + dst_pos ,
+					ml_get_base_char( src + src_pos)) ;
 
 				comb = ml_get_combining_chars( src + (src_pos ++) , &num) ;
 				for( ; num > 0 ; num--)
@@ -487,7 +471,7 @@ ml_line_ot_layout_visual(
 							" illegal ot_layout\n") ;
 					}
 				#endif
-					ml_char_combine_simple( dst , comb ++) ;
+					ml_char_combine_simple( dst + dst_pos , comb ++) ;
 				}
 			}
 		}
@@ -503,8 +487,7 @@ ml_line_ot_layout_visual(
 
 	ml_str_final( src , src_len) ;
 
-	/* If '#if 0' above is '#if 1', line->chars + dst_pos != dst */
-	line->num_of_filled_chars = (dst - line->chars) ;
+	line->num_of_filled_chars = dst_pos ;
 
 	return  1 ;
 }
@@ -539,23 +522,38 @@ ml_line_ot_layout_logical(
 	ml_str_copy( src , line->chars , src_len) ;
 	dst = line->chars ;
 
-	for( src_pos = 0 ; src_pos < src_len ; src_pos++)
+	for( src_pos = 0 ; src_pos < line->ctl_info.ot_layout->size ; src_pos++)
 	{
 		ml_char_t *  comb ;
 		u_int  num ;
 
-		if( ml_char_is_null( src + src_pos))
+		if( line->ctl_info.ot_layout->num_of_chars_array[src_pos] == 0)
 		{
 			continue ;
 		}
 
-		ml_char_copy( dst , ml_get_base_char( src + src_pos)) ;
-
-		comb = ml_get_combining_chars( src + src_pos , &num) ;
-		for( ; num > 0 ; num-- , comb++)
+		if( ml_char_cs( src + src_pos) == ISO10646_UCS4_1_V)
 		{
-			if( ! ml_char_is_null( comb))
+			ml_char_set_cs( src + src_pos , ISO10646_UCS4_1) ;
+		}
+
+		if( line->ctl_info.ot_layout->num_of_chars_array[src_pos] == 1)
+		{
+			ml_char_copy( dst , src + src_pos) ;
+		}
+		else
+		{
+			ml_char_copy( dst , ml_get_base_char( src + src_pos)) ;
+
+			comb = ml_get_combining_chars( src + src_pos , &num) ;
+			for( ; num > 0 ; num-- , comb++)
 			{
+				if( ml_char_cs( comb) == ISO10646_UCS4_1_V)
+				{
+					ml_char_set_cs( comb , ISO10646_UCS4_1) ;
+					kik_debug_printf( "%x\n" , ml_char_cs( comb)) ;
+				}
+
 				if( ml_char_is_comb( comb))
 				{
 					ml_char_combine_simple( dst , comb) ;
@@ -586,7 +584,6 @@ ml_line_ot_layout_convert_logical_char_index_to_visual(
 {
 	int  visual_char_index ;
 	int  end_char_index ;
-	ml_char_t *  str ;
 
 	if( ml_line_is_empty(line))
 	{
@@ -603,33 +600,13 @@ ml_line_ot_layout_convert_logical_char_index_to_visual(
 	}
 
 	end_char_index = ml_line_end_char_index( line) ;
-	str = line->chars ;
-
-	for( visual_char_index = 0 ; visual_char_index < end_char_index ;
-	     visual_char_index++ , str++)
+	for( visual_char_index = 0 ; visual_char_index < end_char_index ; visual_char_index++)
 	{
-		ml_char_t *  comb ;
-		u_int  num ;
-
-		if( ml_char_is_null( str))
-		{
-			continue ;
-		}
-
-		if( -- logical_char_index < 0)
+		if( logical_char_index == 0 ||
+		    ( logical_char_index -=
+			line->ctl_info.ot_layout->num_of_chars_array[visual_char_index]) < 0)
 		{
 			break ;
-		}
-
-		comb = ml_get_combining_chars( str , &num) ;
-		for( ; num > 0 ; num-- , comb++)
-		{
-			if( ! ml_char_is_null( comb) &&
-			    ! ml_char_is_comb( comb) &&
-			    -- logical_char_index < 0)
-			{
-				return  visual_char_index ;
-			}
 		}
 	}
 

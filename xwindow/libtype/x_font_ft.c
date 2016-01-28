@@ -1384,7 +1384,7 @@ cairo_calculate_char_width(
 
 #if  0
 	kik_debug_printf( KIK_DEBUG_TAG " CHAR(%x) x_bearing %f width %f x_advance %f\n" ,
-		ch[0] , extents.x_bearing , extents.width , extents.x_advance) ;
+		ch , extents.x_bearing , extents.width , extents.x_advance) ;
 #endif
 
 	if( ( width = DOUBLE_ROUNDUP_TO_INT(extents.x_advance)) < 0)
@@ -1405,6 +1405,8 @@ ft_convert_text_to_glyphs(
 	x_font_t *  font ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -1413,8 +1415,8 @@ ft_convert_text_to_glyphs(
 	)
 {
 #ifdef  USE_OT_LAYOUT
-	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , cmapped ,
-			src , src_len , script , features) ;
+	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , offsets ,
+			widths , cmapped , src , src_len , script , features) ;
 #else
 	return  0 ;
 #endif

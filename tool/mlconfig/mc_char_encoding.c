@@ -71,8 +71,6 @@ static char *  encodings[] =
 	"ISCII-MALAYALAM (Indics)" ,
 	"ISCII-ORIYA (Indics)" ,
 	"ISCII-PUNJABI (Indics)" ,
-	"ISCII-ROMAN (Indics)" ,
-	"ISCII-TAMIL (Indics)" ,
 	"ISCII-TELUGU (Indics)" ,
 
 	N_("--- Japanese ---"),

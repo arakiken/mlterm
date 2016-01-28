@@ -152,10 +152,11 @@ typedef enum  mkf_charset
 	ISCII_MALAYALAM = 0xf5 ,	/* Excluding US_ASCII(0x0-0x7f) */
 	ISCII_ORIYA = 0xf6 ,		/* Excluding US_ASCII(0x0-0x7f) */
 	ISCII_PUNJABI = 0xf7 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	ISCII_ROMAN = 0xf8 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	ISCII_TAMIL = 0xf9 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	ISCII_TELUGU = 0xfa ,		/* Excluding US_ASCII(0x0-0x7f) */
-
+	ISCII_TAMIL = 0xf8 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_TELUGU = 0xf9 ,		/* Excluding US_ASCII(0x0-0x7f) */
+#if  0
+	ISCII_ROMAN = 0xfa ,		/* Excluding US_ASCII(0x0-0x7f) */
+#endif
 
 	/* Followings are ISO2022 based charsets with revisions. */
 	

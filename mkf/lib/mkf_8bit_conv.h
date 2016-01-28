@@ -55,8 +55,6 @@ mkf_conv_t *  mkf_iscii_oriya_conv_new(void) ;
 
 mkf_conv_t *  mkf_iscii_punjabi_conv_new(void) ;
 
-mkf_conv_t *  mkf_iscii_roman_conv_new(void) ;
-
 mkf_conv_t *  mkf_iscii_tamil_conv_new(void) ;
 
 mkf_conv_t *  mkf_iscii_telugu_conv_new(void) ;

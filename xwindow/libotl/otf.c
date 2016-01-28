@@ -97,6 +97,8 @@ otl_convert_text_to_glyphs(
 	void *  otf ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -140,6 +142,20 @@ otl_convert_text_to_glyphs(
 			}
 
 			return  otfstr.used ;
+		}
+		else
+		{
+		#if  0
+			if( ! offsets || ! widths)
+			{
+				/* do nothing */
+			}
+			else
+		#endif
+			{
+				memcpy( offsets , 0 , shaped_len * sizeof(*offsets)) ;
+				memcpy( widths , 0 , shaped_len * sizeof(*widths)) ;
+			}
 		}
 	}
 	else /* if( cmapped) */

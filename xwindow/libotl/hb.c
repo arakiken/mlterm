@@ -93,6 +93,8 @@ otl_convert_text_to_glyphs(
 	void *  hbfont ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -110,6 +112,7 @@ otl_convert_text_to_glyphs(
 	{
 		static hb_buffer_t *  buf ;
 		hb_glyph_info_t *  info ;
+		hb_glyph_position_t *  pos ;
 		u_int  count ;
 		u_int  num ;
 		hb_feature_t *  hbfeatures ;
@@ -200,22 +203,77 @@ otl_convert_text_to_glyphs(
 
 		info = hb_buffer_get_glyph_infos( buf , &num) ;
 
-		for( count = 0 ; count < num ; count++)
-		{
-			shaped[count] = info[count].codepoint ;
-		}
+		pos = hb_buffer_get_glyph_positions( buf , &num) ;
 
-	#if  0
+		if( ! cmapped)
 		{
-			hb_glyph_position_t *  pos = hb_buffer_get_glyph_positions( buf , &num) ;
-			for( count = 0 ; count < num ; count++)
+			int32_t  prev_offset ;
+
+			prev_offset = 0 ;
+			shaped[0] = info[0].codepoint ;
+			if( offsets && widths)
 			{
-				kik_msg_printf( "%d+%d " ,
-					pos[count].x_offset , pos[count].x_advance) ;
+				offsets[0] = widths[0] = 0 ;
 			}
-			kik_msg_printf( "\n") ;
+
+			for( count = 1 ; count < num ; count++)
+			{
+				shaped[count] = info[count].codepoint ;
+
+			#if  0
+				if( ! offsets || ! widths)
+				{
+					/* do nothing */
+				}
+				else
+			#endif
+				if( abs( pos[count].x_offset) >= 64)
+				{
+					int32_t  offset ;
+
+					prev_offset = offset = pos[count].x_offset +
+								pos[count - 1].x_advance +
+								prev_offset ;
+
+					if( offset >= 0)
+					{
+						offset = ((offset >> 6) & 0x7f) ;
+					}
+					else
+					{
+						offset = ((offset >> 6) | 0x80) ;
+					}
+
+					offsets[count] = offset ;
+					widths[count] = ((pos[count].x_advance >> 6) & 0xff) ;
+
+					if( offsets[count] == 0 && widths[count] == 0)
+					{
+						offsets[count] = -1 ;	/* XXX */
+					}
+				}
+				else
+				{
+					offsets[count] = widths[count] = 0 ;
+					prev_offset = 0 ;
+				}
+			}
 		}
-	#endif
+		else
+		{
+			u_int  minus ;
+
+			minus = 0 ;
+			for( count = 1 ; count < num ; count++)
+			{
+				if( abs( pos[count].x_offset) >= 64)
+				{
+					minus ++ ;
+				}
+			}
+
+			num -= minus ;
+		}
 
 	#if  0
 		hb_buffer_destroy( buf) ;

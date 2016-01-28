@@ -69,6 +69,7 @@ static struct
 	{ iscii_malayalam_table , sizeof( iscii_malayalam_table) / sizeof( struct tabl) , } ,
 	{ iscii_oriya_table , sizeof( iscii_oriya_table) / sizeof( struct tabl) , } ,
 	{ iscii_punjabi_table , sizeof( iscii_punjabi_table) / sizeof( struct tabl) , } ,
+	{ iscii_tamil_table , sizeof( iscii_tamil_table) / sizeof( struct tabl) , } ,
 	{ iscii_telugu_table , sizeof( iscii_telugu_table) / sizeof( struct tabl) , } ,
 #else
 	{ NULL , 0 , } ,
@@ -122,6 +123,7 @@ static char *  iscii_table_files[] =
 	"ind_malayalam" ,
 	"ind_oriya" ,
 	"ind_punjabi" ,
+	"ind_tamil" ,
 	"ind_telugu" ,
 } ;
 

@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static u_int  (*shape_func)( void * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
-			const char * , const char *) ;
+static u_int  (*shape_func)( void * , u_int32_t * , u_int , int8_t * , u_int8_t * ,
+			u_int32_t * , u_int32_t * , u_int , const char * , const char *) ;
 static void *  (*get_font_func)( void * , ml_font_t) ;
 static char *  ot_layout_attrs[] = { "latn" , "liga,clig,dlig,hlig,rlig" } ;
 static int8_t  ot_layout_attr_changed[2] ;
@@ -90,8 +90,8 @@ ml_set_ot_layout_attr(
 
 void
 ml_ot_layout_set_shape_func(
-	u_int  (*func1)( void * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
-		const char * , const char *) ,
+	u_int  (*func1)( void * , u_int32_t * , u_int , int8_t * , u_int8_t * ,
+		u_int32_t * , u_int32_t * , u_int , const char * , const char *) ,
 	void *  (*func2)( void * , ml_font_t)
 	)
 {
@@ -104,6 +104,8 @@ ml_ot_layout_shape(
 	void *  font ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len
@@ -114,7 +116,8 @@ ml_ot_layout_shape(
 		return  0 ;
 	}
 
-	return  (*shape_func)( font , shaped , shaped_len , cmapped , src , src_len ,
+	return  (*shape_func)( font , shaped , shaped_len , offsets , widths ,
+			cmapped , src , src_len ,
 			ot_layout_attrs[OT_SCRIPT] , ot_layout_attrs[OT_FEATURES]) ;
 }
 
@@ -243,11 +246,12 @@ ml_ot_layout(
 			}
 
 			/* store glyph index in ucs_buf. */
-			ml_ot_layout_shape( xfont , NULL , 0 , ucs_buf + ucs_filled - num - 1 ,
+			ml_ot_layout_shape( xfont , NULL , 0 , NULL , NULL ,
+				ucs_buf + ucs_filled - num - 1 ,
 				ucs_buf + ucs_filled - num - 1 , num + 1) ;
 			/* apply ot_layout to glyph indeces in ucs_buf. */
 			shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , shaped_buf_len ,
-						ucs_buf , NULL , ucs_filled) ;
+						NULL , NULL , ucs_buf , NULL , ucs_filled) ;
 
 			if( shaped_filled < prev_shaped_filled)
 			{

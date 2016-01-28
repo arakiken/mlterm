@@ -132,8 +132,8 @@ u_int  x_calculate_char_width( x_font_t *  font , u_int32_t  ch ,
 int  x_font_has_ot_layout_table( x_font_t *  font) ;
 
 u_int  x_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , u_int  shaped_len ,
-	u_int32_t *  cmapped , u_int32_t *  src , u_int  src_len ,
-	const char *  script , const char *  features) ;
+	int8_t *  offsets , u_int8_t *  widths , u_int32_t *  cmapped ,
+	u_int32_t *  src , u_int  src_len , const char *  script , const char *  features) ;
 
 #if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_WIN32GUI)
 char **  x_font_get_encoding_names( mkf_charset_t  cs) ;

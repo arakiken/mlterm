@@ -34,12 +34,13 @@ typedef struct  ml_ot_layout_state
 void  ml_set_ot_layout_attr( char *  value , ml_ot_layout_attr_t  attr) ;
 
 void  ml_ot_layout_set_shape_func(
-	u_int  (*func1)( void * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
-		const char * , const char *) ,
+	u_int  (*func1)( void * , u_int32_t * , u_int , int8_t * , u_int8_t * ,
+		u_int32_t * , u_int32_t * , u_int , const char * , const char *) ,
 	void *  (*func2)( void * , ml_font_t)) ;
 
 u_int  ml_ot_layout_shape( void *  font , u_int32_t *  shaped , u_int32_t  shaped_len ,
-		u_int32_t *  cmapped , u_int32_t *  src , u_int32_t  src_len) ;
+		int8_t *  offsets , u_int8_t *  widths , u_int32_t *  cmapped ,
+		u_int32_t *  src , u_int32_t  src_len) ;
 
 void *  ml_ot_layout_get_font( void *  term , ml_font_t  font) ;
 

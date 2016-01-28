@@ -16,31 +16,30 @@ combine_replacing_code(
 	ml_char_t *  dst ,
 	ml_char_t *  src ,
 	u_int  new_code ,
+	int8_t  offset ,
+	u_int8_t  width ,
 	int  was_vcol
 	)
 {
-	ml_char_t  ch ;
 	u_int  code ;
 
-	ml_char_init( &ch) ;
-	ml_char_copy( &ch , src) ;
-
-	code = ml_char_code( &ch) ;
+	dst = ml_char_combine_simple( dst , src) ;
+	code = ml_char_code( src) ;
 
 	if( ( 0x900 <= code && code <= 0xd7f) ||
 	    ( code == 0 && was_vcol))
 	{
-		ml_char_set_cs( &ch , ISO10646_UCS4_1_V) ;
+		ml_char_set_cs( dst , ISO10646_UCS4_1_V) ;
+		ml_char_set_position( dst , offset , width) ;
 		was_vcol = 1 ;
 	}
 	else
 	{
-		ml_char_set_cs( &ch , ISO10646_UCS4_1) ;
+		ml_char_set_cs( dst , ISO10646_UCS4_1) ;
 		was_vcol = 0 ;
 	}
 
-	ml_char_set_code( &ch , new_code) ;
-	ml_char_combine_simple( dst , &ch) ;
+	ml_char_set_code( dst , new_code) ;
 
 	return  was_vcol ;
 }
@@ -156,6 +155,8 @@ ml_shape_ot_layout(
 	u_int  ucs_filled ;
 	u_int32_t *  shaped_buf ;
 	u_int  shaped_filled ;
+	int8_t *  offsets ;
+	u_int8_t *  widths ;
 	ml_char_t *  ch ;
 	ml_char_t *  dst_shaped ;
 	u_int  count ;
@@ -167,13 +168,11 @@ ml_shape_ot_layout(
 	int  src_pos_mark ;
 	int  was_vcol ;
 
-	if( ( ucs_buf = alloca( src_len * (MAX_COMB_SIZE + 1) * sizeof(*ucs_buf))) == NULL)
-	{
-		return  0 ;
-	}
-
 #define  DST_LEN  (dst_len * (MAX_COMB_SIZE + 1))
-	if( ( shaped_buf = alloca( DST_LEN * sizeof(*ucs_buf))) == NULL)
+	if( ( ucs_buf = alloca( src_len * (MAX_COMB_SIZE + 1) * sizeof(*ucs_buf))) == NULL ||
+	    ( shaped_buf = alloca( DST_LEN * sizeof(*ucs_buf))) == NULL ||
+	    ( offsets = alloca( DST_LEN * sizeof(*offsets))) == NULL ||
+	    ( widths = alloca( DST_LEN * sizeof(*offsets))) == NULL)
 	{
 		return  0 ;
 	}
@@ -188,7 +187,7 @@ ml_shape_ot_layout(
 		ch = &src[src_pos] ;
 		cur_font = ml_char_font( ch) ;
 
-		if( FONT_CS(cur_font) == US_ASCII)
+		if( FONT_CS(cur_font) == US_ASCII /* && ml_char_code(ch) == ' ' */)
 		{
 			cur_font &= ~US_ASCII ;
 			cur_font |= ISO10646_UCS4_1 ;
@@ -199,12 +198,13 @@ ml_shape_ot_layout(
 			if( ucs_filled)
 			{
 				shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , DST_LEN ,
-							NULL , ucs_buf , ucs_filled) ;
+							offsets , widths , NULL ,
+							ucs_buf , ucs_filled) ;
 
 				/*
-				 * If EOL char is a ot_layout byte which presents two ot_layouts and
-				 * its second ot_layout is out of screen, 'shaped_filled' is greater
-				 * than 'dst + dst_len - dst_shaped'.
+				 * If EOL char is a ot_layout byte which presents two ot_layouts
+				 * and its second ot_layout is out of screen, 'shaped_filled' is
+				 * greater than 'dst + dst_len - dst_shaped'.
 				 */
 				if( shaped_filled > dst + dst_len - dst_shaped)
 				{
@@ -230,22 +230,22 @@ ml_shape_ot_layout(
 			#endif
 
 				was_vcol = 0 ;
-				for( count = 0 ; count < shaped_filled ; dst_shaped ++)
+				for( count = 0 ; count < shaped_filled ;
+				     count ++ , dst_shaped ++ , src_pos_mark++)
 				{
-					was_vcol = replace_code( dst_shaped ,
-							shaped_buf[count++] , was_vcol) ;
-
-					comb = ml_get_combining_chars( &src[src_pos_mark++] ,
-							&comb_size) ;
-					for( ; comb_size > 0 ; comb_size -- , comb++)
+					if( offsets[count] || widths[count])
 					{
-						if( ml_char_is_null( comb))
-						{
-							was_vcol = combine_replacing_code(
-									dst_shaped , comb ,
-									shaped_buf[count++] ,
-									was_vcol) ;
-						}
+						was_vcol = combine_replacing_code( --dst_shaped ,
+								ml_get_base_char(
+									&src[--src_pos_mark]) ,
+								shaped_buf[count] ,
+								offsets[count] , widths[count] ,
+								was_vcol) ;
+					}
+					else
+					{
+						was_vcol = replace_code( dst_shaped ,
+								shaped_buf[count] , was_vcol) ;
 					}
 				}
 
@@ -282,11 +282,8 @@ ml_shape_ot_layout(
 				comb = ml_get_combining_chars( ch , &comb_size) ;
 				for( count = 0 ; count < comb_size ; count ++)
 				{
-					if( ! ml_char_is_null( &comb[count]))
-					{
-						ucs_buf[ucs_filled ++] =
-							ml_char_code( &comb[count]) ;
-					}
+					ucs_buf[ucs_filled ++] =
+						ml_char_code( &comb[count]) ;
 				}
 			}
 
@@ -310,8 +307,8 @@ ml_shape_ot_layout(
 
 	if( ucs_filled)
 	{
-		shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , DST_LEN ,
-					NULL , ucs_buf , ucs_filled) ;
+		shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , DST_LEN , offsets ,
+					widths , NULL , ucs_buf , ucs_filled) ;
 
 		/*
 		 * If EOL char is a ot_layout byte which presents two ot_layouts and its second
@@ -324,20 +321,19 @@ ml_shape_ot_layout(
 		}
 
 		was_vcol = 0 ;
-		for( count = 0 ; count < shaped_filled ; dst_shaped ++)
+		for( count = 0 ; count < shaped_filled ; count++ , dst_shaped ++ , src_pos_mark++)
 		{
-			was_vcol = replace_code( dst_shaped , shaped_buf[count++] ,
-					was_vcol) ;
-
-			comb = ml_get_combining_chars( &src[src_pos_mark++] , &comb_size) ;
-			for( ; comb_size > 0 ; comb_size -- , comb++)
+			if( offsets[count] || widths[count])
 			{
-				if( ml_char_is_null( comb))
-				{
-					was_vcol = combine_replacing_code( dst_shaped ,
-							comb , shaped_buf[count++] ,
-							was_vcol) ;
-				}
+				was_vcol = combine_replacing_code( --dst_shaped ,
+						ml_get_base_char( &src[--src_pos_mark]) ,
+						shaped_buf[count] ,
+						offsets[count] , widths[count] , was_vcol) ;
+			}
+			else
+			{
+				was_vcol = replace_code( dst_shaped ,
+						shaped_buf[count] , was_vcol) ;
 			}
 		}
 

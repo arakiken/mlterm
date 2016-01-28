@@ -173,9 +173,9 @@ convert_char_index_to_x(
 
 			if( ml_char_cols( ch) > 0)
 			{
-				x -= x_calculate_char_width(
+				x -= x_calculate_mlchar_width(
 					x_get_font( screen->font_man , ml_char_font( ch)) ,
-					ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
+					ch , NULL) ;
 			}
 		}
 	}
@@ -193,9 +193,9 @@ convert_char_index_to_x(
 
 			if( ml_char_cols( ch) > 0)
 			{
-				x += x_calculate_char_width(
+				x += x_calculate_mlchar_width(
 					x_get_font( screen->font_man , ml_char_font( ch)) ,
-					ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
+					ch , NULL) ;
 			}
 		}
 	}
@@ -269,9 +269,9 @@ convert_x_to_char_index(
 				continue ;
 			}
 
-			width = x_calculate_char_width(
+			width = x_calculate_mlchar_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
+				ch , NULL) ;
 
 			if( x <= width)
 			{
@@ -299,9 +299,9 @@ convert_x_to_char_index(
 				continue ;
 			}
 
-			width = x_calculate_char_width(
+			width = x_calculate_mlchar_width(
 				x_get_font( screen->font_man , ml_char_font( ch)) ,
-				ml_char_code( ch) , ml_char_cs( ch) , NULL) ;
+				ch , NULL) ;
 
 			if( x < width)
 			{
@@ -671,8 +671,7 @@ draw_cursor(
 			x_get_xcolor( screen->color_man , ml_char_fg_color(&ch))) ;
 
 		x_window_draw_rect_frame( &screen->window , x , y ,
-			x + x_calculate_char_width( xfont , ml_char_code(&ch) ,
-				ml_char_cs(&ch) , NULL) - 1 ,
+			x + x_calculate_mlchar_width( xfont , &ch , NULL) - 1 ,
 			y + x_line_height( screen) - 1) ;
 	}
 
@@ -6203,10 +6202,9 @@ get_im_spot(
 		{
 			u_int  width ;
 
-			width = x_calculate_char_width(
+			width = x_calculate_mlchar_width(
 					x_get_font( screen->font_man , ml_char_font( &chars[i])) ,
-					ml_char_code( &chars[i]) ,
-					ml_char_cs( &chars[i]) , NULL) ;
+					&chars[i] , NULL) ;
 
 			if( *x + width > screen->window.width)
 			{
@@ -6396,9 +6394,7 @@ draw_preedit_str(
 		int  _y ;
 
 		xfont = x_get_font( screen->font_man , ml_char_font( &chars[i])) ;
-		width = x_calculate_char_width( xfont ,
-						ml_char_code( &chars[i]) ,
-						ml_char_cs( &chars[i]) , NULL) ;
+		width = x_calculate_mlchar_width( xfont , &chars[i] , NULL) ;
 
 		total_width += width ;
 

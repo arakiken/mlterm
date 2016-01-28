@@ -34,8 +34,8 @@
 
 static void *  (*open_sym)( void * , u_int) ;
 static void  (*close_sym)( void *) ;
-static u_int  (*convert_sym)( void * , u_int32_t * , u_int , u_int32_t * ,
-		u_int32_t * , u_int , const char * , const char *) ;
+static u_int  (*convert_sym)( void * , u_int32_t * , u_int , int8_t * , u_int8_t * ,
+		u_int32_t * , u_int32_t * , u_int , const char * , const char *) ;
 
 
 /* --- static functions --- */
@@ -92,6 +92,8 @@ otl_convert_text_to_glyphs(
 	void *  otf ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -99,8 +101,8 @@ otl_convert_text_to_glyphs(
 	const char *  features
 	)
 {
-	return  (*convert_sym)( otf , shaped , shaped_len , cmapped , src , src_len ,
-			script , features) ;
+	return  (*convert_sym)( otf , shaped , shaped_len , offsets , widths ,
+			cmapped , src , src_len , script , features) ;
 }
 
 

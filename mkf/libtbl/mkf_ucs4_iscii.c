@@ -6,9 +6,7 @@
 
 
 #define  ISCIICS_TO_INDEX(cs)  \
-		((cs) == ISCII_ASSAMESE ? 0 : \
-		 ((cs) == ISCII_TAMIL   ? 7 : \
-		  ((cs) == ISCII_TELUGU ? 8 : (cs) - ISCII_BENGALI)))
+		((cs) == ISCII_ASSAMESE ? 0 : (cs) - ISCII_BENGALI)
 
 
 /* --- static variables --- */
@@ -247,15 +245,6 @@ mkf_map_iscii_punjabi_to_ucs4(
 	)
 {
 	return  convert_iscii_to_ucs4( ucs4 , iscii_code , ISCII_PUNJABI) ;
-}
-
-int
-mkf_map_iscii_roman_to_ucs4(
-	mkf_char_t *  ucs4 ,
-	u_int16_t  iscii_code
-	)
-{
-	return  convert_iscii_to_ucs4( ucs4 , iscii_code , ISCII_ROMAN) ;
 }
 
 int

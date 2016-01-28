@@ -21,5 +21,7 @@ int x_draw_str_to_eol( x_window_t *  window , x_font_manager_t *  font_man ,
 	int  x , int  y , u_int  height , u_int  ascent ,
 	u_int  top_margin , u_int  bottom_margin , int  hide_underline) ;
 
+u_int  x_calculate_mlchar_width( x_font_t *  font , ml_char_t *  ch , int *  draw_alone) ;
+
 
 #endif

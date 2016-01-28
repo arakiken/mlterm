@@ -99,7 +99,6 @@ static cs_table_t  cs_table[] =
 	{ "ISCII_MALAYALAM" , ISCII_MALAYALAM } ,
 	{ "ISCII_ORIYA" , ISCII_ORIYA } ,
 	{ "ISCII_PUNJABI" , ISCII_PUNJABI } ,
-	{ "ISCII_ROMAN" , ISCII_ROMAN } ,
 	{ "ISCII_TAMIL" , ISCII_TAMIL } ,
 	{ "ISCII_TELUGU" , ISCII_TELUGU } ,
 	{ "VISCII" , VISCII } ,

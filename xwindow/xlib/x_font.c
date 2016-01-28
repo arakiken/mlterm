@@ -86,7 +86,6 @@ static cs_info_t  cs_info_table[] =
 	{ ISCII_MALAYALAM , { NULL , NULL , } , } ,
 	{ ISCII_ORIYA , { NULL , NULL , } , } ,
 	{ ISCII_PUNJABI , { NULL , NULL , } , } ,
-	{ ISCII_ROMAN , { NULL , NULL , } , } ,
 	{ ISCII_TAMIL , { NULL , NULL , } , } ,
 	{ ISCII_TELUGU , { NULL , NULL , } , } ,
 	{ VISCII , { "viscii-1" , NULL , } , } ,
@@ -887,6 +886,8 @@ xft_convert_text_to_glyphs(
 	x_font_t *  font ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -894,15 +895,16 @@ xft_convert_text_to_glyphs(
 	const char *  features
 	)
 {
-	int (*func)( x_font_t * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
-		const char * , const char *) ;
+	int (*func)( x_font_t * , u_int32_t * , u_int , int8_t * , u_int8_t * ,
+		u_int32_t * , u_int32_t * , u_int , const char * , const char *) ;
 
 	if( ! ( func = x_load_type_xft_func( X_CONVERT_TEXT_TO_GLYPHS)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( font , shaped , shaped_len , cmapped , src , src_len , script , features) ;
+	return  (*func)( font , shaped , shaped_len , offsets , widths , cmapped ,
+			src , src_len , script , features) ;
 }
 
 #elif  defined(USE_TYPE_XFT)
@@ -911,12 +913,12 @@ int  xft_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , u_int  letter_space , int  aa_opt ,
 	int  use_point_size_for_fc , double  dpi_for_fc) ;
 int  xft_set_ot_font( x_font_t *  font) ;
-#define  xft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
+#define  xft_convert_text_to_glyphs( font , shaped , shaped_len , offsets , widths , cmapped , \
 		src , src_len , script , features) \
-	ft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
+	ft_convert_text_to_glyphs( font , shaped , shaped_len , offsets , widths , cmapped , \
 		src , src_len , script , features)
-u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , u_int  shaped_len ,
-	u_int32_t *  cmapped , u_int32_t *  src , u_int  src_len ,
+u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , int8_t * , u_int8_t * ,
+	u_int  shaped_len , u_int32_t *  cmapped , u_int32_t *  src , u_int  src_len ,
 	const char *  script , const char *  features) ;
 #endif
 
@@ -982,6 +984,8 @@ cairo_convert_text_to_glyphs(
 	x_font_t *  font ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -989,15 +993,16 @@ cairo_convert_text_to_glyphs(
 	const char *  features
 	)
 {
-	int (*func)( x_font_t * , u_int32_t * , u_int , u_int32_t * , u_int32_t * , u_int ,
-		const char * , const char *) ;
+	int (*func)( x_font_t * , u_int32_t * , u_int , int8_t * , u_int8_t * , u_int32_t * ,
+		u_int32_t * , u_int , const char * , const char *) ;
 
 	if( ! ( func = x_load_type_cairo_func( X_CONVERT_TEXT_TO_GLYPHS)))
 	{
 		return  0 ;
 	}
 
-	return  (*func)( font , shaped , shaped_len , cmapped , src , src_len , script , features) ;
+	return  (*func)( font , shaped , shaped_len , offsets , widths , cmapped ,
+			src , src_len , script , features) ;
 }
 
 #elif  defined(USE_TYPE_CAIRO)
@@ -1006,14 +1011,14 @@ int  cairo_set_font( x_font_t *  font , const char *  fontname , u_int  fontsize
 	u_int  col_width , u_int  letter_space , int  aa_opt , int  use_point_size_for_fc ,
 	double  dpi_for_fc) ;
 int  cairo_set_ot_font( x_font_t *  font) ;
-#define  cairo_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
+#define  cairo_convert_text_to_glyphs( font , shaped , shaped_len , offsets , widths , cmapped , \
 		src , src_len , script , features) \
-	ft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped , \
+	ft_convert_text_to_glyphs( font , shaped , shaped_len , offsets , widths , cmapped , \
 		src , src_len , script , features)
 #ifndef  USE_TYPE_XFT
-u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , u_int  shaped_len ,
-	u_int32_t *  cmapped , u_int32_t *  src , u_int  src_len ,
-	const char *  script , const char *  features) ;
+u_int  ft_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , int8_t *  offsets ,
+	u_int8_t *  widths , u_int  shaped_len , u_int32_t *  cmapped , u_int32_t *  src ,
+	u_int  src_len , const char *  script , const char *  features) ;
 #endif
 #endif
 
@@ -1116,9 +1121,17 @@ x_font_new(
 		font->cols = 1 ;
 	}
 
-	if( ( font_present & FONT_VAR_WIDTH) || IS_ISCII(FONT_CS(font->id)))
+	if( font_present & FONT_VAR_WIDTH)
 	{
 		font->is_var_col_width = 1 ;
+	}
+	else if( IS_ISCII(FONT_CS(font->id)))
+	{
+		/*
+		 * For exampe, 'W' width and 'l' width of OR-TTSarala font for ISCII_ORIYA
+		 * are the same by chance, though it is actually a proportional font.
+		 */
+		font->is_var_col_width = font->is_proportional = 1 ;
 	}
 
 	if( font_present & FONT_VERTICAL)
@@ -1404,6 +1417,8 @@ x_convert_text_to_glyphs(
 	x_font_t *  font ,	/* always has ot_font */
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -1414,15 +1429,15 @@ x_convert_text_to_glyphs(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	if( font->cairo_font)
 	{
-		return  cairo_convert_text_to_glyphs( font , shaped , shaped_len , cmapped ,
-				src , src_len , script , features) ;
+		return  cairo_convert_text_to_glyphs( font , shaped , shaped_len , offsets ,
+				widths , cmapped , src , src_len , script , features) ;
 	}
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	if( font->xft_font)
 	{
-		return  xft_convert_text_to_glyphs( font , shaped , shaped_len , cmapped ,
-				src , src_len , script , features) ;
+		return  xft_convert_text_to_glyphs( font , shaped , shaped_len , offsets ,
+				widths , cmapped , src , src_len , script , features) ;
 	}
 #endif
 

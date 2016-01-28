@@ -128,7 +128,7 @@ ml_line_iscii_visual(
 
 		if( ( chars = ml_str_new( dst_len)))
 		{
-			/* XXX => shrunk at ml_screen.c and ml_logical_visual_iscii.c */
+			/* XXX => shrunk at ml_screen.c and ml_logical_visual_ctl.c */
 			ml_str_delete( line->chars , line->num_of_chars) ;
 			line->chars = chars ;
 			line->num_of_chars = dst_len ;
@@ -300,7 +300,8 @@ ml_line_iscii_convert_logical_char_index_to_visual(
 	end_char_index = ml_line_end_char_index( line) ;
 	for( visual_char_index = 0 ; visual_char_index < end_char_index ; visual_char_index++)
 	{
-		if( ( logical_char_index -=
+		if( logical_char_index == 0 ||
+		    ( logical_char_index -=
 			line->ctl_info.iscii->num_of_chars_array[visual_char_index]) < 0)
 		{
 			break ;

@@ -87,6 +87,137 @@ get_comb_size(
 	return  size ;
 }
 
+static ml_char_t *
+new_comb(
+	ml_char_t *  ch ,
+	u_int *  comb_size_ptr
+	)
+{
+	ml_char_t *  multi_ch ;
+	u_int  comb_size ;
+
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		if( IS_ZEROWIDTH(ch->u.ch.attr))
+		{
+			/*
+			 * Zero width characters must not be combined to
+			 * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
+			 */
+			return  NULL ;
+		}
+
+		if( ( multi_ch = malloc( sizeof( ml_char_t) * 2)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+		#endif
+
+			return  NULL ;
+		}
+
+	#ifndef  __GLIBC__
+		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
+		{
+			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."
+			                "Character combining is not supported.\n") ;
+
+			return  NULL ;
+		}
+	#endif
+
+		ml_char_init( multi_ch) ;
+		ml_char_copy( multi_ch , ch) ;
+
+		comb_size = 1 ;
+
+		if( comb_size > 10)
+		{
+			abort() ;
+		}
+	}
+	else
+	{
+		if( IS_ZEROWIDTH(ch->u.multi_ch->u.ch.attr))
+		{
+			/*
+			 * Zero width characters must not be combined to
+			 * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
+			 */
+			return  NULL ;
+		}
+
+		if( ( comb_size = get_comb_size( ch->u.multi_ch)) >= MAX_COMB_SIZE)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+			" This char is already combined by %d chars, so no more combined.\n",
+			comb_size) ;
+		#endif
+
+			return  NULL ;
+		}
+
+		if( ( multi_ch = realloc( ch->u.multi_ch ,
+			sizeof( ml_char_t) * (comb_size + 2))) == NULL)
+		{
+			return  NULL ;
+		}
+
+	#ifndef  __GLIBC__
+		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
+		{
+			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."
+			                "Character combining is not supported.\n") ;
+
+			return  0 ;
+		}
+	#endif
+
+		comb_size ++ ;
+	}
+
+	SET_COMB_TRAILING( (multi_ch[comb_size - 1]).u.ch.attr) ;
+
+	ch->u.multi_ch = multi_ch ;
+	USE_MULTI_CH(ch->u.ch.attr) ;	/* necessary for 64bit big endian */
+
+	*comb_size_ptr = comb_size ;
+
+	return  multi_ch + comb_size ;
+}
+
+#ifdef  __APPLE__
+static void
+normalize(
+	ml_char_t *  ch ,
+	u_int  comb_size
+	)
+{
+	u_int16_t *  str ;
+
+	if( ( str = alloca( sizeof(*str) * (comb_size + 1))))
+	{
+		ml_char_t *  multi_ch ;
+		u_int  count ;
+
+		multi_ch = ch->u.multi_ch ;
+		for( count = 0 ; count < comb_size + 1 ; count++)
+		{
+			str[count] = ml_char_code( multi_ch + count) ;
+		}
+
+		if( ml_normalize( str , comb_size + 1) == 1)
+		{
+			*ch = *multi_ch ;
+			ch->u.ch.code = str[0] ;
+			UNSET_COMB_TRAILING(ch->u.ch.attr) ;
+			free( multi_ch) ;
+		}
+	}
+}
+#endif
+
 
 /* --- global functions --- */
 
@@ -315,7 +446,7 @@ ml_char_reverse_attr(
 int  ml_normalize( u_int16_t *  str , int  num) ;
 #endif
 
-int
+ml_char_t *
 ml_char_combine(
 	ml_char_t *  ch ,
 	u_int32_t  code ,
@@ -331,7 +462,8 @@ ml_char_combine(
 	int  is_blinking
 	)
 {
-	ml_char_t *  multi_ch ;
+	ml_char_t *  comb ;
+	u_int  comb_size ;
 
 	/*
 	 * This check should be excluded, because characters whose is_comb flag
@@ -341,152 +473,71 @@ ml_char_combine(
 #if  0
 	if( ! is_comb)
 	{
-		return  0 ;
+		return  NULL ;
 	}
 #endif
 
-	if( IS_SINGLE_CH(ch->u.ch.attr))
+#ifdef  DEBUG
+	if( ! IS_ISCII(ml_char_cs( ch)) && IS_ISCII(cs))
 	{
-		if( IS_ISCII(cs) && ! IS_ISCII(CHARSET(ch->u.ch.attr)))
-		{
-			return  0 ;
-		}
-
-		if( IS_ZEROWIDTH(ch->u.ch.attr))
-		{
-			/*
-			 * Zero width characters must not be combined to
-			 * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
-			 */
-			return  0 ;
-		}
-
-		if( ( multi_ch = malloc( sizeof( ml_char_t) * 2)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-		#endif
-
-			return  0 ;
-		}
-		
-#if !defined(__GLIBC__)
-		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
-		{
-			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."
-			                "Character combining is not supported.\n") ;
-
-			return  0 ;
-		}
+		kik_debug_printf( KIK_DEBUG_TAG " combining iscii char to non-iscii char.\n") ;
+	}
 #endif
 
-		ml_char_init( multi_ch) ;
-		ml_char_copy( multi_ch , ch) ;
-		SET_COMB_TRAILING( multi_ch->u.ch.attr) ;
-
-		ml_char_init( multi_ch + 1) ;
-		if( ml_char_set( multi_ch + 1 , code , cs , is_fullwidth , is_comb ,
-			fg_color , bg_color , is_bold , is_italic , underline_style ,
-			is_crossed_out , is_blinking) == 0)
-		{
-			return  0 ;
-		}
-	}
-	else
+	if( ! ( comb = new_comb( ch , &comb_size)))
 	{
-		u_int  comb_size ;
-
-		if( IS_ZEROWIDTH(ch->u.multi_ch->u.ch.attr))
-		{
-			/*
-			 * Zero width characters must not be combined to
-			 * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
-			 */
-			return  0 ;
-		}
-
-		if( ( comb_size = get_comb_size( ch->u.multi_ch)) >= MAX_COMB_SIZE)
-		{
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-			" This char is already combined by %d chars, so no more combined.\n",
-			comb_size) ;
-		#endif
-		
-			return  0 ;
-		}
-		
-		if( ( multi_ch = realloc( ch->u.multi_ch ,
-			sizeof( ml_char_t) * (comb_size + 2))) == NULL)
-		{
-			return  0 ;
-		}
-
-	#ifndef  __GLIBC__
-		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
-		{
-			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."
-			                "Character combining is not supported.\n") ;
-
-			return  0 ;
-		}
-	#endif
-
-		SET_COMB_TRAILING( multi_ch[comb_size].u.ch.attr) ;
-		ml_char_init( multi_ch + comb_size + 1) ;
-		if( ml_char_set( multi_ch + comb_size + 1 , code , cs , is_fullwidth ,
-			is_comb , fg_color , bg_color , is_bold , is_italic , underline_style ,
-			is_crossed_out , is_blinking) == 0)
-		{
-			return  0 ;
-		}
+		return  NULL ;
 	}
 
-	ch->u.multi_ch = multi_ch ;
-	USE_MULTI_CH(ch->u.ch.attr) ;	/* necessary for 64bit big endian */
+	ml_char_init( comb) ;
+	if( ml_char_set( comb , code , cs , is_fullwidth , is_comb ,
+		fg_color , bg_color , is_bold , is_italic , underline_style ,
+		is_crossed_out , is_blinking) == 0)
+	{
+		return  NULL ;
+	}
 
 #ifdef  __APPLE__
+	normalize( ch , comb_size) ;
+#endif
+
+	return  comb ;
+}
+
+ml_char_t *
+ml_char_combine_simple(
+	ml_char_t *  ch ,
+	ml_char_t *  src
+	)
+{
+	ml_char_t *  comb ;
+	u_int  comb_size ;
+
+	/*
+	 * This check should be excluded, because characters whose is_comb flag
+	 * (combining property of mkf) is NULL can be combined
+	 * if ml_is_arabic_combining(them) returns non-NULL.
+	 */
+#if  0
+	if( ! is_comb)
 	{
-		u_int16_t *  str ;
-		u_int  num ;
-
-		num = get_comb_size( multi_ch) ;
-
-		if( ( str = alloca( sizeof(*str) * (num + 1))))
-		{
-			u_int  count ;
-
-			for( count = 0 ; count < num + 1 ; count++)
-			{
-				str[count] = ml_char_code( multi_ch + count) ;
-			}
-
-			if( ml_normalize( str , num + 1) == 1)
-			{
-				*ch = *multi_ch ;
-				ch->u.ch.code = str[0] ;
-				UNSET_COMB_TRAILING(ch->u.ch.attr) ;
-				free( multi_ch) ;
-			}
-		}
+		return  NULL ;
 	}
 #endif
 
-	return  1 ;
-}
+	if( ! ( comb = new_comb( ch , &comb_size)))
+	{
+		return  NULL ;
+	}
 
-int
-ml_char_combine_simple(
-	ml_char_t *  ch ,
-	ml_char_t *  comb
-	)
-{
-	return  ml_char_combine( ch , ml_char_code( comb) , CHARSET(comb->u.ch.attr) ,
-			IS_FULLWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
-			comb->u.ch.fg_color , comb->u.ch.bg_color ,
-			IS_BOLD(comb->u.ch.attr) , IS_ITALIC(comb->u.ch.attr) ,
-			UNDERLINE_STYLE(comb->u.ch.attr) , IS_CROSSED_OUT(comb->u.ch.attr) ,
-			IS_BLINKING(comb->u.ch.attr)) ;
+	*comb = *src ;
+	UNSET_COMB_TRAILING(comb->u.ch.attr) ;
+
+#ifdef  __APPLE__
+	normalize( ch , comb_size) ;
+#endif
+
+	return  comb ;
 }
 
 ml_char_t *
@@ -820,6 +871,14 @@ ml_char_set_fg_color(
 		comb_size = get_comb_size( ch->u.multi_ch) ;
 		for( count = 0 ; count < comb_size + 1 ; count ++)
 		{
+		#ifdef  DEBUG
+			if( CHARSET(ch->u.multi_ch[count].u.ch.attr) == ISO10646_UCS4_1_V)
+			{
+				kik_debug_printf( KIK_DEBUG_TAG " Don't change bg_color"
+					" of ISO10646_UCS4_1_V char after shaped.\n") ;
+			}
+		#endif
+
 			ml_char_set_fg_color( ch->u.multi_ch + count , color) ;
 		}
 	}
@@ -860,11 +919,103 @@ ml_char_set_bg_color(
 		comb_size = get_comb_size( ch->u.multi_ch) ;
 		for( count = 0 ; count < comb_size + 1 ; count ++)
 		{
+		#ifdef  DEBUG
+			if( CHARSET(ch->u.multi_ch[count].u.ch.attr) == ISO10646_UCS4_1_V)
+			{
+				kik_debug_printf( KIK_DEBUG_TAG " Don't change bg_color"
+					" of ISO10646_UCS4_1_V char after shaped.\n") ;
+			}
+		#endif
+
 			ml_char_set_bg_color( ch->u.multi_ch + count , color) ;
 		}
 	}
 
 	return  1 ;
+}
+
+int
+ml_char_get_offset(
+	ml_char_t *  ch
+	)
+{
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr) && CHARSET(attr) == ISO10646_UCS4_1_V)
+	{
+		int8_t  offset ;
+
+		offset = ch->u.ch.bg_color ;	/* unsigned -> signed */
+
+		return  offset ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " ml_char_get_position() accepts "
+			"ISO10646_UCS4_1_V char alone, but received %x charset.\n" ,
+			ml_char_cs( ch)) ;
+	#endif
+
+		return  0 ;
+	}
+}
+
+u_int
+ml_char_get_width(
+	ml_char_t *  ch
+	)
+{
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr) && CHARSET(attr) == ISO10646_UCS4_1_V)
+	{
+		return  ch->u.ch.fg_color ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " ml_char_get_width() accepts "
+			"ISO10646_UCS4_1_V char alone, but received %x charset.\n" ,
+			ml_char_cs( ch)) ;
+	#endif
+
+		return  0 ;
+	}
+}
+
+int
+ml_char_set_position(
+	ml_char_t *  ch ,
+	u_int8_t  offset ,	/* signed -> unsigned */
+	u_int8_t  width
+	)
+{
+	u_int  attr ;
+
+	attr = ch->u.ch.attr ;
+
+	if( IS_SINGLE_CH(attr) && CHARSET(attr) == ISO10646_UCS4_1_V)
+	{
+		ch->u.ch.bg_color = offset ;
+		ch->u.ch.fg_color = width ;
+
+		return  1 ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " ml_char_set_position() accepts "
+			"ISO10646_UCS4_1_V char alone, but received %x charset.\n" ,
+			ml_char_cs( ch)) ;
+	#endif
+
+		return  0 ;
+	}
 }
 
 int

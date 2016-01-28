@@ -673,12 +673,6 @@ mkf_iscii_punjabi_conv_new(void)
 }
 
 mkf_conv_t *
-mkf_iscii_roman_conv_new(void)
-{
-	return  iscii_conv_new( ISCII_ROMAN) ;
-}
-
-mkf_conv_t *
 mkf_iscii_tamil_conv_new(void)
 {
 	return  iscii_conv_new( ISCII_TAMIL) ;

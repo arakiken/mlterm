@@ -103,7 +103,7 @@ get_kbd_info(char *locale, char *encoding)
 		return NULL ;
 	}
 
-	result->num_of_args = 14;
+	result->num_of_args = 13;
 
 	if (!(result->args = malloc(sizeof(char*) * result->num_of_args))) {
 		free(result);
@@ -127,9 +127,8 @@ get_kbd_info(char *locale, char *encoding)
 	result->readable_args[8] = strdup("Indic (MALAYALAM)");
 	result->readable_args[9] = strdup("Indic (ORIYA)");
 	result->readable_args[10] = strdup("Indic (PUNJABI)");
-	result->readable_args[11] = strdup("Indic (ROMAN)");
-	result->readable_args[12] = strdup("Indic (TAMIL)");
-	result->readable_args[13] = strdup("Indic (TELUGU)");
+	result->readable_args[11] = strdup("Indic (TAMIL)");
+	result->readable_args[12] = strdup("Indic (TELUGU)");
 
 	result->args[0] = strdup("");
 	result->args[1] = strdup("arabic");
@@ -142,9 +141,8 @@ get_kbd_info(char *locale, char *encoding)
 	result->args[8] = strdup("isciimalayalam");
 	result->args[9] = strdup("isciioriya");
 	result->args[10] = strdup("isciipunjabi");
-	result->args[11] = strdup("isciiroman");
-	result->args[12] = strdup("isciitamil");
-	result->args[13] = strdup("isciitelugu");
+	result->args[11] = strdup("isciitamil");
+	result->args[12] = strdup("isciitelugu");
 
 	result->id = strdup("kbd");
 	result->name = strdup("keyboard");

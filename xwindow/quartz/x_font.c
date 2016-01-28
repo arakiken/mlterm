@@ -194,22 +194,22 @@ x_font_new(
 		font->cols = 1 ;
 	}
 
-	if( font_present & FONT_VAR_WIDTH || IS_ISCII(FONT_CS(font->id)))
+	if( font_present & FONT_VAR_WIDTH)
 	{
 		font->is_var_col_width = 1 ;
 	}
-	else
+	else if( IS_ISCII(FONT_CS(font->id)))
 	{
-		font->is_var_col_width = 0 ;
+		/*
+		 * For exampe, 'W' width and 'l' width of OR-TTSarala font for ISCII_ORIYA
+		 * are the same by chance, though it is actually a proportional font.
+		 */
+		font->is_var_col_width = font->is_proportional = 1 ;
 	}
 
 	if( font_present & FONT_VERTICAL)
 	{
 		font->is_vertical = 1 ;
-	}
-	else
-	{
-		font->is_vertical = 0 ;
 	}
 
 	font_family = NULL ;
@@ -476,6 +476,8 @@ x_convert_text_to_glyphs(
 	x_font_t *  font ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
+	u_int8_t *  offsets ,
+	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,
 	u_int  src_len ,
@@ -483,8 +485,8 @@ x_convert_text_to_glyphs(
 	const char *  features
 	)
 {
-	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , cmapped ,
-			src , src_len , script , features) ;
+	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , offsets ,
+			widths , cmapped , src , src_len , script , features) ;
 }
 #endif	/* USE_OT_LAYOUT */
 

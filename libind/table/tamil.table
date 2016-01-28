@@ -1,0 +1,4 @@
+static struct tabl  iscii_tamil_table[] =
+{
+	{ "\xe8" , "\x23\xf3" } ,
+} ;

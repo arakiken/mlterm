@@ -27,8 +27,6 @@ int  mkf_map_iscii_oriya_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  iscii_code) ;
 
 int  mkf_map_iscii_punjabi_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  iscii_code) ;
 
-int  mkf_map_iscii_roman_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  iscii_code) ;
-
 int  mkf_map_iscii_tamil_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  iscii_code) ;
 
 int  mkf_map_iscii_telugu_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  iscii_code) ;
