@@ -193,6 +193,7 @@ draw_string(
 	int  orig_x ;
 	u_int  clip_bottom ;
 	int  use_ot_layout ;
+	int  orig_y_off ;
 
 	if( ! win->is_mapped)
 	{
@@ -519,6 +520,7 @@ draw_string(
 #endif
 
 	orig_x = x ;
+	orig_y_off = y_off ;
 
 	for( ; y_off < font_height ; y_off++)
 	{
@@ -596,9 +598,25 @@ draw_string(
 
 						if( ( filled = (p - src) / bpp) < retreat)
 						{
-							bitmap_line += (retreat - filled) ;
-							x_off = -filled ;
-							p = src ;
+							if( x >= retreat)
+							{
+								x_off = -retreat ;
+								/* p is not changed. */
+								if( y_off == orig_y_off)
+								{
+									orig_x -= retreat ;
+								}
+								else
+								{
+									x += retreat ;
+								}
+							}
+							else
+							{
+								bitmap_line += (retreat - filled) ;
+								x_off = -filled ;
+								p = src ;
+							}
 						}
 						else
 						{
@@ -647,27 +665,32 @@ draw_string(
 						}
 					}
 
-					if( prev_crowded_out > advance)
+					if( count + 1 < len)
 					{
-						prev_crowded_out -= advance ;
-					}
-					else
-					{
-						prev_crowded_out = 0 ;
-					}
-
-					if( advance > 0 && x_off != advance)
-					{
-						p += ((advance - x_off) * bpp) ;
-
-						if( x_off > advance &&
-						    prev_crowded_out < x_off - advance)
+						if( prev_crowded_out > advance)
 						{
-							prev_crowded_out = x_off - advance ;
+							prev_crowded_out -= advance ;
 						}
-					}
+						else
+						{
+							prev_crowded_out = 0 ;
+						}
 
-					x = x + advance - font_width ;
+						if( advance > 0 && x_off != advance)
+						{
+							p += ((advance - x_off) * bpp) ;
+
+							if( x_off > advance &&
+							    prev_crowded_out < x_off - advance)
+							{
+								prev_crowded_out =
+									x_off - advance ;
+							}
+						}
+
+						/* -font_width is for +font_width in for() */
+						x = x + advance - font_width ;
+					}
 				}
 				else
 				{

@@ -52,22 +52,13 @@ ml_line_set_use_iscii(
 /* The caller should check ml_line_is_using_iscii() in advance. */
 int
 ml_line_iscii_render(
-	ml_line_t *  line
+	ml_line_t *  line	/* is always visual */
 	)
 {
-	int  had_iscii ;
 	int  ret ;
-
-	had_iscii = line->ctl_info.iscii->has_iscii ;
-
-	if( ! ( ret = ml_iscii( line->ctl_info.iscii , line->chars , line->num_of_filled_chars)))
-	{
-		return  0 ;
-	}
+	int  visual_mod_beg ;
 
 	/*
-	 * Not only has_iscii but also had_iscii should be checked.
-	 *
 	 * Lower case: ASCII
 	 * Upper case: ISCII
 	 *    (Logical) AAA == (Visual) BBBBB
@@ -75,19 +66,46 @@ ml_line_iscii_render(
 	 * In this case ml_line_is_cleared_to_end() returns 0, so "BB" remains on
 	 * the screen unless following ml_line_set_modified().
 	 */
-	if( ( had_iscii || line->ctl_info.iscii->has_iscii) && ml_line_is_modified( line))
+	visual_mod_beg = ml_line_get_beg_of_modified( line) ;
+	if( line->ctl_info.iscii->has_iscii)
 	{
+		visual_mod_beg = ml_line_iscii_convert_logical_char_index_to_visual(
+					line , visual_mod_beg) ;
+	}
+
+	if( ml_line_is_real_modified( line))
+	{
+		if( ! ( ret = ml_iscii( line->ctl_info.iscii , line->chars ,
+				line->num_of_filled_chars)))
+		{
+			return  0 ;
+		}
+
+		if( line->ctl_info.iscii->has_iscii)
+		{
+			int  beg ;
+
+			if( ( beg = ml_line_iscii_convert_logical_char_index_to_visual( line ,
+					ml_line_get_beg_of_modified( line))) < visual_mod_beg)
+			{
+				visual_mod_beg = beg ;
+			}
+		}
+
 		/*
 		 * Conforming line->change_{beg|end}_col to visual mode.
 		 * If this line contains ISCII chars, it should be redrawn to the end of line.
 		 */
-		ml_line_set_modified( line ,
+		ml_line_set_modified( line , visual_mod_beg , line->num_of_chars) ;
+	}
+	else
+	{
+		ml_line_set_modified( line , visual_mod_beg ,
 			ml_line_iscii_convert_logical_char_index_to_visual( line ,
-				ml_line_get_beg_of_modified( line)) ,
-			line->num_of_chars) ;
+					ml_line_get_end_of_modified( line))) ;
 	}
 
-	return  ret ;
+	return  1 ;
 }
 
 /* The caller should check ml_line_is_using_iscii() in advance. */
@@ -281,7 +299,6 @@ ml_line_iscii_convert_logical_char_index_to_visual(
 	)
 {
 	int  visual_char_index ;
-	int  end_char_index ;
 
 	if( ml_line_is_empty(line))
 	{
@@ -297,8 +314,8 @@ ml_line_iscii_convert_logical_char_index_to_visual(
 		return  logical_char_index ;
 	}
 
-	end_char_index = ml_line_end_char_index( line) ;
-	for( visual_char_index = 0 ; visual_char_index < end_char_index ; visual_char_index++)
+	for( visual_char_index = 0 ; visual_char_index < line->ctl_info.iscii->size ;
+	     visual_char_index++)
 	{
 		if( logical_char_index == 0 ||
 		    ( logical_char_index -=

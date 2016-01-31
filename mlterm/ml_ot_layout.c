@@ -10,6 +10,7 @@
 #include  <kiklib/kik_dlfcn.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_util.h>	/* K_MAX */
 
 #include  "ml_ctl_loader.h"
 
@@ -163,6 +164,7 @@ ml_ot_layout(
 	int  src_pos ;
 	u_int32_t *  ucs_buf ;
 	u_int32_t *  shaped_buf ;
+	u_int8_t *  num_of_chars_array ;
 	u_int  shaped_buf_len ;
 	u_int  prev_shaped_filled ;
 	u_int  ucs_filled ;
@@ -181,13 +183,12 @@ ml_ot_layout(
 		return  0 ;
 	}
 
-	if( ( state->num_of_chars_array = realloc( state->num_of_chars_array ,
-						shaped_buf_len * sizeof(u_int8_t))) == NULL)
+	if( ( num_of_chars_array = alloca( shaped_buf_len * sizeof(u_int8_t))) == NULL)
 	{
 		return  0 ;
 	}
 
-	state->has_ot_layout = 0 ;
+	state->substituted = 0 ;
 	dst_pos = -1 ;
 	prev_font = font = UNKNOWN_CS ;
 	xfont = NULL ;
@@ -204,9 +205,10 @@ ml_ot_layout(
 		{
 			if( xfont &&
 			    ( prev_shaped_filled != ucs_filled ||
-			      memcmp( shaped_buf , ucs_buf , prev_shaped_filled) != 0))
+			      memcmp( shaped_buf , ucs_buf ,
+					prev_shaped_filled * sizeof(*shaped_buf)) != 0))
 			{
-				state->has_ot_layout = 1 ;
+				state->substituted = 1 ;
 			}
 
 			prev_shaped_filled = ucs_filled = 0 ;
@@ -249,18 +251,25 @@ ml_ot_layout(
 			ml_ot_layout_shape( xfont , NULL , 0 , NULL , NULL ,
 				ucs_buf + ucs_filled - num - 1 ,
 				ucs_buf + ucs_filled - num - 1 , num + 1) ;
+
 			/* apply ot_layout to glyph indeces in ucs_buf. */
 			shaped_filled = ml_ot_layout_shape( xfont , shaped_buf , shaped_buf_len ,
 						NULL , NULL , ucs_buf , NULL , ucs_filled) ;
 
 			if( shaped_filled < prev_shaped_filled)
 			{
-				dst_pos -= (prev_shaped_filled - shaped_filled) ;
-
-				for( count = 1 ; count <= prev_shaped_filled - shaped_filled ; count++)
+				if( shaped_filled == 0)
 				{
-					state->num_of_chars_array[dst_pos] +=
-						state->num_of_chars_array[dst_pos + count] ;
+					return  0 ;
+				}
+
+				count = prev_shaped_filled - shaped_filled ;
+				dst_pos -= count ;
+
+				for( ; count > 0 ; count--)
+				{
+					num_of_chars_array[dst_pos] +=
+						num_of_chars_array[dst_pos + count] ;
 				}
 
 				prev_shaped_filled = shaped_filled ; /* goto to the next if block */
@@ -268,15 +277,16 @@ ml_ot_layout(
 
 			if( dst_pos >= 0 && shaped_filled == prev_shaped_filled)
 			{
-				state->num_of_chars_array[dst_pos] ++ ;
+				num_of_chars_array[dst_pos] ++ ;
 			}
 			else
 			{
-				state->num_of_chars_array[++dst_pos] = 1 ;
+				num_of_chars_array[++dst_pos] = 1 ;
 
-				for( count = 1 ; count < shaped_filled - prev_shaped_filled ; count++)
+				for( count = shaped_filled - prev_shaped_filled ;
+				     count > 1 ; count--)
 				{
-					state->num_of_chars_array[++dst_pos] = 0 ;
+					num_of_chars_array[++dst_pos] = 0 ;
 				}
 			}
 
@@ -288,18 +298,43 @@ ml_ot_layout(
 		}
 		else
 		{
-			state->num_of_chars_array[++dst_pos] = 1 ;
+			num_of_chars_array[++dst_pos] = 1 ;
 		}
 	}
 
 	if( xfont &&
 	    ( prev_shaped_filled != ucs_filled ||
-	      memcmp( shaped_buf , ucs_buf , prev_shaped_filled) != 0))
+	      memcmp( shaped_buf , ucs_buf , prev_shaped_filled * sizeof(*shaped_buf)) != 0))
 	{
-		state->has_ot_layout = 1 ;
+		state->substituted = 1 ;
 	}
 
-	state->size = dst_pos + 1 ;
+	if( state->size != dst_pos + 1)
+	{
+		void *  p ;
+
+		if( ! ( p = realloc( state->num_of_chars_array ,
+				K_MAX(dst_pos + 1,src_len) * sizeof(*num_of_chars_array))))
+		{
+			return  0 ;
+		}
+
+	#ifdef  __DEBUG
+		if( p != state->num_of_chars_array)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" REALLOC array %d(%p) -> %d(%p)\n" ,
+				state->size , state->num_of_chars_array ,
+				dst_pos + 1 , p) ;
+		}
+	#endif
+
+		state->num_of_chars_array = p ;
+		state->size = dst_pos + 1 ;
+	}
+
+	memcpy( state->num_of_chars_array , num_of_chars_array ,
+		state->size * sizeof(*num_of_chars_array)) ;
 
 	return  1 ;
 }
@@ -313,7 +348,7 @@ ml_ot_layout_copy(
 {
 	u_int8_t *  p ;
 
-	if( optimize && ! src->has_ot_layout)
+	if( optimize && ! src->substituted)
 	{
 		ml_ot_layout_delete( dst) ;
 
@@ -336,7 +371,7 @@ ml_ot_layout_copy(
 	dst->num_of_chars_array = p ;
 	dst->term = src->term ;
 	dst->size = src->size ;
-	dst->has_ot_layout = src->has_ot_layout ;
+	dst->substituted = src->substituted ;
 
 	return  1 ;
 }

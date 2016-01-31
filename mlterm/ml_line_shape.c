@@ -72,7 +72,7 @@ ml_line_ot_layout_need_shape(
 	ml_line_t *  line
 	)
 {
-	return  line->ctl_info.ot_layout->size > 0 && line->ctl_info.ot_layout->has_ot_layout ;
+	return  line->ctl_info.ot_layout->size > 0 && line->ctl_info.ot_layout->substituted ;
 }
 
 

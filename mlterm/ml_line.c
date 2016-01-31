@@ -388,7 +388,7 @@ ml_line_ot_layout_visual(
 	int  src_pos ;
 
 	if( line->ctl_info.ot_layout->size == 0 ||
-	    ! line->ctl_info.ot_layout->has_ot_layout)
+	    ! line->ctl_info.ot_layout->substituted)
 	{
 	#ifdef  __DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " Not need to visualize.\n") ;
@@ -504,7 +504,7 @@ ml_line_ot_layout_logical(
 	int  src_pos ;
 
 	if( line->ctl_info.ot_layout->size == 0 ||
-	    ! line->ctl_info.ot_layout->has_ot_layout)
+	    ! line->ctl_info.ot_layout->substituted)
 	{
 	#ifdef  __DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " Not need to logicalize.\n") ;
@@ -578,12 +578,11 @@ ml_line_ot_layout_logical(
 /* The caller should check ml_line_is_using_ot_layout() in advance. */
 static int
 ml_line_ot_layout_convert_logical_char_index_to_visual(
-	ml_line_t *  line ,		/* visual context */
+	ml_line_t *  line ,
 	int  logical_char_index
 	)
 {
 	int  visual_char_index ;
-	int  end_char_index ;
 
 	if( ml_line_is_empty(line))
 	{
@@ -591,7 +590,7 @@ ml_line_ot_layout_convert_logical_char_index_to_visual(
 	}
 
 	if( line->ctl_info.ot_layout->size == 0 ||
-	    ! line->ctl_info.ot_layout->has_ot_layout)
+	    ! line->ctl_info.ot_layout->substituted)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " logical char_index is same as visual one.\n") ;
@@ -599,8 +598,8 @@ ml_line_ot_layout_convert_logical_char_index_to_visual(
 		return  logical_char_index ;
 	}
 
-	end_char_index = ml_line_end_char_index( line) ;
-	for( visual_char_index = 0 ; visual_char_index < end_char_index ; visual_char_index++)
+	for( visual_char_index = 0 ; visual_char_index < line->ctl_info.ot_layout->size ;
+	     visual_char_index++)
 	{
 		if( logical_char_index == 0 ||
 		    ( logical_char_index -=
@@ -616,59 +615,64 @@ ml_line_ot_layout_convert_logical_char_index_to_visual(
 /* The caller should check ml_line_is_using_ot_layout() in advance. */
 static int
 ml_line_ot_layout_render(
-	ml_line_t *  line ,
+	ml_line_t *  line ,	/* is always modified */
 	void *  term
 	)
 {
-	int  had_ot_layout ;
 	int  ret ;
-
-	had_ot_layout = line->ctl_info.ot_layout->has_ot_layout ;
-	line->ctl_info.ot_layout->term = term ;
-
-	if( ! ( ret = ml_ot_layout( line->ctl_info.ot_layout , line->chars , line->num_of_filled_chars)))
-	{
-		return  0 ;
-	}
+	int  visual_mod_beg ;
 
 	/*
-	 * Not only has_ot_layout but also had_ot_layout should be checked.
-	 *
 	 * Lower case: ASCII
-	 * Upper case: OT_LAYOUT
+	 * Upper case: GLYPH INDEX
 	 *    (Logical) AAA == (Visual) BBBBB
 	 * => (Logical) aaa == (Visual) aaa
 	 * In this case ml_line_is_cleared_to_end() returns 0, so "BB" remains on
 	 * the screen unless following ml_line_set_modified().
 	 */
-	if( ml_line_is_modified( line))
+	visual_mod_beg = ml_line_get_beg_of_modified( line) ;
+	if( line->ctl_info.ot_layout->substituted)
 	{
-		if( had_ot_layout)
-		{
-			/*
-			 * D => EFG
-			 * HAD_OT_LAYOUT: ABCD
-			 * HAS_OT_LAYOUT: ABCEFG
-			 */
-			ml_line_set_modified_all( line) ;
-		}
-		else if( line->ctl_info.ot_layout->has_ot_layout)
-		{
-			/*
-			 * Conforming line->change_{beg|end}_col to visual mode.
-			 * If this line contains OT_LAYOUT chars, it should be redrawn to
-			 * the end of line.
-			 */
-			ml_line_ot_layout_visual( line) ;
-			ml_line_set_modified( line ,
-				ml_line_ot_layout_convert_logical_char_index_to_visual( line ,
-					ml_line_get_beg_of_modified( line)) ,
-				line->num_of_chars) ;
-			ml_line_ot_layout_logical( line) ;
-		}
+		visual_mod_beg = ml_line_ot_layout_convert_logical_char_index_to_visual(
+					line , visual_mod_beg) ;
 	}
 
-	return  ret ;
+	if( ml_line_is_real_modified( line))
+	{
+		line->ctl_info.ot_layout->term = term ;
+
+		if( ( ret = ml_ot_layout( line->ctl_info.ot_layout , line->chars ,
+					line->num_of_filled_chars)) <= 0)
+		{
+			return  ret ;
+		}
+
+		if( line->ctl_info.ot_layout->substituted)
+		{
+			int  beg ;
+
+			if( ( beg = ml_line_ot_layout_convert_logical_char_index_to_visual( line ,
+					ml_line_get_beg_of_modified( line))) < visual_mod_beg)
+			{
+				visual_mod_beg = beg ;
+			}
+		}
+
+		/*
+		 * Conforming line->change_{beg|end}_col to visual mode.
+		 * If this line contains glyph indeces, it should be redrawn to
+		 * the end of line.
+		 */
+		ml_line_set_modified( line , visual_mod_beg , line->num_of_chars) ;
+	}
+	else
+	{
+		ml_line_set_modified( line , visual_mod_beg ,
+			ml_line_ot_layout_convert_logical_char_index_to_visual( line ,
+					ml_line_get_end_of_modified( line))) ;
+	}
+
+	return  1 ;
 }
 
 #endif	/* USE_OT_LAYOUT */
@@ -758,6 +762,17 @@ copy_line(
 		ml_line_set_use_ot_layout( dst , 0) ;
 	}
 #endif
+}
+
+static void
+set_real_modified(
+	ml_line_t *  line ,
+	int  beg_char_index ,
+	int  end_char_index
+	)
+{
+	ml_line_set_modified( line , beg_char_index , end_char_index) ;
+	line->is_modified = 2 ;
 }
 
 
@@ -886,11 +901,9 @@ ml_line_break_boundary(
 		ml_char_copy( line->chars + count , ml_sp_ch()) ;
 	}
 
-	/*
-	 * change_{beg|end}_col is not updated , because space has no ot_layout.
-	 */
+	/* change_{beg|end}_col is not updated. */
 #if  0
-	ml_line_set_modified( line , END_CHAR_INDEX(line) + 1 , END_CHAR_INDEX(line) + size) ;
+	set_real_modified( line , END_CHAR_INDEX(line) + 1 , END_CHAR_INDEX(line) + size) ;
 #endif
 
 	line->num_of_filled_chars += size ;
@@ -940,7 +953,7 @@ ml_line_reset(
 		{
 			if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
 			{
-				ml_line_set_modified( line , 0 , count) ;
+				set_real_modified( line , 0 , count) ;
 
 				break ;
 			}
@@ -951,7 +964,7 @@ ml_line_reset(
 		}
 	}
 #else
-	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
+	set_real_modified( line , 0 , END_CHAR_INDEX(line)) ;
 #endif
 	
 	line->num_of_filled_chars = 0 ;
@@ -997,7 +1010,7 @@ ml_line_clear(
 		{
 			if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
 			{
-				ml_line_set_modified( line , char_index , count) ;
+				set_real_modified( line , char_index , count) ;
 
 				break ;
 			}
@@ -1008,7 +1021,7 @@ ml_line_clear(
 		}
 	}
 #else
-	ml_line_set_modified( line , char_index , END_CHAR_INDEX(line)) ;
+	set_real_modified( line , char_index , END_CHAR_INDEX(line)) ;
 #endif
 
 	ml_char_copy( line->chars + char_index , ml_sp_ch()) ;
@@ -1197,7 +1210,7 @@ ml_line_overwrite(
 
 	line->num_of_filled_chars = new_len ;
 
-	ml_line_set_modified( line , beg_char_index , beg_char_index + len + padding - 1) ;
+	set_real_modified( line , beg_char_index , beg_char_index + len + padding - 1) ;
 	
 	return  1 ;
 }
@@ -1213,12 +1226,12 @@ ml_line_overwrite_all(
 	int  len
 	)
 {
-	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
+	set_real_modified( line , 0 , END_CHAR_INDEX(line)) ;
 
 	ml_str_copy( line->chars , chars , len) ;
 	line->num_of_filled_chars = len ;
 
-	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
+	set_real_modified( line , 0 , END_CHAR_INDEX(line)) ;
 
 	return  1 ;
 }
@@ -1371,7 +1384,7 @@ ml_line_fill(
 	
 	line->num_of_filled_chars = char_index + copy_len ;
 
-	ml_line_set_modified( line , beg , beg + num + left_cols) ;
+	set_real_modified( line , beg , beg + num + left_cols) ;
 
 	return  1 ;
 }
@@ -1492,7 +1505,11 @@ ml_line_set_modified_all(
 	 */
 	line->change_end_col = line->num_of_chars * 2 ;
 
-	line->is_modified = 1 ;
+	/* Don't overwrite if line->is_modified == 2 */
+	if( ! line->is_modified)
+	{
+		line->is_modified = 1 ;
+	}
 
 	return  1 ;
 }

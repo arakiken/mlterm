@@ -159,7 +159,7 @@ convert_char_index_to_x(
 	int  x ;
 
 	x_font_manager_set_attr( screen->font_man , line->size_attr ,
-		ml_line_has_ot_layout( line)) ;
+		ml_line_has_ot_substitute_glyphs( line)) ;
 
 	if( ml_line_is_rtl( line))
 	{
@@ -243,7 +243,7 @@ convert_x_to_char_index(
 	int  end_char_index ;
 
 	x_font_manager_set_attr( screen->font_man , line->size_attr ,
-		ml_line_has_ot_layout( line)) ;
+		ml_line_has_ot_substitute_glyphs( line)) ;
 
 	end_char_index = ml_line_end_char_index(line) ;
 
@@ -483,7 +483,7 @@ draw_line(
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
 
 		x_font_manager_set_attr( screen->font_man , line->size_attr ,
-			ml_line_has_ot_layout( line)) ;
+			ml_line_has_ot_substitute_glyphs( line)) ;
 
 		if( is_cleared_to_end)
 		{
@@ -638,7 +638,7 @@ draw_cursor(
 	}
 
 	x_font_manager_set_attr( screen->font_man , line->size_attr ,
-		ml_line_has_ot_layout( line)) ;
+		ml_line_has_ot_substitute_glyphs( line)) ;
 
 	x_draw_str( &screen->window , screen->font_man ,
 		screen->color_man , &ch , 1 , x , y ,
@@ -3341,7 +3341,7 @@ report_mouse_tracking(
 		col = ml_convert_char_index_to_col( line , char_index , 0) ;
 
 		x_font_manager_set_attr( screen->font_man , line->size_attr ,
-			ml_line_has_ot_layout( line)) ;
+			ml_line_has_ot_substitute_glyphs( line)) ;
 		width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
 				ml_char_code( ml_sp_ch()) , US_ASCII , NULL) ;
@@ -6197,7 +6197,7 @@ get_im_spot(
 	if( ! ml_term_get_vertical_mode( screen->term))
 	{
 		x_font_manager_set_attr( screen->font_man , line->size_attr ,
-			ml_line_has_ot_layout( line)) ;
+			ml_line_has_ot_substitute_glyphs( line)) ;
 		for( i = 0 ; i < segment_offset ; i++)
 		{
 			u_int  width ;
@@ -6949,9 +6949,12 @@ xterm_set_mouse_report(
 
 	if( ml_term_get_mouse_report_mode( screen->term))
 	{
+		/* These are called in button_pressed() etc. */
+	#if  0
 		x_stop_selecting( &screen->sel) ;
 		restore_selected_region_color_instantly( screen) ;
 		exit_backscroll_mode( screen) ;
+	#endif
 	}
 	else
 	{

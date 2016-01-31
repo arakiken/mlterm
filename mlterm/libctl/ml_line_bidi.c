@@ -46,6 +46,46 @@ copy_char_with_mirror_check(
 	}
 }
 
+static void
+set_visual_modified(
+	ml_line_t *  line ,
+	int  logical_mod_beg ,
+	int  logical_mod_end
+	)
+{
+	int  visual_mod_beg ;
+	int  visual_mod_end ;
+
+	/* same as 0 <= char_index < size */
+	if( ((u_int)logical_mod_beg) >= line->ctl_info.bidi->size ||
+	    ((u_int)logical_mod_end) >= line->ctl_info.bidi->size)
+	{
+		ml_line_set_modified_all( line) ;
+
+		return ;
+	}
+
+	visual_mod_beg = line->ctl_info.bidi->visual_order[logical_mod_beg] ;
+	visual_mod_end = line->ctl_info.bidi->visual_order[logical_mod_end] ;
+
+	if( visual_mod_beg > visual_mod_end)
+	{
+		int  tmp ;
+
+		tmp = visual_mod_end ;
+		visual_mod_end = visual_mod_beg ;
+		visual_mod_beg = tmp ;
+	}
+
+#if  0
+	kik_debug_printf( "%p %d %d -> %d %d\n" , line ,
+		logical_mod_beg , logical_mod_end ,
+		visual_mod_beg , visual_mod_end) ;
+#endif
+
+	ml_line_set_modified( line , visual_mod_beg , visual_mod_end) ;
+}
+
 
 /* --- global functions --- */
 
@@ -88,41 +128,59 @@ ml_line_set_use_bidi(
 /* The caller should check ml_line_is_using_bidi() in advance. */
 int
 ml_line_bidi_render(
-	ml_line_t *  line ,
+	ml_line_t *  line ,	/* is always modified */
 	ml_bidi_mode_t  bidi_mode ,
 	const char *  separators
 	)
 {
 	int  ret ;
-	int  base_is_rtl ;
 
-	base_is_rtl = BASE_IS_RTL( line->ctl_info.bidi) ;
-
-	if( ( ret = ml_bidi( line->ctl_info.bidi , line->chars , line->num_of_filled_chars ,
-			bidi_mode , separators)) <= 0)
+	if( ml_line_is_real_modified( line))
 	{
-		return  ret ;
+		int  base_was_rtl ;
+
+		base_was_rtl = BASE_IS_RTL( line->ctl_info.bidi) ;
+
+		if( ( ret = ml_bidi( line->ctl_info.bidi , line->chars ,
+				line->num_of_filled_chars , bidi_mode , separators)) <= 0)
+		{
+			return  ret ;
+		}
+
+		/* Conforming line->change_{beg|end}_col to visual mode. */
+		if( base_was_rtl != BASE_IS_RTL( line->ctl_info.bidi))
+		{
+			/*
+			 * shifting RTL-base to LTR-base or LTR-base to RTL-base.
+			 * (which requires redrawing line all)
+			 */
+			ml_line_set_modified_all( line) ;
+
+			return  1 ;
+		}
+	}
+	else
+	{
+		ret = 1 ;	/* order is not changed */
 	}
 
-	/* Conforming line->change_{beg|end}_col to visual mode. */
-	if( base_is_rtl != BASE_IS_RTL( line->ctl_info.bidi))
+	if( ret == 2) /* order is changed => force to redraw all */
 	{
-		/*
-		 * shifting RTL-base to LTR-base or LTR-base to RTL-base.
-		 * (which requires redrawing line all)
-		 */
-		ml_line_set_modified_all( line) ;
+		if( ml_line_get_end_of_modified( line) > ml_line_end_char_index( line))
+		{
+			ml_line_set_modified_all( line) ;
+		}
+		else
+		{
+			ml_line_set_modified( line , 0 , ml_line_end_char_index( line)) ;
+		}
 	}
-	else if( HAS_RTL( line->ctl_info.bidi) && ml_line_is_modified( line))
+	else if( HAS_RTL(line->ctl_info.bidi))
 	{
-		/*
-		 * If line contains RTL chars, line is redrawn all.
-		 * It is assumed that num of logical characters in line is the same as
-		 * that of visual ones.
-		 */
-		ml_line_set_modified( line , 0 , ml_line_end_char_index( line)) ;
+		set_visual_modified( line , ml_line_get_beg_of_modified( line) ,
+			ml_line_get_end_of_modified( line)) ;
 	}
-	
+
 	return  1 ;
 }
 
@@ -217,7 +275,7 @@ ml_line_bidi_convert_logical_char_index_to_visual(
 	int *  ltr_rtl_meet_pos
 	)
 {
-	if( (u_int)char_index < line->ctl_info.bidi->size &&  /* same as 0 <= char_index < size */
+	if( ((u_int)char_index) < line->ctl_info.bidi->size && /* same as 0 <= char_index < size */
 	    HAS_RTL( line->ctl_info.bidi))
 	{
 		int  count ;

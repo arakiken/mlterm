@@ -1,3 +1,59 @@
+2016-02-01  Araki Ken  <arakiken@users.sf.net>
+
+	* x_draw_str.c: calculate_char_width() which is separated from
+	  x_calculate_mlchar_width is used internally.
+
+	* fb/x_window.c: Combined ISO10646_UCS4_1_V characters whose
+	  ml_char_get_offset() is minus is correctly drawn.
+
+	* fb/x_display_linux.c:
+	  - Not only /sys/class/input/inputN/name but also
+	    /sys/class/input/eventN/device/name is checked to search keyboard and
+	    mouse devices.
+	  - /dev/input/mice and /dev/input/mouse0 are checked.
+	  - EVIOCGABS(ABS_X) and EVIOCGABS(ABS_X) are checked when EV_ABS event is
+	    received.
+
+	* ml_vt100_parser.c, x_screen.c:
+	  - {stop|start}_vt100_cmd() aren't called in set_mouse_report() in
+	    ml_vt100_parser.c and x_stop_selecting() etc aren't called in
+	    xterm_set_mouse_report() in x_screen.c in order to reduce the number
+	    of calling ctl_render().
+	  - {stop|start}_vt100_cmd() aren't called in request_locatator().
+	  - 'visualize' is added to arguments of config_protocol_set_simple()
+	    to control whether to call {stop|start}_vt100_cmd().
+
+	* libctl/ml_line_iscii.c:
+	  - ml_iscii() is called only if ml_line_is_real_modified() is true.
+	  - Loop end in ml_line_iscii_convert_logical_char_index() is changed
+	    from ml_line_end_char_index(line) to line->ctl_info.iscii->size.
+
+	* libctl/ml_iscii.c, ml_ot_layout.c:
+	  The allocated size of state->num_of_chars_array is minimized.
+
+	* libctl/ml_line_bidi.c:
+	  - ml_bidi() is called only if ml_line_is_real_modified() is true.
+	  - set_visual_modified() which sets visual modified area from logical one
+	    is called if visual_order is not changed.
+
+	* libctl/ml_bidi.c:
+	  visual_order is not changed => return 1
+	  visual_order is changed => return 2
+
+	* x_screen.c:
+	  ml_line_has_ot_layout() -> ml_line_has_ot_substituting_glyphs().
+
+	* ml_line.[ch]:
+	  - line->is_modified = 2 (in set_real_modified() called internally) if it is really
+	     modified while ml_line_set_modified*() called externally sets
+	     line->is_modified = 1.
+	  - ml_line_is_real_modified() is added.
+	  - ml_ot_layout() is called only if ml_line_is_real_modified() is true.
+	  - ml_line_has_ot_layout() -> ml_line_has_ot_substituting_glyphs().
+
+	* ml_line.c, ml_line_shape.c, ml_ot_layout.[ch]:
+	  line->ctl_info.ot_layout->has_ot_layout => line->ctl_info.ot_layout->substituted
+
 2016-01-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c:

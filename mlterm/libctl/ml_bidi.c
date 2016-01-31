@@ -217,10 +217,14 @@ ml_bidi(
 	FriBidiChar *  fri_src ;
 	FriBidiCharType  fri_type ;
 	FriBidiStrIndex *  fri_order ;
+	int  had_rtl ;
 	u_int  cur_pos ;
 	mkf_charset_t  cs ;
 	u_int32_t  code ;
 	u_int  count ;
+	int  ret ;
+
+	had_rtl = HAS_RTL(state) ;
 
 	state->rtl_state = 0 ;
 
@@ -247,25 +251,6 @@ ml_bidi(
 	#endif
 	
 		return  0 ;
-	}
-
-	if( state->size != size)
-	{
-		void *  p ;
-
-		if( ! ( p = realloc( state->visual_order , sizeof( u_int16_t) * size)))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " realloc() failed.\n") ;
-		#endif
-
-			state->size = 0 ;
-
-			return  0 ;
-		}
-
-		state->visual_order = p ;
-		state->size = size ;
 	}
 
 	fri_type = FRIBIDI_TYPE_ON ;
@@ -368,7 +353,43 @@ ml_bidi(
 	{
 		log2vis( fri_src , size , &fri_type , bidi_mode , fri_order , cur_pos , 0) ;
 
-		for( count = 0 ; count < size ; count ++)
+		count = 0 ;
+
+		if( state->size != size)
+		{
+			void *  p ;
+
+			if( ! ( p = realloc( state->visual_order , sizeof( u_int16_t) * size)))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " realloc() failed.\n") ;
+			#endif
+
+				state->size = 0 ;
+
+				return  0 ;
+			}
+
+			state->visual_order = p ;
+			state->size = size ;
+
+			ret = 2 ;	/* order is changed */
+		}
+		else
+		{
+			ret = 1 ;	/* order is not changed */
+
+			for( ; count < size ; count ++)
+			{
+				if( state->visual_order[count] != fri_order[count])
+				{
+					ret = 2 ;	/* order_is_changed */
+					break ;
+				}
+			}
+		}
+
+		for( ; count < size ; count ++)
 		{
 			state->visual_order[count] = fri_order[count] ;
 		}
@@ -414,20 +435,25 @@ ml_bidi(
 	else
 	{
 		state->size = 0 ;
+
+		if( had_rtl)
+		{
+			ret = 2 ;	/* order is changed */
+		}
+		else
+		{
+			ret = 1 ;	/* order is not changed */
+		}
 	}
 
 	if( fri_type == FRIBIDI_TYPE_RTL)
 	{
 		SET_BASE_RTL(state) ;
 	}
-	else
-	{
-		UNSET_BASE_RTL(state) ;
-	}
 
 	state->bidi_mode = bidi_mode ;
 
-	return  (state->size == 0) ? -1 : 1 ;
+	return  (state->size == 0) ? -1 : ret ;
 }
 
 int

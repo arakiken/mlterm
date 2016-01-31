@@ -21,6 +21,47 @@
 
 /* --- static functions --- */
 
+static u_int
+calculate_char_width(
+	x_font_t *  font ,
+	u_int  code ,
+	mkf_charset_t  cs ,
+	ml_char_t *  comb ,
+	u_int  comb_size ,
+	int *  draw_alone
+	)
+{
+	u_int  width ;
+
+	width = x_calculate_char_width( font , code , cs , draw_alone) ;
+
+	if( cs == ISO10646_UCS4_1_V)
+	{
+		int  w ;
+
+		for( ; comb_size > 0 ; comb_size-- , comb++)
+		{
+		#ifdef  DEBUG
+			if( ml_char_cs( comb) != ISO10646_UCS4_1_V)
+			{
+				kik_debug_printf( KIK_DEBUG_TAG " %x cs is unexpectedly"
+					" combined to ISO10646_UCS4_1_V.\n") ;
+
+				continue ;
+			}
+		#endif
+
+			if( ( w = ml_char_get_offset( comb) +
+			          (int)ml_char_get_width( comb)) > (int)width)
+			{
+				width = w ;
+			}
+		}
+	}
+
+	return  width ;
+}
+
 static void
 draw_line(
 	x_window_t *  window ,
@@ -643,8 +684,10 @@ fc_draw_str(
 	ch_code = ml_char_code( &chars[count]) ;
 	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 	ch_cs = FONT_CS(font) ;
+	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 
-	ch_width = x_calculate_mlchar_width( xfont , &chars[count] , &draw_alone) ;
+	ch_width = calculate_char_width( xfont , ch_code , ch_cs ,
+			comb_chars , comb_size , &draw_alone) ;
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -657,8 +700,6 @@ fc_draw_str(
 
 		return  0 ;
 	}
-
-	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 
 	if( ( state = get_state( ch_cs , ch_code , comb_chars ,
 			&pic_glyph , &drcs_glyph , &draw_alone)) == 0 &&
@@ -740,10 +781,11 @@ fc_draw_str(
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_underline_style = ml_char_underline_style( &chars[count]) ;
 			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
-			next_ch_width = x_calculate_mlchar_width( next_xfont ,
-						&chars[count] , &next_draw_alone) ;
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
 							&next_comb_size) ;
+			next_ch_width = calculate_char_width( next_xfont , ch_code , ch_cs ,
+						next_comb_chars , next_comb_size ,
+						&next_draw_alone) ;
 
 			if( ( next_state = get_state( ch_cs , ch_code , next_comb_chars ,
 						&pic_glyph , &drcs_glyph ,
@@ -1094,12 +1136,10 @@ xcore_draw_str(
 	ch_code = ml_char_code( &chars[count]) ;
 	xfont = x_get_font( font_man , (font = ml_char_font( &chars[count]))) ;
 	ch_cs = FONT_CS(font) ;
+	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 
-#if defined(USE_FRAMEBUFFER) && defined(USE_QUARTZ) && defined(USE_WIN32GUI)
-	ch_width = x_calculate_mlchar_width( xfont , &chars[count] , &draw_alone) ;
-#else
-	ch_width = x_calculate_char_width( xfont , ch_code , ch_cs , &draw_alone) ;
-#endif
+	ch_width = calculate_char_width( xfont , ch_code , ch_cs ,
+			comb_chars , comb_size , &draw_alone) ;
 
 	if( ( current_width = x + ch_width) > window->width ||
 	    y + height > window->height)
@@ -1112,8 +1152,6 @@ xcore_draw_str(
 
 		return  0 ;
 	}
-
-	comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
 
 	if( ( state = get_state( ch_cs , ch_code , comb_chars ,
 			&pic_glyph , &drcs_glyph , &draw_alone)) == 0 && ch_code >= 0x100)
@@ -1192,15 +1230,11 @@ xcore_draw_str(
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_underline_style = ml_char_underline_style( &chars[count]) ;
 			next_is_crossed_out = ml_char_is_crossed_out( &chars[count]) ;
-		#if defined(USE_FRAMEBUFFER) && defined(USE_QUARTZ) && defined(USE_WIN32GUI)
-			next_ch_width = x_calculate_mlchar_width( next_xfont ,
-						ch_code , ch_cs , &next_draw_alone) ;
-		#else
-			next_ch_width = x_calculate_mlchar_width( next_xfont ,
-						&chars[count] , &next_draw_alone) ;
-		#endif
 			next_comb_chars = ml_get_combining_chars( &chars[count] ,
 							&next_comb_size) ;
+			next_ch_width = calculate_char_width( next_xfont , ch_code , ch_cs ,
+						next_comb_chars , next_comb_size ,
+						&next_draw_alone) ;
 
 			if( ( next_state = get_state( ch_cs , ch_code , next_comb_chars ,
 						&pic_glyph , &drcs_glyph ,
@@ -1580,34 +1614,19 @@ x_calculate_mlchar_width(
 	)
 {
 	mkf_charset_t  cs ;
-	u_int  width ;
+	ml_char_t *  comb ;
+	u_int  comb_size ;
 
-	cs = FONT_CS(font->id) ;
-	width = x_calculate_char_width( font , ml_char_code( ch) , cs , draw_alone) ;
-
-	if( cs == ISO10646_UCS4_1_V)
+	if( ( cs = FONT_CS(font->id)) == ISO10646_UCS4_1_V)
 	{
-		u_int  num ;
-		ml_char_t *  comb ;
-		int  w ;
-
-		comb = ml_get_combining_chars( ch , &num) ;
-		for( ; num > 0 ; num-- , comb++)
-		{
-		#if  0
-			if( ml_char_cs( comb) != ISO10646_UCS4_1_V)
-			{
-				continue ;
-			}
-		#endif
-
-			if( ( w = ml_char_get_offset( comb) +
-			          (int)ml_char_get_width( comb)) > (int)width)
-			{
-				width = w ;
-			}
-		}
+		comb = ml_get_combining_chars( ch , &comb_size) ;
+	}
+	else
+	{
+		comb = NULL ;
+		comb_size = 0 ;
 	}
 
-	return  width ;
+	return  calculate_char_width(  font , ml_char_code(ch) , cs , comb , comb_size ,
+			draw_alone) ;
 }

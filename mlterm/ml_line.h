@@ -110,6 +110,9 @@ int  ml_line_is_cleared_to_end( ml_line_t *  line) ;
 
 int  ml_line_is_modified( ml_line_t *  line) ;
 
+/* XXX Private api for ml_line.c and ml_line_{iscii|bidi}.c */
+#define  ml_line_is_real_modified( line)  (ml_line_is_modified( line) == 2)
+
 int  ml_line_get_beg_of_modified( ml_line_t *  line) ;
 
 int  ml_line_get_end_of_modified( ml_line_t *  line) ;
@@ -155,8 +158,8 @@ void  ml_line_set_size_attr( ml_line_t *  line , int  size_attr) ;
 
 #define  ml_line_is_using_ctl( line)  ((line)->ctl_info_type)
 
-#define  ml_line_has_ot_layout( line) \
-	((line)->ctl_info_type == VINFO_OT_LAYOUT && (line)->ctl_info.ot_layout->has_ot_layout)
+#define  ml_line_has_ot_substitute_glyphs( line) \
+	((line)->ctl_info_type == VINFO_OT_LAYOUT && (line)->ctl_info.ot_layout->substituted)
 
 int  ml_line_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 

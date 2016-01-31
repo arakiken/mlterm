@@ -148,12 +148,13 @@ set_use_console_backscroll(
 }
 
 static void
-get_event_device_num(
+get_event_device_num_intern(
 	int *  kbd ,
-	int *  mouse
+	int *  mouse ,
+	char *  class ,
+	int  num_index
 	)
 {
-	char  class[] = "/sys/class/input/inputN/name" ;
 	int  count ;
 	FILE *  fp ;
 
@@ -161,7 +162,7 @@ get_event_device_num(
 
 	for( count = 0 ; ; count++)
 	{
-		class[22] = count + 0x30 ;
+		class[num_index] = count + 0x30 ;
 
 		if( ! ( fp = fopen( class , "r")))
 		{
@@ -198,26 +199,49 @@ get_event_device_num(
 			}
 
 			fclose( fp) ;
+
+			if( *kbd != -1 && *mouse != -1)
+			{
+				break ;
+			}
 		}
 	}
+}
 
-#if  0
-	/* Set default value */
-	if( *kbd == -1)
-	{
-		*kbd = 1 ;
-	}
+static void
+get_event_device_num(
+	int *  kbd ,
+	int *  mouse
+	)
+{
+	char  class1[] = "/sys/class/input/inputN/name" ;
 
-	if( *mouse == -1)
+	get_event_device_num_intern( kbd , mouse , class1 , 22) ;
+
+	if( *kbd == -1 || *mouse == -1)
 	{
-		*mouse = *kbd + 1 ;
+		int  k ;
+		int  m ;
+		char  class2[] = "/sys/class/input/eventN/device/name" ;
+
+		get_event_device_num_intern( &k , &m , class2 , 22) ;
+
+		if( *kbd == -1)
+		{
+			*kbd = k ;
+		}
+
+		if( *mouse == -1)
+		{
+			*mouse = m ;
+		}
 	}
-#endif
 }
 
 static int
 open_event_device(
-	int  num
+	int  num ,
+	const char *  path
 	)
 {
 	char  event[] = "/dev/input/eventN" ;
@@ -226,11 +250,15 @@ open_event_device(
 	kik_priv_restore_euid() ;
 	kik_priv_restore_egid() ;
 
-	event[16] = num + 0x30 ;
-
-	if( ( fd = open( event , O_RDONLY|O_NONBLOCK)) == -1)
+	if( ! path)
 	{
-		kik_error_printf( "Couldn't open %s.\n" , event) ;
+		event[16] = num + 0x30 ;
+		path = event ;
+	}
+
+	if( ( fd = open( path , O_RDONLY|O_NONBLOCK)) == -1)
+	{
+		kik_error_printf( "Couldn't open %s.\n" , path) ;
 	}
 #if  0
 	else
@@ -378,7 +406,7 @@ open_display(
 	/* Disable backscrolling of default console. */
 	set_use_console_backscroll( 0) ;
 
-	if( kbd_num == -1 || ( _display.fd = open_event_device( kbd_num)) == -1)
+	if( kbd_num == -1 || ( _display.fd = open_event_device( kbd_num , NULL)) == -1)
 	{
 		_display.fd = STDIN_FILENO ;
 	}
@@ -389,11 +417,14 @@ open_display(
 
 	_disp.display = &_display ;
 
-	if( mouse_num == -1)
+	if( ( mouse_num == -1 ||
+	      ( _mouse.fd = open_event_device( mouse_num , NULL)) == -1) &&
+	    ( _mouse.fd = open_event_device( 0 , "/dev/input/mice")) == -1 &&
+	    ( _mouse.fd = open_event_device( 0 , "/dev/input/mouse0")) == -1)
 	{
 		_mouse.fd = -1 ;
 	}
-	else if( ( _mouse.fd = open_event_device( mouse_num)) != -1)
+	else
 	{
 		kik_file_set_cloexec( _mouse.fd) ;
 		_mouse.x = _display.width / 2 ;
@@ -431,6 +462,21 @@ receive_mouse_event(void)
 	{
 		if( ev.type == EV_ABS)
 		{
+		#ifdef  EVIOCGABS
+			static int  max_abs_x ;
+			static int  max_abs_y ;
+
+			if( max_abs_x == 0 /* || max_abs_y == 0 */)
+			{
+				struct input_absinfo  info ;
+
+				ioctl( _mouse.fd , EVIOCGABS(ABS_X) , &info) ;
+				max_abs_x = info.maximum ;
+
+				ioctl( _mouse.fd , EVIOCGABS(ABS_Y) , &info) ;
+				max_abs_y = info.maximum ;
+			}
+
 			if( ev.code == ABS_PRESSURE)
 			{
 				ev.type = EV_KEY ;
@@ -441,15 +487,16 @@ receive_mouse_event(void)
 			{
 				ev.type = EV_REL ;
 				ev.code = REL_X ;
-				ev.value = ev.value - _mouse.x ;
+				ev.value = ev.value * _display.width / max_abs_x - _mouse.x ;
 			}
 			else if( ev.code == ABS_Y)
 			{
 				ev.type = EV_REL ;
 				ev.code = REL_Y ;
-				ev.value = ev.value - _mouse.y ;
+				ev.value = ev.value * _display.height / max_abs_y - _mouse.y ;
 			}
 			else
+		#endif
 			{
 				continue ;
 			}

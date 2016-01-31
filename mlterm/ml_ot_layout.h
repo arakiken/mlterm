@@ -26,7 +26,7 @@ typedef struct  ml_ot_layout_state
 	u_int8_t *  num_of_chars_array ;
 	u_int16_t  size ;
 
-	int8_t  has_ot_layout ;
+	int8_t  substituted ;
 
 } *  ml_ot_layout_state_t ;
 

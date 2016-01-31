@@ -272,6 +272,7 @@ ml_iscii(
 	int  src_pos ;
 	u_char *  iscii_buf ;
 	u_char *  font_buf ;
+	u_int8_t *  num_of_chars_array ;
 	u_int  font_buf_len ;
 	u_int  prev_font_filled ;
 	u_int  iscii_filled ;
@@ -290,8 +291,7 @@ ml_iscii(
 		return  0 ;
 	}
 
-	if( ( state->num_of_chars_array = realloc( state->num_of_chars_array ,
-						font_buf_len * sizeof(u_int8_t))) == NULL)
+	if( ( num_of_chars_array = alloca( font_buf_len * sizeof(u_int8_t))) == NULL)
 	{
 		return  0 ;
 	}
@@ -329,12 +329,18 @@ ml_iscii(
 
 			if( font_filled < prev_font_filled)
 			{
-				dst_pos -= (prev_font_filled - font_filled) ;
-
-				for( count = 1 ; count <= prev_font_filled - font_filled ; count++)
+				if( font_filled == 0)
 				{
-					state->num_of_chars_array[dst_pos] +=
-						state->num_of_chars_array[dst_pos + count] ;
+					return  0 ;
+				}
+
+				count = prev_font_filled - font_filled ;
+				dst_pos -= count ;
+
+				for( ; count > 0 ; count--)
+				{
+					num_of_chars_array[dst_pos] +=
+						num_of_chars_array[dst_pos + count] ;
 				}
 
 				prev_font_filled = font_filled ; /* goto to the next if block */
@@ -342,15 +348,16 @@ ml_iscii(
 
 			if( dst_pos >= 0 && font_filled == prev_font_filled)
 			{
-				state->num_of_chars_array[dst_pos] ++ ;
+				num_of_chars_array[dst_pos] ++ ;
 			}
 			else
 			{
-				state->num_of_chars_array[++dst_pos] = 1 ;
+				num_of_chars_array[++dst_pos] = 1 ;
 
-				for( count = 1 ; count < font_filled - prev_font_filled ; count++)
+				for( count = font_filled - prev_font_filled ;
+				     count > 1 ; count--)
 				{
-					state->num_of_chars_array[++dst_pos] = 0 ;
+					num_of_chars_array[++dst_pos] = 0 ;
 				}
 			}
 
@@ -365,11 +372,36 @@ ml_iscii(
 				has_ucs = 1 ;
 			}
 
-			state->num_of_chars_array[++dst_pos] = 1 ;
+			num_of_chars_array[++dst_pos] = 1 ;
 		}
 	}
 
-	state->size = dst_pos + 1 ;
+	if( state->size != dst_pos + 1)
+	{
+		void *  p ;
+
+		if( ! ( p = realloc( state->num_of_chars_array ,
+				K_MAX(dst_pos + 1,src_len) * sizeof(*num_of_chars_array))))
+		{
+			return  0 ;
+		}
+
+	#ifdef  __DEBUG
+		if( p != state->num_of_chars_array)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" REALLOC array %d(%p) -> %d(%p)\n" ,
+				state->size , state->num_of_chars_array ,
+				dst_pos + 1 , p) ;
+		}
+	#endif
+
+		state->num_of_chars_array = p ;
+		state->size = dst_pos + 1 ;
+	}
+
+	memcpy( state->num_of_chars_array , num_of_chars_array ,
+		state->size * sizeof(*num_of_chars_array)) ;
 
 	return  (! state->has_iscii && has_ucs) ? -1 : 1 ;
 }

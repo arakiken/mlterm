@@ -1533,13 +1533,24 @@ set_mouse_report(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_mouse_report))
 	{
+		/*
+		 * If xterm_set_mouse_report() calls x_stop_selecting() etc,
+		 * remove #if 0 - #end.
+		 *
+		 * If #if 0 - #end is removed, ctl_render() is at least twice
+		 * in one sequence packet from w3m because w3m sends CSI?1000h every time.
+		 */
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		vt100_parser->mouse_mode = mode ;
 		(*vt100_parser->xterm_listener->set_mouse_report)(
 			vt100_parser->xterm_listener->self) ;
 
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -1552,7 +1563,9 @@ request_locator(
 	{
 		ml_mouse_report_mode_t  orig ;
 
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		if( vt100_parser->mouse_mode < LOCATOR_CHARCELL_REPORT)
 		{
@@ -1576,7 +1589,9 @@ request_locator(
 			orig = vt100_parser->mouse_mode ;
 		}
 
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -2268,17 +2283,24 @@ static void
 config_protocol_set_simple(
 	ml_vt100_parser_t *  vt100_parser ,
 	char *  key ,
-	char *  val
+	char *  val ,
+	int  visualize
 	)
 {
 	if( HAS_CONFIG_LISTENER(vt100_parser,set))
 	{
-		stop_vt100_cmd( vt100_parser , 0) ;
+		if( visualize)
+		{
+			stop_vt100_cmd( vt100_parser , 0) ;
+		}
 
 		(*vt100_parser->config_listener->set)(
 			vt100_parser->config_listener->self , NULL , key , val) ;
 
-		start_vt100_cmd( vt100_parser , 0) ;
+		if( visualize)
+		{
+			start_vt100_cmd( vt100_parser , 0) ;
+		}
 	}
 }
 
@@ -2779,11 +2801,11 @@ change_special_color(
 	if( *(++pt) == ';' &&
 	    strcmp( ++pt , "?") != 0)	/* ?: query rgb */
 	{
-		config_protocol_set_simple( vt100_parser , key , pt) ;
+		config_protocol_set_simple( vt100_parser , key , pt , 1) ;
 	}
 	else
 	{
-		config_protocol_set_simple( vt100_parser , key , "") ;
+		config_protocol_set_simple( vt100_parser , key , "" , 1) ;
 	}
 }
 
@@ -3644,7 +3666,7 @@ debug_print_unknown(
 
 	va_start( arg_list , format) ;
 
-	kik_debug_printf( KIK_DEBUG_TAG " received unknown sequence ") ;
+	fprintf( stderr , KIK_DEBUG_TAG " received unknown sequence ") ;
 	vfprintf( stderr , format , arg_list) ;
 }
 #endif
@@ -4156,7 +4178,7 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 12 h" XT_CBLINK */
 
 							config_protocol_set_simple( vt100_parser ,
-								"blink_cursor" , "false") ;
+								"blink_cursor" , "false" , 0) ;
 						}
 						else if( ps[count] == 25)
 						{
@@ -4298,7 +4320,7 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1042 h" */
 							config_protocol_set_simple( vt100_parser ,
-								"use_urgent_bell" , "true") ;
+								"use_urgent_bell" , "true" , 0) ;
 						}
 						else if( ps[count] == 1047)
 						{
@@ -4366,7 +4388,7 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 9500 h" */
 
 							config_protocol_set_simple( vt100_parser ,
-								"use_local_echo" , "true") ;
+								"use_local_echo" , "true" , 1) ;
 						}
 					#ifdef  DEBUG
 						else
@@ -4458,7 +4480,7 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 12 h" XT_CBLINK */
 
 							config_protocol_set_simple( vt100_parser ,
-								"blink_cursor" , "true") ;
+								"blink_cursor" , "true" , 0) ;
 						}
 						else if( ps[count] == 25)
 						{
@@ -4578,7 +4600,7 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 1042 l" */
 							config_protocol_set_simple( vt100_parser ,
-								"use_urgent_bell" , "false") ;
+								"use_urgent_bell" , "false" , 0) ;
 						}
 						else if( ps[count] == 1047)
 						{
@@ -4648,7 +4670,7 @@ parse_vt100_escape_sequence(
 							/* "CSI ? 9500 l" */
 
 							config_protocol_set_simple( vt100_parser ,
-								"use_local_echo" , "false") ;
+								"use_local_echo" , "false" , 1) ;
 						}
 					#ifdef  DEBUG
 						else
@@ -4967,12 +4989,12 @@ parse_vt100_escape_sequence(
 					if( ps[0] < 2)
 					{
 						config_protocol_set_simple( vt100_parser ,
-							"blink_cursor" , "true") ;
+							"blink_cursor" , "true" , 0) ;
 					}
 					else if( ps[0] == 2)
 					{
 						config_protocol_set_simple( vt100_parser ,
-							"blink_cursor" , "false") ;
+							"blink_cursor" , "false" , 0) ;
 					}
 				}
 				else if( *str_p == '@')
@@ -5478,7 +5500,7 @@ parse_vt100_escape_sequence(
 						/* WYSTCURM (TeraTerm original) */
 
 						config_protocol_set_simple( vt100_parser ,
-							"blink_cursor" , "true") ;
+							"blink_cursor" , "true" , 0) ;
 					}
 				}
 			}
@@ -5511,7 +5533,7 @@ parse_vt100_escape_sequence(
 						/* WYSTCURM (TeraTerm original) */
 
 						config_protocol_set_simple( vt100_parser ,
-							"blink_cursor" , "false") ;
+							"blink_cursor" , "false" , 0) ;
 					}
 				#ifdef  DEBUG
 					else
@@ -5858,7 +5880,7 @@ parse_vt100_escape_sequence(
 				else
 				{
 					config_protocol_set_simple( vt100_parser ,
-						"fg_color" , pt) ;
+						"fg_color" , pt , 1) ;
 				}
 			}
 			else if( ps == 11)
@@ -5872,7 +5894,7 @@ parse_vt100_escape_sequence(
 				else
 				{
 					config_protocol_set_simple( vt100_parser ,
-						"bg_color" , pt) ;
+						"bg_color" , pt , 1) ;
 				}
 			}
 			else if( ps == 12)
@@ -5882,7 +5904,7 @@ parse_vt100_escape_sequence(
 				if( strcmp( pt , "?") != 0)	/* ?:query rgb */
 				{
 					config_protocol_set_simple( vt100_parser ,
-						"cursor_bg_color" , pt) ;
+						"cursor_bg_color" , pt , 1) ;
 				}
 			}
 			else if( ps == 20)
@@ -5914,7 +5936,8 @@ parse_vt100_escape_sequence(
 					return  0 ;
 				}
 
-				config_protocol_set_simple( vt100_parser , "wall_picture" , pt) ;
+				config_protocol_set_simple( vt100_parser , "wall_picture" ,
+					pt , 1) ;
 			}
 		#if  0
 			else if( ps == 46)
@@ -5942,17 +5965,17 @@ parse_vt100_escape_sequence(
 			else if( ps == 110)
 			{
 				config_protocol_set_simple( vt100_parser ,
-						"fg_color" , "black") ;
+						"fg_color" , "black" , 1) ;
 			}
 			else if( ps == 111)
 			{
 				config_protocol_set_simple( vt100_parser ,
-						"bg_color" , "white") ;
+						"bg_color" , "white" , 1) ;
 			}
 			else if( ps == 112)
 			{
 				config_protocol_set_simple( vt100_parser ,
-						"cursor_bg_color" , "black") ;
+						"cursor_bg_color" , "black" , 1) ;
 			}
 		#endif
 		#ifdef  SUPPORT_ITERM2_OSC1337
