@@ -476,7 +476,7 @@ x_convert_text_to_glyphs(
 	x_font_t *  font ,
 	u_int32_t *  shaped ,
 	u_int  shaped_len ,
-	u_int8_t *  offsets ,
+	int8_t *  offsets ,
 	u_int8_t *  widths ,
 	u_int32_t *  cmapped ,
 	u_int32_t *  src ,

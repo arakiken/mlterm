@@ -27797,8 +27797,10 @@ echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
-if test "$OT_LAYOUT_OBJ" != ""; then
-	echo "OpenType Layout                   : yes"
+if test "$OT_LAYOUT_OBJ" = "hb.o"; then
+	echo "OpenType Layout                   : yes (harfbuzz)"
+elif test "$OT_LAYOUT_OBJ" = "otf.o"; then
+	echo "OpenType Layout                   : yes (libotf)"
 else
 	echo "OpenType Layout                   : no"
 fi
