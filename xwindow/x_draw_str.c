@@ -747,12 +747,14 @@ fc_draw_str(
 			if( ! ( ucs4 = x_convert_to_xft_ucs4( ch_code , ch_cs)))
 			{
 			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
+				kik_warn_printf( KIK_DEBUG_TAG
+					" strange character 0x%x, ignored.\n" , ch_code) ;
 			#endif
-				ucs4 = 0x20 ;
 			}
-
-			str32[str_len++] = ucs4 ;
+			else
+			{
+				str32[str_len++] = ucs4 ;
+			}
 		}
 
 		/*
@@ -1323,7 +1325,7 @@ xcore_draw_str(
 			    1 ||
 		#elif  defined(USE_FRAMEBUFFER)
 			#ifdef  USE_FREETYPE
-			    xfont->is_proportional ||	/* ISCII */
+			    xfont->is_proportional ||	/* ISCII or ISO10646_UCS4_1_V */
 			#endif
 			    /* draw_alone || */ /* draw_alone is always false on framebuffer. */
 		#else

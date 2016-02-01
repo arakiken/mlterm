@@ -170,9 +170,9 @@ ml_shape_ot_layout(
 
 #define  DST_LEN  (dst_len * (MAX_COMB_SIZE + 1))
 	if( ( ucs_buf = alloca( src_len * (MAX_COMB_SIZE + 1) * sizeof(*ucs_buf))) == NULL ||
-	    ( shaped_buf = alloca( DST_LEN * sizeof(*ucs_buf))) == NULL ||
+	    ( shaped_buf = alloca( DST_LEN * sizeof(*shaped_buf))) == NULL ||
 	    ( offsets = alloca( DST_LEN * sizeof(*offsets))) == NULL ||
-	    ( widths = alloca( DST_LEN * sizeof(*offsets))) == NULL)
+	    ( widths = alloca( DST_LEN * sizeof(*widths))) == NULL)
 	{
 		return  0 ;
 	}

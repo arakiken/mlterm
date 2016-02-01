@@ -1,3 +1,18 @@
+2016-02-02  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/x_font.c:
+	  - The address of GetTextExtentPointI is gotten dynamically in USE_WIN32API
+	    because its symbol doesn't exist on mingw-i686-pc-mingw.
+	  - ISO10646_UCS4_1_V is considered.
+	  - Whether the width of full width characters is actually double or not
+	    is checked by GetTextExtentPoint32W(0x3000).
+
+	* libind/Makefile.in: tamil.o is added to TBL_OBJ.
+
+	* kik_dlfcn_win32.c: LoadLibrary() -> LoadLibraryA()
+
+	* ml_ot_layout.c, ml_shape.c: Minor fixes.
+
 2016-02-01  Araki Ken  <arakiken@users.sf.net>
 
 	* x_draw_str.c: calculate_char_width() which is separated from

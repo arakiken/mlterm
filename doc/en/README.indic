@@ -3,6 +3,9 @@ comment $Id$
 
 mlterm indic support
 
+
+=== Unicode font version
+
 Build mlterm with harfbuzz library and start it with -otl option since mlterm-3.6.3.
 
 1) Build
@@ -20,7 +23,8 @@ Build mlterm with harfbuzz library and start it with -otl option since mlterm-3.
  use_ot_layout = true
  #type_engine = cairo  # cairo is the default value. xft is also available.
 
-=== (Following old instruction is not recommended since mlterm-3.6.3)
+
+=== ISCII font version
 
 Following is a instruction of setting up mlterm indic support.
 

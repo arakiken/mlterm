@@ -379,8 +379,9 @@ calculate_char_width(
 		u_int32_t  ucs4_code ;
 		u_char  utf16[4] ;
 		int  len ;
+		BOOL  ret ;
 
-		if( cs == ISO10646_UCS4_1)
+		if( IS_ISO10646_UCS4(cs))
 		{
 			ucs4_code = ch ;
 		}
@@ -416,9 +417,29 @@ calculate_char_width(
 
 		len = x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 ;
 
-		if( ( font->use_ot_layout /* && font->ot_font */) ?
-		    ! GetTextExtentPointI( display_gc , utf16 , len , &sz) :
-		    ! GetTextExtentPoint32W( display_gc , utf16 , len , &sz))
+		if( font->use_ot_layout /* && font->ot_font */)
+		{
+		#ifdef  USE_WIN32API
+			/* GetTextExtentPointI doesn't exist on mingw-i686-pc-mingw */
+			static WINGDIAPI BOOL WINAPI (*func)( HDC , LPWORD , int , LPSIZE) ;
+
+			if( ! func)
+			{
+				func = GetProcAddress( GetModuleHandleA("GDI32.DLL") ,
+					"GetTextExtentPointI") ;
+			}
+
+			ret = (*func)( display_gc , utf16 , len , &sz) ;
+		#else
+			ret = GetTextExtentPointI( display_gc , utf16 , len , &sz) ;
+		#endif
+		}
+		else
+		{
+			ret = GetTextExtentPoint32W( display_gc , utf16 , len , &sz) ;
+		}
+
+		if( ! ret)
 		{
 			return  0 ;
 		}
@@ -495,7 +516,7 @@ x_font_new(
 	{
 		font->is_var_col_width = 1 ;
 	}
-	else if( IS_ISCII(FONT_CS(font->id)))
+	else if( IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V)
 	{
 		/*
 		 * For exampe, 'W' width and 'l' width of OR-TTSarala font for ISCII_ORIYA
@@ -667,7 +688,20 @@ x_font_new(
 		}
 		else
 		{
-			font->width = w_sz.cx * font->cols ;
+			SIZE  sp_sz ;
+			WORD  sp = 0x3000 ;	/* wide space */
+
+			if( font->cols == 2 &&
+			    GetTextExtentPoint32W( display_gc , &sp , 1 , &sp_sz) &&
+			    sp_sz.cx != l_sz.cx * 2)
+			{
+				font->is_proportional = 1 ;
+				font->width = sp_sz.cx ;
+			}
+			else
+			{
+				font->width = w_sz.cx * font->cols ;
+			}
 		}
 
 		font->height = tm.tmHeight ;
@@ -790,7 +824,7 @@ x_font_new(
 
 
 	if( wincsinfo->cs != ANSI_CHARSET && wincsinfo->cs != SYMBOL_CHARSET &&
-	    FONT_CS(font->id) != ISO10646_UCS4_1)
+	    ! IS_ISO10646_UCS4(FONT_CS(font->id)))
 	{
 		if( ! ( font->conv = ml_conv_new( wincsinfo->encoding)))
 		{
@@ -995,7 +1029,10 @@ x_calculate_char_width(
 			*draw_alone = 1 ;
 		}
 	}
-	else if( draw_alone && cs == ISO10646_UCS4_1)
+	else if( draw_alone &&
+	         /* ISO10646_UCS4_1_V is always proportional */
+	         FONT_CS(font->id) == ISO10646_UCS4_1_V &&
+	         (! font->use_ot_layout /* || ! font->ot_font */))
 	{
 		if( mkf_get_ucs_property( ch) & MKF_AWIDTH)
 		{

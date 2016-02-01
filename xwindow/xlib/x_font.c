@@ -1331,7 +1331,9 @@ x_calculate_char_width(
 			*draw_alone = 1 ;
 		}
 	}
-	else if( draw_alone && cs == ISO10646_UCS4_1)
+	else if( draw_alone &&
+	         cs == ISO10646_UCS4_1 /* ISO10646_UCS4_1_V is always proportional */ &&
+	         ( ! font->use_ot_layout /* || ! font->ot_font */))
 	{
 		if( (( mkf_get_ucs_property( ch) & MKF_AWIDTH) ||
 		    /*

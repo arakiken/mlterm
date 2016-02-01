@@ -21,7 +21,7 @@ LIBS = $(LIBS_LOCAL)
 
 OBJ = indian.o keyboard.o lex.split.o
 TBL_OBJ = assamese.o bengali.o gujarati.o hindi.o iitkeyb.o inscript.o \
-	kannada.o malayalam.o oriya.o punjabi.o telugu.o
+	kannada.o malayalam.o oriya.o punjabi.o tamil.o telugu.o
 
 LIBNAME = libind
 MAJOR = 0

@@ -183,7 +183,7 @@ ml_ot_layout(
 		return  0 ;
 	}
 
-	if( ( num_of_chars_array = alloca( shaped_buf_len * sizeof(u_int8_t))) == NULL)
+	if( ( num_of_chars_array = alloca( shaped_buf_len * sizeof(*num_of_chars_array))) == NULL)
 	{
 		return  0 ;
 	}

@@ -1,11 +1,12 @@
 ver 3.6.2
 * Support composition of normalized unicode characters on MacOSX.
 * Support visual and audible bell on MacOSX/Cocoa.
-* Support KAM(CSI2h, CSI2l), SRM (CSI12h, CSI12l), DECBKM(CSI?67h, CSI?67l), DA3(CSI=c),
-  DECDSR(CSI?n), WYSTCURM(CSI33h, CSI33l) OSC 104 and OSC 105.
+* Support KAM(CSI2h, CSI2l), SRM (CSI12h, CSI12l), DECBKM(CSI?67h, CSI?67l),
+  DA3(CSI=c), DECDSR(CSI?n), WYSTCURM(CSI33h, CSI33l) OSC 104 and OSC 105.
 * Snapshot screen and backlog by MC(CSI i).
-* Add "use_ot_layout" / --otl option which enables to show substituting glyphs with the
-  use of libotf or harfbuzz in open type fonts.
+* Add "use_ot_layout" / --otl option which enables to show substituting glyphs
+  with the use of libotf or harfbuzz in open type fonts. (Harfbuzz is necessary
+  to layout indic scripts.)
 * Add "ot_script" / --ost and "ot_features" / --oft.
 * Add "regard_uri_as_word" / --uriword option which enables to select URI by double click
   regardless of "word_separators" option.
