@@ -198,7 +198,7 @@ x_font_new(
 	{
 		font->is_var_col_width = 1 ;
 	}
-	else if( IS_ISCII(FONT_CS(font->id)))
+	else if( IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V)
 	{
 		/*
 		 * For exampe, 'W' width and 'l' width of OR-TTSarala font for ISCII_ORIYA
@@ -371,14 +371,6 @@ x_font_new(
 
 	font->decsp_font = NULL ;
 
-	if( font->is_proportional && ! font->is_var_col_width)
-	{
-		kik_msg_printf(
-			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
-			FONT_CS(font->id)) ;
-
-	}
-
 	if( size_attr)
 	{
 		font->width *= 2 ;
@@ -448,6 +440,9 @@ x_font_has_ot_layout_table(
 {
 	if( ! font->ot_font)
 	{
+	#ifdef  USE_HARFBUZZ
+		font->ot_font = otl_open( font->cg_font , 0) ;
+	#else
 		char *  path ;
 
 		if( font->ot_font_not_found ||
@@ -459,6 +454,7 @@ x_font_has_ot_layout_table(
 		font->ot_font = otl_open( path , 0) ;
 
 		free( path) ;
+	#endif
 
 		if( ! font->ot_font)
 		{
@@ -501,6 +497,30 @@ x_calculate_char_width(
 	if( draw_alone)
 	{
 		*draw_alone = 0 ;
+	}
+
+	if( font->is_proportional)
+	{
+		if( font->use_ot_layout /* && font->ot_font */)
+		{
+			u_int16_t  utf16[2] ;
+			u_int  len ;
+
+			if( ( len = x_convert_ucs4_to_utf16( utf16 , ch) / 2) > 0)
+			{
+				return  cocoa_font_get_advance( font->cg_font , font->pointsize ,
+						font->size_attr , utf16 , len , 0) ;
+			}
+			else
+			{
+				return  0 ;
+			}
+		}
+		else
+		{
+			return  cocoa_font_get_advance( font->cg_font , font->pointsize ,
+					font->size_attr , NULL , 0 , ch) ;
+		}
 	}
 
 	return  font->width ;

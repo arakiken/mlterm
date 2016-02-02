@@ -71,7 +71,45 @@ otl_open(
 	u_int  size
 	)
 {
+#if  defined(USE_WIN32GUI)
+
+	FT_Library  ftlib ;
+	FT_Face  face ;
+
+	if( FT_Init_FreeType( &ftlib) != 0)
+	{
+		return  NULL ;
+	}
+
+	if( FT_New_Memory_Face( ftlib , obj , size , 0 , &face) != 0)
+	{
+		hbfont = NULL ;
+	}
+	else if( ( hbfont = hb_ft_font_create( face , NULL)))
+	{
+		FT_Done_Face( face) ;
+	}
+
+	FT_Done_FreeType( ftlib) ;
+
+	return  hbfont ;
+
+#elif  defined(USE_QUARTZ)
+
+	hb_face_t *  face ;
+
+	if( ( face = hb_coretext_face_create( obj /* CGFont */)))
+	{
+		return  hb_font_create( face) ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+
+#else
 	return  hb_ft_font_create( obj , NULL) ;
+#endif
 }
 
 #ifdef  NO_DYNAMIC_LOAD_OTL
@@ -82,7 +120,15 @@ otl_close(
 	void *  hbfont
 	)
 {
+#ifdef  USE_QUARTZ
+	hb_face_t *  face = hb_font_get_face( hbfont) ;
+#endif
+
 	hb_font_destroy( hbfont) ;
+
+#ifdef  USE_QUARTZ
+	hb_face_destroy( face) ;
+#endif
 }
 
 #ifdef  NO_DYNAMIC_LOAD_OTL

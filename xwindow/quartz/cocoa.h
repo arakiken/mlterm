@@ -98,6 +98,9 @@ char *  cocoa_get_font_path( void *  cg_font) ;
 
 void  cocoa_release_font( void *  cg_font) ;
 
+u_int  cocoa_font_get_advance( void *  cg_font , u_int  fontsize , int  size_attr ,
+		u_int16_t *  utf16 , u_int  len , u_int32_t  glyph) ;
+
 #endif
 
 #ifdef  __X_IMAGELIB_H__

@@ -1,3 +1,20 @@
+2016-02-03  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/x_font.c:
+	  - ISO10646_UCS4_1_V is supported.
+	  - x_font_has_ot_layout_table() supports harfbuzz version of libotl.
+	  - x_calculate_char_width() supports proportional fonts.
+
+	* cocoa.[hm]:
+	  - cocoa_font_get_advance() is added.
+	  - drawUnistr supports proportional fonts.
+
+	* hb.c: otl_{open|close}() support win32 and quartz.
+
+	* cocoa/install.sh: libctl_iscii.so and libind_{hindi|bengali}.so are installed.
+
+	* configure.in: libind is built on MacOSX/Cocoa.
+
 2016-02-02  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/x_font.c:

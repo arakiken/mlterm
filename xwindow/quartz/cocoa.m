@@ -214,8 +214,11 @@ drawUnistr(
 	}
 	else
 	{
+		memset( glyphs_buf , 0 , sizeof(CGGlyph) * len) ;
 		CGFontGetGlyphsForUnichars( font->cg_font , str , glyphs_buf , len) ;
 		glyphs = glyphs_buf ;
+
+		for( ; len > 0 && glyphs[len - 1] == 0 ; len--) ;
 	}
 
 	CGContextSetFont( ctx , font->cg_font) ;
@@ -241,10 +244,35 @@ drawUnistr(
 	CGContextSetTextMatrix( ctx , t) ;
 
 	CGPoint  points[len] ;
-	u_int  count ;
-	for( count = 0 ; count < len ; count++)
+
+	if( font->is_proportional)
 	{
-		points[count] = CGPointMake((x + width * count) , y) ;
+		int  advances[len] ;
+		if( ! CGFontGetGlyphAdvances( font->cg_font , glyphs , len , advances))
+		{
+			return ;
+		}
+
+		int  units = CGFontGetUnitsPerEm( font->cg_font) ;
+		u_int  cur_x = x ;
+		u_int  count ;
+		for( count = 0 ; count < len ; count++)
+		{
+			points[count] = CGPointMake( cur_x , y) ;
+
+			if( advances[count] > 0)
+			{
+				cur_x += advances[count] * pointsize / units ;
+			}
+		}
+	}
+	else
+	{
+		u_int  count ;
+		for( count = 0 ; count < len ; count++)
+		{
+			points[count] = CGPointMake((x + width * count) , y) ;
+		}
 	}
 
 	CGContextSetFontSize( ctx , pointsize) ;
@@ -1675,6 +1703,35 @@ cocoa_release_font(
 	)
 {
 	CFRelease( cg_font) ;
+}
+
+u_int
+cocoa_font_get_advance(
+	CGFontRef  cg_font ,
+	u_int  fontsize ,
+	int  size_attr ,
+	unichar *  utf16 ,
+	u_int  len ,
+	CGGlyph  glyph
+	)
+{
+	if( utf16)
+	{
+		CGFontGetGlyphsForUnichars( cg_font , &utf16 , &glyph , 1) ;
+	}
+
+	int  advance ;
+	if( ! CGFontGetGlyphAdvances( cg_font , &glyph , 1 , &advance) || advance < 0)
+	{
+		return  0 ;
+	}
+
+	if( size_attr >= DOUBLE_HEIGHT_TOP)
+	{
+		fontsize *= 2 ;
+	}
+
+	return  advance * fontsize / CGFontGetUnitsPerEm( cg_font) ;
 }
 
 int
