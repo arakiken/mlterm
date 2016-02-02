@@ -75,8 +75,8 @@ ml_line_iscii_render(
 
 	if( ml_line_is_real_modified( line))
 	{
-		if( ! ( ret = ml_iscii( line->ctl_info.iscii , line->chars ,
-				line->num_of_filled_chars)))
+		if( ( ret = ml_iscii( line->ctl_info.iscii , line->chars ,
+				line->num_of_filled_chars)) <= 0)
 		{
 			return  0 ;
 		}

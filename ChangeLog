@@ -1,5 +1,7 @@
 2016-02-03  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_line_iscii.c: Processing a returned value of ml_iscii() is fixed.
+
 	* quartz/x_font.c:
 	  - ISO10646_UCS4_1_V is supported.
 	  - x_font_has_ot_layout_table() supports harfbuzz version of libotl.
