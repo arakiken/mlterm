@@ -2,8 +2,17 @@
  *	$Id$
  */
 
+#ifdef  HB_HACK_FOR_QUARTZ
+#include  <harfbuzz/hb.h>
+#include  <harfbuzz/hb-coretext.h>
+#else
 #include  <hb.h>
+#ifdef  USE_QUARTZ
+#include  <hb-coretext.h>
+#else
 #include  <hb-ft.h>
+#endif
+#endif
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>

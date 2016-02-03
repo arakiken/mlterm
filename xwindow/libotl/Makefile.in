@@ -23,7 +23,7 @@ LKIK_DEB = -lkik_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
-	@OT_LAYOUT_CFLAGS@ `pkg-config freetype2 --cflags` -I/usr/local/include
+	@OT_LAYOUT_CFLAGS@ -I/usr/local/include
 
 LIBS = $(LIBS_LOCAL) @OT_LAYOUT_LIBS@ $(LKIK) -L/usr/local/lib -R/usr/local/lib
 

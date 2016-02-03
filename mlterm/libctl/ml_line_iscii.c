@@ -78,7 +78,7 @@ ml_line_iscii_render(
 		if( ( ret = ml_iscii( line->ctl_info.iscii , line->chars ,
 				line->num_of_filled_chars)) <= 0)
 		{
-			return  0 ;
+			return  ret ;
 		}
 
 		if( line->ctl_info.iscii->has_iscii)

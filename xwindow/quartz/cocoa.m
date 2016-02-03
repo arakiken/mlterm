@@ -214,9 +214,8 @@ drawUnistr(
 	}
 	else
 	{
-		memset( glyphs_buf , 0 , sizeof(CGGlyph) * len) ;
+		glyphs = memset( glyphs_buf , 0 , sizeof(CGGlyph) * len) ;
 		CGFontGetGlyphsForUnichars( font->cg_font , str , glyphs_buf , len) ;
-		glyphs = glyphs_buf ;
 
 		for( ; len > 0 && glyphs[len - 1] == 0 ; len--) ;
 	}

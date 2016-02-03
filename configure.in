@@ -592,11 +592,23 @@ else
 		OT_LAYOUT_LIBS="$HB_LIBS"
 		OT_LAYOUT_OBJ=hb.o
 	else
-		AC_CHECK_PROG(libotf_config,libotf-config,yes)
-		if test "$libotf_config" = "yes" ; then
-			OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
-			OT_LAYOUT_LIBS="`libotf-config --libs`"
-			OT_LAYOUT_OBJ=otf.o
+		# XXX
+		if test "$gui" = "quartz" ; then
+			AC_CHECK_HEADER(harfbuzz/hb.h, have_hb=yes, have_hb=no)
+			if test "$have_hb" = "yes"; then
+				OT_LAYOUT_CFLAGS="-DHB_HACK_FOR_QUARTZ -DUSE_HARFBUZZ -DUSE_OT_LAYOUT"
+				OT_LAYOUT_LIBS="-lharfbuzz"
+				OT_LAYOUT_OBJ=hb.o
+			fi
+		fi
+
+		if test "$have_hb" != "yes"; then
+			AC_CHECK_PROG(libotf_config,libotf-config,yes)
+			if test "$libotf_config" = "yes" ; then
+				OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
+				OT_LAYOUT_LIBS="`libotf-config --libs`"
+				OT_LAYOUT_OBJ=otf.o
+			fi
 		fi
 	fi
 fi

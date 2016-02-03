@@ -266,6 +266,9 @@ x_font_new(
 
 	while( ! ( font->cg_font = cocoa_create_font( font_family)))
 	{
+		kik_warn_printf( "%s font is not found.\n" ,
+			font_family ? font_family : "Default") ;
+
 		if( orig_font_family && (font->id & (FONT_ITALIC | FONT_BOLD)))
 		{
 			font_family = orig_font_family ;
@@ -501,7 +504,7 @@ x_calculate_char_width(
 
 	if( font->is_proportional)
 	{
-		if( font->use_ot_layout /* && font->ot_font */)
+		if( ! ( font->use_ot_layout /* && font->ot_font */))
 		{
 			u_int16_t  utf16[2] ;
 			u_int  len ;

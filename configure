@@ -21610,7 +21610,25 @@ fi
 		OT_LAYOUT_LIBS="$HB_LIBS"
 		OT_LAYOUT_OBJ=hb.o
 	else
-		# Extract the first word of "libotf-config", so it can be a program name with args.
+		# XXX
+		if test "$gui" = "quartz" ; then
+			ac_fn_c_check_header_mongrel "$LINENO" "harfbuzz/hb.h" "ac_cv_header_harfbuzz_hb_h" "$ac_includes_default"
+if test "x$ac_cv_header_harfbuzz_hb_h" = xyes; then :
+  have_hb=yes
+else
+  have_hb=no
+fi
+
+
+			if test "$have_hb" = "yes"; then
+				OT_LAYOUT_CFLAGS="-DHB_HACK_FOR_QUARTZ -DUSE_HARFBUZZ -DUSE_OT_LAYOUT"
+				OT_LAYOUT_LIBS="-lharfbuzz"
+				OT_LAYOUT_OBJ=hb.o
+			fi
+		fi
+
+		if test "$have_hb" != "yes"; then
+			# Extract the first word of "libotf-config", so it can be a program name with args.
 set dummy libotf-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -21647,10 +21665,11 @@ $as_echo "no" >&6; }
 fi
 
 
-		if test "$libotf_config" = "yes" ; then
-			OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
-			OT_LAYOUT_LIBS="`libotf-config --libs`"
-			OT_LAYOUT_OBJ=otf.o
+			if test "$libotf_config" = "yes" ; then
+				OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
+				OT_LAYOUT_LIBS="`libotf-config --libs`"
+				OT_LAYOUT_OBJ=otf.o
+			fi
 		fi
 	fi
 fi
