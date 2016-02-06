@@ -6,7 +6,7 @@ mlterm indic support
 
 === Unicode font version
 
-Build mlterm with harfbuzz library and start it with -otl option since mlterm-3.6.3.
+Build mlterm with harfbuzz library and start it with -otl option since mlterm-3.6.2.
 
 1) Build
  $ ./configure ...
@@ -51,8 +51,8 @@ Following is a instruction of setting up mlterm indic support.
   $ chmod 755 (INSTALLED DIRECTORY)/bin/mlterm
 
   Then, install indic fonts to your system and setup ~/.mlterm/font,
-  ~/.mlterm/aafont or ~/.mlterm/font-fb. (etc/font.indic, etc/aafont,
-  etc/font.win32 and etc/font-fb in mlterm source tree are sample files.)
+  ~/.mlterm/aafont or ~/.mlterm/font-fb. (See font.indic, aafont, font.win32
+  and font-fb in http://bitbucket.org/arakiken/mlterm/src/tip/etc/)
   Note that mlterm doesn't support modern OpenType fonts but supports
   following old ISCII fonts.
 

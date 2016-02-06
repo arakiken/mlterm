@@ -1008,6 +1008,8 @@ x_window_set_normal_hints(
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 
+	view_set_normal_hints( win->my_window , width_inc , height_inc) ;
+
 	return  1 ;
 }
 

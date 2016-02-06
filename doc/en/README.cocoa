@@ -13,6 +13,19 @@ MacOS X/Cocoa support (Experimental)
   make install
   $(top_srcdir)/cocoa/install.sh /foo/bar
 
+* Configuration
+  Edit main, font, key and color files in ~/.mlterm/
+  See files in http://bitbucket.org/arakiken/mlterm/src/tip/etc/
+
+  (Font Configuration)
+  Format of font,vfont,tfont is as follows.
+  [font family]( Bold Italic [font size]:[percentage])
+
+  Unlike aafont for cairo and xft, it is not necessary to escape '-' character
+  by '\' in [font family] string.
+
+  aafont, vaafont, taafont files are not used.
+
 * Start
   open -a $HOME/mlterm.app
 
@@ -23,7 +36,8 @@ MacOS X/Cocoa support (Experimental)
     Command+F1, Command+F2, Command+F3 and Command+F4.
   o Input method plugin is unavailable.
   o ISCII font is unavailable.
-    (Enable -otl/use_ot_layout option with libharfbuzz instead.)
+    (If you want to show indic characters, build mlterm with harfbuzz and
+     enable -otl/use_ot_layout option.)
 
 * Executable binaries
   http://mlterm.sf.net/bin.html

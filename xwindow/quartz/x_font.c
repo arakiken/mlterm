@@ -284,6 +284,12 @@ x_font_new(
 
 			orig_font_family = NULL ;
 		}
+		else if( col_width == 0 && strcmp( font_family , "Menlo") != 0)
+		{
+			/* standard(usascii) font */
+
+			font_family = "Menlo" ;
+		}
 		else
 		{
 			free( font) ;
@@ -490,7 +496,7 @@ x_convert_text_to_glyphs(
 {
 	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , offsets ,
 			widths , cmapped , src , src_len , script , features ,
-			font->pointsize) ;
+			font->pointsize * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1)) ;
 }
 #endif	/* USE_OT_LAYOUT */
 

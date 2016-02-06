@@ -66,6 +66,8 @@ WIN32 native GUI 対応に関するメモ
   (フォント指定)
   font,vfont,tfont は、次のフォーマットとなります。
   [font family]( Bold Italic [font size]:[percentage])
+  ※ [font family]の文字列に'-'が含まれる場合、aafontの形式と異なり、'\'でエスケ
+    ープする必要はありません。
   ※ aafont,vaafont,taafont は使用しません。
 
   (エンコーディング)

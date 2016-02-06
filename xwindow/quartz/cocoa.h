@@ -53,6 +53,8 @@ void  view_set_input_focus( void *  view) ;
 
 void  view_set_rect( void *  view , int  x , int  y , u_int  width , u_int  height) ;
 
+void  view_set_normal_hints( void *  view , u_int  width_inc , u_int  height_inc) ;
+
 void  view_set_hidden( void *  view , int  flag) ;
 
 

@@ -1577,6 +1577,16 @@ view_set_rect(
 }
 
 void
+view_set_normal_hints(
+	NSView *  view ,
+	u_int  width_inc ,
+	u_int  height_inc
+	)
+{
+	[[view window] setResizeIncrements:NSMakeSize( width_inc , height_inc)] ;
+}
+
+void
 view_set_hidden(
 	NSView *  view ,
 	int  flag

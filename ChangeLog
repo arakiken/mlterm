@@ -1,3 +1,16 @@
+2016-02-07  Araki Ken  <arakiken@users.sf.net>
+
+	* README.cocoa, README.indic, doc/en/README.win32: Updated.
+
+	* etc/font.cocoa: Added.
+
+	* quartz/x_font.c: If a specified font family for us ascii is not found,
+	  "Menlo" font is loaded instead.
+
+	* quartz/x_window.c: x_window_set_normal_hints() calls view_set_normal_hints().
+
+	* cocoa.[hm]: view_set_normal_hints() is added.
+
 2016-02-06  Araki Ken  <arakiken@users.sf.net>
 
 	* README.cocoa, README.indic: Updated.

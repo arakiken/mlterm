@@ -52,7 +52,10 @@ Memo about WIN32 native GUI.
   (Font Configuration)
   Format of font,vfont,tfont is as follows.
   [font family]( Bold Italic [font size]:[percentage])
-  
+
+  Unlike aafont for cairo and xft, it is not necessary to escape '-' character
+  by '\' in [font family] string.
+
   aafont, vaafont, taafont files are not used.
 
   (Encoding)
