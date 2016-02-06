@@ -26050,7 +26050,13 @@ OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Ma
 if test "${enable_ind+set}" = set; then :
   enableval=$enable_ind; ind=$enable_ind
 else
-  ind="yes"
+
+	if test "$gui" = "quartz" ; then
+		ind="no"
+	else
+		ind="yes"
+	fi
+
 fi
 
 if test "$ind" = "yes" ; then

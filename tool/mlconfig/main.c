@@ -105,6 +105,7 @@ update(
 	mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL) ;
 	mc_update_flag_mode(MC_FLAG_EXTSCROLLSHORTCUT) ;
 	mc_update_flag_mode(MC_FLAG_REGARDURIASWORD) ;
+	mc_update_flag_mode(MC_FLAG_OTLAYOUT) ;
 
 	mc_update_radio(MC_RADIO_SB_MODE) ;
 #ifndef  USE_QUARTZ
@@ -408,6 +409,24 @@ pty_button_clicked(
 	return  1 ;
 }	
 
+#if  defined(UES_WIN32GUI) || defined(USE_QUARTZ)
+static gboolean
+event(
+	GtkWidget *  widget ,
+	GdkEvent *  event ,
+	gpointer  data
+	)
+{
+	if( event->type == GDK_FOCUS_CHANGE && ! ((GdkEventFocus*)event)->in)
+	{
+		gtk_window_set_keep_above( GTK_WINDOW(widget) , FALSE) ;
+		g_signal_handlers_disconnect_by_func( widget , event , NULL) ;
+	}
+
+	return  FALSE ;
+}
+#endif
+
 /*
  *  ********  Building GUI (lower part, independent buttons)  ********
  */
@@ -638,6 +657,11 @@ show(void)
 
 
 	config_widget = mc_flag_config_widget_new( MC_FLAG_RECVUCS) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+
+	config_widget = mc_flag_config_widget_new( MC_FLAG_OTLAYOUT) ;
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
@@ -899,6 +923,7 @@ show(void)
 
 #if  defined(UES_WIN32GUI) || defined(USE_QUARTZ)
 	gtk_window_set_keep_above( GTK_WINDOW(window) , TRUE) ;
+	g_signal_connect( window , "event" , G_CALLBACK(event) , NULL) ;
 #endif
 
 	gtk_main() ;

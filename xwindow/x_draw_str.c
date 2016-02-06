@@ -999,6 +999,7 @@ xcore_draw_combining_chars(
 	u_int32_t  ch_code ;
 	mkf_charset_t  ch_cs ;
 	x_font_t *  xfont ;
+	int  x_off ;
 
 	for( count = 0 ; count < size ; count ++)
 	{
@@ -1018,37 +1019,50 @@ xcore_draw_combining_chars(
 			c = ch_code ;
 			x_window_draw_decsp_string( window , xfont , xcolor , x , y , &c , 1) ;
 		}
-		else if( ch_code < 0x100)
-		{
-			u_char  c ;
-
-			c = ch_code ;
-			x_window_draw_string( window , xfont , xcolor , x , y , &c , 1) ;
-		}
-		else if( ! IS_ISO10646_UCS4(ch_cs))
-		{
-			XChar2b  xch ;
-
-			xch.byte1 = (ch_code >> 8) & 0xff ;
-			xch.byte2 = ch_code & 0xff ;
-
-			x_window_draw_string16( window , xfont , xcolor ,
-				x , y , &xch , 1) ;
-		}
 		else
 		{
-			/* UCS4 */
-
-			/* [2] is for surroage pair. */
-			XChar2b  xch[2] ;
-			u_int  len ;
-
-			if( ( len = (x_convert_ucs4_to_utf16( xch , ch_code) / 2)) > 0)
+			if( ch_cs == ISO10646_UCS4_1_V)
 			{
+				x_off = ml_char_get_offset( &chars[count]) ;
+			}
+			else
+			{
+				x_off = 0 ;
+			}
+
+			if( ch_code < 0x100)
+			{
+				u_char  c ;
+
+				c = ch_code ;
+				x_window_draw_string( window , xfont , xcolor ,
+					x + x_off , y , &c , 1) ;
+			}
+			else
+			{
+				/* UCS4 */
+
+				/* [2] is for surroage pair. */
+				XChar2b  xch[2] ;
+				u_int  len ;
+
+				if( IS_ISO10646_UCS4(ch_cs))
+				{
+					if( ( len = x_convert_ucs4_to_utf16( xch , ch_code) / 2)
+					    == 0)
+					{
+						continue ;
+					}
+				}
+				else
+				{
+					xch[0].byte1 = (ch_code >> 8) & 0xff ;
+					xch[0].byte2 = ch_code & 0xff ;
+					len = 1 ;
+				}
+
 				x_window_draw_string16( window , xfont , xcolor ,
-					x + (ch_cs == ISO10646_UCS4_1_V ?
-						ml_char_get_offset( &chars[count]) : 0) ,
-					y , xch , len) ;
+						x , y , xch , len) ;
 			}
 		}
 	}

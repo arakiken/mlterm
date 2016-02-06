@@ -706,8 +706,14 @@ copy_line(
 			 * Don't use ml_line_bidi_render() here,
 			 * or it is impossible to call this function in visual context.
 			 */
-			if( ml_bidi_copy( dst->ctl_info.bidi , src->ctl_info.bidi ,
-				optimize_ctl_info) == -1)
+			if( dst->num_of_chars < src->num_of_filled_chars)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Not copy ml_bidi.\n") ;
+			#endif
+			}
+			else if( ml_bidi_copy( dst->ctl_info.bidi , src->ctl_info.bidi ,
+					optimize_ctl_info) == -1)
 			{
 				dst->ctl_info_type = 0 ;
 				dst->ctl_info.bidi = NULL ;
@@ -727,7 +733,13 @@ copy_line(
 			 * Don't use ml_line_iscii_render() here,
 			 * or it is impossible to call this function in visual context.
 			 */
-			if( ml_iscii_copy( dst->ctl_info.iscii , src->ctl_info.iscii ,
+			if( dst->num_of_chars < src->num_of_filled_chars)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Not copy ml_iscii.\n") ;
+			#endif
+			}
+			else if( ml_iscii_copy( dst->ctl_info.iscii , src->ctl_info.iscii ,
 				optimize_ctl_info) == -1)
 			{
 				dst->ctl_info_type = 0 ;
@@ -749,8 +761,15 @@ copy_line(
 			 * Don't use ml_line_ot_layout_render() here,
 			 * or it is impossible to call this function in visual context.
 			 */
-			if( ml_ot_layout_copy( dst->ctl_info.ot_layout , src->ctl_info.ot_layout ,
-				optimize_ctl_info) == -1)
+			if( dst->num_of_chars < src->num_of_filled_chars)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Not copy ml_ot_layout.\n") ;
+			#endif
+			}
+			else if( ml_ot_layout_copy( dst->ctl_info.ot_layout ,
+					src->ctl_info.ot_layout ,
+					optimize_ctl_info) == -1)
 			{
 				dst->ctl_info_type = 0 ;
 				dst->ctl_info.ot_layout = NULL ;

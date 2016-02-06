@@ -30,7 +30,7 @@
 	NSRange  selectedRange ;
 }
 
-- (void)drawString:(x_font_t*)font:(x_color_t*)fg_color:(int)x:(int)y:(char*)str:(size_t)len ;
+- (void)drawString:(x_font_t*)font:(x_color_t*)fg_color:(int)x:(int)y:(u_char*)str:(size_t)len ;
 - (void)drawString16:(x_font_t*)font:(x_color_t*)fg_color:(int)x:(int)y:(XChar2b*)str:(size_t)len ;
 - (void)fillWith:(x_color_t*)color:(int)x:(int)y:(u_int)width:(u_int)height ;
 - (void)drawRectFrame:(x_color_t*)color:(int)x1:(int)y1:(int)x2:(int)y2 ;
@@ -253,7 +253,7 @@ drawUnistr(
 		}
 
 		int  units = CGFontGetUnitsPerEm( font->cg_font) ;
-		u_int  cur_x = x ;
+		int  cur_x = x ;
 		u_int  count ;
 		for( count = 0 ; count < len ; count++)
 		{
@@ -261,7 +261,7 @@ drawUnistr(
 
 			if( advances[count] > 0)
 			{
-				cur_x += advances[count] * pointsize / units ;
+				cur_x += (advances[count] * pointsize / units) ;
 			}
 		}
 	}
@@ -1206,12 +1206,12 @@ get_current_window(
 }
 
 
-- (void)drawString:(x_font_t*)font:(x_color_t*)fg_color:(int)x:(int)y:(char *)str:(size_t)len
+- (void)drawString:(x_font_t*)font:(x_color_t*)fg_color:(int)x:(int)y:(u_char *)str:(size_t)len
 {
 	set_fill_color( fg_color) ;
 
 #if  0
-	char *  p = alloca( len + 1) ;
+	u_char *  p = alloca( len + 1) ;
 	memcpy( p , str , len) ;
 	p[len] = '\0' ;
 	kik_debug_printf( "%d %d %s %x\n" , x , y , p , p[len - 1]) ;

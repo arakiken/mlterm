@@ -1,3 +1,34 @@
+2016-02-06  Araki Ken  <arakiken@users.sf.net>
+
+	* README.cocoa, README.indic: Updated.
+
+	* x_draw_str.c:
+	  If ch_cs == ISO10646_UCS4_1_V, ml_char_get_offset() of a combining char
+	  whose ch_code is less than 0x100 is added to x.
+
+	* quartz/x_font.c: fontsize_d of parse_from_name() is applied.
+
+	* cocoa.m: (char*)str -> (u_char*)str in drawString().
+
+	* hb.c: hb_ot_font_set_funcs() is called after hb_font_create() on MacOSX/Cocoa.
+
+	* otl.h, otf.c, hb.c:
+	  fontsize argument which is not used from otf.c for now is added to
+	  otl_convert_text_to_glyphs().
+
+	* mlconfig/main.c, mc_flags.[ch]:
+	  "OpenType Layout" checkbox is added to "Encoding" tab.
+
+	* ml_line.c: If dst->num_of_chars < src->num_of_filled_chars,
+	  src->ctl_info is not copied to dst->ctl_info in case ml_line_shape(dst)
+	  is called before ml_line_ctl_render(dst).
+
+	* im_kbd.c: result->num_of_args and readable_args are fixed.
+
+	* configure.in: libind is never built on MacOSX/Cocoa.
+
+	* cocoa/install.sh: Linkage to libotf and libharfbuzz is adjusted.
+
 2016-02-04  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/x_font.c: font->use_ot_layout check in x_calculate_char_width()

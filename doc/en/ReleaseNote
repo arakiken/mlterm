@@ -7,6 +7,7 @@ ver 3.6.2
 * Add "use_ot_layout" / --otl option which enables to show substituting glyphs
   with the use of libotf or harfbuzz in open type fonts. (Harfbuzz is necessary
   to layout indic scripts.)
+* Add "OpenType Layout" to "Encoding" tab of mlconfig.
 * Add "ot_script" / --ost and "ot_features" / --oft.
 * Add "regard_uri_as_word" / --uriword option which enables to select URI by double click
   regardless of "word_separators" option.

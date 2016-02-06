@@ -1351,7 +1351,13 @@ OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Ma
 AC_ARG_ENABLE(ind,
 	[  --disable-ind           libind @<:@default=enabled@:>@],
 	ind=$enable_ind,
-	ind="yes")
+	[
+	if test "$gui" = "quartz" ; then
+		ind="no"
+	else
+		ind="yes"
+	fi
+	])
 if test "$ind" = "yes" ; then
 	IND_CFLAGS='-I${top_builddir}/libind'
 	IND_LIBS='${top_builddir}/libind/libind.a'

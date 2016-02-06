@@ -5,6 +5,7 @@
 #ifdef  HB_HACK_FOR_QUARTZ
 #include  <harfbuzz/hb.h>
 #include  <harfbuzz/hb-coretext.h>
+#include  <harfbuzz/hb-ot.h>
 #else
 #include  <hb.h>
 #ifdef  USE_QUARTZ
@@ -109,12 +110,17 @@ otl_open(
 
 	if( ( face = hb_coretext_face_create( obj /* CGFont */)))
 	{
-		return  hb_font_create( face) ;
+		hb_font_t *  font ;
+		if( ( font = hb_font_create( face)))
+		{
+			hb_ot_font_set_funcs( font) ;
+			hb_face_destroy( face) ;
+
+			return  font ;
+		}
 	}
-	else
-	{
-		return  NULL ;
-	}
+
+	return  NULL ;
 
 #else
 	return  hb_ft_font_create( obj , NULL) ;
@@ -129,15 +135,7 @@ otl_close(
 	void *  hbfont
 	)
 {
-#ifdef  USE_QUARTZ
-	hb_face_t *  face = hb_font_get_face( hbfont) ;
-#endif
-
 	hb_font_destroy( hbfont) ;
-
-#ifdef  USE_QUARTZ
-	hb_face_destroy( face) ;
-#endif
 }
 
 #ifdef  NO_DYNAMIC_LOAD_OTL
@@ -154,7 +152,8 @@ otl_convert_text_to_glyphs(
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
-	const char *  features
+	const char *  features ,
+	u_int  fontsize
 	)
 {
 	if( src && cmapped)
@@ -171,6 +170,13 @@ otl_convert_text_to_glyphs(
 		u_int  count ;
 		u_int  num ;
 		hb_feature_t *  hbfeatures ;
+
+		if( fontsize > 0)
+		{
+			u_int  scale = fontsize << 6 ;	/* fontsize x 64 */
+
+			hb_font_set_scale( hbfont , scale , scale) ;
+		}
 
 		if( ! buf)
 		{
@@ -257,7 +263,6 @@ otl_convert_text_to_glyphs(
 		hb_shape( hbfont , buf , hbfeatures , num) ;
 
 		info = hb_buffer_get_glyph_infos( buf , &num) ;
-
 		pos = hb_buffer_get_glyph_positions( buf , &num) ;
 
 		if( ! cmapped)

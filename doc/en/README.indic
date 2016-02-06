@@ -24,7 +24,7 @@ Build mlterm with harfbuzz library and start it with -otl option since mlterm-3.
  #type_engine = cairo  # cairo is the default value. xft is also available.
 
 
-=== ISCII font version
+=== ISCII font version (Not available on MacOSX/Cocoa)
 
 Following is a instruction of setting up mlterm indic support.
 

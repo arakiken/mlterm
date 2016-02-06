@@ -992,7 +992,7 @@ x_convert_text_to_glyphs(
 	)
 {
 	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , offsets ,
-			widths , cmapped , src , src_len , script , features) ;
+			widths , cmapped , src , src_len , script , features , 0) ;
 }
 #endif	/* USE_OT_LAYOUT */
 

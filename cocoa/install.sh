@@ -33,3 +33,17 @@ for file in $libs mlterm mlconfig ; do
 		done
 	fi
 done
+
+if [ -f lib/mlterm/libotl.so ]; then
+	libhb=`otool -L lib/mlterm/libotl.so |sed -n 's/[^/]*\(.*harfbuzz.*dylib\).*/\1/p'`
+	if [ "$libhb" != "" ]; then
+		install_name_tool -change $libhb \
+			@executable_path/lib/gtk/libharfbuzz.0.dylib lib/mlterm/libotl.so
+	fi
+
+	libotf=`otool -L lib/mlterm/libotl.so |sed -n 's/[^/]*\(.*otf.*dylib\).*/\1/p'`
+	if [ "$libotf" != "" ]; then
+		install_name_tool -change $libotf \
+			@executable_path/lib/gtk/libotf.0.dylib lib/mlterm/libotl.so
+	fi
+fi

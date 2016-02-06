@@ -90,7 +90,8 @@ otl_convert_text_to_glyphs(
 	u_int32_t *  src ,
 	u_int  src_len ,
 	const char *  script ,
-	const char *  features
+	const char *  features ,
+	u_int  fontsize
 	)
 {
 	static OTF_Glyph *  glyphs ;
