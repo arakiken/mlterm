@@ -1082,12 +1082,11 @@ put_char(
 		is_fullwidth ? "Fullwidth" : "Single") ;
 #endif
 
-	if( ( prop & MKF_COMBINING) &&
-	    ( vt100_parser->use_char_combining
+	if( ( prop & MKF_COMBINING)
 	#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 	      || ( ch == '\xe9' && IS_ISCII(cs)) /* nukta is always combined. */
 	#endif
-	      ))
+	      )
 	{
 		is_comb = 1 ;
 	}
@@ -1162,7 +1161,7 @@ put_char(
 		bg_color = vt100_parser->bg_color ;
 	}
 
-	if( ! vt100_parser->screen->use_dynamic_comb && is_comb)
+	if( vt100_parser->use_char_combining && is_comb)
 	{
 		if( vt100_parser->w_buf.filled_len == 0)
 		{
@@ -1279,7 +1278,7 @@ put_char(
 			flush_buffer( vt100_parser) ;
 		}
 	}
-	else if( ! vt100_parser->screen->use_dynamic_comb)
+	else if( vt100_parser->use_char_combining)
 	{
 		/*
 		 * Arabic combining
@@ -1314,8 +1313,8 @@ put_char(
 			/* possibly NULL */
 			prev2 = ml_screen_get_n_prev_char( vt100_parser->screen , ++n) ;
 		}
-		
-		if( vt100_parser->use_ctl && ml_is_arabic_combining( prev2 , prev , cur))
+
+		if( IS_ARABIC_CHAR(ch) && ml_is_arabic_combining( prev2 , prev , cur))
 		{
 			if( vt100_parser->w_buf.filled_len >= 2)
 			{
@@ -7706,14 +7705,8 @@ ml_convert_to_internal_ch(
 			}
 
 		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-		#ifdef  USE_HARFBUZZ
-			if( ml_is_using_ot_layout())
-			{
-				/* Don't conver to ISCII */
-			}
-			else
-		#endif
-			if( 0x900 <= code && code <= 0xd7f)
+			if( ( unicode_policy & CONVERT_UNICODE_TO_ISCII) &&
+			    0x900 <= code && code <= 0xd7f)
 			{
 				if( mkf_map_ucs4_to_iscii( &non_ucs , code))
 				{
@@ -8178,19 +8171,6 @@ ml_vt100_parser_get_config(
 			value = "false" ;
 		}
 	}
-#ifdef  USE_OT_LAYOUT
-	else if( strcmp( key , "use_ot_layout") == 0)
-	{
-		if( ml_is_using_ot_layout())
-		{
-			value = "true" ;
-		}
-		else
-		{
-			value = "false" ;
-		}
-	}
-#endif
 	else if( strcmp( key , "allow_scp") == 0)
 	{
 	#ifdef  USE_LIBSSH2
@@ -8433,25 +8413,6 @@ ml_vt100_parser_set_config(
 			vt100_parser->use_auto_detect = flag ;
 		}
 	}
-#ifdef  USE_OT_LAYOUT
-	else if( strcmp( key , "use_ot_layout") == 0)
-	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_set_use_ot_layout( flag) ;
-		}
-	}
-	else if( strcmp( key , "ot_script") == 0)
-	{
-		ml_set_ot_layout_attr( value , OT_SCRIPT) ;
-	}
-	else if( strcmp( key , "ot_features") == 0)
-	{
-		ml_set_ot_layout_attr( value , OT_FEATURES) ;
-	}
-#endif
 	else
 	{
 		/* Continue to process it in x_screen.c */

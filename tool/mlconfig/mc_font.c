@@ -64,6 +64,7 @@ static cs_info_t  cs_info_table[] =
 	{ "UNICODE (ARABIC)" , { "iso10646-1" , NULL , NULL , } , } ,
 	{ "UNICODE (EMOJI)" , { "iso10646-1" , NULL , NULL , } , } ,
 	{ "UNICODE (HANKAKU KANA)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (INDIC SCRIPTS)" , { "iso10646-1" , NULL , NULL , } , } ,
 
 	{ "DEC_SPECIAL" , { "iso8859-1" , NULL , NULL , } , } ,
 	{ "ISO8859_1" , { "iso8859-1" , NULL , NULL , } , } ,
@@ -224,6 +225,10 @@ get_correct_cs(
 	else if( idx == 5)
 	{
 		return  "U+FF61-FF9F" ;	/* Hankaku Kana */
+	}
+	else if( idx == 6)
+	{
+		return  "U+0900-0D7F" ;	/* Indic Scripts */
 	}
 	else if( idx < sizeof(cs_info_table) / sizeof(cs_info_table[0]))
 	{

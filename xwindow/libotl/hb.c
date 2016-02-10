@@ -69,6 +69,34 @@ get_hb_features(
 	return  hbfeatures ;
 }
 
+#ifdef  USE_WIN32GUI
+
+#include  <ftmodapi.h>
+
+static FT_Library  ftlib ;
+static u_int  ref_count ;
+
+static void
+done_ft_face(
+	void *  p
+	)
+{
+	FT_Face  face ;
+
+	face = p ;
+	free( face->generic.data) ;
+	face->generic.data = NULL ;
+	FT_Done_Face( face) ;
+
+	if( --ref_count == 0)
+	{
+		FT_Done_FreeType( ftlib) ;
+		ftlib = NULL ;
+	}
+}
+
+#endif
+
 
 /* --- global functions --- */
 
@@ -83,26 +111,41 @@ otl_open(
 {
 #if  defined(USE_WIN32GUI)
 
-	FT_Library  ftlib ;
 	FT_Face  face ;
+	hb_font_t *  hbfont ;
 
-	if( FT_Init_FreeType( &ftlib) != 0)
+	if( ! ftlib)
 	{
-		return  NULL ;
+		if( FT_Init_FreeType( &ftlib) != 0)
+		{
+			free( obj) ;
+
+			return  NULL ;
+		}
 	}
 
-	if( FT_New_Memory_Face( ftlib , obj , size , 0 , &face) != 0)
+	if( FT_New_Memory_Face( ftlib , obj , size , 0 , &face) == 0)
 	{
-		hbfont = NULL ;
-	}
-	else if( ( hbfont = hb_ft_font_create( face , NULL)))
-	{
+		if( ( hbfont = hb_ft_font_create( face , done_ft_face)))
+		{
+			face->generic.data = obj ;
+			ref_count ++ ;
+
+			return  hbfont ;
+		}
+
 		FT_Done_Face( face) ;
 	}
 
-	FT_Done_FreeType( ftlib) ;
+	free( obj) ;
 
-	return  hbfont ;
+	if( ref_count == 0)
+	{
+		FT_Done_FreeType( ftlib) ;
+		ftlib = NULL ;
+	}
+
+	return  NULL ;
 
 #elif  defined(USE_QUARTZ)
 
@@ -174,6 +217,10 @@ otl_convert_text_to_glyphs(
 		if( fontsize > 0)
 		{
 			u_int  scale = fontsize << 6 ;	/* fontsize x 64 */
+
+		#ifdef  USE_WIN32GUI
+			FT_Set_Pixel_Sizes( hb_ft_font_get_face( hbfont) , fontsize , fontsize) ;
+		#endif
 
 			hb_font_set_scale( hbfont , scale , scale) ;
 		}

@@ -54,7 +54,7 @@ typedef struct x_font
 	mkf_conv_t *  conv ;
 #elif  defined(USE_QUARTZ)
 	void *  cg_font ;
-	u_int  pointsize ;
+	u_int  size ;
 #else
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	xft_font_ptr_t  xft_font ;
@@ -81,6 +81,9 @@ typedef struct x_font
 	void *  ot_font ;
 	int8_t  ot_font_not_found ;
 	int8_t  use_ot_layout ;
+#ifdef  USE_WIN32GUI
+	u_int16_t  size ;
+#endif
 #endif
 
 	/*

@@ -4944,13 +4944,15 @@ static void
 change_ctl_flag(
 	x_screen_t *  screen ,
 	int  use_ctl ,
-	ml_bidi_mode_t  bidi_mode
+	ml_bidi_mode_t  bidi_mode ,
+	int  use_ot_layout
 	)
 {
 	int  do_update ;
 	
 	if( ml_term_is_using_ctl( screen->term) == use_ctl &&
-	    ml_term_get_bidi_mode( screen->term) == bidi_mode)
+	    ml_term_get_bidi_mode( screen->term) == bidi_mode &&
+	    ml_term_is_using_ot_layout( screen->term) == use_ot_layout)
 	{
 		/* not changed */
 
@@ -4959,14 +4961,15 @@ change_ctl_flag(
 
 	/*
 	 * If use_ctl flag is false and not changed, it is not necessary to update even if
-	 * bidi_mode flag is changed.
+	 * bidi_mode flag and use_ot_layout are changed.
 	 */
 	do_update = ( use_ctl != ml_term_is_using_ctl( screen->term)) ||
 			ml_term_is_using_ctl( screen->term) ;
 
 	ml_term_set_use_ctl( screen->term , use_ctl) ;
 	ml_term_set_bidi_mode( screen->term , bidi_mode) ;
-	
+	ml_term_set_use_ot_layout( screen->term , use_ot_layout) ;
+
 	if( do_update && update_special_visual( screen))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -8784,13 +8787,14 @@ x_screen_set_config(
 
 		if( ( flag = true_or_false( value)) != -1)
 		{
-			change_ctl_flag( screen , flag , ml_term_get_bidi_mode( term)) ;
+			change_ctl_flag( screen , flag , ml_term_get_bidi_mode( term) ,
+				ml_term_is_using_ot_layout( term)) ;
 		}
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
 		change_ctl_flag( screen , ml_term_is_using_ctl( term) ,
-			ml_get_bidi_mode( value)) ;
+			ml_get_bidi_mode( value) , ml_term_is_using_ot_layout( term)) ;
 	}
 	else if( strcmp( key , "bidi_separators") == 0)
 	{
@@ -8800,6 +8804,14 @@ x_screen_set_config(
 			ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		}
 	}
+#ifdef  USE_OT_LAYOUT
+	else if( strcmp( key , "use_ot_layout") == 0)
+	{
+		change_ctl_flag( screen , ml_term_is_using_ctl( term) ,
+			ml_term_get_bidi_mode( term) ,
+			strcmp( value , "true") == 0) ;
+	}
+#endif
 	else if( strcmp( key , "input_method") == 0)
 	{
 		change_im( screen , value) ;

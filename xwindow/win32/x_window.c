@@ -591,10 +591,11 @@ text_out(
 	u_char *  str ,
 	u_int  len ,
 	mkf_charset_t  cs ,	/* FONT_CS(font->id) */
-	int  is_glyph
+	int  is_glyph ,
+	int  is_ucs
 	)
 {
-	if( cs == ISO10646_UCS4_1)
+	if( is_ucs)
 	{
 		if( is_glyph)
 		{
@@ -644,7 +645,8 @@ draw_string(
 	int  y ,
 	u_char *  str ,
 	u_int  len ,
-	int  is_tp
+	int  is_tp ,
+	int  is_ucs
 	)
 {
 	u_char *  str2 ;
@@ -682,8 +684,8 @@ draw_string(
 #endif
 
 	text_out( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin ,
-		y + win->vmargin , str , len , FONT_CS(font->id) , is_glyph) ;
-	
+		y + win->vmargin , str , len , FONT_CS(font->id) , is_glyph , is_ucs) ;
+
 	if( font->double_draw_gap)
 	{
 		SetBkMode( win->gc->gc , TRANSPARENT) ;
@@ -691,7 +693,7 @@ draw_string(
 		text_out( win->gc->gc ,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->hmargin +
 				font->double_draw_gap ,
-			y + win->vmargin , str , len , FONT_CS(font->id) , is_glyph) ;
+			y + win->vmargin , str , len , FONT_CS(font->id) , is_glyph , is_ucs) ;
 
 		SetBkMode( win->gc->gc , OPAQUE) ;
 	}
@@ -3197,7 +3199,7 @@ x_window_draw_string(
 	 * In case US_ASCII characters is drawn by Unicode font.
 	 * 8 bit charcter => 16 bit character.
 	 */
-	if( FONT_CS(font->id) == ISO10646_UCS4_1)
+	if( IS_ISO10646_UCS4(FONT_CS(font->id)))
 	{
 		u_char *  dbl_str ;
 
@@ -3212,12 +3214,12 @@ x_window_draw_string(
 				dbl_str[count * 2 + 1] = 0x0 ;
 			}
 
-			draw_string( win , font , x , y , dbl_str , len * 2 , 1) ;
+			draw_string( win , font , x , y , dbl_str , len * 2 , 1 , 1) ;
 		}
 	}
 	else
 	{
-		draw_string( win , font , x , y , str , len , 1) ;
+		draw_string( win , font , x , y , str , len , 1 , 0) ;
 	}
 	
 	return  1 ;
@@ -3242,7 +3244,8 @@ x_window_draw_string16(
 	x_gc_set_fid( win->gc, font->fid) ;
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 	
-	draw_string( win , font , x , y , (u_char*)str , len * 2 , 1) ;
+	draw_string( win , font , x , y , (u_char*)str , len * 2 , 1 ,
+		IS_ISO10646_UCS4(FONT_CS(font->id))) ;
 
 	return  1 ;
 }
@@ -3273,7 +3276,7 @@ x_window_draw_image_string(
 	 * In case US_ASCII characters is drawn by Unicode font.
 	 * 8 bit charcter => 16 bit character.
 	 */
-	if( FONT_CS(font->id) == ISO10646_UCS4_1)
+	if( IS_ISO10646_UCS4(FONT_CS(font->id)))
 	{
 		u_char *  dbl_str ;
 
@@ -3288,12 +3291,12 @@ x_window_draw_image_string(
 				dbl_str[count * 2 + 1] = 0x0 ;
 			}
 
-			draw_string( win , font , x , y , dbl_str , len * 2 , 0) ;
+			draw_string( win , font , x , y , dbl_str , len * 2 , 0 , 1) ;
 		}
 	}
 	else
 	{
-		draw_string( win , font , x , y , str , len , 0) ;
+		draw_string( win , font , x , y , str , len , 0 , 0) ;
 	}
 
 	return  1 ;
@@ -3320,7 +3323,8 @@ x_window_draw_image_string16(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	draw_string( win, font, x, y, (u_char*)str, len * 2 , 0) ;
+	draw_string( win, font, x, y, (u_char*)str, len * 2 , 0 ,
+		IS_ISO10646_UCS4(FONT_CS(font->id))) ;
 
 	return  1 ;
 }

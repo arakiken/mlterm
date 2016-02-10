@@ -70,6 +70,7 @@ static wincs_info_t  wincs_info_table[] =
 static cs_info_t  cs_info_table[] =
 {
 	{ ISO10646_UCS4_1 , DEFAULT_CHARSET , } ,
+	{ ISO10646_UCS4_1_V , DEFAULT_CHARSET , } ,
 	
 	{ DEC_SPECIAL , SYMBOL_CHARSET , } ,
 	{ ISO8859_1_R , ANSI_CHARSET , } ,
@@ -455,7 +456,14 @@ calculate_char_width(
 		}
 	}
 
-	return  sz.cx ;
+	if( sz.cx < 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  sz.cx ;
+	}
 }
 
 
@@ -512,17 +520,17 @@ x_font_new(
 		font->cols = 1 ;
 	}
 
-	if( font_present & FONT_VAR_WIDTH)
-	{
-		font->is_var_col_width = 1 ;
-	}
-	else if( IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V)
+	if( IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V)
 	{
 		/*
 		 * For exampe, 'W' width and 'l' width of OR-TTSarala font for ISCII_ORIYA
 		 * are the same by chance, though it is actually a proportional font.
 		 */
 		font->is_var_col_width = font->is_proportional = 1 ;
+	}
+	else if( font_present & FONT_VAR_WIDTH)
+	{
+		font->is_var_col_width = 1 ;
 	}
 
 	if( font_present & FONT_VERTICAL)
@@ -628,7 +636,7 @@ x_font_new(
 				size_attr == DOUBLE_WIDTH ?
 					(use_point_size ?
 						-MulDiv( (int)fontsize_d ,
-						GetDeviceCaps( display_gc , LOGPIXELSY) , 72) :
+						GetDeviceCaps( display_gc , LOGPIXELSX) , 72) :
 						(int)fontsize_d) :
 					0 ,		/* Width (0=auto) */
 			#endif
@@ -712,6 +720,8 @@ x_font_new(
 			font->double_draw_gap = 1 ;
 		}
 	}
+
+	font->size = fontsize ;
 
 	/*
 	 * Following processing is same as x_font.c:set_xfont()
@@ -838,7 +848,7 @@ x_font_new(
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
 		kik_msg_printf(
-			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
+			"Characters (cs %x) are drawn *one by one* to arrange column width.\n" ,
 			FONT_CS(font->id)) ;
 
 	}
@@ -962,8 +972,6 @@ x_font_has_ot_layout_table(
 			}
 
 			font->ot_font = otl_open( font_data , size) ;
-
-			free( font_data) ;
 		}
 
 		if( ! font->ot_font)
@@ -991,8 +999,26 @@ x_convert_text_to_glyphs(
 	const char *  features
 	)
 {
+	u_int  size ;
+
+	if( use_point_size)
+	{
+		if( ! display_gc)
+		{
+			display_gc = CreateIC( "Display" , NULL , NULL , NULL) ;
+		}
+
+		size = MulDiv( (int)font->size ,
+				GetDeviceCaps( display_gc , LOGPIXELSY) , 72) ;
+	}
+	else
+	{
+		size = font->size ;
+	}
+
 	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , offsets ,
-			widths , cmapped , src , src_len , script , features , 0) ;
+			widths , cmapped , src , src_len , script , features ,
+			size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1)) ;
 }
 #endif	/* USE_OT_LAYOUT */
 
@@ -1015,15 +1041,9 @@ x_calculate_char_width(
 		{
 			u_int  width ;
 
-			if( ( width = calculate_char_width( font , ch , cs)) == 0)
-			{
-				goto  fixed_col_width ;
-			}
-
-			return  width ;
+			return  width = calculate_char_width( font , ch , cs) ;
 		}
 
-	fixed_col_width:
 		if( draw_alone)
 		{
 			*draw_alone = 1 ;
@@ -1031,7 +1051,7 @@ x_calculate_char_width(
 	}
 	else if( draw_alone &&
 	         /* ISO10646_UCS4_1_V is always proportional */
-	         FONT_CS(font->id) == ISO10646_UCS4_1_V &&
+	         cs == ISO10646_UCS4_1 &&
 	         (! font->use_ot_layout /* || ! font->ot_font */))
 	{
 		if( mkf_get_ucs_property( ch) & MKF_AWIDTH)

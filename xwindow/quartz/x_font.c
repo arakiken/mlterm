@@ -307,7 +307,7 @@ x_font_new(
 		CGFontGetUnitsPerEm( font->cg_font)) ;
 #endif
 
-	font->pointsize = fontsize ;
+	font->size = fontsize ;
 
 	int  ascent = CGFontGetAscent( font->cg_font) ;
 	int  descent = CGFontGetDescent( font->cg_font) ;	/* minus value */
@@ -496,7 +496,7 @@ x_convert_text_to_glyphs(
 {
 	return  otl_convert_text_to_glyphs( font->ot_font , shaped , shaped_len , offsets ,
 			widths , cmapped , src , src_len , script , features ,
-			font->pointsize * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1)) ;
+			font->size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1)) ;
 }
 #endif	/* USE_OT_LAYOUT */
 
@@ -522,7 +522,7 @@ x_calculate_char_width(
 
 			if( ( len = x_convert_ucs4_to_utf16( utf16 , ch) / 2) > 0)
 			{
-				return  cocoa_font_get_advance( font->cg_font , font->pointsize ,
+				return  cocoa_font_get_advance( font->cg_font , font->size ,
 						font->size_attr , utf16 , len , 0) ;
 			}
 			else
@@ -532,7 +532,7 @@ x_calculate_char_width(
 		}
 		else
 		{
-			return  cocoa_font_get_advance( font->cg_font , font->pointsize ,
+			return  cocoa_font_get_advance( font->cg_font , font->size ,
 					font->size_attr , NULL , 0 , ch) ;
 		}
 	}

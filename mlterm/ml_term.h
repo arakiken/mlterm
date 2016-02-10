@@ -41,6 +41,8 @@ typedef struct ml_term
 
 	int8_t  use_ctl ;
 	int8_t  use_dynamic_comb ;
+	int8_t  use_ot_layout ;
+
 	int8_t  use_local_echo ;
 	int8_t  is_attached ;
 #ifdef  OPEN_PTY_ASYNC
@@ -67,7 +69,8 @@ ml_term_t *  ml_term_new( const char *  term_type , u_int  cols , u_int  rows ,
 	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators ,
 	int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
-	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
+	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode ,
+	int  use_ot_layout) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 
@@ -111,13 +114,17 @@ int  ml_term_detach( ml_term_t *  term) ;
 
 #define  ml_term_get_encoding( term)  ml_vt100_parser_get_encoding( (term)->parser)
 
-int  ml_term_set_use_ctl( ml_term_t *  term , int  flag) ;
+#define  ml_term_set_use_ctl( term , flag)  ((term)->use_ctl = (flag))
 
 #define  ml_term_is_using_ctl( term)  ((term)->use_ctl)
 
 #define  ml_term_set_bidi_mode( term , mode)  ((term)->bidi_mode = (mode))
 
 #define  ml_term_get_bidi_mode( term)  ((term)->bidi_mode)
+
+void  ml_term_set_use_ot_layout( ml_term_t *  term , int  flag) ;
+
+#define  ml_term_is_using_ot_layout( term)  ((term)->use_ot_layout)
 
 #define  ml_term_set_vertical_mode( term , mode)  ((term)->vertical_mode = (mode))
 

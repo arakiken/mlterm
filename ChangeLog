@@ -1,3 +1,53 @@
+2016-02-10  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja: Updated,
+
+	* x_font.h, quartz/x_font.c: pointsize -> size.
+
+	* x_main_config.[ch]: use_ot_layout is added to x_main_config_t.
+
+	* x_screen.c: use_ot_layout is added to arguments of change_ctl_flag().
+
+	* x_draw_str.c: If xfont->use_ot_layout is true on win32gdi,
+	  x_window_draw_image_string() variant functions are not used.
+
+	* win32/x_font.c:
+	  - ISO10646_UCS4_1_V is added to wincs_info_table.
+	  - is_ucs is added to arguments of text_out().
+	  - x_calculate_char_width() returns 0 if calculate_char_width() returns 0.
+
+	* otf.c, win32/x_font.c: free(obj) is called in otl_open(), not in
+	  x_font_has_ot_layout_table().
+
+	* hb.c: Fixes for win32gdi.
+
+	* ml_line.[ch]:
+	  - ml_set_use_ot_layout() and ml_is_using_ot_layout() are removed.
+	  - Opentype layout is enabled if 'term' argument of ml_line_ctl_render()
+	    is non-NULL value.
+
+	* ml_term.[ch]:
+	  - ml_term_set_use_ctl() is defined as a macro, not as a function.
+	  - ml_term_set_use_ot_layout() and ml_term_is_using_ot_layout() are added.
+	  - use_ot_layout is added to ml_term_t.
+
+	* ml_term.c, ml_vt100_parser.c:
+	  "use_ot_layout", "ot_script" and "ot_features" of OSC 5379-5381 are
+	  moved from ml_vt100_parser.c.
+
+	* ml_term.[ch], ml_term_manager.[ch]:
+	  use_ot_layout is added to arguments of ml_term_new() and ml_create_term().
+
+	* ml_vt100_parser.[ch]:
+	  - CONVERT_UNICODE_TO_ISCII is added to ml_unicode_policy_t.
+	  - Even if use_char_combining is false, is_comb attr of ml_char_t is set.
+	  - use_ctl is removed from ml_vt100_parser_t, and the result of IS_ARABIC_CHAR()
+	    is checked before ml_is_arabic_combining() is called.
+
+	* ml_shape.h: IS_ARABIC_CHAR() is added.
+
+	* ml_screen.h: use_dynamic_comb is removed.
+
 2016-02-07  Araki Ken  <arakiken@users.sf.net>
 
 	* README.cocoa, README.indic, doc/en/README.win32: Updated.

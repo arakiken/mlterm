@@ -13,6 +13,8 @@
 #include  "ml_line.h"	/* ctl_info_t */
 
 
+#define  IS_ARABIC_CHAR(ucode)  (((ucode) & 0xffffff00) == 0x600)
+
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 
 u_int  ml_shape_arabic( ml_char_t *  dst , u_int  dst_len , ml_char_t *  src , u_int  src_len) ;

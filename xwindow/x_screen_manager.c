@@ -140,7 +140,7 @@ create_term_intern(void)
 			main_config.use_dynamic_comb , main_config.bs_mode ,
 			main_config.vertical_mode , main_config.use_local_echo ,
 			main_config.title , main_config.icon_name ,
-			main_config.alt_color_mode)) == NULL)
+			main_config.alt_color_mode , main_config.use_ot_layout)) == NULL)
 	{
 		return  NULL ;
 	}

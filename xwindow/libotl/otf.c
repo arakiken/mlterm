@@ -26,6 +26,8 @@ otl_open(
 
 	if( FT_Init_FreeType( &ftlib) != 0)
 	{
+		free( obj) ;
+
 		return  NULL ;
 	}
 
@@ -33,18 +35,22 @@ otl_open(
 	{
 		otf = NULL ;
 	}
-	else if( ( otf = OTF_open_ft_face( face)))
+	else
 	{
-		if( OTF_get_table( otf , "GSUB") != 0 ||
-		    OTF_get_table( otf , "cmap") != 0)
+		if( ( otf = OTF_open_ft_face( face)))
 		{
-			OTF_close( otf) ;
-			otf = NULL ;
+			if( OTF_get_table( otf , "GSUB") != 0 ||
+			    OTF_get_table( otf , "cmap") != 0)
+			{
+				OTF_close( otf) ;
+				otf = NULL ;
+			}
 		}
 
 		FT_Done_Face( face) ;
 	}
 
+	free( obj) ;
 	FT_Done_FreeType( ftlib) ;
 #else
 #if  defined(USE_QUARTZ)

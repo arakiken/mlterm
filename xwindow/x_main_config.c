@@ -1501,11 +1501,13 @@ x_main_config_init(
 	}
 
 #ifdef  USE_OT_LAYOUT
+	main_config->use_ot_layout = 0 ;
+
 	if( ( value = kik_conf_get_value( conf , "use_ot_layout")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			ml_set_use_ot_layout( 1) ;
+			main_config->use_ot_layout = 1 ;
 			main_config->use_ctl = 1 ;
 		}
 	}

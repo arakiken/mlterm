@@ -78,7 +78,6 @@ typedef struct  ml_screen
 	ml_bs_mode_t  backscroll_mode ;
 	int8_t  is_backscrolling ;
 
-	int8_t  use_dynamic_comb ;	/* public */
 	int8_t  is_cursor_visible ;
 	int8_t  has_blinking_char ;
 

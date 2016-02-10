@@ -1343,6 +1343,14 @@ xcore_draw_str(
 			#endif
 			    /* draw_alone || */ /* draw_alone is always false on framebuffer. */
 		#else
+			#if  defined(USE_WIN32GUI) && defined(USE_OT_LAYOUT)
+			    /*
+			     * U+2022 is ambiguous and should be drawn one by one, but
+			     * x_calculate_char_width() can't tell it as ambigous if
+			     * use_ot_layout is true because ch_code is glyph index.
+			     */
+			    (xfont->use_ot_layout /* && xfont->ot_font */) ||
+			#endif
 			    ( x_window_has_wall_picture( window) &&
 			      bg_color == ML_BG_COLOR) ||
 			    draw_alone ||

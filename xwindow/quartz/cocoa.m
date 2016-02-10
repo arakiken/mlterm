@@ -225,7 +225,7 @@ drawUnistr(
 	CGAffineTransform  t = CGAffineTransformIdentity ;
 	u_int  width = font->width ;
 
-	u_int  pointsize = font->pointsize ;
+	u_int  fontsize = font->size ;
 	switch( font->size_attr)
 	{
 	case DOUBLE_WIDTH:
@@ -236,7 +236,7 @@ drawUnistr(
 
 	case DOUBLE_HEIGHT_TOP:
 	case DOUBLE_HEIGHT_BOTTOM:
-		pointsize *= 2 ;
+		fontsize *= 2 ;
 		break ;
 	}
 
@@ -261,7 +261,7 @@ drawUnistr(
 
 			if( advances[count] > 0)
 			{
-				cur_x += (advances[count] * pointsize / units) ;
+				cur_x += (advances[count] * fontsize / units) ;
 			}
 		}
 	}
@@ -274,7 +274,7 @@ drawUnistr(
 		}
 	}
 
-	CGContextSetFontSize( ctx , pointsize) ;
+	CGContextSetFontSize( ctx , fontsize) ;
 
 	CGContextShowGlyphsAtPositions( ctx , glyphs , points , len) ;
 

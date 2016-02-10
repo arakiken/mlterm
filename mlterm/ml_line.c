@@ -39,13 +39,6 @@
 #endif
 
 
-/* --- static variables --- */
-
-#ifdef  USE_OT_LAYOUT
-static int  use_ot_layout ;
-#endif
-
-
 /* --- static functions --- */
 
 #ifndef  NO_DYNAMIC_LOAD_CTL
@@ -796,26 +789,6 @@ set_real_modified(
 
 
 /* --- global functions --- */
-
-void
-ml_set_use_ot_layout(
-	int  flag
-	)
-{
-#ifdef  USE_OT_LAYOUT
-	use_ot_layout = flag ;
-#endif
-}
-
-int
-ml_is_using_ot_layout(void)
-{
-#ifdef  USE_OT_LAYOUT
-	return  use_ot_layout ;
-#else
-	return  0 ;
-#endif
-}
 
 /*
  * Functions which doesn't have to care about visual order.
@@ -2091,7 +2064,7 @@ ml_line_ctl_render(
 	{
 		if(
 		#ifdef  USE_OT_LAYOUT
-		    (! use_ot_layout || ! ml_line_set_use_ot_layout( line , 1)) &&
+		    (! term || ! ml_line_set_use_ot_layout( line , 1)) &&
 		#endif
 		    ! ml_line_set_use_bidi( line , 1) && ! ml_line_set_use_iscii( line , 1))
 		{
@@ -2104,7 +2077,7 @@ ml_line_ctl_render(
 	#ifdef  USE_OT_LAYOUT
 		if( ml_line_is_using_ot_layout( line))
 		{
-			if( ! use_ot_layout)
+			if( ! term)
 			{
 				ret = -1 ;
 			}
@@ -2138,7 +2111,7 @@ ml_line_ctl_render(
 			if( ret == -1)
 			{
 			#ifdef  USE_OT_LAYOUT
-				if( ! use_ot_layout)
+				if( ! term)
 				{
 					return  1 ;
 				}
@@ -2163,7 +2136,7 @@ ml_line_ctl_render(
 			set_use_ctl = ml_line_set_use_iscii ;
 
 		#ifdef  USE_OT_LAYOUT
-			if( use_ot_layout)
+			if( term)
 			{
 				goto  render_ot_layout ;
 			}

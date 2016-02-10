@@ -909,7 +909,8 @@ Java_mlterm_MLTermPty_nativeOpen(
 					0 /* use_ctl */ , 0 /* bidi_mode */ ,
 					NULL /* bidi_separators */ ,
 					0 /* use_dynamic_comb */ , BSM_STATIC ,
-					0 /* vertical_mode */ , use_local_echo , NULL , NULL , 0)))
+					0 /* vertical_mode */ , use_local_echo , NULL , NULL ,
+					0 /* alt_color_mode */ , 0 /* use_ot_layout */)))
 	{
 		goto  error ;
 	}

@@ -302,7 +302,8 @@ ml_term_new(
 	int  use_local_echo ,
 	const char *  win_name ,
 	const char *  icon_name ,
-	ml_alt_color_mode_t  alt_color_mode
+	ml_alt_color_mode_t  alt_color_mode ,
+	int  use_ot_layout
 	)
 {
 	ml_termcap_ptr_t  termcap ;
@@ -333,6 +334,13 @@ ml_term_new(
 		goto  error ;
 	}
 
+#ifdef  USE_HARFBUZZ
+	if( ! ( term->use_ot_layout = use_ot_layout))
+#endif
+	{
+		policy |= CONVERT_UNICODE_TO_ISCII ;
+	}
+
 	if( ! ( term->parser = ml_vt100_parser_new( term->screen , termcap , encoding ,
 				is_auto_encoding , use_auto_detect , logging_vt_seq ,
 				policy , col_size_a , use_char_combining , use_multi_col_char ,
@@ -344,8 +352,6 @@ ml_term_new(
 	
 		goto  error ;
 	}
-
-	ml_vt100_parser_set_use_ctl( term->parser , use_ctl) ;
 
 	if( bidi_separators)
 	{
@@ -625,18 +631,30 @@ ml_term_detach(
 	return  1 ;
 }
 
-int
-ml_term_set_use_ctl(
+void
+ml_term_set_use_ot_layout(
 	ml_term_t *  term ,
 	int  flag
 	)
 {
-	if( ( term->use_ctl = flag))
+#ifdef  USE_HARFBUZZ
+	ml_unicode_policy_t  policy ;
+
+	policy = ml_vt100_parser_get_unicode_policy( term->parser) ;
+
+	if( flag)
 	{
-		ml_vt100_parser_set_use_ctl( term->parser , flag) ;
+		policy &= ~CONVERT_UNICODE_TO_ISCII ;
+	}
+	else
+	{
+		policy |= CONVERT_UNICODE_TO_ISCII ;
 	}
 
-	return  1 ;
+	ml_vt100_parser_set_unicode_policy( term->parser , policy) ;
+#endif
+
+	term->use_ot_layout = flag ;
 }
 
 int
@@ -1016,9 +1034,7 @@ ml_term_update_special_visual(
 	ml_logical_visual_t *  logvis ;
 	int  had_logvis = 0 ;
 	int  has_logvis = 0 ;
-	int  need_comb = 0 ;
 
-	term->screen->use_dynamic_comb = 0 ;
 	had_logvis = ml_screen_delete_logical_visual( term->screen) ;
 
 	if( term->use_dynamic_comb)
@@ -1028,8 +1044,13 @@ ml_term_update_special_visual(
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
 				has_logvis = 1 ;
-				need_comb = 1 ;
-				term->screen->use_dynamic_comb = 1 ;
+
+				if( ml_vt100_parser_is_using_char_combining( term->parser))
+				{
+					kik_msg_printf( "Set use_combining=false forcibly "
+						"to enable use_dynamic_comb.\n") ;
+					ml_vt100_parser_set_use_char_combining( term->parser , 0) ;
+				}
 			}
 			else
 			{
@@ -1082,7 +1103,8 @@ ml_term_update_special_visual(
 		   IS_ISCII_ENCODING( ml_term_get_encoding( term))))
 	{
 		if( ( logvis = ml_logvis_ctl_new( term->bidi_mode ,
-					term->bidi_separators , term)))
+					term->bidi_separators ,
+					term->use_ot_layout ? term : NULL)))
 		{
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
@@ -1106,18 +1128,6 @@ ml_term_update_special_visual(
 	#endif
 	}
 
-	if( need_comb && ! ml_vt100_parser_is_using_char_combining( term->parser))
-	{
-		kik_msg_printf( "Set use_combining=true forcibly.\n") ;
-		ml_vt100_parser_set_use_char_combining( term->parser , 1) ;
-	}
-
-	if( ! has_logvis)
-	{
-		term->screen->use_dynamic_comb = 0 ;
-		ml_screen_delete_logical_visual( term->screen) ;
-	}
-	
 	if( had_logvis || has_logvis)
 	{
 		ml_screen_render( term->screen) ;
@@ -1239,6 +1249,19 @@ ml_term_get_config(
 			value = "" ;
 		}
 	}
+#ifdef  USE_OT_LAYOUT
+	else if( strcmp( key , "use_ot_layout") == 0)
+	{
+		if( term->use_ot_layout)
+		{
+			value = "true" ;
+		}
+		else
+		{
+			value = "false" ;
+		}
+	}
+#endif
 	else if( strcmp( key , "pty_name") == 0)
 	{
 		if( output)
@@ -1322,6 +1345,16 @@ ml_term_set_config(
 			set_use_local_echo( term , flag) ;
 		}
 	}
+#ifdef  USE_OT_LAYOUT
+	else if( strcmp( key , "ot_script") == 0)
+	{
+		ml_set_ot_layout_attr( value , OT_SCRIPT) ;
+	}
+	else if( strcmp( key , "ot_features") == 0)
+	{
+		ml_set_ot_layout_attr( value , OT_FEATURES) ;
+	}
+#endif
 	else
 	{
 		/* Continue to process it in x_screen.c */

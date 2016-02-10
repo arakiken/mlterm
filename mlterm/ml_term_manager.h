@@ -23,7 +23,8 @@ ml_term_t *  ml_create_term( const char *  term_type , u_int  cols , u_int  rows
 	ml_bidi_mode_t  bidi_mode , const char *  bidi_separators ,
 	int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , int  use_local_echo ,
-	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode) ;
+	const char *  win_name , const char *  icon_name , ml_alt_color_mode_t  alt_color_mode ,
+	int  use_ot_layout) ;
 
 int  ml_destroy_term( ml_term_t *  term) ;
 

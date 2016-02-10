@@ -307,7 +307,8 @@ ml_create_term(
 	int  use_local_echo ,
 	const char *  win_name ,
 	const char *  icon_name ,
-	ml_alt_color_mode_t  alt_color_mode
+	ml_alt_color_mode_t  alt_color_mode ,
+	int  use_ot_layout
 	)
 {
 #if  ! defined(USE_WIN32API) && ! defined(DEBUG)
@@ -347,7 +348,7 @@ ml_create_term(
 						use_ctl , bidi_mode , bidi_separators ,
 						use_dynamic_comb , bs_mode , vertical_mode ,
 						use_local_echo , win_name , icon_name ,
-						alt_color_mode)))
+						alt_color_mode , use_ot_layout)))
 					{
 						ml_term_plug_pty( terms[num_of_terms++] , pty) ;
 						ml_set_pty_winsize( pty , cols , rows , 0 , 0) ;
@@ -391,7 +392,8 @@ ml_create_term(
 				logging_vt_seq , policy , col_size_a , use_char_combining ,
 				use_multi_col_char , use_ctl , bidi_mode , bidi_separators ,
 				use_dynamic_comb , bs_mode , vertical_mode ,
-				use_local_echo , win_name , icon_name , alt_color_mode)))
+				use_local_echo , win_name , icon_name , alt_color_mode ,
+				use_ot_layout)))
 	{
 		return  NULL ;
 	}
