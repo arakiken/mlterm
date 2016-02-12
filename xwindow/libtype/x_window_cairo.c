@@ -128,6 +128,7 @@ show_text(
 
 	return  1 ;
 #else
+#ifdef  USE_OT_LAYOUT
 	if( font->use_ot_layout /* && font->ot_font */)
 	{
 		cairo_glyph_t *  glyphs ;
@@ -174,6 +175,7 @@ show_text(
 		}
 	}
 	else
+#endif
 	{
 		static cairo_glyph_t *  glyphs ;
 		static int  num_of_glyphs ;
@@ -438,11 +440,13 @@ draw_string32(
 	u_int  count ;
 	char *  p ;
 
+#ifdef  USE_OT_LAYOUT
 	if( font->use_ot_layout /* && font->ot_font */)
 	{
 		buf = str ;
 	}
 	else
+#endif
 	{
 		if( ! ( p = buf = alloca( UTF_MAX_SIZE * len + 1)))
 		{
@@ -561,7 +565,11 @@ x_window_cairo_draw_string32(
 
 	/* draw_string32() before 1.8.0 doesn't return x position. */
 #if  CAIRO_VERSION_ENCODE(1,8,0) <= CAIRO_VERSION
-	if( ( ! font->use_ot_layout /* || ! font->ot_font */) && font->compl_fonts)
+	if(
+	#ifdef  USE_OT_LAYOUT
+	    ( ! font->use_ot_layout /* || ! font->ot_font */) &&
+	#endif
+	    font->compl_fonts)
 	{
 		u_int  count ;
 

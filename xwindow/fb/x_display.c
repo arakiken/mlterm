@@ -845,6 +845,9 @@ draw_mouse_cursor(void)
 	_mouse.cursor.is_drawn = 1 ;
 }
 
+/* XXX defined in fb/x_window.c */
+int  x_window_clear_margin_area( x_window_t *  win) ;
+
 static void
 expose_window(
 	x_window_t *  win ,

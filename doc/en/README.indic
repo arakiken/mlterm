@@ -14,7 +14,8 @@ Build mlterm with harfbuzz library and start it with -otl option since mlterm-3.
  $ make; sudo make install
 
 2) Configuation
-~/.mlterm/aafont
+~/.mlterm/aafont (for xft or cairo) or
+~/.mlterm/font (for win32gdi, framebuffer and quartx)
  ISO10646_UCS4_1 = <TrueType font including indic glyphs>
  ("U+900-d7f = <TrueType font including indic glyphs>" is also avaialbe.)
 

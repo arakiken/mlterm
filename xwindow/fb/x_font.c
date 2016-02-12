@@ -1918,7 +1918,12 @@ x_calculate_char_width(
 		u_char *  glyph ;
 
 		if( ( glyph = get_ft_bitmap( font->xfont , ch ,
-				(font->use_ot_layout /* && font->ot_font */))))
+			#ifdef  USE_OT_LAYOUT
+				(font->use_ot_layout /* && font->ot_font */)
+			#else
+				0
+			#endif
+				)))
 		{
 			return  glyph[font->xfont->glyph_size - 3] ;
 		}

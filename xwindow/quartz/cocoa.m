@@ -208,11 +208,13 @@ drawUnistr(
 	CGGlyph  glyphs_buf[len] ;
 	CGGlyph *  glyphs ;
 
+#ifdef  USE_OT_LAYOUT
 	if( font->use_ot_layout /* && font->otf */)
 	{
 		glyphs = str ;
 	}
 	else
+#endif
 	{
 		glyphs = memset( glyphs_buf , 0 , sizeof(CGGlyph) * len) ;
 		CGFontGetGlyphsForUnichars( font->cg_font , str , glyphs_buf , len) ;

@@ -515,7 +515,14 @@ x_calculate_char_width(
 
 	if( font->is_proportional)
 	{
-		if( ! ( font->use_ot_layout /* && font->ot_font */))
+	#ifdef  USE_OT_LAYOUT
+		if( font->use_ot_layout /* && font->ot_font */)
+		{
+			return  cocoa_font_get_advance( font->cg_font , font->size ,
+					font->size_attr , NULL , 0 , ch) ;
+		}
+		else
+	#endif
 		{
 			u_int16_t  utf16[2] ;
 			u_int  len ;
@@ -529,11 +536,6 @@ x_calculate_char_width(
 			{
 				return  0 ;
 			}
-		}
-		else
-		{
-			return  cocoa_font_get_advance( font->cg_font , font->size ,
-					font->size_attr , NULL , 0 , ch) ;
 		}
 	}
 

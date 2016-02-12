@@ -31,8 +31,10 @@ cp -R ../libind ${PROJECT_PATH}/jni/
 cp -R ../mlterm ${PROJECT_PATH}/jni/
 
 mkdir -p ${PROJECT_PATH}/jni/xwindow/fb
+mkdir -p ${PROJECT_PATH}/jni/xwindow/libotl
 cp ../xwindow/*.[ch] ${PROJECT_PATH}/jni/xwindow
 cp ../xwindow/fb/*.[ch] ${PROJECT_PATH}/jni/xwindow/fb
+cp ../xwindow/libotl/*.[ch] ${PROJECT_PATH}/jni/xwindow/libotl
 
 mkdir -p ${PROJECT_PATH}/jni/main
 cp ../main/*.[ch] ${PROJECT_PATH}/jni/main/

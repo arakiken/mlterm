@@ -9,7 +9,7 @@
 
 #include  <kiklib/kik_def.h>	/* USE_WIN32API */
 #if  defined(__CYGWIN__) || defined(__MSYS__)
-#include  <kiklib/kik_path.h>	/* cygwin_conv_to_posix_path */
+#include  <kiklib/kik_path.h>	/* kik_conv_to_posix_path */
 #endif
 
 #include  <mkf/mkf_utf8_conv.h>
@@ -97,19 +97,20 @@ x_dnd_filter_event(
 	for( count = 0 ; count < num ; count ++)
 	{
 		WCHAR  utf16_path[MAX_PATH] ;
-		
-		if( ( num = DragQueryFileW( drop , count , utf16_path ,
+		UINT  path_len ;
+
+		if( ( path_len = DragQueryFileW( drop , count , utf16_path ,
 					sizeof(utf16_path) / sizeof(utf16_path[0]))) > 0)
 		{
-			size_t  path_len ;
 			u_char  utf8_path[MAX_PATH] ;
 
 		#ifdef  USE_WIN32API
 			if( do_scp)
 			{
+				path_len ++ ;	/* NULL terminator */
 				if( win->set_xdnd_config &&
 				    conv_utf16_to_utf8( utf8_path , sizeof(utf8_path) ,
-					utf16_path , num * sizeof(utf16_path[0])) > 0)
+					utf16_path , path_len * sizeof(utf16_path[0])) > 0)
 				{
 					(*win->set_xdnd_config)( win , NULL ,
 						"scp" , utf8_path) ;
@@ -117,7 +118,7 @@ x_dnd_filter_event(
 			}
 			else
 			{
-				path_len = num * sizeof(utf16_path[0]) ;
+				path_len *= sizeof(utf16_path[0]) ;
 
 				if( win->utf_selection_notified)
 				{
@@ -128,13 +129,15 @@ x_dnd_filter_event(
 		#else
 			u_char  posix_path[MAX_PATH] ;
 
+			path_len ++ ;	/* NULL terminator */
+
 			if( conv_utf16_to_utf8( utf8_path , sizeof(utf8_path) ,
-				utf16_path , num * sizeof(utf16_path[0])) == 0)
+				utf16_path , path_len * sizeof(utf16_path[0])) == 0 ||
+			    kik_conv_to_posix_path( utf8_path , posix_path ,
+					sizeof(posix_path)) < 0)
 			{
 				continue ;
 			}
-
-			cygwin_conv_to_posix_path( utf8_path , posix_path) ;
 
 			if( do_scp)
 			{

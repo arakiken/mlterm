@@ -1,3 +1,34 @@
+2016-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.indic: Updated.
+
+	* ml_vt100_parser.c: fopen/fclose/fwrite are replaced by
+	  cygfopen/cygfclose/cygfwrite defined in cygfile.[ch].
+
+	* mlterm/cygfile.[ch]: Added.
+
+	* kik_dlfcn_win32.c, gdiplus.cpp, gdk-pixbuf.c, mlimgloader/none.c,
+	  win32/x_dnd.c, win32/x_imagelib.c:
+	  cygwin_conv_to_{win32|posix}_path() -> kik_conv_to_{win32|posix}_path().
+
+	* kik_path.[ch]: kik_conv_to_{win32|posix}_path is added.
+
+	* x_screen.c: x_stop_selecting() is called in button_released() even if
+	  mouse reporting mode is set.
+
+	* fb/x_font.c, libtype/x_window_{cairo|xft}.c, cocoa.m, quartz/x_font.c,
+	  win32/x_font.c, xlib/x_font.c:
+	  #ifdef USE_OT_LAYOUT ... #endif is inserted.
+
+	* configure.in: `pkg-config freetype2 --cflags` is added to OT_LAYOUT_CFLAGS
+	  with harfbuzz on platforms except MacOSX/Cocoa.
+
+	* prepare.sh: Files in xwindow/libotl are copied.
+
+	* Android.mk:
+	  - OTF_* -> OTL_*
+	  - -Ixwindow/libotl and -DNO_DYNAMIC_LOAD_OTL are added to OTL_CFLAGS.
+
 2016-02-10  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja: Updated,

@@ -32,6 +32,10 @@
 #include  "ml_str_parser.h"
 #include  "ml_shape.h"		/* ml_is_arabic_combining */
 
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+#include  "cygfile.h"
+#endif
+
 
 /*
  * kterm BUF_SIZE in ptyx.h is 4096.

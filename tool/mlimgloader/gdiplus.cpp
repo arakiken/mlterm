@@ -10,14 +10,14 @@
 extern "C" {
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
+#include  <kiklib/kik_mem.h>
+#if  defined(__CYGWIN__) || defined(__MSYS__)
+#include  <kiklib/kik_path.h>	/* kik_conv_to_win32_path */
+#endif
 }
 
 #include  <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include  <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
-#include  <kiklib/kik_mem.h>
-#if  defined(__CYGWIN__) || defined(__MSYS__)
-#include  <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
-#endif
 
 #ifdef  USE_WIN32API
 #include  <fcntl.h>	/* O_BINARY */
@@ -142,8 +142,10 @@ create_cardinals_from_file(
 	else if( strchr( path , '/'))	/* In case win32 style path is specified on cygwin/msys. */
 	{
 		/* cygwin style path => win32 style path. */
-		cygwin_conv_to_win32_path( path , winpath) ;
-		path = winpath ;
+		if( kik_conv_to_win32_path( path , winpath , sizeof(winpath)) == 0)
+		{
+			path = winpath ;
+		}
 	}
 #endif
 
@@ -154,7 +156,7 @@ create_cardinals_from_file(
 		char *  dir ;
 
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
-		/* converted to win32 by cygwin_conv_to_win32_path */
+		/* converted to win32 by kik_conv_to_win32_path */
 		if( ! strstr( path , "mlterm\\anim") &&
 		    ( dir = kik_get_user_rc_path( "mlterm/")))
 	#else
@@ -205,9 +207,12 @@ create_cardinals_from_file(
 			split_animation_gif( path , dir , hash) ;
 
 		#if  defined(__CYGWIN__) || defined(__MSYS__)
-			cygwin_conv_to_win32_path( new_path , winpath) ;
-			new_path = winpath ;
+			if( kik_conv_to_win32_path( new_path , winpath , sizeof(winpath)) == 0)
+			{
+				new_path = winpath ;
+			}
 		#endif
+
 			/* Replace path by the splitted file. */
 			path = new_path ;
 

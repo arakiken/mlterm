@@ -418,6 +418,7 @@ calculate_char_width(
 
 		len = x_convert_ucs4_to_utf16( utf16 , ucs4_code) / 2 ;
 
+	#ifdef  USE_OT_LAYOUT
 		if( font->use_ot_layout /* && font->ot_font */)
 		{
 		#ifdef  USE_WIN32API
@@ -436,6 +437,7 @@ calculate_char_width(
 		#endif
 		}
 		else
+	#endif
 		{
 			ret = GetTextExtentPoint32W( display_gc , utf16 , len , &sz) ;
 		}
@@ -1051,8 +1053,11 @@ x_calculate_char_width(
 	}
 	else if( draw_alone &&
 	         /* ISO10646_UCS4_1_V is always proportional */
-	         cs == ISO10646_UCS4_1 &&
-	         (! font->use_ot_layout /* || ! font->ot_font */))
+	         cs == ISO10646_UCS4_1
+	#ifdef  USE_OT_LAYOUT
+		 && (! font->use_ot_layout /* || ! font->ot_font */)
+	#endif
+		 )
 	{
 		if( mkf_get_ucs_property( ch) & MKF_AWIDTH)
 		{

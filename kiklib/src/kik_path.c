@@ -15,6 +15,7 @@
 #endif
 
 #include  "kik_str.h"	/* kik_str_alloca_dup */
+#include  "kik_debug.h"
 
 
 #if  0
@@ -360,6 +361,120 @@ kik_get_home_dir(void)
 	return  NULL ;
 #endif
 }
+
+
+#if  defined(__CYGWIN__)
+
+#include  <sys/cygwin.h>
+
+int
+kik_conv_to_win32_path(
+	const char *  path ,
+	char *  winpath ,
+	size_t  len
+	)
+{
+	int  ret ;
+
+	if( ( ret = cygwin_conv_path( CCP_POSIX_TO_WIN_A , path , winpath , len)) < 0)
+	{
+		kik_warn_printf( "Couldn't convert %s to win32 path.\n" , path) ;
+	}
+
+	return  ret ;
+}
+
+int
+kik_conv_to_posix_path(
+	const char *  winpath ,
+	char *  path ,
+	size_t  len
+	)
+{
+	int  ret ;
+
+	if( ( ret = cygwin_conv_path( CCP_WIN_A_TO_POSIX , winpath , path , len)) < 0)
+	{
+		kik_warn_printf( "Couldn't convert %s to posix path.\n" , winpath) ;
+	}
+
+	return  ret ;
+}
+
+#elif  defined(__MSYS__)
+
+#include  <windef.h>	/* MAX_PATH */
+#include  <sys/cygwin.h>
+
+int
+kik_conv_to_win32_path(
+	const char *  path ,
+	char *  winpath ,
+	size_t  len
+	)
+{
+	static size_t  prefix_len ;
+	int  ret ;
+
+	if( prefix_len == 0)
+	{
+		char  winpath[MAX_PATH] ;
+
+		cygwin_conv_to_win32_path( "/" , winpath) ;
+		prefix_len = strlen(winpath) ;
+	}
+
+	if( strlen(path) + prefix_len >= len)
+	{
+		kik_warn_printf( "Couldn't convert %s to win32 path.\n" , path) ;
+
+		return  -1 ;
+	}
+
+	cygwin_conv_to_win32_path( path , winpath) ;
+
+	return  0 ;
+}
+
+int
+kik_conv_to_posix_path(
+	const char *  winpath ,
+	char *  path ,
+	size_t  len
+	)
+{
+	int  ret ;
+
+	if( strlen( winpath) >= len)
+	{
+		kik_warn_printf( "Couldn't convert %s to posix path.\n" , winpath) ;
+
+		return  -1 ;
+	}
+
+	cygwin_conv_to_posix_path( winpath , path) ;
+
+	return  0 ;
+}
+
+#endif
+
+#if  (defined(__CYGWIN__) || defined(__MSYS__)) && defined(__DEBUG)
+#include  <windef.h>
+void
+main(void)
+{
+	char path[MAX_PATH] ;
+
+	kik_conv_to_win32_path( "/foo/bar" , path , sizeof(path)) ;
+	kik_debug_printf( "/foo/bar -> %s\n" , path) ;
+	kik_conv_to_win32_path( "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" , path , sizeof(path)) ;
+
+	kik_conv_to_posix_path( "c:\\cygwin\\foo\\bar" , path , sizeof(path)) ;
+	kik_debug_printf( "c:\\cygwin\\foo\\bar -> %s\n" , path) ;
+	kik_conv_to_posix_path( "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" , path , sizeof(path)) ;
+}
+#endif
 
 
 #ifdef  __DEBUG

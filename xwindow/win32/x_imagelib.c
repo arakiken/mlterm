@@ -13,7 +13,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #if  defined(__CYGWIN__) || defined(__MSYS__)
-#include  <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
+#include  <kiklib/kik_path.h>	/* kik_conv_to_win32_path */
 #endif
 
 #if  1
@@ -207,8 +207,8 @@ load_file(
 		char  bindir[MAX_PATH] ;
 		char *  new_cmd_line ;
 
-		cygwin_conv_to_win32_path( BINDIR , bindir) ;
-		if( ! ( new_cmd_line = alloca( strlen(bindir) + 1 + strlen(cmd_line) + 1)))
+		if( kik_conv_to_win32_path( BINDIR , bindir , sizeof(bindir)) == 0 &&
+		    ( new_cmd_line = alloca( strlen(bindir) + 1 + strlen(cmd_line) + 1)))
 		{
 			sprintf( new_cmd_line , "%s\\%s" , bindir , cmd_line) ;
 
@@ -407,7 +407,10 @@ x_imagelib_load_file_for_background(
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
 		/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
 		char  winpath[MAX_PATH] ;
-		cygwin_conv_to_win32_path( path , winpath) ;
+		if( kik_conv_to_win32_path( path , winpath , sizeof(winpath)) < 0)
+		{
+			return  None ;
+		}
 		path = winpath ;
 	#endif
 
@@ -485,7 +488,10 @@ x_imagelib_load_file(
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
 		/* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
 		char  winpath[MAX_PATH] ;
-		cygwin_conv_to_win32_path( path , winpath) ;
+		if( kik_conv_to_win32_path( path , winpath , sizeof(winpath)) < 0)
+		{
+			return  0 ;
+		}
 		path = winpath ;
 	#endif
 

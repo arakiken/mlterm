@@ -4021,20 +4021,27 @@ button_released(
 			report_mouse_tracking( screen , event->x , event->y ,
 				event->button , event->state , 0 , 1) ;
 		}
-		
-		return ;
-	}
 
-	if( event->button == Button2)
+		/*
+		 * In case button motion -> set mouse report -> button release,
+		 * x_stop_selecting() should be called.
+		 * (It happens if you release shift key before stopping text selection
+		 * by moving mouse.)
+		 */
+	}
+	else
 	{
-		if( event->state & ControlMask)
+		if( event->button == Button2)
 		{
-			/* FIXME: should check whether a menu is really active? */
-			return ;
-		}
-		else
-		{
-			yank_event_received( screen , event->time) ;
+			if( event->state & ControlMask)
+			{
+				/* FIXME: should check whether a menu is really active? */
+				return ;
+			}
+			else
+			{
+				yank_event_received( screen , event->time) ;
+			}
 		}
 	}
 

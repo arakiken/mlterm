@@ -611,6 +611,10 @@ else
 			fi
 		fi
 	fi
+
+	if test "$have_hb" = "yes" -a "$gui" != "quartz" -a "$PKG_CONFIG" != ""; then
+		OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS `$PKG_CONFIG freetype2 --cflags`"
+	fi
 fi
 AC_SUBST(OT_LAYOUT_LIBS)
 AC_SUBST(OT_LAYOUT_CFLAGS)

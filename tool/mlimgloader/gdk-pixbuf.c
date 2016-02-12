@@ -21,7 +21,7 @@
 #include <kiklib/kik_types.h>	/* u_int32_t/u_int16_t */
 #include <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
 #if  defined(__CYGWIN__) || defined(__MSYS__)
-#include <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
+#include <kiklib/kik_path.h>	/* kik_conv_to_win32_path */
 #endif
 
 #ifdef  USE_WIN32API
@@ -614,9 +614,8 @@ main(
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
 	#define  MAX_PATH  260	/* 3+255+1+1 */
 		char  winpath[MAX_PATH] ;
-		cygwin_conv_to_win32_path( argv[4] , winpath) ;
-
-		if( ! ( pixbuf = load_file( winpath , width , height , GDK_INTERP_BILINEAR)))
+		if( kik_conv_to_win32_path( argv[4] , winpath , sizeof(winpath)) < 0 ||
+		    ! ( pixbuf = load_file( winpath , width , height , GDK_INTERP_BILINEAR)))
 	#endif
 		{
 		#ifdef  DEBUG

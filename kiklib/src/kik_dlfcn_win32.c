@@ -9,7 +9,7 @@
 
 #include  "kik_mem.h"		/* alloca() */
 #if  defined(__CYGWIN__) || defined(__MSYS__)
-#include  "kik_path.h"		/* cygwin_conv_to_win32_path */
+#include  "kik_path.h"		/* kik_conv_to_win32_path */
 #endif
 
 #undef   _WIN32_WINNT
@@ -53,11 +53,17 @@ kik_dl_open(
 
 #if defined(__CYGWIN__)
 	sprintf( path , "%scyg%s.dll" , dirpath , name) ;
-	cygwin_conv_to_win32_path( path , winpath);
+	if( kik_conv_to_win32_path( path , winpath , sizeof(winpath)) < 0)
+	{
+		goto  next_step ;
+	}
 	path = winpath ;
 #elif  defined(__MSYS__)
 	sprintf( path , "%slib%s.dll" , dirpath , name) ;
-	cygwin_conv_to_win32_path( path , winpath) ;
+	if( kik_conv_to_win32_path( path , winpath , sizeof(winpath)) < 0)
+	{
+		goto  next_step ;
+	}
 	path = winpath ;
 #else
 	sprintf( path , "%slib%s.dll" , dirpath , name) ;
@@ -77,8 +83,12 @@ kik_dl_open(
 	}
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
+next_step:
 	sprintf( path , "%s%s.dll" , dirpath , name) ;
-	cygwin_conv_to_win32_path( path , winpath) ;
+	if( kik_conv_to_win32_path( path , winpath , sizeof(winpath)) < 0)
+	{
+		return  NULL ;
+	}
 	path = winpath ;
 #else
 	sprintf( path , "%s%s.dll" , dirpath , name) ;

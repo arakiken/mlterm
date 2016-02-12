@@ -5,8 +5,10 @@ ver 3.6.2
   DA3(CSI=c), DECDSR(CSI?n), WYSTCURM(CSI33h, CSI33l) OSC 104 and OSC 105.
 * Snapshot screen and backlog by MC(CSI i).
 * Add "use_ot_layout" / --otl option which enables to show substituting glyphs
-  with the use of libotf or harfbuzz in open type fonts. (Harfbuzz is necessary
-  to layout indic scripts.)
+  in open type fonts with the use of libotf or harfbuzz.
+  (To layout indic scripts, build mlterm with harfbuzz (not libotf), add an
+  indic script font to ~/.mlterm/*font, and start mlterm with -otl option.
+  See mlterm-3.6.2/doc/en/README.indic in detail.)
 * Add "OpenType Layout" to "Encoding" tab of mlconfig.
 * Add "ot_script" / --ost and "ot_features" / --oft.
 * Add "regard_uri_as_word" / --uriword option which enables to select URI by double click
@@ -16,6 +18,7 @@ ver 3.6.2
 * Add "Select URI by double click" to "Others" tab of mlconfig.
 * Bug fixes:
   Fix "child-exited" signal of libvte (0.38 or later) compatible library.
+  Fix position of a mouse pointer when EV_ABS event is received on Linux/Framebuffer.
 
 ver 3.6.1
 * Support DECDHL and DECDWL.

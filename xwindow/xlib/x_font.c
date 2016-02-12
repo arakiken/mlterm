@@ -1332,8 +1332,11 @@ x_calculate_char_width(
 		}
 	}
 	else if( draw_alone &&
-	         cs == ISO10646_UCS4_1 /* ISO10646_UCS4_1_V is always proportional */ &&
-	         ( ! font->use_ot_layout /* || ! font->ot_font */))
+	         cs == ISO10646_UCS4_1 /* ISO10646_UCS4_1_V is always proportional */
+	#ifdef  USE_OT_LAYOUT
+		 && ( ! font->use_ot_layout /* || ! font->ot_font */)
+	#endif
+		 )
 	{
 		if( (( mkf_get_ucs_property( ch) & MKF_AWIDTH) ||
 		    /*
@@ -1385,6 +1388,7 @@ x_font_has_ot_layout_table(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	if( font->cairo_font)
 	{
+	#ifdef  USE_OT_LAYOUT
 		if( ! font->ot_font)
 		{
 			if( font->ot_font_not_found || ! cairo_set_ot_font( font))
@@ -1392,6 +1396,7 @@ x_font_has_ot_layout_table(
 				return  0 ;
 			}
 		}
+	#endif
 
 		return  1 ;
 	}
@@ -1399,6 +1404,7 @@ x_font_has_ot_layout_table(
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
 	if( font->xft_font)
 	{
+	#ifdef  USE_OT_LAYOUT
 		if( ! font->ot_font)
 		{
 			if( font->ot_font_not_found || ! xft_set_ot_font( font))
@@ -1406,6 +1412,7 @@ x_font_has_ot_layout_table(
 				return  0 ;
 			}
 		}
+	#endif
 
 		return  1 ;
 	}

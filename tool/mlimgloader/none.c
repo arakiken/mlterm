@@ -12,7 +12,7 @@
 #include <kiklib/kik_def.h>	/* SSIZE_MAX, USE_WIN32API */
 #include <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #if  defined(__CYGWIN__) || defined(__MSYS__)
-#include <kiklib/kik_path.h>	/* cygwin_conv_to_win32_path */
+#include <kiklib/kik_path.h>	/* kik_conv_to_win32_path */
 #endif
 
 #ifdef  USE_WIN32API
@@ -80,9 +80,8 @@ main(
 	#if  defined(__CYGWIN__) || defined(__MSYS__)
 	#define  MAX_PATH  260	/* 3+255+1+1 */
 		char  winpath[MAX_PATH] ;
-		cygwin_conv_to_win32_path( argv[4] , winpath) ;
-
-		if( ! ( cardinal = (u_char*)create_cardinals_from_sixel( winpath)))
+		if( kik_conv_to_win32_path( argv[4] , winpath , sizeof(winpath)) < 0 ||
+		    ! ( cardinal = (u_char*)create_cardinals_from_sixel( winpath)))
 	#endif
 		{
 			goto  error ;
