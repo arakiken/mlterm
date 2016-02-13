@@ -160,7 +160,7 @@ ml_pty_ssh_set_cipher_list(
 
 	if( ssh_set_cipher_list)
 	{
-		return  (*ssh_set_cipher_list)( list) ;
+		(*ssh_set_cipher_list)( list) ;
 	}
 }
 
@@ -177,7 +177,7 @@ ml_pty_ssh_set_keepalive_interval(
 
 	if( ssh_set_keepalive_interval)
 	{
-		return  (*ssh_set_keepalive_interval)( interval_sec) ;
+		(*ssh_set_keepalive_interval)( interval_sec) ;
 	}
 }
 
@@ -210,11 +210,7 @@ ml_pty_ssh_set_use_x11_forwarding(
 
 	if( ssh_set_use_x11_forwarding)
 	{
-		return  (*ssh_set_use_x11_forwarding)( session , use) ;
-	}
-	else
-	{
-		return ;
+		(*ssh_set_use_x11_forwarding)( session , use) ;
 	}
 }
 

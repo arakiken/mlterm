@@ -67,6 +67,7 @@ int  ml_line_iscii_need_shape( ml_line_t *  line) ;
 
 #endif
 
+#ifdef  USE_OT_LAYOUT
 static int
 ml_line_ot_layout_need_shape(
 	ml_line_t *  line
@@ -74,6 +75,7 @@ ml_line_ot_layout_need_shape(
 {
 	return  line->ctl_info.ot_layout->size > 0 && line->ctl_info.ot_layout->substituted ;
 }
+#endif
 
 
 /* --- global functions --- */
@@ -134,9 +136,13 @@ ml_line_shape(
 			return  NULL ;
 		}
 
+	#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || defined(USE_OT_LAYOUT)
 		line->num_of_filled_chars = (*func)( shaped , line->num_of_chars ,
 						line->chars , line->num_of_filled_chars ,
 						line->ctl_info) ;
+	#else
+		/* Never enter here */
+	#endif
 
 		line->chars = shaped ;
 

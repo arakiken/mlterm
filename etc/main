@@ -84,7 +84,7 @@
 
 # use_variable_column_width = false 
 
-# type_engine = xcore
+# type_engine = cairo
 
 # use_anti_alias = false
 

@@ -11,4 +11,6 @@ ISCII_HINDI	= DV-TTYogesh 23
 ISCII_TAMIL	= TM-TTValluvar 18
 #ISCII_TELUGU	= TL-TTHemalatha 25
 
+U+900-97f = Kokila
+
 #U+E000-E0FF	= PowerlineSymbols

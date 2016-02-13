@@ -161,6 +161,9 @@ comment $Id$
       壁紙、アイコン、擬似透過及び Sixel graphics といった画像処理関連の機能を全
       て無効にします。
 
+    --disable-otl
+      OpenTypeフォントの置換グリフ等を使った表示を無効にします。
+
     --disable-shared
       共有ライブラリを構築しません。
 

@@ -583,7 +583,13 @@ xcore)
 esac
 done
 
-if test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
+AC_ARG_ENABLE(otl,
+	[  --disable-otl            Open Type layout with the use of harfbuzz or libotf @<:@default=enabled@:>@],
+	otl=$enable_otl,
+	otl="yes")
+if test "$otl" != "yes" ; then
+	echo "Open Type layout is disabled"
+elif test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
 	echo "libotf/libharfbuzz is not available."
 else
 	PKG_CHECK_MODULES(HB, harfbuzz, have_hb=yes, have_hb=no)
@@ -1315,7 +1321,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.6.1)
+AM_INIT_AUTOMAKE(mlterm,3.6.2)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

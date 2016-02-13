@@ -691,6 +691,7 @@ copy_line(
 	dst->is_continued_to_next = src->is_continued_to_next ;
 	dst->size_attr = src->size_attr ;
 
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	if( ml_line_is_using_bidi( src))
 	{
 		if( ml_line_is_using_bidi( dst) || ml_line_set_use_bidi( dst , 1))
@@ -717,7 +718,9 @@ copy_line(
 	{
 		ml_line_set_use_bidi( dst , 0) ;
 	}
+#endif
 
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 	if( ml_line_is_using_iscii( src))
 	{
 		if( ml_line_is_using_iscii( dst) || ml_line_set_use_iscii( dst , 1))
@@ -744,6 +747,7 @@ copy_line(
 	{
 		ml_line_set_use_iscii( dst , 0) ;
 	}
+#endif
 
 #ifdef  USE_OT_LAYOUT
 	if( ml_line_is_using_ot_layout( src))
@@ -2106,7 +2110,11 @@ ml_line_ctl_render(
 				return  ret ;
 			}
 
+		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 			set_use_ctl = ml_line_set_use_bidi ;
+		#else
+			/* Never enter here */
+		#endif
 
 			if( ret == -1)
 			{
@@ -2133,7 +2141,11 @@ ml_line_ctl_render(
 				return  ret ;
 			}
 
+		#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 			set_use_ctl = ml_line_set_use_iscii ;
+		#else
+			/* Never enter here */
+		#endif
 
 		#ifdef  USE_OT_LAYOUT
 			if( term)

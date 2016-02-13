@@ -154,8 +154,12 @@ void  ml_line_set_size_attr( ml_line_t *  line , int  size_attr) ;
 
 #define  ml_line_is_using_ctl( line)  ((line)->ctl_info_type)
 
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_OT_LAYOUT)
 #define  ml_line_has_ot_substitute_glyphs( line) \
 	((line)->ctl_info_type == VINFO_OT_LAYOUT && (line)->ctl_info.ot_layout->substituted)
+#else
+#define  ml_line_has_ot_substitute_glyphs( line)  (0)
+#endif
 
 int  ml_line_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 

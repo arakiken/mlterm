@@ -161,18 +161,18 @@ x_connect_dialog(
 
 		if( redraw)
 		{
-			XPoint  points[5] =
-			{
-				{ BEGENDSPACE / 2 , font->ascent + font->descent + LINESPACE } ,
-				{ width - BEGENDSPACE / 2 ,
-					font->ascent + font->descent + LINESPACE } ,
-				{ width - BEGENDSPACE / 2 ,
-					(font->ascent + font->descent) * 2 + LINESPACE * 3 / 2} ,
-				{ BEGENDSPACE / 2 ,
-					(font->ascent + font->descent) * 2 + LINESPACE * 3 / 2} ,
-				{ BEGENDSPACE / 2 ,
-					font->ascent + font->descent + LINESPACE } ,
-			} ;
+			XPoint  points[5] ;
+
+			points[0].x = BEGENDSPACE / 2 ;
+			points[0].y = font->ascent + font->descent + LINESPACE ;
+			points[1].x = width - BEGENDSPACE / 2 ;
+			points[1].y = font->ascent + font->descent + LINESPACE ;
+			points[2].x = width - BEGENDSPACE / 2 ;
+			points[2].y =  (font->ascent + font->descent) * 2 + LINESPACE * 3 / 2 ;
+			points[3].x = BEGENDSPACE / 2 ;
+			points[3].y = (font->ascent + font->descent) * 2 + LINESPACE * 3 / 2 ;
+			points[4].x = BEGENDSPACE / 2 ;
+			points[4].y = font->ascent + font->descent + LINESPACE ;
 
 			if( redraw == DRAW_EXPOSE)
 			{

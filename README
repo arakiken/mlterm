@@ -136,12 +136,21 @@ Options for configure
   --disable-image
     Disable wall picture, icon picture, pseudo transparency and sixel graphics.
 
+  --disable-otl
+    Disable Open Type Layout with the use of harfbuzz or libotf.
+
   --disable-shared
     Disable shared libraries
 
   --disable-static
     Disable static libraries
 
+  If you want to minimize mlterm binary, execute configure with following options.
+  --without-map-table --without-prop-table --disable-image --disable-dl-ctl \
+  --disable-fribidi --disable-dl-type --disable-otl \
+  --disable-ssh2 --disable-utmp --disable-dnd --disable-kbd --disable-uim \
+  --disable-m17nlib --disable-ibus --disable-fcitx --disable-scim --disable-canna \
+  --disable-wnn --disable-ind --with-type-engines=xcore (--disable-shared)
 
 What you need for compilation
 -----------------------------
@@ -179,10 +188,8 @@ Supported platforms
   * CentOS 5 / X (x86)
   * FreeBSD 9.0 / framebuffer (x86)
   * OpenBSD 5.3 / framebuffer (x86)
-  * MS Windows 7 / GDI (x86)
-  * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
-  * MS Windows 7 + Cygwin 1.7.26 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
-  * MS Windows 7 + Cygwin 1.7.26 / X (x86)
+  * MS Windows 8 + Cygwin 2.4.1 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
+  * MS Windows 8 / GDI (x86)
   * MacOSX 10.6 (x86)
 
   Following platforms are not actually tested by developers, but were supported
@@ -228,6 +235,10 @@ Supported platforms
   * MS Windows 7 + Cygwin 1.7.17 / X (x86)
   * MS Windows 7 + Cygwin 1.7.22 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
   * MS Windows 7 + Cygwin 1.7.22 / X (x86)
+  * MS Windows 7 + Cygwin 1.7.26 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
+  * MS Windows 7 + Cygwin 1.7.26 / X (x86)
+  * MS Windows 7 / GDI (x86)
+  * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
 
 
 USAGE

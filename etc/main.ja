@@ -117,7 +117,7 @@
 # use_variable_column_width = false 
 
 # テキスト表示に xcore, xft, cairo のいずれを使用するかを指定する
-# type_engine = xcore
+# type_engine = cairo
 
 # アンチエイリアスフォントを使用する
 # use_anti_alias = false
