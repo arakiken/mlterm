@@ -458,9 +458,9 @@ else
 fi
 AC_SUBST(TYPE_LOADER_OBJ)
 
-# --enable-anti-alias is backward compatibility for --with-type-engines
 AC_ARG_ENABLE(anti_alias,
-	[  --enable-anti-alias     (obsoleted by --with-type-engines)anti alias @<:@default=enabled@:>@],
+	[  --enable-anti-alias     same as --with-type-engines=xcore,xft,cairo on xlib @<:@default=enabled@:>@
+                          enable truetype fonts on framebuffer @<:@default=disabled@:>@ ],
 	anti_alias=$enable_anti_alias, anti_alias="auto")
 
 if test "$anti_alias" = "yes" -a "$gui" = "fb" ; then
@@ -584,12 +584,14 @@ esac
 done
 
 AC_ARG_ENABLE(otl,
-	[  --disable-otl            Open Type layout with the use of harfbuzz or libotf @<:@default=enabled@:>@],
+	[  --disable-otl           Open Type layout with the use of harfbuzz or libotf @<:@default=enabled@:>@],
 	otl=$enable_otl,
 	otl="yes")
 if test "$otl" != "yes" ; then
 	echo "Open Type layout is disabled"
 elif test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
+	echo "libotf/libharfbuzz is not available."
+elif test "$gui" = "fb" -a "$have_ft" != "yes" ; then
 	echo "libotf/libharfbuzz is not available."
 else
 	PKG_CHECK_MODULES(HB, harfbuzz, have_hb=yes, have_hb=no)

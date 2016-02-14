@@ -1,3 +1,12 @@
+2016-02-14  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* libotl/Makefile.in: LKIK=${top_builddir}/kiklib/src/libkik.la -> LKIK=@LKIK@
+
+	* configure.in: If --enable-anti-alias isn't specified, open type layout is
+	  disabled on framebuffer.
+
 2016-02-13  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.6.2 released.

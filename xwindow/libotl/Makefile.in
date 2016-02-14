@@ -18,7 +18,7 @@ VPATH = $(top_srcdir)/xwindow/libotl
 
 OBJ = @OT_LAYOUT_OBJ@
 
-LKIK = ${top_builddir}/kiklib/src/libkik.la
+LKIK = @LKIK@
 LKIK_DEB = -lkik_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.

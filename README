@@ -45,8 +45,9 @@ Options for configure
     is specified with --disable-dl-type option.
 
   --enable-anti-alias
-    Same as --with-type-engines=xcore,xft,cairo
+    Same as --with-type-engines=xcore,xft,cairo on xlib.
     (--disable-anti-alias is the same as --with-type-engines=xcore)
+    Enable truetype fonts on framebuffer.
 
   --disable-dl-type
     Disable dynamic loading of type engine modules,
