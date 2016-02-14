@@ -232,19 +232,23 @@ ml_ot_layout(
 			u_int  num ;
 
 			ucs_buf[ucs_filled] = ml_char_code( src + src_pos) ;
-			if( ml_is_rtl_char( ucs_buf[ucs_filled++]))
+			if( ml_is_rtl_char( ucs_buf[ucs_filled]))
 			{
 				return  -1 ;
 			}
+			/* Don't do it in ml_is_rtl_char() which may be replaced by (0). */
+			ucs_filled ++ ;
 
 			comb = ml_get_combining_chars( src + src_pos , &num) ;
 			for( ; num > 0 ; num--)
 			{
 				ucs_buf[ucs_filled] = ml_char_code( comb++) ;
-				if( ml_is_rtl_char( ucs_buf[ucs_filled++]))
+				if( ml_is_rtl_char( ucs_buf[ucs_filled]))
 				{
 					return  -1 ;
 				}
+				/* Don't do it in ml_is_rtl_char() which may be replaced by (0). */
+				ucs_filled ++ ;
 			}
 
 			/* store glyph index in ucs_buf. */

@@ -68,7 +68,9 @@ comment $Id$
 
     --enable-anti-alias
       xlib版では、--with-type-engines=xcore,xft,cairoと同じ。
-      (なお、--disable-anti-alias オプションは --with-type-engines=xcore と同じ)
+      (--disable-anti-alias オプションは --with-type-engines=xcore と同じ)
+      なお、xlib版で、--with-type-engines オプションを指定した場合、このオプショ
+      ンは無視されます。
 
       framebuffer版では、freetype を利用して True Type フォントを利用できるよう
       にします。

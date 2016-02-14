@@ -1,5 +1,17 @@
 2016-02-14  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.6.3 released.
+	  (tag "rel-3_6_3")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.6.3.
+
+	* ml_ot_layout.c: ucs_filled++ is moved outside of ml_is_rtl_char() which
+	  may be replaced by (0).
+
+2016-02-14  Araki Ken  <arakiken@users.sf.net>
+
 	* README, README.ja: Updated.
 
 	* libotl/Makefile.in: LKIK=${top_builddir}/kiklib/src/libkik.la -> LKIK=@LKIK@

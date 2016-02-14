@@ -1,3 +1,9 @@
+ver 3.6.3
+* Bug fixes:
+  Fix compiling error when ./configure is executed with
+  "--with-gui=fb (--disable-anti-alias)" or
+  "--with-gui=xlib,fb --enable-anti-alias" option.
+
 ver 3.6.2
 * Support composition of normalized unicode characters on MacOSX.
 * Support visual and audible bell on MacOSX/Cocoa.

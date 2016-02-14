@@ -47,6 +47,8 @@ Options for configure
   --enable-anti-alias
     Same as --with-type-engines=xcore,xft,cairo on xlib.
     (--disable-anti-alias is the same as --with-type-engines=xcore)
+    This option is ignored if --with-type-engines is specified on xlib.
+
     Enable truetype fonts on framebuffer.
 
   --disable-dl-type

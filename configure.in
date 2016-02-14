@@ -484,12 +484,12 @@ AC_ARG_WITH(type_engines,
 
 if test "$gui" != "xlib" ; then
 	type_engines="xcore"
-elif test "$anti_alias" = "no" ; then
-	type_engines="xcore"
-fi
-
-if test "$type_engines" = "" ; then
-	type_engines="xcore,xft,cairo"
+elif test "$type_engines" = "" ; then
+	if test "$anti_alias" = "no" ; then
+		type_engines="xcore"
+	else
+		type_engines="xcore,xft,cairo"
+	fi
 fi
 
 type_engines=`echo ${type_engines} | sed 's/,/ /g'`
@@ -623,8 +623,14 @@ else
 	if test "$have_hb" = "yes" -a "$gui" != "quartz" -a "$PKG_CONFIG" != ""; then
 		OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS `$PKG_CONFIG freetype2 --cflags`"
 	fi
+
+	if test "$OT_LAYOUT_OBJ" != "" -a "$enable_shared" = "no" ; then
+		OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS -DNO_DYNAMIC_LOAD_OTL"
+		OT_LAYOUT_LIBS_FOR_PROG="$OT_LAYOUT_LIBS"
+	fi
 fi
 AC_SUBST(OT_LAYOUT_LIBS)
+AC_SUBST(OT_LAYOUT_LIBS_FOR_PROG)
 AC_SUBST(OT_LAYOUT_CFLAGS)
 AC_SUBST(OT_LAYOUT_OBJ)
 
@@ -1323,7 +1329,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.6.2)
+AM_INIT_AUTOMAKE(mlterm,3.6.3)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)
@@ -1349,9 +1355,14 @@ OUTPUT_FILES="main/version.h ${OUTPUT_FILES}"
 if test "${SUBDIRS}" != "" ; then
 	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
 	# for mlterm-x.x.x/fb
-	ac_configure_args="${ac_configure_args} --with-gui=fb --disable-ind --disable-fribidi --with-type-engines=xcore --without-tools"
+	ac_configure_args="${ac_configure_args} --with-gui=fb --with-type-engines=xcore --without-tools"
 	if test "$enable_shared" = "no" ; then
 		ac_configure_args="${ac_configure_args} --disable-dl-table"
+	fi
+
+	ac_configure_args="${ac_configure_args} --disable-ind --disable-fribidi"
+	if test "$dl_ctl" = "no" -a "`echo $SUBDIRS |grep fb`" != "" ; then
+		echo "libind and fribidi are disabled."
 	fi
 
 	AC_CONFIG_SUBDIRS(${SUBDIRS})

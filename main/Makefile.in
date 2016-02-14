@@ -36,7 +36,8 @@ CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ \
 	-I${top_srcdir}/xwindow -I${top_builddir}/main -I/usr/local/include
 
 LIBS1 = $(LIBS_LOCAL) $(LXWINDOW) $(LMLTERM) $(LMKF) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS_FOR_PROG@ @PTHREAD_LIB@
+	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS_FOR_PROG@ \
+	@OT_LAYOUT_LIBS_FOR_PROG@ @PTHREAD_LIB@
 
 LIBS2_xlib = @IMAGELIB_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ @TYPE_LIBS_FOR_PROG@ \
 	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
