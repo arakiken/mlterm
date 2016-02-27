@@ -11,6 +11,10 @@ ISCII_HINDI	= DV-TTYogesh 23
 ISCII_TAMIL	= TM-TTValluvar 18
 #ISCII_TELUGU	= TL-TTHemalatha 25
 
-U+900-97f = Kokila
+U+900-97f = Kokila	# Devanagari
+U+d00-d7f = Kartika	# Malayalam
+U+b80-bff = Latha	# Tamil
+U+a80-aff = Shruti	# Gujarati
+U+c00-c7f = Vani	# Telugu
 
 #U+E000-E0FF	= PowerlineSymbols

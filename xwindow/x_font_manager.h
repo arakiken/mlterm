@@ -31,6 +31,8 @@ typedef struct  x_font_manager
 }  x_font_manager_t ;
 
 
+int  x_set_font_size_range( u_int  min_font_size , u_int  max_font_size) ;
+
 x_font_manager_t *  x_font_manager_new( Display *  display , x_type_engine_t  type_engine ,
 	x_font_present_t  font_present , u_int  font_size , mkf_charset_t  usascii_font_cs ,
 	int  use_multi_col_char , u_int  step_in_changing_font_size , u_int  letter_space ,

@@ -92,20 +92,18 @@ kik_get_user_rc_path(
 	/* Enough for "%s/.config/%s" */
 	if( ( dotrcpath = malloc( strlen( homedir) + 9 + strlen( rcfile) + 1)))
 	{
+		struct stat  st ;
 		char *  p ;
 
 		sprintf( dotrcpath , "%s/.config/%s" , homedir , rcfile) ;
-
-		if( ( p = kik_str_alloca_dup( dotrcpath)))
+		p = strrchr( dotrcpath , '/') ;
+		*p = '\0' ;
+		if( stat( dotrcpath , &st) == 0)
 		{
-			struct stat  st ;
+			*p = '/' ;
 
-			*(strrchr( p , '/')) = '\0' ;	/* always succeeds. */
-			if( stat( p , &st) == 0)
-			{
-				/* ~/.config/mlterm exists. */
-				goto  end ;
-			}
+			/* ~/.config/mlterm exists. */
+			goto  end ;
 		}
 
 		sprintf( dotrcpath , "%s/.%s" , homedir , rcfile) ;

@@ -598,7 +598,7 @@ x_font_dump(
 	x_font_t *  font
 	)
 {
-	kik_msg_printf( "  id %x: Font %p" , font->id , font->fid) ;
+	kik_msg_printf( "  id %x: Font %p" , font->id , font->cg_font) ;
 
 	if( font->is_proportional)
 	{

@@ -2,24 +2,23 @@ top_builddir = ../..
 top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
-libexecdir = @libexecdir@
+bindir = @bindir@
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-LIBEXECDIR = $(DESTDIR)$(libexecdir)
+BINDIR = $(DESTDIR)$(bindir)
 
-VPATH = $(top_srcdir)/tool/registobmp
+VPATH = $(top_srcdir)/tool/mlfc
 
 OBJ = main.o
 
-CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @SDL_CFLAGS@ @GUI_CFLAGS@ \
-	@FONTCONFIG_CFLAGS@ -I/usr/local/include
+CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ @FONTCONFIG_CFLAGS@ -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @SDL_LIBS@ @FONTCONFIG_LIBS@ -L/usr/local/lib -R/usr/local/lib
+LIBS = $(LIBS_LOCAL) @FONTCONFIG_LIBS@ -L/usr/local/lib -R/usr/local/lib
 
-PROG = registobmp
+PROG = mlfc
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
@@ -35,14 +34,14 @@ $(PROG): $(OBJ)
 .c.o:
 	$(LIBTOOL_CC) -c $<
 
-$(LIBEXECDIR)/mlterm:
-	mkdir -p $(LIBEXECDIR)/mlterm
+$(BINDIR)/mlterm:
+	mkdir -p $(BINDIR)/mlterm
 
-install: $(LIBEXECDIR)/mlterm
-	$(LIBTOOL_INSTALL) $(PROG) $(LIBEXECDIR)/mlterm
+install: $(BINDIR)/mlterm
+	$(LIBTOOL_INSTALL) $(PROG) $(BINDIR)/mlterm
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlterm/$(PROG)
+	rm -f $(BINDIR)/mlterm/$(PROG)
 
 wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l

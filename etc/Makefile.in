@@ -7,6 +7,9 @@ SYSCONFDIR=$(DESTDIR)$(sysconfdir)/mlterm
 
 RCFILES = font vfont tfont font-fb aafont vaafont taafont color termcap key xim main
 # GEN_RCFILES =
+FONT_win32 = font.win32
+FONT_quartz = font.cocoa
+
 
 INSTALL=@INSTALL@
 
@@ -19,6 +22,8 @@ $(SYSCONFDIR):
 install: $(SYSCONFDIR)
 	for file in $(RCFILES) ; do $(INSTALL) -m 644 $(top_srcdir)/etc/$${file} $(SYSCONFDIR)/$${file} ; done
 	# for file in $(GEN_RCFILES) ; do $(INSTALL) -m 644 $(top_builddir)/etc/$${file} $(SYSCONFDIR)/$${file} ; done
+
+	if test "${FONT_@GUI@}" != "" ; then $(INSTALL) -m 644 $(top_srcdir)/etc/${FONT_@GUI@} $(SYSCONFDIR)/font ; fi
 
 uninstall:
 	for file in $(RCFILES) ; do rm -f $(SYSCONFDIR)/$${file} ; done

@@ -60,11 +60,20 @@ static cs_info_t  cs_info_table[] =
 	 * UNICODE => ISO10646_UCS4_1 or U+XXXX-XXXX in get_correct_cs().
 	 */
 	{ "UNICODE" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "UNICODE (FULLWIDTH)" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "UNICODE (ARABIC)" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "UNICODE (EMOJI)" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "UNICODE (HANKAKU KANA)" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "UNICODE (INDIC SCRIPTS)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Full Width)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Emoji)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Hankaku Kana)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Hebrew)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Arabic)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Hindi)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Bengali)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Punjabi)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Gujarati)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Oriya)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Tamil)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Telugu)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Kannada)" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "UNICODE (Malayalam)" , { "iso10646-1" , NULL , NULL , } , } ,
 
 	{ "DEC_SPECIAL" , { "iso8859-1" , NULL , NULL , } , } ,
 	{ "ISO8859_1" , { "iso8859-1" , NULL , NULL , } , } ,
@@ -197,38 +206,37 @@ reset_fontname_list(void)
  * If you use functions in mc_io.c, use this function instead of direct
  * access to cs_info_t::cs.
  */
-static char *
+static const char *
 get_correct_cs(
 	int  idx
 	)
 {
+	const char *  unicode_names[] =
+	{
+		"ISO10646_UCS4_1" ,
+		"ISO10646_UCS4_1_FULLWIDTH" ,
+		"U+1F000-1F77F" ,	/* Emoji */
+		"U+FF61-FF9F" ,		/* Hankaku Kana */
+		"U+0590-05FF" ,		/* Hebrew */
+		"U+0600-06FF" ,		/* Arabic */
+		"U+0900-097F" ,		/* Hindi */
+		"U+0980-09FF" ,		/* Bengali */
+		"U+0A00-0A7F" ,		/* Punjabi */
+		"U+0A80-0AFF" ,		/* Gujarati */
+		"U+0B00-0B7F" ,		/* Oriya */
+		"U+0B80-0BFF" ,		/* Tamil */
+		"U+0C00-0C7F" ,		/* Telugu */
+		"U+0C80-0CFF" ,		/* Kannada */
+		"U+0D00-0D7F" ,		/* Malayalam */
+	} ;
+
 	if( idx < 0)
 	{
 		return  NULL ;
 	}
-	else if( idx == 1)
+	else if( 1 <= idx && idx <= 15)
 	{
-		return  "ISO10646_UCS4_1" ;
-	}
-	else if( idx == 2)
-	{
-		return  "ISO10646_UCS4_1_FULLWIDTH" ;
-	}
-	else if( idx == 3)
-	{
-		return  "U+0600-06FF" ;	/* Arabic */
-	}
-	else if( idx == 4)
-	{
-		return  "U+1F000-1F77F" ;	/* Emoji */
-	}
-	else if( idx == 5)
-	{
-		return  "U+FF61-FF9F" ;	/* Hankaku Kana */
-	}
-	else if( idx == 6)
-	{
-		return  "U+0900-0D7F" ;	/* Indic Scripts */
+		return  unicode_names[idx - 1] ;
 	}
 	else if( idx < sizeof(cs_info_table) / sizeof(cs_info_table[0]))
 	{
@@ -292,7 +300,7 @@ aa_flag_checked(
 			reset_fontname_list() ;
 			gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 				g_locale_to_utf8(
-					mc_get_font_name( get_font_file() , new_fontsize ,
+					mc_get_font_name( get_font_file() ,
 						get_correct_cs( selected_cs)) ,
 					-1 , NULL , NULL , NULL) ) ;
 		}
@@ -322,7 +330,7 @@ xft_flag_checked(
 	reset_fontname_list() ;
 	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 		g_locale_to_utf8(
-			mc_get_font_name( get_font_file() , new_fontsize ,
+			mc_get_font_name( get_font_file() ,
 						get_correct_cs( selected_cs)) ,
 			-1 , NULL , NULL , NULL) ) ;
 
@@ -350,7 +358,7 @@ cairo_flag_checked(
 	reset_fontname_list() ;
 	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 		g_locale_to_utf8(
-			mc_get_font_name( get_font_file() , new_fontsize ,
+			mc_get_font_name( get_font_file() ,
 						get_correct_cs( selected_cs)) ,
 			-1 , NULL , NULL , NULL) ) ;
 
@@ -366,7 +374,7 @@ vcol_flag_checked(
 	reset_fontname_list() ;
 	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 		g_locale_to_utf8(
-			mc_get_font_name( get_font_file() , new_fontsize ,
+			mc_get_font_name( get_font_file() ,
 						get_correct_cs( selected_cs)) ,
 			-1 , NULL , NULL , NULL) ) ;
 
@@ -379,7 +387,7 @@ vertical_mode_changed(void)
 	reset_fontname_list() ;
 	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 		g_locale_to_utf8(
-			mc_get_font_name( get_font_file() , new_fontsize ,
+			mc_get_font_name( get_font_file() ,
 						get_correct_cs( selected_cs)) ,
 			-1 , NULL , NULL , NULL) ) ;
 
@@ -403,13 +411,6 @@ fontsize_selected(
 	g_free( new_fontsize);
 	new_fontsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 
-	reset_fontname_list() ;
-	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
-		g_locale_to_utf8(
-			mc_get_font_name( get_font_file() , new_fontsize ,
-						get_correct_cs( selected_cs)) ,
-			-1 , NULL , NULL , NULL) ) ;
-	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s font size is selected.\n" , new_fontsize) ;
 #endif
@@ -526,7 +527,6 @@ fontcs_changed(void)
 		gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 			g_locale_to_utf8(
 				mc_get_font_name( get_font_file() ,
-					new_fontsize ,
 					get_correct_cs(selected_cs)) ,
 				-1 , NULL , NULL , NULL) ) ;
 	}
@@ -1135,7 +1135,7 @@ mc_font_config_widget_new(void)
 	fontname_entry = gtk_entry_new() ;
 	gtk_entry_set_text( GTK_ENTRY(fontname_entry) ,
 		g_locale_to_utf8(
-			mc_get_font_name( get_font_file() , new_fontsize ,
+			mc_get_font_name( get_font_file() ,
 					get_correct_cs( selected_cs)) ,
 			-1 , NULL , NULL , NULL) ) ;
 	gtk_widget_show( fontname_entry) ;
@@ -1247,25 +1247,25 @@ mc_update_font_name(mc_io_t  io)
 	{
 		if( new_fontname_list[count])
 		{
-			mc_set_font_name( io , get_font_file() , new_fontsize ,
+			mc_set_font_name( io , get_font_file() ,
 				get_correct_cs( count) , new_fontname_list[count]) ;
 
-			if( count == 3)
+			if( count == 6)
 			{
 				/* Arabic Supplement */
-				mc_set_font_name( io , get_font_file() , new_fontsize ,
+				mc_set_font_name( io , get_font_file() ,
 					"U+0750-77F" , new_fontname_list[count]) ;
 				/* Arabic Extended-A */
-				mc_set_font_name( io , get_font_file() , new_fontsize ,
+				mc_set_font_name( io , get_font_file() ,
 					"U+08A0-8FF" , new_fontname_list[count]) ;
 				/* Arabic Presentation Forms-A */
-				mc_set_font_name( io , get_font_file() , new_fontsize ,
+				mc_set_font_name( io , get_font_file() ,
 					"U+FB50-FDFF" , new_fontname_list[count]) ;
 				/* Arabic Presentation Forms-B */
-				mc_set_font_name( io , get_font_file() , new_fontsize ,
+				mc_set_font_name( io , get_font_file() ,
 					"U+FE70-FEFF" , new_fontname_list[count]) ;
 				/* Arabic Mathematical Alphabetic Symbols */
-				mc_set_font_name( io , get_font_file() , new_fontsize ,
+				mc_set_font_name( io , get_font_file() ,
 					"U+1EE00-1EEFF" , new_fontname_list[count]) ;
 			}
 		}

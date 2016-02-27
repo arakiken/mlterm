@@ -1,3 +1,13 @@
+ver 3.7.0
+* Enable to place configuration files in mlterm.app/mlterm/ on MacOSX/Cocoa.
+* Change the format of ~/.mlterm/*font is changed as follows.
+  [Charset] = [Font name];[Size],[Font name];[Size],[Font name];...
+  -> [Charset] = [Font name]
+* Drop XT_CBLINK (CSI?12h/CSI?12l) support.
+* Bug fixes:
+  Fix illegal memory access on MacOSX/Cocoa and Android.
+  Fix segfault in spliting window on MacOSX/Cocoa. (Enbugged at 3.6.2)
+
 ver 3.6.3
 * Bug fixes:
   Fix compiling error when ./configure is executed with

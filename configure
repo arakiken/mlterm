@@ -1783,7 +1783,7 @@ Optional Packages:
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
   --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore,xft,cairo]
-  --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp]
+  --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc]
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
   --with-gnu-ld           assume the C compiler uses GNU ld default=no
@@ -22095,7 +22095,7 @@ else
 	have_vte=no
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp"
+tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc"
 
 # Check whether --with-tools was given.
 if test "${with_tools+set}" = set; then :
@@ -22509,6 +22509,7 @@ fi
 
 
 	if test "$gui" != "win32" ; then
+		if test "$have_fc" = "" ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
@@ -22576,6 +22577,7 @@ else
 $as_echo "yes" >&6; }
 	have_fc=yes
 fi
+		fi
 		if test "$have_fc" = "yes" ; then
 			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
 			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
@@ -22587,6 +22589,89 @@ fi
 	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
 	MAKE_DIRS="tool/registobmp ${MAKE_DIRS}"
 	tools_result="$tools_result $tool"
+	;;
+mlfc)
+	if test "$gui" != "win32" -a "$gui" != "quartz" ; then
+		if test "$have_fc" = "" ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
+$as_echo_n "checking for FONTCONFIG... " >&6; }
+
+if test -n "$FONTCONFIG_CFLAGS"; then
+    pkg_cv_FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FONTCONFIG_LIBS"; then
+    pkg_cv_FONTCONFIG_LIBS="$FONTCONFIG_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "fontconfig" 2>&1`
+        else
+	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --print-errors "fontconfig" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FONTCONFIG_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_fc=no
+elif test $pkg_failed = untried; then
+	have_fc=no
+else
+	FONTCONFIG_CFLAGS=$pkg_cv_FONTCONFIG_CFLAGS
+	FONTCONFIG_LIBS=$pkg_cv_FONTCONFIG_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_fc=yes
+fi
+		fi
+		if test "$have_fc" = "yes" ; then
+			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+
+
+		fi
+
+		OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
+		MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
+		tools_result="$tools_result $tool"
+	fi
 	;;
 *)
 	echo "${tool} is unknown tool."

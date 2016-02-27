@@ -133,8 +133,9 @@ monitor_pty(void)
 
 					for( count = 0 ; count < num_of_terms ; count ++)
 					{
-						ptyfd = ml_term_get_master_fd( terms[count]) ;
-						if( FD_ISSET( ptyfd , &read_fds))
+						if( ( ptyfd = ml_term_get_master_fd(
+								terms[count])) >= 0 &&
+						    FD_ISSET( ptyfd , &read_fds))
 						{
 							ml_term_parse_vt100_sequence(
 								terms[count]) ;
@@ -151,12 +152,14 @@ monitor_pty(void)
 
 				for( count = 0 ; count < num_of_terms ; count ++)
 				{
-					ptyfd = ml_term_get_master_fd( terms[count]) ;
-					FD_SET( ptyfd , &read_fds) ;
-
-					if( ptyfd > maxfd)
+					if( ( ptyfd = ml_term_get_master_fd( terms[count])) >= 0)
 					{
-						maxfd = ptyfd ;
+						FD_SET( ptyfd , &read_fds) ;
+
+						if( ptyfd > maxfd)
+						{
+							maxfd = ptyfd ;
+						}
 					}
 				}
 
@@ -774,6 +777,13 @@ get_current_window(
 
 - (void)willClose:(NSNotification *)note
 {
+	if( x_get_all_screens( NULL) == 0)
+	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self] ;
+
+		return ;
+	}
+
 	x_window_t *  root = x_get_root_window( xwindow) ;
 
 	if( root->num_of_children == 0)
@@ -1579,16 +1589,6 @@ view_set_rect(
 }
 
 void
-view_set_normal_hints(
-	NSView *  view ,
-	u_int  width_inc ,
-	u_int  height_inc
-	)
-{
-	[[view window] setResizeIncrements:NSMakeSize( width_inc , height_inc)] ;
-}
-
-void
 view_set_hidden(
 	NSView *  view ,
 	int  flag
@@ -1643,6 +1643,16 @@ window_accepts_mouse_moved_events(
 	)
 {
 	window.acceptsMouseMovedEvents = (accept ? YES : NO) ;
+}
+
+void
+window_set_normal_hints(
+	NSWindow *  window ,
+	u_int  width_inc ,
+	u_int  height_inc
+	)
+{
+	[window setResizeIncrements:NSMakeSize( width_inc , height_inc)] ;
 }
 
 

@@ -78,6 +78,14 @@ static encoding_to_cs_table_t  usascii_font_cs_table[] =
 	
 } ;
 
+#ifdef  __ANDROID__
+static u_int  min_font_size = 10 ;
+static u_int  max_font_size = 40 ;
+#else
+static u_int  min_font_size = 6 ;
+static u_int  max_font_size = 30 ;
+#endif
+
 
 /* --- static functions --- */
 
@@ -93,8 +101,61 @@ change_font_cache(
 	return  1 ;
 }
 
+static int
+adjust_font_size(
+	u_int *  font_size
+	)
+{
+	if( *font_size > max_font_size)
+	{
+		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
+			*font_size , max_font_size) ;
+
+		*font_size = max_font_size ;
+	}
+	else if( *font_size < min_font_size)
+	{
+		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
+			*font_size , min_font_size) ;
+
+		*font_size = min_font_size ;
+	}
+}
+
 
 /* --- global functions --- */
+
+int
+x_set_font_size_range(
+	u_int  min_fsize ,
+	u_int  max_fsize
+	)
+{
+	if( min_fsize == 0)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " min_font_size must not be 0.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+	if( max_fsize < min_fsize)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" max_font_size %d should be larger than min_font_size %d\n" ,
+			max_fsize , min_fsize) ;
+	#endif
+
+		return  0 ;
+	}
+
+	min_font_size = min_fsize ;
+	max_font_size = max_fsize ;
+
+	return  1 ;
+}
 
 x_font_manager_t *
 x_font_manager_new(
@@ -120,6 +181,8 @@ x_font_manager_new(
 	
 		return  NULL ;
 	}
+
+	adjust_font_size( &font_size) ;
 
 	if( ( ! ( font_man->font_config = x_acquire_font_config( type_engine , font_present)) ||
 	      ! ( font_man->font_cache = x_acquire_font_cache( display , font_size ,
@@ -165,13 +228,13 @@ x_font_manager_new(
 		kik_msg_printf( "Fall back to %s.\n" , x_get_type_engine_name( engine)) ;
 	}
 
-	if(  x_get_max_font_size() - x_get_min_font_size() >= step_in_changing_font_size)
+	if( max_font_size - min_font_size >= step_in_changing_font_size)
 	{
 		font_man->step_in_changing_font_size = step_in_changing_font_size ;
 	}
 	else
 	{
-		 font_man->step_in_changing_font_size = x_get_max_font_size() - x_get_min_font_size() ;
+		font_man->step_in_changing_font_size = max_font_size - min_font_size ;
 	}
 
 	font_man->use_bold_font = use_bold_font ;
@@ -365,7 +428,9 @@ x_change_font_size(
 	)
 {
 	x_font_cache_t *  font_cache ;
-		
+
+	adjust_font_size( &font_size) ;
+
 	if( font_size == font_man->font_cache->font_size)
 	{
 		/* not changed (pretending to succeed) */
@@ -373,7 +438,7 @@ x_change_font_size(
 		return  1 ;
 	}
 
-	if( font_size < x_get_min_font_size() || x_get_max_font_size() < font_size)
+	if( font_size < min_font_size || max_font_size < font_size)
 	{
 		return  0 ;
 	}
@@ -400,9 +465,9 @@ x_larger_font(
 	u_int  font_size ;
 	x_font_cache_t *  font_cache ;
 
-	if( font_man->font_cache->font_size + font_man->step_in_changing_font_size > x_get_max_font_size())
+	if( font_man->font_cache->font_size + font_man->step_in_changing_font_size > max_font_size)
 	{
-		font_size = x_get_min_font_size() ;
+		font_size = min_font_size ;
 	}
 	else
 	{
@@ -431,9 +496,9 @@ x_smaller_font(
 	u_int  font_size ;
 	x_font_cache_t *  font_cache ;
 
-	if( font_man->font_cache->font_size < x_get_min_font_size() + font_man->step_in_changing_font_size)
+	if( font_man->font_cache->font_size < min_font_size + font_man->step_in_changing_font_size)
 	{
-		font_size = x_get_max_font_size() ;
+		font_size = max_font_size ;
 	}
 	else
 	{

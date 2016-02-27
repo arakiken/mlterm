@@ -84,7 +84,7 @@ otl_close(
 	void *  otf
 	)
 {
-	return  (*close_sym)( otf) ;
+	(*close_sym)( otf) ;
 }
 
 static u_int

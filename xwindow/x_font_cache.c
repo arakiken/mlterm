@@ -49,23 +49,9 @@ init_usascii_font(
 	x_font_cache_t *  font_cache
 	)
 {
-	u_int  beg_font_size ;
-	
-	beg_font_size = font_cache->font_size ;
-	while( ( font_cache->usascii_font = x_font_cache_get_xfont( font_cache ,
-					NORMAL_FONT_OF(font_cache->usascii_font_cs))) == NULL)
-	{
-		if( ++ font_cache->font_size > x_get_max_font_size())
-		{
-			font_cache->font_size = x_get_min_font_size() ;
-		}
-		else if( font_cache->font_size == beg_font_size)
-		{
-			return  0 ;
-		}
-	}
-
-	return  1 ;
+	return  ( font_cache->usascii_font =
+			x_font_cache_get_xfont( font_cache ,
+				NORMAL_FONT_OF(font_cache->usascii_font_cs))) != NULL ;
 }
 
 static KIK_MAP( x_font)

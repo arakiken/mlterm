@@ -2359,13 +2359,14 @@ config_protocol_get(
 	{
 		char *  cs ;
 
+		/* Compat with old format (3.6.3 or before): <cs>,<fontsize> */
 		cs = kik_str_sep( &key , ",") ;
 
 		if( HAS_CONFIG_LISTENER(vt100_parser,get_font))
 		{
 			(*vt100_parser->config_listener->get_font)(
 				vt100_parser->config_listener->self ,
-				dev , key /* font size */ , cs , to_menu) ;
+				dev , cs , to_menu) ;
 		}
 	}
 	else if( dev && strcmp( dev , "color") == 0)
@@ -4175,14 +4176,15 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 9 h" X10 mouse reporting */
 						}
-					#endif
 						else if( ps[count] == 12)
 						{
-							/* "CSI ? 12 h" XT_CBLINK */
-
-							config_protocol_set_simple( vt100_parser ,
-								"blink_cursor" , "false" , 0) ;
+							/*
+							 * "CSI ? 12 h" XT_CBLINK
+							 * If cursor blinking is enabled,
+							 * stop blinking temporarily.
+							 */
 						}
+					#endif
 						else if( ps[count] == 25)
 						{
 							/* "CSI ? 25 h" */
@@ -4477,14 +4479,15 @@ parse_vt100_escape_sequence(
 						{
 							/* "CSI ? 9 l" X10 mouse reporting */
 						}
-					#endif
 						else if( ps[count] == 12)
 						{
-							/* "CSI ? 12 h" XT_CBLINK */
-
-							config_protocol_set_simple( vt100_parser ,
-								"blink_cursor" , "true" , 0) ;
+							/*
+							 * "CSI ? 12 l" XT_CBLINK
+							 * If cursor blinking is enabled,
+							 * restart blinking.
+							 */
 						}
+					#endif
 						else if( ps[count] == 25)
 						{
 							/* "CSI ? 25 l" */

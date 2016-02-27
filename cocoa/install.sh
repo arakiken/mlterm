@@ -10,9 +10,17 @@ if [ ! -d $HOME/mlterm.app ]; then
 	exit
 fi
 
+prefix="${1}"
+
+cd $HOME/mlterm.app
+mkdir -p mlterm
+cp -f $prefix/etc/mlterm/* mlterm/
+rm mlterm/*aafont
+rm mlterm/font-fb
+rm mlterm/[tv]font
+
 cd $HOME/mlterm.app/Contents/MacOS
 
-prefix="${1}"
 libs="lib/libkik.[0-9]*.dylib lib/libmkf.[0-9]*.dylib lib/libmlterm_core.dylib lib/mlterm/libctl_bidi.so lib/mlterm/libctl_iscii.so lib/mlterm/libind_bengali.so lib/mlterm/libind_hindi.so lib/mlterm/libotl.so"
 
 mkdir -p lib/mkf

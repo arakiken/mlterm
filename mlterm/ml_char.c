@@ -66,6 +66,8 @@ static struct
 
 } *  unicode_areas ;
 static u_int  num_of_unicode_areas ;
+static u_int  unicode_area_min ;
+static u_int  unicode_area_max ;
 
 
 /* --- static functions --- */
@@ -233,8 +235,8 @@ ml_set_use_multi_col_char(
 
 ml_font_t
 ml_char_get_unicode_area_font(
-	u_int32_t  min ,
-	u_int32_t  max
+	u_int32_t  min ,	/* min <= max */
+	u_int32_t  max		/* min <= max */
 	)
 {
 	u_int  idx ;
@@ -256,6 +258,24 @@ ml_char_get_unicode_area_font(
 		kik_msg_printf( "No more unicode areas.\n") ;
 
 		return  UNKNOWN_CS ;
+	}
+
+	if( num_of_unicode_areas == 0)
+	{
+		unicode_area_min = min ;
+		unicode_area_max = max ;
+	}
+	else
+	{
+		if( unicode_area_min > min)
+		{
+			unicode_area_min = min ;
+		}
+
+		if( unicode_area_max < max)
+		{
+			unicode_area_max = max ;
+		}
 	}
 
 	unicode_areas = p ;
@@ -328,8 +348,12 @@ ml_char_set(
 
 	ch->u.ch.code = code ;
 
-	if( unicode_areas && cs == ISO10646_UCS4_1)
+	if( code <= unicode_area_max && cs == ISO10646_UCS4_1 && unicode_area_min <= code)
 	{
+		/*
+		 * If code == 0, unicode_area_max == 0 and unicode_area_min == 0,
+		 * enter this block unexpectedly, but harmless.
+		 */
 		for( idx = num_of_unicode_areas ; idx > 0 ; idx --)
 		{
 			if( unicode_areas[idx - 1].min <= code &&

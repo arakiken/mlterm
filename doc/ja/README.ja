@@ -910,24 +910,9 @@ comment $Id$
 	のようにしてください。
 	_BOLD_ITALIC のように両方指定することもできます。
 
-        フォーマットは、以下のようになります。
-
-        [default font name];[font size],[font name];[font size],[font name];...
-
-        [default font name] で、デフォルトのフォントを指定し、サイズごとにデフォ
-        ルトと異なるフォントを指定できます。
-        [default font name] に %d を含めておくと、そこにフォントサイズが入りま
-        す。
-
-        例えば、
-
-        ISO8859_1 = -kochi-mincho-medium-*--%d-*-iso8859-1;10,a10;
-
-        このように指定すると、10 point を除くすべてのサイズで東風フォントを使
-        用し、 10 point については、a10 フォントを使用することができます。
-
-        [font name] , [default font name] は、font , vfont(通常のXフォント)と、
-        aafont , vaafont(Xft or cairo用フォント) で異なります。
+	上記文字集合ごとに使用したいフォント名を指定します。
+        フォント名に %d を含めておくと、そこにフォントサイズが入ります。
+        例) ISO8859_1 = -kochi-mincho-medium-*--%d-*-iso8859-1
 
         o font/vfont/tfont
           (--with-gui=xlib の場合)
@@ -940,20 +925,8 @@ comment $Id$
           (*) もしくは、fonts.aliasで定義している省略記法。
 
         o aafont/vaafont/taafont
-          [font family]( Bold Italic [font size]-[font encoding]:[percentage])
+          [font family]( Bold Italic [font size]:[percentage])
 
-          -[font encoding] の前方に - を含む場合は \ によりエスケープする必要が
-          あります。
-
-          e.g.)
-          ISO8859_1 = Hoge Semi\-Condensed
-          
-          font size は、実際に表示するピクセルサイズであり、小数点数を指定する
-          こともできます。
-
-          e.g.)
-          ISO8859_1 = 12,Hoge 11.5
-          
           percentage は、そのフォントのグリフを表示するに、フォントサイズの何
           パーセント分の幅をとるかを指定します。
           例えば、フォントサイズが 12 の場合に、percentage として 100 を指定す
@@ -979,7 +952,7 @@ comment $Id$
 
           また、縦用フォントは、デフォルトで、すべて全角幅となりますので、
 
-          ISO8859_1 = 10,a10:100;
+          ISO8859_1 = a10:100;
 
           のようにすると、a10 フォントを無理矢理横幅 10 point で表示します。
 

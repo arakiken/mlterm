@@ -545,15 +545,22 @@ ml_parse_unicode_area(
 	{
 		if( sscanf( str , "U+%x" , min) != 1)
 		{
-			kik_msg_printf( "Illegal unicode area format: %s\n" , str) ;
-
-			return  0 ;
+			goto  error ;
 		}
 		else
 		{
 			*max = *min ;
 		}
 	}
+	else if( *min > *max)
+	{
+		goto  error ;
+	}
 
 	return  1 ;
+
+error:
+	kik_msg_printf( "Illegal unicode area format: %s\n" , str) ;
+
+	return  0 ;
 }

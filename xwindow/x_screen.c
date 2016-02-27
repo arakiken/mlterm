@@ -5710,56 +5710,30 @@ static void
 get_font_config(
 	void *  p ,
 	char *  file ,		/* can be NULL */
-	char *  font_size_str ,	/* can be NULL */
 	char *  cs ,
 	int  to_menu
 	)
 {
 	x_screen_t *  screen ;
 	char *  font_name ;
-	u_int  font_size ;
-	char *  key ;
 
 	screen = p ;
-
-	if( font_size_str)
-	{
-		if( sscanf( font_size_str , "%u" , &font_size) != 1)
-		{
-			goto  error ;
-		}
-	}
-	else
-	{
-		font_size = x_get_font_size( screen->font_man) ;
-	}
 
 	if( strcmp( cs , "USASCII") == 0)
 	{
 		cs = x_get_charset_name( x_get_current_usascii_font_cs( screen->font_man)) ;
 	}
 
-	if( ! ( key = alloca( strlen(cs) + 1 + DIGIT_STR_LEN(u_int) /* fontsize */ + 1)))
-	{
-		goto  error ;
-	}
+	font_name = x_get_config_font_name2( file , x_get_font_size( screen->font_man) , cs) ;
 
-	font_name = x_get_config_font_name2( file , font_size , cs) ;
-	sprintf( key , "%s,%d" , cs , font_size) ;
-
-	ml_term_response_config( screen->term , key , font_name ? font_name : "" , to_menu) ;
+	ml_term_response_config( screen->term , cs , font_name ? font_name : "" , to_menu) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " #%s,%s=%s (%s)\n" , cs , font_size_str , font_name ,
+	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s (%s)\n" , cs , font_name ,
 		to_menu ? "to menu" : "to pty") ;
 #endif
 
 	free( font_name) ;
-
-	return ;
-
-error:
-	ml_term_response_config( screen->term , "error" , NULL , to_menu) ;
 
 	return ;
 }

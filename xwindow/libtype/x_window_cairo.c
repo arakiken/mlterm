@@ -240,6 +240,28 @@ show_text(
 
 
 static int
+is_same_family(
+	FcPattern *  pattern ,
+	const char *  family
+	)
+{
+	int  count ;
+	FcValue  val ;
+
+	for( count = 0 ;
+	     FcPatternGet( pattern , FC_FAMILY , count , &val) == FcResultMatch ;
+	     count ++)
+	{
+		if( strcmp( family , val.u.s) == 0)
+		{
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
+static int
 cairo_font_open(
 	x_font_t *  font ,
 	int  num_of_compl_fonts ,
@@ -247,7 +269,7 @@ cairo_font_open(
 	int  ch
 	)
 {
-	int  count ;
+	FcValue  val ;
 	cairo_t *  cairo = NULL ;
 	cairo_font_options_t *  options ;
 	FcPattern *  pattern ;
@@ -260,6 +282,7 @@ cairo_font_open(
 	double  pixel_size ;
 	int  pixel_size2 ;
 	FcCharSet *  charset ;
+	int  count ;
 	int  ret = 0 ;
 
 	if( ! ( pattern = FcPatternDuplicate( orig_pattern)))
@@ -267,37 +290,39 @@ cairo_font_open(
 		return  0 ;
 	}
 
-	for( count = 0 ; ; count++)
+	for( count = 0 ; FcPatternGet( pattern , FC_FAMILY , 0 , &val) == FcResultMatch ;
+	     count ++)
 	{
-		FcValue  val ;
-
-		if( FcPatternGet( pattern , FC_FAMILY , 0 , &val) == FcResultMatch)
-		{
-			FcPatternRemove( pattern , FC_FAMILY , 0) ;
-		}
-		else
-		{
-			break ;
-		}
-
 		if( ! ( match = FcFontMatch( NULL , pattern , &result)))
 		{
 			break ;
 		}
 
-		result = FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) ;
+		for( ; FcPatternGet( orig_pattern , FC_FAMILY , count , &val) == FcResultMatch ;
+		     count++)
+		{
+			FcPatternRemove( pattern , FC_FAMILY , 0) ;
 
-		if( result == FcResultMatch)
+			if( is_same_family( match , val.u.s))
+			{
+				break ;
+			}
+		}
+
+		if( FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) != FcResultMatch ||
+		    ! FcCharSetHasChar( charset , ch))
+		{
+			FcPatternDestroy( match) ;
+
+			continue ;
+		}
+		else
 		{
 			void *  p ;
 
-			if( ! FcCharSetHasChar( charset , ch))
-			{
-				FcPatternDestroy( match) ;
+			FcPatternRemove( orig_pattern , FC_FAMILY , count) ;
 
-				continue ;
-			}
-			else if( ( p = realloc( font->compl_fonts ,
+			if( ( p = realloc( font->compl_fonts ,
 					sizeof(*font->compl_fonts) * (num_of_compl_fonts + 1))))
 			{
 				font->compl_fonts = p ;
@@ -373,7 +398,6 @@ cairo_font_open(
 		font->compl_fonts[num_of_compl_fonts].charset = FcCharSetCopy( charset) ;
 		font->compl_fonts[num_of_compl_fonts].next = NULL ;
 
-		FcPatternRemove( orig_pattern , FC_FAMILY , count) ;
 		ret = 1 ;
 
 		break ;

@@ -58,8 +58,8 @@ static void help_msg(void){
 	printf(" mlcc exec [command]: Execute mlterm command. (full_reset, mlclient, open_pty and so on)\n");
 	printf(" mlcc [key]         : Get current value of [key].\n");
 	printf(" mlcc [key] [value] : Set [value] for [key].\n");
-	printf(" mlcc [font file name] [charset],[font size] : Get font name of [charset] and [font size] in [font file name].\n");
-	printf(" mlcc [font file name] [charset] [font name] : Set [font name] for [charset] in [font file name].\n");
+	printf(" mlcc [font file name] [charset] : Get font name of [charset] in [font file name].\n");
+	printf(" mlcc [font file name] [charset] [font name] : Set [font name] in [font file name].\n");
 	printf(" mlcc color [color name] [rgb] : Set [rgb] for [color name].\n");
 	printf(" mlcc color [color name] : Get rgb of [color name].\n");
 	printf(" (See doc/en/PROTOCOL, PROTOCOL.font and PROTOCOL.color for configuration details.)\n");

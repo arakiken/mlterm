@@ -1,3 +1,6 @@
 #DEFAULT	= Menlo
-#U+900-97f	= Devanagari MT
-#U+a80-aff	= Gujarati MT
+#U+600-6ff	= Al Bayan
+#U+590-5ff	= Arial Hebrew
+U+900-97f	= Devanagari MT		# Devanagari
+U+a00-a7f	= Gurmukhi MT		# Punjabi
+U+a80-aff	= Gujarati MT		# Gujarati

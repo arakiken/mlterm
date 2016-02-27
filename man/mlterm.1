@@ -1639,17 +1639,16 @@ different between "\fBfont\fR", "\fBvfont\fR" "\fBtfont\fR" files and
 "\fBaafont\fR", "\fBvaafont\fR" "\fBtaafont\fR" files.
 .PP
 In "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR" files, "\fIfont\fR" is specified in
-"\fINAME\fR:\fIPERCENT\fR;\fISIZE\fR,\fINAME\fR:\fIPERCENT\fR;\fISIZE\fR,\fINAME\fR:\fIPERCENT\fR;\fI...\fR"
+"\fINAME\fR:\fIPERCENT\fR"
 format where "\fISIZE\fR" is font size in pixel,
 and "\fINAME\fR" is XLFD or alias names of X fonts.
-If the first "\fINAME\fR" contains "%d", it is replaced by an appropriate font size number.
+If "\fINAME\fR" contains "%d", it is replaced by an appropriate font size number.
 ":\fIPERCENT\fR" is multiplied by font size and decides character width of a font.
 If ":\fIPERCENT\fR" is omitted, max font width is used for it.
 .PP
 In "\fBaafont\fR", "\fBvaafont\fR", "\fBtaafont\fR" files, "\fIfont\fR" is specified in
-"\fIFAMILY WEIGHT SLANT SIZE\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY WEIGHT SLANT SIZE\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY WEIGHT SLANT SIZE\fR-\fIENCODING\fR:\fIPERCENT\fR;\fI...\fR"
-format.  The first pair of \fIFAMILY WEIGHT SLANT SIZE\fR and \fIENCODING\fR specifies
-the default font and the others with \fISIZE\fR are for specific sizes.
+"\fIFAMILY WEIGHT SLANT SIZE\fR:\fIPERCENT\fR"
+format.
 ":\fIPERCENT\fR" is multiplied by font size and decides character width of a font.
 If ":\fIPERCENT\fR" is omitted, 'W' width is used for it.
 .PP

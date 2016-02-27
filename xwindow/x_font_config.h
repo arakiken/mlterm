@@ -24,19 +24,12 @@ typedef struct  x_font_config
 	 * Private
 	 * font_configs whose difference is only FONT_AA share these members.
 	 */
-	KIK_MAP( x_font_name) *  font_name_table ;
-	KIK_MAP( x_font_name)  default_font_name_table ;
+	KIK_MAP( x_font_name)  font_name_table ;
 
 	u_int  ref_count ;
 
 } x_font_config_t ;
 
-
-int  x_set_font_size_range( u_int  min_font_size , u_int  max_font_size) ;
-
-u_int  x_get_min_font_size(void) ;
-
-u_int  x_get_max_font_size(void) ;
 
 x_font_config_t *  x_acquire_font_config( x_type_engine_t  type_engine , x_font_present_t  font_present) ;
 
@@ -45,12 +38,6 @@ int  x_release_font_config( x_font_config_t *  font_config) ;
 x_font_config_t *  x_font_config_new( x_type_engine_t  type_engine , x_font_present_t  font_present) ;
 
 int  x_font_config_delete( x_font_config_t *  font_config) ;
-
-int  x_customize_font_name( x_font_config_t *  font_config , ml_font_t  font ,
-	char *  fontname , u_int  font_size) ;
-
-int  x_customize_default_font_name( x_font_config_t *  font_config , ml_font_t  font ,
-	char *  fontname) ;
 
 int  x_customize_font_file( const char *  file, char *  key, char *  value, int  save) ;
 

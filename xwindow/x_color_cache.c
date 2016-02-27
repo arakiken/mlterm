@@ -131,7 +131,7 @@ get_cached_vtsys_xcolor(
 	}
 	
 #ifdef  DEBUG
-#ifndef  USE_WIN32GUI
+#if  ! defined(USE_WIN32GUI) && ! defined(USE_QUARTZ)
 	kik_debug_printf( KIK_DEBUG_TAG " new color %x red %x green %x blue %x\n",
 		color , color_cache->xcolors[color].red ,
 		color_cache->xcolors[color].green ,

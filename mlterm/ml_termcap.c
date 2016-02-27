@@ -343,7 +343,7 @@ termcap_init(void)
 	{
 		if( ! read_conf( rcpath))
 		{
-		#if  defined(__APPLE__) || defined(__ANDROID__)
+		#if  defined(__ANDROID__)
 		#define  MAX_DB_LEN_IDX  2
 			const char *  db[] =
 			{
@@ -365,7 +365,7 @@ termcap_init(void)
 			char *  buf ;
 
 			if( ( p = realloc( entries ,
-				sizeof(ml_termcap_t) * sizeof(db) / sizeof(db[0]))) &&
+				sizeof(ml_termcap_t) * (sizeof(db) / sizeof(db[0]) + 1))) &&
 			    ( buf = alloca( strlen( db[MAX_DB_LEN_IDX]) + 1)))
 			{
 				size_t  count ;

@@ -152,7 +152,7 @@ typedef struct  ml_config_event_listener
 	void (*saved)(void) ;		/* Event that mlterm/main file was changed. */
 	
 	void (*set_font)( void * , char * , char * , char * , int) ;
-	void (*get_font)( void * , char * , char * , char * , int) ;
+	void (*get_font)( void * , char * , char * , int) ;
 	void (*set_color)( void * , char * , char * , char * , int) ;
 	void (*get_color)( void * , char * , int) ;
 

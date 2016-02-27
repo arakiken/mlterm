@@ -777,9 +777,9 @@ else
 	have_vte=no
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp"
+tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc"
 AC_ARG_WITH(tools,
-	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp@:>@],
+	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc@:>@],
 	[
 	# if given --without-tools
 	if test "${with_tools}" = "no" ; then
@@ -926,7 +926,9 @@ registobmp)
 	AC_SUBST(SDL_LIBS)
 
 	if test "$gui" != "win32" ; then
-		PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
+		if test "$have_fc" = "" ; then
+			PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
+		fi
 		if test "$have_fc" = "yes" ; then
 			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
 			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
@@ -938,6 +940,23 @@ registobmp)
 	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
 	MAKE_DIRS="tool/registobmp ${MAKE_DIRS}"
 	tools_result="$tools_result $tool"
+	;;
+mlfc)
+	if test "$gui" != "win32" -a "$gui" != "quartz" ; then
+		if test "$have_fc" = "" ; then
+			PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
+		fi
+		if test "$have_fc" = "yes" ; then
+			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+			AC_SUBST(FONTCONFIG_CFLAGS)
+			AC_SUBST(FONTCONFIG_LIBS)
+		fi
+
+		OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
+		MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
+		tools_result="$tools_result $tool"
+	fi
 	;;
 *)
 	echo "${tool} is unknown tool."

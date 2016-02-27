@@ -64,10 +64,21 @@ parse_fc_font_name(
 {
 	char *  p ;
 	size_t  len ;
-	
+
+#if  1
+	/*
+	 * Compat with mlterm 3.6.3 or before: ... [SIZE]-[Encoding]:[Percentage]
+	 *                                               ^^^^^^^^^^^
+	 */
+	if( ( p = strstr( font_name , "-iso10646-1")))
+	{
+		memmove( p , p + 11 , strlen( p + 11) + 1) ;
+	}
+#endif
+
 	/*
 	 * XftFont format.
-	 * [Family]( [WEIGHT] [SLANT] [SIZE]-[Encoding]:[Percentage])
+	 * [Family]( [WEIGHT] [SLANT] [SIZE]:[Percentage])
 	 */
 
 	*font_family = font_name ;
@@ -77,10 +88,7 @@ parse_fc_font_name(
 	{
 		if( *p == '\\' && *(p + 1))
 		{
-			/*
-			 * It seems that XftFont format allows hyphens to be escaped.
-			 * (e.g. Foo\-Bold-iso10646-1)
-			 */
+			/* Compat with 3.6.3 or before. (e.g. Foo\-Bold-iso10646-1) */
 
 			/* skip backslash */
 			p ++ ;
@@ -90,28 +98,6 @@ parse_fc_font_name(
 			/* encoding and percentage is not specified. */
 			
 			*font_name = '\0' ;
-			
-			break ;
-		}
-		else if( *p == '-')
-		{
-			/* Parsing "-[Encoding]:[Percentage]" */
-			
-			*font_name = '\0' ;
-
-			*font_encoding = ++p ;
-			
-			kik_str_sep( &p , ":") ;
-			if( p)
-			{
-				if( ! kik_str_to_uint( percent , p))
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" Percentage(%s) is illegal.\n" , p) ;
-				#endif
-				}
-			}
 			
 			break ;
 		}
@@ -611,6 +597,10 @@ cairo_font_open(
 	    FcPatternGetCharSet( match , FC_CHARSET , 0 , &charset) == FcResultMatch &&
 	    ( font->compl_fonts = malloc( sizeof(*font->compl_fonts))))
 	{
+		FcValue  pval ;
+		FcValue  mval ;
+		int  count ;
+
 		font->compl_fonts[0].charset = FcCharSetCopy( charset) ;
 		font->compl_fonts[0].next = NULL ;
 
@@ -623,6 +613,24 @@ cairo_font_open(
 	#endif
 		FcPatternRemove( pattern , FC_LANG , 0) ;
 	#endif
+
+		for( count = 0 ;
+		     FcPatternGet( pattern , FC_FAMILY , count , &pval) == FcResultMatch ;
+		     count ++)
+		{
+			int  count2 ;
+
+			for( count2 = 0 ;
+			     FcPatternGet( match , FC_FAMILY , count2 , &mval) == FcResultMatch ;
+			     count2 ++)
+			{
+				if( strcmp( pval.u.s , mval.u.s) == 0)
+				{
+					/* Remove not only matched name but also alias names */
+					FcPatternRemove( pattern , FC_FAMILY , count2) ;
+				}
+			}
+		}
 
 		font->pattern = pattern ;
 	}

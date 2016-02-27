@@ -314,7 +314,6 @@ int
 mc_set_font_name(
 	mc_io_t  io ,
 	const char *  file ,
-	const char *  font_size ,
 	const char *  cs ,
 	const char *  font_name
 	)
@@ -323,13 +322,13 @@ mc_set_font_name(
 
 	if( io == mc_io_set_save_font && ( chal = get_value( "challenge" , mc_io_get)))
 	{
-		printf( "\x1b]%d;%s;%s:%s=%s,%s\x07" ,
-			io , chal , file , cs , font_size , font_name) ;
+		printf( "\x1b]%d;%s;%s:%s=%s\x07" ,
+			io , chal , file , cs , font_name) ;
 	}
 	else
 	{
-		printf( "\x1b]%d;%s:%s=%s,%s\x07" ,
-			io , file , cs , font_size , font_name) ;
+		printf( "\x1b]%d;%s:%s=%s\x07" ,
+			io , file , cs , font_name) ;
 	}
 
 	fflush( stdout) ;
@@ -340,7 +339,6 @@ mc_set_font_name(
 char *
 mc_get_font_name(
 	const char *  file ,
-	const char *  font_size ,
 	const char *  cs
 	)
 {
@@ -348,18 +346,15 @@ mc_get_font_name(
 	char *  value ;
 	char *  key ;
 
-	len = strlen(cs) + strlen(font_size) + 2 ;
+	len = strlen(cs) + 1 ;
 	if( file)
 	{
-		len += (strlen(file) + 1) ;
+		len += (strlen(file) + 2) ;
 	}
 	
 	if( ( key = alloca( len)))
 	{
-		sprintf( key , "%s%s%s,%s" ,
-			file ? file : "" ,
-			file ? ":" : "" ,
-			cs , font_size) ;
+		sprintf( key , "%s%s%s", file ? file : "" , file ? ":" : "" , cs) ;
 
 		if( ( value = get_value( key , mc_io_get_font)))
 		{

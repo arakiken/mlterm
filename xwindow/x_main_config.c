@@ -369,21 +369,6 @@ x_main_config_init(
 		main_config->font_size = 16 ;
 	}
 
-	if( main_config->font_size > x_get_max_font_size())
-	{
-		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
-			main_config->font_size , x_get_max_font_size()) ;
-		
-		main_config->font_size = x_get_max_font_size() ;
-	}
-	else if( main_config->font_size < x_get_min_font_size())
-	{
-		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
-			main_config->font_size , x_get_min_font_size()) ;
-			
-		main_config->font_size = x_get_min_font_size() ;
-	}
-
 	if( ( value = kik_conf_get_value( conf , "app_name")))
 	{
 		main_config->app_name = strdup( value) ;

@@ -1,3 +1,65 @@
+2016-02-26  Araki Ken  <arakiken@users.sf.net>
+
+	* README.fontproto, README.ja, man/mlterm.1: Updated.
+
+	* mc_font.c: "UNICODE (Hebrew)", "UNICODE (Hindi)", "UNICODE (Bengali)",
+	  "UNICODE (Punjabi)", "UNICODE (Gujarati)", "UNICODE (Oriya)", "UNICODE (Tamil)",
+	  "UNICODE (Telugu)", "UNICODE (Kannada)" and "UNICODE (Malayalam)" are added.
+
+	* mc_io.[ch]: font_size is removed from arguments of mc_{set|get}_font_name().
+
+	* ml_vt100_parser.[ch]:
+	  - font_size is removed from arguments of ml_config_event_listener_t::get_font.
+	  - CSI?12h and CSI?12l (XT_CBLINK) are dropped.
+
+	* x_window_cairo.c:
+	  Alias font names are considered in searching glyph complementary fonts.
+
+	* x_font_ft.c:
+	  - The format of cairo or xft font name is changed as follows.
+	      [Family] [Weight] [Slant] [Size]-[Encoding]:[Percentage]
+	    ->[Family] [Weight] [Slant] [Size]:[Percentage]
+	  - It is not necessary to escape '-' by '\' in font name.
+
+	* x_font_config.[ch]:
+	  - The format of value of ~/.mlterm/*font is changed as follows.
+	    [Font name];[Size],[Font name];[Size],[Font name];... -> [Font name]
+	  - x_customize_font_name() and x_customize_default_font_name() are removed.
+
+	* x_main_config.c, x_font_manager.c: Whether font_size is within
+	  font_size_range is checked in x_font_manager.c, not in x_main_config.c.
+
+	* x_font_cache.c, x_font_config.c, x_font_manager.c:
+	  {min|max}_font_size static variables and x_set_font_size_range() are
+	  moved from x_font_config.c to x_font_manager.c.
+
+	* ml_termcap.c:
+	  - Illegal memory access around db on memory for MacOSX/Cocoa and Android is fixed.
+	  - DB on memory isn't used on MacOSX/Cocoa.
+
+	* ml_char.c: unicode_area_{max|min} static variables are added.
+
+	* configure.in: mlfc is added to the default value of --with-tools option.
+
+	* tool/mlfc: Added.
+
+	* cocoa.m: If x_get_all_screens(NULL) has already returned 0 before willClose() is
+	  called, nothing except calling [NSNotificationCenter removeObserver] is done.
+
+	* cocoa.[hm], quartz/x_window.c: view_set_normal_hints() is changed to
+	  window_set_normal_hints(), because x_window_set_normal_hints(root window
+	  whose my_window is NSWindow*) calls window_set_normal_hints(NSWindow).
+
+	* main-cocoa.m: [[NBundle mainBundle] bundlePath] is passed to kik_set_sys_conf_dir().
+
+	* cocoa/install.sh: etc/* files are installed to mlterm.app bundle.
+
+	* otl.h: Syntax error is fixed.
+
+	* ml_char_encoding.c, kik_conf_io.c: Minor fixes.
+
+	* version.h.in: 3.6.3 -> 3.6.3post
+
 2016-02-14  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.6.3 released.

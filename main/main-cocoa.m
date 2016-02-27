@@ -51,7 +51,7 @@ main(
 		set_lang() ;
 	}
 
-	kik_set_sys_conf_dir( CONFIG_PATH) ;
+	kik_set_sys_conf_dir( [[[NSBundle mainBundle] bundlePath] UTF8String]) ;
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
 
 	char *  myargv[] = { "mlterm" , NULL } ;

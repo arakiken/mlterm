@@ -996,7 +996,7 @@ x_window_resize_with_margin(
 
 int
 x_window_set_normal_hints(
-	x_window_t *  win ,
+	x_window_t *  win ,	/* root window */
 	u_int  min_width ,
 	u_int  min_height ,
 	u_int  width_inc ,
@@ -1008,7 +1008,7 @@ x_window_set_normal_hints(
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 
-	view_set_normal_hints( win->my_window , width_inc , height_inc) ;
+	window_set_normal_hints( win->my_window , width_inc , height_inc) ;
 
 	return  1 ;
 }
