@@ -996,19 +996,25 @@ x_window_resize_with_margin(
 
 int
 x_window_set_normal_hints(
-	x_window_t *  win ,	/* root window */
+	x_window_t *  win ,
 	u_int  min_width ,
 	u_int  min_height ,
 	u_int  width_inc ,
 	u_int  height_inc
 	)
 {
+	x_window_t *  root ;
+
 	win->min_width = min_width ;
 	win->min_height = min_height  ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 
-	window_set_normal_hints( win->my_window , width_inc , height_inc) ;
+	/* root is always x_layout_t (use_mdi is always true) on macosx/cocoa. */
+	root = x_get_root_window( win) ;
+
+	window_set_normal_hints( root->my_window ,
+		total_width_inc( root) , total_height_inc( root)) ;
 
 	return  1 ;
 }

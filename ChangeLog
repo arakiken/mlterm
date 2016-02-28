@@ -1,5 +1,7 @@
 2016-02-28  Araki Ken  <arakiken@users.sf.net>
 
+	* quartz/x_window.c: x_window_set_normal_hints() is fixed.
+
 	* quartz/x_imagelib.c: animation gif is supported.
 
 	* ml_vt100_parser.c: SUPPORT_ITERM2_OSC1337 is enabled by default.
