@@ -14,6 +14,7 @@
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
 
 #include  "cocoa.h"
 
@@ -28,6 +29,7 @@
 #define  CARD_HEAD_SIZE  0
 #include  "../../common/c_sixel.c"
 #include  "../../common/c_regis.c"
+#include  "../../common/c_animgif.c"
 
 static void
 value_table_refresh(
@@ -218,7 +220,17 @@ load_file(
 	else
 #endif
 	{
-		if( strcasecmp( suffix , ".rgs") == 0)
+		if( strcmp( suffix , ".gif") == 0)
+		{
+			char *  dir ;
+
+			if( ( dir = kik_get_user_rc_path( "mlterm/")))
+			{
+				split_animation_gif( path , dir , hash_path( path)) ;
+				free( dir) ;
+			}
+		}
+		else if( strcasecmp( suffix , ".rgs") == 0)
 		{
 			convert_regis_to_bmp( path) ;
 		}

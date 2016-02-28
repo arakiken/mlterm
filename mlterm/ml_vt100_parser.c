@@ -98,7 +98,7 @@
 #define  SUPPORT_VTE_CJK_WIDTH
 #endif
 
-#if  0
+#if  1
 #define  SUPPORT_ITERM2_OSC1337
 #endif
 
@@ -2057,8 +2057,13 @@ base64_decode(
 			{
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
-					" Illegal Base64 %s\n" , encoded) ;
+					" ignoring %c in base64\n" , encoded[e_pos]) ;
 			#endif
+
+				if( e_len <= e_pos + 1)
+				{
+					goto  end ;
+				}
 			}
 			else
 			{
@@ -2088,9 +2093,13 @@ base64_decode(
 		}
 	}
 
+end:
 #ifdef  DEBUG
 	decoded[d_pos] = '\0' ;
-	kik_debug_printf( KIK_DEBUG_TAG " Base64 Decode %s => %s\n" , encoded , decoded) ;
+	if( strlen( encoded) < 1000)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG " Base64 Decode %s => %s\n" , encoded , decoded) ;
+	}
 #endif
 
 	return  d_pos ;
@@ -2397,6 +2406,9 @@ end:
 }
 
 #ifdef  SUPPORT_ITERM2_OSC1337
+
+#include  <kiklib/kik_path.h>	/* kik_basename */
+
 /*
  * This function will destroy the content of pt.
  */
@@ -2406,11 +2418,7 @@ iterm2_proprietary_set(
 	char *  pt
 	)
 {
-	char *  path ;
-
-	if( strncmp( pt , "File=" , 5) == 0 &&
-	    ( path = get_home_file_path( "" ,
-			ml_pty_get_slave_name( vt100_parser->pty) + 5 , "img")))
+	if( strncmp( pt , "File=" , 5) == 0)
 	{
 		/* See http://www.iterm2.com/images.html (2014/03/20) */
 
@@ -2420,6 +2428,7 @@ iterm2_proprietary_set(
 		size_t  e_len ;
 		u_int  width ;
 		u_int  height ;
+		char *  path ;
 
 		args = pt + 5 ;
 		width = height = 0 ;
@@ -2431,26 +2440,80 @@ iterm2_proprietary_set(
 
 			*(encoded++) = '\0' ;
 
+			if( ( beg = strstr( args , "name=")) &&
+			    ( ( end = strchr( (beg += 5) , ';')) ||
+			      ( end = beg + strlen(beg))) &&
+			    ( path = malloc( 7 + (end - beg) + 1)))
+			{
+				char *  file ;
+				char *  new_path ;
+				size_t  d_len ;
+
+				strcpy( path , "mlterm/") ;
+
+				d_len = base64_decode( path + 7 , beg , end - beg) ;
+				path[7 + d_len] = '\0' ;
+				file = kik_basename( path) ;
+				memmove( path + 7 , file , strlen(file) + 1) ;
+				new_path = kik_get_user_rc_path( path) ;
+				free( path) ;
+				path = new_path ;
+			}
+			else
+			{
+				path = get_home_file_path( "" ,
+					ml_pty_get_slave_name( vt100_parser->pty) + 5 , "img") ;
+			}
+
 			if( ( beg = strstr( args , "width=")) &&
-			    ( end = strchr( beg , ';')))
+			    ( ( end = strchr( (beg += 6) , ';')) ||
+			      ( end = beg + strlen(beg))))
 			{
 				*(end--) = '\0' ;
 				if( '0' <= *end && *end <= '9')
 				{
-					width = atoi( beg + 6) ;
+					width = atoi( beg) ;
+					*(end + 1) = ';' ;	/* For next strstr() */
+				}
+				else
+				{
+					/* XXX Npx and N% are not supported */
 				}
 			}
 
 			if( ( beg = strstr( args , "height=")) &&
-			    ( end = strchr( beg , ';')))
+			    ( ( end = strchr( (beg += 7) , ';')) ||
+			      ( end = beg + strlen(beg))))
 			{
 				*(end--) = '\0' ;
 				if( '0' <= *end && *end <= '9')
 				{
-					height = atoi( beg + 7) ;
+					height = atoi( beg) ;
+					/* *(end + 1) = ';' ; */
+				}
+				else
+				{
+					/* XXX Npx and N% are not supported */
 				}
 			}
 		}
+		else
+		{
+			path = get_home_file_path( "" ,
+				ml_pty_get_slave_name( vt100_parser->pty) + 5 , "img") ;
+		}
+
+		if( ! path)
+		{
+			return ;
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_debug_printf( KIK_DEBUG_TAG " OSC 1337 file is stored at %s.\n" ,
+				path) ;
+		}
+	#endif
 
 		if( ( e_len = strlen( encoded)) > 0 && ( decoded = malloc( e_len)))
 		{
@@ -2465,6 +2528,8 @@ iterm2_proprietary_set(
 
 				show_picture( vt100_parser , path ,
 						0 , 0 , 0 , 0 , width , height , 0) ;
+
+				remove( path) ;
 			}
 
 			free( decoded) ;

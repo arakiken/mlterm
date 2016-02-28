@@ -1,3 +1,11 @@
+2016-02-28  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/x_imagelib.c: animation gif is supported.
+
+	* ml_vt100_parser.c: SUPPORT_ITERM2_OSC1337 is enabled by default.
+
+	* main.c: _fmode = _O_BINARY on win32.
+
 2016-02-26  Araki Ken  <arakiken@users.sf.net>
 
 	* README.fontproto, README.ja, man/mlterm.1: Updated.

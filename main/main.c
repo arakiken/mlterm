@@ -26,6 +26,8 @@
 #endif
 
 #ifdef  USE_WIN32API
+#include  <stdlib.h>	/* _fmode */
+#include  <fcntl.h>	/* _O_BINARY */
 static char *  dummy_argv[] = { "mlterm" , NULL } ;
 #define  argv  (__argv ? __argv : dummy_argv)
 #define  argc  __argc
@@ -153,6 +155,10 @@ main(
 	 * must be set here, not in ml_pty_ssh_new().
 	 */
 	main_tid = GetCurrentThreadId() ;
+#endif
+
+#ifdef  USE_WIN32API
+	_fmode = _O_BINARY ;
 #endif
 
 	check_console() ;

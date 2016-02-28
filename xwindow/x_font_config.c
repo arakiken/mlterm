@@ -445,7 +445,6 @@ parse_conf(
 
 	if( parse_value( &font_name , font_name))
 	{
-		kik_debug_printf( "%x %s %s\n" , font , key , font_name) ;
 		customize_font_name( font_config , font , font_name) ;
 	}
 

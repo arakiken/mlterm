@@ -1,4 +1,6 @@
 ver 3.7.0
+* Support OSC 1337. (See http://www.iterm2.com/images.html)
+* Support animation gif of OSC 5379 show_picture on MacOSX/cocoa.
 * Enable to place configuration files in mlterm.app/mlterm/ on MacOSX/Cocoa.
 * Change the format of ~/.mlterm/*font is changed as follows.
   [Charset] = [Font name];[Size],[Font name];[Size],[Font name];...
