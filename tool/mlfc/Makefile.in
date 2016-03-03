@@ -38,10 +38,10 @@ $(BINDIR)/mlterm:
 	mkdir -p $(BINDIR)/mlterm
 
 install: $(BINDIR)/mlterm
-	$(LIBTOOL_INSTALL) $(PROG) $(BINDIR)/mlterm
+	$(LIBTOOL_INSTALL) $(PROG) $(BINDIR)
 
 uninstall:
-	rm -f $(BINDIR)/mlterm/$(PROG)
+	rm -f $(BINDIR)/$(PROG)
 
 wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l

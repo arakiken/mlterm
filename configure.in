@@ -373,7 +373,10 @@ elif test "$gui" = "quartz" ; then
 	X_CFLAGS=""
 else
 	GUI="fb"
-	AC_CHECK_HEADER(machine/grfioctl.h, GUI_CFLAGS="-DUSE_GRF")
+	# for NetBSD/x68k
+	# <machine/vuid_event.h> is also checked not to enable USE_GRF on NetBSD/macppc.
+	AC_CHECK_HEADER(machine/grfioctl.h,
+		AC_CHECK_HEADER(machine/vuid_event.h, GUI_CFLAGS="-DUSE_GRF"))
 	GUI_CFLAGS="${GUI_CFLAGS} -DUSE_FRAMEBUFFER"
 fi
 AC_SUBST(GUI)

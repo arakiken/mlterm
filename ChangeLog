@@ -1,3 +1,15 @@
+2016-03-03  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/cocoa.m: [NSRunLoop runUntilDate] is called if huge data is received
+	  or screen is blanked temporarily by visual bell.
+
+	* mlfc/Makefile.in: Install directory is fixed.
+
+2016-03-01  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: Not only <machine/grfioctl.h> but also <machine/vuid_event.h>
+	  is checked not to enable USE_GRF on NetBSD/macppc.
+
 2016-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/x_window.c: x_window_set_normal_hints() is fixed.

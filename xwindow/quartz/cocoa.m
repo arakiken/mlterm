@@ -109,6 +109,7 @@ monitor_pty(void)
 		static int  ret ;
 		static fd_set  read_fds ;
 		static int  maxfd ;
+		static int  is_cont_read ;
 
 		for( ;;)
 		{
@@ -141,10 +142,17 @@ monitor_pty(void)
 								terms[count]) ;
 						}
 					}
+
+					if( ++is_cont_read >= 2)
+					{
+						[[NSRunLoop currentRunLoop] runUntilDate:
+							[NSDate dateWithTimeIntervalSinceNow:0.01]] ;
+					}
 				}
 				else if( ret == 0)
 				{
 					x_display_idling( NULL) ;
+					is_cont_read = 0 ;
 				}
 
 				FD_ZERO( &read_fds) ;
@@ -664,7 +672,8 @@ reset_position(
 			xwindow->width:xwindow->height] ;
 		CGContextFlush( ctx) ;
 
-		kik_usleep( 100000) ;	/* 100 msec */
+		[[NSRunLoop currentRunLoop]
+			runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]] ;
 
 		forceExpose = 1 ;
 		xwindow->update_window_flag = 0 ;
