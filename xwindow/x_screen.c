@@ -5691,7 +5691,7 @@ static void
 set_font_config(
 	void *  p ,
 	char *  file ,	/* can be NULL */
-	char *  key ,
+	char *  cs ,
 	char *  val ,
 	int  save
 	)
@@ -5700,7 +5700,12 @@ set_font_config(
 
 	screen = p ;
 
-	if( x_customize_font_file( file , key , val , save))
+	if( strcmp( cs , "USASCII") == 0)
+	{
+		cs = x_get_charset_name( x_get_current_usascii_font_cs( screen->font_man)) ;
+	}
+
+	if( x_customize_font_file( file , cs , val , save))
 	{
 		screen->font_or_color_config_updated |= 0x1 ;
 	}

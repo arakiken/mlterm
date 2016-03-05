@@ -512,15 +512,18 @@ kik_mem_free_all(void)
 
 	if( ( log = mem_logs))
 	{
+		mem_log_t *  prev ;
+
 		do
 		{
 			fprintf( stderr ,
 				"%p(size %d , alloced at %s[l.%d in %s] is not freed.\n" ,
 				log->ptr , (int)log->size , log->func , log->line , log->file) ;
 			free( log->ptr) ;
-			free( log) ;
+			log = kik_slist_next( ( prev = log)) ;
+			free( prev) ;
 		}
-		while( ( log = kik_slist_next( log))) ;
+		while( log) ;
 
 		mem_logs = NULL ;
 

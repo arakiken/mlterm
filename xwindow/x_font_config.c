@@ -463,17 +463,13 @@ apply_custom_cache(
 	{
 		if( filename == custom_cache[count].file)
 		{
-			char *  p ;
-
 		#ifdef  __DEBUG
 			kik_debug_printf( "Appling customization %s=%s\n" ,
 				custom_cache[count].key , custom_cache[count].value) ;
 		#endif
-		
-			if( ( p = kik_str_alloca_dup( custom_cache[count].value)))
-			{
-				parse_conf( font_config , custom_cache[count].key , p) ;
-			}
+
+			parse_conf( font_config , custom_cache[count].key ,
+					custom_cache[count].value) ;
 		}
 	}
 
@@ -621,7 +617,7 @@ change_custom_cache(
 	)
 {
 	void *  p ;
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < num_of_customs ; count++)
 	{
@@ -726,7 +722,6 @@ save_conf(
 	)
 {
 	char *  path ;
-	char *  p ;
 	int  ret ;
 
 	if( ( path = kik_get_user_rc_path( file)) == NULL)
@@ -734,16 +729,10 @@ save_conf(
 		return  0 ;
 	}
 
-	if( ( p = kik_str_alloca_dup( value)) && write_conf( path , key , p))
+	if( ( ret = write_conf( path , key , value)))
 	{
 		/* Remove from custom_cache */
 		change_custom_cache( file , key , "") ;
-
-		ret = 1 ;
-	}
-	else
-	{
-		ret = 0 ;
 	}
 
 	free( path) ;
@@ -759,7 +748,7 @@ find_font_config(
 {
 	if( font_configs)
 	{
-		int  count ;
+		u_int  count ;
 
 		for( count = 0 ; count < num_of_configs ; count ++)
 		{
@@ -782,7 +771,7 @@ match_font_configs(
 	x_font_present_t  present_mask
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  size ;
 
 	size = 0 ;
@@ -810,7 +799,7 @@ create_shared_font_config(
 	x_font_present_t  font_present
 	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < num_of_configs ; count ++)
 	{

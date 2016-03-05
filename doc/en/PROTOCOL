@@ -74,7 +74,7 @@ version 20160213
   challenge        = <string in ~/.mlterm/challenge>
 
   font filename    = font | aafont | vfont | tfont | vaafont | taafont
-  font key         = see man/mlterm.1
+  font key         = see man/mlterm.1 or "USASCII"
   font value       = see man/mlterm.1
   fontsize         = <fontsize digit>
 

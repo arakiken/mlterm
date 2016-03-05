@@ -2056,8 +2056,11 @@ base64_decode(
 			    (bytes[count] = conv_tbl[encoded[e_pos] - 0x2b]) == -1)
 			{
 			#ifdef  DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" ignoring %c in base64\n" , encoded[e_pos]) ;
+				if( encoded[e_pos] != CTL_CR && encoded[e_pos] != CTL_LF)
+				{
+					kik_debug_printf( KIK_DEBUG_TAG
+						" ignoring %c in base64\n" , encoded[e_pos]) ;
+				}
 			#endif
 
 				if( e_len <= e_pos + 1)

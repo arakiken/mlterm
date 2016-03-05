@@ -1,3 +1,17 @@
+2016-03-05  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: 'mlcc font USASCII <Font Name>' is available.
+
+	* x_font_config.c: Unnecessary kik_str_alloca_dup() is removed.
+
+	* quartz/x_imagelib.c: If gif file path is ~/.mlterm/anim*, split_animation_gif()
+	  is not called.
+
+	* quartz/x_font.c: x_font_t::ot_font_not_found is checked in
+	  x_font_has_ot_layout_table().
+
+	* kik_mem.c: Illegal access to unallocated memory in kik_mem_free_all() is fixed.
+
 2016-03-03  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/cocoa.m: [NSRunLoop runUntilDate] is called if huge data is received

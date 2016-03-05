@@ -6,6 +6,7 @@ ver 3.7.0
   [Charset] = [Font name];[Size],[Font name];[Size],[Font name];...
   -> [Charset] = [Font name]
 * Drop XT_CBLINK (CSI?12h/CSI?12l) support.
+* Simplify font configuration of OSC 5379. ('mlcc font USASCII <Font name>' is available.)
 * Bug fixes:
   Fix illegal memory access on MacOSX/Cocoa and Android.
   Fix segfault in spliting window on MacOSX/Cocoa. (Enbugged at 3.6.2)

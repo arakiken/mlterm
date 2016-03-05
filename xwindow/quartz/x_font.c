@@ -454,6 +454,11 @@ x_font_has_ot_layout_table(
 	if( ! font->ot_font)
 	{
 	#ifdef  USE_HARFBUZZ
+		if( font->ot_font_not_found)
+		{
+			return  0 ;
+		}
+
 		font->ot_font = otl_open( font->cg_font , 0) ;
 	#else
 		char *  path ;

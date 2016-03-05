@@ -224,7 +224,8 @@ load_file(
 		{
 			char *  dir ;
 
-			if( ( dir = kik_get_user_rc_path( "mlterm/")))
+			if( ! strstr( path , "mlterm/anim") &&	/* is animation gif */
+			    ( dir = kik_get_user_rc_path( "mlterm/")))
 			{
 				split_animation_gif( path , dir , hash_path( path)) ;
 				free( dir) ;

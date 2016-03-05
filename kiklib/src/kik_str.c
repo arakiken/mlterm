@@ -102,7 +102,7 @@ kik_str_dup(
 	const char *  func	/* should be allocated memory. */
 	)
 {
-	char *  new_str = NULL ;
+	char *  new_str ;
 
 	if( ( new_str = kik_mem_malloc( strlen( str) + 1 , file , line , func)) == NULL)
 	{
