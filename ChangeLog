@@ -1,3 +1,26 @@
+2016-03-06  Araki Ken  <arakiken@users.sf.net>
+
+	* x_color_cache.[ch]:
+	  x_color_cache_256_t -> xc_olor_cache_256ext_t which contains extended colors.
+
+	* x_color.h: The type of pixel is changed from u_long to u_int32_t in x_color_t.
+
+	* ml_color.[ch]:
+	  - 0x100-0x1ef is used to allocate 24bit colors. (Named as "extended colors")
+	  - 0x100-0x106 (ML_FG_COLOR-ML_CROSSED_OUT_COLOR) is moved to 0x1f0-0x1f6.
+	  - MAX_256_COLORS, MAX_EXT_COLORS, MAX_256EXT_COLORS, IS_EXT_COLOR(),
+	    IS_256EXT_COLOR(), EXT_COLOR_TO_INDEX(), INDEX_TO_EXT_COLORS(),
+	    COLOR_DISTANCE() and COLOR_DISTANCE_THRESHOLD macros are added.
+	  - ml_ext_color_is_changed() is added.
+	  - ml_get_closest_color() and ml_get_color_rgba() consider extended colors.
+	  - IS_VALID_COLOR_EXCEPT_FG_BG() is renamed to IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS().
+
+	* kik_map.h:
+	  - The number of searching is decreased.
+	  - MAP_MARGIN_SIZE macro is newly defined.
+
+	* kik_map.c: Minor fixes of test code.
+
 2016-03-05  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: 'mlcc font USASCII <Font Name>' is available.

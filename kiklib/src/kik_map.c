@@ -98,7 +98,9 @@ kik_map_compare_int(
 #define  kik_debug_printf  printf
 
 #undef  DEFAULT_MAP_SIZE
-#define DEFAULT_MAP_SIZE 2
+#define DEFAULT_MAP_SIZE 4
+#undef  MAP_MARGIN_SIZE
+#define MAP_MARGIN_SIZE  2
 
 KIK_MAP_TYPEDEF( test , int , char *) ;
 
@@ -111,48 +113,49 @@ main(void)
 	u_int  size ;
 	int  result ;
 	int  key ;
-	char *  table[] = { "a" , "b" , "c" , "d" , "e" , "f" , "g" } ;
+	char *  table[] = { "a" , "b" , "c" , "d" , "e" , "f" , "g" , "h" , "i" , "j" , "k" , } ;
 
-	kik_map_new_with_size( int , char * , map , kik_map_hash_int , kik_map_compare_int , 2) ;
+	kik_map_new_with_size( int , char * , map , kik_map_hash_int , kik_map_compare_int ,
+		DEFAULT_MAP_SIZE) ;
 
 	for( key = 0 ; key < sizeof(table) / sizeof(table[0]) ; key++)
 	{
-		kik_map_set( result , map , key , table[key]) ;
+		kik_map_set( result , map , key * 3 , table[key]) ;
 	}
 
 	printf( "MAP SIZE %d / FILLED %d\n" , map->map_size , map->filled_size) ;
 
 	for( key = 0 ; key < sizeof(table) / sizeof(table[0]) ; key++)
 	{
-		kik_map_get( map , key , pair) ;
+		kik_map_get( map , key * 3 , pair) ;
 		if( pair)
 		{
-			printf( "%d %s\n" , key , pair->value) ;
+			printf( "%d %s\n" , key * 3 , pair->value) ;
 		}
 		else
 		{
-			printf( "The value of the key %d is not found\n" , key) ;
+			printf( "The value of the key %d is not found\n" , key * 3) ;
 		}
 	}
 
 	for( key = 0 ; key < sizeof(table) / sizeof(table[0]) - 2 ; key++)
 	{
-		printf( "KEY %d is erased.\n" , key) ;
-		kik_map_erase( result , map , key) ;
+		printf( "KEY %d is erased.\n" , key * 3) ;
+		kik_map_erase( result , map , key * 3) ;
 	}
 
 	printf( "MAP SIZE %d / FILLED %d\n" , map->map_size , map->filled_size) ;
 
 	for( key = 0 ; key < sizeof(table) / sizeof(table[0]) ; key++)
 	{
-		kik_map_get( map , key , pair) ;
+		kik_map_get( map , key * 3 , pair) ;
 		if( pair)
 		{
-			printf( "%d %s\n" , key , pair->value) ;
+			printf( "%d %s\n" , key * 3 , pair->value) ;
 		}
 		else
 		{
-			printf( "The value of the key %d is not found\n" , key) ;
+			printf( "The value of the key %d is not found\n" , key * 3) ;
 		}
 	}
 

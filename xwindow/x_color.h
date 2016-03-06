@@ -17,7 +17,7 @@
 typedef struct x_color
 {
 	/* Public */
-	u_long  pixel ;
+	u_int32_t  pixel ;
 
 } x_color_t ;
 
@@ -26,7 +26,7 @@ typedef struct x_color
 typedef struct x_color
 {
 	/* Public */
-	u_long  pixel ;
+	u_int32_t  pixel ;
 
 	/* Private except x_color_cache.c */
 	u_int8_t  red ;

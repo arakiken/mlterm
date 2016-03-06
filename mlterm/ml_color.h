@@ -11,15 +11,26 @@
 
 #define  MAX_VTSYS_COLORS  16
 #define  MAX_BASIC_VTSYS_COLORS  8
+#define  MAX_256_COLORS  240
+#define  MAX_EXT_COLORS  240
+#define  MAX_256EXT_COLORS  (MAX_256_COLORS + MAX_EXT_COLORS)
 
 /* same as 0 <= color <= 0x7 */
 #define  IS_VTSYS_BASE_COLOR(color)  ((unsigned int)(color) <= 0x7)
 /* same as 0 <= color <= 0xf */
 #define  IS_VTSYS_COLOR(color)  ((unsigned int)(color) <= 0xf)
 #define  IS_256_COLOR(color)  (0x10 <= (color) && (color) <= 0xff)
-#define  IS_VALID_COLOR_EXCEPT_FG_BG(color)  ((unsigned int)(color) <= 0xff)
-#define  IS_FG_BG_COLOR(color)  (0x100 <= (color) && (color) <= 0x101)
-#define  IS_ALT_COLOR(color)  (0x102 <= (color))
+#define  IS_EXT_COLOR(color)  (0x100 <= (color) && (color) <= 0x1ef)
+#define  IS_256EXT_COLOR(color)  (0x10 <= (color) && (color) <= 0x1ef)
+#define  IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color)  ((unsigned int)(color) <= 0x1ef)
+#define  IS_FG_BG_COLOR(color)  (0x1f0 <= (color) && (color) <= 0x1f1)
+#define  IS_ALT_COLOR(color)  (0x1f2 <= (color))
+#define  EXT_COLOR_TO_INDEX(color)  ((color) - MAX_VTSYS_COLORS - MAX_256_COLORS)
+#define  INDEX_TO_EXT_COLOR(color)  ((color) + MAX_VTSYS_COLORS + MAX_256_COLORS)
+#define  COLOR_DISTANCE( diff_r , diff_g , diff_b) \
+		((diff_r) * (diff_r) * 9 + (diff_g) * (diff_g) * 30 + (diff_b) * (diff_b))
+/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
+#define  COLOR_DISTANCE_THRESHOLD  640
 
 
 typedef enum  ml_color
@@ -49,14 +60,18 @@ typedef enum  ml_color
 	 * 0x10 - 0xff: 240 colors.
 	 */
 
-	ML_FG_COLOR = 0x100 ,
-	ML_BG_COLOR = 0x101 ,
+	/*
+	 * 0x100 - 0x1ef: 241-480 colors.
+	 */
 
-	ML_BOLD_COLOR = 0x102 ,
-	ML_ITALIC_COLOR = 0x103 ,
-	ML_UNDERLINE_COLOR = 0x104 ,
-	ML_BLINKING_COLOR = 0x105 ,
-	ML_CROSSED_OUT_COLOR = 0x106 ,
+	ML_FG_COLOR = 0x1f0 ,
+	ML_BG_COLOR = 0x1f1 ,
+
+	ML_BOLD_COLOR = 0x1f2 ,
+	ML_ITALIC_COLOR = 0x1f3 ,
+	ML_UNDERLINE_COLOR = 0x1f4 ,
+	ML_BLINKING_COLOR = 0x1f5 ,
+	ML_CROSSED_OUT_COLOR = 0x1f6 ,
 
 } ml_color_t ;
 
@@ -79,6 +94,8 @@ int  ml_color_parse_rgb_name( u_int8_t *  red, u_int8_t *  green, u_int8_t *  bl
 	u_int8_t *  alpha, const char *  name) ;
 
 ml_color_t  ml_get_closest_color( u_int8_t  red , u_int8_t  green , u_int8_t  blue) ;
+
+int  ml_ext_color_is_changed( ml_color_t  color) ;
 
 
 #endif

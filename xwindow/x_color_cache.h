@@ -10,23 +10,23 @@
 #include  "x_color.h"
 
 
-typedef struct x_color_cache_256
+typedef struct x_color_cache_256ext
 {
-	x_color_t  xcolors[240] ;
-	u_int8_t  is_loaded[240] ;
+	x_color_t  xcolors[MAX_256EXT_COLORS] ;
+	u_int8_t  is_loaded[MAX_256EXT_COLORS] ;
 
 	u_int  ref_count ;
 
-} x_color_cache_256_t ;
+} x_color_cache_256ext_t ;
 
 typedef struct x_color_cache
 {
 	x_display_t *  disp ;
 
-	x_color_t  xcolors[16] ;
-	u_int8_t  is_loaded[16] ;
+	x_color_t  xcolors[MAX_VTSYS_COLORS] ;
+	u_int8_t  is_loaded[MAX_VTSYS_COLORS] ;
 
-	x_color_cache_256_t *  cache_256 ;
+	x_color_cache_256ext_t *  cache_256ext ;
 
 	x_color_t  black ;
 

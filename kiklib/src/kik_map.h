@@ -14,6 +14,7 @@
 
 
 #define  DEFAULT_MAP_SIZE  16
+#define  MAP_MARGIN_SIZE    2
 
 
 #define  KIK_PAIR( name)  __ ## name ## _pair_t
@@ -90,23 +91,38 @@ typedef struct  __ ## name ## _map \
 
 #define  kik_map_get( map , __key , __pair_p) \
 { \
-	int  __hash_key ; \
-	u_int  __count ; \
+	u_int  filled_size ; \
 	\
 	__pair_p = NULL ; \
 	\
-	__hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
-	for( __count = 0 ; __count < (map)->map_size ; __count ++) \
+	if( ( filled_size = (map)->filled_size) > 0) \
 	{ \
-		if( (map)->pairs[__hash_key].is_filled && \
-			(*(map)->compare_func)( __key , (map)->pairs[__hash_key].key)) \
-		{ \
-			__pair_p = &(map)->pairs[__hash_key] ; \
-			\
-			break ; \
-		} \
+		int  __hash_key ; \
 		\
-		__hash_key = kik_map_rehash( __hash_key , (map)->map_size) ; \
+		__hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
+		do \
+		{ \
+			if( (map)->pairs[__hash_key].is_filled) \
+			{ \
+				if( (*(map)->compare_func)( __key , \
+					(map)->pairs[__hash_key].key)) \
+				{ \
+					__pair_p = &(map)->pairs[__hash_key] ; \
+					\
+					break ; \
+				} \
+				\
+				filled_size -- ; \
+			} \
+			\
+			__hash_key = kik_map_rehash( __hash_key , (map)->map_size) ; \
+		} \
+		while( filled_size > 0) ; \
+	} \
+	\
+	if( 0 && __pair_p) \
+	{ \
+		printf( "Found key in %d times\n" , (map)->filled_size - filled_size + 1) ; \
 	} \
 }
 
@@ -130,7 +146,7 @@ typedef struct  __ ## name ## _map \
 	\
 	result = 0 ; \
 	\
-	if( (map)->map_size == (map)->filled_size) \
+	if( (map)->map_size == (map)->filled_size + MAP_MARGIN_SIZE) \
 	{ \
 		/* \
 		 * Expanding map by DEFAULT_MAP_SIZE \

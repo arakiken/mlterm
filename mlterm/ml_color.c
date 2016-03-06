@@ -315,6 +315,17 @@ static u_int8_t color256_rgb_table[][3] =
 static char *  color_file = "mlterm/color" ;
 static KIK_MAP( color_rgb)  color_config ;
 
+static struct
+{
+	u_int  is_changed: 1 ;
+	u_int  mark: 7 ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
+
+} *  ext_color_table ;
+static u_int  ext_color_mark = 1 ;
+
 
 /* --- static functions --- */
 
@@ -638,7 +649,7 @@ ml_get_color(
 
 	if( sscanf( name, "%d", (int*) &color) == 1)
 	{
-		if( IS_VALID_COLOR_EXCEPT_FG_BG(color))
+		if( IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color))
 		{
 			return  color ;
 		}
@@ -668,8 +679,22 @@ ml_get_color_rgba(
 	u_int8_t *  alpha	/* can be NULL */
 	)
 {
-	if( ! IS_VALID_COLOR_EXCEPT_FG_BG(color))
+	if( ! IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color))
 	{
+		return  0 ;
+	}
+
+	if( IS_EXT_COLOR(color))
+	{
+		if( ext_color_table && ext_color_table[EXT_COLOR_TO_INDEX(color)].mark > 0)
+		{
+			*red = ext_color_table[EXT_COLOR_TO_INDEX(color)].red ;
+			*green = ext_color_table[EXT_COLOR_TO_INDEX(color)].green ;
+			*blue = ext_color_table[EXT_COLOR_TO_INDEX(color)].blue ;
+
+			goto  end ;
+		}
+
 		return  0 ;
 	}
 
@@ -707,6 +732,7 @@ ml_get_color_rgba(
 		*red = tmp ;
 	}
 
+end:
 	if( alpha)
 	{
 		*alpha = 0xff ;
@@ -859,6 +885,9 @@ ml_get_closest_color(
 	ml_color_t  closest = ML_UNKNOWN_COLOR ;
 	ml_color_t  color ;
 	u_long  min = 0xffffff ;
+	ml_color_t  oldest_color ;
+	u_int  oldest_mark ;
+	u_int  max = 0 ;
 
 	for( color = 0 ; color < 256 ; color++)
 	{
@@ -876,20 +905,136 @@ ml_get_closest_color(
 			diff_r = red - r ;
 			diff_g = green - g ;
 			diff_b = blue - b ;
-			diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 +
-				diff_b * diff_b ;
+			diff = COLOR_DISTANCE(diff_r,diff_g,diff_b) ;
 			if( diff < min)
 			{
 				min = diff ;
 				closest = color ;
-				/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
-				if( diff < 640)
+				if( diff < COLOR_DISTANCE_THRESHOLD)
 				{
-					break ;
+					return  closest ;
 				}
 			}
 		}
 	}
 
-	return  closest ;
+	if( ! ext_color_table &&
+	    ! ( ext_color_table = calloc( 240 , sizeof(*ext_color_table))))
+	{
+		return  closest ;
+	}
+
+	if( ( oldest_mark = ext_color_mark / 2) == 120)
+	{
+		oldest_mark = 1 ;
+	}
+	else
+	{
+		oldest_mark ++ ;
+	}
+
+	if( ext_color_mark == MAX_EXT_COLORS)
+	{
+		ext_color_mark = 2 ;
+	}
+	else
+	{
+		ext_color_mark ++ ;
+	}
+
+	color = 0 ;
+	while( ext_color_table[color].mark)
+	{
+		u_long  diff ;
+		int  diff_r , diff_g , diff_b ;
+
+		/* lazy color-space conversion */
+		diff_r = red - ext_color_table[color].red ;
+		diff_g = green - ext_color_table[color].green ;
+		diff_b = blue - ext_color_table[color].blue ;
+		diff = COLOR_DISTANCE(diff_r,diff_g,diff_b) ;
+		if( diff < min)
+		{
+			min = diff ;
+			if( diff < COLOR_DISTANCE_THRESHOLD)
+			{
+				ext_color_table[color].mark = ext_color_mark / 2 ;
+
+			#ifdef  __DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Use cached ext color %x\n" ,
+					INDEX_TO_EXT_COLOR(color)) ;
+			#endif
+
+				return  INDEX_TO_EXT_COLOR(color) ;
+			}
+		}
+
+		if( ext_color_table[color].mark == oldest_mark)
+		{
+			ext_color_table[color].is_changed = 1 ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Delete ext color %x\n" ,
+				INDEX_TO_EXT_COLOR(color)) ;
+		#endif
+
+			break ;
+		}
+		else if( ext_color_table[color].mark < oldest_mark)
+		{
+			diff = oldest_mark - ext_color_table[color].mark ;
+		}
+		else /* if( ext_color_table[color].mark > oldest_mark) */
+		{
+			diff = oldest_mark + (MAX_EXT_COLORS / 2) - ext_color_table[color].mark ;
+		}
+
+		if( diff > max)
+		{
+			max = diff ;
+			oldest_color = color ;
+		}
+
+		if( ++color == MAX_EXT_COLORS)
+		{
+			ext_color_table[color].is_changed = 1 ;
+			color = oldest_color ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Delete ext color %x\n" ,
+				INDEX_TO_EXT_COLOR(color)) ;
+		#endif
+
+			break ;
+		}
+	}
+
+	ext_color_table[color].mark = ext_color_mark / 2 ;
+	ext_color_table[color].red = red ;
+	ext_color_table[color].green = green ;
+	ext_color_table[color].blue = blue ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG "New ext color %.2x: r%.2x g%x b%.2x\n" ,
+		INDEX_TO_EXT_COLOR(color) , red , green , blue) ;
+#endif
+
+	return  INDEX_TO_EXT_COLOR(color) ;
+}
+
+int
+ml_ext_color_is_changed(
+	ml_color_t  color
+	)
+{
+	if( ext_color_table[EXT_COLOR_TO_INDEX(color)].is_changed)
+	{
+		ext_color_table[EXT_COLOR_TO_INDEX(color)].is_changed = 0 ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }

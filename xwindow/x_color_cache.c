@@ -16,26 +16,26 @@ static u_int  num_of_caches ;
 
 /* --- static functions --- */
 
-static x_color_cache_256_t *
-acquire_color_cache_256(
+static x_color_cache_256ext_t *
+acquire_color_cache_256ext(
 	x_display_t *  disp
 	)
 {
 	u_int  count ;
-	x_color_cache_256_t *  cache ;
+	x_color_cache_256ext_t *  cache ;
 
 	for( count = 0 ; count < num_of_caches ; count++)
 	{
 		if( color_caches[count]->disp == disp &&
-			color_caches[count]->cache_256)
+			color_caches[count]->cache_256ext)
 		{
-			color_caches[count]->cache_256->ref_count ++ ;
+			color_caches[count]->cache_256ext->ref_count ++ ;
 			
-			return  color_caches[count]->cache_256 ;
+			return  color_caches[count]->cache_256ext ;
 		}
 	}
 
-	if( ( cache = calloc( 1 , sizeof( x_color_cache_256_t))) == NULL)
+	if( ( cache = calloc( 1 , sizeof( x_color_cache_256ext_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -46,7 +46,7 @@ acquire_color_cache_256(
 }
 
 static x_color_t *
-get_cached_256_xcolor(
+get_cached_256ext_xcolor(
 	x_color_cache_t *  color_cache ,
 	ml_color_t  color
 	)
@@ -56,41 +56,59 @@ get_cached_256_xcolor(
 	u_int8_t  blue ;
 	u_int8_t  alpha ;
 
-	if( ! IS_256_COLOR(color))
+	if( ! IS_256EXT_COLOR(color))
 	{
 		return  NULL ;
 	}
 
-	if( ! color_cache->cache_256 &&
-	    ! ( color_cache->cache_256 = acquire_color_cache_256( color_cache->disp)))
+	if( ! color_cache->cache_256ext &&
+	    ! ( color_cache->cache_256ext = acquire_color_cache_256ext( color_cache->disp)))
 	{
 		return  NULL ;
 	}
 
-	if( color_cache->cache_256->is_loaded[color - 16])
+	if( color_cache->cache_256ext->is_loaded[color - 16])
 	{
-		return  &color_cache->cache_256->xcolors[color - 16] ;
+		if( IS_256_COLOR(color) || ! ml_ext_color_is_changed(color))
+		{
+			return  &color_cache->cache_256ext->xcolors[color - 16] ;
+		}
+		else
+		{
+			u_int  count ;
+
+			for( count = 0 ; count < num_of_caches ; count++)
+			{
+				if( color_caches[count]->cache_256ext)
+				{
+					x_unload_xcolor( color_caches[count]->disp ,
+						&color_caches[count]->cache_256ext->xcolors[color - 16]) ;
+					color_caches[count]->is_loaded[color - 16] = 0 ;
+				}
+			}
+		}
 	}
 
 	if( ! ml_get_color_rgba( color , &red , &green , &blue , &alpha) ||
 	    ! x_load_rgb_xcolor( color_cache->disp ,
-			&color_cache->cache_256->xcolors[color - 16] , red , green , blue , alpha))
+			&color_cache->cache_256ext->xcolors[color - 16] ,
+			red , green , blue , alpha))
 	{
 		return  NULL ;
 	}
 
 	/*
-	 * 16-255 colors ignore color_cache->fade_ratio.
+	 * 16-479 colors ignore color_cache->fade_ratio.
 	 */
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " new color %x %x\n" ,
-		color , color_cache->cache_256->xcolors[color - 16].pixel) ;
+		color , color_cache->cache_256ext->xcolors[color - 16].pixel) ;
 #endif
 
-	color_cache->cache_256->is_loaded[color - 16] = 1 ;
+	color_cache->cache_256ext->is_loaded[color - 16] = 1 ;
 
-	return  &color_cache->cache_256->xcolors[color - 16] ;
+	return  &color_cache->cache_256ext->xcolors[color - 16] ;
 }
 
 static x_color_t *
@@ -253,23 +271,25 @@ x_color_cache_unload(
 		}
 	}
 
-	if( color_cache->cache_256 && -- color_cache->cache_256->ref_count == 0)
+	if( color_cache->cache_256ext && -- color_cache->cache_256ext->ref_count == 0)
 	{
-		x_color_cache_256_t *  cache_256 ;
+		x_color_cache_256ext_t *  cache_256ext ;
 
-		cache_256 = color_cache->cache_256 ;
+		cache_256ext = color_cache->cache_256ext ;
 		for( color = 0 ;
-		     color < sizeof(cache_256->xcolors) / sizeof(cache_256->xcolors[0]) ; color++)
+		     color < sizeof(cache_256ext->xcolors) / sizeof(cache_256ext->xcolors[0]) ;
+		     color++)
 		{
-			if( cache_256->is_loaded[color])
+			if( cache_256ext->is_loaded[color])
 			{
-				x_unload_xcolor( color_cache->disp , &cache_256->xcolors[color]) ;
-				cache_256->is_loaded[color] = 0 ;
+				x_unload_xcolor( color_cache->disp ,
+					&cache_256ext->xcolors[color]) ;
+				cache_256ext->is_loaded[color] = 0 ;
 			}
 		}
 
-		free( cache_256) ;
-		color_cache->cache_256 = NULL ;
+		free( cache_256ext) ;
+		color_cache->cache_256ext = NULL ;
 	}
 
 	return  1 ;
@@ -334,7 +354,7 @@ x_get_cached_xcolor(
 		return  xcolor ;
 	}
 	
-	if( ( xcolor = get_cached_256_xcolor( color_cache, color)))
+	if( ( xcolor = get_cached_256ext_xcolor( color_cache, color)))
 	{
 		return  xcolor ;
 	}
