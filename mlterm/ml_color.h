@@ -76,6 +76,8 @@ typedef enum  ml_color
 } ml_color_t ;
 
 
+void  ml_set_use_approximate_vt_color( int  use) ;
+
 int  ml_color_config_init(void) ;
 
 int  ml_color_config_final(void) ;
@@ -91,7 +93,10 @@ int  ml_get_color_rgba( ml_color_t  color, u_int8_t *  red, u_int8_t *  green,
 		u_int8_t *  blue, u_int8_t *  alpha) ;
 
 int  ml_color_parse_rgb_name( u_int8_t *  red, u_int8_t *  green, u_int8_t *  blue,
-	u_int8_t *  alpha, const char *  name) ;
+		u_int8_t *  alpha, const char *  name) ;
+
+u_int  ml_get_closest_256_color( ml_color_t *  closest , u_int *  min_diff ,
+		u_int8_t  red , u_int8_t  green , u_int8_t  blue) ;
 
 ml_color_t  ml_get_closest_color( u_int8_t  red , u_int8_t  green , u_int8_t  blue) ;
 

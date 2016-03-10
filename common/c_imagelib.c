@@ -335,8 +335,8 @@ closest_color_index(
 {
 	int  closest = 0 ;
 	int  i ;
-	u_long  min = 0xffffff ;
-	u_long  diff ;
+	u_int  min = 0xffffff ;
+	u_int  diff ;
 	int  diff_r , diff_g , diff_b ;
 
 	for( i = 0 ; i < len ; i++)

@@ -1,3 +1,24 @@
+2016-03-11  Araki Ken  <arakiken@users.sf.net>
+
+	* x_main_config.c: "use_approximate_vt_color" option is added.
+
+	* fb/x_display.c: The performance of x_cmap_get_closest_color() is improved
+	  by using ml_get_closest_256_color().
+
+	* ml_color.c:
+	  - ml_set_use_approximate_vt_color() is added.
+	  - ml_get_closest_256_color() is added.
+	  - The performance of ml_get_closest_color() is improved by using
+	    ml_get_closest_256_color().
+
+	* ml_vt100_parser.c:
+	  - Whether ps is -1 or not is checked before calling ml_get_closest_color().
+	  - "use_approximate_vt_color" is added to OSC 5379.
+
+	* c_imagelib.c, fb/x_display.c, ml_color.c:
+	  The variable type of holding distance of colors in searching
+	  approximate color is changed from u_long to u_int.
+
 2016-03-06  Araki Ken  <arakiken@users.sf.net>
 
 	* x_color_cache.[ch]:

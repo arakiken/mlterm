@@ -78,7 +78,7 @@ alloc_closest_xcolor_pseudo(
 		diff_r = red - (all_colors[i].red >> 8) ;
 		diff_g = green - (all_colors[i].green >> 8) ;
 		diff_b = blue - (all_colors[i].blue >> 8) ;
-		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
+		diff = COLOR_DISTANCE( diff_r , diff_g , diff_b) ;
 
 		if ( diff < min_diff)
 		{
@@ -86,7 +86,7 @@ alloc_closest_xcolor_pseudo(
 			closest_index = i ;
 
 			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
-			if( diff < 640)
+			if( diff < COLOR_DISTANCE_THRESHOLD)
 			{
 				break ;
 			}

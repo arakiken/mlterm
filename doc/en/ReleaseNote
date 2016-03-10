@@ -7,6 +7,9 @@ ver 3.7.0
   -> [Charset] = [Font name]
 * Drop XT_CBLINK (CSI?12h/CSI?12l) support.
 * Simplify font configuration of OSC 5379. ('mlcc font USASCII <Font name>' is available.)
+* "CSI 38;2;r;g;b m" and "CSI 48;2;r;g;b m" shows high colors instead of
+  approximate vt 256 colors.
+* Add "use_approximate_vt_color" / --approximate option which disables high colors.
 * Bug fixes:
   Fix illegal memory access on MacOSX/Cocoa and Android.
   Fix segfault in spliting window on MacOSX/Cocoa. (Enbugged at 3.6.2)

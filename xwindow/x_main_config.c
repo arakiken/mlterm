@@ -307,8 +307,10 @@ x_prepare_for_main_config(
 		"working directory") ;
 	kik_conf_add_opt( conf , '\0' , "seqfmt" , 0 , "vt_seq_format" ,
 		"format of logging vt100 sequence. [raw]") ;
-	kik_conf_add_opt( conf , '\0' , "uriword" , 0 , "regard_uri_as_word" ,
+	kik_conf_add_opt( conf , '\0' , "uriword" , 1 , "regard_uri_as_word" ,
 		"select uri by double-clicking it [false]") ;
+	kik_conf_add_opt( conf , '\0' , "approximate" , 1 , "use_approximate_vt_color" ,
+		"disable true color [false]") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [true]") ;
@@ -769,7 +771,10 @@ x_main_config_init(
 #ifndef  USE_QUARTZ
 	if( ( value = kik_conf_get_value( conf , "use_mdi")))
 	{
-		main_config->use_mdi = (strcmp( value , "true") == 0) ;
+		if( strcmp( value , "false") == 0)
+		{
+			main_config->use_mdi = 0 ;
+		}
 	}
 #endif
 
@@ -1405,18 +1410,12 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "regard_uri_as_word")))
 	{
-		if( strcmp( value , "true") == 0)
-		{
-			ml_set_regard_uri_as_word( 1) ;
-		}
+		ml_set_regard_uri_as_word( strcmp( value , "true") == 0) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
 	{
-		if( strcmp( value , "false") == 0)
-		{
-			x_set_use_clipboard_selection( 0) ;
-		}
+		x_set_use_clipboard_selection( strcmp( value , "true") == 0) ;
 	}
 
 	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
@@ -1483,6 +1482,11 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "working_directory")))
 	{
 		main_config->work_dir = strdup( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_approximate_vt_color")))
+	{
+		ml_set_use_approximate_vt_color( strcmp( value , "true") == 0) ;
 	}
 
 #ifdef  USE_OT_LAYOUT

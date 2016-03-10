@@ -2550,6 +2550,7 @@ change_char_fine_color(
 	int  num
 	)
 {
+	int  count ;
 	int  proceed ;
 	ml_color_t  color ;
 
@@ -2561,12 +2562,15 @@ change_char_fine_color(
 	if( num >= 3 && ps[1] == 5)
 	{
 		proceed = 3 ;
-		color = ps[2] ;
+		color = (ps[2] <= 0 ? 0 : ps[2]) ;
 	}
 	else if( num >= 5 && ps[1] == 2)
 	{
 		proceed = 5 ;
-		color = ml_get_closest_color( ps[2] , ps[3] , ps[4]) ;
+		color = ml_get_closest_color(
+				ps[2] <= 0 ? 0 : ps[2] ,
+				ps[3] <= 0 ? 0 : ps[3] ,
+				ps[4] <= 0 ? 0 : ps[4]) ;
 	}
 	else
 	{
@@ -5640,7 +5644,7 @@ parse_vt100_escape_sequence(
 					}
 					else
 					{
-						if( ps[count] <= 0)
+						if( ps[count] < 0)
 						{
 							ps[count] = 0 ;
 						}
@@ -5674,12 +5678,12 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI r" set scroll region */
 
-				if( ps[0] <= 0)
+				if( ps[0] < 0)
 				{
 					ps[0] = 0 ;
 				}
 
-				if( num <= 1 || ps[1] <= 0)
+				if( num <= 1 || ps[1] < 0)
 				{
 					ps[1] = 0 ;
 				}
@@ -5782,7 +5786,7 @@ parse_vt100_escape_sequence(
 
 				/* XXX the same as rxvt */
 
-				if( ps[0] <= 0)
+				if( ps[0] < 0)
 				{
 					ps[0] = 0 ;
 				}
@@ -8354,6 +8358,15 @@ ml_vt100_parser_set_config(
 		if( ( flag = true_or_false( value)) != -1)
 		{
 			ml_set_regard_uri_as_word( flag) ;
+		}
+	}
+	else if( strcmp( key , "use_approximate_vt_color") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) != -1)
+		{
+			ml_set_use_approximate_vt_color( flag) ;
 		}
 	}
 	else if( strcmp( key , "use_alt_buffer") == 0)

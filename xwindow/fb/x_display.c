@@ -2510,7 +2510,7 @@ x_display_reset_input_method_window(void)
 /* seek the closest color */
 int
 x_cmap_get_closest_color(
-	u_long *  closest ,
+	u_int *  closest ,
 	int  red ,
 	int  green ,
 	int  blue
@@ -2519,9 +2519,10 @@ x_cmap_get_closest_color(
 	u_int  segment ;
 	u_int  offset ;
 	u_int  color ;
-	u_long  min = 0xffffff ;
-	u_long  diff ;
+	u_int  min = 0xffffff ;
+	u_int  diff ;
 	int  diff_r , diff_g , diff_b ;
+	u_int  linear_search_max ;
 
 	if( ! _display.cmap)
 	{
@@ -2564,7 +2565,16 @@ x_cmap_get_closest_color(
 		return  1 ;
 	}
 
-	for( color = 0 ; color < CMAP_SIZE(_display.cmap) ; color++)
+	if( ( linear_search_max = CMAP_SIZE(_display.cmap)) == 256)
+	{
+		if( ( linear_search_max = ml_get_closest_256_color( closest , &min ,
+						red , green , blue)) == 0)
+		{
+			goto  end ;
+		}
+	}
+
+	for( color = 0 ; color < linear_search_max ; color++)
 	{
 	#ifdef  USE_GRF
 		if( grf0_fd != -1 && ! use_tvram_cmap && color == TP_COLOR)
@@ -2577,7 +2587,7 @@ x_cmap_get_closest_color(
 		diff_r = red - WORD_COLOR_TO_BYTE(_display.cmap->red[color]) ;
 		diff_g = green - WORD_COLOR_TO_BYTE(_display.cmap->green[color]) ;
 		diff_b = blue - WORD_COLOR_TO_BYTE(_display.cmap->blue[color]) ;
-		diff = diff_r * diff_r * 9 + diff_g * diff_g * 30 + diff_b * diff_b ;
+		diff = COLOR_DISTANCE( diff_r , diff_g , diff_b) ;
 
 		if( diff < min)
 		{
@@ -2585,13 +2595,14 @@ x_cmap_get_closest_color(
 			*closest = color ;
 
 			/* no one may notice the difference (4[2^3/2]*4*9+4*4*30+4*4) */
-			if( diff < 640)
+			if( diff < COLOR_DISTANCE_THRESHOLD)
 			{
 				break ;
 			}
 		}
 	}
 
+end:
 #ifndef  COLOR_CACHE_MINIMUM
 	_display.color_cache->flags[offset / 32] |= (1 << (offset & 31)) ;
 #else

@@ -314,6 +314,7 @@ static u_int8_t color256_rgb_table[][3] =
 
 static char *  color_file = "mlterm/color" ;
 static KIK_MAP( color_rgb)  color_config ;
+static u_int  num_of_changed_256_colors ;
 
 static struct
 {
@@ -325,6 +326,7 @@ static struct
 
 } *  ext_color_table ;
 static u_int  ext_color_mark = 1 ;
+static int  use_approximate_vt_color ;
 
 
 /* --- static functions --- */
@@ -414,6 +416,8 @@ color_config_set_rgb(
 					color , r , g , b , red , green , blue) ;
 			}
 		#endif
+
+			num_of_changed_256_colors ++ ;
 		}
 
 		kik_map_set( result , color_config , color , rgb) ;
@@ -483,6 +487,11 @@ parse_conf(
 		{
 			int  result ;
 
+			if( IS_256_COLOR(color))
+			{
+				num_of_changed_256_colors -- ;
+			}
+
 			kik_map_erase_simple( result , color_config , color) ;
 
 			return  1 ;
@@ -536,6 +545,14 @@ read_conf(
 
 
 /* --- global functions --- */
+
+void
+ml_set_use_approximate_vt_color(
+	int  use
+	)
+{
+	use_approximate_vt_color = use ;
+}
 
 int
 ml_color_config_init(void)
@@ -875,6 +892,104 @@ end:
 	return  1 ;
 }
 
+#if  0
+#undef  COLOR_DISTANCE_THRESHOLD
+#define  COLOR_DISTANCE_THRESHOLD  100
+#endif
+
+/*
+ * Return the number of colors which should be searched after this function.
+ */
+u_int
+ml_get_closest_256_color(
+	ml_color_t *  closest ,
+	u_int *  min_diff ,
+	u_int8_t  red ,
+	u_int8_t  green ,
+	u_int8_t  blue
+	)
+{
+	int  r , g , b ;
+	int  tmp ;
+	ml_color_t  color ;
+	u_int8_t  rgb[3] ;
+	u_int  diff ;
+	int  diff_r , diff_g , diff_b ;
+	int  count ;
+	int  num ;
+
+	if( num_of_changed_256_colors > 0)
+	{
+		return  256 ;
+	}
+
+	/*
+	 * 0 - 47 => 0
+	 * 48 - 114 => 1
+	 * 115 - 154 => 2
+	 * ...
+	 */
+	tmp = (red <= 114 ? (red >= 48) : ((red - 55) + 20) / 40) ;
+	r = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+	color = tmp * 36 ;
+	tmp = (green <= 114 ? (green >= 48) : ((green - 55) + 20) / 40) ;
+	g = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+	color += tmp * 6 ;
+	tmp = (blue <= 114 ? (blue >= 48) : ((blue - 55) + 20) / 40) ;
+	b = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+	color += tmp ;
+	/* lazy color-space conversion */
+	diff_r = red - r ;
+	diff_g = green - g ;
+	diff_b = blue - b ;
+	diff = COLOR_DISTANCE(diff_r,diff_g,diff_b) ;
+	if( diff < *min_diff)
+	{
+		*min_diff = diff ;
+		*closest = color + 0x10 ;
+		if( diff < COLOR_DISTANCE_THRESHOLD)
+		{
+			return  0 ;
+		}
+	}
+
+	num = 1 ;
+	rgb[0] = red ;
+
+	if( red != green)
+	{
+		rgb[num++] = green ;
+	}
+
+	if( red != blue && green != blue)
+	{
+		rgb[num++] = blue ;
+	}
+
+	for( count = 0 ; count < num ; count++)
+	{
+		tmp = (rgb[count] >= 233 ?
+			23 : (rgb[count] <= 12 ? 0 : ((rgb[count] - 8) + 5) / 10)) ;
+		r = g = b = tmp * 10 + 8 ;
+		/* lazy color-space conversion */
+		diff_r = red - r ;
+		diff_g = green - g ;
+		diff_b = blue - b ;
+		diff = COLOR_DISTANCE(diff_r,diff_g,diff_b) ;
+		if( diff < *min_diff)
+		{
+			*min_diff = diff ;
+			*closest = tmp + 0xe8 ;
+			if( diff < COLOR_DISTANCE_THRESHOLD)
+			{
+				return  0 ;
+			}
+		}
+	}
+
+	return  16 ;
+}
+
 ml_color_t
 ml_get_closest_color(
 	u_int8_t  red ,
@@ -884,12 +999,27 @@ ml_get_closest_color(
 {
 	ml_color_t  closest = ML_UNKNOWN_COLOR ;
 	ml_color_t  color ;
-	u_long  min = 0xffffff ;
+	u_int  linear_search_max ;
+	u_int  min = 0xffffff ;
 	ml_color_t  oldest_color ;
 	u_int  oldest_mark ;
 	u_int  max = 0 ;
 
-	for( color = 0 ; color < 256 ; color++)
+#ifdef  __DEBUG
+	ml_color_t  hit_closest = ML_UNKNOWN_COLOR ;
+	ml_get_closest_256_color( &hit_closest , &min , red , green , blue) ;
+	min = 0xffffff ;
+
+	for( color = 16 ; color < 256 ; color++)
+#else
+	if( ( linear_search_max = ml_get_closest_256_color( &closest , &min ,
+					red , green , blue)) == 0)
+	{
+		return  closest ;
+	}
+
+	for( color = 0 ; color < linear_search_max ; color++)
+#endif
 	{
 		u_int8_t  r ;
 		u_int8_t  g ;
@@ -898,7 +1028,7 @@ ml_get_closest_color(
 
 		if( ml_get_color_rgba( color , &r , &g , &b , &a) && a == 0xff)
 		{
-			u_long  diff ;
+			u_int  diff ;
 			int  diff_r , diff_g , diff_b ;
 
 			/* lazy color-space conversion */
@@ -912,14 +1042,43 @@ ml_get_closest_color(
 				closest = color ;
 				if( diff < COLOR_DISTANCE_THRESHOLD)
 				{
+				#ifdef  __DEBUG
+					/*
+					 * XXX
+					 * The result of linear search of boundary values
+					 * (115, 195 etc) is different from that of
+					 * ml_get_closest_256_color() of it.
+					 */
+					if( closest != hit_closest)
+					{
+						kik_debug_printf( "ERROR %x %x %x -> %x<=>%x\n" ,
+							red , green , blue ,
+							closest , hit_closest) ;
+					}
+				#endif
+
 					return  closest ;
 				}
 			}
 		}
 	}
 
-	if( ! ext_color_table &&
-	    ! ( ext_color_table = calloc( 240 , sizeof(*ext_color_table))))
+#ifdef  __DEBUG
+	/*
+	 * XXX
+	 * The result of linear search of boundary values (115, 195 etc) is
+	 * different from that of ml_get_closest_256_color() of it.
+	 */
+	if( closest != hit_closest)
+	{
+		kik_debug_printf( "ERROR %x %x %x -> %x<=>%x\n" ,
+			red , green , blue , closest , hit_closest) ;
+	}
+#endif
+
+	if( use_approximate_vt_color ||
+	    ( ! ext_color_table &&
+	      ! ( ext_color_table = calloc( 240 , sizeof(*ext_color_table)))))
 	{
 		return  closest ;
 	}
@@ -945,7 +1104,7 @@ ml_get_closest_color(
 	color = 0 ;
 	while( ext_color_table[color].mark)
 	{
-		u_long  diff ;
+		u_int  diff ;
 		int  diff_r , diff_g , diff_b ;
 
 		/* lazy color-space conversion */
@@ -969,36 +1128,38 @@ ml_get_closest_color(
 			}
 		}
 
-		if( ext_color_table[color].mark == oldest_mark)
+		if( max == MAX_EXT_COLORS / 2)
 		{
-			ext_color_table[color].is_changed = 1 ;
-
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Delete ext color %x\n" ,
-				INDEX_TO_EXT_COLOR(color)) ;
-		#endif
-
-			break ;
+			/* do nothing */
 		}
-		else if( ext_color_table[color].mark < oldest_mark)
+		else if( ext_color_table[color].mark == oldest_mark)
 		{
-			diff = oldest_mark - ext_color_table[color].mark ;
-		}
-		else /* if( ext_color_table[color].mark > oldest_mark) */
-		{
-			diff = oldest_mark + (MAX_EXT_COLORS / 2) - ext_color_table[color].mark ;
-		}
-
-		if( diff > max)
-		{
-			max = diff ;
+			max = MAX_EXT_COLORS / 2 ;
 			oldest_color = color ;
+		}
+		else
+		{
+			if( ext_color_table[color].mark < oldest_mark)
+			{
+				diff = oldest_mark - ext_color_table[color].mark ;
+			}
+			else /* if( ext_color_table[color].mark > oldest_mark) */
+			{
+				diff = oldest_mark + (MAX_EXT_COLORS / 2) -
+					ext_color_table[color].mark ;
+			}
+
+			if( diff > max)
+			{
+				max = diff ;
+				oldest_color = color ;
+			}
 		}
 
 		if( ++color == MAX_EXT_COLORS)
 		{
-			ext_color_table[color].is_changed = 1 ;
 			color = oldest_color ;
+			ext_color_table[color].is_changed = 1 ;
 
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Delete ext color %x\n" ,
