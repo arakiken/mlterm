@@ -2568,7 +2568,8 @@ x_cmap_get_closest_color(
 	if( ( linear_search_max = CMAP_SIZE(_display.cmap)) == 256)
 	{
 		if( ( linear_search_max = ml_get_closest_256_color( closest , &min ,
-						red , green , blue)) == 0)
+						red , green , blue ,
+						COLOR_DISTANCE_THRESHOLD)) == 0)
 		{
 			goto  end ;
 		}

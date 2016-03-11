@@ -326,7 +326,9 @@ static struct
 
 } *  ext_color_table ;
 static u_int  ext_color_mark = 1 ;
-static int  use_approximate_vt_color ;
+
+static int  color_distance_threshold = COLOR_DISTANCE_THRESHOLD ;
+static int  use_pseudo_color = 0 ;
 
 
 /* --- static functions --- */
@@ -547,11 +549,27 @@ read_conf(
 /* --- global functions --- */
 
 void
-ml_set_use_approximate_vt_color(
-	int  use
+ml_set_color_mode(
+	const char *  mode
 	)
 {
-	use_approximate_vt_color = use ;
+	if( strcmp( mode , "256") == 0)
+	{
+		color_distance_threshold = COLOR_DISTANCE_THRESHOLD ;
+		use_pseudo_color = 1 ;
+	}
+	else
+	{
+		if( strcmp( mode , "true") == 0)
+		{
+			color_distance_threshold = 40 ; /* 9 + 30 + 1 */
+		}
+		else /* if( strcmp( mode , "high") == 0 */
+		{
+			color_distance_threshold = COLOR_DISTANCE_THRESHOLD ;
+		}
+		use_pseudo_color = 0 ;
+	}
 }
 
 int
@@ -892,11 +910,6 @@ end:
 	return  1 ;
 }
 
-#if  0
-#undef  COLOR_DISTANCE_THRESHOLD
-#define  COLOR_DISTANCE_THRESHOLD  100
-#endif
-
 /*
  * Return the number of colors which should be searched after this function.
  */
@@ -906,7 +919,8 @@ ml_get_closest_256_color(
 	u_int *  min_diff ,
 	u_int8_t  red ,
 	u_int8_t  green ,
-	u_int8_t  blue
+	u_int8_t  blue ,
+	int  threshold
 	)
 {
 	int  r , g , b ;
@@ -947,7 +961,7 @@ ml_get_closest_256_color(
 	{
 		*min_diff = diff ;
 		*closest = color + 0x10 ;
-		if( diff < COLOR_DISTANCE_THRESHOLD)
+		if( diff < threshold)
 		{
 			return  0 ;
 		}
@@ -980,7 +994,7 @@ ml_get_closest_256_color(
 		{
 			*min_diff = diff ;
 			*closest = tmp + 0xe8 ;
-			if( diff < COLOR_DISTANCE_THRESHOLD)
+			if( diff < threshold)
 			{
 				return  0 ;
 			}
@@ -1013,7 +1027,7 @@ ml_get_closest_color(
 	for( color = 16 ; color < 256 ; color++)
 #else
 	if( ( linear_search_max = ml_get_closest_256_color( &closest , &min ,
-					red , green , blue)) == 0)
+					red , green , blue , color_distance_threshold)) == 0)
 	{
 		return  closest ;
 	}
@@ -1040,7 +1054,7 @@ ml_get_closest_color(
 			{
 				min = diff ;
 				closest = color ;
-				if( diff < COLOR_DISTANCE_THRESHOLD)
+				if( diff < color_distance_threshold)
 				{
 				#ifdef  __DEBUG
 					/*
@@ -1076,7 +1090,7 @@ ml_get_closest_color(
 	}
 #endif
 
-	if( use_approximate_vt_color ||
+	if( use_pseudo_color ||
 	    ( ! ext_color_table &&
 	      ! ( ext_color_table = calloc( 240 , sizeof(*ext_color_table)))))
 	{
@@ -1115,7 +1129,7 @@ ml_get_closest_color(
 		if( diff < min)
 		{
 			min = diff ;
-			if( diff < COLOR_DISTANCE_THRESHOLD)
+			if( diff < color_distance_threshold)
 			{
 				ext_color_table[color].mark = ext_color_mark / 2 ;
 

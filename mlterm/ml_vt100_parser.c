@@ -2550,7 +2550,6 @@ change_char_fine_color(
 	int  num
 	)
 {
-	int  count ;
 	int  proceed ;
 	ml_color_t  color ;
 
@@ -8360,14 +8359,9 @@ ml_vt100_parser_set_config(
 			ml_set_regard_uri_as_word( flag) ;
 		}
 	}
-	else if( strcmp( key , "use_approximate_vt_color") == 0)
+	else if( strcmp( key , "vt_color_mode") == 0)
 	{
-		int  flag ;
-
-		if( ( flag = true_or_false( value)) != -1)
-		{
-			ml_set_use_approximate_vt_color( flag) ;
-		}
+		ml_set_color_mode( value) ;
 	}
 	else if( strcmp( key , "use_alt_buffer") == 0)
 	{

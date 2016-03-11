@@ -309,8 +309,8 @@ x_prepare_for_main_config(
 		"format of logging vt100 sequence. [raw]") ;
 	kik_conf_add_opt( conf , '\0' , "uriword" , 1 , "regard_uri_as_word" ,
 		"select uri by double-clicking it [false]") ;
-	kik_conf_add_opt( conf , '\0' , "approximate" , 1 , "use_approximate_vt_color" ,
-		"disable true color [false]") ;
+	kik_conf_add_opt( conf , '\0' , "vtcolor" , 0 , "vt_color_mode" ,
+		"vt color mode [high]") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [true]") ;
@@ -1484,9 +1484,9 @@ x_main_config_init(
 		main_config->work_dir = strdup( value) ;
 	}
 
-	if( ( value = kik_conf_get_value( conf , "use_approximate_vt_color")))
+	if( ( value = kik_conf_get_value( conf , "vt_color_mode")))
 	{
-		ml_set_use_approximate_vt_color( strcmp( value , "true") == 0) ;
+		ml_set_color_mode( value) ;
 	}
 
 #ifdef  USE_OT_LAYOUT

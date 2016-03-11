@@ -1,5 +1,16 @@
 2016-03-11  Araki Ken  <arakiken@users.sf.net>
 
+	* README.ja, man/mlterm.1: Updated.
+
+	* ml_vt100_parser.c, x_main_config.c: "use_approximate_vt_color" is changed
+	  to "vt_color_mode"
+
+	* ml_color.c:
+	  - 'threshold' is added to arguments of ml_get_closest_256_colors().
+	  - ml_set_use_approximate_vt_color() -> ml_set_color_mode()
+
+2016-03-11  Araki Ken  <arakiken@users.sf.net>
+
 	* x_main_config.c: "use_approximate_vt_color" option is added.
 
 	* fb/x_display.c: The performance of x_cmap_get_closest_color() is improved
