@@ -5700,7 +5700,9 @@ set_font_config(
 
 	screen = p ;
 
-	if( strcmp( cs , "USASCII") == 0)
+	/* USASCII, US-ASCII, US_ASCII */
+	if( strncmp( cs , "US" , 2) == 0 &&
+	    ( strcmp( cs + 2 , "ASCII") == 0 || strcmp( cs + 3 , "ASCII") == 0))
 	{
 		cs = x_get_charset_name( x_get_current_usascii_font_cs( screen->font_man)) ;
 	}
@@ -5724,7 +5726,9 @@ get_font_config(
 
 	screen = p ;
 
-	if( strcmp( cs , "USASCII") == 0)
+	/* USASCII, US-ASCII, US_ASCII */
+	if( strncmp( cs , "US" , 2) == 0 &&
+	    ( strcmp( cs + 2 , "ASCII") == 0 || strcmp( cs + 3 , "ASCII") == 0))
 	{
 		cs = x_get_charset_name( x_get_current_usascii_font_cs( screen->font_man)) ;
 	}

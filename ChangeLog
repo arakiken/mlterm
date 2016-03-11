@@ -1,3 +1,8 @@
+2016-03-12  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Not only "USASCII" but also "US_ASCII" and "US-ASCII" are
+	  available for {set|get}_font_config().
+
 2016-03-11  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1: Updated.
