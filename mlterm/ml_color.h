@@ -20,6 +20,7 @@
 /* same as 0 <= color <= 0xf */
 #define  IS_VTSYS_COLOR(color)  ((unsigned int)(color) <= 0xf)
 #define  IS_256_COLOR(color)  (0x10 <= (color) && (color) <= 0xff)
+#define  IS_VTSYS256_COLOR(color)  ((unsigned int)(color) <= 0xff)
 #define  IS_EXT_COLOR(color)  (0x100 <= (color) && (color) <= 0x1ef)
 #define  IS_256EXT_COLOR(color)  (0x10 <= (color) && (color) <= 0x1ef)
 #define  IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color)  ((unsigned int)(color) <= 0x1ef)

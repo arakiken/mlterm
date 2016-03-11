@@ -1,5 +1,8 @@
 2016-03-12  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_color.c: If current value is overwritten by specifying the same
+	  value as the default rgb, color_config_set_rgb() erases the current one.
+
 	* x_screen.c: Not only "USASCII" but also "US_ASCII" and "US-ASCII" are
 	  available for {set|get}_font_config().
 

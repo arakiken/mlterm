@@ -333,6 +333,45 @@ static int  use_pseudo_color = 0 ;
 
 /* --- static functions --- */
 
+static void
+get_default_rgb(
+	ml_color_t  color ,	/* is 255 or less */
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue
+	)
+{
+	if( IS_VTSYS_COLOR(color))
+	{
+		*red = vtsys_color_rgb_table[ color][0] ;
+		*green = vtsys_color_rgb_table[ color][1] ;
+		*blue = vtsys_color_rgb_table[ color][2] ;
+	}
+	else if( color <= 0xe7)
+	{
+		u_int8_t  tmp ;
+
+		tmp = (color - 0x10) % 6 ;
+		*blue = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+
+		tmp = ((color - 0x10) / 6) % 6 ;
+		*green = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+
+		tmp = ((color - 0x10) / 36) % 6 ;
+		*red = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+	}
+	else /* if( color >= 0xe8) */
+	{
+		u_int8_t  tmp ;
+
+		tmp = (color - 0xe8) * 10 + 8 ;
+
+		*blue = tmp ;
+		*green = tmp ;
+		*red = tmp ;
+	}
+}
+
 static KIK_PAIR( color_rgb)
 get_color_rgb_pair(
 	ml_color_t  color
@@ -347,7 +386,7 @@ get_color_rgb_pair(
 
 static int
 color_config_set_rgb(
-	ml_color_t  color ,
+	ml_color_t  color ,	/* is 255 or less */
 	u_int8_t  red ,
 	u_int8_t  green ,
 	u_int8_t  blue ,
@@ -355,6 +394,7 @@ color_config_set_rgb(
 	)
 {
 	KIK_PAIR( color_rgb)  pair ;
+	int  result ;
 	rgb_t  rgb ;
 
 	rgb.red = red ;
@@ -364,21 +404,44 @@ color_config_set_rgb(
 
 	if( ( pair = get_color_rgb_pair( color)))
 	{
+		u_int8_t  r ;
+		u_int8_t  g ;
+		u_int8_t  b ;
+
 		if( pair->value.red == red && pair->value.green == green &&
 			pair->value.blue == blue && pair->value.alpha == alpha)
 		{
 			/* Not changed */
 
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" color %d rgb(%02x%02x%02x%02x) not changed.\n" ,
+				color , red , green , blue , alpha) ;
+		#endif
+
 			return  0 ;
 		}
 
-		pair->value = rgb ;
+		get_default_rgb( color , &r , &g , &b) ;
+
+		if( r == red && g == green && b == blue && alpha == 0xff)
+		{
+			if( IS_256_COLOR(color))
+			{
+				num_of_changed_256_colors -- ;
+			}
+
+			kik_map_erase_simple( result , color_config , color) ;
+		}
+		else
+		{
+			pair->value = rgb ;
+		}
 
 		return  1 ;
 	}
 	else
 	{
-		int  result ;
 		u_int8_t  r ;
 		u_int8_t  g ;
 		u_int8_t  b ;
@@ -404,7 +467,7 @@ color_config_set_rgb(
 
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
-					" color %d'rgb(%02x%02x%02x%02x) not changed.\n",
+					" color %d rgb(%02x%02x%02x%02x) not changed.\n",
 					color , red , green , blue , alpha) ;
 			#endif
 
@@ -414,7 +477,7 @@ color_config_set_rgb(
 			else
 			{
 				kik_debug_printf( KIK_DEBUG_TAG
-					" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
+					" color %d rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
 					color , r , g , b , red , green , blue) ;
 			}
 		#endif
@@ -684,7 +747,7 @@ ml_get_color(
 
 	if( sscanf( name, "%d", (int*) &color) == 1)
 	{
-		if( IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color))
+		if( IS_VTSYS256_COLOR(color))
 		{
 			return  color ;
 		}
@@ -721,53 +784,25 @@ ml_get_color_rgba(
 
 	if( IS_EXT_COLOR(color))
 	{
-		if( ext_color_table && ext_color_table[EXT_COLOR_TO_INDEX(color)].mark > 0)
+		if( ! ext_color_table ||
+		    ext_color_table[EXT_COLOR_TO_INDEX(color)].mark == 0)
 		{
-			*red = ext_color_table[EXT_COLOR_TO_INDEX(color)].red ;
-			*green = ext_color_table[EXT_COLOR_TO_INDEX(color)].green ;
-			*blue = ext_color_table[EXT_COLOR_TO_INDEX(color)].blue ;
-
-			goto  end ;
+			return  0 ;
 		}
 
-		return  0 ;
+		*red = ext_color_table[EXT_COLOR_TO_INDEX(color)].red ;
+		*green = ext_color_table[EXT_COLOR_TO_INDEX(color)].green ;
+		*blue = ext_color_table[EXT_COLOR_TO_INDEX(color)].blue ;
 	}
-
-	if( color_config && color_config_get_rgb( color , red , green , blue , alpha))
+	else if( color_config && color_config_get_rgb( color , red , green , blue , alpha))
 	{
 		return  1 ;
 	}
-	else if( IS_VTSYS_COLOR(color))
+	else
 	{
-		*red = vtsys_color_rgb_table[ color][0] ;
-		*green = vtsys_color_rgb_table[ color][1] ;
-		*blue = vtsys_color_rgb_table[ color][2] ;
-	}
-	else if( color <= 0xe7)
-	{
-		u_int8_t  tmp ;
-
-		tmp = (color - 0x10) % 6 ;
-		*blue = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
-
-		tmp = ((color - 0x10) / 6) % 6 ;
-		*green = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
-
-		tmp = ((color - 0x10) / 36) % 6 ;
-		*red = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
-	}
-	else /* if( color >= 0xe8) */
-	{
-		u_int8_t  tmp ;
-
-		tmp = (color - 0xe8) * 10 + 8 ;
-
-		*blue = tmp ;
-		*green = tmp ;
-		*red = tmp ;
+		get_default_rgb( color , red , green , blue) ;
 	}
 
-end:
 	if( alpha)
 	{
 		*alpha = 0xff ;
@@ -934,6 +969,7 @@ ml_get_closest_256_color(
 
 	if( num_of_changed_256_colors > 0)
 	{
+		kik_debug_printf( "OUCH %d\n" , num_of_changed_256_colors);
 		return  256 ;
 	}
 
