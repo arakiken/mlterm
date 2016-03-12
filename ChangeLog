@@ -1,5 +1,12 @@
 2016-03-12  Araki Ken  <arakiken@users.sf.net>
 
+	* mlfc/main.c: 'mlfc -h' shows usage message.
+
+	* MLTerm.java: The size of color palette is changed from 258 to 512.
+
+	* MLTermPty.c: If a previous character is not converted to UTF-16,
+	  NULL is passed to the 2nd argument of need_style().
+
 	* ml_color.c: If current value is overwritten by specifying the same
 	  value as the default rgb, color_config_set_rgb() erases the current one.
 

@@ -2,14 +2,15 @@ ver 3.7.0
 * Support OSC 1337. (See http://www.iterm2.com/images.html)
 * Support animation gif of OSC 5379 show_picture on MacOSX/cocoa.
 * Enable to place configuration files in mlterm.app/mlterm/ on MacOSX/Cocoa.
+* Add 'mlfc' tool which automatically generates ~/.mlterm/aafont and ~/.mlterm/font-fb.
 * Change the format of ~/.mlterm/*font is changed as follows.
   [Charset] = [Font name];[Size],[Font name];[Size],[Font name];...
   -> [Charset] = [Font name]
 * Drop XT_CBLINK (CSI?12h/CSI?12l) support.
 * Simplify font configuration of OSC 5379. ('mlcc font USASCII <Font name>' is available.)
 * "CSI 38;2;r;g;b m" and "CSI 48;2;r;g;b m" shows high colors instead of
-  approximate vt 256 colors.
-* Add "vt_color_mode" / --vtcolor(=256/high/true) option.
+  approximate vt 256 colors. "vt_color_mode" / --vtcolor(=256/high/true) option
+  changes the behavior.
 * Bug fixes:
   Fix illegal memory access on MacOSX/Cocoa and Android.
   Fix segfault in spliting window on MacOSX/Cocoa. (Enbugged at 3.6.2)

@@ -34,6 +34,7 @@
 #define  COLOR_DISTANCE_THRESHOLD  640
 
 
+/* XXX If these members are changed, modify init() in MLTerm.java. */
 typedef enum  ml_color
 {
 	ML_UNKNOWN_COLOR = -1 ,

@@ -703,7 +703,7 @@ public class MLTerm extends StyledText
 
 		if( colors == null)
 		{
-			colors = new Color[258] ;
+			colors = new Color[512] ;
 
 			String  color = getProperty( "fg_color") ;
 			if( color != null)
@@ -711,15 +711,15 @@ public class MLTerm extends StyledText
 				long  pixel = MLTermPty.getColorRGB( color) ;
 				if( pixel != -1)
 				{
-					colors[0x100] = new Color( getDisplay() , (int)((pixel >> 16) & 0xff) ,
+					colors[0x1f0] = new Color( getDisplay() , (int)((pixel >> 16) & 0xff) ,
 										(int)((pixel >> 8) & 0xff) , (int)(pixel & 0xff)) ;
-					setForeground( colors[0x100]) ;
+					setForeground( colors[0x1f0]) ;
 				}
 			}
 
-			if( colors[0x100] == null)
+			if( colors[0x1f0] == null)
 			{
-				colors[0x100] = getForeground() ;
+				colors[0x1f0] = getForeground() ;
 			}
 
 			color = getProperty( "bg_color") ;
@@ -728,15 +728,15 @@ public class MLTerm extends StyledText
 				long  pixel = MLTermPty.getColorRGB( color) ;
 				if( pixel != -1)
 				{
-					colors[0x101] = new Color( getDisplay() , (int)((pixel >> 16) & 0xff) ,
+					colors[0x1f1] = new Color( getDisplay() , (int)((pixel >> 16) & 0xff) ,
 										(int)((pixel >> 8)) & 0xff , (int)(pixel & 0xff)) ;
-					setBackground( colors[0x101]) ;
+					setBackground( colors[0x1f1]) ;
 				}
 			}
 
-			if( colors[0x101] == null)
+			if( colors[0x1f1] == null)
 			{
-				colors[0x101] = getBackground() ;
+				colors[0x1f1] = getBackground() ;
 			}
 
 

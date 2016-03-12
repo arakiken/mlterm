@@ -651,7 +651,7 @@ main(
 	char **  argv
 	)
 {
-	if( argc != 2 && argc != 1)
+	if( ( argc != 2 || *argv[1] == '-') && argc != 1)
 	{
 		fprintf( stderr , "Usage: mlfc <Default Font Name>\n") ;
 

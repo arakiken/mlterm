@@ -1624,7 +1624,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 	}
 #endif
 
-	buf_len = (mod_beg + num_of_chars) * sizeof(int16_t) * 2 /* SURROGATE_PAIR */
+	buf_len = (mod_beg + num_of_chars) * sizeof(u_int16_t) * 2 /* SURROGATE_PAIR */
 			+ 2 /* NULL */ ;
 	buf = alloca( buf_len) ;
 
@@ -1644,6 +1644,8 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 
 	if( num_of_chars > 0)
 	{
+		int  prev_ch_was_added = 0 ;
+
 		styles = alloca( sizeof(jobject) * num_of_chars) ;
 		redraw_len = 0 ;
 		(*str_parser->init)( str_parser) ;
@@ -1655,6 +1657,7 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 		#if  0
 			if( ml_char_code_equal( line->chars + mod_beg + count , ml_nl_ch()))
 			{
+				prev_ch_was_added = 0 ;
 				/* Drawing will collapse, but region.str mustn't contain '\n'. */
 				continue ;
 			}
@@ -1664,11 +1667,14 @@ Java_mlterm_MLTermPty_nativeGetRedrawString(
 			if( ( len = (*utf16_conv->convert)( utf16_conv , buf + redraw_len ,
 						buf_len - redraw_len , str_parser)) < 2)
 			{
+				prev_ch_was_added = 0 ;
 				continue ;
 			}
 
 			ret = need_style( line->chars + mod_beg + count ,
-					count > 0 ? line->chars + mod_beg + count - 1 : NULL) ;
+				prev_ch_was_added ? line->chars + mod_beg + count - 1 : NULL) ;
+			prev_ch_was_added = 1 ;
+
 			if( ret == 1)
 			{
 				(*env)->SetIntField( env , styles[num_of_styles - 1] ,
