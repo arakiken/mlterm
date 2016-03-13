@@ -76,10 +76,13 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	if( x_cmap_get_closest_color( &xcolor->pixel , red , green , blue))
+	u_long  pixel ;
+
+	if( x_cmap_get_closest_color( &pixel , red , green , blue))
 	{
+		xcolor->pixel = pixel ;
 		x_cmap_get_pixel_rgb( &xcolor->red , &xcolor->green ,
-			&xcolor->blue , xcolor->pixel) ;
+			&xcolor->blue , pixel) ;
 	}
 	else
 	{

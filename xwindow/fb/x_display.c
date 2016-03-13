@@ -2510,7 +2510,7 @@ x_display_reset_input_method_window(void)
 /* seek the closest color */
 int
 x_cmap_get_closest_color(
-	u_int *  closest ,
+	u_long *  closest ,
 	int  red ,
 	int  green ,
 	int  blue

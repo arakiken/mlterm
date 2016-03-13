@@ -10,13 +10,13 @@
 
 
 #define  MAJOR_VERSION	3
-#define  MINOR_VERSION	6
-#define  REVISION	3
+#define  MINOR_VERSION	7
+#define  REVISION	0
 #define  PATCH_LEVEL	0
 
 #if  0
 #define  CHANGE_DATE  "pre/@CHANGE_DATE@"
-#elif  1
+#elif  0
 #define  CHANGE_DATE  "post/@CHANGE_DATE@"
 #else
 #define  CHANGE_DATE  ""

@@ -22673,11 +22673,10 @@ fi
 			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
 
 
+			OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
+			MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
+			tools_result="$tools_result $tool"
 		fi
-
-		OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
-		MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
-		tools_result="$tools_result $tool"
 	fi
 	;;
 *)
@@ -24123,7 +24122,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=mlterm
- VERSION=3.6.3
+ VERSION=3.7.0
 
 
 cat >>confdefs.h <<_ACEOF

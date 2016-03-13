@@ -1128,12 +1128,12 @@ ml_get_closest_color(
 
 	if( use_pseudo_color ||
 	    ( ! ext_color_table &&
-	      ! ( ext_color_table = calloc( 240 , sizeof(*ext_color_table)))))
+	      ! ( ext_color_table = calloc( MAX_EXT_COLORS , sizeof(*ext_color_table)))))
 	{
 		return  closest ;
 	}
 
-	if( ( oldest_mark = ext_color_mark / 2) == 120)
+	if( ( oldest_mark = ext_color_mark / 2) == MAX_EXT_COLORS / 2)
 	{
 		oldest_mark = 1 ;
 	}
@@ -1167,6 +1167,7 @@ ml_get_closest_color(
 			min = diff ;
 			if( diff < color_distance_threshold)
 			{
+				/* Set new mark */
 				ext_color_table[color].mark = ext_color_mark / 2 ;
 
 			#ifdef  __DEBUG
@@ -1212,8 +1213,8 @@ ml_get_closest_color(
 			ext_color_table[color].is_changed = 1 ;
 
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Delete ext color %x\n" ,
-				INDEX_TO_EXT_COLOR(color)) ;
+			kik_debug_printf( KIK_DEBUG_TAG " Delete ext color %x mark %x\n" ,
+				INDEX_TO_EXT_COLOR(color) , ext_color_table[color].mark) ;
 		#endif
 
 			break ;
@@ -1226,8 +1227,9 @@ ml_get_closest_color(
 	ext_color_table[color].blue = blue ;
 
 #ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG "New ext color %.2x: r%.2x g%x b%.2x\n" ,
-		INDEX_TO_EXT_COLOR(color) , red , green , blue) ;
+	kik_debug_printf( KIK_DEBUG_TAG "New ext color %.2x: r%.2x g%x b%.2x mark %x\n" ,
+		INDEX_TO_EXT_COLOR(color) , red , green , blue ,
+		ext_color_table[color].mark) ;
 #endif
 
 	return  INDEX_TO_EXT_COLOR(color) ;

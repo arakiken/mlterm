@@ -954,11 +954,10 @@ mlfc)
 			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
 			AC_SUBST(FONTCONFIG_CFLAGS)
 			AC_SUBST(FONTCONFIG_LIBS)
+			OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
+			MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
+			tools_result="$tools_result $tool"
 		fi
-
-		OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
-		MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
-		tools_result="$tools_result $tool"
 	fi
 	;;
 *)
@@ -1351,7 +1350,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.6.3)
+AM_INIT_AUTOMAKE(mlterm,3.7.0)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

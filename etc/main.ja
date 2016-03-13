@@ -222,6 +222,10 @@ scrollbar_view_name = sample
 # 打ち消し線の代わりに文字に色を付けるのに使用する色
 # co_color =
 
+# CSI 38;2;r;g;b m 又は CSI 48;2;r;g;b m で指定された RGB により表示される色につ
+# いて、256色からの近似値とするか、high color 又は true color で表示するか
+# vt_color_mode = high
+
 # アンダーラインを描画しない。
 # hide_underline = false
 
