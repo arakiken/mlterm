@@ -52,7 +52,7 @@ version 20160313
                      unicode_noconv_areas | unicode_full_width_areas | box_drawing_font |
                      use_urgent_bell | allow_osc52 | allow_scp | auto_detect_encodings |
                      use_auto_detect | use_extended_scroll_shortcut | use_ot_layout |
-                     ot_script | ot_features | regard_uri_as_word
+                     ot_script | ot_features | regard_uri_as_word | vt_color_mode
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -149,6 +149,7 @@ version 20160313
   use_transbg = true | false | switch
   use_variable_column_width = true | false | switch
   vertical_mode = none | cjk | mongol
+  vt_color_mode = 256 | high | true
   vt_seq_format = raw | ttyrec
   wall_picture = <file path>
   logging_vt_seq = true | false | switch

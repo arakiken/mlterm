@@ -1,3 +1,16 @@
+2016-03-19  Araki Ken  <arakiken@users.sf.net>
+
+	* registobmp/Makefile.in: Changeset 2562 commit (-lm is removed) is reverted.
+
+	* ml_vt100_parser.c: "vt_color_mode" is added to OSC 5380 and 5381.
+
+	* ml_color.[ch]: ml_get_color_mode() is added.
+
+	* vte.c: Font size specified after font family in the 2nd argument of
+	  vte_terminal_set_font_from_string() is applied to "fontsize" option.
+
+	* version.h.in: 3.7.0 -> 3.7.0post
+
 2016-03-13  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.7.0 released.

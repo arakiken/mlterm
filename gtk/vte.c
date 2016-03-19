@@ -4222,35 +4222,45 @@ vte_terminal_set_font_from_string(
 	{
 		name = "monospace" ;
 	}
-	else if( ( p = strchr( name , ',')))
+	else
 	{
-		/*
-		 * name contains font list like "Ubuntu Mono,monospace 13"
-		 * (see manual of pango_font_description_from_string())
-		 */
-		char *  new_name ;
-
-		if( ! ( new_name = alloca( p - name + 1)))
-		{
-			return ;
-		}
-
-		memcpy( new_name , name , p - name) ;
-		new_name[p - name] = '\0' ;
-
 		p = name + strlen(name) - 1 ;
 		if( '0' <= *p && *p <= '9')
 		{
+			int  fontsize ;
+
 			do
 			{
 				p -- ;
 			}
 			while( '0' <= *p && *p <= '9') ;
 
-			strcat( new_name , p) ;
+			if( ( fontsize = atoi( p + 1)) > 0)
+			{
+				/* XXX Screen is redraw in x_screen_reset_view() below. */
+				x_change_font_size( terminal->pvt->screen->font_man ,
+					atoi(p + 1)) ;
+			}
 		}
 
-		name = new_name ;
+		if( ( p = strchr( name , ',')))
+		{
+			/*
+			 * name contains font list like "Ubuntu Mono,monospace 13"
+			 * (see manual of pango_font_description_from_string())
+			 */
+			char *  new_name ;
+
+			if( ! ( new_name = alloca( p - name + 1)))
+			{
+				return ;
+			}
+
+			memcpy( new_name , name , p - name) ;
+			new_name[p - name] = '\0' ;
+
+			name = new_name ;
+		}
 	}
 
 	if( x_customize_font_file( "aafont" , "DEFAULT" , name , 0))

@@ -54,7 +54,7 @@ typedef struct x_im_export_syms
 {
 	int (*ml_str_init)( ml_char_t * , u_int) ;
 	int (*ml_str_delete)( ml_char_t * , u_int) ;
-	int (*ml_char_combine)( ml_char_t * , u_int32_t ,
+	ml_char_t *  (*ml_char_combine)( ml_char_t * , u_int32_t ,
 				mkf_charset_t , int , int , ml_color_t ,
 				ml_color_t , int , int , int , int , int) ;
 	int (*ml_char_set)( ml_char_t * , u_int32_t ,

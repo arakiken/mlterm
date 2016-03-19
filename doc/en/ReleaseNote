@@ -1,3 +1,8 @@
+ver 3.7.1
+* Add "vt_color_mode" to OSC 5380 and 5381.
+* Bug fixes:
+  Fix compiling error of registobmp. (Enbugged at 3.7.0) (Thanks to Amadeusz)
+
 ver 3.7.0
 * Support OSC 1337. (See http://www.iterm2.com/images.html)
 * Support animation gif of OSC 5379 show_picture on MacOSX/cocoa.

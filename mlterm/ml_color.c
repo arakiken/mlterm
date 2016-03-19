@@ -635,6 +635,23 @@ ml_set_color_mode(
 	}
 }
 
+char *
+ml_get_color_mode(void)
+{
+	if( use_pseudo_color)
+	{
+		return  "256" ;
+	}
+	else if( color_distance_threshold == 40)
+	{
+		return  "true" ;
+	}
+	else
+	{
+		return  "high" ;
+	}
+}
+
 int
 ml_color_config_init(void)
 {

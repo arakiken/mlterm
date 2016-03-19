@@ -8090,6 +8090,10 @@ ml_vt100_parser_get_config(
 			value = "false" ;
 		}
 	}
+	else if( strcmp( key , "vt_color_mode") == 0)
+	{
+		value = ml_get_color_mode() ;
+	}
 	else if( strcmp( key , "use_ansi_colors") == 0)
 	{
 		if( use_ansi_colors)

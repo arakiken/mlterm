@@ -80,6 +80,8 @@ typedef enum  ml_color
 
 void  ml_set_color_mode( const char *  mode) ;
 
+char *  ml_get_color_mode(void) ;
+
 int  ml_color_config_init(void) ;
 
 int  ml_color_config_final(void) ;
