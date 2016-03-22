@@ -71,7 +71,7 @@ static void
 draw_screen(
 	x_im_status_screen_t *  stat_screen ,
 	int  do_resize ,
-	int  modified_beg
+	int  modified_beg	/* for canna */
 	)
 {
 #define  MAX_ROWS ((sizeof(stat_screen->head_indexes) / sizeof(stat_screen->head_indexes[0])) - 1)
@@ -186,6 +186,8 @@ draw_screen(
 		#ifdef  USE_FRAMEBUFFER
 			reset_screen( &stat_screen->window) ;
 		#endif
+
+			modified_beg = 0 ;
 		}
 	}
 
@@ -205,8 +207,7 @@ draw_screen(
 			x_draw_str_to_eol( &stat_screen->window ,
 				   stat_screen->font_man ,
 				   stat_screen->color_man ,
-				   stat_screen->chars + heads[i] ,
-				   len ,
+				   stat_screen->chars + heads[i] , len ,
 				   0 , line_height * i ,
 				   line_height ,
 				   xfont->ascent + LINE_SPACE / 2 ,
@@ -395,7 +396,10 @@ set(
 		ml_str_delete( old_chars , old_num_of_chars) ;
 	}
 
-	draw_screen( stat_screen , 1 , modified_beg) ;
+	if( modified_beg < old_filled_len || old_filled_len != stat_screen->filled_len)
+	{
+		draw_screen( stat_screen , 1 , modified_beg) ;
+	}
 
 	return  1 ;
 }

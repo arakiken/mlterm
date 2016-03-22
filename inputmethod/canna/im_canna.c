@@ -286,7 +286,7 @@ candidate:
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG
-					" x_im_candidate_screen_new() failed.\n") ;
+					" x_im_status_screen_new() failed.\n") ;
 			#endif
 
 				return ;

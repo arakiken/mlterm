@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
+#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 
 #include  <x_im.h>
 
@@ -17,6 +18,9 @@
 #define  IM_WNN_DEBUG  1
 #endif
 
+/* Don't forget to modify digit_to_wstr() if MAX_DIGIT_NUM is changed. */
+#define  MAX_DIGIT_NUM  3	/* 999 */
+#define  CAND_WINDOW_ROWS  5
 
 typedef struct im_wnn
 {
@@ -49,6 +53,47 @@ static mkf_parser_t *  parser_wchar = NULL ;
 
 
 /* --- static functions --- */
+
+static wchar *
+digit_to_wstr(
+	wchar *  dst ,
+	int  digit
+	)
+{
+	int  num ;
+
+	if( digit >= 1000)
+	{
+		/* Ignore it because MAX_DIGIT_NUM is 3 (=999). */
+		digit -= (digit / 1000) * 1000 ;
+	}
+
+	if( digit >= 100)
+	{
+		num = digit / 100 ;
+		*(dst++) = num + 0x30 ;
+		digit -= num * 100 ;
+	}
+	else if( ((digit - 1) / CAND_WINDOW_ROWS + 1) * CAND_WINDOW_ROWS >= 100)
+	{
+		*(dst++) = ' ' ;
+	}
+
+	if( digit >= 10)
+	{
+		num = digit / 10 ;
+		*(dst++) = num + 0x30 ;
+		digit -= num * 10 ;
+	}
+	else if( ((digit - 1) / CAND_WINDOW_ROWS + 1) * CAND_WINDOW_ROWS >= 10)
+	{
+		*(dst++) = ' ' ;
+	}
+
+	*(dst++) = digit + 0x30 ;
+
+	return  dst ;
+}
 
 static void
 wchar_parser_set_str(
@@ -151,7 +196,8 @@ preedit(
 	int  rev_pos ,
 	int  rev_len ,
 	char *  candidateword ,	/* wchar */
-	size_t  candidateword_len
+	size_t  candidateword_len ,
+	char *  pos
 	)
 {
 	int  x ;
@@ -176,6 +222,7 @@ preedit(
 	else
 	{
 		u_char *  tmp = NULL ;
+		size_t  pos_len ;
 
 		wnn->im.preedit.cursor_offset = rev_pos ;
 
@@ -187,8 +234,10 @@ preedit(
 			num_of_chars ++ ;
 		}
 
+		pos_len = strlen(pos) ;
+
 		if( ( p = realloc( wnn->im.preedit.chars ,
-				sizeof(ml_char_t) * num_of_chars)) == NULL)
+				sizeof(ml_char_t) * (num_of_chars + pos_len))) == NULL)
 		{
 			return ;
 		}
@@ -202,7 +251,7 @@ preedit(
 		}
 
 		(*syms->ml_str_init)( wnn->im.preedit.chars = p ,
-				wnn->im.preedit.num_of_chars = num_of_chars) ;
+				wnn->im.preedit.num_of_chars = (num_of_chars + pos_len)) ;
 		wnn->im.preedit.filled_len = 0 ;
 
 		(*wnn->parser_term->init)( wnn->parser_term) ;
@@ -276,6 +325,13 @@ preedit(
 			wnn->im.preedit.filled_len ++ ;
 		}
 
+		for( ; pos_len > 0 ; pos_len --)
+		{
+			(*syms->ml_char_set)( p++ , *(pos++) , US_ASCII , 0 , 0 ,
+				ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 1 , 0 , 0) ;
+			wnn->im.preedit.filled_len ++ ;
+		}
+
 		if( tmp)
 		{
 			free( tmp) ;
@@ -322,7 +378,7 @@ candidate:
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG
-					" x_im_candidate_screen_new() failed.\n") ;
+					" x_im_status_screen_new() failed.\n") ;
 			#endif
 
 				return ;
@@ -717,7 +773,7 @@ fix(
 	{
 		wnn->dan = 0 ;
 		wnn->is_cand = 0 ;
-		preedit( wnn , "" , 0 , 0 , 0 , "" , 0) ;
+		preedit( wnn , "" , 0 , 0 , 0 , "" , 0 , "") ;
 		commit( wnn , wnn->convbuf->displayBuf ,
 			(wnn->convbuf->displayEnd - wnn->convbuf->displayBuf) * 2) ;
 		jcFix( wnn->convbuf) ;
@@ -784,12 +840,12 @@ switch_mode(
 
 	if( ( wnn->is_enabled = ( ! wnn->is_enabled)))
 	{
-		preedit( wnn , NULL , 0 , 0 , 0 , NULL , 0) ;
+		preedit( wnn , NULL , 0 , 0 , 0 , NULL , 0 , "") ;
 	}
 	else
 	{
 		jcClear( wnn->convbuf) ;
-		preedit( wnn , "" , 0 , 0 , 0 , "" , 0) ;
+		preedit( wnn , "" , 0 , 0 , 0 , "" , 0 , "") ;
 	}
 
 	return  1 ;
@@ -808,6 +864,7 @@ key_event(
 	wchar *  cand = NULL ;
 	size_t  cand_len = 0 ;
 	int  ret = 0 ;
+	char *  pos = "" ;
 
 	wnn = (im_wnn_t*) im ;
 
@@ -930,28 +987,30 @@ key_event(
 				if( jcCandidateInfo( wnn->convbuf , 0 , &ncand , &curcand) == 0 &&
 				    ( ! wnn->is_cand ||
 				      ( ksym == XK_Up ?
-				          (curcand % 5 == 4 || curcand == ncand - 1) :
-				          (curcand % 5 == 0))))
+				          (curcand % CAND_WINDOW_ROWS == CAND_WINDOW_ROWS - 1 ||
+					   curcand == ncand - 1) :
+				          (curcand % CAND_WINDOW_ROWS == 0))))
 				{
 					wchar  tmp[1024] ;
 					wchar *  src ;
 					wchar *  dst ;
 					int  count ;
-					int  beg = curcand - curcand % 5 ;
+					int  beg = curcand - curcand % CAND_WINDOW_ROWS ;
 
 					wnn->is_cand = 1 ;
 
-					for( count = 0 ; count < 5 ; count++)
+					for( count = 0 ; count < CAND_WINDOW_ROWS ; count++)
 					{
 						if( jcGetCandidate( wnn->convbuf , beg + count ,
 							tmp , sizeof(tmp)) == 0)
 						{
+							cand_len += (MAX_DIGIT_NUM + 1) ;
 							for( src = tmp ; *src ; src++)
 							{
 								cand_len ++ ;
 							}
 
-							if( count < 4 &&
+							if( count < CAND_WINDOW_ROWS - 1 &&
 							    beg + count < ncand - 1)
 							{
 								cand_len ++ ;	/* '\n' */
@@ -963,18 +1022,23 @@ key_event(
 					{
 						dst = cand ;
 
-						for( count = 0 ; count < 5 ; count++)
+						for( count = 0 ; count < CAND_WINDOW_ROWS ;
+						     count++)
 						{
 							if( jcGetCandidate( wnn->convbuf ,
 								beg + count ,
 								tmp , sizeof(tmp)) == 0)
 							{
+								dst = digit_to_wstr( dst ,
+									beg + count + 1) ;
+								*(dst++) = ' ' ;
+
 								for( src = tmp ; *src ; src++)
 								{
 									*(dst++) = *src ;
 								}
 
-								if( count < 4 &&
+								if( count < CAND_WINDOW_ROWS - 1 &&
 								    beg + count < ncand - 1)
 								{
 									*(dst++) = '\n' ;
@@ -982,6 +1046,11 @@ key_event(
 							}
 						}
 					}
+				}
+
+				if( ( pos = alloca( 4 + DIGIT_STR_LEN(int) * 2 + 1)))
+				{
+					sprintf( pos , " [%d/%d]" , curcand + 1 , ncand) ;
 				}
 			}
 		}
@@ -1027,13 +1096,13 @@ key_event(
 			wnn->convbuf->displayBuf ,
 			wnn->convbuf->clauseInfo[wnn->convbuf->curLCEnd].dispp -
 			wnn->convbuf->clauseInfo[wnn->convbuf->curLCStart].dispp ,
-			cand , cand_len * sizeof(wchar)) ;
+			cand , cand_len * sizeof(wchar) , pos) ;
 	}
 	else
 	{
 		preedit( wnn , wnn->convbuf->displayBuf ,
 			(wnn->convbuf->displayEnd - wnn->convbuf->displayBuf) * 2 ,
-			jcDotOffset( wnn->convbuf) , 0 , (char*)kana , sizeof(kana)) ;
+			jcDotOffset( wnn->convbuf) , 0 , (char*)kana , sizeof(kana) , pos) ;
 	}
 
 	return  ret ;

@@ -48,8 +48,10 @@ typedef struct x_im_candidate_screen
 	int  y ;		/* not adjusted by window size            */
 	u_int  line_height ;	/* line height of attaced screen          */
 
-	int  is_vertical_term ;
-	int  is_vertical_direction ;
+	int8_t  is_vertical_term ;
+	int8_t  is_vertical_direction ;
+	int8_t  need_redraw ;
+	int  dummy ;		/* XXX keep ABI */
 
 	ml_unicode_policy_t  unicode_policy ;
 

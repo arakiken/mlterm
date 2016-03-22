@@ -27,24 +27,18 @@ do {						\
  * calculate max number of digits
  */
 
-#define  NUM_OF_DIGITS( n , d)			\
-do {						\
-	int  v10 ;				\
-	(n) = 1 ;				\
-	v10 = 10 ;				\
-	while( 1)				\
-	{					\
-		if( (d) / v10)			\
-		{				\
-			(n)++ ;			\
-			v10 *= 10 ;		\
-		}				\
-		else				\
-		{				\
-			break ;			\
-		}				\
-	}					\
+#define  NUM_OF_DIGITS( n , d)	\
+do {				\
+	u_int  d2 = (d) ;	\
+	(n) = 1 ;		\
+	while( ((d2) /= 10))	\
+	{			\
+		(n)++ ;		\
+	}			\
 } while( 0)
+
+#define  INVALID_INDEX  (cand_screen->num_of_candidates)
+
 
 /* --- static variables --- */
 
@@ -222,6 +216,31 @@ resize(
 	}
 }
 
+static void
+draw_str(
+	x_im_candidate_screen_t *  cand_screen ,
+	ml_char_t *  str ,
+	u_int  len ,
+	int  x ,
+	int  row ,
+	u_int  font_height ,
+	u_int  font_ascent ,
+	int  to_eol
+	)
+{
+	(to_eol ? x_draw_str_to_eol : x_draw_str)(
+		&cand_screen->window ,
+		cand_screen->font_man ,
+		cand_screen->color_man ,
+		str , len ,
+		x , (font_height + LINE_SPACE) * row ,
+		font_height + LINE_SPACE ,
+		font_ascent + LINE_SPACE / 2 ,
+		LINE_SPACE / 2 ,
+		LINE_SPACE / 2 + LINE_SPACE % 2 ,
+		1 /* no need to draw underline */) ;
+}
+
 #define  MAX_NUM_OF_DIGITS 4 /* max is 9999. enough? */
 
 static void
@@ -229,6 +248,7 @@ draw_screen_vertical(
 	x_im_candidate_screen_t *  cand_screen ,
 	u_int  top ,
 	u_int  last ,
+	u_int  draw_index ,
 	int  do_resize
 	)
 {
@@ -237,6 +257,7 @@ draw_screen_vertical(
 	u_int  num_of_digits ;
 	u_int  win_width ;
 	u_int  win_height ;
+	ml_char_t *  p ;
 
 	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
 	{
@@ -312,31 +333,41 @@ draw_screen_vertical(
 #ifdef  DEBUG
 	if( num_of_digits > MAX_NUM_OF_DIGITS)
 	{
-		kik_warn_printf( KIK_DEBUG_TAG " num_of_digits %d is too large.\n", num_of_digits) ;
+		kik_warn_printf( KIK_DEBUG_TAG " num_of_digits %d is too large.\n" ,
+			num_of_digits) ;
+
+		return ;
 	}
 #endif
 
-	for( i = top ; i <= last; i++)
+	if( draw_index != INVALID_INDEX)
+	{
+		i = draw_index ;
+		last = draw_index ;
+	}
+	else
+	{
+		i = top ;
+	}
+
+	for( ; i <= last ; i++)
 	{
 		u_char  digit[MAX_NUM_OF_DIGITS + 1] ;
+		ml_char_t  digit_str[MAX_NUM_OF_DIGITS + 1] ;
 		int  j ;
 
 		/*
 		 * digits
 		 * +----------+
 		 * |1 cand0   |
-		 *  ^
+		 *  ^^
 		 */
 		if( cand_screen->candidates[i].info)
 		{
 			char  byte2 ;
 
-			if( ! ( byte2 = (cand_screen->candidates[i].info >> 8) & 0xff))
-			{
-				byte2 = ' ' ;
-				num_of_digits = 1 ;
-			}
-			else
+			byte2 = (cand_screen->candidates[i].info >> 8) & 0xff ;
+			if( num_of_digits > 2)
 			{
 				num_of_digits = 2 ;
 			}
@@ -350,28 +381,19 @@ draw_screen_vertical(
 			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i    " , i - top + 1) ;
 		}
 
+		p = digit_str ;
 		for( j = 0 ; j < num_of_digits + 1 ; j++)
 		{
-			ml_char_t  ch ;
-
-			ml_char_init( &ch) ;
-
-			ml_char_set( &ch , digit[j] , US_ASCII , 0 , 0 ,
+			ml_char_init( p) ;
+			ml_char_set( p++ , digit[j] , US_ASCII , 0 , 0 ,
 				     ML_FG_COLOR , ML_BG_COLOR ,
 				     0 , 0 , 0 , 0 , 0) ;
-
-			x_draw_str( &cand_screen->window ,
-				    cand_screen->font_man ,
-				    cand_screen->color_man ,
-				    &ch , 1 ,
-				    j * xfont->width ,
-				    (xfont->height + LINE_SPACE) * (i - top) ,
-				    xfont->height + LINE_SPACE ,
-				    xfont->ascent + LINE_SPACE / 2 ,
-				    LINE_SPACE / 2 ,
-				    LINE_SPACE / 2 + LINE_SPACE % 2 ,
-				    1 /* no need to draw underline */) ;
 		}
+
+		draw_str( cand_screen , digit_str , num_of_digits + 1 ,
+			0 , i - top , xfont->height , xfont->ascent , 0) ;
+
+		ml_str_final( digit_str , num_of_digits + 1) ;
 
 		/*
 		 * candidate
@@ -379,18 +401,15 @@ draw_screen_vertical(
 		 * |1 cand0   |
 		 *    ^^^^^
 		 */
-		x_draw_str_to_eol( &cand_screen->window ,
-				   cand_screen->font_man ,
-				   cand_screen->color_man ,
-				   cand_screen->candidates[i].chars ,
-				   cand_screen->candidates[i].filled_len ,
-				   xfont->width * (num_of_digits + 1) ,
-				   (xfont->height + LINE_SPACE) * (i - top) ,
-				   xfont->height + LINE_SPACE ,
-				   xfont->ascent + LINE_SPACE / 2 ,
-				   LINE_SPACE / 2 ,
-				   LINE_SPACE / 2 + LINE_SPACE % 2 ,
-				   1 /* no need to draw underline */) ;
+		draw_str( cand_screen , cand_screen->candidates[i].chars ,
+			cand_screen->candidates[i].filled_len ,
+			xfont->width * (num_of_digits + 1) , i - top ,
+			xfont->height , xfont->ascent , 1) ;
+	}
+
+	if( draw_index != INVALID_INDEX)
+	{
+		return ;
 	}
 
 	/*
@@ -421,7 +440,8 @@ draw_screen_vertical(
 	 */
 	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
 	{
-		u_char  navi[MAX_NUM_OF_DIGITS * 2 + 4];
+		u_char  navi[MAX_NUM_OF_DIGITS * 2 + 4] ;
+		ml_char_t  navi_str[MAX_NUM_OF_DIGITS * 2 + 4 ] ;
 		u_int  width ;
 		size_t  len ;
 		int  x ;
@@ -441,26 +461,21 @@ draw_screen_vertical(
 
 		x = (win_width - width) / 2 ;	/* centering */
 
+		p = navi_str ;
 		for( i = 0 ; i < len ; i++)
 		{
-			ml_char_t  ch ;
-
-			ml_char_init( &ch) ;
-
-			ml_char_set( &ch , navi[i] , US_ASCII , 0 , 0 ,
+			ml_char_init( p) ;
+			ml_char_set( p++ , navi[i] , US_ASCII , 0 , 0 ,
 				     ML_FG_COLOR , ML_BG_COLOR ,
 				     0 , 0 , 0 , 0 , 0) ;
-
-			x_draw_str( &cand_screen->window ,
-				    cand_screen->font_man ,
-				    cand_screen->color_man ,
-				    &ch , 1 ,
-				    x + i * xfont->width ,
-				    (xfont->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
-				    xfont->height ,
-				    xfont->ascent ,
-				    0 , 0 , 1 /* no need to draw underline */) ;
 		}
+
+		draw_str( cand_screen , navi_str , len ,
+			    x , cand_screen->num_per_window ,
+			    xfont->height ,
+			    xfont->ascent , 0) ;
+
+		ml_str_final( navi_str , len) ;
 	}
 }
 
@@ -469,14 +484,19 @@ draw_screen_horizontal(
 	x_im_candidate_screen_t *  cand_screen ,
 	u_int  top ,
 	u_int  last ,
+	u_int  draw_index ,
 	int  do_resize
 	)
 {
 	x_font_t *  xfont ;
 	u_int  win_width ;
 	u_int  win_height ;
-	int  i ;
+	u_int  i ;
 	int  x = 0 ;
+	u_int  num_of_digits ;
+	u_char  digit[MAX_NUM_OF_DIGITS + 1] ;
+	ml_char_t  digit_str[MAX_NUM_OF_DIGITS + 1] ;
+	ml_char_t *  p ;
 
 	/*
 	 * resize window
@@ -485,7 +505,6 @@ draw_screen_horizontal(
 	/*
 	 * +-------------------------------------+
 	 * |1:cand0 2:cand1 3:cand4 ... 10:cand9 |
-	 * |                          index/total|
 	 * +-------------------------------------+
 	 */
 
@@ -495,11 +514,24 @@ draw_screen_horizontal(
 	{
 		/* width of window */
 		win_width = 0 ;
-		for( i = 1 ; i <= last - top + 1 ; i++)
+		for( i = top ; i <= last ; i++)
 		{
-			u_int  num_of_digits ;
+			if( cand_screen->candidates[i].info)
+			{
+				if( ( ( cand_screen->candidates[i].info >> 8) & 0xff) != 0)
+				{
+					num_of_digits = 2 ;
+				}
+				else
+				{
+					num_of_digits = 1 ;
+				}
+			}
+			else
+			{
+				NUM_OF_DIGITS( num_of_digits , i) ;
+			}
 
-			NUM_OF_DIGITS( num_of_digits , i) ;
 			win_width += xfont->width * (num_of_digits + 2) ;
 		}
 		win_width += total_candidate_width( cand_screen->font_man ,
@@ -518,8 +550,6 @@ draw_screen_horizontal(
 
 	for( i = top ; i <= last; i++)
 	{
-		u_int  num_of_digits ;
-		u_char  digit[MAX_NUM_OF_DIGITS + 1] ;
 		int  j ;
 
 		/*
@@ -528,39 +558,58 @@ draw_screen_horizontal(
 		 * |1:cand0 2:cand1
 		 *  ^^
 		 */
-		NUM_OF_DIGITS( num_of_digits , (i - top + 1)) ;
+		NUM_OF_DIGITS( num_of_digits , i) ;
 		if( cand_screen->candidates[i].info)
 		{
-			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c." ,
-				cand_screen->candidates[i].info & 0xff) ;
-			num_of_digits = 1;
+			char  byte2 ;
+
+			if( ( byte2 = (cand_screen->candidates[i].info >> 8) & 0xff) != 0)
+			{
+				num_of_digits = 2 ;
+				kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c%c." ,
+					cand_screen->candidates[i].info , byte2) ;
+			}
+			else
+			{
+				num_of_digits = 1 ;
+				kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c." ,
+					cand_screen->candidates[i].info) ;
+			}
 		}
 		else
 		{
 			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i." , i - top + 1) ;
 		}
 
+		p = digit_str ;
 		for( j = 0 ; j < num_of_digits + 1 ; j++)
 		{
-			ml_char_t  ch ;
-
-			ml_char_init( &ch) ;
-
-			ml_char_set( &ch , digit[j] , US_ASCII , 0 , 0 ,
+			ml_char_init( p) ;
+			ml_char_set( p++ , digit[j] , US_ASCII , 0 , 0 ,
 				     ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0 , 0) ;
-
-			x_draw_str( &cand_screen->window ,
-				    cand_screen->font_man ,
-				    cand_screen->color_man ,
-				    &ch , 1 ,
-				    x , 0 ,
-				    xfont->height + LINE_SPACE ,
-				    xfont->ascent + LINE_SPACE / 2 ,
-				    LINE_SPACE / 2 ,
-				    LINE_SPACE / 2 + LINE_SPACE % 2 ,
-				    1 /* no need to draw underline */) ;
-			x += xfont->width ;
 		}
+
+		if( draw_index != INVALID_INDEX)
+		{
+			if( i < draw_index)
+			{
+				x += ( xfont->width * (num_of_digits + 2) +
+				       candidate_width( cand_screen->font_man ,
+						&cand_screen->candidates[i])) ;
+
+				continue ;
+			}
+			else /* if( i == draw_index) */
+			{
+				last = draw_index ;
+			}
+		}
+
+		draw_str( cand_screen , digit_str , num_of_digits + 1 ,
+			x , 0 , xfont->height , xfont->ascent , 0) ;
+		x += xfont->width * (num_of_digits + 1) ;
+
+		ml_str_final( digit_str , num_of_digits + 1) ;
 
 		/*
 		 * candidate
@@ -568,17 +617,9 @@ draw_screen_horizontal(
 		 * |1:cand0 2:cand2
 		 *    ^^^^^
 		 */
-		x_draw_str( &cand_screen->window ,
-			    cand_screen->font_man ,
-			    cand_screen->color_man ,
-			    cand_screen->candidates[i].chars ,
-			    cand_screen->candidates[i].filled_len ,
-			    x , 0 ,
-			    xfont->height + LINE_SPACE ,
-			    xfont->ascent + LINE_SPACE / 2 ,
-			    LINE_SPACE / 2 ,
-			    LINE_SPACE / 2 + LINE_SPACE % 2 ,
-			    1 /* no need to draw underline */) ;
+		draw_str( cand_screen , cand_screen->candidates[i].chars ,
+			cand_screen->candidates[i].filled_len , x , 0 ,
+			xfont->height , xfont->ascent , 0) ;
 		x += candidate_width( cand_screen->font_man ,
 				      &cand_screen->candidates[i]) ;
 
@@ -587,8 +628,8 @@ draw_screen_horizontal(
 		 * |1:cand0 2:cand2
 		 *         ^
 		 */
-		x_window_clear( &cand_screen->window , x , 1 ,
-				xfont->width , win_height - 2) ;
+		x_window_clear( &cand_screen->window , x , LINE_SPACE / 2 ,
+				xfont->width , win_height - LINE_SPACE) ;
 		x += xfont->width ;
 	}
 }
@@ -596,6 +637,7 @@ draw_screen_horizontal(
 static void
 draw_screen(
 	x_im_candidate_screen_t *  cand_screen ,
+	u_int  old_index ,
 	int  do_resize
 	)
 {
@@ -607,13 +649,43 @@ draw_screen(
 		      cand_screen->index ,
 		      top , last) ;
 
+	if( old_index != cand_screen->index && old_index != INVALID_INDEX)
+	{
+		u_int  old_top ;
+		u_int  old_last ;
+
+		VISIBLE_INDEX(cand_screen->num_of_candidates ,
+			      cand_screen->num_per_window ,
+			      old_index , old_top , old_last) ;
+
+		if( old_top == top && old_last == last)
+		{
+			if( cand_screen->is_vertical_direction)
+			{
+				draw_screen_vertical( cand_screen , top , last ,
+					old_index , 0) ;
+				draw_screen_vertical( cand_screen , top , last ,
+					cand_screen->index , 0) ;
+			}
+			else
+			{
+				draw_screen_horizontal( cand_screen , top , last ,
+					old_index , 0) ;
+				draw_screen_horizontal( cand_screen , top , last ,
+					cand_screen->index , 0) ;
+			}
+
+			return ;
+		}
+	}
+
 	if( cand_screen->is_vertical_direction)
 	{
-		draw_screen_vertical( cand_screen , top , last , do_resize) ;
+		draw_screen_vertical( cand_screen , top , last , INVALID_INDEX , do_resize) ;
 	}
 	else
 	{
-		draw_screen_horizontal( cand_screen , top , last , do_resize) ;
+		draw_screen_horizontal( cand_screen , top , last , INVALID_INDEX , do_resize) ;
 	}
 }
 
@@ -759,6 +831,7 @@ init_candidates(
 	}
 
 	cand_screen->index = 0 ;
+	cand_screen->need_redraw = 1 ;
 
 	return  1 ;
 }
@@ -877,6 +950,8 @@ set_candidate(
 		cand_screen->candidates[index].filled_len++ ;
 	}
 
+	cand_screen->need_redraw = 1 ;
+
 	return  1 ;
 }
 
@@ -887,7 +962,8 @@ select_candidate(
 	)
 {
 	x_im_candidate_t *  cand ;
-	int  i ;
+	u_int  i ;
+	u_int  old_index ;
 
 	if( index >= cand_screen->num_of_candidates)
 	{
@@ -920,9 +996,18 @@ select_candidate(
 		}
 	}
 
+	if( cand_screen->need_redraw)
+	{
+		old_index = INVALID_INDEX ;
+		cand_screen->need_redraw = 0 ;
+	}
+	else
+	{
+		old_index = cand_screen->index ;
+	}
 	cand_screen->index = index ;
 
-	draw_screen( cand_screen , 1) ;
+	draw_screen( cand_screen , old_index , 1) ;
 
 	return  1 ;
 }
@@ -959,7 +1044,12 @@ window_exposed(
 	u_int  height
 	)
 {
-	draw_screen( (x_im_candidate_screen_t *) win , 0) ;
+	x_im_candidate_screen_t *  cand_screen ;
+
+	cand_screen = (x_im_candidate_screen_t*) win ;
+
+	draw_screen( cand_screen , INVALID_INDEX , 0) ;
+	cand_screen->need_redraw = 0 ;
 
 	/* draw border (margin area has been already cleared in x_window.c) */
 	x_window_draw_rect_frame( win , -MARGIN , -MARGIN ,

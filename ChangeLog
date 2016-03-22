@@ -1,3 +1,14 @@
+2016-03-23  Araki Ken  <arakiken@users.sf.net>
+
+	* x_im_candidate_screen.c: The number of drawing candidate window is decreased.
+
+	* x_im_status_screen.c: Minor fixes.
+
+	* im_wnn.c:
+	  - "[N/N]" is shown after preediting text.
+	  - Candidate number is shown in candidate window.
+	  - CAND_WINDOW_ROWS(==5) is defined.
+
 2016-03-19  Araki Ken  <arakiken@users.sf.net>
 
 	* registobmp/Makefile.in: Changeset 2562 commit (-lm is removed) is reverted.
