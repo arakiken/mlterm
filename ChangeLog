@@ -1,3 +1,7 @@
+2016-04-03  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1: Updated.
+
 2016-03-23  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_candidate_screen.c: The number of drawing candidate window is decreased.
