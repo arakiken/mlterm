@@ -353,8 +353,13 @@ kik_pty_fork(
 			close(*slave) ;
 		}
 
+	#ifdef  B38400
+		cfsetispeed( &tio , B38400) ;
+		cfsetospeed( &tio , B38400) ;
+	#else
 		cfsetispeed( &tio , B9600) ;
 		cfsetospeed( &tio , B9600) ;
+	#endif
 
 		if( tcsetattr(STDIN_FILENO, TCSANOW , &tio) < 0)
 		{

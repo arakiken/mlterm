@@ -3,6 +3,7 @@ ver 3.7.1
 * Show the number of each conversion candidate on an input method window of wnn.
 * Bug fixes:
   Fix compiling error of registobmp. (Enbugged at 3.7.0) (Thanks to Amadeusz)
+  Fix https://sourceforge.net/p/mlterm/mailman/message/34992704/
 
 ver 3.7.0
 * Support OSC 1337. (See http://www.iterm2.com/images.html)

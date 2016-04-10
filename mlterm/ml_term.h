@@ -222,9 +222,9 @@ int  ml_term_set_modified_region_in_screen( ml_term_t *  term ,
 	int  beg_char_index , int  beg_row , u_int  nchars , u_int  nrows) ;
 #endif
 
-int  ml_term_set_modified_lines( ml_term_t *  term , u_int  beg , u_int  end) ;
+int  ml_term_set_modified_lines( ml_term_t *  term , int  beg , int  end) ;
 
-int  ml_term_set_modified_lines_in_screen( ml_term_t *  term , u_int  beg , u_int  end) ;
+int  ml_term_set_modified_lines_in_screen( ml_term_t *  term , int  beg , int  end) ;
 
 int  ml_term_set_modified_all_lines_in_screen( ml_term_t *  term) ;
 

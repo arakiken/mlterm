@@ -74,21 +74,19 @@ receive_next_event(void)
 	u_int  num_of_terms ;
 	int  xfd ;
 	int  ptyfd ;
-#ifdef  USE_LIBSSH2
-	int *  xssh_fds ;
-	u_int  num_of_xssh_fds ;
-#endif
 	int  maxfd ;
 	int  ret ;
 	fd_set  read_fds ;
 	struct timeval  tval ;
 	x_display_t **  displays ;
 	u_int  num_of_displays ;
-
-	num_of_terms = ml_get_all_terms( &terms) ;
 #ifdef  USE_LIBSSH2
+	int *  xssh_fds ;
+	u_int  num_of_xssh_fds ;
+
 	num_of_xssh_fds = ml_pty_ssh_get_x11_fds( &xssh_fds) ;
 #endif
+	num_of_terms = ml_get_all_terms( &terms) ;
 
 	while( 1)
 	{

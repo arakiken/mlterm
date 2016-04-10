@@ -740,6 +740,10 @@ flush_scroll_cache(
 
 			scroll_height = x_line_height( screen) * abs( scroll_cache_rows) ;
 
+			/*
+			 * scroll_height may be larger than screen->window.height if
+			 * screen->screen_height_ratio is less than 100.
+			 */
 			if( scroll_height < screen->window.height)
 			{
 				beg_y = convert_row_to_y( screen , screen->scroll_cache_boundary_start) ;
@@ -769,6 +773,10 @@ flush_scroll_cache(
 			int  end_x ;
 			u_int  scroll_width ;
 
+			/*
+			 * scroll_width may be larger than screen->window.width if
+			 * screen->screen_width_ratio is less than 100.
+			 */
 			scroll_width = x_col_width( screen) * abs( scroll_cache_rows) ;
 
 			if( scroll_width < screen->window.width)
@@ -834,7 +842,7 @@ flush_scroll_cache(
 				 * scrolling downward.
 				 */
 				ml_term_set_modified_lines_in_screen( screen->term ,
-					screen->scroll_cache_boundary_start -
+					screen->scroll_cache_boundary_start +
 						scroll_cache_rows ,
 					screen->scroll_cache_boundary_end) ;
 			}
@@ -844,7 +852,7 @@ flush_scroll_cache(
 	return  1 ;
 }
 
-static int
+static void
 set_scroll_boundary(
 	x_screen_t *  screen ,
 	int  boundary_start ,
@@ -853,16 +861,6 @@ set_scroll_boundary(
 {
 	if( screen->scroll_cache_rows)
 	{
-		if( screen->scroll_cache_boundary_end - screen->scroll_cache_boundary_start
-		    > boundary_end - boundary_start)
-		{
-			/*
-			 * Don't call flush_scroll_cache() if new boundary is smaller
-			 * in order to avoid convergence of flush_scroll_cache().
-			 */
-			return  0 ;
-		}
-
 		if( screen->scroll_cache_boundary_start != boundary_start ||
 		    screen->scroll_cache_boundary_end != boundary_end)
 		{
@@ -872,8 +870,6 @@ set_scroll_boundary(
 
 	screen->scroll_cache_boundary_start = boundary_start ;
 	screen->scroll_cache_boundary_end = boundary_end ;
-
-	return  1 ;
 }
 
 /*
@@ -2040,7 +2036,7 @@ shortcut_match(
 		for( count = 0 ; count < 0x5e ; count++)
 		{
 			ml_char_set( str + count , ch , US_ASCII , 0 , 0 ,
-				ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0) ;
+				ML_FG_COLOR , ML_BG_COLOR , 0 , 0 , 0 , 0 , 0) ;
 			ch ++ ;
 		}
 
@@ -5972,12 +5968,12 @@ window_scroll_upward_region(
 
 	screen = p ;
 
-	if( ! x_window_is_scrollable( &screen->window) ||
-	    ! set_scroll_boundary( screen , beg_row , end_row))
+	if( ! x_window_is_scrollable( &screen->window))
 	{
 		return  0 ;
 	}
 
+	set_scroll_boundary( screen , beg_row , end_row) ;
 	screen->scroll_cache_rows += size ;
 
 	return  1 ;
@@ -5995,12 +5991,12 @@ window_scroll_downward_region(
 
 	screen = p ;
 
-	if( ! x_window_is_scrollable( &screen->window) ||
-	    ! set_scroll_boundary( screen , beg_row , end_row))
+	if( ! x_window_is_scrollable( &screen->window))
 	{
 		return  0 ;
 	}
 
+	set_scroll_boundary( screen , beg_row , end_row) ;
 	screen->scroll_cache_rows -= size ;
 
 	return  1 ;

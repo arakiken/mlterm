@@ -62,7 +62,7 @@ typedef struct  ml_line
 #endif
 	u_int8_t  ctl_info_type ;
 
-	int8_t  is_modified ;
+	int8_t  is_modified ;		/* 1: need to redraw. 2: was really changed. */
 	int8_t  is_continued_to_next ;
 
 	/* public */

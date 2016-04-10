@@ -1,3 +1,16 @@
+2016-04-10  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: The change of 1611 commit is reverted.
+
+	* ml_vt100_parser.c: 0.01 sec interval is used for the limit of reading bytes in
+	  ml_parse_vt100_sequence() instead of MAX_READ_COUNT.
+
+	* ml_line.c: Fix https://sourceforge.net/p/mlterm/mailman/message/34992704/.
+
+	* man/mlterm.1: U+XXXX-XXXX in ~/.mlterm/*font is documented.
+
+	* kik_pty_{bsd|stream}.c: If B38400 is defined, B38400 is used instead of B9600.
+
 2016-04-03  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1: Updated.

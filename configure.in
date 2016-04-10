@@ -1223,6 +1223,22 @@ AC_SUBST(WNN_LIBS)
 
 
 #
+# --- SKK ---
+#
+AC_ARG_ENABLE(skk,
+	[  --enable-skk           SKK @<:@default=disabled@:>@],
+	skk=$enable_skk)
+if test "$enable_shared" = "yes" -a "$gui" != "quartz" -a "$ml_cv_is_posix" != "no" ; then
+	MAKE_DIRS="inputmethod/skk ${MAKE_DIRS}"
+	OUTPUT_FILES="inputmethod/skk/Makefile ${OUTPUT_FILES}"
+	if test "x$with_libltdl" != xno ; then
+		DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/skk/libim-skk.la ${DL_LIBS_IM}"
+	fi
+	input_methods_result="$input_methods_result skk"
+fi
+
+
+#
 # --- scrollbar plugins ---
 #
 

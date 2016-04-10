@@ -897,9 +897,15 @@ ml_line_break_boundary(
 		ml_char_copy( line->chars + count , ml_sp_ch()) ;
 	}
 
-	/* change_{beg|end}_col is not updated. */
 #if  0
 	set_real_modified( line , END_CHAR_INDEX(line) + 1 , END_CHAR_INDEX(line) + size) ;
+#else
+	if( ml_line_is_using_ctl( line) && ! ml_line_is_real_modified( line))
+	{
+		/* ctl_render_line() should be called in ctl_render() in ml_logical_visual.c. */
+		set_real_modified( line , END_CHAR_INDEX(line) + size ,
+			END_CHAR_INDEX(line) + size) ;
+	}
 #endif
 
 	line->num_of_filled_chars += size ;
@@ -1501,7 +1507,7 @@ ml_line_set_modified_all(
 	 */
 	line->change_end_col = line->num_of_chars * 2 ;
 
-	/* Don't overwrite if line->is_modified == 2 */
+	/* Don't overwrite if line->is_modified == 2 (real modified) */
 	if( ! line->is_modified)
 	{
 		line->is_modified = 1 ;

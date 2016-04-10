@@ -10,6 +10,7 @@
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* write/getcwd */
 #include  <sys/time.h>		/* gettimeofday */
+#include  <time.h>		/* clock */
 #ifdef  DEBUG
 #include  <stdarg.h>		/* va_list */
 #endif
@@ -39,11 +40,8 @@
 
 /*
  * kterm BUF_SIZE in ptyx.h is 4096.
- * Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3.
- * (see ml_parse_vt100_sequence)
  */
 #define  PTY_RD_BUFFER_SIZE  3072
-#define  MAX_READ_COUNT  3
 
 #define  CTL_BEL	0x07
 #define  CTL_BS		0x08
@@ -784,7 +782,7 @@ receive_bytes(
 	{
 		/* Buffer is full => Expand buffer */
 
-		len = vt100_parser->r_buf.len >= PTY_RD_BUFFER_SIZE * MAX_READ_COUNT ?
+		len = vt100_parser->r_buf.len >= PTY_RD_BUFFER_SIZE * 5 ?
 			 PTY_RD_BUFFER_SIZE * 10 : PTY_RD_BUFFER_SIZE ;
 
 		if( ! change_read_buffer_size( &vt100_parser->r_buf ,
@@ -7331,7 +7329,7 @@ ml_parse_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	int  count ;
+	clock_t  beg ;
 
 	if( ml_screen_local_echo_wait( vt100_parser->screen , 500))
 	{
@@ -7343,6 +7341,8 @@ ml_parse_vt100_sequence(
 		return  0 ;
 	}
 
+	beg = clock() ;
+
 	start_vt100_cmd( vt100_parser , 1) ;
 
 	ml_screen_disable_local_echo( vt100_parser->screen) ;
@@ -7353,8 +7353,6 @@ ml_parse_vt100_sequence(
 	 * the second argument of it shoule be 0.
 	 */
 
-	/* Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3. */
-	count = 0 ;
 	while( parse_vt100_sequence( vt100_parser) &&
 	       /*
 	        * XXX
@@ -7364,7 +7362,7 @@ ml_parse_vt100_sequence(
 	#if  (! defined(__NetBSD__) && ! defined(__OpenBSD__)) || ! defined(USE_FRAMEBUFFER)
 	       /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
 	       vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
-	       (++count) < MAX_READ_COUNT &&
+	       clock() - beg < CLOCKS_PER_SEC / 100 /* 0.01 sec */ &&
 	#endif
 	       receive_bytes( vt100_parser)) ;
 

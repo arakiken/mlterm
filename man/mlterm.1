@@ -1603,43 +1603,43 @@ The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",
 "\fBaafont\fR", "\fBvaafont\fR", and "\fBtaafont\fR" have the following keys.
 .PP
 .nf
-\fBDEFAULT=\fIfonts\fR
-\fBDEC_SPECIAL=\fIfonts\fR
-\fBISO8859_\fIn\fB=\fIfonts\fR
-\fBTIS620=\fIfonts\fR
-\fBISCII_HINDI=\fIfonts\fR
-\fBISCII_MALAYALAM=\fIfonts\fR
-\fBISCII_ASSAMESE=\fIfonts\fR
-\fBISCII_BENGALI=\fIfonts\fR
-\fBISCII_GUJARATI=\fIfonts\fR
-\fBISCII_KANNADA=\fIfonts\fR
-\fBISCII_MALAYALAM=\fIfonts\fR
-\fBISCII_ORIYA=\fIfonts\fR
-\fBISCII_PUNJABI=\fIfonts\fR
-\fBISCII_TAMIL=\fIfonts\fR
-\fBISCII_TELUGU=\fIfonts\fR
-\fBVISCII=\fIfonts\fR
-\fBKOI8_R=\fIfonts\fR
-\fBKOI8_U=\fIfonts\fR
-\fBTCVN5712=\fIfonts\fR
-\fBJISX0201_ROMAN=\fIfonts\fR
-\fBJISX0201_KATA=\fIfonts\fR
-\fBJISX0208_1978=\fIfonts\fR
-\fBJISX0208_1983=\fIfonts\fR
-\fBJISX0208_1990=\fIfonts\fR
-\fBJISX0213_2000_1=\fIfonts\fR
-\fBJISX0213_2000_2=\fIfonts\fR
-\fBKSX1001_1997=\fIfonts\fR
-\fBUHC=\fIfonts\fR (not used)
-\fBJOHAB=\fIfonts\fR (not used)
-\fBGB2312_80=\fIfonts\fR
-\fBGBK=\fIfonts\fR
-\fBBIG5=\fIfonts\fR
-\fBHKSCS=\fIfonts\fR
-\fBCNS11643_1992_\fIn\fB=\fIfonts\fR
-\fBISO10646_UCS4_1=\fIfonts\fR
-\fBISO10646_UCS4_1_FULLWIDTH=\fIfonts\fR
-\fBU+XXXX-XXXX=\fIfonts\fR
+\fBDEFAULT=\fIfont\fR
+\fBDEC_SPECIAL=\fIfont\fR
+\fBISO8859_\fIn\fB=\fIfont\fR
+\fBTIS620=\fIfont\fR
+\fBISCII_HINDI=\fIfont\fR
+\fBISCII_MALAYALAM=\fIfont\fR
+\fBISCII_ASSAMESE=\fIfont\fR
+\fBISCII_BENGALI=\fIfont\fR
+\fBISCII_GUJARATI=\fIfont\fR
+\fBISCII_KANNADA=\fIfont\fR
+\fBISCII_MALAYALAM=\fIfont\fR
+\fBISCII_ORIYA=\fIfont\fR
+\fBISCII_PUNJABI=\fIfont\fR
+\fBISCII_TAMIL=\fIfont\fR
+\fBISCII_TELUGU=\fIfont\fR
+\fBVISCII=\fIfont\fR
+\fBKOI8_R=\fIfont\fR
+\fBKOI8_U=\fIfont\fR
+\fBTCVN5712=\fIfont\fR
+\fBJISX0201_ROMAN=\fIfont\fR
+\fBJISX0201_KATA=\fIfont\fR
+\fBJISX0208_1978=\fIfont\fR
+\fBJISX0208_1983=\fIfont\fR
+\fBJISX0208_1990=\fIfont\fR
+\fBJISX0213_2000_1=\fIfont\fR
+\fBJISX0213_2000_2=\fIfont\fR
+\fBKSX1001_1997=\fIfont\fR
+\fBUHC=\fIfont\fR (not used)
+\fBJOHAB=\fIfont\fR (not used)
+\fBGB2312_80=\fIfont\fR
+\fBGBK=\fIfont\fR
+\fBBIG5=\fIfont\fR
+\fBHKSCS=\fIfont\fR
+\fBCNS11643_1992_\fIn\fB=\fIfont\fR
+\fBISO10646_UCS4_1=\fIfont\fR
+\fBISO10646_UCS4_1_FULLWIDTH=\fIfont\fR
+\fBU+XXXX-XXXX=\fIfont\fR
 .fi
 .RS
 Specify fonts for corresponding character sets.  The format is
@@ -1662,14 +1662,17 @@ If ":\fIPERCENT\fR" is omitted, 'W' width is used for it.
 .PP
 .RE
 .TP
-\fIcharset\fB_BOLD=\fIfonts\fR
+\fIcharset\fB_BOLD=\fIfont\fR
 Specify boldface fonts.
 .TP
-\fIcharset\fB_ITALIC=\fIfonts\fR
+\fIcharset\fB_ITALIC=\fIfont\fR
 Specify italic fonts.
 .TP
-\fIcharset\fB_BOLD_ITALIC=\fIfonts\fR
+\fIcharset\fB_BOLD_ITALIC=\fIfont\fR
 Specify bold-italic fonts.
+.TP
+\fIU+XXXX-XXXX=\fIfont\fR
+Specify which fonts to use for unicode ranges except U+00-7f.
 .\" ******************************************************
 .SS Color Configuration File
 The color configuration file "\fBcolor\fR" has the following key.

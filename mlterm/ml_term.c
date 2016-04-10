@@ -869,8 +869,8 @@ ml_term_set_modified_region_in_screen(
 int
 ml_term_set_modified_lines(
 	ml_term_t *  term ,
-	u_int  beg ,
-	u_int  end
+	int  beg ,
+	int  end
 	)
 {
 	int  row ;
@@ -911,8 +911,8 @@ ml_term_set_modified_lines(
 int
 ml_term_set_modified_lines_in_screen(
 	ml_term_t *  term ,
-	u_int  beg ,
-	u_int  end
+	int  beg ,
+	int  end
 	)
 {
 	int  row ;
