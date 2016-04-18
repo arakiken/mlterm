@@ -489,6 +489,15 @@ x_im_status_screen_new(
 		goto  error ;
 	}
 
+	/*
+	 * XXX
+	 * Some area in a main screen is not correctly drawn without this
+	 * in showing a status screen.
+	 * stat_screen is shown in im->stat_screen->show() in x_im_redraw_preedit()
+	 */
+#ifdef  USE_WIN32GUI
+	stat_screen->window.is_mapped = 0 ;
+#endif
 
 	/*
 	 * +------------+

@@ -1226,9 +1226,9 @@ AC_SUBST(WNN_LIBS)
 # --- SKK ---
 #
 AC_ARG_ENABLE(skk,
-	[  --enable-skk           SKK @<:@default=disabled@:>@],
+	[  --disable-skk           SKK @<:@default=enabled@:>@],
 	skk=$enable_skk)
-if test "$enable_shared" = "yes" -a "$gui" != "quartz" -a "$ml_cv_is_posix" != "no" ; then
+if test "$enable_shared" != "no" -a "$gui" != "quartz" -a "$ml_cv_is_posix" != "no" ; then
 	MAKE_DIRS="inputmethod/skk ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/skk/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != xno ; then

@@ -202,10 +202,6 @@ preedit(
 {
 	int  x ;
 	int  y ;
-	mkf_char_t  ch ;
-	ml_char_t *  p ;
-	u_int  num_of_chars ;
-	u_int  len ;
 
 	if( preedit == NULL)
 	{
@@ -221,6 +217,10 @@ preedit(
 	}
 	else
 	{
+		mkf_char_t  ch ;
+		ml_char_t *  p ;
+		u_int  num_of_chars ;
+		u_int  len ;
 		u_char *  tmp = NULL ;
 		size_t  pos_len ;
 
@@ -409,16 +409,13 @@ candidate:
 
 static void
 commit(
-	void *  p ,
+	im_wnn_t *  wnn ,
 	const char *  str ,
 	size_t  len
 	)
 {
-	im_wnn_t *  wnn ;
 	u_char  conv_buf[256] ;
 	size_t  filled_len ;
-
-	wnn = (im_wnn_t*) p ;
 
 	(*parser_wchar->init)( parser_wchar) ;
 	(*parser_wchar->set_str)( parser_wchar , (u_char*)str , len) ;
