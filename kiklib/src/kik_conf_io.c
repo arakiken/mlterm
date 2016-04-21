@@ -97,13 +97,16 @@ kik_get_user_rc_path(
 
 		sprintf( dotrcpath , "%s/.config/%s" , homedir , rcfile) ;
 		p = strrchr( dotrcpath , '/') ;
-		*p = '\0' ;
-		if( stat( dotrcpath , &st) == 0)
+		if( p > dotrcpath + strlen(homedir) + 8)
 		{
-			*p = '/' ;
+			*p = '\0' ;
+			if( stat( dotrcpath , &st) == 0)
+			{
+				*p = '/' ;
 
-			/* ~/.config/mlterm exists. */
-			goto  end ;
+				/* ~/.config/mlterm exists. */
+				goto  end ;
+			}
 		}
 
 		sprintf( dotrcpath , "%s/.%s" , homedir , rcfile) ;

@@ -1,4 +1,3 @@
-
 /*
  *	$Id$
  */
@@ -8,6 +7,7 @@
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include  <kiklib/kik_conf_io.h>
 
 #include  <x_im.h>
 
@@ -58,10 +58,10 @@ typedef struct im_skk
 	u_int  preedit_len ;
 
 	char *  caption ;
+	char *  caption2 ;
 	char *  cands[MAX_CANDS] ;
 	u_int  num_of_cands ;
 	int  cur_cand ;
-	mkf_parser_t *  cand_parser ;
 
 	int  dan ;
 	int  prev_dan ;
@@ -202,7 +202,7 @@ preedit(
 	mkf_char_t *  preedit ,
 	u_int  preedit_len ,
 	int  rev_len ,
-	char *  candidateword ,
+	char *  candidateword ,		/* already converted to term encoding */
 	size_t  candidateword_len ,
 	char *  pos
 	)
@@ -378,13 +378,6 @@ candidate:
 		{
 			(*skk->im.stat_screen->show)( skk->im.stat_screen) ;
 			(*skk->im.stat_screen->set_spot)( skk->im.stat_screen , x , y) ;
-		}
-
-		(*skk->cand_parser->init)( skk->cand_parser) ;
-		if( im_convert_encoding( skk->cand_parser , skk->conv ,
-					 candidateword , &tmp , candidateword_len))
-		{
-			candidateword = tmp ;
 		}
 
 		(*skk->im.stat_screen->set)( skk->im.stat_screen ,
@@ -804,9 +797,93 @@ switch_mode(
 }
 
 
-static void
+static char *
+candidate_get_from_file(
+	mkf_char_t *  mkf_caption ,
+	u_int  caption_len ,
+	mkf_conv_t *  conv
+	)
+{
+	/* XXX Leaked */
+	static mkf_conv_t *  conv_eucjp ;
+	static mkf_parser_t *  parser_eucjp ;
+
+	char *  path ;
+	FILE *  fp ;
+	char  caption[1024] ;
+	size_t  filled_len ;
+	char  buf[1024] ;
+
+	if( ! parser_eucjp)
+	{
+		conv_eucjp = (*syms->ml_conv_new)( ML_EUCJP) ;
+		parser_eucjp = (*syms->ml_parser_new)( ML_EUCJP) ;
+	}
+
+	if( ! ( path = kik_get_user_rc_path( "skk-jisyo")))
+	{
+		return  NULL ;
+	}
+
+	fp = fopen( path , "r") ;
+	free( path) ;
+
+	if( ! fp)
+	{
+		return  NULL ;
+	}
+
+	(*parser_mkfchar->init)( parser_mkfchar) ;
+	(*parser_mkfchar->set_str)( parser_mkfchar , (u_char*)mkf_caption ,
+		caption_len * sizeof(mkf_char_t)) ;
+	(*conv_eucjp->init)( conv_eucjp) ;
+
+	filled_len = (conv_eucjp->convert)( conv_eucjp , caption , sizeof(buf) - 1 ,
+				parser_mkfchar) ;
+	caption[filled_len++] = ' ' ;
+	caption[filled_len] = '\0' ;
+#ifdef  DEBUG
+	kik_debug_printf( "%s\n" , caption) ;
+#endif
+
+	while( fgets( buf , sizeof(buf) , fp))
+	{
+		if( strncmp( buf , caption , strlen(caption)) == 0)
+		{
+			char *  p ;
+
+			if( ( p = strstr( buf , "/[")))
+			{
+				p[1] = '\0' ;
+			}
+
+			p = buf + strlen(buf) - 1 ;
+			if( *p == '\n')
+			{
+				*p = '\0' ;
+			}
+
+			(*parser_eucjp->init)( parser_eucjp) ;
+			if( im_convert_encoding( parser_eucjp , conv ,
+						 buf + 1 , &p , strlen( buf + 1)))
+			{
+				return  p ;
+			}
+			else
+			{
+				return  NULL ;
+			}
+		}
+	}
+
+	return  NULL ;
+}
+
+static char *
 candidate_get_from_skkserv(
-	im_skk_t *  skk
+	mkf_char_t *  caption ,
+	u_int  caption_len ,
+	mkf_conv_t *  conv
 	)
 {
 	static int  fd = -1 ;
@@ -816,7 +893,6 @@ candidate_get_from_skkserv(
 
 	struct sockaddr_in  sa ;
 	struct hostent *  host ;
-	u_int  count ;
 	char  buf[1024] ;
 	char *  p ;
 	size_t  filled_len ;
@@ -833,7 +909,7 @@ candidate_get_from_skkserv(
 
 		if( ( fd = socket( AF_INET , SOCK_STREAM , 0)) == -1)
 		{
-			return ;
+			return  NULL ;
 		}
 
 		memset( &sa , 0 , sizeof(sa)) ;
@@ -857,8 +933,8 @@ candidate_get_from_skkserv(
 	}
 
 	(*parser_mkfchar->init)( parser_mkfchar) ;
-	(*parser_mkfchar->set_str)( parser_mkfchar , (u_char*)skk->preedit ,
-		skk->preedit_len * sizeof(mkf_char_t)) ;
+	(*parser_mkfchar->set_str)( parser_mkfchar , (u_char*)caption ,
+		caption_len * sizeof(mkf_char_t)) ;
 	(*conv_eucjp->init)( conv_eucjp) ;
 
 	buf[0] = '1' ;
@@ -891,39 +967,110 @@ candidate_get_from_skkserv(
 
 	if( *buf != '1')
 	{
+		return  NULL ;
+	}
+
+	(*parser_eucjp->init)( parser_eucjp) ;
+	if( im_convert_encoding( parser_eucjp , conv ,
+				 buf + 1 , &p , strlen( buf + 1)))
+	{
+		return  p ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+
+error:
+	close( fd) ;
+	fd = -1 ;
+
+	return  NULL ;
+}
+
+static int
+candidate_exists(
+	const char **  cands ,
+	u_int  num_of_cands ,
+	const char *  cand
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < num_of_cands ; count++)
+	{
+		if( strcmp( cands[count] , cand) == 0)
+		{
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
+static void
+candidate_get(
+	im_skk_t *  skk
+	)
+{
+	char *  caption ;
+	char *  p ;
+	int  count ;
+
+	if( ! ( caption = candidate_get_from_skkserv( skk->preedit , skk->preedit_len ,
+					skk->conv)))
+	{
 		skk->num_of_cands = 0 ;
 
 		return ;
 	}
 
-	p = buf + 1 ;
-	skk->caption = strdup( p) ;
-	p = strchr( skk->caption , '/') ;	/* skip caption */
-	*(p++) = '\0' ;
+	skk->caption = caption ;
+
+	if( ( skk->caption2 = candidate_get_from_file( skk->preedit , skk->preedit_len ,
+					skk->conv)))
+	{
+		caption = skk->caption2 ;
+	}
+	else
+	{
+		caption = skk->caption ;
+	}
 
 	count = 0 ;
-	while( *p)
+	while( 1)
 	{
-		skk->cands[count++] = p ;
-		if( ! ( p = strchr( p , '/')))
-		{
-			break ;
-		}
+		p = strchr( caption , '/') ;	/* skip caption */
 		*(p++) = '\0' ;
-		if( count >= MAX_CANDS - 1)
+
+		while( *p)
+		{
+			skk->cands[count] = p ;
+			if( ( p = strchr( p , '/')))
+			{
+				*(p++) = '\0' ;
+			}
+
+			if( ! candidate_exists( skk->cands , count , skk->cands[count]))
+			{
+				count ++ ;
+			}
+
+			if( ! p || count >= MAX_CANDS - 1)
+			{
+				break ;
+			}
+		}
+
+		if( caption == skk->caption)
 		{
 			break ;
 		}
+
+		caption = skk->caption ;
 	}
+
 	skk->num_of_cands = count ;
-
-	skk->cand_parser = parser_eucjp ;
-
-	return ;
-
-error:
-	close( fd) ;
-	fd = -1 ;
 }
 
 static void
@@ -948,7 +1095,7 @@ candidate_set(
 
 	if( skk->num_of_cands == 0)
 	{
-		candidate_get_from_skkserv( skk) ;
+		candidate_get( skk) ;
 
 		if( skk->num_of_cands == 0)
 		{
@@ -973,13 +1120,13 @@ candidate_set(
 		skk->cur_cand = 0 ;
 	}
 
-	(*skk->cand_parser->init)( skk->cand_parser) ;
-	(*skk->cand_parser->set_str)( skk->cand_parser , (u_char*)skk->cands[skk->cur_cand] ,
+	(*skk->parser_term->init)( skk->parser_term) ;
+	(*skk->parser_term->set_str)( skk->parser_term , (u_char*)skk->cands[skk->cur_cand] ,
 		strlen( skk->cands[skk->cur_cand])) ;
 
 	skk->preedit_len = 0 ;
-	while( (*skk->cand_parser->next_char)( skk->cand_parser ,
-			skk->preedit + (skk->preedit_len ++)) && ! skk->cand_parser->is_eos) ;
+	while( (*skk->parser_term->next_char)( skk->parser_term ,
+			skk->preedit + (skk->preedit_len ++)) && ! skk->parser_term->is_eos) ;
 
 	if( skk->prev_dan)
 	{
@@ -1008,13 +1155,13 @@ candidate_unset(
 	im_skk_t *  skk
 	)
 {
-	(*skk->cand_parser->init)( skk->cand_parser) ;
-	(*skk->cand_parser->set_str)( skk->cand_parser , (u_char*)skk->caption ,
+	(*skk->parser_term->init)( skk->parser_term) ;
+	(*skk->parser_term->set_str)( skk->parser_term , (u_char*)skk->caption ,
 		strlen( skk->caption)) ;
 
 	skk->preedit_len = 0 ;
-	while( (*skk->cand_parser->next_char)( skk->cand_parser ,
-			skk->preedit + (skk->preedit_len ++)) && ! skk->cand_parser->is_eos) ;
+	while( (*skk->parser_term->next_char)( skk->parser_term ,
+			skk->preedit + (skk->preedit_len ++)) && ! skk->parser_term->is_eos) ;
 
 	skk->prev_dan = skk->dan = 0 ;
 	if( skk->preedit[skk->preedit_len - 1].size == 1 &&
@@ -1042,6 +1189,7 @@ candidate_clear(
 	if( skk->num_of_cands > 0)
 	{
 		free( skk->caption) ;
+		free( skk->caption2) ;
 		skk->cur_cand = -1 ;
 		skk->num_of_cands = 0 ;
 	}
@@ -1198,6 +1346,13 @@ key_event(
 				}
 				else
 				{
+					if( ! skk->prev_dan &&
+					    ( key_char == 'i' || key_char == 'u' ||
+					      key_char == 'e' || key_char == 'o'))
+					{
+						skk->prev_dan = key_char - 'a' ;
+					}
+
 					skk->is_preediting ++ ;
 					candidate_set( skk) ;
 				}
