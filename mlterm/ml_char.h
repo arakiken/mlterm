@@ -15,7 +15,7 @@
 
 
 #define  MAX_COMB_SIZE	7	/* Used in ml_shape.c,x_screen.c,ml_screen.c */
-#define  UTF_MAX_SIZE	6
+#define  UTF_MAX_SIZE	6	/* see skk/dict.c */
 /*
  * XXX
  * char prefixes are max 4 bytes.

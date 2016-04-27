@@ -8,7 +8,7 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/inputmethod/skk
 
-IM_SKK_OBJ = im_skk.o
+IM_SKK_OBJ = im_skk.o mkf_str_parser.o dict.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @KIK_CFLAGS@			\

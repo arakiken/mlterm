@@ -11,17 +11,10 @@
 
 #include  <x_im.h>
 
-/* for candidate_get_from_skkserv() */
-#include  <sys/socket.h>
-#include  <netinet/in.h>
-#include  <netdb.h>
-#include  <unistd.h>
-#include  <errno.h>
-#include  <fcntl.h>
-
-
-#include  "../im_common.h"
 #include  "../im_info.h"
+#include  "mkf_str_parser.h"
+#include  "dict.h"
+
 
 #if  0
 #define  IM_SKK_DEBUG  1
@@ -58,7 +51,6 @@ typedef struct im_skk
 	u_int  preedit_len ;
 
 	char *  caption ;
-	char *  caption2 ;
 	char *  cands[MAX_CANDS] ;
 	u_int  num_of_cands ;
 	int  cur_cand ;
@@ -68,6 +60,16 @@ typedef struct im_skk
 
 	int  is_katakana ;
 
+	int  is_editing_new_word ;
+	mkf_char_t  new_word[32] ;
+	u_int  new_word_len ;
+
+	mkf_char_t  preedit_orig[32] ;
+	u_int  preedit_orig_len ;
+	int  is_preediting_orig ;
+	int  prev_dan_orig ;
+	mkf_char_t  visual_chars[2] ;
+
 } im_skk_t ;
 
 
@@ -75,7 +77,6 @@ typedef struct im_skk
 
 static int  ref_count = 0 ;
 static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
-static mkf_parser_t *  parser_mkfchar = NULL ;
 
 
 /* --- static functions --- */
@@ -136,65 +137,44 @@ preedit_clear(
 	skk->prev_dan = 0 ;
 }
 
+static void
+preedit_to_visual(
+	im_skk_t *  skk
+	)
+{
+	if( skk->prev_dan)
+	{
+		if( skk->is_preediting == 4)
+		{
+			skk->preedit[skk->preedit_len] = skk->visual_chars[1] ;
+			skk->preedit[skk->preedit_len - 1] = skk->visual_chars[0] ;
+			skk->preedit_len ++ ;
+		}
+		else
+		{
+			skk->preedit[skk->preedit_len - 1] = skk->visual_chars[0] ;
+		}
+	}
+}
 
 static void
-mkfchar_parser_set_str(
-	mkf_parser_t *  parser ,
-	u_char *  str ,		/* mkf_char_t* */
-	size_t  size
+preedit_backup_visual_chars(
+	im_skk_t *  skk
 	)
 {
-	parser->str = str ;
-	parser->left = size ;
-	parser->marked_left = 0 ;
-	parser->is_eos = 0 ;
-}
-
-static void
-mkfchar_parser_delete(
-	mkf_parser_t *  parser
-	)
-{
-	free( parser) ;
-}
-
-static int
-mkfchar_parser_next_char(
-	mkf_parser_t *  parser ,
-	mkf_char_t *  ch
-	)
-{
-	if( parser->is_eos)
+	if( skk->prev_dan)
 	{
-		return  0 ;
+		if( skk->is_preediting == 4)
+		{
+			skk->visual_chars[1] = skk->preedit[skk->preedit_len - 1] ;
+			skk->visual_chars[0] = skk->preedit[skk->preedit_len - 2] ;
+		}
+		else
+		{
+			skk->visual_chars[0] = skk->preedit[skk->preedit_len - 1] ;
+		}
 	}
-
-	*ch = ((mkf_char_t*)parser->str)[0] ;
-	mkf_parser_n_increment( parser , sizeof(mkf_char_t)) ;
-
-	return  1 ;
 }
-
-static mkf_parser_t *
-mkfchar_parser_new(void)
-{
-	mkf_parser_t *  parser ;
-
-	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	mkf_parser_init( parser) ;
-
-	parser->init = mkf_parser_init ;
-	parser->set_str = mkfchar_parser_set_str ;
-	parser->delete = mkfchar_parser_delete ;
-	parser->next_char = mkfchar_parser_next_char ;
-
-	return  parser ;
-}
-
 
 static void
 preedit(
@@ -209,6 +189,36 @@ preedit(
 {
 	int  x ;
 	int  y ;
+
+	if( skk->preedit_orig_len > 0)
+	{
+		mkf_char_t *  p ;
+
+		if( ( p = alloca( sizeof(*p) * (skk->preedit_orig_len + 1 +
+					preedit_len + skk->new_word_len))))
+		{
+			memcpy( p , skk->preedit_orig , sizeof(*p) * skk->preedit_orig_len) ;
+			p[skk->preedit_orig_len].ch[0] = ':' ;
+			p[skk->preedit_orig_len].size = 1 ;
+			p[skk->preedit_orig_len].property = 0 ;
+			p[skk->preedit_orig_len].cs = US_ASCII ;
+
+			if( skk->new_word_len > 0)
+			{
+				memcpy( p + skk->preedit_orig_len + 1 , skk->new_word ,
+					sizeof(*p) * skk->new_word_len) ;
+			}
+
+			if( preedit_len > 0)
+			{
+				memcpy( p + skk->preedit_orig_len + 1 + skk->new_word_len ,
+					preedit , preedit_len * sizeof(*p)) ;
+			}
+
+			preedit = p ;
+			preedit_len += (skk->preedit_orig_len + 1 + skk->new_word_len) ;
+		}
+	}
 
 	if( preedit == NULL)
 	{
@@ -395,20 +405,18 @@ commit(
 	im_skk_t *  skk
 	)
 {
+	mkf_parser_t *  parser ;
 	u_char  conv_buf[256] ;
 	size_t  filled_len ;
 
-	(*parser_mkfchar->init)( parser_mkfchar) ;
-	(*parser_mkfchar->set_str)( parser_mkfchar , (u_char*)skk->preedit ,
-		skk->preedit_len * sizeof(mkf_char_t)) ;
-
+	parser = mkf_str_parser_init( skk->preedit , skk->preedit_len) ;
 	(*skk->conv->init)( skk->conv) ;
 
-	while( ! parser_mkfchar->is_eos)
+	while( ! parser->is_eos)
 	{
 		filled_len = (*skk->conv->convert)( skk->conv , conv_buf ,
 						    sizeof( conv_buf) ,
-						    parser_mkfchar) ;
+						    parser) ;
 		if( filled_len == 0)
 		{
 			/* finished converting */
@@ -761,15 +769,14 @@ delete(
 
 	ref_count -- ;
 
+	if( ref_count == 0)
+	{
+		dict_final() ;
+	}
+
 #ifdef  IM_SKK_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
 #endif
-
-	if( ref_count == 0)
-	{
-		(*parser_mkfchar->delete)( parser_mkfchar) ;
-		parser_mkfchar = NULL ;
-	}
 
 	return  ref_count ;
 }
@@ -797,197 +804,6 @@ switch_mode(
 }
 
 
-static char *
-candidate_get_from_file(
-	mkf_char_t *  mkf_caption ,
-	u_int  caption_len ,
-	mkf_conv_t *  conv
-	)
-{
-	/* XXX Leaked */
-	static mkf_conv_t *  conv_eucjp ;
-	static mkf_parser_t *  parser_eucjp ;
-
-	char *  path ;
-	FILE *  fp ;
-	char  caption[1024] ;
-	size_t  filled_len ;
-	char  buf[1024] ;
-
-	if( ! parser_eucjp)
-	{
-		conv_eucjp = (*syms->ml_conv_new)( ML_EUCJP) ;
-		parser_eucjp = (*syms->ml_parser_new)( ML_EUCJP) ;
-	}
-
-	if( ! ( path = kik_get_user_rc_path( "skk-jisyo")))
-	{
-		return  NULL ;
-	}
-
-	fp = fopen( path , "r") ;
-	free( path) ;
-
-	if( ! fp)
-	{
-		return  NULL ;
-	}
-
-	(*parser_mkfchar->init)( parser_mkfchar) ;
-	(*parser_mkfchar->set_str)( parser_mkfchar , (u_char*)mkf_caption ,
-		caption_len * sizeof(mkf_char_t)) ;
-	(*conv_eucjp->init)( conv_eucjp) ;
-
-	filled_len = (conv_eucjp->convert)( conv_eucjp , caption , sizeof(buf) - 1 ,
-				parser_mkfchar) ;
-	caption[filled_len++] = ' ' ;
-	caption[filled_len] = '\0' ;
-#ifdef  DEBUG
-	kik_debug_printf( "%s\n" , caption) ;
-#endif
-
-	while( fgets( buf , sizeof(buf) , fp))
-	{
-		if( strncmp( buf , caption , strlen(caption)) == 0)
-		{
-			char *  p ;
-
-			if( ( p = strstr( buf , "/[")))
-			{
-				p[1] = '\0' ;
-			}
-
-			p = buf + strlen(buf) - 1 ;
-			if( *p == '\n')
-			{
-				*p = '\0' ;
-			}
-
-			(*parser_eucjp->init)( parser_eucjp) ;
-			if( im_convert_encoding( parser_eucjp , conv ,
-						 buf + 1 , &p , strlen( buf + 1)))
-			{
-				return  p ;
-			}
-			else
-			{
-				return  NULL ;
-			}
-		}
-	}
-
-	return  NULL ;
-}
-
-static char *
-candidate_get_from_skkserv(
-	mkf_char_t *  caption ,
-	u_int  caption_len ,
-	mkf_conv_t *  conv
-	)
-{
-	static int  fd = -1 ;
-	/* XXX Leaked */
-	static mkf_conv_t *  conv_eucjp ;
-	static mkf_parser_t *  parser_eucjp ;
-
-	struct sockaddr_in  sa ;
-	struct hostent *  host ;
-	char  buf[1024] ;
-	char *  p ;
-	size_t  filled_len ;
-
-	if( ! parser_eucjp)
-	{
-		conv_eucjp = (*syms->ml_conv_new)( ML_EUCJP) ;
-		parser_eucjp = (*syms->ml_parser_new)( ML_EUCJP) ;
-	}
-
-	if( fd == -1)
-	{
-		char *  env ;
-
-		if( ( fd = socket( AF_INET , SOCK_STREAM , 0)) == -1)
-		{
-			return  NULL ;
-		}
-
-		memset( &sa , 0 , sizeof(sa)) ;
-		sa.sin_family = AF_INET ;
-		sa.sin_port = htons( 1178) ;
-
-		env = getenv( "SKKSERVER") ;
-		if( ! ( host = gethostbyname( (env && *env) ? env : "localhost")))
-		{
-			goto  error ;
-		}
-
-		memcpy( &sa.sin_addr , host->h_addr_list[0] , sizeof(sa.sin_addr)) ;
-
-		if( connect( fd , &sa , sizeof(struct sockaddr_in)) == -1)
-		{
-			goto  error ;
-		}
-
-		fcntl( fd , F_SETFL , fcntl( fd , F_GETFL , 0) & ~O_NONBLOCK) ;
-	}
-
-	(*parser_mkfchar->init)( parser_mkfchar) ;
-	(*parser_mkfchar->set_str)( parser_mkfchar , (u_char*)caption ,
-		caption_len * sizeof(mkf_char_t)) ;
-	(*conv_eucjp->init)( conv_eucjp) ;
-
-	buf[0] = '1' ;
-	filled_len = (conv_eucjp->convert)( conv_eucjp , buf + 1 , sizeof(buf) - 1 ,
-				parser_mkfchar) ;
-	buf[filled_len + 1] = ' ' ;
-	buf[filled_len + 2] = '\n' ;
-	write( fd , buf , filled_len + 3) ;
-	fsync( fd) ;
-#ifdef  DEBUG
-	write( 0 , buf , filled_len + 3) ;
-#endif
-
-	p = buf ;
-	*p = '4' ;
-	if( read( fd , p , 1) == 1)
-	{
-		p += (1 + filled_len) ;		/* skip caption */
-		while( read( fd , p , 1) == 1 && *p != '\n')
-		{
-			p++ ;
-		}
-		*p = '\0' ;
-
-	#ifdef  DEBUG
-		write( 0 , buf , p - buf) ;
-		write( 0 , "\n" , 1) ;
-	#endif
-	}
-
-	if( *buf != '1')
-	{
-		return  NULL ;
-	}
-
-	(*parser_eucjp->init)( parser_eucjp) ;
-	if( im_convert_encoding( parser_eucjp , conv ,
-				 buf + 1 , &p , strlen( buf + 1)))
-	{
-		return  p ;
-	}
-	else
-	{
-		return  NULL ;
-	}
-
-error:
-	close( fd) ;
-	fd = -1 ;
-
-	return  NULL ;
-}
-
 static int
 candidate_exists(
 	const char **  cands ,
@@ -1013,64 +829,115 @@ candidate_get(
 	im_skk_t *  skk
 	)
 {
-	char *  caption ;
 	char *  p ;
+	char *  p2 ;
 	int  count ;
 
-	if( ! ( caption = candidate_get_from_skkserv( skk->preedit , skk->preedit_len ,
-					skk->conv)))
+#ifdef  DEBUG
+	if( skk->num_of_cands > 0)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" candidate_get() is called before candidate_clear().\n") ;
+	}
+#endif
+
+	if( ! ( skk->caption = dict_search( skk->preedit , skk->preedit_len , skk->conv)))
 	{
 		skk->num_of_cands = 0 ;
 
 		return ;
 	}
 
-	skk->caption = caption ;
-
-	if( ( skk->caption2 = candidate_get_from_file( skk->preedit , skk->preedit_len ,
-					skk->conv)))
-	{
-		caption = skk->caption2 ;
-	}
-	else
-	{
-		caption = skk->caption ;
-	}
-
 	count = 0 ;
-	while( 1)
+	p = strchr( skk->caption , '/') ;	/* skip caption */
+	*(p++) = '\0' ;
+
+	while( *p)
 	{
-		p = strchr( caption , '/') ;	/* skip caption */
-		*(p++) = '\0' ;
-
-		while( *p)
+		/* skip [] */
+		if( *p == '[')
 		{
-			skk->cands[count] = p ;
-			if( ( p = strchr( p , '/')))
+			if( ( p2 = strstr( p + 1 , "]/")))
 			{
-				*(p++) = '\0' ;
-			}
+				p = p2 + 2 ;
 
-			if( ! candidate_exists( skk->cands , count , skk->cands[count]))
-			{
-				count ++ ;
-			}
-
-			if( ! p || count >= MAX_CANDS - 1)
-			{
-				break ;
+				continue ;
 			}
 		}
 
-		if( caption == skk->caption)
+		skk->cands[count] = p ;
+		if( ( p2 = strchr( p , ';')))
+		{
+			*(p++) = '\0' ;
+		}
+		if( ( p = strchr( p , '/')))
+		{
+			*(p++) = '\0' ;
+		}
+
+		if( ! candidate_exists( skk->cands , count , skk->cands[count]))
+		{
+			count ++ ;
+		}
+
+		if( ! p || count >= MAX_CANDS - 1)
 		{
 			break ;
 		}
-
-		caption = skk->caption ;
 	}
 
 	skk->num_of_cands = count ;
+}
+
+static void
+start_to_register_new_word(
+	im_skk_t *  skk
+	)
+{
+	memcpy( skk->preedit_orig , skk->preedit ,
+		sizeof(skk->preedit[0]) * skk->preedit_len) ;
+	if( skk->prev_dan)
+	{
+		if( skk->is_preediting == 4)
+		{
+			skk->preedit_len -- ;
+		}
+
+		skk->preedit_orig[skk->preedit_len - 1].ch[0] = skk->prev_dan + 'a' ;
+		skk->preedit_orig[skk->preedit_len - 1].size = 1 ;
+		skk->preedit_orig[skk->preedit_len - 1].cs = US_ASCII ;
+		skk->preedit_orig[skk->preedit_len - 1].property = 0 ;
+	}
+
+	skk->preedit_orig_len = skk->preedit_len ;
+	skk->is_preediting_orig = skk->is_preediting ;
+	skk->dan = 0 ;
+	skk->prev_dan_orig = skk->prev_dan ;
+	skk->num_of_cands = 0 ;
+
+	skk->new_word_len = 0 ;
+	skk->is_editing_new_word = 1 ;
+	preedit_clear( skk) ;
+	skk->is_preediting = 1 ;
+}
+
+static void
+stop_to_register_new_word(
+	im_skk_t *  skk
+	)
+{
+	memcpy( skk->preedit , skk->preedit_orig ,
+		sizeof(skk->preedit_orig[0]) * skk->preedit_orig_len) ;
+	skk->preedit_len = skk->preedit_orig_len ;
+	skk->preedit_orig_len = 0 ;
+	skk->dan = 0 ;
+	skk->prev_dan = skk->prev_dan_orig ;
+
+	skk->new_word_len = 0 ;
+	skk->is_editing_new_word = 0 ;
+	skk->is_preediting = skk->is_preediting_orig ;
+
+	preedit_to_visual( skk) ;
 }
 
 static void
@@ -1078,19 +945,23 @@ candidate_set(
 	im_skk_t *  skk
 	)
 {
-	mkf_char_t  restore[2] ;
+	if( skk->preedit_len == 0)
+	{
+		return ;
+	}
 
 	if( skk->prev_dan)
 	{
 		if( skk->is_preediting == 4)
 		{
-			restore[1] = skk->preedit[--skk->preedit_len] ;
+			skk->visual_chars[1] = skk->preedit[--skk->preedit_len] ;
 		}
 
-		restore[0] = skk->preedit[skk->preedit_len - 1] ;
+		skk->visual_chars[0] = skk->preedit[skk->preedit_len - 1] ;
 		skk->preedit[skk->preedit_len - 1].ch[0] = skk->prev_dan + 'a' ;
 		skk->preedit[skk->preedit_len - 1].size = 1 ;
 		skk->preedit[skk->preedit_len - 1].cs = US_ASCII ;
+		skk->preedit[skk->preedit_len - 1].property = 0 ;
 	}
 
 	if( skk->num_of_cands == 0)
@@ -1099,15 +970,19 @@ candidate_set(
 
 		if( skk->num_of_cands == 0)
 		{
+		#if  0
 			if( skk->prev_dan)
 			{
-				skk->preedit[skk->preedit_len - 1] = restore[0] ;
+				skk->preedit[skk->preedit_len - 1] = skk->visual_chars[0] ;
 
 				if( skk->is_preediting == 4)
 				{
 					skk->preedit_len ++ ;
 				}
 			}
+		#endif
+
+			start_to_register_new_word( skk) ;
 
 			skk->cur_cand = -1 ;
 
@@ -1130,11 +1005,11 @@ candidate_set(
 
 	if( skk->prev_dan)
 	{
-		skk->preedit[skk->preedit_len++] = restore[0] ;
+		skk->preedit[skk->preedit_len++] = skk->visual_chars[0] ;
 
 		if( skk->is_preediting == 4)
 		{
-			skk->preedit[skk->preedit_len++] = restore[1] ;
+			skk->preedit[skk->preedit_len++] = skk->visual_chars[1] ;
 		}
 	}
 
@@ -1163,20 +1038,7 @@ candidate_unset(
 	while( (*skk->parser_term->next_char)( skk->parser_term ,
 			skk->preedit + (skk->preedit_len ++)) && ! skk->parser_term->is_eos) ;
 
-	skk->prev_dan = skk->dan = 0 ;
-	if( skk->preedit[skk->preedit_len - 1].size == 1 &&
-	    skk->preedit[skk->preedit_len - 1].cs == US_ASCII)
-	{
-		char  c ;
-
-		c = skk->preedit[skk->preedit_len - 1].ch[0] ;
-
-		if( 'a' <= c && c <= 'z')
-		{
-			skk->prev_dan = skk->dan = c - 'a' ;
-			skk->is_preediting = 2 ;
-		}
-	}
+	preedit_to_visual( skk) ;
 
 	skk->cur_cand = -1 ;
 }
@@ -1189,7 +1051,6 @@ candidate_clear(
 	if( skk->num_of_cands > 0)
 	{
 		free( skk->caption) ;
-		free( skk->caption2) ;
 		skk->cur_cand = -1 ;
 		skk->num_of_cands = 0 ;
 	}
@@ -1202,18 +1063,71 @@ fix(
 {
 	if( skk->preedit_len > 0)
 	{
-		preedit( skk , "" , 0 , 0 , "" , 0 , "") ;
-		commit( skk) ;
+		if( skk->num_of_cands > 0)
+		{
+			dict_add( skk->caption , skk->cands[skk->cur_cand] , skk->parser_term) ;
+		}
 
+		if( skk->is_editing_new_word)
+		{
+			memcpy( skk->new_word + skk->new_word_len , skk->preedit ,
+				skk->preedit_len * sizeof(skk->preedit[0])) ;
+			skk->new_word_len += skk->preedit_len ;
+			preedit( skk , "" , 0 , 0 , "" , 0 , "") ;
+			preedit_clear( skk) ;
+			skk->is_preediting = 1 ;
+		}
+		else
+		{
+			preedit( skk , "" , 0 , 0 , "" , 0 , "") ;
+			commit( skk) ;
+			preedit_clear( skk) ;
+		}
 		candidate_clear( skk) ;
-		preedit_clear( skk) ;
 
 		return  0 ;
 	}
-	else
+	else if( skk->is_editing_new_word)
 	{
-		return  1 ;
+		if( skk->new_word_len > 0)
+		{
+			mkf_parser_t *  parser ;
+			char  caption[1024] ;
+			char  word[1024] ;
+			size_t  len ;
+
+			parser = mkf_str_parser_init( skk->preedit_orig , skk->preedit_orig_len) ;
+			(*skk->conv->init)( skk->conv) ;
+			len = (*skk->conv->convert)( skk->conv , caption , sizeof(caption) ,
+					parser) ;
+			caption[len] = '\0' ;
+
+			parser = mkf_str_parser_init( skk->new_word , skk->new_word_len) ;
+			(*skk->conv->init)( skk->conv) ;
+			len = (*skk->conv->convert)( skk->conv , word , sizeof(word) ,
+					parser) ;
+			word[len] = '\0' ;
+
+			dict_add( caption , word , skk->parser_term) ;
+
+			candidate_clear( skk) ;
+			stop_to_register_new_word( skk) ;
+			candidate_set( skk) ;
+			commit( skk) ;
+			preedit_clear( skk) ;
+			candidate_clear( skk) ;
+		}
+		else
+		{
+			stop_to_register_new_word( skk) ;
+			preedit_clear( skk) ;
+			candidate_clear( skk) ;
+		}
+
+		return  0 ;
 	}
+
+	return  1 ;
 }
 
 static int
@@ -1260,15 +1174,17 @@ key_event(
 	}
 	else if( ksym == XK_BackSpace || ksym == XK_Delete || key_char == 0x08 /* Ctrl+h */)
 	{
-		if( skk->im.preedit.filled_len > 0)
+		if( skk->preedit_len > 0)
 		{
 			if( skk->cur_cand != -1)
 			{
 				candidate_unset( skk) ;
+				cand = "" ;
 			}
 			else
 			{
 				skk->dan = skk->prev_dan = 0 ;
+				skk->is_preediting = 1 ;
 
 				candidate_clear( skk) ;
 				preedit_delete( skk) ;
@@ -1284,6 +1200,12 @@ key_event(
 		if( skk->cur_cand != -1)
 		{
 			candidate_unset( skk) ;
+			cand = "" ;
+		}
+		else if( skk->is_editing_new_word)
+		{
+			stop_to_register_new_word( skk) ;
+			cand = "" ;
 		}
 	}
 	else if( key_char != ' ' && key_char != '\0')
@@ -1426,8 +1348,21 @@ key_event(
 			{
 				if( skk->cur_cand == skk->num_of_cands - 1)
 				{
-					skk->cur_cand = 0 ;
-					update = 1 ;
+					if( ! skk->is_editing_new_word)
+					{
+						preedit_backup_visual_chars( skk) ;
+						candidate_unset( skk) ;
+						candidate_clear( skk) ;
+						start_to_register_new_word( skk) ;
+						cand = "" ;
+
+						goto  end ;
+					}
+					else
+					{
+						skk->cur_cand = 0 ;
+						update = 1 ;
+					}
 				}
 				else
 				{
@@ -1495,8 +1430,9 @@ key_event(
 		ret = 1 ;
 	}
 
+end:
 	preedit( skk , skk->preedit , skk->preedit_len ,
-		skk->is_preediting ? skk->preedit_len : 0 ,
+		(skk->is_preediting && ! skk->is_editing_new_word) ? skk->preedit_len : 0 ,
 		cand , cand_len , pos) ;
 
 	return  ret ;
@@ -1564,7 +1500,6 @@ im_skk_new(
 	if( ref_count == 0)
 	{
 		syms = export_syms ;
-		parser_mkfchar = mkfchar_parser_new() ;
 	}
 
 	if( ! ( skk = calloc( 1 , sizeof( im_skk_t))))
@@ -1574,6 +1509,11 @@ im_skk_new(
 	#endif
 
 		goto  error ;
+	}
+
+	if( engine)
+	{
+		dict_set_global( engine) ;
 	}
 
 	skk->term_encoding = term_encoding ;
@@ -1610,15 +1550,6 @@ im_skk_new(
 	return  (x_im_t*) skk ;
 
 error:
-	if( ref_count == 0)
-	{
-		if( parser_mkfchar)
-		{
-			(*parser_mkfchar->delete)( parser_mkfchar) ;
-			parser_mkfchar = NULL ;
-		}
-	}
-
 	if( skk)
 	{
 		if( skk->parser_term)
