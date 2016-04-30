@@ -449,7 +449,7 @@ insert_char(
 		{ 0xa4d0 , 0xa4d3 , 0xa4d6 , 0xa4d9 , 0xa4dc } , /* b */
 		{ 0xa4ab , 0xa4ad , 0xa4af , 0xa4b1 , 0xa4b3 } , /* c */
 		{ 0xa4c0 , 0xa4c2 , 0xa4c5 , 0xa4c7 , 0xa4c9 } , /* d */
-		{ 0xa4e3 , 0xa4a3 , 0xa4e5 , 0xa4a7 , 0xa4e7 } , /* xy */
+		{ 0xa4e3 , 0xa4a3 , 0xa4e5 , 0xa4a7 , 0xa4e7 } , /* xy/dh */
 		{ 0 ,      0 ,      0xa4d5 , 0 ,      0 ,    } , /* f */
 		{ 0xa4ac , 0xa4ae , 0xa4b0 , 0xa4b2 , 0xa4b4 } , /* g */
 		{ 0xa4cf , 0xa4d2 , 0xa4d5 , 0xa4d8 , 0xa4db } , /* h */
@@ -701,17 +701,23 @@ insert_char(
 			if( skk->dan == 'c' - 'a')
 			{
 				preedit_add( skk , 0xa4c1) ;	/* ti */
+				skk->dan = 'i' - 'a' ;
 			}
 			else if( skk->dan == 's' - 'a')
 			{
 				preedit_add( skk , 0xa4b7) ;	/* si */
+				skk->dan = 'i' - 'a' ;
+			}
+			else if( skk->dan == 'd' - 'a')
+			{
+				preedit_add( skk , 0xa4c7) ;	/* di */
+				skk->dan = 'e' - 'a' ;
 			}
 			else
 			{
 				goto  normal ;
 			}
 
-			skk->dan = 'i' - 'a' ;
 			wch = 'h' ;
 		}
 		else

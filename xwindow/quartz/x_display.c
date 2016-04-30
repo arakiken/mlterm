@@ -80,10 +80,8 @@ x_display_open(
 	/* Callback should be set before kik_dialog() is called. */
 	kik_dialog_set_callback( dialog) ;
 
-#if  0
-	_disp.width = GetSystemMetrics( SM_CXSCREEN) ;
-	_disp.height = GetSystemMetrics( SM_CYSCREEN) ;
-#endif
+	/* _disp.width and _disp.height are set in viewDidMoveToWindow */
+
 	_disp.depth = 32 ;
 
 	/* _disp is initialized successfully. */

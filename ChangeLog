@@ -1,3 +1,31 @@
+2016-05-01  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/x_im_status_screen-cocoa.m: Added for input method plugin.
+
+	* quartz/x_window.c: x_window_translate_coordinates() is implemented by using
+	  window_get_position().
+
+	* cocoa.[hm]:
+	  - window_get_position() is added.
+	  - NSShiftMask isn't ignored in insertText().
+	  - x_display_t::width and x_display_t::height are set in viewDidMoveToWindow.
+
+	* im_skk.c, im_wnn.c: dha dhi dhu dhe and dho are supported.
+
+	* skk/dict.c: input_method option accepts whether skk dictionary or skk server
+	  uses utf8 instead of eucjp.
+	  (e.g. --im skk:localhost:utf8)
+
+	* wnn/Makefile.in, canna/Makefile.in, skk/Makefile.in: TARGET_quartz is added.
+
+	* configure.in: skk, wnn and canna are available on MacOSX/Cocoa.
+
+	* configure.in, ml_char.c:
+	  Fix https://github.com/saitoha/homebrew-sixel/pull/2
+	  (Merge https://bitbucket.org/arakiken/mlterm/pull-requests/2/ml_charc-strip-the-dependency-of with some fixes.)
+
+	* README, doc/ja/README.ja: Updated.
+
 2016-04-28  Araki Ken  <arakiken@users.sf.net>
 
 	* skk/dict.[ch], skk/mkf_str_parser.[ch]: Added.

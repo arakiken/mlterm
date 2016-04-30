@@ -22,15 +22,15 @@ OBJ1 = x_screen_manager.o x_event_source.o x_display.o x_window.o x_screen.o \
 	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o x_font_cache.o \
 	x_draw_str.o x_gc.o x_color_cache.o x_dnd.o x_scrollbar.o x_layout.o \
 	x_sb_view_factory.o x_simple_sb_view.o x_imagelib.o x_connect_dialog.o \
-	x_type_engine.o x_im.o x_im_candidate_screen.o x_im_status_screen.o
+	x_type_engine.o x_im.o x_im_candidate_screen.o
 
-OBJ2_xlib = x_decsp_font.o x_xim.o @TYPE_LOADER_OBJ@
+OBJ2_xlib = x_decsp_font.o x_xim.o x_im_status_screen.o @TYPE_LOADER_OBJ@
 
-OBJ2_win32 = x_gdiobj_pool.o x.o
+OBJ2_win32 = x_gdiobj_pool.o x.o x_im_status_screen.o
 
-OBJ2_fb = x.o x_virtual_kbd.o
+OBJ2_fb = x.o x_virtual_kbd.o x_im_status_screen.o
 
-OBJ2_quartz = x.o cocoa.o
+OBJ2_quartz = x.o cocoa.o x_im_status_screen-cocoa.o
 
 RSOBJ_win32 = winrs.o
 

@@ -6,6 +6,7 @@
 
 #ifdef  USE_IM_PLUGIN
 
+#include  <kiklib/kik_mem.h>
 #include  "ml_str.h"
 #include  "ml_vt100_parser.h"
 #include  "x_draw_str.h"
@@ -291,7 +292,7 @@ set(
 	u_char *  str
 	)
 {
-	int  count = 0 ;
+	int  count ;
 	mkf_char_t  ch ;
 	ml_char_t *  p ;
 	ml_char_t *  old_chars ;
@@ -305,11 +306,7 @@ set(
 
 	(*parser->init)( parser) ;
 	(*parser->set_str)( parser , str , strlen( str)) ;
-
-	while( (*parser->next_char)( parser , &ch))
-	{
-		count++ ;
-	}
+	for( count = 0 ; (*parser->next_char)( parser , &ch) ; count++) ;
 
 	old_chars = stat_screen->chars ;
 	old_num_of_chars = stat_screen->num_of_chars ;

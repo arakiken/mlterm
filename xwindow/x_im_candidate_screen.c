@@ -2,11 +2,12 @@
  *	$Id$
  */
 
-#include  <kiklib/kik_str.h>
 #include  "x_im_candidate_screen.h"
 
 #ifdef  USE_IM_PLUGIN
 
+#include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_str.h>
 #include  <ml_str.h>
 #include  "x_draw_str.h"
 

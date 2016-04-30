@@ -29,6 +29,7 @@ LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @WNN_LIBS@
 
 TARGET_win32 = libim-wnn.la
 TARGET_xlib = libim-wnn.la
+TARGET_quartz = libim-wnn.la
 TARGET_fb = libim-wnn-fb.la
 
 TARGET = $(TARGET_@GUI@)

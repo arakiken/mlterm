@@ -15,8 +15,10 @@
 #include  <kiklib/kik_path.h>
 #include  <mkf/mkf_eucjp_parser.h>
 #include  <mkf/mkf_eucjp_conv.h>
+#include  <mkf/mkf_utf8_parser.h>
+#include  <mkf/mkf_utf8_conv.h>
 
-/* for candidate_get_from_skkserv() */
+/* for serv_search() */
 #include  <sys/socket.h>
 #include  <netinet/in.h>
 #include  <netdb.h>
@@ -42,9 +44,6 @@ typedef struct table
 
 static char *  global_dict ;
 static int  sock = -1 ;
-
-static mkf_conv_t *  conv_eucjp ;
-static mkf_parser_t *  parser_eucjp ;
 
 
 /* --- static functions --- */
@@ -123,7 +122,8 @@ static char *
 file_load(
 	size_t *  size ,
 	table_t *  tables ,
-	char *  path
+	char *  path ,
+	int  rw
 	)
 {
 	int  fd ;
@@ -133,7 +133,7 @@ file_load(
 	int  count ;
 	u_int  filled_nums[MAX_TABLES] ;
 
-	if( stat( path , &st) != 0)
+	if( rw && stat( path , &st) != 0)
 	{
 		creat( path , 0600) ;
 		free( path) ;
@@ -284,6 +284,7 @@ file_unload(
 		}
 
 		free( tables[tbl_idx].entries) ;
+		tables[tbl_idx].num = 0 ;
 	}
 
 	if( fp)
@@ -309,6 +310,8 @@ mkf_str_to(
 static char *
 file_search(
 	table_t *  tables ,
+	mkf_conv_t *  dic_conv ,
+	mkf_parser_t *  dic_parser ,
 	mkf_char_t *  caption ,
 	u_int  caption_len ,
 	mkf_conv_t *  conv
@@ -319,13 +322,7 @@ file_search(
 	char  buf[1024] ;
 	size_t  filled_len ;
 
-	if( ! parser_eucjp)
-	{
-		conv_eucjp = mkf_eucjp_conv_new() ;
-		parser_eucjp = mkf_eucjp_parser_new() ;
-	}
-
-	filled_len = mkf_str_to( buf , sizeof(buf) - 2 , caption , caption_len , conv_eucjp) ;
+	filled_len = mkf_str_to( buf , sizeof(buf) - 2 , caption , caption_len , dic_conv) ;
 	buf[filled_len] = ' ' ;
 	buf[filled_len + 1] = '\0' ;
 #ifdef  DEBUG
@@ -343,8 +340,8 @@ file_search(
 			strcpy( buf + filled_len ,
 				tables[idx].entries[count] + filled_len + 1) ;
 
-			(*parser_eucjp->init)( parser_eucjp) ;
-			if( im_convert_encoding( parser_eucjp , conv ,
+			(*dic_parser->init)( dic_parser) ;
+			if( im_convert_encoding( dic_parser , conv ,
 						 buf , &p , strlen( buf)))
 			{
 				return  p ;
@@ -358,6 +355,8 @@ file_search(
 
 static char *
 serv_search(
+	mkf_conv_t *  dic_conv ,
+	mkf_parser_t *  dic_parser ,
 	mkf_char_t *  caption ,
 	u_int  caption_len ,
 	mkf_conv_t *  conv
@@ -369,34 +368,31 @@ serv_search(
 	char *  p ;
 	size_t  filled_len ;
 
-	if( ! parser_eucjp)
-	{
-		conv_eucjp = mkf_eucjp_conv_new() ;
-		parser_eucjp = mkf_eucjp_parser_new() ;
-	}
-
 	if( sock == -1)
 	{
 		char *  serv ;
 		int  port ;
 
 		port = 1178 ;
-		serv = global_dict ? global_dict : getenv( "SKKSERVER") ;
-		if( serv && *serv)
+		if( global_dict && *global_dict)
 		{
 			char *  p ;
 
-			if( ( p = alloca( strlen( serv) + 1)))
+			if( ( p = alloca( strlen( global_dict) + 1)))
 			{
 				char *  port_str ;
 
-				strcpy( p , serv) ;
+				strcpy( p , global_dict) ;
 
 				if( kik_parse_uri( NULL , NULL , &serv , &port_str ,
 					NULL , NULL , p) && port_str)
 				{
 					port = atoi( port_str) ;
 				}
+			}
+			else
+			{
+				return  NULL ;
 			}
 		}
 		else
@@ -429,7 +425,7 @@ serv_search(
 	}
 
 	buf[0] = '1' ;
-	filled_len = mkf_str_to( buf + 1 , sizeof(buf) - 3 , caption , caption_len , conv_eucjp) ;
+	filled_len = mkf_str_to( buf + 1 , sizeof(buf) - 3 , caption , caption_len , dic_conv) ;
 	buf[1 + filled_len] = ' ' ;
 	buf[1 + filled_len + 1] = '\n' ;
 	write( sock , buf , filled_len + 3) ;
@@ -460,9 +456,8 @@ serv_search(
 		return  NULL ;
 	}
 
-	(*parser_eucjp->init)( parser_eucjp) ;
-	if( im_convert_encoding( parser_eucjp , conv ,
-				 buf + 1 , &p , strlen( buf + 1)))
+	(*dic_parser->init)( dic_parser) ;
+	if( im_convert_encoding( dic_parser , conv , buf + 1 , &p , strlen( buf + 1)))
 	{
 		return  p ;
 	}
@@ -484,9 +479,14 @@ error:
 static table_t  global_tables[MAX_TABLES] ;
 static char *  global_data ;
 static size_t  global_data_size ;
+static mkf_conv_t *  global_conv ;
+static mkf_parser_t *  global_parser ;
+
 static table_t  local_tables[MAX_TABLES] ;
 static char *  local_data ;
 static size_t  local_data_size ;
+static mkf_conv_t *  local_conv ;
+static mkf_parser_t *  local_parser ;
 
 
 /* --- global functions --- */
@@ -499,26 +499,28 @@ dict_final(void)
 	free( local_data) ;
 	local_data = NULL ;
 
+	if( local_conv)
+	{
+		(*local_conv->delete)( local_conv) ;
+		(*local_parser->delete)( local_parser) ;
+	}
+
 	if( global_data)
 	{
 		file_unload( global_tables , global_data , global_data_size , NULL) ;
 		free( global_data) ;
 		global_data = NULL ;
 	}
-
-	close( sock) ;
-	sock = -1 ;
-
-	if( conv_eucjp)
+	else
 	{
-		(*conv_eucjp->delete)( conv_eucjp) ;
-		conv_eucjp = NULL ;
+		close( sock) ;
+		sock = -1 ;
 	}
 
-	if( parser_eucjp)
+	if( global_conv)
 	{
-		(*parser_eucjp->delete)( parser_eucjp) ;
-		parser_eucjp = NULL ;
+		(*global_conv->delete)( global_conv) ;
+		(*global_parser->delete)( global_parser) ;
 	}
 
 	free( global_dict) ;
@@ -538,22 +540,40 @@ dict_search(
 	u_int  count ;
 	size_t  len ;
 
-	if( local_data ||
-	     ( ( path = kik_get_user_rc_path( "mlterm/skk-jisyo")) &&
-	       ( local_data = file_load( &local_data_size , local_tables , path))))
+	if( ! local_conv)
 	{
-		hit[0] = file_search( local_tables , caption , caption_len , conv) ;
+		local_conv = mkf_utf8_conv_new() ;
+		local_parser = mkf_utf8_parser_new() ;
+	}
+
+	if( ! local_data)
+	{
+		if( ( path = kik_get_user_rc_path( "mlterm/skk-jisyo")))
+		{
+			local_data = file_load( &local_data_size , local_tables , path , 1) ;
+		}
+	}
+
+	hit[0] = file_search( local_tables , local_conv , local_parser ,
+				caption , caption_len , conv) ;
+
+	if( ! global_conv)
+	{
+		global_conv = mkf_eucjp_conv_new() ;
+		global_parser = mkf_eucjp_parser_new() ;
 	}
 
 	if( global_data ||
-	    ( ( path = strdup( global_dict)) &&
-	      ( global_data = file_load( &global_data_size , global_tables , path))))
+	    ( global_dict && ( path = strdup( global_dict)) &&
+	      ( global_data = file_load( &global_data_size , global_tables , path , 0))))
 	{
-		hit[1] = file_search( global_tables , caption , caption_len , conv) ;
+		hit[1] = file_search( global_tables , global_conv , global_parser ,
+				caption , caption_len , conv) ;
 	}
 	else
 	{
-		hit[1] = serv_search( caption , caption_len , conv) ;
+		hit[1] = serv_search( global_conv , global_parser ,
+				caption , caption_len , conv) ;
 	}
 
 #ifdef  DEBUG
@@ -609,10 +629,12 @@ dict_add(
 	char *  p ;
 	int  idx ;
 	u_int  count ;
+	size_t  word_len ;
 
-	if( ! conv_eucjp)
+	if( ! local_conv)
 	{
-		conv_eucjp = mkf_eucjp_conv_new() ;
+		local_conv = mkf_utf8_conv_new() ;
+		local_parser = mkf_utf8_parser_new() ;
 	}
 
 	caption_len = strlen(caption) ;
@@ -622,37 +644,38 @@ dict_add(
 		return  0 ;
 	}
 
+	(*parser->init)( parser) ;
 	(*parser->set_str)( parser , caption , caption_len) ;
-	(*conv_eucjp->init)( conv_eucjp) ;
-	caption_len = (*conv_eucjp->convert)( conv_eucjp , p , caption_len , parser) ;
+	(*local_conv->init)( local_conv) ;
+	caption_len = (*local_conv->convert)( local_conv , p ,
+				caption_len * UTF_MAX_SIZE , parser) ;
 	p[caption_len++] = ' ' ;
 	p[caption_len] = '\0' ;
 	caption = p ;
+
+	word_len = strlen( word) ;
+	if( ! ( p = alloca( word_len * UTF_MAX_SIZE + 2)))
+	{
+		return  0 ;
+	}
+
+	(*parser->init)( parser) ;
+	(*parser->set_str)( parser , word , word_len) ;
+	(*local_conv->init)( local_conv) ;
+	word_len = (*local_conv->convert)( local_conv , p , word_len * UTF_MAX_SIZE , parser) ;
+	p[word_len++] = '/' ;
+	p[word_len] = '\0' ;
+	word = p ;
 
 	idx = calc_index( caption) ;
 	for( count = 0 ; count < local_tables[idx].num ; count++)
 	{
 		if( strncmp( caption , local_tables[idx].entries[count] , caption_len) == 0)
 		{
-			size_t  word_len ;
 			char *  tmp ;
 			char *  p1 ;
 			char *  p2 ;
 			char *  p3 ;
-
-			word_len = strlen( word) ;
-			if( ! ( p = alloca( word_len * UTF_MAX_SIZE + 2)))
-			{
-				return  0 ;
-			}
-
-			(*parser->init)( parser) ;
-			(*parser->set_str)( parser , word , word_len) ;
-			(*conv_eucjp->init)( conv_eucjp) ;
-			word_len = (*conv_eucjp->convert)( conv_eucjp , p , word_len , parser) ;
-			p[word_len++] = '/' ;
-			p[word_len] = '\0' ;
-			word = p ;
 
 			p1 = local_tables[idx].entries[count] ;
 
@@ -660,6 +683,10 @@ dict_add(
 			{
 				return  0 ;
 			}
+
+		#ifdef  DEBUG
+			kik_debug_printf( "Adding to dictionary: %s to %s\n" , word , p1) ;
+		#endif
 
 			p2 = p1 + caption_len ;
 			if( *p2 == '/')
@@ -706,8 +733,11 @@ dict_add(
 
 		if( ( p = malloc( strlen( caption) + 1 + 1 + strlen( word) + 1 + 1)))
 		{
-			sprintf( p , "%s/%s/" , caption , word) ;
+			sprintf( p , "%s/%s" , caption , word) ;
 			local_tables[idx].entries[local_tables[idx].num++] = p ;
+		#ifdef  DEBUG
+			kik_debug_printf( "Adding to dictionary: %s\n" , p) ;
+		#endif
 		}
 	}
 
@@ -719,5 +749,39 @@ dict_set_global(
 	char *  dict
 	)
 {
+	size_t  len ;
+
+	free( global_dict) ;
 	global_dict = strdup( dict) ;
+
+	if( global_data)
+	{
+		file_unload( global_tables , global_data , global_data_size , NULL) ;
+		free( global_data) ;
+		global_data = NULL ;
+	}
+	else
+	{
+		close( sock) ;
+		sock = -1 ;
+	}
+
+	if( global_conv)
+	{
+		(*global_conv->delete)( global_conv) ;
+		(*global_parser->delete)( global_parser) ;
+	}
+
+	if( ( len = strlen( dict)) > 5 && strcmp( dict + len - 5 , ":utf8") == 0)
+	{
+		global_conv = mkf_utf8_conv_new() ;
+		global_parser = mkf_utf8_parser_new() ;
+
+		global_dict[len - 5] = '\0' ;
+	}
+	else
+	{
+		global_conv = NULL ;
+		global_parser = NULL ;
+	}
 }

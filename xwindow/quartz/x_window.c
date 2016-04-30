@@ -1025,33 +1025,7 @@ x_window_set_override_redirect(
 	int  flag
 	)
 {
-	x_window_t *  root ;
-
-	if( ( root = x_get_root_window( win))->my_window)
-	{
-	#if  0
-		if( flag)
-		{
-			SetWindowLong( root->my_window , GWL_STYLE , 0) ;
-			win->cmd_show = SW_SHOWNA ;
-
-			SetWindowPos( root->my_window , HWND_TOPMOST , 0 , 0 , 0 , 0 ,
-				SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER) ;
-		}
-		else
-		{
-			SetWindowLong( root->my_window , GWL_STYLE ,
-				! win->parent ? WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE) ;
-			win->cmd_show = SW_SHOWNORMAL ;
-		}
-	#endif
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
+	return  0 ;
 }
 
 int
@@ -2056,26 +2030,18 @@ x_window_bell(
 
 int
 x_window_translate_coordinates(
-	x_window_t *  win,
-	int x,
-	int y,
-	int *  global_x,
-	int *  global_y,
+	x_window_t *  win ,
+	int x ,
+	int y ,
+	int *  global_x ,
+	int *  global_y ,
 	Window *  child
 	)
 {
-#if  0
-	POINT  p ;
-
-	p.x = x ;
-	p.y = y ;
-
-	ClientToScreen( win->my_window , &p) ;
-
-	*global_x = p.x ;
-	*global_y = p.y ;
-	*child = None ;
-#endif
+	win = x_get_root_window( win) ;
+	window_get_position( win->my_window , global_x , global_y) ;
+	*global_x += x ;
+	*global_y += y ;
 
 	return  0 ;
 }

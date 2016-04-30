@@ -105,25 +105,28 @@ Options for configure
     Disable kbd input method for Arabic, Hebrew and Indic
 
   --disable-uim
-    Support uim (Universal? Input Method) if available
+    Disable uim (Universal? Input Method)
 
   --disable-m17nlib
-    Support m17n library if available
+    Disable m17n library
 
   --disable-scim
-    Support SCIM (Smart Common Input Method platform) if available
+    Disable SCIM (Smart Common Input Method platform)
 
   --disable-ibus
-    Support iBUS (Intelligent Input Bus) if available
+    Disable iBUS (Intelligent Input Bus)
 
   --disable-fcitx
-    Support Fcitx if available
+    Disable Fcitx
 
   --disable-canna
-    Support Canna if available
+    Disable Canna
 
   --disable-wnn
-    Support Freewnn if available
+    Disable Freewnn
+
+  --disable-wnn
+    Disable Freewnn
 
   --enable-pty-helper
     Support gnome-pty-helper. (Note that it is impossible to enable

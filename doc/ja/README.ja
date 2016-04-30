@@ -151,6 +151,9 @@ comment $Id$
     --disable-wnn
       Freewnn を無効にします。
 
+    --disable-skk
+      SKK を無効にします。
+
     --enable-pty-helper
       gnome-pty-helper をサポートします。(BSD style pty のシステムでは無効です。)
       なお、gnome-pty-helper は ${libexecdir}/ ディレクトリに配置する必要があり
@@ -213,9 +216,9 @@ comment $Id$
     (see doc/ja/README.xim)
 
   o インプットメソッド プラグイン
-    uim、m17n library、scim、ibus、fcitx、canna 及び wnn に対応しています。プラ
-    グインとして使用時だけロードされます。マルチXIMと同様に動的変更が可能で端末
-    のエンコーディングに依存しません。
+    uim、m17n library、scim、ibus、fcitx、canna、wnn 及び skk に対応しています。
+    プラグインとして使用時だけロードされます。マルチXIMと同様に動的変更が可能で
+    端末のエンコーディングに依存しません。
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。
@@ -721,6 +724,13 @@ comment $Id$
 
         canna の場合:
         canna (オプション無し)
+
+        skk の場合:
+        skk:[dictionary](:utf8)
+	[dictionary] に、接続する辞書サーバ(skkserv)の "ホスト名:ポート番号" 又
+        は、辞書ファイルのパスを指定します。辞書が UTF-8 の場合には、末尾に
+	:utf8 を付けてください。
+	指定しない場合は、localhost の辞書サーバに接続します。
 
         kbd の場合:
         kbd:[mode]

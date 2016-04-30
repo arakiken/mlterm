@@ -712,17 +712,23 @@ insert_char(
 			if( wnn->dan == 'c' - 'a')
 			{
 				jcInsertChar( wnn->convbuf , 0xa4c1) ;	/* ti */
+				wnn->dan = 'i' - 'a' ;
 			}
 			else if( wnn->dan == 's' - 'a')
 			{
 				jcInsertChar( wnn->convbuf , 0xa4b7) ;	/* si */
+				wnn->dan = 'i' - 'a' ;
+			}
+			else if( wnn->dan == 'd' - 'a')
+			{
+				jcInsertChar( wnn->convbuf , 0xa4c7) ;	/* di */
+				wnn->dan = 'e' - 'a' ;
 			}
 			else
 			{
 				goto  normal ;
 			}
 
-			wnn->dan = 'i' - 'a' ;
 			wch = 'h' ;
 		}
 		else

@@ -26,6 +26,7 @@
 
 	BOOL  ignoreKeyDown ;
 	NSString *  markedText ;
+	int  currentShiftMask ;
 	NSRange  markedRange ;
 	NSRange  selectedRange ;
 }
@@ -612,6 +613,10 @@ reset_position(
 		}
 	}
 
+	NSRect  sr = [[[self window] screen] visibleFrame] ;
+	xwindow->disp->width = sr.size.width ;
+	xwindow->disp->height = sr.size.height ;
+
 	/* Adjust scroller position */
 	[scroller setFrameOrigin:NSMakePoint(term->scrollbar.window.x,y)] ;
 }
@@ -958,6 +963,9 @@ get_current_window(
 
 	u_int  flags = event.modifierFlags ;
 
+	/* ShiftMask is not set without this. (see insertText()) */
+	currentShiftMask = flags & NSShiftKeyMask ;
+
 	/* Alt+x isn't interpreted unless preediting. */
 	if( markedText ||
 	    ! ( flags & NSAlternateKeyMask) || ( flags & NSControlKeyMask))
@@ -1216,7 +1224,7 @@ get_current_window(
 		XKeyEvent  kev ;
 
 		kev.type = X_KEY_PRESS ;
-		kev.state = 0 ;
+		kev.state = currentShiftMask ;
 		kev.keysym = 0 ;
 		kev.utf8 = [string UTF8String] ;
 
@@ -1662,6 +1670,18 @@ window_set_normal_hints(
 	)
 {
 	[window setResizeIncrements:NSMakeSize( width_inc , height_inc)] ;
+}
+
+void
+window_get_position(
+	NSWindow *  window ,
+	int *  x ,
+	int *  y
+	)
+{
+	*x = window.frame.origin.x ;
+	*y = [[window screen] visibleFrame].size.height - window.frame.origin.y -
+		[window.contentView frame].size.height ;
 }
 
 

@@ -189,7 +189,10 @@ new_comb(
 	return  multi_ch + comb_size ;
 }
 
-#ifdef  __APPLE__
+#ifdef  USE_NORMALIZE
+#include  <kiklib/kik_mem.h>
+int  ml_normalize( u_int16_t *  str , int  num) ;
+
 static void
 normalize(
 	ml_char_t *  ch ,
@@ -465,11 +468,6 @@ ml_char_reverse_attr(
 	}
 }
 
-#ifdef  __APPLE__
-#include  <kiklib/kik_mem.h>
-int  ml_normalize( u_int16_t *  str , int  num) ;
-#endif
-
 ml_char_t *
 ml_char_combine(
 	ml_char_t *  ch ,
@@ -521,7 +519,7 @@ ml_char_combine(
 		return  NULL ;
 	}
 
-#ifdef  __APPLE__
+#ifdef  USE_NORMALIZE
 	normalize( ch , comb_size) ;
 #endif
 
@@ -557,7 +555,7 @@ ml_char_combine_simple(
 	*comb = *src ;
 	UNSET_COMB_TRAILING(comb->u.ch.attr) ;
 
-#ifdef  __APPLE__
+#ifdef  USE_NORMALIZE
 	normalize( ch , comb_size) ;
 #endif
 
