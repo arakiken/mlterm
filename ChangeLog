@@ -1,5 +1,16 @@
 2016-05-01  Araki Ken  <arakiken@users.sf.net>
 
+	* im_skk.c: Wrong parsing of comment string staring with ';' is fixed.
+
+	* skk/dict.c: winsock is supported.
+
+	* configure.in: skk is enabled on win32gdi without cygwin.
+
+	* x_window_cairo.c: A bug which dropped almost all glyph complementary fonts
+	  is fixed.
+
+2016-05-01  Araki Ken  <arakiken@users.sf.net>
+
 	* quartz/x_im_status_screen-cocoa.m: Added for input method plugin.
 
 	* quartz/x_window.c: x_window_translate_coordinates() is implemented by using

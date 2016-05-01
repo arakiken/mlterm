@@ -7,6 +7,7 @@ ver 3.7.1
   Fix compiling error of registobmp. (Enbugged at 3.7.0) (Thanks to Amadeusz)
   Fix https://sourceforge.net/p/mlterm/mailman/message/34992704/
   Fix https://github.com/saitoha/homebrew-sixel/pull/2 (Thanks to @kefir_)
+  Fix a bug which dropped almost all glyph complementary fonts.
 
 ver 3.7.0
 * Support OSC 1337. (See http://www.iterm2.com/images.html)

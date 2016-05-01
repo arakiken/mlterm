@@ -872,13 +872,14 @@ candidate_get(
 		}
 
 		skk->cands[count] = p ;
-		if( ( p2 = strchr( p , ';')))
-		{
-			*(p++) = '\0' ;
-		}
 		if( ( p = strchr( p , '/')))
 		{
 			*(p++) = '\0' ;
+		}
+		if( ( p2 = strchr( skk->cands[count] , ';')))
+		{
+			/* Remove comment */
+			*p2 = '\0' ;
 		}
 
 		if( ! candidate_exists( skk->cands , count , skk->cands[count]))

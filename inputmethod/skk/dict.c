@@ -19,14 +19,20 @@
 #include  <mkf/mkf_utf8_conv.h>
 
 /* for serv_search() */
-#include  <sys/socket.h>
-#include  <netinet/in.h>
-#include  <netdb.h>
+#include  <kiklib/kik_def.h>	/* USE_WIN32API */
+#ifdef  USE_WIN32API
+#include  <winsock2.h>
+#endif
+#include  <kiklib/kik_net.h>	/* getaddrinfo/socket/connect */
 #include  <errno.h>
 
 #include  "mkf_str_parser.h"
 #include  "../im_common.h"
 
+
+#ifndef  USE_WIN32API
+#define  closesocket( sock)  close( sock)
+#endif
 
 #define  MAX_TABLES  256	/* MUST BE 2^N (see calc_index()) */
 #define  UTF_MAX_SIZE  6	/* see ml_char.h */
@@ -421,25 +427,34 @@ serv_search(
 			goto  error ;
 		}
 
+	#ifdef  USE_WIN32API
+		{
+			u_long  val = 0 ;
+			ioctlsocket( sock , FIONBIO , &val) ;
+		}
+	#else
 		fcntl( sock , F_SETFL , fcntl( sock , F_GETFL , 0) & ~O_NONBLOCK) ;
+	#endif
 	}
 
 	buf[0] = '1' ;
 	filled_len = mkf_str_to( buf + 1 , sizeof(buf) - 3 , caption , caption_len , dic_conv) ;
 	buf[1 + filled_len] = ' ' ;
 	buf[1 + filled_len + 1] = '\n' ;
-	write( sock , buf , filled_len + 3) ;
+	send( sock , buf , filled_len + 3 , 0) ;
+#ifndef  USE_WIN32API
 	fsync( sock) ;
+#endif
 #ifdef  DEBUG
 	write( 0 , buf , filled_len + 3) ;
 #endif
 
 	p = buf ;
 	*p = '4' ;
-	if( read( sock , p , 1) == 1)
+	if( recv( sock , p , 1 , 0) == 1)
 	{
 		p += (1 + filled_len) ;		/* skip caption */
-		while( read( sock , p , 1) == 1 && *p != '\n')
+		while( recv( sock , p , 1 , 0) == 1 && *p != '\n')
 		{
 			p++ ;
 		}
@@ -467,7 +482,7 @@ serv_search(
 	}
 
 error:
-	close( sock) ;
+	closesocket( sock) ;
 	sock = -1 ;
 
 	return  NULL ;
@@ -513,7 +528,7 @@ dict_final(void)
 	}
 	else
 	{
-		close( sock) ;
+		closesocket( sock) ;
 		sock = -1 ;
 	}
 
@@ -762,7 +777,7 @@ dict_set_global(
 	}
 	else
 	{
-		close( sock) ;
+		closesocket( sock) ;
 		sock = -1 ;
 	}
 

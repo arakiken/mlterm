@@ -303,7 +303,7 @@ cairo_font_open(
 		{
 			FcPatternRemove( pattern , FC_FAMILY , 0) ;
 
-			if( is_same_family( match , val.u.s))
+			if( ! is_same_family( match , val.u.s))
 			{
 				break ;
 			}
