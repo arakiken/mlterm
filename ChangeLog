@@ -1,5 +1,9 @@
 2016-05-01  Araki Ken  <arakiken@users.sf.net>
 
+	* im_skk.c: Ctrl+g resets preediting states.
+
+2016-05-01  Araki Ken  <arakiken@users.sf.net>
+
 	* im_skk.c: Wrong parsing of comment string staring with ';' is fixed.
 
 	* skk/dict.c: winsock is supported.

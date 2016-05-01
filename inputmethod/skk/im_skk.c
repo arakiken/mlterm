@@ -1207,7 +1207,10 @@ key_event(
 		if( skk->cur_cand != -1)
 		{
 			candidate_unset( skk) ;
+			candidate_clear( skk) ;
 			cand = "" ;
+			skk->dan = skk->prev_dan = 0 ;
+			skk->is_preediting = 1 ;
 		}
 		else if( skk->is_editing_new_word)
 		{
