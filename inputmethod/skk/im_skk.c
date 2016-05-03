@@ -27,6 +27,16 @@
 
 typedef u_int16_t wchar ;
 
+typedef enum  input_mode
+{
+	HIRAGANA ,
+	KATAKANA ,
+	ALPHABET_FULL ,
+	ALPHABET ,
+	MAX_INPUT_MODE
+
+} input_mode_t ;
+
 typedef struct im_skk
 {
 	/* input method common object */
@@ -55,10 +65,12 @@ typedef struct im_skk
 	u_int  num_of_cands ;
 	int  cur_cand ;
 
+	char *  status[MAX_INPUT_MODE] ;
+
 	int  dan ;
 	int  prev_dan ;
 
-	int  is_katakana ;
+	input_mode_t  mode ;
 
 	int  is_editing_new_word ;
 	mkf_char_t  new_word[32] ;
@@ -96,7 +108,7 @@ preedit_add(
 
 	if( wch > 0xff)
 	{
-		if( skk->is_katakana && 0xa4a1 <= wch && wch <= 0xa4f3)
+		if( skk->mode == KATAKANA && 0xa4a1 <= wch && wch <= 0xa4f3)
 		{
 			wch += 0x100 ;
 		}
@@ -130,6 +142,11 @@ preedit_clear(
 	im_skk_t *  skk
 	)
 {
+	if( skk->is_preediting && skk->mode == ALPHABET)
+	{
+		skk->mode = HIRAGANA ;
+	}
+
 	skk->preedit_len = 0 ;
 	skk->is_preediting = 0 ;
 	skk->cur_cand = -1 ;
@@ -348,7 +365,8 @@ candidate:
 	{
 		return ;
 	}
-	else if( candidateword_len == 0)
+	else if( candidateword_len == 0 &&
+	         ( candidateword_len = strlen( candidateword)) == 0)
 	{
 		if( skk->im.stat_screen)
 		{
@@ -751,6 +769,25 @@ insert_char(
 	return  0 ;
 }
 
+static void
+insert_alphabet_full(
+	im_skk_t *  skk ,
+	u_char  key_char
+	)
+{
+	if( ( 'a' <= key_char && key_char <= 'z') ||
+	    ( 'A' <= key_char && key_char <= 'Z') ||
+	    ( '0' <= key_char && key_char <= '9'))
+	{
+		preedit_add( skk , 0x2300 + key_char + 0x8080) ;
+	}
+	else if( 0x20 <= key_char && key_char <= 0x7e)
+	{
+		insert_char( skk , key_char) ;
+	}
+}
+
+
 /*
  * methods of x_im_t
  */
@@ -770,6 +807,10 @@ delete(
 	{
 		(*skk->conv->delete)( skk->conv) ;
 	}
+
+	free( skk->status[HIRAGANA]) ;
+	free( skk->status[KATAKANA]) ;
+	free( skk->status[ALPHABET_FULL]) ;
 
 	free( skk) ;
 
@@ -798,7 +839,8 @@ switch_mode(
 
 	if( ( skk->is_enabled = ( ! skk->is_enabled)))
 	{
-		preedit( skk , NULL , 0 , 0 , NULL , 0 , "") ;
+		skk->mode = HIRAGANA ;
+		preedit( skk , "" , 0 , 0 , skk->status[skk->mode] , 0 , "") ;
 	}
 	else
 	{
@@ -807,6 +849,136 @@ switch_mode(
 	}
 
 	return  1 ;
+}
+
+
+static void
+unconcat(
+	char *  str
+	)
+{
+	char *  p ;
+
+	if( ( p = strstr( str , "(concat")) && ( p = strchr( p , '\"')))
+	{
+		char *  end ;
+		size_t  len ;
+
+		len = 0 ;
+		while( ( end = strchr( ++p , '\"')))
+		{
+			strncpy( str + len , p , end - p) ;
+			len += (end - p) ;
+
+			if( ! ( p = strchr( end + 1 , '\"')))
+			{
+				break ;
+			}
+		}
+		str[len] = '\0' ;
+
+		p = str ;
+		while( *p)
+		{
+			if( *p == '\\')
+			{
+				u_int  ch ;
+
+				if( '0' <= *(p + 1) && *(p + 1) <= '9')
+				{
+					ch = strtol( p + 1 , &end , 8) ;
+				}
+				else if( *(p + 1) == 'x' && '0' <= *(p + 2) && *(p + 2) <= '9')
+				{
+					ch = strtol( p + 2 , &end , 16) ;
+				}
+				else
+				{
+					p ++ ;
+
+					continue ;
+				}
+
+				if( ch <= 0xff)
+				{
+					*(p++) = ch ;
+				}
+
+				if( *end)
+				{
+					memmove( p , end , strlen( end) + 1) ;
+				}
+				else
+				{
+					*p = '\0' ;
+					break ;
+				}
+			}
+			else
+			{
+				p ++ ;
+			}
+		}
+	}
+}
+
+static int
+dict_add_wrap(
+	char *  caption ,
+	char *  word ,
+	mkf_parser_t *  parser
+	)
+{
+	u_int  num ;
+
+	num = kik_count_char_in_str( word , '/') ;
+	num += kik_count_char_in_str( word , ';') ;
+
+	if( num > 0)
+	{
+		char *  new ;
+
+		/*
+		 * (concat "\057")
+		 * 123456789    ab => 11
+		 */
+		if( ( new = alloca( 11 + 4 * num + (strlen(word) - num) + 1)))
+		{
+			char *  src ;
+			char *  dst ;
+			char *  p ;
+
+			dst = strcpy( new , "(concat \"") + 9 ;
+			src = word ;
+			while( ( p = strchr( src , '/')) || ( p = strchr( src , ';')))
+			{
+				memcpy( dst , src , p - src) ;
+				dst += (p - src) ;
+				if( *p == '/')
+				{
+					strcpy( dst , "\\057") ;
+				}
+				else
+				{
+					strcpy( dst , "\\073") ;
+				}
+				dst += 4 ;
+				src = p + 1 ;
+			}
+			strcpy( dst , src) ;
+			strcat( dst , "\")") ;
+
+			return  dict_add( caption , new , parser) ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+	else
+	{
+		return  dict_add( caption , word , parser) ;
+	}
 }
 
 
@@ -882,6 +1054,8 @@ candidate_get(
 			*p2 = '\0' ;
 		}
 
+		unconcat( skk->cands[count]) ;
+
 		if( ! candidate_exists( skk->cands , count , skk->cands[count]))
 		{
 			count ++ ;
@@ -925,7 +1099,7 @@ start_to_register_new_word(
 	skk->new_word_len = 0 ;
 	skk->is_editing_new_word = 1 ;
 	preedit_clear( skk) ;
-	skk->is_preediting = 1 ;
+	skk->is_preediting = 0 ;
 }
 
 static void
@@ -977,6 +1151,11 @@ candidate_set(
 
 		if( skk->num_of_cands == 0)
 		{
+			if( skk->is_editing_new_word)
+			{
+				return ;
+			}
+
 		#if  0
 			if( skk->prev_dan)
 			{
@@ -1072,7 +1251,7 @@ fix(
 	{
 		if( skk->num_of_cands > 0)
 		{
-			dict_add( skk->caption , skk->cands[skk->cur_cand] , skk->parser_term) ;
+			dict_add_wrap( skk->caption , skk->cands[skk->cur_cand] , skk->parser_term) ;
 		}
 
 		if( skk->is_editing_new_word)
@@ -1080,19 +1259,15 @@ fix(
 			memcpy( skk->new_word + skk->new_word_len , skk->preedit ,
 				skk->preedit_len * sizeof(skk->preedit[0])) ;
 			skk->new_word_len += skk->preedit_len ;
-			preedit( skk , "" , 0 , 0 , "" , 0 , "") ;
-			preedit_clear( skk) ;
-			skk->is_preediting = 1 ;
+			preedit( skk , "" , 0 , 0 , skk->status[skk->mode] , 0 , "") ;
 		}
 		else
 		{
-			preedit( skk , "" , 0 , 0 , "" , 0 , "") ;
+			preedit( skk , "" , 0 , 0 , skk->status[skk->mode] , 0 , "") ;
 			commit( skk) ;
-			preedit_clear( skk) ;
 		}
+		preedit_clear( skk) ;
 		candidate_clear( skk) ;
-
-		return  0 ;
 	}
 	else if( skk->is_editing_new_word)
 	{
@@ -1115,7 +1290,7 @@ fix(
 					parser) ;
 			word[len] = '\0' ;
 
-			dict_add( caption , word , skk->parser_term) ;
+			dict_add_wrap( caption , word , skk->parser_term) ;
 
 			candidate_clear( skk) ;
 			stop_to_register_new_word( skk) ;
@@ -1127,14 +1302,15 @@ fix(
 		else
 		{
 			stop_to_register_new_word( skk) ;
-			preedit_clear( skk) ;
 			candidate_clear( skk) ;
 		}
-
-		return  0 ;
+	}
+	else
+	{
+		return  1 ;
 	}
 
-	return  1 ;
+	return  0 ;
 }
 
 static int
@@ -1167,17 +1343,36 @@ key_event(
 	{
 		return  1 ;
 	}
-	else if( key_char == 'l')
+	else if( ( skk->mode != ALPHABET && key_char == 'l') ||
+	         ( skk->mode != ALPHABET_FULL && key_char == 'L'))
 	{
-		/* skk is disabled */
-		fix( skk) ;
-		switch_mode( im) ;
-
-		return  0 ;
+		if( ! skk->is_editing_new_word)
+		{
+			fix( skk) ;
+		}
+		skk->mode = (key_char == 'l') ? ALPHABET : ALPHABET_FULL ;
+		cand = skk->status[skk->mode] ;
 	}
 	else if( key_char == '\r' || key_char == '\n')
 	{
-		ret = fix( skk) ;
+		if( ( event->state & ControlMask) && key_char == '\n')
+		{
+			if( ! skk->is_editing_new_word || skk->preedit_len > 0)
+			{
+				fix( skk) ;
+			}
+
+			if( skk->mode == ALPHABET || skk->mode == ALPHABET_FULL)
+			{
+				/* Ctrl+j */
+				skk->mode = HIRAGANA ;
+				cand = skk->status[skk->mode] ;
+			}
+		}
+		else
+		{
+			ret = fix( skk) ;
+		}
 	}
 	else if( ksym == XK_BackSpace || ksym == XK_Delete || key_char == 0x08 /* Ctrl+h */)
 	{
@@ -1186,7 +1381,7 @@ key_event(
 			if( skk->cur_cand != -1)
 			{
 				candidate_unset( skk) ;
-				cand = "" ;
+				cand = skk->status[skk->mode] ;
 			}
 			else
 			{
@@ -1194,7 +1389,21 @@ key_event(
 				skk->is_preediting = 1 ;
 
 				candidate_clear( skk) ;
-				preedit_delete( skk) ;
+				if( skk->preedit_len == 1)
+				{
+					preedit_clear( skk) ;
+				}
+				else
+				{
+					preedit_delete( skk) ;
+				}
+			}
+		}
+		else if( skk->is_editing_new_word)
+		{
+			if( skk->new_word_len > 0)
+			{
+				skk->new_word_len -- ;
 			}
 		}
 		else
@@ -1204,18 +1413,25 @@ key_event(
 	}
 	else if( ( event->state & ControlMask) && key_char == '\x07')
 	{
+		/* Ctrl+g */
 		if( skk->cur_cand != -1)
 		{
 			candidate_unset( skk) ;
 			candidate_clear( skk) ;
-			cand = "" ;
 			skk->dan = skk->prev_dan = 0 ;
+
+			cand = skk->status[skk->mode] ;
 			skk->is_preediting = 1 ;
 		}
 		else if( skk->is_editing_new_word)
 		{
 			stop_to_register_new_word( skk) ;
-			cand = "" ;
+			cand = skk->status[skk->mode] ;
+		}
+		else
+		{
+			preedit_clear( skk) ;
+			cand = skk->status[skk->mode] ;
 		}
 	}
 	else if( key_char != ' ' && key_char != '\0')
@@ -1224,9 +1440,23 @@ key_event(
 		{
 			ret = 1 ;
 		}
-		else if( key_char == 'q')
+		else if( skk->mode != ALPHABET && key_char == 'q')
 		{
-			skk->is_katakana = ! skk->is_katakana ;
+			if( skk->mode == HIRAGANA)
+			{
+				skk->mode = KATAKANA ;
+			}
+			else
+			{
+				skk->mode = HIRAGANA ;
+			}
+			cand = skk->status[skk->mode] ;
+		}
+		else if( skk->mode != ALPHABET && ! skk->is_preediting && key_char == '/')
+		{
+			skk->is_preediting = 1 ;
+			skk->mode = ALPHABET ;
+			cand = skk->status[skk->mode] ;
 		}
 		else
 		{
@@ -1235,30 +1465,47 @@ key_event(
 				fix( skk) ;
 			}
 
-			while( event->state & ShiftMask)
+			if( skk->mode != ALPHABET && skk->mode != ALPHABET_FULL)
 			{
-				if( 'A' <= key_char && key_char <= 'Z')
+				while( event->state & ShiftMask)
 				{
-					key_char += 0x20 ;
-				}
-				else if( key_char < 'a' || 'z' < key_char)
-				{
+					if( 'A' <= key_char && key_char <= 'Z')
+					{
+						key_char += 0x20 ;
+					}
+					else if( key_char < 'a' || 'z' < key_char)
+					{
+						break ;
+					}
+
+					if( skk->preedit_len == 0)
+					{
+						skk->is_preediting = 1 ;
+					}
+					else if( skk->is_preediting && ! skk->dan)
+					{
+						skk->is_preediting = 2 ;
+					}
+
 					break ;
 				}
-
-				if( skk->preedit_len == 0)
-				{
-					skk->is_preediting = 1 ;
-				}
-				else if( skk->is_preediting && ! skk->dan)
-				{
-					skk->is_preediting = 2 ;
-				}
-
-				break ;
 			}
 
-			if( insert_char( skk , key_char) != 0)
+			if( skk->mode == ALPHABET)
+			{
+				preedit_add( skk , key_char) ;
+
+				if( ! skk->is_preediting)
+				{
+					fix( skk) ;
+				}
+			}
+			else if( skk->mode == ALPHABET_FULL)
+			{
+				insert_alphabet_full( skk , key_char) ;
+				fix( skk) ;
+			}
+			else if( insert_char( skk , key_char) != 0)
 			{
 				ret = 1 ;
 			}
@@ -1364,7 +1611,7 @@ key_event(
 						candidate_unset( skk) ;
 						candidate_clear( skk) ;
 						start_to_register_new_word( skk) ;
-						cand = "" ;
+						cand = skk->status[skk->mode] ;
 
 						goto  end ;
 					}
@@ -1435,6 +1682,16 @@ key_event(
 				skk->num_of_cands) ;
 		}
 	}
+	else if( skk->is_editing_new_word)
+	{
+		if( key_char == ' ')
+		{
+			preedit_add( skk , key_char) ;
+			fix( skk) ;
+		}
+
+		ret = 0 ;
+	}
 	else
 	{
 		ret = 1 ;
@@ -1499,6 +1756,7 @@ im_skk_new(
 	)
 {
 	im_skk_t *  skk ;
+	mkf_parser_t *  parser ;
 
 	if( magic != (u_int64_t) IM_API_COMPAT_CHECK_MAGIC)
 	{
@@ -1537,6 +1795,37 @@ im_skk_new(
 	if( ! ( skk->parser_term = (*syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
+	}
+
+	skk->status[HIRAGANA] = "\xa4\xab\xa4\xca" ;
+	skk->status[KATAKANA] = "\xa5\xab\xa5\xca" ;
+	skk->status[ALPHABET_FULL] = "\xc1\xb4\xb1\xd1" ;
+	skk->status[ALPHABET] = "SKK" ;
+
+	if( term_encoding == ML_EUCJP || ! ( parser = (*syms->ml_parser_new)( ML_EUCJP)))
+	{
+		input_mode_t  mode ;
+
+		for( mode = 0 ; mode <= ALPHABET_FULL ; mode++)
+		{
+			skk->status[mode] = strdup( skk->status[mode]) ;
+		}
+	}
+	else
+	{
+		input_mode_t  mode ;
+		u_char  buf[64] ;	/* enough for EUCJP(5bytes) -> Other CS */
+
+		for( mode = 0 ; mode <= ALPHABET_FULL ; mode++)
+		{
+			(*parser->init)( parser) ;
+			(*parser->set_str)( parser , skk->status[mode] , 5) ;
+			(*skk->conv->init)( skk->conv) ;
+			(*skk->conv->convert)( skk->conv , buf , sizeof(buf) - 1 , parser) ;
+			skk->status[mode] = strdup( buf) ;
+		}
+
+		(*parser->delete)( parser) ;
 	}
 
 	skk->cur_cand = -1 ;

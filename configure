@@ -21698,8 +21698,34 @@ fi
 		fi
 	fi
 
-	if test "$have_hb" = "yes" -a "$gui" != "quartz" -a "$PKG_CONFIG" != ""; then
-		OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS `$PKG_CONFIG freetype2 --cflags`"
+	if test "$have_hb" = "yes" ; then
+		if test "$gui" = "quartz" ; then
+			ac_fn_c_check_header_mongrel "$LINENO" "harfbuzz/hb.h" "ac_cv_header_harfbuzz_hb_h" "$ac_includes_default"
+if test "x$ac_cv_header_harfbuzz_hb_h" = xyes; then :
+  have_hb_h=yes
+else
+  have_hb_h=no
+fi
+
+
+			ac_fn_c_check_header_mongrel "$LINENO" "harfbuzz/hb-coretext.h" "ac_cv_header_harfbuzz_hb_coretext_h" "$ac_includes_default"
+if test "x$ac_cv_header_harfbuzz_hb_coretext_h" = xyes; then :
+  have_hb_coretext_h=yes
+else
+  have_hb_coretext_h=no
+fi
+
+
+			if test "$have_hb_h" = "yes" -a "$have_hb_coretext_h" != "yes" ; then
+				echo ""
+				echo "** ERROR **"
+				echo "harfbuzz/hb-coretext.h is not found."
+				echo "Install harfbuzz with --with-coretext=yes in advance."
+				echo ""
+			fi
+		elif test "$PKG_CONFIG" != "" ; then
+			OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS `$PKG_CONFIG freetype2 --cflags`"
+		fi
 	fi
 
 	if test "$OT_LAYOUT_OBJ" != "" -a "$enable_shared" = "no" ; then
@@ -27968,6 +27994,9 @@ echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 if test "$OT_LAYOUT_OBJ" = "hb.o"; then
 	echo "OpenType Layout                   : yes (harfbuzz)"
+	if test "$have_hb_h" = "yes" -a "$have_hb_coretext_h" != "yes" ; then
+		echo "                                    (Error: hb-coretext.h is missing)"
+	fi
 elif test "$OT_LAYOUT_OBJ" = "otf.o"; then
 	echo "OpenType Layout                   : yes (libotf)"
 else

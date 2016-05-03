@@ -10,6 +10,7 @@
 #include  <hb.h>
 #ifdef  USE_QUARTZ
 #include  <hb-coretext.h>
+#include  <hb-ot.h>
 #else
 #include  <hb-ft.h>
 #endif

@@ -1,3 +1,17 @@
+2016-05-04  Araki Ken  <arakiken@users.sf.net>
+
+	* im_skk.c:
+	  - Direct input triggered by 'l' key is available in editing a word
+	    to be newly registerd.
+	  - Status window is shown while skk is enabled.
+	  - Full width alphabets input triggerd by 'L' is available.
+	  - (concat "...") is partially available.
+	  - It is possible to register a new word containing '/' and ';'.
+
+	* hb.c: Compiling error is fixed.
+
+	* configure.in: hb-coretext.h is checked on MacOSX/Cocoa.
+
 2016-05-01  Araki Ken  <arakiken@users.sf.net>
 
 	* im_skk.c: Ctrl+g resets preediting states.
