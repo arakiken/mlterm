@@ -68,6 +68,9 @@ set_spot(
 			[[window screen] visibleFrame].size.height -
 			[window.contentView frame].size.height - y)] ;
 
+	stat_screen->x = x ;
+	stat_screen->y = y ;
+
 	return  1 ;
 }
 
@@ -107,6 +110,14 @@ set(
 	label.stringValue = [NSString stringWithCString:utf8 encoding:NSUTF8StringEncoding] ;
 	[label sizeToFit] ;
 	[window setContentSize:label.frame.size] ;
+
+	/* XXX (see x_im_status_screen_new()) */
+	if( stat_screen->filled_len == 1)
+	{
+		[window orderFront:window] ;
+		set_spot( stat_screen , stat_screen->x , stat_screen->y) ;
+		stat_screen->filled_len = 0 ;
+	}
 
 	return  1 ;
 }
@@ -178,6 +189,9 @@ x_im_status_screen_new(
 	stat_screen->hide = hide ;
 	stat_screen->set_spot = set_spot ;
 	stat_screen->set = set ;
+
+	/* XXX (see set()) */
+	stat_screen->filled_len = 1 ;
 
 	return  stat_screen ;
 }

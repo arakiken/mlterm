@@ -1,5 +1,10 @@
 2016-05-04  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im_status_screen-cocoa.m: Status screen is shown before calling
+	  x_im_status_screen_t::show().
+
+2016-05-04  Araki Ken  <arakiken@users.sf.net>
+
 	* im_skk.c:
 	  - Direct input triggered by 'l' key is available in editing a word
 	    to be newly registerd.
