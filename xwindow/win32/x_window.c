@@ -1512,6 +1512,18 @@ x_window_show(
 			SWP_NOMOVE | SWP_NOZORDER) ;
 	}
 
+	/*
+	 * XXX
+	 * Some area in a main screen is not correctly drawn without this
+	 * in showing a status screen.
+	 * stat_screen is shown in im->stat_screen->show() in x_im_redraw_preedit()
+	 */
+	if( win->app_name &&
+	    strstr( win->app_name , "mlterm-"))	/* mlterm-{candidate|status}-window" */
+	{
+		win->is_mapped = 0 ;
+	}
+
 	if( win->is_mapped)
 	{
 		ShowWindow( win->my_window , win->cmd_show) ;

@@ -1,5 +1,8 @@
 2016-05-04  Araki Ken  <arakiken@users.sf.net>
 
+	* x_im_status_screen.c, win32/x_window.c: Hack for win32gdi is moved from
+	  x_im_status_screen.c to win32/x_window.c
+
 	* x_im_status_screen-cocoa.m: Status screen is shown before calling
 	  x_im_status_screen_t::show().
 
