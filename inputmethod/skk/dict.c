@@ -884,7 +884,7 @@ dict_completion(
 	mkf_char_t *  caption ,
 	u_int  caption_len ,
 	void **  aux ,
-	int  back
+	int  step
 	)
 {
 	completion_t *  compl ;
@@ -926,7 +926,7 @@ dict_completion(
 	{
 		compl = *aux ;
 
-		if( back ? compl->cur_index == 0 : compl->cur_index + 1 == compl->num)
+		if( compl->cur_index + step < 0 || compl->num <= compl->cur_index + step)
 		{
 			load_global_dict = 1 ;
 		}
@@ -991,27 +991,15 @@ dict_completion(
 
 	if( move_index)
 	{
-		if( back)
+		compl->cur_index += step ;
+
+		if( compl->cur_index < 0)
 		{
-			if( compl->cur_index == 0)
-			{
-				compl->cur_index = compl->num - 1 ;
-			}
-			else
-			{
-				compl->cur_index -- ;
-			}
+			compl->cur_index += compl->num ;
 		}
-		else
+		else if( compl->cur_index >= compl->num)
 		{
-			if( compl->cur_index == compl->num - 1)
-			{
-				compl->cur_index = 0 ;
-			}
-			else
-			{
-				compl->cur_index ++ ;
-			}
+			compl->cur_index -= compl->num ;
 		}
 	}
 
@@ -1056,20 +1044,6 @@ dict_completion(
 	return  count ;
 }
 
-u_int
-dict_completion_reset(
-	mkf_char_t *  caption ,
-	void *  aux
-	)
-{
-	completion_t *  compl ;
-
-	compl = aux ;
-	memcpy( caption , compl->caption_orig , compl->caption_orig_len * sizeof(*caption)) ;
-
-	return  compl->caption_orig_len ;
-}
-
 void
 dict_completion_finish(
 	void *  aux
@@ -1083,6 +1057,25 @@ dict_completion_finish(
 	free( aux) ;
 }
 	
+u_int
+dict_completion_reset_and_finish(
+	mkf_char_t *  caption ,
+	void *  aux
+	)
+{
+	completion_t *  compl ;
+	u_int  len ;
+
+	compl = aux ;
+	memcpy( caption , compl->caption_orig , compl->caption_orig_len * sizeof(*caption)) ;
+
+	len = compl->caption_orig_len ;
+
+	dict_completion_finish( aux) ;
+
+	return  len ;
+}
+
 char *
 dict_search(
 	mkf_char_t *  caption ,

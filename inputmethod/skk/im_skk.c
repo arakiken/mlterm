@@ -1343,16 +1343,16 @@ key_event(
 	{
 		skk->preedit_len = dict_completion( skk->preedit , skk->preedit_len ,
 					&skk->completion ,
-					ksym == XK_ISO_Left_Tab) ;
+					ksym == XK_ISO_Left_Tab || event->state & ShiftMask ?
+						-1 : 1) ;
 		goto  end ;
 	}
 	else if( skk->completion)
 	{
 		if( ( event->state & ControlMask) && key_char == '\x07')
 		{
-			skk->preedit_len = dict_completion_reset( skk->preedit ,
+			skk->preedit_len = dict_completion_reset_and_finish( skk->preedit ,
 						skk->completion) ;
-			dict_completion_finish( skk->completion) ;
 			skk->completion = NULL ;
 
 			goto  end ;

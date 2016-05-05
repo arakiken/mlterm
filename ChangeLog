@@ -1,5 +1,12 @@
 2016-05-05  Araki Ken  <arakiken@users.sf.net>
 
+	* im_skk.c, dict.c:
+	  - 'back' argument of dict_completion() is changed to 'step' which designates
+	    how many steps to go to a next caption.
+	  - dict_completion_reset() -> dict_completion_reset_and_finish().
+
+2016-05-05  Araki Ken  <arakiken@users.sf.net>
+
 	* dict.c: Whether skk server supports "4xxx \n" protocol or not is checked.
 
 	* im_skk.c, dict.c: Completion is supported.

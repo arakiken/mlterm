@@ -15,11 +15,11 @@
 
 void  dict_final(void) ;
 
-u_int  dict_completion( mkf_char_t *  caption , u_int  caption_len , void **  aux , int  back) ;
-
-u_int  dict_completion_reset( mkf_char_t *  caption , void *  aux) ;
+u_int  dict_completion( mkf_char_t *  caption , u_int  caption_len , void **  aux , int  step) ;
 
 void  dict_completion_finish( void *  aux) ;
+
+u_int  dict_completion_reset_and_finish( mkf_char_t *  caption , void *  aux) ;
 
 char *  dict_search( mkf_char_t *  mkf_caption , u_int  caption_len ,
 		mkf_conv_t *  conv) ;
