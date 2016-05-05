@@ -1,3 +1,10 @@
+2016-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* im_skk.c, dict.c: Completion is supported.
+
+	* ml_vt100_parser.c: vt100_parser->yeild = 0 (specific to framebuffer) at
+	  the end of parse_vt100_parser() is removed.
+
 2016-05-04  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_status_screen.c, win32/x_window.c: Hack for win32gdi is moved from

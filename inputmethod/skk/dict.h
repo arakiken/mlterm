@@ -10,7 +10,16 @@
 #include  <mkf/mkf_conv.h>
 
 
+#define  MAX_CAPTION_LEN  64
+
+
 void  dict_final(void) ;
+
+u_int  dict_completion( mkf_char_t *  caption , u_int  caption_len , void **  aux , int  back) ;
+
+u_int  dict_completion_reset( mkf_char_t *  caption , void *  aux) ;
+
+void  dict_completion_finish( void *  aux) ;
 
 char *  dict_search( mkf_char_t *  mkf_caption , u_int  caption_len ,
 		mkf_conv_t *  conv) ;

@@ -35,8 +35,24 @@
 #endif
 
 #define  MAX_TABLES  256	/* MUST BE 2^N (see calc_index()) */
+#define  MAX_CAPTIONS  100
 #define  UTF_MAX_SIZE  6	/* see ml_char.h */
 
+
+typedef struct completion
+{
+	char *  captions[MAX_CAPTIONS] ;
+	u_int  num ;
+	u_int  local_num ;
+	int  cur_index ;
+	int  checked_global_dict ;
+
+	mkf_char_t *  caption_orig ;
+	u_int  caption_orig_len ;
+
+	char *  serv_response ;
+
+} completion_t ;
 
 typedef struct table
 {
@@ -49,7 +65,6 @@ typedef struct table
 /* --- static variables --- */
 
 static char *  global_dict ;
-static int  sock = -1 ;
 
 
 /* --- static functions --- */
@@ -83,6 +98,49 @@ calc_index(
 	return  idx ;
 }
 
+
+static u_char *
+make_entry(
+	u_char *  str
+	)
+{
+	static u_int16_t  time = 1 ;
+	size_t  len ;
+	u_char *  entry ;
+
+	len = strlen( str) ;
+
+	if( ( entry = malloc( len + 1 + 2)))
+	{
+		strcpy( entry , str) ;
+		entry[len] = (time >> 8) & 0xff ;
+		entry[len + 1] = time & 0xff ;
+		time ++ ;
+	}
+
+	return  entry ;
+}
+
+static u_int16_t
+get_entry_time(
+	u_char *  entry ,
+	char *  data ,
+	size_t  data_size
+	)
+{
+	if( entry < data || data + data_size <= entry)
+	{
+		size_t  len ;
+
+		len = strlen( entry) ;
+
+		return  (entry[len] << 8) | entry[len + 1] ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
 
 static void
 invalidate_entry(
@@ -128,8 +186,7 @@ static char *
 file_load(
 	size_t *  size ,
 	table_t *  tables ,
-	char *  path ,
-	int  rw
+	char *  path
 	)
 {
 	int  fd ;
@@ -138,14 +195,6 @@ file_load(
 	char *  p ;
 	int  count ;
 	u_int  filled_nums[MAX_TABLES] ;
-
-	if( rw && stat( path , &st) != 0)
-	{
-		creat( path , 0600) ;
-		free( path) ;
-
-		return  NULL ;
-	}
 
 	fd = open( path , O_RDONLY , 0) ;
 	free( path) ;
@@ -246,7 +295,7 @@ file_unload(
 
 	if( path)
 	{
-		fp = fopen( path , "w") ;
+		fp = fopen( path , data ? "w" : "a") ;
 		free( path) ;
 	}
 	else
@@ -313,6 +362,163 @@ mkf_str_to(
 	return  (*conv->convert)( conv , dst , dst_len , mkf_str_parser_init( src , src_len)) ;
 }
 
+
+static u_int
+file_get_completion_list(
+	char **  list ,
+	u_int  list_size ,
+	table_t *  tables ,
+	mkf_conv_t *  dic_conv ,
+	mkf_char_t *  caption ,
+	u_int  len
+	)
+{
+	char  buf[1024] ;
+	int  tbl_idx ;
+	int  ent_idx ;
+	u_int  num ;
+
+	len = mkf_str_to( buf , sizeof(buf) - 2 , caption , len , dic_conv) ;
+
+	num = 0 ;
+	for( tbl_idx = 0 ; tbl_idx < MAX_TABLES ; tbl_idx++)
+	{
+		for( ent_idx = 0 ; ent_idx < tables[tbl_idx].num ; ent_idx++)
+		{
+			if( strncmp( tables[tbl_idx].entries[ent_idx] , buf , len) == 0)
+			{
+				list[num++] = tables[tbl_idx].entries[ent_idx] ;
+
+				if( num >= list_size)
+				{
+					return  num ;
+				}
+			}
+		}
+	}
+
+	return  num ;
+}
+
+static u_int
+serv_get_completion_list(
+	char **  list ,
+	u_int  list_size ,
+	int  sock ,
+	mkf_conv_t *  dic_conv ,
+	mkf_char_t *  caption ,
+	u_int  caption_len
+	)
+{
+	char  buf[4096] ;
+	char *  p ;
+	size_t  filled_len ;
+	int  num ;
+
+	buf[0] = '4' ;
+	filled_len = mkf_str_to( buf + 1 , sizeof(buf) - 3 , caption , caption_len , dic_conv) ;
+	buf[1 + filled_len] = ' ' ;
+	buf[1 + filled_len + 1] = '\n' ;
+	send( sock , buf , filled_len + 3 , 0) ;
+#ifndef  USE_WIN32API
+	fsync( sock) ;
+#endif
+#ifdef  DEBUG
+	write( 0 , buf , filled_len + 3) ;
+#endif
+
+	p = buf ;
+	if( recv( sock , p , 1 , 0) != 1)
+	{
+		return  0 ;
+	}
+
+	p ++ ;
+	while( p < buf + sizeof(buf) &&
+	       recv( sock , p , 1 , 0) == 1 && *p != '\n')
+	{
+		p++ ;
+	}
+	*p = '\0' ;
+
+	if( *buf != '1')
+	{
+		return  0 ;
+	}
+
+#ifdef  DEBUG
+	write( 0 , buf , p - buf) ;
+	write( 0 , "\n" , 1) ;
+#endif
+
+	p = strdup( buf + 2) ;		/* skip "1/" */
+	num = 0 ;
+	list[num++] = p ;
+	while( ( p = strchr( p , '/')))
+	{
+		*(p++) = '\0' ;
+
+		list[num++] = p ;
+
+		if( num >= list_size)
+		{
+			break ;
+		}
+	}
+
+	return  num - 1 ;	/* -1: last is removed */
+}
+
+static u_int
+completion_remove_duplication(
+	char **  captions ,
+	u_int  local_num ,
+	u_int  num ,
+	mkf_parser_t *  global_parser ,
+	mkf_conv_t *  local_conv
+	)
+{
+	u_int  count ;
+	u_int  count2 ;
+	char  buf[1024] ;
+	size_t  len ;
+	char *  p ;
+
+	for( count = local_num ; count < num ;)
+	{
+		if( ( p = strchr( captions[count] , ' ')))
+		{
+			len = p - captions[count] ;
+		}
+		else
+		{
+			len = strlen( captions[count]) ;
+		}
+
+		(*global_parser->init)( global_parser) ;
+		(*global_parser->set_str)( global_parser , captions[count] , len) ;
+
+		(*local_conv->init)( local_conv) ;
+		len = (*local_conv->convert)( local_conv , buf , sizeof(buf) - 1 ,
+				global_parser) ;
+		buf[len] = '\0' ;
+
+		for( count2 = 0 ; count2 < local_num ; count2++)
+		{
+			if( strncmp( captions[count2] , buf , len) == 0)
+			{
+				memmove( captions + count , captions + count + 1 ,
+					sizeof(*captions) * (--num - count)) ;
+				continue ;
+			}
+		}
+
+		count ++ ;
+	}
+
+	return  num ;
+}
+
 static char *
 file_search(
 	table_t *  tables ,
@@ -343,7 +549,7 @@ file_search(
 		{
 			char *  p ;
 
-			strcpy( buf + filled_len ,
+			strcpy( buf + filled_len + 1 ,
 				tables[idx].entries[count] + filled_len + 1) ;
 
 			(*dic_parser->init)( dic_parser) ;
@@ -358,9 +564,9 @@ file_search(
 	return  NULL ;
 }
 
-
 static char *
 serv_search(
+	int  sock ,
 	mkf_conv_t *  dic_conv ,
 	mkf_parser_t *  dic_parser ,
 	mkf_char_t *  caption ,
@@ -368,74 +574,9 @@ serv_search(
 	mkf_conv_t *  conv
 	)
 {
-	struct sockaddr_in  sa ;
-	struct hostent *  host ;
 	char  buf[1024] ;
 	char *  p ;
 	size_t  filled_len ;
-
-	if( sock == -1)
-	{
-		char *  serv ;
-		int  port ;
-
-		port = 1178 ;
-		if( global_dict && *global_dict)
-		{
-			char *  p ;
-
-			if( ( p = alloca( strlen( global_dict) + 1)))
-			{
-				char *  port_str ;
-
-				strcpy( p , global_dict) ;
-
-				if( kik_parse_uri( NULL , NULL , &serv , &port_str ,
-					NULL , NULL , p) && port_str)
-				{
-					port = atoi( port_str) ;
-				}
-			}
-			else
-			{
-				return  NULL ;
-			}
-		}
-		else
-		{
-			serv = "localhost" ;
-		}
-
-		if( ( sock = socket( AF_INET , SOCK_STREAM , 0)) == -1)
-		{
-			return  NULL ;
-		}
-
-		memset( &sa , 0 , sizeof(sa)) ;
-		sa.sin_family = AF_INET ;
-		sa.sin_port = htons( port) ;
-
-		if( ! ( host = gethostbyname( serv)))
-		{
-			goto  error ;
-		}
-
-		memcpy( &sa.sin_addr , host->h_addr_list[0] , sizeof(sa.sin_addr)) ;
-
-		if( connect( sock , &sa , sizeof(struct sockaddr_in)) == -1)
-		{
-			goto  error ;
-		}
-
-	#ifdef  USE_WIN32API
-		{
-			u_long  val = 0 ;
-			ioctlsocket( sock , FIONBIO , &val) ;
-		}
-	#else
-		fcntl( sock , F_SETFL , fcntl( sock , F_GETFL , 0) & ~O_NONBLOCK) ;
-	#endif
-	}
 
 	buf[0] = '1' ;
 	filled_len = mkf_str_to( buf + 1 , sizeof(buf) - 3 , caption , caption_len , dic_conv) ;
@@ -450,26 +591,28 @@ serv_search(
 #endif
 
 	p = buf ;
-	*p = '4' ;
-	if( recv( sock , p , 1 , 0) == 1)
+	if( recv( sock , p , 1 , 0) != 1)
 	{
-		p += (1 + filled_len) ;		/* skip caption */
-		while( recv( sock , p , 1 , 0) == 1 && *p != '\n')
-		{
-			p++ ;
-		}
-		*p = '\0' ;
-
-	#ifdef  DEBUG
-		write( 0 , buf , p - buf) ;
-		write( 0 , "\n" , 1) ;
-	#endif
+		return  0 ;
 	}
+
+	p += (1 + filled_len + 1) ;		/* skip caption */
+	while( p < buf + sizeof(buf) &&
+	       recv( sock , p , 1 , 0) == 1 && *p != '\n')
+	{
+		p++ ;
+	}
+	*p = '\0' ;
 
 	if( *buf != '1')
 	{
-		return  NULL ;
+		return  0 ;
 	}
+
+#ifdef  DEBUG
+	write( 0 , buf , p - buf) ;
+	write( 0 , "\n" , 1) ;
+#endif
 
 	(*dic_parser->init)( dic_parser) ;
 	if( im_convert_encoding( dic_parser , conv , buf + 1 , &p , strlen( buf + 1)))
@@ -480,12 +623,80 @@ serv_search(
 	{
 		return  NULL ;
 	}
+}
+
+static int
+connect_to_server(void)
+{
+	char *  serv ;
+	int  port ;
+	struct sockaddr_in  sa ;
+	struct hostent *  host ;
+	int  sock ;
+
+	port = 1178 ;
+	if( global_dict && *global_dict)
+	{
+		char *  p ;
+
+		if( ( p = alloca( strlen( global_dict) + 1)))
+		{
+			char *  port_str ;
+
+			strcpy( p , global_dict) ;
+
+			if( kik_parse_uri( NULL , NULL , &serv , &port_str ,
+				NULL , NULL , p) && port_str)
+			{
+				port = atoi( port_str) ;
+			}
+		}
+		else
+		{
+			return  -1 ;
+		}
+	}
+	else
+	{
+		serv = "localhost" ;
+	}
+
+	if( ( sock = socket( AF_INET , SOCK_STREAM , 0)) == -1)
+	{
+		return  -1 ;
+	}
+
+	memset( &sa , 0 , sizeof(sa)) ;
+	sa.sin_family = AF_INET ;
+	sa.sin_port = htons( port) ;
+
+	if( ! ( host = gethostbyname( serv)))
+	{
+		goto  error ;
+	}
+
+	memcpy( &sa.sin_addr , host->h_addr_list[0] , sizeof(sa.sin_addr)) ;
+
+	if( connect( sock , &sa , sizeof(struct sockaddr_in)) == -1)
+	{
+		goto  error ;
+	}
+
+#ifdef  USE_WIN32API
+	{
+		u_long  val = 0 ;
+		ioctlsocket( sock , FIONBIO , &val) ;
+	}
+#else
+	fcntl( sock , F_SETFL , fcntl( sock , F_GETFL , 0) & ~O_NONBLOCK) ;
+#endif
+
+	return  sock ;
 
 error:
 	closesocket( sock) ;
-	sock = -1 ;
 
-	return  NULL ;
+	return  -1 ;
 }
 
 
@@ -494,6 +705,7 @@ error:
 static table_t  global_tables[MAX_TABLES] ;
 static char *  global_data ;
 static size_t  global_data_size ;
+static int  global_sock = -1 ;
 static mkf_conv_t *  global_conv ;
 static mkf_parser_t *  global_parser ;
 
@@ -502,6 +714,70 @@ static char *  local_data ;
 static size_t  local_data_size ;
 static mkf_conv_t *  local_conv ;
 static mkf_parser_t *  local_parser ;
+
+
+/* --- static variables --- */
+
+static int
+global_dict_load(void)
+{
+	if( ! global_conv)
+	{
+		global_conv = mkf_eucjp_conv_new() ;
+		global_parser = mkf_eucjp_parser_new() ;
+	}
+
+	if( ! global_data && global_sock == -1)
+	{
+		char *  path ;
+
+		if( global_dict && ( path = strdup( global_dict)))
+		{
+			global_data = file_load( &global_data_size , global_tables , path) ;
+		}
+
+		if( ! global_data)
+		{
+			global_sock = connect_to_server() ;
+		}
+	}
+
+	if( global_data)
+	{
+		return  1 ;
+	}
+	else if( global_sock != -1)
+	{
+		return  2 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+static int
+local_dict_load(void)
+{
+	char *  path ;
+
+	if( ! local_conv)
+	{
+		local_conv = mkf_utf8_conv_new() ;
+		local_parser = mkf_utf8_parser_new() ;
+	}
+
+	if( ! local_data &&
+	    ( path = kik_get_user_rc_path( "mlterm/skk-jisyo")))
+	{
+		if( ! ( local_data = file_load( &local_data_size , local_tables , path)))
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
 
 
 /* --- global functions --- */
@@ -528,8 +804,8 @@ dict_final(void)
 	}
 	else
 	{
-		closesocket( sock) ;
-		sock = -1 ;
+		closesocket( global_sock) ;
+		global_sock = -1 ;
 	}
 
 	if( global_conv)
@@ -542,6 +818,200 @@ dict_final(void)
 	global_dict = NULL ;
 }
 
+u_int
+dict_completion(
+	mkf_char_t *  caption ,
+	u_int  caption_len ,
+	void **  aux ,
+	int  back
+	)
+{
+	completion_t *  compl ;
+	int  load_global_dict = 0 ;
+	int  move_index ;
+	u_int  count ;
+	u_int  max_time ;
+	char *  next_caption ;
+	char *  end ;
+	mkf_parser_t *  parser ;
+
+	if( ! *aux)
+	{
+		if( ! ( *aux = compl = calloc( 1 , sizeof(completion_t) +
+							sizeof(*caption) * caption_len)))
+		{
+			return  caption_len ;
+		}
+
+		compl->caption_orig = (char*)(compl + 1) ;
+		memcpy( compl->caption_orig , caption , sizeof(*caption) * caption_len) ;
+		compl->caption_orig_len = caption_len ;
+
+		if( local_dict_load())
+		{
+			compl->local_num = compl->num =
+				file_get_completion_list( compl->captions , MAX_CAPTIONS ,
+					local_tables , local_conv , caption , caption_len) ;
+		}
+
+		if( compl->num == 0)
+		{
+			load_global_dict = 1 ;
+		}
+
+		move_index = 0 ;
+	}
+	else
+	{
+		compl = *aux ;
+
+		if( back ? compl->cur_index == 0 : compl->cur_index + 1 == compl->num)
+		{
+			load_global_dict = 1 ;
+		}
+
+		move_index = 1 ;
+	}
+
+	if( load_global_dict)
+	{
+		if( ! compl->checked_global_dict)
+		{
+			u_int  num ;
+
+			switch( global_dict_load())
+			{
+			case  1:
+				num = file_get_completion_list( compl->captions + compl->num ,
+					MAX_CAPTIONS - compl->num , global_tables , global_conv ,
+					compl->caption_orig , compl->caption_orig_len) ;
+				break ;
+
+			case  2:
+				num = serv_get_completion_list( compl->captions + compl->num ,
+					MAX_CAPTIONS - compl->num , global_sock , global_conv ,
+						compl->caption_orig , compl->caption_orig_len) ;
+				compl->serv_response = compl->captions[compl->num] ;
+				break ;
+
+			default:
+				num = 0 ;
+			}
+
+			if( ( compl->num += num) == 0)
+			{
+				return  caption_len ;
+			}
+
+			if( num > 0)
+			{
+				compl->num = completion_remove_duplication( compl->captions ,
+						compl->local_num , compl->num ,
+						global_parser , local_conv) ;
+			}
+
+			compl->checked_global_dict = 1 ;
+		}
+		else if( compl->num == 0)
+		{
+			return  caption_len ;
+		}
+	}
+
+	if( move_index)
+	{
+		if( back)
+		{
+			if( compl->cur_index == 0)
+			{
+				compl->cur_index = compl->num - 1 ;
+			}
+			else
+			{
+				compl->cur_index -- ;
+			}
+		}
+		else
+		{
+			if( compl->cur_index == compl->num - 1)
+			{
+				compl->cur_index = 0 ;
+			}
+			else
+			{
+				compl->cur_index ++ ;
+			}
+		}
+	}
+
+	max_time = 0 ;
+	for( count = compl->cur_index ; count < compl->num ; count++)
+	{
+		u_int  time ;
+
+		if( count < compl->local_num &&
+		    ( time = get_entry_time( compl->captions[count] ,
+				local_data , local_data_size)) > max_time)
+		{
+			char *  tmp ;
+
+			tmp = compl->captions[compl->cur_index] ;
+			compl->captions[compl->cur_index] = compl->captions[count] ;
+			compl->captions[count] = tmp ;
+
+			max_time = time ;
+		}
+	}
+
+	next_caption = compl->captions[compl->cur_index] ;
+
+	if( compl->cur_index < compl->local_num)
+	{
+		parser = local_parser ;
+	}
+	else
+	{
+		parser = global_parser ;
+	}
+
+	(*parser->init)( parser) ;
+	(*parser->set_str)( parser , next_caption ,
+		( end = strchr( next_caption , ' ')) ?
+			end - next_caption : strlen( next_caption)) ;
+	for( count = 0 ;
+	     count < MAX_CAPTION_LEN && (*parser->next_char)( parser , caption + count) ;
+	     count++) ;
+
+	return  count ;
+}
+
+u_int
+dict_completion_reset(
+	mkf_char_t *  caption ,
+	void *  aux
+	)
+{
+	completion_t *  compl ;
+
+	compl = aux ;
+	memcpy( caption , compl->caption_orig , compl->caption_orig_len * sizeof(*caption)) ;
+
+	return  compl->caption_orig_len ;
+}
+
+void
+dict_completion_finish(
+	void *  aux
+	)
+{
+	if( global_sock != -1)
+	{
+		free( ((completion_t*)aux)->serv_response) ;
+	}
+
+	free( aux) ;
+}
+	
 char *
 dict_search(
 	mkf_char_t *  caption ,
@@ -549,46 +1019,28 @@ dict_search(
 	mkf_conv_t *  conv
 	)
 {
-	char *  path ;
 	char *  result ;
 	char *  hit[2] = { NULL , NULL } ;
 	u_int  count ;
 	size_t  len ;
 
-	if( ! local_conv)
+	if( local_dict_load())
 	{
-		local_conv = mkf_utf8_conv_new() ;
-		local_parser = mkf_utf8_parser_new() ;
-	}
-
-	if( ! local_data)
-	{
-		if( ( path = kik_get_user_rc_path( "mlterm/skk-jisyo")))
-		{
-			local_data = file_load( &local_data_size , local_tables , path , 1) ;
-		}
-	}
-
-	hit[0] = file_search( local_tables , local_conv , local_parser ,
+		hit[0] = file_search( local_tables , local_conv , local_parser ,
 				caption , caption_len , conv) ;
-
-	if( ! global_conv)
-	{
-		global_conv = mkf_eucjp_conv_new() ;
-		global_parser = mkf_eucjp_parser_new() ;
 	}
 
-	if( global_data ||
-	    ( global_dict && ( path = strdup( global_dict)) &&
-	      ( global_data = file_load( &global_data_size , global_tables , path , 0))))
+	switch( global_dict_load())
 	{
+	case  1:
 		hit[1] = file_search( global_tables , global_conv , global_parser ,
 				caption , caption_len , conv) ;
-	}
-	else
-	{
-		hit[1] = serv_search( global_conv , global_parser ,
-				caption , caption_len , conv) ;
+		break ;
+
+	case  2:
+		hit[1] = serv_search( global_sock , global_conv , global_parser ,
+					caption , caption_len , conv) ;
+		break ;
 	}
 
 #ifdef  DEBUG
@@ -621,10 +1073,10 @@ dict_search(
 					*result ? strchr( hit[count] , '/') + 1 : hit[count]) ;
 			}
 		}
-
-		free( hit[0]) ;
-		free( hit[1]) ;
 	}
+
+	free( hit[0]) ;
+	free( hit[1]) ;
 
 #ifdef  DEBUG
 	kik_msg_printf( "=> %s\n" , result) ;
@@ -734,7 +1186,7 @@ dict_add(
 			{
 				invalidate_entry( local_tables[idx].entries[count] ,
 					local_data , local_data_size) ;
-				local_tables[idx].entries[count] = strdup( tmp) ;
+				local_tables[idx].entries[count] = make_entry( tmp) ;
 			}
 
 			return  1 ;
@@ -746,10 +1198,10 @@ dict_add(
 	{
 		local_tables[idx].entries = p ;
 
-		if( ( p = malloc( strlen( caption) + 1 + 1 + strlen( word) + 1 + 1)))
+		if( ( p = alloca( strlen( caption) + 1 + 1 + strlen( word) + 1 + 1)))
 		{
 			sprintf( p , "%s/%s" , caption , word) ;
-			local_tables[idx].entries[local_tables[idx].num++] = p ;
+			local_tables[idx].entries[local_tables[idx].num++] = make_entry( p) ;
 		#ifdef  DEBUG
 			kik_debug_printf( "Adding to dictionary: %s\n" , p) ;
 		#endif
@@ -777,8 +1229,8 @@ dict_set_global(
 	}
 	else
 	{
-		closesocket( sock) ;
-		sock = -1 ;
+		closesocket( global_sock) ;
+		global_sock = -1 ;
 	}
 
 	if( global_conv)

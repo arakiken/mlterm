@@ -57,7 +57,7 @@ typedef struct im_skk
 	mkf_parser_t *  parser_term ;	/* for term encoding */
 	mkf_conv_t *  conv ;		/* for term encoding */
 
-	mkf_char_t  preedit[32] ;
+	mkf_char_t  preedit[MAX_CAPTION_LEN] ;
 	u_int  preedit_len ;
 
 	char *  caption ;
@@ -73,14 +73,16 @@ typedef struct im_skk
 	input_mode_t  mode ;
 
 	int  is_editing_new_word ;
-	mkf_char_t  new_word[32] ;
+	mkf_char_t  new_word[MAX_CAPTION_LEN] ;
 	u_int  new_word_len ;
 
-	mkf_char_t  preedit_orig[32] ;
+	mkf_char_t  preedit_orig[MAX_CAPTION_LEN] ;
 	u_int  preedit_orig_len ;
 	int  is_preediting_orig ;
 	int  prev_dan_orig ;
 	mkf_char_t  visual_chars[2] ;
+
+	void *  completion ;
 
 } im_skk_t ;
 
@@ -812,6 +814,12 @@ delete(
 	free( skk->status[KATAKANA]) ;
 	free( skk->status[ALPHABET_FULL]) ;
 
+	if( skk->completion)
+	{
+		dict_completion_finish( skk->completion) ;
+		skk->completion = NULL ;
+	}
+
 	free( skk) ;
 
 	ref_count -- ;
@@ -1027,8 +1035,9 @@ candidate_get(
 	}
 
 	count = 0 ;
-	p = strchr( skk->caption , '/') ;	/* skip caption */
-	*(p++) = '\0' ;
+	p = strchr( skk->caption , ' ') ;	/* skip caption */
+	*p = '\0' ;
+	p += 2 ;	/* skip ' /' */
 
 	while( *p)
 	{
@@ -1328,6 +1337,36 @@ key_event(
 	u_int  cand_len = 0 ;
 
 	skk = (im_skk_t*) im ;
+
+	if( skk->preedit_len > 0 && skk->cur_cand == -1 &&
+	    ( ksym == XK_Tab || ksym == XK_ISO_Left_Tab))
+	{
+		skk->preedit_len = dict_completion( skk->preedit , skk->preedit_len ,
+					&skk->completion ,
+					ksym == XK_ISO_Left_Tab) ;
+		goto  end ;
+	}
+	else if( skk->completion)
+	{
+		if( ( event->state & ControlMask) && key_char == '\x07')
+		{
+			skk->preedit_len = dict_completion_reset( skk->preedit ,
+						skk->completion) ;
+			dict_completion_finish( skk->completion) ;
+			skk->completion = NULL ;
+
+			goto  end ;
+		}
+		else if( ksym == XK_Shift_L || ksym == XK_Shift_R ||
+		         ksym == XK_Control_L || ksym == XK_Control_R)
+		{
+			/* Starting Shift+Tab or Control+g */
+			return  0 ;
+		}
+
+		dict_completion_finish( skk->completion) ;
+		skk->completion = NULL ;
+	}
 
 	if( key_char == ' ' && ( event->state & ShiftMask))
 	{

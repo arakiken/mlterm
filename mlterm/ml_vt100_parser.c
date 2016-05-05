@@ -7007,10 +7007,12 @@ parse_vt100_sequence(
 	}
 
 	/*
-	 * It is not necessary to process pending events for other windows on
-	 * framebuffer because there is only one active window.
+	 * If only one window is shown on screen, it is not necessary to process
+	 * pending events for other windows.
+	 * But multiple windows can be shown even on framebuffer now, so it is
+	 * commented out.
 	 */
-#ifndef  USE_FRAMEBUFFER
+#if  0
 	if( vt100_parser->yield)
 	{
 		vt100_parser->yield = 0 ;
