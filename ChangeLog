@@ -1,5 +1,9 @@
 2016-05-05  Araki Ken  <arakiken@users.sf.net>
 
+	* im_skk.c, dict.[ch]: Cleanup.
+
+2016-05-05  Araki Ken  <arakiken@users.sf.net>
+
 	* im_skk.c, dict.c:
 	  - 'back' argument of dict_completion() is changed to 'step' which designates
 	    how many steps to go to a next caption.

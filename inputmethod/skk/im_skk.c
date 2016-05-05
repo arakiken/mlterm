@@ -20,9 +20,7 @@
 #define  IM_SKK_DEBUG  1
 #endif
 
-#define  MAX_DIGIT_NUM  3	/* 100 */
-#define  MAX_CANDS  100
-#define  CAND_WINDOW_ROWS  5
+#define  MAX_CAPTION_LEN  64
 
 
 typedef u_int16_t wchar ;
@@ -60,10 +58,7 @@ typedef struct im_skk
 	mkf_char_t  preedit[MAX_CAPTION_LEN] ;
 	u_int  preedit_len ;
 
-	char *  caption ;
-	char *  cands[MAX_CANDS] ;
-	u_int  num_of_cands ;
-	int  cur_cand ;
+	void *  candidate ;
 
 	char *  status[MAX_INPUT_MODE] ;
 
@@ -139,6 +134,8 @@ preedit_delete(
 	--skk->preedit_len ;
 }
 
+static void  candidate_clear( im_skk_t *  skk) ;
+
 static void
 preedit_clear(
 	im_skk_t *  skk
@@ -151,9 +148,10 @@ preedit_clear(
 
 	skk->preedit_len = 0 ;
 	skk->is_preediting = 0 ;
-	skk->cur_cand = -1 ;
 	skk->dan = 0 ;
 	skk->prev_dan = 0 ;
+
+	candidate_clear( skk) ;
 }
 
 static void
@@ -816,8 +814,12 @@ delete(
 
 	if( skk->completion)
 	{
-		dict_completion_finish( skk->completion) ;
-		skk->completion = NULL ;
+		dict_completion_finish( &skk->completion) ;
+	}
+
+	if( skk->candidate)
+	{
+		dict_candidate_finish( &skk->candidate) ;
 	}
 
 	free( skk) ;
@@ -861,225 +863,6 @@ switch_mode(
 
 
 static void
-unconcat(
-	char *  str
-	)
-{
-	char *  p ;
-
-	if( ( p = strstr( str , "(concat")) && ( p = strchr( p , '\"')))
-	{
-		char *  end ;
-		size_t  len ;
-
-		len = 0 ;
-		while( ( end = strchr( ++p , '\"')))
-		{
-			strncpy( str + len , p , end - p) ;
-			len += (end - p) ;
-
-			if( ! ( p = strchr( end + 1 , '\"')))
-			{
-				break ;
-			}
-		}
-		str[len] = '\0' ;
-
-		p = str ;
-		while( *p)
-		{
-			if( *p == '\\')
-			{
-				u_int  ch ;
-
-				if( '0' <= *(p + 1) && *(p + 1) <= '9')
-				{
-					ch = strtol( p + 1 , &end , 8) ;
-				}
-				else if( *(p + 1) == 'x' && '0' <= *(p + 2) && *(p + 2) <= '9')
-				{
-					ch = strtol( p + 2 , &end , 16) ;
-				}
-				else
-				{
-					p ++ ;
-
-					continue ;
-				}
-
-				if( ch <= 0xff)
-				{
-					*(p++) = ch ;
-				}
-
-				if( *end)
-				{
-					memmove( p , end , strlen( end) + 1) ;
-				}
-				else
-				{
-					*p = '\0' ;
-					break ;
-				}
-			}
-			else
-			{
-				p ++ ;
-			}
-		}
-	}
-}
-
-static int
-dict_add_wrap(
-	char *  caption ,
-	char *  word ,
-	mkf_parser_t *  parser
-	)
-{
-	u_int  num ;
-
-	num = kik_count_char_in_str( word , '/') ;
-	num += kik_count_char_in_str( word , ';') ;
-
-	if( num > 0)
-	{
-		char *  new ;
-
-		/*
-		 * (concat "\057")
-		 * 123456789    ab => 11
-		 */
-		if( ( new = alloca( 11 + 4 * num + (strlen(word) - num) + 1)))
-		{
-			char *  src ;
-			char *  dst ;
-			char *  p ;
-
-			dst = strcpy( new , "(concat \"") + 9 ;
-			src = word ;
-			while( ( p = strchr( src , '/')) || ( p = strchr( src , ';')))
-			{
-				memcpy( dst , src , p - src) ;
-				dst += (p - src) ;
-				if( *p == '/')
-				{
-					strcpy( dst , "\\057") ;
-				}
-				else
-				{
-					strcpy( dst , "\\073") ;
-				}
-				dst += 4 ;
-				src = p + 1 ;
-			}
-			strcpy( dst , src) ;
-			strcat( dst , "\")") ;
-
-			return  dict_add( caption , new , parser) ;
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else
-	{
-		return  dict_add( caption , word , parser) ;
-	}
-}
-
-
-static int
-candidate_exists(
-	const char **  cands ,
-	u_int  num_of_cands ,
-	const char *  cand
-	)
-{
-	u_int  count ;
-
-	for( count = 0 ; count < num_of_cands ; count++)
-	{
-		if( strcmp( cands[count] , cand) == 0)
-		{
-			return  1 ;
-		}
-	}
-
-	return  0 ;
-}
-
-static void
-candidate_get(
-	im_skk_t *  skk
-	)
-{
-	char *  p ;
-	char *  p2 ;
-	int  count ;
-
-#ifdef  DEBUG
-	if( skk->num_of_cands > 0)
-	{
-		kik_debug_printf( KIK_DEBUG_TAG
-			" candidate_get() is called before candidate_clear().\n") ;
-	}
-#endif
-
-	if( ! ( skk->caption = dict_search( skk->preedit , skk->preedit_len , skk->conv)))
-	{
-		skk->num_of_cands = 0 ;
-
-		return ;
-	}
-
-	count = 0 ;
-	p = strchr( skk->caption , ' ') ;	/* skip caption */
-	*p = '\0' ;
-	p += 2 ;	/* skip ' /' */
-
-	while( *p)
-	{
-		/* skip [] */
-		if( *p == '[')
-		{
-			if( ( p2 = strstr( p + 1 , "]/")))
-			{
-				p = p2 + 2 ;
-
-				continue ;
-			}
-		}
-
-		skk->cands[count] = p ;
-		if( ( p = strchr( p , '/')))
-		{
-			*(p++) = '\0' ;
-		}
-		if( ( p2 = strchr( skk->cands[count] , ';')))
-		{
-			/* Remove comment */
-			*p2 = '\0' ;
-		}
-
-		unconcat( skk->cands[count]) ;
-
-		if( ! candidate_exists( skk->cands , count , skk->cands[count]))
-		{
-			count ++ ;
-		}
-
-		if( ! p || count >= MAX_CANDS - 1)
-		{
-			break ;
-		}
-	}
-
-	skk->num_of_cands = count ;
-}
-
-static void
 start_to_register_new_word(
 	im_skk_t *  skk
 	)
@@ -1103,7 +886,7 @@ start_to_register_new_word(
 	skk->is_preediting_orig = skk->is_preediting ;
 	skk->dan = 0 ;
 	skk->prev_dan_orig = skk->prev_dan ;
-	skk->num_of_cands = 0 ;
+	candidate_clear( skk) ;
 
 	skk->new_word_len = 0 ;
 	skk->is_editing_new_word = 1 ;
@@ -1132,7 +915,8 @@ stop_to_register_new_word(
 
 static void
 candidate_set(
-	im_skk_t *  skk
+	im_skk_t *  skk ,
+	int  step
 	)
 {
 	if( skk->preedit_len == 0)
@@ -1154,49 +938,32 @@ candidate_set(
 		skk->preedit[skk->preedit_len - 1].property = 0 ;
 	}
 
-	if( skk->num_of_cands == 0)
+	skk->preedit_len = dict_candidate( skk->preedit ,
+				skk->preedit_len , &skk->candidate , step) ;
+
+	if( ! skk->candidate)
 	{
-		candidate_get( skk) ;
-
-		if( skk->num_of_cands == 0)
+		if( skk->is_editing_new_word)
 		{
-			if( skk->is_editing_new_word)
-			{
-				return ;
-			}
-
-		#if  0
-			if( skk->prev_dan)
-			{
-				skk->preedit[skk->preedit_len - 1] = skk->visual_chars[0] ;
-
-				if( skk->is_preediting == 4)
-				{
-					skk->preedit_len ++ ;
-				}
-			}
-		#endif
-
-			start_to_register_new_word( skk) ;
-
-			skk->cur_cand = -1 ;
-
 			return ;
 		}
+
+	#if  0
+		if( skk->prev_dan)
+		{
+			skk->preedit[skk->preedit_len - 1] = skk->visual_chars[0] ;
+
+			if( skk->is_preediting == 4)
+			{
+				skk->preedit_len ++ ;
+			}
+		}
+	#endif
+
+		start_to_register_new_word( skk) ;
+
+		return ;
 	}
-
-	if( skk->cur_cand == -1)
-	{
-		skk->cur_cand = 0 ;
-	}
-
-	(*skk->parser_term->init)( skk->parser_term) ;
-	(*skk->parser_term->set_str)( skk->parser_term , (u_char*)skk->cands[skk->cur_cand] ,
-		strlen( skk->cands[skk->cur_cand])) ;
-
-	skk->preedit_len = 0 ;
-	while( (*skk->parser_term->next_char)( skk->parser_term ,
-			skk->preedit + (skk->preedit_len ++)) && ! skk->parser_term->is_eos) ;
 
 	if( skk->prev_dan)
 	{
@@ -1225,17 +992,13 @@ candidate_unset(
 	im_skk_t *  skk
 	)
 {
-	(*skk->parser_term->init)( skk->parser_term) ;
-	(*skk->parser_term->set_str)( skk->parser_term , (u_char*)skk->caption ,
-		strlen( skk->caption)) ;
-
-	skk->preedit_len = 0 ;
-	while( (*skk->parser_term->next_char)( skk->parser_term ,
-			skk->preedit + (skk->preedit_len ++)) && ! skk->parser_term->is_eos) ;
+	if( skk->candidate)
+	{
+		skk->preedit_len = dict_candidate_reset_and_finish( skk->preedit ,
+					&skk->candidate) ;
+	}
 
 	preedit_to_visual( skk) ;
-
-	skk->cur_cand = -1 ;
 }
 
 static void
@@ -1243,11 +1006,9 @@ candidate_clear(
 	im_skk_t *  skk
 	)
 {
-	if( skk->num_of_cands > 0)
+	if( skk->candidate)
 	{
-		free( skk->caption) ;
-		skk->cur_cand = -1 ;
-		skk->num_of_cands = 0 ;
+		dict_candidate_finish( &skk->candidate) ;
 	}
 }
 
@@ -1258,9 +1019,9 @@ fix(
 {
 	if( skk->preedit_len > 0)
 	{
-		if( skk->num_of_cands > 0)
+		if( skk->candidate)
 		{
-			dict_add_wrap( skk->caption , skk->cands[skk->cur_cand] , skk->parser_term) ;
+			dict_candidate_add_to_local( skk->candidate) ;
 		}
 
 		if( skk->is_editing_new_word)
@@ -1282,28 +1043,13 @@ fix(
 	{
 		if( skk->new_word_len > 0)
 		{
-			mkf_parser_t *  parser ;
-			char  caption[1024] ;
-			char  word[1024] ;
-			size_t  len ;
-
-			parser = mkf_str_parser_init( skk->preedit_orig , skk->preedit_orig_len) ;
-			(*skk->conv->init)( skk->conv) ;
-			len = (*skk->conv->convert)( skk->conv , caption , sizeof(caption) ,
-					parser) ;
-			caption[len] = '\0' ;
-
-			parser = mkf_str_parser_init( skk->new_word , skk->new_word_len) ;
-			(*skk->conv->init)( skk->conv) ;
-			len = (*skk->conv->convert)( skk->conv , word , sizeof(word) ,
-					parser) ;
-			word[len] = '\0' ;
-
-			dict_add_wrap( caption , word , skk->parser_term) ;
+			kik_debug_printf( "%d\n" , skk->new_word_len) ;
+			dict_add_new_word_to_local( skk->preedit_orig , skk->preedit_orig_len ,
+				skk->new_word , skk->new_word_len) ;
 
 			candidate_clear( skk) ;
 			stop_to_register_new_word( skk) ;
-			candidate_set( skk) ;
+			candidate_set( skk , 0) ;
 			commit( skk) ;
 			preedit_clear( skk) ;
 			candidate_clear( skk) ;
@@ -1338,7 +1084,7 @@ key_event(
 
 	skk = (im_skk_t*) im ;
 
-	if( skk->preedit_len > 0 && skk->cur_cand == -1 &&
+	if( skk->preedit_len > 0 && ! skk->candidate &&
 	    ( ksym == XK_Tab || ksym == XK_ISO_Left_Tab))
 	{
 		skk->preedit_len = dict_completion( skk->preedit , skk->preedit_len ,
@@ -1352,8 +1098,7 @@ key_event(
 		if( ( event->state & ControlMask) && key_char == '\x07')
 		{
 			skk->preedit_len = dict_completion_reset_and_finish( skk->preedit ,
-						skk->completion) ;
-			skk->completion = NULL ;
+						&skk->completion) ;
 
 			goto  end ;
 		}
@@ -1364,8 +1109,7 @@ key_event(
 			return  0 ;
 		}
 
-		dict_completion_finish( skk->completion) ;
-		skk->completion = NULL ;
+		dict_completion_finish( &skk->completion) ;
 	}
 
 	if( key_char == ' ' && ( event->state & ShiftMask))
@@ -1417,7 +1161,7 @@ key_event(
 	{
 		if( skk->preedit_len > 0)
 		{
-			if( skk->cur_cand != -1)
+			if( skk->candidate)
 			{
 				candidate_unset( skk) ;
 				cand = skk->status[skk->mode] ;
@@ -1427,7 +1171,6 @@ key_event(
 				skk->dan = skk->prev_dan = 0 ;
 				skk->is_preediting = 1 ;
 
-				candidate_clear( skk) ;
 				if( skk->preedit_len == 1)
 				{
 					preedit_clear( skk) ;
@@ -1453,7 +1196,7 @@ key_event(
 	else if( ( event->state & ControlMask) && key_char == '\x07')
 	{
 		/* Ctrl+g */
-		if( skk->cur_cand != -1)
+		if( skk->candidate)
 		{
 			candidate_unset( skk) ;
 			candidate_clear( skk) ;
@@ -1499,7 +1242,7 @@ key_event(
 		}
 		else
 		{
-			if( skk->cur_cand != -1 && ! skk->dan)
+			if( skk->candidate && ! skk->dan)
 			{
 				fix( skk) ;
 			}
@@ -1572,7 +1315,7 @@ key_event(
 					}
 
 					skk->is_preediting ++ ;
-					candidate_set( skk) ;
+					candidate_set( skk , 0) ;
 				}
 			}
 			else if( ! skk->dan && ! skk->is_preediting)
@@ -1586,13 +1329,18 @@ key_event(
 	           ksym == XK_Right || ksym == XK_Left))
 	{
 		int  update = 0 ;
+		int  step ;
+		int  cur_index ;
+		u_int  num ;
 
-		if( skk->cur_cand == -1)
+		if( ! skk->candidate)
 		{
 			if( key_char != ' ')
 			{
 				return  1 ;
 			}
+
+			step = 0 ;
 		}
 		else
 		{
@@ -1601,48 +1349,32 @@ key_event(
 				update = 1 ;
 			}
 
+			dict_candidate_get_state( skk->candidate , &cur_index , &num) ;
+
 			if( ksym == XK_Left)
 			{
-				if( skk->cur_cand % CAND_WINDOW_ROWS == 0)
-				{
-					if( skk->cur_cand == 0)
-					{
-						skk->cur_cand = skk->num_of_cands - 1 ;
-					}
+				step = -1 ;
 
+				if( cur_index % CAND_UNIT == 0)
+				{
 					update = 1 ;
 				}
-
-				skk->cur_cand -- ;
 			}
 			else if( ksym == XK_Up)
 			{
-				if( skk->cur_cand < CAND_WINDOW_ROWS)
-				{
-					skk->cur_cand = skk->num_of_cands - skk->cur_cand -
-								CAND_WINDOW_ROWS ;
-				}
-				else
-				{
-					skk->cur_cand -= CAND_WINDOW_ROWS ;
-				}
-
+				step = -CAND_UNIT ;
 				update = 1 ;
 			}
 			else if( ksym == XK_Down)
 			{
-				skk->cur_cand += CAND_WINDOW_ROWS ;
-
-				if( skk->cur_cand >= skk->num_of_cands)
-				{
-					skk->cur_cand -= skk->num_of_cands ;
-				}
-
+				step = CAND_UNIT ;
 				update = 1 ;
 			}
 			else
 			{
-				if( skk->cur_cand == skk->num_of_cands - 1)
+				step = 1 ;
+
+				if( cur_index == num - 1)
 				{
 					if( ! skk->is_editing_new_word)
 					{
@@ -1656,69 +1388,38 @@ key_event(
 					}
 					else
 					{
-						skk->cur_cand = 0 ;
 						update = 1 ;
 					}
 				}
 				else
 				{
-					if( skk->cur_cand % CAND_WINDOW_ROWS ==
-					    CAND_WINDOW_ROWS - 1)
+					if( cur_index % CAND_UNIT == CAND_UNIT - 1)
 					{
 						update = 1 ;
 					}
-
-					skk->cur_cand ++ ;
 				}
 			}
 		}
 
-		candidate_set( skk) ;
+		candidate_set( skk , step) ;
 
-		if( skk->num_of_cands > 1 && update)
+		if( skk->candidate)
 		{
-			char *  dst ;
-			u_int  count ;
-			int  start_cand ;
+			dict_candidate_get_state( skk->candidate , &cur_index , &num) ;
 
-			start_cand = skk->cur_cand - (skk->cur_cand % CAND_WINDOW_ROWS) ;
-
-			for( count = 0 ;
-			     count < CAND_WINDOW_ROWS &&
-			     start_cand + count < skk->num_of_cands ;
-			     count++)
+			if( update)
 			{
-				cand_len +=
-					(MAX_DIGIT_NUM + 1 +
-					 strlen(skk->cands[start_cand + count]) +
-					 1) ;
-			}
-
-			if( ( dst = cand = alloca( cand_len * sizeof(mkf_char_t))))
-			{
-				for( count = 0 ;
-				     count < CAND_WINDOW_ROWS &&
-				     start_cand + count < skk->num_of_cands ;
-				     count++)
+				if( ( cand = alloca( 1024)))
 				{
-					sprintf( dst , "%d %s " ,
-						start_cand + count + 1 ,
-						skk->cands[start_cand + count]) ;
-					dst += strlen(dst) ;
+					dict_candidate_get_list( skk->candidate , cand ,
+						1024 , skk->conv) ;
 				}
-				/* -1 removes the last ' ' */
-				cand_len = (dst - cand - 1) ;
 			}
-			else
-			{
-				cand_len = 0 ;
-			}
-		}
 
-		if( skk->num_of_cands > 0 && ( pos = alloca( 4 + DIGIT_STR_LEN(int) * 2 + 1)))
-		{
-			sprintf( pos , " [%d/%d]" , skk->cur_cand + 1 ,
-				skk->num_of_cands) ;
+			if( ( pos = alloca( 4 + DIGIT_STR_LEN(int) * 2 + 1)))
+			{
+				sprintf( pos , " [%d/%d]" , cur_index , num) ;
+			}
 		}
 	}
 	else if( skk->is_editing_new_word)
@@ -1866,8 +1567,6 @@ im_skk_new(
 
 		(*parser->delete)( parser) ;
 	}
-
-	skk->cur_cand = -1 ;
 
 	/*
 	 * set methods of x_im_t
