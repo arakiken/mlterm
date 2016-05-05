@@ -1,5 +1,7 @@
 2016-05-05  Araki Ken  <arakiken@users.sf.net>
 
+	* dict.c: Whether skk server supports "4xxx \n" protocol or not is checked.
+
 	* im_skk.c, dict.c: Completion is supported.
 
 	* ml_vt100_parser.c: vt100_parser->yeild = 0 (specific to framebuffer) at

@@ -13,6 +13,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>
 #include  <kiklib/kik_path.h>
+#include  <kiklib/kik_unistd.h>		/* kik_usleep */
 #include  <mkf/mkf_eucjp_parser.h>
 #include  <mkf/mkf_eucjp_conv.h>
 #include  <mkf/mkf_utf8_parser.h>
@@ -625,6 +626,71 @@ serv_search(
 	}
 }
 
+static void
+set_blocking(
+	int  fd ,
+	int  nonblock
+	)
+{
+	/* Non blocking */
+#ifdef  USE_WIN32API
+	u_long  val = nonblock ;
+
+	ioctlsocket( fd , FIONBIO , &val) ;
+#else
+	if( nonblock)
+	{
+		fcntl( fd , F_SETFL , fcntl( fd , F_GETFL , 0) | O_NONBLOCK) ;
+	}
+	else
+	{
+		fcntl( fd , F_SETFL , fcntl( fd , F_GETFL , 0) & ~O_NONBLOCK) ;
+	}
+#endif
+}
+
+static int
+check_protocol_4(
+	int  sock
+	)
+{
+	char  msg[] = "4ab \n" ;
+	char  p ;
+	int  count ;
+
+	set_blocking( sock , 0) ;
+	send( sock , msg , sizeof(msg) - 1 , 0) ;
+#ifndef  USE_WIN32API
+	fsync( sock) ;
+#endif
+
+	set_blocking( sock , 1) ;
+	count = 0 ;
+	while( 1)
+	{
+		if( recv( sock , &p , 1 , 0) == 1)
+		{
+			if( p == '\n')
+			{
+				break ;
+			}
+		}
+		else if( errno == EAGAIN)
+		{
+			if( ++count == 10)
+			{
+				break ;
+			}
+
+			kik_usleep( 1000) ;
+		}
+	}
+
+	set_blocking( sock , 0) ;
+
+	return  (count != 100) ;
+}
+
 static int
 connect_to_server(void)
 {
@@ -682,15 +748,6 @@ connect_to_server(void)
 		goto  error ;
 	}
 
-#ifdef  USE_WIN32API
-	{
-		u_long  val = 0 ;
-		ioctlsocket( sock , FIONBIO , &val) ;
-	}
-#else
-	fcntl( sock , F_SETFL , fcntl( sock , F_GETFL , 0) & ~O_NONBLOCK) ;
-#endif
-
 	return  sock ;
 
 error:
@@ -706,6 +763,7 @@ static table_t  global_tables[MAX_TABLES] ;
 static char *  global_data ;
 static size_t  global_data_size ;
 static int  global_sock = -1 ;
+static int  server_supports_protocol_4 = 0 ;
 static mkf_conv_t *  global_conv ;
 static mkf_parser_t *  global_parser ;
 
@@ -738,7 +796,10 @@ global_dict_load(void)
 
 		if( ! global_data)
 		{
-			global_sock = connect_to_server() ;
+			if( ( global_sock = connect_to_server()) != -1)
+			{
+				server_supports_protocol_4 = check_protocol_4( global_sock) ;
+			}
 		}
 	}
 
@@ -888,10 +949,20 @@ dict_completion(
 				break ;
 
 			case  2:
-				num = serv_get_completion_list( compl->captions + compl->num ,
-					MAX_CAPTIONS - compl->num , global_sock , global_conv ,
-						compl->caption_orig , compl->caption_orig_len) ;
-				compl->serv_response = compl->captions[compl->num] ;
+				if( ! server_supports_protocol_4)
+				{
+					num = 0 ;
+				}
+				else
+				{
+					num = serv_get_completion_list(
+							compl->captions + compl->num ,
+							MAX_CAPTIONS - compl->num ,
+							global_sock , global_conv ,
+							compl->caption_orig ,
+							compl->caption_orig_len) ;
+					compl->serv_response = compl->captions[compl->num] ;
+				}
 				break ;
 
 			default:
