@@ -1,3 +1,13 @@
+2016-05-06  Araki Ken  <arakiken@users.sf.net>
+
+	* im_skk.c:
+	  - im_skk_t::mode is backed up and restored before and after editing a new word.
+	  - Text on a status window is correctly updated.
+
+	* dict.c:
+	  - The timing of loading global dictionary is fixed.
+	  - Uninitialized variable ('num') is fixed.
+
 2016-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* im_skk.c, dict.[ch]: Cleanup.

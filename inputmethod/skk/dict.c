@@ -1433,7 +1433,8 @@ dict_candidate(
 	{
 		cand = *aux ;
 
-		if( cand->cur_index + step < 0 || cand->num <= cand->cur_index + step)
+		if( cand->cur_index + step < 0 ||
+		    cand->num <= (cand->cur_index + step + CAND_UNIT) / CAND_UNIT * CAND_UNIT - 1)
 		{
 			load_global_dict = 1 ;
 		}
@@ -1451,12 +1452,12 @@ dict_candidate(
 			{
 			case  1:
 				str = file_search( global_tables , global_conv , global_parser ,
-						caption , caption_len) ;
+						cand->caption_orig , cand->caption_orig_len) ;
 				break ;
 
 			case  2:
 				str = serv_search( global_sock , global_conv , global_parser ,
-						caption , caption_len) ;
+						cand->caption_orig , cand->caption_orig_len) ;
 				break ;
 
 			default:
@@ -1466,6 +1467,10 @@ dict_candidate(
 			if( str)
 			{
 				num = candidate_string_to_array( cand , str) ;
+			}
+			else
+			{
+				num = 0 ;
 			}
 
 			if( ( cand->num += num) == 0)

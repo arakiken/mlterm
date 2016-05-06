@@ -75,6 +75,7 @@ typedef struct im_skk
 	u_int  preedit_orig_len ;
 	int  is_preediting_orig ;
 	int  prev_dan_orig ;
+	input_mode_t  mode_orig ;
 	mkf_char_t  visual_chars[2] ;
 
 	void *  completion ;
@@ -886,6 +887,7 @@ start_to_register_new_word(
 	skk->is_preediting_orig = skk->is_preediting ;
 	skk->dan = 0 ;
 	skk->prev_dan_orig = skk->prev_dan ;
+	skk->mode_orig = skk->mode ;
 	candidate_clear( skk) ;
 
 	skk->new_word_len = 0 ;
@@ -905,6 +907,7 @@ stop_to_register_new_word(
 	skk->preedit_orig_len = 0 ;
 	skk->dan = 0 ;
 	skk->prev_dan = skk->prev_dan_orig ;
+	skk->mode = skk->mode_orig ;
 
 	skk->new_word_len = 0 ;
 	skk->is_editing_new_word = 0 ;
@@ -1043,7 +1046,6 @@ fix(
 	{
 		if( skk->new_word_len > 0)
 		{
-			kik_debug_printf( "%d\n" , skk->new_word_len) ;
 			dict_add_new_word_to_local( skk->preedit_orig , skk->preedit_orig_len ,
 				skk->new_word , skk->new_word_len) ;
 
@@ -1154,6 +1156,10 @@ key_event(
 		}
 		else
 		{
+			if( skk->mode == ALPHABET && skk->is_preediting)
+			{
+				cand = skk->status[HIRAGANA] ;
+			}
 			ret = fix( skk) ;
 		}
 	}
@@ -1244,6 +1250,10 @@ key_event(
 		{
 			if( skk->candidate && ! skk->dan)
 			{
+				if( skk->mode == ALPHABET && skk->is_preediting)
+				{
+					cand = skk->status[HIRAGANA] ;
+				}
 				fix( skk) ;
 			}
 
@@ -1285,6 +1295,7 @@ key_event(
 			else if( skk->mode == ALPHABET_FULL)
 			{
 				insert_alphabet_full( skk , key_char) ;
+
 				fix( skk) ;
 			}
 			else if( insert_char( skk , key_char) != 0)
@@ -1401,7 +1412,17 @@ key_event(
 			}
 		}
 
+		if( skk->mode == ALPHABET && skk->is_preediting)
+		{
+			cand = skk->status[HIRAGANA] ;
+		}
+
 		candidate_set( skk , step) ;
+
+		if( cand && skk->mode == ALPHABET && skk->is_preediting)
+		{
+			cand = NULL ;
+		}
 
 		if( skk->candidate)
 		{
@@ -1418,7 +1439,7 @@ key_event(
 
 			if( ( pos = alloca( 4 + DIGIT_STR_LEN(int) * 2 + 1)))
 			{
-				sprintf( pos , " [%d/%d]" , cur_index , num) ;
+				sprintf( pos , " [%d/%d]" , cur_index + 1 , num) ;
 			}
 		}
 	}
