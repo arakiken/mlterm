@@ -617,10 +617,21 @@ insert_char(
 	}
 	else
 	{
-		if( skk->dan == 'n' - 'a' && key_char == 'n')
+		if( skk->dan == 'n' - 'a' &&
+		    key_char != 'a' && key_char != 'i' && key_char != 'u' &&
+		    key_char != 'e' && key_char != 'o' && key_char != 'y')
 		{
-			wch = 0xa4f3 ;	/* n */
-			skk->dan = 0 ;
+			if( key_char == 'n')
+			{
+				wch = 0xa4f3 ;	/* n */
+				skk->dan = 0 ;
+			}
+			else
+			{
+				preedit_add( skk , 0xa4f3) ;
+				wch = key_char ;
+				skk->dan = key_char - 'a' ;
+			}
 		}
 		else if( key_char == skk->dan + 'a')
 		{
@@ -1091,7 +1102,7 @@ key_event(
 	{
 		skk->preedit_len = dict_completion( skk->preedit , skk->preedit_len ,
 					&skk->completion ,
-					ksym == XK_ISO_Left_Tab || event->state & ShiftMask ?
+					ksym == XK_ISO_Left_Tab || (event->state & ShiftMask) ?
 						-1 : 1) ;
 		goto  end ;
 	}

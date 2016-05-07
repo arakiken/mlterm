@@ -479,7 +479,7 @@ typedef int XFontSet ;	/* dummy */
 #define IsKeypadKey(ksym)  (0)
 #define IsModifierKey(ksym)  (0)
 
-#define XK_ISO_Left_Tab	0xffc9	/* dummy */
+#define XK_ISO_Left_Tab	NSBackTabCharacter
 
 
 /* XPoint(short x, short y) in Xlib. POINT(float x, float y) in win32. */

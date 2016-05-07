@@ -1,7 +1,7 @@
 ver 3.7.1
 * Add "vt_color_mode" to OSC 5380 and 5381.
 * Show the number of each conversion candidate on an input method window of wnn.
-* Support SKK (--im skk) as an input method plugin. (Experimental)
+* Support SKK (--im skk) as an input method plugin.
 * Support input method plugins (canna, wnn and skk) on MacOSX/Cocoa.
 * Bug fixes:
   Fix compiling error of registobmp. (Enbugged at 3.7.0) (Thanks to Amadeusz)
