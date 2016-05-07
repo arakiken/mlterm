@@ -1096,6 +1096,7 @@ key_event(
 	char *  pos = "" ;
 	char *  cand = NULL ;
 	u_int  cand_len = 0 ;
+	int  preedited_alphabet ;
 
 	skk = (im_skk_t*) im ;
 
@@ -1169,11 +1170,14 @@ key_event(
 		}
 		else
 		{
-			if( skk->mode == ALPHABET && skk->is_preediting)
-			{
-				cand = skk->status[HIRAGANA] ;
-			}
+			preedited_alphabet = (skk->mode == ALPHABET && skk->is_preediting) ;
+
 			ret = fix( skk) ;
+
+			if( preedited_alphabet)
+			{
+				cand = skk->status[skk->mode] ;
+			}
 		}
 	}
 	else if( ksym == XK_BackSpace || ksym == XK_Delete || key_char == 0x08 /* Ctrl+h */)
@@ -1260,11 +1264,15 @@ key_event(
 		{
 			if( skk->candidate && ! skk->dan)
 			{
-				if( skk->mode == ALPHABET && skk->is_preediting)
-				{
-					cand = skk->status[HIRAGANA] ;
-				}
+				preedited_alphabet =
+					(skk->mode == ALPHABET && skk->is_preediting) ;
+
 				fix( skk) ;
+
+				if( preedited_alphabet)
+				{
+					cand = skk->status[skk->mode] ;
+				}
 			}
 
 			if( skk->mode != ALPHABET && skk->mode != ALPHABET_FULL)
@@ -1422,16 +1430,13 @@ key_event(
 			}
 		}
 
-		if( skk->mode == ALPHABET && skk->is_preediting)
-		{
-			cand = skk->status[HIRAGANA] ;
-		}
+		preedited_alphabet = (skk->mode == ALPHABET && skk->is_preediting) ;
 
 		candidate_set( skk , step) ;
 
-		if( cand && skk->mode == ALPHABET && skk->is_preediting)
+		if( preedited_alphabet && ! skk->is_preediting)
 		{
-			cand = NULL ;
+			cand = skk->status[skk->mode] ;
 		}
 
 		if( skk->candidate)
@@ -1469,8 +1474,8 @@ key_event(
 	}
 
 end:
-	preedit( skk , skk->preedit , skk->preedit_len , skk->preedit_len ,
-		cand , cand_len , pos) ;
+	preedit( skk , skk->preedit , skk->preedit_len ,
+		skk->is_preediting ? skk->preedit_len : 0 , cand , cand_len , pos) ;
 
 	return  ret ;
 }
