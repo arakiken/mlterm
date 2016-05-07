@@ -1,3 +1,7 @@
+2016-05-08  Araki Ken  <arakiken@users.sf.net>
+
+	* im_skk.c: The color of converting text in editing a new word is reversed.
+
 2016-05-07  Araki Ken  <arakiken@users.sf.net>
 
 	* dict.c: "\r\n" is supported.

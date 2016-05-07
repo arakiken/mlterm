@@ -207,6 +207,7 @@ preedit(
 {
 	int  x ;
 	int  y ;
+	int  rev_pos = 0 ;
 
 	if( skk->preedit_orig_len > 0)
 	{
@@ -234,7 +235,8 @@ preedit(
 			}
 
 			preedit = p ;
-			preedit_len += (skk->preedit_orig_len + 1 + skk->new_word_len) ;
+			rev_pos = skk->preedit_orig_len + 1 + skk->new_word_len ;
+			preedit_len += rev_pos ;
 		}
 	}
 
@@ -328,8 +330,8 @@ preedit(
 				is_comb = 0 ;
 			}
 
-			if( 0 <= skk->im.preedit.filled_len &&
-			    skk->im.preedit.filled_len < rev_len)
+			if( rev_pos <= skk->im.preedit.filled_len &&
+			    skk->im.preedit.filled_len < rev_pos + rev_len)
 			{
 				(*syms->ml_char_set)( p , mkf_char_to_int(&ch) , ch.cs ,
 					      is_fullwidth , is_comb ,
@@ -1218,20 +1220,17 @@ key_event(
 			candidate_unset( skk) ;
 			candidate_clear( skk) ;
 			skk->dan = skk->prev_dan = 0 ;
-
-			cand = skk->status[skk->mode] ;
 			skk->is_preediting = 1 ;
 		}
-		else if( skk->is_editing_new_word)
+		else if( skk->is_editing_new_word && skk->preedit_len == 0)
 		{
 			stop_to_register_new_word( skk) ;
-			cand = skk->status[skk->mode] ;
 		}
 		else
 		{
 			preedit_clear( skk) ;
-			cand = skk->status[skk->mode] ;
 		}
+		cand = skk->status[skk->mode] ;
 	}
 	else if( key_char != ' ' && key_char != '\0')
 	{
@@ -1470,8 +1469,7 @@ key_event(
 	}
 
 end:
-	preedit( skk , skk->preedit , skk->preedit_len ,
-		(skk->is_preediting && ! skk->is_editing_new_word) ? skk->preedit_len : 0 ,
+	preedit( skk , skk->preedit , skk->preedit_len , skk->preedit_len ,
 		cand , cand_len , pos) ;
 
 	return  ret ;
