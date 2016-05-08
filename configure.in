@@ -1387,7 +1387,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.7.0)
+AM_INIT_AUTOMAKE(mlterm,3.7.1)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

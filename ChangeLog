@@ -1,5 +1,16 @@
 2016-05-08  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.7.1 released.
+	  (tag "rel-3_7_1")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.7.1.
+
+	* man/mlterm.1, doc/en/PROTOCOL: Updated.
+
+2016-05-08  Araki Ken  <arakiken@users.sf.net>
+
 	* im_wnn.c: Shortcut in inserting 'n' is added.
 
 	* im_skk.c: The color of converting text in editing a new word is reversed.
