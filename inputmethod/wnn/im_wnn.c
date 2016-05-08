@@ -609,10 +609,21 @@ insert_char(
 	}
 	else
 	{
-		if( wnn->dan == 'n' - 'a' && key_char == 'n')
+		if( wnn->dan == 'n' - 'a' &&
+		    key_char != 'a' && key_char != 'i' && key_char != 'u' &&
+		    key_char != 'e' && key_char != 'o' && key_char != 'y')
 		{
-			wch = 0xa4f3 ;	/* n */
-			wnn->dan = 0 ;
+			if( key_char == 'n')
+			{
+				wch = 0xa4f3 ;	/* n */
+				wnn->dan = 0 ;
+			}
+			else
+			{
+				jcInsertChar( wnn->convbuf , 0xa4f3) ;
+				wch = key_char ;
+				wnn->dan = key_char - 'a' ;
+			}
 		}
 		else if( key_char == wnn->dan + 'a')
 		{

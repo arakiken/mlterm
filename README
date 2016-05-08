@@ -156,7 +156,7 @@ Options for configure
   --disable-fribidi --disable-dl-type --disable-otl \
   --disable-ssh2 --disable-utmp --disable-dnd --disable-kbd --disable-uim \
   --disable-m17nlib --disable-ibus --disable-fcitx --disable-scim --disable-canna \
-  --disable-wnn --disable-ind --with-type-engines=xcore (--disable-shared)
+  --disable-wnn --disable-skk --disable-ind --with-type-engines=xcore (--disable-shared)
 
 What you need for compilation
 -----------------------------
