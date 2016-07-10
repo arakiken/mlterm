@@ -59,7 +59,7 @@ dlsym_sb_view_new_func(
 	char *  symbol ;
 	u_int  len ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	char *  p ;
 
 	if( ! ( p = alloca( strlen(name) + 3 + 1)))
@@ -117,7 +117,7 @@ dlsym_sb_engine_new_func(
 	char *  symbol ;
 	u_int  len ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	char *  p ;
 
 	if( ! ( p = alloca( strlen(name) + 3 + 1)))

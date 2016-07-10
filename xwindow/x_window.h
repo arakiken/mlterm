@@ -151,7 +151,8 @@ typedef struct  x_window
 	 * flags etc.
 	 */
 
-#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
+#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || \
+	defined(USE_QUARTZ)
 	Pixmap  wall_picture ;
 #else
 	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
@@ -224,7 +225,8 @@ int  x_window_set_wall_picture( x_window_t *  win , Pixmap  pic , int  do_expose
 
 int  x_window_unset_wall_picture( x_window_t *  win , int  do_expose) ;
 
-#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
+#if  defined(USE_WIN32GUI) || defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || \
+	defined(USE_QUARTZ)
 #define  x_window_has_wall_picture( win)  ((win)->wall_picture != None)
 #else
 #define  x_window_has_wall_picture( win)  ((win)->wall_picture_is_set)
@@ -298,7 +300,7 @@ int  x_window_receive_event( x_window_t *  win , XEvent *  event) ;
 size_t  x_window_get_str( x_window_t *  win , u_char *  seq , size_t  seq_len ,
 	mkf_parser_t **  parser , KeySym *  keysym , XKeyEvent *  event) ;
 
-#ifdef  USE_FRAMEBUFFER
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 int  x_window_is_scrollable( x_window_t *  win) ;
 #else
 #define  x_window_is_scrollable(win)  ((win)->is_scrollable)
@@ -359,6 +361,16 @@ int  x_window_draw_image_string16( x_window_t *  win , x_font_t *  font ,
 	XChar2b *  str , u_int  len) ;
 #endif
 
+#ifdef  USE_CONSOLE
+int  x_window_console_draw_string( x_window_t *  win , x_font_t *  font ,
+	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
+	u_char *  str , u_int  len , int  underline_style) ;
+
+int  x_window_console_draw_string16( x_window_t *  win , x_font_t *  font ,
+	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
+	XChar2b *  str , u_int  len , int  underline_style) ;
+#endif
+
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 int  x_window_ft_draw_string8( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , u_char *  str , size_t  len) ;
@@ -409,7 +421,7 @@ u_int  x_window_get_mod_ignore_mask( x_window_t *  win , KeySym *  keysyms) ;
 
 u_int  x_window_get_mod_meta_mask( x_window_t *  win , char *  mod_key) ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 #define  x_set_use_urgent_bell( use)  (0)
 #else
 int  x_set_use_urgent_bell( int  use) ;

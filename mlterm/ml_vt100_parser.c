@@ -170,6 +170,8 @@ static u_int  auto_detect_count ;
 
 static int  use_ttyrec_format ;
 
+static clock_t  timeout_read_pty = CLOCKS_PER_SEC / 100 ; /* 0.01 sec */
+
 #ifdef  USE_LIBSSH2
 static int  use_scp_full ;
 #endif
@@ -1940,27 +1942,9 @@ snapshot(
 	char *  file_name
 	)
 {
-	int  beg ;
-	int  end ;
-	ml_char_t *  buf ;
-	u_int  num ;
 	char *  path ;
-	FILE *  file ;
-	u_char  conv_buf[512] ;
-	mkf_parser_t *  ml_str_parser ;
+	int  fd ;
 	mkf_conv_t *  conv ;
-
-	beg = - ml_screen_get_num_of_logged_lines( vt100_parser->screen) ;
-	end = ml_screen_get_rows( vt100_parser->screen) ;
-
-	num = ml_screen_get_region_size( vt100_parser->screen , 0 , beg , 0 , end , 0) ;
-
-	if( ( buf = ml_str_alloca( num)) == NULL)
-	{
-		return ;
-	}
-
-	ml_screen_copy_region( vt100_parser->screen , buf , num , 0 , beg , 0 , end , 0) ;
 
 	if( ( path = alloca( 7 + strlen( file_name) + 4 + 1)) == NULL)
 	{
@@ -1973,9 +1957,9 @@ snapshot(
 		return ;
 	}
 
-	file = fopen( path , "w") ;
+	fd = open( path , O_WRONLY|O_CREAT , 0600) ;
 	free( path) ;
-	if( ! file)
+	if( fd == -1)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Failed to open %s\n" , file_name) ;
@@ -1984,34 +1968,19 @@ snapshot(
 		return ;
 	}
 
-	if( ! ( ml_str_parser = ml_str_parser_new()))
-	{
-		fclose( file) ;
-
-		return ;
-	}
-
-	(*ml_str_parser->init)( ml_str_parser) ;
-	ml_str_parser_set_str( ml_str_parser , buf , num) ;
-
 	if( encoding == ML_UNKNOWN_ENCODING || ( conv = ml_conv_new( encoding)) == NULL)
 	{
 		conv = vt100_parser->cc_conv ;
 	}
 
-	while( ! ml_str_parser->is_eos &&
-	       ( num = (*conv->convert)( conv , conv_buf , sizeof( conv_buf) , ml_str_parser)) > 0)
-	{
-		fwrite( conv_buf , num , 1 , file) ;
-	}
+	ml_screen_write_content( vt100_parser->screen , fd , conv , 0) ;
 
 	if( conv != vt100_parser->cc_conv)
 	{
 		(*conv->delete)( conv) ;
 	}
 
-	(*ml_str_parser->delete)( ml_str_parser) ;
-	fclose( file) ;
+	close( fd) ;
 }
 
 
@@ -7141,6 +7110,14 @@ ml_set_use_scp_full(
 #endif
 
 void
+ml_set_timeout_read_pty(
+	u_long  timeout
+	)
+{
+	timeout_read_pty = timeout ;
+}
+
+void
 ml_vt100_parser_init(void)
 {
 	ml_config_proto_init() ;
@@ -7356,16 +7333,9 @@ ml_parse_vt100_sequence(
 	 */
 
 	while( parse_vt100_sequence( vt100_parser) &&
-	       /*
-	        * XXX
-	        * It performs well to read as large amount of data as possible
-		* on framebuffer on old machines.
-		*/
-	#if  (! defined(__NetBSD__) && ! defined(__OpenBSD__)) || ! defined(USE_FRAMEBUFFER)
 	       /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
 	       vt100_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
-	       clock() - beg < CLOCKS_PER_SEC / 100 /* 0.01 sec */ &&
-	#endif
+	       clock() - beg < timeout_read_pty &&
 	       receive_bytes( vt100_parser)) ;
 
 	stop_vt100_cmd( vt100_parser , 1) ;

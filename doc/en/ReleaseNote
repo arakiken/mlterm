@@ -1,3 +1,12 @@
+ver 3.7.2
+* Add mlterm-con which is a console version of mlterm and which works on various
+  terminal emulators.
+* Support wheel mouse on MacOSX/Cocoa. (Thanks to @nyarla)
+  (Merge a patch at http://the.nyarla.net/entry/2016/06/03/195013)
+* Bug fixes:
+  Fix misalignment of the display position of characters in drawing them with the use
+  of complementary loaded fonts on cairo.
+
 ver 3.7.1
 * Add "vt_color_mode" to OSC 5380 and 5381.
 * Support SKK (--im skk) as an input method plugin.

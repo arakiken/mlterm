@@ -95,20 +95,38 @@ sig_error(
 
 	if( len > 0)
 	{
-		if( fork() > 0)
+		pid_t  pid ;
+
+		pid = fork() ;
+
+		if( pid < 0)
+		{
+			return ;
+		}
+
+		if( pid == 0)
 		{
 			/* child process */
-			kik_setenv( "INHERIT_PTY_LIST" , env , 1) ;
-
-			if( auto_restart_cmd)
+			for( count = 0 ; count < num_of_terms ; count++)
 			{
-				execlp( auto_restart_cmd , auto_restart_cmd , NULL) ;
+				ml_term_write_content( terms[count] ,
+					ml_term_get_slave_fd( terms[count]) ,
+					terms[count]->parser->cc_conv , 1) ;
 			}
 
-			execl( BINDIR "/mlterm" , BINDIR "/mlterm" , NULL) ;
-
-			kik_error_printf( "Failed to restart mlterm.\n") ;
+			exit(0) ;
 		}
+
+		kik_setenv( "INHERIT_PTY_LIST" , env , 1) ;
+
+		if( auto_restart_cmd)
+		{
+			execlp( auto_restart_cmd , auto_restart_cmd , NULL) ;
+		}
+
+		execl( BINDIR "/mlterm" , BINDIR "/mlterm" , NULL) ;
+
+		kik_error_printf( "Failed to restart mlterm.\n") ;
 	}
 
 	exit(1) ;

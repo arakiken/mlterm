@@ -5,6 +5,7 @@
 #include  "ml_screen.h"
 
 #include  <stdlib.h>		/* abs */
+#include  <unistd.h>		/* write */
 #include  <sys/time.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc/free */
@@ -2667,4 +2668,59 @@ ml_screen_enable_blinking(
 	)
 {
 	screen->has_blinking_char = 1 ;
+}
+
+int
+ml_screen_write_content(
+	ml_screen_t *  screen ,
+	int  fd ,
+	mkf_conv_t *  conv ,
+	int  clear_at_end
+	)
+{
+	int  beg ;
+	int  end ;
+	ml_char_t *  buf ;
+	u_int  num ;
+	u_char  conv_buf[512] ;
+	mkf_parser_t *  ml_str_parser ;
+
+	ml_screen_logical( screen) ;
+
+	beg = - ml_screen_get_num_of_logged_lines( screen) ;
+	end = ml_screen_get_rows( screen) ;
+
+	num = ml_screen_get_region_size( screen , 0 , beg , 0 , end , 0) ;
+
+	if( ( buf = ml_str_alloca( num)) == NULL)
+	{
+		return  0 ;
+	}
+
+	ml_screen_copy_region( screen , buf , num , 0 , beg , 0 , end , 0) ;
+
+	if( ! ( ml_str_parser = ml_str_parser_new()))
+	{
+		return  0 ;
+	}
+
+	(*ml_str_parser->init)( ml_str_parser) ;
+	ml_str_parser_set_str( ml_str_parser , buf , num) ;
+	(*conv->init)( conv) ;
+
+	while( ! ml_str_parser->is_eos &&
+	       ( num = (*conv->convert)( conv , conv_buf ,
+			sizeof( conv_buf) , ml_str_parser)) > 0)
+	{
+		write( fd , conv_buf , num) ;
+	}
+
+	if( clear_at_end)
+	{
+		write( fd , "\n\x1b[1000S\x1b[H" , 11) ;
+	}
+
+	(*ml_str_parser->delete)( ml_str_parser) ;
+
+	return  1 ;
 }

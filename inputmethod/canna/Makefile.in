@@ -30,6 +30,7 @@ TARGET_win32 = libim-canna.la
 TARGET_xlib = libim-canna.la
 TARGET_quartz = libim-canna.la
 TARGET_fb = libim-canna-fb.la
+TARGET_console = libim-canna-fb.la
 
 TARGET = $(TARGET_@GUI@)
 

@@ -954,6 +954,50 @@ get_current_window(
 	x_window_receive_event( xwindow , (XEvent*)&mev) ;
 }
 
+- (void)scrollWheel:(NSEvent *)event
+{
+	NSPoint loc = [event locationInWindow] ;
+	XButtonEvent bevPress ;
+	XButtonEvent bevRelease ;
+
+	bevPress.type = X_BUTTON_PRESS ;
+	bevRelease.type = X_BUTTON_RELEASE ;
+
+	bevPress.time = event.timestamp * 1000 ;
+	bevRelease.time = (event.timestamp * 1000) + 1 ;
+
+	bevPress.x = loc.x - self.frame.origin.x ;
+	bevRelease.x = loc.x - self.frame.origin.x ;
+
+	bevPress.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y - */ 1 ;
+	bevRelease.y = ACTUAL_HEIGHT(xwindow->parent) - loc.y - /* self.frame.origin.y - */ 1 ;
+
+	bevPress.state = event.modifierFlags &
+			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
+	bevRelease.state = event.modifierFlags &
+			(NSShiftKeyMask|NSControlKeyMask|NSAlternateKeyMask) ;
+
+	bevPress.click_count = 1 ;
+
+	if( event.deltaY > 1)
+	{
+		bevPress.button = 4 ;
+		bevRelease.button = 4 ;
+	}
+
+	if( event.deltaY < -1)
+	{
+		bevPress.button = 5 ;
+		bevRelease.button = 5 ;
+	}
+
+	if( event.deltaY < -1 || event.deltaY > 1)
+	{
+		x_window_receive_event( xwindow , (XEvent*)&bevPress) ;
+		x_window_receive_event( xwindow , (XEvent*)&bevRelease) ;
+	}
+}
+
 - (void)keyDown:(NSEvent *)event
 {
 	if( [event type] == NSFlagsChanged)

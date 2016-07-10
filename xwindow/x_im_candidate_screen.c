@@ -207,7 +207,7 @@ resize(
 			x_window_move( &cand_screen->window , x , y) ;
 		}
 
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		/* resized but position is not changed. */
 		x_display_reset_input_method_window() ;
 		x_window_draw_rect_frame( &cand_screen->window , -MARGIN , -MARGIN ,
@@ -447,7 +447,7 @@ draw_screen_vertical(
 		size_t  len ;
 		int  x ;
 
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		x_window_clear( &cand_screen->window , 0 ,
 				(xfont->height + LINE_SPACE) * cand_screen->num_per_window +
 					LINE_SPACE ,

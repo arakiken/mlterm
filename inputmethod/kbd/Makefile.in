@@ -26,6 +26,7 @@ LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@
 
 TARGET_xlib = libim-kbd.la
 TARGET_fb = libim-kbd-fb.la
+TARGET_console = $(TARGET_fb)
 TARGET_win32 = $(TARGET_xlib)
 TARGET_quartz = $(TARGET_xlib)
 

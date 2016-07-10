@@ -1,3 +1,53 @@
+2016-07-09  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.m: A patch at http://the.nyarla.net/entry/2016/06/03/195013 is merged.
+	  (Wheel mouse is supported.)
+
+	* x_window_cairo.c: x_font_t::x_off is ignored in drawing text with the use
+	  of complementary fonts.
+
+	* x_font_ft.c: Loading complementary fonts is moved from x_window_cairo.c to
+	  x_font_ft.c, and named as x_search_next_cairo_font().
+
+	* main.c: ml_set_timeout_read_pty(0xffff) on NetBSD or OpenBSD framebuffer.
+
+	* ml_vt100_parser.[ch]:
+	  - ml_set_timeout_read_pty() is added.
+	  - USE_FRAMEBUFFER macro is removed.
+	  - snapshot() is rewritten with the use of ml_screen_write_content().
+
+	* mlterm/Makefile.in: @GUI_CFLAGS@ is removed.
+
+	* ml_term_manager.c: ml_term_write_content() is called in restarting mlterm in segv etc.
+
+	* ml_term.h: ml_term_write_content() is added.
+
+	* ml_screen.[ch]: ml_screen_write_content() is added.
+
+	* inputmethod/*/Makefile.in: TARGET_console is added.
+
+	* configure.in:
+	  - "console" is added to --with-gui option.
+	  - --disable-skk is revived.
+
+	* x_layout.c: SEPARATOR_WIDTH => SEPARATOR_WIDTH and SEPARATOR_HEIGHT.
+
+	* x_draw_str.c: If USE_CONSOLE is defined, text is drawn by
+	  x_window_console_draw_string*().
+
+	* x_window.h, console/x_window.c: x_window_console_draw_string*() which receive
+	  a flag to draw underline are added.
+
+	* x_main_config.c: --ckm, console_encoding option is added.
+
+	* x_display.h, console/x_display.c: x_display_set_char_encoding() is added.
+
+	* xwindow/x.h: console/x.h is included if USE_CONSOLE is defined.
+
+	* xwindow/console: Added.
+
+	* version.h.in: 3.7.0 -> 3.7.0post
+
 2016-05-08  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.7.1 released.

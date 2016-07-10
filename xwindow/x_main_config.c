@@ -13,6 +13,44 @@
 #include  "ml_term_manager.h"
 
 
+/* --- static functions --- */
+
+static ml_char_encoding_t
+get_encoding(
+	const char *  value ,
+	int *  is_auto_encoding		/* overwritten only if auto encoding */
+	)
+{
+	ml_char_encoding_t  encoding ;
+
+	if( ! value)
+	{
+		/* goto "auto" */
+	}
+	else if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+	{
+		kik_msg_printf( "Use auto detected encoding instead of %s(unsupported).\n" ,
+			value) ;
+	}
+	else
+	{
+		return  encoding ;
+	}
+
+	if( ( encoding = ml_get_char_encoding( "auto")) == ML_UNKNOWN_ENCODING)
+	{
+		encoding = ML_ISO8859_1 ;
+	}
+
+	if( is_auto_encoding)
+	{
+		*is_auto_encoding = 1 ;
+	}
+
+	return  encoding ;
+}
+
+
 /* --- global functions --- */
 
 int
@@ -60,7 +98,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '%' , "logseq" , 1 , "logging_vt_seq" ,
 		"enable logging vt100 sequence [false]") ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
 		"override redirect [false]") ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
@@ -117,7 +155,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
 #endif
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
 #endif
@@ -155,7 +193,7 @@ x_prepare_for_main_config(
 		"columns for Unicode \"EastAsianAmbiguous\" character [1]") ;
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
 		"background color") ;
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
 #endif
@@ -319,6 +357,10 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "rotate" , 0 , "rotate_display" ,
 		"rotate display. [none]") ;
 #endif
+#ifdef  USE_CONSOLE
+	kik_conf_add_opt( conf , '\0' , "ckm" , 0 , "console_encoding" ,
+		"character encoding of console [none]") ;
+#endif
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
 		"cursor color when input method is activated. [false]") ;
@@ -347,7 +389,7 @@ x_main_config_init(
 		kik_locale_init( value) ;
 	}
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
 #endif
 	{
@@ -381,7 +423,7 @@ x_main_config_init(
 		main_config->title = strdup( value) ;
 	}
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	if( ( value = kik_conf_get_value( conf , "icon_name")))
 	{
 		main_config->icon_name = strdup( value) ;
@@ -603,7 +645,7 @@ x_main_config_init(
 		main_config->term_type = strdup( "xterm") ;
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	/*
 	 * The pty is always resized to fit the display size.
 	 * Don't use 80x24 for the default value because the screen is not drawn
@@ -778,6 +820,9 @@ x_main_config_init(
 	}
 #endif
 
+#ifdef  USE_CONSOLE
+	main_config->sb_mode = SBM_NONE ;
+#else
 	if( ( value = kik_conf_get_value( conf , "scrollbar_mode")))
 	{
 		main_config->sb_mode = x_get_sb_mode_by_name( value) ;
@@ -797,6 +842,7 @@ x_main_config_init(
 			main_config->sb_mode = SBM_LEFT ;
 		}
 	}
+#endif
 
 	if( ( value = kik_conf_get_value( conf , "iso88591_font_for_usascii")))
 	{
@@ -1009,33 +1055,13 @@ x_main_config_init(
 		}
 	}
 
-	if( ( value = kik_conf_get_value( conf , "encoding")))
-	{
-		while( ( main_config->encoding = ml_get_char_encoding( value))
-			== ML_UNKNOWN_ENCODING)
-		{
-			kik_msg_printf(
-				"%s encoding is not supported. Auto detected encoding is used.\n" ,
-				value) ;
+	main_config->encoding = get_encoding( kik_conf_get_value( conf , "encoding") ,
+					&main_config->is_auto_encoding) ;
 
-			value = "auto" ;
-		}
-
-		if( strcmp( value , "auto") == 0)
-		{
-			main_config->is_auto_encoding = 1 ;
-		}
-	}
-	else
-	{
-		main_config->encoding = ml_get_char_encoding( "auto") ;
-		main_config->is_auto_encoding = 1 ;
-	}
-
-	if( main_config->encoding == ML_UNKNOWN_ENCODING)
-	{
-		main_config->encoding = ML_ISO8859_1 ;
-	}
+#ifdef  USE_CONSOLE
+	x_display_set_char_encoding(
+		get_encoding( kik_conf_get_value( conf , "console_encoding") , NULL)) ;
+#endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_OT_LAYOUT)
 	main_config->use_ctl = 1 ;

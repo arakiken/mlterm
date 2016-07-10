@@ -169,6 +169,15 @@ main(
 
 	kik_set_sys_conf_dir( CONFIG_PATH) ;
 
+#if  (defined(__NetBSD__) || defined(__OpenBSD__)) && defined(USE_FRAMEBUFFER)
+       /*
+	* XXX
+	* It performs well to read as large amount of data as possible
+	* on framebuffer on old machines.
+	*/
+	ml_set_timeout_read_pty( 0xffff) ;	/* 65535 sec */
+#endif
+
 	if( ! main_loop_init( argc , argv))
 	{
 	#ifdef  DEBUG

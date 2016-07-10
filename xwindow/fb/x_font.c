@@ -1556,7 +1556,7 @@ xfont_loaded:
 	}
 	else
 #endif
-	if( ( font_present & FONT_VAR_WIDTH))
+	if( font_present & FONT_VAR_WIDTH)
 	{
 		/*
 		 * If you use fixed-width fonts whose width is differnet from

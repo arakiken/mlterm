@@ -352,5 +352,8 @@ int  ml_term_set_config( ml_term_t *  term , char *  key , char *  value) ;
 
 #define  ml_term_select_drcs(term)  ml_vt100_parser_select_drcs((term)->parser)
 
+#define  ml_term_write_content( term , fd , conv , clear_at_end) \
+		ml_screen_write_content( term->screen , fd , conv , clear_at_end)
+
 
 #endif

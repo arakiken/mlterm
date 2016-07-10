@@ -1290,7 +1290,7 @@ mlclient(
 #endif
 
 	if( argc == 0
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	    || screen == NULL
 	#endif
 	    )
@@ -1505,7 +1505,7 @@ x_screen_manager_init(
 #else
 	system_listener.exit = NULL ;
 #endif
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	system_listener.open_screen = NULL ;
 #else
 	system_listener.open_screen = open_screen ;

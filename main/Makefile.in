@@ -20,6 +20,7 @@ OBJ_xlib = main.o
 OBJ_win32 = main.o
 OBJ_fb = main.o
 OBJ_quartz = main-cocoa.o
+OBJ_console = main.o
 OBJ = daemon.o main_loop.o $(OBJ_@GUI@)
 
 LKIK = @LKIK@
@@ -49,11 +50,14 @@ LIBS2_win32 = -mwindows -limm32 @SUBSYSTEM@ ../xwindow/winrs.o
 
 LIBS2_quartz = -framework Foundation -framework Cocoa
 
+LIBS2_console = @SIXEL_LIBS@
+
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
 PROG_xlib = mlterm
 PROG_win32 = mlterm
 PROG_fb = mlterm-fb
+PROG_console = mlterm-con
 PROG_quartz = mlterm
 
 INSTALL_OPT = @INSTALL_OPT@

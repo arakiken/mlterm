@@ -354,7 +354,7 @@ x_change_font_present(
 	x_font_config_t *  font_config ;
 	x_font_cache_t *  font_cache ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	/*
 	 * FONT_AA is effective in xft, so following hack is necessary in xlib.
 	 */
@@ -618,7 +618,7 @@ x_get_fontset(
 	x_font_manager_t *  font_man
 	)
 {
-#if  defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_QUARTZ)
 
 	return  None ;
 

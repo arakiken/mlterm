@@ -10,6 +10,10 @@
 
 #include  "win32/x.h"
 
+#elif  defined(USE_CONSOLE)
+
+#include  "console/x.h"
+
 #elif  defined(USE_FRAMEBUFFER)
 
 #include  "fb/x.h"
@@ -18,7 +22,7 @@
 
 #include  "quartz/x.h"
 
-#else	/* USE_WIN32GUI/USE_FRAMEBUFFER */
+#else
 
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>
@@ -35,7 +39,7 @@ typedef Pixmap PixmapMask ;
 #define  XK_FMAX  XK_F20
 #endif
 
-#endif	/* USE_WIN32GUI/USE_FRAMEBUFFER */
+#endif
 
 /*
  * Xlib utility definitions.

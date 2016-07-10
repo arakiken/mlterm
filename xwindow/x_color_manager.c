@@ -497,7 +497,7 @@ x_change_true_transbg_alpha(
 	u_int8_t  alpha
 	)
 {
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 
 	return  0 ;
 

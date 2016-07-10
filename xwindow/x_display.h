@@ -34,7 +34,8 @@ typedef struct  x_display
 
 	Window  my_window ;	/* DefaultRootWindow */
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
+	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
 	/* Only one visual, colormap or depth is permitted per display. */
 	Visual *  visual ;
 	Colormap  colormap ;
@@ -55,7 +56,7 @@ typedef struct  x_display
 
 	x_modifier_mapping_t  modmap ;
 
-#ifndef  USE_FRAMEBUFFER
+#if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	Cursor  cursors[3] ;
 #endif
 
@@ -81,7 +82,7 @@ void  x_display_idling( x_display_t *  disp) ;
 
 int  x_display_receive_next_event( x_display_t *  disp) ;
 
-#if  defined(USE_FRAMEBUFFER) || defined(USE_QUARTZ)
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_QUARTZ)
 #define  x_display_sync(disp)  (0)
 #elif  defined(USE_WIN32GUI)
 #define  x_display_sync(disp)  x_display_receive_next_event(disp)
@@ -115,6 +116,12 @@ void  x_display_reset_input_method_window(void) ;
 #else
 #define  x_display_set_use_ansi_colors(use)  (0)
 #define  x_display_reset_cmap()  (0)
+#endif
+
+#ifdef  USE_CONSOLE
+#include  <ml_char_encoding.h>
+
+void  x_display_set_char_encoding( ml_char_encoding_t  encoding) ;
 #endif
 
 

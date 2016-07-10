@@ -24,6 +24,7 @@ x_get_sb_mode_by_name(
 	char *  name
 	)
 {
+#ifndef  USE_CONSOLE
 	x_sb_mode_t  mode ;
 
 	for( mode = 0 ; mode < SBM_MAX ; mode++)
@@ -33,7 +34,8 @@ x_get_sb_mode_by_name(
 			return  mode ;
 		}
 	}
-	
+#endif
+
 	/* default value */
 	return  SBM_NONE ;
 }

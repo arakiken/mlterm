@@ -32,6 +32,8 @@ OBJ2_fb = x.o x_virtual_kbd.o x_im_status_screen.o
 
 OBJ2_quartz = x.o cocoa.o x_im_status_screen-cocoa.o
 
+OBJ2_console = x.o x_im_status_screen.o
+
 RSOBJ_win32 = winrs.o
 
 OBJ = $(OBJ1) $(OBJ2_@GUI@)
@@ -44,7 +46,7 @@ LIBNAME = libxwindow
 CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
 	@IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ \
 	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ \
-	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @SIXEL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DBINDIR=\"$(bindir)\" -DLIBDIR=\"$(libdir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" -DXDATADIR=\"$(datadir)\"\
 	-I$(top_srcdir)/mlterm -I$(top_srcdir)/xwindow/libotl -I/usr/local/include

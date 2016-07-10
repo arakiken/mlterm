@@ -315,6 +315,8 @@ void  ml_set_use_scp_full( int  use) ;
 #define  ml_set_use_scp_full(use)  (0)
 #endif
 
+void  ml_set_timeout_read_pty( u_long  timeout) ;
+
 void  ml_vt100_parser_init(void) ;
 
 void  ml_vt100_parser_final(void) ;

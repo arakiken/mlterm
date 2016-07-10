@@ -1450,7 +1450,7 @@ window_realized(
 	}
 
 	/* XXX Don't load wall picture until window is resized */
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( screen->window.is_mapped)
 #endif
 	{
@@ -2671,7 +2671,8 @@ no_keypad:
 			return ;
 		}
 		else if( ( ksym == XK_Delete
-		#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! (USE_QUARTZ)
+		#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
+			! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
 			&& size == 1
 		#endif
 			) || ksym == XK_KP_Delete)
@@ -4897,7 +4898,8 @@ change_transparent_flag(
 	)
 {
 	if( screen->window.is_transparent == is_transparent
-	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_QUARTZ)
+	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
+		! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
 	    /*
 	     * If wall picture is not still set, do set it.
 	     * This is necessary for gnome-terminal, because ConfigureNotify event never
@@ -5601,6 +5603,10 @@ get_config_intern(
 		value = "win32" ;
 	#elif  defined(USE_FRAMEBUFFER)
 		value = "fb" ;
+	#elif  defined(USE_CONSOLE)
+		value = "console" ;
+	#elif  defined(USE_QUARTZ)
+		value = "quartz" ;
 	#else
 		value = "xlib" ;
 	#endif

@@ -89,7 +89,7 @@ dlsym_im_new_func(
 	)
 {
 	char * symname ;
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	char *  fb_im_name ;
 #endif
 
@@ -100,7 +100,7 @@ dlsym_im_new_func(
 
 	sprintf( symname , "im_%s_new" , im_name) ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( ( fb_im_name = alloca( strlen( im_name) + 3 + 1)))
 	{
 		sprintf( fb_im_name , "%s-fb" , im_name) ;
@@ -112,7 +112,7 @@ dlsym_im_new_func(
 			{
 				return  0 ;
 			}
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		}
 	}
 #endif

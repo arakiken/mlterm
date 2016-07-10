@@ -33,7 +33,6 @@
 
 static x_display_t  _disp ;	/* Singleton */
 static Display  _display ;
-static x_display_t *  opened_disp = &_disp ;
 
 
 /* --- static functions --- */
@@ -233,6 +232,8 @@ x_get_opened_displays(
 	u_int *  num
 	)
 {
+	static x_display_t *  opened_disp = &_disp ;
+
 	if( ! DISP_IS_INITED)
 	{
 		*num = 0 ;

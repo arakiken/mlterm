@@ -1334,6 +1334,53 @@ xcore_draw_str(
 				bg_xcolor = x_get_xcolor( color_man , bg_color) ;
 			}
 
+		#ifdef  USE_CONSOLE
+			/* XXX DRCS (state == 3) is ignored */
+			if( state < 3)
+			{
+				u_int  comb_count ;
+
+				for( comb_count = 0 ; comb_count < comb_size ; comb_count++)
+				{
+					u_int  comb_code ;
+
+					comb_code = ml_char_code( &comb_chars[comb_count]) ;
+
+					if( state <= 1)
+					{
+						str[str_len++] = comb_code ;
+					}
+					else if( ! IS_ISO10646_UCS4(ch_cs))
+					{
+						str2b[str_len].byte1 = (comb_code >> 8) & 0xff ;
+						str2b[str_len].byte2 = comb_code & 0xff ;
+						str_len ++ ;
+					}
+					else
+					{
+						/* UCS4 */
+						str_len += (x_convert_ucs4_to_utf16(
+								str2b + str_len ,
+								comb_code) / 2) ;
+					}
+				}
+
+				if( state == 2)
+				{
+					x_window_console_draw_string16( window , xfont ,
+						fg_xcolor , bg_xcolor ,
+						x , y + ascent , str2b , str_len ,
+						underline_style) ;
+				}
+				else /* if( state == 0) */
+				{
+					x_window_console_draw_string( window , xfont ,
+						fg_xcolor , bg_xcolor ,
+						x , y + ascent , str , str_len ,
+						underline_style) ;
+				}
+			}
+		#else
 			if(
 		#if  defined(USE_QUARTZ)
 			    1 ||
@@ -1451,6 +1498,7 @@ xcore_draw_str(
 					x , y , current_width - x , height , ascent ,
 					top_margin) ;
 			}
+		#endif
 
 		end_draw:
 			start_draw = 0 ;

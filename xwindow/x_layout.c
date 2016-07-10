@@ -8,7 +8,14 @@
 #include  <kiklib/kik_str.h>
 
 
+#ifdef  USE_CONSOLE
+static u_int  dummy_arg ;
+#define  SEPARATOR_WIDTH  x_get_opened_displays(&dummy_arg)[0]->display->col_width
+#define  SEPARATOR_HEIGHT  x_get_opened_displays(&dummy_arg)[0]->display->line_height
+#else
 #define  SEPARATOR_WIDTH  1
+#define  SEPARATOR_HEIGHT  1
+#endif
 #define  SCROLLBAR_WIDTH(scrollbar)  (ACTUAL_WIDTH(&(scrollbar).window) + SEPARATOR_WIDTH)
 
 
@@ -20,14 +27,15 @@ modify_separator(
 	u_int  total ,
 	u_int  next_min ,
 	u_int  unit ,
-	u_int  fixed
+	u_int  fixed ,
+	u_int  margin
 	)
 {
 	u_int  surplus ;
 
-	if( total < separator + SEPARATOR_WIDTH + next_min)
+	if( total < separator + margin + next_min)
 	{
-		separator = total - next_min - SEPARATOR_WIDTH ;
+		separator = total - next_min - margin ;
 	}
 
 	if( ( surplus = (separator - fixed) % unit) > 0)
@@ -72,7 +80,8 @@ reset_layout(
 				x_col_width( term->screen) ,
 				term->screen->window.hmargin * 2 +
 				(term->sb_mode != SBM_NONE ?
-					SCROLLBAR_WIDTH(term->scrollbar) : 0)) ;
+					SCROLLBAR_WIDTH(term->scrollbar) : 0) ,
+				SEPARATOR_WIDTH) ;
 	}
 	else
 	{
@@ -86,7 +95,8 @@ reset_layout(
 				term->next[1]->screen->window.vmargin * 2 +
 				x_line_height( term->next[1]->screen) ,
 				x_line_height( term->screen) ,
-				term->screen->window.vmargin * 2) ;
+				term->screen->window.vmargin * 2 ,
+				SEPARATOR_HEIGHT) ;
 	}
 	else
 	{
@@ -121,7 +131,7 @@ reset_layout(
 			ACTUAL_WIDTH(&term->scrollbar.window) ,
 			child_height , NOTIFY_TO_MYSELF) ;
 
-	#if  defined(USE_FRAMEBUFFER)
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				sep_x , y , SEPARATOR_WIDTH , child_height) ;
@@ -160,21 +170,23 @@ reset_layout(
 	{
 		if( term->next[1] && term->separator_y > 0)
 		{
-			reset_layout( term->next[1] , x , y + term->separator_y + SEPARATOR_WIDTH ,
-				width , height - term->separator_y - SEPARATOR_WIDTH) ;
-		#ifdef  USE_FRAMEBUFFER
+			reset_layout( term->next[1] ,
+				x , y + term->separator_y + SEPARATOR_HEIGHT ,
+				width , height - term->separator_y - SEPARATOR_HEIGHT) ;
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x , y + term->separator_y ,
-				width , SEPARATOR_WIDTH) ;
+				width , SEPARATOR_HEIGHT) ;
 		#endif
 		}
 
 		if( term->next[0] && term->separator_x > 0)
 		{
-			reset_layout( term->next[0] , x + term->separator_x + SEPARATOR_WIDTH , y ,
+			reset_layout( term->next[0] ,
+				x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , child_height) ;
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x + term->separator_x , y ,
@@ -186,9 +198,10 @@ reset_layout(
 	{
 		if( term->next[0] && term->separator_x > 0)
 		{
-			reset_layout( term->next[0] , x + term->separator_x + SEPARATOR_WIDTH , y ,
+			reset_layout( term->next[0] ,
+				x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , height) ;
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x + term->separator_x , y ,
@@ -198,13 +211,14 @@ reset_layout(
 
 		if( term->next[1] && term->separator_y > 0)
 		{
-			reset_layout( term->next[1] , x , y + term->separator_y + SEPARATOR_WIDTH ,
-				child_width , height - term->separator_y - SEPARATOR_WIDTH) ;
-		#ifdef  USE_FRAMEBUFFER
+			reset_layout( term->next[1] ,
+				x , y + term->separator_y + SEPARATOR_HEIGHT ,
+				child_width , height - term->separator_y - SEPARATOR_HEIGHT) ;
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x , y + term->separator_y ,
-				child_width , SEPARATOR_WIDTH) ;
+				child_width , SEPARATOR_HEIGHT) ;
 		#endif
 		}
 	}
@@ -396,7 +410,8 @@ get_separator_x(
 		return  0 ;
 	}
 
-#if  defined(USE_FRAMEBUFFER) && ! defined(__ANDROID__)
+#if  ! defined(USE_CONSOLE) && defined(USE_FRAMEBUFFER) && \
+	! defined(USE_CONSOLE) && ! defined(__ANDROID__)
 	if( screen->window.disp->display->pixels_per_byte > 1)
 	{
 		return  sep_x - sep_x % screen->window.disp->display->pixels_per_byte -
@@ -1105,7 +1120,7 @@ total_height(
 
 	if( term->separator_y > 0 && term->next[1])
 	{
-		height += (total_height( term->next[1]) + SEPARATOR_WIDTH) ;
+		height += (total_height( term->next[1]) + SEPARATOR_HEIGHT) ;
 	}
 
 	return  height ;
@@ -1147,7 +1162,7 @@ total_hint_size(
 
 	if( term->next[1])
 	{
-		*height += SEPARATOR_WIDTH ;
+		*height += SEPARATOR_HEIGHT ;
 
 		total_hint_size( term->next[1] , width , height , width_inc , height_inc) ;
 	}
@@ -1244,7 +1259,7 @@ change_sb_mode_intern(
 	{
 		x_window_unmap( &term->scrollbar.window) ;
 	}
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	else if( old_mode == SBM_NONE)
 	{
 		/* scrollbar's height may have been changed. */
@@ -1834,7 +1849,7 @@ x_layout_remove_child(
 {
 	struct terminal *  term ;
 	int  idx2 ;
-#ifndef  USE_FRAMEBUFFER
+#if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	u_int  w_surplus ;
 	u_int  h_surplus ;
 #endif
@@ -1989,7 +2004,7 @@ x_layout_remove_child(
 		x_window_unset_wall_picture( &layout->window , 0) ;
 	}
 
-#ifndef  USE_FRAMEBUFFER
+#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	if( ! layout->term.next[0] && ! layout->term.next[1])
 	{
 		w_surplus = (layout->window.width -
@@ -2021,7 +2036,7 @@ x_layout_remove_child(
 
 	update_normal_hints( layout) ;
 
-#ifndef  USE_FRAMEBUFFER
+#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 	if( x_screen_attached( screen))
 	{
 		/* Revert to the original size. */

@@ -8,6 +8,7 @@
 
 #include  <time.h>
 #include  <kiklib/kik_types.h>		/* int8_t */
+#include  <mkf/mkf_conv.h>
 
 #include  "ml_edit.h"
 #include  "ml_logs.h"
@@ -375,6 +376,9 @@ int  ml_screen_fill_area( ml_screen_t *  screen , int  code ,
 #define  ml_screen_clear_size_attr( screen)   ml_edit_clear_size_attr( (screen)->edit)
 
 void  ml_screen_enable_blinking( ml_screen_t *  screen) ;
+
+int  ml_screen_write_content( ml_screen_t *  screen , int  fd , mkf_conv_t *  conv ,
+		int  clear_at_end) ;
 
 
 #endif
