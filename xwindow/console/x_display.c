@@ -12,12 +12,17 @@
 #include  <termios.h>
 #include  <signal.h>
 #include  <time.h>
+#include  <errno.h>
+#include  <sys/select.h>	/* select */
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_privilege.h>	/* kik_priv_change_e(u|g)id */
 #include  <kiklib/kik_unistd.h>		/* kik_getuid */
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_mem.h>		/* alloca */
+#include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_net.h>
+#include  <kiklib/kik_util.h>
 
 #include  <ml_color.h>
 
@@ -25,14 +30,12 @@
 #include  "../x_picture.h"
 
 
-#define  DISP_IS_INITED   (_disp.display)
-
-
 /* --- static variables --- */
 
-static Display  _display ;
-static x_display_t  _disp ;
-static int  use_ansi_colors = 1 ;
+static int  sock_fd = -1 ;
+
+static x_display_t **  displays ;
+static u_int  num_of_displays ;
 
 static struct termios  orig_tm ;
 
@@ -40,6 +43,369 @@ static ml_char_encoding_t  encoding = ML_UTF8 ;
 
 
 /* --- static functions --- */
+
+static void
+set_blocking(
+	int  fd ,
+	int  block
+	)
+{
+	fcntl( fd , F_SETFL ,
+		block ? (fcntl( fd , F_GETFL , 0) & ~O_NONBLOCK) :
+		        (fcntl( fd , F_GETFL , 0) | O_NONBLOCK)) ;
+}
+
+static int
+set_winsize(
+	x_display_t *  disp ,
+	char *  seq
+	)
+{
+	struct winsize  ws ;
+
+	memset( &ws , 0 , sizeof(ws)) ;
+
+	if( seq)
+	{
+		int  col ;
+		int  row ;
+		int  x ;
+		int  y ;
+
+		if( sscanf( seq , "8;%d;%d;4;%d;%dt" , &row , &col , &y , &x) != 4)
+		{
+			return  0 ;
+		}
+
+		ws.ws_col = col ;
+		ws.ws_row = row ;
+		disp->width = x ;
+		disp->height = y ;
+	}
+	else
+	{
+		if( ioctl( fileno(disp->display->fp) , TIOCGWINSZ , &ws) == 0)
+		{
+			disp->width = ws.ws_xpixel ;
+			disp->height = ws.ws_ypixel ;
+		}
+	}
+
+	if( ws.ws_col == 0)
+	{
+		kik_error_printf( "winsize.ws_col is 0\n") ;
+		ws.ws_col = 80 ;
+	}
+
+	if( ws.ws_row == 0)
+	{
+		kik_error_printf( "winsize.ws_row is 0\n") ;
+		ws.ws_row = 24 ;
+	}
+
+	if( disp->width == 0)
+	{
+		disp->width = ws.ws_col * 8 ;
+		disp->display->col_width = 8 ;
+	}
+	else
+	{
+		disp->display->col_width = disp->width / ws.ws_col ;
+		disp->width = disp->display->col_width * ws.ws_col ;
+	}
+
+	if( disp->height == 0)
+	{
+		disp->height = ws.ws_row * 16 ;
+		disp->display->line_height = 16 ;
+	}
+	else
+	{
+		disp->display->line_height = disp->height / ws.ws_row ;
+		disp->height = disp->display->line_height * ws.ws_row ;
+	}
+
+	return  1 ;
+}
+
+/* XXX */
+int  x_font_cache_unload_all(void) ;
+
+static void
+sig_winch(
+	int  sig
+	)
+{
+	u_int  count ;
+
+	set_winsize( displays[0] , NULL) ;
+
+	/* XXX */
+	x_font_cache_unload_all() ;
+
+	for( count = 0 ; count < displays[0]->num_of_roots ; count++)
+	{
+		x_window_resize_with_margin( displays[0]->roots[count] ,
+			displays[0]->width , displays[0]->height , NOTIFY_TO_MYSELF) ;
+	}
+
+	signal( SIGWINCH , sig_winch) ;
+}
+
+static void
+end_server(void)
+{
+	close( sock_fd) ;
+}
+
+static int
+start_server(void)
+{
+	char *  path ;
+	struct sockaddr_un  servaddr ;
+	int  fd ;
+
+	if( ! ( path = kik_get_user_rc_path( "mlterm/socket-con")))
+	{
+		return  0 ;
+	}
+
+	memset( &servaddr , 0 , sizeof( servaddr)) ;
+	servaddr.sun_family = AF_LOCAL ;
+	strcpy( servaddr.sun_path , path) ;
+	free( path) ;
+	path = servaddr.sun_path ;
+
+	if( ( fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
+	{
+		return  0 ;
+	}
+	kik_file_set_cloexec( fd) ;
+
+	for( ;;)
+	{
+		int  ret ;
+		int  saved_errno ;
+		mode_t  mode ;
+
+		mode = umask( 077) ;
+		ret = bind( fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) ;
+		saved_errno = errno ;
+		umask( mode) ;
+
+		if( ret == 0)
+		{
+			break ;
+		}
+		else if( saved_errno == EADDRINUSE)
+		{
+			if( connect( fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
+			{
+				kik_msg_printf( "Disable server because another server "
+					"has already started.\n") ;
+				close( fd) ;
+				sock_fd = -2 ;
+
+				return  0 ;
+			}
+
+			if( unlink( path) == 0)
+			{
+				continue ;
+			}
+		}
+		else
+		{
+			close( fd) ;
+
+			return  0 ;
+		}
+	}
+
+	if( listen( fd , 1024) < 0)
+	{
+		close( fd) ;
+		unlink( path) ;
+
+		return  0 ;
+	}
+
+	sock_fd = fd ;
+
+	return  1 ;
+}
+
+/* XXX */
+int  x_mlclient( char *  args , FILE *  fp) ;
+
+static void
+client_connected(void)
+{
+	struct sockaddr_un  addr ;
+	socklen_t  sock_len ;
+	int  fd ;
+	char  ch ;
+	char  cmd[1024] ;
+	size_t  cmd_len ;
+	int  dopt_added = 0 ;
+
+	sock_len = sizeof( addr) ;
+
+	if( ( fd = accept( sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
+	{
+		return ;
+	}
+
+	for( cmd_len = 0 ; cmd_len < sizeof(cmd) - 1 ; cmd_len++)
+	{
+		if( read( fd , &ch , 1) <= 0)
+		{
+			close( fd) ;
+
+			return ;
+		}
+
+		if( ch == '\n')
+		{
+			break ;
+		}
+		else
+		{
+			if( ! dopt_added && ch == ' ')
+			{
+				if( cmd_len + 11 + DIGIT_STR_LEN(fd) + 1 > sizeof(cmd))
+				{
+					close( fd) ;
+
+					return ;
+				}
+
+				sprintf( cmd + cmd_len , " -d client:%d" , fd) ;
+				cmd_len += strlen( cmd + cmd_len) ;
+				dopt_added = 1 ;
+			}
+
+			cmd[cmd_len] = ch ;
+		}
+	}
+	cmd[cmd_len] = '\0' ;
+
+	x_mlclient( cmd , stdout) ;
+
+	if( num_of_displays == 0 ||
+	    fileno( displays[num_of_displays - 1]->display->fp) != fd)
+	{
+		close( fd) ;
+	}
+}
+
+static x_display_t *
+open_display_socket(
+	int  fd
+	)
+{
+	void *  p ;
+
+	if( ! ( p = realloc( displays , sizeof(x_display_t*) * (num_of_displays + 1))))
+	{
+		return  NULL ;
+	}
+
+	displays = p ;
+
+	if( ! ( displays[num_of_displays] = calloc( 1 , sizeof( x_display_t))) ||
+	    ! ( displays[num_of_displays]->display = calloc( 1 , sizeof( Display))))
+	{
+		free( displays[num_of_displays]) ;
+
+		return  NULL ;
+	}
+
+	if( ! ( displays[num_of_displays]->display->fp = fdopen( fd , "r+")))
+	{
+		free( displays[num_of_displays]->display) ;
+		free( displays[num_of_displays]) ;
+
+		return  NULL ;
+	}
+
+	/*
+	 * Set the close-on-exec flag.
+	 * If this flag off, this fd remained open until the child process forked in
+	 * open_screen_intern()(ml_term_open_pty()) close it.
+	 */
+	kik_file_set_cloexec( fd) ;
+	set_blocking( fd , 1) ;
+
+	write( fd , "\x1b[?25l" , 6) ;
+	write( fd , "\x1b[?1002h\x1b[?1006h" , 16) ;
+
+	displays[num_of_displays]->display->conv = ml_conv_new( encoding) ;
+	set_winsize( displays[num_of_displays] , "8;24;80;4;384;640t") ;
+
+	return  displays[num_of_displays++] ;
+}
+
+static x_display_t *
+open_display_console(void)
+{
+	void *  p ;
+	struct termios  tio ;
+	int  fd ;
+
+	if( num_of_displays > 0 || ! isatty( STDIN_FILENO) ||
+	    ! ( p = realloc( displays , sizeof(x_display_t*))))
+	{
+		return  NULL ;
+	}
+
+	displays = p ;
+
+	if( ! ( displays[0] = calloc( 1 , sizeof( x_display_t))) ||
+	    ! ( displays[0]->display = calloc( 1 , sizeof(Display))))
+	{
+		free( displays[0]) ;
+
+		return  NULL ;
+	}
+
+	tcgetattr( STDIN_FILENO , &orig_tm) ;
+
+	if( ! ( displays[0]->display->fp = fopen( ttyname(STDIN_FILENO) , "r+")))
+	{
+		free( displays[0]->display) ;
+		free( displays[0]) ;
+
+		return  NULL ;
+	}
+
+	fd = fileno( displays[0]->display->fp) ;
+
+	close( STDIN_FILENO) ;
+	close( STDOUT_FILENO) ;
+	close( STDERR_FILENO) ;
+
+	write( fd , "\x1b[?25l" , 6) ;
+	write( fd , "\x1b[?1002h\x1b[?1006h" , 16) ;
+
+	tio = orig_tm ;
+	tio.c_iflag &= ~(IXON|IXOFF|ICRNL|INLCR|IGNCR|IMAXBEL|ISTRIP) ;
+	tio.c_iflag |= IGNBRK ;
+	tio.c_oflag &= ~(OPOST|ONLCR|OCRNL|ONLRET) ;
+	tio.c_lflag &= ~(IEXTEN|ICANON|ECHO|ECHOE|ECHONL|ECHOCTL|ECHOPRT|ECHOKE|ECHOCTL|ISIG) ;
+	tio.c_cc[VMIN] = 1 ;
+	tio.c_cc[VTIME] = 0 ;
+
+	tcsetattr( fd , TCSANOW , &tio) ;
+
+	displays[0]->display->conv = ml_conv_new( encoding) ;
+
+	set_winsize( displays[0] , NULL) ;
+
+	signal( SIGWINCH , sig_winch) ;
+
+	return  displays[num_of_displays++] ;
+}
 
 #ifdef  __linux__
 static int
@@ -95,16 +461,16 @@ get_window_intern(
 }
 
 /*
- * _disp.roots[1] is ignored.
- * x and y are rotated values.
+ * disp->roots[1] is ignored.
  */
 static inline x_window_t *
 get_window(
+	x_display_t *  disp ,
 	int  x ,	/* X in display */
 	int  y		/* Y in display */
 	)
 {
-	return  get_window_intern( _disp.roots[0] , x , y) ;
+	return  get_window_intern( disp->roots[0] , x , y) ;
 }
 
 /* XXX defined in console/x_window.c */
@@ -160,6 +526,7 @@ expose_window(
 
 static void
 expose_display(
+	x_display_t *  disp ,
 	int  x ,
 	int  y ,
 	u_int  width ,
@@ -175,26 +542,28 @@ expose_display(
 	 * non-adjusted position.
 	 */
 
-	if( x + width > _disp.width)
+	if( x + width > disp->width)
 	{
-		width = _disp.width - x ;
+		width = disp->width - x ;
 	}
 
-	if( y + height > _disp.height)
+	if( y + height > disp->height)
 	{
-		height = _disp.height - y ;
+		height = disp->height - y ;
 	}
 
-	expose_window( _disp.roots[0] , x , y , width , height) ;
+	expose_window( disp->roots[0] , x , y , width , height) ;
 
-	for( count = 0 ; count < _disp.roots[0]->num_of_children ; count++)
+	for( count = 0 ; count < disp->roots[0]->num_of_children ; count++)
 	{
-		expose_window( _disp.roots[0]->children[count] , x , y , width , height) ;
+		expose_window( disp->roots[0]->children[count] , x , y , width , height) ;
 	}
 }
 
 static int
-check_visibility_of_im_window(void)
+check_visibility_of_im_window(
+	x_display_t *  disp
+	)
 {
 	static struct
 	{
@@ -209,42 +578,42 @@ check_visibility_of_im_window(void)
 
 	redraw_im_win = 0 ;
 
-	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
+	if( disp->num_of_roots == 2 && disp->roots[1]->is_mapped)
 	{
 		if( im_region.saved)
 		{
-			if( im_region.x == _disp.roots[1]->x &&
-			    im_region.y == _disp.roots[1]->y &&
-			    im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
-			    im_region.height == ACTUAL_HEIGHT(_disp.roots[1]))
+			if( im_region.x == disp->roots[1]->x &&
+			    im_region.y == disp->roots[1]->y &&
+			    im_region.width == ACTUAL_WIDTH(disp->roots[1]) &&
+			    im_region.height == ACTUAL_HEIGHT(disp->roots[1]))
 			{
 				return  0 ;
 			}
 
-			if( im_region.x < _disp.roots[1]->x ||
-			    im_region.y < _disp.roots[1]->y ||
+			if( im_region.x < disp->roots[1]->x ||
+			    im_region.y < disp->roots[1]->y ||
 			    im_region.x + im_region.width >
-				_disp.roots[1]->x + ACTUAL_WIDTH(_disp.roots[1]) ||
+				disp->roots[1]->x + ACTUAL_WIDTH(disp->roots[1]) ||
 			    im_region.y + im_region.height >
-				_disp.roots[1]->y + ACTUAL_HEIGHT(_disp.roots[1]))
+				disp->roots[1]->y + ACTUAL_HEIGHT(disp->roots[1]))
 			{
-				expose_display( im_region.x , im_region.y ,
+				expose_display( disp , im_region.x , im_region.y ,
 					im_region.width , im_region.height) ;
 				redraw_im_win = 1 ;
 			}
 		}
 
 		im_region.saved = 1 ;
-		im_region.x = _disp.roots[1]->x ;
-		im_region.y = _disp.roots[1]->y ;
-		im_region.width = ACTUAL_WIDTH(_disp.roots[1]) ;
-		im_region.height = ACTUAL_HEIGHT(_disp.roots[1]) ;
+		im_region.x = disp->roots[1]->x ;
+		im_region.y = disp->roots[1]->y ;
+		im_region.width = ACTUAL_WIDTH(disp->roots[1]) ;
+		im_region.height = ACTUAL_HEIGHT(disp->roots[1]) ;
 	}
 	else
 	{
 		if( im_region.saved)
 		{
-			expose_display( im_region.x , im_region.y ,
+			expose_display( disp , im_region.x , im_region.y ,
 				im_region.width , im_region.height) ;
 			im_region.saved = 0 ;
 		}
@@ -255,54 +624,46 @@ check_visibility_of_im_window(void)
 
 static void
 receive_event_for_multi_roots(
+	x_display_t *  disp ,
 	XEvent *  xev
 	)
 {
 	int  redraw_im_win ;
 
-	if( ( redraw_im_win = check_visibility_of_im_window()))
+	if( ( redraw_im_win = check_visibility_of_im_window( disp)))
 	{
 		/* Stop drawing input method window */
-		_disp.roots[1]->is_mapped = 0 ;
+		disp->roots[1]->is_mapped = 0 ;
 	}
 
-	x_window_receive_event( _disp.roots[0] , xev) ;
+	x_window_receive_event( disp->roots[0] , xev) ;
 
-	if( redraw_im_win && _disp.num_of_roots == 2)
+	if( redraw_im_win && disp->num_of_roots == 2)
 	{
 		/* Restart drawing input method window */
-		_disp.roots[1]->is_mapped = 1 ;
+		disp->roots[1]->is_mapped = 1 ;
 	}
-	else if( ! check_visibility_of_im_window())
+	else if( ! check_visibility_of_im_window( disp))
 	{
 		return ;
 	}
 
-	expose_window( _disp.roots[1] , _disp.roots[1]->x , _disp.roots[1]->y ,
-				ACTUAL_WIDTH(_disp.roots[1]) , ACTUAL_HEIGHT(_disp.roots[1])) ;
-}
-
-static void
-set_blocking(
-	int  fd ,
-	int  block
-	)
-{
-	fcntl( fd , F_SETFL ,
-		block ? (fcntl( fd , F_GETFL , 0) & ~O_NONBLOCK) :
-		        (fcntl( fd , F_GETFL , 0) | O_NONBLOCK)) ;
+	expose_window( disp->roots[1] , disp->roots[1]->x , disp->roots[1]->y ,
+				ACTUAL_WIDTH(disp->roots[1]) , ACTUAL_HEIGHT(disp->roots[1])) ;
 }
 
 static int
-receive_stdin(void)
+receive_stdin(
+	Display *  display
+	)
 {
 	ssize_t  len ;
 
-	if( ( len = read( fileno( _display.fp) , _display.buf + _display.buf_len ,
-				sizeof(_display.buf) - _display.buf_len - 1)) > 0)
+	if( ( len = read( fileno( display->fp) , display->buf + display->buf_len ,
+			sizeof(display->buf) - display->buf_len - 1)) > 0)
 	{
-		_display.buf_len += len ;
-		_display.buf[_display.buf_len] = '\0' ;
+		display->buf_len += len ;
+		display->buf[display->buf_len] = '\0' ;
 
 		return  1 ;
 	}
@@ -359,14 +720,29 @@ parse(
 
 /* Same as fb/x_display */
 static int
-receive_stdin_key_event(void)
+receive_stdin_event(
+	x_display_t *  disp
+	)
 {
 	u_char *  p ;
-	int  esc_alone = 0 ;
 
-	p = _display.buf ;
+	if( ! receive_stdin( disp->display))
+	{
+		u_int  count ;
 
-	receive_stdin() ;
+		for( count = disp->num_of_roots ; count > 0 ; count--)
+		{
+			if( disp->roots[count - 1]->window_deleted)
+			{
+				(*disp->roots[count - 1]->window_deleted)(
+					disp->roots[count - 1]) ;
+			}
+		}
+
+		return  1 ;
+	}
+
+	p = disp->display->buf ;
 
 	while( *p)
 	{
@@ -382,21 +758,19 @@ receive_stdin_key_event(void)
 
 		if( *p == '\x1b' && p[1] == '\x0')
 		{
-			if( ! esc_alone)
+			fd_set  fds ;
+			struct timeval  tv ;
+
+			FD_ZERO(&fds) ;
+			FD_SET( fileno( disp->display->fp) , &fds) ;
+			tv.tv_usec = 50000 ;	/* 0.05 sec */
+			tv.tv_sec = 0 ;
+
+			if( select( fileno( disp->display->fp) + 1 , &fds , NULL ,
+				NULL , &tv) == 1)
 			{
-				usleep( 1000) ;
-				set_blocking( fileno( _display.fp) , 0) ;
-				if( ! receive_stdin())
-				{
-					break ;
-				}
-				set_blocking( fileno( _display.fp) , 1) ;
-				esc_alone = 1 ;
-
-				continue ;
+				receive_stdin( disp->display) ;
 			}
-
-			esc_alone = 0 ;
 		}
 
 		if( *p == '\x1b' && ( p[1] == '[' || p[1] == 'O'))
@@ -407,13 +781,13 @@ receive_stdin_key_event(void)
 
 				if( ! parse( &param , &intermed , &ft , p + 2))
 				{
-					set_blocking( fileno( _display.fp) , 0) ;
-					if( ! receive_stdin())
+					set_blocking( fileno( disp->display->fp) , 0) ;
+					if( ! receive_stdin( disp->display))
 					{
 						break ;
 					}
+					set_blocking( fileno( disp->display->fp) , 1) ;
 
-					set_blocking( fileno( _display.fp) , 1) ;
 					continue ;
 				}
 
@@ -478,14 +852,14 @@ receive_stdin_key_event(void)
 
 					if( *ft == 'M')
 					{
-						if( _display.is_pressing)
+						if( disp->display->is_pressing)
 						{
 							bev.type = MotionNotify ;
 						}
 						else
 						{
 							bev.type = ButtonPress ;
-							_display.is_pressing = 1 ;
+							disp->display->is_pressing = 1 ;
 						}
 
 						if( ! param)
@@ -500,7 +874,7 @@ receive_stdin_key_event(void)
 					else
 					{
 						bev.type = ButtonRelease ;
-						_display.is_pressing = 0 ;
+						disp->display->is_pressing = 0 ;
 					}
 
 					*ft = '\0' ;
@@ -519,11 +893,11 @@ receive_stdin_key_event(void)
 					}
 
 					bev.x -- ;
-					bev.x *= _display.col_width ;
+					bev.x *= disp->display->col_width ;
 					bev.y -- ;
-					bev.y *= _display.line_height ;
+					bev.y *= disp->display->line_height ;
 
-					win = get_window( bev.x , bev.y) ;
+					win = get_window( disp , bev.x , bev.y) ;
 					bev.x -= win->x ;
 					bev.y -= win->y ;
 
@@ -531,11 +905,25 @@ receive_stdin_key_event(void)
 					bev.time = tv.tv_sec * 1000 + tv.tv_usec / 1000 ;
 					bev.state = 0 ;
 
-					set_blocking( fileno(_display.fp) , 1) ;
+					set_blocking( fileno(disp->display->fp) , 1) ;
 					x_window_receive_event( win , &bev) ;
-					set_blocking( fileno(_display.fp) , 0) ;
+					set_blocking( fileno(disp->display->fp) , 0) ;
 
 					continue ;
+				}
+				else if( param && set_winsize( disp , param))
+				{
+					u_int  count ;
+
+					/* XXX */
+					x_font_cache_unload_all() ;
+
+					for( count = 0 ; count < disp->num_of_roots ; count++)
+					{
+						x_window_resize_with_margin( disp->roots[count] ,
+							disp->width , disp->height ,
+							NOTIFY_TO_MYSELF) ;
+					}
 				}
 				else if( 'P' <= *ft && *ft <= 'S')
 				{
@@ -614,12 +1002,12 @@ receive_stdin_key_event(void)
 			{
 				if( ! parse( &param , &intermed , &ft , p + 2))
 				{
-					set_blocking( fileno( _display.fp) , 0) ;
-					if( ! receive_stdin())
+					set_blocking( fileno( disp->display->fp) , 0) ;
+					if( ! receive_stdin( disp->display))
 					{
 						break ;
 					}
-					set_blocking( fileno( _display.fp) , 1) ;
+					set_blocking( fileno( disp->display->fp) , 1) ;
 
 					continue ;
 				}
@@ -690,80 +1078,19 @@ receive_stdin_key_event(void)
 			}
 		}
 
-		set_blocking( fileno(_display.fp) , 1) ;
-		receive_event_for_multi_roots( &kev) ;
-		set_blocking( fileno(_display.fp) , 0) ;
+		set_blocking( fileno(disp->display->fp) , 1) ;
+		receive_event_for_multi_roots( disp , &kev) ;
+		set_blocking( fileno(disp->display->fp) , 0) ;
 	}
 
-	if( ( _display.buf_len = _display.buf + _display.buf_len - p) > 0)
+	if( ( disp->display->buf_len = disp->display->buf + disp->display->buf_len - p) > 0)
 	{
-		memcpy( _display.buf , p , _display.buf_len + 1) ;
+		memcpy( disp->display->buf , p , disp->display->buf_len + 1) ;
 	}
 
-	set_blocking( fileno(_display.fp) , 1) ;
+	set_blocking( fileno(disp->display->fp) , 1) ;
 
 	return  1 ;
-}
-
-static void
-set_winsize(
-	x_display_t *  disp
-	)
-{
-	struct winsize  ws ;
-
-	memset( &ws , 0 , sizeof(ws)) ;
-	if( ioctl( fileno(disp->display->fp) , TIOCGWINSZ , &ws) == 0)
-	{
-		disp->width = ws.ws_xpixel ;
-		disp->height = ws.ws_ypixel ;
-	}
-
-	if( ws.ws_col == 0)
-	{
-		kik_error_printf( "winsize.ws_col is 0\n") ;
-		ws.ws_col = 80 ;
-	}
-
-	if( ws.ws_row == 0)
-	{
-		kik_error_printf( "winsize.ws_row is 0\n") ;
-		ws.ws_row = 24 ;
-	}
-
-	if( disp->width == 0)
-	{
-		disp->width = ws.ws_col * 8 ;
-	}
-	disp->display->col_width = disp->width / ws.ws_col ;
-
-	if( disp->height == 0)
-	{
-		disp->height = ws.ws_row * 16 ;
-	}
-	disp->display->line_height = disp->height / ws.ws_row ;
-}
-
-/* XXX */
-int  x_font_cache_unload_all(void) ;
-
-static void
-sig_winch(
-	int  sig
-	)
-{
-	u_int  count ;
-
-	set_winsize( &_disp) ;
-
-	/* XXX */
-	x_font_cache_unload_all() ;
-
-	for( count = 0 ; count < _disp.num_of_roots ; count++)
-	{
-		x_window_resize_with_margin( _disp.roots[count] ,
-			_disp.width , _disp.height , NOTIFY_TO_MYSELF) ;
-	}
 }
 
 
@@ -775,46 +1102,18 @@ x_display_open(
 	u_int  depth
 	)
 {
-	if( ! DISP_IS_INITED)
+	if( disp_name && strncmp( disp_name , "client:" , 7) == 0)
 	{
-		struct termios  tio ;
-		int  fd ;
-
-		write( STDOUT_FILENO , "\x1b[?25l" , 6) ;
-		write( STDOUT_FILENO , "\x1b[?1002h\x1b[?1006h" , 16) ;
-		tcgetattr( STDIN_FILENO , &orig_tm) ;
-
-		if( ! ( _display.fp = fopen( ttyname(STDIN_FILENO) , "r+")))
-		{
-			return  NULL ;
-		}
-
-		fd = fileno( _display.fp) ;
-
-		close( STDIN_FILENO) ;
-		close( STDOUT_FILENO) ;
-		close( STDERR_FILENO) ;
-
-		tio = orig_tm ;
-		tio.c_iflag &= ~(IXON|IXOFF|ICRNL|INLCR|IGNCR|IMAXBEL|ISTRIP) ;
-		tio.c_iflag |= IGNBRK ;
-		tio.c_oflag &= ~(OPOST|ONLCR|OCRNL|ONLRET) ;
-		tio.c_lflag &= ~(IEXTEN|ICANON|ECHO|ECHOE|ECHONL|ECHOCTL|ECHOPRT|ECHOKE|ECHOCTL|ISIG) ;
-		tio.c_cc[VMIN] = 1 ;
-		tio.c_cc[VTIME] = 0 ;
-
-		tcsetattr( fd , TCSANOW , &tio) ;
-
-		_display.conv = ml_conv_new( encoding) ;
-
-		_disp.display = &_display ;
-
-		set_winsize( &_disp) ;
-
-		signal( SIGWINCH , sig_winch) ;
+		return  open_display_socket( atoi( disp_name + 7)) ;
 	}
-
-	return  &_disp ;
+	else if( ! displays)
+	{
+		return  open_display_console() ;
+	}
+	else
+	{
+		return  displays[0] ;
+	}
 }
 
 int
@@ -822,55 +1121,71 @@ x_display_close(
 	x_display_t *  disp
 	)
 {
-	if( disp == &_disp)
-	{
-		tcsetattr( fileno(_display.fp) , TCSAFLUSH , &orig_tm) ;
-		write( fileno(_display.fp) , "\x1b[?25h" , 6) ;
-		write( fileno(_display.fp) , "\x1b[?1002l\x1b[?1006l" , 16) ;
-		fclose( _display.fp) ;
-		(*_display.conv->delete)(_display.conv) ;
+	u_int  count ;
 
-		return  x_display_close_all() ;
-	}
-	else
+	x_picture_display_closed( disp->display) ;
+
+	if( isatty( fileno(disp->display->fp)))
 	{
-		return  0 ;
+		tcsetattr( fileno(disp->display->fp) , TCSAFLUSH , &orig_tm) ;
+		signal( SIGWINCH , SIG_IGN) ;
 	}
+
+	write( fileno(disp->display->fp) , "\x1b[?25h" , 6) ;
+	write( fileno(disp->display->fp) , "\x1b[?1002l\x1b[?1006l" , 16) ;
+	fclose( disp->display->fp) ;
+	(*disp->display->conv->delete)( disp->display->conv) ;
+
+	for( count = 0 ; count < num_of_displays ; count++)
+	{
+		if( displays[count] == disp)
+		{
+			memcpy( displays + count , displays + count + 1 ,
+				sizeof(x_display_t*) * (num_of_displays - count - 1)) ;
+			num_of_displays -- ;
+
+			break ;
+		}
+	}
+
+	return  1 ;
 }
 
 int
 x_display_close_all(void)
 {
-	if( DISP_IS_INITED)
+	u_int  count ;
+
+	end_server() ;
+
+	for( count = num_of_displays ; count > 0 ; count--)
 	{
-		x_picture_display_closed( _disp.display) ;
-
-		free( _disp.roots) ;
-
-		/* DISP_IS_INITED is false from here. */
-		_disp.display = NULL ;
+		x_display_close( displays[count - 1]) ;
 	}
+
+	free( displays) ;
+	displays = NULL ;
 
 	return  1 ;
 }
+
+/* XXX */
+int  x_event_source_add_fd( int  fd , void (*handler)(void)) ;
 
 x_display_t **
 x_get_opened_displays(
 	u_int *  num
 	)
 {
-	static x_display_t *  opened_disp = &_disp ;
-
-	if( ! DISP_IS_INITED)
+	if( sock_fd == -1)
 	{
-		*num = 0 ;
-
-		return  NULL ;
+		start_server() ;
+		x_event_source_add_fd( sock_fd , client_connected) ;
 	}
 
-	*num = 1 ;
+	*num = num_of_displays ;
 
-	return  &opened_disp ;
+	return  displays ;
 }
 
 int
@@ -982,7 +1297,7 @@ x_display_receive_next_event(
 	x_display_t *  disp
 	)
 {
-	return  receive_stdin_key_event() ;
+	return  receive_stdin_event( disp) ;
 }
 
 
@@ -1038,11 +1353,11 @@ void
 x_display_reset_input_method_window(void)
 {
 #if  0
-	if( _disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
+	if( displays[0]->num_of_roots == 2 && displays[0]->roots[1]->is_mapped)
 #endif
 	{
-		check_visibility_of_im_window() ;
-		x_window_clear_margin_area( _disp.roots[1]) ;
+		check_visibility_of_im_window( displays[0]) ;
+		x_window_clear_margin_area( displays[0]->roots[1]) ;
 	}
 }
 

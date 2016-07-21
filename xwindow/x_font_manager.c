@@ -101,7 +101,7 @@ change_font_cache(
 	return  1 ;
 }
 
-static int
+static void
 adjust_font_size(
 	u_int *  font_size
 	)

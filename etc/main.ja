@@ -100,6 +100,9 @@
 # 文字コードの自動判定を行う
 # use_auto_detect = false
 
+# mlterm-con が動作するコンソールのエンコーディング
+# console_encoding = auto
+
 # -- Font 関連 --
 # デフォルトフォントサイズ
 # fontsize = 16

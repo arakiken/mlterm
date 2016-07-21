@@ -193,7 +193,7 @@ x_prepare_for_main_config(
 		"columns for Unicode \"EastAsianAmbiguous\" character [1]") ;
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
 		"background color") ;
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
 #endif
@@ -389,7 +389,7 @@ x_main_config_init(
 		kik_locale_init( value) ;
 	}
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
 #endif
 	{

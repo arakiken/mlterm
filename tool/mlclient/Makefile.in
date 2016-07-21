@@ -17,11 +17,20 @@ OBJ = main.o
 
 PROG = mlclient
 
-all: $(PROG)
+TARGET_xlib = $(PROG)
+TARGET_win32 = $(PROG)
+TARGET_fb = $(PROG)
+TARGET_quartz = $(PROG)
+TARGET_console = $(PROG)-con
+
+all: $(TARGET_@GUI@)
 
 $(PROG): $(OBJ)
 	$(CC) -o $(PROG) $(OBJ) $(LIBS) @LDFLAGS@
 	cp $(PROG) $(PROG)x
+
+$(PROG)-con: main-con.o
+	$(CC) -o $(PROG)-con main-con.o $(LIBS) @LDFLAGS@
 
 .SUFFIXES: .c.o
 
@@ -29,7 +38,7 @@ $(PROG): $(OBJ)
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(OBJ) $(PROG) $(PROG).exe $(PROG)x $(PROG)x.exe *core 
+	rm -f $(OBJ) main-con.o $(PROG)* *core
 
 distclean: clean
 	rm -f Makefile
@@ -38,7 +47,8 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 install: $(BINDIR)
-	$(INSTALL) -m 755 $(PROG) $(PROG)x $(BINDIR)
+	$(INSTALL) -m 755 $(PROG)* $(BINDIR)
 
 uninstall:
-	rm -f $(BINDIR)/$(PROG) $(BINDIR)/$(PROG)x
+	rm -f $(BINDIR)/$(PROG) $(BINDIR)/$(PROG)x $(BINDIR)/$(PROG)-con
+

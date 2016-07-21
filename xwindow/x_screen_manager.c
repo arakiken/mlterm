@@ -602,7 +602,11 @@ open_screen_intern(
 		}
 	}
 
-	if( ( disp = x_display_open( main_config.disp_name , depth)) == NULL)
+	if( layout)
+	{
+		disp = layout->window.disp ;
+	}
+	else if( ( disp = x_display_open( main_config.disp_name , depth)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_display_open failed.\n") ;
@@ -1290,7 +1294,7 @@ mlclient(
 #endif
 
 	if( argc == 0
-	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+	#if  defined(USE_FRAMEBUFFER)
 	    || screen == NULL
 	#endif
 	    )
@@ -1336,7 +1340,7 @@ mlclient(
 		char **  server_list ;
 	#endif
 		
-		if( argc >= 2 && *argv[1] != '-')
+		if( argc >= 2 && *(argv[1]) != '-')
 		{
 			/*
 			 * mlclient [dev] [options...]

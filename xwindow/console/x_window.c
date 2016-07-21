@@ -1141,7 +1141,6 @@ x_window_fill_with(
 	x += (win->x + win->hmargin) ;
 	y += (win->y + win->vmargin) ;
 
-	kik_debug_printf( "%x\n" , color->pixel) ;
 	if( color->pixel < 0x8)
 	{
 		fprintf( win->disp->display->fp , "\x1b[%dm" , color->pixel + 40) ;

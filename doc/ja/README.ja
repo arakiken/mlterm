@@ -454,6 +454,9 @@ comment $Id$
         あらかじめ、auto_detect_encodings オプションで候補とするエンコーディング
         を指定しておく必要があります。
 
+      o console_encoding (*auto*)
+        mlterm-con が動作するコンソールのエンコーディング
+
       -- Font 関連 --
       o fontsize  (*16*) (#)
         フォントサイズ

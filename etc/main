@@ -73,6 +73,8 @@
 
 # use_auto_detect = false
 
+# console_encoding = auto
+
 # -- Font --
 # fontsize = 16
 

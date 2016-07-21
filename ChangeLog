@@ -1,3 +1,22 @@
+2016-07-18  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen_manager.c: open_screen_intern() uses layout->window.disp instead of
+	  calling x_display_open() if layout is not NULL.
+
+	* man/mlterm.1, doc/ja/README.ja, etc/main, etc/main.ja: Updated.
+
+	* x_font_manager.c: The type of returned value of adjust_font_size() is changed
+	  from void to int.
+
+	* x_main_config.c: mlterm-con accepts -d option.
+
+	* console/x_display.c:
+	  - Server mode via unix domai socket of ~/.mlterm/socket-con is supported.
+	  - Multiple displays are managed.
+
+	* mlclient/main-con.c, mlclient/Makefile, mlclient/Makefile.in:
+	  mlclient-con is added.
+
 2016-07-09  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: A patch at http://the.nyarla.net/entry/2016/06/03/195013 is merged.

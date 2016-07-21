@@ -105,7 +105,7 @@ void  x_display_update_modifier_mapping( x_display_t *  disp ,	u_int  serial) ;
 
 XID  x_display_get_group_leader( x_display_t *  disp) ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 void  x_display_set_use_ansi_colors( int  use) ;
 
 int  x_display_reset_cmap(void) ;

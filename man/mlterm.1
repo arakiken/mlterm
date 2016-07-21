@@ -533,6 +533,13 @@ Use either unicode font or DEC Special font forcibly to draw box-drawing charact
 \fBunicode\fR for unicode font and \fBdecsp\fR for DEC special font.
 The default is \fBnoconv\fR which draw them as they are.
 .TP
+\fB\-\-ckm\fR=\fIencoding\fR
+Specify encoding of the console where mlterm-con works.
+Valid encodings are listed in \fBDESCRIPTION\fR section
+above in this man page.
+\fBAUTO\fR makes mlterm determine the according according to
+the current locale (default \fBAUTO\fR).
+.TP
 \fB\-\-co\fR=\fIvalue\fR
 Specify the color to use to display crossed-out characters.
 .TP
@@ -1322,6 +1329,9 @@ Number of columns of Unicode characters with EastAsianAmbiguous property.
 .TP
 \fBcompose_dec_special_font=\fIbool\fR (\fB\-Y\fR, \fB\-\-decsp\fR)
 Compose line drawing character set.
+.TP
+\fBconsole_encoding=\fIencoding\fR (\fB\-\-ckm\fR)
+Specify encoding of the console where mlterm-con works.
 .TP
 \fBcontrast=\fIvalue\fR (\fB\-3\fR, \fB\-\-contrast\fR)
 Contrast of background image in percent.
