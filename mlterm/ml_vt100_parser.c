@@ -96,7 +96,7 @@
 #define  SUPPORT_VTE_CJK_WIDTH
 #endif
 
-#if  1
+#ifndef  NO_IMAGE
 #define  SUPPORT_ITERM2_OSC1337
 #endif
 

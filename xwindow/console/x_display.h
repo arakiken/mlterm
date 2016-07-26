@@ -55,5 +55,12 @@ int  x68k_tvram_is_enabled(void) ;
 int  x68k_tvram_set_wall_picture( u_short *  image , u_int  width , u_int  height) ;
 #endif
 
+#ifdef  USE_LIBSIXEL
+void  x_display_output_picture( x_display_t *  disp , u_char *  picture ,
+	u_int  width , u_int  height) ;
+#else
+#define  x_display_output_picture( disp , picture , width , height)  (0)
+#endif
+
 
 #endif

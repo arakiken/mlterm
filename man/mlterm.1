@@ -218,7 +218,7 @@ The default is "\fB ,.:;/|@()[]{}\fR")
 .TP
 \fB\-X\fR, \fB\-\-alpha\fR=\fIvalue\fR
 Alpha in pseudo or true transparent.
-The default is 255.
+The default is \fB255\fR.
 .TP
 \fB\-Y\fR, \fB\-\-decsp\fR(=\fIbool\fR)
 Use dynamically composed line drawing character set
@@ -533,6 +533,9 @@ Use either unicode font or DEC Special font forcibly to draw box-drawing charact
 \fBunicode\fR for unicode font and \fBdecsp\fR for DEC special font.
 The default is \fBnoconv\fR which draw them as they are.
 .TP
+\fB\-\-ciphlist\fR=\fIvalue\fR
+Specify ciphers (comma separated list) for encrypting the ssh session.
+.TP
 \fB\-\-ckm\fR=\fIencoding\fR
 Specify encoding of the console where mlterm-con works.
 Valid encodings are listed in \fBDESCRIPTION\fR section
@@ -547,12 +550,17 @@ Specify the color to use to display crossed-out characters.
 Whether to recognize ANSI color change escape sequences.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-csc\fR=\fIvalue\fR
+Specify the number of sixel graphics colors of the console where mlterm-con works.
+A valid value is 16, 256 or full. The default is \fB16\fR.
+.TP
 \fB\-\-csp\fR=\fIvalue\fR
 Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
 The default is \fB0\fR.
 .TP
-\fB\-\-ciphlist\fR=\fIvalue\fR
-Specify ciphers (comma separated list) for encrypting the ssh session.
+\fB\-\-csz\fR=\fIvalue\fR
+Specify cell width and height in pixel which mlterm-con uses if it doesn't get them.
+The default is \fB8,16\fR.
 .TP
 \fB\-\-depth\fR=\fIvalue\fR
 Specify visual depth. (8,16,24,32)
@@ -1333,6 +1341,9 @@ Compose line drawing character set.
 \fBconsole_encoding=\fIencoding\fR (\fB\-\-ckm\fR)
 Specify encoding of the console where mlterm-con works.
 .TP
+\fBconsole_sixel_colors=\fIvalue\fR (\fB\-\-csc\fR)
+Specify the number of sixel graphics colors of the console where mlterm-con works.
+.TP
 \fBcontrast=\fIvalue\fR (\fB\-3\fR, \fB\-\-contrast\fR)
 Contrast of background image in percent.
 .TP
@@ -1350,6 +1361,9 @@ Specify encoding.
 .TP
 \fBdaemon_mode=\fImode\fR (\fB\-j\fR, \fB\-\-daemon\fR)
 Start as a daemon process.
+.TP
+\fBdefault_cell_size=\fIvalue\fR (\fB\-\-csz\fR)
+Specify cell width and height in pixel which mlterm-con uses if it doesn't get them.
 .TP
 \fBdefault_server=\fIvalue\fR (\fB\-\-serv\fR)
 Specify a host you want to connect via ssh etc.

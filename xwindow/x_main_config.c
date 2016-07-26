@@ -360,6 +360,10 @@ x_prepare_for_main_config(
 #ifdef  USE_CONSOLE
 	kik_conf_add_opt( conf , '\0' , "ckm" , 0 , "console_encoding" ,
 		"character encoding of console [none]") ;
+	kik_conf_add_opt( conf , '\0' , "csc" , 0 , "console_sixel_colors" ,
+		"the number of sixel colors of console [16]") ;
+	kik_conf_add_opt( conf , '\0' , "csz" , 0 , "default_cell_size" ,
+		"default cell size [8,16]") ;
 #endif
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
@@ -1059,8 +1063,24 @@ x_main_config_init(
 					&main_config->is_auto_encoding) ;
 
 #ifdef  USE_CONSOLE
-	x_display_set_char_encoding(
+	x_display_set_char_encoding( NULL ,
 		get_encoding( kik_conf_get_value( conf , "console_encoding") , NULL)) ;
+
+	if( ( value = kik_conf_get_value( conf , "console_sixel_colors")))
+	{
+		x_display_set_sixel_colors( NULL , value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "cell_size")))
+	{
+		u_int  width ;
+		u_int  height ;
+
+		if( sscanf( value , "%d,%d" , &width , &height) == 2)
+		{
+			x_display_set_default_cell_size( width , height) ;
+		}
+	}
 #endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || defined(USE_OT_LAYOUT)

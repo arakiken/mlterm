@@ -26,13 +26,19 @@
 
 #include  <ml_color.h>
 
+#ifdef  __linux__
+#include  <linux/keyboard.h>
+#endif
+
+#ifdef  USE_LIBSIXEL
+#include  <sixel.h>
+#endif
+
 #include  "../x_window.h"
 #include  "../x_picture.h"
 
 
 /* --- static variables --- */
-
-static int  sock_fd = -1 ;
 
 static x_display_t **  displays ;
 static u_int  num_of_displays ;
@@ -40,6 +46,9 @@ static u_int  num_of_displays ;
 static struct termios  orig_tm ;
 
 static ml_char_encoding_t  encoding = ML_UTF8 ;
+
+static u_int  default_col_width = 8 ;
+static u_int  default_line_height = 16 ;
 
 
 /* --- static functions --- */
@@ -105,8 +114,8 @@ set_winsize(
 
 	if( disp->width == 0)
 	{
-		disp->width = ws.ws_col * 8 ;
-		disp->display->col_width = 8 ;
+		disp->width = ws.ws_col * default_col_width ;
+		disp->display->col_width = default_col_width ;
 	}
 	else
 	{
@@ -116,8 +125,8 @@ set_winsize(
 
 	if( disp->height == 0)
 	{
-		disp->height = ws.ws_row * 16 ;
-		disp->display->line_height = 16 ;
+		disp->height = ws.ws_row * default_line_height ;
+		disp->display->line_height = default_line_height ;
 	}
 	else
 	{
@@ -152,153 +161,6 @@ sig_winch(
 	signal( SIGWINCH , sig_winch) ;
 }
 
-static void
-end_server(void)
-{
-	close( sock_fd) ;
-}
-
-static int
-start_server(void)
-{
-	char *  path ;
-	struct sockaddr_un  servaddr ;
-	int  fd ;
-
-	if( ! ( path = kik_get_user_rc_path( "mlterm/socket-con")))
-	{
-		return  0 ;
-	}
-
-	memset( &servaddr , 0 , sizeof( servaddr)) ;
-	servaddr.sun_family = AF_LOCAL ;
-	strcpy( servaddr.sun_path , path) ;
-	free( path) ;
-	path = servaddr.sun_path ;
-
-	if( ( fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
-	{
-		return  0 ;
-	}
-	kik_file_set_cloexec( fd) ;
-
-	for( ;;)
-	{
-		int  ret ;
-		int  saved_errno ;
-		mode_t  mode ;
-
-		mode = umask( 077) ;
-		ret = bind( fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) ;
-		saved_errno = errno ;
-		umask( mode) ;
-
-		if( ret == 0)
-		{
-			break ;
-		}
-		else if( saved_errno == EADDRINUSE)
-		{
-			if( connect( fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
-			{
-				kik_msg_printf( "Disable server because another server "
-					"has already started.\n") ;
-				close( fd) ;
-				sock_fd = -2 ;
-
-				return  0 ;
-			}
-
-			if( unlink( path) == 0)
-			{
-				continue ;
-			}
-		}
-		else
-		{
-			close( fd) ;
-
-			return  0 ;
-		}
-	}
-
-	if( listen( fd , 1024) < 0)
-	{
-		close( fd) ;
-		unlink( path) ;
-
-		return  0 ;
-	}
-
-	sock_fd = fd ;
-
-	return  1 ;
-}
-
-/* XXX */
-int  x_mlclient( char *  args , FILE *  fp) ;
-
-static void
-client_connected(void)
-{
-	struct sockaddr_un  addr ;
-	socklen_t  sock_len ;
-	int  fd ;
-	char  ch ;
-	char  cmd[1024] ;
-	size_t  cmd_len ;
-	int  dopt_added = 0 ;
-
-	sock_len = sizeof( addr) ;
-
-	if( ( fd = accept( sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
-	{
-		return ;
-	}
-
-	for( cmd_len = 0 ; cmd_len < sizeof(cmd) - 1 ; cmd_len++)
-	{
-		if( read( fd , &ch , 1) <= 0)
-		{
-			close( fd) ;
-
-			return ;
-		}
-
-		if( ch == '\n')
-		{
-			break ;
-		}
-		else
-		{
-			if( ! dopt_added && ch == ' ')
-			{
-				if( cmd_len + 11 + DIGIT_STR_LEN(fd) + 1 > sizeof(cmd))
-				{
-					close( fd) ;
-
-					return ;
-				}
-
-				sprintf( cmd + cmd_len , " -d client:%d" , fd) ;
-				cmd_len += strlen( cmd + cmd_len) ;
-				dopt_added = 1 ;
-			}
-
-			cmd[cmd_len] = ch ;
-		}
-	}
-	cmd[cmd_len] = '\0' ;
-
-	x_mlclient( cmd , stdout) ;
-
-	if( num_of_displays == 0 ||
-	    fileno( displays[num_of_displays - 1]->display->fp) != fd)
-	{
-		close( fd) ;
-	}
-}
-
 static x_display_t *
 open_display_socket(
 	int  fd
@@ -321,7 +183,7 @@ open_display_socket(
 		return  NULL ;
 	}
 
-	if( ! ( displays[num_of_displays]->display->fp = fdopen( fd , "r+")))
+	if( ! ( displays[num_of_displays]->display->fp = fdopen( fd , "w")))
 	{
 		free( displays[num_of_displays]->display) ;
 		free( displays[num_of_displays]) ;
@@ -380,6 +242,7 @@ open_display_console(void)
 	}
 
 	fd = fileno( displays[0]->display->fp) ;
+	kik_file_set_cloexec( fd) ;
 
 	close( STDIN_FILENO) ;
 	close( STDOUT_FILENO) ;
@@ -739,12 +602,12 @@ receive_stdin_event(
 			}
 		}
 
-		return  1 ;
+		return  0 ;
 	}
 
 	p = disp->display->buf ;
 
-	while( *p)
+	while( p - disp->display->buf < disp->display->buf_len)
 	{
 		XKeyEvent  kev ;
 		u_char *  param ;
@@ -786,7 +649,6 @@ receive_stdin_event(
 					{
 						break ;
 					}
-					set_blocking( fileno( disp->display->fp) , 1) ;
 
 					continue ;
 				}
@@ -1007,7 +869,6 @@ receive_stdin_event(
 					{
 						break ;
 					}
-					set_blocking( fileno( disp->display->fp) , 1) ;
 
 					continue ;
 				}
@@ -1076,6 +937,10 @@ receive_stdin_event(
 
 				kev.state = ControlMask ;
 			}
+			else if( 'A' <= kev.ksym && kev.ksym <= 'Z')
+			{
+				kev.state = ShiftMask ;
+			}
 		}
 
 		set_blocking( fileno(disp->display->fp) , 1) ;
@@ -1088,7 +953,7 @@ receive_stdin_event(
 		memcpy( disp->display->buf , p , disp->display->buf_len + 1) ;
 	}
 
-	set_blocking( fileno(disp->display->fp) , 1) ;
+	set_blocking( fileno( disp->display->fp) , 1) ;
 
 	return  1 ;
 }
@@ -1123,7 +988,10 @@ x_display_close(
 {
 	u_int  count ;
 
+	/* inline pictures are alive until ml_term_t is deleted. */
+#if  0
 	x_picture_display_closed( disp->display) ;
+#endif
 
 	if( isatty( fileno(disp->display->fp)))
 	{
@@ -1156,8 +1024,6 @@ x_display_close_all(void)
 {
 	u_int  count ;
 
-	end_server() ;
-
 	for( count = num_of_displays ; count > 0 ; count--)
 	{
 		x_display_close( displays[count - 1]) ;
@@ -1169,20 +1035,11 @@ x_display_close_all(void)
 	return  1 ;
 }
 
-/* XXX */
-int  x_event_source_add_fd( int  fd , void (*handler)(void)) ;
-
 x_display_t **
 x_get_opened_displays(
 	u_int *  num
 	)
 {
-	if( sock_fd == -1)
-	{
-		start_server() ;
-		x_event_source_add_fd( sock_fd , client_connected) ;
-	}
-
 	*num = num_of_displays ;
 
 	return  displays ;
@@ -1380,8 +1237,113 @@ x_display_set_use_ansi_colors(
 
 void
 x_display_set_char_encoding(
+	x_display_t *  disp ,
 	ml_char_encoding_t  e
 	)
 {
 	encoding = e ;
+
+	if( disp)
+	{
+		(*disp->display->conv->delete)( disp->display->conv) ;
+		disp->display->conv = ml_conv_new( encoding) ;
+	}
 }
+
+void
+x_display_set_default_cell_size(
+	u_int  width ,
+	u_int  height
+	)
+{
+	default_col_width = width ;
+	default_line_height = height ;
+}
+
+
+#ifdef  USE_LIBSIXEL
+static int  dither_id = BUILTIN_XTERM16 ;
+
+void
+x_display_set_sixel_colors(
+	x_display_t *  disp ,
+	const char *  colors
+	)
+{
+	if( strcmp( colors , "256") == 0)
+	{
+		dither_id = BUILTIN_XTERM256 ;
+	}
+	else if( strcmp( colors , "full") == 0)
+	{
+		dither_id = -1 ;
+	}
+	else
+	{
+		dither_id = BUILTIN_XTERM16 ;
+	}
+
+	if( disp)
+	{
+		if( disp->display->sixel_dither)
+		{
+			sixel_dither_destroy( disp->display->sixel_dither) ;
+		}
+
+		if( dither_id == -1)
+		{
+			disp->display->sixel_dither = sixel_dither_create( -1) ;
+		}
+		else
+		{
+			disp->display->sixel_dither = sixel_dither_get( dither_id) ;
+		}
+
+		sixel_dither_set_pixelformat( disp->display->sixel_dither ,
+			PIXELFORMAT_RGBA8888) ;
+	}
+}
+
+static int
+callback(
+	char *  data ,
+	int  size ,
+	void *  out
+	)
+{
+	return  fwrite( data , 1 , size , out) ;
+}
+
+void
+x_display_output_picture(
+	x_display_t *  disp ,
+	u_char *  picture ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	if( ! disp->display->sixel_output)
+	{
+		disp->display->sixel_output =
+			sixel_output_create( callback , disp->display->fp) ;
+	}
+
+	if( ! disp->display->sixel_dither)
+	{
+		if( dither_id == -1)
+		{
+			disp->display->sixel_dither = sixel_dither_create( -1) ;
+		}
+		else
+		{
+			disp->display->sixel_dither = sixel_dither_get( dither_id) ;
+		}
+
+		sixel_dither_set_pixelformat( disp->display->sixel_dither ,
+			PIXELFORMAT_RGBA8888) ;
+	}
+
+	sixel_encode( picture , width , height , 4 ,
+		disp->display->sixel_dither , disp->display->sixel_output) ;
+}
+#endif

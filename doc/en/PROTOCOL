@@ -52,7 +52,8 @@ version 20160508
                      unicode_noconv_areas | unicode_full_width_areas | box_drawing_font |
                      use_urgent_bell | allow_osc52 | allow_scp | auto_detect_encodings |
                      use_auto_detect | use_extended_scroll_shortcut | use_ot_layout |
-                     ot_script | ot_features | regard_uri_as_word | vt_color_mode
+                     ot_script | ot_features | regard_uri_as_word | vt_color_mode |
+                     console_encoding | console_sixel_colors
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -97,6 +98,8 @@ version 20160508
   col_size_of_width_a = 1 | 2
   contrast = <any ASCII decimal digit>
   co_colors = <color name> | <color rgb>
+  console_encoding = <encoding name> | auto
+  console_sixel_colors = 16 | 256 | full
   cursor_bg_color = <color name> | <color rgb>
   cursor_fg_color = <color name> | <color rgb>
   encoding = <encoding name> | auto

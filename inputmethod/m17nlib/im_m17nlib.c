@@ -156,7 +156,7 @@ xksym_to_msymbol(
 		return  msymbol( buf) ;
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	return  Mnil ;
 #else
 	if( is_shift)

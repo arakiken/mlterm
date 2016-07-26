@@ -47,6 +47,12 @@
 # 起動時に立ち上げるウィンドウの数
 # startup_screens = 1
 
+# mlterm-con がセルの幅と高さのピクセル数を取得できなかった場合に使用するデフォルトの幅と高さ
+# default_cell_size = 8,16
+
+# mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
+# console_sixel_colors = 16
+
 # -- Encoding 関連 --
 # エンコーディングの指定
 # (ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),

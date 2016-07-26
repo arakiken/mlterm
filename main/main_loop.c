@@ -491,6 +491,12 @@ main_loop_start(void)
 
 			break ;
 		}
+	#ifdef  USE_CONSOLE
+		else if( ml_get_all_terms( NULL) == 0)
+		{
+			break ;
+		}
+	#endif
 
 		kik_alloca_end_stack_frame() ;
 	}

@@ -819,6 +819,10 @@ x_picture_display_closed(
 			/*
 			 * Don't set x_inline_picture_t::pixmap = None here because
 			 * this inline picture can still exist in ml_term_t.
+			 *
+			 * disp = NULL is for platforms where
+			 * INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS is not defined.
+			 * (see draw_picture() in x_draw_str.c)
 			 */
 			inline_pics[count].disp = NULL ;
 		}

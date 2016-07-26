@@ -361,6 +361,14 @@ comment $Id$
       o startup_screens (*1*)
         起動時に立ち上げるウィンドウの数
 
+      o default_cell_size (*8,16*)
+        mlterm-con がセルの幅と高さのピクセル数を取得できなかった場合に使用する
+        デフォルトの幅と高さ
+
+      o console_sixel_colors (*16*)
+        mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
+        16, 256, full のいずれかを指定します。
+
       -- Encoding 関連 --
       o encoding  (*auto*) (#)
         エンコーディングの指定
@@ -1330,6 +1338,9 @@ comment $Id$
        --maxptys=value : max_ptys (X)
        --keepalive=value: ssh_keepalive_interval (X)
        --metaprefix    : mod_meta_prefix (X)
+       --ckm=value     : console_encoding
+       --csc=value     : console_sixel_colors
+       --csz=value     : default_cell_size (X)
 
     -e ... : 指定したコマンドを起動
 

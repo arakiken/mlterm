@@ -1120,7 +1120,7 @@ key_event(
 		kik_msg_printf( ">>ksym            : %.8x\n" , ksym) ;
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	uim->pressing_mod_key = ~0 ;
 #else
 	if( ! ( event->state & uim->mod_ignore_mask))

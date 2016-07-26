@@ -7,14 +7,11 @@ OBJ = main.o
 
 PROG = mlclient
 
-all: $(PROG) $(PROG)-con
+all: $(PROG)
 
 $(PROG): $(OBJ)
 	$(CC) -o $(PROG) $(OBJ) $(LIBS)
 	cp $(PROG) $(PROG)x
-
-$(PROG)-con: main-con.o
-	$(CC) -o $(PROG)-con main-con.o $(LIBS)
 
 .SUFFIXES: .c.o
 
@@ -22,4 +19,4 @@ $(PROG)-con: main-con.o
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(OBJ) main-con.o $(PROG)* *core
+	rm -f $(OBJ) $(PROG)* *core

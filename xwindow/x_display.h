@@ -121,7 +121,11 @@ void  x_display_reset_input_method_window(void) ;
 #ifdef  USE_CONSOLE
 #include  <ml_char_encoding.h>
 
-void  x_display_set_char_encoding( ml_char_encoding_t  encoding) ;
+void  x_display_set_char_encoding( x_display_t *  disp , ml_char_encoding_t  encoding) ;
+
+void  x_display_set_sixel_colors( x_display_t *  disp , const char *  colors) ;
+
+void  x_display_set_default_cell_size( u_int  width , u_int  height) ;
 #endif
 
 

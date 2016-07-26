@@ -7,7 +7,7 @@ bindir = @bindir@
 VPATH = ${top_srcdir}/tool/mlclient
 
 CC = @CC@
-CFLAGS = @CFLAGS@ @CPPFLAGS@ @GUI_CFLAGS@
+CFLAGS = @CFLAGS@ @CPPFLAGS@
 LIBS = @SOCK_LIBS@
 INSTALL = @INSTALL@
 
@@ -17,20 +17,11 @@ OBJ = main.o
 
 PROG = mlclient
 
-TARGET_xlib = $(PROG)
-TARGET_win32 = $(PROG)
-TARGET_fb = $(PROG)
-TARGET_quartz = $(PROG)
-TARGET_console = $(PROG)-con
-
-all: $(TARGET_@GUI@)
+all: $(PROG)
 
 $(PROG): $(OBJ)
 	$(CC) -o $(PROG) $(OBJ) $(LIBS) @LDFLAGS@
 	cp $(PROG) $(PROG)x
-
-$(PROG)-con: main-con.o
-	$(CC) -o $(PROG)-con main-con.o $(LIBS) @LDFLAGS@
 
 .SUFFIXES: .c.o
 
@@ -38,7 +29,7 @@ $(PROG)-con: main-con.o
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(OBJ) main-con.o $(PROG)* *core
+	rm -f $(OBJ) $(PROG)* *core
 
 distclean: clean
 	rm -f Makefile
@@ -50,5 +41,4 @@ install: $(BINDIR)
 	$(INSTALL) -m 755 $(PROG)* $(BINDIR)
 
 uninstall:
-	rm -f $(BINDIR)/$(PROG) $(BINDIR)/$(PROG)x $(BINDIR)/$(PROG)-con
-
+	rm -f $(BINDIR)/$(PROG) $(BINDIR)/$(PROG)x

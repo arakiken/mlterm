@@ -34,10 +34,10 @@ $(PROG): $(OBJ)
 .c.o:
 	$(LIBTOOL_CC) -c $<
 
-$(BINDIR)/mlterm:
-	mkdir -p $(BINDIR)/mlterm
+$(BINDIR):
+	mkdir -p $(BINDIR)
 
-install: $(BINDIR)/mlterm
+install: $(BINDIR)
 	$(LIBTOOL_INSTALL) $(PROG) $(BINDIR)
 
 uninstall:

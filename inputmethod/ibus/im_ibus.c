@@ -35,7 +35,7 @@ typedef struct im_ibus
 
 	ml_char_encoding_t  term_encoding ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	mkf_parser_t *  parser_term ;	/* for term encoding */
 #endif
 	mkf_conv_t *  conv ;		/* for term encoding */
@@ -48,7 +48,7 @@ typedef struct im_ibus
 
 	XKeyEvent  prev_key ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	gchar *  prev_first_cand ;
 	u_int  prev_num_of_cands ;
 #endif
@@ -258,7 +258,7 @@ update_preedit_text(
 	}
 	else
 	{
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		if( ibus->im.cand_screen)
 		{
 			(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
@@ -298,7 +298,7 @@ hide_preedit_text(
 		return ;
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( ibus->im.cand_screen)
 	{
 		(*ibus->im.cand_screen->hide)( ibus->im.cand_screen) ;
@@ -373,7 +373,7 @@ commit_text(
 		}
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( ibus->im.cand_screen)
 	{
 		(*ibus->im.cand_screen->delete)( ibus->im.cand_screen) ;
@@ -396,7 +396,7 @@ forward_key_event(
 	ibus = (im_ibus_t*) data ;
 
 	if( ibus->prev_key.keycode ==
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			keycode
 		#else
 			keycode + 8
@@ -404,14 +404,14 @@ forward_key_event(
 			)
 	{
 		ibus->prev_key.state |= IBUS_IGNORED_MASK ;
-	#ifndef  USE_FRAMEBUFFER
+	#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 		XPutBackEvent( ibus->prev_key.display , &ibus->prev_key) ;
 	#endif
 		memset( &ibus->prev_key , 0 , sizeof(XKeyEvent)) ;
 	}
 }
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 
 static void
 show_lookup_table(
@@ -646,7 +646,7 @@ delete(
 		(*ibus->conv->delete)( ibus->conv) ;
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( ibus->parser_term)
 	{
 		(*ibus->parser_term->delete)( ibus->parser_term) ;
@@ -678,7 +678,7 @@ delete(
 	return  ref_count ;
 }
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 static KeySym
 native_to_ibus_ksym(
 	KeySym  ksym
@@ -801,7 +801,7 @@ key_event(
 		event->state &= ~IBUS_IGNORED_MASK ;
 	}
 	else if( ibus_input_context_process_key_event( ibus->context , native_to_ibus_ksym( ksym) ,
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			event->keycode ,
 			event->state
 		#else
@@ -1031,7 +1031,7 @@ context_new(
 	}
 
 	ibus_input_context_set_capabilities( context ,
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_LOOKUP_TABLE
 	#else
 		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT
@@ -1045,7 +1045,7 @@ context_new(
 	g_signal_connect( context , "commit-text" , G_CALLBACK( commit_text) , ibus) ;
 	g_signal_connect( context , "forward-key-event" ,
 			G_CALLBACK( forward_key_event) , ibus) ;
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	g_signal_connect( context , "update-lookup-table" ,
 			G_CALLBACK( update_lookup_table) , ibus) ;
 	g_signal_connect( context , "show-lookup-table" ,
@@ -1201,7 +1201,7 @@ im_ibus_new(
 		}
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( ! ( ibus->parser_term = (*syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
@@ -1259,7 +1259,7 @@ error:
 			(*ibus->conv->delete)( ibus->conv) ;
 		}
 
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		if( ibus->parser_term)
 		{
 			(*ibus->parser_term->delete)( ibus->parser_term) ;

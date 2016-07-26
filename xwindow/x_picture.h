@@ -12,6 +12,14 @@
 #include  "x.h"				/* XA_PIXMAP */
 #include  "x_window.h"
 
+/*
+ * See also fb/x_display.c and console/x_display.c where x_picture_display_closed()
+ * is never called.
+ */
+#if  defined(USE_CONSOLE) || defined(USE_FRAMEBUFFER)
+#define  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
+#endif
+
 
 typedef struct x_picture_modifier
 {

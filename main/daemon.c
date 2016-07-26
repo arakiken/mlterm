@@ -35,6 +35,71 @@ static char *  un_file ;
 
 /* --- static functions --- */
 
+#ifdef  USE_CONSOLE
+static void
+client_connected(void)
+{
+	struct sockaddr_un  addr ;
+	socklen_t  sock_len ;
+	int  fd ;
+	char  ch ;
+	char  cmd[1024] ;
+	size_t  cmd_len ;
+	int  dopt_added = 0 ;
+	u_int  num ;
+	x_display_t **  displays ;
+
+	sock_len = sizeof( addr) ;
+
+	if( ( fd = accept( sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
+	{
+		return ;
+	}
+
+	for( cmd_len = 0 ; cmd_len < sizeof(cmd) - 1 ; cmd_len++)
+	{
+		if( read( fd , &ch , 1) <= 0)
+		{
+			close( fd) ;
+
+			return ;
+		}
+
+		if( ( ch == ' ' || ch == '\n') && ! dopt_added)
+		{
+			if( cmd_len + 11 + DIGIT_STR_LEN(fd) + 1 > sizeof(cmd))
+			{
+				close( fd) ;
+
+				return ;
+			}
+
+			sprintf( cmd + cmd_len , " -d client:%d" , fd) ;
+			cmd_len += strlen( cmd + cmd_len) ;
+			dopt_added = 1 ;
+		}
+
+		if( ch == '\n')
+		{
+			break ;
+		}
+		else
+		{
+			cmd[cmd_len] = ch ;
+		}
+	}
+	cmd[cmd_len] = '\0' ;
+
+	x_mlclient( cmd , stdout) ;
+
+	displays = x_get_opened_displays( &num) ;
+
+	if( num == 0 || fileno( displays[num - 1]->display->fp) != fd)
+	{
+		close( fd) ;
+	}
+}
+#else
 static void
 client_connected(void)
 {
@@ -132,6 +197,7 @@ crit_error:
 		close( fd) ;
 	}
 }
+#endif
 
 
 /* --- global functions --- */
@@ -143,7 +209,11 @@ daemon_init(void)
 	struct sockaddr_un  servaddr ;
 	char *  path ;
 
+#ifdef  USE_CONSOLE
+	if( ( path = kik_get_user_rc_path( "mlterm/socket-con")) == NULL)
+#else
 	if( ( path = kik_get_user_rc_path( "mlterm/socket")) == NULL)
+#endif
 	{
 		return  0 ;
 	}
@@ -172,7 +242,6 @@ daemon_init(void)
 
 		return  0 ;
 	}
-	kik_file_set_cloexec( sock_fd);
 
 	for( ;;)
 	{
@@ -258,6 +327,14 @@ daemon_init(void)
 	{
 		goto  error ;
 	}
+
+	kik_file_set_cloexec( sock_fd) ;
+
+#ifndef  DEBUG
+	close( STDIN_FILENO) ;
+	close( STDOUT_FILENO) ;
+	close( STDERR_FILENO) ;
+#endif
 
 	/* Mark started as daemon. */
 	un_file = strdup( path) ;

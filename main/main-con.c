@@ -17,6 +17,12 @@
 #include  <netinet/in.h>
 #include  <termios.h>
 #include  <sys/stat.h>
+#include  <sys/ioctl.h>
+#include  <sys/wait.h>
+
+#ifndef  LIBEXECDIR
+#define  LIBEXECDIR  "/usr/local/libexec"
+#endif
 
 
 /* --- static variables --- */
@@ -27,6 +33,14 @@ static struct termios  std_tio ;
 
 
 /* --- static functions --- */
+
+static void
+sig_child(
+	int  sig
+	)
+{
+	waitpid( -1 , NULL , WNOHANG) ;
+}
 
 static void
 help(void)
@@ -113,6 +127,27 @@ sig_winch(
 }
 
 static int
+set_cloexec(
+	int fd
+	)
+{
+	int  old_flags ;
+
+	if( ( old_flags = fcntl( fd, F_GETFD)) == -1)
+	{
+		return  0 ;
+	}
+
+	if( ! ( old_flags & FD_CLOEXEC) &&
+	    fcntl( fd, F_SETFD, old_flags|FD_CLOEXEC) == -1)
+	{
+		return  0 ;
+	}
+
+	return  1 ;
+}
+
+static int
 connect_to_server(
 	int  argc ,
 	char **  argv
@@ -135,6 +170,8 @@ connect_to_server(
 		return  0 ;
 	}
 
+	set_cloexec( connect_fd) ;
+
 	memset( &servaddr , 0 , sizeof( servaddr)) ;
 	servaddr.sun_family = AF_LOCAL ;
 	strcpy( servaddr.sun_path , path) ;
@@ -143,15 +180,65 @@ connect_to_server(
 
 	if( connect( connect_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == -1)
 	{
+		pid_t  pid ;
+
+		remove( path) ;
+
+		signal( SIGCHLD , sig_child) ;
+
+		if( ( pid = fork()) == 0)
+		{
+			char **  new_argv ;
+
+			if( ! ( new_argv = alloca( ( argc + 2 + 1) * sizeof(char*))))
+			{
+				exit(1) ;
+			}
+
+			/* Remove command path */
+			argv ++ ;
+			argc -- ;
+
+			count = 0 ;
+			new_argv[count++] = "mlterm-con-server" ;
+			new_argv[count++] = "-j" ;
+			new_argv[count++] = "genuine" ;
+			for( ; count < argc + 3 ; count++)
+			{
+				new_argv[count] = argv[count-3] ;
+			}
+			new_argv[count] = NULL ;
+
+			execv( LIBEXECDIR "/mlterm/mlterm-con-server" , new_argv) ;
+		}
+
+		if( pid < 0)
+		{
+			close( connect_fd) ;
+
+			return  0 ;
+		}
+
+		for( count = 0 ; count < 1000 ; count++)
+		{
+			if( connect( connect_fd , (struct sockaddr*) &servaddr ,
+					sizeof( servaddr)) == 0)
+			{
+				goto  connected ;
+			}
+			usleep( 1000) ;
+		}
+
 		close( connect_fd) ;
 
 		return  0 ;
 	}
 
+connected:
 	fcntl( connect_fd , F_SETFL , fcntl( connect_fd , F_GETFL , 0) & ~O_NONBLOCK) ;
 
 	write( connect_fd , argv[0] , strlen(argv[0])) ;
-	for( count = 0 ; count < argc ; count++)
+	for( count = 1 ; count < argc ; count++)
 	{
 		write( connect_fd , " \"" , 2) ;
 		write( connect_fd , argv[count] , strlen(argv[count])) ;
@@ -165,6 +252,8 @@ connect_to_server(
 
 		return  0 ;
 	}
+
+	set_cloexec( pty_fd) ;
 
 	close(STDIN_FILENO) ;
 	close(STDOUT_FILENO) ;
@@ -240,10 +329,17 @@ main(
 		{
 			fcntl( pty_fd , F_SETFL ,
 				fcntl( pty_fd , F_GETFL , 0) | O_NONBLOCK) ;
+
 			while( ( len = read( pty_fd , buf , sizeof(buf))) > 0)
 			{
 				write( connect_fd , buf , len) ;
 			}
+
+			if( len == -1 && errno != EAGAIN)
+			{
+				break ;
+			}
+
 			fcntl( pty_fd , F_SETFL ,
 				fcntl( pty_fd , F_GETFL , 0) & ~O_NONBLOCK) ;
 		}
@@ -252,10 +348,17 @@ main(
 		{
 			fcntl( connect_fd , F_SETFL ,
 				fcntl( connect_fd , F_GETFL , 0) | O_NONBLOCK) ;
+
 			while( ( len = read( connect_fd , buf , sizeof(buf))) > 0)
 			{
 				write( pty_fd , buf , len) ;
 			}
+
+			if( len == -1 && errno != EAGAIN)
+			{
+				break ;
+			}
+
 			fcntl( connect_fd , F_SETFL ,
 				fcntl( connect_fd , F_GETFL , 0) & ~O_NONBLOCK) ;
 		}

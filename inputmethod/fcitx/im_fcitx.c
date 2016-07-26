@@ -20,7 +20,7 @@
 #define  IM_FCITX_DEBUG  1
 #endif
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 #define  KeyPress  2	/* see xwindow/fb/x_display.h */
 #endif
 
@@ -37,7 +37,7 @@ typedef struct im_fcitx
 
 	ml_char_encoding_t  term_encoding ;
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	mkf_parser_t *  parser_term ;	/* for term encoding */
 #endif
 	mkf_conv_t *  conv ;		/* for term encoding */
@@ -86,7 +86,7 @@ delete(
 		(*fcitx->conv->delete)( fcitx->conv) ;
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( fcitx->parser_term)
 	{
 		(*fcitx->parser_term->delete)( fcitx->parser_term) ;
@@ -113,7 +113,7 @@ delete(
 	return  ref_count ;
 }
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 static KeySym
 native_to_fcitx_ksym(
 	KeySym  ksym
@@ -232,14 +232,14 @@ key_event(
 	}
 	else if( fcitx_client_process_key_sync( fcitx->client ,
 			native_to_fcitx_ksym( ksym) ,
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			event->keycode ,
 		#else
 			event->keycode - 8 ,
 		#endif
 			event->state ,
 			event->type == KeyPress ? FCITX_PRESS_KEY : FCITX_RELEASE_KEY ,
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			0L	/* CurrentTime */
 		#else
 			event->time
@@ -343,7 +343,7 @@ connected(
 	fcitx = data ;
 
 	fcitx_client_set_capacity( client ,
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		CAPACITY_CLIENT_SIDE_UI|CAPACITY_CLIENT_SIDE_CONTROL_STATE
 	#else
 		CAPACITY_PREEDIT|CAPACITY_FORMATTED_PREEDIT
@@ -449,7 +449,7 @@ commit_string(
 		}
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( fcitx->im.stat_screen)
 	{
 		(*fcitx->im.stat_screen->delete)( fcitx->im.stat_screen) ;
@@ -472,7 +472,7 @@ forward_key(
 	fcitx = data ;
 
 	if( fcitx->prev_key.keycode ==
-		#ifdef  USE_FRAMEBUFFER
+		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 			keyval
 		#else
 			keyval + 8
@@ -480,14 +480,14 @@ forward_key(
 			)
 	{
 		fcitx->prev_key.state |= FcitxKeyState_IgnoredMask ;
-	#ifndef  USE_FRAMEBUFFER
+	#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
 		XPutBackEvent( fcitx->prev_key.display , &fcitx->prev_key) ;
 	#endif
 		memset( &fcitx->prev_key , 0 , sizeof(XKeyEvent)) ;
 	}
 }
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 
 static void
 update_client_side_ui(
@@ -633,7 +633,7 @@ update_client_side_ui(
 
 	if( strlen( candidateword) == 0)
 	{
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		if( fcitx->im.stat_screen)
 		{
 			(*fcitx->im.stat_screen->delete)( fcitx->im.stat_screen) ;
@@ -925,7 +925,7 @@ im_fcitx_new(
 	g_signal_connect( fcitx->client , "close-im" , G_CALLBACK(close_im) , fcitx) ;
 	g_signal_connect( fcitx->client , "forward-key" , G_CALLBACK(forward_key) , fcitx) ;
 	g_signal_connect( fcitx->client , "commit-string" , G_CALLBACK(commit_string) , fcitx) ;
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	g_signal_connect( fcitx->client , "update-client-side-ui" ,
 		G_CALLBACK(update_client_side_ui) , fcitx) ;
 #else
@@ -944,7 +944,7 @@ im_fcitx_new(
 		}
 	}
 
-#ifdef  USE_FRAMEBUFFER
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	if( ! ( fcitx->parser_term = (*syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
@@ -985,7 +985,7 @@ error:
 			(*fcitx->conv->delete)( fcitx->conv) ;
 		}
 
-	#ifdef  USE_FRAMEBUFFER
+	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 		if( fcitx->parser_term)
 		{
 			(*fcitx->parser_term->delete)( fcitx->parser_term) ;

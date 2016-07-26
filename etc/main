@@ -34,6 +34,10 @@
 
 # startup_screens = 1
 
+# default_cell_size = 8,16
+
+# console_sixel_colors = 16
+
 # -- Encoding --
 # (ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),
 #  KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP125[0-8], CP874,

@@ -28,6 +28,7 @@ LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @IBUS_LIBS@
 
 TARGET_xlib = libim-ibus.la
 TARGET_fb = libim-ibus-fb.la
+TARGET_console = libim-ibus-fb.la
 
 TARGET = $(TARGET_@GUI@)
 

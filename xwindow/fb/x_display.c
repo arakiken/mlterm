@@ -1532,7 +1532,10 @@ x_display_close_all(void)
 {
 	if( DISP_IS_INITED)
 	{
+		/* inline pictures are alive until ml_term_t is deleted. */
+	#if  0
 		x_picture_display_closed( _disp.display) ;
+	#endif
 
 		x_virtual_kbd_hide() ;
 

@@ -63,6 +63,9 @@ typedef struct
 	unsigned int  buf_len ;
 	int  is_pressing ;
 
+	void *  sixel_output ;
+	void *  sixel_dither ;
+
 } Display ;
 
 #define  PIXEL_RED(pixel,rgbinfo) \

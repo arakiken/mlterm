@@ -8939,6 +8939,21 @@ x_screen_set_config(
 			( strcmp( value , "left") == 0 ? -1 : 0)) ;
 	}
 #endif
+#ifdef  USE_CONSOLE
+	else if( strcmp( key , "console_encoding") == 0)
+	{
+		ml_char_encoding_t  encoding ;
+
+		if( ( encoding = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
+		{
+			x_display_set_char_encoding( screen->window.disp , encoding) ;
+		}
+	}
+	else if( strcmp( key , "console_sixel_colors") == 0)
+	{
+		x_display_set_sixel_colors( screen->window.disp , value) ;
+	}
+#endif
 	else
 	{
 		return  0 ;

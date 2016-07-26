@@ -7,14 +7,11 @@
 #include  <string.h>
 #include  <stdio.h>
 
-#ifdef  USE_LIBSIXEL
-#include  <sixel.h>
-#endif
-
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_unistd.h>	/* kik_usleep */
 #include  <mkf/mkf_codepoint_parser.h>
+#include  <mkf/mkf_utf16_parser.h>
 
 #include  <ml_char.h>
 
@@ -46,6 +43,7 @@ static x_color_t  black = { TP_COLOR , 0 , 0 , 0 , 0 } ;
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 
 static mkf_parser_t *  cp_parser ;
+static mkf_parser_t *  utf16_parser ;
 
 
 /* --- static functions --- */
@@ -137,27 +135,46 @@ draw_string(
 		return  0 ;
 	}
 
-	len *= ch_len ;
-
 	if( ( ch_len != 1 || str[0] >= 0x80) &&
 	    ( str2 = alloca( len * UTF_MAX_SIZE)))
 	{
-		if( ! cp_parser)
-		{
-			cp_parser = mkf_codepoint_parser_new() ;
-		}
+		mkf_parser_t *  parser ;
+		mkf_charset_t  cs ;
 
-		(*cp_parser->init)( cp_parser) ;
-		/* 3rd argument of cp_parser->set_str is len(16bit) + cs(16bit) */
-		(*cp_parser->set_str)( cp_parser , str ,
-					len | (FONT_CS(font->id)) << 16) ;
+		if( ( cs = FONT_CS(font->id)) == ISO10646_UCS4_1)
+		{
+			if( ! utf16_parser)
+			{
+				utf16_parser = mkf_utf16_parser_new() ;
+			}
+
+			parser = utf16_parser ;
+			(*parser->init)( parser) ;
+			(*parser->set_str)( parser , str , len * ch_len) ;
+		}
+		else
+		{
+			if( ! cp_parser)
+			{
+				cp_parser = mkf_codepoint_parser_new() ;
+			}
+
+			parser = cp_parser ;
+			(*parser->init)( parser) ;
+			/* 3rd argument of parser->set_str is len(16bit) + cs(16bit) */
+			(*parser->set_str)( parser , str , (len * ch_len) | (cs << 16)) ;
+		}
 
 		(*win->disp->display->conv->init)( win->disp->display->conv) ;
 		if( ( len = (*win->disp->display->conv->convert)( win->disp->display->conv ,
-					str2 , len * UTF_MAX_SIZE , cp_parser)) > 0)
+					str2 , len * UTF_MAX_SIZE , parser)) > 0)
 		{
 			str = str2 ;
 		}
+	}
+	else
+	{
+		len *= ch_len ;
 	}
 
 	if( fg_color->pixel < 0x8)
@@ -223,16 +240,6 @@ draw_string(
 	return  1 ;
 }
 
-static int
-callback(
-	char *  data ,
-	size_t  size ,
-	void *  out
-	)
-{
-	return  fwrite( data , 1 , size , out) ;
-}
-
 #ifdef  USE_LIBSIXEL
 static int
 copy_area(
@@ -252,8 +259,6 @@ copy_area(
 	int  right_margin ;
 	int  bottom_margin ;
 	u_char *  picture ;
-	static sixel_output_t *  output ;
-	static sixel_dither_t *  dither ;
 
 	if( ! win->is_mapped)
 	{
@@ -295,22 +300,39 @@ copy_area(
 	picture = src->image + src->width * 4 * (vmargin + src_y) +
 			4 * (hmargin + src_x) ;
 
-	if( ! output)
+	if( width < src->width)
 	{
-		output = sixel_output_create( callback , win->disp->display->fp) ;
-	#if  0
-		dither = sixel_dither_create( -1) ;
-	#else
-		dither = sixel_dither_get( BUILTIN_XTERM256) ;
-	#endif
-		sixel_dither_set_pixelformat( dither , PIXELFORMAT_RGBA8888) ;
+		u_char *  clip ;
+		u_char *  p ;
+		size_t  line_len ;
+
+		line_len = width * 4 ;
+
+		if( ( p = clip = calloc( line_len , height)))
+		{
+			u_int  count ;
+
+			for( count = 0 ; count < height ; count++)
+			{
+				memcpy( p , picture , line_len) ;
+				p += line_len ;
+				picture += (src->width * 4) ;
+			}
+
+			picture = clip ;
+		}
 	}
 
 	fprintf( win->disp->display->fp , "\x1b[%d;%dH" ,
 		(win->y + win->vmargin + dst_y) / LINE_HEIGHT + 1 ,
 		(win->x + win->hmargin + dst_x) / COL_WIDTH + 1) ;
-	sixel_encode( picture , width , height , 4 , dither , output) ;
+	x_display_output_picture( win->disp , picture , width , height) ;
 	fflush( win->disp->display->fp) ;
+
+	if( width < src->width)
+	{
+		free( picture) ;
+	}
 
 	return  1 ;
 }
@@ -1123,6 +1145,11 @@ x_window_fill_with(
 	int  fill_to_end ;
 
 	if( ! win->is_mapped)
+	{
+		return  0 ;
+	}
+
+	if( height < LINE_HEIGHT || width < COL_WIDTH)
 	{
 		return  0 ;
 	}

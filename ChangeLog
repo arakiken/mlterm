@@ -1,3 +1,49 @@
+2016-07-26  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, PROTOCOL: Updated.
+
+	* main_loop.c: If no ml_term_t exists, mlterm-con-server exits from the main loop.
+
+	* main/main-con.c:
+	  - Moved from tool/mlclient/.
+	  - mlterm-con-server is started if unix domain socket of ~/.mlterm/socket-con
+	    doesn't work.
+
+	* main/Makefile.in: mlterm-con-server is installed to $(libexec)/mlterm, and
+	  mlterm-con is to $(bindir)/mlterm.
+
+	* im_fcitx.c, im_ibus.c, im_m17nlib.c, im_uim.c:
+	  USE_FRAMEBUFFER -> USE_FRAMEBUFFER || USE_CONSOLE
+
+	* x_screen.c: "console_encoding" and "console_sixel_colors" are added to OSC 5379.
+
+	* x_main_config.c: --csz/cell_size option is added.
+
+	* x_draw_str.c, x_picture.h: If INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS macro
+	  is defined, cur_pic->disp == window->disp is not checked.
+
+	* daemon.c:
+	  - client_connected() for mlterm-con-server is moved from console/x_display.c
+	  - STD{IN|OUT|ERR}_FILENO are closed in daemon_init().
+
+	* console/x_window.c:
+	  - x_window_fill_with() do nothing if height or width is less than
+	    LINE_HEIGHT or COL_WIDTH,
+	  - UTF16 characters are converted to UTF8 in draw_string().
+	  - Creating sixel_{output|dither}_t and calling sixel_encode() are moved to
+	    x_display.c.
+
+	* console/x_display.[ch]:
+	  - x_display_set_default_cell_size() is added.
+	  - ShiftMask is set if 'A' - 'Z' character is received.
+	  - start_server() and end_server() are removed.
+	  - client_connected() is moved to daemon.c.
+	  - x_picture_display_closed() is not called in x_display_close().
+	  - "x_display_t *  disp" is added to arguments of x_display_set_char_encoding().
+	  - x_display_set_sixel_colors() and x_display_output_picture() are added.
+
+	* console/x.h: sixel_output and sixel_dither are added to Display.
+
 2016-07-18  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen_manager.c: open_screen_intern() uses layout->window.disp instead of

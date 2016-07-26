@@ -233,8 +233,11 @@ draw_picture(
 			x_window_clear( window , dst_x , dst_y , dst_width , line_height) ;
 		}
 
-		if( src_width > 0 && src_height > 0 &&
-		    pic->disp == window->disp)
+		if( src_width > 0 && src_height > 0
+		#ifndef  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
+		    && cur_pic->disp == window->disp
+		#endif
+		    )
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf(
@@ -300,8 +303,15 @@ draw_picture(
 		src_x , src_y , src_width , src_height) ;
 #endif
 
-	x_window_copy_area( window , cur_pic->pixmap , cur_pic->mask ,
-		src_x , src_y , src_width , src_height , dst_x , dst_y) ;
+	if( src_width > 0 && src_height > 0
+	#ifndef  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
+	    && cur_pic->disp == window->disp
+	#endif
+	    )
+	{
+		x_window_copy_area( window , cur_pic->pixmap , cur_pic->mask ,
+			src_x , src_y , src_width , src_height , dst_x , dst_y) ;
+	}
 
 	return  1 ;
 }
