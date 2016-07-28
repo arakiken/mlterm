@@ -566,4 +566,16 @@ int  XParseGeometry( char *  str , int *  x , int *  y ,
 KeySym  XStringToKeysym( char *  str) ;
 
 
+/* === Platform dependent options === */
+
+#define  X_COLOR_HAS_RGB
+#undef  SUPPORT_TRUE_TRANSPARENT_BG
+/* Actually, fonts aren't scalable, but define TYPE_XCORE_SCALABLE to avoid double drawing. */
+#define  TYPE_XCORE_SCALABLE
+#define  MANAGE_WINDOWS_BY_MYSELF
+/* See also console/x_display.c where x_picture_display_closed() is never called. */
+#define  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
+#undef  SUPPORT_POINT_SIZE_FONT
+
+
 #endif

@@ -34,8 +34,7 @@ typedef struct  x_display
 
 	Window  my_window ;	/* DefaultRootWindow */
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	/* Only one visual, colormap or depth is permitted per display. */
 	Visual *  visual ;
 	Colormap  colormap ;

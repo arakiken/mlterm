@@ -497,7 +497,7 @@ x_change_true_transbg_alpha(
 	u_int8_t  alpha
 	)
 {
-#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifndef  SUPPORT_TRUE_TRANSPARENT_BG
 
 	return  0 ;
 

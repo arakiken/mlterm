@@ -138,7 +138,7 @@ u_int  x_convert_text_to_glyphs( x_font_t *  font , u_int32_t *  shaped , u_int 
 	int8_t *  offsets , u_int8_t *  widths , u_int32_t *  cmapped ,
 	u_int32_t *  src , u_int  src_len , const char *  script , const char *  features) ;
 
-#if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE) && ! defined(USE_WIN32GUI)
+#ifdef  USE_XLIB
 char **  x_font_get_encoding_names( mkf_charset_t  cs) ;
 
 /* For mlterm-libvte */
@@ -147,7 +147,7 @@ void  x_font_set_dpi_for_fc( double  dpi) ;
 #define  x_font_get_encoding_names(cs)  (0)
 #endif
 
-#if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifdef  SUPPORT_POINT_SIZE_FONT
 void  x_font_use_point_size( int  use) ;
 #else
 #define  x_font_use_point_size(bool)  (0)

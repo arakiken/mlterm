@@ -1,3 +1,21 @@
+2016-07-29  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c, main_loop.c, gdk-pixbuf.c, x_color.h, x_color_cache.c,
+	  x_color_manager.c, x_display.h, x_draw_str.c, x_font.h, x_font_cache.c,
+	  x_font_cache.h, x_font_config.c, x_font_manager.c, x_font_manager.h,
+	  x_im_candidate_screen.c, x_im_status_screen.c, x_imagelib.h, x_layout.c,
+	  x_main_config.c, x_picture.h, x_screen.c, x_window.h, xlib/x_imagelib.c:
+	  USE_WIN32GUI, USE_QUARTZ, USE_FRAMEBUFFER and USE_CONSOLE are refactored.
+
+	* console/x.h, fb/x.h, quartz/x.h, win32/x.h:
+	  Platform dependent options (X_COLOR_HAS_RGB, SUPPORT_TRUE_TRANSPARENT_BG,
+	  TYPE_XCORE_SCALABLE, MANAGE_WINDOWS_BY_MYSELF,
+	  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS, SUPPORT_POINT_SIZE_FONT) are added.
+
+	* xlib/x.h: Added.
+
+	* x.h: USE_XLIB is defined on xlib.
+
 2016-07-26  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, PROTOCOL: Updated.

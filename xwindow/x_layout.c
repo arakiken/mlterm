@@ -131,7 +131,7 @@ reset_layout(
 			ACTUAL_WIDTH(&term->scrollbar.window) ,
 			child_height , NOTIFY_TO_MYSELF) ;
 
-	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+	#ifdef  MANAGE_WINDOWS_BY_MYSELF
 		x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				sep_x , y , SEPARATOR_WIDTH , child_height) ;
@@ -173,7 +173,7 @@ reset_layout(
 			reset_layout( term->next[1] ,
 				x , y + term->separator_y + SEPARATOR_HEIGHT ,
 				width , height - term->separator_y - SEPARATOR_HEIGHT) ;
-		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+		#ifdef  MANAGE_WINDOWS_BY_MYSELF
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x , y + term->separator_y ,
@@ -186,7 +186,7 @@ reset_layout(
 			reset_layout( term->next[0] ,
 				x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , child_height) ;
-		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+		#ifdef  MANAGE_WINDOWS_BY_MYSELF
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x + term->separator_x , y ,
@@ -201,7 +201,7 @@ reset_layout(
 			reset_layout( term->next[0] ,
 				x + term->separator_x + SEPARATOR_WIDTH , y ,
 				width - term->separator_x - SEPARATOR_WIDTH , height) ;
-		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+		#ifdef  MANAGE_WINDOWS_BY_MYSELF
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x + term->separator_x , y ,
@@ -214,7 +214,7 @@ reset_layout(
 			reset_layout( term->next[1] ,
 				x , y + term->separator_y + SEPARATOR_HEIGHT ,
 				child_width , height - term->separator_y - SEPARATOR_HEIGHT) ;
-		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+		#ifdef  MANAGE_WINDOWS_BY_MYSELF
 			x_window_fill_with( &X_SCREEN_TO_LAYOUT(term->screen)->window ,
 				&X_SCREEN_TO_LAYOUT(term->screen)->window.fg_color ,
 				x , y + term->separator_y ,
@@ -410,8 +410,7 @@ get_separator_x(
 		return  0 ;
 	}
 
-#if  ! defined(USE_CONSOLE) && defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(__ANDROID__)
+#if  defined(USE_FRAMEBUFFER) && ! defined(__ANDROID__)
 	if( screen->window.disp->display->pixels_per_byte > 1)
 	{
 		return  sep_x - sep_x % screen->window.disp->display->pixels_per_byte -
@@ -1259,7 +1258,7 @@ change_sb_mode_intern(
 	{
 		x_window_unmap( &term->scrollbar.window) ;
 	}
-#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef  MANAGE_WINDOWS_BY_MYSELF
 	else if( old_mode == SBM_NONE)
 	{
 		/* scrollbar's height may have been changed. */
@@ -1849,7 +1848,7 @@ x_layout_remove_child(
 {
 	struct terminal *  term ;
 	int  idx2 ;
-#if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifndef  MANAGE_WINDOWS_BY_MYSELF
 	u_int  w_surplus ;
 	u_int  h_surplus ;
 #endif
@@ -2004,7 +2003,7 @@ x_layout_remove_child(
 		x_window_unset_wall_picture( &layout->window , 0) ;
 	}
 
-#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifndef  MANAGE_WINDOWS_BY_MYSELF
 	if( ! layout->term.next[0] && ! layout->term.next[1])
 	{
 		w_surplus = (layout->window.width -
@@ -2036,7 +2035,7 @@ x_layout_remove_child(
 
 	update_normal_hints( layout) ;
 
-#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifndef  MANAGE_WINDOWS_BY_MYSELF
 	if( x_screen_attached( screen))
 	{
 		/* Revert to the original size. */

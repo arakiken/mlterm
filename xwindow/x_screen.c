@@ -2671,8 +2671,7 @@ no_keypad:
 			return ;
 		}
 		else if( ( ksym == XK_Delete
-		#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-			! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+		#ifdef  USE_XLIB
 			&& size == 1
 		#endif
 			) || ksym == XK_KP_Delete)
@@ -4898,8 +4897,7 @@ change_transparent_flag(
 	)
 {
 	if( screen->window.is_transparent == is_transparent
-	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-		! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+	#ifdef  USE_XLIB
 	    /*
 	     * If wall picture is not still set, do set it.
 	     * This is necessary for gnome-terminal, because ConfigureNotify event never

@@ -47,7 +47,7 @@ adjust_window_position_by_size(
 	}
 }
 
-#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef  MANAGE_WINDOWS_BY_MYSELF
 static void
 reset_screen(
 	x_window_t *  win
@@ -184,7 +184,7 @@ draw_screen(
 				x_window_move( &stat_screen->window , x , y) ;
 			}
 
-		#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+		#ifdef  MANAGE_WINDOWS_BY_MYSELF
 			reset_screen( &stat_screen->window) ;
 		#endif
 
@@ -272,7 +272,7 @@ set_spot(
 	if( stat_screen->window.x != x || stat_screen->window.y != y)
 	{
 		x_window_move( &stat_screen->window , x , y) ;
-	#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+	#ifdef  MANAGE_WINDOWS_BY_MYSELF
 		reset_screen( &stat_screen->window) ;
 		draw_screen( stat_screen , 0 , 0) ;
 	#endif

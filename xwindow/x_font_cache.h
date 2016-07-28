@@ -61,7 +61,7 @@ int  x_font_cache_unload_all(void) ;
 
 x_font_t *  x_font_cache_get_xfont( x_font_cache_t *  font_cache , ml_font_t  font) ;
 
-char *  x_get_font_name_list_for_fontset( x_font_cache_t *  font_cache) ;
+XFontSet  x_font_cache_get_fontset( x_font_cache_t *  font_cache) ;
 
 
 #endif

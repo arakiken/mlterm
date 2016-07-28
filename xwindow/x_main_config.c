@@ -98,7 +98,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '%' , "logseq" , 1 , "logging_vt_seq" ,
 		"enable logging vt100 sequence [false]") ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifdef  USE_XLIB
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
 		"override redirect [false]") ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
@@ -111,7 +111,7 @@ x_prepare_for_main_config(
 		"[xcore]"
 	#endif
 		) ;
-#endif	/* USE_WIN32GUI/USE_FRAMEBUFFER */
+#endif
 
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [100]") ;
@@ -155,7 +155,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
 #endif
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifdef  USE_XLIB
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
 #endif
@@ -193,7 +193,7 @@ x_prepare_for_main_config(
 		"columns for Unicode \"EastAsianAmbiguous\" character [1]") ;
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
 		"background color") ;
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+#if  defined(USE_XLIB) || defined(USE_CONSOLE)
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
 #endif
@@ -393,7 +393,11 @@ x_main_config_init(
 		kik_locale_init( value) ;
 	}
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER)
+	/*
+	 * xlib: "-d :0.0" etc.
+	 * console: "-d client:fd"
+	 */
+#if  defined(USE_XLIB) || defined(USE_CONSOLE)
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
 #endif
 	{
@@ -427,7 +431,7 @@ x_main_config_init(
 		main_config->title = strdup( value) ;
 	}
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifdef  USE_XLIB
 	if( ( value = kik_conf_get_value( conf , "icon_name")))
 	{
 		main_config->icon_name = strdup( value) ;
@@ -534,10 +538,12 @@ x_main_config_init(
 	main_config->type_engine = TYPE_XCORE ;
 #endif
 
+#ifdef  USE_XLIB
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
 	{
 		main_config->type_engine = x_get_type_engine_by_name( value) ;
 	}
+#endif
 
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
@@ -1175,7 +1181,8 @@ x_main_config_init(
 			main_config->use_extended_scroll_shortcut = 1 ;
 		}
 	}
-	
+
+#ifdef  USE_XLIB
 	if( ( value = kik_conf_get_value( conf , "borderless")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1183,6 +1190,7 @@ x_main_config_init(
 			main_config->borderless = 1 ;
 		}
 	}
+#endif
 
 	main_config->bs_mode = BSM_DEFAULT ;
 

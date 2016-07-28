@@ -379,4 +379,14 @@ int  XParseGeometry( char *  str , int *  x , int *  y ,
 KeySym  XStringToKeysym( char *  str) ;
 
 
+/* === Platform dependent options === */
+
+#undef  X_COLOR_HAS_RGB
+#define  SUPPORT_TRUE_TRANSPARENT_BG
+#define  TYPE_XCORE_SCALABLE
+#undef  MANAGE_WINDOWS_BY_MYSELF
+#undef  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
+#define  SUPPORT_POINT_SIZE_FONT
+
+
 #endif

@@ -81,7 +81,7 @@ int  x_set_use_italic_font( x_font_manager_t *  font_man , int  use_italic_font)
 
 #define  x_is_using_italic_font( font_man)  ((font_man)->use_italic_font)
 
-XFontSet  x_get_fontset( x_font_manager_t *  font_man) ;
+#define  x_get_fontset( font_man)  x_font_cache_get_fontset( (font_man)->font_cache)
 
 #define  x_get_current_usascii_font_cs( font_man)  ((font_man)->font_cache->usascii_font_cs)
 

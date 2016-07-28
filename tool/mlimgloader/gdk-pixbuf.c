@@ -44,7 +44,7 @@
 /* --- static functions --- */
 
 #ifndef  USE_WIN32GUI
-#define  USE_X11	/* Necessary to use closest_color_index(), lsb() and msb() */
+#define  USE_XLIB	/* Necessary to use closest_color_index(), lsb() and msb() */
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #endif
@@ -115,7 +115,7 @@ load_file(
 	return  pixbuf ;
 }
 
-#ifdef  USE_X11
+#ifdef  USE_XLIB
 
 /* returned cmap shuold be freed by the caller */
 static int
@@ -531,7 +531,7 @@ pixbuf_to_pixmap_and_mask(
 	return  1 ;
 }
 
-#endif	/* USE_X11 */
+#endif	/* USE_XLIB */
 
 
 /* --- global functions --- */
@@ -542,7 +542,7 @@ main(
 	char **  argv
 	)
 {
-#ifdef  USE_X11
+#ifdef  USE_XLIB
 	Display *  display ;
 	Visual *  visual ;
 	Colormap  colormap ;
@@ -561,7 +561,7 @@ main(
 	kik_set_msg_log_file_name( "mlterm/msg.log") ;
 #endif
 
-#ifdef  USE_X11
+#ifdef  USE_XLIB
 	if( argc == 5)
 	{
 		if( ! ( display = XOpenDisplay( NULL)))
@@ -680,7 +680,7 @@ main(
 			size -= n_wr ;
 		}
 	}
-#ifdef  USE_X11
+#ifdef  USE_XLIB
 	else
 	{
 		char  buf[10] ;
@@ -705,7 +705,7 @@ main(
 		/* Wait for parent process receiving pixmap. */
 		read( STDIN_FILENO , buf , sizeof(buf)) ;
 	}
-#endif	/* USE_X11 */
+#endif	/* USE_XLIB */
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Exit image loader\n") ;

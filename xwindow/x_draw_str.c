@@ -1333,8 +1333,7 @@ xcore_draw_str(
 			fg_xcolor = x_get_xcolor( color_man , fg_color) ;
 
 		#ifdef  USE_FRAMEBUFFER
-			if( x_window_has_wall_picture( window) &&
-			           bg_color == ML_BG_COLOR)
+			if( x_window_has_wall_picture( window) && bg_color == ML_BG_COLOR)
 			{
 				bg_xcolor = NULL ;
 			}
@@ -1390,16 +1389,17 @@ xcore_draw_str(
 						underline_style) ;
 				}
 			}
-		#else
+		#else	/* USE_CONSOLE */
+		#ifdef  USE_QUARTZ
+			if( 1)
+		#else	/* USE_QUARTZ */
 			if(
-		#if  defined(USE_QUARTZ)
-			    1 ||
-		#elif  defined(USE_FRAMEBUFFER)
+		#ifdef  USE_FRAMEBUFFER
 			#ifdef  USE_FREETYPE
 			    xfont->is_proportional ||	/* ISCII or ISO10646_UCS4_1_V */
 			#endif
 			    /* draw_alone || */ /* draw_alone is always false on framebuffer. */
-		#else
+		#else	/* USE_FRAMEBUFFER */
 			#if  defined(USE_WIN32GUI) && defined(USE_OT_LAYOUT)
 			    /*
 			     * U+2022 is ambiguous and should be drawn one by one, but
@@ -1411,9 +1411,10 @@ xcore_draw_str(
 			    ( x_window_has_wall_picture( window) &&
 			      bg_color == ML_BG_COLOR) ||
 			    draw_alone ||
-		#endif
+		#endif	/* USE_FRAMEBUFFER */
 			    xfont->height != height ||
 			    state == 3)
+		#endif	/* USE_QUARTZ */
 			{
 				if( bg_color == ML_BG_COLOR)
 				{
@@ -1508,7 +1509,7 @@ xcore_draw_str(
 					x , y , current_width - x , height , ascent ,
 					top_margin) ;
 			}
-		#endif
+		#endif	/* USE_CONSOLE */
 
 		end_draw:
 			start_draw = 0 ;

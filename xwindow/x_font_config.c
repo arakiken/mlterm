@@ -1124,8 +1124,7 @@ x_get_config_font_name(
 	char *  encoding ;
 	size_t  encoding_len ;
 	int  has_percentd ;
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	static char *  orig_style[] = { "-medium-" , "-r-" , "-medium-r-" } ;
 	static char *  new_style[] = { "-bold-" , "-i-" , "-bold-i-" } ;
 #endif
@@ -1141,8 +1140,7 @@ x_get_config_font_name(
 	while( ! ( pair = get_font_name_pair( font_config->font_name_table ,
 				cand_font)))
 	{
-	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-		! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+	#ifdef  USE_XLIB
 		int  idx ;
 
 		if( font_config->type_engine == TYPE_XCORE)
@@ -1190,8 +1188,7 @@ x_get_config_font_name(
 		}
 	}
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	if( font_config->type_engine == TYPE_XCORE &&
 	    FONT_CS(cand_font) == DEFAULT_FONT &&
 	    /* encoding is appended if font_name is XLFD (not alias name). */
@@ -1442,8 +1439,7 @@ x_get_charset_name(
 static void
 TEST_font_config(void)
 {
-#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_WIN32GUI) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	x_font_config_t *  font_config ;
 	char *  value ;
 

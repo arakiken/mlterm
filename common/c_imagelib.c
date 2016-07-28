@@ -321,7 +321,7 @@ create_cardinals_from_sixel(
 #endif  /* BUILTIN_IMAGELIB */
 
 
-#ifdef  USE_X11
+#ifdef  USE_XLIB
 
 /* seek the closest color */
 static int
@@ -414,4 +414,4 @@ msb(
 	return  nth ;
 }
 
-#endif	/* USE_X11 */
+#endif	/* USE_XLIB */

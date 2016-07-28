@@ -15,8 +15,7 @@
 #include  <x_font.h>	/* x_use_cp932_ucs_fot_xft */
 #include  <x_screen_manager.h>
 #include  <x_event_source.h>
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 #include  <xlib/x_xim.h>
 #endif
 
@@ -124,8 +123,7 @@ main_loop_init(
 	x_main_config_t  main_config ;
 	kik_conf_t *  conf ;
 	char *  value ;
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	int  use_xim ;
 #endif
 	u_int  max_screens_multiple ;
@@ -168,8 +166,7 @@ main_loop_init(
 		"show version message") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
 		"font size range for GUI configurator [6-30]") ;
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font [false]") ;
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" ,
@@ -200,7 +197,7 @@ main_loop_init(
 	kik_conf_add_opt( conf , '\0' , "metaprefix" , 0 , "mod_meta_prefix" ,
 		"prefix characters in pressing meta key if mod_meta_mode = esc") ;
 	kik_conf_add_opt( conf , '\0' , "deffont" , 0 , "default_font" , "default font") ;
-#if  ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifdef  SUPPORT_POINT_SIZE_FONT
 	kik_conf_add_opt( conf , '\0' , "point" , 1 , "use_point_size" ,
 		"treat fontsize as point instead of pixel") ;
 #endif
@@ -265,8 +262,7 @@ main_loop_init(
 	}
 #endif
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	use_xim = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_xim")))
@@ -407,7 +403,7 @@ main_loop_init(
 			"ISO10646_UCS4_1" , value , 0) ;
 	}
 
-#if ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#ifdef  SUPPORT_POINT_SIZE_FONT
 	if( ( value = kik_conf_get_value( conf , "use_point_size")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -450,8 +446,7 @@ main_loop_final(void)
 
 	kik_set_msg_log_file_name( NULL) ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && \
-	! defined(USE_CONSOLE) && ! defined(USE_QUARTZ)
+#ifdef  USE_XLIB
 	x_xim_final() ;
 #endif
 

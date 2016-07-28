@@ -24,20 +24,8 @@
 
 #else
 
-/* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
-#include  <X11/Xlib.h>
-#include  <X11/keysym.h>	/* XK_xxx */
-#include  <X11/Xatom.h>		/* XA_xxx */
-#include  <X11/Xutil.h>		/* IsKeypadKey */
-#include  <X11/cursorfont.h>	/* for cursor shape */
-
-typedef Pixmap PixmapMask ;
-
-#ifdef  XK_F21
-#define  XK_FMAX  XK_F35
-#else
-#define  XK_FMAX  XK_F20
-#endif
+#include  "xlib/x.h"
+#define  USE_XLIB
 
 #endif
 

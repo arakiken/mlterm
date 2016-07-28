@@ -12,32 +12,20 @@
 #include  "x_display.h"
 
 
-#if  defined(USE_WIN32GUI) || defined(USE_QUARTZ)
-
 typedef struct x_color
 {
 	/* Public */
 	u_int32_t  pixel ;
 
-} x_color_t ;
-
-#else
-
-typedef struct x_color
-{
-	/* Public */
-	u_int32_t  pixel ;
-
+#ifdef  X_COLOR_HAS_RGB
 	/* Private except x_color_cache.c */
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
 	u_int8_t  alpha ;
-
-} x_color_t ;
-
 #endif
 
+} x_color_t ;
 
 
 int  x_load_named_xcolor( x_display_t *  disp , x_color_t *  xcolor , char *  name) ;

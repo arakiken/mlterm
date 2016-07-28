@@ -6,7 +6,7 @@ all .DEFAULT:
 	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) $@) ; fi
 	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) $@) ; fi
 	(for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done) && \
-	if test "$@" != "clean" ; then touch BUILD_SUCCESS ; else rm BUILD_SUCCESS ; fi
+	if test "$@" != "clean" ; then touch BUILD_SUCCESS ; else rm -f BUILD_SUCCESS ; fi
 
 BUILD_SUCCESS: Makefile
 	$(MAKE) all

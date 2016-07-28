@@ -354,9 +354,9 @@ x_change_font_present(
 	x_font_config_t *  font_config ;
 	x_font_cache_t *  font_cache ;
 
-#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	/*
-	 * FONT_AA is effective in xft, so following hack is necessary in xlib.
+	 * FONT_AA is effective in xft or cairo, so following hack is necessary in xlib.
 	 */
 	if( ( type_engine == TYPE_XCORE) && ( font_man->font_config->font_present & FONT_AA))
 	{
@@ -611,65 +611,6 @@ x_set_use_italic_font(
 	font_man->use_italic_font = use_italic_font ;
 
 	return  1 ;
-}
-
-XFontSet
-x_get_fontset(
-	x_font_manager_t *  font_man
-	)
-{
-#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_QUARTZ)
-
-	return  None ;
-
-#elif  defined(USE_WIN32GUI)
-
-	static LOGFONT  logfont ;
-
-	ZeroMemory( &logfont , sizeof(logfont)) ;
-	GetObject( font_man->font_cache->usascii_font->fid , sizeof(logfont) , &logfont) ;
-
-	return  &logfont ;
-
-#else
-
-	XFontSet  fontset ;
-	char *  list_str ;
-	char **  missing ;
-	int  miss_num ;
-	char *  def_str ;
-
-	if( ( list_str = x_get_font_name_list_for_fontset( font_man->font_cache)) == NULL)
-	{
-		return  None ;
-	}
-	
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " font set list -> %s\n" , list_str) ;
-#endif
-
-	fontset = XCreateFontSet( font_man->font_cache->display , list_str ,
-			&missing , &miss_num , &def_str) ;
-
-	free( list_str) ;
-	
-#ifdef  DEBUG
-	if( miss_num)
-	{
-		int  count ;
-		
-		kik_warn_printf( KIK_DEBUG_TAG " missing charsets ...\n") ;
-		for( count = 0 ; count < miss_num ; count ++)
-		{
-			kik_msg_printf( " %s\n" , missing[count]) ;
-		}
-	}
-#endif
-
-	XFreeStringList( missing) ;
-
-	return  fontset ;
-#endif
 }
 
 mkf_charset_t

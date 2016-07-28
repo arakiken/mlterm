@@ -89,6 +89,69 @@ xfont_table_delete(
 	return  1 ;
 }
 
+#ifdef  USE_XLIB
+static char *
+get_font_name_list_for_fontset(
+	x_font_cache_t *  font_cache
+	)
+{
+	char *  font_name_list ;
+	char *  p ;
+	size_t  list_len ;
+
+	if( font_cache->font_config->type_engine != TYPE_XCORE)
+	{
+		x_font_config_t *  font_config ;
+
+		if( ( font_config = x_acquire_font_config( TYPE_XCORE ,
+					font_cache->font_config->font_present & ~FONT_AA)) == NULL)
+		{
+			font_name_list = NULL ;
+		}
+		else
+		{
+			font_name_list = x_get_all_config_font_names( font_config , font_cache->font_size) ;
+
+			x_release_font_config( font_config) ;
+		}
+	}
+	else
+	{
+		font_name_list = x_get_all_config_font_names( font_cache->font_config ,
+					font_cache->font_size) ;
+	}
+
+	if( font_name_list)
+	{
+		list_len = strlen( font_name_list) ;
+	}
+	else
+	{
+		list_len = 0 ;
+	}
+
+	if( ( p = malloc( list_len + 28 + DIGIT_STR_LEN(font_cache->font_size) + 1))
+			== NULL)
+	{
+		return  font_name_list ;
+	}
+
+	if( font_name_list)
+	{
+		sprintf( p , "%s,-*-*-medium-r-*--%d-*-*-*-*-*" ,
+			font_name_list , font_cache->font_size) ;
+		free( font_name_list) ;
+	}
+	else
+	{
+		sprintf( p , "-*-*-medium-r-*--%d-*-*-*-*-*" ,
+			font_cache->font_size) ;
+	}
+
+	return  p ;
+}
+#endif
+
 
 /* --- global functions --- */
 
@@ -310,7 +373,7 @@ x_font_cache_get_xfont(
 
 		next_font = font_for_config ;
 
-	#if ! defined(USE_WIN32GUI) && ! defined(USE_FRAMEBUFFER) && ! defined(USE_CONSOLE)
+	#ifndef  TYPE_XCORE_SCALABLE
 		if( font_cache->font_config->type_engine == TYPE_XCORE)
 		{
 			/*
@@ -410,63 +473,62 @@ found:
 	return  xfont ;
 }
 
-char *
-x_get_font_name_list_for_fontset(
+XFontSet
+x_font_cache_get_fontset(
 	x_font_cache_t *  font_cache
 	)
 {
-	char *  font_name_list ;
-	char *  p ;
-	size_t  list_len ;
+#if  defined(USE_XLIB)
+
+	XFontSet  fontset ;
+	char *  list_str ;
+	char **  missing ;
+	int  miss_num ;
+	char *  def_str ;
+
+	if( ( list_str = get_font_name_list_for_fontset( font_cache)) == NULL)
+	{
+		return  None ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " font set list -> %s\n" , list_str) ;
+#endif
+
+	fontset = XCreateFontSet( font_cache->display , list_str ,
+			&missing , &miss_num , &def_str) ;
+
+	free( list_str) ;
 	
-	if( font_cache->font_config->type_engine != TYPE_XCORE)
+#ifdef  DEBUG
+	if( miss_num)
 	{
-		x_font_config_t *  font_config ;
+		int  count ;
 
-		if( ( font_config = x_acquire_font_config( TYPE_XCORE ,
-					font_cache->font_config->font_present & ~FONT_AA)) == NULL)
+		kik_warn_printf( KIK_DEBUG_TAG " missing charsets ...\n") ;
+		for( count = 0 ; count < miss_num ; count ++)
 		{
-			font_name_list = NULL ;
-		}
-		else
-		{
-			font_name_list = x_get_all_config_font_names( font_config , font_cache->font_size) ;
-
-			x_release_font_config( font_config) ;
+			kik_msg_printf( " %s\n" , missing[count]) ;
 		}
 	}
-	else
-	{
-		font_name_list = x_get_all_config_font_names( font_cache->font_config ,
-					font_cache->font_size) ;
-	}
+#endif
 
-	if( font_name_list)
-	{
-		list_len = strlen( font_name_list) ;
-	}
-	else
-	{
-		list_len = 0 ;
-	}
+	XFreeStringList( missing) ;
 
-	if( ( p = malloc( list_len + 28 + DIGIT_STR_LEN(font_cache->font_size) + 1))
-			== NULL)
-	{
-		return  font_name_list ;
-	}
+	return  fontset ;
 
-	if( font_name_list)
-	{
-		sprintf( p , "%s,-*-*-medium-r-*--%d-*-*-*-*-*" ,
-			font_name_list , font_cache->font_size) ;
-		free( font_name_list) ;
-	}
-	else
-	{
-		sprintf( p , "-*-*-medium-r-*--%d-*-*-*-*-*" ,
-			font_cache->font_size) ;
-	}
+#elif  defined(USE_WIN32GUI)
 
-	return  p ;
+	static LOGFONT  logfont ;
+
+	ZeroMemory( &logfont , sizeof(logfont)) ;
+	GetObject( font_cache->usascii_font->fid , sizeof(logfont) , &logfont) ;
+
+	return  &logfont ;
+
+#else
+
+	return  None ;
+
+#endif
 }
