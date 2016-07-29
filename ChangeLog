@@ -1,3 +1,7 @@
+2016-07-30  Araki Ken  <arakiken@users.sf.net>
+
+	* console/x_display.c: modifyOtherKeys is enabled by default.
+
 2016-07-29  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c, main_loop.c, gdk-pixbuf.c, x_color.h, x_color_cache.c,

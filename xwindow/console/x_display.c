@@ -200,6 +200,7 @@ open_display_socket(
 	set_blocking( fd , 1) ;
 
 	write( fd , "\x1b[?25l" , 6) ;
+	write( fd , "\x1b[>4;2m" , 7) ;
 	write( fd , "\x1b[?1002h\x1b[?1006h" , 16) ;
 
 	displays[num_of_displays]->display->conv = ml_conv_new( encoding) ;
@@ -249,6 +250,7 @@ open_display_console(void)
 	close( STDERR_FILENO) ;
 
 	write( fd , "\x1b[?25l" , 6) ;
+	write( fd , "\x1b[>4;2m" , 7) ;
 	write( fd , "\x1b[?1002h\x1b[?1006h" , 16) ;
 
 	tio = orig_tm ;
@@ -581,6 +583,54 @@ parse(
 	}
 }
 
+static int
+parse_modify_other_keys(
+	XKeyEvent *  kev ,
+	const char *  param ,
+	const char *  format ,
+	int  key_mod_order
+	)
+{
+	int  key ;
+	int  modcode ;
+
+	if( sscanf( param , format , &key , &modcode) == 2)
+	{
+		if( ! key_mod_order)
+		{
+			int  tmp ;
+
+			tmp = key ;
+			key = modcode ;
+			modcode = tmp ;
+		}
+
+		kev->ksym = key ;
+
+		modcode -- ;
+		if( modcode & 1)
+		{
+			kev->state |= ShiftMask ;
+		}
+		if( modcode & (2|8))
+		{
+			kev->state |= ModMask ;
+		}
+		if( modcode & 4)
+		{
+			kev->state |= ControlMask ;
+		}
+
+		kik_debug_printf( "%d %x\n" , kev->state , kev->ksym) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
 /* Same as fb/x_display */
 static int
 receive_stdin_event(
@@ -657,7 +707,12 @@ receive_stdin_event(
 
 				if( *ft == '~')
 				{
-					if( param && ! intermed)
+					if( ! param || intermed)
+					{
+						continue ;
+					}
+					else if( ! parse_modify_other_keys( &kev ,
+							param , "27;%d;%d~" , 0))
 					{
 						switch( atoi( param))
 						{
@@ -785,6 +840,14 @@ receive_stdin_event(
 						x_window_resize_with_margin( disp->roots[count] ,
 							disp->width , disp->height ,
 							NOTIFY_TO_MYSELF) ;
+					}
+				}
+				else if( param && *ft == 'u')
+				{
+					if( ! parse_modify_other_keys( &kev , param ,
+							"%d;%d~" , 1))
+					{
+						continue ;
 					}
 				}
 				else if( 'P' <= *ft && *ft <= 'S')
@@ -1000,6 +1063,7 @@ x_display_close(
 	}
 
 	write( fileno(disp->display->fp) , "\x1b[?25h" , 6) ;
+	write( fileno(disp->display->fp) , "\x1b[>4;0m" , 7) ;
 	write( fileno(disp->display->fp) , "\x1b[?1002l\x1b[?1006l" , 16) ;
 	fclose( disp->display->fp) ;
 	(*disp->display->conv->delete)( disp->display->conv) ;
