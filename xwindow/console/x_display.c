@@ -202,8 +202,11 @@ open_display_socket(
 	write( fd , "\x1b[?25l" , 6) ;
 	write( fd , "\x1b[>4;2m" , 7) ;
 	write( fd , "\x1b[?1002h\x1b[?1006h" , 16) ;
+	write( fd , "\x1b[>c" , 4) ;
 
 	displays[num_of_displays]->display->conv = ml_conv_new( encoding) ;
+	displays[num_of_displays]->display->support_hmargin = 1 ;
+
 	set_winsize( displays[num_of_displays] , "8;24;80;4;384;640t") ;
 
 	return  displays[num_of_displays++] ;
@@ -252,6 +255,7 @@ open_display_console(void)
 	write( fd , "\x1b[?25l" , 6) ;
 	write( fd , "\x1b[>4;2m" , 7) ;
 	write( fd , "\x1b[?1002h\x1b[?1006h" , 16) ;
+	write( fd , "\x1b[>c" , 4) ;
 
 	tio = orig_tm ;
 	tio.c_iflag &= ~(IXON|IXOFF|ICRNL|INLCR|IGNCR|IMAXBEL|ISTRIP) ;
@@ -264,6 +268,7 @@ open_display_console(void)
 	tcsetattr( fd , TCSANOW , &tio) ;
 
 	displays[0]->display->conv = ml_conv_new( encoding) ;
+	displays[num_of_displays]->display->support_hmargin = 1 ;
 
 	set_winsize( displays[0] , NULL) ;
 
@@ -621,8 +626,6 @@ parse_modify_other_keys(
 			kev->state |= ControlMask ;
 		}
 
-		kik_debug_printf( "%d %x\n" , kev->state , kev->ksym) ;
-
 		return  1 ;
 	}
 	else
@@ -845,9 +848,35 @@ receive_stdin_event(
 				else if( param && *ft == 'u')
 				{
 					if( ! parse_modify_other_keys( &kev , param ,
-							"%d;%d~" , 1))
+							"%d;%du" , 1))
 					{
 						continue ;
+					}
+				}
+				else if( param && *ft == 'c')
+				{
+					int  pp ;
+					int  pv ;
+					int  pc ;
+
+					if( sscanf( param , ">%d;%d;%dc" , &pp , &pv , &pc) != 3)
+					{
+						continue ;
+					}
+
+					if( pp >= 41 /* VT420 or later */ ||
+					    /*
+					     * xterm 279 or later supports DECSLRM/DECLRMM
+					     * but mlterm 3.7.1 or before which supports it
+					     * responses 277.
+					     */
+					    pv >= 277)
+					{
+						disp->display->support_hmargin = 1 ;
+					}
+					else
+					{
+						disp->display->support_hmargin = 0 ;
 					}
 				}
 				else if( 'P' <= *ft && *ft <= 'S')

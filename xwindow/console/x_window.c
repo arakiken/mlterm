@@ -1563,7 +1563,7 @@ x_window_is_scrollable(
 	)
 {
 	/* XXX If input method module is activated, don't scroll window. */
-	if( win->is_scrollable &&
+	if( win->is_scrollable && win->disp->display->support_hmargin &&
 	    (win->disp->num_of_roots == 1 || ! win->disp->roots[1]->is_mapped) )
 	{
 		return  1 ;

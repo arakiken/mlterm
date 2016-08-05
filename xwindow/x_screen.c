@@ -2524,6 +2524,12 @@ key_pressed(
 				     */
 				    ( size == 1 && ( key = kstr[0]) < 0x20))
 				{
+					if( key == 0 && size > 0)
+					{
+						/* For win32gui */
+						key = mkf_bytes_to_int( kstr , size) ;
+					}
+
 					if( ml_term_write_modified_key( screen->term ,
 						key , modcode))
 					{

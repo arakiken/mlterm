@@ -3549,8 +3549,9 @@ send_device_attributes(
 		 * >=96: vim sets ttymouse=xterm2
 		 * >=141: vim uses tcap-query.
 		 * >=277: vim uses sgr mouse tracking.
+		 * >=279: xterm supports DECSLRM/DECLRMM.
 		 */
-		seq = "\x1b[>1;277;0c" ;
+		seq = "\x1b[>1;279;0c" ;
 	}
 	else if( rank == 3)
 	{
@@ -7368,7 +7369,7 @@ ml_vt100_parser_write_modified_key(
 		char *  buf ;
 
 		if( ! ( (modcode - 1) == 1 /* is shift */ &&
-		        ( (' ' <= key && key < 'A') || ('Z' < key && key < 'a') ||
+		        ( ('!' <= key && key < 'A') || ('Z' < key && key < 'a') ||
 			  ('z' < key && key <= '~'))) &&
 		    ( buf = alloca( 10)))
 		{

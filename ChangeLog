@@ -1,3 +1,15 @@
+2016-08-06  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: ModifyOtherKeys on win32 gdi is fixed.
+
+	* console/x.h, console/x_display.c, console/x_window.c:
+	  x_window_is_scrollale() is enabled only if the console where mlterm-con works
+	  supports DECSLRM and DECLRMM which is checked by DA2 response.
+
+	* ml_vt100_parser.c:
+	  - DA2 response is changed from \x1b[>1;277;0c to \x1b[>1;279;0c.
+	  - Wrong processing of shift+space in ml_vt100_parser_write_modified_key() is fixed.
+
 2016-07-30  Araki Ken  <arakiken@users.sf.net>
 
 	* console/x_display.c: modifyOtherKeys is enabled by default.

@@ -66,6 +66,8 @@ typedef struct
 	void *  sixel_output ;
 	void *  sixel_dither ;
 
+	int  support_hmargin ;
+
 } Display ;
 
 #define  PIXEL_RED(pixel,rgbinfo) \
