@@ -95,7 +95,7 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 $(LIBEXECDIR)/mlterm:
-	mkdir -p $(LIBEXECDIR)
+	mkdir -p $(LIBEXECDIR)/mlterm
 
 install : $(BINDIR) $(LIBEXECDIR)/mlterm
 	if test "@GUI@" = "console" ; then \

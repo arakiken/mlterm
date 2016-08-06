@@ -6,41 +6,9 @@
 #define  ___X_H__
 
 
-#if  defined(__linux__)
-#include  <linux/fb.h>
-#include  <linux/input.h>
-#include  <stdint.h>		/* XXX */
-#elif  defined(__FreeBSD__)
-#include  <osreldate.h>
-#if __FreeBSD_version >= 410000
-#include  <sys/fbio.h>
-#else
-#include  <machine/console.h>
-#endif
-#elif  defined(__NetBSD__) || defined(__OpenBSD__)
-#include  <time.h>
-#include  <dev/wscons/wsconsio.h>
-#include  <dev/wscons/wsksymdef.h>
-#endif
 #include  <stdio.h>
 #include  <mkf/mkf_conv.h>
 
-
-#if  defined(__FreeBSD__)
-
-typedef video_color_palette_t fb_cmap_t ;
-
-#elif  defined(__NetBSD__) || defined(__OpenBSD__)
-
-#define  FBIOGETCMAP  WSDISPLAYIO_GETCMAP
-#define  FBIOPUTCMAP  WSDISPLAYIO_PUTCMAP
-typedef struct wsdisplay_cmap fb_cmap_t ;
-
-#else
-
-typedef struct fb_cmap  fb_cmap_t ;
-
-#endif
 
 typedef struct
 {
@@ -69,17 +37,6 @@ typedef struct
 	int  support_hmargin ;
 
 } Display ;
-
-#define  PIXEL_RED(pixel,rgbinfo) \
-	(((pixel) >> (rgbinfo).r_offset) << (rgbinfo).r_limit)
-#define  PIXEL_BLUE(pixel,rgbinfo) \
-	(((pixel) >> (rgbinfo).b_offset) << (rgbinfo).b_limit)
-#define  PIXEL_GREEN(pixel,rgbinfo) \
-	(((pixel) >> (rgbinfo).g_offset) << (rgbinfo).g_limit)
-#define  RGB_TO_PIXEL(r,g,b,rgbinfo) \
-	((((r) >> (rgbinfo).r_limit) << (rgbinfo).r_offset) | \
-	 (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
-	 (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
 
 typedef int  XIM ;		/* dummy */
 typedef int  XIC ;		/* dummy */
@@ -222,310 +179,115 @@ typedef int XFontSet ;	/* dummy */
 #define Button5		5
 
 
-#if  defined(__NetBSD__) || defined(__OpenBSD__)
-
-#define XK_Super_L	0xfffe	/* dummy */
-#define XK_Super_R	0xfffd	/* dummy */
-#define XK_Hyper_L	0xfffc	/* dummy */
-#define XK_Hyper_R	0xfffb	/* dummy */
+#define XK_Super_L	0xff01
+#define XK_Super_R	0xff02
+#define XK_Hyper_L	0xff03
+#define XK_Hyper_R	0xff04
 #define XK_BackSpace	0x08
 #define XK_Tab		0x09
-#define XK_Clear	KS_Clear
-#define XK_Linefeed	KS_Linefeed
+#define XK_Clear	0xff05
+#define XK_Linefeed	0xff06
 #define XK_Return	0x0d
 
-#define XK_Shift_L	KS_Shift_L
-#define XK_Control_L	KS_Control_L
-#define XK_Alt_L	KS_Alt_L
-#define XK_Shift_R	KS_Shift_R
-#define XK_Control_R	KS_Control_R
-#define XK_Alt_R	KS_Alt_R
+#define XK_Shift_L	0xff07
+#define XK_Control_L	0xff08
+#define XK_Alt_L	0xff09
+#define XK_Shift_R	0xff0a
+#define XK_Control_R	0xff0b
+#define XK_Alt_R	0xff0c
 
-#define XK_Meta_L	KS_Meta_L
-#define XK_Meta_R	KS_Meta_R
+#define XK_Meta_L	0xff0d
+#define XK_Meta_R	0xff0e
 
-#define XK_Pause	KS_Pause
-#define XK_Shift_Lock	KS_Shift_Lock
-#define XK_Caps_Lock	KS_Caps_Lock
-#define XK_Escape	KS_Escape
-#define XK_Prior	KS_Prior
-#define XK_Next		KS_Next
-#define XK_End		KS_End
-#define XK_Home		KS_Home
-#define XK_Left		KS_Left
-#define XK_Up		KS_Up
-#define XK_Right	KS_Right
-#define XK_Down		KS_Down
-#define XK_Select	KS_Select
-#define XK_Print	KS_Print_Screen
-#define XK_Execute	KS_Execute
-#define XK_Insert	KS_Insert
-#define XK_Delete	KS_Delete
-#define XK_Help		KS_Help
-#define XK_F1		KS_F1
-#define XK_F2		KS_F2
-#define XK_F3		KS_F3
-#define XK_F4		KS_F4
-#define XK_F5		KS_F5
-#define XK_F6		KS_F6
-#define XK_F7		KS_F7
-#define XK_F8		KS_F8
-#define XK_F9		KS_F9
-#define XK_F10		KS_F10
-#define XK_F11		KS_F11
-#define XK_F12		KS_F12
-#define XK_F13		KS_F13
-#define XK_F14		KS_F14
-#define XK_F15		KS_F15
-#define XK_F16		KS_F16
-#define XK_F17		KS_F17
-#define XK_F18		KS_F18
-#define XK_F19		KS_F19
-#define XK_F20		KS_F20
-#define XK_F21		0xfffa	/* dummy */
-#define XK_F22		0xfff9	/* dummy */
-#define XK_F23		0xfff8	/* dummy */
-#define XK_F24		0xfff7	/* dummy */
-#define XK_FMAX		KS_F20
-#define XK_Num_Lock	KS_Num_Lock
-#define XK_Scroll_Lock	KS_Scroll_Lock
-#define XK_Find		KS_Find
-#define XK_Menu		KS_Menu
-#define XK_Begin	0xfff6	/* dummy */
-#define XK_Muhenkan	KS_Muhenkan
-#define XK_Henkan_Mode	KS_Henkan_Mode
-#define XK_Zenkaku_Hankaku	KS_Zenkaku_Hankaku
-#define XK_Hiragana_Katakana	KS_Hiragana_Katakana
+#define XK_Pause	0xff0f
+#define XK_Shift_Lock	0xff10
+#define XK_Caps_Lock	0xff11
+#define XK_Escape	0xff12
+#define XK_Prior	0xff13
+#define XK_Next		0xff14
+#define XK_End		0xff15
+#define XK_Home		0xff16
+#define XK_Left		0xff17
+#define XK_Up		0xff18
+#define XK_Right	0xff19
+#define XK_Down		0xff1a
+#define XK_Select	0xff1b
+#define XK_Print	0xff1c
+#define XK_Execute	0xff1d
+#define XK_Insert	0xff1e
+#define XK_Delete	0xff1f
+#define XK_Help		0xff20
+#define XK_F1		0xff21
+#define XK_F2		0xff22
+#define XK_F3		0xff23
+#define XK_F4		0xff24
+#define XK_F5		0xff25
+#define XK_F6		0xff26
+#define XK_F7		0xff27
+#define XK_F8		0xff28
+#define XK_F9		0xff29
+#define XK_F10		0xff2a
+#define XK_F11		0xff2b
+#define XK_F12		0xff2c
+#define XK_F13		0xff2d
+#define XK_F14		0xff2e
+#define XK_F15		0xff2f
+#define XK_F16		0xff30
+#define XK_F17		0xff31
+#define XK_F18		0xff32
+#define XK_F19		0xff33
+#define XK_F20		0xff34
+#define XK_F21		0xff35
+#define XK_F22		0xff36
+#define XK_F23		0xff37
+#define XK_F24		0xff38
+#define XK_FMAX		XK_F24
+#define XK_Num_Lock	0xff39
+#define XK_Scroll_Lock	0xff3a
+#define XK_Find		0xff3b
+#define XK_Menu		0xff3c
+#define XK_Begin	0xff3d
+#define XK_Muhenkan	0xff3e
+#define XK_Henkan_Mode	0xff3f
+#define XK_Zenkaku_Hankaku	0xff40
+#define XK_Hiragana_Katakana	0xff41
 
-#define XK_KP_Prior	KS_KP_Prior
-#define XK_KP_Next	KS_KP_Next
-#define XK_KP_End	KS_KP_End
-#define XK_KP_Home	KS_KP_Home
-#define XK_KP_Left	KS_KP_Left
-#define XK_KP_Up	KS_KP_Up
-#define XK_KP_Right	KS_KP_Right
-#define XK_KP_Down	KS_KP_Down
-#define XK_KP_Insert	KS_KP_Insert
-#define XK_KP_Delete	KS_KP_Delete
-#define XK_KP_F1	KS_KP_F1
-#define XK_KP_F2	KS_KP_F2
-#define XK_KP_F3	KS_KP_F3
-#define XK_KP_F4	KS_KP_F4
-#define XK_KP_Begin	KS_KP_Begin
-#define XK_KP_Multiply	KS_KP_Multiply
-#define XK_KP_Add	KS_KP_Add
-#define XK_KP_Separator	KS_KP_Separator
-#define XK_KP_Subtract	KS_KP_Subtract
-#define XK_KP_Decimal	KS_KP_Decimal
-#define XK_KP_Divide	KS_KP_Divide
-#define XK_KP_0		KS_KP_0
-#define XK_KP_1		KS_KP_1
-#define XK_KP_2		KS_KP_2
-#define XK_KP_3		KS_KP_3
-#define XK_KP_4		KS_KP_4
-#define XK_KP_5		KS_KP_5
-#define XK_KP_6		KS_KP_6
-#define XK_KP_7		KS_KP_7
-#define XK_KP_8		KS_KP_8
-#define XK_KP_9		KS_KP_9
+#define XK_KP_Prior	0xff42
+#define XK_KP_Next	0xff43
+#define XK_KP_End	0xff44
+#define XK_KP_Home	0xff45
+#define XK_KP_Left	0xff46
+#define XK_KP_Up	0xff47
+#define XK_KP_Right	0xff48
+#define XK_KP_Down	0xff49
+#define XK_KP_Insert	0xff4a
+#define XK_KP_Delete	0xff4b
+#define XK_KP_F1	0xff4c
+#define XK_KP_F2	0xff4d
+#define XK_KP_F3	0xff4e
+#define XK_KP_F4	0xff4f
+#define XK_KP_Begin	0xff50
+#define XK_KP_Multiply	0xff51
+#define XK_KP_Add	0xff52
+#define XK_KP_Separator	0xff53
+#define XK_KP_Subtract	0xff54
+#define XK_KP_Decimal	0xff55
+#define XK_KP_Divide	0xff56
+#define XK_KP_0		0xff57
+#define XK_KP_1		0xff58
+#define XK_KP_2		0xff59
+#define XK_KP_3		0xff5a
+#define XK_KP_4		0xff5b
+#define XK_KP_5		0xff5c
+#define XK_KP_6		0xff5d
+#define XK_KP_7		0xff5e
+#define XK_KP_8		0xff5f
+#define XK_KP_9		0xff60
 
-#define IsKeypadKey(ksym)	(0xf200 <= (ksym) && (ksym) < 0xf300)
-#define IsModifierKey(ksym)      (KS_Shift_L <= (ksym) && (ksym) <= KS_Alt_R)
+#define IsKeypadKey(ksym)	(XK_KP_Prior <= (ksym) && (ksym) <= XK_KP_9)
+#define IsModifierKey(ksym)      (XK_Shift_L <= (ksym) && (ksym) <= XK_Alt_R)
 
-#else	/* if __FreeBSD__ || __Linux__ */
-
-#if  defined(__FreeBSD__)
-
-#define KEY_CLEAR	0xff	/* dummy */
-#define KEY_LINEFEED	0xfe	/* dummy */
-#define KEY_LEFTSHIFT	0x02
-#define KEY_LEFTCTRL	0x09
-#define KEY_LEFTALT	0x07
-#define KEY_RIGHTSHIFT	0x03
-#define KEY_RIGHTCTRL	0x80
-#define KEY_RIGHTALT	0x81
-#define KEY_LEFTMETA	0xfd	/* dummy */
-#define KEY_RIGHTMETA	0xfc	/* dummy */
-#define KEY_CAPSLOCK	0x04
-#define KEY_PAGEUP	0x4d
-#define KEY_PAGEDOWN	0x55
-#define KEY_END		0x53
-#define KEY_HOME	0x4b
-#define KEY_LEFT	0x4f
-#define KEY_UP		0x4c
-#define KEY_RIGHT	0x51
-#define KEY_DOWN	0x54
-#define KEY_SELECT	0xfb	/* dummy */
-#define KEY_PRINT	0x0a
-#define KEY_INSERT	0x56
-#define KEY_DELETE	0x57
-#define KEY_HELP	0xfa	/* dummy */
-#define KEY_F1		0x1b
-#define KEY_F2		0x1c
-#define KEY_F3		0x1d
-#define KEY_F4		0x1e
-#define KEY_F5		0x1f
-#define KEY_F6		0x20
-#define KEY_F7		0x21
-#define KEY_F8		0x22
-#define KEY_F9		0x23
-#define KEY_F10		0x24
-#define KEY_F11		0x25
-#define KEY_F12		0x26
-#define KEY_F13		0xf9	/* dummy */
-#define KEY_F14		0xf8	/* dummy */
-#define KEY_F15		0xf7	/* dummy */
-#define KEY_F16		0xf6	/* dummy */
-#define KEY_F17		0xf5	/* dummy */
-#define KEY_F18		0xf4	/* dummy */
-#define KEY_F19		0xf3	/* dummy */
-#define KEY_F20		0xf2	/* dummy */
-#define KEY_F21		0xf1	/* dummy */
-#define KEY_F22		0xf0	/* dummy */
-#define KEY_F23		0xef	/* dummy */
-#define KEY_F24		0xee	/* dummy */
-#define KEY_NUMLOCK	0x05
-#define KEY_SCROLLLOCK	0x06
-#define KEY_FIND	0xed	/* dummy */
-#define KEY_MENU	0xec	/* dummy */
-#define KEY_MUHENKAN	0xeb	/* dummy */
-#define KEY_HENKAN	0xea	/* dummy */
-#define KEY_ZENKAKUHANKAKU	0xe9	/* dummy */
-#define KEY_KATAKANAHIRAGANA	0xe8	/* dummy */
-#define KEY_KPASTERISK	0xe7	/* dummy */
-#define KEY_KPPLUS	(0x52 + 0x100)
-#define KEY_KPCOMMA	0xe6	/* dummy */
-#define KEY_KPMINUS	(0x4e + 0x100)
-#define KEY_KPDOT	(0x7f + 0x100)
-#define KEY_KPSLASH	0xe5	/* dummy */
-#define KEY_KP0		(0x56 + 0x100)
-#define KEY_KP1		(0x53 + 0x100)
-#define KEY_KP2		(0x54 + 0x100)
-#define KEY_KP3		(0x55 + 0x100)
-#define KEY_KP4		(0x4f + 0x100)
-#define KEY_KP5		(0x50 + 0x100)
-#define KEY_KP6		(0x51 + 0x100)
-#define KEY_KP7		(0x4b + 0x100)
-#define KEY_KP8		(0x4c + 0x100)
-#define KEY_KP9		(0x4d + 0x100)
-
-#endif	/* FreeBSD */
-
-#define XK_Super_L	0xfffe	/* dummy */
-#define XK_Super_R	0xfffd	/* dummy */
-#define XK_Hyper_L	0xfffc	/* dummy */
-#define XK_Hyper_R	0xfffb	/* dummy */
-#define XK_BackSpace	0x08
-#define XK_Tab		0x09
-#define XK_Clear	(KEY_CLEAR + 0x100)
-#define XK_Linefeed	(KEY_LINEFEED + 0x100)
-#define XK_Return	0x0d
-
-#define XK_Shift_L	(KEY_LEFTSHIFT + 0x100)
-#define XK_Control_L	(KEY_LEFTCTRL + 0x100)
-#define XK_Alt_L	(KEY_LEFTALT + 0x100)
-#define XK_Shift_R	(KEY_RIGHTSHIFT + 0x100)
-#define XK_Control_R	(KEY_RIGHTCTRL + 0x100)
-#define XK_Alt_R	(KEY_RIGHTALT + 0x100)
-
-#define XK_Meta_L	(KEY_LEFTMETA + 0x100)
-#define XK_Meta_R	(KEY_RIGHTMETA + 0x100)
-
-#define XK_Pause	0xfff1	/* dummy */
-#define XK_Shift_Lock	0xfff0	/* dummy */
-#define XK_Caps_Lock	(KEY_CAPSLOCK + 0x100)
-#define XK_Escape	0x1b
-#define XK_Prior	(KEY_PAGEUP + 0x100)
-#define XK_Next		(KEY_PAGEDOWN + 0x100)
-#define XK_End		(KEY_END + 0x100)
-#define XK_Home		(KEY_HOME + 0x100)
-#define XK_Left		(KEY_LEFT + 0x100)
-#define XK_Up		(KEY_UP + 0x100)
-#define XK_Right	(KEY_RIGHT + 0x100)
-#define XK_Down		(KEY_DOWN + 0x100)
-#define XK_Select	(KEY_SELECT + 0x100)
-#define XK_Print	(KEY_PRINT + 0x100)
-#define XK_Execute	0xffef	/* dummy */
-#define XK_Insert	(KEY_INSERT + 0x100)
-#define XK_Delete	(KEY_DELETE + 0x100)
-#define XK_Help		(KEY_HELP + 0x100)
-#define XK_F1		(KEY_F1 + 0x100)
-#define XK_F2		(KEY_F2 + 0x100)
-#define XK_F3		(KEY_F3 + 0x100)
-#define XK_F4		(KEY_F4 + 0x100)
-#define XK_F5		(KEY_F5 + 0x100)
-#define XK_F6		(KEY_F6 + 0x100)
-#define XK_F7		(KEY_F7 + 0x100)
-#define XK_F8		(KEY_F8 + 0x100)
-#define XK_F9		(KEY_F9 + 0x100)
-#define XK_F10		(KEY_F10 + 0x100)
-#define XK_F11		(KEY_F11 + 0x100)
-#define XK_F12		(KEY_F12 + 0x100)
-#define XK_F13		(KEY_F13 + 0x100)
-#define XK_F14		(KEY_F14 + 0x100)
-#define XK_F15		(KEY_F15 + 0x100)
-#define XK_F16		(KEY_F16 + 0x100)
-#define XK_F17		(KEY_F17 + 0x100)
-#define XK_F18		(KEY_F18 + 0x100)
-#define XK_F19		(KEY_F19 + 0x100)
-#define XK_F20		(KEY_F20 + 0x100)
-#define XK_F21		(KEY_F21 + 0x100)
-#define XK_F22		(KEY_F22 + 0x100)
-#define XK_F23		(KEY_F23 + 0x100)
-#define XK_F24		(KEY_F24 + 0x100)
-#ifdef  __FreeBSD__
-#define XK_FMAX		XK_F12
-#else
-#define XK_FMAX		XK_F10	/* F11 or later is not sequential number. */
-#endif
-#define XK_Num_Lock	(KEY_NUMLOCK + 0x100)
-#define XK_Scroll_Lock	(KEY_SCROLLLOCK + 0x100)
-#define XK_Find		(KEY_FIND + 0x100)
-#define XK_Menu		(KEY_MENU + 0x100)
-#define XK_Begin	0xffee	/* dummy */
-#define XK_Muhenkan	(KEY_MUHENKAN + 0x100)
-#define XK_Henkan_Mode	(KEY_HENKAN + 0x100)
-#define XK_Zenkaku_Hankaku	(KEY_ZENKAKUHANKAKU + 0x100)
-#define XK_Hiragana_Katakana	(KEY_KATAKANAHIRAGANA + 0x100)
-
-#define XK_KP_Prior	(KEY_KP9 + 0x100)
-#define XK_KP_Next	(KEY_KP3 + 0x100)
-#define XK_KP_End	(KEY_KP1 + 0x100)
-#define XK_KP_Home	(KEY_KP7 + 0x100)
-#define XK_KP_Left	(KEY_KP4 + 0x100)
-#define XK_KP_Up	(KEY_KP8 + 0x100)
-#define XK_KP_Right	(KEY_KP6 + 0x100)
-#define XK_KP_Down	(KEY_KP2 + 0x100)
-#define XK_KP_Insert	(KEY_KP0 + 0x100)
-#define XK_KP_Delete	(KEY_KPDOT + 0x100)
-#define XK_KP_F1	0xffed	/* dummy */
-#define XK_KP_F2	0xffec	/* dummy */
-#define XK_KP_F3	0xffeb	/* dummy */
-#define XK_KP_F4	0xffea	/* dummy */
-#define XK_KP_Begin	(KEY_KP5 + 0x100)	/* dummy */
-#define XK_KP_Multiply	(KEY_KPASTERISK + 0x100)
-#define XK_KP_Add	(KEY_KPPLUS + 0x100)
-#define XK_KP_Separator	(KEY_KPCOMMA + 0x100)
-#define XK_KP_Subtract	(KEY_KPMINUS + 0x100)
-#define XK_KP_Decimal	0xffe9	/* dummy */
-#define XK_KP_Divide	(KEY_KPSLASH + 0x100)
-#define XK_KP_0		0xffe8	/* dummy */
-#define XK_KP_1		0xffe7	/* dummy */
-#define XK_KP_2		0xffe6	/* dummy */
-#define XK_KP_3		0xffe5	/* dummy */
-#define XK_KP_4		0xffe4	/* dummy */
-#define XK_KP_5		0xffe3	/* dummy */
-#define XK_KP_6		0xffe1	/* dummy */
-#define XK_KP_7		0xffe0	/* dummy */
-#define XK_KP_8		0xffdf	/* dummy */
-#define XK_KP_9		0xffde	/* dummy */
-
-#define IsKeypadKey(ksym)	(1)
-#define IsModifierKey(ksym)      (0)
-
-#endif	/* FreeBSD/Linux/NetBSD */
-
-#define XK_ISO_Left_Tab	0xffa3	/* dummy */
+#define XK_ISO_Left_Tab	0xff61	/* dummy */
 
 
 /* Same as definition in X11/X.h */

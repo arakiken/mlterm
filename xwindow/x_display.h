@@ -122,7 +122,11 @@ void  x_display_reset_input_method_window(void) ;
 
 void  x_display_set_char_encoding( x_display_t *  disp , ml_char_encoding_t  encoding) ;
 
+#ifdef  USE_LIBSIXEL
 void  x_display_set_sixel_colors( x_display_t *  disp , const char *  colors) ;
+#else
+#define  x_display_set_sixel_colors( disp , colors)  (0)
+#endif
 
 void  x_display_set_default_cell_size( u_int  width , u_int  height) ;
 #endif

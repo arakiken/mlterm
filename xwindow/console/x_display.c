@@ -134,6 +134,11 @@ set_winsize(
 		disp->height = disp->display->line_height * ws.ws_row ;
 	}
 
+	kik_msg_printf( "Screen is %dx%d (Cell %dx%d)\n" ,
+		disp->width / disp->display->col_width ,
+		disp->height / disp->display->line_height ,
+		disp->display->col_width , disp->display->line_height) ;
+
 	return  1 ;
 }
 
@@ -205,7 +210,6 @@ open_display_socket(
 	write( fd , "\x1b[>c" , 4) ;
 
 	displays[num_of_displays]->display->conv = ml_conv_new( encoding) ;
-	displays[num_of_displays]->display->support_hmargin = 1 ;
 
 	set_winsize( displays[num_of_displays] , "8;24;80;4;384;640t") ;
 
@@ -268,7 +272,6 @@ open_display_console(void)
 	tcsetattr( fd , TCSANOW , &tio) ;
 
 	displays[0]->display->conv = ml_conv_new( encoding) ;
-	displays[num_of_displays]->display->support_hmargin = 1 ;
 
 	set_winsize( displays[0] , NULL) ;
 
@@ -844,6 +847,8 @@ receive_stdin_event(
 							disp->width , disp->height ,
 							NOTIFY_TO_MYSELF) ;
 					}
+
+					continue ;
 				}
 				else if( param && *ft == 'u')
 				{
@@ -859,25 +864,30 @@ receive_stdin_event(
 					int  pv ;
 					int  pc ;
 
-					if( sscanf( param , ">%d;%d;%dc" , &pp , &pv , &pc) != 3)
-					{
-						continue ;
-					}
-
-					if( pp >= 41 /* VT420 or later */ ||
-					    /*
-					     * xterm 279 or later supports DECSLRM/DECLRMM
-					     * but mlterm 3.7.1 or before which supports it
-					     * responses 277.
-					     */
-					    pv >= 277)
+					/*
+					 * iTerm2: CSI?0;95;c
+					 * MacOSX Terminal: CSI?1;2c
+					 */
+					if( sscanf( param + 1 , "%d;%d;%dc" ,
+						&pp , &pv , &pc) >= 2 &&
+					    ( pp >= 41 /* VT420 or later */ ||
+					      /*
+					       * xterm 279 or later supports DECSLRM/DECLRMM
+					       * but mlterm 3.7.1 or before which supports it
+					       * responses 277.
+					       */
+					      pv >= 277))
 					{
 						disp->display->support_hmargin = 1 ;
 					}
 					else
 					{
+						kik_msg_printf(
+							"Slow scrolling on splitted screens\n") ;
 						disp->display->support_hmargin = 0 ;
 					}
+
+					continue ;
 				}
 				else if( 'P' <= *ft && *ft <= 'S')
 				{
