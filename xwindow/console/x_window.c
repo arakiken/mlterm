@@ -34,8 +34,11 @@ static x_color_t  black = { TP_COLOR , 0 , 0 , 0 , 0 } ;
 #define  ParentRelative  (1L)
 #define  DummyPixmap  (2L)
 
-#define COL_WIDTH  (win->disp->display->col_width)
-#define LINE_HEIGHT  (win->disp->display->line_height)
+#define  COL_WIDTH  (win->disp->display->col_width)
+#define  LINE_HEIGHT  (win->disp->display->line_height)
+
+/* XXX Check if win is input method window or not. */
+#define  IS_IM_WINDOW(win)  ((win)->disp->num_of_roots >= 2 && (win) == (win)->disp->roots[1])
 
 
 /* --- static variables --- */
@@ -894,9 +897,7 @@ x_window_resize(
 	x_resize_flag_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
-	if( (flag & NOTIFY_TO_PARENT) &&
-	    /* XXX Check if win is input method window or not. */
-	    (win->disp->num_of_roots == 1 || win != win->disp->roots[1]))
+	if( ( flag & NOTIFY_TO_PARENT) && ! IS_IM_WINDOW(win))
 	{
 		if( win->parent)
 		{
@@ -1048,7 +1049,7 @@ x_window_move(
 	 *    x_im_candidate_screen::window_exposed() ->
 	 *    x_im_candidate_screen::draw_screen()
 	 */
-	if( ( win->disp->num_of_roots == 1 || win != win->disp->roots[1]))
+	if( ! IS_IM_WINDOW(win))
 	{
 		clear_margin_area( win) ;
 
@@ -1154,7 +1155,8 @@ x_window_fill_with(
 		return  0 ;
 	}
 
-	if( ( ! win->parent ||
+	if( ! IS_IM_WINDOW(win) &&
+	    ( ! win->parent ||
 	      win->x + ACTUAL_WIDTH(win) >= win->parent->width) &&
 	    x + width >= win->width)
 	{
@@ -1565,8 +1567,8 @@ x_window_is_scrollable(
 	/* XXX If input method module is activated, don't scroll window. */
 	if( win->is_scrollable &&
 	    ( win->disp->display->support_hmargin ||
-	      win->disp->width == win->width) &&
-	    ( win->disp->num_of_roots == 1 || ! win->disp->roots[1]->is_mapped))
+	      win->disp->width == ACTUAL_WIDTH(win)) &&
+	    ! IS_IM_WINDOW(win))
 	{
 		return  1 ;
 	}

@@ -11,8 +11,13 @@
 #include  <ml_str.h>
 #include  "x_draw_str.h"
 
+#ifdef  USE_CONSOLE
+#define  MARGIN		0
+#define  LINE_SPACE	0
+#else
 #define  MARGIN		3
 #define  LINE_SPACE	2
+#endif
 
 #define  VISIBLE_INDEX( n , p , i , t , l)	\
 do {						\

@@ -109,7 +109,11 @@ typedef struct  x_window
 	u_int16_t  hmargin ;
 	u_int16_t  vmargin ;
 
-#ifdef  USE_FRAMEBUFFER
+	/*
+	 * mlterm-con doesn't use these members, but they are necessary to keep
+	 * the size of x_window_t as the same as mlterm-fb for input method plugins.
+	 */
+#if  defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 	u_int  clip_y ;
 	u_int  clip_height ;
 #endif

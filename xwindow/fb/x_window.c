@@ -28,6 +28,9 @@ static x_color_t  black = { TP_COLOR , 0 , 0 , 0 , 0 } ;
 #define  ParentRelative  (1L)
 #define  DummyPixmap  (2L)
 
+/* XXX Check if win is input method window or not. */
+#define  IS_IM_WINDOW(win)  ((win)->disp->num_of_roots >= 2 && (win) == (win)->disp->roots[1])
+
 
 /* --- static variables --- */
 
@@ -1495,7 +1498,7 @@ x_window_resize(
 {
 	if( (flag & NOTIFY_TO_PARENT) &&
 	    /* XXX Check if win is input method window or not. */
-	    (win->disp->num_of_roots == 1 || win != win->disp->roots[1]))
+	    ! IS_IM_WINDOW(win))
 	{
 		if( win->parent)
 		{
@@ -1647,7 +1650,7 @@ x_window_move(
 	 *    x_im_candidate_screen::window_exposed() ->
 	 *    x_im_candidate_screen::draw_screen()
 	 */
-	if( ( win->disp->num_of_roots == 1 || win != win->disp->roots[1]))
+	if( ! IS_IM_WINDOW(win))
 	{
 		clear_margin_area( win) ;
 
@@ -2146,8 +2149,7 @@ x_window_is_scrollable(
 	)
 {
 	/* XXX If input method module is activated, don't scroll window. */
-	if( win->is_scrollable &&
-	    (win->disp->num_of_roots == 1 || ! win->disp->roots[1]->is_mapped) )
+	if( win->is_scrollable && ! IS_IM_WINDOW(win))
 	{
 		return  1 ;
 	}

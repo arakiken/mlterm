@@ -1,3 +1,25 @@
+2016-08-07  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.h: clip_y and clip_height members of x_window_t are enabled on mlterm-con
+	  for input method plugins to work with both mlterm-fb and mlterm-con.
+
+	* x_im_{candidate|status}_screen.c:
+	  MARGIN and LINE_SPACE are 0 on mlterm-con.
+
+	* console/x_window.c:
+	  - IS_IM_WINDOW() macro is defined.
+	  - IS_IM_WINDOW() check is added to x_window_fill_with().
+
+	* fb/x_window.c: IS_IM_WINDOW() macro is defined.
+
+	* console/x.h:
+	  - The previous change is reverted for input method plugins to work with both
+	    mlterm-fb and mlterm-con.
+	  - Values of key symbols on platformes except linux and *bsd are the same as
+	    those on freebsd.
+
+	* configure.in: --with-gui=console works on cygwin.
+
 2016-08-06  Araki Ken  <arakiken@users.sf.net>
 
 	* console/x_window.c: If win->disp->width == win->width, x_window_is_scrollable()

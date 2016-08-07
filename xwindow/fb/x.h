@@ -395,9 +395,9 @@ typedef int XFontSet ;	/* dummy */
 #define IsKeypadKey(ksym)	(0xf200 <= (ksym) && (ksym) < 0xf300)
 #define IsModifierKey(ksym)      (KS_Shift_L <= (ksym) && (ksym) <= KS_Alt_R)
 
-#else	/* if __FreeBSD__ || __Linux__ */
+#else	/* if __FreeBSD__ || __linux__ */
 
-#if  defined(__FreeBSD__)
+#ifndef  __linux__	/* FreeBSD */
 
 #define KEY_CLEAR	0xff	/* dummy */
 #define KEY_LINEFEED	0xfe	/* dummy */

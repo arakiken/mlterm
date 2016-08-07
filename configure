@@ -19932,7 +19932,7 @@ fi
 	if test "$have_x" = "yes" ; then
 		if test "$gui" = "" ; then
 			gui="xlib"
-		elif test "$gui" != "xlib" -a "$gui" != "win32" ; then
+		elif test "$gui" != "xlib" -a "$gui" != "win32" -a "$gui" != "console" ; then
 			echo "$gui is not supported in ${host_os}. Use win32."
 			gui="win32"
 		fi
