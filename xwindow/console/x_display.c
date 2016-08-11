@@ -265,7 +265,12 @@ open_display_console(void)
 	tio.c_iflag &= ~(IXON|IXOFF|ICRNL|INLCR|IGNCR|IMAXBEL|ISTRIP) ;
 	tio.c_iflag |= IGNBRK ;
 	tio.c_oflag &= ~(OPOST|ONLCR|OCRNL|ONLRET) ;
+#ifdef  ECHOPRT
 	tio.c_lflag &= ~(IEXTEN|ICANON|ECHO|ECHOE|ECHONL|ECHOCTL|ECHOPRT|ECHOKE|ECHOCTL|ISIG) ;
+#else
+	/* ECHOPRT is not defined on cygwin. */
+	tio.c_lflag &= ~(IEXTEN|ICANON|ECHO|ECHOE|ECHONL|ECHOCTL|ECHOKE|ECHOCTL|ISIG) ;
+#endif
 	tio.c_cc[VMIN] = 1 ;
 	tio.c_cc[VTIME] = 0 ;
 

@@ -1,3 +1,29 @@
+2016-08-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1: Updated.
+
+	* x_main_config.c: "primary_da" / --da1 and "secondary_da" / --da2 options
+	  are added.
+
+	* ml_vt100_parser.[ch]:
+	  - ml_set_{primary|secondary}_da() are added.
+	  - DA1 response is changed from CSI?1;2;3;4;7;29c to CSI?63;1;2;3;4;6;29c.
+	  - DA2 response is changed from CSI>1;279;0c to CSI>24;279;0c
+	  - DECRQSS is partially supported.
+
+	* ml_edit.c: ml_edit_scroll_{up|down}ward() works if cursor position is not
+	  within vertical and horizontal margins.
+
+	* mlterm/Makefile.in: Whether $libdir/libmlterm_core.so is built with open type
+	  layout option is checked before installing new libmlterm_core.so libraray.
+
+	* main-con.c, console/x_display.c: #ifdef ECHOPRT is added.
+
+	* x_window.c: Cursor is moved within vertical and horizontal margins before
+	  SD or SU.
+
+	* configure.in: --with-gui=console works on cygwin.
+
 2016-08-07  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.h: clip_y and clip_height members of x_window_t are enabled on mlterm-con

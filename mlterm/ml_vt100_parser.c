@@ -172,6 +172,9 @@ static int  use_ttyrec_format ;
 
 static clock_t  timeout_read_pty = CLOCKS_PER_SEC / 100 ; /* 0.01 sec */
 
+static char *  primary_da ;
+static char *  secondary_da ;
+
 #ifdef  USE_LIBSSH2
 static int  use_scp_full ;
 #endif
@@ -3385,6 +3388,58 @@ request_termcap(
 }
 
 static void
+request_status(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  key
+	)
+{
+	u_char *  val ;
+	u_char *  digits[DIGIT_STR_LEN(int) * 2 + 2] ;
+	u_char *  seq ;
+
+	if( strcmp( key , "\"q") == 0)
+	{
+		val = "0" ;
+	}
+	else if( strcmp( key , "\"p") == 0)
+	{
+		val = "63;1" ;
+	}
+	else if( strcmp( key , "r") == 0)
+	{
+		val = digits ;
+		sprintf( val , "%d;%d" ,
+			vt100_parser->screen->edit->vmargin_beg + 1 ,
+			vt100_parser->screen->edit->vmargin_end + 1) ;
+	}
+	else if( strcmp( key , "s") == 0)
+	{
+		val = digits ;
+		sprintf( val , "%d;%d" ,
+			vt100_parser->screen->edit->hmargin_beg + 1 ,
+			vt100_parser->screen->edit->hmargin_end + 1) ;
+	}
+	else if( strcmp( key , "m") == 0)
+	{
+		val = "0" ;	/* XXX dummy */
+	}
+	else if( strcmp( key , " q") == 0)
+	{
+		val = "2" ;	/* XXX dummy */
+	}
+	else
+	{
+		return ;
+	}
+
+	if( ( seq = alloca( 7 + strlen(val) + strlen(key) + 1)))
+	{
+		sprintf( seq , "\x1bP1$r%s%s\x1b\\" , val , key) ;
+		ml_write_to_pty( vt100_parser->pty , seq , strlen(seq)) ;
+	}
+}
+
+static void
 clear_line_all(
 	ml_vt100_parser_t *  vt100_parser
 	)
@@ -3536,22 +3591,35 @@ send_device_attributes(
 
 	if( rank == 1)
 	{
-		/* vt100 answerback */
-	#ifndef  NO_IMAGE
-		seq = "\x1b[?1;2;3;4;7;29c" ;
-	#else
-		seq = "\x1b[?1;2;7;29c" ;
-	#endif
+		if( primary_da && ( seq = alloca( 4 + strlen(primary_da) + 1)))
+		{
+			sprintf( seq , "\x1b[?%sc" , primary_da) ;
+		}
+		else
+		{
+		#ifndef  NO_IMAGE
+			seq = "\x1b[?63;1;2;3;4;7;29c" ;
+		#else
+			seq = "\x1b[?63;1;2;7;29c" ;
+		#endif
+		}
 	}
 	else if( rank == 2)
 	{
-		/*
-		 * >=96: vim sets ttymouse=xterm2
-		 * >=141: vim uses tcap-query.
-		 * >=277: vim uses sgr mouse tracking.
-		 * >=279: xterm supports DECSLRM/DECLRMM.
-		 */
-		seq = "\x1b[>1;279;0c" ;
+		if( secondary_da && ( seq = alloca( 4 + strlen(secondary_da) + 1)))
+		{
+			sprintf( seq , "\x1b[>%sc" , secondary_da) ;
+		}
+		else
+		{
+			/*
+			 * >=96: vim sets ttymouse=xterm2
+			 * >=141: vim uses tcap-query.
+			 * >=277: vim uses sgr mouse tracking.
+			 * >=279: xterm supports DECSLRM/DECLRMM.
+			 */
+			seq = "\x1b[>24;279;0c" ;
+		}
 	}
 	else if( rank == 3)
 	{
@@ -6490,11 +6558,13 @@ parse_vt100_escape_sequence(
 			{
 				u_char *  macro ;
 				u_char *  tckey ;
+				u_char *  status ;
 
-				macro = tckey = NULL ;
+				macro = tckey = status = NULL ;
 
 				if( ( *str_p == '!' && *(str_p + 1) == 'z') ||
-				    ( *str_p == '+' && *(str_p + 1) == 'q'))
+				    ( ( *str_p == '+' || *str_p == '$') &&
+				      *(str_p + 1) == 'q'))
 				{
 					if( left <= 2)
 					{
@@ -6510,6 +6580,11 @@ parse_vt100_escape_sequence(
 					{
 						/* DECDMAC */
 						macro = str_p ;
+					}
+					else if( *(str_p - 2) == '$')
+					{
+						/* DECRQSS */
+						status = str_p ;
 					}
 					else
 					{
@@ -6542,6 +6617,10 @@ parse_vt100_escape_sequence(
 						define_macro( vt100_parser ,
 							dcs_beg + (*dcs_beg == '\x1b' ? 2 : 1) ,
 							macro) ;
+					}
+					else if( status)
+					{
+						request_status( vt100_parser , status) ;
 					}
 					else if( tckey)
 					{
@@ -7116,6 +7195,24 @@ ml_set_timeout_read_pty(
 	)
 {
 	timeout_read_pty = timeout ;
+}
+
+void
+ml_set_primary_da(
+	char *  da
+	)
+{
+	free( primary_da) ;
+	primary_da = strdup( da) ;
+}
+
+void
+ml_set_secondary_da(
+	char *  da
+	)
+{
+	free( secondary_da) ;
+	secondary_da = strdup( da) ;
 }
 
 void

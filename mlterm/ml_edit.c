@@ -471,7 +471,8 @@ static int
 scroll_downward_region(
 	ml_edit_t *  edit ,
 	u_int  size ,
-	int  is_cursor_beg
+	int  is_cursor_beg ,
+	int  ignore_cursor_pos
 	)
 {
 	int  vmargin_beg ;
@@ -495,9 +496,10 @@ scroll_downward_region(
 	 * CURSOR_IS_INSIDE_HMARGIN(edit) disables vim to scroll the right side of
 	 * vertically splitted window.
 	 */
-	if( /* CURSOR_IS_INSIDE_HMARGIN(edit) && */
-	    edit->cursor.row >= vmargin_beg &&
-	    edit->cursor.row <= edit->vmargin_end)
+	if( ignore_cursor_pos ||
+	    ( /* CURSOR_IS_INSIDE_HMARGIN(edit) && */
+	      edit->cursor.row >= vmargin_beg &&
+	      edit->cursor.row <= edit->vmargin_end))
 	{
 		if( size > edit->vmargin_end - vmargin_beg + 1)
 		{
@@ -526,7 +528,8 @@ static int
 scroll_upward_region(
 	ml_edit_t *  edit ,
 	u_int  size ,
-	int  is_cursor_beg
+	int  is_cursor_beg ,
+	int  ignore_cursor_pos
 	)
 {
 	int  vmargin_beg ;
@@ -550,9 +553,10 @@ scroll_upward_region(
 	 * CURSOR_IS_INSIDE_HMARGIN(edit) disables vim to scroll the right side of
 	 * vertical splitted window.
 	 */
-	if( /* CURSOR_IS_INSIDE_HMARGIN(edit) && */
-	    edit->cursor.row >= vmargin_beg &&
-	    edit->cursor.row <= edit->vmargin_end)
+	if( ignore_cursor_pos ||
+	    ( /* CURSOR_IS_INSIDE_HMARGIN(edit) && */
+	      edit->cursor.row >= vmargin_beg &&
+	      edit->cursor.row <= edit->vmargin_end))
 	{
 		if( size > edit->vmargin_end - vmargin_beg + 1)
 		{
@@ -979,7 +983,7 @@ ml_edit_overwrite_chars(
 			if( edit->cursor.row + 1 > edit->vmargin_end)
 			{
 				if( MARGIN_IS_ENABLED(edit) ?
-				    ! scroll_upward_region( edit , 1 , 0) :
+				    ! scroll_upward_region( edit , 1 , 0 , 0) :
 				    ! ml_edsl_scroll_upward( edit , 1))
 				{
 					return  0 ;
@@ -1285,7 +1289,7 @@ ml_edit_insert_new_line(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		return  scroll_downward_region( edit , 1 , 1) ;
+		return  scroll_downward_region( edit , 1 , 1 , 0) ;
 	}
 	else
 	{
@@ -1302,7 +1306,7 @@ ml_edit_delete_line(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		return  scroll_upward_region( edit , 1 , 1) ;
+		return  scroll_upward_region( edit , 1 , 1 , 0) ;
 	}
 	else
 	{
@@ -1637,7 +1641,7 @@ ml_edit_scroll_upward(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		scroll_upward_region( edit , size , 0) ;
+		scroll_upward_region( edit , size , 0 , 1) ;
 	}
 	else
 	{
@@ -1663,7 +1667,7 @@ ml_edit_scroll_downward(
 
 	if( MARGIN_IS_ENABLED(edit))
 	{
-		scroll_downward_region( edit , size , 0) ;
+		scroll_downward_region( edit , size , 0 , 1) ;
 	}
 	else
 	{
@@ -1915,7 +1919,7 @@ ml_edit_go_forward(
 		{
 			if( ! ( flag & SCROLL) ||
 			    ( MARGIN_IS_ENABLED(edit) ?
-			      ! scroll_upward_region( edit , 1 , 0) :
+			      ! scroll_upward_region( edit , 1 , 0 , 0) :
 			      ! ml_edsl_scroll_upward( edit , 1)) )
 			{
 				return  0 ;
@@ -1987,7 +1991,7 @@ ml_edit_go_back(
 		{
 			if( ! ( flag & SCROLL) ||
 			    ( MARGIN_IS_ENABLED(edit) ?
-			      ! scroll_downward_region( edit , 1 , 0) :
+			      ! scroll_downward_region( edit , 1 , 0 , 0) :
 			      ! ml_edsl_scroll_downward( edit , 1)) )
 			{
 				return  0 ;
@@ -2035,7 +2039,7 @@ ml_edit_go_upward(
 	{
 		if( ! ( flag & SCROLL) ||
 		    ( MARGIN_IS_ENABLED(edit) ?
-		      ! scroll_downward_region( edit , 1 , 0) :
+		      ! scroll_downward_region( edit , 1 , 0 , 0) :
 		      ! ml_edit_scroll_downward( edit , 1)) )
 		{
 		#ifdef  DEBUG
@@ -2077,7 +2081,7 @@ ml_edit_go_downward(
 	{
 		if( ! ( flag & SCROLL) ||
 		    ( MARGIN_IS_ENABLED(edit) ?
-		      ! scroll_upward_region( edit , 1 , 0) :
+		      ! scroll_upward_region( edit , 1 , 0 , 0) :
 		      ! ml_edit_scroll_upward( edit , 1)) )
 		{
 		#ifdef  DEBUG

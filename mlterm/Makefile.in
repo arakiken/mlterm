@@ -53,7 +53,17 @@ $(LIBNAME)_core.la : $(OBJ_CORE)
 
 install : $(LIBDIR)
 	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \
-		$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
+		if test "`strings $(libdir)/*mlterm_core*|grep ml_ot_layout_new`" != "" -a \
+	                "@OT_LAYOUT_CFLAGS@" = "" ; then \
+			echo "libmlterm_core which supports open type layout has been already installed." \
+			echo "Do you overwrite it ? [y/n]" ; \
+			read in ; \
+			if test "$$in" = "y" ; then \
+				$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
+			fi ; \
+		else \
+			$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
+		fi ; \
 	fi
 
 uninstall :

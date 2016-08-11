@@ -369,6 +369,12 @@ comment $Id$
         mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
         16, 256, full のいずれかを指定します。
 
+      o primary_da (*63;1;2;3;4;7;29*)
+        CSI c に対する応答文字列
+
+      o secondary_da (*24;279;0*)
+        CSI > c に対する応答文字列
+
       -- Encoding 関連 --
       o encoding  (*auto*) (#)
         エンコーディングの指定
@@ -1289,7 +1295,7 @@ comment $Id$
     -u/--onlyucsfont(=bool) : only_use_unicode_font
     -w/--fontsize=value : fontsize
     -x/--tw=value      : tabsize
-    -y/--term=value    : term_type
+    -y/--term=value    : termtype
     -z/--largesmall=value : step_in_changing_font_size
        --bdfont(=bool) : use_bold_font
        --itfont(=bool) : use_italic_font
@@ -1333,6 +1339,10 @@ comment $Id$
        --ldd(=bool)    : leftward_double_drawing
        --working-directory=value : working_directory
        --seqfmt=value  : vt_seq_format
+       --uriword(=bool) : regard_uri_as_word
+       --vtcolor=value : vt_color_mode
+       --da1=value     : primary_da
+       --da2=value     : secondary_da
        --deffont=value : DEFAULT in ~/.mlterm/*font
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)

@@ -562,6 +562,14 @@ The default is \fB0\fR.
 Specify cell width and height in pixel which mlterm-con uses if it doesn't get them.
 The default is \fB8,16\fR.
 .TP
+\fB\-\-da1\fR=\fIvalue\fR
+Specify primary device attributes string.
+The default is \fB63;1;2;3;4;7;29\fR.
+.TP
+\fB\-\-da2\fR=\fIvalue\fR
+Specify secondary device attributes string.
+The default is \fB24;279;0\fR.
+.TP
 \fB\-\-depth\fR=\fIvalue\fR
 Specify visual depth. (8,16,24,32)
 If depth is 32, you can enable semi-transparency by specifying
@@ -1466,6 +1474,9 @@ Specify script of glyph substitution.
 \fBparent_window=\fIvalue\fR (\fB\-\-parent\fR)
 Specify parent Window ID.
 .TP
+\fBprimary_da=\fIvalue\fR (\fB\-\-da1\fR)
+Specify primary device attributes string.
+.TP
 \fBreceive_string_via_ucs=\fIbool\fR (\fB\-U\fR, \fB\-\-viaucs\fR)
 If the received selection (i.e., copy-and-paste strings) or strings received
 from XIM is not UTF8_STRING type, convert it into Unicode and then to the
@@ -1494,6 +1505,9 @@ Specify scrollbar position.
 .TP
 \fBscrollbar_view_name=\fIname\fR (\fB\-S\fR, \fB\-\-sbview\fR)
 Specify name of scrollbar.
+.TP
+\fBsecondary_da=\fIvalue\fR (\fB\-\-da2\fR)
+Specify secondary device attributes string.
 .TP
 \fBssh_keepalive_interval\fR=\fIvalue\fR (\fB\-\-keepalive\fR)
 Specify interval seconds to send keepalive message to ssh server.

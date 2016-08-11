@@ -317,6 +317,10 @@ void  ml_set_use_scp_full( int  use) ;
 
 void  ml_set_timeout_read_pty( u_long  timeout) ;
 
+void  ml_set_primary_da( char *  da) ;
+
+void  ml_set_secondary_da( char *  da) ;
+
 void  ml_vt100_parser_init(void) ;
 
 void  ml_vt100_parser_final(void) ;

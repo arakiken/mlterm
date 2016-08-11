@@ -19939,8 +19939,8 @@ fi
 	else
 		if test "$gui" != "" -a "$gui" != "win32" -a "$gui" != "console" ; then
 			echo "$gui is not supported in ${host_os}. Use win32."
+			gui="win32"
 		fi
-		gui="win32"
 	fi
 	;;
 *)

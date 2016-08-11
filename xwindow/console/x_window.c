@@ -101,6 +101,13 @@ scroll_region(
 		(left + win->x) / COL_WIDTH + 1 ,
 		(right + win->x) / COL_WIDTH) ;
 
+	/* XXX for mlterm-3.7.1 or before */
+#if  1
+	fprintf( win->disp->display->fp , "\x1b[%d;%dH" ,
+		(top + win->y) / LINE_HEIGHT + 1 ,
+		(left + win->x) / COL_WIDTH + 1) ;
+#endif
+
 	if( src_y < dst_y)
 	{
 		fprintf( win->disp->display->fp , "\x1b[%dT" ,

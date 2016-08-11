@@ -349,6 +349,16 @@ x_prepare_for_main_config(
 		"select uri by double-clicking it [false]") ;
 	kik_conf_add_opt( conf , '\0' , "vtcolor" , 0 , "vt_color_mode" ,
 		"vt color mode [high]") ;
+	kik_conf_add_opt( conf , '\0' , "da1" , 0 , "primary_da" ,
+		"primary device atttributes string "
+	#ifndef  NO_IMAGE
+		"[63;1;2;3;4;7;29]"
+	#else
+		"[63;1;2;7;29]"
+	#endif
+		) ;
+	kik_conf_add_opt( conf , '\0' , "da2" , 0 , "secondary_da" ,
+		"secondary device atttributes string [24;279;0]") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [true]") ;
@@ -1541,6 +1551,16 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "vt_color_mode")))
 	{
 		ml_set_color_mode( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "primary_da")))
+	{
+		ml_set_primary_da( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "secondary_da")))
+	{
+		ml_set_secondary_da( value) ;
 	}
 
 #ifdef  USE_OT_LAYOUT
