@@ -7466,10 +7466,25 @@ x_allow_change_shortcut(
 
 void
 x_set_mod_meta_prefix(
-	char *  prefix
+	char *  prefix	/* allocated memory */
 	)
 {
-	mod_meta_prefix = prefix ;
+	static int  was_replaced ;
+
+	if( was_replaced)
+	{
+		free( mod_meta_prefix) ;
+	}
+	else
+	{
+		was_replaced = 1 ;
+	}
+
+	if( ( mod_meta_prefix = prefix) == NULL)
+	{
+		mod_meta_prefix = "\x1b" ;
+		was_replaced = 0 ;
+	}
 }
 
 #ifdef  USE_IM_CURSOR_COLOR

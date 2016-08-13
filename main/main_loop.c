@@ -194,8 +194,6 @@ main_loop_init(
 	kik_conf_add_opt( conf , '\0' , "keepalive" , 0 , "ssh_keepalive_interval" ,
 		"interval seconds to send keepalive. [0 = not send]") ;
 #endif
-	kik_conf_add_opt( conf , '\0' , "metaprefix" , 0 , "mod_meta_prefix" ,
-		"prefix characters in pressing meta key if mod_meta_mode = esc") ;
 	kik_conf_add_opt( conf , '\0' , "deffont" , 0 , "default_font" , "default font") ;
 #ifdef  SUPPORT_POINT_SIZE_FONT
 	kik_conf_add_opt( conf , '\0' , "point" , 1 , "use_point_size" ,
@@ -386,11 +384,6 @@ main_loop_init(
 #endif
 #endif
 
-	if( ( value = kik_conf_get_value( conf , "mod_meta_prefix")))
-	{
-		x_set_mod_meta_prefix( kik_str_unescape( value)) ;
-	}
-
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
 	if( ( value = kik_conf_get_value( conf , "default_font")))
@@ -443,6 +436,8 @@ main_loop_final(void)
 	daemon_final() ;
 
 	ml_free_word_separators() ;
+
+	x_free_mod_meta_prefix() ;
 
 	kik_set_msg_log_file_name( NULL) ;
 

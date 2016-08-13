@@ -642,7 +642,7 @@ KeySym  XStringToKeysym( char *  str) ;
 #undef  TYPE_XCORE_SCALABLE
 #endif
 #define  MANAGE_WINDOWS_BY_MYSELF
-/* See also console/x_display.c where x_picture_display_closed() is never called. */
+/* See also fb/x_display.c where x_picture_display_closed() is never called. */
 #define  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef  SUPPORT_POINT_SIZE_FONT
 

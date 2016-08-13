@@ -359,6 +359,8 @@ x_prepare_for_main_config(
 		) ;
 	kik_conf_add_opt( conf , '\0' , "da2" , 0 , "secondary_da" ,
 		"secondary device atttributes string [24;279;0]") ;
+	kik_conf_add_opt( conf , '\0' , "metaprefix" , 0 , "mod_meta_prefix" ,
+		"prefix characters in pressing meta key if mod_meta_mode = esc") ;
 #ifdef  USE_GRF
 	kik_conf_add_opt( conf , '\0' , "multivram" , 1 , "separate_wall_picture" ,
 		"draw wall picture on another vram. (available on 4bpp) [true]") ;
@@ -1561,6 +1563,11 @@ x_main_config_init(
 	if( ( value = kik_conf_get_value( conf , "secondary_da")))
 	{
 		ml_set_secondary_da( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "mod_meta_prefix")))
+	{
+		x_set_mod_meta_prefix( kik_str_unescape( value)) ;
 	}
 
 #ifdef  USE_OT_LAYOUT

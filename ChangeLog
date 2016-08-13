@@ -1,3 +1,17 @@
+2016-08-14  Araki Ken  <arakiken@users.sf.net>
+
+	* main_loop.c, x_main_config.c: "mod_meta_prefix" / --metaprefix option
+	  is processed in x_main_config.c instead of main_loop.c.
+
+	* x_screen.[ch]: x_free_mod_meta_prefix() is added.
+
+	* vte.c: "word_separators" / --sep and "auto_restart" / --restart options
+	  which are processed in x_main_config.c are removed.
+
+	* hb.c: <ftmodapi.h> in win32gdi is changed to <freetype/ftmodapi.h>
+
+	* android/jni/x.h: platform dependent options are added.
+
 2016-08-11  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1: Updated.

@@ -381,4 +381,20 @@ int  XParseGeometry( char *  str , int *  x , int *  y ,
 KeySym  XStringToKeysym( char *  str) ;
 
 
+/* === Platform dependent options === */
+
+#define  X_COLOR_HAS_RGB
+#undef  SUPPORT_TRUE_TRANSPARENT_BG
+#ifdef  USE_FREETYPE
+/* XXX pcf fonts isn't scalable, though... */
+#define  TYPE_XCORE_SCALABLE
+#else
+#undef  TYPE_XCORE_SCALABLE
+#endif
+#define  MANAGE_WINDOWS_BY_MYSELF
+/* See also fb/x_display.c where x_picture_display_closed() is never called. */
+#define  INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
+#undef  SUPPORT_POINT_SIZE_FONT
+
+
 #endif

@@ -72,7 +72,7 @@ get_hb_features(
 
 #ifdef  USE_WIN32GUI
 
-#include  <ftmodapi.h>
+#include  <freetype/ftmodapi.h>
 
 static FT_Library  ftlib ;
 static u_int  ref_count ;

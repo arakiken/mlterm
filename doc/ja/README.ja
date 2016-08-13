@@ -744,10 +744,11 @@ comment $Id$
 
         skk の場合:
         skk:[dictionary](:utf8)
-	[dictionary] に、接続する辞書サーバ(skkserv)の "ホスト名:ポート番号" 又
+        [dictionary] に、接続する辞書サーバ(skkserv)の "ホスト名:ポート番号" 又
         は、辞書ファイルのパスを指定します。辞書が UTF-8 の場合には、末尾に
-	:utf8 を付けてください。
-	指定しない場合は、localhost の辞書サーバに接続します。
+        :utf8 を付けてください。
+        指定しない場合は、localhost の辞書サーバに接続します。
+        なお、~/.mlterm/skk-jisyo をローカルの辞書として使用します。
 
         kbd の場合:
         kbd:[mode]

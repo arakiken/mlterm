@@ -161,6 +161,8 @@ void  x_allow_change_shortcut( int  flag) ;
 
 void  x_set_mod_meta_prefix( char *  prefix) ;
 
+#define  x_free_mod_meta_prefix()  x_set_mod_meta_prefix( NULL)
+
 #ifdef  USE_IM_CURSOR_COLOR
 void  x_set_im_cursor_color( char *  color) ;
 #endif

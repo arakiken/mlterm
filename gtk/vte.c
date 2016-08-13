@@ -2220,10 +2220,13 @@ vte_terminal_class_init(
 #if  0
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , NULL) ;
 #endif
-	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , NULL) ;
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" , NULL) ;
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , NULL) ;
-	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" , NULL) ;
+#if  0
+	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" , NULL) ;
+#endif
+
+	x_main_config_init( &main_config , conf , 1 , argv) ;
 
 #if  0
 	if( ( value = kik_conf_get_value( conf , "font_size_range")))
@@ -2237,8 +2240,6 @@ vte_terminal_class_init(
 		}
 	}
 #endif
-
-	x_main_config_init( &main_config , conf , 1 , argv) ;
 
 	/* BACKWARD COMPAT (3.1.7 or before) */
 #if  1
@@ -2304,17 +2305,6 @@ vte_terminal_class_init(
 		strcmp( value , "true") == 0)
 	{
 		x_use_cp932_ucs_for_xft() ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "word_separators")))
-	{
-		ml_set_word_separators( value) ;
-	}
-
-	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
-	    strcmp( value , "true") == 0)
-	{
-		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
 	}
 
 	kik_conf_delete( conf) ;
@@ -4218,7 +4208,7 @@ vte_terminal_set_font_from_string(
 	kik_debug_printf( KIK_DEBUG_TAG " set_font_from_string %s\n" , name) ;
 #endif
 
-	if( ! name)
+	if( ! name || strcmp( name , "(null)") == 0)
 	{
 		name = "monospace" ;
 	}

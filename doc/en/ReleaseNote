@@ -4,7 +4,9 @@ ver 3.7.2
 * Add "console_encoding" / --ckm option which specifies a character encoding of
   the console where mlterm-con works.
 * Add "default_cell_size" / --csz option for mlterm-con.
-* add "console_sixel_colors" / --csc option for mlterm-con.
+* Add "console_sixel_colors" / --csc option for mlterm-con.
+* Add "primary_da" / --da1 and "secondary_da" / --da2 options.
+* Support DECRQSS partially.
 * Support wheel mouse on MacOSX/Cocoa. (Thanks to @nyarla)
   (Merge a patch at http://the.nyarla.net/entry/2016/06/03/195013)
 * Bug fixes:
