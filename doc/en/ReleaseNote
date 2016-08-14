@@ -1,6 +1,6 @@
 ver 3.7.2
 * Add mlterm-con which is a console version of mlterm (like GNU Screen) and which
-  works on various terminal emulators.
+  works on various terminal emulators. (see doc/en/README.console)
 * Add "console_encoding" / --ckm option which specifies a character encoding of
   the console where mlterm-con works.
 * Add "default_cell_size" / --csz option for mlterm-con.
@@ -10,7 +10,7 @@ ver 3.7.2
 * Support wheel mouse on MacOSX/Cocoa. (Thanks to @nyarla)
   (Merge a patch at http://the.nyarla.net/entry/2016/06/03/195013)
 * Bug fixes:
-  Fix misalignment of the display position of characters in drawing them with the use
+  Fix misalignment of the position of characters in drawing them with the use
   of complementary loaded fonts on cairo.
 
 ver 3.7.1

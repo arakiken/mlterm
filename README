@@ -23,9 +23,15 @@ Options for configure
   --without-prop-table
     Remove unicode character property table
 
-  --with-gui=(xlib|win32|fb|quartz)
+  --with-gui=(xlib|win32|fb|quartz|console)
     Use specified gui library
-  
+    See following documents in detail.
+
+    win32: doc/en/README.win32
+    fb: doc/en/README.fb
+    quartz: doc/en/README.cocoa
+    console: doc/en/README.console
+
   --with-imagelib=(gdk-pixbuf)
     Link specified image library to mlterm for image processing.
     Note that this option is not necessary for image processing, because
@@ -194,8 +200,7 @@ Supported platforms
   * CentOS 5 / X (x86)
   * FreeBSD 9.0 / framebuffer (x86)
   * OpenBSD 5.3 / framebuffer (x86)
-  * MS Windows 8 + Cygwin 2.4.1 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
-  * MS Windows 8 / GDI (x86)
+  * MS Windows 8 + Cygwin 2.5.2 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
   * MacOSX 10.6 (x86)
 
   Following platforms are not actually tested by developers, but were supported
@@ -243,6 +248,7 @@ Supported platforms
   * MS Windows 7 + Cygwin 1.7.22 / X (x86)
   * MS Windows 7 + Cygwin 1.7.26 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
   * MS Windows 7 + Cygwin 1.7.26 / X (x86)
+  * MS Windows 8 + Cygwin 2.4.1 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
   * MS Windows 7 / GDI (x86)
   * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
 

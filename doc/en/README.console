@@ -1,0 +1,41 @@
+comment -*- mode: text -*-
+comment $Id$
+
+Console support (similar to GNU screen)
+
+* Tested environment
+  xterm-325
+  RLogin 2.20.7
+
+* Build
+  ./configure --with-gui=console ...
+  make
+  sudo make install
+
+* Configuration
+  Configuration of console version is almost same as that of X11 version.
+
+* Start
+  $ mlterm-con
+
+  mlterm-con starts $libexecdir/mlterm/mlterm-con-server which works a daemon
+  process, and connects to it.
+
+  If a console window where mlterm-con works exits unexpectedly, you can revive
+  it by starting mlterm-con and pressing Ctrl+F3.
+
+  If you want to split screen, press Shift+F1 (same as '$ mlcc exec hsplit_screen')
+  or Shift+F2 ('$ mlcc exec vsplit_screen').
+
+* Note
+  o Install libsixel (http://github.com/saitoha/libsixel) in advance if you
+    want to show graphics or emoji in mlterm-con.
+  o Input method plugin modules for mlterm-fb are binary compatible with those
+    for mlterm-con.
+
+* Unsupported features
+  o ssh2 client
+  o OPEN_SCREEN shortcut of ~/.mlterm/key.
+    (OPEN_PTY, HSPLIT_SCREEN, VSPLIT_SCREEN etc are supported.)
+  o geometry option
+  o scrollbar

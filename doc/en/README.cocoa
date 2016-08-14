@@ -34,7 +34,6 @@ MacOS X/Cocoa support (Experimental)
   o It is impossible to disable -s/--mdi option.
   o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
     Command+F1, Command+F2, Command+F3 and Command+F4.
-  o Input method plugin is unavailable.
   o ISCII font is unavailable.
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)

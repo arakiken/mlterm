@@ -13,6 +13,7 @@
 #if  defined(__CYGWIN__) || defined(__MSYS__)
 #define  _WINSOCK2_H	/* Don't include winsock2.h which conflicts with cygwin/msys types. */
 #endif
+#define  _WINSOCK_H	/* Don't include winsock.h instead of winsock2.h. */
 #include  <windows.h>
 #include  <imm.h>
 

@@ -1,5 +1,16 @@
 2016-08-14  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.7.2 released.
+	  (tag "rel-3_7_2")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.7.2.
+
+	* doc/en/README.console: Added.
+
+2016-08-14  Araki Ken  <arakiken@users.sf.net>
+
 	* main_loop.c, x_main_config.c: "mod_meta_prefix" / --metaprefix option
 	  is processed in x_main_config.c instead of main_loop.c.
 
