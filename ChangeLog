@@ -1,4 +1,12 @@
-2016-08-14  Araki Ken  <arakiken@users.sf.net>
+2016-08-18  Araki Ken  <arakiken@users.sf.net>
+
+	* README.cosole, PROTOCOL: Updated.
+
+	* main-con.c: termios is reset on exit.
+
+	* version.h.in: 3.7.2 -> 3.7.2post
+
+2016-08-15  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.7.2 released.
 	  (tag "rel-3_7_2")

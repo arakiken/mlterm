@@ -15,6 +15,20 @@ Console support (similar to GNU screen)
 * Configuration
   Configuration of console version is almost same as that of X11 version.
 
+  <mlterm-con specific options>
+  o console_encoding
+    Encoding of the console where mlterm-con works.
+
+    OPTION:  console_encoding  encoding
+                    |              |
+            xterm8 <=> mlterm-con <=> vim
+
+  o default_cell_size
+    Cell width and height in pixel if mlterm-con can't get them by TIOCGWINSZ.
+
+  o console_sixel_colors
+    The number of sixel graphics colors of the console where mlterm-con works.
+
 * Start
   $ mlterm-con
 

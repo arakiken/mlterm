@@ -369,5 +369,7 @@ main(
 		}
 	}
 
+	tcsetattr( pty_fd , TCSANOW , &std_tio) ;
+
 	return  0 ;
 }
