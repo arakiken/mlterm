@@ -498,15 +498,18 @@ ssh_connect(
 	libssh2_session_callback_set( session->obj ,
 			LIBSSH2_CALLBACK_X11 , x11_callback) ;
 
+#if  ! defined(LIBSSH2_VERSION_NUM) || LIBSSH2_VERSION_NUM < 0x010500
 #ifndef  LIBSSH2_FIX_DECOMPRESS_BUG
 	/*
 	 * XXX
-	 * libssh2 1.4.3 fails to decompress zipped packets and breaks X11
+	 * libssh2 1.4.3 or before fails to decompress zipped packets and breaks X11
 	 * forwarding.
 	 * Camellia branch of http://bitbucket.org/arakiken/libssh2/ fixes this bug
 	 * and defines LIBSSH2_FIX_DECOMPRESS_BUG macro.
+	 * libssh2 1.5.0 or later fixes this bug.
 	 */
 	if( ! use_x11_forwarding)
+#endif
 #endif
 	{
 		libssh2_session_flag( session->obj , LIBSSH2_FLAG_COMPRESS , 1) ;
