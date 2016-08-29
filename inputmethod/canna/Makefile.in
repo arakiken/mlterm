@@ -11,8 +11,8 @@ VPATH = ${top_srcdir}/inputmethod/canna
 IM_CANNA_OBJ = im_canna.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
-	 @KIK_CFLAGS@			\
-	 @MKF_CFLAGS@			\
+	 @POBL_CFLAGS@			\
+	 @MEF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @GUI_CFLAGS@			\
@@ -20,11 +20,11 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @CPPFLAGS@			\
 	 @IM_CFLAGS@			\
 	 @CANNA_CFLAGS@			\
-	 -I$(top_srcdir)/mlterm		\
-	 -I${top_srcdir}/xwindow	\
+	 -I$(top_srcdir)/vtemu		\
+	 -I${top_srcdir}/uitoolkit	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @CANNA_LIBS@
+LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @CANNA_LIBS@
 
 TARGET_win32 = libim-canna.la
 TARGET_xlib = libim-canna.la

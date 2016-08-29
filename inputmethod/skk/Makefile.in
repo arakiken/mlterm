@@ -8,22 +8,22 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/inputmethod/skk
 
-IM_SKK_OBJ = im_skk.o mkf_str_parser.o dict.o
+IM_SKK_OBJ = im_skk.o ef_str_parser.o dict.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
-	 @KIK_CFLAGS@			\
-	 @MKF_CFLAGS@			\
+	 @POBL_CFLAGS@			\
+	 @MEF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @GUI_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
-	 -I$(top_srcdir)/mlterm		\
-	 -I${top_srcdir}/xwindow	\
+	 -I$(top_srcdir)/vtemu		\
+	 -I${top_srcdir}/uitoolkit	\
 	 -I${top_srcdir}/common		\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @SKK_LIBS@
+LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @SKK_LIBS@
 
 TARGET_win32 = libim-skk.la
 TARGET_xlib = libim-skk.la

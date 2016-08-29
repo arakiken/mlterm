@@ -1,0 +1,101 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+LIBDIR = $(DESTDIR)$(libdir)
+INCDIR = $(DESTDIR)$(prefix)/include
+
+VPATH = $(top_srcdir)/src
+
+INCDIR_TMP = $(top_builddir)/include
+
+CC = @CC@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @DL_CFLAGS@ @UTMP_CFLAGS@ \
+	-DLIBEXECDIR=\"${libexecdir}\"
+LIBS = $(LIBS_LOCAL) @XPG4_LIBS@ @DL_LIBS@ @UTMP_LIBS@
+
+COMOBJ = bl_debug.o bl_map.o bl_args.o bl_mem.o bl_conf.o bl_file.o bl_path.o \
+	bl_conf_io.o bl_str.o bl_cycle_index.o bl_langinfo.o bl_time.o bl_locale.o \
+	bl_privilege.o bl_unistd.o bl_sig_child.o bl_dialog.o bl_dlfcn.o
+
+DEPOBJ = bl_pty_@PTY_NAME@.o bl_utmp_@UTMP_NAME@.o bl_dlfcn_@DL_LOADER@.o
+OBJ = $(COMOBJ) $(DEPOBJ)
+
+INC = $(COMOBJ:.o=.h) bl_slist.h bl_types.h bl_util.h bl_def.h bl_net.h bl_pty.h bl_utmp.h bl_dlfcn.h
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(LIBS) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+LIBNAME=libpobl
+LIBNAME_DEB=libpobl_deb
+MAJOR = 1
+MINOR = 0
+
+SUBDIRS = config util io collection sys i18n
+
+
+all : $(LIBNAME).la collect-headers
+
+debug :
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(LIBNAME_DEB).a
+
+install : install-inc install-la
+
+install-inc : $(INCDIR)/pobl
+	cp $(INCDIR_TMP)/pobl/*.h $(INCDIR)/pobl
+
+install-la : $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(LIBNAME).la $(LIBDIR)
+
+install-ar : $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(LIBNAME).a $(LIBDIR)
+
+install-deb :
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(OVERRIDE_MACROS) install-ar
+
+uninstall:
+	rm -rf $(LIBDIR)/*pobl.* $(INCDIR)/pobl
+
+$(INCDIR)/pobl :
+	mkdir -p $(INCDIR)/pobl
+
+$(LIBDIR) :
+	mkdir -p $(LIBDIR)
+
+$(INCDIR_TMP)/pobl :
+	mkdir -p $(INCDIR_TMP)/pobl
+
+collect-headers: $(INCDIR_TMP)/pobl $(INC) bl_config.h
+	for file in $(INC) ; do \
+		if test -f $${file} ; \
+		then cp $${file} $(INCDIR_TMP)/pobl ; \
+		else cp $(top_srcdir)/src/$${file} $(INCDIR_TMP)/pobl ; \
+		fi \
+	done
+	cp bl_config.h $(INCDIR_TMP)/pobl
+	touch collect-headers
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+.SUFFIXES: .c.o
+
+.c.o:
+	$(LIBTOOL_CC) -I. -c $<
+
+$(LIBNAME).la : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(libdir) \
+		@NO_UNDEFINED_FLAG@ -version-info $(MAJOR):$(MINOR):0
+
+$(LIBNAME).a : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ)
+
+clean :
+	rm -rf $(INCDIR_TMP) .libs $(OBJ) $(OBJ:.o=.lo) *.la *.a collect-headers

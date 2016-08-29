@@ -1,0 +1,90 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+BINDIR = $(DESTDIR)$(bindir)
+LIBDIR = $(DESTDIR)$(libdir)
+
+VPATH = $(top_srcdir)/vtemu
+
+# @FRIBIDI_CFLAGS@ and @IND_CFLAGS@ are for NO_DYNAMIC_LOAD_CTL.
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @SSH2_CFLAGS@ \
+	@UTMP_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ @CTL_CFLAGS@ @VT52_CFLAGS@ \
+	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @CFLAGS@ \
+	@VT_NORM_CFLAGS@ @CPPFLAGS@ \
+	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DBINDIR=\"$(bindir)\" \
+	-DLIBDIR=\"$(libdir)\"
+
+OBJ_CORE = vt_char.o vt_str.o vt_line.o vt_model.o vt_ot_layout.o @VT_NORM_OBJ@ @CTL_LOADER_OBJ@
+OBJ = vt_char_encoding.o vt_color.o vt_edit.o vt_edit_util.o vt_edit_scroll.o \
+	vt_cursor.o vt_logical_visual.o vt_logs.o vt_screen.o vt_shape.o \
+	vt_str_parser.o vt_term.o vt_parser.o vt_term_manager.o \
+	vt_bidi.o vt_iscii.o vt_config_menu.o vt_config_proto.o vt_drcs.o \
+	vt_pty.o vt_termcap.o vt_line_shape.o cygfile.o @VT_PTY_OBJ@
+
+LIBNAME = libmlterm
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+
+all : @LMLTERM_CORE@ $(LIBNAME).a
+
+debug : @LMLTERM_CORE@ $(LIBNAME).a
+
+$(LIBNAME).a : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo)
+
+$(LIBNAME)_core.a : $(OBJ_CORE)
+	$(LIBTOOL_LINK) -o $(LIBNAME)_core.a $(OBJ_CORE:.o=.lo)
+
+$(LIBNAME)_core.la : $(OBJ_CORE)
+	$(LIBTOOL_LINK) -o $(LIBNAME)_core.la $(OBJ_CORE:.o=.lo) \
+	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -avoid-version @LPOBL@ $(LIBS)
+
+install : $(LIBDIR)
+	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \
+		if test "`strings $(libdir)/*mlterm_core*|grep vt_ot_layout_new`" != "" -a \
+	                "@OT_LAYOUT_CFLAGS@" = "" ; then \
+			echo "libmlterm_core which supports open type layout has been already installed." \
+			echo "Do you overwrite it ? [y/n]" ; \
+			read in ; \
+			if test "$$in" = "y" ; then \
+				$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
+			fi ; \
+		else \
+			$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
+		fi ; \
+	fi
+
+uninstall :
+	rm -f $(LIBDIR)/*mlterm_core.*
+
+$(LIBDIR) :
+	mkdir -p $(LIBDIR)
+
+clean :
+	rm -rf $(OBJ) $(OBJ:.o=.lo) $(OBJ_CORE) $(OBJ_CORE:.o=.lo) .libs *.a *.la
+
+distclean: clean
+	rm -f Makefile
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+.SUFFIXES : .c.o
+
+.m.o :
+	$(LIBTOOL_CC) -c $<
+
+.c.o :
+	$(LIBTOOL_CC) -c $<

@@ -1,0 +1,113 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+LIBDIR = $(DESTDIR)$(libdir)
+INCDIR = $(DESTDIR)$(prefix)/include
+
+VPATH = $(top_srcdir)/src
+
+INCDIR_TMP = $(top_builddir)/include
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-DLIBDIR=\"$(libdir)\" -I/usr/local/include
+
+PARSER_OBJ = ef_parser.o ef_iso2022_parser.o ef_iso8859_parser.o ef_xct_parser.o \
+	ef_eucjp_parser.o ef_euckr_parser.o ef_euccn_parser.o ef_iso2022jp_parser.o \
+	ef_iso2022kr_parser.o ef_sjis_parser.o ef_big5_parser.o ef_euctw_parser.o \
+	ef_utf16_parser.o ef_iso2022cn_parser.o ef_hz_parser.o ef_utf8_parser.o \
+	ef_johab_parser.o ef_8bit_parser.o ef_utf32_parser.o ef_codepoint_parser.o
+
+CONV_OBJ = ef_iso8859_conv.o ef_iso2022_conv.o ef_iso2022jp_conv.o ef_iso2022kr_conv.o \
+	ef_sjis_conv.o ef_utf8_conv.o ef_big5_conv.o ef_euctw_conv.o ef_iso2022cn_conv.o \
+	ef_hz_conv.o ef_utf16_conv.o ef_eucjp_conv.o ef_euckr_conv.o ef_euccn_conv.o \
+	ef_johab_conv.o ef_8bit_conv.o ef_xct_conv.o ef_utf32_conv.o
+
+MAP_OBJ = ef_ucs4_map.o ef_locale_ucs4_map.o ef_zh_cn_map.o ef_zh_tw_map.o ef_zh_hk_map.o \
+	ef_ko_kr_map.o ef_viet_map.o ef_ja_jp_map.o ef_ru_map.o ef_uk_map.o ef_tg_map.o
+
+PROP_OBJ = ef_ucs_property.o ef_jisx0208_1983_property.o ef_jisx0213_2000_property.o
+
+UCS_TABLE_OBJ = ef_ucs4_iso8859.o ef_ucs4_viscii.o ef_ucs4_tcvn5712_1.o \
+	ef_ucs4_koi8.o ef_ucs4_georgian_ps.o ef_ucs4_cp125x.o ef_ucs4_iscii.o \
+	ef_ucs4_jisx0201.o ef_ucs4_jisx0208.o ef_ucs4_jisx0212.o \
+	ef_ucs4_jisx0213.o ef_ucs4_ksc5601.o ef_ucs4_uhc.o ef_ucs4_johab.o \
+	ef_ucs4_gb2312.o ef_ucs4_gbk.o ef_ucs4_big5.o ef_ucs4_cns11643.o \
+	ef_gb18030_2000_intern.o
+
+OBJ = $(PARSER_OBJ) $(CONV_OBJ) $(MAP_OBJ) ef_char.o ef_sjis_env.o ef_tblfunc_loader.o \
+	$(PROP_OBJ) $(UCS_TABLE_OBJ)
+
+INC = $(PARSER_OBJ:.o=.h) $(CONV_OBJ:.o=.h) $(MAP_OBJ:.o=.h) ef_char.h ef_sjis_env.h \
+	ef_property.h ef_ucs_property.h ef_charset.h ef_conv.h
+
+LIBNAME = libmef
+LIBNAME_DEB = libmef_deb
+MAJOR = 1
+MINOR = 0
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+
+all : $(LIBNAME).la collect-headers
+
+debug :
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(LIBNAME_DEB).a
+
+$(LIBNAME).a : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo)
+
+$(LIBNAME).la : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(libdir) \
+		@NO_UNDEFINED_FLAG@ @DEXPORT@ -version-info $(MAJOR):$(MINOR):0 @POBL_LIBS@
+
+$(INCDIR_TMP)/mef :
+	mkdir -p $(INCDIR_TMP)/mef
+
+collect-headers : $(INCDIR_TMP)/mef $(INC)
+	for file in $(INC) ; do \
+		if test -f $${file} ; \
+		then cp $${file} $(INCDIR_TMP)/mef ; \
+		else cp $(top_srcdir)/src/$${file} $(INCDIR_TMP)/mef ; \
+		fi \
+	done
+	touch collect-headers
+
+install: install-inc install-la
+
+install-deb :
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) install-ar
+
+install-inc : $(INCDIR)/mef
+	cp $(INCDIR_TMP)/mef/*.h $(INCDIR)/mef
+
+install-la : $(LIBDIR)
+	$(LIBTOOL_INSTALL) *.la $(LIBDIR)
+
+install-ar : $(LIBDIR)
+	$(LIBTOOL_INSTALL) *.a $(LIBDIR)
+
+uninstall:
+	rm -rf $(LIBDIR)/*mef.* $(INCDIR)/mef
+
+$(INCDIR)/mef :
+	mkdir -p $(INCDIR)/mef
+
+$(LIBDIR) :
+	mkdir -p $(LIBDIR)
+
+clean :
+	rm -rf $(OBJ) $(OBJ:.o=.lo) .libs *.la *.a $(INCDIR_TMP) collect-headers
+
+.SUFFIXES : .c.o
+
+.c.o :
+	$(LIBTOOL_CC) -c $<

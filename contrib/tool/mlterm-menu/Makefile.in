@@ -15,20 +15,20 @@ INSTALL = @INSTALL@
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 
-LKIK = @LKIK@
+LPOBL = @LPOBL@
 
-CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @GTK_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @GTK_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\"
 
 LIBS1 = $(LIBS_LOCAL) @DL_SELF@ @GTK_LIBS@
 
-LIBS2_xlib = $(LKIK)
+LIBS2_xlib = $(LPOBL)
 
-# mlterm-menu is statically linked with libkik.
-# Then it works if installed libkik.dll is compiled with USE_WIN32API or not.
-LIBS2_win32 = -mwindows ${top_builddir}/kiklib/src/.libs/libkik.a
+# mlterm-menu is statically linked with libpobl.
+# Then it works if installed libpobl.dll is compiled with USE_WIN32API or not.
+LIBS2_win32 = -mwindows ${top_builddir}/pobl/src/.libs/libpobl.a
 
-LIBS2_quartz = $(LKIK)
+LIBS2_quartz = $(LPOBL)
 
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
@@ -40,12 +40,12 @@ VERSION = @VERSION@
 
 OBJS = mlterm-menu.o
 
-LKIK_DEB=-lkik_deb
+LPOBL_DEB=-lpobl_deb
 
 all: mlterm-menu
 
 debug:
-	$(MAKE) LKIK="$(LKIK_DEB)" all
+	$(MAKE) LPOBL="$(LPOBL_DEB)" all
 
 mlterm-menu: $(OBJS)
 	$(LIBTOOL_LINK) $(OBJS) $(CFLAGS) -o mlterm-menu $(LIBS)

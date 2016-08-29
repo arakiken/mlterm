@@ -1,19 +1,20 @@
 # Japanese translations for mlterm
-# Copyright (C) 2002 Araki Ken <arakiken@users.sourceforge.net>
+# Copyright (C) 2002 Araki Ken <araklen@users.sourceforge.net>
 # This file is distributed under the same license as the mlterm package.
 # Koushi Takahashi <koushi@turbolinux.co.jp>
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2004-10-26 17:41+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=euc-jp\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Report-Msgid-Bugs-To: \n"
 
 #: tool/mlconfig/main.c:220
 msgid "Save&Exit"
@@ -56,7 +57,8 @@ msgid " New "
 msgstr "新規"
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid "Select"
+#, fuzzy
+msgid " Select "
 msgstr "選択"
 
 #: tool/mlconfig/main.c:316
@@ -66,14 +68,6 @@ msgstr "mltermの設定"
 #: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
 msgid "Encoding"
 msgstr "エンコーディング"
-
-#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
-msgid "Auto detect"
-msgstr "自動判定"
-
-#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
-msgid "Encoding list"
-msgstr "対象エンコーディング"
 
 #: tool/mlconfig/main.c:404
 msgid "Font"
@@ -100,7 +94,8 @@ msgid "Others"
 msgstr "その他"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid "Bell mode"
+#, fuzzy
+msgid " Bel mode "
 msgstr "ベル"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
@@ -116,38 +111,6 @@ msgstr "音"
 msgid "Visual"
 msgstr "表示"
 
-#: tool/mlconfig/mc_bel.c:115
-msgid "Both"
-msgstr "両方"
-
-#: tool/mlconfig/mc_radio.c:115
-msgid "Font policy"
-msgstr "表示フォント"
-
-#: tool/mlconfig/mc_radio.c:115
-msgid "Always unicode"
-msgstr "Unicodeのみ"
-
-#: tool/mlconfig/mc_radio.c:115
-msgid "Never unicode"
-msgstr "Unicode以外"
-
-#: tool/mlconfig/mc_radio.c:115
-msgid "Box drawing"
-msgstr "罫線"
-
-#: tool/mlconfig/mc_radio.c:115
-msgid "As it is"
-msgstr "そのまま表示"
-
-#: tool/mlconfig/mc_radio.c:115
-msgid "Unicode"
-msgstr "Unicodeに変換"
-
-#: tool/mlconfig/mc_radio.c:115
-msgid "DEC Special"
-msgstr "DEC Specialに変換"
-
 #: tool/mlconfig/mc_bgtype.c:118
 msgid "Background type"
 msgstr "背景のタイプ"
@@ -161,8 +124,9 @@ msgid "Picture"
 msgstr "壁紙"
 
 #: tool/mlconfig/mc_bgtype.c:156
-msgid "Pseudo transparent"
-msgstr "擬似透明"
+#, fuzzy
+msgid "Transparent"
+msgstr "壁紙/透明"
 
 #: tool/mlconfig/mc_brightness.c:71
 msgid "Brightness"
@@ -216,39 +180,56 @@ msgid "Background color"
 msgstr "背景色"
 
 #: tool/mlconfig/mc_color.c:46
-msgid "Cursor color"
-msgstr "カーソル"
-
-#: tool/mlconfig/mc_color.c:46
-msgid "Substituting color"
-msgstr "文字属性に代えて表示する色"
-
-#: tool/mlconfig/mc_color.c:46
-msgid "Bold "
-msgstr "ボールド"
+msgid "black"
+msgstr ""
 
 #: tool/mlconfig/mc_color.c:47
-msgid "Underline"
-msgstr "下線"
+msgid "red"
+msgstr ""
 
 #: tool/mlconfig/mc_color.c:48
-msgid "Italic"
-msgstr "イタリック"
+msgid "green"
+msgstr ""
 
 #: tool/mlconfig/mc_color.c:49
-msgid "Blink"
-msgstr "点滅"
+msgid "yellow"
+msgstr ""
 
 #: tool/mlconfig/mc_color.c:50
-msgid "Cross out"
-msgstr "取消線"
+msgid "blue"
+msgstr ""
 
-#: tool/mlconfig/mc_color.c:46
-msgid "VT basic 16 colors"
-msgstr "カラーパレット(16色)"
+#: tool/mlconfig/mc_color.c:51
+msgid "magenta"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:52
+msgid "cyan"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:53
+msgid "white"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:54
+msgid "gray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:55
+msgid "lightgray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:56
+msgid "pink"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:57
+msgid "brown"
+msgstr ""
 
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast  "
+#, fuzzy
+msgid "Contrast"
 msgstr "コントラスト"
 
 #: tool/mlconfig/mc_fade.c:69
@@ -280,72 +261,16 @@ msgid "Fullwidth = 2 (or 1) logical column(s)"
 msgstr "全角文字の論理幅を(1ではなく)2にする"
 
 #: tool/mlconfig/mc_flags.c:41
-msgid "Complex Text Layout"
-msgstr "Complex Text Layout"
-
-#: tool/mlconfig/mc_bidi.c:41
-msgid "BiDi separators"
-msgstr "BiDiの区切り文字"
-
-#: tool/mlconfig/mc_flags.c:45
-msgid "Ambiguouswidth = fullwidth"
-msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
-
-#: tool/mlconfig/mc_flags.c:45
-msgid "Don't scroll automatically in scrolling back"
-msgstr "スクロールバック中は自動的にスクロールしない"
-
-#: tool/mlconfig/mc_flags.c:52
-msgid "CLIPBOARD Selection"
-msgstr "選択文字列をクリップボードに保存"
-
-#: tool/mlconfig/mc_flags.c:53
-msgid "Local echo"
-msgstr "ローカルエコー"
-
-#: tool/mlconfig/mc_flags.c:53
-msgid "Blink cursor"
-msgstr "カーソル点滅"
-
-#: tool/mlconfig/mc_flags.c:45
-msgid "Set full width\nareas manually"
-msgstr "全角幅文字の範\n囲を手動設定"
-
-#: tool/mlconfig/mc_flags.c:44
-msgid "Scroll by Shift+Up or Shift+Down"
-msgstr "Shift+Up又はShift+Downによるスクロール"
-
-#: tool/mlconfig/mc_flags.c:44
-msgid "Select URI by double click"
-msgstr "ダブルクリックでURIを選択"
+msgid "Bidi (UTF8 only)"
+msgstr ""
 
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"
 
-#: tool/mlconfig/mc_font.c:62
-msgid "Font name"
-msgstr "フォント名"
-
-#: tool/mlconfig/mc_font.c:62
-msgid "Unicode areas you won't convert to other charsets"
-msgstr "Unicodeから他の文字集合に変換しない範囲"
-
-#: tool/mlconfig/mc_font.c:62
-msgid " Edit "
-msgstr "編集"
-
-#: tool/mlconfig/mc_font.c:62
-msgid "Set unicode area in the following format.\nFormat: U+XXXX-XXXX or U+XXXX (U+ is optional)"
-msgstr "次の形式でUnicodeの範囲を指定してください\n U+XXXX-XXXX又はU+XXXX (U+はなくても構いません)"
-
 #: tool/mlconfig/mc_gamma.c:69
 msgid "Gamma"
 msgstr "ガンマ"
-
-#: tool/mlconfig/mc_alpha.c:69
-msgid "Alpha"
-msgstr "アルファ"
 
 #: tool/mlconfig/mc_iscii_lang.c:71
 msgid "ISCII language"
@@ -355,20 +280,13 @@ msgstr "ISCII言語"
 msgid "Line space (pixels)"
 msgstr "行間隔(ピクセル)"
 
-#: tool/mlconfig/mc_letter_space.c:65
-msgid "Letter space (pixels)"
-msgstr "字間(ピクセル)"
-
 #: tool/mlconfig/mc_logsize.c:63
 msgid "Backlog size (lines)"
 msgstr "ログサイズ(行)"
 
-#: tool/mlconfig/mc_wordsep.c:63
-msgid "Word separators"
-msgstr "単語区切り文字"
-
 #: tool/mlconfig/mc_mod_meta.c:88
-msgid "Meta key outputs"
+#, fuzzy
+msgid "Meta key outputs:"
 msgstr "メタキー"
 
 #: tool/mlconfig/mc_mod_meta.c:105
@@ -378,22 +296,6 @@ msgstr "Esc"
 #: tool/mlconfig/mc_mod_meta.c:116
 msgid "8bit"
 msgstr "8ビット"
-
-#: tool/mlconfig/mc_vtseq.c:88
-msgid "Save log"
-msgstr "ログを保存"
-
-#: tool/mlconfig/mc_vtseq.c:105
-msgid "No"
-msgstr "保存しない"
-
-#: tool/mlconfig/mc_vtseq.c:116
-msgid "Raw format"
-msgstr "そのまま保存"
-
-#: tool/mlconfig/mc_vtseq.c:116
-msgid "Ttyrec format"
-msgstr "ttyrec形式で保存"
 
 #: tool/mlconfig/mc_sb.c:88
 msgid "Position"
@@ -406,10 +308,6 @@ msgstr "左"
 #: tool/mlconfig/mc_sb.c:116
 msgid "Right"
 msgstr "右"
-
-#: tool/mlconfig/mc_sb.c:116
-msgid "Auto hide"
-msgstr "自動的に隠す"
 
 #: tool/mlconfig/mc_sb_view.c:137
 msgid "View"
@@ -454,3 +352,134 @@ msgstr "オプション"
 #: tool/mlconfig/mc_im.c:497
 msgid "Input Method"
 msgstr "入力メソッド"
+
+#~ msgid "Auto detect"
+#~ msgstr "自動判定"
+
+#~ msgid "Encoding list"
+#~ msgstr "対象エンコーディング"
+
+#~ msgid "Both"
+#~ msgstr "両方"
+
+#~ msgid "Font policy"
+#~ msgstr "表示フォント"
+
+#~ msgid "Always unicode"
+#~ msgstr "Unicodeのみ"
+
+#~ msgid "Never unicode"
+#~ msgstr "Unicode以外"
+
+#~ msgid "Box drawing"
+#~ msgstr "罫線"
+
+#~ msgid "As it is"
+#~ msgstr "そのまま表示"
+
+#~ msgid "Unicode"
+#~ msgstr "Unicodeに変換"
+
+#~ msgid "DEC Special"
+#~ msgstr "DEC Specialに変換"
+
+#~ msgid "Pseudo transparent"
+#~ msgstr "擬似透明"
+
+#~ msgid "Cursor color"
+#~ msgstr "カーソル"
+
+#~ msgid "Substituting color"
+#~ msgstr "文字属性に代えて表示する色"
+
+#~ msgid "Bold "
+#~ msgstr "ボールド"
+
+#~ msgid "Underline"
+#~ msgstr "下線"
+
+#~ msgid "Italic"
+#~ msgstr "イタリック"
+
+#~ msgid "Blink"
+#~ msgstr "点滅"
+
+#~ msgid "Cross out"
+#~ msgstr "取消線"
+
+#~ msgid "VT basic 16 colors"
+#~ msgstr "カラーパレット(16色)"
+
+#~ msgid "Complex Text Layout"
+#~ msgstr "Complex Text Layout"
+
+#~ msgid "BiDi separators"
+#~ msgstr "BiDiの区切り文字"
+
+#~ msgid "Ambiguouswidth = fullwidth"
+#~ msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
+
+#~ msgid "Don't scroll automatically in scrolling back"
+#~ msgstr "スクロールバック中は自動的にスクロールしない"
+
+#~ msgid "CLIPBOARD Selection"
+#~ msgstr "選択文字列をクリップボードに保存"
+
+#~ msgid "Local echo"
+#~ msgstr "ローカルエコー"
+
+#~ msgid "Blink cursor"
+#~ msgstr "カーソル点滅"
+
+#~ msgid ""
+#~ "Set full width\n"
+#~ "areas manually"
+#~ msgstr ""
+#~ "全角幅文字の範\n"
+#~ "囲を手動設定"
+
+#~ msgid "Scroll by Shift+Up or Shift+Down"
+#~ msgstr "Shift+Up又はShift+Downによるスクロール"
+
+#~ msgid "Select URI by double click"
+#~ msgstr "ダブルクリックでURIを選択"
+
+#~ msgid "Font name"
+#~ msgstr "フォント名"
+
+#~ msgid "Unicode areas you won't convert to other charsets"
+#~ msgstr "Unicodeから他の文字集合に変換しない範囲"
+
+#~ msgid " Edit "
+#~ msgstr "編集"
+
+#~ msgid ""
+#~ "Set unicode area in the following format.\n"
+#~ "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"
+#~ msgstr ""
+#~ "次の形式でUnicodeの範囲を指定してください\n"
+#~ " U+XXXX-XXXX又はU+XXXX (U+はなくても構いません)"
+
+#~ msgid "Alpha"
+#~ msgstr "アルファ"
+
+#~ msgid "Letter space (pixels)"
+#~ msgstr "字間(ピクセル)"
+
+#~ msgid "Word separators"
+#~ msgstr "単語区切り文字"
+
+#~ msgid "Save log"
+#~ msgstr "ログを保存"
+
+#~ msgid "No"
+#~ msgstr "保存しない"
+
+#~ msgid "Raw format"
+#~ msgstr "そのまま保存"
+
+#~ msgid "Ttyrec format"
+#~ msgstr "ttyrec形式で保存"
+
+#~ msgid "Auto hide"
+#~ msgstr "自動的に隠す"

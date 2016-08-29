@@ -36,7 +36,7 @@ TARGET_2.91 = libvte-2.91
 
 CFLAGS = $(CFLAGS_LOCAL) @TYPE_CFLAGS@ @DEB_CFLAGS@ @SSH2_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" `$(PKG_CONFIG) --cflags $(PKG_NAME)` @CPPFLAGS@
-LIBS = $(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
+LIBS = $(top_builddir)/baselib/src/libpobl.la $(top_builddir)/encodefilter/src/libmef.la \
 	@IMAGELIB_LIBS@ @DL_LIBS_IM@ @GTK_LIBS@ @CTL_LIBS_FOR_VTE@ @TYPE_LIBS_FOR_VTE@ @DEXPORT@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
@@ -48,20 +48,20 @@ OBJ = vte.o marshal.o vtetypebuiltins.o reaper.o
 all: $(TARGET).la
 
 $(TARGET).la: $(OBJ)
-	$(LIBTOOL_LINK) -o $(TARGET).la $(OBJ:.o=.lo) ../mlterm/*.lo \
-	`echo ../xwindow/*.lo| \
-	sed 's/..\/xwindow\/x_layout.lo//g' | \
-	sed 's/..\/xwindow\/x_scrollbar.lo//g' | \
-	sed 's/..\/xwindow\/x_sb_view_factory.lo//g' | \
-	sed 's/..\/xwindow\/x_connect_dialog.lo//g' | \
-	sed 's/..\/xwindow\/x_simple_sb_view.lo//g' | \
-	sed 's/..\/xwindow\/x_screen_manager.lo//g' | \
-	sed 's/..\/xwindow\/x_event_source.lo//g'` \
+	$(LIBTOOL_LINK) -o $(TARGET).la $(OBJ:.o=.lo) ../vtemu/*.lo \
+	`echo ../uitoolkit/*.lo| \
+	sed 's/..\/uitoolkit\/ui_layout.lo//g' | \
+	sed 's/..\/uitoolkit\/ui_scrollbar.lo//g' | \
+	sed 's/..\/uitoolkit\/ui_sb_view_factory.lo//g' | \
+	sed 's/..\/uitoolkit\/ui_connect_dialog.lo//g' | \
+	sed 's/..\/uitoolkit\/ui_simple_sb_view.lo//g' | \
+	sed 's/..\/uitoolkit\/ui_screen_manager.lo//g' | \
+	sed 's/..\/uitoolkit\/ui_event_source.lo//g'` \
 	$(LIBS) -rpath $(libdir) -version-info $(LIB_VERSION)
 
 .c.o:
-	$(LIBTOOL_CC) $(CFLAGS) -I$(top_srcdir)/mlterm -I$(top_srcdir)/xwindow \
-		-I$(top_builddir)/xwindow -I../mkf/include -I../kiklib/include -g -c $<
+	$(LIBTOOL_CC) $(CFLAGS) -I$(top_srcdir)/vtemu -I$(top_srcdir)/uitoolkit \
+		-I$(top_builddir)/uitoolkit -I../encodefilter/include -I../baselib/include -g -c $<
 
 clean:
 	rm -rf $(OBJ) $(OBJ:.o=.lo) $(TARGET).* *.core .libs

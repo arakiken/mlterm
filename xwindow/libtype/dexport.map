@@ -1,8 +1,0 @@
-mlterm {
-global:
-	x_type_xft_func_table ;
-	x_type_cairo_func_table ;
-
-local:
-	* ;
-} ;

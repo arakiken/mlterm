@@ -1,163 +1,163 @@
 comment -*- mode: text -*-
 comment $Id$
 
-WIN32 native GUI $BBP1~$K4X$9$k%a%b(B
+WIN32 native GUI ÂÐ±þ¤Ë´Ø¤¹¤ë¥á¥â
 
-* $B%F%9%H4D6-(B
+* ¥Æ¥¹¥È´Ä¶­
   Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.26
             + libssh2 1.4.3(win32 native)
             + GTK+ 2.12.9(win32 native)
             + Fribidi 0.19.2(win32 native)
 
-* $B%S%k%I(B
+* ¥Ó¥ë¥É
   (CC="i686-pc-mingw32-gcc") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
 			(--with-libintl-prefix=[GTK+(win32) installed directory]) \
 			(--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
 
-* configure $B%*%W%7%g%s(B
+* configure ¥ª¥×¥·¥ç¥ó
   --with-gui=(xlib|win32)
-  GUI $B%i%$%V%i%j$H$7$F(B xlib $B$N(B API $B$r;HMQ$9$k$+(B win32 $B$N(B API $B$r;HMQ(B
-  $B$9$k$+$r;XDj$7$^$9!#(B
-  $B$3$N%*%W%7%g%s$,;XDj$5$l$J$$>l9g!"(BMSYS $B4D6-$G$O(B win32 $B$HH=CG$7!"(B
-  CYGWIN $B4D6-$G$O(B X $B$,%$%s%9%H!<%k$5$l$F$$$l$P(B xlib $B$H!"(BX $B$,%$%s%9(B
-  $B%H!<%k$5$l$F$$$J$1$l$P(B win32 $B$HH=CG$7$^$9!#(B
+  GUI ¥é¥¤¥Ö¥é¥ê¤È¤·¤Æ xlib ¤Î API ¤ò»ÈÍÑ¤¹¤ë¤« win32 ¤Î API ¤ò»ÈÍÑ
+  ¤¹¤ë¤«¤ò»ØÄê¤·¤Þ¤¹¡£
+  ¤³¤Î¥ª¥×¥·¥ç¥ó¤¬»ØÄê¤µ¤ì¤Ê¤¤¾ì¹ç¡¢MSYS ´Ä¶­¤Ç¤Ï win32 ¤ÈÈ½ÃÇ¤·¡¢
+  CYGWIN ´Ä¶­¤Ç¤Ï X ¤¬¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤Æ¤¤¤ì¤Ð xlib ¤È¡¢X ¤¬¥¤¥ó¥¹
+  ¥È¡¼¥ë¤µ¤ì¤Æ¤¤¤Ê¤±¤ì¤Ð win32 ¤ÈÈ½ÃÇ¤·¤Þ¤¹¡£
 
-* $B%$%s%9%H!<%k(B
-  $B%$%s%9%H!<%k$7$?$$%G%#%l%/%H%j$K!"(B
-  kiklib/src/.libs/*.dll
-  mkf/lib/.libs/*.dll
-  mkf/libtbl/.libs/*.dll
-  mlterm/.libs/*.dll
-  mlterm/libctl/.libs/*.dll
+* ¥¤¥ó¥¹¥È¡¼¥ë
+  ¥¤¥ó¥¹¥È¡¼¥ë¤·¤¿¤¤¥Ç¥£¥ì¥¯¥È¥ê¤Ë¡¢
+  baselib/src/.libs/*.dll
+  encodefilter/src/.libs/*.dll
+  encodefilter/module/.libs/*.dll
+  vtemu/.libs/*.dll
+  vtemu/libctl/.libs/*.dll
   main/.libs/mlterm.exe
   scrollbar/sample/.libs/*.dll
   inputmethod/kbd/.libs/*.dll
   libind/.libs/*.dll
   tool/mlimgloader/.libs/mlimgloader.exe
-  $B$r%3%T!<$7$F$/$@$5$$!#(B
+  ¤ò¥³¥Ô¡¼¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-  o MinGW or Cygwin(-mno-cygwin) $B$G(B --enable-ssh2 $B$J$7$G%S%k%I$7$?>l9g$O!"(B
-    win32/plink/plink.exe $B$b%3%T!<$7$F$/$@$5$$!#(Blibssh2 $B$r;HMQ$7$J$$>l9g!"%j%b!<(B
-    $B%H%[%9%H$X$N@\B3$K$O(B plink.exe $B$r;HMQ$7$F$$$^$9!#(B
-  o MSYS-DTK or Cygwin $B$G%S%k%I$7$?>l9g$O!"%=!<%9%D%j!<$N(B
-    contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe $B$b%3%T!<$7$F$/$@$5$$!#(B
-  o mlconfig,mlterm-menu $B$r%S%k%I$G$-$?>l9g(B($B$"$i$+$8$a(B GTK+ >= 2.0 $B$r%$%s%9%H!<(B
-    $B%k$7$F$*$/I,MW$,$"$j$^$9(B)$B$O!"%=!<%9%D%j!<$N(B
+  o MinGW or Cygwin(-mno-cygwin) ¤Ç --enable-ssh2 ¤Ê¤·¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç¤Ï¡¢
+    win32/plink/plink.exe ¤â¥³¥Ô¡¼¤·¤Æ¤¯¤À¤µ¤¤¡£libssh2 ¤ò»ÈÍÑ¤·¤Ê¤¤¾ì¹ç¡¢¥ê¥â¡¼
+    ¥È¥Û¥¹¥È¤Ø¤ÎÀÜÂ³¤Ë¤Ï plink.exe ¤ò»ÈÍÑ¤·¤Æ¤¤¤Þ¤¹¡£
+  o MSYS-DTK or Cygwin ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç¤Ï¡¢¥½¡¼¥¹¥Ä¥ê¡¼¤Î
+    contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe ¤â¥³¥Ô¡¼¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o mlconfig,mlterm-menu ¤ò¥Ó¥ë¥É¤Ç¤­¤¿¾ì¹ç(¤¢¤é¤«¤¸¤á GTK+ >= 2.0 ¤ò¥¤¥ó¥¹¥È¡¼
+    ¥ë¤·¤Æ¤ª¤¯É¬Í×¤¬¤¢¤ê¤Þ¤¹)¤Ï¡¢¥½¡¼¥¹¥Ä¥ê¡¼¤Î
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
-    $B$b%3%T!<$7$F$/$@$5$$!#(B
-  o MSYS-DTK or Cygwin $B$G%S%k%I$7$?>l9g$O!"(Bmake install $B$G%$%s%9%H!<%k$7$F$b(B
-    $B9=$$$^$;$s$,!"(Blibmkf $B$N(B relink $B$K<:GT$9$k$3$H$,$"$k$?$a!"(Bmake install $B$N(B
-    $BA0$K(B libmkf.la $B$N(B relink_command $B9T$r:o=|$7$F$+$i(B make install $B$7$F$/$@$5$$!#(B
+    ¤â¥³¥Ô¡¼¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o MSYS-DTK or Cygwin ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç¤Ï¡¢make install ¤Ç¥¤¥ó¥¹¥È¡¼¥ë¤·¤Æ¤â
+    ¹½¤¤¤Þ¤»¤ó¤¬¡¢libmef ¤Î relink ¤Ë¼ºÇÔ¤¹¤ë¤³¤È¤¬¤¢¤ë¤¿¤á¡¢make install ¤Î
+    Á°¤Ë libmef.la ¤Î relink_command ¹Ô¤òºï½ü¤·¤Æ¤«¤é make install ¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-* $B4D6-@_Dj(B
-  (MSYS-DTK or Cygwin $B$G%S%k%I$7$?>l9g(B)
-  SYSCONFDIR/mlterm $B5Z$S3F%f!<%6$4$H$N(B $HOME/.mlterm/ $B0J2<$K@_Dj%U%!%$%k(B
-  ($B%=!<%9%D%j!<$N(B etc/ $B0J2<$N%U%!%$%k(B)$B$rG[CV$9$k$3$H$K$h$j4D6-@_Dj$r9T$&$3$H$,(B
-  $B$G$-$^$9!#(B
+* ´Ä¶­ÀßÄê
+  (MSYS-DTK or Cygwin ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç)
+  SYSCONFDIR/mlterm µÚ¤Ó³Æ¥æ¡¼¥¶¤´¤È¤Î $HOME/.mlterm/ °Ê²¼¤ËÀßÄê¥Õ¥¡¥¤¥ë
+  (¥½¡¼¥¹¥Ä¥ê¡¼¤Î etc/ °Ê²¼¤Î¥Õ¥¡¥¤¥ë)¤òÇÛÃÖ¤¹¤ë¤³¤È¤Ë¤è¤ê´Ä¶­ÀßÄê¤ò¹Ô¤¦¤³¤È¤¬
+  ¤Ç¤­¤Þ¤¹¡£
 
-  (MinGW or Cygwin(-mno-cygwin) $B$G%S%k%I$7$?>l9g(B)
-  [mlterm $B$,%$%s%9%H!<%k$5$l$?%G%#%l%/%H%j(B]\mlterm\ $B5Z$S3F%f!<%6$4$H$N(B
-  %HOMEPATH%\mlterm\ (%HOMEPATH% $B$,B8:_$7$J$$%G%#%l%/%H%j$N>l9g$O(B %HOME%\.mlterm\)
-  $B0J2<$N@_Dj%U%!%$%k(B($B%=!<%9%D%j!<$N(B etc/ $B0J2<$N%U%!%$%k(B) $B$rG[CV$9$k$3$H$K$h$j(B
-  $B4D6-@_Dj$r9T$&$3$H$,$G$-$^$9!#(B
+  (MinGW or Cygwin(-mno-cygwin) ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç)
+  [mlterm ¤¬¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤¿¥Ç¥£¥ì¥¯¥È¥ê]\mlterm\ µÚ¤Ó³Æ¥æ¡¼¥¶¤´¤È¤Î
+  %HOMEPATH%\mlterm\ (%HOMEPATH% ¤¬Â¸ºß¤·¤Ê¤¤¥Ç¥£¥ì¥¯¥È¥ê¤Î¾ì¹ç¤Ï %HOME%\.mlterm\)
+  °Ê²¼¤ÎÀßÄê¥Õ¥¡¥¤¥ë(¥½¡¼¥¹¥Ä¥ê¡¼¤Î etc/ °Ê²¼¤Î¥Õ¥¡¥¤¥ë) ¤òÇÛÃÖ¤¹¤ë¤³¤È¤Ë¤è¤ê
+  ´Ä¶­ÀßÄê¤ò¹Ô¤¦¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£
 
-  ($B%U%)%s%H;XDj(B)
-  font,vfont,tfont $B$O!"<!$N%U%)!<%^%C%H$H$J$j$^$9!#(B
+  (¥Õ¥©¥ó¥È»ØÄê)
+  font,vfont,tfont ¤Ï¡¢¼¡¤Î¥Õ¥©¡¼¥Þ¥Ã¥È¤È¤Ê¤ê¤Þ¤¹¡£
   [font family]( Bold Italic [font size]:[percentage])
-  $B"((B [font family]$B$NJ8;zNs$K(B'-'$B$,4^$^$l$k>l9g!"(Baafont$B$N7A<0$H0[$J$j!"(B'\'$B$G%(%9%1(B
-    $B!<%W$9$kI,MW$O$"$j$^$;$s!#(B
-  $B"((B aafont,vaafont,taafont $B$O;HMQ$7$^$;$s!#(B
+  ¢¨ [font family]¤ÎÊ¸»úÎó¤Ë'-'¤¬´Þ¤Þ¤ì¤ë¾ì¹ç¡¢aafont¤Î·Á¼°¤È°Û¤Ê¤ê¡¢'\'¤Ç¥¨¥¹¥±
+    ¡¼¥×¤¹¤ëÉ¬Í×¤Ï¤¢¤ê¤Þ¤»¤ó¡£
+  ¢¨ aafont,vaafont,taafont ¤Ï»ÈÍÑ¤·¤Þ¤»¤ó¡£
 
-  ($B%(%s%3!<%G%#%s%0(B)
-  -E/--km/encoding $B%*%W%7%g%s$G(B AUTO $B$r;XDjKt$OF1%*%W%7%g%s$r;XDj$7$J$+$C(B
-  $B$?>l9g$K$*$1$k%(%s%3!<%G%#%s%0$O!"(BMSYS-DTK or Cygwin $B$G%S%k%I$7$?>l9g$O(B
-  UTF-8$B!"(BMinGW or Cygwin(-mno-cygwin) $B$G%S%k%I$7$?>l9g$K$O(B Windows $B$N(B
-  CodePage$B$KBP1~$7$?%(%s%3!<%G%#%s%0$H$J$j$^$9!#(B
+  (¥¨¥ó¥³¡¼¥Ç¥£¥ó¥°)
+  -E/--km/encoding ¥ª¥×¥·¥ç¥ó¤Ç AUTO ¤ò»ØÄêËô¤ÏÆ±¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤·¤Ê¤«¤Ã
+  ¤¿¾ì¹ç¤Ë¤ª¤±¤ë¥¨¥ó¥³¡¼¥Ç¥£¥ó¥°¤Ï¡¢MSYS-DTK or Cygwin ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç¤Ï
+  UTF-8¡¢MinGW or Cygwin(-mno-cygwin) ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç¤Ë¤Ï Windows ¤Î
+  CodePage¤ËÂÐ±þ¤·¤¿¥¨¥ó¥³¡¼¥Ç¥£¥ó¥°¤È¤Ê¤ê¤Þ¤¹¡£
 
-* $B5/F0J}K!(B
-  $B%3%^%s%I%W%m%s%W%HEy$+$i<!$N$H$*$j5/F0(B
-  ($BKt$O(B win32/mlterm-{win32|msys_cygwin}.bat $B$N$h$&$J%P%C%A%U%!%$%k$rMQ0U(B)
+* µ¯Æ°ÊýË¡
+  ¥³¥Þ¥ó¥É¥×¥í¥ó¥×¥ÈÅù¤«¤é¼¡¤Î¤È¤ª¤êµ¯Æ°
+  (Ëô¤Ï win32/mlterm-{win32|msys_cygwin}.bat ¤Î¤è¤¦¤Ê¥Ð¥Ã¥Á¥Õ¥¡¥¤¥ë¤òÍÑ°Õ)
   
-  (MSYS-DTK or Cygwin $B$G%S%k%I$7$?>l9g(B)
+  (MSYS-DTK or Cygwin ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç)
   set HOME=c:\msys\...\home\...
   set CYGWIN=tty
   mlterm.exe (options...) -e /bin/sh --login -i
 
-  (MinGW or Cygwin(-mno-cygwin) $B$G%S%k%I$7$?>l9g(B)
+  (MinGW or Cygwin(-mno-cygwin) ¤Ç¥Ó¥ë¥É¤·¤¿¾ì¹ç)
   set HOMEPATH=...
   mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
-  $B"((B -e $B%*%W%7%g%s$r;XDj$7$J$$>l9g!"5/F0;~$K!"@\B3$9$k%5!<%P!"%W%m%H%3%k!"(B
-     $B%f!<%6L>!"%Q%9%o!<%I!"%(%s%3!<%G%#%s%0$rF~NO$9$k%@%$%"%m%0$,I=<($5$l(B
-     $B$^$9!#$J$*!"$3$N$H$-!"%Q%9%o!<%I$rF~NO$7$J$1$l$P!"(BAuthentication Agent $B$K(B
-     $B$h$kG'>Z$r;n$_$^$9!#(B
-     $B$^$?!"(Bmain $B@_Dj%U%!%$%k$K$*$$$F!"$"$i$+$8$a<!$N%*%W%7%g%s$r;XDj$9$k$3$H$b(B
-     $B$G$-$^$9(B($B3g8L=q$-$O(B mlterm $B$N5/F0;~$N0z?t$H$7$F;XDj$9$k>l9g(B
-     $B$N%*%W%7%g%sL>(B)$B!#(B
+  ¢¨ -e ¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤·¤Ê¤¤¾ì¹ç¡¢µ¯Æ°»þ¤Ë¡¢ÀÜÂ³¤¹¤ë¥µ¡¼¥Ð¡¢¥×¥í¥È¥³¥ë¡¢
+     ¥æ¡¼¥¶Ì¾¡¢¥Ñ¥¹¥ï¡¼¥É¡¢¥¨¥ó¥³¡¼¥Ç¥£¥ó¥°¤òÆþÎÏ¤¹¤ë¥À¥¤¥¢¥í¥°¤¬É½¼¨¤µ¤ì
+     ¤Þ¤¹¡£¤Ê¤ª¡¢¤³¤Î¤È¤­¡¢¥Ñ¥¹¥ï¡¼¥É¤òÆþÎÏ¤·¤Ê¤±¤ì¤Ð¡¢Authentication Agent ¤Ë
+     ¤è¤ëÇ§¾Ú¤ò»î¤ß¤Þ¤¹¡£
+     ¤Þ¤¿¡¢main ÀßÄê¥Õ¥¡¥¤¥ë¤Ë¤ª¤¤¤Æ¡¢¤¢¤é¤«¤¸¤á¼¡¤Î¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤¹¤ë¤³¤È¤â
+     ¤Ç¤­¤Þ¤¹(³ç¸Ì½ñ¤­¤Ï mlterm ¤Îµ¯Æ°»þ¤Î°ú¿ô¤È¤·¤Æ»ØÄê¤¹¤ë¾ì¹ç
+     ¤Î¥ª¥×¥·¥ç¥óÌ¾)¡£
      o default_server(--serv) = (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
-       $B%@%$%"%m%0$N4{DjCM$H$7$FI=<($9$k%f!<%6L>!"%W%m%H%3%k5Z$S%5!<%P$r(B
-       $B;XDj$7$^$9(B($B%f!<%6L>Kt$O%W%m%H%3%k$r>JN,$7$?>l9g$O!"%f!<%6L>$O4D6-JQ?t(B
-       USERNAME $B$NCM!"%W%m%H%3%k$O(B SSH $B$H$J$j$^$9!#(B)$B!#(B
-       $B$3$N%*%W%7%g%s$,;XDj$5$l$F$$$J$$>l9g!"5/F0;~$N%@%$%"%m%0$KF~NO$7$?(B
-       $BFbMF$,!"$=$N8e(B pty $B$r3+$/>l9g$N%@%$%"%m%0$N4{DjCM$H$J$j$^$9!#(B
+       ¥À¥¤¥¢¥í¥°¤Î´ûÄêÃÍ¤È¤·¤ÆÉ½¼¨¤¹¤ë¥æ¡¼¥¶Ì¾¡¢¥×¥í¥È¥³¥ëµÚ¤Ó¥µ¡¼¥Ð¤ò
+       »ØÄê¤·¤Þ¤¹(¥æ¡¼¥¶Ì¾Ëô¤Ï¥×¥í¥È¥³¥ë¤ò¾ÊÎ¬¤·¤¿¾ì¹ç¤Ï¡¢¥æ¡¼¥¶Ì¾¤Ï´Ä¶­ÊÑ¿ô
+       USERNAME ¤ÎÃÍ¡¢¥×¥í¥È¥³¥ë¤Ï SSH ¤È¤Ê¤ê¤Þ¤¹¡£)¡£
+       ¤³¤Î¥ª¥×¥·¥ç¥ó¤¬»ØÄê¤µ¤ì¤Æ¤¤¤Ê¤¤¾ì¹ç¡¢µ¯Æ°»þ¤Î¥À¥¤¥¢¥í¥°¤ËÆþÎÏ¤·¤¿
+       ÆâÍÆ¤¬¡¢¤½¤Î¸å pty ¤ò³«¤¯¾ì¹ç¤Î¥À¥¤¥¢¥í¥°¤Î´ûÄêÃÍ¤È¤Ê¤ê¤Þ¤¹¡£
      o server_list(--servlist) =
        (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),...
-       $B%@%$%"%m%0$N(B "List" $BMs$K!"@\B3$9$k%5!<%P$N8uJd$rI=<($7$^$9!#(B
-       default_server $B$G;XDj$7$?%5!<%P$,(B server_list $B$K$J$$>l9g!"<+F0E*$K(B
-       default_server $B$,(B server_list $B$KDI2C$5$l$^$9!#(B
+       ¥À¥¤¥¢¥í¥°¤Î "List" Íó¤Ë¡¢ÀÜÂ³¤¹¤ë¥µ¡¼¥Ð¤Î¸õÊä¤òÉ½¼¨¤·¤Þ¤¹¡£
+       default_server ¤Ç»ØÄê¤·¤¿¥µ¡¼¥Ð¤¬ server_list ¤Ë¤Ê¤¤¾ì¹ç¡¢¼«Æ°Åª¤Ë
+       default_server ¤¬ server_list ¤ËÄÉ²Ã¤µ¤ì¤Þ¤¹¡£
      o always_show_dialog(--dialog) = true/false
-       $B4{$K3NN)$5$l$?(B SSH $B%;%C%7%g%s$,$"$j!"$=$N%;%C%7%g%s>e$K?7$7$$%A%c%s%M%k$r(B
-       $B3+$/$3$H$,$G$-$k>l9g$G$b!"I,$:@\B3@h$N%5!<%P$r;XDj$9$k$?$a$N%@%$%"%m%0$r(B
-       $BI=<($7$^$9!#(B
+       ´û¤Ë³ÎÎ©¤µ¤ì¤¿ SSH ¥»¥Ã¥·¥ç¥ó¤¬¤¢¤ê¡¢¤½¤Î¥»¥Ã¥·¥ç¥ó¾å¤Ë¿·¤·¤¤¥Á¥ã¥ó¥Í¥ë¤ò
+       ³«¤¯¤³¤È¤¬¤Ç¤­¤ë¾ì¹ç¤Ç¤â¡¢É¬¤ºÀÜÂ³Àè¤Î¥µ¡¼¥Ð¤ò»ØÄê¤¹¤ë¤¿¤á¤Î¥À¥¤¥¢¥í¥°¤ò
+       É½¼¨¤·¤Þ¤¹¡£
 
-* WIN32 GUI $BHG$N@)8B(B
-  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless, -d/--display $B5Z$S(B
-    -t/--transbg$B%*%W%7%g%s$O;HMQ$G$-$^$;$s!#(B
-  o mlterm server $B5!G=$G(B genuine $B%b!<%I$O;HMQ$G$-$^$;$s(B($BBP1~M=Dj$b$"$j$^$;$s!#(B)$B!#(B
-    MinGW $BHG$G$O!"(Bmlterm server $B5!G=<+BN$,;HMQ$G$-$^$;$s(B($BBP1~M=Dj$b$"$j$^$;$s!#(B)$B!#(B
-    $BBe$o$j$K!"(B"\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence
-    (see doc/en/PROTOCOL) $B$,;HMQ$G$-$^$9(B(mlclient $BKt$O(B mlclientx $B%3%^%s%I$b!"(B
-    $BF1(B sequence $B$KBP1~$7$F$$$^$9!#(B)$B!#(B
-  o -X/--alpha $B%*%W%7%g%s$GF)2aN($r;XDj$7$?>l9g!"(Bwin32 $B$N%l%$%d!<%I%&%#%s%I%&$N(B
-    $B5!G=$r;H$C$F%&%#%s%I%&$rH>F)L@$K$7$^$9!#(B
-  o Bold $B$JJ8;z$O!"@_Dj%U%!%$%k$G;HMQ$9$k%U%)%s%H$r;XDj$7$J$$8B$j!"4pK\E*$K$O!"(B
-    $B=E$MBG$A$K$h$k5<;wE*$J(B bold $BI=<($r9T$$$^$9(B(Bold $B$H(B Normal $B$G%U%)%s%HI}$,0[(B
-    $B$J$k>l9g$,$"$k$?$a(B)
-  o $B%9%/%m!<%k%P!<$O!"(B"simple" $BKt$O(B "sample" $B$N$_;HMQ$G$-$^$9!#(B
-  o MinGW $B$G$O!"(B~/.mlterm/key $B$N(B OPERATION $B$N(B "exesel:..." $B$G$O!"(Bmlclient $B0J30$r(B
-    $B<B9T$9$k$3$H$O$G$-$^$;$s!#(B
+* WIN32 GUI ÈÇ¤ÎÀ©¸Â
+  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless, -d/--display µÚ¤Ó
+    -t/--transbg¥ª¥×¥·¥ç¥ó¤Ï»ÈÍÑ¤Ç¤­¤Þ¤»¤ó¡£
+  o mlterm server µ¡Ç½¤Ç genuine ¥â¡¼¥É¤Ï»ÈÍÑ¤Ç¤­¤Þ¤»¤ó(ÂÐ±þÍ½Äê¤â¤¢¤ê¤Þ¤»¤ó¡£)¡£
+    MinGW ÈÇ¤Ç¤Ï¡¢mlterm server µ¡Ç½¼«ÂÎ¤¬»ÈÍÑ¤Ç¤­¤Þ¤»¤ó(ÂÐ±þÍ½Äê¤â¤¢¤ê¤Þ¤»¤ó¡£)¡£
+    Âå¤ï¤ê¤Ë¡¢"\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence
+    (see doc/en/PROTOCOL) ¤¬»ÈÍÑ¤Ç¤­¤Þ¤¹(mlclient Ëô¤Ï mlclientx ¥³¥Þ¥ó¥É¤â¡¢
+    Æ± sequence ¤ËÂÐ±þ¤·¤Æ¤¤¤Þ¤¹¡£)¡£
+  o -X/--alpha ¥ª¥×¥·¥ç¥ó¤ÇÆ©²áÎ¨¤ò»ØÄê¤·¤¿¾ì¹ç¡¢win32 ¤Î¥ì¥¤¥ä¡¼¥É¥¦¥£¥ó¥É¥¦¤Î
+    µ¡Ç½¤ò»È¤Ã¤Æ¥¦¥£¥ó¥É¥¦¤òÈ¾Æ©ÌÀ¤Ë¤·¤Þ¤¹¡£
+  o Bold ¤ÊÊ¸»ú¤Ï¡¢ÀßÄê¥Õ¥¡¥¤¥ë¤Ç»ÈÍÑ¤¹¤ë¥Õ¥©¥ó¥È¤ò»ØÄê¤·¤Ê¤¤¸Â¤ê¡¢´ðËÜÅª¤Ë¤Ï¡¢
+    ½Å¤ÍÂÇ¤Á¤Ë¤è¤ëµ¼»÷Åª¤Ê bold É½¼¨¤ò¹Ô¤¤¤Þ¤¹(Bold ¤È Normal ¤Ç¥Õ¥©¥ó¥ÈÉý¤¬°Û
+    ¤Ê¤ë¾ì¹ç¤¬¤¢¤ë¤¿¤á)
+  o ¥¹¥¯¥í¡¼¥ë¥Ð¡¼¤Ï¡¢"simple" Ëô¤Ï "sample" ¤Î¤ß»ÈÍÑ¤Ç¤­¤Þ¤¹¡£
+  o MinGW ¤Ç¤Ï¡¢~/.mlterm/key ¤Î OPERATION ¤Î "exesel:..." ¤Ç¤Ï¡¢mlclient °Ê³°¤ò
+    ¼Â¹Ô¤¹¤ë¤³¤È¤Ï¤Ç¤­¤Þ¤»¤ó¡£
 
-* $B%=!<%9%3!<%I(B
-  o USE_WIN32API$B%^%/%m(B: MinGW $BKt$O(B CYGWIN(-mno-cygwin) $B$G%S%k%I$9$k:]$K(B define $B$5$l$^$9!#(B
-  o USE_WIN32GUI$B%^%/%m(B: --with-gui=win32 $B$N>l9g(B define $B$5$l$^$9!#(B
-  o $B%U%!%$%kL>(B *_win32.c: --with-gui=win32 $B$N>l9g$K(B compile $B$5$l$^$9!#(B
+* ¥½¡¼¥¹¥³¡¼¥É
+  o USE_WIN32API¥Þ¥¯¥í: MinGW Ëô¤Ï CYGWIN(-mno-cygwin) ¤Ç¥Ó¥ë¥É¤¹¤ëºÝ¤Ë define ¤µ¤ì¤Þ¤¹¡£
+  o USE_WIN32GUI¥Þ¥¯¥í: --with-gui=win32 ¤Î¾ì¹ç define ¤µ¤ì¤Þ¤¹¡£
+  o ¥Õ¥¡¥¤¥ëÌ¾ *_win32.c: --with-gui=win32 ¤Î¾ì¹ç¤Ë compile ¤µ¤ì¤Þ¤¹¡£
 
-* $BN10U;v9`(B
-  o MSYS-DTK 1.0.1 $B$K4^$^$l$k(B winuser.h / libuser32.a $B$O8E$$$?$a!"(B
-    $BGX7JF)2a$K;HMQ$9$k(B SetLayeredWindowAttributes() $B$,;HMQ$G$-$^$;$s!#(B
-    $BGX7JF)2a$r;HMQ$G$-$k$h$&$K$9$k$?$a$K$O!"(Bmlterm $B$N%S%k%I$NA0$K(B
-    MSYS-DTK 1.0.1 $B$N(B winuser.h / libuser32.a $B$r(B $B:G?7$N(B MinGW $B$N(B
-    $B$b$N$KCV$-$+$($F$*$/I,MW$,$"$j$^$9!#(B
+* Î±°Õ»ö¹à
+  o MSYS-DTK 1.0.1 ¤Ë´Þ¤Þ¤ì¤ë winuser.h / libuser32.a ¤Ï¸Å¤¤¤¿¤á¡¢
+    ÇØ·ÊÆ©²á¤Ë»ÈÍÑ¤¹¤ë SetLayeredWindowAttributes() ¤¬»ÈÍÑ¤Ç¤­¤Þ¤»¤ó¡£
+    ÇØ·ÊÆ©²á¤ò»ÈÍÑ¤Ç¤­¤ë¤è¤¦¤Ë¤¹¤ë¤¿¤á¤Ë¤Ï¡¢mlterm ¤Î¥Ó¥ë¥É¤ÎÁ°¤Ë
+    MSYS-DTK 1.0.1 ¤Î winuser.h / libuser32.a ¤ò ºÇ¿·¤Î MinGW ¤Î
+    ¤â¤Î¤ËÃÖ¤­¤«¤¨¤Æ¤ª¤¯É¬Í×¤¬¤¢¤ê¤Þ¤¹¡£
 
-  o MinGW / Gtk+(win32 native) $B$G%S%k%I$7$?(B mlconfig.exe $B5Z$S(B
-    mlterm-menu.exe $B$O!"(BMSYS $B$d(B Cygwin $B$G%S%k%I$7$?(B mlterm $B$H(B
-    $B0l=o$K;HMQ$9$k$3$H$,$G$-$^$9!#(B
+  o MinGW / Gtk+(win32 native) ¤Ç¥Ó¥ë¥É¤·¤¿ mlconfig.exe µÚ¤Ó
+    mlterm-menu.exe ¤Ï¡¢MSYS ¤ä Cygwin ¤Ç¥Ó¥ë¥É¤·¤¿ mlterm ¤È
+    °ì½ï¤Ë»ÈÍÑ¤¹¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£
 
-  o mlterm-menu $B$O!"(BMinGW $B$G%S%k%I$9$k>l9g$K$O(B win32 native $B$N(B GTK+ $B$H!"(B
-    Cygwin $B$G%S%k%I$9$k>l9g$K$O(B Cygwin $BMQ$N(B GTK+ $B$H%j%s%/$7$J$$$H!"@_Dj%U%!%$(B
-    $B%k(B(menu)$B$NFI$_9~$_$,$G$-$:@5>o$KF0:n$7$^$;$s!#(B
+  o mlterm-menu ¤Ï¡¢MinGW ¤Ç¥Ó¥ë¥É¤¹¤ë¾ì¹ç¤Ë¤Ï win32 native ¤Î GTK+ ¤È¡¢
+    Cygwin ¤Ç¥Ó¥ë¥É¤¹¤ë¾ì¹ç¤Ë¤Ï Cygwin ÍÑ¤Î GTK+ ¤È¥ê¥ó¥¯¤·¤Ê¤¤¤È¡¢ÀßÄê¥Õ¥¡¥¤
+    ¥ë(menu)¤ÎÆÉ¤ß¹þ¤ß¤¬¤Ç¤­¤ºÀµ¾ï¤ËÆ°ºî¤·¤Þ¤»¤ó¡£
 
-  o MSYS $B$G%S%k%I$7$?(B mlterm $B$O!"(BCYGWIN=tty $B4D6-JQ?t$r%;%C%H$7$?>e$G!"(B
-    $B<B9T$7$F$/$@$5$$!#$=$&$7$J$$$H!"(Bmlterm $B>e$G(B Windows native $B$N%3%s(B
-    $B%=!<%k%"%W%j%1!<%7%g%s(B(MinGW $B$N(B gcc $BEy(B)$B$r<B9T$7$?>l9g$K!"(Bconsole
-    $B$,7Q>5$5$l$:!"?7$7$$(B console window $B$,I=<($5$l$F$7$^$&LdBj$,@8$8(B
-    $B$k$3$H$,$"$j$^$9!#(B
+  o MSYS ¤Ç¥Ó¥ë¥É¤·¤¿ mlterm ¤Ï¡¢CYGWIN=tty ´Ä¶­ÊÑ¿ô¤ò¥»¥Ã¥È¤·¤¿¾å¤Ç¡¢
+    ¼Â¹Ô¤·¤Æ¤¯¤À¤µ¤¤¡£¤½¤¦¤·¤Ê¤¤¤È¡¢mlterm ¾å¤Ç Windows native ¤Î¥³¥ó
+    ¥½¡¼¥ë¥¢¥×¥ê¥±¡¼¥·¥ç¥ó(MinGW ¤Î gcc Åù)¤ò¼Â¹Ô¤·¤¿¾ì¹ç¤Ë¡¢console
+    ¤¬·Ñ¾µ¤µ¤ì¤º¡¢¿·¤·¤¤ console window ¤¬É½¼¨¤µ¤ì¤Æ¤·¤Þ¤¦ÌäÂê¤¬À¸¤¸
+    ¤ë¤³¤È¤¬¤¢¤ê¤Þ¤¹¡£
 
-  o DEC SPECIAL $BJ8;z$rI=<($9$k$K$O!"(BTera Term (http://teraterm.sourceforge.jp)
-    $B$K4^$^$l$F$$$k(B "Tera Special" $B%U%)%s%H(B (TSPECIAL1.TTF) $B$r%$%s%9%H!<%k$9$k(B
-    $BI,MW$,$"$j$^$9!#(B
+  o DEC SPECIAL Ê¸»ú¤òÉ½¼¨¤¹¤ë¤Ë¤Ï¡¢Tera Term (http://teraterm.sourceforge.jp)
+    ¤Ë´Þ¤Þ¤ì¤Æ¤¤¤ë "Tera Special" ¥Õ¥©¥ó¥È (TSPECIAL1.TTF) ¤ò¥¤¥ó¥¹¥È¡¼¥ë¤¹¤ë
+    É¬Í×¤¬¤¢¤ê¤Þ¤¹¡£
 
-* $B<B9T2DG=%P%$%J%j$NF~<j(B
-  http://mlterm.sf.net/bin.html $B$+$i(B cygwin/msys $BMQ$N<B9T2DG=%P%$%J%j$rF~<j$9$k(B
-  $B$3$H$,$G$-$^$9(B($BITDj4|99?7(B)$B!#(B
+* ¼Â¹Ô²ÄÇ½¥Ð¥¤¥Ê¥ê¤ÎÆþ¼ê
+  http://mlterm.sf.net/bin.html ¤«¤é cygwin/msys ÍÑ¤Î¼Â¹Ô²ÄÇ½¥Ð¥¤¥Ê¥ê¤òÆþ¼ê¤¹¤ë
+  ¤³¤È¤¬¤Ç¤­¤Þ¤¹(ÉÔÄê´ü¹¹¿·)¡£

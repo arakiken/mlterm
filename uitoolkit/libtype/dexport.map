@@ -1,0 +1,8 @@
+mlterm {
+global:
+	ui_type_xft_func_table ;
+	ui_type_cairo_func_table ;
+
+local:
+	* ;
+} ;

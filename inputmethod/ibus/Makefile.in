@@ -11,8 +11,8 @@ VPATH = ${top_srcdir}/inputmethod/ibus
 IM_IBUS_OBJ = im_ibus.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
-	 @KIK_CFLAGS@			\
-	 @MKF_CFLAGS@			\
+	 @POBL_CFLAGS@			\
+	 @MEF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @GUI_CFLAGS@			\
@@ -20,11 +20,11 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @CPPFLAGS@			\
 	 @IM_CFLAGS@			\
 	 @IBUS_CFLAGS@			\
-	 -I$(top_srcdir)/mlterm		\
-	 -I${top_srcdir}/xwindow	\
+	 -I$(top_srcdir)/vtemu		\
+	 -I${top_srcdir}/uitoolkit	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @IBUS_LIBS@
+LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @IBUS_LIBS@
 
 TARGET_xlib = libim-ibus.la
 TARGET_fb = libim-ibus-fb.la

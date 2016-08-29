@@ -16,12 +16,12 @@ INSTALL = @INSTALL@
 
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
 
-LKIK = @LKIK@
+LPOBL = @LPOBL@
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
-	@KIK_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
-	-I${top_srcdir}/xwindow -I${top_srcdir}/mlterm \
+	@POBL_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-I${top_srcdir}/xwindow -I${top_srcdir}/vtemu \
 	-I${top_builddir}/common -I${top_srcdir}/common \
 	-I${top_srcdir}/inputmethod \
 	-I/usr/local/include \
@@ -31,13 +31,13 @@ CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
 LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS@
 
 # -lX11 is for http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
-LIBS2_xlib = $(LKIK) -lX11 -L/usr/local/lib -R/usr/local/lib
+LIBS2_xlib = $(LPOBL) -lX11 -L/usr/local/lib -R/usr/local/lib
 
-# mlconfig is statically linked with libkik.
-# Then it works if installed libkik.dll is compiled with USE_WIN32API or not.
-LIBS2_win32 = -mwindows ${top_builddir}/kiklib/src/.libs/libkik.a
+# mlconfig is statically linked with libpobl.
+# Then it works if installed libpobl.dll is compiled with USE_WIN32API or not.
+LIBS2_win32 = -mwindows ${top_builddir}/kllib/src/.libs/libpobl.a
 
-LIBS2_quartz = $(LKIK)
+LIBS2_quartz = $(LPOBL)
 
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
@@ -53,12 +53,12 @@ OBJ = main.o mc_combo.o mc_char_encoding.o mc_im.o mc_tabsize.o mc_logsize.o \
 	mc_flags.o mc_auto_detect.o mc_ratio.o mc_wordsep.o mc_unicode_areas.o \
 	mc_geometry.o @XLFDSEL_OBJ@
 
-LKIK_DEB=-lkik_deb
+LPOBL_DEB=-lpobl_deb
 
 all: mlconfig
 
 debug:
-	$(MAKE) LKIK="$(LKIK_DEB)" all
+	$(MAKE) LPOBL="$(LPOBL_DEB)" all
 
 mlconfig: $(OBJ)
 	$(LIBTOOL_LINK) $(OBJ) $(CFLAGS) -o mlconfig $(LIBS)

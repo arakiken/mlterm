@@ -40,7 +40,7 @@ comment $Id$
 
     --disable-dl-table
       文字変換テーブルや文字プロパティテーブルを動的にロードせず、
-      libmkf に静的にリンクします。
+      libmef に静的にリンクします。
       
     --without-map-table
       文字変換テーブルを組込みません。

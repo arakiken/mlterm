@@ -1,10 +1,10 @@
 MAKE_DIRS=@MAKE_DIRS@
 
 all .DEFAULT:
-	# "cd kiklib" and "cd mkf" must be enclosed by () because it may not return
+	# "cd baselib" and "cd encodefilter" must be enclosed by () because it may not return
 	# to the $(top_builddir) at the next line.
-	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) $@) ; fi
-	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) $@) ; fi
+	if [ -f baselib/Makefile ]; then (cd baselib ; $(MAKE) $@) ; fi
+	if [ -f encodefilter/Makefile ]; then (cd encodefilter ; $(MAKE) $@) ; fi
 	(for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done) && \
 	if test "$@" != "clean" ; then touch BUILD_SUCCESS ; else rm -f BUILD_SUCCESS ; fi
 
@@ -12,8 +12,8 @@ BUILD_SUCCESS: Makefile
 	$(MAKE) all
 
 install: BUILD_SUCCESS
-	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) install-la) ; fi
-	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) install-la) ; fi
+	if [ -f baselib/Makefile ]; then (cd baselib ; $(MAKE) install-la) ; fi
+	if [ -f encodefilter/Makefile ]; then (cd encodefilter ; $(MAKE) install-la) ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
 install-fb: BUILD_SUCCESS
@@ -21,8 +21,8 @@ install-fb: BUILD_SUCCESS
 		do (cd $${dir} ; $(MAKE) install) || exit $? ; done
 
 distclean:
-	if [ -f kiklib/Makefile ]; then (cd kiklib ; $(MAKE) $@) ; fi
-	if [ -f mkf/Makefile ]; then (cd mkf ; $(MAKE) $@) ; fi
+	if [ -f baselib/Makefile ]; then (cd baselib ; $(MAKE) $@) ; fi
+	if [ -f encodefilter/Makefile ]; then (cd encodefilter ; $(MAKE) $@) ; fi
 	if [ -f gtk/Makefile ]; then (cd gtk ; $(MAKE) $@) ; fi
 	for dir in $(MAKE_DIRS) java ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 	rm -f config.log config.cache config.status libtool Makefile \

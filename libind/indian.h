@@ -1,4 +1,4 @@
-/* indian.h - This is the header file used for incorporating Indian Script 
+/* indian.h - This is the header file used for incorporating Indian Script
  * support in X Windows Applications.
  * Copyright (C) 1999, Naoshad A. Mehta, Rudrava Roy
  */
@@ -10,22 +10,20 @@
 
 /* Structure to hold key maps */
 struct a2i_tabl {
-	char *ascii;
-	char *iscii;
+  char *ascii;
+  char *iscii;
 };
 
 /* Structure to hold font map */
-struct tabl
-{
-	char *iscii;
-	char *font;
+struct tabl {
+  char *iscii;
+  char *font;
 };
 
 /* Private function prototypes */
 
 char *binsearch(struct tabl *, int, char *);
 char *split(struct tabl *, char *, int);
-
 
 /* Public function prototypes */
 

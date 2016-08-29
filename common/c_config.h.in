@@ -2,9 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __C_CONFIG_H__
-#define  __C_CONFIG_H__
-
+#ifndef __C_CONFIG_H__
+#define __C_CONFIG_H__
 
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
@@ -40,6 +39,5 @@
 
 /* Version number of package */
 #undef VERSION
-
 
 #endif

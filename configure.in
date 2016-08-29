@@ -9,30 +9,30 @@ AC_CANONICAL_BUILD
 # for CFLAGS="..." ./configure ...
 AC_SUBST(CFLAGS)
 
-if test -d ${top_srcdir-$srcdir}/mkf -a -d ${top_srcdir-$srcdir}/kiklib ; then
-	SUBDIRS="kiklib mkf"
+if test -d ${top_srcdir-$srcdir}/encodefilter -a -d ${top_srcdir-$srcdir}/baselib ; then
+	SUBDIRS="baselib encodefilter"
 	
-	MKF_CFLAGS='-I${top_builddir}/mkf/include'
-	KIK_CFLAGS='-I${top_builddir}/kiklib/include'
+	MEF_CFLAGS='-I${top_builddir}/encodefilter/include'
+	POBL_CFLAGS='-I${top_builddir}/baselib/include'
 
-	LMKF='${top_builddir}/mkf/lib/libmkf.la'
-	LKIK='${top_builddir}/kiklib/src/libkik.la'
-elif test -d ${top_srcdir-$srcdir}/../mkf -a -d ${top_srcdir-$srcdir}/../kiklib ; then
+	LMEF='${top_builddir}/encodefilter/src/libmef.la'
+	LPOBL='${top_builddir}/baselib/src/libpobl.la'
+elif test -d ${top_srcdir-$srcdir}/../encodefilter -a -d ${top_srcdir-$srcdir}/../baselib ; then
 	# --with-gui=xlib,fb => cd fb ; --with-gui=fb
-	MKF_CFLAGS='-I${top_builddir}/../mkf/include'
-	KIK_CFLAGS='-I${top_builddir}/../kiklib/include'
+	MEF_CFLAGS='-I${top_builddir}/../encodefilter/include'
+	POBL_CFLAGS='-I${top_builddir}/../baselib/include'
 
-	LMKF='${top_builddir}/../mkf/lib/libmkf.la'
-	LKIK='${top_builddir}/../kiklib/src/libkik.la'
+	LMEF='${top_builddir}/../encodefilter/src/libmef.la'
+	LPOBL='${top_builddir}/../baselib/src/libpobl.la'
 else
-	LMKF="-lmkf"
-	LKIK="-lkik"
+	LMEF="-lmef"
+	LPOBL="-lpobl"
 fi
 
-AC_SUBST(LMKF)
-AC_SUBST(MKF_CFLAGS)
-AC_SUBST(LKIK)
-AC_SUBST(KIK_CFLAGS)
+AC_SUBST(LMEF)
+AC_SUBST(MEF_CFLAGS)
+AC_SUBST(LPOBL)
+AC_SUBST(POBL_CFLAGS)
 
 AC_PATH_TOOL(PKG_CONFIG, pkg-config)
 
@@ -63,7 +63,7 @@ AC_ARG_ENABLE(debug,
 	[  --enable-debug          debug @<:@default=disabled@:>@],
 	debug=$enable_debug)
 if test "$debug" = "yes" ; then
-	DEB_CFLAGS="-DDEBUG -DKIK_DEBUG"
+	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
 fi
 AC_SUBST(DEB_CFLAGS)
 AC_SUBST(OPT_CFLAGS)
@@ -82,7 +82,7 @@ if test "$gui" = "fb,xlib" -o "$gui" = "xlib,fb" ; then
 	fi
 	mkdir -p ${top_srcdir-$srcdir}/fb
 	for file in ChangeLog Makefile.in common configure etc gtk inputmethod java \
-		main man mlterm script scrollbar xwindow doc ; do
+		main man mlterm script scrollbar uitoolkit doc ; do
 		cp -R ${top_srcdir-$srcdir}/$file ${top_srcdir-$srcdir}/fb/
 	done
 fi
@@ -91,18 +91,18 @@ if test "$gui" = "fb" ; then
 	MAKE_DIRS="doc/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="doc/kbd/Makefile ${OUTPUT_FILES}"
 elif test "$gui" = "quartz" ; then
-	(cd xwindow/quartz/ && \
+	(cd uitoolkit/quartz/ && \
 	 for file in `ls *.c` ; do if test -f ../$file ; then mv ../$file ../xlib/ ; fi ; done)
 fi
 
-ml_cv_is_posix="yes"
+vt_cv_is_posix="yes"
 
 case "${host_os}" in
 mingw32*)
 	CYGPATHW=echo
 	WIN32TAG=_win32
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
-		ml_cv_is_posix="no"
+		vt_cv_is_posix="no"
 	fi
 
 	if test "$gui" != "win32" ; then
@@ -115,7 +115,7 @@ cygwin*)
 	WIN32TAG=_win32
 	case "${CC} ${CFLAGS}" in
 	*mno-cygwin* | *-mingw*)
-		ml_cv_is_posix="no"
+		vt_cv_is_posix="no"
 		;;
 	*)
 		;;
@@ -130,7 +130,7 @@ cygwin*)
 			gui="win32"
 		fi
 	else
-		if test "$gui" != "" -a "$gui" != "win32" -a "$gui" != "console" ; then
+		if test "$gui" != "win32" -a "$gui" != "console" ; then
 			echo "$gui is not supported in ${host_os}. Use win32."
 			gui="win32"
 		fi
@@ -160,13 +160,13 @@ AC_SUBST(WIN32TAG)
 AC_SUBST(CYGPATHW)
 
 if test "$gui" = "quartz"; then
-	ML_NORM_OBJ="ml_normalize.o"
-	ML_NORM_CFLAGS="-DUSE_NORMALIZE"
+	VT_NORM_OBJ="vt_normalize.o"
+	VT_NORM_CFLAGS="-DUSE_NORMALIZE"
 fi
-AC_SUBST(ML_NORM_OBJ)
-AC_SUBST(ML_NORM_CFLAGS)
+AC_SUBST(VT_NORM_OBJ)
+AC_SUBST(VT_NORM_CFLAGS)
 
-if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
+if test "$vt_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
 fi
 AC_SUBST(SUBSYSTEM)
@@ -323,19 +323,19 @@ AC_SUBST(GDK_PIXBUF_LIBS)
 AC_SUBST(IMAGELIB_CFLAGS)
 AC_SUBST(IMAGELIB_LIBS)
 
-# XXX For pow in libm.so which is used in x_imagelib.c
+# XXX For pow in libm.so which is used in ui_imagelib.c
 # /lib/* ... e.g.) /lib/i386-linux-gnu in ubuntu.
-for ml_cv_lib_path in /lib /usr/lib /lib/* `echo $LIBRARY_PATH | tr ":" " "` ; do
-	libm_files=`ls $ml_cv_lib_path/libm\\.so* $ml_cv_lib_path/libm\\.sl* 2> /dev/null`
+for vt_cv_lib_path in /lib /usr/lib /lib/* `echo $LIBRARY_PATH | tr ":" " "` ; do
+	libm_files=`ls $vt_cv_lib_path/libm\\.so* $vt_cv_lib_path/libm\\.sl* 2> /dev/null`
 	for libm_file in $libm_files ; do
-		if test -z "$ml_cv_libm_dir" -a -n "`$NM -D $libm_file | $GREP pow`" ; then
-			ml_cv_libm_dir=`dirname $libm_file`
+		if test -z "$vt_cv_libm_dir" -a -n "`$NM -D $libm_file | $GREP pow`" ; then
+			vt_cv_libm_dir=`dirname $libm_file`
 		fi
 	done
 done
 if test -z "$IMAGELIB_LIBS" ; then
-	if test -n "$ml_cv_libm_dir" ; then
-		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_libm_dir\\\""
+	if test -n "$vt_cv_libm_dir" ; then
+		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$vt_cv_libm_dir\\\""
 	else
 		AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
 	fi
@@ -409,11 +409,11 @@ fi
 
 if test "$dl_ctl" = "yes" ; then
 	LMLTERM_CORE=libmlterm_core.la
-	CTL_LOADER_OBJ=ml_ctl_loader.o
+	CTL_LOADER_OBJ=vt_ctl_loader.o
 else
 	LMLTERM_CORE=libmlterm_core.a
 	CTL_CFLAGS="-DNO_DYNAMIC_LOAD_CTL"
-	CTL_LIBS_FOR_VTE="../mlterm/libctl/*.lo"
+	CTL_LIBS_FOR_VTE="../vtemu/libctl/*.lo"
 fi
 AC_SUBST(LMLTERM_CORE)
 AC_SUBST(CTL_LOADER_OBJ)
@@ -443,7 +443,7 @@ if test "$have_fribidi" = "yes" ; then
 	else
 		CTL_CFLAGS="-DUSE_FRIBIDI ${CTL_CFLAGS}"
 		CTL_LIBS="libctl_bidi.a ${CTL_LIBS}"
-		CTL_LIBS_FOR_PROG="../mlterm/libctl/libctl_bidi.a ${FRIBIDI_LIBS} ${CTL_LIBS_FOR_PROG}"
+		CTL_LIBS_FOR_PROG="../vtemu/libctl/libctl_bidi.a ${FRIBIDI_LIBS} ${CTL_LIBS_FOR_PROG}"
 		CTL_LIBS_FOR_VTE="${FRIBIDI_LIBS} ${CTL_LIBS_FOR_VTE}"
 	fi
 fi
@@ -465,13 +465,13 @@ if test "$enable_shared" = "no" ; then
 fi
 
 if test "$dl_type" = "yes" ; then
-	TYPE_LOADER_OBJ=x_type_loader.o
+	TYPE_LOADER_OBJ=ui_type_loader.o
 	if test "$gui" != "xlib" ; then
 		TYPE_CFLAGS="-DNO_DYNAMIC_LOAD_TYPE"
 	fi
 else
 	TYPE_CFLAGS="-DNO_DYNAMIC_LOAD_TYPE"
-	TYPE_LIBS_FOR_VTE="../xwindow/libtype/*.lo"
+	TYPE_LIBS_FOR_VTE="../uitoolkit/libtype/*.lo"
 fi
 AC_SUBST(TYPE_LOADER_OBJ)
 
@@ -524,7 +524,7 @@ xft)
 			AC_CHECK_LIB(Xft,XftDrawCreate,
 				[
 				have_xft=yes
-				# -lfontconfig is necessary because x_font.c refers FcXXX
+				# -lfontconfig is necessary because ui_font.c refers FcXXX
 				# functions directly.
 				XFT_LIBS="-lXft -lfontconfig"
 				])
@@ -543,7 +543,7 @@ xft)
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_xft.la ${TYPE_LIBS}"
 		else
-			NODL_OBJ="x_window_xft.o ${NODL_OBJ}"
+			NODL_OBJ="ui_window_xft.o ${NODL_OBJ}"
 			TYPE_LIBS_FOR_VTE="${XFT_LIBS} ${TYPE_LIBS_FOR_VTE}"
 		fi
 		TYPE_CFLAGS="-DUSE_TYPE_XFT ${TYPE_CFLAGS}"
@@ -556,7 +556,7 @@ cairo)
 		AC_CHECK_LIB(cairo,cairo_create,
 			[
 			have_cairo=yes
-			# -lfontconfig is necessary because x_font.c refers FcXXX
+			# -lfontconfig is necessary because ui_font.c refers FcXXX
 			# functions directly.
 			CAIRO_LIBS="-lcairo -lfontconfig"
 			])
@@ -583,7 +583,7 @@ cairo)
 				esac
 			fi
 		else
-			NODL_OBJ="x_window_cairo.o ${NODL_OBJ}"
+			NODL_OBJ="ui_window_cairo.o ${NODL_OBJ}"
 			TYPE_LIBS_FOR_VTE="${CAIRO_LIBS} ${TYPE_LIBS_FOR_VTE}"
 		fi
 		TYPE_CFLAGS="-DUSE_TYPE_CAIRO ${TYPE_CFLAGS}"
@@ -667,13 +667,13 @@ AC_SUBST(OT_LAYOUT_CFLAGS)
 AC_SUBST(OT_LAYOUT_OBJ)
 
 if test "$OT_LAYOUT_OBJ" != "" ; then
-	MAKE_DIRS="xwindow/libotl ${MAKE_DIRS}"
-	OUTPUT_FILES="xwindow/libotl/Makefile ${OUTPUT_FILES}"
+	MAKE_DIRS="uitoolkit/libotl ${MAKE_DIRS}"
+	OUTPUT_FILES="uitoolkit/libotl/Makefile ${OUTPUT_FILES}"
 fi
 
 if test "${NODL_OBJ}" != "" ; then
 	TYPE_LIBS=libtype.a
-	TYPE_LIBS_FOR_PROG="../xwindow/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${OT_LAYOUT_LIBS}"
+	TYPE_LIBS_FOR_PROG="../uitoolkit/libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS} ${OT_LAYOUT_LIBS}"
 fi
 
 if test "${TYPE_CFLAGS}" = "" ; then
@@ -700,7 +700,7 @@ if test "$ssh2" = "yes" ; then
 		[
 		SSH2_CFLAGS="-DUSE_LIBSSH2"
 		if test "x$allow_undefined_flag" = "xunsupported" ; then
-			# ml_pty_ssh.c uses CRYPTO_xxx functions.
+			# vt_pty_ssh.c uses CRYPTO_xxx functions.
 			SSH2_LIBS="-lcrypto -lssh2"
 		else
 			SSH2_LIBS="-lssh2"
@@ -708,18 +708,18 @@ if test "$ssh2" = "yes" ; then
 		], ssh2="no")
 fi
 
-if test "$ml_cv_is_posix" = "no" ; then
+if test "$vt_cv_is_posix" = "no" ; then
 	if test "$ssh2" = "yes" ; then
-		ML_PTY_OBJ="ml_pty_ssh.o"
+		VT_PTY_OBJ="vt_pty_ssh.o"
 		# Not dlopen
 		SSH2_CFLAGS="$SSH2_CFLAGS -DNO_DYNAMIC_LOAD_SSH"
 		SSH2_LIBS_FOR_PROG="$SSH2_LIBS -lwsock32 -lws2_32"
 		SSH2_LIBS=
 	else
-		ML_PTY_OBJ="ml_pty_pipewin32.o"
+		VT_PTY_OBJ="vt_pty_pipewin32.o"
 	fi
 else
-	ML_PTY_OBJ="ml_pty_unix.o"
+	VT_PTY_OBJ="vt_pty_unix.o"
 
 	if test "$ssh2" = "yes" ; then
 		if test "$with_pthread" != "no" ; then
@@ -737,7 +737,7 @@ else
 			esac
 		fi
 
-		ML_PTY_OBJ="ml_pty_ssh.o ${ML_PTY_OBJ}"
+		VT_PTY_OBJ="vt_pty_ssh.o ${VT_PTY_OBJ}"
 
 		if test "$enable_shared" = "no" ; then
 			SSH2_CFLAGS="$SSH2_CFLAGS -DNO_DYNAMIC_LOAD_SSH"
@@ -745,15 +745,15 @@ else
 			SSH2_LIBS=
 		else
 			# dlopen libptyssh
-			MAKE_DIRS="mlterm/libptyssh ${MAKE_DIRS}"
-			OUTPUT_FILES="mlterm/libptyssh/Makefile ${OUTPUT_FILES}"
+			MAKE_DIRS="vtemu/libptyssh ${MAKE_DIRS}"
+			OUTPUT_FILES="vtemu/libptyssh/Makefile ${OUTPUT_FILES}"
 		fi
 	fi
 fi
 AC_SUBST(SSH2_LIBS)
 AC_SUBST(SSH2_LIBS_FOR_PROG)
 AC_SUBST(SSH2_CFLAGS)
-AC_SUBST(ML_PTY_OBJ)
+AC_SUBST(VT_PTY_OBJ)
 
 AC_ARG_ENABLE(utmp,
 	[  --disable-utmp          utmp @<:@default=enabled@:>@],
@@ -870,7 +870,7 @@ mlterm-menu)
 	fi
 	;;
 mlclient)
-	if test "$ml_cv_is_posix" = "yes" -a "$gui" != "console" ; then
+	if test "$vt_cv_is_posix" = "yes" -a "$gui" != "console" ; then
 		MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -890,7 +890,7 @@ w3mmlconfig)
 	tools_result="$tools_result $tool"
 	;;
 mlcc)
-	if test "$ml_cv_is_posix" = "yes" ; then
+	if test "$vt_cv_is_posix" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -1004,7 +1004,7 @@ done
 AC_ARG_WITH(libltdl,
 	[  --with-libltdl@<:@=PREFIX@:>@ load modules with libltdl @<:@default=without@:>@],,
 	[with_libltdl=no])
-# We don't check here wheter libltdl is installed. (See kiklib/src/configure.in)
+# We don't check here wheter libltdl is installed. (See pobl/src/configure.in)
 
 #
 # --- Xdnd ---
@@ -1191,7 +1191,7 @@ AC_SUBST(SCIM_LIBS)
 AC_ARG_ENABLE(canna,
 	[  --disable-canna         CANNA @<:@default=enabled@:>@],
 	canna=$enable_canna)
-if test "$enable_shared" = "no" -o "$ml_cv_is_posix" = "no" ; then
+if test "$enable_shared" = "no" -o "$vt_cv_is_posix" = "no" ; then
 	canna="no"
 fi
 
@@ -1217,7 +1217,7 @@ AC_SUBST(CANNA_LIBS)
 AC_ARG_ENABLE(wnn,
 	[  --disable-wnn           WNN @<:@default=enabled@:>@],
 	wnn=$enable_wnn)
-if test "$enable_shared" = "no" -o "$ml_cv_is_posix" = "no" ; then
+if test "$enable_shared" = "no" -o "$vt_cv_is_posix" = "no" ; then
 	wnn="no"
 fi
 
@@ -1260,7 +1260,7 @@ if test "$enable_shared" != "no" -a "$skk" != "no"; then
 	if test "x$with_libltdl" != xno ; then
 		DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/skk/libim-skk.la ${DL_LIBS_IM}"
 	fi
-	if test "$ml_cv_is_posix" = "no" ; then
+	if test "$vt_cv_is_posix" = "no" ; then
 		SKK_LIBS="-lwsock32 -lws2_32"
 	fi
 	input_methods_result="$input_methods_result skk"
@@ -1367,17 +1367,17 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
-	KIK_LIBS_FOR_MODULE='-L${top_builddir}/kiklib/src -lkik'
-	MKF_LIBS_FOR_MODULE='-L${top_builddir}/mkf/lib -lmkf'
+	POBL_LIBS_FOR_MODULE='-L${top_builddir}/baselib/src -lpobl'
+	MEF_LIBS_FOR_MODULE='-L${top_builddir}/encodefilter/src -lmef'
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""
-	KIK_LIBS_FOR_MODULE=""
-	MKF_LIBS_FOR_MODULE=""
+	POBL_LIBS_FOR_MODULE=""
+	MEF_LIBS_FOR_MODULE=""
 fi
 AC_SUBST(NO_UNDEFINED_FLAG)
-AC_SUBST(KIK_LIBS_FOR_MODULE)
-AC_SUBST(MKF_LIBS_FOR_MODULE)
+AC_SUBST(POBL_LIBS_FOR_MODULE)
+AC_SUBST(MEF_LIBS_FOR_MODULE)
 
 if test "x$with_libltdl" != "xno" ; then
 	DL_SELF="-dlopen self"
@@ -1442,8 +1442,8 @@ if test "${SUBDIRS}" != "" ; then
 	AC_CONFIG_SUBDIRS(${SUBDIRS})
 fi
 
-MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow main man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile ${OUTPUT_FILES}"
+MAKE_DIRS="vtemu vtemu/libctl uitoolkit/libtype uitoolkit main man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile vtemu/Makefile vtemu/libctl/Makefile uitoolkit/libtype/Makefile uitoolkit/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile ${OUTPUT_FILES}"
 
 AC_ARG_ENABLE(ind,
 	[  --disable-ind           libind @<:@default=enabled@:>@],
@@ -1465,7 +1465,7 @@ if test "$ind" = "yes" ; then
 	else
 		CTL_CFLAGS="-DUSE_IND ${CTL_CFLAGS}"
 		CTL_LIBS="libctl_iscii.a ${CTL_LIBS}"
-		CTL_LIBS_FOR_PROG="../mlterm/libctl/libctl_iscii.a ${CTL_LIBS_FOR_PROG}"
+		CTL_LIBS_FOR_PROG="../vtemu/libctl/libctl_iscii.a ${CTL_LIBS_FOR_PROG}"
 	fi
 fi
 AC_SUBST(IND_LIBS)

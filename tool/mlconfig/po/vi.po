@@ -10,6 +10,7 @@ msgstr ""
 "PO-Revision-Date: 2006-04-17 21:11+0700\n"
 "Last-Translator: Pham Thanh Long <ptlong@gmail.com>\n"
 "Language-Team: Vietnam <gnome-vi-list@gnome.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -56,7 +57,8 @@ msgid " New "
 msgstr " Mới "
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid "Select"
+#, fuzzy
+msgid " Select "
 msgstr " Chọn "
 
 #: tool/mlconfig/main.c:316
@@ -92,7 +94,8 @@ msgid "Others"
 msgstr "Khác"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid "Bell mode"
+#, fuzzy
+msgid " Bel mode "
 msgstr " Chế độ chuông "
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
@@ -121,8 +124,9 @@ msgid "Picture"
 msgstr "Hình ảnh"
 
 #: tool/mlconfig/mc_bgtype.c:156
-msgid "Pseudo transparent"
-msgstr "Trong suốt"
+#, fuzzy
+msgid "Transparent"
+msgstr "Ảnh/Trong suốt"
 
 #: tool/mlconfig/mc_brightness.c:71
 msgid "Brightness"
@@ -175,8 +179,57 @@ msgstr "Màu chữ"
 msgid "Background color"
 msgstr "Màu nền"
 
+#: tool/mlconfig/mc_color.c:46
+msgid "black"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:47
+msgid "red"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:48
+msgid "green"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:49
+msgid "yellow"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:50
+msgid "blue"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:51
+msgid "magenta"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:52
+msgid "cyan"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:53
+msgid "white"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:54
+msgid "gray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:55
+msgid "lightgray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:56
+msgid "pink"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:57
+msgid "brown"
+msgstr ""
+
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast  "
+#, fuzzy
+msgid "Contrast"
 msgstr "Độ tương phản"
 
 #: tool/mlconfig/mc_fade.c:69
@@ -208,8 +261,8 @@ msgid "Fullwidth = 2 (or 1) logical column(s)"
 msgstr "Độ rộng đầy đủ = 2 (hoặc 1) cột logic"
 
 #: tool/mlconfig/mc_flags.c:41
-msgid "Complex Text Layout"
-msgstr "Complex Text Layout"
+msgid "Bidi (UTF8 only)"
+msgstr ""
 
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
@@ -232,7 +285,8 @@ msgid "Backlog size (lines)"
 msgstr "Số dòng cuộn"
 
 #: tool/mlconfig/mc_mod_meta.c:88
-msgid "Meta key outputs"
+#, fuzzy
+msgid "Meta key outputs:"
 msgstr "Meta key outputs:"
 
 #: tool/mlconfig/mc_mod_meta.c:105
@@ -299,3 +353,8 @@ msgstr "Tuỳ chọn"
 msgid "Input Method"
 msgstr "Phương thức nhập"
 
+#~ msgid "Pseudo transparent"
+#~ msgstr "Trong suốt"
+
+#~ msgid "Complex Text Layout"
+#~ msgstr "Complex Text Layout"

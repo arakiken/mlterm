@@ -10,6 +10,7 @@ msgstr ""
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Ambrose Li <acli@ada.dhs.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=Big5\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -57,7 +58,8 @@ msgid " New "
 msgstr "新增"
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-msgid "Select"
+#, fuzzy
+msgid " Select "
 msgstr "選擇"
 
 #: tool/mlconfig/main.c:316
@@ -93,7 +95,8 @@ msgid "Others"
 msgstr "其他"
 
 #: tool/mlconfig/mc_bel.c:87
-msgid "Bell mode"
+#, fuzzy
+msgid " Bel mode "
 msgstr "Bell 模式"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
@@ -123,8 +126,9 @@ msgid "Picture"
 msgstr "圖案"
 
 #: tool/mlconfig/mc_bgtype.c:156
-msgid "Pseudo transparent"
-msgstr "透明"
+#, fuzzy
+msgid "Transparent"
+msgstr "圖案╱透明度選項"
 
 #: tool/mlconfig/mc_brightness.c:71
 msgid "Brightness"
@@ -177,8 +181,57 @@ msgstr "文字顏色"
 msgid "Background color"
 msgstr "背景顏色"
 
+#: tool/mlconfig/mc_color.c:46
+msgid "black"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:47
+msgid "red"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:48
+msgid "green"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:49
+msgid "yellow"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:50
+msgid "blue"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:51
+msgid "magenta"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:52
+msgid "cyan"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:53
+msgid "white"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:54
+msgid "gray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:55
+msgid "lightgray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:56
+msgid "pink"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:57
+msgid "brown"
+msgstr ""
+
 #: tool/mlconfig/mc_contrast.c:69
-msgid "Contrast  "
+#, fuzzy
+msgid "Contrast"
 msgstr "對比"
 
 # FIXME weird translation
@@ -212,10 +265,9 @@ msgstr "透過 Unicode 替收到的字串轉換編碼"
 msgid "Fullwidth = 2 (or 1) logical column(s)"
 msgstr "全形字佔兩個邏輯直行 (否則只佔一個)"
 
-# FIXME
 #: tool/mlconfig/mc_flags.c:41
-msgid "Complex Text Layout"
-msgstr "Complex Text Layout"
+msgid "Bidi (UTF8 only)"
+msgstr ""
 
 #: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
@@ -238,7 +290,8 @@ msgid "Backlog size (lines)"
 msgstr "歷史大小 (行數)"
 
 #: tool/mlconfig/mc_mod_meta.c:88
-msgid "Meta key outputs"
+#, fuzzy
+msgid "Meta key outputs:"
 msgstr "Meta 鍵輸出："
 
 #: tool/mlconfig/mc_mod_meta.c:105
@@ -306,3 +359,10 @@ msgstr "粉紅"
 #, fuzzy
 msgid "Input Method"
 msgstr "輸入法主程式"
+
+#~ msgid "Pseudo transparent"
+#~ msgstr "透明"
+
+# FIXME
+#~ msgid "Complex Text Layout"
+#~ msgstr "Complex Text Layout"

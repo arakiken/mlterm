@@ -1,0 +1,31 @@
+mef {
+global:
+	ef_parser_* ;
+	__ef_parser_* ;
+
+	ef_*_parser_new ;
+	ef_*_conv_new ;
+
+	ef_iso2022_illegal_char ;
+
+	ef_map_ucs4_to_cs ;
+	ef_map_ucs4_to_with_funcs ;
+	ef_map_ucs4_to ;
+	ef_map_ucs4_to_iso2022cs ;
+	ef_map_to_ucs4 ;
+	ef_map_via_ucs ;
+	ef_map_locale_ucs4_to ;
+	
+	ef_get_ucs_property ;
+
+	ef_map_johab_to_uhc ;
+	ef_map_uhc_to_ksc5601_1987 ;
+
+	ef_map_ucs4_to_iscii ;
+
+	ef_bytes_to_int ;
+	ef_int_to_bytes ;
+
+local:
+	* ;
+} ;

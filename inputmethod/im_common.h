@@ -1,77 +1,62 @@
 #ifndef __IM_COMMON_H__
 #define __IM_COMMON_H__
 
-static inline u_int
-im_convert_encoding(
-	mkf_parser_t *  parser , /* must be initialized */
-	mkf_conv_t *  conv ,
-	u_char *  from ,
-	u_char **  to ,
-	u_int  from_len
-	)
-{
-	u_int  len ;
-	u_int  filled_len ;
+static inline u_int im_convert_encoding(ef_parser_t* parser, /* must be initialized */
+                                        ef_conv_t* conv, u_char* from, u_char** to,
+                                        u_int from_len) {
+  u_int len;
+  u_int filled_len;
 
-	if( from == NULL || parser == NULL || conv == NULL)
-	{
-		return  0 ;
-	}
+  if (from == NULL || parser == NULL || conv == NULL) {
+    return 0;
+  }
 
-	*to = NULL ;
+  *to = NULL;
 
-	len = 0 ;
+  len = 0;
 
-	(*parser->set_str)( parser , from , from_len) ;
-	(*conv->init)( conv) ;
+  (*parser->set_str)(parser, from, from_len);
+  (*conv->init)(conv);
 
-#define  UNIT__ 32
+#define UNIT__ 32
 
-	while( 1)
-	{
-		u_char *  p ;
+  while (1) {
+    u_char* p;
 
-		if( ! ( p = realloc( *to , len + UNIT__ + 1)))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
-		#endif
+    if (!(p = realloc(*to, len + UNIT__ + 1))) {
+#ifdef DEBUG
+      bl_warn_printf(BL_DEBUG_TAG " malloc failed.\n");
+#endif
 
-			if( *to)
-			{
-				free( *to) ;
-			}
+      if (*to) {
+        free(*to);
+      }
 
-			return  0 ;
-		}
+      return 0;
+    }
 
-		*to = p ;
+    *to = p;
 
-		p += len ;
+    p += len;
 
+    filled_len = (*conv->convert)(conv, p, UNIT__, parser);
 
-		filled_len = (*conv->convert)( conv , p , UNIT__ , parser) ;
+    len += filled_len;
 
-		len += filled_len ;
+    if (filled_len == 0 && parser->is_eos) {
+      /* finished converting */
 
-		if( filled_len == 0 && parser->is_eos)
-		{
-			/* finished converting */
+      break;
+    }
+  }
 
-			break ;
-		}
+#undef UNIT__
 
-	}
+  if (len) {
+    (*to)[len] = '\0';
+  }
 
-#undef  UNIT__
-
-	if( len)
-	{
-		(*to)[len] = '\0' ;
-	}
-
-	return  len ;
+  return len;
 }
 
 #endif
-

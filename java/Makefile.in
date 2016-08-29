@@ -21,9 +21,9 @@ CYGPATHW = @CYGPATHW@
 
 LIBDIR = $(DESTDIR)$(libdir)
 
-CFLAGS = @CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
+CFLAGS = @CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @SSH2_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -D_JNI_IMPLEMENTATION \
-	-I../kiklib/include -I../mkf/include -I$(top_srcdir)/mlterm -I. \
+	-I../baselib/include -I../encodefilter/include -I$(top_srcdir)/vtemu -I. \
 	-I$(JAVA_HOME@WIN32TAG@)/include -I$(JAVA_HOME@WIN32TAG@)/include/win32 \
 	-I$(JAVA_HOME@WIN32TAG@)/include/linux $(CFLAGS2@WIN32TAG@) $(CFLAGS_LOCAL)
 
@@ -62,15 +62,15 @@ mlterm.jar : $(CLASS) $(TARGET@WIN32TAG@) manifest.mf
 		`find * -name "*.dll" -o -name "*.s*" -o -name "plink.exe"`
 
 $(TARGET_win32) : MLTermPty.h
-	(cd ../mlterm;rm -f ml_term.o;CFLAGS_LOCAL=-DOPEN_PTY_SYNC make ml_term.o)
+	(cd ../vtemu;rm -f vt_term.o;CFLAGS_LOCAL=-DOPEN_PTY_SYNC make vt_term.o)
 	$(CC) -Wl,--kill-at $(CFLAGS) -shared -o MLTermPty.dll \
-	$(top_srcdir)/java/MLTermPty.c ../mlterm/.libs/*.o ../kiklib/src/.libs/libkik.dll.a \
-	../mkf/lib/.libs/libmkf.dll.a -L/usr/local/lib @SSH2_LIBS_FOR_PROG@
-	(rm -f ../mlterm/ml_term.o)
+	$(top_srcdir)/java/MLTermPty.c ../vtemu/.libs/*.o ../baselib/src/.libs/libpobl.dll.a \
+	../encodefilter/src/.libs/libmef.dll.a -L/usr/local/lib @SSH2_LIBS_FOR_PROG@
+	(rm -f ../vtemu/vt_term.o)
 
 $(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
 	$(LIBTOOL_LINK) -o $(TARGET) -s $(OBJ:.o=.lo) -rpath $(libdir) \
-	-avoid-version ../mlterm/*.lo ../kiklib/src/libkik.la ../mkf/lib/libmkf.la \
+	-avoid-version ../vtemu/*.lo ../baselib/src/libpobl.la ../encodefilter/src/libmef.la \
 	@SSH2_LIBS_FOR_PROG@
 	# .s? -> .so or .sl
 	cp .libs/*.s? .

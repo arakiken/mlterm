@@ -1,5 +1,5 @@
 # German translations for mlterm
-# Copyright (C) 2002 Araki Ken <arakiken@users.sourceforge.net>
+# Copyright (C) 2002 Araki Ken <araklen@users.sourceforge.net>
 # This file is distributed under the same license as the mlterm package.
 # Mike Fabian <mfabian@suse.de>, 2002.
 # 

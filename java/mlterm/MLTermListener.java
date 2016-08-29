@@ -2,12 +2,10 @@
  *	$Id$
  */
 
-package  mlterm ;
+package mlterm;
 
+public interface MLTermListener {
+  public void sizeChanged();
 
-public interface MLTermListener
-{
-	public void  sizeChanged() ;
-
-	public void  ptyClosed() ;
+  public void ptyClosed();
 }

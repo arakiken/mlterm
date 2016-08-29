@@ -18,17 +18,17 @@ VPATH = $(top_srcdir)/tool/mlimgloader
 
 OBJ = @MLIMGLOADER_LIB@.o
 
-LKIK = @LKIK@
-LKIK_DEB = -lkik_deb
+LPOBL = @LPOBL@
+LPOBL_DEB = -lpobl_deb
 
-CFLAGS1 = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -I/usr/local/include
+CFLAGS1 = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -I/usr/local/include
 
 CFLAGS2_gdk-pixbuf = @GDK_PIXBUF_CFLAGS@ @X_CFLAGS@
 
 CFLAGS = $(CFLAGS1) $(CFLAGS2_@MLIMGLOADER_LIB@) -DLIBEXECDIR=\"$(libexecdir)\" \
 	-DBINDIR=\"$(bindir)\"
 
-LIBS1 = $(LIBS_LOCAL) $(LKIK) -L/usr/local/lib -R/usr/local/lib
+LIBS1 = $(LIBS_LOCAL) $(LPOBL) -L/usr/local/lib -R/usr/local/lib
 
 LIBS2_xlib_gdk-pixbuf = @X_LIBS@ -lX11 @X_EXTRA_LIBS@ @GDK_PIXBUF_LIBS@
 LIBS2_xlib_gdiplus = $(LIBS2_win32_gdiplus)

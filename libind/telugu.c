@@ -2,15 +2,11 @@
  *	$Id: $
  */
 
-#include  "indian.h"
-#include  "table/telugu.table"
+#include "indian.h"
+#include "table/telugu.table"
 
-struct tabl *
-libind_get_table(
-	unsigned int *  table_size
-	)
-{
-	*table_size = sizeof( iscii_telugu_table) / sizeof( struct tabl) ;
+struct tabl* libind_get_table(unsigned int* table_size) {
+  *table_size = sizeof(iscii_telugu_table) / sizeof(struct tabl);
 
-	return  iscii_telugu_table ;
+  return iscii_telugu_table;
 }

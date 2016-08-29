@@ -17,24 +17,24 @@ mkdir -p ${PROJECT_PATH}
 cp build.sh ${PROJECT_PATH}/
 cp *.xml ${PROJECT_PATH}/
 
-mkdir -p ${PROJECT_PATH}/jni/kiklib/kiklib ${PROJECT_PATH}/jni/kiklib/src
-cp ../kiklib/src/*.[ch] ${PROJECT_PATH}/jni/kiklib/src/
-cp jni/kik_*.h ${PROJECT_PATH}/jni/kiklib/src/
-cp ${PROJECT_PATH}/jni/kiklib/src/*.h ${PROJECT_PATH}/jni/kiklib/kiklib/
+mkdir -p ${PROJECT_PATH}/jni/baselib/pobl ${PROJECT_PATH}/jni/baselib/src
+cp ../baselib/src/*.[ch] ${PROJECT_PATH}/jni/baselib/src/
+cp jni/bl_*.h ${PROJECT_PATH}/jni/baselib/src/
+cp ${PROJECT_PATH}/jni/baselib/src/*.h ${PROJECT_PATH}/jni/baselib/pobl/
 
-mkdir -p ${PROJECT_PATH}/jni/mkf/mkf
-cp -R ../mkf/lib ../mkf/libtbl ${PROJECT_PATH}/jni/mkf/
-cp ${PROJECT_PATH}/jni/mkf/lib/*.h ${PROJECT_PATH}/jni/mkf/mkf/
+mkdir -p ${PROJECT_PATH}/jni/encodefilter/mef
+cp -R ../encodefilter/src ../encodefilter/module ${PROJECT_PATH}/jni/encodefilter
+cp ${PROJECT_PATH}/jni/encodefilter/src/*.h ${PROJECT_PATH}/jni/encodefilter/mef/
 
 cp -R ../libind ${PROJECT_PATH}/jni/
 
-cp -R ../mlterm ${PROJECT_PATH}/jni/
+cp -R ../vtemu ${PROJECT_PATH}/jni/
 
-mkdir -p ${PROJECT_PATH}/jni/xwindow/fb
-mkdir -p ${PROJECT_PATH}/jni/xwindow/libotl
-cp ../xwindow/*.[ch] ${PROJECT_PATH}/jni/xwindow
-cp ../xwindow/fb/*.[ch] ${PROJECT_PATH}/jni/xwindow/fb
-cp ../xwindow/libotl/*.[ch] ${PROJECT_PATH}/jni/xwindow/libotl
+mkdir -p ${PROJECT_PATH}/jni/uitoolkit/fb
+mkdir -p ${PROJECT_PATH}/jni/uitoolkit/libotl
+cp ../uitoolkit/*.[ch] ${PROJECT_PATH}/jni/uitoolkit
+cp ../uitoolkit/fb/*.[ch] ${PROJECT_PATH}/jni/uitoolkit/fb
+cp ../uitoolkit/libotl/*.[ch] ${PROJECT_PATH}/jni/uitoolkit/libotl
 
 mkdir -p ${PROJECT_PATH}/jni/main
 cp ../main/*.[ch] ${PROJECT_PATH}/jni/main/
@@ -45,8 +45,8 @@ cp ../common/c_sixel.c ${PROJECT_PATH}/jni/common/
 cp ../common/c_animgif.c ${PROJECT_PATH}/jni/common/
 
 cp jni/Android.mk ${PROJECT_PATH}/jni/
-cp jni/x_event_source.c ${PROJECT_PATH}/jni/xwindow/
-cp jni/x.h jni/x_display.[ch] ${PROJECT_PATH}/jni/xwindow/fb/
+cp jni/ui_event_source.c ${PROJECT_PATH}/jni/uitoolkit/
+cp jni/ui.h jni/ui_display.[ch] ${PROJECT_PATH}/jni/uitoolkit/fb/
 cp jni/main.c jni/version.h ${PROJECT_PATH}/jni/main/
 
 mkdir -p ${PROJECT_PATH}/src/mlterm/native_activity

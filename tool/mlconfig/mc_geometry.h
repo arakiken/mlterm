@@ -2,16 +2,13 @@
  *	$Id$
  */
 
-#ifndef  __MC_GEOMETRY_H__
-#define  __MC_GEOMETRY_H__
+#ifndef __MC_GEOMETRY_H__
+#define __MC_GEOMETRY_H__
 
+#include <gtk/gtk.h>
 
-#include  <gtk/gtk.h>
+GtkWidget* mc_geometry_config_widget_new(void);
 
-
-GtkWidget *  mc_geometry_config_widget_new(void) ;
-
-void  mc_update_geometry(void) ;
-
+void mc_update_geometry(void);
 
 #endif

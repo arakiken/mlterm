@@ -12,8 +12,8 @@ IM_SCIM_OBJ = im_scim_mod_if.o im_scim.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @DEB_CFLAGS@			\
-	 @KIK_CFLAGS@			\
-	 @MKF_CFLAGS@			\
+	 @POBL_CFLAGS@			\
+	 @MEF_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @GUI_CFLAGS@			\
 	 @CFLAGS@			\
@@ -21,11 +21,11 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @CXXFLAGS@			\
 	 @IM_CFLAGS@			\
 	 @SCIM_CFLAGS@			\
-	 -I$(top_srcdir)/mlterm		\
-	 -I${top_srcdir}/xwindow	\
+	 -I$(top_srcdir)/vtemu		\
+	 -I${top_srcdir}/uitoolkit	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @SCIM_LIBS@
+LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @SCIM_LIBS@
 
 CC      = @CC@
 CXX     = @CXX@

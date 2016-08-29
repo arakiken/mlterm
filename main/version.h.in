@@ -2,36 +2,31 @@
  *	$Id$
  */
 
-#ifndef  __VERSION_H__
-#define  __VERSION_H__
+#ifndef __VERSION_H__
+#define __VERSION_H__
 
+#include <pobl/bl_util.h>
 
-#include  <kiklib/kik_util.h>
+#define MAJOR_VERSION 3
+#define MINOR_VERSION 7
+#define REVISION 2
+#define PATCH_LEVEL 0
 
-
-#define  MAJOR_VERSION	3
-#define  MINOR_VERSION	7
-#define  REVISION	2
-#define  PATCH_LEVEL	0
-
-#if  0
-#define  CHANGE_DATE  "pre/@CHANGE_DATE@"
-#elif  1
-#define  CHANGE_DATE  "post/@CHANGE_DATE@"
+#if 0
+#define CHANGE_DATE "pre/@CHANGE_DATE@"
+#elif 1
+#define CHANGE_DATE "post/@CHANGE_DATE@"
 #else
-#define  CHANGE_DATE  ""
+#define CHANGE_DATE ""
 #endif
 
+#define VERSION \
+  BL_INT_TO_STR(MAJOR_VERSION) "." BL_INT_TO_STR(MINOR_VERSION) "." BL_INT_TO_STR(REVISION)
 
-#define  VERSION \
-	KIK_INT_TO_STR(MAJOR_VERSION) "." KIK_INT_TO_STR(MINOR_VERSION) "." \
-	KIK_INT_TO_STR(REVISION)
-
-#if  PATCH_LEVEL == 0
-#define  DETAIL_VERSION VERSION " " CHANGE_DATE
+#if PATCH_LEVEL == 0
+#define DETAIL_VERSION VERSION " " CHANGE_DATE
 #else
-#define  DETAIL_VERSION VERSION " patch level " KIK_INT_TO_STR(PATCH_LEVEL) " " CHANGE_DATE
+#define DETAIL_VERSION VERSION " patch level " BL_INT_TO_STR(PATCH_LEVEL) " " CHANGE_DATE
 #endif
-
 
 #endif

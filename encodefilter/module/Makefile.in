@@ -1,0 +1,70 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+LIBDIR = $(DESTDIR)$(libdir)
+INCDIR = $(DESTDIR)$(prefix)/include
+
+VPATH = $(top_srcdir)/module
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-I/usr/local/include
+
+JAJP_TABLE_OBJ = ef_ucs4_jisx0208.o ef_ucs4_jisx0212.o ef_ucs4_jisx0213.o
+KOKR_TABLE_OBJ = ef_ucs4_uhc.o ef_uhc_johab.o
+ZH_TABLE_OBJ = ef_ucs4_gbk.o ef_ucs4_big5.o ef_ucs4_cns11643.o
+BYTE_TABLE_OBJ = ef_ucs4_cp125x.o ef_ucs4_koi8.o ef_ucs4_georgian_ps.o \
+		ef_ucs4_iso8859.o ef_ucs4_tcvn5712_1.o ef_ucs4_viscii.o ef_ucs4_iscii.o
+		
+OBJ = $(JAJP_TABLE_OBJ) $(KOKR_TABLE_OBJ) $(ZH_TABLE_OBJ) $(BYTE_TABLE_OBJ)
+
+TARGET = libmef_jajp.la libmef_kokr.la libmef_zh.la libmef_8bits.la
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(TARGET)
+
+libmef_jajp.la: $(JAJP_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmef_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
+
+libmef_kokr.la: $(KOKR_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmef_kokr.la $(KOKR_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
+
+libmef_zh.la: $(ZH_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmef_zh.la $(ZH_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
+
+libmef_8bits.la: $(BYTE_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmef_8bits.la $(BYTE_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
+
+install: install-la
+
+install-la: $(LIBDIR)/mef
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)/mef
+
+install-inc:
+
+uninstall:
+	rm -rf $(LIBDIR)/mef
+
+$(LIBDIR)/mef :
+	mkdir -p $(LIBDIR)/mef
+
+clean :
+	rm -rf $(OBJ) $(OBJ:.o=.lo) .libs *.la *.a
+
+.SUFFIXES : .c.o
+
+.c.o :
+	$(LIBTOOL_CC) -c $<

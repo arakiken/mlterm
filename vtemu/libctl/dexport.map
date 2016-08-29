@@ -1,0 +1,8 @@
+mlterm {
+global:
+	vt_ctl_bidi_func_table ;
+	vt_ctl_iscii_func_table ;
+
+local:
+	* ;
+} ;

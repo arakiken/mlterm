@@ -1,0 +1,67 @@
+[vt_term]
+(All functions declared in vt_term.h)
+
+[vt_line]
+('get' family functions only)
+* vt_line_end_char_index
+
+* vt_line_is_rtl
+
+* vt_line_shape
+
+* vt_line_unshape
+
+* vt_line_is_empty
+
+* vt_line_get_beg_of_modified
+
+* vt_line_get_end_of_modified
+
+* vt_line_get_num_of_redrawn_chars
+
+* vt_line_is_cleared_to_end
+
+* vt_line_is_modified
+
+[vt_char]
+* vt_char_code
+
+* vt_char_size
+
+* vt_char_cs
+
+* vt_char_font
+
+* vt_char_fg_color
+
+* vt_char_bg_color
+
+* vt_char_is_underlined
+
+* vt_char_init
+
+* vt_char_copy
+
+* vt_char_final
+
+* vt_char_code_is
+
+* vt_char_set_code
+
+* vt_char_dump
+
+[vt_str]
+* vt_str_alloca
+
+* vt_str_new
+
+* vt_str_delete
+
+[vt_char_encoding]
+(All functions declared in vt_char_encoding.h)
+
+[vt_font]
+(All functions declared in vt_font.h)
+
+[vt_color]
+(All functions declared in vt_color.h)

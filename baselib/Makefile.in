@@ -1,0 +1,5 @@
+all .DEFAULT:
+	cd src ; $(MAKE) $@
+
+distclean : clean
+	rm -f Makefile config.log config.cache config.status libtool src/Makefile src/bl_config.h

@@ -11,18 +11,18 @@ VPATH = ${top_srcdir}/inputmethod/kbd
 IM_KBD_OBJ = im_kbd.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
-	 @KIK_CFLAGS@			\
-	 @MKF_CFLAGS@			\
+	 @POBL_CFLAGS@			\
+	 @MEF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @GUI_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
-	 -I$(top_srcdir)/mlterm		\
-	 -I${top_srcdir}/xwindow	\
+	 -I$(top_srcdir)/vtemu		\
+	 -I${top_srcdir}/uitoolkit	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@
+LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@
 
 TARGET_xlib = libim-kbd.la
 TARGET_fb = libim-kbd-fb.la

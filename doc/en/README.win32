@@ -17,11 +17,11 @@ Memo about WIN32 native GUI.
 
 * Install
   Copy these files to a directory where you want to install mlterm.
-  kiklib/src/.libs/*.dll
-  mkf/lib/.libs/*.dll
-  mkf/libtbl/.libs/*.dll
-  mlterm/.libs/*.dll
-  mlterm/libctl/.libs/*.dll
+  baselib/src/.libs/*.dll
+  encodefilter/src/.libs/*.dll
+  encodefilter/module/.libs/*.dll
+  vtemu/.libs/*.dll
+  vtemu/libctl/.libs/*.dll
   main/.libs/mlterm.exe
   scrollbar/sample/.libs/*.dll
   inputmethod/kbd/.libs/*.dll
@@ -37,8 +37,8 @@ Memo about WIN32 native GUI.
     copy tool/mlconfig/.libs/mlconfig.exe and
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe, too.
   o 'make install' is available for installation in MSYS-DTK or Cygwin, but
-    remove 'relink_command' line in libmkf.la in advance because relinking
-    libmkf in 'make install' can be failed.
+    remove 'relink_command' line in libmef.la in advance because relinking
+    libmef in 'make install' can be failed.
 
 * Configuration
   (Built with MSYS-DTK or Cygwin)

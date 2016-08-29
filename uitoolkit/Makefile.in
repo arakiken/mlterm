@@ -1,0 +1,93 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+exec_prefix = @exec_prefix@
+datadir = @datadir@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+BINDIR = $(DESTDIR)$(bindir)
+
+VPATH = $(top_srcdir)/uitoolkit/@GUI@:$(top_srcdir)/uitoolkit
+
+OBJ1 = ui_screen_manager.o ui_event_source.o ui_display.o ui_window.o ui_screen.o \
+	ui_xic.o ui_color_manager.o ui_font_manager.o ui_picture.o ui_font.o \
+	ui_color.o ui_selection.o ui_font_config.o ui_main_config.o \
+	ui_shortcut.o ui_bel_mode.o ui_sb_mode.o ui_mod_meta_mode.o ui_font_cache.o \
+	ui_draw_str.o ui_gc.o ui_color_cache.o ui_dnd.o ui_scrollbar.o ui_layout.o \
+	ui_sb_view_factory.o ui_simple_sb_view.o ui_imagelib.o ui_connect_dialog.o \
+	ui_type_engine.o ui_im.o ui_im_candidate_screen.o
+
+OBJ2_xlib = ui_decsp_font.o ui_xim.o ui_im_status_screen.o @TYPE_LOADER_OBJ@
+
+OBJ2_win32 = ui_gdiobj_pool.o ui.o ui_im_status_screen.o
+
+OBJ2_fb = ui.o ui_virtual_kbd.o ui_im_status_screen.o
+
+OBJ2_quartz = ui.o cocoa.o ui_im_status_screen-cocoa.o
+
+OBJ2_console = ui.o ui_im_status_screen.o
+
+RSOBJ_win32 = winrs.o
+
+OBJ = $(OBJ1) $(OBJ2_@GUI@)
+
+XDISPLAY_DEPENDS_fb = ui_display_freebsd.c ui_display_linux.c ui_display_wscons.c ui_display_x68kgrf.c
+
+LIBNAME = libuitoolkit
+
+# XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
+CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
+	@IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ \
+	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ \
+	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @SIXEL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-DBINDIR=\"$(bindir)\" -DLIBDIR=\"$(libdir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
+	-DLIBEXECDIR=\"$(libexecdir)\" -DXDATADIR=\"$(datadir)\"\
+	-I$(top_srcdir)/vtemu -I$(top_srcdir)/uitoolkit/libotl -I/usr/local/include
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(LIBNAME).a
+
+debug: $(LIBNAME).a
+
+# If winrs.o is archived to libuitoolkit.a, connect dialog is not shown correctly.
+$(LIBNAME).a: $(OBJ) $(RSOBJ_@GUI@)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo)
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+.m.o:
+	$(LIBTOOL_CC) -c $<
+
+ui_display.o: ui_display.c $(XDISPLAY_DEPENDS_@GUI@)
+	$(LIBTOOL_CC) -c $<
+
+winrs.o: winrs.rs
+	cp $(top_srcdir)/contrib/icon/mlterm-icon-win32.ico .
+	# windres-2.11.90(included in MSYS-DTK 1.0.1) doesn't accept '-I[DIR]' option.
+	windres `echo "@POBL_CFLAGS@"|sed 's/-I/--include-dir /'` @GUI_CFLAGS@ @SSH2_CFLAGS@ $< winrs.o
+
+install:
+
+uninstall:
+
+wc:
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+clean:
+	rm -rf *.a *.la $(OBJ) $(OBJ:.o=.lo) $(RSOBJ_win32) mlterm-icon-win32.ico .libs
+
+distclean: clean
+	rm -f Makefile

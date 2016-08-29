@@ -15,7 +15,7 @@ Options for configure
 
   --disable-dl-table
     Disable dynamic loading of character mapping or property table,
-    which is statically linked to libmkf.
+    which is statically linked to libmef.
   
   --without-map-table
     Remove character mapping table
