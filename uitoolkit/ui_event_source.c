@@ -131,7 +131,7 @@ static void receive_next_event(void) {
     displays = ui_get_opened_displays(&num_of_displays);
 
     for (count = 0; count < num_of_displays; count++) {
-#if defined(X_PROTOCOL) && !defined(USE_QUARTZ)
+#if defined(USE_XLIB)
       /*
        * Need to read pending events and to flush events in
        * output buffer on X11 before waiting in select().

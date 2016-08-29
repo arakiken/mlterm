@@ -17,8 +17,8 @@ void* ef_load_8bits_func(const char* symname) {
   if (!is_tried) {
     is_tried = 1;
 
-    if (!(handle = bl_dl_open(MEFLIB_DIR, "ef_8bits")) &&
-        !(handle = bl_dl_open("", "ef_8bits"))) {
+    if (!(handle = bl_dl_open(MEFLIB_DIR, "mef_8bits")) &&
+        !(handle = bl_dl_open("", "mef_8bits"))) {
       return NULL;
     }
 
@@ -39,7 +39,7 @@ void* ef_load_jajp_func(const char* symname) {
   if (!is_tried) {
     is_tried = 1;
 
-    if (!(handle = bl_dl_open(MEFLIB_DIR, "ef_jajp")) && !(handle = bl_dl_open("", "ef_jajp"))) {
+    if (!(handle = bl_dl_open(MEFLIB_DIR, "mef_jajp")) && !(handle = bl_dl_open("", "mef_jajp"))) {
       return NULL;
     }
 
@@ -60,7 +60,7 @@ void* ef_load_kokr_func(const char* symname) {
   if (!is_tried) {
     is_tried = 1;
 
-    if (!(handle = bl_dl_open(MEFLIB_DIR, "ef_kokr")) && !(handle = bl_dl_open("", "ef_kokr"))) {
+    if (!(handle = bl_dl_open(MEFLIB_DIR, "mef_kokr")) && !(handle = bl_dl_open("", "mef_kokr"))) {
       return NULL;
     }
 
@@ -81,7 +81,7 @@ void* ef_load_zh_func(const char* symname) {
   if (!is_tried) {
     is_tried = 1;
 
-    if (!(handle = bl_dl_open(MEFLIB_DIR, "ef_zh")) && !(handle = bl_dl_open("", "ef_zh"))) {
+    if (!(handle = bl_dl_open(MEFLIB_DIR, "mef_zh")) && !(handle = bl_dl_open("", "mef_zh"))) {
       return NULL;
     }
 

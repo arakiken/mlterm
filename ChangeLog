@@ -1,5 +1,12 @@
 2016-08-29  Araki Ken  <arakiken@users.sf.net>
 
+	* ef_tblfunc_loader.c: The names of dynamically Loaded modules are changed
+	  from libef_xxx.so to libmef_xxx.so.
+
+	* ui_event_source.c, ui_picture.c: X_PROTOCOL -> USE_XLIB.
+
+2016-08-29  Araki Ken  <arakiken@users.sf.net>
+
 	* java/.java.policy: Added.
 
 	* xwindow/ -> uitoolkit/

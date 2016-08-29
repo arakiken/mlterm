@@ -40,7 +40,7 @@
 #endif
 #endif
 
-#ifdef X_PROTOCOL
+#ifdef USE_XLIB
 #undef HAVE_WINDOWS_H
 #endif
 

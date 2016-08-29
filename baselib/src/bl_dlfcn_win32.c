@@ -66,7 +66,6 @@ bl_dl_handle_t bl_dl_open(const char* dirpath, const char* name) {
   sprintf(path, "%scyg%s.dll", dirpath, name);
 #endif
 
-  bl_debug_printf("%s\n", path);
   if ((module = LoadLibraryA(path))) {
     return (bl_dl_handle_t)module;
   }
