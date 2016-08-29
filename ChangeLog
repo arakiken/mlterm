@@ -1,5 +1,7 @@
 2016-08-29  Araki Ken  <arakiken@users.sf.net>
 
+	* java/.java.policy: Added.
+
 	* xwindow/ -> uitoolkit/
 	  kiklib/ -> baselib/
 	  mkf/ -> encodefilter/
