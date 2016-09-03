@@ -2131,13 +2131,10 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
 
           parser = key_parser;
 #else
-/* parser has been already set for UTF16BE. */
+          /* parser has been already set for UTF16BE. */
 #endif /* UTF16_IME_CHAR */
 #else  /* USE_WIN32GUI */
-          /*
-           * xct's gl is US_ASCII and gr is ISO8859_1_R
-           * by default.
-           */
+          /* xct's gl is US_ASCII and gr is ISO8859_1_R by default. */
           parser = screen->xct_parser;
 #endif /* USE_WIN32GUI */
         }
@@ -4054,17 +4051,7 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
       value = "";
     }
   } else if (strcmp(key, "gui") == 0) {
-#if defined(USE_WIN32GUI)
-    value = "win32";
-#elif defined(USE_FRAMEBUFFER)
-    value = "fb";
-#elif defined(USE_CONSOLE)
-    value = "console";
-#elif defined(USE_QUARTZ)
-    value = "quartz";
-#else
-    value = "xlib";
-#endif
+    value = GUI_TYPE;
   } else if (strcmp(key, "use_clipboard") == 0) {
     if (ui_is_using_clipboard_selection()) {
       value = "true";
@@ -4390,7 +4377,7 @@ static int get_spot(void *p, int *x, int *y) {
 
   *y = convert_row_to_y(screen, vt_term_cursor_row(screen->term))
 /* XXX */
-#ifndef USE_WIN32GUI
+#ifndef  XIM_SPOT_IS_LINE_TOP
        + ui_line_height(screen)
 #endif
       ;

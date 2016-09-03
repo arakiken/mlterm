@@ -1,3 +1,8 @@
+ver 3.8.0
+* Refactor source code and directory tree.
+* Change library names.
+  libmkf => libmef, libkik => libpobl
+
 ver 3.7.2
 * Add mlterm-con which is a console version of mlterm (like GNU Screen) and which
   works on various terminal emulators. (see doc/en/README.console)

@@ -3500,8 +3500,7 @@ char *vte_terminal_match_check_event(VteTerminal *terminal, GdkEvent *event, int
 #if GLIB_CHECK_VERSION(2, 14, 0)
 void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex
 #if VTE_CHECK_VERSION(0, 38, 0)
-                                    ,
-                                    GRegexMatchFlags flags
+                                    , GRegexMatchFlags flags
 #endif
                                     ) {
   if (regex) {
@@ -3522,6 +3521,14 @@ gboolean vte_terminal_search_find_previous(VteTerminal *terminal) {
 }
 
 gboolean vte_terminal_search_find_next(VteTerminal *terminal) { return search_find(terminal, 0); }
+#endif /* VTE_CHECK_VERSION(0, 40, 0) */
+
+#if VTE_CHECK_VERSION(0, 44, 0)
+gboolean vte_terminal_event_check_gregex_simple(VteTerminal *terminal, GdkEvent *event,
+                                                GRegex **regexes, gsize n_regexes,
+                                                GregexMatchFlags match_flags, char **matches) {
+  return FALSE;
+}
 #endif
 
 void vte_terminal_search_set_wrap_around(VteTerminal *terminal, gboolean wrap_around) {}
@@ -3530,6 +3537,10 @@ gboolean vte_terminal_search_get_wrap_around(VteTerminal *terminal) { return FAL
 
 #if VTE_CHECK_VERSION(0, 28, 0)
 char *vte_get_user_shell(void) { return NULL; }
+#endif
+
+#if VTE_CHECK_VERSION(0, 44, 0)
+const char *vte_get_features(void) { return "-GNUTLS"; }
 #endif
 
 #if !VTE_CHECK_VERSION(0, 38, 0)

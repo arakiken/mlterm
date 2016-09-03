@@ -625,5 +625,6 @@ KeySym XStringToKeysym(char* str);
  */
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
+#undef XIM_SPOT_IS_LINE_TOP
 
 #endif

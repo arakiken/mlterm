@@ -8,23 +8,28 @@
 #if defined(USE_WIN32GUI)
 
 #include "win32/ui.h"
+#define GUI_TYPE "win32"
 
 #elif defined(USE_CONSOLE)
 
 #include "console/ui.h"
+#define GUI_TYPE "console"
 
 #elif defined(USE_FRAMEBUFFER)
 
 #include "fb/ui.h"
+#define GUI_TYPE "fb"
 
 #elif defined(USE_QUARTZ)
 
 #include "quartz/ui.h"
+#define GUI_TYPE "quartz"
 
 #else
 
 #include "xlib/ui.h"
 #define USE_XLIB
+#define GUI_TYPE "xlib"
 
 #endif
 

@@ -1,3 +1,12 @@
+2016-09-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ui.h: GUI_TYPE is added.
+
+	* uitoolkit/*/ui.h, ui_screen.c: XIM_SPOT_IS_LINE_TOP is added.
+
+	* vte.c: vte_terminal_event_check_gregex_simple() and vte_get_features()
+	  are implemented.
+
 2016-08-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ef_tblfunc_loader.c: The names of dynamically Loaded modules are changed
