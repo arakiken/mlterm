@@ -1205,7 +1205,8 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
     }
 
     if (is_percent ? ((term->separator_x = get_separator_x(term->screen, sb_width, sep)) == 0)
-                   : ((term->separator_x = ui_col_width(term->screen) * sep + sb_width) >=
+                   : ((term->separator_x = screen->window.hmargin * 2 +
+                                           ui_col_width(term->screen) * sep + sb_width) >=
                       ACTUAL_WIDTH(&term->screen->window) + sb_width)) {
       term->separator_x = orig_separator_x;
       free(next);
@@ -1225,7 +1226,8 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
     orig_separator_y = term->separator_y;
 
     if (is_percent ? ((term->separator_y = get_separator_y(term->screen, sep)) == 0)
-                   : ((term->separator_y = ui_line_height(term->screen) * sep) >=
+                   : ((term->separator_y = screen->window.vmargin * 2 +
+                                           ui_line_height(term->screen) * sep) >=
                       ACTUAL_HEIGHT(&term->screen->window))) {
       term->separator_y = orig_separator_y;
       free(next);

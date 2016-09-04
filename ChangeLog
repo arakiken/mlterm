@@ -1,3 +1,7 @@
+2016-09-04  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_layout.c: screen->window.[vh]margin * 2 is added to term->separator_[xy].
+
 2016-09-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ui.h: GUI_TYPE is added.

@@ -58,9 +58,9 @@ mlcc exec mlclient --serv user@host:port
   ただし、cygwin 標準の libssh2 では pageant が使えないため、
   http://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz をビルドし、
   /usr/bin/cygssh2-1.dll を置き換える必要があります。
-  (上記私家版 libssh2 の changeset 13:60ae8c2f14d0 をビルドしたバイナリ
-   => http://mlterm.sf.net/cygssh2-1.dll.tar.gz
-      MD5 (cygssh2-1.dll.tar.gz) = 1a45ac497eae3f39e6e628c01e0a3927)
+  (上記私家版 libssh2 の changeset 16:07dc06414623 をビルドしたバイナリ
+   => http://mlterm.sf.net/cygssh2-1.dll.tar.gz [2016/09/04更新]
+      MD5 (cygssh2-1.dll.tar.gz) = e020e8575c89836a5bc0924b77e3a39f)
   なお、上記バイナリは Agent forwarding にも対応しているため、例えば、パスワード
   入力画面の "Server" に HostA、"Exec cmd" に ssh -A HostB と入力すれば、HostA
   を踏み台として HostB に pageant を使ってログインすることもできます。
