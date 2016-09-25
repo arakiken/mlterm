@@ -684,6 +684,10 @@ The default is \fB~/.ssh/id_rsa.pub\fR(\fB%HOMEPATH%\mlterm\id_rsa.pub\fR in win
 Specify private key file for ssh connection.
 The default is \fB~/.ssh/id_rsa\fR(\fB%HOMEPATH%\mlterm\id_rsa\fR in win32).
 .TP
+\fB\-\-rcn\fR(=\fIbool\fR)
+Reconnect to ssh server automatically in unexpected disconnection.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-restart\fR=\fIvalue\fR
 Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE
 or SIGILL is received.
@@ -1508,6 +1512,9 @@ Specify name of scrollbar.
 .TP
 \fBsecondary_da=\fIvalue\fR (\fB\-\-da2\fR)
 Specify secondary device attributes string.
+.TP
+\fBssh_auto_reconnect\fR=\fIbool\fR (\fB\-\-rcn\fR)
+Reconnect to ssh server automatically in unexpected disconnection.
 .TP
 \fBssh_keepalive_interval\fR=\fIvalue\fR (\fB\-\-keepalive\fR)
 Specify interval seconds to send keepalive message to ssh server.

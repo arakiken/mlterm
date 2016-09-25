@@ -54,6 +54,20 @@ typedef struct ssh_session {
   char *host;
   char *port;
   char *user;
+
+  struct {
+    char *pass;
+    char *pubkey;
+    char *privkey;
+    char *cmd_path;
+    char **argv;
+    char **env;
+    u_int cols;
+    u_int rows;
+    u_int width_pix;
+    u_int height_pix;
+  } *stored;
+
   LIBSSH2_SESSION *obj;
   int sock;
 
@@ -78,6 +92,8 @@ typedef struct vt_pty_ssh {
 
   char *lo_buf;
   size_t lo_size;
+
+  int is_eof;
 
 } vt_pty_ssh_t;
 
@@ -112,6 +128,8 @@ static int use_x11_forwarding;
 static int display_port = -1;
 
 static int auth_agent_is_available;
+
+static int auto_reconnect;
 
 /* --- static functions --- */
 
@@ -179,6 +197,11 @@ static u_int __stdcall wait_pty_read(LPVOID thr_param) {
 
 #endif /* USE_WIN32API */
 
+/* libssh2 frees response[0].text internally. */
+#ifdef BL_DEBUG
+#undef strdup
+#endif
+
 static void kbd_callback(const char *name, int name_len, const char *instruction,
                          int instruction_len, int num_prompts,
                          const LIBSSH2_USERAUTH_KBDINT_PROMPT *prompts,
@@ -190,10 +213,15 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
   if (num_prompts == 1) {
     responses[0].text = strdup(pass_response);
     responses[0].length = strlen(pass_response);
+    pass_response = NULL;
   }
   (void)prompts;
   (void)abstract;
 }
+
+#ifdef BL_DEBUG
+#define strdup(str) bl_str_dup(str, __FILE__, __LINE__, __FUNCTION__)
+#endif
 
 #ifdef OPEN_PTY_ASYNC
 
@@ -403,7 +431,6 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
     libssh2_session_method_pref(session->obj, LIBSSH2_METHOD_CRYPT_SC, cipher_list);
   }
 
-  /* LIBSSH2_FLAG_COMPRESS doesn't work with X11 forwarding. */
   libssh2_session_callback_set(session->obj, LIBSSH2_CALLBACK_X11, x11_callback);
 
 #if !defined(LIBSSH2_VERSION_NUM) || LIBSSH2_VERSION_NUM < 0x010500
@@ -707,6 +734,7 @@ static int ssh_disconnect(ssh_session_t *session) {
   free(session->host);
   free(session->port);
   free(session->user);
+  free(session->stored);
   free(session->pty_channels);
   free(session->x11_fds);
   free(session->x11_channels);
@@ -719,9 +747,13 @@ static int ssh_disconnect(ssh_session_t *session) {
   return 1;
 }
 
+static int unuse_loopback(vt_pty_t *pty);
+
 static int final(vt_pty_t *pty) {
   ssh_session_t *session;
   u_int count;
+
+  unuse_loopback((vt_pty_ssh_t *)pty);
 
   session = ((vt_pty_ssh_t *)pty)->session;
 
@@ -752,6 +784,21 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   return 1;
 }
 
+static int reconnect(vt_pty_ssh_t *pty);
+static int use_loopback(vt_pty_t *pty);
+static ssize_t lo_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len);
+
+static int zombie(vt_pty_ssh_t *pty) {
+  if (use_loopback(&pty->pty)) {
+    lo_write_to_pty(&pty->pty, "=== Press any key to exit ===", 29);
+    pty->is_eof = 1;
+
+    return 1;
+  }
+
+  return 0;
+}
+
 static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   ssize_t ret;
 
@@ -763,6 +810,10 @@ static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
   if (ret == LIBSSH2_ERROR_SOCKET_SEND || ret == LIBSSH2_ERROR_SOCKET_RECV ||
       libssh2_channel_eof(((vt_pty_ssh_t *)pty)->channel)) {
+    if ((ret < 0 && reconnect(pty)) || zombie((vt_pty_ssh_t *)pty)) {
+      return 0;
+    }
+
     bl_trigger_sig_child(pty->child_pid);
 
     return -1;
@@ -801,6 +852,10 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
   if (ret == LIBSSH2_ERROR_SOCKET_SEND || ret == LIBSSH2_ERROR_SOCKET_RECV ||
       libssh2_channel_eof(((vt_pty_ssh_t *)pty)->channel)) {
+    if ((ret < 0 && reconnect(pty)) || zombie((vt_pty_ssh_t *)pty)) {
+      return 0;
+    }
+
     bl_trigger_sig_child(pty->child_pid);
 
     return -1;
@@ -901,10 +956,7 @@ static int check_sig_child(pid_t pid) {
 static ssize_t lo_read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 #ifdef __CYGWIN__
   if (check_sig_child(pty->config_menu.pid)) {
-    /*
-     * vt_pty_set_use_loopback(0) is called from sig_child()
-     * in vt_config_menu.c is called
-     */
+    /* vt_pty_set_use_loopback(0) is called from sig_child() in vt_config_menu.c. */
     return 0;
   }
 #endif
@@ -926,6 +978,11 @@ static ssize_t lo_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   if (len == 1 && buf[0] == '\x03') {
     /* ^C */
     scp_stop((vt_pty_ssh_t *)pty);
+  }
+  else if (((vt_pty_ssh_t *)pty)->is_eof) {
+    bl_trigger_sig_child(pty->child_pid);
+
+    return -1;
   }
 
   return write(pty->slave, buf, len);
@@ -1199,263 +1256,54 @@ static int setup_x11(LIBSSH2_CHANNEL *channel) {
       sprintf(cmd, "xauth -f %s list %s 2> /dev/null", xauth_file, display);
 #endif
 
-    if ((fp = popen(cmd, "r"))) {
-      if (fgets(line, sizeof(line), fp)) {
-        if ((proto = strchr(line, ' '))) {
-          proto += 2;
+      if ((fp = popen(cmd, "r"))) {
+        if (fgets(line, sizeof(line), fp)) {
+          if ((proto = strchr(line, ' '))) {
+            proto += 2;
 
-          if ((data = strchr(proto, ' '))) {
-            *data = '\0';
-            data += 2;
+            if ((data = strchr(proto, ' '))) {
+              *data = '\0';
+              data += 2;
 
-            if ((p = strchr(data, '\n'))) {
-              *p = '\0';
+              if ((p = strchr(data, '\n'))) {
+                *p = '\0';
+              }
             }
           }
         }
+
+        pclose(fp);
       }
 
-      pclose(fp);
+#ifdef TRUSTED
+  }
+#else
+      unlink(xauth_file);
     }
 
-#ifndef TRUSTED
-    unlink(xauth_file);
+    free(xauth_file);
   }
-
-  free(xauth_file);
 #endif
-}
 #endif
 
 #ifdef __DEBUG
-bl_debug_printf(BL_DEBUG_TAG " libssh2_channel_x11_req_ex (with xauth %s %s)\n", proto, data);
+  bl_debug_printf(BL_DEBUG_TAG " libssh2_channel_x11_req_ex (with xauth %s %s)\n", proto, data);
 #endif
 
-while ((ret = libssh2_channel_x11_req_ex(channel, 0, proto, data, 0)) == LIBSSH2_ERROR_EAGAIN)
-  ;
-
-return ret == 0;
-}
-
-static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel, char *shost,
-                         int sport, void **abstract) {
-  u_int count;
-  ssh_session_t *session;
-  void *p;
-  int display_sock = -1;
-#ifdef USE_WIN32API
-  struct sockaddr_in addr;
-#else
-  struct sockaddr_un addr;
-#endif
-
-  for (count = 0;; count++) {
-    if (count == num_of_sessions) {
-      /* XXX count must not reache num_of_sessions. */
-      return;
-    }
-
-    if (session_obj == sessions[count]->obj) {
-      session = sessions[count];
-      break;
-    }
-  }
-
-  if (!(p = realloc(session->x11_fds, (session->num_of_x11 + 1) * sizeof(int)))) {
-    /* XXX channel resource is leaked. */
-    return;
-  }
-
-  session->x11_fds = p;
-
-  if (!(p = realloc(session->x11_channels,
-                    (session->num_of_x11 + 1) * sizeof(LIBSSH2_CHANNEL *)))) {
-    /* XXX channel resource is leaked. */
-    return;
-  }
-
-  session->x11_channels = p;
-
-  if (display_port == -1) {
-    goto error;
-  }
-
-#ifdef USE_WIN32API
-  if ((display_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    goto error;
-  }
-
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(6000);
-  addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-#else
-  if ((display_sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-    goto error;
-  }
-
-  memset(&addr, 0, sizeof(addr));
-  addr.sun_family = AF_UNIX;
-  snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/.X11-unix/X%d", display_port);
-#endif
-
-  if (connect(display_sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-  error:
-    bl_error_printf("Failed to connect X Server.\n");
-    closesocket(display_sock);
-    display_sock = -1;
-
-    /* Don't call libssh2_channel_free() which causes segfault here. */
-  } else {
-#ifdef USE_WIN32API
-    u_long val;
-
-    val = 1;
-    ioctlsocket(display_sock, FIONBIO, &val);
-#else
-    fcntl(display_sock, F_SETFL, O_NONBLOCK | fcntl(display_sock, F_GETFL, 0));
-#endif
-  }
-
-  session->x11_channels[session->num_of_x11] = channel;
-  session->x11_fds[session->num_of_x11++] = display_sock;
-
-#ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG
-                  " x11 forwarding %d (display %d <=> ssh %p) started. => channel num %d\n",
-                  session->num_of_x11 - 1, display_sock, channel, session->num_of_x11);
-#endif
-}
-
-static void close_x11(ssh_session_t *session, int idx) {
-  closesocket(session->x11_fds[idx]);
-  while (libssh2_channel_free(session->x11_channels[idx]) == LIBSSH2_ERROR_EAGAIN)
+  while ((ret = libssh2_channel_x11_req_ex(channel, 0, proto, data, 0)) == LIBSSH2_ERROR_EAGAIN)
     ;
 
-#ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG
-                  " x11 forwarding %d (display %d <=> ssh %p) stopped. => channel num %d\n",
-                  idx, session->x11_fds[idx], session->x11_channels[idx], session->num_of_x11 - 1);
-#endif
-
-  if (--session->num_of_x11 > 0) {
-    session->x11_channels[idx] = session->x11_channels[session->num_of_x11];
-    session->x11_fds[idx] = session->x11_fds[session->num_of_x11];
-  }
+  return ret == 0;
 }
 
-static int xserver_to_ssh(LIBSSH2_CHANNEL *channel, int display) {
-  char buf[8192];
-  ssize_t len;
-
-  while ((len = recv(display, buf, sizeof(buf), 0)) > 0) {
-    ssize_t w_len;
-    char *p;
-
-    p = buf;
-    while ((w_len = libssh2_channel_write(channel, p, len)) < len) {
-      if (w_len > 0) {
-        len -= w_len;
-        p += w_len;
-      } else if (w_len < 0) {
-        if (libssh2_channel_eof(channel)) {
-#if 0
-          shutdown(display, SHUT_RDWR);
-#endif
-
-          return 0;
-        }
-
-        bl_usleep(1);
-      }
-    }
-
-#if 0
-    bl_debug_printf("X SERVER(%d) -> CHANNEL %d\n", display, len);
-#endif
-  }
-
-  if (len == 0) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-static int ssh_to_xserver(LIBSSH2_CHANNEL *channel, int display) {
-  char buf[8192];
-  ssize_t len;
-
-  while ((len = libssh2_channel_read(channel, buf, sizeof(buf))) > 0) {
-    ssize_t w_len;
-    char *p;
-
-    p = buf;
-    while ((w_len = send(display, p, len, 0)) < len) {
-      if (w_len > 0) {
-        len -= w_len;
-        p += w_len;
-      } else if (w_len < 0) {
-        bl_usleep(1);
-      }
-    }
-
-#if 0
-    bl_debug_printf("CHANNEL -> X SERVER(%d) %d\n", display, len);
-#endif
-  }
-
-  if (libssh2_channel_eof(channel)) {
-#if 0
-    shutdown(display, SHUT_RDWR);
-#endif
-
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-/* --- global functions --- */
-
-/*
- * Thread-safe.
- */
-vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
-                         char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
-                         char **env,           /* can be NULL */
-                         const char *uri, const char *pass, const char *pubkey, /* can be NULL */
-                         const char *privkey,                                   /* can be NULL */
-                         u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
-  vt_pty_ssh_t *pty;
-  char *user;
-  char *proto;
-  char *host;
-  char *port;
+static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
+                        const char *cmd_path, /* can be NULL */
+                        char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
+                        char **env,           /* can be NULL */
+                        u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   char *term;
   void *p;
   int ret;
-
-  if (!bl_parse_uri(&proto, &user, &host, &port, NULL, NULL, bl_str_alloca_dup(uri))) {
-    return NULL;
-  }
-
-  /* USER: unix , USERNAME: win32 */
-  if (!user && !(user = getenv("USER")) && !(user = getenv("USERNAME"))) {
-    return NULL;
-  }
-
-  if (proto && strcmp(proto, "ssh") != 0) {
-    return NULL;
-  }
-
-  if ((pty = calloc(1, sizeof(vt_pty_ssh_t))) == NULL) {
-    return NULL;
-  }
-
-  if ((pty->session = ssh_connect(host, port ? port : "22", user, pass, pubkey, privkey)) == NULL) {
-    goto error1;
-  }
 
   if (pty->session->suspended) {
     goto error2;
@@ -1653,7 +1501,7 @@ vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
 
   set_use_multi_thread(0);
 
-  return &pty->pty;
+  return 1;
 
 error3:
   libssh2_session_set_blocking(pty->session->obj, 1); /* unblock in ssh_disconnect */
@@ -1663,18 +1511,372 @@ error2:
   ssh_disconnect(pty->session);
   set_use_multi_thread(0);
 
-error1:
-  free(pty);
+  return 0;
+}
 
-  return NULL;
+static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel, char *shost,
+                         int sport, void **abstract) {
+  u_int count;
+  ssh_session_t *session;
+  void *p;
+  int display_sock = -1;
+#ifdef USE_WIN32API
+  struct sockaddr_in addr;
+#else
+  struct sockaddr_un addr;
+#endif
+
+  for (count = 0;; count++) {
+    if (count == num_of_sessions) {
+      /* XXX count must not reache num_of_sessions. */
+      return;
+    }
+
+    if (session_obj == sessions[count]->obj) {
+      session = sessions[count];
+      break;
+    }
+  }
+
+  if (!(p = realloc(session->x11_fds, (session->num_of_x11 + 1) * sizeof(int)))) {
+    /* XXX channel resource is leaked. */
+    return;
+  }
+
+  session->x11_fds = p;
+
+  if (!(p = realloc(session->x11_channels,
+                    (session->num_of_x11 + 1) * sizeof(LIBSSH2_CHANNEL *)))) {
+    /* XXX channel resource is leaked. */
+    return;
+  }
+
+  session->x11_channels = p;
+
+  if (display_port == -1) {
+    goto error;
+  }
+
+#ifdef USE_WIN32API
+  if ((display_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    goto error;
+  }
+
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(6000);
+  addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+#else
+  if ((display_sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+    goto error;
+  }
+
+  memset(&addr, 0, sizeof(addr));
+  addr.sun_family = AF_UNIX;
+  snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/.X11-unix/X%d", display_port);
+#endif
+
+  if (connect(display_sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+  error:
+    bl_error_printf("Failed to connect X Server.\n");
+    closesocket(display_sock);
+    display_sock = -1;
+
+    /* Don't call libssh2_channel_free() which causes segfault here. */
+  } else {
+#ifdef USE_WIN32API
+    u_long val;
+
+    val = 1;
+    ioctlsocket(display_sock, FIONBIO, &val);
+#else
+    fcntl(display_sock, F_SETFL, O_NONBLOCK | fcntl(display_sock, F_GETFL, 0));
+#endif
+  }
+
+  session->x11_channels[session->num_of_x11] = channel;
+  session->x11_fds[session->num_of_x11++] = display_sock;
+
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG
+                  " x11 forwarding %d (display %d <=> ssh %p) started. => channel num %d\n",
+                  session->num_of_x11 - 1, display_sock, channel, session->num_of_x11);
+#endif
+}
+
+static int reconnect(vt_pty_ssh_t *pty) {
+  ssh_session_t *session;
+  vt_pty_ssh_t orig_pty;
+
+  if (!(session = vt_search_ssh_session(pty->session->host,
+                                        pty->session->port, pty->session->user)) ||
+      session == pty->session) {
+    char *host;
+    host = pty->session->host;
+    pty->session->host = "***dummy***";
+
+#ifdef __DEBUG
+    bl_debug_printf("Reconnect to %s@%s:%s pw %s pubkey %s privkey %s\n",
+                    pty->session->user, host, pty->session->port, pty->session->stored->pass,
+                    pty->session->stored->pubkey, pty->session->stored->privkey);
+#endif
+
+    bl_usleep(1000);
+
+    if (!pty->session->stored ||
+        !(session = ssh_connect(host, pty->session->port, pty->session->user,
+                                pty->session->stored->pass, pty->session->stored->pubkey,
+                                pty->session->stored->privkey))) {
+      pty->session->host = host;
+
+      return 0;
+    }
+    pty->session->host = host;
+    session->stored = pty->session->stored;
+    pty->session->stored = NULL;
+  }
+
+  orig_pty = *pty;
+  memset(pty, 0, sizeof(*pty));
+  pty->session = session;
+  if (!open_channel(pty, session->stored->cmd_path, session->stored->argv, session->stored->env,
+                    session->stored->cols, session->stored->rows, session->stored->width_pix,
+                    session->stored->height_pix)) {
+    *pty = orig_pty;
+    return 0;
+  }
+
+  /* XXX See vt_pty_delete() */
+  free(orig_pty.pty.buf);
+  free(orig_pty.pty.cmd_line);
+  final(&orig_pty.pty);
+
+  return 1;
+}
+
+static void close_x11(ssh_session_t *session, int idx) {
+  closesocket(session->x11_fds[idx]);
+  while (libssh2_channel_free(session->x11_channels[idx]) == LIBSSH2_ERROR_EAGAIN)
+    ;
+
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG
+                  " x11 forwarding %d (display %d <=> ssh %p) stopped. => channel num %d\n",
+                  idx, session->x11_fds[idx], session->x11_channels[idx], session->num_of_x11 - 1);
+#endif
+
+  if (--session->num_of_x11 > 0) {
+    session->x11_channels[idx] = session->x11_channels[session->num_of_x11];
+    session->x11_fds[idx] = session->x11_fds[session->num_of_x11];
+  }
+}
+
+static int xserver_to_ssh(LIBSSH2_CHANNEL *channel, int display) {
+  char buf[8192];
+  ssize_t len;
+
+  while ((len = recv(display, buf, sizeof(buf), 0)) > 0) {
+    ssize_t w_len;
+    char *p;
+
+    p = buf;
+    while ((w_len = libssh2_channel_write(channel, p, len)) < len) {
+      if (w_len > 0) {
+        len -= w_len;
+        p += w_len;
+      } else if (w_len < 0) {
+        if (libssh2_channel_eof(channel)) {
+#if 0
+          shutdown(display, SHUT_RDWR);
+#endif
+
+          return 0;
+        }
+
+        bl_usleep(1);
+      }
+    }
+
+#if 0
+    bl_debug_printf("X SERVER(%d) -> CHANNEL %d\n", display, len);
+#endif
+  }
+
+  if (len == 0) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+static int ssh_to_xserver(LIBSSH2_CHANNEL *channel, int display) {
+  char buf[8192];
+  ssize_t len;
+
+  while ((len = libssh2_channel_read(channel, buf, sizeof(buf))) > 0) {
+    ssize_t w_len;
+    char *p;
+
+    p = buf;
+    while ((w_len = send(display, p, len, 0)) < len) {
+      if (w_len > 0) {
+        len -= w_len;
+        p += w_len;
+      } else if (w_len < 0) {
+        bl_usleep(1);
+      }
+    }
+
+#if 0
+    bl_debug_printf("CHANNEL -> X SERVER(%d) %d\n", display, len);
+#endif
+  }
+
+  if (libssh2_channel_eof(channel)) {
+#if 0
+    shutdown(display, SHUT_RDWR);
+#endif
+
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+/* cmd_path, cmd_argv, env, pubkey and privkey can be NULL. */
+static void save_data_for_reconnect(ssh_session_t *session, const char *cmd_path, char **argv,
+                                    char **env, const char *pass, const char *pubkey,
+                                    const char *privkey, u_int cols, u_int rows,
+                                    u_int width_pix, u_int height_pix) {
+  size_t len;
+  u_int array_size[2];
+  int idx;
+  char **src;
+
+  len = sizeof(*session->stored);
+  len += (strlen(pass) + 1);
+  if (cmd_path) len += (strlen(cmd_path) + 1);
+  if (pubkey) len += (strlen(pubkey) + 1);
+  if (privkey) len += (strlen(privkey) + 1);
+
+  for (src = argv, idx = 0; idx < 2; src = env, idx++) {
+    if (src) {
+      array_size[idx] = 1;
+      for ( ; *src; src++) {
+        array_size[idx]++;
+        len += (strlen(*src) + 1 + sizeof(*src));
+      }
+      len += sizeof(*src);
+    }
+    else {
+      array_size[idx] = 0;
+    }
+  }
+
+  if ((session->stored = calloc(len, 1))) {
+    char *str;
+    char **dst;
+
+    session->stored->argv = session->stored + 1;
+    session->stored->env = session->stored->argv + array_size[0];
+    str = session->stored->env + array_size[1];
+    session->stored->pass = strcpy(str, pass);
+    str += (strlen(pass) + 1);
+    if (cmd_path) {
+      session->stored->cmd_path = strcpy(str, cmd_path);
+      str += (strlen(cmd_path) + 1);
+    }
+    if (pubkey) {
+      session->stored->pubkey = strcpy(str, pubkey);
+      str += (strlen(pubkey) + 1);
+    }
+    if (privkey) {
+      session->stored->privkey = strcpy(str, privkey);
+      str += (strlen(privkey) + 1);
+    }
+
+    for (src = argv, dst = session->stored->argv, idx = 0; idx < 2;
+         src = env, dst = session->stored->env, idx++) {
+      if (src) {
+        for ( ; *src; src++) {
+          *(dst++) = strcpy(str, *src);
+          str += (strlen(str) + 1);
+        }
+        *dst = NULL;
+      }
+      else {
+        if (idx == 0) {
+          session->stored->argv = NULL;
+        } else {
+          session->stored->env = NULL;
+        }
+      }
+    }
+
+    session->stored->cols = cols;
+    session->stored->rows = rows;
+    session->stored->width_pix = width_pix;
+    session->stored->height_pix = height_pix;
+  }
+}
+
+/* --- global functions --- */
+
+/*
+ * Thread-safe.
+ */
+vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
+                         char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
+                         char **env,           /* can be NULL */
+                         const char *uri, const char *pass, const char *pubkey, /* can be NULL */
+                         const char *privkey,                                   /* can be NULL */
+                         u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
+  vt_pty_ssh_t *pty;
+  char *user;
+  char *proto;
+  char *host;
+  char *port;
+
+  if (!bl_parse_uri(&proto, &user, &host, &port, NULL, NULL, bl_str_alloca_dup(uri))) {
+    return NULL;
+  }
+
+  /* USER: unix , USERNAME: win32 */
+  if (!user && !(user = getenv("USER")) && !(user = getenv("USERNAME"))) {
+    return NULL;
+  }
+
+  if (proto && strcmp(proto, "ssh") != 0) {
+    return NULL;
+  }
+
+  if ((pty = calloc(1, sizeof(vt_pty_ssh_t))) == NULL) {
+    return NULL;
+  }
+
+  if (!(pty->session = ssh_connect(host, port ? port : "22", user, pass, pubkey, privkey)) ||
+      !open_channel(pty, cmd_path, cmd_argv, env, cols, rows, width_pix, height_pix)) {
+    free(pty);
+
+    return NULL;
+  }
+
+  if (auto_reconnect && ! pty->session->stored &&
+      strcmp(host, "localhost") != 0 && strcmp(host, "127.0.0.1") != 0) {
+    save_data_for_reconnect(pty->session, cmd_path, cmd_argv, env, pass, pubkey, privkey,
+                            cols, rows, width_pix, height_pix);
+  }
+
+  return &pty->pty;
 }
 
 void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL */
                             const char *user                    /* can be NULL */
                             ) {
-  u_int count;
+  int count;
 
-  for (count = 0; count < num_of_sessions; count++) {
+  /* search from newer sessions. */
+  for (count = num_of_sessions - 1; count >= 0; count--) {
     if (strcmp(sessions[count]->host, host) == 0 &&
         (port == NULL || strcmp(sessions[count]->port, port) == 0) &&
         (user == NULL || strcmp(sessions[count]->user, user) == 0)) {
@@ -1958,4 +2160,8 @@ int vt_pty_ssh_send_recv_x11(int idx, int bidirection) {
   }
 
   return 1;
+}
+
+void vt_pty_ssh_set_use_auto_reconnect(int flag) {
+  auto_reconnect = flag;
 }

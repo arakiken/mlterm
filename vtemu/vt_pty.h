@@ -98,6 +98,8 @@ int vt_pty_ssh_poll(void *fds);
 u_int vt_pty_ssh_get_x11_fds(int **fds);
 
 int vt_pty_ssh_send_recv_x11(int idx, int bidirection);
+
+void vt_pty_ssh_set_use_auto_reconnect(int flag);
 #endif
 
 #endif

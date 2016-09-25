@@ -51,19 +51,13 @@ $(LIBNAME)_core.la : $(OBJ_CORE)
 	$(LIBTOOL_LINK) -o $(LIBNAME)_core.la $(OBJ_CORE:.o=.lo) \
 	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -avoid-version @LPOBL@ $(LIBS)
 
+$(LIBNAME)_coreotl.la : $(OBJ_CORE)
+	$(LIBTOOL_LINK) -o $(LIBNAME)_coreotl.la $(OBJ_CORE:.o=.lo) \
+	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -avoid-version @LPOBL@ $(LIBS)
+
 install : $(LIBDIR)
 	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \
-		if test "`strings $(libdir)/*mlterm_core*|grep vt_ot_layout_new`" != "" -a \
-	                "@OT_LAYOUT_CFLAGS@" = "" ; then \
-			echo "libmlterm_core which supports open type layout has been already installed." \
-			echo "Do you overwrite it ? [y/n]" ; \
-			read in ; \
-			if test "$$in" = "y" ; then \
-				$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
-			fi ; \
-		else \
-			$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
-		fi ; \
+		$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
 	fi
 
 uninstall :

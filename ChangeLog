@@ -1,3 +1,16 @@
+2016-09-24  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, vtemu/Makefile.in: libmlterm_core is renamed to libmlterm_coreotl
+	  if open type layout is supported.
+
+	* doc/ja/README.ja, man/mlterm.1, etc/main, etc/main.ja: Updated
+
+	* ui_main_config.c: "ssh_auto_reconnect" / --rcn option is added.
+
+	* vt_pty_ssh.[ch], vt_pty.h, vt_pty_ssh.c:
+	  - Automatic reconnection to ssh server in unexpected disconnection is supported.
+	  - vt_pty_ssh_set_use_auto_reconnect() is added.
+
 2016-09-04  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_layout.c: screen->window.[vh]margin * 2 is added to term->separator_[xy].

@@ -246,6 +246,8 @@
 
 # allow_scp = false
 
+# ssh_auto_reconnect = false
+
 # auto_restart = true
 
 # allow_osc52 = false

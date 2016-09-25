@@ -21,7 +21,7 @@ rm mlterm/[tv]font
 
 cd $HOME/mlterm.app/Contents/MacOS
 
-libs="lib/libpobl.[0-9]*.dylib lib/libmef.[0-9]*.dylib lib/libmlterm_core.dylib lib/mlterm/libctl_bidi.so lib/mlterm/libctl_iscii.so lib/mlterm/libind_bengali.so lib/mlterm/libind_hindi.so lib/mlterm/libotl.so lib/mlterm/libim-skk.so lib/mlterm/libim-kbd.so"
+libs="lib/libpobl.[0-9]*.dylib lib/libmef.[0-9]*.dylib lib/libmlterm_core.dylib lib/libmlterm_coreotl.dylib lib/mlterm/libctl_bidi.so lib/mlterm/libctl_iscii.so lib/mlterm/libind_bengali.so lib/mlterm/libind_hindi.so lib/mlterm/libotl.so lib/mlterm/libim-skk.so lib/mlterm/libim-kbd.so"
 
 mkdir -p lib/mef
 mkdir -p lib/mlterm

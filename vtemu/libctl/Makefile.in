@@ -32,13 +32,13 @@ all: @CTL_LIBS@
 libctl_bidi.la: $(BIDI_OBJ) vt_functbl_bidi.o
 	$(LIBTOOL_LINK) -o libctl_bidi.la $(BIDI_OBJ:.o=.lo) vt_functbl_bidi.lo \
 	-rpath $(libdir)/mlterm \
-	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../libmlterm_core.la \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../@LMLTERM_CORE@ \
 	$(LIBS) $(LIBS_BIDI)
 
 libctl_iscii.la: $(ISCII_OBJ) vt_functbl_iscii.o
 	$(LIBTOOL_LINK) -o libctl_iscii.la $(ISCII_OBJ:.o=.lo) vt_functbl_iscii.lo \
 	-rpath $(libdir)/mlterm \
-	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../libmlterm_core.la \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../@LMLTERM_CORE@ \
 	$(LIBS) $(LIBS_ISCII)
 
 libctl_bidi.a: $(BIDI_OBJ)

@@ -2,9 +2,9 @@
  *	$Id$
  */
 
-#ifdef USE_OT_LAYOUT
-
 #include "vt_ot_layout.h"
+
+#ifdef USE_OT_LAYOUT
 
 #include <pobl/bl_str.h> /* bl_snprintf */
 #include <pobl/bl_dlfcn.h>
@@ -88,7 +88,7 @@ u_int vt_ot_layout_shape(void *font, u_int32_t *shaped, u_int shaped_len, int8_t
 
 void *vt_ot_layout_get_font(void *term, vt_font_t font) {
   if (!get_font_func) {
-    return 0;
+    return NULL;
   }
 
   return (*get_font_func)(term, font);

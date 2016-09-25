@@ -867,6 +867,9 @@ comment $Id$
         false の場合でも、転送先ホストの "." (~/.mlterm/scp) ディレクトリ以下に
         保存することは可能です。
 
+      o ssh_auto_reconnect (true/*false*)
+        ssh の接続が予期せず切断した場合に、自動的に再接続を試みる。
+
       o auto_restart (*true*/false)
         SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
         application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
@@ -1325,6 +1328,8 @@ comment $Id$
        --privkey=value : ssh_private_key
        --ciphlist=value : cipher_list
        --x11(=bool)    : ssh_x11_forwarding
+       --scp(=bool)    : allow_scp
+       --rcn(=bool)    : ssh_auto_reconnect
        --csp=value     : letter_space
        --osc52(=bool)  : allow_osc52
        --blink(=bool)  : blink_cursor

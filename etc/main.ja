@@ -357,6 +357,9 @@ scrollbar_view_name = sample
 # ssh 接続時に OSC 5379 scp を許可する。
 # allow_scp = false
 
+# ssh の接続が予期せず切断した場合に、自動的に再接続を試みる。
+# ssh_auto_reconnect = false
+
 # SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
 # application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
 # auto_restart = true

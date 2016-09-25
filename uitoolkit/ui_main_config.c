@@ -240,6 +240,8 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "ciphlist", 0, "cipher_list", "preferred cipher list");
   bl_conf_add_opt(conf, '\0', "x11", 1, "ssh_x11_forwarding", "allow x11 forwarding [false]");
   bl_conf_add_opt(conf, '\0', "scp", 1, "allow_scp", "allow scp [false]");
+  bl_conf_add_opt(conf, '\0', "rcn", 1, "ssh_auto_reconnect",
+                  "reconnect to ssh server automatically[false]");
 #endif
   bl_conf_add_opt(conf, '\0', "csp", 0, "letter_space",
                   "extra space between letters in pixels [0]");
@@ -1083,6 +1085,10 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
 
   if ((value = bl_conf_get_value(conf, "allow_scp"))) {
     vt_set_use_scp_full(strcmp(value, "true") == 0);
+  }
+
+  if ((value = bl_conf_get_value(conf, "ssh_auto_reconnect"))) {
+    vt_pty_ssh_set_use_auto_reconnect(strcmp(value, "true") == 0);
   }
 #endif
 

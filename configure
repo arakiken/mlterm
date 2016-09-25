@@ -19852,7 +19852,7 @@ if test "$gui" = "fb,xlib" -o "$gui" = "xlib,fb" ; then
 	fi
 	mkdir -p ${top_srcdir-$srcdir}/fb
 	for file in ChangeLog Makefile.in common configure etc gtk inputmethod java \
-		main man mlterm script scrollbar uitoolkit doc ; do
+		main man vtemu script scrollbar uitoolkit doc ; do
 		cp -R ${top_srcdir-$srcdir}/$file ${top_srcdir-$srcdir}/fb/
 	done
 fi
@@ -21754,6 +21754,10 @@ fi
 	if test "$OT_LAYOUT_OBJ" != "" -a "$enable_shared" = "no" ; then
 		OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS -DNO_DYNAMIC_LOAD_OTL"
 		OT_LAYOUT_LIBS_FOR_PROG="$OT_LAYOUT_LIBS"
+	fi
+
+  if test "$OT_LAYOUT_OBJ" != "" -a "$LMLTERM_CORE" = "libmlterm_core.la" ; then
+		 LMLTERM_CORE="libmlterm_coreotl.la"
 	fi
 fi
 

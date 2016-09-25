@@ -408,6 +408,7 @@ void bl_mem_dump_all(void) {
 
   log = mem_logs;
   while (log) {
+    fprintf(stderr, "%p: ", log);
     fprintf(stderr, "%p(size %d , alloced at %s[l.%d in %s] is allocated.\n", log->ptr,
             (int)log->size, log->func, log->line, log->file);
     log = bl_slist_next(log);
@@ -421,6 +422,7 @@ int bl_mem_free_all(void) {
     mem_log_t *prev;
 
     do {
+      fprintf(stderr, "%p: ", log);
       fprintf(stderr, "%p(size %d , alloced at %s[l.%d in %s] is not freed.\n", log->ptr,
               (int)log->size, log->func, log->line, log->file);
       free(log->ptr);

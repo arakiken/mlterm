@@ -42,6 +42,7 @@ static void (*ssh_set_use_x11_forwarding)(void *, int);
 static int (*ssh_poll)(void *);
 static u_int (*ssh_get_x11_fds)(int **);
 static int (*ssh_send_recv_x11)(int, int);
+static void (*ssh_set_use_auto_reconnect)(int);
 
 static int is_tried;
 static bl_dl_handle_t handle;
@@ -70,6 +71,7 @@ static void load_library(void) {
   ssh_poll = bl_dl_func_symbol(handle, "vt_pty_ssh_poll");
   ssh_get_x11_fds = bl_dl_func_symbol(handle, "vt_pty_ssh_get_x11_fds");
   ssh_send_recv_x11 = bl_dl_func_symbol(handle, "vt_pty_ssh_send_recv_x11");
+  ssh_set_use_auto_reconnect = bl_dl_func_symbol(handle, "vt_pty_ssh_set_use_auto_reconnect");
 }
 
 /* --- global functions --- */
@@ -169,6 +171,17 @@ int vt_pty_ssh_send_recv_x11(int idx, int bidirection) {
     return (*ssh_send_recv_x11)(idx, bidirection);
   } else {
     return 0;
+  }
+}
+
+void vt_pty_ssh_set_use_auto_reconnect(int use) {
+  /* This function can be called before vt_pty_ssh_new() */
+  if (!is_tried) {
+    load_library();
+  }
+
+  if (ssh_set_use_auto_reconnect) {
+    (*ssh_set_use_auto_reconnect)(use);
   }
 }
 
