@@ -1,3 +1,7 @@
+2016-09-27  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_line.c: set_real_modified() is called in vt_line_unuse_ctl() for *_render().
+
 2016-09-24  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, vtemu/Makefile.in: libmlterm_core is renamed to libmlterm_coreotl

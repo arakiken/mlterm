@@ -1466,6 +1466,8 @@ int vt_line_convert_logical_char_index_to_visual(vt_line_t *line, int char_index
 
 int vt_line_unuse_ctl(vt_line_t *line) {
   if (line->ctl_info_type) {
+    /* *_render() which may be called later works only if vt_line_t is really modified. */
+    set_real_modified(line, 0, END_CHAR_INDEX(line));
 #ifdef USE_OT_LAYOUT
     if (vt_line_is_using_ot_layout(line)) {
       return vt_line_set_use_ot_layout(line, 0);
