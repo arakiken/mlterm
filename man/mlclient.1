@@ -7,17 +7,17 @@ mlclient \- client for mlterm
 .RB [\fIoptions\fP]
 .\" ********************************************************************
 .SH DESCRIPTION
-\fBmlclient\fR is a client for the \fBmlterm\fR(1) server (daemon).
+\fBmlclient(x)\fR is a client for the \fBmlterm\fR(1) server (daemon).
 \fBmlterm\fR(1), an X terminal emulator, can be invoked
 as a daemon process which holds multiple sessions (shell process and other
-information like backlog).  \fBmlclient\fR can creat a new session
+information like backlog).  \fBmlclient(x)\fR can creat a new session
 or recall an existing session which had been disconnected from a window.
 .\" ********************************************************************
 .SH OPTIONS
-\fBmlclient\fR accepts most options of mlterm.
+\fBmlclient(x)\fR accepts most options of mlterm.
 Please read \fBmlterm\fR(1) for detail.
 
-Following options do \fBnot\fR work for \fBmlclient\fR:
+Following options do \fBnot\fR work for \fBmlclient(x)\fR:
 .TP
 \fB\-@\fR/\fB\-\-screens\fR,
 .TP
@@ -42,11 +42,17 @@ Following options do \fBnot\fR work for \fBmlclient\fR:
    \fB\-\-deffont\fR
 .TP
 
-Following option is mlclient specific:
+Following option is mlclient(x) specific:
 .TP
 \fB\-P\fR/\fB\-\-ptylist\fR print pty list.
 .TP
-   \fB\-\-kill\fR kill a mlterm daemon.
+\fB\-\-kill\fR kill a mlterm daemon.
+.TP
+
+Following option is mlclientx specific:
+\fB\-\-hsep\fR=\fIvalue\fR open new pty in horizontally splitted screen.
+.TP
+\fB\-\-hsep\fR=\fIvalue\fR open new pty in vertically splitted screen.
 .\" ********************************************************************
 .SH SEE ALSO
 \fBmlterm\fR(1),

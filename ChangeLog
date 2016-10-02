@@ -1,3 +1,11 @@
+2016-10-02  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlclient.1: Updated.
+
+	* ui_screen_manager.c:
+	  - mlclient() accepts --vsep and --hsep options.
+	  - retain_encoding and retain_server arguments are added to open_or_split_screen().
+
 2016-09-27  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_line.c: set_real_modified() is called in vt_line_unuse_ctl() for *_render().

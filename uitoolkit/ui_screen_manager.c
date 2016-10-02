@@ -877,7 +877,8 @@ static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already 
 }
 
 static void open_or_split_screen(ui_screen_t *cur_screen, /* Screen which triggers this event. */
-                                 ui_layout_t *layout, int horizontal, const char *sep) {
+                                 ui_layout_t *layout, int horizontal, const char *sep,
+                                 int retain_encoding, int retain_server) {
   char *disp_name;
   vt_char_encoding_t encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
@@ -890,11 +891,15 @@ static void open_or_split_screen(ui_screen_t *cur_screen, /* Screen which trigge
 
   disp_name = main_config.disp_name;
   main_config.disp_name = cur_screen->window.disp->name;
-  encoding = main_config.encoding;
-  main_config.encoding = vt_term_get_encoding(cur_screen->term);
+  if (!retain_encoding) {
+    encoding = main_config.encoding;
+    main_config.encoding = vt_term_get_encoding(cur_screen->term);
+  }
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  default_server = main_config.default_server;
-  main_config.default_server = vt_term_get_uri(cur_screen->term);
+  if (!retain_server) {
+    default_server = main_config.default_server;
+    main_config.default_server = vt_term_get_uri(cur_screen->term);
+  }
   /*
    * If show_dialog == 1, main_config.default_server can be
    * free'ed in open_pty_intern.
@@ -921,9 +926,13 @@ static void open_or_split_screen(ui_screen_t *cur_screen, /* Screen which trigge
   }
 
   main_config.disp_name = disp_name;
-  main_config.encoding = encoding;
+  if (!retain_encoding) {
+    main_config.encoding = encoding;
+  }
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  main_config.default_server = default_server;
+  if (!retain_server) {
+    main_config.default_server = default_server;
+  }
   main_config.show_dialog = show_dialog;
 
   if (new_cmd_line) {
@@ -935,13 +944,13 @@ static void open_or_split_screen(ui_screen_t *cur_screen, /* Screen which trigge
 
 static void open_screen(void *p, ui_screen_t *screen /* Screen which triggers this event. */
                         ) {
-  open_or_split_screen(screen, NULL, 0, 0);
+  open_or_split_screen(screen, NULL, 0, 0, 0, 0);
 }
 
 static void split_screen(void *p, ui_screen_t *screen, /* Screen which triggers this event. */
                          int horizontal, const char *sep) {
   if (UI_SCREEN_TO_LAYOUT(screen)) {
-    open_or_split_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep);
+    open_or_split_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep, 0, 0);
   }
 }
 
@@ -1049,6 +1058,10 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     bl_conf_t *conf;
     ui_main_config_t orig_conf;
     char *pty;
+    int horizontal;
+    int has_km_option;
+    int has_serv_option;
+    char *sep;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     char **server_list;
 #endif
@@ -1072,12 +1085,34 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
 
     ui_prepare_for_main_config(conf);
 
+    bl_conf_add_opt(conf, '\0', "hsep", 0, "hsep", "");
+    bl_conf_add_opt(conf, '\0', "vsep", 0, "vsep", "");
+
     if (!bl_conf_parse_args(conf, &argc, &argv, 1)) {
       bl_conf_delete(conf);
 
       return 0;
     }
 
+    has_km_option = (bl_conf_get_value(conf, "encoding") != NULL);
+    has_serv_option = (bl_conf_get_value(conf, "default_server") != NULL);
+
+    if (screen && UI_SCREEN_TO_LAYOUT(screen)) {
+      if ((sep = bl_conf_get_value(conf, "hsep"))) {
+        horizontal = 1;
+      }
+      else if ((sep = bl_conf_get_value(conf, "vsep"))) {
+        horizontal = 0;
+      }
+      else {
+        goto end_check_sep;
+      }
+      sep = bl_str_alloca_dup(sep);
+    } else {
+      sep = NULL;
+    }
+
+  end_check_sep:
     orig_conf = main_config;
 
     ui_main_config_init(&main_config, conf, argc, argv);
@@ -1089,7 +1124,12 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     bl_conf_delete(conf);
 
     if (screen) {
-      open_pty(self, screen, pty);
+      if (sep) {
+        open_or_split_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep,
+                             has_km_option, has_serv_option);
+      } else {
+        open_pty(self, screen, pty);
+      }
     } else {
       vt_term_t *term = NULL;
 
