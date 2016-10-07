@@ -1,3 +1,8 @@
+2016-10-07  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_shortcut.c: Mod2 which is sent by pressing a button when num-lock is on
+	  is ignored.
+
 2016-10-02  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlclient.1: Updated.

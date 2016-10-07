@@ -341,6 +341,10 @@ int ui_shortcut_match(ui_shortcut_t* shortcut, ui_key_func_t func, KeySym ksym, 
   /* ingoring except these masks */
   state &= (ModMask | ControlMask | ShiftMask | CommandMask | button_mask);
 
+  if (state & button_mask) {
+    state &= ~Mod2Mask;  /* XXX NumLock */
+  }
+
   if (shortcut->map[func].ksym == ksym &&
       shortcut->map[func].state ==
           (state |
@@ -356,6 +360,10 @@ char* ui_shortcut_str(ui_shortcut_t* shortcut, KeySym ksym, u_int state) {
 
   /* ingoring except these masks */
   state &= (ModMask | ControlMask | ShiftMask | CommandMask | button_mask);
+
+  if (state & button_mask) {
+    state &= ~Mod2Mask;  /* XXX NumLock */
+  }
 
   for (count = 0; count < shortcut->str_map_size; count++) {
     if (shortcut->str_map[count].ksym == ksym &&

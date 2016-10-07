@@ -9,6 +9,7 @@ ver 3.8.0
   Fix the bug which 'mlcc exec hsplit [columns]' split screen by [columns - 1].
   Fix the bug which disables dynamic change of options related to ctl such as
   "bidi_mode" or etc. (Enbugged at 3.6.2)
+  Fix the bug which disabled "ButtonN" shortcut key if num_lock is on.
 
 ver 3.7.2
 * Add mlterm-con which is a console version of mlterm (like GNU Screen) and which
