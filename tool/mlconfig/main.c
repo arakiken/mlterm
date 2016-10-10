@@ -153,6 +153,12 @@ static gint full_reset_clicked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
+static gint snapshot_clicked(GtkWidget* widget, gpointer data) {
+  mc_exec("snapshot");
+
+  return 1;
+}
+
 #ifdef USE_LIBSSH2
 
 #define MY_RESPONSE_RETURN 1
@@ -380,11 +386,11 @@ static GtkWidget* font_large_small(void) {
   return frame;
 }
 
-static GtkWidget* full_reset(void) {
+static GtkWidget* command(void) {
   GtkWidget* frame;
   GtkWidget* hbox;
 
-  frame = gtk_frame_new(_("Full reset"));
+  frame = gtk_frame_new(_("Command"));
   gtk_widget_show(frame);
 
   hbox = gtk_hbox_new(FALSE, 5);
@@ -393,28 +399,13 @@ static GtkWidget* full_reset(void) {
   gtk_container_add(GTK_CONTAINER(frame), hbox);
 
   addbutton(_("Full reset"), full_reset_clicked, hbox);
-
-  return frame;
-}
-
+  addbutton(_("Snapshot"), snapshot_clicked, hbox);
 #ifdef USE_LIBSSH2
-static GtkWidget* ssh_scp(void) {
-  GtkWidget* frame;
-  GtkWidget* hbox;
-
-  frame = gtk_frame_new(_("SSH SCP"));
-  gtk_widget_show(frame);
-
-  hbox = gtk_hbox_new(FALSE, 5);
-  gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
-  gtk_widget_show(hbox);
-  gtk_container_add(GTK_CONTAINER(frame), hbox);
-
-  addbutton(_("SSH SCP"), ssh_scp_clicked, hbox);
+  addbutton(_("SCP"), ssh_scp_clicked, hbox);
+#endif
 
   return frame;
 }
-#endif /* USE_LIBSSH2 */
 
 static GtkWidget* pty_list(void) {
   GtkWidget* frame;
@@ -486,12 +477,8 @@ static int show(void) {
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
   frame = font_large_small();
   gtk_box_pack_start(GTK_BOX(hbox), frame, TRUE, TRUE, 5);
-  frame = full_reset();
+  frame = command();
   gtk_box_pack_start(GTK_BOX(hbox), frame, TRUE, TRUE, 5);
-#ifdef USE_LIBSSH2
-  frame = ssh_scp();
-  gtk_box_pack_start(GTK_BOX(hbox), frame, TRUE, TRUE, 5);
-#endif
 
   frame = pty_list();
   gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);

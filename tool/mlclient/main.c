@@ -18,17 +18,15 @@
 /* --- static variables --- */
 
 static char* na_options[] = {
-    "-@/--screens", "-P/--ptys",      "-R/--fsrange",    "-W/--sep",
-    "-Y/--decsp",   "-c/--cp932",     "-i/--xim",        "-j/--daemon",
-    "   --button3", "   --clip",      "   --restart",    "   --depth",
-    "   --maxptys", "   --keepalive", "   --metaprefix", "   --deffont",
+    "-@/--screens", "-R/--fsrange", "-Y/--decsp", "-c/--cp932", "-i/--xim", "-j/--daemon",
+    "   --depth", "   --maxptys", "   --keepalive", "   --metaprefix", "   --deffont",
 };
 
 /* --- static functions --- */
 
 static void version(void) { printf("mlclient(x)\n"); }
 
-static void help(void) {
+static void help(int is_mlclientx) {
   int count;
 
   printf("mlclient(x) [prefix options] [options]\n\n");
@@ -37,8 +35,12 @@ static void help(void) {
   printf("options:\n");
   printf("  -P/--ptylist: print pty list.\n");
   printf("     --kill: kill mlterm server.\n");
+  if (is_mlclientx) {
+    printf("     --hsep=value: open new pty in horizontally splitted screen.\n");
+    printf("     --vsep=value: open new pty in vertically splitted screen.\n");
+  }
   printf(
-      "  (--ptylist and --kill options are available if mlterm server is "
+      "  (--ptylist and --kill options are available only if mlterm server is "
       "alive.)\n\n");
   printf("  N.A. options among those of mlterm.\n");
 
@@ -46,8 +48,9 @@ static void help(void) {
     printf("  %s\n", na_options[count]);
   }
 
-  printf("  (Options related to window, font, color and appearance aren't\n");
-  printf("   available in mlclientx.)\n");
+  if (is_mlclientx) {
+    printf("  ...and options related to window, font, color and appearance\n");
+  }
 }
 
 static int set_daemon_socket_path(struct sockaddr_un* addr) {
@@ -141,7 +144,7 @@ int main(int argc, char** argv) {
       }
 
       if (strcmp(p, "help") == 0 || strcmp(p, "h") == 0) {
-        help();
+        help(strstr(argv[0], "mlclientx") != NULL);
 
         return 0;
       } else if (strcmp(p, "version") == 0 || strcmp(p, "v") == 0) {

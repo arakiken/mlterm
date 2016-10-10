@@ -1,3 +1,14 @@
+2016-10-10  Araki Ken  <arakiken@users.sf.net>
+
+	* uitoolkit/*/ui_window.c: x_window_t::button_released is called if ButtonPress
+	  event is received when x_window_t::button_is_pressing is true.
+
+	* mlconfig/main.c: "Snapshot" button is added.
+
+	* tool/mlclient/main.c: Help message is fixed.
+
+	* tool/accessories/gedit.sh: Added.
+
 2016-10-07  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_shortcut.c: Mod2 which is sent by pressing a button when num-lock is on

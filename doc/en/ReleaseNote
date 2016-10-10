@@ -5,6 +5,8 @@ ver 3.8.0
 * Change library names.
   libmkf => libmef, libkik => libpobl
   libmlterm_core => libmlterm_coreotf (if open type layout is supported)
+* Add --vsep=N and --hsep=N options (which split screen vertically or horizontally)
+  to mlclientx.
 * Bug fixes:
   Fix the bug which 'mlcc exec hsplit [columns]' split screen by [columns - 1].
   Fix the bug which disables dynamic change of options related to ctl such as

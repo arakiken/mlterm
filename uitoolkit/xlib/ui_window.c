@@ -1937,6 +1937,16 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       event->xbutton.x -= win->hmargin;
       event->xbutton.y -= win->vmargin;
 
+      /* XXX If button is released outside screen, ButtonRelease event might not happen. */
+      if (win->button_is_pressing) {
+        if (win->button_released) {
+          XButtonEvent ev = event->xbutton;
+          ev.type = ButtonRelease;
+          (*win->button_released)(win, &ev);
+        }
+        win->button_is_pressing = 0;
+      }
+
       if (win->click_num == MAX_CLICK) {
         win->click_num = 0;
       }

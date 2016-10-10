@@ -1916,6 +1916,14 @@ int ui_window_receive_event(ui_window_t* win, XEvent* event) {
 
       if (event->msg == WM_MOUSEWHEEL || event->msg == WM_LBUTTONDOWN ||
           event->msg == WM_RBUTTONDOWN || event->msg == WM_MBUTTONDOWN) {
+        /* XXX If button is released outside screen, WM_*BUTTONUP event might not happen. */
+        if (win->button_is_pressing) {
+          if (win->button_released) {
+            (*win->button_released)(win, &bev);
+          }
+          win->button_is_pressing = 0;
+        }
+
         if (win->click_num == MAX_CLICK) {
           win->click_num = 0;
         }

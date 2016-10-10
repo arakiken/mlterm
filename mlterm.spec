@@ -66,7 +66,7 @@ rm -rf $RPM_BUILD_ROOT
 %{bindir}/mlclientx
 %{bindir}/mlcc
 %{bindir}/mlfc
-%{libdir}/libkik.*
+%{libdir}/libpobl.*
 %{libdir}/libmef.*
 %{libdir}/libmlterm_core.*
 %{libdir}/mef/
