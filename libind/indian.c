@@ -1,4 +1,8 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
+#include "indian.h"
+
+char *binsearch(struct tabl *table, int sz, char *word) {
   int result, index, lindex, hindex;
 
   if (word[1] == '\0') {
