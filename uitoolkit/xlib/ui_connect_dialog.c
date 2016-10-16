@@ -1,8 +1,6 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
- *	Note that protocols except ssh aren't supported if USE_LIBSSH2 is
- *defined.
- */
 
+/* Note that protocols except ssh aren't supported if USE_LIBSSH2 is defined. */
 #ifdef USE_LIBSSH2
 
 #include "../ui_connect_dialog.h"
