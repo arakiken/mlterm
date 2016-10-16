@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #ifndef __UI_FONT_CONFIG_H__
 #define __UI_FONT_CONFIG_H__

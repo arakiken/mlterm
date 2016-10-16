@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #include "indian.h"
 
 static char *a2i_binsearch(struct a2i_tabl *a2i_table, char *word, int lindex, int hindex) {

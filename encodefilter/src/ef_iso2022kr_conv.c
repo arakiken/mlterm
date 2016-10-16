@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include "ef_iso2022kr_conv.h"
 

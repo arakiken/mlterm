@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #ifndef __UI_GDIOBJ_POOL_H__
 #define __UI_GDIOBJ_POOL_H__

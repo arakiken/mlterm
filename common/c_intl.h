@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #ifndef __C_INTL_H__
 #define __C_INTL_H__

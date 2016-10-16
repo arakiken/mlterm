@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 /* indian.h - This is the header file used for incorporating Indian Script
  * support in X Windows Applications.
  * Copyright (C) 1999, Naoshad A. Mehta, Rudrava Roy

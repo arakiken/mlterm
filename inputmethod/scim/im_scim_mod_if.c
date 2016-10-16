@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 /*
  * im_scim_mod_if.c - SCIM plugin for mlterm (part of module interface)
  *

@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #define yy_create_buffer split_create_buffer
 #define yy_delete_buffer split_delete_buffer
 #define yy_scan_buffer split_scan_buffer

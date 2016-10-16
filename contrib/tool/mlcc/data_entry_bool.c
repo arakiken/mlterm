@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #include <stdlib.h> /* free/malloc */
 #include <string.h>
 #include "comm.h"

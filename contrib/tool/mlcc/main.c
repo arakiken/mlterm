@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #include <stdio.h>  /* printf */
 #include <signal.h> /* sigaction */
 #include <stdlib.h>

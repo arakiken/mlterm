@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #ifndef _DATA_H_
 
 #define _DATA_H_

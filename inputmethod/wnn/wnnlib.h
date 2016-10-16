@@ -16,12 +16,10 @@
   may be used to endorse or promote products derived from this software
   without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
-  AND
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS'' AND
   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
-  LIABLE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
   FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -73,71 +71,70 @@
 typedef unsigned short wchar;
 #endif
 
+
 /* 定数 */
-#define JC_FORWARD 1
-#define JC_BACKWARD 0
-#define JC_NEXT 0
-#define JC_PREV 1
-#define JC_HIRAGANA 0
-#define JC_KATAKANA 1
+#define JC_FORWARD	1
+#define JC_BACKWARD	0
+#define JC_NEXT		0
+#define JC_PREV		1
+#define JC_HIRAGANA	0
+#define JC_KATAKANA	1
 
 /* エラー番号 */
-#define JE_NOERROR 0
-#define JE_WNNERROR 1     /* jllib のエラー */
-#define JE_NOCORE 2       /* メモリが確保できない */
-#define JE_NOTCONVERTED 3 /* 対象文節がまだ変換されていない */
-#define JE_CANTDELETE                                              \
-  4                          /* バッファの先頭の前、あるいは \
-                              * 最後の次の文字を削除しようとした */
-#define JE_NOSUCHCLAUSE 5    /* 指定された番号の文節が存在しない */
-#define JE_CANTSHRINK 6      /* 1 文字の文節を縮めようとした */
-#define JE_CANTEXPAND 7      /* 最後の文節を伸ばそうとした */
-#define JE_NOCANDIDATE 8     /* 次候補がない */
-#define JE_NOSUCHCANDIDATE 9 /* 指定された番号の候補が存在しない */
-#define JE_CANTMOVE                                             \
-  10                      /* バッファの先頭の前、あるいは \
-                           * 最後の次に移動しようとした */
-#define JE_CLAUSEEMPTY 11 /* 空の文を変換しようとした */
-#define JE_ALREADYFIXED                      \
-  12 /* すでに確定されている文に対して \
-      * 操作を行なった */
+#define JE_NOERROR		0
+#define JE_WNNERROR		1	/* jllib のエラー */
+#define JE_NOCORE		2	/* メモリが確保できない */
+#define JE_NOTCONVERTED		3	/* 対象文節がまだ変換されていない */
+#define JE_CANTDELETE		4	/* バッファの先頭の前、あるいは
+					 * 最後の次の文字を削除しようとした */
+#define JE_NOSUCHCLAUSE		5	/* 指定された番号の文節が存在しない */
+#define JE_CANTSHRINK		6	/* 1 文字の文節を縮めようとした */
+#define JE_CANTEXPAND		7	/* 最後の文節を伸ばそうとした */
+#define JE_NOCANDIDATE		8	/* 次候補がない */
+#define JE_NOSUCHCANDIDATE	9	/* 指定された番号の候補が存在しない */
+#define JE_CANTMOVE		10	/* バッファの先頭の前、あるいは
+					 * 最後の次に移動しようとした */
+#define JE_CLAUSEEMPTY		11	/* 空の文を変換しようとした */
+#define JE_ALREADYFIXED		12	/* すでに確定されている文に対して
+					 * 操作を行なった */
 
 /* エラー番号 */
-extern int jcErrno; /* エラー番号 */
+extern int	jcErrno;	/* エラー番号 */
 
 /* データタイプ */
 
 /* 各小文節の情報 */
 typedef struct {
-  wchar *kanap; /* 読み文字列 */
-  wchar *dispp; /* 表示文字列 */
-  char conv;    /* 変換済みか */
-                /* 0: 未変換 1: 変換済 -1: で疑似変換 */
-  char ltop;    /* 大文節の先頭か? */
+	wchar	*kanap;		/* 読み文字列 */
+	wchar	*dispp;		/* 表示文字列 */
+	char	conv;		/* 変換済みか */
+				/* 0: 未変換 1: 変換済 -1: で疑似変換 */
+	char	ltop;		/* 大文節の先頭か? */
 } jcClause;
+
 
 /* 作業域 */
 typedef struct {
-  /* public member */
-  int nClause;    /* 文節数 */
-  int curClause;  /* カレント文節番号 */
-  int curLCStart; /* カレント大文節開始文節番号 */
-  int curLCEnd;   /* カレント大文節終了文節番号 */
-  wchar *kanaBuf; /* かなバッファ */
-  wchar *kanaEnd;
-  wchar *displayBuf; /* ディスプレイバッファ */
-  wchar *displayEnd;
-  jcClause *clauseInfo; /* 文節情報 */
-  struct wnn_buf *wnn;
-  /* private member */
-  int fixed;         /* 確定されたかどうか */
-  wchar *dot;        /* ドットの位置 */
-  int candKind;      /* 大文節の全候補か小文節の候補かを
-                        表すフラグ */
-  int candClause;    /* 全候補をとっている文節番号 */
-  int candClauseEnd; /* 大文節の全候補の時、終了文節番号 */
-  int bufferSize;    /* kanaBuf/displayBuf の大きさ */
-  int clauseSize;    /* clauseInfo の大きさ */
+    /* public member */
+	int		nClause;	/* 文節数 */
+	int		curClause;	/* カレント文節番号 */
+	int		curLCStart;	/* カレント大文節開始文節番号 */
+	int		curLCEnd;	/* カレント大文節終了文節番号 */
+	wchar		*kanaBuf;	/* かなバッファ */
+	wchar		*kanaEnd;
+	wchar		*displayBuf;	/* ディスプレイバッファ */
+	wchar		*displayEnd;
+	jcClause	*clauseInfo;	/* 文節情報 */
+	struct wnn_buf	*wnn;
+    /* private member */
+	int		fixed;		/* 確定されたかどうか */
+	wchar		*dot;		/* ドットの位置 */
+	int		candKind;	/* 大文節の全候補か小文節の候補かを
+					   表すフラグ */
+	int		candClause;	/* 全候補をとっている文節番号 */
+	int		candClauseEnd;	/* 大文節の全候補の時、終了文節番号 */
+	int		bufferSize;	/* kanaBuf/displayBuf の大きさ */
+	int		clauseSize;	/* clauseInfo の大きさ */
 } jcConvBuf;
 
 struct wnn_buf *jcOpen(char *, char *, int, char *, void (*)(), int (*)(), int);

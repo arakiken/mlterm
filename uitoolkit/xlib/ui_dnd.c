@@ -1,7 +1,7 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 /** @file
  * @brief X Drag and Drop protocol support
- *
- *	$Id$
  */
 
 #ifndef DISABLE_XDND

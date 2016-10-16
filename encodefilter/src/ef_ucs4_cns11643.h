@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #ifndef __EF_UCS4_CNS11643_H__
 #define __EF_UCS4_CNS11643_H__

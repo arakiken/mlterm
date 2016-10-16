@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #include <string.h> /* strncasecmp/strcasecmp/strdup/strchr/strrchr/memmove*/
 #include <stdlib.h> /* free/malloc */
 #include "comm.h"

@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #ifndef __UI_MOD_META_MODE_H__
 #define __UI_MOD_META_MODE_H__

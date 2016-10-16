@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <stdio.h>
 #include <unistd.h> /* STDOUT_FILENO */
@@ -11,6 +9,14 @@ extern "C" {
 #include <pobl/bl_debug.h>
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 #include <pobl/bl_mem.h>
+#ifdef BL_DEBUG
+#undef alloca
+#if defined(__GNUC__)
+#define alloca(size) memset(__builtin_alloca(size), 0xff, size)
+#elif defined(HAVE_ALLOCA_H)
+#include <alloca.h>
+#endif
+#endif /* BL_DEBUG */
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include <pobl/bl_path.h> /* bl_conv_to_win32_path */
 #endif

@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <pobl/bl_config.h> /* HAVE_WINDOWS_H, WORDS_BIGENDIAN */
 #ifdef HAVE_WINDOWS_H

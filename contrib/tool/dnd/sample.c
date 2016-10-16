@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 /*
   should be compiled as
    gcc `pkg-config --cflags --libs gtk+-2.0 ` ./mlconf_dnd.c

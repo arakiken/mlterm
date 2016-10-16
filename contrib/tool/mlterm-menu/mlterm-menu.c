@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 /*
  * mlterm-menu - a popup-menu-style configuration tool for mlterm
  *

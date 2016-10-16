@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 #include <stdio.h>       /* sprintf */
 #include <pobl/bl_mem.h> /* malloc/alloca/free */
 #include <pobl/bl_str.h> /* bl_str_alloca_dup bl_str_sep */

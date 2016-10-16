@@ -1,3 +1,11 @@
+2016-10-16  Araki Ken  <arakiken@users.sf.net>
+
+	* *.[chm], *.java: Indentation settings for emacs are added to the head of files.
+
+	* wnn/wnnlib.[ch], gtk/marshal.[ch], gtk/reaper.c, gtk/vtetypebuiltins.c,
+	  mlconfig/gtkxlfdsel.[ch]:
+	  Format of them is reverted to 3.7.2
+
 2016-10-10  Araki Ken  <arakiken@users.sf.net>
 
 	* uitoolkit/*/ui_window.c: x_window_t::button_released is called if ButtonPress

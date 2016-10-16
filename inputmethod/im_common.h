@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #ifndef __IM_COMMON_H__
 #define __IM_COMMON_H__
 

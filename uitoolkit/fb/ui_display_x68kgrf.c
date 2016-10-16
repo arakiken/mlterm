@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <dev/wscons/wsdisplay_usl_io.h> /* VT_GETSTATE */
 #include <machine/grfioctl.h>

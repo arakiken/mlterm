@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 /*
  * Functions designed and implemented by Minami Hirokazu(minami@mistfall.net)

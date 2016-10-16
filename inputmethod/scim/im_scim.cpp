@@ -1,9 +1,9 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 //
 // im_scim_1.4.cpp - SCIM plugin for mlterm (c++ part)
 //
 // Copyright (C) 2005 Seiichi SATO <ssato@sh.rim.or.jp>
-//
-//	$Id$
 //
 
 // This file is partially based on gtkimcontextscim.cpp of SCIM

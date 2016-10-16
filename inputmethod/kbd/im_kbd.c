@@ -1,7 +1,9 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 /*
  * im_kbd.c - keyboard mapping input method for mlterm
  *
- *    based on ui_kbd.c written by Araki Ken.
+ *    based on x_kbd.c written by Araki Ken.
  *
  * Copyright (C) 2001, 2002, 2003 Araki Ken <arakiken@users.sf.net>
  * Copyright (C) 2004 Seiichi SATO <ssato@sh.rim.or.jp>

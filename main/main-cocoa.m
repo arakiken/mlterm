@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #import <Cocoa/Cocoa.h>
 #include <pobl/bl_conf_io.h>

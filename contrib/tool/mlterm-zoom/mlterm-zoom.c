@@ -1,3 +1,5 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
 #include <stdio.h>
 #include <string.h>
 #include <X11/Xlib.h>
