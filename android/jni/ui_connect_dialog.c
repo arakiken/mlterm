@@ -111,9 +111,8 @@ void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobjec
 
 void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobject this,
                                                              jstring user, jstring serv,
-                                                             jstring port, jstring port,
-                                                             jstring encoding, jstring pass,
-                                                             jstring exec_cmd) {
+                                                             jstring port, jstring encoding,
+                                                             jstring pass, jstring exec_cmd) {
 }
 
 #endif

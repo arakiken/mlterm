@@ -46,7 +46,7 @@ cp ../common/c_animgif.c ${PROJECT_PATH}/jni/common/
 
 cp jni/Android.mk ${PROJECT_PATH}/jni/
 cp jni/ui_event_source.c ${PROJECT_PATH}/jni/uitoolkit/
-cp jni/ui.h jni/ui_display.[ch] ${PROJECT_PATH}/jni/uitoolkit/fb/
+cp jni/ui.h jni/ui_display.[ch] jni/ui_connect_dialog.c ${PROJECT_PATH}/jni/uitoolkit/fb/
 cp jni/main.c jni/version.h ${PROJECT_PATH}/jni/main/
 
 mkdir -p ${PROJECT_PATH}/src/mlterm/native_activity
