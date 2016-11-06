@@ -47,6 +47,8 @@ void ui_display_request_text_selection(void);
 
 void ui_display_send_text_selection(u_char *sel_data, size_t sel_len);
 
+void ui_display_show_dialog(char *server);
+
 void ui_display_resize(int yoffset, int width, int height,
                        int (*need_resize)(u_int, u_int, u_int, u_int));
 

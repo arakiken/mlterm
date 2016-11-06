@@ -53,6 +53,17 @@ static inline void save_default_font(ANativeActivity *activity) {
 
 #endif /* SAVE_DEFAULT_FONT */
 
+static void finish(struct android_app *app) {
+    int ident;
+    int events;
+    struct android_poll_source *source;
+
+    ui_display_final(); /* Calls ANativeActivity_finish() */
+
+    while ((ident = ALooper_pollAll(-1, NULL, &events, (void **)&source)) >= 0 &&
+           ui_display_process_event(source, ident));
+}
+
 /* --- global functions --- */
 
 void android_main(struct android_app *app) {
@@ -76,10 +87,11 @@ void android_main(struct android_app *app) {
     bl_warn_printf(BL_DEBUG_TAG " main_loop_init() failed.\n");
 #endif
 
-    return;
+    finish(app);
+  } else if (!main_loop_start()) {
+    /* Unable to open any screen. */
+    finish(app);
   }
-
-  main_loop_start();
 
   /* Only screen objects are closed. */
   ui_screen_manager_suspend();

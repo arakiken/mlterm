@@ -1873,11 +1873,16 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
                             ) {
   int count;
 
+  /* USER: unix , USERNAME: win32 */
+  if (!user && !(user = getenv("USER")) && !(user = getenv("USERNAME"))) {
+    return NULL;
+  }
+
   /* search from newer sessions. */
   for (count = num_of_sessions - 1; count >= 0; count--) {
     if (strcmp(sessions[count]->host, host) == 0 &&
         (port == NULL || strcmp(sessions[count]->port, port) == 0) &&
-        (user == NULL || strcmp(sessions[count]->user, user) == 0)) {
+        strcmp(sessions[count]->user, user) == 0) {
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " Find cached session for %s %s %s.\n", host, port, user);
 #endif

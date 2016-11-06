@@ -9,6 +9,8 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_mem.h>
+#include <pobl/bl_str.h> /* bl_str_alloca_dup */
+#include <pobl/bl_path.h>
 
 #include "../ui_window.h"
 #include "../../common/c_animgif.c"
@@ -726,6 +728,9 @@ int ui_display_init(struct android_app *app) {
 
 void ui_display_final(void) {
   if (locked >= 0) {
+    ASensorManager_destroyEventQueue(_display.sensor_man, _display.sensor_evqueue);
+    _display.accel_sensor = NULL;
+
     locked = -1; /* Don't lock until APP_CMD_INIT_WINDOW after restart. */
     ANativeActivity_finish(_display.app->activity);
   }
@@ -1035,6 +1040,35 @@ void ui_display_send_text_selection(u_char *sel_data, size_t sel_len) {
                                              "setTextToClipboard", "(Ljava/lang/String;)V"),
                          (*env)->NewStringUTF(env, sel_data));
 
+  (*vm)->DetachCurrentThread(vm);
+}
+
+void ui_display_show_dialog(char *server) {
+  char *user;
+  char *host;
+  char *port;
+  char *encoding;
+  JNIEnv *env;
+  JavaVM *vm;
+  jobject this;
+
+  if (server == NULL ||
+      !bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(server))) {
+    user = host = port = encoding = NULL;
+  }
+
+  vm = _display.app->activity->vm;
+  (*vm)->AttachCurrentThread(vm, &env, NULL);
+  this = _display.app->activity->clazz;
+  (*env)->CallVoidMethod(env, this,
+                         (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
+                                             "showDialog",
+                                             "(Ljava/lang/String;Ljava/lang/String;"
+                                             "Ljava/lang/String;Ljava/lang/String;)V"),
+                         user ? (*env)->NewStringUTF(env, user) : NULL,
+                         host ? (*env)->NewStringUTF(env, host) : NULL,
+                         port ? (*env)->NewStringUTF(env, port) : NULL,
+                         encoding ? (*env)->NewStringUTF(env, encoding) : NULL);
   (*vm)->DetachCurrentThread(vm);
 }
 

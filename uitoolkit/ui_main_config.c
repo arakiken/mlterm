@@ -215,10 +215,9 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   bl_conf_add_opt(conf, '\0', "servlist", 0, "server_list", "list of servers to connect");
   bl_conf_add_opt(conf, '\0', "serv", 0, "default_server", "connecting server by default");
-#endif
-#ifdef USE_LIBSSH2
   bl_conf_add_opt(conf, '\0', "dialog", 1, "always_show_dialog",
                   "always show dialog to input server address, password and so on [false]");
+#endif
   bl_conf_add_opt(conf, '\0', "pubkey", 0, "ssh_public_key",
                   "ssh public key file "
 #ifdef USE_WIN32API
@@ -249,8 +248,10 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "border", 0, "inner_border", "inner border [2]");
   bl_conf_add_opt(conf, '\0', "lborder", 0, "layout_inner_border",
                   "inner border of layout manager [0]");
+#ifndef __ANDROID__
   bl_conf_add_opt(conf, '\0', "restart", 1, "auto_restart",
                   "restart mlterm automatically if an error like segv happens. [true]");
+#endif
   bl_conf_add_opt(conf, '\0', "logmsg", 1, "logging_msg",
                   "output messages to ~/.mlterm/msg.log [true]");
   bl_conf_add_opt(conf, '\0', "loecho", 1, "use_local_echo", "use local echo [false]");
@@ -1062,6 +1063,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
       main_config->show_dialog = 1;
     }
   }
+
 #endif
 
 #ifdef USE_LIBSSH2
@@ -1170,9 +1172,11 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
     ui_set_use_clipboard_selection(strcmp(value, "true") == 0);
   }
 
+#ifndef __ANDROID__
   if (!(value = bl_conf_get_value(conf, "auto_restart")) || strcmp(value, "false") != 0) {
     vt_set_auto_restart_cmd(bl_get_prog_path());
   }
+#endif
 
   if ((value = bl_conf_get_value(conf, "use_local_echo"))) {
     if (strcmp(value, "true") == 0) {

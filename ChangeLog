@@ -1,3 +1,16 @@
+2016-11-06  Araki Ken  <arakiken@users.sf.net>
+
+	* Android.mk, android/jni/main.c, android/jni/ui_display.[ch],
+	  android/jni/ui_connect_dialog.c, MLActivity.java: libssh2 is supported.
+
+	* ui_screen_manager.c: clean up.
+
+	* vt_pty_ssh.c:
+	  If user is NULL, getenv("USER") or getenv("USERNAME") is used to search
+	  a matched ssh session.
+
+	* ui_main_config.c: --restart option is invalidated on Android.
+
 2016-10-16  Araki Ken  <arakiken@users.sf.net>
 
 	* *.[chm], *.java: Indentation settings for emacs are added to the head of files.

@@ -29,6 +29,15 @@ else
 	OTL_SRC_FILES :=
 	OTL_CFLAGS :=
 endif
+ifneq (,$(wildcard libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
+	LIBSSH2_SRC_FILES := vtemu/vt_pty_ssh.c
+	LIBSSH2_CFLAGS := -DUSE_LIBSSH2 -Ilibssh2/$(TARGET_ARCH_ABI)/include -DNO_DYNAMIC_LOAD_SSH
+	LIBSSH2_LDLIBS := libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a libssh2/$(TARGET_ARCH_ABI)/lib/libcrypto.a -lz
+else
+	LIBSSH2_SRC_FILES :=
+	LIBSSH2_CFLAGS :=
+	LIBSSH2_LDLIBS :=
+endif
 LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		baselib/src/bl_mem.c baselib/src/bl_conf.c baselib/src/bl_file.c \
 		baselib/src/bl_path.c baselib/src/bl_conf_io.c baselib/src/bl_str.c \
@@ -73,7 +82,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		libind/indian.c libind/lex.split.c vtemu/libctl/vt_iscii.c \
 		vtemu/libctl/vt_shape_iscii.c vtemu/libctl/vt_line_iscii.c \
 		vtemu/vt_ot_layout.c \
-		$(OTL_SRC_FILES) $(FRIBIDI_SRC_FILES) \
+		$(OTL_SRC_FILES) $(FRIBIDI_SRC_FILES) $(LIBSSH2_SRC_FILES) \
 		uitoolkit/fb/ui.c uitoolkit/fb/ui_font.c uitoolkit/ui_mod_meta_mode.c uitoolkit/ui_shortcut.c \
 		uitoolkit/ui_bel_mode.c uitoolkit/ui_font_cache.c uitoolkit/ui_picture.c \
 		uitoolkit/fb/ui_color.c uitoolkit/ui_font_config.c uitoolkit/ui_sb_mode.c \
@@ -88,8 +97,8 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		uitoolkit/ui_layout.c uitoolkit/ui_simple_sb_view.c \
 		uitoolkit/ui_sb_view_factory.c uitoolkit/ui_scrollbar.c \
 		main/daemon.c main/main_loop.c main/main.c
-LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB #-DBL_DEBUG -DDEBUG
-LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS)
+LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) $(LIBSSH2_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB #-DBL_DEBUG -DDEBUG
+LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS) $(LIBSSH2_LDLIBS)
 LOCAL_C_INCLUDES := baselib encodefilter vtemu uitoolkit fribidi
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 

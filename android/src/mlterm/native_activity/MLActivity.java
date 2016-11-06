@@ -25,6 +25,13 @@ import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import java.net.URL;
 import java.io.*;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.content.DialogInterface;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.graphics.Color;
 
 public class MLActivity extends NativeActivity {
   static {
@@ -37,6 +44,8 @@ public class MLActivity extends NativeActivity {
   private native void preeditText(String str);
   private native String convertToTmpPath(String path);
   private native void splitAnimationGif(String path);
+  private native void dialogOkClicked(String user, String serv, String port, String encoding,
+                                      String pass, String cmd);
 
   private String keyString;
   private View contentView;
@@ -44,6 +53,7 @@ public class MLActivity extends NativeActivity {
   private int imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION | EditorInfo.IME_ACTION_DONE
       | EditorInfo.IME_FLAG_NO_FULLSCREEN;
   private ClipboardManager clipMan;
+  private Thread nativeThread;
 
   private class TextInputConnection extends BaseInputConnection {
     public TextInputConnection(View v, boolean fulledit) {
@@ -54,7 +64,9 @@ public class MLActivity extends NativeActivity {
     public boolean commitText(CharSequence text, int newCursorPosition) {
       super.commitText(text, newCursorPosition);
 
-      commitTextLock(text.toString());
+      if (nativeThread == null) {
+        commitTextLock(text.toString());
+      }
 
       return true;
     }
@@ -63,7 +75,9 @@ public class MLActivity extends NativeActivity {
     public boolean setComposingText(CharSequence text, int newCursorPosition) {
       super.setComposingText(text, newCursorPosition);
 
-      preeditText(text.toString());
+      if (nativeThread == null) {
+        preeditText(text.toString());
+      }
 
       return true;
     }
@@ -72,7 +86,9 @@ public class MLActivity extends NativeActivity {
     public boolean finishComposingText() {
       super.finishComposingText();
 
-      preeditText("");
+      if (nativeThread == null) {
+        preeditText("");
+      }
 
       return true;
     }
@@ -170,7 +186,9 @@ public class MLActivity extends NativeActivity {
           int oldTop, int oldRight, int oldBottom) {
         Rect r = new Rect();
         v.getWindowVisibleDisplayFrame(r);
-        visibleFrameChanged(r.top, r.right, r.bottom - r.top);
+        if (nativeThread == null) {
+          visibleFrameChanged(r.top, r.right, r.bottom - r.top);
+        }
       }
     });
 
@@ -182,7 +200,24 @@ public class MLActivity extends NativeActivity {
   }
 
   @Override
+  protected void onSaveInstanceState(Bundle state) {
+    if (nativeThread != null) {
+      synchronized(nativeThread) {
+        nativeThread.notifyAll(); /* AlertDialog is ignored if home button is pressed. */
+      }
+    }
+
+    super.onSaveInstanceState(state);
+  }
+
+  @Override
   protected void onPause() {
+    if (nativeThread != null) {
+      synchronized(nativeThread) {
+        nativeThread.notifyAll(); /* AlertDialog is ignored if back button is pressed. */
+      }
+    }
+
     super.onPause();
 
     ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))
@@ -278,5 +313,134 @@ public class MLActivity extends NativeActivity {
     }
 
     return null;
+  }
+
+  private LinearLayout makeTextEntry(String title, EditText edit) {
+    LinearLayout layout = new LinearLayout(this);
+    layout.setOrientation(LinearLayout.HORIZONTAL);
+
+    TextView label = new TextView(this);
+    label.setBackgroundColor(Color.TRANSPARENT);
+    label.setText(title);
+
+    layout.addView(label, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                                                        LinearLayout.LayoutParams.WRAP_CONTENT));
+    layout.addView(edit, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,
+                                                       LinearLayout.LayoutParams.WRAP_CONTENT));
+
+    return layout;
+  }
+
+  private EditText serv_edit;
+  private EditText port_edit;
+  private EditText user_edit;
+  private EditText pass_edit;
+  private EditText encoding_edit;
+  private EditText cmd_edit;
+  private LinearLayout dialogLayout;
+
+  @Override protected Dialog onCreateDialog(int id) {
+    Dialog dialog = new AlertDialog.Builder(this)
+      .setIcon(android.R.drawable.ic_dialog_info)
+      .setTitle("Connect to SSH Server")
+      .setView(dialogLayout)
+      .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+          public void onClick(DialogInterface dialog, int whichButton) {
+            dialogOkClicked(user_edit.getText().toString(),
+                            serv_edit.getText().toString(),
+                            port_edit.getText().toString(),
+                            encoding_edit.getText().toString(),
+                            pass_edit.getText().toString(),
+                            cmd_edit.getText().toString());
+          }
+        })
+      .setNegativeButton("No", new DialogInterface.OnClickListener() {
+          public void onClick(DialogInterface dialog, int whichButton) {} })
+      .create();
+
+    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        public void onDismiss(DialogInterface dialog) {
+          if (nativeThread != null) {
+            synchronized(nativeThread) {
+              nativeThread.notifyAll();
+            }
+          }
+        }
+      });
+
+    return dialog;
+  }
+
+  private void showDialog(String user, String serv, String port, String encoding) {
+    nativeThread = Thread.currentThread();
+
+    dialogLayout = new LinearLayout(this);
+    dialogLayout.setOrientation(LinearLayout.VERTICAL);
+
+    LinearLayout.LayoutParams params =
+      new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,
+                                    LinearLayout.LayoutParams.FILL_PARENT);
+
+    serv_edit = new EditText(this);
+    serv_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+    dialogLayout.addView(makeTextEntry("Server   ", serv_edit), params);
+
+    port_edit = new EditText(this);
+    port_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+    dialogLayout.addView(makeTextEntry("Port     ", port_edit), params);
+
+    user_edit = new EditText(this);
+    user_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+    dialogLayout.addView(makeTextEntry("User     ", user_edit), params);
+
+    pass_edit = new EditText(this);
+    pass_edit.setInputType(InputType.TYPE_CLASS_TEXT |
+                           InputType.TYPE_TEXT_VARIATION_PASSWORD);
+    dialogLayout.addView(makeTextEntry("Password ", pass_edit), params);
+
+    encoding_edit = new EditText(this);
+    encoding_edit.setInputType(InputType.TYPE_CLASS_TEXT |
+                               InputType.TYPE_TEXT_VARIATION_URI);
+    dialogLayout.addView(makeTextEntry("Encoding ", encoding_edit), params);
+
+    cmd_edit = new EditText(this);
+    cmd_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+    dialogLayout.addView(makeTextEntry("Exec Cmd ", cmd_edit), params);
+
+    if (serv != null) {
+      serv_edit.setText(serv, TextView.BufferType.NORMAL);
+    }
+
+    if (port != null) {
+      port_edit.setText(port, TextView.BufferType.NORMAL);
+    }
+
+    if (user != null) {
+      user_edit.setText(user, TextView.BufferType.NORMAL);
+    }
+
+    if (encoding != null) {
+      encoding_edit.setText(encoding, TextView.BufferType.NORMAL);
+    }
+
+    if (nativeThread != null) {
+      synchronized(nativeThread) {
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+              showDialog(1);
+            }
+          });
+
+        try {
+          nativeThread.wait();
+        } catch (InterruptedException e) {}
+      }
+
+      nativeThread = null;
+    }
+
+    serv_edit = port_edit = user_edit = pass_edit = encoding_edit = null;
+
+    removeDialog(1);
   }
 }

@@ -56,9 +56,6 @@ static u_int num_of_startup_screens;
 static ui_system_event_listener_t system_listener;
 
 static ui_main_config_t main_config;
-#if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-static const char *cur_default_server;
-#endif
 
 static ui_shortcut_t shortcut;
 
@@ -136,8 +133,12 @@ static vt_term_t *create_term_intern(void) {
   return term;
 }
 
-static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv, char *display,
-                           Window window, u_int width_pix, u_int height_pix) {
+static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
+                           ui_window_t *win, int show_dialog) {
+  char *display;
+  Window window;
+  u_int width_pix;
+  u_int height_pix;
   char *env[6]; /* MLTERM,TERM,WINDOWID,DISPLAY,COLORFGBG,NULL */
   char **env_p;
   char wid_env[9 + DIGIT_STR_LEN(Window) + 1]; /* "WINDOWID="(9) + [32bit digit] + NULL(1) */
@@ -146,6 +147,11 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv, cha
   char *uri;
   char *pass;
   int ret;
+
+  display = DisplayString(win->disp->display);
+  window = win->my_window;
+  width_pix = win->width;
+  height_pix = win->height;
 
   env_p = env;
 
@@ -174,11 +180,8 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv, cha
   uri = NULL;
   pass = NULL;
 
-#if !defined(USE_WIN32API) && defined(USE_LIBSSH2)
-  if (main_config.default_server)
-#endif
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  {
+  if (show_dialog || main_config.default_server) {
     char *user;
     char *host;
     char *port;
@@ -190,10 +193,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv, cha
     x11_fwd = main_config.use_x11_forwarding;
 
 #ifdef USE_LIBSSH2
-    if (!main_config.show_dialog &&
-#ifdef USE_WIN32API
-        main_config.default_server &&
-#endif
+    if (!show_dialog && main_config.default_server &&
         bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding,
                      bl_str_alloca_dup(main_config.default_server)) &&
         (session = vt_search_ssh_session(host, port, user))) {
@@ -206,11 +206,12 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv, cha
       }
     } else
 #endif
-        if (!ui_connect_dialog(&uri, &pass, &exec_cmd, &x11_fwd, display, window,
-                               main_config.server_list, main_config.default_server)) {
+    if (!ui_connect_dialog(&uri, &pass, &exec_cmd, &x11_fwd, display, window,
+                           main_config.server_list, main_config.default_server)) {
       bl_msg_printf("Connect dialog is canceled.\n");
-
-      return 0;
+      if (vt_get_all_terms(NULL) > 1) {
+        return 0;
+      }
     } else {
       if (!bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(uri))) {
         encoding = NULL;
@@ -344,9 +345,6 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv, cha
   if (uri) {
     if (ret && bl_compare_str(uri, main_config.default_server) != 0) {
       ui_main_config_add_to_server_list(&main_config, uri);
-      if (cur_default_server == main_config.default_server) {
-        cur_default_server = uri;
-      }
       free(main_config.default_server);
       main_config.default_server = uri;
     } else {
@@ -459,8 +457,8 @@ static void close_screen_intern(ui_screen_t *screen) {
   }
 }
 
-static ui_screen_t *open_screen_intern(vt_term_t *term, ui_layout_t *layout, int horizontal,
-                                       const char *sep) {
+static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layout_t *layout,
+                                       int horizontal, const char *sep, int show_dialog) {
   ui_display_t *disp;
   ui_screen_t *screen;
   ui_font_manager_t *font_man;
@@ -491,7 +489,7 @@ static ui_screen_t *open_screen_intern(vt_term_t *term, ui_layout_t *layout, int
 
   if (layout) {
     disp = layout->window.disp;
-  } else if ((disp = ui_display_open(main_config.disp_name, depth)) == NULL) {
+  } else if ((disp = ui_display_open(disp_name, depth)) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_display_open failed.\n");
 #endif
@@ -616,8 +614,7 @@ static ui_screen_t *open_screen_intern(vt_term_t *term, ui_layout_t *layout, int
 #endif
   } else {
     if (!open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv,
-                         DisplayString(disp->display), screen->window.my_window,
-                         screen->window.width, screen->window.height)) {
+                         &screen->window, show_dialog)) {
       ui_screen_detach(screen);
       vt_destroy_term(term);
 
@@ -725,7 +722,6 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     vt_char_encoding_t encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     char *default_server;
-    int show_dialog;
     char *new_cmd_line;
     char *cmd_path;
     char **cmd_argv;
@@ -739,17 +735,9 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     encoding = main_config.encoding;
     main_config.encoding = vt_term_get_encoding(screen->term);
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-    default_server = main_config.default_server;
-    show_dialog = main_config.show_dialog;
-
-    if (!main_config.default_server ||
-        bl_compare_str(main_config.default_server, cur_default_server) == 0) {
+    if (!main_config.show_dialog) {
+      default_server = main_config.default_server;
       main_config.default_server = vt_term_get_uri(screen->term);
-      /*
-       * If show_dialog == 1, main_config.default_server can be
-       * free'ed in open_pty_intern.
-       */
-      main_config.show_dialog = 0;
     }
 
     if ((new_cmd_line = vt_term_get_cmd_line(screen->term)) &&
@@ -764,14 +752,14 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     }
 #endif
 
-    ret = open_pty_intern(new, main_config.cmd_path, main_config.cmd_argv,
-                          DisplayString(screen->window.disp->display), screen->window.my_window,
-                          screen->window.width, screen->window.height);
+    ret = open_pty_intern(new, main_config.cmd_path, main_config.cmd_argv, &screen->window,
+                          main_config.show_dialog);
 
     main_config.encoding = encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-    main_config.default_server = default_server;
-    main_config.show_dialog = show_dialog;
+    if (!main_config.show_dialog) {
+      main_config.default_server = default_server;
+    }
 
     if (new_cmd_line) {
       main_config.cmd_path = cmd_path;
@@ -874,36 +862,23 @@ static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already 
   }
 }
 
-static void open_or_split_screen(ui_screen_t *cur_screen, /* Screen which triggers this event. */
-                                 ui_layout_t *layout, int horizontal, const char *sep,
-                                 int retain_encoding, int retain_server) {
-  char *disp_name;
+static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int horizontal,
+                               const char *sep, int show_dialog) {
   vt_char_encoding_t encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   char *default_server;
-  int show_dialog;
   char *new_cmd_line;
   char *cmd_path;
   char **cmd_argv;
 #endif
 
-  disp_name = main_config.disp_name;
-  main_config.disp_name = cur_screen->window.disp->name;
-  if (!retain_encoding) {
-    encoding = main_config.encoding;
-    main_config.encoding = vt_term_get_encoding(cur_screen->term);
-  }
+  encoding = main_config.encoding;
+  main_config.encoding = vt_term_get_encoding(cur_screen->term);
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  if (!retain_server) {
+  if (!show_dialog) {
     default_server = main_config.default_server;
     main_config.default_server = vt_term_get_uri(cur_screen->term);
   }
-  /*
-   * If show_dialog == 1, main_config.default_server can be
-   * free'ed in open_pty_intern.
-   */
-  show_dialog = main_config.show_dialog;
-  main_config.show_dialog = 0;
 
   if ((new_cmd_line = vt_term_get_cmd_line(cur_screen->term)) &&
       (new_cmd_line = bl_str_alloca_dup(new_cmd_line))) {
@@ -917,21 +892,13 @@ static void open_or_split_screen(ui_screen_t *cur_screen, /* Screen which trigge
   }
 #endif
 
-  if (!open_screen_intern(NULL, layout, horizontal, sep)) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " open_screen_intern failed.\n");
-#endif
-  }
+  open_screen_intern(cur_screen->window.disp->name, NULL, layout, horizontal, sep, show_dialog);
 
-  main_config.disp_name = disp_name;
-  if (!retain_encoding) {
-    main_config.encoding = encoding;
-  }
+  main_config.encoding = encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  if (!retain_server) {
+  if (!show_dialog) {
     main_config.default_server = default_server;
   }
-  main_config.show_dialog = show_dialog;
 
   if (new_cmd_line) {
     main_config.cmd_path = cmd_path;
@@ -942,13 +909,14 @@ static void open_or_split_screen(ui_screen_t *cur_screen, /* Screen which trigge
 
 static void open_screen(void *p, ui_screen_t *screen /* Screen which triggers this event. */
                         ) {
-  open_or_split_screen(screen, NULL, 0, 0, 0, 0);
+  open_cloned_screen(screen, NULL, 0, NULL, main_config.show_dialog);
 }
 
 static void split_screen(void *p, ui_screen_t *screen, /* Screen which triggers this event. */
                          int horizontal, const char *sep) {
   if (UI_SCREEN_TO_LAYOUT(screen)) {
-    open_or_split_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep, 0, 0);
+    open_cloned_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep,
+                       main_config.show_dialog);
   }
 }
 
@@ -1057,8 +1025,6 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     ui_main_config_t orig_conf;
     char *pty;
     int horizontal;
-    int has_km_option;
-    int has_serv_option;
     char *sep;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     char **server_list;
@@ -1092,9 +1058,6 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
       return 0;
     }
 
-    has_km_option = (bl_conf_get_value(conf, "encoding") != NULL);
-    has_serv_option = (bl_conf_get_value(conf, "default_server") != NULL);
-
     if (screen && UI_SCREEN_TO_LAYOUT(screen)) {
       if ((sep = bl_conf_get_value(conf, "hsep"))) {
         horizontal = 1;
@@ -1123,15 +1086,25 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
 
     if (screen) {
       if (sep) {
-        open_or_split_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep,
-                             has_km_option, has_serv_option);
+        open_screen_intern(screen->window.disp->name, NULL, UI_SCREEN_TO_LAYOUT(screen),
+                           horizontal, sep, main_config.show_dialog);
       } else {
-        open_pty(self, screen, pty);
+        vt_term_t *term;
+        if ((term = create_term_intern())) {
+          if (!open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv, &screen->window,
+                               main_config.show_dialog)) {
+            vt_destroy_term(term);
+          } else {
+            ui_screen_detach(screen);
+            ui_screen_attach(screen, term);
+          }
+        }
       }
     } else {
       vt_term_t *term = NULL;
 
-      if ((pty && !(term = vt_get_detached_term(pty))) || !open_screen_intern(term, NULL, 0, 0)) {
+      if ((pty && !(term = vt_get_detached_term(pty))) ||
+          !open_screen_intern("", term, NULL, 0, 0, 0)) {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " open_screen_intern() failed.\n");
 #endif
@@ -1163,9 +1136,6 @@ int ui_screen_manager_init(char *_mlterm_version, u_int _depth, u_int _max_scree
   depth = _depth;
 
   main_config = *_main_config;
-#if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  cur_default_server = main_config.default_server;
-#endif
 
   max_screens_multiple = _max_screens_multiple;
 
@@ -1323,7 +1293,13 @@ u_int ui_screen_manager_startup(void) {
 #endif
 
   for (count = 0; count < num_of_startup_screens; count++) {
-    if (!open_screen_intern(vt_get_detached_term(NULL), NULL, 0, 0)) {
+    if (!open_screen_intern(main_config.disp_name, vt_get_detached_term(NULL), NULL, 0, 0,
+#if defined(USE_WIN32API) || (defined(USE_LIBSSH2) && defined(__ANDROID__))
+                            1 /* show dialog */
+#else
+                            0
+#endif
+        )) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " open_screen_intern() failed.\n");
 #endif
