@@ -217,7 +217,6 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "serv", 0, "default_server", "connecting server by default");
   bl_conf_add_opt(conf, '\0', "dialog", 1, "always_show_dialog",
                   "always show dialog to input server address, password and so on [false]");
-#endif
   bl_conf_add_opt(conf, '\0', "pubkey", 0, "ssh_public_key",
                   "ssh public key file "
 #ifdef USE_WIN32API
