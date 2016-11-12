@@ -283,8 +283,8 @@ static inline ui_window_t *get_window(int x, /* X in display */
 
 static int process_mouse_event(int source, int action, int64_t time, int x, int y) {
   if (source & AINPUT_SOURCE_MOUSE) {
+    static XButtonEvent prev_xev;
     XButtonEvent xev;
-    static int click_num;
     ui_window_t *win;
 
     switch (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) {
@@ -305,24 +305,35 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
 
       case 0x0:
       default:
-        xev.button = Button1;
+        xev.button = 0;
         break;
     }
 
     switch (action & AMOTION_EVENT_ACTION_MASK) {
       case AMOTION_EVENT_ACTION_DOWN:
         xev.type = ButtonPress;
+        if (xev.button == 0) {
+          xev.button = Button1;
+          _display.button_state = Button1Mask;
+        }
         break;
 
       case AMOTION_EVENT_ACTION_UP:
         xev.type = ButtonRelease;
         /* Reset button_state in releasing button. */
         _display.button_state = 0;
+        if (xev.button == 0) {
+          xev.button = Button1;
+        }
         break;
 
       case 7 /* AMOTION_EVENT_ACTION_HOVER_MOVE */:
       case AMOTION_EVENT_ACTION_MOVE:
         xev.type = MotionNotify;
+        if (_display.long_press_counter > 0) {
+          xev.button = Button1;
+          _display.button_state = Button1Mask;
+        }
         break;
 
       default:
@@ -345,6 +356,8 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     xev.state = _display.key_state;
 
     if (xev.type == ButtonPress) {
+      static int click_num;
+
       /* 800x600 display => (800+600) / 64 = 21 */
       if (xev.x + xev.y + (_disp.width + _disp.height) / 64 >= _disp.width + _disp.height) {
         if (click_num == 0) {
@@ -362,6 +375,31 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
       } else {
         click_num = 0;
       }
+
+      memset(&prev_xev, 0, sizeof(prev_xev));
+    } else if (xev.type == MotionNotify) {
+      if (prev_xev.type == xev.type && prev_xev.x == xev.x && prev_xev.y == xev.y) {
+        /* Long click on touch panel sends same MotionNotify events continuously. */
+#if 0
+        bl_debug_printf("Same event is ignored.\n");
+#endif
+        if (xev.time >= prev_xev.time + 100) {
+          /* 0.1 sec */
+          prev_xev = xev;
+          ui_display_idling(NULL);
+        }
+
+        return 1;
+      }
+      prev_xev = xev;
+    }
+
+    if (xev.type != ButtonRelease && xev.button == Button1) {
+      if (_display.long_press_counter == 0) {
+        _display.long_press_counter = 1;
+      }
+    } else {
+      _display.long_press_counter = 0;
     }
 
 #if 0
@@ -635,9 +673,29 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   return 0;
 }
 
+static void perform_long_click(JavaVM *vm) {
+  JNIEnv *env;
+  jobject this;
+
+  (*vm)->AttachCurrentThread(vm, &env, NULL);
+
+  this = _display.app->activity->clazz;
+  (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
+                                                        "performLongClick", "()V"));
+
+  (*vm)->DetachCurrentThread(vm);
+}
+
 void ui_display_idling(ui_display_t *disp /* ignored */
                        ) {
   u_int count;
+
+  if (_display.long_press_counter > 0) {
+    if (_display.long_press_counter++ == 10) {
+      _display.long_press_counter = 0;
+      perform_long_click(_display.app->activity->vm);
+    }
+  }
 
   for (count = 0; count < _disp.num_of_roots; count++) {
     ui_window_idling(_disp.roots[count]);
@@ -1119,6 +1177,14 @@ void ui_display_resize(int yoffset, int width, int height,
   _disp.height = new_height;
 
   ui_window_resize_with_margin(_disp.roots[0], _disp.width, _disp.height, NOTIFY_TO_MYSELF);
+}
+
+/* Called in the main thread (not in the native activity thread) */
+
+void ui_display_update_all(void) {
+  if (_disp.num_of_roots > 0) {
+    ui_window_update_all(_disp.roots[0]);
+  }
 }
 
 jstring Java_mlterm_native_1activity_MLActivity_convertToTmpPath(

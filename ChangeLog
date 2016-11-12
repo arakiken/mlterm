@@ -1,3 +1,18 @@
+2016-11-12  Araki Ken  <arakiken@users.sf.net>
+
+	* MLActivity.java:
+	  - Context menu by long click is supported.
+	  - Screen is completely redrawn in onResume().
+
+	* android/jni/ui_event_source.c:
+	  Java_mlterm_native_1activity_MLActivity_updateScreen() is added.
+
+	* android/jni/ui_display.c:
+	  - process_mouse_event() considers LongClick event.
+	  - perform_long_click(), ui_display_update_all() is added.
+
+	* android/jni/ui.h: long_press_counter is added to Display.
+
 2016-11-06  Araki Ken  <arakiken@users.sf.net>
 
 	* Android.mk, android/jni/main.c, android/jni/ui_display.[ch],

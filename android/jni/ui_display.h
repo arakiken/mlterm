@@ -52,4 +52,6 @@ void ui_display_show_dialog(char *server);
 void ui_display_resize(int yoffset, int width, int height,
                        int (*need_resize)(u_int, u_int, u_int, u_int));
 
+void ui_display_update_all();
+
 #endif

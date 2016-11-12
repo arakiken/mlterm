@@ -12,6 +12,9 @@ import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.text.InputType;
 import android.content.Context;
 import android.content.ClipboardManager;
@@ -28,6 +31,7 @@ import java.io.*;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.LinearLayout;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.content.DialogInterface;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -46,6 +50,7 @@ public class MLActivity extends NativeActivity {
   private native void splitAnimationGif(String path);
   private native void dialogOkClicked(String user, String serv, String port, String encoding,
                                       String pass, String cmd);
+  private native void updateScreen();
 
   private String keyString;
   private View contentView;
@@ -54,6 +59,7 @@ public class MLActivity extends NativeActivity {
       | EditorInfo.IME_FLAG_NO_FULLSCREEN;
   private ClipboardManager clipMan;
   private Thread nativeThread;
+  private boolean needRedraw = false;
 
   private class TextInputConnection extends BaseInputConnection {
     public TextInputConnection(View v, boolean fulledit) {
@@ -179,6 +185,8 @@ public class MLActivity extends NativeActivity {
     contentView.setFocusableInTouchMode(true);
     contentView.requestFocus();
 
+    registerForContextMenu(contentView);
+
     /* android-11 or later */
     getWindow().getDecorView().addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
       @Override
@@ -222,6 +230,25 @@ public class MLActivity extends NativeActivity {
 
     ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))
         .hideSoftInputFromWindow(contentView.getWindowToken(), 0);
+
+    needRedraw = true;
+  }
+
+  @Override
+  protected void onStop() {
+    super.onStop();
+
+    needRedraw = false;
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+
+    if (needRedraw) {
+      updateScreen();
+      needRedraw = false;
+    }
   }
 
   @Override
@@ -229,6 +256,39 @@ public class MLActivity extends NativeActivity {
     super.onRestart();
 
     showSoftInput();
+  }
+
+  private void performLongClick() {
+    runOnUiThread(new Runnable() {
+        @Override public void run() {
+          contentView.performLongClick();
+        }
+      });
+  }
+
+  private final int MENU_PASTE_ID = 0;
+  private final int MENU_CONFIG_ID = 1;
+  private final int MENU_CANCEL_ID = 2;
+
+  @Override
+  public void onCreateContextMenu(ContextMenu menu, View view,
+                                     ContextMenu.ContextMenuInfo info) {
+    super.onCreateContextMenu(menu, view, info);
+    menu.setHeaderTitle("Menu");
+    menu.add(0, MENU_PASTE_ID, 0, "Paste from clipboard");
+    /* menu.add(0, MENU_CONFIG_ID, 0, "Configuration"); */
+    menu.add(0, MENU_CANCEL_ID, 0, "Cancel");
+  }
+
+  @Override
+  public boolean onContextItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+      case MENU_PASTE_ID:
+        getTextFromClipboard();
+        return true;
+      default:
+        return super.onContextItemSelected(item);
+    }
   }
 
   private String saveDefaultFont() {

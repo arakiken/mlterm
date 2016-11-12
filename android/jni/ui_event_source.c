@@ -299,3 +299,9 @@ void Java_mlterm_native_1activity_MLActivity_preeditText(JNIEnv *env, jobject th
 
   pthread_mutex_unlock(&mutex);
 }
+
+void Java_mlterm_native_1activity_MLActivity_updateScreen(JNIEnv *env, jobject this) {
+  pthread_mutex_lock(&mutex);
+  ui_display_update_all();
+  pthread_mutex_unlock(&mutex);
+}

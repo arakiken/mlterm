@@ -32,6 +32,8 @@ typedef struct {
   int button_state;
   int lock_state;
 
+  unsigned int long_press_counter;
+
 } Display;
 
 #define PIXEL_RED(pixel, rgbinfo) (((pixel) >> (rgbinfo).r_offset) << (rgbinfo).r_limit)

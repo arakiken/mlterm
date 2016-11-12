@@ -3,6 +3,7 @@ ver 3.8.0
 * Add "ssh_auto_reconnect" / --rcn option which enables automatic reconnecting to
   ssh server in unexpected disconnection.
 * Support libssh2 on Android.
+* Support context menu by long click on Android.
 * Change library names.
   libmkf => libmef, libkik => libpobl
   libmlterm_core => libmlterm_coreotf (if open type layout is supported)
