@@ -19865,14 +19865,14 @@ elif test "$gui" = "quartz" ; then
 	 for file in `ls *.c` ; do if test -f ../$file ; then mv ../$file ../xlib/ ; fi ; done)
 fi
 
-vt_cv_is_posix="yes"
+ml_cv_is_posix="yes"
 
 case "${host_os}" in
 mingw32*)
 	CYGPATHW=echo
 	WIN32TAG=_win32
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
-		vt_cv_is_posix="no"
+		ml_cv_is_posix="no"
 	fi
 
 	if test "$gui" != "win32" ; then
@@ -19922,7 +19922,7 @@ fi
 	WIN32TAG=_win32
 	case "${CC} ${CFLAGS}" in
 	*mno-cygwin* | *-mingw*)
-		vt_cv_is_posix="no"
+		ml_cv_is_posix="no"
 		;;
 	*)
 		;;
@@ -19973,7 +19973,7 @@ fi
 
 
 
-if test "$vt_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
+if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
 fi
 
@@ -20654,17 +20654,17 @@ fi
 
 # XXX For pow in libm.so which is used in ui_imagelib.c
 # /lib/* ... e.g.) /lib/i386-linux-gnu in ubuntu.
-for vt_cv_lib_path in /lib /usr/lib /lib/* `echo $LIBRARY_PATH | tr ":" " "` ; do
-	libm_files=`ls $vt_cv_lib_path/libm\\.so* $vt_cv_lib_path/libm\\.sl* 2> /dev/null`
+for ml_cv_lib_path in /lib /usr/lib /lib/* `echo $LIBRARY_PATH | tr ":" " "` ; do
+	libm_files=`ls $ml_cv_lib_path/libm\\.so* $ml_cv_lib_path/libm\\.sl* 2> /dev/null`
 	for libm_file in $libm_files ; do
-		if test -z "$vt_cv_libm_dir" -a -n "`$NM -D $libm_file | $GREP pow`" ; then
-			vt_cv_libm_dir=`dirname $libm_file`
+		if test -z "$ml_cv_libm_dir" -a -n "`$NM -D $libm_file | $GREP pow`" ; then
+			ml_cv_libm_dir=`dirname $libm_file`
 		fi
 	done
 done
 if test -z "$IMAGELIB_LIBS" ; then
-	if test -n "$vt_cv_libm_dir" ; then
-		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$vt_cv_libm_dir\\\""
+	if test -n "$ml_cv_libm_dir" ; then
+		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_libm_dir\\\""
 	else
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pow in -lm" >&5
 $as_echo_n "checking for pow in -lm... " >&6; }
@@ -21657,6 +21657,9 @@ fi
 		OT_LAYOUT_CFLAGS="$HB_CFLAGS -DUSE_HARFBUZZ -DUSE_OT_LAYOUT"
 		OT_LAYOUT_LIBS="$HB_LIBS"
 		OT_LAYOUT_OBJ=hb.o
+		if test "$gui" = "win32" ; then
+			 OT_LAYOUT_LIBS="$OT_LAYOUT_LIBS -lfreetype"
+		fi
 	else
 		# XXX
 		if test "$gui" = "quartz" ; then
@@ -21851,7 +21854,7 @@ fi
 
 fi
 
-if test "$vt_cv_is_posix" = "no" ; then
+if test "$ml_cv_is_posix" = "no" ; then
 	if test "$ssh2" = "yes" ; then
 		VT_PTY_OBJ="vt_pty_ssh.o"
 		# Not dlopen
@@ -22226,7 +22229,7 @@ mlterm-menu)
 	fi
 	;;
 mlclient)
-	if test "$vt_cv_is_posix" = "yes" -a "$gui" != "console" ; then
+	if test "$ml_cv_is_posix" = "yes" -a "$gui" != "console" ; then
 		MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -22286,7 +22289,7 @@ fi
 	tools_result="$tools_result $tool"
 	;;
 mlcc)
-	if test "$vt_cv_is_posix" = "yes" ; then
+	if test "$ml_cv_is_posix" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -23556,7 +23559,7 @@ if test "${enable_canna+set}" = set; then :
   enableval=$enable_canna; canna=$enable_canna
 fi
 
-if test "$enable_shared" = "no" -o "$vt_cv_is_posix" = "no" ; then
+if test "$enable_shared" = "no" -o "$ml_cv_is_posix" = "no" ; then
 	canna="no"
 fi
 
@@ -23591,7 +23594,7 @@ if test "${enable_wnn+set}" = set; then :
   enableval=$enable_wnn; wnn=$enable_wnn
 fi
 
-if test "$enable_shared" = "no" -o "$vt_cv_is_posix" = "no" ; then
+if test "$enable_shared" = "no" -o "$ml_cv_is_posix" = "no" ; then
 	wnn="no"
 fi
 
@@ -23643,7 +23646,7 @@ if test "$enable_shared" != "no" -a "$skk" != "no"; then
 	if test "x$with_libltdl" != xno ; then
 		DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/skk/libim-skk.la ${DL_LIBS_IM}"
 	fi
-	if test "$vt_cv_is_posix" = "no" ; then
+	if test "$ml_cv_is_posix" = "no" ; then
 		SKK_LIBS="-lwsock32 -lws2_32"
 	fi
 	input_methods_result="$input_methods_result skk"

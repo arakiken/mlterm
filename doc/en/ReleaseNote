@@ -3,6 +3,8 @@ ver 3.8.0
 * Add "ssh_auto_reconnect" / --rcn option which enables automatic reconnecting to
   ssh server in unexpected disconnection.
 * Support libssh2 on Android.
+* Add "start_with_local_pty" / --slp option which disables ssh connection dialog
+  on startup on Android.
 * Support context menu by long click on Android.
 * Change library names.
   libmkf => libmef, libkik => libpobl

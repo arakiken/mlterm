@@ -1,3 +1,20 @@
+2016-11-14  Araki Ken  <arakiken@users.sf.net>
+
+	* README.android: Updated.
+
+	* ui_main_config.c: "start_with_local_pty" / --slp option is added only if
+	  USE_LIBSSH2 is defined on Android.
+
+	* ui_screen_manager.[ch]: ui_set_start_with_local_pty() is added.
+
+	* configure.in:
+	  - vt_cv_* -> ml_cv_*
+	  - -lfreetype is added to OT_LAYOUT_LIBS with -lharfbuzz on cygwin/win32gdi
+	    in order to avoid compiling error.
+
+	* MLActivity.java: 'weight' argument is passed to LinearLayout.LayoutParams()
+	  in makeTextEntry().
+
 2016-11-12  Araki Ken  <arakiken@users.sf.net>
 
 	* MLActivity.java:

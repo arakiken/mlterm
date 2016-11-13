@@ -308,6 +308,10 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
                   "the number of sixel colors of console [16]");
   bl_conf_add_opt(conf, '\0', "csz", 0, "default_cell_size", "default cell size [8,16]");
 #endif
+#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+  bl_conf_add_opt(conf, '\0', "slp", 1, "start_with_local_pty",
+                  "start mlterm with local pty instead of ssh connection [false]");
+#endif
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1270,6 +1274,12 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
 #ifdef USE_FRAMEBUFFER
   if ((value = bl_conf_get_value(conf, "rotate_display"))) {
     ui_display_rotate(strcmp(value, "right") == 0 ? 1 : (strcmp(value, "left") == 0 ? -1 : 0));
+  }
+#endif
+
+#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+  if ((value = bl_conf_get_value(conf, "start_with_local_pty"))) {
+    ui_set_start_with_local_pty(strcmp(value, "true") == 0);
   }
 #endif
 

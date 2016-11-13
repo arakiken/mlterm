@@ -41,3 +41,4 @@ Android support (Experimental)
     "only_use_unicode_font" => "true"
     "box_drawing_font"      => "unicode"
   o "use_local_echo" option is unavailable.
+  o "start_with_local_pty" option disables ssh connection dialog on startup.

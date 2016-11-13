@@ -47,7 +47,7 @@ LIBS2_xlib = @IMAGELIB_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ @TYPE_LIBS_FO
 
 LIBS2_fb = @MATH_LIBS@ @DL_LIBS_SB@ @FT_LIBS@
 
-LIBS2_win32 = -mwindows -limm32 @SUBSYSTEM@ ../uitoolkit/winrs.o
+LIBS2_win32 = -mwindows -limm32 ../uitoolkit/winrs.o # @SUBSYSTEM@
 
 LIBS2_quartz = -framework Foundation -framework Cocoa
 

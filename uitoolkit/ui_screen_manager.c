@@ -1306,6 +1306,12 @@ int ui_screen_manager_suspend(void) {
 
   return 1;
 }
+
+static int start_with_local_pty = 0;
+
+void ui_set_start_with_local_pty(int flag) {
+  start_with_local_pty = flag;
+}
 #endif
 
 u_int ui_screen_manager_startup(void) {
@@ -1327,7 +1333,9 @@ u_int ui_screen_manager_startup(void) {
 
   for (count = 0; count < num_of_startup_screens; count++) {
     if (!open_screen_intern(main_config.disp_name, vt_get_detached_term(NULL), NULL, 0, 0,
-#if defined(USE_WIN32API) || (defined(USE_LIBSSH2) && defined(__ANDROID__))
+#if defined(USE_LIBSSH2) && defined(__ANDROID__)
+                            !start_with_local_pty
+#elif defined(USE_WIN32API)
                             1 /* show dialog */
 #else
                             0

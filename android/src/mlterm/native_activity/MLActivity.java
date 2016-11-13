@@ -383,10 +383,12 @@ public class MLActivity extends NativeActivity {
     label.setBackgroundColor(Color.TRANSPARENT);
     label.setText(title);
 
-    layout.addView(label, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                                                        LinearLayout.LayoutParams.WRAP_CONTENT));
-    layout.addView(edit, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,
-                                                       LinearLayout.LayoutParams.WRAP_CONTENT));
+    layout.addView(label,
+                   new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,
+                                                 LinearLayout.LayoutParams.WRAP_CONTENT, 2));
+    layout.addView(edit,
+                   new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,
+                                                 LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
     return layout;
   }
