@@ -5,6 +5,7 @@
 #include <stdio.h> /* sprintf */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_str.h>
+#include <pobl/bl_conf_io.h>
 #include <vt_char_encoding.h>
 #include <vt_term_manager.h>
 
@@ -23,6 +24,24 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static char *cur_preedit_text;
 
 /* --- static functions --- */
+
+static vt_term_t *get_current_term(void) {
+  vt_term_t **terms;
+  u_int num_of_terms;
+  u_int count;
+
+  num_of_terms = vt_get_all_terms(&terms);
+
+  for (count = 0; count < num_of_terms; count++) {
+    ui_window_t *win;
+
+    if (vt_term_is_attached(terms[count]) && (win = XWINDOW_OF(terms[count])) && win->is_focused) {
+      return terms[count];
+    }
+  }
+
+  return NULL;
+}
 
 static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_text) {
   u_char buf[128];
@@ -72,20 +91,10 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
 }
 
 static void update_ime_text_on_active_term(char *preedit_text, char *commit_text) {
-  vt_term_t **terms;
-  u_int num_of_terms;
-  u_int count;
+  vt_term_t *term;
 
-  num_of_terms = vt_get_all_terms(&terms);
-
-  for (count = 0; count < num_of_terms; count++) {
-    ui_window_t *win;
-
-    if (vt_term_is_attached(terms[count]) && (win = XWINDOW_OF(terms[count])) && win->is_focused) {
-      update_ime_text(terms[count], preedit_text, commit_text);
-
-      return;
-    }
+  if ((term = get_current_term())) {
+    update_ime_text(term, preedit_text, commit_text);
   }
 }
 
@@ -304,4 +313,155 @@ void Java_mlterm_native_1activity_MLActivity_updateScreen(JNIEnv *env, jobject t
   pthread_mutex_lock(&mutex);
   ui_display_update_all();
   pthread_mutex_unlock(&mutex);
+}
+
+void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jobject this,
+                                                                 jstring jkey, jstring jval) {
+  vt_term_t *term;
+
+  if ((term = get_current_term()) && term->parser->config_listener) {
+    char *key = (*env)->GetStringUTFChars(env, jkey, NULL);
+    char *val = (*env)->GetStringUTFChars(env, jval, NULL);
+    char *val2;
+    char *path;
+
+    /* XXX */
+    if (strcmp(key, "col_size_of_width_a") == 0) {
+      if (strcmp(val, "true") == 0) {
+        val2 = "2";
+      } else {
+        val2 = "1";
+      }
+    } else {
+      val2 = val;
+    }
+
+    (*term->parser->config_listener->set)(term->parser->config_listener->self, NULL, key, val2);
+
+    /* Following is the same processing as config_protocol_set() in vt_parser.c */
+
+    if (/* XXX */ strcmp(key, "xim") != 0 && (path = bl_get_user_rc_path("mlterm/main"))) {
+      bl_conf_write_t *conf;
+
+      conf = bl_conf_write_open(path);
+      free(path);
+
+      if (conf) {
+        bl_conf_io_write(conf, key, val2);
+        bl_conf_write_close(conf);
+
+        (*term->parser->config_listener->saved)();
+      }
+    }
+
+    (*env)->ReleaseStringUTFChars(env, jkey, key);
+    (*env)->ReleaseStringUTFChars(env, jval, val);
+  }
+}
+
+void Java_mlterm_native_1activity_MLPreferenceActivity_setDefaultFontConfig(JNIEnv *env,
+                                                                            jobject this,
+                                                                            jstring jfont) {
+  vt_term_t *term;
+
+  if ((term = get_current_term()) && term->parser->config_listener) {
+    char *font = (*env)->GetStringUTFChars(env, jfont, NULL);
+
+    (*term->parser->config_listener->set_font)(term->parser->config_listener->self, NULL,
+                                               "USASCII", font, 1);
+    (*term->parser->config_listener->set_font)(term->parser->config_listener->self, NULL,
+                                               "DEFAULT", font, 1);
+
+    (*env)->ReleaseStringUTFChars(env, jfont, font);
+  }
+}
+
+/* See vt_pty_intern.h */
+char *android_config_response;
+
+jboolean Java_mlterm_native_1activity_MLPreferenceActivity_getBoolConfig(JNIEnv *env, jobject this,
+                                                                         jstring jkey) {
+  vt_term_t *term;
+
+  if ((term = get_current_term())) {
+    char *key = (*env)->GetStringUTFChars(env, jkey, NULL);
+    size_t key_len = strlen(key);
+    (*term->parser->config_listener->get)(term->parser->config_listener->self,
+                                          NULL, key, 1);
+    (*env)->ReleaseStringUTFChars(env, jkey, key);
+    if (android_config_response) {
+      /* XXX */
+      char *true = strstr(android_config_response, "col_size_of_width_a") ? "2" : "true";
+      int flag = (strncmp(android_config_response + 1 + key_len + 1, true, strlen(true)) == 0);
+
+      free(android_config_response);
+      android_config_response = NULL;
+
+      return flag;
+    }
+  }
+
+  return 0;
+}
+
+jstring Java_mlterm_native_1activity_MLPreferenceActivity_getStrConfig(JNIEnv *env, jobject this,
+                                                                       jstring jkey) {
+  vt_term_t *term;
+
+  if ((term = get_current_term())) {
+    char *key = (*env)->GetStringUTFChars(env, jkey, NULL);
+    size_t key_len = strlen(key);
+    jstring jval = NULL;
+
+    (*term->parser->config_listener->get)(term->parser->config_listener->self,
+                                          NULL, key, 1);
+
+    if (android_config_response) {
+      if (strncmp(android_config_response + 1, key, key_len) == 0) {
+        /* \n -> \0 */
+        android_config_response[strlen(android_config_response) - 1] = '\0';
+        jval = (*env)->NewStringUTF(env, android_config_response + 1 + key_len + 1);
+      }
+
+      free(android_config_response);
+      android_config_response = NULL;
+    }
+
+    (*env)->ReleaseStringUTFChars(env, jkey, key);
+
+    return jval;
+  }
+
+  return NULL;
+}
+
+jstring Java_mlterm_native_1activity_MLPreferenceActivity_getDefaultFontConfig(JNIEnv *env,
+                                                                               jobject this) {
+  vt_term_t *term;
+
+  if ((term = get_current_term())) {
+    (*term->parser->config_listener->get_font)(term->parser->config_listener->self,
+                                               NULL, "USASCII", 1);
+
+    if (android_config_response) {
+      char *p;
+      if ((p = strrchr(android_config_response, '='))) {
+        jstring jfont;
+        /* \n -> \0 */
+        p[strlen(p) - 1] = '\0';
+        if (*p) {
+          jfont = (*env)->NewStringUTF(env, p + 1);
+        } else {
+          jfont = NULL;
+        }
+
+        free(android_config_response);
+        android_config_response = NULL;
+
+        return jfont;
+      }
+    }
+  }
+
+  return NULL;
 }

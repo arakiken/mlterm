@@ -20,6 +20,11 @@
 #include "version.h"
 #include "daemon.h"
 
+#if defined(__ANDROID__) || defined(USE_QUARTZ) || defined(USE_WIN32API)
+/* Shrink unused memory */
+#define bl_conf_add_opt(conf, a, b, c, d, e) bl_conf_add_opt(conf, a, b, c, d, "")
+#endif
+
 #if 0
 #define __DEBUG
 #endif

@@ -6,6 +6,14 @@
 #include "vt_pty.h"
 #include "vt_config_menu.h"
 
+/* See android/jni/ui_event_source.c */
+#ifdef __ANDROID__
+#undef vt_config_menu_write
+extern char *android_config_response;
+#define vt_config_menu_write(config_menu, buf, len) \
+        (android_config_response = strncpy(calloc(len + 1, 1), buf, len))
+#endif
+
 typedef struct vt_pty {
   int master; /* master pty fd */
   int slave;  /* slave pty fd */

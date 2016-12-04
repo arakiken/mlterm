@@ -1,3 +1,30 @@
+2016-12-04  Araki Ken  <arakiken@users.sf.net>
+
+	* README.android: Updated.
+
+	* ui_font_config.c: mlcc font FOOBAR "" removes a font setting of FOOBAR
+	  specified in ~/.mlterm/*font.
+
+	* main_loop.c, ui_main_config.c: The 6th argument (option explanation) of
+	  bl_conf_add_opt() is removed on Android, Cocoa or Win32GDI.
+
+	* vt_pty_intern.h: vt_config_menu_write() sets android_config_response instead
+	  of write data to a configuration menu program on Android.
+
+	* ui_event_source.c:
+	  - get_current_term() which searches currently focused vt_term is added.
+	  - Java_mlterm_native_1activity_MLPreferenceActivity_* are added.
+	  - 'android_config_response' global variable is added.
+
+	* ui_display.c: init_window() ignores the difference between
+	  lock == -1 and lock == 0.
+
+	* MLActivity.java: "Configuration" is added to context menu.
+
+	* MLPreferenceActivity.java: Added.
+
+	* AndroidManifest.xml: MLPreferenceActivity is added.
+
 2016-11-14  Araki Ken  <arakiken@users.sf.net>
 
 	* README.android: Updated.

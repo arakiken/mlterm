@@ -27,6 +27,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+	<activity android:name="mlterm.native_activity.MLPreferenceActivity"
+		android:label="@string/app_name">
+	</activity>
     </application>
 
 </manifest>

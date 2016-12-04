@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.ClipboardManager;
 import android.content.ClipData;
 import android.content.ClipDescription;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.graphics.Rect;
@@ -274,9 +275,9 @@ public class MLActivity extends NativeActivity {
   public void onCreateContextMenu(ContextMenu menu, View view,
                                      ContextMenu.ContextMenuInfo info) {
     super.onCreateContextMenu(menu, view, info);
-    menu.setHeaderTitle("Menu");
+    /* menu.setHeaderTitle("Menu"); */
     menu.add(0, MENU_PASTE_ID, 0, "Paste from clipboard");
-    /* menu.add(0, MENU_CONFIG_ID, 0, "Configuration"); */
+    menu.add(0, MENU_CONFIG_ID, 0, "Configuration");
     menu.add(0, MENU_CANCEL_ID, 0, "Cancel");
   }
 
@@ -285,6 +286,10 @@ public class MLActivity extends NativeActivity {
     switch (item.getItemId()) {
       case MENU_PASTE_ID:
         getTextFromClipboard();
+        return true;
+      case MENU_CONFIG_ID:
+        Intent intent = new Intent(this, MLPreferenceActivity.class);
+        startActivity(intent);
         return true;
       default:
         return super.onContextItemSelected(item);

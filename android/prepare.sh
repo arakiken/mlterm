@@ -50,7 +50,7 @@ cp jni/ui.h jni/ui_display.[ch] jni/ui_connect_dialog.c ${PROJECT_PATH}/jni/uito
 cp jni/main.c jni/version.h ${PROJECT_PATH}/jni/main/
 
 mkdir -p ${PROJECT_PATH}/src/mlterm/native_activity
-cp src/mlterm/native_activity/MLActivity.java ${PROJECT_PATH}/src/mlterm/native_activity/
+cp src/mlterm/native_activity/*.java ${PROJECT_PATH}/src/mlterm/native_activity/
 
 cp -R res ${PROJECT_PATH}/
 

@@ -484,22 +484,15 @@ static void init_window(ANativeWindow *window) {
 
   if (_display.buf.bits) {
     /* mlterm restarted */
+    u_int count;
 
     _display.buf.bits = NULL;
 
-    if (locked < 0) {
-      /* If mlterm exited and restarted, locked is -1 here. */
-      locked = 0;
-    } else {
-      u_int count;
+    /* In case of locked is 1 here. */
+    locked = 0;
 
-      /* In case of locked is 1 here. */
-      locked = 0;
-
-      /* mlterm paused and restarted. */
-      for (count = 0; count < _disp.num_of_roots; count++) {
-        update_window(_disp.roots[count]);
-      }
+    for (count = 0; count < _disp.num_of_roots; count++) {
+      update_window(_disp.roots[count]);
     }
   }
 }

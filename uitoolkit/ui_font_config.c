@@ -543,11 +543,12 @@ static int change_custom_cache(const char *file, const char *key, const char *va
     }
   }
 
+  /* #if 1 => Don't remove font settings read from ~/.mlterm/*font. */
+#if 0
   if (*value == '\0') {
-    /* Nothing to remove. */
-
     return 0;
   }
+#endif
 
   if ((p = realloc(custom_cache, sizeof(custom_cache_t) * (num_of_customs + 1))) == NULL) {
     return 0;
