@@ -104,6 +104,7 @@ public class MLPreferenceActivity extends PreferenceActivity {
     PreferenceCategory category = new PreferenceCategory(this);
     screen.addPreference(category);
 
+    addCheckBox(category, "start_with_local_pty", "Don't show SSH dialog on startup");
     addEditText(category, "fontsize", "Font size", InputType.TYPE_CLASS_NUMBER);
     addFontEditText(category);
     addEditText(category, "encoding", "Encoding",

@@ -378,7 +378,7 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
 
       memset(&prev_xev, 0, sizeof(prev_xev));
     } else if (xev.type == MotionNotify) {
-      if (prev_xev.type == xev.type && prev_xev.x == xev.x && prev_xev.y == xev.y) {
+      if (prev_xev.type == MotionNotify && prev_xev.x == xev.x && prev_xev.y == xev.y) {
         /* Long click on touch panel sends same MotionNotify events continuously. */
 #if 0
         bl_debug_printf("Same event is ignored.\n");
@@ -394,14 +394,6 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
       prev_xev = xev;
     }
 
-    if (xev.type != ButtonRelease && xev.button == Button1) {
-      if (_display.long_press_counter == 0) {
-        _display.long_press_counter = 1;
-      }
-    } else {
-      _display.long_press_counter = 0;
-    }
-
 #if 0
     bl_debug_printf(
         BL_DEBUG_TAG "Button is %s x %d y %d btn %d time %d\n",
@@ -412,6 +404,17 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     win = get_window(xev.x, xev.y);
     xev.x -= win->x;
     xev.y -= win->y;
+
+    if (xev.type != ButtonRelease && xev.button == Button1 &&
+        /* XXX excludes scrollbar (see x_window_init() called in ui_scrollbar.c) */
+        win->width > win->min_width &&
+        win->hmargin < xev.x && xev.x < win->hmargin + win->width &&
+        win->vmargin < xev.y && xev.y < win->vmargin + win->height) {
+      /* Start long pressing */
+      _display.long_press_counter = 1;
+    } else {
+      _display.long_press_counter = 0;
+    }
 
     ui_window_receive_event(win, &xev);
   }
@@ -492,6 +495,7 @@ static void init_window(ANativeWindow *window) {
     locked = 0;
 
     for (count = 0; count < _disp.num_of_roots; count++) {
+      ui_window_set_mapped_flag(_disp.roots[count], 1); /* In case of restarting */
       update_window(_disp.roots[count]);
     }
   }
@@ -522,6 +526,12 @@ static void on_app_cmd(struct android_app *app, int32_t cmd) {
 #ifdef DEBUG
       bl_debug_printf("TERM_WINDOW\n");
 #endif
+      {
+        u_int count;
+        for (count = 0; count < _disp.num_of_roots; count++) {
+          ui_window_set_mapped_flag(_disp.roots[count], 0);
+        }
+      }
       locked = -1; /* Don't lock until APP_CMD_INIT_WINDOW after restart. */
 
       break;
@@ -633,11 +643,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   disp->roots[disp->num_of_roots++] = root;
 
   /* Cursor is drawn internally by calling ui_display_put_image(). */
-  if (!ui_window_show(root, hint)) {
-    return 0;
-  }
-
-  return 1;
+  return ui_window_show(root, hint);
 }
 
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
@@ -1178,6 +1184,16 @@ void ui_display_update_all(void) {
   if (_disp.num_of_roots > 0) {
     ui_window_update_all(_disp.roots[0]);
   }
+}
+
+void ui_window_set_mapped_flag(ui_window_t *win, int flag) {
+  u_int count;
+
+  for (count = 0; count < win->num_of_children; count++) {
+    ui_window_set_mapped_flag(win->children[count], flag);
+  }
+
+  win->is_mapped = flag;
 }
 
 jstring Java_mlterm_native_1activity_MLActivity_convertToTmpPath(

@@ -45,6 +45,11 @@ typedef struct {
 void (*vt_term_pty_closed_event)(vt_term_t *);
 #endif
 
+#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+/* XXX */
+int start_with_local_pty = 0;
+#endif
+
 /* --- static functions --- */
 
 #ifdef OPEN_PTY_ASYNC
@@ -927,6 +932,10 @@ int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output,
     } else {
       value = "false";
     }
+#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+  } else if (strcmp(key, "start_with_local_pty") == 0) {
+    value = start_with_local_pty ? "true" : "false";
+#endif
   } else {
     /* Continue to process it in x_screen.c */
     return 0;

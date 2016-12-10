@@ -54,4 +54,6 @@ void ui_display_resize(int yoffset, int width, int height,
 
 void ui_display_update_all();
 
+void ui_window_set_mapped_flag(ui_window_ptr_t win, int flag);
+
 #endif

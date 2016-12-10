@@ -1,3 +1,27 @@
+2016-12-11  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_main_config.c, ui_screen_manager.[ch], vt_term.[ch]:
+	  ui_set_start_with_local_pty() in ui_screen_manager.c is removed, and
+	  vt_term.c has 'start_with_local_pty' global variable.
+
+	* ui_font_ft.c:
+	  Whether font->compl_fonts is NULL or not is checked in cairo_calculate_char_width().
+
+	* MLPreferenceActivity.java:
+	  "Don't show SSH dialog on startup" checkbox is added.
+
+	* android/jni/ui_event_source.c:
+	  - XWINDOW_OF() => UIWINDOW_OF()
+	  - ui_window_set_mapped_flag(0) and ui_window_set_mapped_flag(1) are called
+	    in Java_mlterm_native_1activity_MLPreferenceActivity_setConfig() and
+	    Java_mlterm_native_1activity_MLPreferenceActivity_setDefaultFontConfig().
+
+	* android/jni/ui_display.[ch]:
+	  - Long click on scrollbar doesn't invoke context menu.
+	  - ui_window_set_mapped_flag() is added.
+	  - ui_window_set_mapped_flag(0) is called on APP_CMD_TERM_WINDOW, and
+	    ui_window_set_mapped_flag(1) is called on APP_CMD_INIT_WINDOW, and
+
 2016-12-04  Araki Ken  <arakiken@users.sf.net>
 
 	* README.android: Updated.

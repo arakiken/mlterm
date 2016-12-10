@@ -1306,12 +1306,6 @@ int ui_screen_manager_suspend(void) {
 
   return 1;
 }
-
-static int start_with_local_pty = 0;
-
-void ui_set_start_with_local_pty(int flag) {
-  start_with_local_pty = flag;
-}
 #endif
 
 u_int ui_screen_manager_startup(void) {

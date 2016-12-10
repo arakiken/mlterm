@@ -1284,7 +1284,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
 
 #if defined(__ANDROID__) && defined(USE_LIBSSH2)
   if ((value = bl_conf_get_value(conf, "start_with_local_pty"))) {
-    ui_set_start_with_local_pty(strcmp(value, "true") == 0);
+    start_with_local_pty = (strcmp(value, "true") == 0);
   }
 #endif
 

@@ -12,7 +12,7 @@
 #include "ui_display.h"
 #include "ui_window.h"
 
-#define XWINDOW_OF(term) \
+#define UIWINDOW_OF(term) \
   ((term)->parser->xterm_listener ? (term)->parser->xterm_listener->self : NULL)
 
 /* --- static variables --- */
@@ -35,7 +35,7 @@ static vt_term_t *get_current_term(void) {
   for (count = 0; count < num_of_terms; count++) {
     ui_window_t *win;
 
-    if (vt_term_is_attached(terms[count]) && (win = XWINDOW_OF(terms[count])) && win->is_focused) {
+    if (vt_term_is_attached(terms[count]) && (win = UIWINDOW_OF(terms[count])) && win->is_focused) {
       return terms[count];
     }
   }
@@ -74,7 +74,7 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
       }
     }
 
-    if ((win = XWINDOW_OF(term))) {
+    if ((win = UIWINDOW_OF(term))) {
       ui_window_update(win, 3);
     }
   } else /* if( commit_text) */
@@ -120,7 +120,7 @@ static int need_resize(u_int cur_width,  /* contains scrollbar width and margin 
   for (count = 0; count < num_of_terms; count++) {
     ui_window_t *win;
 
-    if (vt_term_is_attached(terms[count]) && (win = XWINDOW_OF(terms[count])) && win->is_focused) {
+    if (vt_term_is_attached(terms[count]) && (win = UIWINDOW_OF(terms[count])) && win->is_focused) {
       if (cur_height > new_height) {
         u_int line_height;
 
@@ -217,7 +217,7 @@ int ui_event_source_process(void) {
       if (vt_term_get_master_fd(terms[count]) + 1000 == ident) {
         ui_window_t *win;
 
-        if (cur_preedit_text && (win = XWINDOW_OF(terms[count])) && win->is_focused) {
+        if (cur_preedit_text && (win = UIWINDOW_OF(terms[count])) && win->is_focused) {
           vt_term_set_config(terms[count], "use_local_echo", "false");
         }
 
@@ -324,6 +324,7 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
     char *val = (*env)->GetStringUTFChars(env, jval, NULL);
     char *val2;
     char *path;
+    ui_window_t *root;
 
     /* XXX */
     if (strcmp(key, "col_size_of_width_a") == 0) {
@@ -335,6 +336,9 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
     } else {
       val2 = val;
     }
+
+    root = ui_get_root_window(UIWINDOW_OF(term));
+    ui_window_set_mapped_flag(root, 0);
 
     (*term->parser->config_listener->set)(term->parser->config_listener->self, NULL, key, val2);
 
@@ -354,6 +358,8 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
       }
     }
 
+    ui_window_set_mapped_flag(root, 1);
+
     (*env)->ReleaseStringUTFChars(env, jkey, key);
     (*env)->ReleaseStringUTFChars(env, jval, val);
   }
@@ -366,11 +372,14 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setDefaultFontConfig(JNIE
 
   if ((term = get_current_term()) && term->parser->config_listener) {
     char *font = (*env)->GetStringUTFChars(env, jfont, NULL);
+    ui_window_t *root = ui_get_root_window(UIWINDOW_OF(term));
 
+    ui_window_set_mapped_flag(root, 0);
     (*term->parser->config_listener->set_font)(term->parser->config_listener->self, NULL,
                                                "USASCII", font, 1);
     (*term->parser->config_listener->set_font)(term->parser->config_listener->self, NULL,
                                                "DEFAULT", font, 1);
+    ui_window_set_mapped_flag(root, 1);
 
     (*env)->ReleaseStringUTFChars(env, jfont, font);
   }

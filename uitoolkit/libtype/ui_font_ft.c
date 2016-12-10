@@ -1272,7 +1272,8 @@ u_int cairo_calculate_char_width(ui_font_t* font, u_int32_t ch) {
 
     utf8[ui_convert_ucs4_to_utf8(utf8, ch)] = '\0';
 
-    if (!FcCharSetHasChar(font->compl_fonts[0].charset, ch) &&
+    if (font->compl_fonts &&
+        !FcCharSetHasChar(font->compl_fonts[0].charset, ch) &&
         (idx = ui_search_next_cairo_font(font, ch)) >= 0) {
       cairo_scaled_font_text_extents(font->compl_fonts[idx].next, utf8, &extents);
     } else {

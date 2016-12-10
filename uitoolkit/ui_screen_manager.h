@@ -20,8 +20,4 @@ u_int ui_get_all_screens(ui_screen_t*** _screens);
 
 int ui_mlclient(char* args, FILE* fp);
 
-#if defined(__ANDROID__) && defined(USE_LIBSSH2)
-void ui_set_start_with_local_pty(int flag);
-#endif
-
 #endif
