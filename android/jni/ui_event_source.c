@@ -22,6 +22,7 @@ static ef_parser_t *utf8_parser;
  * same time. */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static char *cur_preedit_text;
+static int connect_to_ssh_server;
 
 /* --- static functions --- */
 
@@ -242,6 +243,15 @@ int ui_event_source_process(void) {
   }
 
   if (num_of_terms > 0) {
+    if (connect_to_ssh_server) {
+      vt_term_t *term = get_current_term();
+      if (term && term->parser->config_listener) {
+        char cmd[] = "mlclientx --dialog";
+        (*term->parser->config_listener->exec)(term->parser->config_listener->self, cmd);
+      }
+      connect_to_ssh_server = 0;
+    }
+
     ALooper_removeFds(looper, fds, num_of_terms);
   }
 
@@ -313,6 +323,22 @@ void Java_mlterm_native_1activity_MLActivity_updateScreen(JNIEnv *env, jobject t
   pthread_mutex_lock(&mutex);
   ui_display_update_all();
   pthread_mutex_unlock(&mutex);
+}
+
+void Java_mlterm_native_1activity_MLActivity_execCommand(JNIEnv *env, jobject this, jint cmd) {
+  vt_term_t *term;
+
+  if ((term = get_current_term()) && term->parser->config_listener) {
+    if (cmd == 3) {
+      connect_to_ssh_server = 1;
+    } else if (((u_int)cmd) <= 2) {
+      char *cmd_str[3] = { "open_pty", "vsplit_screen", "hsplit_screen" };
+      pthread_mutex_lock(&mutex);
+      /* config_listener->exec doesn't modify cmd string unless it contains space character. */
+      (*term->parser->config_listener->exec)(term->parser->config_listener->self, cmd_str[cmd]);
+      pthread_mutex_unlock(&mutex);
+    }
+  }
 }
 
 void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jobject this,

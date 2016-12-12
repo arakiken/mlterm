@@ -1,3 +1,18 @@
+2016-12-13  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_event_source.c: Java_mlterm_native_1activity_MLActivity_execCommand() is added.
+
+	* MLActivity.java:
+	  - "Open new pty", "Connect to SSH server", "Split screen vertically",
+	    "Split screen horizontally" and "Update screen" are added to context menu.
+	  - execCommand() native method is added.
+
+	* vte.c:
+	  - Compatibility with vte 0.40.0 or later which dropped VteTerminalPrivate
+	    is supported.
+	  - vte_terminal_set_color_cursor_foreground() is added.
+	  - vte_terminal_set_geometry_hints_for_window() is implemented.
+
 2016-12-11  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_main_config.c, ui_screen_manager.[ch], vt_term.[ch]:

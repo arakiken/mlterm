@@ -52,6 +52,7 @@ public class MLActivity extends NativeActivity {
   private native void dialogOkClicked(String user, String serv, String port, String encoding,
                                       String pass, String cmd);
   private native void updateScreen();
+  private native void execCommand(int cmd);
 
   private String keyString;
   private View contentView;
@@ -268,8 +269,13 @@ public class MLActivity extends NativeActivity {
   }
 
   private final int MENU_PASTE_ID = 0;
-  private final int MENU_CONFIG_ID = 1;
-  private final int MENU_CANCEL_ID = 2;
+  private final int MENU_OPENPTY_ID = 1;
+  private final int MENU_SSH_ID = 2;
+  private final int MENU_VSPLIT_ID = 3;
+  private final int MENU_HSPLIT_ID = 4;
+  private final int MENU_UPDATESCREEN_ID = 5;
+  private final int MENU_CONFIG_ID = 6;
+  private final int MENU_CANCEL_ID = 7;
 
   @Override
   public void onCreateContextMenu(ContextMenu menu, View view,
@@ -277,6 +283,11 @@ public class MLActivity extends NativeActivity {
     super.onCreateContextMenu(menu, view, info);
     /* menu.setHeaderTitle("Menu"); */
     menu.add(0, MENU_PASTE_ID, 0, "Paste from clipboard");
+    menu.add(0, MENU_OPENPTY_ID, 0, "Open new pty");
+    menu.add(0, MENU_SSH_ID, 0, "Connect to SSH server");
+    menu.add(0, MENU_VSPLIT_ID, 0, "Split screen vertically");
+    menu.add(0, MENU_HSPLIT_ID, 0, "Split screen horizontally");
+    menu.add(0, MENU_UPDATESCREEN_ID, 0, "Update screen");
     menu.add(0, MENU_CONFIG_ID, 0, "Configuration");
     menu.add(0, MENU_CANCEL_ID, 0, "Cancel");
   }
@@ -286,6 +297,21 @@ public class MLActivity extends NativeActivity {
     switch (item.getItemId()) {
       case MENU_PASTE_ID:
         getTextFromClipboard();
+        return true;
+      case MENU_OPENPTY_ID:
+        execCommand(0);
+        return true;
+      case MENU_SSH_ID:
+        execCommand(3);
+        return true;
+      case MENU_VSPLIT_ID:
+        execCommand(1);
+        return true;
+      case MENU_HSPLIT_ID:
+        execCommand(2);
+        return true;
+      case MENU_UPDATESCREEN_ID:
+        updateScreen();
         return true;
       case MENU_CONFIG_ID:
         Intent intent = new Intent(this, MLPreferenceActivity.class);
