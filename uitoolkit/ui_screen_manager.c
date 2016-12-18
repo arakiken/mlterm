@@ -212,6 +212,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
       if (vt_get_all_terms(NULL) > 1) {
         return 0;
       }
+      encoding = exec_cmd = NULL;
     } else {
       if (!bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(uri))) {
         encoding = NULL;

@@ -1,3 +1,7 @@
+2016-12-18  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen_manager.c: Uninitialized variables are fixed.
+
 2016-12-13  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_event_source.c: Java_mlterm_native_1activity_MLActivity_execCommand() is added.

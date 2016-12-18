@@ -1142,7 +1142,7 @@ int ui_search_next_cairo_font(ui_font_t* font, int ch) {
   if (cairo_compl_font_open(font, count + 1, font->pattern, ch)) {
     return count;
   } else {
-    /* To avoid to research it. */
+    /* To avoid to search it again. */
     FcCharSetAddChar(font->compl_fonts[0].charset, ch);
 
     return -1;
