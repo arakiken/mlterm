@@ -540,7 +540,15 @@ static cairo_scaled_font_t* cairo_font_open(ui_font_t* font, char* family, /* ca
         /* Remove not only matched name but also alias names */
         FcPatternRemove(pattern, FC_FAMILY, count);
       } else {
-        count++;
+        int count2 = ++count;
+        FcValue val2;
+        while (FcPatternGet(pattern, FC_FAMILY, count2, &val2) == FcResultMatch) {
+          if (strcmp(val.u.s, val2.u.s) == 0) {
+            FcPatternRemove(pattern, FC_FAMILY, count2);
+          } else {
+            count2++;
+          }
+        }
       }
     }
 
@@ -573,6 +581,72 @@ static void print_family(FcPattern* pattern) {
 }
 #endif
 
+#define MAX_CHARSET_CACHE_SIZE 100
+
+static struct {
+  char *family;
+  FcCharSet *charset;
+} charset_cache[MAX_CHARSET_CACHE_SIZE];
+static u_int charset_cache_size;
+
+static int search_nearest_pos_in_cache(const char *family, int beg, int end) {
+  int count = 0;
+  while (1) {
+    if (beg + 1 == end) {
+      return beg;
+    } else {
+      int pos = (beg + end) / 2;
+      switch (strcmp(family, charset_cache[pos].family)) {
+      case 0:
+        return pos;
+      case 1:
+        beg = pos;
+        break;
+      default: /* -1 */
+        end = pos;
+        break;
+      }
+    }
+    count++;
+  }
+}
+
+static FcCharSet *add_charset_to_cache(const char *family, FcCharSet *charset) {
+  if (charset_cache_size < MAX_CHARSET_CACHE_SIZE) {
+    int pos;
+    if (charset_cache_size == 0) {
+      pos = 0;
+    } else {
+      pos = search_nearest_pos_in_cache(family, 0, charset_cache_size);
+      if (strcmp(family, charset_cache[pos].family) > 0) {
+        pos++;
+      }
+    }
+
+    memmove(charset_cache + pos + 1, charset_cache + pos,
+            (charset_cache_size - pos) * sizeof(charset_cache[0]));
+
+    charset_cache[pos].family = strdup(family);
+    charset_cache[pos].charset = FcCharSetCopy(charset);
+    charset_cache_size++;
+
+    return charset_cache[pos].charset;
+  } else {
+    return NULL;
+  }
+}
+
+static FcCharSet *get_cached_charset(const char *family) {
+  if (charset_cache_size > 0) {
+    int pos = search_nearest_pos_in_cache(family, 0, charset_cache_size);
+    if (strcmp(family, charset_cache[pos].family) == 0) {
+      return charset_cache[pos].charset;
+    }
+  }
+
+  return NULL;
+}
+
 static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPattern* orig_pattern,
                                  int ch) {
   FcValue val;
@@ -590,48 +664,62 @@ static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPatt
     return 0;
   }
 
-  /* Call FcConfigSubstitute before FcFontMatch */
-  FcConfigSubstitute(NULL, pattern, FcMatchPattern);
 #if 0
   FcPatternPrint(orig_pattern);
 #endif
 
   for (count = 0; FcPatternGet(pattern, FC_FAMILY, 0, &val) == FcResultMatch; count++) {
-    if (!(match = FcFontMatch(NULL, pattern, &result))) {
-      break;
-    }
+    void* p;
 
-    FcPatternRemove(pattern, FC_FAMILY, 0);
-
-    if (FcPatternGetCharSet(match, FC_CHARSET, 0, &charset) != FcResultMatch ||
-        !FcCharSetHasChar(charset, ch)) {
-      FcPatternDestroy(match);
-
-      continue;
-    } else {
-      void* p;
-
-#if 0
-      print_family(match);
-#endif
-
-      FcPatternRemove(orig_pattern, FC_FAMILY, count++);
-
-      while (FcPatternGet(orig_pattern, FC_FAMILY, count, &val) == FcResultMatch) {
-        if (is_same_family(match, val.u.s)) {
-          FcPatternRemove(orig_pattern, FC_FAMILY, count);
-        } else {
-          count++;
-        }
+    if ((charset = get_cached_charset(val.u.s))) {
+      if (!FcCharSetHasChar(charset, ch)) {
+        FcPatternRemove(pattern, FC_FAMILY, 0);
+        continue;
       }
 
-      if ((p = realloc(font->compl_fonts, sizeof(*font->compl_fonts) * (num_of_compl_fonts + 1)))) {
-        font->compl_fonts = p;
-      } else {
-        FcPatternDestroy(match);
-
+      if (!(match = FcFontMatch(NULL, pattern, &result))) {
         break;
       }
+      FcPatternRemove(pattern, FC_FAMILY, 0);
+    } else {
+      FcResult ret;
+
+      if (!(match = FcFontMatch(NULL, pattern, &result))) {
+        break;
+      }
+
+      ret = FcPatternGetCharSet(match, FC_CHARSET, 0, &charset);
+      if (!(charset = add_charset_to_cache(val.u.s, charset))) {
+        break;
+      }
+      FcPatternRemove(pattern, FC_FAMILY, 0);
+
+      if (ret != FcResultMatch || !FcCharSetHasChar(charset, ch)) {
+        FcPatternDestroy(match);
+        continue;
+      }
+    }
+
+#if 0
+    print_family(match);
+#endif
+
+    FcPatternRemove(orig_pattern, FC_FAMILY, count++);
+
+    while (FcPatternGet(orig_pattern, FC_FAMILY, count, &val) == FcResultMatch) {
+      if (is_same_family(match, val.u.s)) {
+        FcPatternRemove(orig_pattern, FC_FAMILY, count);
+      } else {
+        count++;
+      }
+    }
+
+    if ((p = realloc(font->compl_fonts, sizeof(*font->compl_fonts) * (num_of_compl_fonts + 1)))) {
+      font->compl_fonts = p;
+    } else {
+      FcPatternDestroy(match);
+
+      break;
     }
 
 #if 0
@@ -662,7 +750,7 @@ static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPatt
     }
 
     font->compl_fonts[num_of_compl_fonts - 1].next = xfont;
-    font->compl_fonts[num_of_compl_fonts].charset = FcCharSetCopy(charset);
+    font->compl_fonts[num_of_compl_fonts].charset = charset;
     font->compl_fonts[num_of_compl_fonts].next = NULL;
 
     ret = 1;

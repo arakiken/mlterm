@@ -269,13 +269,14 @@ public class MLActivity extends NativeActivity {
   }
 
   private final int MENU_PASTE_ID = 0;
-  private final int MENU_OPENPTY_ID = 1;
-  private final int MENU_SSH_ID = 2;
-  private final int MENU_VSPLIT_ID = 3;
-  private final int MENU_HSPLIT_ID = 4;
-  private final int MENU_UPDATESCREEN_ID = 5;
-  private final int MENU_CONFIG_ID = 6;
-  private final int MENU_CANCEL_ID = 7;
+  private final int MENU_NEWSCREEN_ID = 1;
+  private final int MENU_LOCALPTY_ID = 2;
+  private final int MENU_SSH_ID = 3;
+  private final int MENU_VSPLIT_ID = 4;
+  private final int MENU_HSPLIT_ID = 5;
+  private final int MENU_UPDATESCREEN_ID = 6;
+  private final int MENU_CONFIG_ID = 7;
+  private final int MENU_CANCEL_ID = 8;
 
   @Override
   public void onCreateContextMenu(ContextMenu menu, View view,
@@ -283,7 +284,8 @@ public class MLActivity extends NativeActivity {
     super.onCreateContextMenu(menu, view, info);
     /* menu.setHeaderTitle("Menu"); */
     menu.add(0, MENU_PASTE_ID, 0, "Paste from clipboard");
-    menu.add(0, MENU_OPENPTY_ID, 0, "Open new pty");
+    menu.add(0, MENU_NEWSCREEN_ID, 0, "Open new screen");
+    menu.add(0, MENU_LOCALPTY_ID, 0, "Open local pty");
     menu.add(0, MENU_SSH_ID, 0, "Connect to SSH server");
     menu.add(0, MENU_VSPLIT_ID, 0, "Split screen vertically");
     menu.add(0, MENU_HSPLIT_ID, 0, "Split screen horizontally");
@@ -298,17 +300,20 @@ public class MLActivity extends NativeActivity {
       case MENU_PASTE_ID:
         getTextFromClipboard();
         return true;
-      case MENU_OPENPTY_ID:
+      case MENU_NEWSCREEN_ID:
         execCommand(0);
         return true;
-      case MENU_SSH_ID:
-        execCommand(3);
-        return true;
-      case MENU_VSPLIT_ID:
+      case MENU_LOCALPTY_ID:
         execCommand(1);
         return true;
-      case MENU_HSPLIT_ID:
+      case MENU_SSH_ID:
+        execCommand(4);
+        return true;
+      case MENU_VSPLIT_ID:
         execCommand(2);
+        return true;
+      case MENU_HSPLIT_ID:
+        execCommand(3);
         return true;
       case MENU_UPDATESCREEN_ID:
         updateScreen();
@@ -437,7 +442,7 @@ public class MLActivity extends NativeActivity {
       .setIcon(android.R.drawable.ic_dialog_info)
       .setTitle("Connect to SSH Server")
       .setView(dialogLayout)
-      .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+      .setPositiveButton("Connect", new DialogInterface.OnClickListener() {
           public void onClick(DialogInterface dialog, int whichButton) {
             dialogOkClicked(user_edit.getText().toString(),
                             serv_edit.getText().toString(),
@@ -447,7 +452,7 @@ public class MLActivity extends NativeActivity {
                             cmd_edit.getText().toString());
           }
         })
-      .setNegativeButton("No", new DialogInterface.OnClickListener() {
+      .setNegativeButton("Local", new DialogInterface.OnClickListener() {
           public void onClick(DialogInterface dialog, int whichButton) {} })
       .create();
 
