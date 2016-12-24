@@ -1,5 +1,9 @@
 2016-12-24  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_font_ft.c: FcCharSetDestroy(font->compl_fonts[count].charset) is removed.
+
+2016-12-24  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_font_ft.c:
 	  - add_charset_to_cache() and get_cached_charset() are added to store FcCharSet.
 	  - FcConfigSubstitute() in cairo_compl_font_open() is removed.

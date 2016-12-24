@@ -647,6 +647,17 @@ static FcCharSet *get_cached_charset(const char *family) {
   return NULL;
 }
 
+#if 0
+static void delete_charset_chache(void) {
+  u_int count;
+  for (count = 0; count < charset_cache_size; count++) {
+    free(charset_cache[count].family);
+    FcCharSetDestroy(charset_cache[count].charset);
+    charset_cache_size = 0;
+  }
+}
+#endif
+
 static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPattern* orig_pattern,
                                  int ch) {
   FcValue val;
@@ -1266,7 +1277,6 @@ int cairo_unset_font(ui_font_t* font) {
     cairo_scaled_font_t* xfont;
 
     for (count = 0;; count++) {
-      FcCharSetDestroy(font->compl_fonts[count].charset);
       if (!(xfont = font->compl_fonts[count].next)) {
         break;
       }
