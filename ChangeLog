@@ -1,3 +1,11 @@
+2016-12-25  Araki Ken  <arakiken@users.sf.net>
+
+	* jni/ui_event_source.c:
+	  - "mlclient --serv=" is allocated on stack in
+	     Java_mlterm_native_1activity_MLActivity_execCommand()
+	  - Java_mlterm_native_1activity_MLPreferenceActivity_setConfig() changes
+	    start_with_local_pty variable, not only saves it to ~/.mlterm/main.
+
 2016-12-24  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_font_ft.c: FcCharSetDestroy(font->compl_fonts[count].charset) is removed.

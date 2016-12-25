@@ -304,16 +304,16 @@ public class MLActivity extends NativeActivity {
         execCommand(0);
         return true;
       case MENU_LOCALPTY_ID:
-        execCommand(1);
+        execCommand(3);
         return true;
       case MENU_SSH_ID:
         execCommand(4);
         return true;
       case MENU_VSPLIT_ID:
-        execCommand(2);
+        execCommand(1);
         return true;
       case MENU_HSPLIT_ID:
-        execCommand(3);
+        execCommand(2);
         return true;
       case MENU_UPDATESCREEN_ID:
         updateScreen();

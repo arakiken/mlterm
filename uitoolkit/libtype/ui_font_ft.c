@@ -1290,6 +1290,10 @@ int cairo_unset_font(ui_font_t* font) {
     FcPatternDestroy(font->pattern);
   }
 
+#if 0
+  delete_charset_cache();
+#endif
+
   return 1;
 }
 

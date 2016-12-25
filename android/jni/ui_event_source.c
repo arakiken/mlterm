@@ -332,7 +332,8 @@ void Java_mlterm_native_1activity_MLActivity_execCommand(JNIEnv *env, jobject th
     if (cmd == 4) {
       connect_to_ssh_server = 1;
     } else if (((u_int)cmd) <= 3) {
-      char *cmd_str[4] = { "open_pty", "mlclientx --serv=", "vsplit_screen", "hsplit_screen" };
+      char cmd_str4[] = "mlclientx --serv=";
+      char *cmd_str[4] = { "open_pty", "vsplit_screen", "hsplit_screen", cmd_str4 };
       pthread_mutex_lock(&mutex);
       /* config_listener->exec doesn't modify cmd string unless it contains space character. */
       (*term->parser->config_listener->exec)(term->parser->config_listener->self, cmd_str[cmd]);
@@ -366,7 +367,14 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
     root = ui_get_root_window(UIWINDOW_OF(term));
     ui_window_set_mapped_flag(root, 0);
 
-    (*term->parser->config_listener->set)(term->parser->config_listener->self, NULL, key, val2);
+#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+    if (strcmp(key, "start_with_local_pty") == 0) {
+      start_with_local_pty = (strcmp(val2, "true") == 0);
+    } else
+#endif
+    {
+      (*term->parser->config_listener->set)(term->parser->config_listener->self, NULL, key, val2);
+    }
 
     /* Following is the same processing as config_protocol_set() in vt_parser.c */
 
