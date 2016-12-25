@@ -581,13 +581,12 @@ static void print_family(FcPattern* pattern) {
 }
 #endif
 
-#define MAX_CHARSET_CACHE_SIZE 100
-
 static struct {
   char *family;
   FcCharSet *charset;
-} charset_cache[MAX_CHARSET_CACHE_SIZE];
+} *charset_cache;
 static u_int charset_cache_size;
+static u_int max_charset_cache_size;
 
 static int search_nearest_pos_in_cache(const char *family, int beg, int end) {
   int count = 0;
@@ -596,15 +595,13 @@ static int search_nearest_pos_in_cache(const char *family, int beg, int end) {
       return beg;
     } else {
       int pos = (beg + end) / 2;
-      switch (strcmp(family, charset_cache[pos].family)) {
-      case 0:
+      int ret = strcmp(family, charset_cache[pos].family);
+      if (ret == 0) {
         return pos;
-      case 1:
+      } else if (ret > 0) {
         beg = pos;
-        break;
-      default: /* -1 */
+      } else {
         end = pos;
-        break;
       }
     }
     count++;
@@ -612,28 +609,34 @@ static int search_nearest_pos_in_cache(const char *family, int beg, int end) {
 }
 
 static FcCharSet *add_charset_to_cache(const char *family, FcCharSet *charset) {
-  if (charset_cache_size < MAX_CHARSET_CACHE_SIZE) {
-    int pos;
-    if (charset_cache_size == 0) {
-      pos = 0;
-    } else {
-      pos = search_nearest_pos_in_cache(family, 0, charset_cache_size);
-      if (strcmp(family, charset_cache[pos].family) > 0) {
-        pos++;
-      }
+  int pos;
+
+  if (charset_cache_size >= max_charset_cache_size) {
+    void *p;
+
+    if (!(p = realloc(charset_cache, (max_charset_cache_size + 50) * sizeof(*charset_cache)))) {
+      return NULL;
     }
 
-    memmove(charset_cache + pos + 1, charset_cache + pos,
-            (charset_cache_size - pos) * sizeof(charset_cache[0]));
-
-    charset_cache[pos].family = strdup(family);
-    charset_cache[pos].charset = FcCharSetCopy(charset);
-    charset_cache_size++;
-
-    return charset_cache[pos].charset;
-  } else {
-    return NULL;
+    charset_cache = p;
+    max_charset_cache_size += 50;
   }
+
+  if (charset_cache_size == 0) {
+    pos = 0;
+  } else {
+    pos = search_nearest_pos_in_cache(family, 0, charset_cache_size);
+    if (strcmp(family, charset_cache[pos].family) > 0) {
+      pos++;
+    }
+  }
+
+  memmove(charset_cache + pos + 1, charset_cache + pos,
+          (charset_cache_size - pos) * sizeof(*charset_cache));
+
+  charset_cache_size++;
+  charset_cache[pos].family = strdup(family);
+  return (charset_cache[pos].charset = FcCharSetCopy(charset));
 }
 
 static FcCharSet *get_cached_charset(const char *family) {
@@ -655,6 +658,9 @@ static void delete_charset_chache(void) {
     FcCharSetDestroy(charset_cache[count].charset);
     charset_cache_size = 0;
   }
+  free(charset_cache);
+  charset_cache = NULL;
+  max_charset_cache_size = 0;
 }
 #endif
 
@@ -768,6 +774,15 @@ static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPatt
 
     break;
   }
+
+#if 0
+  {
+    int i;
+    for (i = 0; i < charset_cache_size; i++) {
+      bl_debug_printf("%d %s\n", i, charset_cache[i].family);
+    }
+  }
+#endif
 
   FcPatternDestroy(pattern);
 

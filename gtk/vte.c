@@ -585,6 +585,8 @@ static void __exit(void *p, int status) {
 
   bl_msg_printf("reporting unfreed memories --->\n");
   bl_mem_free_all();
+
+  bl_dl_close_all();
 #endif
 
 #if 1

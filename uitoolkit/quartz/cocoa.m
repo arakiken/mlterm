@@ -92,9 +92,9 @@ static void exit_program(void) {
 
 #ifdef DEBUG
     main_loop_final();
-    bl_dl_close_all();
     bl_alloca_garbage_collect();
     bl_mem_free_all();
+    bl_dl_close_all();
 #endif
 
     [[NSApplication sharedApplication] terminate:nil];

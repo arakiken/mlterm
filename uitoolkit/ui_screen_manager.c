@@ -701,12 +701,12 @@ static void __exit(void *p, int status) {
   WSACleanup();
 #endif
 
-  bl_dl_close_all();
-
   bl_msg_printf("reporting unfreed memories --->\n");
 
   bl_alloca_garbage_collect();
   bl_mem_free_all();
+
+  bl_dl_close_all();
 
   exit(status);
 }

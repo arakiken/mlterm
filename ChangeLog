@@ -1,5 +1,17 @@
 2016-12-25  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/ui_window.c:
+	  - ensure_input_focus() which calls XSetInputFocus() with a window whose
+	    'inputtable' is greater than 0 is added.
+	  - ensure_input_focus() is called if a root window receives FocusIn event.
+
+	* ui_font_ft.c: charset_cache is allocated dynamically.
+
+	* vte.c, ui_screen_manager.c, cocoa.m: bl_dl_close_all() which frees leaked memory
+	  is called after bl_mem_free_all().
+
+2016-12-25  Araki Ken  <arakiken@users.sf.net>
+
 	* jni/ui_event_source.c:
 	  - "mlclient --serv=" is allocated on stack in
 	     Java_mlterm_native_1activity_MLActivity_execCommand()

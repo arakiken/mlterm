@@ -666,6 +666,31 @@ static void reset_input_focus(ui_window_t *win) {
   }
 }
 
+static void ensure_input_focus(ui_window_t *win) {
+  u_int count;
+
+  if (win->inputtable > 0) {
+    if (!win->is_focused) {
+      XSetInputFocus(win->disp->display, win->my_window, RevertToParent, CurrentTime);
+    }
+  } else {
+    for (count = 0; count < win->num_of_children; count++) {
+      ensure_input_focus(win->children[count]);
+    }
+  }
+}
+
+static int get_num_of_inputtables(ui_window_t *win) {
+  u_int count;
+  int num = (win->inputtable != 0) ? 1 : 0;
+
+  for (count = 0; count < win->num_of_children; count++) {
+    num += get_num_of_inputtables(win->children[count]);
+  }
+
+  return num;
+}
+
 #if !defined(NO_DYNAMIC_LOAD_TYPE)
 
 static int ui_window_set_use_xft(ui_window_t *win, int use_xft) {
@@ -1862,20 +1887,24 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
     }
   } else if (event->type == FocusIn) {
 #ifdef __DEBUG
-    bl_debug_printf("FOCUS IN %p\n", event->xany.window);
+    bl_debug_printf("FOCUS IN %p (parent %p)\n", event->xany.window, win->parent);
 #endif
 
     urgent_bell(win, 0);
 
-    /*
-     * Cygwin/X can send FocusIn/FocusOut events not to top windows
-     * but to child ones in changing window focus, so don't encircle
-     * notify_focus_{in|out}_to_children with if(!win->parent).
-     */
-    notify_focus_in_to_children(win);
+    if (!win->parent && get_num_of_inputtables(win) > 1) {
+      ensure_input_focus(win);
+    } else {
+      /*
+       * Cygwin/X can send FocusIn/FocusOut events not to top windows
+       * but to child ones in changing window focus, so don't encircle
+       * notify_focus_{in|out}_to_children with if(!win->parent).
+       */
+      notify_focus_in_to_children(win);
+    }
   } else if (event->type == FocusOut) {
 #ifdef __DEBUG
-    bl_debug_printf("FOCUS OUT %p\n", event->xany.window);
+    bl_debug_printf("FOCUS OUT %p (parent %p)\n", event->xany.window, win->parent);
 #endif
 
     /*
