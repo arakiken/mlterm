@@ -65,6 +65,7 @@ typedef struct ui_window {
 
   Window my_window;
 
+#ifdef  USE_XLIB
   /*
    * Don't remove if USE_XFT and USE_CAIRO are not defined to keep the size of
    * ui_window_t
@@ -72,6 +73,7 @@ typedef struct ui_window {
    */
   xft_draw_ptr_t xft_draw;
   cairo_ptr_t cairo_draw;
+#endif
 
   ui_color_t fg_color;
   ui_color_t bg_color;
@@ -160,6 +162,9 @@ typedef struct ui_window {
   int8_t is_focused;
   int8_t inputtable; /* 1: focused, -1: unfocused */
   int8_t is_mapped;
+#ifdef __ANDROID__
+  int8_t saved_mapped;
+#endif
   int8_t create_gc;
 
   /* button */

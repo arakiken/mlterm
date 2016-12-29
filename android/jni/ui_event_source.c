@@ -342,6 +342,24 @@ void Java_mlterm_native_1activity_MLActivity_execCommand(JNIEnv *env, jobject th
   }
 }
 
+void Java_mlterm_native_1activity_MLActivity_resumeNative(JNIEnv *env, jobject this) {
+  vt_term_t *term;
+  if ((term = get_current_term())) {
+    ui_window_set_mapped_flag(ui_get_root_window(UIWINDOW_OF(term)), 1);
+  }
+}
+
+void Java_mlterm_native_1activity_MLActivity_pauseNative(JNIEnv *env, jobject this) {
+  vt_term_t *term;
+  if ((term = get_current_term())) {
+    ui_window_set_mapped_flag(ui_get_root_window(UIWINDOW_OF(term)), 0);
+  }
+}
+
+/*
+ * This is called while main activity stops (preference activity is active), so
+ * pthread_mutex_lock() is not called.
+ */
 void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jobject this,
                                                                  jstring jkey, jstring jval) {
   vt_term_t *term;
@@ -351,7 +369,6 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
     char *val = (*env)->GetStringUTFChars(env, jval, NULL);
     char *val2;
     char *path;
-    ui_window_t *root;
 
     /* XXX */
     if (strcmp(key, "col_size_of_width_a") == 0) {
@@ -363,9 +380,6 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
     } else {
       val2 = val;
     }
-
-    root = ui_get_root_window(UIWINDOW_OF(term));
-    ui_window_set_mapped_flag(root, 0);
 
 #if defined(__ANDROID__) && defined(USE_LIBSSH2)
     if (strcmp(key, "start_with_local_pty") == 0) {
@@ -392,13 +406,15 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
       }
     }
 
-    ui_window_set_mapped_flag(root, 1);
-
     (*env)->ReleaseStringUTFChars(env, jkey, key);
     (*env)->ReleaseStringUTFChars(env, jval, val);
   }
 }
 
+/*
+ * This is called while main activity stops (preference activity is active), so
+ * pthread_mutex_lock() is not called.
+ */
 void Java_mlterm_native_1activity_MLPreferenceActivity_setDefaultFontConfig(JNIEnv *env,
                                                                             jobject this,
                                                                             jstring jfont) {
@@ -406,14 +422,11 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setDefaultFontConfig(JNIE
 
   if ((term = get_current_term()) && term->parser->config_listener) {
     char *font = (*env)->GetStringUTFChars(env, jfont, NULL);
-    ui_window_t *root = ui_get_root_window(UIWINDOW_OF(term));
 
-    ui_window_set_mapped_flag(root, 0);
     (*term->parser->config_listener->set_font)(term->parser->config_listener->self, NULL,
                                                "USASCII", font, 1);
     (*term->parser->config_listener->set_font)(term->parser->config_listener->self, NULL,
                                                "DEFAULT", font, 1);
-    ui_window_set_mapped_flag(root, 1);
 
     (*env)->ReleaseStringUTFChars(env, jfont, font);
   }

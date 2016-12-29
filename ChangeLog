@@ -1,3 +1,30 @@
+2016-12-29  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/ui_event_source.c:
+	  - Java_mlterm_native_1activity_MLActivity_{pause|resume}Native() which call
+	    ui_window_set_mapped_flag() are added.
+	  - ui_window_set_mapped_flag() are removed in
+	    Java_mlterm_native_1activity_MLPreferenceActivity_set{DefaultFontConfig|Config}().
+
+	* MLActivity.java:
+	  onResume() calls resumeNative(), and onPause() calls pauseNative().
+
+	* android/jni/ui_display.c:
+	  - get_jni_env() is added.
+	  - AttachCurrentThread()/DetachCurrentThread() is replaced by get_jni_env().
+	  - if a specified window is not mapped, ui_window_set_mapped_flag(1) does nothing.
+
+	* android/jni/ui_xic.c:
+	  AttachCurrentThread()/DetachCurrentThread() is replaced by GetEnv().
+
+	* ui_window.h:
+	  - saved_mapped is added to ui_window_t on Android.
+	  - xft_draw and cairo_draw are added to ui_window_t on xlib.
+
+	* android/jni/main.c: android_main() calls AttachCurrentThread()/DetachCurrentThread().
+
+	* MLPreferenceActivity.java: 'private' is added to native methods.
+
 2016-12-25  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_window.c:

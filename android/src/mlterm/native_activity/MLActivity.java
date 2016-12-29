@@ -53,6 +53,8 @@ public class MLActivity extends NativeActivity {
                                       String pass, String cmd);
   private native void updateScreen();
   private native void execCommand(int cmd);
+  private native String resumeNative();
+  private native String pauseNative();
 
   private String keyString;
   private View contentView;
@@ -234,6 +236,8 @@ public class MLActivity extends NativeActivity {
         .hideSoftInputFromWindow(contentView.getWindowToken(), 0);
 
     needRedraw = true;
+
+    pauseNative();
   }
 
   @Override
@@ -251,6 +255,8 @@ public class MLActivity extends NativeActivity {
       updateScreen();
       needRedraw = false;
     }
+
+    resumeNative();
   }
 
   @Override

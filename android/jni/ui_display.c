@@ -246,17 +246,23 @@ static int process_key_event(int action, int code) {
   return 1;
 }
 
+static JNIEnv *get_jni_env(JavaVM *vm) {
+  JNIEnv *env;
+  if ((*vm)->GetEnv(vm, &env, JNI_VERSION_1_6) == JNI_OK) {
+    return env;
+  } else {
+    return NULL;
+  }
+}
+
 static void show_soft_input(JavaVM *vm) {
   JNIEnv *env;
-  jobject this;
 
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
-
-  this = _display.app->activity->clazz;
-  (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
+  if ((env = get_jni_env(vm))) {
+    jobject this = _display.app->activity->clazz;
+    (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
                                                         "showSoftInput", "()V"));
-
-  (*vm)->DetachCurrentThread(vm);
+  }
 }
 
 /*
@@ -674,15 +680,13 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 
 static void perform_long_click(JavaVM *vm) {
   JNIEnv *env;
-  jobject this;
 
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
+  if ((env = get_jni_env(vm))) {
+    jobject this = _display.app->activity->clazz;
 
-  this = _display.app->activity->clazz;
-  (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
+    (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
                                                         "performLongClick", "()V"));
-
-  (*vm)->DetachCurrentThread(vm);
+  }
 }
 
 void ui_display_idling(ui_display_t *disp /* ignored */
@@ -836,13 +840,13 @@ void ui_display_unlock(void) {
 
 size_t ui_display_get_str(u_char *seq, size_t seq_len) {
   JNIEnv *env;
-  JavaVM *vm;
   jobject this;
   jstring jstr_key;
   size_t len;
 
-  vm = _display.app->activity->vm;
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
+  if (!(env = get_jni_env(_display.app->activity->vm))) {
+    return 0;
+  }
 
   this = _display.app->activity->clazz;
 
@@ -865,8 +869,6 @@ size_t ui_display_get_str(u_char *seq, size_t seq_len) {
   } else {
     len = 0;
   }
-
-  (*vm)->DetachCurrentThread(vm);
 
   return len;
 }
@@ -1020,13 +1022,13 @@ int ui_cmap_get_pixel_rgb(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_long
 
 u_char *ui_display_get_bitmap(char *path, u_int *width, u_int *height) {
   JNIEnv *env;
-  JavaVM *vm;
   jobject this;
   jintArray jarray;
   char *image;
 
-  vm = _display.app->activity->vm;
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
+  if (!(env = get_jni_env(_display.app->activity->vm))) {
+    return NULL;
+  }
 
   this = _display.app->activity->clazz;
 
@@ -1052,31 +1054,25 @@ u_char *ui_display_get_bitmap(char *path, u_int *width, u_int *height) {
     }
   }
 
-  (*vm)->DetachCurrentThread(vm);
-
   return image;
 }
 
 void ui_display_request_text_selection(void) {
   JNIEnv *env;
-  JavaVM *vm;
   jobject this;
 
-  vm = _display.app->activity->vm;
-
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
+  if (!(env = get_jni_env(_display.app->activity->vm))) {
+    return;
+  }
 
   this = _display.app->activity->clazz;
   (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
                                                         "getTextFromClipboard", "()V"));
-
-  (*vm)->DetachCurrentThread(vm);
 }
 
 void ui_display_send_text_selection(u_char *sel_data, size_t sel_len) {
   u_char *p;
   JNIEnv *env;
-  JavaVM *vm;
   jobject this;
   jstring str;
 
@@ -1087,17 +1083,15 @@ void ui_display_send_text_selection(u_char *sel_data, size_t sel_len) {
   sel_data = memcpy(p, sel_data, sel_len);
   sel_data[sel_len] = '\0';
 
-  vm = _display.app->activity->vm;
-
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
+  if (!(env = get_jni_env(_display.app->activity->vm))) {
+    return;
+  }
 
   this = _display.app->activity->clazz;
   (*env)->CallVoidMethod(env, this,
                          (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
                                              "setTextToClipboard", "(Ljava/lang/String;)V"),
                          (*env)->NewStringUTF(env, sel_data));
-
-  (*vm)->DetachCurrentThread(vm);
 }
 
 void ui_display_show_dialog(char *server) {
@@ -1106,16 +1100,17 @@ void ui_display_show_dialog(char *server) {
   char *port;
   char *encoding;
   JNIEnv *env;
-  JavaVM *vm;
   jobject this;
+
+  if (!(env = get_jni_env(_display.app->activity->vm))) {
+    return;
+  }
 
   if (server == NULL ||
       !bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(server))) {
     user = host = port = encoding = NULL;
   }
 
-  vm = _display.app->activity->vm;
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
   this = _display.app->activity->clazz;
   (*env)->CallVoidMethod(env, this,
                          (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
@@ -1126,7 +1121,6 @@ void ui_display_show_dialog(char *server) {
                          host ? (*env)->NewStringUTF(env, host) : NULL,
                          port ? (*env)->NewStringUTF(env, port) : NULL,
                          encoding ? (*env)->NewStringUTF(env, encoding) : NULL);
-  (*vm)->DetachCurrentThread(vm);
 }
 
 /* Called in the main thread (not in the native activity thread) */
@@ -1189,11 +1183,20 @@ void ui_display_update_all(void) {
 void ui_window_set_mapped_flag(ui_window_t *win, int flag) {
   u_int count;
 
+  if (flag == win->is_mapped) {
+    return;
+  }
+
   for (count = 0; count < win->num_of_children; count++) {
     ui_window_set_mapped_flag(win->children[count], flag);
   }
 
-  win->is_mapped = flag;
+  if (!flag) {
+    win->saved_mapped = win->is_mapped;
+    win->is_mapped = 0;
+  } else {
+    win->is_mapped = win->saved_mapped;
+  }
 }
 
 jstring Java_mlterm_native_1activity_MLActivity_convertToTmpPath(

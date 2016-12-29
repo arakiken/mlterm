@@ -15,11 +15,11 @@ import android.text.InputType;
 import android.widget.TextView;
 
 public class MLPreferenceActivity extends PreferenceActivity {
-  native void setConfig(String key, String val);
-  native void setDefaultFontConfig(String font);
-  native boolean getBoolConfig(String key);
-  native String getStrConfig(String key);
-  native String getDefaultFontConfig();
+  private native void setConfig(String key, String val);
+  private native void setDefaultFontConfig(String font);
+  private native boolean getBoolConfig(String key);
+  private native String getStrConfig(String key);
+  private native String getDefaultFontConfig();
 
   private void addCheckBox(PreferenceCategory category, final String key, String title) {
     CheckBoxPreference checkbox = new CheckBoxPreference(this);

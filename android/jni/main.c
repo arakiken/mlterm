@@ -27,17 +27,13 @@ char *default_font_path;
 
 static inline void save_default_font(ANativeActivity *activity) {
   JNIEnv *env;
-  JavaVM *vm;
   jobject this;
   jstring jstr;
   const char *path;
 
-  if (default_font_path) {
+  if (default_font_path || (*activity->vm)->GetEnv(activity->vm, &env, JNI_VERSION_1_6) != JNI_OK) {
     return;
   }
-
-  vm = activity->vm;
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
 
   this = activity->clazz;
   jstr = (*env)->CallObjectMethod(
@@ -47,11 +43,18 @@ static inline void save_default_font(ANativeActivity *activity) {
   path = (*env)->GetStringUTFChars(env, jstr, NULL);
   default_font_path = strdup(path);
   (*env)->ReleaseStringUTFChars(env, jstr, path);
-
-  (*vm)->DetachCurrentThread(vm);
 }
 
 #endif /* SAVE_DEFAULT_FONT */
+
+static void attach_current_thread(JavaVM *vm) {
+  JNIEnv *env;
+  (*vm)->AttachCurrentThread(vm, &env, NULL);
+}
+
+static void detach_current_thread(JavaVM *vm) {
+  (*vm)->DetachCurrentThread(vm);
+}
 
 static void finish(struct android_app *app) {
     int ident;
@@ -76,6 +79,8 @@ void android_main(struct android_app *app) {
 
   bl_set_sys_conf_dir(CONFIG_PATH);
 
+  attach_current_thread(app->activity->vm);
+
 #ifdef SAVE_DEFAULT_FONT
   save_default_font(app->activity);
 #endif
@@ -95,6 +100,8 @@ void android_main(struct android_app *app) {
 
   /* Only screen objects are closed. */
   ui_screen_manager_suspend();
+
+  detach_current_thread(app->activity->vm);
 
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " android_main finished.\n");

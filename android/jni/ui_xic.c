@@ -47,17 +47,17 @@ int ui_xic_is_active(ui_window_t *win) { return 1; }
 
 int ui_xic_switch_mode(ui_window_t *win) {
   JNIEnv *env;
-  JavaVM *vm;
   jobject this;
   jboolean is_active;
 
-  vm = win->disp->display->app->activity->vm;
-  (*vm)->AttachCurrentThread(vm, &env, NULL);
+  if ((*win->disp->display->app->activity->vm)->GetEnv(win->disp->display->app->activity->vm,
+                                                       &env, JNI_VERSION_1_6) != JNI_OK) {
+    return 0;
+  }
 
   this = win->disp->display->app->activity->clazz;
   (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
                                                         "forceAsciiInput", "()V"));
-  (*vm)->DetachCurrentThread(vm);
 }
 
 #if 0
