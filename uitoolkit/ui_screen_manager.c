@@ -1138,7 +1138,7 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
       vt_term_t *term = NULL;
 
       if ((pty && !(term = vt_get_detached_term(pty))) ||
-          !open_screen_intern("", term, NULL, 0, 0, 0)) {
+          !open_screen_intern(main_config.disp_name, term, NULL, 0, 0, 0)) {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " open_screen_intern() failed.\n");
 #endif

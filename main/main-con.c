@@ -236,6 +236,7 @@ int main(int argc, char** argv) {
   tcgetattr(STDIN_FILENO, &std_tio);
 
   if (!connect_to_server(argc, argv)) {
+    debug_printf("Failed to connect to mlterm-con-server.\n");
     return -1;
   }
 

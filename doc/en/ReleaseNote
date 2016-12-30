@@ -5,7 +5,7 @@ ver 3.8.0
 * Support libssh2 on Android.
 * Add "start_with_local_pty" / --slp option which disables ssh connection dialog
   on startup on Android.
-* Support context menu (copy&paste, configuration) by long click on Android.
+* Support context menu (copy&paste, configuration etc) by long click on Android.
 * Change library names.
   libmkf => libmef, libkik => libpobl
   libmlterm_core => libmlterm_coreotf (if open type layout is supported)
@@ -17,6 +17,7 @@ ver 3.8.0
   Fix the bug which disables dynamic change of options related to ctl such as
   "bidi_mode" or etc. (Enbugged at 3.6.2)
   Fix the bug which disabled "ButtonN" shortcut key if num_lock is on.
+  Fix segfault in resizing columns or rows on Android.
 
 ver 3.7.2
 * Add mlterm-con which is a console version of mlterm (like GNU Screen) and which
