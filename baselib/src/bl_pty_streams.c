@@ -218,6 +218,9 @@ pid_t bl_pty_fork(int *master, int *slave) {
 #ifdef VSWTCH
   tio.c_cc[VSWTCH] = VDISABLE;
 #endif
+#ifdef VSTATUS
+  tio.c_cc[VSTATUS] = CSTATUS;
+#endif
 /*
  * VMIN == VEOF and VTIME == VEOL on old System V.
  */
