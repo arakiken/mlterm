@@ -878,6 +878,11 @@ static ssize_t lo_send_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
     /* ^C */
     scp_stop(pty);
   }
+  else if (((vt_pty_ssh_t *)pty)->is_eof) {
+    bl_trigger_sig_child(pty->child_pid);
+
+    return -1;
+  }
 
   return send(pty->slave, buf, len, 0);
 }
