@@ -1,5 +1,21 @@
 2017-01-07  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.8.0 released.
+	  (tag "rel-3_8_0")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.8.0.
+
+	* README, gtk/README: Updated.
+
+	* libptyssh/vt_pty_ssh.c: zombie() calls vt_write_to_pty() instead lo_write_to_pty().
+
+	* MLTerm.java: display.isDisposed() is checked just before display.wake()
+	  in startPtyWatcher().
+
+2017-01-07  Araki Ken  <arakiken@users.sf.net>
+
 	* libptyssh/vt_pty_ssh.c: bl_trigger_sig_child() is called if vt_pty_ssh_t::is_eof
 	  is true in lo_send_to_pty() instead of lo_write_to_pty().
 

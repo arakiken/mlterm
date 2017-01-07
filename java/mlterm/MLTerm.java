@@ -840,6 +840,10 @@ public class MLTerm extends StyledText {
     (new Thread(new Runnable() {
       public void run() {
         while (true) {
+          /* display.isDisposed() should be checked just before display.wake(). */
+          if (display.isDisposed()) {
+            break;
+          }
           display.wake();
 
           if (readyReadPty) {
@@ -857,8 +861,8 @@ public class MLTerm extends StyledText {
             }
           }
 
-          if (!MLTermPty.waitForReading() /* block until pty is ready to be read. */
-              || display.isDisposed()) {
+          /* block until pty is ready to be read. */
+          if (!MLTermPty.waitForReading()) {
             break;
           }
 

@@ -751,7 +751,7 @@ static int final(vt_pty_t *pty) {
   ssh_session_t *session;
   u_int count;
 
-  unuse_loopback((vt_pty_ssh_t *)pty);
+  unuse_loopback(pty);
 
   session = ((vt_pty_ssh_t *)pty)->session;
 
@@ -784,11 +784,10 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 
 static int reconnect(vt_pty_ssh_t *pty);
 static int use_loopback(vt_pty_t *pty);
-static ssize_t lo_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len);
 
 static int zombie(vt_pty_ssh_t *pty) {
   if (use_loopback(&pty->pty)) {
-    lo_write_to_pty(&pty->pty, "=== Press any key to exit ===", 29);
+    vt_write_to_pty(&pty->pty, "=== Press any key to exit ===", 29);
     pty->is_eof = 1;
 
     return 1;
@@ -808,7 +807,7 @@ static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
   if (ret == LIBSSH2_ERROR_SOCKET_SEND || ret == LIBSSH2_ERROR_SOCKET_RECV ||
       libssh2_channel_eof(((vt_pty_ssh_t *)pty)->channel)) {
-    if ((ret < 0 && reconnect(pty)) || zombie((vt_pty_ssh_t *)pty)) {
+    if ((ret < 0 && reconnect((vt_pty_ssh_t*)pty)) || zombie((vt_pty_ssh_t *)pty)) {
       return 0;
     }
 
@@ -850,7 +849,7 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
   if (ret == LIBSSH2_ERROR_SOCKET_SEND || ret == LIBSSH2_ERROR_SOCKET_RECV ||
       libssh2_channel_eof(((vt_pty_ssh_t *)pty)->channel)) {
-    if ((ret < 0 && reconnect(pty)) || zombie((vt_pty_ssh_t *)pty)) {
+    if ((ret < 0 && reconnect((vt_pty_ssh_t*)pty)) || zombie((vt_pty_ssh_t *)pty)) {
       return 0;
     }
 

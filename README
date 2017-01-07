@@ -196,7 +196,7 @@ Supported platforms
   * NetBSD 5.2 / framebuffer (hpcmips)
   * NetBSD 6.1 / framebuffer (xm6i 0.42)
   * OpenSolaris 2009.06 / X (CC=cc) (x86)
-  * Ubuntu 15.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
+  * Fedora 24 / X, framebuffer (x86)
   * CentOS 5 / X (x86)
   * FreeBSD 9.0 / framebuffer (x86)
   * OpenBSD 5.3 / framebuffer (x86)
@@ -206,6 +206,7 @@ Supported platforms
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.
 
+  * Ubuntu 15.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
   * Ubuntu 14.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
   * Ubuntu 14.04 / X, framebuffer (CC=gcc, CC=clang) (x86)
   * Ubuntu 13.10 / X, framebuffer (CC=gcc, CC=clang) (x86)

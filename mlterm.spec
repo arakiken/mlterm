@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.7.2
+%define version 3.8.0
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -69,6 +69,7 @@ rm -rf $RPM_BUILD_ROOT
 %{libdir}/libpobl.*
 %{libdir}/libmef.*
 %{libdir}/libmlterm_core.*
+%{libdir}/libmlterm_coreotl.*
 %{libdir}/mef/
 %{libdir}/mlterm/
 %{libexecdir}/mlterm/
@@ -79,6 +80,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Sat Jan 7 2017 Araki Ken <arakiken@users.sf.net>
+- Source version 3.8.0
+
 * Mon Aug 15 2016 Araki Ken <arakiken@users.sf.net>
 - Source version 3.7.2
 

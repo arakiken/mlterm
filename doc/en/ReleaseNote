@@ -18,6 +18,7 @@ ver 3.8.0
   "bidi_mode" or etc. (Enbugged at 3.6.2)
   Fix the bug which disabled "ButtonN" shortcut key if num_lock is on.
   Fix segfault in resizing columns or rows on Android.
+  Fix the default value of termios.c_cc[VSTATUS]. (Thanks to Oshima Yasushi san)
 
 ver 3.7.2
 * Add mlterm-con which is a console version of mlterm (like GNU Screen) and which

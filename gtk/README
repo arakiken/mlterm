@@ -164,14 +164,15 @@ How to build & install libvte compatible library using mlterm engine.
       "visible-bell"
 
 * Tested terminals using vte.
-  o gnome-terminal 3.16.2 on Ubuntu 15.10	... OK
-  o gnome-terminal 2.16.0 on CentOS 5		... OK
-  o roxterm 3.1.4 on Ubuntu 15.10		... OK
-  o sakura 3.2.0 on Ubuntu 15.10                ... OK
+  o gnome-terminal 3.20.2 on Fedora 24  ... OK
+  o gnome-terminal 2.16.0 on CentOS 5   ... OK
+  o roxterm 3.3.2 on Fedora 24          ... OK
+  o sakura 3.2.0 on Ubuntu 15.10        ... OK
 
   Following platforms are not actually tested by developers, but were tested
   in the past.
-  o gnome-terminal 3.14.2 on Ubuntu 15.04	... OK
+  o gnome-terminal 3.16.2 on Ubuntu 15.10
+  o gnome-terminal 3.14.2 on Ubuntu 15.04
   o gnome-terminal 3.15.0 on Ubuntu 14.10
   o gnome-terminal 3.6.2 on Ubuntu 14.10
   o gnome-terminal 3.6.2 on Ubuntu 13.10
@@ -180,7 +181,8 @@ How to build & install libvte compatible library using mlterm engine.
   o gnome-terminal 3.4.1.1-0ubuntu1 on Ubuntu 12.04
   o gnome-terminal 3.0.1 on Ubuntu 11.10
   o gnome-terminal 2.32.0 on Ubuntu 10.10
-  o roxterm 2.9.5 on Ubuntu 15.04		... OK
+  o roxterm 3.1.4 on Ubuntu 15.10
+  o roxterm 2.9.5 on Ubuntu 15.04
   o roxterm 2.8.2 on Ubuntu 14.10
   o roxterm 2.7.2 on Ubuntu 13.10
   o roxterm 2.6.5-1 on Ubuntu 13.04
