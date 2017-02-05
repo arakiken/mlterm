@@ -21,7 +21,6 @@
 
 static ui_display_t _disp;
 static Display _display;
-static int rotate_display;
 static int locked;
 
 /* --- static functions --- */
@@ -265,9 +264,8 @@ static void show_soft_input(JavaVM *vm) {
   }
 }
 
-/*
+/* 
  * _disp.roots[1] is ignored.
- * x and y are rotated values.
  */
 static inline ui_window_t *get_window(int x, /* X in display */
                                       int y  /* Y in display */
@@ -347,18 +345,8 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     }
 
     xev.time = time / 1000000;
-    if (rotate_display) {
-      if (rotate_display > 0) {
-        xev.x = y;
-        xev.y = _disp.height - x - 1;
-      } else {
-        xev.x = _disp.width - y - 1;
-        xev.y = x;
-      }
-    } else {
-      xev.x = x;
-      xev.y = y;
-    }
+    xev.x = x;
+    xev.y = y;
     xev.state = _display.key_state;
 
     if (xev.type == ButtonPress) {
@@ -471,14 +459,6 @@ static void init_window(ANativeWindow *window) {
   if (_disp.width == 0) {
     _disp.width = ANativeWindow_getWidth(window);
     _disp.height = ANativeWindow_getHeight(window);
-
-    if (rotate_display) {
-      u_int tmp;
-
-      tmp = _disp.width;
-      _disp.width = _disp.height;
-      _disp.height = tmp;
-    }
   } else {
     /* Changed in visibleFrameChanged. */
   }
@@ -721,33 +701,7 @@ int ui_display_reset_cmap(void) { return 0; }
 
 void ui_display_set_use_ansi_colors(int use) {}
 
-void ui_display_rotate(int rotate) {
-  if (rotate == rotate_display) {
-    return;
-  }
-
-  if (rotate_display + rotate != 0) {
-    u_int tmp;
-
-    tmp = _disp.width;
-    _disp.width = _disp.height;
-    _disp.height = tmp;
-
-    rotate_display = rotate;
-
-    if (_disp.num_of_roots > 0) {
-      ui_window_resize_with_margin(_disp.roots[0], _disp.width, _disp.height, NOTIFY_TO_MYSELF);
-    }
-  } else {
-    /* If rotate_display == -1 rotate == 1 or vice versa, don't swap. */
-
-    rotate_display = rotate;
-
-    if (_disp.num_of_roots > 0) {
-      ui_window_update_all(_disp.roots[0]);
-    }
-  }
-}
+void ui_display_rotate(int rotate) {}
 
 int ui_display_init(struct android_app *app) {
   int ret;
@@ -874,20 +828,6 @@ size_t ui_display_get_str(u_char *seq, size_t seq_len) {
 u_long ui_display_get_pixel(int x, int y) {
   u_char *fb;
 
-  if (rotate_display) {
-    int tmp;
-
-    if (rotate_display > 0) {
-      tmp = x;
-      x = _disp.height - y - 1;
-      y = tmp;
-    } else {
-      tmp = x;
-      x = y;
-      y = _disp.width - tmp - 1;
-    }
-  }
-
   fb = get_fb(x, y);
 
   if (_display.bytes_per_pixel == 4) {
@@ -900,44 +840,7 @@ u_long ui_display_get_pixel(int x, int y) {
 
 void ui_display_put_image(int x, int y, u_char *image, size_t size, int need_fb_pixel) {
   if (display_lock()) {
-    if (rotate_display) {
-      /* Display is rotated. */
-
-      u_char *fb;
-      int tmp;
-      int line_length;
-      size_t count;
-
-      tmp = x;
-      if (rotate_display > 0) {
-        x = _disp.height - y - 1;
-        y = tmp;
-        line_length = _display.buf.stride * _display.bytes_per_pixel;
-      } else {
-        x = y;
-        y = _disp.width - tmp - 1;
-        line_length = -(_display.buf.stride * _display.bytes_per_pixel);
-      }
-
-      fb = get_fb(x, y);
-
-      if (_display.bytes_per_pixel == 2) {
-        size /= 2;
-        for (count = 0; count < size; count++) {
-          *((u_int16_t *)fb) = ((u_int16_t *)image)[count];
-          fb += line_length;
-        }
-      } else /* if( _display.bytes_per_pixel == 4) */
-      {
-        size /= 4;
-        for (count = 0; count < size; count++) {
-          *((u_int32_t *)fb) = ((u_int32_t *)image)[count];
-          fb += line_length;
-        }
-      }
-    } else {
-      memcpy(get_fb(x, y), image, size);
-    }
+    memcpy(get_fb(x, y), image, size);
   }
 }
 
@@ -950,32 +853,6 @@ void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int wid
     u_int copy_len;
     u_int count;
     size_t line_length;
-
-    if (rotate_display) {
-      int tmp;
-
-      if (rotate_display > 0) {
-        tmp = src_x;
-        src_x = _disp.height - src_y - height;
-        src_y = tmp;
-
-        tmp = dst_x;
-        dst_x = _disp.height - dst_y - height;
-        dst_y = tmp;
-      } else {
-        tmp = src_x;
-        src_x = src_y;
-        src_y = _disp.width - tmp - width;
-
-        tmp = dst_x;
-        dst_x = dst_y;
-        dst_y = _disp.width - tmp - width;
-      }
-
-      tmp = height;
-      height = width;
-      width = tmp;
-    }
 
     copy_len = width * _display.bytes_per_pixel;
     line_length = _display.buf.stride * _display.bytes_per_pixel;
@@ -1139,24 +1016,14 @@ void ui_display_resize(int yoffset, int width, int height,
   _display.yoffset = yoffset;
 
   if (_disp.num_of_roots == 0) {
-    if (rotate_display) {
-      _disp.width = height;
-      _disp.height = width;
-    } else {
-      _disp.width = width;
-      _disp.height = height;
-    }
+    _disp.width = width;
+    _disp.height = height;
 
     return;
   }
 
-  if (rotate_display) {
-    new_width = height;
-    new_height = width;
-  } else {
-    new_width = width;
-    new_height = height;
-  }
+  new_width = width;
+  new_height = height;
 
   if (need_resize && !(*need_resize)(_disp.width, _disp.height, new_width, new_height)) {
     return;
