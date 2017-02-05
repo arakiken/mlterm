@@ -1,3 +1,9 @@
+2017-02-05  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/ui_display.c: Minor fixes.
+
+	* version.h.in: 3.8.0 -> 3.8.0post
+
 2017-01-07  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.0 released.

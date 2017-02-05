@@ -466,9 +466,7 @@ static void update_window(ui_window_t *win) {
 }
 
 static void init_window(ANativeWindow *window) {
-  struct rgb_info rgbinfos[] = {
-      {3, 2, 3, 11, 5, 0}, {0, 0, 0, 16, 8, 0},
-  };
+  struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
 
   if (_disp.width == 0) {
     _disp.width = ANativeWindow_getWidth(window);
@@ -487,7 +485,7 @@ static void init_window(ANativeWindow *window) {
 
   _disp.depth = 16;
   _display.bytes_per_pixel = 2;
-  _display.rgbinfo = rgbinfos[0];
+  _display.rgbinfo = rgbinfo;
 
   ANativeWindow_setBuffersGeometry(window, 0, 0, WINDOW_FORMAT_RGB_565);
 
@@ -1011,8 +1009,6 @@ void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int wid
     }
   }
 }
-
-int ui_display_check_visibility_of_im_window(void) { return 0; }
 
 int ui_cmap_get_closest_color(u_long *closest, int red, int green, int blue) { return 0; }
 
