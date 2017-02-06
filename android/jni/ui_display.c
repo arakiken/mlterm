@@ -454,7 +454,7 @@ static void update_window(ui_window_t *win) {
 }
 
 static void init_window(ANativeWindow *window) {
-  struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
+  struct rgb_info rgbinfo = {3, 2, 3, 11, 5, 0};
 
   if (_disp.width == 0) {
     _disp.width = ANativeWindow_getWidth(window);
