@@ -23,7 +23,7 @@ Options for configure
   --without-prop-table
     Remove unicode character property table
 
-  --with-gui=(xlib|win32|fb|quartz|console)
+  --with-gui=(xlib|win32|fb|quartz|console|wayland)
     Use specified gui library
     See following documents in detail.
 

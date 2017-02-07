@@ -34,6 +34,8 @@ OBJ2_quartz = ui.o cocoa.o ui_im_status_screen-cocoa.o
 
 OBJ2_console = ui.o ui_im_status_screen.o
 
+OBJ2_wayland = ui.o ui_im_status_screen.o
+
 RSOBJ_win32 = winrs.o
 
 OBJ = $(OBJ1) $(OBJ2_@GUI@)

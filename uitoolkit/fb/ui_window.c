@@ -28,6 +28,12 @@ static ui_color_t black = {TP_COLOR, 0, 0, 0, 0};
 /* XXX Check if win is input method window or not. */
 #define IS_IM_WINDOW(win) ((win)->disp->num_of_roots >= 2 && (win) == (win)->disp->roots[1])
 
+#ifdef USE_WAYLAND
+#define ADDITIONAL_ARG(arg) ,(arg)
+#else
+#define ADDITIONAL_ARG(arg)
+#endif
+
 /* --- static variables --- */
 
 static int click_interval = 250; /* millisecond, same as xterm. */
@@ -42,7 +48,7 @@ static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_
 
   ui_display_copy_lines(src_x + win->x + win->hmargin, src_y + win->y + win->vmargin,
                         dst_x + win->x + win->hmargin, dst_y + win->y + win->vmargin, width,
-                        height);
+                        height ADDITIONAL_ARG(win->disp));
 
   return 1;
 }
@@ -109,8 +115,12 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
     g2 = PIXEL_GREEN(bg, display->rgbinfo) & 0xff;
     b2 = PIXEL_BLUE(bg, display->rgbinfo) & 0xff;
 
-    copy_pixel(dst, RGB_TO_PIXEL(BLEND(r1, r2, a1), BLEND(g1, g2, a2), BLEND(b1, b2, a3),
-                                 display->rgbinfo),
+    copy_pixel(dst,
+#ifdef USE_WAYLAND
+               0xff000000 |
+#endif
+               RGB_TO_PIXEL(BLEND(r1, r2, a1), BLEND(g1, g2, a2), BLEND(b1, b2, a3),
+                            display->rgbinfo),
                bpp);
 
     return 1;
@@ -335,7 +345,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
           }
 
-          ui_display_put_image(x, y + y_off, src, p - src, 0);
+          ui_display_put_image(x, y + y_off, src, p - src, 0 ADDITIONAL_ARG(win->disp));
         }
 
         return 1;
@@ -361,7 +371,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
           }
 
-          ui_display_put_image(x, y + y_off, src, p - src, 0);
+          ui_display_put_image(x, y + y_off, src, p - src, 0 ADDITIONAL_ARG(win->disp));
         }
 
         return 1;
@@ -388,7 +398,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
           }
 
-          ui_display_put_image(x, y + y_off, src, p - src, 0);
+          ui_display_put_image(x, y + y_off, src, p - src, 0 ADDITIONAL_ARG(win->disp));
         }
 
         return 1;
@@ -436,7 +446,8 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
           p += (font_width * bpp);
         } else {
           for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
-            copy_pixel(p, ui_display_get_pixel(x + x_off, y + y_off), bpp);
+            copy_pixel(p, ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp)),
+                       bpp);
           }
         }
       }
@@ -483,7 +494,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
           for (; x_off < width - retreat; x_off++, p += bpp) {
             u_long bg;
 
-            bg = ui_display_get_pixel(x + x_off, y + y_off);
+            bg = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
 
             if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_color->pixel, bg, bpp)) {
               continue;
@@ -496,7 +507,8 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 
           for (; x_off < advance; x_off++, p += bpp) {
             if (count == 0 || x_off >= prev_crowded_out) {
-              copy_pixel(p, ui_display_get_pixel(x + x_off, y + y_off), bpp);
+              copy_pixel(p, ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp)),
+                         bpp);
             }
           }
 
@@ -533,7 +545,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                   bg = bg_color->pixel;
                 }
               } else {
-                bg = ui_display_get_pixel(x + x_off, y + y_off);
+                bg = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
               }
 
               if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_color->pixel, bg,
@@ -543,7 +555,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
 
             if (!src_bg_is_set) {
-              pixel = ui_display_get_pixel(x + x_off, y + y_off);
+              pixel = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
               copy_pixel(p, pixel, bpp);
             }
           }
@@ -569,7 +581,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             } else if (src_bg_is_set) {
               continue;
             } else {
-              pixel = ui_display_get_pixel(x + x_off, y + y_off);
+              pixel = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
             }
           }
 
@@ -578,7 +590,8 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       }
     }
 
-    ui_display_put_image((x = orig_x), y + y_off, src, p - src, !src_bg_is_set);
+    ui_display_put_image((x = orig_x), y + y_off, src, p - src, !src_bg_is_set
+                         ADDITIONAL_ARG(win->disp));
   }
 
   return 1;
@@ -653,7 +666,7 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
 
         ui_display_put_image(win->x + win->hmargin + dst_x + x_off - w,
                              win->y + win->vmargin + dst_y + y_off, picture + bpp * (x_off - w),
-                             w * bpp, 0);
+                             w * bpp, 0 ADDITIONAL_ARG(win->disp));
         w = 0;
       }
 
@@ -667,7 +680,7 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
 
     for (y_off = 0; y_off < height; y_off++) {
       ui_display_put_image(win->x + win->hmargin + dst_x, win->y + win->vmargin + dst_y + y_off,
-                           picture, size, 0);
+                           picture, size, 0 ADDITIONAL_ARG(win->disp));
       picture += src_width_size;
     }
   }
@@ -1005,6 +1018,11 @@ int ui_window_show(ui_window_t *win,
     win->parent_window = win->parent->my_window;
     win->gc = win->parent->gc;
   }
+#ifdef USE_WAYLAND
+  else {
+    ui_display_create_surface(win->disp, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+  }
+#endif
 
   win->my_window = win; /* Note that ui_connect_dialog.c uses this. */
 
@@ -1037,9 +1055,11 @@ int ui_window_show(ui_window_t *win,
     ui_window_show(win->children[count], 0);
   }
 
+#ifndef USE_WAYLAND
   if (!win->parent && win->x == 0 && win->y == 0) {
     ui_window_resize_with_margin(win, win->disp->width, win->disp->height, NOTIFY_TO_MYSELF);
   }
+#endif
 
   return 1;
 }
@@ -1065,6 +1085,15 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
                      u_int height,                  /* excluding margin */
                      ui_resize_flag_t flag          /* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
                      ) {
+#ifdef USE_WAYLAND
+  if (win->parent == NULL) {
+    ui_display_resize(win->disp, width + win->hmargin * 2, height + win->vmargin * 2);
+  } else if (flag & NOTIFY_TO_PARENT) {
+    return ui_window_resize(win->parent, win->parent->width + width - win->width ,
+                            win->parent->height + height - win->height,
+                            NOTIFY_TO_MYSELF);
+  }
+#else
   if ((flag & NOTIFY_TO_PARENT) &&
       /* XXX Check if win is input method window or not. */
       !IS_IM_WINDOW(win)) {
@@ -1093,6 +1122,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
   if (win->width == width && win->height == height) {
     return 0;
   }
+#endif
 
   win->width = width;
   win->height = height;
@@ -1102,6 +1132,11 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
       (*win->window_resized)(win);
     }
 
+#ifdef USE_WAYLAND
+    if (win->parent == NULL) {
+      ui_window_update_all(win);
+    }
+#else
     /*
      * clear_margin_area() must be called after win->window_resized
      * because wall_picture can be resized to fit to the new window
@@ -1112,6 +1147,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
      * cause segfault.
      */
     clear_margin_area(win);
+#endif
   }
 
   return 1;
@@ -1270,7 +1306,7 @@ int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int
         p += bpp;
       }
 
-      ui_display_put_image(x, y + y_off, src, size, 0);
+      ui_display_put_image(x, y + y_off, src, size, 0 ADDITIONAL_ARG(win->disp));
     }
   }
 

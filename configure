@@ -1784,7 +1784,7 @@ Optional Packages:
                           both]
   --with-tags[=TAGS]      include additional configurations [automatic]
   --with-x                use the X Window System
-  --with-gui[=ARG]        gui library(xlib|win32)
+  --with-gui[=ARG]        gui library(xlib|win32|fb|quartz|console|wayland)
   --with-gtk[=ARG]        gtk+ version (2.0|3.0)
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
@@ -19945,7 +19945,7 @@ fi
 	;;
 *)
 	CYGPATHW=echo
-	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" ; then
+	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" ; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
@@ -20840,6 +20840,9 @@ fi
 	fi
 
 
+elif test "$gui" = "wayland" ; then
+	GUI="wayland"
+	GUI_CFLAGS="-DUSE_WAYLAND"
 else
 	GUI="fb"
 	# for NetBSD/x68k
@@ -21071,7 +21074,8 @@ else
 fi
 
 
-if test "$anti_alias" = "yes" -a "$gui" = "fb" ; then
+if test "$anti_alias" = "yes"; then
+	if test "$gui" = "fb" -o "$gui" = "wayland"; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FT" >&5
@@ -21139,7 +21143,7 @@ else
 $as_echo "yes" >&6; }
 	have_ft=yes
 fi
-	if test "$have_ft" = "no" ; then
+		if test "$have_ft" = "no" ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FT" >&5
@@ -21207,14 +21211,15 @@ else
 $as_echo "yes" >&6; }
 	have_ft=yes
 fi
-	fi
-	if test "$have_ft" = "yes" ; then
-		# "tr ..." is hack for cygwin.
-		# (removing \r which is output by win32 native pkg-config.)
-		FT_CFLAGS="-DUSE_FREETYPE `echo $FT_CFLAGS | tr -d '\r'`"
-		FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
+		fi
+		if test "$have_ft" = "yes" ; then
+			# "tr ..." is hack for cygwin.
+			# (removing \r which is output by win32 native pkg-config.)
+			FT_CFLAGS="-DUSE_FREETYPE `echo $FT_CFLAGS | tr -d '\r'`"
+			FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
 
 
+		fi
 	fi
 fi
 
@@ -23693,7 +23698,7 @@ fi
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
-	if test "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" ; then
+	if test "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" ; then
 		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then

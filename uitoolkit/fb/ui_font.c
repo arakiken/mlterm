@@ -1453,6 +1453,7 @@ int ui_change_font_cols(ui_font_t* font, u_int cols /* 0 means default value */
 #ifdef USE_OT_LAYOUT
 
 int ui_font_has_ot_layout_table(ui_font_t* font) {
+#ifdef USE_FREETYPE
   if (font->xfont->face) {
     if (!font->ot_font) {
       if (font->ot_font_not_found || !(font->ot_font = otl_open(font->xfont->face, 0))) {
@@ -1464,7 +1465,7 @@ int ui_font_has_ot_layout_table(ui_font_t* font) {
 
     return 1;
   }
-
+#endif
   return 0;
 }
 

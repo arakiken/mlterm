@@ -60,7 +60,7 @@ static void *im_dlopen(char *im_name) {
 
 static int dlsym_im_new_func(char *im_name, ui_im_new_func_t *func, bl_dl_handle_t *handle) {
   char *symname;
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   char *fb_im_name;
 #endif
 
@@ -70,7 +70,7 @@ static int dlsym_im_new_func(char *im_name, ui_im_new_func_t *func, bl_dl_handle
 
   sprintf(symname, "im_%s_new", im_name);
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   if ((fb_im_name = alloca(strlen(im_name) + 3 + 1))) {
     sprintf(fb_im_name, "%s-fb", im_name);
 
@@ -79,7 +79,7 @@ static int dlsym_im_new_func(char *im_name, ui_im_new_func_t *func, bl_dl_handle
       if (!(*handle = im_dlopen(im_name))) {
         return 0;
       }
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
     }
   }
 #endif

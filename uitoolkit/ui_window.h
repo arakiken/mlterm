@@ -106,7 +106,7 @@ typedef struct ui_window {
  * mlterm-con doesn't use these members, but they are necessary to keep
  * the size of ui_window_t as the same as mlterm-fb for input method plugins.
  */
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   u_int clip_y;
   u_int clip_height;
 #endif
@@ -297,7 +297,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event);
 size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
                          KeySym *keysym, XKeyEvent *event);
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
 int ui_window_is_scrollable(ui_window_t *win);
 #else
 #define ui_window_is_scrollable(win) ((win)->is_scrollable)
@@ -414,7 +414,7 @@ u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms);
 
 u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key);
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
 #define ui_set_use_urgent_bell(use) (0)
 #else
 int ui_set_use_urgent_bell(int use);

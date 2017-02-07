@@ -8,7 +8,7 @@
 #include "ui.h"
 
 typedef struct ui_gc {
-#ifdef USE_FRAMEBUFFER
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   int gc; /* dummy */
 #else
   Display* display;

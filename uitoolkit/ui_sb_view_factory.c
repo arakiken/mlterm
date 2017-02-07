@@ -45,7 +45,7 @@ static ui_sb_view_new_func_t dlsym_sb_view_new_func(char* name, int is_transpare
   char* symbol;
   u_int len;
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   char* p;
 
   if (!(p = alloca(strlen(name) + 3 + 1))) {
@@ -95,7 +95,7 @@ static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(char* name) {
   char* symbol;
   u_int len;
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   char* p;
 
   if (!(p = alloca(strlen(name) + 3 + 1))) {

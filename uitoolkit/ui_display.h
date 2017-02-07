@@ -50,7 +50,7 @@ typedef struct ui_display {
 
   ui_modifier_mapping_t modmap;
 
-#if !defined(USE_FRAMEBUFFER) && !defined(USE_CONSOLE)
+#if !defined(USE_FRAMEBUFFER) && !defined(USE_CONSOLE) && !defined(USE_WAYLAND)
   Cursor cursors[3];
 #endif
 

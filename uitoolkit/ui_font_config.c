@@ -35,7 +35,7 @@ typedef struct custom_cache {
 
 /* --- static variables --- */
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
 
 #define FONT_FILE "font"
 #define VFONT_FILE "vfont"

@@ -51,8 +51,8 @@ comment $Id$
       この場合、結合文字等を扱えなくなります。
 
     --with-gui
-      GUI ライブラリとして xlib / win32 / fb / quartz / console のいずれを使用す
-      るか指定します。それぞれの詳細は以下を参照してください。
+      GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland のいず
+      れを使用するか指定します。それぞれの詳細は以下を参照してください。
 
       win32: doc/en/README.win32, doc/ja/README.win32
       fb: doc/en/README.fb, doc/ja/README.fb

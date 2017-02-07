@@ -22,6 +22,7 @@ OBJ_win32 = main.o
 OBJ_fb = main.o
 OBJ_quartz = main-cocoa.o
 OBJ_console = main.o
+OBJ_wayland = main.o
 OBJ = daemon.o main_loop.o $(OBJ_@GUI@)
 
 LPOBL = @LPOBL@
@@ -53,6 +54,8 @@ LIBS2_quartz = -framework Foundation -framework Cocoa
 
 LIBS2_console = @SIXEL_LIBS@
 
+LIBS2_wayland = @FT_LIBS@ -lwayland-client -lwayland-cursor -lxkbcommon
+
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
 PROG_xlib = mlterm
@@ -60,7 +63,7 @@ PROG_win32 = mlterm
 PROG_fb = mlterm-fb
 PROG_console = mlterm-con-server
 PROG_quartz = mlterm
-
+PROG_wayland = mlterm
 PROG2_console = mlterm-con
 
 INSTALL_OPT = @INSTALL_OPT@

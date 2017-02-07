@@ -74,7 +74,7 @@ static void receive_next_event(void) {
 
   while (1) {
 /* on Linux tv_usec,tv_sec members are zero cleared after select() */
-#if defined(__NetBSD__) && defined(USE_FRAMEBUFFER)
+#if (defined(__NetBSD__) && defined(USE_FRAMEBUFFER)) || defined(USE_WAYLAND)
     static int display_idling_wait = 4;
 
     tval.tv_usec = 25000; /* 0.025 sec */
@@ -129,7 +129,7 @@ static void receive_next_event(void) {
     displays = ui_get_opened_displays(&num_of_displays);
 
     for (count = 0; count < num_of_displays; count++) {
-#if defined(USE_XLIB)
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
       /*
        * Need to read pending events and to flush events in
        * output buffer on X11 before waiting in select().
@@ -190,7 +190,7 @@ static void receive_next_event(void) {
       }
     }
 
-#if defined(__NetBSD__) && defined(USE_FRAMEBUFFER)
+#if (defined(__NetBSD__) && defined(USE_FRAMEBUFFER)) || defined(USE_WAYLAND)
     /* ui_display_idling() is called every 0.1 sec. */
     if (--display_idling_wait > 0) {
       continue;
@@ -212,6 +212,8 @@ static void receive_next_event(void) {
   for (count = 0; count < num_of_displays; count++) {
     if (FD_ISSET(ui_display_fd(displays[count]), &read_fds)) {
       ui_display_receive_next_event(displays[count]);
+      /* XXX displays pointer may be changed (realloced) */
+      displays = ui_get_opened_displays(&num_of_displays);
     }
   }
 
@@ -242,8 +244,6 @@ static void receive_next_event(void) {
     if (additional_fds[count].fd >= 0) {
       if (FD_ISSET(additional_fds[count].fd, &read_fds)) {
         (*additional_fds[count].handler)();
-
-        break;
       }
     }
   }

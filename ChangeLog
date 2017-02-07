@@ -1,3 +1,18 @@
+2017-02-06  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, mlterm-menu/Makefile.in, main/Makefile.in, tool/mlconfig/Makefile.in
+	  tool/mlimgloader/Makefile.in, uitoolkit/Makefile.in, fb/ui_window.c,
+	  ui.h, ui_display.h, ui_draw_str.c, ui_event_source.c, ui_font_config.c,
+	  ui_gc.h, ui_im.c, ui_main_config.c, ui_sb_view_factory.c, ui_window.h, wayland/*:
+	  Initial wayland support is added.
+
+	* fb/ui_font.c:
+	  USE_FREETYPE macro check is added to ui_font_has_ot_layout_table().
+
+2017-02-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_event_source.c: 'break' in checking FD_ISSET(additional_fds) is removed.
+
 2017-02-05  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/ui_display.c: rotate_display flag and related code are removed.

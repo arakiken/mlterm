@@ -1013,7 +1013,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
       fg_xcolor = ui_get_xcolor(color_man, fg_color);
 
-#ifdef USE_FRAMEBUFFER
+#if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND)
       if (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) {
         bg_xcolor = NULL;
       } else
@@ -1058,12 +1058,12 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       if (1)
 #else /* USE_QUARTZ */
       if (
-#ifdef USE_FRAMEBUFFER
+#if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND)
 #ifdef USE_FREETYPE
           xfont->is_proportional || /* ISCII or ISO10646_UCS4_1_V */
 #endif
       /* draw_alone || */           /* draw_alone is always false on framebuffer. */
-#else /* USE_FRAMEBUFFER */
+#else /* USE_FRAMEBUFFER|USE_WAYLAND */
 #if defined(USE_WIN32GUI) && defined(USE_OT_LAYOUT)
           /*
            * U+2022 is ambiguous and should be drawn one by one, but
@@ -1073,7 +1073,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
           (xfont->use_ot_layout /* && xfont->ot_font */) ||
 #endif
           (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) || draw_alone ||
-#endif /* USE_FRAMEBUFFER */
+#endif /* USE_FRAMEBUFFER|USE_WAYLAND */
           xfont->height != height || state == 3)
 #endif /* USE_QUARTZ */
       {

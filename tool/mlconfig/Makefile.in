@@ -33,6 +33,8 @@ LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS@
 # -lX11 is for http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
 LIBS2_xlib = $(LPOBL) -lX11 -L/usr/local/lib -R/usr/local/lib
 
+LIBS2_wayland = $(LPOBL)
+
 # mlconfig is statically linked with libpobl.
 # Then it works if installed libpobl.dll is compiled with USE_WIN32API or not.
 LIBS2_win32 = -mwindows ${top_builddir}/kllib/src/.libs/libpobl.a

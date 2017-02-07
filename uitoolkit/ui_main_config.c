@@ -158,7 +158,7 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, 'a', "ac", 0, "col_size_of_width_a",
                   "columns for Unicode \"EastAsianAmbiguous\" character [1]");
   bl_conf_add_opt(conf, 'b', "bg", 0, "bg_color", "background color");
-#if defined(USE_XLIB) || defined(USE_CONSOLE)
+#if defined(USE_XLIB) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   bl_conf_add_opt(conf, 'd', "display", 0, "display", "X server to connect");
 #endif
   bl_conf_add_opt(conf, 'f', "fg", 0, "fg_color", "foreground color");
@@ -340,11 +340,15 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
  * xlib: "-d :0.0" etc.
  * console: "-d client:fd"
  */
-#if defined(USE_XLIB) || defined(USE_CONSOLE)
+#if defined(USE_XLIB) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   if ((value = bl_conf_get_value(conf, "display")) == NULL)
 #endif
   {
+#ifdef USE_WAYLAND
+    value = "wayland-0";
+#else
     value = "";
+#endif
   }
 
   if ((main_config->disp_name = strdup(value)) == NULL) {
