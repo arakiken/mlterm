@@ -25,9 +25,18 @@ void ui_display_fill_with(int x, int y, u_int width, u_int height, u_int8_t pixe
 void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int width, u_int height,
                            ui_display_t *disp);
 
-int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height);
+int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_display_t *parent);
 
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height);
+
+void ui_display_move(ui_display_t *disp, int x, int y);
+
+void ui_display_request_text_selection(ui_display_t *disp);
+
+void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *ev,
+                                    u_char *sel_data, size_t sel_len);
+
+u_char ui_display_get_char(KeySym ksym);
 
 int ui_cmap_get_closest_color(u_long *closest, int red, int green, int blue);
 

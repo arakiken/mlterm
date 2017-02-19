@@ -46,6 +46,7 @@ static double dpi_for_fc;
 
 /* --- static functions --- */
 
+/* Same processing as win32/ui_font.c (partially) and libtype/ui_font_ft.c */
 static int parse_fc_font_name(
     char** font_family, int* font_weight, /* if weight is not specified in
                                              font_name , not changed. */
@@ -70,7 +71,6 @@ static int parse_fc_font_name(
 #endif
 
   /*
-   * XftFont format.
    * [Family]( [WEIGHT] [SLANT] [SIZE]:[Percentage])
    */
 

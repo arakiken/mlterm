@@ -19,6 +19,9 @@
 
 /* --- static functions --- */
 
+#ifdef USE_WAYLAND
+#define adjust_window_position_by_size(screen, x, y) (0)
+#else
 static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, int *x, int *y) {
   if (*y + ACTUAL_HEIGHT(&stat_screen->window) > stat_screen->window.disp->height) {
     *y -= ACTUAL_HEIGHT(&stat_screen->window);
@@ -36,6 +39,7 @@ static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, i
     }
   }
 }
+#endif
 
 #ifdef MANAGE_WINDOWS_BY_MYSELF
 static void reset_screen(ui_window_t *win) {
@@ -73,7 +77,11 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
     u_int width;
     u_int rows;
 
+#ifdef USE_WAYLAND
+    max_width = 0xffffffff;
+#else
     max_width = stat_screen->window.disp->width / 2;
+#endif
     tmp_max_width = 0;
     width = 0;
     heads[0] = 0;

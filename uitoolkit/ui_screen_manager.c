@@ -160,11 +160,19 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
   sprintf(wid_env, "WINDOWID=%ld", window);
   *(env_p++) = wid_env;
 
+#ifdef USE_WAYLAND
+  /* "WAYLAND_DISPLAY="(16) + NULL(1) */
+  if (display && (disp_env = alloca(16 + strlen(display) + 1))) {
+    sprintf(disp_env, "WAYLAND_DISPLAY=%s", display);
+    *(env_p++) = disp_env;
+  }
+#else
   /* "DISPLAY="(8) + NULL(1) */
   if (display && (disp_env = alloca(8 + strlen(display) + 1))) {
     sprintf(disp_env, "DISPLAY=%s", display);
     *(env_p++) = disp_env;
   }
+#endif
 
   /* "TERM="(5) + NULL(1) */
   if (main_config.term_type && (term_env = alloca(5 + strlen(main_config.term_type) + 1))) {
@@ -634,8 +642,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
     }
   }
 
-  /* Don't add screen to screens before "return NULL" above unless USE_WIN32GUI.
-   */
+  /* Don't add screen to screens before "return NULL" above unless USE_WIN32GUI. */
   screens[num_of_screens++] = screen;
 
   return screen;
@@ -1223,10 +1230,17 @@ int ui_screen_manager_init(char *_mlterm_version, u_int _depth, u_int _max_scree
 
     char *env;
 
-    if ((env = malloc(strlen(main_config.disp_name) + 9))) {
+#ifdef USE_WAYLAND
+    if ((env = malloc(16 + strlen(main_config.disp_name) + 1))) {
+      sprintf(env, "WAYLAND_DISPLAY=%s", main_config.disp_name);
+      putenv(env);
+    }
+#else
+    if ((env = malloc(8 + strlen(main_config.disp_name) + 1))) {
       sprintf(env, "DISPLAY=%s", main_config.disp_name);
       putenv(env);
     }
+#endif
   }
 
   system_listener.self = NULL;

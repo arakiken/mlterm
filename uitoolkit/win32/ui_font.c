@@ -360,7 +360,7 @@ static int parse_font_name(
 
 /*
  * Parsing "[Family] [WEIGHT] [SLANT] [SIZE]".
- * Following is the same as ui_font.c:parse_xft_font_name()
+ * Following is the same as libtype/ui_font_ft.c and fb/ui_font.c.
  * except FW_* and is_italic.
  */
 

@@ -1,3 +1,6 @@
+ver 3.8.1
+* Support wayland. (Build mlterm with --with-gui=wayland option.)
+
 ver 3.8.0
 * Refactor source code and directory tree.
 * Add "ssh_auto_reconnect" / --rcn option which enables automatic reconnecting to

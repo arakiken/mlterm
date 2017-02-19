@@ -24,6 +24,15 @@
 #define ibus_input_context_enable(context) (0)
 #endif
 
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#define USE_IM_CANDIDATE_SCREEN
+#endif
+#ifdef USE_WAYLAND
+#define KeyRelease 3
+#define ibus_input_context_set_cursor_location(context, x, y, w, h) \
+        ibus_input_context_set_cursor_location_relative(context, x, y, w, h)
+#endif
+
 typedef struct im_ibus {
   /* input method common object */
   ui_im_t im;
@@ -32,7 +41,7 @@ typedef struct im_ibus {
 
   vt_char_encoding_t term_encoding;
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   ef_parser_t* parser_term; /* for term encoding */
 #endif
   ef_conv_t* conv; /* for term encoding */
@@ -45,7 +54,7 @@ typedef struct im_ibus {
 
   XKeyEvent prev_key;
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   gchar* prev_first_cand;
   u_int prev_num_of_cands;
 #endif
@@ -56,7 +65,6 @@ typedef struct im_ibus {
 
 /* --- static variables --- */
 
-static int is_init;
 static IBusBus* ibus_bus;
 static int ibus_bus_fd = -1;
 static im_ibus_t* ibus_list = NULL;
@@ -206,7 +214,7 @@ static void update_preedit_text(IBusInputContext* context, IBusText* text, gint 
       index++;
     }
   } else {
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
     if (ibus->im.cand_screen) {
       (*ibus->im.cand_screen->delete)(ibus->im.cand_screen);
       ibus->im.cand_screen = NULL;
@@ -237,7 +245,7 @@ static void hide_preedit_text(IBusInputContext* context, gpointer data) {
     return;
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   if (ibus->im.cand_screen) {
     (*ibus->im.cand_screen->hide)(ibus->im.cand_screen);
   }
@@ -291,7 +299,7 @@ static void commit_text(IBusInputContext* context, IBusText* text, gpointer data
     }
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   if (ibus->im.cand_screen) {
     (*ibus->im.cand_screen->delete)(ibus->im.cand_screen);
     ibus->im.cand_screen = NULL;
@@ -313,14 +321,14 @@ static void forward_key_event(IBusInputContext* context, guint keyval, guint key
 #endif
       ) {
     ibus->prev_key.state |= IBUS_IGNORED_MASK;
-#if !defined(USE_FRAMEBUFFER) && !defined(USE_CONSOLE)
+#ifdef USE_XLIB
     XPutBackEvent(ibus->prev_key.display, &ibus->prev_key);
 #endif
     memset(&ibus->prev_key, 0, sizeof(XKeyEvent));
   }
 }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
 
 static void show_lookup_table(IBusInputContext* context, gpointer data) {
   im_ibus_t* ibus;
@@ -417,8 +425,9 @@ static void update_lookup_table(IBusInputContext* context, IBusLookupTable* tabl
   (*ibus->im.cand_screen->select)(ibus->im.cand_screen, cur_pos);
 }
 
-#endif /* USE_FRAMEBUFFER */
+#endif
 
+#ifndef USE_WAYLAND
 static void connection_handler(void) {
 #ifdef DBUS_H
   DBusConnection* connection;
@@ -436,6 +445,7 @@ static void connection_handler(void) {
   g_main_context_iteration(g_main_context_default(), FALSE);
 #endif
 }
+#endif
 
 static int add_event_source(void) {
 #ifdef DBUS_H
@@ -453,8 +463,10 @@ static int add_event_source(void) {
     return 0;
   }
 #endif
+#ifndef USE_WAYLAND
   (*syms->ui_event_source_add_fd)(ibus_bus_fd, connection_handler);
   (*syms->ui_event_source_add_fd)(IBUS_ID, connection_handler);
+#endif
 
   return 1;
 }
@@ -465,16 +477,18 @@ static void remove_event_source(int complete) {
     ibus_bus_fd = -1;
   }
 
+#ifndef USE_WAYLAND
   if (complete) {
     (*syms->ui_event_source_remove_fd)(IBUS_ID);
   }
+#endif
 }
 
 /*
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t* im) {
+static int delete(ui_im_t* im) {
   im_ibus_t* ibus;
 
   ibus = (im_ibus_t*)im;
@@ -493,7 +507,7 @@ static int delete (ui_im_t* im) {
     (*ibus->conv->delete)(ibus->conv);
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   if (ibus->parser_term) {
     (*ibus->parser_term->delete)(ibus->parser_term);
   }
@@ -594,11 +608,19 @@ static KeySym native_to_ibus_ksym(KeySym ksym) {
     case XK_Caps_Lock:
       return IBUS_Caps_Lock;
 
+#if 0
+    case XK_Meta_L:
+      return IBUS_Super_L; /* Windows key on linux */
+
+    case XK_Meta_R:
+      return IBUS_Super_R; /* Menu key on linux */
+#else
     case XK_Meta_L:
       return IBUS_Meta_L;
 
     case XK_Meta_R:
       return IBUS_Meta_R;
+#endif
 
     case XK_Alt_L:
       return IBUS_Alt_L;
@@ -609,9 +631,17 @@ static KeySym native_to_ibus_ksym(KeySym ksym) {
     case XK_Delete:
       return IBUS_Delete;
 
+    case XK_Super_L:
+      return IBUS_Super_L;
+
+    case XK_Super_R:
+      return IBUS_Super_R;
+
     default:
-      return ksym;
+      break;
   }
+
+  return ksym;
 }
 #else
 #define native_to_ibus_ksym(ksym) (ksym)
@@ -803,11 +833,12 @@ static IBusInputContext* context_new(im_ibus_t* ibus, char* engine) {
   }
 
   ibus_input_context_set_capabilities(context,
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
-                                      IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_LOOKUP_TABLE
-#else
-                                      IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS |
-                                          IBUS_CAP_SURROUNDING_TEXT
+                                      IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS
+#ifdef USE_IM_CANDIDATE_SCREEN
+                                      | IBUS_CAP_LOOKUP_TABLE
+#endif
+#if 0
+                                      | IBUS_CAP_SURROUNDING_TEXT
 #endif
                                       );
 
@@ -815,7 +846,7 @@ static IBusInputContext* context_new(im_ibus_t* ibus, char* engine) {
   g_signal_connect(context, "hide-preedit-text", G_CALLBACK(hide_preedit_text), ibus);
   g_signal_connect(context, "commit-text", G_CALLBACK(commit_text), ibus);
   g_signal_connect(context, "forward-key-event", G_CALLBACK(forward_key_event), ibus);
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   g_signal_connect(context, "update-lookup-table", G_CALLBACK(update_lookup_table), ibus);
   g_signal_connect(context, "show-lookup-table", G_CALLBACK(show_lookup_table), ibus);
   g_signal_connect(context, "hide-lookup-table", G_CALLBACK(hide_lookup_table), ibus);
@@ -824,7 +855,7 @@ static IBusInputContext* context_new(im_ibus_t* ibus, char* engine) {
   if (engine) {
     set_engine(context, engine);
   }
-#if defined(USE_FRAMEBUFFER) && IBUS_CHECK_VERSION(1, 5, 0)
+#if (defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)) && IBUS_CHECK_VERSION(1, 5, 0)
   else {
     next_engine(context);
   }
@@ -871,6 +902,7 @@ ui_im_t* im_ibus_new(u_int64_t magic, vt_char_encoding_t term_encoding,
                      ui_im_export_syms_t* export_syms, char* engine,
                      u_int mod_ignore_mask /* Not used for now. */
                      ) {
+  static int is_init;
   im_ibus_t* ibus = NULL;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
@@ -934,7 +966,7 @@ ui_im_t* im_ibus_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     }
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   if (!(ibus->parser_term = (*syms->vt_char_encoding_parser_new)(term_encoding))) {
     goto error;
   }
@@ -986,7 +1018,7 @@ error:
       (*ibus->conv->delete)(ibus->conv);
     }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
     if (ibus->parser_term) {
       (*ibus->parser_term->delete)(ibus->parser_term);
     }

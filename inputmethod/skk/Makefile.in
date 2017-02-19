@@ -30,6 +30,7 @@ TARGET_xlib = libim-skk.la
 TARGET_quartz = libim-skk.la
 TARGET_fb = libim-skk-fb.la
 TARGET_console = libim-skk-fb.la
+TARGET_wayland = libim-skk-wl.la
 
 TARGET = $(TARGET_@GUI@)
 

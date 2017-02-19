@@ -139,7 +139,7 @@ static MSymbol xksym_to_msymbol(im_m17nlib_t* m17nlib, KeySym ksym, u_int state)
     return msymbol(buf);
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   return Mnil;
 #else
   if (is_shift) filled_len += bl_snprintf(&mod[filled_len], sizeof(mod) - filled_len, "S-");

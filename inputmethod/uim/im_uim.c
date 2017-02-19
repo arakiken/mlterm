@@ -923,7 +923,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     bl_msg_printf(">>ksym            : %.8x\n", ksym);
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   uim->pressing_mod_key = ~0;
 #else
   if (!(event->state & uim->mod_ignore_mask)) {

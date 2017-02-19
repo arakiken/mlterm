@@ -1253,7 +1253,16 @@ static void window_resized(ui_window_t *win) {
 
   set_wall_picture(screen);
 
+#ifdef USE_WAYLAND
+  /*
+   * Expose event is not sent in resizing a window on wayland, so, for example,
+   * if line_height is changed, ui_window_update() doesn't redraw anything because
+   * vt_term_resize() does nothing.
+   */
+  ui_window_update_all(&screen->window);
+#else
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
+#endif
 
   ui_xic_resized(&screen->window);
 }

@@ -1,3 +1,45 @@
+2017-02-19  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui.h, wayland/ui_display.c: DnD and Copy&Paste are supported.
+
+	* ui_screen_manager.c: WAYLAND_DISPLAY environmental variable is set
+	  on wayland.
+
+	* ui_screen.c: ui_window_update_all() is called instead of ui_window_update()
+	  in window_resized() on wayland because expose event is not delivered in
+	  resizing a window.
+
+	* ui_im_{status|candidate}_screen.c: adjust_window_position_by_size() is
+	  disabled on wayland.
+
+	* ui_event_source.c: additional_fds.handler() is called after ui_display_idling()
+	  because input method additional handler may destroy ui_display.
+
+	* wayland/ui_window.c:
+	  - Wrong clipped area in draw_string() is fixed.
+	  - Stuff for wayland.
+
+	* ui_imagelib.c: waitpid() is called to wait for child process to die because
+	  vt_pty_unix_new() may block without this.
+
+	* ui_font_config.c: If USE_FONTCONFIG and USE_FREETYPE is enabled on wayland,
+	  "mlterm/*aafont" files are used.
+
+	* ui_font.c: fontconfig is supported.
+
+	* im_ibus.c, im_fcitx.c:
+	  - wayland is supported.
+	  - USE_IM_CANDIDATE_SCREEN macro is added.
+
+	* ui_im.c: libim-xxx-wl.so is loaded on wayland.
+
+	* inputmethod/*/Makefile.in:
+	  TARGET_wayland = libim-xxx-wl.la is added.
+
+	* configure.in:
+	  - anti-alias is enabled by default.
+	  - --disable-fontconfig is added.
+
 2017-02-06  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, mlterm-menu/Makefile.in, main/Makefile.in, tool/mlconfig/Makefile.in

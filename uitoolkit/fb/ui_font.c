@@ -1001,6 +1001,223 @@ int ui_compose_dec_special_font(void) {
   return 0;
 }
 
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+
+#include <fontconfig/fontconfig.h>
+
+/* Same processing as win32/ui_font.c (partially) and libtype/ui_font_ft.c */
+static int parse_fc_font_name(char** font_family,
+    u_int* percent,       /* if percent is not specified in font_name , not changed. */
+    char* font_name       /* modified by this function. */ ) {
+  char* p;
+  size_t len;
+
+  /*
+   * [Family]( [WEIGHT] [SLANT] [SIZE]:[Percentage])
+   */
+
+  *font_family = font_name;
+
+  p = font_name;
+  while (1) {
+    if (*p == '\\' && *(p + 1)) {
+      /* Compat with 3.6.3 or before. (e.g. Foo\-Bold-iso10646-1) */
+
+      /* skip backslash */
+      p++;
+    } else if (*p == '\0') {
+      /* encoding and percentage is not specified. */
+
+      *font_name = '\0';
+
+      break;
+    } else if (*p == ':') {
+      /* Parsing ":[Percentage]" */
+
+      *font_name = '\0';
+
+      if (!bl_str_to_uint(percent, p + 1)) {
+#ifdef DEBUG
+        bl_warn_printf(BL_DEBUG_TAG " Percentage(%s) is illegal.\n", p + 1);
+#endif
+      }
+
+      break;
+    }
+
+    *(font_name++) = *(p++);
+  }
+
+/*
+ * Parsing "[Family] [WEIGHT] [SLANT] [SIZE]".
+ * Following is the same as ui_font_win32.c:parse_font_name()
+ * except FC_*.
+ */
+
+#if 0
+  bl_debug_printf("Parsing %s for [Family] [Weight] [Slant]\n", *font_family);
+#endif
+
+  p = bl_str_chop_spaces(*font_family);
+  len = strlen(p);
+  while (len > 0) {
+    size_t step = 0;
+
+    if (*p == ' ') {
+      char* orig_p;
+
+      orig_p = p;
+      do {
+        p++;
+        len--;
+      } while (*p == ' ');
+
+      if (len == 0) {
+        *orig_p = '\0';
+
+        break;
+      } else {
+        int count;
+        struct {
+          char* style;
+          int weight;
+          int slant;
+
+        } styles[] = {
+            /*
+             * Portable styles.
+             */
+            /* slant */
+            {
+             "italic", 0, FC_SLANT_ITALIC,
+            },
+            /* weight */
+            {
+             "bold", FC_WEIGHT_BOLD, 0,
+            },
+
+            /*
+             * Hack for styles which can be returned by
+             * gtk_font_selection_dialog_get_font_name().
+             */
+            /* slant */
+            {
+             "oblique", 0, FC_SLANT_OBLIQUE,
+            },
+            /* weight */
+            {
+             "light", /* e.g. "Bookman Old Style Light" */
+             FC_WEIGHT_LIGHT, 0,
+            },
+            {
+             "semi-bold", FC_WEIGHT_DEMIBOLD, 0,
+            },
+            {
+             "heavy", /* e.g. "Arial Black Heavy" */
+             FC_WEIGHT_BLACK, 0,
+            },
+            /* other */
+            {
+             "semi-condensed", /* XXX This style is ignored. */
+             0, 0,
+            },
+        };
+
+        for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {
+          size_t len_v;
+
+          len_v = strlen(styles[count].style);
+
+          /* XXX strncasecmp is not portable? */
+          if (len >= len_v && strncasecmp(p, styles[count].style, len_v) == 0) {
+            /* [WEIGHT] [SLANT] */
+            *orig_p = '\0';
+            step = len_v;
+
+            goto next_char;
+          }
+        }
+
+        if (*p != '0' ||      /* In case of "DevLys 010" font family. */
+            *(p + 1) == '\0') /* "MS Gothic 0" => "MS Gothic" + "0" */
+        {
+          char* end;
+          double size;
+
+          size = strtod(p, &end);
+          if (*end == '\0') {
+            /* [SIZE] */
+            *orig_p = '\0';
+            break; /* p has no more parameters. */
+          }
+        }
+
+        step = 1;
+      }
+    } else {
+      step = 1;
+    }
+
+  next_char:
+    p += step;
+    len -= step;
+  }
+
+  return 1;
+}
+
+static FcPattern* fc_pattern_create(const FcChar8* family) {
+  FcPattern* pattern;
+
+  if (!(pattern = FcPatternCreate())) {
+    return NULL;
+  }
+
+  if (family) {
+    FcPatternAddString(pattern, FC_FAMILY, family);
+  }
+
+  FcConfigSubstitute(NULL, pattern, FcMatchPattern);
+
+  FcPatternRemove(pattern, FC_FAMILYLANG, 0);
+  FcPatternRemove(pattern, FC_STYLELANG, 0);
+  FcPatternRemove(pattern, FC_FULLNAMELANG, 0);
+#ifdef FC_NAMELANG
+  FcPatternRemove(pattern, FC_NAMELANG, 0);
+#endif
+  FcPatternRemove(pattern, FC_LANG, 0);
+
+  FcDefaultSubstitute(pattern);
+
+  return pattern;
+}
+
+static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
+  FcPattern *pattern;
+  FcPattern *match;
+  FcResult result;
+  char *family;
+
+  *percent = 0;
+
+  if (!fontname) {
+    family = NULL;
+  } else {
+    parse_fc_font_name(&family, percent, bl_str_alloca_dup(fontname));
+  }
+
+  if ((pattern = fc_pattern_create(family))) {
+    match = FcFontMatch(NULL, pattern, &result);
+    FcPatternDestroy(pattern);
+  } else {
+    match = NULL;
+  }
+
+  return match;
+}
+
+#endif
+
 ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char* fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold,
@@ -1018,12 +1235,36 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
 
   cs = FONT_CS(id);
 
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+
+  {
+    FcPattern *pattern;
+    FcValue val;
+
+    if (!(pattern = parse_font_name(fontname, &percent))) {
+      return NULL;
+    }
+
+    if (FcPatternGet(pattern, FC_FILE, 0, &val) != FcResultMatch) {
+      FcPatternDestroy(pattern);
+
+      return NULL;
+    }
+
+    font_file = bl_str_alloca_dup(val.u.s);
+    FcPatternDestroy(pattern);
+  }
+
+#else /* USE_FREETYPE && USE_FONTCONFIG */
+
   if (!fontname) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Font file is not specified.\n");
 #endif
 
-    if (IS_ISO10646_UCS4(cs) || cs == ISO8859_1_R) {
+    if (!IS_ISO10646_UCS4(cs) && cs != ISO8859_1_R) {
+      return NULL;
+    } else {
       struct stat st;
 
 #if defined(__FreeBSD__)
@@ -1095,11 +1336,10 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
       }
 #endif
 
+      /* XXX */
       if (id & FONT_BOLD) {
         use_medium_for_bold = 1;
       }
-    } else {
-      return NULL;
     }
   } else {
     char* percent_str;
@@ -1114,6 +1354,8 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
       percent = 0;
     }
   }
+
+#endif /* USE_FREETYPE && USE_FONTCONFIG */
 
   if (type_engine != TYPE_XCORE || !(font = calloc(1, sizeof(ui_font_t)))) {
     return NULL;

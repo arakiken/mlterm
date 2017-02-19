@@ -122,6 +122,9 @@ static u_int total_candidate_width(ui_font_manager_t *font_man, ui_im_candidate_
   return total_width;
 }
 
+#ifdef USE_WAYLAND
+#define adjust_window_position_by_size(cand_screen, x, y) (0)
+#else
 static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen, int *x, int *y) {
   if (*x + ACTUAL_WIDTH(&cand_screen->window) > cand_screen->window.disp->width) {
     if (cand_screen->is_vertical_term) {
@@ -140,6 +143,7 @@ static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen
     }
   }
 }
+#endif
 
 static void resize(ui_im_candidate_screen_t *cand_screen, u_int width, u_int height) {
   if (ui_window_resize(&cand_screen->window, width, height, 0)) {

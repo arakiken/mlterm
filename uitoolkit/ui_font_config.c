@@ -40,9 +40,20 @@ typedef struct custom_cache {
 #define FONT_FILE "font"
 #define VFONT_FILE "vfont"
 #define TFONT_FILE "tfont"
+
+#if defined(USE_CONSOLE) || !defined(USE_FONTCONFIG) || !defined(USE_FREETYPE)
+
 static char *font_file = "mlterm/font-fb";
 static char *vfont_file = "mlterm/vfont-fb";
 static char *tfont_file = "mlterm/tfont-fb";
+
+#else
+
+static char *font_file = "mlterm/aafont";
+static char *vfont_file = "mlterm/vaafont";
+static char *tfont_file = "mlterm/taafont";
+
+#endif
 
 #else
 

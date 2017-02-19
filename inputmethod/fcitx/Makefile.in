@@ -29,6 +29,7 @@ LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @FCITX_LIBS@
 TARGET_xlib = libim-fcitx.la
 TARGET_fb = libim-fcitx-fb.la
 TARGET_console = libim-fcitx-fb.la
+TARGET_wayland = libim-fcitx-wl.la
 
 TARGET = $(TARGET_@GUI@)
 

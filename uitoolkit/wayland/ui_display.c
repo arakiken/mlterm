@@ -18,7 +18,7 @@
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
 
-#if 1
+#if 0
 #define __DEBUG
 #endif
 
@@ -118,21 +118,20 @@ static ui_window_t *search_focused_window(ui_window_t *win) {
   return NULL;
 }
 
-static ui_window_t *search_inputtable_window(ui_window_t *win) {
+static ui_window_t *search_inputtable_window(ui_window_t *candidate, ui_window_t *win) {
   u_int count;
-  ui_window_t *inputtable;
 
   if (win->inputtable) {
-    return win;
-  }
-
-  for (count = 0; count < win->num_of_children; count++) {
-    if ((inputtable = search_inputtable_window(win->children[count]))) {
-      return inputtable;
+    if (candidate == NULL || win->inputtable > candidate->inputtable) {
+      candidate = win;
     }
   }
 
-  return NULL;
+  for (count = 0; count < win->num_of_children; count++) {
+    candidate = search_inputtable_window(candidate, win->children[count]);
+  }
+
+  return candidate;
 }
 
 /*
@@ -183,8 +182,8 @@ static void receive_event(ui_wlserv_t *wlserv, XEvent *ev) {
   }
 }
 
-void registry_handle_global(void *data, struct wl_registry *registry, uint32_t name,
-                            const char *interface, uint32_t version) {
+void registry_global(void *data, struct wl_registry *registry, uint32_t name,
+                     const char *interface, uint32_t version) {
   ui_wlserv_t *wlserv = data;
   if(strcmp(interface, "wl_compositor") == 0) {
     wlserv->compositor = wl_registry_bind(registry, name,
@@ -196,25 +195,25 @@ void registry_handle_global(void *data, struct wl_registry *registry, uint32_t n
     wlserv->shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
   } else if(strcmp(interface, "wl_seat") == 0) {
     wlserv->seat = wl_registry_bind(registry, name,
-                                    &wl_seat_interface, 1);
+                                    &wl_seat_interface, 4); /* 4 is for keyboard_repeat_info */
   } else if(strcmp(interface, "wl_output") == 0) {
     wlserv->output = wl_registry_bind(registry, name, &wl_output_interface, 1);
   } else if (strcmp(interface, "wl_data_device_manager") == 0) {
     wlserv->data_device_manager = wl_registry_bind(registry, name,
-                                                   &wl_data_device_manager_interface, 1);
+                                                   &wl_data_device_manager_interface, 3);
   }
 }
 
-static void registry_handle_global_remove(void *data, struct wl_registry *registry, uint32_t name) {
+static void registry_global_remove(void *data, struct wl_registry *registry, uint32_t name) {
 }
 
 static const struct wl_registry_listener registry_listener = {
-  registry_handle_global,
-  registry_handle_global_remove
+  registry_global,
+  registry_global_remove
 };
 
-static void keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
-                                   uint32_t format, int fd, uint32_t size){
+static void keyboard_keymap(void *data, struct wl_keyboard *keyboard,
+                            uint32_t format, int fd, uint32_t size){
   ui_wlserv_t *wlserv = data;
   char *string;
   if (format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1) {
@@ -251,63 +250,67 @@ static void auto_repeat(void) {
   }
 }
 
-static void keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
-                                  uint32_t serial, struct wl_surface *surface,
-                                  struct wl_array *keys) {
+static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
+                           uint32_t serial, struct wl_surface *surface,
+                           struct wl_array *keys) {
   ui_display_t *disp = surface_to_display(surface);
   ui_wlserv_t *wlserv = data;
   ui_window_t *win;
 
-#ifdef __DEBUG
-  bl_debug_printf("KBD ENTER %p %p\n", surface, disp);
-  bl_debug_printf("%d %d\n", disp->width, disp->height);
-#endif
+  if (disp->display->parent) {
+    disp = disp->display->parent;
+    surface = disp->display->surface;
+  }
 
   wlserv->current_surface = surface;
 
-  if ((win = search_inputtable_window(disp->roots[0]))) {
+#ifdef __DEBUG
+  bl_debug_printf("KBD ENTER %p\n", surface);
+#endif
+
+  if (disp && (win = search_inputtable_window(NULL, disp->roots[0]))) {
+#ifdef __DEBUG
+    bl_debug_printf("FOCUSED %p\n", win);
+#endif
     ui_window_set_input_focus(win);
     ui_window_update_all(disp->roots[0]);
   }
 }
 
-static void keyboard_handle_leave(void *data, struct wl_keyboard *keyboard,
-                                  uint32_t serial, struct wl_surface *surface) {
+static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
+                           uint32_t serial, struct wl_surface *surface) {
   ui_wlserv_t *wlserv = data;
-  ui_display_t *disp = surface_to_display(wlserv->current_surface);
+  ui_display_t *disp = surface_to_display(surface);
   ui_window_t *win;
 
 #ifdef __DEBUG
-  bl_debug_printf("KBD LEAVE\n");
+  bl_debug_printf("KBD LEAVE %p\n", surface);
 #endif
 
   /* surface may have been already destroyed. So null check of disp is necessary. */
   if (disp && (win = search_focused_window(disp->roots[0]))) {
+#ifdef __DEBUG
+    bl_debug_printf("UNFOCUSED %p\n", win);
+#endif
     win->is_focused = 0;
     if (win->window_unfocused) {
       (*win->window_unfocused)(win);
     }
-    ui_window_update_all(disp->roots[0]);
   }
 }
 
-static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
-                                uint32_t serial, uint32_t time, uint32_t key,
-                                uint32_t state_w) {
+static void keyboard_key(void *data, struct wl_keyboard *keyboard,
+                         uint32_t serial, uint32_t time, uint32_t key,
+                         uint32_t state_w) {
   ui_wlserv_t *wlserv = data;
   XKeyEvent ev;
 
   if (state_w == WL_KEYBOARD_KEY_STATE_PRESSED) {
-    char buf[32];
-    size_t len;
-
     ev.ksym = xkb_state_key_get_one_sym(wlserv->xkb->state, key + 8);
-    if ((len = xkb_keysym_to_utf8(ev.ksym, buf, sizeof(buf))) > 0) {
-      ev.ksym = buf[0];
-    }
     ev.type = KeyPress;
     ev.keycode = 0;
     ev.state = wlserv->xkb->mods;
+    ev.time = time;
 
     wlserv->kbd_repeat_wait = (kbd_repeat_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT;
     wlserv->prev_kev = ev;
@@ -319,6 +322,7 @@ static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
   else if (state_w == WL_KEYBOARD_KEY_STATE_RELEASED) {
 #if 0
     ev.type = KeyRelease;
+    ev.time = time;
     ev.ksym = ev.keycode = ev.state = 0;
 #endif
     wlserv->prev_kev.type = 0;
@@ -328,14 +332,15 @@ static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
     return;
   }
 
+  wlserv->serial = serial;
+
   receive_event(wlserv, &ev);
 }
 
 static void
-keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
-                          uint32_t serial, uint32_t mods_depressed,
-                          uint32_t mods_latched, uint32_t mods_locked,
-                          uint32_t group) {
+keyboard_modifiers(void *data, struct wl_keyboard *keyboard,
+                   uint32_t serial, uint32_t mods_depressed,
+                   uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
   ui_wlserv_t *wlserv = data;
   xkb_mod_mask_t mod_mask;
 
@@ -354,25 +359,28 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
   if (mod_mask & (1 << wlserv->xkb->logo))
     wlserv->xkb->mods |= MOD_MASK_LOGO;
 #endif
+
+#ifdef __DEBUG
+  bl_debug_printf("MODIFIER MASK %x\n", wlserv->xkb->mods);
+#endif
 }
 
-static void
-keyboard_handle_repeat_info(void *data, struct wl_keyboard *keyboard, int32_t rate, int32_t delay) {
-  ui_wlserv_t *wlserv = data;
+static void keyboard_repeat_info(void *data, struct wl_keyboard *keyboard,
+                                 int32_t rate, int32_t delay) {
 #ifdef __DEBUG
   bl_debug_printf("Repeat info rate %d delay %d.\n", rate, delay);
 #endif
   kbd_repeat_1 = delay;
-  kbd_repeat_N = (1000 / rate);
+  kbd_repeat_N = (500 / rate); /* XXX 1000 / rate is too late. */
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
-  keyboard_handle_keymap,
-  keyboard_handle_enter,
-  keyboard_handle_leave,
-  keyboard_handle_key,
-  keyboard_handle_modifiers,
-  keyboard_handle_repeat_info,
+  keyboard_keymap,
+  keyboard_enter,
+  keyboard_leave,
+  keyboard_key,
+  keyboard_modifiers,
+  keyboard_repeat_info,
 };
 
 static void change_cursor(struct wl_pointer *pointer, uint32_t serial,
@@ -390,9 +398,9 @@ static void change_cursor(struct wl_pointer *pointer, uint32_t serial,
     wl_surface_commit(surface);
 }
 
-static void pointer_handle_enter(void *data, struct wl_pointer *pointer,
-                                 uint32_t serial, struct wl_surface *surface,
-                                 wl_fixed_t sx_w, wl_fixed_t sy_w) {
+static void pointer_enter(void *data, struct wl_pointer *pointer,
+                          uint32_t serial, struct wl_surface *surface,
+                          wl_fixed_t sx_w, wl_fixed_t sy_w) {
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
@@ -407,8 +415,8 @@ static void pointer_handle_enter(void *data, struct wl_pointer *pointer,
   wlserv->current_surface = surface;
 }
 
-static void pointer_handle_leave(void *data, struct wl_pointer *pointer,
-                                 uint32_t serial, struct wl_surface *surface) {
+static void pointer_leave(void *data, struct wl_pointer *pointer,
+                          uint32_t serial, struct wl_surface *surface) {
 #ifdef __DEBUG
   bl_debug_printf("POINTER LEAVE\n");
 #endif
@@ -447,8 +455,8 @@ static int get_resize_state(u_int width, u_int height, int x, int y) {
   return WL_SHELL_SURFACE_RESIZE_NONE;
 }
 
-static void pointer_handle_motion(void *data, struct wl_pointer *pointer,
-                                  uint32_t time /* milisec */, wl_fixed_t sx_w, wl_fixed_t sy_w) {
+static void pointer_motion(void *data, struct wl_pointer *pointer,
+                           uint32_t time /* milisec */, wl_fixed_t sx_w, wl_fixed_t sy_w) {
   ui_wlserv_t *wlserv = data;
   ui_display_t *disp;
 
@@ -507,8 +515,8 @@ static void pointer_handle_motion(void *data, struct wl_pointer *pointer,
   }
 }
 
-static void pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
-                                  uint32_t time, uint32_t button, uint32_t state_w) {
+static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial,
+                           uint32_t time, uint32_t button, uint32_t state_w) {
   ui_wlserv_t *wlserv = data;
   ui_display_t *disp;
 
@@ -544,7 +552,7 @@ static void pointer_handle_button(void *data, struct wl_pointer *pointer, uint32
       } else if (button == BTN_RIGHT) {
         ev.button = 3;
       } else {
-        ev.button = 0;
+        return;
       }
     } else {
       ev.type = ButtonRelease;
@@ -574,20 +582,22 @@ static void pointer_handle_button(void *data, struct wl_pointer *pointer, uint32
                     ev.type, ev.button, ev.x, ev.y, win);
 #endif
 
+    wlserv->serial = serial;
+
     ui_window_receive_event(win, &ev);
   }
 }
 
-static void pointer_handle_axis(void *data, struct wl_pointer *pointer,
-                                uint32_t time, uint32_t axis, wl_fixed_t value) {
+static void pointer_axis(void *data, struct wl_pointer *pointer,
+                         uint32_t time, uint32_t axis, wl_fixed_t value) {
 }
 
 static const struct wl_pointer_listener pointer_listener = {
-  pointer_handle_enter,
-  pointer_handle_leave,
-  pointer_handle_motion,
-  pointer_handle_button,
-  pointer_handle_axis,
+  pointer_enter,
+  pointer_leave,
+  pointer_motion,
+  pointer_button,
+  pointer_axis,
 };
 
 static void surface_enter(void *data, struct wl_surface *surface, struct wl_output *output) {
@@ -615,7 +625,8 @@ static const struct wl_surface_listener surface_listener = {
   surface_leave
 };
 
-static void handle_ping(void *data, struct wl_shell_surface *shell_surface, uint32_t serial) {
+static void shell_surface_ping(void *data, struct wl_shell_surface *shell_surface,
+                               uint32_t serial) {
   wl_shell_surface_pong(shell_surface, serial);
 }
 
@@ -765,8 +776,8 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
   }
 }
 
-static void handle_configure(void *data, struct wl_shell_surface *shell_surface,
-                             uint32_t edges, int32_t width, int32_t height) {
+static void shell_surface_configure(void *data, struct wl_shell_surface *shell_surface,
+                                    uint32_t edges, int32_t width, int32_t height) {
   ui_display_t *disp = data;
 
 #ifdef __DEBUG
@@ -791,49 +802,140 @@ static void handle_configure(void *data, struct wl_shell_surface *shell_surface,
   }
 }
 
-static void handle_popup_done(void *data, struct wl_shell_surface *shell_surface) {
+static void shell_surface_popup_done(void *data, struct wl_shell_surface *shell_surface) {
 }
 
 static const struct wl_shell_surface_listener shell_surface_listener = {
-  handle_ping,
-  handle_configure,
-  handle_popup_done
+  shell_surface_ping,
+  shell_surface_configure,
+  shell_surface_popup_done
 };
 
-static void data_offer_offer(void *data, struct wl_data_offer *wl_data_offer, const char *type) {
+static void data_offer_offer(void *data, struct wl_data_offer *offer, const char *type) {
 #ifdef __DEBUG
   bl_debug_printf("DATA OFFER %s\n", type);
 #endif
 }
 
+static void data_offer_source_action(void *data, struct wl_data_offer *data_offer,
+                                     uint32_t source_actions) {
+#ifdef __DEBUG
+  bl_debug_printf("SOURCE ACTION %d\n", source_actions);
+#endif
+}
+
+static void data_offer_action(void *data, struct wl_data_offer *data_offer,
+                              uint32_t dnd_action) {
+#ifdef __DEBUG
+  bl_debug_printf("DND ACTION %d\n", dnd_action);
+#endif
+}
+
 static const struct wl_data_offer_listener data_offer_listener = {
   data_offer_offer,
+  data_offer_source_action,
+  data_offer_action
 };
 
 static void data_device_data_offer(void *data, struct wl_data_device *data_device,
-                                   struct wl_data_offer *_offer) {
+                                   struct wl_data_offer *offer) {
   ui_wlserv_t *wlserv = data;
-  wl_data_offer_add_listener(_offer, &data_offer_listener, wlserv);
+
+#ifdef __DEBUG
+  bl_debug_printf("DND OFFER %p\n", offer);
+#endif
+
+  wl_data_offer_add_listener(offer, &data_offer_listener, wlserv);
+  wlserv->dnd_offer = offer;
 }
 
 static void data_device_enter(void *data, struct wl_data_device *data_device,
                               uint32_t serial, struct wl_surface *surface,
                               wl_fixed_t x_w, wl_fixed_t y_w,
                               struct wl_data_offer *offer) {
+#ifdef __DEBUG
+  bl_debug_printf("DATA DEVICE ENTER %p\n", offer);
+#endif
+
+  wl_data_offer_accept(offer, serial, "text/uri-list");
+
+  /* wl_data_device_manager_get_version() >= 3 */
+  wl_data_offer_set_actions(offer, WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY,
+                            WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY);
 }
 
 static void data_device_leave(void *data, struct wl_data_device *data_device) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("DATA DEVICE LEAVE\n");
+#endif
+
+  if (wlserv->dnd_offer) {
+    wl_data_offer_destroy(wlserv->dnd_offer);
+    wlserv->dnd_offer = NULL;
+  }
+  if (wlserv->sel_offer) {
+    wl_data_offer_destroy(wlserv->sel_offer);
+    wlserv->sel_offer = NULL;
+  }
 }
 
 static void data_device_motion(void *data, struct wl_data_device *data_device,
                                uint32_t time, wl_fixed_t x_w, wl_fixed_t y_w) {
 }
 
+static void receive_data(ui_wlserv_t *wlserv, struct wl_data_offer *offer, const char *mime) {
+  int fds[2];
+  if (pipe(fds) == 0) {
+    u_char buf[512];
+    ssize_t len;
+    ui_display_t *disp = surface_to_display(wlserv->current_surface);
+
+    wl_data_offer_receive(offer, mime, fds[1]);
+    wl_display_flush(wlserv->display);
+    close(fds[1]);
+
+    while ((len = read(fds[0], buf, sizeof(buf))) > 0) {
+#ifdef __DEBUG
+      if (len == sizeof(buf)) {
+        buf[len - 1] = '\0';
+      } else {
+        buf[len] = '\0';
+      }
+      bl_debug_printf("RECEIVE %d %s\n", len, buf);
+#endif
+      if (disp->roots[0]->utf_selection_notified) {
+        (*disp->roots[0]->utf_selection_notified)(disp->roots[0], buf, len);
+      }
+    }
+    close(fds[0]);
+  }
+}
+
 static void data_device_drop(void *data, struct wl_data_device *data_device) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef  __DEBUG
+  bl_debug_printf("DROPPED\n");
+#endif
+
+  receive_data(data, wlserv->dnd_offer, "text/uri-list");
 }
 
 static void data_device_selection(void *data, struct wl_data_device *wl_data_device,
                                   struct wl_data_offer *offer) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("SELECTION OFFER %p\n", offer);
+#endif
+
+  if (wlserv->sel_offer) {
+    wl_data_offer_destroy(wlserv->sel_offer);
+    wlserv->sel_offer = NULL;
+  }
+  wlserv->sel_offer = offer;
 }
 
 static const struct wl_data_device_listener data_device_listener = {
@@ -843,6 +945,55 @@ static const struct wl_data_device_listener data_device_listener = {
   data_device_motion,
   data_device_drop,
   data_device_selection
+};
+
+static void data_source_target(void *data, struct wl_data_source *source, const char *mime) {
+}
+
+static void data_source_send(void *data, struct wl_data_source *source, const char *mime,
+                             int32_t fd) {
+  ui_display_t *disp = data;
+  disp->display->wlserv->sel_fd = fd;
+
+#ifdef __DEBUG
+  bl_debug_printf("SOURCE SEND %s\n", mime);
+#endif
+
+  if (disp->selection_owner->utf_selection_requested) {
+    /* utf_selection_requested() calls ui_display_send_text_selection() */
+    (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, NULL, 0);
+  }
+}
+
+static void data_source_cancelled(void *data, struct wl_data_source *source) {
+  ui_display_t *disp = data;
+  ui_wlserv_t *wlserv = disp->display->wlserv;
+
+#ifdef __DEBUG
+  bl_debug_printf("SOURCE CANCEL %p %p\n", source, wlserv->sel_source);
+#endif
+
+  if (source == wlserv->sel_source) {
+    ui_display_clear_selection(disp, disp->selection_owner);
+  }
+}
+
+void data_source_dnd_drop_performed(void *data, struct wl_data_source *wl_data_source) {
+}
+
+void data_source_dnd_finished(void *data, struct wl_data_source *wl_data_source) {
+}
+
+void data_source_action(void *data, struct wl_data_source *wl_data_source, uint32_t dnd_action) {
+}
+
+static const struct wl_data_source_listener data_source_listener = {
+  data_source_target,
+  data_source_send,
+  data_source_cancelled,
+  data_source_dnd_drop_performed,
+  data_source_dnd_finished,
+  data_source_action,
 };
 
 static ui_wlserv_t *open_wl_display(char *name) {
@@ -902,10 +1053,27 @@ static ui_wlserv_t *open_wl_display(char *name) {
                                                                wlserv->seat);
   wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
 
+  wlserv->sel_fd = -1;
+
   return wlserv;
 }
 
 static void close_wl_display(ui_wlserv_t *wlserv) {
+#if 0
+  if (wlserv->dnd_offer) {
+    wl_data_offer_destroy(wlserv->dnd_offer);
+    wlserv->dnd_offer = NULL;
+  }
+  if (wlserv->sel_offer) {
+    wl_data_offer_destroy(wlserv->sel_offer);
+    wlserv->sel_offer = NULL;
+  }
+#endif
+  if (wlserv->sel_source) {
+    wl_data_source_destroy(wlserv->sel_source);
+    wlserv->sel_source = NULL;
+  }
+
   wl_output_destroy(wlserv->output);
   wl_seat_destroy(wlserv->seat);
   wl_compositor_destroy(wlserv->compositor);
@@ -966,12 +1134,17 @@ static int close_display(ui_display_t *disp) {
   return 1;
 }
 
-static void flush_damage(Display *display) {
+static int flush_damage(Display *display) {
   if (display->damage_height > 0) {
     wl_surface_damage(display->surface, display->damage_x, display->damage_y,
                       display->damage_width, display->damage_height);
+
+    return 1;
+  } else {
+    display->damage_x = display->damage_y = display->damage_width = display->damage_height = 0;
+
+    return 0;
   }
-  display->damage_x = display->damage_y = display->damage_width = display->damage_height = 0;
 }
 
 static int cache_damage_h(Display *display, int x, int y, u_int width, u_int height) {
@@ -1009,8 +1182,9 @@ static void damage_buffer(Display *display, int x, int y, u_int width, u_int hei
 }
 
 static void flush_wlserver(Display *display) {
-  flush_damage(display);
-  wl_surface_commit(display->surface);
+  if (flush_damage(display)) {
+    wl_surface_commit(display->surface);
+  }
 }
 
 /* --- global functions --- */
@@ -1040,6 +1214,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 
   for (count = 0; count < num_of_displays; count++) {
     if (strcmp(displays[count]->name, disp_name) == 0) {
+      disp->selection_owner = displays[count]->selection_owner;
       wlserv = displays[count]->display->wlserv;
       break;
     }
@@ -1126,6 +1301,12 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
                          char *app_name, Window parent_window) {
   void *p;
 
+  if (disp->num_of_roots > 0) {
+    ui_display_t *parent = disp;
+    disp = ui_display_open(disp->name, disp->depth);
+    disp->display->parent = parent;
+  }
+
   if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_of_roots + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
@@ -1146,8 +1327,8 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   }
 
   root->gc = disp->gc;
-  root->x = x;
-  root->y = y;
+  root->x = 0;
+  root->y = 0;
 
   if (app_name) {
     root->app_name = app_name;
@@ -1158,6 +1339,9 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
    * ui_display_get_group_leader() is called in ui_window_show().
    */
   disp->roots[disp->num_of_roots++] = root;
+
+  ui_display_create_surface(root->disp, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root),
+                            root->disp->display->parent);
 
   ui_window_show(root, hint);
 
@@ -1178,6 +1362,11 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 
       if (count == disp->num_of_roots) {
         memset(&disp->roots[count], 0, sizeof(disp->roots[0]));
+
+        if (disp->display->parent && disp->num_of_roots == 0) {
+          /* XXX input method */
+          ui_display_close(disp);
+        }
       } else {
         memcpy(&disp->roots[count], &disp->roots[disp->num_of_roots], sizeof(disp->roots[0]));
 
@@ -1228,46 +1417,57 @@ void ui_display_sync(ui_display_t *disp) {
  */
 
 int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
+  ui_wlserv_t *wlserv = disp->display->wlserv;
+  u_int count;
+
   if (disp->selection_owner) {
-    ui_display_clear_selection(disp, disp->selection_owner);
+    ui_display_clear_selection(NULL, disp->selection_owner);
   }
 
-  disp->selection_owner = win;
+  for (count = 0; count < num_of_displays; count++) {
+    if (displays[count]->display->wlserv == wlserv) {
+      displays[count]->selection_owner = win;
+    }
+  }
+
+  win->is_sel_owner = 1;
+
+  wlserv->sel_source = wl_data_device_manager_create_data_source(wlserv->data_device_manager);
+  wl_data_source_add_listener(wlserv->sel_source, &data_source_listener, disp);
+  wl_data_source_offer(wlserv->sel_source, "UTF8_STRING");
+  wl_data_device_set_selection(wlserv->data_device,
+                               wlserv->sel_source, wlserv->serial);
 
   return 1;
 }
 
 int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection owner windows. */
                                ui_window_t *win) {
-  if (disp == NULL) {
-    u_int count;
+  u_int count;
 
-    for (count = 0; count < num_of_displays; count++) {
-      ui_display_clear_selection(displays[count], displays[count]->selection_owner);
+  for (count = 0; count < num_of_displays; count++) {
+    if ((disp == NULL || disp->display->wlserv == displays[count]->display->wlserv) &&
+        (displays[count]->selection_owner == win)) {
+      displays[count]->selection_owner = NULL;
+      if (displays[count]->display->wlserv->sel_source) {
+        wl_data_source_destroy(displays[count]->display->wlserv->sel_source);
+        displays[count]->display->wlserv->sel_source = NULL;
+      }
     }
-
-    return 1;
   }
 
-  if (disp->selection_owner == NULL || disp->selection_owner != win) {
-    return 0;
+  win->is_sel_owner = 0;
+
+  if (win->selection_cleared) {
+    (*win->selection_cleared)(win);
   }
-
-  disp->selection_owner->is_sel_owner = 0;
-
-  if (disp->selection_owner->selection_cleared) {
-    (*disp->selection_owner->selection_cleared)(disp->selection_owner);
-  }
-
-  disp->selection_owner = NULL;
 
   return 1;
 }
 
 XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return disp->modmap.map; }
 
-void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) {
-}
+void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) {}
 
 XID ui_display_get_group_leader(ui_display_t *disp) {
   if (disp->num_of_roots > 0) {
@@ -1277,17 +1477,25 @@ XID ui_display_get_group_leader(ui_display_t *disp) {
   }
 }
 
-int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height) {
+int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_display_t *parent) {
   Display *display = disp->display;
   ui_wlserv_t *wlserv = display->wlserv;
 
   display->surface = wl_compositor_create_surface(wlserv->compositor);
-  wl_surface_add_listener(display->surface, &surface_listener, wlserv);
 
   display->shell_surface = wl_shell_get_shell_surface(wlserv->shell, display->surface);
-  wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
-  wl_shell_surface_set_title(display->shell_surface, "mlterm");
-  wl_shell_surface_set_toplevel(display->shell_surface);
+
+  if (parent) {
+    wl_shell_surface_set_transient(display->shell_surface,
+                                   ((ui_display_t*)display->parent)->display->surface, 0, 0, 1);
+    display->parent = parent;
+  } else {
+    wl_surface_add_listener(display->surface, &surface_listener, wlserv);
+    wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
+    wl_shell_surface_set_title(display->shell_surface, "mlterm");
+    wl_shell_surface_set_class(display->shell_surface, "mlterm");
+    wl_shell_surface_set_toplevel(display->shell_surface);
+  }
 
   disp->width = width;
   disp->height = height;
@@ -1325,6 +1533,14 @@ int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
   create_shm_buffer(disp->display);
 
   return 1;
+}
+
+void ui_display_move(ui_display_t *disp, int x, int y) {
+  if (disp->display->parent) {
+    wl_shell_surface_set_transient(disp->display->shell_surface,
+                                   ((ui_display_t*)disp->display->parent)->display->surface,
+                                   x, y, 1);
+  }
 }
 
 u_long ui_display_get_pixel(int x, int y, ui_display_t *disp) {
@@ -1467,6 +1683,43 @@ void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int wid
   }
 
   damage_buffer(display, dst_x, dst_y, width, height);
+}
+
+void ui_display_request_text_selection(ui_display_t *disp) {
+  if (disp->selection_owner) {
+    XSelectionRequestEvent ev;
+    ev.type = 0;
+    ev.target = disp->roots[0];
+    if (disp->selection_owner->utf_selection_requested) {
+      /* utf_selection_requested() calls ui_display_send_text_selection() */
+      (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, &ev, 0);
+    }
+  } else if (disp->display->wlserv->sel_offer) {
+    bl_debug_printf("%s\n", disp->display->wlserv->sel_offer);
+    receive_data(disp->display->wlserv, disp->display->wlserv->sel_offer, "UTF8_STRING");
+  }
+}
+
+void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *ev,
+                                    u_char *sel_data, size_t sel_len) {
+  if (disp->display->wlserv->sel_fd != -1) {
+    write(disp->display->wlserv->sel_fd, sel_data, sel_len);
+    close(disp->display->wlserv->sel_fd);
+    disp->display->wlserv->sel_fd = -1;
+  } else if (ev && ev->target->utf_selection_notified) {
+    (*ev->target->utf_selection_notified)(ev->target, sel_data, sel_len);
+  }
+}
+
+u_char ui_display_get_char(KeySym ksym) {
+    char buf[10];
+    int len;
+
+    if ((len = xkb_keysym_to_utf8(ksym, buf, sizeof(buf))) > 0) {
+      return buf[0];
+    } else {
+      return 0;
+    }
 }
 
 /* seek the closest color */

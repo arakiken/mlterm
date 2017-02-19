@@ -184,22 +184,27 @@ static void receive_next_event(void) {
       break;
     }
 
-    for (count = 0; count < num_of_additional_fds; count++) {
-      if (additional_fds[count].fd < 0) {
-        (*additional_fds[count].handler)();
-      }
-    }
-
 #if (defined(__NetBSD__) && defined(USE_FRAMEBUFFER)) || defined(USE_WAYLAND)
     /* ui_display_idling() is called every 0.1 sec. */
     if (--display_idling_wait > 0) {
-      continue;
+      goto additional_minus_fds;
     }
     display_idling_wait = 4;
 #endif
 
     for (count = 0; count < num_of_displays; count++) {
       ui_display_idling(displays[count]);
+    }
+
+  additional_minus_fds:
+    /*
+     * additional_fds.handler (-> update_preedit_text -> cand_screen->delete) of
+     * ibus may destroy ui_display on wayland.
+     */
+    for (count = 0; count < num_of_additional_fds; count++) {
+      if (additional_fds[count].fd < 0) {
+        (*additional_fds[count].handler)();
+      }
     }
   }
 

@@ -479,11 +479,11 @@ fi
 AC_SUBST(TYPE_LOADER_OBJ)
 
 AC_ARG_ENABLE(anti_alias,
-	[  --enable-anti-alias     same as --with-type-engines=xcore,xft,cairo on xlib @<:@default=enabled@:>@
-                          enable truetype fonts on framebuffer @<:@default=disabled@:>@ ],
+	[  --disable-anti-alias    same as --with-type-engines=xcore on xlib @<:@default=enabled@:>@
+                          do not use truetype fonts on framebuffer @<:@default=enabled@:>@ ],
 	anti_alias=$enable_anti_alias, anti_alias="auto")
 
-if test "$anti_alias" = "yes"; then
+if test "$anti_alias" != "no"; then
 	if test "$gui" = "fb" -o "$gui" = "wayland"; then
 		PKG_CHECK_MODULES(FT, freetype2, have_ft=yes, have_ft=no)
 		if test "$have_ft" = "no" ; then
@@ -498,6 +498,19 @@ if test "$anti_alias" = "yes"; then
 			AC_SUBST(FT_LIBS)
 		fi
 	fi
+fi
+
+if test "$FT_CFLAGS" != "" ; then
+  AC_ARG_ENABLE(fontconfig,
+	  [  --disable-fontconfig    do not use fontconfig with freetype on framebuffer or wayland @<:@default=enabled@:>@ ],
+	  fontconfig=$enable_fontconfig, fontconfig="yes")
+
+  if test "$fontconfig" != "no"; then
+    FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
+		FT_LIBS="$FT_LIBS -lfontconfig"
+		AC_SUBST(FT_CFLAGS)
+    AC_SUBST(FT_LIBS)
+  fi
 fi
 
 AC_ARG_WITH(type_engines,

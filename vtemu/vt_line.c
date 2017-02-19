@@ -10,10 +10,14 @@
 #include "vt_ctl_loader.h"
 #include "vt_ot_layout.h"
 
-#ifdef DEBUG
+#if 0
+#define __DEBUG
+#endif
+
+#ifdef __DEBUG
 #define END_CHAR_INDEX(line)                                                              \
   ((line)->num_of_filled_chars == 0 &&                                                    \
-           bl_warn_printf("END_CHAR_INDEX()" BL_DEBUG_TAG " num_of_filled_chars is 0.\n") \
+           bl_debug_printf("END_CHAR_INDEX()" BL_DEBUG_TAG " num_of_filled_chars is 0.\n") \
        ? 0                                                                                \
        : (line)->num_of_filled_chars - 1)
 #else
@@ -26,10 +30,6 @@
 #define vt_line_is_using_bidi(line) ((line)->ctl_info_type == VINFO_BIDI)
 #define vt_line_is_using_iscii(line) ((line)->ctl_info_type == VINFO_ISCII)
 #define vt_line_is_using_ot_layout(line) ((line)->ctl_info_type == VINFO_OT_LAYOUT)
-
-#if 0
-#define __DEBUG
-#endif
 
 /* You can specify this macro by configure script option. */
 #if 0
@@ -1335,8 +1335,8 @@ int vt_line_beg_char_index_regarding_rtl(vt_line_t *line) {
 
 int vt_line_end_char_index(vt_line_t *line) {
   if (IS_EMPTY(line)) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " num_of_filled_chars is 0.\n");
+#ifdef __DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " num_of_filled_chars is 0.\n");
 #endif
 
     return 0;

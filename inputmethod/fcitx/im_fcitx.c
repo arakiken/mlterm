@@ -18,8 +18,9 @@
 #define IM_FCITX_DEBUG 1
 #endif
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
+#define USE_IM_CANDIDATE_SCREEN
 #endif
 
 /* When fcitx encoding is the same as terminal, conv is NULL. */
@@ -33,7 +34,7 @@ typedef struct im_fcitx {
 
   vt_char_encoding_t term_encoding;
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   ef_parser_t* parser_term; /* for term encoding */
 #endif
   ef_conv_t* conv; /* for term encoding */
@@ -75,7 +76,7 @@ static int delete (ui_im_t* im) {
     (*fcitx->conv->delete)(fcitx->conv);
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   if (fcitx->parser_term) {
     (*fcitx->parser_term->delete)(fcitx->parser_term);
   }
@@ -281,7 +282,7 @@ static void connected(FcitxClient* client, void* data) {
   fcitx = data;
 
   fcitx_client_set_capacity(client,
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
                             CAPACITY_CLIENT_SIDE_UI | CAPACITY_CLIENT_SIDE_CONTROL_STATE
 #else
                             CAPACITY_PREEDIT | CAPACITY_FORMATTED_PREEDIT
@@ -349,7 +350,7 @@ static void commit_string(FcitxClient* client, char* str, void* data) {
     }
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   if (fcitx->im.stat_screen) {
     (*fcitx->im.stat_screen->delete)(fcitx->im.stat_screen);
     fcitx->im.stat_screen = NULL;
@@ -370,14 +371,14 @@ static void forward_key(FcitxClient* client, guint keyval, guint state, gint typ
 #endif
       ) {
     fcitx->prev_key.state |= FcitxKeyState_IgnoredMask;
-#if !defined(USE_FRAMEBUFFER) && !defined(USE_CONSOLE)
+#ifdef USE_XLIB
     XPutBackEvent(fcitx->prev_key.display, &fcitx->prev_key);
 #endif
     memset(&fcitx->prev_key, 0, sizeof(XKeyEvent));
   }
 }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
 
 static void update_client_side_ui(FcitxClient* client, char* auxup, char* auxdown, char* preedit,
                                   char* candidateword, char* imname, int cursor_pos, void* data) {
@@ -482,7 +483,7 @@ static void update_client_side_ui(FcitxClient* client, char* auxup, char* auxdow
                                           fcitx->im.preedit.cursor_offset);
 
   if (strlen(candidateword) == 0) {
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
     if (fcitx->im.stat_screen) {
       (*fcitx->im.stat_screen->delete)(fcitx->im.stat_screen);
       fcitx->im.stat_screen = NULL;
@@ -652,7 +653,9 @@ static void update_formatted_preedit(FcitxClient* client, GPtrArray* list, int c
 
 #endif
 
+#ifndef USE_WAYLAND
 static void connection_handler(void) { g_main_context_iteration(g_main_context_default(), FALSE); }
+#endif
 
 /* --- global functions --- */
 
@@ -700,7 +703,7 @@ ui_im_t* im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   g_signal_connect(fcitx->client, "close-im", G_CALLBACK(close_im), fcitx);
   g_signal_connect(fcitx->client, "forward-key", G_CALLBACK(forward_key), fcitx);
   g_signal_connect(fcitx->client, "commit-string", G_CALLBACK(commit_string), fcitx);
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   g_signal_connect(fcitx->client, "update-client-side-ui", G_CALLBACK(update_client_side_ui),
                    fcitx);
 #else
@@ -717,7 +720,7 @@ ui_im_t* im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     }
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
   if (!(fcitx->parser_term = (*syms->vt_char_encoding_parser_new)(term_encoding))) {
     goto error;
   }
@@ -734,7 +737,9 @@ ui_im_t* im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   fcitx->im.unfocused = unfocused;
 
   if (ref_count++ == 0) {
+#ifndef USE_WAYLAND
     (*syms->ui_event_source_add_fd)(FCITX_ID, connection_handler);
+#endif
 
     if (!(parser_utf8 = (*syms->vt_char_encoding_parser_new)(VT_UTF8))) {
       goto error;
@@ -753,7 +758,7 @@ error:
       (*fcitx->conv->delete)(fcitx->conv);
     }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef USE_IM_CANDIDATE_SCREEN
     if (fcitx->parser_term) {
       (*fcitx->parser_term->delete)(fcitx->parser_term);
     }

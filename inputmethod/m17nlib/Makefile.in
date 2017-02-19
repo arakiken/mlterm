@@ -29,6 +29,7 @@ LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @M17NLIB_LIBS@
 TARGET_xlib = libim-m17nlib.la
 TARGET_fb = libim-m17nlib-fb.la
 TARGET_console = libim-m17nlib-fb.la
+TARGET_wayland = libim-m17nlib-wl.la
 
 TARGET = $(TARGET_@GUI@)
 

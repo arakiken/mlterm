@@ -15,17 +15,17 @@
 
 typedef int KeyCode; /* Same as type of wparam */
 typedef int KeySym;  /* Same as type of wparam */
+typedef unsigned long Atom; /* Same as definition in X11/X.h */
+typedef uint32_t Time;
 
 typedef struct {
   int type;
+  Time time;
   unsigned int state;
   KeySym ksym;
   unsigned int keycode;
 
 } XKeyEvent;
-
-typedef unsigned long Time; /* Same as definition in X11/X.h */
-typedef unsigned long Atom; /* Same as definition in X11/X.h */
 
 typedef struct {
   int type;
@@ -46,15 +46,19 @@ typedef struct {
 
 } XMotionEvent;
 
+typedef struct {
+  int type;
+  struct ui_window *target;
+} XSelectionRequestEvent;
+
 typedef union {
   int type;
   XKeyEvent xkey;
   XButtonEvent xbutton;
   XMotionEvent xmotion;
+  XSelectionRequestEvent xselectionrequest;
 
 } XEvent;
-
-typedef int XSelectionRequestEvent; /* dummy */
 
 typedef struct {
   struct wl_display *display;
@@ -95,6 +99,12 @@ typedef struct {
   int kbd_repeat_wait;
   XKeyEvent prev_kev;
 
+  struct wl_data_offer *dnd_offer;
+  struct wl_data_offer *sel_offer;
+  struct wl_data_source *sel_source;
+  int32_t sel_fd;
+  uint32_t serial;
+
   int ref_count;
 
 } ui_wlserv_t;
@@ -129,6 +139,8 @@ typedef struct {
   int damage_y;
   unsigned int damage_width;
   unsigned int damage_height;
+
+  void *parent; /* ui_display_t */
 
 } Display;
 
@@ -335,6 +347,7 @@ typedef int XFontSet; /* dummy */
 #define XK_Muhenkan XKB_KEY_Muhenkan
 #define XK_Henkan_Mode XKB_KEY_Henkan_Mode
 #define XK_Zenkaku_Hankaku XKB_KEY_Zenkaku_Hankaku
+#define XK_Hiragana_Katakana 0xfffe /* dummy */
 
 #define XK_KP_Prior XKB_KEY_KP_Prior
 #define XK_KP_Next XKB_KEY_KP_Next
@@ -415,7 +428,11 @@ KeySym XStringToKeysym(char *str);
 #else
 #undef TYPE_XCORE_SCALABLE
 #endif
+#ifdef __UI_LAYOUT_H__
+#define MANAGE_WINDOWS_BY_MYSELF
+#else
 #undef MANAGE_WINDOWS_BY_MYSELF
+#endif
 #undef INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP

@@ -539,6 +539,11 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
 
   close(fds2[0]);
   close(fds1[1]);
+
+  /* bl_pty_fork() in vt_pty_unix_new() may block without this in startup. */
+#if 1
+  waitpid(pid, NULL, 0);
+#endif
 #endif
 
 loaded:

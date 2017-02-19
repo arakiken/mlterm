@@ -244,7 +244,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 
   if (y >= clip_bottom + font_ascent) {
     return 0;
-  } else if (y + font_height - font_ascent >= clip_bottom) {
+  } else if (y + font_height - font_ascent > clip_bottom) {
     font_height -= (y + font_height - font_ascent - clip_bottom + 1);
 
     if (font_height < font_ascent) {
@@ -739,9 +739,24 @@ static int fix_rl_boundary(ui_window_t *win, int boundary_start, int *boundary_e
 static void reset_input_focus(ui_window_t *win) {
   u_int count;
 
+#ifdef USE_WAYLAND
+  /* 
+   * Switching input method engines invokes unfocus and focus. In this case,
+   * it is necessary to search a window which was focused most recently.
+   */
+  if (win->inputtable > 0) {
+    win->inputtable = -1;
+  } else if (win->inputtable < 0) {
+    if (win->inputtable > -10) {
+      win->inputtable --;
+    }
+  }
+#else
   if (win->inputtable) {
     win->inputtable = -1;
-  } else {
+  }
+#endif
+  else {
     win->inputtable = 0;
   }
 
@@ -1018,11 +1033,6 @@ int ui_window_show(ui_window_t *win,
     win->parent_window = win->parent->my_window;
     win->gc = win->parent->gc;
   }
-#ifdef USE_WAYLAND
-  else {
-    ui_display_create_surface(win->disp, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
-  }
-#endif
 
   win->my_window = win; /* Note that ui_connect_dialog.c uses this. */
 
@@ -1068,8 +1078,8 @@ int ui_window_map(ui_window_t *win) {
   if (!win->is_mapped) {
     win->is_mapped = 1;
 
-    (*win->window_exposed)(win, 0, 0, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
     clear_margin_area(win);
+    (*win->window_exposed)(win, 0, 0, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
   }
 
   return 1;
@@ -1085,15 +1095,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
                      u_int height,                  /* excluding margin */
                      ui_resize_flag_t flag          /* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
                      ) {
-#ifdef USE_WAYLAND
-  if (win->parent == NULL) {
-    ui_display_resize(win->disp, width + win->hmargin * 2, height + win->vmargin * 2);
-  } else if (flag & NOTIFY_TO_PARENT) {
-    return ui_window_resize(win->parent, win->parent->width + width - win->width ,
-                            win->parent->height + height - win->height,
-                            NOTIFY_TO_MYSELF);
-  }
-#else
+#ifndef USE_WAYLAND
   if ((flag & NOTIFY_TO_PARENT) &&
       /* XXX Check if win is input method window or not. */
       !IS_IM_WINDOW(win)) {
@@ -1118,9 +1120,19 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
   if (height + win->vmargin * 2 > win->disp->height) {
     height = win->disp->height - win->vmargin * 2;
   }
+#endif
 
   if (win->width == width && win->height == height) {
     return 0;
+  }
+
+#ifdef USE_WAYLAND
+  if (win->parent == NULL) {
+    ui_display_resize(win->disp, width + win->hmargin * 2, height + win->vmargin * 2);
+  } else if (flag & NOTIFY_TO_PARENT) {
+    return ui_window_resize(win->parent, win->parent->width + width - win->width ,
+                            win->parent->height + height - win->height,
+                            NOTIFY_TO_MYSELF);
   }
 #endif
 
@@ -1132,11 +1144,6 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
       (*win->window_resized)(win);
     }
 
-#ifdef USE_WAYLAND
-    if (win->parent == NULL) {
-      ui_window_update_all(win);
-    }
-#else
     /*
      * clear_margin_area() must be called after win->window_resized
      * because wall_picture can be resized to fit to the new window
@@ -1147,8 +1154,13 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
      * cause segfault.
      */
     clear_margin_area(win);
-#endif
   }
+#ifdef USE_WAYLAND
+  /* for ui_im_{status|candidate}_screen.c */
+  else if (win->window_exposed) {
+    (*win->window_exposed)(win, 0, 0, win->width, win->height);
+  }
+#endif
 
   return 1;
 }
@@ -1178,6 +1190,13 @@ int ui_window_move(ui_window_t *win, int x, int y) {
     x += win->parent->hmargin;
     y += win->parent->vmargin;
   }
+#ifdef USE_WAYLAND
+  else {
+    ui_display_move(win->disp, x, y);
+
+    return 0;
+  }
+#endif
 
   if (win->x == x && win->y == y) {
     return 0;
@@ -1479,6 +1498,12 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 
   *parser = NULL;
 
+#ifdef USE_WAYLAND
+  *keysym = event->ksym;
+  if ((ch = ui_display_get_char(event->ksym)) == '\0') {
+    return 0;
+  }
+#else
   ch = event->ksym;
 
 #ifdef __ANDROID__
@@ -1555,6 +1580,7 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 
     return 0;
   }
+#endif
 
   /*
    * Control + '@'(0x40) ... '_'(0x5f) -> 0x00 ... 0x1f
@@ -1746,10 +1772,12 @@ int ui_set_use_clipboard_selection(int use_it) { return 0; }
 int ui_is_using_clipboard_selection(void) { return 0; }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__)
   if (win->utf_selection_requested) {
     (*win->utf_selection_requested)(win, NULL, 0);
   }
+#elif defined(USE_WAYLAND)
+  ui_display_own_selection(win->disp, win);
 #else
   win->is_sel_owner = 1;
 #endif
@@ -1758,16 +1786,20 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
 }
 
 int ui_window_xct_selection_request(ui_window_t *win, Time time) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__)
   ui_display_request_text_selection();
+#elif defined(USE_WAYLAND)
+  ui_display_request_text_selection(win->disp);
 #endif
 
   return 1;
 }
 
 int ui_window_utf_selection_request(ui_window_t *win, Time time) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__)
   ui_display_request_text_selection();
+#elif defined(USE_WAYLAND)
+  ui_display_request_text_selection(win->disp);
 #endif
 
   return 1;
@@ -1779,8 +1811,10 @@ int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int widt
 
 int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
                                   u_char *sel_data, size_t sel_len, Atom sel_type) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__)
   ui_display_send_text_selection(sel_data, sel_len);
+#elif defined(USE_WAYLAND)
+  ui_display_send_text_selection(win->disp, req_ev, sel_data, sel_len);
 #endif
 
   return 1;
@@ -1810,7 +1844,9 @@ int ui_set_click_interval(int interval) {
   return 1;
 }
 
-u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms) { return ~0; }
+u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms) {
+  return ~0;
+}
 
 u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key) { return ModMask; }
 
