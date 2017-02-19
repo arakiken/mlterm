@@ -17,13 +17,13 @@
 
 /* --- static variables --- */
 
-static char* new_logsize = NULL;
-static char* old_logsize = NULL;
+static char *new_logsize = NULL;
+static char *old_logsize = NULL;
 static int is_changed;
 
 /* --- static functions --- */
 
-static gint logsize_selected(GtkWidget* widget, gpointer data) {
+static gint logsize_selected(GtkWidget *widget, gpointer data) {
   g_free(new_logsize);
   new_logsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
@@ -36,10 +36,10 @@ static gint logsize_selected(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_logsize_config_widget_new(void) {
-  GtkWidget* combo;
-  GtkWidget* entry;
-  char* logsizes[] = {
+GtkWidget *mc_logsize_config_widget_new(void) {
+  GtkWidget *combo;
+  GtkWidget *entry;
+  char *logsizes[] = {
       "128", "256", "512", "1024", "unlimited",
   };
 

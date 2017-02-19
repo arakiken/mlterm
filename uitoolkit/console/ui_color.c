@@ -9,7 +9,7 @@
 
 /* --- global functions --- */
 
-int ui_load_named_xcolor(ui_display_t* disp, ui_color_t* xcolor, char* name) {
+int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, char *name) {
   vt_color_t color;
   u_int8_t red;
   u_int8_t green;
@@ -47,7 +47,7 @@ int ui_load_named_xcolor(ui_display_t* disp, ui_color_t* xcolor, char* name) {
   return ui_load_rgb_xcolor(disp, xcolor, red, green, blue, 0xff);
 }
 
-int ui_load_rgb_xcolor(ui_display_t* disp, ui_color_t* xcolor, u_int8_t red, u_int8_t green,
+int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_int8_t green,
                        u_int8_t blue, u_int8_t alpha) {
   xcolor->pixel = vt_get_closest_color(red, green, blue);
 
@@ -73,11 +73,11 @@ int ui_load_rgb_xcolor(ui_display_t* disp, ui_color_t* xcolor, u_int8_t red, u_i
   return 1;
 }
 
-int ui_unload_xcolor(ui_display_t* disp, ui_color_t* xcolor) { return 1; }
+int ui_unload_xcolor(ui_display_t *disp, ui_color_t *xcolor) { return 1; }
 
-int ui_get_xcolor_rgba(u_int8_t* red, u_int8_t* green, u_int8_t* blue,
-                       u_int8_t* alpha, /* can be NULL */
-                       ui_color_t* xcolor) {
+int ui_get_xcolor_rgba(u_int8_t *red, u_int8_t *green, u_int8_t *blue,
+                       u_int8_t *alpha, /* can be NULL */
+                       ui_color_t *xcolor) {
   *red = xcolor->red;
   *green = xcolor->green;
   *blue = xcolor->blue;
@@ -89,7 +89,7 @@ int ui_get_xcolor_rgba(u_int8_t* red, u_int8_t* green, u_int8_t* blue,
   return 1;
 }
 
-int ui_xcolor_fade(ui_display_t* disp, ui_color_t* xcolor, u_int fade_ratio) {
+int ui_xcolor_fade(ui_display_t *disp, ui_color_t *xcolor, u_int fade_ratio) {
   u_int8_t red;
   u_int8_t green;
   u_int8_t blue;

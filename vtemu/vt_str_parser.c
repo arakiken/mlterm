@@ -16,7 +16,7 @@ typedef struct vt_str_parser {
    * !! Notice !!
    * ef_parser_reset() and ef_parser_mark() don't recognize these members.
    */
-  vt_char_t* str;
+  vt_char_t *str;
   u_int left;
   u_int comb_left;
 
@@ -24,9 +24,9 @@ typedef struct vt_str_parser {
 
 /* --- static functions --- */
 
-static int next_char(ef_parser_t* parser, ef_char_t* ch) {
-  vt_str_parser_t* vt_str_parser;
-  vt_char_t* vt_ch;
+static int next_char(ef_parser_t *parser, ef_char_t *ch) {
+  vt_str_parser_t *vt_str_parser;
+  vt_char_t *vt_ch;
   u_int comb_size;
 
   vt_str_parser = (vt_str_parser_t*)parser;
@@ -60,7 +60,7 @@ static int next_char(ef_parser_t* parser, ef_char_t* ch) {
   vt_ch = vt_str_parser->str;
 
   if (vt_str_parser->comb_left > 0) {
-    vt_char_t* combs;
+    vt_char_t *combs;
 
     if ((combs = vt_get_combining_chars(vt_ch, &comb_size)) == NULL ||
         comb_size < vt_str_parser->comb_left) {
@@ -132,8 +132,8 @@ err:
   return 0;
 }
 
-static void init(ef_parser_t* ef_parser) {
-  vt_str_parser_t* vt_str_parser;
+static void init(ef_parser_t *ef_parser) {
+  vt_str_parser_t *vt_str_parser;
 
   vt_str_parser = (vt_str_parser_t*)ef_parser;
 
@@ -144,14 +144,14 @@ static void init(ef_parser_t* ef_parser) {
   vt_str_parser->comb_left = 0;
 }
 
-static void set_str(ef_parser_t* ef_parser, u_char* str, size_t size) { /* do nothing */ }
+static void set_str(ef_parser_t *ef_parser, u_char *str, size_t size) { /* do nothing */ }
 
-static void delete (ef_parser_t* s) { free(s); }
+static void delete (ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
-ef_parser_t* vt_str_parser_new(void) {
-  vt_str_parser_t* vt_str_parser;
+ef_parser_t *vt_str_parser_new(void) {
+  vt_str_parser_t *vt_str_parser;
 
   if ((vt_str_parser = malloc(sizeof(vt_str_parser_t))) == NULL) {
     return NULL;
@@ -167,8 +167,8 @@ ef_parser_t* vt_str_parser_new(void) {
   return (ef_parser_t*)vt_str_parser;
 }
 
-void vt_str_parser_set_str(ef_parser_t* ef_parser, vt_char_t* str, u_int size) {
-  vt_str_parser_t* vt_str_parser;
+void vt_str_parser_set_str(ef_parser_t *ef_parser, vt_char_t *str, u_int size) {
+  vt_str_parser_t *vt_str_parser;
 
   vt_str_parser = (vt_str_parser_t*)ef_parser;
 

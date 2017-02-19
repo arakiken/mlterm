@@ -26,7 +26,7 @@
 #ifdef USE_WIN32API
 #include <stdlib.h> /* _fmode */
 #include <fcntl.h>  /* _O_BINARY */
-static char* dummy_argv[] = {"mlterm", NULL};
+static char *dummy_argv[] = {"mlterm", NULL};
 #define argv (__argv ? __argv : dummy_argv)
 #define argc __argc
 #endif
@@ -50,10 +50,10 @@ static void check_console(void) {
   if (!(handle = GetStdHandle(STD_OUTPUT_HANDLE)) || handle == INVALID_HANDLE_VALUE) {
 #if 0
     struct utsname name;
-    char* rel;
+    char *rel;
 
     if (uname(&name) == 0 && (rel = bl_str_alloca_dup(name.release))) {
-      char* p;
+      char *p;
 
       if ((p = strchr(rel, '.'))) {
         int major;
@@ -113,9 +113,9 @@ static void check_console(void) {
 /* --- global functions --- */
 
 #ifdef USE_WIN32API
-int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char* cmdline, int cmdshow)
+int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow)
 #else
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 #endif
 {
 #if defined(USE_WIN32API) && defined(USE_LIBSSH2)

@@ -17,8 +17,8 @@
 
 /* --- global functions --- */
 
-bl_file_t* bl_file_new(FILE* fp) {
-  bl_file_t* file;
+bl_file_t *bl_file_new(FILE* fp) {
+  bl_file_t *file;
 
   if ((file = malloc(sizeof(bl_file_t))) == NULL) {
     return NULL;
@@ -31,7 +31,7 @@ bl_file_t* bl_file_new(FILE* fp) {
   return file;
 }
 
-int bl_file_delete(bl_file_t* file) {
+int bl_file_delete(bl_file_t *file) {
   /* not fclose(file->fp) */
 
   free(file->buffer);
@@ -40,7 +40,7 @@ int bl_file_delete(bl_file_t* file) {
   return 1;
 }
 
-bl_file_t* bl_file_open(const char* file_path, const char* mode) {
+bl_file_t *bl_file_open(const char *file_path, const char *mode) {
   FILE* fp;
 
   if ((fp = fopen(file_path, mode)) == NULL) {
@@ -50,7 +50,7 @@ bl_file_t* bl_file_open(const char* file_path, const char* mode) {
   return bl_file_new(fp);
 }
 
-int bl_file_close(bl_file_t* file) {
+int bl_file_close(bl_file_t *file) {
   int result;
 
   if (fclose(file->file) == 0) {
@@ -64,9 +64,9 @@ int bl_file_close(bl_file_t* file) {
   return result;
 }
 
-FILE* bl_fopen_with_mkdir(const char* file_path, const char* mode) {
+FILE* bl_fopen_with_mkdir(const char *file_path, const char *mode) {
   FILE* fp;
-  char* p;
+  char *p;
 
   if ((fp = fopen(file_path, mode))) {
     return fp;
@@ -86,8 +86,8 @@ FILE* bl_fopen_with_mkdir(const char* file_path, const char* mode) {
  * If 'from' file doesn't end with '\n', '\0' is automatically appended to the
  * end of file.
  */
-char* bl_file_get_line(bl_file_t* from, size_t* len) {
-  char* line;
+char *bl_file_get_line(bl_file_t *from, size_t *len) {
+  char *line;
 
   if ((line = fgetln(from->file, len)) == NULL) {
     return NULL;
@@ -116,7 +116,7 @@ char* bl_file_get_line(bl_file_t* from, size_t* len) {
  * If 'from' file doesn't end with '\n', '\0' is automatically appended to the
  *end of file.
  */
-char* bl_file_get_line(bl_file_t* from, size_t* len) {
+char *bl_file_get_line(bl_file_t *from, size_t *len) {
   size_t filled;
   int c;
 
@@ -229,9 +229,9 @@ int bl_file_unset_cloexec(int fd) {
  * /a/b/c/ => mkdir /a ; mkdir /a/b ; mkdir /a/b/c
  * /a => do nothing
  */
-int bl_mkdir_for_file(char* file_path, /* Not const. Don't specify read only data. */
+int bl_mkdir_for_file(char *file_path, /* Not const. Don't specify read only data. */
                       mode_t dir_mode) {
-  char* p;
+  char *p;
 
   p = file_path + 1;
   while (*p) {

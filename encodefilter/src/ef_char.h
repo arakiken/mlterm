@@ -30,9 +30,9 @@ typedef struct ef_char {
 
 } ef_char_t;
 
-u_char* ef_int_to_bytes(u_char* bytes, size_t len, u_int32_t int_ch);
+u_char *ef_int_to_bytes(u_char *bytes, size_t len, u_int32_t int_ch);
 
-u_int32_t ef_bytes_to_int(const u_char* bytes, size_t len);
+u_int32_t ef_bytes_to_int(const u_char *bytes, size_t len);
 
 #define ef_char_to_int(c) ef_bytes_to_int((c)->ch, (c)->size)
 

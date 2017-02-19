@@ -16,9 +16,9 @@ typedef struct ef_utf32_conv {
 
 /* --- static functions --- */
 
-static size_t convert_to_utf32(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
-  ef_utf32_conv_t* utf32_conv;
+static size_t convert_to_utf32(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
+  ef_utf32_conv_t *utf32_conv;
   size_t filled_size;
   ef_char_t ch;
 
@@ -97,20 +97,20 @@ static size_t convert_to_utf32(ef_conv_t* conv, u_char* dst, size_t dst_size,
   return filled_size;
 }
 
-static void conv_init(ef_conv_t* conv) {
-  ef_utf32_conv_t* utf32_conv;
+static void conv_init(ef_conv_t *conv) {
+  ef_utf32_conv_t *utf32_conv;
 
   utf32_conv = (ef_utf32_conv_t*)conv;
 
   utf32_conv->is_bof = 1;
 }
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_utf32_conv_new(void) {
-  ef_utf32_conv_t* utf32_conv;
+ef_conv_t *ef_utf32_conv_new(void) {
+  ef_utf32_conv_t *utf32_conv;
 
   if ((utf32_conv = malloc(sizeof(ef_utf32_conv_t))) == NULL) {
     return NULL;

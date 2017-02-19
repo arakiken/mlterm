@@ -3,8 +3,8 @@
 #ifndef __IM_COMMON_H__
 #define __IM_COMMON_H__
 
-static inline u_int im_convert_encoding(ef_parser_t* parser, /* must be initialized */
-                                        ef_conv_t* conv, u_char* from, u_char** to,
+static inline u_int im_convert_encoding(ef_parser_t *parser, /* must be initialized */
+                                        ef_conv_t *conv, u_char *from, u_char **to,
                                         u_int from_len) {
   u_int len;
   u_int filled_len;
@@ -23,7 +23,7 @@ static inline u_int im_convert_encoding(ef_parser_t* parser, /* must be initiali
 #define UNIT__ 32
 
   while (1) {
-    u_char* p;
+    u_char *p;
 
     if (!(p = realloc(*to, len + UNIT__ + 1))) {
 #ifdef DEBUG

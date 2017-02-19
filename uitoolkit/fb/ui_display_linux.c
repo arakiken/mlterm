@@ -114,7 +114,7 @@ static void set_use_console_backscroll(int use) {
   bl_priv_change_egid(bl_getgid());
 }
 
-static void get_event_device_num_intern(int* kbd, int* mouse, char* class, int num_index) {
+static void get_event_device_num_intern(int *kbd, int *mouse, char *class, int num_index) {
   int count;
   FILE* fp;
 
@@ -132,7 +132,7 @@ static void get_event_device_num_intern(int* kbd, int* mouse, char* class, int n
         if (strcasestr(buf, "key")) {
           *kbd = count;
         } else {
-          static char* mouse_names[] = {"mouse", "ts", "touch"};
+          static char *mouse_names[] = {"mouse", "ts", "touch"};
           u_int idx;
 
           for (idx = 0; idx < sizeof(mouse_names) / sizeof(mouse_names[0]); idx++) {
@@ -154,7 +154,7 @@ static void get_event_device_num_intern(int* kbd, int* mouse, char* class, int n
   }
 }
 
-static void get_event_device_num(int* kbd, int* mouse) {
+static void get_event_device_num(int *kbd, int *mouse) {
   char class1[] = "/sys/class/input/inputN/name";
 
   get_event_device_num_intern(kbd, mouse, class1, 22);
@@ -176,7 +176,7 @@ static void get_event_device_num(int* kbd, int* mouse) {
   }
 }
 
-static int open_event_device(int num, const char* path) {
+static int open_event_device(int num, const char *path) {
   char event[] = "/dev/input/eventN";
   int fd;
 
@@ -204,7 +204,7 @@ static int open_event_device(int num, const char* path) {
   return fd;
 }
 
-static void convert_input_num(int* num, const char* str) {
+static void convert_input_num(int *num, const char *str) {
   if (strcmp(str, "-1") == 0) {
     *num = -1;
   } else if ('0' <= *str && *str <= '9') {
@@ -213,7 +213,7 @@ static void convert_input_num(int* num, const char* str) {
 }
 
 static int open_display(u_int depth) {
-  char* dev;
+  char *dev;
   struct fb_fix_screeninfo finfo;
   struct fb_var_screeninfo vinfo;
   int kbd_num;
@@ -390,7 +390,7 @@ static int receive_mouse_event(void) {
 
     if (ev.type == EV_KEY) {
       XButtonEvent xev;
-      ui_window_t* win;
+      ui_window_t *win;
 
       if (ev.code == BTN_LEFT) {
         xev.button = Button1;
@@ -470,7 +470,7 @@ static int receive_mouse_event(void) {
       }
     } else if (ev.type == EV_REL) {
       XMotionEvent xev;
-      ui_window_t* win;
+      ui_window_t *win;
 
       if (ev.code == REL_X) {
         restore_hidden_region();

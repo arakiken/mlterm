@@ -32,28 +32,28 @@ typedef enum bool_field {
 } bool_field_t;
 
 typedef struct str_field_table {
-  char* name;
+  char *name;
   str_field_t field;
 
 } str_field_table_t;
 
 typedef struct bool_field_table {
-  char* name;
+  char *name;
   bool_field_t field;
 
 } bool_field_table_t;
 
 typedef struct vt_termcap {
-  char* name;
+  char *name;
 
-  char* str_fields[MAX_TERMCAP_STR_FIELDS];
+  char *str_fields[MAX_TERMCAP_STR_FIELDS];
   int8_t bool_fields[MAX_TERMCAP_BOOL_FIELDS];
 
 } vt_termcap_t;
 
 /* --- static variables --- */
 
-static vt_termcap_t* entries;
+static vt_termcap_t *entries;
 static u_int num_of_entries;
 
 static str_field_table_t str_field_table[] = {
@@ -101,18 +101,18 @@ static bool_field_table_t bool_field_table[] = {
     },
 };
 
-static char* tc_file = "mlterm/termcap";
+static char *tc_file = "mlterm/termcap";
 
 /* --- static functions --- */
 
-static int entry_init(vt_termcap_t* termcap, const char* name) {
+static int entry_init(vt_termcap_t *termcap, const char *name) {
   memset(termcap, 0, sizeof(vt_termcap_t));
   termcap->name = strdup(name);
 
   return 1;
 }
 
-static int entry_final(vt_termcap_t* termcap) {
+static int entry_final(vt_termcap_t *termcap) {
   int count;
 
   free(termcap->name);
@@ -124,13 +124,13 @@ static int entry_final(vt_termcap_t* termcap) {
   return 1;
 }
 
-static int parse_termcap_db(vt_termcap_t* termcap, char* termcap_db) {
-  char* field;
+static int parse_termcap_db(vt_termcap_t *termcap, char *termcap_db) {
+  char *field;
   int count;
 
   while ((field = bl_str_sep(&termcap_db, ":"))) {
-    char* key;
-    char* value;
+    char *key;
+    char *value;
 
     key = bl_str_sep(&field, "=");
 
@@ -159,12 +159,12 @@ static int parse_termcap_db(vt_termcap_t* termcap, char* termcap_db) {
   return 1;
 }
 
-static vt_termcap_t* search_termcap(const char* name) {
+static vt_termcap_t *search_termcap(const char *name) {
   int count;
 
   for (count = 0; count < num_of_entries; count++) {
-    const char* p1;
-    const char* p2;
+    const char *p1;
+    const char *p2;
 
     p1 = entries[count].name;
 
@@ -191,11 +191,11 @@ static vt_termcap_t* search_termcap(const char* name) {
   return NULL;
 }
 
-static int read_conf(char* filename) {
-  bl_file_t* from;
-  char* line;
+static int read_conf(char *filename) {
+  bl_file_t *from;
+  char *line;
   size_t len;
-  char* termcap_db;
+  char *termcap_db;
   size_t db_len;
 
   if (!(from = bl_file_open(filename, "r"))) {
@@ -210,7 +210,7 @@ static int read_conf(char* filename) {
   db_len = 0;
 
   while ((line = bl_file_get_line(from, &len))) {
-    void* p;
+    void *p;
 
     if (len < 2) /* skip empty(LF-only) line */
     {
@@ -244,9 +244,9 @@ static int read_conf(char* filename) {
     if (termcap_db[db_len - 1] == '\\') {
       db_len--;
     } else {
-      vt_termcap_t* termcap;
-      char* field;
-      char* db_p;
+      vt_termcap_t *termcap;
+      char *field;
+      char *db_p;
 
       termcap_db[db_len] = '\0';
       db_p = termcap_db;
@@ -280,7 +280,7 @@ static int read_conf(char* filename) {
 }
 
 static int termcap_init(void) {
-  char* rcpath;
+  char *rcpath;
 
   if ((entries = malloc(sizeof(vt_termcap_t))) == NULL) {
     return 0;
@@ -297,18 +297,18 @@ static int termcap_init(void) {
     if (!read_conf(rcpath)) {
 #if defined(__ANDROID__)
 #define MAX_DB_LEN_IDX 2
-      const char* db[] = {
+      const char *db[] = {
           "k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~", "ut",
           "kh=\E[7~:@7=\E[8~:k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~:ut",
           "kb=^H:kD=^?:k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~",
       };
 
-      const char* names[] = {
+      const char *names[] = {
           "mlterm", "xterm", "rxvt", "kterm",
       };
 
-      void* p;
-      char* buf;
+      void *p;
+      char *buf;
 
       if ((p = realloc(entries, sizeof(vt_termcap_t) * (sizeof(db) / sizeof(db[0]) + 1))) &&
           (buf = alloca(strlen(db[MAX_DB_LEN_IDX]) + 1))) {
@@ -339,8 +339,8 @@ static int termcap_init(void) {
 
 /* --- global functions --- */
 
-vt_termcap_t* vt_termcap_get(const char* name) {
-  vt_termcap_t* termcap;
+vt_termcap_t *vt_termcap_get(const char *name) {
+  vt_termcap_t *termcap;
 
   if (entries == NULL) {
     if (!termcap_init()) {
@@ -366,7 +366,7 @@ void vt_termcap_final(void) {
   free(entries);
 }
 
-int vt_termcap_set_key_seq(vt_termcap_t* termcap, vt_special_key_t key, const char* str) {
+int vt_termcap_set_key_seq(vt_termcap_t *termcap, vt_special_key_t key, const char *str) {
   str_field_t field;
 
   if (key == SPKEY_DELETE) {
@@ -383,12 +383,12 @@ int vt_termcap_set_key_seq(vt_termcap_t* termcap, vt_special_key_t key, const ch
   return 1;
 }
 
-int vt_termcap_bce_is_enabled(vt_termcap_t* termcap) { return termcap->bool_fields[TC_BCE]; }
+int vt_termcap_bce_is_enabled(vt_termcap_t *termcap) { return termcap->bool_fields[TC_BCE]; }
 
-char* vt_termcap_special_key_to_seq(vt_termcap_t* termcap, vt_special_key_t key, int modcode,
+char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key, int modcode,
                                     int is_app_keypad, int is_app_cursor_keys, int is_app_escape) {
   static char escseq[10];
-  char* seq;
+  char *seq;
   char intermed_ch;
   char final_ch;
   int param;

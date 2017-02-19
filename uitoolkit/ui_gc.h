@@ -11,7 +11,7 @@ typedef struct ui_gc {
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   int gc; /* dummy */
 #else
-  Display* display;
+  Display *display;
   GC gc;
   u_long fg_color; /* alpha bits are always 0 in win32. */
   u_long bg_color; /* alpha bits are always 0 in win32. */
@@ -26,23 +26,23 @@ typedef struct ui_gc {
 
 } ui_gc_t;
 
-ui_gc_t* ui_gc_new(Display* display, Drawable drawable);
+ui_gc_t *ui_gc_new(Display *display, Drawable drawable);
 
-int ui_gc_delete(ui_gc_t* gc);
+int ui_gc_delete(ui_gc_t *gc);
 
-int ui_gc_set_fg_color(ui_gc_t* gc, u_long fg_color);
+int ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color);
 
-int ui_gc_set_bg_color(ui_gc_t* gc, u_long bg_color);
+int ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color);
 
-int ui_gc_set_fid(ui_gc_t* gc, Font fid);
+int ui_gc_set_fid(ui_gc_t *gc, Font fid);
 
 #ifdef USE_WIN32GUI
 
-int ui_set_gc(ui_gc_t* gc, GC _gc);
+int ui_set_gc(ui_gc_t *gc, GC _gc);
 
-HPEN ui_gc_set_pen(ui_gc_t* gc, HPEN pen);
+HPEN ui_gc_set_pen(ui_gc_t *gc, HPEN pen);
 
-HBRUSH ui_gc_set_brush(ui_gc_t* gc, HBRUSH brush);
+HBRUSH ui_gc_set_brush(ui_gc_t *gc, HBRUSH brush);
 
 #endif
 

@@ -23,7 +23,7 @@ enum {
 
 /* --- static functions --- */
 
-static int sys_color_set(ui_color_manager_t* color_man, char* name, int color) {
+static int sys_color_set(ui_color_manager_t *color_man, char *name, int color) {
   ui_color_t xcolor;
 
   if (bl_compare_str(color_man->sys_colors[color].name, name) == 0) {
@@ -80,20 +80,20 @@ static int sys_color_set(ui_color_manager_t* color_man, char* name, int color) {
 
 /* --- global functions --- */
 
-ui_color_manager_t* ui_color_manager_new(
-    ui_display_t* disp, char* fg_color, /* can be NULL(If NULL, use "black".) */
-    char* bg_color,                     /* can be NULL(If NULL, use "white".) */
-    char* cursor_fg_color,              /* can be NULL(If NULL, use reversed one of the char
+ui_color_manager_t *ui_color_manager_new(
+    ui_display_t *disp, char *fg_color, /* can be NULL(If NULL, use "black".) */
+    char *bg_color,                     /* can be NULL(If NULL, use "white".) */
+    char *cursor_fg_color,              /* can be NULL(If NULL, use reversed one of the char
                                            color.) */
-    char* cursor_bg_color,              /* can be NULL(If NULL, use reversed one of the char
+    char *cursor_bg_color,              /* can be NULL(If NULL, use reversed one of the char
                                            color.) */
-    char* bd_color,                     /* can be NULL */
-    char* it_color,                     /* can be NULL */
-    char* ul_color,                     /* can be NULL */
-    char* bl_color,                     /* can be NULL */
-    char* co_color                      /* can be NULL */
+    char *bd_color,                     /* can be NULL */
+    char *it_color,                     /* can be NULL */
+    char *ul_color,                     /* can be NULL */
+    char *bl_color,                     /* can be NULL */
+    char *co_color                      /* can be NULL */
     ) {
-  ui_color_manager_t* color_man;
+  ui_color_manager_t *color_man;
 
   if ((color_man = calloc(1, sizeof(ui_color_manager_t))) == NULL) {
     return NULL;
@@ -124,7 +124,7 @@ ui_color_manager_t* ui_color_manager_new(
   return color_man;
 }
 
-int ui_color_manager_delete(ui_color_manager_t* color_man) {
+int ui_color_manager_delete(ui_color_manager_t *color_man) {
   int count;
 
   for (count = 0; count < MAX_SYS_COLORS; count++) {
@@ -145,56 +145,56 @@ int ui_color_manager_delete(ui_color_manager_t* color_man) {
   return 1;
 }
 
-int ui_color_manager_set_fg_color(ui_color_manager_t* color_man, char* name /* never NULL */
+int ui_color_manager_set_fg_color(ui_color_manager_t *color_man, char *name /* never NULL */
                                   ) {
   return sys_color_set(color_man, name, _FG_COLOR);
 }
 
-int ui_color_manager_set_bg_color(ui_color_manager_t* color_man, char* name /* never NULL */
+int ui_color_manager_set_bg_color(ui_color_manager_t *color_man, char *name /* never NULL */
                                   ) {
   return sys_color_set(color_man, name, _BG_COLOR);
 }
 
-int ui_color_manager_set_cursor_fg_color(ui_color_manager_t* color_man, char* name /* can be NULL */
+int ui_color_manager_set_cursor_fg_color(ui_color_manager_t *color_man, char *name /* can be NULL */
                                          ) {
   return sys_color_set(color_man, name, _CUR_FG_COLOR);
 }
 
-int ui_color_manager_set_cursor_bg_color(ui_color_manager_t* color_man, char* name /* can be NULL */
+int ui_color_manager_set_cursor_bg_color(ui_color_manager_t *color_man, char *name /* can be NULL */
                                          ) {
   return sys_color_set(color_man, name, _CUR_BG_COLOR);
 }
 
-int ui_color_manager_set_alt_color(ui_color_manager_t* color_man,
+int ui_color_manager_set_alt_color(ui_color_manager_t *color_man,
                                    vt_color_t color, /* VT_BOLD_COLOR - VT_CROSSED_OUT_COLOR */
-                                   char* name        /* never NULL */
+                                   char *name        /* never NULL */
                                    ) {
   return sys_color_set(color_man, name, color - VT_FG_COLOR);
 }
 
-char* ui_color_manager_get_fg_color(ui_color_manager_t* color_man) {
+char *ui_color_manager_get_fg_color(ui_color_manager_t *color_man) {
   return color_man->sys_colors[_FG_COLOR].name;
 }
 
-char* ui_color_manager_get_bg_color(ui_color_manager_t* color_man) {
+char *ui_color_manager_get_bg_color(ui_color_manager_t *color_man) {
   return color_man->sys_colors[_BG_COLOR].name;
 }
 
-char* ui_color_manager_get_cursor_fg_color(ui_color_manager_t* color_man) {
+char *ui_color_manager_get_cursor_fg_color(ui_color_manager_t *color_man) {
   return color_man->sys_colors[_CUR_FG_COLOR].name;
 }
 
-char* ui_color_manager_get_cursor_bg_color(ui_color_manager_t* color_man) {
+char *ui_color_manager_get_cursor_bg_color(ui_color_manager_t *color_man) {
   return color_man->sys_colors[_CUR_BG_COLOR].name;
 }
 
-char* ui_color_manager_get_alt_color(ui_color_manager_t* color_man,
+char *ui_color_manager_get_alt_color(ui_color_manager_t *color_man,
                                      vt_color_t color /* VT_BOLD_COLOR - VT_CROSSED_OUT_COLOR */
                                      ) {
   return color_man->sys_colors[color - VT_FG_COLOR].name;
 }
 
-ui_color_t* ui_get_xcolor(ui_color_manager_t* color_man, vt_color_t color) {
+ui_color_t *ui_get_xcolor(ui_color_manager_t *color_man, vt_color_t color) {
   if (color_man->is_reversed) {
     if (color == VT_FG_COLOR) {
       color = VT_BG_COLOR;
@@ -219,10 +219,10 @@ ui_color_t* ui_get_xcolor(ui_color_manager_t* color_man, vt_color_t color) {
 /*
  * If fading status is changed, 1 is returned.
  */
-int ui_color_manager_fade(ui_color_manager_t* color_man,
+int ui_color_manager_fade(ui_color_manager_t *color_man,
                           u_int fade_ratio /* valid value is 0 - 99 */
                           ) {
-  ui_color_cache_t* color_cache;
+  ui_color_cache_t *color_cache;
 
   if (fade_ratio >= 100) {
     return 0;
@@ -262,8 +262,8 @@ int ui_color_manager_fade(ui_color_manager_t* color_man,
 /*
  * If fading status is changed, 1 is returned.
  */
-int ui_color_manager_unfade(ui_color_manager_t* color_man) {
-  ui_color_cache_t* color_cache;
+int ui_color_manager_unfade(ui_color_manager_t *color_man) {
+  ui_color_cache_t *color_cache;
 
   if (color_man->alt_color_cache == NULL || color_man->color_cache->fade_ratio == 100) {
     return 0;
@@ -278,7 +278,7 @@ int ui_color_manager_unfade(ui_color_manager_t* color_man) {
   return 1;
 }
 
-int ui_color_manager_reverse_video(ui_color_manager_t* color_man) {
+int ui_color_manager_reverse_video(ui_color_manager_t *color_man) {
   if (color_man->is_reversed) {
     return 0;
   }
@@ -288,7 +288,7 @@ int ui_color_manager_reverse_video(ui_color_manager_t* color_man) {
   return 1;
 }
 
-int ui_color_manager_restore_video(ui_color_manager_t* color_man) {
+int ui_color_manager_restore_video(ui_color_manager_t *color_man) {
   if (!color_man->is_reversed) {
     return 0;
   }
@@ -302,7 +302,7 @@ int ui_color_manager_restore_video(ui_color_manager_t* color_man) {
  * Swap the color of VT_BG_COLOR <=> that of cursor fg color.
  * Deal VT_BG_COLOR as cursor fg color.
  */
-int ui_color_manager_adjust_cursor_fg_color(ui_color_manager_t* color_man) {
+int ui_color_manager_adjust_cursor_fg_color(ui_color_manager_t *color_man) {
   struct sys_color tmp_color;
 
   if (!color_man->sys_colors[_CUR_FG_COLOR].name) {
@@ -320,7 +320,7 @@ int ui_color_manager_adjust_cursor_fg_color(ui_color_manager_t* color_man) {
  * Swap the color of VT_FG_COLOR <=> that of cursor bg color.
  * Deal VT_FG_COLOR as cursor bg color.
  */
-int ui_color_manager_adjust_cursor_bg_color(ui_color_manager_t* color_man) {
+int ui_color_manager_adjust_cursor_bg_color(ui_color_manager_t *color_man) {
   struct sys_color tmp_color;
 
   if (!color_man->sys_colors[_CUR_BG_COLOR].name) {
@@ -337,12 +337,12 @@ int ui_color_manager_adjust_cursor_bg_color(ui_color_manager_t* color_man) {
 /*
  * Reload system colors.
  */
-int ui_color_manager_reload(ui_color_manager_t* color_man) {
+int ui_color_manager_reload(ui_color_manager_t *color_man) {
   int color;
 
   for (color = 0; color < MAX_SYS_COLORS; color++) {
     if (color_man->sys_colors[color].name) {
-      char* name;
+      char *name;
 
       name = color_man->sys_colors[color].name;
       color_man->sys_colors[color].name = NULL;
@@ -357,7 +357,7 @@ int ui_color_manager_reload(ui_color_manager_t* color_man) {
   return 1;
 }
 
-int ui_change_true_transbg_alpha(ui_color_manager_t* color_man, u_int8_t alpha) {
+int ui_change_true_transbg_alpha(ui_color_manager_t *color_man, u_int8_t alpha) {
 #ifndef SUPPORT_TRUE_TRANSPARENT_BG
 
   return 0;

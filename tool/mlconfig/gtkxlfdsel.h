@@ -205,7 +205,7 @@ struct _GtkXlfdSelectionDialogClass
  *****************************************************************************/
 
 GtkType	   gtk_xlfd_selection_get_type		(void);
-GtkWidget* gtk_xlfd_selection_new		(void);
+GtkWidget *gtk_xlfd_selection_new		(void);
 gchar*	   gtk_xlfd_selection_get_font_name	(GtkXlfdSelection *fontsel);
 GdkFont*   gtk_xlfd_selection_get_font		(GtkXlfdSelection *fontsel);
 gboolean   gtk_xlfd_selection_set_font_name	(GtkXlfdSelection *fontsel,
@@ -232,7 +232,7 @@ void	   gtk_xlfd_selection_set_preview_text	(GtkXlfdSelection *fontsel,
  *****************************************************************************/
 
 guint	   gtk_xlfd_selection_dialog_get_type	(void);
-GtkWidget* gtk_xlfd_selection_dialog_new	(const gchar	  *title);
+GtkWidget *gtk_xlfd_selection_dialog_new	(const gchar	  *title);
 
 /* This returns the X Logical Font Description fontname, or NULL if no font
    is selected. Note that there is a slight possibility that the font might not
@@ -244,7 +244,7 @@ gchar*	 gtk_xlfd_selection_dialog_get_font_name    (GtkXlfdSelectionDialog *fsd)
 /* This will return the current GdkFont, or NULL if none is selected or there
    was a problem loading it. Remember to use gdk_font_ref/unref() if you want
    to use the font (in a style, for example). */
-GdkFont* gtk_xlfd_selection_dialog_get_font	    (GtkXlfdSelectionDialog *fsd);
+GdkFont *gtk_xlfd_selection_dialog_get_font	    (GtkXlfdSelectionDialog *fsd);
 
 /* This sets the currently displayed font. It should be a valid X Logical
    Font Description font name (anything else will be ignored), e.g.

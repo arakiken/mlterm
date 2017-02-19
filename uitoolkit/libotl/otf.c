@@ -10,7 +10,7 @@
 static
 #endif
     void*
-    otl_open(void* obj, u_int size) {
+    otl_open(void *obj, u_int size) {
   OTF* otf;
 
 #if defined(USE_WIN32GUI)
@@ -59,7 +59,7 @@ static
 static
 #endif
     void
-    otl_close(void* otf) {
+    otl_close(void *otf) {
   OTF_close(otf);
 }
 
@@ -67,10 +67,10 @@ static
 static
 #endif
     u_int
-    otl_convert_text_to_glyphs(void* otf, u_int32_t* shaped, u_int shaped_len, int8_t* offsets,
-                               u_int8_t* widths, u_int32_t* cmapped, u_int32_t* src, u_int src_len,
-                               const char* script, const char* features, u_int fontsize) {
-  static OTF_Glyph* glyphs;
+    otl_convert_text_to_glyphs(void *otf, u_int32_t *shaped, u_int shaped_len, int8_t *offsets,
+                               u_int8_t *widths, u_int32_t *cmapped, u_int32_t *src, u_int src_len,
+                               const char *script, const char *features, u_int fontsize) {
+  static OTF_Glyph *glyphs;
   OTF_GlyphString otfstr;
   u_int count;
 

@@ -42,8 +42,8 @@ int vt_bidi_delete(vt_bidi_state_t state) {
 /*
  * Don't call this functions with type_p == FRIBIDI_TYPE_ON and size == cur_pos.
  */
-static void log2vis(FriBidiChar* str, u_int size, FriBidiCharType* type_p, vt_bidi_mode_t bidi_mode,
-                    FriBidiStrIndex* order, u_int cur_pos, int append) {
+static void log2vis(FriBidiChar *str, u_int size, FriBidiCharType *type_p, vt_bidi_mode_t bidi_mode,
+                    FriBidiStrIndex *order, u_int cur_pos, int append) {
   FriBidiCharType type;
   u_int pos;
 
@@ -142,7 +142,7 @@ static void log2vis(FriBidiChar* str, u_int size, FriBidiCharType* type_p, vt_bi
   }
 }
 
-static void log2log(FriBidiStrIndex* order, u_int cur_pos, u_int size) {
+static void log2log(FriBidiStrIndex *order, u_int cur_pos, u_int size) {
   u_int pos;
 
   for (pos = cur_pos; pos < size; pos++) {
@@ -150,11 +150,11 @@ static void log2log(FriBidiStrIndex* order, u_int cur_pos, u_int size) {
   }
 }
 
-int vt_bidi(vt_bidi_state_t state, vt_char_t* src, u_int size, vt_bidi_mode_t bidi_mode,
-            const char* separators) {
-  FriBidiChar* fri_src;
+int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bidi_mode,
+            const char *separators) {
+  FriBidiChar *fri_src;
   FriBidiCharType fri_type;
-  FriBidiStrIndex* fri_order;
+  FriBidiStrIndex *fri_order;
   int had_rtl;
   u_int cur_pos;
   ef_charset_t cs;
@@ -258,7 +258,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t* src, u_int size, vt_bidi_mode_t bi
     count = 0;
 
     if (state->size != size) {
-      void* p;
+      void *p;
 
       if (!(p = realloc(state->visual_order, sizeof(u_int16_t) * size))) {
 #ifdef DEBUG
@@ -339,7 +339,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t* src, u_int size, vt_bidi_mode_t bi
 }
 
 int vt_bidi_copy(vt_bidi_state_t dst, vt_bidi_state_t src, int optimize) {
-  u_int16_t* p;
+  u_int16_t *p;
 
   if (optimize && !HAS_RTL(src)) {
     vt_bidi_delete(dst);

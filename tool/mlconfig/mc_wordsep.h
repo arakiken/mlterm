@@ -5,7 +5,7 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget* mc_wordsep_config_widget_new(void);
+GtkWidget *mc_wordsep_config_widget_new(void);
 
 void mc_update_wordsep(void);
 

@@ -36,7 +36,7 @@ int __bl_usleep(u_int microseconds);
 
 #define bl_setenv __bl_setenv
 
-int __bl_setenv(const char* name, const char* value, int overwrite);
+int __bl_setenv(const char *name, const char *value, int overwrite);
 
 #endif /* USE_WIN32API */
 

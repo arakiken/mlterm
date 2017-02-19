@@ -12,7 +12,7 @@
 
 /* --- static functions --- */
 
-static void remap_unsupported_charset(ef_char_t* ch, int is_uhc) {
+static void remap_unsupported_charset(ef_char_t *ch, int is_uhc) {
   ef_char_t c;
 
   if (ch->cs == ISO10646_UCS4_1) {
@@ -42,8 +42,8 @@ static void remap_unsupported_charset(ef_char_t* ch, int is_uhc) {
   }
 }
 
-static size_t convert_to_euckr_intern(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                      ef_parser_t* parser, int is_uhc) {
+static size_t convert_to_euckr_intern(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                      ef_parser_t *parser, int is_uhc) {
   size_t filled_size;
   ef_char_t ch;
 
@@ -102,17 +102,17 @@ static size_t convert_to_euckr_intern(ef_conv_t* conv, u_char* dst, size_t dst_s
   return filled_size;
 }
 
-static size_t convert_to_euckr(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
+static size_t convert_to_euckr(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
   return convert_to_euckr_intern(conv, dst, dst_size, parser, 0);
 }
 
-static size_t convert_to_uhc(ef_conv_t* conv, u_char* dst, size_t dst_size, ef_parser_t* parser) {
+static size_t convert_to_uhc(ef_conv_t *conv, u_char *dst, size_t dst_size, ef_parser_t *parser) {
   return convert_to_euckr_intern(conv, dst, dst_size, parser, 1);
 }
 
-static void euckr_conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void euckr_conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -124,14 +124,14 @@ static void euckr_conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = UNKNOWN_CS;
 }
 
-static void uhc_conv_init(ef_conv_t* conv) {}
+static void uhc_conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_euckr_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_euckr_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;
@@ -147,8 +147,8 @@ ef_conv_t* ef_euckr_conv_new(void) {
   return (ef_conv_t*)iso2022_conv;
 }
 
-ef_conv_t* ef_uhc_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_uhc_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;

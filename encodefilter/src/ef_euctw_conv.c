@@ -12,7 +12,7 @@
 
 /* --- static functions --- */
 
-static void remap_unsupported_charset(ef_char_t* ch) {
+static void remap_unsupported_charset(ef_char_t *ch) {
   ef_char_t c;
 
   if (ch->cs == ISO10646_UCS4_1) {
@@ -24,8 +24,8 @@ static void remap_unsupported_charset(ef_char_t* ch) {
   ef_iso2022_remap_unsupported_charset(ch);
 }
 
-static size_t convert_to_euctw(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
+static size_t convert_to_euctw(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
   size_t filled_size;
   ef_char_t ch;
 
@@ -133,8 +133,8 @@ static size_t convert_to_euctw(ef_conv_t* conv, u_char* dst, size_t dst_size,
   return filled_size;
 }
 
-static void conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -146,12 +146,12 @@ static void conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = UNKNOWN_CS;
 }
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_euctw_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_euctw_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;

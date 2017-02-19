@@ -19,14 +19,14 @@
 
 /* --- static functions --- */
 
-static hb_feature_t* get_hb_features(const char* features, u_int* num) {
-  static const char* prev_features;
-  static hb_feature_t* hbfeatures;
+static hb_feature_t *get_hb_features(const char *features, u_int *num) {
+  static const char *prev_features;
+  static hb_feature_t *hbfeatures;
   static u_int num_of_features;
 
   if (features != prev_features) {
-    char* str;
-    void* p;
+    char *str;
+    void *p;
 
     if ((str = alloca(strlen(features) + 1)) &&
         (p = realloc(hbfeatures,
@@ -62,7 +62,7 @@ static hb_feature_t* get_hb_features(const char* features, u_int* num) {
 static FT_Library ftlib;
 static u_int ref_count;
 
-static void done_ft_face(void* p) {
+static void done_ft_face(void *p) {
   FT_Face face;
 
   face = p;
@@ -84,11 +84,11 @@ static void done_ft_face(void* p) {
 static
 #endif
     void*
-    otl_open(void* obj, u_int size) {
+    otl_open(void *obj, u_int size) {
 #if defined(USE_WIN32GUI)
 
   FT_Face face;
-  hb_font_t* hbfont;
+  hb_font_t *hbfont;
 
   if (!ftlib) {
     if (FT_Init_FreeType(&ftlib) != 0) {
@@ -120,10 +120,10 @@ static
 
 #elif defined(USE_QUARTZ)
 
-  hb_face_t* face;
+  hb_face_t *face;
 
   if ((face = hb_coretext_face_create(obj /* CGFont */))) {
-    hb_font_t* font;
+    hb_font_t *font;
     if ((font = hb_font_create(face))) {
       hb_ot_font_set_funcs(font);
       hb_face_destroy(face);
@@ -143,7 +143,7 @@ static
 static
 #endif
     void
-    otl_close(void* hbfont) {
+    otl_close(void *hbfont) {
   hb_font_destroy(hbfont);
 }
 
@@ -151,20 +151,20 @@ static
 static
 #endif
     u_int
-    otl_convert_text_to_glyphs(void* hbfont, u_int32_t* shaped, u_int shaped_len, int8_t* offsets,
-                               u_int8_t* widths, u_int32_t* cmapped, u_int32_t* src, u_int src_len,
-                               const char* script, const char* features, u_int fontsize) {
+    otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shaped_len, int8_t *offsets,
+                               u_int8_t *widths, u_int32_t *cmapped, u_int32_t *src, u_int src_len,
+                               const char *script, const char *features, u_int fontsize) {
   if (src && cmapped) {
     memcpy(cmapped, src, sizeof(*src) * src_len);
 
     return src_len;
   } else {
-    static hb_buffer_t* buf;
-    hb_glyph_info_t* info;
-    hb_glyph_position_t* pos;
+    static hb_buffer_t *buf;
+    hb_glyph_info_t *info;
+    hb_glyph_position_t *pos;
     u_int count;
     u_int num;
-    hb_feature_t* hbfeatures;
+    hb_feature_t *hbfeatures;
 
     if (fontsize > 0) {
       u_int scale = fontsize << 6; /* fontsize x 64 */

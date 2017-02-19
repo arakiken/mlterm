@@ -7,13 +7,13 @@
 /* --- static variables --- */
 
 /* Order of this table must be same as ui_mod_meta_mode_t. */
-static char* mod_meta_mode_name_table[] = {
+static char *mod_meta_mode_name_table[] = {
     "none", "esc", "8bit",
 };
 
 /* --- global functions --- */
 
-ui_mod_meta_mode_t ui_get_mod_meta_mode_by_name(char* name) {
+ui_mod_meta_mode_t ui_get_mod_meta_mode_by_name(char *name) {
   ui_mod_meta_mode_t mode;
 
   for (mode = 0; mode < MOD_META_MODE_MAX; mode++) {
@@ -26,7 +26,7 @@ ui_mod_meta_mode_t ui_get_mod_meta_mode_by_name(char* name) {
   return MOD_META_NONE;
 }
 
-char* ui_get_mod_meta_mode_name(ui_mod_meta_mode_t mode) {
+char *ui_get_mod_meta_mode_name(ui_mod_meta_mode_t mode) {
   if (mode < 0 || MOD_META_MODE_MAX <= mode) {
     /* default value */
     mode = MOD_META_NONE;

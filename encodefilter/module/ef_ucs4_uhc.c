@@ -7,7 +7,7 @@
 
 /* --- global functions --- */
 
-int ef_map_uhc_to_ucs4(ef_char_t* ucs4, u_int16_t ks) {
+int ef_map_uhc_to_ucs4(ef_char_t *ucs4, u_int16_t ks) {
   u_int32_t c;
 
   if ((c = CONV_UHC_TO_UCS4(ks))) {
@@ -22,7 +22,7 @@ int ef_map_uhc_to_ucs4(ef_char_t* ucs4, u_int16_t ks) {
   return 0;
 }
 
-int ef_map_ucs4_to_uhc(ef_char_t* ks, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_uhc(ef_char_t *ks, u_int32_t ucs4_code) {
   u_int16_t c;
 
   if ((c = CONV_UCS4_TO_UHC(ucs4_code))) {

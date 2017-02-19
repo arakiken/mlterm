@@ -37,14 +37,14 @@ typedef struct im_ibus {
   /* input method common object */
   ui_im_t im;
 
-  IBusInputContext* context;
+  IBusInputContext *context;
 
   vt_char_encoding_t term_encoding;
 
 #ifdef USE_IM_CANDIDATE_SCREEN
-  ef_parser_t* parser_term; /* for term encoding */
+  ef_parser_t *parser_term; /* for term encoding */
 #endif
-  ef_conv_t* conv; /* for term encoding */
+  ef_conv_t *conv; /* for term encoding */
 
   /*
    * Cache a result of ibus_input_context_is_enabled() which uses
@@ -55,22 +55,22 @@ typedef struct im_ibus {
   XKeyEvent prev_key;
 
 #ifdef USE_IM_CANDIDATE_SCREEN
-  gchar* prev_first_cand;
+  gchar *prev_first_cand;
   u_int prev_num_of_cands;
 #endif
 
-  struct im_ibus* next;
+  struct im_ibus *next;
 
 } im_ibus_t;
 
 /* --- static variables --- */
 
-static IBusBus* ibus_bus;
+static IBusBus *ibus_bus;
 static int ibus_bus_fd = -1;
-static im_ibus_t* ibus_list = NULL;
+static im_ibus_t *ibus_list = NULL;
 static int ref_count = 0;
-static ef_parser_t* parser_utf8 = NULL;
-static ui_im_export_syms_t* syms = NULL; /* mlterm internal symbols */
+static ef_parser_t *parser_utf8 = NULL;
+static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 #ifdef DEBUG_MODKEY
 static int mod_key_debug = 0;
 #endif
@@ -114,10 +114,10 @@ static vt_color_t get_near_color(u_int rgb) {
 }
 #endif
 
-static void update_preedit_text(IBusInputContext* context, IBusText* text, gint cursor_pos,
+static void update_preedit_text(IBusInputContext *context, IBusText *text, gint cursor_pos,
                                 gboolean visible, gpointer data) {
-  im_ibus_t* ibus;
-  vt_char_t* p;
+  im_ibus_t *ibus;
+  vt_char_t *p;
   u_int len;
   ef_char_t ch;
 
@@ -152,7 +152,7 @@ static void update_preedit_text(IBusInputContext* context, IBusText* text, gint 
     index = 0;
     while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
       u_int count;
-      IBusAttribute* attr;
+      IBusAttribute *attr;
       int is_fullwidth = 0;
       int is_comb = 0;
       int is_underlined = 0;
@@ -236,8 +236,8 @@ static void update_preedit_text(IBusInputContext* context, IBusText* text, gint 
                                          ibus->im.preedit.cursor_offset);
 }
 
-static void hide_preedit_text(IBusInputContext* context, gpointer data) {
-  im_ibus_t* ibus;
+static void hide_preedit_text(IBusInputContext *context, gpointer data) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)data;
 
@@ -260,8 +260,8 @@ static void hide_preedit_text(IBusInputContext* context, gpointer data) {
                                          ibus->im.preedit.cursor_offset);
 }
 
-static void commit_text(IBusInputContext* context, IBusText* text, gpointer data) {
-  im_ibus_t* ibus;
+static void commit_text(IBusInputContext *context, IBusText *text, gpointer data) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)data;
 
@@ -307,9 +307,9 @@ static void commit_text(IBusInputContext* context, IBusText* text, gpointer data
 #endif
 }
 
-static void forward_key_event(IBusInputContext* context, guint keyval, guint keycode, guint state,
+static void forward_key_event(IBusInputContext *context, guint keyval, guint keycode, guint state,
                               gpointer data) {
-  im_ibus_t* ibus;
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)data;
 
@@ -330,8 +330,8 @@ static void forward_key_event(IBusInputContext* context, guint keyval, guint key
 
 #ifdef USE_IM_CANDIDATE_SCREEN
 
-static void show_lookup_table(IBusInputContext* context, gpointer data) {
-  im_ibus_t* ibus;
+static void show_lookup_table(IBusInputContext *context, gpointer data) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)data;
 
@@ -340,8 +340,8 @@ static void show_lookup_table(IBusInputContext* context, gpointer data) {
   }
 }
 
-static void hide_lookup_table(IBusInputContext* context, gpointer data) {
-  im_ibus_t* ibus;
+static void hide_lookup_table(IBusInputContext *context, gpointer data) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)data;
 
@@ -350,9 +350,9 @@ static void hide_lookup_table(IBusInputContext* context, gpointer data) {
   }
 }
 
-static void update_lookup_table(IBusInputContext* context, IBusLookupTable* table, gboolean visible,
+static void update_lookup_table(IBusInputContext *context, IBusLookupTable *table, gboolean visible,
                                 gpointer data) {
-  im_ibus_t* ibus;
+  im_ibus_t *ibus;
   u_int num_of_cands;
   int cur_pos;
   u_int i;
@@ -400,7 +400,7 @@ static void update_lookup_table(IBusInputContext* context, IBusLookupTable* tabl
   (*ibus->im.cand_screen->set_spot)(ibus->im.cand_screen, x, y);
 
   for (i = 0; i < num_of_cands; i++) {
-    u_char* str;
+    u_char *str;
 
     /* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_of_cands > 0. */
     if (!(str = ibus_text_get_text(ibus_lookup_table_get_candidate(table, i)))) {
@@ -408,7 +408,7 @@ static void update_lookup_table(IBusInputContext* context, IBusLookupTable* tabl
     }
 
     if (ibus->term_encoding != VT_UTF8) {
-      u_char* p;
+      u_char *p;
 
       (*parser_utf8->init)(parser_utf8);
       (*ibus->conv->init)(ibus->conv);
@@ -430,7 +430,7 @@ static void update_lookup_table(IBusInputContext* context, IBusLookupTable* tabl
 #ifndef USE_WAYLAND
 static void connection_handler(void) {
 #ifdef DBUS_H
-  DBusConnection* connection;
+  DBusConnection *connection;
 
   connection = ibus_connection_get_connection(ibus_bus_get_connection(ibus_bus));
 
@@ -488,8 +488,8 @@ static void remove_event_source(int complete) {
  * methods of ui_im_t
  */
 
-static int delete(ui_im_t* im) {
-  im_ibus_t* ibus;
+static int delete(ui_im_t *im) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)im;
 
@@ -647,8 +647,8 @@ static KeySym native_to_ibus_ksym(KeySym ksym) {
 #define native_to_ibus_ksym(ksym) (ksym)
 #endif
 
-static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
-  im_ibus_t* ibus;
+static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)im;
 
@@ -704,22 +704,22 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
   return 1;
 }
 
-static void set_engine(IBusInputContext* context, gchar* name) {
+static void set_engine(IBusInputContext *context, gchar *name) {
   bl_msg_printf("iBus engine is %s\n", name);
   ibus_input_context_set_engine(context, name);
 }
 
 #if IBUS_CHECK_VERSION(1, 5, 0)
-static void next_engine(IBusInputContext* context) {
-  IBusConfig* config;
-  GVariant* var;
+static void next_engine(IBusInputContext *context) {
+  IBusConfig *config;
+  GVariant *var;
 
   if ((config = ibus_bus_get_config(ibus_bus)) &&
       (var = ibus_config_get_value(config, "general", "preload-engines"))) {
     static int show_engines = 1;
-    const gchar* cur_name;
-    GVariantIter* iter;
-    gchar* name;
+    const gchar *cur_name;
+    GVariantIter *iter;
+    gchar *name;
 
     cur_name = ibus_engine_desc_get_name(ibus_input_context_get_engine(context));
 
@@ -738,7 +738,7 @@ static void next_engine(IBusInputContext* context) {
     }
 
     if (g_variant_iter_loop(iter, "s", &name)) {
-      gchar* first_name;
+      gchar *first_name;
       int loop;
 
       first_name = g_strdup(name);
@@ -766,8 +766,8 @@ static void next_engine(IBusInputContext* context) {
 }
 #endif
 
-static int switch_mode(ui_im_t* im) {
-  im_ibus_t* ibus;
+static int switch_mode(ui_im_t *im) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)im;
 
@@ -791,10 +791,10 @@ static int switch_mode(ui_im_t* im) {
   return 1;
 }
 
-static int is_active(ui_im_t* im) { return ((im_ibus_t*)im)->is_enabled; }
+static int is_active(ui_im_t *im) { return ((im_ibus_t*)im)->is_enabled; }
 
-static void focused(ui_im_t* im) {
-  im_ibus_t* ibus;
+static void focused(ui_im_t *im) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)im;
 
@@ -809,8 +809,8 @@ static void focused(ui_im_t* im) {
   }
 }
 
-static void unfocused(ui_im_t* im) {
-  im_ibus_t* ibus;
+static void unfocused(ui_im_t *im) {
+  im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)im;
 
@@ -825,8 +825,8 @@ static void unfocused(ui_im_t* im) {
   }
 }
 
-static IBusInputContext* context_new(im_ibus_t* ibus, char* engine) {
-  IBusInputContext* context;
+static IBusInputContext *context_new(im_ibus_t *ibus, char *engine) {
+  IBusInputContext *context;
 
   if (!(context = ibus_bus_create_input_context(ibus_bus, "mlterm"))) {
     return NULL;
@@ -864,8 +864,8 @@ static IBusInputContext* context_new(im_ibus_t* ibus, char* engine) {
   return context;
 }
 
-static void connected(IBusBus* bus, gpointer data) {
-  im_ibus_t* ibus;
+static void connected(IBusBus *bus, gpointer data) {
+  im_ibus_t *ibus;
 
   if (bus != ibus_bus || !ibus_bus_is_connected(ibus_bus) || !add_event_source()) {
     return;
@@ -876,8 +876,8 @@ static void connected(IBusBus* bus, gpointer data) {
   }
 }
 
-static void disconnected(IBusBus* bus, gpointer data) {
-  im_ibus_t* ibus;
+static void disconnected(IBusBus *bus, gpointer data) {
+  im_ibus_t *ibus;
 
   if (bus != ibus_bus) {
     return;
@@ -898,12 +898,12 @@ static void disconnected(IBusBus* bus, gpointer data) {
 
 /* --- global functions --- */
 
-ui_im_t* im_ibus_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                     ui_im_export_syms_t* export_syms, char* engine,
+ui_im_t *im_ibus_new(u_int64_t magic, vt_char_encoding_t term_encoding,
+                     ui_im_export_syms_t *export_syms, char *engine,
                      u_int mod_ignore_mask /* Not used for now. */
                      ) {
   static int is_init;
-  im_ibus_t* ibus = NULL;
+  im_ibus_t *ibus = NULL;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
     bl_error_printf("Incompatible input method API.\n");
@@ -1032,8 +1032,8 @@ error:
 
 /* --- module entry point for external tools --- */
 
-im_info_t* im_ibus_get_info(char* locale, char* encoding) {
-  im_info_t* result;
+im_info_t *im_ibus_get_info(char *locale, char *encoding) {
+  im_info_t *result;
 
   if (!(result = malloc(sizeof(im_info_t)))) {
     return NULL;

@@ -63,20 +63,20 @@ typedef struct inline_pic_args {
 
 /* --- static varaibles --- */
 
-static ui_picture_t** pics;
+static ui_picture_t **pics;
 static u_int num_of_pics;
-static ui_icon_picture_t** icon_pics;
+static ui_icon_picture_t **icon_pics;
 static u_int num_of_icon_pics;
-static ui_inline_picture_t* inline_pics;
+static ui_inline_picture_t *inline_pics;
 static u_int num_of_inline_pics;
 static u_int num_of_anims;
 static int need_cleanup;
 
 /* --- static functions --- */
 
-static ui_picture_t* create_picture_intern(Display* display, ui_picture_modifier_t* mod,
-                                           char* file_path, u_int width, u_int height) {
-  ui_picture_t* pic;
+static ui_picture_t *create_picture_intern(Display *display, ui_picture_modifier_t *mod,
+                                           char *file_path, u_int width, u_int height) {
+  ui_picture_t *pic;
 
   if ((pic = malloc(sizeof(ui_picture_t))) == NULL) {
     return NULL;
@@ -110,7 +110,7 @@ error1:
   return NULL;
 }
 
-static int delete_picture_intern(ui_picture_t* pic) {
+static int delete_picture_intern(ui_picture_t *pic) {
   free(pic->file_path);
   free(pic->mod);
   free(pic);
@@ -118,9 +118,9 @@ static int delete_picture_intern(ui_picture_t* pic) {
   return 1;
 }
 
-static ui_picture_t* create_bg_picture(ui_window_t* win, ui_picture_modifier_t* mod,
-                                       char* file_path) {
-  ui_picture_t* pic;
+static ui_picture_t *create_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod,
+                                       char *file_path) {
+  ui_picture_t *pic;
 
   if (!(pic = create_picture_intern(win->disp->display, mod, file_path, ACTUAL_WIDTH(win),
                                     ACTUAL_HEIGHT(win)))) {
@@ -148,7 +148,7 @@ static ui_picture_t* create_bg_picture(ui_window_t* win, ui_picture_modifier_t* 
   return pic;
 }
 
-static int delete_picture(ui_picture_t* pic) {
+static int delete_picture(ui_picture_t *pic) {
   /* XXX Pixmap of "pixmap:<ID>" is managed by others, so don't free here. */
   if (strncmp(pic->file_path, "pixmap:", 7) != 0) {
     ui_delete_image(pic->display, pic->pixmap);
@@ -163,11 +163,11 @@ static int delete_picture(ui_picture_t* pic) {
   return 1;
 }
 
-static ui_icon_picture_t* create_icon_picture(ui_display_t* disp,
-                                              char* file_path /* Don't specify NULL. */
+static ui_icon_picture_t *create_icon_picture(ui_display_t *disp,
+                                              char *file_path /* Don't specify NULL. */
                                               ) {
   u_int icon_size = 48;
-  ui_icon_picture_t* pic;
+  ui_icon_picture_t *pic;
 
   if ((pic = malloc(sizeof(ui_icon_picture_t))) == NULL) {
     return NULL;
@@ -201,7 +201,7 @@ static ui_icon_picture_t* create_icon_picture(ui_display_t* disp,
   return pic;
 }
 
-static int delete_icon_picture(ui_icon_picture_t* pic) {
+static int delete_icon_picture(ui_icon_picture_t *pic) {
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s icon will be deleted.\n", pic->file_path);
 #endif
@@ -217,7 +217,7 @@ static int delete_icon_picture(ui_icon_picture_t* pic) {
   return 1;
 }
 
-static int hash_path(char* path) {
+static int hash_path(char *path) {
   int hash;
 
   hash = 0;
@@ -228,11 +228,11 @@ static int hash_path(char* path) {
   return hash & 65535 /* 0xffff */;
 }
 
-static inline size_t get_anim_file_path_len(char* dir) {
+static inline size_t get_anim_file_path_len(char *dir) {
   return strlen(dir) + 10 + 5 + DIGIT_STR_LEN(int)+1;
 }
 
-static int anim_file_exists(char* file_path, char* dir, int hash, int count) {
+static int anim_file_exists(char *file_path, char *dir, int hash, int count) {
   struct stat st;
 
   if (count > 0) {
@@ -254,7 +254,7 @@ static int anim_file_exists(char* file_path, char* dir, int hash, int count) {
  * This function should be called synchronously because both load_file_async()
  * and cleanup_inline_pictures() can call this asynchronously.
  */
-static int delete_inline_picture(ui_inline_picture_t* pic /* pic->pixmap mustn't be NULL. */
+static int delete_inline_picture(ui_inline_picture_t *pic /* pic->pixmap mustn't be NULL. */
                                  ) {
   if (pic->pixmap == DUMMY_PIXMAP) {
     if (strstr(pic->file_path, "mlterm/anim")) {
@@ -280,8 +280,8 @@ static int delete_inline_picture(ui_inline_picture_t* pic /* pic->pixmap mustn't
     if (strcasecmp(pic->file_path + strlen(pic->file_path) - 4, ".gif") == 0 &&
         /* If check_anim was processed, next_frame == -2. */
         pic->next_frame == -1) {
-      char* dir;
-      char* file_path;
+      char *dir;
+      char *file_path;
 
       if ((dir = bl_get_user_rc_path("mlterm/")) &&
           (file_path = alloca(get_anim_file_path_len(dir)))) {
@@ -320,7 +320,7 @@ static int delete_inline_picture(ui_inline_picture_t* pic /* pic->pixmap mustn't
   return 1;
 }
 
-static void pty_closed(vt_term_t* term) {
+static void pty_closed(vt_term_t *term) {
   u_int count;
 
   for (count = 0; count < num_of_inline_pics; count++) {
@@ -336,11 +336,11 @@ static void pty_closed(vt_term_t* term) {
   /* XXX The memory of intern_pics is not freed. */
 }
 
-static int cleanup_inline_pictures(vt_term_t* term) {
+static int cleanup_inline_pictures(vt_term_t *term) {
 #define THRESHOLD 48
   int count;
   int empty_idx;
-  u_int8_t* flags;
+  u_int8_t *flags;
 
   /*
    * Don't cleanup unused inline pictures until the number of cached inline
@@ -362,7 +362,7 @@ static int cleanup_inline_pictures(vt_term_t* term) {
     int beg;
     int end;
     int row;
-    vt_line_t* line;
+    vt_line_t *line;
     int restore_alt_edit;
 
     memset(flags, 0, num_of_inline_pics);
@@ -381,7 +381,7 @@ static int cleanup_inline_pictures(vt_term_t* term) {
     for (row = beg; row <= end; row++) {
       if ((line = vt_term_get_line(term, row))) {
         for (count = 0; count < line->num_of_filled_chars; count++) {
-          vt_char_t* ch;
+          vt_char_t *ch;
 
           if ((ch = vt_get_picture_char(line->chars + count))) {
             int idx;
@@ -470,7 +470,7 @@ static int cleanup_inline_pictures(vt_term_t* term) {
   return empty_idx;
 }
 
-static int load_file(void* p) {
+static int load_file(void *p) {
   int idx;
   Pixmap pixmap;
   PixmapMask mask;
@@ -516,7 +516,7 @@ static u_int __stdcall
 #else
 static void*
 #endif
-    load_file_async(void* p) {
+    load_file_async(void *p) {
 #ifdef HAVE_PTHREAD
   pthread_detach(pthread_self());
 #endif
@@ -541,14 +541,14 @@ static void*
 
 #endif
 
-static int ensure_inline_picture(ui_display_t* disp, const char* file_path,
-                                 u_int* width,  /* can be 0 */
-                                 u_int* height, /* can be 0 */
-                                 u_int col_width, u_int line_height, vt_term_t* term) {
+static int ensure_inline_picture(ui_display_t *disp, const char *file_path,
+                                 u_int *width,  /* can be 0 */
+                                 u_int *height, /* can be 0 */
+                                 u_int col_width, u_int line_height, vt_term_t *term) {
   int idx;
 
   if ((idx = cleanup_inline_pictures(term)) == -1) {
-    void* p;
+    void *p;
 
     /* XXX pthread_mutex_lock( &mutex) is necessary. */
     if (num_of_inline_pics >= MAX_INLINE_PICTURES ||
@@ -575,7 +575,7 @@ static int ensure_inline_picture(ui_display_t* disp, const char* file_path,
   return idx;
 }
 
-static int next_frame_pos(ui_inline_picture_t* prev, ui_inline_picture_t* next, int pos) {
+static int next_frame_pos(ui_inline_picture_t *prev, ui_inline_picture_t *next, int pos) {
   u_int cur_rows;
   u_int next_rows;
   int row;
@@ -596,7 +596,7 @@ static int next_frame_pos(ui_inline_picture_t* prev, ui_inline_picture_t* next, 
 
 /* --- global functions --- */
 
-int ui_picture_display_opened(Display* display) {
+int ui_picture_display_opened(Display *display) {
   if (!ui_imagelib_display_opened(display)) {
     return 0;
   }
@@ -604,7 +604,7 @@ int ui_picture_display_opened(Display* display) {
   return 1;
 }
 
-int ui_picture_display_closed(Display* display) {
+int ui_picture_display_closed(Display *display) {
   int count;
 
   if (num_of_icon_pics > 0) {
@@ -653,8 +653,8 @@ int ui_picture_display_closed(Display* display) {
  * \return  1 when they are same. 0 when not.
  */
 int ui_picture_modifiers_equal(
-    ui_picture_modifier_t* a, /* Can be NULL (which means normal pic_mod) */
-    ui_picture_modifier_t* b  /* Can be NULL (which means normal pic_mod) */
+    ui_picture_modifier_t *a, /* Can be NULL (which means normal pic_mod) */
+    ui_picture_modifier_t *b  /* Can be NULL (which means normal pic_mod) */
     ) {
   if (a == b) {
     /* If a==NULL and b==NULL, return 1 */
@@ -683,10 +683,10 @@ int ui_picture_modifiers_equal(
   return 0;
 }
 
-ui_picture_t* ui_acquire_bg_picture(ui_window_t* win, ui_picture_modifier_t* mod,
-                                    char* file_path /* "root" means transparency. */
+ui_picture_t *ui_acquire_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod,
+                                    char *file_path /* "root" means transparency. */
                                     ) {
-  ui_picture_t** p;
+  ui_picture_t **p;
 
   if (strcmp(file_path, "root") != 0) /* Transparent background is not cached. */
   {
@@ -725,7 +725,7 @@ ui_picture_t* ui_acquire_bg_picture(ui_window_t* win, ui_picture_modifier_t* mod
   return pics[num_of_pics++];
 }
 
-int ui_release_picture(ui_picture_t* pic) {
+int ui_release_picture(ui_picture_t *pic) {
   u_int count;
 
   for (count = 0; count < num_of_pics; count++) {
@@ -752,11 +752,11 @@ int ui_release_picture(ui_picture_t* pic) {
   return 0;
 }
 
-ui_icon_picture_t* ui_acquire_icon_picture(ui_display_t* disp,
-                                           char* file_path /* Don't specify NULL. */
+ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp,
+                                           char *file_path /* Don't specify NULL. */
                                            ) {
   u_int count;
-  ui_icon_picture_t** p;
+  ui_icon_picture_t **p;
 
   for (count = 0; count < num_of_icon_pics; count++) {
     if (strcmp(file_path, icon_pics[count]->file_path) == 0 && disp == icon_pics[count]->disp) {
@@ -787,7 +787,7 @@ ui_icon_picture_t* ui_acquire_icon_picture(ui_display_t* disp,
   return icon_pics[num_of_icon_pics++];
 }
 
-int ui_release_icon_picture(ui_icon_picture_t* pic) {
+int ui_release_icon_picture(ui_icon_picture_t *pic) {
   u_int count;
 
   for (count = 0; count < num_of_icon_pics; count++) {
@@ -814,11 +814,11 @@ int ui_release_icon_picture(ui_icon_picture_t* pic) {
   return 0;
 }
 
-int ui_load_inline_picture(ui_display_t* disp, char* file_path, u_int* width, /* can be 0 */
-                           u_int* height,                                     /* can be 0 */
-                           u_int col_width, u_int line_height, vt_term_t* term) {
+int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, /* can be 0 */
+                           u_int *height,                                     /* can be 0 */
+                           u_int col_width, u_int line_height, vt_term_t *term) {
   int idx;
-  inline_pic_args_t* args;
+  inline_pic_args_t *args;
 
   /* XXX Don't reuse ~/.mlterm/[pty name].six, [pty name].rgs and anim-*.gif */
   if (!strstr(file_path, "mlterm/") || strstr(file_path, "mlterm/macro") ||
@@ -942,7 +942,7 @@ check_anim:
   if (strcasecmp(file_path + strlen(file_path) - 4, ".gif") == 0) {
     /* Animation GIF */
 
-    char* dir;
+    char *dir;
 
     /* mark checked */
     inline_pics[idx].next_frame = -2;
@@ -992,7 +992,7 @@ end:
   return idx;
 }
 
-ui_inline_picture_t* ui_get_inline_picture(int idx) {
+ui_inline_picture_t *ui_get_inline_picture(int idx) {
   if (inline_pics && idx < num_of_inline_pics) {
     return inline_pics + idx;
   } else {
@@ -1001,8 +1001,8 @@ ui_inline_picture_t* ui_get_inline_picture(int idx) {
 }
 
 int ui_add_frame_to_animation(int prev_idx, int next_idx) {
-  ui_inline_picture_t* prev_pic;
-  ui_inline_picture_t* next_pic;
+  ui_inline_picture_t *prev_pic;
+  ui_inline_picture_t *next_pic;
 
   if ((prev_pic = ui_get_inline_picture(prev_idx)) &&
       (next_pic = ui_get_inline_picture(next_idx)) &&
@@ -1027,10 +1027,10 @@ int ui_add_frame_to_animation(int prev_idx, int next_idx) {
   }
 }
 
-int ui_animate_inline_pictures(vt_term_t* term) {
+int ui_animate_inline_pictures(vt_term_t *term) {
   int wait;
   int row;
-  vt_line_t* line;
+  vt_line_t *line;
 
   if (!num_of_anims) {
     return 0;
@@ -1043,7 +1043,7 @@ int ui_animate_inline_pictures(vt_term_t* term) {
       int char_index;
 
       for (char_index = 0; char_index < line->num_of_filled_chars; char_index++) {
-        vt_char_t* ch;
+        vt_char_t *ch;
 
         if ((ch = vt_get_picture_char(line->chars + char_index))) {
           int32_t pos;
@@ -1092,8 +1092,8 @@ int ui_animate_inline_pictures(vt_term_t* term) {
   return wait;
 }
 
-int ui_load_tmp_picture(ui_display_t* disp, char* file_path, Pixmap* pixmap, PixmapMask* mask,
-                        u_int* width, u_int* height) {
+int ui_load_tmp_picture(ui_display_t *disp, char *file_path, Pixmap *pixmap, PixmapMask *mask,
+                        u_int *width, u_int *height) {
   *width = *height = 0;
 
   if (ui_imagelib_load_file(disp, file_path, NULL, pixmap, mask, width, height)) {
@@ -1103,7 +1103,7 @@ int ui_load_tmp_picture(ui_display_t* disp, char* file_path, Pixmap* pixmap, Pix
   }
 }
 
-void ui_delete_tmp_picture(ui_display_t* disp, Pixmap pixmap, PixmapMask mask) {
+void ui_delete_tmp_picture(ui_display_t *disp, Pixmap pixmap, PixmapMask mask) {
   ui_delete_image(disp->display, pixmap);
   ui_delete_mask(disp->display, mask);
 }

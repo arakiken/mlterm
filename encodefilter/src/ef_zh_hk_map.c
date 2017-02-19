@@ -13,7 +13,7 @@ static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
 
 /* --- global functions --- */
 
-int ef_map_ucs4_to_zh_hk(ef_char_t* zhhk, ef_char_t* ucs4) {
+int ef_map_ucs4_to_zh_hk(ef_char_t *zhhk, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(zhhk, ucs4, map_ucs4_to_funcs,
                                     sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
 }

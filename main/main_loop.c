@@ -54,9 +54,9 @@ static void sig_fatal(int sig) {
 }
 #endif /* USE_WIN32API */
 
-static int get_font_size_range(u_int* min, u_int* max, const char* str) {
-  char* str_p;
-  char* p;
+static int get_font_size_range(u_int *min, u_int *max, const char *str) {
+  char *str_p;
+  char *p;
 
   if ((str_p = bl_str_alloca_dup(str)) == NULL) {
 #ifdef DEBUG
@@ -96,18 +96,18 @@ static void ssh_keepalive(void) { vt_pty_ssh_keepalive(100); }
 
 /* --- global functions --- */
 
-int main_loop_init(int argc, char** argv) {
+int main_loop_init(int argc, char **argv) {
   ui_main_config_t main_config;
-  bl_conf_t* conf;
-  char* value;
+  bl_conf_t *conf;
+  char *value;
 #ifdef USE_XLIB
   int use_xim;
 #endif
   u_int max_screens_multiple;
   u_int num_of_startup_screens;
   u_int depth;
-  char* invalid_msg = "%s %s is not valid.\n";
-  char* orig_argv;
+  char *invalid_msg = "%s %s is not valid.\n";
+  char *orig_argv;
 
   if (!bl_locale_init("")) {
     bl_msg_printf("locale settings failed.\n");

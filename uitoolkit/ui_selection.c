@@ -13,7 +13,7 @@
 
 /* --- static functions --- */
 
-static int update_sel_region(ui_selection_t* sel, int col, int row) {
+static int update_sel_region(ui_selection_t *sel, int col, int row) {
   int rv_beg_col;
   int rv_beg_row;
   int rv_end_col;
@@ -195,7 +195,7 @@ static int update_sel_region(ui_selection_t* sel, int col, int row) {
 
 /* --- global functions --- */
 
-int ui_sel_init(ui_selection_t* sel, ui_sel_event_listener_t* sel_listener) {
+int ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *sel_listener) {
   memset(sel, 0, sizeof(ui_selection_t));
 
   sel->sel_listener = sel_listener;
@@ -203,7 +203,7 @@ int ui_sel_init(ui_selection_t* sel, ui_sel_event_listener_t* sel_listener) {
   return 1;
 }
 
-int ui_sel_final(ui_selection_t* sel) {
+int ui_sel_final(ui_selection_t *sel) {
   if (sel->sel_str) {
     vt_str_delete(sel->sel_str, sel->sel_len);
   }
@@ -211,7 +211,7 @@ int ui_sel_final(ui_selection_t* sel) {
   return 1;
 }
 
-int ui_start_selection(ui_selection_t* sel, int col_l, int row_l, int col_r, int row_r,
+int ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
                        ui_sel_type_t type, int is_rect) {
   sel->is_reversed = 1;
   sel->is_selecting = type;
@@ -232,7 +232,7 @@ int ui_start_selection(ui_selection_t* sel, int col_l, int row_l, int col_r, int
   return 1;
 }
 
-int ui_selecting(ui_selection_t* sel, int col, int row) {
+int ui_selecting(ui_selection_t *sel, int col, int row) {
   if (!sel->is_selecting) {
     return 0;
   }
@@ -250,7 +250,7 @@ int ui_selecting(ui_selection_t* sel, int col, int row) {
   return 1;
 }
 
-int ui_stop_selecting(ui_selection_t* sel) {
+int ui_stop_selecting(ui_selection_t *sel) {
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " selection stops => %d %d - %d %d.\n", sel->beg_col, sel->beg_row,
                   sel->end_col, sel->end_row);
@@ -283,7 +283,7 @@ int ui_stop_selecting(ui_selection_t* sel) {
   return 1;
 }
 
-int ui_sel_clear(ui_selection_t* sel) {
+int ui_sel_clear(ui_selection_t *sel) {
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " selection is cleared.\n");
 #endif
@@ -302,7 +302,7 @@ int ui_sel_clear(ui_selection_t* sel) {
   return ui_restore_selected_region_color(sel);
 }
 
-int ui_restore_selected_region_color_except_logs(ui_selection_t* sel) {
+int ui_restore_selected_region_color_except_logs(ui_selection_t *sel) {
   int beg_row;
   int beg_col;
 
@@ -327,7 +327,7 @@ int ui_restore_selected_region_color_except_logs(ui_selection_t* sel) {
   return 1;
 }
 
-int ui_reverse_selected_region_color_except_logs(ui_selection_t* sel) {
+int ui_reverse_selected_region_color_except_logs(ui_selection_t *sel) {
   int beg_row;
   int beg_col;
 
@@ -352,7 +352,7 @@ int ui_reverse_selected_region_color_except_logs(ui_selection_t* sel) {
   return 1;
 }
 
-int ui_restore_selected_region_color(ui_selection_t* sel) {
+int ui_restore_selected_region_color(ui_selection_t *sel) {
   if (!sel->is_reversed) {
     return 0;
   }
@@ -374,7 +374,7 @@ int ui_restore_selected_region_color(ui_selection_t* sel) {
  * Not used for now.
  */
 #if 0
-int ui_reverse_selected_region_color(ui_selection_t* sel) {
+int ui_reverse_selected_region_color(ui_selection_t *sel) {
   if (sel->is_reversed) {
     return 0;
   }
@@ -393,7 +393,7 @@ int ui_reverse_selected_region_color(ui_selection_t* sel) {
 }
 #endif
 
-int ui_sel_line_scrolled_out(ui_selection_t* sel, int min_row) {
+int ui_sel_line_scrolled_out(ui_selection_t *sel, int min_row) {
   if (!sel->is_selecting) {
     return 0;
   }
@@ -439,7 +439,7 @@ int ui_sel_line_scrolled_out(ui_selection_t* sel, int min_row) {
   return 1;
 }
 
-int ui_selected_region_is_changed(ui_selection_t* sel, int col, int row, u_int base) {
+int ui_selected_region_is_changed(ui_selection_t *sel, int col, int row, u_int base) {
   if (abs(sel->prev_col - col) >= base || abs(sel->prev_row - row) >= base) {
     return 1;
   } else {
@@ -447,7 +447,7 @@ int ui_selected_region_is_changed(ui_selection_t* sel, int col, int row, u_int b
   }
 }
 
-int ui_is_after_sel_right_base_pos(ui_selection_t* sel, int col, int row) {
+int ui_is_after_sel_right_base_pos(ui_selection_t *sel, int col, int row) {
   if (sel->is_rect) {
     return sel->base_col_r < col;
   } else {
@@ -459,7 +459,7 @@ int ui_is_after_sel_right_base_pos(ui_selection_t* sel, int col, int row) {
   }
 }
 
-int ui_is_before_sel_left_base_pos(ui_selection_t* sel, int col, int row) {
+int ui_is_before_sel_left_base_pos(ui_selection_t *sel, int col, int row) {
   if (sel->is_rect) {
     return sel->base_col_l > col;
   } else {
@@ -471,7 +471,7 @@ int ui_is_before_sel_left_base_pos(ui_selection_t* sel, int col, int row) {
   }
 }
 
-int ui_sel_lock(ui_selection_t* sel) {
+int ui_sel_lock(ui_selection_t *sel) {
   if (sel->beg_row < sel->base_row_l ||
       (sel->beg_row == sel->base_row_l && sel->beg_col <= sel->base_col_l)) {
     /*

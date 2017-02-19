@@ -29,15 +29,15 @@
 
 #endif
 
-void* bl_mem_malloc(size_t size, const char* file, int line, const char* func);
+void *bl_mem_malloc(size_t size, const char *file, int line, const char *func);
 
-void* bl_mem_calloc(size_t number, size_t size, const char* file, int line, const char* func);
+void *bl_mem_calloc(size_t number, size_t size, const char *file, int line, const char *func);
 
-void* bl_mem_realloc(void* ptr, size_t size, const char* file, int line, const char* func);
+void *bl_mem_realloc(void *ptr, size_t size, const char *file, int line, const char *func);
 
-void bl_mem_remove(void* ptr, const char* file, int line, const char* func);
+void bl_mem_remove(void *ptr, const char *file, int line, const char *func);
 
-void bl_mem_free(void* ptr, const char* file, int line, const char* func);
+void bl_mem_free(void *ptr, const char *file, int line, const char *func);
 
 #ifdef BL_DEBUG
 
@@ -61,7 +61,7 @@ int bl_mem_free_all(void);
 #define alloca(size) bl_alloca(size)
 #endif
 
-void* bl_alloca(size_t size);
+void *bl_alloca(size_t size);
 
 int bl_alloca_begin_stack_frame(void);
 
@@ -95,7 +95,7 @@ int bl_alloca_garbage_collect(void);
 
 /* predefined by HP cc +Olibcalls */
 #ifndef alloca
-char* alloca();
+char *alloca();
 #endif
 
 #endif /* _AIX */

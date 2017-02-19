@@ -16,12 +16,12 @@
 
 #ifndef HAVE_STRSEP
 
-char* __bl_str_sep(char** strp, const char* delim) {
-  char* s;
-  const char* spanp;
+char* __bl_str_sep(char **strp, const char *delim) {
+  char *s;
+  const char *spanp;
   int c;
   int sc;
-  char* tok;
+  char *tok;
 
   if ((s = *strp) == NULL) {
     return NULL;
@@ -52,7 +52,7 @@ char* __bl_str_sep(char** strp, const char* delim) {
  * !! Notice !!
  * It is a caller that is responsible to check buffer overrun.
  */
-int bl_snprintf(char* str, size_t size, const char* format, ...) {
+int bl_snprintf(char *str, size_t size, const char *format, ...) {
   va_list arg_list;
 
   va_start(arg_list, format);
@@ -69,10 +69,10 @@ int bl_snprintf(char* str, size_t size, const char* format, ...) {
 #endif
 }
 
-char* bl_str_dup(const char* str, const char* file, /* should be allocated memory. */
-                 int line, const char* func         /* should be allocated memory. */
+char *bl_str_dup(const char *str, const char *file, /* should be allocated memory. */
+                 int line, const char *func         /* should be allocated memory. */
                  ) {
-  char* new_str;
+  char *new_str;
 
   if ((new_str = bl_mem_malloc(strlen(str) + 1, file, line, func)) == NULL) {
     return NULL;
@@ -83,8 +83,8 @@ char* bl_str_dup(const char* str, const char* file, /* should be allocated memor
   return new_str;
 }
 
-char* __bl_str_copy(char* dst, /* alloca()-ed memory (see bl_str.h) */
-                    const char* src) {
+char* __bl_str_copy(char *dst, /* alloca()-ed memory (see bl_str.h) */
+                    const char *src) {
   if (dst == NULL) {
     /* alloca() failed */
 
@@ -99,7 +99,7 @@ char* __bl_str_copy(char* dst, /* alloca()-ed memory (see bl_str.h) */
  * this doesn't concern about ISO2022 sequences or so.
  * dst/src must be u_char since 0x80 - 0x9f is specially dealed.
  */
-size_t bl_str_tabify(u_char* dst, size_t dst_len, const u_char* src, size_t src_len,
+size_t bl_str_tabify(u_char *dst, size_t dst_len, const u_char *src, size_t src_len,
                      size_t tab_len) {
   size_t pos_in_tab;
   size_t space_num;
@@ -185,7 +185,7 @@ size_t bl_str_tabify(u_char* dst, size_t dst_len, const u_char* src, size_t src_
   return dst_pos;
 }
 
-char* bl_str_chop_spaces(char* str) {
+char *bl_str_chop_spaces(char *str) {
   size_t pos;
 
   pos = strlen(str);
@@ -203,7 +203,7 @@ char* bl_str_chop_spaces(char* str) {
   return str;
 }
 
-int bl_str_n_to_uint(u_int* i, const char* s, size_t n) {
+int bl_str_n_to_uint(u_int *i, const char *s, size_t n) {
   u_int _i;
   int digit;
 
@@ -226,7 +226,7 @@ int bl_str_n_to_uint(u_int* i, const char* s, size_t n) {
   return 1;
 }
 
-int bl_str_n_to_int(int* i, const char* s, size_t n) {
+int bl_str_n_to_int(int *i, const char *s, size_t n) {
   u_int _i;
   int is_minus;
 
@@ -263,7 +263,7 @@ int bl_str_n_to_int(int* i, const char* s, size_t n) {
   return 1;
 }
 
-int bl_str_to_uint(u_int* i, const char* s) {
+int bl_str_to_uint(u_int *i, const char *s) {
   u_int _i;
 
   if (*s == '\0') {
@@ -287,7 +287,7 @@ int bl_str_to_uint(u_int* i, const char* s) {
   return 1;
 }
 
-int bl_str_to_int(int* i, const char* s) {
+int bl_str_to_int(int *i, const char *s) {
   u_int _i;
   int is_minus;
 
@@ -322,7 +322,7 @@ int bl_str_to_int(int* i, const char* s) {
   return 1;
 }
 
-u_int bl_count_char_in_str(const char* str, char ch) {
+u_int bl_count_char_in_str(const char *str, char ch) {
   u_int count;
 
   count = 0;
@@ -338,7 +338,7 @@ u_int bl_count_char_in_str(const char* str, char ch) {
 }
 
 /* str1 and str2 can be NULL */
-int bl_compare_str(const char* str1, const char* str2) {
+int bl_compare_str(const char *str1, const char *str2) {
   if (str1 == str2) {
     return 0;
   }
@@ -352,14 +352,14 @@ int bl_compare_str(const char* str1, const char* str2) {
   return strcmp(str1, str2);
 }
 
-char* bl_str_replace(const char* str, const char* orig, /* Don't specify "". */
-                     const char* new) {
+char *bl_str_replace(const char *str, const char *orig, /* Don't specify "". */
+                     const char *new) {
   size_t orig_len;
   size_t new_len;
   int diff;
-  const char* p;
-  char* new_str;
-  char* dst;
+  const char *p;
+  char *new_str;
+  char *dst;
 
   orig_len = strlen(orig);
   new_len = strlen(new);
@@ -393,9 +393,9 @@ char* bl_str_replace(const char* str, const char* orig, /* Don't specify "". */
 }
 
 #if 0
-char* bl_str_escape_backslash(char* str) {
-  char* escaped_str;
-  char* p;
+char *bl_str_escape_backslash(char *str) {
+  char *escaped_str;
+  char *p;
 
   if (!(p = escaped_str = malloc(strlen(str) + bl_count_char_in_str(str, '\\') + 1))) {
     return str;
@@ -417,9 +417,9 @@ char* bl_str_escape_backslash(char* str) {
 }
 #endif
 
-char* bl_str_unescape(const char* str) {
-  char* new_str;
-  char* p;
+char *bl_str_unescape(const char *str) {
+  char *new_str;
+  char *p;
 
   if ((new_str = malloc(strlen(str) + 1)) == NULL) {
     return NULL;

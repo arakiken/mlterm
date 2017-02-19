@@ -18,25 +18,25 @@
 #define FONT_NAME "-*-fixed-*-*-*--12-*-*-*-*-*-iso8859-1"
 
 typedef struct entry {
-  char* name;
-  char* seq;
+  char *name;
+  char *seq;
 
 } entry_t;
 
 /* --- static variables --- */
 
-static Display* disp;
+static Display *disp;
 static Window win;
 static GC gc1;
 static GC gc2;
-static XFontStruct* xfont;
+static XFontStruct *xfont;
 static entry_t entries[124];
 static u_int n_ent;
 static int cur_ent = -1;
 
 /* --- static functions --- */
 
-static char* get_value(char* dev, char* key) {
+static char *get_value(char *dev, char *key) {
   int count;
   char ret[1024];
   char c;
@@ -74,7 +74,7 @@ static char* get_value(char* dev, char* key) {
 }
 
 static int open_menu_file(void) {
-  char* menu_file;
+  char *menu_file;
 
   if (getenv("HOME") && (menu_file = malloc(strlen(getenv("HOME")) + 13 + 1))) {
     int fd;
@@ -93,12 +93,12 @@ static int open_menu_file(void) {
   return open(MENU_FILE, O_RDONLY, 0600);
 }
 
-static int init_entries(u_int* cols, u_int* rows) {
+static int init_entries(u_int *cols, u_int *rows) {
   int fd;
   struct stat st;
-  char* buf;
-  char* line;
-  char* p;
+  char *buf;
+  char *line;
+  char *p;
 
   /*
    * XXX Use mmap instead of open/read/close.
@@ -121,8 +121,8 @@ static int init_entries(u_int* cols, u_int* rows) {
 
   *cols = 0;
   while (n_ent < 124 && buf) {
-    char* name;
-    char* seq;
+    char *name;
+    char *seq;
 
     line = buf;
 
@@ -173,8 +173,8 @@ static int init_entries(u_int* cols, u_int* rows) {
 
   end:
     if (strcmp(name, "pty_list") == 0 && *seq == '\0') {
-      char* pty_list;
-      char* pty;
+      char *pty_list;
+      char *pty;
       int is_active;
 
       if ((pty_list = get_value(NULL, "pty_list")) == NULL) {
@@ -405,7 +405,7 @@ static int event_loop(void) {
 
 /* --- global functions --- */
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   if (!init() || !update_screen(-1, 0) || !event_loop()) {
     return 1;
   }

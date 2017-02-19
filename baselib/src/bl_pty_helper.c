@@ -45,7 +45,7 @@ typedef enum {
 
 typedef struct {
   int pty;
-  void* tag;
+  void *tag;
 
 } pty_helper_tag_t;
 
@@ -54,14 +54,14 @@ typedef struct {
 static pid_t myself = -1;
 static pid_t pty_helper_pid = -1;
 static int pty_helper_tunnel = -1;
-static pty_helper_tag_t* pty_helper_tags = NULL;
+static pty_helper_tag_t *pty_helper_tags = NULL;
 static u_int num_of_pty_helper_tags;
 static GnomePtyOps pty_helper_open_ops = GNOME_PTY_OPEN_PTY_UTMP;
 
 /* --- static functions --- */
 
 static void setup_child(int fd) {
-  char* tty;
+  char *tty;
 
   tty = ttyname(fd);
 
@@ -124,12 +124,12 @@ static void setup_child(int fd) {
 }
 
 #ifdef HAVE_RECVMSG
-static void read_ptypair(int tunnel, int* master, int* slave) {
+static void read_ptypair(int tunnel, int *master, int *slave) {
   int count;
   int ret;
   char control[LINE_MAX];
   char iobuf[LINE_MAX];
-  struct cmsghdr* cmsg;
+  struct cmsghdr *cmsg;
   struct msghdr msg;
   struct iovec vec;
 
@@ -165,7 +165,7 @@ static void read_ptypair(int tunnel, int* master, int* slave) {
   }
 }
 #elif defined(I_RECVFD)
-static void read_ptypair(int tunnel, int* master, int* slave) {
+static void read_ptypair(int tunnel, int *master, int *slave) {
   int ret;
 
   if (ioctl(tunnel, I_RECVFD, &ret) == -1) {
@@ -183,7 +183,7 @@ static void read_ptypair(int tunnel, int* master, int* slave) {
 #endif
 
 #ifdef HAVE_SOCKETPAIR
-static int open_pipe(int* a, int* b) {
+static int open_pipe(int *a, int *b) {
   int p[2];
   int ret = -1;
 
@@ -207,7 +207,7 @@ static int open_pipe(int* a, int* b) {
   return ret;
 }
 #else
-static int open_pipe(int* a, int* b) {
+static int open_pipe(int *a, int *b) {
   int p[2];
   int ret = -1;
 
@@ -223,9 +223,9 @@ static int open_pipe(int* a, int* b) {
 #endif
 
 /* read ignoring EINTR and EAGAIN. */
-static ssize_t n_read(int fd, void* buffer, size_t buf_size) {
+static ssize_t n_read(int fd, void *buffer, size_t buf_size) {
   size_t n;
-  char* p;
+  char *p;
   int ret;
 
   n = 0;
@@ -259,9 +259,9 @@ static ssize_t n_read(int fd, void* buffer, size_t buf_size) {
 }
 
 /* write ignoring EINTR and EAGAIN. */
-static ssize_t n_write(int fd, const void* buffer, size_t buf_size) {
+static ssize_t n_write(int fd, const void *buffer, size_t buf_size) {
   size_t n;
-  const char* p;
+  const char *p;
   int ret;
 
   n = 0;
@@ -379,10 +379,10 @@ static int start_pty_helper(void) {
 
 /* --- global functions --- */
 
-pid_t bl_pty_fork(int* master, int* slave) {
+pid_t bl_pty_fork(int *master, int *slave) {
   pid_t pid;
   int ret;
-  void* tag;
+  void *tag;
 
   if (pty_helper_pid == -1) {
     if (!start_pty_helper()) {
@@ -468,7 +468,7 @@ int bl_pty_close(int master) {
 
   for (count = 0; count < num_of_pty_helper_tags; count++) {
     if (pty_helper_tags[count].pty == master) {
-      void* tag;
+      void *tag;
       GnomePtyOps ops;
 
       tag = pty_helper_tags[count].tag;

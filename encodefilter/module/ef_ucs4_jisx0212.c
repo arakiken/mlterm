@@ -8,7 +8,7 @@
 
 /* --- global functions --- */
 
-int ef_map_jisx0212_1990_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
+int ef_map_jisx0212_1990_to_ucs4(ef_char_t *ucs4, u_int16_t jis) {
   u_int32_t c;
 
   if ((c = CONV_JISX0212_1990_TO_UCS4(jis))) {
@@ -23,7 +23,7 @@ int ef_map_jisx0212_1990_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
   return 0;
 }
 
-int ef_map_ucs4_to_jisx0212_1990(ef_char_t* jis, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_jisx0212_1990(ef_char_t *jis, u_int32_t ucs4_code) {
   u_int16_t c;
 
   if ((c = CONV_UCS4_TO_JISX0212_1990(ucs4_code))) {

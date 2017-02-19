@@ -302,7 +302,7 @@ static int use_point_size;
 
 /* --- static functions --- */
 
-static wincs_info_t* get_wincs_info(ef_charset_t cs) {
+static wincs_info_t *get_wincs_info(ef_charset_t cs) {
   int count;
 
   for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_t); count++) {
@@ -329,14 +329,14 @@ static wincs_info_t* get_wincs_info(ef_charset_t cs) {
 }
 
 static int parse_font_name(
-    char** font_family, int* font_weight, /* if weight is not specified in
+    char **font_family, int *font_weight, /* if weight is not specified in
                                              font_name , not changed. */
-    int* is_italic,    /* if slant is not specified in font_name , not changed. */
-    double* font_size, /* if size is not specified in font_name , not changed. */
-    u_int* percent,    /* if percent is not specified in font_name , not changed. */
-    char* font_name    /* modified by this function. */
+    int *is_italic,    /* if slant is not specified in font_name , not changed. */
+    double *font_size, /* if size is not specified in font_name , not changed. */
+    u_int *percent,    /* if percent is not specified in font_name , not changed. */
+    char *font_name    /* modified by this function. */
     ) {
-  char* p;
+  char *p;
   size_t len;
 
   /*
@@ -374,7 +374,7 @@ static int parse_font_name(
     size_t step = 0;
 
     if (*p == ' ') {
-      char* orig_p;
+      char *orig_p;
 
       orig_p = p;
       do {
@@ -389,7 +389,7 @@ static int parse_font_name(
       } else {
         int count;
         struct {
-          char* style;
+          char *style;
           int weight;
           int is_italic;
 
@@ -456,7 +456,7 @@ static int parse_font_name(
         if (*p != '0' ||      /* In case of "DevLys 010" font family. */
             *(p + 1) == '\0') /* "MS Gothic 0" => "MS Gothic" + "0" */
         {
-          char* end;
+          char *end;
           double size;
 
           size = strtod(p, &end);
@@ -486,7 +486,7 @@ static int parse_font_name(
   return 1;
 }
 
-static u_int calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs) {
+static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs) {
   SIZE sz;
 
   if (!display_gc) {
@@ -579,14 +579,14 @@ int ui_compose_dec_special_font(void) {
   return 0;
 }
 
-ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
-                       ui_font_present_t font_present, const char* fontname, u_int fontsize,
+ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
+                       ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold,
                        u_int letter_space /* Ignored for now. */
                        ) {
-  ui_font_t* font;
-  wincs_info_t* wincsinfo;
-  char* font_family;
+  ui_font_t *font;
+  wincs_info_t *wincsinfo;
+  char *font_family;
   int weight;
   int is_italic;
   double fontsize_d;
@@ -671,7 +671,7 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
   if (FONT_CS(font->id) == DEC_SPECIAL) {
     font_family = "Tera Special";
   } else if (fontname) {
-    char* p;
+    char *p;
 
     if ((p = bl_str_alloca_dup(fontname)) == NULL) {
 #ifdef DEBUG
@@ -873,14 +873,14 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
   }
 
   if (font->is_proportional && !font->is_var_col_width) {
-    bl_msg_printf("Characters (cs %x) are drawn *one by one* to arrange column width.\n",
+    bl_msg_printf("Characters (cs %x) are drawn *one by one *to arrange column width.\n",
                   FONT_CS(font->id));
   }
 
   return font;
 }
 
-int ui_font_delete(ui_font_t* font) {
+int ui_font_delete(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -905,7 +905,7 @@ int ui_font_delete(ui_font_t* font) {
   return 1;
 }
 
-int ui_change_font_cols(ui_font_t* font, u_int cols /* 0 means default value */
+int ui_change_font_cols(ui_font_t *font, u_int cols /* 0 means default value */
                         ) {
   if (cols == 0) {
     if (font->id & FONT_FULLWIDTH) {
@@ -921,10 +921,10 @@ int ui_change_font_cols(ui_font_t* font, u_int cols /* 0 means default value */
 }
 
 #ifdef USE_OT_LAYOUT
-int ui_font_has_ot_layout_table(ui_font_t* font) {
+int ui_font_has_ot_layout_table(ui_font_t *font) {
   if (!font->ot_font) {
     u_char buf[4];
-    void* font_data;
+    void *font_data;
     u_int size;
     int is_ttc;
 
@@ -974,10 +974,10 @@ int ui_font_has_ot_layout_table(ui_font_t* font) {
   return 1;
 }
 
-u_int ui_convert_text_to_glyphs(ui_font_t* font, u_int32_t* shaped, u_int shaped_len,
-                                int8_t* offsets, u_int8_t* widths, u_int32_t* cmapped,
-                                u_int32_t* src, u_int src_len, const char* script,
-                                const char* features) {
+u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
+                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
+                                u_int32_t *src, u_int src_len, const char *script,
+                                const char *features) {
   u_int size;
 
   if (use_point_size) {
@@ -996,7 +996,7 @@ u_int ui_convert_text_to_glyphs(ui_font_t* font, u_int32_t* shaped, u_int shaped
 }
 #endif /* USE_OT_LAYOUT */
 
-u_int ui_calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs, int* draw_alone) {
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
   if (draw_alone) {
     *draw_alone = 0;
   }
@@ -1031,7 +1031,7 @@ u_int ui_calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs, in
 void ui_font_use_point_size(int use) { use_point_size = use; }
 
 /* Return written size */
-size_t ui_convert_ucs4_to_utf16(u_char* dst, /* 4 bytes. Little endian. */
+size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
                                 u_int32_t src) {
   if (src < 0x10000) {
     dst[1] = (src >> 8) & 0xff;
@@ -1065,7 +1065,7 @@ size_t ui_convert_ucs4_to_utf16(u_char* dst, /* 4 bytes. Little endian. */
 
 #ifdef DEBUG
 
-int ui_font_dump(ui_font_t* font) {
+int ui_font_dump(ui_font_t *font) {
   bl_msg_printf("  id %x: Font %p", font->id, font->fid);
 
   if (font->is_proportional) {

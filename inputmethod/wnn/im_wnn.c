@@ -30,13 +30,13 @@ typedef struct im_wnn {
 
   vt_char_encoding_t term_encoding;
 
-  char* encoding_name; /* encoding of conversion engine */
+  char *encoding_name; /* encoding of conversion engine */
 
   /* conv is NULL if term_encoding == wnn encoding */
-  ef_parser_t* parser_term; /* for term encoding */
-  ef_conv_t* conv;          /* for term encoding */
+  ef_parser_t *parser_term; /* for term encoding */
+  ef_conv_t *conv;          /* for term encoding */
 
-  jcConvBuf* convbuf;
+  jcConvBuf *convbuf;
   int dan;
 
 } im_wnn_t;
@@ -44,12 +44,12 @@ typedef struct im_wnn {
 /* --- static variables --- */
 
 static int ref_count = 0;
-static ui_im_export_syms_t* syms = NULL; /* mlterm internal symbols */
-static ef_parser_t* parser_wchar = NULL;
+static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
+static ef_parser_t *parser_wchar = NULL;
 
 /* --- static functions --- */
 
-static wchar* digit_to_wstr(wchar* dst, int digit) {
+static wchar *digit_to_wstr(wchar *dst, int digit) {
   int num;
 
   if (digit >= 1000) {
@@ -78,16 +78,16 @@ static wchar* digit_to_wstr(wchar* dst, int digit) {
   return dst;
 }
 
-static void wchar_parser_set_str(ef_parser_t* parser, u_char* str, size_t size) {
+static void wchar_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;
   parser->is_eos = 0;
 }
 
-static void wchar_parser_delete(ef_parser_t* parser) { free(parser); }
+static void wchar_parser_delete(ef_parser_t *parser) { free(parser); }
 
-static int wchar_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int wchar_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   wchar wch;
 
   if (parser->is_eos) {
@@ -124,8 +124,8 @@ static int wchar_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
   return 1;
 }
 
-static ef_parser_t* wchar_parser_new(void) {
-  ef_parser_t* parser;
+static ef_parser_t *wchar_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -141,9 +141,9 @@ static ef_parser_t* wchar_parser_new(void) {
   return parser;
 }
 
-static void preedit(im_wnn_t* wnn, char* preedit,                                      /* wchar */
-                    size_t preedit_len, int rev_pos, int rev_len, char* candidateword, /* wchar */
-                    size_t candidateword_len, char* pos) {
+static void preedit(im_wnn_t *wnn, char *preedit,                                      /* wchar */
+                    size_t preedit_len, int rev_pos, int rev_len, char *candidateword, /* wchar */
+                    size_t candidateword_len, char *pos) {
   int x;
   int y;
 
@@ -156,10 +156,10 @@ static void preedit(im_wnn_t* wnn, char* preedit,                               
     }
   } else {
     ef_char_t ch;
-    vt_char_t* p;
+    vt_char_t *p;
     u_int num_of_chars;
     u_int len;
-    u_char* tmp = NULL;
+    u_char *tmp = NULL;
     size_t pos_len;
 
     wnn->im.preedit.cursor_offset = rev_pos;
@@ -259,7 +259,7 @@ candidate:
       wnn->im.stat_screen = NULL;
     }
   } else {
-    u_char* tmp = NULL;
+    u_char *tmp = NULL;
 
     (*wnn->im.listener->get_spot)(wnn->im.listener->self, wnn->im.preedit.chars,
                                   wnn->im.preedit.segment_offset, &x, &y);
@@ -293,7 +293,7 @@ candidate:
   }
 }
 
-static void commit(im_wnn_t* wnn, const char* str, size_t len) {
+static void commit(im_wnn_t *wnn, const char *str, size_t len) {
   u_char conv_buf[256];
   size_t filled_len;
 
@@ -314,7 +314,7 @@ static void commit(im_wnn_t* wnn, const char* str, size_t len) {
   }
 }
 
-static int insert_char(im_wnn_t* wnn, u_char key_char) {
+static int insert_char(im_wnn_t *wnn, u_char key_char) {
   static struct {
     wchar a;
     wchar i;
@@ -561,7 +561,7 @@ static int insert_char(im_wnn_t* wnn, u_char key_char) {
   return 0;
 }
 
-static int fix(im_wnn_t* wnn) {
+static int fix(im_wnn_t *wnn) {
   if (wnn->convbuf->displayEnd > wnn->convbuf->displayBuf) {
     wnn->dan = 0;
     wnn->is_cand = 0;
@@ -581,9 +581,9 @@ static int fix(im_wnn_t* wnn) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t* im) {
-  im_wnn_t* wnn;
-  struct wnn_buf* buf;
+static int delete (ui_im_t *im) {
+  im_wnn_t *wnn;
+  struct wnn_buf *buf;
 
   wnn = (im_wnn_t*)im;
 
@@ -613,8 +613,8 @@ static int delete (ui_im_t* im) {
   return ref_count;
 }
 
-static int switch_mode(ui_im_t* im) {
-  im_wnn_t* wnn;
+static int switch_mode(ui_im_t *im) {
+  im_wnn_t *wnn;
 
   wnn = (im_wnn_t*)im;
 
@@ -628,13 +628,13 @@ static int switch_mode(ui_im_t* im) {
   return 1;
 }
 
-static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
+static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
   wchar kana[2] = {0xa4ab, 0xa4ca};
-  im_wnn_t* wnn;
-  wchar* cand = NULL;
+  im_wnn_t *wnn;
+  wchar *cand = NULL;
   size_t cand_len = 0;
   int ret = 0;
-  char* pos = "";
+  char *pos = "";
 
   wnn = (im_wnn_t*)im;
 
@@ -724,8 +724,8 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
                   ? (curcand % CAND_WINDOW_ROWS == CAND_WINDOW_ROWS - 1 || curcand == ncand - 1)
                   : (curcand % CAND_WINDOW_ROWS == 0)))) {
           wchar tmp[1024];
-          wchar* src;
-          wchar* dst;
+          wchar *src;
+          wchar *dst;
           int count;
           int beg = curcand - curcand % CAND_WINDOW_ROWS;
 
@@ -807,10 +807,10 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
   return ret;
 }
 
-static int is_active(ui_im_t* im) { return ((im_wnn_t*)im)->is_enabled; }
+static int is_active(ui_im_t *im) { return ((im_wnn_t*)im)->is_enabled; }
 
-static void focused(ui_im_t* im) {
-  im_wnn_t* wnn;
+static void focused(ui_im_t *im) {
+  im_wnn_t *wnn;
 
   wnn = (im_wnn_t*)im;
 
@@ -819,8 +819,8 @@ static void focused(ui_im_t* im) {
   }
 }
 
-static void unfocused(ui_im_t* im) {
-  im_wnn_t* wnn;
+static void unfocused(ui_im_t *im) {
+  im_wnn_t *wnn;
 
   wnn = (im_wnn_t*)im;
 
@@ -831,10 +831,10 @@ static void unfocused(ui_im_t* im) {
 
 /* --- global functions --- */
 
-ui_im_t* im_wnn_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                    ui_im_export_syms_t* export_syms, char* engine, u_int mod_ignore_mask) {
-  im_wnn_t* wnn;
-  struct wnn_buf* buf;
+ui_im_t *im_wnn_new(u_int64_t magic, vt_char_encoding_t term_encoding,
+                    ui_im_export_syms_t *export_syms, char *engine, u_int mod_ignore_mask) {
+  im_wnn_t *wnn;
+  struct wnn_buf *buf;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
     bl_error_printf("Incompatible input method API.\n");
@@ -923,8 +923,8 @@ error:
 
 /* --- API for external tools --- */
 
-im_info_t* im_wnn_get_info(char* locale, char* encoding) {
-  im_info_t* result;
+im_info_t *im_wnn_get_info(char *locale, char *encoding) {
+  im_info_t *result;
 
   if ((result = malloc(sizeof(im_info_t)))) {
     result->id = strdup("wnn");

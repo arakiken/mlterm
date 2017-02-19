@@ -10,8 +10,8 @@
 
 /* --- global functions --- */
 
-ui_gc_t* ui_gc_new(Display* display, Drawable drawable) {
-  ui_gc_t* gc;
+ui_gc_t *ui_gc_new(Display *display, Drawable drawable) {
+  ui_gc_t *gc;
 
   if ((gc = calloc(1, sizeof(ui_gc_t))) == NULL) {
     return NULL;
@@ -26,13 +26,13 @@ ui_gc_t* ui_gc_new(Display* display, Drawable drawable) {
   return gc;
 }
 
-int ui_gc_delete(ui_gc_t* gc) {
+int ui_gc_delete(ui_gc_t *gc) {
   free(gc);
 
   return 1;
 }
 
-int ui_set_gc(ui_gc_t* gc, GC _gc) {
+int ui_set_gc(ui_gc_t *gc, GC _gc) {
   gc->gc = _gc;
 
   SetTextAlign(gc->gc, TA_LEFT | TA_BASELINE);
@@ -56,7 +56,7 @@ int ui_set_gc(ui_gc_t* gc, GC _gc) {
   return 1;
 }
 
-int ui_gc_set_fg_color(ui_gc_t* gc, u_long fg_color) {
+int ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color) {
   if (ARGB_TO_RGB(fg_color) != gc->fg_color) {
     SetTextColor(gc->gc, (gc->fg_color = ARGB_TO_RGB(fg_color)));
   }
@@ -64,7 +64,7 @@ int ui_gc_set_fg_color(ui_gc_t* gc, u_long fg_color) {
   return 1;
 }
 
-int ui_gc_set_bg_color(ui_gc_t* gc, u_long bg_color) {
+int ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color) {
   if (ARGB_TO_RGB(bg_color) != gc->bg_color) {
     SetBkColor(gc->gc, (gc->bg_color = ARGB_TO_RGB(bg_color)));
   }
@@ -72,7 +72,7 @@ int ui_gc_set_bg_color(ui_gc_t* gc, u_long bg_color) {
   return 1;
 }
 
-int ui_gc_set_fid(ui_gc_t* gc, Font fid) {
+int ui_gc_set_fid(ui_gc_t *gc, Font fid) {
   if (gc->fid != fid) {
     SelectObject(gc->gc, fid);
     gc->fid = fid;
@@ -81,7 +81,7 @@ int ui_gc_set_fid(ui_gc_t* gc, Font fid) {
   return 1;
 }
 
-HPEN ui_gc_set_pen(ui_gc_t* gc, HPEN pen) {
+HPEN ui_gc_set_pen(ui_gc_t *gc, HPEN pen) {
   if (gc->pen != pen) {
     gc->pen = pen;
 
@@ -92,7 +92,7 @@ HPEN ui_gc_set_pen(ui_gc_t* gc, HPEN pen) {
 }
 
 HBRUSH
-ui_gc_set_brush(ui_gc_t* gc, HBRUSH brush) {
+ui_gc_set_brush(ui_gc_t *gc, HBRUSH brush) {
   if (gc->brush != brush) {
     gc->brush = brush;
 

@@ -6,7 +6,7 @@
 
 /* --- static functions --- */
 
-static void set_str(ef_parser_t* parser, u_char* str, /* ef_char_t* */
+static void set_str(ef_parser_t *parser, u_char *str, /* ef_char_t* */
                     size_t size) {
   parser->str = str;
   parser->left = size;
@@ -14,9 +14,9 @@ static void set_str(ef_parser_t* parser, u_char* str, /* ef_char_t* */
   parser->is_eos = 0;
 }
 
-static void delete (ef_parser_t* parser) {}
+static void delete (ef_parser_t *parser) {}
 
-static int next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int next_char(ef_parser_t *parser, ef_char_t *ch) {
   if (parser->is_eos) {
     return 0;
   }
@@ -35,7 +35,7 @@ static ef_parser_t parser = {
 
 /* --- global functions --- */
 
-ef_parser_t* ef_str_parser_init(ef_char_t* src, u_int src_len) {
+ef_parser_t *ef_str_parser_init(ef_char_t *src, u_int src_len) {
   (*parser.init)(&parser);
   (*parser.set_str)(&parser, (u_char*)src, src_len * sizeof(ef_char_t));
 

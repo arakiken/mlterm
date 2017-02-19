@@ -69,12 +69,12 @@ int separate_wall_picture = 1;
 static fb_reg_conf_t orig_reg;
 static int grf0_fd = -1;
 static size_t grf0_len;
-static fb_reg_t* grf0_reg;
-static u_short* tpal_orig;
+static fb_reg_t *grf0_reg;
+static u_short *tpal_orig;
 static u_short gpal_12_orig;
 static int use_tvram_cmap;
-static fb_cmap_t* tcmap; /* If NULL, T-VRAM palette is the same as G-VRAM. */
-static fb_cmap_t* gcmap;
+static fb_cmap_t *tcmap; /* If NULL, T-VRAM palette is the same as G-VRAM. */
+static fb_cmap_t *gcmap;
 
 /* --- static functions --- */
 
@@ -101,7 +101,7 @@ static void close_grf0(void) {
   }
 }
 
-static void setup_reg(fb_reg_t* reg, fb_reg_conf_t* conf) {
+static void setup_reg(fb_reg_t *reg, fb_reg_conf_t *conf) {
   if ((reg->crtc.r20 & 0x3) < (conf->crtc.r20 & 0x3) ||
       ((reg->crtc.r20 & 0x3) == (conf->crtc.r20 & 0x3) &&
        (reg->crtc.r20 & 0x10) < (conf->crtc.r20 & 0x10))) {
@@ -138,10 +138,10 @@ static void setup_reg(fb_reg_t* reg, fb_reg_conf_t* conf) {
 }
 
 static int open_display(u_int depth) {
-  char* dev;
+  char *dev;
   struct grfinfo vinfo;
-  fb_reg_t* reg;
-  fb_reg_conf_t* conf;
+  fb_reg_t *reg;
+  fb_reg_conf_t *conf;
   fb_reg_conf_t conf_512_512_15 = {{91, 9, 17, 81, 567, 5, 40, 552, 27, 789}, {3, 0x21e4, 0x000f}};
   fb_reg_conf_t conf_512_512_8 = {{91, 9, 17, 81, 567, 5, 40, 552, 27, 277}, {1, 0x21e4, 0x0003}};
   fb_reg_conf_t conf_768_512_4 = {{137, 14, 28, 124, 567, 5, 40, 552, 27, 1046},
@@ -372,7 +372,7 @@ static int receive_mouse_event(void) {
 
     if (ev.value == VKEY_DOWN || ev.value == VKEY_UP) {
       XButtonEvent xev;
-      ui_window_t* win;
+      ui_window_t *win;
 
       if (ev.id == MS_LEFT) {
         xev.button = Button1;
@@ -417,7 +417,7 @@ static int receive_mouse_event(void) {
       }
     } else if (ev.id == LOC_X_DELTA || ev.id == LOC_Y_DELTA) {
       XMotionEvent xev;
-      ui_window_t* win;
+      ui_window_t *win;
 
       restore_hidden_region();
 
@@ -558,7 +558,7 @@ static int receive_key_event(void) {
   return 1;
 }
 
-static int gpal_init(u_short* gpal) {
+static int gpal_init(u_short *gpal) {
   if (grf0_fd != -1) {
     u_long color;
 
@@ -596,9 +596,9 @@ static void x68k_set_use_tvram_colors(int use) {
   }
 }
 
-static fb_cmap_t* cmap_new(int num_of_colors);
+static fb_cmap_t *cmap_new(int num_of_colors);
 
-static int x68k_set_tvram_cmap(u_int32_t* pixels, u_int cmap_size) {
+static int x68k_set_tvram_cmap(u_int32_t *pixels, u_int cmap_size) {
   if (use_tvram_cmap && cmap_size <= 16) {
     if ((tcmap = cmap_new(cmap_size))) {
       u_int count;
@@ -631,14 +631,14 @@ int x68k_tvram_is_enabled(void) { return (grf0_fd != -1) ? 1 : 0; }
  * On success, if /dev/grf0 is opened just now, 2 is returned, while if
  * /dev/grf0 has been already opened, 1 is returned.
  */
-int x68k_tvram_set_wall_picture(u_short* image, u_int width, u_int height) {
+int x68k_tvram_set_wall_picture(u_short *image, u_int width, u_int height) {
   int ret;
-  static u_char* vram;
-  u_char* pl0;
-  u_char* pl1;
-  u_char* pl2;
-  u_char* pl3;
-  u_short* img;
+  static u_char *vram;
+  u_char *pl0;
+  u_char *pl1;
+  u_char *pl2;
+  u_char *pl3;
+  u_short *img;
   int y;
   int img_y;
 

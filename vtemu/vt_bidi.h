@@ -13,10 +13,10 @@ typedef enum {
 
 } vt_bidi_mode_t;
 
-typedef struct vt_bidi_state* vt_bidi_state_t;
+typedef struct vt_bidi_state *vt_bidi_state_t;
 
-vt_bidi_mode_t vt_get_bidi_mode(const char* name);
+vt_bidi_mode_t vt_get_bidi_mode(const char *name);
 
-char* vt_get_bidi_mode_name(vt_bidi_mode_t mode);
+char *vt_get_bidi_mode_name(vt_bidi_mode_t mode);
 
 #endif

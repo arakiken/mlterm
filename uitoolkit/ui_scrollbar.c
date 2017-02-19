@@ -43,7 +43,7 @@ enum {
 
 /* --- static functions --- */
 
-static void set_redraw_area(ui_scrollbar_t* sb, int y, /* Should exclude sb->top_margin. */
+static void set_redraw_area(ui_scrollbar_t *sb, int y, /* Should exclude sb->top_margin. */
                             u_int height               /* Should be over 0. Can be over
                                                           sb->window.height -
                                                           sb->bottom_margin. */
@@ -67,7 +67,7 @@ static void set_redraw_area(ui_scrollbar_t* sb, int y, /* Should exclude sb->top
  * Don't call directly draw_xxx functions.
  * Call ui_window_update() instead.
  */
-static void draw_scrollbar(ui_scrollbar_t* sb) {
+static void draw_scrollbar(ui_scrollbar_t *sb) {
   if (IS_TOO_SMALL(sb)) {
     ui_window_blank(&sb->window);
 
@@ -88,7 +88,7 @@ static void draw_scrollbar(ui_scrollbar_t* sb) {
  * Don't call directly draw_xxx functions.
  * Call ui_window_update() instead.
  */
-static void draw_background(ui_scrollbar_t* sb) {
+static void draw_background(ui_scrollbar_t *sb) {
   if (IS_TOO_SMALL(sb)) {
     return;
   }
@@ -147,7 +147,7 @@ static void draw_background(ui_scrollbar_t* sb) {
  * Don't call directly draw_xxx functions.
  * Call ui_window_update() instead.
  */
-static void draw_button(ui_scrollbar_t* sb, int upbutton, int downbutton) {
+static void draw_button(ui_scrollbar_t *sb, int upbutton, int downbutton) {
   if (IS_TOO_SMALL(sb)) {
     return;
   }
@@ -168,7 +168,7 @@ static void draw_button(ui_scrollbar_t* sb, int upbutton, int downbutton) {
 /*
  * depends on sb->bar_height.
  */
-static int calculate_bar_top_y(ui_scrollbar_t* sb) {
+static int calculate_bar_top_y(ui_scrollbar_t *sb) {
   if (IS_TOO_SMALL(sb) || MAX_BAR_HEIGHT(sb) == sb->bar_height ||
       abs(sb->current_row) == sb->num_of_filled_log_lines) {
     return 0;
@@ -181,7 +181,7 @@ static int calculate_bar_top_y(ui_scrollbar_t* sb) {
 /*
  * depends on sb->bar_height.
  */
-static int calculate_current_row(ui_scrollbar_t* sb) {
+static int calculate_current_row(ui_scrollbar_t *sb) {
   if (IS_TOO_SMALL(sb) || MAX_BAR_HEIGHT(sb) == sb->bar_height) {
     return 0;
   } else {
@@ -196,7 +196,7 @@ static int calculate_current_row(ui_scrollbar_t* sb) {
   }
 }
 
-static u_int calculate_bar_height(ui_scrollbar_t* sb) {
+static u_int calculate_bar_height(ui_scrollbar_t *sb) {
   if (IS_TOO_SMALL(sb) || sb->num_of_filled_log_lines + sb->num_of_scr_lines == 0) {
     return 0;
   } else {
@@ -214,7 +214,7 @@ static u_int calculate_bar_height(ui_scrollbar_t* sb) {
 }
 
 static int is_updown_button_event(
-    ui_scrollbar_t* sb, int y /* this value must include margin or be y on actual window */
+    ui_scrollbar_t *sb, int y /* this value must include margin or be y on actual window */
     ) {
   int up_button_y;
   int down_button_y;
@@ -256,7 +256,7 @@ static int is_updown_button_event(
  * callbacks of ui_window_t events.
  */
 
-static void trigger_sb_view_realized(ui_scrollbar_t* sb) {
+static void trigger_sb_view_realized(ui_scrollbar_t *sb) {
   if (sb->view->realized) {
     (*sb->view->realized)(sb->view, sb->window.disp->display, sb->window.disp->screen,
                           sb->window.my_window, ui_window_get_fg_gc(&sb->window),
@@ -272,8 +272,8 @@ static void trigger_sb_view_realized(ui_scrollbar_t* sb) {
   ui_window_update(&sb->window, FGCOLOR_CHANGED | BGCOLOR_CHANGED);
 }
 
-static void window_realized(ui_window_t* win) {
-  ui_scrollbar_t* sb;
+static void window_realized(ui_window_t *win) {
+  ui_scrollbar_t *sb;
 
   sb = (ui_scrollbar_t*)win;
 
@@ -288,8 +288,8 @@ static void window_realized(ui_window_t* win) {
   trigger_sb_view_realized(sb);
 }
 
-static void window_resized(ui_window_t* win) {
-  ui_scrollbar_t* sb;
+static void window_resized(ui_window_t *win) {
+  ui_scrollbar_t *sb;
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " scrollbar resized.\n");
@@ -319,8 +319,8 @@ static void window_resized(ui_window_t* win) {
   ui_window_update(&sb->window, UPDATE_SCROLLBAR | UPDATE_BUTTON);
 }
 
-static void window_exposed(ui_window_t* win, int x, int y, u_int width, u_int height) {
-  ui_scrollbar_t* sb;
+static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int height) {
+  ui_scrollbar_t *sb;
 
   sb = (ui_scrollbar_t*)win;
 
@@ -348,8 +348,8 @@ static void window_exposed(ui_window_t* win, int x, int y, u_int width, u_int he
   draw_button(sb, 1, 1);
 }
 
-static void update_window(ui_window_t* win, int flag) {
-  ui_scrollbar_t* sb;
+static void update_window(ui_window_t *win, int flag) {
+  ui_scrollbar_t *sb;
 
   sb = (ui_scrollbar_t*)win;
 
@@ -392,7 +392,7 @@ static void update_window(ui_window_t* win, int flag) {
   }
 }
 
-static void up_button_pressed(ui_scrollbar_t* sb) {
+static void up_button_pressed(ui_scrollbar_t *sb) {
   if (!ui_scrollbar_move_upward(sb, 1)) {
     return;
   }
@@ -403,7 +403,7 @@ static void up_button_pressed(ui_scrollbar_t* sb) {
   }
 }
 
-static void down_button_pressed(ui_scrollbar_t* sb) {
+static void down_button_pressed(ui_scrollbar_t *sb) {
   if (!ui_scrollbar_move_downward(sb, 1)) {
     return;
   }
@@ -414,8 +414,8 @@ static void down_button_pressed(ui_scrollbar_t* sb) {
   }
 }
 
-static void button_pressed(ui_window_t* win, XButtonEvent* event, int click_num) {
-  ui_scrollbar_t* sb;
+static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num) {
+  ui_scrollbar_t *sb;
   int result;
   int y;
 
@@ -458,8 +458,8 @@ static void button_pressed(ui_window_t* win, XButtonEvent* event, int click_num)
   }
 }
 
-static void button_press_continued(ui_window_t* win, XButtonEvent* event) {
-  ui_scrollbar_t* sb;
+static void button_press_continued(ui_window_t *win, XButtonEvent *event) {
+  ui_scrollbar_t *sb;
   int result;
 
   sb = (ui_scrollbar_t*)win;
@@ -473,8 +473,8 @@ static void button_press_continued(ui_window_t* win, XButtonEvent* event) {
   }
 }
 
-static void button_motion(ui_window_t* win, XMotionEvent* event) {
-  ui_scrollbar_t* sb;
+static void button_motion(ui_window_t *win, XMotionEvent *event) {
+  ui_scrollbar_t *sb;
   int new_row;
   int up_to_top_now;
   int y;
@@ -564,8 +564,8 @@ static void button_motion(ui_window_t* win, XMotionEvent* event) {
   ui_window_update(&sb->window, UPDATE_SCROLLBAR);
 }
 
-static void button_released(ui_window_t* win, XButtonEvent* event) {
-  ui_scrollbar_t* sb;
+static void button_released(ui_window_t *win, XButtonEvent *event) {
+  ui_scrollbar_t *sb;
 
   sb = (ui_scrollbar_t*)win;
 
@@ -586,10 +586,10 @@ static void button_released(ui_window_t* win, XButtonEvent* event) {
 
 /* --- global functions --- */
 
-int ui_scrollbar_init(ui_scrollbar_t* sb, ui_scrollbar_event_listener_t* sb_listener,
-                      char* view_name, char* fg_color, char* bg_color, u_int height,
+int ui_scrollbar_init(ui_scrollbar_t *sb, ui_scrollbar_event_listener_t *sb_listener,
+                      char *view_name, char *fg_color, char *bg_color, u_int height,
                       u_int line_height, u_int num_of_log_lines, u_int num_of_filled_log_lines,
-                      int use_transbg, ui_picture_modifier_t* pic_mod) {
+                      int use_transbg, ui_picture_modifier_t *pic_mod) {
   u_int width;
 
   /* dynamically allocated */
@@ -732,7 +732,7 @@ error:
   return 0;
 }
 
-int ui_scrollbar_final(ui_scrollbar_t* sb) {
+int ui_scrollbar_final(ui_scrollbar_t *sb) {
   (*sb->view->delete)(sb->view);
   ui_unload_scrollbar_view_lib(sb->view_name);
 
@@ -745,7 +745,7 @@ int ui_scrollbar_final(ui_scrollbar_t* sb) {
   return 1;
 }
 
-int ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t* sb, u_int num_of_log_lines) {
+int ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines) {
   if (sb->num_of_log_lines == num_of_log_lines) {
     return 1;
   }
@@ -766,7 +766,7 @@ int ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t* sb, u_int num_of_log_lines
   return 1;
 }
 
-int ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t* sb, u_int lines) {
+int ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
   if (lines > sb->num_of_log_lines) {
     lines = sb->num_of_log_lines;
   }
@@ -787,7 +787,7 @@ int ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t* sb, u_int lines) {
   return 1;
 }
 
-int ui_scrollbar_line_is_added(ui_scrollbar_t* sb) {
+int ui_scrollbar_line_is_added(ui_scrollbar_t *sb) {
   int old_bar_top_y;
   u_int old_bar_height;
 
@@ -819,7 +819,7 @@ int ui_scrollbar_line_is_added(ui_scrollbar_t* sb) {
   }
 }
 
-int ui_scrollbar_reset(ui_scrollbar_t* sb) {
+int ui_scrollbar_reset(ui_scrollbar_t *sb) {
   if (sb->is_motion || sb->bar_top_y + sb->bar_height < MAX_BAR_HEIGHT(sb)) {
     set_redraw_area(sb, sb->bar_top_y, sb->bar_height);
 
@@ -833,7 +833,7 @@ int ui_scrollbar_reset(ui_scrollbar_t* sb) {
   return 1;
 }
 
-int ui_scrollbar_move_upward(ui_scrollbar_t* sb, u_int size) {
+int ui_scrollbar_move_upward(ui_scrollbar_t *sb, u_int size) {
 #if 0
   if (sb->bar_top_y == 0)
 #else
@@ -850,7 +850,7 @@ int ui_scrollbar_move_upward(ui_scrollbar_t* sb, u_int size) {
   return ui_scrollbar_move(sb, sb->current_row - size);
 }
 
-int ui_scrollbar_move_downward(ui_scrollbar_t* sb, u_int size) {
+int ui_scrollbar_move_downward(ui_scrollbar_t *sb, u_int size) {
   if (sb->current_row >= 0) {
     return 0;
   }
@@ -858,7 +858,7 @@ int ui_scrollbar_move_downward(ui_scrollbar_t* sb, u_int size) {
   return ui_scrollbar_move(sb, sb->current_row + size);
 }
 
-int ui_scrollbar_move(ui_scrollbar_t* sb, int row) {
+int ui_scrollbar_move(ui_scrollbar_t *sb, int row) {
   if (0 < row) {
     row = 0;
   } else if (row + (int)sb->num_of_filled_log_lines < 0) {
@@ -880,7 +880,7 @@ int ui_scrollbar_move(ui_scrollbar_t* sb, int row) {
   return 1;
 }
 
-int ui_scrollbar_set_line_height(ui_scrollbar_t* sb, u_int line_height) {
+int ui_scrollbar_set_line_height(ui_scrollbar_t *sb, u_int line_height) {
   if (sb->line_height == line_height) {
     return 0;
   }
@@ -896,7 +896,7 @@ int ui_scrollbar_set_line_height(ui_scrollbar_t* sb, u_int line_height) {
   return 1;
 }
 
-int ui_scrollbar_set_fg_color(ui_scrollbar_t* sb, char* fg_color) {
+int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, char *fg_color) {
   free(sb->fg_color);
   ui_unload_xcolor(sb->window.disp, &sb->fg_xcolor);
 
@@ -912,7 +912,7 @@ int ui_scrollbar_set_fg_color(ui_scrollbar_t* sb, char* fg_color) {
   return 1;
 }
 
-int ui_scrollbar_set_bg_color(ui_scrollbar_t* sb, char* bg_color) {
+int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, char *bg_color) {
   free(sb->bg_color);
   ui_unload_xcolor(sb->window.disp, &sb->bg_xcolor);
 
@@ -928,8 +928,8 @@ int ui_scrollbar_set_bg_color(ui_scrollbar_t* sb, char* bg_color) {
   return 1;
 }
 
-int ui_scrollbar_change_view(ui_scrollbar_t* sb, char* name) {
-  ui_sb_view_t* view;
+int ui_scrollbar_change_view(ui_scrollbar_t *sb, char *name) {
+  ui_sb_view_t *view;
   u_int width;
 
   if (strcmp(name, sb->view_name) == 0 || (name = strdup(name)) == NULL) {
@@ -988,8 +988,8 @@ int ui_scrollbar_change_view(ui_scrollbar_t* sb, char* name) {
   return 1;
 }
 
-int ui_scrollbar_set_transparent(ui_scrollbar_t* sb, ui_picture_modifier_t* pic_mod, int force) {
-  ui_sb_view_t* view;
+int ui_scrollbar_set_transparent(ui_scrollbar_t *sb, ui_picture_modifier_t *pic_mod, int force) {
+  ui_sb_view_t *view;
 
   if (!force && sb->window.is_transparent) {
     /* already set */
@@ -1023,8 +1023,8 @@ int ui_scrollbar_set_transparent(ui_scrollbar_t* sb, ui_picture_modifier_t* pic_
   return 1;
 }
 
-int ui_scrollbar_unset_transparent(ui_scrollbar_t* sb) {
-  ui_sb_view_t* view;
+int ui_scrollbar_unset_transparent(ui_scrollbar_t *sb) {
+  ui_sb_view_t *view;
 
   if (!sb->window.is_transparent) {
     /* already unset */

@@ -14,10 +14,10 @@
 
 /* --- static functions --- */
 
-static void get_geometry_hints(ui_sb_view_t* view, unsigned int* width, unsigned int* top_margin,
-                               unsigned int* bottom_margin, int* up_button_y,
-                               unsigned int* up_button_height, int* down_button_y,
-                               unsigned int* down_button_height) {
+static void get_geometry_hints(ui_sb_view_t *view, unsigned int *width, unsigned int *top_margin,
+                               unsigned int *bottom_margin, int *up_button_y,
+                               unsigned int *up_button_height, int *down_button_y,
+                               unsigned int *down_button_height) {
   *width = WIDTH;
   *top_margin = TOP_MARGIN;
   *bottom_margin = BOTTOM_MARGIN;
@@ -27,14 +27,14 @@ static void get_geometry_hints(ui_sb_view_t* view, unsigned int* width, unsigned
   *down_button_height = BOTTOM_MARGIN / 2;
 }
 
-static void get_default_color(ui_sb_view_t* view, char** fg_color, char** bg_color) {
+static void get_default_color(ui_sb_view_t *view, char **fg_color, char **bg_color) {
   *fg_color = "gray";
   *bg_color = "lightgray";
 }
 
-static void realized(ui_sb_view_t* view, Display* display, int screen, Window window, GC gc,
+static void realized(ui_sb_view_t *view, Display *display, int screen, Window window, GC gc,
                      unsigned int height) {
-  sample_sb_view_t* sample;
+  sample_sb_view_t *sample;
   XGCValues gc_value;
   XWindowAttributes attr;
   XColor black = {
@@ -75,13 +75,13 @@ static void realized(ui_sb_view_t* view, Display* display, int screen, Window wi
                          attr.depth, black.pixel, white.pixel);
 }
 
-static void resized(ui_sb_view_t* view, Window window, unsigned int height) {
+static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   view->window = window;
   view->height = height;
 }
 
-static void delete (ui_sb_view_t* view) {
-  sample_sb_view_t* sample;
+static void delete (ui_sb_view_t *view) {
+  sample_sb_view_t *sample;
 
   sample = (sample_sb_view_t*)view;
 
@@ -97,12 +97,12 @@ static void delete (ui_sb_view_t* view) {
   }
 }
 
-static void draw_arrow_up_icon(ui_sb_view_t* view, int is_dent) {
-  sample_sb_view_t* sample;
+static void draw_arrow_up_icon(ui_sb_view_t *view, int is_dent) {
+  sample_sb_view_t *sample;
   Pixmap arrow;
   int x;
   int y;
-  char** src;
+  char **src;
 
   sample = (sample_sb_view_t*)view;
 
@@ -130,12 +130,12 @@ static void draw_arrow_up_icon(ui_sb_view_t* view, int is_dent) {
             view->height - BOTTOM_MARGIN);
 }
 
-static void draw_arrow_down_icon(ui_sb_view_t* view, int is_dent) {
-  sample_sb_view_t* sample;
+static void draw_arrow_down_icon(ui_sb_view_t *view, int is_dent) {
+  sample_sb_view_t *sample;
   Pixmap arrow;
   int x;
   int y;
-  char** src;
+  char **src;
 
   sample = (sample_sb_view_t*)view;
 
@@ -163,8 +163,8 @@ static void draw_arrow_down_icon(ui_sb_view_t* view, int is_dent) {
             view->height - BOTTOM_MARGIN / 2);
 }
 
-static void draw_scrollbar(ui_sb_view_t* view, int bar_top_y, unsigned int bar_height) {
-  sample_sb_view_t* sample;
+static void draw_scrollbar(ui_sb_view_t *view, int bar_top_y, unsigned int bar_height) {
+  sample_sb_view_t *sample;
 
   sample = (sample_sb_view_t*)view;
 
@@ -189,18 +189,18 @@ static void draw_scrollbar(ui_sb_view_t* view, int bar_top_y, unsigned int bar_h
             bar_top_y + bar_height - 1);
 }
 
-static void draw_up_button(ui_sb_view_t* view, int is_pressed) {
+static void draw_up_button(ui_sb_view_t *view, int is_pressed) {
   draw_arrow_up_icon(view, is_pressed);
 }
 
-static void draw_down_button(ui_sb_view_t* view, int is_pressed) {
+static void draw_down_button(ui_sb_view_t *view, int is_pressed) {
   draw_arrow_down_icon(view, is_pressed);
 }
 
 /* --- global functions --- */
 
-ui_sb_view_t* ui_sample_transparent_sb_view_new(void) {
-  sample_sb_view_t* sample;
+ui_sb_view_t *ui_sample_transparent_sb_view_new(void) {
+  sample_sb_view_t *sample;
 
   if ((sample = calloc(1, sizeof(sample_sb_view_t))) == NULL) {
     return NULL;

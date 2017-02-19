@@ -35,8 +35,8 @@ static void help(void) {
 
 /* --- global functions --- */
 
-int main(int argc, char** argv) {
-  u_char* cardinal;
+int main(int argc, char **argv) {
+  u_char *cardinal;
   ssize_t size;
   u_int width;
   u_int height;
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
   }
 
   if (strstr(argv[4], ".rgs")) {
-    char* new_path;
+    char *new_path;
 
     new_path = bl_str_alloca_dup(argv[4]);
     if (convert_regis_to_bmp(new_path)) {

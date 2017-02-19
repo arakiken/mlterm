@@ -10,7 +10,7 @@
 
 /* --- global functions --- */
 
-int vt_line_set_use_iscii(vt_line_t* line, int flag) {
+int vt_line_set_use_iscii(vt_line_t *line, int flag) {
   if (flag) {
     if (vt_line_is_using_iscii(line)) {
       return 1;
@@ -34,7 +34,7 @@ int vt_line_set_use_iscii(vt_line_t* line, int flag) {
 }
 
 /* The caller should check vt_line_is_using_iscii() in advance. */
-int vt_line_iscii_render(vt_line_t* line /* is always visual */
+int vt_line_iscii_render(vt_line_t *line /* is always visual */
                          ) {
   int ret;
   int visual_mod_beg;
@@ -81,10 +81,10 @@ int vt_line_iscii_render(vt_line_t* line /* is always visual */
 }
 
 /* The caller should check vt_line_is_using_iscii() in advance. */
-int vt_line_iscii_visual(vt_line_t* line) {
-  vt_char_t* src;
+int vt_line_iscii_visual(vt_line_t *line) {
+  vt_char_t *src;
   u_int src_len;
-  vt_char_t* dst;
+  vt_char_t *dst;
   u_int dst_len;
   int dst_pos;
   int src_pos;
@@ -106,7 +106,7 @@ int vt_line_iscii_visual(vt_line_t* line) {
 
   dst_len = line->ctl_info.iscii->size;
   if (line->num_of_chars < dst_len) {
-    vt_char_t* chars;
+    vt_char_t *chars;
 
     if ((chars = vt_str_new(dst_len))) {
       /* XXX => shrunk at vt_screen.c and vt_logical_visual_ctl.c */
@@ -132,7 +132,7 @@ int vt_line_iscii_visual(vt_line_t* line) {
       vt_char_copy(dst + dst_pos, src + (src_pos++));
 
       for (count = 1; count < line->ctl_info.iscii->num_of_chars_array[dst_pos]; count++) {
-        vt_char_t* comb;
+        vt_char_t *comb;
         u_int num;
 
 #ifdef DEBUG
@@ -169,10 +169,10 @@ int vt_line_iscii_visual(vt_line_t* line) {
 }
 
 /* The caller should check vt_line_is_using_iscii() in advance. */
-int vt_line_iscii_logical(vt_line_t* line) {
-  vt_char_t* src;
+int vt_line_iscii_logical(vt_line_t *line) {
+  vt_char_t *src;
   u_int src_len;
-  vt_char_t* dst;
+  vt_char_t *dst;
   int src_pos;
 
   if (line->ctl_info.iscii->size == 0 || !line->ctl_info.iscii->has_iscii) {
@@ -192,7 +192,7 @@ int vt_line_iscii_logical(vt_line_t* line) {
   dst = line->chars;
 
   for (src_pos = 0; src_pos < line->ctl_info.iscii->size; src_pos++) {
-    vt_char_t* comb;
+    vt_char_t *comb;
     u_int num;
 
     if (line->ctl_info.iscii->num_of_chars_array[src_pos] == 0) {
@@ -223,7 +223,7 @@ int vt_line_iscii_logical(vt_line_t* line) {
 }
 
 /* The caller should check vt_line_is_using_iscii() in advance. */
-int vt_line_iscii_convert_logical_char_index_to_visual(vt_line_t* line, int logical_char_index) {
+int vt_line_iscii_convert_logical_char_index_to_visual(vt_line_t *line, int logical_char_index) {
   int visual_char_index;
 
   if (vt_line_is_empty(line)) {
@@ -247,6 +247,6 @@ int vt_line_iscii_convert_logical_char_index_to_visual(vt_line_t* line, int logi
   return visual_char_index;
 }
 
-int vt_line_iscii_need_shape(vt_line_t* line) {
+int vt_line_iscii_need_shape(vt_line_t *line) {
   return line->ctl_info.iscii->size > 0 && line->ctl_info.iscii->has_iscii;
 }

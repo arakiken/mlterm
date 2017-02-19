@@ -11,7 +11,7 @@
 
 /* --- global functions --- */
 
-int ef_map_jisx0208_1983_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
+int ef_map_jisx0208_1983_to_ucs4(ef_char_t *ucs4, u_int16_t jis) {
   u_int32_t c;
 
   if ((c = CONV_JISX0208_1983_TO_UCS4(jis))) {
@@ -26,7 +26,7 @@ int ef_map_jisx0208_1983_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
   return 0;
 }
 
-int ef_map_jisx0208_nec_ext_to_ucs4(ef_char_t* ucs4, u_int16_t nec_ext) {
+int ef_map_jisx0208_nec_ext_to_ucs4(ef_char_t *ucs4, u_int16_t nec_ext) {
   u_int32_t c;
 
   if ((c = CONV_JISX0208_NEC_EXT_TO_UCS4(nec_ext))) {
@@ -41,7 +41,7 @@ int ef_map_jisx0208_nec_ext_to_ucs4(ef_char_t* ucs4, u_int16_t nec_ext) {
   return 0;
 }
 
-int ef_map_jisx0208_necibm_ext_to_ucs4(ef_char_t* ucs4, u_int16_t necibm_ext) {
+int ef_map_jisx0208_necibm_ext_to_ucs4(ef_char_t *ucs4, u_int16_t necibm_ext) {
   u_int32_t c;
 
   if ((c = CONV_JISX0208_NECIBM_EXT_TO_UCS4(necibm_ext))) {
@@ -56,7 +56,7 @@ int ef_map_jisx0208_necibm_ext_to_ucs4(ef_char_t* ucs4, u_int16_t necibm_ext) {
   return 0;
 }
 
-int ef_map_sjis_ibm_ext_to_ucs4(ef_char_t* ucs4, u_int16_t ibm_ext) {
+int ef_map_sjis_ibm_ext_to_ucs4(ef_char_t *ucs4, u_int16_t ibm_ext) {
   u_int32_t c;
 
   if ((c = CONV_SJIS_IBM_EXT_TO_UCS4(ibm_ext))) {
@@ -71,7 +71,7 @@ int ef_map_sjis_ibm_ext_to_ucs4(ef_char_t* ucs4, u_int16_t ibm_ext) {
   return 0;
 }
 
-int ef_map_ucs4_to_jisx0208_1983(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_jisx0208_1983(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int16_t c;
 
   if ((c = CONV_UCS4_TO_JISX0208_1983(ucs4_code))) {
@@ -86,7 +86,7 @@ int ef_map_ucs4_to_jisx0208_1983(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_jisx0208_nec_ext(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_jisx0208_nec_ext(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int16_t offset;
 
   for (offset = 0; offset <= jisx0208_nec_ext_to_ucs4_end - jisx0208_nec_ext_to_ucs4_beg;
@@ -104,7 +104,7 @@ int ef_map_ucs4_to_jisx0208_nec_ext(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_jisx0208_necibm_ext(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_jisx0208_necibm_ext(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int16_t offset;
 
   for (offset = 0; offset <= jisx0208_necibm_ext_to_ucs4_end - jisx0208_necibm_ext_to_ucs4_beg;
@@ -122,7 +122,7 @@ int ef_map_ucs4_to_jisx0208_necibm_ext(ef_char_t* non_ucs, u_int32_t ucs4_code) 
   return 0;
 }
 
-int ef_map_ucs4_to_sjis_ibm_ext(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_sjis_ibm_ext(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int16_t offset;
 
   for (offset = 0; offset <= sjis_ibm_ext_to_ucs4_end - sjis_ibm_ext_to_ucs4_beg; offset++) {

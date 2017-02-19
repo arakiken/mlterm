@@ -21,14 +21,14 @@
  */
 
 typedef struct key_func_table {
-  char* name;
+  char *name;
   ui_key_func_t func;
 
 } key_func_table_t;
 
 /* --- static variables --- */
 
-static char* key_file = "mlterm/key";
+static char *key_file = "mlterm/key";
 
 /*
  * Button*Mask is disabled until Button* is specified in ~/.mlterm/key to avoid
@@ -106,10 +106,10 @@ static key_func_table_t key_func_table[] = {
 
 /* --- static functions --- */
 
-static int read_conf(ui_shortcut_t* shortcut, char* filename) {
-  bl_file_t* from;
-  char* key;
-  char* value;
+static int read_conf(ui_shortcut_t *shortcut, char *filename) {
+  bl_file_t *from;
+  char *key;
+  char *value;
 
   if (!(from = bl_file_open(filename, "r"))) {
 #ifdef DEBUG
@@ -152,8 +152,8 @@ static int read_conf(ui_shortcut_t* shortcut, char* filename) {
 
 /* --- global functions --- */
 
-int ui_shortcut_init(ui_shortcut_t* shortcut) {
-  char* rcpath;
+int ui_shortcut_init(ui_shortcut_t *shortcut) {
+  char *rcpath;
 
   ui_key_t default_key_map[] = {
       /* IM_HOTKEY */
@@ -319,7 +319,7 @@ int ui_shortcut_init(ui_shortcut_t* shortcut) {
   return 1;
 }
 
-int ui_shortcut_final(ui_shortcut_t* shortcut) {
+int ui_shortcut_final(ui_shortcut_t *shortcut) {
   u_int count;
 
   for (count = 0; count < shortcut->str_map_size; count++) {
@@ -331,7 +331,7 @@ int ui_shortcut_final(ui_shortcut_t* shortcut) {
   return 1;
 }
 
-int ui_shortcut_match(ui_shortcut_t* shortcut, ui_key_func_t func, KeySym ksym, u_int state) {
+int ui_shortcut_match(ui_shortcut_t *shortcut, ui_key_func_t func, KeySym ksym, u_int state) {
   if (shortcut->map[func].is_used == 0) {
     return 0;
   }
@@ -353,7 +353,7 @@ int ui_shortcut_match(ui_shortcut_t* shortcut, ui_key_func_t func, KeySym ksym, 
   }
 }
 
-char* ui_shortcut_str(ui_shortcut_t* shortcut, KeySym ksym, u_int state) {
+char *ui_shortcut_str(ui_shortcut_t *shortcut, KeySym ksym, u_int state) {
   u_int count;
 
   /* ingoring except these masks */
@@ -376,8 +376,8 @@ char* ui_shortcut_str(ui_shortcut_t* shortcut, KeySym ksym, u_int state) {
   return NULL;
 }
 
-int ui_shortcut_parse(ui_shortcut_t* shortcut, char* key, char* oper) {
-  char* p;
+int ui_shortcut_parse(ui_shortcut_t *shortcut, char *key, char *oper) {
+  char *p;
   KeySym ksym;
   u_int state;
   int count;
@@ -443,7 +443,7 @@ int ui_shortcut_parse(ui_shortcut_t* shortcut, char* key, char* oper) {
   }
 
   for (count = 0; count < sizeof(key_func_table) / sizeof(key_func_table_t); count++) {
-    ui_key_t* map_entry;
+    ui_key_t *map_entry;
 
     map_entry = shortcut->map + key_func_table[count].func;
     if (map_entry->ksym == ksym && map_entry->state == state) {
@@ -461,9 +461,9 @@ int ui_shortcut_parse(ui_shortcut_t* shortcut, char* key, char* oper) {
   }
 
   if (*oper == '"') {
-    char* str;
-    char* p;
-    ui_str_key_t* str_map;
+    char *str;
+    char *p;
+    ui_str_key_t *str_map;
 
     if (!(str = bl_str_unescape(++oper)) || !(p = strrchr(str, '\"')) ||
         !(str_map =

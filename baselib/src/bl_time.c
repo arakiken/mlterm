@@ -17,15 +17,15 @@
 
 /* --- static variables --- */
 
-static char* abbrev_wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+static char *abbrev_wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
-static char* wdays[] = {"Sunday",   "Monday", "Tuesday", "Wednesday",
+static char *wdays[] = {"Sunday",   "Monday", "Tuesday", "Wednesday",
                         "Thursday", "Friday", "Saturday"};
 
-static char* abbrev_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+static char *abbrev_months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-static char* months[] = {"January", "Febrary", "March",     "April",   "May",      "June",
+static char *months[] = {"January", "Febrary", "March",     "April",   "May",      "June",
                          "July",    "August",  "September", "October", "November", "December"};
 
 /* --- static functions --- */
@@ -34,9 +34,9 @@ static char* months[] = {"January", "Febrary", "March",     "April",   "May",   
  * XXX
  * this should be placed in bl_str.
  */
-static int strntoi(const char* str, size_t size) {
+static int strntoi(const char *str, size_t size) {
   int i = 0;
-  char* format = NULL;
+  char *format = NULL;
 
   /*
    * size should be 4 digits , or 0 - 999
@@ -79,11 +79,11 @@ static int strntoi(const char* str, size_t size) {
  * extended in some points e.g.) the num of length can be inserted between '%'
  * and a format character.
  */
-time_t bl_time_string_date_to_time_t(const char* format, const char* date) {
+time_t bl_time_string_date_to_time_t(const char *format, const char *date) {
   struct tm tm_info;
-  char* date_dup = NULL;
-  char* date_p = NULL;
-  const char* format_p = NULL;
+  char *date_dup = NULL;
+  char *date_p = NULL;
+  const char *format_p = NULL;
 
   if ((date_dup = alloca(strlen(date) + 1)) == NULL) {
     return -1;
@@ -225,7 +225,7 @@ time_t bl_time_string_date_to_time_t(const char* format, const char* date) {
   }
 }
 
-struct tm* bl_time_string_date_to_tm(struct tm* tm_info, const char* format, const char* date) {
+struct tm *bl_time_string_date_to_tm(struct tm *tm_info, const char *format, const char *date) {
   time_t time = 0;
 
   if ((time = bl_time_string_date_to_time_t(format, date)) == -1) {
@@ -243,7 +243,7 @@ struct tm* bl_time_string_date_to_tm(struct tm* tm_info, const char* format, con
  *"ÆüÍË"
  * will not be parsed.
  */
-int bl_time_string_wday_to_int(const char* wday) {
+int bl_time_string_wday_to_int(const char *wday) {
   int count = 0;
 
   for (count = 0; count < 7; count++) {
@@ -258,7 +258,7 @@ int bl_time_string_wday_to_int(const char* wday) {
 /*
  * 0 -> "Sun"
  */
-char* bl_time_int_wday_to_abbrev_string(int wday) {
+char *bl_time_int_wday_to_abbrev_string(int wday) {
   if (0 <= wday && wday < 6) {
     return abbrev_wdays[wday];
   } else {
@@ -269,7 +269,7 @@ char* bl_time_int_wday_to_abbrev_string(int wday) {
 /*
  * 0 -> "Sunday"
  */
-char* bl_time_int_wday_to_string(int wday) {
+char *bl_time_int_wday_to_string(int wday) {
   if (0 <= wday && wday < 6) {
     return wdays[wday];
   } else {
@@ -280,7 +280,7 @@ char* bl_time_int_wday_to_string(int wday) {
 /*
  * "Jan","January" -> 0
  */
-int bl_time_string_month_to_int(const char* month) {
+int bl_time_string_month_to_int(const char *month) {
   int count = 0;
 
   for (count = 0; count < 12; count++) {
@@ -295,7 +295,7 @@ int bl_time_string_month_to_int(const char* month) {
 /*
  * 0 -> "January"
  */
-char* bl_time_int_month_to_string(int month) {
+char *bl_time_int_month_to_string(int month) {
   if (0 <= month && month < 6) {
     return months[month];
   } else {
@@ -306,7 +306,7 @@ char* bl_time_int_month_to_string(int month) {
 /*
  * 0 -> "Jan"
  */
-char* bl_time_int_month_to_abbrev_string(int month) {
+char *bl_time_int_month_to_abbrev_string(int month) {
   if (0 <= month && month < 6) {
     return abbrev_months[month];
   } else {

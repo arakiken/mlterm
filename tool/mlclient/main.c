@@ -15,7 +15,7 @@
 
 /* --- static variables --- */
 
-static char* na_options[] = {
+static char *na_options[] = {
     "-@/--screens", "-R/--fsrange", "-Y/--decsp", "-c/--cp932", "-i/--xim", "-j/--daemon",
     "   --depth", "   --maxptys", "   --keepalive", "   --metaprefix", "   --deffont",
 };
@@ -51,9 +51,9 @@ static void help(int is_mlclientx) {
   }
 }
 
-static int set_daemon_socket_path(struct sockaddr_un* addr) {
+static int set_daemon_socket_path(struct sockaddr_un *addr) {
   const char subdir[] = "/.config/mlterm";
-  const char* dir;
+  const char *dir;
   size_t len;
   struct stat st;
 
@@ -79,8 +79,8 @@ static int set_daemon_socket_path(struct sockaddr_un* addr) {
   return 1;
 }
 
-static int write_argv(int argc, char** argv, int fd) {
-  char* p;
+static int write_argv(int argc, char **argv, int fd) {
+  char *p;
   int count;
 
   /* Extract program name. */
@@ -128,9 +128,9 @@ static int write_argv(int argc, char** argv, int fd) {
 
 /* --- global functions --- */
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   int count;
-  char* p;
+  char *p;
 
   for (count = 1; count < argc; count++) {
     p = argv[count];

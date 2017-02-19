@@ -28,8 +28,8 @@ typedef enum ui_type_id {
   (((TYPE_API_VERSION & 0x0f) << 28) | ((sizeof(ui_font_t) & 0xff) << 20) | \
    ((sizeof(ui_window_t) & 0xff) << 12))
 
-void* ui_load_type_xft_func(ui_type_id_t id);
+void *ui_load_type_xft_func(ui_type_id_t id);
 
-void* ui_load_type_cairo_func(ui_type_id_t id);
+void *ui_load_type_cairo_func(ui_type_id_t id);
 
 #endif

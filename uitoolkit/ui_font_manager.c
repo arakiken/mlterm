@@ -82,14 +82,14 @@ static u_int max_font_size = 30;
 
 /* --- static functions --- */
 
-static int change_font_cache(ui_font_manager_t* font_man, ui_font_cache_t* font_cache) {
+static int change_font_cache(ui_font_manager_t *font_man, ui_font_cache_t *font_cache) {
   ui_release_font_cache(font_man->font_cache);
   font_man->font_cache = font_cache;
 
   return 1;
 }
 
-static void adjust_font_size(u_int* font_size) {
+static void adjust_font_size(u_int *font_size) {
   if (*font_size > max_font_size) {
     bl_msg_printf("font size %d is too large. %d is used.\n", *font_size, max_font_size);
 
@@ -127,12 +127,12 @@ int ui_set_font_size_range(u_int min_fsize, u_int max_fsize) {
   return 1;
 }
 
-ui_font_manager_t* ui_font_manager_new(Display* display, ui_type_engine_t type_engine,
+ui_font_manager_t *ui_font_manager_new(Display *display, ui_type_engine_t type_engine,
                                        ui_font_present_t font_present, u_int font_size,
                                        ef_charset_t usascii_font_cs, int use_multi_col_char,
                                        u_int step_in_changing_font_size, u_int letter_space,
                                        int use_bold_font, int use_italic_font) {
-  ui_font_manager_t* font_man;
+  ui_font_manager_t *font_man;
 
   if (!(font_man = malloc(sizeof(ui_font_manager_t)))) {
 #ifdef DEBUG
@@ -197,7 +197,7 @@ ui_font_manager_t* ui_font_manager_new(Display* display, ui_type_engine_t type_e
   return font_man;
 }
 
-int ui_font_manager_delete(ui_font_manager_t* font_man) {
+int ui_font_manager_delete(ui_font_manager_t *font_man) {
   ui_release_font_cache(font_man->font_cache);
 
   ui_release_font_config(font_man->font_config);
@@ -208,15 +208,15 @@ int ui_font_manager_delete(ui_font_manager_t* font_man) {
   return 1;
 }
 
-void ui_font_manager_set_attr(ui_font_manager_t* font_man, int size_attr, int use_ot_layout) {
+void ui_font_manager_set_attr(ui_font_manager_t *font_man, int size_attr, int use_ot_layout) {
   font_man->size_attr = size_attr;
 #ifdef USE_OT_LAYOUT
   font_man->use_ot_layout = use_ot_layout;
 #endif
 }
 
-ui_font_t* ui_get_font(ui_font_manager_t* font_man, vt_font_t font) {
-  ui_font_t* xfont;
+ui_font_t *ui_get_font(ui_font_manager_t *font_man, vt_font_t font) {
+  ui_font_t *xfont;
 
   if (!font_man->use_bold_font) {
     font &= ~FONT_BOLD;
@@ -242,9 +242,9 @@ ui_font_t* ui_get_font(ui_font_manager_t* font_man, vt_font_t font) {
   return xfont;
 }
 
-int ui_font_manager_usascii_font_cs_changed(ui_font_manager_t* font_man,
+int ui_font_manager_usascii_font_cs_changed(ui_font_manager_t *font_man,
                                             ef_charset_t usascii_font_cs) {
-  ui_font_cache_t* font_cache;
+  ui_font_cache_t *font_cache;
 
   if (usascii_font_cs == font_man->font_cache->usascii_font_cs) {
     return 0;
@@ -266,10 +266,10 @@ int ui_font_manager_usascii_font_cs_changed(ui_font_manager_t* font_man,
  * Return 1 if font present is successfully changed.
  * Return 0 if not changed.
  */
-int ui_change_font_present(ui_font_manager_t* font_man, ui_type_engine_t type_engine,
+int ui_change_font_present(ui_font_manager_t *font_man, ui_type_engine_t type_engine,
                            ui_font_present_t font_present) {
-  ui_font_config_t* font_config;
-  ui_font_cache_t* font_cache;
+  ui_font_config_t *font_config;
+  ui_font_cache_t *font_cache;
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
   /*
@@ -316,16 +316,16 @@ int ui_change_font_present(ui_font_manager_t* font_man, ui_type_engine_t type_en
   return 1;
 }
 
-ui_type_engine_t ui_get_type_engine(ui_font_manager_t* font_man) {
+ui_type_engine_t ui_get_type_engine(ui_font_manager_t *font_man) {
   return font_man->font_config->type_engine;
 }
 
-ui_font_present_t ui_get_font_present(ui_font_manager_t* font_man) {
+ui_font_present_t ui_get_font_present(ui_font_manager_t *font_man) {
   return font_man->font_config->font_present;
 }
 
-int ui_change_font_size(ui_font_manager_t* font_man, u_int font_size) {
-  ui_font_cache_t* font_cache;
+int ui_change_font_size(ui_font_manager_t *font_man, u_int font_size) {
+  ui_font_cache_t *font_cache;
 
   adjust_font_size(&font_size);
 
@@ -351,9 +351,9 @@ int ui_change_font_size(ui_font_manager_t* font_man, u_int font_size) {
   return 1;
 }
 
-int ui_larger_font(ui_font_manager_t* font_man) {
+int ui_larger_font(ui_font_manager_t *font_man) {
   u_int font_size;
-  ui_font_cache_t* font_cache;
+  ui_font_cache_t *font_cache;
 
   if (font_man->font_cache->font_size + font_man->step_in_changing_font_size > max_font_size) {
     font_size = min_font_size;
@@ -373,9 +373,9 @@ int ui_larger_font(ui_font_manager_t* font_man) {
   return 1;
 }
 
-int ui_smaller_font(ui_font_manager_t* font_man) {
+int ui_smaller_font(ui_font_manager_t *font_man) {
   u_int font_size;
-  ui_font_cache_t* font_cache;
+  ui_font_cache_t *font_cache;
 
   if (font_man->font_cache->font_size < min_font_size + font_man->step_in_changing_font_size) {
     font_size = max_font_size;
@@ -395,10 +395,10 @@ int ui_smaller_font(ui_font_manager_t* font_man) {
   return 1;
 }
 
-u_int ui_get_font_size(ui_font_manager_t* font_man) { return font_man->font_cache->font_size; }
+u_int ui_get_font_size(ui_font_manager_t *font_man) { return font_man->font_cache->font_size; }
 
-int ui_set_use_multi_col_char(ui_font_manager_t* font_man, int flag) {
-  ui_font_cache_t* font_cache;
+int ui_set_use_multi_col_char(ui_font_manager_t *font_man, int flag) {
+  ui_font_cache_t *font_cache;
 
   if (font_man->font_cache->use_multi_col_char == flag) {
     return 0;
@@ -416,8 +416,8 @@ int ui_set_use_multi_col_char(ui_font_manager_t* font_man, int flag) {
   return 1;
 }
 
-int ui_set_letter_space(ui_font_manager_t* font_man, u_int letter_space) {
-  ui_font_cache_t* font_cache;
+int ui_set_letter_space(ui_font_manager_t *font_man, u_int letter_space) {
+  ui_font_cache_t *font_cache;
 
   if (font_man->font_cache->letter_space == letter_space) {
     return 0;
@@ -435,7 +435,7 @@ int ui_set_letter_space(ui_font_manager_t* font_man, u_int letter_space) {
   return 1;
 }
 
-int ui_set_use_bold_font(ui_font_manager_t* font_man, int use_bold_font) {
+int ui_set_use_bold_font(ui_font_manager_t *font_man, int use_bold_font) {
   if (font_man->use_bold_font == use_bold_font) {
     return 0;
   }
@@ -445,7 +445,7 @@ int ui_set_use_bold_font(ui_font_manager_t* font_man, int use_bold_font) {
   return 1;
 }
 
-int ui_set_use_italic_font(ui_font_manager_t* font_man, int use_italic_font) {
+int ui_set_use_italic_font(ui_font_manager_t *font_man, int use_italic_font) {
   if (font_man->use_italic_font == use_italic_font) {
     return 0;
   }

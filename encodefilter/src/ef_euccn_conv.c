@@ -20,7 +20,7 @@ typedef enum euccn_encoding {
 
 /* --- static functions --- */
 
-static void remap_unsupported_charset(ef_char_t* ch, enccn_encoding_t encoding) {
+static void remap_unsupported_charset(ef_char_t *ch, enccn_encoding_t encoding) {
   ef_char_t c;
 
   if (ch->cs == ISO10646_UCS4_1) {
@@ -44,8 +44,8 @@ static void remap_unsupported_charset(ef_char_t* ch, enccn_encoding_t encoding) 
   }
 }
 
-static size_t convert_to_euccn_intern(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                      ef_parser_t* parser, enccn_encoding_t encoding) {
+static size_t convert_to_euccn_intern(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                      ef_parser_t *parser, enccn_encoding_t encoding) {
   size_t filled_size;
   ef_char_t ch;
 
@@ -123,22 +123,22 @@ static size_t convert_to_euccn_intern(ef_conv_t* conv, u_char* dst, size_t dst_s
   return filled_size;
 }
 
-static size_t convert_to_euccn(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
+static size_t convert_to_euccn(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
   return convert_to_euccn_intern(conv, dst, dst_size, parser, EUCCN_NORMAL);
 }
 
-static size_t convert_to_gbk(ef_conv_t* conv, u_char* dst, size_t dst_size, ef_parser_t* parser) {
+static size_t convert_to_gbk(ef_conv_t *conv, u_char *dst, size_t dst_size, ef_parser_t *parser) {
   return convert_to_euccn_intern(conv, dst, dst_size, parser, EUCCN_GBK);
 }
 
-static size_t convert_to_gb18030_2000(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                      ef_parser_t* parser) {
+static size_t convert_to_gb18030_2000(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                      ef_parser_t *parser) {
   return convert_to_euccn_intern(conv, dst, dst_size, parser, EUCCN_GB18030_2000);
 }
 
-static void euccn_conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void euccn_conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -150,14 +150,14 @@ static void euccn_conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = UNKNOWN_CS;
 }
 
-static void conv_init(ef_conv_t* conv) {}
+static void conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_euccn_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_euccn_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;
@@ -173,8 +173,8 @@ ef_conv_t* ef_euccn_conv_new(void) {
   return (ef_conv_t*)iso2022_conv;
 }
 
-ef_conv_t* ef_gbk_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_gbk_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -188,8 +188,8 @@ ef_conv_t* ef_gbk_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_gb18030_2000_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_gb18030_2000_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;

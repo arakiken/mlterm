@@ -11,10 +11,10 @@
 /*
  * src and dst may overlap
  */
-static int copy_lines(vt_edit_t* edit, int dst_row, int src_row, u_int size, int mark_changed) {
+static int copy_lines(vt_edit_t *edit, int dst_row, int src_row, u_int size, int mark_changed) {
   int count;
-  vt_line_t* src_line;
-  vt_line_t* dst_line;
+  vt_line_t *src_line;
+  vt_line_t *dst_line;
 
   if (size == 0 || dst_row == src_row) {
     return 1;
@@ -71,7 +71,7 @@ static int copy_lines(vt_edit_t* edit, int dst_row, int src_row, u_int size, int
   return 1;
 }
 
-static int clear_lines_to_eol(vt_edit_t* edit, int beg_row, u_int size) {
+static int clear_lines_to_eol(vt_edit_t *edit, int beg_row, u_int size) {
   int count;
 
   vt_edit_clear_lines(edit, beg_row, size);
@@ -83,7 +83,7 @@ static int clear_lines_to_eol(vt_edit_t* edit, int beg_row, u_int size) {
   return 1;
 }
 
-static int scroll_upward_region(vt_edit_t* edit, int boundary_beg, int boundary_end, u_int size) {
+static int scroll_upward_region(vt_edit_t *edit, int boundary_beg, int boundary_end, u_int size) {
   int count;
   int window_is_scrolled;
 
@@ -180,7 +180,7 @@ static int scroll_upward_region(vt_edit_t* edit, int boundary_beg, int boundary_
   return 1;
 }
 
-static int scroll_downward_region(vt_edit_t* edit, int boundary_beg, int boundary_end, u_int size) {
+static int scroll_downward_region(vt_edit_t *edit, int boundary_beg, int boundary_end, u_int size) {
   int window_is_scrolled;
 
   if (boundary_beg + size > boundary_end) {
@@ -249,7 +249,7 @@ static int scroll_downward_region(vt_edit_t* edit, int boundary_beg, int boundar
 
 /* --- global functions --- */
 
-int vt_edsl_scroll_upward(vt_edit_t* edit, u_int size) {
+int vt_edsl_scroll_upward(vt_edit_t *edit, u_int size) {
 #if 0
   /*
    * XXX
@@ -263,7 +263,7 @@ int vt_edsl_scroll_upward(vt_edit_t* edit, u_int size) {
   return scroll_upward_region(edit, edit->vmargin_beg, edit->vmargin_end, size);
 }
 
-int vt_edsl_scroll_downward(vt_edit_t* edit, u_int size) {
+int vt_edsl_scroll_downward(vt_edit_t *edit, u_int size) {
 #if 0
   /*
    * XXX
@@ -282,20 +282,20 @@ int vt_edsl_scroll_downward(vt_edit_t* edit, u_int size) {
  * not used for now.
  */
 #if 0
-int vt_edsl_scroll_upward_in_all(vt_edit_t* edit, u_int size) {
+int vt_edsl_scroll_upward_in_all(vt_edit_t *edit, u_int size) {
   return scroll_upward_region(edit, 0, edit->model.num_of_rows - 1, size);
 }
 
-int vt_edsl_scroll_downward_in_all(vt_edit_t* edit, u_int size) {
+int vt_edsl_scroll_downward_in_all(vt_edit_t *edit, u_int size) {
   return scroll_downward_region(edit, 0, edit->model.num_of_rows - 1, size);
 }
 #endif
 
-int vt_is_scroll_upperlimit(vt_edit_t* edit, int row) { return (row == edit->vmargin_beg); }
+int vt_is_scroll_upperlimit(vt_edit_t *edit, int row) { return (row == edit->vmargin_beg); }
 
-int vt_is_scroll_lowerlimit(vt_edit_t* edit, int row) { return (row == edit->vmargin_end); }
+int vt_is_scroll_lowerlimit(vt_edit_t *edit, int row) { return (row == edit->vmargin_end); }
 
-int vt_edsl_insert_new_line(vt_edit_t* edit) {
+int vt_edsl_insert_new_line(vt_edit_t *edit) {
   int start_row;
   int start_col;
   int end_row;
@@ -315,7 +315,7 @@ int vt_edsl_insert_new_line(vt_edit_t* edit) {
   return 1;
 }
 
-int vt_edsl_delete_line(vt_edit_t* edit) {
+int vt_edsl_delete_line(vt_edit_t *edit) {
   int start_row;
   int start_col;
   int end_row;

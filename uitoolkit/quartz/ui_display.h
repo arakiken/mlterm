@@ -5,6 +5,6 @@
 
 #include "../ui_display.h"
 
-Cursor ui_display_get_cursor(ui_display_t* disp, u_int shape);
+Cursor ui_display_get_cursor(ui_display_t *disp, u_int shape);
 
 #endif

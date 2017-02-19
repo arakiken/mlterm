@@ -13,7 +13,7 @@
 #define TABLE_SIZE (sizeof(keysym_table) / sizeof(keysym_table[0]))
 
 static struct {
-  char* str;
+  char *str;
   KeySym /* WORD */ ksym; /* 16bit */
 
 } keysym_table[] = {
@@ -99,7 +99,7 @@ static struct {
 
 /* --- global functions --- */
 
-int XParseGeometry(char* str, int* x, int* y, unsigned int* width, unsigned int* height) {
+int XParseGeometry(char *str, int *x, int *y, unsigned int *width, unsigned int *height) {
   if (sscanf(str, "%ux%u+%d+%d", width, height, x, y) == 4) {
     return XValue | YValue | WidthValue | HeightValue;
   } else if (sscanf(str, "%ux%u", width, height) == 2) {
@@ -111,7 +111,7 @@ int XParseGeometry(char* str, int* x, int* y, unsigned int* width, unsigned int*
   }
 }
 
-KeySym XStringToKeysym(char* str) {
+KeySym XStringToKeysym(char *str) {
 #ifdef SELF_TEST
   int debug_count = 0;
 #endif

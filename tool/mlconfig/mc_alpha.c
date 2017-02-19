@@ -17,13 +17,13 @@
 
 /* --- static variables --- */
 
-static char* new_alpha = NULL;
-static char* old_alpha = NULL;
+static char *new_alpha = NULL;
+static char *old_alpha = NULL;
 static int is_changed;
 
 /* --- static functions --- */
 
-static gint alpha_selected(GtkWidget* widget, gpointer data) {
+static gint alpha_selected(GtkWidget *widget, gpointer data) {
   g_free(new_alpha);
   new_alpha = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
@@ -36,10 +36,10 @@ static gint alpha_selected(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_alpha_config_widget_new(void) {
-  GtkWidget* combo;
-  GtkWidget* entry;
-  char* alphas[] = {
+GtkWidget *mc_alpha_config_widget_new(void) {
+  GtkWidget *combo;
+  GtkWidget *entry;
+  char *alphas[] = {
       "255", "223", "191", "159", "127", "95", "63", "31", "0",
   };
 

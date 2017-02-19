@@ -31,21 +31,21 @@
 /* --- static variables --- */
 
 static u_int max_terms_multiple;
-static u_int32_t* dead_mask;
+static u_int32_t *dead_mask;
 
 /*
  * 'terms' pointer must not be changed because vt_get_all_terms returns it
  * directly.
  * So 'terms' array must be allocated only once.
  */
-static vt_term_t** terms;
+static vt_term_t **terms;
 static u_int num_of_terms;
 
-static char* pty_list;
+static char *pty_list;
 
 static int zombie_pty;
 
-static char* auto_restart_cmd;
+static char *auto_restart_cmd;
 
 /* --- static functions --- */
 
@@ -114,7 +114,7 @@ static void sig_error(int sig) {
 }
 #endif
 
-static void sig_child(void* p, pid_t pid) {
+static void sig_child(void *p, pid_t pid) {
   u_int count;
 
 #ifdef DEBUG
@@ -208,9 +208,9 @@ int vt_term_manager_final(void) {
   return 1;
 }
 
-int vt_set_auto_restart_cmd(char* cmd) {
+int vt_set_auto_restart_cmd(char *cmd) {
 #if !defined(USE_WIN32API) && !defined(DEBUG)
-  char* env;
+  char *env;
 
   if (
 #ifndef INFINIT_RESTART
@@ -253,17 +253,17 @@ int vt_set_auto_restart_cmd(char* cmd) {
   return 1;
 }
 
-vt_term_t* vt_create_term(const char* term_type, u_int cols, u_int rows, u_int tab_size,
+vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int tab_size,
                           u_int log_size, vt_char_encoding_t encoding, int is_auto_encoding,
                           int use_auto_detect, int logging_vt_seq, vt_unicode_policy_t policy,
                           int col_size_a, int use_char_combining, int use_multi_col_char,
-                          int use_ctl, vt_bidi_mode_t bidi_mode, const char* bidi_separators,
+                          int use_ctl, vt_bidi_mode_t bidi_mode, const char *bidi_separators,
                           int use_dynamic_comb, vt_bs_mode_t bs_mode,
                           vt_vertical_mode_t vertical_mode, int use_local_echo,
-                          const char* win_name, const char* icon_name,
+                          const char *win_name, const char *icon_name,
                           vt_alt_color_mode_t alt_color_mode, int use_ot_layout) {
 #if !defined(USE_WIN32API) && !defined(DEBUG)
-  char* list;
+  char *list;
 #endif
 
   if (num_of_terms == MAX_TERMS) {
@@ -275,7 +275,7 @@ vt_term_t* vt_create_term(const char* term_type, u_int cols, u_int rows, u_int t
     int master;
     int slave;
     pid_t child_pid;
-    char* p;
+    char *p;
 
     while ((p = bl_str_sep(&list, ","))) {
       vt_pty_ptr_t pty;
@@ -336,7 +336,7 @@ vt_term_t* vt_create_term(const char* term_type, u_int cols, u_int rows, u_int t
   return terms[num_of_terms++];
 }
 
-int vt_destroy_term(vt_term_t* term) {
+int vt_destroy_term(vt_term_t *term) {
   int count;
 
   /*
@@ -362,7 +362,7 @@ int vt_destroy_term(vt_term_t* term) {
   return 1;
 }
 
-vt_term_t* vt_get_term(const char* dev) {
+vt_term_t *vt_get_term(const char *dev) {
   int count;
 
   for (count = 0; count < num_of_terms; count++) {
@@ -374,7 +374,7 @@ vt_term_t* vt_get_term(const char* dev) {
   return NULL;
 }
 
-vt_term_t* vt_get_detached_term(const char* dev) {
+vt_term_t *vt_get_detached_term(const char *dev) {
   int count;
 
   for (count = 0; count < num_of_terms; count++) {
@@ -387,7 +387,7 @@ vt_term_t* vt_get_detached_term(const char* dev) {
   return NULL;
 }
 
-vt_term_t* vt_next_term(vt_term_t* term /* is detached */
+vt_term_t *vt_next_term(vt_term_t *term /* is detached */
                         ) {
   int count;
 
@@ -416,7 +416,7 @@ vt_term_t* vt_next_term(vt_term_t* term /* is detached */
   return NULL;
 }
 
-vt_term_t* vt_prev_term(vt_term_t* term /* is detached */
+vt_term_t *vt_prev_term(vt_term_t *term /* is detached */
                         ) {
   int count;
 
@@ -467,7 +467,7 @@ int vt_close_dead_terms(void) {
 
         for (count = MTU - 1; count >= 0; count--) {
           if (dead_mask[idx] & (0x1 << count)) {
-            vt_term_t* term;
+            vt_term_t *term;
 
 #ifdef DEBUG
             bl_debug_printf(BL_DEBUG_TAG " closing dead term %d.\n", count);
@@ -497,9 +497,9 @@ int vt_close_dead_terms(void) {
   return 1;
 }
 
-char* vt_get_pty_list(void) {
+char *vt_get_pty_list(void) {
   int count;
-  char* p;
+  char *p;
   size_t len;
 
   free(pty_list);

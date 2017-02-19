@@ -8,12 +8,12 @@
 
 typedef struct vt_drcs_font {
   ef_charset_t cs;
-  char* glyphs[0x5f];
+  char *glyphs[0x5f];
 
 } vt_drcs_font_t;
 
 typedef struct vt_drcs {
-  vt_drcs_font_t* fonts;
+  vt_drcs_font_t *fonts;
   u_int num_of_fonts;
 
 } vt_drcs_t;
@@ -25,20 +25,20 @@ typedef struct vt_drcs {
   vt_drcs_final_full();      \
   free(drcs);
 
-void vt_drcs_select(vt_drcs_t* drcs);
+void vt_drcs_select(vt_drcs_t *drcs);
 
-vt_drcs_font_t* vt_drcs_get_font(ef_charset_t cs, int create);
+vt_drcs_font_t *vt_drcs_get_font(ef_charset_t cs, int create);
 
-char* vt_drcs_get_glyph(ef_charset_t cs, u_char idx);
+char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx);
 
 int vt_drcs_final(ef_charset_t cs);
 
 int vt_drcs_final_full(void);
 
-int vt_drcs_add(vt_drcs_font_t* font, int idx, const char* seq, u_int width, u_int height);
+int vt_drcs_add(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height);
 
-int vt_convert_drcs_to_unicode_pua(ef_char_t* ch);
+int vt_convert_drcs_to_unicode_pua(ef_char_t *ch);
 
-int vt_convert_unicode_pua_to_drcs(ef_char_t* ch);
+int vt_convert_unicode_pua_to_drcs(ef_char_t *ch);
 
 #endif

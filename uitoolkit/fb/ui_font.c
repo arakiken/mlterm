@@ -59,13 +59,13 @@
 
 /* --- static variables --- */
 
-static XFontStruct** xfonts;
+static XFontStruct **xfonts;
 static u_int num_of_xfonts;
 
 /* --- static functions --- */
 
-static int load_bitmaps(XFontStruct* xfont, u_char* p, size_t size, int is_be, int glyph_pad_type) {
-  int32_t* offsets;
+static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, int glyph_pad_type) {
+  int32_t *offsets;
   int32_t bitmap_sizes[4];
   int32_t count;
 
@@ -186,7 +186,7 @@ static int load_bitmaps(XFontStruct* xfont, u_char* p, size_t size, int is_be, i
   return 1;
 }
 
-static int load_encodings(XFontStruct* xfont, u_char* p, size_t size, int is_be) {
+static int load_encodings(XFontStruct *xfont, u_char *p, size_t size, int is_be) {
   size_t idx_size;
 
   xfont->min_char_or_byte2 = _TOINT16(p, is_be);
@@ -238,7 +238,7 @@ static int load_encodings(XFontStruct* xfont, u_char* p, size_t size, int is_be)
 
   {
     int count;
-    int16_t* p;
+    int16_t *p;
 
     p = xfont->glyph_indeces;
 
@@ -252,8 +252,8 @@ static int load_encodings(XFontStruct* xfont, u_char* p, size_t size, int is_be)
   return 1;
 }
 
-static int get_metrics(u_int8_t* width, u_int8_t* width_full, u_int8_t* height, u_int8_t* ascent,
-                       u_char* p, size_t size, int is_be, int is_compressed) {
+static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, u_int8_t *ascent,
+                       u_char *p, size_t size, int is_be, int is_compressed) {
   int16_t num_of_metrics;
 
   /* XXX Proportional font is not considered. */
@@ -317,11 +317,11 @@ static int get_metrics(u_int8_t* width, u_int8_t* width_full, u_int8_t* height, 
   return 1;
 }
 
-static char* gunzip(const char* file_path, struct stat* st) {
+static char *gunzip(const char *file_path, struct stat *st) {
   size_t len;
-  char* new_file_path;
+  char *new_file_path;
   struct stat new_st;
-  char* cmd;
+  char *cmd;
   struct utimbuf ut;
 
   if (stat(file_path, st) == -1) {
@@ -402,12 +402,12 @@ error:
   return NULL;
 }
 
-static int load_pcf(XFontStruct* xfont, const char* file_path) {
-  char* uzfile_path;
+static int load_pcf(XFontStruct *xfont, const char *file_path) {
+  char *uzfile_path;
   int fd;
   struct stat st;
-  u_char* pcf = NULL;
-  u_char* p;
+  u_char *pcf = NULL;
+  u_char *p;
   int32_t num_of_tables;
   int table_load_count;
   int32_t count;
@@ -504,13 +504,13 @@ static int load_pcf(XFontStruct* xfont, const char* file_path) {
 #else
     u_char ch[] = "\x06\x22"; /* UCS2 */
 #endif
-    u_char* bitmap;
+    u_char *bitmap;
     int i;
     int j;
 
     if ((bitmap = ui_get_bitmap(xfont, ch, sizeof(ch) - 1))) {
       for (j = 0; j < xfont->height; j++) {
-        u_char* line;
+        u_char *line;
 
         ui_get_bitmap_line(xfont, bitmap, j, line);
 
@@ -537,7 +537,7 @@ end:
   return 0;
 }
 
-static void unload_pcf(XFontStruct* xfont) {
+static void unload_pcf(XFontStruct *xfont) {
   free(xfont->file);
   free(xfont->glyphs);
   free(xfont->glyph_offsets);
@@ -628,7 +628,7 @@ static int load_glyph(FT_Face face, int32_t format, u_int32_t code, int is_aa) {
   return 1;
 }
 
-static int load_ft(XFontStruct* xfont, const char* file_path, int32_t format, int is_aa) {
+static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, int is_aa) {
   u_int count;
   FT_Face face;
   u_int fontsize;
@@ -752,7 +752,7 @@ static void init_iscii_ft(FT_Face face) {
   }
 }
 
-static void clear_glyph_cache_ft(XFontStruct* xfont) {
+static void clear_glyph_cache_ft(XFontStruct *xfont) {
   int count;
 
   for (count = 0; ((u_char**)xfont->glyphs)[count]; count++) {
@@ -764,7 +764,7 @@ static void clear_glyph_cache_ft(XFontStruct* xfont) {
   memset(xfont->glyph_indeces, 0, xfont->num_of_indeces * sizeof(u_int16_t));
 }
 
-static void unload_ft(XFontStruct* xfont) {
+static void unload_ft(XFontStruct *xfont) {
   FT_Face face;
   int count;
 
@@ -789,11 +789,11 @@ static void unload_ft(XFontStruct* xfont) {
   }
 }
 
-static u_char* get_ft_bitmap(XFontStruct* xfont, u_int32_t code, int use_ot_layout) {
-  u_int16_t* indeces;
+static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t code, int use_ot_layout) {
+  u_int16_t *indeces;
   int idx;
-  u_char** glyphs;
-  u_char* glyph;
+  u_char **glyphs;
+  u_char *glyph;
 
   if (!use_ot_layout) {
     if (code == 0x20) {
@@ -820,8 +820,8 @@ static u_char* get_ft_bitmap(XFontStruct* xfont, u_int32_t code, int use_ot_layo
   if (!(idx = indeces[code])) {
     FT_Face face;
     int y;
-    u_char* src;
-    u_char* dst;
+    u_char *src;
+    u_char *dst;
     int left_pitch;
     int pitch;
     int rows;
@@ -968,7 +968,7 @@ static u_char* get_ft_bitmap(XFontStruct* xfont, u_int32_t code, int use_ot_layo
   return glyph;
 }
 
-static int load_xfont(XFontStruct* xfont, const char* file_path, int32_t format,
+static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,
                       u_int bytes_per_pixel, ef_charset_t cs) {
   if ((cs == ISO10646_UCS4_1 || IS_ISCII(cs)) &&
       strcasecmp(file_path + strlen(file_path) - 6, "pcf.gz") != 0 &&
@@ -979,7 +979,7 @@ static int load_xfont(XFontStruct* xfont, const char* file_path, int32_t format,
   }
 }
 
-static void unload_xfont(XFontStruct* xfont) {
+static void unload_xfont(XFontStruct *xfont) {
   if (xfont->face) {
     unload_ft(xfont);
   } else {
@@ -1006,10 +1006,10 @@ int ui_compose_dec_special_font(void) {
 #include <fontconfig/fontconfig.h>
 
 /* Same processing as win32/ui_font.c (partially) and libtype/ui_font_ft.c */
-static int parse_fc_font_name(char** font_family,
-    u_int* percent,       /* if percent is not specified in font_name , not changed. */
-    char* font_name       /* modified by this function. */ ) {
-  char* p;
+static int parse_fc_font_name(char **font_family,
+    u_int *percent,       /* if percent is not specified in font_name , not changed. */
+    char *font_name       /* modified by this function. */ ) {
+  char *p;
   size_t len;
 
   /*
@@ -1064,7 +1064,7 @@ static int parse_fc_font_name(char** font_family,
     size_t step = 0;
 
     if (*p == ' ') {
-      char* orig_p;
+      char *orig_p;
 
       orig_p = p;
       do {
@@ -1079,7 +1079,7 @@ static int parse_fc_font_name(char** font_family,
       } else {
         int count;
         struct {
-          char* style;
+          char *style;
           int weight;
           int slant;
 
@@ -1141,7 +1141,7 @@ static int parse_fc_font_name(char** font_family,
         if (*p != '0' ||      /* In case of "DevLys 010" font family. */
             *(p + 1) == '\0') /* "MS Gothic 0" => "MS Gothic" + "0" */
         {
-          char* end;
+          char *end;
           double size;
 
           size = strtod(p, &end);
@@ -1166,8 +1166,8 @@ static int parse_fc_font_name(char** font_family,
   return 1;
 }
 
-static FcPattern* fc_pattern_create(const FcChar8* family) {
-  FcPattern* pattern;
+static FcPattern *fc_pattern_create(const FcChar8* family) {
+  FcPattern *pattern;
 
   if (!(pattern = FcPatternCreate())) {
     return NULL;
@@ -1218,16 +1218,16 @@ static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
 
 #endif
 
-ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
-                       ui_font_present_t font_present, const char* fontname, u_int fontsize,
+ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
+                       ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold,
                        u_int letter_space /* Ignored for now. */
                        ) {
   ef_charset_t cs;
-  char* font_file;
+  char *font_file;
   u_int percent;
-  ui_font_t* font;
-  void* p;
+  ui_font_t *font;
+  void *p;
   u_int count;
 #ifdef USE_FREETYPE
   u_int format;
@@ -1295,8 +1295,8 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
         font_file = "/system/fonts/DroidSansMono.ttf";
       } else {
         DIR* dir;
-        struct dirent* entry;
-        const char* cand;
+        struct dirent *entry;
+        const char *cand;
 
         if ((dir = opendir("/system/fonts")) == NULL) {
           return NULL;
@@ -1342,7 +1342,7 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
       }
     }
   } else {
-    char* percent_str;
+    char *percent_str;
 
     if (!(percent_str = bl_str_alloca_dup(fontname))) {
       return NULL;
@@ -1640,7 +1640,7 @@ xfont_loaded:
   return font;
 }
 
-int ui_font_delete(ui_font_t* font) {
+int ui_font_delete(ui_font_t *font) {
   if (--font->xfont->ref_count == 0) {
     u_int count;
 
@@ -1677,7 +1677,7 @@ int ui_font_delete(ui_font_t* font) {
   return 1;
 }
 
-int ui_change_font_cols(ui_font_t* font, u_int cols /* 0 means default value */
+int ui_change_font_cols(ui_font_t *font, u_int cols /* 0 means default value */
                         ) {
   if (cols == 0) {
     if (font->id & FONT_FULLWIDTH) {
@@ -1694,7 +1694,7 @@ int ui_change_font_cols(ui_font_t* font, u_int cols /* 0 means default value */
 
 #ifdef USE_OT_LAYOUT
 
-int ui_font_has_ot_layout_table(ui_font_t* font) {
+int ui_font_has_ot_layout_table(ui_font_t *font) {
 #ifdef USE_FREETYPE
   if (font->xfont->face) {
     if (!font->ot_font) {
@@ -1711,24 +1711,24 @@ int ui_font_has_ot_layout_table(ui_font_t* font) {
   return 0;
 }
 
-u_int ui_convert_text_to_glyphs(ui_font_t* font, u_int32_t* shaped, u_int shaped_len,
-                                int8_t* offsets, u_int8_t* widths, u_int32_t* cmapped,
-                                u_int32_t* src, u_int src_len, const char* script,
-                                const char* features) {
+u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
+                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
+                                u_int32_t *src, u_int src_len, const char *script,
+                                const char *features) {
   return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, offsets, widths, cmapped,
                                     src, src_len, script, features, 0);
 }
 
 #endif
 
-u_int ui_calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs, int* draw_alone) {
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
   if (draw_alone) {
     *draw_alone = 0;
   }
 
 #if defined(USE_FREETYPE)
   if (font->xfont->is_aa && font->is_proportional) {
-    u_char* glyph;
+    u_char *glyph;
 
     if ((glyph = get_ft_bitmap(font->xfont, ch,
 #ifdef USE_OT_LAYOUT
@@ -1746,7 +1746,7 @@ u_int ui_calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs, in
 }
 
 /* Return written size */
-size_t ui_convert_ucs4_to_utf16(u_char* dst, /* 4 bytes. Big endian. */
+size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Big endian. */
                                 u_int32_t src) {
   if (src < 0x10000) {
     dst[0] = (src >> 8) & 0xff;
@@ -1780,7 +1780,7 @@ size_t ui_convert_ucs4_to_utf16(u_char* dst, /* 4 bytes. Big endian. */
 
 #ifdef DEBUG
 
-int ui_font_dump(ui_font_t* font) {
+int ui_font_dump(ui_font_t *font) {
   bl_msg_printf("Font id %x: XFont %p (width %d, height %d, ascent %d, x_off %d)", font->id,
                 font->xfont, font->width, font->height, font->ascent, font->x_off);
 
@@ -1807,7 +1807,7 @@ int ui_font_dump(ui_font_t* font) {
 
 #endif
 
-u_char* ui_get_bitmap(XFontStruct* xfont, u_char* ch, size_t len, int use_ot_layout) {
+u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_layout) {
   size_t ch_idx;
   int16_t glyph_idx;
   int32_t glyph_offset;

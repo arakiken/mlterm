@@ -23,22 +23,22 @@
 
 /* --- global functions --- */
 
-int ui_connect_dialog(char** uri,      /* Should be free'ed by those who call this. */
-                      char** pass,     /* Same as uri. If pass is not input, "" is set. */
-                      char** exec_cmd, /* Same as uri. If exec_cmd is not input, NULL is set. */
-                      int* x11_fwd,    /* in/out */
-                      char* display_name, Window parent_window, char** sv_list,
-                      char* def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
+int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call this. */
+                      char **pass,     /* Same as uri. If pass is not input, "" is set. */
+                      char **exec_cmd, /* Same as uri. If exec_cmd is not input, NULL is set. */
+                      int *x11_fwd,    /* in/out */
+                      char *display_name, Window parent_window, char **sv_list,
+                      char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
                       ) {
-  Display* display;
+  Display *display;
   int screen;
   Window window;
   GC gc;
-  XFontStruct* font;
+  XFontStruct *font;
   u_int width;
   u_int height;
   u_int ncolumns;
-  char* title;
+  char *title;
   size_t pass_len;
   int ret;
 
@@ -92,7 +92,7 @@ int ui_connect_dialog(char** uri,      /* Should be free'ed by those who call th
 
     if (ev.type == KeyRelease) {
       char buf[10];
-      void* p;
+      void *p;
       size_t len;
 
       if ((len = XLookupString(&ev.xkey, buf, sizeof(buf), NULL, NULL)) > 0) {
@@ -150,7 +150,7 @@ int ui_connect_dialog(char** uri,      /* Should be free'ed by those who call th
       }
 
       if (*pass) {
-        char* input;
+        char *input;
         size_t count;
 
         if (!(input = alloca(pass_len - 1))) {

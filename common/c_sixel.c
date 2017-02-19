@@ -33,16 +33,16 @@
 /* --- static variables --- */
 
 #ifndef SIXEL_1BPP
-static pixel_t* custom_palette;
+static pixel_t *custom_palette;
 #endif
 
 /* --- static functions --- */
 
 #ifndef __GET_PARAMS__
 #define __GET_PARAMS__
-static size_t get_params(int* params, size_t max_params, char** p) {
+static size_t get_params(int *params, size_t max_params, char **p) {
   size_t count;
-  char* start;
+  char *start;
 
   memset(params, 0, sizeof(int) * max_params);
 
@@ -73,9 +73,9 @@ static size_t get_params(int* params, size_t max_params, char** p) {
 }
 #endif /* __GET_PARAMS__ */
 
-static int realloc_pixels(u_char** pixels, int new_width, int new_height, int cur_width,
+static int realloc_pixels(u_char **pixels, int new_width, int new_height, int cur_width,
                           int cur_height) {
-  u_char* p;
+  u_char *p;
   int y;
   int n_copy_rows;
   size_t new_line_len;
@@ -181,7 +181,7 @@ static int realloc_pixels(u_char** pixels, int new_width, int new_height, int cu
  * Correct the height which is always multiple of 6, but this doesn't
  * necessarily work.
  */
-static void correct_height(pixel_t* pixels, int width, int* height /* multiple of 6 */
+static void correct_height(pixel_t *pixels, int width, int *height /* multiple of 6 */
                            ) {
   int x;
   int y;
@@ -205,13 +205,13 @@ static void correct_height(pixel_t* pixels, int width, int* height /* multiple o
  * the actual image size is less than it.
  * It is the caller that should shrink (realloc) it.
  */
-static u_char* load_sixel_from_file(const char* path, u_int* width_ret, u_int* height_ret) {
+static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *height_ret) {
   FILE* fp;
   struct stat st;
-  char* file_data;
-  char* p;
+  char *file_data;
+  char *p;
   size_t len;
-  u_char* pixels;
+  u_char *pixels;
   int params[5];
   size_t n; /* number of params */
   int init_width;
@@ -243,7 +243,7 @@ static u_char* load_sixel_from_file(const char* path, u_int* width_ret, u_int* h
       SIXEL_RGB(60, 60, 33), /* YELLOW* */
       SIXEL_RGB(80, 80, 80)  /* GRAY 75% */
   };
-  pixel_t* palette;
+  pixel_t *palette;
 
   if (!(fp = fopen(path, "r"))) {
 #ifdef DEBUG
@@ -710,7 +710,7 @@ end:
 
 #ifndef SIXEL_1BPP
 
-pixel_t* ui_set_custom_sixel_palette(pixel_t* palette /* NULL -> Create new palette */
+pixel_t *ui_set_custom_sixel_palette(pixel_t *palette /* NULL -> Create new palette */
                                      ) {
   if (!palette) {
     palette = (pixel_t*)calloc(sizeof(pixel_t), 257);

@@ -7,14 +7,14 @@
 
 /* --- static variables --- */
 
-static ui_color_cache_t** color_caches;
+static ui_color_cache_t **color_caches;
 static u_int num_of_caches;
 
 /* --- static functions --- */
 
-static ui_color_cache_256ext_t* acquire_color_cache_256ext(ui_display_t* disp) {
+static ui_color_cache_256ext_t *acquire_color_cache_256ext(ui_display_t *disp) {
   u_int count;
-  ui_color_cache_256ext_t* cache;
+  ui_color_cache_256ext_t *cache;
 
   for (count = 0; count < num_of_caches; count++) {
     if (color_caches[count]->disp == disp && color_caches[count]->cache_256ext) {
@@ -33,7 +33,7 @@ static ui_color_cache_256ext_t* acquire_color_cache_256ext(ui_display_t* disp) {
   return cache;
 }
 
-static ui_color_t* get_cached_256ext_xcolor(ui_color_cache_t* color_cache, vt_color_t color) {
+static ui_color_t *get_cached_256ext_xcolor(ui_color_cache_t *color_cache, vt_color_t color) {
   u_int8_t red;
   u_int8_t green;
   u_int8_t blue;
@@ -84,7 +84,7 @@ static ui_color_t* get_cached_256ext_xcolor(ui_color_cache_t* color_cache, vt_co
   return &color_cache->cache_256ext->xcolors[color - 16];
 }
 
-static ui_color_t* get_cached_vtsys_xcolor(ui_color_cache_t* color_cache, vt_color_t color) {
+static ui_color_t *get_cached_vtsys_xcolor(ui_color_cache_t *color_cache, vt_color_t color) {
   u_int8_t red;
   u_int8_t green;
   u_int8_t blue;
@@ -125,10 +125,10 @@ static ui_color_t* get_cached_vtsys_xcolor(ui_color_cache_t* color_cache, vt_col
 
 /* --- global functions --- */
 
-ui_color_cache_t* ui_acquire_color_cache(ui_display_t* disp, u_int8_t fade_ratio) {
+ui_color_cache_t *ui_acquire_color_cache(ui_display_t *disp, u_int8_t fade_ratio) {
   u_int count;
-  ui_color_cache_t* color_cache;
-  void* p;
+  ui_color_cache_t *color_cache;
+  void *p;
 
   for (count = 0; count < num_of_caches; count++) {
     if (color_caches[count]->disp == disp && color_caches[count]->fade_ratio == fade_ratio) {
@@ -165,7 +165,7 @@ ui_color_cache_t* ui_acquire_color_cache(ui_display_t* disp, u_int8_t fade_ratio
   return color_cache;
 }
 
-int ui_release_color_cache(ui_color_cache_t* color_cache) {
+int ui_release_color_cache(ui_color_cache_t *color_cache) {
   u_int count;
 
   if (--color_cache->ref_count > 0) {
@@ -193,7 +193,7 @@ int ui_release_color_cache(ui_color_cache_t* color_cache) {
   return 0;
 }
 
-int ui_color_cache_unload(ui_color_cache_t* color_cache) {
+int ui_color_cache_unload(ui_color_cache_t *color_cache) {
   vt_color_t color;
 
   for (color = 0; color < sizeof(color_cache->xcolors) / sizeof(color_cache->xcolors[0]); color++) {
@@ -204,7 +204,7 @@ int ui_color_cache_unload(ui_color_cache_t* color_cache) {
   }
 
   if (color_cache->cache_256ext && --color_cache->cache_256ext->ref_count == 0) {
-    ui_color_cache_256ext_t* cache_256ext;
+    ui_color_cache_256ext_t *cache_256ext;
 
     cache_256ext = color_cache->cache_256ext;
     for (color = 0; color < sizeof(cache_256ext->xcolors) / sizeof(cache_256ext->xcolors[0]);
@@ -233,7 +233,7 @@ int ui_color_cache_unload_all(void) {
 }
 
 /* Not cached */
-int ui_load_xcolor(ui_color_cache_t* color_cache, ui_color_t* xcolor, char* name) {
+int ui_load_xcolor(ui_color_cache_t *color_cache, ui_color_t *xcolor, char *name) {
   if (!ui_load_named_xcolor(color_cache->disp, xcolor, name)) {
     return 0;
   }
@@ -256,8 +256,8 @@ int ui_load_xcolor(ui_color_cache_t* color_cache, ui_color_t* xcolor, char* name
 }
 
 /* Always return non-null value. */
-ui_color_t* ui_get_cached_xcolor(ui_color_cache_t* color_cache, vt_color_t color) {
-  ui_color_t* xcolor;
+ui_color_t *ui_get_cached_xcolor(ui_color_cache_t *color_cache, vt_color_t color) {
+  ui_color_t *xcolor;
 
   if ((xcolor = get_cached_vtsys_xcolor(color_cache, color))) {
     return xcolor;

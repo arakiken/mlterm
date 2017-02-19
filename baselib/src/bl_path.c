@@ -23,8 +23,8 @@
 
 #if !defined(HAVE_BASENAME) || defined(USE_WIN32API)
 
-char* __bl_basename(char* path) {
-  char* p;
+char* __bl_basename(char *path) {
+  char *p;
 
   if (path == NULL || *path == '\0') {
     return ".";
@@ -66,11 +66,11 @@ char* __bl_basename(char* path) {
 
 #ifndef REMOVE_FUNCS_MLTERM_UNUSE
 
-int bl_path_cleanname(char* cleaned_path, size_t size, const char* path) {
-  char* src;
-  char* dst;
+int bl_path_cleanname(char *cleaned_path, size_t size, const char *path) {
+  char *src;
+  char *dst;
   size_t left;
-  char* p;
+  char *p;
 
   if (size == 0) {
     return 0;
@@ -95,7 +95,7 @@ int bl_path_cleanname(char* cleaned_path, size_t size, const char* path) {
     if (strcmp(src, ".") == 0) {
       goto end;
     } else if (strcmp(src, "..") == 0 && left < size) {
-      char* last;
+      char *last;
 
       if ((last = strrchr(cleaned_path, '/'))) {
         last++;
@@ -155,15 +155,15 @@ int bl_path_cleanname(char* cleaned_path, size_t size, const char* path) {
 /*
  * Parsing "<user>@<proto>:<host>:<port>:<aux>".
  */
-int bl_parse_uri(char** proto, /* proto can be NULL. If seq doesn't have proto, NULL is set. */
-                 char** user,  /* user can be NULL. If seq doesn't have user, NULL is set. */
-                 char** host,  /* host can be NULL. */
-                 char** port,  /* port can be NULL. If seq doesn't have port, NULL is set. */
-                 char** path,  /* path can be NULL. If seq doesn't have path, NULL is set. */
-                 char** aux,   /* aux can be NULL. If seq doesn't have aux string, NULL is set. */
-                 char* seq     /* broken in this function. If NULL, return 0. */
+int bl_parse_uri(char **proto, /* proto can be NULL. If seq doesn't have proto, NULL is set. */
+                 char **user,  /* user can be NULL. If seq doesn't have user, NULL is set. */
+                 char **host,  /* host can be NULL. */
+                 char **port,  /* port can be NULL. If seq doesn't have port, NULL is set. */
+                 char **path,  /* path can be NULL. If seq doesn't have path, NULL is set. */
+                 char **aux,   /* aux can be NULL. If seq doesn't have aux string, NULL is set. */
+                 char *seq     /* broken in this function. If NULL, return 0. */
                  ) {
-  char* p;
+  char *p;
   size_t len;
 
   /*
@@ -244,9 +244,9 @@ int bl_parse_uri(char** proto, /* proto can be NULL. If seq doesn't have proto, 
   return 1;
 }
 
-char* bl_get_home_dir(void) {
+char *bl_get_home_dir(void) {
 #ifdef __ANDROID__
-  static char* dir;
+  static char *dir;
 
   if (!dir) {
     struct stat st;
@@ -262,7 +262,7 @@ char* bl_get_home_dir(void) {
 
   return dir;
 #else
-  char* dir;
+  char *dir;
 
 #ifdef USE_WIN32API
   if ((dir = getenv("HOMEPATH")) && *dir) {
@@ -282,7 +282,7 @@ char* bl_get_home_dir(void) {
 
 #include <sys/cygwin.h>
 
-int bl_conv_to_win32_path(const char* path, char* winpath, size_t len) {
+int bl_conv_to_win32_path(const char *path, char *winpath, size_t len) {
   int ret;
 
   if ((ret = cygwin_conv_path(CCP_POSIX_TO_WIN_A, path, winpath, len)) < 0) {
@@ -292,7 +292,7 @@ int bl_conv_to_win32_path(const char* path, char* winpath, size_t len) {
   return ret;
 }
 
-int bl_conv_to_posix_path(const char* winpath, char* path, size_t len) {
+int bl_conv_to_posix_path(const char *winpath, char *path, size_t len) {
   int ret;
 
   if ((ret = cygwin_conv_path(CCP_WIN_A_TO_POSIX, winpath, path, len)) < 0) {
@@ -307,7 +307,7 @@ int bl_conv_to_posix_path(const char* winpath, char* path, size_t len) {
 #include <windef.h> /* MAX_PATH */
 #include <sys/cygwin.h>
 
-int bl_conv_to_win32_path(const char* path, char* winpath, size_t len) {
+int bl_conv_to_win32_path(const char *path, char *winpath, size_t len) {
   static size_t prefix_len;
   int ret;
 
@@ -329,7 +329,7 @@ int bl_conv_to_win32_path(const char* path, char* winpath, size_t len) {
   return 0;
 }
 
-int bl_conv_to_posix_path(const char* winpath, char* path, size_t len) {
+int bl_conv_to_posix_path(const char *winpath, char *path, size_t len) {
   int ret;
 
   if (strlen(winpath) >= len) {
@@ -380,12 +380,12 @@ int main(void) {
   char uri6[] = "telnet://ken@localhost.localdomain:22:eucjp/usr/local/";
   char uri7[] = "ssh://ken@localhost.localdomain:22:eucjp/";
   char uri8[] = "ssh://localhost:eucjp/usr/local";
-  char* user;
-  char* proto;
-  char* host;
-  char* port;
-  char* encoding;
-  char* path;
+  char *user;
+  char *proto;
+  char *host;
+  char *port;
+  char *encoding;
+  char *path;
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri1);
   printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
@@ -409,7 +409,7 @@ int main(void) {
 #endif
 
 #ifdef __DEBUG2
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   printf("%s\n", __bl_basename(argv[1]));
 
   return 0;

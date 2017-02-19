@@ -16,8 +16,8 @@
 
 /* --- global functions --- */
 
-void* vt_load_ctl_bidi_func(vt_ctl_bidi_id_t id) {
-  static void** func_table;
+void *vt_load_ctl_bidi_func(vt_ctl_bidi_id_t id) {
+  static void **func_table;
   static int is_tried;
 
   if (!is_tried) {
@@ -54,8 +54,8 @@ void* vt_load_ctl_bidi_func(vt_ctl_bidi_id_t id) {
   }
 }
 
-void* vt_load_ctl_iscii_func(vt_ctl_iscii_id_t id) {
-  static void** func_table;
+void *vt_load_ctl_iscii_func(vt_ctl_iscii_id_t id) {
+  static void **func_table;
   static int is_tried;
 
   if (!is_tried) {

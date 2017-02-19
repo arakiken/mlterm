@@ -109,22 +109,22 @@ typedef enum vt_char_encoding {
 #define IS_ISCII_ENCODING(encoding) \
   (VT_ISCII_ASSAMESE <= (encoding) && (encoding) <= VT_ISCII_TELUGU)
 
-char* vt_get_char_encoding_name(vt_char_encoding_t encoding);
+char *vt_get_char_encoding_name(vt_char_encoding_t encoding);
 
-vt_char_encoding_t vt_get_char_encoding(const char* name);
+vt_char_encoding_t vt_get_char_encoding(const char *name);
 
-ef_parser_t* vt_char_encoding_parser_new(vt_char_encoding_t encoding);
+ef_parser_t *vt_char_encoding_parser_new(vt_char_encoding_t encoding);
 
-ef_conv_t* vt_char_encoding_conv_new(vt_char_encoding_t encoding);
+ef_conv_t *vt_char_encoding_conv_new(vt_char_encoding_t encoding);
 
 int vt_is_msb_set(ef_charset_t cs);
 
-size_t vt_char_encoding_convert(u_char* dst, size_t dst_len, vt_char_encoding_t dst_encoding,
-                                u_char* src, size_t src_len, vt_char_encoding_t src_encoding);
+size_t vt_char_encoding_convert(u_char *dst, size_t dst_len, vt_char_encoding_t dst_encoding,
+                                u_char *src, size_t src_len, vt_char_encoding_t src_encoding);
 
-size_t vt_char_encoding_convert_with_parser(u_char* dst, size_t dst_len,
-                                            vt_char_encoding_t dst_encoding, ef_parser_t* parser);
+size_t vt_char_encoding_convert_with_parser(u_char *dst, size_t dst_len,
+                                            vt_char_encoding_t dst_encoding, ef_parser_t *parser);
 
-int vt_parse_unicode_area(const char* str, u_int* min, u_int* max);
+int vt_parse_unicode_area(const char *str, u_int *min, u_int *max);
 
 #endif

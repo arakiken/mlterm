@@ -5,10 +5,10 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget* mc_char_encoding_config_widget_new(void);
+GtkWidget *mc_char_encoding_config_widget_new(void);
 
 void mc_update_char_encoding(void);
 
-char* mc_get_char_encoding(void);
+char *mc_get_char_encoding(void);
 
 #endif

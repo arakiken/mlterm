@@ -10,7 +10,7 @@
 
 /* --- global functions --- */
 
-int ef_map_jisx0213_2000_1_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
+int ef_map_jisx0213_2000_1_to_ucs4(ef_char_t *ucs4, u_int16_t jis) {
   u_int32_t c;
 
   if ((c = CONV_JISX0213_2000_1_TO_UCS4(jis))) {
@@ -25,7 +25,7 @@ int ef_map_jisx0213_2000_1_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
   return 0;
 }
 
-int ef_map_jisx0213_2000_2_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
+int ef_map_jisx0213_2000_2_to_ucs4(ef_char_t *ucs4, u_int16_t jis) {
   u_int32_t c;
 
   if ((c = CONV_JISX0213_2000_2_TO_UCS4(jis))) {
@@ -40,7 +40,7 @@ int ef_map_jisx0213_2000_2_to_ucs4(ef_char_t* ucs4, u_int16_t jis) {
   return 0;
 }
 
-int ef_map_ucs4_to_jisx0213_2000_1(ef_char_t* jis, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_jisx0213_2000_1(ef_char_t *jis, u_int32_t ucs4_code) {
   u_int16_t c;
 
   if ((c = CONV_UCS4_TO_JISX0213_2000_1(ucs4_code))) {
@@ -55,7 +55,7 @@ int ef_map_ucs4_to_jisx0213_2000_1(ef_char_t* jis, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_jisx0213_2000_2(ef_char_t* jis, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_jisx0213_2000_2(ef_char_t *jis, u_int32_t ucs4_code) {
   u_int16_t c;
 
   if ((c = CONV_UCS4_TO_JISX0213_2000_2(ucs4_code))) {

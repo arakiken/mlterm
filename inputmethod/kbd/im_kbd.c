@@ -83,8 +83,8 @@ typedef struct im_kbd {
 
   vt_isciikey_state_t isciikey_state;
 
-  ef_parser_t* parser;
-  ef_conv_t* conv;
+  ef_parser_t *parser;
+  ef_conv_t *conv;
 
 } im_kbd_t;
 
@@ -92,12 +92,12 @@ typedef struct im_kbd {
 
 static int ref_count = 0;
 static int initialized = 0;
-static ef_parser_t* parser_ascii = NULL;
+static ef_parser_t *parser_ascii = NULL;
 
 /* mlterm internal symbols */
-static ui_im_export_syms_t* syms = NULL;
+static ui_im_export_syms_t *syms = NULL;
 
-static u_char* arabic_conv_tbl[] = {
+static u_char *arabic_conv_tbl[] = {
     "\x06\x37",         /* ' */
     NULL,               /* ( */
     NULL,               /* ) */
@@ -189,7 +189,7 @@ static u_char* arabic_conv_tbl[] = {
 
 };
 
-static u_char* hebrew_conv_tbl[] = {
+static u_char *hebrew_conv_tbl[] = {
     "\x00\x3b", /* ' */
     NULL,       /* ( */
     NULL,       /* ) */
@@ -283,7 +283,7 @@ static u_char* hebrew_conv_tbl[] = {
 
 /* --- static functions --- */
 
-static kbd_type_t find_kbd_type(char* locale) {
+static kbd_type_t find_kbd_type(char *locale) {
   if (locale && strncmp(locale, "ar", 2) == 0) {
     return KBD_TYPE_ARABIC;
   }
@@ -299,8 +299,8 @@ static kbd_type_t find_kbd_type(char* locale) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t* im) {
-  im_kbd_t* kbd;
+static int delete (ui_im_t *im) {
+  im_kbd_t *kbd;
 
   kbd = (im_kbd_t*)im;
 
@@ -334,10 +334,10 @@ static int delete (ui_im_t* im) {
   return ref_count;
 }
 
-static int key_event_arabic_hebrew(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
-  im_kbd_t* kbd;
+static int key_event_arabic_hebrew(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_kbd_t *kbd;
   size_t len;
-  u_char* c;
+  u_char *c;
   u_char conv_buf[10];
 
   kbd = (im_kbd_t*)im;
@@ -390,8 +390,8 @@ static int key_event_arabic_hebrew(ui_im_t* im, u_char key_char, KeySym ksym, XK
   return 0;
 }
 
-static int key_event_iscii(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
-  im_kbd_t* kbd;
+static int key_event_iscii(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_kbd_t *kbd;
   u_char buf[512];
   size_t len;
   u_char conv_buf[10];
@@ -431,8 +431,8 @@ static int key_event_iscii(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent*
   return 0;
 }
 
-static int switch_mode(ui_im_t* im) {
-  im_kbd_t* kbd;
+static int switch_mode(ui_im_t *im) {
+  im_kbd_t *kbd;
 
   kbd = (im_kbd_t*)im;
 
@@ -530,10 +530,10 @@ static int switch_mode(ui_im_t* im) {
   return 1;
 }
 
-static int is_active(ui_im_t* im) { return (((im_kbd_t*)im)->mode != KBD_MODE_ASCII); }
+static int is_active(ui_im_t *im) { return (((im_kbd_t*)im)->mode != KBD_MODE_ASCII); }
 
-static void focused(ui_im_t* im) {
-  im_kbd_t* kbd;
+static void focused(ui_im_t *im) {
+  im_kbd_t *kbd;
 
   kbd = (im_kbd_t*)im;
 
@@ -542,8 +542,8 @@ static void focused(ui_im_t* im) {
   }
 }
 
-static void unfocused(ui_im_t* im) {
-  im_kbd_t* kbd;
+static void unfocused(ui_im_t *im) {
+  im_kbd_t *kbd;
 
   kbd = (im_kbd_t*)im;
 
@@ -554,10 +554,10 @@ static void unfocused(ui_im_t* im) {
 
 /* --- global functions --- */
 
-ui_im_t* im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                    ui_im_export_syms_t* export_syms, char* opt, /* arabic/hebrew/iscii */
+ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
+                    ui_im_export_syms_t *export_syms, char *opt, /* arabic/hebrew/iscii */
                     u_int mod_ignore_mask) {
-  im_kbd_t* kbd;
+  im_kbd_t *kbd;
   kbd_type_t type;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
@@ -671,8 +671,8 @@ error:
 
 /* --- API for external tools --- */
 
-im_info_t* im_kbd_get_info(char* locale, char* encoding) {
-  im_info_t* result;
+im_info_t *im_kbd_get_info(char *locale, char *encoding) {
+  im_info_t *result;
 
   if (!(result = malloc(sizeof(im_info_t)))) {
     return NULL;

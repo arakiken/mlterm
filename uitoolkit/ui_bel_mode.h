@@ -13,8 +13,8 @@ typedef enum ui_bel_mode {
 
 } ui_bel_mode_t;
 
-ui_bel_mode_t ui_get_bel_mode_by_name(char* name);
+ui_bel_mode_t ui_get_bel_mode_by_name(char *name);
 
-char* ui_get_bel_mode_name(ui_bel_mode_t mode);
+char *ui_get_bel_mode_name(ui_bel_mode_t mode);
 
 #endif

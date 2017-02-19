@@ -15,7 +15,7 @@
 #define MC_RADIO_FONT_POLICY 5
 #define MC_RADIO_LOG_VTSEQ 6
 
-GtkWidget* mc_radio_config_widget_new(int id);
+GtkWidget *mc_radio_config_widget_new(int id);
 
 void mc_update_radio(int id);
 

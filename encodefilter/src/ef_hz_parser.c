@@ -13,8 +13,8 @@ typedef struct ef_hz_parser {
 
 /* --- static functions --- */
 
-static void hz_parser_init(ef_parser_t* parser) {
-  ef_hz_parser_t* hz_parser;
+static void hz_parser_init(ef_parser_t *parser) {
+  ef_hz_parser_t *hz_parser;
 
   ef_parser_init(parser);
 
@@ -23,17 +23,17 @@ static void hz_parser_init(ef_parser_t* parser) {
   hz_parser->cur_cs = US_ASCII;
 }
 
-static void hz_parser_set_str(ef_parser_t* parser, u_char* str, size_t size) {
+static void hz_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;
   parser->is_eos = 0;
 }
 
-static void hz_parser_delete(ef_parser_t* parser) { free(parser); }
+static void hz_parser_delete(ef_parser_t *parser) { free(parser); }
 
-static int hz_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
-  ef_hz_parser_t* hz_parser;
+static int hz_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
+  ef_hz_parser_t *hz_parser;
 
   hz_parser = (ef_hz_parser_t*)parser;
 
@@ -137,8 +137,8 @@ shortage:
 
 /* --- global functions --- */
 
-ef_parser_t* ef_hz_parser_new(void) {
-  ef_hz_parser_t* hz_parser;
+ef_parser_t *ef_hz_parser_new(void) {
+  ef_hz_parser_t *hz_parser;
 
   if ((hz_parser = malloc(sizeof(ef_hz_parser_t))) == NULL) {
     return NULL;

@@ -4,13 +4,13 @@
 #define __IM_INFO_H__
 
 typedef struct im_info {
-  char* id;
-  char* name;
+  char *id;
+  char *name;
 
   u_int num_of_args;
 
-  char** args;
-  char** readable_args;
+  char **args;
+  char **readable_args;
 
 } im_info_t;
 

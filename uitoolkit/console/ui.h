@@ -26,14 +26,14 @@ typedef struct {
   int key_state;
   int lock_state;
 
-  ef_conv_t* conv;
+  ef_conv_t *conv;
 
   unsigned char buf[512];
   unsigned int buf_len;
   int is_pressing;
 
-  void* sixel_output;
-  void* sixel_dither;
+  void *sixel_output;
+  void *sixel_dither;
 
   int support_hmargin;
 
@@ -48,7 +48,7 @@ typedef void* Window;   /* dummy */
 typedef void* Drawable; /* dummy */
 
 typedef struct {
-  unsigned char* image;
+  unsigned char *image;
   unsigned int width;
   unsigned int height;
 
@@ -64,7 +64,7 @@ typedef int KeySym;
 typedef struct /* Same as definition in X11/X.h */
     {
   int max_keypermod;
-  KeyCode* modifiermap;
+  KeyCode *modifiermap;
 
 } XModifierKeymap;
 
@@ -115,7 +115,7 @@ typedef union {
 
 typedef int XSelectionRequestEvent; /* dummy */
 
-typedef struct { void* dummy; } XFontStruct;
+typedef struct { void *dummy; } XFontStruct;
 
 typedef int XFontSet; /* dummy */
 
@@ -508,9 +508,9 @@ typedef struct {
 #define XNegative 0x0010
 #define YNegative 0x0020
 
-int XParseGeometry(char* str, int* x, int* y, unsigned int* width, unsigned int* height);
+int XParseGeometry(char *str, int *x, int *y, unsigned int *width, unsigned int *height);
 
-KeySym XStringToKeysym(char* str);
+KeySym XStringToKeysym(char *str);
 
 /* === Platform dependent options === */
 

@@ -38,23 +38,23 @@ static GScannerConfig menu_scanner_config = {
     FALSE, TRUE, FALSE, FALSE,
 };
 
-static char* progname;
+static char *progname;
 
-GtkWidget* create_menu();
+GtkWidget *create_menu();
 
-int append_menu_from_file(GtkMenu* menu, char* filename);
-int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level);
-int append_pty_list(GtkMenu* menu);
+int append_menu_from_file(GtkMenu *menu, char *filename);
+int append_menu_from_scanner(GtkMenu *menu, GScanner *scanner, int level);
+int append_pty_list(GtkMenu *menu);
 
-void activate_callback(GtkWidget* widget, gpointer data);
+void activate_callback(GtkWidget *widget, gpointer data);
 #if !defined(G_PLATFORM_WIN32)
-void activate_callback_copy(GtkWidget* widget, gpointer data);
+void activate_callback_copy(GtkWidget *widget, gpointer data);
 #endif
-void toggled_callback(GtkWidget* widget, gpointer data);
-char* get_value(char* dev, char* key);
+void toggled_callback(GtkWidget *widget, gpointer data);
+char *get_value(char *dev, char *key);
 
-int main(int argc, char* argv[]) {
-  GtkWidget* menu;
+int main(int argc, char *argv[]) {
+  GtkWidget *menu;
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   gtk_set_locale();
@@ -74,9 +74,9 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-GtkWidget* create_menu(void) {
-  GtkWidget* menu;
-  char* rc_path;
+GtkWidget *create_menu(void) {
+  GtkWidget *menu;
+  char *rc_path;
   int userexist = 0;
 
   menu = gtk_menu_new();
@@ -95,9 +95,9 @@ GtkWidget* create_menu(void) {
   return menu;
 }
 
-int append_menu_from_file(GtkMenu* menu, char* filename) {
+int append_menu_from_file(GtkMenu *menu, char *filename) {
   FILE* file;
-  GScanner* scanner;
+  GScanner *scanner;
 
   file = fopen(filename, "r");
   if (file == NULL) {
@@ -116,9 +116,9 @@ int append_menu_from_file(GtkMenu* menu, char* filename) {
   return 1;
 }
 
-int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level) {
-  GtkWidget* item;
-  GtkWidget* submenu;
+int append_menu_from_scanner(GtkMenu *menu, GScanner *scanner, int level) {
+  GtkWidget *item;
+  GtkWidget *submenu;
   GTokenType tt;
   GTokenValue tv;
 
@@ -177,16 +177,16 @@ int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level) {
   return 1;
 }
 
-int append_pty_list(GtkMenu* menu) {
-  GtkWidget* item;
-  char* my_pty;
-  char* pty_list;
-  char* name_locale;
-  char* name_utf8;
-  char* pty;
-  char* command;
+int append_pty_list(GtkMenu *menu) {
+  GtkWidget *item;
+  char *my_pty;
+  char *pty_list;
+  char *name_locale;
+  char *name_utf8;
+  char *pty;
+  char *command;
   int is_active;
-  GSList* group = NULL;
+  GSList *group = NULL;
 
   if ((my_pty = get_value(NULL, "pty_name")) == NULL) return 1;
   if ((pty_list = get_value(NULL, "pty_list")) == NULL) return 1;
@@ -230,18 +230,18 @@ int append_pty_list(GtkMenu* menu) {
   return 1;
 }
 
-void activate_callback(GtkWidget* widget, gpointer data) {
-  char* command = data;
+void activate_callback(GtkWidget *widget, gpointer data) {
+  char *command = data;
 
   printf("\x1b]5379;%s\x07", command);
 }
 
 #if !defined(G_PLATFORM_WIN32)
-void activate_callback_copy(GtkWidget* widget, gpointer data) {
-  u_char* sel = (u_char*)data;
+void activate_callback_copy(GtkWidget *widget, gpointer data) {
+  u_char *sel = (u_char*)data;
   size_t len = strlen(sel);
   size_t count;
-  GtkClipboard* clipboard;
+  GtkClipboard *clipboard;
 
   if (!(clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))) {
     return;
@@ -264,17 +264,17 @@ void activate_callback_copy(GtkWidget* widget, gpointer data) {
 }
 #endif
 
-void toggled_callback(GtkWidget* widget, gpointer data) {
-  char* command = data;
+void toggled_callback(GtkWidget *widget, gpointer data) {
+  char *command = data;
 
   if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget))) {
     printf("\x1b]5379;%s\x07", command);
   }
 }
 
-char* get_value(char* dev, char* key) {
+char *get_value(char *dev, char *key) {
   size_t count;
-  char* ret;
+  char *ret;
   size_t len;
   char c;
 

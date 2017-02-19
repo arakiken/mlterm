@@ -17,14 +17,14 @@
 
 /* --- static variables --- */
 
-static GtkWidget* entry;
-static char* old_bidisep;
+static GtkWidget *entry;
+static char *old_bidisep;
 static int is_changed;
 
 /* --- static funcitons --- */
 
-static void set_str_value(const char* value) {
-  char* replaced;
+static void set_str_value(const char *value) {
+  char *replaced;
 
   if ((replaced = bl_str_replace(value, "\\", "\\\\"))) {
     value = replaced;
@@ -35,7 +35,7 @@ static void set_str_value(const char* value) {
   free(replaced);
 }
 
-static gint toggled(GtkWidget* widget, gpointer data) {
+static gint toggled(GtkWidget *widget, gpointer data) {
   gtk_widget_set_sensitive(entry, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
 
   return 1;
@@ -43,10 +43,10 @@ static gint toggled(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_ctl_config_widget_new(void) {
-  GtkWidget* hbox;
-  GtkWidget* check;
-  GtkWidget* label;
+GtkWidget *mc_ctl_config_widget_new(void) {
+  GtkWidget *hbox;
+  GtkWidget *check;
+  GtkWidget *label;
 
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
@@ -77,7 +77,7 @@ GtkWidget* mc_ctl_config_widget_new(void) {
 }
 
 void mc_update_ctl(void) {
-  const char* new_bidisep;
+  const char *new_bidisep;
 
   mc_update_flag_mode(MC_FLAG_CTL);
 

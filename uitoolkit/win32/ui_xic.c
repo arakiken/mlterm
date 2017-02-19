@@ -15,7 +15,7 @@
 
 /* --- static functions --- */
 
-static int get_spot(ui_window_t* win, XPoint* spot) {
+static int get_spot(ui_window_t *win, XPoint *spot) {
   int x;
   int y;
 
@@ -41,7 +41,7 @@ static int get_spot(ui_window_t* win, XPoint* spot) {
 
 /* --- global functions --- */
 
-int ui_xic_activate(ui_window_t* win, char* xim_name, char* xim_locale) {
+int ui_xic_activate(ui_window_t *win, char *xim_name, char *xim_locale) {
   if (win->xic) {
     /* already activated */
 
@@ -73,7 +73,7 @@ int ui_xic_activate(ui_window_t* win, char* xim_name, char* xim_locale) {
   return 1;
 }
 
-int ui_xic_deactivate(ui_window_t* win) {
+int ui_xic_deactivate(ui_window_t *win) {
   if (win->xic == NULL) {
     /* already deactivated */
 
@@ -88,15 +88,15 @@ int ui_xic_deactivate(ui_window_t* win) {
   return 1;
 }
 
-char* ui_xic_get_xim_name(ui_window_t* win) { return ""; }
+char *ui_xic_get_xim_name(ui_window_t *win) { return ""; }
 
-char* ui_xic_get_default_xim_name(void) { return ""; }
+char *ui_xic_get_default_xim_name(void) { return ""; }
 
-int ui_xic_fg_color_changed(ui_window_t* win) { return 0; }
+int ui_xic_fg_color_changed(ui_window_t *win) { return 0; }
 
-int ui_xic_bg_color_changed(ui_window_t* win) { return 0; }
+int ui_xic_bg_color_changed(ui_window_t *win) { return 0; }
 
-int ui_xic_font_set_changed(ui_window_t* win) {
+int ui_xic_font_set_changed(ui_window_t *win) {
   if (win->xic && HAS_XIM_LISTENER(win, get_fontset)) {
     if (ImmSetCompositionFont(win->xic->ic,
                               (*win->xim_listener->get_fontset)(win->xim_listener->self))) {
@@ -107,9 +107,9 @@ int ui_xic_font_set_changed(ui_window_t* win) {
   return 0;
 }
 
-int ui_xic_resized(ui_window_t* win) { return 0; }
+int ui_xic_resized(ui_window_t *win) { return 0; }
 
-int ui_xic_set_spot(ui_window_t* win) {
+int ui_xic_set_spot(ui_window_t *win) {
   XPoint spot;
   COMPOSITIONFORM cf;
 
@@ -132,8 +132,8 @@ int ui_xic_set_spot(ui_window_t* win) {
   return ImmSetCompositionWindow(win->xic->ic, &cf);
 }
 
-size_t ui_xic_get_str(ui_window_t* win, u_char* seq, size_t seq_len, ef_parser_t** parser,
-                      KeySym* keysym, XKeyEvent* event) {
+size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
+                      KeySym *keysym, XKeyEvent *event) {
   size_t len;
 
   if (win->xic == NULL) {
@@ -216,13 +216,13 @@ zero_return:
   return 0;
 }
 
-size_t ui_xic_get_utf8_str(ui_window_t* win, u_char* seq, size_t seq_len, ef_parser_t** parser,
-                           KeySym* keysym, XKeyEvent* event) {
+size_t ui_xic_get_utf8_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
+                           KeySym *keysym, XKeyEvent *event) {
   return 0;
 }
 
-int ui_xic_filter_event(ui_window_t* win, /* Should be root window. */
-                        XEvent* event) {
+int ui_xic_filter_event(ui_window_t *win, /* Should be root window. */
+                        XEvent *event) {
   u_int count;
 
   if (event->msg != WM_KEYDOWN) {
@@ -242,16 +242,16 @@ int ui_xic_filter_event(ui_window_t* win, /* Should be root window. */
   return 1;
 }
 
-int ui_xic_set_focus(ui_window_t* win) {
+int ui_xic_set_focus(ui_window_t *win) {
   /* The composition font can be changed by the connection dialog box. */
   ui_xic_font_set_changed(win);
 
   return 1;
 }
 
-int ui_xic_unset_focus(ui_window_t* win) { return 1; }
+int ui_xic_unset_focus(ui_window_t *win) { return 1; }
 
-int ui_xic_is_active(ui_window_t* win) {
+int ui_xic_is_active(ui_window_t *win) {
   if (win->xic == NULL) {
     return 0;
   }
@@ -259,7 +259,7 @@ int ui_xic_is_active(ui_window_t* win) {
   return ImmGetOpenStatus(win->xic->ic);
 }
 
-int ui_xic_switch_mode(ui_window_t* win) {
+int ui_xic_switch_mode(ui_window_t *win) {
   if (win->xic == NULL) {
     return 0;
   }
@@ -274,8 +274,8 @@ int ui_xic_switch_mode(ui_window_t* win) {
  * Not necessary in win32.
  */
 
-int ui_xim_activated(ui_window_t* win) { return 1; }
+int ui_xim_activated(ui_window_t *win) { return 1; }
 
-int ui_xim_destroyed(ui_window_t* win) { return 1; }
+int ui_xim_destroyed(ui_window_t *win) { return 1; }
 
 #endif

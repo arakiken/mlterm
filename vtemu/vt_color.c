@@ -23,7 +23,7 @@ BL_MAP_TYPEDEF(color_rgb, vt_color_t, rgb_t);
 
 /* --- static variables --- */
 
-static char* color_name_table[] = {
+static char *color_name_table[] = {
     "hl_black", "hl_red", "hl_green", "hl_yellow", "hl_blue", "hl_magenta", "hl_cyan", "hl_white",
 };
 
@@ -297,7 +297,7 @@ static u_int8_t color256_rgb_table[][3] = {
 };
 #endif
 
-static char* color_file = "mlterm/color";
+static char *color_file = "mlterm/color";
 static BL_MAP(color_rgb) color_config;
 static u_int num_of_changed_256_colors;
 
@@ -317,7 +317,7 @@ static int use_pseudo_color = 0;
 /* --- static functions --- */
 
 static void get_default_rgb(vt_color_t color, /* is 255 or less */
-                            u_int8_t* red, u_int8_t* green, u_int8_t* blue) {
+                            u_int8_t *red, u_int8_t *green, u_int8_t *blue) {
   if (IS_VTSYS_COLOR(color)) {
     *red = vtsys_color_rgb_table[color][0];
     *green = vtsys_color_rgb_table[color][1];
@@ -438,8 +438,8 @@ static int color_config_set_rgb(vt_color_t color, /* is 255 or less */
   }
 }
 
-static int color_config_get_rgb(vt_color_t color, u_int8_t* red, u_int8_t* green, u_int8_t* blue,
-                                u_int8_t* alpha /* can be NULL */
+static int color_config_get_rgb(vt_color_t color, u_int8_t *red, u_int8_t *green, u_int8_t *blue,
+                                u_int8_t *alpha /* can be NULL */
                                 ) {
   BL_PAIR(color_rgb) pair;
 
@@ -461,7 +461,7 @@ static int color_config_get_rgb(vt_color_t color, u_int8_t* red, u_int8_t* green
   return 1;
 }
 
-static int parse_conf(char* color_name, char* rgb) {
+static int parse_conf(char *color_name, char *rgb) {
   u_int8_t red;
   u_int8_t green;
   u_int8_t blue;
@@ -504,10 +504,10 @@ static int parse_conf(char* color_name, char* rgb) {
   return color_config_set_rgb(color, red, green, blue, alpha);
 }
 
-static int read_conf(const char* filename) {
-  bl_file_t* from;
-  char* color_name;
-  char* rgb;
+static int read_conf(const char *filename) {
+  bl_file_t *from;
+  char *color_name;
+  char *rgb;
 
   if (!(from = bl_file_open(filename, "r"))) {
 #ifdef DEBUG
@@ -528,7 +528,7 @@ static int read_conf(const char* filename) {
 
 /* --- global functions --- */
 
-void vt_set_color_mode(const char* mode) {
+void vt_set_color_mode(const char *mode) {
   if (strcmp(mode, "256") == 0) {
     color_distance_threshold = COLOR_DISTANCE_THRESHOLD;
     use_pseudo_color = 1;
@@ -543,7 +543,7 @@ void vt_set_color_mode(const char* mode) {
   }
 }
 
-char* vt_get_color_mode(void) {
+char *vt_get_color_mode(void) {
   if (use_pseudo_color) {
     return "256";
   } else if (color_distance_threshold == 40) {
@@ -554,7 +554,7 @@ char* vt_get_color_mode(void) {
 }
 
 int vt_color_config_init(void) {
-  char* rcpath;
+  char *rcpath;
 
   bl_map_new_with_size(vt_color_t, rgb_t, color_config, bl_map_hash_int, bl_map_compare_int, 16);
 
@@ -582,14 +582,14 @@ int vt_color_config_final(void) {
  * Return value 0 means customization failed or not changed.
  * Return value -1 means saving failed.
  */
-int vt_customize_color_file(char* color, char* rgb, int save) {
+int vt_customize_color_file(char *color, char *rgb, int save) {
   if (!color_config || !parse_conf(color, rgb)) {
     return 0;
   }
 
   if (save) {
-    char* path;
-    bl_conf_write_t* conf;
+    char *path;
+    bl_conf_write_t *conf;
 
     if ((path = bl_get_user_rc_path(color_file)) == NULL) {
       return -1;
@@ -609,7 +609,7 @@ int vt_customize_color_file(char* color, char* rgb, int save) {
   return 1;
 }
 
-char* vt_get_color_name(vt_color_t color) {
+char *vt_get_color_name(vt_color_t color) {
   if (IS_VTSYS_COLOR(color)) {
     if (color & VT_BOLD_COLOR_MASK) {
       return color_name_table[color & ~VT_BOLD_COLOR_MASK];
@@ -627,7 +627,7 @@ char* vt_get_color_name(vt_color_t color) {
   }
 }
 
-vt_color_t vt_get_color(const char* name) {
+vt_color_t vt_get_color(const char *name) {
   vt_color_t color;
 
   if (sscanf(name, "%d", (int*)&color) == 1) {
@@ -647,8 +647,8 @@ vt_color_t vt_get_color(const char* name) {
   return VT_UNKNOWN_COLOR;
 }
 
-int vt_get_color_rgba(vt_color_t color, u_int8_t* red, u_int8_t* green, u_int8_t* blue,
-                      u_int8_t* alpha /* can be NULL */
+int vt_get_color_rgba(vt_color_t color, u_int8_t *red, u_int8_t *green, u_int8_t *blue,
+                      u_int8_t *alpha /* can be NULL */
                       ) {
   if (!IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color)) {
     return 0;
@@ -675,14 +675,14 @@ int vt_get_color_rgba(vt_color_t color, u_int8_t* red, u_int8_t* green, u_int8_t
   return 1;
 }
 
-int vt_color_parse_rgb_name(u_int8_t* red, u_int8_t* green, u_int8_t* blue, u_int8_t* alpha,
-                            const char* name) {
+int vt_color_parse_rgb_name(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_int8_t *alpha,
+                            const char *name) {
   int r;
   int g;
   int b;
   int a;
   size_t name_len;
-  char* format;
+  char *format;
   int has_alpha;
   int long_color;
 
@@ -775,7 +775,7 @@ end:
 /*
  * Return the number of colors which should be searched after this function.
  */
-u_int vt_get_closest_256_color(vt_color_t* closest, u_int* min_diff, u_int8_t red, u_int8_t green,
+u_int vt_get_closest_256_color(vt_color_t *closest, u_int *min_diff, u_int8_t red, u_int8_t green,
                                u_int8_t blue, int threshold) {
   int r, g, b;
   int tmp;

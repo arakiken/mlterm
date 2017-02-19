@@ -13,7 +13,7 @@ static keymap_t keymap;
 /* --- static functions --- */
 
 static int open_display(u_int depth) {
-  char* dev;
+  char *dev;
   int vmode;
   video_info_t vinfo;
   video_adapter_info_t vainfo;
@@ -207,7 +207,7 @@ static int receive_mouse_event(void) {
       int move;
       struct timeval tv;
       XButtonEvent xev;
-      ui_window_t* win;
+      ui_window_t *win;
 
       if (packet_len == 0) {
         if ((buf[count] & 0xf8) != 0x80) {

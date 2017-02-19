@@ -16,29 +16,29 @@ typedef struct ef_utf32_parser {
 
 /* --- static functions --- */
 
-static void utf32_parser_init(ef_parser_t* parser) {
+static void utf32_parser_init(ef_parser_t *parser) {
   ef_parser_init(parser);
 
   ((ef_utf32_parser_t*)parser)->is_big_endian = 1;
 }
 
-static void utf32le_parser_init(ef_parser_t* parser) {
+static void utf32le_parser_init(ef_parser_t *parser) {
   ef_parser_init(parser);
 
   ((ef_utf32_parser_t*)parser)->is_big_endian = 0;
 }
 
-static void utf32_parser_set_str(ef_parser_t* parser, u_char* str, size_t size) {
+static void utf32_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;
   parser->is_eos = 0;
 }
 
-static void utf32_parser_delete(ef_parser_t* parser) { free(parser); }
+static void utf32_parser_delete(ef_parser_t *parser) { free(parser); }
 
-static int utf32_parser_next_char(ef_parser_t* parser, ef_char_t* ucs4_ch) {
-  ef_utf32_parser_t* utf32_parser;
+static int utf32_parser_next_char(ef_parser_t *parser, ef_char_t *ucs4_ch) {
+  ef_utf32_parser_t *utf32_parser;
 
   if (parser->is_eos) {
     return 0;
@@ -97,8 +97,8 @@ static int utf32_parser_next_char(ef_parser_t* parser, ef_char_t* ucs4_ch) {
 
 /* --- global functions --- */
 
-ef_parser_t* ef_utf32_parser_new(void) {
-  ef_utf32_parser_t* utf32_parser;
+ef_parser_t *ef_utf32_parser_new(void) {
+  ef_utf32_parser_t *utf32_parser;
 
   if ((utf32_parser = malloc(sizeof(ef_utf32_parser_t))) == NULL) {
     return NULL;
@@ -114,8 +114,8 @@ ef_parser_t* ef_utf32_parser_new(void) {
   return (ef_parser_t*)utf32_parser;
 }
 
-ef_parser_t* ef_utf32le_parser_new(void) {
-  ef_utf32_parser_t* utf32_parser;
+ef_parser_t *ef_utf32le_parser_new(void) {
+  ef_utf32_parser_t *utf32_parser;
 
   if ((utf32_parser = malloc(sizeof(ef_utf32_parser_t))) == NULL) {
     return NULL;

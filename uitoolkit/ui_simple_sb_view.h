@@ -5,8 +5,8 @@
 
 #include "ui_sb_view.h"
 
-ui_sb_view_t* ui_simple_sb_view_new(void);
+ui_sb_view_t *ui_simple_sb_view_new(void);
 
-ui_sb_view_t* ui_simple_transparent_sb_view_new(void);
+ui_sb_view_t *ui_simple_transparent_sb_view_new(void);
 
 #endif

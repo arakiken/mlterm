@@ -8,7 +8,7 @@
 
 /* --- static functions --- */
 
-static void copy_char_with_mirror_check(vt_char_t* dst, vt_char_t* src, u_int16_t* visual_order,
+static void copy_char_with_mirror_check(vt_char_t *dst, vt_char_t *src, u_int16_t *visual_order,
                                         u_int16_t visual_order_size, int pos) {
   vt_char_copy(dst, src);
 
@@ -33,7 +33,7 @@ static void copy_char_with_mirror_check(vt_char_t* dst, vt_char_t* src, u_int16_
   }
 }
 
-static void set_visual_modified(vt_line_t* line, int logical_mod_beg, int logical_mod_end) {
+static void set_visual_modified(vt_line_t *line, int logical_mod_beg, int logical_mod_end) {
   int visual_mod_beg;
   int visual_mod_end;
 
@@ -66,7 +66,7 @@ static void set_visual_modified(vt_line_t* line, int logical_mod_beg, int logica
 
 /* --- global functions --- */
 
-int vt_line_set_use_bidi(vt_line_t* line, int flag) {
+int vt_line_set_use_bidi(vt_line_t *line, int flag) {
   if (flag) {
     if (vt_line_is_using_bidi(line)) {
       return 1;
@@ -90,8 +90,8 @@ int vt_line_set_use_bidi(vt_line_t* line, int flag) {
 }
 
 /* The caller should check vt_line_is_using_bidi() in advance. */
-int vt_line_bidi_render(vt_line_t* line, /* is always modified */
-                        vt_bidi_mode_t bidi_mode, const char* separators) {
+int vt_line_bidi_render(vt_line_t *line, /* is always modified */
+                        vt_bidi_mode_t bidi_mode, const char *separators) {
   int ret;
 
   if (vt_line_is_real_modified(line)) {
@@ -133,9 +133,9 @@ int vt_line_bidi_render(vt_line_t* line, /* is always modified */
 }
 
 /* The caller should check vt_line_is_using_bidi() in advance. */
-int vt_line_bidi_visual(vt_line_t* line) {
+int vt_line_bidi_visual(vt_line_t *line) {
   int count;
-  vt_char_t* src;
+  vt_char_t *src;
 
   if (line->ctl_info.bidi->size == 0 || !HAS_RTL(line->ctl_info.bidi)) {
 #ifdef __DEBUG
@@ -163,9 +163,9 @@ int vt_line_bidi_visual(vt_line_t* line) {
 }
 
 /* The caller should check vt_line_is_using_bidi() in advance. */
-int vt_line_bidi_logical(vt_line_t* line) {
+int vt_line_bidi_logical(vt_line_t *line) {
   int count;
-  vt_char_t* src;
+  vt_char_t *src;
 
   if (line->ctl_info.bidi->size == 0 || !HAS_RTL(line->ctl_info.bidi)) {
 #ifdef __DEBUG
@@ -198,8 +198,8 @@ int vt_line_bidi_logical(vt_line_t* line) {
 }
 
 /* The caller should check vt_line_is_using_bidi() in advance. */
-int vt_line_bidi_convert_logical_char_index_to_visual(vt_line_t* line, int char_index,
-                                                      int* ltr_rtl_meet_pos) {
+int vt_line_bidi_convert_logical_char_index_to_visual(vt_line_t *line, int char_index,
+                                                      int *ltr_rtl_meet_pos) {
   if (((u_int)char_index) < line->ctl_info.bidi->size && /* same as 0 <= char_index < size */
       HAS_RTL(line->ctl_info.bidi)) {
     int count;
@@ -330,7 +330,7 @@ int vt_line_bidi_convert_logical_char_index_to_visual(vt_line_t* line, int char_
  * this
  * module can be loaded unnecessarily).
  */
-int vt_line_bidi_convert_visual_char_index_to_logical(vt_line_t* line, int char_index) {
+int vt_line_bidi_convert_visual_char_index_to_logical(vt_line_t *line, int char_index) {
   u_int count;
 
   for (count = 0; count < line->ctl_info.bidi->size; count++) {
@@ -349,23 +349,23 @@ int vt_line_bidi_convert_visual_char_index_to_logical(vt_line_t* line, int char_
  * this
  * module can be loaded unnecessarily).
  */
-int vt_line_bidi_is_rtl(vt_line_t* line) { return BASE_IS_RTL(line->ctl_info.bidi); }
+int vt_line_bidi_is_rtl(vt_line_t *line) { return BASE_IS_RTL(line->ctl_info.bidi); }
 
-int vt_line_bidi_need_shape(vt_line_t* line) { return HAS_RTL(line->ctl_info.bidi); }
+int vt_line_bidi_need_shape(vt_line_t *line) { return HAS_RTL(line->ctl_info.bidi); }
 
 /*
  * This function is used only by a loader of this module (not used inside this
  * module),
  * so it is assumed that vt_line_is_using_bidi() was already checked.
  */
-int vt_line_bidi_copy_logical_str(vt_line_t* line, vt_char_t* dst, int beg, /* visual position */
+int vt_line_bidi_copy_logical_str(vt_line_t *line, vt_char_t *dst, int beg, /* visual position */
                                   u_int len) {
   /*
    * XXX
    * adhoc implementation.
    */
 
-  int* flags;
+  int *flags;
   int bidi_pos;
   int norm_pos;
   int dst_pos;

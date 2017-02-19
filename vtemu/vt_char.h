@@ -88,7 +88,7 @@ typedef struct vt_char {
      * 32 bits(on ILP32) or 64 bits(on LP64).
      * LSB(used for is_single_ch) is considered 0.
      */
-    struct vt_char* multi_ch;
+    struct vt_char *multi_ch;
 
   } u;
 
@@ -98,20 +98,20 @@ int vt_set_use_multi_col_char(int use_it);
 
 vt_font_t vt_char_get_unicode_area_font(u_int32_t min, u_int32_t max);
 
-int vt_char_init(vt_char_t* ch);
+int vt_char_init(vt_char_t *ch);
 
-int vt_char_final(vt_char_t* ch);
+int vt_char_final(vt_char_t *ch);
 
-int vt_char_set(vt_char_t* ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
+int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
                 int underline_style, int is_crossed_out, int is_blinking);
 
-void vt_char_change_attr(vt_char_t* ch, int is_bold, int is_underlined, int is_blinking,
+void vt_char_change_attr(vt_char_t *ch, int is_bold, int is_underlined, int is_blinking,
                          int is_reversed);
 
-void vt_char_reverse_attr(vt_char_t* ch, int bold, int underlined, int blinking, int reversed);
+void vt_char_reverse_attr(vt_char_t *ch, int bold, int underlined, int blinking, int reversed);
 
-vt_char_t* vt_char_combine(vt_char_t* ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
+vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
                            int is_comb, vt_color_t fg_color, vt_color_t bg_color, int is_bold,
                            int is_italic, int underline_style, int is_crossed_out, int is_blinking);
 
@@ -119,85 +119,85 @@ vt_char_t* vt_char_combine(vt_char_t* ch, u_int32_t code, ef_charset_t cs, int i
 #define vt_char_combine_picture(ch, id, pos) \
   vt_char_combine(ch, pos, PICTURE_CHARSET, 0, 0, id, id, 0, 0, 0, 0, 0)
 
-vt_char_t* vt_char_combine_simple(vt_char_t* ch, vt_char_t* comb);
+vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *comb);
 
-vt_char_t* vt_get_base_char(vt_char_t* ch);
+vt_char_t *vt_get_base_char(vt_char_t *ch);
 
-vt_char_t* vt_get_combining_chars(vt_char_t* ch, u_int* size);
+vt_char_t *vt_get_combining_chars(vt_char_t *ch, u_int *size);
 
-vt_char_t* vt_get_picture_char(vt_char_t* ch);
+vt_char_t *vt_get_picture_char(vt_char_t *ch);
 
 #if 0
 /*
  * Not used for now.
  */
-int vt_char_move(vt_char_t* dst, vt_char_t* src);
+int vt_char_move(vt_char_t *dst, vt_char_t *src);
 #endif
 
-int vt_char_copy(vt_char_t* dst, vt_char_t* src);
+int vt_char_copy(vt_char_t *dst, vt_char_t *src);
 
-u_int32_t vt_char_code(vt_char_t* ch);
+u_int32_t vt_char_code(vt_char_t *ch);
 
-int vt_char_set_code(vt_char_t* ch, u_int32_t code);
+int vt_char_set_code(vt_char_t *ch, u_int32_t code);
 
-ef_charset_t vt_char_cs(vt_char_t* ch);
+ef_charset_t vt_char_cs(vt_char_t *ch);
 
-int vt_char_set_cs(vt_char_t* ch, ef_charset_t cs);
+int vt_char_set_cs(vt_char_t *ch, ef_charset_t cs);
 
-int vt_char_is_comb(vt_char_t* ch);
+int vt_char_is_comb(vt_char_t *ch);
 
-vt_font_t vt_char_font(vt_char_t* ch);
+vt_font_t vt_char_font(vt_char_t *ch);
 
-u_int vt_char_cols(vt_char_t* ch);
+u_int vt_char_cols(vt_char_t *ch);
 
-int vt_char_is_fullwidth(vt_char_t* ch);
+int vt_char_is_fullwidth(vt_char_t *ch);
 
-vt_color_t vt_char_fg_color(vt_char_t* ch);
+vt_color_t vt_char_fg_color(vt_char_t *ch);
 
-int vt_char_set_fg_color(vt_char_t* ch, vt_color_t color);
+int vt_char_set_fg_color(vt_char_t *ch, vt_color_t color);
 
 #define vt_char_picture_id(ch) vt_char_fg_color(ch)
 #define vt_char_set_picture_id(ch, idx) vt_char_set_fg_color(ch, idx)
 
-vt_color_t vt_char_bg_color(vt_char_t* ch);
+vt_color_t vt_char_bg_color(vt_char_t *ch);
 
-int vt_char_set_bg_color(vt_char_t* ch, vt_color_t color);
+int vt_char_set_bg_color(vt_char_t *ch, vt_color_t color);
 
-int vt_char_get_offset(vt_char_t* ch);
+int vt_char_get_offset(vt_char_t *ch);
 
-u_int vt_char_get_width(vt_char_t* ch);
+u_int vt_char_get_width(vt_char_t *ch);
 
-int vt_char_set_position(vt_char_t* ch, u_int8_t offset, u_int8_t width);
+int vt_char_set_position(vt_char_t *ch, u_int8_t offset, u_int8_t width);
 
-int vt_char_underline_style(vt_char_t* ch);
+int vt_char_underline_style(vt_char_t *ch);
 
-int vt_char_is_crossed_out(vt_char_t* ch);
+int vt_char_is_crossed_out(vt_char_t *ch);
 
-int vt_char_is_blinking(vt_char_t* ch);
+int vt_char_is_blinking(vt_char_t *ch);
 
-int vt_char_set_visible(vt_char_t* ch, int visible);
+int vt_char_set_visible(vt_char_t *ch, int visible);
 
-int vt_char_is_visible(vt_char_t* ch);
+int vt_char_is_visible(vt_char_t *ch);
 
-int vt_char_reverse_color(vt_char_t* ch);
+int vt_char_reverse_color(vt_char_t *ch);
 
-int vt_char_restore_color(vt_char_t* ch);
+int vt_char_restore_color(vt_char_t *ch);
 
-int vt_char_is_null(vt_char_t* ch);
+int vt_char_is_null(vt_char_t *ch);
 
-int vt_char_equal(vt_char_t* ch1, vt_char_t* ch2);
+int vt_char_equal(vt_char_t *ch1, vt_char_t *ch2);
 
-int vt_char_code_is(vt_char_t* ch, u_int32_t code, ef_charset_t cs);
+int vt_char_code_is(vt_char_t *ch, u_int32_t code, ef_charset_t cs);
 
-int vt_char_code_equal(vt_char_t* ch1, vt_char_t* ch2);
+int vt_char_code_equal(vt_char_t *ch1, vt_char_t *ch2);
 
-vt_char_t* vt_sp_ch(void);
+vt_char_t *vt_sp_ch(void);
 
-vt_char_t* vt_nl_ch(void);
+vt_char_t *vt_nl_ch(void);
 
 #ifdef DEBUG
 
-void vt_char_dump(vt_char_t* ch);
+void vt_char_dump(vt_char_t *ch);
 
 #endif
 

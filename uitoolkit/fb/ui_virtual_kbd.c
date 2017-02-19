@@ -14,7 +14,7 @@
 
 /* --- static variables --- */
 
-static ui_window_t* kbd_win;
+static ui_window_t *kbd_win;
 
 static struct kbd_key {
   int16_t left;
@@ -117,7 +117,7 @@ static struct kbd_key_group {
   int16_t top;
   int16_t bottom;
   u_int16_t num_of_keys;
-  struct kbd_key* keys;
+  struct kbd_key *keys;
 
 } kbd_key_groups[] = {
     {1, 35, 14, kbd_keys},
@@ -192,7 +192,7 @@ static int update_state(u_int ksym) {
   }
 }
 
-static void window_exposed(ui_window_t* win, int x, int y, u_int width, u_int height) {
+static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int height) {
   if (x < x_off) {
     ui_window_clear(win, x, y, width, height);
 
@@ -217,7 +217,7 @@ static void window_exposed(ui_window_t* win, int x, int y, u_int width, u_int he
   ui_window_copy_area(win, normal_pixmap, None, x - x_off, y, width, height, x, y);
 }
 
-static int start_virtual_kbd(ui_display_t* disp) {
+static int start_virtual_kbd(ui_display_t *disp) {
   u_int width;
   u_int height;
 
@@ -347,7 +347,7 @@ int ui_virtual_kbd_hide(void) {
  *  1: is virtual kbd event.
  * -1: is inside the virtual kbd area but not virtual kbd event.
  */
-int ui_is_virtual_kbd_event(ui_display_t* disp, XButtonEvent* bev) {
+int ui_is_virtual_kbd_event(ui_display_t *disp, XButtonEvent *bev) {
   while (!kbd_win) {
     static int click_num;
 
@@ -400,7 +400,7 @@ int ui_is_virtual_kbd_event(ui_display_t* disp, XButtonEvent* bev) {
  *  2: keytop image is redrawn but kev is not set.
  *  0: keytop image is not redrawn and kev is not set.
  */
-int ui_virtual_kbd_read(XKeyEvent* kev, XButtonEvent* bev) {
+int ui_virtual_kbd_read(XKeyEvent *kev, XButtonEvent *bev) {
   int x;
   int y;
 
@@ -415,7 +415,7 @@ int ui_virtual_kbd_read(XKeyEvent* kev, XButtonEvent* bev) {
     }
   } else /* if( bev->type == ButtonPress) */
   {
-    struct kbd_key_group* key_group;
+    struct kbd_key_group *key_group;
     u_int count;
 
     y = bev->y - kbd_win->y;
@@ -483,7 +483,7 @@ int ui_virtual_kbd_read(XKeyEvent* kev, XButtonEvent* bev) {
   return 0;
 }
 
-ui_window_t* ui_is_virtual_kbd_area(int y) {
+ui_window_t *ui_is_virtual_kbd_area(int y) {
   if (kbd_win && y > kbd_win->y) {
     return kbd_win;
   } else {

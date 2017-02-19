@@ -6,7 +6,7 @@
 
 /* --- global functions --- */
 
-Pixmap ui_get_icon_pixmap(ui_sb_view_t* view, GC gc, GC memgc, char** data, unsigned int width,
+Pixmap ui_get_icon_pixmap(ui_sb_view_t *view, GC gc, GC memgc, char **data, unsigned int width,
                           unsigned int height, unsigned int depth, /* Not used */
                           unsigned long black,                     /* Not used */
                           unsigned long white                      /* Not used */
@@ -44,7 +44,7 @@ Pixmap ui_get_icon_pixmap(ui_sb_view_t* view, GC gc, GC memgc, char** data, unsi
   return pix;
 }
 
-int ui_draw_icon_pixmap_fg(ui_sb_view_t* view, GC gc, char** data, unsigned int width,
+int ui_draw_icon_pixmap_fg(ui_sb_view_t *view, GC gc, char **data, unsigned int width,
                            unsigned int height) {
   int x;
   int y;

@@ -15,8 +15,8 @@ typedef struct cp_parser {
 
 /* --- static functions --- */
 
-static void cp_parser_init(ef_parser_t* parser) {
-  cp_parser_t* cp_parser;
+static void cp_parser_init(ef_parser_t *parser) {
+  cp_parser_t *cp_parser;
 
   cp_parser = (cp_parser_t*)parser;
 
@@ -25,11 +25,11 @@ static void cp_parser_init(ef_parser_t* parser) {
   cp_parser->cp_size = 1;
 }
 
-static void cp_parser_set_str(ef_parser_t* parser, u_char* str,
+static void cp_parser_set_str(ef_parser_t *parser, u_char *str,
                               size_t size /* size(max 16bit) | cs << 16 */
                               ) {
   ef_charset_t cs;
-  cp_parser_t* cp_parser;
+  cp_parser_t *cp_parser;
 
   cp_parser = (cp_parser_t*)parser;
 
@@ -50,10 +50,10 @@ static void cp_parser_set_str(ef_parser_t* parser, u_char* str,
   }
 }
 
-static void cp_parser_delete(ef_parser_t* parser) { free(parser); }
+static void cp_parser_delete(ef_parser_t *parser) { free(parser); }
 
-static int cp_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
-  cp_parser_t* cp_parser;
+static int cp_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
+  cp_parser_t *cp_parser;
   size_t count;
 
   cp_parser = (cp_parser_t*)parser;
@@ -83,8 +83,8 @@ static int cp_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
 
 /* --- global functions --- */
 
-ef_parser_t* ef_codepoint_parser_new(void) {
-  cp_parser_t* cp_parser;
+ef_parser_t *ef_codepoint_parser_new(void) {
+  cp_parser_t *cp_parser;
 
   if ((cp_parser = malloc(sizeof(cp_parser_t))) == NULL) {
     return NULL;

@@ -275,15 +275,15 @@ static struct unicode_block {
 
 /* --- static functions --- */
 
-static char* get_user_rc_path(char* rcfile) {
-  char* homedir;
-  char* path;
+static char *get_user_rc_path(char *rcfile) {
+  char *homedir;
+  char *path;
 
   if ((homedir = getenv("HOME")) &&
       /* Enough for "%s/.config/%s" */
       (path = malloc(strlen(homedir) + 9 + strlen(rcfile) + 1))) {
     struct stat st;
-    char* p;
+    char *p;
 
     sprintf(path, "%s/.config/%s", homedir, rcfile);
     p = strrchr(path, '/');
@@ -300,8 +300,8 @@ static char* get_user_rc_path(char* rcfile) {
   return NULL;
 }
 
-static FcPattern* fc_pattern_create(const FcChar8* family) {
-  FcPattern* pattern;
+static FcPattern *fc_pattern_create(const FcChar8* family) {
+  FcPattern *pattern;
 
   if (!(pattern = FcPatternCreate())) {
     return NULL;
@@ -324,7 +324,7 @@ static FcPattern* fc_pattern_create(const FcChar8* family) {
   return pattern;
 }
 
-static int is_same_family(FcPattern* pattern, const char* family) {
+static int is_same_family(FcPattern *pattern, const char *family) {
   int count;
   FcValue val;
 
@@ -337,8 +337,8 @@ static int is_same_family(FcPattern* pattern, const char* family) {
   return 0;
 }
 
-static FcPattern* search_next_font(FcPattern* pattern) {
-  FcPattern* match;
+static FcPattern *search_next_font(FcPattern *pattern) {
+  FcPattern *match;
   FcValue val;
   FcResult result;
 
@@ -375,12 +375,12 @@ static FcPattern* search_next_font(FcPattern* pattern) {
   }
 }
 
-static void backup_config(const char* path) {
+static void backup_config(const char *path) {
   FILE* fp;
 
   if ((fp = fopen(path, "r"))) {
     char buf[1024];
-    char* new_path;
+    char *new_path;
 
     while (fgets(buf, sizeof(buf), fp)) {
       if (strcmp(buf, HEADER) == 0) {
@@ -397,18 +397,18 @@ static void backup_config(const char* path) {
   }
 }
 
-static int check_font_config(const char* default_family /* family name */
+static int check_font_config(const char *default_family /* family name */
                              ) {
-  const char* path;
-  const char* default_path;
-  FcPattern* pattern;
-  FcPattern* matches[1024];
+  const char *path;
+  const char *default_path;
+  FcPattern *pattern;
+  FcPattern *matches[1024];
   u_int num_of_matches = 0;
   int b_idx;
   struct {
-    struct unicode_block* block;
-    const char* family;
-    const char* path;
+    struct unicode_block *block;
+    const char *family;
+    const char *path;
   } outputs[MAX_AREAS];
   u_int num_of_outputs = 0;
   FcValue val;
@@ -441,7 +441,7 @@ static int check_font_config(const char* default_family /* family name */
     int m_idx;
 
     for (m_idx = 0;; m_idx++) {
-      FcCharSet* charset;
+      FcCharSet *charset;
 
       if (m_idx == num_of_matches) {
         if (num_of_matches == sizeof(matches) / sizeof(matches[0]) ||
@@ -451,9 +451,9 @@ static int check_font_config(const char* default_family /* family name */
 
         if (!(matches[num_of_matches] = search_next_font(pattern))) {
           int count;
-          FcPattern* pat = FcPatternCreate();
-          FcObjectSet* objset = FcObjectSetBuild(FC_FAMILY, FC_FILE, FC_CHARSET, NULL);
-          FcFontSet* fontset = FcFontList(NULL, pat, objset);
+          FcPattern *pat = FcPatternCreate();
+          FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, FC_FILE, FC_CHARSET, NULL);
+          FcFontSet *fontset = FcFontList(NULL, pat, objset);
 
           for (count = 0; count < fontset->nfont; count++) {
             matches[num_of_matches++] = fontset->fonts[count];
@@ -548,7 +548,7 @@ static int check_font_config(const char* default_family /* family name */
 
 /* --- global functions --- */
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   if ((argc != 2 || *argv[1] == '-') && argc != 1) {
     fprintf(stderr, "Usage: mlfc <Default Font Name>\n");
 

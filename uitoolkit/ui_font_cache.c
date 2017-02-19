@@ -7,7 +7,7 @@
 
 /* --- static variables --- */
 
-static ui_font_cache_t** font_caches;
+static ui_font_cache_t **font_caches;
 static u_int num_of_caches;
 static int leftward_double_drawing;
 
@@ -15,7 +15,7 @@ static int leftward_double_drawing;
 
 #ifdef DEBUG
 
-static void dump_cached_fonts(ui_font_cache_t* font_cache) {
+static void dump_cached_fonts(ui_font_cache_t *font_cache) {
   u_int count;
   u_int size;
   BL_PAIR(ui_font) * f_array;
@@ -34,7 +34,7 @@ static void dump_cached_fonts(ui_font_cache_t* font_cache) {
 /*
  * Call this function after init all members except font_table
  */
-static int init_usascii_font(ui_font_cache_t* font_cache) {
+static int init_usascii_font(ui_font_cache_t *font_cache) {
   return (font_cache->usascii_font = ui_font_cache_get_xfont(
               font_cache, NORMAL_FONT_OF(font_cache->usascii_font_cs))) != NULL;
 }
@@ -66,13 +66,13 @@ static int xfont_table_delete(BL_MAP(ui_font) xfont_table) {
 }
 
 #ifdef USE_XLIB
-static char* get_font_name_list_for_fontset(ui_font_cache_t* font_cache) {
-  char* font_name_list;
-  char* p;
+static char *get_font_name_list_for_fontset(ui_font_cache_t *font_cache) {
+  char *font_name_list;
+  char *p;
   size_t list_len;
 
   if (font_cache->font_config->type_engine != TYPE_XCORE) {
-    ui_font_config_t* font_config;
+    ui_font_config_t *font_config;
 
     if ((font_config = ui_acquire_font_config(
              TYPE_XCORE, font_cache->font_config->font_present & ~FONT_AA)) == NULL) {
@@ -111,12 +111,12 @@ static char* get_font_name_list_for_fontset(ui_font_cache_t* font_cache) {
 
 void ui_set_use_leftward_double_drawing(int use) { leftward_double_drawing = use; }
 
-ui_font_cache_t* ui_acquire_font_cache(Display* display, u_int font_size,
-                                       ef_charset_t usascii_font_cs, ui_font_config_t* font_config,
+ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
+                                       ef_charset_t usascii_font_cs, ui_font_config_t *font_config,
                                        int use_multi_col_char, u_int letter_space) {
   int count;
-  ui_font_cache_t* font_cache;
-  void* p;
+  ui_font_cache_t *font_cache;
+  void *p;
 
   for (count = 0; count < num_of_caches; count++) {
     if (font_caches[count]->display == display && font_caches[count]->font_size == font_size &&
@@ -164,7 +164,7 @@ ui_font_cache_t* ui_acquire_font_cache(Display* display, u_int font_size,
   return font_caches[num_of_caches++] = font_cache;
 }
 
-int ui_release_font_cache(ui_font_cache_t* font_cache) {
+int ui_release_font_cache(ui_font_cache_t *font_cache) {
   int count;
 
   if (--font_cache->ref_count > 0) {
@@ -190,7 +190,7 @@ int ui_release_font_cache(ui_font_cache_t* font_cache) {
   return 0;
 }
 
-int ui_font_cache_unload(ui_font_cache_t* font_cache) {
+int ui_font_cache_unload(ui_font_cache_t *font_cache) {
   /*
    * Discarding existing cache.
    */
@@ -227,13 +227,13 @@ int ui_font_cache_unload_all(void) {
   return 1;
 }
 
-ui_font_t* ui_font_cache_get_xfont(ui_font_cache_t* font_cache, vt_font_t font) {
+ui_font_t *ui_font_cache_get_xfont(ui_font_cache_t *font_cache, vt_font_t font) {
   ui_font_present_t font_present;
   vt_font_t font_for_config;
   int result;
-  ui_font_t* xfont;
+  ui_font_t *xfont;
   BL_PAIR(ui_font) fn_pair;
-  char* fontname;
+  char *fontname;
   int use_medium_for_bold;
   u_int col_width;
   int size_attr;
@@ -363,14 +363,14 @@ found:
   return xfont;
 }
 
-XFontSet ui_font_cache_get_fontset(ui_font_cache_t* font_cache) {
+XFontSet ui_font_cache_get_fontset(ui_font_cache_t *font_cache) {
 #if defined(USE_XLIB)
 
   XFontSet fontset;
-  char* list_str;
-  char** missing;
+  char *list_str;
+  char **missing;
   int miss_num;
-  char* def_str;
+  char *def_str;
 
   if ((list_str = get_font_name_list_for_fontset(font_cache)) == NULL) {
     return None;

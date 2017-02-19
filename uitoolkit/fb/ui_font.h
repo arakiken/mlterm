@@ -5,7 +5,7 @@
 
 #include "../ui_font.h"
 
-u_char* ui_get_bitmap(XFontStruct* xfont, u_char* ch, size_t len, int use_ot_layout);
+u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_layout);
 
 #define ui_get_bitmap_line(xfont, bitmap, y, bitmap_line)                             \
   ((bitmap) &&                                                                        \

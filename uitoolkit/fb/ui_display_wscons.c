@@ -166,14 +166,14 @@ static u_int get_ps2_kcode(u_int kcode) {
   }
 }
 
-static void process_wskbd_event(struct wscons_event* ev) {
+static void process_wskbd_event(struct wscons_event *ev) {
   keysym_t ksym;
 
   if (keymap.map[ev->value].command == KS_Cmd_ResetEmul) {
     /* XXX */
     ksym = XK_BackSpace;
   } else {
-    keysym_t* group;
+    keysym_t *group;
 
     if (wskbd_mode_switch) {
       group = keymap.map[ev->value].group2;
@@ -251,11 +251,11 @@ static void auto_repeat(void) {
 }
 #endif
 
-static fb_cmap_t* cmap_new(int num_of_colors);
+static fb_cmap_t *cmap_new(int num_of_colors);
 
 static int open_display(u_int depth /* used on luna68k alone. */
                         ) {
-  char* dev;
+  char *dev;
   struct wsdisplay_fbinfo vinfo;
 #ifdef WSDISPLAYIO_GET_FBINFO
   struct wsdisplayio_fbinfo vinfo2;
@@ -674,7 +674,7 @@ static int receive_mouse_event(void) {
 
     if (ev.type == WSCONS_EVENT_MOUSE_DOWN || ev.type == WSCONS_EVENT_MOUSE_UP) {
       XButtonEvent xev;
-      ui_window_t* win;
+      ui_window_t *win;
 
       if (ev.value == 0) {
         xev.button = Button1;
@@ -759,7 +759,7 @@ static int receive_mouse_event(void) {
     } else if (ev.type == WSCONS_EVENT_MOUSE_DELTA_X || ev.type == WSCONS_EVENT_MOUSE_DELTA_Y ||
                ev.type == WSCONS_EVENT_MOUSE_DELTA_Z || ev.type == WSCONS_EVENT_MOUSE_DELTA_W) {
       XMotionEvent xev;
-      ui_window_t* win;
+      ui_window_t *win;
 
       if (ev.type == WSCONS_EVENT_MOUSE_DELTA_X) {
         restore_hidden_region();

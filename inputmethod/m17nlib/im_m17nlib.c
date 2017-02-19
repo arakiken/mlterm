@@ -57,12 +57,12 @@ typedef struct im_m17nlib {
   /* input method common object */
   ui_im_t im;
 
-  MInputMethod* input_method;
-  MInputContext* input_context;
+  MInputMethod *input_method;
+  MInputContext *input_context;
 
-  MConverter* mconverter;    /* MText -> u_char    */
-  ef_parser_t* parser_term; /* for term encoding  */
-  ef_conv_t* conv;
+  MConverter *mconverter;    /* MText -> u_char    */
+  ef_parser_t *parser_term; /* for term encoding  */
+  ef_conv_t *conv;
 
 } im_m17nlib_t;
 
@@ -70,15 +70,15 @@ typedef struct im_m17nlib {
 
 static int ref_count = 0;
 static int initialized = 0;
-static ef_parser_t* parser_ascii = NULL;
+static ef_parser_t *parser_ascii = NULL;
 /* mlterm internal symbols */
-static ui_im_export_syms_t* syms = NULL;
+static ui_im_export_syms_t *syms = NULL;
 
 /* --- static functions --- */
 
 #ifdef IM_M17NLIB_DEBUG
 static void show_available_ims(void) {
-  MPlist* im_list;
+  MPlist *im_list;
   MSymbol sym_im;
   int num_of_ims;
   int i;
@@ -90,8 +90,8 @@ static void show_available_ims(void) {
   num_of_ims = mplist_length(im_list);
 
   for (i = 0; i < num_of_ims; i++, im_list = mplist_next(im_list)) {
-    MDatabase* db;
-    MSymbol* tag;
+    MDatabase *db;
+    MSymbol *tag;
 
     db = mplist_value(im_list);
     tag = mdatabase_tag(db);
@@ -103,10 +103,10 @@ static void show_available_ims(void) {
 }
 #endif
 
-static MSymbol xksym_to_msymbol(im_m17nlib_t* m17nlib, KeySym ksym, u_int state) {
+static MSymbol xksym_to_msymbol(im_m17nlib_t *m17nlib, KeySym ksym, u_int state) {
   char mod[13] = "";
-  char* key;
-  char* str;
+  char *key;
+  char *str;
   int filled_len = 0;
   size_t len;
 
@@ -169,11 +169,11 @@ static MSymbol xksym_to_msymbol(im_m17nlib_t* m17nlib, KeySym ksym, u_int state)
 #endif
 }
 
-static MInputMethod* find_input_method(char* param) {
-  char* lang = NULL;
-  char* im_name = NULL;
-  MPlist* im_list;
-  MInputMethod* result = NULL;
+static MInputMethod *find_input_method(char *param) {
+  char *lang = NULL;
+  char *im_name = NULL;
+  MPlist *im_list;
+  MInputMethod *result = NULL;
   int found = 0;
   int num_of_ims;
   int i;
@@ -206,8 +206,8 @@ static MInputMethod* find_input_method(char* param) {
   num_of_ims = mplist_length(im_list);
 
   for (i = 0; i < num_of_ims; i++, im_list = mplist_next(im_list)) {
-    MDatabase* db;
-    MSymbol* tag;
+    MDatabase *db;
+    MSymbol *tag;
 
     db = mplist_value(im_list);
     tag = mdatabase_tag(db);
@@ -245,8 +245,8 @@ static MInputMethod* find_input_method(char* param) {
   return result;
 }
 
-static void commit(im_m17nlib_t* m17nlib, MText* text) {
-  u_char* buf = NULL;
+static void commit(im_m17nlib_t *m17nlib, MText *text) {
+  u_char *buf = NULL;
   u_int num_of_chars;
   int filled_len;
 
@@ -274,8 +274,8 @@ static void commit(im_m17nlib_t* m17nlib, MText* text) {
   }
 }
 
-static void set_candidate(im_m17nlib_t* m17nlib, MText* candidate, int idx) {
-  u_char* buf;
+static void set_candidate(im_m17nlib_t *m17nlib, MText *candidate, int idx) {
+  u_char *buf;
   u_int num_of_chars;
   u_int filled_len;
 
@@ -306,11 +306,11 @@ static void set_candidate(im_m17nlib_t* m17nlib, MText* candidate, int idx) {
   (*m17nlib->im.cand_screen->set)(m17nlib->im.cand_screen, m17nlib->parser_term, buf, idx);
 }
 
-static void preedit_changed(im_m17nlib_t* m17nlib) {
+static void preedit_changed(im_m17nlib_t *m17nlib) {
   int filled_len;
-  u_char* buf;
+  u_char *buf;
   u_int num_of_chars;
-  vt_char_t* p;
+  vt_char_t *p;
   ef_char_t ch;
   u_int pos = 0;
 
@@ -440,9 +440,9 @@ draw:
                                             m17nlib->im.preedit.cursor_offset);
 }
 
-static void candidates_changed(im_m17nlib_t* m17nlib) {
-  MPlist* group;
-  MPlist* candidate;
+static void candidates_changed(im_m17nlib_t *m17nlib) {
+  MPlist *group;
+  MPlist *candidate;
   u_int num_of_candidates = 0;
   int idx;
   int x;
@@ -519,7 +519,7 @@ static void candidates_changed(im_m17nlib_t* m17nlib) {
     for (idx = 0; mplist_key(group) != Mnil; group = mplist_next(group)) {
       int i;
       for (i = 0; i < mtext_len(mplist_value(group)); i++) {
-        MText* text;
+        MText *text;
         text = mtext();
         mtext_cat_char(text, mtext_ref_char(mplist_value(group), i));
         set_candidate(m17nlib, text, idx);
@@ -550,8 +550,8 @@ static void candidates_changed(im_m17nlib_t* m17nlib) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t* im) {
-  im_m17nlib_t* m17nlib;
+static int delete (ui_im_t *im) {
+  im_m17nlib_t *m17nlib;
 
   m17nlib = (im_m17nlib_t*)im;
 
@@ -597,10 +597,10 @@ static int delete (ui_im_t* im) {
   return ref_count;
 }
 
-static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
-  im_m17nlib_t* m17nlib;
+static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_m17nlib_t *m17nlib;
   MSymbol mkey;
-  MText* text;
+  MText *text;
   int ret = 1;
 
   m17nlib = (im_m17nlib_t*)im;
@@ -639,8 +639,8 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
   return ret;
 }
 
-static int switch_mode(ui_im_t* im) {
-  im_m17nlib_t* m17nlib;
+static int switch_mode(ui_im_t *im) {
+  im_m17nlib_t *m17nlib;
   int x;
   int y;
 
@@ -722,16 +722,16 @@ static int switch_mode(ui_im_t* im) {
   return 1;
 }
 
-static int is_active(ui_im_t* im) {
-  im_m17nlib_t* m17nlib;
+static int is_active(ui_im_t *im) {
+  im_m17nlib_t *m17nlib;
 
   m17nlib = (im_m17nlib_t*)im;
 
   return m17nlib->input_context->active;
 }
 
-static void focused(ui_im_t* im) {
-  im_m17nlib_t* m17nlib;
+static void focused(ui_im_t *im) {
+  im_m17nlib_t *m17nlib;
 
   m17nlib = (im_m17nlib_t*)im;
 
@@ -742,8 +742,8 @@ static void focused(ui_im_t* im) {
   }
 }
 
-static void unfocused(ui_im_t* im) {
-  im_m17nlib_t* m17nlib;
+static void unfocused(ui_im_t *im) {
+  im_m17nlib_t *m17nlib;
 
   m17nlib = (im_m17nlib_t*)im;
 
@@ -758,12 +758,12 @@ static void unfocused(ui_im_t* im) {
 
 /* --- global functions --- */
 
-ui_im_t* im_m17nlib_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                        ui_im_export_syms_t* export_syms,
-                        char* param, /* <language>:<input method> */
+ui_im_t *im_m17nlib_new(u_int64_t magic, vt_char_encoding_t term_encoding,
+                        ui_im_export_syms_t *export_syms,
+                        char *param, /* <language>:<input method> */
                         u_int mod_ignore_mask) {
-  im_m17nlib_t* m17nlib;
-  char* encoding_name;
+  im_m17nlib_t *m17nlib;
+  char *encoding_name;
   MSymbol encoding_sym;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
@@ -783,7 +783,7 @@ ui_im_t* im_m17nlib_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     /*
      * Workaround against make_locale() of m17nlib.
      */
-    char* cur_locale;
+    char *cur_locale;
     cur_locale = bl_str_alloca_dup(bl_get_locale());
 #endif
 
@@ -931,9 +931,9 @@ error:
 
 /* --- API for external tools --- */
 
-im_info_t* im_m17nlib_get_info(char* locale, char* encoding) {
-  im_info_t* result = NULL;
-  MPlist* im_list;
+im_info_t *im_m17nlib_get_info(char *locale, char *encoding) {
+  im_info_t *result = NULL;
+  MPlist *im_list;
   MSymbol sym_im;
   int i;
   int num_of_ims;
@@ -964,11 +964,11 @@ im_info_t* im_m17nlib_get_info(char* locale, char* encoding) {
   }
 
   for (i = 1; i < result->num_of_args; i++, im_list = mplist_next(im_list)) {
-    MDatabase* db;
-    MSymbol* tag;
+    MDatabase *db;
+    MSymbol *tag;
     size_t len;
-    char* lang;
-    char* im;
+    char *lang;
+    char *im;
 
     db = mplist_value(im_list);
     tag = mdatabase_tag(db);

@@ -71,27 +71,27 @@ typedef enum vt_color {
 
 } vt_color_t;
 
-void vt_set_color_mode(const char* mode);
+void vt_set_color_mode(const char *mode);
 
-char* vt_get_color_mode(void);
+char *vt_get_color_mode(void);
 
 int vt_color_config_init(void);
 
 int vt_color_config_final(void);
 
-int vt_customize_color_file(char* color, char* rgb, int save);
+int vt_customize_color_file(char *color, char *rgb, int save);
 
-char* vt_get_color_name(vt_color_t color);
+char *vt_get_color_name(vt_color_t color);
 
-vt_color_t vt_get_color(const char* name);
+vt_color_t vt_get_color(const char *name);
 
-int vt_get_color_rgba(vt_color_t color, u_int8_t* red, u_int8_t* green, u_int8_t* blue,
-                      u_int8_t* alpha);
+int vt_get_color_rgba(vt_color_t color, u_int8_t *red, u_int8_t *green, u_int8_t *blue,
+                      u_int8_t *alpha);
 
-int vt_color_parse_rgb_name(u_int8_t* red, u_int8_t* green, u_int8_t* blue, u_int8_t* alpha,
-                            const char* name);
+int vt_color_parse_rgb_name(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_int8_t *alpha,
+                            const char *name);
 
-u_int vt_get_closest_256_color(vt_color_t* closest, u_int* min_diff, u_int8_t red, u_int8_t green,
+u_int vt_get_closest_256_color(vt_color_t *closest, u_int *min_diff, u_int8_t red, u_int8_t green,
                                u_int8_t blue, int threshold);
 
 vt_color_t vt_get_closest_color(u_int8_t red, u_int8_t green, u_int8_t blue);

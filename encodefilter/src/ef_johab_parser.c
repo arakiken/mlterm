@@ -7,7 +7,7 @@
 
 /* --- static functions --- */
 
-static int johab_parser_next_char(ef_parser_t* johab_parser, ef_char_t* ch) {
+static int johab_parser_next_char(ef_parser_t *johab_parser, ef_char_t *ch) {
   if (johab_parser->is_eos) {
     return 0;
   }
@@ -99,19 +99,19 @@ shortage:
   return 0;
 }
 
-static void johab_parser_set_str(ef_parser_t* johab_parser, u_char* str, size_t size) {
+static void johab_parser_set_str(ef_parser_t *johab_parser, u_char *str, size_t size) {
   johab_parser->str = str;
   johab_parser->left = size;
   johab_parser->marked_left = 0;
   johab_parser->is_eos = 0;
 }
 
-static void johab_parser_delete(ef_parser_t* s) { free(s); }
+static void johab_parser_delete(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
-ef_parser_t* ef_johab_parser_new(void) {
-  ef_parser_t* johab_parser;
+ef_parser_t *ef_johab_parser_new(void) {
+  ef_parser_t *johab_parser;
 
   if ((johab_parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;

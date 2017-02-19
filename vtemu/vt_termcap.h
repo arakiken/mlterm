@@ -83,17 +83,17 @@ typedef enum vt_special_key {
 
 } vt_special_key_t;
 
-typedef struct vt_termcap* vt_termcap_ptr_t;
+typedef struct vt_termcap *vt_termcap_ptr_t;
 
-vt_termcap_ptr_t vt_termcap_get(const char* name);
+vt_termcap_ptr_t vt_termcap_get(const char *name);
 
 void vt_termcap_final();
 
-int vt_termcap_set_key_seq(vt_termcap_ptr_t termcap, vt_special_key_t key, const char* str);
+int vt_termcap_set_key_seq(vt_termcap_ptr_t termcap, vt_special_key_t key, const char *str);
 
 int vt_termcap_bce_is_enabled(vt_termcap_ptr_t termcap);
 
-char* vt_termcap_special_key_to_seq(vt_termcap_ptr_t termcap, vt_special_key_t key, int modcode,
+char *vt_termcap_special_key_to_seq(vt_termcap_ptr_t termcap, vt_special_key_t key, int modcode,
                                     int is_app_keypad, int is_app_cursor_keys, int is_app_escape);
 
 #endif

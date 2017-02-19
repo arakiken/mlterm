@@ -25,7 +25,7 @@
 #define MC_FLAG_REGARDURIASWORD 15
 #define MC_FLAG_OTLAYOUT 16
 
-GtkWidget* mc_flag_config_widget_new(int id);
+GtkWidget *mc_flag_config_widget_new(int id);
 
 void mc_update_flag_mode(int id);
 

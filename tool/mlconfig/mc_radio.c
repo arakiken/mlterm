@@ -21,12 +21,12 @@ static int old_values[MC_RADIOS];
 static int is_changed[MC_RADIOS];
 static void (*funcs[MC_RADIOS])(void);
 
-static char* config_keys[MC_RADIOS] = {
+static char *config_keys[MC_RADIOS] = {
     "mod_meta_mode",    "bel_mode",    "scrollbar_mode", "vertical_mode",
     "box_drawing_font", "font_policy", "logging_vt_seq",
 };
 
-static char* config_values[MC_RADIOS][4] = {
+static char *config_values[MC_RADIOS][4] = {
     {
      "none", "esc", "8bit", NULL,
     },
@@ -50,7 +50,7 @@ static char* config_values[MC_RADIOS][4] = {
     },
 };
 
-static char* labels[MC_RADIOS][5] = {
+static char *labels[MC_RADIOS][5] = {
     {
      N_("Meta key outputs"), N_("None"), N_("Esc"), N_("8bit"), NULL,
     },
@@ -76,7 +76,7 @@ static char* labels[MC_RADIOS][5] = {
 
 /* --- static functions --- */
 
-static void update_value(int* data, int num) {
+static void update_value(int *data, int num) {
   int id;
 
   id = data - new_values;
@@ -87,7 +87,7 @@ static void update_value(int* data, int num) {
   }
 }
 
-static gint button1_checked(GtkWidget* widget, gpointer data) {
+static gint button1_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 0);
   }
@@ -95,7 +95,7 @@ static gint button1_checked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static gint button2_checked(GtkWidget* widget, gpointer data) {
+static gint button2_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 1);
   }
@@ -103,7 +103,7 @@ static gint button2_checked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static gint button3_checked(GtkWidget* widget, gpointer data) {
+static gint button3_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 2);
   }
@@ -111,7 +111,7 @@ static gint button3_checked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static gint button4_checked(GtkWidget* widget, gpointer data) {
+static gint button4_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 3);
   }
@@ -121,12 +121,12 @@ static gint button4_checked(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_radio_config_widget_new(int id) {
-  GtkWidget* label;
-  GtkWidget* hbox;
-  GtkWidget* radio;
-  GSList* group;
-  char* value;
+GtkWidget *mc_radio_config_widget_new(int id) {
+  GtkWidget *label;
+  GtkWidget *hbox;
+  GtkWidget *radio;
+  GSList *group;
+  char *value;
 
   value = mc_get_str_value(config_keys[id]);
 
@@ -186,11 +186,11 @@ GtkWidget* mc_radio_config_widget_new(int id) {
 
 #if GTK_CHECK_VERSION(2, 12, 0)
   if (id == MC_RADIO_LOG_VTSEQ) {
-    char* pty;
+    char *pty;
 
     if ((pty = mc_get_str_value("pty_name"))) {
-      char* p;
-      char* msg;
+      char *p;
+      char *msg;
 
       for (p = pty; *p; p++) {
         if (*p == '/') {

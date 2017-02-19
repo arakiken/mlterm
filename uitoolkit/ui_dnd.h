@@ -9,6 +9,6 @@
 
 #include "ui_window.h"
 
-int ui_dnd_filter_event(XEvent* event, ui_window_t* win);
+int ui_dnd_filter_event(XEvent *event, ui_window_t *win);
 
 #endif

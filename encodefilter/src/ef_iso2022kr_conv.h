@@ -5,6 +5,6 @@
 
 #include "ef_conv.h"
 
-ef_conv_t* ef_iso2022kr_conv_new(void);
+ef_conv_t *ef_iso2022kr_conv_new(void);
 
 #endif

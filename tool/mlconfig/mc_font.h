@@ -7,7 +7,7 @@
 
 #include "mc_io.h"
 
-GtkWidget* mc_font_config_widget_new(void);
+GtkWidget *mc_font_config_widget_new(void);
 
 void mc_update_font_misc(void);
 

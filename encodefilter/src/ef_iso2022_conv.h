@@ -10,8 +10,8 @@
 typedef struct ef_iso2022_conv {
   ef_conv_t conv;
 
-  ef_charset_t* gl;
-  ef_charset_t* gr;
+  ef_charset_t *gl;
+  ef_charset_t *gr;
 
   ef_charset_t g0;
   ef_charset_t g1;
@@ -20,9 +20,9 @@ typedef struct ef_iso2022_conv {
 
 } ef_iso2022_conv_t;
 
-size_t ef_iso2022_illegal_char(ef_conv_t* conv, u_char* dst, size_t dst_size, int* is_full,
-                                ef_char_t* ch);
+size_t ef_iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
+                                ef_char_t *ch);
 
-void ef_iso2022_remap_unsupported_charset(ef_char_t* ch);
+void ef_iso2022_remap_unsupported_charset(ef_char_t *ch);
 
 #endif

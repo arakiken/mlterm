@@ -8,10 +8,10 @@
 #define fclose(file) cygfclose(file)
 #define fwrite(ptr, size, nmemb, file) cygfwrite(ptr, size, nmemb, file)
 
-void* cygfopen(const char* path, const char* mode);
+void *cygfopen(const char *path, const char *mode);
 
-int cygfclose(void* file);
+int cygfclose(void *file);
 
-size_t cygfwrite(const void* ptr, size_t size, size_t nmemb, void* file);
+size_t cygfwrite(const void *ptr, size_t size, size_t nmemb, void *file);
 
 #endif

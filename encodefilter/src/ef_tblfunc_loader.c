@@ -8,7 +8,7 @@
 
 /* --- global functions --- */
 
-void* ef_load_8bits_func(const char* symname) {
+void *ef_load_8bits_func(const char *symname) {
   static bl_dl_handle_t handle;
   static int is_tried;
 
@@ -30,7 +30,7 @@ void* ef_load_8bits_func(const char* symname) {
   }
 }
 
-void* ef_load_jajp_func(const char* symname) {
+void *ef_load_jajp_func(const char *symname) {
   static bl_dl_handle_t handle;
   static int is_tried;
 
@@ -51,7 +51,7 @@ void* ef_load_jajp_func(const char* symname) {
   }
 }
 
-void* ef_load_kokr_func(const char* symname) {
+void *ef_load_kokr_func(const char *symname) {
   static bl_dl_handle_t handle;
   static int is_tried;
 
@@ -72,7 +72,7 @@ void* ef_load_kokr_func(const char* symname) {
   }
 }
 
-void* ef_load_zh_func(const char* symname) {
+void *ef_load_zh_func(const char *symname) {
   static bl_dl_handle_t handle;
   static int is_tried;
 

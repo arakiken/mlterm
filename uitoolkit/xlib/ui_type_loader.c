@@ -16,8 +16,8 @@
 
 /* --- global functions --- */
 
-void* ui_load_type_xft_func(ui_type_id_t id) {
-  static void** func_table;
+void *ui_load_type_xft_func(ui_type_id_t id) {
+  static void **func_table;
   static int is_tried;
 
   if (!is_tried) {
@@ -56,8 +56,8 @@ void* ui_load_type_xft_func(ui_type_id_t id) {
   }
 }
 
-void* ui_load_type_cairo_func(ui_type_id_t id) {
-  static void** func_table;
+void *ui_load_type_cairo_func(ui_type_id_t id) {
+  static void **func_table;
   static int is_tried;
 
   if (!is_tried) {

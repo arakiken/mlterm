@@ -34,10 +34,10 @@ static void sig_child(int sig) { waitpid(-1, NULL, WNOHANG); }
 
 static void help(void) { printf("Usage: mlclient-con [options]\n"); }
 
-static char* get_path(char* file) {
-  char* home;
-  char* path;
-  char* p;
+static char *get_path(char *file) {
+  char *home;
+  char *path;
+  char *p;
 
   if (!(home = getenv("HOME")) || !(path = malloc(strlen(home) + 16 + strlen(file) + 1))) {
     return NULL;
@@ -61,9 +61,9 @@ static char* get_path(char* file) {
   return path;
 }
 
-static void debug_printf(const char* format, ...) {
+static void debug_printf(const char *format, ...) {
   va_list arg_list;
-  static char* path;
+  static char *path;
   FILE* fp;
 
   va_start(arg_list, format);
@@ -105,8 +105,8 @@ static int set_cloexec(int fd) {
   return 1;
 }
 
-static int connect_to_server(int argc, char** argv) {
-  char* path;
+static int connect_to_server(int argc, char **argv) {
+  char *path;
   struct sockaddr_un servaddr;
   int count;
   struct termios tio;
@@ -137,7 +137,7 @@ static int connect_to_server(int argc, char** argv) {
     signal(SIGCHLD, sig_child);
 
     if ((pid = fork()) == 0) {
-      char** new_argv;
+      char **new_argv;
 
       if (!(new_argv = alloca((argc + 2 + 1) * sizeof(char*)))) {
         exit(1);
@@ -223,7 +223,7 @@ connected:
 
 /* --- global functions --- */
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   fd_set fds;
   int maxfd;
 

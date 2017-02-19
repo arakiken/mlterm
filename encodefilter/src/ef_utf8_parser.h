@@ -5,6 +5,6 @@
 
 #include "ef_parser.h"
 
-ef_parser_t* ef_utf8_parser_new(void);
+ef_parser_t *ef_utf8_parser_new(void);
 
 #endif

@@ -7,6 +7,6 @@
 
 #include "ef_property.h"
 
-ef_property_t ef_get_jisx0208_1983_property(u_char* ch, size_t size);
+ef_property_t ef_get_jisx0208_1983_property(u_char *ch, size_t size);
 
 #endif

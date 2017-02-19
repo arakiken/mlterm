@@ -6,7 +6,7 @@
 
 /* --- global functions --- */
 
-int ef_map_ksc5601_1987_to_ucs4(ef_char_t* ucs4, u_int16_t ks) {
+int ef_map_ksc5601_1987_to_ucs4(ef_char_t *ucs4, u_int16_t ks) {
   /* converting to UHC */
   ks |= 0x8080;
 
@@ -17,7 +17,7 @@ int ef_map_ksc5601_1987_to_ucs4(ef_char_t* ucs4, u_int16_t ks) {
   return 0;
 }
 
-int ef_map_ucs4_to_ksc5601_1987(ef_char_t* ks, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_ksc5601_1987(ef_char_t *ks, u_int32_t ucs4_code) {
   if (ef_map_ucs4_to_uhc(ks, ucs4_code)) {
     if (ks->ch[0] >= 0xa1 && ks->ch[1] >= 0xa1) {
       /* converting to KSC5601_1987 */

@@ -25,28 +25,28 @@
 #endif
 
 typedef ui_sb_view_t* (*ui_sb_view_new_func_t)(void);
-typedef ui_sb_view_t* (*ui_sb_engine_new_func_t)(ui_sb_view_conf_t* conf, int is_transparent);
+typedef ui_sb_view_t* (*ui_sb_engine_new_func_t)(ui_sb_view_conf_t *conf, int is_transparent);
 
 /* --- static variables --- */
 
 #ifdef SUPPORT_PIXMAP_ENGINE
-static ui_sb_view_conf_t** view_confs;
+static ui_sb_view_conf_t **view_confs;
 static u_int num_of_view_confs;
 #endif
 
 /* --- static functions --- */
 
-static inline ui_sb_view_t* check_version(ui_sb_view_t* view) {
+static inline ui_sb_view_t *check_version(ui_sb_view_t *view) {
   return view->version == 1 ? view : NULL;
 }
 
-static ui_sb_view_new_func_t dlsym_sb_view_new_func(char* name, int is_transparent) {
+static ui_sb_view_new_func_t dlsym_sb_view_new_func(char *name, int is_transparent) {
   bl_dl_handle_t handle;
-  char* symbol;
+  char *symbol;
   u_int len;
 
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
-  char* p;
+  char *p;
 
   if (!(p = alloca(strlen(name) + 3 + 1))) {
     return NULL;
@@ -89,14 +89,14 @@ static ui_sb_view_new_func_t dlsym_sb_view_new_func(char* name, int is_transpare
  */
 #ifdef SUPPORT_PIXMAP_ENGINE
 
-static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(char* name) {
+static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(char *name) {
   ui_sb_engine_new_func_t func;
   bl_dl_handle_t handle;
-  char* symbol;
+  char *symbol;
   u_int len;
 
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
-  char* p;
+  char *p;
 
   if (!(p = alloca(strlen(name) + 3 + 1))) {
     return NULL;
@@ -128,7 +128,7 @@ static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(char* name) {
   return func;
 }
 
-static ui_sb_view_conf_t* search_view_conf(char* sb_name) {
+static ui_sb_view_conf_t *search_view_conf(char *sb_name) {
   u_int count;
 
   for (count = 0; count < num_of_view_confs; count++) {
@@ -140,8 +140,8 @@ static ui_sb_view_conf_t* search_view_conf(char* sb_name) {
   return NULL;
 }
 
-static void free_conf(ui_sb_view_conf_t* conf) {
-  ui_sb_view_rc_t* rc;
+static void free_conf(ui_sb_view_conf_t *conf) {
+  ui_sb_view_rc_t *rc;
   int i;
 
   free(conf->sb_name);
@@ -158,13 +158,13 @@ static void free_conf(ui_sb_view_conf_t* conf) {
   free(conf);
 }
 
-static ui_sb_view_conf_t* register_new_view_conf(bl_file_t* rcfile, char* sb_name,
-                                                 char* rcfile_path) {
-  ui_sb_view_conf_t* conf;
-  char* key;
-  char* value;
+static ui_sb_view_conf_t *register_new_view_conf(bl_file_t *rcfile, char *sb_name,
+                                                 char *rcfile_path) {
+  ui_sb_view_conf_t *conf;
+  char *key;
+  char *value;
   int len;
-  void* p;
+  void *p;
 
   if ((conf = calloc(1, sizeof(ui_sb_view_conf_t))) == NULL) {
     return NULL;
@@ -188,7 +188,7 @@ static ui_sb_view_conf_t* register_new_view_conf(bl_file_t* rcfile, char* sb_nam
       free(conf->engine_name);
       conf->engine_name = strdup(value);
     } else {
-      ui_sb_view_rc_t* p;
+      ui_sb_view_rc_t *p;
 
       if ((p = realloc(conf->rc, sizeof(ui_sb_view_rc_t) * (conf->rc_num + 1))) == NULL) {
 #ifdef __DEBUG
@@ -232,7 +232,7 @@ error:
   return NULL;
 }
 
-static int unregister_view_conf(ui_sb_view_conf_t* conf) {
+static int unregister_view_conf(ui_sb_view_conf_t *conf) {
   u_int count;
 
   for (count = 0; count < num_of_view_confs; count++) {
@@ -250,11 +250,11 @@ static int unregister_view_conf(ui_sb_view_conf_t* conf) {
   return 1;
 }
 
-static ui_sb_view_conf_t* find_view_rcfile(char* name) {
-  ui_sb_view_conf_t* conf;
-  bl_file_t* rcfile;
-  char* user_dir;
-  char* path;
+static ui_sb_view_conf_t *find_view_rcfile(char *name) {
+  ui_sb_view_conf_t *conf;
+  bl_file_t *rcfile;
+  char *user_dir;
+  char *path;
 
   /* search known conf from view_conf_list */
   if ((conf = search_view_conf(name))) {
@@ -278,7 +278,7 @@ static ui_sb_view_conf_t* find_view_rcfile(char* name) {
   free(user_dir);
 
   if (!(rcfile = bl_file_open(path, "r"))) {
-    void* p;
+    void *p;
 
     if (!(p = realloc(path, strlen(SB_DIR) + strlen(name) + 5))) {
       free(path);
@@ -315,10 +315,10 @@ static ui_sb_view_conf_t* find_view_rcfile(char* name) {
 
 /* --- global functions --- */
 
-ui_sb_view_t* ui_sb_view_new(char* name) {
+ui_sb_view_t *ui_sb_view_new(char *name) {
   ui_sb_view_new_func_t func;
 #ifdef SUPPORT_PIXMAP_ENGINE
-  ui_sb_view_conf_t* conf;
+  ui_sb_view_conf_t *conf;
 
   /* new style plugin ? (requires rcfile and engine library) */
   if ((conf = find_view_rcfile(name))) {
@@ -355,10 +355,10 @@ ui_sb_view_t* ui_sb_view_new(char* name) {
   return check_version((*func)());
 }
 
-ui_sb_view_t* ui_transparent_sb_view_new(char* name) {
+ui_sb_view_t *ui_transparent_sb_view_new(char *name) {
   ui_sb_view_new_func_t func;
 #ifdef SUPPORT_PIXMAP_ENGINE
-  ui_sb_view_conf_t* conf;
+  ui_sb_view_conf_t *conf;
 
   /* new style plugin? (requires an rcfile and an engine library) */
   if ((conf = find_view_rcfile(name))) {
@@ -387,9 +387,9 @@ ui_sb_view_t* ui_transparent_sb_view_new(char* name) {
  * This function cleans up configurations of pixmap_engine.
  * Call this function after ui_sb_view_t::delete() is called.
  */
-int ui_unload_scrollbar_view_lib(char* name) {
+int ui_unload_scrollbar_view_lib(char *name) {
 #ifdef SUPPORT_PIXMAP_ENGINE
-  ui_sb_view_conf_t* conf;
+  ui_sb_view_conf_t *conf;
 
   /* new style plugin? (requires an rcfile and an engine library) */
   if ((conf = search_view_conf(name))) {

@@ -5,6 +5,6 @@
 
 #include "ef_conv.h"
 
-ef_parser_t* ef_xct_parser_new(void);
+ef_parser_t *ef_xct_parser_new(void);
 
 #endif

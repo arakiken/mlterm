@@ -7,13 +7,13 @@
 #define BUTTON_4_COMMAND "\x1b]5379;fontsize=larger\x07"
 #define BUTTON_5_COMMAND "\x1b]5379;fontsize=smaller\x07"
 
-void event_loop(Display* display);
+void event_loop(Display *display);
 
-int main(int argc, char* argv[]) {
-  Display* display;
+int main(int argc, char *argv[]) {
+  Display *display;
   Window window;
   XSetWindowAttributes attrs;
-  char* display_name = NULL;
+  char *display_name = NULL;
   int screen_no;
   int x, y, w, h, i;
 
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-void event_loop(Display* display) {
+void event_loop(Display *display) {
   XEvent event;
 
   while (1) {

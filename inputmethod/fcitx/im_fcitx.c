@@ -30,14 +30,14 @@ typedef struct im_fcitx {
   /* input method common object */
   ui_im_t im;
 
-  FcitxClient* client;
+  FcitxClient *client;
 
   vt_char_encoding_t term_encoding;
 
 #ifdef USE_IM_CANDIDATE_SCREEN
-  ef_parser_t* parser_term; /* for term encoding */
+  ef_parser_t *parser_term; /* for term encoding */
 #endif
-  ef_conv_t* conv; /* for term encoding */
+  ef_conv_t *conv; /* for term encoding */
 
   /*
    * Cache a result of fcitx_input_context_is_enabled() which uses
@@ -52,8 +52,8 @@ typedef struct im_fcitx {
 /* --- static variables --- */
 
 static int ref_count = 0;
-static ef_parser_t* parser_utf8 = NULL;
-static ui_im_export_syms_t* syms = NULL; /* mlterm internal symbols */
+static ef_parser_t *parser_utf8 = NULL;
+static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 #ifdef DEBUG_MODKEY
 static int mod_key_debug = 0;
 #endif
@@ -64,8 +64,8 @@ static int mod_key_debug = 0;
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t* im) {
-  im_fcitx_t* fcitx;
+static int delete (ui_im_t *im) {
+  im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
 
@@ -195,8 +195,8 @@ static KeySym native_to_fcitx_ksym(KeySym ksym) {
 #define native_to_fcitx_ksym(ksym) (ksym)
 #endif
 
-static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
-  im_fcitx_t* fcitx;
+static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
 
@@ -234,8 +234,8 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
   return 1;
 }
 
-static int switch_mode(ui_im_t* im) {
-  im_fcitx_t* fcitx;
+static int switch_mode(ui_im_t *im) {
+  im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
 
@@ -250,10 +250,10 @@ static int switch_mode(ui_im_t* im) {
   return 1;
 }
 
-static int is_active(ui_im_t* im) { return ((im_fcitx_t*)im)->is_enabled; }
+static int is_active(ui_im_t *im) { return ((im_fcitx_t*)im)->is_enabled; }
 
-static void focused(ui_im_t* im) {
-  im_fcitx_t* fcitx;
+static void focused(ui_im_t *im) {
+  im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
 
@@ -264,8 +264,8 @@ static void focused(ui_im_t* im) {
   }
 }
 
-static void unfocused(ui_im_t* im) {
-  im_fcitx_t* fcitx;
+static void unfocused(ui_im_t *im) {
+  im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
 
@@ -276,8 +276,8 @@ static void unfocused(ui_im_t* im) {
   }
 }
 
-static void connected(FcitxClient* client, void* data) {
-  im_fcitx_t* fcitx;
+static void connected(FcitxClient *client, void *data) {
+  im_fcitx_t *fcitx;
 
   fcitx = data;
 
@@ -291,8 +291,8 @@ static void connected(FcitxClient* client, void* data) {
   fcitx_client_focus_in(client);
 }
 
-static void disconnected(FcitxClient* client, void* data) {
-  im_fcitx_t* fcitx;
+static void disconnected(FcitxClient *client, void *data) {
+  im_fcitx_t *fcitx;
 
   fcitx = data;
 
@@ -305,13 +305,13 @@ static void disconnected(FcitxClient* client, void* data) {
 }
 
 #if 0
-static void enable_im(FcitxClient* client, void* data) {}
+static void enable_im(FcitxClient *client, void *data) {}
 #endif
 
-static void close_im(FcitxClient* client, void* data) { disconnected(client, data); }
+static void close_im(FcitxClient *client, void *data) { disconnected(client, data); }
 
-static void commit_string(FcitxClient* client, char* str, void* data) {
-  im_fcitx_t* fcitx;
+static void commit_string(FcitxClient *client, char *str, void *data) {
+  im_fcitx_t *fcitx;
   size_t len;
 
   fcitx = data;
@@ -358,8 +358,8 @@ static void commit_string(FcitxClient* client, char* str, void* data) {
 #endif
 }
 
-static void forward_key(FcitxClient* client, guint keyval, guint state, gint type, void* data) {
-  im_fcitx_t* fcitx;
+static void forward_key(FcitxClient *client, guint keyval, guint state, gint type, void *data) {
+  im_fcitx_t *fcitx;
 
   fcitx = data;
 
@@ -380,13 +380,13 @@ static void forward_key(FcitxClient* client, guint keyval, guint state, gint typ
 
 #ifdef USE_IM_CANDIDATE_SCREEN
 
-static void update_client_side_ui(FcitxClient* client, char* auxup, char* auxdown, char* preedit,
-                                  char* candidateword, char* imname, int cursor_pos, void* data) {
-  im_fcitx_t* fcitx;
+static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdown, char *preedit,
+                                  char *candidateword, char *imname, int cursor_pos, void *data) {
+  im_fcitx_t *fcitx;
   int x;
   int y;
   ef_char_t ch;
-  vt_char_t* p;
+  vt_char_t *p;
   u_int num_of_chars;
   size_t preedit_len;
 
@@ -400,7 +400,7 @@ static void update_client_side_ui(FcitxClient* client, char* auxup, char* auxdow
     /* Stop preediting. */
     fcitx->im.preedit.filled_len = 0;
   } else {
-    u_char* tmp = NULL;
+    u_char *tmp = NULL;
 
     fcitx->im.preedit.cursor_offset = num_of_chars = 0;
     (*parser_utf8->init)(parser_utf8);
@@ -490,7 +490,7 @@ static void update_client_side_ui(FcitxClient* client, char* auxup, char* auxdow
     }
 #endif
   } else {
-    u_char* tmp = NULL;
+    u_char *tmp = NULL;
 
     (*fcitx->im.listener->get_spot)(fcitx->im.listener->self, fcitx->im.preedit.chars,
                                     fcitx->im.preedit.segment_offset, &x, &y);
@@ -529,16 +529,16 @@ static void update_client_side_ui(FcitxClient* client, char* auxup, char* auxdow
 
 #else
 
-static void update_formatted_preedit(FcitxClient* client, GPtrArray* list, int cursor_pos,
-                                     void* data) {
-  im_fcitx_t* fcitx;
+static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int cursor_pos,
+                                     void *data) {
+  im_fcitx_t *fcitx;
 
   fcitx = data;
 
   if (list->len > 0) {
-    FcitxPreeditItem* item;
+    FcitxPreeditItem *item;
     ef_char_t ch;
-    vt_char_t* p;
+    vt_char_t *p;
     u_int num_of_chars;
     guint count;
 
@@ -659,11 +659,11 @@ static void connection_handler(void) { g_main_context_iteration(g_main_context_d
 
 /* --- global functions --- */
 
-ui_im_t* im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                      ui_im_export_syms_t* export_syms, char* engine,
+ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
+                      ui_im_export_syms_t *export_syms, char *engine,
                       u_int mod_ignore_mask /* Not used for now. */
                       ) {
-  im_fcitx_t* fcitx = NULL;
+  im_fcitx_t *fcitx = NULL;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
     bl_error_printf("Incompatible input method API.\n");
@@ -776,8 +776,8 @@ error:
 
 /* --- module entry point for external tools --- */
 
-im_info_t* im_fcitx_get_info(char* locale, char* encoding) {
-  im_info_t* result;
+im_info_t *im_fcitx_get_info(char *locale, char *encoding) {
+  im_info_t *result;
 
   if (!(result = malloc(sizeof(im_info_t)))) {
     return NULL;

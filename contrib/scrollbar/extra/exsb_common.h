@@ -9,9 +9,9 @@
 
 /* --- static functions --- */
 
-static void get_closest_xcolor_pseudo(Display* display, int screen, Colormap cmap, XColor* color,
-                                      XColor* closest_color) {
-  XColor* all_colors;
+static void get_closest_xcolor_pseudo(Display *display, int screen, Colormap cmap, XColor *color,
+                                      XColor *closest_color) {
+  XColor *all_colors;
   int i;
   int closest_index = 0;
   unsigned long min = 0xffffffff;
@@ -56,8 +56,8 @@ static void get_closest_xcolor_pseudo(Display* display, int screen, Colormap cma
 
 /* --- global functions -- */
 
-static unsigned long exsb_get_pixel(Display* display, int screen, Colormap cmap, Visual* visual,
-                                    char* color_name) {
+static unsigned long exsb_get_pixel(Display *display, int screen, Colormap cmap, Visual *visual,
+                                    char *color_name) {
   XColor color;
   XColor closest_color;
 

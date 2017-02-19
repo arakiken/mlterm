@@ -9,7 +9,7 @@
 /*
  * used in vt_edit/vt_edit_scroll
  */
-int vt_edit_clear_lines(vt_edit_t* edit, int beg_row, u_int size) {
+int vt_edit_clear_lines(vt_edit_t *edit, int beg_row, u_int size) {
   int count;
 
   if (size == 0) {

@@ -8,7 +8,7 @@
 
 /* --- global functions --- */
 
-int vt_model_init(vt_model_t* model, u_int num_of_cols, u_int num_of_rows) {
+int vt_model_init(vt_model_t *model, u_int num_of_cols, u_int num_of_rows) {
   int count;
 
   if (num_of_rows == 0 || num_of_cols == 0) {
@@ -37,7 +37,7 @@ int vt_model_init(vt_model_t* model, u_int num_of_cols, u_int num_of_rows) {
   return 1;
 }
 
-int vt_model_final(vt_model_t* model) {
+int vt_model_final(vt_model_t *model) {
   int count;
 
   for (count = 0; count < model->num_of_rows; count++) {
@@ -49,7 +49,7 @@ int vt_model_final(vt_model_t* model) {
   return 1;
 }
 
-int vt_model_reset(vt_model_t* model) {
+int vt_model_reset(vt_model_t *model) {
   int count;
 
   for (count = 0; count < model->num_of_rows; count++) {
@@ -60,12 +60,12 @@ int vt_model_reset(vt_model_t* model) {
   return 1;
 }
 
-int vt_model_resize(vt_model_t* model, u_int* slide, u_int num_of_cols, u_int num_of_rows) {
+int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_of_cols, u_int num_of_rows) {
   int old_row;
   int new_row;
   int count;
   u_int copy_rows;
-  vt_line_t* lines_p;
+  vt_line_t *lines_p;
   u_int filled_rows;
 
   if (num_of_cols == 0 || num_of_rows == 0) {
@@ -127,7 +127,7 @@ int vt_model_resize(vt_model_t* model, u_int* slide, u_int num_of_cols, u_int nu
   return 1;
 }
 
-u_int vt_model_get_num_of_filled_rows(vt_model_t* model) {
+u_int vt_model_get_num_of_filled_rows(vt_model_t *model) {
   u_int filled_rows;
 
   for (filled_rows = model->num_of_rows; filled_rows > 0; filled_rows--) {
@@ -149,9 +149,9 @@ u_int vt_model_get_num_of_filled_rows(vt_model_t* model) {
   return 0;
 }
 
-int vt_model_end_row(vt_model_t* model) { return model->num_of_rows - 1; }
+int vt_model_end_row(vt_model_t *model) { return model->num_of_rows - 1; }
 
-vt_line_t* vt_model_get_line(vt_model_t* model, int row) {
+vt_line_t *vt_model_get_line(vt_model_t *model, int row) {
   if (row < 0 || model->num_of_rows <= row) {
 #ifdef __DEBUG
     bl_debug_printf(BL_DEBUG_TAG " row %d is out of range.\n", row);
@@ -167,7 +167,7 @@ vt_line_t* vt_model_get_line(vt_model_t* model, int row) {
   }
 }
 
-int vt_model_scroll_upward(vt_model_t* model, u_int size) {
+int vt_model_scroll_upward(vt_model_t *model, u_int size) {
   if (size > model->num_of_rows) {
     size = model->num_of_rows;
   }
@@ -181,7 +181,7 @@ int vt_model_scroll_upward(vt_model_t* model, u_int size) {
   return 1;
 }
 
-int vt_model_scroll_downward(vt_model_t* model, u_int size) {
+int vt_model_scroll_downward(vt_model_t *model, u_int size) {
   if (size > model->num_of_rows) {
     size = model->num_of_rows;
   }
@@ -197,9 +197,9 @@ int vt_model_scroll_downward(vt_model_t* model, u_int size) {
 
 #ifdef DEBUG
 
-void vt_model_dump(vt_model_t* model) {
+void vt_model_dump(vt_model_t *model) {
   int row;
-  vt_line_t* line;
+  vt_line_t *line;
 
   for (row = 0; row < model->num_of_rows; row++) {
     line = vt_model_get_line(model, row);

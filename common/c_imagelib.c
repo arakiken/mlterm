@@ -26,10 +26,10 @@
 #include <pobl/bl_str.h>     /* bl_str_alloca_dup */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 
-static void pixbuf_destroy_notify(guchar* pixels, gpointer data) { free(pixels); }
+static void pixbuf_destroy_notify(guchar *pixels, gpointer data) { free(pixels); }
 
-static GdkPixbuf* gdk_pixbuf_new_from_sixel(const char* path) {
-  u_char* pixels;
+static GdkPixbuf *gdk_pixbuf_new_from_sixel(const char *path) {
+  u_char *pixels;
   u_int width;
   u_int height;
 
@@ -45,13 +45,13 @@ static GdkPixbuf* gdk_pixbuf_new_from_sixel(const char* path) {
 #define create_cardinals_from_sixel(path, width, height) (NULL)
 
 /* create an CARDINAL array for_NET_WM_ICON data */
-static u_int32_t* create_cardinals_from_pixbuf(GdkPixbuf* pixbuf) {
+static u_int32_t *create_cardinals_from_pixbuf(GdkPixbuf *pixbuf) {
   u_int width;
   u_int height;
-  u_int32_t* cardinal;
+  u_int32_t *cardinal;
   int rowstride;
-  u_char* line;
-  u_char* pixel;
+  u_char *line;
+  u_char *pixel;
   u_int i, j;
 
   width = gdk_pixbuf_get_width(pixbuf);
@@ -95,15 +95,15 @@ static u_int32_t* create_cardinals_from_pixbuf(GdkPixbuf* pixbuf) {
   return cardinal;
 }
 
-static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
-  GdkPixbuf* pixbuf;
+static GdkPixbuf *gdk_pixbuf_new_from(const char *path) {
+  GdkPixbuf *pixbuf;
 
   if (strcasecmp(path + strlen(path) - 4, ".six") != 0 ||
       !(pixbuf = gdk_pixbuf_new_from_sixel(path))) {
     if (strcasecmp(path + strlen(path) - 4, ".gif") == 0 && !strstr(path, "mlterm/anim")) {
       /* Animation GIF */
 
-      char* dir;
+      char *dir;
 
       if ((dir = bl_get_user_rc_path("mlterm/"))) {
         int hash;
@@ -111,7 +111,7 @@ static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
         hash = hash_path(path);
 
         if (strstr(path, "://")) {
-          char* cmd;
+          char *cmd;
 
           if (!(cmd = alloca(25 + strlen(path) + strlen(dir) + 5 + DIGIT_STR_LEN(int)+1))) {
             goto end;
@@ -139,8 +139,8 @@ static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
        * gdk-pixbuf depends on gio. (__G_IO_H__ is defined if
        * gdk-pixbuf-core.h includes gio.h)
        */
-      GFile* file;
-      GInputStream* in;
+      GFile *file;
+      GInputStream *in;
 
       if ((in = (GInputStream*)g_file_read(
                (file = g_vfs_get_file_for_uri(g_vfs_get_default(), path)), NULL, NULL))) {
@@ -149,7 +149,7 @@ static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
       } else
 #endif
       {
-        char* cmd;
+        char *cmd;
 
         pixbuf = NULL;
 
@@ -158,7 +158,7 @@ static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
 
           sprintf(cmd, "curl -L -k -s %s", path);
           if ((fp = popen(cmd, "r"))) {
-            GdkPixbufLoader* loader;
+            GdkPixbufLoader *loader;
             guchar buf[65536];
             size_t len;
 
@@ -186,7 +186,7 @@ static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
 #endif /* GDK_PIXBUF_MAJOR */
     {
       if (strcasecmp(path + strlen(path) - 4, ".rgs") == 0) {
-        char* new_path;
+        char *new_path;
 
         new_path = bl_str_alloca_dup(path);
         if (convert_regis_to_bmp(new_path)) {
@@ -208,7 +208,7 @@ static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
 
         if (read_gif_info(path, &xoff, &yoff, &width, &height)) {
           if (width > gdk_pixbuf_get_width(pixbuf) || height > gdk_pixbuf_get_height(pixbuf)) {
-            GdkPixbuf* new_pixbuf;
+            GdkPixbuf *new_pixbuf;
 
             new_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height);
             gdk_pixbuf_fill(new_pixbuf, 0x00000000);
@@ -229,10 +229,10 @@ static GdkPixbuf* gdk_pixbuf_new_from(const char* path) {
 
 #define gdk_pixbuf_new_from_sixel(path) (NULL)
 
-static u_int32_t* create_cardinals_from_sixel(const char* path) {
+static u_int32_t *create_cardinals_from_sixel(const char *path) {
   u_int width;
   u_int height;
-  u_int32_t* cardinal;
+  u_int32_t *cardinal;
 
   if (!(cardinal = (u_int32_t*)load_sixel_from_file(path, &width, &height))) {
     return NULL;
@@ -253,7 +253,7 @@ static u_int32_t* create_cardinals_from_sixel(const char* path) {
 #ifdef USE_XLIB
 
 /* seek the closest color */
-static int closest_color_index(XColor* color_list, int len, int red, int green, int blue) {
+static int closest_color_index(XColor *color_list, int len, int red, int green, int blue) {
   int closest = 0;
   int i;
   u_int min = 0xffffff;

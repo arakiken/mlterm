@@ -15,8 +15,8 @@
                          */                                                  \
                        alloca(sizeof(char*) * (bl_count_char_in_str(args, ' ') + 2)), argc, args)
 
-int bl_parse_options(char** opt, char** opt_val, int* argc, char*** argv);
+int bl_parse_options(char **opt, char **opt_val, int *argc, char ***argv);
 
-char** _bl_arg_str_to_array(char** argv, int* argc, char* args);
+char** _bl_arg_str_to_array(char **argv, int *argc, char *args);
 
 #endif

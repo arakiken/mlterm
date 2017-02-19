@@ -13,7 +13,7 @@
 
 /* --- static functions --- */
 
-static void remap_unsupported_charset(ef_char_t* ch, int version) {
+static void remap_unsupported_charset(ef_char_t *ch, int version) {
   ef_char_t c;
 
   if (ch->cs == ISO10646_UCS4_1) {
@@ -72,9 +72,9 @@ static void remap_unsupported_charset(ef_char_t* ch, int version) {
   }
 }
 
-static size_t convert_to_iso2022jp(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                   ef_parser_t* parser, int is_7, int version) {
-  ef_iso2022_conv_t* iso2022_conv;
+static size_t convert_to_iso2022jp(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                   ef_parser_t *parser, int is_7, int version) {
+  ef_iso2022_conv_t *iso2022_conv;
   size_t filled_size;
   ef_char_t ch;
 
@@ -213,28 +213,28 @@ static size_t convert_to_iso2022jp(ef_conv_t* conv, u_char* dst, size_t dst_size
   return filled_size;
 }
 
-static size_t convert_to_iso2022jp_8(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                     ef_parser_t* parser) {
+static size_t convert_to_iso2022jp_8(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                     ef_parser_t *parser) {
   return convert_to_iso2022jp(conv, dst, dst_size, parser, 0, 1);
 }
 
-static size_t convert_to_iso2022jp_7(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                     ef_parser_t* parser) {
+static size_t convert_to_iso2022jp_7(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                     ef_parser_t *parser) {
   return convert_to_iso2022jp(conv, dst, dst_size, parser, 1, 1);
 }
 
-static size_t convert_to_iso2022jp2(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                    ef_parser_t* parser) {
+static size_t convert_to_iso2022jp2(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                    ef_parser_t *parser) {
   return convert_to_iso2022jp(conv, dst, dst_size, parser, 1, 2);
 }
 
-static size_t convert_to_iso2022jp3(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                    ef_parser_t* parser) {
+static size_t convert_to_iso2022jp3(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                    ef_parser_t *parser) {
   return convert_to_iso2022jp(conv, dst, dst_size, parser, 1, 3);
 }
 
-static void iso2022jp_7_conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void iso2022jp_7_conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -246,8 +246,8 @@ static void iso2022jp_7_conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = UNKNOWN_CS;
 }
 
-static void iso2022jp_8_conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void iso2022jp_8_conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -259,12 +259,12 @@ static void iso2022jp_8_conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = UNKNOWN_CS;
 }
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_iso2022jp_8_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_iso2022jp_8_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;
@@ -280,8 +280,8 @@ ef_conv_t* ef_iso2022jp_8_conv_new(void) {
   return (ef_conv_t*)iso2022_conv;
 }
 
-ef_conv_t* ef_iso2022jp_7_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_iso2022jp_7_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;
@@ -297,8 +297,8 @@ ef_conv_t* ef_iso2022jp_7_conv_new(void) {
   return (ef_conv_t*)iso2022_conv;
 }
 
-ef_conv_t* ef_iso2022jp2_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_iso2022jp2_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;
@@ -314,8 +314,8 @@ ef_conv_t* ef_iso2022jp2_conv_new(void) {
   return (ef_conv_t*)iso2022_conv;
 }
 
-ef_conv_t* ef_iso2022jp3_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_iso2022jp3_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;

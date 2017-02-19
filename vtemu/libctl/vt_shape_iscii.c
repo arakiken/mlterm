@@ -8,15 +8,15 @@
 
 /* --- global functions --- */
 
-u_int vt_shape_iscii(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_len) {
+u_int vt_shape_iscii(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len) {
   int src_pos;
   u_int dst_filled;
-  u_char* iscii_buf;
+  u_char *iscii_buf;
   u_int iscii_filled;
-  u_char* font_buf;
+  u_char *font_buf;
   u_int font_filled;
-  vt_char_t* ch;
-  vt_char_t* dst_shaped;
+  vt_char_t *ch;
+  vt_char_t *dst_shaped;
   u_int count;
   ef_charset_t cs;
 
@@ -78,7 +78,7 @@ u_int vt_shape_iscii(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_le
     cs = vt_char_cs(ch);
 
     if (IS_ISCII(cs)) {
-      vt_char_t* comb;
+      vt_char_t *comb;
       u_int comb_size;
 
       if (dst_shaped == NULL) {

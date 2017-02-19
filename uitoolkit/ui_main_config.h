@@ -37,44 +37,44 @@ typedef struct ui_main_config {
   vt_unicode_policy_t unicode_policy;
   u_int parent_window;
 
-  char* disp_name;
-  char* app_name;
-  char* title;
-  char* icon_name;
-  char* term_type;
-  char* scrollbar_view_name;
-  char* pic_file_path;
+  char *disp_name;
+  char *app_name;
+  char *title;
+  char *icon_name;
+  char *term_type;
+  char *scrollbar_view_name;
+  char *pic_file_path;
 /* BACKWARD COMPAT (3.1.7 or before) */
 #if 1
-  char* shortcut_strs[4];
+  char *shortcut_strs[4];
 #endif
-  char* fg_color;
-  char* bg_color;
-  char* cursor_fg_color;
-  char* cursor_bg_color;
-  char* bd_color;
-  char* it_color;
-  char* ul_color;
-  char* bl_color;
-  char* co_color;
-  char* sb_fg_color;
-  char* sb_bg_color;
-  char* mod_meta_key;
-  char* icon_path;
-  char* input_method;
-  char* init_str;
-  char* bidi_separators;
+  char *fg_color;
+  char *bg_color;
+  char *cursor_fg_color;
+  char *cursor_bg_color;
+  char *bd_color;
+  char *it_color;
+  char *ul_color;
+  char *bl_color;
+  char *co_color;
+  char *sb_fg_color;
+  char *sb_bg_color;
+  char *mod_meta_key;
+  char *icon_path;
+  char *input_method;
+  char *init_str;
+  char *bidi_separators;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  char** server_list;
-  char* default_server;
+  char **server_list;
+  char *default_server;
 #endif
 #ifdef USE_LIBSSH2
-  char* public_key;
-  char* private_key;
+  char *public_key;
+  char *private_key;
 #endif
-  char* work_dir;
-  char* cmd_path;
-  char** cmd_argv;
+  char *work_dir;
+  char *cmd_path;
+  char **cmd_argv;
 
   u_int16_t brightness;
   u_int16_t contrast;
@@ -120,14 +120,14 @@ typedef struct ui_main_config {
 
 } ui_main_config_t;
 
-int ui_prepare_for_main_config(bl_conf_t* conf);
+int ui_prepare_for_main_config(bl_conf_t *conf);
 
-int ui_main_config_init(ui_main_config_t* main_config, bl_conf_t* conf, int argc, char** argv);
+int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc, char **argv);
 
-int ui_main_config_final(ui_main_config_t* main_config);
+int ui_main_config_final(ui_main_config_t *main_config);
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-int ui_main_config_add_to_server_list(ui_main_config_t* main_config, char* server);
+int ui_main_config_add_to_server_list(ui_main_config_t *main_config, char *server);
 #endif
 
 #endif

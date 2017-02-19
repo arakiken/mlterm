@@ -35,7 +35,7 @@
 
 /* --- static functions --- */
 
-static void end_application(GtkWidget* widget, gpointer data) { gtk_main_quit(); }
+static void end_application(GtkWidget *widget, gpointer data) { gtk_main_quit(); }
 
 /*
  *  ********  procedures when buttons are clicked  ********
@@ -109,49 +109,49 @@ static int update(mc_io_t io) {
   return 1;
 }
 
-static gint cancel_clicked(GtkWidget* widget, gpointer data) {
+static gint cancel_clicked(GtkWidget *widget, gpointer data) {
   gtk_main_quit();
   return FALSE;
 }
 
-static gint apply_clicked(GtkWidget* widget, gpointer data) {
+static gint apply_clicked(GtkWidget *widget, gpointer data) {
   update(mc_io_set);
   return 1;
 }
 
-static gint saveexit_clicked(GtkWidget* widget, gpointer data) {
+static gint saveexit_clicked(GtkWidget *widget, gpointer data) {
   update(mc_io_set_save);
   gtk_main_quit();
   return 1;
 }
 
-static gint applyexit_clicked(GtkWidget* widget, gpointer data) {
+static gint applyexit_clicked(GtkWidget *widget, gpointer data) {
   update(mc_io_set);
   gtk_main_quit();
   return 1;
 }
 
-static gint larger_clicked(GtkWidget* widget, gpointer data) {
+static gint larger_clicked(GtkWidget *widget, gpointer data) {
   mc_set_str_value("fontsize", "larger");
   mc_flush(mc_io_set);
 
   return 1;
 }
 
-static gint smaller_clicked(GtkWidget* widget, gpointer data) {
+static gint smaller_clicked(GtkWidget *widget, gpointer data) {
   mc_set_str_value("fontsize", "smaller");
   mc_flush(mc_io_set);
 
   return 1;
 }
 
-static gint full_reset_clicked(GtkWidget* widget, gpointer data) {
+static gint full_reset_clicked(GtkWidget *widget, gpointer data) {
   mc_exec("full_reset");
 
   return 1;
 }
 
-static gint snapshot_clicked(GtkWidget* widget, gpointer data) {
+static gint snapshot_clicked(GtkWidget *widget, gpointer data) {
   mc_exec("snapshot");
 
   return 1;
@@ -164,10 +164,10 @@ static gint snapshot_clicked(GtkWidget* widget, gpointer data) {
 #define MY_RESPONSE_SEND 3
 #define MY_RESPONSE_RECV 4
 
-static void drag_data_received(GtkWidget* widget, GdkDragContext* context, gint x, gint y,
-                               GtkSelectionData* data, guint info, guint time) {
-  gchar** uris;
-  gchar* filename;
+static void drag_data_received(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+                               GtkSelectionData *data, guint info, guint time) {
+  gchar **uris;
+  gchar *filename;
 
 #if GTK_CHECK_VERSION(2, 14, 0)
   uris = g_uri_list_extract_uris(gtk_selection_data_get_data(data));
@@ -180,13 +180,13 @@ static void drag_data_received(GtkWidget* widget, GdkDragContext* context, gint 
   g_strfreev(uris);
 }
 
-static gint ssh_scp_clicked(GtkWidget* widget, gpointer data) {
-  GtkWidget* dialog;
-  GtkWidget* content_area;
-  GtkWidget* hbox;
-  GtkWidget* label;
-  GtkWidget* local_entry;
-  GtkWidget* remote_entry;
+static gint ssh_scp_clicked(GtkWidget *widget, gpointer data) {
+  GtkWidget *dialog;
+  GtkWidget *content_area;
+  GtkWidget *hbox;
+  GtkWidget *label;
+  GtkWidget *local_entry;
+  GtkWidget *remote_entry;
   gint res;
   GtkTargetEntry local_targets[] = {
       {"text/uri-list", 0, 0},
@@ -241,15 +241,15 @@ static gint ssh_scp_clicked(GtkWidget* widget, gpointer data) {
   gtk_container_add(GTK_CONTAINER(content_area), hbox);
 
   while ((res = gtk_dialog_run(GTK_DIALOG(dialog))) >= MY_RESPONSE_SEND) {
-    char* cmd;
-    const gchar* local_path;
-    const gchar* remote_path;
+    char *cmd;
+    const gchar *local_path;
+    const gchar *remote_path;
 
     local_path = gtk_entry_get_text(GTK_ENTRY(local_entry));
     remote_path = gtk_entry_get_text(GTK_ENTRY(remote_entry));
 
     if ((cmd = alloca(28 + strlen(local_path) + strlen(remote_path)))) {
-      char* p;
+      char *p;
 
       if (res == MY_RESPONSE_SEND) {
         if (!*local_path) {
@@ -303,7 +303,7 @@ static gint ssh_scp_clicked(GtkWidget* widget, gpointer data) {
 
 #endif /* USE_LIBSSH2 */
 
-static gint pty_new_button_clicked(GtkWidget* widget, gpointer data) {
+static gint pty_new_button_clicked(GtkWidget *widget, gpointer data) {
   mc_exec("open_pty");
   mc_flush(mc_io_set);
   gtk_main_quit();
@@ -311,7 +311,7 @@ static gint pty_new_button_clicked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static gint pty_button_clicked(GtkWidget* widget, gpointer data) {
+static gint pty_button_clicked(GtkWidget *widget, gpointer data) {
   mc_select_pty();
 
   /*
@@ -324,7 +324,7 @@ static gint pty_button_clicked(GtkWidget* widget, gpointer data) {
 }
 
 #if defined(UES_WIN32GUI) || defined(USE_QUARTZ)
-static gboolean event(GtkWidget* widget, GdkEvent* event, gpointer data) {
+static gboolean event(GtkWidget *widget, GdkEvent *event, gpointer data) {
   if (event->type == GDK_FOCUS_CHANGE && !((GdkEventFocus*)event)->in) {
     gtk_window_set_keep_above(GTK_WINDOW(widget), FALSE);
     g_signal_handlers_disconnect_by_func(widget, event, NULL);
@@ -338,16 +338,16 @@ static gboolean event(GtkWidget* widget, GdkEvent* event, gpointer data) {
  *  ********  Building GUI (lower part, independent buttons)  ********
  */
 
-static void addbutton(const char* label, gint(func)(GtkWidget*, gpointer), GtkWidget* box) {
-  GtkWidget* button;
+static void addbutton(const char *label, gint(func)(GtkWidget*, gpointer), GtkWidget *box) {
+  GtkWidget *button;
   button = gtk_button_new_with_label(label);
   g_signal_connect(button, "clicked", G_CALLBACK(func), NULL);
   gtk_widget_show(button);
   gtk_box_pack_start(GTK_BOX(box), button, TRUE, TRUE, 0);
 }
 
-static GtkWidget* apply_cancel_button(void) {
-  GtkWidget* hbox;
+static GtkWidget *apply_cancel_button(void) {
+  GtkWidget *hbox;
 
   hbox = gtk_hbox_new(FALSE, 5);
   gtk_widget_show(hbox);
@@ -360,9 +360,9 @@ static GtkWidget* apply_cancel_button(void) {
   return hbox;
 }
 
-static GtkWidget* font_large_small(void) {
-  GtkWidget* frame;
-  GtkWidget* hbox;
+static GtkWidget *font_large_small(void) {
+  GtkWidget *frame;
+  GtkWidget *hbox;
 
   frame = gtk_frame_new(_("Font size (temporary)"));
   gtk_widget_show(frame);
@@ -384,9 +384,9 @@ static GtkWidget* font_large_small(void) {
   return frame;
 }
 
-static GtkWidget* command(void) {
-  GtkWidget* frame;
-  GtkWidget* hbox;
+static GtkWidget *command(void) {
+  GtkWidget *frame;
+  GtkWidget *hbox;
 
   frame = gtk_frame_new(_("Command"));
   gtk_widget_show(frame);
@@ -405,10 +405,10 @@ static GtkWidget* command(void) {
   return frame;
 }
 
-static GtkWidget* pty_list(void) {
-  GtkWidget* frame;
-  GtkWidget* hbox;
-  GtkWidget* config_widget;
+static GtkWidget *pty_list(void) {
+  GtkWidget *frame;
+  GtkWidget *hbox;
+  GtkWidget *config_widget;
 
   if ((config_widget = mc_pty_config_widget_new()) == NULL) {
     return NULL;
@@ -436,15 +436,15 @@ static GtkWidget* pty_list(void) {
  */
 
 static int show(void) {
-  GtkWidget* window;
-  GtkWidget* vbox;
-  GtkWidget* vbox2;
-  GtkWidget* hbox;
-  GtkWidget* notebook;
-  GtkWidget* frame;
-  GtkWidget* label;
-  GtkWidget* config_widget;
-  GtkWidget* separator;
+  GtkWidget *window;
+  GtkWidget *vbox;
+  GtkWidget *vbox2;
+  GtkWidget *hbox;
+  GtkWidget *notebook;
+  GtkWidget *frame;
+  GtkWidget *label;
+  GtkWidget *config_widget;
+  GtkWidget *separator;
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   g_signal_connect(window, "destroy", G_CALLBACK(end_application), NULL);
@@ -766,7 +766,7 @@ static int show(void) {
 
 /* --- global functions --- */
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 #if !GTK_CHECK_VERSION(2, 90, 0)
   gtk_set_locale();
 #endif

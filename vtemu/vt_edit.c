@@ -52,9 +52,9 @@
  * The cursor must be inside the left and right margins. (The caller of this
  * function must check it in advance.)
  */
-static int insert_chars(vt_edit_t* edit, vt_char_t* ins_chars, u_int num_of_ins_chars,
+static int insert_chars(vt_edit_t *edit, vt_char_t *ins_chars, u_int num_of_ins_chars,
                         int do_move_cursor) {
-  vt_char_t* buffer;
+  vt_char_t *buffer;
   u_int buf_len;
   u_int num_of_cols;
   u_int filled_len;
@@ -64,7 +64,7 @@ static int insert_chars(vt_edit_t* edit, vt_char_t* ins_chars, u_int num_of_ins_
   u_int cols;
   int cursor_col;
   int count;
-  vt_line_t* cursor_line;
+  vt_line_t *cursor_line;
 
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
@@ -208,7 +208,7 @@ line_full:
   return 1;
 }
 
-static int horizontal_tabs(vt_edit_t* edit, u_int num, int is_forward) {
+static int horizontal_tabs(vt_edit_t *edit, u_int num, int is_forward) {
   int col;
   u_int count;
 
@@ -247,11 +247,11 @@ static int horizontal_tabs(vt_edit_t* edit, u_int num, int is_forward) {
   return 1;
 }
 
-static int copy_area(vt_edit_t* edit, int src_col, int src_row, u_int num_of_copy_cols,
+static int copy_area(vt_edit_t *edit, int src_col, int src_row, u_int num_of_copy_cols,
                      u_int num_of_copy_rows, int dst_col, int dst_row) {
   u_int count;
-  vt_line_t* src_line;
-  vt_line_t* dst_line;
+  vt_line_t *src_line;
+  vt_line_t *dst_line;
   int src_char_index;
   int dst_char_index;
   u_int src_cols_rest;
@@ -337,9 +337,9 @@ static int copy_area(vt_edit_t* edit, int src_col, int src_row, u_int num_of_cop
   return 1;
 }
 
-static int erase_area(vt_edit_t* edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
+static int erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
   u_int count;
-  vt_line_t* line;
+  vt_line_t *line;
   int char_index;
   u_int cols_rest;
 
@@ -365,7 +365,7 @@ static int erase_area(vt_edit_t* edit, int col, int row, u_int num_of_cols, u_in
   return 1;
 }
 
-static int scroll_downward_region(vt_edit_t* edit, u_int size, int is_cursor_beg,
+static int scroll_downward_region(vt_edit_t *edit, u_int size, int is_cursor_beg,
                                   int ignore_cursor_pos) {
   int vmargin_beg;
 
@@ -403,7 +403,7 @@ static int scroll_downward_region(vt_edit_t* edit, u_int size, int is_cursor_beg
   }
 }
 
-static int scroll_upward_region(vt_edit_t* edit, u_int size, int is_cursor_beg,
+static int scroll_upward_region(vt_edit_t *edit, u_int size, int is_cursor_beg,
                                 int ignore_cursor_pos) {
   int vmargin_beg;
 
@@ -442,8 +442,8 @@ static int scroll_upward_region(vt_edit_t* edit, u_int size, int is_cursor_beg,
   }
 }
 
-static int apply_relative_origin(vt_edit_t* edit, int* col, int* row, u_int* num_of_cols,
-                                 u_int* num_of_rows) {
+static int apply_relative_origin(vt_edit_t *edit, int *col, int *row, u_int *num_of_cols,
+                                 u_int *num_of_rows) {
   if (edit->is_relative_origin) {
     if (((*row) += edit->vmargin_beg) > edit->vmargin_end ||
         ((*col) += edit->hmargin_beg) > edit->hmargin_end) {
@@ -464,7 +464,7 @@ static int apply_relative_origin(vt_edit_t* edit, int* col, int* row, u_int* num
 
 /* --- global functions --- */
 
-int vt_edit_init(vt_edit_t* edit, vt_edit_scroll_event_listener_t* scroll_listener,
+int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,
                  u_int num_of_cols, u_int num_of_rows, u_int tab_size, int is_logging,
                  int use_bce) {
   if (!vt_model_init(&edit->model, num_of_cols, num_of_rows)) {
@@ -508,7 +508,7 @@ int vt_edit_init(vt_edit_t* edit, vt_edit_scroll_event_listener_t* scroll_listen
   return 1;
 }
 
-int vt_edit_final(vt_edit_t* edit) {
+int vt_edit_final(vt_edit_t *edit) {
   vt_model_final(&edit->model);
 
   free(edit->tab_stops);
@@ -518,11 +518,11 @@ int vt_edit_final(vt_edit_t* edit) {
   return 1;
 }
 
-int vt_edit_clone(vt_edit_t* dst_edit, vt_edit_t* src_edit) {
+int vt_edit_clone(vt_edit_t *dst_edit, vt_edit_t *src_edit) {
   u_int row;
   u_int num_of_rows;
-  vt_line_t* src_line;
-  vt_line_t* dst_line;
+  vt_line_t *src_line;
+  vt_line_t *dst_line;
 
   memcpy(((char*)dst_edit) + sizeof(vt_model_t), ((char*)src_edit) + sizeof(vt_model_t),
          sizeof(vt_edit_t) - sizeof(vt_model_t));
@@ -555,7 +555,7 @@ int vt_edit_clone(vt_edit_t* dst_edit, vt_edit_t* src_edit) {
   return 1;
 }
 
-int vt_edit_resize(vt_edit_t* edit, u_int num_of_cols, u_int num_of_rows) {
+int vt_edit_resize(vt_edit_t *edit, u_int num_of_cols, u_int num_of_rows) {
   u_int old_filled_rows;
   u_int old_cols;
   u_int slide;
@@ -624,7 +624,7 @@ int vt_edit_resize(vt_edit_t* edit, u_int num_of_cols, u_int num_of_rows) {
   return 1;
 }
 
-int vt_edit_insert_chars(vt_edit_t* edit, vt_char_t* ins_chars, u_int num_of_ins_chars) {
+int vt_edit_insert_chars(vt_edit_t *edit, vt_char_t *ins_chars, u_int num_of_ins_chars) {
   reset_wraparound_checker(edit);
 
 #ifdef COMPAT_XTERM
@@ -637,10 +637,10 @@ int vt_edit_insert_chars(vt_edit_t* edit, vt_char_t* ins_chars, u_int num_of_ins
   }
 }
 
-int vt_edit_insert_blank_chars(vt_edit_t* edit, u_int num_of_blank_chars) {
+int vt_edit_insert_blank_chars(vt_edit_t *edit, u_int num_of_blank_chars) {
   int count;
-  vt_char_t* blank_chars;
-  vt_char_t* sp_ch;
+  vt_char_t *blank_chars;
+  vt_char_t *sp_ch;
 
   if (!CURSOR_IS_INSIDE_HMARGIN(edit)) {
     return 0;
@@ -676,13 +676,13 @@ int vt_edit_insert_blank_chars(vt_edit_t* edit, u_int num_of_blank_chars) {
   return insert_chars(edit, blank_chars, num_of_blank_chars, 0);
 }
 
-int vt_edit_overwrite_chars(vt_edit_t* edit, vt_char_t* ow_chars, u_int num_of_ow_chars) {
+int vt_edit_overwrite_chars(vt_edit_t *edit, vt_char_t *ow_chars, u_int num_of_ow_chars) {
   int count;
-  vt_char_t* buffer;
+  vt_char_t *buffer;
   u_int buf_len;
   u_int num_of_cols;
   u_int filled_len;
-  vt_line_t* line;
+  vt_line_t *line;
   int beg;
   u_int cols;
   int new_char_index;
@@ -819,12 +819,12 @@ int vt_edit_overwrite_chars(vt_edit_t* edit, vt_char_t* ow_chars, u_int num_of_o
 /*
  * deleting cols within a line.
  */
-int vt_edit_delete_cols(vt_edit_t* edit, u_int del_cols) {
+int vt_edit_delete_cols(vt_edit_t *edit, u_int del_cols) {
   int char_index;
-  vt_char_t* buffer;
+  vt_char_t *buffer;
   u_int buf_len;
   u_int filled_len;
-  vt_line_t* cursor_line;
+  vt_line_t *cursor_line;
 
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
@@ -967,8 +967,8 @@ int vt_edit_delete_cols(vt_edit_t* edit, u_int del_cols) {
   return 1;
 }
 
-int vt_edit_clear_cols(vt_edit_t* edit, u_int cols) {
-  vt_line_t* cursor_line;
+int vt_edit_clear_cols(vt_edit_t *edit, u_int cols) {
+  vt_line_t *cursor_line;
 
   reset_wraparound_checker(edit);
 
@@ -990,7 +990,7 @@ int vt_edit_clear_cols(vt_edit_t* edit, u_int cols) {
   return 1;
 }
 
-int vt_edit_insert_new_line(vt_edit_t* edit) {
+int vt_edit_insert_new_line(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   if (MARGIN_IS_ENABLED(edit)) {
@@ -1000,7 +1000,7 @@ int vt_edit_insert_new_line(vt_edit_t* edit) {
   }
 }
 
-int vt_edit_delete_line(vt_edit_t* edit) {
+int vt_edit_delete_line(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   if (MARGIN_IS_ENABLED(edit)) {
@@ -1010,8 +1010,8 @@ int vt_edit_delete_line(vt_edit_t* edit) {
   }
 }
 
-int vt_edit_clear_line_to_right(vt_edit_t* edit) {
-  vt_line_t* cursor_line;
+int vt_edit_clear_line_to_right(vt_edit_t *edit) {
+  vt_line_t *cursor_line;
 
   reset_wraparound_checker(edit);
 
@@ -1032,8 +1032,8 @@ int vt_edit_clear_line_to_right(vt_edit_t* edit) {
   return 1;
 }
 
-int vt_edit_clear_line_to_left(vt_edit_t* edit) {
-  vt_line_t* cursor_line;
+int vt_edit_clear_line_to_left(vt_edit_t *edit) {
+  vt_line_t *cursor_line;
 
   reset_wraparound_checker(edit);
 
@@ -1046,7 +1046,7 @@ int vt_edit_clear_line_to_left(vt_edit_t* edit) {
   return 1;
 }
 
-int vt_edit_clear_below(vt_edit_t* edit) {
+int vt_edit_clear_below(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   if (!vt_edit_clear_line_to_right(edit)) {
@@ -1067,7 +1067,7 @@ int vt_edit_clear_below(vt_edit_t* edit) {
   }
 }
 
-int vt_edit_clear_above(vt_edit_t* edit) {
+int vt_edit_clear_above(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   if (!vt_edit_clear_line_to_left(edit)) {
@@ -1087,7 +1087,7 @@ int vt_edit_clear_above(vt_edit_t* edit) {
   }
 }
 
-int vt_edit_set_vmargin(vt_edit_t* edit, int beg, int end) {
+int vt_edit_set_vmargin(vt_edit_t *edit, int beg, int end) {
   /*
    * for compatibility with xterm:
    *
@@ -1133,7 +1133,7 @@ int vt_edit_set_vmargin(vt_edit_t* edit, int beg, int end) {
   return 1;
 }
 
-int vt_edit_scroll_leftward(vt_edit_t* edit, u_int size) {
+int vt_edit_scroll_leftward(vt_edit_t *edit, u_int size) {
   int orig_mode;
 
   orig_mode = edit->is_relative_origin;
@@ -1157,7 +1157,7 @@ int vt_edit_scroll_leftward(vt_edit_t* edit, u_int size) {
   return 1;
 }
 
-int vt_edit_scroll_rightward(vt_edit_t* edit, u_int size) {
+int vt_edit_scroll_rightward(vt_edit_t *edit, u_int size) {
   int orig_mode;
 
   orig_mode = edit->is_relative_origin;
@@ -1180,7 +1180,7 @@ int vt_edit_scroll_rightward(vt_edit_t* edit, u_int size) {
   return 1;
 }
 
-int vt_edit_scroll_leftward_from_cursor(vt_edit_t* edit, u_int width) {
+int vt_edit_scroll_leftward_from_cursor(vt_edit_t *edit, u_int width) {
   int src;
   u_int height;
 
@@ -1202,7 +1202,7 @@ int vt_edit_scroll_leftward_from_cursor(vt_edit_t* edit, u_int width) {
   return 1;
 }
 
-int vt_edit_scroll_rightward_from_cursor(vt_edit_t* edit, u_int width) {
+int vt_edit_scroll_rightward_from_cursor(vt_edit_t *edit, u_int width) {
   int dst;
   u_int height;
 
@@ -1224,7 +1224,7 @@ int vt_edit_scroll_rightward_from_cursor(vt_edit_t* edit, u_int width) {
   return 1;
 }
 
-int vt_edit_scroll_upward(vt_edit_t* edit, u_int size) {
+int vt_edit_scroll_upward(vt_edit_t *edit, u_int size) {
   int cursor_row;
   int cursor_col;
 
@@ -1242,7 +1242,7 @@ int vt_edit_scroll_upward(vt_edit_t* edit, u_int size) {
   return 1;
 }
 
-int vt_edit_scroll_downward(vt_edit_t* edit, u_int size) {
+int vt_edit_scroll_downward(vt_edit_t *edit, u_int size) {
   int cursor_row;
   int cursor_col;
 
@@ -1260,7 +1260,7 @@ int vt_edit_scroll_downward(vt_edit_t* edit, u_int size) {
   return 1;
 }
 
-int vt_edit_set_use_hmargin(vt_edit_t* edit, int use) {
+int vt_edit_set_use_hmargin(vt_edit_t *edit, int use) {
   if (use <= 0) {
     edit->use_margin = 0;
     edit->hmargin_beg = 0;
@@ -1276,7 +1276,7 @@ int vt_edit_set_use_hmargin(vt_edit_t* edit, int use) {
   return 1;
 }
 
-int vt_edit_set_hmargin(vt_edit_t* edit, int beg, int end) {
+int vt_edit_set_hmargin(vt_edit_t *edit, int beg, int end) {
   if (edit->use_margin && 0 <= beg && beg < end && end < edit->model.num_of_cols) {
     edit->hmargin_beg = beg;
     edit->hmargin_end = end;
@@ -1289,13 +1289,13 @@ int vt_edit_set_hmargin(vt_edit_t* edit, int beg, int end) {
   }
 }
 
-int vt_edit_forward_tabs(vt_edit_t* edit, u_int num) { return horizontal_tabs(edit, num, 1); }
+int vt_edit_forward_tabs(vt_edit_t *edit, u_int num) { return horizontal_tabs(edit, num, 1); }
 
-int vt_edit_backward_tabs(vt_edit_t* edit, u_int num) { return horizontal_tabs(edit, num, 0); }
+int vt_edit_backward_tabs(vt_edit_t *edit, u_int num) { return horizontal_tabs(edit, num, 0); }
 
-int vt_edit_set_tab_size(vt_edit_t* edit, u_int tab_size) {
+int vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
   int col;
-  u_int8_t* tab_stops;
+  u_int8_t *tab_stops;
 
   if (tab_size == 0) {
 #ifdef DEBUG
@@ -1344,25 +1344,25 @@ int vt_edit_set_tab_size(vt_edit_t* edit, u_int tab_size) {
   return 1;
 }
 
-int vt_edit_set_tab_stop(vt_edit_t* edit) {
+int vt_edit_set_tab_stop(vt_edit_t *edit) {
   edit->tab_stops[edit->cursor.col / 8] |= (1 << (7 - edit->cursor.col % 8));
 
   return 1;
 }
 
-int vt_edit_clear_tab_stop(vt_edit_t* edit) {
+int vt_edit_clear_tab_stop(vt_edit_t *edit) {
   edit->tab_stops[edit->cursor.col / 8] &= ~(1 << (7 - edit->cursor.col % 8));
 
   return 1;
 }
 
-int vt_edit_clear_all_tab_stops(vt_edit_t* edit) {
+int vt_edit_clear_all_tab_stops(vt_edit_t *edit) {
   memset(edit->tab_stops, 0, TAB_STOPS_SIZE(edit));
 
   return 1;
 }
 
-int vt_edit_set_modified_all(vt_edit_t* edit) {
+int vt_edit_set_modified_all(vt_edit_t *edit) {
   int count;
 
   for (count = 0; count < edit->model.num_of_rows; count++) {
@@ -1372,7 +1372,7 @@ int vt_edit_set_modified_all(vt_edit_t* edit) {
   return 1;
 }
 
-int vt_edit_goto_beg_of_line(vt_edit_t* edit) {
+int vt_edit_goto_beg_of_line(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   if (edit->hmargin_beg > 0 && edit->cursor.col >= edit->hmargin_beg) {
@@ -1385,7 +1385,7 @@ int vt_edit_goto_beg_of_line(vt_edit_t* edit) {
 /*
  * Note that this function ignores edit->is_relative_origin.
  */
-int vt_edit_goto_home(vt_edit_t* edit) {
+int vt_edit_goto_home(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   vt_cursor_goto_home(&edit->cursor);
@@ -1393,7 +1393,7 @@ int vt_edit_goto_home(vt_edit_t* edit) {
   return 1;
 }
 
-int vt_edit_go_forward(vt_edit_t* edit, int flag /* WARPAROUND | SCROLL */
+int vt_edit_go_forward(vt_edit_t *edit, int flag /* WARPAROUND | SCROLL */
                        ) {
   u_int num_of_cols;
 
@@ -1434,7 +1434,7 @@ int vt_edit_go_forward(vt_edit_t* edit, int flag /* WARPAROUND | SCROLL */
   return 1;
 }
 
-int vt_edit_go_back(vt_edit_t* edit, int flag /* WRAPAROUND | SCROLL */
+int vt_edit_go_back(vt_edit_t *edit, int flag /* WRAPAROUND | SCROLL */
                     ) {
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
@@ -1500,7 +1500,7 @@ int vt_edit_go_back(vt_edit_t* edit, int flag /* WRAPAROUND | SCROLL */
   return 1;
 }
 
-int vt_edit_go_upward(vt_edit_t* edit, int flag /* SCROLL */
+int vt_edit_go_upward(vt_edit_t *edit, int flag /* SCROLL */
                       ) {
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
@@ -1530,7 +1530,7 @@ int vt_edit_go_upward(vt_edit_t* edit, int flag /* SCROLL */
   return 1;
 }
 
-int vt_edit_go_downward(vt_edit_t* edit, int flag /* SCROLL */
+int vt_edit_go_downward(vt_edit_t *edit, int flag /* SCROLL */
                         ) {
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
@@ -1560,7 +1560,7 @@ int vt_edit_go_downward(vt_edit_t* edit, int flag /* SCROLL */
   return 1;
 }
 
-int vt_edit_goto(vt_edit_t* edit, int col, int row) {
+int vt_edit_goto(vt_edit_t *edit, int col, int row) {
   reset_wraparound_checker(edit);
 
   if (edit->is_relative_origin) {
@@ -1576,35 +1576,35 @@ int vt_edit_goto(vt_edit_t* edit, int col, int row) {
   return vt_cursor_goto_by_col(&edit->cursor, col, row);
 }
 
-int vt_edit_set_relative_origin(vt_edit_t* edit) {
+int vt_edit_set_relative_origin(vt_edit_t *edit) {
   edit->is_relative_origin = 1;
 
   return 1;
 }
 
-int vt_edit_set_absolute_origin(vt_edit_t* edit) {
+int vt_edit_set_absolute_origin(vt_edit_t *edit) {
   edit->is_relative_origin = 0;
 
   return 1;
 }
 
-int vt_edit_set_auto_wrap(vt_edit_t* edit, int flag) {
+int vt_edit_set_auto_wrap(vt_edit_t *edit, int flag) {
   edit->is_auto_wrap = flag;
 
   return 1;
 }
 
-int vt_edit_set_bce_fg_color(vt_edit_t* edit, vt_color_t fg_color) {
+int vt_edit_set_bce_fg_color(vt_edit_t *edit, vt_color_t fg_color) {
   return vt_char_set_fg_color(&edit->bce_ch, fg_color);
 }
 
-int vt_edit_set_bce_bg_color(vt_edit_t* edit, vt_color_t bg_color) {
+int vt_edit_set_bce_bg_color(vt_edit_t *edit, vt_color_t bg_color) {
   return vt_char_set_bg_color(&edit->bce_ch, bg_color);
 }
 
-int vt_edit_save_cursor(vt_edit_t* edit) { return vt_cursor_save(&edit->cursor); }
+int vt_edit_save_cursor(vt_edit_t *edit) { return vt_cursor_save(&edit->cursor); }
 
-int vt_edit_restore_cursor(vt_edit_t* edit) {
+int vt_edit_restore_cursor(vt_edit_t *edit) {
   if (vt_cursor_restore(&edit->cursor)) {
     reset_wraparound_checker(edit);
 
@@ -1614,11 +1614,11 @@ int vt_edit_restore_cursor(vt_edit_t* edit) {
   }
 }
 
-int vt_edit_fill_area(vt_edit_t* edit, vt_char_t* ch, int col, int row, u_int num_of_cols,
+int vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_of_cols,
                       u_int num_of_rows) {
   int char_index;
   u_int cols_rest;
-  vt_line_t* line;
+  vt_line_t *line;
 
   if (!apply_relative_origin(edit, &col, &row, &num_of_cols, &num_of_rows)) {
     return 1;
@@ -1639,7 +1639,7 @@ int vt_edit_fill_area(vt_edit_t* edit, vt_char_t* ch, int col, int row, u_int nu
   return 1;
 }
 
-int vt_edit_copy_area(vt_edit_t* edit, int src_col, int src_row, u_int num_of_copy_cols,
+int vt_edit_copy_area(vt_edit_t *edit, int src_col, int src_row, u_int num_of_copy_cols,
                       u_int num_of_copy_rows, int dst_col, int dst_row) {
   if (edit->is_relative_origin) {
     if ((src_row += edit->vmargin_beg) > edit->vmargin_end ||
@@ -1669,7 +1669,7 @@ int vt_edit_copy_area(vt_edit_t* edit, int src_col, int src_row, u_int num_of_co
   return copy_area(edit, src_col, src_row, num_of_copy_cols, num_of_copy_rows, dst_col, dst_row);
 }
 
-int vt_edit_erase_area(vt_edit_t* edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
+int vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
   if (!apply_relative_origin(edit, &col, &row, &num_of_cols, &num_of_rows)) {
     return 1;
   }
@@ -1677,11 +1677,11 @@ int vt_edit_erase_area(vt_edit_t* edit, int col, int row, u_int num_of_cols, u_i
   return erase_area(edit, col, row, num_of_cols, num_of_rows);
 }
 
-int vt_edit_change_attr_area(vt_edit_t* edit, int col, int row, u_int num_of_cols,
+int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
                              u_int num_of_rows, void (*func)(vt_char_t*, int, int, int, int),
                              int attr) {
   u_int count;
-  vt_line_t* line;
+  vt_line_t *line;
   int char_index;
   int end_char_index;
   u_int cols_rest;
@@ -1763,7 +1763,7 @@ int vt_edit_change_attr_area(vt_edit_t* edit, int col, int row, u_int num_of_col
   return 1;
 }
 
-void vt_edit_clear_size_attr(vt_edit_t* edit) {
+void vt_edit_clear_size_attr(vt_edit_t *edit) {
   u_int count;
 
   for (count = 0; count < edit->model.num_of_rows; count++) {
@@ -1777,9 +1777,9 @@ void vt_edit_clear_size_attr(vt_edit_t* edit) {
 
 #ifdef DEBUG
 
-void vt_edit_dump(vt_edit_t* edit) {
+void vt_edit_dump(vt_edit_t *edit) {
   int row;
-  vt_line_t* line;
+  vt_line_t *line;
 
   bl_debug_printf(BL_DEBUG_TAG " ===> dumping edit...[cursor(index)%d (col)%d (row)%d]\n",
                   edit->cursor.char_index, edit->cursor.col, edit->cursor.row);
@@ -1822,7 +1822,7 @@ void vt_edit_dump(vt_edit_t* edit) {
   bl_debug_printf(BL_DEBUG_TAG " <=== end of edit.\n\n");
 }
 
-void vt_edit_dump_updated(vt_edit_t* edit) {
+void vt_edit_dump_updated(vt_edit_t *edit) {
   int row;
 
   for (row = 0; row < edit->model.num_of_rows; row++) {

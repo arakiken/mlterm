@@ -9,8 +9,8 @@
 
 typedef struct vt_config_menu {
 #ifdef USE_WIN32API
-  void* pid; /* HANDLE */
-  void* fd;  /* HANDLE */
+  void *pid; /* HANDLE */
+  void *fd;  /* HANDLE */
 #else
   pid_t pid;
   int fd;
@@ -31,14 +31,14 @@ typedef struct vt_config_menu {
 
 #else /* NO_TOOLS */
 
-int vt_config_menu_init(vt_config_menu_t* config_menu);
+int vt_config_menu_init(vt_config_menu_t *config_menu);
 
-int vt_config_menu_final(vt_config_menu_t* config_menu);
+int vt_config_menu_final(vt_config_menu_t *config_menu);
 
-int vt_config_menu_start(vt_config_menu_t* config_menu, char* cmd_path, int x, int y, char* display,
+int vt_config_menu_start(vt_config_menu_t *config_menu, char *cmd_path, int x, int y, char *display,
                          vt_pty_ptr_t pty);
 
-int vt_config_menu_write(vt_config_menu_t* config_menu, u_char* buf, size_t len);
+int vt_config_menu_write(vt_config_menu_t *config_menu, u_char *buf, size_t len);
 
 #endif /* NO_TOOLS */
 

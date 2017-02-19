@@ -7,7 +7,7 @@
 
 /* --- global functions --- */
 
-void ef_parser_init(ef_parser_t* parser) {
+void ef_parser_init(ef_parser_t *parser) {
   parser->str = NULL;
   parser->marked_left = 0;
   parser->left = 0;
@@ -15,7 +15,7 @@ void ef_parser_init(ef_parser_t* parser) {
   parser->is_eos = 0;
 }
 
-size_t __ef_parser_increment(ef_parser_t* parser) {
+size_t __ef_parser_increment(ef_parser_t *parser) {
   if (parser->left <= 1) {
     parser->str += parser->left;
     parser->left = 0;
@@ -28,7 +28,7 @@ size_t __ef_parser_increment(ef_parser_t* parser) {
   return parser->left;
 }
 
-size_t __ef_parser_n_increment(ef_parser_t* parser, size_t n) {
+size_t __ef_parser_n_increment(ef_parser_t *parser, size_t n) {
   if (parser->left <= n) {
     parser->str += parser->left;
     parser->left = 0;
@@ -41,14 +41,14 @@ size_t __ef_parser_n_increment(ef_parser_t* parser, size_t n) {
   return parser->left;
 }
 
-void __ef_parser_mark(ef_parser_t* parser) { parser->marked_left = parser->left; }
+void __ef_parser_mark(ef_parser_t *parser) { parser->marked_left = parser->left; }
 
-void __ef_parser_reset(ef_parser_t* parser) {
+void __ef_parser_reset(ef_parser_t *parser) {
   parser->str -= (parser->marked_left - parser->left);
   parser->left = parser->marked_left;
 }
 
-void __ef_parser_full_reset(ef_parser_t* parser) {
+void __ef_parser_full_reset(ef_parser_t *parser) {
   if (parser->is_eos && parser->marked_left > parser->left) {
     parser->is_eos = 0;
   }
@@ -59,7 +59,7 @@ void __ef_parser_full_reset(ef_parser_t* parser) {
 /*
  * short cut function. (ignoring error)
  */
-int ef_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+int ef_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   while (1) {
 #if 0
     /*

@@ -119,7 +119,7 @@ static u_int8_t convert_ucs_to_iscii(u_int16_t ucs, ef_charset_t cs) {
   return 0;
 }
 
-static int convert_iscii_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code, ef_charset_t cs) {
+static int convert_iscii_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code, ef_charset_t cs) {
   if (iscii_code <= 0x9f) {
     ucs4->ch[0] = 0x0;
     ucs4->ch[1] = 0x0;
@@ -150,47 +150,47 @@ static int convert_iscii_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code, ef_chars
 
 /* --- global functions --- */
 
-int ef_map_iscii_assamese_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_assamese_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_ASSAMESE);
 }
 
-int ef_map_iscii_bengali_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_bengali_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_BENGALI);
 }
 
-int ef_map_iscii_gujarati_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_gujarati_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_GUJARATI);
 }
 
-int ef_map_iscii_hindi_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_hindi_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_HINDI);
 }
 
-int ef_map_iscii_kannada_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_kannada_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_KANNADA);
 }
 
-int ef_map_iscii_malayalam_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_malayalam_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_MALAYALAM);
 }
 
-int ef_map_iscii_oriya_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_oriya_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_ORIYA);
 }
 
-int ef_map_iscii_punjabi_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_punjabi_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_PUNJABI);
 }
 
-int ef_map_iscii_tamil_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_tamil_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_TAMIL);
 }
 
-int ef_map_iscii_telugu_to_ucs4(ef_char_t* ucs4, u_int16_t iscii_code) {
+int ef_map_iscii_telugu_to_ucs4(ef_char_t *ucs4, u_int16_t iscii_code) {
   return convert_iscii_to_ucs4(ucs4, iscii_code, ISCII_TELUGU);
 }
 
-int ef_map_ucs4_to_iscii(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iscii(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code < 0x900 || 0xd7f < ucs4_code) {
     return 0;
   }

@@ -9,7 +9,7 @@
 
 /* --- static functions --- */
 
-static int hash_path(const char* path) {
+static int hash_path(const char *path) {
   int hash;
 
   hash = 0;
@@ -20,7 +20,7 @@ static int hash_path(const char* path) {
   return hash & 65535 /* 0xffff */;
 }
 
-static void save_gif(const char* path, u_char* header, size_t header_size, u_char* body,
+static void save_gif(const char *path, u_char *header, size_t header_size, u_char *body,
                      size_t body_size
 #ifdef USE_WIN32GUI
                      ,
@@ -50,7 +50,7 @@ static void save_gif(const char* path, u_char* header, size_t header_size, u_cha
   }
 }
 
-static u_char* skip_gif_header(u_char* p) {
+static u_char *skip_gif_header(u_char *p) {
   /* Header */
 
   p += 10;
@@ -65,7 +65,7 @@ static u_char* skip_gif_header(u_char* p) {
 
 #ifdef GDK_PIXBUF_VERSION
 /* read gif information from mlterm/anim*.gif file. */
-static int read_gif_info(const char* path, int* x_off, int* y_off, int* width, int* height) {
+static int read_gif_info(const char *path, int *x_off, int *y_off, int *width, int *height) {
   int fd;
   u_char data[1024]; /* enough to get necessary gif information */
   ssize_t len;
@@ -79,7 +79,7 @@ static int read_gif_info(const char* path, int* x_off, int* y_off, int* width, i
 
   /* Cast to char* is necessary because this function can be compiled by g++. */
   if (len >= 6 && strncmp((char*)data, "GIF89a", 6) == 0) {
-    u_char* p;
+    u_char *p;
 
     p = skip_gif_header(data);
 
@@ -97,19 +97,19 @@ static int read_gif_info(const char* path, int* x_off, int* y_off, int* width, i
 }
 #endif
 
-static int split_animation_gif(const char* path, const char* dir, /* must end with '/'. */
+static int split_animation_gif(const char *path, const char *dir, /* must end with '/'. */
                                int hash) {
   int fd;
   struct stat st;
-  u_char* header;
+  u_char *header;
   size_t header_size;
-  u_char* body;
-  u_char* p;
+  u_char *body;
+  u_char *p;
   ssize_t len;
   int num;
-  char* split_path;
-  const char* format;
-  const char* next_format;
+  char *split_path;
+  const char *format;
+  const char *next_format;
 #ifdef USE_WIN32GUI
   int colorkey;
 #endif

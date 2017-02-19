@@ -40,7 +40,7 @@ typedef struct {
   int fd;
 
   int fb_fd;
-  unsigned char* fb;
+  unsigned char *fb;
   size_t smem_len;
   unsigned int line_length;
   unsigned int xoffset;
@@ -63,8 +63,8 @@ typedef struct {
 
   } rgbinfo;
 
-  fb_cmap_t* cmap;
-  fb_cmap_t* cmap_orig;
+  fb_cmap_t *cmap;
+  fb_cmap_t *cmap_orig;
 
   struct {
 #ifndef COLOR_CACHE_MINIMUM
@@ -87,7 +87,7 @@ typedef struct {
   int lock_state;
 
   /* For 1, 2 or 4 bpp */
-  unsigned char* back_fb;
+  unsigned char *back_fb;
   int shift_0;
   int mask;
 
@@ -112,7 +112,7 @@ typedef void* Window;   /* dummy */
 typedef void* Drawable; /* dummy */
 
 typedef struct {
-  unsigned char* image;
+  unsigned char *image;
   unsigned int width;
   unsigned int height;
 
@@ -128,7 +128,7 @@ typedef int KeySym;
 typedef struct /* Same as definition in X11/X.h */
     {
   int max_keypermod;
-  KeyCode* modifiermap;
+  KeyCode *modifiermap;
 
 } XModifierKeymap;
 
@@ -180,12 +180,12 @@ typedef union {
 typedef int XSelectionRequestEvent; /* dummy */
 
 typedef struct {
-  char* file;
+  char *file;
 
   int32_t format; /* XXX (fontsize|FONT_BOLD|FONT_ITALIC) on freetype. */
 
   int32_t num_of_glyphs;
-  unsigned char* glyphs;
+  unsigned char *glyphs;
 
   int32_t glyph_width_bytes;
 
@@ -194,18 +194,18 @@ typedef struct {
   unsigned char height;
   unsigned char ascent;
 
-  u_int16_t* glyph_indeces;
+  u_int16_t *glyph_indeces;
 
   /* for pcf */
   int16_t min_char_or_byte2;
   int16_t max_char_or_byte2;
   int16_t min_byte1;
   int16_t max_byte1;
-  int32_t* glyph_offsets;
+  int32_t *glyph_offsets;
 
 #ifdef USE_FREETYPE
   /* for freetype */
-  void* face;
+  void *face;
   u_int32_t num_of_indeces;
   u_int32_t glyph_size;
   int is_aa;
@@ -604,9 +604,9 @@ typedef struct {
 #define XNegative 0x0010
 #define YNegative 0x0020
 
-int XParseGeometry(char* str, int* x, int* y, unsigned int* width, unsigned int* height);
+int XParseGeometry(char *str, int *x, int *y, unsigned int *width, unsigned int *height);
 
-KeySym XStringToKeysym(char* str);
+KeySym XStringToKeysym(char *str);
 
 /* === Platform dependent options === */
 

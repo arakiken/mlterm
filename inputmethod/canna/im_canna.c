@@ -26,27 +26,27 @@ typedef struct im_canna {
   jrKanjiStatus key_status;
   int is_enabled;
   int is_selecting_cand;
-  char* mode;
+  char *mode;
 
   vt_char_encoding_t term_encoding;
 
-  char* encoding_name; /* encoding of conversion engine */
+  char *encoding_name; /* encoding of conversion engine */
 
   /* conv is NULL if term_encoding == canna encoding */
-  ef_parser_t* parser_term; /* for term encoding */
-  ef_conv_t* conv;          /* for term encoding */
+  ef_parser_t *parser_term; /* for term encoding */
+  ef_conv_t *conv;          /* for term encoding */
 
 } im_canna_t;
 
 /* --- static variables --- */
 
 static int ref_count = 0;
-static ui_im_export_syms_t* syms = NULL; /* mlterm internal symbols */
-static ef_parser_t* parser_eucjp = NULL;
+static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
+static ef_parser_t *parser_eucjp = NULL;
 
 /* --- static functions --- */
 
-static void change_mode(im_canna_t* canna, int mode) {
+static void change_mode(im_canna_t *canna, int mode) {
   jrKanjiStatusWithValue ksv;
 
   ksv.ks = &canna->key_status;
@@ -57,13 +57,13 @@ static void change_mode(im_canna_t* canna, int mode) {
   jrKanjiControl(0, KC_CHANGEMODE, &ksv);
 }
 
-static void preedit(im_canna_t* canna, char* preedit,             /* eucjp(null terminated) */
-                    int rev_pos, int rev_len, char* candidateword /* eucjp(null terminated) */
+static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null terminated) */
+                    int rev_pos, int rev_len, char *candidateword /* eucjp(null terminated) */
                     ) {
   int x;
   int y;
   ef_char_t ch;
-  vt_char_t* p;
+  vt_char_t *p;
   u_int num_of_chars;
   size_t preedit_len;
 
@@ -76,7 +76,7 @@ static void preedit(im_canna_t* canna, char* preedit,             /* eucjp(null 
     }
   } else {
     int cols = 0;
-    u_char* tmp = NULL;
+    u_char *tmp = NULL;
 
     canna->im.preedit.cursor_offset = -1;
     num_of_chars = 0;
@@ -195,7 +195,7 @@ candidate:
       canna->im.stat_screen = NULL;
     }
   } else {
-    u_char* tmp = NULL;
+    u_char *tmp = NULL;
 
     (*canna->im.listener->get_spot)(canna->im.listener->self, canna->im.preedit.chars,
                                     canna->im.preedit.segment_offset, &x, &y);
@@ -232,7 +232,7 @@ candidate:
   }
 }
 
-static void commit(im_canna_t* canna, const char* str) {
+static void commit(im_canna_t *canna, const char *str) {
   u_char conv_buf[256];
   size_t filled_len;
   size_t len;
@@ -270,8 +270,8 @@ static void commit(im_canna_t* canna, const char* str) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t* im) {
-  im_canna_t* canna;
+static int delete (ui_im_t *im) {
+  im_canna_t *canna;
 
   canna = (im_canna_t*)im;
 
@@ -300,8 +300,8 @@ static int delete (ui_im_t* im) {
   return ref_count;
 }
 
-static int switch_mode(ui_im_t* im) {
-  im_canna_t* canna;
+static int switch_mode(ui_im_t *im) {
+  im_canna_t *canna;
 
   canna = (im_canna_t*)im;
 
@@ -317,8 +317,8 @@ static int switch_mode(ui_im_t* im) {
   return 1;
 }
 
-static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
-  im_canna_t* canna;
+static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_canna_t *canna;
 
   canna = (im_canna_t*)im;
 
@@ -328,7 +328,7 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
     return 0;
   } else if (canna->is_enabled) {
     int len;
-    u_char* cand;
+    u_char *cand;
 
     if (canna->is_selecting_cand) {
       if (ksym == XK_Up) {
@@ -415,7 +415,7 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
     }
 
     if ((canna->key_status.info & KanjiGLineInfo) && canna->key_status.gline.length > 0) {
-      u_char* p;
+      u_char *p;
 
       cand = canna->key_status.gline.line;
 
@@ -424,7 +424,7 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
         while (*p) {
           if (*p < 0x80) {
             if (p[0] == ' ' && p[1] == ' ') {
-              u_char* p2;
+              u_char *p2;
 
               *(p++) = '\n';
               p2 = p;
@@ -466,10 +466,10 @@ static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event
   return 1;
 }
 
-static int is_active(ui_im_t* im) { return ((im_canna_t*)im)->is_enabled; }
+static int is_active(ui_im_t *im) { return ((im_canna_t*)im)->is_enabled; }
 
-static void focused(ui_im_t* im) {
-  im_canna_t* canna;
+static void focused(ui_im_t *im) {
+  im_canna_t *canna;
 
   canna = (im_canna_t*)im;
 
@@ -478,8 +478,8 @@ static void focused(ui_im_t* im) {
   }
 }
 
-static void unfocused(ui_im_t* im) {
-  im_canna_t* canna;
+static void unfocused(ui_im_t *im) {
+  im_canna_t *canna;
 
   canna = (im_canna_t*)im;
 
@@ -490,9 +490,9 @@ static void unfocused(ui_im_t* im) {
 
 /* --- global functions --- */
 
-ui_im_t* im_canna_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                      ui_im_export_syms_t* export_syms, char* engine, u_int mod_ignore_mask) {
-  im_canna_t* canna;
+ui_im_t *im_canna_new(u_int64_t magic, vt_char_encoding_t term_encoding,
+                      ui_im_export_syms_t *export_syms, char *engine, u_int mod_ignore_mask) {
+  im_canna_t *canna;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
     bl_error_printf("Incompatible input method API.\n");
@@ -575,8 +575,8 @@ error:
 
 /* --- API for external tools --- */
 
-im_info_t* im_canna_get_info(char* locale, char* encoding) {
-  im_info_t* result;
+im_info_t *im_canna_get_info(char *locale, char *encoding) {
+  im_info_t *result;
 
   if ((result = malloc(sizeof(im_info_t)))) {
     result->id = strdup("canna");

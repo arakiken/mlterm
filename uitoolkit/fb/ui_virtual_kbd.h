@@ -8,10 +8,10 @@
 
 int ui_virtual_kbd_hide(void);
 
-int ui_is_virtual_kbd_event(ui_display_t* disp, XButtonEvent* bev);
+int ui_is_virtual_kbd_event(ui_display_t *disp, XButtonEvent *bev);
 
-int ui_virtual_kbd_read(XKeyEvent* kev, XButtonEvent* bev);
+int ui_virtual_kbd_read(XKeyEvent *kev, XButtonEvent *bev);
 
-ui_window_t* ui_is_virtual_kbd_area(int y);
+ui_window_t *ui_is_virtual_kbd_area(int y);
 
 #endif

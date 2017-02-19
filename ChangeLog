@@ -1,5 +1,9 @@
 2017-02-19  Araki Ken  <arakiken@users.sf.net>
 
+	* *.[ch], *.[ch].in: 'type* var' => 'type *var'
+
+2017-02-19  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui.h, wayland/ui_display.c: DnD and Copy&Paste are supported.
 
 	* ui_screen_manager.c: WAYLAND_DISPLAY environmental variable is set

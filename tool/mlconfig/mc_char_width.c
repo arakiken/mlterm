@@ -18,13 +18,13 @@
 
 /* --- static variables --- */
 
-static char* full_width_areas;
+static char *full_width_areas;
 
 /* --- static functions --- */
 
-static void edit_full_width_areas(GtkWidget* widget, gpointer data) {
-  char* cur_areas;
-  char* new_areas;
+static void edit_full_width_areas(GtkWidget *widget, gpointer data) {
+  char *cur_areas;
+  char *new_areas;
 
   if (full_width_areas) {
     cur_areas = strdup(full_width_areas);
@@ -43,10 +43,10 @@ static void edit_full_width_areas(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_char_width_config_widget_new(void) {
-  GtkWidget* hbox;
-  GtkWidget* vbox;
-  GtkWidget* widget;
+GtkWidget *mc_char_width_config_widget_new(void) {
+  GtkWidget *hbox;
+  GtkWidget *vbox;
+  GtkWidget *widget;
 
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);

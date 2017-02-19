@@ -7,8 +7,8 @@
 
 /* --- global functions --- */
 
-ui_decsp_font_t* ui_decsp_font_new(Display* display, u_int width, u_int height, u_int ascent) {
-  ui_decsp_font_t* font;
+ui_decsp_font_t *ui_decsp_font_new(Display *display, u_int width, u_int height, u_int ascent) {
+  ui_decsp_font_t *font;
   char gray_bits[] = {0x11, 0x44};
   Window win;
   u_int glyph_width;
@@ -131,7 +131,7 @@ ui_decsp_font_t* ui_decsp_font_new(Display* display, u_int width, u_int height, 
   return font;
 }
 
-int ui_decsp_font_delete(ui_decsp_font_t* font, Display* display) {
+int ui_decsp_font_delete(ui_decsp_font_t *font, Display *display) {
   int count;
 
   for (count = 0; count < sizeof(font->glyphs) / sizeof(font->glyphs[0]); count++) {
@@ -145,8 +145,8 @@ int ui_decsp_font_delete(ui_decsp_font_t* font, Display* display) {
   return 1;
 }
 
-int ui_decsp_font_draw_string(ui_decsp_font_t* font, Display* display, Drawable drawable, GC gc,
-                              int x, int y, u_char* str, u_int len) {
+int ui_decsp_font_draw_string(ui_decsp_font_t *font, Display *display, Drawable drawable, GC gc,
+                              int x, int y, u_char *str, u_int len) {
   int count;
   int cache = -1; /* to avoid replace clip mask every time */
 
@@ -176,8 +176,8 @@ int ui_decsp_font_draw_string(ui_decsp_font_t* font, Display* display, Drawable 
   return 1;
 }
 
-int ui_decsp_font_draw_image_string(ui_decsp_font_t* font, Display* display, Drawable drawable,
-                                    GC gc, int x, int y, u_char* str, u_int len) {
+int ui_decsp_font_draw_image_string(ui_decsp_font_t *font, Display *display, Drawable drawable,
+                                    GC gc, int x, int y, u_char *str, u_int len) {
   int count;
 
   y -= font->ascent; /* original y is not used */

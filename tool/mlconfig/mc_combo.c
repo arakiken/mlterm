@@ -7,18 +7,18 @@
 
 /* --- global functions --- */
 
-GtkWidget* mc_combo_new(const char* label_name, char** item_names, u_int item_num,
-                        char* selected_item_name, int is_readonly, GtkWidget** entry) {
+GtkWidget *mc_combo_new(const char *label_name, char **item_names, u_int item_num,
+                        char *selected_item_name, int is_readonly, GtkWidget **entry) {
   return mc_combo_new_with_width(label_name, item_names, item_num, selected_item_name, is_readonly,
                                  0, entry);
 }
 
-GtkWidget* mc_combo_new_with_width(const char* label_name, char** item_names, u_int item_num,
-                                   char* selected_item_name, int is_readonly, int entry_width,
-                                   GtkWidget** entry) {
-  GtkWidget* hbox;
-  GtkWidget* label;
-  GtkWidget* combo;
+GtkWidget *mc_combo_new_with_width(const char *label_name, char **item_names, u_int item_num,
+                                   char *selected_item_name, int is_readonly, int entry_width,
+                                   GtkWidget **entry) {
+  GtkWidget *hbox;
+  GtkWidget *label;
+  GtkWidget *combo;
   int item_found;
   u_int count;
 

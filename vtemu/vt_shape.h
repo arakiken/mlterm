@@ -13,9 +13,9 @@
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 
-u_int vt_shape_arabic(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_len);
+u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len);
 
-u_int16_t vt_is_arabic_combining(vt_char_t* prev2, vt_char_t* prev, vt_char_t* ch);
+u_int16_t vt_is_arabic_combining(vt_char_t *prev2, vt_char_t *prev, vt_char_t *ch);
 
 #else
 
@@ -26,7 +26,7 @@ u_int16_t vt_is_arabic_combining(vt_char_t* prev2, vt_char_t* prev, vt_char_t* c
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 
-u_int vt_shape_iscii(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_len);
+u_int vt_shape_iscii(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len);
 
 #else
 
@@ -34,7 +34,7 @@ u_int vt_shape_iscii(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_le
 
 #endif
 
-u_int vt_shape_ot_layout(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_len,
+u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len,
                          ctl_info_t ctl_info);
 
 #endif /* __VT_SHAPING_H__ */

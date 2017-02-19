@@ -22,7 +22,7 @@
 /* --- static variables --- */
 
 static int use_xim;
-static char* default_xim_name; /* this can be NULL */
+static char *default_xim_name; /* this can be NULL */
 
 static ui_xim_t xims[MAX_XIMS_SAME_TIME];
 static u_int num_of_xims;
@@ -30,9 +30,9 @@ static u_int num_of_xims;
 /* --- static functions --- */
 
 /* refered in xim_server_destroyed */
-static void xim_server_instantiated(Display* display, XPointer client_data, XPointer call_data);
+static void xim_server_instantiated(Display *display, XPointer client_data, XPointer call_data);
 
-static int close_xim(ui_xim_t* xim) {
+static int close_xim(ui_xim_t *xim) {
   if (xim->im) {
     XCloseIM(xim->im);
   }
@@ -49,7 +49,7 @@ static int close_xim(ui_xim_t* xim) {
   return 1;
 }
 
-static int invoke_xim_destroyed(ui_xim_t* xim) {
+static int invoke_xim_destroyed(ui_xim_t *xim) {
   int count;
 
   for (count = 0; count < xim->num_of_xic_wins; count++) {
@@ -87,9 +87,9 @@ static void xim_server_destroyed(XIM im, XPointer data1, XPointer data2) {
 #endif
 }
 
-static int open_xim(ui_xim_t* xim, Display* display) {
-  char* xmod;
-  char* cur_locale;
+static int open_xim(ui_xim_t *xim, Display *display) {
+  char *xmod;
+  char *cur_locale;
   int result;
   int next_fd; /* to deal with brain-dead XIM implemantations */
 
@@ -153,7 +153,7 @@ static int open_xim(ui_xim_t* xim, Display* display) {
   return result;
 }
 
-static int activate_xim(ui_xim_t* xim, Display* display) {
+static int activate_xim(ui_xim_t *xim, Display *display) {
   int count;
 
   if (!xim->im && !open_xim(xim, display)) {
@@ -167,7 +167,7 @@ static int activate_xim(ui_xim_t* xim, Display* display) {
   return 1;
 }
 
-static void xim_server_instantiated(Display* display, XPointer client_data, XPointer call_data) {
+static void xim_server_instantiated(Display *display, XPointer client_data, XPointer call_data) {
   int count;
 
 #ifdef DEBUG
@@ -179,7 +179,7 @@ static void xim_server_instantiated(Display* display, XPointer client_data, XPoi
   }
 }
 
-static ui_xim_t* search_xim(Display* display, char* xim_name) {
+static ui_xim_t *search_xim(Display *display, char *xim_name) {
   int count;
 
   for (count = 0; count < num_of_xims; count++) {
@@ -195,8 +195,8 @@ static ui_xim_t* search_xim(Display* display, char* xim_name) {
   return NULL;
 }
 
-static ui_xim_t* get_xim(Display* display, char* xim_name, char* xim_locale) {
-  ui_xim_t* xim;
+static ui_xim_t *get_xim(Display *display, char *xim_name, char *xim_locale) {
+  ui_xim_t *xim;
 
   if ((xim = search_xim(display, xim_name)) == NULL) {
     if (num_of_xims == MAX_XIMS_SAME_TIME) {
@@ -229,7 +229,7 @@ static ui_xim_t* get_xim(Display* display, char* xim_name, char* xim_locale) {
   return xim;
 }
 
-static XIMStyle search_xim_style(XIMStyles* xim_styles, XIMStyle* supported_styles, u_int size) {
+static XIMStyle search_xim_style(XIMStyles *xim_styles, XIMStyle *supported_styles, u_int size) {
   int count;
 
   for (count = 0; count < xim_styles->count_styles; count++) {
@@ -248,8 +248,8 @@ static XIMStyle search_xim_style(XIMStyles* xim_styles, XIMStyle* supported_styl
 /* --- global functions --- */
 
 int ui_xim_init(int _use_xim) {
-  char* xmod;
-  char* p;
+  char *xmod;
+  char *p;
 
   if (!(use_xim = _use_xim)) {
     return 0;
@@ -291,7 +291,7 @@ int ui_xim_final(void) {
   return 1;
 }
 
-int ui_xim_display_opened(Display* display) {
+int ui_xim_display_opened(Display *display) {
   if (!use_xim) {
     return 0;
   }
@@ -307,7 +307,7 @@ int ui_xim_display_opened(Display* display) {
   return 1;
 }
 
-int ui_xim_display_closed(Display* display) {
+int ui_xim_display_closed(Display *display) {
   int count;
 
   if (!use_xim) {
@@ -335,8 +335,8 @@ int ui_xim_display_closed(Display* display) {
   return 1;
 }
 
-int ui_add_xim_listener(ui_window_t* win, char* xim_name, char* xim_locale) {
-  void* p;
+int ui_add_xim_listener(ui_window_t *win, char *xim_name, char *xim_locale) {
+  void *p;
 
   if (!use_xim) {
     return 0;
@@ -394,7 +394,7 @@ int ui_add_xim_listener(ui_window_t* win, char* xim_name, char* xim_locale) {
   return activate_xim(win->xim, win->disp->display);
 }
 
-int ui_remove_xim_listener(ui_window_t* win) {
+int ui_remove_xim_listener(ui_window_t *win) {
   int count;
 
   if (win->xim == NULL) {
@@ -421,7 +421,7 @@ int ui_remove_xim_listener(ui_window_t* win) {
   return 0;
 }
 
-XIC ui_xim_create_ic(ui_window_t* win, XIMStyle selected_style, XVaNestedList preedit_attr) {
+XIC ui_xim_create_ic(ui_window_t *win, XIMStyle selected_style, XVaNestedList preedit_attr) {
   if (win->xim == NULL) {
     return NULL;
   }
@@ -435,7 +435,7 @@ XIC ui_xim_create_ic(ui_window_t* win, XIMStyle selected_style, XVaNestedList pr
   }
 }
 
-XIMStyle ui_xim_get_style(ui_window_t* win) {
+XIMStyle ui_xim_get_style(ui_window_t *win) {
   XIMStyle over_the_spot_styles[] = {
       XIMPreeditPosition | XIMStatusNothing, XIMPreeditPosition | XIMStatusNone,
   };
@@ -454,7 +454,7 @@ XIMStyle ui_xim_get_style(ui_window_t* win) {
   };
 
   XIMStyle selected_style;
-  XIMStyles* xim_styles;
+  XIMStyles *xim_styles;
 
   if (win->xim == NULL) {
     return 0;
@@ -488,7 +488,7 @@ XIMStyle ui_xim_get_style(ui_window_t* win) {
   return selected_style;
 }
 
-char* ui_get_xim_name(ui_window_t* win) {
+char *ui_get_xim_name(ui_window_t *win) {
   if (win->xim == NULL) {
     return "unused";
   }
@@ -496,7 +496,7 @@ char* ui_get_xim_name(ui_window_t* win) {
   return win->xim->name;
 }
 
-char* ui_get_xim_locale(ui_window_t* win) {
+char *ui_get_xim_locale(ui_window_t *win) {
   if (win->xim == NULL) {
     return "";
   }
@@ -504,7 +504,7 @@ char* ui_get_xim_locale(ui_window_t* win) {
   return win->xim->locale;
 }
 
-char* ui_get_default_xim_name(void) {
+char *ui_get_default_xim_name(void) {
   if (!use_xim) {
     return "disable";
   }

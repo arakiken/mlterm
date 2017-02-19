@@ -150,7 +150,7 @@
         /* reconstruct (map)->pairs since map_size is changed. */                              \
         for (__count = 0; __count < (map)->map_size; __count++) {                              \
           if ((map)->pairs[__count].is_filled) {                                               \
-            void* dst;                                                                         \
+            void *dst;                                                                         \
                                                                                                \
             __hash_key = (*(map)->hash_func)((map)->pairs[__count].key, __new_size);           \
                                                                                                \
@@ -268,7 +268,7 @@
         /* reconstruct (map)->pairs since map_size is changed. */                              \
         for (__count = 0; __count < (map)->map_size; __count++) {                              \
           if ((map)->pairs[__count].is_filled) {                                               \
-            void* dst;                                                                         \
+            void *dst;                                                                         \
                                                                                                \
             __hash_key = (*(map)->hash_func)((map)->pairs[__count].key, __new_size);           \
                                                                                                \
@@ -319,7 +319,7 @@ int bl_map_rehash(int hash_key, u_int size);
  * preparing useful hash functions.
  */
 
-int bl_map_hash_str(char* key, u_int size);
+int bl_map_hash_str(char *key, u_int size);
 
 int bl_map_hash_int(int key, u_int size);
 
@@ -328,9 +328,9 @@ int bl_map_hash_int_fast(int key, u_int size);
 /*
  * preparing useful compare functions.
  */
-int bl_map_compare_str(char* key1, char* key2);
+int bl_map_compare_str(char *key1, char *key2);
 
-int bl_map_compare_str_nocase(char* key1, char* key2);
+int bl_map_compare_str_nocase(char *key1, char *key2);
 
 int bl_map_compare_int(int key1, int key2);
 

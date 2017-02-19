@@ -34,16 +34,16 @@
 
 /* --- global functions --- */
 
-vt_pty_t* vt_pty_new(const char* cmd_path, /* can be NULL */
-                     char** cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
-                     char** env,           /* can be NULL */
-                     const char* host,     /* DISPLAY env or remote host */
-                     const char* work_dir, /* can be NULL */
-                     const char* pass,     /* can be NULL */
-                     const char* pubkey,   /* can be NULL */
-                     const char* privkey,  /* can be NULL */
+vt_pty_t *vt_pty_new(const char *cmd_path, /* can be NULL */
+                     char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
+                     char **env,           /* can be NULL */
+                     const char *host,     /* DISPLAY env or remote host */
+                     const char *work_dir, /* can be NULL */
+                     const char *pass,     /* can be NULL */
+                     const char *pubkey,   /* can be NULL */
+                     const char *privkey,  /* can be NULL */
                      u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
-  vt_pty_t* pty;
+  vt_pty_t *pty;
 
 #ifndef USE_WIN32API
   if (!pass) {
@@ -71,7 +71,7 @@ vt_pty_t* vt_pty_new(const char* cmd_path, /* can be NULL */
 
 vt_pty_ptr_t vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_int rows,
                              u_int width_pix, u_int height_pix) {
-  vt_pty_t* pty;
+  vt_pty_t *pty;
 
 #ifndef USE_WIN32API
   if (ptsname(master)) {
@@ -87,7 +87,7 @@ vt_pty_ptr_t vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols,
   return pty;
 }
 
-int vt_pty_delete(vt_pty_t* pty) {
+int vt_pty_delete(vt_pty_t *pty) {
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " vt_pty_delete is called for %p.\n", pty);
 #endif
@@ -113,11 +113,11 @@ int vt_pty_delete(vt_pty_t* pty) {
   return 1;
 }
 
-int vt_set_pty_winsize(vt_pty_t* pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
+int vt_set_pty_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   return (*pty->set_winsize)(pty, cols, rows, width_pix, height_pix);
 }
 
-int vt_pty_set_listener(vt_pty_t* pty, vt_pty_event_listener_t* pty_listener) {
+int vt_pty_set_listener(vt_pty_t *pty, vt_pty_event_listener_t *pty_listener) {
   pty->pty_listener = pty_listener;
 
   return 1;
@@ -126,12 +126,12 @@ int vt_pty_set_listener(vt_pty_t* pty, vt_pty_event_listener_t* pty_listener) {
 /*
  * Return size of lost bytes.
  */
-size_t vt_write_to_pty(vt_pty_t* pty, u_char* buf, size_t len /* if 0, flushing buffer. */
+size_t vt_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len /* if 0, flushing buffer. */
                        ) {
-  u_char* w_buf;
+  u_char *w_buf;
   size_t w_buf_size;
   ssize_t written_size;
-  void* p;
+  void *p;
 
   w_buf_size = pty->left + len;
   if (w_buf_size == 0) {
@@ -257,7 +257,7 @@ written:
   return 0;
 }
 
-size_t vt_read_pty(vt_pty_t* pty, u_char* buf, size_t left) {
+size_t vt_read_pty(vt_pty_t *pty, u_char *buf, size_t left) {
   size_t read_size;
 
   read_size = 0;
@@ -274,9 +274,9 @@ size_t vt_read_pty(vt_pty_t* pty, u_char* buf, size_t left) {
   }
 }
 
-void vt_response_config(vt_pty_t* pty, char* key, char* value, int to_menu) {
-  char* res;
-  char* fmt;
+void vt_response_config(vt_pty_t *pty, char *key, char *value, int to_menu) {
+  char *res;
+  char *fmt;
   size_t res_len;
 
   res_len = 1 + strlen(key) + 1;
@@ -310,21 +310,21 @@ void vt_response_config(vt_pty_t* pty, char* key, char* value, int to_menu) {
   }
 }
 
-pid_t vt_pty_get_pid(vt_pty_t* pty) { return pty->child_pid; }
+pid_t vt_pty_get_pid(vt_pty_t *pty) { return pty->child_pid; }
 
-int vt_pty_get_master_fd(vt_pty_t* pty) { return pty->master; }
+int vt_pty_get_master_fd(vt_pty_t *pty) { return pty->master; }
 
 /* Return: slave fd or -1 */
-int vt_pty_get_slave_fd(vt_pty_t* pty) { return pty->slave; }
+int vt_pty_get_slave_fd(vt_pty_t *pty) { return pty->slave; }
 
 /*
  * Always return non-NULL value.
  * XXX Static data can be returned. (Not reentrant)
  */
-char* vt_pty_get_slave_name(vt_pty_t* pty) {
+char *vt_pty_get_slave_name(vt_pty_t *pty) {
   static char virt_name[9 + DIGIT_STR_LEN(int)+1];
 #ifndef USE_WIN32API
-  char* name;
+  char *name;
 
   if (pty->slave >= 0 && (name = ttyname(pty->slave))) {
     return name;
@@ -341,10 +341,10 @@ char* vt_pty_get_slave_name(vt_pty_t* pty) {
   return virt_name;
 }
 
-int vt_start_config_menu(vt_pty_t* pty, char* cmd_path, int x, int y, char* display) {
+int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *display) {
   return vt_config_menu_start(&pty->config_menu, cmd_path, x, y, display, pty);
 }
 
-char* vt_pty_get_cmd_line(vt_pty_t* pty) { return pty->cmd_line; }
+char *vt_pty_get_cmd_line(vt_pty_t *pty) { return pty->cmd_line; }
 
-void vt_pty_set_hook(vt_pty_t* pty, vt_pty_hook_t* hook) { pty->hook = hook; }
+void vt_pty_set_hook(vt_pty_t *pty, vt_pty_hook_t *hook) { pty->hook = hook; }

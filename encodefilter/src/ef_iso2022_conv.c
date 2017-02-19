@@ -14,7 +14,7 @@
 
 /* --- static functions --- */
 
-static size_t designate_to_g0(u_char* dst, size_t dst_size, int* is_full, ef_charset_t cs) {
+static size_t designate_to_g0(u_char *dst, size_t dst_size, int *is_full, ef_charset_t cs) {
   *is_full = 0;
 
   if (IS_CS94SB(cs)) {
@@ -76,9 +76,9 @@ static size_t designate_to_g0(u_char* dst, size_t dst_size, int* is_full, ef_cha
 
 /* --- global functions --- */
 
-size_t ef_iso2022_illegal_char(ef_conv_t* conv, u_char* dst, size_t dst_size, int* is_full,
-                                ef_char_t* ch) {
-  ef_iso2022_conv_t* iso2022_conv;
+size_t ef_iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
+                                ef_char_t *ch) {
+  ef_iso2022_conv_t *iso2022_conv;
   size_t filled_size;
   size_t size;
   int count;
@@ -196,7 +196,7 @@ size_t ef_iso2022_illegal_char(ef_conv_t* conv, u_char* dst, size_t dst_size, in
   return filled_size + size;
 }
 
-void ef_iso2022_remap_unsupported_charset(ef_char_t* ch) {
+void ef_iso2022_remap_unsupported_charset(ef_char_t *ch) {
   ef_char_t c;
 
   if (IS_CS_BASED_ON_ISO2022(ch->cs)) {

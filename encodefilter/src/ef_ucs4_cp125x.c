@@ -51,7 +51,7 @@ ef_map_func(8bits, ef_map_cp1250_to_ucs4, 16) ef_map_func(8bits, ef_map_cp1251_t
 
 #endif
 
-int ef_map_cp874_to_ucs4(ef_char_t* ucs4, u_int16_t cp874_code) {
+int ef_map_cp874_to_ucs4(ef_char_t *ucs4, u_int16_t cp874_code) {
   size_t count;
 
   if (ef_map_tis620_2533_to_ucs4(ucs4, cp874_code & 0x7f)) {
@@ -75,7 +75,7 @@ int ef_map_cp874_to_ucs4(ef_char_t* ucs4, u_int16_t cp874_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_cp874(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_cp874(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   size_t count;
 
   if (ef_map_ucs4_to_tis620_2533(non_ucs, ucs4_code)) {

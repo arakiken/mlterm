@@ -6,7 +6,7 @@
 
 /* --- global functions --- */
 
-int ef_map_gb2312_80_to_ucs4(ef_char_t* ucs4, u_int16_t gb) {
+int ef_map_gb2312_80_to_ucs4(ef_char_t *ucs4, u_int16_t gb) {
   /* converting to GBK */
   gb |= 0x8080;
 
@@ -17,7 +17,7 @@ int ef_map_gb2312_80_to_ucs4(ef_char_t* ucs4, u_int16_t gb) {
   return 0;
 }
 
-int ef_map_ucs4_to_gb2312_80(ef_char_t* gb, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_gb2312_80(ef_char_t *gb, u_int32_t ucs4_code) {
   if (ef_map_ucs4_to_gbk(gb, ucs4_code)) {
     if (gb->ch[0] >= 0xa1 && gb->ch[1] >= 0xa1) {
       /* converting to GB2312 */

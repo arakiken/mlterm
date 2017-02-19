@@ -28,11 +28,11 @@ static char new_vtcolor[16][MC_COLOR_LEN];
 static char old_vtcolor[16][MC_COLOR_LEN];
 static int is_changed_vt[16];
 
-static char* configname[MC_COLOR_MODES] = {
+static char *configname[MC_COLOR_MODES] = {
     "fg_color", "bg_color", "sb_fg_color", "sb_bg_color", "cursor_fg_color", "cursor_bg_color",
     "bd_color", "it_color", "ul_color",    "bl_color",    "co_color"};
 
-static char* labelname[MC_COLOR_MODES] = {
+static char *labelname[MC_COLOR_MODES] = {
     N_("Foreground color"), N_("Background color"), N_("Foreground color"), N_("Background color"),
     N_("Foreground color"), N_("Background color"), N_("Bold "), N_("Italic"), N_("Underline"),
     N_("Blink"), N_("Cross out")};
@@ -41,8 +41,8 @@ static char* labelname[MC_COLOR_MODES] = {
 
 #if !GTK_CHECK_VERSION(2, 12, 0)
 /* gdk_color_to_string() was not supported by gtk+ < 2.12. */
-static gchar* gdk_color_to_string(const GdkColor* color) {
-  gchar* str;
+static gchar *gdk_color_to_string(const GdkColor *color) {
+  gchar *str;
 
   if ((str = g_malloc(14)) == NULL) {
     return NULL;
@@ -54,16 +54,16 @@ static gchar* gdk_color_to_string(const GdkColor* color) {
 }
 #endif
 
-static char* color_strncpy(char* dst, const char* src) {
+static char *color_strncpy(char *dst, const char *src) {
   strncpy(dst, src, MC_COLOR_LEN);
   dst[MC_COLOR_LEN - 1] = 0;
 
   return dst;
 }
 
-static void color_selected(GtkWidget* button, gpointer data) {
+static void color_selected(GtkWidget *button, gpointer data) {
   GdkColor color;
-  gchar* str;
+  gchar *str;
 
   gtk_color_button_get_color(GTK_COLOR_BUTTON(button), &color);
   str = gdk_color_to_string(&color);
@@ -71,8 +71,8 @@ static void color_selected(GtkWidget* button, gpointer data) {
   g_free(str);
 }
 
-static void checked(GtkWidget* check, gpointer data) {
-  GtkWidget* button;
+static void checked(GtkWidget *check, gpointer data) {
+  GtkWidget *button;
 
   button = data;
 
@@ -86,11 +86,11 @@ static void checked(GtkWidget* check, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_color_config_widget_new(int id) {
-  char* value;
-  GtkWidget* hbox;
-  GtkWidget* label;
-  GtkWidget* button;
+GtkWidget *mc_color_config_widget_new(int id) {
+  char *value;
+  GtkWidget *hbox;
+  GtkWidget *label;
+  GtkWidget *button;
   GdkColor color;
 
   value = mc_get_str_value(configname[id]);
@@ -130,10 +130,10 @@ GtkWidget* mc_color_config_widget_new(int id) {
   return hbox;
 }
 
-GtkWidget* mc_cursor_color_config_widget_new(void) {
-  GtkWidget* hbox;
-  GtkWidget* frame;
-  GtkWidget* color;
+GtkWidget *mc_cursor_color_config_widget_new(void) {
+  GtkWidget *hbox;
+  GtkWidget *frame;
+  GtkWidget *color;
 
   frame = gtk_frame_new(_("Cursor color"));
   hbox = gtk_hbox_new(FALSE, 1);
@@ -152,11 +152,11 @@ GtkWidget* mc_cursor_color_config_widget_new(void) {
   return frame;
 }
 
-GtkWidget* mc_substitute_color_config_widget_new(void) {
-  GtkWidget* vbox;
-  GtkWidget* hbox;
-  GtkWidget* frame;
-  GtkWidget* color;
+GtkWidget *mc_substitute_color_config_widget_new(void) {
+  GtkWidget *vbox;
+  GtkWidget *hbox;
+  GtkWidget *frame;
+  GtkWidget *color;
 
   frame = gtk_frame_new(_("Substituting color"));
   vbox = gtk_vbox_new(FALSE, 0);
@@ -195,14 +195,14 @@ GtkWidget* mc_substitute_color_config_widget_new(void) {
   return frame;
 }
 
-GtkWidget* mc_vtcolor_config_widget_new(void) {
+GtkWidget *mc_vtcolor_config_widget_new(void) {
   int id;
   char id_str[3];
-  char* value;
-  GtkWidget* frame;
-  GtkWidget* vbox;
-  GtkWidget* hbox;
-  GtkWidget* button;
+  char *value;
+  GtkWidget *frame;
+  GtkWidget *vbox;
+  GtkWidget *hbox;
+  GtkWidget *button;
   GdkColor color;
 
   frame = gtk_frame_new(_("VT basic 16 colors"));

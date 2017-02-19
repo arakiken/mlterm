@@ -33,7 +33,7 @@ typedef struct vt_pty_unix {
 
 /* --- static functions --- */
 
-static int final(vt_pty_t* pty) {
+static int final(vt_pty_t *pty) {
 #ifdef USE_UTMP
   if (((vt_pty_unix_t*)pty)->utmp) {
     bl_utmp_delete(((vt_pty_unix_t*)pty)->utmp);
@@ -50,7 +50,7 @@ static int final(vt_pty_t* pty) {
   return 1;
 }
 
-static int set_winsize(vt_pty_t* pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
+static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   struct winsize ws;
 
 #ifdef __DEBUG
@@ -89,22 +89,22 @@ static int set_winsize(vt_pty_t* pty, u_int cols, u_int rows, u_int width_pix, u
   return 1;
 }
 
-static ssize_t write_to_pty(vt_pty_t* pty, u_char* buf, size_t len) {
+static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   return write(pty->master, buf, len);
 }
 
-static ssize_t read_pty(vt_pty_t* pty, u_char* buf, size_t len) {
+static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   return read(pty->master, buf, len);
 }
 
 /* --- global functions --- */
 
-vt_pty_t* vt_pty_unix_new(const char* cmd_path, /* If NULL, child prcess is not exec'ed. */
-                          char** cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
-                          char** env,           /* can be NULL */
-                          const char* host, const char* work_dir, u_int cols, u_int rows,
+vt_pty_t *vt_pty_unix_new(const char *cmd_path, /* If NULL, child prcess is not exec'ed. */
+                          char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
+                          char **env,           /* can be NULL */
+                          const char *host, const char *work_dir, u_int cols, u_int rows,
                           u_int width_pix, u_int height_pix) {
-  vt_pty_t* pty;
+  vt_pty_t *pty;
   int master;
   int slave;
   pid_t pid;
@@ -183,9 +183,9 @@ return_pty:
   return pty;
 }
 
-vt_pty_t* vt_pty_unix_new_with(int master, int slave, pid_t child_pid, const char* host, u_int cols,
+vt_pty_t *vt_pty_unix_new_with(int master, int slave, pid_t child_pid, const char *host, u_int cols,
                                u_int rows, u_int width_pix, u_int height_pix) {
-  vt_pty_t* pty;
+  vt_pty_t *pty;
 
   if ((pty = calloc(1, sizeof(vt_pty_unix_t))) == NULL) {
     return NULL;

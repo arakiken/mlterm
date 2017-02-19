@@ -24,19 +24,19 @@ typedef enum ui_font_present {
 
 } ui_font_present_t;
 
-typedef struct _XftFont* xft_font_ptr_t;
-typedef struct _cairo_scaled_font* cairo_scaled_font_ptr_t;
-typedef struct _FcCharSet* fc_charset_ptr_t;
-typedef struct _FcPattern* fc_pattern_ptr_t;
+typedef struct _XftFont *xft_font_ptr_t;
+typedef struct _cairo_scaled_font *cairo_scaled_font_ptr_t;
+typedef struct _FcCharSet *fc_charset_ptr_t;
+typedef struct _FcPattern *fc_pattern_ptr_t;
 
 /* defined in xlib/ui_decsp_font.h */
-typedef struct ui_decsp_font* ui_decsp_font_ptr_t;
+typedef struct ui_decsp_font *ui_decsp_font_ptr_t;
 
 typedef struct ui_font {
   /*
    * Private
    */
-  Display* display;
+  Display *display;
 
   /*
    * Public(readonly)
@@ -45,9 +45,9 @@ typedef struct ui_font {
 
 #if defined(USE_WIN32GUI)
   Font fid;
-  ef_conv_t* conv;
+  ef_conv_t *conv;
 #elif defined(USE_QUARTZ)
-  void* cg_font;
+  void *cg_font;
   u_int size;
 #else
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
@@ -57,13 +57,13 @@ typedef struct ui_font {
   cairo_scaled_font_ptr_t cairo_font;
   struct {
     fc_charset_ptr_t charset;
-    void* next;
+    void *next;
 
   } * compl_fonts;
   fc_pattern_ptr_t pattern;
 #endif
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-  XFontStruct* xfont;
+  XFontStruct *xfont;
 #endif
 #endif
 
@@ -72,7 +72,7 @@ typedef struct ui_font {
 #ifdef USE_OT_LAYOUT
   /* ot_font == NULL and use_ot_layout == true is possible in ISO10646_UCS4_1_V
    * font. */
-  void* ot_font;
+  void *ot_font;
 #ifdef USE_WIN32GUI
   u_int16_t size; /* font size */
 #endif
@@ -105,33 +105,33 @@ typedef struct ui_font {
 
 int ui_compose_dec_special_font(void);
 
-ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
-                       ui_font_present_t font_present, const char* fontname, u_int fontsize,
+ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
+                       ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold, u_int letter_space);
 
-int ui_font_delete(ui_font_t* font);
+int ui_font_delete(ui_font_t *font);
 
-int ui_font_set_font_present(ui_font_t* font, ui_font_present_t font_present);
+int ui_font_set_font_present(ui_font_t *font, ui_font_present_t font_present);
 
-int ui_font_load_xft_font(ui_font_t* font, char* fontname, u_int fontsize, u_int col_width,
+int ui_font_load_xft_font(ui_font_t *font, char *fontname, u_int fontsize, u_int col_width,
                           int use_medium_for_bold);
 
-int ui_font_load_xfont(ui_font_t* font, char* fontname, u_int fontsize, u_int col_width,
+int ui_font_load_xfont(ui_font_t *font, char *fontname, u_int fontsize, u_int col_width,
                        int use_medium_for_bold);
 
-int ui_change_font_cols(ui_font_t* font, u_int cols);
+int ui_change_font_cols(ui_font_t *font, u_int cols);
 
-u_int ui_calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs, int* draw_alone);
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone);
 
-int ui_font_has_ot_layout_table(ui_font_t* font);
+int ui_font_has_ot_layout_table(ui_font_t *font);
 
-u_int ui_convert_text_to_glyphs(ui_font_t* font, u_int32_t* shaped, u_int shaped_len,
-                                int8_t* offsets, u_int8_t* widths, u_int32_t* cmapped,
-                                u_int32_t* src, u_int src_len, const char* script,
-                                const char* features);
+u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
+                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
+                                u_int32_t *src, u_int src_len, const char *script,
+                                const char *features);
 
 #ifdef USE_XLIB
-char** ui_font_get_encoding_names(ef_charset_t cs);
+char **ui_font_get_encoding_names(ef_charset_t cs);
 
 /* For mlterm-libvte */
 void ui_font_set_dpi_for_fc(double dpi);
@@ -152,11 +152,11 @@ u_int32_t ui_convert_to_xft_ucs4(u_int32_t ch, ef_charset_t cs);
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-size_t ui_convert_ucs4_to_utf16(u_char* utf16, u_int32_t ucs4);
+size_t ui_convert_ucs4_to_utf16(u_char *utf16, u_int32_t ucs4);
 #endif
 
 #ifdef DEBUG
-int ui_font_dump(ui_font_t* font);
+int ui_font_dump(ui_font_t *font);
 #endif
 
 #endif

@@ -222,7 +222,7 @@ typedef int KeySym;  /* Same as type of wparam */
 typedef struct /* Same as definition in X11/X.h */
     {
   int max_keypermod;
-  KeyCode* modifiermap;
+  KeyCode *modifiermap;
 
 } XModifierKeymap;
 
@@ -252,7 +252,7 @@ typedef struct {
   int type;
   unsigned int state;
   KeySym keysym;
-  const char* utf8;
+  const char *utf8;
 
 } XKeyEvent;
 
@@ -291,13 +291,13 @@ typedef struct {
 
 typedef struct {
   int type;
-  void* sender;
+  void *sender;
 
 } XSelectionRequestEvent;
 
 typedef struct {
   int type;
-  char* data;
+  char *data;
   unsigned int len;
 
 } XSelectionNotifyEvent;
@@ -492,9 +492,9 @@ typedef int XFontSet; /* dummy */
 #define XNegative 0x0010
 #define YNegative 0x0020
 
-int XParseGeometry(char* str, int* x, int* y, unsigned int* width, unsigned int* height);
+int XParseGeometry(char *str, int *x, int *y, unsigned int *width, unsigned int *height);
 
-KeySym XStringToKeysym(char* str);
+KeySym XStringToKeysym(char *str);
 
 /* === Platform dependent options === */
 

@@ -21,13 +21,13 @@
 #define MC_COLOR_BL 9
 #define MC_COLOR_CO 10
 
-GtkWidget* mc_color_config_widget_new(int id);
+GtkWidget *mc_color_config_widget_new(int id);
 
-GtkWidget* mc_cursor_color_config_widget_new(void);
+GtkWidget *mc_cursor_color_config_widget_new(void);
 
-GtkWidget* mc_substitute_color_config_widget_new(void);
+GtkWidget *mc_substitute_color_config_widget_new(void);
 
-GtkWidget* mc_vtcolor_config_widget_new(void);
+GtkWidget *mc_vtcolor_config_widget_new(void);
 
 void mc_update_color(int id);
 

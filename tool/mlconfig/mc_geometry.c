@@ -28,18 +28,18 @@ static char new_values[MC_GEOMETRIES][MAX_VALUE_LEN + 1]; /* 0 - 9999 */
 static char old_values[MC_GEOMETRIES][MAX_VALUE_LEN + 1]; /* 0 - 9999 */
 static int is_changed;
 
-static char* config_keys[MC_GEOMETRIES] = {
+static char *config_keys[MC_GEOMETRIES] = {
     "cols", "rows",
 };
 
-static char* labels[MC_GEOMETRIES] = {
+static char *labels[MC_GEOMETRIES] = {
     N_("Columns"), N_("Rows"),
 };
 
 /* --- static functions --- */
 
-static gint geometry_selected(GtkWidget* widget, gpointer data) {
-  gchar* text;
+static gint geometry_selected(GtkWidget *widget, gpointer data) {
+  gchar *text;
 
   text = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
   if (strlen(text) <= MAX_VALUE_LEN) {
@@ -52,11 +52,11 @@ static gint geometry_selected(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_geometry_config_widget_new(void) {
-  GtkWidget* hbox;
-  GtkWidget* label;
-  GtkWidget* entry;
-  char* value;
+GtkWidget *mc_geometry_config_widget_new(void) {
+  GtkWidget *hbox;
+  GtkWidget *label;
+  GtkWidget *entry;
+  char *value;
   int count;
 
   hbox = gtk_hbox_new(FALSE, 0);

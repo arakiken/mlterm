@@ -12,8 +12,8 @@ typedef enum ui_type_engine {
 
 } ui_type_engine_t;
 
-ui_type_engine_t ui_get_type_engine_by_name(char* name);
+ui_type_engine_t ui_get_type_engine_by_name(char *name);
 
-char* ui_get_type_engine_name(ui_type_engine_t mode);
+char *ui_get_type_engine_name(ui_type_engine_t mode);
 
 #endif

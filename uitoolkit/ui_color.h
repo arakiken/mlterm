@@ -22,16 +22,16 @@ typedef struct ui_color {
 
 } ui_color_t;
 
-int ui_load_named_xcolor(ui_display_t* disp, ui_color_t* xcolor, char* name);
+int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, char *name);
 
-int ui_load_rgb_xcolor(ui_display_t* disp, ui_color_t* xcolor, u_int8_t red, u_int8_t green,
+int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_int8_t green,
                        u_int8_t blue, u_int8_t alpha);
 
-int ui_unload_xcolor(ui_display_t* disp, ui_color_t* xcolor);
+int ui_unload_xcolor(ui_display_t *disp, ui_color_t *xcolor);
 
-int ui_get_xcolor_rgba(u_int8_t* red, u_int8_t* green, u_int8_t* blue, u_int8_t* alpha,
-                       ui_color_t* xcolor);
+int ui_get_xcolor_rgba(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_int8_t *alpha,
+                       ui_color_t *xcolor);
 
-int ui_xcolor_fade(ui_display_t*, ui_color_t* xcolor, u_int fade_ratio);
+int ui_xcolor_fade(ui_display_t*, ui_color_t *xcolor, u_int fade_ratio);
 
 #endif

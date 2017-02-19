@@ -16,8 +16,8 @@
 
 /* --- static functions --- */
 
-static void add_row(GtkWidget* widget, gpointer p) {
-  GtkListStore* store;
+static void add_row(GtkWidget *widget, gpointer p) {
+  GtkListStore *store;
   GtkTreeIter iter;
 
   store = p;
@@ -25,9 +25,9 @@ static void add_row(GtkWidget* widget, gpointer p) {
   gtk_list_store_append(store, &iter);
 }
 
-static void delete_row(GtkWidget* widget, gpointer p) {
-  GtkTreeView* view;
-  GtkTreeModel* store;
+static void delete_row(GtkWidget *widget, gpointer p) {
+  GtkTreeView *view;
+  GtkTreeModel *store;
   GtkTreeIter itr;
 
   view = p;
@@ -36,8 +36,8 @@ static void delete_row(GtkWidget* widget, gpointer p) {
   gtk_list_store_remove(GTK_LIST_STORE(store), &itr);
 }
 
-static int check_hex(const gchar* text) {
-  const gchar* p;
+static int check_hex(const gchar *text) {
+  const gchar *p;
   int count;
 
   for (count = 0, p = text; *p; p++) {
@@ -50,14 +50,14 @@ static int check_hex(const gchar* text) {
   return 1;
 }
 
-static void edited(GtkCellRendererText* renderer, gchar* path, gchar* new_text, gpointer data) {
+static void edited(GtkCellRendererText *renderer, gchar *path, gchar *new_text, gpointer data) {
   int min;
   int max;
   int num;
-  GtkListStore* store;
+  GtkListStore *store;
   GtkTreeIter itr;
-  GtkTreePath* treepath;
-  GtkWidget* dialog;
+  GtkTreePath *treepath;
+  GtkWidget *dialog;
 
   if (*new_text == '\0') {
     /* do nothing */
@@ -68,7 +68,7 @@ static void edited(GtkCellRendererText* renderer, gchar* path, gchar* new_text, 
     } else if (num == 2 && min > max) {
       goto error2;
     } else {
-      gchar* prepended;
+      gchar *prepended;
       prepended = alloca(strlen(new_text) + 3);
       sprintf(prepended, "U+%s", new_text);
       new_text = prepended;
@@ -111,17 +111,17 @@ error2:
 
 /* --- global functions --- */
 
-char* mc_get_unicode_areas(char* areas) {
-  GtkWidget* dialog;
-  GtkWidget* label;
-  GtkListStore* store;
-  GtkCellRenderer* renderer;
-  GtkWidget* view;
-  GtkWidget* hbox;
-  GtkWidget* button;
+char *mc_get_unicode_areas(char *areas) {
+  GtkWidget *dialog;
+  GtkWidget *label;
+  GtkListStore *store;
+  GtkCellRenderer *renderer;
+  GtkWidget *view;
+  GtkWidget *hbox;
+  GtkWidget *button;
   GtkTreeIter itr;
-  char* strp;
-  char* area;
+  char *strp;
+  char *area;
 
   dialog = gtk_dialog_new_with_buttons(
       "Edit unicode areas", NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK,
@@ -168,13 +168,13 @@ char* mc_get_unicode_areas(char* areas) {
   if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
     areas = NULL;
   } else if (gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &itr)) {
-    char* p;
+    char *p;
 
     /* 20: U+XXXXXXXX-XXXXXXXX, */
     p = areas = g_malloc(20 * gtk_tree_model_iter_n_children(GTK_TREE_MODEL(store), NULL));
     do {
       GValue gval = {0};
-      const char* str;
+      const char *str;
 
       gtk_tree_model_get_value(GTK_TREE_MODEL(store), &itr, 0, &gval);
       str = g_value_get_string(&gval);
@@ -200,8 +200,8 @@ char* mc_get_unicode_areas(char* areas) {
 
 #else
 
-char* mc_get_unicode_areas(char* areas) {
-  GtkWidget* dialog;
+char *mc_get_unicode_areas(char *areas) {
+  GtkWidget *dialog;
 
   dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
                                   GTK_BUTTONS_CLOSE, "This dialog requires GTK+-2.14 or later");

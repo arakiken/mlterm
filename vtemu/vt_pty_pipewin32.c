@@ -84,7 +84,7 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
  * Monitors handle for input. Exits when child exits or pipe is broken.
  */
 static DWORD WINAPI wait_pty_read(LPVOID thr_param) {
-  vt_pty_pipe_t* pty = (vt_pty_pipe_t*)thr_param;
+  vt_pty_pipe_t *pty = (vt_pty_pipe_t*)thr_param;
   DWORD n_rd;
 
 #ifdef __DEBUG
@@ -140,14 +140,14 @@ static DWORD WINAPI wait_pty_read(LPVOID thr_param) {
   return 0;
 }
 
-static int pty_open(vt_pty_pipe_t* pty, const char* cmd_path, char* const cmd_argv[]) {
+static int pty_open(vt_pty_pipe_t *pty, const char *cmd_path, char *const cmd_argv[]) {
   HANDLE output_read_tmp, output_write;
   HANDLE input_write_tmp, input_read;
   HANDLE error_write;
   SECURITY_ATTRIBUTES sa;
   PROCESS_INFORMATION pi;
   STARTUPINFO si;
-  char* cmd_line;
+  char *cmd_line;
 
   output_read_tmp = input_write_tmp = output_write = input_read = error_write = 0;
 
@@ -323,8 +323,8 @@ error2:
   return 0;
 }
 
-static int final(vt_pty_t* p) {
-  vt_pty_pipe_t* pty;
+static int final(vt_pty_t *p) {
+  vt_pty_pipe_t *pty;
   int count;
   DWORD size;
 
@@ -379,7 +379,7 @@ static int final(vt_pty_t* p) {
   return 1;
 }
 
-static int set_winsize(vt_pty_t* pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
+static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   if (((vt_pty_pipe_t*)pty)->is_plink) {
     /*
      * XXX Hack
@@ -404,7 +404,7 @@ static int set_winsize(vt_pty_t* pty, u_int cols, u_int rows, u_int width_pix, u
 /*
  * Return size of lost bytes.
  */
-static ssize_t write_to_pty(vt_pty_t* pty, u_char* buf, size_t len) {
+static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   DWORD written_size;
 
   if (!WriteFile(((vt_pty_pipe_t*)pty)->master_output, buf, len, &written_size, NULL)) {
@@ -418,8 +418,8 @@ static ssize_t write_to_pty(vt_pty_t* pty, u_char* buf, size_t len) {
   return written_size;
 }
 
-static ssize_t read_pty(vt_pty_t* p, u_char* buf, size_t len) {
-  vt_pty_pipe_t* pty;
+static ssize_t read_pty(vt_pty_t *p, u_char *buf, size_t len) {
+  vt_pty_pipe_t *pty;
   ssize_t n_rd;
 
   pty = (vt_pty_pipe_t*)p;
@@ -475,18 +475,18 @@ static ssize_t read_pty(vt_pty_t* p, u_char* buf, size_t len) {
 
 /* --- global functions --- */
 
-vt_pty_t* vt_pty_pipe_new(const char* cmd_path, /* can be NULL */
-                          char** cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
-                          char** env,           /* can be NULL */
-                          const char* uri, const char* pass, u_int cols, u_int rows) {
-  vt_pty_pipe_t* pty;
+vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
+                          char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
+                          char **env,           /* can be NULL */
+                          const char *uri, const char *pass, u_int cols, u_int rows) {
+  vt_pty_pipe_t *pty;
   HANDLE thrd;
   DWORD tid;
   char ev_name[25];
-  char* user;
-  char* proto;
-  char* host;
-  char* port;
+  char *user;
+  char *proto;
+  char *host;
+  char *port;
   int idx;
 
   if (num_of_child_procs == 0) {
@@ -521,9 +521,9 @@ vt_pty_t* vt_pty_pipe_new(const char* cmd_path, /* can be NULL */
 
   if (env) {
     while (*env) {
-      char* p;
-      char* key;
-      char* val;
+      char *p;
+      char *key;
+      char *val;
 
       if ((key = bl_str_alloca_dup(*env)) && (p = strchr(key, '='))) {
         *p = '\0';
@@ -554,7 +554,7 @@ vt_pty_t* vt_pty_pipe_new(const char* cmd_path, /* can be NULL */
     idx = 0;
     cmd_argv[idx++] = cmd_path;
     if (proto) {
-      char* p;
+      char *p;
 
       if ((p = alloca(strlen(proto) + 2))) {
         sprintf(p, "-%s", proto);
@@ -611,7 +611,7 @@ vt_pty_t* vt_pty_pipe_new(const char* cmd_path, /* can be NULL */
 
     return NULL;
   } else {
-    void* p;
+    void *p;
 
     CloseHandle(thrd);
 

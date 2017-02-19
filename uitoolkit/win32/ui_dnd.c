@@ -20,10 +20,10 @@
 
 /* --- static functions --- */
 
-static size_t conv_utf16_to_utf8(u_char* dst, size_t dst_len, u_char* src, size_t src_len) {
+static size_t conv_utf16_to_utf8(u_char *dst, size_t dst_len, u_char *src, size_t src_len) {
   size_t conv_len;
-  ef_parser_t* utf16_parser;
-  ef_conv_t* utf8_conv;
+  ef_parser_t *utf16_parser;
+  ef_conv_t *utf8_conv;
 
   utf16_parser = ef_utf16le_parser_new();
   utf8_conv = ef_utf8_conv_new();
@@ -51,14 +51,14 @@ static size_t conv_utf16_to_utf8(u_char* dst, size_t dst_len, u_char* src, size_
  * return 0 if the event should be processed in the mlterm mail loop.
  * return 1 if nothing to be done is left for the event.
  */
-int ui_dnd_filter_event(XEvent* event, ui_window_t* win) {
+int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
   HDROP drop;
   UINT num;
   int count;
   int do_scp;
 #ifndef USE_WIN32API
-  ef_conv_t* utf16_conv;
-  ef_parser_t* utf8_parser;
+  ef_conv_t *utf16_conv;
+  ef_parser_t *utf8_parser;
 #endif
 
   if (event->msg != WM_DROPFILES) {

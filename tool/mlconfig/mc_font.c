@@ -27,7 +27,7 @@
 #endif
 
 typedef struct cs_info {
-  char* cs;
+  char *cs;
 
   /*
    * Default font encoding name.
@@ -38,7 +38,7 @@ typedef struct cs_info {
    * (Conforming to the specification of 'charsets' argument of
    * gtk_xlfd_selection_dialog_set_filter()).
    */
-  char* encoding_names[3];
+  char *encoding_names[3];
 
 } cs_info_t;
 
@@ -563,23 +563,23 @@ static cs_info_t cs_info_table[] = {
 
 };
 
-static char* new_fontsize = NULL;
-static char* old_fontsize = NULL;
+static char *new_fontsize = NULL;
+static char *old_fontsize = NULL;
 static int is_fontsize_changed;
 
-static char* new_fontname_list[sizeof(cs_info_table) / sizeof(cs_info_table[0])];
+static char *new_fontname_list[sizeof(cs_info_table) / sizeof(cs_info_table[0])];
 static int dont_change_new_fontname_list = 0;
 static int selected_cs = 0; /* 0 = DEFAULT */
-static GtkWidget* fontcs_entry;
-static GtkWidget* fontname_entry;
-static GtkWidget* select_font_button;
-static GtkWidget* xft_flag;
-static GtkWidget* cairo_flag;
-static GtkWidget* aa_flag;
-static GtkWidget* vcol_flag;
+static GtkWidget *fontcs_entry;
+static GtkWidget *fontname_entry;
+static GtkWidget *select_font_button;
+static GtkWidget *xft_flag;
+static GtkWidget *cairo_flag;
+static GtkWidget *aa_flag;
+static GtkWidget *vcol_flag;
 static int dont_change_type_engine;
-static GtkWidget* noconv_areas_button;
-static char* noconv_areas;
+static GtkWidget *noconv_areas_button;
+static char *noconv_areas;
 
 /* --- static functions  --- */
 
@@ -596,8 +596,8 @@ static void reset_fontname_list(void) {
  * If you use functions in mc_io.c, use this function instead of direct
  * access to cs_info_t::cs.
  */
-static const char* get_correct_cs(int idx) {
-  const char* unicode_names[] = {
+static const char *get_correct_cs(int idx) {
+  const char *unicode_names[] = {
       "ISO10646_UCS4_1", "ISO10646_UCS4_1_FULLWIDTH", "U+1F000-1F77F", /* Emoji */
       "U+FF61-FF9F",                                                   /* Hankaku Kana */
       "U+0590-05FF",                                                   /* Hebrew */
@@ -624,7 +624,7 @@ static const char* get_correct_cs(int idx) {
   }
 }
 
-static char* get_font_file(void) {
+static char *get_font_file(void) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag)) ||
       gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag))) {
     if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(vcol_flag))) {
@@ -645,7 +645,7 @@ static char* get_font_file(void) {
   }
 }
 
-static gint aa_flag_checked(GtkWidget* widget, gpointer data) {
+static gint aa_flag_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag)) &&
         !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag))) {
@@ -662,7 +662,7 @@ static gint aa_flag_checked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static gint xft_flag_checked(GtkWidget* widget, gpointer data) {
+static gint xft_flag_checked(GtkWidget *widget, gpointer data) {
   if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)) &&
       !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag))) {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(aa_flag), 0);
@@ -681,7 +681,7 @@ static gint xft_flag_checked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static gint cairo_flag_checked(GtkWidget* widget, gpointer data) {
+static gint cairo_flag_checked(GtkWidget *widget, gpointer data) {
   if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)) &&
       !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag))) {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(aa_flag), 0);
@@ -700,7 +700,7 @@ static gint cairo_flag_checked(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static gint vcol_flag_checked(GtkWidget* widget, gpointer data) {
+static gint vcol_flag_checked(GtkWidget *widget, gpointer data) {
   reset_fontname_list();
   gtk_entry_set_text(
       GTK_ENTRY(fontname_entry),
@@ -725,7 +725,7 @@ static void vertical_mode_changed(void) {
   }
 }
 
-static gint fontsize_selected(GtkWidget* widget, gpointer data) {
+static gint fontsize_selected(GtkWidget *widget, gpointer data) {
   g_free(new_fontsize);
   new_fontsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
@@ -736,13 +736,13 @@ static gint fontsize_selected(GtkWidget* widget, gpointer data) {
   return 1;
 }
 
-static void specify_width(GtkWidget* widget, int flag) {
-  gchar* fontname;
+static void specify_width(GtkWidget *widget, int flag) {
+  gchar *fontname;
 
   if (((fontname = new_fontname_list[selected_cs]) ||
        (fontname = gtk_entry_get_text(GTK_ENTRY(fontname_entry)))) &&
       *fontname) {
-    gchar* p;
+    gchar *p;
     int percent;
     size_t len;
 
@@ -784,11 +784,11 @@ static void specify_width(GtkWidget* widget, int flag) {
   }
 }
 
-static void widen_width(GtkWidget* widget, gpointer data) { specify_width(widget, 1); }
+static void widen_width(GtkWidget *widget, gpointer data) { specify_width(widget, 1); }
 
-static void narrow_width(GtkWidget* widget, gpointer data) { specify_width(widget, -1); }
+static void narrow_width(GtkWidget *widget, gpointer data) { specify_width(widget, -1); }
 
-static void default_width(GtkWidget* widget, gpointer data) { specify_width(widget, 0); }
+static void default_width(GtkWidget *widget, gpointer data) { specify_width(widget, 0); }
 
 static void fontcs_changed(void) {
   dont_change_new_fontname_list = 1;
@@ -807,7 +807,7 @@ static void fontcs_changed(void) {
 
 /* compare two encoding names, returns non-zero if equal
  */
-static int compare(const char* e1, const char* e2) {
+static int compare(const char *e1, const char *e2) {
   while (1) {
     /* ')' is for "auto (currently EUC-JP)" */
     if (*e1 == '-' || *e1 == '_' || *e1 == ')') {
@@ -829,8 +829,8 @@ static int compare(const char* e1, const char* e2) {
   }
 }
 
-static void fontcs_map(GtkWidget* widget, gpointer data) {
-  char* encoding;
+static void fontcs_map(GtkWidget *widget, gpointer data) {
+  char *encoding;
   int count;
 
   encoding = mc_get_char_encoding();
@@ -877,8 +877,8 @@ static void font_policy_changed(void) {
   }
 }
 
-static gint fontcs_selected(GtkWidget* widget, gpointer data) {
-  const char* cs;
+static gint fontcs_selected(GtkWidget *widget, gpointer data) {
+  const char *cs;
   int count;
 
   cs = gtk_entry_get_text(GTK_ENTRY(widget));
@@ -910,8 +910,8 @@ static gint fontcs_selected(GtkWidget* widget, gpointer data) {
 #if !defined(USE_WIN32GUI) && !defined(G_PLATFORM_WIN32) && !GTK_CHECK_VERSION(2, 90, 0) && \
     !defined(USE_QUARTZ)
 
-static gchar* get_xlfd_font_name(gpointer dialog) {
-  char* name;
+static gchar *get_xlfd_font_name(gpointer dialog) {
+  char *name;
 
   name = gtk_xlfd_selection_dialog_get_font_name(GTK_XLFD_SELECTION_DIALOG(dialog));
   if (selected_cs == 0 && name && *name) /* DEFAULT */
@@ -920,7 +920,7 @@ static gchar* get_xlfd_font_name(gpointer dialog) {
      * Removing font encoding such as "iso8859-1".
      */
 
-    char* p;
+    char *p;
 
     if ((p = strrchr(name, '-'))) {
       *p = '\0';
@@ -933,8 +933,8 @@ static gchar* get_xlfd_font_name(gpointer dialog) {
   return name;
 }
 
-static void ok_pressed(GtkWidget* widget, gpointer dialog) {
-  gchar* name;
+static void ok_pressed(GtkWidget *widget, gpointer dialog) {
+  gchar *name;
 
   name = get_xlfd_font_name(dialog);
   gtk_entry_set_text(GTK_ENTRY(fontname_entry), name);
@@ -943,24 +943,24 @@ static void ok_pressed(GtkWidget* widget, gpointer dialog) {
   gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
-static void apply_pressed(GtkWidget* widget, gpointer dialog) {
-  gchar* name;
+static void apply_pressed(GtkWidget *widget, gpointer dialog) {
+  gchar *name;
 
   name = get_xlfd_font_name(dialog);
   gtk_entry_set_text(GTK_ENTRY(fontname_entry), name);
   g_free(name);
 }
 
-static void cancel_pressed(GtkWidget* widget, gpointer dialog) {
+static void cancel_pressed(GtkWidget *widget, gpointer dialog) {
   gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
-static int set_current_font_name(GtkWidget* dialog) {
-  const gchar* font_name;
+static int set_current_font_name(GtkWidget *dialog) {
+  const gchar *font_name;
 
   font_name = gtk_entry_get_text(GTK_ENTRY(fontname_entry));
   if (font_name && *font_name) {
-    char* p;
+    char *p;
 
     /*
      * Modify DEFAULT font name. "-*-...-*-" => "-*-...-*-*-*"
@@ -976,13 +976,13 @@ static int set_current_font_name(GtkWidget* dialog) {
   }
 }
 
-static void select_xlfd_font(GtkWidget* widget, gpointer label) {
-  GtkWidget* dialog;
+static void select_xlfd_font(GtkWidget *widget, gpointer label) {
+  GtkWidget *dialog;
 
   dialog = gtk_xlfd_selection_dialog_new("Select Font");
   if (!set_current_font_name(dialog)) {
-    char* encoding;
-    char* font_name;
+    char *encoding;
+    char *font_name;
     char format[] = "-misc-fixed-medium-*-normal--%s-*-*-*-*-*-%s";
 
     if ((encoding = cs_info_table[selected_cs].encoding_names[0]) == NULL) {
@@ -1014,11 +1014,11 @@ static void select_xlfd_font(GtkWidget* widget, gpointer label) {
 
 #endif
 
-static char* my_gtk_font_selection_dialog_get_font_name(GtkFontSelectionDialog* dialog) {
-  char* str;
+static char *my_gtk_font_selection_dialog_get_font_name(GtkFontSelectionDialog *dialog) {
+  char *str;
   int count;
-  char* p;
-  char* dup_str;
+  char *p;
+  char *dup_str;
 
   str = gtk_font_selection_dialog_get_font_name(dialog);
 
@@ -1048,9 +1048,9 @@ static char* my_gtk_font_selection_dialog_get_font_name(GtkFontSelectionDialog* 
   return dup_str;
 }
 
-static char* get_gtk_font_name(const char* font_name) {
+static char *get_gtk_font_name(const char *font_name) {
   int count;
-  char* str;
+  char *str;
 
   if ((str = malloc(strlen(font_name) + 1)) == NULL) {
     return NULL;
@@ -1070,11 +1070,11 @@ static char* get_gtk_font_name(const char* font_name) {
   return str;
 }
 
-static void fontname_entry_edit(GtkWidget* widget, gpointer p) {
+static void fontname_entry_edit(GtkWidget *widget, gpointer p) {
   /* In case fontname is editted in text entry widget. */
 
   if (!dont_change_new_fontname_list) {
-    const char* name;
+    const char *name;
 
     if (!(name = gtk_entry_get_text(GTK_ENTRY(fontname_entry)))) {
       if (new_fontname_list[selected_cs]) {
@@ -1093,9 +1093,9 @@ static void fontname_entry_edit(GtkWidget* widget, gpointer p) {
   }
 }
 
-static void select_fc_font(GtkWidget* widget, gpointer p) {
-  GtkWidget* dialog;
-  char* font_name;
+static void select_fc_font(GtkWidget *widget, gpointer p) {
+  GtkWidget *dialog;
+  char *font_name;
   GtkResponseType result;
 
   dialog = gtk_font_selection_dialog_new("Select Font");
@@ -1125,7 +1125,7 @@ static void select_fc_font(GtkWidget* widget, gpointer p) {
   gtk_widget_destroy(dialog);
 }
 
-static void select_font(GtkWidget* widget, gpointer p) {
+static void select_font(GtkWidget *widget, gpointer p) {
 #if !defined(USE_WIN32GUI) && !defined(G_PLATFORM_WIN32) && !GTK_CHECK_VERSION(2, 90, 0) && \
     !defined(USE_QUARTZ)
   if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag)) &&
@@ -1138,9 +1138,9 @@ static void select_font(GtkWidget* widget, gpointer p) {
   }
 }
 
-static void edit_noconv_areas(GtkWidget* widget, gpointer data) {
-  char* cur_areas;
-  char* new_areas;
+static void edit_noconv_areas(GtkWidget *widget, gpointer data) {
+  char *cur_areas;
+  char *new_areas;
 
   if (noconv_areas) {
     cur_areas = strdup(noconv_areas);
@@ -1159,20 +1159,20 @@ static void edit_noconv_areas(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_font_config_widget_new(void) {
-  GtkWidget* vbox;
-  GtkWidget* hbox;
-  GtkWidget* fgcolor;
-  GtkWidget* combo;
-  GtkWidget* entry;
-  GtkWidget* radio;
-  GtkWidget* label;
-  GtkWidget* button;
-  char* fontlist[] = {
+GtkWidget *mc_font_config_widget_new(void) {
+  GtkWidget *vbox;
+  GtkWidget *hbox;
+  GtkWidget *fgcolor;
+  GtkWidget *combo;
+  GtkWidget *entry;
+  GtkWidget *radio;
+  GtkWidget *label;
+  GtkWidget *button;
+  char *fontlist[] = {
       "6",  "7",  "8",  "9",  "10", "11", "12", "13", "14", "15", "16", "17", "18",
       "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
   };
-  char** cslist;
+  char **cslist;
 
   new_fontsize = strdup(old_fontsize = mc_get_str_value("fontsize"));
   is_fontsize_changed = 0;

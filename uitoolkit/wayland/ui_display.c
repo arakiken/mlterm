@@ -137,11 +137,11 @@ static ui_window_t *search_inputtable_window(ui_window_t *candidate, ui_window_t
 /*
  * x and y are rotated values.
  */
-static inline ui_window_t* get_window(ui_window_t* win, int x, int y) {
+static inline ui_window_t *get_window(ui_window_t *win, int x, int y) {
   u_int count;
 
   for (count = 0; count < win->num_of_children; count++) {
-    ui_window_t* child;
+    ui_window_t *child;
 
     if ((child = win->children[count])->is_mapped) {
       if (child->x <= x && x < child->x + ACTUAL_WIDTH(child) && child->y <= y &&

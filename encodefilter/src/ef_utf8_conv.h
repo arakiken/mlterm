@@ -5,6 +5,6 @@
 
 #include "ef_conv.h"
 
-ef_conv_t* ef_utf8_conv_new(void);
+ef_conv_t *ef_utf8_conv_new(void);
 
 #endif

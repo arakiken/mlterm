@@ -11,7 +11,7 @@
 
 /* --- static functions --- */
 
-static void remap_unsupported_charset(ef_char_t* ch, int is_sjisx0213) {
+static void remap_unsupported_charset(ef_char_t *ch, int is_sjisx0213) {
   ef_char_t c;
 
   if (ch->cs == ISO10646_UCS4_1) {
@@ -91,8 +91,8 @@ static void remap_unsupported_charset(ef_char_t* ch, int is_sjisx0213) {
   }
 }
 
-static int map_jisx0208_1983_to_sjis(u_char* dst, /* 2bytes */
-                                     u_char* src  /* 2bytes */
+static int map_jisx0208_1983_to_sjis(u_char *dst, /* 2bytes */
+                                     u_char *src  /* 2bytes */
                                      ) {
   int high;
   int low;
@@ -122,8 +122,8 @@ static int map_jisx0208_1983_to_sjis(u_char* dst, /* 2bytes */
   return 1;
 }
 
-static int map_jisx0213_2000_to_sjis(u_char* dst, /* 2bytes */
-                                     u_char* src, /* 2bytes */
+static int map_jisx0213_2000_to_sjis(u_char *dst, /* 2bytes */
+                                     u_char *src, /* 2bytes */
                                      int map      /* map of jisx0213(1 or 2) */
                                      ) {
   int high;
@@ -181,8 +181,8 @@ static int map_jisx0213_2000_to_sjis(u_char* dst, /* 2bytes */
   return 1;
 }
 
-static size_t convert_to_sjis_intern(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                     ef_parser_t* parser, int is_sjisx0213) {
+static size_t convert_to_sjis_intern(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                     ef_parser_t *parser, int is_sjisx0213) {
   size_t filled_size;
   ef_char_t ch;
 
@@ -289,24 +289,24 @@ static size_t convert_to_sjis_intern(ef_conv_t* conv, u_char* dst, size_t dst_si
   return filled_size;
 }
 
-static size_t convert_to_sjis(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                              ef_parser_t* parser) {
+static size_t convert_to_sjis(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                              ef_parser_t *parser) {
   return convert_to_sjis_intern(conv, dst, dst_size, parser, 0);
 }
 
-static size_t convert_to_sjisx0213(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                   ef_parser_t* parser) {
+static size_t convert_to_sjisx0213(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                   ef_parser_t *parser) {
   return convert_to_sjis_intern(conv, dst, dst_size, parser, 1);
 }
 
-static void conv_init(ef_conv_t* conv) {}
+static void conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_sjis_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_sjis_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -320,8 +320,8 @@ ef_conv_t* ef_sjis_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_sjisx0213_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_sjisx0213_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;

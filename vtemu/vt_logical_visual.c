@@ -25,7 +25,7 @@ typedef struct container_logical_visual {
    * visual : children[0] => children[1] => ... => children[n]
    * logical: children[n] => ... => children[1] => children[0]
    */
-  vt_logical_visual_t** children;
+  vt_logical_visual_t **children;
   u_int num_of_children;
 
 } container_logical_visual_t;
@@ -59,22 +59,22 @@ typedef struct ctl_logical_visual {
   int cursor_logical_col;
   int ltr_rtl_meet_pos;
   vt_bidi_mode_t bidi_mode;
-  const char* separators;
-  void* term;
+  const char *separators;
+  void *term;
 
 } ctl_logical_visual_t;
 
 /* --- static variables --- */
 
 /* Order of this table must be same as x_vertical_mode_t. */
-static char* vertical_mode_name_table[] = {
+static char *vertical_mode_name_table[] = {
     "none", "mongol", "cjk",
 };
 
 /* --- static functions --- */
 
-static int container_delete(vt_logical_visual_t* logvis) {
-  container_logical_visual_t* container;
+static int container_delete(vt_logical_visual_t *logvis) {
+  container_logical_visual_t *container;
   int count;
 
   container = (container_logical_visual_t*)logvis;
@@ -92,8 +92,8 @@ static int container_delete(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int container_init(vt_logical_visual_t* logvis, vt_model_t* model, vt_cursor_t* cursor) {
-  container_logical_visual_t* container;
+static int container_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t *cursor) {
+  container_logical_visual_t *container;
   u_int count;
 
   logvis->model = model;
@@ -108,8 +108,8 @@ static int container_init(vt_logical_visual_t* logvis, vt_model_t* model, vt_cur
   return 1;
 }
 
-static u_int container_logical_cols(vt_logical_visual_t* logvis) {
-  container_logical_visual_t* container;
+static u_int container_logical_cols(vt_logical_visual_t *logvis) {
+  container_logical_visual_t *container;
 
   container = (container_logical_visual_t*)logvis;
 
@@ -121,8 +121,8 @@ static u_int container_logical_cols(vt_logical_visual_t* logvis) {
   }
 }
 
-static u_int container_logical_rows(vt_logical_visual_t* logvis) {
-  container_logical_visual_t* container;
+static u_int container_logical_rows(vt_logical_visual_t *logvis) {
+  container_logical_visual_t *container;
 
   container = (container_logical_visual_t*)logvis;
 
@@ -134,8 +134,8 @@ static u_int container_logical_rows(vt_logical_visual_t* logvis) {
   }
 }
 
-static int container_render(vt_logical_visual_t* logvis) {
-  container_logical_visual_t* container;
+static int container_render(vt_logical_visual_t *logvis) {
+  container_logical_visual_t *container;
   u_int count;
 
   container = (container_logical_visual_t*)logvis;
@@ -151,8 +151,8 @@ static int container_render(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int container_visual(vt_logical_visual_t* logvis) {
-  container_logical_visual_t* container;
+static int container_visual(vt_logical_visual_t *logvis) {
+  container_logical_visual_t *container;
   u_int count;
 
   if (logvis->is_visual) {
@@ -170,8 +170,8 @@ static int container_visual(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int container_logical(vt_logical_visual_t* logvis) {
-  container_logical_visual_t* container;
+static int container_logical(vt_logical_visual_t *logvis) {
+  container_logical_visual_t *container;
   int count;
 
   if (!logvis->is_visual) {
@@ -193,8 +193,8 @@ static int container_logical(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int container_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) {
-  container_logical_visual_t* container;
+static int container_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
+  container_logical_visual_t *container;
   u_int count;
 
   container = (container_logical_visual_t*)logvis;
@@ -210,26 +210,26 @@ static int container_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) {
  * dynamic combining
  */
 
-static int comb_delete(vt_logical_visual_t* logvis) {
+static int comb_delete(vt_logical_visual_t *logvis) {
   free(logvis);
 
   return 1;
 }
 
-static int comb_init(vt_logical_visual_t* logvis, vt_model_t* model, vt_cursor_t* cursor) {
+static int comb_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t *cursor) {
   logvis->model = model;
   logvis->cursor = cursor;
 
   return 1;
 }
 
-static u_int comb_logical_cols(vt_logical_visual_t* logvis) { return logvis->model->num_of_cols; }
+static u_int comb_logical_cols(vt_logical_visual_t *logvis) { return logvis->model->num_of_cols; }
 
-static u_int comb_logical_rows(vt_logical_visual_t* logvis) { return logvis->model->num_of_rows; }
+static u_int comb_logical_rows(vt_logical_visual_t *logvis) { return logvis->model->num_of_rows; }
 
-static int comb_render(vt_logical_visual_t* logvis) { return (*logvis->visual)(logvis); }
+static int comb_render(vt_logical_visual_t *logvis) { return (*logvis->visual)(logvis); }
 
-static int comb_visual(vt_logical_visual_t* logvis) {
+static int comb_visual(vt_logical_visual_t *logvis) {
   int row;
 
   if (logvis->is_visual) {
@@ -240,10 +240,10 @@ static int comb_visual(vt_logical_visual_t* logvis) {
   ((comb_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col;
 
   for (row = 0; row < logvis->model->num_of_rows; row++) {
-    vt_line_t* line;
+    vt_line_t *line;
     int dst_pos;
     int src_pos;
-    vt_char_t* cur;
+    vt_char_t *cur;
 
     line = vt_model_get_line(logvis->model, row);
 
@@ -322,8 +322,8 @@ static int comb_visual(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int comb_logical(vt_logical_visual_t* logvis) {
-  vt_char_t* buf;
+static int comb_logical(vt_logical_visual_t *logvis) {
+  vt_char_t *buf;
   int row;
 
   if (!logvis->is_visual) {
@@ -335,10 +335,10 @@ static int comb_logical(vt_logical_visual_t* logvis) {
   }
 
   for (row = 0; row < logvis->model->num_of_rows; row++) {
-    vt_line_t* line;
+    vt_line_t *line;
     int src_pos;
     u_int src_len;
-    vt_char_t* c;
+    vt_char_t *c;
 
     line = vt_model_get_line(logvis->model, row);
 
@@ -349,7 +349,7 @@ static int comb_logical(vt_logical_visual_t* logvis) {
     c = buf;
     for (src_pos = 0; src_pos < src_len && line->num_of_filled_chars < line->num_of_chars;
          src_pos++) {
-      vt_char_t* comb;
+      vt_char_t *comb;
       u_int size;
 
       if ((comb = vt_get_combining_chars(c, &size))
@@ -416,10 +416,10 @@ static int comb_logical(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int comb_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) {
+static int comb_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
   int dst_pos;
   int src_pos;
-  vt_char_t* cur;
+  vt_char_t *cur;
 
   dst_pos = 0;
   cur = line->chars;
@@ -444,8 +444,8 @@ static int comb_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) {
  * vertical view logical <=> visual methods
  */
 
-static int vert_delete(vt_logical_visual_t* logvis) {
-  vert_logical_visual_t* vert_logvis;
+static int vert_delete(vt_logical_visual_t *logvis) {
+  vert_logical_visual_t *vert_logvis;
 
   if (logvis->model) {
     vert_logvis = (vert_logical_visual_t*)logvis;
@@ -457,8 +457,8 @@ static int vert_delete(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int vert_init(vt_logical_visual_t* logvis, vt_model_t* model, vt_cursor_t* cursor) {
-  vert_logical_visual_t* vert_logvis;
+static int vert_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t *cursor) {
+  vert_logical_visual_t *vert_logvis;
 
   vert_logvis = (vert_logical_visual_t*)logvis;
 
@@ -477,7 +477,7 @@ static int vert_init(vt_logical_visual_t* logvis, vt_model_t* model, vt_cursor_t
   return 1;
 }
 
-static u_int vert_logical_cols(vt_logical_visual_t* logvis) {
+static u_int vert_logical_cols(vt_logical_visual_t *logvis) {
   if (logvis->is_visual) {
     return ((vert_logical_visual_t*)logvis)->logical_model.num_of_cols;
   } else {
@@ -485,7 +485,7 @@ static u_int vert_logical_cols(vt_logical_visual_t* logvis) {
   }
 }
 
-static u_int vert_logical_rows(vt_logical_visual_t* logvis) {
+static u_int vert_logical_rows(vt_logical_visual_t *logvis) {
   if (logvis->is_visual) {
     return ((vert_logical_visual_t*)logvis)->logical_model.num_of_rows;
   } else {
@@ -493,12 +493,12 @@ static u_int vert_logical_rows(vt_logical_visual_t* logvis) {
   }
 }
 
-static int vert_render(vt_logical_visual_t* logvis) { return 1; }
+static int vert_render(vt_logical_visual_t *logvis) { return 1; }
 
-static int vert_visual_intern(vt_logical_visual_t* logvis, vt_vertical_mode_t mode) {
-  vert_logical_visual_t* vert_logvis;
-  vt_line_t* log_line;
-  vt_line_t* vis_line;
+static int vert_visual_intern(vt_logical_visual_t *logvis, vt_vertical_mode_t mode) {
+  vert_logical_visual_t *vert_logvis;
+  vt_line_t *log_line;
+  vt_line_t *vis_line;
   int row;
   int count;
 
@@ -615,16 +615,16 @@ static int vert_visual_intern(vt_logical_visual_t* logvis, vt_vertical_mode_t mo
   return 1;
 }
 
-static int cjk_vert_visual(vt_logical_visual_t* logvis) {
+static int cjk_vert_visual(vt_logical_visual_t *logvis) {
   return vert_visual_intern(logvis, VERT_RTL);
 }
 
-static int mongol_vert_visual(vt_logical_visual_t* logvis) {
+static int mongol_vert_visual(vt_logical_visual_t *logvis) {
   return vert_visual_intern(logvis, VERT_LTR);
 }
 
-static int vert_logical(vt_logical_visual_t* logvis) {
-  vert_logical_visual_t* vert_logvis;
+static int vert_logical(vt_logical_visual_t *logvis) {
+  vert_logical_visual_t *vert_logvis;
 
   if (!logvis->is_visual) {
     return 0;
@@ -648,7 +648,7 @@ static int vert_logical(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int vert_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) { return 1; }
+static int vert_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) { return 1; }
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || \
     defined(USE_OT_LAYOUT)
@@ -657,7 +657,7 @@ static int vert_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) { retu
  * Ctl logical <=> visual methods
  */
 
-static int ctl_delete(vt_logical_visual_t* logvis) {
+static int ctl_delete(vt_logical_visual_t *logvis) {
   int row;
 
   if (logvis->model) {
@@ -671,7 +671,7 @@ static int ctl_delete(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int ctl_init(vt_logical_visual_t* logvis, vt_model_t* model, vt_cursor_t* cursor) {
+static int ctl_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t *cursor) {
   int row;
 
   if (logvis->model) {
@@ -686,11 +686,11 @@ static int ctl_init(vt_logical_visual_t* logvis, vt_model_t* model, vt_cursor_t*
   return 1;
 }
 
-static u_int ctl_logical_cols(vt_logical_visual_t* logvis) { return logvis->model->num_of_cols; }
+static u_int ctl_logical_cols(vt_logical_visual_t *logvis) { return logvis->model->num_of_cols; }
 
-static u_int ctl_logical_rows(vt_logical_visual_t* logvis) { return logvis->model->num_of_rows; }
+static u_int ctl_logical_rows(vt_logical_visual_t *logvis) { return logvis->model->num_of_rows; }
 
-static void ctl_render_line(vt_logical_visual_t* logvis, vt_line_t* line) {
+static void ctl_render_line(vt_logical_visual_t *logvis, vt_line_t *line) {
   if (!vt_line_is_empty(line) && vt_line_is_modified(line)) {
     vt_line_ctl_render(line, ((ctl_logical_visual_t*)logvis)->bidi_mode,
                        ((ctl_logical_visual_t*)logvis)->separators,
@@ -698,7 +698,7 @@ static void ctl_render_line(vt_logical_visual_t* logvis, vt_line_t* line) {
   }
 }
 
-static int ctl_render(vt_logical_visual_t* logvis) {
+static int ctl_render(vt_logical_visual_t *logvis) {
   if (!logvis->is_visual) {
     int row;
 
@@ -713,7 +713,7 @@ static int ctl_render(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int ctl_visual(vt_logical_visual_t* logvis) {
+static int ctl_visual(vt_logical_visual_t *logvis) {
   int row;
 
   if (logvis->is_visual) {
@@ -762,7 +762,7 @@ static int ctl_visual(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int ctl_logical(vt_logical_visual_t* logvis) {
+static int ctl_logical(vt_logical_visual_t *logvis) {
   int row;
 
   if (!logvis->is_visual) {
@@ -775,7 +775,7 @@ static int ctl_logical(vt_logical_visual_t* logvis) {
 #endif
 
   for (row = 0; row < logvis->model->num_of_rows; row++) {
-    vt_line_t* line;
+    vt_line_t *line;
 
     line = vt_model_get_line(logvis->model, row);
 
@@ -813,7 +813,7 @@ static int ctl_logical(vt_logical_visual_t* logvis) {
   return 1;
 }
 
-static int ctl_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) {
+static int ctl_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
   ctl_render_line(logvis, line);
   vt_line_ctl_visual(line);
 
@@ -824,8 +824,8 @@ static int ctl_visual_line(vt_logical_visual_t* logvis, vt_line_t* line) {
 
 /* --- global functions --- */
 
-vt_logical_visual_t* vt_logvis_container_new(void) {
-  container_logical_visual_t* container;
+vt_logical_visual_t *vt_logvis_container_new(void) {
+  container_logical_visual_t *container;
 
   if ((container = calloc(1, sizeof(container_logical_visual_t))) == NULL) {
     return NULL;
@@ -851,9 +851,9 @@ vt_logical_visual_t* vt_logvis_container_new(void) {
  * vert_logvis, ctl_logvis and iscii_logvis can't coexist with each other
  * for now.
  */
-int vt_logvis_container_add(vt_logical_visual_t* logvis, vt_logical_visual_t* child) {
-  void* p;
-  container_logical_visual_t* container;
+int vt_logvis_container_add(vt_logical_visual_t *logvis, vt_logical_visual_t *child) {
+  void *p;
+  container_logical_visual_t *container;
 
   container = (container_logical_visual_t*)logvis;
 
@@ -873,8 +873,8 @@ int vt_logvis_container_add(vt_logical_visual_t* logvis, vt_logical_visual_t* ch
   return 1;
 }
 
-vt_logical_visual_t* vt_logvis_comb_new(void) {
-  comb_logical_visual_t* comb_logvis;
+vt_logical_visual_t *vt_logvis_comb_new(void) {
+  comb_logical_visual_t *comb_logvis;
 
   if ((comb_logvis = calloc(1, sizeof(comb_logical_visual_t))) == NULL) {
     return NULL;
@@ -894,8 +894,8 @@ vt_logical_visual_t* vt_logvis_comb_new(void) {
   return (vt_logical_visual_t*)comb_logvis;
 }
 
-vt_logical_visual_t* vt_logvis_vert_new(vt_vertical_mode_t vertical_mode) {
-  vert_logical_visual_t* vert_logvis;
+vt_logical_visual_t *vt_logvis_vert_new(vt_vertical_mode_t vertical_mode) {
+  vert_logical_visual_t *vert_logvis;
 
   if (vertical_mode != VERT_RTL && vertical_mode != VERT_LTR) {
     return NULL;
@@ -931,7 +931,7 @@ vt_logical_visual_t* vt_logvis_vert_new(vt_vertical_mode_t vertical_mode) {
   return (vt_logical_visual_t*)vert_logvis;
 }
 
-vt_vertical_mode_t vt_get_vertical_mode(char* name) {
+vt_vertical_mode_t vt_get_vertical_mode(char *name) {
   vt_vertical_mode_t mode;
 
   for (mode = 0; mode < VERT_MODE_MAX; mode++) {
@@ -944,7 +944,7 @@ vt_vertical_mode_t vt_get_vertical_mode(char* name) {
   return 0;
 }
 
-char* vt_get_vertical_mode_name(vt_vertical_mode_t mode) {
+char *vt_get_vertical_mode_name(vt_vertical_mode_t mode) {
   if (mode < 0 || VERT_MODE_MAX <= mode) {
     /* default value */
     mode = 0;
@@ -956,9 +956,9 @@ char* vt_get_vertical_mode_name(vt_vertical_mode_t mode) {
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || \
     defined(USE_OT_LAYOUT)
 
-vt_logical_visual_t* vt_logvis_ctl_new(vt_bidi_mode_t bidi_mode, const char* separators,
-                                       void* term) {
-  ctl_logical_visual_t* ctl_logvis;
+vt_logical_visual_t *vt_logvis_ctl_new(vt_bidi_mode_t bidi_mode, const char *separators,
+                                       void *term) {
+  ctl_logical_visual_t *ctl_logvis;
 
 #ifndef USE_OT_LAYOUT
 #ifndef NO_DYNAMIC_LOAD_CTL

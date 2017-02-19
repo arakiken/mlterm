@@ -15,12 +15,12 @@ static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
 
 /* --- global functions --- */
 
-int ef_map_ucs4_to_zh_cn(ef_char_t* zhcn, ef_char_t* ucs4) {
+int ef_map_ucs4_to_zh_cn(ef_char_t *zhcn, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(zhcn, ucs4, map_ucs4_to_funcs,
                                     sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
 }
 
-int ef_map_gbk_to_gb2312_80(ef_char_t* gb2312, ef_char_t* gbk) {
+int ef_map_gbk_to_gb2312_80(ef_char_t *gb2312, ef_char_t *gbk) {
   if (0xa1 <= gbk->ch[0] && gbk->ch[0] <= 0xfe && 0xa1 <= gbk->ch[1] && gbk->ch[1] <= 0xfe) {
     gb2312->ch[0] = UNMAP_FROM_GR(gbk->ch[0]);
     gb2312->ch[1] = UNMAP_FROM_GR(gbk->ch[1]);
@@ -33,7 +33,7 @@ int ef_map_gbk_to_gb2312_80(ef_char_t* gb2312, ef_char_t* gbk) {
   }
 }
 
-int ef_map_gb2312_80_to_gbk(ef_char_t* gbk, ef_char_t* gb2312) {
+int ef_map_gb2312_80_to_gbk(ef_char_t *gbk, ef_char_t *gb2312) {
   gbk->ch[0] = MAP_TO_GR(gb2312->ch[0]);
   gbk->ch[1] = MAP_TO_GR(gb2312->ch[1]);
   gbk->size = 2;

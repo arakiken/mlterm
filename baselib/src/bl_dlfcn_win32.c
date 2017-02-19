@@ -21,9 +21,9 @@ static int initialized;
 
 /* --- global functions --- */
 
-bl_dl_handle_t bl_dl_open(const char* dirpath, const char* name) {
+bl_dl_handle_t bl_dl_open(const char *dirpath, const char *name) {
   HMODULE module;
-  char* path;
+  char *path;
 #if defined(__CYGWIN__) || defined(__MSYS__)
   /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
   char winpath[MAX_PATH];
@@ -88,11 +88,11 @@ next_step:
 
 int bl_dl_close(bl_dl_handle_t handle) { return FreeLibrary((HMODULE)handle); }
 
-void* bl_dl_func_symbol(bl_dl_handle_t handle, const char* symbol) {
+void *bl_dl_func_symbol(bl_dl_handle_t handle, const char *symbol) {
   return GetProcAddress((HMODULE)handle, symbol);
 }
 
-int bl_dl_is_module(const char* name) {
+int bl_dl_is_module(const char *name) {
   size_t len;
 
   if (!name) {

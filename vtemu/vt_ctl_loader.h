@@ -49,8 +49,8 @@ typedef enum vt_ctl_iscii_id {
 #define CTL_API_COMPAT_CHECK_MAGIC \
   (((CTL_API_VERSION & 0x0f) << 28) | ((sizeof(vt_line_t) & 0xff) << 20))
 
-void* vt_load_ctl_bidi_func(vt_ctl_bidi_id_t id);
+void *vt_load_ctl_bidi_func(vt_ctl_bidi_id_t id);
 
-void* vt_load_ctl_iscii_func(vt_ctl_iscii_id_t id);
+void *vt_load_ctl_iscii_func(vt_ctl_iscii_id_t id);
 
 #endif

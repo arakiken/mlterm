@@ -13,7 +13,7 @@
 
 /* --- global functions --- */
 
-int vt_log_init(vt_logs_t* logs, u_int num_of_rows) {
+int vt_log_init(vt_logs_t *logs, u_int num_of_rows) {
   logs->lines = NULL;
   logs->index = NULL;
   logs->num_of_rows = 0;
@@ -45,7 +45,7 @@ int vt_log_init(vt_logs_t* logs, u_int num_of_rows) {
   return 1;
 }
 
-int vt_log_final(vt_logs_t* logs) {
+int vt_log_final(vt_logs_t *logs) {
   int count;
 
   if (logs->num_of_rows == 0) {
@@ -63,7 +63,7 @@ int vt_log_final(vt_logs_t* logs) {
   return 1;
 }
 
-int vt_change_log_size(vt_logs_t* logs, u_int new_num_of_rows) {
+int vt_change_log_size(vt_logs_t *logs, u_int new_num_of_rows) {
   u_int num_of_filled_rows;
 
   logs->unlimited = 0;
@@ -83,7 +83,7 @@ int vt_change_log_size(vt_logs_t* logs, u_int new_num_of_rows) {
 
     return 1;
   } else if (new_num_of_rows > logs->num_of_rows) {
-    vt_line_t* new_lines;
+    vt_line_t *new_lines;
 
     if (sizeof(vt_line_t) * new_num_of_rows < sizeof(vt_line_t) * logs->num_of_rows) {
       /* integer overflow */
@@ -103,8 +103,8 @@ int vt_change_log_size(vt_logs_t* logs, u_int new_num_of_rows) {
 
     logs->lines = new_lines;
   } else if (new_num_of_rows < logs->num_of_rows) {
-    vt_line_t* new_lines;
-    vt_line_t* line;
+    vt_line_t *new_lines;
+    vt_line_t *line;
     int count;
     int start;
 
@@ -170,7 +170,7 @@ int vt_change_log_size(vt_logs_t* logs, u_int new_num_of_rows) {
   return 1;
 }
 
-int vt_log_add(vt_logs_t* logs, vt_line_t* line) {
+int vt_log_add(vt_logs_t *logs, vt_line_t *line) {
   int at;
 
   if (logs->num_of_rows == 0) {
@@ -201,7 +201,7 @@ int vt_log_add(vt_logs_t* logs, vt_line_t* line) {
   return 1;
 }
 
-vt_line_t* vt_log_get(vt_logs_t* logs, int at) {
+vt_line_t *vt_log_get(vt_logs_t *logs, int at) {
   int _at;
 
   if (at < 0 || vt_get_num_of_logged_lines(logs) <= at) {
@@ -219,7 +219,7 @@ vt_line_t* vt_log_get(vt_logs_t* logs, int at) {
   return &logs->lines[_at];
 }
 
-u_int vt_get_num_of_logged_lines(vt_logs_t* logs) {
+u_int vt_get_num_of_logged_lines(vt_logs_t *logs) {
   if (logs->num_of_rows == 0) {
     return 0;
   } else {
@@ -227,8 +227,8 @@ u_int vt_get_num_of_logged_lines(vt_logs_t* logs) {
   }
 }
 
-int vt_log_reverse_color(vt_logs_t* logs, int char_index, int row) {
-  vt_line_t* line;
+int vt_log_reverse_color(vt_logs_t *logs, int char_index, int row) {
+  vt_line_t *line;
 
   if ((line = vt_log_get(logs, row)) == NULL) {
     return 0;
@@ -241,8 +241,8 @@ int vt_log_reverse_color(vt_logs_t* logs, int char_index, int row) {
   return 1;
 }
 
-int vt_log_restore_color(vt_logs_t* logs, int char_index, int row) {
-  vt_line_t* line;
+int vt_log_restore_color(vt_logs_t *logs, int char_index, int row) {
+  vt_line_t *line;
 
   if ((line = vt_log_get(logs, row)) == NULL) {
     return 0;

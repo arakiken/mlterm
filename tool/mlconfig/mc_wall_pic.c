@@ -11,21 +11,21 @@
 
 /* --- static functions --- */
 
-static GtkWidget* entry;
-static char* old_wall_pic = NULL;
+static GtkWidget *entry;
+static char *old_wall_pic = NULL;
 static int is_changed;
 
 /* --- static functions --- */
 
-static gint button_clicked(GtkWidget* widget, gpointer data) {
-  GtkWidget* dialog;
+static gint button_clicked(GtkWidget *widget, gpointer data) {
+  GtkWidget *dialog;
 
   dialog = gtk_file_chooser_dialog_new("Wall Paper", NULL, GTK_FILE_CHOOSER_ACTION_OPEN,
                                        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN,
                                        GTK_RESPONSE_ACCEPT, NULL);
 
   if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-    gchar* filename;
+    gchar *filename;
 
     filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
     gtk_entry_set_text(GTK_ENTRY(entry), filename);
@@ -39,10 +39,10 @@ static gint button_clicked(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_wall_pic_config_widget_new(void) {
-  GtkWidget* hbox;
-  GtkWidget* button;
-  char* wall_pic;
+GtkWidget *mc_wall_pic_config_widget_new(void) {
+  GtkWidget *hbox;
+  GtkWidget *button;
+  char *wall_pic;
 
   wall_pic = mc_get_str_value("wall_picture");
 
@@ -71,7 +71,7 @@ GtkWidget* mc_wall_pic_config_widget_new(void) {
 }
 
 void mc_update_wall_pic(void) {
-  char* new_wall_pic;
+  char *new_wall_pic;
 
   new_wall_pic = gtk_editable_get_chars(GTK_EDITABLE(entry), 0, -1);
 

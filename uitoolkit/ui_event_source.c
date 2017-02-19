@@ -39,7 +39,7 @@ static u_int num_of_additional_fds;
 #ifdef USE_WIN32API
 
 static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT timerid, DWORD time) {
-  ui_display_t** displays;
+  ui_display_t **displays;
   u_int num_of_displays;
   int count;
 
@@ -54,7 +54,7 @@ static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT timerid, DWORD time) {
 
 static void receive_next_event(void) {
   u_int count;
-  vt_term_t** terms;
+  vt_term_t **terms;
   u_int num_of_terms;
   int xfd;
   int ptyfd;
@@ -62,10 +62,10 @@ static void receive_next_event(void) {
   int ret;
   fd_set read_fds;
   struct timeval tval;
-  ui_display_t** displays;
+  ui_display_t **displays;
   u_int num_of_displays;
 #ifdef USE_LIBSSH2
-  int* xssh_fds;
+  int *xssh_fds;
   u_int num_of_xssh_fds;
 
   num_of_xssh_fds = vt_pty_ssh_get_x11_fds(&xssh_fds);
@@ -278,10 +278,10 @@ int ui_event_source_final(void) {
 int ui_event_source_process(void) {
 #ifdef USE_WIN32API
   u_int num_of_displays;
-  ui_display_t** displays;
-  vt_term_t** terms;
+  ui_display_t **displays;
+  vt_term_t **terms;
   u_int num_of_terms;
-  int* xssh_fds;
+  int *xssh_fds;
   u_int count;
 #endif
 
@@ -331,7 +331,7 @@ int ui_event_source_process(void) {
 int ui_event_source_add_fd(int fd, void (*handler)(void)) {
 #ifndef USE_WIN32API
 
-  void* p;
+  void *p;
 
   if (!handler) {
     return 0;

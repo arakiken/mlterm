@@ -9,7 +9,7 @@
 
 /* --- static functions --- */
 
-static XftColor* _ui_color_to_xft(XftColor* xftcolor, ui_color_t* xcolor) {
+static XftColor* _ui_color_to_xft(XftColor *xftcolor, ui_color_t *xcolor) {
   xftcolor->pixel = xcolor->pixel;
   xftcolor->color.red = (xcolor->red << 8) + xcolor->red;
   xftcolor->color.green = (xcolor->green << 8) + xcolor->green;
@@ -21,7 +21,7 @@ static XftColor* _ui_color_to_xft(XftColor* xftcolor, ui_color_t* xcolor) {
 
 /* --- global functions --- */
 
-int ui_window_set_use_xft(ui_window_t* win, int use_xft) {
+int ui_window_set_use_xft(ui_window_t *win, int use_xft) {
   if (use_xft) {
     if ((win->xft_draw = XftDrawCreate(win->disp->display, win->my_window, win->disp->visual,
                                        win->disp->colormap))) {
@@ -37,9 +37,9 @@ int ui_window_set_use_xft(ui_window_t* win, int use_xft) {
   return 0;
 }
 
-int ui_window_xft_draw_string8(ui_window_t* win, ui_font_t* font, ui_color_t* fg_color, int x,
-                               int y, u_char* str, size_t len) {
-  XftColor* xftcolor;
+int ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                               int y, u_char *str, size_t len) {
+  XftColor *xftcolor;
 
   /* Removing trailing spaces. */
   while (1) {
@@ -68,9 +68,9 @@ int ui_window_xft_draw_string8(ui_window_t* win, ui_font_t* font, ui_color_t* fg
   return 1;
 }
 
-int ui_window_xft_draw_string32(ui_window_t* win, ui_font_t* font, ui_color_t* fg_color, int x,
+int ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
                                 int y, FcChar32* str, u_int len) {
-  XftColor* xftcolor;
+  XftColor *xftcolor;
 
   xftcolor = ui_color_to_xft(fg_color);
 
@@ -102,7 +102,7 @@ int ui_window_xft_draw_string32(ui_window_t* win, ui_font_t* font, ui_color_t* f
   return 1;
 }
 
-void xft_set_clip(ui_window_t* win, int x, int y, u_int width, u_int height) {
+void xft_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {
   XRectangle rect;
 
   rect.x = 0;
@@ -113,7 +113,7 @@ void xft_set_clip(ui_window_t* win, int x, int y, u_int width, u_int height) {
   XftDrawSetClipRectangles(win->xft_draw, x, y, &rect, 1);
 }
 
-void xft_unset_clip(ui_window_t* win) {
+void xft_unset_clip(ui_window_t *win) {
   XRectangle rect;
 
   rect.x = 0;

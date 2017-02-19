@@ -4,7 +4,7 @@
 
 #if defined(USE_WIN32API)
 
-static int convert_regis_to_bmp(char* path) {
+static int convert_regis_to_bmp(char *path) {
   size_t len = strlen(path);
   char cmd[17 + len * 2];
   STARTUPINFO si;
@@ -41,7 +41,7 @@ static int convert_regis_to_bmp(char* path) {
 #include <sys/wait.h>
 #include <pobl/bl_path.h> /* bl_basename */
 
-static int convert_regis_to_bmp(char* path) {
+static int convert_regis_to_bmp(char *path) {
   pid_t pid;
   int status;
 
@@ -50,11 +50,11 @@ static int convert_regis_to_bmp(char* path) {
   }
 
   if (pid == 0) {
-    char* new_path;
+    char *new_path;
     size_t len;
 #if defined(__CYGWIN__) || defined(__MSYS__)
     /* To make registobmp work even if it (or SDL) doesn't depend on cygwin. */
-    char* file;
+    char *file;
 
     file = bl_basename(path);
     if (file && path < file) {
@@ -69,7 +69,7 @@ static int convert_regis_to_bmp(char* path) {
     /* Cast to char* is necessary because this function can be compiled by g++.
      */
     if ((new_path = (char*)malloc(len + 1))) {
-      char* argv[4];
+      char *argv[4];
 
       strncpy(new_path, path, len - 4);
       strcpy(new_path + len - 4, ".bmp");

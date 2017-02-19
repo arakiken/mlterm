@@ -7,10 +7,10 @@
 
 /* --- static functions --- */
 
-static int cursor_goto(vt_cursor_t* cursor, int col_or_idx, int row, int is_by_col) {
+static int cursor_goto(vt_cursor_t *cursor, int col_or_idx, int row, int is_by_col) {
   int char_index;
   u_int cols_rest;
-  vt_line_t* line;
+  vt_line_t *line;
 
   if (row > vt_model_end_row(cursor->model)) {
     /* round row to end of row */
@@ -51,38 +51,38 @@ static int cursor_goto(vt_cursor_t* cursor, int col_or_idx, int row, int is_by_c
 
 /* --- global functions --- */
 
-int vt_cursor_init(vt_cursor_t* cursor, vt_model_t* model) {
+int vt_cursor_init(vt_cursor_t *cursor, vt_model_t *model) {
   memset(cursor, 0, sizeof(vt_cursor_t));
   cursor->model = model;
 
   return 1;
 }
 
-int vt_cursor_final(vt_cursor_t* cursor) {
+int vt_cursor_final(vt_cursor_t *cursor) {
   /* Do nothing */
 
   return 1;
 }
 
-int vt_cursor_goto_by_char(vt_cursor_t* cursor, int char_index, int row) {
+int vt_cursor_goto_by_char(vt_cursor_t *cursor, int char_index, int row) {
   return cursor_goto(cursor, char_index, row, 0);
 }
 
 /* Move horizontally */
-int vt_cursor_moveh_by_char(vt_cursor_t* cursor, int char_index) {
+int vt_cursor_moveh_by_char(vt_cursor_t *cursor, int char_index) {
   return cursor_goto(cursor, char_index, cursor->row, 0);
 }
 
-int vt_cursor_goto_by_col(vt_cursor_t* cursor, int col, int row) {
+int vt_cursor_goto_by_col(vt_cursor_t *cursor, int col, int row) {
   return cursor_goto(cursor, col, row, 1);
 }
 
 /* Move horizontally */
-int vt_cursor_moveh_by_col(vt_cursor_t* cursor, int col) {
+int vt_cursor_moveh_by_col(vt_cursor_t *cursor, int col) {
   return cursor_goto(cursor, col, cursor->row, 1);
 }
 
-int vt_cursor_goto_home(vt_cursor_t* cursor) {
+int vt_cursor_goto_home(vt_cursor_t *cursor) {
   cursor->row = 0;
   cursor->char_index = 0;
   cursor->col = 0;
@@ -91,7 +91,7 @@ int vt_cursor_goto_home(vt_cursor_t* cursor) {
   return 1;
 }
 
-int vt_cursor_goto_beg_of_line(vt_cursor_t* cursor) {
+int vt_cursor_goto_beg_of_line(vt_cursor_t *cursor) {
   cursor->char_index = 0;
   cursor->col = 0;
   cursor->col_in_char = 0;
@@ -99,7 +99,7 @@ int vt_cursor_goto_beg_of_line(vt_cursor_t* cursor) {
   return 1;
 }
 
-int vt_cursor_go_forward(vt_cursor_t* cursor) {
+int vt_cursor_go_forward(vt_cursor_t *cursor) {
   /* full width char check. */
   if (cursor->col_in_char + 1 < vt_char_cols(vt_get_cursor_char(cursor))) {
 #ifdef __DEBUG
@@ -122,7 +122,7 @@ int vt_cursor_go_forward(vt_cursor_t* cursor) {
   }
 }
 
-int vt_cursor_cr_lf(vt_cursor_t* cursor) {
+int vt_cursor_cr_lf(vt_cursor_t *cursor) {
   if (cursor->model->num_of_rows <= cursor->row + 1) {
     return 0;
   }
@@ -139,29 +139,29 @@ int vt_cursor_cr_lf(vt_cursor_t* cursor) {
   return 1;
 }
 
-vt_line_t* vt_get_cursor_line(vt_cursor_t* cursor) {
+vt_line_t *vt_get_cursor_line(vt_cursor_t *cursor) {
   return vt_model_get_line(cursor->model, cursor->row);
 }
 
-vt_char_t* vt_get_cursor_char(vt_cursor_t* cursor) {
+vt_char_t *vt_get_cursor_char(vt_cursor_t *cursor) {
   return vt_model_get_line(cursor->model, cursor->row)->chars + cursor->char_index;
 }
 
-int vt_cursor_char_is_cleared(vt_cursor_t* cursor) {
+int vt_cursor_char_is_cleared(vt_cursor_t *cursor) {
   cursor->char_index += cursor->col_in_char;
   cursor->col_in_char = 0;
 
   return 1;
 }
 
-int vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t* cursor) {
+int vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t *cursor) {
   cursor->char_index = cursor->col;
   cursor->col_in_char = 0;
 
   return 1;
 }
 
-int vt_cursor_save(vt_cursor_t* cursor) {
+int vt_cursor_save(vt_cursor_t *cursor) {
   cursor->saved_col = cursor->col;
   cursor->saved_char_index = cursor->char_index;
   cursor->saved_row = cursor->row;
@@ -170,7 +170,7 @@ int vt_cursor_save(vt_cursor_t* cursor) {
   return 1;
 }
 
-int vt_cursor_restore(vt_cursor_t* cursor) {
+int vt_cursor_restore(vt_cursor_t *cursor) {
   if (!cursor->is_saved) {
     return 0;
   }
@@ -184,7 +184,7 @@ int vt_cursor_restore(vt_cursor_t* cursor) {
 
 #ifdef DEBUG
 
-void vt_cursor_dump(vt_cursor_t* cursor) {
+void vt_cursor_dump(vt_cursor_t *cursor) {
   bl_msg_printf("Cursor position => CH_IDX %d COL %d(+%d) ROW %d.\n", cursor->char_index,
                 cursor->col, cursor->col_in_char, cursor->row);
 }

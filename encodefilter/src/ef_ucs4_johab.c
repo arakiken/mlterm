@@ -31,7 +31,7 @@ static int8_t linear_to_johab_last[32] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10
 
 /* --- global functions --- */
 
-int ef_map_johab_to_ucs4(ef_char_t* ucs4, u_int16_t johab) {
+int ef_map_johab_to_ucs4(ef_char_t *ucs4, u_int16_t johab) {
   int first_linear;
   int middle_linear;
   int last_linear;
@@ -57,7 +57,7 @@ int ef_map_johab_to_ucs4(ef_char_t* ucs4, u_int16_t johab) {
   return 1;
 }
 
-int ef_map_ucs4_to_johab(ef_char_t* johab, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_johab(ef_char_t *johab, u_int32_t ucs4_code) {
   int first;
   int middle;
   int last;

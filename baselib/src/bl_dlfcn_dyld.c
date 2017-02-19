@@ -15,27 +15,27 @@
 
 typedef struct loaded_module {
   bl_dl_handle_t handle;
-  char* dirpath;
-  char* name;
+  char *dirpath;
+  char *name;
 
   u_int ref_count;
 
-  struct loaded_module* next;
+  struct loaded_module *next;
 
 } loaded_module_t;
 
 /* --- static functions --- */
 
-static loaded_module_t* module_list = NULL;
+static loaded_module_t *module_list = NULL;
 
 /* --- global functions --- */
 
-bl_dl_handle_t bl_dl_open(const char* dirpath, const char* name) {
+bl_dl_handle_t bl_dl_open(const char *dirpath, const char *name) {
   NSObjectFileImage file_image;
   NSObjectFileImageReturnCode ret;
-  loaded_module_t* module;
+  loaded_module_t *module;
   bl_dl_handle_t handle;
-  char* path;
+  char *path;
 
   module = module_list;
   while (module) {
@@ -101,7 +101,7 @@ error:
 }
 
 int bl_dl_close(bl_dl_handle_t handle) {
-  loaded_module_t* module;
+  loaded_module_t *module;
 
   if (!module_list) {
     return 1;
@@ -137,9 +137,9 @@ int bl_dl_close(bl_dl_handle_t handle) {
   return 0;
 }
 
-void* bl_dl_func_symbol(bl_dl_handle_t unused, const char* symbol) {
+void *bl_dl_func_symbol(bl_dl_handle_t unused, const char *symbol) {
   NSSymbol nssymbol = NULL;
-  char* symbol_name;
+  char *symbol_name;
 
   if ((symbol_name = alloca(strlen(symbol) + 2)) == NULL) {
 #ifdef DEBUG
@@ -169,7 +169,7 @@ void* bl_dl_func_symbol(bl_dl_handle_t unused, const char* symbol) {
   return NSAddressOfSymbol(nssymbol);
 }
 
-int bl_dl_is_module(const char* name) {
+int bl_dl_is_module(const char *name) {
   size_t len;
 
   if (!name) {

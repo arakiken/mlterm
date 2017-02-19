@@ -17,7 +17,7 @@ static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
 
 /* --- global functions --- */
 
-int ef_map_ucs4_to_zh_tw(ef_char_t* zhtw, ef_char_t* ucs4) {
+int ef_map_ucs4_to_zh_tw(ef_char_t *zhtw, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(zhtw, ucs4, map_ucs4_to_funcs,
                                     sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
 }
@@ -26,7 +26,7 @@ int ef_map_ucs4_to_zh_tw(ef_char_t* zhtw, ef_char_t* ucs4) {
  * BIG5 <=> CNS11643_1992_[1-2]
  */
 
-int ef_map_big5_to_cns11643_1992(ef_char_t* cns, ef_char_t* big5) {
+int ef_map_big5_to_cns11643_1992(ef_char_t *cns, ef_char_t *big5) {
   ef_char_t ucs4;
 
   if (!ef_map_to_ucs4(&ucs4, big5)) {
@@ -41,10 +41,10 @@ int ef_map_big5_to_cns11643_1992(ef_char_t* cns, ef_char_t* big5) {
   return 1;
 }
 
-int ef_map_cns11643_1992_1_to_big5(ef_char_t* big5, ef_char_t* cns) {
+int ef_map_cns11643_1992_1_to_big5(ef_char_t *big5, ef_char_t *cns) {
   return ef_map_via_ucs(big5, cns, BIG5);
 }
 
-int ef_map_cns11643_1992_2_to_big5(ef_char_t* big5, ef_char_t* cns) {
+int ef_map_cns11643_1992_2_to_big5(ef_char_t *big5, ef_char_t *cns) {
   return ef_map_via_ucs(big5, cns, BIG5);
 }

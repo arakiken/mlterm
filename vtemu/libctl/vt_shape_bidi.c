@@ -275,7 +275,7 @@ static arabic_comb_t arabic_comb_table[] = {
 
 /* --- static functions --- */
 
-static arabic_present_t* get_arabic_present(vt_char_t* ch) {
+static arabic_present_t *get_arabic_present(vt_char_t *ch) {
   u_int16_t code;
   int count;
 
@@ -299,13 +299,13 @@ static arabic_present_t* get_arabic_present(vt_char_t* ch) {
 /*
  * 'src' characters are right to left (visual) order.
  */
-u_int vt_shape_arabic(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_len) {
+u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len) {
   int count;
-  arabic_present_t** list;
+  arabic_present_t **list;
   u_int16_t code;
-  vt_char_t* comb;
-  vt_char_t* cur;
-  vt_char_t* next; /* the same as 'prev' in logical order */
+  vt_char_t *comb;
+  vt_char_t *cur;
+  vt_char_t *next; /* the same as 'prev' in logical order */
   u_int size;
 
   if ((list = alloca(sizeof(arabic_present_t*) * (src_len + 2))) == NULL) {
@@ -394,15 +394,15 @@ u_int vt_shape_arabic(vt_char_t* dst, u_int dst_len, vt_char_t* src, u_int src_l
   return count;
 }
 
-u_int16_t vt_is_arabic_combining(vt_char_t* prev2, /* can be NULL */
-                                 vt_char_t* prev,  /* must be ISO10646_UCS4_1 character */
-                                 vt_char_t* ch     /* must be ISO10646_UCS4_1 character */
+u_int16_t vt_is_arabic_combining(vt_char_t *prev2, /* can be NULL */
+                                 vt_char_t *prev,  /* must be ISO10646_UCS4_1 character */
+                                 vt_char_t *ch     /* must be ISO10646_UCS4_1 character */
                                  ) {
-  vt_char_t* seq[4];    /* reverse order */
+  vt_char_t *seq[4];    /* reverse order */
   u_int16_t ucs_seq[4]; /* reverse order */
   int count;
   int prev2_is_comb;
-  arabic_present_t* prev2_present;
+  arabic_present_t *prev2_present;
 
   seq[0] = ch;
   seq[1] = prev;
@@ -410,7 +410,7 @@ u_int16_t vt_is_arabic_combining(vt_char_t* prev2, /* can be NULL */
   seq[3] = NULL;
 
   if (prev2) {
-    vt_char_t* comb;
+    vt_char_t *comb;
     u_int size;
 
     prev2_present = get_arabic_present(prev2);

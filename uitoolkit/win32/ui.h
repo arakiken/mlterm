@@ -44,7 +44,7 @@ typedef WORD KeySym;  /* Same as type of wparam */
 typedef struct /* Same as definition in X11/X.h */
     {
   int max_keypermod;
-  KeyCode* modifiermap;
+  KeyCode *modifiermap;
 
 } XModifierKeymap;
 
@@ -381,9 +381,9 @@ typedef LPLOGFONT XFontSet;
 #define __(a) _T(a)
 #endif /* UTF16_IME_CHAR */
 
-int XParseGeometry(char* str, int* x, int* y, unsigned int* width, unsigned int* height);
+int XParseGeometry(char *str, int *x, int *y, unsigned int *width, unsigned int *height);
 
-KeySym XStringToKeysym(char* str);
+KeySym XStringToKeysym(char *str);
 
 /* === Platform dependent options === */
 

@@ -5,6 +5,6 @@
 
 #include <mef/ef_parser.h>
 
-ef_parser_t* ef_str_parser_init(ef_char_t* src, u_int src_len);
+ef_parser_t *ef_str_parser_init(ef_char_t *src, u_int src_len);
 
 #endif

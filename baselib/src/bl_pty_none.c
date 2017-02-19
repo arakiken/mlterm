@@ -4,7 +4,7 @@
 
 /* --- global functions --- */
 
-pid_t bl_pty_fork(int* master, int* slave) {
+pid_t bl_pty_fork(int *master, int *slave) {
   /* do nothing. */
   return 0;
 }

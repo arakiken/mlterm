@@ -15,12 +15,12 @@ typedef struct ui_color_cache_256ext {
 } ui_color_cache_256ext_t;
 
 typedef struct ui_color_cache {
-  ui_display_t* disp;
+  ui_display_t *disp;
 
   ui_color_t xcolors[MAX_VTSYS_COLORS];
   u_int8_t is_loaded[MAX_VTSYS_COLORS];
 
-  ui_color_cache_256ext_t* cache_256ext;
+  ui_color_cache_256ext_t *cache_256ext;
 
   ui_color_t black;
 
@@ -30,16 +30,16 @@ typedef struct ui_color_cache {
 
 } ui_color_cache_t;
 
-ui_color_cache_t* ui_acquire_color_cache(ui_display_t* disp, u_int8_t fade_ratio);
+ui_color_cache_t *ui_acquire_color_cache(ui_display_t *disp, u_int8_t fade_ratio);
 
-int ui_release_color_cache(ui_color_cache_t* color_cache);
+int ui_release_color_cache(ui_color_cache_t *color_cache);
 
-int ui_color_cache_unload(ui_color_cache_t* color_cache);
+int ui_color_cache_unload(ui_color_cache_t *color_cache);
 
 int ui_color_cache_unload_all(void);
 
-int ui_load_xcolor(ui_color_cache_t* color_cache, ui_color_t* xcolor, char* name);
+int ui_load_xcolor(ui_color_cache_t *color_cache, ui_color_t *xcolor, char *name);
 
-ui_color_t* ui_get_cached_xcolor(ui_color_cache_t* color_cache, vt_color_t color);
+ui_color_t *ui_get_cached_xcolor(ui_color_cache_t *color_cache, vt_color_t color);
 
 #endif

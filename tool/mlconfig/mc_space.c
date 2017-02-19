@@ -23,18 +23,18 @@ static char new_values[MC_SPACES][MAX_VALUE_LEN + 1]; /* 0 - 99 */
 static char old_values[MC_SPACES][MAX_VALUE_LEN + 1]; /* 0 - 99 */
 static int is_changed[MC_SPACES];
 
-static char* config_keys[MC_SPACES] = {
+static char *config_keys[MC_SPACES] = {
     "line_space", "letter_space",
 };
 
-static char* labels[MC_SPACES] = {
+static char *labels[MC_SPACES] = {
     N_("Line space (pixels)"), N_("Letter space (pixels)"),
 };
 
 /* --- static functions --- */
 
-static gint space_selected(GtkWidget* widget, gpointer data) {
-  gchar* text;
+static gint space_selected(GtkWidget *widget, gpointer data) {
+  gchar *text;
 
   text = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
   if (strlen(text) <= MAX_VALUE_LEN) {
@@ -51,11 +51,11 @@ static gint space_selected(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_space_config_widget_new(int id) {
-  char* value;
-  GtkWidget* combo;
-  GtkWidget* entry;
-  char* spaces[] = {
+GtkWidget *mc_space_config_widget_new(int id) {
+  char *value;
+  GtkWidget *combo;
+  GtkWidget *entry;
+  char *spaces[] = {
       "5", "4", "3", "2", "1", "0",
   };
 

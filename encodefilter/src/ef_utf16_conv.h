@@ -5,10 +5,10 @@
 
 #include "ef_conv.h"
 
-ef_conv_t* ef_utf16_conv_new(void);
+ef_conv_t *ef_utf16_conv_new(void);
 
-ef_conv_t* ef_utf16le_conv_new(void);
+ef_conv_t *ef_utf16le_conv_new(void);
 
-int ef_utf16_conv_use_bom(ef_conv_t* conv);
+int ef_utf16_conv_use_bom(ef_conv_t *conv);
 
 #endif

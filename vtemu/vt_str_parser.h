@@ -8,8 +8,8 @@
 
 #include "vt_char.h"
 
-ef_parser_t* vt_str_parser_new(void);
+ef_parser_t *vt_str_parser_new(void);
 
-void vt_str_parser_set_str(ef_parser_t* ef_parser, vt_char_t* str, u_int size);
+void vt_str_parser_set_str(ef_parser_t *ef_parser, vt_char_t *str, u_int size);
 
 #endif

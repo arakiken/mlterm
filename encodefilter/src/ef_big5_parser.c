@@ -14,7 +14,7 @@
 
 /* --- static functions --- */
 
-static int big5_parser_next_char_intern(ef_parser_t* big5_parser, ef_char_t* ch, int use_hkscs) {
+static int big5_parser_next_char_intern(ef_parser_t *big5_parser, ef_char_t *ch, int use_hkscs) {
   if (big5_parser->is_eos) {
     return 0;
   }
@@ -71,27 +71,27 @@ shortage:
   return 0;
 }
 
-static int big5_parser_next_char(ef_parser_t* big5_parser, ef_char_t* ch) {
+static int big5_parser_next_char(ef_parser_t *big5_parser, ef_char_t *ch) {
   return big5_parser_next_char_intern(big5_parser, ch, 0);
 }
 
-static int big5hkscs_parser_next_char(ef_parser_t* big5_parser, ef_char_t* ch) {
+static int big5hkscs_parser_next_char(ef_parser_t *big5_parser, ef_char_t *ch) {
   return big5_parser_next_char_intern(big5_parser, ch, 1);
 }
 
-static void big5_parser_set_str(ef_parser_t* big5_parser, u_char* str, size_t size) {
+static void big5_parser_set_str(ef_parser_t *big5_parser, u_char *str, size_t size) {
   big5_parser->str = str;
   big5_parser->left = size;
   big5_parser->marked_left = 0;
   big5_parser->is_eos = 0;
 }
 
-static void big5_parser_delete(ef_parser_t* s) { free(s); }
+static void big5_parser_delete(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
-ef_parser_t* ef_big5_parser_new(void) {
-  ef_parser_t* big5_parser;
+ef_parser_t *ef_big5_parser_new(void) {
+  ef_parser_t *big5_parser;
 
   if ((big5_parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -107,8 +107,8 @@ ef_parser_t* ef_big5_parser_new(void) {
   return big5_parser;
 }
 
-ef_parser_t* ef_big5hkscs_parser_new(void) {
-  ef_parser_t* big5_parser;
+ef_parser_t *ef_big5hkscs_parser_new(void) {
+  ef_parser_t *big5_parser;
 
   if ((big5_parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;

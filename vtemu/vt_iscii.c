@@ -36,8 +36,8 @@ int vt_isciikey_state_delete(vt_isciikey_state_t state) {
   return (*func)(state);
 }
 
-size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char* iscii, size_t iscii_len,
-                                 u_char* ascii, size_t ascii_len) {
+size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char *iscii, size_t iscii_len,
+                                 u_char *ascii, size_t ascii_len) {
   int (*func)(vt_isciikey_state_t, u_char*, size_t, u_char*, size_t);
 
   if (!(func = vt_load_ctl_iscii_func(VT_CONVERT_ASCII_TO_ISCII))) {
@@ -61,8 +61,8 @@ vt_isciikey_state_t vt_isciikey_state_new(int is_inscript) { return NULL; }
 
 int vt_isciikey_state_delete(vt_isciikey_state_t state) { return 0; }
 
-size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char* iscii, size_t iscii_len,
-                                 u_char* ascii, size_t ascii_len) {
+size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char *iscii, size_t iscii_len,
+                                 u_char *ascii, size_t ascii_len) {
   return 0;
 }
 

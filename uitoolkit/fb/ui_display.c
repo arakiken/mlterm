@@ -129,7 +129,7 @@ static Display _display;
 static ui_display_t _disp;
 static Mouse _mouse;
 static ui_display_t _disp_mouse;
-static ui_display_t* opened_disps[] = {&_disp, &_disp_mouse};
+static ui_display_t *opened_disps[] = {&_disp, &_disp_mouse};
 static int use_ansi_colors = 1;
 static int rotate_display = 0;
 
@@ -162,7 +162,7 @@ static const char cursor_shape_rotate[] =
     "###         ###";
 
 static struct cursor_shape {
-  const char* shape;
+  const char *shape;
   u_int width;
   u_int height;
   int x_off;
@@ -177,11 +177,11 @@ static struct cursor_shape {
 
 /* --- static functions --- */
 
-static inline ui_window_t* get_window_intern(ui_window_t* win, int x, int y) {
+static inline ui_window_t *get_window_intern(ui_window_t *win, int x, int y) {
   u_int count;
 
   for (count = 0; count < win->num_of_children; count++) {
-    ui_window_t* child;
+    ui_window_t *child;
 
     if ((child = win->children[count])->is_mapped) {
       if (child->x <= x && x < child->x + ACTUAL_WIDTH(child) && child->y <= y &&
@@ -198,24 +198,24 @@ static inline ui_window_t* get_window_intern(ui_window_t* win, int x, int y) {
  * _disp.roots[1] is ignored.
  * x and y are rotated values.
  */
-static inline ui_window_t* get_window(int x, /* X in display */
+static inline ui_window_t *get_window(int x, /* X in display */
                                       int y  /* Y in display */
                                       ) {
   return get_window_intern(_disp.roots[0], x, y);
 }
 
-static inline u_char* get_fb(int x, int y) {
+static inline u_char *get_fb(int x, int y) {
   return _display.fb + (_display.yoffset + y) * _display.line_length +
          (_display.xoffset + x) * _display.bytes_per_pixel / _display.pixels_per_byte;
 }
 
-static void put_image_124bpp(int x, int y, u_char* image, size_t size, int write_back_fb,
+static void put_image_124bpp(int x, int y, u_char *image, size_t size, int write_back_fb,
                              int need_fb_pixel) {
   u_int ppb;
   u_int bpp;
-  u_char* new_image;
-  u_char* new_image_p;
-  u_char* fb;
+  u_char *new_image;
+  u_char *new_image_p;
+  u_char *fb;
   int shift;
   size_t count;
   int plane;
@@ -494,10 +494,10 @@ static void restore_hidden_region(void) {
 
   if (_mouse.hidden_region_saved) {
     size_t width;
-    u_char* saved;
+    u_char *saved;
     int plane;
     int num_of_planes;
-    u_char* fb;
+    u_char *fb;
     u_int count;
 
     width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width);
@@ -519,7 +519,7 @@ static void restore_hidden_region(void) {
       }
     }
   } else {
-    ui_window_t* win;
+    ui_window_t *win;
     int cursor_x;
     int cursor_y;
     u_int cursor_height;
@@ -556,10 +556,10 @@ static void restore_hidden_region(void) {
 
 static void save_hidden_region(void) {
   size_t width;
-  u_char* saved;
+  u_char *saved;
   int plane;
   int num_of_planes;
-  u_char* fb;
+  u_char *fb;
   u_int count;
 
   width = FB_WIDTH_BYTES(&_display, _mouse.cursor.x, _mouse.cursor.width);
@@ -585,9 +585,9 @@ static void save_hidden_region(void) {
 }
 
 static void draw_mouse_cursor_line(int y) {
-  u_char* fb;
-  ui_window_t* win;
-  char* shape;
+  u_char *fb;
+  ui_window_t *win;
+  char *shape;
   u_char image[MAX_CURSOR_SHAPE_WIDTH * sizeof(u_int32_t)];
   int x;
 
@@ -677,9 +677,9 @@ static void draw_mouse_cursor(void) {
 }
 
 /* XXX defined in fb/ui_window.c */
-int ui_window_clear_margin_area(ui_window_t* win);
+int ui_window_clear_margin_area(ui_window_t *win);
 
-static void expose_window(ui_window_t* win, int x, int y, u_int width, u_int height) {
+static void expose_window(ui_window_t *win, int x, int y, u_int width, u_int height) {
   if (x + width <= win->x || win->x + ACTUAL_WIDTH(win) < x || y + height <= win->y ||
       win->y + ACTUAL_HEIGHT(win) < y) {
     return;
@@ -712,7 +712,7 @@ static void expose_window(ui_window_t* win, int x, int y, u_int width, u_int hei
 
 static void expose_display(int x, int y, u_int width, u_int height) {
   u_int count;
-  ui_window_t* kbd; /* maybe software keyboard */
+  ui_window_t *kbd; /* maybe software keyboard */
 
   /*
    * XXX
@@ -784,7 +784,7 @@ static int check_visibility_of_im_window(void) {
   return redraw_im_win;
 }
 
-static void receive_event_for_multi_roots(XEvent* xev) {
+static void receive_event_for_multi_roots(XEvent *xev) {
   int redraw_im_win;
 
   if ((redraw_im_win = check_visibility_of_im_window())) {
@@ -810,7 +810,7 @@ static void receive_event_for_multi_roots(XEvent* xev) {
  *  0: button is outside the virtual kbd area.
  *  1: button is inside the virtual kbd area. (bev is converted to kev.)
  */
-static int check_virtual_kbd(XButtonEvent* bev) {
+static int check_virtual_kbd(XButtonEvent *bev) {
   XKeyEvent kev;
   int ret;
 
@@ -880,7 +880,7 @@ static int receive_stdin_key_event(void) {
 
   while ((len = read(_display.fd, buf, sizeof(buf) - 1)) > 0) {
     static struct {
-      char* str;
+      char *str;
       KeySym ksym;
 
     } table[] = {
@@ -1023,8 +1023,8 @@ static int receive_stdin_key_event(void) {
 
 #endif /* __FreeBSD__ */
 
-static fb_cmap_t* cmap_new(int num_of_colors) {
-  fb_cmap_t* cmap;
+static fb_cmap_t *cmap_new(int num_of_colors) {
+  fb_cmap_t *cmap;
 
   if (!(cmap = malloc(sizeof(*cmap) + sizeof(*(cmap->red)) * num_of_colors * 3))) {
     return NULL;
@@ -1061,7 +1061,7 @@ static int cmap_init(void) {
   static u_char rgb_1bpp[] = {0x00, 0x00, 0x00, 0xff, 0xff, 0xff};
   static u_char rgb_2bpp[] = {0x00, 0x00, 0x00, 0x55, 0x55, 0x55,
                               0xaa, 0xaa, 0xaa, 0xff, 0xff, 0xff};
-  u_char* rgb_tbl;
+  u_char *rgb_tbl;
 
   num_of_colors = (2 << (_disp.depth - 1));
 
@@ -1157,7 +1157,7 @@ static void cmap_final(void) {
 
 /* --- global functions --- */
 
-ui_display_t* ui_display_open(char* disp_name, u_int depth) {
+ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   if (!DISP_IS_INITED) {
     if (!open_display(depth)) {
       return NULL;
@@ -1193,7 +1193,7 @@ ui_display_t* ui_display_open(char* disp_name, u_int depth) {
   return &_disp;
 }
 
-int ui_display_close(ui_display_t* disp) {
+int ui_display_close(ui_display_t *disp) {
   if (disp == &_disp) {
     return ui_display_close_all();
   } else {
@@ -1257,7 +1257,7 @@ int ui_display_close_all(void) {
   return 1;
 }
 
-ui_display_t** ui_get_opened_displays(u_int* num) {
+ui_display_t **ui_get_opened_displays(u_int *num) {
   if (!DISP_IS_INITED) {
     *num = 0;
 
@@ -1273,12 +1273,12 @@ ui_display_t** ui_get_opened_displays(u_int* num) {
   return opened_disps;
 }
 
-int ui_display_fd(ui_display_t* disp) { return disp->display->fd; }
+int ui_display_fd(ui_display_t *disp) { return disp->display->fd; }
 
-int ui_display_show_root(ui_display_t* disp, ui_window_t* root, int x, int y, int hint,
-                         char* app_name, Window parent_window /* Ignored */
+int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,
+                         char *app_name, Window parent_window /* Ignored */
                          ) {
-  void* p;
+  void *p;
 
   if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_of_roots + 1))) == NULL) {
 #ifdef DEBUG
@@ -1317,7 +1317,7 @@ int ui_display_show_root(ui_display_t* disp, ui_window_t* root, int x, int y, in
   return 1;
 }
 
-int ui_display_remove_root(ui_display_t* disp, ui_window_t* root) {
+int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
   for (count = 0; count < disp->num_of_roots; count++) {
@@ -1343,7 +1343,7 @@ int ui_display_remove_root(ui_display_t* disp, ui_window_t* root) {
   return 0;
 }
 
-void ui_display_idling(ui_display_t* disp) {
+void ui_display_idling(ui_display_t *disp) {
   u_int count;
 
   for (count = 0; count < disp->num_of_roots; count++) {
@@ -1351,7 +1351,7 @@ void ui_display_idling(ui_display_t* disp) {
   }
 }
 
-int ui_display_receive_next_event(ui_display_t* disp) {
+int ui_display_receive_next_event(ui_display_t *disp) {
   if (disp == &_disp_mouse) {
     return receive_mouse_event();
   } else {
@@ -1363,15 +1363,15 @@ int ui_display_receive_next_event(ui_display_t* disp) {
  * Folloing functions called from ui_window.c
  */
 
-int ui_display_own_selection(ui_display_t* disp, ui_window_t* win) { return 0; }
+int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) { return 0; }
 
-int ui_display_clear_selection(ui_display_t* disp, ui_window_t* win) { return 0; }
+int ui_display_clear_selection(ui_display_t *disp, ui_window_t *win) { return 0; }
 
-XModifierKeymap* ui_display_get_modifier_mapping(ui_display_t* disp) { return disp->modmap.map; }
+XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return disp->modmap.map; }
 
-void ui_display_update_modifier_mapping(ui_display_t* disp, u_int serial) { /* dummy */ }
+void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) { /* dummy */ }
 
-XID ui_display_get_group_leader(ui_display_t* disp) { return None; }
+XID ui_display_get_group_leader(ui_display_t *disp) { return None; }
 
 int ui_display_reset_cmap(void) {
   if (_display.color_cache) {
@@ -1409,7 +1409,7 @@ void ui_display_enable_to_change_cmap(int flag) {
   }
 }
 
-void ui_display_set_cmap(u_int32_t* pixels, u_int cmap_size) {
+void ui_display_set_cmap(u_int32_t *pixels, u_int cmap_size) {
   if (
 #ifdef USE_GRF
       !x68k_set_tvram_cmap(pixels, cmap_size) &&
@@ -1495,7 +1495,7 @@ void ui_display_rotate(int rotate /* 1: clockwise, -1: counterclockwise */
 }
 
 u_long ui_display_get_pixel(int x, int y) {
-  u_char* fb;
+  u_char *fb;
   u_long pixel;
 
   if (_display.pixels_per_byte > 1) {
@@ -1535,7 +1535,7 @@ u_long ui_display_get_pixel(int x, int y) {
   return pixel;
 }
 
-void ui_display_put_image(int x, int y, u_char* image, size_t size, int need_fb_pixel) {
+void ui_display_put_image(int x, int y, u_char *image, size_t size, int need_fb_pixel) {
   if (_display.pixels_per_byte > 1) {
     put_image_124bpp(x, y, image, size, 1, need_fb_pixel);
   } else if (!rotate_display) {
@@ -1543,7 +1543,7 @@ void ui_display_put_image(int x, int y, u_char* image, size_t size, int need_fb_
   } else {
     /* Display is rotated. */
 
-    u_char* fb;
+    u_char *fb;
     int tmp;
     int line_length;
     size_t count;
@@ -1612,19 +1612,19 @@ void ui_display_put_image(int x, int y, u_char* image, size_t size, int need_fb_
  * Check if bytes_per_pixel == 1 or not by the caller.
  */
 void ui_display_fill_with(int x, int y, u_int width, u_int height, u_int8_t pixel) {
-  u_char* fb;
+  u_char *fb;
   u_int ppb;
-  u_char* buf;
+  u_char *buf;
   int y_off;
 
   fb = get_fb(x, y);
 
   if ((ppb = _display.pixels_per_byte) > 1) {
-    u_char* fb_orig;
+    u_char *fb_orig;
     u_int bpp;
     int plane;
-    u_char* fb_end;
-    u_char* buf_end;
+    u_char *fb_end;
+    u_char *buf_end;
     u_int surplus;
     u_int surplus_end;
     int packed_pixel;
@@ -1669,7 +1669,7 @@ void ui_display_fill_with(int x, int y, u_int width, u_int height, u_int8_t pixe
       }
 
       for (y_off = 0; y_off < height; y_off++) {
-        u_char* buf_p;
+        u_char *buf_p;
         u_int8_t pix;
         size_t size;
 
@@ -1793,8 +1793,8 @@ void ui_display_fill_with(int x, int y, u_int width, u_int height, u_int8_t pixe
 }
 
 void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int width, u_int height) {
-  u_char* src;
-  u_char* dst;
+  u_char *src;
+  u_char *dst;
   u_int copy_len;
   u_int count;
   int num_of_planes;
@@ -1845,8 +1845,8 @@ void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int wid
 
 #ifdef ENABLE_DOUBLE_BUFFER
       if (_display.back_fb) {
-        u_char* src_back;
-        u_char* dst_back;
+        u_char *src_back;
+        u_char *dst_back;
 
         src_back = _display.back_fb + (src - _display.fb);
         dst_back = _display.back_fb + (dst - _display.fb);
@@ -1891,8 +1891,8 @@ void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int wid
 
 #ifdef ENABLE_DOUBLE_BUFFER
       if (_display.back_fb) {
-        u_char* src_back;
-        u_char* dst_back;
+        u_char *src_back;
+        u_char *dst_back;
 
         src_back = _display.back_fb + (src - _display.fb);
         dst_back = _display.back_fb + (dst - _display.fb);
@@ -1929,7 +1929,7 @@ void ui_display_reset_input_method_window(void) {
 }
 
 /* seek the closest color */
-int ui_cmap_get_closest_color(u_long* closest, int red, int green, int blue) {
+int ui_cmap_get_closest_color(u_long *closest, int red, int green, int blue) {
   u_int segment;
   u_int offset;
   u_int color;
@@ -2025,7 +2025,7 @@ end:
   return 1;
 }
 
-int ui_cmap_get_pixel_rgb(u_int8_t* red, u_int8_t* green, u_int8_t* blue, u_long pixel) {
+int ui_cmap_get_pixel_rgb(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_long pixel) {
   *red = WORD_COLOR_TO_BYTE(_display.cmap->red[pixel]);
   *green = WORD_COLOR_TO_BYTE(_display.cmap->green[pixel]);
   *blue = WORD_COLOR_TO_BYTE(_display.cmap->blue[pixel]);

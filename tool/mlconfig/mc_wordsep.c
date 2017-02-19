@@ -18,17 +18,17 @@
 
 /* --- static variables --- */
 
-static GtkWidget* entry;
-static char* old_wordsep;
+static GtkWidget *entry;
+static char *old_wordsep;
 static int is_changed;
 
 /* --- static funcitons --- */
 
-static void set_str_value(const char* value) {
+static void set_str_value(const char *value) {
   size_t len;
 
   if ((len = strlen(value)) > 0) {
-    char* value2;
+    char *value2;
 
     if (len < 3 && strchr(value, ' ')) {
       /* len must be more than 2 to hold ' ' between other characters. */
@@ -65,7 +65,7 @@ static void set_str_value(const char* value) {
   mc_set_str_value("word_separators", value);
 }
 
-static char* remove_ff_mark(char* value) {
+static char *remove_ff_mark(char *value) {
   size_t len;
 
   if ((len = strlen(value)) > 0) {
@@ -83,9 +83,9 @@ static char* remove_ff_mark(char* value) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_wordsep_config_widget_new(void) {
-  GtkWidget* hbox;
-  GtkWidget* label;
+GtkWidget *mc_wordsep_config_widget_new(void) {
+  GtkWidget *hbox;
+  GtkWidget *label;
 
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
@@ -113,7 +113,7 @@ GtkWidget* mc_wordsep_config_widget_new(void) {
 }
 
 void mc_update_wordsep(void) {
-  const char* new_wordsep;
+  const char *new_wordsep;
 
   new_wordsep = gtk_entry_get_text(GTK_ENTRY(entry));
 

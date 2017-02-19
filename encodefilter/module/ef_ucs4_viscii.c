@@ -7,7 +7,7 @@
 
 /* --- global functions --- */
 
-int ef_map_viscii_to_ucs4(ef_char_t* ucs4, u_int16_t viscii_code) {
+int ef_map_viscii_to_ucs4(ef_char_t *ucs4, u_int16_t viscii_code) {
   u_int32_t c;
 
   if ((c = CONV_VISCII_TO_UCS4(viscii_code))) {
@@ -32,7 +32,7 @@ int ef_map_viscii_to_ucs4(ef_char_t* ucs4, u_int16_t viscii_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_viscii(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_viscii(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_VISCII(ucs4_code))) {

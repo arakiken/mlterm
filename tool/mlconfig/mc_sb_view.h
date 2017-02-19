@@ -5,7 +5,7 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget* mc_sb_view_config_widget_new(void);
+GtkWidget *mc_sb_view_config_widget_new(void);
 
 void mc_update_sb_view_name(void);
 

@@ -5,6 +5,6 @@
 
 #include "ef_char.h"
 
-int ef_map_ucs4_to_zh_hk(ef_char_t* zhhk, ef_char_t* ucs4);
+int ef_map_ucs4_to_zh_hk(ef_char_t *zhhk, ef_char_t *ucs4);
 
 #endif

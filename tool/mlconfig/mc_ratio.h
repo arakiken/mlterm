@@ -14,7 +14,7 @@
 #define MC_RATIO_SCREEN_WIDTH 4
 #define MC_RATIO_SCREEN_HEIGHT 5
 
-GtkWidget* mc_ratio_config_widget_new(int id);
+GtkWidget *mc_ratio_config_widget_new(int id);
 
 void mc_update_ratio(int id);
 

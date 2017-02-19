@@ -221,7 +221,7 @@ typedef enum
 } FontField;
 
 /* These are the names of the fields, used on the info & filter page. */
-static const gchar* xlfd_field_names[GTK_XLFD_NUM_FIELDS] = {
+static const gchar *xlfd_field_names[GTK_XLFD_NUM_FIELDS] = {
   N_("Foundry:"),
   N_("Family:"),
   N_("Weight:"),

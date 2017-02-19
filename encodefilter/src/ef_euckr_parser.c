@@ -13,7 +13,7 @@
 
 /* --- static functions --- */
 
-static int uhc_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int uhc_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   if (parser->is_eos) {
     return 0;
   }
@@ -45,8 +45,8 @@ static int uhc_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
   return 1;
 }
 
-static void euckr_parser_init_intern(ef_parser_t* parser, ef_charset_t g1_cs) {
-  ef_iso2022_parser_t* iso2022_parser;
+static void euckr_parser_init_intern(ef_parser_t *parser, ef_charset_t g1_cs) {
+  ef_iso2022_parser_t *iso2022_parser;
 
   ef_parser_init(parser);
 
@@ -65,16 +65,16 @@ static void euckr_parser_init_intern(ef_parser_t* parser, ef_charset_t g1_cs) {
   iso2022_parser->is_single_shifted = 0;
 }
 
-static void euckr_parser_init(ef_parser_t* parser) {
+static void euckr_parser_init(ef_parser_t *parser) {
   euckr_parser_init_intern(parser, KSC5601_1987);
 }
 
-static void uhc_parser_init(ef_parser_t* parser) { euckr_parser_init_intern(parser, UHC); }
+static void uhc_parser_init(ef_parser_t *parser) { euckr_parser_init_intern(parser, UHC); }
 
 /* --- global functions --- */
 
-ef_parser_t* ef_euckr_parser_new(void) {
-  ef_iso2022_parser_t* iso2022_parser;
+ef_parser_t *ef_euckr_parser_new(void) {
+  ef_iso2022_parser_t *iso2022_parser;
 
   if ((iso2022_parser = ef_iso2022_parser_new()) == NULL) {
     return NULL;
@@ -88,8 +88,8 @@ ef_parser_t* ef_euckr_parser_new(void) {
   return (ef_parser_t*)iso2022_parser;
 }
 
-ef_parser_t* ef_uhc_parser_new(void) {
-  ef_iso2022_parser_t* iso2022_parser;
+ef_parser_t *ef_uhc_parser_new(void) {
+  ef_iso2022_parser_t *iso2022_parser;
 
   if ((iso2022_parser = ef_iso2022_parser_new()) == NULL) {
     return NULL;

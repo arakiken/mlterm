@@ -13,7 +13,7 @@
  * string functions
  */
 
-int vt_str_init(vt_char_t* str, u_int size) {
+int vt_str_init(vt_char_t *str, u_int size) {
   int count;
 
   for (count = 0; count < size; count++) {
@@ -23,7 +23,7 @@ int vt_str_init(vt_char_t* str, u_int size) {
   return 1;
 }
 
-vt_char_t* __vt_str_init(vt_char_t* str, /* alloca()-ed memory (see vt_char.h) */
+vt_char_t* __vt_str_init(vt_char_t *str, /* alloca()-ed memory (see vt_char.h) */
                          u_int size) {
   if (str == NULL) {
     /* alloca() failed. */
@@ -38,8 +38,8 @@ vt_char_t* __vt_str_init(vt_char_t* str, /* alloca()-ed memory (see vt_char.h) *
   return str;
 }
 
-vt_char_t* vt_str_new(u_int size) {
-  vt_char_t* str;
+vt_char_t *vt_str_new(u_int size) {
+  vt_char_t *str;
 
   if ((str = malloc(sizeof(vt_char_t) * size)) == NULL) {
 #ifdef DEBUG
@@ -58,7 +58,7 @@ vt_char_t* vt_str_new(u_int size) {
   return str;
 }
 
-int vt_str_final(vt_char_t* str, u_int size) {
+int vt_str_final(vt_char_t *str, u_int size) {
   int count;
 
   for (count = 0; count < size; count++) {
@@ -68,7 +68,7 @@ int vt_str_final(vt_char_t* str, u_int size) {
   return 1;
 }
 
-int vt_str_delete(vt_char_t* str, u_int size) {
+int vt_str_delete(vt_char_t *str, u_int size) {
   if (vt_str_final(str, size)) {
     free(str);
 
@@ -83,7 +83,7 @@ int vt_str_delete(vt_char_t* str, u_int size) {
 /*
  * dst and src may overlap.
  */
-int vt_str_copy(vt_char_t* dst, vt_char_t* src, u_int size) {
+int vt_str_copy(vt_char_t *dst, vt_char_t *src, u_int size) {
   int count;
 
   if (size == 0 || dst == src) {
@@ -105,7 +105,7 @@ int vt_str_copy(vt_char_t* dst, vt_char_t* src, u_int size) {
   return 1;
 }
 
-u_int vt_str_cols(vt_char_t* chars, u_int len) {
+u_int vt_str_cols(vt_char_t *chars, u_int len) {
   int count;
   u_int cols;
 
@@ -124,11 +124,11 @@ u_int vt_str_cols(vt_char_t* chars, u_int len) {
  * Even if they have the same bytes, false is returned since
  * vt_char_t:multi_ch-s never point the same address.)
  */
-int vt_str_equal(vt_char_t* str1, vt_char_t* str2, u_int len) {
+int vt_str_equal(vt_char_t *str1, vt_char_t *str2, u_int len) {
   return memcmp(str1, str2, sizeof(vt_char_t) * len) == 0;
 }
 
-int vt_str_bytes_equal(vt_char_t* str1, vt_char_t* str2, u_int len) {
+int vt_str_bytes_equal(vt_char_t *str1, vt_char_t *str2, u_int len) {
   int count;
 
   for (count = 0; count < len; count++) {
@@ -142,7 +142,7 @@ int vt_str_bytes_equal(vt_char_t* str1, vt_char_t* str2, u_int len) {
 
 #ifdef DEBUG
 
-void vt_str_dump(vt_char_t* chars, u_int len) {
+void vt_str_dump(vt_char_t *chars, u_int len) {
   int count;
 
   for (count = 0; count < len; count++) {

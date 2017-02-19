@@ -27,7 +27,7 @@
 #ifdef USE_WIN32API
 
 static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
-  vt_config_menu_t* config_menu;
+  vt_config_menu_t *config_menu;
   DWORD ev;
 
 #if 0
@@ -65,8 +65,8 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
 
 #else
 
-static void sig_child(void* self, pid_t pid) {
-  vt_config_menu_t* config_menu;
+static void sig_child(void *self, pid_t pid) {
+  vt_config_menu_t *config_menu;
 
   config_menu = self;
 
@@ -89,7 +89,7 @@ static void sig_child(void* self, pid_t pid) {
 
 /* --- global functions --- */
 
-int vt_config_menu_init(vt_config_menu_t* config_menu) {
+int vt_config_menu_init(vt_config_menu_t *config_menu) {
   config_menu->pid = 0;
 #ifdef USE_WIN32API
   config_menu->fd = 0;
@@ -105,7 +105,7 @@ int vt_config_menu_init(vt_config_menu_t* config_menu) {
   return 1;
 }
 
-int vt_config_menu_final(vt_config_menu_t* config_menu) {
+int vt_config_menu_final(vt_config_menu_t *config_menu) {
 #ifndef USE_WIN32API
   bl_remove_sig_child_listener(config_menu, sig_child);
 #endif
@@ -113,7 +113,7 @@ int vt_config_menu_final(vt_config_menu_t* config_menu) {
   return 1;
 }
 
-int vt_config_menu_start(vt_config_menu_t* config_menu, char* cmd_path, int x, int y, char* display,
+int vt_config_menu_start(vt_config_menu_t *config_menu, char *cmd_path, int x, int y, char *display,
                          vt_pty_ptr_t pty) {
 #ifdef USE_WIN32API
 
@@ -124,7 +124,7 @@ int vt_config_menu_start(vt_config_menu_t* config_menu, char* cmd_path, int x, i
   SECURITY_ATTRIBUTES sa;
   PROCESS_INFORMATION pi;
   STARTUPINFO si;
-  char* cmd_line;
+  char *cmd_line;
   char geometry[] = "--geometry";
   DWORD tid;
   int pty_fd;
@@ -343,7 +343,7 @@ error2:
   if (pid == 0) {
     /* child process */
 
-    char* args[6];
+    char *args[6];
     char geom[2 + DIGIT_STR_LEN(int)*2 + 1];
 
     args[0] = cmd_path;
@@ -383,7 +383,7 @@ error2:
     /* If program name was specified without directory, prepend LIBEXECDIR to
      * it. */
     if (strchr(cmd_path, '/') == NULL) {
-      char* p;
+      char *p;
 #if defined(__CYGWIN__) || defined(__MSYS__)
       char dir[] = LIBEXECDIR "/../bin";
 #else
@@ -419,7 +419,7 @@ error2:
 #endif /* USE_WIN32API */
 }
 
-int vt_config_menu_write(vt_config_menu_t* config_menu, u_char* buf, size_t len) {
+int vt_config_menu_write(vt_config_menu_t *config_menu, u_char *buf, size_t len) {
   ssize_t write_len;
 
 #ifdef USE_WIN32API

@@ -17,13 +17,13 @@
 
 /* --- static variables --- */
 
-static char* new_tabsize = NULL;
-static char* old_tabsize = NULL;
+static char *new_tabsize = NULL;
+static char *old_tabsize = NULL;
 static int is_changed;
 
 /* --- static functions --- */
 
-static gint tabsize_selected(GtkWidget* widget, gpointer data) {
+static gint tabsize_selected(GtkWidget *widget, gpointer data) {
   g_free(new_tabsize);
   new_tabsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
@@ -36,10 +36,10 @@ static gint tabsize_selected(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_tabsize_config_widget_new(void) {
-  GtkWidget* combo;
-  GtkWidget* entry;
-  char* tabsizes[] = {
+GtkWidget *mc_tabsize_config_widget_new(void) {
+  GtkWidget *combo;
+  GtkWidget *entry;
+  char *tabsizes[] = {
       "8", "4", "2",
   };
 

@@ -9,8 +9,8 @@
 
 /* --- static functions --- */
 
-static int utf8_parser_next_char(ef_parser_t* utf8_parser, ef_char_t* ucs4_ch) {
-  u_char* utf8_ch;
+static int utf8_parser_next_char(ef_parser_t *utf8_parser, ef_char_t *ucs4_ch) {
+  u_char *utf8_ch;
   u_int32_t ucs4_int;
   size_t bytes;
 
@@ -154,19 +154,19 @@ utf8_err:
   return 0;
 }
 
-static void utf8_parser_set_str(ef_parser_t* utf8_parser, u_char* str, size_t size) {
+static void utf8_parser_set_str(ef_parser_t *utf8_parser, u_char *str, size_t size) {
   utf8_parser->str = str;
   utf8_parser->left = size;
   utf8_parser->marked_left = 0;
   utf8_parser->is_eos = 0;
 }
 
-static void utf8_parser_delete(ef_parser_t* s) { free(s); }
+static void utf8_parser_delete(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
-ef_parser_t* ef_utf8_parser_new(void) {
-  ef_parser_t* utf8_parser;
+ef_parser_t *ef_utf8_parser_new(void) {
+  ef_parser_t *utf8_parser;
 
   if ((utf8_parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;

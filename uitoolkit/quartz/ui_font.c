@@ -31,12 +31,12 @@ static int use_point_size;
 /* --- static functions --- */
 
 static int parse_font_name(
-    char** font_family,
-    double* font_size, /* if size is not specified in font_name , not changed. */
-    u_int* percent,    /* if percent is not specified in font_name , not changed. */
-    char* font_name    /* modified by this function. */
+    char **font_family,
+    double *font_size, /* if size is not specified in font_name , not changed. */
+    u_int *percent,    /* if percent is not specified in font_name , not changed. */
+    char *font_name    /* modified by this function. */
     ) {
-  char* p;
+  char *p;
   size_t len;
 
   /*
@@ -74,7 +74,7 @@ static int parse_font_name(
     size_t step = 0;
 
     if (*p == ' ') {
-      char* orig_p;
+      char *orig_p;
 
       orig_p = p;
       do {
@@ -90,7 +90,7 @@ static int parse_font_name(
         if (*p != '0' ||      /* In case of "DevLys 010" font family. */
             *(p + 1) == '\0') /* "MS Gothic 0" => "MS Gothic" + "0" */
         {
-          char* end;
+          char *end;
           double size;
 
           size = strtod(p, &end);
@@ -129,13 +129,13 @@ int ui_compose_dec_special_font(void) {
 /* Undocumented */
 bool CGFontGetGlyphsForUnichars(CGFontRef, u_int16_t[], CGGlyph[], size_t);
 
-ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
-                       ui_font_present_t font_present, const char* fontname, u_int fontsize,
+ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
+                       ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold,
                        u_int letter_space /* Ignored for now. */
                        ) {
-  ui_font_t* font;
-  char* font_family;
+  ui_font_t *font;
+  char *font_family;
   u_int percent;
 
   if (type_engine != TYPE_XCORE || (font = calloc(1, sizeof(ui_font_t))) == NULL) {
@@ -173,7 +173,7 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
   percent = 0;
 
   if (fontname) {
-    char* p;
+    char *p;
 
     if ((p = bl_str_alloca_dup(fontname)) == NULL) {
 #ifdef DEBUG
@@ -196,10 +196,10 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
     font_family = "Menlo";
   }
 
-  char* orig_font_family = font_family;
+  char *orig_font_family = font_family;
 
   if ((font->id & FONT_ITALIC) && !strcasestr(font_family, "italic")) {
-    char* p = alloca(strlen(font_family) + 8);
+    char *p = alloca(strlen(font_family) + 8);
 
     sprintf(p, "%s Italic", font_family);
     font_family = p;
@@ -208,7 +208,7 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
   if (font->id & FONT_BOLD) {
 #if 1
     if (!strcasestr(font_family, "Bold")) {
-      char* p = alloca(strlen(font_family) + 6);
+      char *p = alloca(strlen(font_family) + 6);
 
       sprintf(p, "%s Bold", font_family);
       font_family = p;
@@ -325,7 +325,7 @@ ui_font_t* ui_font_new(Display* display, vt_font_t id, int size_attr, ui_type_en
   return font;
 }
 
-int ui_font_delete(ui_font_t* font) {
+int ui_font_delete(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -339,7 +339,7 @@ int ui_font_delete(ui_font_t* font) {
   return 1;
 }
 
-int ui_change_font_cols(ui_font_t* font, u_int cols /* 0 means default value */
+int ui_change_font_cols(ui_font_t *font, u_int cols /* 0 means default value */
                         ) {
   if (cols == 0) {
     if (font->id & FONT_FULLWIDTH) {
@@ -355,7 +355,7 @@ int ui_change_font_cols(ui_font_t* font, u_int cols /* 0 means default value */
 }
 
 #ifdef USE_OT_LAYOUT
-int ui_font_has_ot_layout_table(ui_font_t* font) {
+int ui_font_has_ot_layout_table(ui_font_t *font) {
   if (!font->ot_font) {
 #ifdef USE_HARFBUZZ
     if (font->ot_font_not_found) {
@@ -364,7 +364,7 @@ int ui_font_has_ot_layout_table(ui_font_t* font) {
 
     font->ot_font = otl_open(font->cg_font, 0);
 #else
-    char* path;
+    char *path;
 
     if (font->ot_font_not_found || !(path = cocoa_get_font_path(font->cg_font))) {
       return 0;
@@ -385,17 +385,17 @@ int ui_font_has_ot_layout_table(ui_font_t* font) {
   return 1;
 }
 
-u_int ui_convert_text_to_glyphs(ui_font_t* font, u_int32_t* shaped, u_int shaped_len,
-                                int8_t* offsets, u_int8_t* widths, u_int32_t* cmapped,
-                                u_int32_t* src, u_int src_len, const char* script,
-                                const char* features) {
+u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
+                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
+                                u_int32_t *src, u_int src_len, const char *script,
+                                const char *features) {
   return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, offsets, widths, cmapped,
                                     src, src_len, script, features,
                                     font->size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1));
 }
 #endif /* USE_OT_LAYOUT */
 
-u_int ui_calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs, int* draw_alone) {
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
   if (draw_alone) {
     *draw_alone = 0;
   }
@@ -424,7 +424,7 @@ u_int ui_calculate_char_width(ui_font_t* font, u_int32_t ch, ef_charset_t cs, in
 void ui_font_use_point_size(int use) { use_point_size = use; }
 
 /* Return written size */
-size_t ui_convert_ucs4_to_utf16(u_char* dst, /* 4 bytes. Little endian. */
+size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
                                 u_int32_t src) {
   if (src < 0x10000) {
     dst[1] = (src >> 8) & 0xff;
@@ -458,7 +458,7 @@ size_t ui_convert_ucs4_to_utf16(u_char* dst, /* 4 bytes. Little endian. */
 
 #ifdef DEBUG
 
-int ui_font_dump(ui_font_t* font) {
+int ui_font_dump(ui_font_t *font) {
   bl_msg_printf("  id %x: Font %p", font->id, font->cg_font);
 
   if (font->is_proportional) {

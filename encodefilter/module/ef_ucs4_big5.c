@@ -10,7 +10,7 @@
 
 /* --- global functions --- */
 
-int ef_map_big5_to_ucs4(ef_char_t* ucs4, u_int16_t big5) {
+int ef_map_big5_to_ucs4(ef_char_t *ucs4, u_int16_t big5) {
   u_int32_t c;
 
   if ((c = CONV_BIG5_TO_UCS4(big5))) {
@@ -25,7 +25,7 @@ int ef_map_big5_to_ucs4(ef_char_t* ucs4, u_int16_t big5) {
   return 0;
 }
 
-int ef_map_hkscs_to_ucs4(ef_char_t* ucs4, u_int16_t hkscs) {
+int ef_map_hkscs_to_ucs4(ef_char_t *ucs4, u_int16_t hkscs) {
   u_int32_t c;
 
   if ((c = CONV_HKSCS_TO_UCS4(hkscs))) {
@@ -40,7 +40,7 @@ int ef_map_hkscs_to_ucs4(ef_char_t* ucs4, u_int16_t hkscs) {
   return 0;
 }
 
-int ef_map_ucs4_to_big5(ef_char_t* big5, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_big5(ef_char_t *big5, u_int32_t ucs4_code) {
   u_int16_t c;
 
   if ((c = CONV_UCS4_TO_BIG5(ucs4_code))) {
@@ -55,7 +55,7 @@ int ef_map_ucs4_to_big5(ef_char_t* big5, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_hkscs(ef_char_t* hkscs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_hkscs(ef_char_t *hkscs, u_int32_t ucs4_code) {
   u_int16_t c;
 
   if ((c = CONV_UCS4_TO_HKSCS(ucs4_code))) {

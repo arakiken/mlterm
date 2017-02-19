@@ -12,8 +12,8 @@ typedef enum ui_mod_meta_mode {
 
 } ui_mod_meta_mode_t;
 
-ui_mod_meta_mode_t ui_get_mod_meta_mode_by_name(char* name);
+ui_mod_meta_mode_t ui_get_mod_meta_mode_by_name(char *name);
 
-char* ui_get_mod_meta_mode_name(ui_mod_meta_mode_t mode);
+char *ui_get_mod_meta_mode_name(ui_mod_meta_mode_t mode);
 
 #endif

@@ -20,9 +20,9 @@ typedef struct stock_brush {
 
 /* --- static variables --- */
 
-static stock_pen_t* stock_pens;
+static stock_pen_t *stock_pens;
 static u_int num_of_stock_pens;
-static stock_brush_t* stock_brushes;
+static stock_brush_t *stock_brushes;
 static u_int num_of_stock_brushes;
 
 /* --- static functions --- */
@@ -91,7 +91,7 @@ HPEN ui_acquire_pen(u_long rgb) {
   } else if (rgb == RGB(0xff, 0xff, 0xff)) {
     return GetStockObject(WHITE_PEN);
   } else {
-    void* p;
+    void *p;
 
     if (num_of_stock_pens % 10 == 9) {
       garbage_unused_objects();
@@ -145,7 +145,7 @@ ui_acquire_brush(u_long rgb) {
   } else if (rgb == RGB(0xff, 0xff, 0xff)) {
     return GetStockObject(WHITE_BRUSH);
   } else {
-    void* p;
+    void *p;
 
     if (num_of_stock_brushes % 10 == 9) {
       garbage_unused_objects();

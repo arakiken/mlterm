@@ -9,7 +9,7 @@
 /* --- global functions --- */
 
 HANDLE
-cygfopen(const char* path, const char* mode) {
+cygfopen(const char *path, const char *mode) {
   char winpath[MAX_PATH];
   HANDLE file;
 
@@ -38,7 +38,7 @@ int cygfclose(HANDLE file) {
   return 0;
 }
 
-size_t cygfwrite(const void* ptr, size_t size, size_t nmemb, HANDLE file) {
+size_t cygfwrite(const void *ptr, size_t size, size_t nmemb, HANDLE file) {
   DWORD written;
 
   if (WriteFile(file, ptr, size * nmemb, &written, NULL)) {

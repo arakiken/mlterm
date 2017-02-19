@@ -21,16 +21,16 @@ static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
 
 /* --- global functions --- */
 
-int ef_map_ucs4_to_ru(ef_char_t* ru, ef_char_t* ucs4) {
+int ef_map_ucs4_to_ru(ef_char_t *ru, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(ru, ucs4, map_ucs4_to_funcs,
                                     sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
 }
 
-int ef_map_koi8_r_to_iso8859_5_r(ef_char_t* iso8859, ef_char_t* ru) {
+int ef_map_koi8_r_to_iso8859_5_r(ef_char_t *iso8859, ef_char_t *ru) {
   return ef_map_via_ucs(iso8859, ru, ISO8859_5_R);
 }
 
-int ef_map_koi8_r_to_koi8_u(ef_char_t* koi8_u, ef_char_t* koi8_r) {
+int ef_map_koi8_r_to_koi8_u(ef_char_t *koi8_u, ef_char_t *koi8_r) {
   if (IS_NOT_COMPAT_AREA_OF_KOI8_R_U(koi8_r->ch[0])) {
     return 0;
   }
@@ -41,7 +41,7 @@ int ef_map_koi8_r_to_koi8_u(ef_char_t* koi8_u, ef_char_t* koi8_r) {
   return 1;
 }
 
-int ef_map_koi8_u_to_koi8_r(ef_char_t* koi8_r, ef_char_t* koi8_u) {
+int ef_map_koi8_u_to_koi8_r(ef_char_t *koi8_r, ef_char_t *koi8_u) {
   if (IS_NOT_COMPAT_AREA_OF_KOI8_R_U(koi8_u->ch[0])) {
     return 0;
   }

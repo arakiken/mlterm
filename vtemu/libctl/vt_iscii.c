@@ -46,7 +46,7 @@ struct vt_isciikey_state {
 /* --- static variables --- */
 
 static struct {
-  struct tabl* tabl;
+  struct tabl *tabl;
   size_t size;
 
 } tables[] = {
@@ -120,13 +120,13 @@ static struct {
 
 /* --- static functions --- */
 
-static struct tabl* get_iscii_table(int idx, size_t* size) {
+static struct tabl *get_iscii_table(int idx, size_t *size) {
   *size = tables[idx].size;
 
   return tables[idx].tabl;
 }
 
-static struct a2i_tabl* get_isciikey_table(int is_inscript, size_t* size) { return NULL; }
+static struct a2i_tabl *get_isciikey_table(int is_inscript, size_t *size) { return NULL; }
 
 #else /* STATIC_LINK_INDIC_TABLES */
 
@@ -190,8 +190,8 @@ static struct a2i_tabl *get_isciikey_table(int is_inscript, size_t *size) {
 
 /* --- global functions --- */
 
-u_int vt_iscii_shape(ef_charset_t cs, u_char* dst, size_t dst_size, u_char* src) {
-  struct tabl* table;
+u_int vt_iscii_shape(ef_charset_t cs, u_char *dst, size_t dst_size, u_char *src) {
+  struct tabl *table;
   size_t size;
 
   if (!IS_ISCII(cs)) {
@@ -226,12 +226,12 @@ int vt_iscii_delete(vt_iscii_state_t state) {
   return 1;
 }
 
-int vt_iscii(vt_iscii_state_t state, vt_char_t* src, u_int src_len) {
+int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len) {
   int dst_pos;
   int src_pos;
-  u_char* iscii_buf;
-  u_char* font_buf;
-  u_int8_t* num_of_chars_array;
+  u_char *iscii_buf;
+  u_char *font_buf;
+  u_int8_t *num_of_chars_array;
   u_int font_buf_len;
   u_int prev_font_filled;
   u_int iscii_filled;
@@ -267,7 +267,7 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t* src, u_int src_len) {
     if (IS_ISCII(cs)) {
       u_int font_filled;
       u_int count;
-      vt_char_t* comb;
+      vt_char_t *comb;
       u_int num;
 
       iscii_buf[iscii_filled++] = vt_char_code(src + src_pos);
@@ -317,7 +317,7 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t* src, u_int src_len) {
   }
 
   if (state->size != dst_pos + 1) {
-    void* p;
+    void *p;
 
     if (!(p = realloc(state->num_of_chars_array,
                       K_MAX(dst_pos + 1, src_len) * sizeof(*num_of_chars_array)))) {
@@ -341,7 +341,7 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t* src, u_int src_len) {
 }
 
 int vt_iscii_copy(vt_iscii_state_t dst, vt_iscii_state_t src, int optimize) {
-  u_int8_t* p;
+  u_int8_t *p;
 
   if (optimize && !src->has_iscii) {
     vt_iscii_delete(dst);
@@ -388,11 +388,11 @@ int vt_isciikey_state_delete(vt_isciikey_state_t state) {
   return 1;
 }
 
-size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char* iscii, size_t iscii_len,
-                                 u_char* ascii, size_t ascii_len) {
-  struct a2i_tabl* table;
+size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char *iscii, size_t iscii_len,
+                                 u_char *ascii, size_t ascii_len) {
+  struct a2i_tabl *table;
   size_t size;
-  u_char* dup;
+  u_char *dup;
 
   /*
    * ins2iscii() and iitk2iscii() return 2nd argument variable whose memory

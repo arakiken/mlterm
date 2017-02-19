@@ -9,13 +9,13 @@
 
 /* --- static variables --- */
 
-static vt_drcs_t* cur_drcs;
+static vt_drcs_t *cur_drcs;
 static ef_charset_t cached_font_cs = UNKNOWN_CS;
-static vt_drcs_font_t* cached_font;
+static vt_drcs_font_t *cached_font;
 
 /* --- static functions --- */
 
-static int drcs_final(vt_drcs_font_t* font) {
+static int drcs_final(vt_drcs_font_t *font) {
   int idx;
 
   for (idx = 0; idx < 0x5f; idx++) {
@@ -34,15 +34,15 @@ static int drcs_final(vt_drcs_font_t* font) {
 
 /* --- global functions --- */
 
-void vt_drcs_select(vt_drcs_t* drcs) {
+void vt_drcs_select(vt_drcs_t *drcs) {
   cur_drcs = drcs;
   /* Clear cache in vt_drcs_get(). */
   cached_font_cs = UNKNOWN_CS;
 }
 
-vt_drcs_font_t* vt_drcs_get_font(ef_charset_t cs, int create) {
+vt_drcs_font_t *vt_drcs_get_font(ef_charset_t cs, int create) {
   u_int count;
-  void* p;
+  void *p;
 
   if (cs == cached_font_cs) {
     if (cached_font || !create) {
@@ -71,8 +71,8 @@ vt_drcs_font_t* vt_drcs_get_font(ef_charset_t cs, int create) {
   return (cached_font = &cur_drcs->fonts[cur_drcs->num_of_fonts++]);
 }
 
-char* vt_drcs_get_glyph(ef_charset_t cs, u_char idx) {
-  vt_drcs_font_t* font;
+char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx) {
+  vt_drcs_font_t *font;
 
   /* msb can be set in vt_parser.c (e.g. ESC(I (JISX0201 kana)) */
   if ((font = vt_drcs_get_font(cs, 0)) && 0x20 <= (idx & 0x7f)) {
@@ -112,7 +112,7 @@ int vt_drcs_final_full(void) {
   return 1;
 }
 
-int vt_drcs_add(vt_drcs_font_t* font, int idx, const char* seq, u_int width, u_int height) {
+int vt_drcs_add(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height) {
   free(font->glyphs[idx]);
 
   if ((font->glyphs[idx] = malloc(2 + strlen(seq) + 1))) {
@@ -124,7 +124,7 @@ int vt_drcs_add(vt_drcs_font_t* font, int idx, const char* seq, u_int width, u_i
   return 1;
 }
 
-int vt_convert_drcs_to_unicode_pua(ef_char_t* ch) {
+int vt_convert_drcs_to_unicode_pua(ef_char_t *ch) {
   if (vt_drcs_get_glyph(ch->cs, ch->ch[0])) {
     ch->ch[3] = ch->ch[0];
     ch->ch[2] = ch->cs + 0x30; /* see CS94SB_ID() in ef_charset.h */
@@ -140,8 +140,8 @@ int vt_convert_drcs_to_unicode_pua(ef_char_t* ch) {
   }
 }
 
-int vt_convert_unicode_pua_to_drcs(ef_char_t* ch) {
-  u_char* c;
+int vt_convert_unicode_pua_to_drcs(ef_char_t *ch) {
+  u_char *c;
 
   c = ch->ch;
 

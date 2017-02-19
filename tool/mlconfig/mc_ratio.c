@@ -23,19 +23,19 @@ static char new_values[MC_RATIOS][MAX_VALUE_LEN + 1]; /* 0 - 100 */
 static char old_values[MC_RATIOS][MAX_VALUE_LEN + 1]; /* 0 - 100 */
 static int is_changed[MC_RATIOS];
 
-static char* config_keys[MC_RATIOS] = {
+static char *config_keys[MC_RATIOS] = {
     "contrast", "gamma", "brightness", "fade_ratio", "screen_width_ratio", "screen_height_ratio",
 };
 
-static char* labels[MC_RATIOS] = {
+static char *labels[MC_RATIOS] = {
     N_("Contrast  "), N_("Gamma"), N_("Brightness"), N_("Fade ratio on unfocus"), N_("Width"),
     N_("Height"),
 };
 
 /* --- static functions --- */
 
-static gint ratio_selected(GtkWidget* widget, gpointer data) {
-  gchar* text;
+static gint ratio_selected(GtkWidget *widget, gpointer data) {
+  gchar *text;
 
   text = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
   if (strlen(text) <= MAX_VALUE_LEN) {
@@ -52,11 +52,11 @@ static gint ratio_selected(GtkWidget* widget, gpointer data) {
 
 /* --- global functions --- */
 
-GtkWidget* mc_ratio_config_widget_new(int id) {
-  char* value;
-  GtkWidget* combo;
-  GtkWidget* entry;
-  char* ratios[] = {
+GtkWidget *mc_ratio_config_widget_new(int id) {
+  char *value;
+  GtkWidget *combo;
+  GtkWidget *entry;
+  char *ratios[] = {
       "100", "90", "80", "70", "60", "50", "40", "30", "20", "10",
   };
 

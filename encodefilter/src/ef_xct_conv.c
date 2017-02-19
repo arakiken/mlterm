@@ -16,7 +16,7 @@
 
 /* --- static functions --- */
 
-static void remap_unsupported_charset(ef_char_t* ch) {
+static void remap_unsupported_charset(ef_char_t *ch) {
   ef_char_t c;
 
   if (ch->cs == ISO10646_UCS4_1) {
@@ -80,11 +80,11 @@ static void remap_unsupported_charset(ef_char_t* ch) {
   ef_iso2022_remap_unsupported_charset(ch);
 }
 
-static size_t convert_to_xct_intern(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                    ef_parser_t* parser, int big5_buggy) {
+static size_t convert_to_xct_intern(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                    ef_parser_t *parser, int big5_buggy) {
   size_t filled_size;
   ef_char_t ch;
-  ef_iso2022_conv_t* iso2022_conv;
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -185,7 +185,7 @@ static size_t convert_to_xct_intern(ef_conv_t* conv, u_char* dst, size_t dst_siz
      * Non-Standard Character Sets
      */
     else if (ch.cs == BIG5 || ch.cs == HKSCS || ch.cs == GBK) {
-      char* prefix;
+      char *prefix;
 
       if (ch.cs == BIG5 || ch.cs == HKSCS) {
         /*
@@ -230,7 +230,7 @@ static size_t convert_to_xct_intern(ef_conv_t* conv, u_char* dst, size_t dst_siz
 
       filled_size += (strlen(prefix) + 2);
     } else if (IS_ISCII(ch.cs) || ch.cs == KOI8_R || ch.cs == KOI8_U || ch.cs == VISCII) {
-      char* prefix;
+      char *prefix;
 
       if (IS_ISCII(ch.cs)) {
         prefix =
@@ -286,17 +286,17 @@ static size_t convert_to_xct_intern(ef_conv_t* conv, u_char* dst, size_t dst_siz
   return filled_size;
 }
 
-static size_t convert_to_xct(ef_conv_t* conv, u_char* dst, size_t dst_size, ef_parser_t* parser) {
+static size_t convert_to_xct(ef_conv_t *conv, u_char *dst, size_t dst_size, ef_parser_t *parser) {
   return convert_to_xct_intern(conv, dst, dst_size, parser, 0);
 }
 
-static size_t convert_to_xct_big5_buggy(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                        ef_parser_t* parser) {
+static size_t convert_to_xct_big5_buggy(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                        ef_parser_t *parser) {
   return convert_to_xct_intern(conv, dst, dst_size, parser, 1);
 }
 
-static void xct_conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void xct_conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -308,12 +308,12 @@ static void xct_conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = UNKNOWN_CS;
 }
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_xct_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_xct_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;
@@ -329,8 +329,8 @@ ef_conv_t* ef_xct_conv_new(void) {
   return (ef_conv_t*)iso2022_conv;
 }
 
-ef_conv_t* ef_xct_big5_buggy_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_xct_big5_buggy_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;

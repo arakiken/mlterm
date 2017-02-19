@@ -13,7 +13,7 @@
 
 /* --- static functions --- */
 
-static int euctw_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int euctw_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   if (ef_iso2022_parser_next_char(parser, ch) == 0) {
     return 0;
   }
@@ -50,8 +50,8 @@ static int euctw_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
   return 1;
 }
 
-static void euctw_parser_init(ef_parser_t* parser) {
-  ef_iso2022_parser_t* iso2022_parser;
+static void euctw_parser_init(ef_parser_t *parser) {
+  ef_iso2022_parser_t *iso2022_parser;
 
   ef_parser_init(parser);
 
@@ -72,8 +72,8 @@ static void euctw_parser_init(ef_parser_t* parser) {
 
 /* --- global functions --- */
 
-ef_parser_t* ef_euctw_parser_new(void) {
-  ef_iso2022_parser_t* iso2022_parser;
+ef_parser_t *ef_euctw_parser_new(void) {
+  ef_iso2022_parser_t *iso2022_parser;
 
   if ((iso2022_parser = ef_iso2022_parser_new()) == NULL) {
     return NULL;

@@ -31,7 +31,7 @@
 
 /* --- static functions --- */
 
-static int convert_ucs4_to_iso8859_r_common(ef_char_t* non_ucs, u_int32_t ucs4_code,
+static int convert_ucs4_to_iso8859_r_common(ef_char_t *non_ucs, u_int32_t ucs4_code,
                                             ef_charset_t cs) {
   if (!(0xa0 <= ucs4_code && ucs4_code <= 0xff)) {
     return 0;
@@ -45,7 +45,7 @@ static int convert_ucs4_to_iso8859_r_common(ef_char_t* non_ucs, u_int32_t ucs4_c
   return 1;
 }
 
-static int convert_iso8859_r_common_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+static int convert_iso8859_r_common_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (!(0x20 <= iso8859_code && iso8859_code <= 0x7f)) {
     return 0;
   }
@@ -63,11 +63,11 @@ static int convert_iso8859_r_common_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_c
 
 /* --- global functions --- */
 
-int ef_map_ucs4_to_iso8859_1_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_1_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   return convert_ucs4_to_iso8859_r_common(non_ucs, ucs4_code, ISO8859_1_R);
 }
 
-int ef_map_ucs4_to_iso8859_2_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_2_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_ISO8859_2_R(ucs4_code))) {
@@ -82,7 +82,7 @@ int ef_map_ucs4_to_iso8859_2_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_iso8859_3_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_3_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_ISO8859_3_R(ucs4_code))) {
@@ -97,7 +97,7 @@ int ef_map_ucs4_to_iso8859_3_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_iso8859_4_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_4_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_ISO8859_4_R(ucs4_code))) {
@@ -112,7 +112,7 @@ int ef_map_ucs4_to_iso8859_4_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_iso8859_5_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_5_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x2116) {
     non_ucs->ch[0] = 0x70;
   } else if ((0x0401 <= ucs4_code && ucs4_code <= 0x040c) ||
@@ -131,7 +131,7 @@ int ef_map_ucs4_to_iso8859_5_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_iso8859_6_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_6_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x060c) {
     non_ucs->ch[0] = 0x2c;
   } else if (0x061b <= ucs4_code && ucs4_code <= 0x0652) {
@@ -147,7 +147,7 @@ int ef_map_ucs4_to_iso8859_6_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_iso8859_7_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_7_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x2015) {
     non_ucs->ch[0] = 0x2f;
   } else if (0x2018 <= ucs4_code && ucs4_code <= 0x2019) {
@@ -167,7 +167,7 @@ int ef_map_ucs4_to_iso8859_7_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_iso8859_8_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_8_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x2017) {
     non_ucs->ch[0] = 0x5f;
   } else if (0x05d0 <= ucs4_code && ucs4_code <= 0x05ea) {
@@ -185,7 +185,7 @@ int ef_map_ucs4_to_iso8859_8_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_iso8859_9_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_9_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x011e) {
     non_ucs->ch[0] = 0x50;
   } else if (ucs4_code == 0x0130) {
@@ -209,7 +209,7 @@ int ef_map_ucs4_to_iso8859_9_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_iso8859_10_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_10_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_ISO8859_10_R(ucs4_code))) {
@@ -224,7 +224,7 @@ int ef_map_ucs4_to_iso8859_10_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_tis620_2533(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_tis620_2533(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0xa0) {
     non_ucs->ch[0] = 0x20;
   } else if (0xe01 <= ucs4_code && ucs4_code <= 0xe5f) {
@@ -246,7 +246,7 @@ int ef_map_ucs4_to_tis620_2533(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_iso8859_13_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_13_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_ISO8859_13_R(ucs4_code))) {
@@ -261,7 +261,7 @@ int ef_map_ucs4_to_iso8859_13_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_iso8859_14_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_14_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_ISO8859_14_R(ucs4_code))) {
@@ -276,7 +276,7 @@ int ef_map_ucs4_to_iso8859_14_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_iso8859_15_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_15_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x20ac) {
     non_ucs->ch[0] = 0x24;
   } else if (ucs4_code == 0x0160) {
@@ -302,7 +302,7 @@ int ef_map_ucs4_to_iso8859_15_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_iso8859_16_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_iso8859_16_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_ISO8859_16_R(ucs4_code))) {
@@ -317,7 +317,7 @@ int ef_map_ucs4_to_iso8859_16_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_tcvn5712_3_1993(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_tcvn5712_3_1993(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (!ef_map_ucs4_to_tcvn5712_1_1993(non_ucs, ucs4_code)) {
     return 0;
   }
@@ -334,11 +334,11 @@ int ef_map_ucs4_to_tcvn5712_3_1993(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_iso8859_1_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_1_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   return convert_iso8859_r_common_to_ucs4(ucs4, iso8859_code);
 }
 
-int ef_map_iso8859_2_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_2_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
   if ((c = CONV_ISO8859_2_R_TO_UCS4(iso8859_code + 0x80))) {
@@ -353,7 +353,7 @@ int ef_map_iso8859_2_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 0;
 }
 
-int ef_map_iso8859_3_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_3_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
   if ((c = CONV_ISO8859_3_R_TO_UCS4(iso8859_code + 0x80))) {
@@ -368,7 +368,7 @@ int ef_map_iso8859_3_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 0;
 }
 
-int ef_map_iso8859_4_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_4_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
   if ((c = CONV_ISO8859_4_R_TO_UCS4(iso8859_code + 0x80))) {
@@ -383,7 +383,7 @@ int ef_map_iso8859_4_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 0;
 }
 
-int ef_map_iso8859_5_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_5_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (iso8859_code == 0x70) {
     ucs4->ch[2] = 0x21;
     ucs4->ch[3] = 0x16;
@@ -406,7 +406,7 @@ int ef_map_iso8859_5_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
-int ef_map_iso8859_6_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_6_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (iso8859_code == 0x2c) {
     ucs4->ch[2] = 0x06;
     ucs4->ch[3] = 0x0c;
@@ -426,7 +426,7 @@ int ef_map_iso8859_6_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
-int ef_map_iso8859_7_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_7_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (0x21 <= iso8859_code && iso8859_code <= 0x22) {
     ucs4->ch[2] = 0x20;
     ucs4->ch[3] = 0x18 + (iso8859_code - 0x21);
@@ -451,7 +451,7 @@ int ef_map_iso8859_7_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
-int ef_map_iso8859_8_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_8_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (iso8859_code == 0xdf) {
     ucs4->ch[2] = 0x20;
     ucs4->ch[3] = 0x17;
@@ -474,7 +474,7 @@ int ef_map_iso8859_8_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
-int ef_map_iso8859_9_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_9_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (iso8859_code == 0x50) {
     ucs4->ch[2] = 0x01;
     ucs4->ch[3] = 0x1e;
@@ -507,7 +507,7 @@ int ef_map_iso8859_9_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
-int ef_map_iso8859_10_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_10_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
   if ((c = CONV_ISO8859_10_R_TO_UCS4(iso8859_code + 0x80))) {
@@ -522,7 +522,7 @@ int ef_map_iso8859_10_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 0;
 }
 
-int ef_map_tis620_2533_to_ucs4(ef_char_t* ucs4, u_int16_t tis620_code) {
+int ef_map_tis620_2533_to_ucs4(ef_char_t *ucs4, u_int16_t tis620_code) {
   if (0x20 == tis620_code) {
     ucs4->ch[0] = 0x0;
     ucs4->ch[1] = 0x0;
@@ -544,7 +544,7 @@ int ef_map_tis620_2533_to_ucs4(ef_char_t* ucs4, u_int16_t tis620_code) {
   return 1;
 }
 
-int ef_map_iso8859_13_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_13_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
   if ((c = CONV_ISO8859_13_R_TO_UCS4(iso8859_code + 0x80))) {
@@ -559,7 +559,7 @@ int ef_map_iso8859_13_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 0;
 }
 
-int ef_map_iso8859_14_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_14_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
   if ((c = CONV_ISO8859_14_R_TO_UCS4(iso8859_code + 0x80))) {
@@ -574,7 +574,7 @@ int ef_map_iso8859_14_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 0;
 }
 
-int ef_map_iso8859_15_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_15_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (iso8859_code == 0x24) {
     ucs4->ch[2] = 0x20;
     ucs4->ch[3] = 0xac;
@@ -610,7 +610,7 @@ int ef_map_iso8859_15_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
-int ef_map_iso8859_16_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
+int ef_map_iso8859_16_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
   if ((c = CONV_ISO8859_16_R_TO_UCS4(iso8859_code + 0x80))) {
@@ -625,7 +625,7 @@ int ef_map_iso8859_16_r_to_ucs4(ef_char_t* ucs4, u_int16_t iso8859_code) {
   return 0;
 }
 
-int ef_map_tcvn5712_3_1993_to_ucs4(ef_char_t* ucs4, u_int16_t tcvn_code) {
+int ef_map_tcvn5712_3_1993_to_ucs4(ef_char_t *ucs4, u_int16_t tcvn_code) {
   if (tcvn_code < 0x20) {
     return 0;
   }

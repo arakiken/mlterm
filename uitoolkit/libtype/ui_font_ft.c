@@ -41,23 +41,23 @@
 
 /* --- static variables --- */
 
-static const char* fc_size_type = FC_PIXEL_SIZE;
+static const char *fc_size_type = FC_PIXEL_SIZE;
 static double dpi_for_fc;
 
 /* --- static functions --- */
 
 /* Same processing as win32/ui_font.c (partially) and libtype/ui_font_ft.c */
 static int parse_fc_font_name(
-    char** font_family, int* font_weight, /* if weight is not specified in
+    char **font_family, int *font_weight, /* if weight is not specified in
                                              font_name , not changed. */
-    int* font_slant,      /* if slant is not specified in font_name , not changed. */
-    double* font_size,    /* if size is not specified in font_name , not changed. */
-    char** font_encoding, /* if encoding is not specified in font_name , not
+    int *font_slant,      /* if slant is not specified in font_name , not changed. */
+    double *font_size,    /* if size is not specified in font_name , not changed. */
+    char **font_encoding, /* if encoding is not specified in font_name , not
                              changed. */
-    u_int* percent,       /* if percent is not specified in font_name , not changed. */
-    char* font_name       /* modified by this function. */
+    u_int *percent,       /* if percent is not specified in font_name , not changed. */
+    char *font_name       /* modified by this function. */
     ) {
-  char* p;
+  char *p;
   size_t len;
 
 #if 1
@@ -122,7 +122,7 @@ static int parse_fc_font_name(
     size_t step = 0;
 
     if (*p == ' ') {
-      char* orig_p;
+      char *orig_p;
 
       orig_p = p;
       do {
@@ -137,7 +137,7 @@ static int parse_fc_font_name(
       } else {
         int count;
         struct {
-          char* style;
+          char *style;
           int weight;
           int slant;
 
@@ -203,7 +203,7 @@ static int parse_fc_font_name(
         if (*p != '0' ||      /* In case of "DevLys 010" font family. */
             *(p + 1) == '\0') /* "MS Gothic 0" => "MS Gothic" + "0" */
         {
-          char* end;
+          char *end;
           double size;
 
           size = strtod(p, &end);
@@ -233,7 +233,7 @@ static int parse_fc_font_name(
   return 1;
 }
 
-static u_int get_fc_col_width(ui_font_t* font, double fontsize_d, u_int percent,
+static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent,
                               u_int letter_space) {
   if (percent == 0) {
     if (letter_space == 0 || font->is_var_col_width) {
@@ -264,11 +264,11 @@ static u_int get_fc_col_width(ui_font_t* font, double fontsize_d, u_int percent,
   }
 }
 
-static FcPattern* fc_pattern_create(char* family,                        /* can be NULL */
-                                    double size, char* encoding,         /* can be NULL */
+static FcPattern *fc_pattern_create(char *family,                        /* can be NULL */
+                                    double size, char *encoding,         /* can be NULL */
                                     int weight, int slant, int ch_width, /* can be 0 */
                                     int aa_opt) {
-  FcPattern* pattern;
+  FcPattern *pattern;
 
   if (!(pattern = FcPatternCreate())) {
     return NULL;
@@ -315,13 +315,13 @@ static FcPattern* fc_pattern_create(char* family,                        /* can 
 
 #ifdef USE_TYPE_XFT
 
-static XftFont* xft_font_open(ui_font_t* font, char* family, /* can be NULL */
-                              double size, char* encoding,   /* can be NULL */
+static XftFont *xft_font_open(ui_font_t *font, char *family, /* can be NULL */
+                              double size, char *encoding,   /* can be NULL */
                               int weight, int slant, int ch_width, int aa_opt) {
-  FcPattern* pattern;
-  FcPattern* match;
+  FcPattern *pattern;
+  FcPattern *match;
   FcResult result;
-  XftFont* xfont;
+  XftFont *xfont;
 
   if (!(pattern = fc_pattern_create(family, size, encoding, weight, slant, ch_width, aa_opt))) {
     return NULL;
@@ -381,7 +381,7 @@ static XftFont* xft_font_open(ui_font_t* font, char* family, /* can be NULL */
 
 #ifdef USE_TYPE_CAIRO
 
-static int is_same_family(FcPattern* pattern, const char* family) {
+static int is_same_family(FcPattern *pattern, const char *family) {
   int count;
   FcValue val;
 
@@ -394,14 +394,14 @@ static int is_same_family(FcPattern* pattern, const char* family) {
   return 0;
 }
 
-static cairo_scaled_font_t* cairo_font_open_intern(cairo_t* cairo, FcPattern* match,
-                                                   cairo_font_options_t* options) {
-  cairo_font_face_t* font_face;
+static cairo_scaled_font_t *cairo_font_open_intern(cairo_t *cairo, FcPattern *match,
+                                                   cairo_font_options_t *options) {
+  cairo_font_face_t *font_face;
   double pixel_size;
   int pixel_size2;
   cairo_matrix_t font_matrix;
   cairo_matrix_t ctm;
-  cairo_scaled_font_t* scaled_font;
+  cairo_scaled_font_t *scaled_font;
 
   font_face = cairo_ft_font_face_create_for_pattern(match);
 
@@ -429,16 +429,16 @@ static cairo_scaled_font_t* cairo_font_open_intern(cairo_t* cairo, FcPattern* ma
   return scaled_font;
 }
 
-static cairo_scaled_font_t* cairo_font_open(ui_font_t* font, char* family, /* can be NULL */
-                                            double size, char* encoding,   /* can be NULL */
+static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* can be NULL */
+                                            double size, char *encoding,   /* can be NULL */
                                             int weight, int slant, int ch_width, int aa_opt) {
-  cairo_font_options_t* options;
-  cairo_t* cairo;
-  FcPattern* pattern;
-  FcPattern* match;
+  cairo_font_options_t *options;
+  cairo_t *cairo;
+  FcPattern *pattern;
+  FcPattern *match;
   FcResult result;
-  cairo_scaled_font_t* xfont;
-  FcCharSet* charset;
+  cairo_scaled_font_t *xfont;
+  FcCharSet *charset;
   ef_charset_t cs;
 
   if (!(pattern = fc_pattern_create(family, size, encoding, weight, slant, ch_width, aa_opt))) {
@@ -571,7 +571,7 @@ error1:
 }
 
 #if 0
-static void print_family(FcPattern* pattern) {
+static void print_family(FcPattern *pattern) {
   int count;
   FcValue val;
 
@@ -664,16 +664,16 @@ static void delete_charset_chache(void) {
 }
 #endif
 
-static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPattern* orig_pattern,
+static int cairo_compl_font_open(ui_font_t *font, int num_of_compl_fonts, FcPattern *orig_pattern,
                                  int ch) {
   FcValue val;
-  cairo_t* cairo;
-  cairo_font_options_t* options;
-  FcPattern* pattern;
-  FcPattern* match = NULL;
+  cairo_t *cairo;
+  cairo_font_options_t *options;
+  FcPattern *pattern;
+  FcPattern *match = NULL;
   FcResult result;
-  cairo_scaled_font_t* xfont;
-  FcCharSet* charset;
+  cairo_scaled_font_t *xfont;
+  FcCharSet *charset;
   int count;
   int ret = 0;
 
@@ -686,7 +686,7 @@ static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPatt
 #endif
 
   for (count = 0; FcPatternGet(pattern, FC_FAMILY, 0, &val) == FcResultMatch; count++) {
-    void* p;
+    void *p;
 
     if ((charset = get_cached_charset(val.u.s))) {
       if (!FcCharSetHasChar(charset, ch)) {
@@ -795,7 +795,7 @@ static int cairo_compl_font_open(ui_font_t* font, int num_of_compl_fonts, FcPatt
 
 #endif
 
-static void* ft_font_open(ui_font_t* font, char* family, double size, char* encoding, int weight,
+static void *ft_font_open(ui_font_t *font, char *family, double size, char *encoding, int weight,
                           int slant, int ch_width, int aa_opt, int use_xft) {
   if (use_xft) {
 #ifdef USE_TYPE_XFT
@@ -812,19 +812,19 @@ static void* ft_font_open(ui_font_t* font, char* family, double size, char* enco
   }
 }
 
-u_int xft_calculate_char_width(ui_font_t* font, u_int32_t ch);
-u_int cairo_calculate_char_width(ui_font_t* font, u_int32_t ch);
-int xft_unset_font(ui_font_t* font);
+u_int xft_calculate_char_width(ui_font_t *font, u_int32_t ch);
+u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch);
+int xft_unset_font(ui_font_t *font);
 
-static int fc_set_font(ui_font_t* font, const char* fontname, u_int fontsize,
+static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                        u_int col_width, /* if usascii font wants to be set , 0 will be set. */
                        u_int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                        int use_xft) {
-  char* font_encoding;
+  char *font_encoding;
   int weight;
   int slant;
   u_int ch_width;
-  void* xfont;
+  void *xfont;
 
   /*
    * encoding, weight and slant can be modified in parse_fc_font_name().
@@ -865,8 +865,8 @@ static int fc_set_font(ui_font_t* font, const char* fontname, u_int fontsize,
    */
 
   if (fontname) {
-    char* p;
-    char* font_family;
+    char *p;
+    char *font_family;
     double fontsize_d;
     u_int percent;
 
@@ -1163,7 +1163,7 @@ font_found:
 
 #ifdef USE_TYPE_XFT
 
-int xft_set_font(ui_font_t* font, const char* fontname, u_int fontsize,
+int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                  u_int col_width, /* if usascii font wants to be set , 0 will be set. */
                  u_int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                  int use_point_size, double dpi) {
@@ -1178,7 +1178,7 @@ int xft_set_font(ui_font_t* font, const char* fontname, u_int fontsize,
   return fc_set_font(font, fontname, fontsize, col_width, letter_space, aa_opt, 1);
 }
 
-int xft_unset_font(ui_font_t* font) {
+int xft_unset_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -1191,7 +1191,7 @@ int xft_unset_font(ui_font_t* font) {
   return 1;
 }
 
-int xft_set_ot_font(ui_font_t* font) {
+int xft_set_ot_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   font->ot_font = otl_open(XftLockFace(font->xft_font), 0);
   XftUnlockFace(font->xft_font);
@@ -1202,7 +1202,7 @@ int xft_set_ot_font(ui_font_t* font) {
 #endif
 }
 
-u_int xft_calculate_char_width(ui_font_t* font, u_int32_t ch /* US-ASCII or Unicode */
+u_int xft_calculate_char_width(ui_font_t *font, u_int32_t ch /* US-ASCII or Unicode */
                                ) {
   XGlyphInfo extents;
 
@@ -1240,7 +1240,7 @@ u_int xft_calculate_char_width(ui_font_t* font, u_int32_t ch /* US-ASCII or Unic
 
 #ifdef USE_TYPE_CAIRO
 
-int ui_search_next_cairo_font(ui_font_t* font, int ch) {
+int ui_search_next_cairo_font(ui_font_t *font, int ch) {
   int count;
 
   if (!font->compl_fonts) {
@@ -1263,7 +1263,7 @@ int ui_search_next_cairo_font(ui_font_t* font, int ch) {
   }
 }
 
-int cairo_set_font(ui_font_t* font, const char* fontname, u_int fontsize,
+int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                    u_int col_width, /* if usascii font wants to be set , 0 will be set. */
                    u_int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                    int use_point_size, double dpi) {
@@ -1277,7 +1277,7 @@ int cairo_set_font(ui_font_t* font, const char* fontname, u_int fontsize,
   return fc_set_font(font, fontname, fontsize, col_width, letter_space, aa_opt, 0);
 }
 
-int cairo_unset_font(ui_font_t* font) {
+int cairo_unset_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -1289,7 +1289,7 @@ int cairo_unset_font(ui_font_t* font) {
 
   if (font->compl_fonts) {
     int count;
-    cairo_scaled_font_t* xfont;
+    cairo_scaled_font_t *xfont;
 
     for (count = 0;; count++) {
       if (!(xfont = font->compl_fonts[count].next)) {
@@ -1312,7 +1312,7 @@ int cairo_unset_font(ui_font_t* font) {
   return 1;
 }
 
-int cairo_set_ot_font(ui_font_t* font) {
+int cairo_set_ot_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   font->ot_font = otl_open(cairo_ft_scaled_font_lock_face(font->cairo_font), 0);
   cairo_ft_scaled_font_unlock_face(font->cairo_font);
@@ -1323,7 +1323,7 @@ int cairo_set_ot_font(ui_font_t* font) {
 #endif
 }
 
-size_t ui_convert_ucs4_to_utf8(u_char* utf8, /* size of utf8 should be greater than 5. */
+size_t ui_convert_ucs4_to_utf8(u_char *utf8, /* size of utf8 should be greater than 5. */
                                u_int32_t ucs) {
   /* ucs is unsigned */
   if (/* 0x00 <= ucs && */ ucs <= 0x7f) {
@@ -1370,7 +1370,7 @@ size_t ui_convert_ucs4_to_utf8(u_char* utf8, /* size of utf8 should be greater t
   }
 }
 
-u_int cairo_calculate_char_width(ui_font_t* font, u_int32_t ch) {
+u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch) {
   u_char utf8[UTF_MAX_SIZE + 1];
   cairo_text_extents_t extents;
   int width;
@@ -1413,10 +1413,10 @@ u_int cairo_calculate_char_width(ui_font_t* font, u_int32_t ch) {
 
 #endif
 
-u_int ft_convert_text_to_glyphs(ui_font_t* font, u_int32_t* shaped, u_int shaped_len,
-                                int8_t* offsets, u_int8_t* widths, u_int32_t* cmapped,
-                                u_int32_t* src, u_int src_len, const char* script,
-                                const char* features) {
+u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
+                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
+                                u_int32_t *src, u_int src_len, const char *script,
+                                const char *features) {
 #ifdef USE_OT_LAYOUT
   return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, offsets, widths, cmapped,
                                     src, src_len, script, features, 0);

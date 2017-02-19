@@ -43,18 +43,18 @@ typedef struct im_skk {
 
   vt_char_encoding_t term_encoding;
 
-  char* encoding_name; /* encoding of conversion engine */
+  char *encoding_name; /* encoding of conversion engine */
 
   /* conv is NULL if term_encoding == skk encoding */
-  ef_parser_t* parser_term; /* for term encoding */
-  ef_conv_t* conv;          /* for term encoding */
+  ef_parser_t *parser_term; /* for term encoding */
+  ef_conv_t *conv;          /* for term encoding */
 
   ef_char_t preedit[MAX_CAPTION_LEN];
   u_int preedit_len;
 
-  void* candidate;
+  void *candidate;
 
-  char* status[MAX_INPUT_MODE];
+  char *status[MAX_INPUT_MODE];
 
   int dan;
   int prev_dan;
@@ -72,18 +72,18 @@ typedef struct im_skk {
   input_mode_t mode_orig;
   ef_char_t visual_chars[2];
 
-  void* completion;
+  void *completion;
 
 } im_skk_t;
 
 /* --- static variables --- */
 
 static int ref_count = 0;
-static ui_im_export_syms_t* syms = NULL; /* mlterm internal symbols */
+static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 
 /* --- static functions --- */
 
-static void preedit_add(im_skk_t* skk, wchar wch) {
+static void preedit_add(im_skk_t *skk, wchar wch) {
   ef_char_t ch;
 
   if (skk->preedit_len >= sizeof(skk->preedit) / sizeof(skk->preedit[0])) {
@@ -109,11 +109,11 @@ static void preedit_add(im_skk_t* skk, wchar wch) {
   skk->preedit[skk->preedit_len++] = ch;
 }
 
-static void preedit_delete(im_skk_t* skk) { --skk->preedit_len; }
+static void preedit_delete(im_skk_t *skk) { --skk->preedit_len; }
 
-static void candidate_clear(im_skk_t* skk);
+static void candidate_clear(im_skk_t *skk);
 
-static void preedit_clear(im_skk_t* skk) {
+static void preedit_clear(im_skk_t *skk) {
   if (skk->is_preediting && skk->mode == ALPHABET) {
     skk->mode = HIRAGANA;
   }
@@ -126,7 +126,7 @@ static void preedit_clear(im_skk_t* skk) {
   candidate_clear(skk);
 }
 
-static void preedit_to_visual(im_skk_t* skk) {
+static void preedit_to_visual(im_skk_t *skk) {
   if (skk->prev_dan) {
     if (skk->is_preediting == 4) {
       skk->preedit[skk->preedit_len] = skk->visual_chars[1];
@@ -138,7 +138,7 @@ static void preedit_to_visual(im_skk_t* skk) {
   }
 }
 
-static void preedit_backup_visual_chars(im_skk_t* skk) {
+static void preedit_backup_visual_chars(im_skk_t *skk) {
   if (skk->prev_dan) {
     if (skk->is_preediting == 4) {
       skk->visual_chars[1] = skk->preedit[skk->preedit_len - 1];
@@ -149,15 +149,15 @@ static void preedit_backup_visual_chars(im_skk_t* skk) {
   }
 }
 
-static void preedit(im_skk_t* skk, ef_char_t* preedit, u_int preedit_len, int rev_len,
-                    char* candidateword, /* already converted to term encoding */
-                    size_t candidateword_len, char* pos) {
+static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int rev_len,
+                    char *candidateword, /* already converted to term encoding */
+                    size_t candidateword_len, char *pos) {
   int x;
   int y;
   int rev_pos = 0;
 
   if (skk->preedit_orig_len > 0) {
-    ef_char_t* p;
+    ef_char_t *p;
 
     if ((p = alloca(sizeof(*p) * (skk->preedit_orig_len + 1 + preedit_len + skk->new_word_len)))) {
       memcpy(p, skk->preedit_orig, sizeof(*p) * skk->preedit_orig_len);
@@ -190,7 +190,7 @@ static void preedit(im_skk_t* skk, ef_char_t* preedit, u_int preedit_len, int re
     }
   } else {
     ef_char_t ch;
-    vt_char_t* p;
+    vt_char_t *p;
     size_t pos_len;
     u_int count;
     vt_unicode_policy_t upolicy;
@@ -276,7 +276,7 @@ candidate:
       skk->im.stat_screen = NULL;
     }
   } else {
-    u_char* tmp = NULL;
+    u_char *tmp = NULL;
 
     (*skk->im.listener->get_spot)(skk->im.listener->self, skk->im.preedit.chars,
                                   skk->im.preedit.segment_offset, &x, &y);
@@ -305,8 +305,8 @@ candidate:
   }
 }
 
-static void commit(im_skk_t* skk) {
-  ef_parser_t* parser;
+static void commit(im_skk_t *skk) {
+  ef_parser_t *parser;
   u_char conv_buf[256];
   size_t filled_len;
 
@@ -324,7 +324,7 @@ static void commit(im_skk_t* skk) {
   }
 }
 
-static int insert_char(im_skk_t* skk, u_char key_char) {
+static int insert_char(im_skk_t *skk, u_char key_char) {
   static struct {
     wchar a;
     wchar i;
@@ -567,7 +567,7 @@ static int insert_char(im_skk_t* skk, u_char key_char) {
   return 0;
 }
 
-static void insert_alphabet_full(im_skk_t* skk, u_char key_char) {
+static void insert_alphabet_full(im_skk_t *skk, u_char key_char) {
   if (('a' <= key_char && key_char <= 'z') || ('A' <= key_char && key_char <= 'Z') ||
       ('0' <= key_char && key_char <= '9')) {
     preedit_add(skk, 0x2300 + key_char + 0x8080);
@@ -580,8 +580,8 @@ static void insert_alphabet_full(im_skk_t* skk, u_char key_char) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t* im) {
-  im_skk_t* skk;
+static int delete (ui_im_t *im) {
+  im_skk_t *skk;
 
   skk = (im_skk_t*)im;
 
@@ -618,8 +618,8 @@ static int delete (ui_im_t* im) {
   return ref_count;
 }
 
-static int switch_mode(ui_im_t* im) {
-  im_skk_t* skk;
+static int switch_mode(ui_im_t *im) {
+  im_skk_t *skk;
 
   skk = (im_skk_t*)im;
 
@@ -634,7 +634,7 @@ static int switch_mode(ui_im_t* im) {
   return 1;
 }
 
-static void start_to_register_new_word(im_skk_t* skk) {
+static void start_to_register_new_word(im_skk_t *skk) {
   memcpy(skk->preedit_orig, skk->preedit, sizeof(skk->preedit[0]) * skk->preedit_len);
   if (skk->prev_dan) {
     if (skk->is_preediting == 4) {
@@ -660,7 +660,7 @@ static void start_to_register_new_word(im_skk_t* skk) {
   skk->is_preediting = 0;
 }
 
-static void stop_to_register_new_word(im_skk_t* skk) {
+static void stop_to_register_new_word(im_skk_t *skk) {
   memcpy(skk->preedit, skk->preedit_orig, sizeof(skk->preedit_orig[0]) * skk->preedit_orig_len);
   skk->preedit_len = skk->preedit_orig_len;
   skk->preedit_orig_len = 0;
@@ -675,7 +675,7 @@ static void stop_to_register_new_word(im_skk_t* skk) {
   preedit_to_visual(skk);
 }
 
-static void candidate_set(im_skk_t* skk, int step) {
+static void candidate_set(im_skk_t *skk, int step) {
   if (skk->preedit_len == 0) {
     return;
   }
@@ -723,7 +723,7 @@ static void candidate_set(im_skk_t* skk, int step) {
   }
 
   if (skk->dan) {
-    ef_char_t* ch;
+    ef_char_t *ch;
 
     ch = skk->preedit + (skk->preedit_len++);
     ch->ch[0] = skk->dan + 'a';
@@ -733,7 +733,7 @@ static void candidate_set(im_skk_t* skk, int step) {
   }
 }
 
-static void candidate_unset(im_skk_t* skk) {
+static void candidate_unset(im_skk_t *skk) {
   if (skk->candidate) {
     skk->preedit_len = dict_candidate_reset_and_finish(skk->preedit, &skk->candidate);
   }
@@ -741,13 +741,13 @@ static void candidate_unset(im_skk_t* skk) {
   preedit_to_visual(skk);
 }
 
-static void candidate_clear(im_skk_t* skk) {
+static void candidate_clear(im_skk_t *skk) {
   if (skk->candidate) {
     dict_candidate_finish(&skk->candidate);
   }
 }
 
-static int fix(im_skk_t* skk) {
+static int fix(im_skk_t *skk) {
   if (skk->preedit_len > 0) {
     if (skk->candidate) {
       dict_candidate_add_to_local(skk->candidate);
@@ -786,11 +786,11 @@ static int fix(im_skk_t* skk) {
   return 0;
 }
 
-static int key_event(ui_im_t* im, u_char key_char, KeySym ksym, XKeyEvent* event) {
-  im_skk_t* skk;
+static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_skk_t *skk;
   int ret = 0;
-  char* pos = "";
-  char* cand = NULL;
+  char *pos = "";
+  char *cand = NULL;
   u_int cand_len = 0;
   int preedited_alphabet;
 
@@ -1056,10 +1056,10 @@ end:
   return ret;
 }
 
-static int is_active(ui_im_t* im) { return ((im_skk_t*)im)->is_enabled; }
+static int is_active(ui_im_t *im) { return ((im_skk_t*)im)->is_enabled; }
 
-static void focused(ui_im_t* im) {
-  im_skk_t* skk;
+static void focused(ui_im_t *im) {
+  im_skk_t *skk;
 
   skk = (im_skk_t*)im;
 
@@ -1068,8 +1068,8 @@ static void focused(ui_im_t* im) {
   }
 }
 
-static void unfocused(ui_im_t* im) {
-  im_skk_t* skk;
+static void unfocused(ui_im_t *im) {
+  im_skk_t *skk;
 
   skk = (im_skk_t*)im;
 
@@ -1080,10 +1080,10 @@ static void unfocused(ui_im_t* im) {
 
 /* --- global functions --- */
 
-ui_im_t* im_skk_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                    ui_im_export_syms_t* export_syms, char* engine, u_int mod_ignore_mask) {
-  im_skk_t* skk;
-  ef_parser_t* parser;
+ui_im_t *im_skk_new(u_int64_t magic, vt_char_encoding_t term_encoding,
+                    ui_im_export_syms_t *export_syms, char *engine, u_int mod_ignore_mask) {
+  im_skk_t *skk;
+  ef_parser_t *parser;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
     bl_error_printf("Incompatible input method API.\n");
@@ -1180,8 +1180,8 @@ error:
 
 /* --- API for external tools --- */
 
-im_info_t* im_skk_get_info(char* locale, char* encoding) {
-  im_info_t* result;
+im_info_t *im_skk_get_info(char *locale, char *encoding) {
+  im_info_t *result;
 
   if ((result = malloc(sizeof(im_info_t)))) {
     result->id = strdup("skk");

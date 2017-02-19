@@ -45,25 +45,25 @@ typedef struct ui_key {
 typedef struct ui_str_key {
   KeySym ksym;
   u_int state;
-  char* str;
+  char *str;
 
 } ui_str_key_t;
 
 typedef struct ui_shortcut {
   ui_key_t map[MAX_KEY_MAPS];
-  ui_str_key_t* str_map;
+  ui_str_key_t *str_map;
   u_int str_map_size;
 
 } ui_shortcut_t;
 
-int ui_shortcut_init(ui_shortcut_t* shortcut);
+int ui_shortcut_init(ui_shortcut_t *shortcut);
 
-int ui_shortcut_final(ui_shortcut_t* shortcut);
+int ui_shortcut_final(ui_shortcut_t *shortcut);
 
-int ui_shortcut_match(ui_shortcut_t* shortcut, ui_key_func_t func, KeySym sym, u_int state);
+int ui_shortcut_match(ui_shortcut_t *shortcut, ui_key_func_t func, KeySym sym, u_int state);
 
-char* ui_shortcut_str(ui_shortcut_t* shortcut, KeySym sym, u_int state);
+char *ui_shortcut_str(ui_shortcut_t *shortcut, KeySym sym, u_int state);
 
-int ui_shortcut_parse(ui_shortcut_t* shortcut, char* key, char* oper);
+int ui_shortcut_parse(ui_shortcut_t *shortcut, char *key, char *oper);
 
 #endif

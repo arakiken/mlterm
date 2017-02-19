@@ -15,18 +15,18 @@
 
 /* --- static variables --- */
 
-static ef_parser_t* utf8_parser;
+static ef_parser_t *utf8_parser;
 
 /* --- static functions --- */
 
-static void get_rect(ui_window_t* win, XRectangle* rect) {
+static void get_rect(ui_window_t *win, XRectangle *rect) {
   rect->x = 0;
   rect->y = 0;
   rect->width = ACTUAL_WIDTH(win);
   rect->height = ACTUAL_HEIGHT(win);
 }
 
-static int get_spot(ui_window_t* win, XPoint* spot) {
+static int get_spot(ui_window_t *win, XPoint *spot) {
   int x;
   int y;
 
@@ -45,8 +45,8 @@ static int get_spot(ui_window_t* win, XPoint* spot) {
   return 1;
 }
 
-static XFontSet load_fontset(ui_window_t* win) {
-  char* cur_locale;
+static XFontSet load_fontset(ui_window_t *win) {
+  char *cur_locale;
   XFontSet fontset;
 
   cur_locale = bl_str_alloca_dup(bl_get_locale());
@@ -66,7 +66,7 @@ static XFontSet load_fontset(ui_window_t* win) {
   return fontset;
 }
 
-static int destroy_xic(ui_window_t* win) {
+static int destroy_xic(ui_window_t *win) {
   if (!win->xic) {
     return 0;
   }
@@ -83,7 +83,7 @@ static int destroy_xic(ui_window_t* win) {
   return 1;
 }
 
-static int create_xic(ui_window_t* win) {
+static int create_xic(ui_window_t *win) {
   XIMStyle selected_style;
   XVaNestedList preedit_attr;
   XRectangle rect;
@@ -190,7 +190,7 @@ static int create_xic(ui_window_t* win) {
 
 /* --- global functions --- */
 
-int ui_xic_activate(ui_window_t* win, char* xim_name, char* xim_locale) {
+int ui_xic_activate(ui_window_t *win, char *xim_name, char *xim_locale) {
   if (win->xic) {
     /* already activated */
 
@@ -200,7 +200,7 @@ int ui_xic_activate(ui_window_t* win, char* xim_name, char* xim_locale) {
   return ui_add_xim_listener(win, xim_name, xim_locale);
 }
 
-int ui_xic_deactivate(ui_window_t* win) {
+int ui_xic_deactivate(ui_window_t *win) {
   if (win->xic == NULL) {
     /* already deactivated */
 
@@ -234,11 +234,11 @@ int ui_xic_deactivate(ui_window_t* win) {
   return 1;
 }
 
-char* ui_xic_get_xim_name(ui_window_t* win) { return ui_get_xim_name(win); }
+char *ui_xic_get_xim_name(ui_window_t *win) { return ui_get_xim_name(win); }
 
-char* ui_xic_get_default_xim_name(void) { return ui_get_default_xim_name(); }
+char *ui_xic_get_default_xim_name(void) { return ui_get_default_xim_name(); }
 
-int ui_xic_fg_color_changed(ui_window_t* win) {
+int ui_xic_fg_color_changed(ui_window_t *win) {
   XVaNestedList preedit_attr;
 
   if (win->xic == NULL || !(win->xic->style & XIMPreeditPosition)) {
@@ -258,7 +258,7 @@ int ui_xic_fg_color_changed(ui_window_t* win) {
   return 1;
 }
 
-int ui_xic_bg_color_changed(ui_window_t* win) {
+int ui_xic_bg_color_changed(ui_window_t *win) {
   XVaNestedList preedit_attr;
 
   if (win->xic == NULL || !(win->xic->style & XIMPreeditPosition)) {
@@ -278,7 +278,7 @@ int ui_xic_bg_color_changed(ui_window_t* win) {
   return 1;
 }
 
-int ui_xic_font_set_changed(ui_window_t* win) {
+int ui_xic_font_set_changed(ui_window_t *win) {
   XVaNestedList preedit_attr;
   XFontSet fontset;
 
@@ -306,7 +306,7 @@ int ui_xic_font_set_changed(ui_window_t* win) {
   return 1;
 }
 
-int ui_xic_resized(ui_window_t* win) {
+int ui_xic_resized(ui_window_t *win) {
   XVaNestedList preedit_attr;
   XRectangle rect;
   XPoint spot;
@@ -337,7 +337,7 @@ int ui_xic_resized(ui_window_t* win) {
   return 1;
 }
 
-int ui_xic_set_spot(ui_window_t* win) {
+int ui_xic_set_spot(ui_window_t *win) {
   XVaNestedList preedit_attr;
   XPoint spot;
 
@@ -366,8 +366,8 @@ int ui_xic_set_spot(ui_window_t* win) {
   return 1;
 }
 
-size_t ui_xic_get_str(ui_window_t* win, u_char* seq, size_t seq_len, ef_parser_t** parser,
-                      KeySym* keysym, XKeyEvent* event) {
+size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
+                      KeySym *keysym, XKeyEvent *event) {
   Status stat;
   size_t len;
 
@@ -400,8 +400,8 @@ size_t ui_xic_get_str(ui_window_t* win, u_char* seq, size_t seq_len, ef_parser_t
   return len;
 }
 
-size_t ui_xic_get_utf8_str(ui_window_t* win, u_char* seq, size_t seq_len, ef_parser_t** parser,
-                           KeySym* keysym, XKeyEvent* event) {
+size_t ui_xic_get_utf8_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
+                           KeySym *keysym, XKeyEvent *event) {
 #ifdef HAVE_XUTF8_LOOKUP_STRING
   Status stat;
   size_t len;
@@ -432,7 +432,7 @@ size_t ui_xic_get_utf8_str(ui_window_t* win, u_char* seq, size_t seq_len, ef_par
 #endif
 }
 
-int ui_xic_set_focus(ui_window_t* win) {
+int ui_xic_set_focus(ui_window_t *win) {
   if (!win->xic) {
     return 0;
   }
@@ -442,7 +442,7 @@ int ui_xic_set_focus(ui_window_t* win) {
   return 1;
 }
 
-int ui_xic_unset_focus(ui_window_t* win) {
+int ui_xic_unset_focus(ui_window_t *win) {
   if (!win->xic) {
     return 0;
   }
@@ -452,7 +452,7 @@ int ui_xic_unset_focus(ui_window_t* win) {
   return 1;
 }
 
-int ui_xic_is_active(ui_window_t* win) {
+int ui_xic_is_active(ui_window_t *win) {
 #ifdef XNPreeditState
   XIMPreeditState preedit_state;
   XVaNestedList preedit_attr;
@@ -490,7 +490,7 @@ int ui_xic_is_active(ui_window_t* win) {
 #endif
 }
 
-int ui_xic_switch_mode(ui_window_t* win) {
+int ui_xic_switch_mode(ui_window_t *win) {
 #ifdef XNPreeditState
   XVaNestedList preedit_attr;
 
@@ -519,6 +519,6 @@ int ui_xic_switch_mode(ui_window_t* win) {
  * ui_xim.c <-> ui_xic.c communication functions
  */
 
-int ui_xim_activated(ui_window_t* win) { return create_xic(win); }
+int ui_xim_activated(ui_window_t *win) { return create_xic(win); }
 
-int ui_xim_destroyed(ui_window_t* win) { return destroy_xic(win); }
+int ui_xim_destroyed(ui_window_t *win) { return destroy_xic(win); }

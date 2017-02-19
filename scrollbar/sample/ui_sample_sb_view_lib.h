@@ -20,19 +20,19 @@ typedef struct sample_sb_view {
 
 } sample_sb_view_t;
 
-Pixmap ui_get_icon_pixmap(ui_sb_view_t* view, GC gc,
+Pixmap ui_get_icon_pixmap(ui_sb_view_t *view, GC gc,
 #ifdef USE_WIN32GUI
                           GC memgc,
 #endif
-                          char** data, unsigned int width, unsigned int height, unsigned int depth,
+                          char **data, unsigned int width, unsigned int height, unsigned int depth,
                           unsigned long black, unsigned long white);
 
-int ui_draw_icon_pixmap_fg(ui_sb_view_t* view,
+int ui_draw_icon_pixmap_fg(ui_sb_view_t *view,
 #ifdef USE_WIN32GUI
                            GC gc,
 #else
                            Pixmap arrow,
 #endif
-                           char** data, unsigned int width, unsigned int height);
+                           char **data, unsigned int width, unsigned int height);
 
 #endif

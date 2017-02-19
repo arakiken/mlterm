@@ -13,7 +13,7 @@
 
 /* --- global functions --- */
 
-int ef_map_koi8_r_to_ucs4(ef_char_t* ucs4, u_int16_t koi8_code) {
+int ef_map_koi8_r_to_ucs4(ef_char_t *ucs4, u_int16_t koi8_code) {
   u_int32_t c;
 
   if ((c = CONV_KOI8_R_TO_UCS4(koi8_code))) {
@@ -38,7 +38,7 @@ int ef_map_koi8_r_to_ucs4(ef_char_t* ucs4, u_int16_t koi8_code) {
   return 0;
 }
 
-int ef_map_koi8_u_to_ucs4(ef_char_t* ucs4, u_int16_t koi8_code) {
+int ef_map_koi8_u_to_ucs4(ef_char_t *ucs4, u_int16_t koi8_code) {
   /*
    * about KOI8-R <-> KOI8-U incompatibility , see rfc2319.
    * note that the appendix A of rfc2319 is broken.
@@ -70,7 +70,7 @@ int ef_map_koi8_u_to_ucs4(ef_char_t* ucs4, u_int16_t koi8_code) {
   return 1;
 }
 
-int ef_map_koi8_t_to_ucs4(ef_char_t* ucs4, u_int16_t koi8_code) {
+int ef_map_koi8_t_to_ucs4(ef_char_t *ucs4, u_int16_t koi8_code) {
   u_int32_t c;
 
   if ((c = CONV_KOI8_T_TO_UCS4(koi8_code))) {
@@ -95,7 +95,7 @@ int ef_map_koi8_t_to_ucs4(ef_char_t* ucs4, u_int16_t koi8_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_koi8_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_koi8_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t offset;
 
   for (offset = 0; offset <= koi8_r_to_ucs4_end - koi8_r_to_ucs4_beg; offset++) {
@@ -112,7 +112,7 @@ int ef_map_ucs4_to_koi8_r(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
-int ef_map_ucs4_to_koi8_u(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_koi8_u(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   /*
    * about KOI8-R <-> KOI8-U incompatibility , see rfc2319.
    * note that the appendix A of rfc2319 is broken.
@@ -142,7 +142,7 @@ int ef_map_ucs4_to_koi8_u(ef_char_t* non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
-int ef_map_ucs4_to_koi8_t(ef_char_t* non_ucs, u_int32_t ucs4_code) {
+int ef_map_ucs4_to_koi8_t(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
   if ((c = CONV_UCS4_TO_KOI8_T(ucs4_code))) {

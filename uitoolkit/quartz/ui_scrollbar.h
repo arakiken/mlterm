@@ -5,6 +5,6 @@
 
 #include "../ui_scrollbar.h"
 
-void ui_scrollbar_is_moved(ui_scrollbar_t* sb, float pos);
+void ui_scrollbar_is_moved(ui_scrollbar_t *sb, float pos);
 
 #endif

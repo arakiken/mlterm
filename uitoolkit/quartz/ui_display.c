@@ -25,11 +25,11 @@
 
 static ui_display_t _disp; /* Singleton */
 static Display _display;
-static ui_display_t* opened_disp = &_disp;
+static ui_display_t *opened_disp = &_disp;
 
 /* --- static functions --- */
 
-static int dialog(bl_dialog_style_t style, char* msg) {
+static int dialog(bl_dialog_style_t style, char *msg) {
 #if 0
   if (style == BL_DIALOG_OKCANCEL) {
     if (MessageBoxA(NULL, msg, "", MB_OKCANCEL) == IDOK) {
@@ -47,7 +47,7 @@ static int dialog(bl_dialog_style_t style, char* msg) {
 
 /* --- global functions --- */
 
-ui_display_t* ui_display_open(char* disp_name, /* Ignored */
+ui_display_t *ui_display_open(char *disp_name, /* Ignored */
                               u_int depth      /* Ignored */
                               ) {
   if (DISP_IS_INITED) {
@@ -69,7 +69,7 @@ ui_display_t* ui_display_open(char* disp_name, /* Ignored */
   return &_disp;
 }
 
-int ui_display_close(ui_display_t* disp) {
+int ui_display_close(ui_display_t *disp) {
   if (disp == &_disp) {
     return ui_display_close_all();
   } else {
@@ -108,7 +108,7 @@ int ui_display_close_all(void) {
   return 1;
 }
 
-ui_display_t** ui_get_opened_displays(u_int* num) {
+ui_display_t **ui_get_opened_displays(u_int *num) {
   if (!DISP_IS_INITED) {
     *num = 0;
 
@@ -120,12 +120,12 @@ ui_display_t** ui_get_opened_displays(u_int* num) {
   return &opened_disp;
 }
 
-int ui_display_fd(ui_display_t* disp) { return disp->display->fd; }
+int ui_display_fd(ui_display_t *disp) { return disp->display->fd; }
 
-int ui_display_show_root(ui_display_t* disp, ui_window_t* root, int x, int y, int hint,
-                         char* app_name, Window parent_window /* Ignored */
+int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,
+                         char *app_name, Window parent_window /* Ignored */
                          ) {
-  void* p;
+  void *p;
 
   if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_of_roots + 1))) == NULL) {
 #ifdef DEBUG
@@ -161,7 +161,7 @@ int ui_display_show_root(ui_display_t* disp, ui_window_t* root, int x, int y, in
   }
 }
 
-int ui_display_remove_root(ui_display_t* disp, ui_window_t* root) {
+int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
   for (count = 0; count < disp->num_of_roots; count++) {
@@ -184,7 +184,7 @@ int ui_display_remove_root(ui_display_t* disp, ui_window_t* root) {
   return 0;
 }
 
-void ui_display_idling(ui_display_t* disp) {
+void ui_display_idling(ui_display_t *disp) {
   u_int count;
 
   for (count = 0; count < _disp.num_of_roots; count++) {
@@ -197,13 +197,13 @@ void ui_display_idling(ui_display_t* disp) {
  *  0: Receive WM_QUIT
  *  1: Receive other messages.
  */
-int ui_display_receive_next_event(ui_display_t* disp) { return 1; }
+int ui_display_receive_next_event(ui_display_t *disp) { return 1; }
 
 /*
  * Folloing functions called from ui_window.c
  */
 
-int ui_display_own_selection(ui_display_t* disp, ui_window_t* win) {
+int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
   if (disp->selection_owner) {
     ui_display_clear_selection(disp, disp->selection_owner);
   }
@@ -213,7 +213,7 @@ int ui_display_own_selection(ui_display_t* disp, ui_window_t* win) {
   return 1;
 }
 
-int ui_display_clear_selection(ui_display_t* disp, ui_window_t* win) {
+int ui_display_clear_selection(ui_display_t *disp, ui_window_t *win) {
   if (disp->selection_owner == NULL || disp->selection_owner != win) {
     return 0;
   }
@@ -229,11 +229,11 @@ int ui_display_clear_selection(ui_display_t* disp, ui_window_t* win) {
   return 1;
 }
 
-XModifierKeymap* ui_display_get_modifier_mapping(ui_display_t* disp) { return disp->modmap.map; }
+XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return disp->modmap.map; }
 
-void ui_display_update_modifier_mapping(ui_display_t* disp, u_int serial) { /* dummy */ }
+void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) { /* dummy */ }
 
-Cursor ui_display_get_cursor(ui_display_t* disp, u_int shape) {
+Cursor ui_display_get_cursor(ui_display_t *disp, u_int shape) {
 #if 0
   int idx;
   LPCTSTR name;
@@ -264,4 +264,4 @@ Cursor ui_display_get_cursor(ui_display_t* disp, u_int shape) {
 #endif
 }
 
-XID ui_display_get_group_leader(ui_display_t* disp) { return None; }
+XID ui_display_get_group_leader(ui_display_t *disp) { return None; }

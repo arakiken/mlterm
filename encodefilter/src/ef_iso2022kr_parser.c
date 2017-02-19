@@ -9,8 +9,8 @@
 
 /* --- static functions --- */
 
-static void iso2022kr_parser_init(ef_parser_t* parser) {
-  ef_iso2022_parser_t* iso2022_parser;
+static void iso2022kr_parser_init(ef_parser_t *parser) {
+  ef_iso2022_parser_t *iso2022_parser;
 
   ef_parser_init(parser);
 
@@ -35,8 +35,8 @@ static void iso2022kr_parser_init(ef_parser_t* parser) {
 
 /* --- global functions --- */
 
-ef_parser_t* ef_iso2022kr_parser_new(void) {
-  ef_iso2022_parser_t* iso2022_parser;
+ef_parser_t *ef_iso2022kr_parser_new(void) {
+  ef_iso2022_parser_t *iso2022_parser;
 
   if ((iso2022_parser = ef_iso2022_parser_new()) == NULL) {
     return NULL;

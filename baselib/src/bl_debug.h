@@ -39,14 +39,14 @@
 
 #endif
 
-int bl_debug_printf(const char* format, ...);
+int bl_debug_printf(const char *format, ...);
 
-int bl_warn_printf(const char* format, ...);
+int bl_warn_printf(const char *format, ...);
 
-int bl_error_printf(const char* format, ...);
+int bl_error_printf(const char *format, ...);
 
-int bl_msg_printf(const char* format, ...);
+int bl_msg_printf(const char *format, ...);
 
-int bl_set_msg_log_file_name(const char* name);
+int bl_set_msg_log_file_name(const char *name);
 
 #endif

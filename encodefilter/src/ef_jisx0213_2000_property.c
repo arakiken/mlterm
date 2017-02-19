@@ -46,7 +46,7 @@ static ef_property_t jisx0213_2000_1_property_table[] = {
 
 /* --- global functions --- */
 
-ef_property_t ef_get_jisx0213_2000_1_property(u_char* ch, size_t size) {
+ef_property_t ef_get_jisx0213_2000_1_property(u_char *ch, size_t size) {
   if (ch[0] == 0x2b) {
     if (0x52 <= ch[1] && ch[1] <= 0x7e) {
       return jisx0213_2000_1_property_table[ch[1] - 0x52];

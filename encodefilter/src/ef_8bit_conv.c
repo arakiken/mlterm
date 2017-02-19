@@ -20,7 +20,7 @@ typedef struct ef_iscii_conv {
 
 /* --- static functions --- */
 
-static int map_direct(ef_char_t* dst, ef_char_t* src, ef_charset_t to_cs) {
+static int map_direct(ef_char_t *dst, ef_char_t *src, ef_charset_t to_cs) {
   if (src->cs == KOI8_U && to_cs == KOI8_R) {
     return ef_map_koi8_u_to_koi8_r(dst, src);
   } else if (src->cs == KOI8_R && to_cs == KOI8_U) {
@@ -38,7 +38,7 @@ static int map_direct(ef_char_t* dst, ef_char_t* src, ef_charset_t to_cs) {
   return 0;
 }
 
-static void remap_unsupported_charset(ef_char_t* ch, ef_charset_t to_cs) {
+static void remap_unsupported_charset(ef_char_t *ch, ef_charset_t to_cs) {
   ef_char_t c;
 
   if (ch->cs == to_cs) {
@@ -57,8 +57,8 @@ static void remap_unsupported_charset(ef_char_t* ch, ef_charset_t to_cs) {
   }
 }
 
-static size_t convert_to_intern(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser, ef_charset_t to_cs) {
+static size_t convert_to_intern(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser, ef_charset_t to_cs) {
   size_t filled_size;
   ef_char_t ch;
 
@@ -95,92 +95,92 @@ static size_t convert_to_intern(ef_conv_t* conv, u_char* dst, size_t dst_size,
   return filled_size;
 }
 
-static size_t convert_to_koi8_r(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_koi8_r(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, KOI8_R);
 }
 
-static size_t convert_to_koi8_u(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_koi8_u(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, KOI8_U);
 }
 
-static size_t convert_to_koi8_t(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_koi8_t(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, KOI8_T);
 }
 
-static size_t convert_to_georgian_ps(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                     ef_parser_t* parser) {
+static size_t convert_to_georgian_ps(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                     ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, GEORGIAN_PS);
 }
 
-static size_t convert_to_cp1250(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1250(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1250);
 }
 
-static size_t convert_to_cp1251(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1251(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1251);
 }
 
-static size_t convert_to_cp1252(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1252(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1252);
 }
 
-static size_t convert_to_cp1253(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1253(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1253);
 }
 
-static size_t convert_to_cp1254(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1254(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1254);
 }
 
-static size_t convert_to_cp1255(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1255(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1255);
 }
 
-static size_t convert_to_cp1256(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1256(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1256);
 }
 
-static size_t convert_to_cp1257(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1257(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1257);
 }
 
-static size_t convert_to_cp1258(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_cp1258(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP1258);
 }
 
-static size_t convert_to_cp874(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
+static size_t convert_to_cp874(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, CP874);
 }
 
-static size_t convert_to_viscii(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                ef_parser_t* parser) {
+static size_t convert_to_viscii(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, VISCII);
 }
 
-static size_t convert_to_iscii(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
+static size_t convert_to_iscii(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, ((ef_iscii_conv_t*)conv)->cs);
 }
 
-static void conv_init(ef_conv_t* conv) {}
+static void conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
-static ef_conv_t* iscii_conv_new(ef_charset_t cs) {
-  ef_iscii_conv_t* iscii_conv;
+static ef_conv_t *iscii_conv_new(ef_charset_t cs) {
+  ef_iscii_conv_t *iscii_conv;
 
   if ((iscii_conv = malloc(sizeof(ef_iscii_conv_t))) == NULL) {
     return NULL;
@@ -197,8 +197,8 @@ static ef_conv_t* iscii_conv_new(ef_charset_t cs) {
 
 /* --- global functions --- */
 
-ef_conv_t* ef_koi8_r_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_koi8_r_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -212,8 +212,8 @@ ef_conv_t* ef_koi8_r_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_koi8_u_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_koi8_u_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -227,8 +227,8 @@ ef_conv_t* ef_koi8_u_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_koi8_t_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_koi8_t_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -242,8 +242,8 @@ ef_conv_t* ef_koi8_t_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_georgian_ps_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_georgian_ps_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -257,8 +257,8 @@ ef_conv_t* ef_georgian_ps_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1250_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1250_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -272,8 +272,8 @@ ef_conv_t* ef_cp1250_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1251_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1251_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -287,8 +287,8 @@ ef_conv_t* ef_cp1251_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1252_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1252_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -302,8 +302,8 @@ ef_conv_t* ef_cp1252_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1253_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1253_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -317,8 +317,8 @@ ef_conv_t* ef_cp1253_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1254_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1254_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -332,8 +332,8 @@ ef_conv_t* ef_cp1254_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1255_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1255_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -347,8 +347,8 @@ ef_conv_t* ef_cp1255_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1256_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1256_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -362,8 +362,8 @@ ef_conv_t* ef_cp1256_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1257_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1257_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -377,8 +377,8 @@ ef_conv_t* ef_cp1257_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp1258_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp1258_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -392,8 +392,8 @@ ef_conv_t* ef_cp1258_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_cp874_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_cp874_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -407,8 +407,8 @@ ef_conv_t* ef_cp874_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_viscii_conv_new(void) {
-  ef_conv_t* conv;
+ef_conv_t *ef_viscii_conv_new(void) {
+  ef_conv_t *conv;
 
   if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
     return NULL;
@@ -422,22 +422,22 @@ ef_conv_t* ef_viscii_conv_new(void) {
   return conv;
 }
 
-ef_conv_t* ef_iscii_assamese_conv_new(void) { return iscii_conv_new(ISCII_ASSAMESE); }
+ef_conv_t *ef_iscii_assamese_conv_new(void) { return iscii_conv_new(ISCII_ASSAMESE); }
 
-ef_conv_t* ef_iscii_bengali_conv_new(void) { return iscii_conv_new(ISCII_BENGALI); }
+ef_conv_t *ef_iscii_bengali_conv_new(void) { return iscii_conv_new(ISCII_BENGALI); }
 
-ef_conv_t* ef_iscii_gujarati_conv_new(void) { return iscii_conv_new(ISCII_GUJARATI); }
+ef_conv_t *ef_iscii_gujarati_conv_new(void) { return iscii_conv_new(ISCII_GUJARATI); }
 
-ef_conv_t* ef_iscii_hindi_conv_new(void) { return iscii_conv_new(ISCII_HINDI); }
+ef_conv_t *ef_iscii_hindi_conv_new(void) { return iscii_conv_new(ISCII_HINDI); }
 
-ef_conv_t* ef_iscii_kannada_conv_new(void) { return iscii_conv_new(ISCII_KANNADA); }
+ef_conv_t *ef_iscii_kannada_conv_new(void) { return iscii_conv_new(ISCII_KANNADA); }
 
-ef_conv_t* ef_iscii_malayalam_conv_new(void) { return iscii_conv_new(ISCII_MALAYALAM); }
+ef_conv_t *ef_iscii_malayalam_conv_new(void) { return iscii_conv_new(ISCII_MALAYALAM); }
 
-ef_conv_t* ef_iscii_oriya_conv_new(void) { return iscii_conv_new(ISCII_ORIYA); }
+ef_conv_t *ef_iscii_oriya_conv_new(void) { return iscii_conv_new(ISCII_ORIYA); }
 
-ef_conv_t* ef_iscii_punjabi_conv_new(void) { return iscii_conv_new(ISCII_PUNJABI); }
+ef_conv_t *ef_iscii_punjabi_conv_new(void) { return iscii_conv_new(ISCII_PUNJABI); }
 
-ef_conv_t* ef_iscii_tamil_conv_new(void) { return iscii_conv_new(ISCII_TAMIL); }
+ef_conv_t *ef_iscii_tamil_conv_new(void) { return iscii_conv_new(ISCII_TAMIL); }
 
-ef_conv_t* ef_iscii_telugu_conv_new(void) { return iscii_conv_new(ISCII_TELUGU); }
+ef_conv_t *ef_iscii_telugu_conv_new(void) { return iscii_conv_new(ISCII_TELUGU); }

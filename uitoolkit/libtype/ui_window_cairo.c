@@ -12,12 +12,12 @@
 #define DIVIDE_ROUNDINGUP(a, b) (((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)))
 
 /* Implemented in ui_font_ft.c */
-size_t ui_convert_ucs4_to_utf8(u_char* utf8, u_int32_t ucs);
-int ui_search_next_cairo_font(ui_font_t* font, int ch);
+size_t ui_convert_ucs4_to_utf8(u_char *utf8, u_int32_t ucs);
+int ui_search_next_cairo_font(ui_font_t *font, int ch);
 
 /* --- static functions --- */
 
-static void adjust_glyphs(ui_font_t* font, cairo_glyph_t* glyphs, int num_of_glyphs) {
+static void adjust_glyphs(ui_font_t *font, cairo_glyph_t *glyphs, int num_of_glyphs) {
   if (!font->is_var_col_width) {
     int count;
     double prev_x;
@@ -46,8 +46,8 @@ static void adjust_glyphs(ui_font_t* font, cairo_glyph_t* glyphs, int num_of_gly
   }
 }
 
-static int show_text(cairo_t* cr, cairo_scaled_font_t* xfont, ui_font_t* font, ui_color_t* fg_color,
-                     int x, int y, u_char* str, /* NULL-terminated UTF8 or FcChar32* */
+static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font, ui_color_t *fg_color,
+                     int x, int y, u_char *str, /* NULL-terminated UTF8 or FcChar32* */
                      u_int str_len, int double_draw_gap) {
 #if CAIRO_VERSION_ENCODE(1, 8, 0) <= CAIRO_VERSION
   int drawn_x;
@@ -103,7 +103,7 @@ static int show_text(cairo_t* cr, cairo_scaled_font_t* xfont, ui_font_t* font, u
 #else
 #ifdef USE_OT_LAYOUT
   if (font->use_ot_layout /* && font->ot_font */) {
-    cairo_glyph_t* glyphs;
+    cairo_glyph_t *glyphs;
     u_int count;
     cairo_text_extents_t extent;
 
@@ -141,10 +141,10 @@ static int show_text(cairo_t* cr, cairo_scaled_font_t* xfont, ui_font_t* font, u
   } else
 #endif
   {
-    static cairo_glyph_t* glyphs;
+    static cairo_glyph_t *glyphs;
     static int num_of_glyphs;
-    cairo_glyph_t* orig_glyphs;
-    u_char* str2;
+    cairo_glyph_t *orig_glyphs;
+    u_char *str2;
 
     orig_glyphs = glyphs;
 
@@ -193,11 +193,11 @@ static int show_text(cairo_t* cr, cairo_scaled_font_t* xfont, ui_font_t* font, u
 #endif
 }
 
-static int draw_string32(ui_window_t* win, cairo_scaled_font_t* xfont, ui_font_t* font,
-                         ui_color_t* fg_color, int x, int y, FcChar32* str, u_int len) {
-  u_char* buf;
+static int draw_string32(ui_window_t *win, cairo_scaled_font_t *xfont, ui_font_t *font,
+                         ui_color_t *fg_color, int x, int y, FcChar32* str, u_int len) {
+  u_char *buf;
   u_int count;
-  char* p;
+  char *p;
 
 #ifdef USE_OT_LAYOUT
   if (font->use_ot_layout /* && font->ot_font */) {
@@ -222,7 +222,7 @@ static int draw_string32(ui_window_t* win, cairo_scaled_font_t* xfont, ui_font_t
 
 /* --- global functions --- */
 
-int ui_window_set_use_cairo(ui_window_t* win, int use_cairo) {
+int ui_window_set_use_cairo(ui_window_t *win, int use_cairo) {
   if (use_cairo) {
     if ((win->cairo_draw = cairo_create(
              cairo_xlib_surface_create(win->disp->display, win->my_window, win->disp->visual,
@@ -239,11 +239,11 @@ int ui_window_set_use_cairo(ui_window_t* win, int use_cairo) {
   return 0;
 }
 
-int ui_window_cairo_draw_string8(ui_window_t* win, ui_font_t* font, ui_color_t* fg_color, int x,
-                                 int y, u_char* str, size_t len) {
-  u_char* buf;
+int ui_window_cairo_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                 int y, u_char *str, size_t len) {
+  u_char *buf;
   size_t count;
-  u_char* p;
+  u_char *p;
 
   /* Removing trailing spaces. */
   while (1) {
@@ -274,9 +274,9 @@ int ui_window_cairo_draw_string8(ui_window_t* win, ui_font_t* font, ui_color_t* 
   return 1;
 }
 
-int ui_window_cairo_draw_string32(ui_window_t* win, ui_font_t* font, ui_color_t* fg_color, int x,
+int ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
                                   int y, FcChar32* str, u_int len) {
-  cairo_scaled_font_t* xfont;
+  cairo_scaled_font_t *xfont;
 
   xfont = font->cairo_font;
 
@@ -329,16 +329,16 @@ int ui_window_cairo_draw_string32(ui_window_t* win, ui_font_t* font, ui_color_t*
   return 1;
 }
 
-int cairo_resize(ui_window_t* win) {
+int cairo_resize(ui_window_t *win) {
   cairo_xlib_surface_set_size(cairo_get_target(win->cairo_draw), ACTUAL_WIDTH(win),
                               ACTUAL_HEIGHT(win));
 
   return 1;
 }
 
-void cairo_set_clip(ui_window_t* win, int x, int y, u_int width, u_int height) {
+void cairo_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {
   cairo_rectangle(win->cairo_draw, x, y, width, height);
   cairo_clip(win->cairo_draw);
 }
 
-void cairo_unset_clip(ui_window_t* win) { cairo_reset_clip(win->cairo_draw); }
+void cairo_unset_clip(ui_window_t *win) { cairo_reset_clip(win->cairo_draw); }

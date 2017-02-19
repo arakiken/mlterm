@@ -16,9 +16,9 @@ typedef struct ef_utf16_conv {
 
 /* --- static functions --- */
 
-static size_t convert_to_utf16(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
-  ef_utf16_conv_t* utf16_conv;
+static size_t convert_to_utf16(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
+  ef_utf16_conv_t *utf16_conv;
   size_t filled_size;
   ef_char_t ch;
 
@@ -145,8 +145,8 @@ static size_t convert_to_utf16(ef_conv_t* conv, u_char* dst, size_t dst_size,
   }
 }
 
-static size_t convert_to_utf16le(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                                 ef_parser_t* parser) {
+static size_t convert_to_utf16le(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                 ef_parser_t *parser) {
   size_t size;
   int count;
 
@@ -165,20 +165,20 @@ static size_t convert_to_utf16le(ef_conv_t* conv, u_char* dst, size_t dst_size,
   return size;
 }
 
-static void conv_init(ef_conv_t* conv) {
-  ef_utf16_conv_t* utf16_conv;
+static void conv_init(ef_conv_t *conv) {
+  ef_utf16_conv_t *utf16_conv;
 
   utf16_conv = (ef_utf16_conv_t*)conv;
 
   utf16_conv->is_bof = 1;
 }
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_utf16_conv_new(void) {
-  ef_utf16_conv_t* utf16_conv;
+ef_conv_t *ef_utf16_conv_new(void) {
+  ef_utf16_conv_t *utf16_conv;
 
   if ((utf16_conv = malloc(sizeof(ef_utf16_conv_t))) == NULL) {
     return NULL;
@@ -195,8 +195,8 @@ ef_conv_t* ef_utf16_conv_new(void) {
   return (ef_conv_t*)utf16_conv;
 }
 
-ef_conv_t* ef_utf16le_conv_new(void) {
-  ef_utf16_conv_t* utf16_conv;
+ef_conv_t *ef_utf16le_conv_new(void) {
+  ef_utf16_conv_t *utf16_conv;
 
   if ((utf16_conv = malloc(sizeof(ef_utf16_conv_t))) == NULL) {
     return NULL;
@@ -213,8 +213,8 @@ ef_conv_t* ef_utf16le_conv_new(void) {
   return (ef_conv_t*)utf16_conv;
 }
 
-int ef_utf16_conv_use_bom(ef_conv_t* conv) {
-  ef_utf16_conv_t* utf16_conv;
+int ef_utf16_conv_use_bom(ef_conv_t *conv) {
+  ef_utf16_conv_t *utf16_conv;
 
   utf16_conv = (ef_utf16_conv_t*)conv;
 

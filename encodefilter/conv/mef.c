@@ -45,7 +45,7 @@
 #include <mef/ef_ucs4_map.h>
 
 typedef struct ef_factory_table {
-  char* encoding;
+  char *encoding;
   ef_parser_t* (*parser_new)(void);
   ef_conv_t* (*conv_new)(void);
 
@@ -159,20 +159,20 @@ static void usage() {
 
 /* --- global functions --- */
 
-int main(int argc, char** argv) {
-  extern char* optarg;
+int main(int argc, char **argv) {
+  extern char *optarg;
   extern int optind;
 
   int c;
-  char* in;
-  char* out;
+  char *in;
+  char *out;
   int count;
   FILE* fp;
   u_char output[1024];
   u_char input[1024];
-  u_char* input_p;
-  ef_parser_t* parser;
-  ef_conv_t* conv;
+  u_char *input_p;
+  ef_parser_t *parser;
+  ef_conv_t *conv;
   size_t size;
 
   if (argc != 5 && argc != 6) {

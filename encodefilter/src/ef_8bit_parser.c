@@ -13,7 +13,7 @@ typedef struct ef_iscii_parser {
 
 /* --- static functions --- */
 
-static int parser_next_char_intern(ef_parser_t* parser, ef_char_t* ch, ef_charset_t cs) {
+static int parser_next_char_intern(ef_parser_t *parser, ef_char_t *ch, ef_charset_t cs) {
   u_char c;
 
   if (parser->is_eos) {
@@ -42,81 +42,81 @@ static int parser_next_char_intern(ef_parser_t* parser, ef_char_t* ch, ef_charse
   return 1;
 }
 
-static int koi8_r_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int koi8_r_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, KOI8_R);
 }
 
-static int koi8_u_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int koi8_u_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, KOI8_U);
 }
 
-static int koi8_t_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int koi8_t_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, KOI8_T);
 }
 
-static int georgian_ps_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int georgian_ps_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, GEORGIAN_PS);
 }
 
-static int cp1250_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1250_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1250);
 }
 
-static int cp1251_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1251_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1251);
 }
 
-static int cp1252_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1252_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1252);
 }
 
-static int cp1253_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1253_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1253);
 }
 
-static int cp1254_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1254_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1254);
 }
 
-static int cp1255_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1255_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1255);
 }
 
-static int cp1256_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1256_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1256);
 }
 
-static int cp1257_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1257_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1257);
 }
 
-static int cp1258_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp1258_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP1258);
 }
 
-static int cp874_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int cp874_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, CP874);
 }
 
-static int viscii_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int viscii_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, VISCII);
 }
 
-static int iscii_parser_next_char(ef_parser_t* parser, ef_char_t* ch) {
+static int iscii_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, ((ef_iscii_parser_t*)parser)->cs);
 }
 
-static void parser_set_str(ef_parser_t* parser, u_char* str, size_t size) {
+static void parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;
   parser->is_eos = 0;
 }
 
-static void parser_delete(ef_parser_t* s) { free(s); }
+static void parser_delete(ef_parser_t *s) { free(s); }
 
-static ef_parser_t* iscii_parser_new(ef_charset_t cs) {
-  ef_iscii_parser_t* iscii_parser;
+static ef_parser_t *iscii_parser_new(ef_charset_t cs) {
+  ef_iscii_parser_t *iscii_parser;
 
   if ((iscii_parser = malloc(sizeof(ef_iscii_parser_t))) == NULL) {
     return NULL;
@@ -135,8 +135,8 @@ static ef_parser_t* iscii_parser_new(ef_charset_t cs) {
 
 /* --- global functions --- */
 
-ef_parser_t* ef_koi8_r_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_koi8_r_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -152,8 +152,8 @@ ef_parser_t* ef_koi8_r_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_koi8_u_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_koi8_u_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -169,8 +169,8 @@ ef_parser_t* ef_koi8_u_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_koi8_t_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_koi8_t_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -186,8 +186,8 @@ ef_parser_t* ef_koi8_t_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_georgian_ps_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_georgian_ps_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -203,8 +203,8 @@ ef_parser_t* ef_georgian_ps_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1250_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1250_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -220,8 +220,8 @@ ef_parser_t* ef_cp1250_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1251_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1251_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -237,8 +237,8 @@ ef_parser_t* ef_cp1251_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1252_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1252_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -254,8 +254,8 @@ ef_parser_t* ef_cp1252_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1253_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1253_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -271,8 +271,8 @@ ef_parser_t* ef_cp1253_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1254_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1254_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -288,8 +288,8 @@ ef_parser_t* ef_cp1254_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1255_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1255_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -305,8 +305,8 @@ ef_parser_t* ef_cp1255_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1256_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1256_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -322,8 +322,8 @@ ef_parser_t* ef_cp1256_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1257_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1257_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -339,8 +339,8 @@ ef_parser_t* ef_cp1257_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp1258_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp1258_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -356,8 +356,8 @@ ef_parser_t* ef_cp1258_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_cp874_parser_new(void) {
-  ef_parser_t* parser;
+ef_parser_t *ef_cp874_parser_new(void) {
+  ef_parser_t *parser;
 
   if ((parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -373,8 +373,8 @@ ef_parser_t* ef_cp874_parser_new(void) {
   return parser;
 }
 
-ef_parser_t* ef_viscii_parser_new(void) {
-  ef_parser_t* viscii_parser;
+ef_parser_t *ef_viscii_parser_new(void) {
+  ef_parser_t *viscii_parser;
 
   if ((viscii_parser = malloc(sizeof(ef_parser_t))) == NULL) {
     return NULL;
@@ -390,22 +390,22 @@ ef_parser_t* ef_viscii_parser_new(void) {
   return viscii_parser;
 }
 
-ef_parser_t* ef_iscii_assamese_parser_new(void) { return iscii_parser_new(ISCII_ASSAMESE); }
+ef_parser_t *ef_iscii_assamese_parser_new(void) { return iscii_parser_new(ISCII_ASSAMESE); }
 
-ef_parser_t* ef_iscii_bengali_parser_new(void) { return iscii_parser_new(ISCII_BENGALI); }
+ef_parser_t *ef_iscii_bengali_parser_new(void) { return iscii_parser_new(ISCII_BENGALI); }
 
-ef_parser_t* ef_iscii_gujarati_parser_new(void) { return iscii_parser_new(ISCII_GUJARATI); }
+ef_parser_t *ef_iscii_gujarati_parser_new(void) { return iscii_parser_new(ISCII_GUJARATI); }
 
-ef_parser_t* ef_iscii_hindi_parser_new(void) { return iscii_parser_new(ISCII_HINDI); }
+ef_parser_t *ef_iscii_hindi_parser_new(void) { return iscii_parser_new(ISCII_HINDI); }
 
-ef_parser_t* ef_iscii_kannada_parser_new(void) { return iscii_parser_new(ISCII_KANNADA); }
+ef_parser_t *ef_iscii_kannada_parser_new(void) { return iscii_parser_new(ISCII_KANNADA); }
 
-ef_parser_t* ef_iscii_malayalam_parser_new(void) { return iscii_parser_new(ISCII_MALAYALAM); }
+ef_parser_t *ef_iscii_malayalam_parser_new(void) { return iscii_parser_new(ISCII_MALAYALAM); }
 
-ef_parser_t* ef_iscii_oriya_parser_new(void) { return iscii_parser_new(ISCII_ORIYA); }
+ef_parser_t *ef_iscii_oriya_parser_new(void) { return iscii_parser_new(ISCII_ORIYA); }
 
-ef_parser_t* ef_iscii_punjabi_parser_new(void) { return iscii_parser_new(ISCII_PUNJABI); }
+ef_parser_t *ef_iscii_punjabi_parser_new(void) { return iscii_parser_new(ISCII_PUNJABI); }
 
-ef_parser_t* ef_iscii_tamil_parser_new(void) { return iscii_parser_new(ISCII_TAMIL); }
+ef_parser_t *ef_iscii_tamil_parser_new(void) { return iscii_parser_new(ISCII_TAMIL); }
 
-ef_parser_t* ef_iscii_telugu_parser_new(void) { return iscii_parser_new(ISCII_TELUGU); }
+ef_parser_t *ef_iscii_telugu_parser_new(void) { return iscii_parser_new(ISCII_TELUGU); }

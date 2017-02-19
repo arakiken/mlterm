@@ -8,11 +8,11 @@
 /* --- static variables --- */
 
 /* Order of this table must be same as ui_bel_mode_t. */
-static char* bel_mode_name_table[] = {"none", "sound", "visual", "sound|visual"};
+static char *bel_mode_name_table[] = {"none", "sound", "visual", "sound|visual"};
 
 /* --- global functions --- */
 
-ui_bel_mode_t ui_get_bel_mode_by_name(char* name) {
+ui_bel_mode_t ui_get_bel_mode_by_name(char *name) {
   ui_bel_mode_t mode;
 
   for (mode = 0; mode < BEL_MODE_MAX; mode++) {
@@ -25,7 +25,7 @@ ui_bel_mode_t ui_get_bel_mode_by_name(char* name) {
   return BEL_SOUND;
 }
 
-char* ui_get_bel_mode_name(ui_bel_mode_t mode) {
+char *ui_get_bel_mode_name(ui_bel_mode_t mode) {
   if ((u_int)mode >= BEL_MODE_MAX) {
     /* default value */
     mode = BEL_SOUND;

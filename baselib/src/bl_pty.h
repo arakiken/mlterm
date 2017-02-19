@@ -5,7 +5,7 @@
 
 #include "bl_types.h" /* pid_t */
 
-pid_t bl_pty_fork(int* master, int* slave);
+pid_t bl_pty_fork(int *master, int *slave);
 
 int bl_pty_close(int master);
 

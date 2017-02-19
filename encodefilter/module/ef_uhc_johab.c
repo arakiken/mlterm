@@ -11,7 +11,7 @@
 
 /* --- global functions --- */
 
-int ef_map_johab_to_uhc(ef_char_t* uhc, ef_char_t* johab) {
+int ef_map_johab_to_uhc(ef_char_t *uhc, ef_char_t *johab) {
   u_int16_t johab_code;
   u_int16_t c;
 
@@ -28,7 +28,7 @@ int ef_map_johab_to_uhc(ef_char_t* uhc, ef_char_t* johab) {
   return 0;
 }
 
-int ef_map_uhc_to_johab(ef_char_t* johab, ef_char_t* uhc) {
+int ef_map_uhc_to_johab(ef_char_t *johab, ef_char_t *uhc) {
   u_int16_t uhc_code;
   u_int16_t c;
 

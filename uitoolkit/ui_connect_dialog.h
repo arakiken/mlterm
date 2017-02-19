@@ -20,7 +20,7 @@
 #define IDD_X11 20
 #endif
 
-int ui_connect_dialog(char** uri, char** pass, char** exec_cmd, int* x11_fwd, char* display_name,
-                      Window parent_window, char** server_list, char* default_server);
+int ui_connect_dialog(char **uri, char **pass, char **exec_cmd, int *x11_fwd, char *display_name,
+                      Window parent_window, char **server_list, char *default_server);
 
 #endif

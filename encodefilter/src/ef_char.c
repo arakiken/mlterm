@@ -7,7 +7,7 @@
 
 /* --- global functions --- */
 
-u_char* ef_int_to_bytes(u_char* bytes, size_t len, u_int32_t int_ch) {
+u_char *ef_int_to_bytes(u_char *bytes, size_t len, u_int32_t int_ch) {
   if (len == 1) {
     bytes[0] = int_ch & 0xff;
   } else if (len == 2) {
@@ -25,7 +25,7 @@ u_char* ef_int_to_bytes(u_char* bytes, size_t len, u_int32_t int_ch) {
   return bytes;
 }
 
-u_int32_t ef_bytes_to_int(const u_char* bytes, size_t len) {
+u_int32_t ef_bytes_to_int(const u_char *bytes, size_t len) {
   switch (len) {
     case 1:
       return bytes[0];

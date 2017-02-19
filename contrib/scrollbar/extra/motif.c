@@ -27,10 +27,10 @@ typedef struct motif_sb_view {
 
 /* --- static functions --- */
 
-static void get_geometry_hints(ui_sb_view_t* view, unsigned int* width, unsigned int* top_margin,
-                               unsigned int* bottom_margin, int* up_button_y,
-                               unsigned int* up_button_height, int* down_button_y,
-                               unsigned int* down_button_height) {
+static void get_geometry_hints(ui_sb_view_t *view, unsigned int *width, unsigned int *top_margin,
+                               unsigned int *bottom_margin, int *up_button_y,
+                               unsigned int *up_button_height, int *down_button_y,
+                               unsigned int *down_button_height) {
   *width = WIDTH;
   *top_margin = V_MARGIN;
   *bottom_margin = V_MARGIN;
@@ -40,14 +40,14 @@ static void get_geometry_hints(ui_sb_view_t* view, unsigned int* width, unsigned
   *down_button_height = V_MARGIN;
 }
 
-static void get_default_color(ui_sb_view_t* view, char** fg_color, char** bg_color) {
+static void get_default_color(ui_sb_view_t *view, char **fg_color, char **bg_color) {
   *fg_color = "gray";
   *bg_color = "lightgray";
 }
 
-static void realized(ui_sb_view_t* view, Display* display, int screen, Window window, GC gc,
+static void realized(ui_sb_view_t *view, Display *display, int screen, Window window, GC gc,
                      unsigned int height) {
-  motif_sb_view_t* motif_sb;
+  motif_sb_view_t *motif_sb;
   XWindowAttributes attr;
   XGCValues gc_value;
 
@@ -70,8 +70,8 @@ static void realized(ui_sb_view_t* view, Display* display, int screen, Window wi
   motif_sb->cmap = attr.colormap;
 }
 
-static void resized(ui_sb_view_t* view, Window window, unsigned int height) {
-  motif_sb_view_t* motif_sb;
+static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
+  motif_sb_view_t *motif_sb;
 
   motif_sb = (motif_sb_view_t*)view;
 
@@ -79,8 +79,8 @@ static void resized(ui_sb_view_t* view, Window window, unsigned int height) {
   view->height = height;
 }
 
-static void delete (ui_sb_view_t* view) {
-  motif_sb_view_t* motif_sb;
+static void delete (ui_sb_view_t *view) {
+  motif_sb_view_t *motif_sb;
 
   motif_sb = (motif_sb_view_t*)view;
 
@@ -102,8 +102,8 @@ static unsigned short adjust_rgb(unsigned short v, float fac) {
   }
 }
 
-static void color_changed(ui_sb_view_t* view, int is_fg) {
-  motif_sb_view_t* motif_sb;
+static void color_changed(ui_sb_view_t *view, int is_fg) {
+  motif_sb_view_t *motif_sb;
   XColor color;
   XColor color_lighter;
   XColor color_darker;
@@ -164,8 +164,8 @@ static void color_changed(ui_sb_view_t* view, int is_fg) {
   }
 }
 
-static void draw_button(ui_sb_view_t* view, char** data, unsigned int offset_y) {
-  motif_sb_view_t* motif_sb;
+static void draw_button(ui_sb_view_t *view, char **data, unsigned int offset_y) {
+  motif_sb_view_t *motif_sb;
   char cur = '\0';
   int x;
   int y;
@@ -216,9 +216,9 @@ static void draw_button(ui_sb_view_t* view, char** data, unsigned int offset_y) 
   }
 }
 
-static void draw_up_button(ui_sb_view_t* view, int is_pressed) {
-  motif_sb_view_t* motif_sb;
-  char** src;
+static void draw_up_button(ui_sb_view_t *view, int is_pressed) {
+  motif_sb_view_t *motif_sb;
+  char **src;
   XSegment line[4];
 
   motif_sb = (motif_sb_view_t*)view;
@@ -264,9 +264,9 @@ static void draw_up_button(ui_sb_view_t* view, int is_pressed) {
   XDrawSegments(view->display, view->window, motif_sb->gc, line, 2);
 }
 
-static void draw_down_button(ui_sb_view_t* view, int is_pressed) {
-  motif_sb_view_t* motif_sb;
-  char** src;
+static void draw_down_button(ui_sb_view_t *view, int is_pressed) {
+  motif_sb_view_t *motif_sb;
+  char **src;
   XSegment line[4];
 
   motif_sb = (motif_sb_view_t*)view;
@@ -312,8 +312,8 @@ static void draw_down_button(ui_sb_view_t* view, int is_pressed) {
   XDrawSegments(view->display, view->window, motif_sb->gc, line, 4);
 }
 
-static void draw_scrollbar(ui_sb_view_t* view, int bar_top_y, unsigned int bar_height) {
-  motif_sb_view_t* motif_sb;
+static void draw_scrollbar(ui_sb_view_t *view, int bar_top_y, unsigned int bar_height) {
+  motif_sb_view_t *motif_sb;
   XSegment line[4];
 
   motif_sb = (motif_sb_view_t*)view;
@@ -393,8 +393,8 @@ static void draw_scrollbar(ui_sb_view_t* view, int bar_top_y, unsigned int bar_h
 
 /* --- global functions --- */
 
-ui_sb_view_t* ui_motif_sb_view_new(void) {
-  motif_sb_view_t* motif_sb;
+ui_sb_view_t *ui_motif_sb_view_new(void) {
+  motif_sb_view_t *motif_sb;
 
   if ((motif_sb = calloc(1, sizeof(motif_sb_view_t))) == NULL) {
     return NULL;
@@ -416,8 +416,8 @@ ui_sb_view_t* ui_motif_sb_view_new(void) {
   return (ui_sb_view_t*)motif_sb;
 }
 
-ui_sb_view_t* ui_motif_transparent_sb_view_new(void) {
-  motif_sb_view_t* motif_sb;
+ui_sb_view_t *ui_motif_transparent_sb_view_new(void) {
+  motif_sb_view_t *motif_sb;
 
   if ((motif_sb = calloc(1, sizeof(motif_sb_view_t))) == NULL) {
     return NULL;

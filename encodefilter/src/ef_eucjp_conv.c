@@ -12,7 +12,7 @@
 
 /* --- static functions --- */
 
-static void remap_unsupported_charset(ef_char_t* ch, ef_charset_t g1, ef_charset_t g3) {
+static void remap_unsupported_charset(ef_char_t *ch, ef_charset_t g1, ef_charset_t g3) {
   ef_char_t c;
 
   if (ch->cs == ISO10646_UCS4_1) {
@@ -90,11 +90,11 @@ static void remap_unsupported_charset(ef_char_t* ch, ef_charset_t g1, ef_charset
   }
 }
 
-static size_t convert_to_eucjp(ef_conv_t* conv, u_char* dst, size_t dst_size,
-                               ef_parser_t* parser) {
+static size_t convert_to_eucjp(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                               ef_parser_t *parser) {
   size_t filled_size;
   ef_char_t ch;
-  ef_iso2022_conv_t* iso2022_conv;
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -165,8 +165,8 @@ static size_t convert_to_eucjp(ef_conv_t* conv, u_char* dst, size_t dst_size,
   return filled_size;
 }
 
-static void eucjp_conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void eucjp_conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -178,8 +178,8 @@ static void eucjp_conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = JISX0212_1990;
 }
 
-static void eucjisx0213_conv_init(ef_conv_t* conv) {
-  ef_iso2022_conv_t* iso2022_conv;
+static void eucjisx0213_conv_init(ef_conv_t *conv) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   iso2022_conv = (ef_iso2022_conv_t*)conv;
 
@@ -191,12 +191,12 @@ static void eucjisx0213_conv_init(ef_conv_t* conv) {
   iso2022_conv->g3 = JISX0213_2000_2;
 }
 
-static void conv_delete(ef_conv_t* conv) { free(conv); }
+static void conv_delete(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
-ef_conv_t* ef_eucjp_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_eucjp_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;
@@ -212,8 +212,8 @@ ef_conv_t* ef_eucjp_conv_new(void) {
   return (ef_conv_t*)iso2022_conv;
 }
 
-ef_conv_t* ef_eucjisx0213_conv_new(void) {
-  ef_iso2022_conv_t* iso2022_conv;
+ef_conv_t *ef_eucjisx0213_conv_new(void) {
+  ef_iso2022_conv_t *iso2022_conv;
 
   if ((iso2022_conv = malloc(sizeof(ef_iso2022_conv_t))) == NULL) {
     return NULL;

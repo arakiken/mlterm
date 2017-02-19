@@ -187,14 +187,14 @@ void vt_pty_ssh_set_use_auto_reconnect(int use) {
 
 int vt_pty_ssh_scp(vt_pty_ptr_t pty, vt_char_encoding_t pty_encoding, /* Not VT_UNKNOWN_ENCODING */
                    vt_char_encoding_t path_encoding,                  /* Not VT_UNKNOWN_ENCODING */
-                   char* dst_path, char* src_path, int use_scp_full) {
+                   char *dst_path, char *src_path, int use_scp_full) {
   int dst_is_remote;
   int src_is_remote;
-  char* file;
+  char *file;
   char* _dst_path;
   char* _src_path;
   size_t len;
-  char* p;
+  char *p;
   vt_char_encoding_t locale_encoding;
 
   if (strncmp(dst_path, "remote:", 7) == 0) {
@@ -235,7 +235,7 @@ int vt_pty_ssh_scp(vt_pty_ptr_t pty, vt_char_encoding_t pty_encoding, /* Not VT_
     /* do nothing */
   } else if (IS_RELATIVE_PATH_UNIX(dst_path)) /* dst_path is always unix style. */
   {
-    char* prefix;
+    char *prefix;
 
     if (strstr(dst_path, "..")) {
       /* insecure file name */
