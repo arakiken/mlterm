@@ -1193,20 +1193,17 @@ int ui_set_use_clipboard_selection(int use_it) { return 0; }
 int ui_is_using_clipboard_selection(void) { return 0; }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
+  if (ui_window_is_selection_owner(win)) {
+    /* Already owner */
+
+    return 1;
+  }
+
 #if 0
   bl_debug_printf(BL_DEBUG_TAG " ui_window_set_selection_owner.\n");
 #endif
 
-#if 0
-  if ((!win->is_sel_owner && !ui_display_own_selection(win->disp, win)) ||
-      !cocoa_clipboard_own(win->my_window)) {
-    return 0;
-  }
-
-  win->is_sel_owner = 1;
-#else
   cocoa_clipboard_own(win->my_window);
-#endif
 
   return 1;
 }
@@ -1228,41 +1225,6 @@ int ui_window_utf_selection_request(ui_window_t *win, Time time) {
 }
 
 int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height) {
-#if 0
-  HBITMAP hbmp;
-  HGDIOBJ old;
-  HDC hdc;
-
-  if (MessageBox(win->my_window, "Set this picture to the clipboard.", "", MB_OKCANCEL) != IDOK) {
-    return 0;
-  }
-
-  hbmp = CreateCompatibleBitmap(pixmap, width, height);
-  hdc = CreateCompatibleDC(pixmap);
-  old = SelectObject(hdc, hbmp);
-  BitBlt(hdc, 0, 0, width, height, pixmap, 0, 0, SRCCOPY);
-  SelectObject(hdc, old);
-  DeleteDC(hdc);
-
-  if ((!win->is_sel_owner && !ui_display_own_selection(win->disp, win)) ||
-      OpenClipboard(win->my_window) == FALSE) {
-    return 0;
-  }
-
-  /*
-   * If win->is_sel_owner is already 1, win->is_sel_owner++ prevents
-   * WM_DESTROYCLIPBOARD by EmtpyClipboard() from calling
-   * ui_display_clear_selection().
-   */
-  win->is_sel_owner++;
-
-  EmptyClipboard();
-  SetClipboardData(CF_BITMAP, hbmp);
-  CloseClipboard();
-
-  DeleteObject(hbmp);
-#endif
-
   return 1;
 }
 

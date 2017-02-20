@@ -833,6 +833,8 @@ int ui_window_final(ui_window_t *win) {
 
   free(win->children);
 
+  ui_display_clear_selection(win->disp, win);
+
   if (win->window_finalized) {
     (*win->window_finalized)(win);
   }
@@ -1772,14 +1774,18 @@ int ui_set_use_clipboard_selection(int use_it) { return 0; }
 int ui_is_using_clipboard_selection(void) { return 0; }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
+  if (ui_window_is_selection_owner(win)) {
+    /* Already owner */
+
+    return 1;
+  }
+
+  ui_display_own_selection(win->disp, win);
+
 #if defined(__ANDROID__)
   if (win->utf_selection_requested) {
     (*win->utf_selection_requested)(win, NULL, 0);
   }
-#elif defined(USE_WAYLAND)
-  ui_display_own_selection(win->disp, win);
-#else
-  win->is_sel_owner = 1;
 #endif
 
   return 1;
@@ -1790,6 +1796,13 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time) {
   ui_display_request_text_selection();
 #elif defined(USE_WAYLAND)
   ui_display_request_text_selection(win->disp);
+#else
+  if (win->disp->selection_owner && win->disp->selection_owner->xct_selection_requested) {
+    XSelectionRequestEvent ev;
+    ev.type = 0;
+    ev.target = win;
+    (*win->disp->selection_owner->xct_selection_requested)(win->disp->selection_owner, &ev, 0);
+  }
 #endif
 
   return 1;
@@ -1800,6 +1813,13 @@ int ui_window_utf_selection_request(ui_window_t *win, Time time) {
   ui_display_request_text_selection();
 #elif defined(USE_WAYLAND)
   ui_display_request_text_selection(win->disp);
+#else
+  if (win->disp->selection_owner && win->disp->selection_owner->utf_selection_requested) {
+    XSelectionRequestEvent ev;
+    ev.type = 1;
+    ev.target = win;
+    (*win->disp->selection_owner->utf_selection_requested)(win->disp->selection_owner, &ev, 0);
+  }
 #endif
 
   return 1;
@@ -1815,6 +1835,18 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
   ui_display_send_text_selection(sel_data, sel_len);
 #elif defined(USE_WAYLAND)
   ui_display_send_text_selection(win->disp, req_ev, sel_data, sel_len);
+#else
+  if (req_ev) {
+    if (req_ev->type == 1) {
+      if (req_ev->target->utf_selection_notified) {
+        (*req_ev->target->utf_selection_notified)(req_ev->target, sel_data, sel_len);
+      }
+    } else {
+      if (req_ev->target->xct_selection_notified) {
+        (*req_ev->target->xct_selection_notified)(req_ev->target, sel_data, sel_len);
+      }
+    }
+  }
 #endif
 
   return 1;

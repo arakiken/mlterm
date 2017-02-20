@@ -1430,8 +1430,6 @@ int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
     }
   }
 
-  win->is_sel_owner = 1;
-
   wlserv->sel_source = wl_data_device_manager_create_data_source(wlserv->data_device_manager);
   wl_data_source_add_listener(wlserv->sel_source, &data_source_listener, disp);
   wl_data_source_offer(wlserv->sel_source, "UTF8_STRING");
@@ -1455,8 +1453,6 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
       }
     }
   }
-
-  win->is_sel_owner = 0;
 
   if (win->selection_cleared) {
     (*win->selection_cleared)(win);

@@ -1363,9 +1363,29 @@ int ui_display_receive_next_event(ui_display_t *disp) {
  * Folloing functions called from ui_window.c
  */
 
-int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) { return 0; }
+int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
+  if (_disp.selection_owner) {
+    ui_display_clear_selection(&_disp, _disp.selection_owner);
+  }
 
-int ui_display_clear_selection(ui_display_t *disp, ui_window_t *win) { return 0; }
+  _disp.selection_owner = win;
+
+  return 1;
+}
+
+int ui_display_clear_selection(ui_display_t *disp /* can be NULL */, ui_window_t *win) {
+  if (_disp.selection_owner == NULL || _disp.selection_owner != win) {
+    return 0;
+  }
+
+  if (_disp.selection_owner->selection_cleared) {
+    (*_disp.selection_owner->selection_cleared)(_disp.selection_owner);
+  }
+
+  _disp.selection_owner = NULL;
+
+  return 1;
+}
 
 XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return disp->modmap.map; }
 

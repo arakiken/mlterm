@@ -1381,7 +1381,7 @@ static void convert_nl_to_cr2(vt_char_t *str, u_int len) {
 #endif
 
 static int yank_event_received(ui_screen_t *screen, Time time) {
-  if (screen->window.is_sel_owner) {
+  if (ui_window_is_selection_owner(&screen->window)) {
     if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
       return 0;
     }

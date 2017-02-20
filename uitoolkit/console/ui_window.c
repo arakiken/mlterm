@@ -395,6 +395,8 @@ int ui_window_final(ui_window_t *win) {
 
   free(win->children);
 
+  ui_display_clear_selection(win->disp, win);
+
   if (win->window_finalized) {
     (*win->window_finalized)(win);
   }
@@ -1015,12 +1017,6 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 
   ch = event->ksym;
 
-#ifdef __ANDROID__
-  if (ch == 0) {
-    return ui_display_get_str(seq, seq_len);
-  }
-#endif
-
   if ((*keysym = event->ksym) >= 0x100) {
     switch (*keysym) {
       case XK_KP_Multiply:
@@ -1279,30 +1275,20 @@ int ui_set_use_clipboard_selection(int use_it) { return 0; }
 int ui_is_using_clipboard_selection(void) { return 0; }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
-#ifdef __ANDROID__
-  if (win->utf_selection_requested) {
-    (*win->utf_selection_requested)(win, NULL, 0);
-  }
-#else
-  win->is_sel_owner = 1;
-#endif
+  if (ui_window_is_selection_owner(win)) {
+    /* Already owner */
 
-  return 1;
+    return 1;
+  }
+
+  return ui_display_own_selection(win->disp, win);
 }
 
 int ui_window_xct_selection_request(ui_window_t *win, Time time) {
-#ifdef __ANDROID__
-  ui_display_request_text_selection();
-#endif
-
   return 1;
 }
 
 int ui_window_utf_selection_request(ui_window_t *win, Time time) {
-#ifdef __ANDROID__
-  ui_display_request_text_selection();
-#endif
-
   return 1;
 }
 
@@ -1312,10 +1298,6 @@ int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int widt
 
 int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
                                   u_char *sel_data, size_t sel_len, Atom sel_type) {
-#ifdef __ANDROID__
-  ui_display_send_text_selection(sel_data, sel_len);
-#endif
-
   return 1;
 }
 

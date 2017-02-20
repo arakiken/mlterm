@@ -403,8 +403,6 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
     return 0;
   }
 
-  disp->selection_owner->is_sel_owner = 0;
-
   if (disp->selection_owner->selection_cleared) {
     (*disp->selection_owner->selection_cleared)(disp->selection_owner);
   }

@@ -1,3 +1,26 @@
+2017-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/ui_window.c: If ui_window_is_selection_owner() is true,
+	  ui_window_set_selection_owner() does nothing.
+
+	* fb/ui_window.c:
+	  - ui_display_clear_selection() is called in ui_window_final().
+	  - ui_display_own_selection() is called in ui_window_set_selection_owner().
+	  - ui_window_{utf|xct}_selection_request() works on framebuffer.
+
+	* fb/ui.h: XSelectionRequestEvent is defined as a structure.
+
+	* console/ui_window.c:
+	  - ui_display_clear_selection() is called in ui_window_final().
+	  - ui_display_own_selection() is called in ui_window_set_selection_owner().
+
+	* android/jni/ui_display.c, console/ui_display.c, fb/ui_display.c:
+	  ui_display_own_selection() and ui_display_clear_selection() are implemented.
+
+	* ui_window.h, ui_screen.c:
+	  - is_sel_owner is removed from ui_window_t on platforms except win32.
+	  - ui_window_is_selection_owner() is added.
+
 2017-02-19  Araki Ken  <arakiken@users.sf.net>
 
 	* *.[ch], *.[ch].in: 'type* var' => 'type *var'

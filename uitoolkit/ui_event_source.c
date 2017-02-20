@@ -196,7 +196,9 @@ static void receive_next_event(void) {
       ui_display_idling(displays[count]);
     }
 
+#if (defined(__NetBSD__) && defined(USE_FRAMEBUFFER)) || defined(USE_WAYLAND)
   additional_minus_fds:
+#endif
     /*
      * additional_fds.handler (-> update_preedit_text -> cand_screen->delete) of
      * ibus may destroy ui_display on wayland.

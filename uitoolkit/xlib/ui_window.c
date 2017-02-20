@@ -2246,10 +2246,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
   }
 #endif
   else if (event->type == SelectionClear) {
-    /*
-     * Call win->selection_cleared and win->is_sel_owner is set 0
-     * in ui_display_clear_selection.
-     */
+    /* Call win->selection_cleared in ui_display_clear_selection. */
     ui_display_clear_selection(win->disp, win);
 
     free(sel_bmp);
@@ -2849,10 +2846,9 @@ int ui_set_use_clipboard_selection(int use_it) {
   use_clipboard = use_it;
 
   /*
-   * 'is_sel_owner' member of all ui_window_t is reset.
-   * If 'is_sel_owner' is not reset and value of 'use_clipboard' option
-   * is changed from false to true dynamically,
-   * ui_window_set_selection_owner() returns before calling
+   * disp->selection_owner is reset.
+   * If it isn't reset and value of 'use_clipboard' option is changed from false
+   * to true dynamically, ui_window_set_selection_owner() returns before calling
    * XSetSelectionOwner().
    */
   ui_display_clear_selection(NULL, NULL);
@@ -2863,7 +2859,7 @@ int ui_set_use_clipboard_selection(int use_it) {
 int ui_is_using_clipboard_selection(void) { return use_clipboard; }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
-  if (win->is_sel_owner) {
+  if (ui_window_is_selection_owner(win)) {
     /* Already owner */
 
     return 1;
@@ -2887,8 +2883,6 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
            XGetSelectionOwner(win->disp->display, XA_CLIPBOARD(win->disp->display)))) {
     return 0;
   } else {
-    win->is_sel_owner = 1;
-
     return ui_display_own_selection(win->disp, win);
   }
 }

@@ -49,6 +49,7 @@ typedef struct {
 typedef struct {
   int type;
   struct ui_window *target;
+
 } XSelectionRequestEvent;
 
 typedef union {

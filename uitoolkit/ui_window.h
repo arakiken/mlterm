@@ -156,7 +156,9 @@ typedef struct ui_window {
 #else
   Pixmap wall_picture;
 #endif
+#ifdef USE_WIN32GUI
   int8_t is_sel_owner;
+#endif
   int8_t is_transparent;
   int8_t is_scrollable;
   int8_t is_focused;
@@ -381,6 +383,8 @@ int ui_set_use_clipboard_selection(int use_it);
 int ui_is_using_clipboard_selection(void);
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time);
+
+#define ui_window_is_selection_owner(win) ((win) == (win)->disp->selection_owner)
 
 int ui_window_string_selection_request(ui_window_t *win, Time time);
 
