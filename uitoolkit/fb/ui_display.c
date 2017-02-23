@@ -643,7 +643,7 @@ static void draw_mouse_cursor_line(int y) {
         case 1:
           tmp = rotate_display;
           rotate_display = 0;
-          image[x] = ui_display_get_pixel(_mouse.cursor.x + x, _mouse.cursor.y + y);
+          image[x] = ui_display_get_pixel2(_mouse.cursor.x + x, _mouse.cursor.y + y);
           rotate_display = tmp;
           break;
 
@@ -1303,7 +1303,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 
   disp->roots[disp->num_of_roots++] = root;
 
-  /* Cursor is drawn internally by calling ui_display_put_image(). */
+  /* Cursor is drawn internally by calling ui_display_put_image2(). */
   if (!ui_window_show(root, hint)) {
     return 0;
   }
@@ -1514,7 +1514,7 @@ void ui_display_rotate(int rotate /* 1: clockwise, -1: counterclockwise */
   }
 }
 
-u_long ui_display_get_pixel(int x, int y) {
+u_long ui_display_get_pixel2(int x, int y) {
   u_char *fb;
   u_long pixel;
 
@@ -1555,7 +1555,7 @@ u_long ui_display_get_pixel(int x, int y) {
   return pixel;
 }
 
-void ui_display_put_image(int x, int y, u_char *image, size_t size, int need_fb_pixel) {
+void ui_display_put_image2(int x, int y, u_char *image, size_t size, int need_fb_pixel) {
   if (_display.pixels_per_byte > 1) {
     put_image_124bpp(x, y, image, size, 1, need_fb_pixel);
   } else if (!rotate_display) {
@@ -1812,7 +1812,7 @@ void ui_display_fill_with(int x, int y, u_int width, u_int height, u_int8_t pixe
   }
 }
 
-void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int width, u_int height) {
+void ui_display_copy_lines2(int src_x, int src_y, int dst_x, int dst_y, u_int width, u_int height) {
   u_char *src;
   u_char *dst;
   u_int copy_len;

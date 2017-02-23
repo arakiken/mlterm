@@ -688,6 +688,11 @@ face_found:
   xfont->width_full =
       (face->max_advance_width * face->size->metrics.x_ppem + face->units_per_EM - 1) /
       face->units_per_EM;
+#ifdef __DEBUG
+  bl_debug_printf("maxw %d ppem %d units %d => w %d\n",
+                  face->max_advance_width, face->size->metrics.x_ppem,
+                  face->units_per_EM, xfont->width_full);
+#endif
   if (is_aa) {
     xfont->glyph_width_bytes = xfont->width_full * 3;
     xfont->width = face->glyph->bitmap.width / 3;
@@ -698,6 +703,11 @@ face_found:
 
   xfont->height = (face->max_advance_height * face->size->metrics.y_ppem + face->units_per_EM - 1) /
                   face->units_per_EM;
+#ifdef __DEBUG
+  bl_debug_printf("maxh %d ppem %d units %d => h %d\n",
+                  face->max_advance_height, face->size->metrics.y_ppem,
+                  face->units_per_EM, xfont->height);
+#endif
   xfont->ascent =
       (face->ascender * face->size->metrics.y_ppem + face->units_per_EM - 1) / face->units_per_EM;
 

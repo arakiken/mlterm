@@ -962,25 +962,36 @@ int ui_display_receive_next_event(ui_display_t *disp) { return receive_stdin_eve
  */
 
 int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
-  if (_disp.selection_owner) {
-    ui_display_clear_selection(&_disp, _disp.selection_owner);
+  if (disp->selection_owner) {
+    ui_display_clear_selection(NULL, NULL);
   }
 
-  _disp.selection_owner = win;
+  disp->selection_owner = win;
 
   return 1;
 }
 
-int ui_display_clear_selection(ui_display_t *disp /* can be NULL */, ui_window_t *win) {
-  if (_disp.selection_owner == NULL || _disp.selection_owner != win) {
+int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection owner windows. */
+                               ui_window_t *win) {
+  if (disp == NULL) {
+    u_int count;
+
+    for (count = 0; count < num_of_displays; count++) {
+      ui_display_clear_selection(displays[count], displays[count]->selection_owner);
+    }
+
+    return 1;
+  }
+
+  if (disp->selection_owner == NULL || disp->selection_owner != win) {
     return 0;
   }
 
-  if (_disp.selection_owner->selection_cleared) {
-    (*_disp.selection_owner->selection_cleared)(_disp.selection_owner);
+  if (disp->selection_owner->selection_cleared) {
+    (*disp->selection_owner->selection_cleared)(disp->selection_owner);
   }
 
-  _disp.selection_owner = NULL;
+  disp->selection_owner = NULL;
 
   return 1;
 }
@@ -1001,13 +1012,6 @@ void ui_display_reset_input_method_window(void) {
     ui_window_clear_margin_area(displays[0]->roots[1]);
   }
 }
-
-#undef ui_display_reset_cmap
-#undef ui_display_set_use_ansi_colors
-
-int ui_display_reset_cmap(void) { return 1; }
-
-void ui_display_set_use_ansi_colors(int use) { return; }
 
 void ui_display_set_char_encoding(ui_display_t *disp, vt_char_encoding_t e) {
   encoding = e;

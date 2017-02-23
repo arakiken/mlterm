@@ -698,7 +698,7 @@ int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
 }
 
 int ui_display_clear_selection(ui_display_t *disp /* can be NULL */, ui_window_t *win) {
-  if (_disp.selection_owner == NULL || disp.selection_owner != win) {
+  if (_disp.selection_owner == NULL || _disp.selection_owner != win) {
     return 0;
   }
 
@@ -716,10 +716,6 @@ XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return di
 void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) { /* dummy */ }
 
 XID ui_display_get_group_leader(ui_display_t *disp) { return None; }
-
-int ui_display_reset_cmap(void) { return 0; }
-
-void ui_display_set_use_ansi_colors(int use) {}
 
 void ui_display_rotate(int rotate) {}
 
@@ -845,7 +841,7 @@ size_t ui_display_get_str(u_char *seq, size_t seq_len) {
   return len;
 }
 
-u_long ui_display_get_pixel(int x, int y) {
+u_long ui_display_get_pixel(ui_display_t *disp, int x, int y) {
   u_char *fb;
 
   fb = get_fb(x, y);
@@ -858,15 +854,15 @@ u_long ui_display_get_pixel(int x, int y) {
   }
 }
 
-void ui_display_put_image(int x, int y, u_char *image, size_t size, int need_fb_pixel) {
+void ui_display_put_image(ui_display_t *disp, int x, int y, u_char *image, size_t size,
+                          int need_fb_pixel) {
   if (display_lock()) {
     memcpy(get_fb(x, y), image, size);
   }
 }
 
-void ui_display_fill_with(int x, int y, u_int width, u_int height, u_int8_t pixel) {}
-
-void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int width, u_int height) {
+void ui_display_copy_lines(ui_display_t *disp, int src_x, int src_y, int dst_x, int dst_y,
+                           u_int width, u_int height) {
   if (display_lock()) {
     u_char *src;
     u_char *dst;
@@ -905,12 +901,6 @@ void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int wid
       }
     }
   }
-}
-
-int ui_cmap_get_closest_color(u_long *closest, int red, int green, int blue) { return 0; }
-
-int ui_cmap_get_pixel_rgb(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_long pixel) {
-  return 0;
 }
 
 u_char *ui_display_get_bitmap(char *path, u_int *width, u_int *height) {

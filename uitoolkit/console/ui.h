@@ -105,15 +105,20 @@ typedef struct {
 
 } XMotionEvent;
 
+typedef struct {
+  int type;
+  struct ui_window *target;
+
+} XSelectionRequestEvent;
+
 typedef union {
   int type;
   XKeyEvent xkey;
   XButtonEvent xbutton;
   XMotionEvent xmotion;
+  XSelectionRequestEvent xselectionrequest;
 
 } XEvent;
-
-typedef int XSelectionRequestEvent; /* dummy */
 
 typedef struct { void *dummy; } XFontStruct;
 

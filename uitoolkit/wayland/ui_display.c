@@ -1539,7 +1539,7 @@ void ui_display_move(ui_display_t *disp, int x, int y) {
   }
 }
 
-u_long ui_display_get_pixel(int x, int y, ui_display_t *disp) {
+u_long ui_display_get_pixel(ui_display_t *disp, int x, int y) {
   u_char *fb;
   u_long pixel;
 
@@ -1563,8 +1563,8 @@ u_long ui_display_get_pixel(int x, int y, ui_display_t *disp) {
   return pixel;
 }
 
-void ui_display_put_image(int x, int y, u_char *image, size_t size, int need_fb_pixel,
-                          ui_display_t *disp) {
+void ui_display_put_image(ui_display_t *disp, int x, int y, u_char *image, size_t size,
+                          int need_fb_pixel) {
   Display *display = disp->display;
 
   if (rotate_display) {
@@ -1610,10 +1610,8 @@ void ui_display_put_image(int x, int y, u_char *image, size_t size, int need_fb_
   }
 }
 
-void ui_display_fill_with(int x, int y, u_int width, u_int height, u_int8_t pixel) {}
-
-void ui_display_copy_lines(int src_x, int src_y, int dst_x, int dst_y, u_int width, u_int height,
-                           ui_display_t *disp) {
+void ui_display_copy_lines(ui_display_t *disp, int src_x, int src_y, int dst_x, int dst_y,
+                           u_int width, u_int height) {
   Display *display = disp->display;
   u_char *src;
   u_char *dst;
@@ -1691,7 +1689,6 @@ void ui_display_request_text_selection(ui_display_t *disp) {
       (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, &ev, 0);
     }
   } else if (disp->display->wlserv->sel_offer) {
-    bl_debug_printf("%s\n", disp->display->wlserv->sel_offer);
     receive_data(disp->display->wlserv, disp->display->wlserv->sel_offer, "UTF8_STRING");
   }
 }
@@ -1716,11 +1713,4 @@ u_char ui_display_get_char(KeySym ksym) {
     } else {
       return 0;
     }
-}
-
-/* seek the closest color */
-int ui_cmap_get_closest_color(u_long *closest, int red, int green, int blue) { return 0; }
-
-int ui_cmap_get_pixel_rgb(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_long pixel) {
-  return 0;
 }

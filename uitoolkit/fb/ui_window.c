@@ -28,12 +28,6 @@ static ui_color_t black = {TP_COLOR, 0, 0, 0, 0};
 /* XXX Check if win is input method window or not. */
 #define IS_IM_WINDOW(win) ((win)->disp->num_of_roots >= 2 && (win) == (win)->disp->roots[1])
 
-#ifdef USE_WAYLAND
-#define ADDITIONAL_ARG(arg) ,(arg)
-#else
-#define ADDITIONAL_ARG(arg)
-#endif
-
 /* --- static variables --- */
 
 static int click_interval = 250; /* millisecond, same as xterm. */
@@ -46,9 +40,9 @@ static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_
     return 0;
   }
 
-  ui_display_copy_lines(src_x + win->x + win->hmargin, src_y + win->y + win->vmargin,
-                        dst_x + win->x + win->hmargin, dst_y + win->y + win->vmargin, width,
-                        height ADDITIONAL_ARG(win->disp));
+  ui_display_copy_lines(win->disp, src_x + win->x + win->hmargin, src_y + win->y + win->vmargin,
+                        dst_x + win->x + win->hmargin, dst_y + win->y + win->vmargin,
+                        width, height);
 
   return 1;
 }
@@ -345,7 +339,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
           }
 
-          ui_display_put_image(x, y + y_off, src, p - src, 0 ADDITIONAL_ARG(win->disp));
+          ui_display_put_image(win->disp, x, y + y_off, src, p - src, 0);
         }
 
         return 1;
@@ -371,7 +365,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
           }
 
-          ui_display_put_image(x, y + y_off, src, p - src, 0 ADDITIONAL_ARG(win->disp));
+          ui_display_put_image(win->disp, x, y + y_off, src, p - src, 0);
         }
 
         return 1;
@@ -398,7 +392,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
           }
 
-          ui_display_put_image(x, y + y_off, src, p - src, 0 ADDITIONAL_ARG(win->disp));
+          ui_display_put_image(win->disp, x, y + y_off, src, p - src, 0);
         }
 
         return 1;
@@ -446,8 +440,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
           p += (font_width * bpp);
         } else {
           for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
-            copy_pixel(p, ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp)),
-                       bpp);
+            copy_pixel(p, ui_display_get_pixel(win->disp, x + x_off, y + y_off), bpp);
           }
         }
       }
@@ -494,7 +487,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
           for (; x_off < width - retreat; x_off++, p += bpp) {
             u_long bg;
 
-            bg = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
+            bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
 
             if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_color->pixel, bg, bpp)) {
               continue;
@@ -507,8 +500,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 
           for (; x_off < advance; x_off++, p += bpp) {
             if (count == 0 || x_off >= prev_crowded_out) {
-              copy_pixel(p, ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp)),
-                         bpp);
+              copy_pixel(p, ui_display_get_pixel(win->disp, x + x_off, y + y_off), bpp);
             }
           }
 
@@ -545,7 +537,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                   bg = bg_color->pixel;
                 }
               } else {
-                bg = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
+                bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
               }
 
               if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_color->pixel, bg,
@@ -555,7 +547,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             }
 
             if (!src_bg_is_set) {
-              pixel = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
+              pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
               copy_pixel(p, pixel, bpp);
             }
           }
@@ -581,7 +573,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
             } else if (src_bg_is_set) {
               continue;
             } else {
-              pixel = ui_display_get_pixel(x + x_off, y + y_off ADDITIONAL_ARG(win->disp));
+              pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
             }
           }
 
@@ -590,8 +582,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       }
     }
 
-    ui_display_put_image((x = orig_x), y + y_off, src, p - src, !src_bg_is_set
-                         ADDITIONAL_ARG(win->disp));
+    ui_display_put_image(win->disp, (x = orig_x), y + y_off, src, p - src, !src_bg_is_set);
   }
 
   return 1;
@@ -664,9 +655,9 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
           continue;
         }
 
-        ui_display_put_image(win->x + win->hmargin + dst_x + x_off - w,
+        ui_display_put_image(win->disp, win->x + win->hmargin + dst_x + x_off - w,
                              win->y + win->vmargin + dst_y + y_off, picture + bpp * (x_off - w),
-                             w * bpp, 0 ADDITIONAL_ARG(win->disp));
+                             w * bpp, 0);
         w = 0;
       }
 
@@ -679,8 +670,9 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
     size = width * bpp;
 
     for (y_off = 0; y_off < height; y_off++) {
-      ui_display_put_image(win->x + win->hmargin + dst_x, win->y + win->vmargin + dst_y + y_off,
-                           picture, size, 0 ADDITIONAL_ARG(win->disp));
+      ui_display_put_image(win->disp, win->x + win->hmargin + dst_x,
+                           win->y + win->vmargin + dst_y + y_off,
+                           picture, size, 0);
       picture += src_width_size;
     }
   }
@@ -1327,7 +1319,7 @@ int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int
         p += bpp;
       }
 
-      ui_display_put_image(x, y + y_off, src, size, 0 ADDITIONAL_ARG(win->disp));
+      ui_display_put_image(win->disp, x, y + y_off, src, size, 0);
     }
   }
 
@@ -1776,13 +1768,11 @@ int ui_is_using_clipboard_selection(void) { return 0; }
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
   if (ui_window_is_selection_owner(win)) {
     /* Already owner */
-
-    return 1;
+  } else {
+    ui_display_own_selection(win->disp, win);
   }
 
-  ui_display_own_selection(win->disp, win);
-
-#if defined(__ANDROID__)
+#ifdef __ANDROID__
   if (win->utf_selection_requested) {
     (*win->utf_selection_requested)(win, NULL, 0);
   }

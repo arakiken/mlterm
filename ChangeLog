@@ -1,3 +1,20 @@
+2017-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* console/ui_window.c: ui_window_{xct|utf}_selection_request() and
+	  ui_window_send_text_selection() are implemented.
+
+	* console/ui_display.c:
+	  ui_display_{own|clear}_selection() enables copy&paste between
+	  different displays.
+
+	* console/ui.h: XSelectionRequestEvent is defined as a structure.
+
+	* fb/ui_window.c: ADDITIONAL_ARG is removed.
+
+	* fb/ui_display.[ch], android/jni/ui_display.[ch], wayland/ui_display.[ch]:
+	  'ui_display_t *disp' argument is added to ui_display_get_pixel(),
+	  ui_display_put_image() and ui_display_copy_lines().
+
 2017-02-20  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/ui_window.c: If ui_window_is_selection_owner() is true,

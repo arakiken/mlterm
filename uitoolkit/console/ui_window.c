@@ -1285,10 +1285,46 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
 }
 
 int ui_window_xct_selection_request(ui_window_t *win, Time time) {
+  u_int count;
+  u_int num_of_displays;
+  ui_display_t **displays = ui_get_opened_displays(&num_of_displays);
+
+  for (count = 0; count < num_of_displays; count++) {
+    if (displays[count]->selection_owner) {
+      ui_window_t *owner = displays[count]->selection_owner;
+      if (owner->xct_selection_requested) {
+        XSelectionRequestEvent ev;
+        ev.type = 0;
+        ev.target = win;
+        (*owner->xct_selection_requested)(owner, &ev, 0);
+      }
+
+      break;
+    }
+  }
+
   return 1;
 }
 
 int ui_window_utf_selection_request(ui_window_t *win, Time time) {
+  u_int count;
+  u_int num_of_displays;
+  ui_display_t **displays = ui_get_opened_displays(&num_of_displays);
+
+  for (count = 0; count < num_of_displays; count++) {
+    if (displays[count]->selection_owner) {
+      ui_window_t *owner = displays[count]->selection_owner;
+      if (owner->utf_selection_requested) {
+        XSelectionRequestEvent ev;
+        ev.type = 1;
+        ev.target = win;
+        (*owner->utf_selection_requested)(owner, &ev, 0);
+      }
+
+      break;
+    }
+  }
+
   return 1;
 }
 
@@ -1298,6 +1334,18 @@ int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int widt
 
 int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
                                   u_char *sel_data, size_t sel_len, Atom sel_type) {
+  if (req_ev) {
+    if (req_ev->type == 1) {
+      if (req_ev->target->utf_selection_notified) {
+        (*req_ev->target->utf_selection_notified)(req_ev->target, sel_data, sel_len);
+      }
+    } else {
+      if (req_ev->target->xct_selection_notified) {
+        (*req_ev->target->xct_selection_notified)(req_ev->target, sel_data, sel_len);
+      }
+    }
+  }
+
   return 1;
 }
 
