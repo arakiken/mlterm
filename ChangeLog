@@ -1,3 +1,10 @@
+2017-02-24  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, mlterm.1: Updated.
+
+	* ui_screen.[ch], ui_main_config.[ch]: The type of line_space is changed from
+	  u_int8_t to int8_t.
+
 2017-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* console/ui_window.c: ui_window_{xct|utf}_selection_request() and

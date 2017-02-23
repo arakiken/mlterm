@@ -3251,9 +3251,19 @@ static void resize_window(ui_screen_t *screen) {
   }
 }
 
+static void check_line_space(ui_screen_t *screen) {
+  if (screen->line_space < 0 &&
+      ui_get_usascii_font(screen->font_man)->height < -screen->line_space * 4) {
+    bl_msg_printf("Ignore line_space (%d) which is too small.\n", screen->line_space);
+    screen->line_space = 0;
+  }
+}
+
 static void font_size_changed(ui_screen_t *screen) {
   u_int col_width;
   u_int line_height;
+
+  check_line_space(screen);
 
   if (HAS_SCROLL_LISTENER(screen, line_height_changed)) {
     (*screen->screen_scroll_listener->line_height_changed)(screen->screen_scroll_listener->self,
@@ -3294,7 +3304,7 @@ static void change_font_size(ui_screen_t *screen, u_int font_size) {
   ui_xic_font_set_changed(&screen->window);
 }
 
-static void change_line_space(ui_screen_t *screen, u_int line_space) {
+static void change_line_space(ui_screen_t *screen, int line_space) {
   if (screen->line_space == line_space) {
     /* not changed */
 
@@ -5445,7 +5455,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
                            int use_vertical_cursor, int big5_buggy,
-                           int use_extended_scroll_shortcut, int borderless, u_int line_space,
+                           int use_extended_scroll_shortcut, int borderless, int line_space,
                            char *input_method, int allow_osc52, int blink_cursor, u_int hmargin,
                            u_int vmargin, int hide_underline) {
   ui_screen_t *screen;
@@ -5464,9 +5474,10 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
     return NULL;
   }
 
-  screen->line_space = line_space;
   screen->use_vertical_cursor = use_vertical_cursor;
+  screen->line_space = line_space;
   screen->font_man = font_man;
+  check_line_space(screen);
   screen->color_man = color_man;
 
   screen->sel_listener.self = screen;
@@ -6242,9 +6253,9 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
       }
     }
   } else if (strcmp(key, "line_space") == 0) {
-    u_int line_space;
+    int line_space;
 
-    if (bl_str_to_uint(&line_space, value)) {
+    if (bl_str_to_int(&line_space, value)) {
       change_line_space(screen, line_space);
     }
   } else if (strcmp(key, "letter_space") == 0) {

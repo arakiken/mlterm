@@ -614,9 +614,9 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   }
 
   if ((value = bl_conf_get_value(conf, "line_space"))) {
-    u_int size;
+    int size;
 
-    if (bl_str_to_uint(&size, value)) {
+    if (bl_str_to_int(&size, value)) {
       main_config->line_space = size;
     } else {
       bl_msg_printf(invalid_msg, "line space", value);

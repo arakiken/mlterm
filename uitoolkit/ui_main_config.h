@@ -83,7 +83,7 @@ typedef struct ui_main_config {
   u_int8_t step_in_changing_font_size;
   u_int8_t alpha;
   u_int8_t fade_ratio;
-  u_int8_t line_space;
+  int8_t line_space;
   u_int8_t letter_space;
   int8_t use_mdi;
   int8_t use_login_shell;
