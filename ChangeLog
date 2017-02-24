@@ -1,3 +1,16 @@
+2017-02-25  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c:
+	  - Wheel mouse is supported.
+	  - Control+Button3 etc work.
+
+	* ui_screen.c: NULL is passed to vt_term_start_config_menu() on wayland.
+
+	* {console,fb,win32,cocoa}/ui_display.c: ui_display_t::name has always
+	  non-null value.
+
+	* */ui.h: DisplayString() macro is removed.
+
 2017-02-24  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c, vte.c: main_config.underline_offset is added

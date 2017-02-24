@@ -114,6 +114,8 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
     return NULL;
   }
 
+  _disp.name = "";
+
 #ifdef USE_WIN32API
   fd = -1;
 #else

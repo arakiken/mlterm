@@ -1184,6 +1184,8 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
       }
     }
 
+    _disp.name = "";
+
     fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
 
     /* Hide the cursor of default console. */

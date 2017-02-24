@@ -472,7 +472,6 @@ typedef int XFontSet; /* dummy */
 #define XKeysymToKeycode(disp, ks) (ks)
 #define XKeycodeToKeysym(disp, kc, i) (kc)
 #define XKeysymToString(ks) ""
-#define DisplayString(disp) ":0.0"
 #define DefaultScreen(disp) (0)
 
 #define BlackPixel(disp, screen) (0xff000000)

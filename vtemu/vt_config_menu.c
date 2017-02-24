@@ -348,15 +348,17 @@ error2:
 
     args[0] = cmd_path;
 
-    args[1] = "--display";
-    args[2] = display;
-
     sprintf(geom, "+%d+%d", x, y);
+    args[1] = "--geometry";
+    args[2] = geom;
 
-    args[3] = "--geometry";
-    args[4] = geom;
-
-    args[5] = NULL;
+    if (display) {
+      args[3] = "--display";
+      args[4] = display;
+      args[5] = NULL;
+    } else {
+      args[3] = NULL;
+    }
 
     close(fds[1]);
 

@@ -1693,7 +1693,12 @@ static void start_menu(ui_screen_t *screen, char *str, int x, int y) {
 #endif
 
   vt_term_start_config_menu(screen->term, str, global_x, global_y,
-                            DisplayString(screen->window.disp->display));
+#ifdef USE_WAYLAND
+                            NULL
+#else
+                            screen->window.disp->name
+#endif
+                            );
 }
 
 static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, int y) {
@@ -3267,7 +3272,7 @@ static void modify_line_space_and_underline_offset(ui_screen_t *screen) {
       }
     } else {
       if (screen->underline_offset <= font_height - ui_get_usascii_font(screen->font_man)->ascent +
-                                      screen->line_space / 2) {
+                                      screen->line_space / 2 /* + screen->line_space % 2 */) {
         /* underline_offset < descent + bottom_margin */
         return;
       }

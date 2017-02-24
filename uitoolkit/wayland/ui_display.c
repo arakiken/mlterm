@@ -467,7 +467,10 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
 
     ev.type = MotionNotify;
     ev.time = time;
-    ev.state = wlserv->pointer_button;
+    ev.state = wlserv->xkb->mods;
+    if (wlserv->pointer_button) {
+      ev.state |= (Button1Mask << (wlserv->pointer_button - 1));
+    }
     wlserv->pointer_x = ev.x = wl_fixed_to_int(sx_w);
     wlserv->pointer_y = ev.y = wl_fixed_to_int(sy_w);
 
@@ -508,7 +511,7 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
     ev.y -= win->y;
 
 #ifdef __DEBUG
-    bl_debug_printf("Motion event x %d y %d in %p window.\n", ev.x, ev.y, win);
+    bl_debug_printf("Motion event state %x x %d y %d in %p window.\n", ev.state, ev.x, ev.y, win);
 #endif
 
     ui_window_receive_event(win, &ev);
@@ -542,7 +545,6 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
                                   get_resize_state(disp->display->width, disp->display->height,
                                                    ev.x, ev.y));
 
-
           return;
         }
 
@@ -560,7 +562,7 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
     }
     wlserv->pointer_button = ev.button;
     ev.time = time;
-    ev.state = 0;
+    ev.state = wlserv->xkb->mods;
 
     if (rotate_display) {
       int tmp = ev.x;
@@ -578,8 +580,8 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
     ev.y -= win->y;
 
 #ifdef __DEBUG
-    bl_debug_printf("Button event type %d button %d x %d y %d in %p window.\n",
-                    ev.type, ev.button, ev.x, ev.y, win);
+    bl_debug_printf("Button event type %d button %d state %x x %d y %d in %p window.\n",
+                    ev.type, ev.button, ev.state, ev.x, ev.y, win);
 #endif
 
     wlserv->serial = serial;
@@ -590,6 +592,57 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
 
 static void pointer_axis(void *data, struct wl_pointer *pointer,
                          uint32_t time, uint32_t axis, wl_fixed_t value) {
+  ui_wlserv_t *wlserv = data;
+  ui_display_t *disp;
+
+  if ((disp = surface_to_display(wlserv->current_surface))) {
+    XButtonEvent ev;
+    ui_window_t *win;
+
+    if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
+      /* Vertical scroll */
+      if (value < 0) {
+        ev.button = 4;
+      } else {
+        ev.button = 5;
+      }
+    } else /* if (axis == WL_POINTER_AXIS_HORIZONTAL_SCROLL) */ {
+      /* Horizontal scroll */
+      return;
+    }
+
+    ev.time = time;
+    ev.state = wlserv->xkb->mods;
+
+    ev.x = wlserv->pointer_x;
+    ev.y = wlserv->pointer_y;
+
+    if (rotate_display) {
+      int tmp = ev.x;
+      if (rotate_display > 0) {
+        ev.x = ev.y;
+        ev.y = disp->display->width - tmp - 1;
+      } else {
+        ev.x = disp->display->height - ev.y - 1;
+        ev.y = tmp;
+      }
+    }
+
+    win = get_window(disp->roots[0], ev.x, ev.y);
+    ev.x -= win->x;
+    ev.y -= win->y;
+
+#ifdef __DEBUG
+    bl_debug_printf("Wheel event button %d state %x x %d y %d in %p window.\n",
+                    ev.button, ev.state, ev.x, ev.y, win);
+#endif
+
+    ev.type = ButtonPress;
+    ui_window_receive_event(win, &ev);
+
+    ev.type = ButtonRelease;
+    ui_window_receive_event(win, &ev);
+  }
 }
 
 static const struct wl_pointer_listener pointer_listener = {

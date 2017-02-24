@@ -148,7 +148,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
   char *pass;
   int ret;
 
-  display = DisplayString(win->disp->display);
+  display = win->disp->name;
   window = win->my_window;
   width_pix = win->width;
   height_pix = win->height;

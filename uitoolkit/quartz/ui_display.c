@@ -62,6 +62,8 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
 
   _disp.depth = 32;
 
+  _disp.name = "";
+
   /* _disp is initialized successfully. */
   _display.fd = -1;
   _disp.display = &_display;
