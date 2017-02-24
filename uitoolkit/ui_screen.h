@@ -143,6 +143,7 @@ typedef struct ui_screen {
   int8_t blink_wait;
   int8_t blink_cursor;
   int8_t hide_underline;
+  int8_t underline_offset;
   int8_t processing_vtseq;
   int8_t anim_wait;
 
@@ -169,7 +170,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            int use_vertical_cursor, int big5_buggy,
                            int use_extended_scroll_shortcut, int borderless, int line_space,
                            char *input_method, int allow_osc52, int blink_cursor, u_int hmargin,
-                           u_int vmargin, int hide_underline);
+                           u_int vmargin, int hide_underline, int underline_offset);
 
 int ui_screen_delete(ui_screen_t *screen);
 
@@ -195,10 +196,6 @@ u_int ui_col_width(ui_screen_t *screen);
 u_int ui_line_height(ui_screen_t *screen);
 
 u_int ui_line_ascent(ui_screen_t *screen);
-
-u_int ui_line_top_margin(ui_screen_t *screen);
-
-u_int ui_line_bottom_margin(ui_screen_t *screen);
 
 int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd);
 

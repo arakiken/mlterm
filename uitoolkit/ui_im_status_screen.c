@@ -169,7 +169,7 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
       ui_draw_str_to_eol(&stat_screen->window, stat_screen->font_man, stat_screen->color_man,
                          stat_screen->chars + heads[i], len, 0, line_height * i, line_height,
                          xfont->ascent + LINE_SPACE / 2, LINE_SPACE / 2,
-                         LINE_SPACE / 2 + LINE_SPACE % 2, 1 /* no need to draw underline */);
+                         LINE_SPACE / 2 + LINE_SPACE % 2, 1 /* no need to draw underline */, 0);
     }
   }
 }
@@ -178,7 +178,7 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
  * methods of ui_im_status_screen_t
  */
 
-static int delete (ui_im_status_screen_t *stat_screen) {
+static int delete(ui_im_status_screen_t *stat_screen) {
   ui_display_remove_root(stat_screen->window.disp, &stat_screen->window);
 
   if (stat_screen->chars) {

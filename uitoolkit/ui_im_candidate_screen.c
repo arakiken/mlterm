@@ -173,7 +173,7 @@ static void draw_str(ui_im_candidate_screen_t *cand_screen, vt_char_t *str, u_in
   (to_eol ? ui_draw_str_to_eol : ui_draw_str)(
       &cand_screen->window, cand_screen->font_man, cand_screen->color_man, str, len, x,
       (font_height + LINE_SPACE) * row, font_height + LINE_SPACE, font_ascent + LINE_SPACE / 2,
-      LINE_SPACE / 2, LINE_SPACE / 2 + LINE_SPACE % 2, 1 /* no need to draw underline */);
+      LINE_SPACE / 2, LINE_SPACE / 2 + LINE_SPACE % 2, 1 /* no need to draw underline */, 0);
 }
 
 #define MAX_NUM_OF_DIGITS 4 /* max is 9999. enough? */

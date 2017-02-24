@@ -1,5 +1,22 @@
 2017-02-24  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_screen_manager.c, vte.c: main_config.underline_offset is added
+	  to arguments of ui_screen_new().
+
+	* ui_draw_str.[ch]:
+	  - bottom_margin is removed.
+	  - underline_offset is added.
+
+	* ui_screen.[ch]:
+	  - ui_line_top_margin() -> line_top_margin()
+	  - ui_line_bottom_margin() is removed.
+	  - check_line_space() => modify_line_space_and_underline_offset().
+	  - "underline_offset" is added to OSC 5379 etc.
+
+	* ui_main_config.[ch]: --ulpos/underline_offset option is added.
+
+2017-02-24  Araki Ken  <arakiken@users.sf.net>
+
 	* README.ja, mlterm.1: Updated.
 
 	* ui_screen.[ch], ui_main_config.[ch]: The type of line_space is changed from

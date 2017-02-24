@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdio.h>  /* sprintf */
 #include <unistd.h> /* fork/execvp */
+#include <stdlib.h> /* abs */
 #include <sys/stat.h>
 #include <pobl/bl_mem.h> /* alloca */
 #include <pobl/bl_debug.h>
@@ -33,6 +34,8 @@
   ((screen)->screen_scroll_listener && (screen)->screen_scroll_listener->function)
 
 #define IS_LIBVTE(screen) (!(screen)->window.parent && (screen)->window.parent_window)
+
+#define line_top_margin(screen) ((int)((screen)->line_space / 2))
 
 #if 1
 #define NL_TO_CR_IN_PAST_TEXT
@@ -379,24 +382,24 @@ static int draw_line(ui_screen_t *screen, vt_line_t *line, int y) {
 
         if (!ui_draw_str(&screen->window, screen->font_man, screen->color_man,
                          vt_char_at(line, beg_char_index), num_of_redrawn, beg_x, y,
-                         ui_line_height(screen), ui_line_ascent(screen), ui_line_top_margin(screen),
-                         ui_line_bottom_margin(screen), screen->hide_underline)) {
+                         ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
+                         screen->hide_underline, screen->underline_offset)) {
           goto end;
         }
       } else {
         if (!ui_draw_str_to_eol(&screen->window, screen->font_man, screen->color_man,
                                 vt_char_at(line, beg_char_index), num_of_redrawn, beg_x, y,
                                 ui_line_height(screen), ui_line_ascent(screen),
-                                ui_line_top_margin(screen), ui_line_bottom_margin(screen),
-                                screen->hide_underline)) {
+                                line_top_margin(screen), screen->hide_underline,
+                                screen->underline_offset)) {
           goto end;
         }
       }
     } else {
       if (!ui_draw_str(&screen->window, screen->font_man, screen->color_man,
                        vt_char_at(line, beg_char_index), num_of_redrawn, beg_x, y,
-                       ui_line_height(screen), ui_line_ascent(screen), ui_line_top_margin(screen),
-                       ui_line_bottom_margin(screen), screen->hide_underline)) {
+                       ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
+                       screen->hide_underline, screen->underline_offset)) {
         goto end;
       }
     }
@@ -490,8 +493,8 @@ static int draw_cursor(ui_screen_t *screen) {
                            vt_line_has_ot_substitute_glyphs(line));
 
   ui_draw_str(&screen->window, screen->font_man, screen->color_man, &ch, 1, x, y,
-              ui_line_height(screen), ui_line_ascent(screen), ui_line_top_margin(screen),
-              ui_line_bottom_margin(screen), screen->hide_underline);
+              ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
+              screen->hide_underline, screen->underline_offset);
 
   if (screen->window.is_focused) {
     ui_color_manager_adjust_cursor_fg_color(screen->color_man);
@@ -1527,7 +1530,6 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     u_int height;
     u_int ascent;
     u_int top_margin;
-    u_int bottom_margin;
     char ch;
 
     str = vt_str_alloca(0x5e);
@@ -1539,15 +1541,14 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
     height = ui_line_height(screen);
     ascent = ui_line_ascent(screen);
-    top_margin = ui_line_top_margin(screen);
-    bottom_margin = ui_line_bottom_margin(screen);
+    top_margin = line_top_margin(screen);
 
     gettimeofday(&tv, NULL);
 
     for (count = 0; count < 5; count++) {
       for (y = 0; y < screen->window.height - height; y += height) {
         ui_draw_str(&screen->window, screen->font_man, screen->color_man, str, 0x5e, 0, y, height,
-                    ascent, top_margin, bottom_margin, 0);
+                    ascent, top_margin, 0, 0);
       }
 
       ui_window_clear_all(&screen->window);
@@ -1561,7 +1562,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     count = 0;
     for (y = 0; y < screen->window.height - height; y += height) {
       ui_draw_str(&screen->window, screen->font_man, screen->color_man, str, 0x5e, 0, y, height,
-                  ascent, top_margin, bottom_margin, 0);
+                  ascent, top_margin, 0, 0);
 
       count++;
     }
@@ -3251,11 +3252,29 @@ static void resize_window(ui_screen_t *screen) {
   }
 }
 
-static void check_line_space(ui_screen_t *screen) {
-  if (screen->line_space < 0 &&
-      ui_get_usascii_font(screen->font_man)->height < -screen->line_space * 4) {
-    bl_msg_printf("Ignore line_space (%d) which is too small.\n", screen->line_space);
+static void modify_line_space_and_underline_offset(ui_screen_t *screen) {
+  u_int font_height = ui_get_usascii_font(screen->font_man)->height;
+
+  if (screen->line_space < 0 && font_height < -screen->line_space * 4) {
+    bl_msg_printf("Ignore line_space (%d)\n", screen->line_space);
     screen->line_space = 0;
+  }
+
+  if (screen->underline_offset != 0) {
+    if (screen->underline_offset < 0) {
+      if (font_height >= -screen->underline_offset * 8) {
+        return;
+      }
+    } else {
+      if (screen->underline_offset <= font_height - ui_get_usascii_font(screen->font_man)->ascent +
+                                      screen->line_space / 2) {
+        /* underline_offset < descent + bottom_margin */
+        return;
+      }
+    }
+
+    bl_msg_printf("Ignore underline_offset (%d)\n", screen->underline_offset);
+    screen->underline_offset = 0;
   }
 }
 
@@ -3263,7 +3282,7 @@ static void font_size_changed(ui_screen_t *screen) {
   u_int col_width;
   u_int line_height;
 
-  check_line_space(screen);
+  modify_line_space_and_underline_offset(screen);
 
   if (HAS_SCROLL_LISTENER(screen, line_height_changed)) {
     (*screen->screen_scroll_listener->line_height_changed)(screen->screen_scroll_listener->self,
@@ -3582,6 +3601,13 @@ static void change_hide_underline_flag(ui_screen_t *screen, int flag) {
   if (screen->hide_underline != flag) {
     screen->hide_underline = flag;
     vt_term_set_modified_all_lines_in_screen(screen->term);
+  }
+}
+
+static void change_underline_offset(ui_screen_t *screen, int offset) {
+  if (screen->underline_offset != offset) {
+    screen->underline_offset = offset;
+    font_size_changed(screen);
   }
 }
 
@@ -3939,6 +3965,9 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "underline_offset") == 0) {
+    sprintf(digit, "%d", screen->underline_offset);
+    value = digit;
   } else if (strcmp(key, "fontsize") == 0) {
     sprintf(digit, "%d", ui_get_font_size(screen->font_man));
     value = digit;
@@ -4679,8 +4708,8 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
     if (need_wraparound) {
       if (!ui_draw_str(&screen->window, screen->font_man, screen->color_man, &chars[start],
                        i - start + 1, x, y, ui_line_height(screen), ui_line_ascent(screen),
-                       ui_line_top_margin(screen), ui_line_bottom_margin(screen),
-                       screen->hide_underline)) {
+                       line_top_margin(screen), screen->hide_underline,
+                       screen->underline_offset)) {
         break;
       }
 
@@ -4698,8 +4727,8 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
     {
       if (!ui_draw_str(&screen->window, screen->font_man, screen->color_man, &chars[start],
                        i - start + 1, x, y, ui_line_height(screen), ui_line_ascent(screen),
-                       ui_line_top_margin(screen), ui_line_bottom_margin(screen),
-                       screen->hide_underline)) {
+                       line_top_margin(screen), screen->hide_underline,
+                       screen->underline_offset)) {
         break;
       }
     }
@@ -4724,8 +4753,8 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
   if (cursor_offset >= 0) {
     if (!vt_term_get_vertical_mode(screen->term)) {
       ui_window_fill(&screen->window, preedit_cursor_x,
-                     preedit_cursor_y + ui_line_top_margin(screen), 1,
-                     ui_line_height(screen) - ui_line_top_margin(screen));
+                     preedit_cursor_y + line_top_margin(screen), 1,
+                     ui_line_height(screen) - line_top_margin(screen));
     } else {
       ui_window_fill(&screen->window, preedit_cursor_x, preedit_cursor_y, ui_col_width(screen), 1);
     }
@@ -5457,7 +5486,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            int use_vertical_cursor, int big5_buggy,
                            int use_extended_scroll_shortcut, int borderless, int line_space,
                            char *input_method, int allow_osc52, int blink_cursor, u_int hmargin,
-                           u_int vmargin, int hide_underline) {
+                           u_int vmargin, int hide_underline, int underline_offset) {
   ui_screen_t *screen;
   u_int col_width;
   u_int line_height;
@@ -5475,10 +5504,12 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   }
 
   screen->use_vertical_cursor = use_vertical_cursor;
-  screen->line_space = line_space;
   screen->font_man = font_man;
-  check_line_space(screen);
   screen->color_man = color_man;
+
+  screen->line_space = line_space;
+  screen->underline_offset = underline_offset;
+  modify_line_space_and_underline_offset(screen);
 
   screen->sel_listener.self = screen;
   screen->sel_listener.select_in_window = select_in_window;
@@ -5955,13 +5986,7 @@ u_int ui_line_height(ui_screen_t *screen) {
 }
 
 u_int ui_line_ascent(ui_screen_t *screen) {
-  return ui_get_usascii_font(screen->font_man)->ascent + screen->line_space / 2;
-}
-
-u_int ui_line_top_margin(ui_screen_t *screen) { return screen->line_space / 2; }
-
-u_int ui_line_bottom_margin(ui_screen_t *screen) {
-  return screen->line_space / 2 + screen->line_space % 2;
+  return ui_get_usascii_font(screen->font_man)->ascent + line_top_margin(screen);
 }
 
 /*
@@ -6231,6 +6256,12 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
 
     if ((flag = true_or_false(value)) != -1) {
       change_hide_underline_flag(screen, flag);
+    }
+  } else if (strcmp(key, "underline_offset") == 0) {
+    int offset;
+
+    if (bl_str_to_int(&offset, value)) {
+      change_underline_offset(screen, offset);
     }
   } else if (strcmp(key, "logsize") == 0) {
     u_int log_size;

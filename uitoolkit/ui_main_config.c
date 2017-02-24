@@ -211,6 +211,7 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "co", 0, "co_color",
                   "Color to use to display crossed-out characters");
   bl_conf_add_opt(conf, '\0', "noul", 1, "hide_underline", "Don't draw underline [false]");
+  bl_conf_add_opt(conf, '\0', "ulpos", 0, "underline_offset", "underline position [0]");
 #ifdef USE_OT_LAYOUT
   bl_conf_add_opt(conf, '\0', "otl", 1, "use_ot_layout", "OpenType shape [false]");
   bl_conf_add_opt(conf, '\0', "ost", 0, "ot_script", "Script of glyph subsutitution [latn]");
@@ -1169,6 +1170,16 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   if ((value = bl_conf_get_value(conf, "hide_underline"))) {
     if (strcmp(value, "true") == 0) {
       main_config->hide_underline = 1;
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "underline_offset"))) {
+    int size;
+
+    if (bl_str_to_int(&size, value)) {
+      main_config->underline_offset = size;
+    } else {
+      bl_msg_printf(invalid_msg, "underline offset", value);
     }
   }
 

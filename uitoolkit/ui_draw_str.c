@@ -49,7 +49,7 @@ static u_int calculate_char_width(ui_font_t *font, u_int code, ef_charset_t cs, 
 
 static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
                       int flag, /* 0 == underline 1 == double underline, 2 == crossed out */
-                      int x, int y, u_int width, u_int height, u_int ascent, u_int top_margin) {
+                      int x, int y, u_int width, u_int height, u_int ascent, int top_margin) {
   u_int w;
   u_int h;
   int x2;
@@ -446,7 +446,7 @@ static void fc_draw_combining_chars(ui_window_t *window, ui_font_manager_t *font
 static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                        ui_color_manager_t *color_man, u_int *updated_width, vt_char_t *chars,
                        u_int num_of_chars, int x, int y, u_int height, u_int ascent,
-                       u_int top_margin, u_int bottom_margin, int hide_underline) {
+                       int top_margin, int hide_underline, int underline_offset) {
   int count;
   int start_draw;
   int end_of_str;
@@ -703,7 +703,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       if (!hide_underline && underline_style) {
         draw_line(window, fg_xcolor, xfont->is_vertical,
                   underline_style == UNDERLINE_DOUBLE ? 1 : 0, x, y, current_width - x, height,
-                  ascent, top_margin);
+                  ascent + underline_offset, top_margin);
       }
 
       if (is_crossed_out) {
@@ -813,7 +813,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
 static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                           ui_color_manager_t *color_man, u_int *updated_width, vt_char_t *chars,
                           u_int num_of_chars, int x, int y, u_int height, u_int ascent,
-                          u_int top_margin, u_int bottom_margin, int hide_underline) {
+                          int top_margin, int hide_underline, int underline_offset) {
   int count;
   int start_draw;
   int end_of_str;
@@ -1132,7 +1132,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       if (!hide_underline && underline_style) {
         draw_line(window, fg_xcolor, xfont->is_vertical,
                   underline_style == UNDERLINE_DOUBLE ? 1 : 0, x, y, current_width - x, height,
-                  ascent, top_margin);
+                  ascent + underline_offset, top_margin);
       }
 
       if (is_crossed_out) {
@@ -1182,7 +1182,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
 int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
                 vt_char_t *chars, u_int num_of_chars, int x, int y, u_int height, u_int ascent,
-                u_int top_margin, u_int bottom_margin, int hide_underline) {
+                int top_margin, int hide_underline, int underline_offset) {
   u_int updated_width;
   int ret;
 
@@ -1204,7 +1204,7 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
     case TYPE_XFT:
     case TYPE_CAIRO:
       ret = fc_draw_str(window, font_man, color_man, &updated_width, chars, num_of_chars, x, y,
-                        height, ascent, top_margin, bottom_margin, hide_underline);
+                        height, ascent, top_margin, hide_underline, underline_offset);
 
       break;
 #endif
@@ -1212,7 +1212,7 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
     case TYPE_XCORE:
       ret = xcore_draw_str(window, font_man, color_man, &updated_width, chars, num_of_chars, x, y,
-                           height, ascent, top_margin, bottom_margin, hide_underline);
+                           height, ascent, top_margin, hide_underline, underline_offset);
 
       break;
 #endif
@@ -1227,8 +1227,8 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
 
 int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
                        ui_color_manager_t *color_man, vt_char_t *chars, u_int num_of_chars, int x,
-                       int y, u_int height, u_int ascent, u_int top_margin, u_int bottom_margin,
-                       int hide_underline) {
+                       int y, u_int height, u_int ascent, int top_margin,
+                       int hide_underline, int underline_offset) {
   u_int updated_width;
   int ret;
 
@@ -1253,7 +1253,8 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
 
       ret = fc_draw_str(
           window, font_man, color_man, NULL /* NULL disables ui_window_clear() in fc_draw_str() */,
-          chars, num_of_chars, x, y, height, ascent, top_margin, bottom_margin, hide_underline);
+          chars, num_of_chars, x, y, height, ascent, top_margin, hide_underline,
+          underline_offset);
 
       break;
 #endif
@@ -1261,7 +1262,7 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
     case TYPE_XCORE:
       ret = xcore_draw_str(window, font_man, color_man, &updated_width, chars, num_of_chars, x, y,
-                           height, ascent, top_margin, bottom_margin, hide_underline);
+                           height, ascent, top_margin, hide_underline, underline_offset);
 
       if (updated_width < window->width) {
         ui_window_clear(window, updated_width, y, window->width - updated_width, height);
