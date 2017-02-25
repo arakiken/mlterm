@@ -4,7 +4,7 @@ if test "$ANDROID_SDK_PATH" = ""; then
 	ANDROID_SDK_PATH=/cygdrive/c/Program\ Files/Android/android-sdk
 fi
 if test "$ANDROID_NDK_PATH" = ""; then
-	ANDROID_NDK_PATH=/cygdrive/c/Users/${USER}/workspace/android-ndk-r8
+	ANDROID_NDK_PATH=/cygdrive/c/Users/${USER}/workspace/android-ndk-r8e
 fi
 if test "$JAVA_HOME" = ""; then
 	export JAVA_HOME=c:\\Program\ Files\\Java\\jdk1.8.0_51

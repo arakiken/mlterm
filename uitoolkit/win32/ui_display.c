@@ -4,6 +4,7 @@
 
 #include <stdio.h>       /* sprintf */
 #include <string.h>      /* memset/memcpy */
+#include <stdlib.h>      /* getenv */
 #include <pobl/bl_def.h> /* USE_WIN32API */
 #ifndef USE_WIN32API
 #include <fcntl.h> /* open */
@@ -114,7 +115,9 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
     return NULL;
   }
 
-  _disp.name = "";
+  if (!(_disp.name = getenv("DISPLAY"))) {
+    _disp.name = ":0.0";
+  }
 
 #ifdef USE_WIN32API
   fd = -1;

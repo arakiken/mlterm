@@ -1,5 +1,12 @@
 2017-02-25  Araki Ken  <arakiken@users.sf.net>
 
+	* */ui_display.c:
+	  The default value of ui_display_t::name is as follows.
+	  - DisplayString() on xlib
+	  - getenv("DISPLAY") or ":0.0" on other platforms.
+
+2017-02-25  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui_display.c:
 	  - Wheel mouse is supported.
 	  - Control+Button3 etc work.

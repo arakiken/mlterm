@@ -340,6 +340,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
 /*
  * xlib: "-d :0.0" etc.
  * console: "-d client:fd"
+ * wayland: "-d wayland-0"
  */
 #if defined(USE_XLIB) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
   if ((value = bl_conf_get_value(conf, "display")) == NULL)

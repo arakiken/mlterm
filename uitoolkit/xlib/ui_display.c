@@ -95,10 +95,7 @@ static ui_display_t *open_display(char *name, u_int depth) {
   /* set close-on-exec flag on the socket connected to X. */
   bl_file_set_cloexec(XConnectionNumber(disp->display));
 
-  if ((disp->name = strdup(name)) == NULL) {
-    goto error2;
-  }
-
+  disp->name = DisplayString(disp->display);
   disp->screen = DefaultScreen(disp->display);
   disp->my_window = DefaultRootWindow(disp->display);
   disp->width = DisplayWidth(disp->display, disp->screen);
@@ -119,7 +116,7 @@ static ui_display_t *open_display(char *name, u_int depth) {
     win = XCreateWindow(disp->display, disp->my_window, 0, 0, 1, 1, 0, disp->depth, InputOutput,
                         disp->visual, CWColormap | CWBackPixel | CWBorderPixel, &s_attr);
     if ((disp->gc = ui_gc_new(disp->display, win)) == NULL) {
-      goto error3;
+      goto error2;
     }
     XDestroyWindow(disp->display, win);
   } else {
@@ -127,7 +124,7 @@ static ui_display_t *open_display(char *name, u_int depth) {
     disp->visual = DefaultVisual(disp->display, disp->screen);
     disp->colormap = DefaultColormap(disp->display, disp->screen);
     if ((disp->gc = ui_gc_new(disp->display, None)) == NULL) {
-      goto error3;
+      goto error2;
     }
   }
 
@@ -148,9 +145,6 @@ static ui_display_t *open_display(char *name, u_int depth) {
 
   return disp;
 
-error3:
-  free(disp->name);
-
 error2:
   XCloseDisplay(disp->display);
 
@@ -161,9 +155,7 @@ error1:
 }
 
 static int close_display(ui_display_t *disp) {
-  int count;
-
-  free(disp->name);
+  u_int count;
 
   ui_gc_delete(disp->gc);
 

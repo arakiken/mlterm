@@ -3,6 +3,7 @@
 #include "ui_display.h"
 
 #include <unistd.h> /* STDIN_FILENO */
+#include <stdlib.h> /* getenv */
 #include <linux/kd.h>
 #include <linux/keyboard.h>
 
@@ -564,7 +565,9 @@ static void on_app_cmd(struct android_app *app, int32_t cmd) {
 /* --- global functions --- */
 
 ui_display_t *ui_display_open(char *disp_name, u_int depth) {
-  _disp.name = "";
+  if (!(_disp.name = getenv("DISPLAY"))) {
+    _disp.name = ":0.0";
+  }
   _disp.display = &_display;
 
   return &_disp;

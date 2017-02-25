@@ -8,6 +8,7 @@
 #include <sys/mman.h>  /* mmap */
 #include <sys/ioctl.h> /* ioctl */
 #include <string.h>    /* memset/memcpy */
+#include <stdlib.h>    /* getenv */
 #include <termios.h>
 
 #include <pobl/bl_debug.h>
@@ -1184,7 +1185,9 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
       }
     }
 
-    _disp.name = "";
+    if (!(_disp.name = getenv("DISPLAY"))) {
+      _disp.name = ":0.0";
+    }
 
     fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
 

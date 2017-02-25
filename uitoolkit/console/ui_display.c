@@ -7,6 +7,7 @@
 #include <fcntl.h>     /* fcntl */
 #include <sys/ioctl.h> /* ioctl */
 #include <string.h>    /* memset/memcpy */
+#include <stdlib.h>    /* getenv */
 #include <termios.h>
 #include <signal.h>
 #include <time.h>
@@ -169,7 +170,6 @@ static ui_display_t *open_display_socket(int fd) {
   write(fd, "\x1b[>c", 4);
 
   displays[num_of_displays]->display->conv = vt_char_encoding_conv_new(encoding);
-  displays[num_of_displays]->name = "";
 
   set_winsize(displays[num_of_displays], "8;24;80;4;384;640t");
 
@@ -233,7 +233,6 @@ static ui_display_t *open_display_console(void) {
   tcsetattr(fd, TCSANOW, &tio);
 
   displays[0]->display->conv = vt_char_encoding_conv_new(encoding);
-  displays[0]->name = "";
 
   set_winsize(displays[0], NULL);
 
@@ -825,13 +824,21 @@ static int receive_stdin_event(ui_display_t *disp) {
 /* --- global functions --- */
 
 ui_display_t *ui_display_open(char *disp_name, u_int depth) {
+  ui_display_t *disp;
+
   if (disp_name && strncmp(disp_name, "client:", 7) == 0) {
-    return open_display_socket(atoi(disp_name + 7));
+    disp = open_display_socket(atoi(disp_name + 7));
   } else if (!displays) {
-    return open_display_console();
+    disp = open_display_console();
   } else {
     return displays[0];
   }
+
+  if (!(disp->name = getenv("DISPLAY"))) {
+    disp->name = ":0.0";
+  }
+
+  return disp;
 }
 
 int ui_display_close(ui_display_t *disp) {
