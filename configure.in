@@ -502,10 +502,10 @@ fi
 
 if test "$FT_CFLAGS" != "" ; then
   AC_ARG_ENABLE(fontconfig,
-	  [  --disable-fontconfig    do not use fontconfig with freetype on framebuffer or wayland @<:@default=enabled@:>@ ],
-	  fontconfig=$enable_fontconfig, fontconfig="yes")
+	  [  --enable-fontconfig     use fontconfig with freetype on framebuffer or wayland @<:@default=disabled@:>@ ],
+	  fontconfig=$enable_fontconfig, fontconfig="no")
 
-  if test "$fontconfig" != "no"; then
+  if test "$have_ft" = "yes" -a "$fontconfig" = "yes"; then
     FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
 		FT_LIBS="$FT_LIBS -lfontconfig"
 		AC_SUBST(FT_CFLAGS)

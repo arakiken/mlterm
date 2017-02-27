@@ -39,10 +39,7 @@ typedef struct {
 
 } Display;
 
-typedef int XIM;      /* dummy */
 typedef int XIC;      /* dummy */
-typedef int XIMStyle; /* dummy */
-
 typedef void* XID;      /* dummy */
 typedef void* Window;   /* dummy */
 typedef void* Drawable; /* dummy */
@@ -523,11 +520,24 @@ KeySym XStringToKeysym(char *str);
 /* Actually, fonts aren't scalable, but define TYPE_XCORE_SCALABLE to avoid
  * double drawing. */
 #define TYPE_XCORE_SCALABLE
-#define MANAGE_WINDOWS_BY_MYSELF
+#define MANAGE_ROOT_WINDOWS_BY_MYSELF
+#define MANAGE_SUB_WINDOWS_BY_MYSELF
 /* See also console/ui_display.c where ui_picture_display_closed() is never
  * called. */
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP
+#undef NO_EXPOSE_ON_RESIZE
+#undef USE_GC
+#undef CHANGEABLE_CURSOR
+/* use same modules as those for framebuffer */
+#define PLUGIN_MODULE_SUFFIX "fb"
+#undef KEY_REPEAT_BY_MYSELF
+#undef ROTATABLE_DISPLAY
+#undef PSEUDO_COLOR_DISPLAY
+#undef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+#undef SUPPORT_URGENT_BELL
+#undef FORCE_UNICODE
+#undef NEED_DISPLAY_SYNC_EVERY_TIME
 
 #endif

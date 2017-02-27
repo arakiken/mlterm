@@ -85,7 +85,7 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
     ui_window_resize_with_margin(&term->scrollbar.window, ACTUAL_WIDTH(&term->scrollbar.window),
                                  child_height, NOTIFY_TO_MYSELF);
 
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
     ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
                         &UI_SCREEN_TO_LAYOUT(term->screen)->window.fg_color, sep_x, y,
                         SEPARATOR_WIDTH, child_height);
@@ -120,7 +120,7 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
     if (term->next[1] && term->separator_y > 0) {
       reset_layout(term->next[1], x, y + term->separator_y + SEPARATOR_HEIGHT, width,
                    height - term->separator_y - SEPARATOR_HEIGHT);
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
       ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
                           &UI_SCREEN_TO_LAYOUT(term->screen)->window.fg_color, x,
                           y + term->separator_y, width, SEPARATOR_HEIGHT);
@@ -130,7 +130,7 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
     if (term->next[0] && term->separator_x > 0) {
       reset_layout(term->next[0], x + term->separator_x + SEPARATOR_WIDTH, y,
                    width - term->separator_x - SEPARATOR_WIDTH, child_height);
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
       ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
                           &UI_SCREEN_TO_LAYOUT(term->screen)->window.fg_color,
                           x + term->separator_x, y, SEPARATOR_WIDTH, child_height);
@@ -140,7 +140,7 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
     if (term->next[0] && term->separator_x > 0) {
       reset_layout(term->next[0], x + term->separator_x + SEPARATOR_WIDTH, y,
                    width - term->separator_x - SEPARATOR_WIDTH, height);
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
       ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
                           &UI_SCREEN_TO_LAYOUT(term->screen)->window.fg_color,
                           x + term->separator_x, y, SEPARATOR_WIDTH, height);
@@ -150,7 +150,7 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
     if (term->next[1] && term->separator_y > 0) {
       reset_layout(term->next[1], x, y + term->separator_y + SEPARATOR_HEIGHT, child_width,
                    height - term->separator_y - SEPARATOR_HEIGHT);
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
       ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
                           &UI_SCREEN_TO_LAYOUT(term->screen)->window.fg_color, x,
                           y + term->separator_y, child_width, SEPARATOR_HEIGHT);
@@ -286,7 +286,7 @@ static u_int get_separator_x(ui_screen_t *screen, u_int sb_width, u_int percent 
     return 0;
   }
 
-#if defined(USE_FRAMEBUFFER) && !defined(__ANDROID__)
+#ifdef PSEUDO_COLOR_DISPLAY
   if (screen->window.disp->display->pixels_per_byte > 1) {
     return sep_x - sep_x % screen->window.disp->display->pixels_per_byte - SEPARATOR_WIDTH;
   } else
@@ -325,7 +325,7 @@ static void window_finalized(ui_window_t *win) {
   ui_layout_delete(layout);
 }
 
-#if defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 static void reload_color_cache(struct terminal *term, int do_unload) {
   ui_screen_reload_color_cache(term->screen, do_unload);
 
@@ -351,7 +351,7 @@ static void window_resized(ui_window_t *win) {
     ui_release_picture(layout->bg_pic);
     layout->bg_pic = pic;
 
-#if defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
     if (layout->window.disp->depth == 4 && strstr(layout->pic_file_path, "six")) {
       /*
        * Color pallette of ui_display can be changed by ui_acquire_bg_picture().
@@ -863,7 +863,7 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
   if (new_mode == SBM_NONE) {
     ui_window_unmap(&term->scrollbar.window);
   }
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
   else if (old_mode == SBM_NONE) {
     /* scrollbar's height may have been changed. */
     ui_window_resize_with_margin(&term->scrollbar.window, ACTUAL_WIDTH(&term->scrollbar.window),
@@ -1279,7 +1279,7 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
       save_screen_bg_pic(layout);
       ui_window_set_wall_picture(&layout->window, layout->bg_pic->pixmap, 0);
 
-#if defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
       if (layout->window.disp->depth == 4 && strstr(layout->pic_file_path, "six")) {
         /*
          * Color pallette of ui_display can be changed by
@@ -1315,7 +1315,7 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
 int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
   struct terminal *term;
   int idx2;
-#ifndef MANAGE_WINDOWS_BY_MYSELF
+#ifndef MANAGE_SUB_WINDOWS_BY_MYSELF
   u_int w_surplus;
   u_int h_surplus;
 #endif
@@ -1431,7 +1431,7 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
     ui_window_unset_wall_picture(&layout->window, 0);
   }
 
-#ifndef MANAGE_WINDOWS_BY_MYSELF
+#ifndef MANAGE_SUB_WINDOWS_BY_MYSELF
   if (!layout->term.next[0] && !layout->term.next[1]) {
     w_surplus = (layout->window.width - layout->term.screen->window.hmargin * 2 -
                  (layout->term.sb_mode != SBM_NONE ? SCROLLBAR_WIDTH(layout->term.scrollbar) : 0)) %
@@ -1453,7 +1453,7 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
 
   update_normal_hints(layout);
 
-#ifndef MANAGE_WINDOWS_BY_MYSELF
+#ifndef MANAGE_SUB_WINDOWS_BY_MYSELF
   if (ui_screen_attached(screen)) {
     /* Revert to the original size. */
     ui_window_resize_with_margin(

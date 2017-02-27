@@ -416,7 +416,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
           width == 0 && height == 0 &&
 #endif
           (*pixmap = calloc(1, sizeof(**pixmap)))) {
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
     u_int32_t *sixel_cmap;
 
     if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
@@ -428,7 +428,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
     if (((*pixmap)->image = load_sixel_from_file(path, &(*pixmap)->width, &(*pixmap)->height)) &&
         /* resize_sixel() frees pixmap->image in failure. */
         resize_sixel(*pixmap, width, height, 4)) {
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
       if (sixel_cmap) {
         /* see set_wall_picture() in ui_screen.c */
         ui_display_set_cmap(sixel_cmap, sixel_cmap[256]);
@@ -613,7 +613,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
                                             ui_picture_modifier_t *pic_mod) {
   Pixmap pixmap;
 
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
   ui_display_enable_to_change_cmap(1);
 #endif
 
@@ -622,7 +622,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
     pixmap = None;
   }
 
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
   ui_display_enable_to_change_cmap(0);
 #endif
 

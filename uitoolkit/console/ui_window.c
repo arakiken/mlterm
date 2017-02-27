@@ -1400,7 +1400,7 @@ int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_
   *global_x = x + win->x;
   *global_y = y + win->y;
 
-  return 0;
+  return 1;
 }
 
 void ui_window_set_input_focus(ui_window_t *win) {

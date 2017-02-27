@@ -131,7 +131,9 @@ static ui_display_t _disp;
 static Mouse _mouse;
 static ui_display_t _disp_mouse;
 static ui_display_t *opened_disps[] = {&_disp, &_disp_mouse};
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 static int use_ansi_colors = 1;
+#endif
 static int rotate_display = 0;
 
 static struct termios orig_tm;
@@ -1410,9 +1412,9 @@ int ui_display_reset_cmap(void) {
       ;
 }
 
-void ui_display_set_use_ansi_colors(int use) { use_ansi_colors = use; }
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+void ui_display_set_use_ansi_colors(int use) { use_ansi_colors = use; }
 
 void ui_display_enable_to_change_cmap(int flag) {
   if (flag) {

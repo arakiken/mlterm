@@ -74,7 +74,7 @@ static void receive_next_event(void) {
 
   while (1) {
 /* on Linux tv_usec,tv_sec members are zero cleared after select() */
-#if (defined(__NetBSD__) && defined(USE_FRAMEBUFFER)) || defined(USE_WAYLAND)
+#ifdef KEY_REPEAT_BY_MYSELF
     static int display_idling_wait = 4;
 
     tval.tv_usec = 25000; /* 0.025 sec */
@@ -129,7 +129,7 @@ static void receive_next_event(void) {
     displays = ui_get_opened_displays(&num_of_displays);
 
     for (count = 0; count < num_of_displays; count++) {
-#if defined(USE_XLIB) || defined(USE_WAYLAND)
+#ifdef NEED_DISPLAY_SYNC_EVERY_TIME
       /*
        * Need to read pending events and to flush events in
        * output buffer on X11 before waiting in select().
@@ -184,7 +184,7 @@ static void receive_next_event(void) {
       break;
     }
 
-#if (defined(__NetBSD__) && defined(USE_FRAMEBUFFER)) || defined(USE_WAYLAND)
+#ifdef KEY_REPEAT_BY_MYSELF
     /* ui_display_idling() is called every 0.1 sec. */
     if (--display_idling_wait > 0) {
       goto additional_minus_fds;
@@ -196,7 +196,7 @@ static void receive_next_event(void) {
       ui_display_idling(displays[count]);
     }
 
-#if (defined(__NetBSD__) && defined(USE_FRAMEBUFFER)) || defined(USE_WAYLAND)
+#ifdef KEY_REPEAT_BY_MYSELF
   additional_minus_fds:
 #endif
     /*

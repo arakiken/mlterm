@@ -31,18 +31,6 @@ static ui_display_t *opened_disp = &_disp;
 /* --- static functions --- */
 
 static int dialog(bl_dialog_style_t style, char *msg) {
-#if 0
-  if (style == BL_DIALOG_OKCANCEL) {
-    if (MessageBoxA(NULL, msg, "", MB_OKCANCEL) == IDOK) {
-      return 1;
-    }
-  } else if (style == BL_DIALOG_ALERT) {
-    MessageBoxA(NULL, msg, "", MB_ICONSTOP);
-  } else {
-    return -1;
-  }
-#endif
-
   return 0;
 }
 
@@ -99,14 +87,6 @@ int ui_display_close_all(void) {
   }
 
   free(_disp.roots);
-
-  for (count = 0; count < (sizeof(_disp.cursors) / sizeof(_disp.cursors[0])); count++) {
-    if (_disp.cursors[count]) {
-#if 0
-      CloseHandle(_disp.cursors[count]);
-#endif
-    }
-  }
 
   _disp.display = NULL;
 
@@ -237,34 +217,7 @@ XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return di
 void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) { /* dummy */ }
 
 Cursor ui_display_get_cursor(ui_display_t *disp, u_int shape) {
-#if 0
-  int idx;
-  LPCTSTR name;
-
-  /*
-   * XXX
-   * cursor[0] == XC_xterm / cursor[1] == XC_left_ptr / cursor[2] == not used
-   * Mlterm uses only these shapes.
-   */
-
-  if (shape == XC_xterm) {
-    idx = 0;
-    name = IDC_IBEAM;
-  } else if (shape == XC_left_ptr) {
-    idx = 1;
-    name = IDC_ARROW; /* already loaded in ui_display_open() */
-  } else {
-    return None;
-  }
-
-  if (!disp->cursors[idx]) {
-    disp->cursors[idx] = LoadCursor(NULL, name);
-  }
-
-  return disp->cursors[idx];
-#else
   return None;
-#endif
 }
 
 XID ui_display_get_group_leader(ui_display_t *disp) { return None; }

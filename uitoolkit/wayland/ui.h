@@ -99,6 +99,7 @@ typedef struct {
 
   int kbd_repeat_wait;
   XKeyEvent prev_kev;
+  u_int kbd_repeat_count;
 
   struct wl_data_offer *dnd_offer;
   struct wl_data_offer *sel_offer;
@@ -153,12 +154,9 @@ typedef struct {
    (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
    (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
 
-typedef int XIM; /* dummy */
 typedef int XIC; /* dummy */
-typedef int XIMStyle; /* dummy */
-
 typedef void *XID; /* dummy */
-typedef void* * Window; /* dummy */
+typedef void *Window; /* dummy */
 typedef void *Drawable; /* dummy */
 typedef struct {
   unsigned char *image;
@@ -428,13 +426,22 @@ KeySym XStringToKeysym(char *str);
 #else
 #undef TYPE_XCORE_SCALABLE
 #endif
-#ifdef __UI_LAYOUT_H__
-#define MANAGE_WINDOWS_BY_MYSELF
-#else
-#undef MANAGE_WINDOWS_BY_MYSELF
-#endif
-#undef INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
+#define MANAGE_SUB_WINDOWS_BY_MYSELF
+/* ui_im_{candidate|status}_screen.c, ui_window.c */
+#undef MANAGE_ROOT_WINDOWS_BY_MYSELF
+#define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP
+#define NO_EXPOSE_ON_RESIZE
+#undef USE_GC
+#undef CHANGEABLE_CURSOR
+#define PLUGIN_MODULE_SUFFIX "wl"
+#define KEY_REPEAT_BY_MYSELF
+#define ROTATABLE_DISPLAY
+#undef PSEUDO_COLOR_DISPLAY
+#undef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+#undef SUPPORT_URGENT_BELL
+#undef FORCE_UNICODE
+#define NEED_DISPLAY_SYNC_EVERY_TIME
 
 #endif

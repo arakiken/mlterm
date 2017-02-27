@@ -50,7 +50,7 @@ typedef struct ui_display {
 
   ui_modifier_mapping_t modmap;
 
-#if !defined(USE_FRAMEBUFFER) && !defined(USE_CONSOLE) && !defined(USE_WAYLAND)
+#ifdef CHANGEABLE_CURSOR
   Cursor cursors[3];
 #endif
 
@@ -97,18 +97,26 @@ void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial);
 
 XID ui_display_get_group_leader(ui_display_t *disp);
 
-#if defined(USE_FRAMEBUFFER) && !defined(__ANDROID__)
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 void ui_display_set_use_ansi_colors(int use);
-
-int ui_display_reset_cmap(void);
 #else
 #define ui_display_set_use_ansi_colors(use) (0)
+#endif
+
+#ifdef PSEUDO_COLOR_DISPLAY
+int ui_display_reset_cmap(void);
+#else
 #define ui_display_reset_cmap() (0)
 #endif
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef ROTATABLE_DISPLAY
 void ui_display_rotate(int rotate);
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
+void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int *y);
+#endif
+#endif
 
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
 void ui_display_reset_input_method_window(void);
 #endif
 

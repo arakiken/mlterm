@@ -203,7 +203,7 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, char *key, char *value)
 
 int ui_screen_reset_view(ui_screen_t *screen);
 
-#if defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 void ui_screen_reload_color_cache(ui_screen_t *screen, int do_unload);
 #endif
 

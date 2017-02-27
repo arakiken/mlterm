@@ -41,7 +41,7 @@ static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, i
 }
 #endif
 
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
 static void reset_screen(ui_window_t *win) {
   ui_display_reset_input_method_window();
   ui_window_draw_rect_frame(win, -MARGIN, -MARGIN, win->width + MARGIN - 1,
@@ -148,7 +148,7 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
         ui_window_move(&stat_screen->window, x, y);
       }
 
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
       reset_screen(&stat_screen->window);
 #endif
 
@@ -204,7 +204,7 @@ static int set_spot(ui_im_status_screen_t *stat_screen, int x, int y) {
 
   if (stat_screen->window.x != x || stat_screen->window.y != y) {
     ui_window_move(&stat_screen->window, x, y);
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
     reset_screen(&stat_screen->window);
     draw_screen(stat_screen, 0, 0);
 #endif

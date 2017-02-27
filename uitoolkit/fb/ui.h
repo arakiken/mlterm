@@ -103,13 +103,10 @@ typedef struct {
    (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
    (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
 
-typedef int XIM;      /* dummy */
 typedef int XIC;      /* dummy */
-typedef int XIMStyle; /* dummy */
-
-typedef void* XID;      /* dummy */
-typedef void* Window;   /* dummy */
-typedef void* Drawable; /* dummy */
+typedef void *XID;      /* dummy */
+typedef void *Window;   /* dummy */
+typedef void *Drawable; /* dummy */
 
 typedef struct {
   unsigned char *image;
@@ -622,11 +619,31 @@ KeySym XStringToKeysym(char *str);
 #else
 #undef TYPE_XCORE_SCALABLE
 #endif
-#define MANAGE_WINDOWS_BY_MYSELF
-/* See also fb/ui_display.c where ui_picture_display_closed() is never called.
- */
+#define MANAGE_ROOT_WINDOWS_BY_MYSELF
+#define MANAGE_SUB_WINDOWS_BY_MYSELF
+/* See also fb/ui_display.c where ui_picture_display_closed() is never called. */
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP
+#undef NO_EXPOSE_ON_RESIZE
+#undef USE_GC
+#undef CHANGEABLE_CURSOR
+#define PLUGIN_MODULE_SUFFIX "fb"
+#if defined(__NetBSD__) && !defined(USE_GRF)
+#define KEY_REPEAT_BY_MYSELF
+#else
+#undef KEY_REPEAT_BY_MYSELF
+#endif
+#define ROTATABLE_DISPLAY
+#define PSEUDO_COLOR_DISPLAY
+#if defined(__NetBSD__) || defined(__OpenBSD__)
+/* for old machines */
+#define WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+#else
+#undef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+#endif
+#undef SUPPORT_URGENT_BELL
+#undef FORCE_UNICODE
+#undef NEED_DISPLAY_SYNC_EVERY_TIME
 
 #endif

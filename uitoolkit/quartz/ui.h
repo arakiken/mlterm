@@ -202,10 +202,7 @@ enum {
 
 typedef struct { int fd; } Display;
 
-typedef int XIM; /* dummy */
 typedef int XIC;
-typedef int XIMStyle; /* dummy */
-
 typedef int XID;
 typedef void* Window; /* NSView */
 typedef int Drawable;
@@ -500,9 +497,21 @@ KeySym XStringToKeysym(char *str);
 #undef UI_COLOR_HAS_RGB
 #define SUPPORT_TRUE_TRANSPARENT_BG
 #define TYPE_XCORE_SCALABLE
-#undef MANAGE_WINDOWS_BY_MYSELF
+#undef MANAGE_ROOT_WINDOWS_BY_MYSELF
+#undef MANAGE_SUB_WINDOWS_BY_MYSELF
 #undef INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #define SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP
+#undef NO_EXPOSE_ON_RESIZE
+#undef USE_GC
+#undef CHANGEABLE_CURSOR
+#undef PLUGIN_MODULE_SUFFIX
+#undef KEY_REPEAT_BY_MYSELF
+#undef ROTATABLE_DISPLAY
+#undef PSEUDO_COLOR_DISPLAY
+#undef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+#define SUPPORT_URGENT_BELL
+#define FORCE_UNICODE
+#undef NEED_DISPLAY_SYNC_EVERY_TIME
 
 #endif

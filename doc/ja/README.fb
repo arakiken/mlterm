@@ -78,8 +78,8 @@ Framebuffer 対応に関するメモ
                    ^^^^^^^^^^^^^^^
   o キーリピートは、~/.mlterm/main に次のオプションを指定することで変更できます。
     ただし、指定できる値は25ms単位になります。
-    wskbd_repeat_1=400
-    wskbd_repeat_N=50
+    kbd_repeat_1=400
+    kbd_repeat_N=50
   o キーボード入力は、/dev/wskbd を使って読み込みます。別のデバイスを使用したい
     場合は、WSKBD 環境変数にそのデバイス名を指定してください。
     (e.g. export WSKBD=/dev/wskbd0)
@@ -88,8 +88,8 @@ Framebuffer 対応に関するメモ
     --without-pthread を指定してビルドしないでください(mlterm-fb に pthread ライ
     ブラリをリンクしておかないと、ibus module の dlopen に失敗します。)。
   o 1・2・4 bpp では、壁紙等は ANSI color から近似色を検索して表示しますが、
-    4 bpp で --colors=false を指定し、16色以下の sixel を背景にセットした場合は
-    当該画像のパレットを使用します。
+    4 bpp で --colors=false (use_ansi_colors=false)を指定し、16色以下の sixel を
+    背景にセットした場合は当該画像のパレットを使用します。
   o NetBSD/luna68k では、--depth=1 又は --depth=4 により、1bpp と 4bpp を切り替
     えることができます。
   o NetBSD/x68k では ~/.mlterm/main に次のように指定することで、解像度を変更でき

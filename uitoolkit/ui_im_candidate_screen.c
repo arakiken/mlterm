@@ -158,7 +158,7 @@ static void resize(ui_im_candidate_screen_t *cand_screen, u_int width, u_int hei
       ui_window_move(&cand_screen->window, x, y);
     }
 
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
     /* resized but position is not changed. */
     ui_display_reset_input_method_window();
     ui_window_draw_rect_frame(&cand_screen->window, -MARGIN, -MARGIN,
@@ -341,7 +341,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
     size_t len;
     int x;
 
-#ifdef MANAGE_WINDOWS_BY_MYSELF
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
     ui_window_clear(&cand_screen->window, 0,
                     (xfont->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
                     win_width, xfont->height);

@@ -20,7 +20,7 @@ typedef struct ui_xic {
   ef_parser_t *parser;
 #elif defined(USE_QUARTZ)
   ef_parser_t *parser;
-#else
+#elif defined(USE_XLIB)
   XFontSet fontset;
   XIMStyle style;
 #endif

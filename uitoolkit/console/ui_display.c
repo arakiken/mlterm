@@ -834,8 +834,10 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
     return displays[0];
   }
 
-  if (!(disp->name = getenv("DISPLAY"))) {
-    disp->name = ":0.0";
+  if (disp) {
+    if (!(disp->name = getenv("DISPLAY"))) {
+      disp->name = ":0.0";
+    }
   }
 
   return disp;

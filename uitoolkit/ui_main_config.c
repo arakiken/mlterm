@@ -305,7 +305,7 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "multivram", 1, "separate_wall_picture",
                   "draw wall picture on another vram. (available on 4bpp) [true]");
 #endif
-#ifdef USE_FRAMEBUFFER
+#ifdef ROTATABLE_DISPLAY
   bl_conf_add_opt(conf, '\0', "rotate", 0, "rotate_display", "rotate display. [none]");
 #endif
 #ifdef USE_CONSOLE
@@ -553,7 +553,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
     main_config->term_type = strdup("xterm");
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
   /*
    * The pty is always resized to fit the display size.
    * Don't use 80x24 for the default value because the screen is not drawn
@@ -742,7 +742,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
       }
     }
   }
-#if defined(__ANDROID__) || defined(USE_QUARTZ)
+#ifdef FORCE_UNICODE
   else {
     main_config->unicode_policy = ONLY_USE_UNICODE_FONT;
   }
@@ -755,21 +755,17 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
       main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT;
     }
   }
-#if defined(__ANDROID__) || defined(USE_QUARTZ)
+#ifdef FORCE_UNICODE
   else {
     main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT;
   }
 #endif
 
-#ifdef USE_QUARTZ
-  main_config->receive_string_via_ucs = 1;
-#else
   if ((value = bl_conf_get_value(conf, "receive_string_via_ucs"))) {
     if (strcmp(value, "true") == 0) {
       main_config->receive_string_via_ucs = 1;
     }
   }
-#endif
 
   /* "cn" and "ko" ? */
   if (strcmp(bl_get_lang(), "ja") == 0) {
@@ -1292,7 +1288,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   }
 #endif
 
-#ifdef USE_FRAMEBUFFER
+#ifdef ROTATABLE_DISPLAY
   if ((value = bl_conf_get_value(conf, "rotate_display"))) {
     ui_display_rotate(strcmp(value, "right") == 0 ? 1 : (strcmp(value, "left") == 0 ? -1 : 0));
   }

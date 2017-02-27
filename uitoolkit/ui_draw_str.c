@@ -1060,9 +1060,13 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       if (
 #if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND)
 #ifdef USE_FREETYPE
-          xfont->is_proportional || /* ISCII or ISO10646_UCS4_1_V */
+          /*
+           * ISCII or ISO10646_UCS4_1_V
+           * (see #ifdef USE_FREETYPE #endif in draw_string() in ui_window.c)
+           */
+          xfont->is_proportional ||
 #endif
-      /* draw_alone || */           /* draw_alone is always false on framebuffer. */
+          /* draw_alone || */       /* draw_alone is always false on framebuffer. */
 #else /* USE_FRAMEBUFFER|USE_WAYLAND */
 #if defined(USE_WIN32GUI) && defined(USE_OT_LAYOUT)
           /*

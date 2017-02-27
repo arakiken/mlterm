@@ -60,7 +60,7 @@ static void *im_dlopen(char *im_name) {
 
 static int dlsym_im_new_func(char *im_name, ui_im_new_func_t *func, bl_dl_handle_t *handle) {
   char *symname;
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
+#ifdef PLUGIN_MODULE_SUFFIX
   char *im_name2;
 #endif
 
@@ -70,22 +70,16 @@ static int dlsym_im_new_func(char *im_name, ui_im_new_func_t *func, bl_dl_handle
 
   sprintf(symname, "im_%s_new", im_name);
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
+#ifdef PLUGIN_MODULE_SUFFIX
   if ((im_name2 = alloca(strlen(im_name) + 3 + 1))) {
-    sprintf(im_name2,
-#ifdef USE_WAYLAND
-            "%s-wl",
-#else
-            "%s-fb",
-#endif
-            im_name);
+    sprintf(im_name2, "%s-" PLUGIN_MODULE_SUFFIX, im_name);
 
     if (!(*handle = im_dlopen(im_name2))) {
 #endif
       if (!(*handle = im_dlopen(im_name))) {
         return 0;
       }
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
+#ifdef PLUGIN_MODULE_SUFFIX
     }
   }
 #endif

@@ -28,9 +28,9 @@ u_int fb_width = 640;
 u_int fb_height = 480;
 u_int fb_depth = 8;
 #ifdef __NetBSD__
-static int wskbd_repeat_wait = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT;
-int wskbd_repeat_1 = DEFAULT_KEY_REPEAT_1;
-int wskbd_repeat_N = DEFAULT_KEY_REPEAT_N;
+static int kbd_repeat_wait = (DEFAULT_KEY_REPEAT_1 + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
+int kbd_repeat_1 = DEFAULT_KEY_REPEAT_1;
+int kbd_repeat_N = DEFAULT_KEY_REPEAT_N;
 #endif
 static int orig_console_mode = WSDISPLAYIO_MODE_EMUL; /* 0 */
 static int wskbd_mode_switch = 0;
@@ -224,7 +224,7 @@ static void process_wskbd_event(struct wscons_event *ev) {
 
       prev_key_event = *ev;
 #ifdef __NetBSD__
-      wskbd_repeat_wait = (wskbd_repeat_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT;
+      kbd_repeat_wait = (kbd_repeat_1 + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
 #endif
     }
   } else if (ev->type == WSCONS_EVENT_KEY_UP) {
@@ -244,9 +244,9 @@ static void process_wskbd_event(struct wscons_event *ev) {
 
 #ifdef __NetBSD__
 static void auto_repeat(void) {
-  if (prev_key_event.value && --wskbd_repeat_wait == 0) {
+  if (prev_key_event.value && --kbd_repeat_wait == 0) {
     process_wskbd_event(&prev_key_event);
-    wskbd_repeat_wait = (wskbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT;
+    kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
   }
 }
 #endif

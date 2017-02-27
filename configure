@@ -1753,7 +1753,7 @@ Optional Features:
   --disable-dl-type       dynamic loading type engine library [default=enable]
   --disable-anti-alias    same as --with-type-engines=xcore on xlib [default=enabled]
                           do not use truetype fonts on framebuffer [default=enabled]
-  --disable-fontconfig    do not use fontconfig with freetype on framebuffer or wayland [default=enabled]
+  --enable-fontconfig     use fontconfig with freetype on framebuffer or wayland [default=disabled]
   --disable-otl           Open Type layout with the use of harfbuzz or libotf [default=enabled]
   --disable-ssh2          libssh2 [default=enabled]
   --disable-utmp          utmp [default=enabled]
@@ -21230,11 +21230,11 @@ if test "$FT_CFLAGS" != "" ; then
 if test "${enable_fontconfig+set}" = set; then :
   enableval=$enable_fontconfig; fontconfig=$enable_fontconfig
 else
-  fontconfig="yes"
+  fontconfig="no"
 fi
 
 
-  if test "$fontconfig" != "no"; then
+  if test "$have_ft" = "yes" -a "$fontconfig" = "yes"; then
     FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
 		FT_LIBS="$FT_LIBS -lfontconfig"
 

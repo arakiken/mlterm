@@ -948,7 +948,7 @@ static int set_wall_picture(ui_screen_t *screen) {
     return 0;
   }
 
-#if defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
   if (screen->window.disp->depth == 4 && strstr(screen->pic_file_path, "six")) {
     /*
      * Color pallette of ui_display can be changed by ui_acquire_bg_picture().
@@ -1099,7 +1099,7 @@ static void window_realized(ui_window_t *win) {
   }
 
 /* XXX Don't load wall picture until window is resized */
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (screen->window.is_mapped)
 #endif
   {
@@ -1256,7 +1256,7 @@ static void window_resized(ui_window_t *win) {
 
   set_wall_picture(screen);
 
-#ifdef USE_WAYLAND
+#ifdef NO_EXPOSE_ON_RESIZE
   /*
    * Expose event is not sent in resizing a window on wayland, so, for example,
    * if line_height is changed, ui_window_update() doesn't redraw anything because
@@ -4476,8 +4476,6 @@ static int get_im_spot(void *p, vt_char_t *chars, int segment_offset, int *x, in
   vt_char_t *comb_chars;
   u_int comb_size;
   int i;
-  int win_x;
-  int win_y;
   Window unused;
 
   screen = p;
@@ -4557,10 +4555,8 @@ static int get_im_spot(void *p, vt_char_t *chars, int segment_offset, int *x, in
     }
   }
 
-  ui_window_translate_coordinates(&screen->window, 0, 0, &win_x, &win_y, &unused);
-
-  *x += win_x + screen->window.hmargin;
-  *y += win_y + screen->window.vmargin;
+  ui_window_translate_coordinates(&screen->window, *x + screen->window.hmargin,
+                                  *y + screen->window.vmargin, x, y, &unused);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " im spot => x %d y %d\n", *x, *y);
@@ -6540,7 +6536,7 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
       usascii_font_cs_changed(screen, vt_term_get_encoding(screen->term));
     }
   }
-#ifdef USE_FRAMEBUFFER
+#ifdef ROTATABLE_DISPLAY
   else if (strcmp(key, "rotate_display") == 0) {
     ui_display_rotate(strcmp(value, "right") == 0 ? 1 : (strcmp(value, "left") == 0 ? -1 : 0));
   }
@@ -6595,7 +6591,7 @@ int ui_screen_reset_view(ui_screen_t *screen) {
   return 1;
 }
 
-#if defined(USE_FRAMEBUFFER) && (defined(__NetBSD__) || defined(__OpenBSD__))
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 void ui_screen_reload_color_cache(ui_screen_t *screen, int do_unload) {
   if (do_unload) {
     ui_color_cache_unload(screen->color_man->color_cache);

@@ -18,7 +18,7 @@
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
 
-#if 1
+#if 0
 #define __DEBUG
 #endif
 
@@ -244,8 +244,14 @@ static void auto_repeat(void) {
 
   for (count = 0; count < num_of_wlservs; count++) {
     if (wlservs[count]->prev_kev.type && --wlservs[count]->kbd_repeat_wait == 0) {
+      if (wlservs[count]->kbd_repeat_count++ == 2) {
+        /* for ibus lookup table */
+        wl_display_roundtrip(wlservs[count]->display);
+        wlservs[count]->kbd_repeat_count = 0;
+      }
+      wlservs[count]->prev_kev.time += kbd_repeat_N;
       receive_event(wlservs[count], &wlservs[count]->prev_kev);
-      wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT;
+      wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
     }
   }
 }
@@ -287,6 +293,10 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
   bl_debug_printf("KBD LEAVE %p\n", surface);
 #endif
 
+#if 0
+  wlserv->prev_kev.type = 0;
+#endif
+
   /* surface may have been already destroyed. So null check of disp is necessary. */
   if (disp && (win = search_focused_window(disp->roots[0]))) {
 #ifdef __DEBUG
@@ -326,6 +336,9 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
     ev.ksym = ev.keycode = ev.state = 0;
 #endif
     wlserv->prev_kev.type = 0;
+#ifdef __DEBUG
+    bl_debug_printf("key released\n");
+#endif
     return;
   }
   else {
@@ -370,7 +383,7 @@ static void keyboard_repeat_info(void *data, struct wl_keyboard *keyboard,
 #ifdef __DEBUG
   bl_debug_printf("Repeat info rate %d delay %d.\n", rate, delay);
 #endif
-  kbd_repeat_1 = delay;
+  kbd_repeat_1 = delay / 2;    /* XXX delay / 1 is too late */
   kbd_repeat_N = (500 / rate); /* XXX 1000 / rate is too late. */
 }
 
@@ -1191,10 +1204,10 @@ static int flush_damage(Display *display) {
   if (display->damage_height > 0) {
     wl_surface_damage(display->surface, display->damage_x, display->damage_y,
                       display->damage_width, display->damage_height);
+    display->damage_x = display->damage_y = display->damage_width = display->damage_height = 0;
 
     return 1;
   } else {
-    display->damage_x = display->damage_y = display->damage_width = display->damage_height = 0;
 
     return 0;
   }
@@ -1234,9 +1247,13 @@ static void damage_buffer(Display *display, int x, int y, u_int width, u_int hei
   }
 }
 
-static void flush_wlserver(Display *display) {
+static int flush_wlserver(Display *display) {
   if (flush_damage(display)) {
     wl_surface_commit(display->surface);
+
+    return 1;
+  } else {
+    return 0;
   }
 }
 
@@ -1451,7 +1468,7 @@ void ui_display_idling(ui_display_t *disp) {
 }
 
 int ui_display_receive_next_event(ui_display_t *disp) {
-  flush_wlserver(disp->display);
+  ui_display_sync(disp);
   if (wl_display_dispatch(disp->display->wlserv->display) == -1) {
     return 0;
   }
@@ -1461,8 +1478,9 @@ int ui_display_receive_next_event(ui_display_t *disp) {
 }
 
 void ui_display_sync(ui_display_t *disp) {
-  flush_wlserver(disp->display);
-  wl_display_flush(disp->display->wlserv->display);
+  if (flush_wlserver(disp->display)) {
+    wl_display_flush(disp->display->wlserv->display);
+  }
 }
 
 /*
@@ -1525,6 +1543,8 @@ XID ui_display_get_group_leader(ui_display_t *disp) {
     return None;
   }
 }
+
+void ui_display_rotate(int rotate) { rotate_display = rotate; }
 
 int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_display_t *parent) {
   Display *display = disp->display;
@@ -1766,4 +1786,17 @@ u_char ui_display_get_char(KeySym ksym) {
     } else {
       return 0;
     }
+}
+
+void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int *y) {
+  if (rotate_display) {
+    int tmp = *y;
+    if (rotate_display > 0) {
+      *y = *x;
+      *x = disp->display->width - tmp - 1;
+    } else {
+      *y = disp->display->height - *x - 1;
+      *x = tmp;
+    }
+  }
 }

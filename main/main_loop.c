@@ -295,20 +295,20 @@ int main_loop_init(int argc, char **argv) {
   }
 #endif
 
-#ifdef USE_FRAMEBUFFER
-#if defined(__NetBSD__) && !defined(USE_GRF)
-  if ((value = bl_conf_get_value(conf, "wskbd_repeat_1"))) {
-    extern int wskbd_repeat_1;
+#ifdef KEY_REPEAT_BY_MYSELF
+  if ((value = bl_conf_get_value(conf, "kbd_repeat_1"))) {
+    extern int kbd_repeat_1;
 
-    bl_str_to_int(&wskbd_repeat_1, value);
+    bl_str_to_int(&kbd_repeat_1, value);
   }
 
-  if ((value = bl_conf_get_value(conf, "wskbd_repeat_N"))) {
-    extern int wskbd_repeat_N;
+  if ((value = bl_conf_get_value(conf, "kbd_repeat_N"))) {
+    extern int kbd_repeat_N;
 
-    bl_str_to_int(&wskbd_repeat_N, value);
+    bl_str_to_int(&kbd_repeat_N, value);
   }
 #endif
+#ifdef USE_FRAMEBUFFER
 #if defined(__OpenBSD__) || defined(__NetBSD__)
   if ((value = bl_conf_get_value(conf, "fb_resolution"))) {
     extern u_int fb_width;

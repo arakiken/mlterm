@@ -1,3 +1,23 @@
+2017-02-28  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, README.fb: Updated.
+
+	* wayland/ui_display.c:
+	  - ui_display_rotate() and ui_display_logical_to_physical_coordinates() are added.
+	  - wl_display_roundtrip() is called in auto_repeat().
+
+	* */ui.h:
+	  - XIM and XIMStyle are removed.
+	  - MANAGE_WINDOWS_BY_MYSELF => MANAGE_{ROOT|SUB}_WINDOWS_BY_MYSELF
+	  - NO_EXPOSE_ON_RESIZE, USE_GC, CHANGEABLE_CURSOR, PLUGIN_MODULE_SUFFIX,
+	    KEY_REPEAT_BY_MYSELF, ROTATABLE_DISPLAY, PSEUDO_COLOR_DISPLAY,
+	    WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE, SUPPORT_URGENT_BELL,
+	    FORCE_UNICODE, NEED_DISPLAY_SYNC_EVERY_TIME are added.
+
+	* main_loop.c, ui_display_wscons.c: wskbd_repeat_{1|N} => kbd_repeat_{1|N}
+
+	* configure.in: --enable-fontconfig option is disabled by default.
+
 2017-02-25  Araki Ken  <arakiken@users.sf.net>
 
 	* */ui_display.c:

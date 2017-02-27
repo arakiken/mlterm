@@ -45,14 +45,14 @@ static ui_sb_view_new_func_t dlsym_sb_view_new_func(char *name, int is_transpare
   char *symbol;
   u_int len;
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
+#ifdef PLUGIN_MODULE_SUFFIX
   char *p;
 
   if (!(p = alloca(strlen(name) + 3 + 1))) {
     return NULL;
   }
 
-  sprintf(p, "%s-fb", name);
+  sprintf(p, "%s-" PLUGIN_MODULE_SUFFIX, name);
 
   if (!(handle = bl_dl_open(SBLIB_DIR, p)) && !(handle = bl_dl_open("", p)))
 #else
@@ -95,14 +95,14 @@ static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(char *name) {
   char *symbol;
   u_int len;
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
+#ifdef PLUGIN_MODULE_SUFFIX
   char *p;
 
   if (!(p = alloca(strlen(name) + 3 + 1))) {
     return NULL;
   }
 
-  sprintf(p, "%s-fb", name);
+  sprintf(p, "%s-" PLUGIN_MODULE_SUFFIX, name);
 
   if (!(handle = bl_dl_open(SBLIB_DIR, name)) && !(handle = bl_dl_open("", name)))
 #else

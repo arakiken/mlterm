@@ -1059,7 +1059,7 @@ int ui_window_show(ui_window_t *win,
     ui_window_show(win->children[count], 0);
   }
 
-#ifndef USE_WAYLAND
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (!win->parent && win->x == 0 && win->y == 0) {
     ui_window_resize_with_margin(win, win->disp->width, win->disp->height, NOTIFY_TO_MYSELF);
   }
@@ -1089,7 +1089,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
                      u_int height,                  /* excluding margin */
                      ui_resize_flag_t flag          /* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
                      ) {
-#ifndef USE_WAYLAND
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if ((flag & NOTIFY_TO_PARENT) &&
       /* XXX Check if win is input method window or not. */
       !IS_IM_WINDOW(win)) {
@@ -1120,9 +1120,11 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
     return 0;
   }
 
-#ifdef USE_WAYLAND
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (win->parent == NULL) {
+#ifdef USE_WAYLAND
     ui_display_resize(win->disp, width + win->hmargin * 2, height + win->vmargin * 2);
+#endif
   } else if (flag & NOTIFY_TO_PARENT) {
     return ui_window_resize(win->parent, win->parent->width + width - win->width ,
                             win->parent->height + height - win->height,
@@ -1149,7 +1151,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
      */
     clear_margin_area(win);
   }
-#ifdef USE_WAYLAND
+#ifdef NO_EXPOSE_ON_RESIZE
   /* for ui_im_{status|candidate}_screen.c */
   else if (win->window_exposed) {
     (*win->window_exposed)(win, 0, 0, win->width, win->height);
@@ -1184,9 +1186,11 @@ int ui_window_move(ui_window_t *win, int x, int y) {
     x += win->parent->hmargin;
     y += win->parent->vmargin;
   }
-#ifdef USE_WAYLAND
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   else {
+#ifdef USE_WAYLAND
     ui_display_move(win->disp, x, y);
+#endif
 
     return 0;
   }
@@ -1600,6 +1604,7 @@ int ui_window_scroll_upward(ui_window_t *win, u_int height) {
   return ui_window_scroll_upward_region(win, 0, win->height, height);
 }
 
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
 int ui_window_is_scrollable(ui_window_t *win) {
   /* XXX If input method module is activated, don't scroll window. */
   if (win->is_scrollable && !IS_IM_WINDOW(win)) {
@@ -1608,6 +1613,7 @@ int ui_window_is_scrollable(ui_window_t *win) {
     return 0;
   }
 }
+#endif
 
 int ui_window_scroll_upward_region(ui_window_t *win, int boundary_start, int boundary_end,
                                    u_int height) {
@@ -1887,7 +1893,11 @@ int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_
   *global_x = x + win->x;
   *global_y = y + win->y;
 
-  return 0;
+#if defined(ROTATABLE_DISPLAY) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF) /* == USE_WAYLAND */
+  ui_display_logical_to_physical_coordinates(win->disp, global_x, global_y);
+#endif
+
+  return 1;
 }
 
 void ui_window_set_input_focus(ui_window_t *win) {

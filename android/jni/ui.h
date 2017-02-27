@@ -44,10 +44,7 @@ typedef struct {
    (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
    (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
 
-typedef int XIM;      /* dummy */
 typedef int XIC;      /* dummy */
-typedef int XIMStyle; /* dummy */
-
 typedef void *XID;      /* dummy */
 typedef void *Window;   /* dummy */
 typedef void *Drawable; /* dummy */
@@ -370,10 +367,21 @@ KeySym XStringToKeysym(char *str);
 #else
 #undef TYPE_XCORE_SCALABLE
 #endif
-#define MANAGE_WINDOWS_BY_MYSELF
-/* See also fb/ui_display.c where ui_picture_display_closed() is never called.
- */
+#define MANAGE_ROOT_WINDOWS_BY_MYSELF
+#define MANAGE_SUB_WINDOWS_BY_MYSELF
+/* See also fb/ui_display.c where ui_picture_display_closed() is never called. */
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
+#undef NO_EXPOSE_ON_RESIZE
+#undef USE_GC
+#undef CHANGEABLE_CURSOR
+#undef PLUGIN_MODULE_SUFFIX
+#undef KEY_REPEAT_BY_MYSELF
+#undef ROTATABLE_DISPLAY
+#undef PSEUDO_COLOR_DISPLAY
+#undef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+#undef SUPPORT_URGENT_BELL
+#define FORCE_UNICODE
+#undef NEED_DISPLAY_SYNC_EVERY_TIME
 
 #endif
