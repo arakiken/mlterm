@@ -25,6 +25,8 @@
 #include <pobl/bl_net.h> /* getaddrinfo/socket/connect */
 #include <errno.h>
 
+#include <ui_im.h>
+
 #include "ef_str_parser.h"
 #include "../im_common.h"
 
@@ -73,6 +75,7 @@ typedef struct table {
 
 /* --- static variables --- */
 
+extern ui_im_export_syms_t *syms;
 static char *global_dict;
 
 /* --- static functions --- */
@@ -703,8 +706,8 @@ static int global_dict_load(void) {
   static int is_loaded;
 
   if (!global_conv) {
-    global_conv = ef_eucjp_conv_new();
-    global_parser = ef_eucjp_parser_new();
+    global_conv = (*syms->vt_char_encoding_conv_new)(VT_EUCJP);
+    global_parser = (*syms->vt_char_encoding_parser_new)(VT_EUCJP);
   }
 
   if (!is_loaded && !global_data && global_sock == -1) {
@@ -737,8 +740,8 @@ static void local_dict_load(void) {
   char *path;
 
   if (!local_conv) {
-    local_conv = ef_utf8_conv_new();
-    local_parser = ef_utf8_parser_new();
+    local_conv = (*syms->vt_char_encoding_conv_new)(VT_UTF8);
+    local_parser = (*syms->vt_char_encoding_parser_new)(VT_UTF8);
   }
 
   if (!is_loaded && !local_data && (path = bl_get_user_rc_path("mlterm/skk-jisyo"))) {
@@ -1298,8 +1301,8 @@ void dict_set_global(char *dict) {
   }
 
   if ((len = strlen(dict)) > 5 && strcmp(dict + len - 5, ":utf8") == 0) {
-    global_conv = ef_utf8_conv_new();
-    global_parser = ef_utf8_parser_new();
+    global_conv = (*syms->vt_char_encoding_conv_new)(VT_UTF8);
+    global_parser = (*syms->vt_char_encoding_parser_new)(VT_UTF8);
 
     global_dict[len - 5] = '\0';
   } else {

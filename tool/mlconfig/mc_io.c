@@ -12,7 +12,7 @@
 /* --- static variables --- */
 
 static char *message;
-static int gui_is_win32;
+static const char *gui;
 
 /* --- static functions --- */
 
@@ -198,22 +198,14 @@ int mc_get_flag_value(const char *key) {
   }
 }
 
-int mc_gui_is_win32(void) {
+const char *mc_get_gui(void) {
   char *value;
 
-  if (gui_is_win32 != 0) {
-    return gui_is_win32 == 1;
+  if (!gui && !(gui = get_value("gui", mc_io_get))) {
+    return "xlib";
   }
 
-  if ((value = get_value("gui", mc_io_get)) && strcmp(value, "win32") == 0) {
-    gui_is_win32 = 1;
-  } else {
-    gui_is_win32 = -1;
-  }
-
-  free(value);
-
-  return gui_is_win32 == 1;
+  return gui;
 }
 
 int mc_set_font_name(mc_io_t io, const char *file, const char *cs, const char *font_name) {

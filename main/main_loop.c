@@ -168,7 +168,17 @@ int main_loop_init(int argc, char **argv) {
   bl_conf_add_opt(conf, '\0', "deffont", 0, "default_font", "default font");
 #ifdef SUPPORT_POINT_SIZE_FONT
   bl_conf_add_opt(conf, '\0', "point", 1, "use_point_size",
-                  "treat fontsize as point instead of pixel");
+                  "treat fontsize as point instead of pixel [false]");
+#endif
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  bl_conf_add_opt(conf, '\0', "aafont", 1, "use_aafont",
+                  "use [tv]aafont files with the use of fontconfig"
+#ifdef USE_WAYLAND
+                  " [true]"
+#else /* USE_FRAMEBUFFER */
+                  " [false"
+#endif
+                  );
 #endif
 
   orig_argv = argv;
@@ -316,6 +326,17 @@ int main_loop_init(int argc, char **argv) {
     extern u_int fb_depth;
 
     sscanf(value, "%dx%dx%d", &fb_width, &fb_height, &fb_depth);
+  }
+#endif
+#endif
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+#ifdef USE_WAYLAND
+  if (!(value = bl_conf_get_value(conf, "use_aafont")) || strcmp(value, "false") != 0) {
+    ui_use_aafont();
+  }
+#else /* USE_FRAMEBUFFER */
+  if ((value = bl_conf_get_value(conf, "use_aafont")) && strcmp(value, "true") == 0) {
+    ui_use_aafont();
   }
 #endif
 #endif

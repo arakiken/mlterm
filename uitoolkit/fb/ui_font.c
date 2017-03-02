@@ -1004,16 +1004,11 @@ static void unload_xfont(XFontStruct *xfont) {
 
 #endif /* USE_FREETYPE */
 
-/* --- global functions --- */
-
-int ui_compose_dec_special_font(void) {
-  /* Do nothing for now in fb. */
-  return 0;
-}
-
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
 
 #include <fontconfig/fontconfig.h>
+
+static int use_fontconfig;
 
 /* Same processing as win32/ui_font.c (partially) and libtype/ui_font_ft.c */
 static int parse_fc_font_name(char **font_family,
@@ -1228,6 +1223,17 @@ static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
 
 #endif
 
+/* --- global functions --- */
+
+int ui_compose_dec_special_font(void) {
+  /* Do nothing for now in fb. */
+  return 0;
+}
+
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+void ui_font_use_fontconfig(void) { use_fontconfig = 1; }
+#endif
+
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold,
@@ -1246,8 +1252,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   cs = FONT_CS(id);
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-
-  {
+  if (use_fontconfig) {
     FcPattern *pattern;
     FcValue val;
 
@@ -1263,9 +1268,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
     font_file = bl_str_alloca_dup(val.u.s);
     FcPatternDestroy(pattern);
-  }
-
-#else /* USE_FREETYPE && USE_FONTCONFIG */
+  } else
+#endif
 
   if (!fontname) {
 #ifdef DEBUG
@@ -1364,8 +1368,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
       percent = 0;
     }
   }
-
-#endif /* USE_FREETYPE && USE_FONTCONFIG */
 
   if (type_engine != TYPE_XCORE || !(font = calloc(1, sizeof(ui_font_t)))) {
     return NULL;

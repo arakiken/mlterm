@@ -55,7 +55,10 @@ Options for configure
     (--disable-anti-alias is the same as --with-type-engines=xcore)
     This option is ignored if --with-type-engines is specified on xlib.
 
-    Enable truetype fonts on framebuffer.
+    Enable truetype fonts on framebuffer or wayland.
+
+  --enable-fontconfig
+    Enable fontconfig (use ~/.mlterm/*aafont) on framebuffer or wayland.
 
   --disable-dl-type
     Disable dynamic loading of type engine modules,

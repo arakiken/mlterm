@@ -171,12 +171,13 @@ static ui_display_t *surface_to_display(struct wl_surface *current_surface) {
   return NULL;
 }
 
-static void receive_event(ui_wlserv_t *wlserv, XEvent *ev) {
+static void receive_key_event(ui_wlserv_t *wlserv, XKeyEvent *ev) {
   if (wlserv->current_surface) {
     ui_display_t *disp = surface_to_display(wlserv->current_surface);
     ui_window_t *win;
 
-    if ((win = search_focused_window(disp->roots[0]))) {
+    /* Key event for dead surface may be received. */
+    if (disp && (win = search_focused_window(disp->roots[0]))) {
       ui_window_receive_event(win, ev);
     }
   }
@@ -244,14 +245,14 @@ static void auto_repeat(void) {
 
   for (count = 0; count < num_of_wlservs; count++) {
     if (wlservs[count]->prev_kev.type && --wlservs[count]->kbd_repeat_wait == 0) {
+      wlservs[count]->prev_kev.time += kbd_repeat_N;
+      receive_key_event(wlservs[count], &wlservs[count]->prev_kev);
+      wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
       if (wlservs[count]->kbd_repeat_count++ == 2) {
         /* for ibus lookup table */
         wl_display_roundtrip(wlservs[count]->display);
         wlservs[count]->kbd_repeat_count = 0;
       }
-      wlservs[count]->prev_kev.time += kbd_repeat_N;
-      receive_event(wlservs[count], &wlservs[count]->prev_kev);
-      wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
     }
   }
 }
@@ -347,7 +348,7 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
 
   wlserv->serial = serial;
 
-  receive_event(wlserv, &ev);
+  receive_key_event(wlserv, &ev);
 }
 
 static void
@@ -398,17 +399,17 @@ static const struct wl_keyboard_listener keyboard_listener = {
 
 static void change_cursor(struct wl_pointer *pointer, uint32_t serial,
                           struct wl_surface *surface, struct wl_cursor *cursor) {
-    struct wl_buffer *buffer;
-    struct wl_cursor_image *image;
+  struct wl_buffer *buffer;
+  struct wl_cursor_image *image;
 
-    image = cursor->images[0];
-    if (!(buffer = wl_cursor_image_get_buffer(image))) {
-      return;
-    }
-    wl_pointer_set_cursor(pointer, serial, surface, image->hotspot_x, image->hotspot_y);
-    wl_surface_attach(surface, buffer, 0, 0);
-    wl_surface_damage(surface, 0, 0, image->width, image->height);
-    wl_surface_commit(surface);
+  image = cursor->images[0];
+  if (!(buffer = wl_cursor_image_get_buffer(image))) {
+    return;
+  }
+  wl_pointer_set_cursor(pointer, serial, surface, image->hotspot_x, image->hotspot_y);
+  wl_surface_attach(surface, buffer, 0, 0);
+  wl_surface_damage(surface, 0, 0, image->width, image->height);
+  wl_surface_commit(surface);
 }
 
 static void pointer_enter(void *data, struct wl_pointer *pointer,
@@ -1172,9 +1173,11 @@ static int close_display(ui_display_t *disp) {
 
   ui_picture_display_closed(disp->display);
 
-  wl_shell_surface_destroy(disp->display->shell_surface);
-  wl_surface_destroy(disp->display->surface);
-  destroy_shm_buffer(disp->display);
+  if (disp->display->shell_surface) {
+    wl_shell_surface_destroy(disp->display->shell_surface);
+    wl_surface_destroy(disp->display->surface);
+    destroy_shm_buffer(disp->display);
+  }
 
   if (disp->display->wlserv->ref_count == 1) {
     u_int count;

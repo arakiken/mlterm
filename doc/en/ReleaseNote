@@ -5,6 +5,10 @@ ver 3.8.1
 * Reneamse wskbd_repeat_1 and wskbd_repeat_N options to kbd_repeat_1 and kbd_repeat_N.
 * Enable --enable-anti-alias option of configure script by default.
 * Add --enable-fontconfig option which enables fontconfig on framebuffer or wayland.
+  (This option is enabled by default.)
+* Add "use_aafont" option which tells mlterm to read ~/.mlterm/*aafont configurations
+  with the use of fontconfig on framebuffer or wayland.
+  (The default value is true on wayland, while false on framebuffer.)
 
 ver 3.8.0
 * Refactor source code and directory tree.

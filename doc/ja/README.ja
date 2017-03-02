@@ -78,8 +78,12 @@ comment $Id$
       なお、xlib版で、--with-type-engines オプションを指定した場合、このオプショ
       ンは無視されます。
 
-      framebuffer版では、freetype を利用して True Type フォントを利用できるよう
-      にします。
+      framebuffer又はwayland版では、freetype を利用して True Type フォントを利用
+      できるようにします。
+
+    --enable-fontconfig
+      framebuffer又はwayland版で、フォントの検索に fontconfig を使用します。
+      (~/.mlterm/*aafont の設定を使用)
 
     --disable-dl-type
       type engine モジュールの動的ローディングを無効にし、mlterm 本体にリンクする

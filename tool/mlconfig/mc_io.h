@@ -28,7 +28,7 @@ char *mc_get_str_value(const char *key);
 
 int mc_get_flag_value(const char *key);
 
-int mc_gui_is_win32(void);
+const char *mc_get_gui(void);
 
 int mc_set_font_name(mc_io_t io, const char *file, const char *cs, const char *font_name);
 

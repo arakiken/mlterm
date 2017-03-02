@@ -37,23 +37,20 @@ typedef struct custom_cache {
 
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
 
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+static int use_aafont;
+#define FONT_FILE (use_aafont ? aafont_file + 7 : "font")
+#define VFONT_FILE (use_aafont ? vaafont_file + 7 : "vfont")
+#define TFONT_FILE (use_aafont ? taafont_file + 7 : "tfont")
+#else
 #define FONT_FILE "font"
 #define VFONT_FILE "vfont"
 #define TFONT_FILE "tfont"
-
-#if defined(USE_CONSOLE) || !defined(USE_FONTCONFIG) || !defined(USE_FREETYPE)
+#endif
 
 static char *font_file = "mlterm/font-fb";
 static char *vfont_file = "mlterm/vfont-fb";
 static char *tfont_file = "mlterm/tfont-fb";
-
-#else
-
-static char *font_file = "mlterm/aafont";
-static char *vfont_file = "mlterm/vaafont";
-static char *tfont_file = "mlterm/taafont";
-
-#endif
 
 #else
 
@@ -449,8 +446,13 @@ static int read_all_conf(ui_font_config_t *font_config,
   char *font_rcfile2; /* prior to font_rcfile */
   char *rcpath;
 
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  if (use_aafont)
+#else
   /* '>= XFT' means XFT or Cairo */
-  if (font_config->type_engine >= TYPE_XFT) {
+  if (font_config->type_engine >= TYPE_XFT)
+#endif
+  {
     font_rcfile = aafont_file;
 
     switch (font_config->font_present & ~FONT_AA) {
@@ -691,6 +693,19 @@ static ui_font_config_t *create_shared_font_config(ui_type_engine_t type_engine,
 }
 
 /* --- global functions --- */
+
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+int ui_use_aafont(void) {
+  if (num_of_configs > 0 || use_aafont) {
+    return 0;
+  }
+
+  use_aafont = 1;
+  ui_font_use_fontconfig();
+
+  return 1;
+}
+#endif
 
 ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,
                                          ui_font_present_t font_present) {
@@ -1035,7 +1050,9 @@ char *ui_get_config_font_name2(const char *file, /* can be NULL */
   if (file == NULL || strcmp(file, FONT_FILE) == 0) {
     engine = TYPE_XCORE;
     present = 0;
-  } else if (strcmp(file, aafont_file + 7) == 0) {
+  }
+#if !defined(USE_FREETYPE) || ! defined(USE_FONTCONFIG)
+  else if (strcmp(file, aafont_file + 7) == 0) {
     engine = TYPE_XFT;
 
     /*
@@ -1043,17 +1060,19 @@ char *ui_get_config_font_name2(const char *file, /* can be NULL */
      * font_configs whose difference is only FONT_AA.
      */
     present = 0;
-  } else if (strcmp(file, VFONT_FILE) == 0) {
-    engine = TYPE_XCORE;
-    present = FONT_VAR_WIDTH;
-  } else if (strcmp(file, TFONT_FILE) == 0) {
-    engine = TYPE_XCORE;
-    present = FONT_VERTICAL;
   } else if (strcmp(file, vaafont_file + 7) == 0) {
     engine = TYPE_XFT;
     present = FONT_VAR_WIDTH;
   } else if (strcmp(file, taafont_file + 7) == 0) {
     engine = TYPE_XFT;
+    present = FONT_VERTICAL;
+  }
+#endif
+  else if (strcmp(file, VFONT_FILE) == 0) {
+    engine = TYPE_XCORE;
+    present = FONT_VAR_WIDTH;
+  } else if (strcmp(file, TFONT_FILE) == 0) {
+    engine = TYPE_XCORE;
     present = FONT_VERTICAL;
   } else {
 #ifdef DEBUG

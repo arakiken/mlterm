@@ -34,7 +34,7 @@ LMEF_DEB = -lmef_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ \
-	@X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @TYPE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	@X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -I$(top_srcdir)/vtemu \
 	-I${top_srcdir}/uitoolkit -I${top_builddir}/main -I/usr/local/include
 

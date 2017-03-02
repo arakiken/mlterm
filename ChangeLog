@@ -1,3 +1,26 @@
+2017-03-03  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: Whether disp is NULL or not is checked in
+	  receive_key_event() which may be called after the surface is destroyed.
+
+	* ui_font_manager.c: If US-ASCII font is not found, font loading is retried
+	  after calling ui_use_aafont().
+
+	* ui_font_config.[ch]: ui_use_aafont() is added.
+
+	* fb/ui_font.[ch]: ui_font_use_fontconfig() is added.
+
+	* mc_im.c: get_im_info() searches libim-foo-fb.so on framebuffer or console and
+	  libim-foo-wl.so on wayland.
+
+	* mc_font.c, mc_io.[ch]: mc_gui_is_win32() is replaced by mc_get_gui().
+
+	* main_loop.c: --aafont / use_aafont option is added.
+
+	* skk/dict.c, im_skk.c, ef_str_parser.c: The dependency on libmef library is removed.
+
+	* configure.in: --enable-fontconfig option is enabled by default.
+
 2017-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, README.fb: Updated.

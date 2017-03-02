@@ -6,6 +6,29 @@
 
 /* --- static functions --- */
 
+/* Same as ef_parser_init */
+static void parser_init(ef_parser_t *parser) {
+  parser->str = NULL;
+  parser->marked_left = 0;
+  parser->left = 0;
+
+  parser->is_eos = 0;
+}
+
+/* Same as ef_parser_n_increment */
+static size_t parser_n_increment(ef_parser_t *parser, size_t n) {
+  if (parser->left <= n) {
+    parser->str += parser->left;
+    parser->left = 0;
+    parser->is_eos = 1;
+  } else {
+    parser->str += n;
+    parser->left -= n;
+  }
+
+  return parser->left;
+}
+
 static void set_str(ef_parser_t *parser, u_char *str, /* ef_char_t* */
                     size_t size) {
   parser->str = str;
@@ -22,7 +45,7 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
   }
 
   *ch = ((ef_char_t*)parser->str)[0];
-  ef_parser_n_increment(parser, sizeof(ef_char_t));
+  parser_n_increment(parser, sizeof(ef_char_t));
 
   return 1;
 }
@@ -30,7 +53,7 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
 /* --- static variables --- */
 
 static ef_parser_t parser = {
-    NULL, 0, 0, 0, ef_parser_init, set_str, delete, next_char,
+    NULL, 0, 0, 0, parser_init, set_str, delete, next_char,
 };
 
 /* --- global functions --- */

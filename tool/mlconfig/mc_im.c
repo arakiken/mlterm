@@ -146,6 +146,7 @@ static int get_im_info(char *locale, char *encoding) {
   char *im_dir_path;
   DIR *dir;
   struct dirent *d;
+  const char *gui;
 
   if ((dir = opendir(IM_DIR))) {
     im_dir_path = IM_DIR;
@@ -163,12 +164,13 @@ static int get_im_info(char *locale, char *encoding) {
     return 0;
   }
 
+  gui = mc_get_gui();
+
   while ((d = readdir(dir))) {
-    bl_dl_handle_t handle;
-    im_get_info_func_t func;
     im_info_t *info;
     char symname[100];
     char *p;
+    char *end;
 
     if (d->d_name[0] == '.' || !is_im_plugin(d->d_name)) continue;
 
@@ -179,24 +181,28 @@ static int get_im_info(char *locale, char *encoding) {
     /* libim-foo -> im-foo */
     if (!(p = strstr(d->d_name, "im-"))) continue;
 
-    if (!(handle = bl_dl_open(im_dir_path, p))) continue;
+    end = p + strlen(p) - 3;
+    if (*end != '-' ||
+        (strcmp(end + 1, "fb") == 0 && (strcmp(gui, "fb") == 0 || strcmp(gui, "console") == 0)) ||
+        (strcmp(end + 1, "wl") == 0 && (strcmp(gui, "wayland") == 0))) {
+      bl_dl_handle_t handle;
 
-    snprintf(symname, 100, "im_%s_get_info", &p[3]);
+      if ((handle = bl_dl_open(im_dir_path, p))) {
+        im_get_info_func_t func;
 
-    func = (im_get_info_func_t)bl_dl_func_symbol(handle, symname);
-    if (!func) {
-      bl_dl_close(handle);
-      continue;
+        *end = '\0';
+        snprintf(symname, 100, "im_%s_get_info", &p[3]);
+
+        if ((func = (im_get_info_func_t)bl_dl_func_symbol(handle, symname))) {
+          if ((info = (*func)(locale, encoding))) {
+            im_info_table[num_of_info] = info;
+            num_of_info++;
+          }
+        }
+
+        bl_dl_close(handle);
+      }
     }
-
-    info = (*func)(locale, encoding);
-
-    if (info) {
-      im_info_table[num_of_info] = info;
-      num_of_info++;
-    }
-
-    bl_dl_close(handle);
   }
 
   return 0;
@@ -513,7 +519,7 @@ GtkWidget *mc_im_config_widget_new(void) {
   }
   cur_im_type = im_type;
 
-  if (mc_gui_is_win32()) {
+  if (strcmp(mc_get_gui(), "xlib") != 0) {
     xim = NULL;
     if (im_type == IM_NONE) im_type = IM_XIM;
   } else {
@@ -537,7 +543,7 @@ GtkWidget *mc_im_config_widget_new(void) {
   gtk_widget_show(vbox);
 
   hbox = gtk_hbox_new(FALSE, 5);
-  radio = gtk_radio_button_new_with_label(NULL, xim ? "XIM" : "MS IME");
+  radio = gtk_radio_button_new_with_label(NULL, xim ? "XIM" : "Default");
   g_signal_connect(radio, "toggled", G_CALLBACK(button_xim_checked), xim);
   gtk_widget_show(GTK_WIDGET(radio));
   gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
@@ -553,7 +559,7 @@ GtkWidget *mc_im_config_widget_new(void) {
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
   }
 
-  if (!mc_gui_is_win32()) {
+  if (strcmp(mc_get_gui(), "xlib") == 0) {
     group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
     radio = gtk_radio_button_new_with_label(group, _("None"));
     g_signal_connect(radio, "toggled", G_CALLBACK(button_im_checked), NULL);

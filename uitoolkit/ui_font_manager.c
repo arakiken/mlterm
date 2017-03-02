@@ -157,7 +157,19 @@ ui_font_manager_t *ui_font_manager_new(Display *display, ui_type_engine_t type_e
 
     for (engine = TYPE_XCORE;; engine++) {
       if (engine == type_engine) {
-        continue;
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+        if (font_man->font_config) {
+          ui_release_font_config(font_man->font_config);
+          font_man->font_config = NULL;
+        }
+
+        if (ui_use_aafont()) {
+          bl_msg_printf("Try to load fonts with aafont instead of font-fb.\n");
+        } else
+#endif
+        {
+          continue;
+        }
       }
 
       if (font_man->font_config) {

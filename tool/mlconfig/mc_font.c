@@ -1205,7 +1205,7 @@ GtkWidget *mc_font_config_widget_new(void) {
   gtk_widget_show(xft_flag);
   gtk_box_pack_start(GTK_BOX(hbox), xft_flag, FALSE, FALSE, 0);
   g_signal_connect(xft_flag, "toggled", G_CALLBACK(xft_flag_checked), NULL);
-  if (mc_gui_is_win32()) {
+  if (strcmp(mc_get_gui(), "xlib") != 0) {
     gtk_widget_set_sensitive(xft_flag, 0);
   }
 
@@ -1213,7 +1213,7 @@ GtkWidget *mc_font_config_widget_new(void) {
   gtk_widget_show(cairo_flag);
   gtk_box_pack_start(GTK_BOX(hbox), cairo_flag, FALSE, FALSE, 0);
   g_signal_connect(cairo_flag, "toggled", G_CALLBACK(cairo_flag_checked), NULL);
-  if (mc_gui_is_win32()) {
+  if (strcmp(mc_get_gui(), "xlib") != 0) {
     gtk_widget_set_sensitive(cairo_flag, 0);
   }
 
@@ -1221,9 +1221,6 @@ GtkWidget *mc_font_config_widget_new(void) {
   gtk_widget_show(aa_flag);
   gtk_box_pack_start(GTK_BOX(hbox), aa_flag, FALSE, FALSE, 0);
   g_signal_connect(aa_flag, "toggled", G_CALLBACK(aa_flag_checked), NULL);
-  if (mc_gui_is_win32()) {
-    gtk_widget_set_sensitive(aa_flag, 0);
-  }
 
   vcol_flag = mc_flag_config_widget_new(MC_FLAG_VCOL);
   gtk_widget_show(vcol_flag);

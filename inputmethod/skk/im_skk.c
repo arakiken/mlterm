@@ -78,10 +78,27 @@ typedef struct im_skk {
 
 /* --- static variables --- */
 
+ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 static int ref_count = 0;
-static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 
 /* --- static functions --- */
+
+/* Same as ef_char_to_int */
+static u_int32_t char_to_int(ef_char_t *ch) {
+  switch (ch->size) {
+    case 1:
+      return ch->ch[0];
+
+    case 2:
+      return BE16DEC(ch->ch);
+
+    case 4:
+      return BE32DEC(ch->ch);
+
+    default:
+      return 0;
+  }
+}
 
 static void preedit_add(im_skk_t *skk, wchar wch) {
   ef_char_t ch;
@@ -234,7 +251,7 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
       if (ch.property & EF_COMBINING) {
         is_comb = 1;
 
-        if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
+        if ((*syms->vt_char_combine)(p - 1, char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
                                      VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0)) {
           continue;
         }
@@ -247,10 +264,10 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
       }
 
       if (rev_pos <= skk->im.preedit.filled_len && skk->im.preedit.filled_len < rev_pos + rev_len) {
-        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_BG_COLOR,
+        (*syms->vt_char_set)(p, char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_BG_COLOR,
                              VT_FG_COLOR, 0, 0, 1, 0, 0);
       } else {
-        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
+        (*syms->vt_char_set)(p, char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
                              VT_BG_COLOR, 0, 0, 1, 0, 0);
       }
 
