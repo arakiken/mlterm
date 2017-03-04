@@ -142,6 +142,8 @@ typedef struct {
   unsigned int damage_width;
   unsigned int damage_height;
 
+  int is_resizing;
+
   void *parent; /* ui_display_t */
 
 } Display;

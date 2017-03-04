@@ -135,7 +135,7 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, 'K', "metakey", 0, "mod_meta_key", "meta key [none]");
   bl_conf_add_opt(conf, 'L', "ls", 1, "use_login_shell", "turn on login shell [false]");
   bl_conf_add_opt(conf, 'M', "im", 0, "input_method",
-                  "input method (xim/kbd/uim/m17nlib/scim/ibus/none) [xim]");
+                  "input method (xim/kbd/uim/m17nlib/scim/ibus/fcitx/canna/wnn/none) [xim]");
   bl_conf_add_opt(conf, 'N', "name", 0, "app_name", "application name");
   bl_conf_add_opt(conf, 'O', "sbmod", 0, "scrollbar_mode",
                   "scrollbar mode (none/left/right) [none]");
@@ -990,7 +990,11 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   if ((value = bl_conf_get_value(conf, "input_method"))) {
     main_config->input_method = strdup(value);
   } else {
+#ifdef USE_WAYLAND
+    main_config->input_method = strdup("ibus");
+#else
     main_config->input_method = strdup("xim");
+#endif
   }
 
   if ((value = bl_conf_get_value(conf, "init_str"))) {

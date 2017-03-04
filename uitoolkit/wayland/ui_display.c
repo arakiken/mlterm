@@ -245,14 +245,18 @@ static void auto_repeat(void) {
 
   for (count = 0; count < num_of_wlservs; count++) {
     if (wlservs[count]->prev_kev.type && --wlservs[count]->kbd_repeat_wait == 0) {
-      wlservs[count]->prev_kev.time += kbd_repeat_N;
-      receive_key_event(wlservs[count], &wlservs[count]->prev_kev);
-      wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
       if (wlservs[count]->kbd_repeat_count++ == 2) {
-        /* for ibus lookup table */
+        /*
+         * Selecting next candidate of ibus lookup table by repeating space key
+         * freezes without this.
+         */
         wl_display_roundtrip(wlservs[count]->display);
         wlservs[count]->kbd_repeat_count = 0;
       }
+
+      wlservs[count]->prev_kev.time += kbd_repeat_N;
+      receive_key_event(wlservs[count], &wlservs[count]->prev_kev);
+      wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
     }
   }
 }
@@ -275,13 +279,16 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
   bl_debug_printf("KBD ENTER %p\n", surface);
 #endif
 
-  if (disp && (win = search_inputtable_window(NULL, disp->roots[0]))) {
+  if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
 #ifdef __DEBUG
     bl_debug_printf("FOCUSED %p\n", win);
 #endif
     ui_window_set_input_focus(win);
     ui_window_update_all(disp->roots[0]);
   }
+
+  /* During resizing keyboard leaves. keyboard_enter() means that resizing has finished. */
+  disp->display->is_resizing = 0;
 }
 
 static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
@@ -384,7 +391,7 @@ static void keyboard_repeat_info(void *data, struct wl_keyboard *keyboard,
 #ifdef __DEBUG
   bl_debug_printf("Repeat info rate %d delay %d.\n", rate, delay);
 #endif
-  kbd_repeat_1 = delay / 2;    /* XXX delay / 1 is too late */
+  kbd_repeat_1 = delay;
   kbd_repeat_N = (500 / rate); /* XXX 1000 / rate is too late. */
 }
 
@@ -555,6 +562,7 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
 
         if (ev.x < RESIZE_MARGIN || disp->display->width - RESIZE_MARGIN * 2 < ev.x ||
             ev.y < RESIZE_MARGIN || disp->display->height - RESIZE_MARGIN * 2 < ev.y) {
+          disp->display->is_resizing = 1;
           wl_shell_surface_resize(disp->display->shell_surface, wlserv->seat, serial,
                                   get_resize_state(disp->display->width, disp->display->height,
                                                    ev.x, ev.y));
@@ -843,6 +851,7 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
   }
 }
 
+/* XXX I don't know why, but edges is always 0 even if resizing by dragging an edge. */
 static void shell_surface_configure(void *data, struct wl_shell_surface *shell_surface,
                                     uint32_t edges, int32_t width, int32_t height) {
   ui_display_t *disp = data;
@@ -852,7 +861,8 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
                   disp->display->width, disp->display->height, width, height);
 #endif
 
-  if (check_resize(disp->display->width, disp->display->height, &width, &height,
+  if (!disp->display->is_resizing /* is maximizing or minimizing */ ||
+      check_resize(disp->display->width, disp->display->height, &width, &height,
                    total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
                    total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]))) {
 #ifdef __DEBUG
@@ -1471,13 +1481,21 @@ void ui_display_idling(ui_display_t *disp) {
 }
 
 int ui_display_receive_next_event(ui_display_t *disp) {
+  u_int count;
+
   ui_display_sync(disp);
-  if (wl_display_dispatch(disp->display->wlserv->display) == -1) {
-    return 0;
+
+  for (count = 0; count < num_of_displays; count++) {
+    if (displays[count]->display->wlserv == disp->display->wlserv) {
+      if (displays[count] == disp) {
+        return (wl_display_dispatch(disp->display->wlserv->display) != -1);
+      } else {
+        break;
+      }
+    }
   }
-  else {
-    return 1;
-  }
+
+  return 0;
 }
 
 void ui_display_sync(ui_display_t *disp) {

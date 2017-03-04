@@ -1,5 +1,20 @@
 2017-03-04  Araki Ken  <arakiken@users.sf.net>
 
+	* ui.h, ui_display.c:
+	  - During wl_shell_surface_resize(), Display::is_resizing is 1.
+	    This forces shell_surface_configure() not to modify specified width and height,
+	    and permits miximizing windows.
+	  - ui_display_receive_next_events() calls wl_display_dispatch() once per
+	    wl_display.
+
+	* ui_main_config.c: The default value of "input_method" option is "ibus"
+	  on wayland.
+
+	* ui_layout.c: x_window_resize_with_margin(scrollbar) is called before
+	  x_window_resize_with_margin(screen) in reset_layout().
+
+2017-03-04  Araki Ken  <arakiken@users.sf.net>
+
 	* quartz/ui_window.c:
 	  - view_update() is called in ui_window_set_wall_picture() in order to
 	    update screen in changing a wall picture.

@@ -79,11 +79,18 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
       sep_x = x + ACTUAL_WIDTH(&term->scrollbar.window);
     }
 
+    /*
+     * The order of resizing: ui_scrollbar_t -> ui_screen_t
+     *
+     * ui_window_resize_with_margin(screen) may call ui_scrollbar_line_is_added()
+     * which redraws screen by ui_window_update(), so you should resize ui_scrollbar_t
+     * before ui_screen_t.
+     */
+    ui_window_resize_with_margin(&term->scrollbar.window, ACTUAL_WIDTH(&term->scrollbar.window),
+                                 child_height, NOTIFY_TO_MYSELF);
     ui_window_resize_with_margin(&term->screen->window,
                                  child_width - SCROLLBAR_WIDTH(term->scrollbar), child_height,
                                  NOTIFY_TO_MYSELF);
-    ui_window_resize_with_margin(&term->scrollbar.window, ACTUAL_WIDTH(&term->scrollbar.window),
-                                 child_height, NOTIFY_TO_MYSELF);
 
 #ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
     ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
