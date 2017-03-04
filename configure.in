@@ -494,23 +494,20 @@ if test "$anti_alias" != "no"; then
 			# (removing \r which is output by win32 native pkg-config.)
 			FT_CFLAGS="-DUSE_FREETYPE `echo $FT_CFLAGS | tr -d '\r'`"
 			FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
+
+			AC_ARG_ENABLE(fontconfig,
+				[  --disable-fontconfig    use fontconfig with freetype on framebuffer or wayland @<:@default=enabled@:>@ ],
+	  		fontconfig=$enable_fontconfig, fontconfig="auto")
+
+			if test "$fontconfig" != "no"; then
+				FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
+				FT_LIBS="$FT_LIBS -lfontconfig"
+  		fi
+
 			AC_SUBST(FT_CFLAGS)
 			AC_SUBST(FT_LIBS)
 		fi
 	fi
-fi
-
-if test "$FT_CFLAGS" != "" ; then
-  AC_ARG_ENABLE(fontconfig,
-	  [  --disable-fontconfig    use fontconfig with freetype on framebuffer or wayland @<:@default=enabled@:>@ ],
-	  fontconfig=$enable_fontconfig, fontconfig="auto")
-
-  if test "$have_ft" = "yes" -a "$fontconfig" != "no"; then
-    FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
-		FT_LIBS="$FT_LIBS -lfontconfig"
-		AC_SUBST(FT_CFLAGS)
-    AC_SUBST(FT_LIBS)
-  fi
 fi
 
 AC_ARG_WITH(type_engines,

@@ -705,6 +705,8 @@ int ui_use_aafont(void) {
 
   return 1;
 }
+
+int ui_is_using_aafont(void) { return use_aafont; }
 #endif
 
 ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,

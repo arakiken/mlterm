@@ -27,6 +27,8 @@ typedef struct ui_font_config {
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
 int ui_use_aafont(void);
+
+int ui_is_using_aafont(void);
 #endif
 
 ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,

@@ -1,3 +1,18 @@
+2017-03-05  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_im.c: get_im_info() is fixed.
+
+	* ui_screen.c:
+	  - "use_aafont" is added to OSC 5380/5381.
+	  - ui_window_update_all(ui_layout_t) instead of ui_window_update_all(ui_screen_t)
+	    is called in window_resized().
+
+	* ui_font_config.[ch]: ui_is_using_aafont() is added.
+
+	* mc_font.c: get_font_file() returns "*aafont" if use_aafont option is true.
+
+	* wayland/ui_display.c: Minor fixes.
+
 2017-03-04  Araki Ken  <arakiken@users.sf.net>
 
 	* ui.h, ui_display.c:

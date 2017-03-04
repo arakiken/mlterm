@@ -171,6 +171,7 @@ static int get_im_info(char *locale, char *encoding) {
     char symname[100];
     char *p;
     char *end;
+    bl_dl_handle_t handle;
 
     if (d->d_name[0] == '.' || !is_im_plugin(d->d_name)) continue;
 
@@ -181,27 +182,28 @@ static int get_im_info(char *locale, char *encoding) {
     /* libim-foo -> im-foo */
     if (!(p = strstr(d->d_name, "im-"))) continue;
 
-    end = p + strlen(p) - 3;
-    if (*end != '-' ||
-        (strcmp(end + 1, "fb") == 0 && (strcmp(gui, "fb") == 0 || strcmp(gui, "console") == 0)) ||
-        (strcmp(end + 1, "wl") == 0 && (strcmp(gui, "wayland") == 0))) {
-      bl_dl_handle_t handle;
-
-      if ((handle = bl_dl_open(im_dir_path, p))) {
-        im_get_info_func_t func;
-
-        *end = '\0';
-        snprintf(symname, 100, "im_%s_get_info", &p[3]);
-
-        if ((func = (im_get_info_func_t)bl_dl_func_symbol(handle, symname))) {
-          if ((info = (*func)(locale, encoding))) {
-            im_info_table[num_of_info] = info;
-            num_of_info++;
-          }
-        }
-
-        bl_dl_close(handle);
+    end = p + strlen(p);
+    if (strcmp(gui, "fb") == 0 || strcmp(gui, "console") == 0 || strcmp(gui, "wayland") == 0) {
+      end -= 3;
+      if (strcmp(end, *gui == 'w' ? "-wl" : "-fb") != 0) {
+        continue;
       }
+    }
+
+    if ((handle = bl_dl_open(im_dir_path, p))) {
+      im_get_info_func_t func;
+
+      *end = '\0';
+      snprintf(symname, 100, "im_%s_get_info", &p[3]);
+
+      if ((func = (im_get_info_func_t)bl_dl_func_symbol(handle, symname))) {
+        if ((info = (*func)(locale, encoding))) {
+          im_info_table[num_of_info] = info;
+          num_of_info++;
+        }
+      }
+
+      bl_dl_close(handle);
     }
   }
 

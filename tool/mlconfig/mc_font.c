@@ -626,7 +626,8 @@ static const char *get_correct_cs(int idx) {
 
 static char *get_font_file(void) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag)) ||
-      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag))) {
+      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag)) ||
+      mc_get_flag_value("use_aafont")) {
     if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(vcol_flag))) {
       return "vaafont";
     } else if (mc_radio_get_value(MC_RADIO_VERTICAL_MODE)) {

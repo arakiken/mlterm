@@ -21218,13 +21218,7 @@ fi
 			FT_CFLAGS="-DUSE_FREETYPE `echo $FT_CFLAGS | tr -d '\r'`"
 			FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
 
-
-		fi
-	fi
-fi
-
-if test "$FT_CFLAGS" != "" ; then
-  # Check whether --enable-fontconfig was given.
+			# Check whether --enable-fontconfig was given.
 if test "${enable_fontconfig+set}" = set; then :
   enableval=$enable_fontconfig; fontconfig=$enable_fontconfig
 else
@@ -21232,12 +21226,15 @@ else
 fi
 
 
-  if test "$have_ft" = "yes" -a "$fontconfig" != "no"; then
-    FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
-		FT_LIBS="$FT_LIBS -lfontconfig"
+			if test "$fontconfig" != "no"; then
+				FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
+				FT_LIBS="$FT_LIBS -lfontconfig"
+  		fi
 
 
-  fi
+
+		fi
+	fi
 fi
 
 

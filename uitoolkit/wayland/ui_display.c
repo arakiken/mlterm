@@ -1582,10 +1582,10 @@ int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_
   } else {
     wl_surface_add_listener(display->surface, &surface_listener, wlserv);
     wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
-    wl_shell_surface_set_title(display->shell_surface, "mlterm");
-    wl_shell_surface_set_class(display->shell_surface, "mlterm");
     wl_shell_surface_set_toplevel(display->shell_surface);
   }
+  wl_shell_surface_set_title(display->shell_surface, "mlterm");
+  wl_shell_surface_set_class(display->shell_surface, "mlterm");
 
   disp->width = width;
   disp->height = height;

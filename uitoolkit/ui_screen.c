@@ -1262,7 +1262,7 @@ static void window_resized(ui_window_t *win) {
    * if line_height is changed, ui_window_update() doesn't redraw anything because
    * vt_term_resize() does nothing.
    */
-  ui_window_update_all(&screen->window);
+  ui_window_update_all(ui_get_root_window(&screen->window));
 #else
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
 #endif
@@ -4130,6 +4130,15 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
   } else if (strcmp(key, "pty_list") == 0) {
     value = vt_get_pty_list();
   }
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  else if (strcmp(key, "use_aafont") == 0) {
+    if (ui_is_using_aafont()) {
+      value = "true";
+    } else {
+      value = "false";
+    }
+  }
+#endif
 
   if (value) {
     if (flag) {
