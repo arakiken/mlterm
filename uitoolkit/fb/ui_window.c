@@ -1174,6 +1174,11 @@ int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
 
 int ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height, u_int width_inc,
                                u_int height_inc) {
+  win->min_width = min_width;
+  win->min_height = min_height;
+  win->width_inc = width_inc;
+  win->height_inc = height_inc;
+
   return 1;
 }
 

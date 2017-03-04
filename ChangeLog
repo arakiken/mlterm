@@ -1,5 +1,12 @@
 2017-03-05  Araki Ken  <arakiken@users.sf.net>
 
+	* wayland/ui_display.c:
+	  ui_display_resize() calls wl_display_roundtrip() internally.
+
+	* wayland/ui_window.c: ui_window_set_normal_hints() is implemented.
+
+2017-03-05  Araki Ken  <arakiken@users.sf.net>
+
 	* mc_im.c: get_im_info() is fixed.
 
 	* ui_screen.c:

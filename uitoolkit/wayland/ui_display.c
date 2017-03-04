@@ -851,6 +851,39 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
   }
 }
 
+static int resize_display(ui_display_t *disp, u_int width, u_int height, int roundtrip) {
+  if (disp->width == width && disp->height == height) {
+    return 0;
+  }
+
+  if (roundtrip) {
+    /* Process pending shell_surface_configure events in advance. */
+    wl_display_roundtrip(disp->display->wlserv->display);
+  }
+
+#ifdef __DEBUG
+  bl_debug_printf("Resizing display from w %d h %d to w %d h %d.\n",
+                  disp->width, disp->height, width, height);
+#endif
+
+  destroy_shm_buffer(disp->display);
+
+  disp->width = width;
+  disp->height = height;
+
+  if (rotate_display) {
+    disp->display->width = height;
+    disp->display->height = width;
+  } else {
+    disp->display->width = width;
+    disp->display->height = height;
+  }
+
+  create_shm_buffer(disp->display);
+
+  return 1;
+}
+
 /* XXX I don't know why, but edges is always 0 even if resizing by dragging an edge. */
 static void shell_surface_configure(void *data, struct wl_shell_surface *shell_surface,
                                     uint32_t edges, int32_t width, int32_t height) {
@@ -870,9 +903,9 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
 #endif
 
     if (rotate_display) {
-      ui_display_resize(disp, height, width);
+      resize_display(disp, height, width, 0);
     } else {
-      ui_display_resize(disp, width, height);
+      resize_display(disp, width, height, 0);
     }
 
     ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
@@ -1602,27 +1635,9 @@ int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_
   return 1;
 }
 
+/* Don't call this internally from ui_display.c. Call resize_display(..., 0) instead. */
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
-  if (disp->width == width && disp->height == height) {
-    return 0;
-  }
-
-  destroy_shm_buffer(disp->display);
-
-  disp->width = width;
-  disp->height = height;
-
-  if (rotate_display) {
-    disp->display->width = height;
-    disp->display->height = width;
-  } else {
-    disp->display->width = width;
-    disp->display->height = height;
-  }
-
-  create_shm_buffer(disp->display);
-
-  return 1;
+  return resize_display(disp, width, height, 1);
 }
 
 void ui_display_move(ui_display_t *disp, int x, int y) {
