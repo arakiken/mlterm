@@ -513,5 +513,9 @@ KeySym XStringToKeysym(char *str);
 #define SUPPORT_URGENT_BELL
 #define FORCE_UNICODE
 #undef NEED_DISPLAY_SYNC_EVERY_TIME
+#undef DRAW_SCREEN_IN_PIXELS
+#define NO_DRAW_IMAGE_STRING
+/* libpthread is not linked to mlterm explicitly for now. */
+#undef HAVE_PTHREAD
 
 #endif

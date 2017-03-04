@@ -1392,17 +1392,11 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
-	POBL_LIBS_FOR_MODULE='-L${top_builddir}/baselib/src -lpobl'
-	MEF_LIBS_FOR_MODULE='-L${top_builddir}/encodefilter/src -lmef'
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""
-	POBL_LIBS_FOR_MODULE=""
-	MEF_LIBS_FOR_MODULE=""
 fi
 AC_SUBST(NO_UNDEFINED_FLAG)
-AC_SUBST(POBL_LIBS_FOR_MODULE)
-AC_SUBST(MEF_LIBS_FOR_MODULE)
 
 if test "x$with_libltdl" != "xno" ; then
 	DL_SELF="-dlopen self"

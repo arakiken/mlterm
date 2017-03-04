@@ -402,5 +402,14 @@ KeySym XStringToKeysym(char *str);
 #define SUPPORT_URGENT_BELL
 #undef FORCE_UNICODE
 #undef NEED_DISPLAY_SYNC_EVERY_TIME
+#undef DRAW_SCREEN_IN_PIXELS
+#undef NO_DRAW_IMAGE_STRING
+/* for ui_picture.c */
+#ifdef __CYGWIN__
+#define HAVE_PTHREAD
+#else
+/* libpthread is not linked to mlterm explicitly for now. */
+#undef HAVE_PTHREAD
+#endif
 
 #endif

@@ -47,6 +47,7 @@ static u_int calculate_char_width(ui_font_t *font, u_int code, ef_charset_t cs, 
   return width;
 }
 
+#ifndef USE_CONSOLE
 static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
                       int flag, /* 0 == underline 1 == double underline, 2 == crossed out */
                       int x, int y, u_int width, u_int height, u_int ascent, int top_margin) {
@@ -105,6 +106,7 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
     ui_window_fill_with(window, color, x2, y2, w, h);
   }
 }
+#endif
 
 #ifndef NO_IMAGE
 static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_of_glyphs, int dst_x,
@@ -243,6 +245,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_of_gly
 }
 #endif
 
+#ifndef USE_CONSOLE
 static int get_drcs_bitmap(char *glyph, u_int width, int x, int y) {
   return (glyph[(y / 6) * (width + 1) + x] - '?') & (1 << (y % 6));
 }
@@ -366,6 +369,7 @@ static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_of_glyphs, in
 
   return 1;
 }
+#endif
 
 static int get_state(ef_charset_t ch_cs, u_int32_t ch_code, vt_char_t *comb_chars,
                      u_int32_t *pic_glyph, char **drcs_glyph, int *draw_alone) {
@@ -750,6 +754,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 
+#ifndef USE_CONSOLE
 static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *font_man,
                                       ui_color_t *xcolor, /* fg color */
                                       vt_char_t *chars, u_int size, int x, int y) {
@@ -809,6 +814,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
 
   return 1;
 }
+#endif
 
 static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                           ui_color_manager_t *color_man, u_int *updated_width, vt_char_t *chars,
@@ -1013,7 +1019,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
       fg_xcolor = ui_get_xcolor(color_man, fg_color);
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND)
+#ifdef DRAW_SCREEN_IN_PIXELS
       if (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) {
         bg_xcolor = NULL;
       } else
@@ -1054,11 +1060,9 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
         }
       }
 #else /* USE_CONSOLE */
-#ifdef USE_QUARTZ
-      if (1)
-#else /* USE_QUARTZ */
+#ifndef NO_DRAW_IMAGE_STRING
       if (
-#if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND)
+#ifdef DRAW_SCREEN_IN_PIXELS
 #ifdef USE_FREETYPE
           /*
            * ISCII or ISO10646_UCS4_1_V
@@ -1067,7 +1071,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
           xfont->is_proportional ||
 #endif
           /* draw_alone || */       /* draw_alone is always false on framebuffer. */
-#else /* USE_FRAMEBUFFER|USE_WAYLAND */
+#else /* DRAW_SCREEN_IN_PIXELS */
 #if defined(USE_WIN32GUI) && defined(USE_OT_LAYOUT)
           /*
            * U+2022 is ambiguous and should be drawn one by one, but
@@ -1077,9 +1081,9 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
           (xfont->use_ot_layout /* && xfont->ot_font */) ||
 #endif
           (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) || draw_alone ||
-#endif /* USE_FRAMEBUFFER|USE_WAYLAND */
+#endif /* DRAW_SCREEN_IN_PIXELS */
           xfont->height != height || state == 3)
-#endif /* USE_QUARTZ */
+#endif /* NO_DRAW_IMAGE_STRING */
       {
         if (bg_color == VT_BG_COLOR) {
           ui_window_clear(window, x, y, current_width - x, height);
@@ -1100,7 +1104,9 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
           draw_drcs(window, drcs_glyphs, str_len, x, y, ch_width, height, fg_xcolor,
                     font_man->size_attr);
         }
-      } else {
+      }
+#ifndef NO_DRAW_IMAGE_STRING
+      else {
         if (state == 2) {
           ui_window_draw_image_string16(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
                                         str_len);
@@ -1113,6 +1119,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                                       str_len);
         }
       }
+#endif
 
       if (comb_chars) {
         xcore_draw_combining_chars(window, font_man, fg_xcolor, comb_chars, comb_size,

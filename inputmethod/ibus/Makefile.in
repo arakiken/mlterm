@@ -24,7 +24,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 -I${top_srcdir}/uitoolkit	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @IBUS_LIBS@
+LIBS = $(LIBS_LOCAL) @LPOBL@ @IBUS_LIBS@
 
 TARGET_xlib = libim-ibus.la
 TARGET_fb = libim-ibus-fb.la

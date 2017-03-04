@@ -9,7 +9,7 @@
 #ifndef __VT_TERM_H__
 #define __VT_TERM_H__
 
-#include <pobl/bl_def.h> /* HAVE_PTHREAD/USE_WIN32API */
+#include <pobl/bl_def.h> /* USE_WIN32API */
 
 #include "vt_pty.h"
 #include "vt_parser.h"

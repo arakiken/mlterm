@@ -1094,6 +1094,9 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
    */
   if ((event->state & ControlMask) && (ch == ' ' || ('@' <= ch && ch <= 'z'))) {
     seq[0] = (ch & 0x1f);
+    if (seq[0] == XK_BackSpace || seq[0] == XK_Tab || seq[0] == XK_Return) {
+      *keysym = seq[0];
+    }
   } else {
     seq[0] = ch;
   }
@@ -1212,42 +1215,6 @@ int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x
 void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {}
 
 void ui_window_unset_clip(ui_window_t *win) {}
-
-int ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                int y, u_char *str, u_int len) {
-  return ui_window_draw_string(win, font, fg_color, x, y, str, len);
-}
-
-int ui_window_draw_decsp_image_string(
-    ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-    ui_color_t *bg_color, /* If NULL is specified, use wall_picture for bg */
-    int x, int y, u_char *str, u_int len) {
-  return ui_window_draw_image_string(win, font, fg_color, bg_color, x, y, str, len);
-}
-
-int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                          u_char *str, u_int len) {
-  return draw_string(win, font, fg_color, NULL, x, y, str, len, 1, 0);
-}
-
-int ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                            XChar2b *str, u_int len) {
-  return draw_string(win, font, fg_color, NULL, x, y, str, len, 2, 0);
-}
-
-int ui_window_draw_image_string(
-    ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-    ui_color_t *bg_color, /* If NULL is specified, use wall_picture for bg */
-    int x, int y, u_char *str, u_int len) {
-  return draw_string(win, font, fg_color, bg_color, x, y, str, len, 1, 0);
-}
-
-int ui_window_draw_image_string16(
-    ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-    ui_color_t *bg_color, /* If NULL is specified, use wall_picture for bg */
-    int x, int y, XChar2b *str, u_int len) {
-  return draw_string(win, font, fg_color, bg_color, x, y, str, len, 2, 0);
-}
 
 int ui_window_console_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                                   ui_color_t *bg_color, int x, int y, u_char *str, u_int len,

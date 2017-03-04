@@ -39,5 +39,13 @@ typedef Pixmap PixmapMask;
 #define SUPPORT_URGENT_BELL
 #undef FORCE_UNICODE
 #define NEED_DISPLAY_SYNC_EVERY_TIME
+#undef DRAW_SCREEN_IN_PIXELS
+#undef NO_DRAW_IMAGE_STRING
+/*
+ * for ui_picture.c
+ * Xlib doesn't work on threading without XInitThreads().
+ * (libpthread is not linked to mlterm explicitly for now.)
+ */
+#undef HAVE_PTHREAD
 
 #endif

@@ -5,7 +5,7 @@
 /* Note that protocols except ssh aren't supported if USE_LIBSSH2 is defined.*/
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
 
-#include "../ui_connect_dialog.h"
+#include "ui_connect_dialog.h"
 
 #include <stdio.h>       /* sprintf */
 #include <pobl/bl_mem.h> /* malloc */

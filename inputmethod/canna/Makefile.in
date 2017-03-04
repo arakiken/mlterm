@@ -24,7 +24,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 -I${top_srcdir}/uitoolkit	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @CANNA_LIBS@
+LIBS = $(LIBS_LOCAL) @LPOBL@ @CANNA_LIBS@
 
 TARGET_win32 = libim-canna.la
 TARGET_xlib = libim-canna.la

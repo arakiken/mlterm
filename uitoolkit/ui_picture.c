@@ -15,22 +15,7 @@
 #include <pobl/bl_util.h>    /* K_MIN */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 
-/*
- * XXX
- * Don't link libpthread to mlterm for now.
- * Xlib doesn't work on threading without XInitThreads().
- * Threading is not supported for 8 or less bpp framebuffer imaging
- * because of ui_display_enable_to_change_cmap() and ui_display_set_cmap().
- */
-#if (defined(__CYGWIN__) && defined(USE_WIN32GUI)) || defined(__ANDROID__)
-#ifndef HAVE_PTHREAD
-#define HAVE_PTHREAD
-#endif
-#else
-#undef HAVE_PTHREAD
-#endif
-
-#if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #ifndef HAVE_WINDOWS_H
 #include <sys/select.h>
@@ -39,6 +24,7 @@
 #endif
 
 #ifdef USE_XLIB
+/* HAVE_WINDOWS_H is undefined on cygwin/x11 */
 #undef HAVE_WINDOWS_H
 #endif
 

@@ -25,7 +25,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 -I${top_srcdir}/uitoolkit	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @POBL_LIBS_FOR_MODULE@ @MEF_LIBS_FOR_MODULE@ @SCIM_LIBS@
+LIBS = $(LIBS_LOCAL) @LPOBL@ @SCIM_LIBS@
 
 CC      = @CC@
 CXX     = @CXX@

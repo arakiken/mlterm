@@ -645,5 +645,14 @@ KeySym XStringToKeysym(char *str);
 #undef SUPPORT_URGENT_BELL
 #undef FORCE_UNICODE
 #undef NEED_DISPLAY_SYNC_EVERY_TIME
+#define DRAW_SCREEN_IN_PIXELS
+#undef NO_DRAW_IMAGE_STRING
+/*
+ * libpthread is not linked to mlterm explicitly for now.
+ *
+ * Threading is not supported for 8 or less bpp framebuffer imaging
+ * because of ui_display_enable_to_change_cmap() and ui_display_set_cmap().
+ */
+#undef HAVE_PTHREAD
 
 #endif

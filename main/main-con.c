@@ -30,6 +30,10 @@ static struct termios std_tio;
 
 /* --- static functions --- */
 
+static void exit_cb(void) {
+  tcsetattr(pty_fd, TCSANOW, &std_tio);
+}
+
 static void sig_child(int sig) { waitpid(-1, NULL, WNOHANG); }
 
 static void help(void) { printf("Usage: mlclient-con [options]\n"); }
@@ -157,6 +161,7 @@ static int connect_to_server(int argc, char **argv) {
       new_argv[count] = NULL;
 
       execv(LIBEXECDIR "/mlterm/mlterm-con-server", new_argv);
+      exit(-1);
     }
 
     if (pid < 0) {
@@ -179,14 +184,6 @@ static int connect_to_server(int argc, char **argv) {
 
 connected:
   fcntl(connect_fd, F_SETFL, fcntl(connect_fd, F_GETFL, 0) & ~O_NONBLOCK);
-
-  write(connect_fd, argv[0], strlen(argv[0]));
-  for (count = 1; count < argc; count++) {
-    write(connect_fd, " \"", 2);
-    write(connect_fd, argv[count], strlen(argv[count]));
-    write(connect_fd, "\"", 1);
-  }
-  write(connect_fd, "\n", 1);
 
   if ((pty_fd = open(ttyname(STDIN_FILENO), O_RDWR)) == -1) {
     close(connect_fd);
@@ -215,7 +212,15 @@ connected:
   tio.c_cc[VTIME] = 0;
 
   tcsetattr(pty_fd, TCSANOW, &tio);
+  atexit(exit_cb);
 
+  write(connect_fd, argv[0], strlen(argv[0]));
+  for (count = 1; count < argc; count++) {
+    write(connect_fd, " \"", 2);
+    write(connect_fd, argv[count], strlen(argv[count]));
+    write(connect_fd, "\"", 1);
+  }
+  write(connect_fd, "\n", 1);
   sig_winch(SIGWINCH);
 
   return 1;
@@ -267,9 +272,11 @@ int main(int argc, char **argv) {
         write(connect_fd, buf, len);
       }
 
+#if 0
       if (len == -1 && errno != EAGAIN) {
         break;
       }
+#endif
 
       fcntl(pty_fd, F_SETFL, fcntl(pty_fd, F_GETFL, 0) & ~O_NONBLOCK);
     }
@@ -281,9 +288,16 @@ int main(int argc, char **argv) {
         write(pty_fd, buf, len);
       }
 
+      /*
+       * XXX
+       * Even if read() has no problem, len is -1 and errno is ECONNRESET on fedora 24,
+       * mlterm-con exits by SIGPIPE.
+       */
+#if 0
       if (len == -1 && errno != EAGAIN) {
         break;
       }
+#endif
 
       fcntl(connect_fd, F_SETFL, fcntl(connect_fd, F_GETFL, 0) & ~O_NONBLOCK);
     }

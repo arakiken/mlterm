@@ -8,7 +8,7 @@ MLTERM_ICON ICON "mlterm-icon-win32.ico"
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 
-#include  "../ui_connect_dialog.h"
+#include  "ui_connect_dialog.h"
 
 ConnectDialog DIALOG 20, 20, 138, 139
 	STYLE WS_POPUP | WS_DLGFRAME | DS_CENTER

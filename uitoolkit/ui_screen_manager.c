@@ -1127,6 +1127,7 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
                            );
       } else {
         vt_term_t *term;
+
         if ((term = create_term_intern())) {
           if (!open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv, &screen->window,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
@@ -1145,11 +1146,16 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     } else {
       vt_term_t *term = NULL;
 
-      if ((pty && !(term = vt_get_detached_term(pty))) ||
-          !open_screen_intern(main_config.disp_name, term, NULL, 0, 0, 0)) {
-#ifdef DEBUG
-        bl_warn_printf(BL_DEBUG_TAG " open_screen_intern() failed.\n");
+#ifdef USE_CONSOLE
+      if (*main_config.disp_name)
 #endif
+      {
+        if ((pty && !(term = vt_get_detached_term(pty))) ||
+            !open_screen_intern(main_config.disp_name, term, NULL, 0, 0, 0)) {
+#ifdef DEBUG
+          bl_warn_printf(BL_DEBUG_TAG " open_screen_intern() failed.\n");
+#endif
+        }
       }
     }
 

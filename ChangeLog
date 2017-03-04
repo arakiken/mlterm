@@ -1,3 +1,34 @@
+2017-03-04  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/ui_window.c:
+	  - view_update() is called in ui_window_set_wall_picture() in order to
+	    update screen in changing a wall picture.
+	  - ui_window_draw_*_image_string() are removed.
+
+	* fb/connect_dialog.c:
+	  - ui_window_get_str() is called in key_pressed().
+	  - ui_window_console_draw_string() is called on console.
+
+	* configure.in, inputmethod/*/Makefile.in:
+	  - {POBL|MEF}_LIBS_FOR_MODULE are replaced by LPOBL and LMEF
+
+	* console/ui_window.c:
+	  - XK_BackSpace, XK_Tab and XK_Returns key events are correctly processed.
+	  - ui_window_draw_*_string() functions are removed.
+
+	* main-con.c:
+	  - termios is reverted to the default value on exit().
+	  - Whether read() returns -1 is not checked.
+
+	* */ui.h, ui_draw_str.c, ui_picture.c:
+	  - DRAW_SCREEN_IN_PIXELS, NO_DRAW_IMAGE_STRING are added
+	  - HAVE_PTHREAD is defiend or undefined in ui.h instead of ui_picture.c.
+
+	* ui_screen_manager.c: 'mlclient' is disabled on console, while 'mlclientx'
+	  is still available.
+
+	* console/ui_connect_dialog.h: Added.
+
 2017-03-03  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: Whether disp is NULL or not is checked in

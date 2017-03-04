@@ -383,5 +383,8 @@ KeySym XStringToKeysym(char *str);
 #undef SUPPORT_URGENT_BELL
 #define FORCE_UNICODE
 #undef NEED_DISPLAY_SYNC_EVERY_TIME
+#define DRAW_SCREEN_IN_PIXELS
+#undef NO_DRAW_IMAGE_STRING
+#define HAVE_PTHREAD
 
 #endif
