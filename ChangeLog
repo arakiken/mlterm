@@ -1,5 +1,19 @@
 2017-03-05  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_screen.c: ui_window_update_all(ui_screen_t) instead of
+	  ui_window_update_all(ui_layout_t) is called in window_resized().
+
+	* ui_main_config.c: ONLY_USE_UNICODE_FONT and ONLY_USE_UNICODE_BOXDRAW_FONT
+	  are set if ui_is_using_aafont() is true.
+
+	* ui_layout.c: Even if a child window is not resized by resizing its parent,
+	  ui_window_update_all() is called in reset_layout on wayland.
+
+	* wayland/ui_window.c: ui_window_update_all() is called at the end of
+	  ui_window_show() on wayland. Without this, screen isn't drawn in startup.
+
+2017-03-05  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui_display.c:
 	  ui_display_resize() calls wl_display_roundtrip() internally.
 

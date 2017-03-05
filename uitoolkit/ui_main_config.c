@@ -746,6 +746,10 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   else {
     main_config->unicode_policy = ONLY_USE_UNICODE_FONT;
   }
+#elif defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  else if (ui_is_using_aafont()) {
+    main_config->unicode_policy = ONLY_USE_UNICODE_FONT;
+  }
 #endif
 
   if ((value = bl_conf_get_value(conf, "box_drawing_font"))) {
@@ -757,6 +761,10 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   }
 #ifdef FORCE_UNICODE
   else {
+    main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT;
+  }
+#elif defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  else if (ui_is_using_aafont()) {
     main_config->unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT;
   }
 #endif

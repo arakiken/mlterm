@@ -284,7 +284,6 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
     bl_debug_printf("FOCUSED %p\n", win);
 #endif
     ui_window_set_input_focus(win);
-    ui_window_update_all(disp->roots[0]);
   }
 
   /* During resizing keyboard leaves. keyboard_enter() means that resizing has finished. */

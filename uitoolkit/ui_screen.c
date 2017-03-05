@@ -1262,7 +1262,7 @@ static void window_resized(ui_window_t *win) {
    * if line_height is changed, ui_window_update() doesn't redraw anything because
    * vt_term_resize() does nothing.
    */
-  ui_window_update_all(ui_get_root_window(&screen->window));
+  ui_window_update_all(&screen->window);
 #else
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
 #endif

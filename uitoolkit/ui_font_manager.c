@@ -164,7 +164,9 @@ ui_font_manager_t *ui_font_manager_new(Display *display, ui_type_engine_t type_e
         }
 
         if (ui_use_aafont()) {
-          bl_msg_printf("Try to load fonts with aafont instead of font-fb.\n");
+          /* XXX unicode_policy is not changed here unlike ui_main_config.c. */
+          bl_msg_printf("Try to load fonts with aafont instead of font-fb. "
+                        "Don't set char encodings except UTF-8.\n");
         } else
 #endif
         {

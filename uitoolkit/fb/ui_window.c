@@ -1063,6 +1063,8 @@ int ui_window_show(ui_window_t *win,
   if (!win->parent && win->x == 0 && win->y == 0) {
     ui_window_resize_with_margin(win, win->disp->width, win->disp->height, NOTIFY_TO_MYSELF);
   }
+#else
+  ui_window_update_all(win);
 #endif
 
   return 1;
