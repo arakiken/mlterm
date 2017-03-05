@@ -765,6 +765,28 @@ static void reset_input_focus(ui_window_t *win) {
   }
 }
 
+#ifdef USE_WAYLAND
+static void check_update_children(ui_window_t *win, int x /* parent */, int y /* parent */) {
+  u_int count;
+
+  x += win->x;
+  y += win->y;
+
+  if (win->parent && /* root window is not updated. */
+      (ui_display_get_pixel(win->disp, x + ACTUAL_WIDTH(win) / 2,
+                            y + ACTUAL_HEIGHT(win) / 2) == 0 ||
+       ui_display_get_pixel(win->disp, x + ACTUAL_WIDTH(win) - 1,
+                            y + ACTUAL_HEIGHT(win) - 1) == 0)) {
+    /* This window doesn't seem to have been drawn correctly yet after ui_display_resize(). */
+    ui_window_update_all(win);
+  }
+
+  for (count = 0; count < win->num_of_children; count++) {
+    check_update_children(win->children[count], x, y);
+  }
+}
+#endif
+
 #if 0
 static int check_child_window_area(ui_window_t *win) {
   if (win->num_of_children > 0) {
@@ -1064,6 +1086,7 @@ int ui_window_show(ui_window_t *win,
     ui_window_resize_with_margin(win, win->disp->width, win->disp->height, NOTIFY_TO_MYSELF);
   }
 #else
+  /* win->window_realized() which was executed with is_mapped == 0 doesn't draw anything. */
   ui_window_update_all(win);
 #endif
 
@@ -1153,11 +1176,13 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
      */
     clear_margin_area(win);
   }
-#ifdef NO_EXPOSE_ON_RESIZE
-  /* for ui_im_{status|candidate}_screen.c */
-  else if (win->window_exposed) {
-    (*win->window_exposed)(win, 0, 0, win->width, win->height);
-  }
+
+#ifdef USE_WAYLAND
+  /*
+   * ui_display_resize() clears screen.
+   * (win is always root here.)
+   */
+  check_update_children(win, 0, 0);
 #endif
 
   return 1;

@@ -1,5 +1,24 @@
 2017-03-05  Araki Ken  <arakiken@users.sf.net>
 
+	* wayland/ui_display.c:
+	  - Pointer at the center of top and bottom margin enables you to move
+	    the window instead of pressing Alt+Button1.
+	  - 'check_inc' argument (which is Display::is_resizing) is added to
+	    check_resize().
+
+	* ui_layout.c:
+	  - Rounding up 'separator' is prohibited if
+	    'total < separator + margin + next_win' in modify_separator().
+	  - MANAGE_SUB_WINDOWS_BY_MYSELF => MANAGE_ROOT_WINDOWS_BY_MYSELF
+	    in change_sb_mode_intern().
+
+	* ui_window.c: check_update_children() is added to redraw screen correctly
+	  on wayland.
+
+	* */ui.h, ui_layout.c, wayland/ui_window.c: NO_EXPOSE_ON_RESIZE is removed.
+
+2017-03-05  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_screen.c: ui_window_update_all(ui_screen_t) instead of
 	  ui_window_update_all(ui_layout_t) is called in window_resized().
 

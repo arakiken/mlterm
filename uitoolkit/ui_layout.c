@@ -20,13 +20,17 @@ static u_int dummy_arg;
 static u_int modify_separator(u_int separator, u_int total, u_int next_min, u_int unit, u_int fixed,
                               u_int margin) {
   u_int surplus;
+  int dont_round_up;
 
   if (total < separator + margin + next_min) {
     separator = total - next_min - margin;
+    dont_round_up = 1;
+  } else {
+    dont_round_up = 0;
   }
 
   if ((surplus = (separator - fixed) % unit) > 0) {
-    if (surplus > unit / 2) {
+    if (!dont_round_up && surplus > unit / 2) {
       separator += (unit - surplus);
     } else if (separator - fixed > surplus) {
       separator -= surplus;
@@ -86,32 +90,11 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
      * which redraws screen by ui_window_update(), so you should resize ui_scrollbar_t
      * before ui_screen_t.
      */
-#ifdef NO_EXPOSE_ON_RESIZE
-    if (!ui_window_resize_with_margin(&term->scrollbar.window,
-                                      ACTUAL_WIDTH(&term->scrollbar.window),
-                                      child_height, NOTIFY_TO_MYSELF)) {
-      /*
-       * On wayland, resizing root window clears child windows even if
-       * this scrollbar is not resized.
-       */
-      ui_window_update_all(&term->scrollbar.window);
-    }
-    if (!ui_window_resize_with_margin(&term->screen->window,
-                                      child_width - SCROLLBAR_WIDTH(term->scrollbar),
-                                      child_height, NOTIFY_TO_MYSELF)) {
-      /*
-       * On wayland, resizing root window clears child windows even if
-       * this scrollbar is not resized.
-       */
-      ui_window_update_all(&term->screen->window);
-    }
-#else
     ui_window_resize_with_margin(&term->scrollbar.window, ACTUAL_WIDTH(&term->scrollbar.window),
                                  child_height, NOTIFY_TO_MYSELF);
     ui_window_resize_with_margin(&term->screen->window,
                                  child_width - SCROLLBAR_WIDTH(term->scrollbar), child_height,
                                  NOTIFY_TO_MYSELF);
-#endif
 
 #ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
     ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
@@ -891,7 +874,7 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
   if (new_mode == SBM_NONE) {
     ui_window_unmap(&term->scrollbar.window);
   }
-#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
   else if (old_mode == SBM_NONE) {
     /* scrollbar's height may have been changed. */
     ui_window_resize_with_margin(&term->scrollbar.window, ACTUAL_WIDTH(&term->scrollbar.window),

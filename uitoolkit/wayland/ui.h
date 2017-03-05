@@ -68,7 +68,7 @@ typedef struct {
   struct wl_compositor *compositor;
   struct wl_shm *shm;
   struct wl_cursor_theme *cursor_theme;
-  struct wl_cursor *cursor[9];
+  struct wl_cursor *cursor[10];
   struct wl_surface *cursor_surface;
   struct wl_shell *shell;
   struct wl_seat *seat;
@@ -434,7 +434,6 @@ KeySym XStringToKeysym(char *str);
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP
-#define NO_EXPOSE_ON_RESIZE
 #undef USE_GC
 #undef CHANGEABLE_CURSOR
 #define PLUGIN_MODULE_SUFFIX "wl"

@@ -527,7 +527,6 @@ KeySym XStringToKeysym(char *str);
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP
-#undef NO_EXPOSE_ON_RESIZE
 #undef USE_GC
 #undef CHANGEABLE_CURSOR
 /* use same modules as those for framebuffer */

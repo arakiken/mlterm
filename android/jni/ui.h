@@ -372,7 +372,6 @@ KeySym XStringToKeysym(char *str);
 /* See also fb/ui_display.c where ui_picture_display_closed() is never called. */
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
-#undef NO_EXPOSE_ON_RESIZE
 #undef USE_GC
 #undef CHANGEABLE_CURSOR
 #undef PLUGIN_MODULE_SUFFIX

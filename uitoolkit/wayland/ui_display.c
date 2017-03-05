@@ -442,33 +442,37 @@ static void pointer_leave(void *data, struct wl_pointer *pointer,
 #endif
 }
 
-static int get_resize_state(u_int width, u_int height, int x, int y) {
+static int get_edge_state(u_int width, u_int height, int x, int y) {
   if (x < RESIZE_MARGIN) {
     if (y < height / 8) {
       return WL_SHELL_SURFACE_RESIZE_TOP_LEFT;
-    }else if (y > height - height / 8) {
+    } else if (y > height - height / 8) {
       return WL_SHELL_SURFACE_RESIZE_BOTTOM_LEFT;
     }
     return WL_SHELL_SURFACE_RESIZE_LEFT;
   } else if (x > width - RESIZE_MARGIN * 2) {
     if (y < height / 8) {
       return WL_SHELL_SURFACE_RESIZE_TOP_RIGHT;
-    }else if (y > height - height / 8) {
+    } else if (y > height - height / 8) {
       return WL_SHELL_SURFACE_RESIZE_BOTTOM_RIGHT;
     }
     return WL_SHELL_SURFACE_RESIZE_RIGHT;
   } else if (y < RESIZE_MARGIN) {
     if (x < width / 8) {
       return WL_SHELL_SURFACE_RESIZE_TOP_LEFT;
-    }else if (x > width - width / 8) {
+    } else if (x > width - width / 8) {
       return WL_SHELL_SURFACE_RESIZE_TOP_RIGHT;
+    } else if (width * 2 / 5 < x && x < width - width * 2 / 5) {
+      return 11;
     }
     return WL_SHELL_SURFACE_RESIZE_TOP;
   } else if (y > height - RESIZE_MARGIN * 2) {
     if (x < width / 8){
       return WL_SHELL_SURFACE_RESIZE_BOTTOM_LEFT;
-    }else if (x > width - width / 8){
+    } else if (x > width - width / 8){
       return WL_SHELL_SURFACE_RESIZE_BOTTOM_RIGHT;
+    } else if (width * 2 / 5 < x && x < width - width * 2 / 5) {
+      return 11;
     }
     return WL_SHELL_SURFACE_RESIZE_BOTTOM;
   }
@@ -494,8 +498,8 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
     wlserv->pointer_x = ev.x = wl_fixed_to_int(sx_w);
     wlserv->pointer_y = ev.y = wl_fixed_to_int(sy_w);
 
-    if ((resize_state = get_resize_state(disp->display->width, disp->display->height,
-                                         ev.x, ev.y))) {
+    if ((resize_state = get_edge_state(disp->display->width, disp->display->height,
+                                       ev.x, ev.y))) {
       if (resize_state > 3) {
         /* 3 and 7 are missing numbers in wl_shell_surface_resize */
         if (resize_state > 7) {
@@ -553,18 +557,14 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
     if (state_w == WL_POINTER_BUTTON_STATE_PRESSED) {
       ev.type = ButtonPress;
       if (button == BTN_LEFT) {
-        if (wlserv->xkb->mods & ModMask) {
-          wl_shell_surface_move(disp->display->shell_surface, wlserv->seat, serial);
-
-          return ;
-        }
-
-        if (ev.x < RESIZE_MARGIN || disp->display->width - RESIZE_MARGIN * 2 < ev.x ||
-            ev.y < RESIZE_MARGIN || disp->display->height - RESIZE_MARGIN * 2 < ev.y) {
-          disp->display->is_resizing = 1;
-          wl_shell_surface_resize(disp->display->shell_surface, wlserv->seat, serial,
-                                  get_resize_state(disp->display->width, disp->display->height,
-                                                   ev.x, ev.y));
+        int state = get_edge_state(disp->display->width, disp->display->height, ev.x, ev.y);
+        if (state > 0) {
+          if (state == 11) {
+            wl_shell_surface_move(disp->display->shell_surface, wlserv->seat, serial);
+          } else {
+            disp->display->is_resizing = 1;
+            wl_shell_surface_resize(disp->display->shell_surface, wlserv->seat, serial, state);
+          }
 
           return;
         }
@@ -816,14 +816,21 @@ static u_int total_height_inc(ui_window_t *win) {
 }
 
 static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, int32_t *new_height,
-                        u_int min_width, u_int min_height, u_int width_inc, u_int height_inc) {
+                        u_int min_width, u_int min_height, u_int width_inc, u_int height_inc,
+                        int check_inc) {
   u_int diff;
 
   if (old_width < *new_width) {
-    diff = ((*new_width - old_width) / width_inc) * width_inc;
-    *new_width = old_width + diff;
+    if (check_inc) {
+      *new_width = old_width + ((*new_width - old_width) / width_inc) * width_inc;
+    }
   } else if (*new_width < old_width) {
-    diff = ((old_width - *new_width) / width_inc) * width_inc;
+    if (check_inc) {
+      diff = ((old_width - *new_width) / width_inc) * width_inc;
+    } else {
+      diff = old_width - *new_width;
+    }
+
     if (old_width < min_width + diff) {
       *new_width = min_width;
     } else {
@@ -832,10 +839,16 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
   }
 
   if (old_height < *new_height) {
-    diff = ((*new_height - old_height) / height_inc) * height_inc;
-    *new_height = old_height + diff;
+    if (check_inc) {
+      *new_height = old_height + ((*new_height - old_height) / height_inc) * height_inc;
+    }
   } else if (*new_height < old_height) {
-    diff = ((old_height - *new_height) / height_inc) * height_inc;
+    if (check_inc) {
+      diff = ((old_height - *new_height) / height_inc) * height_inc;
+    } else {
+      diff = old_height - *new_height;
+    }
+
     if (old_height < min_height + diff) {
       *new_height = min_height;
     } else {
@@ -893,10 +906,10 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
                   disp->display->width, disp->display->height, width, height);
 #endif
 
-  if (!disp->display->is_resizing /* is maximizing or minimizing */ ||
-      check_resize(disp->display->width, disp->display->height, &width, &height,
+  if (check_resize(disp->display->width, disp->display->height, &width, &height,
                    total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
-                   total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]))) {
+                   total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]),
+                   disp->display->is_resizing)) {
 #ifdef __DEBUG
     bl_msg_printf("-> modified size w %d h %d\n", width, height);
 #endif
@@ -1136,7 +1149,7 @@ static ui_wlserv_t *open_wl_display(char *name) {
   if ((wlserv->cursor_theme = wl_cursor_theme_load(NULL, 32, wlserv->shm))) {
     /* The order should be the one of wl_shell_surface_resize. */
     char *names[] = { "xterm", "n-resize", "s-resize", "w-resize", "nw-resize",
-                      "sw-resize", "e-resize", "ne-resize", "se-resize" };
+                      "sw-resize", "e-resize", "ne-resize", "se-resize", "move" };
     int count;
     int has_cursor = 0;
 
