@@ -1,0 +1,55 @@
+comment -*- mode: text; indent-tabs-mode:nil -*-
+comment $Id$
+
+Wayland support
+
+* Tested environment
+  Fedora 24
+
+* Build
+  ./configure --with-gui=wayland ...
+  make
+  sudo make install
+  (Wayland version and X11 version can coexist in the same directory.)
+
+* Configuration
+  Configuration of wayland version is the same as that of X11 version
+  except font settings as follows.
+  Be sure to configure fonts before starting mlterm.
+
+  o Font
+    If mlterm is built with freetype (./configure --enable-anti-alias)
+    and fontconfig (./configure --enable-fontconfig), mlterm reads
+    ~/.mlterm/*aafont files and searches fonts with the use of fontconfig.
+
+    If mlterm starts with --aafont=false option, mlterm reads
+    ~/.mlterm/*font-fb files without fontconfig.
+
+* Start
+  mlterm
+
+* Note
+  o You can change auto key repeat settings (ms) by the following options of
+    ~/.mlterm/main. (The values of these options should be in units of 25ms)
+    kbd_repeat_1=400
+    kbd_repeat_N=50
+  o You can start to resize or move a mlterm window if the pointer is located
+    at following positions.
+            resize  move  resize
+           +-------======-------+
+           |                    |
+     resize|                    |resize
+           |                    |
+           +-------======-------+
+            resize  move  resize
+  o Available scrollbars are "simple" alone.
+  o You can rotate display by --rotate=right or --rotate=left option.
+    ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is
+     also available.)
+    Following command rotates display dynamically.
+    $ mlcc rotate_display right
+    or $ mlcc rotate_display left
+    (To fall back to the default, $ mlcc rotate_display none)
+
+* Unsupported features
+  o geometry option

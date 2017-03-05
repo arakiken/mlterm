@@ -1,4 +1,4 @@
-comment -*- mode: text -*-
+comment -*- mode: text; indent-tabs-mode:nil -*-
 comment $Id$
 
 Framebuffer support
@@ -15,7 +15,7 @@ Framebuffer support
   OpenBSD 5.3
 
 * Build
-  ./configure --with-gui=fb (--enable-anti-alias) ...
+  ./configure --with-gui=fb ...
   make
   sudo make install
   (Framebuffer version and X11 version can coexist in the same directory.
@@ -33,7 +33,11 @@ Framebuffer support
     The format of ~/.mlterm/font-fb is almost the same as that of ~/.mlterm/font,
     but specify their file paths, not XLFD. (See etc/font-fb.)
     If you want to use true type fonts, do ./configure with --enable-anti-alias
-    option which requires freetype library.
+    option (enabled by default) which requires freetype library.
+
+    If ./configure with --enable-fontconfig option (enabled by default) and
+    mlterm starts with --aafont option, mlterm reads ~/.mlterm/*aafont files
+    and searches fonts with the use of fontconfig.
 
 * Start
   mlterm-fb (-fg white -bg black -sb=false)
@@ -72,8 +76,8 @@ Framebuffer support
                    ^^^^^^^^^^^^^^^
   o You can change auto key repeat settings (ms) by the following options of
     ~/.mlterm/main. (The values of these options should be in units of 25ms)
-    wskbd_repeat_1=400
-    wskbd_repeat_N=50
+    kbd_repeat_1=400
+    kbd_repeat_N=50
   o The keyboard input data is read from /dev/wskbd by default. If you want to
     use another device, set it to the value of WSKBD environmental variable.
     (e.g. export WSKBD=/dev/wskbd0)
@@ -131,7 +135,6 @@ Framebuffer support
     (To fall back to the default, $ mlcc rotate_display none)
 
 * Unsupported features
-  o ssh2 client
   o Daemon mode
   o mlclient (mlclientx is avaialble, though)
   o OPEN_SCREEN shortcut of ~/.mlterm/key.

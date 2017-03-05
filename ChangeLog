@@ -1,3 +1,13 @@
+2017-03-06  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: check_resize() returns 0 if the difference between
+	  specified width and height and current width and height is less than
+	  width_inc and height_inc.
+
+	* doc/en/README.wayland: Added.
+
+	* doc/en/README.fb: Updated.
+
 2017-03-05  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_color.c: red, green and blue are multiplied by alpha before

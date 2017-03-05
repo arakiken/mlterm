@@ -821,13 +821,13 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
   u_int diff;
 
   if (old_width < *new_width) {
-    if (check_inc) {
-      *new_width = old_width + ((*new_width - old_width) / width_inc) * width_inc;
+    diff = ((*new_width - old_width) / width_inc) * width_inc;
+    if (check_inc || diff < width_inc) {
+      *new_width = old_width + diff;
     }
   } else if (*new_width < old_width) {
-    if (check_inc) {
-      diff = ((old_width - *new_width) / width_inc) * width_inc;
-    } else {
+    diff = ((old_width - *new_width) / width_inc) * width_inc;
+    if (!check_inc && diff >= width_inc) {
       diff = old_width - *new_width;
     }
 
@@ -839,13 +839,13 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
   }
 
   if (old_height < *new_height) {
-    if (check_inc) {
-      *new_height = old_height + ((*new_height - old_height) / height_inc) * height_inc;
+    diff = ((*new_height - old_height) / height_inc) * height_inc;
+    if (check_inc || diff < height_inc) {
+      *new_height = old_height + diff;
     }
   } else if (*new_height < old_height) {
-    if (check_inc) {
-      diff = ((old_height - *new_height) / height_inc) * height_inc;
-    } else {
+    diff = ((old_height - *new_height) / height_inc) * height_inc;
+    if (!check_inc && diff >= height_inc) {
       diff = old_height - *new_height;
     }
 
