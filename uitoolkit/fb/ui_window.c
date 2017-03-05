@@ -111,7 +111,20 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
 
     copy_pixel(dst,
 #ifdef USE_WAYLAND
-               0xff000000 |
+               /*
+                * f: fg color
+                * b: bg color
+                * w: other windows or desktop wall picture below mlterm window.
+                * 0.6, 0.4: a1, a2, a3
+                * 1.0, 0.0: alpha of fg_color
+                * 0.8, 0.2: alpha of bg color
+                *
+                * Correct: 0.6*(1.0*f + 0.0*w) + 0.4*(0.8*b + 0.2*w) = 0.6*f + 0.32*b + 0.12*w
+                * Lazy   : (0.6*f + 0.4*b)*(1.0+0.8)/2 + 0.2*w*(1.0-(1.0+0.8)/2)
+                *                          ^^^^^^^^^           ^^^^^^^^^^^^^^
+                *          = 0.54*f + 0.36*b + 0.18*w
+                */
+               ((((fg >> 24) + (bg >> 24)) / 2) << 24) |
 #endif
                RGB_TO_PIXEL(BLEND(r1, r2, a1), BLEND(g1, g2, a2), BLEND(b1, b2, a3),
                             display->rgbinfo),
@@ -1339,20 +1352,20 @@ int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int
     }
 
     for (y_off = 0; y_off < height; y_off++) {
-      u_char *p;
+      u_char *p = src;
       int x_off;
 
-      p = src;
-
-      for (x_off = 0; x_off < width; x_off++) {
-        if (bpp == 2) {
+      if (bpp == 2) {
+        for (x_off = 0; x_off < width; x_off++) {
           *((u_int16_t *)p) = color->pixel;
-        } else /* if( bpp == 4) */
-        {
-          *((u_int32_t *)p) = color->pixel;
+          p += 2;
         }
-
-        p += bpp;
+      } else /* if (bpp == 4) */
+      {
+        for (x_off = 0; x_off < width; x_off++) {
+          *((u_int32_t *)p) = color->pixel;
+          p += 4;
+        }
       }
 
       ui_display_put_image(win->disp, x, y + y_off, src, size, 0);

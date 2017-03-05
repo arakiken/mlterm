@@ -1,5 +1,12 @@
 2017-03-05  Araki Ken  <arakiken@users.sf.net>
 
+	* wayland/ui_color.c: red, green and blue are multiplied by alpha before
+	  RGB_TO_PIXEL() on wayland.
+
+	* wayland/ui_window.c: minor fixes.
+
+2017-03-05  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui_display.c:
 	  - Pointer at the center of top and bottom margin enables you to move
 	    the window instead of pressing Alt+Button1.
