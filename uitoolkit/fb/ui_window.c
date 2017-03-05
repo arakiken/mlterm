@@ -779,13 +779,13 @@ static void reset_input_focus(ui_window_t *win) {
 }
 
 #ifdef USE_WAYLAND
-static void check_update_children(ui_window_t *win, int x /* parent */, int y /* parent */) {
+static void check_update_window(ui_window_t *win, int x /* parent */, int y /* parent */) {
   u_int count;
 
   x += win->x;
   y += win->y;
 
-  if (win->parent && /* root window is not updated. */
+  if ((win->parent || win->num_of_children == 0) && /* XXX ui_layout_t is not updated. */
       (ui_display_get_pixel(win->disp, x + ACTUAL_WIDTH(win) / 2,
                             y + ACTUAL_HEIGHT(win) / 2) == 0 ||
        ui_display_get_pixel(win->disp, x + ACTUAL_WIDTH(win) - 1,
@@ -795,7 +795,7 @@ static void check_update_children(ui_window_t *win, int x /* parent */, int y /*
   }
 
   for (count = 0; count < win->num_of_children; count++) {
-    check_update_children(win->children[count], x, y);
+    check_update_window(win->children[count], x, y);
   }
 }
 #endif
@@ -1195,7 +1195,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
    * ui_display_resize() clears screen.
    * (win is always root here.)
    */
-  check_update_children(win, 0, 0);
+  check_update_window(win, 0, 0);
 #endif
 
   return 1;
