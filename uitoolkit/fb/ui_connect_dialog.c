@@ -9,6 +9,10 @@
 
 #include "../ui_connect_dialog.h"
 #include "../ui_screen.h"
+#ifdef USE_WAYLAND
+#include "ui_display.h"
+#define ui_display_receive_next_event(disp) ui_display_receive_next_event_singly(disp)
+#endif
 
 /* --- static variables --- */
 
@@ -61,8 +65,16 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                       char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
                       ) {
   ui_screen_t *screen;
-  char prompt[] = "Password: ";
+  char *prompt;
+  size_t prompt_len;
   void (*orig_key_pressed)();
+
+  prompt_len = 12 + strlen(def_server) + 11;
+  if (!(prompt = alloca(prompt_len + 1))) {
+    return 0;
+  }
+
+  sprintf(prompt, " Connect to %s. Password:", def_server);
 
   if (!(*uri = strdup(def_server))) {
     return 0;
@@ -75,6 +87,13 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
 
   ui_window_clear_all(&screen->window);
 
+#ifndef USE_COSNOLE
+  ui_window_draw_image_string(&screen->window, ui_get_usascii_font(screen->font_man),
+                              ui_get_xcolor(screen->color_man, VT_FG_COLOR),
+                              ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,
+                              ui_line_ascent(screen), prompt, prompt_len);
+#endif
+
   do {
 #ifdef USE_CONSOLE
     /*
@@ -84,22 +103,9 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
     ui_window_console_draw_string(&screen->window, ui_get_usascii_font(screen->font_man),
                                   ui_get_xcolor(screen->color_man, VT_FG_COLOR),
                                   ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,
-                                  ui_line_ascent(screen), prompt, sizeof(prompt) - 1, 0);
-#else
-    /*
-     * prompt is redrawn every time because ui_display_receive_next_event() receives
-     * focus-in event which draws cursor in startup.
-     */
-    ui_window_draw_image_string(&screen->window, ui_get_usascii_font(screen->font_man),
-                                ui_get_xcolor(screen->color_man, VT_FG_COLOR),
-                                ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,
-                                ui_line_ascent(screen), prompt, sizeof(prompt) - 1);
+                                  ui_line_ascent(screen), prompt, prompt_len, 0);
 #endif
-#ifdef USE_WAYLAND
-    ui_display_receive_next_event_singly(screen->window.disp);
-#else
     ui_display_receive_next_event(screen->window.disp);
-#endif
   } while (!end_input);
 
   end_input = 0;

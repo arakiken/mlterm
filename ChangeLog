@@ -1,5 +1,9 @@
 2017-03-07  Araki Ken  <arakiken@users.sf.net>
 
+	* wayland/ui_connect_dialog.c: Server name is shown before "Password:".
+
+2017-03-07  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui_connect_dialog.c:
 	  - ui_window_draw_image_string() is called every time.
 	  - ui_display_receive_next_event_singly() is called on wayland.
