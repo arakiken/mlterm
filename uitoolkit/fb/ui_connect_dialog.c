@@ -75,13 +75,6 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
 
   ui_window_clear_all(&screen->window);
 
-#ifndef USE_CONSOLE
-  ui_window_draw_image_string(&screen->window, ui_get_usascii_font(screen->font_man),
-                              ui_get_xcolor(screen->color_man, VT_FG_COLOR),
-                              ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,
-                              ui_line_ascent(screen), prompt, sizeof(prompt) - 1);
-#endif
-
   do {
 #ifdef USE_CONSOLE
     /*
@@ -92,8 +85,21 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                                   ui_get_xcolor(screen->color_man, VT_FG_COLOR),
                                   ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,
                                   ui_line_ascent(screen), prompt, sizeof(prompt) - 1, 0);
+#else
+    /*
+     * prompt is redrawn every time because ui_display_receive_next_event() receives
+     * focus-in event which draws cursor in startup.
+     */
+    ui_window_draw_image_string(&screen->window, ui_get_usascii_font(screen->font_man),
+                                ui_get_xcolor(screen->color_man, VT_FG_COLOR),
+                                ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,
+                                ui_line_ascent(screen), prompt, sizeof(prompt) - 1);
 #endif
+#ifdef USE_WAYLAND
+    ui_display_receive_next_event_singly(screen->window.disp);
+#else
     ui_display_receive_next_event(screen->window.disp);
+#endif
   } while (!end_input);
 
   end_input = 0;

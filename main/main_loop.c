@@ -115,7 +115,47 @@ int main_loop_init(int argc, char **argv) {
 
   bl_sig_child_init();
 
-  bl_init_prog(argv[0], DETAIL_VERSION);
+  bl_init_prog(argv[0],
+               DETAIL_VERSION
+               "\nFeatures:"
+#ifdef NO_DYNAMIC_LOAD_TYPE
+#ifndef USE_TYPE_XFT
+               " no-xft"
+#endif
+#ifndef USE_TYPE_CAIRO
+               " no-cairo"
+#endif
+#endif
+#ifdef NO_DYNAMIC_LOAD_CTL
+#ifndef USE_FRIBIDI
+               " no-bidi"
+#endif
+#ifndef USE_IND
+               " no-indic"
+#endif
+#endif
+#ifdef USE_OT_LAYOUT
+               " otl"
+#endif
+#ifdef USE_LIBSSH2
+               " ssh"
+#endif
+#ifdef USE_FREETYPE
+               " freetype"
+#endif
+#ifdef USE_FONTCONFIG
+               " fontconfig"
+#endif
+#ifdef USE_IM_PLUGIN
+               " implugin"
+#endif
+#ifdef BUILTIN_IMAGELIB
+               " imagelib(builtin)"
+#endif
+#ifdef USE_UTMP
+               " utmp"
+#endif
+  );
 
   if ((conf = bl_conf_new()) == NULL) {
     return 0;

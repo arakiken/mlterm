@@ -35,6 +35,8 @@ void ui_display_copy_lines(ui_display_t *disp, int src_x, int src_y, int dst_x, 
 
 /* platform specific functions for ui_window.c */
 
+int ui_display_receive_next_event_singly(ui_display_t *disp);
+
 int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_display_t *parent);
 
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height);

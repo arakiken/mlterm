@@ -11,6 +11,9 @@ Wayland support
   make
   sudo make install
   (Wayland version and X11 version can coexist in the same directory.)
+   So you can install main/mlterm-wl and inputmethod/*/*-wl.so alone by
+   'make install-wl' to the directory where mlterm (X11 version) has been
+   already installed instead of installing all files by 'make install'.)
 
 * Configuration
   Configuration of wayland version is the same as that of X11 version
@@ -26,7 +29,7 @@ Wayland support
     ~/.mlterm/*font-fb files without fontconfig.
 
 * Start
-  mlterm
+  mlterm-wl
 
 * Note
   o You can change auto key repeat settings (ms) by the following options of
@@ -42,6 +45,8 @@ Wayland support
            |                    |
            +-------======-------+
             resize  move  resize
+  o If you want to miximize a mlterm window, use its shortcut key provided by
+    a window manager. (e.g. Windows key + Up)
   o Available scrollbars are "simple" alone.
   o You can rotate display by --rotate=right or --rotate=left option.
     ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is

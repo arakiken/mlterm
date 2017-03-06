@@ -21222,7 +21222,7 @@ fi
 if test "${enable_fontconfig+set}" = set; then :
   enableval=$enable_fontconfig; fontconfig=$enable_fontconfig
 else
-  fontconfig="auto"
+  fontconfig="yes"
 fi
 
 
@@ -28049,9 +28049,13 @@ echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
 echo "utmp support                      : $utmp"
-if test "$gui" = "fb"; then
+if test "$gui" = "fb" -o "$gui" = "wayland"; then
 	if test "$have_ft" = "yes"; then
-		echo "Supported font formats            : pcf ttf"
+	  if test "$fontconfig" = "yes"; then
+				echo "Supported font formats            : pcf ttf(+fontconfig)"
+		else
+				echo "Supported font formats            : pcf ttf"
+		fi
 	else
 		echo "Supported font formats            : pcf"
 	fi

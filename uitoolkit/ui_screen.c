@@ -1908,7 +1908,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
             /*
              * XK_BackSpace, XK_Tab and XK_Return are defined as
              * 0xffXX in keysymdef.h, while they are less than
-             * 0x80 on win32 and framebuffer.
+             * 0x80 on win32, framebuffer and wayland.
              */
             (size == 1 && (key = kstr[0]) < 0x20)) {
           if (key == 0 && size > 0) {

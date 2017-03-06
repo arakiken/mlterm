@@ -1,3 +1,19 @@
+2017-03-07  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_connect_dialog.c:
+	  - ui_window_draw_image_string() is called every time.
+	  - ui_display_receive_next_event_singly() is called on wayland.
+
+	* wayland/ui_display.[ch]: ui_display_receive_next_event_singly() is added.
+
+	* main_loop.c: 'mlterm -v' outputs compiled features.
+
+	* main/Makefile.in: CFLAGS_FOR_FEATURES is added.
+
+	* configure.in: "Supported font formats" is output on wayland.
+
+	* Makefile.in: 'install-wl' target is added.
+
 2017-03-06  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: check_resize() returns 0 if the difference between

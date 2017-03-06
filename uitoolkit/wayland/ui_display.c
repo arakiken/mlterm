@@ -1543,6 +1543,22 @@ int ui_display_receive_next_event(ui_display_t *disp) {
   return 0;
 }
 
+int ui_display_receive_next_event_singly(ui_display_t *disp) {
+  u_int count;
+
+  ui_display_sync(disp);
+
+  for (count = 0; count < num_of_displays; count++) {
+    if (displays[count]->display->wlserv == disp->display->wlserv) {
+      return (wl_display_dispatch(disp->display->wlserv->display) != -1);
+    } else {
+      break;
+    }
+  }
+
+  return 0;
+}
+
 void ui_display_sync(ui_display_t *disp) {
   if (flush_wlserver(disp->display)) {
     wl_display_flush(disp->display->wlserv->display);

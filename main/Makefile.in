@@ -38,6 +38,8 @@ CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -I$(top_srcdir)/vtemu \
 	-I${top_srcdir}/uitoolkit -I${top_builddir}/main -I/usr/local/include
 
+CFLAGS_FOR_FEATURES = @OT_LAYOUT_CFLAGS@ @CTL_CFLAGS@ @IM_CFLAGS@ @IMAGELIB_CFLAGS@ @UTMP_CFLAGS@
+
 LIBS1 = $(LIBS_LOCAL) $(LUITK) $(LMLTERM) $(LMEF) $(LPOBL) \
 	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS_FOR_PROG@ \
 	@OT_LAYOUT_LIBS_FOR_PROG@ @PTHREAD_LIB@
@@ -63,12 +65,12 @@ PROG_win32 = mlterm
 PROG_fb = mlterm-fb
 PROG_console = mlterm-con-server
 PROG_quartz = mlterm
-PROG_wayland = mlterm
+PROG_wayland = mlterm-wl
 PROG2_console = mlterm-con
 
 INSTALL_OPT = @INSTALL_OPT@
 
-LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(CFLAGS_FOR_FEATURES)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
