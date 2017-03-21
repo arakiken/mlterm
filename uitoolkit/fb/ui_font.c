@@ -562,6 +562,7 @@ static void unload_pcf(XFontStruct *xfont) {
 /* --- static variables --- */
 
 static FT_Library library;
+static double dpi_for_fc;
 
 /* --- static functions --- */
 
@@ -1379,6 +1380,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
 #ifdef USE_FREETYPE
+  if (dpi_for_fc > 0.0) {
+    fontsize = DIVIDE_ROUNDINGUP(dpi_for_fc * fontsize, 72);
+  }
   if (percent > 0) {
     format = DIVIDE_ROUNDING(fontsize * percent, 100) | (id & (FONT_BOLD | FONT_ITALIC));
   } else {
@@ -1861,3 +1865,6 @@ u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_lay
 
   return xfont->glyphs + glyph_offset;
 }
+
+/* For mlterm-libvte */
+void ui_font_set_dpi_for_fc(double dpi) { dpi_for_fc = dpi; }

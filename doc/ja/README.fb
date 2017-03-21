@@ -1,4 +1,4 @@
-comment -*- mode: text -*-
+comment -*- mode: text; indent-tabs-mode:nil -*-
 comment $Id$
 
 Framebuffer 対応に関するメモ
@@ -35,6 +35,10 @@ Framebuffer 対応に関するメモ
     なお、true type フォントを使用する場合は、mlterm-fb を
     ./configure --enable-anti-alias
     してビルドしてください。
+
+    また、--enable-fontconfig オプションでビルドし、mlterm-fb --aafont と起動す
+    ると、~/.mlterm/*font-fb ではなく、~/.mlterm/*aafont の設定を読み込み、
+    fontconfig を使ってフォントを検索します。
 
 * 起動方法
   mlterm-fb (-fg white -bg black -sb=false)

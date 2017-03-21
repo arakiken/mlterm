@@ -159,11 +159,11 @@ static inline u_char *get_fb(Display *display, int x, int y) {
     x * display->bytes_per_pixel;
 }
 
-static ui_display_t *surface_to_display(struct wl_surface *current_surface) {
+static ui_display_t *surface_to_display(struct wl_surface *surface) {
   u_int count;
 
   for (count = 0; count < num_of_displays; count++) {
-    if (current_surface == displays[count]->display->surface) {
+    if (surface == displays[count]->display->surface) {
       return displays[count];
     }
   }
@@ -171,20 +171,86 @@ static ui_display_t *surface_to_display(struct wl_surface *current_surface) {
   return NULL;
 }
 
-static void receive_key_event(ui_wlserv_t *wlserv, XKeyEvent *ev) {
-  if (wlserv->current_surface) {
-    ui_display_t *disp = surface_to_display(wlserv->current_surface);
-    ui_window_t *win;
+#ifdef COMPAT_LIBVTE
+static ui_display_t *parent_surface_to_display(struct wl_surface *surface) {
+  u_int count;
 
-    /* Key event for dead surface may be received. */
-    if (disp && (win = search_focused_window(disp->roots[0]))) {
-      ui_window_receive_event(win, ev);
+  for (count = 0; count < num_of_displays; count++) {
+    if (surface == displays[count]->display->parent_surface) {
+      return displays[count];
     }
   }
+
+  return NULL;
 }
 
-void registry_global(void *data, struct wl_registry *registry, uint32_t name,
-                     const char *interface, uint32_t version) {
+static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
+                                         struct wl_surface *parent_surface) {
+  ui_wlserv_t *wlserv = disp->display->wlserv;
+  ui_display_t *new;
+  void *p;
+
+  if (!(p = realloc(displays, sizeof(ui_display_t*) * (num_of_displays + 1)))) {
+    return NULL;
+  }
+  displays = p;
+
+  if (wlservs == NULL) {
+    if (!(wlservs = malloc(sizeof(ui_wlserv_t*)))) {
+      return NULL;
+    }
+    wlservs[0] = wlserv;
+    num_of_wlservs = 1;
+  }
+
+  if (!(new = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
+    return NULL;
+  }
+
+  memcpy(new, disp, sizeof(ui_display_t));
+  new->display = new + 1;
+  new->name = strdup(disp->name);
+  new->roots = NULL;
+  new->num_of_roots = 0;
+
+  memcpy(new->display, disp->display, sizeof(Display));
+
+  new->display->parent_surface = parent_surface;
+
+  displays[num_of_displays++] = new;
+
+  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_of_roots + 1)))) {
+    disp->roots = p;
+    disp->roots[disp->num_of_roots++] = root;
+  }
+
+  wlserv->ref_count++;
+
+  return new;
+}
+
+static ui_display_t *remove_root_from_display(ui_display_t *disp, ui_window_t *root) {
+  u_int count;
+
+  for (count = 0; count < disp->num_of_roots; count++) {
+    if (disp->roots[count] == root) {
+      disp->roots[count] = disp->roots[--disp->num_of_roots];
+      break;
+    }
+  }
+
+  for (count = 0; count < num_of_displays; count++) {
+    if (displays[count]->roots[0] == root) {
+      return displays[count];
+    }
+  }
+
+  return NULL;
+}
+#endif
+
+static void registry_global(void *data, struct wl_registry *registry, uint32_t name,
+                            const char *interface, uint32_t version) {
   ui_wlserv_t *wlserv = data;
   if(strcmp(interface, "wl_compositor") == 0) {
     wlserv->compositor = wl_registry_bind(registry, name,
@@ -203,6 +269,11 @@ void registry_global(void *data, struct wl_registry *registry, uint32_t name,
     wlserv->data_device_manager = wl_registry_bind(registry, name,
                                                    &wl_data_device_manager_interface, 3);
   }
+#ifdef __DEBUG
+  else {
+    bl_debug_printf("Unknown interface: %s\n", interface);
+  }
+#endif
 }
 
 static void registry_global_remove(void *data, struct wl_registry *registry, uint32_t name) {
@@ -212,6 +283,24 @@ static const struct wl_registry_listener registry_listener = {
   registry_global,
   registry_global_remove
 };
+
+static void receive_key_event(ui_wlserv_t *wlserv, XKeyEvent *ev) {
+  if (wlserv->current_surface) {
+    ui_display_t *disp = surface_to_display(wlserv->current_surface);
+    ui_window_t *win;
+
+#ifdef COMPAT_LIBVTE
+    if (!disp) {
+      disp = parent_surface_to_display(wlserv->current_surface);
+    }
+#endif
+
+    /* Key event for dead surface may be received. */
+    if (disp && (win = search_focused_window(disp->roots[0]))) {
+      ui_window_receive_event(win, ev);
+    }
+  }
+}
 
 static void keyboard_keymap(void *data, struct wl_keyboard *keyboard,
                             uint32_t format, int fd, uint32_t size){
@@ -261,6 +350,11 @@ static void auto_repeat(void) {
   }
 }
 
+#ifdef COMPAT_LIBVTE
+/* see vte_wayland.c */
+void focus_gtk_window(win);
+#endif
+
 static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
                            uint32_t serial, struct wl_surface *surface,
                            struct wl_array *keys) {
@@ -268,7 +362,14 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
   ui_wlserv_t *wlserv = data;
   ui_window_t *win;
 
+#ifdef COMPAT_LIBVTE
+  if (!disp || disp->num_of_roots == 0) {
+    return;
+  }
+#endif
+
   if (disp->display->parent) {
+    /* XXX input method */
     disp = disp->display->parent;
     surface = disp->display->surface;
   }
@@ -284,6 +385,10 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
     bl_debug_printf("FOCUSED %p\n", win);
 #endif
     ui_window_set_input_focus(win);
+
+#ifdef COMPAT_LIBVTE
+    focus_gtk_window(win);
+#endif
   }
 
   /* During resizing keyboard leaves. keyboard_enter() means that resizing has finished. */
@@ -304,6 +409,10 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
   wlserv->prev_kev.type = 0;
 #endif
 
+  if (wlserv->current_surface == surface) {
+    wlserv->current_surface = NULL;
+  }
+
   /* surface may have been already destroyed. So null check of disp is necessary. */
   if (disp && (win = search_focused_window(disp->roots[0]))) {
 #ifdef __DEBUG
@@ -322,6 +431,10 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
   ui_wlserv_t *wlserv = data;
   XKeyEvent ev;
 
+#ifdef COMPAT_LIBVTE
+  wlserv->time = time;
+#endif
+
   if (state_w == WL_KEYBOARD_KEY_STATE_PRESSED) {
     ev.ksym = xkb_state_key_get_one_sym(wlserv->xkb->state, key + 8);
     ev.type = KeyPress;
@@ -333,10 +446,9 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
     wlserv->prev_kev = ev;
 
 #ifdef __DEBUG
-    bl_debug_printf("Receive key %x %x\n", ev.ksym, wlserv->xkb->mods);
+    bl_debug_printf("Receive key %x %x at %d\n", ev.ksym, wlserv->xkb->mods, time);
 #endif
-  }
-  else if (state_w == WL_KEYBOARD_KEY_STATE_RELEASED) {
+  } else if (state_w == WL_KEYBOARD_KEY_STATE_RELEASED) {
 #if 0
     ev.type = KeyRelease;
     ev.time = time;
@@ -357,10 +469,9 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
   receive_key_event(wlserv, &ev);
 }
 
-static void
-keyboard_modifiers(void *data, struct wl_keyboard *keyboard,
-                   uint32_t serial, uint32_t mods_depressed,
-                   uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
+static void keyboard_modifiers(void *data, struct wl_keyboard *keyboard,
+                               uint32_t serial, uint32_t mods_depressed,
+                               uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
   ui_wlserv_t *wlserv = data;
   xkb_mod_mask_t mod_mask;
 
@@ -391,7 +502,11 @@ static void keyboard_repeat_info(void *data, struct wl_keyboard *keyboard,
   bl_debug_printf("Repeat info rate %d delay %d.\n", rate, delay);
 #endif
   kbd_repeat_1 = delay;
+#ifdef COMPAT_LIBVTE
+  kbd_repeat_N = (1000 / rate); /* XXX 1000 / rate is too late. */
+#else
   kbd_repeat_N = (500 / rate); /* XXX 1000 / rate is too late. */
+#endif
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
@@ -427,6 +542,15 @@ static void pointer_enter(void *data, struct wl_pointer *pointer,
   bl_debug_printf("POINTER ENTER\n");
 #endif
 
+#ifdef COMPAT_LIBVTE
+  /* Without current_pointer_surface, mlterm receives pointer events on parent surface. */
+  wlserv->current_pointer_surface = surface;
+
+  if (parent_surface_to_display(surface)) {
+    return;
+  }
+#endif
+
   if (wlserv->cursor[0]) {
     change_cursor(pointer, serial, wlserv->cursor_surface, wlserv->cursor[0]);
     wlserv->current_cursor = 0;
@@ -437,6 +561,14 @@ static void pointer_enter(void *data, struct wl_pointer *pointer,
 
 static void pointer_leave(void *data, struct wl_pointer *pointer,
                           uint32_t serial, struct wl_surface *surface) {
+#ifdef COMPAT_LIBVTE
+  ui_wlserv_t *wlserv = data;
+
+  if (wlserv->current_pointer_surface == surface) {
+    wlserv->current_pointer_surface = NULL;
+  }
+#endif
+
 #ifdef __DEBUG
   bl_debug_printf("POINTER LEAVE\n");
 #endif
@@ -484,7 +616,16 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
   ui_wlserv_t *wlserv = data;
   ui_display_t *disp;
 
-  if ((disp = surface_to_display(wlserv->current_surface))) {
+#ifdef ____DEBUG
+  bl_debug_printf("Pointer motion at %d\n", time);
+#endif
+#ifdef COMPAT_LIBVTE
+  wlserv->time = time;
+  disp = surface_to_display(wlserv->current_pointer_surface);
+#else
+  disp = surface_to_display(wlserv->current_surface);
+#endif
+  if (disp) {
     XMotionEvent ev;
     ui_window_t *win;
     int resize_state;
@@ -534,7 +675,7 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
     ev.x -= win->x;
     ev.y -= win->y;
 
-#ifdef __DEBUG
+#ifdef ____DEBUG
     bl_debug_printf("Motion event state %x x %d y %d in %p window.\n", ev.state, ev.x, ev.y, win);
 #endif
 
@@ -547,7 +688,16 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
   ui_wlserv_t *wlserv = data;
   ui_display_t *disp;
 
-  if ((disp = surface_to_display(wlserv->current_surface))) {
+#ifdef __DEBUG
+  bl_debug_printf("Pointer button at %d\n", time);
+#endif
+#ifdef COMPAT_LIBVTE
+  wlserv->time = time;
+  disp = surface_to_display(wlserv->current_pointer_surface);
+#else
+  disp = surface_to_display(wlserv->current_surface);
+#endif
+  if (disp) {
     XButtonEvent ev;
     ui_window_t *win;
 
@@ -608,6 +758,12 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
     wlserv->serial = serial;
 
     ui_window_receive_event(win, &ev);
+
+#ifdef COMPAT_LIBVTE
+    if (ev.type == ButtonRelease) {
+      focus_gtk_window(win);
+    }
+#endif
   }
 }
 
@@ -616,7 +772,16 @@ static void pointer_axis(void *data, struct wl_pointer *pointer,
   ui_wlserv_t *wlserv = data;
   ui_display_t *disp;
 
-  if ((disp = surface_to_display(wlserv->current_surface))) {
+#ifdef __DEBUG
+  bl_debug_printf("Pointer axis at %d\n", time);
+#endif
+#ifdef COMPAT_LIBVTE
+  wlserv->time = time;
+  disp = surface_to_display(wlserv->current_pointer_surface);
+#else
+  disp = surface_to_display(wlserv->current_surface);
+#endif
+  if (disp) {
     XButtonEvent ev;
     ui_window_t *win;
 
@@ -691,7 +856,9 @@ static void surface_leave(void *data, struct wl_surface *surface, struct wl_outp
   bl_debug_printf("SURFACE LEAVE\n");
 #endif
 
-  wlserv->current_surface = NULL;
+  if (wlserv->current_surface == surface) {
+    wlserv->current_surface = NULL;
+  }
 }
 
 static const struct wl_surface_listener surface_listener = {
@@ -733,6 +900,7 @@ static int create_shm_buffer(Display *display) {
 }
 
 static void destroy_shm_buffer(Display *display) {
+  wl_surface_attach(display->surface, NULL, 0, 0);
   wl_buffer_destroy(display->buffer);
   munmap(display->fb, display->line_length * (display->height + DECORATION_MARGIN));
 }
@@ -864,6 +1032,8 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
 }
 
 static int resize_display(ui_display_t *disp, u_int width, u_int height, int roundtrip) {
+  int do_create;
+
   if (disp->width == width && disp->height == height) {
     return 0;
   }
@@ -878,7 +1048,18 @@ static int resize_display(ui_display_t *disp, u_int width, u_int height, int rou
                   disp->width, disp->height, width, height);
 #endif
 
+#ifdef COMPAT_LIBVTE
+  /* For the case of resizing a window which contains multiple tabs. */
+  if (disp->display->buffer) {
+    destroy_shm_buffer(disp->display);
+    do_create = 1;
+  } else {
+    do_create = 0;
+  }
+#else
   destroy_shm_buffer(disp->display);
+  do_create = 1;
+#endif
 
   disp->width = width;
   disp->height = height;
@@ -891,7 +1072,9 @@ static int resize_display(ui_display_t *disp, u_int width, u_int height, int rou
     disp->display->height = height;
   }
 
-  create_shm_buffer(disp->display);
+  if (do_create) {
+    create_shm_buffer(disp->display);
+  }
 
   return 1;
 }
@@ -902,7 +1085,7 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
   ui_display_t *disp = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("Resizing from w %d h %d to w %d h %d.\n",
+  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
                   disp->display->width, disp->display->height, width, height);
 #endif
 
@@ -1204,14 +1387,20 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   xkb_state_unref(wlserv->xkb->state);
   xkb_keymap_unref(wlserv->xkb->keymap);
   xkb_context_unref(wlserv->xkb->ctx);
-  wl_surface_destroy(wlserv->cursor_surface);
-  wl_cursor_theme_destroy(wlserv->cursor_theme);
+  if (wlserv->cursor_surface) {
+    wl_surface_destroy(wlserv->cursor_surface);
+  }
+  if (wlserv->cursor_theme) {
+    wl_cursor_theme_destroy(wlserv->cursor_theme);
+  }
   wl_pointer_destroy(wlserv->pointer);
   wl_data_device_destroy(wlserv->data_device);
   wl_data_device_manager_destroy(wlserv->data_device_manager);
   wl_display_disconnect(wlserv->display);
 
+#ifndef COMPAT_LIBVTE
   free(wlserv);
+#endif
 }
 
 static int close_display(ui_display_t *disp) {
@@ -1229,9 +1418,16 @@ static int close_display(ui_display_t *disp) {
   ui_picture_display_closed(disp->display);
 
   if (disp->display->shell_surface) {
+#ifdef COMPAT_LIBVTE
+    /* disp->display->buffer may have been destroyed in ui_display_unmap(). */
+    if (disp->display->buffer)
+#endif
+    {
+      destroy_shm_buffer(disp->display);
+      disp->display->buffer = NULL;
+    }
     wl_shell_surface_destroy(disp->display->shell_surface);
     wl_surface_destroy(disp->display->surface);
-    destroy_shm_buffer(disp->display);
   }
 
   if (disp->display->wlserv->ref_count == 1) {
@@ -1305,13 +1501,58 @@ static void damage_buffer(Display *display, int x, int y, u_int width, u_int hei
   }
 }
 
-static int flush_wlserver(Display *display) {
+static int flush_display(Display *display) {
   if (flush_damage(display)) {
     wl_surface_commit(display->surface);
 
     return 1;
   } else {
     return 0;
+  }
+}
+
+static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int height,
+                           char *app_name) {
+  Display *display = disp->display;
+  ui_wlserv_t *wlserv = display->wlserv;
+
+  display->surface = wl_compositor_create_surface(wlserv->compositor);
+  display->shell_surface = wl_shell_get_shell_surface(wlserv->shell, display->surface);
+
+#ifdef COMPAT_LIBVTE
+  /* This causes segfault of gnome-shell here. */
+#if 0
+  wl_shell_surface_set_transient(disp->display->shell_surface,
+                                 disp->display->parent_surface, x, y, 0);
+#endif
+#endif
+
+  if (display->parent) {
+#ifdef __DEBUG
+    bl_debug_printf("Move display (set transient) at %d %d\n", x, y);
+#endif
+    wl_shell_surface_set_transient(display->shell_surface,
+                                   display->parent->display->surface, x, y,
+                                   WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
+  }
+#ifndef COMPAT_LIBVTE
+  else {
+    wl_surface_add_listener(display->surface, &surface_listener, wlserv);
+    wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
+    wl_shell_surface_set_toplevel(display->shell_surface);
+    wl_shell_surface_set_title(disp->display->shell_surface, app_name);
+  }
+#endif
+  wl_shell_surface_set_class(disp->display->shell_surface, app_name);
+
+  disp->width = width;
+  disp->height = height;
+  if (rotate_display) {
+    disp->display->width = height;
+    disp->display->height = width;
+  } else {
+    disp->display->width = width;
+    disp->display->height = height;
   }
 }
 
@@ -1394,12 +1635,15 @@ int ui_display_close(ui_display_t *disp) {
       if (--num_of_displays == 0) {
         free(displays);
         displays = NULL;
+#ifdef COMPAT_LIBVTE
+        exit(0);
+#endif
       } else {
         displays[count] = displays[num_of_displays];
       }
 
 #ifdef DEBUG
-      bl_debug_printf("X connection closed.\n");
+      bl_debug_printf("wayland display connection closed.\n");
 #endif
 
       return 1;
@@ -1429,10 +1673,20 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
                          char *app_name, Window parent_window) {
   void *p;
 
-  if (disp->num_of_roots > 0) {
-    ui_display_t *parent = disp;
-    disp = ui_display_open(disp->name, disp->depth);
-    disp->display->parent = parent;
+  if (parent_window) {
+#ifdef COMPAT_LIBVTE
+    disp = add_root_to_display(disp, root, parent_window);
+#endif
+    root->parent_window = parent_window;
+  } else {
+    if (disp->num_of_roots > 0) {
+      /* XXX Input Method */
+      ui_display_t *parent = disp;
+      disp = ui_display_open(disp->name, disp->depth);
+      disp->display->parent = parent;
+    }
+
+    root->parent_window = None;
   }
 
   if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_of_roots + 1))) == NULL) {
@@ -1448,12 +1702,6 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   root->disp = disp;
   root->parent = NULL;
 
-  if (parent_window) {
-    root->parent_window = parent_window;
-  } else {
-    root->parent_window = disp->my_window;
-  }
-
   root->gc = disp->gc;
   root->x = 0;
   root->y = 0;
@@ -1468,10 +1716,14 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
    */
   disp->roots[disp->num_of_roots++] = root;
 
-  ui_display_create_surface(root->disp, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root),
-                            root->disp->display->parent);
+  create_surface(disp, x, y, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root), root->app_name);
 
-  ui_window_show(root, hint);
+  if (parent_window) {
+    /* do nothing on libvte */
+  } else {
+    create_shm_buffer(disp->display);
+    ui_window_show(root, hint);
+  }
 
   return 1;
 }
@@ -1481,33 +1733,32 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 
   for (count = 0; count < disp->num_of_roots; count++) {
     if (disp->roots[count] == root) {
+#ifdef COMPAT_LIBVTE
+      if (disp->display->parent) {
+        /* XXX input method (do nothing) */
+      } else {
+        disp = remove_root_from_display(disp, root);
+      }
+      count = 0;
+#endif
+
       /* Don't switching on or off screen in exiting. */
       ui_window_unmap(root);
-
       ui_window_final(root);
-
       disp->num_of_roots--;
 
       if (count == disp->num_of_roots) {
-        memset(&disp->roots[count], 0, sizeof(disp->roots[0]));
+        disp->roots[count] = NULL;
 
-        if (disp->display->parent && disp->num_of_roots == 0) {
-          /* XXX input method */
+        if (disp->num_of_roots == 0
+#ifndef COMPAT_LIBVTE
+            && disp->display->parent /* XXX input method alone */
+#endif
+            ) {
           ui_display_close(disp);
         }
       } else {
-        memcpy(&disp->roots[count], &disp->roots[disp->num_of_roots], sizeof(disp->roots[0]));
-
-        if (count == 0) {
-          /* Group leader is changed. */
-#if 0
-          bl_debug_printf(BL_DEBUG_TAG " Changing group_leader -> %x\n", disp->roots[0]->my_window);
-#endif
-
-          for (count = 0; count < disp->num_of_roots; count++) {
-            ui_window_reset_group(disp->roots[count]);
-          }
-        }
+        disp->roots[count] = disp->roots[disp->num_of_roots];
       }
 
       return 1;
@@ -1519,10 +1770,28 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 
 void ui_display_idling(ui_display_t *disp) {
   u_int count;
+#ifdef COMPAT_LIBVTE
+  static int display_idling_wait = 4;
+
+  if (--display_idling_wait > 0) {
+    goto skip;
+  }
+  display_idling_wait = 4;
+#endif
 
   for (count = 0; count < disp->num_of_roots; count++) {
-    ui_window_idling(disp->roots[count]);
+#ifdef COMPAT_LIBVTE
+    if (disp->roots[count]->disp->display->buffer)
+#endif
+    {
+      ui_window_idling(disp->roots[count]);
+    }
   }
+
+  ui_display_sync(disp);
+
+skip:
+  auto_repeat();
 }
 
 int ui_display_receive_next_event(ui_display_t *disp) {
@@ -1560,9 +1829,24 @@ int ui_display_receive_next_event_singly(ui_display_t *disp) {
 }
 
 void ui_display_sync(ui_display_t *disp) {
-  if (flush_wlserver(disp->display)) {
+#ifdef COMPAT_LIBVTE
+  u_int count;
+  int flushed = 0;
+
+  for (count = 0; count < num_of_displays; count++) {
+    if (displays[count]->display->buffer) {
+      flushed |= flush_display(displays[count]->display);
+    }
+  }
+
+  if (flushed) {
+    wl_display_flush(wlservs[0]->display);
+  }
+#else
+  if (flush_display(disp->display)) {
     wl_display_flush(disp->display->wlserv->display);
   }
+#endif
 }
 
 /*
@@ -1628,57 +1912,60 @@ XID ui_display_get_group_leader(ui_display_t *disp) {
 
 void ui_display_rotate(int rotate) { rotate_display = rotate; }
 
-int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_display_t *parent) {
-  Display *display = disp->display;
-  ui_wlserv_t *wlserv = display->wlserv;
-
-  display->surface = wl_compositor_create_surface(wlserv->compositor);
-
-  display->shell_surface = wl_shell_get_shell_surface(wlserv->shell, display->surface);
-
-  if (parent) {
-    wl_shell_surface_set_transient(display->shell_surface,
-                                   ((ui_display_t*)display->parent)->display->surface, 0, 0, 1);
-    display->parent = parent;
-  } else {
-    wl_surface_add_listener(display->surface, &surface_listener, wlserv);
-    wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
-    wl_shell_surface_set_toplevel(display->shell_surface);
-  }
-  wl_shell_surface_set_title(display->shell_surface, "mlterm");
-  wl_shell_surface_set_class(display->shell_surface, "mlterm");
-
-  disp->width = width;
-  disp->height = height;
-  if (rotate_display) {
-    disp->display->width = height;
-    disp->display->height = width;
-  } else {
-    disp->display->width = width;
-    disp->display->height = height;
-  }
-
-  create_shm_buffer(display);
-
-  return 1;
-}
-
 /* Don't call this internally from ui_display.c. Call resize_display(..., 0) instead. */
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
   return resize_display(disp, width, height, 1);
 }
 
 void ui_display_move(ui_display_t *disp, int x, int y) {
-  if (disp->display->parent) {
+  if (!disp->display->buffer) {
+    return;
+  }
+
+#ifdef COMPAT_LIBVTE
+  if (disp->display->parent_surface) {
+#ifdef __DEBUG
+    bl_debug_printf("Move display on libvte (set transient) at %d %d\n", x, y);
+#endif
+    /* Switching tabs causes segfault without this. */
+    flush_display(disp->display);
+
     wl_shell_surface_set_transient(disp->display->shell_surface,
-                                   ((ui_display_t*)disp->display->parent)->display->surface,
-                                   x, y, 1);
+                                   disp->display->parent_surface, x, y, 0);
+    disp->display->x = x;
+    disp->display->y = y;
+  }
+#endif
+
+  if (disp->display->parent) {
+#ifdef __DEBUG
+    bl_debug_printf("Move display (set transient) at %d %d\n", x, y);
+#endif
+#ifdef COMPAT_LIBVTE
+#ifdef __DEBUG
+    bl_debug_printf(" => %d %d\n",
+                    x - disp->display->parent->display->x,
+                    y - disp->display->parent->display->y);
+#endif
+    x -= disp->display->parent->display->x;
+    y -= disp->display->parent->display->y;
+#endif
+
+    wl_shell_surface_set_transient(disp->display->shell_surface,
+                                   disp->display->parent->display->surface, x, y,
+                                   WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
   }
 }
 
 u_long ui_display_get_pixel(ui_display_t *disp, int x, int y) {
   u_char *fb;
   u_long pixel;
+
+#ifdef COMPAT_LIBVTE
+  if (!disp->display->buffer) {
+    return 0;
+  }
+#endif
 
   if (rotate_display) {
     int tmp;
@@ -1703,6 +1990,12 @@ u_long ui_display_get_pixel(ui_display_t *disp, int x, int y) {
 void ui_display_put_image(ui_display_t *disp, int x, int y, u_char *image, size_t size,
                           int need_fb_pixel) {
   Display *display = disp->display;
+
+#ifdef COMPAT_LIBVTE
+  if (!display->buffer) {
+    return;
+  }
+#endif
 
   if (rotate_display) {
     /* Display is rotated. */
@@ -1863,4 +2156,78 @@ void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int 
       *x = tmp;
     }
   }
+
+#ifdef COMPAT_LIBVTE
+  *x += disp->display->x;
+  *y += disp->display->y;
+#endif
 }
+
+void ui_display_set_title(ui_display_t *disp, const u_char *name) {
+  wl_shell_surface_set_title(disp->display->shell_surface, name);
+}
+
+#ifdef COMPAT_LIBVTE
+/*
+ * Only one ui_wlserv_t exists on libvte compat library.
+ * disp in vte.c shares one ui_wlserv_t but doesn't have shm buffer and surface.
+ * displays in ui_display.c share one ui_wlserv_t and have each shm buffer and surface.
+ */
+void ui_display_init_wlserv(ui_wlserv_t *wlserv) {
+  wl_registry_add_listener(wlserv->registry, &registry_listener, wlserv);
+  wl_display_roundtrip(wlserv->display);
+
+  wlserv->keyboard = wl_seat_get_keyboard(wlserv->seat);
+  wlserv->xkb->ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+  wl_keyboard_add_listener(wlserv->keyboard, &keyboard_listener, wlserv);
+
+  wlserv->pointer = wl_seat_get_pointer(wlserv->seat);
+  wl_pointer_add_listener(wlserv->pointer, &pointer_listener, wlserv);
+
+  wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
+                                                               wlserv->seat);
+  wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
+
+  wlserv->sel_fd = -1;
+}
+
+void ui_display_map(ui_display_t *disp) {
+  if (!disp->display->buffer) {
+#ifdef __DEBUG
+    bl_debug_printf("Creating new shm buffer.\n");
+#endif
+    create_shm_buffer(disp->display);
+
+    /*
+     * shell_surface_configure() might have been already received and
+     * the size of ui_display_t and ui_window_t might mismatch.
+     * So, ui_window_show() doesn't show anything.
+     */
+    disp->roots[0]->is_mapped = 0;
+    ui_window_show(disp->roots[0], 0);
+    disp->roots[0]->is_mapped = 1;
+    if (!ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height,
+                                      NOTIFY_TO_MYSELF)) {
+      ui_window_update_all(disp->roots[0]);
+    }
+
+#if 0
+    /* This causes segfault of gnome-shell here. */
+    wl_shell_surface_set_transient(disp->display->shell_surface,
+                                   disp->display->parent_surface, x, y, 0);
+#endif
+  }
+}
+
+void ui_display_unmap(ui_display_t *disp) {
+  if (disp->display->buffer) {
+#ifdef __DEBUG
+    bl_debug_printf("Destroying shm buffer.\n");
+#endif
+    /* XXX Followings kill 'class' name (set by wl_shell_surface_set_class) in swithing tabs ? */
+    destroy_shm_buffer(disp->display);
+    wl_surface_commit(disp->display->surface);
+    disp->display->buffer = NULL;
+  }
+}
+#endif /* COMPAT_LIBVTE */

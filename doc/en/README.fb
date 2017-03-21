@@ -36,7 +36,7 @@ Framebuffer support
     option (enabled by default) which requires freetype library.
 
     If ./configure with --enable-fontconfig option (enabled by default) and
-    mlterm starts with --aafont option, mlterm reads ~/.mlterm/*aafont files
+    mlterm-fb starts with --aafont option, mlterm reads ~/.mlterm/*aafont files
     and searches fonts with the use of fontconfig.
 
 * Start

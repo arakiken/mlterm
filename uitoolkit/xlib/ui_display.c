@@ -308,13 +308,12 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
       disp->num_of_roots--;
 
       if (count == disp->num_of_roots) {
-        memset(&disp->roots[count], 0, sizeof(disp->roots[0]));
+        disp->roots[count] = NULL;
       } else {
-        memcpy(&disp->roots[count], &disp->roots[disp->num_of_roots], sizeof(disp->roots[0]));
+        disp->roots[count] = disp->roots[disp->num_of_roots];
 
         if (count == 0) {
-/* Group leader is changed. */
-
+          /* Group leader is changed. */
 #if 0
           bl_debug_printf(BL_DEBUG_TAG " Changing group_leader -> %x\n", disp->roots[0]->my_window);
 #endif

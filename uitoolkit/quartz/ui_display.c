@@ -157,9 +157,9 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
       disp->num_of_roots--;
 
       if (count == disp->num_of_roots) {
-        memset(&disp->roots[count], 0, sizeof(disp->roots[0]));
+        disp->roots[count] = NULL;
       } else {
-        memcpy(&disp->roots[count], &disp->roots[disp->num_of_roots], sizeof(disp->roots[0]));
+        disp->roots[count] = disp->roots[disp->num_of_roots];
       }
 
       return 1;

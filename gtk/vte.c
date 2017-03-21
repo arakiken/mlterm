@@ -6,10 +6,11 @@
 #define VTE_CHECK_VERSION(a, b, c) (0)
 #endif
 
+/* for wayland/ui.h */
+#define COMPAT_LIBVTE
+
 #include <sys/wait.h> /* waitpid */
 #include <pwd.h>      /* getpwuid */
-#include <X11/keysym.h>
-#include <gdk/gdkx.h>
 #include <pobl/bl_sig_child.h>
 #include <pobl/bl_str.h> /* bl_alloca_dup */
 #include <pobl/bl_mem.h>
@@ -29,7 +30,6 @@
 #include <ui_xic.h>
 #include <ui_main_config.h>
 #include <ui_imagelib.h>
-#include <xlib/ui_xim.h>
 
 #include "../main/version.h"
 
@@ -77,7 +77,6 @@ int vte_reaper_add_child(GPid pid);
 #define GTK_WIDGET_UNSET_MAPPED(widget) gtk_widget_set_mapped(widget, FALSE)
 #define GTK_WIDGET_MAPPED(widget) gtk_widget_get_mapped(widget)
 #define GTK_WIDGET_SET_CAN_FOCUS(widget) gtk_widget_set_can_focus(widget, TRUE)
-#define gdk_x11_drawable_get_xid(window) gdk_x11_window_get_xid(window)
 #else /* GTK_CHECK_VERSION(2,90,0) */
 #define GTK_WIDGET_SET_REALIZED(widget) GTK_WIDGET_SET_FLAGS(widget, GTK_REALIZED)
 #define GTK_WIDGET_UNSET_REALIZED(widget) GTK_WIDGET_UNSET_FLAGS(widget, GTK_REALIZED)
@@ -185,7 +184,39 @@ struct _VteTerminalPrivate {
 #define PVT(terminal) (terminal)->pvt
 #endif
 
-enum { COPY_CLIPBOARD, PASTE_CLIPBOARD, LAST_SIGNAL };
+enum {
+  SIGNAL_BELL,
+  SIGNAL_CHAR_SIZE_CHANGED,
+  SIGNAL_CHILD_EXITED,
+  SIGNAL_COMMIT,
+  SIGNAL_CONTENTS_CHANGED,
+  SIGNAL_COPY_CLIPBOARD,
+  SIGNAL_CURRENT_DIRECTORY_URI_CHANGED,
+  SIGNAL_CURRENT_FILE_URI_CHANGED,
+  SIGNAL_CURSOR_MOVED,
+  SIGNAL_DECREASE_FONT_SIZE,
+  SIGNAL_DEICONIFY_WINDOW,
+  SIGNAL_ENCODING_CHANGED,
+  SIGNAL_EOF,
+  SIGNAL_ICON_TITLE_CHANGED,
+  SIGNAL_ICONIFY_WINDOW,
+  SIGNAL_INCREASE_FONT_SIZE,
+  SIGNAL_LOWER_WINDOW,
+  SIGNAL_MAXIMIZE_WINDOW,
+  SIGNAL_MOVE_WINDOW,
+  SIGNAL_PASTE_CLIPBOARD,
+  SIGNAL_RAISE_WINDOW,
+  SIGNAL_REFRESH_WINDOW,
+  SIGNAL_RESIZE_WINDOW,
+  SIGNAL_RESTORE_WINDOW,
+  SIGNAL_SELECTION_CHANGED,
+  SIGNAL_TEXT_DELETED,
+  SIGNAL_TEXT_INSERTED,
+  SIGNAL_TEXT_MODIFIED,
+  SIGNAL_TEXT_SCROLLED,
+  SIGNAL_WINDOW_TITLE_CHANGED,
+  LAST_SIGNAL
+};
 
 enum {
   PROP_0,
@@ -248,9 +279,17 @@ static ui_display_t disp;
 static guint signals[LAST_SIGNAL];
 #endif
 
+#if defined(USE_XLIB)
+#include "vte_xlib.c"
+#elif defined(USE_WAYLAND)
+#include "vte_wayland.c"
+#else
+#error "Unsupported platform for libvte compatible library."
+#endif
+
 /* --- static functions --- */
 
-#ifdef __DEBUG
+#if defined(__DEBUG) && defined(USE_XLIB)
 static int error_handler(Display *display, XErrorEvent *event) {
   char buffer[1024];
 
@@ -556,6 +595,8 @@ static void __exit(void *p, int status) {
 #endif
 
   vt_free_word_separators();
+  ui_free_mod_meta_prefix();
+  bl_set_msg_log_file_name(NULL);
 
   /*
    * Don't loop from 0 to dis.num_of_roots owing to processing inside
@@ -570,7 +611,9 @@ static void __exit(void *p, int status) {
   }
   free(disp.roots);
   ui_gc_delete(disp.gc);
+#ifdef USE_XLIB
   ui_xim_display_closed(disp.display);
+#endif
   ui_picture_display_closed(disp.display);
 
   vt_term_manager_final();
@@ -578,7 +621,9 @@ static void __exit(void *p, int status) {
   ui_main_config_final(&main_config);
   vt_color_config_final();
   ui_shortcut_final(&shortcut);
+#ifdef USE_XLIB
   ui_xim_final();
+#endif
   bl_sig_child_final();
 
   bl_alloca_garbage_collect();
@@ -925,37 +970,6 @@ static void reset_vte_size_member(VteTerminal *terminal) {
 #endif /* ! GTK_CHECK_VERSION(2,90,0) */
 }
 
-static gboolean toplevel_configure(gpointer data) {
-  VteTerminal *terminal;
-
-  terminal = data;
-
-  if (PVT(terminal)->screen->window.is_transparent) {
-    XEvent ev;
-
-    if (!XCheckTypedWindowEvent(disp.display, gdk_x11_drawable_get_xid(gtk_widget_get_window(
-                                                  gtk_widget_get_toplevel(GTK_WIDGET(terminal)))),
-                                ConfigureNotify, &ev)) {
-      ui_window_set_transparent(&PVT(terminal)->screen->window,
-                                ui_screen_get_picture_modifier(PVT(terminal)->screen));
-    } else {
-      XPutBackEvent(disp.display, &ev);
-    }
-  }
-
-  return FALSE;
-}
-
-#if VTE_CHECK_VERSION(0, 38, 0)
-static void set_rgba_visual(GtkWidget *widget) {
-  GdkScreen *screen;
-
-  if ((screen = gtk_widget_get_screen(widget)) && gdk_screen_is_composited(screen)) {
-    gtk_widget_set_visual(widget, gdk_screen_get_rgba_visual(screen));
-  }
-}
-#endif
-
 static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_toplevel,
                                            gpointer data) {
   if (old_toplevel) {
@@ -969,7 +983,7 @@ static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_top
  * Though vte 0.38.0 or later doesn't support rgba visual,
  * this forcibly enables it.
  */
-#if VTE_CHECK_VERSION(0, 38, 0)
+#if defined(USE_XLIB) && VTE_CHECK_VERSION(0, 38, 0)
   set_rgba_visual(gtk_widget_get_toplevel(widget));
 #endif
 }
@@ -992,157 +1006,6 @@ static gboolean vte_terminal_timeout(gpointer data) {
 #endif
 
   return TRUE;
-}
-
-static void vte_terminal_size_allocate(GtkWidget *widget, GtkAllocation *allocation);
-
-/*
- * Don't call vt_close_dead_terms() before returning GDK_FILTER_CONTINUE,
- * because vt_close_dead_terms() will destroy widget in pty_closed and
- * destroyed widget can be touched right after this function.
- */
-static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /* GDK_NOTHING */
-                                           gpointer data) {
-  u_int count;
-  int is_key_event;
-
-  if (XFilterEvent((XEvent *)xevent, None)) {
-    return GDK_FILTER_REMOVE;
-  }
-
-  if ((((XEvent *)xevent)->type == KeyPress || ((XEvent *)xevent)->type == KeyRelease)) {
-    is_key_event = 1;
-  } else {
-    is_key_event = 0;
-  }
-
-  for (count = 0; count < disp.num_of_roots; count++) {
-    VteTerminal *terminal;
-
-    if (IS_MLTERM_SCREEN(disp.roots[count])) {
-      terminal = VTE_WIDGET((ui_screen_t *)disp.roots[count]);
-
-      if (!PVT(terminal)->term) {
-        /* pty is already closed and new pty is not attached yet. */
-        continue;
-      }
-
-      /*
-       * Key events are ignored if window isn't focused.
-       * This processing is added for key binding of popup menu.
-       */
-      if (is_key_event && ((XEvent *)xevent)->xany.window == disp.roots[count]->my_window) {
-        vt_term_search_reset_position(PVT(terminal)->term);
-
-        if (!disp.roots[count]->is_focused) {
-          ((XEvent *)xevent)->xany.window =
-              gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
-
-          return GDK_FILTER_CONTINUE;
-        }
-      }
-
-      if (PVT(terminal)->screen->window.is_transparent &&
-          ((XEvent *)xevent)->type == ConfigureNotify &&
-          ((XEvent *)xevent)->xconfigure.event ==
-              gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)))) {
-        /*
-         * If terminal position is changed by adding menu bar or tab,
-         * transparent background is reset.
-         */
-
-        gint x;
-        gint y;
-
-        gdk_window_get_position(gtk_widget_get_window(GTK_WIDGET(terminal)), &x, &y);
-
-        /*
-         * XXX
-         * I don't know why but the height of menu bar has been already
-         * added to the position of terminal before first
-         * GdkConfigureEvent whose x and y is 0 is received.
-         * But (x != xconfigure.x || y != xconfigure.y) is true eventually
-         * and ui_window_set_transparent() is called expectedly.
-         */
-        if (x != ((XEvent *)xevent)->xconfigure.x || y != ((XEvent *)xevent)->xconfigure.y) {
-          ui_window_set_transparent(&PVT(terminal)->screen->window,
-                                    ui_screen_get_picture_modifier(PVT(terminal)->screen));
-        }
-
-        return GDK_FILTER_CONTINUE;
-      }
-    } else {
-      terminal = NULL;
-    }
-
-    if (ui_window_receive_event(disp.roots[count], (XEvent *)xevent)) {
-      static pid_t config_menu_pid = 0;
-
-      if (!terminal || /* SCIM etc window */
-          /* XFilterEvent in ui_window_receive_event. */
-          ((XEvent *)xevent)->xany.window != disp.roots[count]->my_window) {
-        return GDK_FILTER_REMOVE;
-      }
-
-      /* XXX Hack for waiting for config menu program exiting. */
-      if (PVT(terminal)->term->pty &&
-          config_menu_pid != PVT(terminal)->term->pty->config_menu.pid) {
-        if ((config_menu_pid = PVT(terminal)->term->pty->config_menu.pid)) {
-          vte_reaper_add_child(config_menu_pid);
-        }
-      }
-
-      if (is_key_event || ((XEvent *)xevent)->type == ButtonPress ||
-          ((XEvent *)xevent)->type == ButtonRelease) {
-        /* Hook key and button events for popup menu. */
-        ((XEvent *)xevent)->xany.window =
-            gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
-
-        return GDK_FILTER_CONTINUE;
-      } else {
-        return GDK_FILTER_REMOVE;
-      }
-    }
-    /*
-     * xconfigure.window:  window whose size, position, border, and/or stacking
-     *                     order was changed.
-     *                      => processed in following.
-     * xconfigure.event:   reconfigured window or to its parent.
-     * (=XAnyEvent.window)  => processed in ui_window_receive_event()
-     */
-    else if (/* terminal && */ ((XEvent *)xevent)->type == ConfigureNotify &&
-             ((XEvent *)xevent)->xconfigure.window == disp.roots[count]->my_window) {
-#if 0
-      /*
-       * This check causes resize problem in opening tab in
-       * gnome-terminal(2.29.6).
-       */
-      if (((XEvent *)xevent)->xconfigure.width != GTK_WIDGET(terminal)->allocation.width ||
-          ((XEvent *)xevent)->xconfigure.height != GTK_WIDGET(terminal)->allocation.height)
-#else
-      if (CHAR_WIDTH(terminal) != ui_col_width(PVT(terminal)->screen) ||
-          CHAR_HEIGHT(terminal) != ui_line_height(PVT(terminal)->screen))
-#endif
-      {
-        /* Window was changed due to change of font size inside mlterm. */
-        GtkAllocation alloc;
-
-        gtk_widget_get_allocation(GTK_WIDGET(terminal), &alloc);
-        alloc.width = ((XEvent *)xevent)->xconfigure.width;
-        alloc.height = ((XEvent *)xevent)->xconfigure.height;
-
-#ifdef __DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " child is resized\n");
-#endif
-
-        vte_terminal_size_allocate(GTK_WIDGET(terminal), &alloc);
-      }
-
-      return GDK_FILTER_REMOVE;
-    }
-  }
-
-  return GDK_FILTER_CONTINUE;
 }
 
 static void vte_terminal_finalize(GObject *obj) {
@@ -1471,60 +1334,14 @@ static void vte_terminal_realize(GtkWidget *widget) {
   g_signal_connect_swapped(gtk_widget_get_toplevel(widget), "configure-event",
                            G_CALLBACK(toplevel_configure), terminal);
 
-  xid = gdk_x11_drawable_get_xid(gtk_widget_get_window(widget));
-
-  if (disp.gc->gc == DefaultGC(disp.display, disp.screen)) {
-    /*
-     * Replace visual, colormap, depth and gc with those inherited from parent
-     * xid.
-     * In some cases that those of parent xid is not DefaultVisual,
-     * DefaultColormap
-     * and so on (e.g. compiz), BadMatch error can happen.
-     */
-
-    XWindowAttributes attr;
-    XGCValues gc_value;
-    int depth_is_changed;
-
-    XGetWindowAttributes(disp.display, xid, &attr);
-    disp.visual = attr.visual;
-    disp.colormap = attr.colormap;
-    depth_is_changed = (disp.depth != attr.depth);
-    disp.depth = attr.depth;
-
-    /* ui_gc_t using DefaultGC is already created in vte_terminal_class_init */
-    gc_value.foreground = disp.gc->fg_color;
-    gc_value.background = disp.gc->bg_color;
-    gc_value.graphics_exposures = True;
-    disp.gc->gc =
-        XCreateGC(disp.display, xid, GCForeground | GCBackground | GCGraphicsExposures, &gc_value);
-
-#ifdef __DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " Visual %x Colormap %x Depth %d\n", disp.visual, disp.colormap,
-                    disp.depth);
-#endif
-
-    if (depth_is_changed &&
-        /* see ui_screen_new() */
-        !PVT(terminal)->screen->window.is_transparent &&
-        !PVT(terminal)->screen->pic_file_path) {
-      ui_change_true_transbg_alpha(PVT(terminal)->screen->color_man, main_config.alpha);
-      ui_color_manager_reload(PVT(terminal)->screen->color_man);
-
-/* No colors are cached for now. */
-#if 0
-      ui_color_cache_unload_all();
-#endif
-    }
-  }
-
-  ui_display_show_root(&disp, &PVT(terminal)->screen->window, 0, 0, 0, "mlterm", xid);
+  show_root(&disp, widget);
 
   /*
    * allocation passed by size_allocate is not necessarily to be reflected
    * to ui_window_t or vt_term_t, so ui_window_resize must be called here.
    */
   if (PVT(terminal)->term->pty && !is_initial_allocation(&allocation)) {
+    bl_debug_printf("RESIZE\n");
     if (ui_window_resize_with_margin(&PVT(terminal)->screen->window, allocation.width,
                                      allocation.height, NOTIFY_TO_MYSELF)) {
       reset_vte_size_member(terminal);
@@ -1567,18 +1384,38 @@ static gboolean vte_terminal_focus_in(GtkWidget *widget, GdkEventFocus *event) {
   GTK_WIDGET_SET_HAS_FOCUS(widget);
 
   if (GTK_WIDGET_MAPPED(widget)) {
+    ui_window_t *win = &PVT(VTE_TERMINAL(widget))->screen->window;
+#ifdef USE_WAYLAND
+    /*
+     * It is necessary to call ui_display_move() here because calling it
+     * in vte_terminal_map() causes segfault of gnome-shell.
+     */
+#if 1
+    GtkAllocation alloc;
+
+    gtk_widget_get_allocation(widget, &alloc);
+    /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
+    ui_display_move(win->disp, alloc.x, alloc.y);
+#endif
+
+    win->disp->display->wlserv->current_surface = win->disp->display->surface;
+#endif
+
 #ifdef __DEBUG
     bl_debug_printf(BL_DEBUG_TAG " focus in\n");
 #endif
 
-    XSetInputFocus(disp.display, PVT(VTE_TERMINAL(widget))->screen->window.my_window,
-                   RevertToParent, CurrentTime);
+    ui_window_set_input_focus(win);
   }
 
   return FALSE;
 }
 
 static gboolean vte_terminal_focus_out(GtkWidget *widget, GdkEventFocus *event) {
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " focus out\n");
+#endif
+
   GTK_WIDGET_UNSET_HAS_FOCUS(widget);
 
   return FALSE;
@@ -1733,9 +1570,13 @@ static void vte_terminal_size_allocate(GtkWidget *widget, GtkAllocation *allocat
 
     gdk_window_move_resize(gtk_widget_get_window(widget), allocation->x, allocation->y,
                            allocation->width, allocation->height);
+#ifdef USE_WAYLAND
+    /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
+    ui_display_move(PVT(terminal)->screen->window.disp, allocation->x, allocation->y);
+#endif
   } else {
     /*
-     * ui_window_resize_with_margin( widget->allocation.width, height)
+     * ui_window_resize_with_margin(widget->allocation.width, height)
      * will be called in vte_terminal_realize() or vte_terminal_fork*().
      */
   }
@@ -1774,7 +1615,7 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   GObjectClass *oclass;
   GtkWidgetClass *wclass;
 
-#ifdef __DEBUG
+#if defined(__DEBUG) && defined(USE_XLIB)
   XSetErrorHandler(error_handler);
   XSynchronize(gdk_x11_display_get_xdisplay(gdk_display_get_default()), True);
 #endif
@@ -1800,16 +1641,22 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
   vt_term_manager_init(1);
   vt_term_manager_enable_zombie_pty();
+#ifdef USE_WAYLAND
+  gdk_threads_add_timeout(25, vte_terminal_timeout, NULL); /* 25 miliseconds */
+#else
 #if GTK_CHECK_VERSION(2, 12, 0)
   gdk_threads_add_timeout(100, vte_terminal_timeout, NULL); /* 100 miliseconds */
 #else
   g_timeout_add(100, vte_terminal_timeout, NULL); /* 100 miliseconds */
 #endif
+#endif
 
   vt_color_config_init();
   ui_shortcut_init(&shortcut);
   ui_shortcut_parse(&shortcut, "Button3", "\"none\"");
+#ifdef USE_XLIB
   ui_xim_init(1);
+#endif
   ui_font_use_point_size(1);
 
   bl_init_prog(g_get_prgname(), VERSION);
@@ -1837,6 +1684,11 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   bl_conf_add_opt(conf, 'c', "cp932", 1, "use_cp932_ucs_for_xft", NULL);
 #if 0
   bl_conf_add_opt(conf, '\0', "maxptys", 0, "max_ptys", NULL);
+#endif
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  /* USE_WAYLAND */
+  bl_conf_add_opt(conf, '\0', "aafont", 1, "use_aafont",
+                  "use [tv]aafont files with the use of fontconfig [true]");
 #endif
 
   ui_main_config_init(&main_config, conf, 1, argv);
@@ -1907,10 +1759,32 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
     }
   }
 
+#ifdef USE_XLIB
   if ((value = bl_conf_get_value(conf, "use_cp932_ucs_for_xft")) == NULL ||
       strcmp(value, "true") == 0) {
     ui_use_cp932_ucs_for_xft();
   }
+#endif
+
+#ifdef KEY_REPEAT_BY_MYSELF
+  if ((value = bl_conf_get_value(conf, "kbd_repeat_1"))) {
+    extern int kbd_repeat_1;
+
+    bl_str_to_int(&kbd_repeat_1, value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "kbd_repeat_N"))) {
+    extern int kbd_repeat_N;
+
+    bl_str_to_int(&kbd_repeat_N, value);
+  }
+#endif
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  /* USE_WAYLAND */
+  if (!(value = bl_conf_get_value(conf, "use_aafont")) || strcmp(value, "false") != 0) {
+    ui_use_aafont();
+  }
+#endif
 
   bl_conf_delete(conf);
 
@@ -1919,22 +1793,9 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   g_type_class_add_private(vclass, sizeof(VteTerminalPrivate));
 
   memset(&disp, 0, sizeof(ui_display_t));
-  disp.display = gdk_x11_display_get_xdisplay(gdk_display_get_default());
-  disp.screen = DefaultScreen(disp.display);
-  disp.my_window = DefaultRootWindow(disp.display);
-  disp.visual = DefaultVisual(disp.display, disp.screen);
-  disp.colormap = DefaultColormap(disp.display, disp.screen);
-  disp.depth = DefaultDepth(disp.display, disp.screen);
-  disp.gc = ui_gc_new(disp.display, None);
-  disp.width = DisplayWidth(disp.display, disp.screen);
-  disp.height = DisplayHeight(disp.display, disp.screen);
-  disp.modmap.serial = 0;
-  disp.modmap.map = XGetModifierMapping(disp.display);
+  init_display(&disp, vclass);
 
-  ui_xim_display_opened(disp.display);
   ui_picture_display_opened(disp.display);
-
-  gdk_window_add_filter(NULL, vte_terminal_filter, NULL);
 
   oclass = G_OBJECT_CLASS(vclass);
   wclass = GTK_WIDGET_CLASS(vclass);
@@ -1969,6 +1830,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->eof_signal =
+#else
+  signals[SIGNAL_EOF] =
 #endif
       g_signal_new(I_("eof"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, eof), NULL, NULL,
@@ -1976,19 +1839,23 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->child_exited_signal =
+#else
+  signals[SIGNAL_CHILD_EXITED] =
 #endif
 #if VTE_CHECK_VERSION(0, 38, 0)
       g_signal_new(I_("child-exited"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, child_exited), NULL, NULL,
                    g_cclosure_marshal_VOID__INT, G_TYPE_NONE, 1, G_TYPE_INT);
 #else
-  g_signal_new(I_("child-exited"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
-               G_STRUCT_OFFSET(VteTerminalClass, child_exited), NULL, NULL,
-               g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
+      g_signal_new(I_("child-exited"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
+                   G_STRUCT_OFFSET(VteTerminalClass, child_exited), NULL, NULL,
+                   g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 #endif
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->window_title_changed_signal =
+#else
+  signals[SIGNAL_WINDOW_TITLE_CHANGED] =
 #endif
       g_signal_new(I_("window-title-changed"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, window_title_changed), NULL, NULL,
@@ -1996,13 +1863,27 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->icon_title_changed_signal =
+#else
+  signals[SIGNAL_ICON_TITLE_CHANGED] =
 #endif
       g_signal_new(I_("icon-title-changed"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, icon_title_changed), NULL, NULL,
                    g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 
+#if VTE_CHECK_VERSION(0, 34, 0)
+  signals[SIGNAL_CURRENT_FILE_URI_CHANGED] =
+      g_signal_new(I_("current-file-uri-changed"), G_OBJECT_CLASS_TYPE(vclass),
+                   G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
+
+  signals[SIGNAL_CURRENT_DIRECTORY_URI_CHANGED] =
+      g_signal_new(I_("current-directory-uri-changed"), G_OBJECT_CLASS_TYPE(vclass),
+                   G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
+#endif
+
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->encoding_changed_signal =
+#else
+  signals[SIGNAL_ENCODING_CHANGED] =
 #endif
       g_signal_new(I_("encoding-changed"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, encoding_changed), NULL, NULL,
@@ -2010,6 +1891,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->commit_signal =
+#else
+  signals[SIGNAL_COMMIT] =
 #endif
       g_signal_new(I_("commit"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, commit), NULL, NULL,
@@ -2026,6 +1909,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->char_size_changed_signal =
+#else
+  signals[SIGNAL_CHAR_SIZE_CHANGED] =
 #endif
       g_signal_new(I_("char-size-changed"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, char_size_changed), NULL, NULL,
@@ -2033,6 +1918,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->selection_changed_signal =
+#else
+  signals[SIGNAL_SELECTION_CHANGED] =
 #endif
       g_signal_new(I_("selection-changed"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, selection_changed), NULL, NULL,
@@ -2040,6 +1927,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->contents_changed_signal =
+#else
+  signals[SIGNAL_CONTENTS_CHANGED] =
 #endif
       g_signal_new(I_("contents-changed"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, contents_changed), NULL, NULL,
@@ -2047,6 +1936,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->cursor_moved_signal =
+#else
+  signals[SIGNAL_CURSOR_MOVED] =
 #endif
       g_signal_new(I_("cursor-moved"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, cursor_moved), NULL, NULL,
@@ -2054,6 +1945,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->deiconify_window_signal =
+#else
+  signals[SIGNAL_DEICONIFY_WINDOW] =
 #endif
       g_signal_new(I_("deiconify-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, deiconify_window), NULL, NULL,
@@ -2061,6 +1954,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->iconify_window_signal =
+#else
+  signals[SIGNAL_ICONIFY_WINDOW] =
 #endif
       g_signal_new(I_("iconify-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, iconify_window), NULL, NULL,
@@ -2068,6 +1963,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->raise_window_signal =
+#else
+  signals[SIGNAL_RAISE_WINDOW] =
 #endif
       g_signal_new(I_("raise-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, raise_window), NULL, NULL,
@@ -2075,6 +1972,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->lower_window_signal =
+#else
+  signals[SIGNAL_LOWER_WINDOW] =
 #endif
       g_signal_new(I_("lower-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, lower_window), NULL, NULL,
@@ -2082,6 +1981,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->refresh_window_signal =
+#else
+  signals[SIGNAL_REFRESH_WINDOW] =
 #endif
       g_signal_new(I_("refresh-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, refresh_window), NULL, NULL,
@@ -2089,6 +1990,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->restore_window_signal =
+#else
+  signals[SIGNAL_RESTORE_WINDOW] =
 #endif
       g_signal_new(I_("restore-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, restore_window), NULL, NULL,
@@ -2096,6 +1999,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->maximize_window_signal =
+#else
+  signals[SIGNAL_MAXIMIZE_WINDOW] =
 #endif
       g_signal_new(I_("maximize-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, maximize_window), NULL, NULL,
@@ -2103,6 +2008,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->resize_window_signal =
+#else
+  signals[SIGNAL_RESIZE_WINDOW] =
 #endif
       g_signal_new(I_("resize-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, resize_window), NULL, NULL,
@@ -2110,6 +2017,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->move_window_signal =
+#else
+  signals[SIGNAL_MOVE_WINDOW] =
 #endif
       g_signal_new(I_("move-window"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, move_window), NULL, NULL,
@@ -2126,6 +2035,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->increase_font_size_signal =
+#else
+  signals[SIGNAL_INCREASE_FONT_SIZE] =
 #endif
       g_signal_new(I_("increase-font-size"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, increase_font_size), NULL, NULL,
@@ -2133,6 +2044,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->decrease_font_size_signal =
+#else
+  signals[SIGNAL_DECREASE_FONT_SIZE] =
 #endif
       g_signal_new(I_("decrease-font-size"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, decrease_font_size), NULL, NULL,
@@ -2140,6 +2053,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->text_modified_signal =
+#else
+  signals[SIGNAL_TEXT_MODIFIED] =
 #endif
       g_signal_new(I_("text-modified"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, text_modified), NULL, NULL,
@@ -2147,6 +2062,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->text_inserted_signal =
+#else
+  signals[SIGNAL_TEXT_INSERTED] =
 #endif
       g_signal_new(I_("text-inserted"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, text_inserted), NULL, NULL,
@@ -2154,6 +2071,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->text_deleted_signal =
+#else
+  signals[SIGNAL_TEXT_DELETED] =
 #endif
       g_signal_new(I_("text-deleted"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, text_deleted), NULL, NULL,
@@ -2161,10 +2080,31 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   vclass->text_scrolled_signal =
+#else
+  signals[SIGNAL_TEXT_SCROLLED] =
 #endif
       g_signal_new(I_("text-scrolled"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
                    G_STRUCT_OFFSET(VteTerminalClass, text_scrolled), NULL, NULL,
                    g_cclosure_marshal_VOID__INT, G_TYPE_NONE, 1, G_TYPE_INT);
+
+#if VTE_CHECK_VERSION(0, 19, 0)
+  signals[SIGNAL_COPY_CLIPBOARD] = g_signal_new(I_("copy-clipboard"), G_OBJECT_CLASS_TYPE(vclass),
+                                                G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+                                                G_STRUCT_OFFSET(VteTerminalClass, copy_clipboard),
+                                                NULL, NULL, g_cclosure_marshal_VOID__VOID,
+                                                G_TYPE_NONE, 0);
+
+  signals[SIGNAL_PASTE_CLIPBOARD] = g_signal_new(I_("paste-clipboard"), G_OBJECT_CLASS_TYPE(vclass),
+                                                 G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+                                                 G_STRUCT_OFFSET(VteTerminalClass, paste_clipboard),
+                                                 NULL, NULL, g_cclosure_marshal_VOID__VOID,
+                                                 G_TYPE_NONE, 0);
+#endif
+#if VTE_CHECK_VERSION(0, 44, 0)
+  signals[SIGNAL_BELL] = g_signal_new(I_("bell"), G_OBJECT_CLASS_TYPE(vclass), G_SIGNAL_RUN_LAST,
+                                      G_STRUCT_OFFSET(VteTerminalClass, bell), NULL, NULL,
+                                      g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
+#endif
 
 #if VTE_CHECK_VERSION(0, 20, 0)
   g_object_class_install_property(
@@ -2211,18 +2151,6 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 			"class \"VteTerminal\" style : gtk \"vte-default-style\"\n") ;
 #endif
 #endif /* VTE_CHECK_VERSION(0,23,2) */
-
-#if VTE_CHECK_VERSION(0, 19, 0)
-  signals[COPY_CLIPBOARD] = g_signal_new(I_("copy-clipboard"), G_OBJECT_CLASS_TYPE(vclass),
-                                         G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
-                                         G_STRUCT_OFFSET(VteTerminalClass, copy_clipboard), NULL,
-                                         NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
-
-  signals[PASTE_CLIPBOARD] = g_signal_new(I_("paste-clipboard"), G_OBJECT_CLASS_TYPE(vclass),
-                                          G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
-                                          G_STRUCT_OFFSET(VteTerminalClass, paste_clipboard), NULL,
-                                          NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
-#endif
 }
 
 static void vte_terminal_init(VteTerminal *terminal) {
@@ -2415,6 +2343,7 @@ static int vt_term_open_pty_wrap(VteTerminal *terminal, const char *cmd_path, ch
 
     *(env_p++) = "MLTERM=" VERSION;
 
+#ifdef USE_XLIB
     /* "WINDOWID="(9) + [32bit digit] + NULL(1) */
     if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)) &&
         (*env_p = alloca(9 + DIGIT_STR_LEN(Window) + 1))) {
@@ -2426,6 +2355,7 @@ static int vt_term_open_pty_wrap(VteTerminal *terminal, const char *cmd_path, ch
 #endif
                   );
     }
+#endif
 
     /* "DISPLAY="(8) + NULL(1) */
     if ((*env_p = alloca(8 + strlen(host) + 1))) {
@@ -2923,6 +2853,18 @@ void vte_terminal_set_size(VteTerminal *terminal, glong columns, glong rows) {
 
   /* gnome-terminal(2.29.6 or later ?) is not resized correctly without this. */
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
+#ifdef USE_WAYLAND
+    /*
+     * Screen may be redrawn before gtk_widget_queue_resize_no_redraw() results in resizing.
+     * This causes illegal memory access without this ui_window_resize_with_margin()
+     * on wayland.
+     */
+    gint width;
+    gint height;
+    vte_terminal_get_preferred_width(GTK_WIDGET(terminal), NULL, &width);
+    vte_terminal_get_preferred_height(GTK_WIDGET(terminal), NULL, &height);
+    ui_window_resize_with_margin(&PVT(terminal)->screen->window, width, height, 0);
+#endif
     gtk_widget_queue_resize_no_redraw(GTK_WIDGET(terminal));
   }
 }

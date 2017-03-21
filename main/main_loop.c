@@ -216,7 +216,7 @@ int main_loop_init(int argc, char **argv) {
 #ifdef USE_WAYLAND
                   " [true]"
 #else /* USE_FRAMEBUFFER */
-                  " [false"
+                  " [false]"
 #endif
                   );
 #endif

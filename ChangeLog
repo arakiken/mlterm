@@ -1,3 +1,20 @@
+2017-03-21  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/{en,ja}/README.fb: Updated.
+
+	* ui_screen.c:
+	  draw_preedit_str() can have drawn cursor vertical line outside screen.
+
+	* wayland/ui_font.c: ui_font_set_dpi_for_fc() is implemented.
+
+	* gtk/Makefile.in: ui_display.o is rebuilt every time with -DCOMPAT_LIBVTE option.
+
+	* wayland/ui_display.c: Functions for libvte compatible library are added.
+
+	* gtk/vte.c:
+	  - wayland is supported.
+	  - vte.c is separated to vte.c, vte_xlib.c and vte_wayland.c.
+
 2017-03-07  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_connect_dialog.c: Server name is shown before "Password:".

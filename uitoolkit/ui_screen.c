@@ -4753,6 +4753,12 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
 
   if (cursor_offset >= 0) {
     if (!vt_term_get_vertical_mode(screen->term)) {
+      if ((preedit_cursor_y += line_top_margin(screen)) < 0) {
+        preedit_cursor_y = 0;
+      } else if (preedit_cursor_y >= screen->window.height) {
+        preedit_cursor_y = screen->window.height - 1;
+      }
+
       ui_window_fill(&screen->window, preedit_cursor_x,
                      preedit_cursor_y + line_top_margin(screen), 1,
                      ui_line_height(screen) - line_top_margin(screen));

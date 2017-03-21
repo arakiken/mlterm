@@ -78,7 +78,7 @@ typedef struct {
   struct wl_data_device_manager *data_device_manager;
   struct wl_data_device *data_device;
 
-  struct {
+  struct ui_xkb {
     struct xkb_context *ctx;
     struct xkb_keymap *keymap;
     struct xkb_state *state;
@@ -108,6 +108,11 @@ typedef struct {
   uint32_t serial;
 
   int ref_count;
+
+#ifdef COMPAT_LIBVTE
+  u_int32_t time;
+  struct wl_surface *current_pointer_surface;
+#endif
 
 } ui_wlserv_t;
 
@@ -144,7 +149,12 @@ typedef struct {
 
   int is_resizing;
 
-  void *parent; /* ui_display_t */
+  struct ui_display *parent;
+#ifdef COMPAT_LIBVTE
+  struct wl_surface *parent_surface;
+  int x;
+  int y;
+#endif
 
 } Display;
 

@@ -1893,7 +1893,11 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
   return 1;
 }
 
-int ui_set_window_name(ui_window_t *win, u_char *name) { return 1; }
+int ui_set_window_name(ui_window_t *win, u_char *name) {
+  ui_display_set_title(win->disp, name);
+
+  return 1;
+}
 
 int ui_set_icon_name(ui_window_t *win, u_char *name) { return 1; }
 
@@ -1946,6 +1950,10 @@ int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_
 }
 
 void ui_window_set_input_focus(ui_window_t *win) {
+  if (win->inputtable > 0 && win->is_focused) {
+    return;
+  }
+
   reset_input_focus(ui_get_root_window(win));
   win->inputtable = win->is_focused = 1;
   if (win->window_focused) {

@@ -37,8 +37,6 @@ void ui_display_copy_lines(ui_display_t *disp, int src_x, int src_y, int dst_x, 
 
 int ui_display_receive_next_event_singly(ui_display_t *disp);
 
-int ui_display_create_surface(ui_display_t *disp, u_int width, u_int height, ui_display_t *parent);
-
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height);
 
 void ui_display_move(ui_display_t *disp, int x, int y);
@@ -49,5 +47,7 @@ void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *
                                     u_char *sel_data, size_t sel_len);
 
 u_char ui_display_get_char(KeySym ksym);
+
+void ui_display_set_title(ui_display_t *disp, const u_char *name);
 
 #endif
