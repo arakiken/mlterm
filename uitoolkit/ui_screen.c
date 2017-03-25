@@ -5452,6 +5452,26 @@ static void pty_closed(void *p) {
 
 static void show_config(void *p, char *msg) { vt_term_show_message(((ui_screen_t *)p)->term, msg); }
 
+#ifdef USE_WIN32GUI
+static size_t utf16le_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
+                                   ef_char_t *ch) {
+  *is_full = 0;
+
+  if (ch->cs == DEC_SPECIAL) {
+    u_int16_t utf16;
+
+    if (dst_size < 2) {
+      *is_full = 1;
+    } else if ((utf16 = vt_convert_decsp_to_ucs(ef_char_to_int(ch)))) {
+      memcpy(dst, utf16, 2); /* little endian */
+      return 2;
+    }
+  }
+
+  return 0;
+}
+#endif
+
 /* --- global functions --- */
 
 void ui_exit_backscroll_by_pty(int flag) { exit_backscroll_by_pty = flag; }
@@ -5750,6 +5770,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   if ((screen->utf_conv = ef_utf16le_conv_new()) == NULL) {
     goto error;
   }
+  screen->utf_conv->illegal_char = utf16le_illegal_char;
 
   if ((screen->xct_conv = vt_char_encoding_conv_new(vt_get_char_encoding(bl_get_codeset_win32()))) == NULL) {
     goto error;

@@ -1050,9 +1050,14 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
           }
         }
 
+        /* XXX Wall picture is overwritten by bg_xcolor. */
+
         if (state == 2) {
           ui_window_console_draw_string16(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
                                           str_len, underline_style);
+        } else if (state == 1) {
+          ui_window_console_draw_decsp_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent,
+                                              str, str_len, underline_style);
         } else /* if( state == 0) */
         {
           ui_window_console_draw_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str,

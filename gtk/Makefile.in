@@ -60,7 +60,7 @@ $(TARGET).la: $(OBJ) $(UI_DISPLAY_OBJ_@GUI@)
 	sed 's/..\/uitoolkit\/ui_screen_manager.lo//g' | \
 	sed 's/..\/uitoolkit\/ui_event_source.lo//g'` \
 	$(LIBS) -rpath $(libdir) -version-info $(LIB_VERSION)
-	if test "$(UI_DISPLAY_OBJ_@GUI@)" != ""; then rm -f ../uitoolkit/$(UI_DISPLAY_OBJ_@GUI@); fi
+	if test "$(UI_DISPLAY_OBJ_@GUI@)" != ""; then rm -f ../uitoolkit/$(UI_DISPLAY_OBJ_@GUI@) ../uitoolkit/libuitoolkit.a; fi
 
 $(UI_DISPLAY_OBJ_@GUI@):
 	(cd ../uitoolkit;rm -f ui_display.o; CFLAGS_LOCAL=-DCOMPAT_LIBVTE make ui_display.o)

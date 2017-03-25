@@ -87,7 +87,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
 
   ui_window_clear_all(&screen->window);
 
-#ifndef USE_COSNOLE
+#ifndef USE_CONSOLE
   ui_window_draw_image_string(&screen->window, ui_get_usascii_font(screen->font_man),
                               ui_get_xcolor(screen->color_man, VT_FG_COLOR),
                               ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,

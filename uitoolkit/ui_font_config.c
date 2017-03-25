@@ -556,7 +556,7 @@ static int change_custom_cache(const char *file, const char *key, const char *va
     }
   }
 
-  /* #if 1 => Don't remove font settings read from ~/.mlterm/*font. */
+  /* #if 1 => Don't remove font settings read from *font files in ~/.mlterm */
 #if 0
   if (*value == '\0') {
     return 0;

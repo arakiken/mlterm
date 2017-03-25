@@ -285,13 +285,13 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 static void receive_key_event(ui_wlserv_t *wlserv, XKeyEvent *ev) {
-  if (wlserv->current_surface) {
-    ui_display_t *disp = surface_to_display(wlserv->current_surface);
+  if (wlserv->current_kbd_surface) {
+    ui_display_t *disp = surface_to_display(wlserv->current_kbd_surface);
     ui_window_t *win;
 
 #ifdef COMPAT_LIBVTE
     if (!disp) {
-      disp = parent_surface_to_display(wlserv->current_surface);
+      disp = parent_surface_to_display(wlserv->current_kbd_surface);
     }
 #endif
 
@@ -362,6 +362,8 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
   ui_wlserv_t *wlserv = data;
   ui_window_t *win;
 
+  wlserv->current_kbd_surface = surface;
+
 #ifdef COMPAT_LIBVTE
   if (!disp || disp->num_of_roots == 0) {
     return;
@@ -373,8 +375,6 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
     disp = disp->display->parent;
     surface = disp->display->surface;
   }
-
-  wlserv->current_surface = surface;
 
 #ifdef __DEBUG
   bl_debug_printf("KBD ENTER %p\n", surface);
@@ -409,8 +409,8 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
   wlserv->prev_kev.type = 0;
 #endif
 
-  if (wlserv->current_surface == surface) {
-    wlserv->current_surface = NULL;
+  if (wlserv->current_kbd_surface == surface) {
+    wlserv->current_kbd_surface = NULL;
   }
 
   /* surface may have been already destroyed. So null check of disp is necessary. */
@@ -539,13 +539,12 @@ static void pointer_enter(void *data, struct wl_pointer *pointer,
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("POINTER ENTER\n");
+  bl_debug_printf("POINTER ENTER %p\n", surface);
 #endif
 
-#ifdef COMPAT_LIBVTE
-  /* Without current_pointer_surface, mlterm receives pointer events on parent surface. */
   wlserv->current_pointer_surface = surface;
 
+#ifdef COMPAT_LIBVTE
   if (parent_surface_to_display(surface)) {
     return;
   }
@@ -555,22 +554,18 @@ static void pointer_enter(void *data, struct wl_pointer *pointer,
     change_cursor(pointer, serial, wlserv->cursor_surface, wlserv->cursor[0]);
     wlserv->current_cursor = 0;
   }
-
-  wlserv->current_surface = surface;
 }
 
 static void pointer_leave(void *data, struct wl_pointer *pointer,
                           uint32_t serial, struct wl_surface *surface) {
-#ifdef COMPAT_LIBVTE
   ui_wlserv_t *wlserv = data;
 
   if (wlserv->current_pointer_surface == surface) {
     wlserv->current_pointer_surface = NULL;
   }
-#endif
 
 #ifdef __DEBUG
-  bl_debug_printf("POINTER LEAVE\n");
+  bl_debug_printf("POINTER LEAVE %p\n", surface);
 #endif
 }
 
@@ -621,10 +616,9 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
 #endif
 #ifdef COMPAT_LIBVTE
   wlserv->time = time;
-  disp = surface_to_display(wlserv->current_pointer_surface);
-#else
-  disp = surface_to_display(wlserv->current_surface);
 #endif
+  disp = surface_to_display(wlserv->current_pointer_surface);
+
   if (disp) {
     XMotionEvent ev;
     ui_window_t *win;
@@ -693,10 +687,9 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
 #endif
 #ifdef COMPAT_LIBVTE
   wlserv->time = time;
-  disp = surface_to_display(wlserv->current_pointer_surface);
-#else
-  disp = surface_to_display(wlserv->current_surface);
 #endif
+  disp = surface_to_display(wlserv->current_pointer_surface);
+
   if (disp) {
     XButtonEvent ev;
     ui_window_t *win;
@@ -778,9 +771,8 @@ static void pointer_axis(void *data, struct wl_pointer *pointer,
 #ifdef COMPAT_LIBVTE
   wlserv->time = time;
   disp = surface_to_display(wlserv->current_pointer_surface);
-#else
-  disp = surface_to_display(wlserv->current_surface);
 #endif
+
   if (disp) {
     XButtonEvent ev;
     ui_window_t *win;
@@ -843,21 +835,21 @@ static void surface_enter(void *data, struct wl_surface *surface, struct wl_outp
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("SURFACE ENTER\n");
+  bl_debug_printf("SURFACE ENTER %p\n", surface);
 #endif
 
-  wlserv->current_surface = surface;
+  wlserv->current_kbd_surface = surface;
 }
 
 static void surface_leave(void *data, struct wl_surface *surface, struct wl_output *output) {
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("SURFACE LEAVE\n");
+  bl_debug_printf("SURFACE LEAVE %p\n", surface);
 #endif
 
-  if (wlserv->current_surface == surface) {
-    wlserv->current_surface = NULL;
+  if (wlserv->current_kbd_surface == surface) {
+    wlserv->current_kbd_surface = NULL;
   }
 }
 
@@ -1195,7 +1187,7 @@ static void receive_data(ui_wlserv_t *wlserv, struct wl_data_offer *offer, const
   if (pipe(fds) == 0) {
     u_char buf[512];
     ssize_t len;
-    ui_display_t *disp = surface_to_display(wlserv->current_surface);
+    ui_display_t *disp = surface_to_display(wlserv->current_kbd_surface);
 
     wl_data_offer_receive(offer, mime, fds[1]);
     wl_display_flush(wlserv->display);

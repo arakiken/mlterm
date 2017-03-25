@@ -1398,7 +1398,7 @@ static gboolean vte_terminal_focus_in(GtkWidget *widget, GdkEventFocus *event) {
     ui_display_move(win->disp, alloc.x, alloc.y);
 #endif
 
-    win->disp->display->wlserv->current_surface = win->disp->display->surface;
+    win->disp->display->wlserv->current_kbd_surface = win->disp->display->surface;
 #endif
 
 #ifdef __DEBUG
@@ -1412,6 +1412,19 @@ static gboolean vte_terminal_focus_in(GtkWidget *widget, GdkEventFocus *event) {
 }
 
 static gboolean vte_terminal_focus_out(GtkWidget *widget, GdkEventFocus *event) {
+#ifdef USE_WAYLAND
+  ui_window_t *win = &PVT(VTE_TERMINAL(widget))->screen->window;
+  if (win->disp->display->surface != win->disp->display->wlserv->current_kbd_surface &&
+      win->disp->display->parent_surface != win->disp->display->wlserv->current_kbd_surface &&
+      win->window_unfocused) {
+#ifdef __DEBUG
+    bl_debug_printf("force ui_window_t to be unfocused.\n");
+#endif
+    win->is_focused = 0;
+    (*win->window_unfocused)(win);
+  }
+#endif
+
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " focus out\n");
 #endif

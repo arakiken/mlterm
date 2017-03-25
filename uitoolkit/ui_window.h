@@ -358,6 +358,10 @@ int ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t 
 #endif
 
 #ifdef USE_CONSOLE
+int ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                        ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
+                                        int underline_style);
+
 int ui_window_console_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                                   ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
                                   int underline_style);

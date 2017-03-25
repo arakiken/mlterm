@@ -1,6 +1,7 @@
 ver 3.8.1
 * Support wayland including libvte compatible library.
   (Build mlterm with --with-gui=wayland option.) (see doc/en/README.wayland)
+* Support "compose_dec_special_font" / --decsp option on framebuffer and wayland.
 * "line_space" option accepts negative value.
 * Add "underline_offset" / --udpos option.
 * Rename wskbd_repeat_1 and wskbd_repeat_N options to kbd_repeat_1 and kbd_repeat_N.

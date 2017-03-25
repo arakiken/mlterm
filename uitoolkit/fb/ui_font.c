@@ -26,6 +26,8 @@
 #include <otl.h>
 #endif
 
+#include "ui_decsp_font.h"
+
 #define DIVIDE_ROUNDING(a, b) (((int)((a)*10 + (b)*5)) / ((int)((b)*10)))
 #define DIVIDE_ROUNDINGUP(a, b) (((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)))
 
@@ -562,7 +564,9 @@ static void unload_pcf(XFontStruct *xfont) {
 /* --- static variables --- */
 
 static FT_Library library;
+#ifdef USE_FONTCONFIG
 static double dpi_for_fc;
+#endif
 
 /* --- static functions --- */
 
@@ -1224,11 +1228,16 @@ static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
 
 #endif
 
+/* --- static variables --- */
+
+static int compose_dec_special_font;
+
 /* --- global functions --- */
 
 int ui_compose_dec_special_font(void) {
-  /* Do nothing for now in fb. */
-  return 0;
+  compose_dec_special_font = 1;
+
+  return 1;
 }
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
@@ -1252,8 +1261,15 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
   cs = FONT_CS(id);
 
+  if ((compose_dec_special_font
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-  if (use_fontconfig) {
+       || use_fontconfig
+#endif
+      ) && cs == DEC_SPECIAL) {
+    /* do nothing */
+  }
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+  else if (use_fontconfig) {
     FcPattern *pattern;
     FcValue val;
 
@@ -1380,9 +1396,11 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
 #ifdef USE_FREETYPE
-  if (dpi_for_fc > 0.0) {
+#ifdef USE_FONTCONFIG
+  if (use_fontconfig && dpi_for_fc > 0.0) {
     fontsize = DIVIDE_ROUNDINGUP(dpi_for_fc * fontsize, 72);
   }
+#endif
   if (percent > 0) {
     format = DIVIDE_ROUNDING(fontsize * percent, 100) | (id & (FONT_BOLD | FONT_ITALIC));
   } else {
@@ -1411,7 +1429,27 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
   font->display = display;
 
-  if (!load_xfont(font->xfont, font_file, format, display->bytes_per_pixel, cs)) {
+  if ((compose_dec_special_font
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+       || use_fontconfig
+#endif
+      ) && cs == DEC_SPECIAL) {
+    if (!ui_load_decsp_xfont(font->xfont, col_width, fontsize)) {
+      compose_dec_special_font = 0;
+
+      free(font->xfont);
+      free(font);
+
+      if (size_attr >= DOUBLE_HEIGHT_TOP) {
+        fontsize /= 2;
+        col_width /= 2;
+      }
+
+      return ui_font_new(display, id, size_attr, type_engine, font_present,
+                         font_file, fontsize, col_width,
+                         use_medium_for_bold, letter_space);
+    }
+  } else if (!load_xfont(font->xfont, font_file, format, display->bytes_per_pixel, cs)) {
     bl_msg_printf("Failed to load %s.\n", font_file);
 
     free(font->xfont);
@@ -1867,4 +1905,8 @@ u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_lay
 }
 
 /* For mlterm-libvte */
-void ui_font_set_dpi_for_fc(double dpi) { dpi_for_fc = dpi; }
+void ui_font_set_dpi_for_fc(double dpi) {
+#ifdef USE_FONTCONFIG
+  dpi_for_fc = dpi;
+#endif
+}

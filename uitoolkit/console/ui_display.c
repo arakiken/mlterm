@@ -170,6 +170,7 @@ static ui_display_t *open_display_socket(int fd) {
   write(fd, "\x1b[>c", 4);
 
   displays[num_of_displays]->display->conv = vt_char_encoding_conv_new(encoding);
+  vt_char_encoding_conv_set_use_loose_rule(displays[num_of_displays]->display->conv, encoding, 1);
 
   set_winsize(displays[num_of_displays], "8;24;80;4;384;640t");
 
@@ -233,6 +234,7 @@ static ui_display_t *open_display_console(void) {
   tcsetattr(fd, TCSANOW, &tio);
 
   displays[0]->display->conv = vt_char_encoding_conv_new(encoding);
+  vt_char_encoding_conv_set_use_loose_rule(displays[0]->display->conv, encoding, 1);
 
   set_winsize(displays[0], NULL);
 
@@ -1030,6 +1032,7 @@ void ui_display_set_char_encoding(ui_display_t *disp, vt_char_encoding_t e) {
   if (disp) {
     (*disp->display->conv->delete)(disp->display->conv);
     disp->display->conv = vt_char_encoding_conv_new(encoding);
+    vt_char_encoding_conv_set_use_loose_rule(disp->display->conv, encoding, 1);
   }
 }
 

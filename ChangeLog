@@ -1,3 +1,38 @@
+2017-03-25  Araki Ken  <arakiken@users.sf.net>
+
+	* {wayland,fb}/ui_window.c: convert_to_decsp_font_index() is added.
+
+	* {wayland,fb}/ui_font.c:
+	  - ui_compose_dec_special_font() is implemented.
+	  - If compose_dec_special_font is true, ui_load_decsp_xfont() is called.
+
+	* {wayland,fb}/ui_decsp_font.[ch]: Added.
+
+	* gtk/vte.c: If ui_wlserv_t::current_kbd_surface is Display::surface or
+	  Display::parent_surface, win->window_unfocused is forcibly called in
+	  vte_terminal_focus_out() on wayland.
+
+	* wayland/ui.h, wayland/ui_display.c:
+	  Display::current_surface => current_kbd_surface.
+
+	* console/ui_display.c: vt_char_encoding_conv_set_use_loose_rule(1) is called
+	  for disp->display->conv.
+
+	* console/ui_connect_dialog.c: USE_COSNOLE => USE_CONSOLE
+
+	* console/ui_window.[ch], ui_draw_str.c:
+	  ui_window_console_drwa_decsp_string() is added.
+
+	* ui_screen.c:
+	  utf16le_illegal_char() which converts DEC Special to Unicode is added.
+
+	* vt_char_encoding.[ch]:
+	  - vt_convert_ucs_to_decsp() and vt_convert_decsp_to_ucs() are moved
+	    from vt_parser.c
+	  - utf8_illegal_char which converts DEC Special to Unicode is added.
+	  - iso2022_illegal_char and non_iso2022_illegal_char aren't used by default
+	    and vt_char_encoding_conv_set_use_loose_rule() enables them.
+
 2017-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/{en,ja}/README.fb: Updated.

@@ -106,43 +106,6 @@ typedef struct area {
 
 static int use_alt_buffer = 1;
 static int use_ansi_colors = 1;
-static struct {
-  u_int16_t ucs;
-  u_char decsp;
-
-} ucs_to_decsp_table[] = {
-/* Not line characters */
-#if 0
-    {0xa3, '}'},
-    {0xb0, 'f'},
-    {0xb1, 'g'},
-    {0xb7, '~'},
-    {0x3c0, '{'},
-    {0x2260, '|'},
-    {0x2264, 'y'},
-    {0x2265, 'z'},
-#endif
-
-    /* Line characters */
-    {0x23ba, 'o'},
-    {0x23bb, 'p'},
-    {0x23bc, 'r'},
-    {0x23bd, 's'},
-    {0x2500, 'q'},
-    {0x2502, 'x'},
-    {0x250c, 'l'},
-    {0x2510, 'k'},
-    {0x2514, 'm'},
-    {0x2518, 'j'},
-    {0x251c, 't'},
-    {0x2524, 'u'},
-    {0x252c, 'w'},
-    {0x2534, 'v'},
-    {0x253c, 'n'},
-
-    {0x2592, 'a'},
-    {0x25c6, '`'},
-};
 
 static area_t *unicode_noconv_areas;
 static u_int num_of_unicode_noconv_areas;
@@ -180,51 +143,6 @@ static void str_replace(char *str, int c1, int c2) {
 
     str++;
   }
-}
-
-/* XXX This function should be moved to mef */
-static u_char convert_ucs_to_decsp(u_int16_t ucs) {
-  int l_idx;
-  int h_idx;
-  int idx;
-
-  l_idx = 0;
-  h_idx = sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]) - 1;
-
-  if (ucs < ucs_to_decsp_table[l_idx].ucs || ucs_to_decsp_table[h_idx].ucs < ucs) {
-    return 0;
-  }
-
-  while (1) {
-    idx = (l_idx + h_idx) / 2;
-
-    if (ucs == ucs_to_decsp_table[idx].ucs) {
-      return ucs_to_decsp_table[idx].decsp;
-    } else if (ucs < ucs_to_decsp_table[idx].ucs) {
-      h_idx = idx;
-    } else {
-      l_idx = idx + 1;
-    }
-
-    if (l_idx >= h_idx) {
-      return 0;
-    }
-  }
-}
-
-/* XXX This function should be moved to mef */
-static u_int16_t convert_decsp_to_ucs(u_char decsp) {
-  if ('`' <= decsp && decsp <= 'x') {
-    int count;
-
-    for (count = 0; count < sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]); count++) {
-      if (ucs_to_decsp_table[count].decsp == decsp) {
-        return ucs_to_decsp_table[count].ucs;
-      }
-    }
-  }
-
-  return 0;
 }
 
 static area_t *set_area_to_table(area_t *area_table, u_int *num, char *areas) {
@@ -5675,7 +5593,7 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
     u_char decsp;
 
     if ((unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT) &&
-        (decsp = convert_ucs_to_decsp(ef_char_to_int(&ch)))) {
+        (decsp = vt_convert_ucs_to_decsp(ef_char_to_int(&ch)))) {
       ch.ch[0] = decsp;
       ch.size = 1;
       ch.cs = DEC_SPECIAL;
@@ -5850,7 +5768,7 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
         u_int16_t ucs;
 
         if ((unicode_policy & ONLY_USE_UNICODE_BOXDRAW_FONT) &&
-            (ucs = convert_decsp_to_ucs(ch.ch[0]))) {
+            (ucs = vt_convert_decsp_to_ucs(ch.ch[0]))) {
           ef_int_to_bytes(ch.ch, 4, ucs);
           ch.size = 4;
           ch.cs = ISO10646_UCS4_1;

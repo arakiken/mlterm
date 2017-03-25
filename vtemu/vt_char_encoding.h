@@ -127,4 +127,11 @@ size_t vt_char_encoding_convert_with_parser(u_char *dst, size_t dst_len,
 
 int vt_parse_unicode_area(const char *str, u_int *min, u_int *max);
 
+u_char vt_convert_ucs_to_decsp(u_int16_t ucs);
+
+u_int16_t vt_convert_decsp_to_ucs(u_char decsp);
+
+void vt_char_encoding_conv_set_use_loose_rule(ef_conv_t *conv, vt_char_encoding_t encoding,
+                                              int flag);
+
 #endif

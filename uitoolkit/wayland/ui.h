@@ -89,7 +89,8 @@ typedef struct {
     unsigned int mods;
   } * xkb;
 
-  struct wl_surface *current_surface;
+  struct wl_surface *current_kbd_surface;
+  struct wl_surface *current_pointer_surface;
 
   int pointer_x;
   int pointer_y;
@@ -111,7 +112,6 @@ typedef struct {
 
 #ifdef COMPAT_LIBVTE
   u_int32_t time;
-  struct wl_surface *current_pointer_surface;
 #endif
 
 } ui_wlserv_t;
@@ -197,7 +197,9 @@ typedef struct /* Same as definition in X11/X.h */
 typedef struct {
   char *file;
 
+#ifdef USE_FREETYPE
   int32_t format; /* XXX (fontsize|FONT_BOLD|FONT_ITALIC) on freetype. */
+#endif
 
   int32_t num_of_glyphs;
   unsigned char *glyphs;

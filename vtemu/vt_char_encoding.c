@@ -300,6 +300,45 @@ static ef_charset_t msb_set_cs_table[] = {
 
 };
 
+static struct {
+  u_int16_t ucs;
+  u_char decsp;
+
+} ucs_to_decsp_table[] = {
+  {0xa0, '_'},
+  {0xa3, '}'},
+  {0xb0, 'f'},
+  {0xb1, 'g'},
+  {0xb7, '~'},
+  {0x3c0, '{'},
+  {0x2260, '|'},
+  {0x2264, 'y'},
+  {0x2265, 'z'},
+  {0x23ba, 'o'},
+  {0x23bb, 'p'},
+  {0x23bc, 'r'},
+  {0x23bd, 's'},
+  {0x2409, 'b'},
+  {0x240a, 'e'},
+  {0x240b, 'i'},
+  {0x240c, 'c'},
+  {0x240d, 'd'},
+  {0x2424, 'h'},
+  {0x2500, 'q'},
+  {0x2502, 'x'},
+  {0x250c, 'l'},
+  {0x2510, 'k'},
+  {0x2514, 'm'},
+  {0x2518, 'j'},
+  {0x251c, 't'},
+  {0x2524, 'u'},
+  {0x252c, 'w'},
+  {0x2534, 'v'},
+  {0x253c, 'n'},
+  {0x2592, 'a'},
+  {0x25c6, '`'},
+};
+
 static void (*iso2022kr_conv_init)(ef_conv_t *);
 static void (*iso2022kr_parser_init)(ef_parser_t *);
 
@@ -375,6 +414,27 @@ static size_t non_iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_
   } else {
     return 0;
   }
+}
+
+static size_t utf8_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
+                                ef_char_t *ch) {
+  *is_full = 0;
+
+  if (ch->cs == DEC_SPECIAL) {
+    u_int16_t utf16;
+
+    if (dst_size < 3) {
+      *is_full = 1;
+    } else if ((utf16 = vt_convert_decsp_to_ucs(ef_char_to_int(ch)))) {
+      dst[0] = ((utf16 >> 12) & 0x0f) | 0xe0;
+      dst[1] = ((utf16 >> 6) & 0x3f) | 0x80;
+      dst[2] = (utf16 & 0x3f) | 0x80;
+
+      return 3;
+    }
+  }
+
+  return 0;
 }
 
 /* --- global functions --- */
@@ -485,9 +545,9 @@ ef_conv_t *vt_char_encoding_conv_new(vt_char_encoding_t encoding) {
     return NULL;
   }
 
-  if (IS_ENCODING_BASED_ON_ISO2022(encoding)) {
-    conv->illegal_char = iso2022_illegal_char;
-
+  if (encoding == VT_UTF8) {
+    conv->illegal_char = utf8_illegal_char;
+  } else if (IS_ENCODING_BASED_ON_ISO2022(encoding)) {
     if (encoding == VT_ISO2022KR) {
       /* overriding init method */
 
@@ -496,8 +556,6 @@ ef_conv_t *vt_char_encoding_conv_new(vt_char_encoding_t encoding) {
 
       (*conv->init)(conv);
     }
-  } else {
-    conv->illegal_char = non_iso2022_illegal_char;
   }
 
   return conv;
@@ -568,4 +626,66 @@ error:
   bl_msg_printf("Illegal unicode area format: %s\n", str);
 
   return 0;
+}
+
+/* XXX This function should be moved to mef */
+u_char vt_convert_ucs_to_decsp(u_int16_t ucs) {
+  int l_idx;
+  int h_idx;
+  int idx;
+
+  l_idx = 0;
+  h_idx = sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]) - 1;
+
+  if (ucs < ucs_to_decsp_table[l_idx].ucs || ucs_to_decsp_table[h_idx].ucs < ucs) {
+    return 0;
+  }
+
+  while (1) {
+    idx = (l_idx + h_idx) / 2;
+
+    if (ucs == ucs_to_decsp_table[idx].ucs) {
+      return ucs_to_decsp_table[idx].decsp;
+    } else if (ucs < ucs_to_decsp_table[idx].ucs) {
+      h_idx = idx;
+    } else {
+      l_idx = idx + 1;
+    }
+
+    if (l_idx >= h_idx) {
+      return 0;
+    }
+  }
+}
+
+/* XXX This function should be moved to mef */
+u_int16_t vt_convert_decsp_to_ucs(u_char decsp) {
+  if ('`' <= decsp && decsp <= 'x') {
+    int count;
+
+    for (count = 0; count < sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]); count++) {
+      if (ucs_to_decsp_table[count].decsp == decsp) {
+        return ucs_to_decsp_table[count].ucs;
+      }
+    }
+  }
+
+  return 0;
+}
+
+void vt_char_encoding_conv_set_use_loose_rule(ef_conv_t *conv, vt_char_encoding_t encoding,
+                                              int flag) {
+  if (flag) {
+    if (IS_ENCODING_BASED_ON_ISO2022(encoding)) {
+      conv->illegal_char = iso2022_illegal_char;
+    } else {
+      conv->illegal_char = non_iso2022_illegal_char;
+    }
+  } else {
+    if (encoding == VT_UTF8) {
+      conv->illegal_char = utf8_illegal_char;
+    } else {
+      conv->illegal_char = NULL;
+    }
+  }
 }

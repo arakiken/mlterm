@@ -95,6 +95,42 @@ static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_
   return 1;
 }
 
+static void set_attr(FILE *fp, vt_font_t font, u_long fg_pixel, u_long bg_pixel,
+                     int underline_style) {
+  if (fg_pixel < 0x8) {
+    fprintf(fp, "\x1b[%dm", fg_pixel + 30);
+  } else if (fg_pixel < 0x10) {
+    fprintf(fp, "\x1b[%dm", (fg_pixel & ~VT_BOLD_COLOR_MASK) + 90);
+  } else {
+    fprintf(fp, "\x1b[38;5;%dm", fg_pixel);
+  }
+
+  if (bg_pixel < 0x8) {
+    fprintf(fp, "\x1b[%dm", bg_pixel + 40);
+  } else if (bg_pixel < 0x10) {
+    fprintf(fp, "\x1b[%dm", (bg_pixel & ~VT_BOLD_COLOR_MASK) + 100);
+  } else {
+    fprintf(fp, "\x1b[48;5;%dm", bg_pixel);
+  }
+
+  switch (underline_style) {
+    case UNDERLINE_NORMAL:
+      fprintf(fp, "\x1b[4m");
+      break;
+    case UNDERLINE_DOUBLE:
+      fprintf(fp, "\x1b[21m");
+      break;
+  }
+
+  if (font & FONT_BOLD) {
+    fprintf(fp, "\x1b[1m");
+  }
+
+  if (font & FONT_ITALIC) {
+    fprintf(fp, "\x1b[3m");
+  }
+}
+
 static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                        ui_color_t *bg_color,      /* must be NULL if wall_picture_bg is 1 */
                        int x, int y, u_char *str, /* 'len * ch_len' bytes */
@@ -137,43 +173,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
     len *= ch_len;
   }
 
-  if (fg_color->pixel < 0x8) {
-    fprintf(win->disp->display->fp, "\x1b[%dm", fg_color->pixel + 30);
-  } else if (fg_color->pixel < 0x10) {
-    fprintf(win->disp->display->fp, "\x1b[%dm", (fg_color->pixel & ~VT_BOLD_COLOR_MASK) + 90);
-  } else {
-    fprintf(win->disp->display->fp, "\x1b[38;5;%dm", fg_color->pixel);
-  }
-
-  if (!bg_color) {
-    bg_color = &win->bg_color;
-  }
-
-  if (bg_color->pixel < 0x8) {
-    fprintf(win->disp->display->fp, "\x1b[%dm", bg_color->pixel + 40);
-  } else if (bg_color->pixel < 0x10) {
-    fprintf(win->disp->display->fp, "\x1b[%dm", (bg_color->pixel & ~VT_BOLD_COLOR_MASK) + 100);
-  } else {
-    fprintf(win->disp->display->fp, "\x1b[48;5;%dm", bg_color->pixel);
-  }
-
-  switch (underline_style) {
-    case UNDERLINE_NORMAL:
-      fprintf(win->disp->display->fp, "\x1b[4m");
-      break;
-    case UNDERLINE_DOUBLE:
-      fprintf(win->disp->display->fp, "\x1b[21m");
-      break;
-  }
-
-  if (font->id & FONT_BOLD) {
-    fprintf(win->disp->display->fp, "\x1b[1m");
-  }
-
-  if (font->id & FONT_ITALIC) {
-    fprintf(win->disp->display->fp, "\x1b[3m");
-  }
-
+  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style);
   fprintf(win->disp->display->fp, "\x1b[%d;%dH", (win->y + win->vmargin + y) / LINE_HEIGHT + 1,
           (win->x + win->hmargin + x) / COL_WIDTH + 1);
   fwrite(str, 1, len, win->disp->display->fp);
@@ -1215,6 +1215,24 @@ int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x
 void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {}
 
 void ui_window_unset_clip(ui_window_t *win) {}
+
+int ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                        ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
+                                        int underline_style) {
+  if (!win->is_mapped) {
+    return 0;
+  }
+
+  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style);
+  fprintf(win->disp->display->fp, "\x1b[%d;%dH", (win->y + win->vmargin + y) / LINE_HEIGHT + 1,
+          (win->x + win->hmargin + x) / COL_WIDTH + 1);
+  fwrite("\x1b(0", 1, 3, win->disp->display->fp);
+  fwrite(str, 1, len, win->disp->display->fp);
+  fwrite("\x1b(B\x1b[m", 1, 6, win->disp->display->fp);
+  fflush(win->disp->display->fp);
+
+  return 1;
+}
 
 int ui_window_console_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                                   ui_color_t *bg_color, int x, int y, u_char *str, u_int len,

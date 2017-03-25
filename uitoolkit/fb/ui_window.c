@@ -819,6 +819,19 @@ static int check_child_window_area(ui_window_t *win) {
 }
 #endif
 
+static void convert_to_decsp_font_index(u_char *str, u_int len) {
+  while (len != 0) {
+    if (*str == 0x5f) {
+      *str = 0x7f;
+    } else if (0x5f < *str && *str < 0x7f) {
+      (*str) -= 0x5f;
+    }
+
+    len--;
+    str++;
+  }
+}
+
 /* --- global functions --- */
 
 int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width, u_int min_height,
@@ -1757,6 +1770,8 @@ void ui_window_unset_clip(ui_window_t *win) { win->clip_y = win->clip_height = 0
 
 int ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
                                 int y, u_char *str, u_int len) {
+  convert_to_decsp_font_index(str, len);
+
   return ui_window_draw_string(win, font, fg_color, x, y, str, len);
 }
 
@@ -1764,6 +1779,8 @@ int ui_window_draw_decsp_image_string(
     ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
     ui_color_t *bg_color, /* If NULL is specified, use wall_picture for bg */
     int x, int y, u_char *str, u_int len) {
+  convert_to_decsp_font_index(str, len);
+
   return ui_window_draw_image_string(win, font, fg_color, bg_color, x, y, str, len);
 }
 

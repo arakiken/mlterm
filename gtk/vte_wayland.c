@@ -66,6 +66,11 @@ static gboolean toplevel_configure(gpointer data) {
   GtkAllocation alloc;
 
   gtk_widget_get_allocation(GTK_WIDGET(terminal), &alloc);
+
+#ifdef __DEBUG
+  bl_debug_printf("TOPLEVEL %d %d %d %d\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#endif
+
   /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
   ui_display_move(PVT(terminal)->screen->window.disp, alloc.x, alloc.y);
 
