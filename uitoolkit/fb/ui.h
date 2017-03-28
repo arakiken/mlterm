@@ -653,5 +653,6 @@ KeySym XStringToKeysym(char *str);
  * because of ui_display_enable_to_change_cmap() and ui_display_set_cmap().
  */
 #undef HAVE_PTHREAD
+#define COMPOSE_DECSP_FONT
 
 #endif

@@ -179,9 +179,11 @@ int main_loop_init(int argc, char **argv) {
   bl_conf_add_opt(conf, 'v', "version", 1, "version", "show version message");
   bl_conf_add_opt(conf, 'R', "fsrange", 0, "font_size_range",
                   "font size range for GUI configurator [6-30]");
-#ifdef USE_XLIB
+#ifdef COMPOSE_DECSP_FONT
   bl_conf_add_opt(conf, 'Y', "decsp", 1, "compose_dec_special_font",
                   "compose dec special font [false]");
+#endif
+#ifdef USE_XLIB
   bl_conf_add_opt(conf, 'i', "xim", 1, "use_xim", "use XIM (X Input Method) [true]");
 #endif
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
@@ -279,7 +281,9 @@ int main_loop_init(int argc, char **argv) {
   }
 
   ui_xim_init(use_xim);
+#endif
 
+#ifdef COMPOSE_DECSP_FONT
   if ((value = bl_conf_get_value(conf, "compose_dec_special_font"))) {
     if (strcmp(value, "true") == 0) {
       ui_compose_dec_special_font();

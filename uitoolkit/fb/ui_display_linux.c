@@ -114,14 +114,19 @@ static void set_use_console_backscroll(int use) {
   bl_priv_change_egid(bl_getgid());
 }
 
-static void get_event_device_num_intern(int *kbd, int *mouse, char *class, int num_index) {
+static void get_event_device_num_intern(int *kbd, int *mouse, const char *fmt) {
+  char *class;
   int count;
   FILE* fp;
 
   *kbd = *mouse = -1;
 
+  if (!(class = alloca(strlen(fmt) - 2 /* %d */ + 3 /* 0 - 999 */ + 1))) {
+    return;
+  }
+
   for (count = 0;; count++) {
-    class[num_index] = count + 0x30;
+    sprintf(class, fmt, count);
 
     if (!(fp = fopen(class, "r"))) {
       break;
@@ -132,7 +137,7 @@ static void get_event_device_num_intern(int *kbd, int *mouse, char *class, int n
         if (strcasestr(buf, "key")) {
           *kbd = count;
         } else {
-          static char *mouse_names[] = {"mouse", "ts", "touch"};
+          static char *mouse_names[] = {"mouse", "touch"};
           u_int idx;
 
           for (idx = 0; idx < sizeof(mouse_names) / sizeof(mouse_names[0]); idx++) {
@@ -155,16 +160,13 @@ static void get_event_device_num_intern(int *kbd, int *mouse, char *class, int n
 }
 
 static void get_event_device_num(int *kbd, int *mouse) {
-  char class1[] = "/sys/class/input/inputN/name";
-
-  get_event_device_num_intern(kbd, mouse, class1, 22);
+  get_event_device_num_intern(kbd, mouse, "/sys/class/input/input%d/name");
 
   if (*kbd == -1 || *mouse == -1) {
     int k;
     int m;
-    char class2[] = "/sys/class/input/eventN/device/name";
 
-    get_event_device_num_intern(&k, &m, class2, 22);
+    get_event_device_num_intern(&k, &m, "/sys/class/input/event%d/device/name");
 
     if (*kbd == -1) {
       *kbd = k;
@@ -176,17 +178,21 @@ static void get_event_device_num(int *kbd, int *mouse) {
   }
 }
 
-static int open_event_device(int num, const char *path) {
-  char event[] = "/dev/input/eventN";
+static int open_event_device(u_int num, const char *path) {
+  char event[16 + 3 /* 0 - 999 */ + 1];
   int fd;
+
+  if (!path) {
+    if (num >= 1000) { /* num < 0 is impossible because num is u_int. */
+      return -1;
+    }
+
+    sprintf(event, "/dev/input/event%d", num);
+    path = event;
+  }
 
   bl_priv_restore_euid();
   bl_priv_restore_egid();
-
-  if (!path) {
-    event[16] = num + 0x30;
-    path = event;
-  }
 
   if ((fd = open(path, O_RDONLY | O_NONBLOCK)) == -1) {
     bl_error_printf("Couldn't open %s.\n", path);

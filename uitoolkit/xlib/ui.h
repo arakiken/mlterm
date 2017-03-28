@@ -46,5 +46,6 @@ typedef Pixmap PixmapMask;
  * (libpthread is not linked to mlterm explicitly for now.)
  */
 #undef HAVE_PTHREAD
+#define COMPOSE_DECSP_FONT
 
 #endif

@@ -385,5 +385,6 @@ KeySym XStringToKeysym(char *str);
 #define DRAW_SCREEN_IN_PIXELS
 #undef NO_DRAW_IMAGE_STRING
 #define HAVE_PTHREAD
+#undef COMPOSE_DECSP_FONT
 
 #endif

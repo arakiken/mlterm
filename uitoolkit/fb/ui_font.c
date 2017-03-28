@@ -983,11 +983,14 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t code, int use_ot_layo
   return glyph;
 }
 
+static int is_pcf(const char *file_path) {
+  return (strcasecmp(file_path + strlen(file_path) - 6, "pcf.gz") == 0 ||
+          strcasecmp(file_path + strlen(file_path) - 3, "pcf") == 0);
+}
+
 static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,
                       u_int bytes_per_pixel, ef_charset_t cs) {
-  if ((cs == ISO10646_UCS4_1 || IS_ISCII(cs)) &&
-      strcasecmp(file_path + strlen(file_path) - 6, "pcf.gz") != 0 &&
-      strcasecmp(file_path + strlen(file_path) - 3, "pcf") != 0) {
+  if ((cs == ISO10646_UCS4_1 || IS_ISCII(cs)) && !is_pcf(file_path)) {
     return load_ft(xfont, file_path, format, (bytes_per_pixel > 1));
   } else {
     return load_pcf(xfont, file_path);
@@ -1251,6 +1254,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                        ) {
   ef_charset_t cs;
   char *font_file;
+  char *decsp_id = NULL;
   u_int percent;
   ui_font_t *font;
   void *p;
@@ -1261,15 +1265,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
   cs = FONT_CS(id);
 
-  if ((compose_dec_special_font
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-       || use_fontconfig
-#endif
-      ) && cs == DEC_SPECIAL) {
-    /* do nothing */
-  }
-#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-  else if (use_fontconfig) {
+  if (use_fontconfig) {
     FcPattern *pattern;
     FcValue val;
 
@@ -1287,13 +1284,16 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     FcPatternDestroy(pattern);
   } else
 #endif
-
   if (!fontname) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Font file is not specified.\n");
 #endif
 
-    if (!IS_ISO10646_UCS4(cs) && cs != ISO8859_1_R) {
+    if (cs == DEC_SPECIAL) {
+      /* use ui_decsp_font_new() */
+      font_file = NULL;
+      percent = 0;
+    } else if (!IS_ISO10646_UCS4(cs) && cs != ISO8859_1_R) {
       return NULL;
     } else {
       struct stat st;
@@ -1367,10 +1367,12 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
       }
 #endif
 
-      /* XXX */
+#ifndef __ANDROID__
+      /* XXX double drawing is used to bolden pcf font. */
       if (id & FONT_BOLD) {
         use_medium_for_bold = 1;
       }
+#endif
     }
   } else {
     char *percent_str;
@@ -1383,6 +1385,12 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
     if (!percent_str || !bl_str_to_uint(&percent, percent_str)) {
       percent = 0;
+    }
+  }
+
+  if (cs == DEC_SPECIAL && (compose_dec_special_font || font_file == NULL || !is_pcf(font_file))) {
+    if (!(decsp_id = alloca(6 + DIGIT_STR_LEN(u_int) + 1 + DIGIT_STR_LEN(u_int) + 1))) {
+      return NULL;
     }
   }
 
@@ -1408,12 +1416,19 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 #endif
 
+  if (decsp_id) {
+    sprintf(decsp_id, "decsp-%dx%d", col_width, fontsize);
+  }
+
   for (count = 0; count < num_of_xfonts; count++) {
-    if (strcmp(xfonts[count]->file, font_file) == 0
+    if (strcmp(xfonts[count]->file, decsp_id ? decsp_id : font_file) == 0
 #ifdef USE_FREETYPE
-        && xfonts[count]->face && xfonts[count]->format == format
+        && (xfonts[count]->face == NULL || xfonts[count]->format == format)
 #endif
         ) {
+#ifdef DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " Use cached XFontStruct for %s.\n", xfonts[count]->file);
+#endif
       font->xfont = xfonts[count];
       xfonts[count]->ref_count++;
 
@@ -1429,12 +1444,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
   font->display = display;
 
-  if ((compose_dec_special_font
-#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-       || use_fontconfig
-#endif
-      ) && cs == DEC_SPECIAL) {
-    if (!ui_load_decsp_xfont(font->xfont, col_width, fontsize)) {
+  if (decsp_id) {
+    if (!ui_load_decsp_xfont(font->xfont, decsp_id)) {
       compose_dec_special_font = 0;
 
       free(font->xfont);
@@ -1683,8 +1694,8 @@ xfont_loaded:
   }
 
 #ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " %s font is loaded. => CURRENT NUM OF XFONTS %d\n", font_file,
-                  num_of_xfonts);
+  bl_debug_printf(BL_DEBUG_TAG " %s font is loaded. => CURRENT NUM OF XFONTS %d\n",
+                  font->xfont->file, num_of_xfonts);
 #endif
 
 #ifdef DEBUG

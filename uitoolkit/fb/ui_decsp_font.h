@@ -5,6 +5,6 @@
 
 #include "../ui.h"
 
-int ui_load_decsp_xfont(XFontStruct *xfont, u_int width, u_int height);
+int ui_load_decsp_xfont(XFontStruct *xfont, const char *decsp_id);
 
 #endif

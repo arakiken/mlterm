@@ -1911,7 +1911,9 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
 }
 
 int ui_set_window_name(ui_window_t *win, u_char *name) {
+#ifdef USE_WAYLAND
   ui_display_set_title(win->disp, name);
+#endif
 
   return 1;
 }

@@ -516,5 +516,6 @@ KeySym XStringToKeysym(char *str);
 #define NO_DRAW_IMAGE_STRING
 /* libpthread is not linked to mlterm explicitly for now. */
 #undef HAVE_PTHREAD
+#undef COMPOSE_DECSP_FONT
 
 #endif

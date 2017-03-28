@@ -1,3 +1,14 @@
+2017-03-28  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_display_linux.c:
+	  - 10 or larger number is availabe for event device (/dev/input/event*%d*) number.
+	  - "ts" is removed from mouse name list.
+
+	* fb/ui_font.c, fb/ui_decsp_font.c: "decsp-%dx%d" of a composed decsp font is
+	  created in ui_font_new() instead of ui_load_decsp_xfont().
+
+	* */ui.h: COMPOSE_DECSP_FONT is added.
+
 2017-03-25  Araki Ken  <arakiken@users.sf.net>
 
 	* {wayland,fb}/ui_window.c: convert_to_decsp_font_index() is added.

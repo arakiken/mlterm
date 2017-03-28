@@ -2,7 +2,9 @@
 
 #include "ui_decsp_font.h"
 
+#include <stdio.h>
 #include <pobl/bl_mem.h> /* malloc */
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_util.h>
 
 /* --- static functions --- */
@@ -62,15 +64,18 @@ static void draw_diamond(u_char *fb, u_int width_bytes, u_int width, u_int heigh
 
 /* --- global functions --- */
 
-int ui_load_decsp_xfont(XFontStruct *xfont, u_int width, u_int height) {
+int ui_load_decsp_xfont(XFontStruct *xfont, const char *decsp_id) {
+  u_int width;
+  u_int height;
   int count;
   u_int glyph_size;
   u_char *p;
 
-  if (!(xfont->file = malloc(5 + 1 + DIGIT_STR_LEN(u_int) + 1 + DIGIT_STR_LEN(u_int) + 1))) {
+  if (sscanf(decsp_id, "decsp-%dx%d", &width, &height) != 2) {
     return 0;
   }
-  sprintf(xfont->file, "decsp-%dx%d", width, height);
+
+  xfont->file = strdup(decsp_id);
 
   xfont->glyph_width_bytes = (width + 7) / 8;
   xfont->width = xfont->width_full = width;
