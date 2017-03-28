@@ -546,6 +546,15 @@ static void unload_pcf(XFontStruct *xfont) {
   free(xfont->glyph_indeces);
 }
 
+#ifdef USE_FREETYPE
+static int is_pcf(const char *file_path) {
+  return (strcasecmp(file_path + strlen(file_path) - 6, "pcf.gz") == 0 ||
+          strcasecmp(file_path + strlen(file_path) - 3, "pcf") == 0);
+}
+#else
+#define is_pcf(path) (1)
+#endif
+
 /* ===== FREETYPE ===== */
 
 #ifdef USE_FREETYPE
@@ -981,11 +990,6 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t code, int use_ot_layo
   }
 
   return glyph;
-}
-
-static int is_pcf(const char *file_path) {
-  return (strcasecmp(file_path + strlen(file_path) - 6, "pcf.gz") == 0 ||
-          strcasecmp(file_path + strlen(file_path) - 3, "pcf") == 0);
 }
 
 static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,

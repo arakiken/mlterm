@@ -2654,8 +2654,7 @@ static int inc_str_in_esc_seq(vt_screen_t *screen, u_char **str_p, size_t *left,
 static char *get_pt_in_esc_seq(
     u_char **str, size_t *left,
     int use_c1,       /* OSC is terminated by not only ST(ESC \) but also 0x9c. */
-    int bel_terminate /* OSC is terminated by not only ST(ESC \) but also BEL.
-                         */
+    int bel_terminate /* OSC is terminated by not only ST(ESC \) but also BEL. */
     ) {
   u_char *pt;
 

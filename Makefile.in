@@ -30,7 +30,7 @@ distclean:
 	if [ -f gtk/Makefile ]; then (cd gtk ; $(MAKE) $@) ; fi
 	for dir in $(MAKE_DIRS) java ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 	rm -f config.log config.cache config.status libtool Makefile \
-		common/c_config.h common/stamp-h1
+		common/c_config.h common/stamp-h1 BUILD_SUCCESS
 
 tags:
 	find . -name "*.[ch]" | xargs etags
