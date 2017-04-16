@@ -3,40 +3,21 @@
 #include <gdk/gdkwayland.h>
 #include <locale.h>
 
+/* wayland/ui_display.h */
+int ui_display_resize(ui_display_t *disp, u_int width, u_int height);
+void ui_display_move(ui_display_t *disp, int x, int y);
+
+/* not declared in header files. */
 void ui_display_init_wlserv(ui_wlserv_t *wlserv);
 void ui_display_map(ui_display_t *disp);
-int ui_display_resize(ui_display_t *disp, u_int width, u_int height);
-
-static void (*orig_window_unfocused)(ui_window_t *win);
+void ui_display_unmap(ui_display_t *disp);
 
 /* --- static functions --- */
-
-void focus_gtk_window(ui_window_t *win) {
-  VteTerminal *terminal = VTE_WIDGET((ui_screen_t*)win);
-  GtkWidget *widget = gtk_widget_get_toplevel(GTK_WIDGET(terminal));
-
-  if (!gtk_widget_has_focus(GTK_WIDGET(terminal))) {
-#ifdef __DEBUG
-    bl_debug_printf("Forcibly focus gdk window.\n");
-#endif
-    gdk_window_focus(gtk_widget_get_window(widget),
-                     /* gdk_window_focus() does nothing if GDK_CURRENT_TIME */
-                     win->disp->display->wlserv->time);
-  }
-}
-
-static void window_unfocused(ui_window_t *win) {
-  VteTerminal *terminal = VTE_WIDGET((ui_screen_t*)win);
-
-  if (!gtk_widget_has_focus(GTK_WIDGET(terminal))) {
-    (*orig_window_unfocused)(win);
-  }
-}
 
 static void show_root(ui_display_t *disp, GtkWidget *widget) {
   GdkWindow *window = gtk_widget_get_window(widget);
   ui_window_t *win = &PVT(VTE_TERMINAL(widget))->screen->window;
-  char *class;
+  const char *class;
 
   /*
    * Don't call gdk_wayland_window_set_use_custom_surface(), which disables VteTerminal
@@ -56,43 +37,13 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
 
   /* Internally calls create_shm_buffer() and *set_listener */
   ui_display_show_root(disp, win, 0, 0, 0, class, gdk_wayland_window_get_wl_surface(window));
-
-  orig_window_unfocused = win->window_unfocused;
-  win->window_unfocused = window_unfocused;
-}
-
-static gboolean toplevel_configure(gpointer data) {
-  VteTerminal *terminal = data;
-  GtkAllocation alloc;
-
-  gtk_widget_get_allocation(GTK_WIDGET(terminal), &alloc);
-
-#ifdef __DEBUG
-  bl_debug_printf("TOPLEVEL %d %d %d %d\n", alloc.x, alloc.y, alloc.width, alloc.height);
-#endif
-
-  /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
-  ui_display_move(PVT(terminal)->screen->window.disp, alloc.x, alloc.y);
-
-  return FALSE;
-}
-
-static void vte_terminal_map(GtkWidget *widget) {
-  (*GTK_WIDGET_CLASS(vte_terminal_parent_class)->map)(widget);
-
-#ifdef __DEBUG
-  bl_debug_printf("mapped.\n");
-#endif
-
-  /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
-  ui_display_map(PVT(VTE_TERMINAL(widget))->screen->window.disp);
 }
 
 static void vte_terminal_unmap(GtkWidget *widget) {
-  (*GTK_WIDGET_CLASS(vte_terminal_parent_class)->unmap)(widget);
-
   /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
   ui_display_unmap(PVT(VTE_TERMINAL(widget))->screen->window.disp);
+
+  (*GTK_WIDGET_CLASS(vte_terminal_parent_class)->unmap)(widget);
 }
 
 static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
@@ -137,6 +88,5 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
 
   ui_display_init_wlserv(&wlserv);
 
-  GTK_WIDGET_CLASS(vclass)->map = vte_terminal_map;
   GTK_WIDGET_CLASS(vclass)->unmap = vte_terminal_unmap;
 }

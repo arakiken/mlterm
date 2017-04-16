@@ -70,7 +70,6 @@ typedef struct {
   struct wl_cursor_theme *cursor_theme;
   struct wl_cursor *cursor[10];
   struct wl_surface *cursor_surface;
-  struct wl_shell *shell;
   struct wl_seat *seat;
   struct wl_keyboard *keyboard;
   struct wl_pointer *pointer;
@@ -111,7 +110,9 @@ typedef struct {
   int ref_count;
 
 #ifdef COMPAT_LIBVTE
-  u_int32_t time;
+  struct wl_subcompositor *subcompositor;
+#else
+  struct wl_shell *shell;
 #endif
 
 } ui_wlserv_t;
@@ -120,8 +121,6 @@ typedef struct {
   ui_wlserv_t *wlserv;
   unsigned char *fb;
   struct wl_buffer *buffer;
-
-  struct wl_shell_surface *shell_surface;
   struct wl_surface *surface;
 
   unsigned int bytes_per_pixel;
@@ -150,10 +149,14 @@ typedef struct {
   int is_resizing;
 
   struct ui_display *parent;
+
 #ifdef COMPAT_LIBVTE
   struct wl_surface *parent_surface;
+  struct wl_subsurface *subsurface;
   int x;
   int y;
+#else
+  struct wl_shell_surface *shell_surface;
 #endif
 
 } Display;

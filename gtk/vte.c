@@ -970,6 +970,7 @@ static void reset_vte_size_member(VteTerminal *terminal) {
 #endif /* ! GTK_CHECK_VERSION(2,90,0) */
 }
 
+#ifdef USE_XLIB
 static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_toplevel,
                                            gpointer data) {
   if (old_toplevel) {
@@ -983,10 +984,11 @@ static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_top
  * Though vte 0.38.0 or later doesn't support rgba visual,
  * this forcibly enables it.
  */
-#if defined(USE_XLIB) && VTE_CHECK_VERSION(0, 38, 0)
+#if VTE_CHECK_VERSION(0, 38, 0)
   set_rgba_visual(gtk_widget_get_toplevel(widget));
 #endif
 }
+#endif
 
 static gboolean vte_terminal_timeout(gpointer data) {
 /*
@@ -1033,7 +1035,11 @@ static void vte_terminal_finalize(GObject *obj) {
   }
 
   if (PVT(terminal)->pixmap) {
+#ifdef USE_XLIB
     XFreePixmap(disp.display, PVT(terminal)->pixmap);
+#else
+    /* XXX */
+#endif
     PVT(terminal)->pixmap = None;
   }
 
@@ -1052,7 +1058,7 @@ static void vte_terminal_finalize(GObject *obj) {
   G_OBJECT_CLASS(vte_terminal_parent_class)->finalize(obj);
 
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " vte_terminal_finalize\n");
+  bl_debug_printf("End of vte_terminal_finalize() \n");
 #endif
 }
 
@@ -1222,7 +1228,11 @@ static void update_wall_picture(VteTerminal *terminal) {
   }
 
   if (PVT(terminal)->pixmap) {
+#ifdef USE_XLIB
     XFreePixmap(disp.display, PVT(terminal)->pixmap);
+#else
+    /* XXX */
+#endif
   }
 
   PVT(terminal)->pixmap = ui_imagelib_pixbuf_to_pixmap(win, pic_mod, image);
@@ -1331,8 +1341,10 @@ static void vte_terminal_realize(GtkWidget *widget) {
   }
 #endif
 
+#ifdef USE_XLIB
   g_signal_connect_swapped(gtk_widget_get_toplevel(widget), "configure-event",
                            G_CALLBACK(toplevel_configure), terminal);
+#endif
 
   show_root(&disp, widget);
 
@@ -1341,7 +1353,6 @@ static void vte_terminal_realize(GtkWidget *widget) {
    * to ui_window_t or vt_term_t, so ui_window_resize must be called here.
    */
   if (PVT(terminal)->term->pty && !is_initial_allocation(&allocation)) {
-    bl_debug_printf("RESIZE\n");
     if (ui_window_resize_with_margin(&PVT(terminal)->screen->window, allocation.width,
                                      allocation.height, NOTIFY_TO_MYSELF)) {
       reset_vte_size_member(terminal);
@@ -1374,10 +1385,16 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
   init_screen(terminal, screen->font_man, screen->color_man);
   ui_display_remove_root(&disp, &screen->window);
 
+#ifdef USE_XLIB
   g_signal_handlers_disconnect_by_func(gtk_widget_get_toplevel(GTK_WIDGET(terminal)),
                                        G_CALLBACK(toplevel_configure), terminal);
+#endif
 
   GTK_WIDGET_CLASS(vte_terminal_parent_class)->unrealize(widget);
+
+#ifdef __DEBUG
+  bl_debug_printf("End of vte_terminal_unrealize()\n");
+#endif
 }
 
 static gboolean vte_terminal_focus_in(GtkWidget *widget, GdkEventFocus *event) {
@@ -1386,18 +1403,12 @@ static gboolean vte_terminal_focus_in(GtkWidget *widget, GdkEventFocus *event) {
   if (GTK_WIDGET_MAPPED(widget)) {
     ui_window_t *win = &PVT(VTE_TERMINAL(widget))->screen->window;
 #ifdef USE_WAYLAND
-    /*
-     * It is necessary to call ui_display_move() here because calling it
-     * in vte_terminal_map() causes segfault of gnome-shell.
-     */
-#if 1
     GtkAllocation alloc;
 
-    gtk_widget_get_allocation(widget, &alloc);
     /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
+    ui_display_map(win->disp);
+    gtk_widget_get_allocation(widget, &alloc);
     ui_display_move(win->disp, alloc.x, alloc.y);
-#endif
-
     win->disp->display->wlserv->current_kbd_surface = win->disp->display->surface;
 #endif
 
@@ -1414,12 +1425,7 @@ static gboolean vte_terminal_focus_in(GtkWidget *widget, GdkEventFocus *event) {
 static gboolean vte_terminal_focus_out(GtkWidget *widget, GdkEventFocus *event) {
 #ifdef USE_WAYLAND
   ui_window_t *win = &PVT(VTE_TERMINAL(widget))->screen->window;
-  if (win->disp->display->surface != win->disp->display->wlserv->current_kbd_surface &&
-      win->disp->display->parent_surface != win->disp->display->wlserv->current_kbd_surface &&
-      win->window_unfocused) {
-#ifdef __DEBUG
-    bl_debug_printf("force ui_window_t to be unfocused.\n");
-#endif
+  if (win->window_unfocused) {
     win->is_focused = 0;
     (*win->window_unfocused)(win);
   }
@@ -2194,7 +2200,9 @@ static void vte_terminal_init(VteTerminal *terminal) {
   set_adjustment(terminal, GTK_ADJUSTMENT(gtk_adjustment_new(0, 0, main_config.rows, 1,
                                                              main_config.rows, main_config.rows)));
 
+#ifdef USE_XLIB
   g_signal_connect(terminal, "hierarchy-changed", G_CALLBACK(vte_terminal_hierarchy_changed), NULL);
+#endif
 
 #if GTK_CHECK_VERSION(2, 90, 0)
   gtk_style_context_add_provider(gtk_widget_get_style_context(GTK_WIDGET(terminal)),
@@ -4096,4 +4104,64 @@ int ui_event_source_remove_fd(int fd) {
  */
 #if GTK_CHECK_VERSION(2, 90, 0) && __GNUC__
 static void __attribute__((constructor)) init_vte(void) { gdk_disable_multidevice(); }
+#endif
+
+#if VTE_CHECK_VERSION(0, 46, 0)
+struct _VteRegex {
+  int ref_count;
+};
+
+G_DEFINE_BOXED_TYPE(VteRegex, vte_regex,
+                    vte_regex_ref, (GBoxedFreeFunc)vte_regex_unref)
+G_DEFINE_QUARK(vte-regex-error, vte_regex_error)
+
+VteRegex *vte_regex_ref(VteRegex *regex) {
+  g_return_val_if_fail(regex, NULL);
+
+  g_atomic_int_inc(&regex->ref_count);
+
+  return regex;
+ }
+
+VteRegex *vte_regex_unref(VteRegex *regex) {
+  g_return_val_if_fail(regex, NULL);
+
+  if (g_atomic_int_dec_and_test(&regex->ref_count)) {
+    g_slice_free(VteRegex, regex);
+  }
+
+  return NULL;
+}
+
+VteRegex *vte_regex_new_for_match(const char *pattern, gssize pattern_length,
+                                  guint32 flags, GError **error) {
+  VteRegex *regex = g_slice_new(VteRegex);
+  regex->ref_count = 1;
+
+  return regex;
+}
+
+VteRegex *vte_regex_new_for_search(const char *pattern, gssize pattern_length,
+                                   guint32     flags, GError **error) {
+  VteRegex *regex = g_slice_new(VteRegex);
+  regex->ref_count = 1;
+
+  return regex;
+}
+
+gboolean vte_regex_jit(VteRegex *regex, guint32 flags, GError **error) { return TRUE; }
+
+int vte_terminal_match_add_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {
+  return 0;
+}
+
+gboolean vte_terminal_event_check_regex_simple(VteTerminal *terminal, GdkEvent *event,
+                                               VteRegex **regexes, gsize n_regexes,
+                                               guint32 match_flags, char **matches) {
+  return FALSE;
+}
+
+void vte_terminal_search_set_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {}
+
+VteRegex *vte_terminal_search_get_regex(VteTerminal *terminal) { return NULL; }
 #endif

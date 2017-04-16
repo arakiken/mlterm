@@ -50,15 +50,15 @@ Options for configure
     xcore is possible to disable only when --with-type-engines=(except xcore)
     is specified with --disable-dl-type option.
 
-  --enable-anti-alias
-    Same as --with-type-engines=xcore,xft,cairo on xlib.
-    (--disable-anti-alias is the same as --with-type-engines=xcore)
+  --disable-anti-alias
+    Same as --with-type-engines=xcore on xlib.
+    (--enable-anti-alias is the same as --with-type-engines=xcore,xft,cairo)
     This option is ignored if --with-type-engines is specified on xlib.
 
-    Enable truetype fonts on framebuffer or wayland.
+    Disable truetype fonts on framebuffer or wayland.
 
-  --enable-fontconfig
-    Enable fontconfig (use ~/.mlterm/*aafont) on framebuffer or wayland.
+  --disable-fontconfig
+    Disable fontconfig (use ~/.mlterm/*aafont) on framebuffer or wayland.
 
   --disable-dl-type
     Disable dynamic loading of type engine modules,
@@ -166,7 +166,7 @@ Options for configure
   --disable-ssh2 --disable-utmp --disable-dnd --disable-kbd --disable-uim \
   --disable-m17nlib --disable-ibus --disable-fcitx --disable-scim --disable-canna \
   --disable-wnn --disable-skk --disable-ind --with-type-engines=xcore --disable-anti-alias \
-	--disable-fontconfig (--disable-shared)
+  --disable-fontconfig (--disable-shared)
 
 What you need for compilation
 -----------------------------

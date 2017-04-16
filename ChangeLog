@@ -1,3 +1,21 @@
+2017-04-16  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* fb/ui_window.c: ui_window_move() does nothing for root windows except on wayland.
+
+	* vte.c, vte_wayland.c:
+	  - toplevel_configure and hierachy_changed handlers are removed on wayland.
+	  - ui_display_map() is called from vte_terminal_focus_in() instead of
+	    vte_terminal_map() on wayland.
+	  - Focus and unfocus hacks are removed on wayland.
+	  - Dummy api functions related to VteRegex (0.46 or later) are added.
+
+	* wayland/ui.h, wayland/ui_display.c:
+	  wl_subsurface instead of wl_shell_surface is used for libvte compatible library.
+
+	* android/jni/ui.h: COMPOSE_DECSP_FONT is defined.
+
 2017-03-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_display_linux.c:

@@ -72,17 +72,17 @@ comment $Id$
     --with-type-engines=(xcore|xft|cairo)
       テキストレンダリングエンジンを指定します。
 
-    --enable-anti-alias
-      xlib版では、--with-type-engines=xcore,xft,cairoと同じ。
-      (--disable-anti-alias オプションは --with-type-engines=xcore と同じ)
+    --disable-anti-alias
+      xlib版では、--with-type-engines=xcoreと同じ。
+      (--enable-anti-alias オプションは --with-type-engines=xcore,xft,cairo と同じ)
       なお、xlib版で、--with-type-engines オプションを指定した場合、このオプショ
       ンは無視されます。
 
-      framebuffer又はwayland版では、freetype を利用して True Type フォントを利用
-      できるようにします。
+      framebuffer又はwayland版では、freetype を利用して True Type フォントを無効
+      にします。
 
     --enable-fontconfig
-      framebuffer又はwayland版で、フォントの検索に fontconfig を使用します。
+      framebuffer又はwayland版で、フォントの検索に fontconfig を無効にします。
       (~/.mlterm/*aafont の設定を使用)
 
     --disable-dl-type

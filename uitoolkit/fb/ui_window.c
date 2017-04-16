@@ -1243,16 +1243,16 @@ int ui_window_move(ui_window_t *win, int x, int y) {
   if (win->parent) {
     x += win->parent->hmargin;
     y += win->parent->vmargin;
-  }
+  } else {
 #ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
-  else {
 #ifdef USE_WAYLAND
     ui_display_move(win->disp, x, y);
+#endif
 #endif
 
     return 0;
   }
-#endif
+
 
   if (win->x == x && win->y == y) {
     return 0;

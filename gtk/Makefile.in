@@ -44,7 +44,6 @@ LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 OBJ = vte.o marshal.o vtetypebuiltins.o reaper.o
-
 UI_DISPLAY_OBJ_wayland = ui_display.o
 
 all: $(TARGET).la

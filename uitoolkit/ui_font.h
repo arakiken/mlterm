@@ -136,11 +136,13 @@ u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped
 
 #ifdef USE_XLIB
 char **ui_font_get_encoding_names(ef_charset_t cs);
-
-/* For mlterm-libvte */
-void ui_font_set_dpi_for_fc(double dpi);
 #else
 #define ui_font_get_encoding_names(cs) (0)
+#endif
+
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
+/* For mlterm-libvte */
+void ui_font_set_dpi_for_fc(double dpi);
 #endif
 
 #ifdef SUPPORT_POINT_SIZE_FONT
