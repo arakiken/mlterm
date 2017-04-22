@@ -651,7 +651,7 @@ static u_int match_font_configs(ui_font_config_t **matched_configs,
 #if !defined(USE_FREETYPE) || !defined(USE_FONTCONFIG)
         (is_xcore ? font_configs[count]->type_engine == TYPE_XCORE :
                     /* '>= XFT' means XFT or Cairo */
-                    font_configs[count]->type_engine >= TYPE_XFT &&
+                    font_configs[count]->type_engine >= TYPE_XFT) &&
 #endif
         (present_mask ? (font_configs[count]->font_present & present_mask) : 1)) {
       matched_configs[size++] = font_configs[count];

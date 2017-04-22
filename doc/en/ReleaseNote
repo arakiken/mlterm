@@ -2,8 +2,6 @@ ver 3.8.1
 * Support wayland including libvte compatible library.
   (Build mlterm with --with-gui=wayland option.) (see doc/en/README.wayland)
 * Support "compose_dec_special_font" / --decsp option on framebuffer and wayland.
-* Search alternative glyphs in other fonts automatically on framebuffer and wayland
-  with freetype and fontconfig.
 * "line_space" option accepts negative value.
 * Add "underline_offset" / --udpos option.
 * Rename wskbd_repeat_1 and wskbd_repeat_N options to kbd_repeat_1 and kbd_repeat_N.
@@ -13,6 +11,8 @@ ver 3.8.1
 * Add "use_aafont" option which tells mlterm to read ~/.mlterm/*aafont configurations
   with the use of fontconfig on framebuffer or wayland.
   (The default value is true on wayland, while false on framebuffer.)
+* Search alternative glyphs in other fonts automatically on framebuffer and wayland
+  with freetype and fontconfig.
 * Bug fixes:
   Fix detection failuer of mouse event devices on framebuffer/linux. (Thanks to @nyarla)
   (See http://the.nyarla.net/entry/2017/03/25/142516 for details.)
