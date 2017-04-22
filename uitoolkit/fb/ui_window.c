@@ -140,214 +140,6 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
 static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_height,
                               u_int font_ascent, u_int font_width, int font_x_off,
                               int double_draw_gap, int is_proportional,
-                              u_int32_t fg_pixel, u_int32_t bg_pixel, int x, int y, int y_off,
-                              u_char **bitmaps, u_int len, u_char *picture,
-                              size_t picture_line_len, int src_bg_is_set, int bpp);
-
-static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                       ui_color_t *bg_color,      /* must be NULL if wall_picture_bg is 1 */
-                       int x, int y, u_char *str, /* 'len * ch_len' bytes */
-                       u_int len, u_int ch_len, int wall_picture_bg) {
-  u_int bpp;
-  XFontStruct *xfont;
-  u_char **bitmaps;
-  u_int font_height;
-  u_int font_ascent;
-  int y_off;
-  u_char *picture;
-  size_t picture_line_len;
-  u_int count;
-  int src_bg_is_set;
-  u_int clip_bottom;
-  int use_ot_layout;
-  int x_off;
-
-  if (!win->is_mapped) {
-    return 0;
-  }
-
-  if (!(bitmaps = alloca((len * sizeof(*bitmaps))))) {
-    return 0;
-  }
-
-  bpp = win->disp->display->bytes_per_pixel;
-  xfont = font->xfont;
-
-#ifdef USE_OT_LAYOUT
-  use_ot_layout = (font->use_ot_layout /* && font->ot_font */);
-#else
-  use_ot_layout = 0;
-#endif
-
-  /*
-   * Check if font->height or font->ascent excesses the display height,
-   * because font->height doesn't necessarily equals to the height of the
-   *US-ASCII font.
-   *
-   * XXX
-   * On the other hand, font->width is always the same (or exactly double) for
-   *now.
-   */
-
-  font_ascent = font->ascent;
-  font_height = font->height;
-
-  if (win->clip_height == 0) {
-    clip_bottom = win->height;
-  } else {
-    clip_bottom = win->clip_y + win->clip_height;
-  }
-
-  if (y >= clip_bottom + font_ascent) {
-    return 0;
-  } else if (y + font_height - font_ascent > clip_bottom) {
-    font_height -= (y + font_height - font_ascent - clip_bottom + 1);
-
-    if (font_height < font_ascent) {
-      /* XXX I don't know why but without -1 causes line gap */
-      y -= (font_ascent - font_height - 1);
-      font_ascent = font_height;
-    }
-  }
-
-  if (y + font_height - font_ascent < win->clip_y) {
-    return 0;
-  } else if (y < win->clip_y + font_ascent) {
-    y_off = win->clip_y + font_ascent - y;
-  } else {
-    y_off = 0;
-  }
-
-/* Following check is done by the caller of this function. */
-#if 0
-  /*
-   * Check if font->width * len excesses the display height
-   * because full width fonts can be used for characters which console
-   * applications regard as half width.
-   */
-
-  if (x + font->width * len > win->width) {
-    len = (win->width - x) / font->width;
-  }
-#endif
-
-  x += (win->hmargin + win->x);
-  y = y + (win->vmargin + win->y) - font_ascent;
-
-  if (wall_picture_bg) {
-    /* bg_color is always NULL */
-    Pixmap pic;
-    int pic_x;
-    int pic_y;
-
-    if (win->wall_picture == ParentRelative) {
-      pic = win->parent->wall_picture;
-      pic_x = x;
-      pic_y = y;
-    } else {
-      pic = win->wall_picture;
-      pic_x = x - win->x;
-      pic_y = y - win->y;
-    }
-
-    picture_line_len = pic->width * bpp;
-    picture = pic->image + (pic_y + y_off) * picture_line_len +
-              /* - picture_line_len is for picture += picture_line_len below. */
-              pic_x * bpp - picture_line_len;
-
-    src_bg_is_set = 1;
-  } else {
-    picture = NULL;
-
-    if (bg_color) {
-      src_bg_is_set = 1;
-    } else {
-      src_bg_is_set = 0;
-    }
-  }
-
-  x_off = font->x_off;
-
-  if (ch_len == 1) {
-    for (count = 0; count < len; count++) {
-      bitmaps[count] = ui_get_bitmap(xfont, str + count, 1, use_ot_layout, NULL);
-    }
-  } else /* if( ch_len == 2) */ {
-    XFontStruct *compl_xfont;
-
-    for (count = 0; count < len;) {
-      if (0xd8 <= str[0] && str[0] <= 0xdb) {
-        len--;
-
-        if (count >= len) {
-          /* ignored */
-          break;
-        }
-
-        if (0xdc <= str[2] && str[2] <= 0xdf) {
-          /* surrogate pair */
-          ef_int_to_bytes(str, 4, (str[0] - 0xd8) * 0x100 * 0x400 + str[1] * 0x400 +
-                                       (str[2] - 0xdc) * 0x100 + str[3] + 0x10000);
-          ch_len = 4;
-        } else {
-          /* illegal, ignored. */
-          len--;
-          count--;
-          str += 4;
-          continue;
-        }
-      }
-
-      compl_xfont = NULL;
-      bitmaps[count] = ui_get_bitmap(font->xfont, str, ch_len, use_ot_layout, &compl_xfont);
-      if (compl_xfont && xfont != compl_xfont) {
-        u_int w;
-
-        if (count > 0) {
-          draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
-                             font->double_draw_gap, font->is_proportional,
-                             fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
-                             bitmaps, count, picture, picture_line_len, src_bg_is_set, bpp);
-          x += (font->width * count);
-          bitmaps[0] = bitmaps[count];
-          len -= count;
-          count = 0;
-        } else {
-          count++;
-        }
-        xfont = compl_xfont;
-
-        /* see ui_font.c */
-        if ((font->id & FONT_FULLWIDTH) && IS_ISO10646_UCS4(FONT_CS(font->id)) &&
-            xfont->width_full > 0) {
-          w = xfont->width_full;
-        } else {
-          w = xfont->width;
-        }
-
-        if (w >= font->width) {
-          x_off = 0;
-        } else {
-          x_off = (font->width - w) / 2;
-        }
-      } else {
-        count++;
-      }
-
-      str += ch_len;
-      ch_len = 2;
-    }
-  }
-
-  return draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
-                            font->double_draw_gap, font->is_proportional,
-                            fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
-                            bitmaps, len, picture, picture_line_len, src_bg_is_set, bpp);
-}
-
-static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_height,
-                              u_int font_ascent, u_int font_width, int font_x_off,
-                              int double_draw_gap, int is_proportional,
                               u_int32_t fg_pixel, u_int32_t bg_pixel,
                               int x, /* win->x and win->hmargin are added. */
                               int y, int y_off, u_char **bitmaps, u_int len, u_char *picture,
@@ -661,6 +453,207 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
   }
 
   return 1;
+}
+
+static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                       ui_color_t *bg_color,      /* must be NULL if wall_picture_bg is 1 */
+                       int x, int y, u_char *str, /* 'len * ch_len' bytes */
+                       u_int len, u_int ch_len, int wall_picture_bg) {
+  u_int bpp;
+  XFontStruct *xfont;
+  u_char **bitmaps;
+  u_int font_height;
+  u_int font_ascent;
+  int y_off;
+  u_char *picture;
+  size_t picture_line_len;
+  u_int count;
+  int src_bg_is_set;
+  u_int clip_bottom;
+  int use_ot_layout;
+  int x_off;
+
+  if (!win->is_mapped) {
+    return 0;
+  }
+
+  if (!(bitmaps = alloca((len * sizeof(*bitmaps))))) {
+    return 0;
+  }
+
+  bpp = win->disp->display->bytes_per_pixel;
+  xfont = font->xfont;
+
+#ifdef USE_OT_LAYOUT
+  use_ot_layout = (font->use_ot_layout /* && font->ot_font */);
+#else
+  use_ot_layout = 0;
+#endif
+
+  /*
+   * Check if font->height or font->ascent excesses the display height,
+   * because font->height doesn't necessarily equals to the height of the
+   *US-ASCII font.
+   *
+   * XXX
+   * On the other hand, font->width is always the same (or exactly double) for
+   *now.
+   */
+
+  font_ascent = font->ascent;
+  font_height = font->height;
+
+  if (win->clip_height == 0) {
+    clip_bottom = win->height;
+  } else {
+    clip_bottom = win->clip_y + win->clip_height;
+  }
+
+  if (y >= clip_bottom + font_ascent) {
+    return 0;
+  } else if (y + font_height - font_ascent > clip_bottom) {
+    font_height -= (y + font_height - font_ascent - clip_bottom + 1);
+
+    if (font_height < font_ascent) {
+      /* XXX I don't know why but without -1 causes line gap */
+      y -= (font_ascent - font_height - 1);
+      font_ascent = font_height;
+    }
+  }
+
+  if (y + font_height - font_ascent < win->clip_y) {
+    return 0;
+  } else if (y < win->clip_y + font_ascent) {
+    y_off = win->clip_y + font_ascent - y;
+  } else {
+    y_off = 0;
+  }
+
+/* Following check is done by the caller of this function. */
+#if 0
+  /*
+   * Check if font->width * len excesses the display height
+   * because full width fonts can be used for characters which console
+   * applications regard as half width.
+   */
+
+  if (x + font->width * len > win->width) {
+    len = (win->width - x) / font->width;
+  }
+#endif
+
+  x += (win->hmargin + win->x);
+  y = y + (win->vmargin + win->y) - font_ascent;
+
+  if (wall_picture_bg) {
+    /* bg_color is always NULL */
+    Pixmap pic;
+    int pic_x;
+    int pic_y;
+
+    if (win->wall_picture == ParentRelative) {
+      pic = win->parent->wall_picture;
+      pic_x = x;
+      pic_y = y;
+    } else {
+      pic = win->wall_picture;
+      pic_x = x - win->x;
+      pic_y = y - win->y;
+    }
+
+    picture_line_len = pic->width * bpp;
+    picture = pic->image + (pic_y + y_off) * picture_line_len +
+              /* - picture_line_len is for picture += picture_line_len below. */
+              pic_x * bpp - picture_line_len;
+
+    src_bg_is_set = 1;
+  } else {
+    picture = NULL;
+
+    if (bg_color) {
+      src_bg_is_set = 1;
+    } else {
+      src_bg_is_set = 0;
+    }
+  }
+
+  x_off = font->x_off;
+
+  if (ch_len == 1) {
+    for (count = 0; count < len; count++) {
+      bitmaps[count] = ui_get_bitmap(xfont, str + count, 1, use_ot_layout, NULL);
+    }
+  } else /* if( ch_len == 2) */ {
+    XFontStruct *compl_xfont;
+
+    for (count = 0; count < len;) {
+      if (0xd8 <= str[0] && str[0] <= 0xdb) {
+        len--;
+
+        if (count >= len) {
+          /* ignored */
+          break;
+        }
+
+        if (0xdc <= str[2] && str[2] <= 0xdf) {
+          /* surrogate pair */
+          ef_int_to_bytes(str, 4, (str[0] - 0xd8) * 0x100 * 0x400 + str[1] * 0x400 +
+                                       (str[2] - 0xdc) * 0x100 + str[3] + 0x10000);
+          ch_len = 4;
+        } else {
+          /* illegal, ignored. */
+          len--;
+          count--;
+          str += 4;
+          continue;
+        }
+      }
+
+      compl_xfont = NULL;
+      bitmaps[count] = ui_get_bitmap(font->xfont, str, ch_len, use_ot_layout, &compl_xfont);
+      if (compl_xfont && xfont != compl_xfont) {
+        u_int w;
+
+        if (count > 0) {
+          draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
+                             font->double_draw_gap, font->is_proportional,
+                             fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
+                             bitmaps, count, picture, picture_line_len, src_bg_is_set, bpp);
+          x += (font->width * count);
+          bitmaps[0] = bitmaps[count];
+          len -= count;
+          count = 0;
+        } else {
+          count++;
+        }
+        xfont = compl_xfont;
+
+        /* see ui_font.c */
+        if ((font->id & FONT_FULLWIDTH) && IS_ISO10646_UCS4(FONT_CS(font->id)) &&
+            xfont->width_full > 0) {
+          w = xfont->width_full;
+        } else {
+          w = xfont->width;
+        }
+
+        if (w >= font->width) {
+          x_off = 0;
+        } else {
+          x_off = (font->width - w) / 2;
+        }
+      } else {
+        count++;
+      }
+
+      str += ch_len;
+      ch_len = 2;
+    }
+  }
+
+  return draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
+                            font->double_draw_gap, font->is_proportional,
+                            fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
+                            bitmaps, len, picture, picture_line_len, src_bg_is_set, bpp);
 }
 
 static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /* can be minus */
