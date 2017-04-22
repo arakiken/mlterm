@@ -108,6 +108,9 @@ int main_loop_init(int argc, char **argv) {
   u_int depth;
   char *invalid_msg = "%s %s is not valid.\n";
   char *orig_argv;
+#if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND)
+  int use_aafont = 0;
+#endif
 
   if (!bl_locale_init("")) {
     bl_msg_printf("locale settings failed.\n");
@@ -377,10 +380,12 @@ int main_loop_init(int argc, char **argv) {
 #ifdef USE_WAYLAND
   if (!(value = bl_conf_get_value(conf, "use_aafont")) || strcmp(value, "false") != 0) {
     ui_use_aafont();
+    use_aafont = 1;
   }
 #else /* USE_FRAMEBUFFER */
   if ((value = bl_conf_get_value(conf, "use_aafont")) && strcmp(value, "true") == 0) {
     ui_use_aafont();
+    use_aafont = 1;
   }
 #endif
 #endif
@@ -388,10 +393,15 @@ int main_loop_init(int argc, char **argv) {
   ui_main_config_init(&main_config, conf, argc, argv);
 
   if ((value = bl_conf_get_value(conf, "default_font"))) {
+#if defined(USE_WAYLAND) || defined(USE_FRAMEBUFFER)
+    ui_customize_font_file(use_aafont ? "aafont" : "font", "DEFAULT", value, 0);
+    ui_customize_font_file(use_aafont ? "aafont" : "font", "ISO10646_UCS4_1", value, 0);
+#else
     ui_customize_font_file(main_config.type_engine == TYPE_XCORE ? "font" : "aafont", "DEFAULT",
                            value, 0);
     ui_customize_font_file(main_config.type_engine == TYPE_XCORE ? "font" : "aafont",
                            "ISO10646_UCS4_1", value, 0);
+#endif
   }
 
 #ifdef SUPPORT_POINT_SIZE_FONT

@@ -137,98 +137,47 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
 }
 #endif
 
+static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_height,
+                              u_int font_ascent, u_int font_width, int font_x_off,
+                              int double_draw_gap, int is_proportional,
+                              u_int32_t fg_pixel, u_int32_t bg_pixel, int x, int y, int y_off,
+                              u_char **bitmaps, u_int len, u_char *picture,
+                              size_t picture_line_len, int src_bg_is_set, int bpp);
+
 static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                        ui_color_t *bg_color,      /* must be NULL if wall_picture_bg is 1 */
                        int x, int y, u_char *str, /* 'len * ch_len' bytes */
                        u_int len, u_int ch_len, int wall_picture_bg) {
   u_int bpp;
   XFontStruct *xfont;
-  u_char *src;
-  u_char *p;
   u_char **bitmaps;
-  size_t size;
   u_int font_height;
   u_int font_ascent;
-  u_int font_width;
   int y_off;
   u_char *picture;
   size_t picture_line_len;
   u_int count;
   int src_bg_is_set;
-  int orig_x;
   u_int clip_bottom;
   int use_ot_layout;
-  int orig_y_off;
+  int x_off;
 
   if (!win->is_mapped) {
     return 0;
   }
 
-  bpp = win->disp->display->bytes_per_pixel;
-  font_width = font->width;
-  xfont = font->xfont;
-
-#if defined(USE_FREETYPE)
-  if (xfont->is_aa && font->is_proportional) {
-    u_int width;
-
-    /* width_full == glyph_width_bytes / 3 */
-    if (x + (width = len * xfont->width_full) > win->width) {
-      width = win->width - x;
-    }
-
-    size = width * bpp;
-  } else
-#endif
-  {
-    size = len * font_width * bpp;
-  }
-
-  if (!(src = alloca(size)) || !(bitmaps = alloca((len * sizeof(*bitmaps))))) {
+  if (!(bitmaps = alloca((len * sizeof(*bitmaps))))) {
     return 0;
   }
+
+  bpp = win->disp->display->bytes_per_pixel;
+  xfont = font->xfont;
 
 #ifdef USE_OT_LAYOUT
   use_ot_layout = (font->use_ot_layout /* && font->ot_font */);
 #else
   use_ot_layout = 0;
 #endif
-
-  if (ch_len == 1) {
-    for (count = 0; count < len; count++) {
-      bitmaps[count] = ui_get_bitmap(xfont, str + count, 1, use_ot_layout);
-    }
-  } else /* if( ch_len == 2) */
-  {
-    for (count = 0; count < len; count++) {
-      if (0xd8 <= str[0] && str[0] <= 0xdb) {
-        len--;
-
-        if (count >= len) {
-          /* ignored */
-          break;
-        }
-
-        if (0xdc <= str[2] && str[2] <= 0xdf) {
-          /* surrogate pair */
-          ef_int_to_bytes(str, 4, (str[0] - 0xd8) * 0x100 * 0x400 + str[1] * 0x400 +
-                                       (str[2] - 0xdc) * 0x100 + str[3] + 0x10000);
-          ch_len = 4;
-        } else {
-          /* illegal, ignored. */
-          len--;
-          count--;
-          str += 4;
-          continue;
-        }
-      }
-
-      bitmaps[count] = ui_get_bitmap(xfont, str, ch_len, use_ot_layout);
-
-      str += ch_len;
-      ch_len = 2;
-    }
-  }
 
   /*
    * Check if font->height or font->ascent excesses the display height,
@@ -277,8 +226,8 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
    * applications regard as half width.
    */
 
-  if (x + font_width * len > win->width) {
-    len = (win->width - x) / font_width;
+  if (x + font->width * len > win->width) {
+    len = (win->width - x) / font->width;
   }
 #endif
 
@@ -317,9 +266,122 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
     }
   }
 
+  x_off = font->x_off;
+
+  if (ch_len == 1) {
+    for (count = 0; count < len; count++) {
+      bitmaps[count] = ui_get_bitmap(xfont, str + count, 1, use_ot_layout, NULL);
+    }
+  } else /* if( ch_len == 2) */ {
+    XFontStruct *compl_xfont;
+
+    for (count = 0; count < len;) {
+      if (0xd8 <= str[0] && str[0] <= 0xdb) {
+        len--;
+
+        if (count >= len) {
+          /* ignored */
+          break;
+        }
+
+        if (0xdc <= str[2] && str[2] <= 0xdf) {
+          /* surrogate pair */
+          ef_int_to_bytes(str, 4, (str[0] - 0xd8) * 0x100 * 0x400 + str[1] * 0x400 +
+                                       (str[2] - 0xdc) * 0x100 + str[3] + 0x10000);
+          ch_len = 4;
+        } else {
+          /* illegal, ignored. */
+          len--;
+          count--;
+          str += 4;
+          continue;
+        }
+      }
+
+      compl_xfont = NULL;
+      bitmaps[count] = ui_get_bitmap(font->xfont, str, ch_len, use_ot_layout, &compl_xfont);
+      if (compl_xfont && xfont != compl_xfont) {
+        u_int w;
+
+        if (count > 0) {
+          draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
+                             font->double_draw_gap, font->is_proportional,
+                             fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
+                             bitmaps, count, picture, picture_line_len, src_bg_is_set, bpp);
+          x += (font->width * count);
+          bitmaps[0] = bitmaps[count];
+          len -= count;
+          count = 0;
+        } else {
+          count++;
+        }
+        xfont = compl_xfont;
+
+        /* see ui_font.c */
+        if ((font->id & FONT_FULLWIDTH) && IS_ISO10646_UCS4(FONT_CS(font->id)) &&
+            xfont->width_full > 0) {
+          w = xfont->width_full;
+        } else {
+          w = xfont->width;
+        }
+
+        if (w >= font->width) {
+          x_off = 0;
+        } else {
+          x_off = (font->width - w) / 2;
+        }
+      } else {
+        count++;
+      }
+
+      str += ch_len;
+      ch_len = 2;
+    }
+  }
+
+  return draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
+                            font->double_draw_gap, font->is_proportional,
+                            fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
+                            bitmaps, len, picture, picture_line_len, src_bg_is_set, bpp);
+}
+
+static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_height,
+                              u_int font_ascent, u_int font_width, int font_x_off,
+                              int double_draw_gap, int is_proportional,
+                              u_int32_t fg_pixel, u_int32_t bg_pixel,
+                              int x, /* win->x and win->hmargin are added. */
+                              int y, int y_off, u_char **bitmaps, u_int len, u_char *picture,
+                              size_t picture_line_len, int src_bg_is_set, int bpp) {
+  size_t size;
+  u_char *src;
+  u_char *p;
+  u_int count;
+  int orig_x;
+  int orig_y_off;
+
+#ifdef USE_FREETYPE
+  if (xfont->is_aa && is_proportional) {
+    u_int width;
+
+    /* width_full == glyph_width_bytes / 3 */
+    if (x + (width = len * xfont->width_full) > win->width + win->hmargin + win->x) {
+      width = win->width + win->hmargin + win->x - x;
+    }
+
+    size = width * bpp;
+  } else
+#endif
+  {
+    size = len * font_width * bpp;
+  }
+
+  if (!(src = alloca(size))) {
+    return 0;
+  }
+
 #if 1
   /* Optimization for most cases */
-  if (src_bg_is_set && !font->double_draw_gap
+  if (src_bg_is_set && !double_draw_gap
 #ifdef USE_FREETYPE
       && !xfont->face
 #endif
@@ -328,23 +390,23 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
     int x_off;
     u_int glyph_width;
 
-    glyph_width = font_width - font->x_off;
+    glyph_width = font_width - font_x_off;
 
     switch (bpp) {
       case 1:
         for (; y_off < font_height; y_off++) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
-                       : memset(src, bg_color->pixel, size));
+                       : memset(src, bg_pixel, size));
 
           for (count = 0; count < len; count++) {
             if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off, bitmap_line)) {
               p += font_width;
             } else {
-              p += font->x_off;
+              p += font_x_off;
 
               for (x_off = 0; x_off < glyph_width; x_off++) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
-                  *p = fg_color->pixel;
+                  *p = fg_pixel;
                 }
 
                 p++;
@@ -360,17 +422,17 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       case 2:
         for (; y_off < font_height; y_off++) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
-                       : memset16(src, bg_color->pixel, size / 2));
+                       : memset16(src, bg_pixel, size / 2));
 
           for (count = 0; count < len; count++) {
             if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off, bitmap_line)) {
               p += (font_width * 2);
             } else {
-              p += (font->x_off * 2);
+              p += (font_x_off * 2);
 
               for (x_off = 0; x_off < glyph_width; x_off++) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
-                  *((u_int16_t *)p) = fg_color->pixel;
+                  *((u_int16_t *)p) = fg_pixel;
                 }
 
                 p += 2;
@@ -387,17 +449,17 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       default:
         for (; y_off < font_height; y_off++) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
-                       : memset32(src, bg_color->pixel, size / 4));
+                       : memset32(src, bg_pixel, size / 4));
 
           for (count = 0; count < len; count++) {
             if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off, bitmap_line)) {
               p += (font_width * 4);
             } else {
-              p += (font->x_off * 4);
+              p += (font_x_off * 4);
 
               for (x_off = 0; x_off < glyph_width; x_off++) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
-                  *((u_int32_t *)p) = fg_color->pixel;
+                  *((u_int32_t *)p) = fg_pixel;
                 }
 
                 p += 4;
@@ -427,16 +489,16 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       } else {
         switch (bpp) {
           case 1:
-            memset(src, bg_color->pixel, size);
+            memset(src, bg_pixel, size);
             break;
 
           case 2:
-            memset16(src, bg_color->pixel, size / 2);
+            memset16(src, bg_pixel, size / 2);
             break;
 
           /* case  4: */
           default:
-            memset32(src, bg_color->pixel, size / 4);
+            memset32(src, bg_pixel, size / 4);
             break;
         }
       }
@@ -459,7 +521,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       }
 #if defined(USE_FREETYPE)
       else if (xfont->is_aa) {
-        if (font->is_proportional) {
+        if (is_proportional) {
           /*
            * src_bg_is_set is always false
            * (see #ifdef USE_FRAMEBUFFER #ifdef USE_FREETYPE
@@ -502,7 +564,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 
             bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
 
-            if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_color->pixel, bg, bpp)) {
+            if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
               continue;
             } else if (count == 0 || x_off >= prev_crowded_out) {
               copy_pixel(p, bg, bpp);
@@ -539,21 +601,21 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
           for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
             u_long pixel;
 
-            if (font->x_off <= x_off &&
-                x_off < font->x_off + ui_get_bitmap_width(font->xfont)) {
+            if (font_x_off <= x_off &&
+                x_off < font_x_off + ui_get_bitmap_width(xfont)) {
               u_long bg;
 
               if (src_bg_is_set) {
                 if (picture) {
                   bg = (bpp == 2) ? *((u_int16_t *)p) : *((u_int32_t *)p);
                 } else {
-                  bg = bg_color->pixel;
+                  bg = bg_pixel;
                 }
               } else {
                 bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
               }
 
-              if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_color->pixel, bg,
+              if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg,
                                      bpp)) {
                 continue;
               }
@@ -575,13 +637,13 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
         for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
           u_long pixel;
 
-          if (font->x_off <= x_off && ui_get_bitmap_cell(bitmap_line, x_off - font->x_off)) {
-            pixel = fg_color->pixel;
+          if (font_x_off <= x_off && ui_get_bitmap_cell(bitmap_line, x_off - font_x_off)) {
+            pixel = fg_pixel;
 
-            force_fg = font->double_draw_gap;
+            force_fg = double_draw_gap;
           } else {
             if (force_fg) {
-              pixel = fg_color->pixel;
+              pixel = fg_pixel;
               force_fg = 0;
             } else if (src_bg_is_set) {
               continue;

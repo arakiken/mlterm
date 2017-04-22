@@ -1,3 +1,17 @@
+2017-04-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_window.c:
+	  draw_string() is separated to draw_string() and draw_string_intern()
+	  in order to show complementary glyphs.
+
+	* ui.h, ui_font.h, ui_font.c:
+	  ui_get_bitmap() returns a complementary glyph in an alternative font
+	  if no glyph is found in a specified xfont.
+
+	* main_loop.c, ui_font_config.c:
+	  ui_costomize_font_file() works if --aafont option is specified on framebuffer or
+	  wayland.
+
 2017-04-16  Araki Ken  <arakiken@users.sf.net>
 
 	* README, README.ja: Updated.

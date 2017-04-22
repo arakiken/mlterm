@@ -197,7 +197,7 @@ typedef struct /* Same as definition in X11/X.h */
 
 } XChar2b;
 
-typedef struct {
+typedef struct _XFontStruct {
   char *file;
 
 #ifdef USE_FREETYPE
@@ -233,6 +233,8 @@ typedef struct {
   u_int32_t num_of_indeces;
   u_int32_t glyph_size;
   int is_aa;
+
+  struct _XFontStruct **compl_xfonts;
 #endif
 
   unsigned int ref_count;

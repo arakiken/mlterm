@@ -647,9 +647,12 @@ static u_int match_font_configs(ui_font_config_t **matched_configs,
 
   size = 0;
   for (count = 0; count < num_of_configs; count++) {
-    if ((is_xcore ? font_configs[count]->type_engine == TYPE_XCORE :
-                  /* '>= XFT' means XFT or Cairo */
-             font_configs[count]->type_engine >= TYPE_XFT) &&
+    if (
+#if !defined(USE_FREETYPE) || !defined(USE_FONTCONFIG)
+        (is_xcore ? font_configs[count]->type_engine == TYPE_XCORE :
+                    /* '>= XFT' means XFT or Cairo */
+                    font_configs[count]->type_engine >= TYPE_XFT &&
+#endif
         (present_mask ? (font_configs[count]->font_present & present_mask) : 1)) {
       matched_configs[size++] = font_configs[count];
       if (size >= max_size) {
@@ -854,7 +857,13 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
   u_int num_of_targets;
   u_int count;
 
-  if (file == NULL || strcmp(file, FONT_FILE) == 0) {
+  if (file == NULL ||
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+      strcmp(file, "font") == 0
+#else
+      strcmp(file, FONT_FILE) == 0
+#endif
+      ) {
     file = font_file;
     num_of_targets = match_font_configs(targets, 6, /* is xcore */ 1, 0);
   } else if (strcmp(file, aafont_file + 7) == 0) {
@@ -1053,7 +1062,7 @@ char *ui_get_config_font_name2(const char *file, /* can be NULL */
     engine = TYPE_XCORE;
     present = 0;
   }
-#if !defined(USE_FREETYPE) || ! defined(USE_FONTCONFIG)
+#if !defined(USE_FREETYPE) || !defined(USE_FONTCONFIG)
   else if (strcmp(file, aafont_file + 7) == 0) {
     engine = TYPE_XFT;
 
