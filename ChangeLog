@@ -1,5 +1,15 @@
 2017-04-23  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/ui_window.c: A bug which disabled ui_window_move() to move root windows
+	  is fixed.
+
+	* fb/ui.h: Compiling error is fixed.
+
+	* wayland/ui_display.c: The return value of ui_display_move is changed from
+	  void to int.
+
+2017-04-23  Araki Ken  <arakiken@users.sf.net>
+
 	* main_loop.c: Minor fixes.
 
 	* fb/ui_font.c: Compiling error is fixed.

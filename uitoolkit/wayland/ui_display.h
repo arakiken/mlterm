@@ -39,7 +39,7 @@ int ui_display_receive_next_event_singly(ui_display_t *disp);
 
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height);
 
-void ui_display_move(ui_display_t *disp, int x, int y);
+int ui_display_move(ui_display_t *disp, int x, int y);
 
 void ui_display_request_text_selection(ui_display_t *disp);
 

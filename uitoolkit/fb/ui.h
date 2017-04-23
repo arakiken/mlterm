@@ -181,7 +181,7 @@ typedef union {
 
 } XEvent;
 
-typedef struct {
+typedef struct _XFontStruct {
   char *file;
 
   int32_t format; /* XXX (fontsize|FONT_BOLD|FONT_ITALIC) on freetype. */
@@ -211,6 +211,10 @@ typedef struct {
   u_int32_t num_of_indeces;
   u_int32_t glyph_size;
   int is_aa;
+
+#ifdef USE_FONTCONFIG
+  struct _XFontStruct **compl_xfonts;
+#endif
 #endif
 
   unsigned int ref_count;

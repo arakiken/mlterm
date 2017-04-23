@@ -1909,19 +1909,19 @@ int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
   return resize_display(disp, width, height, 1);
 }
 
-void ui_display_move(ui_display_t *disp, int x, int y) {
+int ui_display_move(ui_display_t *disp, int x, int y) {
   Display *display = disp->display;
 
 #ifdef COMPAT_LIBVTE
   if (display->x == x && display->y == y) {
-    return;
+    return 0;
   }
 
   display->x = x;
   display->y = y;
 
   if (!display->buffer) {
-    return;
+    return 0;
   }
 
   if (display->subsurface) {
@@ -1949,6 +1949,8 @@ void ui_display_move(ui_display_t *disp, int x, int y) {
                                    WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
   }
 #endif
+
+  return 1;
 }
 
 u_long ui_display_get_pixel(ui_display_t *disp, int x, int y) {
