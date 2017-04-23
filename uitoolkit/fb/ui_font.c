@@ -63,87 +63,13 @@
 static XFontStruct **xfonts;
 static u_int num_of_xfonts;
 
-/* --- static functions --- */
-
-static XFontStruct *get_cached_xfont(const char *file, int32_t format) {
-  u_int count;
-
-  for (count = 0; count < num_of_xfonts; count++) {
-    if (strcmp(xfonts[count]->file, file) == 0
-#ifdef USE_FREETYPE
-        && (xfonts[count]->face == NULL || xfonts[count]->format == format)
-#endif
-        ) {
-#ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Use cached XFontStruct for %s.\n", xfonts[count]->file);
-#endif
-      xfonts[count]->ref_count++;
-
-      return xfonts[count];
-    }
-  }
-
-  return NULL;
-}
-
-static void unload_xfont(XFontStruct *xfont);
-
-static int add_xfont_to_cache(XFontStruct *xfont) {
-  void *p;
-
-  if (!(p = realloc(xfonts, sizeof(XFontStruct*) * (num_of_xfonts + 1)))) {
-    unload_xfont(xfont);
-    free(xfont);
-
-    return 0;
-  }
-
-  xfonts = p;
-  xfonts[num_of_xfonts++] = xfont;
-  xfont->ref_count = 1;
-
-  return 1;
-}
-
-#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-static void compl_final(void);
-static void compl_xfonts_delete(XFontStruct **xfonts);
-#else
-#define compl_final() (0)
-#define compl_xfonts_delete(xfonts) (0)
-#endif
-
-static void xfont_unref(XFontStruct *xfont) {
-  if (--xfont->ref_count == 0) {
-    u_int count;
-
-    compl_xfonts_delete(xfont->compl_xfonts);
-
-    for (count = 0; count < num_of_xfonts; count++) {
-      if (xfonts[count] == xfont) {
-        if (--num_of_xfonts > 0) {
-          xfonts[count] = xfonts[num_of_xfonts];
-        } else {
-          free(xfonts);
-          xfonts = NULL;
-          compl_final();
-        }
-
-        break;
-      }
-    }
-
-#ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " %s font is unloaded. => CURRENT NUM OF XFONTS %d\n",
-                    xfont->file, num_of_xfonts);
-#endif
-
-    unload_xfont(xfont);
-    free(xfont);
-  }
-}
+static XFontStruct *get_cached_xfont(const char *file, int32_t format);
+static int add_xfont_to_cache(XFontStruct *xfont);
+static void xfont_unref(XFontStruct *xfont);
 
 /* ===== PCF ===== */
+
+/* --- static functions --- */
 
 static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, int glyph_pad_type) {
   int32_t *offsets;
@@ -1374,7 +1300,6 @@ static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
 
   return match;
 }
-
 #endif /* USE_FONTCONFIG */
 
 static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout,
@@ -1503,6 +1428,77 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
 
 #endif /* USE_FREETYPE */
 
+static XFontStruct *get_cached_xfont(const char *file, int32_t format) {
+  u_int count;
+
+  for (count = 0; count < num_of_xfonts; count++) {
+    if (strcmp(xfonts[count]->file, file) == 0
+#ifdef USE_FREETYPE
+        && (xfonts[count]->face == NULL || xfonts[count]->format == format)
+#endif
+        ) {
+#ifdef DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " Use cached XFontStruct for %s.\n", xfonts[count]->file);
+#endif
+      xfonts[count]->ref_count++;
+
+      return xfonts[count];
+    }
+  }
+
+  return NULL;
+}
+
+static int add_xfont_to_cache(XFontStruct *xfont) {
+  void *p;
+
+  if (!(p = realloc(xfonts, sizeof(XFontStruct*) * (num_of_xfonts + 1)))) {
+    unload_xfont(xfont);
+    free(xfont);
+
+    return 0;
+  }
+
+  xfonts = p;
+  xfonts[num_of_xfonts++] = xfont;
+  xfont->ref_count = 1;
+
+  return 1;
+}
+
+static void xfont_unref(XFontStruct *xfont) {
+  if (--xfont->ref_count == 0) {
+    u_int count;
+
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+    compl_xfonts_delete(xfont->compl_xfonts);
+#endif
+
+    for (count = 0; count < num_of_xfonts; count++) {
+      if (xfonts[count] == xfont) {
+        if (--num_of_xfonts > 0) {
+          xfonts[count] = xfonts[num_of_xfonts];
+        } else {
+          free(xfonts);
+          xfonts = NULL;
+#if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
+          compl_final();
+#endif
+        }
+
+        break;
+      }
+    }
+
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " %s font is unloaded. => CURRENT NUM OF XFONTS %d\n",
+                    xfont->file, num_of_xfonts);
+#endif
+
+    unload_xfont(xfont);
+    free(xfont);
+  }
+}
 
 /* --- static variables --- */
 
@@ -1691,7 +1687,13 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     sprintf(decsp_id, "decsp-%dx%d", col_width, fontsize);
   }
 
-  if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file, format))) {
+  if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file,
+#ifdef USE_FREETYPE
+                                      format
+#else
+                                      0
+#endif
+       ))) {
     goto xfont_loaded;
   }
 

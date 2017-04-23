@@ -121,7 +121,7 @@ int main_loop_init(int argc, char **argv) {
   bl_init_prog(argv[0],
                DETAIL_VERSION
                "\nFeatures:"
-#ifdef NO_DYNAMIC_LOAD_TYPE
+#if defined(USE_XLIB) && defined(NO_DYNAMIC_LOAD_TYPE)
 #ifndef USE_TYPE_XFT
                " no-xft"
 #endif

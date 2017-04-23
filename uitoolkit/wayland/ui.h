@@ -234,7 +234,9 @@ typedef struct _XFontStruct {
   u_int32_t glyph_size;
   int is_aa;
 
+#ifdef USE_FONTCONFIG
   struct _XFontStruct **compl_xfonts;
+#endif
 #endif
 
   unsigned int ref_count;

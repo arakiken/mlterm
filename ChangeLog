@@ -1,5 +1,11 @@
 2017-04-23  Araki Ken  <arakiken@users.sf.net>
 
+	* main_loop.c: Minor fixes.
+
+	* fb/ui_font.c: Compiling error is fixed.
+
+2017-04-23  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_window.c:
 	  draw_string() is separated to draw_string() and draw_string_intern()
 	  in order to show complementary glyphs.

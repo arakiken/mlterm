@@ -6,10 +6,10 @@ ver 3.8.1
 * Add "underline_offset" / --udpos option.
 * Rename wskbd_repeat_1 and wskbd_repeat_N options to kbd_repeat_1 and kbd_repeat_N.
 * Enable --enable-anti-alias option of configure script by default.
-* Add --enable-fontconfig option which enables fontconfig on framebuffer or wayland
+* Add --enable-fontconfig option which enables fontconfig on framebuffer and wayland
   to configure script. (This option is enabled by default.)
-* Add "use_aafont" option which tells mlterm to read ~/.mlterm/*aafont configurations
-  with the use of fontconfig on framebuffer or wayland.
+* Add "use_aafont" option which gets mlterm to apply ~/.mlterm/*aafont configurations
+  with the use of fontconfig on framebuffer and wayland.
   (The default value is true on wayland, while false on framebuffer.)
 * Search alternative glyphs in other fonts automatically on framebuffer and wayland
   with freetype and fontconfig.
