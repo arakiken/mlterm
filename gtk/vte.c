@@ -760,7 +760,7 @@ static void bs_mode_exited(void *p) {
   gtk_adjustment_set_value(ADJUSTMENT(terminal), upper - page_size);
 #else
   ADJUSTMENT(terminal)->value = upper - page_size;
-  gtk_m_adjustment_value_changed(ADJUSTMENT(terminal));
+  gtk_adjustment_value_changed(ADJUSTMENT(terminal));
 #endif
 
 #ifdef __DEBUG

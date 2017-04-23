@@ -713,6 +713,7 @@ static int cairo_compl_font_open(ui_font_t *font, int num_of_compl_fonts, FcPatt
 
       if (ret != FcResultMatch || !FcCharSetHasChar(charset, ch)) {
         FcPatternDestroy(match);
+        match = NULL;
         continue;
       }
     }
@@ -734,8 +735,6 @@ static int cairo_compl_font_open(ui_font_t *font, int num_of_compl_fonts, FcPatt
     if ((p = realloc(font->compl_fonts, sizeof(*font->compl_fonts) * (num_of_compl_fonts + 1)))) {
       font->compl_fonts = p;
     } else {
-      FcPatternDestroy(match);
-
       break;
     }
 

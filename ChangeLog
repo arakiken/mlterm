@@ -1,3 +1,9 @@
+2017-04-24  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: gtk_m_adjustment_value_changed() => gtk_adjustment_value_changed().
+
+	* ui_font_ft.c: Double free problem by FcPatternDestroy() is fixed.
+
 2017-04-23  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_window.c: A bug which disabled ui_window_move() to move root windows
