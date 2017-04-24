@@ -1,5 +1,9 @@
 2017-04-24  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_pty_ssh.c: zombie() removes a zombie channel from ssh_session_t.
+
+2017-04-24  Araki Ken  <arakiken@users.sf.net>
+
 	* vte.c: gtk_m_adjustment_value_changed() => gtk_adjustment_value_changed().
 
 	* ui_font_ft.c: Double free problem by FcPatternDestroy() is fixed.

@@ -13,6 +13,7 @@ ver 3.8.1
   (The default value is true on wayland, while false on framebuffer.)
 * Search alternative glyphs in other fonts automatically on framebuffer and wayland
   with freetype and fontconfig.
+* libvte compatible library supports vte 0.46.0 API.
 * Bug fixes:
   Fix detection failuer of mouse event devices on framebuffer/linux. (Thanks to @nyarla)
   (See http://the.nyarla.net/entry/2017/03/25/142516 for details.)

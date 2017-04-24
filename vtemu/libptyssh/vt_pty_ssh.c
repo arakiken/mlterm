@@ -745,11 +745,21 @@ static int ssh_disconnect(ssh_session_t *session) {
   return 1;
 }
 
+static void remove_channel_from_session(ssh_session_t *session, LIBSSH2_CHANNEL *channel) {
+  u_int count;
+
+  for (count = 0; count < session->num_of_ptys; count++) {
+    if (session->pty_channels[count] == channel) {
+      session->pty_channels[count] = session->pty_channels[--session->num_of_ptys];
+      break;
+    }
+  }
+}
+
 static int unuse_loopback(vt_pty_t *pty);
 
 static int final(vt_pty_t *pty) {
   ssh_session_t *session;
-  u_int count;
 
   unuse_loopback(pty);
 
@@ -757,12 +767,7 @@ static int final(vt_pty_t *pty) {
 
   libssh2_session_set_blocking(session->obj, 1);
 
-  for (count = 0; count < session->num_of_ptys; count++) {
-    if (session->pty_channels[count] == ((vt_pty_ssh_t *)pty)->channel) {
-      session->pty_channels[count] = session->pty_channels[--session->num_of_ptys];
-      break;
-    }
-  }
+  remove_channel_from_session(session, ((vt_pty_ssh_t *)pty)->channel);
 
   libssh2_channel_free(((vt_pty_ssh_t *)pty)->channel);
   ssh_disconnect(session);
@@ -789,6 +794,12 @@ static int zombie(vt_pty_ssh_t *pty) {
   if (use_loopback(&pty->pty)) {
     vt_write_to_pty(&pty->pty, "=== Press any key to exit ===", 29);
     pty->is_eof = 1;
+
+    /*
+     * vt_pty_ssh_poll() may access an invalid channel object without this.
+     * After calling this, remove_channel_from_session() in final() does nothing.
+     */
+    remove_channel_from_session(pty->session, pty->channel);
 
     return 1;
   }
