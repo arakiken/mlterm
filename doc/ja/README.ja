@@ -647,6 +647,9 @@ comment $Id$
       o hide_underline (true/*false*)
         アンダーラインを描画しない。
 
+      o underline_offset (0)
+        アンダーラインの位置(フォントのベースラインからの相対位置)を指定する。
+
       o wall_picture  (*なし*) (#)
         壁紙にする画像ファイルのパス
         なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
@@ -1325,6 +1328,7 @@ comment $Id$
        --bl=value      : bl_color
        --co=value      : co_color
        --noul(=bool)   : hide_underline
+       --ulpos(=bool)  : underline_offset
        --otl(=bool)    : use_ot_layout
        --ost=value     : ot_script
        --oft=value     : ot_features

@@ -53,7 +53,7 @@ version 20160815
                      use_urgent_bell | allow_osc52 | allow_scp | auto_detect_encodings |
                      use_auto_detect | use_extended_scroll_shortcut | use_ot_layout |
                      ot_script | ot_features | regard_uri_as_word | vt_color_mode |
-                     console_encoding | console_sixel_colors | borderless
+                     console_encoding | console_sixel_colors | borderless | underline_offset
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -71,7 +71,7 @@ version 20160815
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
                      unicode_full_width_areas | box_drawing_font | auto_detect_encodings |
                      use_auto_detect | use_ot_layout | regard_uri_as_word | borderless |
-                     use_aafont
+                     use_aafont | underline_offset
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -137,6 +137,7 @@ version 20160815
   tabsize = <any ASCII decimal digit>
   type_engine = xcore | xft
   ul_color = <color name> | <color rgb>
+  underline_offset = <any ASCII decimal digit>
   unicode_noconv_areas = (U+XXXX-XXXX,)*
   unicode_full_width_areas = (U+XXXX-XXXX,)*
   use_aafont = true | false

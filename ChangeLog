@@ -1,3 +1,7 @@
+2017-04-25  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1, PROTOCOL: Updated.
+
 2017-04-24  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_ssh.c: zombie() removes a zombie channel from ssh_session_t.
