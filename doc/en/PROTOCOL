@@ -2,7 +2,7 @@ comment -*- mode: text -*-
 comment $Id$
 
 mlterm configuration protocol
-version 20170424
+version 20160815
 
 * Protocol
   exec             = "\x1b]5379;" <command> "\x07"

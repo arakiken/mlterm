@@ -461,7 +461,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
   if (!str_parser) {
     bl_conf_t *conf;
 
-    bl_init_prog("mlterm", "3.8.1");
+    bl_init_prog("mlterm", "3.8.0");
     bl_set_sys_conf_dir(CONFIG_PATH);
     bl_locale_init("");
     bl_sig_child_init();
