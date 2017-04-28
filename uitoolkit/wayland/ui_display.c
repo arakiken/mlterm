@@ -105,14 +105,21 @@ static ui_window_t *search_focused_window(ui_window_t *win) {
   u_int count;
   ui_window_t *focused;
 
-  if (win->is_focused) {
-    return win;
-  }
-
+  /*
+   * *parent* - *child*
+   *            ^^^^^^^ => Hit this window instead of the parent window.
+   *          - child
+   *          - child
+   * (**: is_focused == 1)
+   */
   for (count = 0; count < win->num_of_children; count++) {
     if ((focused = search_focused_window(win->children[count]))) {
       return focused;
     }
+  }
+
+  if (win->is_focused) {
+    return win;
   }
 
   return NULL;
@@ -417,10 +424,9 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
 #ifdef __DEBUG
     bl_debug_printf("UNFOCUSED %p\n", win);
 #endif
-    win->is_focused = 0;
-    if (win->window_unfocused) {
-      (*win->window_unfocused)(win);
-    }
+    XEvent ev;
+    ev.type = FocusOut;
+    ui_window_receive_event(ui_get_root_window(win), &ev);
   }
 }
 
@@ -1339,6 +1345,10 @@ static ui_wlserv_t *open_wl_display(char *name) {
 }
 
 static void close_wl_display(ui_wlserv_t *wlserv) {
+#ifdef __DEBUG
+  bl_debug_printf("Closing wldisplay.\n");
+#endif
+
 #if 0
   if (wlserv->dnd_offer) {
     wl_data_offer_destroy(wlserv->dnd_offer);
@@ -1513,7 +1523,6 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
 #ifdef COMPAT_LIBVTE
   display->subsurface = wl_subcompositor_get_subsurface(wlserv->subcompositor, display->surface,
                                                         display->parent_surface);
-  wl_subsurface_set_desync(display->subsurface);
 #else
   display->shell_surface = wl_shell_get_shell_surface(wlserv->shell, display->surface);
   wl_shell_surface_set_class(display->shell_surface, app_name);
@@ -1615,7 +1624,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 }
 
 int ui_display_close(ui_display_t *disp) {
-  int count;
+  u_int count;
 
   for (count = 0; count < num_of_displays; count++) {
     if (displays[count] == disp) {
@@ -1640,7 +1649,7 @@ int ui_display_close(ui_display_t *disp) {
 
 int ui_display_close_all(void) {
   while (num_of_displays > 0) {
-    close_display(displays[--num_of_displays]);
+    close_display(displays[0]);
   }
 
   return 1;
@@ -2191,10 +2200,31 @@ void ui_display_init_wlserv(ui_wlserv_t *wlserv) {
 
 void ui_display_map(ui_display_t *disp) {
   if (!disp->display->buffer) {
+    ui_window_t *win;
+
 #ifdef __DEBUG
     bl_debug_printf("Creating new shm buffer.\n");
 #endif
+    /*
+     * wl_subsurface should be desynchronized between create_shm_buffer() and
+     * destroy_shm_buffer() to draw screen correctly.
+     */
+    wl_subsurface_set_desync(disp->display->subsurface);
+
     create_shm_buffer(disp->display);
+
+    /*
+     * gnome-terminal doesn't invoke FocusIn event in switching tabs, so
+     * it is necessary to set current_kbd_surface and is_focused manually.
+     */
+    disp->display->wlserv->current_kbd_surface = disp->display->surface;
+    if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
+      /*
+       * ui_window_set_input_focus() is not called here, because it is not necessary to
+       * call win->window_focused() which is called in ui_window_set_input_focus().
+       */
+      win->inputtable = win->is_focused = 1;
+    }
 
     /*
      * shell_surface_configure() might have been already received and
@@ -2217,8 +2247,16 @@ void ui_display_unmap(ui_display_t *disp) {
     bl_debug_printf("Destroying shm buffer.\n");
 #endif
     destroy_shm_buffer(disp->display);
+    /*
+     * Without calling wl_subsurface_set_sync() before wl_surface_commit(),
+     * is_surface_effectively_shnchronized(surface->sub.parent) in meta-wayland-surface.c
+     * (mutter-3.22.3) causes segfault because surface->sub.parent can be NULL before
+     * ui_display_unmap() is called.
+     */
+    wl_subsurface_set_sync(disp->display->subsurface);
     wl_surface_commit(disp->display->surface);
     disp->display->buffer = NULL;
+    disp->display->x = disp->display->y = 0;
   }
 }
 #endif /* COMPAT_LIBVTE */

@@ -521,7 +521,15 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
   child->parent = win;
   child->x = x + win->hmargin;
   child->y = y + win->vmargin;
-  child->is_focused = child->is_mapped = map;
+
+  if ((child->is_mapped = map) && win->is_focused && child->inputtable) {
+    child->is_focused = 1;
+  } else {
+    child->is_focused = 0;
+    if (child->inputtable > 0) {
+      child->inputtable = -1;
+    }
+  }
 
   win->children[win->num_of_children++] = child;
 

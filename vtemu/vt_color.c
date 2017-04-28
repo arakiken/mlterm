@@ -787,7 +787,6 @@ u_int vt_get_closest_256_color(vt_color_t *closest, u_int *min_diff, u_int8_t re
   int num;
 
   if (num_of_changed_256_colors > 0) {
-    bl_debug_printf("OUCH %d\n", num_of_changed_256_colors);
     return 256;
   }
 

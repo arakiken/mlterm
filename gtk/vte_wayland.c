@@ -39,6 +39,16 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
   ui_display_show_root(disp, win, 0, 0, 0, class, gdk_wayland_window_get_wl_surface(window));
 }
 
+static void vte_terminal_map(GtkWidget *widget) {
+  GtkAllocation alloc;
+
+  (*GTK_WIDGET_CLASS(vte_terminal_parent_class)->map)(widget);
+
+  ui_display_map(PVT(VTE_TERMINAL(widget))->screen->window.disp);
+  gtk_widget_get_allocation(widget, &alloc);
+  ui_display_move(PVT(VTE_TERMINAL(widget))->screen->window.disp, alloc.x, alloc.y);
+}
+
 static void vte_terminal_unmap(GtkWidget *widget) {
   /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
   ui_display_unmap(PVT(VTE_TERMINAL(widget))->screen->window.disp);
@@ -88,5 +98,6 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
 
   ui_display_init_wlserv(&wlserv);
 
+  GTK_WIDGET_CLASS(vclass)->map = vte_terminal_map;
   GTK_WIDGET_CLASS(vclass)->unmap = vte_terminal_unmap;
 }

@@ -22,7 +22,7 @@
 #define IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color) ((unsigned int)(color) <= 0x1ef)
 #define IS_FG_BG_COLOR(color) (0x1f0 <= (color) && (color) <= 0x1f1)
 #define IS_ALT_COLOR(color) (0x1f2 <= (color))
-#define EXT_COLOR_TO_INDEX(color) ((color)-MAX_VTSYS_COLORS - MAX_256_COLORS)
+#define EXT_COLOR_TO_INDEX(color) ((color) - MAX_VTSYS_COLORS - MAX_256_COLORS)
 #define INDEX_TO_EXT_COLOR(color) ((color) + MAX_VTSYS_COLORS + MAX_256_COLORS)
 #define COLOR_DISTANCE(diff_r, diff_g, diff_b) \
   ((diff_r) * (diff_r)*9 + (diff_g) * (diff_g)*30 + (diff_b) * (diff_b))

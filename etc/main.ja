@@ -238,6 +238,9 @@ scrollbar_view_name = sample
 # アンダーラインを描画しない。
 # hide_underline = false
 
+# アンダーラインの位置(フォントのベースラインからの相対位置)
+# underline_offset = 0
+
 # 壁紙にする画像ファイルのパス
 # wall_picture =
 

@@ -1,3 +1,29 @@
+2017-04-28  Araki Ken  <arakiken@users.sf.net>
+
+	* README, gtk/README: Updated.
+
+	* vte_wayland.c, vte.c:
+	  - vte_terminal_map() is added and registered to GTK_WIDGET_CLASS(vclass)->map.
+	  - ui_display_map() etc are removed from vte_terminal_focus_in().
+
+	* wayland/ui_color.c: The value of x_color_t::{red|green|blue} is not
+	  multiplied by alpha on wayland.
+
+	* {wayland,fb}/ui_window.c, console/ui_window.c: Initialization of
+	  child->inputtable and child->is_focused in ui_window_add_child() is fixed.
+
+	* wayland/ui_display.[ch]:
+	  - search_focused_window() searches windows in turn from children.
+	  - FocusOut macro is defined and ui_window_receive_event(FocusOut) instead
+	    of win->window_unfocused() is called in keyboard_leave().
+	  - wl_subsurface_set_desync() is called in ui_display_map(), and
+	    wl_subsurface_set_sync() is called in ui_display_unmap().
+
+	* ui_color_cache.c:
+	  color_caches[count]->is_loaded => color_caches[count]->cache_256ext->is_loaded
+	  (This causes segmentation fault in using many colors by SGR 38;2;r;g;b
+	  or 48;2;r;g;b sequence)
+
 2017-04-25  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1, PROTOCOL: Updated.

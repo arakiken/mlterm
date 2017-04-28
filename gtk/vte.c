@@ -1403,12 +1403,6 @@ static gboolean vte_terminal_focus_in(GtkWidget *widget, GdkEventFocus *event) {
   if (GTK_WIDGET_MAPPED(widget)) {
     ui_window_t *win = &PVT(VTE_TERMINAL(widget))->screen->window;
 #ifdef USE_WAYLAND
-    GtkAllocation alloc;
-
-    /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
-    ui_display_map(win->disp);
-    gtk_widget_get_allocation(widget, &alloc);
-    ui_display_move(win->disp, alloc.x, alloc.y);
     win->disp->display->wlserv->current_kbd_surface = win->disp->display->surface;
 #endif
 

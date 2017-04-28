@@ -55,6 +55,11 @@ int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_i
     xcolor->pixel = pixel;
     ui_cmap_get_pixel_rgb(&xcolor->red, &xcolor->green, &xcolor->blue, pixel);
   } else {
+    xcolor->red = red;
+    xcolor->green = green;
+    xcolor->blue = blue;
+    xcolor->alpha = alpha;
+
 #ifdef USE_WAYLAND
     /* wl_buffer requires rgb which has been already multiplied by alpha. */
     red = red * alpha / 256;
@@ -64,11 +69,6 @@ int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_i
 
     xcolor->pixel = RGB_TO_PIXEL(red, green, blue, disp->display->rgbinfo) |
                     (disp->depth == 32 ? (alpha << 24) : 0);
-
-    xcolor->red = red;
-    xcolor->green = green;
-    xcolor->blue = blue;
-    xcolor->alpha = alpha;
   }
 
   return 1;

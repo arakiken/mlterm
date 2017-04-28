@@ -14,6 +14,7 @@
 #define ButtonPress 4   /* Private in wayland/ */
 #define ButtonRelease 5 /* Private in wayland/ */
 #define MotionNotify 6  /* Private in wayland/ */
+#define FocusOut 10     /* Private in wayland/ */
 
 /* common functions for ui_window.c */
 

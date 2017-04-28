@@ -58,7 +58,7 @@ static ui_color_t *get_cached_256ext_xcolor(ui_color_cache_t *color_cache, vt_co
         if (color_caches[count]->cache_256ext) {
           ui_unload_xcolor(color_caches[count]->disp,
                            &color_caches[count]->cache_256ext->xcolors[color - 16]);
-          color_caches[count]->is_loaded[color - 16] = 0;
+          color_caches[count]->cache_256ext->is_loaded[color - 16] = 0;
         }
       }
     }

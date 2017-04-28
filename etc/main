@@ -163,6 +163,8 @@
 
 # hide_underline = false
 
+# underline_offset = 0
+
 # wall_picture =
 
 # fade_ratio = 100

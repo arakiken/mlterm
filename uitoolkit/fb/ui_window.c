@@ -897,7 +897,9 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
   /* If wall picture is set, scrollable will be 0. */
   win->is_scrollable = 1;
 
+#ifndef USE_WAYLAND
   win->is_focused = 1;
+#endif
   win->inputtable = inputtable;
   win->is_mapped = 1;
 
@@ -1078,7 +1080,25 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
   child->parent = win;
   child->x = x + win->hmargin;
   child->y = y + win->vmargin;
-  child->is_focused = child->is_mapped = map;
+
+#ifdef USE_WAYLAND
+  /*
+   * The default value of is_focused is 0 on wayland, while 1 on framebuffer.
+   * (see ui_window_init())
+   */
+  if (!(child->is_mapped = map) && child->inputtable > 0) {
+    child->inputtable = -1;
+  }
+#else
+  if ((child->is_mapped = map) && win->is_focused && child->inputtable) {
+    child->is_focused = 1;
+  } else {
+    child->is_focused = 0;
+    if (child->inputtable > 0) {
+      child->inputtable = -1;
+    }
+  }
+#endif
 
   win->children[win->num_of_children++] = child;
 
@@ -1598,6 +1618,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
         !event->xbutton.state) {
       ui_window_set_input_focus(win);
     }
+  } else if (event->type == FocusOut) {
+    reset_input_focus(win);
   }
 
   return 1;

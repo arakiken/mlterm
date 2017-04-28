@@ -11,12 +11,13 @@ ver 3.8.1
 * Add "use_aafont" option which gets mlterm to apply ~/.mlterm/*aafont configurations
   with the use of fontconfig on framebuffer and wayland.
   (The default value is true on wayland, while false on framebuffer.)
-* Search alternative glyphs in other fonts automatically on framebuffer and wayland
-  with freetype and fontconfig.
+* Search alternative glyphs in other fonts automatically on framebuffer and wayland.
+  (This feature is enabled if mlterm-{fb|wl} is built with freetype and fontconfig.)
 * libvte compatible library supports vte 0.46.0 API.
 * Bug fixes:
   Fix detection failuer of mouse event devices on framebuffer/linux. (Thanks to @nyarla)
   (See http://the.nyarla.net/entry/2017/03/25/142516 for details.)
+  Fix segfault in using many colors by SGR 38;2;r;g;b or 48;2;r;g;b sequence.
 
 ver 3.8.0
 * Refactor source code and directory tree.
