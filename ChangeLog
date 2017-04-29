@@ -1,3 +1,20 @@
+2017-04-29  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.8.1 released.
+	  (tag "rel-3_8_1")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.8.1.
+
+	* PROTOCOL, man/mlterm.1: Updated.
+
+	* vte.c: screen->window.width and screen->window.height are updated even
+	  if VteTerminal is not realized.
+
+	* wayland/ui_display.c: ui_display_move() stores x and y in display->{x,y}
+	  only if display->buffer is non-NULL.
+
 2017-04-28  Araki Ken  <arakiken@users.sf.net>
 
 	* README, gtk/README: Updated.

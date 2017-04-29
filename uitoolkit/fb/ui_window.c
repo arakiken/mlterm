@@ -1618,9 +1618,12 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
         !event->xbutton.state) {
       ui_window_set_input_focus(win);
     }
-  } else if (event->type == FocusOut) {
+  }
+#ifdef USE_WAYLAND
+  else if (event->type == FocusOut) {
     reset_input_focus(win);
   }
+#endif
 
   return 1;
 }

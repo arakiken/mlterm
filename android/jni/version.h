@@ -7,7 +7,7 @@
 
 #define MAJOR_VERSION 3
 #define MINOR_VERSION 8
-#define REVISION 0
+#define REVISION 1
 #define PATCH_LEVEL 0
 
 #if 0

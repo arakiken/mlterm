@@ -851,6 +851,11 @@ static int create_shm_buffer(Display *display) {
   int fd;
   int size;
 
+#ifdef __DEBUG
+  bl_debug_printf("Buffer w %d h %d bpp %d\n",
+                  display->width, display->height, display->bytes_per_pixel);
+#endif
+
   display->line_length = display->width * display->bytes_per_pixel;
   size = display->line_length * (display->height + DECORATION_MARGIN);
 
@@ -1922,16 +1927,12 @@ int ui_display_move(ui_display_t *disp, int x, int y) {
   Display *display = disp->display;
 
 #ifdef COMPAT_LIBVTE
-  if (display->x == x && display->y == y) {
+  if (!display->buffer || (display->x == x && display->y == y)) {
     return 0;
   }
 
   display->x = x;
   display->y = y;
-
-  if (!display->buffer) {
-    return 0;
-  }
 
   if (display->subsurface) {
 #ifdef __DEBUG

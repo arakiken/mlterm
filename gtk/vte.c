@@ -1146,7 +1146,8 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
   PVT(terminal)->screen = ui_screen_new(
       PVT(terminal)->term, font_man, color_man, main_config.brightness, main_config.contrast,
       main_config.gamma, main_config.alpha, main_config.fade_ratio, &shortcut,
-      main_config.screen_width_ratio, main_config.screen_height_ratio, main_config.mod_meta_key,
+      /* main_config.screen_width_ratio */ 100, /* main_config.screen_height_ratio */ 100,
+      main_config.mod_meta_key,
       main_config.mod_meta_mode, main_config.bel_mode, main_config.receive_string_via_ucs,
       main_config.pic_file_path, main_config.use_transbg, main_config.use_vertical_cursor,
       main_config.big5_buggy, main_config.use_extended_scroll_shortcut, main_config.borderless,
@@ -1363,16 +1364,14 @@ static void vte_terminal_realize(GtkWidget *widget) {
 }
 
 static void vte_terminal_unrealize(GtkWidget *widget) {
-  VteTerminal *terminal;
-  ui_screen_t *screen;
+  VteTerminal *terminal = VTE_TERMINAL(widget);
+  ui_screen_t *screen = PVT(terminal)->screen;
 
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " vte terminal unrealized.\n");
 #endif
 
-  terminal = VTE_TERMINAL(widget);
-
-  ui_screen_detach(PVT(terminal)->screen);
+  ui_screen_detach(screen);
 
   if (!PVT(terminal)->term->pty) {
     /* PVT(terminal)->term is not deleted in pty_closed() */
@@ -1380,7 +1379,6 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
     PVT(terminal)->term = NULL;
   }
 
-  screen = PVT(terminal)->screen;
   /* Create dummy screen in case terminal will be realized again. */
   init_screen(terminal, screen->font_man, screen->color_man);
   ui_display_remove_root(&disp, &screen->window);
@@ -2211,7 +2209,7 @@ static void vte_terminal_init(VteTerminal *terminal) {
       main_config.col_size_of_width_a, main_config.use_char_combining,
       main_config.use_multi_col_char, main_config.use_ctl, main_config.bidi_mode,
       main_config.bidi_separators, main_config.use_dynamic_comb, main_config.bs_mode,
-      main_config.vertical_mode, main_config.use_local_echo, main_config.title,
+      /* main_config.vertical_mode */ 0, main_config.use_local_echo, main_config.title,
       main_config.icon_name, main_config.alt_color_mode, main_config.use_ot_layout);
   if (!init_inherit_ptys) {
     u_int num;
@@ -2853,11 +2851,14 @@ vte_terminal_unselect_all(
 }
 
 void vte_terminal_set_size(VteTerminal *terminal, glong columns, glong rows) {
+  ui_screen_t *screen = PVT(terminal)->screen;
+  vt_term_t *term = PVT(terminal)->term;
+
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " set cols %d rows %d\n", columns, rows);
 #endif
 
-  vt_term_resize(PVT(terminal)->term, columns, rows,
+  vt_term_resize(term, columns, rows,
                  /*
                   * Vertical writing mode and screen_(width|height)_ratio option
                   * aren't supported.
@@ -2878,9 +2879,12 @@ void vte_terminal_set_size(VteTerminal *terminal, glong columns, glong rows) {
     gint height;
     vte_terminal_get_preferred_width(GTK_WIDGET(terminal), NULL, &width);
     vte_terminal_get_preferred_height(GTK_WIDGET(terminal), NULL, &height);
-    ui_window_resize_with_margin(&PVT(terminal)->screen->window, width, height, 0);
+    ui_window_resize_with_margin(&screen->window, width, height, 0);
 #endif
     gtk_widget_queue_resize_no_redraw(GTK_WIDGET(terminal));
+  } else {
+    screen->window.width = CHAR_WIDTH(terminal) * columns;
+    screen->window.height = CHAR_HEIGHT(terminal) * rows;
   }
 }
 
