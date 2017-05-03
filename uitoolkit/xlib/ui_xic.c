@@ -13,18 +13,25 @@
 
 #define HAS_XIM_LISTENER(win, function) ((win)->xim_listener && (win)->xim_listener->function)
 
+/* for XIMPreeditArea, XIMStatusArea */
+#if 0
+#define SET_XNAREA_ATTR
+#endif
+
 /* --- static variables --- */
 
 static ef_parser_t *utf8_parser;
 
 /* --- static functions --- */
 
+#ifdef SET_XNAREA_ATTR
 static void get_rect(ui_window_t *win, XRectangle *rect) {
   rect->x = 0;
   rect->y = 0;
   rect->width = ACTUAL_WIDTH(win);
   rect->height = ACTUAL_HEIGHT(win);
 }
+#endif
 
 static int get_spot(ui_window_t *win, XPoint *spot) {
   int x;
@@ -107,7 +114,9 @@ static int create_xic(ui_window_t *win) {
      * over the spot style.
      */
 
+#ifdef SET_XNAREA_ATTR
     get_rect(win, &rect);
+#endif
     if (get_spot(win, &spot) == 0) {
       /* forcibly set ... */
       spot.x = 0;
@@ -118,11 +127,21 @@ static int create_xic(ui_window_t *win) {
       return 0;
     }
 
-    if ((preedit_attr = XVaCreateNestedList(
-             0, XNArea, &rect, XNSpotLocation, &spot, XNForeground,
-             (*win->xim_listener->get_fg_color)(win->xim_listener->self)->pixel, XNBackground,
-             (*win->xim_listener->get_bg_color)(win->xim_listener->self)->pixel, XNFontSet, fontset,
-             NULL)) == NULL) {
+    if ((preedit_attr =
+         XVaCreateNestedList(0,
+                             /*
+                              * Some input methods use XNArea to show lookup table,
+                              * setting XNArea as follows shows lookup table at unexpected position.
+                              */
+#ifdef SET_XNAREA_ATTR
+                             XNArea, &rect,
+#endif
+                             XNSpotLocation, &spot,
+                             XNForeground,
+                             (*win->xim_listener->get_fg_color)(win->xim_listener->self)->pixel,
+                             XNBackground,
+                             (*win->xim_listener->get_bg_color)(win->xim_listener->self)->pixel,
+                             XNFontSet, fontset, NULL)) == NULL) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " XVaCreateNestedList() failed.\n");
 #endif
@@ -315,14 +334,20 @@ int ui_xic_resized(ui_window_t *win) {
     return 0;
   }
 
+#ifdef SET_XNAREA_ATTR
   get_rect(win, &rect);
+#endif
   if (get_spot(win, &spot) == 0) {
     /* forcibly set ...*/
     spot.x = 0;
     spot.y = 0;
   }
 
-  if ((preedit_attr = XVaCreateNestedList(0, XNArea, &rect, XNSpotLocation, &spot, NULL)) == NULL) {
+  if ((preedit_attr = XVaCreateNestedList(0,
+#ifdef SET_XNAREA_ATTR
+                                          XNArea, &rect,
+#endif
+                                          XNSpotLocation, &spot, NULL)) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " XvaCreateNestedList() failed.\n");
 #endif

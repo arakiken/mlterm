@@ -1,3 +1,28 @@
+2017-05-04  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/ui_window.c, quartz/ui_font.[ch], quartz/ui.h, cocoa.m:
+	  ui_font_t::cg_font is moved to XFontStruct.
+
+	* win32/ui_window.c, win32/ui_font.[ch], win32/ui.h, ui_font_cache.c:
+	  ui_font_t::fid and ui_font_t::conv are moved to XFontStruct.
+
+	* xlib/ui_xim.c: Minor fixes.
+
+	* xlib/ui_xic.c: XNArea is removed from XVaCreateNestedList().
+
+	* inputmethod/im_iimf.c:
+	  - IIIMF_ATTR_SERVER_ADDRESS and IIIMF_ATTR_SERVER_SERVICE attributes are set.
+	  - The value of IIIMF_SERVER_ADDRESS environmental variable replaces
+	    IIIMF_ATTR_SERVER_ADDRESS attribute.
+	  - status_change() is called in lookup_choice_done() and
+	    in IIIMCF_EVENT_TYPE_TRIGGER_NOTIFY case in dispatch().
+
+	* inputmethod/iiimf: Revived.
+
+	* configure.in: --disable-iiimf option is added.
+
+	* version.h: 3.8.1 -> 3.8.1post
+
 2017-04-29  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.1 released.

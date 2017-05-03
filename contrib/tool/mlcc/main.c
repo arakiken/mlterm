@@ -4,6 +4,9 @@
 #include <signal.h> /* sigaction */
 #include <stdlib.h>
 #include <string.h>
+#ifdef __sunos
+#include <alloca.h>
+#endif
 
 #include "comm.h"
 #include "data.h"

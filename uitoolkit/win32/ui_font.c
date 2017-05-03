@@ -497,7 +497,7 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
     display_gc = CreateIC("Display", NULL, NULL, NULL);
   }
 
-  SelectObject(display_gc, font->fid);
+  SelectObject(display_gc, font->xfont->fid);
 
   if (cs != US_ASCII && !IS_ISCII(cs)) {
     u_int32_t ucs4_code;
@@ -592,13 +592,16 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   double fontsize_d;
   u_int percent;
 
-  if (type_engine != TYPE_XCORE || (font = calloc(1, sizeof(ui_font_t))) == NULL) {
+  if (type_engine != TYPE_XCORE ||
+      (font = calloc(1, sizeof(ui_font_t) + sizeof(XFontStruct))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " malloc() failed.\n");
 #endif
 
     return NULL;
   }
+
+  font->xfont = font + 1;
 
   font->display = display;
   font->id = id;
@@ -693,7 +696,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     display_gc = CreateIC("Display", NULL, NULL, NULL);
   }
 
-  font->fid =
+  font->xfont->fid =
       CreateFont(use_point_size ? /* Height */
                      -MulDiv((int)fontsize_d, GetDeviceCaps(display_gc, LOGPIXELSY), 72)
                                 : (int)fontsize_d,
@@ -712,7 +715,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                  (font_present & FONT_AA) ? ANTIALIASED_QUALITY : PROOF_QUALITY,
                  FIXED_PITCH | FF_MODERN, font_family);
 
-  if (!font->fid) {
+  if (!font->xfont->fid) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " CreateFont failed.\n");
     free(font);
@@ -724,7 +727,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     SIZE w_sz;
     SIZE l_sz;
 
-    SelectObject(display_gc, font->fid);
+    SelectObject(display_gc, font->xfont->fid);
 
     GetTextMetrics(display_gc, &tm);
 
@@ -865,7 +868,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
   if (wincsinfo->cs != ANSI_CHARSET && wincsinfo->cs != SYMBOL_CHARSET &&
       !IS_ISO10646_UCS4(FONT_CS(font->id))) {
-    if (!(font->conv = vt_char_encoding_conv_new(wincsinfo->encoding))) {
+    if (!(font->xfont->conv = vt_char_encoding_conv_new(wincsinfo->encoding))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " vt_char_encoding_conv_new(font id %x) failed.\n", font->id);
 #endif
@@ -887,12 +890,12 @@ int ui_font_delete(ui_font_t *font) {
   }
 #endif
 
-  if (font->fid) {
-    DeleteObject(font->fid);
+  if (font->xfont->fid) {
+    DeleteObject(font->xfont->fid);
   }
 
-  if (font->conv) {
-    font->conv->delete (font->conv);
+  if (font->xfont->conv) {
+    (*font->xfont->conv->delete)(font->xfont->conv);
   }
 
   free(font);
@@ -940,7 +943,7 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
       display_gc = CreateIC("Display", NULL, NULL, NULL);
     }
 
-    SelectObject(display_gc, font->fid);
+    SelectObject(display_gc, font->xfont->fid);
 
 #define TTC_TAG ('t' << 0) + ('t' << 8) + ('c' << 16) + ('f' << 24)
 
@@ -1066,7 +1069,7 @@ size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
 #ifdef DEBUG
 
 int ui_font_dump(ui_font_t *font) {
-  bl_msg_printf("  id %x: Font %p", font->id, font->fid);
+  bl_msg_printf("  id %x: Font %p", font->id, font->xfont->fid);
 
   if (font->is_proportional) {
     bl_msg_printf(" (proportional)");

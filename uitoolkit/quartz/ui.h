@@ -299,6 +299,11 @@ typedef struct {
 
 } XSelectionNotifyEvent;
 
+typedef struct {
+  void *cg_font;
+  unsigned int size;
+} XFontStruct;
+
 typedef int XFontSet; /* dummy */
 
 #define None 0L     /* Same as definition in X11/X.h */

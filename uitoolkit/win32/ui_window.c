@@ -486,15 +486,16 @@ static int draw_string(ui_window_t *win, ui_font_t *font, int x, int y, u_char *
 
   str2 = NULL;
 
-  if (font->conv) {
+  if (font->xfont->conv) {
     if ((str2 = alloca(len * UTF_MAX_SIZE))) /* assume utf8 */
     {
       (*m_cp_parser->init)(m_cp_parser);
       /* 3rd argument of cp_parser->set_str is len(16bit) + cs(16bit) */
       (*m_cp_parser->set_str)(m_cp_parser, str, len | (FONT_CS(font->id) << 16));
 
-      (*font->conv->init)(font->conv);
-      if ((len = (*font->conv->convert)(font->conv, str2, len* UTF_MAX_SIZE, m_cp_parser)) > 0) {
+      (*font->xfont->conv->init)(font->xfont->conv);
+      if ((len = (*font->xfont->conv->convert)(font->xfont->conv,
+                                               str2, len* UTF_MAX_SIZE, m_cp_parser)) > 0) {
         str = str2;
       }
     }
@@ -2369,7 +2370,7 @@ int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_colo
     }
   }
 
-  ui_gc_set_fid(win->gc, font->fid);
+  ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
 
   /*
@@ -2404,7 +2405,7 @@ int ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_co
     return 0;
   }
 
-  ui_gc_set_fid(win->gc, font->fid);
+  ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
 
   draw_string(win, font, x, y, (u_char*)str, len * 2, 1, IS_ISO10646_UCS4(FONT_CS(font->id)));
@@ -2418,7 +2419,7 @@ int ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *f
     return 0;
   }
 
-  ui_gc_set_fid(win->gc, font->fid);
+  ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
   ui_gc_set_bg_color(win->gc, bg_color->pixel);
 
@@ -2454,7 +2455,7 @@ int ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t 
     return 0;
   }
 
-  ui_gc_set_fid(win->gc, font->fid);
+  ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
   ui_gc_set_bg_color(win->gc, bg_color->pixel);
 

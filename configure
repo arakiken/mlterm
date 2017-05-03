@@ -852,6 +852,8 @@ IBUS_CFLAGS
 M17NLIB_LIBS
 M17NLIB_CFLAGS
 m17nlib
+IIIMCF_LIBS
+IIIMCF_CFLAGS
 UIM_LIBS
 UIM_CFLAGS
 DND_CFLAGS
@@ -1055,6 +1057,7 @@ with_libltdl
 enable_dnd
 enable_kbd
 enable_uim
+enable_iiimf
 enable_m17nlib
 enable_ibus
 enable_fcitx
@@ -1113,6 +1116,8 @@ FONTCONFIG_CFLAGS
 FONTCONFIG_LIBS
 UIM_CFLAGS
 UIM_LIBS
+IIIMCF_CFLAGS
+IIIMCF_LIBS
 IBUS_CFLAGS
 IBUS_LIBS
 FCITX_CFLAGS
@@ -1760,6 +1765,7 @@ Optional Features:
   --disable-dnd           dnd [default=enabled]
   --disable-kbd           input method for Arabic and Indic [default=enabled]
   --disable-uim           uim [default=enabled]
+  --disable-iiimf         IIIMF (Experimental) [default=enabled]
   --disable-m17nlib       m17n library [default=enabled]
   --disable-ibus          IBUS [default=enabled]
   --disable-fcitx         FCITX [default=enabled]
@@ -1846,6 +1852,9 @@ Some influential environment variables:
               linker flags for FONTCONFIG, overriding pkg-config
   UIM_CFLAGS  C compiler flags for UIM, overriding pkg-config
   UIM_LIBS    linker flags for UIM, overriding pkg-config
+  IIIMCF_CFLAGS
+              C compiler flags for IIIMCF, overriding pkg-config
+  IIIMCF_LIBS linker flags for IIIMCF, overriding pkg-config
   IBUS_CFLAGS C compiler flags for IBUS, overriding pkg-config
   IBUS_LIBS   linker flags for IBUS, overriding pkg-config
   FCITX_CFLAGS
@@ -4701,7 +4710,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4704 "configure"' > conftest.$ac_ext
+  echo '#line 4713 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7269,11 +7278,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7272: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7281: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7276: \$? = $ac_status" >&5
+   echo "$as_me:7285: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7559,11 +7568,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7562: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7571: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7566: \$? = $ac_status" >&5
+   echo "$as_me:7575: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7663,11 +7672,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7666: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7675: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7670: \$? = $ac_status" >&5
+   echo "$as_me:7679: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9688,7 +9697,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9691 "configure"
+#line 9700 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9788,7 +9797,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9791 "configure"
+#line 9800 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12129,11 +12138,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12132: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12141: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12136: \$? = $ac_status" >&5
+   echo "$as_me:12145: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12233,11 +12242,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12236: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12245: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12240: \$? = $ac_status" >&5
+   echo "$as_me:12249: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13816,11 +13825,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13819: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13828: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13823: \$? = $ac_status" >&5
+   echo "$as_me:13832: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13920,11 +13929,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13923: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13932: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13927: \$? = $ac_status" >&5
+   echo "$as_me:13936: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16081,11 +16090,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16084: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16093: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16088: \$? = $ac_status" >&5
+   echo "$as_me:16097: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16371,11 +16380,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16374: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16383: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16378: \$? = $ac_status" >&5
+   echo "$as_me:16387: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16475,11 +16484,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16478: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16487: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16482: \$? = $ac_status" >&5
+   echo "$as_me:16491: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -22906,6 +22915,279 @@ fi
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/uim/libim-uim.la ${DL_LIBS_IM}"
 		fi
 		input_methods_result="$input_methods_result uim"
+	fi
+fi
+
+
+
+#
+# --- IIIMF ---
+#
+# Check whether --enable-iiimf was given.
+if test "${enable_iiimf+set}" = set; then :
+  enableval=$enable_iiimf; iiimf=$enable_iiimf
+fi
+
+if test "x$iiimf" != xno ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for IIIMCF" >&5
+$as_echo_n "checking for IIIMCF... " >&6; }
+
+if test -n "$IIIMCF_CFLAGS"; then
+    pkg_cv_IIIMCF_CFLAGS="$IIIMCF_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"iiimf-lib-client\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "iiimf-lib-client") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_IIIMCF_CFLAGS=`$PKG_CONFIG --cflags "iiimf-lib-client" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$IIIMCF_LIBS"; then
+    pkg_cv_IIIMCF_LIBS="$IIIMCF_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"iiimf-lib-client\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "iiimf-lib-client") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_IIIMCF_LIBS=`$PKG_CONFIG --libs "iiimf-lib-client" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        IIIMCF_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "iiimf-lib-client" 2>&1`
+        else
+	        IIIMCF_PKG_ERRORS=`$PKG_CONFIG --print-errors "iiimf-lib-client" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$IIIMCF_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_iiimcf=no
+elif test $pkg_failed = untried; then
+	have_iiimcf=no
+else
+	IIIMCF_CFLAGS=$pkg_cv_IIIMCF_CFLAGS
+	IIIMCF_LIBS=$pkg_cv_IIIMCF_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_iiimcf=yes
+fi
+	if test "x$have_iiimcf" = xyes ; then
+		found_iiimcf=yes
+	elif test -d /usr/lib/im/lib ; then
+		LIBS="$LIBS -L/usr/lib/im/lib"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for iiimcf_create_context in -liiimcf" >&5
+$as_echo_n "checking for iiimcf_create_context in -liiimcf... " >&6; }
+if ${ac_cv_lib_iiimcf_iiimcf_create_context+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liiimcf  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char iiimcf_create_context ();
+int
+main ()
+{
+return iiimcf_create_context ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iiimcf_iiimcf_create_context=yes
+else
+  ac_cv_lib_iiimcf_iiimcf_create_context=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iiimcf_iiimcf_create_context" >&5
+$as_echo "$ac_cv_lib_iiimcf_iiimcf_create_context" >&6; }
+if test "x$ac_cv_lib_iiimcf_iiimcf_create_context" = xyes; then :
+
+			found_iiimcf=yes
+			IIIMCF_CFLAGS="-I/usr/lib/im/include"
+			IIIMCF_LIBS="-L/usr/lib/im/lib -liiimcf"
+
+fi
+
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for iiimcf_create_context in -liiimcf" >&5
+$as_echo_n "checking for iiimcf_create_context in -liiimcf... " >&6; }
+if ${ac_cv_lib_iiimcf_iiimcf_create_context+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liiimcf  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char iiimcf_create_context ();
+int
+main ()
+{
+return iiimcf_create_context ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iiimcf_iiimcf_create_context=yes
+else
+  ac_cv_lib_iiimcf_iiimcf_create_context=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iiimcf_iiimcf_create_context" >&5
+$as_echo "$ac_cv_lib_iiimcf_iiimcf_create_context" >&6; }
+if test "x$ac_cv_lib_iiimcf_iiimcf_create_context" = xyes; then :
+
+			found_iiimcf=yes
+			IIIMCF_CFLAGS="-I/usr/include/iiim"
+			IIIMCF_LIBS="-liiimcf"
+
+fi
+
+	fi
+
+	if test "x$found_iiimcf" = xyes ; then
+		IM_CFLAGS="$IM_CFLAGS -DUSE_IIIMF"
+		MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
+		OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
+		if test "x$with_libltdl" != xno ; then
+			echo ""
+			echo "** ERROR **"
+			echo " IIIMF plugin couldn't be used with libltdl."
+			echo ""
+			exit 1
+		else
+			input_methods_result="$input_methods_result IIIMF"
+		fi
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for iiimcf_create_hotkey_notify_event in -liiimcf" >&5
+$as_echo_n "checking for iiimcf_create_hotkey_notify_event in -liiimcf... " >&6; }
+if ${ac_cv_lib_iiimcf_iiimcf_create_hotkey_notify_event+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liiimcf  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char iiimcf_create_hotkey_notify_event ();
+int
+main ()
+{
+return iiimcf_create_hotkey_notify_event ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iiimcf_iiimcf_create_hotkey_notify_event=yes
+else
+  ac_cv_lib_iiimcf_iiimcf_create_hotkey_notify_event=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iiimcf_iiimcf_create_hotkey_notify_event" >&5
+$as_echo "$ac_cv_lib_iiimcf_iiimcf_create_hotkey_notify_event" >&6; }
+if test "x$ac_cv_lib_iiimcf_iiimcf_create_hotkey_notify_event" = xyes; then :
+
+			IIIMCF_CFLAGS="$IIIMCF_CFLAGS -DHAVE_HOTKEY_NOTFY_EVENT"
+
+fi
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for iiimcf_create_aux_getvalues_event in -liiimcf" >&5
+$as_echo_n "checking for iiimcf_create_aux_getvalues_event in -liiimcf... " >&6; }
+if ${ac_cv_lib_iiimcf_iiimcf_create_aux_getvalues_event+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liiimcf  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char iiimcf_create_aux_getvalues_event ();
+int
+main ()
+{
+return iiimcf_create_aux_getvalues_event ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iiimcf_iiimcf_create_aux_getvalues_event=yes
+else
+  ac_cv_lib_iiimcf_iiimcf_create_aux_getvalues_event=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iiimcf_iiimcf_create_aux_getvalues_event" >&5
+$as_echo "$ac_cv_lib_iiimcf_iiimcf_create_aux_getvalues_event" >&6; }
+if test "x$ac_cv_lib_iiimcf_iiimcf_create_aux_getvalues_event" = xyes; then :
+
+			IIIMCF_CFLAGS="$IIIMCF_CFLAGS -DHAVE_AUX_GETVALUES_EVENT"
+
+fi
+
 	fi
 fi
 

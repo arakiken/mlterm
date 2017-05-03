@@ -1064,7 +1064,7 @@ static void window_realized(ui_window_t *win) {
     if (strncmp(screen->input_method, "xim", 3) == 0) {
       activate_xic(screen);
     } else {
-      ui_xic_activate(&screen->window, "none", "");
+      ui_xic_activate(&screen->window, "unused", "");
 
       if (!(screen->im = im_new(screen))) {
         free(screen->input_method);
@@ -3867,7 +3867,7 @@ static void change_im(ui_screen_t *screen, char *input_method) {
     activate_xic(screen);
     screen->im = NULL;
   } else {
-    ui_xic_activate(&screen->window, "none", "");
+    ui_xic_activate(&screen->window, "unused", "");
 
     if ((screen->im = im_new(screen))) {
       if (screen->window.is_focused) {

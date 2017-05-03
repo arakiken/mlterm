@@ -135,6 +135,10 @@ static int open_xim(ui_xim_t *xim, Display *display) {
 
       XSetIMValues(xim->im, XNDestroyCallback, &callback, NULL);
 
+#ifdef DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " XIM %s is successfully opened.\n", xmod);
+#endif
+
       /* succeeded */
       result = 1;
     }
@@ -154,7 +158,7 @@ static int open_xim(ui_xim_t *xim, Display *display) {
 }
 
 static int activate_xim(ui_xim_t *xim, Display *display) {
-  int count;
+  u_int count;
 
   if (!xim->im && !open_xim(xim, display)) {
     return 0;
@@ -258,14 +262,8 @@ int ui_xim_init(int _use_xim) {
   xmod = XSetLocaleModifiers("");
 
   /* 4 is the length of "@im=" */
-  if (xmod == NULL || strlen(xmod) < 4 || (p = strstr(xmod, "@im=")) == NULL ||
-      (default_xim_name = strdup(p + 4)) == NULL) {
-#if 0
-    default_xim_name = NULL;
-#else
-    default_xim_name = strdup("none");
-#endif
-  } else {
+  if (xmod && strlen(xmod) >= 4 && (p = strstr(xmod, "@im=")) &&
+      (default_xim_name = strdup(p + 4))) {
     if ((p = strstr(default_xim_name, "@"))) {
       /* only the first entry is used , others are ignored. */
       *p = '\0';
@@ -342,6 +340,10 @@ int ui_add_xim_listener(ui_window_t *win, char *xim_name, char *xim_locale) {
     return 0;
   }
 
+  /*
+   * If xim_name is "none", call XSetLocaleModifiers("@im=none").
+   * If xim_name is "unused", do nothing.
+   */
   if (strcmp(xim_locale, "C") == 0 || strcmp(xim_name, "unused") == 0) {
     return 0;
   }
@@ -359,18 +361,10 @@ int ui_add_xim_listener(ui_window_t *win, char *xim_name, char *xim_locale) {
   }
 
   if (*xim_name == '\0') {
-    if (default_xim_name == NULL) {
-      /*
-       * no default xims are set as XMODIFIERS.
-       */
-
-      return 0;
-    } else {
-      /*
-       * default xim name is used
-       */
-
+    if (default_xim_name) {
       xim_name = default_xim_name;
+    } else {
+      xim_name = "none";
     }
   }
 
@@ -437,7 +431,7 @@ XIC ui_xim_create_ic(ui_window_t *win, XIMStyle selected_style, XVaNestedList pr
 
 XIMStyle ui_xim_get_style(ui_window_t *win) {
   XIMStyle over_the_spot_styles[] = {
-      XIMPreeditPosition | XIMStatusNothing, XIMPreeditPosition | XIMStatusNone,
+    XIMPreeditPosition | XIMStatusNothing, XIMPreeditPosition | XIMStatusNone,
   };
 
   XIMStyle root_styles[] = {
@@ -509,5 +503,5 @@ char *ui_get_default_xim_name(void) {
     return "disable";
   }
 
-  return default_xim_name;
+  return default_xim_name ? default_xim_name : "none";
 }

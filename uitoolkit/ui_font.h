@@ -6,12 +6,7 @@
 /* X11/Xlib.h must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include "ui.h"
 
-#ifdef USE_WIN32GUI
-#include <mef/ef_conv.h>
-#endif
-
 #include <pobl/bl_types.h>   /* u_int */
-#include <mef/ef_charset.h> /* ef_charset_t */
 #include <vt_font.h>
 
 #include "ui_type_engine.h"
@@ -43,13 +38,6 @@ typedef struct ui_font {
    */
   vt_font_t id;
 
-#if defined(USE_WIN32GUI)
-  Font fid;
-  ef_conv_t *conv;
-#elif defined(USE_QUARTZ)
-  void *cg_font;
-  u_int size;
-#else
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
   xft_font_ptr_t xft_font;
 #endif
@@ -64,7 +52,6 @@ typedef struct ui_font {
 #endif
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
   XFontStruct *xfont;
-#endif
 #endif
 
   ui_decsp_font_ptr_t decsp_font;

@@ -5,6 +5,9 @@
 #include <string.h>
 #include <stdlib.h> /* alloca */
 #include <sys/stat.h>
+#ifdef __sunos
+#include <alloca.h>
+#endif
 
 #define MAX_AREAS 256
 #define HEADER "# Permit mlfc to ovewrite this file.\n"

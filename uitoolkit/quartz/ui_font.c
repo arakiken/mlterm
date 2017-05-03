@@ -138,13 +138,16 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   char *font_family;
   u_int percent;
 
-  if (type_engine != TYPE_XCORE || (font = calloc(1, sizeof(ui_font_t))) == NULL) {
+  if (type_engine != TYPE_XCORE ||
+      (font = calloc(1, sizeof(ui_font_t) + sizeof(XFontStruct))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " malloc() failed.\n");
 #endif
 
     return NULL;
   }
+
+  font->xfont = font + 1;
 
   font->display = display;
   font->id = id;
@@ -218,7 +221,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 #endif
   }
 
-  while (!(font->cg_font = cocoa_create_font(font_family))) {
+  while (!(font->xfont->cg_font = cocoa_create_font(font_family))) {
     bl_warn_printf("%s font is not found.\n", font_family ? font_family : "Default");
 
     if (orig_font_family && (font->id & (FONT_ITALIC | FONT_BOLD))) {
@@ -241,17 +244,17 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
 #if 0
-  bl_debug_printf("%d %d %d %d %d %d\n", CGFontGetAscent(font->cg_font),
-                  CGFontGetDescent(font->cg_font), CGFontGetLeading(font->cg_font),
-                  CGFontGetCapHeight(font->cg_font), CGFontGetXHeight(font->cg_font),
-                  CGFontGetUnitsPerEm(font->cg_font));
+  bl_debug_printf("%d %d %d %d %d %d\n", CGFontGetAscent(font->xfont->cg_font),
+                  CGFontGetDescent(font->xfont->cg_font), CGFontGetLeading(font->xfont->cg_font),
+                  CGFontGetCapHeight(font->xfont->cg_font), CGFontGetXHeight(font->xfont->cg_font),
+                  CGFontGetUnitsPerEm(font->xfont->cg_font));
 #endif
 
-  font->size = fontsize;
+  font->xfont->size = fontsize;
 
-  int ascent = CGFontGetAscent(font->cg_font);
-  int descent = CGFontGetDescent(font->cg_font); /* minus value */
-  int units = CGFontGetUnitsPerEm(font->cg_font);
+  int ascent = CGFontGetAscent(font->xfont->cg_font);
+  int descent = CGFontGetDescent(font->xfont->cg_font); /* minus value */
+  int units = CGFontGetUnitsPerEm(font->xfont->cg_font);
 
   font->height = ((float)fontsize * (ascent - descent)) / ((float)units) + 0.5;
   font->ascent = (font->height * ascent) / (ascent - descent);
@@ -259,8 +262,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   CGGlyph glyphs[1];
   u_int16_t ch = 'M';
   int advance;
-  CGFontGetGlyphsForUnichars(font->cg_font, &ch, glyphs, 1);
-  CGFontGetGlyphAdvances(font->cg_font, glyphs, 1, &advance);
+  CGFontGetGlyphsForUnichars(font->xfont->cg_font, &ch, glyphs, 1);
+  CGFontGetGlyphAdvances(font->xfont->cg_font, glyphs, 1, &advance);
   fontsize = ((float)fontsize * advance * 2) / ((float)units) + 0.5;
 
   /*
@@ -332,7 +335,7 @@ int ui_font_delete(ui_font_t *font) {
   }
 #endif
 
-  cocoa_release_font(font->cg_font);
+  cocoa_release_font(font->xfont->cg_font);
 
   free(font);
 
@@ -362,11 +365,11 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
       return 0;
     }
 
-    font->ot_font = otl_open(font->cg_font, 0);
+    font->ot_font = otl_open(font->xfont->cg_font, 0);
 #else
     char *path;
 
-    if (font->ot_font_not_found || !(path = cocoa_get_font_path(font->cg_font))) {
+    if (font->ot_font_not_found || !(path = cocoa_get_font_path(font->xfont->cg_font))) {
       return 0;
     }
 
@@ -391,7 +394,7 @@ u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped
                                 const char *features) {
   return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, offsets, widths, cmapped,
                                     src, src_len, script, features,
-                                    font->size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1));
+                                    font->xfont->size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1));
 }
 #endif /* USE_OT_LAYOUT */
 
@@ -403,7 +406,8 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
   if (font->is_proportional) {
 #ifdef USE_OT_LAYOUT
     if (font->use_ot_layout /* && font->ot_font */) {
-      return cocoa_font_get_advance(font->cg_font, font->size, font->size_attr, NULL, 0, ch);
+      return cocoa_font_get_advance(font->xfont->cg_font, font->xfont->size,
+                                    font->size_attr, NULL, 0, ch);
     } else
 #endif
     {
@@ -411,7 +415,8 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
       u_int len;
 
       if ((len = ui_convert_ucs4_to_utf16(utf16, ch) / 2) > 0) {
-        return cocoa_font_get_advance(font->cg_font, font->size, font->size_attr, utf16, len, 0);
+        return cocoa_font_get_advance(font->xfont->cg_font, font->xfont->size,
+                                      font->size_attr, utf16, len, 0);
       } else {
         return 0;
       }
@@ -459,7 +464,7 @@ size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
 #ifdef DEBUG
 
 int ui_font_dump(ui_font_t *font) {
-  bl_msg_printf("  id %x: Font %p", font->id, font->cg_font);
+  bl_msg_printf("  id %x: Font %p", font->id, font->xfont->cg_font);
 
   if (font->is_proportional) {
     bl_msg_printf(" (proportional)");

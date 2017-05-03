@@ -404,7 +404,7 @@ XFontSet ui_font_cache_get_fontset(ui_font_cache_t *font_cache) {
   static LOGFONT logfont;
 
   ZeroMemory(&logfont, sizeof(logfont));
-  GetObject(font_cache->usascii_font->fid, sizeof(logfont), &logfont);
+  GetObject(font_cache->usascii_font->xfont->fid, sizeof(logfont), &logfont);
 
   return &logfont;
 

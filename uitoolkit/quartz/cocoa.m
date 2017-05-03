@@ -202,18 +202,18 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
 #endif
   {
     glyphs = memset(glyphs_buf, 0, sizeof(CGGlyph) * len);
-    CGFontGetGlyphsForUnichars(font->cg_font, str, glyphs_buf, len);
+    CGFontGetGlyphsForUnichars(font->xfont->cg_font, str, glyphs_buf, len);
 
     for (; len > 0 && glyphs[len - 1] == 0; len--)
       ;
   }
 
-  CGContextSetFont(ctx, font->cg_font);
+  CGContextSetFont(ctx, font->xfont->cg_font);
 
   CGAffineTransform t = CGAffineTransformIdentity;
   u_int width = font->width;
 
-  u_int fontsize = font->size;
+  u_int fontsize = font->xfont->size;
   switch (font->size_attr) {
     case DOUBLE_WIDTH:
       width /= 2;
@@ -233,11 +233,11 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
 
   if (font->is_proportional) {
     int advances[len];
-    if (!CGFontGetGlyphAdvances(font->cg_font, glyphs, len, advances)) {
+    if (!CGFontGetGlyphAdvances(font->xfont->cg_font, glyphs, len, advances)) {
       return;
     }
 
-    int units = CGFontGetUnitsPerEm(font->cg_font);
+    int units = CGFontGetUnitsPerEm(font->xfont->cg_font);
     int cur_x = x;
     u_int count;
     for (count = 0; count < len; count++) {

@@ -15,6 +15,8 @@
 #include <windows.h>
 #include <imm.h>
 
+#include <mef/ef_conv.h> /* for XFontStruct::conv */
+
 /* for msys-1.0 dvlpr */
 #ifndef WM_MOUSEHWHEEL
 #define WM_MOUSEHWHEEL 0x20e
@@ -87,6 +89,11 @@ typedef struct {
 } XMotionEvent;
 
 typedef int XSelectionRequestEvent; /* dummy */
+
+typedef struct {
+  Font fid;
+  ef_conv_t *conv;
+} XFontStruct;
 
 typedef LPLOGFONT XFontSet;
 

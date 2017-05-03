@@ -113,6 +113,9 @@ Options for configure
   --disable-kbd
     Disable kbd input method for Arabic, Hebrew and Indic
 
+  --disable-iiimf
+    Disaable IIIMF
+
   --disable-uim
     Disable uim (Universal? Input Method)
 
