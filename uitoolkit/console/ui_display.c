@@ -358,11 +358,16 @@ static int check_visibility_of_im_window(ui_display_t *disp) {
     u_int height;
 
   } im_region;
-  int redraw_im_win;
+  int redraw_im_win = 0;
 
-  redraw_im_win = 0;
+#ifdef DEBUG
+  if (disp->num_of_roots > 2) {
+    bl_debug_printf(BL_DEBUG_TAG" Multiple IM Windows (%d) are activated.\n",
+                    disp->num_of_roots - 1);
+  }
+#endif
 
-  if (disp->num_of_roots == 2 && disp->roots[1]->is_mapped) {
+  if (IM_WINDOW_IS_ACTIVATED(disp)) {
     if (im_region.saved) {
       if (im_region.x == disp->roots[1]->x && im_region.y == disp->roots[1]->y &&
           im_region.width == ACTUAL_WIDTH(disp->roots[1]) &&
@@ -792,6 +797,12 @@ static int receive_stdin_event(ui_display_t *disp) {
     } else {
       kev.ksym = *(p++);
 
+      /* XXX */
+      if (kev.ksym == 0x7f && orig_tm.c_cc[VERASE] == 0x7f) {
+        /* Convert to BackSpace */
+        kev.ksym = 0x08;
+      }
+
       if ((u_int)kev.ksym <= 0x1f) {
         if (kev.ksym == '\0') {
           /* CTL+' ' instead of CTL+@ */
@@ -939,7 +950,7 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 
   for (count = 0; count < disp->num_of_roots; count++) {
     if (disp->roots[count] == root) {
-/* XXX ui_window_unmap resize all windows internally. */
+/* XXX ui_window_unmap resizes all windows internally. */
 #if 0
       ui_window_unmap(root);
 #endif
@@ -1018,7 +1029,7 @@ XID ui_display_get_group_leader(ui_display_t *disp) { return None; }
 /* XXX for input method window */
 void ui_display_reset_input_method_window(void) {
 #if 0
-  if (displays[0]->num_of_roots == 2 && displays[0]->roots[1]->is_mapped)
+  if (IM_WINDOW_IS_ACTIVATED(displays[0]))
 #endif
   {
     check_visibility_of_im_window(displays[0]);

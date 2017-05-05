@@ -1749,7 +1749,7 @@ int ui_window_scroll_upward(ui_window_t *win, u_int height) {
 #ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
 int ui_window_is_scrollable(ui_window_t *win) {
   /* XXX If input method module is activated, don't scroll window. */
-  if (win->is_scrollable && !IS_IM_WINDOW(win)) {
+  if (win->is_scrollable && !IM_WINDOW_IS_ACTIVATED(win->disp)) {
     return 1;
   } else {
     return 0;

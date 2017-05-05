@@ -52,9 +52,6 @@
  *
  */
 
-#include <pobl/bl_types.h> /* HAVE_STDINT_H */
-#include <iiimcf.h>
-
 #include <string.h>    /* strncmp */
 #include <pobl/bl_mem.h>  /* malloc/alloca/free */
 #include <pobl/bl_str.h>  /* bl_str_sep bl_str_alloca_dup bl_snprintf*/
@@ -589,6 +586,11 @@ static void lookup_choice_change(im_iiimf_t *iiimf) {
       is_vertical_direction = 1;
     }
 
+    if (iiimf->im.stat_screen) {
+      (*iiimf->im.stat_screen->delete)(iiimf->im.stat_screen);
+      iiimf->im.stat_screen = NULL;
+    }
+
     if (!(iiimf->im.cand_screen =
           (*syms->ui_im_candidate_screen_new)(iiimf->im.disp, iiimf->im.font_man,
                                               iiimf->im.color_man,
@@ -655,7 +657,6 @@ static void lookup_choice_done(im_iiimf_t *iiimf) {
   if (iiimf->im.cand_screen) {
     (*iiimf->im.cand_screen->delete)(iiimf->im.cand_screen);
     iiimf->im.cand_screen = NULL;
-
     status_change(iiimf);
   }
 }
@@ -740,9 +741,8 @@ static void dispatch(im_iiimf_t *iiimf, IIIMCF_event event, IIIMCF_event_type ev
 #endif
   case IIIMCF_EVENT_TYPE_TRIGGER_NOTIFY:
     if (iiimcf_get_trigger_notify_flag(event, &trigger_flag) == IIIMF_STATUS_SUCCESS) {
-      if ((iiimf->on = trigger_flag ? 1 : 0)) {
-        status_change(iiimf);
-      }
+      iiimf->on = trigger_flag ? 1 : 0;
+      status_change(iiimf);
     }
     break;
 #if 0
@@ -898,7 +898,11 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *xeven
 
   xksym_to_iiimfkey(ksym, &key.keychar, &key.keycode);
 
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
   key.time_stamp = xevent->time;
+#else
+  key.time_stamp = 0;
+#endif
 
 #if 1
   /*
@@ -1006,7 +1010,7 @@ static void unfocused(ui_im_t *im) {
 static int create_handle(IIIMCF_attr attr) {
   const char *env;
 
-  if ((env = getenv("IIIMF_SERVER_ADDRESS"))) {
+  if ((env = getenv("HTT_SERVER_ADDRESS"))) {
     if (iiimcf_attr_put_string_value(attr, IIIMCF_ATTR_SERVER_ADDRESS, env)
         != IIIMF_STATUS_SUCCESS) {
       return 0;
@@ -1085,7 +1089,7 @@ ui_im_t *im_iiimf_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     }
 
     if (!create_handle(attr)) {
-      bl_error_printf("Could not create handle for IIIMF. Try to setenv IIIMF_SERVER_ADDRESS.\n");
+      bl_error_printf("Could not create handle for IIIMF. Try to setenv HTT_SERVER_ADDRESS.\n");
       goto error;
     }
 

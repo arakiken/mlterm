@@ -752,11 +752,16 @@ static int check_visibility_of_im_window(void) {
     u_int height;
 
   } im_region;
-  int redraw_im_win;
+  int redraw_im_win = 0;
 
-  redraw_im_win = 0;
+#ifdef DEBUG
+  if (disp->num_of_roots > 2) {
+    bl_debug_printf(BL_DEBUG_TAG" Multiple IM Windows (%d) are activated.\n",
+                    disp->num_of_roots - 1);
+  }
+#endif
 
-  if (_disp.num_of_roots == 2 && _disp.roots[1]->is_mapped) {
+  if (IM_WINDOW_IS_ACTIVATED(&_disp)) {
     if (im_region.saved) {
       if (im_region.x == _disp.roots[1]->x && im_region.y == _disp.roots[1]->y &&
           im_region.width == ACTUAL_WIDTH(_disp.roots[1]) &&
@@ -1947,7 +1952,7 @@ void ui_display_copy_lines2(int src_x, int src_y, int dst_x, int dst_y, u_int wi
 /* XXX for input method window */
 void ui_display_reset_input_method_window(void) {
 #if 0
-  if (_disp.num_of_roots == 2 && _disp.roots[1]->is_mapped)
+  if (IM_WINDOW_IS_ACTIVATED(&_disp))
 #endif
   {
     check_visibility_of_im_window();

@@ -1104,6 +1104,7 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
     seq[0] = (ch & 0x1f);
     if (seq[0] == XK_BackSpace || seq[0] == XK_Tab || seq[0] == XK_Return) {
       *keysym = seq[0];
+      event->state &= ~ControlMask;
     }
   } else {
     seq[0] = ch;
@@ -1125,7 +1126,7 @@ int ui_window_is_scrollable(ui_window_t *win) {
   /* XXX If input method module is activated, don't scroll window. */
   if (win->is_scrollable &&
       (win->disp->display->support_hmargin || win->disp->width == ACTUAL_WIDTH(win)) &&
-      !IS_IM_WINDOW(win)) {
+      !IM_WINDOW_IS_ACTIVATED(win->disp)) {
     return 1;
   } else {
     return 0;

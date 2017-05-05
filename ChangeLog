@@ -1,3 +1,26 @@
+2017-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* console/ui_font.c, ui_screen.c: line_space and letter_space options are ignored.
+
+	* console/ui_window.c, fb/ui_window.c: ui_window_is_scrollable() returns 0
+	  if IM_WINDOW_IS_ACTIVATED() (not IS_IM_WINDOW()) is true.
+
+	* console/ui_display.[ch], fb/ui_display.[ch]:
+	  IM_WINDOW_IS_ACTIVATED() macro is added.
+
+	* main/main-con.c, console/ui_display.c: If termios.c_cc[VERASE] is 0x7f,
+	  0x7f character from stdin is converted to 0x08.
+
+	* main/Makefile.in: LIBS2_{fb|console|wayland} variables are fixed.
+
+	* iiimf/keymap.c, im_iiimf.h, im_iiimf_aux.c: Platforms except x11 are supported.
+
+	* im_iiimf.c:
+	  - The timing of calling status_change() or stat_screen->delete() is fixed.
+	  - IIIMF_SERVER_ADDRESS environmental variable => HTT_SERVER_ADDRESS.
+
+	* iiimf/Makefile.in: TARGET_{xlib|fb|console|wayland} are added.
+
 2017-05-04  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/ui_window.c, quartz/ui_font.[ch], quartz/ui.h, cocoa.m:

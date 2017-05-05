@@ -3,11 +3,20 @@
 #ifndef __IM_IIIMF_H__
 #define __IM_IIIMF_H__
 
-#include <pobl/bl_types.h> /* HAVE_STDINT_H */
-#include <X11/Xlib.h>
-#include <iiimcf.h>
+#ifndef USE_XLIB
+typedef int Bool;
+typedef char *XPointer;
+#ifndef True
+#define True 1
+#endif
+#ifndef False
+#define False 0
+#endif
+#endif
 
-#include "ui_im.h"
+#include <pobl/bl_types.h> /* HAVE_STDINT_H */
+#include <iiimcf.h>
+#include <ui_im.h>
 
 typedef struct im_iiimf {
   /* input method common object */

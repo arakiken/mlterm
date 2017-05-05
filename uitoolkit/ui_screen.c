@@ -3326,9 +3326,12 @@ static void change_line_space(ui_screen_t *screen, int line_space) {
     return;
   }
 
+    /* letter_space and line_space are ignored on console. */
+#ifndef USE_CONSOLE
   screen->line_space = line_space;
 
   font_size_changed(screen);
+#endif
 }
 
 static void change_letter_space(ui_screen_t *screen, u_int letter_space) {
@@ -5534,7 +5537,10 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->font_man = font_man;
   screen->color_man = color_man;
 
+    /* letter_space and line_space are ignored on console. */
+#ifndef USE_CONSOLE
   screen->line_space = line_space;
+#endif
   screen->underline_offset = underline_offset;
   modify_line_space_and_underline_offset(screen);
 

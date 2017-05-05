@@ -269,6 +269,12 @@ int main(int argc, char **argv) {
       fcntl(pty_fd, F_SETFL, fcntl(pty_fd, F_GETFL, 0) | O_NONBLOCK);
 
       while ((len = read(pty_fd, buf, sizeof(buf))) > 0) {
+        /* XXX */
+        if (buf[0] == 0x7f && std_tio.c_cc[VERASE] == 0x7f) {
+          /* Convert to BackSpace */
+          buf[0] = 0x08;
+        }
+
         write(connect_fd, buf, len);
       }
 

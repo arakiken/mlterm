@@ -1042,6 +1042,7 @@ void _XUnregisterFilter(Display *display, Window window,
 static void service_register_X_filter(Display *display, Window window, int start_type, int end_type,
                                       Bool (*filter)(Display *, Window, XEvent *, XPointer),
                                       XPointer client_data) {
+#ifdef USE_XLIB
   filter_info_t *filter_info;
 
 #ifdef AUX_DEBUG
@@ -1073,11 +1074,13 @@ static void service_register_X_filter(Display *display, Window window, int start
   filter_info_list = filter_info;
 
   _XRegisterFilterByType(display, window, start_type, end_type, filter, client_data);
+#endif
 }
 
 static void service_unregister_X_filter(Display *display, Window window,
                                         Bool (*filter)(Display *, Window, XEvent *, XPointer),
                                         XPointer client_data) {
+#ifdef USE_XLIB
   filter_info_t *filter_info;
 
 #ifdef AUX_DEBUG
@@ -1094,6 +1097,7 @@ static void service_unregister_X_filter(Display *display, Window window,
   }
 
   _XUnregisterFilter(display, window, filter, client_data);
+#endif
 }
 
 static Bool service_server(aux_t *aux) {

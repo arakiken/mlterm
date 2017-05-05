@@ -130,10 +130,13 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
       font->width *= 2;
     }
 
+    /* letter_space and line_space are ignored. */
+#if 0
     if (letter_space > 0) {
       font->width += letter_space;
       font->x_off += (letter_space / 2);
     }
+#endif
   } else {
     /* not a standard(usascii) font */
 

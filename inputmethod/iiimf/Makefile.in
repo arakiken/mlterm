@@ -27,6 +27,13 @@ CFLAGS = $(CFLAGS_LOCAL)		\
 
 LIBS = $(LIBS_LOCAL) @LPOBL@ @LMEF@ @IIIMCF_LIBS@
 
+TARGET_xlib = libim-iiimf.la
+TARGET_fb = libim-iiimf-fb.la
+TARGET_console = libim-iiimf-fb.la
+TARGET_wayland = libim-iiimf-wl.la
+
+TARGET = $(TARGET_@GUI@)
+
 CC      = @CC@
 INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
@@ -37,10 +44,10 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: libim-iiimf.la
+all: $(TARGET)
 
-libim-iiimf.la: $(IM_IIIMF_OBJ)
-	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo) \
+$(TARGET): $(IM_IIIMF_OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) $(IM_IIIMF_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
@@ -51,14 +58,13 @@ $(LIBDIR):
 	mkdir -p $(LIBDIR)
 
 install: $(LIBDIR)
-	$(LIBTOOL_INSTALL) libim-iiimf.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-iiimf.*
+	rm -f $(LIBDIR)/*im-iiimf*
 
 clean:
-	rm -rf $(IM_IIIMF_OBJ) $(IM_IIIMF_OBJ:.o=.lo) libim-iiimf.la core *.core .libs
+	rm -rf $(IM_IIIMF_OBJ) $(IM_IIIMF_OBJ:.o=.lo) $(TARGET) core *.core .libs
 
 distclean: clean
 	rm -f Makefile
-
