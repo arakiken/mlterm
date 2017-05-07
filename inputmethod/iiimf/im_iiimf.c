@@ -53,6 +53,7 @@
  */
 
 #include <string.h>    /* strncmp */
+#include <dirent.h>
 #include <pobl/bl_mem.h>  /* malloc/alloca/free */
 #include <pobl/bl_str.h>  /* bl_str_sep bl_str_alloca_dup bl_snprintf*/
 #include <pobl/bl_locale.h> /* bl_get_lang */
@@ -1008,7 +1009,7 @@ static void unfocused(ui_im_t *im) {
 }
 
 static int create_handle(IIIMCF_attr attr) {
-  const char *env;
+  char *env;
 
   if ((env = getenv("HTT_SERVER_ADDRESS"))) {
     if (iiimcf_attr_put_string_value(attr, IIIMCF_ATTR_SERVER_ADDRESS, env)
@@ -1020,12 +1021,24 @@ static int create_handle(IIIMCF_attr attr) {
   if (iiimcf_create_handle(attr, &handle) != IIIMF_STATUS_SUCCESS) {
     const char *user;
 
-    if (env == NULL && (user = getenv("USER")) && (env = alloca(16 + strlen(user) + 1))) {
-      sprintf(env, "/tmp/.iiim-%s/:0.0", user);
-      if (iiimcf_attr_put_string_value(attr, IIIMCF_ATTR_SERVER_ADDRESS, env)
-          == IIIMF_STATUS_SUCCESS &&
-          iiimcf_create_handle(attr, &handle) == IIIMF_STATUS_SUCCESS) {
-        return 1;
+    if (env == NULL && (user = getenv("USER")) && (env = alloca(12 + strlen(user) + 5 + 1))) {
+      DIR *dir;
+
+      sprintf(env, "/tmp/.iiim-%s/", user);
+      if ((dir = opendir(env))) {
+        char *p = env + strlen(env);
+        struct dirent *ent;
+
+        while ((ent = readdir(dir))) {
+          if (!strchr(ent->d_name, '.') && strlen(ent->d_name) <= 5) {
+            strcpy(p, ent->d_name);
+            if (iiimcf_attr_put_string_value(attr, IIIMCF_ATTR_SERVER_ADDRESS, env)
+                == IIIMF_STATUS_SUCCESS &&
+                iiimcf_create_handle(attr, &handle) == IIIMF_STATUS_SUCCESS) {
+              return 1;
+            }
+          }
+        }
       }
     }
 
@@ -1043,7 +1056,6 @@ ui_im_t *im_iiimf_new(u_int64_t magic, vt_char_encoding_t term_encoding,
                       u_int mod_ignore_mask) {
   im_iiimf_t *iiimf = NULL;
   IIIMCF_attr attr = NULL;
-  const char *env;
   IIIMCF_language language;
   IIIMCF_input_method language_engine;
 

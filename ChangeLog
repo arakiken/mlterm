@@ -1,3 +1,24 @@
+2017-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* keymap.c: XK_Kakji, XK_Muhenkan, XK_Henkan, XK_Hiragana, XK_Katakana and
+	  XK_Zenkaku_Hankaku are processed.
+
+	* im_iimf.c: create_handle() searches unix domain socket files in /tmp/.iiim-$USER/.
+
+	* vt_parser.c:
+	  - DECRQDE (CSI " v), NP(CSI U), PP(CSI V), PPA(CSI SP P), PPR(CSI SP Q) and
+	    PPB(CSI SP R) are processed.
+	  - DECCRA and DECLRP supports page.
+
+	* ui_picture.c: cleanup_inline_pictures() checks term->screen->page_edits.
+
+	* vt_screen.[ch]:
+	  - 'page_edits' is added to vt_screen_t.
+	  - vt_screen_is_alternative_edit() is changed from function to macro.
+	  - src_page and dst_page arguments are added to vt_screen_copy_area().
+	  - vt_screen_get_page_id(), vt_screen_goto_page(), vt_screen_goto_next_page()
+	    and vt_screen_goto_prev_page() are added.
+
 2017-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* console/ui_font.c, ui_screen.c: line_space and letter_space options are ignored.

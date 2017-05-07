@@ -15,6 +15,9 @@
 
 #define ROW_IN_LOGS(screen, row) (vt_get_num_of_logged_lines(&(screen)->logs) + row)
 
+/* Not contains the first page. */
+#define MAX_PAGE_ID 8
+
 #if 1
 #define EXIT_BS_AT_BOTTOM
 #endif
@@ -597,6 +600,50 @@ static u_int32_t get_msec_time(void) {
 #endif
 }
 
+static void change_edit(vt_screen_t *screen, vt_edit_t *edit) {
+  vt_screen_disable_local_echo(screen);
+
+  edit->bce_ch = screen->edit->bce_ch;
+
+  if (screen->logvis) {
+    (*screen->logvis->init)(screen->logvis, &edit->model, &edit->cursor);
+  }
+
+  vt_edit_set_modified_all(edit);
+
+  screen->edit = edit;
+}
+
+static vt_edit_t *get_edit(vt_screen_t *screen, u_int page_id) {
+  if (page_id == 0) {
+    if (vt_screen_is_alternative_edit(screen)) {
+      return &screen->alt_edit;
+    } else {
+      return &screen->normal_edit;
+    }
+  } else if (page_id <= MAX_PAGE_ID) {
+    if (screen->page_edits == NULL) {
+      int count;
+
+      if (!(screen->page_edits = malloc(sizeof(vt_edit_t) * MAX_PAGE_ID))) {
+        return NULL;
+      }
+
+      for (count = 0; count < MAX_PAGE_ID; count++) {
+        vt_edit_init(screen->page_edits + count, &screen->edit_scroll_listener,
+                     vt_edit_get_cols(&screen->normal_edit),
+                     vt_edit_get_rows(&screen->normal_edit),
+                     vt_edit_get_tab_size(&screen->normal_edit), 1,
+                     screen->normal_edit.use_bce);
+      }
+    }
+
+    return screen->page_edits + (page_id - 1);
+  }
+
+  return NULL;
+}
+
 /* --- global functions --- */
 
 int vt_set_word_separators(const char *seps) {
@@ -707,6 +754,16 @@ int vt_screen_delete(vt_screen_t *screen) {
   vt_edit_final(&screen->normal_edit);
   vt_edit_final(&screen->alt_edit);
 
+  if (screen->page_edits) {
+    int count;
+
+    for (count = 0; count < MAX_PAGE_ID; count++) {
+      vt_edit_final(screen->page_edits + count);
+    }
+
+    free(screen->page_edits);
+  }
+
   vt_log_final(&screen->logs);
 
   vt_screen_search_final(screen);
@@ -728,6 +785,14 @@ int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows) {
 
   if (screen->stored_edit) {
     vt_edit_resize(&screen->stored_edit->edit, cols, rows);
+  }
+
+  if (screen->page_edits) {
+    int count;
+
+    for (count = 0; count < MAX_PAGE_ID; count++) {
+      vt_edit_resize(screen->page_edits + count, cols, rows);
+    }
   }
 
   return 1;
@@ -1757,55 +1822,27 @@ int vt_screen_cursor_invisible(vt_screen_t *screen) {
   return 1;
 }
 
-/*
- * XXX
- * Note that alt_edit/normal_edit are directly switched by x_picture.c without
- * using following 3 functions.
- */
-
-int vt_screen_is_alternative_edit(vt_screen_t *screen) {
-  if (screen->edit == &(screen->alt_edit)) {
-    return 1;
-  }
-
-  return 0;
-}
-
 int vt_screen_use_normal_edit(vt_screen_t *screen) {
   if (screen->edit != &screen->normal_edit) {
-    vt_screen_disable_local_echo(screen);
+    change_edit(screen, &screen->normal_edit);
 
-    screen->normal_edit.bce_ch = screen->alt_edit.bce_ch;
-    screen->edit = &screen->normal_edit;
-
-    if (screen->logvis) {
-      (*screen->logvis->init)(screen->logvis, &screen->edit->model, &screen->edit->cursor);
-    }
-
-    vt_edit_set_modified_all(screen->edit);
+    return 1;
+  } else {
+    return 0;
   }
-
-  return 1;
 }
 
 int vt_screen_use_alternative_edit(vt_screen_t *screen) {
   if (screen->edit != &screen->alt_edit) {
-    vt_screen_disable_local_echo(screen);
-
-    screen->alt_edit.bce_ch = screen->normal_edit.bce_ch;
-    screen->edit = &screen->alt_edit;
+    change_edit(screen, &screen->alt_edit);
 
     vt_screen_goto_home(screen);
     vt_screen_clear_below(screen);
 
-    if (screen->logvis) {
-      (*screen->logvis->init)(screen->logvis, &screen->edit->model, &screen->edit->cursor);
-    }
-
-    vt_edit_set_modified_all(screen->edit);
+    return 1;
+  } else {
+    return 0;
   }
-
-  return 1;
 }
 
 /*
@@ -1914,6 +1951,27 @@ int vt_screen_fill_area(vt_screen_t *screen, int code, /* Unicode */
   return 1;
 }
 
+int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_of_copy_cols,
+                        u_int num_of_copy_rows, u_int src_page,
+                        int dst_col, int dst_row, u_int dst_page) {
+  vt_edit_t *src_edit;
+  vt_edit_t *dst_edit;
+
+  if (src_page > MAX_PAGE_ID) {
+    src_page = MAX_PAGE_ID;
+  }
+  if (dst_page > MAX_PAGE_ID) {
+    dst_page = MAX_PAGE_ID;
+  }
+
+  if ((src_edit = get_edit(screen, src_page)) && (dst_edit = get_edit(screen, dst_page))) {
+    return vt_edit_copy_area(src_edit, src_col, src_row, num_of_copy_cols, num_of_copy_rows,
+                             dst_edit, dst_col, dst_row);
+  }
+
+  return 0;
+}
+
 void vt_screen_enable_blinking(vt_screen_t *screen) { screen->has_blinking_char = 1; }
 
 int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end) {
@@ -1957,4 +2015,70 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
   (*vt_str_parser->delete)(vt_str_parser);
 
   return 1;
+}
+
+int vt_screen_get_page_id(vt_screen_t *screen) {
+  if (screen->edit == &screen->normal_edit ||
+      screen->edit == &screen->alt_edit /* alt edit is regarded as 0 */) {
+    return 0;
+  } else if (screen->page_edits) {
+    return screen->edit - screen->page_edits + 1;
+  }
+
+  return -1;
+}
+
+int vt_screen_goto_page(vt_screen_t *screen, u_int page_id) {
+  vt_edit_t *edit;
+
+  if (page_id > MAX_PAGE_ID) {
+    page_id = MAX_PAGE_ID;
+  }
+
+  if ((edit = get_edit(screen, page_id))) {
+    vt_edit_goto(edit, screen->edit->cursor.col, screen->edit->cursor.row);
+    if (vt_edit_get_tab_size(edit) != vt_edit_get_tab_size(screen->edit)) {
+      vt_edit_set_tab_size(edit, vt_edit_get_tab_size(screen->edit));
+    }
+    edit->vmargin_beg = screen->edit->vmargin_beg;
+    edit->vmargin_end = screen->edit->vmargin_end;
+    edit->hmargin_beg = screen->edit->hmargin_beg;
+    edit->hmargin_end = screen->edit->hmargin_end;
+    edit->use_margin = screen->edit->use_margin;
+    edit->is_logging = screen->edit->is_logging;
+    edit->is_relative_origin = screen->edit->is_relative_origin;
+    edit->is_auto_wrap = screen->edit->is_auto_wrap;
+    edit->use_bce = screen->edit->use_bce;
+    edit->use_rect_attr_select = screen->edit->use_rect_attr_select;
+
+    change_edit(screen, edit);
+
+    return 1;
+  }
+
+  return 0;
+}
+
+int vt_screen_goto_next_page(vt_screen_t *screen, u_int offset) {
+  int page_id = vt_screen_get_page_id(screen);
+
+  if (page_id != -1) {
+    return vt_screen_goto_page(screen, page_id + offset);
+  }
+
+  return 0;
+}
+
+int vt_screen_goto_prev_page(vt_screen_t *screen, u_int offset) {
+  int page_id = vt_screen_get_page_id(screen);
+
+  if (page_id != -1) {
+    if (page_id < offset) {
+      page_id = offset;
+    }
+
+    return vt_screen_goto_page(screen, page_id - offset);
+  }
+
+  return 0;
 }

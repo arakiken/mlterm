@@ -2602,6 +2602,15 @@ static void send_device_attributes(vt_pty_ptr_t pty, int rank) {
   vt_write_to_pty(pty, seq, strlen(seq));
 }
 
+static void send_display_extent(vt_pty_ptr_t pty, u_int cols, u_int rows, int vmargin,
+                                int hmargin, int page) {
+  char seq[DIGIT_STR_LEN(int) * 5 + 1];
+
+  sprintf(seq, "\x1b[%d;%d;%d;%d;%d\"w", cols, rows, hmargin, vmargin, page);
+
+  vt_write_to_pty(pty, seq, strlen(seq));
+}
+
 /*
  * For string outside escape sequences.
  */
@@ -3499,9 +3508,9 @@ inline static int parse_vt100_escape_sequence(
         int count;
 
         if (*str_p == 'x') {
+          /* DECFRA: Move Pc to the end */
           int tmp;
 
-          /* Move Pc to the end. */
           tmp = ps[0];
           memmove(ps, ps + 1, sizeof(ps[0]) * 4);
           ps[4] = tmp;
@@ -3533,10 +3542,15 @@ inline static int parse_vt100_escape_sequence(
              */
             vt_screen_erase_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
                                  ps[2] - ps[0] + 1);
-          } else if (*str_p == 'v' && num >= 7) {
+          } else if (*str_p == 'v' && num >= 8) {
             /* "CSI ... $ v" DECCRA */
+            for (count = 4; count < 8; count++) {
+              if (ps[count] <= 0) {
+                ps[count] = 1;
+              }
+            }
             vt_screen_copy_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
-                                ps[2] - ps[0] + 1, ps[6] - 1, ps[5] - 1);
+                                ps[2] - ps[0] + 1, ps[4] - 1, ps[6] - 1, ps[5] - 1, ps[7] - 1);
           } else if (*str_p == 'x' && num >= 1) {
             /* "CSI ... $ x" DECFRA */
             vt_screen_fill_area(vt_parser->screen, ps[4], ps[1] - 1, ps[0] - 1,
@@ -3646,6 +3660,24 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == 'A') {
           /* CSI SP A (SR) */
           vt_screen_scroll_rightward(vt_parser->screen, ps[0]);
+        } else if (*str_p == 'P') {
+          /* CSI SP P (PPA) */
+          if (num == 0 || ps[0] <= 0) {
+            ps[0] = 1;
+          }
+          vt_screen_goto_page(vt_parser->screen, ps[0] - 1);
+        } else if (*str_p == 'Q') {
+          /* CSI SP Q (PPR) */
+          if (num == 0 || ps[0] <= 0) {
+            ps[0] = 1;
+          }
+          vt_screen_goto_next_page(vt_parser->screen, ps[0]);
+        } else if (*str_p == 'R') {
+          /* CSI SP R (PPB) */
+          if (num == 0 || ps[0] <= 0) {
+            ps[0] = 1;
+          }
+          vt_screen_goto_prev_page(vt_parser->screen, ps[0]);
         } else {
           /*
            * "CSI SP t"(DECSWBV), "CSI SP u"(DECSMBV)
@@ -3747,15 +3779,21 @@ inline static int parse_vt100_escape_sequence(
 
           send_device_attributes(vt_parser->pty, 3);
         }
+      } else if (pre_ch == '\"') {
+        if (*str_p == 'v') {
+          /* "CSI " v" DECRQDE */
+
+          send_display_extent(vt_parser->pty, vt_screen_get_logical_cols(vt_parser->screen),
+                              vt_screen_get_logical_rows(vt_parser->screen),
+                              vt_parser->screen->edit->hmargin_beg,
+                              vt_parser->screen->edit->vmargin_beg,
+                              vt_screen_get_page_id(vt_parser->screen) + 1);
+        } else {
+          /* "CSI " p"(DECSCL), "CSI " q"(DECSCA) etc */
+        }
       }
       /* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
       else if (pre_ch) {
-/*
- * "CSI " p"(DECSCL), "CSI " q"(DECSCA)
- * "CSI ' {"(DECSLE), "CSI ' |"(DECRQLP)
- * etc
- */
-
 #ifdef DEBUG
         debug_print_unknown("ESC [ %c %c\n", pre_ch, *str_p);
 #endif
@@ -3913,6 +3951,24 @@ inline static int parse_vt100_escape_sequence(
         }
 
         vt_screen_scroll_downward(vt_parser->screen, ps[0]);
+      } else if (*str_p == 'U') {
+        /* "CSI U" (NP) */
+
+        if (ps[0] <= 0) {
+          ps[0] = 1;
+        }
+
+        vt_screen_goto_next_page(vt_parser->screen, ps[0]);
+        vt_screen_goto_home(vt_parser->screen);
+      } else if (*str_p == 'V') {
+        /* "CSI V" (PP) */
+
+        if (ps[0] <= 0) {
+          ps[0] = 1;
+        }
+
+        vt_screen_goto_prev_page(vt_parser->screen, ps[0]);
+        vt_screen_goto_home(vt_parser->screen);
       } else if (*str_p == 'X') {
         /* "CSI X" erase characters */
 
@@ -6264,7 +6320,8 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
       }
     }
 
-    sprintf(seq, "\x1b[%d;%d;%d;%d;0&w", ev, button_state, row, col);
+    sprintf(seq, "\x1b[%d;%d;%d;%d;%d&w", ev, button_state, row, col,
+            vt_screen_get_page_id(vt_parser->screen) + 1);
 
     vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 

@@ -322,6 +322,30 @@ static void pty_closed(vt_term_t *term) {
   /* XXX The memory of intern_pics is not freed. */
 }
 
+static void check_inline_pictures(vt_term_t *term, u_int8_t *flags, int beg, int end) {
+  int row;
+  vt_line_t *line;
+  u_int count;
+
+  for (row = beg; row <= end; row++) {
+    if ((line = vt_term_get_line(term, row))) {
+      for (count = 0; count < line->num_of_filled_chars; count++) {
+        vt_char_t *ch;
+
+        if ((ch = vt_get_picture_char(line->chars + count))) {
+          int idx;
+
+          idx = vt_char_picture_id(ch);
+          do {
+            flags[idx] = 1;
+            idx = inline_pics[idx].next_frame;
+          } while (idx >= 0 && flags[idx] == 0);
+        }
+      }
+    }
+  }
+}
+
 static int cleanup_inline_pictures(vt_term_t *term) {
 #define THRESHOLD 48
   int count;
@@ -347,9 +371,7 @@ static int cleanup_inline_pictures(vt_term_t *term) {
   } else {
     int beg;
     int end;
-    int row;
-    vt_line_t *line;
-    int restore_alt_edit;
+    vt_edit_t *orig_edit;
 
     memset(flags, 0, num_of_inline_pics);
 
@@ -361,37 +383,26 @@ static int cleanup_inline_pictures(vt_term_t *term) {
       beg = INLINEPIC_AVAIL_ROW;
     }
     end = vt_term_get_rows(term);
-    restore_alt_edit = 0;
+    orig_edit = term->screen->edit;
 
-  check_pictures:
-    for (row = beg; row <= end; row++) {
-      if ((line = vt_term_get_line(term, row))) {
-        for (count = 0; count < line->num_of_filled_chars; count++) {
-          vt_char_t *ch;
+    check_inline_pictures(term, flags, beg, end);
 
-          if ((ch = vt_get_picture_char(line->chars + count))) {
-            int idx;
+    if (term->screen->edit == &term->screen->alt_edit) {
+      term->screen->edit = &term->screen->normal_edit;
+      check_inline_pictures(term, flags, 0, end);
+    }
 
-            idx = vt_char_picture_id(ch);
-            do {
-              flags[idx] = 1;
-              idx = inline_pics[idx].next_frame;
-            } while (idx >= 0 && flags[idx] == 0);
-          }
+    if (term->screen->page_edits) {
+      int count = 0;
+
+      for (count = 0; count < 8 /* MAX_PAGE_ID in vt_screen.c */ ; count++) {
+        if ((term->screen->edit = term->screen->page_edits + count) != orig_edit) {
+          check_inline_pictures(term, flags, 0, end);
         }
       }
     }
 
-    /* XXX FIXME */
-    if (term->screen->edit == &term->screen->alt_edit) {
-      restore_alt_edit = 1;
-      term->screen->edit = &term->screen->normal_edit;
-      beg = 0;
-
-      goto check_pictures;
-    } else if (restore_alt_edit) {
-      term->screen->edit = &term->screen->alt_edit;
-    }
+    term->screen->edit = orig_edit;
   }
 
   empty_idx = -1;

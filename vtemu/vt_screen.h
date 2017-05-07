@@ -46,6 +46,7 @@ typedef struct vt_screen {
 
   vt_edit_t normal_edit;
   vt_edit_t alt_edit;
+  vt_edit_t *page_edits;         /* stores 8 pages */
   vt_stored_edit_t *stored_edit; /* Store logical edits. */
 
   vt_edit_scroll_event_listener_t edit_scroll_listener;
@@ -315,11 +316,17 @@ int vt_screen_cursor_invisible(vt_screen_t *screen);
 
 #define vt_screen_is_cursor_visible(screen) ((screen)->is_cursor_visible)
 
+/*
+ * XXX
+ * Note that alt_edit/normal_edit are directly switched by ui_picture.c without
+ * using following 3 functions.
+ */
+
+#define vt_screen_is_alternative_edit(screen) ((screen)->edit == &(screen)->alt_edit)
+
 int vt_screen_use_normal_edit(vt_screen_t *screen);
 
 int vt_screen_use_alternative_edit(vt_screen_t *screen);
-
-int vt_screen_is_alternative_edit(vt_screen_t *screen);
 
 #define vt_screen_is_local_echo_mode(screen) ((screen)->stored_edit)
 
@@ -332,8 +339,9 @@ int vt_screen_disable_local_echo(vt_screen_t *screen);
 int vt_screen_fill_area(vt_screen_t *screen, int code, int col, int beg, u_int num_of_cols,
                         u_int num_of_rows);
 
-#define vt_screen_copy_area(screen, src_col, src_row, num_of_cols, num_of_rows, dst_col, dst_row) \
-  vt_edit_copy_area((screen)->edit, src_col, src_row, num_of_cols, num_of_rows, dst_col, dst_row)
+int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_of_copy_cols,
+                        u_int num_of_copy_rows, u_int src_page,
+                        int dst_col, int dst_row, u_int dst_page);
 
 #define vt_screen_erase_area(screen, col, row, num_of_cols, num_of_rows) \
   vt_edit_erase_area((screen)->edit, col, row, num_of_cols, num_of_rows)
@@ -354,5 +362,13 @@ int vt_screen_fill_area(vt_screen_t *screen, int code, int col, int beg, u_int n
 void vt_screen_enable_blinking(vt_screen_t *screen);
 
 int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end);
+
+int vt_screen_get_page_id(vt_screen_t *screen);
+
+int vt_screen_goto_page(vt_screen_t *screen, u_int page_id);
+
+int vt_screen_goto_next_page(vt_screen_t *screen, u_int offset);
+
+int vt_screen_goto_prev_page(vt_screen_t *prev, u_int offset);
 
 #endif
