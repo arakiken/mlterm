@@ -2606,7 +2606,7 @@ static void send_display_extent(vt_pty_ptr_t pty, u_int cols, u_int rows, int vm
                                 int hmargin, int page) {
   char seq[DIGIT_STR_LEN(int) * 5 + 1];
 
-  sprintf(seq, "\x1b[%d;%d;%d;%d;%d\"w", cols, rows, hmargin, vmargin, page);
+  sprintf(seq, "\x1b[%d;%d;%d;%d;%d\"w", rows, cols, hmargin, vmargin, page);
 
   vt_write_to_pty(pty, seq, strlen(seq));
 }
@@ -3785,8 +3785,8 @@ inline static int parse_vt100_escape_sequence(
 
           send_display_extent(vt_parser->pty, vt_screen_get_logical_cols(vt_parser->screen),
                               vt_screen_get_logical_rows(vt_parser->screen),
-                              vt_parser->screen->edit->hmargin_beg,
-                              vt_parser->screen->edit->vmargin_beg,
+                              vt_parser->screen->edit->hmargin_beg + 1,
+                              vt_parser->screen->edit->vmargin_beg + 1,
                               vt_screen_get_page_id(vt_parser->screen) + 1);
         } else {
           /* "CSI " p"(DECSCL), "CSI " q"(DECSCA) etc */

@@ -1,5 +1,11 @@
 2017-05-07  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c: The response to DECRQDE is fixed.
+
+	* uitoolkit/Makefile.in: Error in compiling winrs.rs is fixed.
+
+2017-05-07  Araki Ken  <arakiken@users.sf.net>
+
 	* keymap.c: XK_Kakji, XK_Muhenkan, XK_Henkan, XK_Hiragana, XK_Katakana and
 	  XK_Zenkaku_Hankaku are processed.
 

@@ -79,7 +79,7 @@ ui_display.o: ui_display.c $(XDISPLAY_DEPENDS_@GUI@)
 winrs.o: winrs.rs
 	cp $(top_srcdir)/contrib/icon/mlterm-icon-win32.ico .
 	# windres-2.11.90(included in MSYS-DTK 1.0.1) doesn't accept '-I[DIR]' option.
-	windres `echo "@POBL_CFLAGS@"|sed 's/-I/--include-dir /'` @GUI_CFLAGS@ @SSH2_CFLAGS@ $< winrs.o
+	windres `echo "@POBL_CFLAGS@ @MEF_CFLAGS@"|sed 's/-I/--include-dir /'` @GUI_CFLAGS@ @SSH2_CFLAGS@ $< winrs.o
 
 install:
 
