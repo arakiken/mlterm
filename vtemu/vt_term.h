@@ -28,11 +28,12 @@ typedef struct vt_term {
   /*
    * private
    */
-  vt_vertical_mode_t vertical_mode;
-  vt_bidi_mode_t bidi_mode;
-  char *bidi_separators;
   char *icon_path;
   char *uri;
+  char *bidi_separators;
+
+  /* vt_bidi_mode_t */ int8_t bidi_mode;
+  /* vt_vertical_mode_t */ int8_t vertical_mode;
 
   int8_t use_ctl;
   int8_t use_dynamic_comb;
@@ -67,7 +68,8 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
                        int use_ctl, vt_bidi_mode_t bidi_mode, const char *bidi_separators,
                        int use_dynamic_comb, vt_bs_mode_t bs_mode, vt_vertical_mode_t vertical_mode,
                        int use_local_echo, const char *win_name, const char *icon_name,
-                       vt_alt_color_mode_t alt_color_mode, int use_ot_layout);
+                       vt_alt_color_mode_t alt_color_mode, int use_ot_layout,
+                       vt_cursor_style_t cursor_style);
 
 int vt_term_delete(vt_term_t *term);
 
@@ -203,8 +205,6 @@ int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual);
 
 #define vt_term_get_cursor_line(term) vt_screen_get_cursor_line((term)->screen)
 
-#define vt_term_is_cursor_visible(term) vt_screen_is_cursor_visible((term)->screen)
-
 #if 0
 int vt_term_set_modified_region(vt_term_t *term, int beg_char_index, int beg_row, u_int nchars,
                                 u_int nrows);
@@ -260,6 +260,9 @@ int vt_term_enter_backscroll_mode(vt_term_t *term);
                                 base_char_index, base_row)                                    \
   vt_screen_get_word_region((term)->screen, beg_char_index, beg_row, end_char_index, end_row, \
                             base_char_index, base_row)
+
+#define vt_term_write_content(term, fd, conv, clear_at_end) \
+  vt_screen_write_content(term->screen, fd, conv, clear_at_end)
 
 #define vt_term_set_use_multi_col_char(term, flag) \
   vt_parser_set_use_multi_col_char((term)->parser, flag)
@@ -332,7 +335,8 @@ int vt_term_set_config(vt_term_t *term, char *key, char *value);
 
 #define vt_term_select_drcs(term) vt_parser_select_drcs((term)->parser)
 
-#define vt_term_write_content(term, fd, conv, clear_at_end) \
-  vt_screen_write_content(term->screen, fd, conv, clear_at_end)
+#define vt_term_is_visible_cursor(term) vt_parser_is_visible_cursor((term)->parser)
+
+#define vt_term_get_cursor_style(term) vt_parser_get_cursor_style((term)->parser)
 
 #endif

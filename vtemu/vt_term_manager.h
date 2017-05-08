@@ -19,7 +19,8 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
                           int use_dynamic_comb, vt_bs_mode_t bs_mode,
                           vt_vertical_mode_t vertical_mode, int use_local_echo,
                           const char *win_name, const char *icon_name,
-                          vt_alt_color_mode_t alt_color_mode, int use_ot_layout);
+                          vt_alt_color_mode_t alt_color_mode, int use_ot_layout,
+                          vt_cursor_style_t cursor_style);
 
 int vt_destroy_term(vt_term_t *term);
 

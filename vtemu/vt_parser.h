@@ -73,6 +73,13 @@ typedef enum vt_alt_color_mode {
 
 } vt_alt_color_mode_t;
 
+typedef enum vt_cursor_style {
+  CS_BLOCK = 0x0,
+  CS_UNDERLINE = 0x1,
+  CS_BAR = 0x2,
+  CS_BLINK = 0x4,
+} vt_cursor_style_t;
+
 typedef struct vt_write_buffer {
   vt_char_t chars[PTY_WR_BUFFER_SIZE];
   u_int filled_len;
@@ -229,7 +236,7 @@ typedef struct vt_parser {
   int8_t is_crossed_out;
   int8_t is_blinking;
 
-  int8_t alt_color_mode;
+  /* vt_alt_color_mode_t */ int8_t alt_color_mode;
 
   u_int8_t col_size_of_width_a; /* 1 or 2 */
 
@@ -263,6 +270,9 @@ typedef struct vt_parser {
 
   int8_t is_auto_encoding;
   int8_t use_auto_detect;
+
+  int8_t is_visible_cursor;
+  /* vt_cursor_style_t */ int8_t cursor_style;
 
   /* for save/restore cursor */
   vt_vt100_storable_states_t saved_normal;
@@ -307,12 +317,13 @@ void vt_parser_init(void);
 void vt_parser_final(void);
 
 vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
-                                       vt_char_encoding_t encoding, int is_auto_encoding,
-                                       int use_auto_detect, int logging_vt_seq,
-                                       vt_unicode_policy_t policy, u_int col_size_a,
-                                       int use_char_combining, int use_multi_col_char,
-                                       const char *win_name, const char *icon_name,
-                                       vt_alt_color_mode_t alt_color_mode);
+                           vt_char_encoding_t encoding, int is_auto_encoding,
+                           int use_auto_detect, int logging_vt_seq,
+                           vt_unicode_policy_t policy, u_int col_size_a,
+                           int use_char_combining, int use_multi_col_char,
+                           const char *win_name, const char *icon_name,
+                           vt_alt_color_mode_t alt_color_mode,
+                           vt_cursor_style_t cursor_style);
 
 int vt_parser_delete(vt_parser_t *vt_parser);
 
@@ -406,5 +417,9 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd);
 void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
                                            int button, int is_released, int key_state,
                                            int button_state);
+
+#define vt_parser_is_visible_cursor(vt_parser) ((vt_parser)->is_visible_cursor)
+
+#define vt_parser_get_cursor_style(vt_parser) ((vt_parser)->cursor_style)
 
 #endif

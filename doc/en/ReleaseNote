@@ -1,6 +1,7 @@
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)
 * Support DECRQDE.
+* Support DECSCUSR. (Ps = 3,4,5,6)
 * Revive iiimf input method plugin.
 
 ver 3.8.1

@@ -727,8 +727,6 @@ vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_of_
 
   screen->backscroll_mode = bs_mode;
 
-  screen->is_cursor_visible = 1;
-
   return screen;
 
 error3:
@@ -1798,26 +1796,6 @@ int vt_screen_go_downward(vt_screen_t *screen, u_int size) {
       return 0;
     }
   }
-
-  return 1;
-}
-
-int vt_screen_cursor_visible(vt_screen_t *screen) {
-  if (screen->is_cursor_visible) {
-    return 1;
-  }
-
-  screen->is_cursor_visible = 1;
-
-  return 1;
-}
-
-int vt_screen_cursor_invisible(vt_screen_t *screen) {
-  if (!screen->is_cursor_visible) {
-    return 1;
-  }
-
-  screen->is_cursor_visible = 0;
 
   return 1;
 }

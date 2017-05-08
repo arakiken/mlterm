@@ -1302,7 +1302,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
       if (is_sixel && !vt_parser->sixel_scrolling) {
         vt_screen_save_cursor(vt_parser->screen);
-        vt_screen_cursor_invisible(vt_parser->screen);
+        vt_parser->is_visible_cursor = 0;
         vt_screen_go_upward(vt_parser->screen, vt_screen_cursor_row(vt_parser->screen));
         vt_screen_goto_beg_of_line(vt_parser->screen);
       }
@@ -1345,7 +1345,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
           }
         } else {
           vt_screen_restore_cursor(vt_parser->screen);
-          vt_screen_cursor_visible(vt_parser->screen);
+          vt_parser->is_visible_cursor = 1;
         }
       }
 
@@ -2488,7 +2488,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
    */
 
   /* "CSI ? 25 h" (DECTCEM) */
-  vt_screen_cursor_visible(vt_parser->screen);
+  vt_parser->is_visible_cursor = 1;
 
   /* "CSI l" (IRM) */
   vt_parser->w_buf.output_func = vt_screen_overwrite_chars;
@@ -3104,7 +3104,7 @@ inline static int parse_vt100_escape_sequence(
 #endif
             else if (ps[count] == 25) {
               /* "CSI ? 25 h" */
-              vt_screen_cursor_visible(vt_parser->screen);
+              vt_parser->is_visible_cursor = 1;
             }
 #if 0
             else if (ps[count] == 35) {
@@ -3312,7 +3312,7 @@ inline static int parse_vt100_escape_sequence(
             else if (ps[count] == 25) {
               /* "CSI ? 25 l" */
 
-              vt_screen_cursor_invisible(vt_parser->screen);
+              vt_parser->is_visible_cursor = 0;
             }
 #if 0
             else if (ps[count] == 35) {
@@ -3650,9 +3650,17 @@ inline static int parse_vt100_escape_sequence(
           /* CSI SP q */
 
           if (ps[0] < 2) {
-            config_protocol_set_simple(vt_parser, "blink_cursor", "true", 0);
+            vt_parser->cursor_style = CS_BLOCK|CS_BLINK;
           } else if (ps[0] == 2) {
-            config_protocol_set_simple(vt_parser, "blink_cursor", "false", 0);
+            vt_parser->cursor_style = CS_BLOCK;
+          } else if (ps[0] == 3) {
+            vt_parser->cursor_style = CS_UNDERLINE|CS_BLINK;
+          } else if (ps[0] == 4) {
+            vt_parser->cursor_style = CS_UNDERLINE;
+          } else if (ps[0] == 5) {
+            vt_parser->cursor_style = CS_BAR|CS_BLINK;
+          } else if (ps[0] == 6) {
+            vt_parser->cursor_style = CS_BAR;
           }
         } else if (*str_p == '@') {
           /* CSI SP @ (SL) */
@@ -4043,7 +4051,7 @@ inline static int parse_vt100_escape_sequence(
           } else if (ps[count] == 33) {
             /* WYSTCURM (TeraTerm original) */
 
-            config_protocol_set_simple(vt_parser, "blink_cursor", "true", 0);
+            vt_parser->cursor_style |= CS_BLINK;
           }
         }
       } else if (*str_p == 'h') {
@@ -4063,7 +4071,7 @@ inline static int parse_vt100_escape_sequence(
           } else if (ps[count] == 33) {
             /* WYSTCURM (TeraTerm original) */
 
-            config_protocol_set_simple(vt_parser, "blink_cursor", "false", 0);
+            vt_parser->cursor_style &= ~CS_BLINK;
           }
 #ifdef DEBUG
           else {
@@ -5218,12 +5226,13 @@ void vt_parser_final(void) {
 }
 
 vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
-                                       vt_char_encoding_t encoding, int is_auto_encoding,
-                                       int use_auto_detect, int logging_vt_seq,
-                                       vt_unicode_policy_t policy, u_int col_size_a,
-                                       int use_char_combining, int use_multi_col_char,
-                                       const char *win_name, const char *icon_name,
-                                       vt_alt_color_mode_t alt_color_mode) {
+                           vt_char_encoding_t encoding, int is_auto_encoding,
+                           int use_auto_detect, int logging_vt_seq,
+                           vt_unicode_policy_t policy, u_int col_size_a,
+                           int use_char_combining, int use_multi_col_char,
+                           const char *win_name, const char *icon_name,
+                           vt_alt_color_mode_t alt_color_mode,
+                           vt_cursor_style_t cursor_style) {
   vt_parser_t *vt_parser;
 
   if ((vt_parser = calloc(1, sizeof(vt_parser_t))) == NULL) {
@@ -5249,6 +5258,8 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
   vt_parser->use_auto_detect = use_auto_detect;
   vt_parser->logging_vt_seq = logging_vt_seq;
   vt_parser->unicode_policy = policy;
+  vt_parser->cursor_style = cursor_style;
+  vt_parser->is_visible_cursor = 1;
 
   if ((vt_parser->cc_conv = vt_char_encoding_conv_new(encoding)) == NULL) {
     goto error;
@@ -6025,6 +6036,12 @@ int vt_parser_get_config(
     response_area_table(vt_parser->pty, key, full_width_areas, num_of_full_width_areas, to_menu);
 
     return 1;
+  } else if (strcmp(key, "blink_cursor") == 0) {
+    if (vt_parser->cursor_style & CS_BLINK) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     if (to_menu) {
       value = vt_get_proto_challenge();
@@ -6160,6 +6177,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
 
     if ((flag = true_or_false(value)) != -1) {
       vt_parser->use_auto_detect = flag;
+    }
+  } else if (strcmp(key, "blink_cursor") == 0) {
+    if (strcmp(value, "true") == 0) {
+      vt_parser->cursor_style |= CS_BLINK;
+    } else {
+      vt_parser->cursor_style &= ~CS_BLINK;
     }
   } else {
     /* Continue to process it in x_screen.c */

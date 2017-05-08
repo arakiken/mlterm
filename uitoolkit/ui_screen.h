@@ -91,18 +91,18 @@ typedef struct ui_screen {
 
   ui_shortcut_t *shortcut;
 
-  char *input_method;
-  ui_im_t *im;
-  int is_preediting;
-  u_int im_preedit_beg_row;
-  u_int im_preedit_end_row;
-
   char *mod_meta_key;
-  ui_mod_meta_mode_t mod_meta_mode;
   u_int mod_meta_mask;
   u_int mod_ignore_mask;
+  /* ui_mod_meta_mode_t */ int8_t mod_meta_mode;
 
-  ui_bel_mode_t bel_mode;
+  /* ui_bel_mode_t */ int8_t bel_mode;
+
+  int8_t is_preediting;
+  u_int im_preedit_beg_row;
+  u_int im_preedit_end_row;
+  char *input_method;
+  ui_im_t *im;
 
   u_int screen_width_ratio;
   u_int screen_height_ratio;
@@ -141,7 +141,6 @@ typedef struct ui_screen {
   int8_t font_or_color_config_updated; /* 0x1 = font updated, 0x2 = color
                                           updated */
   int8_t blink_wait;
-  int8_t blink_cursor;
   int8_t hide_underline;
   int8_t underline_offset;
   int8_t processing_vtseq;
@@ -169,7 +168,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
                            int use_vertical_cursor, int big5_buggy,
                            int use_extended_scroll_shortcut, int borderless, int line_space,
-                           char *input_method, int allow_osc52, int blink_cursor, u_int hmargin,
+                           char *input_method, int allow_osc52, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset);
 
 int ui_screen_delete(ui_screen_t *screen);

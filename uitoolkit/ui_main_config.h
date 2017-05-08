@@ -35,6 +35,7 @@ typedef struct ui_main_config {
   vt_vertical_mode_t vertical_mode;
   vt_bs_mode_t bs_mode;
   vt_unicode_policy_t unicode_policy;
+  vt_alt_color_mode_t alt_color_mode;
   u_int parent_window;
 
   char *disp_name;
@@ -113,7 +114,6 @@ typedef struct ui_main_config {
   int8_t use_x11_forwarding;
   int8_t use_auto_detect;
   int8_t unlimit_log_size;
-  int8_t alt_color_mode;
   int8_t use_ot_layout;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   int8_t show_dialog;

@@ -697,7 +697,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
             logging_vt_seq, unicode_policy, col_size_a, use_char_combining, use_multi_col_char,
             0 /* use_ctl */, 0 /* bidi_mode */, NULL /* bidi_separators */,
             0 /* use_dynamic_comb */, BSM_STATIC, 0 /* vertical_mode */, use_local_echo, NULL, NULL,
-            0 /* alt_color_mode */, 0 /* use_ot_layout */))) {
+            0 /* alt_color_mode */, 0 /* use_ot_layout */, 0 /* cursor_style */))) {
     goto error;
   }
 

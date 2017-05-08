@@ -1,3 +1,20 @@
+2017-05-08  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen_manager.c, MLTermPty.c, vte.c:
+	  Calling vt_create_term() and ui_screen_new() is fixed.
+
+	* ui_screen.[ch]:
+	  - blink_cursor is removed.
+	  - Underline cursor and bar cursor are supported.
+
+	* vt_term.[ch]: vt_term_is_visible_cursor() and vt_term_get_cursor_style() are added.
+
+	* vt_parser.[ch]:
+	  - vt_cursor_style_t is added and DECSCUSR(3,4,5,6) is supported.
+	  - is_visible_cursor is moved from vt_screen.
+	  - vt_parser_is_visible_cursor() and vt_parser_get_cursor_style() are added.
+	  - Processing "blink_cursor" of OSC 5379-5383 is moved from ui_screen.c
+
 2017-05-07  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: The response to DECRQDE is fixed.

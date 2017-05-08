@@ -1152,8 +1152,7 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
       main_config.pic_file_path, main_config.use_transbg, main_config.use_vertical_cursor,
       main_config.big5_buggy, main_config.use_extended_scroll_shortcut, main_config.borderless,
       main_config.line_space, main_config.input_method, main_config.allow_osc52,
-      main_config.blink_cursor, hmargin, vmargin, main_config.hide_underline,
-      main_config.underline_offset);
+      hmargin, vmargin, main_config.hide_underline, main_config.underline_offset);
   if (PVT(terminal)->term) {
     vt_term_detach(PVT(terminal)->term);
     PVT(terminal)->screen->term = NULL;
@@ -2210,7 +2209,8 @@ static void vte_terminal_init(VteTerminal *terminal) {
       main_config.use_multi_col_char, main_config.use_ctl, main_config.bidi_mode,
       main_config.bidi_separators, main_config.use_dynamic_comb, main_config.bs_mode,
       /* main_config.vertical_mode */ 0, main_config.use_local_echo, main_config.title,
-      main_config.icon_name, main_config.alt_color_mode, main_config.use_ot_layout);
+      main_config.icon_name, main_config.alt_color_mode, main_config.use_ot_layout,
+      main_config.blink_cursor ? CS_BLINK|CS_BLOCK : CS_BLOCK);
   if (!init_inherit_ptys) {
     u_int num;
     vt_term_t **terms;
@@ -3177,7 +3177,7 @@ void vte_terminal_set_cursor_blink_mode(VteTerminal *terminal, VteCursorBlinkMod
 }
 
 VteCursorBlinkMode vte_terminal_get_cursor_blink_mode(VteTerminal *terminal) {
-  if (PVT(terminal)->screen->blink_cursor) {
+  if (vt_term_get_cursor_style(PVT(terminal)->term) & CS_BLINK) {
     return VTE_CURSOR_BLINK_ON;
   } else {
     return VTE_CURSOR_BLINK_OFF;

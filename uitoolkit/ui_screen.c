@@ -437,7 +437,7 @@ static int draw_cursor(ui_screen_t *screen) {
     return 1;
   }
 
-  if (!vt_term_is_cursor_visible(screen->term)) {
+  if (!vt_term_is_visible_cursor(screen->term)) {
     return 1;
   }
 
@@ -463,7 +463,9 @@ static int draw_cursor(ui_screen_t *screen) {
   vt_char_init(&ch);
   vt_char_copy(&ch, vt_char_at(line, vt_term_cursor_char_index(screen->term)));
 
-  if (screen->window.is_focused) {
+  if (vt_term_get_cursor_style(screen->term) & (CS_UNDERLINE|CS_BAR)) {
+    /* do nothing */
+  } else if (screen->window.is_focused) {
 #ifdef USE_IM_CURSOR_COLOR
     if (im_cursor_color && xterm_im_is_active(screen)) {
       if ((orig_cursor_bg = ui_color_manager_get_cursor_bg_color(screen->color_man))) {
@@ -496,7 +498,16 @@ static int draw_cursor(ui_screen_t *screen) {
               ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
               screen->hide_underline, screen->underline_offset);
 
-  if (screen->window.is_focused) {
+  if (vt_term_get_cursor_style(screen->term) & CS_UNDERLINE) {
+    ui_font_t *xfont;
+
+    xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
+    ui_window_fill(&screen->window, x, y + ui_line_ascent(screen),
+                   ui_calculate_mlchar_width(xfont, &ch, NULL), 2);
+  } else if (vt_term_get_cursor_style(screen->term) & CS_BAR) {
+    ui_window_fill(&screen->window, x, y, 2, ui_line_height(screen));
+  } else if (screen->window.is_focused) {
+    /* CS_BLOCK */
     ui_color_manager_adjust_cursor_fg_color(screen->color_man);
     ui_color_manager_adjust_cursor_bg_color(screen->color_man);
 
@@ -507,6 +518,7 @@ static int draw_cursor(ui_screen_t *screen) {
     }
 #endif
   } else {
+    /* CS_BLOCK */
     ui_font_t *xfont;
 
     xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
@@ -3046,7 +3058,7 @@ static void idling(ui_window_t *win) {
 
         update = vt_term_blink(screen->term, 0);
 
-        if (screen->blink_cursor) {
+        if (vt_term_get_cursor_style(screen->term) & CS_BLINK) {
           unhighlight_cursor(screen, 1);
           update = 1;
         }
@@ -3066,7 +3078,7 @@ static void idling(ui_window_t *win) {
 
       flag = vt_term_blink(screen->term, 1) ? UPDATE_SCREEN : 0;
 
-      if (screen->blink_cursor) {
+      if (vt_term_get_cursor_style(screen->term) & CS_BLINK) {
         flag |= UPDATE_CURSOR;
       }
 
@@ -4105,12 +4117,6 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     }
   } else if (strcmp(key, "allow_osc52") == 0) {
     if (screen->xterm_listener.set_selection) {
-      value = "true";
-    } else {
-      value = "false";
-    }
-  } else if (strcmp(key, "blink_cursor") == 0) {
-    if (screen->blink_cursor) {
       value = "true";
     } else {
       value = "false";
@@ -5515,7 +5521,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
                            int use_vertical_cursor, int big5_buggy,
                            int use_extended_scroll_shortcut, int borderless, int line_space,
-                           char *input_method, int allow_osc52, int blink_cursor, u_int hmargin,
+                           char *input_method, int allow_osc52, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset) {
   ui_screen_t *screen;
   u_int col_width;
@@ -5711,8 +5717,6 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->window.set_xdnd_config = set_xdnd_config;
 #endif
   screen->window.idling = idling;
-
-  screen->blink_cursor = blink_cursor;
 
   if (use_transbg) {
     ui_window_set_transparent(&screen->window, ui_screen_get_picture_modifier(screen));
@@ -6528,8 +6532,6 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
         vt_set_use_scp_full(flag);
       }
     }
-  } else if (strcmp(key, "blink_cursor") == 0) {
-    screen->blink_cursor = (true_or_false(value) > 0);
   } else if (strcmp(key, "use_urgent_bell") == 0) {
     int flag;
 

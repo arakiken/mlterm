@@ -68,10 +68,9 @@ typedef struct vt_screen {
   } * search;
 
   u_int backscroll_rows;
-  vt_bs_mode_t backscroll_mode;
+  /* vt_bs_mode_t */ int8_t backscroll_mode;
   int8_t is_backscrolling;
 
-  int8_t is_cursor_visible;
   int8_t has_blinking_char;
 
 } vt_screen_t;
