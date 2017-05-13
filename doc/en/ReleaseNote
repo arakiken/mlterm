@@ -3,6 +3,8 @@ ver 3.8.2
 * Support DECRQDE.
 * Support DECSCUSR. (Ps = 3,4,5,6)
 * Revive iiimf input method plugin.
+* Bug fixes:
+  Fix unexpected blocking in exiting mlterm.jar.
 
 ver 3.8.1
 * Support wayland including libvte compatible library.

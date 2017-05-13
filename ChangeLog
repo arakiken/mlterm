@@ -1,3 +1,7 @@
+2017-05-14  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_ssh.c: WSASocket() is called with WSA_FLAG_OVERLAPPED in _socketpair().
+
 2017-05-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c, MLTermPty.c, vte.c:

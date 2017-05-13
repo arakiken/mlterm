@@ -925,7 +925,8 @@ static int _socketpair(int af, int type, int proto, SOCKET sock[2]) {
     goto error1;
   }
 
-  if ((sock[0] = WSASocket(af, type, proto, NULL, 0, 0)) == -1) {
+  /* select() and receive() can call simultaneously on java. */
+  if ((sock[0] = WSASocket(af, type, proto, NULL, 0, WSA_FLAG_OVERLAPPED)) == -1) {
     goto error1;
   }
 
