@@ -109,9 +109,6 @@ static ef_factory_table_t factories[] = {
      "isciipunjabi", ef_iscii_punjabi_parser_new, ef_iscii_punjabi_conv_new,
     },
     {
-     "isciiroman", ef_iscii_roman_parser_new, ef_iscii_roman_conv_new,
-    },
-    {
      "isciitamil", ef_iscii_tamil_parser_new, ef_iscii_tamil_conv_new,
     },
     {
@@ -152,7 +149,7 @@ static void usage() {
       "viscii iscii koi8-r koi8-u cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 "
       "cp1256 cp1257 cp1258 cp874 "
       "iscii(assamese|bengali|gujarati|hindi|kannada|malayalam|oriya|punjabi|"
-      "roman|tamil|telugu) eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf16le "
+      "tamil|telugu) eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf16le "
       "utf32 junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab "
       "euccn gbk gb18030 iso2022cn hz big5 big5hkscs euctw\n");
 }

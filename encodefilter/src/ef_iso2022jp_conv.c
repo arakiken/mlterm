@@ -104,8 +104,6 @@ static size_t convert_to_iso2022jp(ef_conv_t *conv, u_char *dst, size_t dst_size
           return filled_size;
         }
       } else {
-        iso2022_conv->g0 = ch.cs;
-
         if (ch.cs == JISX0208_1983 || (version <= 2 && ch.cs == JISC6226_1978) ||
             /* GB2312_80 for ISO2022JP-2(rfc1154) */
             (version == 2 && ch.cs == GB2312_80)) {
@@ -200,6 +198,8 @@ static size_t convert_to_iso2022jp(ef_conv_t *conv, u_char *dst, size_t dst_size
         } else {
           continue;
         }
+
+        iso2022_conv->g0 = ch.cs;
       }
 
       for (count = 0; count < ch.size; count++) {

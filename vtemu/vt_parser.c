@@ -4890,7 +4890,7 @@ inline static int parse_vt100_escape_sequence(
             return 1;
           }
 
-          vt_parser->g0 = *(str_p - ic_num) == '$' ? CS94MB_ID(*str_p) : CS94SB_ID(*str_p);
+          vt_parser->g0 = (*(str_p - ic_num) == '$') ? CS94MB_ID(*str_p) : CS94SB_ID(*str_p);
 
           if (!vt_parser->is_so) {
             vt_parser->gl = vt_parser->g0;
@@ -4903,7 +4903,7 @@ inline static int parse_vt100_escape_sequence(
             return 1;
           }
 
-          vt_parser->g1 = CS94SB_ID(*str_p);
+          vt_parser->g1 = (*(str_p - ic_num) == '$') ? CS94MB_ID(*str_p) : CS94SB_ID(*str_p);
 
           if (vt_parser->is_so) {
             vt_parser->gl = vt_parser->g1;

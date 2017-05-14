@@ -1,5 +1,16 @@
 2017-05-14  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c: ESC $ ) is supported on utf8 encoding.
+
+	* ef_iso2022kr_conv.c: iso2022_conv.g1 = KSC5601_1987 is added.
+
+	* ef_iso2022jp_conv.c: iso2022_conv->g0 is replaced by ch.cs after convertion
+	  correctly finishes.
+
+	* mef.c: "isciiroman" encoding is removed.
+
+2017-05-14  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_pty_ssh.c: WSASocket() is called with WSA_FLAG_OVERLAPPED in _socketpair().
 
 2017-05-08  Araki Ken  <arakiken@users.sf.net>

@@ -53,6 +53,7 @@ static size_t convert_to_iso2022kr(ef_conv_t *conv, u_char *dst, size_t dst_size
     filled_size += 4;
 
     iso2022kr_conv->is_designated = 1;
+    iso2022kr_conv->iso2022_conv.g1 = KSC5601_1987;
   }
 
   while (ef_parser_next_char(parser, &ch)) {
@@ -67,8 +68,6 @@ static size_t convert_to_iso2022kr(ef_conv_t *conv, u_char *dst, size_t dst_size
         return filled_size;
       }
     } else {
-      iso2022kr_conv->iso2022_conv.g0 = ch.cs;
-
       if (ch.cs == KSC5601_1987) {
         if (filled_size + ch.size >= dst_size) {
           ef_parser_full_reset(parser);
