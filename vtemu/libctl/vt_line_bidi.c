@@ -6,6 +6,8 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* alloca */
 
+#define MSB32 0x80000000
+
 /* --- static functions --- */
 
 static void copy_char_with_mirror_check(vt_char_t *dst, vt_char_t *src, u_int16_t *visual_order,
@@ -199,125 +201,138 @@ int vt_line_bidi_logical(vt_line_t *line) {
 
 /* The caller should check vt_line_is_using_bidi() in advance. */
 int vt_line_bidi_convert_logical_char_index_to_visual(vt_line_t *line, int char_index,
-                                                      int *ltr_rtl_meet_pos) {
+                                                      u_int32_t *meet_pos_info) {
   if (((u_int)char_index) < line->ctl_info.bidi->size && /* same as 0 <= char_index < size */
       HAS_RTL(line->ctl_info.bidi)) {
-    int count;
+    if (meet_pos_info) {
+      int count;
 
-    if (!BASE_IS_RTL(line->ctl_info.bidi) && char_index >= 1) {
-      for (count = char_index - 2; count >= -1; count--) {
-/*
- * visual order -> 1 2 4 3 5
- *                   ^ ^   ^- char index
- *                   | |
- * cursor position --+ +-- meet position
- *
- * visual order -> 1 2*5*4 3 6
- *                 ^ ^ ^     ^- char index
- *                   | |
- * cursor position --+ +-- meet position
- *
- * visual order -> 1 2 3 6 5 4 7
- *                   ^ ^ ^     ^- char index
- *                     | |
- *   cursor position --+ +-- meet position
- */
-#if 0
-        bl_debug_printf(" Normal pos %d - Current pos %d %d %d - Meet position %d\n",
-                        line->ctl_info.bidi->visual_order[char_index],
-                        count >= 0 ? line->ctl_info.bidi->visual_order[count] : 0,
-                        line->ctl_info.bidi->visual_order[count + 1],
-                        line->ctl_info.bidi->visual_order[count + 2], *ltr_rtl_meet_pos);
-#endif
-        if ((count < 0 ||
-             line->ctl_info.bidi->visual_order[count] <
-                 line->ctl_info.bidi->visual_order[count + 1]) &&
-            line->ctl_info.bidi->visual_order[count + 1] + 1 <
-                line->ctl_info.bidi->visual_order[count + 2]) {
+      *meet_pos_info &= ~MSB32;
+
+      if (!BASE_IS_RTL(line->ctl_info.bidi) && char_index >= 1) {
+        for (count = char_index - 2; count >= -1; count--) {
           /*
-           * If meet position is not changed, text isn't changed
-           * but cursor is moved. In this case cursor position should
-           * not be fixed to visual_order[count + 1].
+           * visual order -> 1 2 4 3 5
+           *                   ^ ^   ^- char index
+           *                   | |
+           * cursor position --+ +-- meet position
+           *
+           * visual order -> 1 2*5*4 3 6
+           *                 ^ ^ ^     ^- char index
+           *                   | |
+           * cursor position --+ +-- meet position
+           *
+           * visual order -> 1 2 3 6 5 4 7
+           *                   ^ ^ ^     ^- char index
+           *                     | |
+           *   cursor position --+ +-- meet position
            */
-          if (*ltr_rtl_meet_pos !=
-              line->ctl_info.bidi->visual_order[count + 1] +
-                  line->ctl_info.bidi->visual_order[count + 2]) {
-            *ltr_rtl_meet_pos = line->ctl_info.bidi->visual_order[count + 1] +
-                                line->ctl_info.bidi->visual_order[count + 2];
-
-            if (line->ctl_info.bidi->visual_order[char_index] ==
-                line->ctl_info.bidi->visual_order[count + 2] + 1) {
-              return line->ctl_info.bidi->visual_order[count + 1];
-            }
-          }
-
-          break;
-        }
-      }
-
-      if (count == 0) {
-        *ltr_rtl_meet_pos = 0;
-      }
-    } else if (BASE_IS_RTL(line->ctl_info.bidi) && char_index >= 1) {
-      for (count = char_index - 2; count >= -1; count--) {
-/*
- * visual order -> 6 5 4 2 3 1
- *                   ^ ^ ^   ^- char index
- *                     |
- *                     +-- meet position & cursor position
- * visual order -> 7 6 5 2 3*4*1
- *                   ^ ^ ^     ^- char index
- *                     |
- *                     +-- meet position & cursor position
- *
- * visual order -> 7 6 4 5 3 2 1
- *                 ^ ^ ^   ^- char index
- *                   | |
- * cursor position --+ +-- meet position
- * visual order -> 7 6 3 4*5*2 1
- *                 ^ ^ ^     ^- char index
- *                   | |
- * cursor position --+ +-- meet position
- */
 #if 0
-        bl_debug_printf(" Normal pos %d - Current pos %d %d %d - Meet position %d\n",
-                        line->ctl_info.bidi->visual_order[char_index],
-                        count >= 0 ? line->ctl_info.bidi->visual_order[count] : 0,
-                        line->ctl_info.bidi->visual_order[count + 1],
-                        line->ctl_info.bidi->visual_order[count + 2], *ltr_rtl_meet_pos);
+          bl_debug_printf(" Normal pos %d - Current pos %d %d %d - Meet position info %d\n",
+                          line->ctl_info.bidi->visual_order[char_index],
+                          count >= 0 ? line->ctl_info.bidi->visual_order[count] : 0,
+                          line->ctl_info.bidi->visual_order[count + 1],
+                          line->ctl_info.bidi->visual_order[count + 2], *meet_pos_info);
+#endif
+          if ((count < 0 ||
+               line->ctl_info.bidi->visual_order[count] <
+               line->ctl_info.bidi->visual_order[count + 1]) &&
+              line->ctl_info.bidi->visual_order[count + 1] + 1 <
+              line->ctl_info.bidi->visual_order[count + 2]) {
+            /*
+             * If meet position is not changed, text isn't changed
+             * but cursor is moved. In this case cursor position should
+             * not be fixed to visual_order[count + 1].
+             */
+            if (((*meet_pos_info) & ~MSB32) !=
+                line->ctl_info.bidi->visual_order[count + 1] +
+                line->ctl_info.bidi->visual_order[count + 2]) {
+              *meet_pos_info = line->ctl_info.bidi->visual_order[count + 1] +
+                line->ctl_info.bidi->visual_order[count + 2];
+
+              if (line->ctl_info.bidi->visual_order[char_index] ==
+                  line->ctl_info.bidi->visual_order[count + 2] + 1) {
+                *meet_pos_info |= MSB32;
+                return line->ctl_info.bidi->visual_order[count + 1];
+              }
+            }
+
+            break;
+          }
+        }
+
+        if (count == 0) {
+          *meet_pos_info = 0;
+        }
+      } else if (BASE_IS_RTL(line->ctl_info.bidi) && char_index >= 1) {
+        for (count = char_index - 2; count >= -1; count--) {
+          /*
+           * visual order -> 6 5 4 2 3 1
+           *                   ^ ^ ^   ^- char index
+           *                     |
+           *                     +-- meet position & cursor position
+           * visual order -> 7 6 5 2 3*4*1
+           *                   ^ ^ ^     ^- char index
+           *                     |
+           *                     +-- meet position & cursor position
+           *
+           * visual order -> 7 6 4 5 3 2 1
+           *                   ^ ^   ^- char index
+           *                   | |
+           * cursor position --+ +-- meet position
+           * visual order -> 7 6 3 4*5*2 1
+           *                   ^ ^     ^- char index
+           *                   | |
+           * cursor position --+ +-- meet position
+           */
+#if 0
+          bl_debug_printf(" Normal pos %d - Current pos %d %d %d - Meet position info %d\n",
+                          line->ctl_info.bidi->visual_order[char_index],
+                          count >= 0 ? line->ctl_info.bidi->visual_order[count] : 0,
+                          line->ctl_info.bidi->visual_order[count + 1],
+                          line->ctl_info.bidi->visual_order[count + 2], *meet_pos_info);
 #endif
 
-        if ((count < 0 ||
-             line->ctl_info.bidi->visual_order[count] >
-                 line->ctl_info.bidi->visual_order[count + 1]) &&
-            line->ctl_info.bidi->visual_order[count + 1] >
-                line->ctl_info.bidi->visual_order[count + 2] + 1) {
-          if (*ltr_rtl_meet_pos !=
-              line->ctl_info.bidi->visual_order[count + 1] +
-                  line->ctl_info.bidi->visual_order[count + 2]) {
-            *ltr_rtl_meet_pos = line->ctl_info.bidi->visual_order[count + 1] +
-                                line->ctl_info.bidi->visual_order[count + 2];
-
-            if (line->ctl_info.bidi->visual_order[char_index] + 1 ==
+          if ((count < 0 ||
+               line->ctl_info.bidi->visual_order[count] >
+               line->ctl_info.bidi->visual_order[count + 1]) &&
+              line->ctl_info.bidi->visual_order[count + 1] >
+              line->ctl_info.bidi->visual_order[count + 2] + 1) {
+            /*
+             * If meet position is not changed, text isn't changed
+             * but cursor is moved. In this case cursor position should
+             * not be fixed to visual_order[count + 1].
+             */
+            if (((*meet_pos_info) & ~MSB32) !=
+                line->ctl_info.bidi->visual_order[count + 1] +
                 line->ctl_info.bidi->visual_order[count + 2]) {
-              return line->ctl_info.bidi->visual_order[count + 1];
+              *meet_pos_info = line->ctl_info.bidi->visual_order[count + 1] +
+                line->ctl_info.bidi->visual_order[count + 2];
+
+              if (line->ctl_info.bidi->visual_order[char_index] + 1 ==
+                  line->ctl_info.bidi->visual_order[count + 2]) {
+                *meet_pos_info |= MSB32;
+                return line->ctl_info.bidi->visual_order[count + 1];
+              }
             }
+
+            break;
           }
-
-          break;
         }
-      }
 
-      if (count == 0) {
-        *ltr_rtl_meet_pos = 0;
+        if (count == 0) {
+          *meet_pos_info = 0;
+        }
+      } else {
+        *meet_pos_info = 0;
       }
-    } else {
-      *ltr_rtl_meet_pos = 0;
     }
 
     return line->ctl_info.bidi->visual_order[char_index];
   } else {
-    *ltr_rtl_meet_pos = 0;
+    if (meet_pos_info) {
+      *meet_pos_info = 0;
+    }
 
     return char_index;
   }

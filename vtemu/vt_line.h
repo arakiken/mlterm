@@ -156,7 +156,7 @@ int vt_line_is_rtl(vt_line_t *line);
 int vt_line_copy_logical_str(vt_line_t *line, vt_char_t *dst, int beg, u_int len);
 
 int vt_line_convert_logical_char_index_to_visual(vt_line_t *line, int logical_char_index,
-                                                 int *meet_pos);
+                                                 u_int32_t *meet_pos_info);
 
 vt_line_t *vt_line_shape(vt_line_t *line);
 

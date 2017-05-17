@@ -264,6 +264,8 @@ int vt_term_enter_backscroll_mode(vt_term_t *term);
 #define vt_term_write_content(term, fd, conv, clear_at_end) \
   vt_screen_write_content(term->screen, fd, conv, clear_at_end)
 
+#define vt_term_cursor_is_rtl(term) vt_screen_cursor_is_rtl((term)->screen)
+
 #define vt_term_set_use_multi_col_char(term, flag) \
   vt_parser_set_use_multi_col_char((term)->parser, flag)
 

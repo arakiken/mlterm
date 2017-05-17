@@ -499,13 +499,17 @@ static int draw_cursor(ui_screen_t *screen) {
               screen->hide_underline, screen->underline_offset);
 
   if (vt_term_get_cursor_style(screen->term) & CS_UNDERLINE) {
-    ui_font_t *xfont;
-
-    xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
+    ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
     ui_window_fill(&screen->window, x, y + ui_line_ascent(screen),
                    ui_calculate_mlchar_width(xfont, &ch, NULL), 2);
   } else if (vt_term_get_cursor_style(screen->term) & CS_BAR) {
-    ui_window_fill(&screen->window, x, y, 2, ui_line_height(screen));
+    if (vt_term_cursor_is_rtl(screen->term)) {
+      ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
+      ui_window_fill(&screen->window, x + ui_calculate_mlchar_width(xfont, &ch, NULL) - 2,
+                     y, 2, ui_line_height(screen));
+    } else {
+      ui_window_fill(&screen->window, x, y, 2, ui_line_height(screen));
+    }
   } else if (screen->window.is_focused) {
     /* CS_BLOCK */
     ui_color_manager_adjust_cursor_fg_color(screen->color_man);
@@ -519,9 +523,7 @@ static int draw_cursor(ui_screen_t *screen) {
 #endif
   } else {
     /* CS_BLOCK */
-    ui_font_t *xfont;
-
-    xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
+    ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
 
     ui_window_set_fg_color(&screen->window,
                            ui_get_xcolor(screen->color_man, vt_char_fg_color(&ch)));

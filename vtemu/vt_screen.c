@@ -1482,7 +1482,6 @@ int vt_screen_search_find(vt_screen_t *screen,
       u_int comb_size;
       int beg;
       int end;
-      int meet_pos;
 
       vt_get_combining_chars(line_str + (*beg_char_index), &comb_size);
 
@@ -1545,9 +1544,8 @@ int vt_screen_search_find(vt_screen_t *screen,
        *  (logical)RRRLLLNNN => (visual)NNNLLLRRR
        *  Searching LLLNNN =>           ^^^^^^ hits but only NNNL is reversed.
        */
-      meet_pos = 0;
-      beg = vt_line_convert_logical_char_index_to_visual(line, *beg_char_index, &meet_pos);
-      end = vt_line_convert_logical_char_index_to_visual(line, *end_char_index, &meet_pos);
+      beg = vt_line_convert_logical_char_index_to_visual(line, *beg_char_index, NULL);
+      end = vt_line_convert_logical_char_index_to_visual(line, *end_char_index, NULL);
 
       if (beg > end) {
         *beg_char_index = end;

@@ -17,6 +17,6 @@ int vt_line_bidi_visual(vt_line_t *line);
 int vt_line_bidi_logical(vt_line_t *line);
 
 int vt_line_bidi_convert_logical_char_index_to_visual(vt_line_t *line, int char_index,
-                                                      int *ltr_rtl_meet_pos);
+                                                      u_int32_t *meet_pos_info);
 
 #endif

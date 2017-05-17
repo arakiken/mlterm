@@ -370,4 +370,7 @@ int vt_screen_goto_next_page(vt_screen_t *screen, u_int offset);
 
 int vt_screen_goto_prev_page(vt_screen_t *prev, u_int offset);
 
+#define vt_screen_cursor_is_rtl(screen) \
+  ((screen)->logvis ? vt_logical_visual_cursor_is_rtl((screen)->logvis) : 0)
+
 #endif

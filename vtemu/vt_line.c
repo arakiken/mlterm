@@ -213,7 +213,7 @@ int vt_line_bidi_is_rtl(vt_line_t *line);
 int vt_bidi_copy(vt_bidi_state_t dst, vt_bidi_state_t src, int optimize);
 int vt_bidi_reset(vt_bidi_state_t state);
 int vt_line_bidi_convert_logical_char_index_to_visual(vt_line_t *line, int char_index,
-                                                      int *ltr_rtl_meet_pos);
+                                                      u_int32_t *meet_pos_info);
 int vt_line_bidi_render(vt_line_t *line, vt_bidi_mode_t bidi_mode, const char *separators);
 int vt_line_bidi_visual(vt_line_t *line);
 int vt_line_bidi_logical(vt_line_t *line);
@@ -1413,7 +1413,8 @@ int vt_line_copy_logical_str(vt_line_t *line, vt_char_t *dst, int beg, /* visual
   return vt_str_copy(dst, line->chars + beg, len);
 }
 
-int vt_line_convert_logical_char_index_to_visual(vt_line_t *line, int char_index, int *meet_pos) {
+int vt_line_convert_logical_char_index_to_visual(vt_line_t *line, int char_index,
+                                                 u_int32_t *meet_pos_info) {
 #ifdef NO_DYNAMIC_LOAD_CTL
   if (line->ctl_info_type) {
 #ifdef USE_OT_LAYOUT
@@ -1423,7 +1424,8 @@ int vt_line_convert_logical_char_index_to_visual(vt_line_t *line, int char_index
 #endif
         if (vt_line_is_using_bidi(line)) {
 #ifdef USE_FRIBIDI
-      char_index = vt_line_bidi_convert_logical_char_index_to_visual(line, char_index, meet_pos);
+      char_index = vt_line_bidi_convert_logical_char_index_to_visual(line, char_index,
+                                                                     meet_pos_info);
 #endif
     } else /* if( vt_line_is_using_iscii( line)) */
     {
@@ -1445,7 +1447,7 @@ int vt_line_convert_logical_char_index_to_visual(vt_line_t *line, int char_index
       int (*bidi_func)(vt_line_t *, int, int *);
 
       if ((bidi_func = vt_load_ctl_bidi_func(VT_LINE_BIDI_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL))) {
-        char_index = (*bidi_func)(line, char_index, meet_pos);
+        char_index = (*bidi_func)(line, char_index, meet_pos_info);
       }
     } else /* if( vt_line_is_using_iscii( line)) */
     {

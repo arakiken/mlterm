@@ -1,3 +1,23 @@
+2017-05-17  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: draw_cursor() selects appropriate position of cursor bar
+	  according to rtl or ltr attribute of a cursor character.
+
+	* vt_term.h: vt_term_cursor_is_rtl() is added.
+
+	* vt_screen.h: vt_screen_cursor_is_rtl() is added.
+
+	* vt_logical_visual.[ch]:
+	  - If meet_pos_info & 0x8000000 is true, ctl_logical() forces a cursor
+	    character to be redrawn.
+	  - vt_logical_visual_cursor_is_rtl() is added.
+
+	* vt_line_bidi.[ch], vt_line.[ch]:
+	  - vt_line_bidi_convert_logical_char_index_to_visual() doesn't check meeting
+	    position of rtl and ltr characters if meet_pos_info is NULL.
+	  - if meet_pos_info & 0x8000000 is true, cursor position is really adjusted
+	    according to metting position of rtl and ltr characters.
+
 2017-05-14  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: ESC $ ) is supported on utf8 encoding.

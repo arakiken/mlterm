@@ -67,8 +67,11 @@ char *vt_get_vertical_mode_name(vt_vertical_mode_t mode);
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI) || defined(USE_IND) || \
     defined(USE_OT_LAYOUT)
 vt_logical_visual_t *vt_logvis_ctl_new(vt_bidi_mode_t mode, const char *separators, void *term);
+
+int vt_logical_visual_cursor_is_rtl(vt_logical_visual_t *logvis);
 #else
 #define vt_logvis_ctl_new(mode, separators, term) (0)
+#define vt_logical_visual_cursor_is_rtl(logvis) (0)
 #endif
 
 #endif /* __VT_LOGICAL_VISUAL_H__ */

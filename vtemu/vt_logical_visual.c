@@ -10,6 +10,8 @@
 
 #define CURSOR_LINE(logvis) (vt_model_get_line((logvis)->model, (logvis)->cursor->row))
 
+#define MSB32 0x80000000
+
 #if 0
 #define __DEBUG
 #endif
@@ -57,7 +59,7 @@ typedef struct ctl_logical_visual {
 
   int cursor_logical_char_index;
   int cursor_logical_col;
-  int ltr_rtl_meet_pos;
+  u_int32_t cursor_meet_pos_info;
   vt_bidi_mode_t bidi_mode;
   const char *separators;
   void *term;
@@ -723,7 +725,7 @@ static int ctl_visual(vt_logical_visual_t *logvis) {
 #ifdef CURSOR_DEBUG
   bl_debug_printf(BL_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d (ltrmeet)%d] ->",
                   logvis->cursor->char_index, logvis->cursor->col, logvis->cursor->row,
-                  ((ctl_logical_visual_t*)logvis)->ltr_rtl_meet_pos);
+                  ((ctl_logical_visual_t*)logvis)->cursor_meet_pos_info);
 #endif
 
   for (row = 0; row < logvis->model->num_of_rows; row++) {
@@ -739,7 +741,7 @@ static int ctl_visual(vt_logical_visual_t *logvis) {
 
   logvis->cursor->char_index = vt_line_convert_logical_char_index_to_visual(
       CURSOR_LINE(logvis), logvis->cursor->char_index,
-      &((ctl_logical_visual_t*)logvis)->ltr_rtl_meet_pos);
+      &((ctl_logical_visual_t*)logvis)->cursor_meet_pos_info);
   /*
    * XXX
    * col_in_char should not be plused to col, because the character pointed by
@@ -754,7 +756,7 @@ static int ctl_visual(vt_logical_visual_t *logvis) {
 #ifdef CURSOR_DEBUG
   bl_msg_printf("-> [cursor(index)%d (col)%d (row)%d (ltrmeet)%d]\n", logvis->cursor->char_index,
                 logvis->cursor->col, logvis->cursor->row,
-                ((bidi_logical_visual_t*)logvis)->ltr_rtl_meet_pos);
+                ((bidi_logical_visual_t*)logvis)->cursor_meet_pos_info);
 #endif
 
   logvis->is_visual = 1;
@@ -798,6 +800,13 @@ static int ctl_logical(vt_logical_visual_t *logvis) {
        */
     }
 #endif
+  }
+
+  if (((ctl_logical_visual_t*)logvis)->cursor_meet_pos_info & MSB32) {
+    /* cursor position is adjusted */
+    vt_line_t *line = vt_model_get_line(logvis->model, logvis->cursor->row);
+    int idx = vt_line_convert_visual_char_index_to_logical(line, logvis->cursor->char_index);
+    vt_line_set_modified(line, idx, idx);
   }
 
   logvis->cursor->char_index = ((ctl_logical_visual_t*)logvis)->cursor_logical_char_index;
@@ -989,6 +998,42 @@ vt_logical_visual_t *vt_logvis_ctl_new(vt_bidi_mode_t bidi_mode, const char *sep
   ctl_logvis->logvis.is_reversible = 1;
 
   return (vt_logical_visual_t*)ctl_logvis;
+}
+
+int vt_logical_visual_cursor_is_rtl(vt_logical_visual_t *logvis) {
+  if (logvis->init == ctl_init) {
+    vt_line_t *line;
+    int ret = 0;
+
+    if ((line = vt_model_get_line(logvis->model, logvis->cursor->row))) {
+      int lidx = ((ctl_logical_visual_t*)logvis)->cursor_logical_char_index;
+      int vidx1 = vt_line_convert_logical_char_index_to_visual(line, lidx > 0 ? lidx - 1 : 0, NULL);
+      int vidx2 = vt_line_convert_logical_char_index_to_visual(line, lidx, NULL);
+      int vidx3 = vt_line_convert_logical_char_index_to_visual(line, lidx + 1, NULL);
+
+      if (vt_line_is_rtl(line) ? (vidx1 >= vidx2 && vidx2 >= vidx3) :
+                                 (vidx1 > vidx2 || vidx2 > vidx3)) {
+        ret = 1;
+      }
+    }
+
+    if (((ctl_logical_visual_t*)logvis)->cursor_meet_pos_info & MSB32) {
+      ret = !ret;
+    }
+
+    return ret;
+  } else if (logvis->init == container_init) {
+    u_int count;
+    container_logical_visual_t *container = (container_logical_visual_t*)logvis;
+
+    for (count == 0; count < container->num_of_children; count++) {
+      if (vt_logical_visual_cursor_is_rtl(container->children[count])) {
+        return 1;
+      }
+    }
+  }
+
+  return 0;
 }
 
 #endif
