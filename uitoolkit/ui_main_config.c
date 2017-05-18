@@ -212,6 +212,7 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
                   "Color to use to display crossed-out characters");
   bl_conf_add_opt(conf, '\0', "noul", 1, "hide_underline", "Don't draw underline [false]");
   bl_conf_add_opt(conf, '\0', "ulpos", 0, "underline_offset", "underline position [0]");
+  bl_conf_add_opt(conf, '\0', "blpos", 0, "baseline_offset", "baseline position [0]");
 #ifdef USE_OT_LAYOUT
   bl_conf_add_opt(conf, '\0', "otl", 1, "use_ot_layout", "OpenType shape [false]");
   bl_conf_add_opt(conf, '\0', "ost", 0, "ot_script", "Script of glyph subsutitution [latn]");
@@ -746,10 +747,6 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   else {
     main_config->unicode_policy = ONLY_USE_UNICODE_FONT;
   }
-#elif defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-  else if (ui_is_using_aafont()) {
-    main_config->unicode_policy = ONLY_USE_UNICODE_FONT;
-  }
 #endif
 
   if ((value = bl_conf_get_value(conf, "box_drawing_font"))) {
@@ -1185,6 +1182,16 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
       main_config->underline_offset = size;
     } else {
       bl_msg_printf(invalid_msg, "underline offset", value);
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "baseline_offset"))) {
+    int size;
+
+    if (bl_str_to_int(&size, value)) {
+      main_config->baseline_offset = size;
+    } else {
+      bl_msg_printf(invalid_msg, "baseline offset", value);
     }
   }
 

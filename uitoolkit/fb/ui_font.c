@@ -988,7 +988,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
 
 static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,
                       u_int bytes_per_pixel, ef_charset_t cs) {
-  if ((cs == ISO10646_UCS4_1 || IS_ISCII(cs)) && !is_pcf(file_path)) {
+  if (!is_pcf(file_path)) {
     return load_ft(xfont, file_path, format, (bytes_per_pixel > 1));
   } else {
     return load_pcf(xfont, file_path);
@@ -1560,9 +1560,17 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
       /* use ui_decsp_font_new() */
       font_file = NULL;
       percent = 0;
-    } else if (!IS_ISO10646_UCS4(cs) && cs != ISO8859_1_R) {
+    }
+    /*
+     * Default font on Androidis is ttf, so charsets except unicode and ISO88591 are available.
+     * (Chars except unicode are converted to unicode in ui_window.c for freetype.)
+     */
+#ifndef __ANDROID__
+    else if (!IS_ISO10646_UCS4(cs) && cs != ISO8859_1_R) {
       return NULL;
-    } else {
+    }
+#endif
+    else {
       struct stat st;
 
 #if defined(__FreeBSD__)
@@ -1807,7 +1815,7 @@ xfont_loaded:
     font->double_draw_gap = 1;
   }
 
-  if ((id & FONT_FULLWIDTH) && IS_ISO10646_UCS4(cs) && font->xfont->width_full > 0) {
+  if ((id & FONT_FULLWIDTH) && font->xfont->width_full > 0) {
     font->width = font->xfont->width_full;
   } else {
     font->width = font->xfont->width;

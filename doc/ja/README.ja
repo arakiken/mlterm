@@ -650,6 +650,9 @@ comment $Id$
       o underline_offset (0)
         アンダーラインの位置(フォントのベースラインからの相対位置)
 
+      o baseline_offset (0)
+        ベースーラインの相対位置
+
       o wall_picture  (*なし*) (#)
         壁紙にする画像ファイルのパス
         なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。

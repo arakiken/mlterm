@@ -3262,12 +3262,17 @@ static void resize_window(ui_screen_t *screen) {
   }
 }
 
-static void modify_line_space_and_underline_offset(ui_screen_t *screen) {
+static void modify_line_space_and_offset(ui_screen_t *screen) {
   u_int font_height = ui_get_usascii_font(screen->font_man)->height;
 
   if (screen->line_space < 0 && font_height < -screen->line_space * 4) {
     bl_msg_printf("Ignore line_space (%d)\n", screen->line_space);
     screen->line_space = 0;
+  }
+
+  if (font_height < abs(screen->baseline_offset) * 8) {
+    bl_msg_printf("Ignore baseline_offset (%d)\n", screen->baseline_offset);
+    screen->baseline_offset = 0;
   }
 
   if (screen->underline_offset != 0) {
@@ -3277,7 +3282,8 @@ static void modify_line_space_and_underline_offset(ui_screen_t *screen) {
       }
     } else {
       if (screen->underline_offset <= font_height - ui_get_usascii_font(screen->font_man)->ascent +
-                                      screen->line_space / 2 /* + screen->line_space % 2 */) {
+                                      screen->line_space / 2 /* + screen->line_space % 2 */ -
+                                      screen->baseline_offset) {
         /* underline_offset < descent + bottom_margin */
         return;
       }
@@ -3292,7 +3298,7 @@ static void font_size_changed(ui_screen_t *screen) {
   u_int col_width;
   u_int line_height;
 
-  modify_line_space_and_underline_offset(screen);
+  modify_line_space_and_offset(screen);
 
   if (HAS_SCROLL_LISTENER(screen, line_height_changed)) {
     (*screen->screen_scroll_listener->line_height_changed)(screen->screen_scroll_listener->self,
@@ -3340,7 +3346,7 @@ static void change_line_space(ui_screen_t *screen, int line_space) {
     return;
   }
 
-    /* letter_space and line_space are ignored on console. */
+  /* letter_space and line_space are ignored on console. */
 #ifndef USE_CONSOLE
   screen->line_space = line_space;
 
@@ -3620,7 +3626,14 @@ static void change_hide_underline_flag(ui_screen_t *screen, int flag) {
 static void change_underline_offset(ui_screen_t *screen, int offset) {
   if (screen->underline_offset != offset) {
     screen->underline_offset = offset;
-    font_size_changed(screen);
+    modify_line_space_and_offset(screen);
+  }
+}
+
+static void change_baseline_offset(ui_screen_t *screen, int offset) {
+  if (screen->baseline_offset != offset) {
+    screen->baseline_offset = offset;
+    modify_line_space_and_offset(screen);
   }
 }
 
@@ -3980,6 +3993,9 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     }
   } else if (strcmp(key, "underline_offset") == 0) {
     sprintf(digit, "%d", screen->underline_offset);
+    value = digit;
+  } else if (strcmp(key, "baseline_offset") == 0) {
+    sprintf(digit, "%d", screen->baseline_offset);
     value = digit;
   } else if (strcmp(key, "fontsize") == 0) {
     sprintf(digit, "%d", ui_get_font_size(screen->font_man));
@@ -5524,7 +5540,8 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            int use_vertical_cursor, int big5_buggy,
                            int use_extended_scroll_shortcut, int borderless, int line_space,
                            char *input_method, int allow_osc52, u_int hmargin,
-                           u_int vmargin, int hide_underline, int underline_offset) {
+                           u_int vmargin, int hide_underline, int underline_offset,
+                           int baseline_offset) {
   ui_screen_t *screen;
   u_int col_width;
   u_int line_height;
@@ -5545,12 +5562,13 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->font_man = font_man;
   screen->color_man = color_man;
 
-    /* letter_space and line_space are ignored on console. */
+  /* letter_space and line_space are ignored on console. */
 #ifndef USE_CONSOLE
   screen->line_space = line_space;
 #endif
   screen->underline_offset = underline_offset;
-  modify_line_space_and_underline_offset(screen);
+  screen->baseline_offset = baseline_offset;
+  modify_line_space_and_offset(screen);
 
   screen->sel_listener.self = screen;
   screen->sel_listener.select_in_window = select_in_window;
@@ -6026,7 +6044,8 @@ u_int ui_line_height(ui_screen_t *screen) {
 }
 
 u_int ui_line_ascent(ui_screen_t *screen) {
-  return ui_get_usascii_font(screen->font_man)->ascent + line_top_margin(screen);
+  return ui_get_usascii_font(screen->font_man)->ascent + line_top_margin(screen) +
+         screen->baseline_offset;
 }
 
 /*
@@ -6302,6 +6321,12 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
 
     if (bl_str_to_int(&offset, value)) {
       change_underline_offset(screen, offset);
+    }
+  } else if (strcmp(key, "baseline_offset") == 0) {
+    int offset;
+
+    if (bl_str_to_int(&offset, value)) {
+      change_baseline_offset(screen, offset);
     }
   } else if (strcmp(key, "logsize") == 0) {
     u_int log_size;

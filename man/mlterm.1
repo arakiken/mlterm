@@ -524,6 +524,10 @@ Specify the color to use to display blinking characters.
 \fB\-\-blink\fR(=\fIbool\fR)
 Blink cursor. The default is \fBfalse\fR.
 .TP
+\fB\-\-blpos\fR=\fIvalue\fR
+Specify the position of baseline.
+The default is \fB0\fR.
+.TP
 \fB\-\-border\fR=\fIvalue\fR
 Specify inner border width. The default is \fB2\fR.
 The maximum value is \fB224\fR.
@@ -1308,6 +1312,10 @@ Application name.
 Restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE or
 SIGILL is received.
 If you want to get core image, specify "false".
+.TP
+\fBbaseline_offset=\fIvalue\fR (\fB\-\-blpos\fR)
+Specify the position of baseline.
+The default is \fB0\fR.
 .TP
 \fBbel_mode=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR)
 Behavior when BEL (0x07) is received.

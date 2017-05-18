@@ -1152,7 +1152,8 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
       main_config.pic_file_path, main_config.use_transbg, main_config.use_vertical_cursor,
       main_config.big5_buggy, main_config.use_extended_scroll_shortcut, main_config.borderless,
       main_config.line_space, main_config.input_method, main_config.allow_osc52,
-      hmargin, vmargin, main_config.hide_underline, main_config.underline_offset);
+      hmargin, vmargin, main_config.hide_underline, main_config.underline_offset,
+      main_config.baseline_offset);
   if (PVT(terminal)->term) {
     vt_term_detach(PVT(terminal)->term);
     PVT(terminal)->screen->term = NULL;

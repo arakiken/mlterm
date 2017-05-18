@@ -1,3 +1,17 @@
+2017-05-18  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1: Updated.
+
+	* ui_main_config.c: "baseline_offset" / --blpos option is added.
+
+	* ui_screen.[ch]:
+	  - "baseline_offset" is added to OSC 5379 etc.
+	  - baseline_offset is added to arguments of ui_screen_new().
+
+	* ui_window.c: Chars except unicode are converted to unicode for freetype.
+
+	* fb/ui_font.c: TrueType fonts are loaded for charsets except Unicode.
+
 2017-05-17  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: draw_cursor() selects appropriate position of cursor bar

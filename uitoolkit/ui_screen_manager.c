@@ -553,7 +553,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
            main_config.use_extended_scroll_shortcut, main_config.borderless, main_config.line_space,
            main_config.input_method, main_config.allow_osc52,
            main_config.hmargin, main_config.vmargin, main_config.hide_underline,
-           main_config.underline_offset)) == NULL) {
+           main_config.underline_offset, main_config.baseline_offset)) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_screen_new() failed.\n");
 #endif

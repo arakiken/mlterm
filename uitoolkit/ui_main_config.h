@@ -108,6 +108,7 @@ typedef struct ui_main_config {
   u_int8_t layout_vmargin;
   int8_t hide_underline;
   int8_t underline_offset;
+  int8_t baseline_offset;
   int8_t use_bold_font;
   int8_t use_italic_font;
   int8_t use_local_echo;

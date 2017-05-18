@@ -6,6 +6,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
 #include <pobl/bl_unistd.h> /* bl_usleep */
+#include <mef/ef_ucs4_map.h>
 
 #include "ui_display.h"
 #include "ui_font.h"
@@ -583,15 +584,38 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
     for (count = 0; count < len; count++) {
       bitmaps[count] = ui_get_bitmap(xfont, str + count, 1, use_ot_layout, NULL);
     }
-  } else /* if( ch_len == 2) */ {
+  } else /* if(ch_len == 2) */ {
     XFontStruct *compl_xfont;
+
+    if (xfont->is_aa && !IS_ISO10646_UCS4(font->id)) {
+      u_char *str_p = str;
+      ef_char_t non_ucs;
+      ef_char_t ucs4;
+
+      non_ucs.size = 2;
+      non_ucs.cs = FONT_CS(font->id);
+      non_ucs.property = 0;
+      for (count = 0; count < len; count++, str_p += 2) {
+        memcpy(non_ucs.ch, str_p, 2);
+        if (!ef_map_to_ucs4(&ucs4, &non_ucs)) {
+          continue;
+        }
+
+        if (ucs4.ch[0] == '\0' && ucs4.ch[1] == '\0') {
+          memcpy(str_p, ucs4.ch + 2, 2);
+        }
+#if 0
+        else {
+          memcpy(str_p, ucs4.ch, 4);
+          ch_len = 4;
+        }
+#endif
+      }
+    }
 
     for (count = 0; count < len;) {
       if (0xd8 <= str[0] && str[0] <= 0xdb) {
-        len--;
-
-        if (count >= len) {
-          /* ignored */
+        if (use_ot_layout || count >= --len) {
           break;
         }
 
@@ -629,8 +653,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
         xfont = compl_xfont;
 
         /* see ui_font.c */
-        if ((font->id & FONT_FULLWIDTH) && IS_ISO10646_UCS4(FONT_CS(font->id)) &&
-            xfont->width_full > 0) {
+        if ((font->id & FONT_FULLWIDTH) && xfont->width_full > 0) {
           w = xfont->width_full;
         } else {
           w = xfont->width;
