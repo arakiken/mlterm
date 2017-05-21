@@ -1,3 +1,28 @@
+2017-05-21  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: "ESC 2"(DECCAHT), "ESC 1"(DECCHTS), "ESC I"(HTJ),
+	  "CSI ? Pi;Pa;Pv S", "CSI Ps1;Ps2;Ps3 ,l"(DECAC) and "CSI W"(CBC)
+	  are implemented.
+
+	* vt_edit.c: The starting position of erase_area() is fixed in
+	  vt_edit_scroll_{right|left}ward_from_cursor().
+
+	* ui_screen.c: baseline_offset option is disabled on console.
+
+	* fb/ui_display.c:
+	  Busy loop where mlterm-fb on inactive console falls is fixed.
+
+	* mlterm-con.c: mlterm-con works on Solaris11.
+
+	* iiimf/keymap.c: keysyms which are undefined on framebuffer are enclosed
+	  by #ifdef ... #endif.
+
+	* vte.c: OPEN_SCREEN, OPEN_PTY, NEXT_PTY, PREV_PTY, HSPLIT_SCREEN,
+	  VSPLIT_SCREEN, NEXT_SCREEN, CLOSE_SCREEN, HEXPAND_SCREEN,
+	  VEXPAND_SCREEN shortcut keys are disabled on libvte compatible library.
+
+	* android/jni/ui.h: FORCE_UNICODE is undefined.
+
 2017-05-18  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1: Updated.

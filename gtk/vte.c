@@ -1663,8 +1663,20 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 #endif
 
   vt_color_config_init();
+
   ui_shortcut_init(&shortcut);
   ui_shortcut_parse(&shortcut, "Button3", "\"none\"");
+  ui_shortcut_parse(&shortcut, "UNUSED", "OPEN_SCREEN");
+  ui_shortcut_parse(&shortcut, "UNUSED", "OPEN_PTY");
+	ui_shortcut_parse(&shortcut, "UNUSED", "NEXT_PTY");
+	ui_shortcut_parse(&shortcut, "UNUSED", "PREV_PTY");
+	ui_shortcut_parse(&shortcut, "UNUSED", "HSPLIT_SCREEN");
+	ui_shortcut_parse(&shortcut, "UNUSED", "VSPLIT_SCREEN");
+	ui_shortcut_parse(&shortcut, "UNUSED", "NEXT_SCREEN");
+	ui_shortcut_parse(&shortcut, "UNUSED", "CLOSE_SCREEN");
+	ui_shortcut_parse(&shortcut, "UNUSED", "HEXPAND_SCREEN");
+	ui_shortcut_parse(&shortcut, "UNUSED", "VEXPAND_SCREEN");
+
 #ifdef USE_XLIB
   ui_xim_init(1);
 #endif

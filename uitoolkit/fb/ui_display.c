@@ -755,9 +755,9 @@ static int check_visibility_of_im_window(void) {
   int redraw_im_win = 0;
 
 #ifdef DEBUG
-  if (disp->num_of_roots > 2) {
+  if (_disp.num_of_roots > 2) {
     bl_debug_printf(BL_DEBUG_TAG" Multiple IM Windows (%d) are activated.\n",
-                    disp->num_of_roots - 1);
+                    _disp.num_of_roots - 1);
   }
 #endif
 
@@ -1270,7 +1270,11 @@ int ui_display_close_all(void) {
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {
-  if (!DISP_IS_INITED) {
+  if (!DISP_IS_INITED
+#ifndef __FreeBSD__
+      || console_id != get_active_console()
+#endif
+     ) {
     *num = 0;
 
     return NULL;

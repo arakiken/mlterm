@@ -1203,7 +1203,7 @@ int vt_edit_scroll_leftward_from_cursor(vt_edit_t *edit, u_int width) {
     width = edit->hmargin_end - edit->cursor.col + 1;
   }
 
-  erase_area(edit, edit->hmargin_end - width + 1, edit->vmargin_beg, width, height);
+  erase_area(edit, edit->hmargin_end - width + 1, edit->vmargin_end, width, height);
 
   return 1;
 }
@@ -1225,7 +1225,7 @@ int vt_edit_scroll_rightward_from_cursor(vt_edit_t *edit, u_int width) {
     width = edit->hmargin_end - edit->cursor.col + 1;
   }
 
-  erase_area(edit, edit->hmargin_beg, edit->vmargin_beg, width, height);
+  erase_area(edit, edit->cursor.col, edit->vmargin_beg, width, height);
 
   return 1;
 }

@@ -2844,7 +2844,10 @@ inline static int parse_vt100_escape_sequence(
       return 0;
     }
 
-    if (*str_p == '6') {
+    if (*str_p == '2') {
+      /* "ESC 2" DECCAHT */
+      vt_screen_clear_all_tab_stops(vt_parser->screen);
+    } else if (*str_p == '6') {
       /* "ESC 6" DECBI */
 
       vt_screen_go_back(vt_parser->screen, 1, 1);
@@ -2883,11 +2886,22 @@ inline static int parse_vt100_escape_sequence(
       /* "ESC F" cursor to lower left corner of screen */
     }
 #endif
-    else if (*str_p == 'H') {
-      /* "ESC H" set tab */
+    else if (*str_p == 'H' || *str_p == '1') {
+      /* "ESC H"(HTS) / "ESC 1" (DECHTS) set tab */
 
       vt_screen_set_tab_stop(vt_parser->screen);
-    } else if (*str_p == 'M') {
+    } else if (*str_p == 'I') {
+      /* "ESC I" (HTJ) */
+      vt_screen_forward_tabs(vt_parser->screen, 1);
+    }
+#if 0
+    else if (*str_p == 'K') {
+      /* "ESC K" (PLD) Partial Line Down */
+    } else if (*str_p == 'L') {
+      /* "ESC L" (PLU) Partial Line Up */
+    }
+#endif
+    else if (*str_p == 'M') {
       /* "ESC M" reverse index(scroll down) */
 
       vt_screen_reverse_index(vt_parser->screen);
@@ -3469,8 +3483,22 @@ inline static int parse_vt100_escape_sequence(
           }
         }
 #endif
-        else if (*str_p == 'W') {
-          /* "CSI ? 5 W"  DECST8C */
+        else if (*str_p == 'S') {
+          /*
+           * "CSI ? Pi;Pa;Pv S" (Xterm original)
+           * The number of palettes mlterm supports is 256 alone.
+           */
+          char *seq;
+
+          if (num == 3 && ps[0] == 1 &&
+              (ps[1] == 1 || ps[1] == 2 || (ps[1] == 3 && ps[2] == 256))) {
+            seq = "\x1b[?1;0;256S";
+          } else {
+            seq = "\x1b[?1;3;0S";
+          }
+          vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
+        } else if (*str_p == 'W') {
+          /* "CSI ? W"  DECST8C */
 
           vt_screen_set_tab_size(vt_parser->screen, 8);
         }
@@ -3487,7 +3515,7 @@ inline static int parse_vt100_escape_sequence(
         /* Other final character */
         else if (0x40 <= *str_p && *str_p <= 0x7e) {
 #ifdef DEBUG
-          debug_print_unknown("ESC [ %c\n", *str_p);
+          debug_print_unknown("ESC [ ? %c\n", *str_p);
 #endif
         } else {
 /* not VT100 control sequence. */
@@ -3728,7 +3756,7 @@ inline static int parse_vt100_escape_sequence(
             }
           }
         } else if (*str_p == '}') {
-          /* "CSI ' ~" DECIC */
+          /* "CSI ' }" DECIC */
 
           if (ps[0] <= 0) {
             ps[0] = 1;
@@ -3798,6 +3826,17 @@ inline static int parse_vt100_escape_sequence(
                               vt_screen_get_page_id(vt_parser->screen) + 1);
         } else {
           /* "CSI " p"(DECSCL), "CSI " q"(DECSCA) etc */
+        }
+      } else if (pre_ch == ',') {
+        if (*str_p == '|') {
+          /* "CSI Ps1;Ps2;Ps3,|" (DECAC) */
+
+          if (num == 3 && ps[0] == 1 && 0 <= ps[1] && ps[1] <= 15 && 0 <= ps[2] && ps[2] <= 15) {
+            config_protocol_set_simple(vt_parser, "fg_color", vt_get_color_name(ps[1]), 0);
+            config_protocol_set_simple(vt_parser, "bg_color", vt_get_color_name(ps[2]), 1);
+          }
+        } else if (*str_p == '}') {
+          /* "CSI Ps1;Ps2;Ps3,}" (DECATC) */
         }
       }
       /* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
@@ -3977,6 +4016,16 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_goto_prev_page(vt_parser->screen, ps[0]);
         vt_screen_goto_home(vt_parser->screen);
+      } else if (*str_p == 'g') {
+        /* "CSI W" Cursor Tabluation Control (CBC) */
+
+        if (ps[0] <= 0) {
+          vt_screen_set_tab_stop(vt_parser->screen);
+        } else if (ps[0] == 2) {
+          vt_screen_clear_tab_stop(vt_parser->screen);
+        } else if (ps[0] == 4 || ps[0] == 5) {
+          vt_screen_clear_all_tab_stops(vt_parser->screen);
+        }
       } else if (*str_p == 'X') {
         /* "CSI X" erase characters */
 
@@ -4027,7 +4076,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_go_vertically(vt_parser->screen, ps[0] - 1);
       } else if (*str_p == 'g') {
-        /* "CSI g" tab clear */
+        /* "CSI g" tab clear (TBC) */
 
         if (ps[0] <= 0) {
           vt_screen_clear_tab_stop(vt_parser->screen);

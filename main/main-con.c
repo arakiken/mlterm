@@ -133,10 +133,12 @@ static int connect_to_server(int argc, char **argv) {
   free(path);
   path = servaddr.sun_path;
 
+  fcntl(connect_fd, F_SETFL, fcntl(connect_fd, F_GETFL, 0) & ~O_NONBLOCK);
+
   if (connect(connect_fd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1) {
     pid_t pid;
 
-    remove(path);
+    unlink(path);
 
     signal(SIGCHLD, sig_child);
 
@@ -170,11 +172,18 @@ static int connect_to_server(int argc, char **argv) {
       return 0;
     }
 
-    for (count = 0; count < 1000; count++) {
-      if (connect(connect_fd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == 0) {
-        goto connected;
+    for (count = 0; count < 100; count++) {
+      struct stat st;
+
+      usleep(10000); /* waiting for mlterm-con-server to call bind(). */
+      if (stat(path, &st) == 0) {
+        /* XXX Following processing is for Oracle Solaris 11. */
+        usleep(50000); /* waiting for mlterm-con-server to become a daemon and to call listen(). */
+        if (connect(connect_fd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == 0) {
+          goto connected;
+        }
+        break;
       }
-      usleep(1000);
     }
 
     close(connect_fd);
@@ -183,8 +192,6 @@ static int connect_to_server(int argc, char **argv) {
   }
 
 connected:
-  fcntl(connect_fd, F_SETFL, fcntl(connect_fd, F_GETFL, 0) & ~O_NONBLOCK);
-
   if ((pty_fd = open(ttyname(STDIN_FILENO), O_RDWR)) == -1) {
     close(connect_fd);
 
@@ -212,7 +219,13 @@ connected:
   tio.c_cc[VTIME] = 0;
 
   tcsetattr(pty_fd, TCSANOW, &tio);
+
   atexit(exit_cb);
+
+  /* XXX mlterm-con exits by SIGPIPE on fedora 24. */
+#if 0
+  signal(SIGPIPE, SIG_IGN);
+#endif
 
   write(connect_fd, argv[0], strlen(argv[0]));
   for (count = 1; count < argc; count++) {
@@ -221,6 +234,7 @@ connected:
     write(connect_fd, "\"", 1);
   }
   write(connect_fd, "\n", 1);
+
   sig_winch(SIGWINCH);
 
   return 1;

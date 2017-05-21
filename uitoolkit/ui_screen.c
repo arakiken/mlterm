@@ -3631,10 +3631,12 @@ static void change_underline_offset(ui_screen_t *screen, int offset) {
 }
 
 static void change_baseline_offset(ui_screen_t *screen, int offset) {
+#ifndef USE_CONSOLE
   if (screen->baseline_offset != offset) {
     screen->baseline_offset = offset;
     modify_line_space_and_offset(screen);
   }
+#endif
 }
 
 static void larger_font_size(ui_screen_t *screen) {
@@ -5562,12 +5564,12 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->font_man = font_man;
   screen->color_man = color_man;
 
-  /* letter_space and line_space are ignored on console. */
+  /* letter_space, line_space and baseline_offset are ignored on console. */
 #ifndef USE_CONSOLE
   screen->line_space = line_space;
+  screen->baseline_offset = baseline_offset;
 #endif
   screen->underline_offset = underline_offset;
-  screen->baseline_offset = baseline_offset;
   modify_line_space_and_offset(screen);
 
   screen->sel_listener.self = screen;

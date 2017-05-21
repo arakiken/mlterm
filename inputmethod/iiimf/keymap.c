@@ -733,25 +733,31 @@ int xksym_to_iiimfkey(KeySym ksym, IIIMP_int32 *kchar, IIIMP_int32 *kcode) {
 /* case XK_L2: */
     *kcode = IIIMF_KEYCODE_F12;
     break;
+#ifdef XK_Kanji
   case XK_Kanji:
     *kcode = IIIMF_KEYCODE_KANJI;
     break;
+#endif
   case XK_Muhenkan:
     *kcode = IIIMF_KEYCODE_NONCONVERT;
     break;
-  case XK_Henkan:
+  case XK_Henkan_Mode:
 #ifdef __linux__
     *kcode = IIIMF_KEYCODE_CONVERT;
 #else
     *kcode = IIIMF_KEYCODE_KANJI;
 #endif
     break;
+#ifdef XK_Hiragana
   case XK_Hiragana:
     *kcode = IIIMF_KEYCODE_HIRAGANA;
     break;
+#endif
+#ifdef XK_Katakana
   case XK_Katakana:
     *kcode = IIIMF_KEYCODE_KATAKANA;
     break;
+#endif
   case XK_Zenkaku_Hankaku:
     *kcode = IIIMF_KEYCODE_KANJI;
     break;
