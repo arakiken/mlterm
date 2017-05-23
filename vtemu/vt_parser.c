@@ -1898,20 +1898,20 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
 #endif
   else if (flag == 29) {
     vt_parser->is_crossed_out = 0;
+  } else if (flag == 39) {
+    /* default fg */
+    fg_color = VT_FG_COLOR;
+  } else if (flag == 49) {
+    bg_color = VT_BG_COLOR;
   } else if (use_ansi_colors) {
     /* Color attributes */
 
     if (30 <= flag && flag <= 37) {
       /* 30=VT_BLACK(0) ... 37=VT_WHITE(7) */
       fg_color = flag - 30;
-    } else if (flag == 39) {
-      /* default fg */
-      fg_color = VT_FG_COLOR;
     } else if (40 <= flag && flag <= 47) {
       /* 40=VT_BLACK(0) ... 47=VT_WHITE(7) */
       bg_color = flag - 40;
-    } else if (flag == 49) {
-      bg_color = VT_BG_COLOR;
     } else if (90 <= flag && flag <= 97) {
       fg_color = (flag - 90) | VT_BOLD_COLOR_MASK;
     } else if (100 <= flag && flag <= 107) {
@@ -4865,26 +4865,14 @@ inline static int parse_vt100_escape_sequence(
 
       ic_num = 0;
 
-#ifdef DEBUG
-      debug_print_unknown("ESC");
-#endif
-
       /* In case more than one intermediate(0x20-0x2f) chars. */
       do {
         ic_num++;
-
-#ifdef DEBUG
-        bl_msg_printf(" %c", *str_p);
-#endif
 
         if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
           return 0;
         }
       } while (0x20 <= *str_p && *str_p <= 0x2f);
-
-#ifdef DEBUG
-      bl_msg_printf(" %c\n", *str_p);
-#endif
 
       if (ic_num == 1 || ic_num == 2) {
         if (ic_num == 1 && *(str_p - 1) == '#') {

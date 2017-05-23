@@ -587,7 +587,8 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
   } else /* if(ch_len == 2) */ {
     XFontStruct *compl_xfont;
 
-    if (xfont->is_aa && !IS_ISO10646_UCS4(font->id)) {
+#if defined(USE_FREETYPE)
+    if (xfont->face && !IS_ISO10646_UCS4(font->id)) {
       u_char *str_p = str;
       ef_char_t non_ucs;
       ef_char_t ucs4;
@@ -612,6 +613,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 #endif
       }
     }
+#endif
 
     for (count = 0; count < len;) {
       if (0xd8 <= str[0] && str[0] <= 0xdb) {

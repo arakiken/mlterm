@@ -1,3 +1,14 @@
+2017-05-23  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - SGR 39 and 49 works if use_ansi_colors is false.
+	  - Unnecessary debug_print_unknown() is removed.
+
+	* fb/ui_window.c:
+	  Freetype specific code is enclused by #if defined(USE_FREETYPE) ... #endif.
+
+	* android/jni/ui_display.h: IM_WINDOW_IS_ACTIVATED() is added.
+
 2017-05-21  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: "ESC 2"(DECCAHT), "ESC 1"(DECCHTS), "ESC I"(HTJ),
