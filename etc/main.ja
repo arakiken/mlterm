@@ -273,7 +273,7 @@ scrollbar_view_name = sample
 # use_xim = true
   
 # インプットメソッド
-# (xim,uim,scim,m17n-lib,ibus,none)
+# (xim,uim,scim,m17n-lib,ibus,fcitx,wnn,canna,skk,iiimf,none)
 # input_method = xim
 
 # タブ幅

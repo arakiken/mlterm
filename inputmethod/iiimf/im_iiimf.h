@@ -240,7 +240,7 @@ typedef struct aux_info {
 
 } aux_info_t;
 
-
+#ifdef USE_XLIB
 void aux_init(IIIMCF_handle handle, ui_im_export_syms_t *syms, ef_parser_t *parser);
 
 void aux_quit(void);
@@ -254,5 +254,14 @@ void aux_event(aux_t *aux, IIIMCF_event ev, IIIMCF_event_type);
 void aux_set_focus(aux_t *aux);
 
 void aux_unset_focus(aux_t *aux);
+#else
+#define aux_init(handle, syms, parser) (0)
+#define aux_quit() (0)
+#define aux_new(iiimf) (NULL)
+#define aux_delete(aux) (0)
+#define aux_event(aux, ev, type) (0)
+#define aux_set_focus(aux) (0)
+#define aux_unset_focus(aux) (0)
+#endif
 
 #endif

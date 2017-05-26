@@ -8,7 +8,9 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/inputmethod/iiimf
 
-IM_IIIMF_OBJ = im_iiimf.o im_iiimf_aux.o keymap.o
+IM_IIIMF_OBJ = im_iiimf.o keymap.o $(IM_IIIMF_AUX_OBJ_@GUI@)
+IM_IIIMF_AUX_OBJ_xlib = im_iiimf_aux.o
+
 
 CFLAGS = $(CFLAGS_LOCAL)		\
 	 @POBL_CFLAGS@			\

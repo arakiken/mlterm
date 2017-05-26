@@ -1,3 +1,21 @@
+2017-05-26  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja, man/mlterm.1: Updated.
+
+	* im_iiimf_aux.c:
+	  - The default value of AUX_BASE_DIR macro is changed from "/usr/lib/im"
+	    to "/usr/lib/iiim/le".
+	  - HTT_AUX_BASE_DIR environmental variable is added.
+
+	* im_iiimf.c:
+	  - HTT_DISABLE_STATUS_WINDOW environmental variable is renamed to
+	    HTT_SHOW_STATUS_WINDOW.
+	  - IIIMCF_ATTR_CLIENT_X_DISPLAY_NAME is set on xlib.
+
+	* im_iiimf.h: aux_* functions are disabled on platforms except xlib.
+
+	* iiimf/Makefile.in: im_iiimf_aux.c is compiled on xlib alone.
+
 2017-05-23  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:

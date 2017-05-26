@@ -150,6 +150,19 @@ Use Canna.
 \-\-im=wnn
 Use Freewnn.
 .TP
+\-\-im=skk
+Use SKK.
+.TP
+\-\-im=iiimf
+Use IIIMF in the system language.
+.TP
+\-\-im=iiimf:ar
+Use IIIMF in Arabic.
+.TP
+\-\-im=iiimf:ja:CannaLE
+Use IIIMF in Japanese using CannaLE language engine.
+.TP
+.TP
 \-\-im=none
 Don't use input method.
 .RE
@@ -817,17 +830,30 @@ No option
 .TP
 No option
 .PP
-.B fcitx:
+.B Fcitx:
 .TP
 No option
 .PP
-.B wnn:
+.B Freewnn:
 .TP
 No option (JSERVER and WNNENVRC environmental variables are available.)
 .PP
-.B canna:
+.B Canna:
 .TP
 No option
+.PP
+.B SKK:
+.TP
+No option
+.PP
+.B IIIMF:
+.TP
+Option
+Specify the language id (RFC1766) and the language engine to be used. If you
+choose auto, the language id/engine will be automatically selected according
+to the current locale.
+.PP
+Note this feature needs IIIMCF library.
 .RE
 .TP
 Bidi (UTF-8 only)

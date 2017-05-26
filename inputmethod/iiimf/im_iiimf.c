@@ -85,7 +85,7 @@ static IIIMCF_handle handle = NULL;
 /* mlterm internal symbols */
 static ui_im_export_syms_t *  syms = NULL;
 
-static int htt_disable_status_window = 0;
+static int htt_show_status_window = 0;
 static int htt_generates_kanakey = 0;
 
 /* --- static functions --- */
@@ -678,7 +678,7 @@ static void status_change(im_iiimf_t *iiimf) {
 #endif
 
   if (!iiimf->on ||
-      htt_disable_status_window ||
+      !htt_show_status_window ||
       iiimcf_get_status_text(iiimf->context, &iiimcf_text) != IIIMF_STATUS_SUCCESS) {
     if (iiimf->im.stat_screen) {
       (*iiimf->im.stat_screen->delete)(iiimf->im.stat_screen);
@@ -1092,6 +1092,16 @@ ui_im_t *im_iiimf_new(u_int64_t magic, vt_char_encoding_t term_encoding,
       goto error;
     }
 
+#ifdef USE_XLIB
+    if ((env = getenv("DISPLAY")) &&
+        iiimcf_attr_put_string_value(attr, IIIMCF_ATTR_CLIENT_X_DISPLAY_NAME, env)
+                                     != IIIMF_STATUS_SUCCESS) {
+#ifdef DEBUG
+      bl_warn_printf(BL_DEBUG_TAG " Could not append a string to the attribute\n");
+#endif
+    }
+#endif
+
     if (iiimcf_attr_put_string_value(attr, IIIMCF_ATTR_SERVER_SERVICE, "") !=
         IIIMF_STATUS_SUCCESS) {
 #ifdef DEBUG
@@ -1112,9 +1122,9 @@ ui_im_t *im_iiimf_new(u_int64_t magic, vt_char_encoding_t term_encoding,
       goto error;
     }
 
-    if ((env = getenv("HTT_DISABLE_STATUS_WINDOW"))) {
+    if ((env = getenv("HTT_SHOW_STATUS_WINDOW"))) {
       if (*env == 't' || *env == 'T') {
-        htt_disable_status_window = 1;
+        htt_show_status_window = 1;
       }
     }
 

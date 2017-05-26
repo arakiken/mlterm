@@ -76,10 +76,12 @@
 #define ATOK12_HACK 1
 #endif
 
-#ifdef __sparcv9
-#define AUX_DIR_SPARCV9 "/usr/lib/im/sparcv9/" /* FIXME */
+#if 1
+/* iiimf 12.2 or later ? */
+#define AUX_BASE_DIR "/usr/lib/iiim/le"
 #else
-#define AUX_BASE_DIR "/usr/lib/im/"
+/* iiimf 12.1 or before ? */
+#define AUX_BASE_DIR "/usr/lib/im"
 #endif
 
 #define AUX_DIR_SYMBOL "aux_dir"
@@ -238,17 +240,17 @@ static int is_conf_file(char *file_name) {
 
 static aux_module_t *load_module(char *file_name) {
   aux_module_t *module = NULL;
-  aux_info_t *aux_info = NULL;
-  aux_dir_t *aux_dir = NULL;
+  aux_info_t *aux_info;
+  aux_dir_t *aux_dir;
   int num_of_aux_dir;
   unsigned int ifversion;
   bl_dl_handle_t dl_handle = NULL;
   aux_dir_t *dir;
   aux_entry_t *entry;
   int i;
-
-  char *dirname = NULL;
-  char *basename = NULL;
+  char *auxdirname;
+  char *dirname;
+  char *basename;
   char *dirpath;
   size_t len;
 
@@ -264,31 +266,32 @@ static aux_module_t *load_module(char *file_name) {
   /*
    * TODO: bl_dirname()
    */
-  if ((dirname = bl_str_alloca_dup(file_name))) {
-    if ((basename = strrchr(dirname, '/'))) {
-      size_t len;
-      basename[0] = '\0';
-      basename ++;
-      len = strlen(basename);
-      if (strncmp(&basename[len - 3], ".so", 3)) {
-        return NULL;
-      }
-      /* eliminate suffix ".so" */
-      basename[strlen(basename) - 3] = '\0';
-    }
-  }
-
-  len = strlen(AUX_BASE_DIR) + strlen(dirname) + 2;
-  if (!(dirpath = alloca(len))) {
-#ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG "alloca failed\n");
-#endif
+  if (!(dirname = bl_str_alloca_dup(file_name)) || !(basename = strrchr(dirname, '/'))) {
     return NULL;
   }
 
-  bl_snprintf(dirpath, len, "%s%s/", AUX_BASE_DIR, dirname);
+  basename[0] = '\0';
+  basename ++;
+
+  len = strlen(basename);
+  if (strncmp(&basename[len - 3], ".so", 3)) {
+    return NULL;
+  }
+  basename[len - 3] = '\0'; /* eliminate suffix ".so" */
+
+  if (!(auxdirname = getenv("HTT_AUX_BASE_DIR"))) {
+    auxdirname = AUX_BASE_DIR;
+  }
+
+  len = strlen(auxdirname) + strlen(dirname) + 3;
+  if (!(dirpath = alloca(len))) {
+    return NULL;
+  }
+
+  bl_snprintf(dirpath, len, "%s/%s/", auxdirname, dirname);
 
   if (!(dl_handle = bl_dl_open(dirpath, basename))) {
+    bl_error_printf("Failed to load iiimf aux module. (%s%s.so)\n", dirpath, basename);
     return NULL;
   }
 
