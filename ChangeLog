@@ -1,3 +1,8 @@
+2017-05-28  Araki Ken  <arakiken@users.sf.net>
+
+	* ef_ucs_property.table: Updated to Unicode 9.0.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
 2017-05-26  Araki Ken  <arakiken@users.sf.net>
 
 	* README, README.ja, man/mlterm.1: Updated.

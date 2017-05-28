@@ -789,7 +789,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         す。
         なお、HTT_SERVER_ADDRESS 環境変数により、接続するサーバのアドレス(Unix
         Domain Socket の場合はファイルパス)を指定できます。
-        また、HTT_SHOW_STATUS_WINDOW=tを指定することにより、ステータス表示用の
+        また、HTT_SHOW_STATUS_WINDOW=trueを指定することにより、ステータス表示用の
         ウィンドウを表示します。
         HTT_AUX_BASE_DIR 環境変数により、aux モジュールのあるパスを指定するこ
         とができます(デフォルトは/usr/lib/iiim/le)。
