@@ -21,6 +21,7 @@ Support brltty with the use of brlapi
   <brltty with xw and espeak driver>
   $ export BRLTTY_SPEECH_INPUT=/foo/bar/fifo
   $ export BRLAPI_HOST=127.0.0.1:1
+  $ sudo mkdir /var/run/brltty
   $ brltty -b xw -s es -A auth=none,host=127.0.0.1:1 -i /foo/bar/fifo
   $ mlterm
 

@@ -1,5 +1,10 @@
 2017-06-04  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_brltty.c: BRLAPI_KEY_CMD_SAY_LINE, BRLAPI_KEY_CMD_SPEAK_CURR_LINE,
+	  BRLAPI_KEY_CMD_SAY_ABOVE, BRLAPI_KEY_CMD_SAY_BELOW are supported.
+
+2017-06-04  Araki Ken  <arakiken@users.sf.net>
+
 	* README, README.ja: Updated.
 
 	* doc/en/README.brltty: Added.

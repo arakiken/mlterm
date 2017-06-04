@@ -86,15 +86,31 @@ static void speak(const u_char *msg, size_t len) {
   }
 }
 
-static void speak_line(vt_line_t *line) {
+static void speak_line(vt_line_t *line, int full) {
   u_char *buf;
+  int beg;
+  u_int cols;
 
-  if (vt_line_get_num_of_filled_chars_except_spaces(line) == 0) {
-    return;
+  cols = vt_line_get_num_of_filled_chars_except_spaces(line);
+
+  if (full) {
+    if (cols == 0) {
+      return;
+    }
+
+    beg = 0;
+  } else {
+    if ((beg = viewport_col) >= cols) {
+      return;
+    }
+
+    if ((cols -= viewport_col) >= display_cols) {
+      cols = display_cols;
+    }
   }
 
   (*parser->init)(parser);
-  vt_str_parser_set_str(parser, line->chars, vt_line_get_num_of_filled_chars_except_spaces(line));
+  vt_str_parser_set_str(parser, line->chars + beg, cols);
   (*conv->init)(conv);
 
   if ((buf = alloca(display_cols * UTF_MAX_SIZE))) {
@@ -154,6 +170,33 @@ static void read_key(void) {
       } else if (ekey.command == BRLAPI_KEY_CMD_HOME) {
         viewport_row = vt_term_cursor_row(focus_term);
         viewport_col = 0;
+      } else if (ekey.command == BRLAPI_KEY_CMD_SAY_LINE ||
+                 ekey.command == BRLAPI_KEY_CMD_SPEAK_CURR_LINE) {
+        if ((line = vt_term_get_line(focus_term, viewport_row))) {
+          speak_line(line, 1);
+        }
+
+        return;
+      } else if (ekey.command == BRLAPI_KEY_CMD_SAY_ABOVE) {
+        int row;
+
+        for (row = 0; row <= viewport_row; row++) {
+          if ((line = vt_term_get_line(focus_term, row))) {
+            speak_line(line, 1);
+          }
+        }
+
+        return;
+      } else if (ekey.command == BRLAPI_KEY_CMD_SAY_BELOW) {
+        int row;
+
+        for (row = viewport_row; row < vt_term_get_rows(focus_term); row++) {
+          if ((line = vt_term_get_line(focus_term, row))) {
+            speak_line(line, 1);
+          }
+        }
+
+        return;
       } else {
         return;
       }
@@ -175,7 +218,7 @@ static void read_key(void) {
         write_line_to_display(line,
                               viewport_row == vt_term_cursor_row(focus_term) ?
                                 vt_term_cursor_char_index(focus_term) + 1 : BRLAPI_CURSOR_OFF);
-        speak_line(line);
+        speak_line(line, 0);
       }
     } else if (ekey.argument < 0xff) {
       u_char c = ekey.argument;
