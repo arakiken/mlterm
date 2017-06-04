@@ -122,6 +122,7 @@ static ef_factory_table_t factories[] = {
     {"utf16", ef_utf16_parser_new, ef_utf16_conv_new},
     {"utf16le", ef_utf16le_parser_new, ef_utf16le_conv_new},
     {"utf32", ef_utf32_parser_new, ef_utf32_conv_new},
+    {"utf32le", ef_utf32le_parser_new, ef_utf32le_conv_new},
     {"junet8", ef_iso2022jp_8_parser_new, ef_iso2022jp_8_conv_new},
     {"junet7", ef_iso2022jp_7_parser_new, ef_iso2022jp_7_conv_new},
     {"iso2022jp2", ef_iso2022jp2_parser_new, ef_iso2022jp2_conv_new},
@@ -150,7 +151,7 @@ static void usage() {
       "cp1256 cp1257 cp1258 cp874 "
       "iscii(assamese|bengali|gujarati|hindi|kannada|malayalam|oriya|punjabi|"
       "tamil|telugu) eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf16le "
-      "utf32 junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab "
+      "utf32 utf32le junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab "
       "euccn gbk gb18030 iso2022cn hz big5 big5hkscs euctw\n");
 }
 

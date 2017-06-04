@@ -22,7 +22,7 @@ OBJ1 = ui_screen_manager.o ui_event_source.o ui_display.o ui_window.o ui_screen.
 	ui_shortcut.o ui_bel_mode.o ui_sb_mode.o ui_mod_meta_mode.o ui_font_cache.o \
 	ui_draw_str.o ui_gc.o ui_color_cache.o ui_dnd.o ui_scrollbar.o ui_layout.o \
 	ui_sb_view_factory.o ui_simple_sb_view.o ui_imagelib.o ui_connect_dialog.o \
-	ui_type_engine.o ui_im.o ui_im_candidate_screen.o
+	ui_type_engine.o ui_im.o ui_im_candidate_screen.o ui_brltty.o
 
 OBJ2_xlib = ui_decsp_font.o ui_xim.o ui_im_status_screen.o @TYPE_LOADER_OBJ@
 
@@ -48,7 +48,8 @@ LIBNAME = libuitoolkit
 CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
 	@IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ \
 	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ \
-	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @SIXEL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @SIXEL_CFLAGS@ @BRLAPI_CFLAGS@ \
+	@CFLAGS@ @CPPFLAGS@ \
 	-DBINDIR=\"$(bindir)\" -DLIBDIR=\"$(libdir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" -DXDATADIR=\"$(datadir)\"\
 	-I$(top_srcdir)/vtemu -I$(top_srcdir)/uitoolkit/libotl -I/usr/local/include

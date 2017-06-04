@@ -16,6 +16,9 @@
 #ifdef USE_XLIB
 #include <xlib/ui_xim.h>
 #endif
+#ifdef USE_BRLAPI
+#include <ui_brltty.h>
+#endif
 
 #include "version.h"
 #include "daemon.h"
@@ -157,6 +160,9 @@ int main_loop_init(int argc, char **argv) {
 #endif
 #ifdef USE_UTMP
                " utmp"
+#endif
+#ifdef USE_BRLAPI
+               " brlapi"
 #endif
   );
 
@@ -419,6 +425,10 @@ int main_loop_init(int argc, char **argv) {
 
   ui_event_source_init();
 
+#ifdef USE_BRLAPI
+  ui_brltty_init();
+#endif
+
   bl_alloca_garbage_collect();
 
 #ifndef USE_WIN32API
@@ -433,6 +443,10 @@ int main_loop_init(int argc, char **argv) {
 }
 
 int main_loop_final(void) {
+#ifdef USE_BRLAPI
+  ui_brltty_final();
+#endif
+
   ui_event_source_final();
 
   ui_screen_manager_final();

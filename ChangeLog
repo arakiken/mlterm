@@ -1,3 +1,30 @@
+2017-06-04  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* doc/en/README.brltty: Added.
+
+	* main_loop.c, ui_screen.c: ui_brltty_* functions are called.
+
+	* ui_brltty.c: Added.
+
+	* configure.in: --enable-brlapi is added.
+
+	* encodefilter/src/Makefile.in: MINOR is changed from 0 to 1.
+
+	* mef.c: "utf32le" is added.
+
+	* wayland/ui_display.c:
+	  - focus_gtk_window() is called in pointer_button().
+	  - "xterm" style cursor is loaded in ui_display_init_wlserv().
+
+	* vte_wayland.c: focus_gtk_window() is added.
+
+	* ui_screen_manager.c: DISPLAY environmental variable is set on wayland.
+
+	* ef_utf32_conv.[ch]:
+	  ef_utf32le_conv_new() and ef_utf32_use_bom() are added.
+
 2017-05-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ef_ucs_property.table: Updated to Unicode 9.0.0 (UnicodeData.txt and

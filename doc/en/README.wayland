@@ -4,7 +4,7 @@ comment $Id$
 Wayland support
 
 * Tested environment
-  Fedora 24
+  Fedora 25
 
 * Build
   ./configure --with-gui=wayland ...

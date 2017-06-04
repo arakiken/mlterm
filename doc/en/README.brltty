@@ -1,0 +1,34 @@
+comment -*- mode: text; indent-tabs-mode:nil -*-
+
+Support brltty with the use of brlapi
+
+* Tested environment
+  Fedora 25
+
+* Build
+  $ ./configure --enable-brlapi
+  $ make
+  $ sudo make install
+  $ mlterm -v
+    mlterm version x.x.x
+    Features: ... brlapi
+
+* Start
+  <brltty with xw driver>
+  $ brltty -b xw -A auth=none,host=127.0.0.1:1
+  $ mlterm
+
+  <brltty with xw and espeak driver>
+  $ export BRLTTY_SPEECH_INPUT=/foo/bar/fifo
+  $ export BRLAPI_HOST=127.0.0.1:1
+  $ brltty -b xw -s es -A auth=none,host=127.0.0.1:1 -i /foo/bar/fifo
+  $ mlterm
+
+  <brltty with tty>
+  $ sudo brltty -b tt -d `tty`
+  $ mlterm
+
+* Note
+  o If BRLTTY_SPEECH_INPUT environmental variable is not set, mlterm doesn't
+    output anything to speech synthesizer.
+  o mlterm-fb, mlterm-con or mlterm-wl works with brltty as with mlterm.

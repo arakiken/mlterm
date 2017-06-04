@@ -23,6 +23,9 @@
 #endif
 #include <vt_str_parser.h>
 #include <vt_term_manager.h>
+#ifdef USE_BRLAPI
+#include "ui_brltty.h"
+#endif
 
 #include "ui_xic.h"
 #include "ui_draw_str.h"
@@ -694,6 +697,10 @@ static int redraw_screen(ui_screen_t *screen) {
   int y;
   int line_height;
 
+#ifdef USE_BRLAPI
+  ui_brltty_write();
+#endif
+
   flush_scroll_cache(screen, 1);
 
   count = 0;
@@ -1300,6 +1307,10 @@ static void window_focused(ui_window_t *win) {
   if (vt_term_want_focus_event(screen->term)) {
     write_to_pty(screen, "\x1b[I", 3, NULL);
   }
+
+#ifdef USE_BRLAPI
+  ui_brltty_focus(screen->term);
+#endif
 }
 
 static void window_unfocused(ui_window_t *win) {
@@ -1835,6 +1846,10 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
   } else {
     kstr = ch;
   }
+
+#ifdef USE_BRLAPI
+  ui_brltty_speak_key(ksym, kstr, size);
+#endif
 
 #if 0
   bl_debug_printf("state %x %x ksym %x str ", event->state, masked_state, ksym);

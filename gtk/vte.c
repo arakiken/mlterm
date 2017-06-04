@@ -2359,7 +2359,8 @@ static int vt_term_open_pty_wrap(VteTerminal *terminal, const char *cmd_path, ch
     }
   }
 
-  if ((env_p = alloca(sizeof(char *) * (num + 6)))) {
+  /* 7 => MLTERM,TERM,WINDOWID,WAYLAND_DISPLAY,DISPLAY,COLORFGBG,NULL */
+  if ((env_p = alloca(sizeof(char *) * (num + 7)))) {
     if (num > 0) {
       envv = memcpy(env_p, envv, sizeof(char *) * num);
       env_p += num;
@@ -2383,10 +2384,18 @@ static int vt_term_open_pty_wrap(VteTerminal *terminal, const char *cmd_path, ch
     }
 #endif
 
+#ifdef USE_WAYLAND
+    /* "WAYLAND_DISPLAY="(16) + NULL(1) */
+    if (host && (*env_p = alloca(16 + strlen(host) + 1))) {
+      sprintf(*(env_p++), "WAYLAND_DISPLAY=%s", host);
+    }
+    *(env_p++) = "DISPLAY=:0.0";
+#else
     /* "DISPLAY="(8) + NULL(1) */
     if ((*env_p = alloca(8 + strlen(host) + 1))) {
       sprintf(*(env_p++), "DISPLAY=%s", host);
     }
+#endif
 
     /* "TERM="(5) + NULL(1) */
     if ((*env_p = alloca(5 + strlen(main_config.term_type) + 1))) {

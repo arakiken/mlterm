@@ -157,6 +157,9 @@ Options for configure
   --disable-otl
     Disable Open Type Layout with the use of harfbuzz or libotf.
 
+  --enable-brlapi
+    Enable brltty with the use of brlapi library.
+
   --disable-shared
     Disable shared libraries
 

@@ -675,6 +675,10 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
   }
 }
 
+#ifdef COMPAT_LIBVTE
+void focus_gtk_window(ui_window_t *win, uint32_t time);
+#endif
+
 static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial,
                            uint32_t time, uint32_t button, uint32_t state_w) {
   ui_wlserv_t *wlserv = data;
@@ -747,6 +751,10 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
     wlserv->serial = serial;
 
     ui_window_receive_event(win, &ev);
+
+#ifdef COMPAT_LIBVTE
+    focus_gtk_window(win, time);
+#endif
   }
 }
 
@@ -2195,6 +2203,11 @@ void ui_display_init_wlserv(ui_wlserv_t *wlserv) {
   wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
                                                                wlserv->seat);
   wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
+
+  if ((wlserv->cursor_theme = wl_cursor_theme_load(NULL, 32, wlserv->shm))) {
+    wlserv->cursor[0] = wl_cursor_theme_get_cursor(wlserv->cursor_theme, "xterm");
+    wlserv->cursor_surface = wl_compositor_create_surface(wlserv->compositor);
+  }
 
   wlserv->sel_fd = -1;
 }

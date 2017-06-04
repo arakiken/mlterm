@@ -185,6 +185,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     --disable-otl
       OpenTypeフォントの置換グリフ等を使った表示を無効にします。
 
+    --enable-brlapi
+      brlapiライブラリを使ってbrlttyサーバに接続します。
+
     --disable-shared
       共有ライブラリを構築しません。
 

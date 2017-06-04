@@ -1542,6 +1542,18 @@ AC_SUBST(IND_CFLAGS)
 AC_SUBST(CTL_LIBS)
 AC_SUBST(CTL_LIBS_FOR_PROG)
 
+AC_ARG_ENABLE(brlapi,
+	[  --enable-brlapi           libbrlapi @<:@default=disabled@:>@],
+	brlapi=$enable_brlapi, brlapi="no")
+if test "$brlapi" = "yes" ; then
+	BRLAPI_CFLAGS='-DUSE_BRLAPI'
+	BRLAPI_LIBS='-lbrlapi'
+	# Overwrite INSTALL_OPT.
+	INSTALL_OPT="-m 4755 -o root"
+fi
+AC_SUBST(BRLAPI_LIBS)
+AC_SUBST(BRLAPI_CFLAGS)
+
 AC_SUBST(PTHREAD_LIB)
 
 AC_SUBST(MAKE_DIRS)
@@ -1604,5 +1616,6 @@ else
 	vte_version=" (${VTE_ABI})"
 fi
 echo "libvte                            : $have_vte$vte_version"
+echo "brlapi                            : $brlapi"
 echo "VT52                              : $vt52"
 echo

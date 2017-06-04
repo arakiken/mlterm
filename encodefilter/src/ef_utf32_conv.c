@@ -11,6 +11,7 @@
 typedef struct ef_utf32_conv {
   ef_conv_t conv;
   int is_bof; /* beginning of file */
+  int use_bom;
 
 } ef_utf32_conv_t;
 
@@ -26,7 +27,7 @@ static size_t convert_to_utf32(ef_conv_t *conv, u_char *dst, size_t dst_size,
 
   filled_size = 0;
 
-  if (utf32_conv->is_bof) {
+  if (utf32_conv->use_bom && utf32_conv->is_bof) {
     if (dst_size < 4) {
       return 0;
     }
@@ -97,6 +98,29 @@ static size_t convert_to_utf32(ef_conv_t *conv, u_char *dst, size_t dst_size,
   return filled_size;
 }
 
+static size_t convert_to_utf32le(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                 ef_parser_t *parser) {
+  size_t size;
+  int count;
+
+  if ((size = convert_to_utf32(conv, dst, dst_size, parser)) == 0) {
+    return 0;
+  }
+
+  for (count = 0; count < size - 3; count += 4) {
+    u_char c;
+
+    c = dst[count];
+    dst[count] = dst[count + 3];
+    dst[count + 3] = c;
+    c = dst[count + 1];
+    dst[count + 1] = dst[count + 2];
+    dst[count + 2] = c;
+  }
+
+  return size;
+}
+
 static void conv_init(ef_conv_t *conv) {
   ef_utf32_conv_t *utf32_conv;
 
@@ -122,6 +146,35 @@ ef_conv_t *ef_utf32_conv_new(void) {
   utf32_conv->conv.illegal_char = NULL;
 
   utf32_conv->is_bof = 1;
+  utf32_conv->use_bom = 0;
 
   return (ef_conv_t*)utf32_conv;
+}
+
+ef_conv_t *ef_utf32le_conv_new(void) {
+  ef_utf32_conv_t *utf32_conv;
+
+  if ((utf32_conv = malloc(sizeof(ef_utf32_conv_t))) == NULL) {
+    return NULL;
+  }
+
+  utf32_conv->conv.convert = convert_to_utf32le;
+  utf32_conv->conv.init = conv_init;
+  utf32_conv->conv.delete = conv_delete;
+  utf32_conv->conv.illegal_char = NULL;
+
+  utf32_conv->is_bof = 1;
+  utf32_conv->use_bom = 0;
+
+  return (ef_conv_t*)utf32_conv;
+}
+
+int ef_utf32_conv_use_bom(ef_conv_t *conv) {
+  ef_utf32_conv_t *utf32_conv;
+
+  utf32_conv = (ef_utf32_conv_t*)conv;
+
+  utf32_conv->use_bom = 1;
+
+  return 1;
 }

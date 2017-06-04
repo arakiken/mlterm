@@ -140,7 +140,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
   Window window;
   u_int width_pix;
   u_int height_pix;
-  char *env[6]; /* MLTERM,TERM,WINDOWID,DISPLAY,COLORFGBG,NULL */
+  char *env[7]; /* MLTERM,TERM,WINDOWID,WAYLAND_DISPLAY,DISPLAY,COLORFGBG,NULL */
   char **env_p;
   char wid_env[9 + DIGIT_STR_LEN(Window) + 1]; /* "WINDOWID="(9) + [32bit digit] + NULL(1) */
   char *disp_env;
@@ -167,6 +167,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     sprintf(disp_env, "WAYLAND_DISPLAY=%s", display);
     *(env_p++) = disp_env;
   }
+  *(env_p++) = "DISPLAY=:0.0";
 #else
   /* "DISPLAY="(8) + NULL(1) */
   if (display && (disp_env = alloca(8 + strlen(display) + 1))) {

@@ -101,3 +101,14 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
   GTK_WIDGET_CLASS(vclass)->map = vte_terminal_map;
   GTK_WIDGET_CLASS(vclass)->unmap = vte_terminal_unmap;
 }
+
+/* --- global functions --- */
+
+void focus_gtk_window(ui_window_t *win, uint32_t time) {
+  VteTerminal *terminal = VTE_WIDGET((ui_screen_t*)win);
+
+  if (!gtk_widget_has_focus(GTK_WIDGET(terminal))) {
+    gdk_window_focus(gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(terminal))),
+                     time /* gtk_window_focus() does nothing if GDK_CURRENT_TIME */);
+  }
+}

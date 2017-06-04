@@ -33,7 +33,7 @@ LPOBL_DEB = -lpobl_deb
 LMEF_DEB = -lmef_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
-CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ @BRLAPI_CFLAGS@ \
 	@X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -I$(top_srcdir)/vtemu \
 	-I${top_srcdir}/uitoolkit -I${top_builddir}/main -I/usr/local/include
@@ -41,7 +41,7 @@ CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ \
 CFLAGS_FOR_FEATURES = @OT_LAYOUT_CFLAGS@ @CTL_CFLAGS@ @IM_CFLAGS@ @IMAGELIB_CFLAGS@ @UTMP_CFLAGS@
 
 LIBS1 = $(LIBS_LOCAL) $(LUITK) $(LMLTERM) $(LMEF) $(LPOBL) \
-	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS_FOR_PROG@ \
+	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS_FOR_PROG@ @BRLAPI_LIBS@ \
 	@OT_LAYOUT_LIBS_FOR_PROG@ @PTHREAD_LIB@
 
 LIBS2_xlib = @IMAGELIB_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ @TYPE_LIBS_FOR_PROG@ \
