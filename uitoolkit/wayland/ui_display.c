@@ -196,6 +196,7 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
   ui_wlserv_t *wlserv = disp->display->wlserv;
   ui_display_t *new;
   void *p;
+  u_int count;
 
   if (!(p = realloc(displays, sizeof(ui_display_t*) * (num_of_displays + 1)))) {
     return NULL;
@@ -223,6 +224,13 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
   memcpy(new->display, disp->display, sizeof(Display));
 
   new->display->parent_surface = parent_surface;
+
+  for (count = 0; count < num_of_displays; count++) {
+    if (strcmp(displays[count]->name, new->name) == 0) {
+      new->selection_owner = displays[count]->selection_owner;
+      break;
+    }
+  }
 
   displays[num_of_displays++] = new;
 

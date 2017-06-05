@@ -30,6 +30,9 @@
 #include <ui_xic.h>
 #include <ui_main_config.h>
 #include <ui_imagelib.h>
+#ifdef USE_BRLAPI
+#include <ui_brltty.h>
+#endif
 
 #include "../main/version.h"
 
@@ -615,6 +618,10 @@ static void __exit(void *p, int status) {
   ui_xim_display_closed(disp.display);
 #endif
   ui_picture_display_closed(disp.display);
+
+#ifdef USE_BRLAPI
+  ui_brltty_final();
+#endif
 
   vt_term_manager_final();
   bl_locale_final();
@@ -1810,6 +1817,10 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 #endif
 
   bl_conf_delete(conf);
+
+#ifdef USE_BRLAPI
+  ui_brltty_init();
+#endif
 
   g_signal_connect(vte_reaper_get(), "child-exited", G_CALLBACK(catch_child_exited), NULL);
 
@@ -3338,12 +3349,31 @@ gboolean vte_terminal_get_has_selection(VteTerminal *terminal) {
 }
 
 #if VTE_CHECK_VERSION(0, 40, 0)
-void vte_terminal_set_word_char_exceptions(VteTerminal *terminal, const char *spec) {
-  vt_set_word_separators(spec);
+void vte_terminal_set_word_char_exceptions(VteTerminal *terminal, const char *exception) {
+  char *seps = bl_str_alloca_dup(vt_get_word_separators());
+
+  if (seps) {
+    char *p = seps;
+    char *end = seps + strlen(seps) - 1;
+    int do_replace = 0;
+
+    while (*p) {
+      if (strchr(exception, *p)) {
+        *p = *end;
+        *(end--) = '\0';
+        do_replace = 1;
+      }
+      p ++;
+    }
+
+    if (do_replace) {
+      vt_set_word_separators(seps);
+    }
+  }
 }
 
 const char *vte_terminal_get_word_chars_exceptions(VteTerminal *terminal) {
-  return vt_get_word_separators();
+  return "";
 }
 #endif
 

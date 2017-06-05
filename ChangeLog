@@ -1,3 +1,14 @@
+2017-06-05  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c:
+	  ui_display_t::selection_owner is set in add_root_to_display().
+
+	* gtk/Makefile.in: @BRLAPI_CFLAGS@ and @BRLAPI_LIBS@ are added.
+
+	* vte.c:
+	  - vte_terminal_{set|get}_word_char_exceptions() is fixed.
+	  - ui_brltty_{init|final}() are called.
+
 2017-06-04  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_brltty.c: BRLAPI_KEY_CMD_SAY_LINE, BRLAPI_KEY_CMD_SPEAK_CURR_LINE,

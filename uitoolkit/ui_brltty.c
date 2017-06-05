@@ -247,7 +247,7 @@ int ui_brltty_init(void) {
   bl_priv_restore_egid();
 
   if ((brltty_fd = brlapi_openConnection(&set, &set)) < 0) {
-    brlapi_perror("brlapi_openConnection");
+    bl_warn_printf("Failed to connect to brltty (%s)\n", brlapi_strerror(&brlapi_error));
 
     return -1;
   }
@@ -256,7 +256,9 @@ int ui_brltty_init(void) {
   bl_priv_change_egid(bl_getgid());
 
   if (brlapi_getDriverName(name, sizeof(name)) < 0) {
-    brlapi_perror("brlapi_getDriverName");
+#ifdef DEBUG
+    bl_debug_printf("brlapi_getDriverName failed (%s)\n", brlapi_strerror(&brlapi_error));
+#endif
   }
 #ifdef DEBUG
   else {
@@ -265,8 +267,7 @@ int ui_brltty_init(void) {
 #endif
 
   if (brlapi_getDisplaySize(&display_cols, &display_rows) < 0) {
-    brlapi_perror("brlapi_getDisplaySize");
-
+    bl_warn_printf("Illegal brltty display size (%s)\n", brlapi_strerror(&brlapi_error));
     goto error;
   } else {
 #ifdef DEBUG
@@ -275,18 +276,22 @@ int ui_brltty_init(void) {
 #endif
 
     if (display_cols == 0 || display_rows == 0) {
+      bl_warn_printf("Illegal brltty display size (%s)\n", brlapi_strerror(&brlapi_error));
       goto error;
     }
   }
 
   /* Try entering raw mode, immediately go out from raw mode */
   if (brlapi_enterRawMode(name) < 0) {
-    brlapi_perror("brlapi_enterRawMode");
+#ifdef DEBUG
+    bl_debug_printf("brlapi_enterRawMode failed (%s)\n", brlapi_strerror(&brlapi_error));
+#endif
   } else {
     brlapi_leaveRawMode();
   }
 
   if (brlapi_enterTtyMode(0 /* BRLAPI_TTY_DEFAULT */, NULL) < 0) {
+    bl_warn_printf("Failed to enter tty mode (%s)\n", brlapi_strerror(&brlapi_error));
     goto error;
   }
 

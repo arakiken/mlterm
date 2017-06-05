@@ -35,9 +35,11 @@ TARGET_2.90 = libvte2_90
 TARGET_2.91 = libvte-2.91
 
 CFLAGS = $(CFLAGS_LOCAL) @TYPE_CFLAGS@ @DEB_CFLAGS@ @SSH2_CFLAGS@ @GUI_CFLAGS@ @FT_CFLAGS@ \
-	-DSYSCONFDIR=\"$(sysconfdir)\" `$(PKG_CONFIG) --cflags $(PKG_NAME)` @CFLAGS@ @CPPFLAGS@
+	-DSYSCONFDIR=\"$(sysconfdir)\" `$(PKG_CONFIG) --cflags $(PKG_NAME)` @BRLAPI_CFLAGS@ \
+	@CFLAGS@ @CPPFLAGS@
 LIBS = $(top_builddir)/baselib/src/libpobl.la $(top_builddir)/encodefilter/src/libmef.la \
-	@IMAGELIB_LIBS@ @DL_LIBS_IM@ @GTK_LIBS@ @CTL_LIBS_FOR_VTE@ @TYPE_LIBS_FOR_VTE@ @DEXPORT@
+	@IMAGELIB_LIBS@ @DL_LIBS_IM@ @GTK_LIBS@ @CTL_LIBS_FOR_VTE@ @TYPE_LIBS_FOR_VTE@ \
+	@BRLAPI_LIBS@ @DEXPORT@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
