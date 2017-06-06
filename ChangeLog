@@ -1,3 +1,9 @@
+2017-06-07  Araki Ken  <arakiken@users.sf.net>
+
+	* console/ui.h, win32/ui.h: "#include <mef/ef_conv.h>" is removed.
+
+	* config.sub, config.guess: Updated.
+
 2017-06-05  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c:

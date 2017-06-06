@@ -7,6 +7,7 @@ ver 3.8.2
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 9.0.0.
 * Support brltty with the use of brlapi library. (Experimental)
+  (configure with --enable-brlapi option.)
 * Bug fixes:
   Fix unexpected blocking in exiting mlterm.jar.
   Fix a redrawing problem in inserting RTL characters between LTR ones or vice-versa.

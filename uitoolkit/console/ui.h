@@ -10,7 +10,6 @@
 #endif
 
 #include <stdio.h>
-#include <mef/ef_conv.h>
 
 typedef struct {
   FILE* fp;
@@ -26,7 +25,7 @@ typedef struct {
   int key_state;
   int lock_state;
 
-  ef_conv_t *conv;
+  struct ef_conv *conv;
 
   unsigned char buf[512];
   unsigned int buf_len;
