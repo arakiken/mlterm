@@ -98,8 +98,14 @@ cygwin*)
 mingw32*)
 	bl_cv_mingw32=yes
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
-		bl_cv_win32=yes
-		AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
+		case "${lt_cv_path_LD}" in
+		*-msys*)
+			;;
+		*)
+			bl_cv_win32=yes
+			AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
+			;;
+		esac
 	fi
 	;;
 *)

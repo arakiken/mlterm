@@ -1,3 +1,7 @@
+2017-06-12  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, baselib/configure.in: Whether it is msys-2.0 or not is checked.
+
 2017-06-11  Araki Ken  <arakiken@users.sf.net>
 
 	* README.win32: Updated.

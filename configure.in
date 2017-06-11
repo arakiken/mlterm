@@ -102,7 +102,13 @@ mingw32*)
 	CYGPATHW=echo
 	WIN32TAG=_win32
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
-		ml_cv_is_posix="no"
+		case "${lt_cv_path_LD}" in
+		*-msys*)
+			;;
+		*)
+			ml_cv_is_posix="no"
+			;;
+		esac
 	fi
 
 	if test "$gui" != "win32" ; then

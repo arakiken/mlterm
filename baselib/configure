@@ -19633,10 +19633,16 @@ $as_echo "#define USE_WIN32API /**/" >>confdefs.h
 mingw32*)
 	bl_cv_mingw32=yes
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
-		bl_cv_win32=yes
+		case "${lt_cv_path_LD}" in
+		*-msys*)
+			;;
+		*)
+			bl_cv_win32=yes
 
 $as_echo "#define USE_WIN32API /**/" >>confdefs.h
 
+			;;
+		esac
 	fi
 	;;
 *)
