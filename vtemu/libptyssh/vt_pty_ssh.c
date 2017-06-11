@@ -1528,17 +1528,69 @@ error2:
   return 0;
 }
 
+#ifdef USE_WIN32API
+static int connect_to_x11(void) {
+  int sock;
+  struct sockaddr_in addr;
+  int count;
+
+  if (display_port == -1 ||
+      (sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    return -1;
+  }
+
+  for (count = 0; count < 5; count++) {
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(6000 + display_port + count);
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+    if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+      u_long val;
+
+      val = 1;
+      ioctlsocket(sock, FIONBIO, &val);
+
+      return sock;
+    }
+  }
+
+  closesocket(sock);
+
+  return -1;
+}
+#else
+static int connect_to_x11(void) {
+  int sock;
+  struct sockaddr_un addr;
+
+  if (display_port == -1 ||
+      (sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+    return -1;
+  }
+
+  memset(&addr, 0, sizeof(addr));
+  addr.sun_family = AF_UNIX;
+  snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/.X11-unix/X%d", display_port);
+
+  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    closesocket(sock);
+
+    return -1;
+  }
+
+  fcntl(sock, F_SETFL, O_NONBLOCK | fcntl(sock, F_GETFL, 0));
+
+  return sock;
+}
+#endif
+
 static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel, char *shost,
                          int sport, void **abstract) {
   u_int count;
   ssh_session_t *session;
   void *p;
-  int display_sock = -1;
-#ifdef USE_WIN32API
-  struct sockaddr_in addr;
-#else
-  struct sockaddr_un addr;
-#endif
+  int display_sock;
 
   for (count = 0;; count++) {
     if (count == num_of_sessions) {
@@ -1567,45 +1619,10 @@ static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel,
 
   session->x11_channels = p;
 
-  if (display_port == -1) {
-    goto error;
-  }
-
-#ifdef USE_WIN32API
-  if ((display_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    goto error;
-  }
-
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(6000);
-  addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-#else
-  if ((display_sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-    goto error;
-  }
-
-  memset(&addr, 0, sizeof(addr));
-  addr.sun_family = AF_UNIX;
-  snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/.X11-unix/X%d", display_port);
-#endif
-
-  if (connect(display_sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-  error:
+  if ((display_sock = connect_to_x11()) < 0) {
     bl_error_printf("Failed to connect X Server.\n");
-    closesocket(display_sock);
-    display_sock = -1;
 
     /* Don't call libssh2_channel_free() which causes segfault here. */
-  } else {
-#ifdef USE_WIN32API
-    u_long val;
-
-    val = 1;
-    ioctlsocket(display_sock, FIONBIO, &val);
-#else
-    fcntl(display_sock, F_SETFL, O_NONBLOCK | fcntl(display_sock, F_GETFL, 0));
-#endif
   }
 
   session->x11_channels[session->num_of_x11] = channel;

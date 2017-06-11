@@ -158,6 +158,12 @@ WIN32 native GUI 対応に関するメモ
     に含まれている "Tera Special" フォント (TSPECIAL1.TTF) をインストールする
     必要があります。
 
+  o Cygwin/X 1.17 以降では、デフォルトでは、X サーバが 127.0.0.1:6000 での接続を
+    待ち受けなくなりました。MinGW でビルドした mlterm が X サーバに接続し x11
+    forwarding を行えるようにするためには、X サーバを次のとおり起動する必要があ
+    ります。
+    $ startxwin -- :0 -listen tcp &
+
 * 実行可能バイナリの入手
   http://mlterm.sf.net/bin.html から cygwin/msys 用の実行可能バイナリを入手する
   ことができます(不定期更新)。

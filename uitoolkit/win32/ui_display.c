@@ -166,11 +166,13 @@ int ui_display_close_all(void) {
 
   free(_disp.roots);
 
+#if 0
   for (count = 0; count < (sizeof(_disp.cursors) / sizeof(_disp.cursors[0])); count++) {
     if (_disp.cursors[count]) {
       CloseHandle(_disp.cursors[count]);
     }
   }
+#endif
 
   if (_display.fd != -1) {
     close(_display.fd);

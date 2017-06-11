@@ -14,6 +14,7 @@ ver 3.8.2
   Fix unexpected erasing of DECIC and DECDC.
   Fix a bug which occupies 100% of CPU in switching mlterm-fb to an inactive
 	console on linux.
+  Fix freeze in copy&paste between windows of libvte compatible library.
 
 ver 3.8.1
 * Support wayland including libvte compatible library.

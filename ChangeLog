@@ -1,3 +1,11 @@
+2017-06-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.win32: Updated.
+
+	* libptyssh/vt_pty_ssh.c: connect_to_x11() is separated from x11_callback().
+
+	* win32/ui_display.c: CloseHandle(_disp.cursors[count]) is removed.
+
 2017-06-07  Araki Ken  <arakiken@users.sf.net>
 
 	* console/ui.h, win32/ui.h: "#include <mef/ef_conv.h>" is removed.
