@@ -91,6 +91,7 @@ typedef int XSelectionRequestEvent; /* dummy */
 typedef struct {
   Font fid;
   struct ef_conv *conv;
+  unsigned int size; /* font size */
 } XFontStruct;
 
 typedef LPLOGFONT XFontSet;

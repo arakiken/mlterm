@@ -91,6 +91,15 @@ static int convert_regis_to_bmp(char *path) {
 
   waitpid(pid, &status, 0);
 
+  /*
+   * WEXITSTATUS uses __in and __out for union members, but
+   * sal.h included from windows.h defines __in and __out macros on msys.
+   * It causes compiling error in WEXITSTATUS.
+   */
+#ifdef __MSYS__
+#undef __in
+#undef __out
+#endif
   if (WEXITSTATUS(status) == 0) {
     strcpy(path + strlen(path) - 4, ".bmp");
 

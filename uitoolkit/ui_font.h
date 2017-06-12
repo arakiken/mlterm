@@ -60,9 +60,6 @@ typedef struct ui_font {
   /* ot_font == NULL and use_ot_layout == true is possible in ISO10646_UCS4_1_V
    * font. */
   void *ot_font;
-#ifdef USE_WIN32GUI
-  u_int16_t size; /* font size */
-#endif
   int8_t ot_font_not_found;
   int8_t use_ot_layout;
 #endif

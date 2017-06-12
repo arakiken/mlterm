@@ -1,5 +1,10 @@
 2017-06-12  Araki Ken  <arakiken@users.sf.net>
 
+	* c_regis.c: Hack for MSYS is added.
+
+	* ui_font.h, win32/ui.h, win32/ui_font.c:
+	  'size' is moved from ui_font_t to XFontStruct on win32.
+
 	* configure.in, baselib/configure.in: Whether it is msys-2.0 or not is checked.
 
 2017-06-11  Araki Ken  <arakiken@users.sf.net>
