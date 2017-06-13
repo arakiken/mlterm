@@ -1,3 +1,12 @@
+2017-06-14  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_font.c: Fixes for DECDHL.
+
+	* console/ui_window.c: size_attr is added to the arguments of set_attr()
+	  to support DECDHL and DECDWL.
+
+	* console/ui_font.c: Unnecessary code is removed.
+
 2017-06-12  Araki Ken  <arakiken@users.sf.net>
 
 	* c_regis.c: Hack for MSYS is added.

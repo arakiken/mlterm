@@ -9,6 +9,7 @@ ver 3.8.2
 * Support brltty with the use of brlapi library. (Experimental)
   (configure with --enable-brlapi option.)
 * Enable to build on msys2.
+* Support DECDHL and DECDWL on console.
 * Bug fixes:
   Fix unexpected blocking in exiting mlterm.jar.
   Fix a redrawing problem in inserting RTL characters between LTR ones or vice-versa.

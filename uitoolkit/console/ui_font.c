@@ -22,10 +22,6 @@
 #include <dirent.h>
 #endif
 
-#ifdef USE_OT_LAYOUT
-#include <otl.h>
-#endif
-
 #include "ui_display.h"
 
 #define DIVIDE_ROUNDING(a, b) (((int)((a)*10 + (b)*5)) / ((int)((b)*10)))
@@ -73,11 +69,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
   if (type_engine != TYPE_XCORE || !(font = calloc(1, sizeof(ui_font_t)))) {
     return NULL;
-  }
-
-  if (size_attr >= DOUBLE_HEIGHT_TOP) {
-    fontsize *= 2;
-    col_width *= 2;
   }
 
   if (!(font->xfont = calloc(1, sizeof(XFontStruct)))) {
@@ -187,11 +178,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     }
   }
 
-  if (size_attr == DOUBLE_WIDTH) {
-    font->x_off += (font->width / 2);
-    font->width *= 2;
-  }
-
   font->size_attr = size_attr;
 
   /*
@@ -244,22 +230,6 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
   if (draw_alone) {
     *draw_alone = 0;
   }
-
-#if defined(USE_FREETYPE)
-  if (font->xfont->is_aa && font->is_proportional) {
-    u_char *glyph;
-
-    if ((glyph = get_ft_bitmap(font->xfont, ch,
-#ifdef USE_OT_LAYOUT
-                               (font->use_ot_layout /* && font->ot_font */)
-#else
-                               0
-#endif
-                                   ))) {
-      return glyph[font->xfont->glyph_size - 3];
-    }
-  }
-#endif
 
   return font->width;
 }

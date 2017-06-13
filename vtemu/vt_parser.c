@@ -4894,7 +4894,7 @@ inline static int parse_vt100_escape_sequence(
               vt_line_set_size_attr(line, DOUBLE_HEIGHT_BOTTOM);
             } else if (*str_p == '5') {
               /*
-               * "ESC # 5" DEC single-with line (DECDWL)
+               * "ESC # 5" DEC single-with line (DECSWL)
                */
               vt_line_set_size_attr(line, 0);
             } else /* if( *str_p == '6') */

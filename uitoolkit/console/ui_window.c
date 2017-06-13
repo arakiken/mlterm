@@ -95,8 +95,10 @@ static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_
   return 1;
 }
 
-static void set_attr(FILE *fp, vt_font_t font, u_long fg_pixel, u_long bg_pixel,
-                     int underline_style) {
+static void set_attr(FILE *fp, vt_font_t font, u_int fg_pixel, u_int bg_pixel,
+                     int underline_style, int size_attr) {
+  static int size_attr_set;
+
   if (fg_pixel < 0x8) {
     fprintf(fp, "\x1b[%dm", fg_pixel + 30);
   } else if (fg_pixel < 0x10) {
@@ -115,19 +117,35 @@ static void set_attr(FILE *fp, vt_font_t font, u_long fg_pixel, u_long bg_pixel,
 
   switch (underline_style) {
     case UNDERLINE_NORMAL:
-      fprintf(fp, "\x1b[4m");
+      fwrite("\x1b[4m", 1, 4, fp);
       break;
     case UNDERLINE_DOUBLE:
-      fprintf(fp, "\x1b[21m");
+      fwrite("\x1b[21m", 1, 5, fp);
       break;
   }
 
   if (font & FONT_BOLD) {
-    fprintf(fp, "\x1b[1m");
+    fwrite("\x1b[1m", 1, 4, fp);
   }
 
   if (font & FONT_ITALIC) {
-    fprintf(fp, "\x1b[3m");
+    fwrite("\x1b[3m", 1, 4, fp);
+  }
+
+  if (size_attr == 0) {
+    if (size_attr_set) {
+      fwrite("\x1b#5", 1, 3, fp);
+    }
+  } else {
+    size_attr_set = 1;
+
+    if (size_attr == DOUBLE_WIDTH) {
+      fwrite("\x1b#6", 1, 3, fp);
+    } else if (size_attr == DOUBLE_HEIGHT_TOP) {
+      fwrite("\x1b#3", 1, 3, fp);
+    } else /* if (size_attr == DOUBLE_HEIGHT_BOTTOM) */ {
+      fwrite("\x1b#4", 1, 3, fp);
+    }
   }
 }
 
@@ -173,9 +191,12 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
     len *= ch_len;
   }
 
-  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style);
-  fprintf(win->disp->display->fp, "\x1b[%d;%dH", (win->y + win->vmargin + y) / LINE_HEIGHT + 1,
+  fprintf(win->disp->display->fp, "\x1b[%d;%dH",
+          (win->y + win->vmargin + y) / LINE_HEIGHT + 1 +
+            (font->size_attr == DOUBLE_HEIGHT_BOTTOM ? 1 : 0),
           (win->x + win->hmargin + x) / COL_WIDTH + 1);
+  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style,
+           font->size_attr);
   fwrite(str, 1, len, win->disp->display->fp);
   fwrite("\x1b[m", 1, 3, win->disp->display->fp);
   fflush(win->disp->display->fp);
@@ -1232,9 +1253,12 @@ int ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_co
     return 0;
   }
 
-  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style);
-  fprintf(win->disp->display->fp, "\x1b[%d;%dH", (win->y + win->vmargin + y) / LINE_HEIGHT + 1,
+  fprintf(win->disp->display->fp, "\x1b[%d;%dH",
+          (win->y + win->vmargin + y) / LINE_HEIGHT + 1 +
+            (font->size_attr == DOUBLE_HEIGHT_BOTTOM ? 1 : 0),
           (win->x + win->hmargin + x) / COL_WIDTH + 1);
+  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style,
+           font->size_attr);
   fwrite("\x1b(0", 1, 3, win->disp->display->fp);
   fwrite(str, 1, len, win->disp->display->fp);
   fwrite("\x1b(B\x1b[m", 1, 6, win->disp->display->fp);

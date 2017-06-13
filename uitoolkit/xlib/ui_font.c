@@ -1267,6 +1267,12 @@ ui_font_t *ui_font_new(
         return NULL;
       } else if (!xcore_set_font(font, fontname, fontsize, col_width, use_medium_for_bold,
                                  letter_space)) {
+        if (size_attr >= DOUBLE_HEIGHT_TOP &&
+            xcore_set_font(font, fontname, fontsize / 2, col_width, use_medium_for_bold,
+                           letter_space)) {
+          goto end;
+        }
+
         free(font);
 
         return NULL;
