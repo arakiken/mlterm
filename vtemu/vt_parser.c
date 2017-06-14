@@ -810,6 +810,16 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     bg_color = vt_parser->bg_color;
   }
 
+  if (vt_parser->alt_colors.flags) {
+    int idx = is_bold | (vt_parser->is_reversed >> 1) |
+              (underline_style ? 4 : 0) | (is_blinking >> 3);
+
+    if (idx < 16 && (vt_parser->alt_colors.flags & (1 << idx))) {
+      fg_color = vt_parser->alt_colors.fg[idx];
+      bg_color = vt_parser->alt_colors.bg[idx];
+    }
+  }
+
   if (vt_parser->use_char_combining && is_comb) {
     if (vt_parser->w_buf.filled_len == 0) {
       /*
@@ -3155,6 +3165,7 @@ inline static int parse_vt100_escape_sequence(
               vt_parser->sixel_scrolling = 0;
             } else if (ps[count] == 117) {
               /* "CSI ? 117 h" */
+
               vt_screen_set_use_bce(vt_parser->screen, 0);
             } else if (ps[count] == 1000) {
               /* "CSI ? 1000 h" */
@@ -3837,6 +3848,13 @@ inline static int parse_vt100_escape_sequence(
           }
         } else if (*str_p == '}') {
           /* "CSI Ps1;Ps2;Ps3,}" (DECATC) */
+          if (num == 3 && ((u_int)ps[0]) <= 15 && ((u_int)ps[1]) <= 255 && ((u_int)ps[2] <= 255)) {
+            u_int8_t idxs[] = { 0, 1, 2, 4, 8, 3, 5, 9, 6, 10, 12, 7, 11, 13, 14, 15, } ;
+            int idx = idxs[ps[0]];
+            vt_parser->alt_colors.flags |= (1 << idx);
+            vt_parser->alt_colors.fg[idx] = ps[1];
+            vt_parser->alt_colors.bg[idx] = ps[2];
+          }
         }
       }
       /* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */

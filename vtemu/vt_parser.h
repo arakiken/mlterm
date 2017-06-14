@@ -217,6 +217,12 @@ typedef struct vt_parser {
 
   } loc_filter;
 
+  struct {
+    u_int16_t flags;
+    u_int8_t fg[16];
+    u_int8_t bg[16];
+  } alt_colors;
+
   /* vt_unicode_policy_t */ int8_t unicode_policy;
 
   /* vt_mouse_report_mode_t */ int8_t mouse_mode;
