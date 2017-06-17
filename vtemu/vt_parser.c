@@ -3544,7 +3544,8 @@ inline static int parse_vt100_escape_sequence(
         if (intmed_ch == '$') {
           if (*str_p == 'p' && num > 0) {
             char seq[3 + DIGIT_STR_LEN(u_int) + 5];
-            sprintf(seq, "\x1b[?%d;%d$y", ps[0], get_vtmode(vt_parser, ps[0]));
+            sprintf(seq, "\x1b[?%d;%d$y", ps[0],
+                    (ps[0] >= VTMODE(0)) ? 0 : get_vtmode(vt_parser, ps[0]));
             vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
         } else if (*str_p == 'h') {
@@ -3552,14 +3553,18 @@ inline static int parse_vt100_escape_sequence(
           int count;
 
           for (count = 0; count < num; count++) {
-            set_vtmode(vt_parser, ps[count], 1);
+            if (ps[count] < VTMODE(0)) {
+              set_vtmode(vt_parser, ps[count], 1);
+            }
           }
         } else if (*str_p == 'l') {
           /* "CSI ? l" DEC Private Mode Reset */
           int count;
 
           for (count = 0; count < num; count++) {
-            set_vtmode(vt_parser, ps[count], 0);
+            if (ps[count] < VTMODE(0)) {
+              set_vtmode(vt_parser, ps[count], 0);
+            }
           }
         } else if (*str_p == 'n') {
           /* "CSI ? n" */
