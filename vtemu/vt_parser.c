@@ -96,6 +96,66 @@
 #define SUPPORT_ITERM2_OSC1337
 #endif
 
+#define VTMODE(mode) ((mode) + 10000)
+
+#ifdef USE_VT52
+#define INITIAL_VTMODE_FLAGS \
+  (1 << DECMODE_2) | /* is_vt52_mode == 0 */ \
+  (1 << DECMODE_7) | /* auto_wrap == 1 */ \
+  (1 << DECMODE_25) /* is_visible_cursor == 1 */
+#else
+#define INITIAL_VTMODE_FLAGS \
+  (1 << DECMODE_7) | /* auto_wrap == 1 */ \
+  (1 << DECMODE_25) /* is_visible_cursor == 1 */
+#endif
+
+/* If VTMODE_NUM >= 64, enlarge the size of vt_parser_t::vtmode_flags */
+typedef enum {
+  /* DECSET/DECRST */
+  DECMODE_1 = 0,
+#ifdef USE_VT52
+  DECMODE_2,
+#endif
+  DECMODE_3,
+  DECMODE_5,
+  DECMODE_6,
+  DECMODE_7,
+  DECMODE_25,
+  DECMODE_40,
+  DECMODE_47,
+  DECMODE_66,
+  DECMODE_67,
+  DECMODE_69,
+  DECMODE_80,
+  DECMODE_95,
+  DECMODE_117,
+  DECMODE_1000,
+  DECMODE_1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
+  DECMODE_1003,
+  DECMODE_1004,
+  DECMODE_1005,
+  DECMODE_1006,
+  DECMODE_1015, /* Don't add an entry between 1006 and 1015 (see set_vtmode()) */
+  DECMODE_1042,
+  DECMODE_1047,
+  DECMODE_1048,
+  DECMODE_1049,
+  DECMODE_2004,
+  DECMODE_7727,
+  DECMODE_8428,
+  DECMODE_8452,
+  DECMODE_8800,
+  DECMODE_9500,
+
+  /* SM/RM */
+  VTMODE_2,
+  VTMODE_4,
+  VTMODE_12,
+  VTMODE_33,
+
+  VTMODE_NUM,
+} vtmode_t;
+
 typedef struct area {
   u_int32_t min;
   u_int32_t max;
@@ -103,6 +163,21 @@ typedef struct area {
 } area_t;
 
 /* --- static variables --- */
+
+static u_int16_t vtmodes[] = {
+  /* DECSET/DECRST */
+  1,
+#ifdef USE_VT52
+  2,
+#endif
+  3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 117,
+  1000, 1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
+  1003, 1004, 1005, 1006, 1015, /* Don't add an entry between 1006 and 1015 (see set_vtmode()) */
+  1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800, 9500,
+
+  /* SM/RM */
+  VTMODE(2), VTMODE(4), VTMODE(12), VTMODE(33)
+};
 
 static int use_alt_buffer = 1;
 static int use_ansi_colors = 1;
@@ -133,6 +208,17 @@ static int use_scp_full;
 #endif
 
 /* --- static functions --- */
+
+#ifdef DEBUG
+static void debug_print_unknown(const char *format, ...) {
+  va_list arg_list;
+
+  va_start(arg_list, format);
+
+  fprintf(stderr, BL_DEBUG_TAG " received unknown sequence ");
+  vfprintf(stderr, format, arg_list);
+}
+#endif
 
 /* XXX This function should be moved to pobl */
 static void str_replace(char *str, int c1, int c2) {
@@ -2450,28 +2536,114 @@ static void request_termcap(vt_parser_t *vt_parser, u_char *key) {
   vt_write_to_pty(vt_parser->pty, "\x1bP0+r\x1b\\", 7);
 }
 
+static void request_char_attr_status(vt_parser_t *vt_parser) {
+  char color[10]; /* ";38;5;XXX" (256 color) */
+
+  vt_write_to_pty(vt_parser->pty, "\x1bP1$r0", 6);
+
+  if (vt_parser->is_bold) {
+    vt_write_to_pty(vt_parser->pty, ";1", 2);
+  }
+
+  if (vt_parser->is_italic) {
+    vt_write_to_pty(vt_parser->pty, ";3", 2);
+  }
+
+  if (vt_parser->underline_style == UNDERLINE_NORMAL) {
+    vt_write_to_pty(vt_parser->pty, ";4", 2);
+  }
+
+  if (vt_parser->is_blinking) {
+    vt_write_to_pty(vt_parser->pty, ";5", 2);
+  }
+
+  if (vt_parser->is_reversed) {
+    vt_write_to_pty(vt_parser->pty, ";7", 2);
+  }
+
+  if (vt_parser->is_crossed_out) {
+    vt_write_to_pty(vt_parser->pty, ";9", 2);
+  }
+
+  if (vt_parser->underline_style == UNDERLINE_DOUBLE) {
+    vt_write_to_pty(vt_parser->pty, ";21", 3);
+  }
+
+  color[0] = ';';
+  if (IS_VTSYS_BASE_COLOR(vt_parser->fg_color)) {
+    color[1] = '3';
+    color[2] = '0' + vt_parser->fg_color;
+  } else if (IS_VTSYS_COLOR(vt_parser->fg_color)) {
+    color[1] = '9';
+    color[2] = '0' + (vt_parser->fg_color - 8);
+  } else if (IS_VTSYS256_COLOR(vt_parser->fg_color)) {
+    sprintf(color + 1, "38;5;%d", vt_parser->fg_color);
+  } else {
+    goto bg_color;
+  }
+  vt_write_to_pty(vt_parser->pty, color, strlen(color));
+
+bg_color:
+  if (IS_VTSYS_BASE_COLOR(vt_parser->bg_color)) {
+    color[1] = '4';
+    color[2] = '0' + vt_parser->bg_color;
+  } else if (IS_VTSYS_COLOR(vt_parser->bg_color)) {
+    color[1] = '1';
+    color[2] = '0';
+    color[3] = '0' + (vt_parser->bg_color - 8);
+  } else if (IS_VTSYS256_COLOR(vt_parser->bg_color)) {
+    sprintf(color, ";48;5;%d", vt_parser->bg_color);
+  } else {
+    goto end;
+  }
+  vt_write_to_pty(vt_parser->pty, color, strlen(color));
+
+end:
+  vt_write_to_pty(vt_parser->pty, "m\x1b\\", 3);
+}
+
 static void request_status(vt_parser_t *vt_parser, u_char *key) {
   u_char *val;
-  u_char *digits[DIGIT_STR_LEN(int)*2 + 2];
+  u_char digits[DIGIT_STR_LEN(int)*2 + 2];
   u_char *seq;
 
   if (strcmp(key, "\"q") == 0) {
+    /* DECSCA */
     val = "0";
   } else if (strcmp(key, "\"p") == 0) {
+    /* DECSCL */
     val = "63;1";
   } else if (strcmp(key, "r") == 0) {
+    /* DECSTBM */
     val = digits;
     sprintf(val, "%d;%d", vt_parser->screen->edit->vmargin_beg + 1,
             vt_parser->screen->edit->vmargin_end + 1);
   } else if (strcmp(key, "s") == 0) {
+    /* DECSLRM */
     val = digits;
     sprintf(val, "%d;%d", vt_parser->screen->edit->hmargin_beg + 1,
             vt_parser->screen->edit->hmargin_end + 1);
-  } else if (strcmp(key, "m") == 0) {
-    val = "0"; /* XXX dummy */
   } else if (strcmp(key, " q") == 0) {
-    val = "2"; /* XXX dummy */
+    /* DECSCUR */
+    char vals[] = {'2', '4', '6', '\0', '1', '3', '5'};
+    digits[0] = vals[vt_parser->cursor_style];
+    digits[1] = '\0';
+    val = digits;
+  } else if (strcmp(key, "$}") == 0) {
+    /* DECSASD */
+    val = "0";
+  } else if (strcmp(key, "$~") == 0) {
+    /* DECSSDT */
+    val = "0";
+  } else if (strcmp(key, "*x") == 0) {
+    /* DECSACE */
+    val = vt_screen_is_using_rect_attr_select(vt_parser->screen) ? "2" : "1";
+  } else if (strcmp(key, "m") == 0) {
+    /* SGR */
+    request_char_attr_status(vt_parser);
+    return;
   } else {
+    vt_write_to_pty(vt_parser->pty, "\x1bP0$r\x1b\\", 7);
     return;
   }
 
@@ -2492,6 +2664,340 @@ static void clear_display_all(vt_parser_t *vt_parser) {
   vt_screen_clear_size_attr(vt_parser->screen);
 }
 
+static int get_vtmode(vt_parser_t *vt_parser, int mode) {
+  int idx;
+
+  /* XXX These can be changed via OSC 5379 instead of DEC Private Mode Set. */
+  if (mode == 8428) {
+    return (vt_parser->col_size_of_width_a == 1) ? 1 : 2;
+  } else if (mode == 117) {
+    return vt_screen_is_using_bce(vt_parser->screen) ? 1 : 2;
+  } else if (mode == VTMODE(33)) {
+    return (vt_parser->cursor_style & CS_BLINK) ? 2 : 1;
+  }
+
+  for (idx = 0; idx < VTMODE_NUM; idx++) {
+    if (vtmodes[idx] == mode) {
+      if (vt_parser->vtmode_flags & (1 << idx)) {
+        return 1; /* set */
+      } else {
+        return 2; /* reset */
+      }
+    }
+  }
+
+  if (mode == 8 /* DECAWM (auto repeat) */) {
+    return 3; /* permanently set */
+  } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||
+             mode == 38 /* Tek */ || mode == 45 /* reverse wraparound */ ||
+             mode == 1001 /* highlight mouse tracking */ || mode == VTMODE(6) /* ERM */ ||
+             mode == VTMODE(18) /* ISM */ || mode == VTMODE(20) /* LNM */) {
+    return 4; /* permanently reset */
+  }
+
+  return 0; /* not recognized */
+}
+
+static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
+  int idx;
+
+#ifdef DEBUG
+  if (VTMODE_NUM != sizeof(vtmodes) / sizeof(vtmodes[0])) {
+    bl_debug_printf(BL_DEBUG_TAG "vtmode table is broken.\n");
+  }
+#endif
+
+  for (idx = 0; idx < VTMODE_NUM; idx++) {
+    if (vtmodes[idx] == mode) {
+      goto found;
+    }
+  }
+
+#ifdef DEBUG
+  debug_print_unknown("ESC [ %s %d l\n", mode >= VTMODE(0) ? "" : "?", mode);
+#endif
+
+  return;
+
+found:
+  if (flag) {
+    vt_parser->vtmode_flags |= (1 << idx);
+  } else {
+    vt_parser->vtmode_flags &= ~(1 << idx);
+  }
+
+  switch (idx) {
+  case DECMODE_1:
+    vt_parser->is_app_cursor_keys = flag;
+    break;
+
+#ifdef USE_VT52
+  case DECMODE_2:
+    if (!(vt_parser->is_vt52_mode = (flag ? 0 : 1))) {
+      /*
+       * USASCII should be designated for G0-G3 here, but it is temporized by
+       * using vt_init_encoding_parser() etc for now.
+       */
+      vt_init_encoding_parser(vt_parser);
+    }
+    break;
+#endif
+
+  case DECMODE_3:
+    if (vt_parser->allow_deccolm) {
+      /* XTERM compatibility [#1048321] */
+      if (!vt_parser->keep_screen_on_deccolm) {
+        clear_display_all(vt_parser);
+      }
+      resize(vt_parser, flag ? 132 : 80, 0, 1);
+    }
+    break;
+
+#if 0
+  case DECMODE_4:
+    /* smooth scrolling */
+    break;
+#endif
+
+  case DECMODE_5:
+    reverse_video(vt_parser, flag);
+    break;
+
+  case DECMODE_6:
+    if (flag) {
+      vt_screen_set_relative_origin(vt_parser->screen);
+    } else {
+      vt_screen_set_absolute_origin(vt_parser->screen);
+    }
+
+    /*
+     * cursor position is reset
+     * (the same behavior of xterm 4.0.3, kterm 6.2.0 or so)
+     */
+    vt_screen_goto(vt_parser->screen, 0, 0);
+    break;
+
+  case DECMODE_7:
+    vt_screen_set_auto_wrap(vt_parser->screen, flag);
+    break;
+
+#if 0
+  case DECMODE_8:
+    /* auto repeat */
+    break;
+
+  case DECMODE_9:
+    /* X10 mouse reporting */
+    break;
+
+  case DECMODE_12:
+    /*
+     * XT_CBLINK
+     * If cursor blinking is enabled, restart blinking.
+     */
+    break;
+#endif
+
+  case DECMODE_25:
+    vt_parser->is_visible_cursor = flag;
+    break;
+
+#if 0
+  case DECMODE_35:
+    /* shift keys */
+    break;
+#endif
+
+  case DECMODE_40:
+    vt_parser->allow_deccolm = flag;
+    break;
+
+  case DECMODE_47:
+    if (use_alt_buffer) {
+      if (flag) {
+        vt_screen_use_alternative_edit(vt_parser->screen);
+      } else {
+        vt_screen_use_normal_edit(vt_parser->screen);
+      }
+    }
+    break;
+
+  case DECMODE_66:
+    vt_parser->is_app_keypad = flag;
+    break;
+
+  case DECMODE_67:
+    /* have back space */
+    /* XXX Affects all terms sharing termcap */
+    vt_termcap_set_key_seq(vt_parser->termcap, SPKEY_BACKSPACE, flag ? "\x08" : "\x7f");
+    break;
+
+  case DECMODE_69:
+    vt_screen_set_use_hmargin(vt_parser->screen, flag);
+    break;
+
+  case DECMODE_80:
+    vt_parser->sixel_scrolling = (flag ? 0 : 1);
+    break;
+
+  case DECMODE_95:
+    vt_parser->keep_screen_on_deccolm = flag;
+    break;
+
+  case DECMODE_117:
+    vt_screen_set_use_bce(vt_parser->screen, (flag ? 0 : 1));
+    break;
+
+  case DECMODE_1000: /* MOUSE_REPORT */
+  case DECMODE_1002: /* BUTTON_EVENT */
+  case DECMODE_1003: /* ANY_EVENT */
+    set_mouse_report(vt_parser, flag ? (MOUSE_REPORT + idx - DECMODE_1000) : 0);
+    break;
+
+#if 0
+  case DECMODE_1001:
+    /* X11 mouse highlighting */
+    break;
+#endif
+
+  case DECMODE_1004:
+    vt_parser->want_focus_event = flag;
+    break;
+
+  case DECMODE_1005: /* UTF8 */
+  case DECMODE_1006: /* SGR */
+  case DECMODE_1015: /* URXVT */
+    if (flag) {
+      vt_parser->ext_mouse_mode = EXTENDED_MOUSE_REPORT_UTF8 + idx - DECMODE_1005;
+    } else {
+      vt_parser->ext_mouse_mode = 0;
+    }
+    break;
+
+#if 0
+  case DECMODE_1010:
+    /* scroll to bottom on tty output inhibit */
+    break;
+#endif
+
+#if 0
+  case DECMODE_1011:
+    /* scroll to bottom on key press */
+    break;
+#endif
+
+  case DECMODE_1042:
+    config_protocol_set_simple(vt_parser, "use_urgent_bell", flag ? "true" : "false", 0);
+    break;
+
+  case DECMODE_1047:
+    if (use_alt_buffer) {
+      if (flag) {
+        vt_screen_use_alternative_edit(vt_parser->screen);
+      } else {
+        if (vt_screen_is_alternative_edit(vt_parser->screen)) {
+          clear_display_all(vt_parser);
+          vt_screen_use_normal_edit(vt_parser->screen);
+        }
+      }
+    }
+    break;
+
+  case DECMODE_1048:
+    if (use_alt_buffer) {
+      if (flag) {
+        save_cursor(vt_parser);
+      } else {
+        restore_cursor(vt_parser);
+      }
+    }
+    break;
+
+  case DECMODE_1049:
+    if (use_alt_buffer) {
+      if (flag) {
+        if (!vt_screen_is_alternative_edit(vt_parser->screen)) {
+          save_cursor(vt_parser);
+          vt_screen_use_alternative_edit(vt_parser->screen);
+          clear_display_all(vt_parser);
+        }
+      } else {
+        if (vt_screen_is_alternative_edit(vt_parser->screen)) {
+          vt_screen_use_normal_edit(vt_parser->screen);
+          restore_cursor(vt_parser);
+        }
+      }
+    }
+    break;
+
+  case DECMODE_2004:
+    vt_parser->is_bracketed_paste_mode = flag;
+    break;
+
+  case DECMODE_7727:
+    vt_parser->is_app_escape = flag;
+    break;
+
+  case DECMODE_8428:
+    /* RLogin original */
+    vt_parser->col_size_of_width_a = (flag ? 1 : 2);
+    break;
+
+  case DECMODE_8452:
+    /* RLogin original */
+    vt_parser->cursor_to_right_of_sixel = flag;
+    break;
+
+  case DECMODE_8800:
+    if (flag) {
+      vt_parser->unicode_policy |= USE_UNICODE_DRCS;
+    } else {
+      vt_parser->unicode_policy &= ~USE_UNICODE_DRCS;
+    }
+    break;
+
+  case DECMODE_9500:
+    config_protocol_set_simple(vt_parser, "use_local_echo", flag ? "true" : "false", 1);
+    break;
+
+  case VTMODE_2:
+    if (flag) {
+      vt_parser->pty_hook.pre_write = NULL;
+      vt_pty_set_hook(vt_parser->pty, &vt_parser->pty_hook);
+    } else {
+      vt_pty_set_hook(vt_parser->pty, NULL);
+    }
+    break;
+
+  case VTMODE_4:
+    if (flag) {
+      /* insert mode */
+      vt_parser->w_buf.output_func = vt_screen_insert_chars;
+    } else {
+      /* replace mode */
+      vt_parser->w_buf.output_func = vt_screen_overwrite_chars;
+    }
+    break;
+
+  case VTMODE_12:
+    if (flag) {
+      vt_pty_set_hook(vt_parser->pty, NULL);
+    } else {
+      vt_parser->pty_hook.pre_write = vt_parser_write_loopback;
+      vt_pty_set_hook(vt_parser->pty, &vt_parser->pty_hook);
+    }
+    break;
+
+  case VTMODE_33:
+    /* WYSTCURM (TeraTerm original) */
+    if (flag) {
+      vt_parser->cursor_style &= ~CS_BLINK;
+    } else {
+      vt_parser->cursor_style |= CS_BLINK;
+    }
+  }
+}
+
 static void soft_reset(vt_parser_t *vt_parser) {
   /*
    * XXX insufficient implementation.
@@ -2500,7 +3006,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
   /* "CSI ? 25 h" (DECTCEM) */
   vt_parser->is_visible_cursor = 1;
 
-  /* "CSI l" (IRM) */
+  /* "CSI 4 l" (IRM) */
   vt_parser->w_buf.output_func = vt_screen_overwrite_chars;
 
   /* "CSI ? 6 l" (DECOM) */
@@ -2535,6 +3041,8 @@ static void soft_reset(vt_parser_t *vt_parser) {
   vt_parser->allow_deccolm = 0;
 
   vt_parser->im_is_active = 0;
+
+  vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
 }
 
 static void send_device_status(vt_parser_t *vt_parser, int num) {
@@ -2714,17 +3222,6 @@ static char *get_pt_in_esc_seq(
 
   return pt;
 }
-
-#ifdef DEBUG
-static void debug_print_unknown(const char *format, ...) {
-  va_list arg_list;
-
-  va_start(arg_list, format);
-
-  fprintf(stderr, BL_DEBUG_TAG " received unknown sequence ");
-  vfprintf(stderr, format, arg_list);
-}
-#endif
 
 #ifdef USE_VT52
 inline static int parse_vt52_escape_sequence(
@@ -2945,35 +3442,28 @@ inline static int parse_vt100_escape_sequence(
 
 #define MAX_NUM_OF_PS 10
 
-      u_char pre_ch;
+      u_char para_ch = '\0';
+      u_char intmed_ch = '\0';
       int ps[MAX_NUM_OF_PS];
       int num;
 
-      if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
-        return 0;
-      }
-
-      /* Parameter characters(0x30-0x3f) */
-
-      if (0x3c <= *str_p && *str_p <= 0x3f) {
-        /* parameter character except numeric, ':' and ';' (< = > ?). */
-        pre_ch = *str_p;
-
+      num = 0;
+      while (1) {
         if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
           return 0;
         }
-      } else {
-        pre_ch = '\0';
-      }
 
-      num = 0;
-      while (1) {
         if (*str_p == ';') {
           /*
            * "CSI ; n" is regarded as "CSI -1 ; n"
            */
           if (num < MAX_NUM_OF_PS) {
             ps[num++] = -1;
+          }
+        } else if (0x3c <= *str_p && *str_p <= 0x3f) {
+          /* parameter character except numeric, ':' and ';' (< = > ?). */
+          if (para_ch == '\0') {
+            para_ch = *str_p;
           }
         } else {
           if ('0' <= *str_p && *str_p <= '9') {
@@ -3032,19 +3522,15 @@ inline static int parse_vt100_escape_sequence(
             break;
           }
         }
-
-        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
-          return 0;
-        }
       }
 
       /*
-       * Skip trailing paremeter(0x30-0x3f) and intermediate(0x20-0x2f)
-       * characters.
+       * Intermediate(0x20-0x2f) characters.
+       * (Unexpected paremeter(0x30-0x3f) characters are also ignored.)
        */
       while (0x20 <= *str_p && *str_p <= 0x3f) {
-        if (pre_ch == '\0') {
-          pre_ch = *str_p;
+        if (*str_p <= 0x2f && intmed_ch == '\0') {
+          intmed_ch = *str_p;
         }
 
         if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
@@ -3052,418 +3538,26 @@ inline static int parse_vt100_escape_sequence(
         }
       }
 
-      if (pre_ch == '?') {
-        if (*str_p == 'h') {
+      if (para_ch == '?') {
+        if (intmed_ch == '$') {
+          if (*str_p == 'p' && num > 0) {
+            char seq[3 + DIGIT_STR_LEN(u_int) + 5];
+            sprintf(seq, "\x1b[?%d;%d$y", ps[0], get_vtmode(vt_parser, ps[0]));
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
+          }
+        } else if (*str_p == 'h') {
           /* "CSI ? h" DEC Private Mode Set */
           int count;
 
           for (count = 0; count < num; count++) {
-            if (ps[count] == 1) {
-              /* "CSI ? 1 h" */
-
-              vt_parser->is_app_cursor_keys = 1;
-            }
-#ifdef USE_VT52
-            else if (ps[count] == 2) {
-              /* "CSI ? 2 h" */
-              vt_parser->is_vt52_mode = 0;
-
-              /*
-               * USASCII should be designated for G0-G3
-               * here, but it is temporized by using
-               * vt_init_encoding_parser() etc for now.
-               */
-
-              vt_init_encoding_parser(vt_parser);
-            }
-#endif
-            else if (ps[count] == 3) {
-              /* "CSI ? 3 h" */
-              if (vt_parser->allow_deccolm) {
-                /* XTERM compatibility [#1048321] */
-                clear_display_all(vt_parser);
-
-                resize(vt_parser, 132, 0, 1);
-              }
-            }
-#if 0
-            else if (ps[count] == 4) {
-              /* "CSI ? 4 h" smooth scrolling */
-            }
-#endif
-            else if (ps[count] == 5) {
-              /* "CSI ? 5 h" */
-
-              reverse_video(vt_parser, 1);
-            } else if (ps[count] == 6) {
-              /* "CSI ? 6 h" relative origins */
-
-              vt_screen_set_relative_origin(vt_parser->screen);
-              /*
-               * cursor position is reset
-               * (the same behavior of xterm 4.0.3,
-               * kterm 6.2.0 or so)
-               */
-              vt_screen_goto(vt_parser->screen, 0, 0);
-            } else if (ps[count] == 7) {
-              /* "CSI ? 7 h" auto wrap */
-
-              vt_screen_set_auto_wrap(vt_parser->screen, 1);
-            }
-#if 0
-            else if (ps[count] == 8) {
-              /* "CSI ? 8 h" auto repeat */
-            }
-#endif
-#if 0
-            else if (ps[count] == 9) {
-              /* "CSI ? 9 h" X10 mouse reporting */
-            } else if (ps[count] == 12) {
-              /*
-               * "CSI ? 12 h" XT_CBLINK
-               * If cursor blinking is enabled,
-               * stop blinking temporarily.
-               */
-            }
-#endif
-            else if (ps[count] == 25) {
-              /* "CSI ? 25 h" */
-              vt_parser->is_visible_cursor = 1;
-            }
-#if 0
-            else if (ps[count] == 35) {
-              /* "CSI ? 35 h" shift keys */
-            }
-#endif
-            else if (ps[count] == 40) {
-              /* "CSI ? 40 h" Allow DECCOLM */
-              vt_parser->allow_deccolm = 1;
-            } else if (ps[count] == 47) {
-              /*
-               * "CSI ? 47 h"
-               * Use alternate screen buffer
-               */
-
-              if (use_alt_buffer) {
-                vt_screen_use_alternative_edit(vt_parser->screen);
-              }
-            } else if (ps[count] == 66) {
-              /* "CSI ? 66 h" application key pad */
-              vt_parser->is_app_keypad = 1;
-            } else if (ps[count] == 67) {
-              /* "CSI ? 67 h" have back space */
-
-              /* XXX Affects all terms sharing termcap */
-              vt_termcap_set_key_seq(vt_parser->termcap, SPKEY_BACKSPACE, "\x08");
-            } else if (ps[count] == 69) {
-              /* "CSI ? 69 h" */
-
-              vt_screen_set_use_hmargin(vt_parser->screen, 1);
-            } else if (ps[count] == 80) {
-              /* "CSI ? 80 h" */
-
-              vt_parser->sixel_scrolling = 0;
-            } else if (ps[count] == 117) {
-              /* "CSI ? 117 h" */
-
-              vt_screen_set_use_bce(vt_parser->screen, 0);
-            } else if (ps[count] == 1000) {
-              /* "CSI ? 1000 h" */
-
-              set_mouse_report(vt_parser, MOUSE_REPORT);
-            }
-#if 0
-            else if (ps[count] == 1001) {
-              /* "CSI ? 1001 h" X11 mouse highlighting */
-            }
-#endif
-            else if (ps[count] == 1002) {
-              /* "CSI ? 1002 h" */
-
-              set_mouse_report(vt_parser, BUTTON_EVENT_MOUSE_REPORT);
-            } else if (ps[count] == 1003) {
-              /* "CSI ? 1003 h" */
-
-              set_mouse_report(vt_parser, ANY_EVENT_MOUSE_REPORT);
-            } else if (ps[count] == 1004) {
-              /* "CSI ? 1004 h" */
-
-              vt_parser->want_focus_event = 1;
-            } else if (ps[count] == 1005) {
-              /* "CSI ? 1005 h" */
-
-              vt_parser->ext_mouse_mode = EXTENDED_MOUSE_REPORT_UTF8;
-            } else if (ps[count] == 1006) {
-              /* "CSI ? 1006 h" */
-
-              vt_parser->ext_mouse_mode = EXTENDED_MOUSE_REPORT_SGR;
-            } else if (ps[count] == 1015) {
-              /* "CSI ? 1015 h" */
-
-              vt_parser->ext_mouse_mode = EXTENDED_MOUSE_REPORT_URXVT;
-            }
-#if 0
-            else if (ps[count] == 1010) {
-              /*
-               * "CSI ? 1010 h"
-               * scroll to bottom on tty output inhibit
-               */
-            }
-#endif
-#if 0
-            else if (ps[count] == 1011) {
-              /*
-               * "CSI ? 1011 h"
-               * "scroll to bottom on key press
-               */
-            }
-#endif
-            else if (ps[count] == 1042) {
-              /* "CSI ? 1042 h" */
-              config_protocol_set_simple(vt_parser, "use_urgent_bell", "true", 0);
-            } else if (ps[count] == 1047) {
-              /* "CSI ? 1047 h" */
-
-              if (use_alt_buffer) {
-                vt_screen_use_alternative_edit(vt_parser->screen);
-              }
-            } else if (ps[count] == 1048) {
-              /* "CSI ? 1048 h" */
-
-              if (use_alt_buffer) {
-                save_cursor(vt_parser);
-              }
-            } else if (ps[count] == 1049) {
-              /* "CSI ? 1049 h" */
-
-              if (use_alt_buffer && !vt_screen_is_alternative_edit(vt_parser->screen)) {
-                save_cursor(vt_parser);
-                vt_screen_use_alternative_edit(vt_parser->screen);
-                clear_display_all(vt_parser);
-              }
-            } else if (ps[count] == 2004) {
-              /* "CSI ? 2004 h" */
-
-              vt_parser->is_bracketed_paste_mode = 1;
-            } else if (ps[count] == 7727) {
-              /* "CSI ? 7727 h" */
-
-              vt_parser->is_app_escape = 1;
-            } else if (ps[count] == 8428) {
-              /* "CSI ? 8428 h" (RLogin original) */
-
-              vt_parser->col_size_of_width_a = 1;
-            } else if (ps[count] == 8452) {
-              /* "CSI ? 8452 l" (RLogin original) */
-              vt_parser->cursor_to_right_of_sixel = 1;
-            } else if (ps[count] == 8800) {
-              vt_parser->unicode_policy |= USE_UNICODE_DRCS;
-            } else if (ps[count] == 9500) {
-              /* "CSI ? 9500 h" */
-
-              config_protocol_set_simple(vt_parser, "use_local_echo", "true", 1);
-            }
-#ifdef DEBUG
-            else {
-              debug_print_unknown("ESC [ ? %d h\n", ps[count]);
-            }
-#endif
+            set_vtmode(vt_parser, ps[count], 1);
           }
         } else if (*str_p == 'l') {
-          /* DEC Private Mode Reset */
+          /* "CSI ? l" DEC Private Mode Reset */
           int count;
 
           for (count = 0; count < num; count++) {
-            if (ps[count] == 1) {
-              /* "CSI ? 1 l" */
-
-              vt_parser->is_app_cursor_keys = 0;
-            }
-#ifdef USE_VT52
-            else if (ps[count] == 2) {
-              /* "CSI ? 2 l" */
-              vt_parser->is_vt52_mode = 1;
-            }
-#endif
-            else if (ps[count] == 3) {
-              /* "CSI ? 3 l" */
-              if (vt_parser->allow_deccolm) {
-                /* XTERM compatibility [#1048321] */
-                clear_display_all(vt_parser);
-
-                resize(vt_parser, 80, 0, 1);
-              }
-            }
-#if 0
-            else if (ps[count] == 4) {
-              /* "CSI ? 4 l" smooth scrolling */
-            }
-#endif
-            else if (ps[count] == 5) {
-              /* "CSI ? 5 l" */
-
-              reverse_video(vt_parser, 0);
-            } else if (ps[count] == 6) {
-              /* "CSI ? 6 l" absolute origins */
-
-              vt_screen_set_absolute_origin(vt_parser->screen);
-              /*
-               * cursor position is reset
-               * (the same behavior of xterm 4.0.3,
-               * kterm 6.2.0 or so)
-               */
-              vt_screen_goto(vt_parser->screen, 0, 0);
-            } else if (ps[count] == 7) {
-              /* "CSI ? 7 l" auto wrap */
-
-              vt_screen_set_auto_wrap(vt_parser->screen, 0);
-            }
-#if 0
-            else if (ps[count] == 8) {
-              /* "CSI ? 8 l" auto repeat */
-            }
-#endif
-#if 0
-            else if (ps[count] == 9) {
-              /* "CSI ? 9 l" X10 mouse reporting */
-            } else if (ps[count] == 12) {
-              /*
-               * "CSI ? 12 l" XT_CBLINK
-               * If cursor blinking is enabled,
-               * restart blinking.
-               */
-            }
-#endif
-            else if (ps[count] == 25) {
-              /* "CSI ? 25 l" */
-
-              vt_parser->is_visible_cursor = 0;
-            }
-#if 0
-            else if (ps[count] == 35) {
-              /* "CSI ? 35 l" shift keys */
-            }
-#endif
-            else if (ps[count] == 40) {
-              /* "CSI ? 40 l" Disallow DECCOLM */
-              vt_parser->allow_deccolm = 0;
-            } else if (ps[count] == 47) {
-              /* "CSI ? 47 l" Use normal screen buffer */
-
-              if (use_alt_buffer) {
-                vt_screen_use_normal_edit(vt_parser->screen);
-              }
-            } else if (ps[count] == 66) {
-              /* "CSI ? 66 l" application key pad */
-
-              vt_parser->is_app_keypad = 0;
-            } else if (ps[count] == 67) {
-              /* "CSI ? 67 l" have back space */
-
-              /* XXX Affects all terms sharing termcap */
-              vt_termcap_set_key_seq(vt_parser->termcap, SPKEY_BACKSPACE, "\x7f");
-            } else if (ps[count] == 69) {
-              /* "CSI ? 69 l" */
-
-              vt_screen_set_use_hmargin(vt_parser->screen, 0);
-            } else if (ps[count] == 80) {
-              /* "CSI ? 80 l" */
-
-              vt_parser->sixel_scrolling = 1;
-            } else if (ps[count] == 117) {
-              /* "CSI ? 117 l" */
-              vt_screen_set_use_bce(vt_parser->screen, 1);
-            } else if (ps[count] == 1000 || ps[count] == 1002 || ps[count] == 1003) {
-              /*
-               * "CSI ? 1000 l" "CSI ? 1002 l"
-               * "CSI ? 1003 l"
-               */
-
-              set_mouse_report(vt_parser, 0);
-            }
-#if 0
-            else if (ps[count] == 1001) {
-              /* "CSI ? 1001 l" X11 mouse highlighting */
-            }
-#endif
-            else if (ps[count] == 1004) {
-              /* "CSI ? 1004 h" */
-
-              vt_parser->want_focus_event = 0;
-            } else if (ps[count] == 1005 || ps[count] == 1006 || ps[count] == 1015) {
-              /*
-               * "CSI ? 1005 l"
-               * "CSI ? 1006 l"
-               * "CSI ? 1015 l"
-               */
-              vt_parser->ext_mouse_mode = 0;
-            }
-#if 0
-            else if (ps[count] == 1010) {
-              /*
-               * "CSI ? 1010 l"
-               * scroll to bottom on tty output inhibit
-               */
-            }
-#endif
-#if 0
-            else if (ps[count] == 1011) {
-              /*
-               * "CSI ? 1011 l"
-               * scroll to bottom on key press
-               */
-            }
-#endif
-            else if (ps[count] == 1042) {
-              /* "CSI ? 1042 l" */
-              config_protocol_set_simple(vt_parser, "use_urgent_bell", "false", 0);
-            } else if (ps[count] == 1047) {
-              /* "CSI ? 1047 l" */
-
-              if (use_alt_buffer && vt_screen_is_alternative_edit(vt_parser->screen)) {
-                clear_display_all(vt_parser);
-                vt_screen_use_normal_edit(vt_parser->screen);
-              }
-            } else if (ps[count] == 1048) {
-              /* "CSI ? 1048 l" */
-
-              if (use_alt_buffer) {
-                restore_cursor(vt_parser);
-              }
-            } else if (ps[count] == 1049) {
-              /* "CSI ? 1049 l" */
-
-              if (use_alt_buffer && vt_screen_is_alternative_edit(vt_parser->screen)) {
-                vt_screen_use_normal_edit(vt_parser->screen);
-                restore_cursor(vt_parser);
-              }
-            } else if (ps[count] == 2004) {
-              /* "CSI ? 2004 l" */
-
-              vt_parser->is_bracketed_paste_mode = 0;
-            } else if (ps[count] == 7727) {
-              /* "CSI ? 7727 l" */
-
-              vt_parser->is_app_escape = 0;
-            } else if (ps[count] == 8428) {
-              /* "CSI ? 8428 l" (RLogin original) */
-
-              vt_parser->col_size_of_width_a = 2;
-            } else if (ps[count] == 8452) {
-              /* "CSI ? 8452 l" (RLogin original) */
-              vt_parser->cursor_to_right_of_sixel = 0;
-            } else if (ps[count] == 8800) {
-              vt_parser->unicode_policy &= ~USE_UNICODE_DRCS;
-            } else if (ps[count] == 9500) {
-              /* "CSI ? 9500 l" */
-
-              config_protocol_set_simple(vt_parser, "use_local_echo", "false", 1);
-            }
-#ifdef DEBUG
-            else {
-              debug_print_unknown("ESC [ ? %d l\n", ps[count]);
-            }
-#endif
+            set_vtmode(vt_parser, ps[count], 0);
           }
         } else if (*str_p == 'n') {
           /* "CSI ? n" */
@@ -3537,80 +3631,7 @@ inline static int parse_vt100_escape_sequence(
 
           return 1;
         }
-      } else if (pre_ch == '!') {
-        if (*str_p == 'p') {
-          /* "CSI ! p" Soft terminal reset */
-
-          soft_reset(vt_parser);
-        }
-      } else if (pre_ch == '$') {
-        int count;
-
-        if (*str_p == 'x') {
-          /* DECFRA: Move Pc to the end */
-          int tmp;
-
-          tmp = ps[0];
-          memmove(ps, ps + 1, sizeof(ps[0]) * 4);
-          ps[4] = tmp;
-        }
-
-        /* Set the default values to the 0-3 parameters. */
-        for (count = 0; count < 4; count++) {
-          if (count >= num || ps[count] <= 0) {
-            if (count == 2) {
-              ps[count] = vt_screen_get_rows(vt_parser->screen);
-            } else if (count == 3) {
-              ps[count] = vt_screen_get_cols(vt_parser->screen);
-            } else {
-              ps[count] = 1;
-            }
-          }
-        }
-
-        if (ps[3] >= ps[1] && ps[2] >= ps[0]) {
-          if (*str_p == 'z'
-/* XXX DECSCA is not supported for now. */
-#if 0
-              || *str_p == '{'
-#endif
-              ) {
-            /*
-             * "CSI ... $ z" DECERA
-             * "CSI ... $ {" DECSERA
-             */
-            vt_screen_erase_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
-                                 ps[2] - ps[0] + 1);
-          } else if (*str_p == 'v' && num >= 8) {
-            /* "CSI ... $ v" DECCRA */
-            for (count = 4; count < 8; count++) {
-              if (ps[count] <= 0) {
-                ps[count] = 1;
-              }
-            }
-            vt_screen_copy_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
-                                ps[2] - ps[0] + 1, ps[4] - 1, ps[6] - 1, ps[5] - 1, ps[7] - 1);
-          } else if (*str_p == 'x' && num >= 1) {
-            /* "CSI ... $ x" DECFRA */
-            vt_screen_fill_area(vt_parser->screen, ps[4], ps[1] - 1, ps[0] - 1,
-                                ps[3] - ps[1] + 1, ps[2] - ps[0] + 1);
-          } else if (*str_p == 'r') {
-            /* "CSI Pt;Pl;Pb;Pr;...$r" DECCARA */
-
-            for (count = 4; count < num; count++) {
-              vt_screen_change_attr_area(vt_parser->screen, ps[1] - 1, ps[0] - 1,
-                                         ps[3] - ps[1] + 1, ps[2] - ps[0] + 1, ps[count]);
-            }
-          } else if (*str_p == 't') {
-            /* "CSI Pt;Pl;Pb;Pr;...$t" DECRARA */
-
-            for (count = 4; count < num; count++) {
-              vt_screen_reverse_attr_area(vt_parser->screen, ps[1] - 1, ps[0] - 1,
-                                          ps[3] - ps[1] + 1, ps[2] - ps[0] + 1, ps[count]);
-            }
-          }
-        }
-      } else if (pre_ch == '<') {
+      } else if (para_ch == '<') {
         /* Teraterm compatible IME control sequence */
 
         if (*str_p == 'r') {
@@ -3629,7 +3650,7 @@ inline static int parse_vt100_escape_sequence(
             switch_im_mode(vt_parser);
           }
         }
-      } else if (pre_ch == '>') {
+      } else if (para_ch == '>') {
         if (*str_p == 'c') {
           /* "CSI > c" Secondary DA */
 
@@ -3684,7 +3705,96 @@ inline static int parse_vt100_escape_sequence(
            * "CSI > T", "CSI > c", "CSI > t"
            */
         }
-      } else if (pre_ch == ' ') {
+      } else if (para_ch == '=') {
+        if (*str_p == 'c') {
+          /* "CSI = c" Tertiary DA */
+
+          send_device_attributes(vt_parser->pty, 3);
+        }
+      } else if (intmed_ch == '!') {
+        if (*str_p == 'p') {
+          /* "CSI ! p" Soft terminal reset */
+
+          soft_reset(vt_parser);
+        }
+      } else if (intmed_ch == '$') {
+        int count;
+
+        if (*str_p == 'p') {
+          /* "CSI $ p" DECRQM */
+
+          if (num > 0) {
+            char seq[2 + DIGIT_STR_LEN(u_int) + 5];
+            sprintf(seq, "\x1b[%d;%d$y", ps[0], get_vtmode(vt_parser, VTMODE(ps[0])));
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
+          }
+        } else {
+          if (*str_p == 'x') {
+            /* DECFRA: Move Pc to the end */
+            int tmp;
+
+            tmp = ps[0];
+            memmove(ps, ps + 1, sizeof(ps[0]) * 4);
+            ps[4] = tmp;
+          }
+
+          /* Set the default values to the 0-3 parameters. */
+          for (count = 0; count < 4; count++) {
+            if (count >= num || ps[count] <= 0) {
+              if (count == 2) {
+                ps[count] = vt_screen_get_rows(vt_parser->screen);
+              } else if (count == 3) {
+                ps[count] = vt_screen_get_cols(vt_parser->screen);
+              } else {
+                ps[count] = 1;
+              }
+            }
+          }
+
+          if (ps[3] >= ps[1] && ps[2] >= ps[0]) {
+            if (*str_p == 'z'
+                /* XXX DECSCA is not supported for now. */
+#if 0
+                || *str_p == '{'
+#endif
+            ) {
+              /*
+               * "CSI ... $ z" DECERA
+               * "CSI ... $ {" DECSERA
+               */
+              vt_screen_erase_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
+                                   ps[2] - ps[0] + 1);
+            } else if (*str_p == 'v' && num >= 8) {
+              /* "CSI ... $ v" DECCRA */
+              for (count = 4; count < 8; count++) {
+                if (ps[count] <= 0) {
+                  ps[count] = 1;
+                }
+              }
+              vt_screen_copy_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
+                                  ps[2] - ps[0] + 1, ps[4] - 1, ps[6] - 1, ps[5] - 1, ps[7] - 1);
+            } else if (*str_p == 'x' && num >= 1) {
+              /* "CSI ... $ x" DECFRA */
+              vt_screen_fill_area(vt_parser->screen, ps[4], ps[1] - 1, ps[0] - 1,
+                                  ps[3] - ps[1] + 1, ps[2] - ps[0] + 1);
+            } else if (*str_p == 'r') {
+              /* "CSI Pt;Pl;Pb;Pr;...$r" DECCARA */
+
+              for (count = 4; count < num; count++) {
+                vt_screen_change_attr_area(vt_parser->screen, ps[1] - 1, ps[0] - 1,
+                                           ps[3] - ps[1] + 1, ps[2] - ps[0] + 1, ps[count]);
+              }
+            } else if (*str_p == 't') {
+              /* "CSI Pt;Pl;Pb;Pr;...$t" DECRARA */
+
+              for (count = 4; count < num; count++) {
+                vt_screen_reverse_attr_area(vt_parser->screen, ps[1] - 1, ps[0] - 1,
+                                            ps[3] - ps[1] + 1, ps[2] - ps[0] + 1, ps[count]);
+              }
+            }
+          }
+        }
+      } else if (intmed_ch == ' ') {
         if (*str_p == 'q') {
           /* CSI SP q */
 
@@ -3730,7 +3840,7 @@ inline static int parse_vt100_escape_sequence(
            * "CSI SP t"(DECSWBV), "CSI SP u"(DECSMBV)
            */
         }
-      } else if (pre_ch == '*') {
+      } else if (intmed_ch == '*') {
         if (ps[0] == -1) {
           ps[0] = 0;
         }
@@ -3744,7 +3854,7 @@ inline static int parse_vt100_escape_sequence(
 
           vt_screen_set_use_rect_attr_select(vt_parser->screen, ps[0] == 2);
         }
-      } else if (pre_ch == '\'') {
+      } else if (intmed_ch == '\'') {
         if (*str_p == '|') {
           /* DECRQLP */
 
@@ -3820,13 +3930,7 @@ inline static int parse_vt100_escape_sequence(
                                                : LOCATOR_PIXEL_REPORT);
           }
         }
-      } else if (pre_ch == '=') {
-        if (*str_p == 'c') {
-          /* "CSI = c" Tertiary DA */
-
-          send_device_attributes(vt_parser->pty, 3);
-        }
-      } else if (pre_ch == '\"') {
+      } else if (intmed_ch == '\"') {
         if (*str_p == 'v') {
           /* "CSI " v" DECRQDE */
 
@@ -3838,7 +3942,7 @@ inline static int parse_vt100_escape_sequence(
         } else {
           /* "CSI " p"(DECSCL), "CSI " q"(DECSCA) etc */
         }
-      } else if (pre_ch == ',') {
+      } else if (intmed_ch == ',') {
         if (*str_p == '|') {
           /* "CSI Ps1;Ps2;Ps3,|" (DECAC) */
 
@@ -3857,10 +3961,10 @@ inline static int parse_vt100_escape_sequence(
           }
         }
       }
-      /* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
-      else if (pre_ch) {
+      /* Other para_ch(0x3a-0x3f) or intmed_ch(0x20-0x2f) */
+      else if (para_ch || intmed_ch) {
 #ifdef DEBUG
-        debug_print_unknown("ESC [ %c %c\n", pre_ch, *str_p);
+        debug_print_unknown("ESC [ %c %c\n", para_ch, intmed_ch, *str_p);
 #endif
       } else if (*str_p == '@') {
         /* "CSI @" insert blank chars */
@@ -4101,50 +4205,19 @@ inline static int parse_vt100_escape_sequence(
         } else if (ps[0] == 3) {
           vt_screen_clear_all_tab_stops(vt_parser->screen);
         }
-      } else if (*str_p == 'l') {
-        /* "CSI l" */
-        int count;
-
-        for (count = 0; count < num; count++) {
-          if (ps[count] == 2) {
-            vt_pty_set_hook(vt_parser->pty, NULL);
-          } else if (ps[count] == 4) {
-            /* replace mode */
-
-            vt_parser->w_buf.output_func = vt_screen_overwrite_chars;
-          } else if (ps[count] == 12) {
-            vt_parser->pty_hook.pre_write = vt_parser_write_loopback;
-            vt_pty_set_hook(vt_parser->pty, &vt_parser->pty_hook);
-          } else if (ps[count] == 33) {
-            /* WYSTCURM (TeraTerm original) */
-
-            vt_parser->cursor_style |= CS_BLINK;
-          }
-        }
       } else if (*str_p == 'h') {
         /* "CSI h" */
         int count;
 
         for (count = 0; count < num; count++) {
-          if (ps[count] == 2) {
-            vt_parser->pty_hook.pre_write = NULL;
-            vt_pty_set_hook(vt_parser->pty, &vt_parser->pty_hook);
-          } else if (ps[count] == 4) {
-            /* insert mode */
+          set_vtmode(vt_parser, VTMODE(ps[count]), 1);
+        }
+      } else if (*str_p == 'l') {
+        /* "CSI l" */
+        int count;
 
-            vt_parser->w_buf.output_func = vt_screen_insert_chars;
-          } else if (ps[count] == 12) {
-            vt_pty_set_hook(vt_parser->pty, NULL);
-          } else if (ps[count] == 33) {
-            /* WYSTCURM (TeraTerm original) */
-
-            vt_parser->cursor_style &= ~CS_BLINK;
-          }
-#ifdef DEBUG
-          else {
-            debug_print_unknown("ESC [ %d h\n", ps[count]);
-          }
-#endif
+        for (count = 0; count < num; count++) {
+          set_vtmode(vt_parser, VTMODE(ps[count]), 0);
         }
       } else if (*str_p == 'i') {
         char seq[] = "snapshot";
@@ -5353,6 +5426,8 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
   vt_parser->sixel_scrolling = 1;
 
   vt_parser->alt_color_mode = alt_color_mode;
+
+  vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
 
   return vt_parser;
 

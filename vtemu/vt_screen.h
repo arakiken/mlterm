@@ -95,7 +95,9 @@ int vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *scre
 int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows);
 
 #define vt_screen_set_use_bce(screen, use) \
-  vt_edit_set_use_bce(&(screen)->normal_edit, vt_edit_set_use_bce(&(screen)->normal_edit, use))
+  vt_edit_set_use_bce(&(screen)->alt_edit, vt_edit_set_use_bce(&(screen)->normal_edit, use))
+
+#define vt_screen_is_using_bce(screen) vt_edit_is_using_bce((screen)->edit)
 
 #define vt_screen_set_bce_fg_color(screen, fg_color) \
   vt_edit_set_bce_fg_color((screen)->edit, fg_color)
@@ -355,6 +357,9 @@ int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num
 
 #define vt_screen_set_use_rect_attr_select(screen, use) \
   vt_edit_set_use_rect_attr_select((screen)->edit, use)
+
+#define vt_screen_is_using_rect_attr_select(screen) \
+  vt_edit_is_using_rect_attr_select((screen)->edit)
 
 #define vt_screen_clear_size_attr(screen) vt_edit_clear_size_attr((screen)->edit)
 

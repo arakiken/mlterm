@@ -1,6 +1,7 @@
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)
-* Support DECRQDE, DECSCUSR(Ps = 3,4,5,6) and DECATC.
+* Support DECRQDE, DECSCUSR(Ps = 3,4,5,6), DECATC, DECRQM and DECRQMH.
+* Support SGR of DECRQSS.
 * Add "baseline_offset" / --blpos option.
 * Revive iiimf input method plugin.
 * Update unicode property table (generated from UnicodeData.txt and

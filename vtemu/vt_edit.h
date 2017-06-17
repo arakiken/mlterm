@@ -145,6 +145,8 @@ int vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
 #define vt_edit_set_use_bce(edit, use) ((edit)->use_bce = (use))
 
+#define vt_edit_is_using_bce(edit) ((edit)->use_bce)
+
 int vt_edit_set_bce_fg_color(vt_edit_t *edit, vt_color_t fg_color);
 
 int vt_edit_set_bce_bg_color(vt_edit_t *edit, vt_color_t bg_color);
@@ -168,6 +170,8 @@ int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_col
 void vt_edit_clear_size_attr(vt_edit_t *edit);
 
 #define vt_edit_set_use_rect_attr_select(edit, use) ((edit)->use_rect_attr_select = (use))
+
+#define vt_edit_is_using_rect_attr_select(edit) ((edit)->use_rect_attr_select)
 
 #define vt_cursor_char_index(edit) ((edit)->cursor.char_index)
 

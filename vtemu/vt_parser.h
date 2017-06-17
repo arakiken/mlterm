@@ -255,6 +255,7 @@ typedef struct vt_parser {
   int8_t is_app_escape;
   int8_t is_bracketed_paste_mode;
   int8_t allow_deccolm;
+  int8_t keep_screen_on_deccolm;
 
   int8_t want_focus_event;
 
@@ -293,6 +294,7 @@ typedef struct vt_parser {
   u_int num_of_macros;
 
   u_int32_t *sixel_palette;
+  u_int64_t vtmode_flags;
 
 } vt_parser_t;
 

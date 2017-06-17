@@ -1,5 +1,24 @@
 2017-06-14  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.[ch]:
+	  - DECATC is supported.
+	  - DECRQM and DECRQMH are supported and {set|get}_vtmode() functions and
+	    vtmode_t enum and so on are added.
+	  - SGR of DECRQSS is supported.
+
+	* vt_logical_visual.c:
+	  'count == 0' => 'count = 0' in vt_logical_visual_cursor_is_rtl().
+
+	* vt_screen.h:
+	  - vt_screen_is_using_bce() and vt_screen_is_using_rect_attr_select() are added.
+	  - vt_screen_set_use_bce() changes setting of vt_screen_t::alt_edit
+	    instead of vt_screen_::normal_edit.
+
+	* vt_edit.h:
+	  vt_edit_is_using_bce() and vt_edit_is_using_rect_attr_select() are added.
+
+2017-06-14  Araki Ken  <arakiken@users.sf.net>
+
 	* xlib/ui_font.c: Fixes for DECDHL.
 
 	* console/ui_window.c: size_attr is added to the arguments of set_attr()

@@ -1026,7 +1026,7 @@ int vt_logical_visual_cursor_is_rtl(vt_logical_visual_t *logvis) {
     u_int count;
     container_logical_visual_t *container = (container_logical_visual_t*)logvis;
 
-    for (count == 0; count < container->num_of_children; count++) {
+    for (count = 0; count < container->num_of_children; count++) {
       if (vt_logical_visual_cursor_is_rtl(container->children[count])) {
         return 1;
       }
