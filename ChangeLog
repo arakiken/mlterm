@@ -1,3 +1,7 @@
+2017-06-18  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: CSI?40h resizes screen as the value of DECCOLM.
+
 2017-06-14  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.[ch]:

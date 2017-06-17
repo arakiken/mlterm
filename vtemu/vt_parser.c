@@ -2809,7 +2809,9 @@ found:
 #endif
 
   case DECMODE_40:
-    vt_parser->allow_deccolm = flag;
+    if ((vt_parser->allow_deccolm = flag)) {
+      set_vtmode(vt_parser, 3, (vt_parser->vtmode_flags & (1 << DECMODE_3)) ? 1 : 0);
+    }
     break;
 
   case DECMODE_47:
