@@ -41,8 +41,7 @@ typedef enum vt_font {
 #endif
 
   /*
-   * 0x1000 - 0x1ff000 is used for Unicode range mark (see
-   * vt_char_get_unicode_area_font)
+   * 0x1000 - 0x1ff000 is used for Unicode range mark (see vt_get_unicode_area_font)
    * 0x200000 - 0x700000 is used for size_attr (see x_font_manager.c)
    */
 

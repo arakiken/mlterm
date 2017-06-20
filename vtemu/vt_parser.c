@@ -418,6 +418,19 @@ static int change_read_buffer_size(vt_read_buffer_t *r_buf, size_t len) {
   return 1;
 }
 
+static char* get_now_suffix(char *now /* 16 bytes */) {
+  time_t t;
+  struct tm *tm;
+
+  time(&t);
+  tm = localtime(&t);
+
+  sprintf(now, "-%04d%02d%02d%02d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+          tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+  return now;
+}
+
 static char *get_home_file_path(const char *prefix, const char *name, const char *suffix) {
   char *file_name;
 
@@ -627,8 +640,10 @@ static int receive_bytes(vt_parser_t *vt_parser) {
   if (vt_parser->logging_vt_seq) {
     if (vt_parser->log_file == -1) {
       char *path;
+      char buf[16];
 
-      if (!(path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5, "log"))) {
+      if (!(path = get_home_file_path(vt_pty_get_slave_name(vt_parser->pty) + 5,
+                                      get_now_suffix(buf), "log"))) {
         goto end;
       }
 
@@ -803,6 +818,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   int underline_style;
   int is_crossed_out;
   int is_blinking;
+  int is_protected;
 
   if (vt_parser->w_buf.filled_len == PTY_WR_BUFFER_SIZE) {
     flush_buffer(vt_parser);
@@ -850,6 +866,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   is_italic = vt_parser->is_italic;
   is_crossed_out = vt_parser->is_crossed_out;
   is_blinking = vt_parser->is_blinking;
+  is_protected = vt_parser->is_protected;
   underline_style = vt_parser->underline_style;
   if (cs == ISO10646_UCS4_1 && 0x2580 <= ch && ch <= 0x259f) {
     /* prevent these block characters from being drawn doubly. */
@@ -906,6 +923,10 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     }
   }
 
+  if (vt_parser->is_invisible) {
+    fg_color = bg_color;
+  }
+
   if (vt_parser->use_char_combining && is_comb) {
     if (vt_parser->w_buf.filled_len == 0) {
       /*
@@ -914,13 +935,13 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
        */
       if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
                                            fg_color, bg_color, is_bold, is_italic, underline_style,
-                                           is_crossed_out, is_blinking)) {
+                                           is_crossed_out, is_blinking, is_protected)) {
         return;
       }
     } else {
       if (vt_char_combine(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1], ch, cs,
                           is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                          underline_style, is_crossed_out, is_blinking)) {
+                          underline_style, is_crossed_out, is_blinking, is_protected)) {
         return;
       }
     }
@@ -932,7 +953,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
 
   vt_char_set(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len++], ch, cs, is_fullwidth,
               is_comb, fg_color, bg_color, is_bold, is_italic, underline_style, is_crossed_out,
-              is_blinking);
+              is_blinking, is_protected);
 
   if (cs != ISO10646_UCS4_1) {
     return;
@@ -973,7 +994,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
         /* Base char: emoji1, Comb1: picture, Comb2: emoji2 */
         if (emoji2 == emoji1 + 1) {
           vt_char_combine(emoji1, ch, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold,
-                          is_italic, underline_style, is_crossed_out, is_blinking);
+                          is_italic, underline_style, is_crossed_out, is_blinking, is_protected);
         } else {
           /*
            * vt_line_set_modified() is done in
@@ -981,7 +1002,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
            */
           vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
                                            fg_color, bg_color, is_bold, is_italic, underline_style,
-                                           is_crossed_out, is_blinking);
+                                           is_crossed_out, is_blinking, is_protected);
         }
         vt_parser->w_buf.filled_len--;
       }
@@ -1023,7 +1044,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     if (IS_ARABIC_CHAR(ch) && vt_is_arabic_combining(prev2, prev, cur)) {
       if (vt_parser->w_buf.filled_len >= 2) {
         if (vt_char_combine(prev, ch, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold,
-                            is_italic, underline_style, is_crossed_out, is_blinking)) {
+                            is_italic, underline_style, is_crossed_out, is_blinking,
+                            is_protected)) {
           vt_parser->w_buf.filled_len--;
         }
       } else {
@@ -1033,7 +1055,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
          */
         if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
                                              fg_color, bg_color, is_bold, is_italic,
-                                             underline_style, is_crossed_out, is_blinking)) {
+                                             underline_style, is_crossed_out, is_blinking,
+                                             is_protected)) {
           vt_parser->w_buf.filled_len--;
         }
       }
@@ -1459,17 +1482,13 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 #endif
 
 static void snapshot(vt_parser_t *vt_parser, vt_char_encoding_t encoding,
-                     char *file_name) {
+                     char *file_name, int beg, int end) {
+  char buf[16];
   char *path;
   int fd;
   ef_conv_t *conv;
 
-  if ((path = alloca(7 + strlen(file_name) + 4 + 1)) == NULL) {
-    return;
-  }
-  sprintf(path, "mlterm/%s.snp", file_name);
-
-  if ((path = bl_get_user_rc_path(path)) == NULL) {
+  if (!(path = get_home_file_path(file_name, get_now_suffix(buf), "snp"))) {
     return;
   }
 
@@ -1487,7 +1506,7 @@ static void snapshot(vt_parser_t *vt_parser, vt_char_encoding_t encoding,
     conv = vt_parser->cc_conv;
   }
 
-  vt_screen_write_content(vt_parser->screen, fd, conv, 0);
+  vt_screen_write_content(vt_parser->screen, fd, conv, 0, beg, end);
 
   if (conv != vt_parser->cc_conv) {
     (*conv->delete)(conv);
@@ -1942,6 +1961,7 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
     vt_parser->is_reversed = 0;
     vt_parser->is_crossed_out = 0;
     vt_parser->is_blinking = 0;
+    vt_parser->is_invisible = 0;
   } else if (flag == 1) {
     /* Bold */
     vt_parser->is_bold = 1;
@@ -1961,13 +1981,9 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
   } else if (flag == 7) {
     /* Inverse */
     vt_parser->is_reversed = 1;
-  }
-#if 0
-  else if (flag == 8) {
-    /* Hidden */
-  }
-#endif
-  else if (flag == 9) {
+  } else if (flag == 8) {
+    vt_parser->is_invisible = 1;
+  } else if (flag == 9) {
     vt_parser->is_crossed_out = 1;
   } else if (flag == 21) {
     /* Double underscore */
@@ -1986,13 +2002,9 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
     vt_parser->is_blinking = 0;
   } else if (flag == 27) {
     vt_parser->is_reversed = 0;
-  }
-#if 0
-  else if (flag == 28) {
-    /* Not hidden */
-  }
-#endif
-  else if (flag == 29) {
+  } else if (flag == 28) {
+    vt_parser->is_invisible = 0;
+  } else if (flag == 29) {
     vt_parser->is_crossed_out = 0;
   } else if (flag == 39) {
     /* default fg */
@@ -2147,7 +2159,7 @@ static void set_selection(vt_parser_t *vt_parser, u_char *encoded) {
     str_len = 0;
     (*vt_parser->cc_parser->set_str)(vt_parser->cc_parser, decoded, d_len);
     while ((*vt_parser->cc_parser->next_char)(vt_parser->cc_parser, &ch)) {
-      vt_char_set(&str[str_len++], ef_char_to_int(&ch), ch.cs, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      vt_char_set(&str[str_len++], ef_char_to_int(&ch), ch.cs, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
 /*
@@ -2561,6 +2573,10 @@ static void request_char_attr_status(vt_parser_t *vt_parser) {
     vt_write_to_pty(vt_parser->pty, ";7", 2);
   }
 
+  if (vt_parser->is_invisible) {
+    vt_write_to_pty(vt_parser->pty, ":8", 2);
+  }
+
   if (vt_parser->is_crossed_out) {
     vt_write_to_pty(vt_parser->pty, ";9", 2);
   }
@@ -2686,7 +2702,8 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
     }
   }
 
-  if (mode == 8 /* DECAWM (auto repeat) */) {
+  if (mode == 8 /* DECAWM (auto repeat) */ ||
+      mode == 19 /* DECPEX (Ignore SECSTBM in MC and DECMC) */) {
     return 3; /* permanently set */
   } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||
              mode == 38 /* Tek */ || mode == 45 /* reverse wraparound */ ||
@@ -3041,6 +3058,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
   vt_parser->is_app_escape = 0;
   vt_parser->is_bracketed_paste_mode = 0;
   vt_parser->allow_deccolm = 0;
+  vt_parser->is_protected = 0;
 
   vt_parser->im_is_active = 0;
 
@@ -3557,6 +3575,21 @@ inline static int parse_vt100_escape_sequence(
               set_vtmode(vt_parser, ps[count], 1);
             }
           }
+        } else if (*str_p == 'i') {
+          /* "CSI ? i" (DECMC) */
+
+          if (ps[0] <= 0 || ps[0] == 10) {
+            snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
+                     0, vt_screen_get_rows(vt_parser->screen) - 1);
+          } else if (ps[0] == 1) {
+            snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
+                     vt_screen_cursor_row(vt_parser->screen),
+                     vt_screen_cursor_row(vt_parser->screen));
+          } else if (ps[0] == 11) {
+            snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
+                     -vt_screen_get_num_of_logged_lines(vt_parser->screen),
+                     vt_screen_get_rows(vt_parser->screen) - 1);
+          }
         } else if (*str_p == 'l') {
           /* "CSI ? l" DEC Private Mode Reset */
           int count;
@@ -3570,22 +3603,34 @@ inline static int parse_vt100_escape_sequence(
           /* "CSI ? n" */
 
           send_device_status(vt_parser, ps[0]);
-        }
-/* XXX DECSCA is not supported for now. */
-#if 0
-        else if (*str_p == 'J') {
+        } else if (*str_p == 'J') {
           /* "CSI ? J" DECSED (Selective Erase Display) */
+          vt_protect_store_t *save;
 
           if (ps[0] <= 0) {
+            save = vt_screen_save_protected_chars(vt_parser->screen,
+                                                  vt_screen_cursor_row(vt_parser->screen),
+                                                  vt_screen_get_rows(vt_parser->screen) - 1, 0);
             vt_screen_clear_below(vt_parser->screen);
+            vt_screen_restore_protected_chars(vt_parser->screen, save);
           } else if (ps[0] == 1) {
+            save = vt_screen_save_protected_chars(vt_parser->screen, 0,
+                                                  vt_screen_cursor_row(vt_parser->screen), 0);
             vt_screen_clear_above(vt_parser->screen);
+            vt_screen_restore_protected_chars(vt_parser->screen, save);
           } else if (ps[0] == 2) {
+            save = vt_screen_save_protected_chars(vt_parser->screen, 0,
+                                                  vt_screen_get_rows(vt_parser->screen) - 1, 0);
             clear_display_all(vt_parser);
+            vt_screen_restore_protected_chars(vt_parser->screen, save);
           }
         } else if (*str_p == 'K') {
           /* "CSI ? K" DECSEL (Selective Erase Line) */
+          vt_protect_store_t *save;
 
+          save = vt_screen_save_protected_chars(vt_parser->screen,
+                                                vt_screen_cursor_row(vt_parser->screen),
+                                                vt_screen_cursor_row(vt_parser->screen), 0);
           if (ps[0] <= 0) {
             vt_screen_clear_line_to_right(vt_parser->screen);
           } else if (ps[0] == 1) {
@@ -3593,9 +3638,8 @@ inline static int parse_vt100_escape_sequence(
           } else if (ps[0] == 2) {
             clear_line_all(vt_parser);
           }
-        }
-#endif
-        else if (*str_p == 'S') {
+          vt_screen_restore_protected_chars(vt_parser->screen, save);
+        } else if (*str_p == 'S') {
           /*
            * "CSI ? Pi;Pa;Pv S" (Xterm original)
            * The number of palettes mlterm supports is 256 alone.
@@ -3759,18 +3803,17 @@ inline static int parse_vt100_escape_sequence(
           }
 
           if (ps[3] >= ps[1] && ps[2] >= ps[0]) {
-            if (*str_p == 'z'
-                /* XXX DECSCA is not supported for now. */
-#if 0
-                || *str_p == '{'
-#endif
-            ) {
-              /*
-               * "CSI ... $ z" DECERA
-               * "CSI ... $ {" DECSERA
-               */
+            if (*str_p == 'z') {
+              /* "CSI ... $ z" DECERA */
               vt_screen_erase_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
                                    ps[2] - ps[0] + 1);
+            } else if (*str_p == '{') {
+              /* "CSI ... $ {" DECSERA */
+              vt_protect_store_t *save;
+              save = vt_screen_save_protected_chars(vt_parser->screen, ps[0] - 1, ps[2] - 1, 1);
+              vt_screen_erase_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
+                                   ps[2] - ps[0] + 1);
+              vt_screen_restore_protected_chars(vt_parser->screen, save);
             } else if (*str_p == 'v' && num >= 8) {
               /* "CSI ... $ v" DECCRA */
               for (count = 4; count < 8; count++) {
@@ -3782,8 +3825,8 @@ inline static int parse_vt100_escape_sequence(
                                   ps[2] - ps[0] + 1, ps[4] - 1, ps[6] - 1, ps[5] - 1, ps[7] - 1);
             } else if (*str_p == 'x' && num >= 1) {
               /* "CSI ... $ x" DECFRA */
-              vt_screen_fill_area(vt_parser->screen, ps[4], ps[1] - 1, ps[0] - 1,
-                                  ps[3] - ps[1] + 1, ps[2] - ps[0] + 1);
+              vt_screen_fill_area(vt_parser->screen, ps[4], vt_parser->is_protected,
+                                  ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1, ps[2] - ps[0] + 1);
             } else if (*str_p == 'r') {
               /* "CSI Pt;Pl;Pb;Pr;...$r" DECCARA */
 
@@ -3946,8 +3989,16 @@ inline static int parse_vt100_escape_sequence(
                               vt_parser->screen->edit->hmargin_beg + 1,
                               vt_parser->screen->edit->vmargin_beg + 1,
                               vt_screen_get_page_id(vt_parser->screen) + 1);
+        } else if (*str_p == 'q') {
+          /* "CSI " q" DECSCA */
+
+          if (ps[0] <= 0 || ps[0] == 2) {
+            vt_parser->is_protected = 0;
+          } else if (ps[0] == 1) {
+            vt_parser->is_protected = 1;
+          }
         } else {
-          /* "CSI " p"(DECSCL), "CSI " q"(DECSCA) etc */
+          /* "CSI " p"(DECSCL) etc */
         }
       } else if (intmed_ch == ',') {
         if (*str_p == '|') {
@@ -4218,6 +4269,17 @@ inline static int parse_vt100_escape_sequence(
 
         for (count = 0; count < num; count++) {
           set_vtmode(vt_parser, VTMODE(ps[count]), 1);
+        }
+      } else if (*str_p == 'i') {
+        /* "CSI i" (MC) */
+
+        if (ps[0] <= 0) {
+          snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
+                   0, vt_screen_get_rows(vt_parser->screen) - 1);
+        } else if (ps[0] == 1) {
+          snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
+                   vt_screen_cursor_row(vt_parser->screen),
+                   vt_screen_cursor_row(vt_parser->screen));
         }
       } else if (*str_p == 'l') {
         /* "CSI l" */
@@ -5009,7 +5071,7 @@ inline static int parse_vt100_escape_sequence(
             vt_screen_set_vmargin(vt_parser->screen, -1, -1);
             vt_screen_set_use_hmargin(vt_parser->screen, -1 /* Don't move cursor. */);
 #endif
-            vt_screen_fill_area(vt_parser->screen, 'E', 0, 0,
+            vt_screen_fill_area(vt_parser->screen, 'E', vt_parser->is_protected, 0, 0,
                                 vt_screen_get_cols(vt_parser->screen),
                                 vt_screen_get_rows(vt_parser->screen));
           }
@@ -6361,7 +6423,9 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
       /* insecure file name */
       bl_msg_printf("%s is insecure file name.\n", file);
     } else {
-      snapshot(vt_parser, encoding, file);
+      snapshot(vt_parser, encoding, file,
+               -vt_screen_get_num_of_logged_lines(vt_parser->screen),
+               vt_screen_get_rows(vt_parser->screen) - 1);
     }
   }
 #ifndef NO_IMAGE

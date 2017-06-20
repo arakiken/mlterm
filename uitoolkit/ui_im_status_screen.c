@@ -277,7 +277,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
 
     if (is_comb) {
       if (vt_char_combine(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                          VT_BG_COLOR, 0, 0, 0, 0, 0)) {
+                          VT_BG_COLOR, 0, 0, 0, 0, 0, 0)) {
         continue;
       }
 
@@ -291,7 +291,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
     }
 
     vt_char_set(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR, VT_BG_COLOR, 0,
-                0, 0, 0, 0);
+                0, 0, 0, 0, 0);
 
     p++;
     stat_screen->filled_len++;

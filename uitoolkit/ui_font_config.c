@@ -217,7 +217,7 @@ static vt_font_t parse_key(const char *key) {
     u_int max;
 
     if (vt_parse_unicode_area(key, &min, &max) &&
-        (font = vt_char_get_unicode_area_font(min, max)) != UNKNOWN_CS) {
+        (font = vt_get_unicode_area_font(min, max)) != UNKNOWN_CS) {
       goto check_style;
     } else {
       return UNKNOWN_CS;

@@ -15,9 +15,8 @@
                         /*
                          * XXX
                          * char prefixes are max 4 bytes.
-                         * additional 3 bytes + cs name len ("viscii1.1-1" is max 11 bytes) = 14 bytes
-                         * for iso2022
-                         * extension.
+                         * additional 3 bytes + cs name len ("viscii1.1-1" is max 11 bytes) =
+                         * 14 bytes for iso2022 extension.
                          * char length is max 2 bytes.
                          * (total 20 bytes)
                          */
@@ -55,7 +54,7 @@ typedef struct vt_char {
  * Total 23 bit
  * 2 bit : underline_style(0 or 1 or 2)
  * 1 bit : is_zerowidth(0 or 1)
- * 1 bit : is_visible(0 or 1)
+ * 1 bit : is_protected(0 or 1)
  * 1 bit : is_blinking(0 or 1)
  * 1 bit : is unicode area cs(0 or 1)
  * 1 bit : is_italic(0 or 1)
@@ -96,7 +95,9 @@ typedef struct vt_char {
 
 int vt_set_use_multi_col_char(int use_it);
 
-vt_font_t vt_char_get_unicode_area_font(u_int32_t min, u_int32_t max);
+vt_font_t vt_get_unicode_area_font(u_int32_t min, u_int32_t max);
+
+void vt_set_blink_chars_visible(int visible);
 
 int vt_char_init(vt_char_t *ch);
 
@@ -104,20 +105,22 @@ int vt_char_final(vt_char_t *ch);
 
 int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
-                int underline_style, int is_crossed_out, int is_blinking);
+                int underline_style, int is_crossed_out, int is_blinking, int is_protected);
 
-void vt_char_change_attr(vt_char_t *ch, int is_bold, int is_underlined, int is_blinking,
-                         int is_reversed);
+void vt_char_change_attr(vt_char_t *ch, int is_bold, int is_italic, int underline_style,
+                         int is_blinking, int is_reversed, int crossed_out);
 
-void vt_char_reverse_attr(vt_char_t *ch, int bold, int underlined, int blinking, int reversed);
+void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underlined,
+                          int blinking, int reversed, int crossed_out);
 
 vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
                            int is_comb, vt_color_t fg_color, vt_color_t bg_color, int is_bold,
-                           int is_italic, int underline_style, int is_crossed_out, int is_blinking);
+                           int is_italic, int underline_style, int is_crossed_out,
+                           int is_blinking, int is_protected);
 
 /* set both fg and bg colors for reversing. */
 #define vt_char_combine_picture(ch, id, pos) \
-  vt_char_combine(ch, pos, PICTURE_CHARSET, 0, 0, id, id, 0, 0, 0, 0, 0)
+  vt_char_combine(ch, pos, PICTURE_CHARSET, 0, 0, id, id, 0, 0, 0, 0, 0, 0)
 
 vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *comb);
 
@@ -175,9 +178,7 @@ int vt_char_is_crossed_out(vt_char_t *ch);
 
 int vt_char_is_blinking(vt_char_t *ch);
 
-int vt_char_set_visible(vt_char_t *ch, int visible);
-
-int vt_char_is_visible(vt_char_t *ch);
+int vt_char_is_protected(vt_char_t *ch);
 
 int vt_char_reverse_color(vt_char_t *ch);
 

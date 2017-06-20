@@ -59,6 +59,7 @@
 enum {
   UPDATE_SCREEN = 0x1,
   UPDATE_CURSOR = 0x2,
+  UPDATE_SCREEN_BLINK = 0x4,
 };
 
 /* --- static variables --- */
@@ -1224,6 +1225,10 @@ static void update_window(ui_window_t *win, int flag) {
 
   if (flag & UPDATE_SCREEN) {
     redraw_screen(screen);
+  } else if (flag & UPDATE_SCREEN_BLINK) {
+    vt_set_blink_chars_visible(0);
+    redraw_screen(screen);
+    vt_set_blink_chars_visible(1);
   }
 
   if (flag & UPDATE_CURSOR) {
@@ -3073,7 +3078,7 @@ static void idling(ui_window_t *win) {
       if (screen->window.is_focused) {
         int update;
 
-        update = vt_term_blink(screen->term, 0);
+        update = vt_term_blink(screen->term);
 
         if (vt_term_get_cursor_style(screen->term) & CS_BLINK) {
           unhighlight_cursor(screen, 1);
@@ -3081,7 +3086,7 @@ static void idling(ui_window_t *win) {
         }
 
         if (update) {
-          ui_window_update(&screen->window, UPDATE_SCREEN);
+          ui_window_update(&screen->window, UPDATE_SCREEN_BLINK);
         }
       }
 
@@ -3093,7 +3098,7 @@ static void idling(ui_window_t *win) {
     if (screen->blink_wait == -6) {
       int flag;
 
-      flag = vt_term_blink(screen->term, 1) ? UPDATE_SCREEN : 0;
+      flag = vt_term_blink(screen->term) ? UPDATE_SCREEN : 0;
 
       if (vt_term_get_cursor_style(screen->term) & CS_BLINK) {
         flag |= UPDATE_CURSOR;

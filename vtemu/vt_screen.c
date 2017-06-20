@@ -1577,7 +1577,7 @@ int vt_screen_search_find(vt_screen_t *screen,
   return res;
 }
 
-int vt_screen_blink(vt_screen_t *screen, int visible) {
+int vt_screen_blink(vt_screen_t *screen) {
   int has_blinking_char;
 
   has_blinking_char = 0;
@@ -1594,9 +1594,7 @@ int vt_screen_blink(vt_screen_t *screen, int visible) {
 
       for (char_index = 0; char_index < line->num_of_filled_chars; char_index++) {
         if (vt_char_is_blinking(line->chars + char_index)) {
-          vt_char_set_visible(line->chars + char_index, visible);
           vt_line_set_modified(line, char_index, char_index);
-
           has_blinking_char = 1;
         }
       }
@@ -1636,7 +1634,8 @@ vt_char_t *vt_screen_get_n_prev_char(vt_screen_t *screen, int n) {
 int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_charset_t cs,
                                      int is_fullwidth, int is_comb, vt_color_t fg_color,
                                      vt_color_t bg_color, int is_bold, int is_italic,
-                                     int is_underlined, int is_crossed_out, int is_blinking) {
+                                     int is_underlined, int is_crossed_out, int is_blinking,
+                                     int is_protected) {
   int char_index;
   int row;
   vt_char_t *ch;
@@ -1655,7 +1654,7 @@ int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_cha
   }
 
   if (!vt_char_combine(ch, code, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                       is_underlined, is_crossed_out, is_blinking)) {
+                       is_underlined, is_crossed_out, is_blinking, is_protected)) {
     return 0;
   }
 
@@ -1910,7 +1909,7 @@ int vt_screen_disable_local_echo(vt_screen_t *screen) {
   return 1;
 }
 
-int vt_screen_fill_area(vt_screen_t *screen, int code, /* Unicode */
+int vt_screen_fill_area(vt_screen_t *screen, int code /* Unicode */, int is_protected,
                         int col, int row, u_int num_of_cols, u_int num_of_rows) {
   vt_char_t ch;
 
@@ -1918,7 +1917,7 @@ int vt_screen_fill_area(vt_screen_t *screen, int code, /* Unicode */
 
   vt_char_set(&ch, code,
               code <= 0x7f ? US_ASCII : ISO10646_UCS4_1, /* XXX biwidth is not supported. */
-              0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+              0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, is_protected);
 
   vt_edit_fill_area(screen->edit, &ch, col, row, num_of_cols, num_of_rows);
 
@@ -1950,9 +1949,8 @@ int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num
 
 void vt_screen_enable_blinking(vt_screen_t *screen) { screen->has_blinking_char = 1; }
 
-int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end) {
-  int beg;
-  int end;
+int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end,
+                            int beg, int end) {
   vt_char_t *buf;
   u_int num;
   u_char conv_buf[512];
@@ -1960,16 +1958,16 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
 
   vt_screen_logical(screen);
 
-  beg = -vt_screen_get_num_of_logged_lines(screen);
-  end = vt_screen_get_rows(screen);
-
-  num = vt_screen_get_region_size(screen, 0, beg, 0, end, 0);
+  /* Writing a cursor line may cause num == 0. */
+  if ((num = vt_screen_get_region_size(screen, 0, beg, 0, end + 1, 0)) == 0) {
+    return 0;
+  }
 
   if ((buf = vt_str_alloca(num)) == NULL) {
     return 0;
   }
 
-  vt_screen_copy_region(screen, buf, num, 0, beg, 0, end, 0);
+  vt_screen_copy_region(screen, buf, num, 0, beg, 0, end + 1, 0);
 
   if (!(vt_str_parser = vt_str_parser_new())) {
     return 0;

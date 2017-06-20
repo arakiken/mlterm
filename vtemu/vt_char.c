@@ -20,7 +20,7 @@
       ? ((((attr) >> 5) & 0xf00) | ISO10646_UCS4_1 | (((attr) << 7) & 0xff000)) \
       : (((attr) >> 5) & 0xfff)
 
-#define IS_VISIBLE(attr) ((attr) & (0x1 << 19))
+#define IS_PROTECTED(attr) ((attr) & (0x1 << 19))
 #define IS_BLINKING(attr) ((attr) & (0x1 << 18))
 #define IS_ITALIC(attr) ((attr) & (0x1 << 16))
 #define IS_BOLD(attr) ((attr) & (0x1 << 15))
@@ -45,10 +45,11 @@
 #define UNUSE_MULTI_CH(attr) ((attr) |= 0x1)
 
 #define COMPOUND_ATTR(charset, is_zerowidth, is_fullwidth, is_bold, is_italic, is_unicode_area_cs, \
-                      underline_style, is_crossed_out, is_blinking, is_comb)                       \
-  (((underline_style) << 21) | ((is_zerowidth) << 20) | (0x1 << 19) | ((is_blinking) << 18) |      \
-   ((is_unicode_area_cs) << 17) | ((is_italic) << 16) | ((is_bold) << 15) |                        \
-   ((is_fullwidth) << 14) | ((charset) << 5) | ((is_crossed_out) << 3) | ((is_comb) << 2) | 0x1)
+                      underline_style, is_crossed_out, is_blinking, is_protected, is_comb)         \
+  (((underline_style) << 21) | ((is_zerowidth) << 20) | ((is_protected) << 19) | \
+   ((is_blinking) << 18) | ((is_unicode_area_cs) << 17) | ((is_italic) << 16) | \
+   ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | ((is_crossed_out) << 3) | \
+   ((is_comb) << 2) | 0x1)
 
 /* --- static variables --- */
 
@@ -62,6 +63,8 @@ static struct {
 static u_int num_of_unicode_areas;
 static u_int unicode_area_min;
 static u_int unicode_area_max;
+
+static int blink_visible = 1;
 
 /* --- static functions --- */
 
@@ -196,9 +199,8 @@ int vt_set_use_multi_col_char(int use_it) {
   return 1;
 }
 
-vt_font_t vt_char_get_unicode_area_font(u_int32_t min, /* min <= max */
-                                        u_int32_t max  /* min <= max */
-                                        ) {
+vt_font_t vt_get_unicode_area_font(u_int32_t min, /* min <= max */
+                                   u_int32_t max  /* min <= max */) {
   u_int idx;
   void *p;
 
@@ -235,6 +237,10 @@ vt_font_t vt_char_get_unicode_area_font(u_int32_t min, /* min <= max */
   return ISO10646_UCS4_1 | (num_of_unicode_areas << 12);
 }
 
+void vt_set_blink_chars_visible(int visible) {
+  blink_visible = visible;
+}
+
 /*
  * character functions
  */
@@ -264,7 +270,7 @@ int vt_char_final(vt_char_t *ch) {
 
 int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
-                int underline_style, int is_crossed_out, int is_blinking) {
+                int underline_style, int is_crossed_out, int is_blinking, int is_protected) {
   u_int idx;
   int is_zerowidth;
 
@@ -314,17 +320,20 @@ int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth
 
   ch->u.ch.attr =
       COMPOUND_ATTR(cs, is_zerowidth, is_fullwidth != 0, is_bold != 0, is_italic != 0, idx > 0,
-                    underline_style, is_crossed_out != 0, is_blinking != 0, is_comb != 0);
+                    underline_style, is_crossed_out != 0, is_blinking != 0, is_protected != 0,
+                    is_comb != 0);
   ch->u.ch.fg_color = fg_color;
   ch->u.ch.bg_color = bg_color;
 
   return 1;
 }
 
-void vt_char_change_attr(vt_char_t *ch, int is_bold, /* 0: don't change, 1: set, -1: unset*/
-                         int is_underlined,          /* 0: don't change, 1: set, -1: unset*/
-                         int is_blinking,            /* 0: don't change, 1: set, -1: unset*/
-                         int is_reversed             /* 0: don't change, 1: set, -1: unset*/
+void vt_char_change_attr(vt_char_t *ch, int is_bold, /* 0: don't change, 1: set, -1: unset */
+                         int is_italic,              /* 0: don't change, 1: set, -1: unset */
+                         int underline_style,        /* 0: don't change, 1,2: set, -1: unset */
+                         int is_blinking,            /* 0: don't change, 1: set, -1: unset */
+                         int is_reversed,            /* 0: don't change, 1: set, -1: unset */
+                         int is_crossed_out          /* 0: don't change, 1: set, -1: unset */
                          ) {
   u_int attr;
 
@@ -332,40 +341,46 @@ void vt_char_change_attr(vt_char_t *ch, int is_bold, /* 0: don't change, 1: set,
 
   if (IS_SINGLE_CH(attr)) {
     ch->u.ch.attr =
-        COMPOUND_ATTR(CHARSET(attr), IS_ZEROWIDTH(attr) != 0, IS_FULLWIDTH(attr) != 0,
-                      is_bold ? is_bold > 0 : IS_BOLD(attr) != 0, IS_ITALIC(attr) != 0,
-                      IS_UNICODE_AREA_CS(attr) != 0,
-                      is_underlined ? is_underlined > 0 : UNDERLINE_STYLE(attr),
-                      IS_CROSSED_OUT(attr) != 0,
-                      is_blinking ? is_blinking > 0 : IS_BLINKING(attr) != 0, IS_COMB(attr) != 0) |
-        (is_reversed ? (is_reversed > 0 ? IS_REVERSED(0xffffff) : IS_REVERSED(0))
-                     : IS_REVERSED(attr));
+      COMPOUND_ATTR(CHARSET(attr), IS_ZEROWIDTH(attr) != 0, IS_FULLWIDTH(attr) != 0,
+                    is_bold ? is_bold > 0 : IS_BOLD(attr) != 0,
+                    is_italic ? is_italic > 0 : IS_ITALIC(attr) != 0,
+                    IS_UNICODE_AREA_CS(attr) != 0,
+                    underline_style ? (underline_style > 0 ? underline_style : 0) :
+                                      UNDERLINE_STYLE(attr),
+                    is_crossed_out ? is_crossed_out > 0 : IS_CROSSED_OUT(attr) != 0,
+                    is_blinking ? is_blinking > 0 : IS_BLINKING(attr) != 0,
+                    IS_PROTECTED(attr) != 0, IS_COMB(attr) != 0) |
+      (is_reversed ? (is_reversed > 0 ? IS_REVERSED(0xffffff) : IS_REVERSED(0)) :
+                     IS_REVERSED(attr));
   }
 }
 
-void vt_char_reverse_attr(vt_char_t *ch, int bold, int underlined, int blinking, int reversed) {
+void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underline_style, int blinking,
+                          int reversed, int crossed_out) {
   u_int attr;
 
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr)) {
     ch->u.ch.attr =
-        COMPOUND_ATTR(
-            CHARSET(attr), IS_ZEROWIDTH(attr) != 0, IS_FULLWIDTH(attr) != 0,
-            bold ? !IS_BOLD(attr) : IS_BOLD(attr) != 0, IS_ITALIC(attr) != 0,
-            IS_UNICODE_AREA_CS(attr) != 0,
-            underlined ? (UNDERLINE_STYLE(attr) ? 0 : UNDERLINE_NORMAL) : UNDERLINE_STYLE(attr),
-            IS_CROSSED_OUT(attr) != 0, blinking ? !IS_BLINKING(attr) : IS_BLINKING(attr) != 0,
-            IS_COMB(attr) != 0) |
-        (reversed ? (IS_REVERSED(attr) ? IS_REVERSED(0) : IS_REVERSED(0xffffff))
-                  : IS_REVERSED(attr));
+      COMPOUND_ATTR(CHARSET(attr), IS_ZEROWIDTH(attr) != 0, IS_FULLWIDTH(attr) != 0,
+                    bold ? !IS_BOLD(attr) : IS_BOLD(attr) != 0,
+                    italic ? !IS_ITALIC(attr) : IS_ITALIC(attr) != 0,
+                    IS_UNICODE_AREA_CS(attr) != 0,
+                    underline_style ? (UNDERLINE_STYLE(attr) ? 0 : UNDERLINE_NORMAL) :
+                                      UNDERLINE_STYLE(attr),
+                    crossed_out ? !IS_CROSSED_OUT(attr) : IS_CROSSED_OUT(attr) != 0,
+                    blinking ? !IS_BLINKING(attr) : IS_BLINKING(attr) != 0,
+                    IS_PROTECTED(attr) != 0, IS_COMB(attr) != 0) |
+      (reversed ? (IS_REVERSED(attr) ? IS_REVERSED(0) : IS_REVERSED(0xffffff)) :
+                  IS_REVERSED(attr));
   }
 }
 
 vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
                            int is_comb, vt_color_t fg_color, vt_color_t bg_color, int is_bold,
                            int is_italic, int underline_style, int is_crossed_out,
-                           int is_blinking) {
+                           int is_blinking, int is_protected) {
   vt_char_t *comb;
   u_int comb_size;
 
@@ -392,7 +407,7 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
 
   vt_char_init(comb);
   if (vt_char_set(comb, code, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                  underline_style, is_crossed_out, is_blinking) == 0) {
+                  underline_style, is_crossed_out, is_protected, is_blinking) == 0) {
     return NULL;
   }
 
@@ -624,9 +639,9 @@ vt_color_t vt_char_fg_color(vt_char_t *ch) {
 
   if (IS_SINGLE_CH(attr)) {
     if (IS_REVERSED(attr)) {
-      return IS_VISIBLE(attr) ? ch->u.ch.bg_color : ch->u.ch.fg_color;
+      return (!IS_BLINKING(attr) || blink_visible) ? ch->u.ch.bg_color : ch->u.ch.fg_color;
     } else {
-      return IS_VISIBLE(attr) ? ch->u.ch.fg_color : ch->u.ch.bg_color;
+      return (!IS_BLINKING(attr) || blink_visible) ? ch->u.ch.fg_color : ch->u.ch.bg_color;
     }
   } else {
     return vt_char_fg_color(ch->u.multi_ch);
@@ -778,25 +793,11 @@ int vt_char_is_blinking(vt_char_t *ch) {
   }
 }
 
-int vt_char_set_visible(vt_char_t *ch, int visible) {
+int vt_char_is_protected(vt_char_t *ch) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    if (!visible) {
-      ch->u.ch.attr &= ~(0x1 << 19);
-    } else {
-      ch->u.ch.attr |= (0x1 << 19);
-    }
-
-    return 1;
+    return IS_PROTECTED(ch->u.ch.attr);
   } else {
-    return vt_char_set_visible(ch->u.multi_ch, visible);
-  }
-}
-
-int vt_char_is_visible(vt_char_t *ch) {
-  if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    return IS_VISIBLE(ch->u.ch.attr);
-  } else {
-    return vt_char_is_visible(ch->u.multi_ch);
+    return vt_char_is_protected(ch->u.multi_ch);
   }
 }
 
@@ -911,7 +912,7 @@ vt_char_t *vt_sp_ch(void) {
 
   if (sp_ch.u.ch.attr == 0) {
     vt_char_init(&sp_ch);
-    vt_char_set(&sp_ch, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    vt_char_set(&sp_ch, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, 0);
   }
 
   return &sp_ch;
@@ -922,7 +923,7 @@ vt_char_t *vt_nl_ch(void) {
 
   if (nl_ch.u.ch.attr == 0) {
     vt_char_init(&nl_ch);
-    vt_char_set(&nl_ch, '\n', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    vt_char_set(&nl_ch, '\n', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, 0);
   }
 
   return &nl_ch;

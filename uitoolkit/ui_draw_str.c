@@ -670,7 +670,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       /*
        * drawing string
        */
-      if (!vt_char_is_visible(&chars[count - 1])) {
+      if (fg_color == bg_color) {
         /* don't draw it */
       } else if (state == 0) {
         ui_window_ft_draw_string8(window, xfont, fg_xcolor, x, y + ascent, str8, str_len);
@@ -1096,7 +1096,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
           ui_window_fill_with(window, bg_xcolor, x, y, current_width - x, height);
         }
 
-        if (!vt_char_is_visible(&chars[count - 1])) {
+        if (fg_color == bg_color) {
           /* don't draw it */
         } else if (state == 2) {
           ui_window_draw_string16(window, xfont, fg_xcolor, x, y + ascent, str2b, str_len);

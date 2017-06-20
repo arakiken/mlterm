@@ -93,7 +93,9 @@ static void sig_error(int sig) {
       /* child process */
       for (count = 0; count < num_of_terms; count++) {
         vt_term_write_content(terms[count], vt_term_get_slave_fd(terms[count]),
-                              terms[count]->parser->cc_conv, 1);
+                              terms[count]->parser->cc_conv, 1,
+                              -vt_term_get_num_of_logged_lines(terms[count]),
+                              vt_term_get_rows(terms[count]));
       }
 
       exit(0);

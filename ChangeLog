@@ -1,3 +1,38 @@
+2017-06-21  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: UPDATE_SCREEN_BLINK is added to blink screen.
+
+	* ui_draw_str.c: {fc|xcore}_draw_str() checks if fg_color == bg_color
+	  instead of vt_char_is_visible().
+
+	* vt_parser.[ch]:
+	  - get_now_suffix() is added and a file name of logging vt sequence and
+	    snapshot has "-YYYYMMDDHHMM" suffix.
+	  - is_protected is added to vt_parser_t, then DECSCA and selective erase
+	    are supported.
+	  - beg and end (row) are added to the arguments of snapshot(), then
+	    MC and DECMC are supported with the use of snapshot().
+	  - is_invisible is added to vt_parser_t, then SGR 8 and 28 are supported.
+
+	* vt_screen.[ch]:
+	  - is_protected is added to the arguments of vt_screen_fill_area().
+	  - is_protected is added to the arguments of vt_screen_combine_with_prev_char().
+	  - visible is removed from the arguments of vt_screen_blink().
+	  - beg and end (row) are added to the arguments of vt_screen_write_content().
+
+	* vt_edit.[ch]:
+	  - vt_edit_{save|restore}_protected_chars() are added.
+	  - vt_edit_change_attr_area() processes SGR 3, 6, 9, 21, 23, 29.
+
+	* vt_char.[ch]:
+	  - is_visible is removed and is_protected is added to vt_char_t::attr.
+	  - is_protected is added to the arguments of vt_char_set() and vt_char_combine().
+	  - vt_char_{set|is}_visible() are removed.
+	  - vt_set_blink_chars_visible() is added.
+	  - vt_char_get_unicode_area_font() is renamed to vt_get_unicode_area_font().
+	  - italic and crossed_out are added to the arguments of vt_char_change_attr()
+	    and vt_char_reverse_attr().
+
 2017-06-18  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: Whether ps[0] < VTMODE(0) is checked in processing DECRQMH.

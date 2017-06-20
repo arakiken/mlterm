@@ -1090,6 +1090,83 @@ int vt_edit_clear_above(vt_edit_t *edit) {
   }
 }
 
+vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit, int beg_row, int end_row,
+                                                 int relative) {
+  vt_protect_store_t *save;
+  vt_char_t *dst;
+  vt_char_t *src;
+  int row;
+  vt_line_t *line;
+
+  if (relative && edit->is_relative_origin) {
+    if ((beg_row += edit->vmargin_beg) > edit->vmargin_end) {
+      return NULL;
+    }
+    if ((end_row += edit->vmargin_beg) > edit->vmargin_end) {
+      end_row = edit->vmargin_end;
+    }
+  }
+
+  if (!(save = malloc(sizeof(vt_protect_store_t) +
+                      sizeof(vt_char_t) * (vt_edit_get_cols(edit) + 1) *
+                                          (end_row - beg_row + 1)))) {
+    return NULL;
+  }
+
+  dst = save->chars = save + 1;
+  vt_str_init(dst, (vt_edit_get_cols(edit) + 1) * (end_row - beg_row + 1));
+  save->beg_row = beg_row;
+  save->end_row = end_row;
+
+  for (row = beg_row; row <= end_row; row++) {
+    if ((line = vt_edit_get_line(edit, row))) {
+      u_int num = vt_line_get_num_of_filled_chars_except_spaces(line);
+      u_int count;
+
+      src = line->chars;
+      for (count = 0; count < num; count++, dst++, src++) {
+        if (vt_char_is_protected(src)) {
+          vt_char_copy(dst, src);
+        } else {
+          if (vt_char_is_fullwidth(src)) {
+            dst++;
+          }
+        }
+      }
+    }
+
+    vt_char_copy(dst++, vt_nl_ch());
+  }
+
+  return save;
+}
+
+void vt_edit_restore_protected_chars(vt_edit_t *edit, vt_protect_store_t *save) {
+  int row;
+  int col;
+  vt_line_t *line;
+  vt_char_t *src_p = save->chars;
+
+  for (row = save->beg_row; row <= save->end_row; row++) {
+    if ((line = vt_edit_get_line(edit, row))) {
+      for (col = 0; !vt_char_equal(src_p, vt_nl_ch()); src_p++) {
+        u_int cols = vt_char_cols(src_p);
+        if (vt_char_is_protected(src_p)) {
+          vt_line_overwrite(line,
+                            /* cols_rest must be always 0, so pass NULL. */
+                            vt_convert_col_to_char_index(line, NULL, col, BREAK_BOUNDARY),
+                            src_p, 1, cols);
+        }
+        col += cols;
+      }
+      src_p++;
+    }
+  }
+
+  vt_str_final(save->chars, (vt_edit_get_cols(edit) + 1) * (save->end_row - save->beg_row + 1));
+  free(save);
+}
+
 int vt_edit_set_vmargin(vt_edit_t *edit, int beg, int end) {
   /*
    * for compatibility with xterm:
@@ -1685,7 +1762,8 @@ int vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_i
 }
 
 int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
-                             u_int num_of_rows, void (*func)(vt_char_t*, int, int, int, int),
+                             u_int num_of_rows,
+                             void (*func)(vt_char_t*, int, int, int, int, int, int),
                              int attr) {
   u_int count;
   vt_line_t *line;
@@ -1693,31 +1771,43 @@ int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_col
   int end_char_index;
   u_int cols_rest;
   int bold;
-  int underlined;
+  int italic;
+  int underline_style;
   int blinking;
   int reversed;
+  int crossed_out;
 
   if (attr == 0) {
-    bold = underlined = blinking = reversed = -1;
+    bold = italic = underline_style = blinking = reversed = crossed_out = -1;
   } else {
-    bold = underlined = blinking = reversed = 0;
+    bold = italic = underline_style = blinking = reversed = crossed_out = 0;
 
     if (attr == 1) {
       bold = 1;
+    } else if (attr == 3) {
+      italic = 1;
     } else if (attr == 4) {
-      underlined = 1;
-    } else if (attr == 5) {
+      underline_style = UNDERLINE_NORMAL;
+    } else if (attr == 5 || attr == 6) {
       blinking = 1;
     } else if (attr == 7) {
       reversed = 1;
+    } else if (attr == 9) {
+      crossed_out = 1;
+    } else if (attr == 21) {
+      underline_style = UNDERLINE_DOUBLE;
     } else if (attr == 22) {
       bold = -1;
+    } else if (attr == 23) {
+      italic = -1;
     } else if (attr == 24) {
-      underlined = -1;
+      underline_style = -1;
     } else if (attr == 25) {
       blinking = -1;
     } else if (attr == 27) {
       reversed = -1;
+    } else if (attr == 29) {
+      crossed_out = -1;
     } else {
       return 0;
     }
@@ -1763,7 +1853,8 @@ int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_col
     vt_line_set_modified(line, char_index, end_char_index);
 
     for (; char_index <= end_char_index; char_index++) {
-      (*func)(vt_char_at(line, char_index), bold, underlined, blinking, reversed);
+      (*func)(vt_char_at(line, char_index), bold, italic, underline_style, blinking, reversed,
+              crossed_out);
     }
   }
 

@@ -208,7 +208,7 @@ int vt_screen_search_reset_position(vt_screen_t *screen);
 int vt_screen_search_find(vt_screen_t *screen, int *beg_char_index, int *beg_row,
                           int *end_char_index, int *end_row, void *regex, int backward);
 
-int vt_screen_blink(vt_screen_t *screen, int visible);
+int vt_screen_blink(vt_screen_t *screen);
 
 /*
  * VT100 commands (called in logical context)
@@ -219,7 +219,8 @@ vt_char_t *vt_screen_get_n_prev_char(vt_screen_t *screen, int n);
 int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_charset_t cs,
                                      int is_fullwidth, int is_comb, vt_color_t fg_color,
                                      vt_color_t bg_color, int is_bold, int is_italic,
-                                     int is_underlined, int is_crossed_out, int is_blinking);
+                                     int is_underlined, int is_crossed_out, int is_blinking,
+                                     int is_protected);
 
 int vt_screen_insert_chars(vt_screen_t *screen, vt_char_t *chars, u_int len);
 
@@ -254,6 +255,12 @@ int vt_screen_delete_lines(vt_screen_t *screen, u_int size);
 #define vt_screen_clear_below(screen) vt_edit_clear_below((screen)->edit)
 
 #define vt_screen_clear_above(screen) vt_edit_clear_above((screen)->edit)
+
+#define vt_screen_save_protected_chars(screen, beg_row, end_row, relative) \
+  vt_edit_save_protected_chars((screen)->edit, beg_row, end_row, relative)
+
+#define vt_screen_restore_protected_chars(screen, save) \
+  vt_edit_restore_protected_chars((screen)->edit, save)
 
 #define vt_screen_set_vmargin(screen, beg, end) vt_edit_set_vmargin((screen)->edit, beg, end)
 
@@ -337,8 +344,8 @@ int vt_screen_local_echo_wait(vt_screen_t *screen, int msec);
 
 int vt_screen_disable_local_echo(vt_screen_t *screen);
 
-int vt_screen_fill_area(vt_screen_t *screen, int code, int col, int beg, u_int num_of_cols,
-                        u_int num_of_rows);
+int vt_screen_fill_area(vt_screen_t *screen, int code, int is_protected, int col, int beg,
+                        u_int num_of_cols, u_int num_of_rows);
 
 int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_of_copy_cols,
                         u_int num_of_copy_rows, u_int src_page,
@@ -365,7 +372,8 @@ int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num
 
 void vt_screen_enable_blinking(vt_screen_t *screen);
 
-int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end);
+int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end,
+                            int beg, int end);
 
 int vt_screen_get_page_id(vt_screen_t *screen);
 

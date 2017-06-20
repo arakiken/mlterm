@@ -241,6 +241,7 @@ typedef struct vt_parser {
   int8_t is_reversed;
   int8_t is_crossed_out;
   int8_t is_blinking;
+  int8_t is_invisible;
 
   /* vt_alt_color_mode_t */ int8_t alt_color_mode;
 
@@ -280,6 +281,8 @@ typedef struct vt_parser {
 
   int8_t is_visible_cursor;
   /* vt_cursor_style_t */ int8_t cursor_style;
+
+  int8_t is_protected;
 
   /* for save/restore cursor */
   vt_vt100_storable_states_t saved_normal;

@@ -21,6 +21,13 @@ typedef struct vt_edit_scroll_event_listener {
 
 } vt_edit_scroll_event_listener_t;
 
+typedef struct vt_protect_store {
+  vt_char_t *chars;
+  int beg_row;
+  int end_row;
+
+} vt_protect_store_t;
+
 typedef struct vt_edit {
   vt_model_t model;
   vt_cursor_t cursor;
@@ -80,6 +87,11 @@ int vt_edit_clear_line_to_left(vt_edit_t *edit);
 int vt_edit_clear_below(vt_edit_t *edit);
 
 int vt_edit_clear_above(vt_edit_t *edit);
+
+vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit, int beg_row, int end_row,
+                                                 int relative);
+
+void vt_edit_restore_protected_chars(vt_edit_t *edit, vt_protect_store_t *save);
 
 int vt_edit_set_vmargin(vt_edit_t *edit, int beg, int end);
 
@@ -164,7 +176,8 @@ int vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_o
 int vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows);
 
 int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
-                             u_int num_of_rows, void (*func)(vt_char_t *, int, int, int, int),
+                             u_int num_of_rows,
+                             void (*func)(vt_char_t *, int, int, int, int, int, int),
                              int attr);
 
 void vt_edit_clear_size_attr(vt_edit_t *edit);
