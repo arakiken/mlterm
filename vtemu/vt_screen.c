@@ -1950,16 +1950,33 @@ int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num
 void vt_screen_enable_blinking(vt_screen_t *screen) { screen->has_blinking_char = 1; }
 
 int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end,
-                            int beg, int end) {
+                            vt_write_content_area_t area) {
+  int beg;
+  int end;
   vt_char_t *buf;
   u_int num;
   u_char conv_buf[512];
   ef_parser_t *vt_str_parser;
 
+#if 1
+  /* for sig_error in vt_term_manager.c */
   vt_screen_logical(screen);
+#endif
 
-  /* Writing a cursor line may cause num == 0. */
-  if ((num = vt_screen_get_region_size(screen, 0, beg, 0, end + 1, 0)) == 0) {
+  if (area == WCA_CURSOR_LINE) {
+    beg = vt_screen_cursor_row(screen);
+    end = beg + 1;
+  } else {
+    end = vt_screen_get_rows(screen);
+    if (area == WCA_ALL) {
+      beg = -vt_screen_get_num_of_logged_lines(screen);
+    } else /* if (area == WCA_SCREEN) */ {
+      beg = 0;
+    }
+  }
+
+  /* WCA_CURSOR_LINE may cause num == 0. */
+  if ((num = vt_screen_get_region_size(screen, 0, beg, 0, end, 0)) == 0) {
     return 0;
   }
 
@@ -1967,7 +1984,7 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
     return 0;
   }
 
-  vt_screen_copy_region(screen, buf, num, 0, beg, 0, end + 1, 0);
+  vt_screen_copy_region(screen, buf, num, 0, beg, 0, end, 0);
 
   if (!(vt_str_parser = vt_str_parser_new())) {
     return 0;

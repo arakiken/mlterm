@@ -1482,7 +1482,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 #endif
 
 static void snapshot(vt_parser_t *vt_parser, vt_char_encoding_t encoding,
-                     char *file_name, int beg, int end) {
+                     char *file_name, vt_write_content_area_t area) {
   char buf[16];
   char *path;
   int fd;
@@ -1506,7 +1506,7 @@ static void snapshot(vt_parser_t *vt_parser, vt_char_encoding_t encoding,
     conv = vt_parser->cc_conv;
   }
 
-  vt_screen_write_content(vt_parser->screen, fd, conv, 0, beg, end);
+  vt_screen_write_content(vt_parser->screen, fd, conv, 0, area);
 
   if (conv != vt_parser->cc_conv) {
     (*conv->delete)(conv);
@@ -3580,15 +3580,13 @@ inline static int parse_vt100_escape_sequence(
 
           if (ps[0] <= 0 || ps[0] == 10) {
             snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
-                     0, vt_screen_get_rows(vt_parser->screen) - 1);
+                     WCA_SCREEN);
           } else if (ps[0] == 1) {
             snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
-                     vt_screen_cursor_row(vt_parser->screen),
-                     vt_screen_cursor_row(vt_parser->screen));
+                     WCA_CURSOR_LINE);
           } else if (ps[0] == 11) {
             snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
-                     -vt_screen_get_num_of_logged_lines(vt_parser->screen),
-                     vt_screen_get_rows(vt_parser->screen) - 1);
+                     WCA_ALL);
           }
         } else if (*str_p == 'l') {
           /* "CSI ? l" DEC Private Mode Reset */
@@ -4275,11 +4273,10 @@ inline static int parse_vt100_escape_sequence(
 
         if (ps[0] <= 0) {
           snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
-                   0, vt_screen_get_rows(vt_parser->screen) - 1);
+                   WCA_SCREEN);
         } else if (ps[0] == 1) {
           snapshot(vt_parser, VT_UTF8, vt_pty_get_slave_name(vt_parser->pty) + 5 /* skip /dev/ */,
-                   vt_screen_cursor_row(vt_parser->screen),
-                   vt_screen_cursor_row(vt_parser->screen));
+                   WCA_CURSOR_LINE);
         }
       } else if (*str_p == 'l') {
         /* "CSI l" */
@@ -6423,9 +6420,7 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
       /* insecure file name */
       bl_msg_printf("%s is insecure file name.\n", file);
     } else {
-      snapshot(vt_parser, encoding, file,
-               -vt_screen_get_num_of_logged_lines(vt_parser->screen),
-               vt_screen_get_rows(vt_parser->screen) - 1);
+      snapshot(vt_parser, encoding, file, WCA_ALL);
     }
   }
 #ifndef NO_IMAGE

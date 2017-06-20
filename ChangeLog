@@ -1,5 +1,12 @@
 2017-06-21  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_screen.[ch], vt_term_manager.c, vt_parser.c:
+	  - vt_write_content_area_t is added.
+	  - 'area' is added to the argument of vt_screen_write_content(), and
+	    beg and end are removed.
+
+2017-06-21  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_screen.c: UPDATE_SCREEN_BLINK is added to blink screen.
 
 	* ui_draw_str.c: {fc|xcore}_draw_str() checks if fg_color == bg_color

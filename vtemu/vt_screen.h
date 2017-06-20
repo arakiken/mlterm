@@ -30,6 +30,12 @@ typedef enum vt_bs_mode {
 
 } vt_bs_mode_t;
 
+typedef enum vt_write_content_area {
+  WCA_ALL,
+  WCA_CURSOR_LINE,
+  WCA_SCREEN,
+} vt_write_content_area_t;
+
 typedef struct vt_stored_edit {
   vt_edit_t edit;
   u_int32_t time;
@@ -373,7 +379,7 @@ int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num
 void vt_screen_enable_blinking(vt_screen_t *screen);
 
 int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int clear_at_end,
-                            int beg, int end);
+                            vt_write_content_area_t area);
 
 int vt_screen_get_page_id(vt_screen_t *screen);
 
