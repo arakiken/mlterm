@@ -179,9 +179,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
         }
       }
 
-      if ((*syms->vt_convert_to_internal_ch)(
-              &ch, (*ibus->im.listener->get_unicode_policy)(ibus->im.listener->self), US_ASCII) <=
-          0) {
+      if ((*syms->vt_convert_to_internal_ch)(ibus->im.vtparser, &ch) <= 0) {
         continue;
       }
 
@@ -196,7 +194,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     fg_color, bg_color, 0, 0, 1, 0, 0)) {
+                                     fg_color, bg_color, 0, 0, 1, 0, 0, 0)) {
           continue;
         }
 
@@ -206,7 +204,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
       }
 
       (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color,
-                           bg_color, 0, 0, 1, 0, 0);
+                           bg_color, 0, 0, 1, 0, 0, 0);
 
       p++;
       ibus->im.preedit.filled_len++;
@@ -376,9 +374,8 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
     }
 
     if (!(ibus->im.cand_screen = (*syms->ui_im_candidate_screen_new)(
-              ibus->im.disp, ibus->im.font_man, ibus->im.color_man,
+              ibus->im.disp, ibus->im.font_man, ibus->im.color_man, ibus->im.vtparser,
               (*ibus->im.listener->is_vertical)(ibus->im.listener->self), 1,
-              (*ibus->im.listener->get_unicode_policy)(ibus->im.listener->self),
               (*ibus->im.listener->get_line_height)(ibus->im.listener->self), x, y))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " ui_im_candidate_screen_new() failed.\n");

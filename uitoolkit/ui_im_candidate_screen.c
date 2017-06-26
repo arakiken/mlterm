@@ -7,6 +7,7 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>
 #include <vt_str.h>
+#include <vt_parser.h>
 #include "ui_draw_str.h"
 
 #ifdef USE_CONSOLE
@@ -686,7 +687,7 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
     int is_fullwidth = 0;
     int is_comb = 0;
 
-    if (vt_convert_to_internal_ch(&ch, cand_screen->unicode_policy, US_ASCII) <= 0) {
+    if (vt_convert_to_internal_ch(cand_screen->vtparser, &ch) <= 0) {
       continue;
     }
 
@@ -829,10 +830,12 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
 /* --- global functions --- */
 
-ui_im_candidate_screen_t *ui_im_candidate_screen_new(
-    ui_display_t *disp, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
-    int is_vertical_term, int is_vertical_direction, vt_unicode_policy_t unicode_policy,
-    u_int line_height_of_screen, int x, int y) {
+ui_im_candidate_screen_t *ui_im_candidate_screen_new(ui_display_t *disp,
+                                                     ui_font_manager_t *font_man,
+                                                     ui_color_manager_t *color_man,
+                                                     void *vtparser, int is_vertical_term,
+                                                     int is_vertical_direction,
+                                                     u_int line_height_of_screen, int x, int y) {
   ui_im_candidate_screen_t *cand_screen;
 
   if ((cand_screen = calloc(1, sizeof(ui_im_candidate_screen_t))) == NULL) {
@@ -845,6 +848,7 @@ ui_im_candidate_screen_t *ui_im_candidate_screen_new(
 
   cand_screen->font_man = font_man;
   cand_screen->color_man = color_man;
+  cand_screen->vtparser = vtparser;
 
   cand_screen->x = x;
   cand_screen->y = y;
@@ -852,8 +856,6 @@ ui_im_candidate_screen_t *ui_im_candidate_screen_new(
 
   cand_screen->is_vertical_term = is_vertical_term;
   cand_screen->is_vertical_direction = is_vertical_direction;
-
-  cand_screen->unicode_policy = unicode_policy;
 
   if (!ui_window_init(&cand_screen->window, MARGIN * 2, MARGIN * 2, MARGIN * 2, MARGIN * 2, 0, 0,
                       MARGIN, MARGIN, /* ceate_gc */ 1, 0)) {
@@ -921,7 +923,7 @@ error:
 
 ui_im_candidate_screen_t *ui_im_candidate_screen_new(
     ui_display_t *disp, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
-    int is_vertical_term, int is_vertical_direction, vt_unicode_policy_t unicode_policy,
+    void *vtparser, int is_vertical_term, int is_vertical_direction,
     u_int line_height_of_screen, int x, int y) {
   return NULL;
 }

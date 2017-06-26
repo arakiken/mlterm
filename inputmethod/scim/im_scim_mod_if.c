@@ -253,9 +253,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
       scim->im.preedit.cursor_offset = cursor_offset;
     }
 
-    if ((*syms->vt_convert_to_internal_ch)(
-            &ch, (*scim->im.listener->get_unicode_policy)(scim->im.listener->self), US_ASCII) <=
-        0) {
+    if ((*syms->vt_convert_to_internal_ch)(scim->im.vtparser, &ch) <= 0) {
       continue;
     }
 
@@ -285,7 +283,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
       is_comb = 1;
 
       if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0)) {
+                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0, 0)) {
         index++;
         continue;
       }
@@ -296,7 +294,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
     }
 
     (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color, bg_color,
-                         is_bold, 0, is_underline, 0, 0);
+                         is_bold, 0, is_underline, 0, 0, 0);
 
     p++;
     scim->im.preedit.filled_len++;
@@ -341,9 +339,8 @@ static void candidate_update(void *ptr, int is_vertical_lookup, uint num_of_cand
     }
 
     if (!(scim->im.cand_screen = (*syms->ui_im_candidate_screen_new)(
-              scim->im.disp, scim->im.font_man, scim->im.color_man,
+              scim->im.disp, scim->im.font_man, scim->im.color_man, scim->im.vtparser,
               (*scim->im.listener->is_vertical)(scim->im.listener->self), is_vertical_lookup,
-              (*scim->im.listener->get_unicode_policy)(scim->im.listener->self),
               (*scim->im.listener->get_line_height)(scim->im.listener->self), x, y))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " ui_im_candidate_screen_new() failed.\n");

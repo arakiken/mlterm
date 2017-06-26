@@ -194,9 +194,7 @@ static void preedit(im_wnn_t *wnn, char *preedit,                               
       int is_fullwidth;
       int is_comb;
 
-      if ((*syms->vt_convert_to_internal_ch)(
-              &ch, (*wnn->im.listener->get_unicode_policy)(wnn->im.listener->self), US_ASCII) <=
-          0) {
+      if ((*syms->vt_convert_to_internal_ch)(wnn->im.vtparser, &ch) <= 0) {
         continue;
       }
 
@@ -213,7 +211,7 @@ static void preedit(im_wnn_t *wnn, char *preedit,                               
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0)) {
+                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0, 0)) {
           continue;
         }
 
@@ -227,10 +225,10 @@ static void preedit(im_wnn_t *wnn, char *preedit,                               
       if (wnn->im.preedit.cursor_offset <= wnn->im.preedit.filled_len &&
           wnn->im.preedit.filled_len < wnn->im.preedit.cursor_offset + rev_len) {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_BG_COLOR,
-                             VT_FG_COLOR, 0, 0, 1, 0, 0);
+                             VT_FG_COLOR, 0, 0, 1, 0, 0, 0);
       } else {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                             VT_BG_COLOR, 0, 0, 1, 0, 0);
+                             VT_BG_COLOR, 0, 0, 1, 0, 0, 0);
       }
 
       p++;
@@ -238,7 +236,8 @@ static void preedit(im_wnn_t *wnn, char *preedit,                               
     }
 
     for (; pos_len > 0; pos_len--) {
-      (*syms->vt_char_set)(p++, *(pos++), US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0);
+      (*syms->vt_char_set)(p++, *(pos++), US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1,
+                           0, 0, 0);
       wnn->im.preedit.filled_len++;
     }
 
@@ -266,7 +265,7 @@ candidate:
 
     if (wnn->im.stat_screen == NULL) {
       if (!(wnn->im.stat_screen = (*syms->ui_im_status_screen_new)(
-                wnn->im.disp, wnn->im.font_man, wnn->im.color_man,
+                wnn->im.disp, wnn->im.font_man, wnn->im.color_man, wnn->im.vtparser,
                 (*wnn->im.listener->is_vertical)(wnn->im.listener->self),
                 (*wnn->im.listener->get_line_height)(wnn->im.listener->self), x, y))) {
 #ifdef DEBUG

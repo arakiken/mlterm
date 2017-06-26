@@ -12,9 +12,9 @@
 typedef struct ui_im_status_screen {
   ui_window_t window;
 
-  ui_font_manager_t *font_man; /* is the same as attaced screen */
-
-  ui_color_manager_t *color_man; /* is the same as attaced screen */
+  ui_font_manager_t *font_man;   /* is the same as attached screen */
+  ui_color_manager_t *color_man; /* is the same as attached screen */
+  void *vtparser;                /* is the same as attached screen */
 
   vt_char_t *chars;
   u_int num_of_chars; /* == array size */
@@ -40,7 +40,7 @@ typedef struct ui_im_status_screen {
 } ui_im_status_screen_t;
 
 ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manager_t *font_man,
-                                               ui_color_manager_t *color_man, int is_vertical,
-                                               u_int line_height, int x, int y);
+                                               ui_color_manager_t *color_man, void *vtparser,
+                                               int is_vertical, u_int line_height, int x, int y);
 
 #endif

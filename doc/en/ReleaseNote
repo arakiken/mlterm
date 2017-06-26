@@ -1,12 +1,14 @@
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)
-* Support DECRQDE, DECSCUSR(Ps = 3,4,5,6), DECATC, DECRQM and DECRQMH.
+* Support DECRQDE, DECSCUSR(Ps = 3,4,5,6), DECATC, DECRQM, DECRQMH, DECSCA,
+  DECERA, DECSEL and DECSED.
 * Support SGR of DECRQSS.
 * Support MC and DECMC which outputs screen contents to ~/.mlterm/[tty]-YYYYMMDDHHMMSS.snp.
 * Add "baseline_offset" / --blpos option.
 * Revive iiimf input method plugin.
+  (--disable-iiimf optoin of configure script disables this feature.)
 * Update unicode property table (generated from UnicodeData.txt and
-  EastAsianWidth.txt) to version 9.0.0.
+  EastAsianWidth.txt) to version 10.0.0.
 * Support brltty with the use of brlapi library. (Experimental)
   (configure with --enable-brlapi option.)
 * Enable to build on msys2.

@@ -391,9 +391,7 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
     int is_fullwidth = 0;
     int is_comb = 0;
 
-    if ((*syms->vt_convert_to_internal_ch)(
-            &ch, (*m17nlib->im.listener->get_unicode_policy)(m17nlib->im.listener->self),
-            US_ASCII) <= 0) {
+    if ((*syms->vt_convert_to_internal_ch)(m17nlib->im.vtparser, &ch) <= 0) {
       continue;
     }
 
@@ -415,7 +413,7 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
       is_comb = 1;
 
       if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                   fg_color, bg_color, 0, 0, is_underline, 0, 0)) {
+                                   fg_color, bg_color, 0, 0, is_underline, 0, 0, 0)) {
         pos++;
         continue;
       }
@@ -426,7 +424,7 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
     }
 
     (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color, bg_color,
-                         0, 0, is_underline, 0, 0);
+                         0, 0, is_underline, 0, 0, 0);
 
     pos++;
     p++;
@@ -491,9 +489,8 @@ static void candidates_changed(im_m17nlib_t *m17nlib) {
     }
 
     if (!(m17nlib->im.cand_screen = (*syms->ui_im_candidate_screen_new)(
-              m17nlib->im.disp, m17nlib->im.font_man, m17nlib->im.color_man,
+              m17nlib->im.disp, m17nlib->im.font_man, m17nlib->im.color_man, m17nlib->im.vtparser,
               (*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self),
-              (*m17nlib->im.listener->get_unicode_policy)(m17nlib->im.listener->self),
               is_vertical_direction,
               (*m17nlib->im.listener->get_line_height)(m17nlib->im.listener->self), x, y))) {
 #ifdef DEBUG
@@ -656,6 +653,7 @@ static int switch_mode(ui_im_t *im) {
     if (m17nlib->im.stat_screen == NULL) {
       if (!(m17nlib->im.stat_screen = (*syms->ui_im_status_screen_new)(
                 m17nlib->im.disp, m17nlib->im.font_man, m17nlib->im.color_man,
+                m17nlib->im.vtparser,
                 (*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self),
                 (*m17nlib->im.listener->get_line_height)(m17nlib->im.listener->self), x, y))) {
 #ifdef DEBUG

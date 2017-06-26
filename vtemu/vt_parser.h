@@ -126,6 +126,7 @@ typedef struct vt_xterm_event_listener {
   void (*show_sixel)(void *, char *);                           /* called in logical context. */
   void (*add_frame_to_animation)(void *, char *, int *, int *); /* called in logical context. */
   void (*hide_cursor)(void *, int);                             /* called in logical context. */
+  int (*check_iscii_font)(void *, ef_charset_t);
 
 } vt_xterm_event_listener_t;
 
@@ -408,7 +409,7 @@ int vt_init_encoding_conv(vt_parser_t *vt_parser);
 
 int vt_set_auto_detect_encodings(char *encodings);
 
-int vt_convert_to_internal_ch(ef_char_t *ch, vt_unicode_policy_t unicode_policy, ef_charset_t gl);
+int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *ch);
 
 #define vt_parser_select_drcs(vt_parser) vt_drcs_select((vt_parser)->drcs)
 

@@ -436,9 +436,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
       int is_fullwidth;
       int is_comb;
 
-      if ((*syms->vt_convert_to_internal_ch)(
-              &ch, (*fcitx->im.listener->get_unicode_policy)(fcitx->im.listener->self), US_ASCII) <=
-          0) {
+      if ((*syms->vt_convert_to_internal_ch)(fcitx->im.vtparser, &ch) <= 0) {
         continue;
       }
 
@@ -455,7 +453,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0)) {
+                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0, 0)) {
           continue;
         }
 
@@ -467,7 +465,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
       }
 
       (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                           VT_BG_COLOR, 0, 0, 1, 0, 0);
+                           VT_BG_COLOR, 0, 0, 1, 0, 0, 0);
 
       p++;
       fcitx->im.preedit.filled_len++;
@@ -497,7 +495,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
 
     if (fcitx->im.stat_screen == NULL) {
       if (!(fcitx->im.stat_screen = (*syms->ui_im_status_screen_new)(
-                fcitx->im.disp, fcitx->im.font_man, fcitx->im.color_man,
+                fcitx->im.disp, fcitx->im.font_man, fcitx->im.color_man, fcitx->im.vtparser,
                 (*fcitx->im.listener->is_vertical)(fcitx->im.listener->self),
                 (*fcitx->im.listener->get_line_height)(fcitx->im.listener->self), x, y))) {
 #ifdef DEBUG
@@ -621,7 +619,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
           is_comb = 1;
 
           if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                       fg_color, bg_color, 0, 0, 1, 0, 0)) {
+                                       fg_color, bg_color, 0, 0, 1, 0, 0, 0)) {
             continue;
           }
 
@@ -631,7 +629,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
         }
 
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color,
-                             bg_color, 0, 0, 1, 0, 0);
+                             bg_color, 0, 0, 1, 0, 0, 0);
 
         p++;
         fcitx->im.preedit.filled_len++;

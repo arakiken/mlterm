@@ -125,7 +125,7 @@ static void update_stat_screen(im_uim_t *uim, int mode_changed) {
       (*uim->im.listener->get_spot)(uim->im.listener->self, NULL, 0, &x, &y);
 
       if (!(uim->im.stat_screen = (*syms->ui_im_status_screen_new)(
-                uim->im.disp, uim->im.font_man, uim->im.color_man,
+                uim->im.disp, uim->im.font_man, uim->im.color_man, uim->im.vtparser,
                 (*uim->im.listener->is_vertical)(uim->im.listener->self),
                 (*uim->im.listener->get_line_height)(uim->im.listener->self), x, y))) {
         return;
@@ -624,8 +624,7 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
     int is_fullwidth = 0;
     int is_comb = 0;
 
-    if ((*syms->vt_convert_to_internal_ch)(
-            &ch, (*uim->im.listener->get_unicode_policy)(uim->im.listener->self), US_ASCII) <= 0) {
+    if ((*syms->vt_convert_to_internal_ch)(uim->im.vtparser, &ch) <= 0) {
       continue;
     }
 
@@ -640,7 +639,7 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
       is_comb = 1;
 
       if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                   fg_color, bg_color, 0, 0, is_underline, 0, 0)) {
+                                   fg_color, bg_color, 0, 0, is_underline, 0, 0, 0)) {
         continue;
       }
 
@@ -650,7 +649,7 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
     }
 
     (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color, bg_color,
-                         0, 0, is_underline, 0, 0);
+                         0, 0, is_underline, 0, 0, 0);
 
     p++;
     uim->im.preedit.filled_len++;

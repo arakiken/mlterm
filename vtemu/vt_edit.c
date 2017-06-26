@@ -1092,7 +1092,7 @@ int vt_edit_clear_above(vt_edit_t *edit) {
 
 vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit, int beg_row, int end_row,
                                                  int relative) {
-  vt_protect_store_t *save;
+  vt_protect_store_t *save = NULL;
   vt_char_t *dst;
   vt_char_t *src;
   int row;
@@ -1107,35 +1107,38 @@ vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit, int beg_row, i
     }
   }
 
-  if (!(save = malloc(sizeof(vt_protect_store_t) +
-                      sizeof(vt_char_t) * (vt_edit_get_cols(edit) + 1) *
-                                          (end_row - beg_row + 1)))) {
-    return NULL;
-  }
-
-  dst = save->chars = save + 1;
-  vt_str_init(dst, (vt_edit_get_cols(edit) + 1) * (end_row - beg_row + 1));
-  save->beg_row = beg_row;
-  save->end_row = end_row;
-
   for (row = beg_row; row <= end_row; row++) {
     if ((line = vt_edit_get_line(edit, row))) {
       u_int num = vt_line_get_num_of_filled_chars_except_spaces(line);
       u_int count;
 
       src = line->chars;
-      for (count = 0; count < num; count++, dst++, src++) {
+      for (count = 0; count < num; count++, src++) {
         if (vt_char_is_protected(src)) {
-          vt_char_copy(dst, src);
-        } else {
-          if (vt_char_is_fullwidth(src)) {
-            dst++;
+          if (!save) {
+            if (!(save = malloc(sizeof(vt_protect_store_t) +
+                                sizeof(vt_char_t) * (vt_edit_get_cols(edit) + 1) *
+                                                    (end_row - row + 1)))) {
+              return NULL;
+            }
+
+            dst = save->chars = save + 1;
+            vt_str_init(dst, (vt_edit_get_cols(edit) + 1) * (end_row - row + 1));
+            dst += count;
+            save->beg_row = row;
+            save->end_row = end_row;
           }
+
+          vt_char_copy(dst++, src);
+        } else if (save) {
+          dst += vt_char_cols(src);
         }
       }
     }
 
-    vt_char_copy(dst++, vt_nl_ch());
+    if (save) {
+      vt_char_copy(dst++, vt_nl_ch());
+    }
   }
 
   return save;
@@ -1145,7 +1148,13 @@ void vt_edit_restore_protected_chars(vt_edit_t *edit, vt_protect_store_t *save) 
   int row;
   int col;
   vt_line_t *line;
-  vt_char_t *src_p = save->chars;
+  vt_char_t *src_p;
+
+  if (save == NULL) {
+    return;
+  }
+
+  src_p = save->chars;
 
   for (row = save->beg_row; row <= save->end_row; row++) {
     if ((line = vt_edit_get_line(edit, row))) {

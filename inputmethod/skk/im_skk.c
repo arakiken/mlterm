@@ -193,7 +193,6 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
     vt_char_t *p;
     size_t pos_len;
     u_int count;
-    vt_unicode_policy_t upolicy;
 
     pos_len = strlen(pos);
 
@@ -204,13 +203,6 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
     (*syms->vt_str_init)(skk->im.preedit.chars = p,
                          skk->im.preedit.num_of_chars = (preedit_len + pos_len));
 
-    upolicy = (*skk->im.listener->get_unicode_policy)(skk->im.listener->self);
-    if (skk->term_encoding == VT_UTF8) {
-      upolicy |= ONLY_USE_UNICODE_FONT;
-    } else {
-      upolicy |= NOT_USE_UNICODE_FONT;
-    }
-
     skk->im.preedit.filled_len = 0;
     for (count = 0; count < preedit_len; count++) {
       int is_fullwidth;
@@ -218,7 +210,7 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
 
       ch = preedit[count];
 
-      if ((*syms->vt_convert_to_internal_ch)(&ch, upolicy, US_ASCII) <= 0) {
+      if ((*syms->vt_convert_to_internal_ch)(skk->im.vtparser, &ch) <= 0) {
         continue;
       }
 
@@ -235,7 +227,7 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0)) {
+                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0, 0)) {
           continue;
         }
 
@@ -248,10 +240,10 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
 
       if (rev_pos <= skk->im.preedit.filled_len && skk->im.preedit.filled_len < rev_pos + rev_len) {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_BG_COLOR,
-                             VT_FG_COLOR, 0, 0, 1, 0, 0);
+                             VT_FG_COLOR, 0, 0, 1, 0, 0, 0);
       } else {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                             VT_BG_COLOR, 0, 0, 1, 0, 0);
+                             VT_BG_COLOR, 0, 0, 1, 0, 0, 0);
       }
 
       p++;
@@ -259,7 +251,8 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
     }
 
     for (; pos_len > 0; pos_len--) {
-      (*syms->vt_char_set)(p++, *(pos++), US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0);
+      (*syms->vt_char_set)(p++, *(pos++), US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1,
+                           0, 0, 0);
       skk->im.preedit.filled_len++;
     }
   }
@@ -283,7 +276,7 @@ candidate:
 
     if (skk->im.stat_screen == NULL) {
       if (!(skk->im.stat_screen = (*syms->ui_im_status_screen_new)(
-                skk->im.disp, skk->im.font_man, skk->im.color_man,
+                skk->im.disp, skk->im.font_man, skk->im.color_man, skk->im.vtparser,
                 (*skk->im.listener->is_vertical)(skk->im.listener->self),
                 (*skk->im.listener->get_line_height)(skk->im.listener->self), x, y))) {
 #ifdef DEBUG

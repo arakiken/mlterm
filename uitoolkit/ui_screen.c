@@ -1060,7 +1060,7 @@ static int update_special_visual(ui_screen_t *screen) {
 
 static ui_im_t *im_new(ui_screen_t *screen) {
   return ui_im_new(screen->window.disp, screen->font_man, screen->color_man,
-                   vt_term_get_encoding(screen->term), &screen->im_listener, screen->input_method,
+                   screen->term->parser, &screen->im_listener, screen->input_method,
                    screen->mod_ignore_mask);
 }
 
@@ -4983,10 +4983,6 @@ static void write_to_term(void *p, u_char *str, /* must be same as term encoding
   vt_term_write(screen->term, str, len);
 }
 
-static vt_unicode_policy_t get_unicode_policy(void *p) {
-  return vt_term_get_unicode_policy(((ui_screen_t *)p)->term);
-}
-
 /*
  * callbacks of vt_xterm_event_listener_t
  */
@@ -5473,6 +5469,11 @@ static void xterm_hide_cursor(void *p, int hide) {
   }
 }
 
+static int xterm_check_iscii_font(void *p, ef_charset_t cs) {
+  return ui_font_cache_get_xfont(((ui_screen_t *)p)->font_man->font_cache,
+                                 NORMAL_FONT_OF(cs)) != NULL;
+}
+
 /*
  * callbacks of vt_pty_event_listener_t
  */
@@ -5679,6 +5680,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.show_sixel = xterm_show_sixel;
   screen->xterm_listener.add_frame_to_animation = xterm_add_frame_to_animation;
   screen->xterm_listener.hide_cursor = xterm_hide_cursor;
+  screen->xterm_listener.check_iscii_font = xterm_check_iscii_font;
 
   screen->config_listener.self = screen;
   screen->config_listener.exec = ui_screen_exec_cmd;
@@ -5724,7 +5726,6 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->im_listener.im_changed = im_changed;
   screen->im_listener.compare_key_state_with_modmap = compare_key_state_with_modmap;
   screen->im_listener.write_to_term = write_to_term;
-  screen->im_listener.get_unicode_policy = get_unicode_policy;
 
   ui_window_set_cursor(&screen->window, XC_xterm);
 

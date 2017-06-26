@@ -24031,7 +24031,7 @@ pixmap_engine)
 		echo "** ERROR **"
 		echo "pixmap_engine has undefined symbols. $host_os does NOT allow it."
 		echo ""
-	elif test "$gui" = "xlib" ; then
+	elif test "$gui" = "xlib" -a "$image" != "no"; then
 		if test "$have_gdk_pixbuf1" = "yes" -o "$have_gdk_pixbuf2" = "yes" ; then
 			MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 			OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"

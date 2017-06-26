@@ -4,7 +4,6 @@
 #define __UI_IM_CANDIDATE_SCREEN_H__
 
 #include <vt_char.h>
-#include <vt_parser.h> /* vt_unicode_policy_t */
 
 #include "ui_window.h"
 #include "ui_display.h"
@@ -31,6 +30,7 @@ typedef struct ui_im_candidate_screen {
 
   ui_font_manager_t *font_man;   /* same as attached screen */
   ui_color_manager_t *color_man; /* same as attached screen */
+  void *vtparser;                /* same as attached screen */
 
   ui_im_candidate_t *candidates;
   u_int num_of_candidates; /* == array size          */
@@ -48,8 +48,6 @@ typedef struct ui_im_candidate_screen {
   int8_t need_redraw;
   int dummy; /* XXX keep ABI */
 
-  vt_unicode_policy_t unicode_policy;
-
   /* ui_im_candidate_screen.c -> im plugins */
   ui_im_candidate_event_listener_t listener;
 
@@ -66,9 +64,11 @@ typedef struct ui_im_candidate_screen {
 
 } ui_im_candidate_screen_t;
 
-ui_im_candidate_screen_t *ui_im_candidate_screen_new(
-    ui_display_t *disp, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
-    int is_vertical_term, int is_vertical_direction, vt_unicode_policy_t unicode_policy,
-    u_int line_height_of_screen, int x, int y);
+ui_im_candidate_screen_t *ui_im_candidate_screen_new(ui_display_t *disp,
+                                                     ui_font_manager_t *font_man,
+                                                     ui_color_manager_t *color_man,
+                                                     void *vtparser, int is_vertical_term,
+                                                     int is_vertical_direction,
+                                                     u_int line_height_of_screen, int x, int y);
 
 #endif

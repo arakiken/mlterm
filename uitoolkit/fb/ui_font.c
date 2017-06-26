@@ -1273,7 +1273,18 @@ static FcPattern *fc_pattern_create(const FcChar8* family) {
   return pattern;
 }
 
-static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
+/* XXX Lazy check */
+static int check_iscii_font(FcPattern *pattern) {
+  FcValue val;
+
+  if (FcPatternGet(pattern, FC_FAMILY, 0, &val) == FcResultMatch && strstr(val.u.s, "-TT")) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+static FcPattern *parse_font_name(const char *fontname, u_int *percent, ef_charset_t cs) {
   FcPattern *pattern;
   FcPattern *match;
   FcResult result;
@@ -1289,6 +1300,14 @@ static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
 
   if ((pattern = fc_pattern_create(family))) {
     match = FcFontMatch(NULL, pattern, &result);
+
+    if (IS_ISCII(cs) && !check_iscii_font(match)) {
+      FcPatternDestroy(match);
+      FcPatternDestroy(pattern);
+
+      return NULL;
+    }
+
     if (compl_pattern == NULL) {
       num_of_fc_files = strip_pattern((compl_pattern = pattern), match);
     } else {
@@ -1300,6 +1319,7 @@ static FcPattern *parse_font_name(const char *fontname, u_int *percent) {
 
   return match;
 }
+
 #endif /* USE_FONTCONFIG */
 
 static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout,
@@ -1537,7 +1557,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     FcPattern *pattern;
     FcValue val;
 
-    if (!(pattern = parse_font_name(fontname, &percent))) {
+    if (!(pattern = parse_font_name(fontname, &percent, cs))) {
       return NULL;
     }
 

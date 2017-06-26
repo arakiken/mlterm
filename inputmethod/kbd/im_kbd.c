@@ -500,7 +500,7 @@ static int switch_mode(ui_im_t *im) {
 
     if (kbd->im.stat_screen == NULL) {
       if (!(kbd->im.stat_screen = (*syms->ui_im_status_screen_new)(
-                kbd->im.disp, kbd->im.font_man, kbd->im.color_man,
+                kbd->im.disp, kbd->im.font_man, kbd->im.color_man, kbd->im.vtparser,
                 (*kbd->im.listener->is_vertical)(kbd->im.listener->self),
                 (*kbd->im.listener->get_line_height)(kbd->im.listener->self), x, y))) {
 #ifdef DEBUG

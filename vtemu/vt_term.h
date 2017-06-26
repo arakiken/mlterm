@@ -261,8 +261,8 @@ int vt_term_enter_backscroll_mode(vt_term_t *term);
   vt_screen_get_word_region((term)->screen, beg_char_index, beg_row, end_char_index, end_row, \
                             base_char_index, base_row)
 
-#define vt_term_write_content(term, fd, conv, clear_at_end, beg, end) \
-  vt_screen_write_content(term->screen, fd, conv, clear_at_end, beg, end)
+#define vt_term_write_content(term, fd, conv, clear_at_end, area) \
+  vt_screen_write_content(term->screen, fd, conv, clear_at_end, area)
 
 #define vt_term_cursor_is_rtl(term) vt_screen_cursor_is_rtl((term)->screen)
 

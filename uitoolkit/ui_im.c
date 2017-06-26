@@ -4,6 +4,9 @@
 #include <pobl/bl_str.h> /* bl_str_alloca_dup bl_str_sep */
 #include <pobl/bl_locale.h>
 
+#include <vt_str.h>
+#include <vt_parser.h>
+
 #include "ui_im.h"
 #include "ui_event_source.h"
 
@@ -24,9 +27,9 @@ typedef ui_im_t *(*ui_im_new_func_t)(u_int64_t magic, vt_char_encoding_t term_en
 static ui_im_export_syms_t im_export_syms = {
     vt_str_init, vt_str_delete, vt_char_combine, vt_char_set, vt_get_char_encoding_name,
     vt_get_char_encoding, vt_convert_to_internal_ch, vt_isciikey_state_new,
-    vt_isciikey_state_delete, vt_convert_ascii_to_iscii, vt_char_encoding_parser_new, vt_char_encoding_conv_new,
-    ui_im_candidate_screen_new, ui_im_status_screen_new, ui_event_source_add_fd,
-    ui_event_source_remove_fd
+    vt_isciikey_state_delete, vt_convert_ascii_to_iscii, vt_char_encoding_parser_new,
+    vt_char_encoding_conv_new, ui_im_candidate_screen_new, ui_im_status_screen_new,
+    ui_event_source_add_fd, ui_event_source_remove_fd
 
 };
 
@@ -96,7 +99,7 @@ static int dlsym_im_new_func(char *im_name, ui_im_new_func_t *func, bl_dl_handle
 /* --- global functions --- */
 
 ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
-                   vt_char_encoding_t term_encoding, ui_im_event_listener_t *im_listener,
+                   void *vtparser, ui_im_event_listener_t *im_listener,
                    char *input_method, u_int mod_ignore_mask) {
   ui_im_t *im;
   ui_im_new_func_t func;
@@ -146,8 +149,8 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
   bl_locale_init(cur_locale);
 #endif
 
-  if (!(im = (*func)(IM_API_COMPAT_CHECK_MAGIC, term_encoding, &im_export_syms, im_attr,
-                     mod_ignore_mask))) {
+  if (!(im = (*func)(IM_API_COMPAT_CHECK_MAGIC, vt_parser_get_encoding((vt_parser_t*)vtparser),
+                     &im_export_syms, im_attr, mod_ignore_mask))) {
     bl_error_printf("%s: Could not open.\n", im_name);
 
     /*
@@ -175,6 +178,7 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
   im->disp = disp;
   im->font_man = font_man;
   im->color_man = color_man;
+  im->vtparser = vtparser;
   im->listener = im_listener;
   im->cand_screen = NULL;
   im->stat_screen = NULL;
@@ -264,7 +268,7 @@ void ui_im_redraw_preedit(ui_im_t *im, int is_focused) {
 #else /* ! USE_IM_PLUGIN */
 
 ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
-                   vt_char_encoding_t term_encoding, ui_im_event_listener_t *im_listener,
+                   void *vtparser, ui_im_event_listener_t *im_listener,
                    char *input_method, u_int mod_ignore_mask) {
   return NULL;
 }

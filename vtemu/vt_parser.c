@@ -5232,7 +5232,7 @@ static int parse_vt100_sequence(vt_parser_t *vt_parser) {
       ef_charset_t orig_cs;
 
       orig_cs = ch.cs;
-      ret = vt_convert_to_internal_ch(&ch, vt_parser->unicode_policy, vt_parser->gl);
+      ret = vt_convert_to_internal_ch(vt_parser, &ch);
 
       if (ret == 1) {
         if (vt_parser->gl != US_ASCII && orig_cs == US_ASCII) {
@@ -5747,7 +5747,7 @@ int vt_parser_change_encoding(vt_parser_t *vt_parser, vt_char_encoding_t encodin
 }
 
 size_t vt_parser_convert_to(vt_parser_t *vt_parser, u_char *dst, size_t len,
-                                  ef_parser_t *parser) {
+                            ef_parser_t *parser) {
   return (*vt_parser->cc_conv->convert)(vt_parser->cc_conv, dst, len, parser);
 }
 
@@ -5839,11 +5839,7 @@ int ef_map_ucs4_to_iscii(ef_char_t *non_ucs, u_int32_t ucs4_code);
  *  0:  Error
  *  -1: Control sequence
  */
-int vt_convert_to_internal_ch(ef_char_t *orig_ch,
-#if 0
-                              vt_char_encoding_t encoding,
-#endif
-                              vt_unicode_policy_t unicode_policy, ef_charset_t gl) {
+int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
   ef_char_t ch;
 
   ch = *orig_ch;
@@ -5854,7 +5850,7 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
   if (ch.cs == ISO10646_UCS4_1) {
     u_char decsp;
 
-    if ((unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT) &&
+    if ((vt_parser->unicode_policy & NOT_USE_UNICODE_BOXDRAW_FONT) &&
         (decsp = vt_convert_ucs_to_decsp(ef_char_to_int(&ch)))) {
       ch.ch[0] = decsp;
       ch.size = 1;
@@ -5863,7 +5859,8 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
     }
 #if 1
     /* See http://github.com/saitoha/drcsterm/ */
-    else if ((unicode_policy & USE_UNICODE_DRCS) && vt_convert_unicode_pua_to_drcs(&ch)) {
+    else if ((vt_parser->unicode_policy & USE_UNICODE_DRCS) &&
+             vt_convert_unicode_pua_to_drcs(&ch)) {
       /* do nothing */
     }
 #endif
@@ -5873,7 +5870,7 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
 
       ch.property = modify_ucs_property((code = ef_char_to_int(&ch)), ch.property);
 
-      if (unicode_policy & NOT_USE_UNICODE_FONT) {
+      if (vt_parser->unicode_policy & NOT_USE_UNICODE_FONT) {
         /* convert ucs4 to appropriate charset */
 
         if (!is_noconv_unicode(ch.ch) && ef_map_locale_ucs4_to(&non_ucs, &ch) &&
@@ -5891,10 +5888,19 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
       }
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-      if ((unicode_policy & CONVERT_UNICODE_TO_ISCII) && 0x900 <= code && code <= 0xd7f) {
-        if (ef_map_ucs4_to_iscii(&non_ucs, code)) {
+      if ((vt_parser->unicode_policy & CONVERT_UNICODE_TO_ISCII) &&
+          0x900 <= code && code <= 0xd7f) {
+        int ret = ef_map_ucs4_to_iscii(&non_ucs, code);
+
+        if (!HAS_XTERM_LISTENER(vt_parser,check_iscii_font) ||
+            /* non_ucs.cs is set if ef_map_ucs4_to_iscii() fails. */
+            !(*vt_parser->xterm_listener->check_iscii_font)(vt_parser->xterm_listener->self,
+                                                            non_ucs.cs)) {
+          goto end;
+        }
+
+        if (ret) {
           ch.ch[0] = non_ucs.ch[0];
-          /* non_ucs.cs is set if ef_map_ucs4_to_iscii() fails. */
           ch.cs = non_ucs.cs;
           ch.size = 1;
           /* ch.property is not changed. */
@@ -5962,7 +5968,7 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
       ;
     }
   } else if (ch.cs != US_ASCII) {
-    if ((unicode_policy & ONLY_USE_UNICODE_FONT) ||
+    if ((vt_parser->unicode_policy & ONLY_USE_UNICODE_FONT) ||
         /* XXX converting japanese gaiji to ucs. */
         ch.cs == JISC6226_1978_NEC_EXT || ch.cs == JISC6226_1978_NECIBM_EXT ||
         ch.cs == JISX0208_1983_MAC_EXT || ch.cs == SJIS_IBM_EXT ||
@@ -6002,13 +6008,13 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
     if (vt_is_msb_set(ch.cs)) {
       SET_MSB(ch.ch[0]);
     } else {
-      if (ch.cs == US_ASCII && gl != US_ASCII) {
+      if (ch.cs == US_ASCII && vt_parser->gl != US_ASCII) {
         /* XXX prev_ch should not be static. */
         static u_char prev_ch;
         static ef_charset_t prev_gl = US_ASCII;
 
-        if (IS_CS94MB(gl)) {
-          if (gl == prev_gl && prev_ch) {
+        if (IS_CS94MB(vt_parser->gl)) {
+          if (vt_parser->gl == prev_gl && prev_ch) {
             ch.ch[1] = ch.ch[0];
             ch.ch[0] = prev_ch;
             ch.size = 2;
@@ -6017,19 +6023,19 @@ int vt_convert_to_internal_ch(ef_char_t *orig_ch,
             prev_gl = US_ASCII;
           } else {
             prev_ch = ch.ch[0];
-            prev_gl = gl;
+            prev_gl = vt_parser->gl;
 
             return 0;
           }
         }
 
-        ch.cs = gl;
+        ch.cs = vt_parser->gl;
       }
 
       if (ch.cs == DEC_SPECIAL) {
         u_int16_t ucs;
 
-        if ((unicode_policy & ONLY_USE_UNICODE_BOXDRAW_FONT) &&
+        if ((vt_parser->unicode_policy & ONLY_USE_UNICODE_BOXDRAW_FONT) &&
             (ucs = vt_convert_decsp_to_ucs(ch.ch[0]))) {
           ef_int_to_bytes(ch.ch, 4, ucs);
           ch.size = 4;

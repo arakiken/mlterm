@@ -134,9 +134,7 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
       int is_fullwidth;
       int is_comb;
 
-      if ((*syms->vt_convert_to_internal_ch)(
-              &ch, (*canna->im.listener->get_unicode_policy)(canna->im.listener->self), US_ASCII) <=
-          0) {
+      if ((*syms->vt_convert_to_internal_ch)(canna->im.vtparser, &ch) <= 0) {
         continue;
       }
 
@@ -153,7 +151,7 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0)) {
+                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0, 0)) {
           continue;
         }
 
@@ -167,10 +165,10 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
       if (canna->im.preedit.cursor_offset <= canna->im.preedit.filled_len &&
           canna->im.preedit.filled_len < canna->im.preedit.cursor_offset + rev_len) {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_BG_COLOR,
-                             VT_FG_COLOR, 0, 0, 1, 0, 0);
+                             VT_FG_COLOR, 0, 0, 1, 0, 0, 0);
       } else {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                             VT_BG_COLOR, 0, 0, 1, 0, 0);
+                             VT_BG_COLOR, 0, 0, 1, 0, 0, 0);
       }
 
       p++;
@@ -202,7 +200,7 @@ candidate:
 
     if (canna->im.stat_screen == NULL) {
       if (!(canna->im.stat_screen = (*syms->ui_im_status_screen_new)(
-                canna->im.disp, canna->im.font_man, canna->im.color_man,
+                canna->im.disp, canna->im.font_man, canna->im.color_man, canna->im.vtparser,
                 (*canna->im.listener->is_vertical)(canna->im.listener->self),
                 (*canna->im.listener->get_line_height)(canna->im.listener->self), x, y))) {
 #ifdef DEBUG

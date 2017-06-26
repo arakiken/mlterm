@@ -5,8 +5,8 @@
 #ifdef USE_IM_PLUGIN
 
 #include <pobl/bl_mem.h>
-#include "vt_str.h"
-#include "vt_parser.h"
+#include <vt_str.h>
+#include <vt_parser.h>
 #include "ui_draw_str.h"
 
 #ifdef USE_CONSOLE
@@ -264,7 +264,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
     int is_comb = 0;
 
     /* -1 (== control sequence) is permitted for \n. */
-    if (!vt_convert_to_internal_ch(&ch, 0 /* unicode policy */, US_ASCII)) {
+    if (!vt_convert_to_internal_ch(stat_screen->vtparser, &ch)) {
       continue;
     }
 
@@ -342,8 +342,8 @@ static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int he
 /* --- global functions --- */
 
 ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manager_t *font_man,
-                                               ui_color_manager_t *color_man, int is_vertical,
-                                               u_int line_height, int x, int y) {
+                                               ui_color_manager_t *color_man, void *vtparser,
+                                               int is_vertical, u_int line_height, int x, int y) {
   ui_im_status_screen_t *stat_screen;
 
   if ((stat_screen = calloc(1, sizeof(ui_im_status_screen_t))) == NULL) {
@@ -356,6 +356,7 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manag
 
   stat_screen->font_man = font_man;
   stat_screen->color_man = color_man;
+  stat_screen->vtparser = vtparser;
 
   stat_screen->x = x;
   stat_screen->y = y;
@@ -415,8 +416,9 @@ error:
 #else /* ! USE_IM_PLUGIN */
 
 ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manager_t *font_man,
-                                               ui_color_manager_t *color_man, int is_vertical,
-                                               u_int line_height, int x, int y) {
+                                               ui_color_manager_t *color_man, void *vtparser,
+                                               int is_vertical, u_int line_height,
+                                               int x, int y) {
   return NULL;
 }
 

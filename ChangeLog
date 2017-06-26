@@ -1,3 +1,29 @@
+2017-06-25  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_edit.c: vt_edit_save_protected_chars() doesn't call malloc()
+	  until vt_char_is_protected() is true.
+
+	* ui_font_ft.c:
+	  - Whether a name of a loaded font for iscii is *-TT* or not is
+	    checked, and if not, x_font_new() returns NULL.
+	  - cairo_font_open() removes FC_*LANG from font->pattern.
+
+	* hb.c:
+	  - Characters are separated to segments and hb_shape() is called
+	    for each segment.
+	  - RTL scripts are supported.
+
+	* ui_im.[ch], im_*.c, ui_im_{candidate|status}_screen.c, vt_parser.[ch]:
+	  Arguments of vt_convert_to_internal_ch() and
+	  ui_im_{candidate|status}_screen_new() are changed.
+
+	* ef_ucs_property.table: Updated to Unicode 10.0.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
+2017-06-21  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_edit.c: vt_edit_save_protected_chars() is optimized.
+
 2017-06-21  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_screen.[ch], vt_term_manager.c, vt_parser.c:

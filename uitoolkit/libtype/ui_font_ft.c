@@ -313,6 +313,17 @@ static FcPattern *fc_pattern_create(char *family,                        /* can 
   return pattern;
 }
 
+/* XXX Lazy check */
+static int check_iscii_font(FcPattern *pattern) {
+  FcValue val;
+
+  if (FcPatternGet(pattern, FC_FAMILY, 0, &val) == FcResultMatch && strstr(val.u.s, "-TT")) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 #ifdef USE_TYPE_XFT
 
 static XftFont *xft_font_open(ui_font_t *font, char *family, /* can be NULL */
@@ -322,12 +333,13 @@ static XftFont *xft_font_open(ui_font_t *font, char *family, /* can be NULL */
   FcPattern *match;
   FcResult result;
   XftFont *xfont;
+  int is_iscii;
 
   if (!(pattern = fc_pattern_create(family, size, encoding, weight, slant, ch_width, aa_opt))) {
     return NULL;
   }
 
-  if (IS_ISCII(FONT_CS(font->id))) {
+  if ((is_iscii = IS_ISCII(FONT_CS(font->id)))) {
     /* no meaning on xft2 */
     FcPatternAddString(pattern, XFT_ENCODING, "apple-roman");
   }
@@ -338,18 +350,25 @@ static XftFont *xft_font_open(ui_font_t *font, char *family, /* can be NULL */
     return NULL;
   }
 
-#if 0
-  FcPatternPrint(match);
-#endif
-
-  if (!(xfont = XftFontOpenPattern(font->display, match))) {
+  if (is_iscii && !check_iscii_font(match)) {
     FcPatternDestroy(match);
 
     return NULL;
   }
 
+#if 0
+  FcPatternPrint(match);
+#endif
+
+  xfont = XftFontOpenPattern(font->display, match);
+  FcPatternDestroy(match);
+
+  if (!xfont) {
+    return NULL;
+  }
+
 #if 1
-  if (IS_ISCII(FONT_CS(font->id))) {
+  if (is_iscii) {
     FT_Face face;
     int count;
 
@@ -483,6 +502,12 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
     goto error1;
   }
 
+  cs = FONT_CS(font->id);
+
+  if (IS_ISCII(cs) && !check_iscii_font(match)) {
+    goto error2;
+  }
+
 #if 0
   FcPatternPrint(match);
 #endif
@@ -496,8 +521,6 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
 
     goto error2;
   }
-
-  cs = FONT_CS(font->id);
 
 #if 1
   if (IS_ISCII(cs)) {
@@ -551,6 +574,14 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
         }
       }
     }
+
+    FcPatternRemove(pattern, FC_FAMILYLANG, 0);
+    FcPatternRemove(pattern, FC_STYLELANG, 0);
+    FcPatternRemove(pattern, FC_FULLNAMELANG, 0);
+#ifdef FC_NAMELANG
+    FcPatternRemove(pattern, FC_NAMELANG, 0);
+#endif
+    FcPatternRemove(pattern, FC_LANG, 0);
 
     font->pattern = pattern;
   } else {

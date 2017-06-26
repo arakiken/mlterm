@@ -448,8 +448,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
       }
     }
 
-    if ((*syms->vt_convert_to_internal_ch)(&ch,
-           (*iiimf->im.listener->get_unicode_policy)(iiimf->im.listener->self), US_ASCII) <= 0) {
+    if ((*syms->vt_convert_to_internal_ch)(iiimf->im.vtparser, &ch) <= 0) {
       continue;
     }
 
@@ -466,7 +465,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
       is_comb = 1;
 
       if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0)) {
+                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0, 0)) {
         continue;
       }
 
@@ -476,7 +475,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
     }
 
     (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color,
-                         bg_color, is_bold, 0, is_underline, 0, 0);
+                         bg_color, is_bold, 0, is_underline, 0, 0, 0);
 
     p++;
     iiimf->im.preedit.filled_len++;
@@ -594,10 +593,9 @@ static void lookup_choice_change(im_iiimf_t *iiimf) {
 
     if (!(iiimf->im.cand_screen =
           (*syms->ui_im_candidate_screen_new)(iiimf->im.disp, iiimf->im.font_man,
-                                              iiimf->im.color_man,
+                                              iiimf->im.color_man, iiimf->im.vtparser,
                                               (*listener->is_vertical)(listener->self),
                                               is_vertical_direction,
-                                              (*listener->get_unicode_policy)(listener->self),
                                               (*listener->get_line_height)(listener->self),
                                               x, y))) {
 #ifdef DEBUG
@@ -693,7 +691,8 @@ static void status_change(im_iiimf_t *iiimf) {
 
   if (iiimf->im.stat_screen == NULL) {
     if (!(iiimf->im.stat_screen =
-          (*syms->ui_im_status_screen_new)(iiimf->im.disp, iiimf->im.font_man, iiimf->im.color_man,
+          (*syms->ui_im_status_screen_new)(iiimf->im.disp, iiimf->im.font_man,
+                                           iiimf->im.color_man, iiimf->vt.vtparser,
                                            (*listener->is_vertical)(listener->self),
                                            (*listener->get_line_height)(listener->self),
                                            x, y))) {
