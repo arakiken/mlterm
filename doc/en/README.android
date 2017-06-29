@@ -1,8 +1,6 @@
-comment -*- mode: text -*-
-comment update: <>
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
-Android support (Experimental)
+Android support
 
 * Tested environment
   Android 4.0 (x86)

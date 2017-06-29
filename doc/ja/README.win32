@@ -1,18 +1,17 @@
-comment -*- mode: text -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or Cygwin 1.7.26
+  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or MSYS2 or Cygwin 2.8.0
             + libssh2 1.4.3(win32 native)
             + GTK+ 2.12.9(win32 native)
             + Fribidi 0.19.2(win32 native)
 
 * ビルド
   (CC="i686-pc-mingw32-gcc") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
-			(--with-libintl-prefix=[GTK+(win32) installed directory]) \
-			(--with-libiconv-prefix=[GTK+(win32) installed directory])
+      (--with-libintl-prefix=[GTK+(win32) installed directory]) \
+      (--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
 
 * configure オプション
@@ -37,27 +36,28 @@ WIN32 native GUI 対応に関するメモ
   tool/mlimgloader/.libs/mlimgloader.exe
   をコピーしてください。
 
-  o MinGW or Cygwin(-mno-cygwin) で --enable-ssh2 なしでビルドした場合は、
-    win32/plink/plink.exe もコピーしてください。libssh2 を使用しない場合、リモー
-    トホストへの接続には plink.exe を使用しています。
-  o MSYS-DTK or Cygwin でビルドした場合は、ソースツリーの
+  o MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc など) で --enable-ssh2
+    なしでビルドした場合は、win32/plink/plink.exe もコピーしてください。
+    libssh2 を使用しない場合、リモートホストへの接続には plink.exe を使用します。
+  o MSYS-DTK or MSYS2 or Cygwin でビルドした場合は、ソースツリーの
     contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe もコピーしてください。
   o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ >= 2.0 をインストー
     ルしておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
     もコピーしてください。
-  o MSYS-DTK or Cygwin でビルドした場合は、make install でインストールしても
-    構いませんが、libmef の relink に失敗することがあるため、make install の
-    前に libmef.la の relink_command 行を削除してから make install してください。
+  o MSYS-DTK or MSYS2 or Cygwin でビルドした場合は、make install でインストール
+    しても構いませんが、libmef の relink に失敗することがあるため、make install
+    の前に libmef.la の relink_command 行を削除してから make install してくださ
+    い。
 
 * 環境設定
-  (MSYS-DTK or Cygwin でビルドした場合)
+  (MSYS-DTK or MSYS2 or Cygwin でビルドした場合)
   SYSCONFDIR/mlterm 及び各ユーザごとの $HOME/.mlterm/ 以下に設定ファイル
   (ソースツリーの etc/ 以下のファイル)を配置することにより環境設定を行うことが
   できます。
 
-  (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
+  (MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc など) でビルドした場合)
   [mlterm がインストールされたディレクトリ]\mlterm\ 及び各ユーザごとの
   %HOMEPATH%\mlterm\ (%HOMEPATH% が存在しないディレクトリの場合は %HOME%\.mlterm\)
   以下の設定ファイル(ソースツリーの etc/ 以下のファイル) を配置することにより
@@ -72,20 +72,20 @@ WIN32 native GUI 対応に関するメモ
 
   (エンコーディング)
   -E/--km/encoding オプションで AUTO を指定又は同オプションを指定しなかっ
-  た場合におけるエンコーディングは、MSYS-DTK or Cygwin でビルドした場合は
-  UTF-8、MinGW or Cygwin(-mno-cygwin) でビルドした場合には Windows の
-  CodePageに対応したエンコーディングとなります。
+  た場合におけるエンコーディングは、MSYS-DTK or MSYS2 or Cygwin でビルドした場合
+  は UTF-8、MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc など) でビルド
+  した場合には Windows の CodePageに対応したエンコーディングとなります。
 
 * 起動方法
   コマンドプロンプト等から次のとおり起動
   (又は win32/mlterm-{win32|msys_cygwin}.bat のようなバッチファイルを用意)
   
-  (MSYS-DTK or Cygwin でビルドした場合)
+  (MSYS-DTK or MSYS2 or Cygwin でビルドした場合)
   set HOME=c:\msys\...\home\...
   set CYGWIN=tty
   mlterm.exe (options...) -e /bin/sh --login -i
 
-  (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
+  (MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc など) でビルドした場合)
   set HOMEPATH=...
   mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
   ※ -e オプションを指定しない場合、起動時に、接続するサーバ、プロトコル、
@@ -127,9 +127,11 @@ WIN32 native GUI 対応に関するメモ
   o スクロールバーは、"simple" 又は "sample" のみ使用できます。
   o MinGW では、~/.mlterm/key の OPERATION の "exesel:..." では、mlclient 以外を
     実行することはできません。
+  o utmp は常に無効となります。
 
 * ソースコード
-  o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。
+  o USE_WIN32APIマクロ: MinGW 又は CYGWIN(gcc -mno-cygwin, i686-pc-mingw32-gcc
+                        など) でビルドする際に define されます。
   o USE_WIN32GUIマクロ: --with-gui=win32 の場合 define されます。
   o ファイル名 *_win32.c: --with-gui=win32 の場合に compile されます。
 

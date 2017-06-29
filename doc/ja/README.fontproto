@@ -1,7 +1,6 @@
-comment -*- mode: text -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
-Protocol.font について
+フォントの動的な変更について
 
 * 仕様
   o OSC 5379 で指定したフォント名は、各種 font ファイルで指定したフォント名を上書きする。

@@ -1,5 +1,4 @@
-comment -*- mode: text -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 w3mmlconfig (tool/w3mmlconfig) is a configuration program using w3m local-CGI.
 

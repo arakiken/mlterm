@@ -1,5 +1,4 @@
-comment -*- mode: text -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 BiDi / Indic と Xft / cairo 対応機能は、実行時に動的にロードする module としてビ
 ルドすることができます。
@@ -9,49 +8,50 @@ Lodable module 化するか、mlterm 本体に static link するかは、configure のオプシ
 * configure オプション
   o --disable-dl-ctl
     BiDi / Indic module の dynamic loading を行わないようにします。
-    --disable-dl-ctl と併せて -enable-fribidi 又は --enable-ind を指定してビルド
-    した場合、BiDi / Indic 対応機能は、mlterm 本体に組み込まれます。
+    --disable-dl-ctl と併せて、--disable-fribidi 又は --disable-ind を指定しない
+    限り、BiDi / Indic 対応機能は、mlterm 本体に組み込まれます。
 
   o --disable-dl-type
     Xft / cairo module の dynamic loading を行わないようにします。
-    --disable-dl-type と併せて --with-type-engines=xft,cairo を指定してビルド
-    した場合、Xft / cairo 対応機能は、mlterm 本体に組み込まれます。
+    --disable-dl-type と併せて、--with-type-engines=xcore により xft, cairo を無
+    効にしない限り、Xft / cairo 対応機能は、mlterm 本体に組み込まれます。
 
   o オプション指定の例
-    - オプション指定なし
-      mlterm 本体を BiDi / Indic / Xft / cairo 全ての module の dynamic loading
-      に対応 (Lodable module 自体はビルドしない。この場合、別途ビルドした
-      module を $prefix/lib/mlterm にコピーすることで、mlterm 本体を再ビルドしな
-      くても当該 module の機能を追加可能。)
+    - configure --disable-fribidi --disable-ind --with-type-engines=xcore
+      mlterm 本体は BiDi / Indic / Xft / cairo 全ての module の dynamic loading
+      に対応するものの、Lodable module 自体はビルドしない。この場合、別途ビルド
+      した module を $prefix/lib/mlterm にコピーすることで、mlterm 本体を再ビル
+      ドしなくても当該 module の機能を追加可能。
 
-    - configure --enable-fribidi --enable-ind
+    - configure --with-type-engines=xcore
       BiDi / Indic 対応機能を lodable module としてビルド
       Xft / cairo module はビルドしないが、mlterm 本体は、Xft / cairo module の
       dynamic loading に対応
 
-    - configure --enable-fribidi --enable-ind --disable-dl-ctl
+    - configure --disable-dl-ctl --with-type-engines=xcore
       BiDi / Indic 対応機能を mlterm 本体に組み込み(lodable module にはしない)
       Xft / cairo module はビルドしないが、mlterm 本体は、Xft / cairo module の
       dynamic loading に対応
 
-    - configure --with-type-engines=xcore,xft,cairo
+    - configure --disable-fribidi --disable-ind
       Xft / Cairo 対応機能を loadable module としてビルド
       (xcore は lodable module にできないため、mlterm 本体に組み込み)
       BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
       dynamic loading に対応
 
-    - configure --with-type-engines=xft,cairo
+    - configure --disable-fribidi --disable-ind --with-type-engines=xft,cairo
       Xft / Cairo 対応機能を loadable module としてビルド
       (--disable-dl-type が指定されない場合、xcore は必ず mlterm 本体に組み込み)
       BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
       dynamic loading に対応
 
-    - configure --with-type-engines=xcore,xft,cairo --disable-dl-type
+    - configure --disable-dl-type --disable-fribidi --disable-ind
       xcore/ Xft / Cairo 対応機能を mlterm 本体に組み込み
       BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
       dynamic loading に対応
 
-    - configure --with-type-engines=cairo --disable-dl-type
+    - configure --with-type-engines=cairo --disable-dl-type --disable-fribidi \
+      --disable-ind
       Cairo 対応機能のみを mlterm 本体に組み込み
       BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
       dynamic loading に対応

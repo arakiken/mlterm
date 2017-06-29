@@ -51,12 +51,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --with-gui
       GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland のいず
-      れを使用するか指定します。それぞれの詳細は以下を参照してください。
-
-      win32: doc/en/README.win32, doc/ja/README.win32
-      fb: doc/en/README.fb, doc/ja/README.fb
-      quartz: doc/en/README.cocoa
-      console: doc/en/README.console
+      れを使用するか指定します。
+      (「対応プラットフォーム」の項目参照)
 
     --with-imagelib=(gdk-pixbuf)
       mlterm 本体に gdk-pixbuf をリンクし、壁紙やアイコンの画像を扱えるようにし
@@ -90,9 +86,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --disable-fribidi
       Fribidi を用いた Bidi レンダリングを無効にします。
+      (see doc/en/README.bidi)
 
     --disable-ind
       インド諸語の表示を無効にします。
+      (see doc/en/README.indic)
 
     --disable-dl-ctl
       BiDi 及び インド諸語を表示するためのモジュールの動的ローディングを無効にし、
@@ -186,7 +184,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       OpenType フォントの置換グリフ等を使った表示を無効にします。
 
     --enable-brlapi
-      brlapi ライブラリを使って brltty サーバに接続します。
+      brlapi ライブラリを使って brltty サーバに接続します。(Experimental)
+      (see doc/en/README.brltty)
 
     --disable-shared
       共有ライブラリを構築しません。
@@ -196,6 +195,20 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --with-libtool=[path]
       libtool を自動生成せず、システムのlibtoolを使うよう指定します。
+
+* 対応プラットフォーム
+  o Linux, *BSD (X11, Framebuffer, Wayland or Console)
+  o Solaris (X11 or Console)
+  o MacOSX 10.6 (X11 or Cocoa)
+  o Windows XP or later
+  o Cygwin (X11 or Win32GDI)
+  o MSYS2 (Win32GDI)
+  o Android 3.x or later.
+  o Java (SWT)
+
+  詳細は、doc/ja 内の README.fb, README.win32, Usage.win32 又は doc/en 内の
+  README.android, README.cocoa, README.console, README.wayland を参照してくださ
+  い。
 
 * 主な機能
   o アンチエイリアス
@@ -263,27 +276,32 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
   o vte compatible library
     mlterm の機能(一部制限あり)を、(ほぼ) vte 互換の API で wrap したライブラリ
-    (libvte.so.9) を提供しています。
-    システムにインストールされている libvte.so.9 を置きかえることにより、
+    (libvte.so.9, libvte2_90.so.9, libvte-2.91.so.0) を提供しています。
+    システムにインストールされている libvte.so.9 等を置きかえることにより、
     gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
-    GTK+ (2.x 以上) が必要となります。(gtk/INSTALL 参照)
+    GTK+ (2.x 以上) が必要となります。
+    (see gtk/README)
 
   o ssh2 client
     ssh2 client として直接 ssh2 server に接続することができます。
     libssh2 (http://www.libssh2.org) が必要となります。
-    なお、共通鍵暗号方式として camellia を利用する場合は、
+    なお、共通鍵暗号方式として camellia を利用する場合や、Agent forwarding 機能
+    が必要な場合は、
     https://bitbucket.org/arakiken/libssh2/downloads から、camellia branch の
     libssh2 をインストールしてください。
     (例 mlterm(mlclient) --serv ssh://user@host:22)
+    (see doc/ja/README.ssh)
 
   o auto-restart
     バグ等により mlterm が実行不能となった場合でも、(できるだけ)その中で動いてい
     るコンソールアプリケーションを引き継いだ mlterm を自動的に再起動し、コンソー
     ルアプリケーションを保護します。
+    (see "auto_restart" option)
 
   o local echo mode
     キー入力に対する処理結果がコンソールアプリケーションから返ってくる前に、
     前もって画面に表示することにより、体感的な応答速度を向上します。
+    (see "use_local_echo" option)
 
   o ReGIS 及び Sixel Graphics
     ReGIS の一部機能及び Sixel Graphics に対応しています。
@@ -977,140 +995,140 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       (*) Unicode のインド諸語は、mlterm 内部で一旦 ISCII に変換され、ISCII_XXX
           フォントにより表示されます。
 
-        それぞれのボールド体のフォントを指定したい場合には、
-        ISO8859_1_BOLD
-        のように、"_BOLD"をつけた名前で指定して下さい。
-  また、イタリックのフォントを指定したい場合には、
-  ISO8859_1_ITALIC
-  のようにしてください。
-  _BOLD_ITALIC のように両方指定することもできます。
+      それぞれのボールド体のフォントを指定したい場合には、
+      ISO8859_1_BOLD
+      のように、"_BOLD"をつけた名前で指定して下さい。
+      また、イタリックのフォントを指定したい場合には、
+      ISO8859_1_ITALIC
+      のようにしてください。
+      _BOLD_ITALIC のように両方指定することもできます。
 
-  上記文字集合ごとに使用したいフォント名を指定します。
+      上記文字集合ごとに使用したいフォント名を指定します。
+
+      o font/vfont/tfont
+        (--with-gui=xlib の場合)
+        [XLFD(*)](:[percentage])
+        (*) もしくは、fonts.aliasで定義している省略記法。
+
         フォント名に %d を含めておくと、そこにフォントサイズが入ります。
         例) ISO8859_1 = -kochi-mincho-medium-*--%d-*-iso8859-1
 
-        o font/vfont/tfont
-          (--with-gui=xlib の場合)
-          [XLFD(*)](:[percentage])
-          (--with-gui=win32 の場合)
-          [font family]( Bold Italic [font size]:[percentage])
-    (--with-gui=fb の場合)
-    [font file path]
+        (--with-gui=win32, --with-gui=quartz の場合)
+        [font family]( Bold Italic [font size]:[percentage])
 
-          (*) もしくは、fonts.aliasで定義している省略記法。
+        (--with-gui=fb の場合)
+        [font file path]
 
-        o aafont/vaafont/taafont
-          [font family]( Bold Italic [font size]:[percentage])
+      o aafont/vaafont/taafont
+        [font family]( Bold Italic [font size]:[percentage])
 
-          percentage は、そのフォントのグリフを表示するに、フォントサイズの何
-          パーセント分の幅をとるかを指定します。
-          例えば、フォントサイズが 12 の場合に、percentage として 100 を指定す
-          ると、半角文字なら幅 6 , 全角文字なら幅 12 がとられます。
+        percentage は、そのフォントのグリフを表示するに、フォントサイズの何パー
+        セント分の幅をとるかを指定します。
+        例えば、フォントサイズが 12 の場合に、percentage として 100 を指定する
+        と、半角文字なら幅 6 , 全角文字なら幅 12 がとられます。
 
-          percentage 指定がない場合、通常の X フォントについては、そのフォントの
-          最大幅が、Xft or cairo フォントについては、'W'が収まるだけの幅がとられ
-          ます。
+        percentage 指定がない場合、通常の X フォントについては、そのフォントの
+        最大幅が、Xft or cairo フォントについては、'M'が収まるだけの幅がとられ
+        ます。
 
-          percentage は、微妙に大きさの異なるフォントを組み合わせる場合の微調
-          整や、フォントの最大幅、'W' の幅が大きすぎるようなプロポーショナルフォ
-          ントを使用する場合などに使います。
-
-          とくに、Dynalab フォントのように、'W' が全角幅で収められているフォン
-          トを使用する場合は、必ず適切な指定を行なってください。
-
-          e.g.)
-          JISX0208_1983 = Hoge:100;
-
-          但し、表示の際に基準となるフォント(US-ASCII相当のグリフを表示するフォ
-          ント) 以外のフォントの percentage 指定は無視され、できるだけ基準フォ
-          ントに合うような表示が優先されます。
-
-          また、縦用フォントは、デフォルトで、すべて全角幅となりますので、
-
-          ISO8859_1 = a10:100;
-
-          のようにすると、a10 フォントを無理矢理横幅 10 point で表示します。
-
-          percentage 指定の結果、プロポーショナルフォントを固定幅で表示する場
-          合と同じ扱いになる場合があります。その際は、描画速度が低下しますので
-          注意してください。
-
-        vfont または、vaafont , taafont に、条件にあうフォントが見つからない場
-        合、それぞれ font , aafont が参照されます。
-
-        フォントが指定されていない文字については、mltermが適当に判断して表示し
-        ます。ただし、TCVN5712フォントについては、自動検索しませんので、
-        font/aafont にて指定するようにしてください。
-
-        ボールド体が指定されていない場合は、mediumフォントとして指定れたフォン
-        ト、もしくは、mltermが適当に見つけ出したmediumフォントを重ね打ちして、
-        それっぽくみせます。
-        ボールド体フォントとして、mediumフォントを指定してやれば、重ねうちはしま
-        せん。
-        また、アンチエイリアスフォントについては、いずれにせよ、重ねうちはしませ
-        ん。
-
-        DEFAULT を font, vfont 及び tfont で指定した場合は、XLFD フォント名の
-        末尾に文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意
-        してください。
-        また、DEFAULT を指定したフォント名は、Input Method で使用するフォント
-        (FontSet) には影響しません。
+        percentage は、微妙に大きさの異なるフォントを組み合わせる場合の微調整
+        や、フォントの最大幅、'M' の幅が大きすぎるようなプロポーショナルフォント
+        を使用する場合などに使います。
 
         e.g.)
-        DEFAULT = -kochi-mincho-medium-*--%d-*-;12,-kochi-gothic-medium-*--12-*-
-        => フォントサイズ 13 で ISO8859_1 を表示する場合、
-           -kochi-mincho-medium-*--13-*-iso8859-1 となり、
-           フォントサイズ 12 で ISO8859_1 を表示する場合、
-           -kochi-gothic-medium-*--12-*-iso8859-1 となります。
+        JISX0208_1983 = Hoge:100;
 
-        DEC_SPECIAL は、罫線文字の含まれている iso8859-1 フォントを指定してくだ
-        さい。
+        但し、表示の際に基準となるフォント(US-ASCII相当のグリフを表示するフォン
+        ト) 以外のフォントの percentage 指定は無視され、できるだけ基準フォント
+        に合うような表示が優先されます。
 
-        GB18030 については、
-        1-byte char : US_ASCII
-        2-byte char : GBK
-        4-byte char : Unicode
-        フォントを使用します。
+        また、縦用フォントは、デフォルトで、すべて全角幅となりますので、
 
-        CP932 の外字(NEC特殊文字、NEC選定IBM拡張文字、IBM拡張文字)については、
-        Unicode に変換して、Unicode フォントを使用します。
-        この場合、記号文字など半角全角のあいまいな文字を表示するには、-ac 2
-  オプションをつけて mlterm を起動し、かつ、ISO10646_UCS4_1 に、記号文字が
-  全角になっている Unicode フォントを指定する必要があります。
+        ISO8859_1 = a10:100;
 
-        Unicode の U+1F000-1F6FF については、~/.mlterm/emoji 以下に 1fXXX.png と
-        いう画像ファイルがあれば、それを適宜拡縮して表示します。画像ファイルは、
-        https://github.com/github/gemoji/archive/master.zip 内の
-        images/emoji/unicode/*.png をコピーしてください。
+        のようにすると、a10 フォントを無理矢理横幅 10 point で表示します。
 
-        X Input Method のフォントは、なるべく端末画面で使用されているそれと同じ
-        ものが使用されます。
-        アンチエイリアス中は、font , vfont から適当なフォントを探します。
-        ただし、縦用フォントについては、tfont , taafont ではなく、font で指定し
-        たフォントが使用されます。
+        percentage 指定の結果、プロポーショナルフォントを固定幅で表示する場合と
+        同じ扱いになる場合があります。その際は、描画速度が低下しますので注意して
+        ください。
 
-        なお、フォント指定については、Ctrl+右ボタンで表示される設定画面の
-        "フォント" タブの "Select" ボタンで選択することができます("Select" ボタン
-        を押下したときに、XLFD か Xft のどちらの選択画面が表示されるかは、"Xft"
-        チェックボックスがチェックされているかどうかによります。)。
+        なお、mlfc コマンドを実行すると、~/.mlterm/aafont を自動的に生成します。
 
-        例えば、"DEFAULT" として、
-        Font:       => fixed (misc)
-        Font Style: => medium [C]
-        Size:       => 14
-        を選択すると、次のように設定されます。
+      vfont または、vaafont, taafont に、条件にあうフォントが見つからない場合、
+      それぞれ font, aafont が参照されます。
 
-        DEFAULT = -misc-fixed-medium-r-normal-*-14-*-*-*-c-*-
-        (この結果、fontsize オプションを変更しても常に 14 pixel のフォントが
-        表示されることになるため、注意してください。)
+      フォントが指定されていない文字については、mltermが適当に判断して表示しま
+      す。ただし、TCVN5712フォントについては、自動検索しませんので、font, aafont
+      にて指定するようにしてください。
 
-        また、"ISO10646_1" として、
-        Font:       => fixed (misc)
-        Font Style: => medium [C]
-        Size:       => 20
-        を選択すると、次のように設定されます。
+      ボールド体が指定されていない場合は、mediumフォントとして指定れたフォント、
+      もしくは、mltermが適当に見つけ出したmediumフォントを重ね打ちして、それっぽ
+      くみせます。
+      ボールド体フォントとして、mediumフォントを指定してやれば、重ね打ちはしませ
+      ん。
+      なお、cairo の場合は必ず重ね打ちし、xft の場合は重ね打ちはしません。
 
-        ISO10646_UCS4_1 = -misc-fixed-medium-r-normal--20-200-75-75-c-100-iso10646-1
+      DEFAULT を font, vfont 及び tfont で指定した場合は、XLFD フォント名の末尾
+      に文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意してく
+      ださい。
+      また、DEFAULT を指定したフォント名は、Input Method で使用するフォント
+      (FontSet) には影響しません。
+
+      e.g.)
+      DEFAULT = -kochi-mincho-medium-*--%d-*-;12,-kochi-gothic-medium-*--12-*-
+      => フォントサイズ 13 で ISO8859_1 を表示する場合、
+         -kochi-mincho-medium-*--13-*-iso8859-1 となり、
+         フォントサイズ 12 で ISO8859_1 を表示する場合、
+         -kochi-gothic-medium-*--12-*-iso8859-1 となります。
+
+      DEC_SPECIAL は、罫線文字の含まれている iso8859-1 フォントを指定してくださ
+      い。
+
+      GB18030 については、
+      1-byte char : US_ASCII
+      2-byte char : GBK
+      4-byte char : Unicode
+      フォントを使用します。
+
+      CP932 の外字(NEC特殊文字、NEC選定IBM拡張文字、IBM拡張文字)については、
+      Unicode に変換して、Unicode フォントを使用します。
+      この場合、記号文字など半角全角のあいまいな文字を表示するには、-ac 2
+      オプションをつけて mlterm を起動し、かつ、ISO10646_UCS4_1 に、記号文字が
+      全角になっている Unicode フォントを指定する必要があります。
+
+      Unicode の U+1F000-1F6FF については、~/.mlterm/emoji 以下に 1fXXX.png と
+      いう画像ファイルがあれば、それを適宜拡縮して表示します。画像ファイルは、
+      https://github.com/github/gemoji/archive/master.zip 内の
+      images/emoji/unicode/*.png をコピーしてください。
+
+      X Input Method のフォントは、なるべく端末画面で使用されているそれと同じ
+      ものが使用されます。
+      アンチエイリアス中は、font , vfont から適当なフォントを探します。
+      ただし、縦用フォントについては、tfont , taafont ではなく、font で指定し
+      たフォントが使用されます。
+
+      なお、フォント指定については、Ctrl+右ボタンで表示される設定画面の
+      "フォント" タブの "Select" ボタンで選択することができます("Select" ボタン
+      を押下したときに、XLFD か Xft のどちらの選択画面が表示されるかは、"Xft"
+      チェックボックスがチェックされているかどうかによります。)。
+
+      例えば、"DEFAULT" として、
+      Font:       => fixed (misc)
+      Font Style: => medium [C]
+      Size:       => 14
+      を選択すると、次のように設定されます。
+
+      DEFAULT = -misc-fixed-medium-r-normal-*-14-*-*-*-c-*-
+      (この結果、fontsize オプションを変更しても常に 14 pixel のフォントが
+      表示されることになるため、注意してください。)
+
+      また、"ISO10646_1" として、
+      Font:       => fixed (misc)
+      Font Style: => medium [C]
+      Size:       => 20
+      を選択すると、次のように設定されます。
+
+      ISO10646_UCS4_1 = -misc-fixed-medium-r-normal--20-200-75-75-c-100-iso10646-1
 
     o color
       既存の色名の RGB 値を変更することができます。フォーマットは以下のとおり。

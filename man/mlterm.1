@@ -1745,7 +1745,9 @@ In "\fBaafont\fR", "\fBvaafont\fR", "\fBtaafont\fR" files, "\fIfont\fR" is speci
 "\fIFAMILY WEIGHT SLANT SIZE\fR:\fIPERCENT\fR"
 format.
 ":\fIPERCENT\fR" is multiplied by font size and decides character width of a font.
-If ":\fIPERCENT\fR" is omitted, 'W' width is used for it.
+If ":\fIPERCENT\fR" is omitted, 'M' width is used for it.
+.PP
+\fBmlfc\fR command generates ~/.mlterm/aafont automatically.
 .PP
 .RE
 .TP
@@ -2060,6 +2062,12 @@ for mlterm on Android.
 \fBREADME.cocoa\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.cocoa)
 for mlterm on MacOSX/Cocoa.
 .PP
+\fBREADME.console\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.console)
+for mlterm on Console.
+.PP
+\fBREADME.wayland\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.wayland)
+for mlterm on Wayland.
+.PP
 \fBREADME.indic\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.indic)
 for indic scripts.
 .PP
@@ -2068,6 +2076,9 @@ for ssh connection with the use of libssh2 (http://www.libssh2.org).
 .PP
 \fBREADME.sb\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.sb)
 for development of scrollbar library.
+.PP
+\fBREADME.brltty\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.brltty)
+for accessibility with the use of brlapi. (http://brl.thefreecat.org).
 .PP
 Mapping tables between Unicode and local character sets
 (and encodings) are found at Unicode Consortium web site
@@ -2095,5 +2106,8 @@ Configuration files.
 .SH CONTACT
 Subscribe mlterm-dev-en ML
 (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
+
+Attach ~/.mlterm/msg.log, backtrace log and related files to your report
+if at all possible.
 
 \"  LocalWords:  stbs backscroll bel crfg mc sbfg cjk mongol

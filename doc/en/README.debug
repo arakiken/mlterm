@@ -1,11 +1,10 @@
-comment -*- mode: text -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 How to debug mlterm?
 
-If you find something strange and try to send me a report,
-please send log messages by --logseq option (which are outputed
-to ~/.mlterm/[device].log files) to mlterm-dev-en list.
+If you find something strange, report it to mlterm-dev-en ML with
+~/.mlterm/msg.log, a log message by --logseq option
+(which outputs a ~/.mlterm/[device].log file) and related files.
 
 Following options can be more helpful.
 

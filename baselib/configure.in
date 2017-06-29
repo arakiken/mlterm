@@ -95,7 +95,7 @@ cygwin*)
 		;;
 	esac
 	;;
-mingw32*)
+mingw*)
 	bl_cv_mingw32=yes
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		case "${lt_cv_path_LD}" in

@@ -1,10 +1,9 @@
-comment -*- mode: text; indent-tabs-mode:nil -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 Framebuffer 対応に関するメモ
 
 * テスト環境
-  Ubuntu 14.10
+  Fedora 25
   CentOS 5
   (Linux kernel 2.6 以降対応)
 
@@ -32,9 +31,12 @@ Framebuffer 対応に関するメモ
     フォントを設定してください。font-fb のフォーマットは font と基本的には同じ
     ですが、XLFD ではなく、使用するフォントファイルのパスを記載します。
     (etc/font-fb がサンプルです。)
+
     なお、true type フォントを使用する場合は、mlterm-fb を
     ./configure --enable-anti-alias
     してビルドしてください。
+    mlfc コマンドを実行すると、true type フォントを検索し、~/.mlterm/font-fb を
+    自動的に生成します。
 
     また、--enable-fontconfig オプションでビルドし、mlterm-fb --aafont と起動す
     ると、~/.mlterm/*font-fb ではなく、~/.mlterm/*aafont の設定を読み込み、

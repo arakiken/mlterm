@@ -1,4 +1,4 @@
-comment -*- mode: text; indent-tabs-mode:nil -*-
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 Support brltty with the use of brlapi
 

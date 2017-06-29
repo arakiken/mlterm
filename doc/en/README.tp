@@ -1,7 +1,6 @@
-comment -*- mode: text -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
-Platforms where transparent background feature is supported.
+Platforms where pseudo transparent background feature is supported.
 (--with-imagelib=gdk-pixbuf option is not necessary in configure.)
 
 @ -> -t and -alpha/-contrast/-gamma/-bright options work.

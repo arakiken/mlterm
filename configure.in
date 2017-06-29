@@ -98,7 +98,7 @@ fi
 ml_cv_is_posix="yes"
 
 case "${host_os}" in
-mingw32*)
+mingw*)
 	CYGPATHW=echo
 	WIN32TAG=_win32
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
@@ -789,6 +789,12 @@ AC_ARG_ENABLE(utmp,
 	[
 	case "${host_os}" in
 	*darwin*)
+		utmp="no"
+		;;
+	mingw*)
+		utmp="no"
+		;;
+	cygwin*)
 		utmp="no"
 		;;
 	*)

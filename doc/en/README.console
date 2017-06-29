@@ -1,5 +1,4 @@
-comment -*- mode: text -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 Console support (similar to GNU screen)
 
@@ -21,7 +20,7 @@ Console support (similar to GNU screen)
 
     OPTION:  console_encoding  encoding
                     |              |
-            xterm8 <=> mlterm-con <=> vim
+            xterm <=> mlterm-con <=> vim
 
   o default_cell_size
     Cell width and height in pixel if mlterm-con can't get them by TIOCGWINSZ.

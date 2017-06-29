@@ -1,10 +1,9 @@
-comment -*- mode: text; indent-tabs-mode:nil -*-
-comment $Id$
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 Framebuffer support
 
 * Tested environment
-  Ubuntu 14.10
+  Fedora 25
   CentOS 5
   (Linux kernel 2.6 or later)
 
