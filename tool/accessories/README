@@ -37,3 +37,9 @@ Utility scripts for mlterm.
     $ xconsole.sh
 
     Exit by control+c.
+
+* mlsplit.sh
+  Split screen and initialize encoding and input_method options.
+
+  o Usage
+    $ mlsplit.sh

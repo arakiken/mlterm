@@ -3,7 +3,7 @@ ver 3.8.2
 * Support DECRQDE, DECSCUSR(Ps = 3,4,5,6), DECATC, DECRQM, DECRQMH, DECSCA,
   DECERA, DECSEL and DECSED.
 * Support SGR of DECRQSS.
-* Support MC and DECMC which outputs screen contents to ~/.mlterm/[tty]-YYYYMMDDHHMMSS.snp.
+* Support MC and DECMC which output screen contents to ~/.mlterm/[tty]-YYYYMMDDHHMMSS.snp.
 * Add "baseline_offset" / --blpos option.
 * Revive iiimf input method plugin.
   (--disable-iiimf optoin of configure script disables this feature.)
@@ -18,8 +18,9 @@ ver 3.8.2
   Fix a redrawing problem in inserting RTL characters between LTR ones or vice-versa.
   Fix unexpected erasing of DECIC and DECDC.
   Fix a bug which occupies 100% of CPU in switching mlterm-fb to an inactive
-	console on linux.
+  console on linux.
   Fix freeze in copy&paste between windows of libvte compatible library.
+  <dev> in OSC 5379;<dev>:a=b works.
 
 ver 3.8.1
 * Support wayland including libvte compatible library.

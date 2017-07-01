@@ -6288,17 +6288,18 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     }
   }
 
-/*
- * XXX
- * 'dev' is not used for now, since many static functions used below use
- * screen->term internally.
- */
-#if 0
-  if (dev && HAS_SYSTEM_LISTENER(screen, get_pty)) {
-    term = (*screen->system_listener->get_pty)(screen->system_listener->self, dev);
-  } else
-#endif
-  {
+  if (dev) {
+    /*
+     * XXX
+     * If vt_term_t isn't attached to ui_screen_t, return 0 because
+     * many static functions used below use screen->term internally.
+     */
+    if ((term = vt_get_term(dev)) && vt_term_is_attached(term)) {
+      screen = term->parser->config_listener->self;
+    } else {
+      return 0;
+    }
+  } else {
     term = screen->term;
   }
 

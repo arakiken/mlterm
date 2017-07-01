@@ -829,7 +829,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o regard_uri_as_word (true/*false*) (#)
         URI をダブルクリックすると、word_separators オプションに関わらず、当該
-  URI を一単語として選択する。
+        URI を一単語として選択する。
 
       o mod_meta_key (*none*/mod1/mod2/mod3/mod4/meta/alt/super/hyper)
         Meta キーとして使用するキーを指定

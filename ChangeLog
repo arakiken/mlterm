@@ -1,3 +1,11 @@
+2017-07-02  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: <dev> in OSC 5379;<dev>:a=b works.
+
+	* vt_parser.c: "challenge" of OSC 5380 works from console not only mlconfig.
+
+	* accessories/mlsplit.sh: Added.
+
 2017-06-29  Araki Ken  <arakiken@users.sf.net>
 
 	* README*, man/mlterm.1: Updated.

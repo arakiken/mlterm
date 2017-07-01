@@ -6245,10 +6245,9 @@ int vt_parser_get_config(
       value = "false";
     }
   } else if (strcmp(key, "challenge") == 0) {
-    if (to_menu) {
-      value = vt_get_proto_challenge();
-    } else {
-      value = "";
+    value = vt_get_proto_challenge();
+    if (to_menu < 0) {
+      to_menu = 0;
     }
   } else {
     /* Continue to process it in x_screen.c */
