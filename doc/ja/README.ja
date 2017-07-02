@@ -3,6 +3,134 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 * mltermとは
   Multi Lingual TERMinal の略です。
 
+* 主な機能
+  o Complex Text Layouting
+    BiDi やインド諸語を表示することができます。
+
+    Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
+    (see doc/en/README.bidi)
+
+    インド諸語の表示については、次の2つの方法があります。
+    1) libind (mltermのソースアーカイブに同梱) と ISCII フォントを使う方法
+    2) harfbuzz と OpenType Layout フォントを使う方法
+    (see doc/en/README.indic)
+
+  o アンチエイリアス
+    フォントのアンチエイリアス表示をサポートしています。
+    これには、X の Xrender extension に対応した Xft or cairo を利用しています。
+
+    なお、Xft、cairo、通常の X フォントのどれを使うかは、動的に切替え可能です。
+
+    XFree86 4.0.2 以上
+    freetype 2.0.2 以上
+    が必要です。
+
+  o 壁紙、背景透過
+    壁紙を貼ったり背景を擬似的に透過させることができます。
+
+    壁紙を貼るには、gdk-pixbuf (GTK+ 2.x 以上) が必要です。
+
+  o マルチPTY
+    単一プロセス中から、--maxptys オプションで指定した上限数(デフォルトでは 32)
+    までの pty セッションを立ち上げることができます。
+    Ctrl+F2(デフォルト)で、新しい pty セッションを立ち上げることができます。
+    -@ オプションで、mlterm 起動時に立ち上げる ウィンドウの数を指定できます。
+    Ctrl+F1(デフォルト)で、新しいウィンドウを立ち上げることができます。
+    Ctrl+F3(NEXT)、Ctrl+F4(PREV)で、ウィンドウ上で表示する pty セッションを切り
+    替えることができます。
+    Ctrl+左ボタン(デフォルト)では、mlterm-menu が起動し、現在 background にある
+    pty に切り替えることができます。
+    (see doc/ja/README.pty)
+
+  o 画面分割
+    一つのウィンドウを分割し、複数の pty セッションを表示することができます。
+    Shift+F1(デフォルト)で横方向に、Shift+F2(デフォルト)で縦方向に分割できます。
+    Shift+F3(NEXT)、Shift+F4(PREV)で、分割された画面を移動できます。
+    Shift+F5(デフォルト)で分割を解除できます。
+
+  o マルチXIM
+    複数の XIM を動的に切替えて使用することができます。
+    たとえば、端末側が UTF8 エンコーディングで、kinput2 と Ami を切替えながら、
+    日本語ハングル混在の文章を入力できます。
+    (see doc/ja/README.xim)
+
+  o インプットメソッド プラグイン
+    uim、m17n library、scim、ibus、fcitx、canna、wnn、skk 及び iiimf に対応して
+    います。
+    プラグインとして使用時だけロードされます。マルチXIMと同様に動的変更が可能で
+    端末のエンコーディングに依存しません。
+
+  o プロポーショナルフォント
+    プロポーショナルフォントも使用できます。
+    この場合、-V オプションで、コラム幅を可変にするか、固定にするかを指定するこ
+    とができます。
+    プロポーショナルフォントをコラム幅固定で使用する場合、一文字ずつ描画して無理
+    矢理隙間を埋めますので、描画パフォーマンスが低下します。
+
+  o 縦書き表示
+    右から左、左から右の縦書き表示をサポートしています。
+    通常日本語の縦書き表示をするためには、-G cjk オプションを指定してください。
+    (see doc/ja/README.tate)
+
+  o mlterm configuration protocol
+    設定変更のための専用シーケンスを定義しています。
+    これにより、設定を動的に変更することができます。
+    (see doc/en/PROTOCOL, doc/ja/README.confapp)
+
+  o mlterm server
+    mlterm は daemon process として動作することができます。
+    その場合、X なしでの起動や、複数のディスプレイ接続が可能です。
+    mlterm server が起動していれば、mlclient をフロントエンドとして使用すること
+    で、端末ウィンドウを開けます。
+    (see doc/ja/README.server)
+
+  o vte compatible library
+    mlterm の機能(一部制限あり)を、(ほぼ) vte 互換の API で wrap したライブラリ
+    (libvte.so.9, libvte2_90.so.9, libvte-2.91.so.0) を提供しています。
+    システムにインストールされている libvte.so.9 等を置きかえることにより、
+    gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
+    GTK+ (2.x 以上) が必要となります。
+    (see gtk/README)
+
+  o ssh2 client
+    ssh2 client として直接 ssh2 server に接続することができます。
+    libssh2 (http://www.libssh2.org) が必要となります。
+    なお、共通鍵暗号方式として camellia を利用する場合や、Agent forwarding 機能
+    が必要な場合は、
+    https://bitbucket.org/arakiken/libssh2/downloads から、camellia branch の
+    libssh2 をインストールしてください。
+    (例 mlterm(mlclient) --serv ssh://user@host:22)
+    (see doc/ja/README.ssh)
+
+  o auto-restart
+    バグ等により mlterm が実行不能となった場合でも、(できるだけ)その中で動いてい
+    るコンソールアプリケーションを引き継いだ mlterm を自動的に再起動し、コンソー
+    ルアプリケーションを保護します。
+    (see "auto_restart" option)
+
+  o local echo mode
+    キー入力に対する処理結果がコンソールアプリケーションから返ってくる前に、
+    前もって画面に表示することにより、体感的な応答速度を向上します。
+    (see "use_local_echo" option)
+
+  o ReGIS 及び Sixel Graphics
+    ReGIS の一部機能及び Sixel Graphics に対応しています。
+    ReGIS については、SDL, SDL_ttf 及び fontconfig が必要となります。
+
+* 対応プラットフォーム
+  o Linux, *BSD (X11, Framebuffer, Wayland or Console)
+  o Solaris (X11 or Console)
+  o MacOSX 10.6 (X11 or Cocoa)
+  o Windows XP or later
+  o Cygwin (X11 or Win32GDI)
+  o MSYS2 (Win32GDI)
+  o Android 3.x or later.
+  o Java (SWT)
+
+  詳細は、doc/ja 内の README.fb, README.win32, Usage.win32 又は doc/en 内の
+  README.android, README.cocoa, README.console, README.wayland を参照してくださ
+  い。
+
 * コンパイル方法
   $ ./configure
   $ make
@@ -14,24 +142,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     (たとえば、libc に ja_JP.UTF-8 ローケールがなくても、ja_JP.eucJP ローケール
     があれば、UTF-8 エンコーディングの端末に日本語入力できる、など)
 
-    アンチエイリアスフォントを利用する場合は、
-    XFree86 4.0.2 以上
-    freetype 2.0.2 以上
-    が必要です。
+    上記「主な機能」のとおり、外部ライブラリに依存する機能もあります。
 
-    壁紙を貼るには、gdk-pixbuf (GTK+ 2.x 以上) が必要です。
-
-    gtk+ で作られた設定変更ツール (mlconfig, mlterm-menu) を使用する場合は、
-    GTK+ (2.x 以上) が必要となります。
-    (mlterm 本体にはリンクしません)
-
-    libvte compatible library を利用する場合は、GTK+ (2.x 以上) が必要です。
-
-    Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
-
-    ssh2 client として使用する場合は、libssh2 (http://www.libssh2.org) が必要です。
-
-    これらは、すべて、configure 時に有無をチェックします。
+    外部ライブラリの有無は、configure スクリプトによりチェックします。
 
   o configure オプション
     --prefix
@@ -73,12 +186,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       なお、xlib版で、--with-type-engines オプションを指定した場合、このオプショ
       ンは無視されます。
 
-      framebuffer又はwayland版では、freetype を利用して True Type フォントを無効
-      にします。
+      framebuffer 又は wayland 版では、freetype を利用した True Type フォントの
+      サポートを無効にします。
 
     --enable-fontconfig
-      framebuffer又はwayland版で、フォントの検索に fontconfig を無効にします。
-      (~/.mlterm/*aafont の設定を使用)
+      framebuffer 又は wayland 版で、フォントの検索に fontconfig を無効にします。
+      (~/.mlterm/*aafont の設定を使用します。)
 
     --disable-dl-type
       type engine モジュールの動的ローディングを無効にし、mlterm 本体にリンクする
@@ -196,117 +309,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     --with-libtool=[path]
       libtool を自動生成せず、システムのlibtoolを使うよう指定します。
 
-* 対応プラットフォーム
-  o Linux, *BSD (X11, Framebuffer, Wayland or Console)
-  o Solaris (X11 or Console)
-  o MacOSX 10.6 (X11 or Cocoa)
-  o Windows XP or later
-  o Cygwin (X11 or Win32GDI)
-  o MSYS2 (Win32GDI)
-  o Android 3.x or later.
-  o Java (SWT)
-
-  詳細は、doc/ja 内の README.fb, README.win32, Usage.win32 又は doc/en 内の
-  README.android, README.cocoa, README.console, README.wayland を参照してくださ
-  い。
-
-* 主な機能
-  o アンチエイリアス
-    フォントのアンチエイリアス表示をサポートしています。
-    これには、X の Xrender extension に対応した Xft or cairo を利用しています。
-
-    なお、Xft、cairo、通常の X フォントのどれを使うかは、動的に切替え可能です。
-
-  o 壁紙、背景透過
-    壁紙を貼ったり背景を擬似的に透過させることができます。
-
-  o マルチPTY
-    単一プロセス中から、--maxptys オプションで指定した上限数(デフォルトでは 32)
-    までの pty セッションを立ち上げることができます。
-    Ctrl+F2(デフォルト)で、新しい pty セッションを立ち上げることができます。
-    -@ オプションで、mlterm 起動時に立ち上げる ウィンドウの数を指定できます。
-    Ctrl+F1(デフォルト)で、新しいウィンドウを立ち上げることができます。
-    Ctrl+F3(NEXT)、Ctrl+F4(PREV)で、ウィンドウ上で表示する pty セッションを切り
-    替えることができます。
-    Ctrl+左ボタン(デフォルト)では、mlterm-menu が起動し、現在 background にある
-    pty に切り替えることができます。
-    (see doc/ja/README.pty)
-
-  o 画面分割
-    一つのウィンドウを分割し、複数の pty セッションを表示することができます。
-    Shift+F1(デフォルト)で横方向に、Shift+F2(デフォルト)で縦方向に分割できます。
-    Shift+F3(NEXT)、Shift+F4(PREV)で、分割された画面を移動できます。
-    Shift+F5(デフォルト)で分割を解除できます。
-
-  o マルチXIM
-    複数の XIM を動的に切替えて使用することができます。
-    たとえば、端末側が UTF8 エンコーディングで、kinput2 と Ami を切替えながら、
-    日本語ハングル混在の文章を入力できます。
-    (see doc/ja/README.xim)
-
-  o インプットメソッド プラグイン
-    uim、m17n library、scim、ibus、fcitx、canna、wnn、skk 及び iiimf に対応して
-    います。
-    プラグインとして使用時だけロードされます。マルチXIMと同様に動的変更が可能で
-    端末のエンコーディングに依存しません。
-
-  o プロポーショナルフォント
-    プロポーショナルフォントも使用できます。
-    この場合、-V オプションで、コラム幅を可変にするか、固定にするかを指定するこ
-    とができます。
-    プロポーショナルフォントをコラム幅固定で使用する場合、一文字ずつ描画して無理
-    矢理隙間を埋めますので、描画パフォーマンスが低下します。
-
-  o 縦書き表示
-    右から左、左から右の縦書き表示をサポートしています。
-    通常日本語の縦書き表示をするためには、-G cjk オプションを指定してください。
-    (see doc/ja/README.tate)
-
-  o mlterm configuration protocol
-    設定変更のための専用シーケンスを定義しています。
-    それを使うことによっても、設定の動的変更が可能です。
-    (see doc/en/PROTOCOL, doc/ja/README.confapp)
-
-  o mlterm server
-    mlterm は daemon process として動作することができます。
-    その場合、X なしでの起動や、複数のディスプレイ接続が可能です。
-    mlterm server が起動していれば、mlclient をフロントエンドとして使用すること
-    で、端末ウィンドウを開けます。
-    (see doc/ja/README.server)
-
-  o vte compatible library
-    mlterm の機能(一部制限あり)を、(ほぼ) vte 互換の API で wrap したライブラリ
-    (libvte.so.9, libvte2_90.so.9, libvte-2.91.so.0) を提供しています。
-    システムにインストールされている libvte.so.9 等を置きかえることにより、
-    gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
-    GTK+ (2.x 以上) が必要となります。
-    (see gtk/README)
-
-  o ssh2 client
-    ssh2 client として直接 ssh2 server に接続することができます。
-    libssh2 (http://www.libssh2.org) が必要となります。
-    なお、共通鍵暗号方式として camellia を利用する場合や、Agent forwarding 機能
-    が必要な場合は、
-    https://bitbucket.org/arakiken/libssh2/downloads から、camellia branch の
-    libssh2 をインストールしてください。
-    (例 mlterm(mlclient) --serv ssh://user@host:22)
-    (see doc/ja/README.ssh)
-
-  o auto-restart
-    バグ等により mlterm が実行不能となった場合でも、(できるだけ)その中で動いてい
-    るコンソールアプリケーションを引き継いだ mlterm を自動的に再起動し、コンソー
-    ルアプリケーションを保護します。
-    (see "auto_restart" option)
-
-  o local echo mode
-    キー入力に対する処理結果がコンソールアプリケーションから返ってくる前に、
-    前もって画面に表示することにより、体感的な応答速度を向上します。
-    (see "use_local_echo" option)
-
-  o ReGIS 及び Sixel Graphics
-    ReGIS の一部機能及び Sixel Graphics に対応しています。
-    ReGIS については、SDL, SDL_ttf 及び fontconfig が必要となります。
-
 * 使い方
   $ mlterm
 
@@ -417,11 +419,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         サポートしているエンコーディングは、以下の通りです。
 
         ISO-8859-[1-11], ISO-8859-[13-16], TIS-620(same as ISO-8859-11),
-  KOI8-[RUT], ISCII_(ASSAMESE|BENGALI|GUJARATI|HINDI|KANNADA|MALAYALAM|
-  ORIYA|PUNJABI|TAMIL|TELUGU), VISCII, TCVN5712, GEORGIAN_PS,
-  CP125[0-8], CP874, EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213,
-  ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK,
-  GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
+        KOI8-[RUT], ISCII_(ASSAMESE|BENGALI|GUJARATI|HINDI|KANNADA|MALAYALAM|
+        ORIYA|PUNJABI|TAMIL|TELUGU), VISCII, TCVN5712, GEORGIAN_PS,
+        CP125[0-8], CP874, EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213,
+        ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK,
+        GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
 
         '-' , '_' および、大文字小文字は無視されます。
 
@@ -466,7 +468,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o col_size_of_width_a  (1/2) (#)
         UNICODE の EastAsianWidth.txt の A プロパティのコラム数
-  デフォルト値は、ja_XX.XX locale 環境では 2 , その他の環境では 1 です。.
+        デフォルト値は、ja_XX.XX locale 環境では 2 , その他の環境では 1 です。.
 
       o vertical_mode  (*none*/cjk/mongol) (#)
         縦表示のスタイルを指定
@@ -535,8 +537,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o use_variable_column_width  (true/*false*) (#)
         可変長コラム幅を使用する
 
-  なお、vertical_mode が cjk 又は mongol に設定されている場合は、
-  自動的に false に設定されます。
+        なお、vertical_mode が cjk 又は mongol に設定されている場合は、
+        自動的に false に設定されます。
 
       o type_engine (xcore/xft/*cairo*)
         xcore, xft 又は cairoのいずれによりフォントを描画するかを指定する。
@@ -890,10 +892,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o default_server
         ssh 等により直接ログインするサーバを指定する。
-  MinGW 又は --enable-ssh2 オプションでビルドした場合に有効。
-  値の形式は、(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
+        MinGW 又は --enable-ssh2 オプションでビルドした場合に有効。
+        値の形式は、(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
 
-  例) mlterm --serv ssh://user@host:22:eucjp
+        例) mlterm --serv ssh://user@host:22:eucjp
 
       o ssh_public_key (~/.ssh/id_rsa.pub (win32 では %HOMEPATH%\mlterm\id_rsa.pub))
         ssh 接続の認証で使用する公開鍵のファイルを指定する。
@@ -903,11 +905,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o cipher_list
         ssh 接続で使用する共通鍵暗号を指定する。
-  (コンマ区切りで複数指定)
+        (コンマ区切りで複数指定)
 
       o ssh_keepalive_interval (0)
         ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信する。
-  (0 の場合は送信しない。)
+        (0 の場合は送信しない。)
 
       o ssh_x11_forwarding (true/*false*)
         ssh 接続で x11 forwarding を有効にする。
@@ -1277,13 +1279,13 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         デフォルトでは、`^H'
       o kh
         Application cursor key mode で、HOME キーを押下したときのシーケンス
-  デフォルトでは、'\EOH'
+        デフォルトでは、'\EOH'
       o @7
         Application cursor key mode で、END キーを押下したときのシーケンス
         デフォルトでは、`\EOF'
       o k1, k2, k3, k4, k5
         F1〜F5 キーを押下したときのシーケンス
-  デフォルトでは、それぞれ、`\EOP', `\EOQ', `\EOR', `\EOS', '\E[15~'
+        デフォルトでは、それぞれ、`\EOP', `\EOQ', `\EOR', `\EOS', '\E[15~'
       o ut
         BCE を有効にするかどうかを指定します。
         デフォルトでは、無効
