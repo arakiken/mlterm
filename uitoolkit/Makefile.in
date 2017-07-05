@@ -50,8 +50,8 @@ CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
 	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ \
 	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @SIXEL_CFLAGS@ @BRLAPI_CFLAGS@ \
 	@CFLAGS@ @CPPFLAGS@ \
-	-DBINDIR=\"$(bindir)\" -DLIBDIR=\"$(libdir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
-	-DLIBEXECDIR=\"$(libexecdir)\" -DXDATADIR=\"$(datadir)\"\
+	-DBINDIR=\"$(bindir)\" -DLIBDIR=\"$(libdir)\" -DLIBEXECDIR=\"$(libexecdir)\" \
+	-DXDATADIR=\"$(datadir)\" \
 	-I$(top_srcdir)/vtemu -I$(top_srcdir)/uitoolkit/libotl -I/usr/local/include
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)

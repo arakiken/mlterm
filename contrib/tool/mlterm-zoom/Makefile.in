@@ -3,6 +3,7 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libexecdir = @libexecdir@
+bindir = @bindir@
 sysconfdir = @sysconfdir@
 datadir = @datadir@
 
@@ -12,7 +13,8 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-LIBEXECDIR = $(DESTDIR)$(libexecdir)
+LIBEXECDIR = $(DESTDIR)$(libexecdir)/mlterm
+LIBEXECDIR_win32 = $(DESTDIR)$(bindir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 
 CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -DSYSCONFDIR=\"$(sysconfdir)\"
@@ -35,14 +37,14 @@ mlterm-zoom: $(OBJS)
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
-install: $(LIBEXECDIR)/mlterm $(SYSCONFDIR)/mlterm
-	$(LIBTOOL_INSTALL) -m 755 mlterm-zoom $(LIBEXECDIR)/mlterm
+install: $(LIBEXECDIR@WIN32TAG@) $(SYSCONFDIR)/mlterm
+	$(LIBTOOL_INSTALL) -m 755 mlterm-zoom $(LIBEXECDIR@WIN32TAG@)
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlterm/mlterm-zoom
+	rm -f $(LIBEXECDIR@WIN32TAG@)/mlterm-zoom
 
-$(LIBEXECDIR)/mlterm:
-	mkdir -p $(LIBEXECDIR)/mlterm
+$(LIBEXECDIR@WIN32TAG@):
+	mkdir -p $(LIBEXECDIR@WIN32TAG@)
 
 $(SYSCONFDIR)/mlterm:
 	mkdir -p $(SYSCONFDIR)/mlterm

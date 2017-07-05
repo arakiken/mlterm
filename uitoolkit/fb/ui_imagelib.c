@@ -13,16 +13,13 @@
 #endif
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
+#include <pobl/bl_path.h> /* BL_LIBEXECDIR */
 
 #include "ui_display.h" /* ui_cmap_get_closest_color */
 
 /* Trailing "/" is appended in value_table_refresh(). */
 #ifndef LIBMDIR
 #define LIBMDIR "/lib"
-#endif
-
-#ifndef LIBEXECDIR
-#define LIBEXECDIR "/usr/local/libexec"
 #endif
 
 #if 1
@@ -480,7 +477,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
     char width_str[DIGIT_STR_LEN(u_int) + 1];
     char height_str[DIGIT_STR_LEN(u_int) + 1];
 
-    args[0] = LIBEXECDIR "/mlterm/mlimgloader";
+    args[0] = BL_LIBEXECDIR("mlterm") "/mlimgloader";
     args[1] = "0";
     sprintf(width_str, "%u", width);
     args[2] = width_str;

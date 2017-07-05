@@ -74,11 +74,7 @@ static int convert_regis_to_bmp(char *path) {
       strncpy(new_path, path, len - 4);
       strcpy(new_path + len - 4, ".bmp");
 
-#if defined(__CYGWIN__) || defined(__MSYS__)
-      argv[0] = BINDIR "/registobmp";
-#else
-      argv[0] = LIBEXECDIR "/mlterm/registobmp";
-#endif
+      argv[0] = BL_LIBEXECDIR("mlterm") "/registobmp";
       argv[1] = path;
       argv[2] = new_path;
       argv[3] = NULL;

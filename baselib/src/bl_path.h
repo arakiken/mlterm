@@ -19,6 +19,20 @@
 #define IS_RELATIVE_PATH(path) IS_RELATIVE_PATH_UNIX(path)
 #endif
 
+#if defined(__CYGWIN__) || defined(__MSYS__)
+#ifndef BINDIR
+#define BL_LIBEXECDIR(suffix) "/bin"
+#else
+#define BL_LIBEXECDIR(suffix) BINDIR
+#endif
+#else
+#ifndef LIBEXECDIR
+#define BL_LIBEXECDIR(suffix) "/usr/local/libexec/" suffix
+#else
+#define BL_LIBEXECDIR(suffix) LIBEXECDIR "/" suffix
+#endif
+#endif
+
 /* XXX win32 basename() works strangely if cp932 characters are pssed. */
 #if defined(HAVE_BASENAME) && !defined(USE_WIN32API)
 

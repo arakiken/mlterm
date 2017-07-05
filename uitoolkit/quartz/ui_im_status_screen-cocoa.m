@@ -100,10 +100,11 @@ static int set(ui_im_status_screen_t* stat_screen, ef_parser_t* parser,
 /* --- global functions --- */
 
 ui_im_status_screen_t* ui_im_status_screen_new(ui_display_t* disp,
-                                             ui_font_manager_t* font_man,
-                                             ui_color_manager_t* color_man,
-                                             int is_vertical, u_int line_height,
-                                             int x, int y) {
+                                               ui_font_manager_t* font_man,
+                                               ui_color_manager_t* color_man,
+                                               void *vtparser, int is_vertical,
+                                               u_int line_height,
+                                               int x, int y) {
   ui_im_status_screen_t* stat_screen;
 
   if ((stat_screen = calloc(1, sizeof(ui_im_status_screen_t))) == NULL) {
@@ -116,6 +117,7 @@ ui_im_status_screen_t* ui_im_status_screen_new(ui_display_t* disp,
 
   stat_screen->font_man = font_man;
   stat_screen->color_man = color_man;
+  stat_screen->vtparser = vtparser;
 
   stat_screen->x = x;
   stat_screen->y = y;

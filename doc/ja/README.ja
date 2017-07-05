@@ -678,7 +678,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         アンダーラインの位置(フォントのベースラインからの相対位置)
 
       o baseline_offset (0)
-        ベースーラインの相対位置
+        ベースラインの相対位置
 
       o wall_picture  (*なし*) (#)
         壁紙にする画像ファイルのパス

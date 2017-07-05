@@ -1,3 +1,15 @@
+2017-07-05  Araki Ken  <arakiken@users.sf.net>
+
+	* main-con.c: It is assumed that mlterm-con-server is in BINDIR
+	  instead of LIBEXECDIR/mlterm on cygwin and msys.
+
+	* bl_pty_helper.c, c_imagelib.c, c_regis.c, */ui_imagelib.c,
+	  vt_config_menu.c: BL_LIBEXECDIR is used.
+
+	* bl_path.h: BL_LIBEXECDIR(suffix) is added.
+
+	* ui_im_status_screen-cocoa.m: Compiling error is fixed.
+
 2017-07-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: <dev> in OSC 5379;<dev>:a=b works.

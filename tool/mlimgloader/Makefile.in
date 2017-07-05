@@ -12,7 +12,8 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-LIBEXECDIR = $(DESTDIR)$(libexecdir)
+LIBEXECDIR = $(DESTDIR)$(libexecdir)/mlterm
+LIBEXECDIR_win32 = $(DESTDIR)$(bindir)
 
 VPATH = $(top_srcdir)/tool/mlimgloader
 
@@ -62,14 +63,14 @@ $(PROG): $(OBJ)
 .cpp.o:
 	$(LIBTOOL_CC) -c $<
 
-$(LIBEXECDIR)/mlterm:
-	mkdir -p $(LIBEXECDIR)/mlterm
+$(LIBEXECDIR@WIN32TAG@):
+	mkdir -p $(LIBEXECDIR@WIN32TAG@)
 
-install: $(LIBEXECDIR)/mlterm
-	$(LIBTOOL_INSTALL) $(PROG) $(LIBEXECDIR)/mlterm
+install: $(LIBEXECDIR@WIN32TAG@)
+	$(LIBTOOL_INSTALL) $(PROG) $(LIBEXECDIR@WIN32TAG@)
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlterm/$(PROG)
+	rm -f $(LIBEXECDIR@WIN32TAG@)/$(PROG)
 
 wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l

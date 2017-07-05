@@ -4,20 +4,11 @@
 
 #include <pobl/bl_util.h> /* DIGIT_STR_LEN */
 #include <pobl/bl_mem.h>  /* alloca */
+#include <pobl/bl_path.h> /* BL_LIBEXECDIR (for registobmp) */
 
 #include "c_sixel.c"
 #include "c_regis.c"
 #include "c_animgif.c"
-
-/* for registobmp on cygwin */
-#ifndef BINDIR
-#define BINDIR "/bin"
-#endif
-
-/* for registobmp on other platforms */
-#ifndef LIBEXECDIR
-#define LIBEXECDIR "/usr/local/libexec"
-#endif
 
 /* --- static functions --- */
 

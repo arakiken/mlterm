@@ -34,6 +34,7 @@
 #include <pobl/bl_str.h>  /* strdup */
 #include <pobl/bl_util.h> /* DIGIT_STR_LEN */
 #include <pobl/bl_mem.h>
+#include <pobl/bl_path.h> /* BL_LIBEXECDIR */
 
 #include "ui_display.h" /* ui_display_get_visual_info */
 
@@ -66,10 +67,6 @@ static void destroy_image(XImage *image) {
 /* Trailing "/" is appended in value_table_refresh(). */
 #ifndef LIBMDIR
 #define LIBMDIR "/lib"
-#endif
-
-#ifndef LIBEXECDIR
-#define LIBEXECDIR "/usr/local/libexec"
 #endif
 
 #if 0
@@ -1115,7 +1112,7 @@ static pid_t exec_mlimgloader(int *read_fd, int *write_fd, Window window, u_int 
     char width_str[DIGIT_STR_LEN(u_int) + 1];
     char height_str[DIGIT_STR_LEN(u_int) + 1];
 
-    args[0] = LIBEXECDIR "/mlterm/mlimgloader";
+    args[0] = BL_LIBEXECDIR("mlterm") "/mlimgloader";
     sprintf(win_str, "%lu", window);
     args[1] = win_str;
     sprintf(width_str, "%u", width);

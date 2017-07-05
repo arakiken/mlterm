@@ -15,13 +15,10 @@
 #include "bl_def.h" /* HAVE_SETSID, LINE_MAX */
 #include "bl_debug.h"
 #include "bl_mem.h" /* realloc/free */
+#include "bl_path.h" /* BL_LIBEXECDIR */
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
-#endif
-
-#ifndef LIBEXECDIR
-#define LIBEXECDIR "/usr/local/libexec"
 #endif
 
 #if 0
@@ -317,8 +314,8 @@ static int start_pty_helper(void) {
   int tmp[2];
   int tunnel;
 
-  if (access(LIBEXECDIR "/mlterm/gnome-pty-helper", X_OK) != 0) {
-    bl_error_printf("Couldn't run %s", LIBEXECDIR "/mlterm/gnome-pty-helper");
+  if (access(BL_LIBEXECDIR("mlterm") "/gnome-pty-helper", X_OK) != 0) {
+    bl_error_printf("Couldn't run %s", BL_LIBEXECDIR("mlterm") "/gnome-pty-helper");
 
     return 0;
   }
@@ -364,7 +361,7 @@ static int start_pty_helper(void) {
     close(tunnel);
     close(pty_helper_tunnel);
 
-    execl(LIBEXECDIR "/mlterm/gnome-pty-helper", "gnome-pty-helper", NULL);
+    execl(BL_LIBEXECDIR("mlterm") "/gnome-pty-helper", "gnome-pty-helper", NULL);
 
     exit(EXIT_SUCCESS);
   }

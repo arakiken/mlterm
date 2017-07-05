@@ -17,10 +17,7 @@
 #include <pobl/bl_mem.h>  /* malloc */
 #include <pobl/bl_file.h> /* bl_file_set_cloexec, bl_file_unset_cloexec */
 #include <pobl/bl_def.h>  /* HAVE_WINDOWS_H */
-
-#ifndef LIBEXECDIR
-#define LIBEXECDIR "/usr/local/libexec"
-#endif
+#include <pobl/bl_path.h> /* BL_LIBEXECDIR */
 
 /* --- static functions --- */
 
@@ -382,15 +379,10 @@ error2:
 
     /* failed */
 
-    /* If program name was specified without directory, prepend LIBEXECDIR to
-     * it. */
+    /* If program name was specified without directory, prepend LIBEXECDIR to it. */
     if (strchr(cmd_path, '/') == NULL) {
       char *p;
-#if defined(__CYGWIN__) || defined(__MSYS__)
-      char dir[] = LIBEXECDIR "/../bin";
-#else
-      char dir[] = LIBEXECDIR "/mlterm";
-#endif
+      char dir[] = BL_LIBEXECDIR("mlterm");
 
       if ((p = alloca(sizeof(dir) + strlen(cmd_path) + 1))) {
         sprintf(p, "%s/%s", dir, cmd_path);

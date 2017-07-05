@@ -18,8 +18,16 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
+#if defined(__CYGWIN__) || defined(__MSYS__)
+#ifndef BINDIR
+#define BINDIR "/bin"
+#endif
+#define MLLIBEXECDIR BINDIR
+#else
 #ifndef LIBEXECDIR
 #define LIBEXECDIR "/usr/local/libexec"
+#endif
+#define MLLIBEXECDIR LIBEXECDIR "/mlterm"
 #endif
 
 /* --- static variables --- */
@@ -162,7 +170,7 @@ static int connect_to_server(int argc, char **argv) {
       }
       new_argv[count] = NULL;
 
-      execv(LIBEXECDIR "/mlterm/mlterm-con-server", new_argv);
+      execv(MLLIBEXECDIR "/mlterm-con-server", new_argv);
       exit(-1);
     }
 

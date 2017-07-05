@@ -3,6 +3,7 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
+bindir = @bindir@
 libexecdir = @libexecdir@
 
 LIBDIR = $(DESTDIR)$(libdir)
@@ -17,7 +18,7 @@ INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @DL_CFLAGS@ @UTMP_CFLAGS@ \
-	-DLIBEXECDIR=\"${libexecdir}\"
+	-DLIBEXECDIR=\"${libexecdir}\" -DBINDIR=\"${bindir}\"
 LIBS = $(LIBS_LOCAL) @XPG4_LIBS@ @DL_LIBS@ @UTMP_LIBS@
 
 COMOBJ = bl_debug.o bl_map.o bl_args.o bl_mem.o bl_conf.o bl_file.o bl_path.o \

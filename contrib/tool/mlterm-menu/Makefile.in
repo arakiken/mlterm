@@ -3,6 +3,7 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libexecdir = @libexecdir@
+bindir = @bindir@
 sysconfdir = @sysconfdir@
 datadir = @datadir@
 
@@ -12,7 +13,8 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-LIBEXECDIR = $(DESTDIR)$(libexecdir)
+LIBEXECDIR = $(DESTDIR)$(libexecdir)/mlterm
+LIBEXECDIR_win32 = $(DESTDIR)$(bindir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 
 LPOBL = @LPOBL@
@@ -55,15 +57,15 @@ mlterm-menu: $(OBJS)
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
-install: $(LIBEXECDIR)/mlterm $(SYSCONFDIR)/mlterm
-	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR)/mlterm
+install: $(LIBEXECDIR@WIN32TAG@) $(SYSCONFDIR)/mlterm
+	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR@WIN32TAG@)
 	$(INSTALL) -m 644 ${top_srcdir}/contrib/tool/mlterm-menu/menu $(SYSCONFDIR)/mlterm
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlterm/mlterm-menu $(SYSCONFDIR)/mlterm/menu
+	rm -f $(LIBEXECDIR@WIN32TAG@)/mlterm-menu $(SYSCONFDIR)/mlterm/menu
 
-$(LIBEXECDIR)/mlterm:
-	mkdir -p $(LIBEXECDIR)/mlterm
+$(LIBEXECDIR@WIN32TAG@):
+	mkdir -p $(LIBEXECDIR@WIN32TAG@)
 
 $(SYSCONFDIR)/mlterm:
 	mkdir -p $(SYSCONFDIR)/mlterm

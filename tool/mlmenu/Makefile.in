@@ -3,6 +3,7 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libexecdir = @libexecdir@
+bindir = @bindir@
 sysconfdir = @sysconfdir@
 
 VPATH = ${top_srcdir}/tool/mlmenu
@@ -11,7 +12,8 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-LIBEXECDIR = $(DESTDIR)$(libexecdir)
+LIBEXECDIR = $(DESTDIR)$(libexecdir)/mlterm
+LIBEXECDIR_win32 = $(DESTDIR)$(bindir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 
 CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -DSYSCONFDIR=\"$(sysconfdir)\"
@@ -34,15 +36,15 @@ mlmenu: $(OBJS)
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
-install: $(LIBEXECDIR)/mlterm
-	$(LIBTOOL_INSTALL) -m 755 mlmenu $(LIBEXECDIR)/mlterm
+install: $(LIBEXECDIR@WIN32TAG@)
+	$(LIBTOOL_INSTALL) -m 755 mlmenu $(LIBEXECDIR@WIN32TAG@)
 	$(INSTALL) -m 644 ${top_srcdir}/tool/mlmenu/menu-simple $(SYSCONFDIR)/mlterm
 
 uninstall:
-	rm -f $(LIBEXECDIR)/mlterm/mlmenu $(SYSCONFDIR)/mlterm/menu-simple
+	rm -f $(LIBEXECDIR@WIN32TAG@)/mlmenu $(SYSCONFDIR)/mlterm/menu-simple
 
-$(LIBEXECDIR)/mlterm:
-	mkdir -p $(LIBEXECDIR)/mlterm
+$(LIBEXECDIR@WIN32TAG@):
+	mkdir -p $(LIBEXECDIR@WIN32TAG@)
 
 clean:
 	rm -rf $(OBJS) mlmenu mlmenu.exe *.core .libs

@@ -13,7 +13,8 @@ LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
 BINDIR = $(DESTDIR)$(bindir)
-LIBEXECDIR = $(DESTDIR)$(libexecdir)
+LIBEXECDIR = $(DESTDIR)$(libexecdir)/mlterm
+LIBEXECDIR_win32 = $(DESTDIR)$(bindir)
 
 VPATH = $(top_srcdir)/main
 
@@ -86,7 +87,7 @@ $(PROG_@GUI@): $(OBJ) $(LMLTERM) $(LUITK)
 
 mlterm-con: $(top_srcdir)/main/main-con.c
 	$(CC) -o mlterm-con $(top_srcdir)/main/main-con.c $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ \
-		@SOCK_LIBS@ @LDFLAGS@ -DLIBEXECDIR=\"$(libexecdir)\"
+		@SOCK_LIBS@ @LDFLAGS@ -DBINDIR=\"$(bindir)\" -DLIBEXECDIR=\"$(libexecdir)\"
 
 .SUFFIXES: .c .o
 .SUFFIXES: .m .o
@@ -100,13 +101,13 @@ mlterm-con: $(top_srcdir)/main/main-con.c
 $(BINDIR):
 	mkdir -p $(BINDIR)
 
-$(LIBEXECDIR)/mlterm:
-	mkdir -p $(LIBEXECDIR)/mlterm
+$(LIBEXECDIR@WIN32TAG@):
+	mkdir -p $(LIBEXECDIR@WIN32TAG@)
 
-install : $(BINDIR) $(LIBEXECDIR)/mlterm
+install: $(LIBEXECDIR@WIN32TAG@)
 	if test "@GUI@" = "console" ; then \
 		$(LIBTOOL_INSTALL) $(PROG2_@GUI@) $(BINDIR) ; \
-		$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG_@GUI@) $(LIBEXECDIR)/mlterm ; \
+		$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG_@GUI@) $(LIBEXECDIR@WIN32TAG@) ; \
 	else \
 		$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG_@GUI@) $(BINDIR) ; \
 	fi
