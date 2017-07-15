@@ -8,6 +8,11 @@
 #define gdk_x11_drawable_get_xid(window) gdk_x11_window_get_xid(window)
 #endif
 
+#if 0
+/* Forcibly enable transparency on gnome-terminal which doesn't support it. */
+#define FORCE_TRANSPARENCY
+#endif
+
 /* --- static functions --- */
 
 static gboolean toplevel_configure(gpointer data) {
@@ -180,6 +185,7 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
   return GDK_FILTER_CONTINUE;
 }
 
+#ifdef FORCE_TRANSPARENCY
 #if VTE_CHECK_VERSION(0, 38, 0)
 static void set_rgba_visual(GtkWidget *widget) {
   GdkScreen *screen;
@@ -188,7 +194,62 @@ static void set_rgba_visual(GtkWidget *widget) {
     gtk_widget_set_visual(widget, gdk_screen_get_rgba_visual(screen));
   }
 }
+
+static gboolean toplevel_draw(GtkWidget *widget, cairo_t *cr, void *user_data) {
+  GtkWidget *child = user_data;
+
+  gint width = gtk_widget_get_allocated_width(child);
+  gint height = gtk_widget_get_allocated_height(child);
+  gint x;
+  gint y;
+
+  gtk_widget_translate_coordinates(child, widget, 0, 0, &x, &x);
+  cairo_rectangle(cr, x, y, width, height);
+  cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+  cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.0);
+  cairo_fill(cr);
+
+  return FALSE;
+}
 #endif
+#endif
+
+static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_toplevel,
+                                           gpointer data) {
+  GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
+
+  if (old_toplevel) {
+    g_signal_handlers_disconnect_by_func(old_toplevel, toplevel_configure, widget);
+  }
+
+  g_signal_connect_swapped(toplevel, "configure-event",
+                           G_CALLBACK(toplevel_configure), VTE_TERMINAL(widget));
+
+#ifdef FORCE_TRANSPARENCY
+#if VTE_CHECK_VERSION(0, 38, 0)
+  /*
+   * Though vte 0.38.0 or later doesn't support rgba visual,
+   * this forcibly enables it.
+   */
+  set_rgba_visual(toplevel);
+
+  /* roxterm calls gtk_widget_set_app_paintable(TRUE) internally. */
+  if (!gtk_widget_get_app_paintable(toplevel)) {
+    /*
+     * XXX
+     * gtk_widget_set_app_paintable(TRUE) enables transparency, but unexpectedly
+     * makes a menu bar of gnome-terminal(3.24.2) transparent, sigh...
+     */
+    gtk_widget_set_app_paintable(toplevel, TRUE);
+    g_signal_connect(toplevel, "draw", G_CALLBACK(toplevel_draw), widget);
+
+    if (old_toplevel) {
+      g_signal_handlers_disconnect_by_func(old_toplevel, toplevel_draw, widget);
+    }
+  }
+#endif
+#endif
+}
 
 static void show_root(ui_display_t *disp, GtkWidget *widget) {
   VteTerminal *terminal = VTE_TERMINAL(widget);

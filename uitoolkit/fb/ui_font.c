@@ -566,6 +566,7 @@ static int is_pcf(const char *file_path) {
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_LCD_FILTER_H
 
 /* 0 - 511 */
 #define SEG(idx) (((idx) >> 7) & 0x1ff)
@@ -657,6 +658,8 @@ static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, in
 
       return 0;
     }
+
+    FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
   }
 
   fontsize = (format & ~(FONT_BOLD | FONT_ITALIC));
@@ -987,9 +990,9 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
 }
 
 static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,
-                      u_int bytes_per_pixel, ef_charset_t cs) {
+                      u_int bytes_per_pixel, ef_charset_t cs, int noaa) {
   if (!is_pcf(file_path)) {
-    return load_ft(xfont, file_path, format, (bytes_per_pixel > 1));
+    return load_ft(xfont, file_path, format, (bytes_per_pixel > 1) && !noaa);
   } else {
     return load_pcf(xfont, file_path);
   }
@@ -1443,7 +1446,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
 
 #else /* USE_FREETYPE */
 
-#define load_xfont(xfont, file_path, format, bytes_per_pixel, cs) load_pcf(xfont, file_path)
+#define load_xfont(xfont, file_path, format, bytes_per_pixel, cs, noaa) load_pcf(xfont, file_path)
 #define unload_xfont(xfont) unload_pcf(xfont)
 
 #endif /* USE_FREETYPE */
@@ -1749,7 +1752,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                          font_file, fontsize, col_width,
                          use_medium_for_bold, letter_space);
     }
-  } else if (!load_xfont(font->xfont, font_file, format, display->bytes_per_pixel, cs)) {
+  } else if (!load_xfont(font->xfont, font_file, format, display->bytes_per_pixel, cs,
+                         font_present & FONT_NOAA)) {
     bl_msg_printf("Failed to load %s.\n", font_file);
 
     free(font->xfont);

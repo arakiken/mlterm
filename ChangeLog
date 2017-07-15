@@ -1,3 +1,21 @@
+2017-07-15  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_main_config.c: If USE_FREETYPE is defined, "use_anti_alias" option works.
+
+	* fb/ui_font.c:
+	  - FT_Library_SetLcdFilter() is called in load_ft().
+	  - FONT_NOAA of ui_font_present_t is checked.
+
+	* gtk/vte.c:
+	  - vte_terminal_hierarchy_changed() is moved to vte_x11.c
+	  - vte_terminal_draw(), vte_terminal_spawn_async(), vte_pty_spwan_async(),
+	    vte_terminal_{get|set}_allow_hyperlink and
+	    vte_terminal_hyperlink_check_event() are added.
+	  - Whether 'exception' is NULL or not is checked in
+	    vte_terminal_set_word_char_exceptions().
+
+	* gtk/vte_x11.c: FORCE_TRANSPARENCY macro is added.
+
 2017-07-05  Araki Ken  <arakiken@users.sf.net>
 
 	* main-con.c: It is assumed that mlterm-con-server is in BINDIR

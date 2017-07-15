@@ -94,8 +94,7 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
   int a2 = *((*bitmap)++);
   int a3 = *((*bitmap)++);
 
-  /* "> 20" is to avoid garbages in screen. */
-  if (a1 > 20 || a2 > 20 || a3 > 20) {
+  if (a1 + a2 + a3 > 0) {
     int r1;
     int g1;
     int b1;

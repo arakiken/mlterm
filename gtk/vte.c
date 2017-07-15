@@ -102,6 +102,8 @@ int vte_reaper_add_child(GPid pid);
 
 #define STATIC_PARAMS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
 
+#define VTE_TERMINAL_CSS_NAME "vte-terminal"
+
 #if VTE_CHECK_VERSION(0, 40, 0)
 typedef struct _VteTerminalPrivate VteTerminalPrivate;
 #endif
@@ -977,26 +979,6 @@ static void reset_vte_size_member(VteTerminal *terminal) {
 #endif /* ! GTK_CHECK_VERSION(2,90,0) */
 }
 
-#ifdef USE_XLIB
-static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_toplevel,
-                                           gpointer data) {
-  if (old_toplevel) {
-    g_signal_handlers_disconnect_by_func(old_toplevel, toplevel_configure, widget);
-  }
-
-  g_signal_connect_swapped(gtk_widget_get_toplevel(widget), "configure-event",
-                           G_CALLBACK(toplevel_configure), VTE_TERMINAL(widget));
-
-/*
- * Though vte 0.38.0 or later doesn't support rgba visual,
- * this forcibly enables it.
- */
-#if VTE_CHECK_VERSION(0, 38, 0)
-  set_rgba_visual(gtk_widget_get_toplevel(widget));
-#endif
-}
-#endif
-
 static gboolean vte_terminal_timeout(gpointer data) {
 /*
  * If gdk_threads_add_timeout (2.12 or later) doesn't exist,
@@ -1328,7 +1310,11 @@ static void vte_terminal_realize(GtkWidget *widget) {
    * Note that hook key and button events in vte_terminal_filter doesn't work
    * without this.
    */
+#if GTK_CHECK_VERSION(3, 8, 0)
+  gtk_widget_register_window(widget, gtk_widget_get_window(widget));
+#else
   gdk_window_set_user_data(gtk_widget_get_window(widget), widget);
+#endif
 
 #if !GTK_CHECK_VERSION(2, 90, 0)
   if (widget->style->font_desc) {
@@ -1395,6 +1381,7 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
                                        G_CALLBACK(toplevel_configure), terminal);
 #endif
 
+  /* gtk_widget_unregister_window() and gdk_window_destroy() are called. */
   GTK_WIDGET_CLASS(vte_terminal_parent_class)->unrealize(widget);
 
 #ifdef __DEBUG
@@ -1614,6 +1601,19 @@ static void vte_terminal_screen_changed(GtkWidget *widget, GdkScreen *previous_s
   if (GTK_WIDGET_CLASS(vte_terminal_parent_class)->screen_changed) {
     GTK_WIDGET_CLASS(vte_terminal_parent_class)->screen_changed(widget, previous_screen);
   }
+}
+#endif
+
+#if GTK_CHECK_VERSION(2, 90, 0)
+static void vte_terminal_draw(GtkWidget *widget, cairo_t *cr) {
+  int width = gtk_widget_get_allocated_width(widget);
+  int height = gtk_widget_get_allocated_height(widget);
+  cairo_rectangle(cr, 0, 0, width, height);
+  cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+  cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.0);
+  cairo_fill(cr);
+
+  return TRUE;
 }
 #endif
 
@@ -1854,6 +1854,13 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   wclass->size_request = vte_terminal_size_request;
 #endif
   wclass->key_press_event = vte_terminal_key_press;
+#if GTK_CHECK_VERSION(3, 0, 0)
+  wclass->draw = vte_terminal_draw;
+#endif
+
+#if GTK_CHECK_VERSION(3, 19, 5)
+  gtk_widget_class_set_css_name(wclass, VTE_TERMINAL_CSS_NAME);
+#endif
 
 #if GTK_CHECK_VERSION(2, 90, 0)
   g_object_class_override_property(oclass, PROP_HADJUSTMENT, "hadjustment");
@@ -2168,21 +2175,29 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   vclass->priv = G_TYPE_CLASS_GET_PRIVATE(vclass, VTE_TYPE_TERMINAL, VteTerminalClassPrivate);
   vclass->priv->style_provider = GTK_STYLE_PROVIDER(gtk_css_provider_new());
 #if !VTE_CHECK_VERSION(0, 38, 0)
-  gtk_css_provider_load_from_data( GTK_CSS_PROVIDER(vclass->priv->style_provider) ,
-		"VteTerminal {\n"
-		"-VteTerminal-inner-border: " BL_INT_TO_STR(WINDOW_MARGIN) ";\n"
-		"}\n" ,
-		-1 , NULL) ;
+  gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(vclass->priv->style_provider) ,
+                                  "VteTerminal {\n"
+                                  "-VteTerminal-inner-border: " BL_INT_TO_STR(WINDOW_MARGIN) ";\n"
+                                  "}\n",
+                                  -1, NULL) ;
+#else
+  gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(vclass->priv->style_provider) ,
+                                  "VteTerminal, " VTE_TERMINAL_CSS_NAME " {\n"
+                                  "padding: 1px 1px 1px 1px;\n"
+                                  "background-color: @theme_base_color;\n"
+                                  "color: @theme_fg_color;\n"
+                                  "}\n",
+                                  -1 , NULL) ;
 #endif
 #else /* VTE_CHECK_VERSION(0,23,2) */
-  gtk_rc_parse_string( "style \"vte-default-style\" {\n"
-			"VteTerminal::inner-border = { "
-			BL_INT_TO_STR(WINDOW_MARGIN) " , "
-			BL_INT_TO_STR(WINDOW_MARGIN) " , "
-			BL_INT_TO_STR(WINDOW_MARGIN) " , "
-			BL_INT_TO_STR(WINDOW_MARGIN) " }\n"
-			"}\n"
-			"class \"VteTerminal\" style : gtk \"vte-default-style\"\n") ;
+  gtk_rc_parse_string("style \"vte-default-style\" {\n"
+                      "VteTerminal::inner-border = { "
+                      BL_INT_TO_STR(WINDOW_MARGIN) " , "
+                      BL_INT_TO_STR(WINDOW_MARGIN) " , "
+                      BL_INT_TO_STR(WINDOW_MARGIN) " , "
+                      BL_INT_TO_STR(WINDOW_MARGIN) " }\n"
+                      "}\n"
+                      "class \"VteTerminal\" style : gtk \"vte-default-style\"\n") ;
 #endif
 #endif /* VTE_CHECK_VERSION(0,23,2) */
 }
@@ -2706,10 +2721,33 @@ vte_terminal_fork_command_full(VteTerminal *terminal, VtePtyFlags pty_flags,
     *child_pid = pid;
   }
 
+  if (error) {
+    *error = NULL;
+  }
+
   if (pid > 0) {
     return TRUE;
   } else {
     return FALSE;
+  }
+}
+#endif
+
+#if VTE_CHECK_VERSION(0, 48, 0)
+void vte_terminal_spawn_async(VteTerminal *terminal, VtePtyFlags pty_flags,
+                              const char *working_directory,
+                              char **argv, char **envv, GSpawnFlags spawn_flags,
+                              GSpawnChildSetupFunc child_setup, gpointer child_setup_data,
+                              GDestroyNotify child_setup_data_destroy,
+                              int timeout, GCancellable *cancellable,
+                              VteTerminalSpawnAsyncCallback callback, gpointer user_data) {
+  GPid child_pid;
+  GError *error;
+
+  vte_terminal_spawn_sync(terminal, pty_flags, working_directory, argv, envv, spawn_flags,
+                          child_setup, child_setup_data, &child_pid, cancellable, &error);
+  if (callback) {
+    (*callback)(terminal, child_pid, NULL, user_data);
   }
 }
 #endif
@@ -3350,7 +3388,15 @@ gboolean vte_terminal_get_has_selection(VteTerminal *terminal) {
 
 #if VTE_CHECK_VERSION(0, 40, 0)
 void vte_terminal_set_word_char_exceptions(VteTerminal *terminal, const char *exception) {
-  char *seps = bl_str_alloca_dup(vt_get_word_separators());
+  char *seps;
+
+  if (!exception || !*exception) {
+    vt_set_word_separators(NULL);
+
+    return;
+  }
+
+  seps = bl_str_alloca_dup(vt_get_word_separators());
 
   if (seps) {
     char *p = seps;
@@ -3642,6 +3688,10 @@ void vte_terminal_set_encoding(VteTerminal *terminal, const char *codeset)
     vt_term_change_encoding(PVT(terminal)->term, vt_get_char_encoding(codeset));
   }
 
+  if (error) {
+    *error = NULL;
+  }
+
   g_signal_emit_by_name(terminal, "encoding-changed");
 
 #if VTE_CHECK_VERSION(0, 38, 0)
@@ -3668,6 +3718,10 @@ vte_terminal_write_contents(VteTerminal *terminal, GOutputStream *stream,
   gboolean ret;
 
   vt_term_exec_cmd(PVT(terminal)->term, cmd);
+
+  if (error) {
+    *error = NULL;
+  }
 
   ret = TRUE;
 
@@ -3832,6 +3886,10 @@ VtePty *vte_terminal_pty_new_sync(VteTerminal *terminal, VtePtyFlags flags,
                                   GCancellable *cancellable, GError **error) {
   VtePty *pty;
 
+  if (error) {
+    *error = NULL;
+  }
+
   if (PVT(terminal)->pty) {
     return PVT(terminal)->pty;
   }
@@ -3847,6 +3905,10 @@ VtePty *vte_terminal_pty_new_sync(VteTerminal *terminal, VtePtyFlags flags,
 #else
 VtePty *vte_terminal_pty_new(VteTerminal *terminal, VtePtyFlags flags, GError **error) {
   VtePty *pty;
+
+  if (error) {
+    *error = NULL;
+  }
 
   if (PVT(terminal)->pty) {
     return PVT(terminal)->pty;
@@ -3938,6 +4000,10 @@ vte_pty_new(VtePtyFlags flags, GError **error)
     pty->terminal = NULL;
   }
 
+  if (error) {
+    *error = NULL;
+  }
+
   return pty;
 }
 
@@ -3948,10 +4014,32 @@ vte_pty_new_foreign_sync(int fd, GCancellable *cancellable, GError **error)
 vte_pty_new_foreign(int fd, GError **error)
 #endif
 {
+  if (error) {
+    error = NULL;
+  }
+
   return NULL;
 }
 
 void vte_pty_close(VtePty *pty) {}
+
+#if VTE_CHECK_VERSION(0, 48, 0)
+void vte_pty_spawn_async(VtePty *pty, const char *working_directory, char **argv,
+                         char **envv, GSpawnFlags spawn_flags,
+                         GSpawnChildSetupFunc child_setup, gpointer child_setup_data,
+                         GDestroyNotify child_setup_data_destroy, int timeout,
+                         GCancellable *cancellable, GAsyncReadyCallback callback,
+                         gpointer user_data) {}
+
+gboolean vte_pty_spawn_finish(VtePty *pty, GAsyncResult *result, GPid *child_pid, GError **error) {
+  if (error) {
+    *error = NULL;
+  }
+
+  return FALSE;
+}
+
+#endif
 
 #if (!defined(HAVE_SETSID) && defined(TIOCNOTTY)) || !defined(TIOCSCTTY)
 #include <fcntl.h>
@@ -4023,6 +4111,10 @@ int vte_pty_get_fd(VtePty *pty) {
 }
 
 gboolean vte_pty_set_size(VtePty *pty, int rows, int columns, GError **error) {
+  if (error) {
+    *error = NULL;
+  }
+
   if (!pty->terminal) {
     return FALSE;
   }
@@ -4033,6 +4125,10 @@ gboolean vte_pty_set_size(VtePty *pty, int rows, int columns, GError **error) {
 }
 
 gboolean vte_pty_get_size(VtePty *pty, int *rows, int *columns, GError **error) {
+  if (error) {
+    *error = NULL;
+  }
+
   if (!pty->terminal) {
     return FALSE;
   }
@@ -4044,6 +4140,10 @@ gboolean vte_pty_get_size(VtePty *pty, int *rows, int *columns, GError **error) 
 }
 
 gboolean vte_pty_set_utf8(VtePty *pty, gboolean utf8, GError **error) {
+  if (error) {
+    *error = NULL;
+  }
+
   if (!pty->terminal) {
     return FALSE;
   }
@@ -4188,6 +4288,10 @@ VteRegex *vte_regex_new_for_match(const char *pattern, gssize pattern_length,
   VteRegex *regex = g_slice_new(VteRegex);
   regex->ref_count = 1;
 
+  if (error) {
+    *error = NULL;
+  }
+
   return regex;
 }
 
@@ -4196,10 +4300,20 @@ VteRegex *vte_regex_new_for_search(const char *pattern, gssize pattern_length,
   VteRegex *regex = g_slice_new(VteRegex);
   regex->ref_count = 1;
 
+  if (error) {
+    *error = NULL;
+  }
+
   return regex;
 }
 
-gboolean vte_regex_jit(VteRegex *regex, guint32 flags, GError **error) { return TRUE; }
+gboolean vte_regex_jit(VteRegex *regex, guint32 flags, GError **error) {
+  if (error) {
+    *error = NULL;
+  }
+
+  return TRUE;
+}
 
 int vte_terminal_match_add_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {
   return 0;
@@ -4214,4 +4328,14 @@ gboolean vte_terminal_event_check_regex_simple(VteTerminal *terminal, GdkEvent *
 void vte_terminal_search_set_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {}
 
 VteRegex *vte_terminal_search_get_regex(VteTerminal *terminal) { return NULL; }
+#endif
+
+#if VTE_CHECK_VERSION(0, 50, 0)
+gboolean vte_terminal_get_allow_hyperlink(VteTerminal *terminal) {
+  return FALSE;
+}
+
+void vte_terminal_set_allow_hyperlink(VteTerminal *terminal, gboolean allow_hyperlink) {}
+
+char *vte_terminal_hyperlink_check_event(VteTerminal *terminal, GdkEvent *event) { return NULL; }
 #endif

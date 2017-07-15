@@ -199,8 +199,6 @@ int mc_get_flag_value(const char *key) {
 }
 
 const char *mc_get_gui(void) {
-  char *value;
-
   if (!gui && !(gui = get_value("gui", mc_io_get))) {
     return "xlib";
   }

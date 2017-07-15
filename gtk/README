@@ -63,6 +63,8 @@ How to build & install libvte compatible library using mlterm engine.
     - 'inner_border' option
     - 'use_urgent_bell' option
 
+  o Transparency is not supported on wayland.
+
   o It is recommended to specify the same font to configuration of gnome-terminal
     or etc and ~/.mlterm/aafont so as not to load excessive fonts.
     ex) - gtkterm2
@@ -164,10 +166,9 @@ How to build & install libvte compatible library using mlterm engine.
       "visible-bell"
 
 * Tested terminals using vte.
-  o gnome-terminal 3.22.0 on Fedora 25  ... OK
+  o gnome-terminal 3.24.2 on Arch Linux ... OK except transparency
   o gnome-terminal 2.16.0 on CentOS 5   ... OK
-  o roxterm 3.3.2 on Fedora 25          ... OK
-  o sakura 3.2.0 on Ubuntu 15.10        ... OK
+  o roxterm 3.3.2 on Arch Linux         ... OK
 
   Following platforms are not actually tested by developers, but were tested
   in the past.
@@ -181,6 +182,7 @@ How to build & install libvte compatible library using mlterm engine.
   o gnome-terminal 3.4.1.1-0ubuntu1 on Ubuntu 12.04
   o gnome-terminal 3.0.1 on Ubuntu 11.10
   o gnome-terminal 2.32.0 on Ubuntu 10.10
+  o gnome-terminal 3.22.0 on Fedora 25
   o gnome-terminal 3.20.2 on Fedora 24
   o roxterm 3.1.4 on Ubuntu 15.10
   o roxterm 2.9.5 on Ubuntu 15.04
@@ -191,6 +193,7 @@ How to build & install libvte compatible library using mlterm engine.
   o roxterm 1.22.2 on Ubuntu 11.10
   o roxterm 1.18.5 on Ubuntu 10.10
   o roxterm 1.18.5 on NetBSD 3.0.1
+  o roxterm 3.3.2 on Fedora 25
   o roxterm 3.3.2 on Fedora 24
   o synaptic 0.80.2 on Ubuntu 13.10
   o synaptic 0.80 on Ubuntu 13.04
@@ -202,7 +205,7 @@ How to build & install libvte compatible library using mlterm engine.
   o evilvte 0.5.0-1 on Ubuntu 12.04
   o evilvte 0.4.8 on Ubuntu 11.10
   o evilvte 0.4.9pre4 on NetBSD 3.0.1
-  o sakura 3.1.5 on Ubuntu 15.04                ... OK
+  o sakura 3.1.5 on Ubuntu 15.04
   o sakura 3.1.0 on Ubuntu 13.10
   o sakura 3.0.4-2 on Ubuntu 13.04
   o sakura 3.0.3-2 on Ubuntu 12.04

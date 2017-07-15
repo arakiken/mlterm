@@ -110,7 +110,8 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
                   "use ISO-8859-1 font for ASCII part of any encoding [false]");
   bl_conf_add_opt(conf, '9', "crfg", 0, "cursor_fg_color", "cursor foreground color");
   bl_conf_add_opt(conf, '0', "crbg", 0, "cursor_bg_color", "cursor background color");
-#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO) || \
+  defined(USE_FREETYPE)
   bl_conf_add_opt(conf, 'A', "aa", 1, "use_anti_alias",
                   "forcibly use anti alias font by using Xft or cairo");
 #endif
@@ -467,7 +468,8 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   }
 #endif
 
-#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO) || \
+  defined(USE_FREETYPE)
   if ((value = bl_conf_get_value(conf, "use_anti_alias"))) {
     if (strcmp(value, "true") == 0) {
       main_config->font_present |= FONT_AA;
