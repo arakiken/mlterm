@@ -1,3 +1,16 @@
+2017-07-17  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.8.2 released.
+	  (tag "rel-3_8_2")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.8.2.
+
+	* PROTOCOL, man/mlterm.1: Updated.
+
+	* im_iiimf.c, im_uim.c, vte.c: Compiling error is fixed.
+
 2017-07-15  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_main_config.c: If USE_FREETYPE is defined, "use_anti_alias" option works.

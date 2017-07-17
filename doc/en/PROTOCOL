@@ -1,7 +1,7 @@
 comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 mlterm configuration protocol
-version 20170429
+version 20170717
 
 * Protocol
   exec             = "\x1b]5379;" <command> "\x07"
@@ -52,7 +52,8 @@ version 20170429
                      use_urgent_bell | allow_osc52 | allow_scp | auto_detect_encodings |
                      use_auto_detect | use_extended_scroll_shortcut | use_ot_layout |
                      ot_script | ot_features | regard_uri_as_word | vt_color_mode |
-                     console_encoding | console_sixel_colors | borderless | underline_offset
+                     console_encoding | console_sixel_colors | borderless | underline_offset |
+                     baseline_offset
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -70,7 +71,7 @@ version 20170429
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
                      unicode_full_width_areas | box_drawing_font | auto_detect_encodings |
                      use_auto_detect | use_ot_layout | regard_uri_as_word | borderless |
-                     use_aafont | underline_offset
+                     use_aafont | underline_offset | baseline_offset
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -87,6 +88,7 @@ version 20170429
   allow_scp = true | false | switch
   auto_restart = true | false | switch | <restart command>
   auto_detect_encodings = (<encoding name>,)*
+  baseline_offset = <any ASCII decimal digit>
   bidi_separators = <any ASCII sign>*
   bd_color = <color name> | <color rgb>
   bl_color = <color name> | <color rgb>

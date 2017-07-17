@@ -3,7 +3,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 Framebuffer support
 
 * Tested environment
-  Fedora 25
+  Arch Linux
   CentOS 5
   (Linux kernel 2.6 or later)
 

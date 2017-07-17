@@ -17,7 +17,7 @@ This document describes how to implement your own scrollbar.
   o libltdl library
 
 * Member functions of x_sb_view_t
-  o void (*get_geometry_hints)(struct x_sb_view *, unsigned int *width, 
+  o void (*get_geometry_hints)(struct x_sb_view *, unsigned int *width,
                                unsigned int *top_margin,
                                unsigned int *bottom_margin,
                                int *up_button_y,

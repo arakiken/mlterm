@@ -707,9 +707,8 @@ static void candidate_activate(void *p, int num, int limit) {
 
   if (uim->im.cand_screen == NULL) {
     if (!(uim->im.cand_screen = (*syms->ui_im_candidate_screen_new)(
-              uim->im.disp, uim->im.font_man, uim->im.color_man,
+              uim->im.disp, uim->im.font_man, uim->im.color_man, uim->im.vtparser,
               (*uim->im.listener->is_vertical)(uim->im.listener->self), 1,
-              (*uim->im.listener->get_unicode_policy)(uim->im.listener->self),
               (*uim->im.listener->get_line_height)(uim->im.listener->self), x, y))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " ui_im_candidate_screen_new() failed.\n");

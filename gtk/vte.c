@@ -1267,7 +1267,6 @@ static void vte_terminal_realize(GtkWidget *widget) {
   VteTerminal *terminal = VTE_TERMINAL(widget);
   GdkWindowAttr attr;
   GtkAllocation allocation;
-  XID xid;
 
   if (gtk_widget_get_window(widget)) {
     return;
@@ -3688,9 +3687,11 @@ void vte_terminal_set_encoding(VteTerminal *terminal, const char *codeset)
     vt_term_change_encoding(PVT(terminal)->term, vt_get_char_encoding(codeset));
   }
 
+#if VTE_CHECK_VERSION(0, 38, 0)
   if (error) {
     *error = NULL;
   }
+#endif
 
   g_signal_emit_by_name(terminal, "encoding-changed");
 

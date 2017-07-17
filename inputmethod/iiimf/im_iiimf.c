@@ -692,7 +692,7 @@ static void status_change(im_iiimf_t *iiimf) {
   if (iiimf->im.stat_screen == NULL) {
     if (!(iiimf->im.stat_screen =
           (*syms->ui_im_status_screen_new)(iiimf->im.disp, iiimf->im.font_man,
-                                           iiimf->im.color_man, iiimf->vt.vtparser,
+                                           iiimf->im.color_man, iiimf->im.vtparser,
                                            (*listener->is_vertical)(listener->self),
                                            (*listener->get_line_height)(listener->self),
                                            x, y))) {
