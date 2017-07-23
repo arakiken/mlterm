@@ -953,6 +953,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o working_directory
         子プロセス(シェル)のカレントディレクトリを指定する。
 
+      o trim_trailing_newline_in_pasting (true/*false*)
+        ペーストする文字列の末尾の改行を削除する。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1417,6 +1420,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --ckm=value     : console_encoding
        --csc=value     : console_sixel_colors
        --csz=value     : default_cell_size (X)
+       --trim(=bool)   : trim_trailing_newline_in_pasting
 
     -e ... : 指定したコマンドを起動
 
@@ -1468,6 +1472,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     コンソールアプリケーションがマウスイベントを横取りしている場合は、Shift +
     Button で領域選択できます。
+
+    選択した領域が反転表示されている状態で、Shift + Button3 を押すと、選択中の領
+    域を変更することができます。
 
     Mod(Alt)を押しながらマウスでドラッグすると矩形領域を選択できます。
 

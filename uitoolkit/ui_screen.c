@@ -67,6 +67,7 @@ enum {
 static int exit_backscroll_by_pty;
 static int allow_change_shortcut;
 static char *mod_meta_prefix = "\x1b";
+static int trim_trailing_newline_in_pasting;
 #ifdef USE_IM_CURSOR_COLOR
 static char *im_cursor_color = NULL;
 #endif
@@ -1382,6 +1383,39 @@ static void mapping_notify(ui_window_t *win) {
   screen->mod_ignore_mask = ui_window_get_mod_ignore_mask(win, NULL);
 }
 
+static size_t trim_trailing_newline_in_pasting1(u_char *str, size_t len) {
+  if (trim_trailing_newline_in_pasting) {
+    size_t count;
+
+    for (count = len; count > 0; count--) {
+      if (str[count - 1] == '\r' || str[count - 1] == '\n') {
+        len--;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return len;
+}
+
+static u_int trim_trailing_newline_in_pasting2(vt_char_t *str, u_int len) {
+  if (trim_trailing_newline_in_pasting) {
+    size_t count;
+
+    for (count = len; count > 0; count--) {
+      if (vt_char_code_is(&str[count - 1], '\r', US_ASCII) ||
+          vt_char_code_is(&str[count - 1], '\n', US_ASCII)) {
+        len--;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return len;
+}
+
 #ifdef NL_TO_CR_IN_PAST_TEXT
 static void convert_nl_to_cr1(u_char *str, size_t len) {
   size_t count;
@@ -1406,20 +1440,23 @@ static void convert_nl_to_cr2(vt_char_t *str, u_int len) {
 
 static int yank_event_received(ui_screen_t *screen, Time time) {
   if (ui_window_is_selection_owner(&screen->window)) {
+    u_int len;
+
     if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
       return 0;
     }
 
+    len = trim_trailing_newline_in_pasting2(screen->sel.sel_str, screen->sel.sel_len);
 #ifdef NL_TO_CR_IN_PAST_TEXT
     /*
      * Convert normal newline chars to carriage return chars which are
      * common return key sequences.
      */
-    convert_nl_to_cr2(screen->sel.sel_str, screen->sel.sel_len);
+    convert_nl_to_cr2(screen->sel.sel_str, len);
 #endif
 
     (*screen->vt_str_parser->init)(screen->vt_str_parser);
-    vt_str_parser_set_str(screen->vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
+    vt_str_parser_set_str(screen->vt_str_parser, screen->sel.sel_str, len);
 
     if (vt_term_is_bracketed_paste_mode(screen->term)) {
       write_to_pty(screen, "\x1b[200~", 6, NULL);
@@ -1914,7 +1951,8 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
   }
 #endif
 
-  if (!shortcut_match(screen, ksym, masked_state)) {
+  if (!shortcut_match(screen, ksym, masked_state) &&
+      !shortcut_str(screen, ksym, masked_state, 0, 0)) {
     int modcode;
     vt_special_key_t spkey;
     int is_numlock;
@@ -2070,9 +2108,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
     }
 
   no_keypad:
-    if (shortcut_str(screen, ksym, masked_state, 0, 0)) {
-      return;
-    } else if ((ksym == XK_Delete
+    if ((ksym == XK_Delete
 #ifdef USE_XLIB
                 && size == 1
 #endif
@@ -2362,6 +2398,7 @@ static void utf_selection_requested(ui_window_t *win, XSelectionRequestEvent *ev
 static void xct_selection_notified(ui_window_t *win, u_char *str, size_t len) {
   ui_screen_t *screen;
 
+  len = trim_trailing_newline_in_pasting1(str, len);
 #ifdef NL_TO_CR_IN_PAST_TEXT
   /*
    * Convert normal newline chars to carriage return chars which are
@@ -2426,6 +2463,7 @@ static void xct_selection_notified(ui_window_t *win, u_char *str, size_t len) {
 static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len) {
   ui_screen_t *screen;
 
+  len = trim_trailing_newline_in_pasting1(str, len);
 #ifdef NL_TO_CR_IN_PAST_TEXT
   /*
    * Convert normal newline chars to carriage return chars which are
@@ -4169,6 +4207,12 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     }
   } else if (strcmp(key, "pty_list") == 0) {
     value = vt_get_pty_list();
+  } else if (strcmp(key, "trim_trailing_newline_in_pasting") == 0) {
+    if (trim_trailing_newline_in_pasting) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   }
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
   else if (strcmp(key, "use_aafont") == 0) {
@@ -5544,6 +5588,8 @@ void ui_set_mod_meta_prefix(char *prefix /* allocated memory */
   }
 }
 
+void ui_set_trim_trailing_newline_in_pasting(int trim) { trim_trailing_newline_in_pasting = trim; }
+
 #ifdef USE_IM_CURSOR_COLOR
 void ui_set_im_cursor_color(char *color) { im_cursor_color = strdup(color); }
 #endif
@@ -6620,6 +6666,12 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
       }
 
       usascii_font_cs_changed(screen, vt_term_get_encoding(screen->term));
+    }
+  } else if (strcmp(key, "trim_trailing_newline_in_pasting") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      trim_trailing_newline_in_pasting = flag;
     }
   }
 #ifdef ROTATABLE_DISPLAY

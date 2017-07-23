@@ -157,6 +157,8 @@ void ui_set_mod_meta_prefix(char *prefix);
 
 #define ui_free_mod_meta_prefix() ui_set_mod_meta_prefix(NULL)
 
+void ui_set_trim_trailing_newline_in_pasting(int trim);
+
 #ifdef USE_IM_CURSOR_COLOR
 void ui_set_im_cursor_color(char *color);
 #endif

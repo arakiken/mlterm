@@ -1,3 +1,17 @@
+2017-07-23  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, PROTOCOL: Updated.
+
+	* ui_screen.[ch]:
+	  - ui_set_trim_trailing_newline_in_pasting() which trims trailing newline
+	    in pasting text is added.
+	  - "trim_trailing_newline_in_pasting" is added to OSC 5379, 5380 etc.
+	  - shortcut_str() is called just after shortcut_match() in key_pressed().
+
+	* vt_screen.c: check_or_copy_region() doesn't append extra space at the end.
+
+	* version.h: 3.8.2 -> 3.8.2post
+
 2017-07-17  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.2 released.

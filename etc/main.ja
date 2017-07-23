@@ -387,3 +387,6 @@ scrollbar_view_name = sample
 
 # 子プロセス(シェル)のカレントディレクトリを指定する。
 # working_directory
+
+# ペーストする文字列の末尾の改行を削除する。
+# trim_trailing_newline_in_pasting = false

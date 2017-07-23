@@ -320,6 +320,8 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "slp", 1, "start_with_local_pty",
                   "start mlterm with local pty instead of ssh connection [false]");
 #endif
+  bl_conf_add_opt(conf, '\0', "trim", 1, "trim_trailing_newline_in_pasting",
+                  "trim trailing newline in pasting text. [false]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1316,6 +1318,12 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
     start_with_local_pty = (strcmp(value, "true") == 0);
   }
 #endif
+
+  if ((value = bl_conf_get_value(conf, "trim_trailing_newline_in_pasting"))) {
+    if (strcmp(value, "true") == 0) {
+      ui_set_trim_trailing_newline_in_pasting(1);
+    }
+  }
 
 #ifdef USE_IM_CURSOR_COLOR
   if ((value = bl_conf_get_value(conf, "im_cursor_color"))) {

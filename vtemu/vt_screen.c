@@ -554,7 +554,9 @@ static u_int check_or_copy_region(
 
   /* row == end_row */
 
-  if (vt_line_is_rtl(line)) {
+  if (size_except_spaces == 0) {
+    /* do nothing */
+  } else if (vt_line_is_rtl(line)) {
     if (end_char_index < size_except_spaces) {
       if (end_char_index < beg_regarding_rtl) {
         end_char_index = beg_regarding_rtl;
@@ -571,7 +573,7 @@ static u_int check_or_copy_region(
   } else {
     if (end_char_index >= beg_regarding_rtl) {
       if (end_char_index >= size_except_spaces) {
-        end_char_index = K_MAX(size_except_spaces, 1) - 1;
+        end_char_index = size_except_spaces - 1;
       }
 
       size = end_char_index - beg_char_index + 1;

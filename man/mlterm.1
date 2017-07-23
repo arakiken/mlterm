@@ -719,6 +719,10 @@ The default is \fBraw\fR.
 Whether to allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
 The default is \fBfalse\fR.
 .TP
+\fB\-\-trim\fR(=\fIbool\fR)
+Whether to trim new line characters at the end in pasting text.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-ul\fR=\fIvalue\fR
 Specify the color to use to display underlined characters.
 .TP
@@ -1577,6 +1581,9 @@ Terminal type.
 .TP
 \fBtitle=\fIname\fR (\fB\-T\fR, \fB\-\-title\fR)
 Title name.
+.TP
+\fBtrim_trailing_newline_in_pasting=\fIbool\fR (\fB\-\-trim\fR)
+Trim new line characters at the end in pasting text.
 .TP
 \fBtype_engine=\fIvalue\fR (\fB\-*\fR, \fB\-\-type\fR)
 Rendering engine for drawing fonts.

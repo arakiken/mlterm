@@ -265,3 +265,5 @@
 # allow_change_shortcut = false
 
 # working_directory =
+
+# trim_trailing_newline_in_pasting = false
