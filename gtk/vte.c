@@ -2579,6 +2579,9 @@ static void set_color_cursor(VteTerminal *terminal, const void *cursor_backgroun
 
 static int set_colors(VteTerminal *terminal, const char *palette, glong palette_size,
                       size_t color_size, gchar *(*to_string)(const char *)) {
+  int need_redraw = 0;
+  vt_color_t color;
+
   if (palette_size != 0 && palette_size != 8 && palette_size != 16 &&
       (palette_size < 24 || 256 < palette_size)) {
 #ifdef DEBUG
@@ -2589,9 +2592,6 @@ static int set_colors(VteTerminal *terminal, const char *palette, glong palette_
   }
 
   if (palette_size >= 8) {
-    vt_color_t color;
-    int need_redraw = 0;
-
     for (color = 0; color < palette_size; color++) {
       gchar *rgb;
       char *name;
@@ -2608,11 +2608,21 @@ static int set_colors(VteTerminal *terminal, const char *palette, glong palette_
       g_free(rgb);
       palette += color_size;
     }
+  } else {
+    for (color = 0; color < 256; color++) {
+      char *name = vt_get_color_name(color);
 
-    if (need_redraw && GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
-      ui_color_cache_unload_all();
-      ui_screen_reset_view(PVT(terminal)->screen);
+#ifdef DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " Erase rgb of %s\n", name);
+#endif
+
+      need_redraw |= vt_customize_color_file(name, "", 0);
     }
+  }
+
+  if (need_redraw && GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
+    ui_color_cache_unload_all();
+    ui_screen_reset_view(PVT(terminal)->screen);
   }
 
   return 1;
@@ -3040,7 +3050,8 @@ void vte_terminal_set_color_highlight_foreground(VteTerminal *terminal,
 void vte_terminal_set_colors(VteTerminal *terminal, const GdkColor *foreground,
                              const GdkColor *background, const GdkColor *palette,
                              glong palette_size) {
-  if (set_colors(terminal, palette, palette_size, sizeof(GdkColor), gdk_color_to_string)) {
+  if (set_colors(terminal, palette, palette_size, sizeof(GdkColor), gdk_color_to_string) &&
+      palette_size > 0) {
     if (foreground == NULL) {
       foreground = &palette[7];
     }
@@ -3117,7 +3128,8 @@ void vte_terminal_set_color_highlight_foreground_rgba(VteTerminal *terminal,
 void vte_terminal_set_colors_rgba(VteTerminal *terminal, const GdkRGBA *foreground,
                                   const GdkRGBA *background, const GdkRGBA *palette,
                                   gsize palette_size) {
-  if (set_colors(terminal, palette, palette_size, sizeof(GdkRGBA), gdk_rgba_to_string2)) {
+  if (set_colors(terminal, palette, palette_size, sizeof(GdkRGBA), gdk_rgba_to_string2) &&
+      palette_size > 0) {
     if (foreground == NULL) {
       foreground = &palette[7];
     }
@@ -3131,7 +3143,9 @@ void vte_terminal_set_colors_rgba(VteTerminal *terminal, const GdkRGBA *foregrou
 }
 #endif /* GTK_CHECK_VERSION(2,99,0) */
 
-void vte_terminal_set_default_colors(VteTerminal *terminal) {}
+void vte_terminal_set_default_colors(VteTerminal *terminal) {
+  set_colors(terminal, NULL, 0, 0, NULL);
+}
 
 void vte_terminal_set_background_image(
     VteTerminal *terminal,

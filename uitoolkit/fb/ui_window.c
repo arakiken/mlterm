@@ -119,12 +119,12 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
                 * 1.0, 0.0: alpha of fg_color
                 * 0.8, 0.2: alpha of bg color
                 *
-                * Correct: 0.6*(1.0*f + 0.0*w) + 0.4*(0.8*b + 0.2*w) = 0.6*f + 0.32*b + 0.12*w
-                * Lazy   : (0.6*f + 0.4*b)*(1.0+0.8)/2 + 0.2*w*(1.0-(1.0+0.8)/2)
-                *                          ^^^^^^^^^           ^^^^^^^^^^^^^^
-                *          = 0.54*f + 0.36*b + 0.18*w
+                * Correct: 0.6*(1.0*f + 0.0*w) + 0.4*(0.8*b + 0.2*w) = 0.6*f + 0.32*b + 0.08*w
+                * Lazy   : (0.6*f + 0.4*b)*(1.0*0.6+0.8*0.4) + w*(1.0-(1.0*0.6+0.8*0.4))
+                *                          ^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^
+                *          = 0.552*f + 0.368*b + 0.08*w
                 */
-               ((((fg >> 24) + (bg >> 24)) / 2) << 24) |
+               BLEND((fg >> 24), (bg >> 24), (a1 + a2 + a3) / 3) << 24 |
 #endif
                RGB_TO_PIXEL(BLEND(r1, r2, a1), BLEND(g1, g2, a2), BLEND(b1, b2, a3),
                             display->rgbinfo),

@@ -1,3 +1,12 @@
+2017-07-29  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_window.c: copy_blended_pixel() is fixed.
+
+	* gtk/vte.c:
+	  - vte_terminal_set_colors() falls back to the default palettes
+	    if palette_size == 0.
+	  - vte_terminal_set_default_colors() is implemented.
+
 2017-07-27  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c: Wrong processing of percentage in fontname is fixed.
