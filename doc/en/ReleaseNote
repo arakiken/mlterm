@@ -4,6 +4,7 @@
   Fix a bug which disabled to assign keypad keys in ~/.mlterm/shortcut.
   Fix wrong processing of percentage in a font name on framebuffer and wayland.
   Fix alpha blending in drawing glyphs on wayland.
+  Fix disappearance of the cursor if built with --enable-vt52 option.
 
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)

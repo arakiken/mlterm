@@ -269,10 +269,6 @@ typedef struct vt_parser {
 #endif
   int8_t modify_other_keys;
 
-#ifdef USE_VT52
-  int8_t is_vt52_mode;
-#endif
-
   int8_t sixel_scrolling;
   int8_t cursor_to_right_of_sixel;
   int8_t yield;
@@ -299,6 +295,10 @@ typedef struct vt_parser {
 
   u_int32_t *sixel_palette;
   u_int64_t vtmode_flags;
+
+#ifdef USE_VT52
+  int8_t is_vt52_mode;
+#endif
 
 } vt_parser_t;
 
