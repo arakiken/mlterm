@@ -1,5 +1,9 @@
 2017-08-02  Araki Ken  <arakiken@users.sf.net>
 
+	* quartz/ui_display.c, win32/ui_display.c: Minor fixes.
+
+2017-08-02  Araki Ken  <arakiken@users.sf.net>
+
 	* quartz/ui_display.c: dialog() is implemented.
 
 	* quartz/ui_connect_dialog.c: ui_connect_dialog() is implemented.

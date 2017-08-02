@@ -55,7 +55,7 @@ static LRESULT CALLBACK window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
   return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-static int dialog(bl_dialog_style_t style, const char *msg) {
+static int dialog_cb(bl_dialog_style_t style, const char *msg) {
   if (style == BL_DIALOG_OKCANCEL) {
     if (MessageBoxA(NULL, msg, "", MB_OKCANCEL) == IDOK) {
       return 1;
@@ -63,8 +63,6 @@ static int dialog(bl_dialog_style_t style, const char *msg) {
   } else if (style == BL_DIALOG_ALERT) {
     MessageBoxA(NULL, msg, "", MB_ICONSTOP);
   } else {
-    bl_msg_printf("%s\n", msg);
-
     return -1;
   }
 }
@@ -87,7 +85,7 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
   }
 
   /* Callback should be set before bl_dialog() is called. */
-  bl_dialog_set_callback(dialog);
+  bl_dialog_set_callback(dialog_cb);
 
   _display.hinst = GetModuleHandle(NULL);
 

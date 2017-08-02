@@ -7,6 +7,7 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>  /* strdup */
 #include <pobl/bl_file.h> /* bl_file_set_cloexec */
+#include <pobl/bl_dialog.h>
 
 #include "../ui_window.h"
 #include "../ui_picture.h"
@@ -76,6 +77,90 @@ static int error_handler(Display *display, XErrorEvent *event) {
   }
 }
 
+#endif
+
+#ifdef USE_ALERT_DIALOG
+#define LINESPACE 20
+#define BEGENDSPACE 20
+static int dialog_cb(bl_dialog_style_t style, const char *msg) {
+  Display *display;
+  int screen;
+  Window window;
+  GC gc;
+  XFontStruct *font;
+  u_int width;
+  u_int height;
+  u_int len;
+  char title[] = "** Warning **";
+
+  if (style != BL_DIALOG_ALERT) {
+    return -1;
+  }
+
+  len = strlen(msg);
+
+  if (!(display = XOpenDisplay(""))) {
+    return 0;
+  }
+
+  screen = DefaultScreen(display);
+  gc = DefaultGC(display, screen);
+
+  if (!(font = XLoadQueryFont(display, "-*-r-normal--*-*-*-*-c-*-iso8859-1"))) {
+    XCloseDisplay(display);
+
+    return 0;
+  }
+
+  XSetFont(display, gc, font->fid);
+
+  width = font->max_bounds.width * K_MAX(len, sizeof(title) - 1) + BEGENDSPACE;
+  height = (font->ascent + font->descent) * 2 + LINESPACE;
+
+  if (!(window = XCreateSimpleWindow(display, DefaultRootWindow(display),
+                                     (DisplayWidth(display, screen) - width) / 2,
+                                     (DisplayHeight(display, screen) - height) / 2,
+                                     width, height, 0, BlackPixel(display, screen),
+                                     WhitePixel(display, screen)))) {
+    XFreeFont(display, font);
+    XCloseDisplay(display);
+
+    return 0;
+  }
+
+  /*
+   * Not only ButtonReleaseMask but also ButtonPressMask is necessary to
+   * receive ButtonRelease event correctly.
+   */
+  XSelectInput(display, window,
+               KeyReleaseMask|ButtonPressMask|ButtonReleaseMask|ExposureMask|StructureNotifyMask);
+  XMapWindow(display, window);
+
+  while (1) {
+    XEvent ev;
+
+    XWindowEvent(display, window,
+                 KeyReleaseMask|ButtonPressMask|ButtonReleaseMask|ExposureMask|StructureNotifyMask,
+                 &ev);
+
+    if (ev.type == KeyRelease || ev.type == ButtonRelease || ev.type == ClientMessage) {
+      break;
+    } else if (ev.type == Expose) {
+      XDrawString(display, window, gc, BEGENDSPACE / 2, font->ascent + LINESPACE / 2,
+                  title, sizeof(title) - 1);
+      XDrawString(display, window, gc, BEGENDSPACE / 2,
+                  font->ascent * 2 + font->descent + LINESPACE / 2, msg, len);
+    } else if (ev.type == MapNotify) {
+      XSetInputFocus(display, window, RevertToPointerRoot, CurrentTime);
+    }
+  }
+
+  XDestroyWindow(display, window);
+  XFreeFont(display, font);
+  XCloseDisplay(display);
+
+  return 1;
+}
 #endif
 
 static ui_display_t *open_display(char *name, u_int depth) {
@@ -197,6 +282,11 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
       return displays[count];
     }
   }
+
+#ifdef USE_ALERT_DIALOG
+  /* Callback should be set before bl_dialog() is called. */
+  bl_dialog_set_callback(dialog_cb);
+#endif
 
   if ((disp = open_display(disp_name, depth)) == NULL) {
     return NULL;
