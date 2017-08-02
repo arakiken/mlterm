@@ -1,5 +1,6 @@
 * Add "trim_trailing_newline_in_pasting" / --trim option which removes trailing newline
-	characters in pasting text.
+  characters in pasting text.
+* Support libssh2 on MacOSX/Cocoa.
 * Bug fixes:
   Fix a bug which disabled to assign keypad keys in ~/.mlterm/shortcut.
   Fix wrong processing of percentage in a font name on framebuffer and wayland.

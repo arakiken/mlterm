@@ -94,7 +94,7 @@ static void show_config(void *p, char *msg) {
 
 #ifdef USE_LIBSSH2
 static JNIEnv *env_for_dialog;
-static int dialog_callback(bl_dialog_style_t style, char *msg) {
+static int dialog_callback(bl_dialog_style_t style, const char *msg) {
   jclass class;
   static jmethodID mid;
 

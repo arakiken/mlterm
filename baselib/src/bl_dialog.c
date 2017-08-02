@@ -6,11 +6,11 @@
 
 /* --- static variables --- */
 
-static int (*callback)(bl_dialog_style_t, char *);
+static int (*callback)(bl_dialog_style_t, const char *);
 
 /* --- global functions --- */
 
-int bl_dialog_set_callback(int (*cb)(bl_dialog_style_t, char *)) {
+int bl_dialog_set_callback(int (*cb)(bl_dialog_style_t, const char *)) {
   callback = cb;
 
   return 1;
@@ -20,7 +20,7 @@ int bl_dialog_set_callback(int (*cb)(bl_dialog_style_t, char *)) {
 int bl_dialog_set_exec_file(bl_dialog_style_t style, const char *path) { return 1; }
 #endif
 
-int bl_dialog(bl_dialog_style_t style, char *msg) {
+int bl_dialog(bl_dialog_style_t style, const char *msg) {
   int ret;
 
   if (callback && (ret = (*callback)(style, msg)) != -1) {

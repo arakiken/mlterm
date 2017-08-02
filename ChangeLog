@@ -1,3 +1,21 @@
+2017-08-02  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/ui_display.c: dialog() is implemented.
+
+	* quartz/ui_connect_dialog.c: ui_connect_dialog() is implemented.
+
+	* cocoa.[ch]:
+	  - cocoa_dialog_{password|okcancel|alert}() are added.
+	  - uitoolkit => uiwindow
+
+	* main_loop.c: ignore_unknown_opt of bl_conf_parse_args() is 1 on
+	  MacOSX/Cocoa because "open -a /../mlterm.app" command passes
+	  "-psn_N_NNNNNN" option to mlterm.
+
+	* main-cocoa.m: Arguments of main() is copied to global_args.
+
+	* bl_dialog.[ch]: char* => const char*
+
 2017-07-30  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.h: is_vt52_mode is moved to the end of vt_parser_t.

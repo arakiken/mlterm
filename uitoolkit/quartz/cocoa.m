@@ -16,7 +16,7 @@
 #include "../ui_layout.h"
 
 @interface MLTermView : NSView<NSTextInputClient> {
-  ui_window_t *uitoolkit;
+  ui_window_t *uiwindow;
   CGContextRef ctx;
   int forceExpose; /* 2 = visual bell */
 
@@ -57,6 +57,9 @@
 - (void)bgColorChanged;
 @end
 
+@interface MLSecureTextField : NSSecureTextField
+@end
+
 /* --- static variables --- */
 
 static struct {
@@ -67,10 +70,12 @@ static struct {
 
 static u_int num_of_additional_fds;
 
-static ui_window_t *uitoolkit_for_mlterm_view;
+static ui_window_t *uiwindow_for_mlterm_view;
 
 static NSMenuItem *configMenuItem;
 static NSMenuItem *pasteMenuItem;
+
+char *global_args;
 
 /* --- static functions --- */
 
@@ -80,8 +85,8 @@ static NSMenuItem *pasteMenuItem;
                            ((color)->pixel & 0xff) / 255.0, 1.0);
 
 #define IS_OPAQUE                                          \
-  ((uitoolkit->bg_color.pixel & 0xff000000) == 0xff000000 || \
-   ui_window_has_wall_picture(uitoolkit))
+  ((uiwindow->bg_color.pixel & 0xff000000) == 0xff000000 || \
+   ui_window_has_wall_picture(uiwindow))
 
 static void exit_program(void) {
   /* This function is called twice from willClose() and monitor_pty() */
@@ -267,12 +272,12 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
   }
 }
 
-static void update_ime_text(ui_window_t *uitoolkit, const char *preedit_text,
+static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
                             const char *cur_preedit_text) {
-  ef_parser_t *utf8_parser = ((ui_screen_t *)uitoolkit)->utf_parser;
+  ef_parser_t *utf8_parser = ((ui_screen_t *)uiwindow)->utf_parser;
   (*utf8_parser->init)(utf8_parser);
 
-  vt_term_t *term = ((ui_screen_t *)uitoolkit)->term;
+  vt_term_t *term = ((ui_screen_t *)uiwindow)->term;
 
   vt_term_set_config(term, "use_local_echo", "false");
 
@@ -297,36 +302,64 @@ static void update_ime_text(ui_window_t *uitoolkit, const char *preedit_text,
     }
   }
 
-  ui_window_update(uitoolkit, 3); /* UPDATE_SCREEN|UPDATE_CURSOR */
+  ui_window_update(uiwindow, 3); /* UPDATE_SCREEN|UPDATE_CURSOR */
 }
 
-static void remove_all_observers(ui_window_t *uitoolkit) {
+static void remove_all_observers(ui_window_t *uiwindow) {
   u_int count;
 
-  for (count = 0; count < uitoolkit->num_of_children; count++) {
+  for (count = 0; count < uiwindow->num_of_children; count++) {
     [[NSNotificationCenter defaultCenter]
-        removeObserver:uitoolkit->children[count]->my_window];
-    remove_all_observers(uitoolkit->children[count]);
+        removeObserver:uiwindow->children[count]->my_window];
+    remove_all_observers(uiwindow->children[count]);
   }
+}
+
+static NSAlert *create_dialog(const char *msg, int has_cancel) {
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert autorelease];
+
+  NSString *ns_msg = [NSString stringWithCString:msg encoding:NSUTF8StringEncoding];
+  [alert setMessageText:ns_msg];
+  [alert addButtonWithTitle:@"OK"]; /* First */
+  if (has_cancel) {
+    [alert addButtonWithTitle:@"Cancel"]; /* Second */
+  }
+
+  return alert;
 }
 
 /* --- class --- */
 
+int cocoa_dialog_alert(const char *msg);
+
 @implementation MLTermView
 
 - (id)initWithFrame:(NSRect)frame {
-  if (uitoolkit_for_mlterm_view) {
-    uitoolkit = uitoolkit_for_mlterm_view;
+  if (uiwindow_for_mlterm_view) {
+    uiwindow = uiwindow_for_mlterm_view;
   } else {
-    char args[] = "mlclient";
-    ui_mlclient(args, NULL);
+    if (global_args) {
+      char *args = bl_str_alloca_dup(global_args);
+      if (args) {
+        ui_mlclient(args, NULL);
+      }
+    } else {
+      char args[] = "mlclient";
+      ui_mlclient(args, NULL);
+    }
 
     ui_screen_t **screens;
     u_int num = ui_get_all_screens(&screens);
-    uitoolkit = &screens[num - 1]->window;
+    if (num == 0) {
+      cocoa_dialog_alert("Failed to open screen");
+      exit(1);
+    }
+
+    uiwindow = &screens[num - 1]->window;
   }
 
-  uitoolkit->my_window = (NSView *)self;
+  uiwindow->my_window = (NSView *)self;
   forceExpose = 1;
 
   [super initWithFrame:frame];
@@ -339,8 +372,8 @@ static void remove_all_observers(ui_window_t *uitoolkit) {
   markedRange = NSMakeRange(NSNotFound, 0);
   selectedRange = NSMakeRange(NSNotFound, 0);
 
-  if (uitoolkit_for_mlterm_view) {
-    uitoolkit_for_mlterm_view = NULL;
+  if (uiwindow_for_mlterm_view) {
+    uiwindow_for_mlterm_view = NULL;
   }
 
   if (!configMenuItem) {
@@ -390,27 +423,27 @@ static void remove_all_observers(ui_window_t *uitoolkit) {
 
 - (void)configMenu:(id)sender {
   /* if by any change */
-  if (((ui_screen_t *)uitoolkit)->term) {
-    ui_screen_exec_cmd((ui_screen_t *)uitoolkit, "mlconfig");
+  if (((ui_screen_t *)uiwindow)->term) {
+    ui_screen_exec_cmd((ui_screen_t *)uiwindow, "mlconfig");
   }
 }
 
 - (void)pasteMenu:(id)sender {
   /* if by any change */
-  if (((ui_screen_t *)uitoolkit)->term) {
-    ui_screen_exec_cmd((ui_screen_t *)uitoolkit, "paste");
+  if (((ui_screen_t *)uiwindow)->term) {
+    ui_screen_exec_cmd((ui_screen_t *)uiwindow, "paste");
   }
 }
 
-static void reset_position(ui_window_t *uitoolkit) {
+static void reset_position(ui_window_t *uiwindow) {
   u_int count;
 
-  for (count = 0; count < uitoolkit->num_of_children; count++) {
-    ui_window_t *child = uitoolkit->children[count];
+  for (count = 0; count < uiwindow->num_of_children; count++) {
+    ui_window_t *child = uiwindow->children[count];
 
     [((NSView *)child->my_window)
         setFrame:NSMakeRect(child->x,
-                            ((int)ACTUAL_HEIGHT(uitoolkit)) -
+                            ((int)ACTUAL_HEIGHT(uiwindow)) -
                                 ((int)ACTUAL_HEIGHT(child)) - child->y,
                             ACTUAL_WIDTH(child), ACTUAL_HEIGHT(child))];
 
@@ -419,20 +452,20 @@ static void reset_position(ui_window_t *uitoolkit) {
 }
 
 - (void)resized:(NSNotification *)note {
-  if (!uitoolkit->parent || !((ui_screen_t *)uitoolkit)->term) {
+  if (!uiwindow->parent || !((ui_screen_t *)uiwindow)->term) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
 
-  uitoolkit->parent->width =
+  uiwindow->parent->width =
       ((NSView *)[self window].contentView).frame.size.width -
-      uitoolkit->parent->hmargin * 2;
-  uitoolkit->parent->height =
+      uiwindow->parent->hmargin * 2;
+  uiwindow->parent->height =
       ((NSView *)[self window].contentView).frame.size.height -
-      uitoolkit->parent->vmargin * 2;
+      uiwindow->parent->vmargin * 2;
 
-  (*uitoolkit->parent->window_resized)(uitoolkit->parent);
-  reset_position(uitoolkit->parent);
+  (*uiwindow->parent->window_resized)(uiwindow->parent);
+  reset_position(uiwindow->parent);
 }
 
 - (void)viewDidMoveToWindow {
@@ -441,12 +474,12 @@ static void reset_position(ui_window_t *uitoolkit) {
     return;
   }
 
-  struct terminal *term = ((ui_screen_t *)uitoolkit)->screen_scroll_listener->self;
+  struct terminal *term = ((ui_screen_t *)uiwindow)->screen_scroll_listener->self;
 
-  if (!uitoolkit->parent->my_window) {
+  if (!uiwindow->parent->my_window) {
     [[self window] orderOut:self];
 
-    if (uitoolkit->event_mask & PointerMotionMask) {
+    if (uiwindow->event_mask & PointerMotionMask) {
       [self window].acceptsMouseMovedEvents = YES;
     }
   }
@@ -475,17 +508,17 @@ static void reset_position(ui_window_t *uitoolkit) {
   int diff_x = [self window].frame.size.width - self.frame.size.width;
   int diff_y = [self window].frame.size.height - self.frame.size.height;
   u_int sb_width = [NSScroller scrollerWidth];
-  int y = ACTUAL_HEIGHT(uitoolkit->parent) - ACTUAL_HEIGHT(uitoolkit) - uitoolkit->y;
+  int y = ACTUAL_HEIGHT(uiwindow->parent) - ACTUAL_HEIGHT(uiwindow) - uiwindow->y;
 
   /* Change view size */
 
   self.frame =
-      CGRectMake(uitoolkit->x, y, ACTUAL_WIDTH(uitoolkit), ACTUAL_HEIGHT(uitoolkit));
+      CGRectMake(uiwindow->x, y, ACTUAL_WIDTH(uiwindow), ACTUAL_HEIGHT(uiwindow));
 
   /* Creating scrollbar */
 
   CGRect r =
-      CGRectMake(term->scrollbar.window.x, y, sb_width, ACTUAL_HEIGHT(uitoolkit));
+      CGRectMake(term->scrollbar.window.x, y, sb_width, ACTUAL_HEIGHT(uiwindow));
   NSScroller *scroller = [[NSScroller alloc] initWithFrame:r];
   [scroller setEnabled:YES];
   [scroller setTarget:self];
@@ -499,8 +532,8 @@ static void reset_position(ui_window_t *uitoolkit) {
   term->scrollbar.window.my_window = (NSView *)scroller;
 
   if (term->sb_mode != SBM_NONE) {
-    uitoolkit->parent->width =
-        uitoolkit->parent->width + sb_width - term->scrollbar.window.width;
+    uiwindow->parent->width =
+        uiwindow->parent->width + sb_width - term->scrollbar.window.width;
   } else {
     [scroller setHidden:YES];
   }
@@ -508,19 +541,19 @@ static void reset_position(ui_window_t *uitoolkit) {
 
   /* Change window size */
 
-  if (!uitoolkit->parent->my_window) {
+  if (!uiwindow->parent->my_window) {
     [[self window] useOptimizedDrawing:YES];
 
-    uitoolkit->parent->my_window = [self window];
+    uiwindow->parent->my_window = [self window];
 
     r = [self window].frame;
-    r.size.width = ACTUAL_WIDTH(uitoolkit->parent) + diff_x;
-    float new_height = ACTUAL_HEIGHT(uitoolkit->parent) + diff_y;
+    r.size.width = ACTUAL_WIDTH(uiwindow->parent) + diff_x;
+    float new_height = ACTUAL_HEIGHT(uiwindow->parent) + diff_y;
     r.origin.y += (r.size.height - new_height);
     r.size.height = new_height;
 
-    [[self window] setResizeIncrements:NSMakeSize(uitoolkit->width_inc,
-                                                  uitoolkit->height_inc)];
+    [[self window] setResizeIncrements:NSMakeSize(uiwindow->width_inc,
+                                                  uiwindow->height_inc)];
     [[self window] setFrame:r display:NO];
 
     if (!IS_OPAQUE) {
@@ -530,28 +563,28 @@ static void reset_position(ui_window_t *uitoolkit) {
     [[self window] makeKeyAndOrderFront:self];
 
     /*
-     * Adjust by uitoolkit->parent->{x,y} after [window setFrame:r] above adjusted
+     * Adjust by uiwindow->parent->{x,y} after [window setFrame:r] above adjusted
      * window position.
      */
-    if (uitoolkit->parent->x > 0 || uitoolkit->parent->y > 0) {
+    if (uiwindow->parent->x > 0 || uiwindow->parent->y > 0) {
       r = [self window].frame;
-      r.origin.x += uitoolkit->parent->x;
-      r.origin.y -= uitoolkit->parent->y;
+      r.origin.x += uiwindow->parent->x;
+      r.origin.y -= uiwindow->parent->y;
 
       [[self window] setFrame:r display:NO];
     }
   }
 
   NSRect sr = [[[self window] screen] visibleFrame];
-  uitoolkit->disp->width = sr.size.width;
-  uitoolkit->disp->height = sr.size.height;
+  uiwindow->disp->width = sr.size.width;
+  uiwindow->disp->height = sr.size.height;
 
   /* Adjust scroller position */
   [scroller setFrameOrigin:NSMakePoint(term->scrollbar.window.x, y)];
 }
 
 - (void)scrollerAction:(id)sender {
-  struct terminal *term = ((ui_screen_t *)uitoolkit)->screen_scroll_listener->self;
+  struct terminal *term = ((ui_screen_t *)uiwindow)->screen_scroll_listener->self;
   ui_scrollbar_t *sb = &term->scrollbar;
   float pos = [sender floatValue];
 
@@ -582,7 +615,7 @@ static void reset_position(ui_window_t *uitoolkit) {
 }
 
 - (void)drawRect:(NSRect)rect {
-  if (!uitoolkit->parent || !((ui_screen_t *)uitoolkit)->term) {
+  if (!uiwindow->parent || !((ui_screen_t *)uiwindow)->term) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -596,31 +629,31 @@ static void reset_position(ui_window_t *uitoolkit) {
 #endif
 
   if (forceExpose & 2) {
-    [self fillWith:&uitoolkit->
-          fg_color:uitoolkit->
-           hmargin:uitoolkit->
-           vmargin:uitoolkit->
-             width:uitoolkit->height];
+    [self fillWith:&uiwindow->fg_color
+                  :uiwindow->hmargin
+                  :uiwindow->vmargin
+                  :uiwindow->width
+                  :uiwindow->height];
     CGContextFlush(ctx);
 
     [[NSRunLoop currentRunLoop]
         runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
     forceExpose = 1;
-    uitoolkit->update_window_flag = 0;
+    uiwindow->update_window_flag = 0;
   }
 
   ev.type = UI_EXPOSE;
   ev.x = rect.origin.x;
   ev.width = rect.size.width;
   ev.height = rect.size.height;
-  ev.y = ACTUAL_HEIGHT(uitoolkit) - rect.origin.y - ev.height;
+  ev.y = ACTUAL_HEIGHT(uiwindow) - rect.origin.y - ev.height;
   ev.force_expose = forceExpose;
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&ev);
+  ui_window_receive_event(uiwindow, (XEvent *)&ev);
 
   forceExpose = 0;
-  uitoolkit->update_window_flag = 0;
+  uiwindow->update_window_flag = 0;
 }
 
 - (BOOL)isOpaque {
@@ -650,7 +683,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 }
 
 - (void)focused:(NSNotification *)note {
-  if (!uitoolkit->parent || !((ui_screen_t *)uitoolkit)->term) {
+  if (!uiwindow->parent || !((ui_screen_t *)uiwindow)->term) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -659,18 +692,18 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
   ev.type = UI_FOCUS_IN;
 
-  ui_window_receive_event(ui_get_root_window(uitoolkit), &ev);
+  ui_window_receive_event(ui_get_root_window(uiwindow), &ev);
 
   ui_window_t *focused;
 
-  if ((focused = get_current_window(ui_get_root_window(uitoolkit)))) {
+  if ((focused = get_current_window(ui_get_root_window(uiwindow)))) {
     [configMenuItem setTarget:focused->my_window];
     [pasteMenuItem setTarget:focused->my_window];
   }
 }
 
 - (void)unfocused:(NSNotification *)note {
-  if (!uitoolkit->parent || !((ui_screen_t *)uitoolkit)->term) {
+  if (!uiwindow->parent || !((ui_screen_t *)uiwindow)->term) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -679,7 +712,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
   ev.type = UI_FOCUS_OUT;
 
-  ui_window_receive_event(ui_get_root_window(uitoolkit), &ev);
+  ui_window_receive_event(ui_get_root_window(uiwindow), &ev);
 }
 
 - (BOOL)acceptsFirstResponder {
@@ -691,10 +724,10 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
   ev.type = UI_KEY_FOCUS_IN;
 
-  ui_window_receive_event(uitoolkit, &ev);
+  ui_window_receive_event(uiwindow, &ev);
 
-  [configMenuItem setTarget:uitoolkit->my_window];
-  [pasteMenuItem setTarget:uitoolkit->my_window];
+  [configMenuItem setTarget:uiwindow->my_window];
+  [pasteMenuItem setTarget:uiwindow->my_window];
 
   return YES;
 }
@@ -706,7 +739,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     return;
   }
 
-  ui_window_t *root = ui_get_root_window(uitoolkit);
+  ui_window_t *root = ui_get_root_window(uiwindow);
 
   if (root->num_of_children == 0) {
     /*
@@ -737,7 +770,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   bev.time = event.timestamp * 1000;
   bev.x = loc.x - self.frame.origin.x;
   bev.y =
-      ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y - */ 1;
+      ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y - */ 1;
   bev.state = event.modifierFlags &
               (NSShiftKeyMask | NSControlKeyMask | NSAlternateKeyMask);
   if (event.type == NSLeftMouseDown) {
@@ -747,7 +780,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   }
   bev.click_count = event.clickCount;
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&bev);
+  ui_window_receive_event(uiwindow, (XEvent *)&bev);
 }
 
 - (void)mouseUp:(NSEvent *)event {
@@ -758,7 +791,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   bev.time = event.timestamp * 1000;
   bev.x = loc.x - self.frame.origin.x;
   bev.y =
-      ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y - */ 1;
+      ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y - */ 1;
   bev.state = event.modifierFlags &
               (NSShiftKeyMask | NSControlKeyMask | NSAlternateKeyMask);
   if (event.type == NSLeftMouseUp) {
@@ -767,7 +800,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     bev.button = 3;
   }
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&bev);
+  ui_window_receive_event(uiwindow, (XEvent *)&bev);
 }
 
 - (void)rightMouseUp:(NSEvent *)event {
@@ -778,12 +811,12 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   bev.time = event.timestamp * 1000;
   bev.x = loc.x - self.frame.origin.x;
   bev.y =
-      ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y - */ 1;
+      ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y - */ 1;
   bev.state = event.modifierFlags &
               (NSShiftKeyMask | NSControlKeyMask | NSAlternateKeyMask);
   bev.button = 3;
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&bev);
+  ui_window_receive_event(uiwindow, (XEvent *)&bev);
 }
 
 - (NSMenu *)menuForEvent:(NSEvent *)event {
@@ -794,13 +827,13 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   bev.time = event.timestamp * 1000;
   bev.x = loc.x - self.frame.origin.x;
   bev.y =
-      ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y - */ 1;
+      ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y - */ 1;
   bev.state = event.modifierFlags &
               (NSShiftKeyMask | NSControlKeyMask | NSAlternateKeyMask);
   bev.button = 3;
   bev.click_count = event.clickCount;
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&bev);
+  ui_window_receive_event(uiwindow, (XEvent *)&bev);
 
   return (NSMenu *)nil;
 }
@@ -812,14 +845,14 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   mev.type = UI_BUTTON_MOTION;
   mev.time = event.timestamp * 1000;
   mev.x = loc.x - self.frame.origin.x;
-  mev.y = ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y */ -1;
+  mev.y = ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y */ -1;
   if (event.type == NSLeftMouseDragged) {
     mev.state = Button1Mask;
   } else {
     mev.state = Button3Mask;
   }
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&mev);
+  ui_window_receive_event(uiwindow, (XEvent *)&mev);
 }
 
 - (void)rightMouseDragged:(NSEvent *)event {
@@ -829,10 +862,10 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   mev.type = UI_BUTTON_MOTION;
   mev.time = event.timestamp * 1000;
   mev.x = loc.x - self.frame.origin.x;
-  mev.y = ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y */ -1;
+  mev.y = ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y */ -1;
   mev.state = Button3Mask;
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&mev);
+  ui_window_receive_event(uiwindow, (XEvent *)&mev);
 }
 
 - (void)mouseMoved:(NSEvent *)event {
@@ -842,10 +875,10 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   mev.type = UI_POINTER_MOTION;
   mev.time = event.timestamp * 1000;
   mev.x = loc.x - self.frame.origin.x;
-  mev.y = ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y */ -1;
+  mev.y = ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y */ -1;
   mev.state = 0;
 
-  ui_window_receive_event(uitoolkit, (XEvent *)&mev);
+  ui_window_receive_event(uiwindow, (XEvent *)&mev);
 }
 
 - (void)scrollWheel:(NSEvent *)event {
@@ -863,9 +896,9 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   bevRelease.x = loc.x - self.frame.origin.x;
 
   bevPress.y =
-      ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y - */ 1;
+      ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y - */ 1;
   bevRelease.y =
-      ACTUAL_HEIGHT(uitoolkit->parent) - loc.y - /* self.frame.origin.y - */ 1;
+      ACTUAL_HEIGHT(uiwindow->parent) - loc.y - /* self.frame.origin.y - */ 1;
 
   bevPress.state = event.modifierFlags &
                    (NSShiftKeyMask | NSControlKeyMask | NSAlternateKeyMask);
@@ -885,8 +918,8 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   }
 
   if (event.deltaY < -1 || event.deltaY > 1) {
-    ui_window_receive_event(uitoolkit, (XEvent *)&bevPress);
-    ui_window_receive_event(uitoolkit, (XEvent *)&bevRelease);
+    ui_window_receive_event(uiwindow, (XEvent *)&bevPress);
+    ui_window_receive_event(uiwindow, (XEvent *)&bevRelease);
   }
 }
 
@@ -931,7 +964,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
       kev.keysym += 0x20;
     }
 
-    ui_window_receive_event(uitoolkit, (XEvent *)&kev);
+    ui_window_receive_event(uiwindow, (XEvent *)&kev);
   }
 }
 
@@ -946,13 +979,13 @@ static ui_window_t *get_current_window(ui_window_t *win) {
    * If this view exits with owning pasteboard, this method is called
    * after ui_screen_t::term is deleted.
    */
-  if (((ui_screen_t *)uitoolkit)->term) {
+  if (((ui_screen_t *)uiwindow)->term) {
     XSelectionRequestEvent ev;
 
     ev.type = UI_SELECTION_REQUESTED;
     ev.sender = sender;
 
-    ui_window_receive_event(uitoolkit, (XEvent *)&ev);
+    ui_window_receive_event(uiwindow, (XEvent *)&ev);
   }
 }
 
@@ -984,7 +1017,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
       ev.data = [[files objectAtIndex:count] UTF8String];
       ev.len = strlen(ev.data);
 
-      ui_window_receive_event(uitoolkit, (XEvent *)&ev);
+      ui_window_receive_event(uiwindow, (XEvent *)&ev);
     }
   }
 
@@ -1000,18 +1033,18 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   int x;
   int y;
 
-  if (!uitoolkit->xim_listener ||
-      !(*uitoolkit->xim_listener->get_spot)(uitoolkit->xim_listener->self, &x,
+  if (!uiwindow->xim_listener ||
+      !(*uiwindow->xim_listener->get_spot)(uiwindow->xim_listener->self, &x,
                                           &y)) {
     x = y = 0;
   }
 
-  x += (uitoolkit->x + uitoolkit->hmargin);
-  y += (uitoolkit->y + uitoolkit->vmargin);
+  x += (uiwindow->x + uiwindow->hmargin);
+  y += (uiwindow->y + uiwindow->vmargin);
 
-  NSRect r = NSMakeRect(x, ACTUAL_HEIGHT(uitoolkit->parent) - y,
-                        ui_col_width((ui_screen_t *)uitoolkit),
-                        ui_line_height((ui_screen_t *)uitoolkit));
+  NSRect r = NSMakeRect(x, ACTUAL_HEIGHT(uiwindow->parent) - y,
+                        ui_col_width((ui_screen_t *)uiwindow),
+                        ui_line_height((ui_screen_t *)uiwindow));
   r.origin = [[self window] convertBaseToScreen:r.origin];
 
   return r;
@@ -1046,7 +1079,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 - (void)unmarkText {
   [markedText release];
   markedText = nil;
-  update_ime_text(uitoolkit, "", NULL);
+  update_ime_text(uiwindow, "", NULL);
 }
 
 - (void)setMarkedText:(id)string
@@ -1085,9 +1118,9 @@ static ui_window_t *get_current_window(ui_window_t *win) {
                                      selectedRange.length)] UTF8String]);
     }
 
-    update_ime_text(uitoolkit, p, markedText ? markedText.UTF8String : NULL);
+    update_ime_text(uiwindow, p, markedText ? markedText.UTF8String : NULL);
   } else if (markedText) {
-    update_ime_text(uitoolkit, "", markedText.UTF8String);
+    update_ime_text(uiwindow, "", markedText.UTF8String);
   }
 
   if (markedText) {
@@ -1117,18 +1150,18 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     kev.keysym = 0;
     kev.utf8 = [string UTF8String];
 
-    ui_window_receive_event(uitoolkit, (XEvent *)&kev);
+    ui_window_receive_event(uiwindow, (XEvent *)&kev);
 
     ignoreKeyDown = TRUE;
   }
 }
 
-- (void)drawString:(ui_font_t *)
-              font:(ui_color_t *)
-          fg_color:(int)
-                 x:(int)
-                 y:(u_char *)
-               str:(size_t)len {
+- (void)drawString:(ui_font_t *)font
+                  :(ui_color_t *)fg_color
+                  :(int)x
+                  :(int)y
+                  :(u_char *)str
+                  :(size_t)len {
   set_fill_color(fg_color);
 
 #if 0
@@ -1140,7 +1173,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
 #if 0
   CGContextSelectFont(ctx, "Menlo", 1, kCGEncodingMacRoman);
-  CGContextShowTextAtPoint(ctx, x, ACTUAL_HEIGHT(uitoolkit) - y - 1, str, len);
+  CGContextShowTextAtPoint(ctx, x, ACTUAL_HEIGHT(uiwindow) - y - 1, str, len);
 #else
   unichar ustr[len];
   int count;
@@ -1148,19 +1181,19 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     ustr[count] = str[count];
   }
 
-  drawUnistr(ctx, font, ustr, len, x, ACTUAL_HEIGHT(uitoolkit) - y - 1);
+  drawUnistr(ctx, font, ustr, len, x, ACTUAL_HEIGHT(uiwindow) - y - 1);
 #endif
 }
 
-- (void)drawString16:(ui_font_t *)
-                font:(ui_color_t *)
-            fg_color:(int)
-                   x:(int)
-                   y:(XChar2b *)
-                 str:(size_t)len {
+- (void)drawString16:(ui_font_t *)font
+                    :(ui_color_t *)fg_color
+                    :(int)x
+                    :(int)y
+                    :(XChar2b *)str
+                    :(size_t)len {
   set_fill_color(fg_color);
 
-  drawUnistr(ctx, font, (unichar *)str, len, x, ACTUAL_HEIGHT(uitoolkit) - y - 1);
+  drawUnistr(ctx, font, (unichar *)str, len, x, ACTUAL_HEIGHT(uiwindow) - y - 1);
 }
 
 - (void)fillWith:(ui_color_t *)color:(int)x:(int)y:(u_int)width:(u_int)height {
@@ -1173,7 +1206,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     set_fill_color(color);
 
     CGRect rect =
-        CGRectMake(x, ACTUAL_HEIGHT(uitoolkit) - y - height, width, height);
+        CGRectMake(x, ACTUAL_HEIGHT(uiwindow) - y - height, width, height);
     CGContextAddRect(ctx, rect);
     CGContextFillPath(ctx);
   } else {
@@ -1183,7 +1216,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
                            alpha:((color->pixel >> 24) & 0xff) / 255.0] set];
 
     NSRectFillUsingOperation(
-        NSMakeRect(x, ACTUAL_HEIGHT(uitoolkit) - y - height, width, height),
+        NSMakeRect(x, ACTUAL_HEIGHT(uiwindow) - y - height, width, height),
         NSCompositeCopy);
   }
 }
@@ -1191,29 +1224,29 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 - (void)drawRectFrame:(ui_color_t *)color:(int)x1:(int)y1:(int)x2:(int)y2 {
   set_fill_color(color);
 
-  CGRect rect = CGRectMake(x1, ACTUAL_HEIGHT(uitoolkit) - y2 - 1, 1, y2 - y1);
+  CGRect rect = CGRectMake(x1, ACTUAL_HEIGHT(uiwindow) - y2 - 1, 1, y2 - y1);
   CGContextAddRect(ctx, rect);
-  rect = CGRectMake(x1, ACTUAL_HEIGHT(uitoolkit) - y2 - 1, x2 - x1, 1);
+  rect = CGRectMake(x1, ACTUAL_HEIGHT(uiwindow) - y2 - 1, x2 - x1, 1);
   CGContextAddRect(ctx, rect);
-  rect = CGRectMake(x2, ACTUAL_HEIGHT(uitoolkit) - y2 - 1, 1, y2 - y1);
+  rect = CGRectMake(x2, ACTUAL_HEIGHT(uiwindow) - y2 - 1, 1, y2 - y1);
   CGContextAddRect(ctx, rect);
-  rect = CGRectMake(x1, ACTUAL_HEIGHT(uitoolkit) - y1 - 1, x2 - x1 + 1, 1);
+  rect = CGRectMake(x1, ACTUAL_HEIGHT(uiwindow) - y1 - 1, x2 - x1 + 1, 1);
   CGContextAddRect(ctx, rect);
   CGContextFillPath(ctx);
 }
 
-- (void)copyArea:(Pixmap)
-             src:(int)
-           src_x:(int)
-           src_y:(u_int)
-           width:(u_int)
-          height:(int)
-           dst_x:(int)dst_y {
+- (void)copyArea:(Pixmap)src
+                :(int)src_x
+                :(int)src_y
+                :(u_int)width
+                :(u_int)height
+                :(int)dst_x
+                :(int)dst_y {
   CGImageRef clipped = CGImageCreateWithImageInRect(
       src, CGRectMake(src_x, src_y, width, height));
   CGContextDrawImage(
       ctx,
-      CGRectMake(dst_x, ACTUAL_HEIGHT(uitoolkit) - dst_y - height, width, height),
+      CGRectMake(dst_x, ACTUAL_HEIGHT(uiwindow) - dst_y - height, width, height),
       clipped);
   CGImageRelease(clipped);
 }
@@ -1223,13 +1256,13 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   CGContextFlush(ctx);
 
   /* Don't release this CGImage */
-  NSRect src_r = NSMakeRect(src_x, ACTUAL_HEIGHT(uitoolkit) - src_y - height,
+  NSRect src_r = NSMakeRect(src_x, ACTUAL_HEIGHT(uiwindow) - src_y - height,
 			width, height);
   NSBitmapImageRep *bir = [self bitmapImageRepForCachingDisplayInRect:src_r];
   [self cacheDisplayInRect:src_r toBitmapImageRep:bir];
   CGImageRef image = bir.CGImage;
 
-  CGRect dst_r = CGRectMake(dst_x, ACTUAL_HEIGHT(uitoolkit) - dst_y - height,
+  CGRect dst_r = CGRectMake(dst_x, ACTUAL_HEIGHT(uiwindow) - dst_y - height,
 				width, height);
   CGContextDrawImage(ctx, dst_r, image);
 
@@ -1263,24 +1296,24 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     int x;
     int y;
 
-    if (!uitoolkit->xim_listener ||
-        !(*uitoolkit->xim_listener->get_spot)(uitoolkit->xim_listener->self, &x,
+    if (!uiwindow->xim_listener ||
+        !(*uiwindow->xim_listener->get_spot)(uiwindow->xim_listener->self, &x,
                                             &y)) {
       x = y = 0;
     }
 
-    x += (uitoolkit->hmargin);
-    y += (uitoolkit->vmargin);
+    x += (uiwindow->hmargin);
+    y += (uiwindow->vmargin);
 
     [self
-        setNeedsDisplayInRect:NSMakeRect(x, ACTUAL_HEIGHT(uitoolkit) - y, 1, 1)];
+        setNeedsDisplayInRect:NSMakeRect(x, ACTUAL_HEIGHT(uiwindow) - y, 1, 1)];
   }
 }
 
 - (void)setClip:(int)x:(int)y:(u_int)width:(u_int)height {
   CGContextSaveGState(ctx);
 
-  y = ACTUAL_HEIGHT(uitoolkit) - y;
+  y = ACTUAL_HEIGHT(uiwindow) - y;
 
   CGContextBeginPath(ctx);
   CGContextMoveToPoint(ctx, x, y);
@@ -1307,14 +1340,23 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
 @end
 
+@implementation MLSecureTextField
+
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+  [self becomeFirstResponder];
+}
+
+@end
+
 /* --- global functions --- */
 
-void view_alloc(ui_window_t *uitoolkit) {
-  uitoolkit_for_mlterm_view = uitoolkit;
+void view_alloc(ui_window_t *uiwindow) {
+  uiwindow_for_mlterm_view = uiwindow;
 
   MLTermView *view =
       [[MLTermView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400)];
-  [((NSWindow *)uitoolkit->parent->my_window).contentView addSubview:view];
+  [((NSWindow *)uiwindow->parent->my_window).contentView addSubview:view];
   [view release];
 }
 
@@ -1385,7 +1427,7 @@ void view_set_rect(NSView *view, int x, int y, /* The origin is left-botom. */
 void view_set_hidden(NSView *view, int flag) { [view setHidden:flag]; }
 
 void window_alloc(ui_window_t *root) {
-  uitoolkit_for_mlterm_view = root->children[1];
+  uiwindow_for_mlterm_view = root->children[1];
 
   NSNib *nib = [[NSNib alloc] initWithNibNamed:@"Main" bundle:nil];
   [nib instantiateNibWithOwner:nil topLevelObjects:nil];
@@ -1587,4 +1629,38 @@ int cocoa_remove_fd(int fd) {
 
 const char *cocoa_get_bundle_path(void) {
   return [[[NSBundle mainBundle] bundlePath] UTF8String];
+}
+
+char *cocoa_dialog_password(const char *msg) {
+  NSAlert *alert = create_dialog(msg, 1);
+
+  NSTextField *text = [[MLSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 20)];
+  [text autorelease];
+  [alert setAccessoryView:text];
+
+  if ([alert runModal] == NSAlertFirstButtonReturn) {
+    return strdup([[text stringValue] UTF8String]);
+  } else {
+    return NULL;
+  }
+}
+
+int cocoa_dialog_okcancel(const char *msg) {
+  NSAlert *alert = create_dialog(msg, 1);
+
+  if ([alert runModal] == NSAlertFirstButtonReturn) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int cocoa_dialog_alert(const char *msg) {
+  NSAlert *alert = create_dialog(msg, 0);
+
+  if ([alert runModal] == NSAlertFirstButtonReturn) {
+    return 1;
+  } else {
+    return 0;
+  }
 }

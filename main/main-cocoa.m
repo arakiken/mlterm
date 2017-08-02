@@ -32,6 +32,8 @@ static void set_lang(void) {
 
 /* --- global functions --- */
 
+extern char *global_args;
+
 int main(int argc, const char* argv[]) {
   if (!getenv("LANG")) {
     set_lang();
@@ -40,8 +42,28 @@ int main(int argc, const char* argv[]) {
   bl_set_sys_conf_dir([[[NSBundle mainBundle] bundlePath] UTF8String]);
   bl_set_msg_log_file_name("mlterm/msg.log");
 
-  char* myargv[] = {"mlterm", NULL};
+  char *myargv[] = {"mlterm", NULL};
   main_loop_init(1, myargv);
+
+  if (argc > 0) {
+    int count;
+    size_t len = 1; /* NULL terminator */
+
+    for (count = 0; count < argc; count++) {
+      len += (strlen(argv[count]) + 1);
+    }
+
+    if ((global_args = malloc(len))) {
+      char *p = global_args;
+
+      for (count = 0; count < argc - 1; count++) {
+        strcpy(p, argv[count]);
+        p += strlen(p);
+        *(p++) = ' ';
+      }
+      strcpy(p, argv[count]);
+    }
+  }
 
   return NSApplicationMain(argc, argv);
 }

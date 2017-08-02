@@ -8,8 +8,8 @@ typedef enum {
 
 } bl_dialog_style_t;
 
-int bl_dialog_set_callback(int (*callback)(bl_dialog_style_t, char *));
+int bl_dialog_set_callback(int (*callback)(bl_dialog_style_t, const char *));
 
-int bl_dialog(bl_dialog_style_t style, char *msg);
+int bl_dialog(bl_dialog_style_t style, const char *msg);
 
 #endif

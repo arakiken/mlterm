@@ -30,8 +30,16 @@ static ui_display_t *opened_disp = &_disp;
 
 /* --- static functions --- */
 
-static int dialog(bl_dialog_style_t style, char *msg) {
-  return 0;
+static int dialog(bl_dialog_style_t style, const char *msg) {
+  if (style == BL_DIALOG_OKCANCEL) {
+    return cocoa_dialog_okcancel(msg);
+  } else if (style == BL_DIALOG_ALERT) {
+    return cocoa_dialog_alert(msg);
+  } else {
+    bl_msg_printf("%s\n", msg);
+
+    return -1;
+  }
 }
 
 /* --- global functions --- */

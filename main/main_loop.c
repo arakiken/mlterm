@@ -233,7 +233,13 @@ int main_loop_init(int argc, char **argv) {
 #endif
 
   orig_argv = argv;
-  if (!bl_conf_parse_args(conf, &argc, &argv, 0)) {
+  if (!bl_conf_parse_args(conf, &argc, &argv,
+#ifdef USE_QUARTZ
+                          1
+#else
+                          0
+#endif
+      )) {
     bl_conf_delete(conf);
 
     return 0;

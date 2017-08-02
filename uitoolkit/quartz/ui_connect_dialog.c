@@ -5,6 +5,11 @@
 
 #include "../ui_connect_dialog.h"
 
+#include <stdio.h>
+#include <pobl/bl_str.h> /* strdup */
+#include <pobl/bl_mem.h> /* alloca */
+#include "cocoa.h"
+
 /* --- global functions --- */
 
 int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call this. */
@@ -14,6 +19,24 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                       char *display_name, Window parent_window, char **sv_list,
                       char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
                       ) {
+  char *msg;
+
+  if (!(*uri = strdup(def_server))) {
+    return 0;
+  }
+
+  if ((msg = alloca(19 + strlen(*uri) + 1))) {
+    sprintf(msg, "Enter password for %s", *uri);
+
+    if ((*pass = cocoa_dialog_password(msg))) {
+      *exec_cmd = NULL;
+
+      return 1;
+    }
+  }
+
+  free(*uri);
+
   return 0;
 }
 
