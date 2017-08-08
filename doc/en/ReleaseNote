@@ -1,5 +1,8 @@
-* Add "trim_trailing_newline_in_pasting" / --trim option which removes trailing newline
-  characters in pasting text.
+* Add "trim_trailing_newline_in_pasting" / --trim option which removes trailing
+  newline characters in pasting text.
+* Add "broadcast" / --bc option which broadcasts input or pasted characters to
+  all ptys whose value of "ignore_broadcasted_chars" option is false.
+* Add "ignore_broadcasted_chars" / --ibc option.
 * Support libssh2 on MacOSX/Cocoa.
 * Bug fixes:
   Fix a bug which disabled to assign keypad keys in ~/.mlterm/shortcut.

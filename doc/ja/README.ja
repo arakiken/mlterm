@@ -956,6 +956,13 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o trim_trailing_newline_in_pasting (true/*false*)
         ペーストする文字列の末尾の改行を削除する。
 
+      o broadcast (true/*false*)
+        キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars
+        オプションの値が false なものに限る) に送信する。
+
+      o ignore_broadcasted_chars (true/*false*)
+        broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1421,6 +1428,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --csc=value     : console_sixel_colors
        --csz=value     : default_cell_size (X)
        --trim(=bool)   : trim_trailing_newline_in_pasting
+       --bc(=bool)     : broadcast
+       --ibc(=bool)    : ignore_broadcasted_chars
 
     -e ... : 指定したコマンドを起動
 

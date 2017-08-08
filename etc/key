@@ -31,6 +31,8 @@
 # Control+F10="proto:color:black=rgb:ff/00/00"
 # Control+F11="proto:use_local_echo=true"
 # Control+F12="proto:use_local_echo=false"
+# Control+F13="proto:broadcast=switch"
+# Control+F14="proto:ignore_broadcasted_chars=switch"
 # Button3="exesel:mlclient -e w3m"
 # Button3="exesel:\"/cygdrive/c/Program Files/Internet Explorer/iexplore.exe\""
 # Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe"

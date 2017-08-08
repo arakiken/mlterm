@@ -203,6 +203,8 @@ static clock_t timeout_read_pty = CLOCKS_PER_SEC / 100; /* 0.01 sec */
 static char *primary_da;
 static char *secondary_da;
 
+static int is_broadcasting;
+
 #ifdef USE_LIBSSH2
 static int use_scp_full;
 #endif
@@ -1106,6 +1108,7 @@ static void save_cursor(vt_parser_t *vt_parser) {
   dest->is_reversed = vt_parser->is_reversed;
   dest->is_crossed_out = vt_parser->is_crossed_out;
   dest->is_blinking = vt_parser->is_blinking;
+  dest->is_invisible = vt_parser->is_invisible;
   dest->cs = vt_parser->cs;
 
   vt_screen_save_cursor(vt_parser->screen);
@@ -1127,6 +1130,7 @@ static void restore_cursor(vt_parser_t *vt_parser) {
     vt_parser->is_reversed = src->is_reversed;
     vt_parser->is_crossed_out = src->is_crossed_out;
     vt_parser->is_blinking = src->is_blinking;
+    vt_parser->is_invisible = src->is_invisible;
     if (IS_ENCODING_BASED_ON_ISO2022(vt_parser->encoding)) {
       if ((src->cs == DEC_SPECIAL) && (src->cs != vt_parser->cs)) {
         /* force grapchics mode by sending \E(0 to current parser*/
@@ -5426,7 +5430,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
                            int use_char_combining, int use_multi_col_char,
                            const char *win_name, const char *icon_name,
                            vt_alt_color_mode_t alt_color_mode,
-                           vt_cursor_style_t cursor_style) {
+                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars) {
   vt_parser_t *vt_parser;
 
   if ((vt_parser = calloc(1, sizeof(vt_parser_t))) == NULL) {
@@ -5490,10 +5494,9 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
 #endif
 
   vt_parser->sixel_scrolling = 1;
-
   vt_parser->alt_color_mode = alt_color_mode;
-
   vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
+  vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
 
   return vt_parser;
 
@@ -5596,8 +5599,8 @@ void vt_reset_pending_vt100_sequence(vt_parser_t *vt_parser) {
 }
 
 int vt_parser_write_modified_key(vt_parser_t *vt_parser,
-                                       int key, /* should be less than 0x80 */
-                                       int modcode) {
+                                 int key, /* should be less than 0x80 */
+                                 int modcode) {
   if (vt_parser->modify_other_keys == 2) {
     char *buf;
 
@@ -5616,7 +5619,7 @@ int vt_parser_write_modified_key(vt_parser_t *vt_parser,
 }
 
 int vt_parser_write_special_key(vt_parser_t *vt_parser, vt_special_key_t key,
-                                      int modcode, int is_numlock) {
+                                int modcode, int is_numlock) {
   char *buf;
 
   if ((buf = vt_termcap_special_key_to_seq(
@@ -6092,6 +6095,14 @@ void vt_parser_set_alt_color_mode(vt_parser_t *vt_parser, vt_alt_color_mode_t mo
   vt_parser->alt_color_mode = mode;
 }
 
+void vt_set_broadcasting(int flag) {
+  is_broadcasting = flag;
+}
+
+int vt_parser_is_broadcasting(vt_parser_t *vt_parser) {
+  return (is_broadcasting && !vt_parser->ignore_broadcasted_chars);
+}
+
 int true_or_false(const char *str) {
   if (strcmp(str, "true") == 0) {
     return 1;
@@ -6244,6 +6255,18 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "ignore_broadcasted_chars") == 0) {
+    if (vt_parser->ignore_broadcasted_chars) {
+      value = "true";
+    } else {
+      value = "false";
+    }
+  } else if (strcmp(key, "broadcast") == 0) {
+    if (is_broadcasting) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -6384,6 +6407,18 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
       vt_parser->cursor_style |= CS_BLINK;
     } else {
       vt_parser->cursor_style &= ~CS_BLINK;
+    }
+  } else if (strcmp(key, "ignore_broadcasted_chars") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      vt_parser->ignore_broadcasted_chars = flag;
+    }
+  } else if (strcmp(key, "broadcast") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      is_broadcasting = flag;
     }
   } else {
     /* Continue to process it in x_screen.c */

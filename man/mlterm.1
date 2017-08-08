@@ -517,6 +517,11 @@ specified by \-\-ade option. The default is \fBfalse\fR.
 Whether to enable alternate screen buffer.
 This option is similar to "titeInhibit" of xterm.
 .TP
+\fB\-\-bc\fR(=\fIbool\fR)
+Whether to broadcast input or pasted characters to all ptys whose value of
+"ignore_broadcasted_chars" option is false.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-bd\fR=\fIvalue\fR
 Specify the color to use to display bold characters.
 .TP
@@ -604,6 +609,10 @@ The default is \fBfalse\fR.
 Force full width regardless of EastAsianWidth.txt.
 
 e.g.) --fullwidth=U+1234-5678,U+0123-4567
+.TP
+\fB\-\-ibc\fR(=\fIbool\fR)
+Whether to ignore broadcasted characters.
+The default is \fBfalse\fR.
 .TP
 \fB\-\-iconpath\fR=\fIpath\fR
 Specify the file to be used as a window icon.
@@ -1365,20 +1374,24 @@ Specify bidi mode.
 \fBbidi_separators=\fIcharacterlist\fR (\fB\-\-bisep\fR)
 Specify separator characters (\\xNN is also available) to render bidi text.
 .TP
+\fBbig5_buggy=\fIbool\fR (\fB\-5\fR, \fB\-\-big5bug\fR)
+Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
+.TP
 \fBblink_cursor=\fIbool\fR (\fB\-\-blink\fR)
 Blink cursor.
 .TP
 \fBbox_drawing_font=\fIvalue\fR (\fB\-\-boxdraw\fR)
 Use either unicode font or DEC Special font forcibly to draw box-drawing characters.
 .TP
+\fBborderless=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR)
+Don't draw window decorations.
+.TP
 \fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR)
 Specify the amount of darkening or lightening the background image.
 .TP
-\fBbig5_buggy=\fIbool\fR (\fB\-5\fR, \fB\-\-big5bug\fR)
-Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
-.TP
-\fBborderless=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR)
-Don't draw window decorations.
+\fBbroadcast=\fIbool\fR (\fB\-H\fR, \fB\-\-bc\fR)
+Whether to broadcast input or pasted characters to all ptys whose value of
+"ignore_broadcasted_chars" option is false.
 .TP
 \fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
 Specify ciphers (comma separated list) for encrypting the ssh session.
@@ -1454,6 +1467,9 @@ Icon name.
 .TP
 \fBicon_path=\fIpath\fR
 Path for the image file to be used as window icon.
+.TP
+\fBignore_broadcasted_chars=\fIbool\fR (\fB\-\-ibc\fR)
+Whether to ignore broadcasted characters.
 .TP
 \fBinner_border=\fIvalue\fR (\fB\-\-border\fR)
 Specify inner border width.

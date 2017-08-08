@@ -1,3 +1,21 @@
+2017-08-09  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, etc/key, etc/main, etc/main.ja: Updated.
+
+	* ui_main_config.[ch]: "broadcast" / --bc option and
+	  "ignore_broadcasted_chars" / --ibc option are added.
+
+	* ui_screen.c:
+	  - write_to_pty() broadcasts chars to all ptys if
+	    vt_term_is_broadcasted() is true.
+	  - write_special_key() is added to wrap vt_term_write_special_key().
+
+	* vt_term.[ch]: vt_term_is_broadcasting() is added.
+
+	* vt_parser.[ch]:
+	  - vt_set_broadcast() and vt_parser_is_broadcasting() are added.
+	  - "broadcast" and "ignore_broadcasted_chars" are added to OSC 5379 etc.
+
 2017-08-02  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/ui_display.c, win32/ui_display.c: Minor fixes.

@@ -267,3 +267,7 @@
 # working_directory =
 
 # trim_trailing_newline_in_pasting = false
+
+# broadcast = false
+
+# ignore_broadcasted_chars = false

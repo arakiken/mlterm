@@ -390,3 +390,10 @@ scrollbar_view_name = sample
 
 # ペーストする文字列の末尾の改行を削除する。
 # trim_trailing_newline_in_pasting = false
+
+# キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars オプ
+# ションの値が false なものに限る) に送信する。
+# broadcast = false
+
+# broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
+# ignore_broadcasted_chars = false

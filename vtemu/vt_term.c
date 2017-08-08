@@ -232,7 +232,7 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
                        int use_dynamic_comb, vt_bs_mode_t bs_mode, vt_vertical_mode_t vertical_mode,
                        int use_local_echo, const char *win_name, const char *icon_name,
                        vt_alt_color_mode_t alt_color_mode, int use_ot_layout,
-                       vt_cursor_style_t cursor_style) {
+                       vt_cursor_style_t cursor_style, int ignore_broadcasted_chars) {
   vt_termcap_ptr_t termcap;
   vt_term_t *term;
 
@@ -267,7 +267,7 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
   if (!(term->parser = vt_parser_new(term->screen, termcap, encoding, is_auto_encoding,
                                      use_auto_detect, logging_vt_seq, policy, col_size_a,
                                      use_char_combining, use_multi_col_char, win_name, icon_name,
-                                     alt_color_mode, cursor_style))) {
+                                     alt_color_mode, cursor_style, ignore_broadcasted_chars))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " vt_parser_new failed.\n");
 #endif

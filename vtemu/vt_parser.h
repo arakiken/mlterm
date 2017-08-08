@@ -156,14 +156,16 @@ typedef struct vt_config_event_listener {
 typedef struct vt_parser *vt_parser_ptr_t;
 
 typedef struct vt_vt100_storable_states {
-  int8_t is_saved;
+  int is_saved : 1;
 
-  int8_t is_bold;
-  int8_t is_italic;
-  int8_t underline_style;
-  int8_t is_reversed;
-  int8_t is_crossed_out;
-  int8_t is_blinking;
+  int is_bold : 1;
+  int is_italic : 1;
+  int is_reversed : 1;
+  int is_crossed_out : 1;
+  int is_blinking : 1;
+  int is_invisible : 1;
+
+  /* vt_underline_style_t */ int8_t underline_style;
   vt_color_t fg_color;
   vt_color_t bg_color;
   ef_charset_t cs;
@@ -224,63 +226,6 @@ typedef struct vt_parser {
     u_int8_t bg[16];
   } alt_colors;
 
-  /* vt_unicode_policy_t */ int8_t unicode_policy;
-
-  /* vt_mouse_report_mode_t */ int8_t mouse_mode;
-  /* vt_extended_mouse_report_mode_t */ int8_t ext_mouse_mode;
-  /* vt_locator_report_mode_t */ int8_t locator_mode;
-
-  /* Used for non iso2022 encoding */
-  ef_charset_t gl;
-  ef_charset_t g0;
-  ef_charset_t g1;
-  int8_t is_so;
-
-  int8_t is_bold;
-  int8_t is_italic;
-  int8_t underline_style;
-  int8_t is_reversed;
-  int8_t is_crossed_out;
-  int8_t is_blinking;
-  int8_t is_invisible;
-
-  /* vt_alt_color_mode_t */ int8_t alt_color_mode;
-
-  u_int8_t col_size_of_width_a; /* 1 or 2 */
-
-  int8_t use_char_combining;
-  int8_t use_multi_col_char;
-  int8_t logging_vt_seq;
-
-  int8_t is_app_keypad;
-  int8_t is_app_cursor_keys;
-  int8_t is_app_escape;
-  int8_t is_bracketed_paste_mode;
-  int8_t allow_deccolm;
-  int8_t keep_screen_on_deccolm;
-
-  int8_t want_focus_event;
-
-  int8_t im_is_active;
-
-#if 0
-  int8_t modify_cursor_keys;
-  int8_t modify_function_keys;
-#endif
-  int8_t modify_other_keys;
-
-  int8_t sixel_scrolling;
-  int8_t cursor_to_right_of_sixel;
-  int8_t yield;
-
-  int8_t is_auto_encoding;
-  int8_t use_auto_detect;
-
-  int8_t is_visible_cursor;
-  /* vt_cursor_style_t */ int8_t cursor_style;
-
-  int8_t is_protected;
-
   /* for save/restore cursor */
   vt_vt100_storable_states_t saved_normal;
   vt_vt100_storable_states_t saved_alternate;
@@ -296,8 +241,58 @@ typedef struct vt_parser {
   u_int32_t *sixel_palette;
   u_int64_t vtmode_flags;
 
+  /* vt_unicode_policy_t */ int8_t unicode_policy;
+
+  /* vt_mouse_report_mode_t */ int8_t mouse_mode;
+  /* vt_extended_mouse_report_mode_t */ int8_t ext_mouse_mode;
+  /* vt_locator_report_mode_t */ int8_t locator_mode;
+
+  /* vt_alt_color_mode_t */ int8_t alt_color_mode;
+  u_int8_t col_size_of_width_a; /* 1 or 2 */
+  /* vt_cursor_style_t */ int8_t cursor_style;
+  /* vt_underline_style_t */ int8_t underline_style;
+#if 0
+  int8_t modify_cursor_keys;
+  int8_t modify_function_keys;
+#endif
+  int8_t modify_other_keys;
+
+  /* Used for non iso2022 encoding */
+  ef_charset_t gl;
+  ef_charset_t g0;
+  ef_charset_t g1;
+
+  int is_so : 1;
+
+  int is_bold : 1;
+  int is_italic : 1;
+  int is_reversed : 1;
+  int is_crossed_out : 1;
+  int is_blinking : 1;
+  int is_invisible : 1;
+
+  int use_char_combining : 1;
+  int use_multi_col_char : 1;
+  int logging_vt_seq : 1;
+  int is_app_keypad : 1;
+  int is_app_cursor_keys : 1;
+  int is_app_escape : 1;
+  int is_bracketed_paste_mode : 1;
+  int allow_deccolm : 1;
+  int keep_screen_on_deccolm : 1;
+  int want_focus_event : 1;
+  int im_is_active : 1;
+  int sixel_scrolling : 1;
+  int cursor_to_right_of_sixel : 1;
+  int yield : 1;
+  int is_auto_encoding : 1;
+  int use_auto_detect : 1;
+  int is_visible_cursor : 1;
+  int is_protected : 1;
+  int ignore_broadcasted_chars : 1;
+
 #ifdef USE_VT52
-  int8_t is_vt52_mode;
+  int is_vt52_mode : 1;
 #endif
 
 } vt_parser_t;
@@ -335,7 +330,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
                            int use_char_combining, int use_multi_col_char,
                            const char *win_name, const char *icon_name,
                            vt_alt_color_mode_t alt_color_mode,
-                           vt_cursor_style_t cursor_style);
+                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars);
 
 int vt_parser_delete(vt_parser_t *vt_parser);
 
@@ -354,7 +349,7 @@ void vt_reset_pending_vt100_sequence(vt_parser_t *vt_parser);
 int vt_parser_write_modified_key(vt_parser_t *vt_parser, int key, int modcode);
 
 int vt_parser_write_special_key(vt_parser_t *vt_parser, vt_special_key_t key,
-                                      int modcode, int is_numlock);
+                                int modcode, int is_numlock);
 
 /* Must be called in visual context. */
 int vt_parser_write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len);
@@ -416,6 +411,10 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *ch);
 void vt_parser_set_alt_color_mode(vt_parser_t *vt_parser, vt_alt_color_mode_t mode);
 
 #define vt_parser_get_alt_color_mode(vt_parser) ((vt_parser)->alt_color_mode)
+
+void vt_set_broadcasting(int flag);
+
+int vt_parser_is_broadcasting(vt_parser_t *vt_parser);
 
 int true_or_false(const char *str);
 

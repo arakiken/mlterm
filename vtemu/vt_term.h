@@ -69,7 +69,7 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
                        int use_dynamic_comb, vt_bs_mode_t bs_mode, vt_vertical_mode_t vertical_mode,
                        int use_local_echo, const char *win_name, const char *icon_name,
                        vt_alt_color_mode_t alt_color_mode, int use_ot_layout,
-                       vt_cursor_style_t cursor_style);
+                       vt_cursor_style_t cursor_style, int ignore_broadcasted_chars);
 
 int vt_term_delete(vt_term_t *term);
 
@@ -149,10 +149,10 @@ pid_t vt_term_get_child_pid(vt_term_t *term);
 size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len);
 
 #define vt_term_write_modified_key(term, key, modcode) \
-  (term)->pty ? vt_parser_write_modified_key((term)->parser, key, modcode) : 0
+  ((term)->pty ? vt_parser_write_modified_key((term)->parser, key, modcode) : 0)
 
 #define vt_term_write_special_key(term, key, modcode, is_numlock) \
-  (term)->pty ? vt_parser_write_special_key((term)->parser, key, modcode, is_numlock) : 0
+  ((term)->pty ? vt_parser_write_special_key((term)->parser, key, modcode, is_numlock) : 0)
 
 /* Must be called in visual context. */
 #define vt_term_write_loopback(term, buf, len) \
@@ -280,6 +280,8 @@ int vt_term_enter_backscroll_mode(vt_term_t *term);
   vt_parser_set_alt_color_mode((term)->parser, mode)
 
 #define vt_term_get_alt_color_mode(term) vt_parser_get_alt_color_mode((term)->parser)
+
+#define vt_term_is_broadcasting(term) vt_parser_is_broadcasting((term)->parser)
 
 int vt_term_set_icon_path(vt_term_t *term, const char *path);
 

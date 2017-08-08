@@ -116,6 +116,7 @@ typedef struct ui_main_config {
   int8_t use_auto_detect;
   int8_t unlimit_log_size;
   int8_t use_ot_layout;
+  int8_t ignore_broadcasted_chars;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   int8_t show_dialog;
 #endif

@@ -322,6 +322,10 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
 #endif
   bl_conf_add_opt(conf, '\0', "trim", 1, "trim_trailing_newline_in_pasting",
                   "trim trailing newline in pasting text. [false]");
+  bl_conf_add_opt(conf, '\0', "bc", 1, "broadcast",
+                  "broadcast input characters to all ptys [false]");
+  bl_conf_add_opt(conf, '\0', "ibc", 1, "ignore_broadcasted_chars",
+                  "ignore broadcasted characters [false]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1322,6 +1326,18 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   if ((value = bl_conf_get_value(conf, "trim_trailing_newline_in_pasting"))) {
     if (strcmp(value, "true") == 0) {
       ui_set_trim_trailing_newline_in_pasting(1);
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "broadcast"))) {
+    if (strcmp(value, "true") == 0) {
+      vt_set_broadcasting(1);
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "ignore_broadcasted_chars"))) {
+    if (strcmp(value, "true") == 0) {
+      main_config->ignore_broadcasted_chars = 1;
     }
   }
 

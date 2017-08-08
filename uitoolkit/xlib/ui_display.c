@@ -100,7 +100,7 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
   len = strlen(msg);
 
   if (!(display = XOpenDisplay(""))) {
-    return 0;
+    return -1;
   }
 
   screen = DefaultScreen(display);
@@ -109,7 +109,7 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
   if (!(font = XLoadQueryFont(display, "-*-r-normal--*-*-*-*-c-*-iso8859-1"))) {
     XCloseDisplay(display);
 
-    return 0;
+    return -1;
   }
 
   XSetFont(display, gc, font->fid);
@@ -125,7 +125,7 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
     XFreeFont(display, font);
     XCloseDisplay(display);
 
-    return 0;
+    return -1;
   }
 
   /*

@@ -119,7 +119,8 @@ static vt_term_t *create_term_intern(void) {
            main_config.bidi_separators, main_config.use_dynamic_comb, main_config.bs_mode,
            main_config.vertical_mode, main_config.use_local_echo, main_config.title,
            main_config.icon_name, main_config.alt_color_mode, main_config.use_ot_layout,
-           main_config.blink_cursor ? CS_BLINK|CS_BLOCK : CS_BLOCK)) == NULL) {
+           main_config.blink_cursor ? CS_BLINK|CS_BLOCK : CS_BLOCK,
+           main_config.ignore_broadcasted_chars)) == NULL) {
     return NULL;
   }
 

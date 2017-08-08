@@ -889,15 +889,14 @@ static void restore_selected_region_color_instantly(ui_screen_t *screen) {
   }
 }
 
-static void write_to_pty(ui_screen_t *screen, u_char *str, /* str may be NULL */
-                         size_t len, ef_parser_t *parser  /* parser may be NULL */
-                         ) {
+static void write_to_pty_intern(vt_term_t *term, u_char *str, /* str may be NULL */
+                                size_t len, ef_parser_t *parser /* parser may be NULL */) {
   if (parser && str) {
     (*parser->init)(parser);
     (*parser->set_str)(parser, str, len);
   }
 
-  vt_term_init_encoding_conv(screen->term);
+  vt_term_init_encoding_conv(term);
 
   if (parser) {
     u_char conv_buf[512];
@@ -916,7 +915,7 @@ static void write_to_pty(ui_screen_t *screen, u_char *str, /* str may be NULL */
 #endif
 
     while (!parser->is_eos) {
-      if ((filled_len = vt_term_convert_to(screen->term, conv_buf, sizeof(conv_buf), parser)) ==
+      if ((filled_len = vt_term_convert_to(term, conv_buf, sizeof(conv_buf), parser)) ==
           0) {
         break;
       }
@@ -931,7 +930,7 @@ static void write_to_pty(ui_screen_t *screen, u_char *str, /* str may be NULL */
       }
 #endif
 
-      vt_term_write(screen->term, conv_buf, filled_len);
+      vt_term_write(term, conv_buf, filled_len);
     }
   } else if (str) {
 #ifdef __DEBUG
@@ -946,9 +945,47 @@ static void write_to_pty(ui_screen_t *screen, u_char *str, /* str may be NULL */
     }
 #endif
 
-    vt_term_write(screen->term, str, len);
+    vt_term_write(term, str, len);
   } else {
     return;
+  }
+}
+
+static void write_to_pty(ui_screen_t *screen, u_char *str, /* str may be NULL */
+                         size_t len, ef_parser_t *parser /* parser may be NULL */) {
+  if (vt_term_is_broadcasting(screen->term)) {
+    vt_term_t **terms;
+    u_int num = vt_get_all_terms(&terms);
+    u_int count;
+
+    for (count = 0; count < num; count++) {
+      if (vt_term_is_broadcasting(terms[count])) {
+        write_to_pty_intern(terms[count], str, len, parser);
+      }
+    }
+  } else {
+    write_to_pty_intern(screen->term, str, len, parser);
+  }
+}
+
+static int write_special_key(ui_screen_t *screen, vt_special_key_t key,
+                             int modcode, int is_numlock) {
+  if (vt_term_is_broadcasting(screen->term)) {
+    vt_term_t **terms;
+    u_int num = vt_get_all_terms(&terms);
+    u_int count;
+
+    for (count = 0; count < num; count++) {
+      if (vt_term_is_broadcasting(terms[count])) {
+        if (!vt_term_write_special_key(terms[count], key, modcode, is_numlock)) {
+          return 0;
+        }
+      }
+    }
+
+    return 1;
+  } else {
+    return vt_term_write_special_key(screen->term, key, modcode, is_numlock);
   }
 }
 
@@ -2226,7 +2263,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
       }
     }
 
-    if (spkey != -1 && vt_term_write_special_key(screen->term, spkey, modcode, is_numlock)) {
+    if (spkey != -1 && write_special_key(screen, spkey, modcode, is_numlock)) {
       return;
     }
 

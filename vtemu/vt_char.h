@@ -29,11 +29,11 @@
 #define PICTURE_ID_BITS 9   /* fg or bg color */
 #define PICTURE_POS_BITS 23 /* code */
 
-enum {
+typedef enum {
   UNDERLINE_NONE,
   UNDERLINE_NORMAL,
   UNDERLINE_DOUBLE,
-};
+} vt_underline_style_t;
 
 /*
  * This object size should be kept as small as possible.
