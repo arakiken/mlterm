@@ -1304,15 +1304,18 @@ static int im_is_active(vt_parser_t *vt_parser) {
 }
 
 static void set_modkey_mode(vt_parser_t *vt_parser, int key, int mode) {
-#if 0
-  if (key == 1 && mode <= 3) {
-    vt_parser->modify_cursor_keys = mode;
-  } else if (key == 2 && mode <= 3) {
-    vt_parser->modify_function_keys = mode;
-  } else
-#endif
-      if (key == 4 && mode <= 2) {
-    vt_parser->modify_other_keys = mode;
+  if (key == 1) {
+    if (-1 <= mode && mode <= 3) {
+      vt_parser->modify_cursor_keys = mode;
+    }
+  } else if (key == 2) {
+    if (-1 <= mode && mode <= 3) {
+      vt_parser->modify_function_keys = mode;
+    }
+  } else if (key == 4) {
+    if (0 <= mode && mode <= 2) {
+      vt_parser->modify_other_keys = mode;
+    }
   }
 }
 
@@ -2537,7 +2540,9 @@ static void request_termcap(vt_parser_t *vt_parser, u_char *key) {
         } else {
           value = vt_termcap_special_key_to_seq(
               vt_parser->termcap, db[idx].spkey, db[idx].modcode,
-              /* vt_parser->is_app_keypad */ 0, vt_parser->is_app_cursor_keys, 0);
+              /* vt_parser->is_app_keypad */ 0, vt_parser->is_app_cursor_keys,
+              /* vt_parser->is_app_escape */ 0,
+              vt_parser->modify_cursor_keys, vt_parser->modify_function_keys);
         }
 
         break;
@@ -5487,11 +5492,9 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
 
   set_col_size_of_width_a(vt_parser, col_size_a);
 
-#if 0
   /* Default value of modify_*_keys except modify_other_keys is 2. */
   vt_parser->modify_cursor_keys = 2;
   vt_parser->modify_function_keys = 2;
-#endif
 
   vt_parser->sixel_scrolling = 1;
   vt_parser->alt_color_mode = alt_color_mode;
@@ -5624,7 +5627,8 @@ int vt_parser_write_special_key(vt_parser_t *vt_parser, vt_special_key_t key,
 
   if ((buf = vt_termcap_special_key_to_seq(
            vt_parser->termcap, key, modcode, (vt_parser->is_app_keypad && !is_numlock),
-           vt_parser->is_app_cursor_keys, vt_parser->is_app_escape))) {
+           vt_parser->is_app_cursor_keys, vt_parser->is_app_escape,
+           vt_parser->modify_cursor_keys, vt_parser->modify_function_keys))) {
     vt_write_to_pty(vt_parser->pty, buf, strlen(buf));
 
     return 1;

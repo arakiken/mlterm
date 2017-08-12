@@ -251,10 +251,8 @@ typedef struct vt_parser {
   u_int8_t col_size_of_width_a; /* 1 or 2 */
   /* vt_cursor_style_t */ int8_t cursor_style;
   /* vt_underline_style_t */ int8_t underline_style;
-#if 0
   int8_t modify_cursor_keys;
   int8_t modify_function_keys;
-#endif
   int8_t modify_other_keys;
 
   /* Used for non iso2022 encoding */

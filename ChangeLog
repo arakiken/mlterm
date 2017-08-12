@@ -1,3 +1,10 @@
+2017-08-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_termcap.[ch]: modify_function_keys and modify_cursor_keys are added
+	  to arguments of vt_termap_special_key_to_seq().
+
+	* vt_parser.[ch]: ModifyFunctionKeys and ModifyCursorKeys are supported.
+
 2017-08-09  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, etc/key, etc/main, etc/main.ja: Updated.

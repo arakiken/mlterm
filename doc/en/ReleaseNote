@@ -4,6 +4,10 @@
   all ptys whose value of "ignore_broadcasted_chars" option is false.
 * Add "ignore_broadcasted_chars" / --ibc option.
 * Support libssh2 on MacOSX/Cocoa.
+* Support ModifyCursorKeys and ModifyFunctionKeys of xterm.
+* Change the default sequences of Modifier+Function and Modifier+Cursor keys
+  from xterm's old/obsolete ones to modern ones.
+  (e.g. Shift+F1 outputs "\e[1;2P" instead of "\eO2P" by default.)
 * Bug fixes:
   Fix a bug which disabled to assign keypad keys in ~/.mlterm/shortcut.
   Fix wrong processing of percentage in a font name on framebuffer and wayland.

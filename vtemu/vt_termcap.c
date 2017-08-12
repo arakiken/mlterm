@@ -386,7 +386,8 @@ int vt_termcap_set_key_seq(vt_termcap_t *termcap, vt_special_key_t key, const ch
 int vt_termcap_bce_is_enabled(vt_termcap_t *termcap) { return termcap->bool_fields[TC_BCE]; }
 
 char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key, int modcode,
-                                    int is_app_keypad, int is_app_cursor_keys, int is_app_escape) {
+                                    int is_app_keypad, int is_app_cursor_keys, int is_app_escape,
+                                    int modify_cursor_keys, int modify_function_keys) {
   static char escseq[10];
   char *seq;
   char intermed_ch;
@@ -496,7 +497,8 @@ char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key,
           }
 
           return vt_termcap_special_key_to_seq(termcap, key, modcode, is_app_keypad,
-                                               is_app_cursor_keys, is_app_escape);
+                                               is_app_cursor_keys, is_app_escape,
+                                               modify_cursor_keys, modify_function_keys);
         }
       } else if (key <= SPKEY_LEFT) {
         intermed_ch = (is_app_cursor_keys && !modcode) ? 'O' : '[';
@@ -513,23 +515,20 @@ char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key,
             param = 15;
             final_ch = '~';
           } else {
-            intermed_ch = 'O';
-            param = modcode;
             /* PQRS */
+            if (modcode) {
+              intermed_ch = '[';
+              param = 1;
+            } else {
+              intermed_ch = 'O';
+              param = 0;
+            }
             final_ch = (key - SPKEY_F1) + 'P';
-
-            /*
-             * Shift+F1 is not ^[O1;2P but ^[O2P.
-             * So 'modcode' is copied to 'param' varaiable
-             * above and then cleared to 0 here.
-             */
-            modcode = 0;
           }
         } else {
           return seq;
         }
-      } else /* if( key <= SPKEY_F37) */
-      {
+      } else /* if( key <= SPKEY_F37) */ {
         char params[] = {
             /* F6 - F15 */
             17, 18, 19, 20, 21, 23, 24, 25, 26, 28,
@@ -548,14 +547,43 @@ char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key,
       }
   }
 
-  if (modcode) /* ESC <intermed> Ps ; Ps <final> */
-  {
-    bl_snprintf(escseq, sizeof(escseq), "\x1b%c%d;%d%c", intermed_ch, param, modcode, final_ch);
-  } else if (param) /* ESC <intermed> Ps <final> */
-  {
+  if (modcode) /* ESC <intermed> Ps ; Ps <final> */ {
+    if ('A' <= final_ch && final_ch <= 'H') {
+      /* cursor keys */
+      if (0 <= modify_cursor_keys && modify_cursor_keys <= 1) {
+        goto obsolete_format;
+      } else if (modify_cursor_keys == 3) {
+        goto private_format;
+      }
+    } else if (SPKEY_IS_FKEY(key)) {
+      if (modify_function_keys == 3) {
+        goto private_format;
+      } else if ('P' <= final_ch && final_ch <= 'S') {
+        /* F1-F4 keys */
+        if (modify_function_keys == 0) {
+          intermed_ch = 'O';
+          goto obsolete_format;
+        } else if (modify_function_keys == 1) {
+          goto obsolete_format;
+        }
+      }
+    }
+
+    while (1) {
+      bl_snprintf(escseq, sizeof(escseq), "\x1b%c%d;%d%c", intermed_ch, param, modcode, final_ch);
+      break;
+
+    obsolete_format:
+      bl_snprintf(escseq, sizeof(escseq), "\x1b%c%d%c", intermed_ch, modcode, final_ch);
+      break;
+
+    private_format:
+      bl_snprintf(escseq, sizeof(escseq), "\x1b%c>%d;%d%c", intermed_ch, param, modcode, final_ch);
+      break;
+    }
+  } else if (param) /* ESC <intermed> Ps <final> */ {
     bl_snprintf(escseq, sizeof(escseq), "\x1b%c%d%c", intermed_ch, param, final_ch);
-  } else /* ESC <intermed> <final> */
-  {
+  } else /* ESC <intermed> <final> */ {
     bl_snprintf(escseq, sizeof(escseq), "\x1b%c%c", intermed_ch, final_ch);
   }
 
