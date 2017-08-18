@@ -602,9 +602,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
           bg_color = VT_BG_COLOR;
         }
 
-        if ((*syms->vt_convert_to_internal_ch)(
-                &ch, (*fcitx->im.listener->get_unicode_policy)(fcitx->im.listener->self),
-                US_ASCII) <= 0) {
+        if ((*syms->vt_convert_to_internal_ch)(fcitx->im.vtparser, &ch) <= 0) {
           continue;
         }
 
