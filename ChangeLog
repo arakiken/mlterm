@@ -1,3 +1,71 @@
+2017-08-26  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - vte_terminal_search_set_regex() and vte_terminal_search_get_regex() are
+	    implemented.
+	  - 'GRegex* gregex' is added to VteRegex.
+	  - ui_screen_t::ui_sel_event_listener_t::select_in_window is overridden
+	    and overriding function calls g_signal_emit("selection-changed").
+	  - deadline_ignoring_source_cancelled_event defined in wayland/ui_display.c
+	    is set to prevent ui_display_clear_selection() from being called by
+	    gtk_clipboard_set_text().
+
+	* ui_layout.c:
+	  - ui_screen_t::window::window_focused and
+	    ui_screen_t::xterm_listener::set_{window|icon}_name are overridden to
+	    show window title correctly in splitted screen.
+	  - If ui_screen_t or ui_scrollbar_t with a wall picture is moved but not
+	    resized in reset_layout() and MANAGE_SUB_WINDOWS_BY_MYSELF is not
+	    defined, ui_window_update_all() is called to redraw a wall picture.
+	  - HAS_MULTI_CHILDREN macro is added.
+
+	* ui_screen.c:
+	  - ui_window_utf_selection_request() is called if
+	    ui_window_xct_selection_request() fails in yank_event_received().
+	  - ui_get_selection_{conv|parser}() are used.
+	  - "next_pty", "prev_pty" and "close_screen" are added to OSC 5379.
+
+	* xlib/ui_window.c: _NET_WM_NAME and _NET_ICON_NAME properties are supported.
+
+	* win32/ui_window.c:
+	  - ui_window_set_wall_picture() in ui_window_unset_wall_picture()
+	    => ui_window_unset_wall_picture().
+	  - 'name' argument of ui_set_{window|icon}_name() is converted to
+	    appropriate character encoding.
+
+	* fb/ui_window.c: ui_window_xct_selection_request() returns 0 on android
+	  and wayland.
+
+	* quartz/ui_window.c:
+	  - ui_window_set_wall_picture() in ui_window_unset_wall_picture()
+	    => ui_window_unset_wall_picture().
+	  - ui_set_window_name() is implemented.
+
+	* console/ui_window.c
+	  - If name is NULL, ui_window_t::app_name is used instead in
+	    ui_set_{window|icon}_name().
+	  - 'name' argument of ui_set_{window|icon}_name() is converted to
+	    appropriate character encoding.
+
+	* fb/ui_window.c:
+	  If name is NULL, ui_window_t::app_name is used instead in
+	  ui_set_{window|icon}_name().
+
+	* cocoa.[mh]: window_set_title() is added.
+
+	* ui_selection_encoding.h, uitoolkit/*/ui_selection_encoding.c:
+	  These files are separated from ui_screen.c.
+
+	* vt_parser.[ch]: "CSI > t" and "CSI > T" are supported.
+
+	* vt_util.[ch]: These files are separated from vt_parser.c.
+
+	* vt_char_encoding.c:
+	  The default value of "auto" is changed from unknown encoding to UTF-8.
+
+	* jni/ui_event_source.c, MLActivity.java:
+	  "Next pty", "Previous pty" and "Close splitted screen" are added to context menu.
+
 2017-08-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_termcap.[ch]: modify_function_keys and modify_cursor_keys are added

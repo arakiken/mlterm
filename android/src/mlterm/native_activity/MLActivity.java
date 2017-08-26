@@ -280,9 +280,12 @@ public class MLActivity extends NativeActivity {
   private final int MENU_SSH_ID = 3;
   private final int MENU_VSPLIT_ID = 4;
   private final int MENU_HSPLIT_ID = 5;
-  private final int MENU_UPDATESCREEN_ID = 6;
-  private final int MENU_CONFIG_ID = 7;
-  private final int MENU_CANCEL_ID = 8;
+  private final int MENU_NEXTPTY_ID = 6;
+  private final int MENU_PREVPTY_ID = 7;
+  private final int MENU_UPDATESCREEN_ID = 8;
+  private final int MENU_CLOSESCREEN_ID = 9;
+  private final int MENU_CONFIG_ID = 10;
+  private final int MENU_CANCEL_ID = 11;
 
   @Override
   public void onCreateContextMenu(ContextMenu menu, View view,
@@ -295,7 +298,10 @@ public class MLActivity extends NativeActivity {
     menu.add(0, MENU_SSH_ID, 0, "Connect to SSH server");
     menu.add(0, MENU_VSPLIT_ID, 0, "Split screen vertically");
     menu.add(0, MENU_HSPLIT_ID, 0, "Split screen horizontally");
+    menu.add(0, MENU_NEXTPTY_ID, 0, "Next pty");
+    menu.add(0, MENU_PREVPTY_ID, 0, "Previous pty");
     menu.add(0, MENU_UPDATESCREEN_ID, 0, "Update screen");
+    menu.add(0, MENU_CLOSESCREEN_ID, 0, "Close splitted screen");
     menu.add(0, MENU_CONFIG_ID, 0, "Configuration");
     menu.add(0, MENU_CANCEL_ID, 0, "Cancel");
   }
@@ -313,7 +319,7 @@ public class MLActivity extends NativeActivity {
         execCommand(3);
         return true;
       case MENU_SSH_ID:
-        execCommand(4);
+        execCommand(7);
         return true;
       case MENU_VSPLIT_ID:
         execCommand(1);
@@ -321,8 +327,17 @@ public class MLActivity extends NativeActivity {
       case MENU_HSPLIT_ID:
         execCommand(2);
         return true;
+      case MENU_NEXTPTY_ID:
+        execCommand(4);
+        return true;
+      case MENU_PREVPTY_ID:
+        execCommand(5);
+        return true;
       case MENU_UPDATESCREEN_ID:
         updateScreen();
+        return true;
+      case MENU_CLOSESCREEN_ID:
+        execCommand(6);
         return true;
       case MENU_CONFIG_ID:
         Intent intent = new Intent(this, MLPreferenceActivity.class);

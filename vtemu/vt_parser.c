@@ -30,6 +30,7 @@
 #include "vt_config_proto.h"
 #include "vt_str_parser.h"
 #include "vt_shape.h" /* vt_is_arabic_combining */
+#include "vt_util.h"
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include "cygfile.h"
@@ -1249,6 +1250,81 @@ static void request_locator(vt_parser_t *vt_parser) {
   }
 }
 
+static char *parse_title(vt_parser_t *vt_parser, char *src /* the caller should allocated */) {
+  size_t len;
+  ef_parser_t *parser;
+  vt_char_encoding_t src_encoding;
+  ef_char_t ch;
+  u_int num_of_chars;
+  vt_char_encoding_t dst_encoding;
+  char *dst;
+
+  if (src == NULL) {
+    return NULL;
+  }
+
+  dst = NULL;
+
+  len = strlen(src);
+  if (vt_parser->set_title_using_hex) {
+    if (!(len = vt_hex_decode(src, src, len))) {
+#ifdef DEBUG
+      bl_debug_printf("Failed to decode %s as hex string.\n", src);
+#endif
+      goto end;
+    }
+    src[len] = '\0';
+  }
+
+  if (vt_parser->set_title_using_utf8 ? vt_parser->encoding == VT_UTF8 : 1) {
+    parser = vt_parser->cc_parser;
+    src_encoding = vt_parser->encoding;
+  } else {
+    if (!(parser = vt_char_encoding_parser_new(VT_UTF8))) {
+      goto end;
+    }
+    src_encoding = VT_UTF8;
+  }
+
+  (*parser->init)(parser);
+  (*parser->set_str)(parser, src, len);
+  num_of_chars = 0;
+  while ((*parser->next_char)(parser, &ch)) {
+    if ((ef_bytes_to_int(ch.ch, ch.size) & ~0x80) < 0x20) {
+#ifdef DEBUG
+      bl_debug_printf("%s which contains control characters is ignored for window title.\n",
+                      src);
+#endif
+      goto end;
+    }
+    num_of_chars++;
+  }
+
+  /* locale encoding */
+  dst_encoding = vt_get_char_encoding("auto");
+
+  if (src_encoding == dst_encoding) {
+    return src;
+  }
+
+  if ((dst = malloc(num_of_chars * UTF_MAX_SIZE + 1))) {
+    (*parser->init)(parser);
+    (*parser->set_str)(parser, src, len);
+    len = vt_char_encoding_convert_with_parser(dst, num_of_chars * UTF_MAX_SIZE, dst_encoding,
+                                               parser);
+    dst[len] = '\0';
+
+    if (parser != vt_parser->cc_parser) {
+      (*parser->delete)(parser);
+    }
+  }
+
+end:
+  free(src);
+
+  return dst;
+}
+
 static void set_window_name(vt_parser_t *vt_parser,
                             u_char *name /* should be malloc'ed or NULL. */
                             ) {
@@ -1342,6 +1418,68 @@ static void report_window_size(vt_parser_t *vt_parser, int by_char) {
     sprintf(seq, "\x1b[%d;%d;%dt", ps, height, width);
     vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
+}
+
+static void report_window_or_icon_name(vt_parser_t *vt_parser, int is_window) {
+  char *seq;
+  char *pre;
+  char *title;
+  size_t len;
+  vt_char_encoding_t src_encoding;
+  vt_char_encoding_t dst_encoding;
+
+  if (is_window) {
+    title = vt_parser->win_name;
+    pre = "\x1b]l";
+  } else {
+    title = vt_parser->icon_name;
+    pre = "\x1b]L";
+  }
+
+  /* see parse_title() */
+  src_encoding = vt_get_char_encoding("auto");
+
+  if (vt_parser->get_title_using_utf8) {
+    dst_encoding = VT_UTF8;
+  } else {
+    dst_encoding = vt_parser->encoding;
+  }
+
+  len = strlen(title);
+
+  if (src_encoding != dst_encoding) {
+    char *p;
+
+    if (!(p = alloca(len * UTF_MAX_SIZE + 1))) {
+      goto error;
+    }
+
+    len = vt_char_encoding_convert(p, len * UTF_MAX_SIZE, dst_encoding,
+                                   title, len, src_encoding);
+    title = p;
+  }
+
+  if (!(seq = alloca(3 + len * (vt_parser->get_title_using_hex ? 2 : 1) + 3))) {
+    goto error;
+  }
+
+  strcpy(seq, pre);
+
+  if (vt_parser->get_title_using_hex) {
+    len = vt_hex_encode(seq + 3, title, len);
+  } else {
+    memcpy(seq + 3, title, len);
+  }
+  strcpy(seq + 3 + len, "\x1b\\");
+  vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
+
+  return;
+
+error:
+  vt_write_to_pty(vt_parser->pty, pre, 3);
+  vt_write_to_pty(vt_parser->pty, "\x1b\\", 2);
+
+  return;
 }
 
 #ifndef NO_IMAGE
@@ -1520,72 +1658,6 @@ static void snapshot(vt_parser_t *vt_parser, vt_char_encoding_t encoding,
   }
 
   close(fd);
-}
-
-static int base64_decode(char *decoded, char *encoded, size_t e_len) {
-  size_t d_pos;
-  size_t e_pos;
-  /* ASCII -> Base64 order */
-  int8_t conv_tbl[] = {/* 0x2b - */
-                       62, -1, -1, -1, 63,
-                       /* 0x30 - */
-                       52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -2, -1, -1,
-                       /* 0x40 - */
-                       -1, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
-                       /* 0x50 - */
-                       15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-                       /* 0x60 - */
-                       -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-                       /* 0x70 - 7a */
-                       41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51};
-
-  d_pos = e_pos = 0;
-
-  while (e_len >= e_pos + 4) {
-    size_t count;
-    int8_t bytes[4];
-
-    for (count = 0; count < 4; e_pos++) {
-      if (encoded[e_pos] < 0x2b || 0x7a < encoded[e_pos] ||
-          (bytes[count] = conv_tbl[encoded[e_pos] - 0x2b]) == -1) {
-#ifdef DEBUG
-        if (encoded[e_pos] != CTL_CR && encoded[e_pos] != CTL_LF) {
-          bl_debug_printf(BL_DEBUG_TAG " ignoring %c in base64\n", encoded[e_pos]);
-        }
-#endif
-
-        if (e_len <= e_pos + 1) {
-          goto end;
-        }
-      } else {
-        count++;
-      }
-    }
-
-    decoded[d_pos++] = (((bytes[0] << 2) & 0xfc) | ((bytes[1] >> 4) & 0x3));
-
-    if (bytes[2] != -2) {
-      decoded[d_pos++] = (((bytes[1] << 4) & 0xf0) | ((bytes[2] >> 2) & 0xf));
-    } else {
-      break;
-    }
-
-    if (bytes[3] != -2) {
-      decoded[d_pos++] = (((bytes[2] << 6) & 0xc0) | (bytes[3] & 0x3f));
-    } else {
-      break;
-    }
-  }
-
-end:
-#ifdef DEBUG
-  decoded[d_pos] = '\0';
-  if (strlen(encoded) < 1000) {
-    bl_debug_printf(BL_DEBUG_TAG " Base64 Decode %s => %s\n", encoded, decoded);
-  }
-#endif
-
-  return d_pos;
 }
 
 static void set_col_size_of_width_a(vt_parser_t *vt_parser, u_int col_size_a) {
@@ -1852,7 +1924,7 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
 
         strcpy(path, "mlterm/");
 
-        d_len = base64_decode(path + 7, beg, end - beg);
+        d_len = vt_base64_decode(path + 7, beg, end - beg);
         path[7 + d_len] = '\0';
         file = bl_basename(path);
         memmove(path + 7, file, strlen(file) + 1);
@@ -1901,7 +1973,7 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
       size_t d_len;
       FILE *fp;
 
-      if ((d_len = base64_decode(decoded, encoded, e_len)) > 0 && (fp = fopen(path, "w"))) {
+      if ((d_len = vt_base64_decode(decoded, encoded, e_len)) > 0 && (fp = fopen(path, "w"))) {
         fwrite(decoded, 1, d_len, fp);
         fclose(fp);
 
@@ -2159,7 +2231,7 @@ static void set_selection(vt_parser_t *vt_parser, u_char *encoded) {
     }
 
     if ((e_len = strlen(encoded)) < 4 || !(decoded = alloca(e_len)) ||
-        (d_len = base64_decode(decoded, encoded, e_len)) == 0 || !(str = vt_str_new(d_len))) {
+        (d_len = vt_base64_decode(decoded, encoded, e_len)) == 0 || !(str = vt_str_new(d_len))) {
       return;
     }
 
@@ -3758,9 +3830,39 @@ inline static int parse_vt100_escape_sequence(
             (*vt_parser->xterm_listener->hide_cursor)(vt_parser->xterm_listener->self,
                                                          ps[0] == 2 ? 1 : 0);
           }
+        } else if (*str_p == 't') {
+          /* "CSI > t" */
+
+          int count;
+          for (count = 0; count < num; count++) {
+            if (ps[count] == 0) {
+              vt_parser->set_title_using_hex = 1;
+            } else if (ps[count] == 1) {
+              vt_parser->get_title_using_hex = 1;
+            } else if (ps[count] == 2) {
+              vt_parser->set_title_using_utf8 = 1;
+            } else if (ps[count] == 3) {
+              vt_parser->get_title_using_utf8 = 1;
+            }
+          }
+        } else if (*str_p == 'T') {
+          /* "CSI > T" */
+
+          int count;
+          for (count = 0; count < num; count++) {
+            if (ps[count] == 0) {
+              vt_parser->set_title_using_hex = 0;
+            } else if (ps[count] == 1) {
+              vt_parser->get_title_using_hex = 0;
+            } else if (ps[count] == 2) {
+              vt_parser->set_title_using_utf8 = 0;
+            } else if (ps[count] == 3) {
+              vt_parser->get_title_using_utf8 = 0;
+            }
+          }
         } else {
           /*
-           * "CSI > T", "CSI > c", "CSI > t"
+           * "CSI > c"
            */
         }
       } else if (para_ch == '=') {
@@ -4381,10 +4483,16 @@ inline static int parse_vt100_escape_sequence(
             }
           }
         } else {
-          if (ps[0] == 14) {
+          if (ps[0] == 13) {
+            vt_write_to_pty(vt_parser->pty, "\x1b[3;0;0t", 8);
+          } else if (ps[0] == 14) {
             report_window_size(vt_parser, 0);
           } else if (ps[0] == 18) {
             report_window_size(vt_parser, 1);
+          } else if (ps[0] == 20) {
+            report_window_or_icon_name(vt_parser, 1);
+          } else if (ps[0] == 21) {
+            report_window_or_icon_name(vt_parser, 0);
           }
         }
       } else if (*str_p == 'u') {
@@ -4494,20 +4602,26 @@ inline static int parse_vt100_escape_sequence(
         /* "OSC 0" change icon name and window title */
 
         if (*pt != '\0') {
-          set_window_name(vt_parser, strdup(pt));
-          set_icon_name(vt_parser, strdup(pt));
+          if ((pt = parse_title(vt_parser, strdup(pt)))) {
+            set_window_name(vt_parser, pt);
+            set_icon_name(vt_parser, strdup(pt));
+          }
         }
       } else if (ps == 1) {
         /* "OSC 1" change icon name */
 
         if (*pt != '\0') {
-          set_icon_name(vt_parser, strdup(pt));
+          if ((pt = parse_title(vt_parser, strdup(pt)))) {
+            set_icon_name(vt_parser, pt);
+          }
         }
       } else if (ps == 2) {
         /* "OSC 2" change window title */
 
         if (*pt != '\0') {
-          set_window_name(vt_parser, strdup(pt));
+          if ((pt = parse_title(vt_parser, strdup(pt)))) {
+            set_window_name(vt_parser, pt);
+          }
         }
       } else if (ps == 4) {
         /* "OSC 4" change 256 color */

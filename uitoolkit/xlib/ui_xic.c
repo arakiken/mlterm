@@ -93,7 +93,9 @@ static int destroy_xic(ui_window_t *win) {
 static int create_xic(ui_window_t *win) {
   XIMStyle selected_style;
   XVaNestedList preedit_attr;
+#ifdef SET_XNAREA_ATTR
   XRectangle rect;
+#endif
   XPoint spot;
   XFontSet fontset;
   XIC xic;
@@ -327,7 +329,9 @@ int ui_xic_font_set_changed(ui_window_t *win) {
 
 int ui_xic_resized(ui_window_t *win) {
   XVaNestedList preedit_attr;
+#ifdef SET_XNAREA_ATTR
   XRectangle rect;
+#endif
   XPoint spot;
 
   if (win->xic == NULL || !(win->xic->style & XIMPreeditPosition)) {

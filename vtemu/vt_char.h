@@ -21,8 +21,8 @@
                          * (total 20 bytes)
                          */
 #define XCT_MAX_SIZE 20
-#define MLCHAR_UTF_MAX_SIZE (UTF_MAX_SIZE * (MAX_COMB_SIZE + 1))
-#define MLCHAR_XCT_MAX_SIZE (XCT_MAX_SIZE * (MAX_COMB_SIZE + 1))
+#define VTCHAR_UTF_MAX_SIZE (UTF_MAX_SIZE * (MAX_COMB_SIZE + 1))
+#define VTCHAR_XCT_MAX_SIZE (XCT_MAX_SIZE * (MAX_COMB_SIZE + 1))
 
 /* For inline pictures (see x_picture.c) */
 #define PICTURE_CHARSET 0x1ff

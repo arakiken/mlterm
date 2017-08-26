@@ -1958,10 +1958,8 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
 }
 
 int ui_window_xct_selection_request(ui_window_t *win, Time time) {
-#if defined(__ANDROID__)
-  ui_display_request_text_selection();
-#elif defined(USE_WAYLAND)
-  ui_display_request_text_selection(win->disp);
+#if defined(__ANDROID__) || defined(USE_WAYLAND)
+  return 0;
 #else
   if (win->disp->selection_owner && win->disp->selection_owner->xct_selection_requested) {
     XSelectionRequestEvent ev;
@@ -1969,9 +1967,9 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time) {
     ev.target = win;
     (*win->disp->selection_owner->xct_selection_requested)(win->disp->selection_owner, &ev, 0);
   }
-#endif
 
   return 1;
+#endif
 }
 
 int ui_window_utf_selection_request(ui_window_t *win, Time time) {
@@ -2020,6 +2018,10 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
 
 int ui_set_window_name(ui_window_t *win, u_char *name) {
 #ifdef USE_WAYLAND
+  if (name == NULL) {
+    name = win->app_name;
+  }
+
   ui_display_set_title(win->disp, name);
 #endif
 

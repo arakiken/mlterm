@@ -14,8 +14,52 @@ static u_int dummy_arg;
 #define SEPARATOR_HEIGHT 1
 #endif
 #define SCROLLBAR_WIDTH(scrollbar) (ACTUAL_WIDTH(&(scrollbar).window) + SEPARATOR_WIDTH)
+#define HAS_MULTI_CHILDREN(layout) ((layout)->term.next[0] || (layout)->term.next[1])
+
+/* --- static variables --- */
+
+static void (*orig_window_focused)(ui_window_t *);
+static void (*orig_xterm_set_window_name)(void *, u_char *);
+static void (*orig_xterm_set_icon_name)(void *, u_char *);
 
 /* --- static functions --- */
+
+static void update_title(ui_screen_t *screen) {
+  ui_set_window_name(&screen->window, vt_term_window_name(screen->term));
+  ui_set_icon_name(&screen->window, vt_term_icon_name(screen->term));
+}
+
+static void window_focused(ui_window_t *win) {
+  ui_layout_t *layout = (ui_layout_t*)win->parent;
+
+  (*orig_window_focused)(win);
+
+  if (HAS_MULTI_CHILDREN(layout)) {
+    /*
+     * If two screens in layout and one of them is removed, update_title() is
+     * not called here. It is called at the end of ui_layout_remove_child().
+     */
+    update_title((ui_screen_t*)win);
+  }
+}
+
+static void xterm_set_window_name(void *p, u_char *name) {
+  ui_window_t *win = p;
+  ui_layout_t *layout = (ui_layout_t*)win->parent;
+
+  if (!HAS_MULTI_CHILDREN(layout) || win->inputtable > 0) {
+    (*orig_xterm_set_window_name)(p, name);
+  }
+}
+
+static void xterm_set_icon_name(void *p, u_char *name) {
+  ui_window_t *win = p;
+  ui_layout_t *layout = (ui_layout_t*)win->parent;
+
+  if (!HAS_MULTI_CHILDREN(layout) || win->inputtable > 0) {
+    (*orig_xterm_set_icon_name)(p, name);
+  }
+}
 
 static u_int modify_separator(u_int separator, u_int total, u_int next_min, u_int unit, u_int fixed,
                               u_int margin) {
@@ -45,6 +89,8 @@ static u_int modify_separator(u_int separator, u_int total, u_int next_min, u_in
 static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int height) {
   u_int child_width;
   u_int child_height;
+  int screen_moved;
+  int screen_resized;
 
   if (term->separator_x > 0) {
     term->separator_x = child_width = modify_separator(
@@ -70,16 +116,17 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
 
   if (term->sb_mode != SBM_NONE) {
     int sep_x;
-    int do_redraw;
+    int sb_moved;
+    int sb_resized;
 
     if (term->sb_mode == SBM_RIGHT) {
-      ui_window_move(&term->screen->window, x, y);
-      do_redraw = ui_window_move(&term->scrollbar.window,
+      screen_moved = ui_window_move(&term->screen->window, x, y);
+      sb_moved = ui_window_move(&term->scrollbar.window,
                                  x + child_width - ACTUAL_WIDTH(&term->scrollbar.window), y);
       sep_x = x + child_width - SCROLLBAR_WIDTH(term->scrollbar);
     } else {
-      ui_window_move(&term->screen->window, x + SCROLLBAR_WIDTH(term->scrollbar), y);
-      do_redraw = ui_window_move(&term->scrollbar.window, x, y);
+      screen_moved = ui_window_move(&term->screen->window, x + SCROLLBAR_WIDTH(term->scrollbar), y);
+      sb_moved = ui_window_move(&term->scrollbar.window, x, y);
       sep_x = x + ACTUAL_WIDTH(&term->scrollbar.window);
     }
 
@@ -90,17 +137,20 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
      * which redraws screen by ui_window_update(), so you should resize ui_scrollbar_t
      * before ui_screen_t.
      */
-    ui_window_resize_with_margin(&term->scrollbar.window, ACTUAL_WIDTH(&term->scrollbar.window),
-                                 child_height, NOTIFY_TO_MYSELF);
-    ui_window_resize_with_margin(&term->screen->window,
-                                 child_width - SCROLLBAR_WIDTH(term->scrollbar), child_height,
-                                 NOTIFY_TO_MYSELF);
+    sb_resized = ui_window_resize_with_margin(&term->scrollbar.window,
+                                              ACTUAL_WIDTH(&term->scrollbar.window),
+                                              child_height, NOTIFY_TO_MYSELF);
+    screen_resized = ui_window_resize_with_margin(&term->screen->window,
+                                                  child_width - SCROLLBAR_WIDTH(term->scrollbar),
+                                                  child_height, NOTIFY_TO_MYSELF);
 
 #ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
     ui_window_fill_with(&UI_SCREEN_TO_LAYOUT(term->screen)->window,
                         &UI_SCREEN_TO_LAYOUT(term->screen)->window.fg_color, sep_x, y,
                         SEPARATOR_WIDTH, child_height);
-#elif defined(USE_WIN32GUI)
+#else
+    if (
+#ifdef USE_WIN32GUI
     /*
      * Scrollbar 3 isn't clearly redrawn without this.
      *
@@ -110,19 +160,27 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
      * | |reen +1     | |     | |    |
      * | |            | |     | |    |
      */
-    if (do_redraw) {
+        sb_moved
+#else
+        sb_moved && !sb_resized && UI_SCREEN_TO_LAYOUT(term->screen)->bg_pic
+#endif
+        ) {
       ui_window_update_all(&term->scrollbar.window);
     }
 #endif
   } else {
-    ui_window_move(&term->screen->window, x, y);
-    ui_window_resize_with_margin(&term->screen->window, child_width, child_height,
-                                 NOTIFY_TO_MYSELF);
+    screen_moved = ui_window_move(&term->screen->window, x, y);
+    screen_resized = ui_window_resize_with_margin(&term->screen->window, child_width, child_height,
+                                                  NOTIFY_TO_MYSELF);
   }
 
+#ifndef MANAGE_SUB_WINDOWS_BY_MYSELF
+  if (
 #ifdef USE_QUARTZ
-  /* ui_window_move() clears screen in true transparency on MacOSX/Cocoa. */
-  if (term->screen->color_man->alpha < 255) {
+      /* ui_window_move() clears screen in true transparency on MacOSX/Cocoa. */
+      term->screen->color_man->alpha < 255 ||
+#endif
+      (screen_moved && !screen_resized && UI_SCREEN_TO_LAYOUT(term->screen)->bg_pic)) {
     ui_window_update_all(&term->screen->window);
   }
 #endif
@@ -382,7 +440,7 @@ static void child_window_resized(ui_window_t *win, ui_window_t *child) {
 
   layout = (ui_layout_t *)win;
 
-  if (layout->term.next[0] || layout->term.next[1]) {
+  if (HAS_MULTI_CHILDREN(layout)) {
     reset_layout(&layout->term, 0, 0, layout->window.width, layout->window.height);
 
     return;
@@ -1122,6 +1180,13 @@ ui_layout_t *ui_layout_new(ui_screen_t *screen, char *view_name, char *fg_color,
     sb_map = 0;
   }
 
+  orig_window_focused = screen->window.window_focused;
+  orig_xterm_set_window_name = screen->xterm_listener.set_window_name;
+  orig_xterm_set_icon_name = screen->xterm_listener.set_icon_name;
+  screen->window.window_focused = window_focused;
+  screen->xterm_listener.set_window_name = xterm_set_window_name;
+  screen->xterm_listener.set_icon_name = xterm_set_icon_name;
+
   if (!ui_window_add_child(&layout->window, &layout->term.scrollbar.window, sb_x, 0, sb_map) ||
       !ui_window_add_child(&layout->window, &screen->window, screen_x, 0, 1)) {
     goto error;
@@ -1276,6 +1341,9 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
   next->screen = screen;
   ui_set_screen_scroll_listener(screen, &next->screen_scroll_listener);
   screen->screen_listener.line_scrolled_out = line_scrolled_out;
+  screen->window.window_focused = window_focused;
+  screen->xterm_listener.set_window_name = xterm_set_window_name;
+  screen->xterm_listener.set_icon_name = xterm_set_icon_name;
   ui_window_add_child(&layout->window, &screen->window, 0, 0, 0);
 
   if (screen->pic_file_path) {
@@ -1331,7 +1399,7 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
   u_int h_surplus;
 #endif
 
-  if (layout->term.next[0] == NULL && layout->term.next[1] == NULL) {
+  if (!HAS_MULTI_CHILDREN(layout)) {
     return 0;
   }
 
@@ -1437,13 +1505,13 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
   ui_window_remove_child(&layout->window, &screen->window);
   ui_window_unmap(&screen->window);
 
-  if (layout->bg_pic && layout->term.next[0] == NULL && layout->term.next[1] == NULL) {
+  if (layout->bg_pic && !HAS_MULTI_CHILDREN(layout)) {
     restore_screen_bg_pic(layout);
     ui_window_unset_wall_picture(&layout->window, 0);
   }
 
 #ifndef MANAGE_SUB_WINDOWS_BY_MYSELF
-  if (!layout->term.next[0] && !layout->term.next[1]) {
+  if (!HAS_MULTI_CHILDREN(layout)) {
     w_surplus = (layout->window.width - layout->term.screen->window.hmargin * 2 -
                  (layout->term.sb_mode != SBM_NONE ? SCROLLBAR_WIDTH(layout->term.scrollbar) : 0)) %
                 ui_col_width(layout->term.screen);
@@ -1478,6 +1546,11 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
 
   ui_window_set_input_focus(&layout->term.screen->window);
 
+  /* See window_focused() above */
+  if (!HAS_MULTI_CHILDREN(layout)) {
+    update_title(layout->term.screen);
+  }
+
 #ifndef USE_QUARTZ
   if (layout->window.idling && !need_idling_event(&layout->term)) {
     layout->window.idling = NULL;
@@ -1490,7 +1563,7 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
 int ui_layout_switch_screen(ui_layout_t *layout, int prev) {
   ui_screen_t *screen;
 
-  if (!layout->term.next[0] && !layout->term.next[1]) {
+  if (!HAS_MULTI_CHILDREN(layout)) {
     return 0;
   }
 

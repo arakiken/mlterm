@@ -13,14 +13,7 @@
 #include <pobl/bl_util.h>    /* K_MIN */
 #include <pobl/bl_def.h>     /* PATH_MAX */
 #include <pobl/bl_args.h>    /* bl_arg_str_to_array */
-#include <pobl/bl_locale.h>  /* bl_get_codeset_win32 */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
-#include <mef/ef_xct_parser.h>
-#include <mef/ef_xct_conv.h>
-#ifdef USE_WIN32GUI
-#include <mef/ef_utf16_conv.h>
-#include <mef/ef_utf16_parser.h>
-#endif
 #include <vt_str_parser.h>
 #include <vt_term_manager.h>
 #ifdef USE_BRLAPI
@@ -29,6 +22,7 @@
 
 #include "ui_xic.h"
 #include "ui_draw_str.h"
+#include "ui_selection_encoding.h"
 
 #define HAS_SYSTEM_LISTENER(screen, function) \
   ((screen)->system_listener && (screen)->system_listener->function)
@@ -68,6 +62,8 @@ static int exit_backscroll_by_pty;
 static int allow_change_shortcut;
 static char *mod_meta_prefix = "\x1b";
 static int trim_trailing_newline_in_pasting;
+static ef_parser_t *vt_str_parser; /* XXX leaked */
+
 #ifdef USE_IM_CURSOR_COLOR
 static char *im_cursor_color = NULL;
 #endif
@@ -1106,8 +1102,6 @@ static ui_im_t *im_new(ui_screen_t *screen) {
  * callbacks of ui_window events
  */
 
-static void xterm_set_window_name(void *p, u_char *name);
-
 static void window_realized(ui_window_t *win) {
   ui_screen_t *screen;
   char *name;
@@ -1145,7 +1139,7 @@ static void window_realized(ui_window_t *win) {
                      ui_get_xcolor(screen->color_man, VT_BG_COLOR));
 
   if ((name = vt_term_window_name(screen->term))) {
-    xterm_set_window_name(screen, name);
+    ui_set_window_name(&screen->window, name);
   }
 
   if ((name = vt_term_icon_name(screen->term))) {
@@ -1492,14 +1486,14 @@ static int yank_event_received(ui_screen_t *screen, Time time) {
     convert_nl_to_cr2(screen->sel.sel_str, len);
 #endif
 
-    (*screen->vt_str_parser->init)(screen->vt_str_parser);
-    vt_str_parser_set_str(screen->vt_str_parser, screen->sel.sel_str, len);
+    (*vt_str_parser->init)(vt_str_parser);
+    vt_str_parser_set_str(vt_str_parser, screen->sel.sel_str, len);
 
     if (vt_term_is_bracketed_paste_mode(screen->term)) {
       write_to_pty(screen, "\x1b[200~", 6, NULL);
     }
 
-    write_to_pty(screen, NULL, 0, screen->vt_str_parser);
+    write_to_pty(screen, NULL, 0, vt_str_parser);
 
     if (vt_term_is_bracketed_paste_mode(screen->term)) {
       write_to_pty(screen, "\x1b[201~", 6, NULL);
@@ -1513,12 +1507,12 @@ static int yank_event_received(ui_screen_t *screen, Time time) {
 
     if (encoding == VT_UTF8 ||
         (IS_UCS_SUBSET_ENCODING(encoding) && screen->receive_string_via_ucs)) {
-      if (ui_window_utf_selection_request(&screen->window, time)) {
-        return 1;
-      }
+      return ui_window_utf_selection_request(&screen->window, time) ||
+             ui_window_xct_selection_request(&screen->window, time);
+    } else {
+      return ui_window_xct_selection_request(&screen->window, time) ||
+             ui_window_utf_selection_request(&screen->window, time);
     }
-
-    return ui_window_xct_selection_request(&screen->window, time);
   }
 }
 
@@ -1818,18 +1812,18 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
 
     str_len = strlen(str) + 1;
 
-    key_len = str_len + screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE + 1;
+    key_len = str_len + screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE + 1;
     key = alloca(key_len);
 
     strcpy(key, str);
     key[str_len - 1] = ' ';
 
-    (*screen->vt_str_parser->init)(screen->vt_str_parser);
-    vt_str_parser_set_str(screen->vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
+    (*vt_str_parser->init)(vt_str_parser);
+    vt_str_parser_set_str(vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
 
     vt_term_init_encoding_conv(screen->term);
     key_len =
-        vt_term_convert_to(screen->term, key + str_len, key_len - str_len, screen->vt_str_parser) +
+        vt_term_convert_to(screen->term, key + str_len, key_len - str_len, vt_str_parser) +
         str_len;
     key[key_len] = '\0';
 
@@ -2232,34 +2226,30 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
         size_t count;
 
         if (!IS_8BIT_ENCODING(vt_term_get_encoding(screen->term))) {
-#ifdef USE_WIN32GUI
-#ifndef UTF16_IME_CHAR
-          static ef_parser_t *key_parser;
+          static ef_parser_t *key_parser; /* XXX leaked */
 
           if (!key_parser) {
             key_parser = vt_char_encoding_parser_new(VT_ISO8859_1);
           }
 
           parser = key_parser;
-#else
-          /* parser has been already set for UTF16BE. */
-#endif /* UTF16_IME_CHAR */
-#else  /* USE_WIN32GUI */
-          /* xct's gl is US_ASCII and gr is ISO8859_1_R by default. */
-          parser = screen->xct_parser;
-#endif /* USE_WIN32GUI */
         }
 
-        for (count = 0; count < size; count++) {
 #if defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
-          /* UTF16BE */
-          count++;
-#endif
-
+        size /= 2;
+        for (count = 0; count < size; count++) {
+        /* UTF16BE => 8bit */
+          if (0x20 <= kstr[count*2 + 1] && kstr[count*2 + 1] <= 0x7e) {
+            kstr[count] = kstr[count*2] | 0x80;
+          }
+        }
+#else
+        for (count = 0; count < size; count++) {
           if (0x20 <= kstr[count] && kstr[count] <= 0x7e) {
             kstr[count] |= 0x80;
           }
         }
+#endif
       }
     }
 
@@ -2268,7 +2258,9 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
     }
 
     if (size > 0) {
-      if (parser && receive_string_via_ucs(screen)) {
+      ef_conv_t *utf_conv;
+
+      if (parser && receive_string_via_ucs(screen) && (utf_conv = ui_get_selection_conv(1))) {
         /* XIM Text -> UCS -> PTY ENCODING */
 
         u_char conv_buf[512];
@@ -2277,15 +2269,15 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
         (*parser->init)(parser);
         (*parser->set_str)(parser, kstr, size);
 
-        (*screen->utf_conv->init)(screen->utf_conv);
+        (*utf_conv->init)(utf_conv);
 
         while (!parser->is_eos) {
-          if ((filled_len = (*screen->utf_conv->convert)(screen->utf_conv, conv_buf,
-                                                         sizeof(conv_buf), parser)) == 0) {
+          if ((filled_len = (*utf_conv->convert)(utf_conv, conv_buf,
+                                                 sizeof(conv_buf), parser)) == 0) {
             break;
           }
 
-          write_to_pty(screen, conv_buf, filled_len, screen->utf_parser);
+          write_to_pty(screen, conv_buf, filled_len, ui_get_selection_parser(1));
         }
       } else {
         write_to_pty(screen, kstr, size, parser);
@@ -2302,6 +2294,7 @@ static void selection_cleared(ui_window_t *win) {
 
 static size_t convert_selection_to_xct(ui_screen_t *screen, u_char *str, size_t len) {
   size_t filled_len;
+  ef_conv_t *xct_conv;
 
 #ifdef __DEBUG
   {
@@ -2315,11 +2308,15 @@ static size_t convert_selection_to_xct(ui_screen_t *screen, u_char *str, size_t 
   }
 #endif
 
-  (*screen->vt_str_parser->init)(screen->vt_str_parser);
-  vt_str_parser_set_str(screen->vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
+  if (!(xct_conv = ui_get_selection_conv(0))) {
+    return 0;
+  }
 
-  (*screen->xct_conv->init)(screen->xct_conv);
-  filled_len = (*screen->xct_conv->convert)(screen->xct_conv, str, len, screen->vt_str_parser);
+  (*vt_str_parser->init)(vt_str_parser);
+  vt_str_parser_set_str(vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
+
+  (*xct_conv->init)(xct_conv);
+  filled_len = (*xct_conv->convert)(xct_conv, str, len, vt_str_parser);
 
 #ifdef __DEBUG
   {
@@ -2338,6 +2335,7 @@ static size_t convert_selection_to_xct(ui_screen_t *screen, u_char *str, size_t 
 
 static size_t convert_selection_to_utf(ui_screen_t *screen, u_char *str, size_t len) {
   size_t filled_len;
+  ef_conv_t *utf_conv;
 
 #ifdef __DEBUG
   {
@@ -2351,11 +2349,15 @@ static size_t convert_selection_to_utf(ui_screen_t *screen, u_char *str, size_t 
   }
 #endif
 
-  (*screen->vt_str_parser->init)(screen->vt_str_parser);
-  vt_str_parser_set_str(screen->vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
+  if (!(utf_conv = ui_get_selection_conv(1))) {
+    return 0;
+  }
 
-  (*screen->utf_conv->init)(screen->utf_conv);
-  filled_len = (*screen->utf_conv->convert)(screen->utf_conv, str, len, screen->vt_str_parser);
+  (*vt_str_parser->init)(vt_str_parser);
+  vt_str_parser_set_str(vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
+
+  (*utf_conv->init)(utf_conv);
+  filled_len = (*utf_conv->convert)(utf_conv, str, len, vt_str_parser);
 
 #ifdef __DEBUG
   {
@@ -2384,11 +2386,11 @@ static void xct_selection_requested(ui_window_t *win, XSelectionRequestEvent *ev
     size_t xct_len;
     size_t filled_len;
 
-    xct_len = screen->sel.sel_len * MLCHAR_XCT_MAX_SIZE;
+    xct_len = screen->sel.sel_len * VTCHAR_XCT_MAX_SIZE;
 
     /*
      * Don't use alloca() here because len can be too big value.
-     * (MLCHAR_XCT_MAX_SIZE defined in vt_char.h is 160 byte.)
+     * (VTCHAR_XCT_MAX_SIZE defined in vt_char.h is 160 byte.)
      */
     if ((xct_str = malloc(xct_len)) == NULL) {
       return;
@@ -2414,11 +2416,11 @@ static void utf_selection_requested(ui_window_t *win, XSelectionRequestEvent *ev
     size_t utf_len;
     size_t filled_len;
 
-    utf_len = screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE;
+    utf_len = screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE;
 
     /*
      * Don't use alloca() here because len can be too big value.
-     * (MLCHAR_UTF_MAX_SIZE defined in vt_char.h is 48 byte.)
+     * (VTCHAR_UTF_MAX_SIZE defined in vt_char.h is 48 byte.)
      */
     if ((utf_str = malloc(utf_len)) == NULL) {
       return;
@@ -2434,6 +2436,12 @@ static void utf_selection_requested(ui_window_t *win, XSelectionRequestEvent *ev
 
 static void xct_selection_notified(ui_window_t *win, u_char *str, size_t len) {
   ui_screen_t *screen;
+  ef_conv_t *utf_conv;
+  ef_parser_t *xct_parser;
+
+  if (!(xct_parser = ui_get_selection_parser(0))) {
+    return;
+  }
 
   len = trim_trailing_newline_in_pasting1(str, len);
 #ifdef NL_TO_CR_IN_PAST_TEXT
@@ -2450,11 +2458,11 @@ static void xct_selection_notified(ui_window_t *win, u_char *str, size_t len) {
     write_to_pty(screen, "\x1b[200~", 6, NULL);
   }
 
-/* utf_parser is utf16le in win32. */
-#ifndef USE_WIN32GUI
+#ifdef USE_XLIB
   /*
    * XXX
    * parsing UTF-8 sequence designated by ESC % G.
+   * It is on xlib alone that it might be received.
    */
   if (len > 3 && strncmp(str, "\x1b%G", 3) == 0) {
 #if 0
@@ -2464,32 +2472,32 @@ static void xct_selection_notified(ui_window_t *win, u_char *str, size_t len) {
     }
 #endif
 
-    write_to_pty(screen, str + 3, len - 3, screen->utf_parser);
+    write_to_pty(screen, str + 3, len - 3, ui_get_selection_parser(1));
   } else
 #endif
-      if (receive_string_via_ucs(screen)) {
+  if (receive_string_via_ucs(screen) && (utf_conv = ui_get_selection_conv(1))) {
     /* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
 
     u_char conv_buf[512];
     size_t filled_len;
 
-    (*screen->xct_parser->init)(screen->xct_parser);
-    (*screen->xct_parser->set_str)(screen->xct_parser, str, len);
+    (*xct_parser->init)(xct_parser);
+    (*xct_parser->set_str)(xct_parser, str, len);
 
-    (*screen->utf_conv->init)(screen->utf_conv);
+    (*utf_conv->init)(utf_conv);
 
-    while (!screen->xct_parser->is_eos) {
-      if ((filled_len = (*screen->utf_conv->convert)(screen->utf_conv, conv_buf, sizeof(conv_buf),
-                                                     screen->xct_parser)) == 0) {
+    while (!xct_parser->is_eos) {
+      if ((filled_len = (*utf_conv->convert)(utf_conv, conv_buf, sizeof(conv_buf),
+                                             xct_parser)) == 0) {
         break;
       }
 
-      write_to_pty(screen, conv_buf, filled_len, screen->utf_parser);
+      write_to_pty(screen, conv_buf, filled_len, ui_get_selection_parser(1));
     }
   } else {
     /* XCOMPOUND TEXT -> PTY ENCODING */
 
-    write_to_pty(screen, str, len, screen->xct_parser);
+    write_to_pty(screen, str, len, xct_parser);
   }
 
   if (vt_term_is_bracketed_paste_mode(screen->term)) {
@@ -2515,7 +2523,7 @@ static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len) {
     write_to_pty(screen, "\x1b[200~", 6, NULL);
   }
 
-  write_to_pty(screen, str, len, screen->utf_parser);
+  write_to_pty(screen, str, len, ui_get_selection_parser(1));
 
   if (vt_term_is_bracketed_paste_mode(screen->term)) {
     write_to_pty(screen, "\x1b[201~", 6, NULL);
@@ -5249,41 +5257,6 @@ static void xterm_request_locator(void *p) {
       button_state);
 }
 
-static void xterm_set_window_name(void *p, u_char *name) {
-  ui_screen_t *screen;
-
-  screen = p;
-
-#ifdef USE_WIN32GUI
-  if (name) {
-    u_char *buf;
-    size_t len;
-    ef_parser_t *parser;
-
-    /* 4 == UTF16 surrogate pair. */
-    if (!(buf = alloca((len = strlen(name)) * 4 + 2)) ||
-        !(parser = vt_char_encoding_parser_new(vt_term_get_encoding(screen->term)))) {
-      return;
-    }
-
-    if (len > 0) {
-      (*parser->init)(parser);
-      (*parser->set_str)(parser, name, len);
-
-      (*screen->utf_conv->init)(screen->utf_conv);
-      len = (*screen->utf_conv->convert)(screen->utf_conv, buf, len * 4, parser);
-      (*parser->delete)(parser);
-    }
-
-    buf[len] = '\0';
-    buf[len + 1] = '\0';
-    name = buf;
-  }
-#endif
-
-  ui_set_window_name(&screen->window, name);
-}
-
 static void xterm_bel(void *p) {
   ui_screen_t *screen;
 
@@ -5583,26 +5556,6 @@ static void pty_closed(void *p) {
 
 static void show_config(void *p, char *msg) { vt_term_show_message(((ui_screen_t *)p)->term, msg); }
 
-#ifdef USE_WIN32GUI
-static size_t utf16le_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
-                                   ef_char_t *ch) {
-  *is_full = 0;
-
-  if (ch->cs == DEC_SPECIAL) {
-    u_int16_t utf16;
-
-    if (dst_size < 2) {
-      *is_full = 1;
-    } else if ((utf16 = vt_convert_decsp_to_ucs(ef_char_to_int(ch)))) {
-      memcpy(dst, utf16, 2); /* little endian */
-      return 2;
-    }
-  }
-
-  return 0;
-}
-#endif
-
 /* --- global functions --- */
 
 void ui_exit_backscroll_by_pty(int flag) { exit_backscroll_by_pty = flag; }
@@ -5643,7 +5596,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            u_int screen_height_ratio, char *mod_meta_key,
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
-                           int use_vertical_cursor, int big5_buggy,
+                           int use_vertical_cursor,
                            int use_extended_scroll_shortcut, int borderless, int line_space,
                            char *input_method, int allow_osc52, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset,
@@ -5750,7 +5703,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.reverse_video = xterm_reverse_video;
   screen->xterm_listener.set_mouse_report = xterm_set_mouse_report;
   screen->xterm_listener.request_locator = xterm_request_locator;
-  screen->xterm_listener.set_window_name = xterm_set_window_name;
+  screen->xterm_listener.set_window_name = ui_set_window_name;
   screen->xterm_listener.set_icon_name = ui_set_icon_name;
   screen->xterm_listener.bel = xterm_bel;
   screen->xterm_listener.im_is_active = xterm_im_is_active;
@@ -5862,94 +5815,19 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut;
   screen->borderless = borderless;
   screen->font_or_color_config_updated = 0;
-
   screen->hide_underline = hide_underline;
-
   screen->prev_inline_pic = -1;
+  screen->receive_string_via_ucs = receive_string_via_ucs;
 
-/*
- * for receiving selection.
- */
-
-#ifdef USE_WIN32GUI
-  if ((screen->utf_parser = ef_utf16le_parser_new()) == NULL) {
-    goto error;
-  }
-
-  if ((screen->xct_parser = vt_char_encoding_parser_new(vt_get_char_encoding(bl_get_codeset_win32()))) == NULL) {
-    goto error;
-  }
-#else
-  if ((screen->utf_parser = vt_char_encoding_parser_new(VT_UTF8)) == NULL) {
-    goto error;
-  }
-
-#ifdef __ANDROID__
-  if ((screen->xct_parser = vt_char_encoding_parser_new(VT_UTF8)) == NULL)
-#else
-  if ((screen->xct_parser = ef_xct_parser_new()) == NULL)
-#endif
-  {
-    goto error;
-  }
-#endif
-
-  /*
-   * for sending selection
-   */
-
-  if ((screen->vt_str_parser = vt_str_parser_new()) == NULL) {
-    goto error;
-  }
-
-#ifdef USE_WIN32GUI
-  if ((screen->utf_conv = ef_utf16le_conv_new()) == NULL) {
-    goto error;
-  }
-  screen->utf_conv->illegal_char = utf16le_illegal_char;
-
-  if ((screen->xct_conv = vt_char_encoding_conv_new(vt_get_char_encoding(bl_get_codeset_win32()))) == NULL) {
-    goto error;
-  }
-#else
-  if ((screen->utf_conv = vt_char_encoding_conv_new(VT_UTF8)) == NULL) {
-    goto error;
-  }
-
-  if (big5_buggy) {
-    if ((screen->xct_conv = ef_xct_big5_buggy_conv_new()) == NULL) {
+  if (!vt_str_parser) {
+    if (!(vt_str_parser = vt_str_parser_new())) {
       goto error;
     }
-  } else if ((screen->xct_conv = ef_xct_conv_new()) == NULL) {
-    goto error;
   }
-#endif
-
-  screen->receive_string_via_ucs = receive_string_via_ucs;
 
   return screen;
 
 error:
-  if (screen->utf_parser) {
-    (*screen->utf_parser->delete)(screen->utf_parser);
-  }
-
-  if (screen->xct_parser) {
-    (*screen->xct_parser->delete)(screen->xct_parser);
-  }
-
-  if (screen->vt_str_parser) {
-    (*screen->vt_str_parser->delete)(screen->vt_str_parser);
-  }
-
-  if (screen->utf_conv) {
-    (*screen->utf_conv->delete)(screen->utf_conv);
-  }
-
-  if (screen->xct_conv) {
-    (*screen->xct_conv->delete)(screen->xct_conv);
-  }
-
   free(screen->pic_file_path);
   free(screen->mod_meta_key);
   free(screen->input_method);
@@ -5975,27 +5853,6 @@ int ui_screen_delete(ui_screen_t *screen) {
   }
 
   free(screen->mod_meta_key);
-
-  if (screen->utf_parser) {
-    (*screen->utf_parser->delete)(screen->utf_parser);
-  }
-
-  if (screen->xct_parser) {
-    (*screen->xct_parser->delete)(screen->xct_parser);
-  }
-
-  if (screen->vt_str_parser) {
-    (*screen->vt_str_parser->delete)(screen->vt_str_parser);
-  }
-
-  if (screen->utf_conv) {
-    (*screen->utf_conv->delete)(screen->utf_conv);
-  }
-
-  if (screen->xct_conv) {
-    (*screen->xct_conv->delete)(screen->xct_conv);
-  }
-
   free(screen->input_method);
 
   if (screen->im) {
@@ -6045,7 +5902,7 @@ int ui_screen_attach(ui_screen_t *screen, vt_term_t *term) {
    * if vt_term_(icon|window)_name() returns NULL, screen->window.app_name
    * will be used in ui_set_(icon|window)_name().
    */
-  xterm_set_window_name(&screen->window, vt_term_window_name(screen->term));
+  ui_set_window_name(&screen->window, vt_term_window_name(screen->term));
   ui_set_icon_name(&screen->window, vt_term_icon_name(screen->term));
 
   /* reset icon to screen->term's one */
@@ -6263,6 +6120,14 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
       /* arg is not NULL if cmd == "select_pty" */
       (*screen->system_listener->open_pty)(screen->system_listener->self, screen, arg);
     }
+  } else if (strcmp(cmd, "next_pty") == 0) {
+    if (HAS_SYSTEM_LISTENER(screen, next_pty)) {
+      (*screen->system_listener->next_pty)(screen->system_listener->self, screen);
+    }
+  } else if (strcmp(cmd, "prev_pty") == 0) {
+    if (HAS_SYSTEM_LISTENER(screen, prev_pty)) {
+      (*screen->system_listener->prev_pty)(screen->system_listener->self, screen);
+    }
   } else if (strcmp(cmd, "close_pty") == 0) {
     /*
      * close_pty is useful if pty doesn't react anymore and
@@ -6276,6 +6141,10 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
   } else if (strcmp(cmd, "open_screen") == 0) {
     if (HAS_SYSTEM_LISTENER(screen, open_screen)) {
       (*screen->system_listener->open_screen)(screen->system_listener->self, screen);
+    }
+  } else if (strcmp(cmd, "close_screen") == 0) {
+    if (HAS_SYSTEM_LISTENER(screen, close_screen)) {
+      (*screen->system_listener->close_screen)(screen->system_listener->self, screen, 0);
     }
   } else if (strcmp(cmd + 1, "split_screen") == 0) {
     if (HAS_SYSTEM_LISTENER(screen, split_screen)) {

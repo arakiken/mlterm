@@ -592,7 +592,7 @@ int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual) {
   }
 
   if (revert_visual) {
-    /* vt_screen_render( term->screen) ; */
+    /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
 
@@ -636,7 +636,7 @@ int vt_term_set_modified_region_in_screen(vt_term_t *term, int beg_char_index, i
   }
 
   if (revert_to_visual) {
-    /* vt_screen_render( term->screen) ; */
+    /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
 
@@ -666,7 +666,7 @@ int vt_term_set_modified_lines(vt_term_t *term, int beg, int end) {
   }
 
   if (revert_to_visual) {
-    /* vt_screen_render( term->screen) ; */
+    /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
 
@@ -695,7 +695,7 @@ int vt_term_set_modified_lines_in_screen(vt_term_t *term, int beg, int end) {
   }
 
   if (revert_to_visual) {
-    /* vt_screen_render( term->screen) ; */
+    /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
 
@@ -718,7 +718,7 @@ int vt_term_set_modified_all_lines_in_screen(vt_term_t *term) {
   vt_screen_set_modified_all(term->screen);
 
   if (revert_to_visual) {
-    /* vt_screen_render( term->screen) ; */
+    /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
 
@@ -748,7 +748,7 @@ int vt_term_updated_all(vt_term_t *term) {
   }
 
   if (!vt_screen_logical_visual_is_reversible(term->screen)) {
-    /* vt_screen_render( term->screen) ; */
+    /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
 

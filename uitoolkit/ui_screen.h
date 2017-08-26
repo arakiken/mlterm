@@ -4,7 +4,6 @@
 #define __UI_SCREEN_H__
 
 #include <stdio.h> /* FILE */
-#include <mef/ef_parser.h>
 #include <pobl/bl_types.h> /* u_int/int8_t/size_t */
 #include <vt_term.h>
 
@@ -110,13 +109,6 @@ typedef struct ui_screen {
   ui_system_event_listener_t *system_listener;
   ui_screen_scroll_event_listener_t *screen_scroll_listener;
 
-  ef_parser_t *xct_parser;
-  ef_parser_t *utf_parser; /* UTF8 in X, UTF16 in Win32. */
-
-  ef_parser_t *vt_str_parser;
-  ef_conv_t *utf_conv; /* UTF8 in X, UTF16 in Win32. */
-  ef_conv_t *xct_conv;
-
   int scroll_cache_rows;
   int scroll_cache_boundary_start;
   int scroll_cache_boundary_end;
@@ -169,7 +161,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            u_int screen_width_ratio, u_int screen_height_ratio, char *mod_meta_key,
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
-                           int use_vertical_cursor, int big5_buggy,
+                           int use_vertical_cursor,
                            int use_extended_scroll_shortcut, int borderless, int line_space,
                            char *input_method, int allow_osc52, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset,

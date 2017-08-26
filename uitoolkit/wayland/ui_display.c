@@ -1272,6 +1272,11 @@ static void data_source_send(void *data, struct wl_data_source *source, const ch
   }
 }
 
+#ifdef COMPAT_LIBVTE
+#include <glib.h>
+gint64 deadline_ignoring_source_cancelled_event;
+#endif
+
 static void data_source_cancelled(void *data, struct wl_data_source *source) {
   ui_display_t *disp = data;
   ui_wlserv_t *wlserv = disp->display->wlserv;
@@ -1280,9 +1285,18 @@ static void data_source_cancelled(void *data, struct wl_data_source *source) {
   bl_debug_printf("SOURCE CANCEL %p %p\n", source, wlserv->sel_source);
 #endif
 
-  if (source == wlserv->sel_source) {
-    ui_display_clear_selection(disp, disp->selection_owner);
+#ifdef COMPAT_LIBVTE
+  if (deadline_ignoring_source_cancelled_event != 0 &&
+      deadline_ignoring_source_cancelled_event > g_get_monotonic_time()) {
+  } else {
+    deadline_ignoring_source_cancelled_event = 0;
+#endif
+    if (source == wlserv->sel_source) {
+      ui_display_clear_selection(disp, disp->selection_owner);
+    }
+#ifdef COMPAT_LIBVTE
   }
+#endif
 }
 
 void data_source_dnd_drop_performed(void *data, struct wl_data_source *wl_data_source) {

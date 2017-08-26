@@ -10,6 +10,7 @@
 #include <pobl/bl_dialog.h>
 #include <mef/ef_codepoint_parser.h>
 #include <vt_char.h> /* UTF_MAX_SIZE */
+#include <vt_char_encoding.h>
 
 #if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include <pthread.h>
@@ -18,6 +19,7 @@
 #include "../ui_xic.h"
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
+#include "../ui_selection_encoding.h"
 #ifndef DISABLE_XDND
 #include "../ui_dnd.h"
 #endif
@@ -896,7 +898,7 @@ int ui_window_unset_wall_picture(ui_window_t *win, int do_expose) {
   }
 
   for (count = 0; count < win->num_of_children; count++) {
-    ui_window_set_wall_picture(win->children[count], ParentRelative, do_expose);
+    ui_window_unset_wall_picture(win->children[count], do_expose);
   }
 
   return 1;
@@ -2598,15 +2600,45 @@ int ui_set_window_name(ui_window_t *win, u_char *name) {
 
   if (name == NULL) {
     name = root->app_name;
+  }
+#ifdef UTF16_IME_CHAR
+  else {
+    u_char *buf;
+    size_t len;
+    vt_char_encoding_t encoding;
+    ef_conv_t *utf_conv;
+    ef_parser_t *parser;
+
+    /* See parse_title() in vt_parser.c */
+    encoding = vt_get_char_encoding("auto");
+
+    /* 4 == UTF16 surrogate pair. */
+    if (!(buf = alloca((len = strlen(name)) * 4 + 2)) ||
+        !(utf_conv = ui_get_selection_conv(1)) /* UTF16LE */ ||
+        !(parser = vt_char_encoding_parser_new(encoding))) {
+      return 0;
+    }
+
+    if (len > 0) {
+      (*parser->init)(parser);
+      (*parser->set_str)(parser, name, len);
+      (*utf_conv->init)(utf_conv);
+      len = (*utf_conv->convert)(utf_conv, buf, len * 4, parser);
+    }
+
+    (*parser->delete)(parser);
+
+    buf[len] = '\0';
+    buf[len + 1] = '\0';
+    name = buf;
+  }
+#endif
 
 #ifndef UTF16_IME_CHAR
-    SetWindowTextA(root->my_window, name);
-
-    return 1;
-#endif
-  }
-
+  SetWindowTextA(root->my_window, name);
+#else
   SetWindowTextW(root->my_window, name);
+#endif
 
   return 1;
 }
