@@ -89,7 +89,6 @@ typedef struct ui_main_config {
   int8_t use_mdi;
   int8_t use_login_shell;
   int8_t use_ctl;
-  int8_t big5_buggy;
   int8_t iso88591_font_for_usascii;
   int8_t receive_string_via_ucs;
   int8_t use_transbg;

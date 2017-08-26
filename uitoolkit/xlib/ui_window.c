@@ -17,6 +17,7 @@
 #include <pobl/bl_mem.h>    /* realloc/free */
 #include <pobl/bl_util.h>   /* K_MAX */
 #include <pobl/bl_unistd.h> /* bl_usleep */
+#include <pobl/bl_locale.h> /* bl_get_codeset() */
 
 #include "../ui_xic.h"
 #include "../ui_picture.h"
@@ -123,6 +124,17 @@ static struct {
 static size_t sel_bmp_size;
 
 /* --- static functions --- */
+
+static locale_is_utf8(void) {
+  char *p = bl_get_codeset();
+
+  if ((*(p++) & ~0x20) == 'U' && (*(p++) & ~0x20) == 'T' &&
+      (*(p++) & ~0x20) == 'F' && p[(*p == '-' || *p == '_')] == '8') {
+    return 1;
+  } else {
+    return 0;
+  }
+}
 
 static void urgent_bell(ui_window_t *win, int on) {
   if (use_urgent_bell && (!win->is_focused || !on)) {
@@ -3026,9 +3038,22 @@ int ui_set_window_name(ui_window_t *win, u_char *name) {
 
   if (XmbTextListToTextProperty(root->disp->display, (char **)&name, 1, XStdICCTextStyle, &prop) >=
       Success) {
-    XSetWMName(root->disp->display, root->my_window, &prop);
+    Atom atom;
 
+    XSetWMName(root->disp->display, root->my_window, &prop);
     XFree(prop.value);
+
+    if (locale_is_utf8() &&
+        (atom = XInternAtom(root->disp->display, "_NET_WM_NAME", True)) != None) {
+      XChangeProperty(root->disp->display, root->my_window, atom,
+                      XA_UTF8_STRING(root->disp->display), 8, PropModeReplace,
+                      name, strlen(name));
+    }
+#ifdef DEBUG
+    else {
+      bl_debug_printf("_NET_WM_NAME is not set.\n");
+    }
+#endif
   } else {
     /* XXX which is better , doing this or return 0 without doing anything ? */
     XStoreName(root->disp->display, root->my_window, name);
@@ -3049,9 +3074,22 @@ int ui_set_icon_name(ui_window_t *win, u_char *name) {
 
   if (XmbTextListToTextProperty(root->disp->display, (char **)&name, 1, XStdICCTextStyle, &prop) >=
       Success) {
-    XSetWMIconName(root->disp->display, root->my_window, &prop);
+    Atom atom;
 
+    XSetWMIconName(root->disp->display, root->my_window, &prop);
     XFree(prop.value);
+
+    if (locale_is_utf8() &&
+       (atom = XInternAtom(root->disp->display, "_NET_ICON_NAME", True)) != None) {
+      XChangeProperty(root->disp->display, root->my_window, atom,
+                      XA_UTF8_STRING(root->disp->display), 8, PropModeReplace,
+                      name, strlen(name));
+    }
+#ifdef DEBUG
+    else {
+      bl_debug_printf("_NET_ICON_NAME is not set.\n");
+    }
+#endif
   } else {
     /* XXX which is better , doing this or return 0 without doing anything ? */
     XSetIconName(root->disp->display, root->my_window, name);

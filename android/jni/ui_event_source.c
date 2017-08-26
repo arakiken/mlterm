@@ -329,11 +329,12 @@ void Java_mlterm_native_1activity_MLActivity_execCommand(JNIEnv *env, jobject th
   vt_term_t *term;
 
   if ((term = get_current_term()) && term->parser->config_listener) {
-    if (cmd == 4) {
+    if (cmd == 7) {
       connect_to_ssh_server = 1;
-    } else if (((u_int)cmd) <= 3) {
+    } else if (((u_int)cmd) <= 6) {
       char cmd_str4[] = "mlclientx --serv=";
-      char *cmd_str[4] = { "open_pty", "vsplit_screen", "hsplit_screen", cmd_str4 };
+      char *cmd_str[7] = { "open_pty", "vsplit_screen", "hsplit_screen", cmd_str4,
+                           "next_pty", "prev_pty", "close_screen" };
       pthread_mutex_lock(&mutex);
       /* config_listener->exec doesn't modify cmd string unless it contains space character. */
       (*term->parser->config_listener->exec)(term->parser->config_listener->self, cmd_str[cmd]);

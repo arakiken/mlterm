@@ -551,7 +551,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
            main_config.screen_width_ratio, main_config.screen_height_ratio,
            main_config.mod_meta_key, main_config.mod_meta_mode, main_config.bel_mode,
            main_config.receive_string_via_ucs, main_config.pic_file_path, main_config.use_transbg,
-           main_config.use_vertical_cursor, main_config.big5_buggy,
+           main_config.use_vertical_cursor,
            main_config.use_extended_scroll_shortcut, main_config.borderless, main_config.line_space,
            main_config.input_method, main_config.allow_osc52,
            main_config.hmargin, main_config.vmargin, main_config.hide_underline,

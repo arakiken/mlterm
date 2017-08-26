@@ -12,6 +12,7 @@
 #include <mef/ef_utf16_parser.h>
 
 #include <vt_char.h>
+#include <vt_char_encoding.h>
 
 #include "ui_display.h"
 #include "ui_font.h"
@@ -1368,13 +1369,70 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
 }
 
 int ui_set_window_name(ui_window_t *win, u_char *name) {
-  fprintf(win->disp->display->fp, "\x1b]2;%s\x07", name);
+  vt_char_encoding_t encoding;
+  ef_parser_t *parser;
+
+  if (name == NULL) {
+    name = win->app_name;
+  }
+
+  /* See parse_title() in vt_parser.c */
+  if ((encoding = vt_get_char_encoding("auto")) == VT_UTF8) {
+    fwrite("\x1b[>2t\x1b]2;", 1, 9, win->disp->display->fp);
+    fwrite(name, 1, strlen(name), win->disp->display->fp);
+    fwrite("\x07\x1b[>2T", 1, 6, win->disp->display->fp);
+  } else if ((parser = vt_char_encoding_parser_new(encoding))) {
+    u_char buf[64];
+    size_t len;
+
+    (*win->disp->display->conv->init)(win->disp->display->conv);
+    (*parser->init)(parser);
+    (*parser->set_str)(parser, name, strlen(name));
+
+    fwrite("\x1b]2;", 1, 4, win->disp->display->fp);
+    while ((len = (*win->disp->display->conv->convert)(win->disp->display->conv, buf,
+                                                       sizeof(buf), parser)) > 0) {
+      fwrite(buf, 1, len, win->disp->display->fp);
+    }
+    fwrite("\x07", 1, 1, win->disp->display->fp);
+
+    (*parser->delete)(parser);
+  } else {
+    return 0;
+  }
 
   return 1;
 }
 
 int ui_set_icon_name(ui_window_t *win, u_char *name) {
-  fprintf(win->disp->display->fp, "\x1b]1;%s\x07", name);
+  vt_char_encoding_t encoding;
+  ef_parser_t *parser;
+
+  if (name == NULL) {
+    name = win->app_name;
+  }
+
+  if ((encoding = vt_get_char_encoding("auto")) == VT_UTF8) {
+    fwrite("\x1b[>2t\x1b]1;", 1, 9, win->disp->display->fp);
+    fwrite(name, 1, strlen(name), win->disp->display->fp);
+    fwrite("\x07\x1b[>2T", 1, 6, win->disp->display->fp);
+  } else if ((parser = vt_char_encoding_parser_new(encoding))) {
+    u_char buf[64];
+    size_t len;
+
+    (*win->disp->display->conv->init)(win->disp->display->conv);
+    (*parser->init)(parser);
+    (*parser->set_str)(parser, name, strlen(name));
+
+    fwrite("\x1b]1;", 1, 4, win->disp->display->fp);
+    while ((len = (*win->disp->display->conv->convert)(win->disp->display->conv, buf,
+                                                       sizeof(buf), parser)) > 0) {
+      fwrite(buf, 1, len, win->disp->display->fp);
+    }
+    fwrite("\x07", 1, 1, win->disp->display->fp);
+
+    (*parser->delete)(parser);
+  }
 
   return 1;
 }

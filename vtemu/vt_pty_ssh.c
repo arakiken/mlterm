@@ -45,6 +45,14 @@ static void (*ssh_set_use_auto_reconnect)(int);
 static int is_tried;
 static bl_dl_handle_t handle;
 
+/*
+ * Not to load libptyssh.so until mlterm actually connects to a ssh server.
+ * "mlterm 4460 child_info_fork::abort: address space needed by 'cygcrypto-1.0.0.dll'
+ * (0x1660000) is already occupied" error may happen on startup without this.
+ */
+static u_int keepalive_interval_sec;
+static int auto_reconnect;
+
 /* --- static functions --- */
 
 static void load_library(void) {
@@ -70,6 +78,16 @@ static void load_library(void) {
   ssh_get_x11_fds = bl_dl_func_symbol(handle, "vt_pty_ssh_get_x11_fds");
   ssh_send_recv_x11 = bl_dl_func_symbol(handle, "vt_pty_ssh_send_recv_x11");
   ssh_set_use_auto_reconnect = bl_dl_func_symbol(handle, "vt_pty_ssh_set_use_auto_reconnect");
+
+  if (keepalive_interval_sec > 0) {
+    vt_pty_ssh_set_keepalive_interval(keepalive_interval_sec);
+    keepalive_interval_sec = 0;
+  }
+
+  if (auto_reconnect) {
+    vt_pty_ssh_set_use_auto_reconnect(1);
+    auto_reconnect = 0;
+  }
 }
 
 /* --- global functions --- */
@@ -121,10 +139,8 @@ void vt_pty_ssh_set_cipher_list(const char *list) {
 void vt_pty_ssh_set_keepalive_interval(u_int interval_sec) {
   /* This function can be called before vt_pty_ssh_new() */
   if (!is_tried) {
-    load_library();
-  }
-
-  if (ssh_set_keepalive_interval) {
+    keepalive_interval_sec = interval_sec;
+  } else if (ssh_set_keepalive_interval) {
     (*ssh_set_keepalive_interval)(interval_sec);
   }
 }
@@ -175,10 +191,8 @@ int vt_pty_ssh_send_recv_x11(int idx, int bidirection) {
 void vt_pty_ssh_set_use_auto_reconnect(int use) {
   /* This function can be called before vt_pty_ssh_new() */
   if (!is_tried) {
-    load_library();
-  }
-
-  if (ssh_set_use_auto_reconnect) {
+    auto_reconnect = use;
+  } else if (ssh_set_use_auto_reconnect) {
     (*ssh_set_use_auto_reconnect)(use);
   }
 }

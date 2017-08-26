@@ -478,18 +478,25 @@ vt_char_encoding_t vt_get_char_encoding(const char *name /* '_' and '-' are igno
 #endif
 
   if (strcasecmp(encoding, "auto") == 0) {
-#if defined(__CYGWIN__) || defined(__MSYS__) || defined(__ANDROID__) || defined(__APPLE__)
     /*
      * XXX
-     * UTF-8 is used by default in cygwin, msys, android and osx.
+     * UTF-8 is used by default in cygwin, msys, win32, android and osx.
      * (On osx, if mlterm.app is started from Finder,
-     * vt_get_char_encoding("auto")
-     * returns VT_ISO88591.)
+     * vt_get_char_encoding("auto") returns VT_ISO88591.)
+     * Note that vt_get_char_encoding("auto") is used to set character encoding
+     * of window/icon title string, not only to determine character encoding.
+     * (see vt_parser.c)
      */
-    return VT_UTF8;
-#else
-    return vt_get_char_encoding(bl_get_codeset());
+#if !defined(__CYGWIN__) && !defined(__MSYS__) && !defined(USE_WIN32API) && \
+  !defined(__ANDROID__) && !defined(__APPLE__)
+    vt_char_encoding_t e;
+
+    if ((e = vt_get_char_encoding(bl_get_codeset())) != VT_UNKNOWN_ENCODING) {
+      return e;
+    }
 #endif
+
+    return VT_UTF8;
   }
 
   for (count = 0; count < sizeof(encoding_table) / sizeof(encoding_table_t); count++) {

@@ -77,7 +77,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		vtemu/vt_edit_scroll.c vtemu/vt_cursor.c vtemu/vt_logical_visual.c \
 		vtemu/vt_logs.c vtemu/vt_screen.c vtemu/vt_shape.c vtemu/vt_str_parser.c \
 		vtemu/vt_term.c vtemu/vt_parser.c vtemu/vt_term_manager.c vtemu/vt_bidi.c \
-		vtemu/vt_config_menu.c vtemu/vt_config_proto.c \
+		vtemu/vt_config_menu.c vtemu/vt_config_proto.c vtemu/vt_util.c \
 		vtemu/vt_termcap.c vtemu/vt_pty.c vtemu/vt_pty_unix.c vtemu/vt_drcs.c \
 		libind/indian.c libind/lex.split.c vtemu/libctl/vt_iscii.c \
 		vtemu/libctl/vt_shape_iscii.c vtemu/libctl/vt_line_iscii.c \
@@ -96,6 +96,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		uitoolkit/ui_main_config.c uitoolkit/ui_selection.c \
 		uitoolkit/ui_layout.c uitoolkit/ui_simple_sb_view.c \
 		uitoolkit/ui_sb_view_factory.c uitoolkit/ui_scrollbar.c \
+		uitoolkit/fb/ui_selection_encoding.c \
 		main/daemon.c main/main_loop.c main/main.c
 LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) $(LIBSSH2_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB #-DBL_DEBUG -DDEBUG
 LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS) $(LIBSSH2_LDLIBS)

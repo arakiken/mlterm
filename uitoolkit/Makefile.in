@@ -22,7 +22,8 @@ OBJ1 = ui_screen_manager.o ui_event_source.o ui_display.o ui_window.o ui_screen.
 	ui_shortcut.o ui_bel_mode.o ui_sb_mode.o ui_mod_meta_mode.o ui_font_cache.o \
 	ui_draw_str.o ui_gc.o ui_color_cache.o ui_dnd.o ui_scrollbar.o ui_layout.o \
 	ui_sb_view_factory.o ui_simple_sb_view.o ui_imagelib.o ui_connect_dialog.o \
-	ui_type_engine.o ui_im.o ui_im_candidate_screen.o ui_brltty.o
+	ui_type_engine.o ui_im.o ui_im_candidate_screen.o ui_brltty.o \
+	ui_selection_encoding.o
 
 OBJ2_xlib = ui_decsp_font.o ui_xim.o ui_im_status_screen.o @TYPE_LOADER_OBJ@
 

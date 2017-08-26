@@ -14,6 +14,7 @@
 #include <vt_term_manager.h>
 #include "../ui_screen_manager.h"
 #include "../ui_layout.h"
+#include "../ui_selection_encoding.h"
 
 @interface MLTermView : NSView<NSTextInputClient> {
   ui_window_t *uiwindow;
@@ -274,7 +275,12 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
 
 static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
                             const char *cur_preedit_text) {
-  ef_parser_t *utf8_parser = ((ui_screen_t *)uiwindow)->utf_parser;
+  ef_parser_t *utf8_parser;
+
+  if (!(utf8_parser = ui_get_selection_parser(1))) {
+    return;
+  }
+
   (*utf8_parser->init)(utf8_parser);
 
   vt_term_t *term = ((ui_screen_t *)uiwindow)->term;
@@ -1461,6 +1467,11 @@ void window_get_position(NSWindow *window, int *x, int *y) {
   *x = window.frame.origin.x;
   *y = [[window screen] visibleFrame].size.height - window.frame.origin.y -
        [window.contentView frame].size.height;
+}
+
+void window_set_title(NSWindow *window, const char *title /* utf8 */) {
+  NSString *ns_title = [NSString stringWithCString:title encoding:NSUTF8StringEncoding];
+  [window setTitle:ns_title];
 }
 
 void app_urgent_bell(int on) {

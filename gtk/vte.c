@@ -30,6 +30,7 @@
 #include <ui_xic.h>
 #include <ui_main_config.h>
 #include <ui_imagelib.h>
+#include <ui_selection_encoding.h>
 #ifdef USE_BRLAPI
 #include <ui_brltty.h>
 #endif
@@ -102,6 +103,17 @@ int vte_reaper_add_child(GPid pid);
 
 #define STATIC_PARAMS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
 
+#if VTE_CHECK_VERSION(0, 46, 0)
+struct _VteRegex {
+  int ref_count;
+  GRegex *gregex;
+};
+
+G_DEFINE_BOXED_TYPE(VteRegex, vte_regex,
+                    vte_regex_ref, (GBoxedFreeFunc)vte_regex_unref)
+G_DEFINE_QUARK(vte-regex-error, vte_regex_error)
+#endif
+
 #define VTE_TERMINAL_CSS_NAME "vte-terminal"
 
 #if VTE_CHECK_VERSION(0, 40, 0)
@@ -142,9 +154,11 @@ struct _VteTerminalPrivate {
   u_int pix_height;
   ui_picture_modifier_t *pic_mod; /* caching previous pic_mod in update_wall_picture.*/
 
-/* GRegex was not supported */
 #if GLIB_CHECK_VERSION(2, 14, 0)
-  GRegex *regex;
+  GRegex *gregex;
+#if VTE_CHECK_VERSION(0, 46, 0)
+  VteRegex *vregex;
+#endif
 #endif
 
 #if VTE_CHECK_VERSION(0, 38, 0)
@@ -259,7 +273,6 @@ enum {
 };
 
 #if GTK_CHECK_VERSION(2, 90, 0)
-
 struct _VteTerminalClassPrivate {
   GtkStyleProvider *style_provider;
 };
@@ -267,11 +280,8 @@ struct _VteTerminalClassPrivate {
 G_DEFINE_TYPE_WITH_CODE(VteTerminal, vte_terminal, GTK_TYPE_WIDGET,
                         g_type_add_class_private(g_define_type_id, sizeof(VteTerminalClassPrivate));
                         G_IMPLEMENT_INTERFACE(GTK_TYPE_SCROLLABLE, NULL))
-
 #else
-
 G_DEFINE_TYPE(VteTerminal, vte_terminal, GTK_TYPE_WIDGET);
-
 #endif
 
 /* --- static variables --- */
@@ -283,6 +293,8 @@ static ui_display_t disp;
 #if VTE_CHECK_VERSION(0, 19, 0)
 static guint signals[LAST_SIGNAL];
 #endif
+
+static int (*orig_select_in_window)(void *, vt_char_t **, u_int *, int, int, int, int, int);
 
 #if defined(USE_XLIB)
 #include "vte_xlib.c"
@@ -308,6 +320,17 @@ static int error_handler(Display *display, XErrorEvent *event) {
 }
 #endif
 
+static int select_in_window(void *p, vt_char_t **chars, u_int *len, int beg_char_index, int beg_row,
+                            int end_char_index, int end_row, int is_rect) {
+  int ret = (*orig_select_in_window)(p, chars, len, beg_char_index, beg_row,
+                                     end_char_index, end_row, is_rect);
+#if VTE_CHECK_VERSION(0, 19, 0)
+  g_signal_emit(VTE_WIDGET((ui_screen_t*)p), signals[SIGNAL_SELECTION_CHANGED], 0);
+#endif
+
+  return ret;
+}
+
 static int selection(ui_selection_t *sel, int char_index_1, int row_1, int char_index_2,
                      int row_2) {
   ui_sel_clear(sel);
@@ -319,12 +342,11 @@ static int selection(ui_selection_t *sel, int char_index_1, int row_1, int char_
   return 1;
 }
 
-/* GRegex was not supported */
 #if GLIB_CHECK_VERSION(2, 14, 0)
-static int match(size_t *beg, size_t *len, void *regex, u_char *str, int backward) {
+static int match_gregex(size_t *beg, size_t *len, void *gregex, u_char *str, int backward) {
   GMatchInfo *info;
 
-  if (g_regex_match(regex, str, 0, &info)) {
+  if (g_regex_match(gregex, str, 0, &info)) {
     gchar *word;
     u_char *p;
 
@@ -350,18 +372,35 @@ static int match(size_t *beg, size_t *len, void *regex, u_char *str, int backwar
   return 0;
 }
 
+#if VTE_CHECK_VERSION(0, 46, 0)
+static int match_vteregex(size_t *beg, size_t *len, void *vregex, u_char *str, int backward) {
+  return match_gregex(beg, len, ((VteRegex*)vregex)->gregex, str, backward);
+}
+#endif
+
 static gboolean search_find(VteTerminal *terminal, int backward) {
   int beg_char_index;
   int beg_row;
   int end_char_index;
   int end_row;
+  void *regex;
 
   if (!GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
     return FALSE;
   }
 
+#if VTE_CHECK_VERSION(0, 46, 0)
+  regex = PVT(terminal)->gregex ? PVT(terminal)->gregex : PVT(terminal)->vregex;
+#else
+  regex = PVT(terminal)->gregex;
+#endif
+
+  if (!regex) {
+    return FALSE;
+  }
+
   if (vt_term_search_find(PVT(terminal)->term, &beg_char_index, &beg_row, &end_char_index, &end_row,
-                          PVT(terminal)->regex, backward)) {
+                          regex, backward)) {
     gdouble value;
 
     selection(&PVT(terminal)->screen->sel, beg_char_index, beg_row, end_char_index, end_row);
@@ -1139,7 +1178,7 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
       main_config.mod_meta_key,
       main_config.mod_meta_mode, main_config.bel_mode, main_config.receive_string_via_ucs,
       main_config.pic_file_path, main_config.use_transbg, main_config.use_vertical_cursor,
-      main_config.big5_buggy, main_config.use_extended_scroll_shortcut, main_config.borderless,
+      main_config.use_extended_scroll_shortcut, main_config.borderless,
       main_config.line_space, main_config.input_method, main_config.allow_osc52,
       hmargin, vmargin, main_config.hide_underline, main_config.underline_offset,
       main_config.baseline_offset);
@@ -1176,6 +1215,9 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
   PVT(terminal)->screen->xterm_listener.set_window_name = set_window_name;
   PVT(terminal)->set_icon_name = PVT(terminal)->screen->xterm_listener.set_icon_name;
   PVT(terminal)->screen->xterm_listener.set_icon_name = set_icon_name;
+
+  orig_select_in_window = PVT(terminal)->screen->sel_listener.select_in_window;
+  PVT(terminal)->screen->sel_listener.select_in_window = select_in_window;
 
   /* overriding */
   PVT(terminal)->screen->pty_listener.closed = pty_closed;
@@ -2309,9 +2351,11 @@ static void vte_terminal_init(VteTerminal *terminal) {
   PVT(terminal)->pix_height = 0;
   PVT(terminal)->pic_mod = NULL;
 
-/* GRegex was not supported */
 #if GLIB_CHECK_VERSION(2, 14, 0)
-  PVT(terminal)->regex = NULL;
+  PVT(terminal)->gregex = NULL;
+#if VTE_CHECK_VERSION(0, 46, 0)
+  PVT(terminal)->vregex = NULL;
+#endif
 #endif
 
   WINDOW_TITLE(terminal) = vt_term_window_name(PVT(terminal)->term);
@@ -2849,36 +2893,52 @@ void vte_terminal_feed_child_binary(VteTerminal *terminal,
 
 void vte_terminal_copy_clipboard(VteTerminal *terminal) {
   GtkClipboard *clipboard;
+  ef_conv_t *conv;
+  ef_parser_t *parser;
   u_char *buf;
   size_t len;
 
   if (!vte_terminal_get_has_selection(terminal) ||
-      !(clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))) {
+      !(conv = ui_get_selection_conv(1)) /* utf8 */ ||
+      !(parser = vt_str_parser_new())) {
     return;
   }
 
-  len = PVT(terminal)->screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE;
+  len = PVT(terminal)->screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE;
 
   /*
    * Don't use alloca() here because len can be too big value.
-   * (MLCHAR_UTF_MAX_SIZE defined in vt_char.h is 48 byte.)
+   * (VTCHAR_UTF_MAX_SIZE defined in vt_char.h is 48 byte.)
    */
-  if (!(buf = malloc(len))) {
-    return;
+  if ((buf = malloc(len))) {
+    (*parser->init)(parser);
+    vt_str_parser_set_str(parser, PVT(terminal)->screen->sel.sel_str,
+                          PVT(terminal)->screen->sel.sel_len);
+    (*conv->init)(conv);
+
+    len = (*conv->convert)(conv, buf, len, parser);
+
+    if (len > 0 && (clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))) {
+#ifdef USE_WAYLAND
+      extern gint64 deadline_ignoring_source_cancelled_event;
+      deadline_ignoring_source_cancelled_event = g_get_monotonic_time() + 1000000; /* microsecond */
+#endif
+
+      gtk_clipboard_set_text(clipboard, buf, len);
+      gtk_clipboard_store(clipboard);
+#if GTK_CHECK_VERSION(2, 6, 0)
+      /*
+       * XXX gnome-terminal 3.24.2 doesn't make "EditPaste" menuitem sensitive after
+       * clicking "EditCopy" menu item without invoking "owner-change" event explicitly.
+       */
+      g_signal_emit_by_name(clipboard, "owner-change");
+#endif
+    }
+
+    free(buf);
   }
 
-  (*PVT(terminal)->screen->vt_str_parser->init)(PVT(terminal)->screen->vt_str_parser);
-  vt_str_parser_set_str(PVT(terminal)->screen->vt_str_parser, PVT(terminal)->screen->sel.sel_str,
-                        PVT(terminal)->screen->sel.sel_len);
-  (*PVT(terminal)->screen->utf_conv->init)(PVT(terminal)->screen->utf_conv);
-
-  len = (*PVT(terminal)->screen->utf_conv->convert)(PVT(terminal)->screen->utf_conv, buf, len,
-                                                    PVT(terminal)->screen->vt_str_parser);
-
-  gtk_clipboard_set_text(clipboard, buf, len);
-  gtk_clipboard_store(clipboard);
-
-  free(buf);
+  (*parser->delete)(parser);
 }
 
 void vte_terminal_paste_clipboard(VteTerminal *terminal) {
@@ -3572,7 +3632,6 @@ void vte_terminal_get_cursor_position(VteTerminal *terminal, glong *column, glon
 
 void vte_terminal_match_clear_all(VteTerminal *terminal) {}
 
-/* GRegex was not supported */
 #if GLIB_CHECK_VERSION(2, 14, 0)
 int vte_terminal_match_add_gregex(VteTerminal *terminal, GRegex *regex, GRegexMatchFlags flags) {
   /* XXX */
@@ -3597,28 +3656,33 @@ void vte_terminal_match_set_cursor_name(VteTerminal *terminal, int tag, const ch
 void vte_terminal_match_remove(VteTerminal *terminal, int tag) {}
 
 char *vte_terminal_match_check(VteTerminal *terminal, glong column, glong row, int *tag) {
+  ef_conv_t *conv;
+  ef_parser_t *parser;
   u_char *buf;
   size_t len;
 
-  if (!vte_terminal_get_has_selection(terminal)) {
+  if (!vte_terminal_get_has_selection(terminal) ||
+      !(conv = ui_get_selection_conv(1)) /* utf8 */ ||
+      !(parser = vt_str_parser_new())) {
     return NULL;
   }
 
-  len = PVT(terminal)->screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE + 1;
-  if (!(buf = g_malloc(len))) {
-    return NULL;
+  len = PVT(terminal)->screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE + 1;
+  if ((buf = g_malloc(len))) {
+    (*parser->init)(parser);
+    vt_str_parser_set_str(parser, PVT(terminal)->screen->sel.sel_str,
+                          PVT(terminal)->screen->sel.sel_len);
+
+    (*conv->init)(conv);
+    *(buf + (*conv->convert)(conv, buf, len, parser)) = '\0';
+
+    /* XXX */
+    if (tag) {
+      *tag = 1; /* For pattern including "http" (see vte_terminal_match_add_gregex) */
+    }
   }
 
-  (*PVT(terminal)->screen->vt_str_parser->init)(PVT(terminal)->screen->vt_str_parser);
-  vt_str_parser_set_str(PVT(terminal)->screen->vt_str_parser, PVT(terminal)->screen->sel.sel_str,
-                        PVT(terminal)->screen->sel.sel_len);
-
-  (*PVT(terminal)->screen->utf_conv->init)(PVT(terminal)->screen->utf_conv);
-  *(buf + (*PVT(terminal)->screen->utf_conv->convert)(PVT(terminal)->screen->utf_conv, buf, len,
-                                                      PVT(terminal)->screen->vt_str_parser)) = '\0';
-
-  /* XXX */
-  *tag = 1; /* For pattern including "http" (see vte_terminal_match_add_gregex) */
+  (*parser->delete)(parser);
 
   return buf;
 }
@@ -3629,7 +3693,6 @@ char *vte_terminal_match_check_event(VteTerminal *terminal, GdkEvent *event, int
 }
 #endif
 
-/* GRegex was not supported */
 #if GLIB_CHECK_VERSION(2, 14, 0)
 void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex
 #if VTE_CHECK_VERSION(0, 38, 0)
@@ -3637,17 +3700,17 @@ void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex
 #endif
                                     ) {
   if (regex) {
-    if (!PVT(terminal)->regex) {
-      vt_term_search_init(PVT(terminal)->term, match);
+    if (!PVT(terminal)->gregex) {
+      vt_term_search_init(PVT(terminal)->term, match_gregex);
     }
   } else {
     vt_term_search_final(PVT(terminal)->term);
   }
 
-  PVT(terminal)->regex = regex;
+  PVT(terminal)->gregex = regex;
 }
 
-GRegex *vte_terminal_search_get_gregex(VteTerminal *terminal) { return PVT(terminal)->regex; }
+GRegex *vte_terminal_search_get_gregex(VteTerminal *terminal) { return PVT(terminal)->gregex; }
 
 gboolean vte_terminal_search_find_previous(VteTerminal *terminal) {
   return search_find(terminal, 1);
@@ -4273,14 +4336,6 @@ static void __attribute__((constructor)) init_vte(void) { gdk_disable_multidevic
 #endif
 
 #if VTE_CHECK_VERSION(0, 46, 0)
-struct _VteRegex {
-  int ref_count;
-};
-
-G_DEFINE_BOXED_TYPE(VteRegex, vte_regex,
-                    vte_regex_ref, (GBoxedFreeFunc)vte_regex_unref)
-G_DEFINE_QUARK(vte-regex-error, vte_regex_error)
-
 VteRegex *vte_regex_ref(VteRegex *regex) {
   g_return_val_if_fail(regex, NULL);
 
@@ -4293,6 +4348,7 @@ VteRegex *vte_regex_unref(VteRegex *regex) {
   g_return_val_if_fail(regex, NULL);
 
   if (g_atomic_int_dec_and_test(&regex->ref_count)) {
+    g_regex_unref(regex->gregex);
     g_slice_free(VteRegex, regex);
   }
 
@@ -4303,22 +4359,16 @@ VteRegex *vte_regex_new_for_match(const char *pattern, gssize pattern_length,
                                   guint32 flags, GError **error) {
   VteRegex *regex = g_slice_new(VteRegex);
   regex->ref_count = 1;
-
-  if (error) {
-    *error = NULL;
-  }
+  regex->gregex = g_regex_new(pattern, 0, 0, error);
 
   return regex;
 }
 
 VteRegex *vte_regex_new_for_search(const char *pattern, gssize pattern_length,
-                                   guint32     flags, GError **error) {
+                                   guint32 flags, GError **error) {
   VteRegex *regex = g_slice_new(VteRegex);
   regex->ref_count = 1;
-
-  if (error) {
-    *error = NULL;
-  }
+  regex->gregex = g_regex_new(pattern, 0, 0, error);
 
   return regex;
 }
@@ -4332,7 +4382,15 @@ gboolean vte_regex_jit(VteRegex *regex, guint32 flags, GError **error) {
 }
 
 int vte_terminal_match_add_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {
-  return 0;
+  /* XXX */
+
+  if (strstr(g_regex_get_pattern(regex->gregex), "http")) {
+    /* tag == 1 */
+    return 1;
+  } else {
+    /* tag == 0 */
+    return 0;
+  }
 }
 
 gboolean vte_terminal_event_check_regex_simple(VteTerminal *terminal, GdkEvent *event,
@@ -4341,9 +4399,23 @@ gboolean vte_terminal_event_check_regex_simple(VteTerminal *terminal, GdkEvent *
   return FALSE;
 }
 
-void vte_terminal_search_set_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {}
+void vte_terminal_search_set_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {
+  if (regex) {
+    if (!PVT(terminal)->vregex) {
+      vt_term_search_init(PVT(terminal)->term, match_vteregex);
+    }
+    vte_regex_ref(regex);
+  } else {
+    vt_term_search_final(PVT(terminal)->term);
+    if (PVT(terminal)->vregex) {
+      vte_regex_unref(PVT(terminal)->vregex);
+    }
+  }
 
-VteRegex *vte_terminal_search_get_regex(VteTerminal *terminal) { return NULL; }
+  PVT(terminal)->vregex = regex;
+}
+
+VteRegex *vte_terminal_search_get_regex(VteTerminal *terminal) { return PVT(terminal)->vregex; }
 #endif
 
 #if VTE_CHECK_VERSION(0, 50, 0)

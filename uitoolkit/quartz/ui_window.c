@@ -453,7 +453,7 @@ int ui_window_unset_wall_picture(ui_window_t *win, int do_expose) {
   }
 
   for (count = 0; count < win->num_of_children; count++) {
-    ui_window_set_wall_picture(win->children[count], ParentRelative, do_expose);
+    ui_window_unset_wall_picture(win->children[count], do_expose);
   }
 
   return 1;
@@ -1217,23 +1217,14 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
 }
 
 int ui_set_window_name(ui_window_t *win, u_char *name) {
-  ui_window_t *root;
+  ui_window_t *root = ui_get_root_window(win);
 
-  root = ui_get_root_window(win);
-
-#if 0
   if (name == NULL) {
     name = root->app_name;
-
-#ifndef UTF16_IME_CHAR
-    SetWindowTextA(root->my_window, name);
-
-    return 1;
-#endif
   }
 
-  SetWindowTextW(root->my_window, name);
-#endif
+  /* name is utf8 (see vt_parser.c) */
+  window_set_title(root->my_window, name);
 
   return 1;
 }

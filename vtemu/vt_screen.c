@@ -1415,7 +1415,7 @@ int vt_screen_search_find(vt_screen_t *screen,
     return 0;
   }
 
-  buf_len = vt_screen_get_logical_cols(screen) * MLCHAR_UTF_MAX_SIZE + 1;
+  buf_len = vt_screen_get_logical_cols(screen) * VTCHAR_UTF_MAX_SIZE + 1;
   if (!(buf = alloca(buf_len))) {
     return 0;
   }

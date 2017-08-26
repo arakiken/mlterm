@@ -8,7 +8,8 @@
 #include <pobl/bl_locale.h> /* bl_get_lang */
 #include <pobl/bl_args.h>
 
-#include "vt_term_manager.h"
+#include <vt_term_manager.h>
+#include "ui_selection_encoding.h"
 
 #if defined(__ANDROID__) || defined(USE_QUARTZ) || defined(USE_WIN32API)
 /* Shrink unused memory */
@@ -30,9 +31,7 @@ static vt_char_encoding_t get_encoding(const char *value,
     return encoding;
   }
 
-  if ((encoding = vt_get_char_encoding("auto")) == VT_UNKNOWN_ENCODING) {
-    encoding = VT_ISO8859_1;
-  }
+  encoding = vt_get_char_encoding("auto");
 
   if (is_auto_encoding) {
     *is_auto_encoding = 1;
@@ -684,9 +683,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
   }
 
   if ((value = bl_conf_get_value(conf, "big5_buggy"))) {
-    if (strcmp(value, "true") == 0) {
-      main_config->big5_buggy = 1;
-    }
+    ui_set_big5_selection_buggy(strcmp(value, "true") == 0);
   }
 
   main_config->use_mdi = 1;

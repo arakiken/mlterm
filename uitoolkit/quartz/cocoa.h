@@ -61,6 +61,8 @@ void window_set_normal_hints(void *window, u_int width_inc, u_int height_inc);
 
 void window_get_position(void *window, int *x, int *y);
 
+void window_set_title(void *window, const char *title);
+
 /* for NSApp */
 void app_urgent_bell(int on);
 

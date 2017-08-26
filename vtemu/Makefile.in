@@ -28,7 +28,7 @@ OBJ = vt_char_encoding.o vt_color.o vt_edit.o vt_edit_util.o vt_edit_scroll.o \
 	vt_cursor.o vt_logical_visual.o vt_logs.o vt_screen.o vt_shape.o \
 	vt_str_parser.o vt_term.o vt_parser.o vt_term_manager.o \
 	vt_bidi.o vt_iscii.o vt_config_menu.o vt_config_proto.o vt_drcs.o \
-	vt_pty.o vt_termcap.o vt_line_shape.o cygfile.o @VT_PTY_OBJ@
+	vt_pty.o vt_termcap.o vt_line_shape.o vt_util.o cygfile.o @VT_PTY_OBJ@
 
 LIBNAME = libmlterm
 
