@@ -1668,7 +1668,6 @@ static int reconnect(vt_pty_ssh_t *pty) {
   }
 
   orig_pty = *pty;
-  memset(pty, 0, sizeof(*pty));
   pty->session = session;
   if (!open_channel(pty, session->stored->cmd_path, session->stored->argv, session->stored->env,
                     session->stored->cols, session->stored->rows, session->stored->width_pix,
@@ -1677,9 +1676,7 @@ static int reconnect(vt_pty_ssh_t *pty) {
     return 0;
   }
 
-  /* XXX See vt_pty_delete() */
-  free(orig_pty.pty.buf);
-  free(orig_pty.pty.cmd_line);
+  free(orig_pty.pty.cmd_line); /* newly allocated in open_channel() */
   final(&orig_pty.pty);
 
   return 1;
