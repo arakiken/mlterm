@@ -1848,6 +1848,17 @@ static void save_data_for_reconnect(ssh_session_t *session, const char *cmd_path
   }
 }
 
+static char *get_user_name(void) {
+  char *user;
+
+  /* USER/LOGNAME: unix , USERNAME: win32 */
+  if (!(user = getenv("USER")) && !(user = getenv("USERNAME"))) {
+    user = getenv("LOGNAME");
+  }
+
+  return user;
+}
+
 /* --- global functions --- */
 
 /*
@@ -1869,8 +1880,7 @@ vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
     return NULL;
   }
 
-  /* USER: unix , USERNAME: win32 */
-  if (!user && !(user = getenv("USER")) && !(user = getenv("USERNAME"))) {
+  if (!user && !(user = get_user_name())) {
     return NULL;
   }
 
@@ -1903,8 +1913,7 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
                             ) {
   int count;
 
-  /* USER: unix , USERNAME: win32 */
-  if (!user && !(user = getenv("USER")) && !(user = getenv("USERNAME"))) {
+  if (!user && !(user = get_user_name())) {
     return NULL;
   }
 

@@ -1020,7 +1020,8 @@ static int create_handle(IIIMCF_attr attr) {
   if (iiimcf_create_handle(attr, &handle) != IIIMF_STATUS_SUCCESS) {
     const char *user;
 
-    if (env == NULL && (user = getenv("USER")) && (env = alloca(12 + strlen(user) + 5 + 1))) {
+    if (env == NULL && ((user = getenv("USER")) || (user = getenv("LOGNAME"))) &&
+        (env = alloca(12 + strlen(user) + 5 + 1))) {
       DIR *dir;
 
       sprintf(env, "/tmp/.iiim-%s/", user);
