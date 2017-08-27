@@ -1,3 +1,9 @@
+2017-08-28  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_ssh.c, vt_pty_pipewin32.c, im_iiimf.c:
+	  Not only "USER" but also "LOGNAME" environmental variable is used.
+	  ("USER" is not set on Solaris 11)
+
 2017-08-27  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_ssh.c: Data in vt_pty_ssh_t is kept after reconnection.
