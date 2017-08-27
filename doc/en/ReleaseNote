@@ -22,6 +22,7 @@
   Fix disappearance of the cursor if built with --enable-vt52 option.
   Fix a bug which shows wrong window title in a splited screen.
   Fix faulty drawing a wall picture in closing one of splitted screens.
+  Fix segfault when mlterm exits after having reconnected to ssh server automatically.
 
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)

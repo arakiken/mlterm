@@ -1,3 +1,7 @@
+2017-08-27  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_ssh.c: Data in vt_pty_ssh_t is kept after reconnection.
+
 2017-08-26  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
