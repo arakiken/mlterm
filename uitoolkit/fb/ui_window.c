@@ -1232,6 +1232,15 @@ int ui_window_map(ui_window_t *win) {
 int ui_window_unmap(ui_window_t *win) {
   win->is_mapped = 0;
 
+  /*
+   * XXX
+   * If scrollbar_mode=autohide and win->x/win->y aren't set to -1, showing hidden
+   * scrollbar at the second time doesn't redraw scrollbar window because
+   * the position and size of scrollbar aren't changed.
+   */
+  win->x = -1;
+  win->y = -1;
+
   return 1;
 }
 

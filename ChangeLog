@@ -1,3 +1,17 @@
+2017-09-01  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: focus_gtk_window(win, time) is not called if
+	  ev.type is ButtonRelease.
+
+	* wayland/ui_window.c: win->x and win->y are set to -1 in ui_window_unmap()
+	  to show scrollbars correctly on autohide scrollbar mode.
+
+	* vte_wayland.c:
+	  - wl_surface_set_user_data(wl_surface, GdkWindow) is called in
+	    show_root() in order to make gdk to process events on mlterm surface
+	    as those on GdkWindow.
+	  - GdkCursor is set by gdk_window_set_cursor().
+
 2017-08-28  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_ssh.c, vt_pty_pipewin32.c, im_iiimf.c:

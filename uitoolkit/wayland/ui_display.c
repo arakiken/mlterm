@@ -761,7 +761,9 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
     ui_window_receive_event(win, &ev);
 
 #ifdef COMPAT_LIBVTE
-    focus_gtk_window(win, time);
+    if (ev.type == ButtonPress) {
+      focus_gtk_window(win, time);
+    }
 #endif
   }
 }
