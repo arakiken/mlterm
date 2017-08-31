@@ -138,7 +138,7 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
                   "input method (xim/kbd/uim/m17nlib/scim/ibus/fcitx/canna/wnn/skk/iiimf/none) [xim]");
   bl_conf_add_opt(conf, 'N', "name", 0, "app_name", "application name");
   bl_conf_add_opt(conf, 'O', "sbmod", 0, "scrollbar_mode",
-                  "scrollbar mode (none/left/right) [none]");
+                  "scrollbar mode (none/left/right/autohide) [none]");
   bl_conf_add_opt(conf, 'P', "clip", 1, "use_clipboard",
                   "use CLIPBOARD (not only PRIMARY) selection [true]");
   bl_conf_add_opt(conf, 'Q', "vcur", 1, "use_vertical_cursor",

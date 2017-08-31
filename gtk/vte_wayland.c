@@ -18,6 +18,7 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
   GdkWindow *window = gtk_widget_get_window(widget);
   ui_window_t *win = &PVT(VTE_TERMINAL(widget))->screen->window;
   const char *class;
+  static GdkCursor *cursor;
 
   /*
    * Don't call gdk_wayland_window_set_use_custom_surface(), which disables VteTerminal
@@ -37,6 +38,24 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
 
   /* Internally calls create_shm_buffer() and *set_listener */
   ui_display_show_root(disp, win, 0, 0, 0, class, gdk_wayland_window_get_wl_surface(window));
+
+  /*
+   * XXX
+   * pointer_handle_enter() in gdk/gdkdevice-wayland.c uses wl_surface_get_user_data(surface)
+   * for GdkWaylandSeat::pointer_info::focus which is used in
+   * gdk_wayland_device_window_at_position() which is called from
+   * gdk_device_get_window_at_position() in gdk_wayland_window_map()
+   * when you want to show popup menu by clicking right button.
+   * Then, pointer_handle_button() in gdkdevice-wayland.c works.
+   */
+  wl_surface_set_user_data(win->disp->display->surface, window);
+
+  if (cursor == NULL) {
+    cursor = gdk_cursor_new_for_display(gdk_window_get_display(window), GDK_XTERM);
+  }
+
+  /* wl_surface_set_user_data() above disables cursor settings in wayland/ui_display.c */
+  gdk_window_set_cursor(window, cursor);
 }
 
 static void vte_terminal_map(GtkWidget *widget) {
