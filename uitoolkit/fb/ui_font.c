@@ -646,7 +646,8 @@ static int load_glyph(FT_Face face, int32_t format, u_int32_t code, int is_aa) {
   return 1;
 }
 
-static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, int is_aa) {
+static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, int is_aa,
+                   u_int force_height) {
   u_int count;
   FT_Face face;
   u_int fontsize;
@@ -721,8 +722,12 @@ face_found:
     xfont->width = face->glyph->bitmap.width;
   }
 
-  xfont->height = (face->max_advance_height * face->size->metrics.y_ppem + face->units_per_EM - 1) /
-                  face->units_per_EM;
+  if (force_height) {
+    xfont->height = force_height;
+  } else {
+    xfont->height = (face->max_advance_height * face->size->metrics.y_ppem +
+                     face->units_per_EM - 1) / face->units_per_EM;
+  }
 #ifdef __DEBUG
   bl_debug_printf("maxh %d ppem %d units %d => h %d\n",
                   face->max_advance_height, face->size->metrics.y_ppem,
@@ -993,7 +998,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
 static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,
                       u_int bytes_per_pixel, ef_charset_t cs, int noaa) {
   if (!is_pcf(file_path)) {
-    return load_ft(xfont, file_path, format, (bytes_per_pixel > 1) && !noaa);
+    return load_ft(xfont, file_path, format, (bytes_per_pixel > 1) && !noaa, 0);
   } else {
     return load_pcf(xfont, file_path);
   }
@@ -1412,7 +1417,15 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
         if (!(compl = get_cached_xfont(fc_files[count], xfont->format))) {
           if (!(compl = calloc(1, sizeof(XFontStruct)))) {
             continue;
-          } else if (!load_ft(compl, fc_files[count], xfont->format, xfont->is_aa)) {
+          }
+          /*
+           * XXX
+           * If xfont->height is 17 and compl->height is 15, garbage is left in drawing glyphs
+           * by compl.
+           * force_height (xfont->height) forcibly changes the height of the font from natural one
+           * to the same one as xfont->height.
+           */
+          else if (!load_ft(compl, fc_files[count], xfont->format, xfont->is_aa, xfont->height)) {
             free(compl);
             continue;
           }

@@ -1,3 +1,8 @@
+2017-09-02  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_font.c: The height of compl font is forcibly changed to the same
+	  one as base font.
+
 2017-09-01  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: focus_gtk_window(win, time) is not called if
