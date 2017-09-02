@@ -1,5 +1,9 @@
 2017-09-02  Araki Ken  <arakiken@users.sf.net>
 
+	* Makefile.in: vte, install-vte and clean-vte targets are added.
+
+2017-09-02  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui_font.c: The height of compl font is forcibly changed to the same
 	  one as base font.
 

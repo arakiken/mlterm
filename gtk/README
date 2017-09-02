@@ -11,29 +11,29 @@ How to build & install libvte compatible library using mlterm engine.
 * Build
   $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper \
     --with-gtk=2.0 ...)
-    (Xft and cairo are not required, but strongly recommended because it is
-    impossible to change font settings from preferences menu without them.
-    In addition, you should choose what gtk+ and pango installed to your
-    system depend on such as gdk-pixbuf.
-    If you want to use gnome-pty-helper, specify --enable-pty-helper option and
-    place gnome-pty-helper (or its symbolic link file) at ${libexecdir}/mlterm/.
-    If libvte on your system depends on gtk+-2.x, specify --with-gtk=2.0 option)
+    - Xft and cairo are not required, but strongly recommended because it is
+     impossible to change font settings from preferences menu without them.
+     In addition, you should choose what gtk+ and pango installed to your
+     system depend on such as gdk-pixbuf.
+    - If you want to use gnome-pty-helper, specify --enable-pty-helper option and
+     place gnome-pty-helper (or its symbolic link file) at ${libexecdir}/mlterm/.
+    - If libvte on your system depends on gtk+-2.x, specify --with-gtk=2.0 option.
+      (libvte.so.9 => gtk+-2.x, libvte2_90.so.9 and libvte-2.91.so.9 => gtk+-3.0)
   $ make
-    (You can change VTE ABI version by 'make VTE_ABI=(|2.90|2.91)')
-  $ cd gtk ; make
+  $ make vte (== "cd gtk ; make")
 
 * Install (Replace official libvte)
   $ cd baselib ; make install
   $ cd encodefilter ; make install
-  $ cd gtk ; make (VTE_ABI=(|2.90|2.91)) install
+  $ make install-vte (== "cd gtk ; make install")
   $ ln -sf [where libvte of mlterm is installed]/libvte.so.9 \
            [where official libvte is installed]/libvte.so.9
     or
     ln -sf [where libvte of mlterm is installed]/libvte2_90.so.9 \
            [where official libvte is installed]/libvte2_90.so.9
     or
-    ln -sf [where libvte of mlterm is installed]/libvte2_91.so.9 \
-           [where official libvte is installed]/libvte2_91.so.9
+    ln -sf [where libvte of mlterm is installed]/libvte-2.91.so.9 \
+           [where official libvte is installed]/libvte-2.91.so.9
 
 * Start terminal emulators using libvte
   $ gnome-terminal (roxterm, synaptic or etc)

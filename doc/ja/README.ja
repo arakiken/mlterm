@@ -601,6 +601,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o use_ot_layout (true/*false*)
         Open Type フォントの置換グリフ等を使ってテキストを表示します。
         use_ctl オプションを有効にしておく必要があります。
+        なお、use_ot_layout=true の場合、cairo on xlib 及び freetype+fontconfig on
+        framebuffer/wayland における代替グリフ検索による自動フォント補完機能は無効
+        となります。
 
       o ot_script (latn)
         グリフ置換を行う場合の script を指定します。
