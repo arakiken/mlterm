@@ -921,9 +921,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     bl_msg_printf(">>ksym            : %.8x\n", ksym);
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
-  uim->pressing_mod_key = ~0;
-#else
+#ifdef USE_XLIB
   if (!(event->state & uim->mod_ignore_mask)) {
     uim->pressing_mod_key = 0;
   }
@@ -956,6 +954,8 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     default:
       break;
   }
+#else
+  uim->pressing_mod_key = ~0;
 #endif
 
   (*uim->im.listener->compare_key_state_with_modmap)(uim->im.listener->self, event->state,
