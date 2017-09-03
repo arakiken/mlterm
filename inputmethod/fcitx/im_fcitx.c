@@ -278,6 +278,8 @@ static void unfocused(ui_im_t *im) {
 
 static void connected(FcitxClient *client, void *data) {
   im_fcitx_t *fcitx;
+  int x;
+  int y;
 
   fcitx = data;
 
@@ -289,6 +291,20 @@ static void connected(FcitxClient *client, void *data) {
 #endif
                             );
   fcitx_client_focus_in(client);
+
+#if 1
+  /*
+   * XXX
+   * To show initial status window (e.g. "Mozc") at the correct position.
+   * Should be moved to enable_im() but "enable-im" event doesn't work. (fcitx 4.2.9.1)
+   */
+  if ((*fcitx->im.listener->get_spot)(fcitx->im.listener->self, NULL, 0, &x, &y)) {
+    u_int line_height;
+
+    line_height = (*fcitx->im.listener->get_line_height)(fcitx->im.listener->self);
+    fcitx_client_set_cursor_rect(fcitx->client, x, y - line_height, 0, line_height);
+  }
+#endif
 }
 
 static void disconnected(FcitxClient *client, void *data) {

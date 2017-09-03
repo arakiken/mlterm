@@ -103,6 +103,214 @@ static void show_available_ims(void) {
 }
 #endif
 
+#ifndef USE_XLIB
+#undef XKeysymToString
+static char *XKeysymToString(KeySym ksym) {
+  /* Latin 1 */
+  if (0x20 <= ksym && ksym <= 0x7e) {
+    static char str[2];
+    str[0] = ksym;
+    str[1] = '\0';
+
+    return str;
+  }
+
+  switch (ksym) {
+    /* TTY Functions */
+    case XK_BackSpace:
+      return "Backspace";
+    case XK_Tab:
+      return "Tab";
+    case XK_Return:
+      return "Return";
+    case XK_Escape:
+      return "Escape";
+    case XK_Delete:
+      return "Delete";
+#ifdef XK_Multi_key
+    /* International & multi-key character composition */
+    case XK_Multi_key:
+      return "Multi_key";
+#endif
+    /* Japanese keyboard support */
+    case XK_Muhenkan:
+      return "Muhenkan";
+    case XK_Henkan_Mode:
+      return "Henkan_Mode";
+    case XK_Zenkaku_Hankaku:
+      return "Zenkaku_Hankaku";
+    case XK_Hiragana_Katakana:
+      return "Hiragana_Katakana";
+    /* Cursor control & motion */
+    case XK_Home:
+      return "Home";
+    case XK_Left:
+      return "Left";
+    case XK_Up:
+      return "Up";
+    case XK_Right:
+      return "Right";
+    case XK_Down:
+      return "Down";
+    case XK_Prior:
+      return "Prior";
+    case XK_Next:
+      return "Next";
+    case XK_End:
+      return "End";
+    case XK_F1:
+      return "F1";
+    case XK_F2:
+      return "F2";
+    case XK_F3:
+      return "F3";
+    case XK_F4:
+      return "F4";
+    case XK_F5:
+      return "F5";
+    case XK_F6:
+      return "F6";
+    case XK_F7:
+      return "F7";
+    case XK_F8:
+      return "F8";
+    case XK_F9:
+      return "F9";
+    case XK_F10:
+      return "F10";
+    case XK_F11:
+      return "F11";
+    case XK_F12:
+      return "F12";
+    case XK_F13:
+      return "F13";
+    case XK_F14:
+      return "F14";
+    case XK_F15:
+      return "F15";
+    case XK_F16:
+      return "F16";
+    case XK_F17:
+      return "F17";
+    case XK_F18:
+      return "F18";
+    case XK_F19:
+      return "F19";
+    case XK_F20:
+      return "F20";
+    case XK_F21:
+      return "F21";
+    case XK_F22:
+      return "F22";
+    case XK_F23:
+      return "F23";
+    case XK_F24:
+      return "F24";
+#ifdef XK_F25
+    case XK_F25:
+      return "F25";
+    case XK_F26:
+      return "F26";
+    case XK_F27:
+      return "F27";
+    case XK_F28:
+      return "F28";
+    case XK_F29:
+      return "F29";
+    case XK_F30:
+      return "F30";
+    case XK_F31:
+      return "F31";
+    case XK_F32:
+      return "F32";
+    case XK_F33:
+      return "F33";
+    case XK_F34:
+      return "F34";
+    case XK_F35:
+      return "F35";
+#endif
+#ifdef XK_KP_Space
+    case XK_KP_Space:
+      return ' ';
+#endif
+#ifdef XK_KP_Tab
+    case XK_KP_Tab:
+      return "Tab";
+#endif
+#ifdef XK_KP_Enter
+    case XK_KP_Enter:
+      return "Return";
+#endif
+    case XK_KP_F1:
+      return "F1";
+    case XK_KP_F2:
+      return "F2";
+    case XK_KP_F3:
+      return "F3";
+    case XK_KP_F4:
+      return "F4";
+    case XK_KP_Home:
+      return "Home";
+    case XK_KP_Left:
+      return "Left";
+    case XK_KP_Up:
+      return "Up";
+    case XK_KP_Right:
+      return "Right";
+    case XK_KP_Down:
+      return "Down";
+    case XK_KP_Prior:
+      return "Prior";
+    case XK_KP_Next:
+      return "Next";
+    case XK_KP_End:
+      return "End";
+    case XK_KP_Delete:
+      return "Delete";
+#ifdef XK_KP_Equal
+    case XK_KP_Equal:
+      return "=";
+#endif
+    case XK_KP_Multiply:
+      return "*";
+    case XK_KP_Add:
+      return "+";
+    case XK_KP_Separator:
+      return ",";
+    case XK_KP_Subtract:
+      return "-";
+    case XK_KP_Decimal:
+      return ".";
+    case XK_KP_Divide:
+      return "/";
+    /* keypad numbers */
+    case XK_KP_0:
+      return "0";
+    case XK_KP_1:
+      return "1";
+    case XK_KP_2:
+      return "2";
+    case XK_KP_3:
+      return "3";
+    case XK_KP_4:
+      return "4";
+    case XK_KP_5:
+      return "5";
+    case XK_KP_6:
+      return "6";
+    case XK_KP_7:
+      return "7";
+    case XK_KP_8:
+      return "8";
+    case XK_KP_9:
+      return "9";
+    default:
+      return NULL;
+  }
+}
+#endif
+
 static MSymbol xksym_to_msymbol(im_m17nlib_t *m17nlib, KeySym ksym, u_int state) {
   char mod[13] = "";
   char *key;
@@ -139,9 +347,6 @@ static MSymbol xksym_to_msymbol(im_m17nlib_t *m17nlib, KeySym ksym, u_int state)
     return msymbol(buf);
   }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
-  return Mnil;
-#else
   if (is_shift) filled_len += bl_snprintf(&mod[filled_len], sizeof(mod) - filled_len, "S-");
   if (is_ctl) filled_len += bl_snprintf(&mod[filled_len], sizeof(mod) - filled_len, "C-");
   if (is_alt) filled_len += bl_snprintf(&mod[filled_len], sizeof(mod) - filled_len, "A-");
@@ -166,7 +371,6 @@ static MSymbol xksym_to_msymbol(im_m17nlib_t *m17nlib, KeySym ksym, u_int state)
   bl_snprintf(str, len, "%s%s", mod, key);
 
   return msymbol(str);
-#endif
 }
 
 static MInputMethod *find_input_method(char *param) {
