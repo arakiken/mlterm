@@ -380,10 +380,10 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
   ui_wlserv_t *wlserv = data;
   ui_window_t *win;
 
-  wlserv->current_kbd_surface = surface;
-
 #ifdef COMPAT_LIBVTE
   if (!disp || disp->num_of_roots == 0) {
+    wlserv->current_kbd_surface = surface;
+
     return;
   }
 #endif
@@ -393,6 +393,8 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
     disp = disp->display->parent;
     surface = disp->display->surface;
   }
+
+  wlserv->current_kbd_surface = surface;
 
 #ifdef __DEBUG
   bl_debug_printf("KBD ENTER %p\n", surface);
@@ -423,16 +425,39 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
   wlserv->prev_kev.type = 0;
 #endif
 
+#ifdef COMPAT_LIBVTE
+  if (!disp || disp->num_of_roots == 0) {
+    return;
+  }
+#endif
+
   if (wlserv->current_kbd_surface == surface) {
+    u_int count;
+
+    for (count = 0; count < num_of_displays; count++) {
+      if (displays[count]->display->parent == disp) {
+        /*
+         * Don't send FocusOut event to the surface which has an input method surface
+         * as transient one, because the surface might receive this event by creating
+         * and showing the input method surface.
+         * As a secondary effect, the surface can't receive FocusOut event as long as
+         * the input method surface is active.
+         */
+        return;
+      }
+    }
+
     wlserv->current_kbd_surface = NULL;
   }
 
   /* surface may have been already destroyed. So null check of disp is necessary. */
-  if (disp && (win = search_focused_window(disp->roots[0]))) {
+  if (disp && !disp->display->parent /* not input method window */ &&
+      (win = search_focused_window(disp->roots[0]))) {
+    XEvent ev;
+
 #ifdef __DEBUG
     bl_debug_printf("UNFOCUSED %p\n", win);
 #endif
-    XEvent ev;
     ev.type = FocusOut;
     ui_window_receive_event(ui_get_root_window(win), &ev);
   }
@@ -761,7 +786,7 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
     ui_window_receive_event(win, &ev);
 
 #ifdef COMPAT_LIBVTE
-    if (ev.type == ButtonPress) {
+    if (ev.type == ButtonPress && disp->display->parent == NULL /* Not input method */) {
       focus_gtk_window(win, time);
     }
 #endif
@@ -1543,6 +1568,15 @@ static void damage_buffer(Display *display, int x, int y, u_int width, u_int hei
 static int flush_display(Display *display) {
   if (flush_damage(display)) {
     wl_surface_commit(display->surface);
+#ifdef COMPAT_LIBVTE
+    if (display->parent) {
+      /*
+       * Input method window.
+       * refrect wl_surface_damage() immediately.
+       */
+      wl_surface_commit(display->parent_surface);
+    }
+#endif
 
     return 1;
   } else {
@@ -1550,8 +1584,7 @@ static int flush_display(Display *display) {
   }
 }
 
-static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int height,
-                           char *app_name) {
+static void create_surface(ui_display_t *disp, u_int width, u_int height, char *app_name) {
   Display *display = disp->display;
   ui_wlserv_t *wlserv = display->wlserv;
 
@@ -1564,14 +1597,9 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
   display->shell_surface = wl_shell_get_shell_surface(wlserv->shell, display->surface);
   wl_shell_surface_set_class(display->shell_surface, app_name);
 
-  if (display->parent) {
-#ifdef __DEBUG
-    bl_debug_printf("Move display (set transient) at %d %d\n", x, y);
-#endif
-    wl_shell_surface_set_transient(display->shell_surface,
-                                   display->parent->display->surface, x, y,
-                                   WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
-  } else {
+  if (!display->parent) {
+    /* Not input method */
+
     wl_surface_add_listener(display->surface, &surface_listener, wlserv);
     wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
     wl_shell_surface_set_toplevel(display->shell_surface);
@@ -1749,7 +1777,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
    */
   disp->roots[disp->num_of_roots++] = root;
 
-  create_surface(disp, x, y, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root), root->app_name);
+  create_surface(disp, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root), root->app_name);
 
 #ifdef COMPAT_LIBVTE
   if (!disp->display->parent) {
@@ -1758,6 +1786,26 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 #endif
   {
     create_shm_buffer(disp->display);
+
+#ifndef COMPAT_LIBVTE
+    if (disp->display->parent)
+#endif
+    {
+      /* XXX Input Method */
+
+      /* XXX
+       * x and y of wl_shell_surface_set_transient() aren't applied without calling
+       * wl_surface_commit() here before calling wl_shell_surface_set_transient().
+       */
+      wl_surface_commit(disp->display->surface);
+
+      /*
+       * XXX wl_shell_surface_set_transient() doesn't move surface to the specified position
+       * if it is called before create_shm_buffer().
+       */
+      ui_display_move(disp, x, y);
+    }
+
     ui_window_show(root, hint);
   }
 
@@ -1871,6 +1919,11 @@ void ui_display_sync(ui_display_t *disp) {
   u_int count;
   int flushed = 0;
 
+  /*
+   * ui_display_sync() is called from ui_display_idling() alone on libvte compat library.
+   * ui_display_idling() is called with disp in vte.c, not displays in ui_display.c, so
+   * call flush_display() with all displays here.
+   */
   for (count = 0; count < num_of_displays; count++) {
     if (displays[count]->display->buffer) {
       flushed |= flush_display(displays[count]->display);

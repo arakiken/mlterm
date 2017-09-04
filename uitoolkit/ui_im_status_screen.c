@@ -78,7 +78,21 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
     u_int rows;
 
 #ifdef USE_WAYLAND
-    max_width = 0xffffffff;
+    /* XXX Display width and height are unknown on wayland. */
+    u_int num;
+    ui_display_t **disps = ui_get_opened_displays(&num);
+    u_int count;
+
+    max_width = 0;
+    for (count = 0; count < num; count++) {
+      if (max_width < disps[count]->width / 2) {
+        max_width = disps[count]->width / 2;
+      }
+    }
+
+    if (max_width == 0) {
+      max_width = 0xffffffff;
+    }
 #else
     max_width = stat_screen->window.disp->width / 2;
 #endif

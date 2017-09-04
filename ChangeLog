@@ -1,3 +1,22 @@
+2017-09-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_im_status_screen.c: max_width of draw_screen() is maximum width
+	  of all ui_display_t on wayland.
+
+	* wayland/ui_display.c:
+	  - If keyboard_enter() is called in entering input method surface, it sets
+	    wlserv->current_kbd_surface to its parent surface instead of input method one.
+	  - x and y are removed from arugments of create_surface(), and ui_display_move()
+	    is called just after create_shm_buffer().
+	  - focus_gtk_window() is not called if input method surface is clicked.
+
+	* wayland/ui_window.c:
+	  - win->x and win->y of root windows aren't modified on wayland.
+
+	* im_fcitx.c, im_ibus.c:
+	  - NO_XKB macro which is defined on framebuffer and console is added.
+	  - connection_handler() works on wayland.
+
 2017-09-03  Araki Ken  <arakiken@users.sf.net>
 
 	* im_m17nlib.c: XKeysymToString() is implemented.
