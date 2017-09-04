@@ -26,7 +26,9 @@
 
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 #define USE_IM_CANDIDATE_SCREEN
+#define NO_XKB
 #endif
+
 #ifdef USE_WAYLAND
 #define KeyRelease 3
 #define ibus_input_context_set_cursor_location(context, x, y, w, h) \
@@ -312,7 +314,7 @@ static void forward_key_event(IBusInputContext *context, guint keyval, guint key
   ibus = (im_ibus_t*)data;
 
   if (ibus->prev_key.keycode ==
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef NO_XKB
       keycode
 #else
       keycode + 8
@@ -424,7 +426,6 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
 
 #endif
 
-#ifndef USE_WAYLAND
 static void connection_handler(void) {
 #ifdef DBUS_H
   DBusConnection *connection;
@@ -442,7 +443,6 @@ static void connection_handler(void) {
   g_main_context_iteration(g_main_context_default(), FALSE);
 #endif
 }
-#endif
 
 static int add_event_source(void) {
 #ifdef DBUS_H
@@ -460,10 +460,8 @@ static int add_event_source(void) {
     return 0;
   }
 #endif
-#ifndef USE_WAYLAND
   (*syms->ui_event_source_add_fd)(ibus_bus_fd, connection_handler);
   (*syms->ui_event_source_add_fd)(IBUS_ID, connection_handler);
-#endif
 
   return 1;
 }
@@ -533,7 +531,7 @@ static int delete(ui_im_t *im) {
   return ref_count;
 }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef NO_XKB
 static KeySym native_to_ibus_ksym(KeySym ksym) {
   switch (ksym) {
     case XK_BackSpace:
@@ -657,7 +655,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     /* Is put back in forward_key_event */
     event->state &= ~IBUS_IGNORED_MASK;
   } else if (ibus_input_context_process_key_event(ibus->context, native_to_ibus_ksym(ksym),
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef NO_XKB
                                                   event->keycode, event->state
 #else
                                                   event->keycode - 8,

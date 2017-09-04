@@ -1232,15 +1232,6 @@ int ui_window_map(ui_window_t *win) {
 int ui_window_unmap(ui_window_t *win) {
   win->is_mapped = 0;
 
-  /*
-   * XXX
-   * If scrollbar_mode=autohide and win->x/win->y aren't set to -1, showing hidden
-   * scrollbar at the second time doesn't redraw scrollbar window because
-   * the position and size of scrollbar aren't changed.
-   */
-  win->x = -1;
-  win->y = -1;
-
   return 1;
 }
 
@@ -1354,9 +1345,12 @@ int ui_window_move(ui_window_t *win, int x, int y) {
   }
 #ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   else {
-    win->x = x;
-    win->y = y;
-
+    /*
+     * Don't do "win->x = x; win->y = y;" here.
+     * ui_window_xxx(..., x, y) functions add win->x and win->y to x and y arguments,
+     * but it causes unexpected result because MANAGE_ROOT_WINDOWS_BY_MYSELF means that
+     * win->x and win->y of root windows are always 0.
+     */
 #ifdef USE_WAYLAND
     return ui_display_move(win->disp, x, y);
 #else

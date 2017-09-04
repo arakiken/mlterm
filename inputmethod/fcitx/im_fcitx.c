@@ -18,9 +18,17 @@
 #define IM_FCITX_DEBUG 1
 #endif
 
+/*
+ * fcitx doesn't support wayland, so the positioning of gtk-based candidate window of fcitx
+ * doesn't work correctly on wayland.
+ */
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #define USE_IM_CANDIDATE_SCREEN
+#endif
+
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#define NO_XKB
 #endif
 
 /* When fcitx encoding is the same as terminal, conv is NULL. */
@@ -100,7 +108,7 @@ static int delete (ui_im_t *im) {
   return ref_count;
 }
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef NO_XKB
 static KeySym native_to_fcitx_ksym(KeySym ksym) {
   switch (ksym) {
     case XK_BackSpace:
@@ -205,13 +213,13 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     event->state &= ~FcitxKeyState_IgnoredMask;
   } else if (fcitx_client_process_key_sync(
                  fcitx->client, native_to_fcitx_ksym(ksym),
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef NO_XKB
                  event->keycode,
 #else
                  event->keycode - 8,
 #endif
                  event->state, event->type == KeyPress ? FCITX_PRESS_KEY : FCITX_RELEASE_KEY,
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef NO_XKB
                  0L /* CurrentTime */
 #else
                  event->time
@@ -380,7 +388,7 @@ static void forward_key(FcitxClient *client, guint keyval, guint state, gint typ
   fcitx = data;
 
   if (fcitx->prev_key.keycode ==
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#ifdef NO_XKB
       keyval
 #else
       keyval + 8
@@ -665,9 +673,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
 
 #endif
 
-#ifndef USE_WAYLAND
 static void connection_handler(void) { g_main_context_iteration(g_main_context_default(), FALSE); }
-#endif
 
 /* --- global functions --- */
 
@@ -749,9 +755,7 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   fcitx->im.unfocused = unfocused;
 
   if (ref_count++ == 0) {
-#ifndef USE_WAYLAND
     (*syms->ui_event_source_add_fd)(FCITX_ID, connection_handler);
-#endif
 
     if (!(parser_utf8 = (*syms->vt_char_encoding_parser_new)(VT_UTF8))) {
       goto error;

@@ -963,6 +963,10 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
 #else
   else if (old_mode == SBM_NONE) {
     ui_window_map(&term->scrollbar.window);
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
+    /* To show hidden scrollbar whose size and position aren't changed. (for wayland) */
+    term->scrollbar.window.x = -1; /* To redraw scrollbar in ui_window_move() */
+#endif
   } else {
     goto noresize;
   }
