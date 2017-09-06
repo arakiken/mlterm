@@ -337,12 +337,10 @@ static int customize_font_name(ui_font_config_t *font_config, vt_font_t font,
 
       free(pair->value);
       pair->value = value;
-    }
-#if 0
-    else {
+    } else {
       /* If new fontname is the same as current one, nothing is done. */
+      return 0;
     }
-#endif
   } else {
     char *value;
 
@@ -529,8 +527,12 @@ static int change_custom_cache(const char *file, const char *key, const char *va
     if (custom_cache[count].file == file && strcmp(custom_cache[count].key, key) == 0) {
       if (*value) {
         /* replace */
-
         char *p;
+
+        if (strcmp(custom_cache[count].value, value) == 0) {
+          /* not changed */
+          return 0;
+        }
 
         if ((p = strdup(value))) {
           free(custom_cache[count].value);

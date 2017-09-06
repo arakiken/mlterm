@@ -3356,6 +3356,7 @@ void vte_terminal_im_append_menuitems(VteTerminal *terminal, GtkMenuShell *menus
 
 void vte_terminal_set_font_from_string(VteTerminal *terminal, const char *name) {
   char *p;
+  int font_changed;
 
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " set_font_from_string %s\n", name);
@@ -3396,8 +3397,9 @@ void vte_terminal_set_font_from_string(VteTerminal *terminal, const char *name) 
     }
   }
 
-  if (ui_customize_font_file("aafont", "DEFAULT", name, 0)) {
-    ui_customize_font_file("aafont", "ISO10646_UCS4_1", name, 0);
+  font_changed = ui_customize_font_file("aafont", "DEFAULT", name, 0);
+  font_changed |= ui_customize_font_file("aafont", "ISO10646_UCS4_1", name, 0);
+  if (font_changed) {
     ui_font_cache_unload_all();
 
     if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
