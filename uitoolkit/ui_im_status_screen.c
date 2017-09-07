@@ -110,6 +110,11 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
         heads[rows++] = i + 1;
 
         if (rows == MAX_ROWS) {
+          for (++i; i < stat_screen->filled_len; i++) {
+            if (is_nl(&stat_screen->chars[i])) {
+              stat_screen->filled_len = i + 1;
+            }
+          }
           break;
         }
 

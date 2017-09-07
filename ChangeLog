@@ -1,3 +1,10 @@
+2017-09-08  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_im_status_screen.[ch]:
+	  - head_indexes[10] => head_indexes[11]
+	  - "\n" is not shown in a candidate window if the number of candidate lines
+	    is over MAX_ROWS.
+
 2017-09-07  Araki Ken  <arakiken@users.sf.net>
 
 	* im_wnn.c: Access to uninitialized memory is fixed.
