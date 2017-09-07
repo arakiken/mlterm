@@ -1,3 +1,10 @@
+2017-09-07  Araki Ken  <arakiken@users.sf.net>
+
+	* im_wnn.c: Access to uninitialized memory is fixed.
+
+	* ui_display_linux.c: /sys/class/input/event%d/device/name is prefered to
+	  /sys/class/input/input%d/name.
+
 2017-09-06  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Whether ui_customize_font_file() actually customizes font settings
