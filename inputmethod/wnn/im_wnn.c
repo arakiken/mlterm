@@ -761,6 +761,8 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
               }
             }
           }
+
+          cand_len = dst - cand;
         }
 
         if ((pos = alloca(4 + DIGIT_STR_LEN(int)*2 + 1))) {

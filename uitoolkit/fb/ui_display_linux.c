@@ -160,13 +160,18 @@ static void get_event_device_num_intern(int *kbd, int *mouse, const char *fmt) {
 }
 
 static void get_event_device_num(int *kbd, int *mouse) {
-  get_event_device_num_intern(kbd, mouse, "/sys/class/input/input%d/name");
+  get_event_device_num_intern(kbd, mouse, "/sys/class/input/event%d/device/name");
 
   if (*kbd == -1 || *mouse == -1) {
     int k;
     int m;
 
-    get_event_device_num_intern(&k, &m, "/sys/class/input/event%d/device/name");
+    /*
+     * XXX
+     * /sys/class/input/input%d/event%d
+     * => Note that The first %d and the second %d might not be the same number.
+     */
+    get_event_device_num_intern(&k, &m, "/sys/class/input/input%d/name");
 
     if (*kbd == -1) {
       *kbd = k;
