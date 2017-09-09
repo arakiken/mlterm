@@ -32,7 +32,9 @@ static int use_point_size;
 
 static int parse_font_name(
     char **font_family,
-    double *font_size, /* if size is not specified in font_name , not changed. */
+    double *font_size, /* if size is not specified in font_name, not changed. */
+    int *is_bold,      /* if bold is not specified in font_name, not changed. */
+    int *is_italic,    /* if italic is not specified in font_name, not changed. */
     u_int *percent,    /* if percent is not specified in font_name , not changed. */
     char *font_name    /* modified by this function. */
     ) {
@@ -87,6 +89,38 @@ static int parse_font_name(
 
         break;
       } else {
+        int count;
+        /*
+         * XXX
+         * "medium" is necessary because GTK font selection dialog (mlconfig)
+         * returns "Osaka medium"
+         */
+        char *styles[] = { "italic",  "bold", "medium", "oblique", "light", "semi-bold", "heavy",
+                           "semi-condensed", };
+
+        for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {
+          size_t len_v;
+
+          len_v = strlen(styles[count]);
+
+          /* XXX strncasecmp is not portable? */
+          if (len >= len_v && strncasecmp(p, styles[count], len_v) == 0) {
+            /* [WEIGHT] [SLANT] */
+            *orig_p = '\0';
+            step = len_v;
+
+            if (count <= 1) {
+              if (count == 0) {
+                *is_italic = 1;
+              } else {
+                *is_bold = 1;
+              }
+            }
+
+            goto next_char;
+          }
+        }
+
         if (*p != '0' ||      /* In case of "DevLys 010" font family. */
             *(p + 1) == '\0') /* "MS Gothic 0" => "MS Gothic" + "0" */
         {
@@ -112,6 +146,7 @@ static int parse_font_name(
       step = 1;
     }
 
+  next_char:
     p += step;
     len -= step;
   }
@@ -189,52 +224,43 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     }
 
     double fontsize_d = 0;
-    parse_font_name(&font_family, &fontsize_d, &percent, p);
+    int is_bold = 0;
+    int is_italic = 0;
+
+    parse_font_name(&font_family, &fontsize_d, &is_bold, &is_italic, &percent, p);
 
     if (fontsize_d > 0.0) {
       fontsize = fontsize_d;
+    }
+
+    if (is_bold) {
+      font->double_draw_gap = 1;
+    }
+
+    if (is_italic) {
+      font->xfont->is_italic = 1;
     }
   } else {
     /* Default font */
     font_family = "Menlo";
   }
 
-  char *orig_font_family = font_family;
-
-  if ((font->id & FONT_ITALIC) && !strcasestr(font_family, "italic")) {
-    char *p = alloca(strlen(font_family) + 8);
-
-    sprintf(p, "%s Italic", font_family);
-    font_family = p;
+  if (font->id & FONT_BOLD) {
+    font->double_draw_gap = 1;
   }
 
-  if (font->id & FONT_BOLD) {
-#if 1
-    if (!strcasestr(font_family, "Bold")) {
-      char *p = alloca(strlen(font_family) + 6);
-
-      sprintf(p, "%s Bold", font_family);
-      font_family = p;
-    }
-#else
-    font->double_draw_gap = 1;
-#endif
+  if (font->id & FONT_ITALIC) {
+    font->xfont->is_italic = 1;
   }
 
   while (!(font->xfont->cg_font = cocoa_create_font(font_family))) {
-    bl_warn_printf("%s font is not found.\n", font_family ? font_family : "Default");
+    bl_warn_printf("%s font is not found.\n", font_family);
 
-    if (orig_font_family && (font->id & (FONT_ITALIC | FONT_BOLD))) {
-      font_family = orig_font_family;
-
-      if (font->id & FONT_BOLD) {
-        font->double_draw_gap = 1;
-      }
-
-      orig_font_family = NULL;
-    } else if (col_width == 0 && strcmp(font_family, "Menlo") != 0) {
-      /* standard(usascii) font */
-
+    if (col_width == 0 && strcmp(font_family, "Menlo") != 0) {
+      /*
+       * standard(usascii) font
+       * Fall back to default font.
+       */
       font_family = "Menlo";
     } else {
       free(font);
@@ -324,6 +350,10 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
   font->size_attr = size_attr;
+
+#ifdef DEBUG
+  ui_font_dump(font);
+#endif
 
   return font;
 }

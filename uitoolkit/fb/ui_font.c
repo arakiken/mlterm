@@ -1058,6 +1058,10 @@ static void compl_xfonts_delete(XFontStruct **xfonts) {
 
 /* Same processing as win32/ui_font.c (partially) and libtype/ui_font_ft.c */
 static int parse_fc_font_name(char **font_family,
+                              int *is_bold,   /* if bold is not specified in font_name,
+                                                 not changed. */
+                              int *is_italic, /* if italic is not specified in font_name,
+                                                 not changed. */
                               u_int *percent, /* if percent is not specified in font_name,
                                                  not changed. */
                               char *font_name /* modified by this function. */ ) {
@@ -1130,61 +1134,27 @@ static int parse_fc_font_name(char **font_family,
         break;
       } else {
         int count;
-        struct {
-          char *style;
-          int weight;
-          int slant;
-
-        } styles[] = {
-            /*
-             * Portable styles.
-             */
-            /* slant */
-            {
-             "italic", 0, FC_SLANT_ITALIC,
-            },
-            /* weight */
-            {
-             "bold", FC_WEIGHT_BOLD, 0,
-            },
-
-            /*
-             * Hack for styles which can be returned by
-             * gtk_font_selection_dialog_get_font_name().
-             */
-            /* slant */
-            {
-             "oblique", 0, FC_SLANT_OBLIQUE,
-            },
-            /* weight */
-            {
-             "light", /* e.g. "Bookman Old Style Light" */
-             FC_WEIGHT_LIGHT, 0,
-            },
-            {
-             "semi-bold", FC_WEIGHT_DEMIBOLD, 0,
-            },
-            {
-             "heavy", /* e.g. "Arial Black Heavy" */
-             FC_WEIGHT_BLACK, 0,
-            },
-            /* other */
-            {
-             "semi-condensed", /* XXX This style is ignored. */
-             0, 0,
-            },
-        };
+        char *styles[] = { "italic",  "bold", "oblique", "light", "semi-bold", "heavy",
+                           "semi-condensed", };
 
         for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {
           size_t len_v;
 
-          len_v = strlen(styles[count].style);
+          len_v = strlen(styles[count]);
 
           /* XXX strncasecmp is not portable? */
-          if (len >= len_v && strncasecmp(p, styles[count].style, len_v) == 0) {
+          if (len >= len_v && strncasecmp(p, styles[count], len_v) == 0) {
             /* [WEIGHT] [SLANT] */
             *orig_p = '\0';
             step = len_v;
+
+            if (count <= 1) {
+              if (count == 0) {
+                *is_italic = 1;
+              } else {
+                *is_bold = 1;
+              }
+            }
 
             goto next_char;
           }
@@ -1293,18 +1263,21 @@ static int check_iscii_font(FcPattern *pattern) {
   }
 }
 
-static FcPattern *parse_font_name(const char *fontname, u_int *percent, ef_charset_t cs) {
+static FcPattern *parse_font_name(const char *fontname, int *is_bold, int *is_italic,
+                                  u_int *percent, ef_charset_t cs) {
   FcPattern *pattern;
   FcPattern *match;
   FcResult result;
   char *family;
 
   *percent = 0;
+  *is_bold = 0;
+  *is_italic = 0;
 
   if (!fontname) {
     family = NULL;
   } else {
-    parse_fc_font_name(&family, percent, bl_str_alloca_dup(fontname));
+    parse_fc_font_name(&family, is_bold, is_italic, percent, bl_str_alloca_dup(fontname));
   }
 
   if ((pattern = fc_pattern_create(family))) {
@@ -1563,6 +1536,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   char *decsp_id = NULL;
   u_int percent;
   ui_font_t *font;
+  vt_font_t orig_id = id;
 #ifdef USE_FREETYPE
   u_int format;
 #endif
@@ -1573,9 +1547,18 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   if (use_fontconfig) {
     FcPattern *pattern;
     FcValue val;
+    int is_bold;
+    int is_italic;
 
-    if (!(pattern = parse_font_name(fontname, &percent, cs))) {
+    if (!(pattern = parse_font_name(fontname, &is_bold, &is_italic, &percent, cs))) {
       return NULL;
+    }
+
+    if (is_bold) {
+      id |= FONT_BOLD;
+    }
+    if (is_italic) {
+      id |= FONT_ITALIC;
     }
 
     if (FcPatternGet(pattern, FC_FILE, 0, &val) != FcResultMatch) {
@@ -1792,7 +1775,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 xfont_loaded:
   /* Following is almost the same processing as xlib. */
 
-  font->id = id;
+  font->id = orig_id;
 
   if (font->id & FONT_FULLWIDTH) {
     font->cols = 2;

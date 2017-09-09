@@ -302,6 +302,8 @@ typedef struct {
 typedef struct {
   void *cg_font;
   unsigned int size;
+  int is_italic;
+
 } XFontStruct;
 
 typedef int XFontSet; /* dummy */

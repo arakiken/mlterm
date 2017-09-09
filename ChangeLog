@@ -1,3 +1,22 @@
+2017-09-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_font_config.c:
+	  size_attr of 'font' argument of ui_get_config_font_name() is removed.
+
+	* vt_font.h: NO_SIZE_ATTR() macro is added.
+
+	* quartz/ui_font.c:
+	  - is_bold and is_italic are added to arguments of parse_font_name().
+	  - font->xfont->is_italic = 1 if (font->id & FONT_ITALIC) is true.
+
+	* quartz/cocoa.m, quartz/ui.h: is_italic is added to XFontStruct, and if it is 1,
+	  glyphs are slant by CGAffineTransformMake().
+
+	* fb/ui_font.c: is_bold and is_italic are added to arguments of parse_fc_font_name()
+	  and if is_bold or is_italic is 1, FONT_BOLD or FONT_ITALIC is set.
+
+	* main-cocoa.m: NSAutoreleasePool is allocated manually before NSApplicationMain().
+
 2017-09-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_im_status_screen.[ch]:

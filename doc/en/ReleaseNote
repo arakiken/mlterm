@@ -12,6 +12,7 @@
 * Support "CSI > Ps t" and "CSI > Ps T".
 * Support right click menu on libvte compatible library on wayland.
 * Support fcitx input method module on wayland.
+* Support italic on MacOSX/Cocoa.
 * Change the default sequences of Modifier+Function and Modifier+Cursor keys
   from xterm's old/obsolete ones to modern ones.
   (e.g. Shift+F1 outputs "\e[1;2P" instead of "\eO2P" by default.)
@@ -26,6 +27,7 @@
   Fix faulty drawing a wall picture in closing one of splitted screens.
   Fix segfault when mlterm exits after having reconnected to ssh server automatically.
   Fix segfault in using input method plugins (except ibus) on wayland.
+  Fix unexpected fallback to "DEFAULT" font in DECDHL or DECDWL lines.
 
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)

@@ -210,13 +210,20 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
     glyphs = memset(glyphs_buf, 0, sizeof(CGGlyph) * len);
     CGFontGetGlyphsForUnichars(font->xfont->cg_font, str, glyphs_buf, len);
 
-    for (; len > 0 && glyphs[len - 1] == 0; len--)
-      ;
+    for (; len > 0 && glyphs[len - 1] == 0; len--) ;
   }
 
   CGContextSetFont(ctx, font->xfont->cg_font);
 
-  CGAffineTransform t = CGAffineTransformIdentity;
+  CGAffineTransform t;
+
+  if (font->xfont->is_italic) {
+    CGFloat f = -tanf(-12.0 * acosf(0) / 90);
+    t = CGAffineTransformMake(1.0, 0.0, f, 1.0, -y * f, 0.0);
+  } else {
+    t = CGAffineTransformIdentity;
+  }
+
   u_int width = font->width;
 
   u_int fontsize = font->xfont->size;
