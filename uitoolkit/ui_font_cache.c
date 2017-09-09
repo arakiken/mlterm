@@ -109,7 +109,13 @@ static char *get_font_name_list_for_fontset(ui_font_cache_t *font_cache) {
 
 /* --- global functions --- */
 
-void ui_set_use_leftward_double_drawing(int use) { leftward_double_drawing = use; }
+void ui_set_use_leftward_double_drawing(int use) {
+  if (num_of_caches > 0) {
+    bl_msg_printf("Unable to change leftward_double_drawing option.\n");
+  } else {
+    leftward_double_drawing = use;
+  }
+}
 
 ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
                                        ef_charset_t usascii_font_cs, ui_font_config_t *font_config,

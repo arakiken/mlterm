@@ -946,7 +946,7 @@ char *ui_get_config_font_name(ui_font_config_t *font_config, u_int font_size, vt
   }
 
   encoding = NULL;
-  cand_font = font;
+  cand_font = NO_SIZE_ATTR(font);
 
   while (!(pair = get_font_name_pair(font_config->font_name_table, cand_font))) {
 #ifdef USE_XLIB

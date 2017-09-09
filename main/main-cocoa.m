@@ -35,11 +35,19 @@ static void set_lang(void) {
 extern char *global_args;
 
 int main(int argc, const char* argv[]) {
-  if (!getenv("LANG")) {
-    set_lang();
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+  @try {
+    if (!getenv("LANG")) {
+      set_lang();
+    }
+
+    bl_set_sys_conf_dir([[[NSBundle mainBundle] bundlePath] UTF8String]);
+  }
+  @finally {
+    [pool release];
   }
 
-  bl_set_sys_conf_dir([[[NSBundle mainBundle] bundlePath] UTF8String]);
   bl_set_msg_log_file_name("mlterm/msg.log");
 
   char *myargv[] = {"mlterm", NULL};
