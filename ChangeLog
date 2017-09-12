@@ -1,3 +1,35 @@
+2017-09-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_im_candidate_screen.c: Unexpectedly wide candidate screen in vertical mode
+	  is fixed.
+
+	* ui_im_status_screen.[ch]:
+	  - Calculating screen width is fixed.
+	  - head_indexes[11] => head_indexes[15]
+
+	* im_fcitx.c: candidateword is splitted to multiple lines in update_client_side_ui().
+
+	* libtype/ui_font_ft.c: get_fc_col_width() never returns 0 if font->is_vertical
+	  is true on xft.
+
+	* ui_screen_manager.c: width_pix and height_pix are modified by
+	  ui_screen_t::screen_width_ratio in open_pty_intern().
+
+	* ui_screen.[ch]:
+	  - ui_screen_t::{width|height} are added.
+	  - ui_screen_t::screen_width_ratio is removed.
+
+	* vt_term.c: vt_term_open_pty() doesn't swap width_pix and height_pix
+	  in vertical mode.
+
+	* fb/ui_font.c: Whether FT_LCD_FILTER_H is defined or not is checked.
+
+	* mlconfig/main.c, mc_ratio.c: "Screen ratio against font size - Width"
+	  is removed.
+
+	* ui_main_config.[ch], ui_screen.[ch]: --hscr / "screen_height_ratio" option
+	  is removed.
+
 2017-09-09  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_font_config.c:

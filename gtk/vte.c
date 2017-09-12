@@ -1174,7 +1174,7 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
   PVT(terminal)->screen = ui_screen_new(
       PVT(terminal)->term, font_man, color_man, main_config.brightness, main_config.contrast,
       main_config.gamma, main_config.alpha, main_config.fade_ratio, &shortcut,
-      /* main_config.screen_width_ratio */ 100, /* main_config.screen_height_ratio */ 100,
+      /* main_config.screen_width_ratio */ 100,
       main_config.mod_meta_key,
       main_config.mod_meta_mode, main_config.bel_mode, main_config.receive_string_via_ucs,
       main_config.pic_file_path, main_config.use_transbg, main_config.use_vertical_cursor,

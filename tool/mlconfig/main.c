@@ -64,7 +64,6 @@ static int update(mc_io_t io) {
   mc_update_space(MC_SPACE_LINE);
   mc_update_space(MC_SPACE_LETTER);
   mc_update_ratio(MC_RATIO_SCREEN_WIDTH);
-  mc_update_ratio(MC_RATIO_SCREEN_HEIGHT);
   mc_update_radio(MC_RADIO_MOD_META_MODE);
   mc_update_radio(MC_RADIO_BELL_MODE);
   mc_update_radio(MC_RADIO_LOG_VTSEQ);
@@ -551,21 +550,9 @@ static int show(void) {
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
-  frame = gtk_frame_new(_("Screen ratio against font size"));
-  gtk_widget_show(frame);
-  gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
-  hbox = gtk_hbox_new(FALSE, 0);
-  gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
-  gtk_widget_show(hbox);
-  gtk_container_add(GTK_CONTAINER(frame), hbox);
-
   config_widget = mc_ratio_config_widget_new(MC_RATIO_SCREEN_WIDTH);
   gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
-
-  config_widget = mc_ratio_config_widget_new(MC_RATIO_SCREEN_HEIGHT);
-  gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
   /* contents of the "Background" tab */
 

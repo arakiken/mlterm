@@ -221,12 +221,17 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
   xfont = ui_get_usascii_font(cand_screen->font_man);
 
   if (do_resize) {
+    u_int width;
+    u_int num;
+
     /* width of window */
     win_width = xfont->width * (num_of_digits + 1);
     win_width +=
         max_candidate_width(cand_screen->font_man, &cand_screen->candidates[top], last - top + 1);
-    if (win_width < (MAX_NUM_OF_DIGITS * 2 + 1) * xfont->width) {
-      win_width = (MAX_NUM_OF_DIGITS * 2 + 1) * xfont->width;
+
+    NUM_OF_DIGITS(num, cand_screen->num_of_candidates);
+    if ((width = (num * 2 + 1) * xfont->width) > win_width) {
+      win_width = width;
     }
 
     /* height of window */

@@ -114,8 +114,8 @@ static int convert_y_to_row(ui_screen_t *screen, u_int *y_rest, int y) {
    * assumption: line hight is always the same!
    */
 
-  if (y >= screen->window.height) {
-    row = (screen->window.height - 1) / ui_line_height(screen);
+  if (y >= screen->height) {
+    row = (screen->height - 1) / ui_line_height(screen);
   } else {
     row = y / ui_line_height(screen);
   }
@@ -138,7 +138,7 @@ static int convert_char_index_to_x(
                            vt_line_has_ot_substitute_glyphs(line));
 
   if (vt_line_is_rtl(line)) {
-    x = screen->window.width;
+    x = screen->width;
 
     for (count = vt_line_end_char_index(line); count >= char_index; count--) {
       vt_char_t *ch;
@@ -185,12 +185,11 @@ static int convert_char_index_to_ui_with_shape(ui_screen_t *screen, vt_line_t *l
 }
 
 /*
- * If x < 0 , return 0 with *ui_rest = 0.
- * If x > screen->window.width , return screen->window.width / char_width with
- * *ui_rest =
- * x - screen->window.width.
+ * If x < 0, return 0 with *ui_rest = 0.
+ * If x > screen->width, return screen->width / char_width with
+ * *ui_rest = x - screen->width.
  */
-static int convert_ui_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *ui_rest, int x) {
+static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *ui_rest, int x) {
   int count;
   u_int width;
   int end_char_index;
@@ -201,10 +200,10 @@ static int convert_ui_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int 
   end_char_index = vt_line_end_char_index(line);
 
   if (vt_line_is_rtl(line)) {
-    if (x > screen->window.width) {
+    if (x > screen->width) {
       x = 0;
     } else {
-      x = screen->window.width - x;
+      x = screen->width - x;
     }
 
     for (count = end_char_index; count > 0; count--) {
@@ -255,14 +254,14 @@ static int convert_ui_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int 
   return count;
 }
 
-static int convert_ui_to_char_index_with_shape(ui_screen_t *screen, vt_line_t *line, u_int *ui_rest,
-                                               int x) {
+static int convert_x_to_char_index_with_shape(ui_screen_t *screen, vt_line_t *line, u_int *ui_rest,
+                                              int x) {
   vt_line_t *orig;
   int char_index;
 
   orig = vt_line_shape(line);
 
-  char_index = convert_ui_to_char_index(screen, line, ui_rest, x);
+  char_index = convert_x_to_char_index(screen, line, ui_rest, x);
 
   if (orig) {
     vt_line_unshape(line, orig);
@@ -272,35 +271,29 @@ static int convert_ui_to_char_index_with_shape(ui_screen_t *screen, vt_line_t *l
 }
 
 static u_int screen_width(ui_screen_t *screen) {
-  u_int width;
-
   /*
    * logical cols/rows => visual width/height.
    */
 
   if (vt_term_get_vertical_mode(screen->term)) {
-    width = vt_term_get_logical_rows(screen->term) * ui_col_width(screen);
+    return vt_term_get_logical_rows(screen->term) * ui_col_width(screen);
   } else {
-    width = vt_term_get_logical_cols(screen->term) * ui_col_width(screen);
+    return vt_term_get_logical_cols(screen->term) * ui_col_width(screen) *
+           screen->screen_width_ratio / 100;
   }
-
-  return (width * screen->screen_width_ratio) / 100;
 }
 
 static u_int screen_height(ui_screen_t *screen) {
-  u_int height;
-
   /*
    * logical cols/rows => visual width/height.
    */
 
   if (vt_term_get_vertical_mode(screen->term)) {
-    height = vt_term_get_logical_cols(screen->term) * ui_line_height(screen);
+    return vt_term_get_logical_cols(screen->term) * ui_line_height(screen) *
+           screen->screen_width_ratio / 100;
   } else {
-    height = vt_term_get_logical_rows(screen->term) * ui_line_height(screen);
+    return vt_term_get_logical_rows(screen->term) * ui_line_height(screen);
   }
-
-  return (height * screen->screen_height_ratio) / 100;
 }
 
 static int activate_xic(ui_screen_t *screen) {
@@ -588,11 +581,8 @@ static int flush_scroll_cache(ui_screen_t *screen, int scroll_actual_screen) {
 
       scroll_height = ui_line_height(screen) * abs(scroll_cache_rows);
 
-      /*
-       * scroll_height may be larger than screen->window.height if
-       * screen->screen_height_ratio is less than 100.
-       */
-      if (scroll_height < screen->window.height) {
+      /* scroll_height < screen->height is always true. */
+      /* if (scroll_height < screen->height) */ {
         beg_y = convert_row_to_y(screen, screen->scroll_cache_boundary_start);
         end_y = beg_y + ui_line_height(screen) * scroll_region_rows;
 
@@ -612,19 +602,16 @@ static int flush_scroll_cache(ui_screen_t *screen, int scroll_actual_screen) {
       int end_x;
       u_int scroll_width;
 
-      /*
-       * scroll_width may be larger than screen->window.width if
-       * screen->screen_width_ratio is less than 100.
-       */
       scroll_width = ui_col_width(screen) * abs(scroll_cache_rows);
 
-      if (scroll_width < screen->window.width) {
+      /* scroll_width < screen->width is always true. */
+      /* if (scroll_width < screen->width) */ {
         beg_x = ui_col_width(screen) * screen->scroll_cache_boundary_start;
         end_x = beg_x + ui_col_width(screen) * scroll_region_rows;
 
         if (vt_term_get_vertical_mode(screen->term) & VERT_RTL) {
-          end_x = screen->window.width - beg_x;
-          beg_x = screen->window.width - end_x;
+          end_x = screen->width - beg_x;
+          beg_x = screen->width - end_x;
           scroll_cache_rows = -(scroll_cache_rows);
         }
 
@@ -1223,9 +1210,9 @@ static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int he
            * Don't add rest/col_width to beg because the
            * character at beg can be full-width.
            */
-          beg = convert_ui_to_char_index_with_shape(screen, line, &rest, x);
+          beg = convert_x_to_char_index_with_shape(screen, line, &rest, x);
 
-          end = convert_ui_to_char_index_with_shape(screen, line, &rest, x + width);
+          end = convert_x_to_char_index_with_shape(screen, line, &rest, x + width);
           end += ((rest + col_width - 1) / col_width);
 
           vt_line_set_modified(line, beg, end);
@@ -1293,11 +1280,11 @@ static void window_resized(ui_window_t *win) {
    * visual width/height => logical cols/rows
    */
 
-  width = (screen->window.width * 100) / screen->screen_width_ratio;
-  height = (screen->window.height * 100) / screen->screen_height_ratio;
-
   if (vt_term_get_vertical_mode(screen->term)) {
     u_int tmp;
+
+    width = screen->window.width;
+    height = (screen->window.height * 100) / screen->screen_width_ratio;
 
     rows = width / ui_col_width(screen);
     cols = height / ui_line_height(screen);
@@ -1306,11 +1293,17 @@ static void window_resized(ui_window_t *win) {
     width = height;
     height = tmp;
   } else {
+    width = (screen->window.width * 100) / screen->screen_width_ratio;
+    height = screen->window.height;
+
     cols = width / ui_col_width(screen);
     rows = height / ui_line_height(screen);
   }
 
   vt_term_resize(screen->term, cols, rows, width, height);
+
+  screen->width = screen_width(screen);
+  screen->height = screen_height(screen);
 
   set_wall_picture(screen);
 
@@ -2621,7 +2614,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
     }
 
     row = vt_convert_char_index_to_col(
-        line, convert_ui_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
+        line, convert_x_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
 
     if (vt_term_get_vertical_mode(screen->term) & VERT_RTL) {
       row = vt_term_get_cols(screen->term) - row - 1;
@@ -2645,7 +2638,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
       return;
     }
 
-    char_index = convert_ui_to_char_index_with_shape(screen, line, &ui_rest, x);
+    char_index = convert_x_to_char_index_with_shape(screen, line, &ui_rest, x);
     if (vt_line_is_rtl(line)) {
       /* XXX */
       char_index = vt_line_convert_visual_char_index_to_logical(line, char_index);
@@ -2758,8 +2751,8 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
   if (x < 0) {
     x = 0;
     ui_is_outside = 1;
-  } else if (x > screen->window.width) {
-    x = screen->window.width;
+  } else if (x > screen->width) {
+    x = screen->width;
     ui_is_outside = 1;
   } else {
     ui_is_outside = 0;
@@ -2775,12 +2768,12 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
     }
 
     y = 0;
-  } else if (y > screen->window.height) {
+  } else if (y > screen->height) {
     if (vt_term_is_backscrolling(screen->term)) {
       bs_scroll_upward(screen);
     }
 
-    y = screen->window.height - ui_line_height(screen);
+    y = screen->height - ui_line_height(screen);
   }
 
   row = vt_term_convert_scr_row_to_abs(screen->term, convert_y_to_row(screen, NULL, y));
@@ -2793,7 +2786,7 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
     return;
   }
 
-  char_index = convert_ui_to_char_index_with_shape(screen, line, &ui_rest, x);
+  char_index = convert_x_to_char_index_with_shape(screen, line, &ui_rest, x);
 
   if (is_rect || screen->sel.is_rect) {
     /* converting char index to col. */
@@ -2872,7 +2865,7 @@ static void selecting_word(ui_screen_t *screen, int x, int y, Time time) {
     return;
   }
 
-  char_index = convert_ui_to_char_index_with_shape(screen, line, &ui_rest, x);
+  char_index = convert_x_to_char_index_with_shape(screen, line, &ui_rest, x);
 
   if (vt_line_end_char_index(line) == char_index && ui_rest > 0) {
     /* over end of line */
@@ -3353,7 +3346,9 @@ static int search_find(ui_screen_t *screen, u_char *pattern, int backward) {
 
 static void resize_window(ui_screen_t *screen) {
   /* screen will redrawn in window_resized() */
-  if (ui_window_resize(&screen->window, screen_width(screen), screen_height(screen),
+  if (ui_window_resize(&screen->window,
+                       (screen->width = screen_width(screen)),
+                       (screen->height = screen_height(screen)),
                        NOTIFY_TO_PARENT)) {
     /*
      * !! Notice !!
@@ -3471,16 +3466,6 @@ static void change_screen_width_ratio(ui_screen_t *screen, u_int ratio) {
   }
 
   screen->screen_width_ratio = ratio;
-
-  resize_window(screen);
-}
-
-static void change_screen_height_ratio(ui_screen_t *screen, u_int ratio) {
-  if (screen->screen_height_ratio == ratio) {
-    return;
-  }
-
-  screen->screen_height_ratio = ratio;
 
   resize_window(screen);
 }
@@ -4114,9 +4099,6 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
   } else if (strcmp(key, "screen_width_ratio") == 0) {
     sprintf(digit, "%d", screen->screen_width_ratio);
     value = digit;
-  } else if (strcmp(key, "screen_height_ratio") == 0) {
-    sprintf(digit, "%d", screen->screen_height_ratio);
-    value = digit;
   } else if (strcmp(key, "scrollbar_view_name") == 0) {
     if (screen->screen_scroll_listener && screen->screen_scroll_listener->view_name) {
       value = (*screen->screen_scroll_listener->view_name)(screen->screen_scroll_listener->self);
@@ -4653,7 +4635,7 @@ static int get_im_spot(void *p, vt_char_t *chars, int segment_offset, int *x, in
       width = ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(&chars[i])),
                                         &chars[i], NULL);
 
-      if (*x + width > screen->window.width) {
+      if (*x + width > screen->width) {
         *x = 0;
         *y += ui_line_height(screen);
       }
@@ -4680,7 +4662,7 @@ static int get_im_spot(void *p, vt_char_t *chars, int segment_offset, int *x, in
 
     for (i = 0; i < segment_offset; i++) {
       *y += height;
-      if (*y >= screen->window.height) {
+      if (*y >= screen->height) {
         *x += width *sign;
         *y = 0;
       }
@@ -4806,7 +4788,7 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
     total_width += width;
 
     if (!vt_term_get_vertical_mode(screen->term)) {
-      if (x + total_width > screen->window.width) {
+      if (x + total_width > screen->width) {
         need_wraparound = 1;
         _x = 0;
         _y = y + ui_line_height(screen);
@@ -4818,15 +4800,23 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
       _y = y + ui_line_height(screen);
       start = i;
 
-      if (_y > screen->window.height) {
+      if (_y > screen->height) {
         y = 0;
         _y = ui_line_height(screen);
 
         if (vt_term_get_vertical_mode(screen->term) == VERT_RTL) {
           x -= ui_col_width(screen);
+
+          if (x < 0) {
+            goto end;
+          }
         } else /* VERT_LRT */
         {
           x += ui_col_width(screen);
+
+          if (x >= screen->width) {
+            goto end;
+          }
         }
         _x = x;
 
@@ -4852,6 +4842,11 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
         break;
       }
 
+      if (!vt_term_get_vertical_mode(screen->term) &&
+          _y + ui_line_height(screen) > screen->height) {
+        goto end;
+      }
+
       x = _x;
       y = _y;
       start = i;
@@ -4875,7 +4870,7 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
 
   if (cursor_offset == num_of_chars) {
     if (!vt_term_get_vertical_mode(screen->term)) {
-      if ((preedit_cursor_x = x + total_width) == screen->window.width) {
+      if ((preedit_cursor_x = x + total_width) == screen->width) {
         preedit_cursor_x--;
       }
 
@@ -4883,7 +4878,7 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
     } else {
       preedit_cursor_x = x;
 
-      if ((preedit_cursor_y = y) == screen->window.height) {
+      if ((preedit_cursor_y = y) == screen->height) {
         preedit_cursor_y--;
       }
     }
@@ -4891,20 +4886,14 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
 
   if (cursor_offset >= 0) {
     if (!vt_term_get_vertical_mode(screen->term)) {
-      if ((preedit_cursor_y += line_top_margin(screen)) < 0) {
-        preedit_cursor_y = 0;
-      } else if (preedit_cursor_y >= screen->window.height) {
-        preedit_cursor_y = screen->window.height - 1;
-      }
-
-      ui_window_fill(&screen->window, preedit_cursor_x,
-                     preedit_cursor_y + line_top_margin(screen), 1,
-                     ui_line_height(screen) - line_top_margin(screen));
+      ui_window_fill(&screen->window, preedit_cursor_x, preedit_cursor_y,
+                     1, ui_line_height(screen));
     } else {
       ui_window_fill(&screen->window, preedit_cursor_x, preedit_cursor_y, ui_col_width(screen), 1);
     }
   }
 
+end:
 #ifdef USE_WIN32GUI
   ReleaseDC(screen->window.my_window, screen->window.gc->gc);
   ui_set_gc(screen->window.gc, None);
@@ -5347,8 +5336,8 @@ static int xterm_get_window_size(void *p, u_int *width, u_int *height) {
 
   screen = p;
 
-  *width = screen->window.width;
-  *height = screen->window.height;
+  *width = screen->width;
+  *height = screen->height;
 
   return 1;
 }
@@ -5593,7 +5582,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            ui_font_manager_t *font_man, ui_color_manager_t *color_man,
                            u_int brightness, u_int contrast, u_int gamma, u_int alpha,
                            u_int fade_ratio, ui_shortcut_t *shortcut, u_int screen_width_ratio,
-                           u_int screen_height_ratio, char *mod_meta_key,
+                           char *mod_meta_key,
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
                            int use_vertical_cursor,
@@ -5671,7 +5660,6 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->fade_ratio = fade_ratio;
 
   screen->screen_width_ratio = screen_width_ratio;
-  screen->screen_height_ratio = screen_height_ratio;
 
   /* screen->term must be set before screen_height() */
   screen->term = term;
@@ -5679,10 +5667,11 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   col_width = ui_col_width(screen);
   line_height = ui_line_height(screen);
 
-  if (ui_window_init(&screen->window, screen->term ? screen_width(screen) : col_width,
-                     screen->term ? screen_height(screen) : line_height, col_width, line_height,
-                     col_width, line_height, hmargin, vmargin, 0, 1) == 0) /* min: 1x1 */
-  {
+  /* min: 1x1 */
+  if (!ui_window_init(&screen->window,
+                      (screen->width = screen->term ? screen_width(screen) : col_width),
+                      (screen->height = screen->term ? screen_height(screen) : line_height),
+                      col_width, line_height, col_width, line_height, hmargin, vmargin, 0, 1)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_window_init failed.\n");
 #endif
@@ -6341,12 +6330,6 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
 
     if (bl_str_to_uint(&ratio, value)) {
       change_screen_width_ratio(screen, ratio);
-    }
-  } else if (strcmp(key, "screen_height_ratio") == 0) {
-    u_int ratio;
-
-    if (bl_str_to_uint(&ratio, value)) {
-      change_screen_height_ratio(screen, ratio);
     }
   } else if (strcmp(key, "scrollbar_view_name") == 0) {
     change_sb_view(screen, value);

@@ -120,29 +120,10 @@ static int read_conf(ui_shortcut_t *shortcut, char *filename) {
   }
 
   while (bl_conf_io_read(from, &key, &value)) {
-#ifdef ENABLE_BACKWARD_COMPAT
-    /*
-     * XIM_OPEN and XIM_CLOSE are removed.
-     */
-    if (strcmp(value, "XIM_OPEN") == 0 || strcmp(value, "XIM_CLOSE") == 0) {
-      /* This warning will be removed. */
-      bl_msg_printf("%s in %s is no longer supported\n", value, filename);
-    }
-#endif
-
     /*
      * [shortcut key]=[operation]
      */
-    if (!ui_shortcut_parse(shortcut, key, value)) {
-#ifdef ENABLE_BACKWARD_COMPAT
-      /*
-       * XXX
-       * Backward compatibility with 2.4.0 or before.
-       * [operation]=[shortcut key]
-       */
-      ui_shortcut_parse(shortcut, value, key);
-#endif
-    }
+    ui_shortcut_parse(shortcut, key, value);
   }
 
   bl_file_close(from);

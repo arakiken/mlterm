@@ -102,22 +102,12 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
     rows = 1;
 
     for (i = 0; i < stat_screen->filled_len; i++) {
-      if (is_nl(&stat_screen->chars[i])) {
+      if (is_nl(&stat_screen->chars[i]) && rows < MAX_ROWS - 1) {
         if (rows == 1 || tmp_max_width < width) {
           tmp_max_width = width;
         }
 
         heads[rows++] = i + 1;
-
-        if (rows == MAX_ROWS) {
-          for (++i; i < stat_screen->filled_len; i++) {
-            if (is_nl(&stat_screen->chars[i])) {
-              stat_screen->filled_len = i + 1;
-            }
-          }
-          break;
-        }
-
         width = 0;
       } else {
         u_int ch_width;
@@ -127,13 +117,14 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
             vt_char_code(&stat_screen->chars[i]), vt_char_cs(&stat_screen->chars[i]), NULL);
 
         if (width + ch_width > max_width) {
-          if (rows == 1) {
-            tmp_max_width = max_width = width;
+          if (rows == 1 || tmp_max_width < width) {
+            tmp_max_width = width;
           }
 
           heads[rows++] = i;
 
           if (rows == MAX_ROWS) {
+            /* Characters after max_width at the last line are never shown. */
             break;
           }
 
@@ -144,12 +135,8 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
       }
     }
 
-    if (tmp_max_width > 0) {
-      max_width = tmp_max_width;
-    }
-
-    if (rows > 1) {
-      width = max_width;
+    if (width < tmp_max_width) {
+      width = tmp_max_width;
     }
 
     /* for following 'heads[i + 1] - heads[i]' */

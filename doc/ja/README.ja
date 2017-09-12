@@ -369,9 +369,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o screen_width_ratio  (*100*) (#)
         実スクリーンの横幅(百分率)
-
-      o screen_height_ratio  (*100*) (#)
-        実スクリーンの縦幅(百分率)
+        縦書きモードの場合は縦幅
 
       o inner_border (*2*)
         Window の inner border (0-224)
@@ -820,14 +818,14 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         HTT_AUX_BASE_DIR 環境変数により、aux モジュールのあるパスを指定するこ
         とができます(デフォルトは/usr/lib/iiim/le)。
 
-      o tabsize  (*8*) (#)
+      o tabsize (*8*) (#)
         タブ幅
 
-      o logsize  (*128*) (#)
+      o logsize (*128*) (#)
         ログの行数
         unlimited を指定するとログの行数は無制限になります。
 
-      o word_separators  ( ,.:;/|@()[]{}) (#)
+      o word_separators ( ,.:;/|@()[]{}) (#)
         単語の区切り文字を指定('\x'から始まる16進数の使用も可)
 
         マウスのダブルクリックで、単語選択する際に使用されます。

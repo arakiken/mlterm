@@ -1,3 +1,4 @@
+ver 3.8.3
 * Add "trim_trailing_newline_in_pasting" / --trim option which removes trailing
   newline characters in pasting text.
 * Add "broadcast" / --bc option which broadcasts input or pasted characters to
@@ -13,6 +14,7 @@
 * Support right click menu on libvte compatible library on wayland.
 * Support fcitx input method module on wayland.
 * Support italic on MacOSX/Cocoa.
+* Remove --hscr / "screen_height_ratio" option.
 * Change the default sequences of Modifier+Function and Modifier+Cursor keys
   from xterm's old/obsolete ones to modern ones.
   (e.g. Shift+F1 outputs "\e[1;2P" instead of "\eO2P" by default.)

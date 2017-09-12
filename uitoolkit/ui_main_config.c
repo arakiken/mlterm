@@ -45,23 +45,6 @@ static vt_char_encoding_t get_encoding(const char *value,
 int ui_prepare_for_main_config(bl_conf_t *conf) {
   char *rcpath;
 
-#ifdef ENABLE_BACKWARD_COMPAT
-  /*
-   * XXX
-   * "mlterm/core" is for backward compatibility with 1.9.44
-   */
-
-  if ((rcpath = bl_get_sys_rc_path("mlterm/core"))) {
-    bl_conf_read(conf, rcpath);
-    free(rcpath);
-  }
-
-  if ((rcpath = bl_get_user_rc_path("mlterm/core"))) {
-    bl_conf_read(conf, rcpath);
-    free(rcpath);
-  }
-#endif
-
   if ((rcpath = bl_get_sys_rc_path("mlterm/main"))) {
     bl_conf_read(conf, rcpath);
     free(rcpath);
@@ -93,8 +76,10 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
 
   bl_conf_add_opt(conf, '1', "wscr", 0, "screen_width_ratio",
                   "screen width in percent against font width [100]");
+#if 1 /* BACKWARD COMPAT (3.8.2 or before) */
   bl_conf_add_opt(conf, '2', "hscr", 0, "screen_height_ratio",
                   "screen height in percent against font height [100]");
+#endif
 #ifndef NO_IMAGE
   bl_conf_add_opt(conf, '3', "contrast", 0, "contrast",
                   "contrast of background image in percent [100]");
@@ -593,6 +578,16 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
 
   main_config->screen_width_ratio = 100;
 
+#if 1 /* BACKWARD COMPAT (3.8.2 or before) */
+  if ((value = bl_conf_get_value(conf, "screen_height_ratio"))) {
+    u_int ratio;
+
+    if (bl_str_to_uint(&ratio, value) && ratio) {
+      main_config->screen_width_ratio = ratio;
+    }
+  }
+#endif
+
   if ((value = bl_conf_get_value(conf, "screen_width_ratio"))) {
     u_int ratio;
 
@@ -600,18 +595,6 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
       main_config->screen_width_ratio = ratio;
     } else {
       bl_msg_printf(invalid_msg, "screen_width_ratio", value);
-    }
-  }
-
-  main_config->screen_height_ratio = 100;
-
-  if ((value = bl_conf_get_value(conf, "screen_height_ratio"))) {
-    u_int ratio;
-
-    if (bl_str_to_uint(&ratio, value) && ratio) {
-      main_config->screen_height_ratio = ratio;
-    } else {
-      bl_msg_printf(invalid_msg, "screen_height_ratio", value);
     }
   }
 

@@ -25,9 +25,6 @@
 # 実スクリーンの横幅(百分率)
 # screen_width_ratio = 100
 
-# 実スクリーンの縦幅(百分率)
-# screen_height_ratio = 100
-
 # ウィンドウの内側のボーダー幅
 # inner_border = 2
 
