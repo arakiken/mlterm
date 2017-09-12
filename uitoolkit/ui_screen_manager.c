@@ -152,8 +152,14 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
   display = win->disp->name;
   window = win->my_window;
-  width_pix = win->width;
-  height_pix = win->height;
+
+  if (vt_term_get_vertical_mode(term)) {
+    width_pix = win->height * 100 / ((ui_screen_t*)win)->screen_width_ratio;
+    height_pix = win->width;
+  } else {
+    width_pix = win->width * 100 / ((ui_screen_t*)win)->screen_width_ratio;
+    height_pix = win->height;
+  }
 
   env_p = env;
 
@@ -548,7 +554,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
   if ((screen = ui_screen_new(
            term, font_man, color_man, main_config.brightness, main_config.contrast,
            main_config.gamma, main_config.alpha, main_config.fade_ratio, &shortcut,
-           main_config.screen_width_ratio, main_config.screen_height_ratio,
+           main_config.screen_width_ratio,
            main_config.mod_meta_key, main_config.mod_meta_mode, main_config.bel_mode,
            main_config.receive_string_via_ucs, main_config.pic_file_path, main_config.use_transbg,
            main_config.use_vertical_cursor,

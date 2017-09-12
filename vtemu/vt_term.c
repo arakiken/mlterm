@@ -348,17 +348,10 @@ int vt_term_zombie(vt_term_t *term) {
   return 1;
 }
 
+/* The caller should swap width_pix and height_pix in vertical mode. */
 int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **env,
                      const char *host, const char *work_dir, const char *pass, const char *pubkey,
                      const char *privkey, u_int width_pix, u_int height_pix) {
-  if (term->vertical_mode) {
-    u_int tmp;
-
-    tmp = width_pix;
-    width_pix = height_pix;
-    height_pix = tmp;
-  }
-
   if (!term->pty) {
 #ifdef OPEN_PTY_ASYNC
     char *user;
@@ -555,6 +548,7 @@ size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len) {
   return vt_write_to_pty(term->pty, buf, len);
 }
 
+/* The caller should swap width_pix and height_pix in vertical mode. */
 int vt_term_resize(vt_term_t *term, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   if (term->pty) {
     vt_set_pty_winsize(term->pty, cols, rows, width_pix, height_pix);

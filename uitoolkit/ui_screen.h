@@ -103,8 +103,14 @@ typedef struct ui_screen {
   char *input_method;
   ui_im_t *im;
 
+  /*
+   * ui_window_t::{width|height} might contain right and bottom margins if window is maximized.
+   * ui_screen_t::{width|height} never contains no margins.
+   */
+  u_int width;
+  u_int height;
+
   u_int screen_width_ratio;
-  u_int screen_height_ratio;
 
   ui_system_event_listener_t *system_listener;
   ui_screen_scroll_event_listener_t *screen_scroll_listener;
@@ -158,7 +164,7 @@ void ui_set_im_cursor_color(char *color);
 ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            ui_color_manager_t *color_man, u_int brightness, u_int contrast,
                            u_int gamma, u_int alpha, u_int fade_ratio, ui_shortcut_t *shortcut,
-                           u_int screen_width_ratio, u_int screen_height_ratio, char *mod_meta_key,
+                           u_int screen_width_ratio, char *mod_meta_key,
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
                            int use_vertical_cursor,

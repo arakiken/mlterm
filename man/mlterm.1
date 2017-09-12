@@ -265,11 +265,7 @@ calculated value by multiplying font width by column number.
 This is useful when you use a proportional font which includes
 some glyphs with exceptionally large width, i.e., much
 larger "maximum width" than your expectation.
-The default is \fB100\fR.
-.TP
-\fB\-2\fR, \fB\-\-hscr\fR=\fIvalue\fR
-Specify actual screen height, like \fB\-1\fR/\fB\-\-wscr\fR does
-for width.
+In vertical mode this option changes actual window height.
 The default is \fB100\fR.
 .TP
 \fB\-3\fR, \fB\-\-contrast\fR=\fIvalue\fR)
@@ -929,11 +925,8 @@ Specify number of extra dots between lines. (\fB\-o\fR, \fB\-\-lsp\fR)
 Letter space
 Specify number of extra dots between characters. (\fB\-\-csp\fR)
 .TP
-Width ratio
-Specify actual screen width. (\fB\-1\fR, \fB\-\-wscr\fR)
-.TP
-Height ratio
-Specify actual screen height. (\fB\-2\fR, \fB\-\-hscr\fR)
+Screen ratio against font size
+Specify actual screen width (screen height in vertical mode). (\fB\-1\fR, \fB\-\-wscr\fR)
 .\" ******************************************************
 .SS Background page
 Configurations related to background are located in this page.
@@ -1558,11 +1551,8 @@ Background color for scrollbar.
 \fBsb_fg_color=\fIcolor\fR (\fB\-F\fR, \fB\-\-sbfg\fR)
 Foreground color for scrollbar.
 .TP
-\fBscreen_height_ratio=\fIvalue\fR (\fB\-1\fR, \fB\-\-hscr\fR)
-Specify actual screen height.
-.TP
 \fBscreen_width_ratio=\fIvalue\fR (\fB\-1\fR, \fB\-\-wscr\fR)
-Specify actual screen width.
+Specify actual screen width (screen height in vertical mode).
 .TP
 \fBscrollbar_mode=\fImode\fR (\fB\-O\fR, \fB\-\-sbmod\fR)
 Specify scrollbar position.

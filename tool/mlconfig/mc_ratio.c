@@ -24,12 +24,12 @@ static char old_values[MC_RATIOS][MAX_VALUE_LEN + 1]; /* 0 - 100 */
 static int is_changed[MC_RATIOS];
 
 static char *config_keys[MC_RATIOS] = {
-    "contrast", "gamma", "brightness", "fade_ratio", "screen_width_ratio", "screen_height_ratio",
+  "contrast", "gamma", "brightness", "fade_ratio", "screen_width_ratio",
 };
 
 static char *labels[MC_RATIOS] = {
-    N_("Contrast  "), N_("Gamma"), N_("Brightness"), N_("Fade ratio on unfocus"), N_("Width"),
-    N_("Height"),
+  N_("Contrast  "), N_("Gamma"), N_("Brightness"), N_("Fade ratio on unfocus"),
+  N_("Screen ratio against font size")
 };
 
 /* --- static functions --- */

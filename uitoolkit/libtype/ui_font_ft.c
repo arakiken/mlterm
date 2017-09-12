@@ -237,7 +237,10 @@ static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent,
                               u_int letter_space) {
   if (percent == 0) {
     if (letter_space == 0 || font->is_var_col_width) {
-      return 0;
+#ifdef USE_TYPE_XFT
+      if (!font->is_vertical)
+#endif
+        return 0;
     }
 
     percent = 100;

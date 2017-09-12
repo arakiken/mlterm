@@ -567,7 +567,9 @@ static int is_pcf(const char *file_path) {
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#ifdef FT_LCD_FILTER_H
 #include FT_LCD_FILTER_H
+#endif
 
 /* 0 - 511 */
 #define SEG(idx) (((idx) >> 7) & 0x1ff)
@@ -661,7 +663,9 @@ static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, in
       return 0;
     }
 
+#ifdef FT_LCD_FILTER_H
     FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
+#endif
   }
 
   fontsize = (format & ~(FONT_BOLD | FONT_ITALIC));

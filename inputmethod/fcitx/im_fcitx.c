@@ -533,6 +533,39 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
       (*fcitx->im.stat_screen->set_spot)(fcitx->im.stat_screen, x, y);
     }
 
+    if (strncmp(candidateword, "1.", 2) == 0) {
+      int count = 2;
+      char *src = candidateword;
+      char *p;
+      char digit[5];
+
+#ifdef __DEBUG
+      bl_msg_printf("Fcitx: %s\n", candidateword);
+#endif
+
+      do {
+        sprintf(digit, " %d.", count);
+
+        if (!(p = strstr(src, digit))) {
+          if (count % 10 == 0 && (src = strstr(src, " 0."))) {
+            count = 1;
+          } else {
+            break;
+          }
+        } else {
+          count++;
+          src = p;
+        }
+
+        *src = '\n';
+        src += strlen(digit);
+      } while (count < 100);
+
+#ifdef __DEBUG
+      bl_msg_printf("%s\n", candidateword);
+#endif
+    }
+
     if (NEED_TO_CONV(fcitx)) {
       (*parser_utf8->init)(parser_utf8);
       if (im_convert_encoding(parser_utf8, fcitx->conv, candidateword, &tmp,
