@@ -48,13 +48,18 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
   u_char buf[128];
   size_t len;
 
+  vt_term_set_config(term, "use_local_echo", "false");
+
+#if 0
+  /* XXX If IM plugin is supported, see update_ime_text() in cocoa.m. */
+  ((ui_screen_t*)uiwindow)->is_preediting = 0;
+#endif
+
   if (!utf8_parser && !(utf8_parser = vt_char_encoding_parser_new(VT_UTF8))) {
     return;
   }
 
   (*utf8_parser->init)(utf8_parser);
-
-  vt_term_set_config(term, "use_local_echo", "false");
 
   if (preedit_text) {
     ui_window_t *win;
@@ -65,6 +70,11 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
       if (bl_compare_str(preedit_text, cur_preedit_text) == 0) {
         return;
       }
+
+#if 0
+      /* XXX If IM plugin is supported, see update_ime_text() in cocoa.m. */
+      ((ui_screen_t*)uiwindow)->is_preediting = 1; /* Hide cursor */
+#endif
 
       vt_term_set_config(term, "use_local_echo", "true");
 

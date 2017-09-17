@@ -30,7 +30,7 @@ static int get_key_state(void) {
   } else {
     /* ShiftMask and ControlMask is the same. */
 
-    return state | ((state & (1 << KG_ALT)) ? ModMask : 0);
+    return state | ((state & (1 << KG_ALT)) ? Mod1Mask : 0);
   }
 }
 
@@ -584,7 +584,7 @@ static int receive_key_event(void) {
           } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
             _display.key_state |= ControlMask;
           } else if (ev.code == KEY_RIGHTALT || ev.code == KEY_LEFTALT) {
-            _display.key_state |= ModMask;
+            _display.key_state |= Mod1Mask;
           } else if (ev.code == KEY_NUMLOCK) {
             _display.lock_state ^= NLKED;
           } else {
@@ -603,7 +603,7 @@ static int receive_key_event(void) {
           } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
             _display.key_state &= ~ControlMask;
           } else if (ev.code == KEY_RIGHTALT || ev.code == KEY_LEFTALT) {
-            _display.key_state &= ~ModMask;
+            _display.key_state &= ~Mod1Mask;
           }
         }
       }

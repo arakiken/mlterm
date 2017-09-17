@@ -52,3 +52,5 @@ Console support (similar to GNU screen)
     (OPEN_PTY, HSPLIT_SCREEN, VSPLIT_SCREEN etc are supported.)
   o geometry option
   o scrollbar
+  o indic script
+  o open type layout

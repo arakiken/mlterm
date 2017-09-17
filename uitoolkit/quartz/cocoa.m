@@ -26,6 +26,8 @@
   int currentShiftMask;
   NSRange markedRange;
   NSRange selectedRange;
+  int cand_x;
+  int cand_y;
 }
 
 - (void)drawString:(ui_font_t *)font
@@ -262,6 +264,9 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
     }
   } else {
     u_int count;
+
+    x += font->x_off;
+
     for (count = 0; count < len; count++) {
       points[count] = CGPointMake((x + width * count), y);
     }
@@ -280,19 +285,32 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
   }
 }
 
+static int (*orig_draw_preedit_str)(void *, vt_char_t *, u_int, int);
+
+static int dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars,
+                                  int cursor_offset) {
+  /* Don't set ui_screen_t::is_preediting = 0. */
+  return 0;
+}
+
 static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
                             const char *cur_preedit_text) {
-  ef_parser_t *utf8_parser;
+  vt_term_t *term = ((ui_screen_t *)uiwindow)->term;
 
+  vt_term_set_config(term, "use_local_echo", "false");
+
+  if (orig_draw_preedit_str) {
+    ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str = orig_draw_preedit_str;
+    orig_draw_preedit_str = NULL;
+    ((ui_screen_t*)uiwindow)->is_preediting = 0;
+  }
+
+  ef_parser_t *utf8_parser;
   if (!(utf8_parser = ui_get_selection_parser(1))) {
     return;
   }
 
   (*utf8_parser->init)(utf8_parser);
-
-  vt_term_t *term = ((ui_screen_t *)uiwindow)->term;
-
-  vt_term_set_config(term, "use_local_echo", "false");
 
   if (*preedit_text == '\0') {
     preedit_text = NULL;
@@ -300,6 +318,11 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
     if (bl_compare_str(preedit_text, cur_preedit_text) == 0) {
       return;
     }
+
+    /* Hide cursor */
+    orig_draw_preedit_str = ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str;
+    ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str = dummy_draw_preedit_str;
+    ((ui_screen_t*)uiwindow)->is_preediting = 1;
 
     vt_term_parse_vt100_sequence(term);
     vt_term_set_config(term, "use_local_echo", "true");
@@ -309,8 +332,7 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
     u_char buf[128];
     size_t len;
     while (!utf8_parser->is_eos &&
-           (len = vt_term_convert_to(term, buf, sizeof(buf), utf8_parser)) >
-               0) {
+           (len = vt_term_convert_to(term, buf, sizeof(buf), utf8_parser)) > 0) {
       vt_term_preedit(term, buf, len);
     }
   }
@@ -946,6 +968,8 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   /* ShiftMask is not set without this. (see insertText()) */
   currentShiftMask = flags & NSShiftKeyMask;
 
+  NSString *oldMarkedText = markedText;
+
   /* Alt+x isn't interpreted unless preediting. */
   if (markedText || !(flags & NSAlternateKeyMask) ||
       (flags & NSControlKeyMask)) {
@@ -954,7 +978,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
   if (ignoreKeyDown) {
     ignoreKeyDown = FALSE;
-  } else if (!markedText) {
+  } else if (!oldMarkedText && !markedText) {
     XKeyEvent kev;
 
     kev.type = UI_KEY_PRESS;
@@ -1043,20 +1067,23 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
 - (NSRect)firstRectForCharacterRange:(NSRange)range
                          actualRange:(NSRangePointer)actualRange {
-  int x;
-  int y;
+  int x = cand_x + uiwindow->x + uiwindow->hmargin;
+  int y = ACTUAL_HEIGHT(uiwindow->parent) - (cand_y + uiwindow->y + uiwindow->vmargin);
 
-  if (!uiwindow->xim_listener ||
-      !(*uiwindow->xim_listener->get_spot)(uiwindow->xim_listener->self, &x,
-                                          &y)) {
-    x = y = 0;
+  if (vt_term_get_vertical_mode(((ui_screen_t*)uiwindow)->term)) {
+    /*
+     * XXX Adjust candidate window position.
+     *
+     * +-+-+------
+     * | |1|ABCDE
+     *
+     * <-->^
+     *  25 x
+     */
+    x += 25;
   }
 
-  x += (uiwindow->x + uiwindow->hmargin);
-  y += (uiwindow->y + uiwindow->vmargin);
-
-  NSRect r = NSMakeRect(x, ACTUAL_HEIGHT(uiwindow->parent) - y,
-                        ui_col_width((ui_screen_t *)uiwindow),
+  NSRect r = NSMakeRect(x, y, ui_col_width((ui_screen_t *)uiwindow),
                         ui_line_height((ui_screen_t *)uiwindow));
   r.origin = [[self window] convertBaseToScreen:r.origin];
 
@@ -1129,6 +1156,13 @@ static ui_window_t *get_current_window(ui_window_t *win) {
                                  selectedRange.location + selectedRange.length,
                                  [string length] - selectedRange.location -
                                      selectedRange.length)] UTF8String]);
+    }
+
+    if (!markedText) {
+      if (!uiwindow->xim_listener ||
+          !(*uiwindow->xim_listener->get_spot)(uiwindow->xim_listener->self, &cand_x, &cand_y)) {
+        cand_x = cand_y = 0;
+      }
     }
 
     update_ime_text(uiwindow, p, markedText ? markedText.UTF8String : NULL);
@@ -1310,16 +1344,14 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     int y;
 
     if (!uiwindow->xim_listener ||
-        !(*uiwindow->xim_listener->get_spot)(uiwindow->xim_listener->self, &x,
-                                            &y)) {
+        !(*uiwindow->xim_listener->get_spot)(uiwindow->xim_listener->self, &x, &y)) {
       x = y = 0;
     }
 
     x += (uiwindow->hmargin);
     y += (uiwindow->vmargin);
 
-    [self
-        setNeedsDisplayInRect:NSMakeRect(x, ACTUAL_HEIGHT(uiwindow) - y, 1, 1)];
+    [self setNeedsDisplayInRect:NSMakeRect(x, ACTUAL_HEIGHT(uiwindow) - y, 1, 1)];
   }
 }
 

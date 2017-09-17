@@ -26567,13 +26567,12 @@ OUTPUT_FILES="Makefile vtemu/Makefile vtemu/libctl/Makefile uitoolkit/libtype/Ma
 if test "${enable_ind+set}" = set; then :
   enableval=$enable_ind; ind=$enable_ind
 else
+  ind="yes"
+fi
 
-	if test "$gui" = "quartz" ; then
-		ind="no"
-	else
-		ind="yes"
-	fi
-
+if test "$gui" = "quartz" -o "$gui" = "console"; then
+	IND_CFLAGS="-DNOT_CONVERT_TO_ISCII"
+	ind="no"
 fi
 
 if test "$ind" = "yes" ; then

@@ -24,30 +24,7 @@
 
 #include "ui_display.h"
 
-#define DIVIDE_ROUNDING(a, b) (((int)((a)*10 + (b)*5)) / ((int)((b)*10)))
 #define DIVIDE_ROUNDINGUP(a, b) (((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)))
-
-#ifdef WORDS_BIGENDIAN
-#define _TOINT32(p, is_be) ((is_be) ? TOINT32(p) : LE32DEC(p))
-#define _TOINT16(p, is_be) ((is_be) ? TOINT16(p) : LE16DEC(p))
-#else
-#define _TOINT32(p, is_be) ((is_be) ? BE32DEC(p) : TOINT32(p))
-#define _TOINT16(p, is_be) ((is_be) ? BE16DEC(p) : TOINT16(p))
-#endif
-
-#define PCF_PROPERTIES (1 << 0)
-#define PCF_ACCELERATORS (1 << 1)
-#define PCF_METRICS (1 << 2)
-#define PCF_BITMAPS (1 << 3)
-#define PCF_INK_METRICS (1 << 4)
-#define PCF_BDF_ENCODINGS (1 << 5)
-#define PCF_SWIDTHS (1 << 6)
-#define PCF_GLYPH_NAMES (1 << 7)
-#define PCF_BDF_ACCELERATORS (1 << 8)
-
-#define MAX_GLYPH_TABLES 512
-#define GLYPH_TABLE_SIZE 128
-#define INITIAL_GLYPH_INDEX_TABLE_SIZE 0x1000
 
 #if 0
 #define __DEBUG
@@ -108,6 +85,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   font->height = font->display->line_height;
   font->ascent = 0;
 
+  /* x_off is *not* divided by 2 => see draw_string() in ui_window.c */
+
   if (col_width == 0) {
     /* standard(usascii) font */
 
@@ -117,7 +96,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
        * The width of full and half character font is the same.
        */
 
-      font->x_off = font->width / 2;
+      font->x_off = font->width /* / 2 */;
       font->width *= 2;
     }
 
@@ -125,7 +104,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 #if 0
     if (letter_space > 0) {
       font->width += letter_space;
-      font->x_off += (letter_space / 2);
+      font->x_off += (letter_space /* / 2 */);
     }
 #endif
   } else {
@@ -154,7 +133,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 #endif
         {
           if (font->width < col_width) {
-            font->x_off = (col_width - font->width) / 2;
+            font->x_off = (col_width - font->width) /* / 2 */;
           }
 
           font->width = col_width;
@@ -169,7 +148,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
         if (!font->is_var_col_width) {
           if (font->width < col_width * font->cols) {
-            font->x_off = (col_width * font->cols - font->width) / 2;
+            font->x_off = (col_width * font->cols - font->width) /* / 2 */;
           }
 
           font->width = col_width * font->cols;

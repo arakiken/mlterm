@@ -50,9 +50,13 @@ static ef_parser_t *utf16_parser;
 static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_int height,
                          int dst_x, int dst_y) {
   int top;
+  int top_c;
   int bottom;
+  int bottom_c;
   int left;
+  int left_c;
   int right;
+  int right_c;
 
   if (!win->is_mapped || !ui_window_is_scrollable(win)) {
     return 0;
@@ -66,6 +70,9 @@ static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_
     bottom = src_y + height;
   }
 
+  top_c = (top + win->y) / LINE_HEIGHT;
+  bottom_c = (bottom + win->y) / LINE_HEIGHT;
+
   if (src_x < dst_x) {
     left = src_x;
     right = dst_x + width;
@@ -74,21 +81,33 @@ static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_
     right = src_x + width;
   }
 
-  fprintf(win->disp->display->fp, "\x1b[%d;%dr", (top + win->y) / LINE_HEIGHT + 1,
-          (bottom + win->y) / LINE_HEIGHT);
-  fprintf(win->disp->display->fp, "\x1b[?69h\x1b[%d;%ds", (left + win->x) / COL_WIDTH + 1,
-          (right + win->x) / COL_WIDTH);
+  left_c = (left + win->x) / COL_WIDTH;
+  right_c = (right + win->x) / COL_WIDTH;
+
+  fprintf(win->disp->display->fp, "\x1b[%d;%dr", top_c + 1, bottom_c);
+  fprintf(win->disp->display->fp, "\x1b[?69h\x1b[%d;%ds", left_c + 1, right_c);
 
 /* XXX for mlterm-3.7.1 or before */
 #if 1
-  fprintf(win->disp->display->fp, "\x1b[%d;%dH", (top + win->y) / LINE_HEIGHT + 1,
-          (left + win->x) / COL_WIDTH + 1);
+  fprintf(win->disp->display->fp, "\x1b[%d;%dH", top_c + 1, left_c + 1);
 #endif
 
   if (src_y < dst_y) {
     fprintf(win->disp->display->fp, "\x1b[%dT", (dst_y - src_y) / LINE_HEIGHT);
-  } else {
+  } else if (src_y > dst_y) {
     fprintf(win->disp->display->fp, "\x1b[%dS", (src_y - dst_y) / LINE_HEIGHT);
+  }
+
+  if (src_x < dst_x) {
+    int len = (dst_x - src_x) / COL_WIDTH;
+    for (; top_c < bottom_c; top_c++) {
+      fprintf(win->disp->display->fp, "\x1b[%d;%dH\x1b[%d@", top_c + 1, left_c + 1, len);
+    }
+  } else if (src_x > dst_x) {
+    int len = (src_x - dst_x) / COL_WIDTH;
+    for (; top_c < bottom_c; top_c++) {
+      fprintf(win->disp->display->fp, "\x1b[%d;%dH\x1b[%dP", top_c + 1, left_c + 1, len);
+    }
   }
 
   fprintf(win->disp->display->fp, "\x1b[r\x1b[?69l");
@@ -171,7 +190,7 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 
       parser = utf16_parser;
       (*parser->init)(parser);
-      (*parser->set_str)(parser, str, len *ch_len);
+      (*parser->set_str)(parser, str, len * ch_len);
     } else {
       if (!cp_parser) {
         cp_parser = ef_codepoint_parser_new();
@@ -189,6 +208,25 @@ static int draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       str = str2;
     }
   } else {
+    /*
+     * XXX
+     * Padding white space by font->x_off is processed only if ch_len == 1 for now.
+     * font->x_off is calculated by the right-justified in ui_font.c.
+     */
+    if (font->x_off >= font->width / 2) {
+      if (str2 = alloca(len * 2)) {
+        u_int count;
+
+        for (count = 0; count < len; count++) {
+          str2[count * 2] = str[count];
+          str2[count * 2 + 1] = ' ';
+        }
+
+        len *= 2;
+        str = str2;
+      }
+    }
+
     len *= ch_len;
   }
 

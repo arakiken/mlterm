@@ -30,6 +30,7 @@ ver 3.8.3
   Fix segfault when mlterm exits after having reconnected to ssh server automatically.
   Fix segfault in using input method plugins (except ibus) on wayland.
   Fix unexpected fallback to "DEFAULT" font in DECDHL or DECDWL lines.
+  Fix screen corruption of libvte compatible library in operating multiple tabs on wayland.
 
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)

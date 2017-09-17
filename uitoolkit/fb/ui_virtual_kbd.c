@@ -146,12 +146,12 @@ static int lock_state;
 
 static int update_state(u_int ksym) {
   if (ksym == XK_Alt_L || ksym == XK_Alt_R) {
-    if (state & ModMask) {
-      state &= ~ModMask;
+    if (state & Mod1Mask) {
+      state &= ~Mod1Mask;
 
       return -1;
     } else {
-      state |= ModMask;
+      state |= Mod1Mask;
 
       return 1;
     }

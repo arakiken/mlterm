@@ -207,7 +207,7 @@ static void process_wskbd_event(struct wscons_event *ev) {
     } else if (ksym == KS_Control_R || ksym == KS_Control_L) {
       _display.key_state |= ControlMask;
     } else if (ksym == KS_Alt_R || ksym == KS_Alt_L) {
-      _display.key_state |= ModMask;
+      _display.key_state |= Mod1Mask;
     } else if (ksym == KS_Mode_switch) {
       wskbd_mode_switch = 1;
     } else if (ksym == KS_Num_Lock) {
@@ -233,7 +233,7 @@ static void process_wskbd_event(struct wscons_event *ev) {
     } else if (ksym == KS_Control_R || ksym == KS_Control_L) {
       _display.key_state &= ~ControlMask;
     } else if (ksym == KS_Alt_R || ksym == KS_Alt_L) {
-      _display.key_state &= ~ModMask;
+      _display.key_state &= ~Mod1Mask;
     } else if (ksym == KS_Mode_switch) {
       wskbd_mode_switch = 0;
     } else if (ev->value == prev_key_event.value) {

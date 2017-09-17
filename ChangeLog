@@ -1,3 +1,42 @@
+2017-09-17  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: Common processing in get_spot() and get_im_spot() is separated to
+	  get_spot_intern().
+
+	* console/ui_font.c, console/ui_window.c:
+	  - White spaces are inserted between ASCII characters in vertical mode.
+	  - scroll_region() can scroll screen leftward or rightward.
+
+	* vt_term.c: NOT_CONVERT_TO_ISCII macro which is defined on console and cocoa
+	  disables CONVERT_UNICODE_TO_ISCII.
+
+	* cocoa.m:
+	  - cand_x and cand_y which stores the initial position of preediting
+	    to determine the position of candidate window are added to MLTermView.
+	  - font->x_off is reflected in drawUnistr().
+	  - ui_screen_t::is_preediting = 1 in preediting.
+
+	* quartz/ui_font.c: font->x_off is set in vertical mode.
+
+	* im_fcitx.c: Alt+Backspace => Alt+Control+h, Control+[ => Escape in key_event().
+
+	* */ui_display.c, fb/ui_display_*.c: Pressing alt key sets Mod1Mask instead of ModMask.
+
+	* fb/ui_display_freebsd.c: XButtonEvent::button is set if event type is ButtonRelease.
+
+	* wayland/ui_display.c:
+	  - "if (!display->buffer)" is added to ui_display_copy_lines().
+	  - XButtonEvent::button is set if event type is ButtonRelease.
+
+	* ui_im_{candidate|status}_screen.c:
+	  - ui_window_t::disp::display::parent is used to get size of the
+	    display on wayland.
+	  - "cand_screen->num_of_candidates > 0" is checked before calling draw_screen()
+	    in window_exposed().
+
+	* vt_logical_visual.c: Modified area conversion from logical to visual in
+	  vert_visual_intern() is fixed.
+
 2017-09-12  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_im_candidate_screen.c: Unexpectedly wide candidate screen in vertical mode

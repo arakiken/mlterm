@@ -526,7 +526,7 @@ static int receive_key_event(void) {
         _display.key_state |= ControlMask;
       } else if (xev.ksym == XK_Alt_R || xev.ksym == XK_Alt_L || xev.ksym == XK_Meta_R ||
                  xev.ksym == XK_Meta_L) {
-        _display.key_state |= ModMask;
+        _display.key_state |= Mod1Mask;
       } else if (xev.ksym == XK_Num_Lock) {
         _display.lock_state ^= NLKED;
       } else if (xev.ksym == XK_Caps_Lock) {
@@ -550,7 +550,7 @@ static int receive_key_event(void) {
         _display.key_state &= ~ControlMask;
       } else if (xev.ksym == XK_Alt_R || xev.ksym == XK_Alt_L || xev.ksym == XK_Meta_R ||
                  xev.ksym == XK_Meta_L) {
-        _display.key_state &= ~ModMask;
+        _display.key_state &= ~Mod1Mask;
       }
     }
   }
