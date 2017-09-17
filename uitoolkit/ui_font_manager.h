@@ -81,4 +81,6 @@ int ui_set_use_italic_font(ui_font_manager_t *font_man, int use_italic_font);
 
 ef_charset_t ui_get_usascii_font_cs(vt_char_encoding_t encoding);
 
+#define ui_font_manager_dump_font_config(font_man) ui_font_config_dump((font_man)->font_config)
+
 #endif

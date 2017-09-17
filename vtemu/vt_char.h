@@ -27,7 +27,7 @@
 /* For inline pictures (see x_picture.c) */
 #define PICTURE_CHARSET 0x1ff
 #define PICTURE_ID_BITS 9   /* fg or bg color */
-#define PICTURE_POS_BITS 23 /* code */
+#define PICTURE_POS_BITS 23 /* code (Can be shrunk to 21 bits) */
 
 typedef enum {
   UNDERLINE_NONE,
@@ -71,7 +71,7 @@ typedef struct vt_char {
  * 1 bit : is_single_ch(0 or 1)
  */
 #ifdef WORDS_BIGENDIAN
-      u_int code : 23;
+      u_int code : 23; /* Can be shrunk to 21 bits (Unicode: 0-10FFFF) */
       u_int fg_color : 9;
       u_int bg_color : 9;
       u_int attr : 23;
@@ -79,7 +79,7 @@ typedef struct vt_char {
       u_int attr : 23;
       u_int fg_color : 9;
       u_int bg_color : 9;
-      u_int code : 23;
+      u_int code : 23; /* Can be shrunk to 21 bits (Unicode: 0-10FFFF) */
 #endif
     } ch;
 
@@ -94,6 +94,8 @@ typedef struct vt_char {
 } vt_char_t;
 
 int vt_set_use_multi_col_char(int use_it);
+
+int vt_get_unicode_area(vt_font_t font, int *min, int *max);
 
 vt_font_t vt_get_unicode_area_font(u_int32_t min, u_int32_t max);
 

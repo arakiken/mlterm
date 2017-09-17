@@ -46,7 +46,9 @@ char *ui_get_config_font_name(ui_font_config_t *font_config, u_int font_size, vt
 
 char *ui_get_config_font_name2(const char *file, u_int font_size, char *font_cs);
 
-char *ui_get_all_config_font_names(ui_font_config_t *font_config, u_int font_size);
+char *ui_get_config_font_names_all(ui_font_config_t *font_config, u_int font_size);
+
+char *ui_font_config_dump(ui_font_config_t *font_config);
 
 char *ui_get_charset_name(ef_charset_t cs);
 

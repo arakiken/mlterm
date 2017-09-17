@@ -4066,14 +4066,10 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
   } else if (strcmp(key, "sb_fg_color") == 0) {
     if (screen->screen_scroll_listener && screen->screen_scroll_listener->fg_color) {
       value = (*screen->screen_scroll_listener->fg_color)(screen->screen_scroll_listener->self);
-    } else {
-      value = NULL;
     }
   } else if (strcmp(key, "sb_bg_color") == 0) {
     if (screen->screen_scroll_listener && screen->screen_scroll_listener->bg_color) {
       value = (*screen->screen_scroll_listener->bg_color)(screen->screen_scroll_listener->self);
-    } else {
-      value = NULL;
     }
   } else if (strcmp(key, "hide_underline") == 0) {
     if (screen->hide_underline) {
@@ -4102,8 +4098,6 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
   } else if (strcmp(key, "scrollbar_view_name") == 0) {
     if (screen->screen_scroll_listener && screen->screen_scroll_listener->view_name) {
       value = (*screen->screen_scroll_listener->view_name)(screen->screen_scroll_listener->self);
-    } else {
-      value = NULL;
     }
   } else if (strcmp(key, "mod_meta_key") == 0) {
     if (screen->mod_meta_key == NULL) {
@@ -4239,6 +4233,14 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
       value = "true";
     } else {
       value = "false";
+    }
+  } else if (strcmp(key, "fontconfig") == 0) {
+    if (to_menu <= 0) {
+      char *list = ui_font_manager_dump_font_config(screen->font_man);
+      vt_term_response_config(screen->term, list, NULL, -1);
+      free(list);
+
+      return;
     }
   }
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
