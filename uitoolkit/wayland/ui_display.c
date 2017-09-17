@@ -517,7 +517,7 @@ static void keyboard_modifiers(void *data, struct wl_keyboard *keyboard,
   if (mod_mask & (1 << wlserv->xkb->ctrl))
     wlserv->xkb->mods |= ControlMask;
   if (mod_mask & (1 << wlserv->xkb->alt))
-    wlserv->xkb->mods |= ModMask;
+    wlserv->xkb->mods |= Mod1Mask; /* XXX ModMask disables yourei by Ctrl+Alt+H on fcitx */
   if (mod_mask & (1 << wlserv->xkb->shift))
     wlserv->xkb->mods |= ShiftMask;
 #if 0
@@ -753,11 +753,13 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
       } else {
         return;
       }
+
+      wlserv->pointer_button = ev.button;
     } else {
       ev.type = ButtonRelease;
-      ev.button = 0;
+      ev.button = wlserv->pointer_button;
+      wlserv->pointer_button = 0;
     }
-    wlserv->pointer_button = ev.button;
     ev.time = time;
     ev.state = wlserv->xkb->mods;
 
@@ -2139,6 +2141,12 @@ void ui_display_copy_lines(ui_display_t *disp, int src_x, int src_y, int dst_x, 
   u_int copy_len;
   u_int count;
   size_t line_length;
+
+#ifdef COMPAT_LIBVTE
+  if (!display->buffer) {
+    return;
+  }
+#endif
 
   if (rotate_display) {
     int tmp;

@@ -497,6 +497,31 @@ static u_int vert_logical_rows(vt_logical_visual_t *logvis) {
 
 static int vert_render(vt_logical_visual_t *logvis) { return 1; }
 
+static void vert_set_modified(vt_line_t *vis_line, vt_line_t *log_line, int log_char_index) {
+  /*
+   * a:hankaku AA:zenkaku
+   *
+   * 012 3     0 1
+   * 012345    0123
+   * abAABB => AABB  : change_beg_col=0, change_end_col=3, beg_of_modified=0, end_of_modified=1
+   *
+   * 0 aa   => AA : should be redraw from 0 column to 3 column
+   * 1 bb      BB
+   * 2 AA
+   * 3 BB
+   *
+   *    ||
+   *
+   * call vt_line_set_modified() from vt_line_get_beg_of_modified(log_line) to
+   * log_line->change_end_col.
+   */
+  if (vt_line_is_modified(log_line) && vt_line_get_beg_of_modified(log_line) <= log_char_index &&
+      (vt_line_is_cleared_to_end(log_line) || log_char_index <= log_line->change_end_col)) {
+    vt_line_set_modified(vis_line, vis_line->num_of_filled_chars - 1,
+                         vis_line->num_of_filled_chars - 1);
+  }
+}
+
 static int vert_visual_intern(vt_logical_visual_t *logvis, vt_vertical_mode_t mode) {
   vert_logical_visual_t *vert_logvis;
   vt_line_t *log_line;
@@ -562,27 +587,19 @@ static int vert_visual_intern(vt_logical_visual_t *logvis, vt_vertical_mode_t mo
       vt_char_copy(vt_char_at(vis_line, vis_line->num_of_filled_chars++),
                    vt_char_at(log_line, row));
 
-      if (vt_line_is_modified(log_line) && vt_line_get_beg_of_modified(log_line) <= row &&
-          (vt_line_is_cleared_to_end(log_line) || row <= vt_line_get_end_of_modified(log_line))) {
-        vt_line_set_modified(vis_line, vis_line->num_of_filled_chars - 1,
-                             vis_line->num_of_filled_chars - 1);
-      }
+      vert_set_modified(vis_line, log_line, row);
     }
 
     for (; row < vert_logvis->visual_model.num_of_rows; row++) {
       vis_line = vt_model_get_line(&vert_logvis->visual_model, row);
 
-      if (vis_line == NULL || vis_line->num_of_filled_chars + 1 > vis_line->num_of_chars) {
+      if (vis_line == NULL || vis_line->num_of_filled_chars >= vis_line->num_of_chars) {
         continue;
       }
 
       vt_char_copy(vt_char_at(vis_line, vis_line->num_of_filled_chars++), vt_sp_ch());
 
-      if (vt_line_is_modified(log_line) && vt_line_get_beg_of_modified(log_line) <= row &&
-          (vt_line_is_cleared_to_end(log_line) || row <= vt_line_get_end_of_modified(log_line))) {
-        vt_line_set_modified(vis_line, vis_line->num_of_filled_chars - 1,
-                             vis_line->num_of_filled_chars - 1);
-      }
+      vert_set_modified(vis_line, log_line, row);
     }
   }
 

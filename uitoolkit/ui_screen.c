@@ -168,7 +168,7 @@ static int convert_char_index_to_x(
   return x;
 }
 
-static int convert_char_index_to_ui_with_shape(ui_screen_t *screen, vt_line_t *line,
+static int convert_char_index_to_x_with_shape(ui_screen_t *screen, vt_line_t *line,
                                                int char_index) {
   vt_line_t *orig;
   int x;
@@ -4529,14 +4529,14 @@ static void line_scrolled_out(void *p) {
  * callbacks of ui_xim events.
  */
 
-/*
- * this doesn't consider backscroll mode.
- */
-static int get_spot(void *p, int *x, int *y) {
-  ui_screen_t *screen;
+static int get_spot_intern(ui_screen_t *screen, vt_char_t *chars, int segment_offset,
+                           int return_line_bottom, int ignore_vertical_mode, int *x, int *y) {
   vt_line_t *line;
+  vt_char_t *comb_chars;
+  u_int comb_size;
+  int i;
 
-  screen = p;
+  *x = *y = 0;
 
   if ((line = vt_term_get_cursor_line(screen->term)) == NULL || vt_line_is_empty(line)) {
 #ifdef DEBUG
@@ -4546,20 +4546,92 @@ static int get_spot(void *p, int *x, int *y) {
     return 0;
   }
 
-  *y = convert_row_to_y(screen, vt_term_cursor_row(screen->term))
-/* XXX */
-#ifndef  XIM_SPOT_IS_LINE_TOP
-       + ui_line_height(screen)
-#endif
-      ;
+  if (!vt_term_get_vertical_mode(screen->term) || ignore_vertical_mode) {
+    int row;
 
-  *x = convert_char_index_to_ui_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
+    if ((row = vt_term_cursor_row_in_screen(screen->term)) < 0) {
+      return 0;
+    }
 
-#ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " xim spot => x %d y %d\n", *x, *y);
-#endif
+    *x = convert_char_index_to_x_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
+    *y = convert_row_to_y(screen, row);
+    if (return_line_bottom) {
+      *y += ui_line_height(screen);
+    }
+
+    if (segment_offset > 0) {
+      ui_font_manager_set_attr(screen->font_man, line->size_attr,
+                               vt_line_has_ot_substitute_glyphs(line));
+
+      i = 0;
+      do {
+        u_int width;
+
+        width = ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(&chars[i])),
+                                          &chars[i], NULL);
+
+        *x += width;
+        if (*x >= screen->width) {
+          *x = 0;
+          *y += ui_line_height(screen);
+        }
+
+        /* not count combining characters */
+        comb_chars = vt_get_combining_chars(&chars[i], &comb_size);
+        if (comb_chars) {
+          i += comb_size;
+        }
+      } while (++i < segment_offset);
+    }
+  } else {
+    *x = convert_char_index_to_x_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
+    *y = convert_row_to_y(screen, vt_term_cursor_row(screen->term));
+    *x += ui_col_width(screen);
+
+    if (segment_offset > 0) {
+      int width;
+      u_int height;
+
+      width = ui_col_width(screen);
+      if (vt_term_get_vertical_mode(screen->term) == VERT_RTL) {
+        width = -width;
+      }
+
+      height = ui_line_height(screen);
+
+      i = 0;
+      do {
+        *y += height;
+        if (*y >= screen->height) {
+          *x += width;
+          *y = 0;
+        }
+
+        /* not count combining characters */
+        comb_chars = vt_get_combining_chars(&chars[i], &comb_size);
+        if (comb_chars) {
+          i += comb_size;
+        }
+      } while (++i < segment_offset);
+    }
+  }
 
   return 1;
+}
+
+/*
+ * this doesn't consider backscroll mode.
+ */
+static int get_spot(void *p, int *x, int *y) {
+#ifndef  XIM_SPOT_IS_LINE_TOP
+#ifdef USE_QUARTZ
+  return get_spot_intern(p, NULL, 0, 1, 0, x, y);
+#else
+  return get_spot_intern(p, NULL, 0, 1, 1, x, y);
+#endif
+#else
+  return get_spot_intern(p, NULL, 0, 0, 1, x, y);
+#endif
 }
 
 static XFontSet get_fontset(void *p) {
@@ -4591,88 +4663,11 @@ static ui_color_t *get_bg_color(void *p) {
  */
 
 static int get_im_spot(void *p, vt_char_t *chars, int segment_offset, int *x, int *y) {
-  ui_screen_t *screen;
-  vt_line_t *line;
-  vt_char_t *comb_chars;
-  u_int comb_size;
-  int i;
+  ui_screen_t *screen = p;
   Window unused;
 
-  screen = p;
-
-  *x = *y = 0;
-
-  if ((line = vt_term_get_cursor_line(screen->term)) == NULL || vt_line_is_empty(line)) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist ?.\n");
-#endif
-
+  if (!get_spot_intern(screen, chars, segment_offset, 1, 0, x, y)) {
     return 0;
-  }
-
-  if (!vt_term_get_vertical_mode(screen->term)) {
-    int row;
-
-    if ((row = vt_term_cursor_row_in_screen(screen->term)) < 0) {
-      return 0;
-    }
-
-    *x = convert_char_index_to_ui_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
-    *y = convert_row_to_y(screen, row);
-    *y += ui_line_height(screen);
-  } else {
-    *x = convert_char_index_to_ui_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
-    *y = convert_row_to_y(screen, vt_term_cursor_row(screen->term));
-    *x += ui_col_width(screen);
-  }
-
-  if (!vt_term_get_vertical_mode(screen->term)) {
-    ui_font_manager_set_attr(screen->font_man, line->size_attr,
-                             vt_line_has_ot_substitute_glyphs(line));
-    for (i = 0; i < segment_offset; i++) {
-      u_int width;
-
-      width = ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(&chars[i])),
-                                        &chars[i], NULL);
-
-      if (*x + width > screen->width) {
-        *x = 0;
-        *y += ui_line_height(screen);
-      }
-      *x += width;
-
-      /* not count combining characters */
-      comb_chars = vt_get_combining_chars(&chars[i], &comb_size);
-      if (comb_chars) {
-        i += comb_size;
-      }
-    }
-  } else /* vertical_mode */
-  {
-    int width;
-    u_int height;
-    int sign = 1;
-
-    if (vt_term_get_vertical_mode(screen->term) == VERT_RTL) {
-      sign = -1;
-    }
-
-    width = ui_col_width(screen);
-    height = ui_line_height(screen);
-
-    for (i = 0; i < segment_offset; i++) {
-      *y += height;
-      if (*y >= screen->height) {
-        *x += width *sign;
-        *y = 0;
-      }
-
-      /* not count combining characters */
-      comb_chars = vt_get_combining_chars(&chars[i], &comb_size);
-      if (comb_chars) {
-        i += comb_size;
-      }
-    }
   }
 
   ui_window_translate_coordinates(&screen->window, *x + screen->window.hmargin,
@@ -4762,7 +4757,7 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
   }
   end_row = beg_row;
 
-  x = convert_char_index_to_ui_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
+  x = convert_char_index_to_x_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
   y = convert_row_to_y(screen, vt_term_cursor_row_in_screen(screen->term));
 
   preedit_cursor_x = x;

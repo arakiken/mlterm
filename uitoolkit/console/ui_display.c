@@ -257,7 +257,7 @@ static int get_key_state(void) {
   } else {
     /* ShiftMask and ControlMask is the same. */
 
-    return state | ((state & (1 << KG_ALT)) ? ModMask : 0);
+    return state | ((state & (1 << KG_ALT)) ? Mod1Mask : 0);
   }
 }
 #else
@@ -480,7 +480,7 @@ static int parse_modify_other_keys(XKeyEvent *kev, const char *param, const char
       kev->state |= ShiftMask;
     }
     if (modcode & (2 | 8)) {
-      kev->state |= ModMask;
+      kev->state |= Mod1Mask;
     }
     if (modcode & 4) {
       kev->state |= ControlMask;
@@ -633,6 +633,8 @@ static int receive_stdin_event(ui_display_t *disp) {
           bev.button = (state & 0x2) + 1;
           if (bev.type == MotionNotify) {
             bev.state = Button1Mask << (bev.button - 1);
+          } else {
+            bev.state = 0;
           }
 
           bev.x--;
@@ -646,7 +648,6 @@ static int receive_stdin_event(ui_display_t *disp) {
 
           gettimeofday(&tv, NULL);
           bev.time = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-          bev.state = 0;
 
           set_blocking(fileno(disp->display->fp), 1);
           ui_window_receive_event(win, &bev);
@@ -788,7 +789,7 @@ static int receive_stdin_event(ui_display_t *disp) {
           kev.state |= ShiftMask;
         }
         if (state & 0x2) {
-          kev.state |= ModMask;
+          kev.state |= Mod1Mask;
         }
         if (state & 0x4) {
           kev.state |= ControlMask;

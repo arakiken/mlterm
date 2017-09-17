@@ -42,6 +42,12 @@
 
 #define INVALID_INDEX (cand_screen->num_of_candidates)
 
+#ifdef USE_WAYLAND
+#define DISPLAY(cand_screen) ((cand_screen)->window.disp->display->parent)
+#else
+#define DISPLAY(cand_screen) ((cand_screen)->window.disp)
+#endif
+
 /* --- static variables --- */
 
 /* --- static functions --- */
@@ -123,20 +129,27 @@ static u_int total_candidate_width(ui_font_manager_t *font_man, ui_im_candidate_
   return total_width;
 }
 
-#ifdef USE_WAYLAND
-#define adjust_window_position_by_size(cand_screen, x, y) (0)
-#else
 static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen, int *x, int *y) {
-  if (*x + ACTUAL_WIDTH(&cand_screen->window) > cand_screen->window.disp->width) {
+#ifdef USE_WAYLAND
+  if (ACTUAL_WIDTH(&cand_screen->window) > DISPLAY(cand_screen)->width) {
+    /* do nothing */
+  } else
+#endif
+  if (*x + ACTUAL_WIDTH(&cand_screen->window) > DISPLAY(cand_screen)->width) {
     if (cand_screen->is_vertical_term) {
       /* ui_im_candidate_screen doesn't know column width. */
       *x -= (ACTUAL_WIDTH(&cand_screen->window) + cand_screen->line_height);
     } else {
-      *x = cand_screen->window.disp->width - ACTUAL_WIDTH(&cand_screen->window);
+      *x = DISPLAY(cand_screen)->width - ACTUAL_WIDTH(&cand_screen->window);
     }
   }
 
-  if (*y + ACTUAL_HEIGHT(&cand_screen->window) > cand_screen->window.disp->height) {
+#ifdef USE_WAYLAND
+  if (ACTUAL_HEIGHT(&cand_screen->window) > DISPLAY(cand_screen)->height) {
+    /* do nothing */
+  } else
+#endif
+  if (*y + ACTUAL_HEIGHT(&cand_screen->window) > DISPLAY(cand_screen)->height) {
     *y -= ACTUAL_HEIGHT(&cand_screen->window);
 
     if (!cand_screen->is_vertical_term) {
@@ -144,7 +157,6 @@ static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen
     }
   }
 }
-#endif
 
 static void resize(ui_im_candidate_screen_t *cand_screen, u_int width, u_int height) {
   if (ui_window_resize(&cand_screen->window, width, height, 0)) {
@@ -524,7 +536,7 @@ static void draw_screen(ui_im_candidate_screen_t *cand_screen, u_int old_index, 
   }
 }
 
-static void adjust_window_ui_position(ui_im_candidate_screen_t *cand_screen, int *x) {
+static void adjust_window_x_position(ui_im_candidate_screen_t *cand_screen, int *x) {
   u_int top;
   u_int last;
   u_int num_of_digits;
@@ -581,7 +593,7 @@ static int hide(ui_im_candidate_screen_t *cand_screen) {
 }
 
 static int set_spot(ui_im_candidate_screen_t *cand_screen, int x, int y) {
-  adjust_window_ui_position(cand_screen, &x);
+  adjust_window_x_position(cand_screen, &x);
   cand_screen->x = x;
   cand_screen->y = y;
 
@@ -795,7 +807,10 @@ static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int he
 
   cand_screen = (ui_im_candidate_screen_t *)win;
 
-  draw_screen(cand_screen, INVALID_INDEX, 0);
+  if (cand_screen->num_of_candidates > 0) {
+    draw_screen(cand_screen, INVALID_INDEX, 0);
+  }
+
   cand_screen->need_redraw = 0;
 
   /* draw border (margin area has been already cleared in ui_window.c) */

@@ -17,29 +17,41 @@
 #define LINE_SPACE 2
 #endif
 
+#ifdef USE_WAYLAND
+#define DISPLAY(stat_screen) ((stat_screen)->window.disp->display->parent)
+#else
+#define DISPLAY(stat_screen) ((stat_screen)->window.disp)
+#endif
+
 /* --- static functions --- */
 
-#ifdef USE_WAYLAND
-#define adjust_window_position_by_size(screen, x, y) (0)
-#else
 static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, int *x, int *y) {
-  if (*y + ACTUAL_HEIGHT(&stat_screen->window) > stat_screen->window.disp->height) {
+#ifdef USE_WAYLAND
+  if (ACTUAL_HEIGHT(&stat_screen->window) > DISPLAY(stat_screen)->height) {
+    /* do nothing */
+  } else
+#endif
+  if (*y + ACTUAL_HEIGHT(&stat_screen->window) > DISPLAY(stat_screen)->height) {
     *y -= ACTUAL_HEIGHT(&stat_screen->window);
     if (!stat_screen->is_vertical) {
       *y -= stat_screen->line_height;
     }
   }
 
-  if (*x + ACTUAL_WIDTH(&stat_screen->window) > stat_screen->window.disp->width) {
+#ifdef USE_WAYLAND
+  if (ACTUAL_WIDTH(&stat_screen->window) > DISPLAY(stat_screen)->width) {
+    /* do nothing */
+  } else
+#endif
+  if (*x + ACTUAL_WIDTH(&stat_screen->window) > DISPLAY(stat_screen)->width) {
     if (stat_screen->is_vertical) {
       /* ui_im_stat_screen doesn't know column width. */
       *x -= (ACTUAL_WIDTH(&stat_screen->window) + stat_screen->line_height);
     } else {
-      *x = stat_screen->window.disp->width - ACTUAL_WIDTH(&stat_screen->window);
+      *x = DISPLAY(stat_screen)->width - ACTUAL_WIDTH(&stat_screen->window);
     }
   }
 }
-#endif
 
 #ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
 static void reset_screen(ui_window_t *win) {
@@ -77,25 +89,11 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
     u_int width;
     u_int rows;
 
-#ifdef USE_WAYLAND
-    /* XXX Display width and height are unknown on wayland. */
-    u_int num;
-    ui_display_t **disps = ui_get_opened_displays(&num);
-    u_int count;
-
-    max_width = 0;
-    for (count = 0; count < num; count++) {
-      if (max_width < disps[count]->width / 2) {
-        max_width = disps[count]->width / 2;
-      }
+    /* The minimum width of normal display is regarded as 640. */
+    if ((max_width = DISPLAY(stat_screen)->width / 2) < 320) {
+      max_width = 320;
     }
 
-    if (max_width == 0) {
-      max_width = 0xffffffff;
-    }
-#else
-    max_width = stat_screen->window.disp->width / 2;
-#endif
     tmp_max_width = 0;
     width = 0;
     heads[0] = 0;

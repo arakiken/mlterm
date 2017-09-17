@@ -257,12 +257,16 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
     goto error;
   }
 
+  term->use_ot_layout = use_ot_layout;
+
+#ifndef NOT_CONVERT_TO_ISCII
 #ifdef USE_HARFBUZZ
-  if (!(term->use_ot_layout = use_ot_layout))
+  if (!term->use_ot_layout)
 #endif
   {
     policy |= CONVERT_UNICODE_TO_ISCII;
   }
+#endif
 
   if (!(term->parser = vt_parser_new(term->screen, termcap, encoding, is_auto_encoding,
                                      use_auto_detect, logging_vt_seq, policy, col_size_a,
@@ -479,7 +483,7 @@ int vt_term_detach(vt_term_t *term) {
 }
 
 void vt_term_set_use_ot_layout(vt_term_t *term, int flag) {
-#ifdef USE_HARFBUZZ
+#if defined(USE_HARFBUZZ) && !defined(NOT_CONVERT_TO_ISCII)
   vt_unicode_policy_t policy;
 
   policy = vt_parser_get_unicode_policy(term->parser);

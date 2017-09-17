@@ -292,6 +292,18 @@ static int receive_mouse_event(void) {
         } else {
           xev.type = ButtonRelease;
 
+          if (_mouse.button_state & Button1Mask) {
+            xev.button = Button1;
+          } else if (_mouse.button_state & Button2Mask) {
+            xev.button = Button2;
+          } else if (_mouse.button_state & Button3Mask) {
+            xev.button = Button3;
+          } else if (_mouse.button_state & Button4Mask) {
+            xev.button = Button4;
+          } else if (_mouse.button_state & Button5Mask) {
+            xev.button = Button5;
+          }
+
           /* Reset button_state in releasing button */
           _mouse.button_state = 0;
         }
@@ -411,7 +423,7 @@ static int receive_key_event(void) {
         } else if (kcode == KEY_RIGHTCTRL || kcode == KEY_LEFTCTRL) {
           _display.key_state |= ControlMask;
         } else if (kcode == KEY_RIGHTALT || kcode == KEY_LEFTALT) {
-          _display.key_state |= ModMask;
+          _display.key_state |= Mod1Mask;
         } else if (kcode == KEY_NUMLOCK) {
           _display.lock_state ^= NLKED;
         } else if (kcode == KEY_CAPSLOCK) {
@@ -427,7 +439,7 @@ static int receive_key_event(void) {
         } else if (kcode == KEY_RIGHTCTRL || kcode == KEY_LEFTCTRL) {
           _display.key_state &= ~ControlMask;
         } else if (kcode == KEY_RIGHTALT || kcode == KEY_LEFTALT) {
-          _display.key_state &= ~ModMask;
+          _display.key_state &= ~Mod1Mask;
         }
       }
     }

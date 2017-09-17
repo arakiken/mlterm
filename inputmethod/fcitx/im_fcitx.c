@@ -205,8 +205,24 @@ static KeySym native_to_fcitx_ksym(KeySym ksym) {
 
 static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
   im_fcitx_t *fcitx;
+  u_int state;
 
   fcitx = (im_fcitx_t*)im;
+
+#ifdef NO_XKB
+  if (ksym == 0x08 && (event->state & ModMask)) {
+    /* Alt+Backspace => Alt+Control+h (show yourei) */
+    ksym = 'h';
+    state = event->state | ControlMask;
+  } else if (ksym == '[' && (event->state & ControlMask)) {
+    /* Control+[ => Escape (exit yourei) */
+    ksym = XK_Escape;
+    state = event->state & ~ControlMask;
+  } else
+#endif
+  {
+    state = event->state;
+  }
 
   if (event->state & FcitxKeyState_IgnoredMask) {
     /* Is put back in forward_key_event */
@@ -218,7 +234,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 #else
                  event->keycode - 8,
 #endif
-                 event->state, event->type == KeyPress ? FCITX_PRESS_KEY : FCITX_RELEASE_KEY,
+                 state, event->type == KeyPress ? FCITX_PRESS_KEY : FCITX_RELEASE_KEY,
 #ifdef NO_XKB
                  0L /* CurrentTime */
 #else
@@ -226,6 +242,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 #endif
                  )) {
     fcitx->is_enabled = TRUE;
+    event->state = state;
     memcpy(&fcitx->prev_key, event, sizeof(XKeyEvent));
 
     g_main_context_iteration(g_main_context_default(), FALSE);
@@ -516,6 +533,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
 
     (*fcitx->im.listener->get_spot)(fcitx->im.listener->self, fcitx->im.preedit.chars,
                                     fcitx->im.preedit.segment_offset, &x, &y);
+    bl_debug_printf("%d: %d %d\n", fcitx->im.preedit.segment_offset, x, y);
 
     if (fcitx->im.stat_screen == NULL) {
       if (!(fcitx->im.stat_screen = (*syms->ui_im_status_screen_new)(

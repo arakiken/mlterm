@@ -206,7 +206,7 @@ static int process_key_event(int action, int code) {
     else if (code == AKEYCODE_CONTROL_RIGHT || code == AKEYCODE_CONTROL_LEFT) {
       _display.key_state |= ControlMask;
     } else if (code == AKEYCODE_ALT_RIGHT || code == AKEYCODE_ALT_LEFT) {
-      _display.key_state |= ModMask;
+      _display.key_state |= Mod1Mask;
     }
 #if 0
     else if (code == KEY_NUMLOCK) {
@@ -239,7 +239,7 @@ static int process_key_event(int action, int code) {
     } else if (code == AKEYCODE_CONTROL_RIGHT || code == AKEYCODE_CONTROL_LEFT) {
       _display.key_state &= ~ControlMask;
     } else if (code == AKEYCODE_ALT_RIGHT || code == AKEYCODE_ALT_LEFT) {
-      _display.key_state &= ~ModMask;
+      _display.key_state &= ~Mod1Mask;
     }
   }
 
