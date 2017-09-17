@@ -53,8 +53,8 @@ public class MLActivity extends NativeActivity {
                                       String pass, String cmd);
   private native void updateScreen();
   private native void execCommand(int cmd);
-  private native String resumeNative();
-  private native String pauseNative();
+  private native void resumeNative();
+  private native void pauseNative();
 
   private String keyString;
   private View contentView;

@@ -7,15 +7,14 @@
 
 #undef MAX_CHARSET
 #define MAX_CHARSET 0x1ff
-#define FONT_CS(font) ((font)&MAX_CHARSET)
+#define FONT_CS(font) ((font) & MAX_CHARSET)
 #define FONT_STYLES (FONT_BOLD | FONT_ITALIC)
-#define FONT_STYLE_INDEX(font) ((((font)&FONT_STYLES) >> 10) - 1)
-#define HAS_UNICODE_AREA(font) ((font) >= 0x1000)
+#define FONT_STYLE_INDEX(font) ((((font) & FONT_STYLES) >> 10) - 1)
+#define UNICODE_AREA(font) (((font) >> 12) & 0xff)
 #define NORMAL_FONT_OF(cs) (IS_FULLWIDTH_CS(cs) ? (cs) | FONT_FULLWIDTH : (cs))
 #define SIZE_ATTR_FONT(font, size_attr) ((font) | (((int)(size_attr)) << 21))
 #define SIZE_ATTR_OF(font) (((font) >> 21) & 0x3)
 #define NO_SIZE_ATTR(font) ((font) & ~(0x3 << 21))
-#define FONT_WITHOUT_SIZE_ATTR(font) ((font)&0x1fffff)
 #define IS_ISO10646_UCS4(cs) (((cs) & ~CS_REVISION_1(0)) == ISO10646_UCS4_1)
 
 enum {
@@ -42,7 +41,7 @@ typedef enum vt_font {
 #endif
 
   /*
-   * 0x1000 - 0x1ff000 is used for Unicode range mark (see vt_get_unicode_area_font)
+   * 0x1000 - 0xff000 is used for Unicode range mark (see vt_get_unicode_area_font)
    * 0x200000 - 0x700000 is used for size_attr (see ui_font_manager.c)
    */
 

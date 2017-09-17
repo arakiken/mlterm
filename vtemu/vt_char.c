@@ -199,6 +199,20 @@ int vt_set_use_multi_col_char(int use_it) {
   return 1;
 }
 
+int vt_get_unicode_area(vt_font_t font, int *min, int *max) {
+  u_int idx;
+
+  if (/* FONT_CS(font) == ISO10646_UCS4_1 && */ (idx = UNICODE_AREA(font)) &&
+      idx <= num_of_unicode_areas) {
+    *min = unicode_areas[idx - 1].min;
+    *max = unicode_areas[idx - 1].max;
+
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 vt_font_t vt_get_unicode_area_font(u_int32_t min, /* min <= max */
                                    u_int32_t max  /* min <= max */) {
   u_int idx;

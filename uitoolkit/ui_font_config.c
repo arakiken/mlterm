@@ -941,7 +941,7 @@ char *ui_get_config_font_name(ui_font_config_t *font_config, u_int font_size, vt
   static char *new_style[] = {"-bold-", "-i-", "-bold-i-"};
 #endif
 
-  if (HAS_UNICODE_AREA(font)) {
+  if (UNICODE_AREA(font)) {
     font &= ~FONT_FULLWIDTH;
   }
 
@@ -1114,7 +1114,7 @@ char *ui_get_config_font_name2(const char *file, /* can be NULL */
   return font_name;
 }
 
-char *ui_get_all_config_font_names(ui_font_config_t *font_config, u_int font_size) {
+char *ui_get_config_font_names_all(ui_font_config_t *font_config, u_int font_size) {
   BL_PAIR(ui_font_name) * array;
   u_int size;
   char *font_name_list;
@@ -1160,6 +1160,82 @@ char *ui_get_all_config_font_names(ui_font_config_t *font_config, u_int font_siz
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " Font list is %s\n", font_name_list);
 #endif
+
+  return font_name_list;
+}
+
+char *ui_font_config_dump(ui_font_config_t *font_config) {
+  BL_PAIR(ui_font_name) * array;
+  u_int size;
+  char *font_name_list;
+  size_t list_len;
+  char *p;
+  u_int count;
+
+  array = get_font_name_pairs_array(&size, font_config->font_name_table);
+
+  if (size == 0) {
+    return "No font settings";
+  }
+
+  list_len = 0;
+  for (count = 0; count < size; count++) {
+    list_len += (4 /* CSI2J */ + 15 /* ISO10646_UCS4_1, U+10FFFF-10FFFF */ + 12 /* _BOLD_ITALIC */ +
+                 1 /* = */ + strlen(array[count]->value) + 2 /* \r\n or \0 */);
+  }
+
+  if ((font_name_list = malloc(list_len)) == NULL) {
+    return "No font settings";
+  }
+
+  strcpy(font_name_list, "\x1b[2J");
+  p = font_name_list + 4;
+
+  for (count = 0; count < size; count++) {
+    if (FONT_CS(array[count]->key) == DEFAULT_FONT) {
+      strcpy(p, "DEFAULT");
+      p += 7;
+    } else {
+      u_int count2;
+
+      for (count2 = 0; count2 < sizeof(cs_table) / sizeof(cs_table[0]); count2++) {
+        if (FONT_CS(array[count]->key) == cs_table[count2].cs) {
+          int min;
+          int max;
+
+          if (vt_get_unicode_area(array[count]->key, &min, &max)) {
+            sprintf(p, "U+%x-%x", min, max);
+          } else {
+            strcpy(p, cs_table[count2].name);
+          }
+          p += strlen(p);
+
+          goto next_step;
+        }
+      }
+
+      continue;
+    }
+
+  next_step:
+    if (array[count]->key & FONT_BOLD) {
+      strcpy(p, "_BOLD");
+      p += 5;
+    }
+
+    if (array[count]->key & FONT_ITALIC) {
+      strcpy(p, "_ITALIC");
+      p += 7;
+    }
+
+    sprintf(p, "=%s", array[count]->value);
+    p += strlen(p);
+
+    *(p++) = '\r';
+    *(p++) = '\n';
+  }
+
+  *(p - 2) = '\0';
 
   return font_name_list;
 }

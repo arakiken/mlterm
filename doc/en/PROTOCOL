@@ -71,7 +71,8 @@ version 20170717
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
                      unicode_full_width_areas | box_drawing_font | auto_detect_encodings |
                      use_auto_detect | use_ot_layout | regard_uri_as_word | borderless |
-                     use_aafont | underline_offset | baseline_offset | trim_trailing_newline_in_pasting
+                     use_aafont | underline_offset | baseline_offset |
+                     trim_trailing_newline_in_pasting | fontconfig
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -210,6 +211,7 @@ version 20170717
        => scp localhost:$PWD/hosts foo.bar:/etc/hosts
   o Source and destination file names of "scp" command are convered to system
     locale encoding and terminal encoding respectively.
+  o "\x1b]5379;fontconfig\x07" shows current font settings.
 
 * Note about color configuration
   If you specify "" as <value>, previous setting of <key> color is cleared.

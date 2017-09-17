@@ -1,3 +1,22 @@
+2017-09-18  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: get_config_intern() supports "fontconfig" which dumps
+	  current font settings.
+
+	* ui_font_manager.h: ui_font_manager_dump_font_config() is added.
+
+	* ui_font_config.[ch]:
+	  - ui_get_all_config_font_names() => ui_get_config_font_names_all()
+	  - ui_font_config_dump() is added.
+
+	* vt_char.[ch]: vt_get_unicode_area() is added.
+
+	* vt_font.h:
+	  - FONT_WITHOUT_SIZE_ATTR() is removed.
+	  - HAS_UNICODE_AREA() => UNICODE_AREA()
+
+	* MLActivity.java: String {resume|pause}Native() => void {resume|pause}Native()
+
 2017-09-17  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Common processing in get_spot() and get_im_spot() is separated to

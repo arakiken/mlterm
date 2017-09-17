@@ -78,12 +78,12 @@ static char *get_font_name_list_for_fontset(ui_font_cache_t *font_cache) {
              TYPE_XCORE, font_cache->font_config->font_present & ~FONT_AA)) == NULL) {
       font_name_list = NULL;
     } else {
-      font_name_list = ui_get_all_config_font_names(font_config, font_cache->font_size);
+      font_name_list = ui_get_config_font_names_all(font_config, font_cache->font_size);
 
       ui_release_font_config(font_config);
     }
   } else {
-    font_name_list = ui_get_all_config_font_names(font_cache->font_config, font_cache->font_size);
+    font_name_list = ui_get_config_font_names_all(font_cache->font_config, font_cache->font_size);
   }
 
   if (font_name_list) {
@@ -328,7 +328,7 @@ ui_font_t *ui_font_cache_get_xfont(ui_font_cache_t *font_cache, vt_font_t font) 
 found:
   size_attr = SIZE_ATTR_OF(font);
 
-  if ((xfont = ui_font_new(font_cache->display, FONT_WITHOUT_SIZE_ATTR(font), size_attr,
+  if ((xfont = ui_font_new(font_cache->display, NO_SIZE_ATTR(font), size_attr,
                            font_cache->font_config->type_engine, font_present, fontname,
                            font_cache->font_size, col_width, use_medium_for_bold,
                            font_cache->letter_space)) ||

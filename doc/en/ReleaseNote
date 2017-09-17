@@ -6,6 +6,7 @@ ver 3.8.3
 * Add "ignore_broadcasted_chars" / --ibc option.
 * Add "Next pty", "Previous pty" and "Close screen" to context menu on Android.
 * Add "next_pty", "prev_pty" and "close_screen" to OSC 5379.
+* Add "fontconfig" to OSC 5380.
 * Support libssh2 on MacOSX/Cocoa.
 * Support ModifyCursorKeys and ModifyFunctionKeys of xterm.
 * Support OSC 0 and OSC 1 on MacOSX/Cocoa.
@@ -31,6 +32,7 @@ ver 3.8.3
   Fix segfault in using input method plugins (except ibus) on wayland.
   Fix unexpected fallback to "DEFAULT" font in DECDHL or DECDWL lines.
   Fix screen corruption of libvte compatible library in operating multiple tabs on wayland.
+  Fix segfault on pause or resume on Android.
 
 ver 3.8.2
 * Support page of VT400 or later. (NP, PP, PPA, PPR, PPB, DECCRA and DECLRP)

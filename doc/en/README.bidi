@@ -9,9 +9,9 @@ Following is a instruction of setting up mlterm BIDI support.
   install fribidi ahead.
 
 * Installation
-  $ ./configure --enable-fribidi
+  $ ./configure --enable-fribidi ...
   ...
-  checking for fribidi-config... yes
+  checking for FRIBIDI... yes
   ...
   $ make
   $ make install
@@ -22,7 +22,18 @@ Following is a instruction of setting up mlterm BIDI support.
   selected, you don't have to do anything to enable bidi support.
   
 * Note
-  mlterm also supports arabic shaping, but not a few unicode fonts has no glyphs
-  for it.
-  So you may have to add fonts with arabic presentation glyphs to "font"
-  configuration file explicitly.
+  o mlterm also supports arabic shaping, but not a few unicode fonts has no glyphs
+    for it.
+    So you may have to add fonts with arabic presentation glyphs to "font"
+    configuration file explicitly.
+
+  o Harfbuzz (http://harfbuzz.org) with open type fonts is also available for
+    BIDI rendering, though all glyphs are left-justified.
+
+    $ ./configure --enable-otl ...
+    ...
+    checking for HB... yes
+    ...
+    $ make
+    $ make install
+    $ mlterm -otl
