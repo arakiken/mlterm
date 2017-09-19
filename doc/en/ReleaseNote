@@ -12,6 +12,7 @@ ver 3.8.3
 * Support OSC 0 and OSC 1 on MacOSX/Cocoa.
 * Support _NET_WM_NAME and _NET_ICON_NAME properties on xlib.
 * Support "CSI > Ps t" and "CSI > Ps T".
+* Support "CSI 20 h" and "CSI 20 l" (LNM).
 * Support right click menu on libvte compatible library on wayland.
 * Support fcitx input method module on wayland.
 * Support italic on MacOSX/Cocoa.

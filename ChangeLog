@@ -1,3 +1,12 @@
+2017-09-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.[ch]:
+	  - VTMODE_20 macro and vt_parser_t::auto_cr are added to support LNM.
+	  - Cursor is moved to left-upper cell by DECOLM.
+	  - INITIAL_VTMODE_FLAGS macro is changed to initial_vtmode_flags() function
+	    to process 64bit shift properly.
+	  - soft_reset() resets options via set_vtmode().
+
 2017-09-18  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: get_config_intern() supports "fontconfig" which dumps

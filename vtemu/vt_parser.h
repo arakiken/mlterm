@@ -292,6 +292,7 @@ typedef struct vt_parser {
   int get_title_using_hex : 1;
   int set_title_using_utf8 : 1;
   int get_title_using_utf8 : 1;
+  int auto_cr : 1;
 
 #ifdef USE_VT52
   int is_vt52_mode : 1;
