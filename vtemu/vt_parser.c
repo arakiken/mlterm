@@ -99,18 +99,10 @@
 
 #define VTMODE(mode) ((mode) + 10000)
 
-#ifdef USE_VT52
-#define INITIAL_VTMODE_FLAGS \
-  (1 << DECMODE_2) | /* is_vt52_mode == 0 */ \
-  (1 << DECMODE_7) | /* auto_wrap == 1 */ \
-  (1 << DECMODE_25) /* is_visible_cursor == 1 */
-#else
-#define INITIAL_VTMODE_FLAGS \
-  (1 << DECMODE_7) | /* auto_wrap == 1 */ \
-  (1 << DECMODE_25) /* is_visible_cursor == 1 */
-#endif
-
-/* If VTMODE_NUM >= 64, enlarge the size of vt_parser_t::vtmode_flags */
+/*
+ * If VTMODE_NUM >= 64, enlarge the size of vt_parser_t::vtmode_flags.
+ * See get_initial_vtmode_flags() to check initial values of these modes.
+ */
 typedef enum {
   /* DECSET/DECRST */
   DECMODE_1 = 0,
@@ -152,6 +144,7 @@ typedef enum {
   VTMODE_2,
   VTMODE_4,
   VTMODE_12,
+  VTMODE_20,
   VTMODE_33,
 
   VTMODE_NUM,
@@ -177,7 +170,7 @@ static u_int16_t vtmodes[] = {
   1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800, 9500,
 
   /* SM/RM */
-  VTMODE(2), VTMODE(4), VTMODE(12), VTMODE(33)
+  VTMODE(2), VTMODE(4), VTMODE(12), VTMODE(20), VTMODE(33)
 };
 
 static int use_alt_buffer = 1;
@@ -2789,7 +2782,7 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
   } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||
              mode == 38 /* Tek */ || mode == 45 /* reverse wraparound */ ||
              mode == 1001 /* highlight mouse tracking */ || mode == VTMODE(6) /* ERM */ ||
-             mode == VTMODE(18) /* ISM */ || mode == VTMODE(20) /* LNM */) {
+             mode == VTMODE(18) /* ISM */) {
     return 4; /* permanently reset */
   }
 
@@ -2812,7 +2805,8 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   }
 
 #ifdef DEBUG
-  debug_print_unknown("ESC [ %s %d l\n", mode >= VTMODE(0) ? "" : "?", mode);
+  debug_print_unknown("ESC [%s %d l\n", mode >= VTMODE(0) ? "" : " ?",
+                      mode >= VTMODE(0) ? mode - VTMODE(0) : mode);
 #endif
 
   return;
@@ -2826,6 +2820,7 @@ found:
 
   switch (idx) {
   case DECMODE_1:
+    /* DECCKM */
     vt_parser->is_app_cursor_keys = flag;
     break;
 
@@ -2846,6 +2841,7 @@ found:
       /* XTERM compatibility [#1048321] */
       if (!vt_parser->keep_screen_on_deccolm) {
         clear_display_all(vt_parser);
+        vt_screen_goto(vt_parser->screen, 0, 0);
       }
       resize(vt_parser, flag ? 132 : 80, 0, 1);
     }
@@ -2862,6 +2858,7 @@ found:
     break;
 
   case DECMODE_6:
+    /* DECOM */
     if (flag) {
       vt_screen_set_relative_origin(vt_parser->screen);
     } else {
@@ -2876,6 +2873,7 @@ found:
     break;
 
   case DECMODE_7:
+    /* DECAWM */
     vt_screen_set_auto_wrap(vt_parser->screen, flag);
     break;
 
@@ -2897,6 +2895,7 @@ found:
 #endif
 
   case DECMODE_25:
+    /* DECTCEM */
     vt_parser->is_visible_cursor = flag;
     break;
 
@@ -2908,7 +2907,8 @@ found:
 
   case DECMODE_40:
     if ((vt_parser->allow_deccolm = flag)) {
-      set_vtmode(vt_parser, 3, (vt_parser->vtmode_flags & (1 << DECMODE_3)) ? 1 : 0);
+      /* Compatible behavior with rlogin */
+      set_vtmode(vt_parser, 3, (vt_parser->vtmode_flags >> DECMODE_3) & 1);
     }
     break;
 
@@ -2923,6 +2923,7 @@ found:
     break;
 
   case DECMODE_66:
+    /* DECNKM */
     vt_parser->is_app_keypad = flag;
     break;
 
@@ -3070,6 +3071,7 @@ found:
     break;
 
   case VTMODE_4:
+    /* IRM */
     if (flag) {
       /* insert mode */
       vt_parser->w_buf.output_func = vt_screen_insert_chars;
@@ -3088,6 +3090,10 @@ found:
     }
     break;
 
+  case VTMODE_20:
+    vt_parser->auto_cr = flag;
+    break;
+
   case VTMODE_33:
     /* WYSTCURM (TeraTerm original) */
     if (flag) {
@@ -3098,52 +3104,77 @@ found:
   }
 }
 
+static u_int64_t initial_vtmode_flags(void) {
+  u_int64_t flags = 1;
+
+  flags =
+#ifdef USE_VT52
+    (flags << DECMODE_2) | /* is_vt52_mode == 0 */
+#endif
+    (flags << DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */
+    (flags << DECMODE_25) | /* is_visible_cursor == 1 */
+    (flags << VTMODE_12);   /* local echo is false */
+
+  return flags;
+}
+
 static void soft_reset(vt_parser_t *vt_parser) {
   /*
-   * XXX insufficient implementation.
+   * XXX
+   * Following options is not reset for now.
+   * DECNRCM, DECAUPSS, DECSASD, DECKPM, DECRLM, DECPCTERM
+   * (see http://vt100.net/docs/vt510-rm/DECSTR.html)
    */
-
-  /* "CSI ? 25 h" (DECTCEM) */
-  vt_parser->is_visible_cursor = 1;
-
-  /* "CSI 4 l" (IRM) */
-  vt_parser->w_buf.output_func = vt_screen_overwrite_chars;
-
-  /* "CSI ? 6 l" (DECOM) */
-  vt_screen_set_absolute_origin(vt_parser->screen);
-
-  /*
-   * "CSI ? 7 h" (DECAWM) (xterm compatible behavior)
-   * ("CSI ? 7 l" according to VT220 reference manual)
-   */
-  vt_screen_set_auto_wrap(vt_parser->screen, 1);
-
-  /* "CSI r" (DECSTBM) */
-  vt_screen_set_vmargin(vt_parser->screen, -1, -1);
-
-  /* "CSI ? 69 l" (XXX Not described in vt510 manual.) */
-  vt_screen_set_use_hmargin(vt_parser->screen, -1 /* Don't move cursor. */);
 
   /* "CSI m" (SGR) */
   change_char_attr(vt_parser, 0);
 
   vt_init_encoding_parser(vt_parser);
 
+  /* DECSC */
   (vt_screen_is_alternative_edit(vt_parser->screen) ? &vt_parser->saved_alternate
                                                        : &vt_parser->saved_normal)->is_saved = 0;
 
-  vt_parser->mouse_mode = 0;
-  vt_parser->ext_mouse_mode = 0;
-  vt_parser->is_app_keypad = 0;
-  vt_parser->is_app_cursor_keys = 0;
-  vt_parser->is_app_escape = 0;
-  vt_parser->is_bracketed_paste_mode = 0;
-  vt_parser->allow_deccolm = 0;
+  /* DECSCA */
   vt_parser->is_protected = 0;
 
+  /* CSI < r, CSI < s, CSI < t (compatible with TeraTerm) */
   vt_parser->im_is_active = 0;
 
-  vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
+  set_vtmode(vt_parser, 1, 0); /* DECCKM */
+  /* auto_wrap == 1 (compatible with xterm, not with VT220) */
+  set_vtmode(vt_parser, 7, 1); /* DECAWM */
+  set_vtmode(vt_parser, 25, 1); /* DECTCEM */
+  set_vtmode(vt_parser, 66, 0); /* DECNKM */
+  set_vtmode(vt_parser, 1000, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, 1002, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, 1003, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, 1005, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, 1006, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, 1015, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, 2004, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, 7727, 0); /* compatible with xterm */
+  set_vtmode(vt_parser, VTMODE(2), 0); /* KAM */
+  set_vtmode(vt_parser, VTMODE(4), 0); /* IRM */
+
+  /* DECOM */
+#if 0
+  set_vtmode(vt_parser, 6, 0);
+#else
+  vt_screen_set_absolute_origin(vt_parser->screen);
+  vt_parser->vtmode_flags &= ~(1 << DECMODE_6);
+#endif
+
+  /* DECLRMM (XXX Not described in vt510 manual.) */
+#if 0
+  set_vtmode(vt_parser, 69, 0);
+#else
+  vt_screen_set_use_hmargin(vt_parser->screen, -1 /* Don't move cursor. */);
+  vt_parser->vtmode_flags &= ~(1 << DECMODE_69);
+#endif
+
+  /* "CSI r" (DECSTBM) */
+  vt_screen_set_vmargin(vt_parser->screen, -1, -1);
 }
 
 static void send_device_status(vt_parser_t *vt_parser, int num) {
@@ -3258,6 +3289,7 @@ static int inc_str_in_esc_seq(vt_screen_t *screen, u_char **str_p, size_t *left,
        */
       if (CTL_LF <= **str_p && **str_p <= CTL_FF) {
         vt_screen_line_feed(screen);
+        /* XXX vt_parser->auto_cr is ignored for now. */
       } else if (**str_p == CTL_CR) {
         vt_screen_goto_beg_of_line(screen);
       } else if (**str_p == CTL_BS) {
@@ -5288,6 +5320,9 @@ inline static int parse_vt100_escape_sequence(
 #endif
 
     vt_screen_line_feed(vt_parser->screen);
+    if (vt_parser->auto_cr) {
+      vt_screen_goto_beg_of_line(vt_parser->screen);
+    }
   } else if (*str_p == CTL_CR) {
 #ifdef ESCSEQ_DEBUG
     bl_debug_printf(BL_DEBUG_TAG " receiving CR\n");
@@ -5612,7 +5647,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
 
   vt_parser->sixel_scrolling = 1;
   vt_parser->alt_color_mode = alt_color_mode;
-  vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
+  vt_parser->vtmode_flags = initial_vtmode_flags();
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
 
   return vt_parser;
