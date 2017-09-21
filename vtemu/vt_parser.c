@@ -2768,6 +2768,11 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
     return vt_screen_is_using_bce(vt_parser->screen) ? 1 : 2;
   } else if (mode == VTMODE(33)) {
     return (vt_parser->cursor_style & CS_BLINK) ? 2 : 1;
+  } else
+  /* XXX DECBKM affects *all* terms sharing vt_termcap, so vtmode_flags is not reliable. */
+  if (mode == 67) {
+    return strcmp(vt_termcap_special_key_to_seq(vt_parser->termcap, SPKEY_BACKSPACE,
+                                                0, 0, 0, 0, 0, 0), "\x08") == 0 ? 1 : 2;
   }
 
   for (idx = 0; idx < VTMODE_NUM; idx++) {
@@ -2781,7 +2786,7 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
   }
 
   if (mode == 8 /* DECAWM (auto repeat) */ ||
-      mode == 19 /* DECPEX (Ignore SECSTBM in MC and DECMC) */) {
+      mode == 19 /* DECPEX (Ignore DECSTBM in MC and DECMC) */) {
     return 3; /* permanently set */
   } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||
              mode == 38 /* Tek */ || mode == 45 /* reverse wraparound */ ||
@@ -2933,7 +2938,7 @@ found:
 
   case DECMODE_67:
     /* have back space */
-    /* XXX Affects all terms sharing termcap */
+    /* XXX Affects all terms sharing vt_termcap */
     vt_termcap_set_key_seq(vt_parser->termcap, SPKEY_BACKSPACE, flag ? "\x08" : "\x7f");
     break;
 

@@ -1,3 +1,8 @@
+2017-09-22  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: DECRQM reports SPKEY_BACKSPACE setting of vt_termcap_t
+	  instead of vt_parser_t::vtmode_flags for DECBKM.
+
 2017-09-21  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:
