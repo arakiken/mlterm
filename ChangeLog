@@ -1,3 +1,10 @@
+2017-09-21  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - SHIFT_FLAG64 macro is added.
+	  - initial_vtmode_flags() is changed to INITIAL_VTMODE_FLAGS macro.
+	  - RIS(ESC c) moves cursor to the upper left.
+
 2017-09-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.[ch]:

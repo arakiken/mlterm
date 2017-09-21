@@ -97,6 +97,16 @@
 #define SUPPORT_ITERM2_OSC1337
 #endif
 
+/* If u_int64_t is defined as 32 bit (unsigned long), 1 << (32 or larger) is ignored. */
+static u_int64_t true64 = 1;
+#define SHIFT_FLAG64(mode) ((sizeof(true64) < 8 && (mode) >= 32) ? 0 : (true64 << (mode)))
+
+#define INITIAL_VTMODE_FLAGS \
+  SHIFT_FLAG64(DECMODE_2) | /* is_vt52_mode == 0 */ \
+  SHIFT_FLAG64(DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */ \
+  SHIFT_FLAG64(DECMODE_25) | /* is_visible_cursor == 1 */ \
+  SHIFT_FLAG64(VTMODE_12);   /* local echo is false */
+
 #define VTMODE(mode) ((mode) + 10000)
 
 /*
@@ -106,9 +116,7 @@
 typedef enum {
   /* DECSET/DECRST */
   DECMODE_1 = 0,
-#ifdef USE_VT52
   DECMODE_2,
-#endif
   DECMODE_3,
   DECMODE_5,
   DECMODE_6,
@@ -160,11 +168,7 @@ typedef struct area {
 
 static u_int16_t vtmodes[] = {
   /* DECSET/DECRST */
-  1,
-#ifdef USE_VT52
-  2,
-#endif
-  3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 117,
+  1, 2, 3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 117,
   1000, 1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
   1003, 1004, 1005, 1006, 1015, /* Don't add an entry between 1006 and 1015 (see set_vtmode()) */
   1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800, 9500,
@@ -2768,7 +2772,7 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
 
   for (idx = 0; idx < VTMODE_NUM; idx++) {
     if (vtmodes[idx] == mode) {
-      if (vt_parser->vtmode_flags & (1 << idx)) {
+      if (vt_parser->vtmode_flags & (SHIFT_FLAG64(idx))) {
         return 1; /* set */
       } else {
         return 2; /* reset */
@@ -2813,9 +2817,9 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 
 found:
   if (flag) {
-    vt_parser->vtmode_flags |= (1 << idx);
+    vt_parser->vtmode_flags |= (SHIFT_FLAG64(idx));
   } else {
-    vt_parser->vtmode_flags &= ~(1 << idx);
+    vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(idx));
   }
 
   switch (idx) {
@@ -2824,8 +2828,8 @@ found:
     vt_parser->is_app_cursor_keys = flag;
     break;
 
-#ifdef USE_VT52
   case DECMODE_2:
+#ifdef USE_VT52
     if (!(vt_parser->is_vt52_mode = (flag ? 0 : 1))) {
       /*
        * USASCII should be designated for G0-G3 here, but it is temporized by
@@ -2833,8 +2837,8 @@ found:
        */
       vt_init_encoding_parser(vt_parser);
     }
-    break;
 #endif
+    break;
 
   case DECMODE_3:
     if (vt_parser->allow_deccolm) {
@@ -3104,20 +3108,6 @@ found:
   }
 }
 
-static u_int64_t initial_vtmode_flags(void) {
-  u_int64_t flags = 1;
-
-  flags =
-#ifdef USE_VT52
-    (flags << DECMODE_2) | /* is_vt52_mode == 0 */
-#endif
-    (flags << DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */
-    (flags << DECMODE_25) | /* is_visible_cursor == 1 */
-    (flags << VTMODE_12);   /* local echo is false */
-
-  return flags;
-}
-
 static void soft_reset(vt_parser_t *vt_parser) {
   /*
    * XXX
@@ -3162,7 +3152,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
   set_vtmode(vt_parser, 6, 0);
 #else
   vt_screen_set_absolute_origin(vt_parser->screen);
-  vt_parser->vtmode_flags &= ~(1 << DECMODE_6);
+  vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(DECMODE_6));
 #endif
 
   /* DECLRMM (XXX Not described in vt510 manual.) */
@@ -3170,7 +3160,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
   set_vtmode(vt_parser, 69, 0);
 #else
   vt_screen_set_use_hmargin(vt_parser->screen, -1 /* Don't move cursor. */);
-  vt_parser->vtmode_flags &= ~(1 << DECMODE_69);
+  vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(DECMODE_69));
 #endif
 
   /* "CSI r" (DECSTBM) */
@@ -3553,7 +3543,8 @@ inline static int parse_vt100_escape_sequence(
       /* "ESC c" full reset */
 
       soft_reset(vt_parser);
-      clear_display_all(vt_parser); /* cursor goes home in it. */
+      clear_display_all(vt_parser);
+      vt_screen_goto(vt_parser->screen, 0, 0);
       delete_all_macros(vt_parser);
     }
 #if 0
@@ -5647,7 +5638,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
 
   vt_parser->sixel_scrolling = 1;
   vt_parser->alt_color_mode = alt_color_mode;
-  vt_parser->vtmode_flags = initial_vtmode_flags();
+  vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
 
   return vt_parser;

@@ -15,6 +15,7 @@ Support brltty with the use of brlapi
 
 * Start
   <brltty with xw driver>
+  $ export BRLAPI_HOST=127.0.0.1:1
   $ brltty -b xw -A auth=none,host=127.0.0.1:1
   $ mlterm
 
