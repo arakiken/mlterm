@@ -2916,7 +2916,7 @@ found:
 
   case DECMODE_40:
     if ((vt_parser->allow_deccolm = flag)) {
-      /* Compatible behavior with rlogin */
+      /* Compatible behavior with rlogin. (Not compatible with xterm) */
       set_vtmode(vt_parser, 3, (vt_parser->vtmode_flags >> DECMODE_3) & 1);
     }
     break;

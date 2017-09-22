@@ -1,3 +1,14 @@
+2017-09-23  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.8.3 released.
+	  (tag "rel-3_8_3")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.8.3.
+
+	* PROTOCOL, man/mlterm.1: Updated.
+
 2017-09-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: DECRQM reports SPKEY_BACKSPACE setting of vt_termcap_t

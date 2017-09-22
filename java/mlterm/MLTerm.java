@@ -538,7 +538,7 @@ public class MLTerm extends StyledText {
       String fontFamily = getProperty("font");
       if (fontFamily == null) {
         if (System.getProperty("os.name").indexOf("Windows") >= 0) {
-          fontFamily = "Terminal";
+          fontFamily = "Courier";
         } else {
           fontFamily = "monospace";
         }
