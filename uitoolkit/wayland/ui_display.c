@@ -264,6 +264,19 @@ static ui_display_t *remove_root_from_display(ui_display_t *disp, ui_window_t *r
 }
 #endif
 
+static void seat_capabilities(void *data, struct wl_seat *seat, enum wl_seat_capability caps);
+
+static void seat_name(void *data, struct wl_seat *seat, const char *name) {
+#ifdef __DEBUG
+  bl_debug_printf("SEAT name %s\n", name);
+#endif
+}
+
+static const struct wl_seat_listener seat_listener = {
+  seat_capabilities,
+  seat_name,
+};
+
 static void registry_global(void *data, struct wl_registry *registry, uint32_t name,
                             const char *interface, uint32_t version) {
   ui_wlserv_t *wlserv = data;
@@ -286,6 +299,7 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
   } else if(strcmp(interface, "wl_seat") == 0) {
     wlserv->seat = wl_registry_bind(registry, name,
                                     &wl_seat_interface, 4); /* 4 is for keyboard_repeat_info */
+    wl_seat_add_listener(wlserv->seat, &seat_listener, wlserv);
   } else if(strcmp(interface, "wl_output") == 0) {
     wlserv->output = wl_registry_bind(registry, name, &wl_output_interface, 1);
   } else if (strcmp(interface, "wl_data_device_manager") == 0) {
@@ -863,6 +877,41 @@ static const struct wl_pointer_listener pointer_listener = {
   pointer_axis,
 };
 
+static void seat_capabilities(void *data, struct wl_seat *seat, enum wl_seat_capability caps) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef DEBUG
+  bl_debug_printf("KBD: %s, MOUSE %s\n", (caps & WL_SEAT_CAPABILITY_KEYBOARD) ? "attach" : "detach",
+                  (caps & WL_SEAT_CAPABILITY_POINTER) ? "attach" : "detach");
+#endif
+
+  if (caps & WL_SEAT_CAPABILITY_KEYBOARD) {
+    if (!wlserv->keyboard) {
+      wlserv->keyboard = wl_seat_get_keyboard(wlserv->seat);
+      wl_keyboard_add_listener(wlserv->keyboard, &keyboard_listener, wlserv);
+    }
+  } else {
+    if (wlserv->keyboard) {
+      wl_keyboard_destroy(wlserv->keyboard);
+      wlserv->keyboard = NULL;
+    }
+  }
+
+  if (caps & WL_SEAT_CAPABILITY_POINTER) {
+    if (!wlserv->pointer) {
+      wlserv->pointer = wl_seat_get_pointer(wlserv->seat);
+      wl_pointer_add_listener(wlserv->pointer, &pointer_listener, wlserv);
+    }
+  } else {
+    if (wlserv->pointer) {
+      wl_pointer_destroy(wlserv->pointer);
+      wlserv->pointer = NULL;
+    }
+  }
+
+  wl_display_flush(wlserv->display);
+}
+
 static void surface_enter(void *data, struct wl_surface *surface, struct wl_output *output) {
   ui_wlserv_t *wlserv = data;
 
@@ -1370,9 +1419,15 @@ static ui_wlserv_t *open_wl_display(char *name) {
 
   wl_display_roundtrip(wlserv->display);
 
+  wlserv->xkb->ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+  /* See seat_capabilities() */
+#if 0
   wlserv->keyboard = wl_seat_get_keyboard(wlserv->seat);
   wl_keyboard_add_listener(wlserv->keyboard, &keyboard_listener, wlserv);
-  wlserv->xkb->ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+
+  wlserv->pointer = wl_seat_get_pointer(wlserv->seat);
+  wl_pointer_add_listener(wlserv->pointer, &pointer_listener, wlserv);
+#endif
 
   if ((wlserv->cursor_theme = wl_cursor_theme_load(NULL, 32, wlserv->shm))) {
     /* The order should be the one of wl_shell_surface_resize. */
@@ -1395,9 +1450,6 @@ static ui_wlserv_t *open_wl_display(char *name) {
       wlserv->cursor_theme = NULL;
     }
   }
-
-  wlserv->pointer = wl_seat_get_pointer(wlserv->seat);
-  wl_pointer_add_listener(wlserv->pointer, &pointer_listener, wlserv);
 
   wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
                                                                wlserv->seat);
@@ -1432,16 +1484,11 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   wl_subcompositor_destroy(wlserv->subcompositor);
 #endif
   wl_output_destroy(wlserv->output);
-  wl_seat_destroy(wlserv->seat);
   wl_compositor_destroy(wlserv->compositor);
 #ifndef COMPAT_LIBVTE
   wl_registry_destroy(wlserv->registry);
 #endif
-  wl_keyboard_destroy(wlserv->keyboard);
 
-  xkb_state_unref(wlserv->xkb->state);
-  xkb_keymap_unref(wlserv->xkb->keymap);
-  xkb_context_unref(wlserv->xkb->ctx);
   if (wlserv->cursor_surface) {
     wl_surface_destroy(wlserv->cursor_surface);
   }
@@ -1449,7 +1496,22 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
     wl_cursor_theme_destroy(wlserv->cursor_theme);
   }
 
-  wl_pointer_destroy(wlserv->pointer);
+  if (wlserv->keyboard) {
+    wl_keyboard_destroy(wlserv->keyboard);
+    wlserv->keyboard = NULL;
+  }
+
+  xkb_state_unref(wlserv->xkb->state);
+  xkb_keymap_unref(wlserv->xkb->keymap);
+  xkb_context_unref(wlserv->xkb->ctx);
+
+  if (wlserv->pointer) {
+    wl_pointer_destroy(wlserv->pointer);
+    wlserv->pointer = NULL;
+  }
+
+  wl_seat_destroy(wlserv->seat);
+
   wl_data_device_destroy(wlserv->data_device);
   wl_data_device_manager_destroy(wlserv->data_device_manager);
 #ifndef COMPAT_LIBVTE
@@ -2278,12 +2340,15 @@ void ui_display_init_wlserv(ui_wlserv_t *wlserv) {
   wl_registry_add_listener(wlserv->registry, &registry_listener, wlserv);
   wl_display_roundtrip(wlserv->display);
 
-  wlserv->keyboard = wl_seat_get_keyboard(wlserv->seat);
   wlserv->xkb->ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+  /* See seat_capabilities() */
+#if 0
+  wlserv->keyboard = wl_seat_get_keyboard(wlserv->seat);
   wl_keyboard_add_listener(wlserv->keyboard, &keyboard_listener, wlserv);
 
   wlserv->pointer = wl_seat_get_pointer(wlserv->seat);
   wl_pointer_add_listener(wlserv->pointer, &pointer_listener, wlserv);
+#endif
 
   wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
                                                                wlserv->seat);

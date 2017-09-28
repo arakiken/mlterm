@@ -1,3 +1,23 @@
+2017-09-28  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: 'capabilities' event of wl_seat_listener is handled.
+
+	* ui_im_{status|candidate}_screen.c:
+	  ui_font_manager is newly created if terminal screen is vertical mode
+	  and USE_REAL_VERTICAL_FONT macro is defined.
+
+	* fb/ui_font.c:
+	  - FONT_ROTATED is defined as (FONT_ITALIC << 1) internally and
+	    XFontStruct::format contains its bit.
+	  - load_glyph() rotates glyphs if format has FONT_ROTATED bit.
+	  - is_rotated_char() is added.
+	  - 'ch' which contains unicode code point is added to arguments of
+	    get_ft_bitmap_intern().
+
+	* */ui.h: USE_REAL_VERTICAL_FONT macro is added.
+
+	* version.h: 3.8.3 -> 3.8.3post
+
 2017-09-23  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.3 released.

@@ -386,5 +386,10 @@ KeySym XStringToKeysym(char *str);
 #undef NO_DRAW_IMAGE_STRING
 #define HAVE_PTHREAD
 #define COMPOSE_DECSP_FONT
+#ifdef USE_FREETYPE
+#define USE_REAL_VERTICAL_FONT
+#else
+#undef USE_REAL_VERTICAL_FONT
+#endif
 
 #endif

@@ -1,3 +1,7 @@
+* Support 90-degree rotation of alphabet glyphs in vertical mode on framebuffer, wayland and android.
+* Bug fixes:
+  Fix impossibility of keyborad and pointer input after switching virtual consoles on wayland.
+
 ver 3.8.3
 * Add "trim_trailing_newline_in_pasting" / --trim option which removes trailing
   newline characters in pasting text.

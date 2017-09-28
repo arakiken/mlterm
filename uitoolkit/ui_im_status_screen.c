@@ -189,6 +189,12 @@ static int delete(ui_im_status_screen_t *stat_screen) {
     vt_str_delete(stat_screen->chars, stat_screen->num_of_chars);
   }
 
+#ifdef USE_REAL_VERTICAL_FONT
+  if (stat_screen->is_vertical) {
+    ui_font_manager_delete(stat_screen->font_man);
+  }
+#endif
+
   free(stat_screen);
 
   return 1;
@@ -358,7 +364,24 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manag
     return NULL;
   }
 
-  stat_screen->font_man = font_man;
+#ifdef USE_REAL_VERTICAL_FONT
+  if (is_vertical) {
+    stat_screen->font_man = ui_font_manager_new(disp->display,
+                                                ui_get_type_engine(font_man),
+                                                ui_get_font_present(font_man) & ~FONT_VERTICAL,
+                                                ui_get_font_size(font_man),
+                                                ui_get_current_usascii_font_cs(font_man),
+                                                ui_is_using_multi_col_char(font_man),
+                                                font_man->step_in_changing_font_size,
+                                                ui_get_letter_space(font_man),
+                                                ui_is_using_bold_font(font_man),
+                                                ui_is_using_italic_font(font_man));
+  } else
+#endif
+  {
+    stat_screen->font_man = font_man;
+  }
+
   stat_screen->color_man = color_man;
   stat_screen->vtparser = vtparser;
 

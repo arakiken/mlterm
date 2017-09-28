@@ -184,7 +184,7 @@ typedef union {
 typedef struct _XFontStruct {
   char *file;
 
-  int32_t format; /* XXX (fontsize|FONT_BOLD|FONT_ITALIC) on freetype. */
+  int32_t format; /* XXX (fontsize|FONT_BOLD|FONT_ITALIC|FONT_ROTATED) on freetype. */
 
   int32_t num_of_glyphs;
   unsigned char *glyphs;
@@ -658,5 +658,10 @@ KeySym XStringToKeysym(char *str);
  */
 #undef HAVE_PTHREAD
 #define COMPOSE_DECSP_FONT
+#ifdef USE_FREETYPE
+#define USE_REAL_VERTICAL_FONT
+#else
+#undef USE_REAL_VERTICAL_FONT
+#endif
 
 #endif
