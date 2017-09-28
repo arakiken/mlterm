@@ -35,6 +35,10 @@ typedef enum vt_font {
   /* for font slant */
   FONT_ITALIC = 0x800u, /* (default) roman */
 
+  /*
+   * Note that FONT_ROTATED is defined in fb/ui_font.c as (FONT_ITALIC << 1),
+   * so be careful to add new entries after FONT_ITALIC.
+   */
 #if 0
   /* font width */
   FONT_SEMICONDENSED /* (default) normal */

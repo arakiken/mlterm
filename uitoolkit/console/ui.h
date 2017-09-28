@@ -542,5 +542,6 @@ KeySym XStringToKeysym(char *str);
 /* libpthread is not linked to mlterm explicitly for now. */
 #undef HAVE_PTHREAD
 #undef COMPOSE_DECSP_FONT
+#undef USE_REAL_VERTICAL_FONT
 
 #endif

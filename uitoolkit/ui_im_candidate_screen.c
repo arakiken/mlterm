@@ -570,10 +570,16 @@ static void adjust_window_x_position(ui_im_candidate_screen_t *cand_screen, int 
  * methods of ui_im_candidate_screen_t
  */
 
-static int delete (ui_im_candidate_screen_t *cand_screen) {
+static int delete(ui_im_candidate_screen_t *cand_screen) {
   free_candidates(cand_screen->candidates, cand_screen->num_of_candidates);
 
   ui_display_remove_root(cand_screen->window.disp, &cand_screen->window);
+
+#ifdef USE_REAL_VERTICAL_FONT
+  if (cand_screen->is_vertical_term) {
+    ui_font_manager_delete(cand_screen->font_man);
+  }
+#endif
 
   free(cand_screen);
 
@@ -866,7 +872,24 @@ ui_im_candidate_screen_t *ui_im_candidate_screen_new(ui_display_t *disp,
     return NULL;
   }
 
-  cand_screen->font_man = font_man;
+#ifdef USE_REAL_VERTICAL_FONT
+  if (is_vertical_term) {
+    cand_screen->font_man = ui_font_manager_new(disp->display,
+                                                ui_get_type_engine(font_man),
+                                                ui_get_font_present(font_man) & ~FONT_VERTICAL,
+                                                ui_get_font_size(font_man),
+                                                ui_get_current_usascii_font_cs(font_man),
+                                                ui_is_using_multi_col_char(font_man),
+                                                font_man->step_in_changing_font_size,
+                                                ui_get_letter_space(font_man),
+                                                ui_is_using_bold_font(font_man),
+                                                ui_is_using_italic_font(font_man));
+  } else
+#endif
+  {
+    cand_screen->font_man = font_man;
+  }
+
   cand_screen->color_man = color_man;
   cand_screen->vtparser = vtparser;
 

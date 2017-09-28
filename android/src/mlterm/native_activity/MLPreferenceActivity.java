@@ -119,9 +119,12 @@ public class MLPreferenceActivity extends PreferenceActivity {
     addEditText(category, "wall_picture", "Wall picture",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
     addEditText(category, "alpha", "Alpha", InputType.TYPE_CLASS_NUMBER);
-    CharSequence[] entries = { "right", "left", "none" };
-    addList(category, "scrollbar_mode", "Scrollbar", entries);
+    CharSequence[] entries1 = { "right", "left", "none" };
+    addList(category, "scrollbar_mode", "Scrollbar", entries1);
     addCheckBox(category, "use_extended_scroll_shortcut", "Scroll by Shift+Up or Shift+Down");
     addEditText(category, "logsize", "Backlog size", InputType.TYPE_CLASS_NUMBER);
+    CharSequence[] entries2 = { "none", "cjk", "mongol" };
+    addList(category, "vertical_mode", "Vertical mode", entries2);
+    addEditText(category, "screen_width_ratio", "Screen size ratio", InputType.TYPE_CLASS_NUMBER);
   }
 }
