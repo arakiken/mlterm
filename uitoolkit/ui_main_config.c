@@ -485,7 +485,7 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
 
   if ((value = bl_conf_get_value(conf, "vertical_mode"))) {
     if ((main_config->vertical_mode = vt_get_vertical_mode(value))) {
-      main_config->font_present |= FONT_VERTICAL;
+      main_config->font_present |= main_config->vertical_mode;
     }
   }
 

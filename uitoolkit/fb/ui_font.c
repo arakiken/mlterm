@@ -279,7 +279,7 @@ static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, 
       p += (5 * 0x3000);
       *width_full = p[2] - 0x80;
     } else {
-      *width_full = 0;
+      *width_full = *width;
     }
 
 #ifdef __DEBUG
@@ -313,7 +313,7 @@ static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, 
 
       *width_full = _TOINT16(p, is_be);
     } else {
-      *width_full = 0;
+      *width_full = *width;
     }
 
 #ifdef __DEBUG
@@ -617,6 +617,7 @@ static int get_glyph_index(FT_Face face, u_int32_t code) {
 }
 
 static int load_glyph(FT_Face face, int32_t format, u_int32_t code, int is_aa) {
+  FT_Glyph_Format orig_glyph_format;
   if (is_aa) {
     FT_Load_Glyph(face, code, FT_LOAD_NO_BITMAP);
 
@@ -627,6 +628,8 @@ static int load_glyph(FT_Face face, int32_t format, u_int32_t code, int is_aa) {
     FT_Load_Glyph(face, code, 0);
   }
 
+  orig_glyph_format = face->glyph->format;
+
   if (format & FONT_ROTATED) {
     FT_Matrix matrix;
 
@@ -634,6 +637,15 @@ static int load_glyph(FT_Face face, int32_t format, u_int32_t code, int is_aa) {
     matrix.xy = 0x10000L;  /* (FT_Fixed)(-sin((-90.0 / 360.0) * 3.141592 * 2) * 0x10000L */
     matrix.yx = -0x10000L; /* (FT_Fixed)(sin((-90.0 / 360.0) * 3.141592 * 2) * 0x10000L */
     matrix.yy = 0;
+
+    FT_Outline_Transform(&face->glyph->outline, &matrix);
+  } else if (format & FONT_ITALIC) {
+    FT_Matrix matrix;
+
+    matrix.xx = 1 << 16;
+    matrix.xy = 0x3000;
+    matrix.yx = 0;
+    matrix.yy = 1 << 16;
 
     FT_Outline_Transform(&face->glyph->outline, &matrix);
   }
@@ -647,6 +659,16 @@ static int load_glyph(FT_Face face, int32_t format, u_int32_t code, int is_aa) {
   } else {
     FT_Render_Glyph(face->glyph, FT_RENDER_MODE_MONO);
   }
+
+  /*
+   * get_ft_bitmap_intern() uses face->glyph->format to check if glyph is actually rotated.
+   * (face->glyph->format == FT_GLYPH_FORMAT_BITMAP just after FT_Load_Glyph() means that
+   * glyphs is not rotated.)
+   *
+   * Note that FT_Render_Glyph() turns face->glyph->format from FT_GLYPH_FORMAT_OUTLINE
+   * to FT_GLYPH_FORMAT_BITMAP.
+   */
+  face->glyph->format = orig_glyph_format;
 
   return 1;
 }
@@ -675,6 +697,7 @@ static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, in
 
   for (count = 0; count < num_of_xfonts; count++) {
     if (strcmp(xfonts[count]->file, file_path) == 0 &&
+        /* The same face is used for normal, italic and bold. */
         (xfonts[count]->format & ~(FONT_BOLD | FONT_ITALIC | FONT_ROTATED)) == fontsize) {
       face = xfonts[count]->face;
 
@@ -693,23 +716,11 @@ static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, in
 face_found:
   FT_Set_Pixel_Sizes(face, fontsize, fontsize);
 
-  if (format & FONT_ITALIC) {
-    FT_Matrix matrix;
-
-    matrix.xx = 1 << 16;
-    matrix.xy = 0x3000;
-    matrix.yx = 0;
-    matrix.yy = 1 << 16;
-
-    FT_Set_Transform(face, &matrix, NULL);
-  }
-
   xfont->format = format;
   xfont->face = face;
   xfont->is_aa = is_aa;
 
-  if (!load_glyph(face, format,
-                  get_glyph_index(face, (format & FONT_ROTATED) ? '|' : 'M'), is_aa)) {
+  if (!load_glyph(face, format, get_glyph_index(face, 'M'), is_aa)) {
     bl_msg_printf("%s doesn't have outline glyphs.\n", file_path);
 
     goto error;
@@ -725,44 +736,36 @@ face_found:
 
   face->generic.data = ((int)face->generic.data) + 1; /* ref_count */
 
-  xfont->width_full =
-      (face->max_advance_width * face->size->metrics.x_ppem + face->units_per_EM - 1) /
-      face->units_per_EM;
-#ifdef __DEBUG
-  bl_debug_printf("maxw %d ppem %d units %d => w %d\n",
-                  face->max_advance_width, face->size->metrics.x_ppem,
-                  face->units_per_EM, xfont->width_full);
-#endif
-  if (is_aa) {
-    if ((xfont->width = face->glyph->bitmap.width / 3) > xfont->width_full) {
-      /* bitmap.width of a rotated glyph is larger than xfont->width_full. */
-      xfont->width_full = xfont->width;
-    }
-
-    xfont->glyph_width_bytes = xfont->width_full * 3;
-  } else {
-    if ((xfont->width = face->glyph->bitmap.width) > xfont->width_full) {
-      /* bitmap.width of a rotated glyph is larger than xfont->width_full. */
-      xfont->width_full = xfont->width;
-    }
-
-    xfont->glyph_width_bytes = (xfont->width_full + 7) / 8;
-  }
-
   if (force_height) {
     xfont->height = force_height;
   } else {
     xfont->height = (face->max_advance_height * face->size->metrics.y_ppem +
                      face->units_per_EM - 1) / face->units_per_EM;
-  }
 #ifdef __DEBUG
-  bl_debug_printf("maxh %d ppem %d units %d => h %d\n",
-                  face->max_advance_height, face->size->metrics.y_ppem,
-                  face->units_per_EM, xfont->height);
+    bl_debug_printf("maxh %d ppem %d units %d => h %d\n",
+                    face->max_advance_height, face->size->metrics.y_ppem,
+                    face->units_per_EM, xfont->height);
 #endif
+  }
+
   if (format & FONT_ROTATED) {
+    xfont->width = xfont->width_full = xfont->height;
     xfont->ascent = 0;
   } else {
+    xfont->width_full = (face->max_advance_width * face->size->metrics.x_ppem +
+                         face->units_per_EM - 1) / face->units_per_EM;
+#ifdef __DEBUG
+    bl_debug_printf("maxw %d ppem %d units %d => w %d\n",
+                    face->max_advance_width, face->size->metrics.x_ppem,
+                    face->units_per_EM, xfont->width_full);
+#endif
+
+    if (is_aa) {
+      xfont->width = face->glyph->bitmap.width / 3;
+    } else {
+      xfont->width = face->glyph->bitmap.width;
+    }
+
     xfont->ascent =
       (face->ascender * face->size->metrics.y_ppem + face->units_per_EM - 1) / face->units_per_EM;
 
@@ -775,11 +778,11 @@ face_found:
   }
 
   if (is_aa) {
-    xfont->glyph_size = xfont->glyph_width_bytes * xfont->height;
+    xfont->glyph_width_bytes = xfont->width_full * 3;
   } else {
-    /* +1 is for the last 'dst[count] = ...' in get_ft_bitmap_intern(). */
-    xfont->glyph_size = xfont->glyph_width_bytes * xfont->height + 1;
+    xfont->glyph_width_bytes = (xfont->width_full + 7) / 8;
   }
+  xfont->glyph_size = xfont->glyph_width_bytes * xfont->height;
 
 #if 0
   bl_debug_printf("w %d %d h %d a %d\n", xfont->width, xfont->width_full, xfont->height,
@@ -854,12 +857,36 @@ static void unload_ft(XFontStruct *xfont) {
 }
 
 static int is_rotated_char(u_int32_t ch) {
-  if (ch < 0x80 || (0x3008 <= ch && ch <= 0x3011) ||
-      (0x3013 <= ch && ch <= 0x301c) || ch == 0x30fc) {
+  if (ch < 0x80) {
     return 1;
-  } else {
-    return 0;
+  } else if ((ch & 0xffffff00) == 0x3000) {
+    if ((0x3008 <= ch && ch <= 0x3011) || (0x3013 <= ch && ch <= 0x301c) || ch == 0x30fc) {
+      return 1;
+    }
+  } else if ((ch & 0xffffff00) == 0xff00) {
+    if ((0xff08 <= ch && ch <= 0xff09) || ch == 0xff0d || (0xff1a <= ch && ch <= 0xff1e) ||
+        ch == 0xff3b || ch == 0xff3d || (0xff5b <= ch && ch <= 0xff5e) ||
+        (0xff62 <= ch && ch <= 0xff63)) {
+      return 1;
+    }
   }
+  return 0;
+}
+
+static int is_right_aligned_char(u_int32_t ch) {
+  if ((ch & 0xffffff00) == 0x3000) {
+    if ((0x3001 <= ch && ch <= 0x3002) || ch == 0x3063 || ch == 0x30c3 ||
+        (((0x3041 <= ch && ch <= 0x3049) || (0x3083 <= ch && ch <= 0x3087) ||
+          (0x30a1 <= ch && ch <= 0x30a9) || (0x30e3 <= ch && ch <= 0x30e7)) &&
+         ch % 2 == 1)) {
+      return 1;
+    }
+  } else if ((ch & 0xffffff00) == 0xff00) {
+    if (ch == 0xff0c || ch == 0xff61 || ch == 0xff64) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph index */,
@@ -910,13 +937,15 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
           return NULL;
         }
 
-        left_pitch = xfont->width -
-                     (face->ascender * face->size->metrics.y_ppem + face->units_per_EM - 1) /
-                       face->units_per_EM -
-                     (face->glyph->bitmap.rows - face->glyph->bitmap_top);
-        if (left_pitch < 0) {
-          left_pitch = 0;
+        left_pitch = (face->max_advance_height - face->ascender) * face->size->metrics.y_ppem /
+                     face->units_per_EM;
+        if (face->glyph->bitmap.rows > face->glyph->bitmap_top) {
+          if ((left_pitch -= (face->glyph->bitmap.rows - face->glyph->bitmap_top)) < 0) {
+            left_pitch = 0;
+          }
         }
+
+        /* XXX 'if (xfont->is_aa) { left_pitch *= 3 }' is in the following block. */
       } else {
         format &= ~FONT_ROTATED;
       }
@@ -943,9 +972,15 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
     indeces[code] = idx;
 
     if (xfont->format & FONT_ROTATED) {
-      /* XXX Vertical kutouten */
-      if ((0x3001 <= ch && ch <= 0x3002) || ch == 0xff0c) {
-        left_pitch += (xfont->width / 2);
+      if (!(format & FONT_ROTATED) || face->glyph->format == FT_GLYPH_FORMAT_BITMAP) {
+        /* Glyph isn't rotated. */
+
+        if (is_right_aligned_char(ch)) {
+          /* XXX Hack for vertical kutouten and sokuon */
+          left_pitch += (xfont->width / 2);
+        } else if (face->glyph->bitmap_left + face->glyph->bitmap.width <= xfont->width / 2) {
+          left_pitch += (xfont->width / 4);
+        }
       }
 
       if (face->glyph->bitmap.rows < xfont->height) {
@@ -974,10 +1009,12 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
       }
     }
 
+    if (face->glyph->bitmap_left > 0) {
+      left_pitch += face->glyph->bitmap_left;
+    }
+
     if (xfont->is_aa) {
-      if (face->glyph->bitmap_left > 0) {
-        left_pitch += face->glyph->bitmap_left * 3;
-      }
+      left_pitch *= 3;
 
       if (face->glyph->bitmap.pitch < xfont->glyph_width_bytes) {
         pitch = face->glyph->bitmap.pitch;
@@ -990,10 +1027,6 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
         left_pitch = 0;
       }
     } else {
-      if (face->glyph->bitmap_left > 0) {
-        left_pitch += face->glyph->bitmap_left;
-      }
-
       if (face->glyph->bitmap.pitch <= xfont->glyph_width_bytes) {
         pitch = face->glyph->bitmap.pitch;
 
@@ -1047,26 +1080,32 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
 #endif
       }
     } else {
-      for (y = 0; y < rows; y++) {
-        int count;
-        int quot;
+      int shift;
+      if ((shift = left_pitch / 8) > 0) {
+        left_pitch -= (shift * 8);
+        dst += shift;
+      }
 
-        if (left_pitch == 0) {
+      if (left_pitch == 0) {
+        for (y = 0; y < rows; y++) {
           memcpy(dst, src, pitch);
-        } else {
-          if ((quot = left_pitch / 8) > 0) {
-            dst += quot;
-            left_pitch -= (quot * 8);
-          }
+          src += face->glyph->bitmap.pitch;
+          dst += xfont->glyph_width_bytes;
+        }
+      } else {
+        int count;
+        for (y = 0; y < rows; y++) {
           dst[0] = (src[0] >> left_pitch);
           for (count = 1; count < pitch; count++) {
             dst[count] = (src[count - 1] << (8 - left_pitch)) | (src[count] >> left_pitch);
           }
-          dst[count] = (src[count - 1] << (8 - left_pitch));
-        }
+          if (shift + pitch < xfont->glyph_width_bytes) {
+            dst[count] = (src[count - 1] << (8 - left_pitch));
+          }
 
-        src += face->glyph->bitmap.pitch;
-        dst += xfont->glyph_width_bytes;
+          src += face->glyph->bitmap.pitch;
+          dst += xfont->glyph_width_bytes;
+        }
       }
     }
   } else {
@@ -1787,7 +1826,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 #endif
   format = fontsize | (id & (FONT_BOLD | FONT_ITALIC));
-  if (font_present & FONT_VERTICAL) {
+  if (font_present & FONT_VERT_RTL) {
     format |= FONT_ROTATED;
     /* XXX Not support ROTATED and ITALIC at the same time. (see load_glyph()). */
     format &= ~FONT_ITALIC;
@@ -1919,7 +1958,7 @@ xfont_loaded:
     font->double_draw_gap = 1;
   }
 
-  if ((id & FONT_FULLWIDTH) && font->xfont->width_full > 0) {
+  if (id & FONT_FULLWIDTH) {
     font->width = font->xfont->width_full;
   } else {
     font->width = font->xfont->width;
@@ -1968,7 +2007,7 @@ xfont_loaded:
       }
     } else if (font->is_vertical) {
 #ifdef USE_FREETYPE
-      if (!font->xfont->face)
+      if (!font->xfont->face || !(font->xfont->format & FONT_ROTATED))
 #endif
       {
         /*

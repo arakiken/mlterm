@@ -367,10 +367,6 @@ void Java_mlterm_native_1activity_MLActivity_pauseNative(JNIEnv *env, jobject th
   }
 }
 
-/*
- * This is called while main activity stops (preference activity is active), so
- * pthread_mutex_lock() is not called.
- */
 void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jobject this,
                                                                  jstring jkey, jstring jval) {
   vt_term_t *term;
@@ -398,7 +394,14 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
     } else
 #endif
     {
+      /*
+       * This function is called while main activity stops (preference activity is active).
+       * But pthread_mutex_lock() shoule be called here because native activity thread
+       * (which reads pty) works.
+       */
+      pthread_mutex_lock(&mutex);
       (*term->parser->config_listener->set)(term->parser->config_listener->self, NULL, key, val2);
+      pthread_mutex_unlock(&mutex);
     }
 
     /* Following is the same processing as config_protocol_set() in vt_parser.c */

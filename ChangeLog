@@ -1,3 +1,39 @@
+2017-10-02  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL: Updated.
+
+	* ui_screen.c:
+	  - draw_cursor() checks if cursor position is outside of the screen or not.
+	  - report_mouse_tracking() considers vertical mode.
+	  - "use_vertical_cursor" is added to get_config_intern() and ui_screen_set_config().
+
+	* ui_window.c:
+	  - Whether glyph width exceeds ui_get_bitmap_width()/ui_get_bitmap_width_aa()
+	    or not is checked
+
+	* fb/ui_font.h:
+	  - ui_get_bitmap_width() is renamed to ui_get_bitmap_width_aa().
+	  - ui_get_bitmap_width() which is for not anti aliased fonts is added.
+
+	* fb/ui_font.c:
+	  - width and width_full of XFontStruct have equal value if there is no full
+	    width glyph.
+	  - load_glyph() keeps face->glyph->format of FT_Load_Glyph().
+	  - FT_Set_Transform() in load_ft() => FT_Outline_Set_Transform() in load_glyph()
+	  - is_rotated_char() returns 1 if ch is 0xff08-ff09, 0xff0d, 0xff1a-ff1e, 0xff3b,
+	    0xff3d, 0xff5b-ff5e or 0xff62-0xff63.
+	  - is_right_aligned_char() is added.
+
+	* ui_font.h: FONT_VERTICAL => FONT_VERT_RTL and FONT_VERT_LTR.
+
+	* MLPreferenceActivity.java:
+	  - list.setValueIndex() is called in addList().
+	  - "Vertical cursor" checkbox is added.
+
+	* android/jni/ui_event_source.c: config_listener->set is called between
+	  pthread_mutex_{un}lock() in
+	  Java_mlterm_native_1activity_MLPreferenceActivity_setConfig().
+
 2017-09-28  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: 'capabilities' event of wl_seat_listener is handled.
