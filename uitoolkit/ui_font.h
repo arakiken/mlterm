@@ -11,11 +11,14 @@
 
 #include "ui_type_engine.h"
 
+#define FONT_VERTICAL (FONT_VERT_LTR|FONT_VERT_RTL)
+
 typedef enum ui_font_present {
-  FONT_VAR_WIDTH = 0x1,
-  FONT_VERTICAL = 0x2,
-  FONT_AA = 0x4,
-  FONT_NOAA = 0x8, /* Don't specify with FONT_AA */
+  FONT_VERT_LTR = 0x1, /* == VERT_LTR */
+  FONT_VERT_RTL = 0x2, /* == VERT_RTL */
+  FONT_VAR_WIDTH = 0x4,
+  FONT_AA = 0x8,
+  FONT_NOAA = 0x10, /* Don't specify with FONT_AA */
 
 } ui_font_present_t;
 

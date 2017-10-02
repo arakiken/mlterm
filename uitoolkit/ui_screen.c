@@ -454,6 +454,17 @@ static int draw_cursor(ui_screen_t *screen) {
   /* don't use _with_shape function since line is already shaped */
   x = convert_char_index_to_x(screen, line, vt_term_cursor_char_index(screen->term));
 
+  /*
+   * XXX
+   * screen_width_ratio < 100 causes segfault on wayland, framebuffer and android without this.
+   */
+#if 1
+  if (x + ui_col_width(screen) > screen->width || y + ui_line_height(screen) > screen->height) {
+    /* XXX screen_width_ratio option drives out the cursor outside of the screen. */
+    return 0;
+  }
+#endif
+
   vt_char_init(&ch);
   vt_char_copy(&ch, vt_char_at(line, vt_term_cursor_char_index(screen->term)));
 
@@ -1065,13 +1076,11 @@ static int update_special_visual(ui_screen_t *screen) {
     return 0;
   }
 
-  font_present = ui_get_font_present(screen->font_man);
+  font_present = ui_get_font_present(screen->font_man) & ~FONT_VERTICAL;
 
   /* Similar if-else conditions exist in vt_term_update_special_visual. */
   if (vt_term_get_vertical_mode(screen->term)) {
-    font_present |= FONT_VERTICAL;
-  } else {
-    font_present &= ~FONT_VERTICAL;
+    font_present |= vt_term_get_vertical_mode(screen->term);
   }
 
   change_font_present(screen, ui_get_type_engine(screen->font_man), font_present);
@@ -1281,17 +1290,11 @@ static void window_resized(ui_window_t *win) {
    */
 
   if (vt_term_get_vertical_mode(screen->term)) {
-    u_int tmp;
+    height = screen->window.width;
+    width = (screen->window.height * 100) / screen->screen_width_ratio;
 
-    width = screen->window.width;
-    height = (screen->window.height * 100) / screen->screen_width_ratio;
-
-    rows = width / ui_col_width(screen);
-    cols = height / ui_line_height(screen);
-
-    tmp = width;
-    width = height;
-    height = tmp;
+    rows = height / ui_col_width(screen);
+    cols = width / ui_line_height(screen);
   } else {
     width = (screen->window.width * 100) / screen->screen_width_ratio;
     height = screen->window.height;
@@ -2600,34 +2603,31 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
   if (vt_term_get_vertical_mode(screen->term)) {
     col = convert_y_to_row(screen, NULL, y);
 
-#if 0
-    if (ui_is_using_multi_col_char(screen->font_man)) {
-      /*
-       * XXX
-       * col can be inaccurate if full width characters are used.
-       */
-    }
-#endif
-
     if ((line = vt_term_get_line_in_screen(screen->term, col)) == NULL) {
       return;
     }
 
-    row = vt_convert_char_index_to_col(
-        line, convert_x_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
+    if (ui_is_using_multi_col_char(screen->font_man)) {
+      row = x / ui_col_width(screen);
+    } else {
+      row = vt_convert_char_index_to_col(line,
+              convert_x_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
+    }
+
+    if (ui_is_using_multi_col_char(screen->font_man)) {
+      int count;
+
+      for (count = col; count >= 0; count--) {
+        if ((line = vt_term_get_line_in_screen(screen->term, count)) &&
+            row < line->num_of_filled_chars && vt_char_cols(&line->chars[row]) > 1) {
+          col++;
+        }
+      }
+    }
 
     if (vt_term_get_vertical_mode(screen->term) & VERT_RTL) {
       row = vt_term_get_cols(screen->term) - row - 1;
     }
-
-#if 0
-    if (ui_is_using_multi_col_char(screen->font_man)) {
-      /*
-       * XXX
-       * row can be inaccurate if full width characters are used.
-       */
-    }
-#endif
   } else {
     u_int width;
     int char_index;
@@ -3606,8 +3606,6 @@ static void change_vertical_mode(ui_screen_t *screen, vt_vertical_mode_t vertica
     /* redrawing under new vertical mode. */
     vt_term_set_modified_all_lines_in_screen(screen->term);
   }
-
-  resize_window(screen);
 }
 
 static void change_sb_mode(ui_screen_t *screen, ui_sb_mode_t sb_mode) {
@@ -4241,6 +4239,12 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
       free(list);
 
       return;
+    }
+  } else if (strcmp(key, "use_vertical_cursor") == 0) {
+    if (screen->use_vertical_cursor) {
+      value = "true";
+    } else {
+      value = "false";
     }
   }
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
@@ -6558,6 +6562,12 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
 
     if ((flag = true_or_false(value)) != -1) {
       trim_trailing_newline_in_pasting = flag;
+    }
+  } else if (strcmp(key, "use_vertical_cursor") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      screen->use_vertical_cursor = flag;
     }
   }
 #ifdef ROTATABLE_DISPLAY

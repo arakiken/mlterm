@@ -180,9 +180,9 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
       ) {
     u_char *bitmap_line;
     int x_off;
-    u_int glyph_width;
+    u_int max_glyph_width;
 
-    glyph_width = font_width - font_x_off;
+    max_glyph_width = ui_get_bitmap_width(xfont);
 
     switch (bpp) {
       case 1:
@@ -196,7 +196,7 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
             } else {
               p += font_x_off;
 
-              for (x_off = 0; x_off < glyph_width; x_off++) {
+              for (x_off = 0; x_off < max_glyph_width; x_off++) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
                   *p = fg_pixel;
                 }
@@ -222,7 +222,7 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
             } else {
               p += (font_x_off * 2);
 
-              for (x_off = 0; x_off < glyph_width; x_off++) {
+              for (x_off = 0; x_off < max_glyph_width; x_off++) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
                   *((u_int16_t *)p) = fg_pixel;
                 }
@@ -249,7 +249,7 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
             } else {
               p += (font_x_off * 4);
 
-              for (x_off = 0; x_off < glyph_width; x_off++) {
+              for (x_off = 0; x_off < max_glyph_width; x_off++) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
                   *((u_int32_t *)p) = fg_pixel;
                 }
@@ -390,11 +390,10 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
             x = x + advance - font_width;
           }
         } else {
-          for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
-            u_long pixel;
+          u_int glyph_end = font_x_off + ui_get_bitmap_width_aa(xfont);
 
-            if (font_x_off <= x_off &&
-                x_off < font_x_off + ui_get_bitmap_width(xfont)) {
+          for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
+            if (font_x_off <= x_off && x_off < glyph_end) {
               u_long bg;
 
               if (src_bg_is_set) {
@@ -414,6 +413,8 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
             }
 
             if (!src_bg_is_set) {
+              u_long pixel;
+
               pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
               copy_pixel(p, pixel, bpp);
             }
@@ -422,14 +423,14 @@ static int draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_h
       }
 #endif
       else {
-        int force_fg;
-
-        force_fg = 0;
+        int force_fg = 0;
+        u_int glyph_end = font_x_off + ui_get_bitmap_width(xfont);
 
         for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
           u_long pixel;
 
-          if (font_x_off <= x_off && ui_get_bitmap_cell(bitmap_line, x_off - font_x_off)) {
+          if (font_x_off <= x_off && x_off < glyph_end &&
+              ui_get_bitmap_cell(bitmap_line, x_off - font_x_off)) {
             pixel = fg_pixel;
 
             force_fg = double_draw_gap;

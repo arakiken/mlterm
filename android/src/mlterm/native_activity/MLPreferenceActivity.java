@@ -78,11 +78,26 @@ public class MLPreferenceActivity extends PreferenceActivity {
   private void addList(PreferenceCategory category, final String key, String title,
                        CharSequence[] entries) {
     ListPreference list = new ListPreference(this);
+    String value = getStrConfig(key);
     list.setTitle(title);
     list.setPersistent(false);
     list.setEntries(entries);
     list.setEntryValues(entries);
-    list.setSummary(getStrConfig(key));
+    list.setSummary(value);
+
+    int index = 0;
+    if (value != null) {
+      while (true) {
+        if (value.contentEquals(entries[index])) {
+          break;
+        } else if (++index > entries.length) {
+          index = 0;
+          break;
+        }
+      }
+    }
+    list.setValueIndex(index);
+
     list.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -126,5 +141,6 @@ public class MLPreferenceActivity extends PreferenceActivity {
     CharSequence[] entries2 = { "none", "cjk", "mongol" };
     addList(category, "vertical_mode", "Vertical mode", entries2);
     addEditText(category, "screen_width_ratio", "Screen size ratio", InputType.TYPE_CLASS_NUMBER);
+    addCheckBox(category, "use_vertical_cursor", "Vertical cursor");
   }
 }

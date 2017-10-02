@@ -120,10 +120,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 * 対応プラットフォーム
   o Linux, *BSD (X11, Framebuffer, Wayland or Console)
   o Solaris (X11 or Console)
-  o MacOSX 10.6 (X11 or Cocoa)
+  o MacOSX 10.6 (X11, Cocoa or Console)
   o Windows XP or later
-  o Cygwin (X11 or Win32GDI)
-  o MSYS2 (Win32GDI)
+  o Cygwin (X11, Win32GDI or Console)
+  o MSYS2 (Win32GDI or Console)
   o Android 3.x or later.
   o Java (SWT)
 

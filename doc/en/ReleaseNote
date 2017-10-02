@@ -1,4 +1,6 @@
-* Support 90-degree rotation of alphabet glyphs in vertical mode on framebuffer, wayland and android.
+* Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
+	wayland and android.
+* Add "use_vertical_cursor" to OSC 5379, 5380 and 5381.
 * Bug fixes:
   Fix impossibility of keyborad and pointer input after switching virtual consoles on wayland.
 
