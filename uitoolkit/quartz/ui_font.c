@@ -156,9 +156,8 @@ static int parse_font_name(
 
 /* --- global functions --- */
 
-int ui_compose_dec_special_font(void) {
-  /* Do nothing for now in win32. */
-  return 0;
+void ui_compose_dec_special_font(void) {
+  /* Do nothing for now in quartz. */
 }
 
 /* Undocumented */
@@ -172,6 +171,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   ui_font_t *font;
   char *font_family;
   u_int percent;
+  u_int cols;
 
   if (type_engine != TYPE_XCORE ||
       (font = calloc(1, sizeof(ui_font_t) + sizeof(XFontStruct))) == NULL) {
@@ -188,9 +188,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   font->id = id;
 
   if (font->id & FONT_FULLWIDTH) {
-    font->cols = 2;
+    cols = 2;
   } else {
-    font->cols = 1;
+    cols = 1;
   }
 
   if (IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V) {
@@ -324,7 +324,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
       font->width = fontsize;
       font->x_off += (fontsize / 4);
     } else {
-      font->width = fontsize * font->cols / 2;
+      font->width = fontsize * cols / 2;
     }
 
     font->width += letter_space;
@@ -334,7 +334,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     if (font->is_vertical) {
       font->width = col_width;
     } else {
-      font->width = col_width * font->cols;
+      font->width = col_width * cols;
     }
   }
 
@@ -359,7 +359,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   return font;
 }
 
-int ui_font_delete(ui_font_t *font) {
+void ui_font_delete(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -369,23 +369,6 @@ int ui_font_delete(ui_font_t *font) {
   cocoa_release_font(font->xfont->cg_font);
 
   free(font);
-
-  return 1;
-}
-
-int ui_change_font_cols(ui_font_t *font, u_int cols /* 0 means default value */
-                        ) {
-  if (cols == 0) {
-    if (font->id & FONT_FULLWIDTH) {
-      font->cols = 2;
-    } else {
-      font->cols = 1;
-    }
-  } else {
-    font->cols = cols;
-  }
-
-  return 1;
 }
 
 #ifdef USE_OT_LAYOUT
@@ -494,15 +477,13 @@ size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
 
 #ifdef DEBUG
 
-int ui_font_dump(ui_font_t *font) {
+void ui_font_dump(ui_font_t *font) {
   bl_msg_printf("  id %x: Font %p", font->id, font->xfont->cg_font);
 
   if (font->is_proportional) {
     bl_msg_printf(" (proportional)");
   }
   bl_msg_printf("\n");
-
-  return 1;
 }
 
 #endif

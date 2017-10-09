@@ -173,7 +173,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            u_int vmargin, int hide_underline, int underline_offset,
                            int baseline_offset);
 
-int ui_screen_delete(ui_screen_t *screen);
+void ui_screen_delete(ui_screen_t *screen);
 
 int ui_screen_attach(ui_screen_t *screen, vt_term_t *term);
 
@@ -186,11 +186,11 @@ void ui_set_system_listener(ui_screen_t *screen, ui_system_event_listener_t *sys
 void ui_set_screen_scroll_listener(ui_screen_t *screen,
                                    ui_screen_scroll_event_listener_t *screen_scroll_listener);
 
-int ui_screen_scroll_upward(ui_screen_t *screen, u_int size);
+void ui_screen_scroll_upward(ui_screen_t *screen, u_int size);
 
-int ui_screen_scroll_downward(ui_screen_t *screen, u_int size);
+void ui_screen_scroll_downward(ui_screen_t *screen, u_int size);
 
-int ui_screen_scroll_to(ui_screen_t *screen, int row);
+void ui_screen_scroll_to(ui_screen_t *screen, int row);
 
 u_int ui_col_width(ui_screen_t *screen);
 
@@ -202,7 +202,7 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd);
 
 int ui_screen_set_config(ui_screen_t *screen, char *dev, char *key, char *value);
 
-int ui_screen_reset_view(ui_screen_t *screen);
+void ui_screen_reset_view(ui_screen_t *screen);
 
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 void ui_screen_reload_color_cache(ui_screen_t *screen, int do_unload);

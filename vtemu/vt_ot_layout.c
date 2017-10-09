@@ -271,10 +271,8 @@ int vt_ot_layout_copy(vt_ot_layout_state_t dst, vt_ot_layout_state_t src, int op
   return 1;
 }
 
-int vt_ot_layout_reset(vt_ot_layout_state_t state) {
+void vt_ot_layout_reset(vt_ot_layout_state_t state) {
   state->size = 0;
-
-  return 1;
 }
 
 #endif

@@ -31,9 +31,9 @@ vt_drcs_font_t *vt_drcs_get_font(ef_charset_t cs, int create);
 
 char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx);
 
-int vt_drcs_final(ef_charset_t cs);
+void vt_drcs_final(ef_charset_t cs);
 
-int vt_drcs_final_full(void);
+void vt_drcs_final_full(void);
 
 int vt_drcs_add(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height);
 

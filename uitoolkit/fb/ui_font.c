@@ -1637,10 +1637,8 @@ static int compose_dec_special_font;
 
 /* --- global functions --- */
 
-int ui_compose_dec_special_font(void) {
+void ui_compose_dec_special_font(void) {
   compose_dec_special_font = 1;
-
-  return 1;
 }
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
@@ -1661,6 +1659,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 #ifdef USE_FREETYPE
   u_int format;
 #endif
+  u_int cols;
 
   cs = FONT_CS(id);
 
@@ -1904,9 +1903,9 @@ xfont_loaded:
   font->id = orig_id;
 
   if (font->id & FONT_FULLWIDTH) {
-    font->cols = 2;
+    cols = 2;
   } else {
-    font->cols = 1;
+    cols = 1;
   }
 
 /*
@@ -2056,18 +2055,18 @@ xfont_loaded:
         }
       }
     } else {
-      if (font->width != col_width * font->cols) {
+      if (font->width != col_width * cols) {
         bl_msg_printf(
             "Font(id %x) width(%d) is not matched with "
             "standard width(%d).\n",
-            font->id, font->width, col_width * font->cols);
+            font->id, font->width, col_width * cols);
 
         if (!font->is_var_col_width) {
-          if (font->width < col_width * font->cols) {
-            font->x_off = (col_width * font->cols - font->width) / 2;
+          if (font->width < col_width * cols) {
+            font->x_off = (col_width * cols - font->width) / 2;
           }
 
-          font->width = col_width * font->cols;
+          font->width = col_width * cols;
         }
       }
     }
@@ -2090,7 +2089,7 @@ xfont_loaded:
 #endif
 
     /* XXX this may be inaccurate. */
-    font->width = DIVIDE_ROUNDINGUP(fontsize * font->cols, 2);
+    font->width = DIVIDE_ROUNDINGUP(fontsize * cols, 2);
   }
 
   if (font->height == 0) {
@@ -2115,7 +2114,7 @@ xfont_loaded:
   return font;
 }
 
-int ui_font_delete(ui_font_t *font) {
+void ui_font_delete(ui_font_t *font) {
   xfont_unref(font->xfont);
 
 #ifdef USE_OT_LAYOUT
@@ -2125,23 +2124,6 @@ int ui_font_delete(ui_font_t *font) {
 #endif
 
   free(font);
-
-  return 1;
-}
-
-int ui_change_font_cols(ui_font_t *font, u_int cols /* 0 means default value */
-                        ) {
-  if (cols == 0) {
-    if (font->id & FONT_FULLWIDTH) {
-      font->cols = 2;
-    } else {
-      font->cols = 1;
-    }
-  } else {
-    font->cols = cols;
-  }
-
-  return 1;
 }
 
 #ifdef USE_OT_LAYOUT
@@ -2232,7 +2214,7 @@ size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Big endian. */
 
 #ifdef DEBUG
 
-int ui_font_dump(ui_font_t *font) {
+void ui_font_dump(ui_font_t *font) {
   bl_msg_printf("Font id %x: XFont %p (width %d, height %d, ascent %d, x_off %d)", font->id,
                 font->xfont, font->width, font->height, font->ascent, font->x_off);
 
@@ -2253,8 +2235,6 @@ int ui_font_dump(ui_font_t *font) {
   }
 
   bl_msg_printf("\n");
-
-  return 1;
 }
 
 #endif

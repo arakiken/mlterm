@@ -239,7 +239,7 @@ error1:
   return NULL;
 }
 
-static int close_display(ui_display_t *disp) {
+static void close_display(ui_display_t *disp) {
   u_int count;
 
   ui_gc_delete(disp->gc);
@@ -266,8 +266,6 @@ static int close_display(ui_display_t *disp) {
   XCloseDisplay(disp->display);
 
   free(disp);
-
-  return 1;
 }
 
 /* --- global functions --- */
@@ -304,8 +302,8 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   return disp;
 }
 
-int ui_display_close(ui_display_t *disp) {
-  int count;
+void ui_display_close(ui_display_t *disp) {
+  u_int count;
 
   for (count = 0; count < num_of_displays; count++) {
     if (displays[count] == disp) {
@@ -316,14 +314,12 @@ int ui_display_close(ui_display_t *disp) {
       bl_debug_printf("X connection closed.\n");
 #endif
 
-      return 1;
+      return;
     }
   }
-
-  return 0;
 }
 
-int ui_display_close_all(void) {
+void ui_display_close_all(void) {
   while (num_of_displays > 0) {
     close_display(displays[--num_of_displays]);
   }
@@ -331,8 +327,6 @@ int ui_display_close_all(void) {
   free(displays);
 
   displays = NULL;
-
-  return 1;
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {
@@ -384,6 +378,8 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 
   return 1;
 }
+
+int ui_window_reset_group(ui_window_t *win); /* defined in xlib/ui_window.c */
 
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;

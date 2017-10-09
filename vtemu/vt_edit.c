@@ -511,14 +511,12 @@ int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listen
   return 1;
 }
 
-int vt_edit_final(vt_edit_t *edit) {
+void vt_edit_final(vt_edit_t *edit) {
   vt_model_final(&edit->model);
 
   free(edit->tab_stops);
 
   vt_char_final(&edit->bce_ch);
-
-  return 1;
 }
 
 int vt_edit_clone(vt_edit_t *dst_edit, vt_edit_t *src_edit) {
@@ -1668,33 +1666,17 @@ int vt_edit_goto(vt_edit_t *edit, int col, int row) {
   return vt_cursor_goto_by_col(&edit->cursor, col, row);
 }
 
-int vt_edit_set_relative_origin(vt_edit_t *edit) {
+void vt_edit_set_relative_origin(vt_edit_t *edit) {
   edit->is_relative_origin = 1;
-
-  return 1;
 }
 
-int vt_edit_set_absolute_origin(vt_edit_t *edit) {
+void vt_edit_set_absolute_origin(vt_edit_t *edit) {
   edit->is_relative_origin = 0;
-
-  return 1;
 }
 
-int vt_edit_set_auto_wrap(vt_edit_t *edit, int flag) {
+void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag) {
   edit->is_auto_wrap = flag;
-
-  return 1;
 }
-
-int vt_edit_set_bce_fg_color(vt_edit_t *edit, vt_color_t fg_color) {
-  return vt_char_set_fg_color(&edit->bce_ch, fg_color);
-}
-
-int vt_edit_set_bce_bg_color(vt_edit_t *edit, vt_color_t bg_color) {
-  return vt_char_set_bg_color(&edit->bce_ch, bg_color);
-}
-
-int vt_edit_save_cursor(vt_edit_t *edit) { return vt_cursor_save(&edit->cursor); }
 
 int vt_edit_restore_cursor(vt_edit_t *edit) {
   if (vt_cursor_restore(&edit->cursor)) {

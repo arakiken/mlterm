@@ -1274,7 +1274,7 @@ static u_int32_t *create_cardinals_from_file(char *path, u_int32_t width, u_int3
 
 /* --- global functions --- */
 
-int ui_imagelib_display_opened(Display *display) {
+void ui_imagelib_display_opened(Display *display) {
 #if GDK_PIXBUF_MAJOR >= 2
   if (display_count == 0) {
     g_type_init();
@@ -1285,11 +1285,9 @@ int ui_imagelib_display_opened(Display *display) {
   XSelectInput(display, DefaultRootWindow(display), PropertyChangeMask);
 
   display_count++;
-
-  return 1;
 }
 
-int ui_imagelib_display_closed(Display *display) {
+void ui_imagelib_display_closed(Display *display) {
   display_count--;
 
   if (display_count == 0) {
@@ -1298,8 +1296,6 @@ int ui_imagelib_display_closed(Display *display) {
     load_file(NULL, 0, 0, 0);
 #endif
   }
-
-  return 1;
 }
 
 /** Load an image from the specified file.
@@ -1386,6 +1382,10 @@ error:
 
 #endif /* BUILTIN_IMAGELIB */
 }
+
+/* defined in xlib/ui_window.c */
+int ui_window_get_visible_geometry(ui_window_t *win, int *x, int *y, int *my_x, int *my_y,
+                                   u_int *width, u_int *height);
 
 /** Create an pixmap from root window
  *\param win window structure
@@ -1699,10 +1699,8 @@ Pixmap ui_imagelib_pixbuf_to_pixmap(ui_window_t *win, ui_picture_modifier_t *pic
   return None;
 }
 
-int ui_delete_image(Display *display, Pixmap pixmap) {
+void ui_delete_image(Display *display, Pixmap pixmap) {
   XFreePixmap(display, pixmap);
-
-  return 1;
 }
 
 #endif /* NO_IMAGE */

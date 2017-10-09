@@ -751,7 +751,7 @@ static void candidates_changed(im_m17nlib_t *m17nlib) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_m17nlib_t *m17nlib;
 
   m17nlib = (im_m17nlib_t*)im;
@@ -794,8 +794,6 @@ static int delete (ui_im_t *im) {
       parser_ascii = NULL;
     }
   }
-
-  return ref_count;
 }
 
 static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {

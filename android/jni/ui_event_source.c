@@ -166,9 +166,9 @@ static int need_resize(u_int cur_width,  /* contains scrollbar width and margin 
 
 /* --- global functions --- */
 
-int ui_event_source_init(void) { return 1; }
+void ui_event_source_init(void) {}
 
-int ui_event_source_final(void) { return 1; }
+void ui_event_source_final(void) {}
 
 int ui_event_source_process(void) {
   ALooper *looper;
@@ -282,7 +282,7 @@ int ui_event_source_process(void) {
  */
 int ui_event_source_add_fd(int fd, void (*handler)(void)) { return 0; }
 
-int ui_event_source_remove_fd(int fd) { return 0; }
+void ui_event_source_remove_fd(int fd) {}
 
 void Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(JNIEnv *env, jobject this,
                                                                  jint yoffset, jint width,

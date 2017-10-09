@@ -305,7 +305,7 @@ error:
   return NULL;
 }
 
-int vt_term_delete(vt_term_t *term) {
+void vt_term_delete(vt_term_t *term) {
 #ifndef NO_IMAGE
   if (vt_term_pty_closed_event) {
     (*vt_term_pty_closed_event)(term);
@@ -328,11 +328,9 @@ int vt_term_delete(vt_term_t *term) {
   vt_parser_delete(term->parser);
 
   free(term);
-
-  return 1;
 }
 
-int vt_term_zombie(vt_term_t *term) {
+void vt_term_zombie(vt_term_t *term) {
   if (term->pty) {
     vt_pty_ptr_t pty;
 
@@ -348,8 +346,6 @@ int vt_term_zombie(vt_term_t *term) {
     bl_debug_printf(BL_DEBUG_TAG " term is already zombie.\n");
   }
 #endif
-
-  return 1;
 }
 
 /* The caller should swap width_pix and height_pix in vertical mode. */
@@ -601,9 +597,9 @@ int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual) {
  * Not implemented yet.
  */
 #if 0
-int vt_term_set_modified_region(vt_term_t *term, int beg_char_index, int beg_row, u_int nchars,
-                                u_int nrows) {
-  return 0;
+void vt_term_set_modified_region(vt_term_t *term, int beg_char_index, int beg_row, u_int nchars,
+                                 u_int nrows) {
+  return;
 }
 #endif
 
@@ -611,8 +607,8 @@ int vt_term_set_modified_region(vt_term_t *term, int beg_char_index, int beg_row
  * Not used.
  */
 #if 0
-int vt_term_set_modified_region_in_screen(vt_term_t *term, int beg_char_index, int beg_row,
-                                          u_int nchars, u_int nrows) {
+void vt_term_set_modified_region_in_screen(vt_term_t *term, int beg_char_index, int beg_row,
+                                           u_int nchars, u_int nrows) {
   int row;
   vt_line_t *line;
   int revert_to_visual;
@@ -637,12 +633,10 @@ int vt_term_set_modified_region_in_screen(vt_term_t *term, int beg_char_index, i
     /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
-
-  return 1;
 }
 #endif
 
-int vt_term_set_modified_lines(vt_term_t *term, int beg, int end) {
+void vt_term_set_modified_lines(vt_term_t *term, int beg, int end) {
   int row;
   vt_line_t *line;
   int revert_to_visual;
@@ -667,11 +661,9 @@ int vt_term_set_modified_lines(vt_term_t *term, int beg, int end) {
     /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
-
-  return 1;
 }
 
-int vt_term_set_modified_lines_in_screen(vt_term_t *term, int beg, int end) {
+void vt_term_set_modified_lines_in_screen(vt_term_t *term, int beg, int end) {
   int row;
   vt_line_t *line;
   int revert_to_visual;
@@ -696,11 +688,9 @@ int vt_term_set_modified_lines_in_screen(vt_term_t *term, int beg, int end) {
     /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
-
-  return 1;
 }
 
-int vt_term_set_modified_all_lines_in_screen(vt_term_t *term) {
+void vt_term_set_modified_all_lines_in_screen(vt_term_t *term) {
   int revert_to_visual;
 
   /*
@@ -719,11 +709,9 @@ int vt_term_set_modified_all_lines_in_screen(vt_term_t *term) {
     /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
-
-  return 1;
 }
 
-int vt_term_updated_all(vt_term_t *term) {
+void vt_term_updated_all(vt_term_t *term) {
   int row;
   vt_line_t *line;
 
@@ -749,8 +737,6 @@ int vt_term_updated_all(vt_term_t *term) {
     /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
-
-  return 1;
 }
 
 /*
@@ -853,7 +839,7 @@ int vt_term_enter_backscroll_mode(vt_term_t *term) {
   return vt_enter_backscroll_mode(term->screen);
 }
 
-int vt_term_set_icon_path(vt_term_t *term, const char *path) {
+void vt_term_set_icon_path(vt_term_t *term, const char *path) {
   free(term->icon_path);
 
   if (path && *path) {
@@ -861,8 +847,6 @@ int vt_term_set_icon_path(vt_term_t *term, const char *path) {
   } else {
     term->icon_path = NULL;
   }
-
-  return 1;
 }
 
 void vt_term_set_bidi_separators(vt_term_t *term, const char *bidi_separators) {

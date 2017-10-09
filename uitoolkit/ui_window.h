@@ -209,17 +209,17 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
                    u_int width_inc, u_int height_inc, u_int hmargin, u_int vmargin, int create_gc,
                    int inputtable);
 
-int ui_window_final(ui_window_t *win);
+void ui_window_final(ui_window_t *win);
 
-int ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine);
+void ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine);
 
-int ui_window_add_event_mask(ui_window_t *win, long event_mask);
+void ui_window_add_event_mask(ui_window_t *win, long event_mask);
 
-int ui_window_remove_event_mask(ui_window_t *win, long event_mask);
+void ui_window_remove_event_mask(ui_window_t *win, long event_mask);
 
 /* int  ui_window_grab_pointer( ui_window_t *  win) ; */
 
-int ui_window_ungrab_pointer(ui_window_t *win);
+void ui_window_ungrab_pointer(ui_window_t *win);
 
 int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose);
 
@@ -235,7 +235,7 @@ int ui_window_set_transparent(ui_window_t *win, ui_picture_modifier_ptr_t pic_mo
 
 int ui_window_unset_transparent(ui_window_t *win);
 
-int ui_window_set_cursor(ui_window_t *win, u_int cursor_shape);
+void ui_window_set_cursor(ui_window_t *win, u_int cursor_shape);
 
 int ui_window_set_fg_color(ui_window_t *win, ui_color_t *fg_color);
 
@@ -253,44 +253,44 @@ GC ui_window_get_bg_gc(ui_window_t *win);
 
 int ui_window_show(ui_window_t *win, int hint);
 
-int ui_window_map(ui_window_t *win);
+void ui_window_map(ui_window_t *win);
 
-int ui_window_unmap(ui_window_t *win);
+void ui_window_unmap(ui_window_t *win);
 
 int ui_window_resize(ui_window_t *win, u_int width, u_int height, ui_resize_flag_t flag);
 
 int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
                                  ui_resize_flag_t flag);
 
-int ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height, u_int width_inc,
-                               u_int height_inc);
+void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
+                                u_int width_inc, u_int height_inc);
 
-int ui_window_set_override_redirect(ui_window_t *win, int flag);
+void ui_window_set_override_redirect(ui_window_t *win, int flag);
 
 int ui_window_set_borderless_flag(ui_window_t *win, int flag);
 
 int ui_window_move(ui_window_t *win, int x, int y);
 
-int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height);
+void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height);
 
-int ui_window_clear_all(ui_window_t *win);
+void ui_window_clear_all(ui_window_t *win);
 
-int ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height);
+void ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height);
 
-int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
+void ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
                         u_int height);
 
-int ui_window_blank(ui_window_t *win);
+void ui_window_blank(ui_window_t *win);
 
 #if 0
 /* Not used */
-int ui_window_blank_with(ui_window_t *win, ui_color_t *color);
+void ui_window_blank_with(ui_window_t *win, ui_color_t *color);
 #endif
 
 /* if flag is 0, no update. */
-int ui_window_update(ui_window_t *win, int flag);
+void ui_window_update(ui_window_t *win, int flag);
 
-int ui_window_update_all(ui_window_t *win);
+void ui_window_update_all(ui_window_t *win);
 
 void ui_window_idling(ui_window_t *win);
 
@@ -332,11 +332,11 @@ void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int heigh
 
 void ui_window_unset_clip(ui_window_t *win);
 
-int ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                int y, u_char *str, u_int len);
+void ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                 int y, u_char *str, u_int len);
 
-int ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                      ui_color_t *bg_color, int x, int y, u_char *str, u_int len);
+void ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                       ui_color_t *bg_color, int x, int y, u_char *str, u_int len);
 
 /*
  * ui_window_draw_*_string functions are used by ui_draw_str.[ch].
@@ -344,45 +344,44 @@ int ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_colo
  */
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                          u_char *str, u_int len);
+void ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                           u_char *str, u_int len);
 
-int ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                            XChar2b *str, u_int len);
+void ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                             XChar2b *str, u_int len);
 
-int ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                ui_color_t *bg_color, int x, int y, u_char *str, u_int len);
+void ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                 ui_color_t *bg_color, int x, int y, u_char *str, u_int len);
 
-int ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                  ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len);
+void ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                   ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len);
 #endif
 
 #ifdef USE_CONSOLE
-int ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                        ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
-                                        int underline_style);
+void ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                         ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
+                                         int underline_style);
 
-int ui_window_console_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                  ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
-                                  int underline_style);
+void ui_window_console_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                   ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
+                                   int underline_style);
 
-int ui_window_console_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                    ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len,
-                                    int underline_style);
+void ui_window_console_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                     ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len,
+                                     int underline_style);
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-int ui_window_ft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                              u_char *str, size_t len);
+void ui_window_ft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                               int y, u_char *str, size_t len);
 
-int ui_window_ft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                               int y,
-                               /* FcChar32 */ u_int32_t *str, u_int len);
+void ui_window_ft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                int y, /* FcChar32 */ u_int32_t *str, u_int len);
 #endif
 
-int ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2);
+void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2);
 
-int ui_set_use_clipboard_selection(int use_it);
+void ui_set_use_clipboard_selection(int use_it);
 
 int ui_is_using_clipboard_selection(void);
 
@@ -396,25 +395,22 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time);
 
 int ui_window_utf_selection_request(ui_window_t *win, Time time);
 
-int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height);
+void ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height);
 
-int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *event, u_char *sel_data,
-                                  size_t sel_len, Atom sel_type);
+void ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *event,
+                                   u_char *sel_data, size_t sel_len, Atom sel_type);
 
-int ui_set_window_name(ui_window_t *win, u_char *name);
+void ui_set_window_name(ui_window_t *win, u_char *name);
 
-int ui_set_icon_name(ui_window_t *win, u_char *name);
+void ui_set_icon_name(ui_window_t *win, u_char *name);
 
-int ui_window_set_icon(ui_window_t *win, ui_icon_picture_ptr_t icon);
+void ui_window_set_icon(ui_window_t *win, ui_icon_picture_ptr_t icon);
 
-int ui_window_remove_icon(ui_window_t *win);
+void ui_window_remove_icon(ui_window_t *win);
 
-int ui_window_reset_group(ui_window_t *win);
+void ui_set_click_interval(int interval);
 
-int ui_window_get_visible_geometry(ui_window_t *win, int *x, int *y, int *my_x, int *my_y,
-                                   u_int *width, u_int *height);
-
-int ui_set_click_interval(int interval);
+int ui_get_click_interval(void);
 
 #define ui_window_get_modifier_mapping(win) ui_display_get_modifier_mapping((win)->disp)
 
@@ -423,15 +419,15 @@ u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms);
 u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key);
 
 #ifdef SUPPORT_URGENT_BELL
-int ui_set_use_urgent_bell(int use);
+void ui_set_use_urgent_bell(int use);
 #else
 #define ui_set_use_urgent_bell(use) (0)
 #endif
 
-int ui_window_bell(ui_window_t *win, ui_bel_mode_t mode);
+void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode);
 
-int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
-                                    Window *child);
+void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
+                                     Window *child);
 
 void ui_window_set_input_focus(ui_window_t *win);
 

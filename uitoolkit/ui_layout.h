@@ -44,7 +44,7 @@ typedef struct ui_layout {
 ui_layout_t *ui_layout_new(ui_screen_t *screen, char *view_name, char *fg_color, char *bg_color,
                            ui_sb_mode_t mode, u_int hmargin, u_int vmargin);
 
-int ui_layout_delete(ui_layout_t *layout);
+void ui_layout_delete(ui_layout_t *layout);
 
 int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal,
                         const char *percent);

@@ -18,7 +18,7 @@ typedef struct vt_logs {
 
 int vt_log_init(vt_logs_t *logs, u_int num_of_rows);
 
-int vt_log_final(vt_logs_t *logs);
+void vt_log_final(vt_logs_t *logs);
 
 int vt_change_log_size(vt_logs_t *logs, u_int num_of_rows);
 
@@ -33,9 +33,5 @@ vt_line_t *vt_log_get(vt_logs_t *logs, int at);
 u_int vt_get_num_of_logged_lines(vt_logs_t *logs);
 
 #define vt_get_log_size(logs) ((logs)->num_of_rows)
-
-int vt_log_reverse_color(vt_logs_t *logs, int char_index, int row);
-
-int vt_log_restore_color(vt_logs_t *logs, int char_index, int row);
 
 #endif

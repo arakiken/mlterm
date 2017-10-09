@@ -40,7 +40,7 @@ static inline ui_sb_view_t *check_version(ui_sb_view_t *view) {
   return view->version == 1 ? view : NULL;
 }
 
-static ui_sb_view_new_func_t dlsym_sb_view_new_func(char *name, int is_transparent) {
+static ui_sb_view_new_func_t dlsym_sb_view_new_func(const char *name, int is_transparent) {
   bl_dl_handle_t handle;
   char *symbol;
   u_int len;
@@ -89,7 +89,7 @@ static ui_sb_view_new_func_t dlsym_sb_view_new_func(char *name, int is_transpare
  */
 #ifdef SUPPORT_PIXMAP_ENGINE
 
-static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(char *name) {
+static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(const char *name) {
   ui_sb_engine_new_func_t func;
   bl_dl_handle_t handle;
   char *symbol;
@@ -128,7 +128,7 @@ static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(char *name) {
   return func;
 }
 
-static ui_sb_view_conf_t *search_view_conf(char *sb_name) {
+static ui_sb_view_conf_t *search_view_conf(const char *sb_name) {
   u_int count;
 
   for (count = 0; count < num_of_view_confs; count++) {
@@ -158,7 +158,7 @@ static void free_conf(ui_sb_view_conf_t *conf) {
   free(conf);
 }
 
-static ui_sb_view_conf_t *register_new_view_conf(bl_file_t *rcfile, char *sb_name,
+static ui_sb_view_conf_t *register_new_view_conf(bl_file_t *rcfile, const char *sb_name,
                                                  char *rcfile_path) {
   ui_sb_view_conf_t *conf;
   char *key;
@@ -250,7 +250,7 @@ static int unregister_view_conf(ui_sb_view_conf_t *conf) {
   return 1;
 }
 
-static ui_sb_view_conf_t *find_view_rcfile(char *name) {
+static ui_sb_view_conf_t *find_view_rcfile(const char *name) {
   ui_sb_view_conf_t *conf;
   bl_file_t *rcfile;
   char *user_dir;
@@ -315,7 +315,7 @@ static ui_sb_view_conf_t *find_view_rcfile(char *name) {
 
 /* --- global functions --- */
 
-ui_sb_view_t *ui_sb_view_new(char *name) {
+ui_sb_view_t *ui_sb_view_new(const char *name) {
   ui_sb_view_new_func_t func;
 #ifdef SUPPORT_PIXMAP_ENGINE
   ui_sb_view_conf_t *conf;
@@ -355,7 +355,7 @@ ui_sb_view_t *ui_sb_view_new(char *name) {
   return check_version((*func)());
 }
 
-ui_sb_view_t *ui_transparent_sb_view_new(char *name) {
+ui_sb_view_t *ui_transparent_sb_view_new(const char *name) {
   ui_sb_view_new_func_t func;
 #ifdef SUPPORT_PIXMAP_ENGINE
   ui_sb_view_conf_t *conf;
@@ -387,7 +387,7 @@ ui_sb_view_t *ui_transparent_sb_view_new(char *name) {
  * This function cleans up configurations of pixmap_engine.
  * Call this function after ui_sb_view_t::delete() is called.
  */
-int ui_unload_scrollbar_view_lib(char *name) {
+void ui_unload_scrollbar_view_lib(const char *name) {
 #ifdef SUPPORT_PIXMAP_ENGINE
   ui_sb_view_conf_t *conf;
 
@@ -413,6 +413,4 @@ int ui_unload_scrollbar_view_lib(char *name) {
 #endif
   }
 #endif
-
-  return 1;
 }

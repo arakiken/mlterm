@@ -2334,7 +2334,7 @@ static void vte_terminal_init(VteTerminal *terminal) {
 
   init_screen(terminal, ui_font_manager_new(
                             disp.display, main_config.type_engine, main_config.font_present,
-                            main_config.font_size, usascii_font_cs, main_config.use_multi_col_char,
+                            main_config.font_size, usascii_font_cs,
                             main_config.step_in_changing_font_size, main_config.letter_space,
                             main_config.use_bold_font, main_config.use_italic_font),
               ui_color_manager_new(&disp, main_config.fg_color, main_config.bg_color,

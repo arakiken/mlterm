@@ -1521,7 +1521,7 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
 #endif
 }
 
-static int close_display(ui_display_t *disp) {
+static void close_display(ui_display_t *disp) {
   u_int count;
 
 #ifdef __DEBUG
@@ -1578,8 +1578,6 @@ static int close_display(ui_display_t *disp) {
   }
 
   free(disp);
-
-  return 1;
 }
 
 static int flush_damage(Display *display) {
@@ -1752,7 +1750,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   return disp;
 }
 
-int ui_display_close(ui_display_t *disp) {
+void ui_display_close(ui_display_t *disp) {
   u_int count;
 
   for (count = 0; count < num_of_displays; count++) {
@@ -1769,19 +1767,15 @@ int ui_display_close(ui_display_t *disp) {
       bl_debug_printf("wayland display connection closed.\n");
 #endif
 
-      return 1;
+      return;
     }
   }
-
-  return 0;
 }
 
-int ui_display_close_all(void) {
+void ui_display_close_all(void) {
   while (num_of_displays > 0) {
     close_display(displays[0]);
   }
-
-  return 1;
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {

@@ -65,11 +65,9 @@ int vt_config_proto_init(void) {
   return vt_gen_proto_challenge();
 }
 
-int vt_config_proto_final(void) {
+void vt_config_proto_final(void) {
   free(path);
   free(challenge);
-
-  return 1;
 }
 
 int vt_gen_proto_challenge(void) {

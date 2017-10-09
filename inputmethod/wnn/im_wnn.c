@@ -580,7 +580,7 @@ static int fix(im_wnn_t *wnn) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_wnn_t *wnn;
   struct wnn_buf *buf;
 
@@ -608,8 +608,6 @@ static int delete (ui_im_t *im) {
     (*parser_wchar->delete)(parser_wchar);
     parser_wchar = NULL;
   }
-
-  return ref_count;
 }
 
 static int switch_mode(ui_im_t *im) {

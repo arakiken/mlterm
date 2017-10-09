@@ -19,6 +19,9 @@
 #ifdef USE_BRLAPI
 #include <ui_brltty.h>
 #endif
+#ifdef USE_CONSOLE
+#include <vt_term_manager.h> /* vt_get_all_terms */
+#endif
 
 #include "version.h"
 #include "daemon.h"
@@ -426,8 +429,17 @@ int main_loop_init(int argc, char **argv) {
 
   bl_conf_delete(conf);
 
-  ui_screen_manager_init("MLTERM=" VERSION, depth, max_screens_multiple, num_of_startup_screens,
-                         &main_config);
+  if (!ui_screen_manager_init("MLTERM=" VERSION, depth, max_screens_multiple,
+                              num_of_startup_screens, &main_config)) {
+    daemon_final();
+#ifdef USE_XLIB
+    ui_xim_final();
+#endif
+    bl_sig_child_final();
+    bl_locale_final();
+
+    return 0;
+  }
 
   ui_event_source_init();
 

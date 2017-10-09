@@ -29,9 +29,9 @@ typedef struct ui_im_status_screen {
   /*
    * methods of ui_im_status_screen_t which is called from im
    */
-  int (*delete)(struct ui_im_status_screen *);
-  int (*show)(struct ui_im_status_screen *);
-  int (*hide)(struct ui_im_status_screen *);
+  void (*delete)(struct ui_im_status_screen *);
+  void (*show)(struct ui_im_status_screen *);
+  void (*hide)(struct ui_im_status_screen *);
   int (*set_spot)(struct ui_im_status_screen *, int, int);
   int (*set)(struct ui_im_status_screen *, ef_parser_t *, u_char *);
 

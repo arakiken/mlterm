@@ -56,9 +56,9 @@ typedef struct ui_shortcut {
 
 } ui_shortcut_t;
 
-int ui_shortcut_init(ui_shortcut_t *shortcut);
+void ui_shortcut_init(ui_shortcut_t *shortcut);
 
-int ui_shortcut_final(ui_shortcut_t *shortcut);
+void ui_shortcut_final(ui_shortcut_t *shortcut);
 
 int ui_shortcut_match(ui_shortcut_t *shortcut, ui_key_func_t func, KeySym sym, u_int state);
 

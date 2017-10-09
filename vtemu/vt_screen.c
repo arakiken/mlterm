@@ -648,7 +648,7 @@ static vt_edit_t *get_edit(vt_screen_t *screen, u_int page_id) {
 
 /* --- global functions --- */
 
-int vt_set_word_separators(const char *seps) {
+void vt_set_word_separators(const char *seps) {
   static char *default_word_separators;
 
   if (default_word_separators) {
@@ -660,19 +660,17 @@ int vt_set_word_separators(const char *seps) {
       /* Fall back to default. */
       word_separators = default_word_separators;
 
-      return 1;
+      return;
     }
   } else if (seps == NULL || *seps == '\0') {
     /* Not changed */
-    return 1;
+    return;
   } else {
     /* Store the default value. */
     default_word_separators = word_separators;
   }
 
   word_separators = bl_str_unescape(seps);
-
-  return 1;
 }
 
 char *vt_get_word_separators(void) { return word_separators; }
@@ -773,10 +771,8 @@ int vt_screen_delete(vt_screen_t *screen) {
   return 1;
 }
 
-int vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *screen_listener) {
+void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *screen_listener) {
   screen->screen_listener = screen_listener;
-
-  return 1;
 }
 
 int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows) {
@@ -1367,11 +1363,9 @@ int vt_screen_search_init(vt_screen_t *screen,
   return 1;
 }
 
-int vt_screen_search_final(vt_screen_t *screen) {
+void vt_screen_search_final(vt_screen_t *screen) {
   free(screen->search);
   screen->search = NULL;
-
-  return 1;
 }
 
 int vt_screen_search_reset_position(vt_screen_t *screen) {

@@ -93,7 +93,7 @@ typedef struct vt_char {
 
 } vt_char_t;
 
-int vt_set_use_multi_col_char(int use_it);
+void vt_set_use_multi_col_char(int use_it);
 
 int vt_get_unicode_area(vt_font_t font, int *min, int *max);
 
@@ -101,9 +101,9 @@ vt_font_t vt_get_unicode_area_font(u_int32_t min, u_int32_t max);
 
 void vt_set_blink_chars_visible(int visible);
 
-int vt_char_init(vt_char_t *ch);
+void vt_char_init(vt_char_t *ch);
 
-int vt_char_final(vt_char_t *ch);
+void vt_char_final(vt_char_t *ch);
 
 int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
@@ -143,7 +143,7 @@ int vt_char_copy(vt_char_t *dst, vt_char_t *src);
 
 u_int32_t vt_char_code(vt_char_t *ch);
 
-int vt_char_set_code(vt_char_t *ch, u_int32_t code);
+void vt_char_set_code(vt_char_t *ch, u_int32_t code);
 
 ef_charset_t vt_char_cs(vt_char_t *ch);
 
@@ -159,14 +159,14 @@ int vt_char_is_fullwidth(vt_char_t *ch);
 
 vt_color_t vt_char_fg_color(vt_char_t *ch);
 
-int vt_char_set_fg_color(vt_char_t *ch, vt_color_t color);
+void vt_char_set_fg_color(vt_char_t *ch, vt_color_t color);
 
 #define vt_char_picture_id(ch) vt_char_fg_color(ch)
 #define vt_char_set_picture_id(ch, idx) vt_char_set_fg_color(ch, idx)
 
 vt_color_t vt_char_bg_color(vt_char_t *ch);
 
-int vt_char_set_bg_color(vt_char_t *ch, vt_color_t color);
+void vt_char_set_bg_color(vt_char_t *ch, vt_color_t color);
 
 int vt_char_get_offset(vt_char_t *ch);
 

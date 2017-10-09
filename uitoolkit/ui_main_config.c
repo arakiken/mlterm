@@ -16,6 +16,14 @@
 #define bl_conf_add_opt(conf, a, b, c, d, e) bl_conf_add_opt(conf, a, b, c, d, "")
 #endif
 
+/* --- static variables --- */
+
+#ifdef USE_WAYLAND
+static char *default_display = "wayland-0";
+#else
+static char *default_display = "";
+#endif
+
 /* --- static functions --- */
 
 static vt_char_encoding_t get_encoding(const char *value,
@@ -42,7 +50,7 @@ static vt_char_encoding_t get_encoding(const char *value,
 
 /* --- global functions --- */
 
-int ui_prepare_for_main_config(bl_conf_t *conf) {
+void ui_prepare_for_main_config(bl_conf_t *conf) {
   char *rcpath;
 
   if ((rcpath = bl_get_sys_rc_path("mlterm/main"))) {
@@ -127,7 +135,7 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, 'P', "clip", 1, "use_clipboard",
                   "use CLIPBOARD (not only PRIMARY) selection [true]");
   bl_conf_add_opt(conf, 'Q', "vcur", 1, "use_vertical_cursor",
-                  "rearrange cursor key for vertical mode [false]");
+                  "rearrange cursor key for vertical mode [true]");
   bl_conf_add_opt(conf, 'S', "sbview", 0, "scrollbar_view_name",
                   "scrollbar view name (simple/sample/...) [simple]");
   bl_conf_add_opt(conf, 'T', "title", 0, "title", "title name");
@@ -315,11 +323,9 @@ int ui_prepare_for_main_config(bl_conf_t *conf) {
                   "cursor color when input method is activated. [false]");
 #endif
   bl_conf_set_end_opt(conf, 'e', NULL, "exec_cmd", "execute external command");
-
-  return 1;
 }
 
-int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc, char **argv) {
+void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc, char **argv) {
   char *value;
   char *invalid_msg = "%s %s is not valid.\n";
 
@@ -335,18 +341,11 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
  * wayland: "-d wayland-0"
  */
 #if defined(USE_XLIB) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
-  if ((value = bl_conf_get_value(conf, "display")) == NULL)
+  if (!(value = bl_conf_get_value(conf, "display")) ||
+      !(main_config->disp_name = strdup(value)))
 #endif
   {
-#ifdef USE_WAYLAND
-    value = "wayland-0";
-#else
-    value = "";
-#endif
-  }
-
-  if ((main_config->disp_name = strdup(value)) == NULL) {
-    return 0;
+    main_config->disp_name = default_display;
   }
 
   if ((value = bl_conf_get_value(conf, "fontsize")) == NULL) {
@@ -936,9 +935,10 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
     ui_set_use_urgent_bell(strcmp(value, "true") == 0);
   }
 
+  main_config->use_vertical_cursor = 1;
   if ((value = bl_conf_get_value(conf, "use_vertical_cursor"))) {
-    if (strcmp(value, "true") == 0) {
-      main_config->use_vertical_cursor = 1;
+    if (strcmp(value, "false") == 0) {
+      main_config->use_vertical_cursor = 0;
     }
   }
 
@@ -1355,12 +1355,12 @@ int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc
       }
     }
   }
-
-  return 1;
 }
 
-int ui_main_config_final(ui_main_config_t *main_config) {
-  free(main_config->disp_name);
+void ui_main_config_final(ui_main_config_t *main_config) {
+  if (main_config->disp_name != default_display) {
+    free(main_config->disp_name);
+  }
   free(main_config->app_name);
   free(main_config->title);
   free(main_config->icon_name);
@@ -1404,8 +1404,6 @@ int ui_main_config_final(ui_main_config_t *main_config) {
 
   free(main_config->work_dir);
   free(main_config->cmd_argv);
-
-  return 1;
 }
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)

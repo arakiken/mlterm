@@ -39,17 +39,15 @@ ui_gc_t *ui_gc_new(Display *display, Drawable drawable) {
   return gc;
 }
 
-int ui_gc_delete(ui_gc_t *gc) {
+void ui_gc_delete(ui_gc_t *gc) {
   if ((gc->gc != DefaultGC(gc->display, DefaultScreen(gc->display)))) {
     XFreeGC(gc->display, gc->gc);
   }
 
   free(gc);
-
-  return 1;
 }
 
-int ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color) {
+void ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color) {
   /* Cooperate with ui_window_copy_area(). */
   if (gc->mask) {
     XSetClipMask(gc->display, gc->gc, None);
@@ -60,11 +58,9 @@ int ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color) {
     XSetForeground(gc->display, gc->gc, fg_color);
     gc->fg_color = fg_color;
   }
-
-  return 1;
 }
 
-int ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color) {
+void ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color) {
   /* Cooperate with ui_window_copy_area(). */
   if (gc->mask) {
     XSetClipMask(gc->display, gc->gc, None);
@@ -75,11 +71,9 @@ int ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color) {
     XSetBackground(gc->display, gc->gc, bg_color);
     gc->bg_color = bg_color;
   }
-
-  return 1;
 }
 
-int ui_gc_set_fid(ui_gc_t *gc, Font fid) {
+void ui_gc_set_fid(ui_gc_t *gc, Font fid) {
 /* XXX Lazy skip (maybe harmless) */
 #if 0
   if (gc->mask) {
@@ -92,6 +86,4 @@ int ui_gc_set_fid(ui_gc_t *gc, Font fid) {
     XSetFont(gc->display, gc->gc, fid);
     gc->fid = fid;
   }
-
-  return 1;
 }

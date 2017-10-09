@@ -159,7 +159,7 @@ int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_i
   return 1;
 }
 
-int ui_unload_xcolor(ui_display_t *disp, ui_color_t *xcolor) {
+void ui_unload_xcolor(ui_display_t *disp, ui_color_t *xcolor) {
 #if 0
   u_long pixel[1];
 
@@ -167,13 +167,10 @@ int ui_unload_xcolor(ui_display_t *disp, ui_color_t *xcolor) {
 
   XFreeColors(disp->display, disp->colormap, pixel, 1, 0);
 #endif
-
-  return 1;
 }
 
-int ui_get_xcolor_rgba(u_int8_t *red, u_int8_t *green, u_int8_t *blue,
-                       u_int8_t *alpha, /* can be NULL */
-                       ui_color_t *xcolor) {
+void ui_get_xcolor_rgba(u_int8_t *red, u_int8_t *green, u_int8_t *blue,
+                        u_int8_t *alpha /* can be NULL */, ui_color_t *xcolor) {
   *red = xcolor->red;
   *green = xcolor->green;
   *blue = xcolor->blue;
@@ -181,8 +178,6 @@ int ui_get_xcolor_rgba(u_int8_t *red, u_int8_t *green, u_int8_t *blue,
   if (alpha) {
     *alpha = xcolor->alpha;
   }
-
-  return 1;
 }
 
 int ui_xcolor_fade(ui_display_t *disp, ui_color_t *xcolor, u_int fade_ratio) {

@@ -12,6 +12,7 @@
 #include "vt_char_encoding.h"
 #include "vt_drcs.h"
 #include "vt_termcap.h"
+#include "vt_config_proto.h"
 
 #define PTY_WR_BUFFER_SIZE 100
 
@@ -322,7 +323,7 @@ void vt_set_primary_da(char *da);
 
 void vt_set_secondary_da(char *da);
 
-void vt_parser_init(void);
+#define vt_parser_init vt_config_proto_init
 
 void vt_parser_final(void);
 
@@ -375,9 +376,9 @@ int vt_parser_change_encoding(vt_parser_t *vt_parser, vt_char_encoding_t encodin
 size_t vt_parser_convert_to(vt_parser_t *vt_parser, u_char *dst, size_t len,
                                   ef_parser_t *parser);
 
-int vt_init_encoding_parser(vt_parser_t *vt_parser);
+void vt_init_encoding_parser(vt_parser_t *vt_parser);
 
-int vt_init_encoding_conv(vt_parser_t *vt_parser);
+void vt_init_encoding_conv(vt_parser_t *vt_parser);
 
 #define vt_get_window_name(vt_parser) ((vt_parser)->win_name)
 

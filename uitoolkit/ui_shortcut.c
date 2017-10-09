@@ -133,7 +133,7 @@ static int read_conf(ui_shortcut_t *shortcut, char *filename) {
 
 /* --- global functions --- */
 
-int ui_shortcut_init(ui_shortcut_t *shortcut) {
+void ui_shortcut_init(ui_shortcut_t *shortcut) {
   char *rcpath;
 
   ui_key_t default_key_map[] = {
@@ -296,11 +296,9 @@ int ui_shortcut_init(ui_shortcut_t *shortcut) {
     read_conf(shortcut, rcpath);
     free(rcpath);
   }
-
-  return 1;
 }
 
-int ui_shortcut_final(ui_shortcut_t *shortcut) {
+void ui_shortcut_final(ui_shortcut_t *shortcut) {
   u_int count;
 
   for (count = 0; count < shortcut->str_map_size; count++) {
@@ -308,8 +306,6 @@ int ui_shortcut_final(ui_shortcut_t *shortcut) {
   }
 
   free(shortcut->str_map);
-
-  return 1;
 }
 
 int ui_shortcut_match(ui_shortcut_t *shortcut, ui_key_func_t func, KeySym ksym, u_int state) {

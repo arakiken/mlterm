@@ -296,9 +296,9 @@ error:
 
 /* --- global functions --- */
 
-int ui_imagelib_display_opened(Display *display) { return 1; }
+void ui_imagelib_display_opened(Display *display) {}
 
-int ui_imagelib_display_closed(Display *display) { return 1; }
+void ui_imagelib_display_closed(Display *display) {}
 
 Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
                                             ui_picture_modifier_t *pic_mod) {
@@ -405,24 +405,19 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
   return 1;
 }
 
-int ui_delete_image(Display *display, Pixmap pixmap) {
+void ui_delete_image(Display *display, Pixmap pixmap) {
   HBITMAP bmp;
 
   bmp = CreateBitmap(1, 1, 1, 1, NULL);
   DeleteObject(SelectObject(pixmap, bmp));
   DeleteDC(pixmap);
   DeleteObject(bmp);
-
-  return 1;
 }
 
-int ui_delete_mask(Display *display, PixmapMask mask /* can be NULL */
-                   ) {
+void ui_delete_mask(Display *display, PixmapMask mask /* can be NULL */) {
   if (mask) {
     DeleteObject(mask);
   }
-
-  return 1;
 }
 
 #endif /* NO_IMAGE */

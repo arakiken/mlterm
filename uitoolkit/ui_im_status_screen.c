@@ -182,7 +182,7 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
  * methods of ui_im_status_screen_t
  */
 
-static int delete(ui_im_status_screen_t *stat_screen) {
+static void delete(ui_im_status_screen_t *stat_screen) {
   ui_display_remove_root(stat_screen->window.disp, &stat_screen->window);
 
   if (stat_screen->chars) {
@@ -196,14 +196,12 @@ static int delete(ui_im_status_screen_t *stat_screen) {
 #endif
 
   free(stat_screen);
-
-  return 1;
 }
 
-static int show(ui_im_status_screen_t *stat_screen) { return ui_window_map(&stat_screen->window); }
+static void show(ui_im_status_screen_t *stat_screen) { ui_window_map(&stat_screen->window); }
 
-static int hide(ui_im_status_screen_t *stat_screen) {
-  return ui_window_unmap(&stat_screen->window);
+static void hide(ui_im_status_screen_t *stat_screen) {
+  ui_window_unmap(&stat_screen->window);
 }
 
 static int set_spot(ui_im_status_screen_t *stat_screen, int x, int y) {
@@ -371,7 +369,6 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manag
                                                 ui_get_font_present(font_man) & ~FONT_VERTICAL,
                                                 ui_get_font_size(font_man),
                                                 ui_get_current_usascii_font_cs(font_man),
-                                                ui_is_using_multi_col_char(font_man),
                                                 font_man->step_in_changing_font_size,
                                                 ui_get_letter_space(font_man),
                                                 ui_is_using_bold_font(font_man),

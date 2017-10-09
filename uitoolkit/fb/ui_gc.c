@@ -8,10 +8,10 @@
 
 ui_gc_t *ui_gc_new(Display *display, Drawable drawable) { return NULL; }
 
-int ui_gc_delete(ui_gc_t *gc) { return 1; }
+void ui_gc_delete(ui_gc_t *gc) {}
 
-int ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color) { return 1; }
+void ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color) {}
 
-int ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color) { return 1; }
+void ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color) {}
 
-int ui_gc_set_fid(ui_gc_t *gc, Font fid) { return 1; }
+void ui_gc_set_fid(ui_gc_t *gc, Font fid) {}

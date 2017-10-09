@@ -573,15 +573,13 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   return &_disp;
 }
 
-int ui_display_close(ui_display_t *disp) {
+void ui_display_close(ui_display_t *disp) {
   if (disp == &_disp) {
-    return ui_display_close_all();
-  } else {
-    return 0;
+    ui_display_close_all();
   }
 }
 
-int ui_display_close_all(void) {
+void ui_display_close_all(void) {
   if (DISP_IS_INITED) {
     u_int count;
 
@@ -598,8 +596,6 @@ int ui_display_close_all(void) {
     /* DISP_IS_INITED is false from here. */
     _disp.display = NULL;
   }
-
-  return 1;
 }
 
 int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,

@@ -117,10 +117,8 @@ int vt_set_pty_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   return (*pty->set_winsize)(pty, cols, rows, width_pix, height_pix);
 }
 
-int vt_pty_set_listener(vt_pty_t *pty, vt_pty_event_listener_t *pty_listener) {
+void vt_pty_set_listener(vt_pty_t *pty, vt_pty_event_listener_t *pty_listener) {
   pty->pty_listener = pty_listener;
-
-  return 1;
 }
 
 /*

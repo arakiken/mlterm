@@ -260,21 +260,17 @@ static void receive_next_event(void) {
 
 /* --- global functions --- */
 
-int ui_event_source_init(void) {
+void ui_event_source_init(void) {
 #ifdef USE_WIN32API
   /* ui_window_manager_idling() called in 0.1sec. */
   SetTimer(NULL, 0, 100, timer_proc);
 #endif
-
-  return 1;
 }
 
-int ui_event_source_final(void) {
+void ui_event_source_final(void) {
 #ifndef USE_WIN32API
   free(additional_fds);
 #endif
-
-  return 1;
 }
 
 int ui_event_source_process(void) {
@@ -364,7 +360,7 @@ int ui_event_source_add_fd(int fd, void (*handler)(void)) {
 #endif /* USE_WIN32API */
 }
 
-int ui_event_source_remove_fd(int fd) {
+void ui_event_source_remove_fd(int fd) {
 #ifndef USE_WIN32API
   u_int count;
 
@@ -376,10 +372,8 @@ int ui_event_source_remove_fd(int fd) {
 
       additional_fds[count] = additional_fds[--num_of_additional_fds];
 
-      return 1;
+      return;
     }
   }
 #endif /* USE_WIN32API */
-
-  return 0;
 }

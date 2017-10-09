@@ -268,7 +268,7 @@ static void commit(im_canna_t *canna, const char *str) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_canna_t *canna;
 
   canna = (im_canna_t*)im;
@@ -294,8 +294,6 @@ static int delete (ui_im_t *im) {
     parser_eucjp = NULL;
     jrKanjiControl(0, KC_FINALIZE, 0);
   }
-
-  return ref_count;
 }
 
 static int switch_mode(ui_im_t *im) {

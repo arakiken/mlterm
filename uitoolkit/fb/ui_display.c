@@ -680,7 +680,7 @@ static void draw_mouse_cursor(void) {
 }
 
 /* XXX defined in fb/ui_window.c */
-int ui_window_clear_margin_area(ui_window_t *win);
+void ui_window_clear_margin_area(ui_window_t *win);
 
 static void expose_window(ui_window_t *win, int x, int y, u_int width, u_int height) {
   if (x + width <= win->x || win->x + ACTUAL_WIDTH(win) < x || y + height <= win->y ||
@@ -1205,15 +1205,13 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   return &_disp;
 }
 
-int ui_display_close(ui_display_t *disp) {
+void ui_display_close(ui_display_t *disp) {
   if (disp == &_disp) {
-    return ui_display_close_all();
-  } else {
-    return 0;
+    ui_display_close_all();
   }
 }
 
-int ui_display_close_all(void) {
+void ui_display_close_all(void) {
   if (DISP_IS_INITED) {
 /* inline pictures are alive until vt_term_t is deleted. */
 #if 0
@@ -1265,8 +1263,6 @@ int ui_display_close_all(void) {
     /* DISP_IS_INITED is false from here. */
     _disp.display = NULL;
   }
-
-  return 1;
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {

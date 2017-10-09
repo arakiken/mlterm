@@ -32,11 +32,11 @@ typedef struct ui_color_cache {
 
 ui_color_cache_t *ui_acquire_color_cache(ui_display_t *disp, u_int8_t fade_ratio);
 
-int ui_release_color_cache(ui_color_cache_t *color_cache);
+void ui_release_color_cache(ui_color_cache_t *color_cache);
 
-int ui_color_cache_unload(ui_color_cache_t *color_cache);
+void ui_color_cache_unload(ui_color_cache_t *color_cache);
 
-int ui_color_cache_unload_all(void);
+void ui_color_cache_unload_all(void);
 
 int ui_load_xcolor(ui_color_cache_t *color_cache, ui_color_t *xcolor, char *name);
 

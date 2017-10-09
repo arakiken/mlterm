@@ -299,7 +299,7 @@ static kbd_type_t find_kbd_type(char *locale) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_kbd_t *kbd;
 
   kbd = (im_kbd_t*)im;
@@ -330,8 +330,6 @@ static int delete (ui_im_t *im) {
 
     initialized = 0;
   }
-
-  return ref_count;
 }
 
 static int key_event_arabic_hebrew(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {

@@ -488,31 +488,31 @@ static cs_info_t *get_cs_info(ef_charset_t cs) {
 }
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE)
-static int xft_unset_font(ui_font_t *font) {
-  int (*func)(ui_font_t *);
+static void xft_unset_font(ui_font_t *font) {
+  void (*func)(ui_font_t *);
 
   if (!(func = ui_load_type_xft_func(UI_UNSET_FONT))) {
-    return 0;
+    return;
   }
 
-  return (*func)(font);
+  (*func)(font);
 }
 #elif defined(USE_TYPE_XFT)
-int xft_unset_font(ui_font_t *font);
+void xft_unset_font(ui_font_t *font);
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE)
-static int cairo_unset_font(ui_font_t *font) {
-  int (*func)(ui_font_t *);
+static void cairo_unset_font(ui_font_t *font) {
+  void (*func)(ui_font_t *);
 
   if (!(func = ui_load_type_cairo_func(UI_UNSET_FONT))) {
-    return 0;
+    return;
   }
 
-  return (*func)(font);
+  (*func)(font);
 }
 #elif defined(USE_TYPE_CAIRO)
-int cairo_unset_font(ui_font_t *font);
+void cairo_unset_font(ui_font_t *font);
 #endif
 
 static int set_decsp_font(ui_font_t *font) {
@@ -667,6 +667,7 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                           u_int col_width, /* if usascii font wants to be set , 0 will be set */
                           int use_medium_for_bold, u_int letter_space) {
   XFontStruct *xfont;
+  u_int cols;
   char *weight;
   char *slant;
   char *width;
@@ -860,6 +861,12 @@ font_found:
 
   font->x_off = 0;
 
+  if (font->id & FONT_FULLWIDTH) {
+    cols = 2;
+  } else {
+    cols = 1;
+  }
+
   if (col_width == 0) {
     /* standard(usascii) font */
 
@@ -945,19 +952,19 @@ font_found:
         font->width = col_width;
       }
     } else {
-      if (font->width != col_width * font->cols) {
+      if (font->width != col_width * cols) {
         bl_msg_printf(
             "Font(id %x) width(%d) is not matched with "
             "standard width(%d).\n",
-            font->id, font->width, col_width * font->cols);
+            font->id, font->width, col_width * cols);
 
         font->is_proportional = 1;
 
-        if (!font->is_var_col_width && font->width < col_width * font->cols) {
-          font->x_off = (col_width * font->cols - font->width) / 2;
+        if (!font->is_var_col_width && font->width < col_width * cols) {
+          font->x_off = (col_width * cols - font->width) / 2;
         }
 
-        font->width = col_width * font->cols;
+        font->width = col_width * cols;
       }
     }
   }
@@ -974,7 +981,7 @@ font_found:
     font->is_proportional = 1;
 
     /* XXX this may be inaccurate. */
-    font->width = DIVIDE_ROUNDINGUP(fontsize * font->cols, 2);
+    font->width = DIVIDE_ROUNDINGUP(fontsize * cols, 2);
   }
 
   if (font->height == 0) {
@@ -1177,10 +1184,8 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
 
 /* --- global functions --- */
 
-int ui_compose_dec_special_font(void) {
+void ui_compose_dec_special_font(void) {
   compose_dec_special_font = 1;
-
-  return 1;
 }
 
 ui_font_t *ui_font_new(
@@ -1201,12 +1206,6 @@ ui_font_t *ui_font_new(
 
   font->display = display;
   font->id = id;
-
-  if (font->id & FONT_FULLWIDTH) {
-    font->cols = 2;
-  } else {
-    font->cols = 1;
-  }
 
   if (font_present & FONT_VAR_WIDTH) {
     font->is_var_col_width = 1;
@@ -1320,7 +1319,7 @@ end:
   return font;
 }
 
-int ui_font_delete(ui_font_t *font) {
+void ui_font_delete(ui_font_t *font) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
   if (font->xft_font) {
     xft_unset_font(font);
@@ -1346,23 +1345,6 @@ int ui_font_delete(ui_font_t *font) {
   }
 
   free(font);
-
-  return 1;
-}
-
-int ui_change_font_cols(ui_font_t *font, u_int cols /* 0 means default value */
-                        ) {
-  if (cols == 0) {
-    if (font->id & FONT_FULLWIDTH) {
-      font->cols = 2;
-    } else {
-      font->cols = 1;
-    }
-  } else {
-    font->cols = cols;
-  }
-
-  return 1;
 }
 
 u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
@@ -1497,10 +1479,8 @@ static u_int32_t convert_to_ucs4(u_int32_t ch, ef_charset_t cs) {
   }
 }
 
-int ui_use_cp932_ucs_for_xft(void) {
+void ui_use_cp932_ucs_for_xft(void) {
   use_cp932_ucs_for_xft = 1;
-
-  return 1;
 }
 
 /*
@@ -1581,7 +1561,7 @@ size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Big endian. */
 
 #ifdef DEBUG
 
-int ui_font_dump(ui_font_t *font) {
+void ui_font_dump(ui_font_t *font) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
   bl_msg_printf("Font id %x: XFont %p ", font->id, font->xfont);
 #endif
@@ -1612,8 +1592,6 @@ int ui_font_dump(ui_font_t *font) {
   }
 
   bl_msg_printf("\n");
-
-  return 1;
 }
 
 #endif

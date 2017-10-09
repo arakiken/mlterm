@@ -57,7 +57,7 @@ extern void (*vt_term_pty_closed_event)(vt_term_t *);
 extern int start_with_local_pty;
 #endif
 
-#define vt_term_init() vt_parser_init()
+#define vt_term_init vt_parser_init
 
 void vt_term_final(void);
 
@@ -71,9 +71,9 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
                        vt_alt_color_mode_t alt_color_mode, int use_ot_layout,
                        vt_cursor_style_t cursor_style, int ignore_broadcasted_chars);
 
-int vt_term_delete(vt_term_t *term);
+void vt_term_delete(vt_term_t *term);
 
-int vt_term_zombie(vt_term_t *term);
+void vt_term_zombie(vt_term_t *term);
 
 int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **env,
                      const char *host, const char *work_dir, const char *pass, const char *pubkey,
@@ -206,20 +206,20 @@ int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual);
 #define vt_term_get_cursor_line(term) vt_screen_get_cursor_line((term)->screen)
 
 #if 0
-int vt_term_set_modified_region(vt_term_t *term, int beg_char_index, int beg_row, u_int nchars,
-                                u_int nrows);
+void vt_term_set_modified_region(vt_term_t *term, int beg_char_index, int beg_row, u_int nchars,
+                                 u_int nrows);
 
-int vt_term_set_modified_region_in_screen(vt_term_t *term, int beg_char_index, int beg_row,
-                                          u_int nchars, u_int nrows);
+void vt_term_set_modified_region_in_screen(vt_term_t *term, int beg_char_index, int beg_row,
+                                           u_int nchars, u_int nrows);
 #endif
 
-int vt_term_set_modified_lines(vt_term_t *term, int beg, int end);
+void vt_term_set_modified_lines(vt_term_t *term, int beg, int end);
 
-int vt_term_set_modified_lines_in_screen(vt_term_t *term, int beg, int end);
+void vt_term_set_modified_lines_in_screen(vt_term_t *term, int beg, int end);
 
-int vt_term_set_modified_all_lines_in_screen(vt_term_t *term);
+void vt_term_set_modified_all_lines_in_screen(vt_term_t *term);
 
-int vt_term_updated_all(vt_term_t *term);
+void vt_term_updated_all(vt_term_t *term);
 
 int vt_term_update_special_visual(vt_term_t *term);
 
@@ -283,7 +283,7 @@ int vt_term_enter_backscroll_mode(vt_term_t *term);
 
 #define vt_term_is_broadcasting(term) vt_parser_is_broadcasting((term)->parser)
 
-int vt_term_set_icon_path(vt_term_t *term, const char *path);
+void vt_term_set_icon_path(vt_term_t *term, const char *path);
 
 #define vt_term_window_name(term) vt_get_window_name((term)->parser)
 

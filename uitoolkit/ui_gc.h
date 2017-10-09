@@ -28,17 +28,17 @@ typedef struct ui_gc {
 
 ui_gc_t *ui_gc_new(Display *display, Drawable drawable);
 
-int ui_gc_delete(ui_gc_t *gc);
+void ui_gc_delete(ui_gc_t *gc);
 
-int ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color);
+void ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color);
 
-int ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color);
+void ui_gc_set_bg_color(ui_gc_t *gc, u_long bg_color);
 
-int ui_gc_set_fid(ui_gc_t *gc, Font fid);
+void ui_gc_set_fid(ui_gc_t *gc, Font fid);
 
 #ifdef USE_WIN32GUI
 
-int ui_set_gc(ui_gc_t *gc, GC _gc);
+void ui_set_gc(ui_gc_t *gc, GC _gc);
 
 HPEN ui_gc_set_pen(ui_gc_t *gc, HPEN pen);
 

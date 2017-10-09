@@ -75,9 +75,9 @@ void vt_set_color_mode(const char *mode);
 
 char *vt_get_color_mode(void);
 
-int vt_color_config_init(void);
+void vt_color_config_init(void);
 
-int vt_color_config_final(void);
+void vt_color_config_final(void);
 
 int vt_customize_color_file(char *color, char *rgb, int save);
 

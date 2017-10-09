@@ -32,9 +32,9 @@ typedef struct vt_cursor {
 
 } vt_cursor_t;
 
-int vt_cursor_init(vt_cursor_t *cursor, vt_model_t *model);
+void vt_cursor_init(vt_cursor_t *cursor, vt_model_t *model);
 
-int vt_cursor_final(vt_cursor_t *cursor);
+void vt_cursor_final(vt_cursor_t *cursor);
 
 int vt_cursor_goto_by_char(vt_cursor_t *cursor, int char_index, int row);
 

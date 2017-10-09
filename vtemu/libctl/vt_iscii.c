@@ -382,10 +382,8 @@ vt_isciikey_state_t vt_isciikey_state_new(int is_inscript) {
   return state;
 }
 
-int vt_isciikey_state_delete(vt_isciikey_state_t state) {
+void vt_isciikey_state_delete(vt_isciikey_state_t state) {
   free(state);
-
-  return 1;
 }
 
 size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char *iscii, size_t iscii_len,

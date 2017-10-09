@@ -55,9 +55,9 @@ typedef struct ui_selection {
 
 } ui_selection_t;
 
-int ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *listener);
+void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *listener);
 
-int ui_sel_final(ui_selection_t *sel);
+void ui_sel_final(ui_selection_t *sel);
 
 int ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
                        ui_sel_type_t type, int is_rect);
@@ -88,6 +88,6 @@ int ui_is_after_sel_right_base_pos(ui_selection_t *sel, int col, int row);
 
 int ui_is_before_sel_left_base_pos(ui_selection_t *sel, int col, int row);
 
-int ui_sel_lock(ui_selection_t *sel);
+void ui_sel_lock(ui_selection_t *sel);
 
 #endif

@@ -81,7 +81,7 @@ typedef struct vt_screen {
 
 } vt_screen_t;
 
-int vt_set_word_separators(const char *seps);
+void vt_set_word_separators(const char *seps);
 
 char *vt_get_word_separators(void);
 
@@ -96,7 +96,7 @@ vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_of_
 
 int vt_screen_delete(vt_screen_t *screen);
 
-int vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *screen_listener);
+void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *screen_listener);
 
 int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows);
 
@@ -207,7 +207,7 @@ int vt_screen_get_word_region(vt_screen_t *screen, int *beg_char_index, int *beg
 int vt_screen_search_init(vt_screen_t *screen,
                           int (*match)(size_t *, size_t *, void *, u_char *, int));
 
-int vt_screen_search_final(vt_screen_t *screen);
+void vt_screen_search_final(vt_screen_t *screen);
 
 int vt_screen_search_reset_position(vt_screen_t *screen);
 

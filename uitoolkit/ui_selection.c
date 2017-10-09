@@ -195,20 +195,16 @@ static int update_sel_region(ui_selection_t *sel, int col, int row) {
 
 /* --- global functions --- */
 
-int ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *sel_listener) {
+void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *sel_listener) {
   memset(sel, 0, sizeof(ui_selection_t));
 
   sel->sel_listener = sel_listener;
-
-  return 1;
 }
 
-int ui_sel_final(ui_selection_t *sel) {
+void ui_sel_final(ui_selection_t *sel) {
   if (sel->sel_str) {
     vt_str_delete(sel->sel_str, sel->sel_len);
   }
-
-  return 1;
 }
 
 int ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
@@ -471,7 +467,7 @@ int ui_is_before_sel_left_base_pos(ui_selection_t *sel, int col, int row) {
   }
 }
 
-int ui_sel_lock(ui_selection_t *sel) {
+void ui_sel_lock(ui_selection_t *sel) {
   if (sel->beg_row < sel->base_row_l ||
       (sel->beg_row == sel->base_row_l && sel->beg_col <= sel->base_col_l)) {
     /*
@@ -502,6 +498,4 @@ int ui_sel_lock(ui_selection_t *sel) {
 
     sel->is_locked = 1;
   }
-
-  return 1;
 }

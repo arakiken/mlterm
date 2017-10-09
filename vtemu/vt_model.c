@@ -9,7 +9,7 @@
 /* --- global functions --- */
 
 int vt_model_init(vt_model_t *model, u_int num_of_cols, u_int num_of_rows) {
-  int count;
+  u_int count;
 
   if (num_of_rows == 0 || num_of_cols == 0) {
     return 0;
@@ -37,33 +37,29 @@ int vt_model_init(vt_model_t *model, u_int num_of_cols, u_int num_of_rows) {
   return 1;
 }
 
-int vt_model_final(vt_model_t *model) {
-  int count;
+void vt_model_final(vt_model_t *model) {
+  u_int count;
 
   for (count = 0; count < model->num_of_rows; count++) {
     vt_line_final(&model->lines[count]);
   }
 
   free(model->lines);
-
-  return 1;
 }
 
-int vt_model_reset(vt_model_t *model) {
-  int count;
+void vt_model_reset(vt_model_t *model) {
+  u_int count;
 
   for (count = 0; count < model->num_of_rows; count++) {
     vt_line_reset(&model->lines[count]);
     vt_line_set_updated(&model->lines[count]);
   }
-
-  return 1;
 }
 
 int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_of_cols, u_int num_of_rows) {
   int old_row;
   int new_row;
-  int count;
+  u_int count;
   u_int copy_rows;
   vt_line_t *lines_p;
   u_int filled_rows;

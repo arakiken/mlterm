@@ -162,19 +162,29 @@ int vt_term_manager_init(u_int multiple) {
   }
 
   if ((dead_mask = calloc(sizeof(*dead_mask), max_terms_multiple)) == NULL) {
-    free(terms);
-    terms = NULL;
+    goto error1;
+  }
 
-    return 0;
+  if (!vt_term_init()) {
+    goto error2;
   }
 
   bl_add_sig_child_listener(NULL, sig_child);
-  vt_term_init();
 
   return 1;
+
+error2:
+  free(dead_mask);
+  dead_mask = NULL;
+
+error1:
+  free(terms);
+  terms = NULL;
+
+  return 0;
 }
 
-int vt_term_manager_final(void) {
+void vt_term_manager_final(void) {
   int count;
 
 #ifdef USE_OT_LAYOUT
@@ -204,11 +214,9 @@ int vt_term_manager_final(void) {
   free(dead_mask);
   free(pty_list);
   free(auto_restart_cmd);
-
-  return 1;
 }
 
-int vt_set_auto_restart_cmd(char *cmd) {
+void vt_set_auto_restart_cmd(char *cmd) {
 #if !defined(USE_WIN32API) && !defined(DEBUG)
   char *env;
 
@@ -249,8 +257,6 @@ int vt_set_auto_restart_cmd(char *cmd) {
     auto_restart_cmd = NULL;
   }
 #endif
-
-  return 1;
 }
 
 vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int tab_size,
@@ -338,8 +344,8 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
   return terms[num_of_terms++];
 }
 
-int vt_destroy_term(vt_term_t *term) {
-  int count;
+void vt_destroy_term(vt_term_t *term) {
+  u_int count;
 
   /*
    * Before modifying terms and num_of_terms, do vt_close_dead_terms().
@@ -360,8 +366,6 @@ int vt_destroy_term(vt_term_t *term) {
   }
 
   vt_term_delete(term);
-
-  return 1;
 }
 
 vt_term_t *vt_get_term(const char *dev) {
@@ -459,7 +463,7 @@ u_int vt_get_all_terms(vt_term_t*** _terms) {
   return num_of_terms;
 }
 
-int vt_close_dead_terms(void) {
+void vt_close_dead_terms(void) {
   if (num_of_terms > 0) {
     int idx;
 
@@ -495,8 +499,6 @@ int vt_close_dead_terms(void) {
       }
     }
   }
-
-  return 1;
 }
 
 char *vt_get_pty_list(void) {

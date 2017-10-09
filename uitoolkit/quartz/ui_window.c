@@ -193,7 +193,7 @@ static void reset_input_focus(ui_window_t *win) {
   }
 }
 
-static int clear_margin_area(ui_window_t *win) {
+static void clear_margin_area(ui_window_t *win) {
   u_int right_margin;
   u_int bottom_margin;
   u_int win_width;
@@ -244,8 +244,6 @@ static int clear_margin_area(ui_window_t *win) {
                      win_width, ACTUAL_HEIGHT(win) - win_height - win->vmargin);
     }
   }
-
-  return 1;
 }
 
 static void expose(ui_window_t *win, XExposeEvent *event) {
@@ -350,7 +348,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
   return 1;
 }
 
-int ui_window_final(ui_window_t *win) {
+void ui_window_final(ui_window_t *win) {
   u_int count;
   Window my_window;
 
@@ -388,13 +386,11 @@ int ui_window_final(ui_window_t *win) {
   if (win->window_finalized) {
     (*win->window_finalized)(win);
   }
-
-  return 1;
 }
 
-int ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine) { return 0; }
+void ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine) {}
 
-int ui_window_add_event_mask(ui_window_t *win, long event_mask) {
+void ui_window_add_event_mask(ui_window_t *win, long event_mask) {
   if (event_mask & PointerMotionMask) {
     win->event_mask = PointerMotionMask;
 
@@ -402,11 +398,9 @@ int ui_window_add_event_mask(ui_window_t *win, long event_mask) {
       window_accepts_mouse_moved_events(ui_get_root_window(win)->my_window, 1);
     }
   }
-
-  return 1;
 }
 
-int ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
+void ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
   if (event_mask & PointerMotionMask) {
     ui_window_t *root;
 
@@ -417,11 +411,9 @@ int ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
       window_accepts_mouse_moved_events(root->my_window, 0);
     }
   }
-
-  return 1;
 }
 
-int ui_window_ungrab_pointer(ui_window_t *win) { return 0; }
+void ui_window_ungrab_pointer(ui_window_t *win) {}
 
 int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
   u_int count;
@@ -463,10 +455,8 @@ int ui_window_set_transparent(ui_window_t *win, ui_picture_modifier_t *pic_mod) 
 
 int ui_window_unset_transparent(ui_window_t *win) { return 0; }
 
-int ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
+void ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
   win->cursor_shape = cursor_shape;
-
-  return 1;
 }
 
 int ui_window_set_fg_color(ui_window_t *win, ui_color_t *fg_color) {
@@ -617,9 +607,9 @@ int ui_window_show(ui_window_t *win,
   return 1;
 }
 
-int ui_window_map(ui_window_t *win) {
+void ui_window_map(ui_window_t *win) {
   if (win->is_mapped) {
-    return 1;
+    return;
   }
 
   if (win->parent) {
@@ -627,13 +617,11 @@ int ui_window_map(ui_window_t *win) {
   }
 
   win->is_mapped = 1;
-
-  return 1;
 }
 
-int ui_window_unmap(ui_window_t *win) {
+void ui_window_unmap(ui_window_t *win) {
   if (!win->is_mapped) {
-    return 1;
+    return;
   }
 
   if (win->parent) {
@@ -644,8 +632,6 @@ int ui_window_unmap(ui_window_t *win) {
   }
 
   win->is_mapped = 0;
-
-  return 1;
 }
 
 int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
@@ -707,8 +693,8 @@ int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
   return ui_window_resize(win, width - win->hmargin * 2, height - win->vmargin * 2, flag);
 }
 
-int ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height, u_int width_inc,
-                               u_int height_inc) {
+void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
+                                u_int width_inc, u_int height_inc) {
   ui_window_t *root;
 
   win->min_width = min_width;
@@ -724,7 +710,7 @@ int ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_heig
   return 1;
 }
 
-int ui_window_set_override_redirect(ui_window_t *win, int flag) { return 0; }
+void ui_window_set_override_redirect(ui_window_t *win, int flag) {}
 
 int ui_window_set_borderless_flag(ui_window_t *win, int flag) { return 0; }
 
@@ -753,7 +739,7 @@ int ui_window_move(ui_window_t *win, int x, int y) {
  * This function can be used in context except window_exposed and update_window
  * events.
  */
-int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
+void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
 #ifdef AUTO_CLEAR_MARGIN
   if (x + width >= win->width) {
     /* Clearing margin area */
@@ -806,51 +792,45 @@ int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
   } else {
     view_fill_with(win->my_window, &win->bg_color, x, y, width, height);
   }
-
-  return 1;
 }
 
-int ui_window_clear_all(ui_window_t *win) {
-  return ui_window_clear(win, 0, 0, win->width, win->height);
+void ui_window_clear_all(ui_window_t *win) {
+  ui_window_clear(win, 0, 0, win->width, win->height);
 }
 
-int ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height) {
-  return ui_window_fill_with(win, &win->fg_color, x, y, width, height);
+void ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height) {
+  ui_window_fill_with(win, &win->fg_color, x, y, width, height);
 }
 
-int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
+void ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
                         u_int height) {
   view_fill_with(win->my_window, color, x + win->hmargin, y + win->vmargin, width, height);
-
-  return 1;
 }
 
 /*
  * This function can be used in context except window_exposed and update_window
  * events.
  */
-int ui_window_blank(ui_window_t *win) { return 1; }
+void ui_window_blank(ui_window_t *win) {}
 
 #if 0
 /*
  * XXX
  * at the present time , not used and not maintained.
  */
-int ui_window_fill_all_with(ui_window_t *win, ui_color_t *color) { return 0; }
+void ui_window_fill_all_with(ui_window_t *win, ui_color_t *color) {}
 #endif
 
-int ui_window_update(ui_window_t *win, int flag) {
+void ui_window_update(ui_window_t *win, int flag) {
   if (win->update_window_flag) {
     win->update_window_flag |= flag;
   } else {
     win->update_window_flag = flag;
     view_update(win->my_window, 0);
   }
-
-  return 1;
 }
 
-int ui_window_update_all(ui_window_t *win) {
+void ui_window_update_all(ui_window_t *win) {
   u_int count;
 
   if (IS_XSCREEN(win)) {
@@ -860,8 +840,6 @@ int ui_window_update_all(ui_window_t *win) {
   for (count = 0; count < win->num_of_children; count++) {
     ui_window_update_all(win->children[count]);
   }
-
-  return 1;
 }
 
 void ui_window_idling(ui_window_t *win) {
@@ -1143,33 +1121,27 @@ void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int heigh
 
 void ui_window_unset_clip(ui_window_t *win) { view_unset_clip(win->my_window); }
 
-int ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+void ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
                                 int y, u_char *str, u_int len) {
-  return ui_window_draw_string(win, font, fg_color, x, y, str, len);
+  ui_window_draw_string(win, font, fg_color, x, y, str, len);
 }
 
-int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                          u_char *str, u_int len) {
+void ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                           u_char *str, u_int len) {
   view_draw_string(win->my_window, font, fg_color, x + win->hmargin, y + win->vmargin, str, len);
-
-  return 1;
 }
 
-int ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                            XChar2b *str, u_int len) {
+void ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                             XChar2b *str, u_int len) {
   view_draw_string16(win->my_window, font, fg_color, x + win->hmargin, y + win->vmargin, str, len);
-
-  return 1;
 }
 
-int ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
+void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
   view_draw_rect_frame(win->my_window, &win->fg_color, x1 + win->hmargin, y1 + win->vmargin,
                        x2 + win->hmargin, y2 + win->vmargin);
-
-  return 1;
 }
 
-int ui_set_use_clipboard_selection(int use_it) { return 0; }
+void ui_set_use_clipboard_selection(int use_it) {}
 
 int ui_is_using_clipboard_selection(void) { return 0; }
 
@@ -1205,18 +1177,14 @@ int ui_window_utf_selection_request(ui_window_t *win, Time time) {
   return 0;
 }
 
-int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height) {
-  return 1;
-}
+void ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height) {}
 
-int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
-                                  u_char *sel_data, size_t sel_len, Atom sel_type) {
+void ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
+                                   u_char *sel_data, size_t sel_len, Atom sel_type) {
   cocoa_clipboard_set(sel_data, sel_len);
-
-  return 1;
 }
 
-int ui_set_window_name(ui_window_t *win, u_char *name) {
+void ui_set_window_name(ui_window_t *win, u_char *name) {
   ui_window_t *root = ui_get_root_window(win);
 
   if (name == NULL) {
@@ -1225,43 +1193,33 @@ int ui_set_window_name(ui_window_t *win, u_char *name) {
 
   /* name is utf8 (see vt_parser.c) */
   window_set_title(root->my_window, name);
-
-  return 1;
 }
 
-int ui_set_icon_name(ui_window_t *win, u_char *name) { return 0; }
+void ui_set_icon_name(ui_window_t *win, u_char *name) {}
 
-int ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) { return 0; }
+void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {}
 
-int ui_window_remove_icon(ui_window_t *win) { return 0; }
+void ui_window_remove_icon(ui_window_t *win) {}
 
-int ui_window_reset_group(ui_window_t *win) { return 0; }
+void ui_window_reset_group(ui_window_t *win) {}
 
-int ui_window_get_visible_geometry(ui_window_t *win, int *x, /* x relative to parent window */
-                                   int *y,                   /* y relative to parent window */
-                                   int *my_x,                /* x relative to my window */
-                                   int *my_y,                /* y relative to my window */
-                                   u_int *width, u_int *height) {
-  return 1;
-}
-
-int ui_set_click_interval(int interval) {
+void ui_set_click_interval(int interval) {
   click_interval = interval;
+}
 
-  return 1;
+int ui_get_click_interval(void) {
+  return click_interval;
 }
 
 u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms) { return ~0; }
 
 u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key) { return ModMask; }
 
-int ui_set_use_urgent_bell(int use) {
+void ui_set_use_urgent_bell(int use) {
   use_urgent_bell = use;
-
-  return 1;
 }
 
-int ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
+void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   urgent_bell(win, 1);
 
   if (mode & BEL_VISUAL) {
@@ -1271,18 +1229,14 @@ int ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   if (mode & BEL_SOUND) {
     cocoa_beep();
   }
-
-  return 1;
 }
 
-int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
-                                    Window *child) {
+void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
+                                     Window *child) {
   win = ui_get_root_window(win);
   window_get_position(win->my_window, global_x, global_y);
   *global_x += x;
   *global_y += y;
-
-  return 1;
 }
 
 void ui_window_set_input_focus(ui_window_t *win) {
