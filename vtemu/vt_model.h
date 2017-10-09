@@ -23,9 +23,9 @@ typedef struct vt_model {
 
 int vt_model_init(vt_model_t *model, u_int num_of_cols, u_int num_of_rows);
 
-int vt_model_final(vt_model_t *model);
+void vt_model_final(vt_model_t *model);
 
-int vt_model_reset(vt_model_t *model);
+void vt_model_reset(vt_model_t *model);
 
 int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_of_cols, u_int num_of_rows);
 

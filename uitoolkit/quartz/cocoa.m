@@ -285,12 +285,11 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
   }
 }
 
-static int (*orig_draw_preedit_str)(void *, vt_char_t *, u_int, int);
+static void (*orig_draw_preedit_str)(void *, vt_char_t *, u_int, int);
 
-static int dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars,
-                                  int cursor_offset) {
+static void dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars,
+                                   int cursor_offset) {
   /* Don't set ui_screen_t::is_preediting = 0. */
-  return 0;
 }
 
 static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
@@ -558,7 +557,12 @@ static void reset_position(ui_window_t *uiwindow) {
   [scroller setEnabled:YES];
   [scroller setTarget:self];
   [scroller setAction:@selector(scrollerAction:)];
-  [scroller setFloatValue:0.0 knobProportion:1.0];
+#if 1
+  [scroller setFloatValue:0.0 knobProportion:1.0]; /* Deprecated since 10.6 */
+#else
+  scroller.knobProportion = 1.0;
+  scroller.doubleValue = 0.0;
+#endif
 #if 0
   [scroller setArrowsPosition:NSScrollerArrowsMaxEnd];
 #endif
@@ -1523,7 +1527,12 @@ void app_urgent_bell(int on) {
 }
 
 void scroller_update(NSScroller *scroller, float pos, float knob) {
-  [scroller setFloatValue:pos knobProportion:knob];
+#if 1
+  [scroller setFloatValue:pos knobProportion:knob]; /* Deprecated since 10.6 */
+#else
+  scroller.knobProportion = knob;
+  scroller.doubleValue = pos;
+#endif
 }
 
 CGFontRef cocoa_create_font(const char *font_family) {

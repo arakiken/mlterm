@@ -1,3 +1,37 @@
+2017-10-09  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/ja/README.ja: Updated.
+
+	* main_loop.c: The return value of ui_screen_manager_init() is checked.
+
+	* ui_screen.c: "click_interval" is added to OSC 5379, 5380 and 5381.
+
+	* ui_font.h, */ui_font.c:
+	  - ui_font_t::cols member is removed.
+	  - ui_change_font_cols() is removed.
+
+	* */ui_window.[ch]: ui_get_click_interval() is added.
+
+	* ui_font_manager.[ch]:
+	  ui_set_use_multi_col_char() and ui_is_using_multi_col_char() are removed.
+
+	* ui_font_cache.[ch]:
+	  - ui_font_cache_unload() reuses font_cache->usascii_font
+	    after failure of init_usascii_font().
+	  - ui_font_cache_t::use_multi_col_char is removed.
+
+	* ui_main_config.c: The default value of "use_vertical_cursor" option is
+	  changed from "false" to "true".
+
+	* ui_sb_view_factory.[ch]: const modifier is added to 'name' argument of
+	  ui_{transparent_}sb_view_new() and ui_unload_scrollbar_view_lib().
+
+	* vt_parser.c:
+	  - DECSCPP and DECSLPP are supported.
+	  - "CSI [ 7 t" executes "update_all" of OSC 5379.
+
+	* *.[ch]: Functions whose return values are not used return void.
+
 2017-10-02  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/PROTOCOL: Updated.

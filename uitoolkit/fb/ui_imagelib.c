@@ -602,9 +602,9 @@ error:
 
 /* --- global functions --- */
 
-int ui_imagelib_display_opened(Display *display) { return 1; }
+void ui_imagelib_display_opened(Display *display) {}
 
-int ui_imagelib_display_closed(Display *display) { return 1; }
+void ui_imagelib_display_closed(Display *display) {}
 
 Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
                                             ui_picture_modifier_t *pic_mod) {
@@ -650,18 +650,15 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
   return 1;
 }
 
-int ui_delete_image(Display *display, Pixmap pixmap) {
+void ui_delete_image(Display *display, Pixmap pixmap) {
   free(pixmap->image);
   free(pixmap);
-
-  return 1;
 }
 
-int ui_delete_mask(Display *display, PixmapMask mask /* can be NULL */
-                   ) {
-  free(mask);
-
-  return 1;
+void ui_delete_mask(Display *display, PixmapMask mask /* can be NULL */) {
+  if (mask) {
+    free(mask);
+  }
 }
 
 #endif /* NO_IMAGE */

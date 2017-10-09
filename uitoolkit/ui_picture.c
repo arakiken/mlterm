@@ -593,15 +593,11 @@ static int next_frame_pos(ui_inline_picture_t *prev, ui_inline_picture_t *next, 
 
 /* --- global functions --- */
 
-int ui_picture_display_opened(Display *display) {
-  if (!ui_imagelib_display_opened(display)) {
-    return 0;
-  }
-
-  return 1;
+void ui_picture_display_opened(Display *display) {
+  ui_imagelib_display_opened(display);
 }
 
-int ui_picture_display_closed(Display *display) {
+void ui_picture_display_closed(Display *display) {
   int count;
 
   if (num_of_icon_pics > 0) {
@@ -641,7 +637,7 @@ int ui_picture_display_closed(Display *display) {
     }
   }
 
-  return ui_imagelib_display_closed(display);
+  ui_imagelib_display_closed(display);
 }
 
 /*
@@ -722,7 +718,7 @@ ui_picture_t *ui_acquire_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod
   return pics[num_of_pics++];
 }
 
-int ui_release_picture(ui_picture_t *pic) {
+void ui_release_picture(ui_picture_t *pic) {
   u_int count;
 
   for (count = 0; count < num_of_pics; count++) {
@@ -742,11 +738,9 @@ int ui_release_picture(ui_picture_t *pic) {
         }
       }
 
-      return 1;
+      return;
     }
   }
-
-  return 0;
 }
 
 ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp,
@@ -784,7 +778,7 @@ ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp,
   return icon_pics[num_of_icon_pics++];
 }
 
-int ui_release_icon_picture(ui_icon_picture_t *pic) {
+void ui_release_icon_picture(ui_icon_picture_t *pic) {
   u_int count;
 
   for (count = 0; count < num_of_icon_pics; count++) {
@@ -804,11 +798,9 @@ int ui_release_icon_picture(ui_icon_picture_t *pic) {
         }
       }
 
-      return 1;
+      return;
     }
   }
-
-  return 0;
 }
 
 int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, /* can be 0 */

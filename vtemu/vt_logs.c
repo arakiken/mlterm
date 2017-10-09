@@ -45,11 +45,11 @@ int vt_log_init(vt_logs_t *logs, u_int num_of_rows) {
   return 1;
 }
 
-int vt_log_final(vt_logs_t *logs) {
-  int count;
+void vt_log_final(vt_logs_t *logs) {
+  u_int count;
 
   if (logs->num_of_rows == 0) {
-    return 1;
+    return;
   }
 
   for (count = 0; count < logs->num_of_rows; count++) {
@@ -59,8 +59,6 @@ int vt_log_final(vt_logs_t *logs) {
   bl_cycle_index_delete(logs->index);
 
   free(logs->lines);
-
-  return 1;
 }
 
 int vt_change_log_size(vt_logs_t *logs, u_int new_num_of_rows) {

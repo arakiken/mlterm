@@ -2607,14 +2607,14 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
       return;
     }
 
-    if (ui_is_using_multi_col_char(screen->font_man)) {
+    if (vt_term_is_using_multi_col_char(screen->term)) {
       row = x / ui_col_width(screen);
     } else {
       row = vt_convert_char_index_to_col(line,
               convert_x_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
     }
 
-    if (ui_is_using_multi_col_char(screen->font_man)) {
+    if (vt_term_is_using_multi_col_char(screen->term)) {
       int count;
 
       for (count = col; count >= 0; count--) {
@@ -3798,11 +3798,6 @@ static void change_transparent_flag(ui_screen_t *screen, int is_transparent) {
   }
 }
 
-static void change_multi_col_char_flag(ui_screen_t *screen, int flag) {
-  ui_set_use_multi_col_char(screen->font_man, flag);
-  vt_term_set_use_multi_col_char(screen->term, flag);
-}
-
 static void change_ctl_flag(ui_screen_t *screen, int use_ctl, vt_bidi_mode_t bidi_mode,
                             int use_ot_layout) {
   int do_update;
@@ -4167,7 +4162,7 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
       value = "false";
     }
   } else if (strcmp(key, "use_multi_column_char") == 0) {
-    if (ui_is_using_multi_col_char(screen->font_man)) {
+    if (vt_term_is_using_multi_col_char(screen->term)) {
       value = "true";
     } else {
       value = "false";
@@ -4246,6 +4241,9 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "click_interval") == 0) {
+    sprintf(digit, "%d", ui_get_click_interval());
+    value = digit;
   }
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
   else if (strcmp(key, "use_aafont") == 0) {
@@ -4342,13 +4340,13 @@ static void get_color_config(void *p, char *key, int to_menu) {
   screen = p;
 
   if ((color = vt_get_color(key)) == VT_UNKNOWN_COLOR ||
-      !(xcolor = ui_get_xcolor(screen->color_man, color)) ||
-      !ui_get_xcolor_rgba(&red, &green, &blue, &alpha, xcolor)) {
+      !(xcolor = ui_get_xcolor(screen->color_man, color))) {
     vt_term_response_config(screen->term, "error", NULL, to_menu);
 
     return;
   }
 
+  ui_get_xcolor_rgba(&red, &green, &blue, &alpha, xcolor);
   sprintf(rgba, alpha == 255 ? "#%.2x%.2x%.2x" : "#%.2x%.2x%.2x%.2x", red, green, blue, alpha);
 
   vt_term_response_config(screen->term, key, rgba, to_menu);
@@ -4696,7 +4694,7 @@ static int is_vertical(void *p) {
   }
 }
 
-static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int cursor_offset) {
+static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int cursor_offset) {
   ui_screen_t *screen;
   vt_line_t *line;
   ui_font_t *xfont;
@@ -4728,7 +4726,7 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
   if (!num_of_chars) {
     screen->is_preediting = 0;
 
-    return 0;
+    return;
   }
 
   screen->is_preediting = 1;
@@ -4738,7 +4736,7 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
     bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist ?.\n");
 #endif
 
-    return 0;
+    return;
   }
 
   if (!vt_term_get_vertical_mode(screen->term)) {
@@ -4747,7 +4745,7 @@ static int draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int c
     row = vt_term_cursor_row_in_screen(screen->term);
 
     if (row < 0) {
-      return 0;
+      return;
     }
 
     beg_row = row;
@@ -4902,8 +4900,6 @@ end:
 
   screen->im_preedit_beg_row = beg_row;
   screen->im_preedit_end_row = end_row;
-
-  return 1;
 }
 
 /* used for changing IM from plugin side */
@@ -5324,10 +5320,11 @@ static int xterm_get_rgb(void *p, u_int8_t *red, u_int8_t *green, u_int8_t *blue
 
   screen = p;
 
-  if (!(xcolor = ui_get_xcolor(screen->color_man, color)) ||
-      !ui_get_xcolor_rgba(red, green, blue, NULL, xcolor)) {
+  if (!(xcolor = ui_get_xcolor(screen->color_man, color))) {
     return 0;
   }
+
+  ui_get_xcolor_rgba(red, green, blue, NULL, xcolor);
 
   return 1;
 }
@@ -5624,13 +5621,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->sel_listener.reverse_color = reverse_color;
   screen->sel_listener.restore_color = restore_color;
 
-  if (!ui_sel_init(&screen->sel, &screen->sel_listener)) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " ui_sel_init failed.\n");
-#endif
-
-    goto error;
-  }
+  ui_sel_init(&screen->sel, &screen->sel_listener);
 
   if (pic_file_path) {
     screen->pic_file_path = strdup(pic_file_path);
@@ -5826,7 +5817,7 @@ error:
   return NULL;
 }
 
-int ui_screen_delete(ui_screen_t *screen) {
+void ui_screen_delete(ui_screen_t *screen) {
   if (screen->term) {
     vt_term_detach(screen->term);
   }
@@ -5850,8 +5841,6 @@ int ui_screen_delete(ui_screen_t *screen) {
   }
 
   free(screen);
-
-  return 1;
 }
 
 /*
@@ -5954,7 +5943,7 @@ void ui_set_screen_scroll_listener(ui_screen_t *screen,
  * Similar processing is done in bs_xxx().
  */
 
-int ui_screen_scroll_upward(ui_screen_t *screen, u_int size) {
+void ui_screen_scroll_upward(ui_screen_t *screen, u_int size) {
   if (!vt_term_is_backscrolling(screen->term)) {
     enter_backscroll_mode(screen);
   }
@@ -5962,11 +5951,9 @@ int ui_screen_scroll_upward(ui_screen_t *screen, u_int size) {
   vt_term_backscroll_upward(screen->term, size);
 
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-  return 1;
 }
 
-int ui_screen_scroll_downward(ui_screen_t *screen, u_int size) {
+void ui_screen_scroll_downward(ui_screen_t *screen, u_int size) {
   if (!vt_term_is_backscrolling(screen->term)) {
     enter_backscroll_mode(screen);
   }
@@ -5974,11 +5961,9 @@ int ui_screen_scroll_downward(ui_screen_t *screen, u_int size) {
   vt_term_backscroll_downward(screen->term, size);
 
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-  return 1;
 }
 
-int ui_screen_scroll_to(ui_screen_t *screen, int row) {
+void ui_screen_scroll_to(ui_screen_t *screen, int row) {
   if (!vt_term_is_backscrolling(screen->term)) {
     enter_backscroll_mode(screen);
   }
@@ -5986,8 +5971,6 @@ int ui_screen_scroll_to(ui_screen_t *screen, int row) {
   vt_term_backscroll_to(screen->term, row);
 
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-  return 1;
 }
 
 u_int ui_col_width(ui_screen_t *screen) { return ui_get_usascii_font(screen->font_man)->width; }
@@ -6439,7 +6422,7 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     int flag;
 
     if ((flag = true_or_false(value)) != -1) {
-      change_multi_col_char_flag(screen, flag);
+      vt_term_set_use_multi_col_char(screen->term, flag);
     }
   } else if (strcmp(key, "use_bold_font") == 0) {
     int flag;
@@ -6569,6 +6552,12 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     if ((flag = true_or_false(value)) != -1) {
       screen->use_vertical_cursor = flag;
     }
+  } else if (strcmp(key, "click_interval") == 0) {
+    int interval;
+
+    if (bl_str_to_int(&interval, value)) {
+      ui_set_click_interval(interval);
+    }
   }
 #ifdef ROTATABLE_DISPLAY
   else if (strcmp(key, "rotate_display") == 0) {
@@ -6613,7 +6602,7 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
   return 1;
 }
 
-int ui_screen_reset_view(ui_screen_t *screen) {
+void ui_screen_reset_view(ui_screen_t *screen) {
   ui_color_manager_reload(screen->color_man);
 
   ui_window_set_bg_color(&screen->window, ui_get_xcolor(screen->color_man, VT_BG_COLOR));
@@ -6621,8 +6610,6 @@ int ui_screen_reset_view(ui_screen_t *screen) {
   font_size_changed(screen);
   ui_xic_font_set_changed(&screen->window);
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-  return 1;
 }
 
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE

@@ -27,7 +27,6 @@
 #include <mef/ef_ko_kr_map.h>
 
 #include "vt_iscii.h"
-#include "vt_config_proto.h"
 #include "vt_str_parser.h"
 #include "vt_shape.h" /* vt_is_arabic_combining */
 #include "vt_util.h"
@@ -3916,6 +3915,19 @@ inline static int parse_vt100_escape_sequence(
             sprintf(seq, "\x1b[%d;%d$y", ps[0], get_vtmode(vt_parser, VTMODE(ps[0])));
             vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
+        } else if (*str_p == '|') {
+          /* "CSI $ |" DECSCPP */
+
+          /*
+           * DECSCPP doesns't clear screen, reset scroll regions or moves the cursor
+           * as does DECCOLM.
+           */
+
+          if (ps[0] <= 0 || ps[0] == 80) {
+            resize(vt_parser, 80, 0, 1);
+          } else if (ps[0] == 132) {
+            resize(vt_parser, 132, 0, 1);
+          }
         } else {
           if (*str_p == 'x') {
             /* DECFRA: Move Pc to the end */
@@ -4006,19 +4018,19 @@ inline static int parse_vt100_escape_sequence(
           vt_screen_scroll_rightward(vt_parser->screen, ps[0]);
         } else if (*str_p == 'P') {
           /* CSI SP P (PPA) */
-          if (num == 0 || ps[0] <= 0) {
+          if (ps[0] <= 0) {
             ps[0] = 1;
           }
           vt_screen_goto_page(vt_parser->screen, ps[0] - 1);
         } else if (*str_p == 'Q') {
           /* CSI SP Q (PPR) */
-          if (num == 0 || ps[0] <= 0) {
+          if (ps[0] <= 0) {
             ps[0] = 1;
           }
           vt_screen_goto_next_page(vt_parser->screen, ps[0]);
         } else if (*str_p == 'R') {
           /* CSI SP R (PPB) */
-          if (num == 0 || ps[0] <= 0) {
+          if (ps[0] <= 0) {
             ps[0] = 1;
           }
           vt_screen_goto_prev_page(vt_parser->screen, ps[0]);
@@ -4511,7 +4523,10 @@ inline static int parse_vt100_escape_sequence(
             }
           }
         } else {
-          if (ps[0] == 13) {
+          if (ps[0] == 7) {
+            char cmd[] = "update_all";
+            config_protocol_set(vt_parser, cmd, 0);
+          } else if (ps[0] == 13) {
             vt_write_to_pty(vt_parser->pty, "\x1b[3;0;0t", 8);
           } else if (ps[0] == 14) {
             report_window_size(vt_parser, 0);
@@ -4521,6 +4536,12 @@ inline static int parse_vt100_escape_sequence(
             report_window_or_icon_name(vt_parser, 1);
           } else if (ps[0] == 21) {
             report_window_or_icon_name(vt_parser, 0);
+          } else if (ps[0] >= 24) {
+            /*
+             * DECSLPP changes not only the number of lines but also
+             * the number of pages, but mlterm doesn't change the latter.
+             */
+            resize(vt_parser, 0, ps[0], 1);
           }
         }
       } else if (*str_p == 'u') {
@@ -5559,8 +5580,6 @@ void vt_set_secondary_da(char *da) {
   secondary_da = strdup(da);
 }
 
-void vt_parser_init(void) { vt_config_proto_init(); }
-
 void vt_parser_final(void) {
   vt_config_proto_final();
 
@@ -5903,17 +5922,15 @@ size_t vt_parser_convert_to(vt_parser_t *vt_parser, u_char *dst, size_t len,
   return (*vt_parser->cc_conv->convert)(vt_parser->cc_conv, dst, len, parser);
 }
 
-int vt_init_encoding_parser(vt_parser_t *vt_parser) {
+void vt_init_encoding_parser(vt_parser_t *vt_parser) {
   (*vt_parser->cc_parser->init)(vt_parser->cc_parser);
   vt_parser->gl = US_ASCII;
   vt_parser->g0 = US_ASCII;
   vt_parser->g1 = US_ASCII;
   vt_parser->is_so = 0;
-
-  return 1;
 }
 
-int vt_init_encoding_conv(vt_parser_t *vt_parser) {
+void vt_init_encoding_conv(vt_parser_t *vt_parser) {
   (*vt_parser->cc_conv->init)(vt_parser->cc_conv);
 
   /*
@@ -5926,8 +5943,6 @@ int vt_init_encoding_conv(vt_parser_t *vt_parser) {
   if (IS_STATEFUL_ENCODING(vt_parser->encoding)) {
     vt_init_encoding_parser(vt_parser);
   }
-
-  return 1;
 }
 
 int vt_set_auto_detect_encodings(char *encodings) {

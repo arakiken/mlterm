@@ -72,7 +72,7 @@ static int mod_key_debug = 0;
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
@@ -104,8 +104,6 @@ static int delete (ui_im_t *im) {
 #ifdef IM_FCITX_DEBUG
   bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
 #endif
-
-  return ref_count;
 }
 
 #ifdef NO_XKB

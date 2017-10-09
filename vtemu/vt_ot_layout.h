@@ -42,7 +42,7 @@ int vt_ot_layout_delete(vt_ot_layout_state_t state);
 
 int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len);
 
-int vt_ot_layout_reset(vt_ot_layout_state_t state);
+void vt_ot_layout_reset(vt_ot_layout_state_t state);
 
 int vt_ot_layout_copy(vt_ot_layout_state_t dst, vt_ot_layout_state_t src, int optimize);
 

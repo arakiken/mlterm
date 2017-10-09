@@ -124,7 +124,7 @@ ui_color_manager_t *ui_color_manager_new(
   return color_man;
 }
 
-int ui_color_manager_delete(ui_color_manager_t *color_man) {
+void ui_color_manager_delete(ui_color_manager_t *color_man) {
   int count;
 
   for (count = 0; count < MAX_SYS_COLORS; count++) {
@@ -141,34 +141,29 @@ int ui_color_manager_delete(ui_color_manager_t *color_man) {
   }
 
   free(color_man);
-
-  return 1;
 }
 
-int ui_color_manager_set_fg_color(ui_color_manager_t *color_man, char *name /* never NULL */
-                                  ) {
+int ui_color_manager_set_fg_color(ui_color_manager_t *color_man, char *name /* never NULL */) {
   return sys_color_set(color_man, name, _FG_COLOR);
 }
 
-int ui_color_manager_set_bg_color(ui_color_manager_t *color_man, char *name /* never NULL */
-                                  ) {
+int ui_color_manager_set_bg_color(ui_color_manager_t *color_man, char *name /* never NULL */) {
   return sys_color_set(color_man, name, _BG_COLOR);
 }
 
-int ui_color_manager_set_cursor_fg_color(ui_color_manager_t *color_man, char *name /* can be NULL */
-                                         ) {
+int ui_color_manager_set_cursor_fg_color(ui_color_manager_t *color_man,
+                                         char *name /* can be NULL */) {
   return sys_color_set(color_man, name, _CUR_FG_COLOR);
 }
 
-int ui_color_manager_set_cursor_bg_color(ui_color_manager_t *color_man, char *name /* can be NULL */
-                                         ) {
+int ui_color_manager_set_cursor_bg_color(ui_color_manager_t *color_man,
+                                         char *name /* can be NULL */) {
   return sys_color_set(color_man, name, _CUR_BG_COLOR);
 }
 
 int ui_color_manager_set_alt_color(ui_color_manager_t *color_man,
                                    vt_color_t color, /* VT_BOLD_COLOR - VT_CROSSED_OUT_COLOR */
-                                   char *name        /* never NULL */
-                                   ) {
+                                   char *name        /* never NULL */) {
   return sys_color_set(color_man, name, color - VT_FG_COLOR);
 }
 
@@ -189,8 +184,7 @@ char *ui_color_manager_get_cursor_bg_color(ui_color_manager_t *color_man) {
 }
 
 char *ui_color_manager_get_alt_color(ui_color_manager_t *color_man,
-                                     vt_color_t color /* VT_BOLD_COLOR - VT_CROSSED_OUT_COLOR */
-                                     ) {
+                                     vt_color_t color /* VT_BOLD_COLOR - VT_CROSSED_OUT_COLOR */) {
   return color_man->sys_colors[color - VT_FG_COLOR].name;
 }
 
@@ -220,8 +214,7 @@ ui_color_t *ui_get_xcolor(ui_color_manager_t *color_man, vt_color_t color) {
  * If fading status is changed, 1 is returned.
  */
 int ui_color_manager_fade(ui_color_manager_t *color_man,
-                          u_int fade_ratio /* valid value is 0 - 99 */
-                          ) {
+                          u_int fade_ratio /* valid value is 0 - 99 */) {
   ui_color_cache_t *color_cache;
 
   if (fade_ratio >= 100) {
@@ -337,7 +330,7 @@ int ui_color_manager_adjust_cursor_bg_color(ui_color_manager_t *color_man) {
 /*
  * Reload system colors.
  */
-int ui_color_manager_reload(ui_color_manager_t *color_man) {
+void ui_color_manager_reload(ui_color_manager_t *color_man) {
   int color;
 
   for (color = 0; color < MAX_SYS_COLORS; color++) {
@@ -353,8 +346,6 @@ int ui_color_manager_reload(ui_color_manager_t *color_man) {
       free(name);
     }
   }
-
-  return 1;
 }
 
 int ui_change_true_transbg_alpha(ui_color_manager_t *color_man, u_int8_t alpha) {

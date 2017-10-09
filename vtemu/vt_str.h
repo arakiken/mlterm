@@ -7,7 +7,7 @@
 
 #include "vt_char.h"
 
-int vt_str_init(vt_char_t *str, u_int size);
+void vt_str_init(vt_char_t *str, u_int size);
 
 vt_char_t* __vt_str_init(vt_char_t *str, u_int size);
 
@@ -15,9 +15,9 @@ vt_char_t* __vt_str_init(vt_char_t *str, u_int size);
 
 vt_char_t *vt_str_new(u_int size);
 
-int vt_str_final(vt_char_t *str, u_int size);
+void vt_str_final(vt_char_t *str, u_int size);
 
-int vt_str_delete(vt_char_t *str, u_int size);
+void vt_str_delete(vt_char_t *str, u_int size);
 
 int vt_str_copy(vt_char_t *dst, vt_char_t *src, u_int size);
 

@@ -58,9 +58,9 @@ typedef struct ui_display {
 
 ui_display_t *ui_display_open(char *disp_name, u_int depth);
 
-int ui_display_close(ui_display_t *disp);
+void ui_display_close(ui_display_t *disp);
 
-int ui_display_close_all(void);
+void ui_display_close_all(void);
 
 ui_display_t **ui_get_opened_displays(u_int *num);
 

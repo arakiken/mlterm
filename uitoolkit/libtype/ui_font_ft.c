@@ -233,7 +233,7 @@ static int parse_fc_font_name(
   return 1;
 }
 
-static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent,
+static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent, u_int cols,
                               u_int letter_space) {
   if (percent == 0) {
     if (letter_space == 0 || font->is_var_col_width) {
@@ -261,9 +261,9 @@ static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent,
       dpi = (widthpix * 254) / (widthmm * 10);
     }
 
-    return DIVIDE_ROUNDINGUP(dpi * fontsize_d * font->cols * percent, 72 * 100 * 2) + letter_space;
+    return DIVIDE_ROUNDINGUP(dpi * fontsize_d * cols * percent, 72 * 100 * 2) + letter_space;
   } else {
-    return DIVIDE_ROUNDINGUP(fontsize_d * font->cols * percent, 100 * 2) + letter_space;
+    return DIVIDE_ROUNDINGUP(fontsize_d * cols * percent, 100 * 2) + letter_space;
   }
 }
 
@@ -847,7 +847,7 @@ static void *ft_font_open(ui_font_t *font, char *family, double size, char *enco
 
 u_int xft_calculate_char_width(ui_font_t *font, u_int32_t ch);
 u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch);
-int xft_unset_font(ui_font_t *font);
+void xft_unset_font(ui_font_t *font);
 
 static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                        u_int col_width, /* if usascii font wants to be set , 0 will be set. */
@@ -858,6 +858,7 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
   int slant;
   u_int ch_width;
   void *xfont;
+  u_int cols;
 
   /*
    * encoding, weight and slant can be modified in parse_fc_font_name().
@@ -890,6 +891,12 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     slant = FC_SLANT_ITALIC;
   } else {
     slant = -1; /* use default value */
+  }
+
+  if (font->id & FONT_FULLWIDTH) {
+    cols = 2;
+  } else {
+    cols = 1;
   }
 
   /*
@@ -932,7 +939,7 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
         /* basic font (e.g. usascii) width */
 
         /* if font->is_var_col_width is true, 0 is returned. */
-        ch_width = get_fc_col_width(font, fontsize_d, percent, letter_space);
+        ch_width = get_fc_col_width(font, fontsize_d, percent, cols, letter_space);
 
         if (percent > 100) {
           /*
@@ -963,7 +970,7 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
            */
           ch_width = col_width;
         } else {
-          ch_width = col_width * font->cols;
+          ch_width = col_width * cols;
         }
       }
 
@@ -989,7 +996,7 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
   if (col_width == 0) {
     /* basic font (e.g. usascii) width */
 
-    ch_width = get_fc_col_width(font, (double)fontsize, 0, letter_space);
+    ch_width = get_fc_col_width(font, (double)fontsize, 0, cols, letter_space);
 
     if (font->is_vertical) {
       /*
@@ -1008,7 +1015,7 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
        */
       ch_width = col_width;
     } else {
-      ch_width = col_width * font->cols;
+      ch_width = col_width * cols;
     }
   }
 
@@ -1052,7 +1059,7 @@ font_found:
       font->width = xft_calculate_char_width(font, 'W');
 
       if (font->width != xft_calculate_char_width(font, 'l') ||
-          (col_width > 0 && font->width != col_width * font->cols)) {
+          (col_width > 0 && font->width != col_width * cols)) {
         /* Regard it as proportional. */
 
         if (font->is_var_col_width) {
@@ -1076,9 +1083,9 @@ font_found:
       font->width = ch_width;
     }
 
-    font->x_off += (letter_space * font->cols / 2);
+    font->x_off += (letter_space * cols / 2);
 
-    if (font->is_vertical && font->cols == 1) {
+    if (font->is_vertical && cols == 1) {
       font->x_off += (font->width / 4); /* Centering */
     }
 #endif /* USE_TYPE_XFT */
@@ -1098,7 +1105,7 @@ font_found:
     font->height = DOUBLE_ROUNDUP_TO_INT(extents.height);
     font->ascent = DOUBLE_ROUNDUP_TO_INT(extents.ascent);
 
-    if (font->cols == 2) {
+    if (cols == 2) {
       font->width = DOUBLE_ROUNDUP_TO_INT(extents.max_x_advance);
     } else {
       font->width = cairo_calculate_char_width(font, 'W');
@@ -1133,7 +1140,7 @@ font_found:
         if (font->is_vertical) {
           letter_space *= 2;
         } else {
-          letter_space *= font->cols;
+          letter_space *= cols;
         }
 
         font->width += letter_space;
@@ -1167,7 +1174,7 @@ font_found:
       }
 #endif
     } else {
-      if (col_width > 0 && font->width != col_width * font->cols) {
+      if (col_width > 0 && font->width != col_width * cols) {
         font->is_proportional = 1;
       }
     }
@@ -1211,7 +1218,7 @@ int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
   return fc_set_font(font, fontname, fontsize, col_width, letter_space, aa_opt, 1);
 }
 
-int xft_unset_font(ui_font_t *font) {
+void xft_unset_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -1220,8 +1227,6 @@ int xft_unset_font(ui_font_t *font) {
 
   XftFontClose(font->display, font->xft_font);
   font->xft_font = NULL;
-
-  return 1;
 }
 
 int xft_set_ot_font(ui_font_t *font) {
@@ -1310,7 +1315,7 @@ int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
   return fc_set_font(font, fontname, fontsize, col_width, letter_space, aa_opt, 0);
 }
 
-int cairo_unset_font(ui_font_t *font) {
+void cairo_unset_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -1341,8 +1346,6 @@ int cairo_unset_font(ui_font_t *font) {
 #if 0
   delete_charset_cache();
 #endif
-
-  return 1;
 }
 
 int cairo_set_ot_font(ui_font_t *font) {

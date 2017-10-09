@@ -51,18 +51,12 @@ static int cursor_goto(vt_cursor_t *cursor, int col_or_idx, int row, int is_by_c
 
 /* --- global functions --- */
 
-int vt_cursor_init(vt_cursor_t *cursor, vt_model_t *model) {
+void vt_cursor_init(vt_cursor_t *cursor, vt_model_t *model) {
   memset(cursor, 0, sizeof(vt_cursor_t));
   cursor->model = model;
-
-  return 1;
 }
 
-int vt_cursor_final(vt_cursor_t *cursor) {
-  /* Do nothing */
-
-  return 1;
-}
+void vt_cursor_final(vt_cursor_t *cursor) { /* Do nothing for now*/ }
 
 int vt_cursor_goto_by_char(vt_cursor_t *cursor, int char_index, int row) {
   return cursor_goto(cursor, char_index, row, 0);

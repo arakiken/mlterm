@@ -1227,15 +1227,13 @@ error:
   return NULL;
 }
 
-int ui_layout_delete(ui_layout_t *layout) {
+void ui_layout_delete(ui_layout_t *layout) {
   if (layout->bg_pic) {
     delete_layout_bg_pic(layout);
   }
 
   delete_term(&layout->term);
   free(layout);
-
-  return 1;
 }
 
 int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal,

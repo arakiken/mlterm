@@ -59,9 +59,13 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
   if (style == BL_DIALOG_OKCANCEL) {
     if (MessageBoxA(NULL, msg, "", MB_OKCANCEL) == IDOK) {
       return 1;
+    } else {
+      return 0;
     }
   } else if (style == BL_DIALOG_ALERT) {
     MessageBoxA(NULL, msg, "", MB_ICONSTOP);
+
+    return 1;
   } else {
     return -1;
   }
@@ -138,19 +142,17 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
   return &_disp;
 }
 
-int ui_display_close(ui_display_t *disp) {
+void ui_display_close(ui_display_t *disp) {
   if (disp == &_disp) {
-    return ui_display_close_all();
-  } else {
-    return 0;
+    ui_display_close_all();
   }
 }
 
-int ui_display_close_all(void) {
+void ui_display_close_all(void) {
   u_int count;
 
   if (!DISP_IS_INITED) {
-    return 0;
+    return;
   }
 
   ui_picture_display_closed(_disp.display);
@@ -179,8 +181,6 @@ int ui_display_close_all(void) {
   _disp.display = NULL;
 
   ui_gdiobj_pool_final();
-
-  return 1;
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {

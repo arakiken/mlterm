@@ -607,13 +607,16 @@ int vt_line_init(vt_line_t *line, u_int num_of_chars) {
 }
 
 int vt_line_clone(vt_line_t *clone, vt_line_t *orig, u_int num_of_chars) {
-  vt_line_init(clone, num_of_chars);
-  copy_line(clone, orig, 1 /* clone->ctl_info can be uncopied. */);
+  if (vt_line_init(clone, num_of_chars)) {
+    copy_line(clone, orig, 1 /* clone->ctl_info can be uncopied. */);
 
-  return 1;
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
-int vt_line_final(vt_line_t *line) {
+void vt_line_final(vt_line_t *line) {
   if (vt_line_is_using_bidi(line)) {
     vt_line_set_use_bidi(line, 0);
   } else if (vt_line_is_using_iscii(line)) {
@@ -628,8 +631,6 @@ int vt_line_final(vt_line_t *line) {
   if (line->chars) {
     vt_str_delete(line->chars, line->num_of_chars);
   }
-
-  return 1;
 }
 
 /*
@@ -693,11 +694,10 @@ int vt_line_assure_boundary(vt_line_t *line, int char_index) {
   return 1;
 }
 
-int vt_line_reset(vt_line_t *line) {
+void vt_line_reset(vt_line_t *line) {
   if (IS_EMPTY(line)) {
     /* already reset */
-
-    return 1;
+    return;
   }
 
 #ifdef OPTIMIZE_REDRAWING
@@ -734,13 +734,11 @@ int vt_line_reset(vt_line_t *line) {
 
   line->is_continued_to_next = 0;
   line->size_attr = 0;
-
-  return 1;
 }
 
-int vt_line_clear(vt_line_t *line, int char_index) {
+void vt_line_clear(vt_line_t *line, int char_index) {
   if (char_index >= line->num_of_filled_chars) {
-    return 1;
+    return;
   }
 
 #ifdef OPTIMIZE_REDRAWING
@@ -766,8 +764,6 @@ int vt_line_clear(vt_line_t *line, int char_index) {
   line->num_of_filled_chars = char_index + 1;
   line->is_continued_to_next = 0;
   line->size_attr = 0;
-
-  return 1;
 }
 
 int vt_line_clear_with(vt_line_t *line, int char_index, vt_char_t *ch) {

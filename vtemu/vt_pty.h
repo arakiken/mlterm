@@ -50,7 +50,7 @@ vt_pty_ptr_t vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols,
 
 int vt_pty_delete(vt_pty_ptr_t pty);
 
-int vt_pty_set_listener(vt_pty_ptr_t pty, vt_pty_event_listener_t *pty_listener);
+void vt_pty_set_listener(vt_pty_ptr_t pty, vt_pty_event_listener_t *pty_listener);
 
 int vt_set_pty_winsize(vt_pty_ptr_t pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix);
 

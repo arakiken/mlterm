@@ -481,8 +481,8 @@ static BOOL text_out(GC gc, int x, int y, u_char *str, u_int len,
   }
 }
 
-static int draw_string(ui_window_t *win, ui_font_t *font, int x, int y, u_char *str, u_int len,
-                       int is_tp, int is_ucs) {
+static void draw_string(ui_window_t *win, ui_font_t *font, int x, int y, u_char *str, u_int len,
+                        int is_tp, int is_ucs) {
   u_char *str2;
   int is_glyph;
 
@@ -527,8 +527,6 @@ static int draw_string(ui_window_t *win, ui_font_t *font, int x, int y, u_char *
   } else if (is_tp) {
     SetBkMode(win->gc->gc, OPAQUE);
   }
-
-  return 1;
 }
 
 /*
@@ -565,14 +563,14 @@ static int update_decorate_size(ui_window_t *win) {
   }
 }
 
-static int clear_margin_area(ui_window_t *win) {
+static void clear_margin_area(ui_window_t *win) {
   u_int right_margin;
   u_int bottom_margin;
   u_int win_width;
   u_int win_height;
 
   if (win->gc->gc == None) {
-    return 0;
+    return;
   }
 
   right_margin = RIGHT_MARGIN(win);
@@ -630,8 +628,6 @@ static int clear_margin_area(ui_window_t *win) {
 
     ui_release_brush(brush);
   }
-
-  return 1;
 }
 
 static WORD oem_key_to_char(WORD wparam) {
@@ -818,7 +814,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
   return 1;
 }
 
-int ui_window_final(ui_window_t *win) {
+void ui_window_final(ui_window_t *win) {
   u_int count;
 
 #ifdef __DEBUG
@@ -850,25 +846,19 @@ int ui_window_final(ui_window_t *win) {
   if (win->window_finalized) {
     (*win->window_finalized)(win);
   }
-
-  return 1;
 }
 
-int ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine) { return 0; }
+void ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine) {}
 
-int ui_window_add_event_mask(ui_window_t *win, long event_mask) {
+void ui_window_add_event_mask(ui_window_t *win, long event_mask) {
   win->event_mask |= event_mask;
-
-  return 1;
 }
 
-int ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
+void ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
   win->event_mask &= ~event_mask;
-
-  return 1;
 }
 
-int ui_window_ungrab_pointer(ui_window_t *win) { return 0; }
+void ui_window_ungrab_pointer(ui_window_t *win) {}
 
 int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
   u_int count;
@@ -908,10 +898,8 @@ int ui_window_set_transparent(ui_window_t *win, ui_picture_modifier_t *pic_mod) 
 
 int ui_window_unset_transparent(ui_window_t *win) { return 0; }
 
-int ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
+void ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
   win->cursor_shape = cursor_shape;
-
-  return 1;
 }
 
 int ui_window_set_fg_color(ui_window_t *win, ui_color_t *fg_color) {
@@ -1151,26 +1139,22 @@ int ui_window_show(ui_window_t *win,
   return 1;
 }
 
-int ui_window_map(ui_window_t *win) {
+void ui_window_map(ui_window_t *win) {
   if (win->is_mapped) {
-    return 1;
+    return;
   }
 
   ShowWindow(win->my_window, win->cmd_show);
   win->is_mapped = 1;
-
-  return 1;
 }
 
-int ui_window_unmap(ui_window_t *win) {
+void ui_window_unmap(ui_window_t *win) {
   if (!win->is_mapped) {
-    return 1;
+    return;
   }
 
   ShowWindow(win->my_window, SW_HIDE);
   win->is_mapped = 0;
-
-  return 1;
 }
 
 int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
@@ -1223,17 +1207,15 @@ int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
   return ui_window_resize(win, width - win->hmargin * 2, height - win->vmargin * 2, flag);
 }
 
-int ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height, u_int width_inc,
-                               u_int height_inc) {
+void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
+                                u_int width_inc, u_int height_inc) {
   win->min_width = min_width;
   win->min_height = min_height;
   win->width_inc = width_inc;
   win->height_inc = height_inc;
-
-  return 1;
 }
 
-int ui_window_set_override_redirect(ui_window_t *win, int flag) {
+void ui_window_set_override_redirect(ui_window_t *win, int flag) {
   ui_window_t *root;
 
   if ((root = ui_get_root_window(win))->my_window) {
@@ -1260,10 +1242,6 @@ int ui_window_set_override_redirect(ui_window_t *win, int flag) {
       ShowWindow(root->my_window, win->cmd_show);
     }
 #endif
-
-    return 1;
-  } else {
-    return 0;
   }
 }
 
@@ -1296,7 +1274,7 @@ int ui_window_move(ui_window_t *win, int x, int y) {
  * This function can be used in context except window_exposed and update_window
  * events.
  */
-int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
+void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
   RECT r;
 
 #ifdef AUTO_CLEAR_MARGIN
@@ -1342,8 +1320,6 @@ int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
 
   if (win->gc->gc == None) {
     InvalidateRect(win->my_window, &r, TRUE);
-
-    return 1;
   } else {
     if (win->wall_picture) {
       Pixmap pic;
@@ -1368,23 +1344,21 @@ int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
       FillRect(win->gc->gc, &r, brush);
       ui_release_brush(brush);
     }
-
-    return 1;
   }
 }
 
-int ui_window_clear_all(ui_window_t *win) {
-  return ui_window_clear(win, 0, 0, win->width, win->height);
+void ui_window_clear_all(ui_window_t *win) {
+  ui_window_clear(win, 0, 0, win->width, win->height);
 }
 
-int ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height) {
-  return ui_window_fill_with(win, &win->fg_color, x, y, width, height);
+void ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height) {
+  ui_window_fill_with(win, &win->fg_color, x, y, width, height);
 }
 
-int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
+void ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
                         u_int height) {
   if (win->gc->gc == None) {
-    return 0;
+    return;
   }
 
   if (height == 1 || width == 1) {
@@ -1402,15 +1376,13 @@ int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int
     FillRect(win->gc->gc, &r, brush);
     ui_release_brush(brush);
   }
-
-  return 1;
 }
 
 /*
  * This function can be used in context except window_exposed and update_window
  * events.
  */
-int ui_window_blank(ui_window_t *win) {
+void ui_window_blank(ui_window_t *win) {
   int get_dc;
   HBRUSH brush;
   RECT r;
@@ -1432,8 +1404,6 @@ int ui_window_blank(ui_window_t *win) {
     ReleaseDC(win->my_window, win->gc->gc);
     ui_set_gc(win->gc, None);
   }
-
-  return 1;
 }
 
 #if 0
@@ -1441,15 +1411,15 @@ int ui_window_blank(ui_window_t *win) {
  * XXX
  * at the present time , not used and not maintained.
  */
-int ui_window_fill_all_with(ui_window_t *win, ui_color_t *color) { return 0; }
+void ui_window_blank_with(ui_window_t *win, ui_color_t *color) {}
 #endif
 
-int ui_window_update(ui_window_t *win, int flag) {
+void ui_window_update(ui_window_t *win, int flag) {
   if (win->update_window_flag) {
     /* WM_APP_PAINT has been already posted. */
     win->update_window_flag |= flag;
 
-    return 1;
+    return;
   } else {
     win->update_window_flag = flag;
   }
@@ -1458,11 +1428,9 @@ int ui_window_update(ui_window_t *win, int flag) {
    * WM_APP_PAINT message is posted only when update_window_flag is 0.
    */
   PostMessage(win->my_window, WM_APP_PAINT, 0, 0);
-
-  return 1;
 }
 
-int ui_window_update_all(ui_window_t *win) {
+void ui_window_update_all(ui_window_t *win) {
   u_int count;
 
   InvalidateRect(win->my_window, NULL, FALSE);
@@ -1470,8 +1438,6 @@ int ui_window_update_all(ui_window_t *win) {
   for (count = 0; count < win->num_of_children; count++) {
     ui_window_update_all(win->children[count]);
   }
-
-  return 1;
 }
 
 void ui_window_idling(ui_window_t *win) {
@@ -2343,26 +2309,26 @@ void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int heigh
 
 void ui_window_unset_clip(ui_window_t *win) { SelectClipRgn(win->gc->gc, NULL); }
 
-int ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                int y, u_char *str, u_int len) {
-  return ui_window_draw_string(win, font, fg_color, x, y, str, len);
+void ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                 int y, u_char *str, u_int len) {
+  ui_window_draw_string(win, font, fg_color, x, y, str, len);
 }
 
-int ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                      ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
-  return ui_window_draw_image_string(win, font, fg_color, bg_color, x, y, str, len);
+void ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                       ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
+  ui_window_draw_image_string(win, font, fg_color, bg_color, x, y, str, len);
 }
 
-int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                          u_char *str, u_int len) {
+void ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                           u_char *str, u_int len) {
   if (win->gc->gc == None) {
-    return 0;
+    return;
   }
 
   /* Removing trailing spaces. */
   while (1) {
     if (len == 0) {
-      return 1;
+      return;
     }
 
     if (*(str + len - 1) == ' ') {
@@ -2397,28 +2363,24 @@ int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_colo
   } else {
     draw_string(win, font, x, y, str, len, 1, 0);
   }
-
-  return 1;
 }
 
-int ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                            XChar2b *str, u_int len) {
+void ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                             XChar2b *str, u_int len) {
   if (win->gc->gc == None) {
-    return 0;
+    return;
   }
 
   ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
 
   draw_string(win, font, x, y, (u_char*)str, len * 2, 1, IS_ISO10646_UCS4(FONT_CS(font->id)));
-
-  return 1;
 }
 
-int ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
+void ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                 ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
   if (win->gc->gc == None) {
-    return 0;
+    return;
   }
 
   ui_gc_set_fid(win->gc, font->xfont->fid);
@@ -2447,14 +2409,12 @@ int ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *f
   } else {
     draw_string(win, font, x, y, str, len, 0, 0);
   }
-
-  return 1;
 }
 
-int ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                  ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len) {
+void ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                   ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len) {
   if (win->gc->gc == None) {
-    return 0;
+    return;
   }
 
   ui_gc_set_fid(win->gc, font->xfont->fid);
@@ -2462,13 +2422,11 @@ int ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t 
   ui_gc_set_bg_color(win->gc, bg_color->pixel);
 
   draw_string(win, font, x, y, (u_char*)str, len * 2, 0, IS_ISO10646_UCS4(FONT_CS(font->id)));
-
-  return 1;
 }
 
-int ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
+void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
   if (win->gc->gc == None) {
-    return 0;
+    return;
   }
 
   ui_release_pen(ui_gc_set_pen(win->gc, ui_acquire_pen(win->fg_color.pixel)));
@@ -2476,11 +2434,9 @@ int ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) 
 
   Rectangle(win->gc->gc, x1 + win->hmargin, y1 + win->vmargin, x2 + win->hmargin,
             y2 + win->vmargin);
-
-  return 1;
 }
 
-int ui_set_use_clipboard_selection(int use_it) { return 0; }
+void ui_set_use_clipboard_selection(int use_it) {}
 
 int ui_is_using_clipboard_selection(void) { return 0; }
 
@@ -2518,13 +2474,13 @@ int ui_window_utf_selection_request(ui_window_t *win, Time time) {
   return invoke_selection_request(win, CF_UNICODETEXT, utf_selection_request);
 }
 
-int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height) {
+void ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height) {
   HBITMAP hbmp;
   HGDIOBJ old;
   HDC hdc;
 
   if (MessageBox(win->my_window, "Set this picture to the clipboard.", "", MB_OKCANCEL) != IDOK) {
-    return 0;
+    return;
   }
 
   hbmp = CreateCompatibleBitmap(pixmap, width, height);
@@ -2536,7 +2492,7 @@ int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int widt
 
   if ((!win->is_sel_owner && !ui_display_own_selection(win->disp, win)) ||
       OpenClipboard(win->my_window) == FALSE) {
-    return 0;
+    return;
   }
 
   /*
@@ -2551,29 +2507,27 @@ int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int widt
   CloseClipboard();
 
   DeleteObject(hbmp);
-
-  return 1;
 }
 
-int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
-                                  u_char *sel_data, size_t sel_len, Atom sel_type) {
+void ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
+                                   u_char *sel_data, size_t sel_len, Atom sel_type) {
   HGLOBAL hmem;
   u_char *g_data;
   size_t count;
 
   if (sel_data == NULL || sel_len == 0) {
-    return 0;
+    return;
   }
 
   /* +1 for 0x00, +2 for 0x0000(UTF16) */
   if ((hmem = GlobalAlloc(GHND, sel_len + (sel_type == CF_UNICODETEXT ? 2 : 1))) == NULL) {
-    return 0;
+    return;
   }
 
   if ((g_data = GlobalLock(hmem)) == NULL) {
     GlobalFree(hmem);
 
-    return 0;
+    return;
   }
 
   for (count = 0; count < sel_len; count++) {
@@ -2589,11 +2543,9 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
 #if 0
   bl_debug_printf(BL_DEBUG_TAG " ui_window_send_selection.\n");
 #endif
-
-  return 1;
 }
 
-int ui_set_window_name(ui_window_t *win, u_char *name) {
+void ui_set_window_name(ui_window_t *win, u_char *name) {
   ui_window_t *root;
 
   root = ui_get_root_window(win);
@@ -2616,7 +2568,7 @@ int ui_set_window_name(ui_window_t *win, u_char *name) {
     if (!(buf = alloca((len = strlen(name)) * 4 + 2)) ||
         !(utf_conv = ui_get_selection_conv(1)) /* UTF16LE */ ||
         !(parser = vt_char_encoding_parser_new(encoding))) {
-      return 0;
+      return;
     }
 
     if (len > 0) {
@@ -2639,43 +2591,33 @@ int ui_set_window_name(ui_window_t *win, u_char *name) {
 #else
   SetWindowTextW(root->my_window, name);
 #endif
-
-  return 1;
 }
 
-int ui_set_icon_name(ui_window_t *win, u_char *name) { return 0; }
+void ui_set_icon_name(ui_window_t *win, u_char *name) {}
 
-int ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) { return 0; }
+void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {}
 
-int ui_window_remove_icon(ui_window_t *win) { return 0; }
+void ui_window_remove_icon(ui_window_t *win) {}
 
-int ui_window_reset_group(ui_window_t *win) { return 0; }
+void ui_window_reset_group(ui_window_t *win) {}
 
-int ui_window_get_visible_geometry(ui_window_t *win, int *x, /* x relative to parent window */
-                                   int *y,                   /* y relative to parent window */
-                                   int *my_x,                /* x relative to my window */
-                                   int *my_y,                /* y relative to my window */
-                                   u_int *width, u_int *height) {
-  return 1;
-}
-
-int ui_set_click_interval(int interval) {
+void ui_set_click_interval(int interval) {
   click_interval = interval;
+}
 
-  return 1;
+int ui_get_click_interval(void) {
+  return click_interval;
 }
 
 u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms) { return ~0; }
 
 u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key) { return ModMask; }
 
-int ui_set_use_urgent_bell(int use) {
+void ui_set_use_urgent_bell(int use) {
   use_urgent_bell = use;
-
-  return 1;
 }
 
-int ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
+void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   urgent_bell(win, 1);
 
   if (mode & BEL_VISUAL) {
@@ -2699,12 +2641,10 @@ int ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   if (mode & BEL_SOUND) {
     Beep(800, 200);
   }
-
-  return 1;
 }
 
-int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
-                                    Window *child) {
+void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
+                                     Window *child) {
   POINT p;
 
   p.x = x;
@@ -2715,8 +2655,6 @@ int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_
   *global_x = p.x;
   *global_y = p.y;
   *child = None;
-
-  return 1;
 }
 
 void ui_window_set_input_focus(ui_window_t *win) {

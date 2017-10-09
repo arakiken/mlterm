@@ -10,11 +10,11 @@
 int ui_screen_manager_init(char *mlterm_version, u_int depth, u_int max_screens_multiple,
                            u_int num_of_startup_screens, ui_main_config_t *main_config);
 
-int ui_screen_manager_final(void);
+void ui_screen_manager_final(void);
 
 u_int ui_screen_manager_startup(void);
 
-int ui_close_dead_screens(void);
+void ui_close_dead_screens(void);
 
 u_int ui_get_all_screens(ui_screen_t*** _screens);
 

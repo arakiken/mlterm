@@ -86,7 +86,7 @@ static void sig_child(void *self, pid_t pid) {
 
 /* --- global functions --- */
 
-int vt_config_menu_init(vt_config_menu_t *config_menu) {
+void vt_config_menu_init(vt_config_menu_t *config_menu) {
   config_menu->pid = 0;
 #ifdef USE_WIN32API
   config_menu->fd = 0;
@@ -98,16 +98,12 @@ int vt_config_menu_init(vt_config_menu_t *config_menu) {
 #ifdef USE_LIBSSH2
   config_menu->pty = NULL;
 #endif
-
-  return 1;
 }
 
-int vt_config_menu_final(vt_config_menu_t *config_menu) {
+void vt_config_menu_final(vt_config_menu_t *config_menu) {
 #ifndef USE_WIN32API
   bl_remove_sig_child_listener(config_menu, sig_child);
 #endif
-
-  return 1;
 }
 
 int vt_config_menu_start(vt_config_menu_t *config_menu, char *cmd_path, int x, int y, char *display,

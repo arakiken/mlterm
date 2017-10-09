@@ -9,7 +9,7 @@
 
 int vt_config_proto_init(void);
 
-int vt_config_proto_final(void);
+void vt_config_proto_final(void);
 
 int vt_gen_proto_challenge(void);
 

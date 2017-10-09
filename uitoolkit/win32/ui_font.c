@@ -574,9 +574,8 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
 
 /* --- global functions --- */
 
-int ui_compose_dec_special_font(void) {
+void ui_compose_dec_special_font(void) {
   /* Do nothing for now in win32. */
-  return 0;
 }
 
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
@@ -585,6 +584,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                        u_int letter_space /* Ignored for now. */
                        ) {
   ui_font_t *font;
+  u_int cols;
   wincs_info_t *wincsinfo;
   char *font_family;
   int weight;
@@ -607,9 +607,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   font->id = id;
 
   if (font->id & FONT_FULLWIDTH) {
-    font->cols = 2;
+    cols = 2;
   } else {
-    font->cols = 1;
+    cols = 1;
   }
 
   if (IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V) {
@@ -752,17 +752,17 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
     if (w_sz.cx != l_sz.cx) {
       font->is_proportional = 1;
-      font->width = tm.tmAveCharWidth * font->cols;
+      font->width = tm.tmAveCharWidth * cols;
     } else {
       SIZE sp_sz;
       WORD sp = 0x3000; /* wide space */
 
-      if (font->cols == 2 && GetTextExtentPoint32W(display_gc, &sp, 1, &sp_sz) &&
+      if (cols == 2 && GetTextExtentPoint32W(display_gc, &sp, 1, &sp_sz) &&
           sp_sz.cx != l_sz.cx * 2) {
         font->is_proportional = 1;
         font->width = sp_sz.cx;
       } else {
-        font->width = w_sz.cx * font->cols;
+        font->width = w_sz.cx * cols;
       }
     }
 
@@ -847,19 +847,19 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
         font->width = col_width;
       }
     } else {
-      if (font->width != col_width * font->cols) {
+      if (font->width != col_width * cols) {
         bl_msg_printf(
             "Font width(%d) is not matched with "
             "standard width(%d).\n",
-            font->width, col_width * font->cols);
+            font->width, col_width * cols);
 
         font->is_proportional = 1;
 
-        if (!font->is_var_col_width && font->width < col_width * font->cols) {
-          font->x_off = (col_width * font->cols - font->width) / 2;
+        if (!font->is_var_col_width && font->width < col_width * cols) {
+          font->x_off = (col_width * cols - font->width) / 2;
         }
 
-        font->width = col_width * font->cols;
+        font->width = col_width * cols;
       }
     }
   }
@@ -883,7 +883,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   return font;
 }
 
-int ui_font_delete(ui_font_t *font) {
+void ui_font_delete(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
   if (font->ot_font) {
     otl_close(font->ot_font);
@@ -904,23 +904,6 @@ int ui_font_delete(ui_font_t *font) {
     DeleteDC(display_gc);
     display_gc = None;
   }
-
-  return 1;
-}
-
-int ui_change_font_cols(ui_font_t *font, u_int cols /* 0 means default value */
-                        ) {
-  if (cols == 0) {
-    if (font->id & FONT_FULLWIDTH) {
-      font->cols = 2;
-    } else {
-      font->cols = 1;
-    }
-  } else {
-    font->cols = cols;
-  }
-
-  return 1;
 }
 
 #ifdef USE_OT_LAYOUT
@@ -1068,15 +1051,13 @@ size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
 
 #ifdef DEBUG
 
-int ui_font_dump(ui_font_t *font) {
+void ui_font_dump(ui_font_t *font) {
   bl_msg_printf("  id %x: Font %p", font->id, font->xfont->fid);
 
   if (font->is_proportional) {
     bl_msg_printf(" (proportional)");
   }
   bl_msg_printf("\n");
-
-  return 1;
 }
 
 #endif

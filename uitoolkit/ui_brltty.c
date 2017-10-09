@@ -239,7 +239,6 @@ static void viewport_home(void) {
 /* --- global functions --- */
 
 int ui_brltty_init(void) {
-  char *env;
   char name[BRLAPI_MAXNAMELENGTH+1];
   brlapi_connectionSettings_t set = { NULL, NULL };
 

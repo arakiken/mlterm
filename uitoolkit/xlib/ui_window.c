@@ -125,7 +125,7 @@ static size_t sel_bmp_size;
 
 /* --- static functions --- */
 
-static locale_is_utf8(void) {
+static int locale_is_utf8(void) {
   char *p = bl_get_codeset();
 
   if ((*(p++) & ~0x20) == 'U' && (*(p++) & ~0x20) == 'T' &&
@@ -159,7 +159,7 @@ static void urgent_bell(ui_window_t *win, int on) {
   }
 }
 
-static int clear_margin_area(ui_window_t *win) {
+static void clear_margin_area(ui_window_t *win) {
   u_int right_margin;
   u_int bottom_margin;
 
@@ -185,8 +185,6 @@ static int clear_margin_area(ui_window_t *win) {
                win->height - bottom_margin + win->vmargin, win->width - right_margin,
                win->vmargin + bottom_margin, 0);
   }
-
-  return 1;
 }
 
 /* Only used for set_transparent|update_modified_transparent */
@@ -705,35 +703,34 @@ static int get_num_of_inputtables(ui_window_t *win) {
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE)
 
-static int ui_window_set_use_xft(ui_window_t *win, int use_xft) {
-  int (*func)(ui_window_t *, int);
+static void ui_window_set_use_xft(ui_window_t *win, int use_xft) {
+  void (*func)(ui_window_t *, int);
 
   if (!(func = ui_load_type_xft_func(UI_WINDOW_SET_TYPE))) {
-    return 0;
+    return;
   }
 
-  return (*func)(win, use_xft);
+  (*func)(win, use_xft);
 }
 
-static int ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                      int x, int y, u_char *str, size_t len) {
-  int (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int, u_char *, size_t);
+static void ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                       int x, int y, u_char *str, size_t len) {
+  void (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int, u_char *, size_t);
 
   if (!(func = ui_load_type_xft_func(UI_WINDOW_DRAW_STRING8))) {
-    return 0;
+    return;
   }
 
-  return (*func)(win, font, fg_color, x, y, str, len);
+  (*func)(win, font, fg_color, x, y, str, len);
 }
 
-static int ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                       int x, int y,
-                                       /* FcChar32 */ u_int32_t *str, size_t len) {
-  int (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int,
-              /* FcChar32 */ u_int32_t *, size_t);
+static void ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                        int x, int y, /* FcChar32 */ u_int32_t *str, size_t len) {
+  void (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int,
+               /* FcChar32 */ u_int32_t *, size_t);
 
   if (!(func = ui_load_type_xft_func(UI_WINDOW_DRAW_STRING32))) {
-    return 0;
+    return;
   }
 
   return (*func)(win, font, fg_color, x, y, str, len);
@@ -759,48 +756,47 @@ static void xft_unset_clip(ui_window_t *win) {
   (*func)(win);
 }
 
-static int ui_window_set_use_cairo(ui_window_t *win, int use_cairo) {
-  int (*func)(ui_window_t *, int);
+static void ui_window_set_use_cairo(ui_window_t *win, int use_cairo) {
+  void (*func)(ui_window_t *, int);
 
   if (!(func = ui_load_type_cairo_func(UI_WINDOW_SET_TYPE))) {
-    return 0;
+    return;
   }
 
-  return (*func)(win, use_cairo);
+  (*func)(win, use_cairo);
 }
 
-static int ui_window_cairo_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                        int x, int y, u_char *str, size_t len) {
-  int (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int, u_char *, size_t);
+static void ui_window_cairo_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                         int x, int y, u_char *str, size_t len) {
+  void (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int, u_char *, size_t);
 
   if (!(func = ui_load_type_cairo_func(UI_WINDOW_DRAW_STRING8))) {
-    return 0;
+    return;
   }
 
-  return (*func)(win, font, fg_color, x, y, str, len);
+  (*func)(win, font, fg_color, x, y, str, len);
 }
 
-static int ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                         int x, int y,
-                                         /* FcChar32 */ u_int32_t *str, size_t len) {
-  int (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int,
-              /* FcChar32 */ u_int32_t *, size_t);
+static void ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                          int x, int y, /* FcChar32 */ u_int32_t *str, size_t len) {
+  void (*func)(ui_window_t *, ui_font_t *, ui_color_t *, int, int,
+               /* FcChar32 */ u_int32_t *, size_t);
 
   if (!(func = ui_load_type_cairo_func(UI_WINDOW_DRAW_STRING32))) {
-    return 0;
+    return;
   }
 
-  return (*func)(win, font, fg_color, x, y, str, len);
+  (*func)(win, font, fg_color, x, y, str, len);
 }
 
-static int cairo_resize(ui_window_t *win) {
-  int (*func)(ui_window_t *);
+static void cairo_resize(ui_window_t *win) {
+  void (*func)(ui_window_t *);
 
   if (!(func = ui_load_type_cairo_func(UI_WINDOW_RESIZE))) {
-    return 0;
+    return;
   }
 
-  return (*func)(win);
+  (*func)(win);
 }
 
 static void cairo_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {
@@ -825,21 +821,21 @@ static void cairo_unset_clip(ui_window_t *win) {
 
 #else /* NO_DYNAMIC_LOAD_TYPE */
 #ifdef USE_TYPE_XFT
-int ui_window_set_use_xft(ui_window_t *win, int use_xft);
-int ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                               int y, u_char *str, size_t len);
-int ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                int y, u_int32_t *str, size_t len);
+void ui_window_set_use_xft(ui_window_t *win, int use_xft);
+void ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                int y, u_char *str, size_t len);
+void ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                 int y, u_int32_t *str, size_t len);
 void xft_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height);
 void xft_unset_clip(ui_window_t *win);
 #endif
 #ifdef USE_TYPE_CAIRO
-int ui_window_set_use_cairo(ui_window_t *win, int use_cairo);
-int ui_window_cairo_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                 int y, u_char *str, size_t len);
-int ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                  int y, u_int32_t *str, size_t len);
-int cairo_resize(ui_window_t *win);
+void ui_window_set_use_cairo(ui_window_t *win, int use_cairo);
+void ui_window_cairo_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                  int y, u_char *str, size_t len);
+void ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                   int y, u_int32_t *str, size_t len);
+void cairo_resize(ui_window_t *win);
 void cairo_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height);
 void cairo_unset_clip(ui_window_t *win);
 #endif
@@ -896,7 +892,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height,
   return 1;
 }
 
-int ui_window_final(ui_window_t *win) {
+void ui_window_final(ui_window_t *win) {
   u_int count;
 
 #ifdef DEBUG
@@ -930,14 +926,12 @@ int ui_window_final(ui_window_t *win) {
   if (win->window_finalized) {
     (*win->window_finalized)(win);
   }
-
-  return 1;
 }
 
 /*
  * Call this function in window_realized event at first.
  */
-int ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine) {
+void ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
   if ((win->xft_draw != NULL) != (type_engine == TYPE_XFT)) {
     ui_window_set_use_xft(win, (type_engine == TYPE_XFT));
@@ -949,11 +943,9 @@ int ui_window_set_type_engine(ui_window_t *win, ui_type_engine_t type_engine) {
     ui_window_set_use_cairo(win, (type_engine == TYPE_CAIRO));
   }
 #endif
-
-  return 1;
 }
 
-int ui_window_add_event_mask(ui_window_t *win, long event_mask) {
+void ui_window_add_event_mask(ui_window_t *win, long event_mask) {
 #if 0
   if (event_mask & ButtonMotionMask) {
     event_mask &= ~ButtonMotionMask;
@@ -967,11 +959,9 @@ int ui_window_add_event_mask(ui_window_t *win, long event_mask) {
   if (win->my_window) {
     XSelectInput(win->disp->display, win->my_window, win->event_mask);
   }
-
-  return 1;
 }
 
-int ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
+void ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
 #if 0
   if (event_mask & ButtonMotionMask) {
     event_mask &= ~ButtonMotionMask;
@@ -985,14 +975,10 @@ int ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
   if (win->my_window) {
     XSelectInput(win->disp->display, win->my_window, win->event_mask);
   }
-
-  return 1;
 }
 
-int ui_window_ungrab_pointer(ui_window_t *win) {
+void ui_window_ungrab_pointer(ui_window_t *win) {
   XUngrabPointer(win->disp->display, CurrentTime);
-
-  return 0;
 }
 
 int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
@@ -1149,7 +1135,7 @@ int ui_window_unset_transparent(ui_window_t *win) {
 /*
  * Cursor is not changeable after ui_window_show().
  */
-int ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
+void ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
   if (win->my_window == None) {
     win->cursor_shape = cursor_shape;
   } else {
@@ -1159,8 +1145,6 @@ int ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
       XDefineCursor(win->disp->display, win->my_window, cursor);
     }
   }
-
-  return 1;
 }
 
 int ui_window_set_fg_color(ui_window_t *win, ui_color_t *fg_color) {
@@ -1465,26 +1449,22 @@ int ui_window_show(ui_window_t *win, int hint) {
   return 1;
 }
 
-int ui_window_map(ui_window_t *win) {
+void ui_window_map(ui_window_t *win) {
   if (win->is_mapped) {
-    return 1;
+    return;
   }
 
   XMapWindow(win->disp->display, win->my_window);
   win->is_mapped = 1;
-
-  return 1;
 }
 
-int ui_window_unmap(ui_window_t *win) {
+void ui_window_unmap(ui_window_t *win) {
   if (!win->is_mapped) {
-    return 1;
+    return;
   }
 
   XUnmapWindow(win->disp->display, win->my_window);
   win->is_mapped = 0;
-
-  return 1;
 }
 
 int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
@@ -1550,8 +1530,8 @@ int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
                           height <= min_height ? min_height : height - win->vmargin * 2, flag);
 }
 
-int ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height, u_int width_inc,
-                               u_int height_inc) {
+void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
+                                u_int width_inc, u_int height_inc) {
   XSizeHints size_hints;
   ui_window_t *root;
 
@@ -1583,11 +1563,9 @@ int ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_heig
 #endif
 
   XSetWMNormalHints(root->disp->display, root->my_window, &size_hints);
-
-  return 1;
 }
 
-int ui_window_set_override_redirect(ui_window_t *win, int flag) {
+void ui_window_set_override_redirect(ui_window_t *win, int flag) {
   ui_window_t *root;
   XSetWindowAttributes s_attr;
   XWindowAttributes g_attr;
@@ -1602,7 +1580,7 @@ int ui_window_set_override_redirect(ui_window_t *win, int flag) {
   }
 
   if (g_attr.override_redirect == s_attr.override_redirect) {
-    return 1;
+    return;
   }
 
   XChangeWindowAttributes(root->disp->display, root->my_window, CWOverrideRedirect, &s_attr);
@@ -1615,8 +1593,6 @@ int ui_window_set_override_redirect(ui_window_t *win, int flag) {
   reset_input_focus(root);
   /* XXX Always focused not to execute XSetInputFocus(). */
   win->inputtable = win->is_focused = 1;
-
-  return 1;
 }
 
 int ui_window_set_borderless_flag(ui_window_t *win, int flag) {
@@ -1676,7 +1652,7 @@ int ui_window_move(ui_window_t *win, int x, int y) {
   return 1;
 }
 
-int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
+void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
 #ifdef AUTO_CLEAR_MARGIN
   if (x + width >= win->width) {
     /* Clearing margin area */
@@ -1712,58 +1688,48 @@ int ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
 #endif
 
   XClearArea(win->disp->display, win->my_window, x, y, width, height, False);
-
-  return 1;
 }
 
-int ui_window_clear_all(ui_window_t *win) {
-  return ui_window_clear(win, 0, 0, win->width, win->height);
+void ui_window_clear_all(ui_window_t *win) {
+  ui_window_clear(win, 0, 0, win->width, win->height);
 }
 
-int ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height) {
+void ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height) {
   restore_fg_color(win);
 
   XFillRectangle(win->disp->display, win->my_window, win->gc->gc, x + win->hmargin,
                  y + win->vmargin, width, height);
-
-  return 1;
 }
 
-int ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
+void ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
                         u_int height) {
   ui_gc_set_fg_color(win->gc, color->pixel);
 
   XFillRectangle(win->disp->display, win->my_window, win->gc->gc, x + win->hmargin,
                  y + win->vmargin, width, height);
-
-  return 1;
 }
 
-int ui_window_blank(ui_window_t *win) {
+void ui_window_blank(ui_window_t *win) {
   restore_fg_color(win);
 
   XFillRectangle(win->disp->display, win->my_window, win->gc->gc, win->hmargin, win->vmargin,
                  win->width - RIGHT_MARGIN(win), win->height - BOTTOM_MARGIN(win));
-
-  return 1;
 }
 
 #if 0
 /*
  * XXX
- * At the present time , not used and not maintained.
+ * At the present time, not used and not maintained.
  */
-int ui_window_blank_with(ui_window_t *win, ui_color_t *color) {
+void ui_window_blank_with(ui_window_t *win, ui_color_t *color) {
   ui_gc_set_fg_color(win->gc, color->pixel);
 
   XFillRectangle(win->disp->display, win->my_window, win->gc->gc, win->hmargin, win->vmargin,
                  win->width, win->height);
-
-  return 1;
 }
 #endif
 
-int ui_window_update(ui_window_t *win, int flag) {
+void ui_window_update(ui_window_t *win, int flag) {
   if (win->update_window) {
     (*win->update_window)(win, flag);
 
@@ -1776,11 +1742,9 @@ int ui_window_update(ui_window_t *win, int flag) {
       win->gc->mask = None;
     }
   }
-
-  return 1;
 }
 
-int ui_window_update_all(ui_window_t *win) {
+void ui_window_update_all(ui_window_t *win) {
   u_int count;
 
   clear_margin_area(win);
@@ -1792,8 +1756,6 @@ int ui_window_update_all(ui_window_t *win) {
   for (count = 0; count < win->num_of_children; count++) {
     ui_window_update_all(win->children[count]);
   }
-
-  return 1;
 }
 
 void ui_window_idling(ui_window_t *win) {
@@ -2669,55 +2631,48 @@ void ui_window_unset_clip(ui_window_t *win) {
   }
 }
 
-int ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                int y, u_char *str, u_int len) {
+void ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                 int y, u_char *str, u_int len) {
   convert_to_decsp_font_index(str, len);
 
   if (font->decsp_font) {
     ui_gc_set_fg_color(win->gc, fg_color->pixel);
 
-    return ui_decsp_font_draw_string(font->decsp_font, win->disp->display, win->my_window,
-                                     win->gc->gc, x + win->hmargin, y + win->vmargin, str, len);
+    ui_decsp_font_draw_string(font->decsp_font, win->disp->display, win->my_window,
+                              win->gc->gc, x + win->hmargin, y + win->vmargin, str, len);
   }
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
   else if (font->xfont) {
-    return ui_window_draw_string(win, font, fg_color, x, y, str, len);
+    ui_window_draw_string(win, font, fg_color, x, y, str, len);
   }
 #endif
-  else {
-    return 0;
-  }
 }
 
-int ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                      ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
+void ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                       ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
   convert_to_decsp_font_index(str, len);
 
   if (font->decsp_font) {
     ui_gc_set_fg_color(win->gc, fg_color->pixel);
     ui_gc_set_bg_color(win->gc, bg_color->pixel);
 
-    return ui_decsp_font_draw_image_string(font->decsp_font, win->disp->display, win->my_window,
-                                           win->gc->gc, x + win->hmargin, y + win->vmargin, str,
-                                           len);
+    ui_decsp_font_draw_image_string(font->decsp_font, win->disp->display, win->my_window,
+                                    win->gc->gc, x + win->hmargin, y + win->vmargin, str, len);
   }
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
   else if (font->xfont) {
-    return ui_window_draw_image_string(win, font, fg_color, bg_color, x, y, str, len);
+    ui_window_draw_image_string(win, font, fg_color, bg_color, x, y, str, len);
   }
 #endif
-  else {
-    return 0;
-  }
 }
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                          u_char *str, u_int len) {
+void ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                           u_char *str, u_int len) {
   /* Removing trailing spaces. */
   while (1) {
     if (len == 0) {
-      return 1;
+      return;
     }
 
     if (*(str + len - 1) == ' ') {
@@ -2738,12 +2693,10 @@ int ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_colo
                 x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin,
                 (char *)str, len);
   }
-
-  return 1;
 }
 
-int ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                            XChar2b *str, u_int len) {
+void ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
+                             XChar2b *str, u_int len) {
   ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
 
@@ -2755,12 +2708,10 @@ int ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_co
                   x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin, str,
                   len);
   }
-
-  return 1;
 }
 
-int ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
+void ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                 ui_color_t *bg_color, int x, int y, u_char *str, u_int len) {
   ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
   ui_gc_set_bg_color(win->gc, bg_color->pixel);
@@ -2773,12 +2724,10 @@ int ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *f
                 x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin,
                 (char *)str, len);
   }
-
-  return 1;
 }
 
-int ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
-                                  ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len) {
+void ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
+                                   ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len) {
   ui_gc_set_fid(win->gc, font->xfont->fid);
   ui_gc_set_fg_color(win->gc, fg_color->pixel);
   ui_gc_set_bg_color(win->gc, bg_color->pixel);
@@ -2791,50 +2740,49 @@ int ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t 
                   x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin, str,
                   len);
   }
-
-  return 1;
 }
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-int ui_window_ft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
-                              u_char *str, size_t len) {
+void ui_window_ft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                               int y, u_char *str, size_t len) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
   if (win->cairo_draw) {
-    return ui_window_cairo_draw_string8(win, font, fg_color, x, y, str, len);
-  } else
+    ui_window_cairo_draw_string8(win, font, fg_color, x, y, str, len);
+
+    return;
+  }
 #endif
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-      if (win->xft_draw) {
-    return ui_window_xft_draw_string8(win, font, fg_color, x, y, str, len);
-  } else
-#endif
-  {
-    return 0;
+  if (win->xft_draw) {
+    ui_window_xft_draw_string8(win, font, fg_color, x, y, str, len);
+
+    return;
   }
+#endif
 }
 
-int ui_window_ft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                               int y,
-                               /* FcChar32 */ u_int32_t *str, u_int len) {
+void ui_window_ft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                int y, /* FcChar32 */ u_int32_t *str, u_int len) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
   if (win->cairo_draw) {
-    return ui_window_cairo_draw_string32(win, font, fg_color, x, y, str, len);
-  } else
+    ui_window_cairo_draw_string32(win, font, fg_color, x, y, str, len);
+
+    return;
+  }
 #endif
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-      if (win->xft_draw) {
-    return ui_window_xft_draw_string32(win, font, fg_color, x, y, str, len);
-  } else
-#endif
-  {
-    return 0;
+  if (win->xft_draw) {
+    ui_window_xft_draw_string32(win, font, fg_color, x, y, str, len);
+
+    return;
   }
+#endif
 }
 
 #endif
 
-int ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
+void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
   XPoint points[5] = {
       {x1 += win->hmargin, y1 += win->vmargin},
       {x1, y2 += win->vmargin},
@@ -2846,13 +2794,11 @@ int ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) 
   restore_fg_color(win);
 
   XDrawLines(win->disp->display, win->my_window, win->gc->gc, points, 5, CoordModeOrigin);
-
-  return 1;
 }
 
-int ui_set_use_clipboard_selection(int use_it) {
+void ui_set_use_clipboard_selection(int use_it) {
   if (use_clipboard == use_it) {
-    return 0;
+    return;
   }
 
   use_clipboard = use_it;
@@ -2864,8 +2810,6 @@ int ui_set_use_clipboard_selection(int use_it) {
    * XSetSelectionOwner().
    */
   ui_display_clear_selection(NULL, NULL);
-
-  return 1;
 }
 
 int ui_is_using_clipboard_selection(void) { return use_clipboard; }
@@ -2913,7 +2857,7 @@ int ui_window_utf_selection_request(ui_window_t *win, Time time) {
   return 1;
 }
 
-int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height) {
+void ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height) {
   XImage *image;
 
   if (win->disp->visual->class == TrueColor &&
@@ -2990,12 +2934,10 @@ int ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int widt
 
     XDestroyImage(image);
   }
-
-  return 0;
 }
 
-int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
-                                  u_char *sel_data, size_t sel_len, Atom sel_type) {
+void ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_ev,
+                                   u_char *sel_data, size_t sel_len, Atom sel_type) {
   XEvent res_ev;
 
   res_ev.xselection.type = SelectionNotify;
@@ -3022,11 +2964,9 @@ int ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req_
   }
 
   XSendEvent(win->disp->display, res_ev.xselection.requestor, False, 0, &res_ev);
-
-  return 1;
 }
 
-int ui_set_window_name(ui_window_t *win, u_char *name) {
+void ui_set_window_name(ui_window_t *win, u_char *name) {
   ui_window_t *root;
   XTextProperty prop;
 
@@ -3058,11 +2998,9 @@ int ui_set_window_name(ui_window_t *win, u_char *name) {
     /* XXX which is better , doing this or return 0 without doing anything ? */
     XStoreName(root->disp->display, root->my_window, name);
   }
-
-  return 1;
 }
 
-int ui_set_icon_name(ui_window_t *win, u_char *name) {
+void ui_set_icon_name(ui_window_t *win, u_char *name) {
   ui_window_t *root;
   XTextProperty prop;
 
@@ -3094,11 +3032,9 @@ int ui_set_icon_name(ui_window_t *win, u_char *name) {
     /* XXX which is better , doing this or return 0 without doing anything ? */
     XSetIconName(root->disp->display, root->my_window, name);
   }
-
-  return 1;
 }
 
-int ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
+void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
   ui_window_t *root;
   XWMHints *hints;
 
@@ -3116,7 +3052,7 @@ int ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
       int count;
 
       if (!(data = alloca(sizeof(u_long) * num))) {
-        return 0;
+        return;
       }
 
       for (count = 0; count < num; count++) {
@@ -3133,7 +3069,7 @@ int ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
 
   if ((hints = XGetWMHints(root->disp->display, root->my_window)) == NULL &&
       (hints = XAllocWMHints()) == NULL) {
-    return 0;
+    return;
   }
 
   if (icon->pixmap) {
@@ -3148,11 +3084,9 @@ int ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
 
   XSetWMHints(root->disp->display, root->my_window, hints);
   XFree(hints);
-
-  return 1;
 }
 
-int ui_window_remove_icon(ui_window_t *win) {
+void ui_window_remove_icon(ui_window_t *win) {
   ui_window_t *root;
   XWMHints *hints;
 
@@ -3172,11 +3106,10 @@ int ui_window_remove_icon(ui_window_t *win) {
   }
 
   XDeleteProperty(root->disp->display, root->my_window, XA_NET_WM_ICON(root->disp->display));
-
-  return 1;
 }
 
-int ui_window_reset_group(ui_window_t *win) {
+/* for xlib/ui_display.c */
+void ui_window_reset_group(ui_window_t *win) {
   ui_window_t *root;
   XWMHints *hints;
 
@@ -3184,7 +3117,7 @@ int ui_window_reset_group(ui_window_t *win) {
 
   if ((hints = XGetWMHints(root->disp->display, root->my_window)) == NULL &&
       (hints = XAllocWMHints()) == NULL) {
-    return 0;
+    return;
   }
 
   hints->flags |= WindowGroupHint;
@@ -3192,10 +3125,9 @@ int ui_window_reset_group(ui_window_t *win) {
 
   XSetWMHints(root->disp->display, root->my_window, hints);
   XFree(hints);
-
-  return 1;
 }
 
+/* for xlib/ui_imagelib.c */
 int ui_window_get_visible_geometry(ui_window_t *win, int *x, /* x relative to root window */
                                    int *y,                   /* y relative to root window */
                                    int *my_x,                /* x relative to my window */
@@ -3255,10 +3187,12 @@ int ui_window_get_visible_geometry(ui_window_t *win, int *x, /* x relative to ro
   return 1;
 }
 
-int ui_set_click_interval(int interval) {
+void ui_set_click_interval(int interval) {
   click_interval = interval;
+}
 
-  return 1;
+int ui_get_click_interval(void) {
+  return click_interval;
 }
 
 u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms) {
@@ -3384,13 +3318,11 @@ u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key) {
   return 0;
 }
 
-int ui_set_use_urgent_bell(int use) {
+void ui_set_use_urgent_bell(int use) {
   use_urgent_bell = use;
-
-  return 1;
 }
 
-int ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
+void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   urgent_bell(win, 1);
 
   if (mode & BEL_VISUAL) {
@@ -3409,16 +3341,12 @@ int ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   if (mode & BEL_SOUND) {
     XBell(win->disp->display, 0);
   }
-
-  return 1;
 }
 
-int ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
-                                    Window *child) {
+void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
+                                     Window *child) {
   XTranslateCoordinates(win->disp->display, win->my_window, DefaultRootWindow(win->disp->display),
                         x, y, global_x, global_y, child);
-
-  return 1;
 }
 
 void ui_window_set_input_focus(ui_window_t *win) {

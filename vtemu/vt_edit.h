@@ -60,7 +60,7 @@ typedef struct vt_edit {
 int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,
                  u_int num_of_cols, u_int num_of_rows, u_int tab_size, int is_logging, int use_bce);
 
-int vt_edit_final(vt_edit_t *edit);
+void vt_edit_final(vt_edit_t *edit);
 
 int vt_edit_clone(vt_edit_t *dst_edit, vt_edit_t *src_edit);
 
@@ -147,11 +147,11 @@ int vt_edit_goto_home(vt_edit_t *edit);
 
 int vt_edit_goto(vt_edit_t *edit, int col, int row);
 
-int vt_edit_set_relative_origin(vt_edit_t *edit);
+void vt_edit_set_relative_origin(vt_edit_t *edit);
 
-int vt_edit_set_absolute_origin(vt_edit_t *edit);
+void vt_edit_set_absolute_origin(vt_edit_t *edit);
 
-int vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
+void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
 #define vt_edit_is_auto_wrap(edit) ((edit)->is_auto_wrap)
 
@@ -159,11 +159,11 @@ int vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
 #define vt_edit_is_using_bce(edit) ((edit)->use_bce)
 
-int vt_edit_set_bce_fg_color(vt_edit_t *edit, vt_color_t fg_color);
+#define vt_edit_set_bce_fg_color(edit, fg_color) vt_char_set_fg_color(&(edit)->bce_ch, fg_color)
 
-int vt_edit_set_bce_bg_color(vt_edit_t *edit, vt_color_t bg_color);
+#define vt_edit_set_bce_bg_color(edit, bg_color) vt_char_set_bg_color(&(edit)->bce_ch, bg_color)
 
-int vt_edit_save_cursor(vt_edit_t *edit);
+#define vt_edit_save_cursor(edit) vt_cursor_save(&(edit)->cursor)
 
 int vt_edit_restore_cursor(vt_edit_t *edit);
 

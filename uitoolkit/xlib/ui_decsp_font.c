@@ -131,7 +131,7 @@ ui_decsp_font_t *ui_decsp_font_new(Display *display, u_int width, u_int height, 
   return font;
 }
 
-int ui_decsp_font_delete(ui_decsp_font_t *font, Display *display) {
+void ui_decsp_font_delete(ui_decsp_font_t *font, Display *display) {
   int count;
 
   for (count = 0; count < sizeof(font->glyphs) / sizeof(font->glyphs[0]); count++) {
@@ -141,12 +141,10 @@ int ui_decsp_font_delete(ui_decsp_font_t *font, Display *display) {
   }
 
   free(font);
-
-  return 1;
 }
 
-int ui_decsp_font_draw_string(ui_decsp_font_t *font, Display *display, Drawable drawable, GC gc,
-                              int x, int y, u_char *str, u_int len) {
+void ui_decsp_font_draw_string(ui_decsp_font_t *font, Display *display, Drawable drawable, GC gc,
+                               int x, int y, u_char *str, u_int len) {
   int count;
   int cache = -1; /* to avoid replace clip mask every time */
 
@@ -172,13 +170,11 @@ int ui_decsp_font_draw_string(ui_decsp_font_t *font, Display *display, Drawable 
   }
 
   XSetClipMask(display, gc, None);
-
-  return 1;
 }
 
-int ui_decsp_font_draw_image_string(ui_decsp_font_t *font, Display *display, Drawable drawable,
-                                    GC gc, int x, int y, u_char *str, u_int len) {
-  int count;
+void ui_decsp_font_draw_image_string(ui_decsp_font_t *font, Display *display, Drawable drawable,
+                                     GC gc, int x, int y, u_char *str, u_int len) {
+  u_int count;
 
   y -= font->ascent; /* original y is not used */
   for (count = 0; count < len; count++) {
@@ -192,7 +188,7 @@ int ui_decsp_font_draw_image_string(ui_decsp_font_t *font, Display *display, Dra
       u_long bg;
 
       if (!XGetGCValues(display, gc, GCBackground | GCForeground, &gcv)) {
-        return 0;
+        return;
       }
 
       fg = gcv.foreground;
@@ -206,6 +202,4 @@ int ui_decsp_font_draw_image_string(ui_decsp_font_t *font, Display *display, Dra
     x += font->width;
     str++;
   }
-
-  return 1;
 }

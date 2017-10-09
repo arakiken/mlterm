@@ -809,7 +809,7 @@ static void dispatch(im_iiimf_t *iiimf, IIIMCF_event event, IIIMCF_event_type ev
  * methods of ui_im_t
  */
 
-static int delete(ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_iiimf_t *iiimf;
 
   iiimf = (im_iiimf_t*) im;
@@ -854,8 +854,6 @@ static int delete(ui_im_t *im) {
 
     initialized = 0;
   }
-
-  return ref_count;
 }
 
 static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *xevent) {

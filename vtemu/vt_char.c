@@ -193,10 +193,8 @@ static void normalize(vt_char_t *ch, u_int comb_size) {
 
 /* --- global functions --- */
 
-int vt_set_use_multi_col_char(int use_it) {
+void vt_set_use_multi_col_char(int use_it) {
   use_multi_col_char = use_it;
-
-  return 1;
 }
 
 int vt_get_unicode_area(vt_font_t font, int *min, int *max) {
@@ -259,7 +257,7 @@ void vt_set_blink_chars_visible(int visible) {
  * character functions
  */
 
-int vt_char_init(vt_char_t *ch) {
+void vt_char_init(vt_char_t *ch) {
   if (sizeof(vt_char_t *) != sizeof(vt_char_t)) {
     /*ILP32*/
     memset(ch, 0, sizeof(vt_char_t));
@@ -270,16 +268,12 @@ int vt_char_init(vt_char_t *ch) {
     /* LSB of multi_ch must be "is_single_ch"  */
     ch->u.multi_ch = (vt_char_t *)0x1;
   }
-
-  return 1;
 }
 
-int vt_char_final(vt_char_t *ch) {
+void vt_char_final(vt_char_t *ch) {
   if (!IS_SINGLE_CH(ch->u.ch.attr)) {
     free(ch->u.multi_ch);
   }
-
-  return 1;
 }
 
 int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
@@ -555,14 +549,12 @@ u_int32_t vt_char_code(vt_char_t *ch) {
   }
 }
 
-int vt_char_set_code(vt_char_t *ch, u_int32_t code) {
+void vt_char_set_code(vt_char_t *ch, u_int32_t code) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
     ch->u.ch.code = code;
   } else {
     vt_char_set_code(ch->u.multi_ch, code);
   }
-
-  return 1;
 }
 
 ef_charset_t vt_char_cs(vt_char_t *ch) {
@@ -662,7 +654,7 @@ vt_color_t vt_char_fg_color(vt_char_t *ch) {
   }
 }
 
-int vt_char_set_fg_color(vt_char_t *ch, vt_color_t color) {
+void vt_char_set_fg_color(vt_char_t *ch, vt_color_t color) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
     ch->u.ch.fg_color = color;
   } else {
@@ -682,8 +674,6 @@ int vt_char_set_fg_color(vt_char_t *ch, vt_color_t color) {
       vt_char_set_fg_color(ch->u.multi_ch + count, color);
     }
   }
-
-  return 1;
 }
 
 vt_color_t vt_char_bg_color(vt_char_t *ch) {
@@ -694,7 +684,7 @@ vt_color_t vt_char_bg_color(vt_char_t *ch) {
   }
 }
 
-int vt_char_set_bg_color(vt_char_t *ch, vt_color_t color) {
+void vt_char_set_bg_color(vt_char_t *ch, vt_color_t color) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
     ch->u.ch.bg_color = color;
   } else {
@@ -714,8 +704,6 @@ int vt_char_set_bg_color(vt_char_t *ch, vt_color_t color) {
       vt_char_set_bg_color(ch->u.multi_ch + count, color);
     }
   }
-
-  return 1;
 }
 
 int vt_char_get_offset(vt_char_t *ch) {

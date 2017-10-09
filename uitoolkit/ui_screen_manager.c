@@ -523,11 +523,11 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
     usascii_font_cs = ui_get_usascii_font_cs(vt_term_get_encoding(term));
   }
 
-  if ((font_man = ui_font_manager_new(
-           disp->display, main_config.type_engine, main_config.font_present, main_config.font_size,
-           usascii_font_cs, main_config.use_multi_col_char, main_config.step_in_changing_font_size,
-           main_config.letter_space, main_config.use_bold_font, main_config.use_italic_font)) ==
-      NULL) {
+  if ((font_man = ui_font_manager_new(disp->display, main_config.type_engine,
+                                      main_config.font_present, main_config.font_size,
+                                      usascii_font_cs, main_config.step_in_changing_font_size,
+                                      main_config.letter_space, main_config.use_bold_font,
+                                      main_config.use_italic_font)) == NULL) {
     char *name;
 
     name = ui_get_charset_name(usascii_font_cs);
@@ -1206,24 +1206,19 @@ int ui_screen_manager_init(char *_mlterm_version, u_int _depth, u_int _max_scree
     num_of_startup_screens = _num_of_startup_screens;
   }
 
-  if (!vt_color_config_init()) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " vt_color_config_init failed.\n");
-#endif
+  if (!vt_term_manager_init(max_screens_multiple)) {
+    free(dead_mask);
 
     return 0;
   }
 
-  if (!ui_shortcut_init(&shortcut)) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " ui_shortcut_init failed.\n");
-#endif
+  vt_color_config_init();
 
-    return 0;
-  }
+  ui_shortcut_init(&shortcut);
+
 /* BACKWARD COMPAT (3.1.7 or before) */
 #if 1
-  else {
+  {
     size_t count;
     char key0[] = "Control+Button1";
     char key1[] = "Control+Button2";
@@ -1284,16 +1279,10 @@ int ui_screen_manager_init(char *_mlterm_version, u_int _depth, u_int _max_scree
   system_listener.font_config_updated = font_config_updated;
   system_listener.color_config_updated = color_config_updated;
 
-  if (!vt_term_manager_init(max_screens_multiple)) {
-    free(dead_mask);
-
-    return 0;
-  }
-
   return 1;
 }
 
-int ui_screen_manager_final(void) {
+void ui_screen_manager_final(void) {
   u_int count;
 
   ui_main_config_final(&main_config);
@@ -1311,8 +1300,6 @@ int ui_screen_manager_final(void) {
 
   vt_color_config_final();
   ui_shortcut_final(&shortcut);
-
-  return 1;
 }
 
 #ifdef __ANDROID__
@@ -1377,7 +1364,7 @@ u_int ui_screen_manager_startup(void) {
   return num_started;
 }
 
-int ui_close_dead_screens(void) {
+void ui_close_dead_screens(void) {
   if (num_of_screens > 0) {
     int idx;
 
@@ -1407,8 +1394,6 @@ int ui_close_dead_screens(void) {
       }
     }
   }
-
-  return 1;
 }
 
 u_int ui_get_all_screens(ui_screen_t ***_screens) {

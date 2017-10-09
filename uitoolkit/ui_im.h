@@ -32,7 +32,7 @@ typedef struct ui_im_event_listener {
   int (*get_spot)(void *, vt_char_t *, int, int *, int *);
   u_int (*get_line_height)(void *);
   int (*is_vertical)(void *);
-  int (*draw_preedit_str)(void *, vt_char_t *, u_int, int);
+  void (*draw_preedit_str)(void *, vt_char_t *, u_int, int);
   void (*im_changed)(void *, char *);
   int (*compare_key_state_with_modmap)(void *, u_int, int *, int *, int *, int *, int *, int *,
                                        int *, int *);
@@ -44,8 +44,8 @@ typedef struct ui_im_event_listener {
  * dirty hack to replace -export-dynamic option of libtool
  */
 typedef struct ui_im_export_syms {
-  int (*vt_str_init)(vt_char_t *, u_int);
-  int (*vt_str_delete)(vt_char_t *, u_int);
+  void (*vt_str_init)(vt_char_t *, u_int);
+  void (*vt_str_delete)(vt_char_t *, u_int);
   vt_char_t *(*vt_char_combine)(vt_char_t *, u_int32_t, ef_charset_t, int, int, vt_color_t,
                                 vt_color_t, int, int, int, int, int, int);
   int (*vt_char_set)(vt_char_t *, u_int32_t, ef_charset_t cs, int, int, vt_color_t, vt_color_t,
@@ -54,7 +54,7 @@ typedef struct ui_im_export_syms {
   vt_char_encoding_t (*vt_get_char_encoding)(const char *);
   int (*vt_convert_to_internal_ch)(void *, ef_char_t *);
   vt_isciikey_state_t (*vt_isciikey_state_new)(int);
-  int (*vt_isciikey_state_delete)(vt_isciikey_state_t);
+  void (*vt_isciikey_state_delete)(vt_isciikey_state_t);
   size_t (*vt_convert_ascii_to_iscii)(vt_isciikey_state_t, u_char *, size_t, u_char *, size_t);
   ef_parser_t *(*vt_char_encoding_parser_new)(vt_char_encoding_t);
   ef_conv_t *(*vt_char_encoding_conv_new)(vt_char_encoding_t);
@@ -66,7 +66,7 @@ typedef struct ui_im_export_syms {
                                                     ui_color_manager_t *, void *, int,
                                                     u_int, int, int);
   int (*ui_event_source_add_fd)(int, void (*handler)(void));
-  int (*ui_event_source_remove_fd)(int);
+  void (*ui_event_source_remove_fd)(int);
 
 } ui_im_export_syms_t;
 
@@ -93,7 +93,7 @@ typedef struct ui_im {
    * methods
    */
 
-  int (*delete)(struct ui_im *);
+  void (*delete)(struct ui_im *);
   /* Return 1 if key event to be processed is still left. */
   int (*key_event)(struct ui_im *, u_char, KeySym, XKeyEvent *);
   /* Return 1 if switching is succeeded. */

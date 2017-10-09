@@ -1,6 +1,9 @@
+* Support DECSLPP and DECSCPP.
+* Support CSI 7 t.
 * Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
 	wayland and android.
-* Add "use_vertical_cursor" to OSC 5379, 5380 and 5381.
+* Add "use_vertical_cursor" and "click_interval" to OSC 5379, 5380 and 5381.
+* Change the default value of "use_vertical_cursor" option from false to true.
 * Bug fixes:
   Fix impossibility of keyborad and pointer input after switching virtual consoles on wayland.
 

@@ -732,7 +732,7 @@ error:
   return 0;
 }
 
-int ui_scrollbar_final(ui_scrollbar_t *sb) {
+void ui_scrollbar_final(ui_scrollbar_t *sb) {
   (*sb->view->delete)(sb->view);
   ui_unload_scrollbar_view_lib(sb->view_name);
 
@@ -741,13 +741,11 @@ int ui_scrollbar_final(ui_scrollbar_t *sb) {
   free(sb->fg_color);
   free(sb->bg_color);
   free(sb->view_name);
-
-  return 1;
 }
 
-int ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines) {
+void ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines) {
   if (sb->num_of_log_lines == num_of_log_lines) {
-    return 1;
+    return;
   }
 
   sb->num_of_log_lines = num_of_log_lines;
@@ -762,17 +760,15 @@ int ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines
   sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height;
 
   ui_window_update(&sb->window, UPDATE_SCROLLBAR);
-
-  return 1;
 }
 
-int ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
+void ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
   if (lines > sb->num_of_log_lines) {
     lines = sb->num_of_log_lines;
   }
 
   if (sb->num_of_filled_log_lines == lines) {
-    return 1;
+    return;
   }
 
   sb->num_of_filled_log_lines = lines;
@@ -783,8 +779,6 @@ int ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
   sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height;
 
   ui_window_update(&sb->window, UPDATE_SCROLLBAR);
-
-  return 1;
 }
 
 int ui_scrollbar_line_is_added(ui_scrollbar_t *sb) {
@@ -819,7 +813,7 @@ int ui_scrollbar_line_is_added(ui_scrollbar_t *sb) {
   }
 }
 
-int ui_scrollbar_reset(ui_scrollbar_t *sb) {
+void ui_scrollbar_reset(ui_scrollbar_t *sb) {
   if (sb->is_motion || sb->bar_top_y + sb->bar_height < MAX_BAR_HEIGHT(sb)) {
     set_redraw_area(sb, sb->bar_top_y, sb->bar_height);
 
@@ -829,8 +823,6 @@ int ui_scrollbar_reset(ui_scrollbar_t *sb) {
 
     ui_window_update(&sb->window, UPDATE_SCROLLBAR);
   }
-
-  return 1;
 }
 
 int ui_scrollbar_move_upward(ui_scrollbar_t *sb, u_int size) {

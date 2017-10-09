@@ -47,22 +47,20 @@ static BL_MAP(ui_font) xfont_table_new(void) {
   return xfont_table;
 }
 
-static int xfont_table_delete(BL_MAP(ui_font) xfont_table) {
-  int count;
+static void xfont_table_delete(BL_MAP(ui_font) xfont_table, ui_font_t *exception) {
+  u_int count;
   u_int size;
   BL_PAIR(ui_font) * f_array;
 
   bl_map_get_pairs_array(xfont_table, f_array, size);
 
   for (count = 0; count < size; count++) {
-    if (f_array[count]->value != NULL) {
+    if (f_array[count]->value != NULL && f_array[count]->value != exception) {
       ui_font_delete(f_array[count]->value);
     }
   }
 
   bl_map_delete(xfont_table);
-
-  return 1;
 }
 
 #ifdef USE_XLIB
@@ -119,7 +117,7 @@ void ui_set_use_leftward_double_drawing(int use) {
 
 ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
                                        ef_charset_t usascii_font_cs, ui_font_config_t *font_config,
-                                       int use_multi_col_char, u_int letter_space) {
+                                       u_int letter_space) {
   int count;
   ui_font_cache_t *font_cache;
   void *p;
@@ -128,7 +126,6 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
     if (font_caches[count]->display == display && font_caches[count]->font_size == font_size &&
         font_caches[count]->usascii_font_cs == usascii_font_cs &&
         font_caches[count]->font_config == font_config &&
-        font_caches[count]->use_multi_col_char == use_multi_col_char &&
         font_caches[count]->letter_space == letter_space) {
       font_caches[count]->ref_count++;
 
@@ -153,7 +150,6 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
   font_cache->display = display;
   font_cache->font_size = font_size;
   font_cache->usascii_font_cs = usascii_font_cs;
-  font_cache->use_multi_col_char = use_multi_col_char;
   font_cache->letter_space = letter_space;
   font_cache->ref_count = 1;
 
@@ -161,7 +157,7 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
   font_cache->prev_cache.xfont = NULL;
 
   if (!init_usascii_font(font_cache)) {
-    xfont_table_delete(font_cache->xfont_table);
+    xfont_table_delete(font_cache->xfont_table, NULL);
     free(font_cache);
 
     return NULL;
@@ -170,18 +166,18 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
   return font_caches[num_of_caches++] = font_cache;
 }
 
-int ui_release_font_cache(ui_font_cache_t *font_cache) {
+void ui_release_font_cache(ui_font_cache_t *font_cache) {
   int count;
 
   if (--font_cache->ref_count > 0) {
-    return 1;
+    return;
   }
 
   for (count = 0; count < num_of_caches; count++) {
     if (font_caches[count] == font_cache) {
       font_caches[count] = font_caches[--num_of_caches];
 
-      xfont_table_delete(font_cache->xfont_table);
+      xfont_table_delete(font_cache->xfont_table, NULL);
       free(font_cache);
 
       if (num_of_caches == 0) {
@@ -189,18 +185,20 @@ int ui_release_font_cache(ui_font_cache_t *font_cache) {
         font_caches = NULL;
       }
 
-      return 1;
+      return;
     }
   }
-
-  return 0;
 }
 
-int ui_font_cache_unload(ui_font_cache_t *font_cache) {
+void ui_font_cache_unload(ui_font_cache_t *font_cache) {
+  ui_font_t *prev_usascii_font;
+
   /*
    * Discarding existing cache.
    */
-  xfont_table_delete(font_cache->xfont_table);
+
+  xfont_table_delete(font_cache->xfont_table, font_cache->usascii_font);
+  prev_usascii_font = font_cache->usascii_font;
   font_cache->usascii_font = NULL;
   font_cache->prev_cache.font = 0;
   font_cache->prev_cache.xfont = NULL;
@@ -211,26 +209,26 @@ int ui_font_cache_unload(ui_font_cache_t *font_cache) {
   font_cache->xfont_table = xfont_table_new();
 
   if (!init_usascii_font(font_cache)) {
+    int result;
+
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG
-                    " ui_font_cache_unload failed. Should ui_release_font_cache "
-                    "this font cache.\n");
+    bl_debug_printf(BL_DEBUG_TAG " ui_font_cache_unload() failed. Use old usascii font.\n");
 #endif
 
-    return 0;
+    font_cache->usascii_font = prev_usascii_font;
+    bl_map_set(result, font_cache->xfont_table, NORMAL_FONT_OF(font_cache->usascii_font_cs),
+               prev_usascii_font);
+  } else {
+    ui_font_delete(prev_usascii_font);
   }
-
-  return 1;
 }
 
-int ui_font_cache_unload_all(void) {
-  int count;
+void ui_font_cache_unload_all(void) {
+  u_int count;
 
   for (count = 0; count < num_of_caches; count++) {
     ui_font_cache_unload(font_caches[count]);
   }
-
-  return 1;
 }
 
 ui_font_t *ui_font_cache_get_xfont(ui_font_cache_t *font_cache, vt_font_t font) {
@@ -337,10 +335,6 @@ found:
                             size_attr, font_cache->font_config->type_engine, font_present, fontname,
                             font_cache->font_size, col_width, use_medium_for_bold,
                             font_cache->letter_space)))) {
-    if (!font_cache->use_multi_col_char) {
-      ui_change_font_cols(xfont, 1);
-    }
-
     if (xfont->double_draw_gap && leftward_double_drawing) {
       xfont->double_draw_gap = -1;
     }

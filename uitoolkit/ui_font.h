@@ -70,7 +70,6 @@ typedef struct ui_font {
   /*
    * These members are never zero.
    */
-  u_int8_t cols;
   u_int8_t width;
   u_int8_t height;
   u_int8_t ascent;
@@ -90,7 +89,7 @@ typedef struct ui_font {
 
 } ui_font_t;
 
-int ui_compose_dec_special_font(void);
+void ui_compose_dec_special_font(void);
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
 void ui_font_use_fontconfig(void);
@@ -100,17 +99,13 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold, u_int letter_space);
 
-int ui_font_delete(ui_font_t *font);
-
-int ui_font_set_font_present(ui_font_t *font, ui_font_present_t font_present);
+void ui_font_delete(ui_font_t *font);
 
 int ui_font_load_xft_font(ui_font_t *font, char *fontname, u_int fontsize, u_int col_width,
                           int use_medium_for_bold);
 
 int ui_font_load_xfont(ui_font_t *font, char *fontname, u_int fontsize, u_int col_width,
                        int use_medium_for_bold);
-
-int ui_change_font_cols(ui_font_t *font, u_int cols);
 
 u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone);
 
@@ -139,7 +134,7 @@ void ui_font_use_point_size(int use);
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-int ui_use_cp932_ucs_for_xft(void);
+void ui_use_cp932_ucs_for_xft(void);
 
 u_int32_t ui_convert_to_xft_ucs4(u_int32_t ch, ef_charset_t cs);
 #endif
@@ -149,7 +144,7 @@ size_t ui_convert_ucs4_to_utf16(u_char *utf16, u_int32_t ucs4);
 #endif
 
 #ifdef DEBUG
-int ui_font_dump(ui_font_t *font);
+void ui_font_dump(ui_font_t *font);
 #endif
 
 #endif

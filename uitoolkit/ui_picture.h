@@ -83,19 +83,19 @@ typedef struct ui_inline_picture {
 /* defined in c_sixel.c */
 u_int32_t *ui_set_custom_sixel_palette(u_int32_t *palette);
 
-int ui_picture_display_opened(Display *display);
+void ui_picture_display_opened(Display *display);
 
-int ui_picture_display_closed(Display *display);
+void ui_picture_display_closed(Display *display);
 
 int ui_picture_modifiers_equal(ui_picture_modifier_t *a, ui_picture_modifier_t *b);
 
 ui_picture_t *ui_acquire_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod, char *file_path);
 
-int ui_release_picture(ui_picture_t *pic);
+void ui_release_picture(ui_picture_t *pic);
 
 ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp, char *file_path);
 
-int ui_release_icon_picture(ui_icon_picture_t *pic);
+void ui_release_icon_picture(ui_icon_picture_t *pic);
 
 int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, u_int *height,
                            u_int col_width, u_int line_height, vt_term_t *term);

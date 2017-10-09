@@ -570,7 +570,7 @@ static void adjust_window_x_position(ui_im_candidate_screen_t *cand_screen, int 
  * methods of ui_im_candidate_screen_t
  */
 
-static int delete(ui_im_candidate_screen_t *cand_screen) {
+static void delete(ui_im_candidate_screen_t *cand_screen) {
   free_candidates(cand_screen->candidates, cand_screen->num_of_candidates);
 
   ui_display_remove_root(cand_screen->window.disp, &cand_screen->window);
@@ -582,20 +582,14 @@ static int delete(ui_im_candidate_screen_t *cand_screen) {
 #endif
 
   free(cand_screen);
-
-  return 1;
 }
 
-static int show(ui_im_candidate_screen_t *cand_screen) {
+static void show(ui_im_candidate_screen_t *cand_screen) {
   ui_window_map(&cand_screen->window);
-
-  return 1;
 }
 
-static int hide(ui_im_candidate_screen_t *cand_screen) {
+static void hide(ui_im_candidate_screen_t *cand_screen) {
   ui_window_unmap(&cand_screen->window);
-
-  return 1;
 }
 
 static int set_spot(ui_im_candidate_screen_t *cand_screen, int x, int y) {
@@ -879,7 +873,6 @@ ui_im_candidate_screen_t *ui_im_candidate_screen_new(ui_display_t *disp,
                                                 ui_get_font_present(font_man) & ~FONT_VERTICAL,
                                                 ui_get_font_size(font_man),
                                                 ui_get_current_usascii_font_cs(font_man),
-                                                ui_is_using_multi_col_char(font_man),
                                                 font_man->step_in_changing_font_size,
                                                 ui_get_letter_space(font_man),
                                                 ui_is_using_bold_font(font_man),

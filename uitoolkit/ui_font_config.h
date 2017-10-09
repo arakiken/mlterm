@@ -34,11 +34,11 @@ int ui_is_using_aafont(void);
 ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,
                                          ui_font_present_t font_present);
 
-int ui_release_font_config(ui_font_config_t *font_config);
+void ui_release_font_config(ui_font_config_t *font_config);
 
 ui_font_config_t *ui_font_config_new(ui_type_engine_t type_engine, ui_font_present_t font_present);
 
-int ui_font_config_delete(ui_font_config_t *font_config);
+void ui_font_config_delete(ui_font_config_t *font_config);
 
 int ui_customize_font_file(const char *file, char *key, char *value, int save);
 

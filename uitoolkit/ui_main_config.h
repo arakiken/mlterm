@@ -121,11 +121,11 @@ typedef struct ui_main_config {
 
 } ui_main_config_t;
 
-int ui_prepare_for_main_config(bl_conf_t *conf);
+void ui_prepare_for_main_config(bl_conf_t *conf);
 
-int ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc, char **argv);
+void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc, char **argv);
 
-int ui_main_config_final(ui_main_config_t *main_config);
+void ui_main_config_final(ui_main_config_t *main_config);
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
 int ui_main_config_add_to_server_list(ui_main_config_t *main_config, char *server);

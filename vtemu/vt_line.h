@@ -64,15 +64,15 @@ int vt_line_init(vt_line_t *line, u_int num_of_chars);
 
 int vt_line_clone(vt_line_t *clone, vt_line_t *orig, u_int num_of_chars);
 
-int vt_line_final(vt_line_t *line);
+void vt_line_final(vt_line_t *line);
 
 u_int vt_line_break_boundary(vt_line_t *line, u_int size);
 
 int vt_line_assure_boundary(vt_line_t *line, int char_index);
 
-int vt_line_reset(vt_line_t *line);
+void vt_line_reset(vt_line_t *line);
 
-int vt_line_clear(vt_line_t *line, int char_index);
+void vt_line_clear(vt_line_t *line, int char_index);
 
 int vt_line_clear_with(vt_line_t *line, int char_index, vt_char_t *ch);
 

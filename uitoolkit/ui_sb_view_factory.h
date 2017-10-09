@@ -5,10 +5,10 @@
 
 #include "ui_sb_view.h"
 
-ui_sb_view_t *ui_sb_view_new(char *name);
+ui_sb_view_t *ui_sb_view_new(const char *name);
 
-ui_sb_view_t *ui_transparent_sb_view_new(char *name);
+ui_sb_view_t *ui_transparent_sb_view_new(const char *name);
 
-int ui_unload_scrollbar_view_lib(char *name);
+void ui_unload_scrollbar_view_lib(const char *name);
 
 #endif

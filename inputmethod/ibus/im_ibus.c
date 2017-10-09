@@ -483,7 +483,7 @@ static void remove_event_source(int complete) {
  * methods of ui_im_t
  */
 
-static int delete(ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)im;
@@ -527,8 +527,6 @@ static int delete(ui_im_t *im) {
 #ifdef IM_IBUS_DEBUG
   bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
 #endif
-
-  return ref_count;
 }
 
 #ifdef NO_XKB

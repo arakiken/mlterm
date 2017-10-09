@@ -13,14 +13,12 @@
  * string functions
  */
 
-int vt_str_init(vt_char_t *str, u_int size) {
-  int count;
+void vt_str_init(vt_char_t *str, u_int size) {
+  u_int count;
 
   for (count = 0; count < size; count++) {
     vt_char_init(str++);
   }
-
-  return 1;
 }
 
 vt_char_t* __vt_str_init(vt_char_t *str, /* alloca()-ed memory (see vt_char.h) */
@@ -31,9 +29,7 @@ vt_char_t* __vt_str_init(vt_char_t *str, /* alloca()-ed memory (see vt_char.h) *
     return NULL;
   }
 
-  if (!(vt_str_init(str, size))) {
-    return NULL;
-  }
+  vt_str_init(str, size);
 
   return str;
 }
@@ -49,42 +45,29 @@ vt_char_t *vt_str_new(u_int size) {
     return NULL;
   }
 
-  if (vt_str_init(str, size) == 0) {
-    free(str);
-
-    return NULL;
-  }
+  vt_str_init(str, size);
 
   return str;
 }
 
-int vt_str_final(vt_char_t *str, u_int size) {
-  int count;
+void vt_str_final(vt_char_t *str, u_int size) {
+  u_int count;
 
   for (count = 0; count < size; count++) {
     vt_char_final(&str[count]);
   }
-
-  return 1;
 }
 
-int vt_str_delete(vt_char_t *str, u_int size) {
-  if (vt_str_final(str, size)) {
-    free(str);
-
-    return 1;
-  } else {
-    free(str);
-
-    return 0;
-  }
+void vt_str_delete(vt_char_t *str, u_int size) {
+  vt_str_final(str, size);
+  free(str);
 }
 
 /*
  * dst and src may overlap.
  */
 int vt_str_copy(vt_char_t *dst, vt_char_t *src, u_int size) {
-  int count;
+  u_int count;
 
   if (size == 0 || dst == src) {
     return 0;

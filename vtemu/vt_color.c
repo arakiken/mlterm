@@ -504,7 +504,7 @@ static int parse_conf(char *color_name, char *rgb) {
   return color_config_set_rgb(color, red, green, blue, alpha);
 }
 
-static int read_conf(const char *filename) {
+static void read_conf(const char *filename) {
   bl_file_t *from;
   char *color_name;
   char *rgb;
@@ -514,7 +514,7 @@ static int read_conf(const char *filename) {
     bl_warn_printf(BL_DEBUG_TAG " %s couldn't be opened.\n", filename);
 #endif
 
-    return 0;
+    return;
   }
 
   while (bl_conf_io_read(from, &color_name, &rgb)) {
@@ -522,8 +522,6 @@ static int read_conf(const char *filename) {
   }
 
   bl_file_close(from);
-
-  return 1;
 }
 
 /* --- global functions --- */
@@ -553,7 +551,7 @@ char *vt_get_color_mode(void) {
   }
 }
 
-int vt_color_config_init(void) {
+void vt_color_config_init(void) {
   char *rcpath;
 
   bl_map_new_with_size(vt_color_t, rgb_t, color_config, bl_map_hash_int, bl_map_compare_int, 16);
@@ -567,15 +565,11 @@ int vt_color_config_init(void) {
     read_conf(rcpath);
     free(rcpath);
   }
-
-  return 1;
 }
 
-int vt_color_config_final(void) {
+void vt_color_config_final(void) {
   bl_map_delete(color_config);
   color_config = NULL;
-
-  return 1;
 }
 
 /*

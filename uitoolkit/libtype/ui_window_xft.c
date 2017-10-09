@@ -37,14 +37,14 @@ int ui_window_set_use_xft(ui_window_t *win, int use_xft) {
   return 0;
 }
 
-int ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                               int y, u_char *str, size_t len) {
+void ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                int y, u_char *str, size_t len) {
   XftColor *xftcolor;
 
   /* Removing trailing spaces. */
   while (1) {
     if (len == 0) {
-      return 1;
+      return;
     }
 
     if (*(str + len - 1) == ' ') {
@@ -64,12 +64,10 @@ int ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg
                    x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin, str,
                    len);
   }
-
-  return 1;
 }
 
-int ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
-                                int y, FcChar32* str, u_int len) {
+void ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
+                                 int y, FcChar32* str, u_int len) {
   XftColor *xftcolor;
 
   xftcolor = ui_color_to_xft(fg_color);
@@ -98,8 +96,6 @@ int ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *f
                       str, len);
     }
   }
-
-  return 1;
 }
 
 void xft_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {

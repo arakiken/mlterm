@@ -573,7 +573,7 @@ static void insert_alphabet_full(im_skk_t *skk, u_char key_char) {
  * methods of ui_im_t
  */
 
-static int delete (ui_im_t *im) {
+static void delete(ui_im_t *im) {
   im_skk_t *skk;
 
   skk = (im_skk_t*)im;
@@ -607,8 +607,6 @@ static int delete (ui_im_t *im) {
 #ifdef IM_SKK_DEBUG
   bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
 #endif
-
-  return ref_count;
 }
 
 static int switch_mode(ui_im_t *im) {

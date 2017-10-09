@@ -8,9 +8,9 @@
 
 typedef struct _GdkPixbuf* GdkPixbufPtr;
 
-int ui_imagelib_display_opened(Display *disp);
+void ui_imagelib_display_opened(Display *disp);
 
-int ui_imagelib_display_closed(Display *disp);
+void ui_imagelib_display_closed(Display *disp);
 
 Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
                                             ui_picture_modifier_t *pic_mod);
@@ -23,12 +23,12 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
 Pixmap ui_imagelib_pixbuf_to_pixmap(ui_window_t *win, ui_picture_modifier_t *pic_mod,
                                     GdkPixbufPtr pixbuf);
 
-int ui_delete_image(Display *display, Pixmap pixmap);
+void ui_delete_image(Display *display, Pixmap pixmap);
 
 #ifdef USE_XLIB
-#define ui_delete_mask(display, mask) ((mask) && ui_delete_image(display, mask))
+#define ui_delete_mask(display, mask) ((mask) ? ui_delete_image(display, mask) : 0)
 #else
-int ui_delete_mask(Display *display, PixmapMask mask);
+void ui_delete_mask(Display *display, PixmapMask mask);
 #endif
 
 #endif

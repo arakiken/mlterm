@@ -745,13 +745,13 @@ ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,
   return font_configs[num_of_configs++] = font_config;
 }
 
-int ui_release_font_config(ui_font_config_t *font_config) {
+void ui_release_font_config(ui_font_config_t *font_config) {
   u_int count;
   int has_share;
   int found;
 
   if (--font_config->ref_count > 0) {
-    return 1;
+    return;
   }
 
   has_share = 0;
@@ -781,7 +781,7 @@ int ui_release_font_config(ui_font_config_t *font_config) {
     bl_debug_printf(BL_DEBUG_TAG " font_config is not found in font_configs.\n");
 #endif
 
-    return 0;
+    return;
   }
 
   if (has_share /* && num_of_configs > 0 */) {
@@ -791,7 +791,7 @@ int ui_release_font_config(ui_font_config_t *font_config) {
 
     free(font_config);
 
-    return 1;
+    return;
   }
 
   ui_font_config_delete(font_config);
@@ -800,8 +800,6 @@ int ui_release_font_config(ui_font_config_t *font_config) {
     free(font_configs);
     font_configs = NULL;
   }
-
-  return 1;
 }
 
 ui_font_config_t *ui_font_config_new(ui_type_engine_t type_engine, ui_font_present_t font_present) {
@@ -821,7 +819,7 @@ ui_font_config_t *ui_font_config_new(ui_type_engine_t type_engine, ui_font_prese
   return font_config;
 }
 
-int ui_font_config_delete(ui_font_config_t *font_config) {
+void ui_font_config_delete(ui_font_config_t *font_config) {
   int count;
   u_int size;
   BL_PAIR(ui_font_name) * fn_array;
@@ -835,8 +833,6 @@ int ui_font_config_delete(ui_font_config_t *font_config) {
   bl_map_delete(font_config->font_name_table);
 
   free(font_config);
-
-  return 1;
 }
 
 /*
