@@ -284,7 +284,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "select uri by double-clicking it [false]");
   bl_conf_add_opt(conf, '\0', "vtcolor", 0, "vt_color_mode", "vt color mode [high]");
   bl_conf_add_opt(conf, '\0', "da1", 0, "primary_da",
-                  "primary device atttributes string "
+                  "primary device attributes string "
 #ifndef NO_IMAGE
                   "[63;1;2;3;4;7;29]"
 #else
@@ -292,7 +292,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
 #endif
                   );
   bl_conf_add_opt(conf, '\0', "da2", 0, "secondary_da",
-                  "secondary device atttributes string [24;279;0]");
+                  "secondary device attributes string [24;279;0]");
   bl_conf_add_opt(conf, '\0', "metaprefix", 0, "mod_meta_prefix",
                   "prefix characters in pressing meta key if mod_meta_mode = esc");
 #ifdef USE_GRF

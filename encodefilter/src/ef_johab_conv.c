@@ -127,7 +127,7 @@ static size_t convert_to_johab(ef_conv_t *conv, u_char *dst, size_t dst_size,
                        ef_char_to_int(&ch));
 #endif
 
-        bl_msg_printf("convertion failed.\n");
+        bl_msg_printf("conversion failed.\n");
 
         continue;
       }
