@@ -168,7 +168,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
   }
 
   if (!(src = alloca(size))) {
-    return 0;
+    return;
   }
 
 #if 1
@@ -209,7 +209,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
           ui_display_put_image(win->disp, x, y + y_off, src, p - src, 0);
         }
 
-        return 1;
+        return;
 
       case 2:
         for (; y_off < font_height; y_off++) {
@@ -235,7 +235,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
           ui_display_put_image(win->disp, x, y + y_off, src, p - src, 0);
         }
 
-        return 1;
+        return;
 
       /* case  4: */
       default:
@@ -262,7 +262,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
           ui_display_put_image(win->disp, x, y + y_off, src, p - src, 0);
         }
 
-        return 1;
+        return;
     }
   }
 #endif
@@ -453,7 +453,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
     ui_display_put_image(win->disp, (x = orig_x), y + y_off, src, p - src, !src_bg_is_set);
   }
 
-  return 1;
+  return;
 }
 
 static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,

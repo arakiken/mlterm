@@ -570,6 +570,7 @@ static int is_pcf(const char *file_path) {
 #ifdef FT_LCD_FILTER_H
 #include FT_LCD_FILTER_H
 #endif
+#include FT_OUTLINE_H
 
 /* 0 - 511 */
 #define SEG(idx) (((idx) >> 7) & 0x1ff)
