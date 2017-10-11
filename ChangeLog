@@ -1,3 +1,9 @@
+2017-10-11  Araki Ken  <arakiken@users.sf.net>
+
+	* ef_johab_conv.c, ui_main_config.c, man/mlterm.1:
+	  https://sf.net/p/mlterm/patches/_discuss/thread/f5dc445d/0fc3/attachment/fix_spelling.diff
+	  is merged.
+
 2017-10-09  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/ja/README.ja: Updated.
