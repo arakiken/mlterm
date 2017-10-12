@@ -5,7 +5,7 @@
 
 #include <gtk/gtk.h>
 
-#define MC_FLAG_MODES 17
+#define MC_FLAG_MODES 19
 
 #define MC_FLAG_XFT 0
 #define MC_FLAG_CAIRO 1
@@ -24,6 +24,8 @@
 #define MC_FLAG_EXTSCROLLSHORTCUT 14
 #define MC_FLAG_REGARDURIASWORD 15
 #define MC_FLAG_OTLAYOUT 16
+#define MC_FLAG_TRIMNEWLINE 17
+#define MC_FLAG_BROADCAST 18
 
 GtkWidget *mc_flag_config_widget_new(int id);
 

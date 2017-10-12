@@ -895,6 +895,10 @@ int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output,
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "ot_features") == 0) {
+    value = vt_get_ot_layout_attr(OT_FEATURES);
+  } else if (strcmp(key, "ot_script") == 0) {
+    value = vt_get_ot_layout_attr(OT_SCRIPT);
   }
 #endif
   else if (strcmp(key, "pty_name") == 0) {

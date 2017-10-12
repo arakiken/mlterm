@@ -66,6 +66,14 @@ void vt_set_ot_layout_attr(char *value, vt_ot_layout_attr_t attr) {
   }
 }
 
+char *vt_get_ot_layout_attr(vt_ot_layout_attr_t attr) {
+  if (0 <= attr && attr < MAX_OT_ATTRS) {
+    return ot_layout_attrs[attr];
+  } else {
+    return "";
+  }
+}
+
 void vt_ot_layout_set_shape_func(u_int (*func1)(void *, u_int32_t *, u_int, int8_t *, u_int8_t *,
                                                 u_int32_t *, u_int32_t *, u_int, const char *,
                                                 const char *),

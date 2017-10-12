@@ -603,10 +603,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         framebuffer/wayland における代替グリフ検索による自動フォント補完機能は無効
         となります。
 
-      o ot_script (latn)
+      o ot_script (latn) (#)
         グリフ置換を行う場合の script を指定します。
 
-      o ot_features (liga,clig,dlig,hlig,rlig)
+      o ot_features (liga,clig,dlig,hlig,rlig) (#)
         グリフ置換を行う場合の feature を指定します。
 
       -- Appearance 関連 --
@@ -675,10 +675,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o hide_underline (true/*false*)
         アンダーラインを描画しない。
 
-      o underline_offset (0)
+      o underline_offset (0) (#)
         アンダーラインの位置(フォントのベースラインからの相対位置)
 
-      o baseline_offset (0)
+      o baseline_offset (0) (#)
         ベースラインの相対位置
 
       o wall_picture  (*なし*) (#)
@@ -869,7 +869,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o init_str
         pty をオープンしたときに、端末に送られる初期化文字列を指定する。
 
-      o click_interval (*250*)
+      o click_interval (*250*) (#)
         ダブルクリックの間隔(ミリ秒)
 
       o static_backscroll_mode (true/*false*) (#)
@@ -956,10 +956,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o working_directory
         子プロセス(シェル)のカレントディレクトリを指定する。
 
-      o trim_trailing_newline_in_pasting (true/*false*)
+      o trim_trailing_newline_in_pasting (true/*false*) (#)
         ペーストする文字列の末尾の改行を削除する。
 
-      o broadcast (true/*false*)
+      o broadcast (true/*false*) (#)
         キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars
         オプションの値が false なものに限る) に送信する。
 

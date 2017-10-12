@@ -231,7 +231,7 @@ msgstr ""
 
 #: tool/mlconfig/mc_contrast.c:69
 #, fuzzy
-msgid "Contrast"
+msgid "Contrast  "
 msgstr "對比"
 
 # FIXME weird translation
@@ -360,9 +360,9 @@ msgstr "粉紅"
 msgid "Input Method"
 msgstr "輸入法主程式"
 
-#~ msgid "Pseudo transparent"
-#~ msgstr "透明"
+msgid "Pseudo transparent"
+msgstr "透明"
 
 # FIXME
-#~ msgid "Complex Text Layout"
-#~ msgstr "Complex Text Layout"
+msgid "Complex Text Layout"
+msgstr "Complex Text Layout"

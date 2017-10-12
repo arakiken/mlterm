@@ -229,7 +229,7 @@ msgstr ""
 
 #: tool/mlconfig/mc_contrast.c:69
 #, fuzzy
-msgid "Contrast"
+msgid "Contrast  "
 msgstr "Độ tương phản"
 
 #: tool/mlconfig/mc_fade.c:69
@@ -353,8 +353,8 @@ msgstr "Tuỳ chọn"
 msgid "Input Method"
 msgstr "Phương thức nhập"
 
-#~ msgid "Pseudo transparent"
-#~ msgstr "Trong suốt"
+msgid "Pseudo transparent"
+msgstr "Trong suốt"
 
-#~ msgid "Complex Text Layout"
-#~ msgstr "Complex Text Layout"
+msgid "Complex Text Layout"
+msgstr "Complex Text Layout"

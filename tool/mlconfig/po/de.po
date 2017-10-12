@@ -72,7 +72,7 @@ msgid "Font"
 msgstr "Font"
 
 #: tool/mlconfig/main.c:422
-msgid "Screen ratio against font size"
+msgid "Screen size ratio against font size"
 msgstr "Bildschirmgröße relativ zur Fontgröße"
 
 #: tool/mlconfig/main.c:471

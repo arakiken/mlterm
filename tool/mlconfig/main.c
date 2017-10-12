@@ -28,6 +28,8 @@
 #include "mc_radio.h"
 #include "mc_char_width.h"
 #include "mc_geometry.h"
+#include "mc_click.h"
+#include "mc_opentype.h"
 
 #if 0
 #define __DEBUG
@@ -63,6 +65,8 @@ static int update(mc_io_t io) {
   mc_update_font_misc();
   mc_update_space(MC_SPACE_LINE);
   mc_update_space(MC_SPACE_LETTER);
+  mc_update_space(MC_SPACE_UNDERLINE);
+  mc_update_space(MC_SPACE_BASELINE);
   mc_update_ratio(MC_RATIO_SCREEN_WIDTH);
   mc_update_radio(MC_RADIO_MOD_META_MODE);
   mc_update_radio(MC_RADIO_BELL_MODE);
@@ -76,6 +80,8 @@ static int update(mc_io_t io) {
   mc_update_substitute_color();
   mc_update_ctl();
   mc_update_char_width();
+  mc_update_click_interval();
+  mc_update_opentype();
 
   mc_update_flag_mode(MC_FLAG_COMB);
   mc_update_flag_mode(MC_FLAG_DYNCOMB);
@@ -521,7 +527,11 @@ static int show(void) {
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-  config_widget = mc_flag_config_widget_new(MC_FLAG_OTLAYOUT);
+  config_widget = mc_opentype_config_widget_new();
+  gtk_widget_show(config_widget);
+  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+  config_widget = mc_char_width_config_widget_new();
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
@@ -549,6 +559,14 @@ static int show(void) {
   config_widget = mc_space_config_widget_new(MC_SPACE_LETTER);
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+
+  config_widget = mc_space_config_widget_new(MC_SPACE_UNDERLINE);
+  gtk_widget_show(config_widget);
+  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+  config_widget = mc_space_config_widget_new(MC_SPACE_BASELINE);
+  gtk_widget_show(config_widget);
+  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
   config_widget = mc_ratio_config_widget_new(MC_RATIO_SCREEN_WIDTH);
   gtk_widget_show(config_widget);
@@ -688,6 +706,10 @@ static int show(void) {
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
+  config_widget = mc_click_interval_config_widget_new();
+  gtk_widget_show(config_widget);
+  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
   config_widget = mc_radio_config_widget_new(MC_RADIO_MOD_META_MODE);
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
@@ -700,15 +722,11 @@ static int show(void) {
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-  config_widget = mc_char_width_config_widget_new();
-  gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-#ifndef USE_WIN32GUI
+#ifdef USE_XLIB
   config_widget = mc_flag_config_widget_new(MC_FLAG_CLIPBOARD);
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
@@ -730,7 +748,19 @@ static int show(void) {
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
+  hbox = gtk_hbox_new(FALSE, 0);
+  gtk_widget_show(hbox);
+  gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+
   config_widget = mc_flag_config_widget_new(MC_FLAG_REGARDURIASWORD);
+  gtk_widget_show(config_widget);
+  gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+
+  config_widget = mc_flag_config_widget_new(MC_FLAG_BROADCAST);
+  gtk_widget_show(config_widget);
+  gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+
+  config_widget = mc_flag_config_widget_new(MC_FLAG_TRIMNEWLINE);
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 

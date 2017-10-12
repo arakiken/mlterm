@@ -73,7 +73,7 @@ msgid "Font"
 msgstr "الخط"
 
 #: tool/mlconfig/main.c:422
-msgid "Screen ratio against font size"
+msgid "Screen size ratio against font size"
 msgstr "نسبة الشاشة لحجم الخط"
 
 #: tool/mlconfig/main.c:471
