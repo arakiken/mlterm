@@ -29,7 +29,7 @@ static char *config_keys[MC_RATIOS] = {
 
 static char *labels[MC_RATIOS] = {
   N_("Contrast  "), N_("Gamma"), N_("Brightness"), N_("Fade ratio on unfocus"),
-  N_("Screen ratio against font size")
+  N_("Screen size ratio against font size")
 };
 
 /* --- static functions --- */

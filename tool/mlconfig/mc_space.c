@@ -19,16 +19,17 @@
 
 /* --- static variables --- */
 
-static char new_values[MC_SPACES][MAX_VALUE_LEN + 1]; /* 0 - 99 */
-static char old_values[MC_SPACES][MAX_VALUE_LEN + 1]; /* 0 - 99 */
+static char new_values[MC_SPACES][MAX_VALUE_LEN + 1]; /* -9...99 */
+static char old_values[MC_SPACES][MAX_VALUE_LEN + 1]; /* -9...99 */
 static int is_changed[MC_SPACES];
 
 static char *config_keys[MC_SPACES] = {
-    "line_space", "letter_space",
+  "line_space", "letter_space", "baseline_offset", "underline_offset",
 };
 
 static char *labels[MC_SPACES] = {
-    N_("Line space (pixels)"), N_("Letter space (pixels)"),
+  N_("Line space (pixels)"), N_("Letter space (pixels)"), N_("Baseline position (pixels)"),
+  N_("Underline position (pixels)"),
 };
 
 /* --- static functions --- */
@@ -56,7 +57,10 @@ GtkWidget *mc_space_config_widget_new(int id) {
   GtkWidget *combo;
   GtkWidget *entry;
   char *spaces[] = {
-      "5", "4", "3", "2", "1", "0",
+    "3", "2", "1", "0", "-1", "-2",
+  };
+  char *spaces2[] = {
+    "5", "4", "3", "2", "1", "0",
   };
 
   value = mc_get_str_value(config_keys[id]);
@@ -66,8 +70,14 @@ GtkWidget *mc_space_config_widget_new(int id) {
   }
   free(value);
 
-  combo = mc_combo_new_with_width(_(labels[id]), spaces, sizeof(spaces) / sizeof(spaces[0]),
-                                  new_values[id], 0, 20, &entry);
+  if (id == MC_SPACE_LETTER) {
+    combo = mc_combo_new_with_width(_(labels[id]), spaces2, sizeof(spaces2) / sizeof(spaces2[0]),
+                                    new_values[id], 0, 20, &entry);
+  } else {
+    combo = mc_combo_new_with_width(_(labels[id]), spaces, sizeof(spaces) / sizeof(spaces[0]),
+                                    new_values[id], 0, 20, &entry);
+  }
+
   g_signal_connect(entry, "changed", G_CALLBACK(space_selected), &new_values[id]);
 
   return combo;

@@ -1,3 +1,17 @@
+2017-10-12  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_click.[ch], mc_opentype.[ch]: Added.
+
+	* mc_flags.[ch]: MC_FLAG_TRIMNEWLINE and MC_FLAG_BROADCAST are added.
+
+	* mc_space.[ch]: MC_SPACE_BASELINE and MC_SPACE_UNDERLINE are added.
+
+	* vt_term.c: "ot_features" and "ot_script" are added to OSC 5380 and 5381.
+
+	* vt_ot_layout.[ch]: vt_get_ot_layout_attr() is added.
+
+	* mlconfig/po/*.po: Updated.
+
 2017-10-11  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c: "#include FT_OUTLINE_H" is added.

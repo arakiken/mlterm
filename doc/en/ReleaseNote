@@ -3,7 +3,14 @@
 * Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
 	wayland and android.
 * Add "use_vertical_cursor" and "click_interval" to OSC 5379, 5380 and 5381.
+* Add "ot_features" and "ot_script" to OSC 5380 and 5381.
+* Add "Features" and "Script" buttons to "Encoding" tab of mlconfig.
+* Add "Underline pos (pixels)" and "Baseline pos (pixel)" to "Font" tab of mlconfig.
+* Add "Double click interval (msec)", "Send keys to all windows" and
+  "Trim trailing CR/LF in pasting" to "Others" tab of mlconfig.
 * Change the default value of "use_vertical_cursor" option from false to true.
+* Merge patches:
+	https://sf.net/p/mlterm/patches/_discuss/thread/f5dc445d/0fc3/attachment/fix_spelling.diff
 * Bug fixes:
   Fix impossibility of keyborad and pointer input after switching virtual consoles on wayland.
 

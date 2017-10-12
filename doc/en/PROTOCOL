@@ -71,10 +71,10 @@ version 20170923
                      vt_seq_format | word_separators | gui | allow_osc52 | allow_scp |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
                      unicode_full_width_areas | box_drawing_font | auto_detect_encodings |
-                     use_auto_detect | use_ot_layout | regard_uri_as_word | borderless |
-                     use_aafont | underline_offset | baseline_offset |
-                     trim_trailing_newline_in_pasting | fontconfig | use_vertical_cursor |
-                     click_interval
+                     use_auto_detect | use_ot_layout | ot_script | ot_features |
+                     regard_uri_as_word | borderless | use_aafont | underline_offset |
+                     baseline_offset | trim_trailing_newline_in_pasting | fontconfig |
+                     use_vertical_cursor | click_interval
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 

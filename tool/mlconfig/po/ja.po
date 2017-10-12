@@ -1,8 +1,8 @@
-# Japanese translations for mlterm
-# Copyright (C) 2002 Araki Ken <araklen@users.sourceforge.net>
-# This file is distributed under the same license as the mlterm package.
-# Koushi Takahashi <koushi@turbolinux.co.jp>
-#
+#: Japanese translations for mlterm
+#: Copyright (C) 2002 Araki Ken <araklen@users.sourceforge.net>
+#: This file is distributed under the same license as the mlterm package.
+#: Koushi Takahashi <koushi@turbolinux.co.jp>
+#:
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
@@ -57,7 +57,7 @@ msgid " New "
 msgstr "新規"
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-#, fuzzy
+#:, fuzzy
 msgid " Select "
 msgstr "選択"
 
@@ -74,7 +74,7 @@ msgid "Font"
 msgstr "フォント"
 
 #: tool/mlconfig/main.c:422
-msgid "Screen ratio against font size"
+msgid "Screen size ratio against font size"
 msgstr "スクリーンサイズとフォントサイズの割合"
 
 #: tool/mlconfig/main.c:471
@@ -94,7 +94,7 @@ msgid "Others"
 msgstr "その他"
 
 #: tool/mlconfig/mc_bel.c:87
-#, fuzzy
+#:, fuzzy
 msgid " Bel mode "
 msgstr "ベル"
 
@@ -124,7 +124,7 @@ msgid "Picture"
 msgstr "壁紙"
 
 #: tool/mlconfig/mc_bgtype.c:156
-#, fuzzy
+#:, fuzzy
 msgid "Transparent"
 msgstr "壁紙/透明"
 
@@ -167,7 +167,7 @@ msgstr "--- 中国語(簡体字) ---"
 #: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:239
 #: tool/mlconfig/mc_im.c:291 tool/mlconfig/mc_im.c:370
 #: tool/mlconfig/mc_im.c:375
-#, c-format
+#:, c-format
 msgid "auto (currently %s)"
 msgstr "自動 (現在 %s)"
 
@@ -228,8 +228,8 @@ msgid "brown"
 msgstr ""
 
 #: tool/mlconfig/mc_contrast.c:69
-#, fuzzy
-msgid "Contrast"
+#:, fuzzy
+msgid "Contrast  "
 msgstr "コントラスト"
 
 #: tool/mlconfig/mc_fade.c:69
@@ -285,7 +285,7 @@ msgid "Backlog size (lines)"
 msgstr "ログサイズ(行)"
 
 #: tool/mlconfig/mc_mod_meta.c:88
-#, fuzzy
+#:, fuzzy
 msgid "Meta key outputs:"
 msgstr "メタキー"
 
@@ -353,133 +353,163 @@ msgstr "オプション"
 msgid "Input Method"
 msgstr "入力メソッド"
 
-#~ msgid "Auto detect"
-#~ msgstr "自動判定"
+msgid "Auto detect"
+msgstr "自動判定"
 
-#~ msgid "Encoding list"
-#~ msgstr "対象エンコーディング"
+msgid "Encoding list"
+msgstr "対象エンコーディング"
 
-#~ msgid "Both"
-#~ msgstr "両方"
+msgid "Both"
+msgstr "両方"
 
-#~ msgid "Font policy"
-#~ msgstr "表示フォント"
+msgid "Font policy"
+msgstr "表示フォント"
 
-#~ msgid "Always unicode"
-#~ msgstr "Unicodeのみ"
+msgid "Always unicode"
+msgstr "Unicodeのみ"
 
-#~ msgid "Never unicode"
-#~ msgstr "Unicode以外"
+msgid "Never unicode"
+msgstr "Unicode以外"
 
-#~ msgid "Box drawing"
-#~ msgstr "罫線"
+msgid "Box drawing"
+msgstr "罫線"
 
-#~ msgid "As it is"
-#~ msgstr "そのまま表示"
+msgid "As it is"
+msgstr "そのまま表示"
 
-#~ msgid "Unicode"
-#~ msgstr "Unicodeに変換"
+msgid "Unicode"
+msgstr "Unicodeに変換"
 
-#~ msgid "DEC Special"
-#~ msgstr "DEC Specialに変換"
+msgid "DEC Special"
+msgstr "DEC Specialに変換"
 
-#~ msgid "Pseudo transparent"
-#~ msgstr "擬似透明"
+msgid "Pseudo transparent"
+msgstr "擬似透明"
 
-#~ msgid "Cursor color"
-#~ msgstr "カーソル"
+msgid "Cursor color"
+msgstr "カーソル"
 
-#~ msgid "Substituting color"
-#~ msgstr "文字属性に代えて表示する色"
+msgid "Substituting color"
+msgstr "文字属性に代えて表示する色"
 
-#~ msgid "Bold "
-#~ msgstr "ボールド"
+msgid "Bold "
+msgstr "ボールド"
 
-#~ msgid "Underline"
-#~ msgstr "下線"
+msgid "Underline"
+msgstr "下線"
 
-#~ msgid "Italic"
-#~ msgstr "イタリック"
+msgid "Italic"
+msgstr "イタリック"
 
-#~ msgid "Blink"
-#~ msgstr "点滅"
+msgid "Blink"
+msgstr "点滅"
 
-#~ msgid "Cross out"
-#~ msgstr "取消線"
+msgid "Cross out"
+msgstr "取消線"
 
-#~ msgid "VT basic 16 colors"
-#~ msgstr "カラーパレット(16色)"
+msgid "VT basic 16 colors"
+msgstr "カラーパレット(16色)"
 
-#~ msgid "Complex Text Layout"
-#~ msgstr "Complex Text Layout"
+msgid "Complex Text Layout"
+msgstr "Complex Text Layout"
 
-#~ msgid "BiDi separators"
-#~ msgstr "BiDiの区切り文字"
+msgid "BiDi separators"
+msgstr "BiDiの区切り文字"
 
-#~ msgid "Ambiguouswidth = fullwidth"
-#~ msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
+msgid "Ambiguouswidth = fullwidth"
+msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
 
-#~ msgid "Don't scroll automatically in scrolling back"
-#~ msgstr "スクロールバック中は自動的にスクロールしない"
+msgid "Don't scroll automatically in scrolling back"
+msgstr "スクロールバック中は自動的にスクロールしない"
 
-#~ msgid "CLIPBOARD Selection"
-#~ msgstr "選択文字列をクリップボードに保存"
+msgid "CLIPBOARD Selection"
+msgstr "選択文字列をクリップボードに保存"
 
-#~ msgid "Local echo"
-#~ msgstr "ローカルエコー"
+msgid "Local echo"
+msgstr "ローカルエコー"
 
-#~ msgid "Blink cursor"
-#~ msgstr "カーソル点滅"
+msgid "Blink cursor"
+msgstr "カーソル点滅"
 
-#~ msgid ""
-#~ "Set full width\n"
-#~ "areas manually"
-#~ msgstr ""
-#~ "全角幅文字の範\n"
-#~ "囲を手動設定"
+msgid ""
+"Set full width\n"
+"areas manually"
+msgstr ""
+"全角幅文字の範\n"
+"囲を手動設定"
 
-#~ msgid "Scroll by Shift+Up or Shift+Down"
-#~ msgstr "Shift+Up又はShift+Downによるスクロール"
+msgid "Scroll by Shift+Up or Shift+Down"
+msgstr "Shift+Up又はShift+Downによるスクロール"
 
-#~ msgid "Select URI by double click"
-#~ msgstr "ダブルクリックでURIを選択"
+msgid "Select URI by double click"
+msgstr "ダブルクリックでURIを選択"
 
-#~ msgid "Font name"
-#~ msgstr "フォント名"
+msgid "Font name"
+msgstr "フォント名"
 
-#~ msgid "Unicode areas you won't convert to other charsets"
-#~ msgstr "Unicodeから他の文字集合に変換しない範囲"
+msgid "Unicode areas you won't convert to other charsets"
+msgstr "Unicodeから他の文字集合に変換しない範囲"
 
-#~ msgid " Edit "
-#~ msgstr "編集"
+msgid " Edit "
+msgstr "編集"
 
-#~ msgid ""
-#~ "Set unicode area in the following format.\n"
-#~ "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"
-#~ msgstr ""
-#~ "次の形式でUnicodeの範囲を指定してください\n"
-#~ " U+XXXX-XXXX又はU+XXXX (U+はなくても構いません)"
+msgid ""
+"Set unicode area in the following format.\n"
+"Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"
+msgstr ""
+"次の形式でUnicodeの範囲を指定してください\n"
+" U+XXXX-XXXX又はU+XXXX (U+はなくても構いません)"
 
-#~ msgid "Alpha"
-#~ msgstr "アルファ"
+msgid "Alpha"
+msgstr "アルファ"
 
-#~ msgid "Letter space (pixels)"
-#~ msgstr "字間(ピクセル)"
+msgid "Letter space (pixels)"
+msgstr "字間(ピクセル)"
 
-#~ msgid "Word separators"
-#~ msgstr "単語区切り文字"
+msgid "Word separators"
+msgstr "単語区切り文字"
 
-#~ msgid "Save log"
-#~ msgstr "ログを保存"
+msgid "Save log"
+msgstr "ログを保存"
 
-#~ msgid "No"
-#~ msgstr "保存しない"
+msgid "No"
+msgstr "保存しない"
 
-#~ msgid "Raw format"
-#~ msgstr "そのまま保存"
+msgid "Raw format"
+msgstr "そのまま保存"
 
-#~ msgid "Ttyrec format"
-#~ msgstr "ttyrec形式で保存"
+msgid "Ttyrec format"
+msgstr "ttyrec形式で保存"
 
-#~ msgid "Auto hide"
-#~ msgstr "自動的に隠す"
+msgid "Auto hide"
+msgstr "自動的に隠す"
+
+msgid "Underline position (pixels)"
+msgstr "アンダーラインの位置(ピクセル)"
+
+msgid "Baseline position (pixels)"
+msgstr "ベースラインの位置(ピクセル)"
+
+msgid "Send keys to all windows"
+msgstr "全ウィンドウに同時送信"
+
+msgid "Trim trailing CR/LF in pasting"
+msgstr "貼付け時に末尾の改行コードを削除"
+
+msgid "Font width"
+msgstr "フォント幅"
+
+msgid "Columns"
+msgstr "桁数"
+
+msgid "Rows"
+msgstr "行数"
+
+msgid "Double click interval (msec)"
+msgstr "ダブルクリックの間隔(ミリ秒)"
+
+msgid "Meta key outputs"
+msgstr "メタキー押下時の挙動"
+
+msgid "Bell mode"
+msgstr "ベル"
