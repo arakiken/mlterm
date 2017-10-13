@@ -13,6 +13,7 @@
 	https://sf.net/p/mlterm/patches/_discuss/thread/f5dc445d/0fc3/attachment/fix_spelling.diff
 * Bug fixes:
   Fix impossibility of keyborad and pointer input after switching virtual consoles on wayland.
+  Fix unexpectedly having privilege in opening a shell on startup of mlterm built with brlapi.
 
 ver 3.8.3
 * Add "trim_trailing_newline_in_pasting" / --trim option which removes trailing

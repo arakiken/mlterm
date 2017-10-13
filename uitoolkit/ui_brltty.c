@@ -245,14 +245,16 @@ int ui_brltty_init(void) {
   bl_priv_restore_euid();
   bl_priv_restore_egid();
 
-  if ((brltty_fd = brlapi_openConnection(&set, &set)) < 0) {
+  brltty_fd = brlapi_openConnection(&set, &set);
+
+  bl_priv_change_euid(bl_getuid());
+  bl_priv_change_egid(bl_getgid());
+
+  if (brltty_fd < 0) {
     bl_warn_printf("Failed to connect to brltty (%s)\n", brlapi_strerror(&brlapi_error));
 
     return -1;
   }
-
-  bl_priv_change_euid(bl_getuid());
-  bl_priv_change_egid(bl_getgid());
 
   if (brlapi_getDriverName(name, sizeof(name)) < 0) {
 #ifdef DEBUG
