@@ -1184,7 +1184,7 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
                                                                        jlong nativeObj, jint row,
                                                                        jobject region) {
   vt_line_t *line;
-  char *buf;
+  u_char *buf;
   size_t buf_len;
   int mod_beg;
   u_int num_of_chars;

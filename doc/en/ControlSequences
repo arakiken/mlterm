@@ -264,8 +264,8 @@ O                                                           ESC K
 O XTMDKEY                                                   CSI > Pn;Ps m
 O XTMDKYD                                                   CSI > Pn n
 O XTHDPT                                                    CSI > Pn p
-- XTREST                                                    CSI ? Pn r
-- XTSAVE                                                    CSI ? Pn s
+O XTREST                                                    CSI ? Pn r
+O XTSAVE                                                    CSI ? Pn s
 O XTSMTT                                                    CSI > Pn t
 O XTRMTT                                                    CSI > Pn T
 O XTWOP                                                     CSI Pn;P1;P2 t

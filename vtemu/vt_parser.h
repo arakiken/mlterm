@@ -241,6 +241,7 @@ typedef struct vt_parser {
 
   u_int32_t *sixel_palette;
   u_int64_t vtmode_flags;
+  u_int64_t saved_vtmode_flags;
 
   /* vt_unicode_policy_t */ int8_t unicode_policy;
 
