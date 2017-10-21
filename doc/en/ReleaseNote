@@ -1,5 +1,5 @@
-* Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS
-  and CSI 7 t.
+* Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,
+  CSI 7 t, CSI ? Pm s and CSI ? Pm r.
 * Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
 	wayland and android.
 * Add "use_vertical_cursor" and "click_interval" to OSC 5379, 5380 and 5381.

@@ -3039,6 +3039,18 @@ static void clear_display_all(vt_parser_t *vt_parser) {
   vt_screen_clear_size_attr(vt_parser->screen);
 }
 
+static int vtmode_num_to_idx(int mode) {
+  int idx;
+
+  for (idx = 0; idx < VTMODE_NUM; idx++) {
+    if (vtmodes[idx] == mode) {
+      return idx;
+    }
+  }
+
+  return -1;
+}
+
 static int get_vtmode(vt_parser_t *vt_parser, int mode) {
   int idx;
 
@@ -3056,13 +3068,11 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
                                                 0, 0, 0, 0, 0, 0), "\x08") == 0 ? 1 : 2;
   }
 
-  for (idx = 0; idx < VTMODE_NUM; idx++) {
-    if (vtmodes[idx] == mode) {
-      if (vt_parser->vtmode_flags & (SHIFT_FLAG64(idx))) {
-        return 1; /* set */
-      } else {
-        return 2; /* reset */
-      }
+  if ((idx = vtmode_num_to_idx(mode)) != -1) {
+    if (vt_parser->vtmode_flags & (SHIFT_FLAG64(idx))) {
+      return 1; /* set */
+    } else {
+      return 2; /* reset */
     }
   }
 
@@ -3090,20 +3100,15 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   }
 #endif
 
-  for (idx = 0; idx < VTMODE_NUM; idx++) {
-    if (vtmodes[idx] == mode) {
-      goto found;
-    }
-  }
-
+  if ((idx = vtmode_num_to_idx(mode)) == -1) {
 #ifdef DEBUG
-  debug_print_unknown("ESC [%s %d l\n", mode >= VTMODE(0) ? "" : " ?",
-                      mode >= VTMODE(0) ? mode - VTMODE(0) : mode);
+    debug_print_unknown("ESC [%s %d l\n", mode >= VTMODE(0) ? "" : " ?",
+                        mode >= VTMODE(0) ? mode - VTMODE(0) : mode);
 #endif
 
-  return;
+    return;
+  }
 
-found:
   if (flag) {
     vt_parser->vtmode_flags |= (SHIFT_FLAG64(idx));
   } else {
@@ -4003,6 +4008,35 @@ inline static int parse_vt100_escape_sequence(
           for (count = 0; count < num; count++) {
             if (ps[count] < VTMODE(0)) {
               set_vtmode(vt_parser, ps[count], 0);
+            }
+          }
+        } else if (*str_p == 'r') {
+          /* "CSI ? r" Restore DEC Private Mode (xterm) */
+          int count;
+
+          for (count = 0; count < num; count++) {
+            if (ps[count] < VTMODE(0)) {
+              int idx;
+              if ((idx = vtmode_num_to_idx(ps[count])) != -1) {
+                set_vtmode(vt_parser, ps[count],
+                           (vt_parser->saved_vtmode_flags & SHIFT_FLAG64(idx)) ? 1 : 0);
+              }
+            }
+          }
+        } else if (*str_p == 's') {
+          /* "CSI ? s" Save DEC Private Mode (xterm) */
+          int count;
+
+          for (count = 0; count < num; count++) {
+            if (ps[count] < VTMODE(0)) {
+              int idx;
+              if ((idx = vtmode_num_to_idx(ps[count])) != -1) {
+                if (vt_parser->vtmode_flags & SHIFT_FLAG64(idx)) {
+                  vt_parser->saved_vtmode_flags |= (SHIFT_FLAG64(idx));
+                } else {
+                  vt_parser->saved_vtmode_flags &= ~(SHIFT_FLAG64(idx));
+                }
+              }
             }
           }
         } else if (*str_p == 'n') {
@@ -6000,7 +6034,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
   vt_parser->sixel_scrolling = 1;
   vt_parser->use_ansi_colors = use_ansi_colors;
   vt_parser->alt_color_mode = alt_color_mode;
-  vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
+  vt_parser->saved_vtmode_flags = vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
 
   return vt_parser;
