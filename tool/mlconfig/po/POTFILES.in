@@ -2,28 +2,30 @@
 # Copyright (C) 2002 Turbolinux Inc.
 
 # mlconfig - configuration tool
+tool/mlconfig/gtkxlfdsel.c
 tool/mlconfig/main.c
-tool/mlconfig/mc_bel.c
+tool/mlconfig/mc_alpha.c
+tool/mlconfig/mc_auto_detect.c
 tool/mlconfig/mc_bgtype.c
-tool/mlconfig/mc_brightness.c
 tool/mlconfig/mc_char_encoding.c
-tool/mlconfig/mc_check.c
+tool/mlconfig/mc_char_width.c
+tool/mlconfig/mc_click.c
 tool/mlconfig/mc_color.c
 tool/mlconfig/mc_combo.c
-tool/mlconfig/mc_contrast.c
-tool/mlconfig/mc_fade.c
+tool/mlconfig/mc_ctl.c
 tool/mlconfig/mc_flags.c
 tool/mlconfig/mc_font.c
-tool/mlconfig/mc_gamma.c
-tool/mlconfig/mc_io.c
-tool/mlconfig/mc_iscii_lang.c
-tool/mlconfig/mc_line_space.c
-tool/mlconfig/mc_logsize.c
-tool/mlconfig/mc_mod_meta.c
-tool/mlconfig/mc_sb.c
-tool/mlconfig/mc_sb_view.c
-tool/mlconfig/mc_screen_ratio.c
-tool/mlconfig/mc_tabsize.c
-tool/mlconfig/mc_vertical.c
-tool/mlconfig/mc_wall_pic.c
+tool/mlconfig/mc_geometry.c
 tool/mlconfig/mc_im.c
+tool/mlconfig/mc_io.c
+tool/mlconfig/mc_logsize.c
+tool/mlconfig/mc_opentype.c
+tool/mlconfig/mc_pty.c
+tool/mlconfig/mc_radio.c
+tool/mlconfig/mc_ratio.c
+tool/mlconfig/mc_sb_view.c
+tool/mlconfig/mc_space.c
+tool/mlconfig/mc_tabsize.c
+tool/mlconfig/mc_unicode_areas.c
+tool/mlconfig/mc_wall_pic.c
+tool/mlconfig/mc_wordsep.c

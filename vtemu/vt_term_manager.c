@@ -267,8 +267,9 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
                           int use_dynamic_comb, vt_bs_mode_t bs_mode,
                           vt_vertical_mode_t vertical_mode, int use_local_echo,
                           const char *win_name, const char *icon_name,
-                          vt_alt_color_mode_t alt_color_mode, int use_ot_layout,
-                          vt_cursor_style_t cursor_style, int ignore_broadcasted_chars) {
+                          int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
+                          int use_ot_layout, vt_cursor_style_t cursor_style,
+                          int ignore_broadcasted_chars) {
 #if !defined(USE_WIN32API) && !defined(DEBUG)
   char *list;
 #endif
@@ -296,8 +297,8 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
                    term_type, cols, rows, tab_size, log_size, encoding, is_auto_encoding,
                    use_auto_detect, logging_vt_seq, policy, col_size_a, use_char_combining,
                    use_multi_col_char, use_ctl, bidi_mode, bidi_separators, use_dynamic_comb,
-                   bs_mode, vertical_mode, use_local_echo, win_name, icon_name, alt_color_mode,
-                   use_ot_layout, cursor_style, ignore_broadcasted_chars))) {
+                   bs_mode, vertical_mode, use_local_echo, win_name, icon_name, use_ansi_colors,
+                   alt_color_mode, use_ot_layout, cursor_style, ignore_broadcasted_chars))) {
             vt_term_plug_pty(terms[num_of_terms++], pty);
             vt_set_pty_winsize(pty, cols, rows, 0, 0);
 
@@ -332,12 +333,13 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
    * If sig_child here...
    */
 
-  if (!(terms[num_of_terms] = vt_term_new(
-            term_type, cols, rows, tab_size, log_size, encoding, is_auto_encoding, use_auto_detect,
-            logging_vt_seq, policy, col_size_a, use_char_combining, use_multi_col_char, use_ctl,
-            bidi_mode, bidi_separators, use_dynamic_comb, bs_mode, vertical_mode, use_local_echo,
-            win_name, icon_name, alt_color_mode, use_ot_layout, cursor_style,
-            ignore_broadcasted_chars))) {
+  if (!(terms[num_of_terms] = vt_term_new(term_type, cols, rows, tab_size, log_size, encoding,
+                                          is_auto_encoding, use_auto_detect, logging_vt_seq,
+                                          policy, col_size_a, use_char_combining,
+                                          use_multi_col_char, use_ctl, bidi_mode, bidi_separators,
+                                          use_dynamic_comb, bs_mode, vertical_mode, use_local_echo,
+                                          win_name, icon_name, use_ansi_colors, alt_color_mode,
+                                          use_ot_layout, cursor_style, ignore_broadcasted_chars))) {
     return NULL;
   }
 

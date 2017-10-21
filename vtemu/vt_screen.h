@@ -185,6 +185,8 @@ int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size);
 
 #define vt_screen_set_tab_size(screen, tab_size) vt_edit_set_tab_size((screen)->edit, tab_size)
 
+#define vt_screen_is_tab_stop(screen, col) vt_edit_is_tab_stop((screen)->edit, col)
+
 int vt_screen_restore_color(vt_screen_t *screen, int beg_char_index, int beg_row,
                             int end_char_index, int end_row, int is_rect);
 
@@ -312,9 +314,10 @@ int vt_screen_go_downward(vt_screen_t *screen, u_int size);
 
 #define vt_screen_goto(screen, col, row) vt_edit_goto((screen)->edit, col, row)
 
-#define vt_screen_set_relative_origin(screen) vt_edit_set_relative_origin((screen)->edit)
+#define vt_screen_set_relative_origin(screen, flag) \
+  vt_edit_set_relative_origin((screen)->edit, flag)
 
-#define vt_screen_set_absolute_origin(screen) vt_edit_set_absolute_origin((screen)->edit)
+#define vt_screen_is_relative_origin(screen) vt_edit_is_relative_origin((screen)->edit)
 
 #define vt_screen_set_auto_wrap(screen, flag) vt_edit_set_auto_wrap((screen)->edit, flag)
 

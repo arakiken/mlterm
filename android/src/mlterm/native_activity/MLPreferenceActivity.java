@@ -140,7 +140,7 @@ public class MLPreferenceActivity extends PreferenceActivity {
     addEditText(category, "logsize", "Backlog size", InputType.TYPE_CLASS_NUMBER);
     CharSequence[] entries2 = { "none", "cjk", "mongol" };
     addList(category, "vertical_mode", "Vertical mode", entries2);
-    addEditText(category, "screen_width_ratio", "Screen size ratio", InputType.TYPE_CLASS_NUMBER);
-    addCheckBox(category, "use_vertical_cursor", "Vertical cursor");
+    addEditText(category, "screen_width_ratio", "Screen size ratio against font size",
+                InputType.TYPE_CLASS_NUMBER);
   }
 }

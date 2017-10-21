@@ -128,6 +128,7 @@ typedef enum {
   DECMODE_69,
   DECMODE_80,
   DECMODE_95,
+  DECMODE_116,
   DECMODE_117,
   DECMODE_1000,
   DECMODE_1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
@@ -167,7 +168,7 @@ typedef struct area {
 
 static u_int16_t vtmodes[] = {
   /* DECSET/DECRST */
-  1, 2, 3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 117,
+  1, 2, 3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 116, 117,
   1000, 1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
   1003, 1004, 1005, 1006, 1015, /* Don't add an entry between 1006 and 1015 (see set_vtmode()) */
   1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800, 9500,
@@ -177,7 +178,6 @@ static u_int16_t vtmodes[] = {
 };
 
 static int use_alt_buffer = 1;
-static int use_ansi_colors = 1;
 
 static area_t *unicode_noconv_areas;
 static u_int num_of_unicode_noconv_areas;
@@ -205,6 +205,8 @@ static int is_broadcasting;
 #ifdef USE_LIBSSH2
 static int use_scp_full;
 #endif
+
+static u_int8_t alt_color_idxs[] = { 0, 1, 2, 4, 8, 3, 5, 9, 6, 10, 12, 7, 11, 13, 14, 15, } ;
 
 /* --- static functions --- */
 
@@ -862,16 +864,17 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   }
 
   fg_color = vt_parser->fg_color;
-  is_italic = vt_parser->is_italic;
-  is_crossed_out = vt_parser->is_crossed_out;
-  is_blinking = vt_parser->is_blinking;
-  is_protected = vt_parser->is_protected;
+  bg_color = vt_parser->bg_color;
+  is_italic = vt_parser->is_italic ? 1 : 0;
+  is_crossed_out = vt_parser->is_crossed_out ? 1 : 0;
+  is_blinking = vt_parser->is_blinking ? 1 : 0;
+  is_protected = vt_parser->is_protected ? 1 : 0;
   underline_style = vt_parser->underline_style;
   if (cs == ISO10646_UCS4_1 && 0x2580 <= ch && ch <= 0x259f) {
     /* prevent these block characters from being drawn doubly. */
     is_bold = 0;
   } else {
-    is_bold = vt_parser->is_bold;
+    is_bold = vt_parser->is_bold ? 1 : 0;
   }
 
   if (fg_color == VT_FG_COLOR) {
@@ -894,34 +897,42 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
       underline_style = UNDERLINE_NONE;
       fg_color = VT_UNDERLINE_COLOR;
     }
-  }
 
-  if (is_bold) {
-    if ((vt_parser->alt_color_mode & ALT_COLOR_BOLD) && vt_parser->fg_color == VT_FG_COLOR) {
+    if (is_bold && (vt_parser->alt_color_mode & ALT_COLOR_BOLD)) {
       is_bold = 0;
       fg_color = VT_BOLD_COLOR;
-    } else if (IS_VTSYS_BASE_COLOR(fg_color)) {
-      fg_color |= VT_BOLD_COLOR_MASK;
+    }
+  } else {
+    if (is_bold) {
+      if (IS_VTSYS_BASE_COLOR(fg_color)) {
+        fg_color |= VT_BOLD_COLOR_MASK;
+      }
+      if (vt_parser->bold_affects_bg && IS_VTSYS_BASE_COLOR(bg_color)) {
+        bg_color |= VT_BOLD_COLOR_MASK;
+      }
     }
   }
 
   if (vt_parser->is_reversed) {
+    vt_color_t tmp = bg_color;
     bg_color = fg_color;
-    fg_color = vt_parser->bg_color;
-  } else {
-    bg_color = vt_parser->bg_color;
+    fg_color = tmp;
   }
 
   if (vt_parser->alt_colors.flags) {
-    int idx = is_bold | (vt_parser->is_reversed >> 1) |
-              (underline_style ? 4 : 0) | (is_blinking >> 3);
+    int idx = is_bold | ((vt_parser->is_reversed ? 1 : 0) << 1) |
+              (underline_style ? 4 : 0) | (is_blinking << 3);
 
-    if (idx < 16 && (vt_parser->alt_colors.flags & (1 << idx))) {
+    if (/* idx < 16 && */ (vt_parser->alt_colors.flags & (1 << idx))) {
       fg_color = vt_parser->alt_colors.fg[idx];
       bg_color = vt_parser->alt_colors.bg[idx];
     }
   }
 
+  /*
+   * 2.9.2 Alternate Text Colors in VT520-VT525ProgrammerInformation.pdf
+   * "The foreground color of text with the invisible attribute becomes the background color."
+   */
   if (vt_parser->is_invisible) {
     fg_color = bg_color;
   }
@@ -1478,6 +1489,204 @@ error:
   return;
 }
 
+static void set_presentation_state(vt_parser_t *vt_parser, char *seq) {
+  int row;
+  int col;
+  int page;
+  char rend;
+  char attr;
+  char flag;
+
+  if (sscanf(seq, "%d;%d;%d;%c;%c;%c;@;0;2;BB%%5%%5\x1b\\",
+             &row, &col, &page, &rend, &attr, &flag) == 6) {
+    vt_screen_goto(vt_parser->screen, col - 1, row - 1);
+
+    if (rend & 0x20) {
+      vt_parser->is_reversed = ((rend & 0x8) == 0x8);
+      vt_parser->is_blinking = ((rend & 0x4) == 0x4);
+      vt_parser->underline_style = ((rend & 0x2) ? UNDERLINE_NORMAL : 0);
+      vt_parser->is_bold = ((rend & 0x1) == 0x1);
+    }
+
+    if (attr & 0x20) {
+      vt_parser->is_protected = ((attr & 0x1) == 0x1);
+    }
+
+    if (flag & 0x20) {
+      vt_screen_set_auto_wrap(vt_parser->screen, ((flag & 0x8) == 0x8));
+      vt_screen_set_relative_origin(vt_parser->screen, ((flag & 0x1) == 0x1));
+    }
+  }
+}
+
+static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
+  if (ps == 1) {
+    /* DECCIR */
+    char seq[DIGIT_STR_LEN(u_int) * 3 + 31];
+    int rend = 0x40;
+    int attr = 0x40;
+    int flag = 0x40;
+
+    if (vt_parser->is_reversed) {
+      rend |= 0x8;
+    }
+    if (vt_parser->is_blinking) {
+      rend |= 0x4;
+    }
+    if (vt_parser->underline_style == UNDERLINE_NORMAL) {
+      rend |= 0x2;
+    }
+    if (vt_parser->is_bold) {
+      rend |= 0x1;
+    }
+
+    if (vt_parser->is_protected) {
+      attr |= 0x1;
+    }
+
+    if (vt_screen_is_auto_wrap(vt_parser->screen)) {
+      flag |= 0x8;
+    }
+    if (vt_screen_is_relative_origin(vt_parser->screen)) {
+      flag |= 0x1;
+    }
+
+    sprintf(seq, "\x1bP1$u%d;%d;%d;%c;%c;%c;@;0;2;BB%%5%%5\x1b\\",
+            vt_screen_cursor_row(vt_parser->screen) + 1,
+            vt_screen_cursor_col(vt_parser->screen) + 1,
+            vt_screen_get_page_id(vt_parser->screen) + 1, rend, attr, flag);
+
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
+  } else if (ps == 2) {
+    /* DECTABSR */
+    char *seq;
+    u_int max_digit_len = 1;
+    u_int cols = vt_screen_get_cols(vt_parser->screen);
+    u_int tmp = cols;
+
+    while ((tmp /= 10) > 0) {
+      max_digit_len++;
+    }
+
+    if ((seq = alloca(5 + (max_digit_len + 1) * cols + 3))) {
+      u_int count;
+      char *p;
+
+      p = strcpy(seq, "\x1bP2$u") + 5;
+
+      for (count = 0; count < cols; count++) {
+        if (vt_screen_is_tab_stop(vt_parser->screen, count)) {
+          sprintf(p, "%d/", count + 1);
+          p += strlen(p);
+        }
+      }
+
+      if (p != seq + 5) {
+        p--;
+      }
+
+      strcpy(p, "\x1b\\");
+
+      vt_write_to_pty(vt_parser->pty, seq, p + 2 - seq);
+    }
+  }
+}
+
+static void rgb_to_hls(int *h, int *l, int *s, int r, int g, int b) {
+  int max;
+  int min;
+
+  if (r > g) {
+    if (g > b) {
+      /* r > g > b */
+      max = r;
+      min = b;
+    } else {
+      min = g;
+      if (r > b) {
+        /* r > b >= g */
+        max = r;
+      } else {
+        /* b >= r > g */
+        max = b;
+      }
+    }
+  } else if (b > g) {
+    /* b > g >= r */
+    max = b;
+    min = r;
+  } else {
+    max = g;
+    if (r > b) {
+      /* g >= r > b */
+      min = b;
+    } else {
+      /* g >= b >= r */
+      min = r;
+    }
+  }
+
+  *l = (max + min) * 100 / 255 / 2;
+
+  if (max == min) {
+    /* r == g == b */
+    *h = 0;
+    *s = 0;
+  } else {
+    if (max == r) {
+      *h = 60 * (g - b) / (max - min);
+    } else if (max == g) {
+      *h = 60 * (b - r) / (max - min) + 120;
+    } else /* if (max == b) */ {
+      *h = 60 * (r - g) / (max - min) + 240;
+    }
+
+    if (*h < 0) {
+      *h += 360;
+    }
+
+    if (max + min < 255) {
+      *s = (max - min) * 100 / (max + min);
+    } else {
+      *s = (max - min) * 100 / (510 - max - min);
+    }
+  }
+}
+
+static void report_color_table(vt_parser_t *vt_parser, int pu) {
+  int color;
+  u_int8_t r, g, b;
+  char seq[5+(3*5+4)*256+255+3];
+  char *p;
+
+  p = strcpy(seq, "\x1bP2$s") + 5;
+
+  if (pu == 2) {
+    /* RGB */
+    for (color = 0; color < 256; color++) {
+      vt_get_color_rgba(color, &r, &g, &b, NULL);
+      sprintf(p, "%d;2;%d;%d;%d/", color, r * 100 / 255, g * 100 / 255, b * 100 / 255);
+      p += strlen(p);
+    }
+  } else if (pu == 1) {
+    /* HLS */
+    int h, l, s;
+    for (color = 0; color < 256; color++) {
+      vt_get_color_rgba(color, &r, &g, &b, NULL);
+      rgb_to_hls(&h, &l, &s, r, g, b);
+      sprintf(p, "%d;1;%d;%d;%d/", color, h, l, s);
+      p += strlen(p);
+    }
+  } else {
+    return;
+  }
+
+  strcpy(p - 1, "\x1b\\");
+
+  bl_debug_printf("%s\n", seq);
+  vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
+}
+
 #ifndef NO_IMAGE
 static int cursor_char_is_picture_and_modified(vt_screen_t *screen) {
   vt_line_t *line;
@@ -2005,7 +2214,7 @@ static int change_char_fine_color(vt_parser_t *vt_parser, int *ps, int num) {
     return 1;
   }
 
-  if (use_ansi_colors) {
+  if (vt_parser->use_ansi_colors) {
     if (ps[0] == 38) {
       vt_parser->fg_color = color;
       vt_screen_set_bce_fg_color(vt_parser->screen, color);
@@ -2086,7 +2295,7 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
     fg_color = VT_FG_COLOR;
   } else if (flag == 49) {
     bg_color = VT_BG_COLOR;
-  } else if (use_ansi_colors) {
+  } else if (vt_parser->use_ansi_colors) {
     /* Color attributes */
 
     if (30 <= flag && flag <= 37) {
@@ -2495,7 +2704,7 @@ static int response_termcap(vt_pty_ptr_t pty, u_char *key, u_char *value) {
 
 #define TO_INT(a) (((a) | 0x20) - ((a) <= '9' ? '0' : ('a' - 10)))
 
-static void request_termcap(vt_parser_t *vt_parser, u_char *key) {
+static void report_termcap(vt_parser_t *vt_parser, u_char *key) {
   u_char *deckey;
   u_char *src;
   u_char *dst;
@@ -2625,7 +2834,7 @@ static void request_termcap(vt_parser_t *vt_parser, u_char *key) {
   vt_write_to_pty(vt_parser->pty, "\x1bP0+r\x1b\\", 7);
 }
 
-static void request_char_attr_status(vt_parser_t *vt_parser) {
+static void report_char_attr_status(vt_parser_t *vt_parser) {
   char color[10]; /* ";38;5;XXX" (256 color) */
 
   vt_write_to_pty(vt_parser->pty, "\x1bP1$r0", 6);
@@ -2695,9 +2904,9 @@ end:
   vt_write_to_pty(vt_parser->pty, "m\x1b\\", 3);
 }
 
-static void request_status(vt_parser_t *vt_parser, u_char *key) {
+static void report_status(vt_parser_t *vt_parser, u_char *key) {
   u_char *val;
-  u_char digits[DIGIT_STR_LEN(int)*2 + 2];
+  u_char digits[DIGIT_STR_LEN(int)*3 + 3];
   u_char *seq;
 
   if (strcmp(key, "\"q") == 0) {
@@ -2731,19 +2940,92 @@ static void request_status(vt_parser_t *vt_parser, u_char *key) {
   } else if (strcmp(key, "*x") == 0) {
     /* DECSACE */
     val = vt_screen_is_using_rect_attr_select(vt_parser->screen) ? "2" : "1";
+  } else if (strcmp(key, "){") == 0) {
+    /* DECSTGLT */
+    if (vt_parser->use_ansi_colors) {
+      val = "0";
+    } else if (vt_parser->alt_colors.flags) {
+      val = "1";
+    } else {
+      val = "2";
+    }
+  } else if (strcmp(key, "$|") == 0) {
+    /* DECSCPP */
+    val = digits;
+    sprintf(val, "%d", vt_screen_get_cols(vt_parser->screen));
+  } else if (strcmp(key, "t") == 0 || strcmp(key, "*|") == 0) {
+    /* DECSLPP/DECSNLS */
+    val = digits;
+    sprintf(val, "%d", vt_screen_get_rows(vt_parser->screen));
   } else if (strcmp(key, "m") == 0) {
     /* SGR */
-    request_char_attr_status(vt_parser);
+    report_char_attr_status(vt_parser);
     return;
   } else {
-    vt_write_to_pty(vt_parser->pty, "\x1bP0$r\x1b\\", 7);
-    return;
+    u_int ps = atoi(key);
+
+    key += (strlen(key) - 2);
+
+    if (strcmp(key, ",|") == 0) {
+      /* DECAC */
+      u_int8_t red;
+      u_int8_t green;
+      u_int8_t blue;
+      vt_color_t colors[] = { VT_FG_COLOR, VT_BG_COLOR } ;
+      u_int count;
+
+      if (ps == 2) {
+        /* Window Frame */
+        goto error_validreq;
+      }
+
+      vt_color_force_linear_search(1);
+      for (count = 0; count < sizeof(colors) / sizeof(colors[0]); count++) {
+        if (!HAS_XTERM_LISTENER(vt_parser, get_rgb) ||
+            !(*vt_parser->xterm_listener->get_rgb)(vt_parser->xterm_listener->self, &red, &green,
+                                                   &blue, colors[count])) {
+          goto error_validreq;
+        }
+        colors[count] = vt_get_closest_color(red, green, blue);
+      }
+      vt_color_force_linear_search(0);
+
+      val = digits;
+      sprintf(val, "1;%d;%d", colors[0], colors[1]);
+    } else if (strcmp(key, ",}") == 0) {
+      /* DECATC */
+      int idx;
+      if (ps <= 15 && (vt_parser->alt_colors.flags & (1 << (idx = alt_color_idxs[ps])))) {
+        val = digits;
+        sprintf(val, "%d;%d;%d", ps, vt_parser->alt_colors.fg[idx], vt_parser->alt_colors.bg[idx]);
+      } else {
+        goto error_validreq;
+      }
+    } else {
+      goto error_invalidreq;
+    }
   }
+
+  /*
+   * XXX
+   * xterm returns 1 for vaild request while 0 for invalid request.
+   * VT520/525 manual says 0 for vaild request while 1 for invalid request,
+   * but it's wrong. (http://twitter.com/ttdoda/status/911125737242992645)
+   */
 
   if ((seq = alloca(7 + strlen(val) + strlen(key) + 1))) {
     sprintf(seq, "\x1bP1$r%s%s\x1b\\", val, key);
     vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
+
+  return;
+
+error_validreq:
+  vt_write_to_pty(vt_parser->pty, "\x1bP1$r\x1b\\", 7);
+  return;
+
+error_invalidreq:
+  vt_write_to_pty(vt_parser->pty, "\x1bP0$r\x1b\\", 7);
 }
 
 static void clear_line_all(vt_parser_t *vt_parser) {
@@ -2784,7 +3066,9 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
     }
   }
 
-  if (mode == 8 /* DECAWM (auto repeat) */ ||
+  if (mode == 8 /* DECARM (auto repeat) */ ||
+      mode == 98 /* DECARSM (change lines per screen automatically by DECSLPP) */ ||
+      mode == 102 /* DECNULM (always dicard NUL character) */ ||
       mode == 19 /* DECPEX (Ignore DECSTBM in MC and DECMC) */) {
     return 3; /* permanently set */
   } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||
@@ -2845,6 +3129,7 @@ found:
     break;
 
   case DECMODE_3:
+    /* DECCOLM */
     if (vt_parser->allow_deccolm) {
       /* XTERM compatibility [#1048321] */
       if (!vt_parser->keep_screen_on_deccolm) {
@@ -2857,20 +3142,21 @@ found:
 
 #if 0
   case DECMODE_4:
-    /* smooth scrolling */
+    /* DECSCLM smooth scrolling */
     break;
 #endif
 
   case DECMODE_5:
+    /* DECSCNM */
     reverse_video(vt_parser, flag);
     break;
 
   case DECMODE_6:
     /* DECOM */
     if (flag) {
-      vt_screen_set_relative_origin(vt_parser->screen);
+      vt_screen_set_relative_origin(vt_parser->screen, 1);
     } else {
-      vt_screen_set_absolute_origin(vt_parser->screen);
+      vt_screen_set_relative_origin(vt_parser->screen, 0);
     }
 
     /*
@@ -2887,7 +3173,7 @@ found:
 
 #if 0
   case DECMODE_8:
-    /* auto repeat */
+    /* DECARM auto repeat */
     break;
 
   case DECMODE_9:
@@ -2936,24 +3222,33 @@ found:
     break;
 
   case DECMODE_67:
-    /* have back space */
+    /* DECBKM have back space */
     /* XXX Affects all terms sharing vt_termcap */
     vt_termcap_set_key_seq(vt_parser->termcap, SPKEY_BACKSPACE, flag ? "\x08" : "\x7f");
     break;
 
   case DECMODE_69:
+    /* DECVSSM */
     vt_screen_set_use_hmargin(vt_parser->screen, flag);
     break;
 
   case DECMODE_80:
+    /* DECSDM */
     vt_parser->sixel_scrolling = (flag ? 0 : 1);
     break;
 
   case DECMODE_95:
+    /* DECNCSM */
     vt_parser->keep_screen_on_deccolm = flag;
     break;
 
+  case DECMODE_116:
+    /* DECBBSM */
+    vt_parser->bold_affects_bg = flag;
+    break;
+
   case DECMODE_117:
+    /* DECECM */
     vt_screen_set_use_bce(vt_parser->screen, (flag ? 0 : 1));
     break;
 
@@ -3090,6 +3385,7 @@ found:
     break;
 
   case VTMODE_12:
+    /* SRM */
     if (flag) {
       vt_pty_set_hook(vt_parser->pty, NULL);
     } else {
@@ -3155,7 +3451,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
 #if 0
   set_vtmode(vt_parser, 6, 0);
 #else
-  vt_screen_set_absolute_origin(vt_parser->screen);
+  vt_screen_set_relative_origin(vt_parser->screen, 0);
   vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(DECMODE_6));
 #endif
 
@@ -3176,9 +3472,11 @@ static void send_device_status(vt_parser_t *vt_parser, int num) {
   char amb[] = "\x1b[?884Xn";
 
   if (num == 6) {
+    /* XCPR */
     if ((seq = alloca(6 + DIGIT_STR_LEN(int)+1))) {
-      sprintf(seq, "\x1b[%d;%d;1R", vt_screen_cursor_row(vt_parser->screen),
-              vt_screen_cursor_col(vt_parser->screen));
+      sprintf(seq, "\x1b[%d;%d;%dR", vt_screen_cursor_row(vt_parser->screen) + 1,
+              vt_screen_cursor_col(vt_parser->screen) + 1,
+              vt_screen_get_page_id(vt_parser->screen) + 1);
     } else {
       return;
     }
@@ -3193,7 +3491,7 @@ static void send_device_status(vt_parser_t *vt_parser, int num) {
   } else if (num == 56) {
     seq = "\x1b[?57;1n"; /* Locator exists */
   } else if (num == 62) {
-    seq = "\x1b[0*{"; /* Macro Space = 0 */
+    seq = "\x1b[0*{"; /* Macro Space (Pn = [num of bytes] / 16 (rounded down) */
   } else if (num == 63) {
     seq = "\x1bP0!~0000\x1b\\"; /* checksum = 0 */
   } else if (num == 75) {
@@ -3486,11 +3784,11 @@ inline static int parse_vt100_escape_sequence(
 
       vt_screen_go_back(vt_parser->screen, 1, 1);
     } else if (*str_p == '7') {
-      /* "ESC 7" save cursor */
+      /* "ESC 7" save cursor (DECSC) */
 
       save_cursor(vt_parser);
     } else if (*str_p == '8') {
-      /* "ESC 8" restore cursor */
+      /* "ESC 8" restore cursor (DECRC) */
 
       restore_cursor(vt_parser);
     } else if (*str_p == '9') {
@@ -3498,19 +3796,19 @@ inline static int parse_vt100_escape_sequence(
 
       vt_screen_go_forward(vt_parser->screen, 1, 1);
     } else if (*str_p == '=') {
-      /* "ESC =" application keypad */
+      /* "ESC =" application keypad (DECKPAM) */
 
       vt_parser->is_app_keypad = 1;
     } else if (*str_p == '>') {
-      /* "ESC >" normal keypad */
+      /* "ESC >" normal keypad (DECKPNM) */
 
       vt_parser->is_app_keypad = 0;
     } else if (*str_p == 'D') {
-      /* "ESC D" index(scroll up) */
+      /* "ESC D" index(scroll up) (IND) */
 
       vt_screen_index(vt_parser->screen);
     } else if (*str_p == 'E') {
-      /* "ESC E" next line */
+      /* "ESC E" next line (NEL) */
 
       vt_screen_line_feed(vt_parser->screen);
       vt_screen_goto_beg_of_line(vt_parser->screen);
@@ -3521,7 +3819,7 @@ inline static int parse_vt100_escape_sequence(
     }
 #endif
     else if (*str_p == 'H' || *str_p == '1') {
-      /* "ESC H"(HTS) / "ESC 1" (DECHTS) set tab */
+      /* "ESC H" (HTS) / "ESC 1" (DECHTS) set tab */
 
       vt_screen_set_tab_stop(vt_parser->screen);
     } else if (*str_p == 'I') {
@@ -3544,7 +3842,7 @@ inline static int parse_vt100_escape_sequence(
 
       send_device_attributes(vt_parser->pty, 1);
     } else if (*str_p == 'c') {
-      /* "ESC c" full reset */
+      /* "ESC c" full reset (RIS) */
 
       soft_reset(vt_parser);
       clear_display_all(vt_parser);
@@ -3669,13 +3967,15 @@ inline static int parse_vt100_escape_sequence(
       if (para_ch == '?') {
         if (intmed_ch == '$') {
           if (*str_p == 'p' && num > 0) {
+            /* "CSI ? $ p" DECRQM */
+
             char seq[3 + DIGIT_STR_LEN(u_int) + 5];
             sprintf(seq, "\x1b[?%d;%d$y", ps[0],
                     (ps[0] >= VTMODE(0)) ? 0 : get_vtmode(vt_parser, ps[0]));
             vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
         } else if (*str_p == 'h') {
-          /* "CSI ? h" DEC Private Mode Set */
+          /* "CSI ? h" DEC Private Mode Set (DECSET) */
           int count;
 
           for (count = 0; count < num; count++) {
@@ -3697,7 +3997,7 @@ inline static int parse_vt100_escape_sequence(
                      WCA_ALL);
           }
         } else if (*str_p == 'l') {
-          /* "CSI ? l" DEC Private Mode Reset */
+          /* "CSI ? l" DEC Private Mode Reset (DECRST) */
           int count;
 
           for (count = 0; count < num; count++) {
@@ -3706,7 +4006,7 @@ inline static int parse_vt100_escape_sequence(
             }
           }
         } else if (*str_p == 'n') {
-          /* "CSI ? n" */
+          /* "CSI ? n" Device Status Report (DSR) */
 
           send_device_status(vt_parser, ps[0]);
         } else if (*str_p == 'J') {
@@ -3809,7 +4109,7 @@ inline static int parse_vt100_escape_sequence(
         }
       } else if (para_ch == '>') {
         if (*str_p == 'c') {
-          /* "CSI > c" Secondary DA */
+          /* "CSI > c" Secondary DA (DA2) */
 
           send_device_attributes(vt_parser->pty, 2);
         } else if (*str_p == 'm') {
@@ -3894,13 +4194,13 @@ inline static int parse_vt100_escape_sequence(
         }
       } else if (para_ch == '=') {
         if (*str_p == 'c') {
-          /* "CSI = c" Tertiary DA */
+          /* "CSI = c" Tertiary DA (DA3) */
 
           send_device_attributes(vt_parser->pty, 3);
         }
       } else if (intmed_ch == '!') {
         if (*str_p == 'p') {
-          /* "CSI ! p" Soft terminal reset */
+          /* "CSI ! p" Soft Terminal Reset (DECSTR) */
 
           soft_reset(vt_parser);
         }
@@ -3927,6 +4227,21 @@ inline static int parse_vt100_escape_sequence(
             resize(vt_parser, 80, 0, 1);
           } else if (ps[0] == 132) {
             resize(vt_parser, 132, 0, 1);
+          }
+        } else if (*str_p == 'u') {
+          if (ps[0] == 2) {
+            if (num == 1) {
+              /* "CSI 2 $ u" DECRQTSR */
+              vt_write_to_pty(vt_parser->pty, "\x1bP0$s\x1b\\", 7);
+            } else if (num == 2) {
+              /* "CSI 2;Pu $ u" DECCTR */
+              report_color_table(vt_parser, ps[1]);
+            }
+          }
+        } else if (*str_p == 'w') {
+          /* "CSI $ w" DECRQPSR */
+          if (num == 1) {
+            report_presentation_state(vt_parser, ps[0]);
           }
         } else {
           if (*str_p == 'x') {
@@ -3995,7 +4310,7 @@ inline static int parse_vt100_escape_sequence(
         }
       } else if (intmed_ch == ' ') {
         if (*str_p == 'q') {
-          /* CSI SP q */
+          /* "CSI SP q" DECSCUSR */
 
           if (ps[0] < 2) {
             vt_parser->cursor_style = CS_BLOCK|CS_BLINK;
@@ -4052,14 +4367,17 @@ inline static int parse_vt100_escape_sequence(
           /* "CSI Pn * x " DECSACE */
 
           vt_screen_set_use_rect_attr_select(vt_parser->screen, ps[0] == 2);
+        } else if (*str_p == '|') {
+          /* "CSI Pn * |" DECSNLS */
+          resize(vt_parser, 0, ps[0], 1);
         }
       } else if (intmed_ch == '\'') {
         if (*str_p == '|') {
-          /* DECRQLP */
+          /* "CSI ' |" DECRQLP */
 
           request_locator(vt_parser);
         } else if (*str_p == '{') {
-          /* DECSLE */
+          /* "CSI Pn ' {" DECSLE */
           int count;
 
           for (count = 0; count < num; count++) {
@@ -4092,7 +4410,7 @@ inline static int parse_vt100_escape_sequence(
 
           vt_screen_scroll_leftward_from_cursor(vt_parser->screen, ps[0]);
         } else if (*str_p == 'w') {
-          /* DECEFR Filter Rectangle */
+          /* "CSI ' w" DECEFR Filter Rectangle */
 
           if (num == 4) {
 #if 0
@@ -4113,7 +4431,7 @@ inline static int parse_vt100_escape_sequence(
 
           vt_parser->locator_mode |= LOCATOR_FILTER_RECT;
         } else if (*str_p == 'z') {
-          /* DECELR */
+          /* "CSI ' z" DECELR */
 
           vt_parser->locator_mode &= ~LOCATOR_FILTER_RECT;
           memset(&vt_parser->loc_filter, 0, sizeof(vt_parser->loc_filter));
@@ -4153,18 +4471,31 @@ inline static int parse_vt100_escape_sequence(
         if (*str_p == '|') {
           /* "CSI Ps1;Ps2;Ps3,|" (DECAC) */
 
-          if (num == 3 && ps[0] == 1 && 0 <= ps[1] && ps[1] <= 15 && 0 <= ps[2] && ps[2] <= 15) {
+          if (num == 3 && ps[0] == 1 && ((u_int)ps[1]) <= 255 && ((u_int)ps[2]) <= 255) {
             config_protocol_set_simple(vt_parser, "fg_color", vt_get_color_name(ps[1]), 0);
             config_protocol_set_simple(vt_parser, "bg_color", vt_get_color_name(ps[2]), 1);
           }
         } else if (*str_p == '}') {
           /* "CSI Ps1;Ps2;Ps3,}" (DECATC) */
+
           if (num == 3 && ((u_int)ps[0]) <= 15 && ((u_int)ps[1]) <= 255 && ((u_int)ps[2] <= 255)) {
-            u_int8_t idxs[] = { 0, 1, 2, 4, 8, 3, 5, 9, 6, 10, 12, 7, 11, 13, 14, 15, } ;
-            int idx = idxs[ps[0]];
+            int idx = alt_color_idxs[ps[0]];
             vt_parser->alt_colors.flags |= (1 << idx);
             vt_parser->alt_colors.fg[idx] = ps[1];
             vt_parser->alt_colors.bg[idx] = ps[2];
+          }
+        }
+      } else if (intmed_ch == ')') {
+        if (*str_p == '{') {
+          /* "CSI ) {" DECSTGLT */
+          if (ps[0] <= 0) {
+            vt_parser->use_ansi_colors = 0;
+          } else if (ps[0] <= 3) {
+            /*
+             * ps[0] == 1 or 2 enables "Alternate color", but mlterm always enables it
+             * if DECATC specifies alternate colors.
+             */
+            vt_parser->use_ansi_colors = 1;
           }
         }
       }
@@ -4174,7 +4505,7 @@ inline static int parse_vt100_escape_sequence(
         debug_print_unknown("ESC [ %c %c\n", para_ch, intmed_ch, *str_p);
 #endif
       } else if (*str_p == '@') {
-        /* "CSI @" insert blank chars */
+        /* "CSI @" insert blank chars (ICH) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4215,7 +4546,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_go_back(vt_parser->screen, ps[0], 0);
       } else if (*str_p == 'E') {
-        /* "CSI E" down and goto first column */
+        /* "CSI E" down and goto first column (CNL) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4224,7 +4555,7 @@ inline static int parse_vt100_escape_sequence(
         vt_screen_go_downward(vt_parser->screen, ps[0]);
         vt_screen_goto_beg_of_line(vt_parser->screen);
       } else if (*str_p == 'F') {
-        /* "CSI F" up and goto first column */
+        /* "CSI F" up and goto first column (CPL) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4234,7 +4565,7 @@ inline static int parse_vt100_escape_sequence(
         vt_screen_goto_beg_of_line(vt_parser->screen);
       } else if (*str_p == 'G' || *str_p == '`') {
         /*
-         * "CSI G"(CHA) "CSI `"(HPA)
+         * "CSI G" (CHA), "CSI `" (HPA)
          * cursor position absolute.
          */
 
@@ -4244,7 +4575,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_go_horizontally(vt_parser->screen, ps[0] - 1);
       } else if (*str_p == 'H' || *str_p == 'f') {
-        /* "CSI H" "CSI f" */
+        /* "CSI H" (CUP) "CSI f" (HVP) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4268,7 +4599,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_forward_tabs(vt_parser->screen, ps[0]);
       } else if (*str_p == 'J') {
-        /* "CSI J" Erase in Display */
+        /* "CSI J" Erase in Display (ED) */
 
         if (ps[0] <= 0) {
           vt_screen_clear_below(vt_parser->screen);
@@ -4278,7 +4609,7 @@ inline static int parse_vt100_escape_sequence(
           clear_display_all(vt_parser);
         }
       } else if (*str_p == 'K') {
-        /* "CSI K" Erase in Line */
+        /* "CSI K" Erase in Line (EL) */
 
         if (ps[0] <= 0) {
           vt_screen_clear_line_to_right(vt_parser->screen);
@@ -4288,7 +4619,7 @@ inline static int parse_vt100_escape_sequence(
           clear_line_all(vt_parser);
         }
       } else if (*str_p == 'L') {
-        /* "CSI L" */
+        /* "CSI L" IL */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4296,7 +4627,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_insert_new_lines(vt_parser->screen, ps[0]);
       } else if (*str_p == 'M') {
-        /* "CSI M" */
+        /* "CSI M" DL */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4304,7 +4635,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_delete_lines(vt_parser->screen, ps[0]);
       } else if (*str_p == 'P') {
-        /* "CSI P" delete chars */
+        /* "CSI P" delete chars (DCH) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4312,7 +4643,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_delete_cols(vt_parser->screen, ps[0]);
       } else if (*str_p == 'S') {
-        /* "CSI S" scroll up */
+        /* "CSI S" scroll up (SU) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4320,7 +4651,7 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_scroll_upward(vt_parser->screen, ps[0]);
       } else if (*str_p == 'T') {
-        /* "CSI T" scroll down */
+        /* "CSI T" scroll down (SD) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4345,8 +4676,8 @@ inline static int parse_vt100_escape_sequence(
 
         vt_screen_goto_prev_page(vt_parser->screen, ps[0]);
         vt_screen_goto_home(vt_parser->screen);
-      } else if (*str_p == 'g') {
-        /* "CSI W" Cursor Tabluation Control (CBC) */
+      } else if (*str_p == 'W') {
+        /* "CSI W" Cursor Tabluation Control (CTC) */
 
         if (ps[0] <= 0) {
           vt_screen_set_tab_stop(vt_parser->screen);
@@ -4356,7 +4687,7 @@ inline static int parse_vt100_escape_sequence(
           vt_screen_clear_all_tab_stops(vt_parser->screen);
         }
       } else if (*str_p == 'X') {
-        /* "CSI X" erase characters */
+        /* "CSI X" erase characters (ECH) */
 
         if (ps[0] <= 0) {
           ps[0] = 1;
@@ -4393,7 +4724,7 @@ inline static int parse_vt100_escape_sequence(
           vt_parser->w_buf.last_ch = NULL;
         }
       } else if (*str_p == 'c') {
-        /* "CSI c" Primary DA */
+        /* "CSI c" Primary DA (DA1) */
 
         send_device_attributes(vt_parser->pty, 1);
       } else if (*str_p == 'd') {
@@ -4413,7 +4744,7 @@ inline static int parse_vt100_escape_sequence(
           vt_screen_clear_all_tab_stops(vt_parser->screen);
         }
       } else if (*str_p == 'h') {
-        /* "CSI h" */
+        /* "CSI h" (SM) */
         int count;
 
         for (count = 0; count < num; count++) {
@@ -4430,18 +4761,14 @@ inline static int parse_vt100_escape_sequence(
                    WCA_CURSOR_LINE);
         }
       } else if (*str_p == 'l') {
-        /* "CSI l" */
+        /* "CSI l" (RM) */
         int count;
 
         for (count = 0; count < num; count++) {
           set_vtmode(vt_parser, VTMODE(ps[count]), 0);
         }
-      } else if (*str_p == 'i') {
-        char seq[] = "snapshot";
-
-        vt_parser_exec_cmd(vt_parser, seq);
       } else if (*str_p == 'm') {
-        /* "CSI m" */
+        /* "CSI m" (SGR) */
         int count;
 
         for (count = 0; count < num;) {
@@ -4458,11 +4785,13 @@ inline static int parse_vt100_escape_sequence(
           }
         }
       } else if (*str_p == 'n') {
-        /* "CSI n" device status report */
+        /* "CSI n" Device Status Report (DSR) */
 
         if (ps[0] == 5) {
+          /* Operating Status */
           vt_write_to_pty(vt_parser->pty, "\x1b[0n", 4);
         } else if (ps[0] == 6) {
+          /* CPR */
           char seq[4 + DIGIT_STR_LEN(u_int) * 2 + 1];
 
           sprintf(seq, "\x1b[%d;%dR", vt_screen_cursor_relative_row(vt_parser->screen) + 1,
@@ -4471,7 +4800,7 @@ inline static int parse_vt100_escape_sequence(
           vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
         }
       } else if (*str_p == 'r') {
-        /* "CSI r" set scroll region */
+        /* "CSI r" set scroll region (DECSTBM) */
 
         if (ps[0] < 0) {
           ps[0] = 0;
@@ -4485,7 +4814,7 @@ inline static int parse_vt100_escape_sequence(
           vt_screen_goto(vt_parser->screen, 0, 0);
         }
       } else if (*str_p == 's') {
-        /* "CSI s" */
+        /* "CSI s" SCOSC or DECSLRM */
 
         if (num <= 1 || ps[1] <= 0) {
           ps[1] = vt_screen_get_cols(vt_parser->screen);
@@ -4538,18 +4867,19 @@ inline static int parse_vt100_escape_sequence(
             report_window_or_icon_name(vt_parser, 0);
           } else if (ps[0] >= 24) {
             /*
-             * DECSLPP changes not only the number of lines but also
+             * "CSI Pn t" DECSLPP
+             * This changes not only the number of lines but also
              * the number of pages, but mlterm doesn't change the latter.
              */
             resize(vt_parser, 0, ps[0], 1);
           }
         }
       } else if (*str_p == 'u') {
-        /* "CSI u" */
+        /* "CSI u" (SCORC) */
 
         restore_cursor(vt_parser);
       } else if (*str_p == 'x') {
-        /* "CSI x" request terminal parameters */
+        /* "CSI x" request terminal parameters (DECREQTPARM) */
 
         /* XXX the same as rxvt */
 
@@ -4981,7 +5311,7 @@ inline static int parse_vt100_escape_sequence(
         free(path);
       } else
 #endif /* NO_IMAGE */
-          if (*str_p == '{') {
+      if (*str_p == '{') {
         /* DECDLD */
 
         u_char *pt;
@@ -5107,11 +5437,13 @@ inline static int parse_vt100_escape_sequence(
         u_char *macro;
         u_char *tckey;
         u_char *status;
+        u_char *present;
 
-        macro = tckey = status = NULL;
+        macro = tckey = status = present = NULL;
 
         if ((*str_p == '!' && *(str_p + 1) == 'z') ||
-            ((*str_p == '+' || *str_p == '$') && *(str_p + 1) == 'q')) {
+            ((*str_p == '+' || *str_p == '$') && *(str_p + 1) == 'q') ||
+            (*str_p == '$' && *(str_p + 1) == 't')) {
           if (left <= 2) {
             left = 0;
 
@@ -5121,15 +5453,20 @@ inline static int parse_vt100_escape_sequence(
           str_p += 2;
           left -= 2;
 
-          if (*(str_p - 2) == '!' /* && *(str_p - 1) == 'z' */) {
+          if (*(str_p - 1) == 'z' /* && *(str_p - 2) == '!' */) {
             /* DECDMAC */
             macro = str_p;
-          } else if (*(str_p - 2) == '$') {
-            /* DECRQSS */
-            status = str_p;
-          } else {
-            /* Termcap query */
-            tckey = str_p;
+          } else if (*(str_p - 1) == 'q') {
+            if (*(str_p - 2) == '$') {
+              /* DECRQSS */
+              status = str_p;
+            } else {
+              /* Termcap query */
+              tckey = str_p;
+            }
+          } else /* if (*(str_p - 1) == t && *(str_p - 2) == '$') */ {
+            /* DECRSPS */
+            present = str_p;
           }
         } else {
           if (!increment_str(&str_p, &left)) {
@@ -5150,9 +5487,11 @@ inline static int parse_vt100_escape_sequence(
           if (macro) {
             define_macro(vt_parser, dcs_beg + (*dcs_beg == '\x1b' ? 2 : 1), macro);
           } else if (status) {
-            request_status(vt_parser, status);
+            report_status(vt_parser, status);
           } else if (tckey) {
-            request_termcap(vt_parser, tckey);
+            report_termcap(vt_parser, tckey);
+          } else if (present) {
+            set_presentation_state(vt_parser, present);
           }
         } else if (left == 0) {
           return 0;
@@ -5234,7 +5573,7 @@ inline static int parse_vt100_escape_sequence(
               vt_line_set_size_attr(line, DOUBLE_WIDTH);
             }
           } else if (*str_p == '8') {
-/* "ESC # 8" DEC screen alignment test */
+            /* "ESC # 8" DEC screen alignment test (DECALN) */
 
 #if 0
             vt_screen_set_vmargin(vt_parser->screen, -1, -1);
@@ -5551,8 +5890,6 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
 
 void vt_set_use_alt_buffer(int use) { use_alt_buffer = use; }
 
-void vt_set_use_ansi_colors(int use) { use_ansi_colors = use; }
-
 void vt_set_unicode_noconv_areas(char *areas) {
   unicode_noconv_areas =
       set_area_to_table(unicode_noconv_areas, &num_of_unicode_noconv_areas, areas);
@@ -5598,7 +5935,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
                            vt_unicode_policy_t policy, u_int col_size_a,
                            int use_char_combining, int use_multi_col_char,
                            const char *win_name, const char *icon_name,
-                           vt_alt_color_mode_t alt_color_mode,
+                           int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
                            vt_cursor_style_t cursor_style, int ignore_broadcasted_chars) {
   vt_parser_t *vt_parser;
 
@@ -5661,6 +5998,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
   vt_parser->modify_function_keys = 2;
 
   vt_parser->sixel_scrolling = 1;
+  vt_parser->use_ansi_colors = use_ansi_colors;
   vt_parser->alt_color_mode = alt_color_mode;
   vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
@@ -6163,6 +6501,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
     /* single byte cs */
 
     if ((ch.ch[0] == 0x0 || ch.ch[0] == 0x7f)) {
+      /* DECNULM is always set => discarding 0x0 */
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " 0x0/0x7f sequence is received , ignored...\n");
 #endif
@@ -6310,7 +6649,7 @@ int vt_parser_get_config(
   } else if (strcmp(key, "vt_color_mode") == 0) {
     value = vt_get_color_mode();
   } else if (strcmp(key, "use_ansi_colors") == 0) {
-    if (use_ansi_colors) {
+    if (vt_parser->use_ansi_colors) {
       value = "true";
     } else {
       value = "false";
@@ -6494,7 +6833,7 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
     int flag;
 
     if ((flag = true_or_false(value)) != -1) {
-      use_ansi_colors = flag;
+      vt_parser->use_ansi_colors = flag;
     }
   } else if (strcmp(key, "unicode_noconv_areas") == 0) {
     vt_set_unicode_noconv_areas(value);

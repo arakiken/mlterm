@@ -1221,13 +1221,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     vt_set_use_alt_buffer(strcmp(value, "true") == 0);
   }
 
+  main_config->use_ansi_colors = 1;
+
   if ((value = bl_conf_get_value(conf, "use_ansi_colors"))) {
-    int use;
+    if (strcmp(value, "false") == 0) {
+      main_config->use_ansi_colors = 0;
+    }
 
-    use = (strcmp(value, "true") == 0);
-
-    vt_set_use_ansi_colors(use);
-    ui_display_set_use_ansi_colors(use);
+    ui_display_set_use_ansi_colors(main_config->use_ansi_colors);
   }
 
   if ((value = bl_conf_get_value(conf, "auto_detect_encodings"))) {

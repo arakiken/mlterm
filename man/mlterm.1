@@ -44,7 +44,7 @@ The RGB value's format should be "#RRGGBB", "#RRGGBBAA", "rgb:RR/GG/BB" or "rgba
 .TP
 \fB\-C\fR, \fB\-\-ctl\fR(=\fIbool\fR)
 Enable complex text layouting on UTF8 encoding to support indic scripts and
-RTL (right-to-let) languages such as Arabic and Hebrew.
+RTL (right-to-left) languages such as Arabic and Hebrew.
 The default is \fBtrue\fR.
 .TP
 \fB\-E\fR, \fB\-\-km\fR=\fIencoding\fR
@@ -539,7 +539,7 @@ Specify the color to use to display blinking characters.
 Blink cursor. The default is \fBfalse\fR.
 .TP
 \fB\-\-blpos\fR=\fIvalue\fR
-Specify the position of baseline.
+Specify the position (offset from the default baseline) of baseline.
 The default is \fB0\fR.
 .TP
 \fB\-\-border\fR=\fIvalue\fR
@@ -867,19 +867,35 @@ to the current locale.
 Note this feature needs IIIMCF library.
 .RE
 .TP
-Bidi (UTF-8 only)
-Whether to support BiDi (bi-direction).  (\fB\-D\fR, \fB\-\-bi\fR)
-.TP
-Indic
-Whether to support indic scripts. (\fB\-C\fR, \fB\-\-ind\fR)
+Complex Text Layout
+Whether to enable complex text layouting on UTF8 encoding to support indic scripts and
+RTL (right-to-left) languages such as Arabic and Hebrew.  (\fB\-C\fR, \fB\-\-ctl\fR)
 .TP
 Combining
 Whether to support combining characters by overstriking. (\fB\-m\fR, \fB\-\-comb\fR)
+.TP
+Combining = 1 (or 0) logical column(s)
+Processing combining characters as if it occupies one column logically
+while it occupies zero column on the screen.
+(\fB\-J\fR, \fB\-\-dyncomb\fR)
 .TP
 Process received strings via Unicode
 When you paste some strings into \fBmlterm\fR, the strings
 are converted into Unicode and then to \fBmlterm\fR encoding.
 (\fB\-U\fR, \fB\-\-viaucs\fR)
+.TP
+OpenType Layout
+Whether to show substituting glyphs in open type fonts with the use of libotf or harfbuzz.
+(\fB\-\-otl\fR)
+.TP
+Ambiguouswidth = fullwidth (UTF8 only)
+Processing Unicode characters with EastAsianAmbiguous property as fullwidth.
+(\fB\-a\fR, \fB\-\-ac\fR)
+.TP
+Fullwidth = 2 (or 1) logical column(s)
+Processing CJK fullwidth characters as it occupies two columns logically
+since it occupies two columns on the screen.
+(\fB\-Z\fR, \fB\-\-multicol\fR)
 .\" ******************************************************
 .SS Font page
 Configurations related to appearance (or look&feel) are located
@@ -925,7 +941,13 @@ Specify number of extra dots between lines. (\fB\-o\fR, \fB\-\-lsp\fR)
 Letter space
 Specify number of extra dots between characters. (\fB\-\-csp\fR)
 .TP
-Screen ratio against font size
+Underline position
+Specify the position (offset from the baseline) of underline. (\fB\-\-ulpos\fR)
+.TP
+Baseline position
+Specify the position (offset from the default baseline) of baseline. (\fB\-\-blpos\fR)
+.TP
+Screen size ratio against font size
 Specify actual screen width (screen height in vertical mode). (\fB\-1\fR, \fB\-\-wscr\fR)
 .\" ******************************************************
 .SS Background page
@@ -938,7 +960,7 @@ Picture
 Specify the image file to be used for background image.
 (\fB\-p\fR, \fB\-\-pic\fR)
 .TP
-Transparent
+Pseudo Transparent
 Pseudo transparent background. (\fB\-t\fR, \fB\-\-transbg\fR)
 .TP
 Picture/Transparent Brightness, Contrast, Gamma and Alpha.
@@ -994,6 +1016,18 @@ Column number of tab. (\fB\-x\fR, \fB\-\-tw\fR)
 Backlog size
 Number of lines of backlog. (\fB\-l\fR, \fB\-\-sl\fR)
 .TP
+Columns/Rows
+Number of columns and rows of the screen. (\fB\-g\fR, \fB\-\-geometry\fR)
+.TP
+Word separators
+Delimiter characters used for word selection, which are consulted when
+you double-clicked mlterm, to define what is a word.
+(\fB\-W\fR, \fB\-\-sep\fR)
+.TP
+Double click interval (msec)
+Doubleclick/tripleclick interval in millisecond.
+(\fB\-$\fR, \fB\-\-mc\fR)
+.TP
 Meta key outputs
 Behavior of META key. (\fB\-k\fR, \fB\-\-meta\fR)
 .TP
@@ -1006,25 +1040,30 @@ Whether to log sequence received from pty in ~/.mlterm/[pty].log
 in raw or ttyrec format.
 (\fB\-\-logseq\fR) (\fB\-\-seqfmt\fR)
 .TP
-Combining = 1 (or 0) logical column(s)
-Processing combining characters as if it occupies one column logically
-while it occupies zero column on the screen.
-(\fB\-J\fR, \fB\-\-dyncomb\fR)
-.TP
-Fullwidth = 2 (or 1) logical column(s)
-Processing CJK fullwidth characters as it occupies two columns logically
-since it occupies two columns on the screen.
-(\fB\-Z\fR, \fB\-\-multicol\fR)
-.TP
-Ambiguouswidth = fullwidth (UTF8 only)
-Processing Unicode characters with EastAsianAmbiguous property as fullwidth.
-(\fB\-a\fR, \fB\-\-ac\fR)
+CLIPBOARD Selection
+Whether to enable CLIPBOARD (not only PRIMARY) selection. (\fB\-P\fR, \fB\-\-clip\fR)
 .TP
 Local echo
 Whether to use local echo mode. (\fB\-\-loecho\fR)
 .TP
 Blink cursor
 Whether to blink cursor. (\fB\-\-blink\fR)
+.TP
+Don't scroll automatically in scrolling back.
+Don't exit backscroll mode when console applications output something. (\fB\-6\fR, \fB\-\-stbs\fR)
+.TP
+Scroll by Shift+Up or Shift+Down
+Enable extended keys for backscroll mode. (\fB\-q\fR, \fB\-\-extkey\fR)
+.TP
+Select URI by double click
+Select URI by double clicking it regardless of \fB\-W\fR option. (\fB\-\-uriword\fR)
+.TP
+Send keys to all windows
+Whether to broadcast input or pasted characters to all ptys whose value of
+"ignore_broadcasted_chars" option is false. (\fB\-\-bc\fR)
+.TP
+Trim trailing CR/LF in pasting
+Whether to trim new line characters at the end in pasting text. (\fB\-\-trim\fR)
 .\" ******************************************************
 .SS Buttons
 There are buttons which is independent from OK/Apply/Cancel buttons.

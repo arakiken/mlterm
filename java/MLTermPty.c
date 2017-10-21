@@ -428,6 +428,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
   static int logging_vt_seq;
   static int use_local_echo;
   static int use_auto_detect;
+  static int use_ansi_colors;
   static char *public_key;
   static char *private_key;
   static char **default_argv;
@@ -492,9 +493,8 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
     use_multi_col_char = 1;
 #ifdef USE_LOCAL_ECHO_BY_DEFAULT
     use_local_echo = 1;
-#else
-    use_local_echo = 0;
 #endif
+    use_ansi_colors = 1;
 
     if ((conf = bl_conf_new())) {
       char *rcpath;
@@ -595,7 +595,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
 
       if ((value = bl_conf_get_value(conf, "use_ansi_colors"))) {
         if (strcmp(value, "false") == 0) {
-          vt_set_use_ansi_colors(0);
+          use_ansi_colors = 0;
         }
       }
 
@@ -697,7 +697,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
             logging_vt_seq, unicode_policy, col_size_a, use_char_combining, use_multi_col_char,
             0 /* use_ctl */, 0 /* bidi_mode */, NULL /* bidi_separators */,
             0 /* use_dynamic_comb */, BSM_STATIC, 0 /* vertical_mode */, use_local_echo, NULL, NULL,
-            0 /* alt_color_mode */, 0 /* use_ot_layout */, 0 /* cursor_style */,
+            use_ansi_colors, 0 /* alt_color_mode */, 0 /* use_ot_layout */, 0 /* cursor_style */,
             0 /* ignore_broadcasted_chars */))) {
     goto error;
   }
