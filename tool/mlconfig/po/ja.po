@@ -1,13 +1,8 @@
-#: Japanese translations for mlterm
-#: Copyright (C) 2002 Araki Ken <araklen@users.sourceforge.net>
-#: This file is distributed under the same license as the mlterm package.
-#: Koushi Takahashi <koushi@turbolinux.co.jp>
-#:
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-10-26 17:41+0900\n"
+"POT-Creation-Date: 2017-10-21 01:39+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -16,421 +11,419 @@ msgstr ""
 "Content-Type: text/plain; charset=euc-jp\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:220
-msgid "Save&Exit"
-msgstr "保存&終了"
+#: tool/mlconfig/gtkxlfdsel.c:225
+#, fuzzy
+msgid "Foundry:"
+msgstr "音"
 
-#: tool/mlconfig/main.c:221
-msgid "Apply&Exit"
-msgstr "適用&終了"
+#: tool/mlconfig/gtkxlfdsel.c:226
+msgid "Family:"
+msgstr ""
 
-#: tool/mlconfig/main.c:222
-msgid "Apply"
-msgstr "適用"
+#: tool/mlconfig/gtkxlfdsel.c:227
+#, fuzzy
+msgid "Weight:"
+msgstr "高さ"
 
-#: tool/mlconfig/main.c:223
-msgid "Cancel"
-msgstr "キャンセル"
+#: tool/mlconfig/gtkxlfdsel.c:228
+msgid "Slant:"
+msgstr ""
 
-#: tool/mlconfig/main.c:234
-msgid "Font size (temporary)"
-msgstr "フォントサイズ (一時設定)"
+#: tool/mlconfig/gtkxlfdsel.c:229
+#, fuzzy
+msgid "Set Width:"
+msgstr "幅"
 
-#: tool/mlconfig/main.c:242
-msgid "Larger"
-msgstr "大きく"
+#: tool/mlconfig/gtkxlfdsel.c:230
+msgid "Add Style:"
+msgstr ""
 
-#: tool/mlconfig/main.c:243
-msgid "Smaller"
-msgstr "小さく"
+#: tool/mlconfig/gtkxlfdsel.c:231
+msgid "Pixel Size:"
+msgstr ""
 
-#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
-msgid "Full reset"
-msgstr "全リセット"
+#: tool/mlconfig/gtkxlfdsel.c:232
+msgid "Point Size:"
+msgstr ""
 
-#: tool/mlconfig/main.c:280
-msgid "PTY List"
-msgstr "仮想端末一覧"
+#: tool/mlconfig/gtkxlfdsel.c:233
+msgid "Resolution X:"
+msgstr ""
 
-#: tool/mlconfig/main.c:288
-msgid " New "
-msgstr "新規"
+#: tool/mlconfig/gtkxlfdsel.c:234
+msgid "Resolution Y:"
+msgstr ""
 
-#: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
-#:, fuzzy
-msgid " Select "
-msgstr "選択"
+#: tool/mlconfig/gtkxlfdsel.c:235
+msgid "Spacing:"
+msgstr ""
 
-#: tool/mlconfig/main.c:316
-msgid "mlterm configuration"
-msgstr "mltermの設定"
+#: tool/mlconfig/gtkxlfdsel.c:236
+msgid "Average Width:"
+msgstr ""
 
-#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
-msgid "Encoding"
-msgstr "エンコーディング"
+#: tool/mlconfig/gtkxlfdsel.c:237
+msgid "Charset:"
+msgstr ""
 
-#: tool/mlconfig/main.c:404
+#: tool/mlconfig/gtkxlfdsel.c:469
+msgid "Font Property"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:470
+msgid "Requested Value"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:471
+msgid "Actual Value"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:540
 msgid "Font"
 msgstr "フォント"
 
-#: tool/mlconfig/main.c:422
-msgid "Screen size ratio against font size"
-msgstr "スクリーンサイズとフォントサイズの割合"
+#: tool/mlconfig/gtkxlfdsel.c:514 tool/mlconfig/gtkxlfdsel.c:2156
+#: tool/mlconfig/gtkxlfdsel.c:2386
+#, fuzzy
+msgid "Font:"
+msgstr "フォント"
 
-#: tool/mlconfig/main.c:471
+#: tool/mlconfig/gtkxlfdsel.c:519
+#, fuzzy
+msgid "Font Style:"
+msgstr "フォント名"
+
+#: tool/mlconfig/gtkxlfdsel.c:524
+msgid "Size:"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:656 tool/mlconfig/gtkxlfdsel.c:878
+msgid "Reset Filter"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:670
+msgid "Metric:"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:674
+msgid "Points"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:681
+msgid "Pixels"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:697
+msgid "Preview:"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:726
+msgid "Font Information"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:759
+msgid "Requested Font Name:"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:770
+#, fuzzy
+msgid "Actual Font Name:"
+msgstr "フォント名"
+
+#: tool/mlconfig/gtkxlfdsel.c:781
+#, c-format
+msgid "%i fonts available with a total of %i styles."
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:796
+msgid "Filter"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:809
+#, fuzzy
+msgid "Font Types:"
+msgstr "フォント名"
+
+#: tool/mlconfig/gtkxlfdsel.c:817
+msgid "Bitmap"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:823
+msgid "Scalable"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:829
+msgid "Scaled Bitmap"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:897
+msgid "*"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1224
+msgid "(nil)"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1224
+msgid "regular"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1229 tool/mlconfig/gtkxlfdsel.c:1985
+#, fuzzy
+msgid "italic"
+msgstr "イタリック"
+
+#: tool/mlconfig/gtkxlfdsel.c:1230 tool/mlconfig/gtkxlfdsel.c:1986
+msgid "oblique"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1231 tool/mlconfig/gtkxlfdsel.c:1987
+msgid "reverse italic"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1232 tool/mlconfig/gtkxlfdsel.c:1988
+msgid "reverse oblique"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1233 tool/mlconfig/gtkxlfdsel.c:1989
+#, fuzzy
+msgid "other"
+msgstr "その他"
+
+#: tool/mlconfig/gtkxlfdsel.c:1240
+msgid "[M]"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1241
+msgid "[C]"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1803
+msgid "The selected font is not available."
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1809
+msgid "The selected font is not a valid font."
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1866
+msgid "This is a 2-byte font and may not be displayed correctly."
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1973
+msgid "(unknown)"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1984
+msgid "roman"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1996
+msgid "proportional"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1997
+msgid "monospaced"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:1998
+msgid "char cell"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:2161
+#, fuzzy
+msgid "Font: (Filter Applied)"
+msgstr "フォントサイズ(ピクセル)"
+
+#: tool/mlconfig/gtkxlfdsel.c:2637
+msgid "MAX_FONTS exceeded. Some fonts may be missing."
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:3477
+msgid "OK"
+msgstr ""
+
+#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:362
+msgid "Apply"
+msgstr "適用"
+
+#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:363
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: tool/mlconfig/gtkxlfdsel.c:3506
+#, fuzzy
+msgid "Font Selection"
+msgstr "選択"
+
+#: tool/mlconfig/main.c:204
+msgid "Send"
+msgstr ""
+
+#: tool/mlconfig/main.c:205
+msgid "Recv"
+msgstr ""
+
+#: tool/mlconfig/main.c:206
+msgid "Return"
+msgstr ""
+
+#: tool/mlconfig/main.c:207
+#, fuzzy
+msgid "Exit"
+msgstr "保存&終了"
+
+#: tool/mlconfig/main.c:218
+#, fuzzy
+msgid "Local"
+msgstr "ローカルエコー"
+
+#: tool/mlconfig/main.c:235
+msgid "Remote"
+msgstr ""
+
+#: tool/mlconfig/main.c:360
+msgid "Save&Exit"
+msgstr "保存&終了"
+
+#: tool/mlconfig/main.c:361
+msgid "Apply&Exit"
+msgstr "適用&終了"
+
+#: tool/mlconfig/main.c:372
+msgid "Font size (temporary)"
+msgstr "フォントサイズ (一時設定)"
+
+#: tool/mlconfig/main.c:380
+msgid "Larger"
+msgstr "大きく"
+
+#: tool/mlconfig/main.c:381
+msgid "Smaller"
+msgstr "小さく"
+
+#: tool/mlconfig/main.c:396
+msgid "Command"
+msgstr ""
+
+#: tool/mlconfig/main.c:404
+msgid "Full reset"
+msgstr "全リセット"
+
+#: tool/mlconfig/main.c:405
+msgid "Snapshot"
+msgstr ""
+
+#: tool/mlconfig/main.c:407
+msgid "SCP"
+msgstr ""
+
+#: tool/mlconfig/main.c:423
+msgid "PTY List"
+msgstr "仮想端末一覧"
+
+#: tool/mlconfig/main.c:431
+msgid " New "
+msgstr "新規"
+
+#: tool/mlconfig/main.c:432 tool/mlconfig/mc_font.c:1266
+#: tool/mlconfig/mc_wall_pic.c:62
+#, fuzzy
+msgid "Select"
+msgstr "選択"
+
+#: tool/mlconfig/main.c:456
+msgid "mlterm configuration"
+msgstr "mltermの設定"
+
+#: tool/mlconfig/main.c:491 tool/mlconfig/mc_char_encoding.c:157
+msgid "Encoding"
+msgstr "エンコーディング"
+
+#: tool/mlconfig/main.c:577
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:484
+#: tool/mlconfig/main.c:588
 msgid "Picture/Transparent"
 msgstr "壁紙/透明"
 
-#: tool/mlconfig/main.c:519
-msgid "Scrollbar"
-msgstr "スクロールバー"
-
-#: tool/mlconfig/main.c:550
-msgid "Others"
-msgstr "その他"
-
-#: tool/mlconfig/mc_bel.c:87
-#:, fuzzy
-msgid " Bel mode "
-msgstr "ベル"
-
-#: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
-#: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
-msgid "None"
-msgstr "なし"
-
-#: tool/mlconfig/mc_bel.c:104
-msgid "Sound"
-msgstr "音"
-
-#: tool/mlconfig/mc_bel.c:115
-msgid "Visual"
-msgstr "表示"
-
-#: tool/mlconfig/mc_bgtype.c:118
-msgid "Background type"
-msgstr "背景のタイプ"
-
-#: tool/mlconfig/mc_bgtype.c:125
+#: tool/mlconfig/main.c:626 tool/mlconfig/mc_bgtype.c:105
 msgid "Color"
 msgstr "色"
 
-#: tool/mlconfig/mc_bgtype.c:139 tool/mlconfig/mc_wall_pic.c:81
-msgid "Picture"
-msgstr "壁紙"
+#: tool/mlconfig/main.c:647
+msgid "Scrollbar"
+msgstr "スクロールバー"
 
-#: tool/mlconfig/mc_bgtype.c:156
-#:, fuzzy
-msgid "Transparent"
-msgstr "壁紙/透明"
+#: tool/mlconfig/main.c:678
+msgid "Others"
+msgstr "その他"
 
-#: tool/mlconfig/mc_brightness.c:71
-msgid "Brightness"
-msgstr "輝度"
+#: tool/mlconfig/mc_alpha.c:49
+msgid "Alpha"
+msgstr "アルファ"
 
-#: tool/mlconfig/mc_char_encoding.c:32
-msgid "auto"
-msgstr "自動"
-
-#: tool/mlconfig/mc_char_encoding.c:34
-msgid "--- Unicode ---"
-msgstr "--- Unicode ---"
-
-#: tool/mlconfig/mc_char_encoding.c:37
-msgid "--- ISO 8859 encodings ---"
-msgstr "--- ISO 8859 エンコーディング ---"
-
-#: tool/mlconfig/mc_char_encoding.c:54
-msgid "--- Other 8bit ---"
-msgstr "-- その他8ビット ---"
-
-#: tool/mlconfig/mc_char_encoding.c:65
-msgid "--- Japanese ---"
-msgstr "--- 日本語 ---"
-
-#: tool/mlconfig/mc_char_encoding.c:74
-msgid "--- Korean ---"
-msgstr "--- 韓国語 ---"
-
-#: tool/mlconfig/mc_char_encoding.c:80
-msgid "--- traditional Chinese ---"
-msgstr "--- 中国語(繁体字) ---"
-
-#: tool/mlconfig/mc_char_encoding.c:85
-msgid "--- simplified Chinese ---"
-msgstr "--- 中国語(簡体字) ---"
-
-#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:239
-#: tool/mlconfig/mc_im.c:291 tool/mlconfig/mc_im.c:370
-#: tool/mlconfig/mc_im.c:375
-#:, c-format
-msgid "auto (currently %s)"
-msgstr "自動 (現在 %s)"
-
-#: tool/mlconfig/mc_color.c:39 tool/mlconfig/mc_color.c:41
-msgid "Foreground color"
-msgstr "前景色"
-
-#: tool/mlconfig/mc_color.c:40 tool/mlconfig/mc_color.c:42
-msgid "Background color"
-msgstr "背景色"
-
-#: tool/mlconfig/mc_color.c:46
-msgid "black"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:47
-msgid "red"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:48
-msgid "green"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:49
-msgid "yellow"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:50
-msgid "blue"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:51
-msgid "magenta"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:52
-msgid "cyan"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:53
-msgid "white"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:54
-msgid "gray"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:55
-msgid "lightgray"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:56
-msgid "pink"
-msgstr ""
-
-#: tool/mlconfig/mc_color.c:57
-msgid "brown"
-msgstr ""
-
-#: tool/mlconfig/mc_contrast.c:69
-#:, fuzzy
-msgid "Contrast  "
-msgstr "コントラスト"
-
-#: tool/mlconfig/mc_fade.c:69
-msgid "Fade ratio on unfocus"
-msgstr "Focusがないときの輝度"
-
-#: tool/mlconfig/mc_flags.c:35
-msgid "Anti Alias"
-msgstr "アンチエイリアス"
-
-#: tool/mlconfig/mc_flags.c:36
-msgid "Variable column width"
-msgstr "可変長コラム幅"
-
-#: tool/mlconfig/mc_flags.c:37
-msgid "Combining"
-msgstr "結合文字処理"
-
-#: tool/mlconfig/mc_flags.c:38
-msgid "Combining = 1 (or 0) logical column(s)"
-msgstr "結合文字の論理幅を(0ではなく)1にする"
-
-#: tool/mlconfig/mc_flags.c:39
-msgid "Process received strings via Unicode"
-msgstr "Unicode経由でペーストを処理する"
-
-#: tool/mlconfig/mc_flags.c:40
-msgid "Fullwidth = 2 (or 1) logical column(s)"
-msgstr "全角文字の論理幅を(1ではなく)2にする"
-
-#: tool/mlconfig/mc_flags.c:41
-msgid "Bidi (UTF8 only)"
-msgstr ""
-
-#: tool/mlconfig/mc_font.c:62
-msgid "Font size (pixels)"
-msgstr "フォントサイズ(ピクセル)"
-
-#: tool/mlconfig/mc_gamma.c:69
-msgid "Gamma"
-msgstr "ガンマ"
-
-#: tool/mlconfig/mc_iscii_lang.c:71
-msgid "ISCII language"
-msgstr "ISCII言語"
-
-#: tool/mlconfig/mc_line_space.c:65
-msgid "Line space (pixels)"
-msgstr "行間隔(ピクセル)"
-
-#: tool/mlconfig/mc_logsize.c:63
-msgid "Backlog size (lines)"
-msgstr "ログサイズ(行)"
-
-#: tool/mlconfig/mc_mod_meta.c:88
-#:, fuzzy
-msgid "Meta key outputs:"
-msgstr "メタキー"
-
-#: tool/mlconfig/mc_mod_meta.c:105
-msgid "Esc"
-msgstr "Esc"
-
-#: tool/mlconfig/mc_mod_meta.c:116
-msgid "8bit"
-msgstr "8ビット"
-
-#: tool/mlconfig/mc_sb.c:88
-msgid "Position"
-msgstr "場所"
-
-#: tool/mlconfig/mc_sb.c:105
-msgid "Left"
-msgstr "左"
-
-#: tool/mlconfig/mc_sb.c:116
-msgid "Right"
-msgstr "右"
-
-#: tool/mlconfig/mc_sb_view.c:137
-msgid "View"
-msgstr "見かけ"
-
-#: tool/mlconfig/mc_screen_ratio.c:101
-msgid "Width"
-msgstr "幅"
-
-#: tool/mlconfig/mc_screen_ratio.c:110
-msgid "Height"
-msgstr "高さ"
-
-#: tool/mlconfig/mc_tabsize.c:62
-msgid "Tab width (columns)"
-msgstr "タブ幅(文字)"
-
-#: tool/mlconfig/mc_vertical.c:88
-msgid "Vertical mode"
-msgstr "縦書き"
-
-#: tool/mlconfig/mc_vertical.c:105
-msgid "CJK"
-msgstr "日中韓"
-
-#: tool/mlconfig/mc_vertical.c:116
-msgid "Mongol"
-msgstr "モンゴル"
-
-#: tool/mlconfig/mc_im.c:300
-msgid "XIM Server"
-msgstr "XIMサーバ"
-
-#: tool/mlconfig/mc_im.c:303
-msgid "XIM locale"
-msgstr "入力ロケール"
-
-#: tool/mlconfig/mc_im.c:385
-msgid "Option"
-msgstr "オプション"
-
-#: tool/mlconfig/mc_im.c:497
-msgid "Input Method"
-msgstr "入力メソッド"
-
+#: tool/mlconfig/mc_auto_detect.c:65
 msgid "Auto detect"
 msgstr "自動判定"
 
+#: tool/mlconfig/mc_auto_detect.c:70
 msgid "Encoding list"
 msgstr "対象エンコーディング"
 
-msgid "Both"
-msgstr "両方"
+#: tool/mlconfig/mc_bgtype.c:98
+msgid "Background type"
+msgstr "背景のタイプ"
 
-msgid "Font policy"
-msgstr "表示フォント"
+#: tool/mlconfig/mc_bgtype.c:117 tool/mlconfig/mc_wall_pic.c:52
+msgid "Picture"
+msgstr "壁紙"
 
-msgid "Always unicode"
-msgstr "Unicodeのみ"
-
-msgid "Never unicode"
-msgstr "Unicode以外"
-
-msgid "Box drawing"
-msgstr "罫線"
-
-msgid "As it is"
-msgstr "そのまま表示"
-
-msgid "Unicode"
-msgstr "Unicodeに変換"
-
-msgid "DEC Special"
-msgstr "DEC Specialに変換"
-
+#: tool/mlconfig/mc_bgtype.c:129
 msgid "Pseudo transparent"
 msgstr "擬似透明"
 
-msgid "Cursor color"
-msgstr "カーソル"
+#: tool/mlconfig/mc_char_encoding.c:24
+msgid "auto"
+msgstr "自動"
 
-msgid "Substituting color"
-msgstr "文字属性に代えて表示する色"
+#: tool/mlconfig/mc_char_encoding.c:26
+msgid "--- Unicode ---"
+msgstr "--- Unicode ---"
 
-msgid "Bold "
-msgstr "ボールド"
+#: tool/mlconfig/mc_char_encoding.c:28
+msgid "--- ISO 8859 encodings ---"
+msgstr "--- ISO 8859 エンコーディング ---"
 
-msgid "Underline"
-msgstr "下線"
+#: tool/mlconfig/mc_char_encoding.c:35
+msgid "--- Other 8bit ---"
+msgstr "-- その他8ビット ---"
 
-msgid "Italic"
-msgstr "イタリック"
+#: tool/mlconfig/mc_char_encoding.c:43
+msgid "--- Japanese ---"
+msgstr "--- 日本語 ---"
 
-msgid "Blink"
-msgstr "点滅"
+#: tool/mlconfig/mc_char_encoding.c:46
+msgid "--- Korean ---"
+msgstr "--- 韓国語 ---"
 
-msgid "Cross out"
-msgstr "取消線"
+#: tool/mlconfig/mc_char_encoding.c:48
+msgid "--- traditional Chinese ---"
+msgstr "--- 中国語(繁体字) ---"
 
-msgid "VT basic 16 colors"
-msgstr "カラーパレット(16色)"
+#: tool/mlconfig/mc_char_encoding.c:50
+msgid "--- simplified Chinese ---"
+msgstr "--- 中国語(簡体字) ---"
 
-msgid "Complex Text Layout"
-msgstr "Complex Text Layout"
+#: tool/mlconfig/mc_char_encoding.c:151 tool/mlconfig/mc_im.c:297
+#: tool/mlconfig/mc_im.c:346 tool/mlconfig/mc_im.c:418
+#: tool/mlconfig/mc_im.c:421
+#, c-format
+msgid "auto (currently %s)"
+msgstr "自動 (現在 %s)"
 
-msgid "BiDi separators"
-msgstr "BiDiの区切り文字"
-
-msgid "Ambiguouswidth = fullwidth"
-msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
-
-msgid "Don't scroll automatically in scrolling back"
-msgstr "スクロールバック中は自動的にスクロールしない"
-
-msgid "CLIPBOARD Selection"
-msgstr "選択文字列をクリップボードに保存"
-
-msgid "Local echo"
-msgstr "ローカルエコー"
-
-msgid "Blink cursor"
-msgstr "カーソル点滅"
-
+#: tool/mlconfig/mc_char_width.c:65
 msgid ""
 "Set full width\n"
 "areas manually"
@@ -438,21 +431,359 @@ msgstr ""
 "全角幅文字の範\n"
 "囲を手動設定"
 
+#: tool/mlconfig/mc_click.c:49
+msgid "Double click interval (msec)"
+msgstr "ダブルクリックの間隔(ミリ秒)"
+
+#: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:37
+msgid "Foreground color"
+msgstr "前景色"
+
+#: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:37
+msgid "Background color"
+msgstr "背景色"
+
+#: tool/mlconfig/mc_color.c:37
+msgid "Bold "
+msgstr "ボールド"
+
+#: tool/mlconfig/mc_color.c:37
+msgid "Italic"
+msgstr "イタリック"
+
+#: tool/mlconfig/mc_color.c:37
+msgid "Underline"
+msgstr "下線"
+
+#: tool/mlconfig/mc_color.c:38
+msgid "Blink"
+msgstr "点滅"
+
+#: tool/mlconfig/mc_color.c:38
+msgid "Cross out"
+msgstr "取消線"
+
+#: tool/mlconfig/mc_color.c:138
+msgid "Cursor color"
+msgstr "カーソル"
+
+#: tool/mlconfig/mc_color.c:161
+msgid "Substituting color"
+msgstr "文字属性に代えて表示する色"
+
+#: tool/mlconfig/mc_color.c:208
+msgid "VT basic 16 colors"
+msgstr "カラーパレット(16色)"
+
+#: tool/mlconfig/mc_ctl.c:59
+#, fuzzy
+msgid "Bidi separators"
+msgstr "BiDiの区切り文字"
+
+#: tool/mlconfig/mc_flags.c:30
+msgid "Xft"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:30
+msgid "Cairo"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:30
+msgid "Anti Alias"
+msgstr "アンチエイリアス"
+
+#: tool/mlconfig/mc_flags.c:30
+msgid "Variable column width"
+msgstr "可変長コラム幅"
+
+#: tool/mlconfig/mc_flags.c:30
+msgid "Combining"
+msgstr "結合文字処理"
+
+#: tool/mlconfig/mc_flags.c:31
+msgid "Combining = 1 (or 0) logical column(s)"
+msgstr "結合文字の論理幅を(0ではなく)1にする"
+
+#: tool/mlconfig/mc_flags.c:31
+msgid "Process received strings via Unicode"
+msgstr "Unicode経由でペーストを処理する"
+
+#: tool/mlconfig/mc_flags.c:32
+msgid "Fullwidth = 2 (or 1) logical column(s)"
+msgstr "全角文字の論理幅を(1ではなく)2にする"
+
+#: tool/mlconfig/mc_flags.c:32
+msgid "Complex Text Layout"
+msgstr "Complex Text Layout"
+
+#: tool/mlconfig/mc_flags.c:33
+msgid "Ambiguouswidth = fullwidth"
+msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
+
+#: tool/mlconfig/mc_flags.c:33
+msgid "CLIPBOARD Selection"
+msgstr "選択文字列をクリップボードに保存"
+
+#: tool/mlconfig/mc_flags.c:33
+msgid "Local echo"
+msgstr "ローカルエコー"
+
+#: tool/mlconfig/mc_flags.c:34
+msgid "Blink cursor"
+msgstr "カーソル点滅"
+
+#: tool/mlconfig/mc_flags.c:34
+msgid "Don't scroll automatically in scrolling back"
+msgstr "スクロールバック中は自動的にスクロールしない"
+
+#: tool/mlconfig/mc_flags.c:35
 msgid "Scroll by Shift+Up or Shift+Down"
 msgstr "Shift+Up又はShift+Downによるスクロール"
 
+#: tool/mlconfig/mc_flags.c:35
 msgid "Select URI by double click"
 msgstr "ダブルクリックでURIを選択"
 
+#: tool/mlconfig/mc_flags.c:35
+#, fuzzy
+msgid "OpenType Layout"
+msgstr "Complex Text Layout"
+
+#: tool/mlconfig/mc_flags.c:36
+msgid "Trim trailing CR/LF in pasting"
+msgstr "貼付け時に末尾の改行コードを削除"
+
+#: tool/mlconfig/mc_flags.c:36
+msgid "Send keys to all windows"
+msgstr "全ウィンドウに同時送信"
+
+#: tool/mlconfig/mc_font.c:1188
+msgid "Font size (pixels)"
+msgstr "フォントサイズ(ピクセル)"
+
+#: tool/mlconfig/mc_font.c:1250
 msgid "Font name"
 msgstr "フォント名"
 
+#: tool/mlconfig/mc_font.c:1276
+msgid "Font width"
+msgstr "フォント幅"
+
+#: tool/mlconfig/mc_font.c:1280
+msgid "Narrow"
+msgstr ""
+
+#: tool/mlconfig/mc_font.c:1285
+msgid "Widen"
+msgstr ""
+
+#: tool/mlconfig/mc_font.c:1290
+msgid "Default"
+msgstr ""
+
+#: tool/mlconfig/mc_font.c:1305
 msgid "Unicode areas you won't convert to other charsets"
 msgstr "Unicodeから他の文字集合に変換しない範囲"
 
+#: tool/mlconfig/mc_font.c:1308
 msgid " Edit "
 msgstr "編集"
 
+#: tool/mlconfig/mc_geometry.c:36
+msgid "Columns"
+msgstr "桁数"
+
+#: tool/mlconfig/mc_geometry.c:36
+msgid "Rows"
+msgstr "行数"
+
+#: tool/mlconfig/mc_im.c:352
+msgid "XIM Server"
+msgstr "XIMサーバ"
+
+#: tool/mlconfig/mc_im.c:355
+msgid "XIM locale"
+msgstr "入力ロケール"
+
+#: tool/mlconfig/mc_im.c:430
+msgid "Option"
+msgstr "オプション"
+
+#: tool/mlconfig/mc_im.c:542
+msgid "Input Method"
+msgstr "入力メソッド"
+
+#: tool/mlconfig/mc_im.c:566 tool/mlconfig/mc_radio.c:55
+#: tool/mlconfig/mc_radio.c:58 tool/mlconfig/mc_radio.c:61
+#: tool/mlconfig/mc_radio.c:64
+msgid "None"
+msgstr "なし"
+
+#: tool/mlconfig/mc_logsize.c:50
+msgid "Backlog size (lines)"
+msgstr "ログサイズ(行)"
+
+#: tool/mlconfig/mc_opentype.c:68
+msgid "Select opentype features"
+msgstr ""
+
+#: tool/mlconfig/mc_opentype.c:154
+msgid "Select opentype scripts"
+msgstr ""
+
+#: tool/mlconfig/mc_opentype.c:230
+msgid "Features"
+msgstr ""
+
+#: tool/mlconfig/mc_opentype.c:235
+msgid "Script"
+msgstr ""
+
+#: tool/mlconfig/mc_radio.c:55
+msgid "Meta key outputs"
+msgstr "メタキー押下時の挙動"
+
+#: tool/mlconfig/mc_radio.c:55
+msgid "Esc"
+msgstr "Esc"
+
+#: tool/mlconfig/mc_radio.c:55
+msgid "8bit"
+msgstr "8ビット"
+
+#: tool/mlconfig/mc_radio.c:58
+msgid "Bell mode"
+msgstr "ベル"
+
+#: tool/mlconfig/mc_radio.c:58
+msgid "Sound"
+msgstr "音"
+
+#: tool/mlconfig/mc_radio.c:58
+msgid "Visual"
+msgstr "表示"
+
+#: tool/mlconfig/mc_radio.c:58
+msgid "Both"
+msgstr "両方"
+
+#: tool/mlconfig/mc_radio.c:61
+msgid "Position"
+msgstr "場所"
+
+#: tool/mlconfig/mc_radio.c:61
+msgid "Left"
+msgstr "左"
+
+#: tool/mlconfig/mc_radio.c:61
+msgid "Right"
+msgstr "右"
+
+#: tool/mlconfig/mc_radio.c:61
+msgid "Auto hide"
+msgstr "自動的に隠す"
+
+#: tool/mlconfig/mc_radio.c:64
+msgid "Vertical mode"
+msgstr "縦書き"
+
+#: tool/mlconfig/mc_radio.c:64
+msgid "CJK"
+msgstr "日中韓"
+
+#: tool/mlconfig/mc_radio.c:64
+msgid "Mongol"
+msgstr "モンゴル"
+
+#: tool/mlconfig/mc_radio.c:67
+msgid "Box drawing"
+msgstr "罫線"
+
+#: tool/mlconfig/mc_radio.c:67 tool/mlconfig/mc_radio.c:70
+msgid "As it is"
+msgstr "そのまま表示"
+
+#: tool/mlconfig/mc_radio.c:67
+msgid "Unicode"
+msgstr "Unicodeに変換"
+
+#: tool/mlconfig/mc_radio.c:67
+msgid "DEC Special"
+msgstr "DEC Specialに変換"
+
+#: tool/mlconfig/mc_radio.c:70
+msgid "Font policy"
+msgstr "表示フォント"
+
+#: tool/mlconfig/mc_radio.c:70
+msgid "Always unicode"
+msgstr "Unicodeのみ"
+
+#: tool/mlconfig/mc_radio.c:70
+msgid "Never unicode"
+msgstr "Unicode以外"
+
+#: tool/mlconfig/mc_radio.c:73
+msgid "Save log"
+msgstr "ログを保存"
+
+#: tool/mlconfig/mc_radio.c:73
+msgid "No"
+msgstr "保存しない"
+
+#: tool/mlconfig/mc_radio.c:73
+msgid "Raw format"
+msgstr "そのまま保存"
+
+#: tool/mlconfig/mc_radio.c:73
+msgid "Ttyrec format"
+msgstr "ttyrec形式で保存"
+
+#: tool/mlconfig/mc_ratio.c:31
+msgid "Contrast  "
+msgstr "コントラスト"
+
+#: tool/mlconfig/mc_ratio.c:31
+msgid "Gamma"
+msgstr "ガンマ"
+
+#: tool/mlconfig/mc_ratio.c:31
+msgid "Brightness"
+msgstr "輝度"
+
+#: tool/mlconfig/mc_ratio.c:31
+msgid "Fade ratio on unfocus"
+msgstr "Focusがないときの輝度"
+
+#: tool/mlconfig/mc_ratio.c:32
+msgid "Screen size ratio against font size"
+msgstr "スクリーンサイズとフォントサイズの割合"
+
+#: tool/mlconfig/mc_sb_view.c:116
+msgid "View"
+msgstr "見かけ"
+
+#: tool/mlconfig/mc_space.c:31
+msgid "Line space (pixels)"
+msgstr "行間隔(ピクセル)"
+
+#: tool/mlconfig/mc_space.c:31
+msgid "Letter space (pixels)"
+msgstr "字間(ピクセル)"
+
+#: tool/mlconfig/mc_space.c:31
+msgid "Baseline position (pixels)"
+msgstr "ベースラインの位置(ピクセル)"
+
+#: tool/mlconfig/mc_space.c:32
+msgid "Underline position (pixels)"
+msgstr "アンダーラインの位置(ピクセル)"
+
+#: tool/mlconfig/mc_tabsize.c:50
+msgid "Tab width (columns)"
+msgstr "タブ幅(文字)"
+
+#: tool/mlconfig/mc_unicode_areas.c:131
 msgid ""
 "Set unicode area in the following format.\n"
 "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"
@@ -460,56 +791,18 @@ msgstr ""
 "次の形式でUnicodeの範囲を指定してください\n"
 " U+XXXX-XXXX又はU+XXXX (U+はなくても構いません)"
 
-msgid "Alpha"
-msgstr "アルファ"
-
-msgid "Letter space (pixels)"
-msgstr "字間(ピクセル)"
-
+#: tool/mlconfig/mc_wordsep.c:93
 msgid "Word separators"
 msgstr "単語区切り文字"
 
-msgid "Save log"
-msgstr "ログを保存"
+#~ msgid " Bel mode "
+#~ msgstr "ベル"
 
-msgid "No"
-msgstr "保存しない"
+#~ msgid "Transparent"
+#~ msgstr "壁紙/透明"
 
-msgid "Raw format"
-msgstr "そのまま保存"
+#~ msgid "ISCII language"
+#~ msgstr "ISCII言語"
 
-msgid "Ttyrec format"
-msgstr "ttyrec形式で保存"
-
-msgid "Auto hide"
-msgstr "自動的に隠す"
-
-msgid "Underline position (pixels)"
-msgstr "アンダーラインの位置(ピクセル)"
-
-msgid "Baseline position (pixels)"
-msgstr "ベースラインの位置(ピクセル)"
-
-msgid "Send keys to all windows"
-msgstr "全ウィンドウに同時送信"
-
-msgid "Trim trailing CR/LF in pasting"
-msgstr "貼付け時に末尾の改行コードを削除"
-
-msgid "Font width"
-msgstr "フォント幅"
-
-msgid "Columns"
-msgstr "桁数"
-
-msgid "Rows"
-msgstr "行数"
-
-msgid "Double click interval (msec)"
-msgstr "ダブルクリックの間隔(ミリ秒)"
-
-msgid "Meta key outputs"
-msgstr "メタキー押下時の挙動"
-
-msgid "Bell mode"
-msgstr "ベル"
+#~ msgid "Meta key outputs:"
+#~ msgstr "メタキー"

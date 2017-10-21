@@ -1,5 +1,5 @@
-* Support DECSLPP and DECSCPP.
-* Support CSI 7 t.
+* Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS
+  and CSI 7 t.
 * Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
 	wayland and android.
 * Add "use_vertical_cursor" and "click_interval" to OSC 5379, 5380 and 5381.
@@ -8,12 +8,15 @@
 * Add "Underline pos (pixels)" and "Baseline pos (pixel)" to "Font" tab of mlconfig.
 * Add "Double click interval (msec)", "Send keys to all windows" and
   "Trim trailing CR/LF in pasting" to "Others" tab of mlconfig.
+* Add doc/en/ControlSequences which lists escape/control sequences which mlterm supports.
 * Change the default value of "use_vertical_cursor" option from false to true.
 * Merge patches:
 	https://sf.net/p/mlterm/patches/_discuss/thread/f5dc445d/0fc3/attachment/fix_spelling.diff
 * Bug fixes:
   Fix impossibility of keyborad and pointer input after switching virtual consoles on wayland.
   Fix unexpectedly having privilege in opening a shell on startup of mlterm built with brlapi.
+  Fix Pl, Pc and Pp of XCPR (Response to "CSI ? 6 n").
+  Fix corruption of TBC (CSI g), CTC (CSI W) and DECATC(CSI ,}).
 
 ver 3.8.3
 * Add "trim_trailing_newline_in_pasting" / --trim option which removes trailing

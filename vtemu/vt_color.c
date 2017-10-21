@@ -27,8 +27,6 @@ static char *color_name_table[] = {
     "hl_black", "hl_red", "hl_green", "hl_yellow", "hl_blue", "hl_magenta", "hl_cyan", "hl_white",
 };
 
-static char color_name_256[4];
-
 static u_int8_t vtsys_color_rgb_table[][3] = {
     {0x00, 0x00, 0x00},
     {0xcd, 0x00, 0x00},
@@ -612,6 +610,7 @@ char *vt_get_color_name(vt_color_t color) {
     }
   } else if (IS_256_COLOR(color)) {
     /* XXX Not reentrant */
+    static char color_name_256[4];
 
     snprintf(color_name_256, sizeof(color_name_256), "%d", color);
 
@@ -764,6 +763,14 @@ end:
 #endif
 
   return 1;
+}
+
+void vt_color_force_linear_search(int flag) {
+  if (flag) {
+    num_of_changed_256_colors++;
+  } else {
+    num_of_changed_256_colors--;
+  }
 }
 
 /*

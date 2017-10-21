@@ -51,11 +51,12 @@ set_config ()
 
 get_dev_num
 
-mlcc exec vsplit_screen 25%
-mlcc exec next_screen
 mlcc exec hsplit_screen 101
+mlcc exec next_screen
+mlcc exec vsplit_screen 30%
 
-set_config `expr $dev_num - 1` "encoding=utf8"
-set_config $dev_num "input_method=none"
+set_config $dev_num "encoding=utf8"
+set_config `expr $dev_num - 1` "input_method=none"
 
+emacsclient -t
 #$HOME/.sayaka/sayaka.sh s &

@@ -1,3 +1,28 @@
+2017-10-21  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.[ch]:
+	  - DECBBSM(CSI ? 116 [hl]), DECRQTSR(CSI 2 $ u), DECCTR(CSI 2;Pu $ u),
+	    DECRQPSR(CSI $ w), DECSNLS(CSI * |), DECSTGLT(CSI ) {) and
+	    DECRSPS(DCS Ps $ t D...D ST) are supported.
+	  - If 1 bit flags of vt_parser_t is copied to int variable,
+	    intvalue = vt_parser->xxx ? 1 : 0.
+	  - DECRQSS supports DECSTGLT, DECSCPP, DECSLPP, DECSNLS, DECAC and DECATC.
+	  - Corrupt response of XCPR is fixed.
+	  - Corruption of TBC (CSI g), CTC (CSI W) and DECATC(CSI ,}) is fixed.
+	  - use_ansi_color is added to arguments of vt_parser_new().
+	  - bold_affects_bg and use_ansi_color are added to vt_parser_t.
+	  - vt_set_use_ansi_colors() is removed.
+
+	* vt_edit.[ch]:
+	  - vt_edit_is_tab_stop() is added.
+	  - vt_edit_set_{relative|absolute}_origin() => vt_edit_set_relative_origin().
+
+	* vt_color.[ch]: vt_color_force_linear_search() is added.
+
+	* ui_main_config.[ch]: use_ansi_color is added to ui_main_config_t.
+
+	* doc/en/ControlSequences: Added.
+
 2017-10-14  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_brltty.c: bl_priv_change_e{u|g}id() are called if brlapi_openConnection() fails.

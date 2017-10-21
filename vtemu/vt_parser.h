@@ -261,6 +261,7 @@ typedef struct vt_parser {
   ef_charset_t g0;
   ef_charset_t g1;
 
+  /* XXX Use (vt_parser->xxxxx ? 1 : 0) in copying these flags to int, otherwise int is -1. */
   int is_so : 1;
 
   int is_bold : 1;
@@ -294,6 +295,8 @@ typedef struct vt_parser {
   int set_title_using_utf8 : 1;
   int get_title_using_utf8 : 1;
   int auto_cr : 1;
+  int bold_affects_bg : 1;
+  int use_ansi_colors : 1;
 
 #ifdef USE_VT52
   int is_vt52_mode : 1;
@@ -302,8 +305,6 @@ typedef struct vt_parser {
 } vt_parser_t;
 
 void vt_set_use_alt_buffer(int use);
-
-void vt_set_use_ansi_colors(int use);
 
 void vt_set_unicode_noconv_areas(char *areas);
 
@@ -333,7 +334,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
                            vt_unicode_policy_t policy, u_int col_size_a,
                            int use_char_combining, int use_multi_col_char,
                            const char *win_name, const char *icon_name,
-                           vt_alt_color_mode_t alt_color_mode,
+                           int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
                            vt_cursor_style_t cursor_style, int ignore_broadcasted_chars);
 
 int vt_parser_delete(vt_parser_t *vt_parser);

@@ -1,0 +1,314 @@
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+
+List of escape/control sequences which mlterm supports.
+
+O: Support, -: Not support
+
+  MNEMONIC                                                  SEQUENCE
+
+<VT520/VT525> https://vt100.net/docs/vt520-rm/ek-vt520-rm.pdf
+O CBT (Cursor Backward Tabulation)                          CSI Pn Z
+O CHA (Cursor Horizontal Absolute)                          CSI Pn G
+O CHT (Cursor Horizontal Forward Tabulation)                CSI Pn I
+O CNL (Cursor Next Line)                                    CSI Pn E
+O CPL (Cursor Previous Line)                                CSI Pn F
+O CPR (Cursor Position Report)                              CSI 6 n
+- CRM (Show Control Character Mode)                         CSI 3 [hl]
+O CUB (Cursor Backward)                                     CSI Pn D
+O CUD (Cursor Down)                                         CSI Pn B
+O CUF (Cursor Forward)                                      CSI Pn C
+O CUP (Cursor Position)                                     CSI Pl;Pc H
+O CUU (Cursor Up)                                           CSI Pn A
+O DA1 (Primary Device Attributes)                           CSI c
+O DA2 (Secondary Device Attributes)                         CSI > c
+O DA3 (Tertiary Device Attributes)                          CSI = c
+O DCH (Delete Character)                                    CSI Pn P
+- DECAAM (Set/Reset Auto Answerback Mode)                   CSI ? 100 [hl]
+O DECAC (Assign Color)                                      CSI Ps1;Ps2;Ps3 , l
+O DECALN (Screen Alignment Pattern)                         ESC # 8
+O DECANM (ANSI Mode)                                        CSI ? 2 [hl]
+O DECANM exit
+- DECARM (Autorepeat Mode)                                  CSI ? 8 [hl]
+- DECARR (Select Auto Repeat Rate)                          CSI Ps - p
+- DECARSM (Set/Reset Auto Resize Mode)                      CSI ? 98 [hl]
+O DECATC (Alternate Text Color)                             CSI Ps1;Ps2;Ps3 , }
+- DECATCBM (Set/Reset Alternate Text Color Blink Mode)      CSI ? 115 [hl]
+- DECATCUM (Set/Reset Alternate Text Color Underline Mode)  CSI ? 114 [hl]
+- DECAUPSS (Assigning User-Preferred Supplemental Sets)     DCS Pn ! u Dscs ST
+O DECAWM (Autowrap Mode)                                    CSI ? 7 [hl]
+O DECBI (Back Index)                                        ESC 6
+O DECBBSM (Bold and Blink Style Mode)                       CSI ? 116 [hl]
+O DECBKM (Backarrow Key Mode)                               CSI ? 67 [hl]
+- DECCANSM (Conceal Answerback Message Mode)                CSI ? 101 [hl]
+- DECCAPSLK (Caps Lock Mode)                                CSI ? 109 [hl]
+O DECCARA (Change Attributes in Rectangular Area)           CSI Pt;Pl;Pb;Pr;Ps1;...;Psn $ r
+- DECCKD (Copy Key Default)                                 DCS " z D...D ST
+O DECCKM (Cursor Keys Mode)                                 CSI ? 1 [hl]
+- DECCKSR (Memory Checksum Report)                          CSI ? 63;Pid n
+O DECCOLM (Select 80 or 132 Columns per Page)               CSI ? 3 [hl]
+O DECCRA (Copy Rectangular Area)                            CSI Pts;Pls;Pbs;Prs;Pps;Ptd;Pld;Ppd $ v
+- DECCRTSM (Set/Reset CRT Save Mode)                        CSI ? 97 [hl]
+- DECCRTST (CRT Saver Timing)                               CSI Ps - q
+O DECCTR (Color Table Request)                              CSI 2;Pu $ u
+O DECDC (Delete Column)                                     CSI Pn ' ~
+O DECDHL (Double-WidthDouble-Height Line)                   ESC # [34]
+O DECDLD (Dynamically Redefinable Character Sets)           DCS Pfn;Pcn;Pe;Pcmw;Pss;Pt;Pcmh;Pcss f Dscs Sxbp1;...;Sxbpn ST
+O DECDMAC (Define Macro)                                    DCS Pid;Pdt;Pen ! z D...D ST
+- DECDLDA (Down Line Load Allocation)                       CSI Ps , z
+O DECDWL (Double-WidthSingle-Height Line)                   ESC # 6
+O DECECM (Erase Color Mode)                                 CSI ? 117 [hl]
+- DECEKBD (Extended Keyboard Report)                        APC : ppp mm ST
+- DECELF (Enable Local Functions)                           CSI Pf1;Pc1;...;Pfn;Pcn + q
+O DECERA (Erase Rectangular Area)                           CSI Pt;Pl;Pb;Pr $ z
+- DECES (Enable Session)                                    CSI & x
+- DECESKM (Enable Secondary Keyboard Language Mode)         CSI ? 104 [hl]
+O DECFI (Forward Index)                                     ESC 9
+O DECFRA (Fill Rectangular Area)                            CSI Pch;Pt;Pl;Pb;Pr $ x
+- DECFWM (Set/Reset Framed Windows Mode)                    CSI ? 111 [hl]
+- DECHDPXM (Set/Reset Half-Duplex Mode)                     CSI ? 103 [hl]
+- DECHEBM (Hebrew/N-A Keyboard Mapping)                     CSI ? 35 [hl]
+- DECHEM (Hebrew Encoding Mode)                             CSI ? 36 [hl]
+- DECHWUM (Host Wake-Up Mode (CRT and Energy Saver))        CSI ? 113 [hl]
+O DECIC (Insert Column)                                     CSI Pn ' }
+O DECID (Identify Device)                                   ESC Z
+O DECINVM (Invoke Macro)                                    CSI Pid * z
+- DECIPEM (Enter/Return from IBM ProPrinter Emulation Mode) CSI ? 58 [hl]
+- DECKBD (Keyboard Language Selection)                      CSI Ps1;Ps2 SP }
+- DECKBUM (Typewriter or Data Processing Keys)              CSI ? 68 [hl]
+O DECKLHIM (Keyboard LED's Host Indicator Mode)             CSI ? 110 [hl]
+O DECKPAM (Keypad Application Mode)                         ESC =
+- DECKPM (Key Position Mode)                                CSI ? 81 [hl]
+O DECKPNM (Keypad Numeric Mode)                             ESC >
+- DECLANS (Load Answerback Message)                         DCS Ps v D...D ST
+- DECLBAN (Load Banner Message)                             DCS Ps r D...D ST
+- DECLFKC (Local Function Key Control)                      CSI Pk1;Pf1;...;Kpn;Pfn * }
+- DECLL (Load LEDs)                                         CSI Ps q
+O DECLRMM (Left Right Margin Mode)                          CSI ? 69 [hl]
+- DECLTOD (Load Time of Day)                                CSI Ps1;Ps2 , p
+- DECMCM (Set/Reset Modem Control Mode)                     CSI ? 99 [hl]
+- DECNAKB (Greek/N-A Keyboard Mapping)                      CSI ? 57 [hl]
+O DECNCSM (Set/Reset No Clearing Screen On Column Change)   CSI ? 95 [hl]
+O DECNKM (Numeric Keypad Mode)                              CSI ? 66 [hl]
+- DECNRCM (National Replacement Character Set Mode)         CSI ? 42 [hl]
+- DECNULM (Set/Reset Ignoring Null Mode)                    CSI ? 102 [hl]
+- DECNUMLK (Num Lock Mode)                                  CSI ? 108 [hl]
+O DECOM (Origin Mode)                                       CSI ? 6 [hl]
+- DECOSCNM (Set/Reset Overscan Mode)                        CSI ? 106 [hl]
+- DECPAK (Program Alphanumeric Key)                         DCS " y D...D ST
+- DECPCCM (Page Cursor-Coupling Mode)                       CSI ? 64 [hl]
+- DECPCTERM (Enter/Exit PCTerm or Scancode Mode)            CSI ? Ps1;Ps2 r
+- DECPEX (Printer Extent Mode)                              CSI ? 19 [hl]
+- DECPFF (Print Form Feed Mode)                             CSI ? 18 [hl]
+- DECPFK (Program Function Key)                             DCS " x D...D ST
+- DECPKA (Program Key Action)                               CSI Ps + z
+- DECPS (Play Sound)                                        CSI Pv;Pd;Pn , ~
+O DECRARA (Reverse Attributes in Rectangular Area)          CSI Pt;Pl;Pb;Pr;Ps1;...;Psn $ t
+O DECRC (Restore Cursor)                                    ESC 8
+- DECRLCM (Right-to-Left Copy)                              CSI ? 96 [hl]
+- DECRLM (Cursor Right to Left Mode)                        CSI ? 34 [hl]
+- DECRQCRA (Request Checksum of Rectangular Area)           CSI Pid;Pp;Pt;Pl;Pb;Pr * y
+O DECRQDE (Request Displayed Extent)                        CSI " v
+- DECRQKD (Request Key Definition)                          CSI Ps1;Ps2 , w
+- DECRQKT (Key Type Inquiry)                                CSI Ps , u
+O DECRQM (Request Mode Host To Terminal)                    (ANSI) CSI Pa $ p  (DEC) CSI ? Pd $ p
+- DECRQPKFM (Program Key Free Memory Inquiry)               CSI + x
+O DECRQPSR (Request Presentation State Report)              CSI Ps $ w
+O DECRQSS (Request Selection or Setting)                    DCS $ q D...D ST
+O DECRQTSR (Request Terminal State Report)                  CSI Ps $ u
+- DECRQUPSS (User-Preferred Supplemental Set)               CSI & u
+O DECRSPS (Restore Presentation State)                      DCS Ps $ t D...D ST
+- DECRSTS (Restore Terminal State)                          DCS Ps $ p D...D ST
+O DECSACE (Select Attribute Change Extent)                  CSI Ps * x
+- DECSASD (Select Active Status Display)                    CSI Ps $ }
+O DECSC (Save Cursor)                                       ESC 7
+O DECSCA (Select Character Protection Attribute)            CSI Ps " q
+- DECSCL (Select Conformance Level)                         (L1) CSI 61 " p  (L4) CSI 6 n ; Pn " p
+- DECSCLM (Scrolling Mode)                                  CSI ? 4 [hl]
+O DECSCNM (Screen ModeLight or Dark Screen)                 CSI ? 5 [hl]
+- DECSCP (Select Communication Port)                        CSI Ps1;Ps2 * u
+O DECSCPP (Select 80 or 132 Columns per Page)               CSI Ps $ |
+- DECSCS (Select Communication Speed)                       CSI Ps1;Ps2 * r
+O DECSCUSR (Set Cursor Style)                               CSI Ps SP q
+- DECSDDT (Select Disconnect Delay Time)                    CSI Ps $ q
+- DECSDPT (Select Digital Printed Data Type)                CSI Ps ) p
+O DECSED (Selective Erase in Display)                       CSI ? Ps J
+O DECSEL (Selective Erase in Line)                          CSI ? Ps K
+- DECSEST (Energy Saver Timing)                             CSI Ps - r
+O DECSERA (Selective Erase Rectangular Area)                CSI Pt;Pl;Pb;Pr $ {
+- DECSFC (Select Flow Control)                              CSI Ps1;Ps2;Ps3;Ps4 * s
+- DECSIN (Set Icon Name)                                    OSC 2 L; <name> ST
+- DECSKCV (Set Key Click Volume)                            CSI Ps SP r
+- DECSLCK (Set Lock Key Style)                              CSI Ps SP v
+O DECSLPP (Set Lines Per Page)                              CSI Pn t
+O DECSLRM (Set Left and Right Margins)                      CSI Pl;Pr s
+- DECSMBV (Set Margin Bell Volume)                          CSI Ps SP u
+- DECSMKR (Select Modifier Key Reporting)                   CSI Pm1;Pf1;...;Pmn;Pfn + r
+O DECSNLS (Set Lines Per Screen)                            CSI Pn * |
+- DECSPMA (Session Page Memory Allocation)                  CSI Pn1;Pn2;Pn3;Pn4; ' x
+- DECSPP (Set Port Parameter)                               CSI Ps1;Ps2;Ps3;Ps4 + w
+- DECSPPCS (Select ProPrinter Character Set)                CSI Pn * p
+- DECSPRTT (Select Printer Type)                            CSI Ps $ s
+- DECSR (Secure Reset)                                      CSI Pr + p
+- DECSRC (Secure Reset Confirmation)                        CSI Pr * q
+- DECSSCLS (Set Scroll Speed)                               CSI Ps SP p
+- DECSSDT (Select Status Display (LineType))                CSI Ps $ ~
+- DECSSL (Select Set-Up Language)                           CSI Ps p
+O DECST8C (Set Tab at Every Columns)                        CSI ? 5 W
+O DECSTBM (Set Top and Bottom Margins)                      CSI Pt;Pb r
+O DECSTGLT (Select Color Look-Up Table)                     CSI Pn ) {
+O DECSTR (Soft Terminal Reset)                              CSI ! p
+- DECSTUI (Setting Terminal Unit ID)                        DCS ! { D...D ST
+- DECSTRL (Set Transmit Rate Limit)                         CSI Ps1;Ps2 " u
+- DECSWBV (Set Warning Bell Volume)                         CSI Ps SP t
+O DECSWL (Single-Width, Single-Height Line)                 ESC # 5
+- DECSZS (Select Zero Symbol)                               CSI Ps , {
+- DECSWT (Set Window Title)                                 OSC 21; <name> ST
+O DECTCEM (Text Cursor Enable Mode)                         CSI ? 25 [hl]
+- DECTID (Select Terminal ID)                               CSI Ps , q
+- DECTME (Terminal Mode Emulation)                          CSI Ps SP ~
+- DECTSR (Terminal State Report - Terminal to Host)         CSI Ps $ u
+- DECTST (Invoke Confidence Test)                           CSI 4;Ps;...;Ps y
+- DECUDK (User Defined Keys)                                DCS Ps1;Ps2;Ps3 | D...D ST
+- DECUS (Update Session)                                    CSI PS , y
+- DECVCCM (Vertical Cursor-Coupling Mode)                   CSI ? 61 [hl]
+- DECXRLM (Transmit Rate Limiting)                          CSI ? 73 [hl]
+O DL (Delete Line)                                          CSI Pn M
+O DSR (Cursor Position Report (CPR))                        CSI 6 n
+O DSR (Data Integrity Report)                               CSI ? 75 n
+O DSR (Extended Cursor Position Report (DECXCPR))           CSI ? 6 n
+O DSR (Keyboard)                                            CSI ? 26 n
+O DSR (Macro Space Report)                                  CSI ? 62 n
+O DSR (Memory Checksum  (DECCKSR))                          CSI ? 63;Pid n
+O DSR (Operating Status)                                    CSI 5 n
+O DSR (Printer Port)                                        CSI ? 15 n
+O DSR (User-Defined Keys  (VT Level Only))                  CSI ? 25 n
+O ECH (Erase Character)                                     CSI Pn X
+O ED (Erase in Display)                                     CSI Ps J
+O EL (Erase in Line)                                        CSI Ps K
+O HPA (Horizontal Position Absolute)                        CSI Pn `
+O HPR (Horizontal Position Relative)                        CSI Pn a
+O HTS (Horizontal Tab Set)                                  ESC H
+O HVP (Horizontal and Vertical Position)                    CSI Pl;Pc f
+O ICH (Insert Character)                                    CSI Pn @
+O IL (Insert Line)                                          CSI Pn L
+O IND (Index)                                               ESC D
+O IRM (Insert/Replace Mode)                                 CSI 4 [hl]
+O KAM (Keyboard Action Mode)                                CSI 2 [hl]
+O LNM (Line Feed/New Line Mode)                             CSI 20 [hl]
+O MC (Media Copy)                                           (ANSI) CSI Pn i  (DEC) CSI ? Pn i
+O NEL (Next Line)                                           ESC E
+O NP (Next Page)                                            CSI Pn U
+O PP (Preceding Page)                                       CSI Pn V
+O PPA (Page Position Absolute)                              CSI Pn SP P
+O PPB (Page Position Backward)                              CSI Pn SP R
+O PPR (Page Position Relative)                              CSI Pn SP Q
+O RIS (Reset to Initial State)                              ESC c
+- S7C1T (Send CControl Character to the Host)               ESC SP F
+- S8C1T (Send CControl Character to the Host)               ESC SP G
+O SD (Pan Up)                                               CSI Pn T
+O SGR (Select Graphic Rendition)                            CSI Ps;Ps;... m
+O SRM (Local Echo: Send/Receive Mode)                       CSI 12 [hl]
+O SU (Pan Down)                                             CSI Pn S
+O TBC (Tab Clear)                                           CSI Ps g
+O VPA (Vertical Line Position Absolute)                     CSI Pn d
+O VPR (Vertical Position Relative)                          CSI Pn e
+
+--- SCO Console Emulation
+- SCODFK (Define Function Key)                              ESC Q Fn string
+- SCODPCC (Display PC Characters)                           ESC xx  (xx = hex value)
+O SCOSC                                                     CSI s
+O SCORC                                                     CSI u
+
+<VT510> https://vt100.net/docs/vt510-rm/contents.html
+- DECSRFR (Select Refresh Rate)                             CSI Ps " t
+
+<VT330/VT340> ftp://ftp.invisible-island.net/shuford/terminal/dec_vt_mouse.html
+              https://www.vt100.net/docs/vt3xx-gp/contents.html
+O DECEFR (Enable Filter Rectangle)                          CSI Pt;Pl;Pb;Pr ' w
+O DECELR (Enable Locator Reports)                           CSI Pn;Ps ' z
+O DECREGIS                                                  DCS Pn p D...D ST
+O DECRQLP (Request Locator Position)                        CSI ' |
+O DECSIXEL                                                  DCS Pn1;Pn2;Pn3;Pn4 q D...D ST
+O DECSDM                                                    CSI ? 80 [hl]
+O DECSLE (Select Locator Events)                            CSI Pn ' {
+
+<VT100> https://vt100.net/docs/vt100-ug/chapter3.html
+O DECREQTPARM (Request Terminal Parameters)                 CSI Pn x
+
+<LA100/LN07/LN05> https://vt100.net/emu/ctrlfunc_dec.html
+O DECCAHT (Clear All Horizontal Tabs)                       ESC 2
+- DECCAVT (Clear All Vertical Tabs)                         ESC 4
+- DECHTS (Horizontal Tab Set)                               ESC 1
+- DECVTS (Vertical Tab Set)                                 ESC 3
+- DECSHTS (Set Horizontal Tabulation Stops)                 CSI Pn u
+- DECSVTS (Set Vertical Tabulation Stops)                   CSI Pn v
+
+<VT52>
+O CUP                                                       ESC A
+O BPH                                                       ESC B
+- ESA                                                       ESC G
+- LMA                                                       ESC l
+O MCP                                                       ESC Y y x
+O NBH                                                       ESC C
+- USR                                                       ESC m
+O V5EX (Exiting ANSI(VT52) Mode)                            ESC <
+- SCI                                                       ESC Z
+- SSA                                                       ESC F
+O                                                           ESC D
+O                                                           ESC H
+O                                                           ESC I
+O                                                           ESC J
+O                                                           ESC K
+
+<Xterm>
+O XTMDKEY                                                   CSI > Pn;Ps m
+O XTMDKYD                                                   CSI > Pn n
+O XTHDPT                                                    CSI > Pn p
+- XTREST                                                    CSI ? Pn r
+- XTSAVE                                                    CSI ? Pn s
+O XTSMTT                                                    CSI > Pn t
+O XTRMTT                                                    CSI > Pn T
+O XTWOP                                                     CSI Pn;P1;P2 t
+O XTRQCAP                                                   DCS + q D...D ST
+- XTCOLREG                                                  CSI ? Pi;Pa;Pv S
+O CSI ? 40/47/1000/1002/1003/1004/1005/1006/1015/1042/1047/1048/1049/2004/8452
+- CSI ? 9/12/41/45/1001
+O OSC 0/1/2/4/5/10/11/12/20/52/104/105
+- OSC 13/14/15/16/17/18/19/110/111/112/113/114/115/116/117/118/119
+
+<Ecma-48>
+O CTC                                                       CSI Pn W
+- DAQ                                                       CSI Pn o
+- EA                                                        CSI Pn O
+- EF                                                        CSI Pn N
+- EPA                                                       ESC W
+- FNT                                                       CSI Pn SP D
+- HPB                                                       CSI Pn j
+- HTJ                                                       ESC I
+- PLD                                                       ESC K
+- PLU                                                       ESC L
+O REP                                                       CSI Pn b
+- RI                                                        ESC M
+O SL                                                        CSI Pn SP @
+- SPA                                                       ESC V
+O SR                                                        CSI Pn SP A
+- VPB                                                       CSI Pn k
+- VTS                                                       ESC J
+
+<TeraTerm>
+O TTIMERS                                                   CSI < r
+O TTIMEST                                                   CSI < Pn t
+O TTIMESV                                                   CSI < s
+O CSI ? 7727
+
+<RLogin>
+O CSI ? 8428
+
+<iTerm2>
+O CSI ? 1337
+
+<Tanasinn>
+O CSI ? 8800
+
+<mlterm>
+O OSC 5379/5380/5381/5383

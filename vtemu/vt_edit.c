@@ -238,7 +238,7 @@ static int horizontal_tabs(vt_edit_t *edit, u_int num, int is_forward) {
         vt_edit_go_back(edit, WRAPAROUND);
       }
 
-      if (edit->tab_stops[col / 8] & (1 << (7 - col % 8))) {
+      if (vt_edit_is_tab_stop(edit, col)) {
         break;
       }
     }
@@ -1383,7 +1383,7 @@ int vt_edit_forward_tabs(vt_edit_t *edit, u_int num) { return horizontal_tabs(ed
 
 int vt_edit_backward_tabs(vt_edit_t *edit, u_int num) { return horizontal_tabs(edit, num, 0); }
 
-int vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
+void vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
   int col;
   u_int8_t *tab_stops;
 
@@ -1392,7 +1392,7 @@ int vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
     bl_warn_printf(BL_DEBUG_TAG " tab size 0 is not acceptable.\n");
 #endif
 
-    return 0;
+    return;
   }
 
   vt_edit_clear_all_tab_stops(edit);
@@ -1402,7 +1402,7 @@ int vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
 
   while (1) {
     if (col % tab_size == 0) {
-      (*tab_stops) |= (1 << (7 - col % 8));
+      (*tab_stops) |= (1 << (col % 8));
     }
 
     col++;
@@ -1411,7 +1411,7 @@ int vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
       tab_stops++;
 
       break;
-    } else if (col % 8 == 0) {
+    } else if (col % 8 == 7) {
       tab_stops++;
     }
   }
@@ -1422,34 +1422,30 @@ int vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
 
     bl_debug_printf(BL_DEBUG_TAG " tab stops =>\n");
 
-    for (i = 0; i < TAB_STOPS_SIZE(edit); i++) {
-      bl_msg_printf("%x ", edit->tab_stops[i]);
+    for (i = 0; i < edit->model.num_of_cols; i++) {
+      if (vt_edit_is_tab_stop(edit, i)) {
+        bl_msg_printf("*");
+      } else {
+        bl_msg_printf(" ");
+      }
     }
     bl_msg_printf("\n");
   }
 #endif
 
   edit->tab_size = tab_size;
-
-  return 1;
 }
 
-int vt_edit_set_tab_stop(vt_edit_t *edit) {
-  edit->tab_stops[edit->cursor.col / 8] |= (1 << (7 - edit->cursor.col % 8));
-
-  return 1;
+void vt_edit_set_tab_stop(vt_edit_t *edit) {
+  edit->tab_stops[edit->cursor.col / 8] |= (1 << (edit->cursor.col % 8));
 }
 
-int vt_edit_clear_tab_stop(vt_edit_t *edit) {
-  edit->tab_stops[edit->cursor.col / 8] &= ~(1 << (7 - edit->cursor.col % 8));
-
-  return 1;
+void vt_edit_clear_tab_stop(vt_edit_t *edit) {
+  edit->tab_stops[edit->cursor.col / 8] &= ~(1 << (edit->cursor.col % 8));
 }
 
-int vt_edit_clear_all_tab_stops(vt_edit_t *edit) {
+void vt_edit_clear_all_tab_stops(vt_edit_t *edit) {
   memset(edit->tab_stops, 0, TAB_STOPS_SIZE(edit));
-
-  return 1;
 }
 
 int vt_edit_set_modified_all(vt_edit_t *edit) {
@@ -1666,12 +1662,8 @@ int vt_edit_goto(vt_edit_t *edit, int col, int row) {
   return vt_cursor_goto_by_col(&edit->cursor, col, row);
 }
 
-void vt_edit_set_relative_origin(vt_edit_t *edit) {
-  edit->is_relative_origin = 1;
-}
-
-void vt_edit_set_absolute_origin(vt_edit_t *edit) {
-  edit->is_relative_origin = 0;
+void vt_edit_set_relative_origin(vt_edit_t *edit, int flag) {
+  edit->is_relative_origin = flag;
 }
 
 void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag) {

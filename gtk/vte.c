@@ -2281,17 +2281,21 @@ static void vte_terminal_init(VteTerminal *terminal) {
                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 #endif
 
-  PVT(terminal)->term = vt_create_term(
-      main_config.term_type, main_config.cols, main_config.rows, main_config.tab_size,
-      main_config.num_of_log_lines, main_config.encoding, main_config.is_auto_encoding,
-      main_config.use_auto_detect, main_config.logging_vt_seq, main_config.unicode_policy,
-      main_config.col_size_of_width_a, main_config.use_char_combining,
-      main_config.use_multi_col_char, main_config.use_ctl, main_config.bidi_mode,
-      main_config.bidi_separators, main_config.use_dynamic_comb, main_config.bs_mode,
-      /* main_config.vertical_mode */ 0, main_config.use_local_echo, main_config.title,
-      main_config.icon_name, main_config.alt_color_mode, main_config.use_ot_layout,
-      main_config.blink_cursor ? CS_BLINK|CS_BLOCK : CS_BLOCK,
-      main_config.ignore_broadcasted_chars);
+  PVT(terminal)->term = vt_create_term(main_config.term_type, main_config.cols, main_config.rows,
+                                       main_config.tab_size, main_config.num_of_log_lines,
+                                       main_config.encoding, main_config.is_auto_encoding,
+                                       main_config.use_auto_detect, main_config.logging_vt_seq,
+                                       main_config.unicode_policy, main_config.col_size_of_width_a,
+                                       main_config.use_char_combining,
+                                       main_config.use_multi_col_char, main_config.use_ctl,
+                                       main_config.bidi_mode, main_config.bidi_separators,
+                                       main_config.use_dynamic_comb, main_config.bs_mode,
+                                       /* main_config.vertical_mode */ 0,
+                                       main_config.use_local_echo, main_config.title,
+                                       main_config.icon_name, main_config.use_ansi_colors,
+                                       main_config.alt_color_mode, main_config.use_ot_layout,
+                                       main_config.blink_cursor ? CS_BLINK|CS_BLOCK : CS_BLOCK,
+                                       main_config.ignore_broadcasted_chars);
   if (!init_inherit_ptys) {
     u_int num;
     vt_term_t **terms;

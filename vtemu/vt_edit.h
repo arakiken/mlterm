@@ -117,13 +117,15 @@ int vt_edit_backward_tabs(vt_edit_t *edit, u_int num);
 
 #define vt_edit_get_tab_size(edit) ((edit)->tab_size)
 
-int vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size);
+void vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size);
 
-int vt_edit_set_tab_stop(vt_edit_t *edit);
+void vt_edit_set_tab_stop(vt_edit_t *edit);
 
-int vt_edit_clear_tab_stop(vt_edit_t *edit);
+#define vt_edit_is_tab_stop(edit, col) ((edit)->tab_stops[(col) / 8] & (1 << ((col) % 8)))
 
-int vt_edit_clear_all_tab_stops(vt_edit_t *edit);
+void vt_edit_clear_tab_stop(vt_edit_t *edit);
+
+void vt_edit_clear_all_tab_stops(vt_edit_t *edit);
 
 #define vt_edit_get_line(edit, row) (vt_model_get_line(&(edit)->model, row))
 
@@ -147,9 +149,9 @@ int vt_edit_goto_home(vt_edit_t *edit);
 
 int vt_edit_goto(vt_edit_t *edit, int col, int row);
 
-void vt_edit_set_relative_origin(vt_edit_t *edit);
+void vt_edit_set_relative_origin(vt_edit_t *edit, int flag);
 
-void vt_edit_set_absolute_origin(vt_edit_t *edit);
+#define vt_edit_is_relative_origin(edit) ((edit)->is_relative_origin)
 
 void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
