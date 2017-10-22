@@ -14,6 +14,6 @@
 
 ef_map_func(kokr, ef_map_uhc_to_ucs4, 16)
 
-    ef_map_func(kokr, ef_map_ucs4_to_uhc, 32)
+ef_map_func(kokr, ef_map_ucs4_to_uhc, 32)
 
 #endif

@@ -1,5 +1,9 @@
 2017-10-22  Araki Ken  <arakiken@users.sf.net>
 
+	* java/Makefile.in: 'sort -r' is added in creating manifest.mf.
+
+	* ef_ucs4_*.c: Code formatting.
+
 	* vt_parser.[ch]: "CSI ? Pm [rs]" is supported.
 
 2017-10-21  Araki Ken  <arakiken@users.sf.net>

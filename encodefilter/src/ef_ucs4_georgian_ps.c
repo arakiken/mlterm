@@ -14,6 +14,6 @@
 
 ef_map_func(8bits, ef_map_georgian_ps_to_ucs4, 16)
 
-    ef_map_func(8bits, ef_map_ucs4_to_georgian_ps, 32)
+ef_map_func(8bits, ef_map_ucs4_to_georgian_ps, 32)
 
 #endif

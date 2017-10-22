@@ -14,6 +14,6 @@
 
 ef_map_func(8bits, ef_map_viscii_to_ucs4, 16)
 
-    ef_map_func(8bits, ef_map_ucs4_to_viscii, 32)
+ef_map_func(8bits, ef_map_ucs4_to_viscii, 32)
 
 #endif

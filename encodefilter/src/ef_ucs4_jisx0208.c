@@ -13,13 +13,13 @@
 #else
 
 ef_map_func(jajp, ef_map_jisx0208_1983_to_ucs4, 16)
-    ef_map_func(jajp, ef_map_jisx0208_nec_ext_to_ucs4, 16)
-        ef_map_func(jajp, ef_map_jisx0208_necibm_ext_to_ucs4, 16)
-            ef_map_func(jajp, ef_map_sjis_ibm_ext_to_ucs4, 16)
+ef_map_func(jajp, ef_map_jisx0208_nec_ext_to_ucs4, 16)
+ef_map_func(jajp, ef_map_jisx0208_necibm_ext_to_ucs4, 16)
+ef_map_func(jajp, ef_map_sjis_ibm_ext_to_ucs4, 16)
 
-                ef_map_func(jajp, ef_map_ucs4_to_jisx0208_1983, 32)
-                    ef_map_func(jajp, ef_map_ucs4_to_jisx0208_nec_ext, 32)
-                        ef_map_func(jajp, ef_map_ucs4_to_jisx0208_necibm_ext, 32)
-                            ef_map_func(jajp, ef_map_ucs4_to_sjis_ibm_ext, 32)
+ef_map_func(jajp, ef_map_ucs4_to_jisx0208_1983, 32)
+ef_map_func(jajp, ef_map_ucs4_to_jisx0208_nec_ext, 32)
+ef_map_func(jajp, ef_map_ucs4_to_jisx0208_necibm_ext, 32)
+ef_map_func(jajp, ef_map_ucs4_to_sjis_ibm_ext, 32)
 
 #endif
