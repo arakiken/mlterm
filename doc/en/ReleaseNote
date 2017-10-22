@@ -1,5 +1,5 @@
 * Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,
-  CSI 7 t, CSI ? Pm s and CSI ? Pm r.
+  CSI 7 t, CSI ? Pm s, CSI ? Pm r and CSI 34 [hl].
 * Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
 	wayland and android.
 * Add "use_vertical_cursor" and "click_interval" to OSC 5379, 5380 and 5381.
@@ -10,6 +10,7 @@
   "Trim trailing CR/LF in pasting" to "Others" tab of mlconfig.
 * Add doc/en/ControlSequences which lists escape/control sequences which mlterm supports.
 * Change the default value of "use_vertical_cursor" option from false to true.
+* Drop "CSI ? 9500 [hl]".
 * Merge patches:
 	https://sf.net/p/mlterm/patches/_discuss/thread/f5dc445d/0fc3/attachment/fix_spelling.diff
 * Bug fixes:

@@ -146,7 +146,6 @@ typedef enum {
   DECMODE_8428,
   DECMODE_8452,
   DECMODE_8800,
-  DECMODE_9500,
 
   /* SM/RM */
   VTMODE_2,
@@ -154,6 +153,7 @@ typedef enum {
   VTMODE_12,
   VTMODE_20,
   VTMODE_33,
+  VTMODE_34,
 
   VTMODE_NUM,
 } vtmode_t;
@@ -171,10 +171,10 @@ static u_int16_t vtmodes[] = {
   1, 2, 3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 116, 117,
   1000, 1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
   1003, 1004, 1005, 1006, 1015, /* Don't add an entry between 1006 and 1015 (see set_vtmode()) */
-  1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800, 9500,
+  1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800,
 
   /* SM/RM */
-  VTMODE(2), VTMODE(4), VTMODE(12), VTMODE(20), VTMODE(33)
+  VTMODE(2), VTMODE(4), VTMODE(12), VTMODE(20), VTMODE(33), VTMODE(34),
 };
 
 static int use_alt_buffer = 1;
@@ -3365,10 +3365,6 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     }
     break;
 
-  case DECMODE_9500:
-    config_protocol_set_simple(vt_parser, "use_local_echo", flag ? "true" : "false", 1);
-    break;
-
   case VTMODE_2:
     if (flag) {
       vt_parser->pty_hook.pre_write = NULL;
@@ -3404,12 +3400,22 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     break;
 
   case VTMODE_33:
-    /* WYSTCURM (TeraTerm original) */
+    /* WYSTCURM */
     if (flag) {
       vt_parser->cursor_style &= ~CS_BLINK;
     } else {
       vt_parser->cursor_style |= CS_BLINK;
     }
+    break;
+
+  case VTMODE_34:
+    /* WYULCURM */
+    if (flag) {
+      vt_parser->cursor_style |= CS_UNDERLINE;
+    } else {
+      vt_parser->cursor_style &= ~CS_UNDERLINE;
+    }
+    break;
   }
 }
 

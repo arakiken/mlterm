@@ -243,6 +243,10 @@ O DECCAHT (Clear All Horizontal Tabs)                       ESC 2
 - DECSHTS (Set Horizontal Tabulation Stops)                 CSI Pn u
 - DECSVTS (Set Vertical Tabulation Stops)                   CSI Pn v
 
+<Wyse>
+O WYSTCURM                                                  CSI 33 [hl]
+O WYULCURM                                                  CSI 34 [hl]
+
 <VT52>
 O CUP                                                       ESC A
 O BPH                                                       ESC B
@@ -261,8 +265,20 @@ O                                                           ESC J
 O                                                           ESC K
 
 <Xterm>
+O XTALTSCRN                                                 CSI ? 47 [hl]
+O XTALTS47                                                  CSI ? 1047 [hl]
+O XTALTS48                                                  CSI ? 1048 [hl]
+O XTEXTSCRN                                                 CSI ? 1049 [hl]
+O XTBRACKET                                                 CSI ? 2004 [hl]
 O XTMDKEY                                                   CSI > Pn;Ps m
 O XTMDKYD                                                   CSI > Pn n
+O XTMSEANY                                                  CSI ? 1003 [hl]
+O XTMSEBTN                                                  CSI ? 1002 [hl]
+O XTMSERXVT                                                 CSI ? 1015 [hl]
+O XTMSESGR                                                  CSI ? 1006 [hl]
+O XTMSEUTF                                                  CSI ? 1005 [hl]
+O XTMSEWIN                                                  CSI ? 1004 [hl]
+O XTMSEX11                                                  CSI ? 1000 [hl]
 O XTHDPT                                                    CSI > Pn p
 O XTREST                                                    CSI ? Pn r
 O XTSAVE                                                    CSI ? Pn s
@@ -271,10 +287,10 @@ O XTRMTT                                                    CSI > Pn T
 O XTWOP                                                     CSI Pn;P1;P2 t
 O XTRQCAP                                                   DCS + q D...D ST
 - XTCOLREG                                                  CSI ? Pi;Pa;Pv S
-O CSI ? 40/47/1000/1002/1003/1004/1005/1006/1015/1042/1047/1048/1049/2004/8452
-- CSI ? 9/12/41/45/1001
-O OSC 0/1/2/4/5/10/11/12/20/52/104/105
-- OSC 13/14/15/16/17/18/19/110/111/112/113/114/115/116/117/118/119
+O CSI ? 40/1042/8452 [hl]
+- CSI ? 9/12/41/45/1001 [hl]
+O OSC 0/1/2/4/5/10/11/12/20/52/104/105;Pt ST
+- OSC 13/14/15/16/17/18/19/110/111/112/113/114/115/116/117/118/119;Pt St
 
 <Ecma-48>
 O CTC                                                       CSI Pn W
@@ -299,16 +315,23 @@ O SR                                                        CSI Pn SP A
 O TTIMERS                                                   CSI < r
 O TTIMEST                                                   CSI < Pn t
 O TTIMESV                                                   CSI < s
-O CSI ? 7727
+
+<Mintty>
+O (Application Escape Mode)                                 CSI ? 7727 [hl]
 
 <RLogin>
-O CSI ? 8428
+O RLAMBCHM                                                  CSI ? 8428 [hl]
+- RLBFAT                                                    CSI Pn p
+- RLCURCOL                                                  CSI < Pn ! q
+- RLIMGCP                                                   CSI < Pn ! i
+- RLSCD                                                     CSI Pn v
+- CSI ? 8400/8401/8402/8403/8405/8406/8435/8437/8440/8441/8442/8443/8448/8449/8450/8451/8452/8453/8455/8456/8457/8458 [hl]
 
 <iTerm2>
-O CSI ? 1337
+O OSC 1337;Pt ST
 
-<Tanasinn>
-O CSI ? 8800
+<drcsterm>
+O DRCSMMv1                                                  CSI ? 8800 [hl]
 
 <mlterm>
-O OSC 5379/5380/5381/5383
+O OSC 5379/5380/5381/5383;Pt ST

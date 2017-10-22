@@ -1,5 +1,17 @@
 2017-10-22  Araki Ken  <arakiken@users.sf.net>
 
+	* ControlSequences: Updated.
+
+	* vt_parser.c:
+	  - "CSI 34 [hl]" is supported.
+	  - "CSI ? 9500 [hl]" is removed.
+
+	* mc_opentype.c:
+	  - strcasestr() is replaced by ascii_strcasestr() which is originally implemented.
+	  - strcasecmp() is replaced by g_strcasecmp().
+
+2017-10-22  Araki Ken  <arakiken@users.sf.net>
+
 	* java/Makefile.in: 'sort -r' is added in creating manifest.mf.
 
 	* ef_ucs4_*.c: Code formatting.
