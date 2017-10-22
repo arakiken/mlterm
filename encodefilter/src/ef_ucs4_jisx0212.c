@@ -14,6 +14,6 @@
 
 ef_map_func(jajp, ef_map_jisx0212_1990_to_ucs4, 16)
 
-    ef_map_func(jajp, ef_map_ucs4_to_jisx0212_1990, 32)
+ef_map_func(jajp, ef_map_ucs4_to_jisx0212_1990, 32)
 
 #endif

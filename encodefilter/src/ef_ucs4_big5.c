@@ -14,6 +14,6 @@
 
 ef_map_func(zh, ef_map_big5_to_ucs4, 16) ef_map_func(zh, ef_map_hkscs_to_ucs4, 16)
 
-    ef_map_func(zh, ef_map_ucs4_to_big5, 32) ef_map_func(zh, ef_map_ucs4_to_hkscs, 32)
+ef_map_func(zh, ef_map_ucs4_to_big5, 32) ef_map_func(zh, ef_map_ucs4_to_hkscs, 32)
 
 #endif

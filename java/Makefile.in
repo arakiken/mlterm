@@ -77,7 +77,9 @@ $(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
 
 manifest.mf : $(TARGET@WIN32TAG@)
 	cp $(top_srcdir)/java/manifest.mf.in manifest.mf
-	files=`find * -name "*.dll" -o -name "*.s*" -o -name "plink.exe" | xargs | sed 's/ /;/g'` ; \
+	# 'sort -r' brings cygpobl.dll before cygmef.dll. If java loads cygmef.dll before cygpobl.dll,
+	# it loads /bin/cygpobl.dll (for cygwin) to solve pobl symbols refered by cygmef.dll.
+	files=`find * -name "*.dll" -o -name "*.s*" -o -name "plink.exe" | sort -r | xargs | sed 's/ /;/g'` ; \
 	if test "$${files}" != "" ; then \
 		echo -n "Bundle-NativeCode: " >> manifest.mf ; \
 		echo $${files} >> manifest.mf ; \
