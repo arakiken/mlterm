@@ -27,10 +27,34 @@ static GtkWidget *script_button;
 
 /* --- static functions --- */
 
+static char *ascii_strcasestr(const char *str1 /* separated by ',' */,
+                              const char *str2 /* 4 bytes/Lower case */) {
+  const char *p1 = str1;
+  const char *p2 = str2;
+
+  while (1) {
+    if ((*p1|0x20) == *p2) {
+      if (*(++p2) == '\0') {
+        return p1 - 3;
+      }
+      if (*(++p1) == '\0') {
+        return NULL;
+      }
+    } else {
+      do {
+        if (*p1 == '\0') {
+          return NULL;
+        }
+      } while (*(p1++) != ',');
+      p2 = str2;
+    }
+  }
+}
+
 static int contains(char *values, char *value) {
   char *p;
 
-  if ((p = strcasestr(values, value))) {
+  if ((p = ascii_strcasestr(values, value))) {
     if (p == values || *(p - 1) == ',') {
       p += strlen(value);
 
@@ -110,7 +134,7 @@ static void edit_features(GtkWidget *widget, gpointer data) {
       *p = '\0';
     }
 
-    if (strcasecmp(value, new_value) != 0) {
+    if (g_ascii_strcasecmp(value, new_value) != 0) {
       free(features);
       features = new_value;
     } else {
@@ -169,7 +193,7 @@ static void edit_script(GtkWidget *widget, gpointer data) {
 
     buttons[count] = gtk_radio_button_new_with_label(group, scripts_tbl[count]);
     group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(buttons[count]));
-    if (strcasecmp(value, scripts_tbl[count]) == 0) {
+    if (g_ascii_strcasecmp(value, scripts_tbl[count]) == 0) {
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(buttons[count]), TRUE);
     }
     gtk_widget_show(buttons[count]);
@@ -188,7 +212,7 @@ static void edit_script(GtkWidget *widget, gpointer data) {
       }
     }
 
-    if (strcasecmp(value, new_value) != 0) {
+    if (g_ascii_strcasecmp(value, new_value) != 0) {
       free(script);
       script = new_value;
     } else {
