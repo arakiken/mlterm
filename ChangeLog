@@ -1,3 +1,9 @@
+2017-10-24  Araki Ken  <arakiken@users.sf.net>
+
+	* ControlSequences: Updated.
+
+	* vt_parser.c: DECRQTSR is fixed.
+
 2017-10-23  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: DECCIR, XCPR, DSR(Locator) and DECCKSR are fixed.
