@@ -1497,7 +1497,7 @@ static void set_presentation_state(vt_parser_t *vt_parser, char *seq) {
   char attr;
   char flag;
 
-  if (sscanf(seq, "%d;%d;%d;%c;%c;%c;@;0;2;BB%%5%%5\x1b\\",
+  if (sscanf(seq, "%d;%d;%d;%c;%c;%c;0;2;@;BB%%5%%5\x1b\\",
              &row, &col, &page, &rend, &attr, &flag) == 6) {
     vt_screen_goto(vt_parser->screen, col - 1, row - 1);
 
@@ -1551,7 +1551,7 @@ static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
       flag |= 0x1;
     }
 
-    sprintf(seq, "\x1bP1$u%d;%d;%d;%c;%c;%c;@;0;2;BB%%5%%5\x1b\\",
+    sprintf(seq, "\x1bP1$u%d;%d;%d;%c;%c;%c;0;2;@;BB%%5%%5\x1b\\",
             vt_screen_cursor_row(vt_parser->screen) + 1,
             vt_screen_cursor_col(vt_parser->screen) + 1,
             vt_screen_get_page_id(vt_parser->screen) + 1, rend, attr, flag);
@@ -3478,14 +3478,14 @@ static void soft_reset(vt_parser_t *vt_parser) {
   vt_screen_set_vmargin(vt_parser->screen, -1, -1);
 }
 
-static void send_device_status(vt_parser_t *vt_parser, int num) {
+static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
   char *seq;
   char amb[] = "\x1b[?884Xn";
 
   if (num == 6) {
     /* XCPR */
     if ((seq = alloca(6 + DIGIT_STR_LEN(int)+1))) {
-      sprintf(seq, "\x1b[%d;%d;%dR", vt_screen_cursor_row(vt_parser->screen) + 1,
+      sprintf(seq, "\x1b[?%d;%d;%dR", vt_screen_cursor_row(vt_parser->screen) + 1,
               vt_screen_cursor_col(vt_parser->screen) + 1,
               vt_screen_get_page_id(vt_parser->screen) + 1);
     } else {
@@ -3498,13 +3498,18 @@ static void send_device_status(vt_parser_t *vt_parser, int num) {
   } else if (num == 26) {
     seq = "\x1b[?27;1;0;0n"; /* North American, Keyboard ready */
   } else if (num == 53 || num == 55) {
-    seq = "\x1b[?53n"; /* Locator ready */
+    seq = "\x1b[?50n"; /* Locator ready */
   } else if (num == 56) {
     seq = "\x1b[?57;1n"; /* Locator exists */
   } else if (num == 62) {
     seq = "\x1b[0*{"; /* Macro Space (Pn = [num of bytes] / 16 (rounded down) */
   } else if (num == 63) {
-    seq = "\x1bP0!~0000\x1b\\"; /* checksum = 0 */
+    /* checksum = 0 */
+    if ((seq = alloca(10+DIGIT_STR_LEN(int)+1))) {
+      sprintf(seq, "\x1bP%d!~0000\x1b\\", id);
+    } else {
+      seq = "\x1bP0!~0000\x1b\\";
+    }
   } else if (num == 75) {
     seq = "\x1b[?70n"; /* Ready */
   } else if (num == 85) {
@@ -4048,7 +4053,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == 'n') {
           /* "CSI ? n" Device Status Report (DSR) */
 
-          send_device_status(vt_parser, ps[0]);
+          send_device_status(vt_parser, ps[0], num == 2 ? ps[1] : 0);
         } else if (*str_p == 'J') {
           /* "CSI ? J" DECSED (Selective Erase Display) */
           vt_protect_store_t *save;
