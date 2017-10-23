@@ -166,7 +166,6 @@ O DECSWL (Single-Width, Single-Height Line)                 ESC # 5
 O DECTCEM (Text Cursor Enable Mode)                         CSI ? 25 [hl]
 - DECTID (Select Terminal ID)                               CSI Ps , q
 - DECTME (Terminal Mode Emulation)                          CSI Ps SP ~
-- DECTSR (Terminal State Report - Terminal to Host)         CSI Ps $ u
 - DECTST (Invoke Confidence Test)                           CSI 4;Ps;...;Ps y
 - DECUDK (User Defined Keys)                                DCS Ps1;Ps2;Ps3 | D...D ST
 - DECUS (Update Session)                                    CSI PS , y
@@ -177,8 +176,11 @@ O DSR (Cursor Position Report (CPR))                        CSI 6 n
 O DSR (Data Integrity Report)                               CSI ? 75 n
 O DSR (Extended Cursor Position Report (DECXCPR))           CSI ? 6 n
 O DSR (Keyboard)                                            CSI ? 26 n
+O DSR (Locator)                                             CSI ? 53 n  or  CSI ? 55 n
+O DSR (Locator Exist)                                       CSI ? 56 n
 O DSR (Macro Space Report)                                  CSI ? 62 n
-O DSR (Memory Checksum  (DECCKSR))                          CSI ? 63;Pid n
+O DSR (Memory Checksum (DECCKSR))                           CSI ? 63;Pid n
+O DSR (Multiple Session)                                    CSI ? 83 n
 O DSR (Operating Status)                                    CSI 5 n
 O DSR (Printer Port)                                        CSI ? 15 n
 O DSR (User-Defined Keys  (VT Level Only))                  CSI ? 25 n
@@ -332,6 +334,9 @@ O OSC 1337;Pt ST
 
 <drcsterm>
 O DRCSMMv1                                                  CSI ? 8800 [hl]
+
+<Tanasinn>
+O TNREPTAMB                                                 CSI ? 8840 n
 
 <mlterm>
 O OSC 5379/5380/5381/5383;Pt ST

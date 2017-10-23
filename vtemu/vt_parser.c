@@ -4274,11 +4274,11 @@ inline static int parse_vt100_escape_sequence(
             resize(vt_parser, 132, 0, 1);
           }
         } else if (*str_p == 'u') {
-          if (ps[0] == 2) {
-            if (num == 1) {
-              /* "CSI 2 $ u" DECRQTSR */
-              vt_write_to_pty(vt_parser->pty, "\x1bP0$s\x1b\\", 7);
-            } else if (num == 2) {
+          if (ps[0] == 1) {
+            /* "CSI 1 $ u" DECRQTSR */
+            vt_write_to_pty(vt_parser->pty, "\x1bP0$s\x1b\\", 7);
+          } else if (ps[0] == 2) {
+            if (num == 2) {
               /* "CSI 2;Pu $ u" DECCTR */
               report_color_table(vt_parser, ps[1]);
             }
