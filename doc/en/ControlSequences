@@ -289,10 +289,46 @@ O XTRMTT                                                    CSI > Pn T
 O XTWOP                                                     CSI Pn;P1;P2 t
 O XTRQCAP                                                   DCS + q D...D ST
 - XTCOLREG                                                  CSI ? Pi;Pa;Pv S
-O CSI ? 40/1042/8452 [hl]
-- CSI ? 9/12/41/45/1001 [hl]
-O OSC 0/1/2/4/5/10/11/12/20/52/104/105;Pt ST
-- OSC 13/14/15/16/17/18/19/110/111/112/113/114/115/116/117/118/119;Pt St
+- (X10 xterm mouse protocol)                                CSI ? 9 [hl]
+- (Start Blinking Cursor (att610))                          CSI ? 12 [hl]
+O (Allow 80 -> 132 Mode)                                    CSI ? 40 [hl]
+- (more(1) fix)                                             CSI ? 41 [hl]
+- (Reverse-wraparound Mode)                                 CSI ? 45 [hl]
+- (Use Hilite Mouse Tracking)                               CSI ? 1001 [hl]
+O (Enable Urgency window manager hint)                      CSI ? 1042 [hl]
+O (Sixel scrolling leaves cursor to right of graphic)       CSI ? 8452 [hl]
+O (Change Icon Name and Window Title)                       OSC 0;Pt ST
+O (Change Icon Name)                                        OSC 1;Pt ST
+O (Change Window Title)                                     OSC 2;Pt ST
+- (Set X property on top-level window)                      OSC 3;Pt ST
+O (Change Color Number c to the color spec)                 OSC 4;c;spec ST
+O (Change Special Color Number c to the color spec)         OSC 5;c;spec
+- (Enable/disable Special Color Number c)                   OSC 6;c;f  OSC 106;c;f
+O (Change VT100 text foreground color)                      OSC 10;Pt ST
+O (Change VT100 text background color)                      OSC 11;Pt ST
+O (Change text cursor color)                                OSC 12;Pt ST
+- (Change mouse foreground color)                           OSC 13;Pt ST
+- (Change mouse background color)                           OSC 14;Pt ST
+- (Change Tektronix foreground color)                       OSC 15;Pt ST
+- (Change Tektronix background color)                       OSC 16;Pt ST
+- (Change highlight background color)                       OSC 17;Pt ST
+- (Change Tektronix cursor color)                           OSC 18;Pt ST
+- (Change highlight foreground color)                       OSC 19;Pt ST
+- (Change Log File)                                         OSC 46;Pt ST
+- (Set Font)                                                OSC 50;Pt ST
+O (Manipulate Selection Data)                               OSC 52;Pt ST
+O (Reset Color Number c)                                    OSC 104;c ST
+O (Reset Special Color Number c)                            OSC 105;c ST
+- (Reset VT100 text foreground color)                       OSC 110;Pt ST
+- (Reset VT100 text background color)                       OSC 111;Pt ST
+- (Reset text cursor color)                                 OSC 112;Pt ST
+- (Reset mouse foreground color)                            OSC 113;Pt ST
+- (Reset mouse background color)                            OSC 114;Pt ST
+- (Reset Tektronix foreground color)                        OSC 115;Pt ST
+- (Reset Tektronix background color)                        OSC 116;Pt ST
+- (Reset highlight color)                                   OSC 117;Pt ST
+- (Reset Tektronix cursor color)                            OSC 118;Pt ST
+- (Reset highlight foreground color)                        OSC 119;Pt ST
 
 <Ecma-48>
 O CTC                                                       CSI Pn W
@@ -313,15 +349,16 @@ O SR                                                        CSI Pn SP A
 - VPB                                                       CSI Pn k
 - VTS                                                       ESC J
 
-<TeraTerm>
+<TeraTerm> https://ttssh2.osdn.jp/manual/ja/about/ctrlseq.html
 O TTIMERS                                                   CSI < r
 O TTIMEST                                                   CSI < Pn t
 O TTIMESV                                                   CSI < s
 
-<Mintty>
+<Mintty> https://github.com/mintty/mintty/wiki/CtrlSeqs
 O (Application Escape Mode)                                 CSI ? 7727 [hl]
+- CSI ? 7700/7728/7730/7766/7767/7783/7786/7787/7796/
 
-<RLogin>
+<RLogin> http://nanno.dip.jp/softlib/man/rlogin/ctrlcode.html
 O RLAMBCHM                                                  CSI ? 8428 [hl]
 - RLBFAT                                                    CSI Pn p
 - RLCURCOL                                                  CSI < Pn ! q
@@ -329,7 +366,7 @@ O RLAMBCHM                                                  CSI ? 8428 [hl]
 - RLSCD                                                     CSI Pn v
 - CSI ? 8400/8401/8402/8403/8405/8406/8435/8437/8440/8441/8442/8443/8448/8449/8450/8451/8452/8453/8455/8456/8457/8458 [hl]
 
-<iTerm2>
+<iTerm2> https://www.iterm2.com/documentation-escape-codes.html
 O OSC 1337;Pt ST
 
 <drcsterm>
@@ -337,6 +374,9 @@ O DRCSMMv1                                                  CSI ? 8800 [hl]
 
 <Tanasinn>
 O TNREPTAMB                                                 CSI ? 8840 n
+
+<Eterm>
+O                                                           OSC 20;Pt ST
 
 <mlterm>
 O OSC 5379/5380/5381/5383;Pt ST
