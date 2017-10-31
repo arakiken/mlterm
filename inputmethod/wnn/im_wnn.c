@@ -831,7 +831,7 @@ static void unfocused(ui_im_t *im) {
 /* --- global functions --- */
 
 ui_im_t *im_wnn_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                    ui_im_export_syms_t *export_syms, char *engine, u_int mod_ignore_mask) {
+                    ui_im_export_syms_t *export_syms, char *server, u_int mod_ignore_mask) {
   im_wnn_t *wnn;
   struct wnn_buf *buf;
 
@@ -865,7 +865,7 @@ ui_im_t *im_wnn_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     goto error;
   }
 
-  if (!(buf = jcOpen(NULL, "", 0, "", bl_msg_printf, bl_msg_printf, 0))) {
+  if (!(buf = jcOpen(server, "", 0, "", bl_msg_printf, bl_msg_printf, 0))) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " jcOpen failed.\n");
 #endif

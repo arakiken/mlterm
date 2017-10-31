@@ -3366,6 +3366,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     break;
 
   case VTMODE_2:
+    /* KAM */
     if (flag) {
       vt_parser->pty_hook.pre_write = NULL;
       vt_pty_set_hook(vt_parser->pty, &vt_parser->pty_hook);
@@ -3396,6 +3397,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     break;
 
   case VTMODE_20:
+    /* LNM */
     vt_parser->auto_cr = flag;
     break;
 

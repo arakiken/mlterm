@@ -107,7 +107,10 @@ GtkWidget *mc_sb_view_config_widget_new(void) {
   }
 
   userdir = bl_get_user_rc_path("mlterm/scrollbars");
-  if (userdir) n = read_sb_names(userdir, sb_view_names, n);
+  if (userdir) {
+    n = read_sb_names(userdir, sb_view_names, n);
+    free(userdir);
+  }
   n = read_sb_names(SB_DIR, sb_view_names, n);
 
   new_sb_view_name = strdup(old_sb_view_name = mc_get_str_value("scrollbar_view_name"));

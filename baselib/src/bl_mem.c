@@ -421,8 +421,12 @@ int bl_mem_free_all(void) {
 
     do {
       fprintf(stderr, "%p: ", log);
-      fprintf(stderr, "%p(size %d , alloced at %s[l.%d in %s] is not freed.\n", log->ptr,
+      fprintf(stderr, "%p(size %d, alloced at %s[l.%d in %s] is not freed.\n", log->ptr,
               (int)log->size, log->func, log->line, log->file);
+#if 1
+      fprintf(stderr, "  [%s]\n", log->ptr);
+#endif
+
       free(log->ptr);
       log = bl_slist_next((prev = log));
       free(prev);

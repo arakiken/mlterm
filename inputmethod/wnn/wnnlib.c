@@ -1,3 +1,4 @@
+/* -*- c-basic-offset:2; tab-width:8; indent-tabs-mode:nil -*- */
 /*
   Copyright (c) 2008-2013 uim Project http://code.google.com/p/uim/
 

@@ -3,6 +3,7 @@
 #include <stdio.h> /* sprintf */
 #include <gtk/gtk.h>
 #include <glib.h>
+#include <pobl/bl_mem.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_str.h>
 
@@ -37,6 +38,12 @@
 
 /* --- static functions --- */
 
+#ifdef DEBUG
+static void check_mem_leak(void) {
+  bl_mem_free_all();
+}
+#endif
+
 static void end_application(GtkWidget *widget, gpointer data) { gtk_main_quit(); }
 
 /*
@@ -44,6 +51,8 @@ static void end_application(GtkWidget *widget, gpointer data) { gtk_main_quit();
  */
 
 static int update(mc_io_t io) {
+  char *gui = mc_get_gui();
+
   mc_update_char_encoding();
   mc_update_auto_detect();
   mc_update_color(MC_COLOR_FG);
@@ -86,7 +95,9 @@ static int update(mc_io_t io) {
   mc_update_flag_mode(MC_FLAG_COMB);
   mc_update_flag_mode(MC_FLAG_DYNCOMB);
   mc_update_flag_mode(MC_FLAG_RECVUCS);
-  mc_update_flag_mode(MC_FLAG_CLIPBOARD);
+  if (strcmp(gui, "xlib") == 0) {
+    mc_update_flag_mode(MC_FLAG_CLIPBOARD);
+  }
   mc_update_flag_mode(MC_FLAG_LOCALECHO);
   mc_update_flag_mode(MC_FLAG_BLINKCURSOR);
   mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL);
@@ -95,11 +106,12 @@ static int update(mc_io_t io) {
   mc_update_flag_mode(MC_FLAG_OTLAYOUT);
 
   mc_update_radio(MC_RADIO_SB_MODE);
-#ifndef USE_QUARTZ
-  mc_update_color(MC_COLOR_SBFG);
-  mc_update_color(MC_COLOR_SBBG);
-  mc_update_sb_view_name();
-#endif
+
+  if (strcmp(gui, "quartz") != 0) {
+    mc_update_color(MC_COLOR_SBFG);
+    mc_update_color(MC_COLOR_SBBG);
+    mc_update_sb_view_name();
+  }
 
   mc_flush(io);
 
@@ -328,7 +340,6 @@ static gint pty_button_clicked(GtkWidget *widget, gpointer data) {
   return 1;
 }
 
-#if defined(UES_WIN32GUI) || defined(USE_QUARTZ)
 static gboolean event(GtkWidget *widget, GdkEvent *event, gpointer data) {
   if (event->type == GDK_FOCUS_CHANGE && !((GdkEventFocus*)event)->in) {
     gtk_window_set_keep_above(GTK_WINDOW(widget), FALSE);
@@ -337,7 +348,6 @@ static gboolean event(GtkWidget *widget, GdkEvent *event, gpointer data) {
 
   return FALSE;
 }
-#endif
 
 /*
  *  ********  Building GUI (lower part, independent buttons)  ********
@@ -450,6 +460,7 @@ static int show(void) {
   GtkWidget *label;
   GtkWidget *config_widget;
   GtkWidget *separator;
+  char *gui = mc_get_gui();
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   g_signal_connect(window, "destroy", G_CALLBACK(end_application), NULL);
@@ -655,23 +666,23 @@ static int show(void) {
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-#ifndef USE_QUARTZ
-  config_widget = mc_sb_view_config_widget_new();
-  gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+  if (strcmp(gui, "quartz") != 0) {
+    config_widget = mc_sb_view_config_widget_new();
+    gtk_widget_show(config_widget);
+    gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-  hbox = gtk_hbox_new(FALSE, 0);
-  gtk_widget_show(hbox);
-  gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+    hbox = gtk_hbox_new(FALSE, 0);
+    gtk_widget_show(hbox);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-  config_widget = mc_color_config_widget_new(MC_COLOR_SBFG);
-  gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 5);
+    config_widget = mc_color_config_widget_new(MC_COLOR_SBFG);
+    gtk_widget_show(config_widget);
+    gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 5);
 
-  config_widget = mc_color_config_widget_new(MC_COLOR_SBBG);
-  gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
-#endif
+    config_widget = mc_color_config_widget_new(MC_COLOR_SBBG);
+    gtk_widget_show(config_widget);
+    gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+  }
 
   /* contents of the "Others" tab */
 
@@ -726,11 +737,11 @@ static int show(void) {
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-#ifdef USE_XLIB
-  config_widget = mc_flag_config_widget_new(MC_FLAG_CLIPBOARD);
-  gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
-#endif
+  if (strcmp(gui, "xlib") == 0) {
+    config_widget = mc_flag_config_widget_new(MC_FLAG_CLIPBOARD);
+    gtk_widget_show(config_widget);
+    gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+  }
 
   config_widget = mc_flag_config_widget_new(MC_FLAG_LOCALECHO);
   gtk_widget_show(config_widget);
@@ -771,10 +782,10 @@ static int show(void) {
 
   gtk_widget_show(window);
 
-#if defined(UES_WIN32GUI) || defined(USE_QUARTZ)
-  gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
-  g_signal_connect(window, "event", G_CALLBACK(event), NULL);
-#endif
+  if (strcmp(gui, "win32") == 0 || strcmp(gui, "quartz") == 0) {
+    gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+    g_signal_connect(window, "event", G_CALLBACK(event), NULL);
+  }
 
   gtk_main();
 
@@ -784,6 +795,10 @@ static int show(void) {
 /* --- global functions --- */
 
 int main(int argc, char **argv) {
+#ifdef DEBUG
+  atexit(check_mem_leak);
+#endif
+
 #if !GTK_CHECK_VERSION(2, 90, 0)
   gtk_set_locale();
 #endif

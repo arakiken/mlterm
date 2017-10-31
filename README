@@ -277,7 +277,7 @@ USAGE
 
   $ mlterm
 
-  Read the manpage for detail.
+  Read the manpage (and documentations in mlterm-x.x.x/doc/{ja,en}) for detail.
   See ~/.mlterm/msg.log on error.
 
 

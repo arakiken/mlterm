@@ -61,6 +61,8 @@ typedef struct im_skk {
 
   input_mode_t mode;
 
+  int sticky_shift;
+
   int is_editing_new_word;
   ef_char_t new_word[MAX_CAPTION_LEN];
   u_int new_word_len;
@@ -80,6 +82,7 @@ typedef struct im_skk {
 
 ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 static int ref_count = 0;
+static KeySym sticky_shift_key = NoSymbol;
 
 /* --- static functions --- */
 
@@ -813,10 +816,34 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     if (!skk->is_enabled) {
       return 0;
     }
+
+    goto end;
   } else if (!skk->is_enabled) {
     return 1;
-  } else if ((skk->mode != ALPHABET && key_char == 'l') ||
-             (skk->mode != ALPHABET_FULL && key_char == 'L')) {
+  }
+
+  /* skk is enabled */
+
+  if (skk->mode != ALPHABET && skk->mode != ALPHABET_FULL) {
+    if (ksym == sticky_shift_key) {
+      if (skk->sticky_shift) {
+        skk->sticky_shift = 0;
+      } else {
+        skk->sticky_shift = 1;
+
+        return 0;
+      }
+    } else if (skk->sticky_shift) {
+      if ('a' <= key_char && key_char <= 'z') {
+        key_char -= 0x20;
+      }
+      event->state |= ShiftMask;
+      skk->sticky_shift = 0;
+    }
+  }
+
+  if ((skk->mode != ALPHABET && key_char == 'l') ||
+      (skk->mode != ALPHABET_FULL && key_char == 'L')) {
     if (!skk->is_editing_new_word) {
       fix(skk);
     }
@@ -1069,12 +1096,24 @@ static void unfocused(ui_im_t *im) {
   }
 }
 
+static void set_sticky_shift_key(char *key) {
+  int digit;
+  if (strlen(key) == 1) {
+    sticky_shift_key = *key;
+  } else if (sscanf(key, "\\x%x", &digit) == 1) {
+    sticky_shift_key = digit;
+  } else {
+    sticky_shift_key = (*syms->XStringToKeysym)(key);
+  }
+}
+
 /* --- global functions --- */
 
 ui_im_t *im_skk_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                    ui_im_export_syms_t *export_syms, char *engine, u_int mod_ignore_mask) {
+                    ui_im_export_syms_t *export_syms, char *options, u_int mod_ignore_mask) {
   im_skk_t *skk;
   ef_parser_t *parser;
+  char *env;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
     bl_error_printf("Incompatible input method API.\n");
@@ -1094,8 +1133,37 @@ ui_im_t *im_skk_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     goto error;
   }
 
-  if (engine) {
-    dict_set_global(engine);
+  if ((env = getenv("SKK_DICTIONARY"))) {
+    dict_set_global(env);
+  }
+
+  if ((env = getenv("SKK_STICKY_SHIFT_KEY"))) {
+    set_sticky_shift_key(env);
+  }
+
+  /* Same processing as skk_widget_new() in mc_im.c */
+  if (options) {
+#if 1
+    /* XXX Compat with 3.8.3 or before. */
+    if (!strchr(options, '=')) {
+      dict_set_global(options);
+    } else
+#endif
+    {
+      char *next;
+
+      do {
+        if ((next = strchr(options, ','))) {
+          *(next++) = '\0';
+        }
+
+        if (strncmp(options, "sskey=", 6) == 0) {
+          set_sticky_shift_key(options + 6);
+        } else if (strncmp(options, "dict=", 5) == 0) {
+          dict_set_global(options + 5);
+        }
+      } while ((options = next));
+    }
   }
 
   skk->term_encoding = term_encoding;

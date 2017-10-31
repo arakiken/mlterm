@@ -99,7 +99,7 @@ See \fB\-k\fR option also.
 Whether to use login shell or not.  The default is \fBfalse\fR.
 .TP
 \fB\-M\fR, \fB\-\-im\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR
-Specify an input method.
+Specify an input method. (See doc/ja/README.ja in detail)
 .PP
 .RS
 .B Examples:
@@ -139,7 +139,10 @@ Use m17n library in Oriya using ITRANS method.
 Use SCIM.
 .TP
 \-\-im=ibus
-Use IBus.
+Use IBus with the default conversion engine.
+.TP
+\-\-im=ibus:anthy
+Use IBus with anthy conversion engine.
 .TP
 \-\-im=fcitx
 Use Fcitx.
@@ -150,8 +153,16 @@ Use Canna.
 \-\-im=wnn
 Use Freewnn.
 .TP
+\-\-im=wnn:foo.bar
+Use Freewnn with jserver at foo.bar host.
+(JSERVER environmental variable is also available.)
+.TP
 \-\-im=skk
 Use SKK.
+.TP
+\-\-im=skk:dict=foo.bar:utf8,sskey=\;
+Use SKK with the use of utf8 skk server at foo.bar host and semicolon key as sticky shift key.
+(SKK_DICTIONARY and SKK_STICKY_SHIFT_KEY environmental variable are also available.)
 .TP
 \-\-im=iiimf
 Use IIIMF in the system language.
@@ -847,7 +858,8 @@ No option
 .PP
 .B Freewnn:
 .TP
-No option (JSERVER and WNNENVRC environmental variables are available.)
+Option
+Specify the address of the host where jserver works.
 .PP
 .B Canna:
 .TP
@@ -855,7 +867,8 @@ No option
 .PP
 .B SKK:
 .TP
-No option
+Option
+Specify the place of skk dictionary (server or file) and the key used as sticky shift key.
 .PP
 .B IIIMF:
 .TP

@@ -1,3 +1,27 @@
+2017-10-31  Araki Ken  <arakiken@users.sf.net>
+
+	* ControlSequences, man/mlterm.1, README.ja: Updated.
+
+	* mc_wordsep.c: ';' is replaced by '\x3b'.
+
+	* mc_im.c:
+	  - "Dictionary" and "Sticky shift key" entries are added to skk options.
+	  - "Server" entry is added to wnn options.
+
+	* mlconfig/main.c: USE_{XLIB|WIN32|QUARTZ} => strcmp(mc_get_gui(), "{xlib|win32|quartz}")
+
+	* skk/dict.c:
+	  - 'static int is_loaded' (renamed to global_is_loaded) is reset in dict_set_global().
+	  - dict_set_global() always closes global_sock.
+
+	* im_skk.c: 'char *engine' of im_skk_new() arguments is renamed to 'options', and
+	  its format is changed from "[dictionary]" to
+	  "dict=[dictionary],sskey=[sticky shift key]".
+
+	* im_wnn.c: "--im wnn:[server]" option is supported.
+
+	* ui_im.[ch]: XStringToKeysym() is added to ui_im_export_syms.
+
 2017-10-24  Araki Ken  <arakiken@users.sf.net>
 
 	* ControlSequences: Updated.
