@@ -67,6 +67,7 @@ typedef struct ui_im_export_syms {
                                                     u_int, int, int);
   int (*ui_event_source_add_fd)(int, void (*handler)(void));
   void (*ui_event_source_remove_fd)(int);
+  KeySym (*XStringToKeysym)(char *);
 
 } ui_im_export_syms_t;
 

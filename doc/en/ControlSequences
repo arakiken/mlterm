@@ -231,7 +231,7 @@ O DECELR (Enable Locator Reports)                           CSI Pn;Ps ' z
 O DECREGIS                                                  DCS Pn p D...D ST
 O DECRQLP (Request Locator Position)                        CSI ' |
 O DECSIXEL                                                  DCS Pn1;Pn2;Pn3;Pn4 q D...D ST
-O DECSDM                                                    CSI ? 80 [hl]
+O DECSDM (Sixel Scrolling)                                  CSI ? 80 [hl]
 O DECSLE (Select Locator Events)                            CSI Pn ' {
 
 <VT100> https://vt100.net/docs/vt100-ug/chapter3.html
@@ -245,26 +245,32 @@ O DECCAHT (Clear All Horizontal Tabs)                       ESC 2
 - DECSHTS (Set Horizontal Tabulation Stops)                 CSI Pn u
 - DECSVTS (Set Vertical Tabulation Stops)                   CSI Pn v
 
-<Wyse>
-O WYSTCURM                                                  CSI 33 [hl]
-O WYULCURM                                                  CSI 34 [hl]
+<Wyse 350/370> ftp://ftp.invisible-island.net/shuford/terminal/ansi_dec_controls_news.txt
+O WYSTCURM (Wyse Steady Cursor Mode)                        CSI 33 [hl]
+O WYULCURM (Wyse Underline Cursor Mode)                     CSI 34 [hl]
 
-<VT52>
-O CUP                                                       ESC A
-O BPH                                                       ESC B
-- ESA                                                       ESC G
-- LMA                                                       ESC l
-O MCP                                                       ESC Y y x
-O NBH                                                       ESC C
-- USR                                                       ESC m
+<VT52> https://www.vt100.net/docs/vt220-rm/table4-11.html
+O CUP (Cursor Up)                                           ESC A
+O BPH (Cursor Down)                                         ESC B
+- ESA (Exit Graphics Mode)                                  ESC G
+O MCP (Direct Cursor Address)                               ESC Y y x
+O NBH (Cursor Right)                                        ESC C
 O V5EX (Exiting ANSI(VT52) Mode)                            ESC <
-- SCI                                                       ESC Z
-- SSA                                                       ESC F
-O                                                           ESC D
-O                                                           ESC H
-O                                                           ESC I
-O                                                           ESC J
-O                                                           ESC K
+- SCI (Identify)                                            ESC Z
+- SSA (Enter Graphics Mode)                                 ESC F
+O (Cursor Left)                                             ESC D
+O (Cursor to Home Position)                                 ESC H
+O (Reverse Line Feed)                                       ESC I
+O (Erase to end of screen)                                  ESC J
+O (Erase to end of line)                                    ESC K
+- (Enter Alternate Keypad Mode)                             ESC =
+- (Exit Alternate Keypad Mode)                              ESC >
+- (Enter Auto Print Mode)                                   ESC ^
+- (Exit Auto Print Mode)                                    ESC _
+- (Enter Printer Contoller Mode)                            ESC W
+- (Exit Printer COntroller Mode)                            ESC X
+- (Print Screen)                                            ESC ]
+- (Print cursor line)                                       ESC V
 
 <Xterm>
 O XTALTSCRN                                                 CSI ? 47 [hl]
@@ -289,8 +295,8 @@ O XTRMTT                                                    CSI > Pn T
 O XTWOP                                                     CSI Pn;P1;P2 t
 O XTRQCAP                                                   DCS + q D...D ST
 - XTCOLREG                                                  CSI ? Pi;Pa;Pv S
-- (X10 xterm mouse protocol)                                CSI ? 9 [hl]
-- (Start Blinking Cursor (att610))                          CSI ? 12 [hl]
+- XTMSEX10 (X10 xterm mouse protocol)                       CSI ? 9 [hl]
+- XTCBLINK (Start Blinking Cursor (att610))                 CSI ? 12 [hl]
 O (Allow 80 -> 132 Mode)                                    CSI ? 40 [hl]
 - (more(1) fix)                                             CSI ? 41 [hl]
 - (Reverse-wraparound Mode)                                 CSI ? 45 [hl]
@@ -330,24 +336,24 @@ O (Reset Special Color Number c)                            OSC 105;c ST
 - (Reset Tektronix cursor color)                            OSC 118;Pt ST
 - (Reset highlight foreground color)                        OSC 119;Pt ST
 
-<Ecma-48>
-O CTC                                                       CSI Pn W
-- DAQ                                                       CSI Pn o
-- EA                                                        CSI Pn O
-- EF                                                        CSI Pn N
-- EPA                                                       ESC W
-- FNT                                                       CSI Pn SP D
-- HPB                                                       CSI Pn j
-- HTJ                                                       ESC I
-- PLD                                                       ESC K
-- PLU                                                       ESC L
-O REP                                                       CSI Pn b
-- RI                                                        ESC M
-O SL                                                        CSI Pn SP @
-- SPA                                                       ESC V
-O SR                                                        CSI Pn SP A
-- VPB                                                       CSI Pn k
-- VTS                                                       ESC J
+<Ecma-48> https://www.ecma-international.org/publications/standards/Ecma-048.htm
+O CTC (Cursor Tabulation Control)                           CSI Pn W
+- DAQ (Define Area Qualification)                           CSI Pn o
+- EA (Erase in Area)                                        CSI Pn O
+- EF (Erase in Field)                                       CSI Pn N
+- EPA (End of Guarded Area)                                 ESC W
+- FNT (Font Selection)                                      CSI Pn SP D
+- HPB (Character Position Backward)                         CSI Pn j
+- HTJ (Character Tabulation with Justification)             ESC I
+- PLD (Partial Line Forward)                                ESC K
+- PLU (Partial Line Backward)                               ESC L
+O REP (Repeat)                                              CSI Pn b
+- RI (Reverse Line Feed)                                    ESC M
+O SL (Scroll Left)                                          CSI Pn SP @
+- SPA (Start of Guarded Area)                               ESC V
+O SR (Scroll Right)                                         CSI Pn SP A
+- VPB (Line Position Backward)                              CSI Pn k
+- VTS (Line Tabulation Set)                                 ESC J
 
 <TeraTerm> https://ttssh2.osdn.jp/manual/ja/about/ctrlseq.html
 O TTIMERS                                                   CSI < r
@@ -380,3 +386,6 @@ O                                                           OSC 20;Pt ST
 
 <mlterm>
 O OSC 5379/5380/5381/5383;Pt ST
+
+* References
+  http://bjh21.me.uk/all-escapes/all-escapes.txt

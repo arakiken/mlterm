@@ -781,20 +781,28 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         fcitx (オプション無し)
 
         wnn の場合:
-        wnn (オプション無し)
-        なお、JSERVER 環境変数により接続するかな漢字変換サーバを、WNNENVRC 環境
-        変数により wnnenvrc ファイルの場所を指定することができます。
+        wnn:[server]
+        [server] には、接続するかな漢字変換サーバを指定します。
+        なお、JSERVER 環境変数により指定することも可能です。
+        また、WNNENVRC 環境変数により wnnenvrc ファイルの場所を指定することができます。
 
         canna の場合:
         canna (オプション無し)
 
         skk の場合:
-        skk:[dictionary](:utf8)
+        skk:dict=[dictionary](:utf8),sskey=[sticky shift key]
         [dictionary] に、接続する辞書サーバ(skkserv)の "ホスト名:ポート番号" 又
         は、辞書ファイルのパスを指定します。辞書が UTF-8 の場合には、末尾に
         :utf8 を付けてください。
+        SKK_DICTIONARY 環境変数により指定することも可能です。
         指定しない場合は、localhost の辞書サーバに接続します。
-        なお、~/.mlterm/skk-jisyo をローカルの辞書として使用します。
+        なお、上記とは別に、~/.mlterm/skk-jisyo をローカルの辞書として使用します。
+
+        [sticky shift key] には、sticky shift key として使用するキーを指定してく
+        ださい。印刷可能な文字のキーを指定する場合はその文字(\x3bのように16進数
+        で指定することも可)を、それ以外の場合は <X11/keysymdef.h> に定義されたシ
+        ンボル(XK_を除く)を指定してください。
+        SKK_STICKY_SHIFT_KEY 環境変数により指定することも可能です。
 
         kbd の場合:
         kbd:[mode]
@@ -805,7 +813,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         kbd を指定した時は key ファイルで IM_HOTKEY を指定してください。
 
         iiimf の場合:
-        iiimf:[language id][language engine]
+        iiimf:[language id]:[language engine]
         [language id] には RFC1766 に従って言語(ar, zh_CN, ja など)を指定しま
         す。指定されなかった場合はシステムのローケールから取得した言語が使われ
         ます。[language engine] では使用する LE (CannaLE, newpy など)を指定しま

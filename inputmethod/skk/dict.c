@@ -690,6 +690,7 @@ static table_t global_tables[MAX_TABLES];
 static char *global_data;
 static size_t global_data_size;
 static int global_sock = -1;
+static int global_is_loaded = 0;
 static int server_supports_protocol_4 = 0;
 static ef_conv_t *global_conv;
 static ef_parser_t *global_parser;
@@ -703,17 +704,15 @@ static ef_parser_t *local_parser;
 /* --- static variables --- */
 
 static int global_dict_load(void) {
-  static int is_loaded;
-
   if (!global_conv) {
     global_conv = (*syms->vt_char_encoding_conv_new)(VT_EUCJP);
     global_parser = (*syms->vt_char_encoding_parser_new)(VT_EUCJP);
   }
 
-  if (!is_loaded && !global_data && global_sock == -1) {
+  if (!global_is_loaded && !global_data && global_sock == -1) {
     char *path;
 
-    is_loaded = 1;
+    global_is_loaded = 1;
 
     if (global_dict && (path = strdup(global_dict))) {
       global_data = file_load(&global_data_size, global_tables, path);
@@ -1283,14 +1282,22 @@ int dict_candidate_add_to_local(void *aux) {
 void dict_set_global(char *dict) {
   size_t len;
 
-  free(global_dict);
-  global_dict = strdup(dict);
+  if (global_dict) {
+    if (strcmp(dict, global_dict) == 0) {
+      return;
+    }
+
+    free(global_dict);
+    global_dict = strdup(dict);
+  }
 
   if (global_data) {
     file_unload(global_tables, global_data, global_data_size, NULL);
     free(global_data);
     global_data = NULL;
-  } else {
+  }
+
+  if (global_sock != -1) {
     closesocket(global_sock);
     global_sock = -1;
   }

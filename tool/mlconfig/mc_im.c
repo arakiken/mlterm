@@ -74,7 +74,11 @@ static u_int num_of_info = 0;
 static im_info_t *selected_im = NULL;
 static int selected_im_arg = -1;
 
-static GtkWidget *im_opt_widget[IM_MAX];
+static GtkWidget **im_opt_widget;
+
+static GtkWidget *skk_dict_entry;
+static GtkWidget *skk_sskey_entry;
+static GtkWidget *wnn_serv_entry;
 
 /* --- static functions --- */
 
@@ -87,7 +91,7 @@ static int is_im_plugin(char *file_name) {
 }
 
 #ifdef USE_WIN32API
-im_info_t *get_kbd_info(char *locale, char *encoding) {
+static im_info_t *get_kbd_info(char *locale, char *encoding) {
   im_info_t *result;
 
   if (!(result = malloc(sizeof(im_info_t)))) {
@@ -434,6 +438,167 @@ static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
   return combo;
 }
 
+static gint entry_selected(GtkWidget *widget, gpointer data) {
+  is_changed = 1;
+
+  return 1;
+}
+
+static GtkWidget *entry_with_label_new(GtkWidget *parent, const char *text, const char *value) {
+  GtkWidget *hbox;
+  GtkWidget *label;
+  GtkWidget *entry;
+
+  hbox = gtk_hbox_new(FALSE, 5);
+  gtk_box_pack_start(GTK_BOX(parent), hbox, TRUE, TRUE, 0);
+  gtk_widget_show(hbox);
+
+  label = gtk_label_new(text);
+  gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
+  gtk_widget_show(label);
+
+  entry = gtk_entry_new();
+  gtk_entry_set_text(GTK_ENTRY(entry), value);
+  g_signal_connect(entry, "changed", G_CALLBACK(entry_selected), entry);
+  gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);
+  gtk_widget_show(entry);
+
+  return entry;
+}
+
+static GtkWidget *combo_with_label_new(GtkWidget *parent, const char *label_name,
+                                       char **item_names, u_int item_num, const char *value) {
+  GtkWidget *hbox;
+  GtkWidget *combo;
+  GtkWidget *entry;
+
+  hbox = gtk_hbox_new(FALSE, 5);
+  gtk_box_pack_start(GTK_BOX(parent), hbox, TRUE, TRUE, 0);
+  gtk_widget_show(hbox);
+
+  combo = mc_combo_new(label_name, item_names, item_num, value, 0, &entry);
+  gtk_box_pack_start(GTK_BOX(hbox), combo, TRUE, TRUE, 0);
+  gtk_widget_show(combo);
+  g_signal_connect(entry, "changed", G_CALLBACK(entry_selected), entry);
+
+  return entry;
+}
+
+static GtkWidget *skk_widget_new(char *value) {
+  GtkWidget *vbox;
+  char *dict = NULL;
+  char *sskey = NULL;
+  char buf[2];
+  char *cands[] = { ";", ":", "Muhenkan", "Henkan", };
+
+  /* Same processing as im_skk_new() in im_skk.c */
+  if (value) {
+#if 1
+    /* XXX Compat with 3.8.3 or before. */
+    if (!strchr(value, '=')) {
+      dict = value;
+    } else
+#endif
+    {
+      char *next;
+
+      do {
+        if ((next = strchr(value, ','))) {
+          *(next++) = '\0';
+        }
+
+        if (strncmp(value, "sskey=", 6) == 0) {
+          int digit;
+          sskey = value + 6;
+          if (sscanf(sskey, "\\x%x", &digit) == 1) {
+            buf[0] = digit;
+            buf[1] = '\0';
+            sskey = buf;
+          }
+        } else if (strncmp(value, "dict=", 5) == 0) {
+          dict = value + 5;
+        }
+      } while ((value = next));
+    }
+  }
+
+  vbox = gtk_vbox_new(FALSE, 5);
+  skk_dict_entry = entry_with_label_new(vbox, _("Dictionary"), dict ? dict : "");
+  skk_sskey_entry = combo_with_label_new(vbox, _("Sticky shift key"), cands,
+                                         sizeof(cands) / sizeof(cands[0]),
+                                         sskey ? sskey : "");
+
+  return vbox;
+}
+
+static char *skk_current_value(void) {
+  const char *dict;
+  const char *sskey;
+  size_t len = 4;
+  char *value;
+  char *p;
+
+  dict = gtk_entry_get_text(GTK_ENTRY(skk_dict_entry));
+  if (*dict) {
+    len += (strlen(dict) + 5 + 1);
+  }
+  sskey = gtk_entry_get_text(GTK_ENTRY(skk_sskey_entry));
+  if (*sskey) {
+    len += (strlen(sskey) + 6 + 1);
+  }
+
+  value = p = malloc(len);
+
+  strcpy(p, "skk");
+  p += 3;
+
+  if (*dict) {
+    sprintf(p, ":dict=%s", dict);
+    p += strlen(p);
+  }
+  if (*sskey) {
+    char sep = *dict ? ',' : ':';
+
+    if (strlen(sskey) == 1) {
+      sprintf(p, "%csskey=\\x%.2x", sep, *sskey);
+    } else {
+      sprintf(p, "%csskey=%s", sep, sskey);
+    }
+  }
+
+  return value;
+}
+
+static GtkWidget *wnn_widget_new(char *value) {
+  GtkWidget *vbox;
+
+  vbox = gtk_vbox_new(FALSE, 5);
+  wnn_serv_entry = entry_with_label_new(vbox, _("Server"), value);
+
+  return vbox;
+}
+
+static char *wnn_current_value(void) {
+  const char *serv;
+  size_t len = 4;
+  char *value;
+
+  serv = gtk_entry_get_text(GTK_ENTRY(wnn_serv_entry));
+  if (*serv) {
+    len += (strlen(serv) + 1);
+  }
+
+  value = malloc(len);
+
+  if (*serv) {
+    sprintf(value, "wnn:%s", serv);
+  } else {
+    strcpy(value, "wnn");
+  }
+
+  return value;
+}
+
 /*
  * callbacks for radio buttons of im type.
  */
@@ -484,7 +649,7 @@ GtkWidget *mc_im_config_widget_new(void) {
   char *xim_name = NULL;
   char *xim_locale = NULL;
   char *value;
-  char *p;
+  char *im_name;
   int i;
   int index = -1;
   GtkWidget *xim;
@@ -501,18 +666,18 @@ GtkWidget *mc_im_config_widget_new(void) {
 
   value = mc_get_str_value("input_method");
 
-  p = bl_str_sep(&value, ":");
+  im_name = bl_str_sep(&value, ":");
 
   im_type = IM_NONE;
-  if (strncmp(p, "xim", 3) == 0) {
+  if (strncmp(im_name, "xim", 3) == 0) {
     im_type = IM_XIM;
     xim_name = bl_str_sep(&value, ":");
     xim_locale = bl_str_sep(&value, ":");
-  } else if (strncmp(p, "none", 4) == 0) {
+  } else if (strncmp(im_name, "none", 4) == 0) {
     /* do nothing */
   } else {
     for (i = 0; i < num_of_info; i++) {
-      if (strcmp(p, im_info_table[i]->id) == 0) {
+      if (strcmp(im_name, im_info_table[i]->id) == 0) {
         index = i;
         im_type = IM_OTHER + i;
         break;
@@ -523,21 +688,24 @@ GtkWidget *mc_im_config_widget_new(void) {
 
   if (strcmp(mc_get_gui(), "xlib") != 0) {
     xim = NULL;
-    if (im_type == IM_NONE) im_type = IM_XIM;
   } else {
     xim = xim_widget_new(xim_name, xim_locale, cur_locale);
   }
+
+  im_opt_widget = malloc(sizeof(GtkWidget*) * num_of_info);
+
   for (i = 0; i < num_of_info; i++) {
-    if (index == i)
-      im_opt_widget[i] = im_widget_new(i, value, cur_locale);
+    if (strcmp(im_info_table[i]->id, "skk") == 0)
+      im_opt_widget[i] = skk_widget_new(index == i ? value : "");
+    else if (strcmp(im_info_table[i]->id, "wnn") == 0)
+      im_opt_widget[i] = wnn_widget_new(index == i ? value : "");
     else
-      im_opt_widget[i] = im_widget_new(i, NULL, cur_locale);
+      im_opt_widget[i] = im_widget_new(i, index == i ? value : NULL, cur_locale);
   }
 
   free(cur_locale);
   free(encoding);
-
-  free(p);
+  free(im_name);
 
   frame = gtk_frame_new(_("Input Method"));
 
@@ -557,7 +725,7 @@ GtkWidget *mc_im_config_widget_new(void) {
     g_signal_connect(radio, "toggled", G_CALLBACK(button_im_checked), im_info_table[i]);
     gtk_widget_show(GTK_WIDGET(radio));
     gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
-    if (im_type >= IM_OTHER && index == i)
+    if (index == i)
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
   }
 
@@ -615,6 +783,14 @@ void mc_update_im(void) {
 
   if (!is_changed) return;
 
+  if (strcmp(selected_im->id, "skk") == 0) {
+    p = skk_current_value();
+    goto end;
+  } else if (strcmp(selected_im->id, "wnn") == 0) {
+    p = wnn_current_value();
+    goto end;
+  }
+
   if (im_type == cur_im_type && selected_im_arg == -1) {
     is_changed = 0;
     return;
@@ -655,6 +831,7 @@ void mc_update_im(void) {
       break;
   }
 
+end:
   mc_set_str_value("input_method", p);
 
   selected_im_arg = -1;
