@@ -222,7 +222,7 @@ static int window_scroll_upward_region(void *p, int beg_row, int end_row, u_int 
                           "linesScrolledOut", "(I)V");
   }
 
-  if (nativeObj->listener && beg_row == 0 && !vt_term_has_status_line(term) &&
+  if (nativeObj->listener && beg_row == 0 && !vt_term_has_status_line(nativeObj->term) &&
       end_row + 1 == vt_term_get_logical_rows(nativeObj->term) &&
       !vt_screen_is_alternative_edit(nativeObj->term->screen)) {
     (*nativeObj->env)->CallVoidMethod(nativeObj->env, nativeObj->listener, mid, size);
