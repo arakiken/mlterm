@@ -292,7 +292,8 @@ static u_int screen_height(ui_screen_t *screen) {
     return vt_term_get_logical_cols(screen->term) * ui_line_height(screen) *
            screen->screen_width_ratio / 100;
   } else {
-    return vt_term_get_logical_rows(screen->term) * ui_line_height(screen);
+    return (vt_term_get_logical_rows(screen->term) +
+             (vt_term_has_status_line(screen->term) ? 1 : 0)) * ui_line_height(screen);
   }
 }
 
@@ -5155,12 +5156,26 @@ static void xterm_resize(void *p, u_int width, u_int height) {
 
   screen = p;
 
-  if (width == 0 || height == 0) {
+  if (width == 0 && height == 0) {
     /* vt_term_t is already resized. */
     resize_window(screen);
+
+    return;
   }
+
+  if (width == 0) {
+    width = screen->width;
+  }
+  if (height == 0) {
+    height = screen->height;
+  }
+
+  if (vt_term_has_status_line(screen->term)) {
+    height += ui_line_height(screen);
+  }
+
   /* screen will redrawn in window_resized() */
-  else if (ui_window_resize(&screen->window, width, height, NOTIFY_TO_PARENT | LIMIT_RESIZE)) {
+  if (ui_window_resize(&screen->window, width, height, NOTIFY_TO_PARENT | LIMIT_RESIZE)) {
     /*
      * !! Notice !!
      * ui_window_resize() will invoke ConfigureNotify event but window_resized()
@@ -5336,6 +5351,10 @@ static int xterm_get_window_size(void *p, u_int *width, u_int *height) {
 
   *width = screen->width;
   *height = screen->height;
+
+  if (vt_term_has_status_line(screen->term)) {
+    *height -= ui_line_height(screen);
+  }
 
   return 1;
 }

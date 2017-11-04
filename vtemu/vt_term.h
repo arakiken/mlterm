@@ -228,7 +228,7 @@ int vt_term_update_special_visual(vt_term_t *term);
 
 #define vt_term_is_backscrolling(term) vt_screen_is_backscrolling((term)->screen)
 
-int vt_term_enter_backscroll_mode(vt_term_t *term);
+void vt_term_enter_backscroll_mode(vt_term_t *term);
 
 #define vt_term_exit_backscroll_mode(term) vt_exit_backscroll_mode((term)->screen)
 
@@ -332,6 +332,8 @@ int vt_term_set_config(vt_term_t *term, char *key, char *value);
                         backward)
 
 #define vt_term_blink(term) vt_screen_blink((term)->screen)
+
+#define vt_term_has_status_line(term) vt_screen_has_status_line((term)->screen)
 
 #define vt_term_get_user_data(term, key) ((term)->user_data)
 

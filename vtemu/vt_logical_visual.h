@@ -29,7 +29,12 @@ typedef struct vt_logical_visual {
 
   /* Public */
 
-  /* Whether logical <=> visual is reversible. */
+  /*
+   * Whether logical <=> visual is reversible.
+   *
+   * XXX This flag is used to determine if logvis is vertical mode or not in vt_screen.c
+   * (vt_screen_set_use_status_line())
+   */
   int8_t is_reversible;
 
   int (*init)(struct vt_logical_visual *, vt_model_t *, vt_cursor_t *);

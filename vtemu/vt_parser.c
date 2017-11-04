@@ -668,8 +668,9 @@ static int receive_bytes(vt_parser_t *vt_parser) {
       if (use_ttyrec_format) {
         char seq[6 + DIGIT_STR_LEN(int)*2 + 1];
 
-        sprintf(seq, "\x1b[8;%d;%dt", vt_screen_get_rows(vt_parser->screen),
-                vt_screen_get_cols(vt_parser->screen));
+        /* The height of "CSI 8 t" doesn't include status line. */
+        sprintf(seq, "\x1b[8;%d;%dt", vt_screen_get_logical_rows(vt_parser->screen),
+                vt_screen_get_logical_cols(vt_parser->screen));
         write_ttyrec_header(vt_parser->log_file, strlen(seq), 0);
         write(vt_parser->log_file, seq, strlen(seq));
       }
@@ -1173,11 +1174,26 @@ static void resize(vt_parser_t *vt_parser, u_int width, u_int height, int by_cha
        * Note that vt_parser depends on following behavior.
        */
       if (width == 0) {
-        width = vt_screen_get_cols(vt_parser->screen);
+        width = vt_screen_get_logical_cols(vt_parser->screen);
       }
 
       if (height == 0) {
-        height = vt_screen_get_rows(vt_parser->screen);
+        height = vt_screen_get_logical_rows(vt_parser->screen);
+      }
+
+      /*
+       * 'height' argument of this function should includes status line according to
+       * the following document, but teraterm (4.95) excludes status line by CSI 8 t.
+       * mlterm considers height of "CSI t", "OSC 5379;geometry", DECSNLS and DECSLPP
+       * to be excluding status line.
+       *
+       * https://vt100.net/docs/vt510-rm/DECSNLS.html
+       * The terminal supports three different font heights, which allows 26, 42, or 53 data
+       * lines to be displayed on the screen or 25, 41, or 52 data lines to be displayed on
+       * the screen, plus a status line.
+       */
+      if (vt_screen_has_status_line(vt_parser->screen)) {
+        height ++;
       }
 
       vt_screen_resize(vt_parser->screen, width, height);
@@ -1415,7 +1431,7 @@ static void report_window_size(vt_parser_t *vt_parser, int by_char) {
       ps = 8;
     } else {
       if (!(*vt_parser->xterm_listener->get_window_size)(vt_parser->xterm_listener->self,
-                                                            &width, &height)) {
+                                                         &width, &height)) {
         return;
       }
 
@@ -1552,8 +1568,8 @@ static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
     }
 
     sprintf(seq, "\x1bP1$u%d;%d;%d;%c;%c;%c;0;2;@;BB%%5%%5\x1b\\",
-            vt_screen_cursor_row(vt_parser->screen) + 1,
-            vt_screen_cursor_col(vt_parser->screen) + 1,
+            vt_screen_cursor_logical_row(vt_parser->screen) + 1,
+            vt_screen_cursor_logical_col(vt_parser->screen) + 1,
             vt_screen_get_page_id(vt_parser->screen) + 1, rend, attr, flag);
 
     vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
@@ -1561,7 +1577,7 @@ static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
     /* DECTABSR */
     char *seq;
     u_int max_digit_len = 1;
-    u_int cols = vt_screen_get_cols(vt_parser->screen);
+    u_int cols = vt_screen_get_logical_cols(vt_parser->screen);
     u_int tmp = cols;
 
     while ((tmp /= 10) > 0) {
@@ -1772,7 +1788,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
       if (is_sixel && !vt_parser->sixel_scrolling) {
         vt_screen_save_cursor(vt_parser->screen);
         vt_parser->is_visible_cursor = 0;
-        vt_screen_go_upward(vt_parser->screen, vt_screen_cursor_row(vt_parser->screen));
+        vt_screen_goto_home(vt_parser->screen);
         vt_screen_goto_beg_of_line(vt_parser->screen);
       }
 
@@ -1784,7 +1800,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
       orig_auto_wrap = vt_screen_is_auto_wrap(vt_parser->screen);
       vt_screen_set_auto_wrap(vt_parser->screen, 0);
-      cursor_col = vt_screen_cursor_col(vt_parser->screen);
+      cursor_col = vt_screen_cursor_logical_col(vt_parser->screen);
 
       while (1) {
         vt_screen_overwrite_chars(vt_parser->screen, p + clip_beg_col, clip_cols);
@@ -2933,10 +2949,10 @@ static void report_status(vt_parser_t *vt_parser, u_char *key) {
     val = digits;
   } else if (strcmp(key, "$}") == 0) {
     /* DECSASD */
-    val = "0";
+    val = vt_status_line_is_focused(vt_parser->screen) ? "1" : "0";
   } else if (strcmp(key, "$~") == 0) {
     /* DECSSDT */
-    val = "0";
+    val = vt_screen_has_status_line(vt_parser->screen) ? "2" : "0";
   } else if (strcmp(key, "*x") == 0) {
     /* DECSACE */
     val = vt_screen_is_using_rect_attr_select(vt_parser->screen) ? "2" : "1";
@@ -2952,11 +2968,11 @@ static void report_status(vt_parser_t *vt_parser, u_char *key) {
   } else if (strcmp(key, "$|") == 0) {
     /* DECSCPP */
     val = digits;
-    sprintf(val, "%d", vt_screen_get_cols(vt_parser->screen));
+    sprintf(val, "%d", vt_screen_get_logical_cols(vt_parser->screen));
   } else if (strcmp(key, "t") == 0 || strcmp(key, "*|") == 0) {
     /* DECSLPP/DECSNLS */
     val = digits;
-    sprintf(val, "%d", vt_screen_get_rows(vt_parser->screen));
+    sprintf(val, "%d", vt_screen_get_logical_rows(vt_parser->screen));
   } else if (strcmp(key, "m") == 0) {
     /* SGR */
     report_char_attr_status(vt_parser);
@@ -3487,8 +3503,8 @@ static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
   if (num == 6) {
     /* XCPR */
     if ((seq = alloca(6 + DIGIT_STR_LEN(int)+1))) {
-      sprintf(seq, "\x1b[?%d;%d;%dR", vt_screen_cursor_row(vt_parser->screen) + 1,
-              vt_screen_cursor_col(vt_parser->screen) + 1,
+      sprintf(seq, "\x1b[?%d;%d;%dR", vt_screen_cursor_logical_row(vt_parser->screen) + 1,
+              vt_screen_cursor_logical_col(vt_parser->screen) + 1,
               vt_screen_get_page_id(vt_parser->screen) + 1);
     } else {
       return;
@@ -3695,7 +3711,7 @@ inline static int parse_vt52_escape_sequence(
   } else if (*str_p == 'H') {
     vt_screen_goto(vt_parser->screen, 0, 0);
   } else if (*str_p == 'I') {
-    if (vt_screen_cursor_row(vt_parser->screen) == 0) {
+    if (vt_screen_cursor_logical_row(vt_parser->screen) == 0) {
       vt_screen_scroll_downward(vt_parser->screen, 1);
     } else {
       vt_screen_go_upward(vt_parser->screen, 1);
@@ -4062,18 +4078,20 @@ inline static int parse_vt100_escape_sequence(
 
           if (ps[0] <= 0) {
             save = vt_screen_save_protected_chars(vt_parser->screen,
-                                                  vt_screen_cursor_row(vt_parser->screen),
-                                                  vt_screen_get_rows(vt_parser->screen) - 1, 0);
+                                                  -1 /* cursor row */,
+                                                  vt_screen_get_logical_rows(vt_parser->screen) - 1,
+                                                  0);
             vt_screen_clear_below(vt_parser->screen);
             vt_screen_restore_protected_chars(vt_parser->screen, save);
           } else if (ps[0] == 1) {
             save = vt_screen_save_protected_chars(vt_parser->screen, 0,
-                                                  vt_screen_cursor_row(vt_parser->screen), 0);
+                                                  -1 /* cursor row */, 0);
             vt_screen_clear_above(vt_parser->screen);
             vt_screen_restore_protected_chars(vt_parser->screen, save);
           } else if (ps[0] == 2) {
             save = vt_screen_save_protected_chars(vt_parser->screen, 0,
-                                                  vt_screen_get_rows(vt_parser->screen) - 1, 0);
+                                                  vt_screen_get_logical_rows(vt_parser->screen) - 1,
+                                                  0);
             clear_display_all(vt_parser);
             vt_screen_restore_protected_chars(vt_parser->screen, save);
           }
@@ -4082,8 +4100,8 @@ inline static int parse_vt100_escape_sequence(
           vt_protect_store_t *save;
 
           save = vt_screen_save_protected_chars(vt_parser->screen,
-                                                vt_screen_cursor_row(vt_parser->screen),
-                                                vt_screen_cursor_row(vt_parser->screen), 0);
+                                                -1 /* cursor row */,
+                                                -1 /* cursor row */, 0);
           if (ps[0] <= 0) {
             vt_screen_clear_line_to_right(vt_parser->screen);
           } else if (ps[0] == 1) {
@@ -4275,6 +4293,22 @@ inline static int parse_vt100_escape_sequence(
           } else if (ps[0] == 132) {
             resize(vt_parser, 132, 0, 1);
           }
+        } else if (*str_p == '}') {
+          /* "CSI $ }" DECSASD */
+
+          if (ps[0] <= 0) {
+            vt_focus_main_screen(vt_parser->screen);
+          } else if (ps[0] == 1) {
+            vt_focus_status_line(vt_parser->screen);
+          }
+        } else if (*str_p == '~') {
+          /* "CSI $ ~" DECSSDT */
+
+          if (ps[0] <= 1) {
+            vt_screen_set_use_status_line(vt_parser->screen, 0);
+          } else {
+            vt_screen_set_use_status_line(vt_parser->screen, 1);
+          }
         } else if (*str_p == 'u') {
           if (ps[0] == 1) {
             /* "CSI 1 $ u" DECRQTSR */
@@ -4304,9 +4338,9 @@ inline static int parse_vt100_escape_sequence(
           for (count = 0; count < 4; count++) {
             if (count >= num || ps[count] <= 0) {
               if (count == 2) {
-                ps[count] = vt_screen_get_rows(vt_parser->screen);
+                ps[count] = vt_screen_get_logical_rows(vt_parser->screen);
               } else if (count == 3) {
-                ps[count] = vt_screen_get_cols(vt_parser->screen);
+                ps[count] = vt_screen_get_logical_cols(vt_parser->screen);
               } else {
                 ps[count] = 1;
               }
@@ -4841,8 +4875,8 @@ inline static int parse_vt100_escape_sequence(
           /* CPR */
           char seq[4 + DIGIT_STR_LEN(u_int) * 2 + 1];
 
-          sprintf(seq, "\x1b[%d;%dR", vt_screen_cursor_relative_row(vt_parser->screen) + 1,
-                  vt_screen_cursor_relative_col(vt_parser->screen) + 1);
+          sprintf(seq, "\x1b[%d;%dR", vt_screen_cursor_logical_row(vt_parser->screen) + 1,
+                  vt_screen_cursor_logical_col(vt_parser->screen) + 1);
 
           vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
         }
@@ -4864,7 +4898,7 @@ inline static int parse_vt100_escape_sequence(
         /* "CSI s" SCOSC or DECSLRM */
 
         if (num <= 1 || ps[1] <= 0) {
-          ps[1] = vt_screen_get_cols(vt_parser->screen);
+          ps[1] = vt_screen_get_logical_cols(vt_parser->screen);
         }
 
         if (!vt_screen_set_hmargin(vt_parser->screen, ps[0] <= 0 ? 0 : ps[0] - 1, ps[1] - 1) &&
@@ -4874,11 +4908,14 @@ inline static int parse_vt100_escape_sequence(
       } else if (*str_p == 't') {
         /* "CSI t" */
 
-        if (num == 3) {
-          if (ps[0] == 4) {
-            resize(vt_parser, ps[2], ps[1], 0);
-          } else if (ps[0] == 8) {
-            resize(vt_parser, ps[2], ps[1], 1);
+        if (ps[0] == 4 || ps[0] == 8) {
+          if (num == 2) {
+            ps[2] = 0;
+            num = 3;
+          }
+
+          if (num == 3) {
+            resize(vt_parser, ps[2], ps[1], ps[0] == 8);
           }
         } else if (num == 2) {
           if (ps[0] == 22) {
@@ -5627,8 +5664,8 @@ inline static int parse_vt100_escape_sequence(
             vt_screen_set_use_hmargin(vt_parser->screen, -1 /* Don't move cursor. */);
 #endif
             vt_screen_fill_area(vt_parser->screen, 'E', vt_parser->is_protected, 0, 0,
-                                vt_screen_get_cols(vt_parser->screen),
-                                vt_screen_get_rows(vt_parser->screen));
+                                vt_screen_get_logical_cols(vt_parser->screen),
+                                vt_screen_get_logical_rows(vt_parser->screen));
           }
         } else if (*(str_p - ic_num) == '(' || *(str_p - ic_num) == '$') {
           /*

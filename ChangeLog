@@ -1,3 +1,44 @@
+2017-11-04  Araki Ken  <arakiken@users.sf.net>
+
+	* ControlSequences: Updated.
+
+	* MLTermPty.c:
+	  If vt_term_has_status_line() is true, window_scroll_upward_region() does nothing.
+
+	* ui_picture.c: vt_term_get_rows() is placed before for(;;) instead of inside for(;;).
+
+	* ui_screen.c:
+	  - screen_height() considers if status line is shown or not.
+	  - xterm_resize() converts 0 width or height to current width or height.
+	  - xterm_get_window_size() returns window size excluding status line.
+
+	* vt_term.h: vt_term_has_status_line() is added.
+
+	* vt_parser.c:
+	  - DECSSDT and DECSASD are supported.
+	  - "CSI 4 t", "CSI 8 t", "CSI 14 t" and "CSI 18 t" ignores the height of status line.
+	  - "CSI 4 t" and "CSI 8 t" allow omission of the third parameter.
+	  - CPR, XCPR and DECCIR reports relative position if DECOM is set.
+	  - DECSDM never considers DECOM.
+
+	* vt_screen.c:
+	  - vt_screen_has_status_line(), vt_screen_set_use_status_line(),
+	    vt_status_line_is_focused(), vt_focus_status_line() and vt_focus_main_screen()
+	    are added.
+	  - Functions whose return values are not used return void.
+	  - vt_screen_cursor_logical_{col|row}() are addded, and
+	    vt_screen_cursor_relative_{col|row}() are removed.
+	  - vt_screen_resize(), vt_screen_cursor_row(), vt_screen_cursor_row_in_screen(),
+	    vt_screen_get_rows(), vt_screen_get_line() and vt_screen_get_line_in_screen()
+	    considers status line.
+	  - vt_get_logical_{cols|rows}() checks not only screen->logvis but also
+	    screen->logvis->is_visual.
+
+	* vt_edit.[ch]:
+	  - Functions whose return values are not used return void.
+	  - vt_edit_cursor_logical_{col|row}() are added, and vt_cursor_relative_{col|row}()
+	    are removed.
+
 2017-10-31  Araki Ken  <arakiken@users.sf.net>
 
 	* ControlSequences, man/mlterm.1, README.ja: Updated.

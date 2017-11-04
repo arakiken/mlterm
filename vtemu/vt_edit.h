@@ -107,7 +107,7 @@ int vt_edit_scroll_leftward_from_cursor(vt_edit_t *edit, u_int size);
 
 int vt_edit_scroll_rightward_from_cursor(vt_edit_t *edit, u_int size);
 
-int vt_edit_set_use_hmargin(vt_edit_t *edit, int use);
+void vt_edit_set_use_hmargin(vt_edit_t *edit, int use);
 
 int vt_edit_set_hmargin(vt_edit_t *edit, int beg, int end);
 
@@ -129,7 +129,7 @@ void vt_edit_clear_all_tab_stops(vt_edit_t *edit);
 
 #define vt_edit_get_line(edit, row) (vt_model_get_line(&(edit)->model, row))
 
-int vt_edit_set_modified_all(vt_edit_t *edit);
+void vt_edit_set_modified_all(vt_edit_t *edit);
 
 #define vt_edit_get_cols(edit) ((edit)->model.num_of_cols)
 
@@ -169,15 +169,15 @@ void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
 int vt_edit_restore_cursor(vt_edit_t *edit);
 
-int vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_of_cols,
-                      u_int num_of_rows);
+void vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_of_cols,
+                       u_int num_of_rows);
 
-int vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of_copy_cols,
-                      u_int num_of_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row);
+void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of_copy_cols,
+                       u_int num_of_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row);
 
-int vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows);
+void vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows);
 
-int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
+void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
                              u_int num_of_rows,
                              void (*func)(vt_char_t *, int, int, int, int, int, int),
                              int attr);
@@ -194,9 +194,9 @@ void vt_edit_clear_size_attr(vt_edit_t *edit);
 
 #define vt_cursor_row(edit) ((edit)->cursor.row)
 
-#define vt_cursor_relative_col(edit) ((edit)->cursor.col - (edit)->hmargin_beg)
+int vt_edit_cursor_logical_col(vt_edit_t *edit);
 
-#define vt_cursor_relative_row(edit) ((edit)->cursor.row - (edit)->vmargin_beg)
+int vt_edit_cursor_logical_row(vt_edit_t *edit);
 
 #ifdef DEBUG
 

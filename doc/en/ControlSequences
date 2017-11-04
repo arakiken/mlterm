@@ -119,7 +119,7 @@ O DECRQTSR (Request Terminal State Report)                  CSI Ps $ u
 O DECRSPS (Restore Presentation State)                      DCS Ps $ t D...D ST
 - DECRSTS (Restore Terminal State)                          DCS Ps $ p D...D ST
 O DECSACE (Select Attribute Change Extent)                  CSI Ps * x
-- DECSASD (Select Active Status Display)                    CSI Ps $ }
+O DECSASD (Select Active Status Display)                    CSI Ps $ }
 O DECSC (Save Cursor)                                       ESC 7
 O DECSCA (Select Character Protection Attribute)            CSI Ps " q
 - DECSCL (Select Conformance Level)                         (L1) CSI 61 " p  (L4) CSI 6 n ; Pn " p
@@ -151,7 +151,7 @@ O DECSNLS (Set Lines Per Screen)                            CSI Pn * |
 - DECSR (Secure Reset)                                      CSI Pr + p
 - DECSRC (Secure Reset Confirmation)                        CSI Pr * q
 - DECSSCLS (Set Scroll Speed)                               CSI Ps SP p
-- DECSSDT (Select Status Display (LineType))                CSI Ps $ ~
+O DECSSDT (Select Status Display (LineType))                CSI Ps $ ~
 - DECSSL (Select Set-Up Language)                           CSI Ps p
 O DECST8C (Set Tab at Every Columns)                        CSI ? 5 W
 O DECSTBM (Set Top and Bottom Margins)                      CSI Pt;Pb r
@@ -272,28 +272,31 @@ O (Erase to end of line)                                    ESC K
 - (Print Screen)                                            ESC ]
 - (Print cursor line)                                       ESC V
 
-<Xterm>
-O XTALTSCRN                                                 CSI ? 47 [hl]
-O XTALTS47                                                  CSI ? 1047 [hl]
-O XTALTS48                                                  CSI ? 1048 [hl]
-O XTEXTSCRN                                                 CSI ? 1049 [hl]
-O XTBRACKET                                                 CSI ? 2004 [hl]
+<Xterm> http://invisible-island.net/xterm/ctlseqs/ctlseqs.txt
+O XTALTSCRN (Use Alternate Screen Buffer)                   CSI ? 47 [hl]
+O XTALTS47 (Use Alternate Screen Buffer)                    CSI ? 1047 [hl]
+O XTALTS48 (Save cursor as in DECSC)                        CSI ? 1048 [hl]
+O XTEXTSCRN (Save cursor as in DECSC and use Alternate Screen Buffer)
+                                                            CSI ? 1049 [hl]
+O XTBRACKET (Set bracketed paste mode)                      CSI ? 2004 [hl]
 O XTMDKEY                                                   CSI > Pn;Ps m
 O XTMDKYD                                                   CSI > Pn n
-O XTMSEANY                                                  CSI ? 1003 [hl]
-O XTMSEBTN                                                  CSI ? 1002 [hl]
-O XTMSERXVT                                                 CSI ? 1015 [hl]
-O XTMSESGR                                                  CSI ? 1006 [hl]
-O XTMSEUTF                                                  CSI ? 1005 [hl]
-O XTMSEWIN                                                  CSI ? 1004 [hl]
-O XTMSEX11                                                  CSI ? 1000 [hl]
-O XTHDPT                                                    CSI > Pn p
-O XTREST                                                    CSI ? Pn r
-O XTSAVE                                                    CSI ? Pn s
-O XTSMTT                                                    CSI > Pn t
-O XTRMTT                                                    CSI > Pn T
-O XTWOP                                                     CSI Pn;P1;P2 t
-O XTRQCAP                                                   DCS + q D...D ST
+O XTMSEANY (Use All Motion Mouse Tracking)                  CSI ? 1003 [hl]
+O XTMSEBTN (Use Cell Motion Mouse Tracking)                 CSI ? 1002 [hl]
+O XTMSERXVT (Enable urxvt Mouse Mode)                       CSI ? 1015 [hl]
+O XTMSESGR (Enable SGR Mouse Mode)                          CSI ? 1006 [hl]
+O XTMSEUTF (Enable UTF-8 Mouse Mode)                        CSI ? 1005 [hl]
+O XTMSEWIN (Send FocusIn/FocusOut events)                   CSI ? 1004 [hl]
+O XTMSEX11 (Send Mouse X & Y on button press and release)   CSI ? 1000 [hl]
+O XTHDPT (Set resource value pointerMode)                   CSI > Pn p
+O XTREST (Restore DEC Private Mode Values)                  CSI ? Pn r
+O XTSAVE (Save DEC Private Mode Values)                     CSI ? Pn s
+O XTSMTT (Set one or more features of the title modes)      CSI > Pn t
+O XTRMTT (Reset one or more features of the title modes to the default value)
+                                                            CSI > Pn T
+O XTWOP (Window manipulation)                               CSI Pn;P1;P2 t
+- XTSTCAP (Set Termcap/Terminfo Data)                       DCS + p D...D ST
+O XTRQCAP (Request Termcap/Terminfo String)                 DCS + q D...D ST
 - XTCOLREG                                                  CSI ? Pi;Pa;Pv S
 - XTMSEX10 (X10 xterm mouse protocol)                       CSI ? 9 [hl]
 - XTCBLINK (Start Blinking Cursor (att610))                 CSI ? 12 [hl]
@@ -343,16 +346,16 @@ O CTC (Cursor Tabulation Control)                           CSI Pn W
 - EF (Erase in Field)                                       CSI Pn N
 - EPA (End of Guarded Area)                                 ESC W
 - FNT (Font Selection)                                      CSI Pn SP D
-- HPB (Character Position Backward)                         CSI Pn j
-- HTJ (Character Tabulation with Justification)             ESC I
+O HPB (Character Position Backward)                         CSI Pn j
+O HTJ (Character Tabulation with Justification)             ESC I
 - PLD (Partial Line Forward)                                ESC K
 - PLU (Partial Line Backward)                               ESC L
 O REP (Repeat)                                              CSI Pn b
-- RI (Reverse Line Feed)                                    ESC M
+O RI (Reverse Line Feed)                                    ESC M
 O SL (Scroll Left)                                          CSI Pn SP @
 - SPA (Start of Guarded Area)                               ESC V
 O SR (Scroll Right)                                         CSI Pn SP A
-- VPB (Line Position Backward)                              CSI Pn k
+O VPB (Line Position Backward)                              CSI Pn k
 - VTS (Line Tabulation Set)                                 ESC J
 
 <TeraTerm> https://ttssh2.osdn.jp/manual/ja/about/ctrlseq.html
@@ -365,6 +368,7 @@ O (Application Escape Mode)                                 CSI ? 7727 [hl]
 - CSI ? 7700/7728/7730/7766/7767/7783/7786/7787/7796/
 
 <RLogin> http://nanno.dip.jp/softlib/man/rlogin/ctrlcode.html
+- C25LCT                                                    CSI = Pn S
 O RLAMBCHM                                                  CSI ? 8428 [hl]
 - RLBFAT                                                    CSI Pn p
 - RLCURCOL                                                  CSI < Pn ! q

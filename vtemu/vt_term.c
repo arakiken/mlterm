@@ -551,14 +551,16 @@ size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len) {
 
 /* The caller should swap width_pix and height_pix in vertical mode. */
 int vt_term_resize(vt_term_t *term, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
-  if (term->pty) {
-    vt_set_pty_winsize(term->pty, cols, rows, width_pix, height_pix);
-  }
-
   vt_screen_logical(term->screen);
   vt_screen_resize(term->screen, cols, rows);
   vt_screen_render(term->screen);
   vt_screen_visual(term->screen);
+
+  if (term->pty) {
+    /* Don't use cols and rows because status line might change rows in vt_screen_resize(). */
+    vt_set_pty_winsize(term->pty, vt_screen_get_logical_cols(term->screen),
+                       vt_screen_get_logical_rows(term->screen), width_pix, height_pix);
+  }
 
   return 1;
 }
@@ -829,12 +831,12 @@ int vt_term_update_special_visual(vt_term_t *term) {
   }
 }
 
-int vt_term_enter_backscroll_mode(vt_term_t *term) {
+void vt_term_enter_backscroll_mode(vt_term_t *term) {
   /* XXX */
   if (term->vertical_mode) {
     bl_msg_printf("Not supported backscrolling in vertical mode.\n");
 
-    return 0;
+    return;
   }
 
   return vt_enter_backscroll_mode(term->screen);

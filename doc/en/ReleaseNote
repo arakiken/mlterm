@@ -1,7 +1,10 @@
 * Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,
   CSI 7 t, CSI ? Pm s, CSI ? Pm r and CSI 34 [hl].
+* Support DECSASD, DECSSDT unless vertical mode is enabled.
 * Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
   wayland and android if freetype is enabled.
+* Support sticky shift key of skk im module, and change the format of skk option from
+  "skk:[dictionary]" to "skk:dict=[dictionary],sskey=[sticky shift key]".
 * Add "use_vertical_cursor" and "click_interval" to OSC 5379, 5380 and 5381.
 * Add "ot_features" and "ot_script" to OSC 5380 and 5381.
 * Add "Features" and "Script" buttons to "Encoding" tab of mlconfig.
@@ -10,15 +13,13 @@
   "Trim trailing CR/LF in pasting" to "Others" tab of mlconfig.
 * Add doc/en/ControlSequences which lists escape/control sequences which mlterm supports.
 * Change the default value of "use_vertical_cursor" option from false to true.
-* Support sticky shift key of skk im module, and change the format of skk option from
-  "skk:[dictionary]" to "skk:dict=[dictionary],sskey=[sticky shift key]".
 * Drop "CSI ? 9500 [hl]".
 * Merge patches:
   https://sf.net/p/mlterm/patches/_discuss/thread/f5dc445d/0fc3/attachment/fix_spelling.diff
 * Bug fixes:
   Fix impossibility of keyborad and pointer input after switching virtual consoles on wayland.
   Fix unexpectedly having privilege in opening a shell on startup of mlterm built with brlapi.
-  Fix Pl, Pc and Pp of XCPR (Response to "CSI ? 6 n").
+  Fix Pl, Pc and Pp of XCPR and CPR.
   Fix corruption of TBC (CSI g), CTC (CSI W) and DECATC(CSI ,}).
 
 ver 3.8.3
