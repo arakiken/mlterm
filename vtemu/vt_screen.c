@@ -82,6 +82,10 @@ static void receive_scrolled_out_line(void *p, vt_line_t *line) {
 
   screen = p;
 
+  if (vt_status_line_is_focused(screen)) {
+    return;
+  }
+
   if (screen->screen_listener && screen->screen_listener->line_scrolled_out) {
     (*screen->screen_listener->line_scrolled_out)(screen->screen_listener->self);
   }
@@ -605,11 +609,13 @@ static u_int32_t get_msec_time(void) {
 static void change_edit(vt_screen_t *screen, vt_edit_t *edit) {
   vt_screen_disable_local_echo(screen);
 
-  edit->bce_ch = screen->edit->bce_ch;
-
-  if (screen->logvis) {
-    (*screen->logvis->init)(screen->logvis, &edit->model, &edit->cursor);
+  if (edit != screen->status_edit) {
+    if (screen->logvis) {
+      (*screen->logvis->init)(screen->logvis, &edit->model, &edit->cursor);
+    }
   }
+
+  edit->bce_ch = screen->edit->bce_ch;
 
   vt_edit_set_modified_all(edit);
 
@@ -644,6 +650,18 @@ static vt_edit_t *get_edit(vt_screen_t *screen, u_int page_id) {
   }
 
   return NULL;
+}
+
+static vt_edit_t *status_edit_new(vt_edit_t *main_edit) {
+  vt_edit_t *status_edit;
+
+  if ((status_edit = malloc(sizeof(vt_edit_t)))) {
+      vt_edit_init(status_edit, &main_edit->scroll_listener,
+                   vt_edit_get_cols(main_edit), 1, vt_edit_get_tab_size(main_edit), 1,
+                   main_edit->use_bce);
+  }
+
+  return status_edit;
 }
 
 /* --- global functions --- */
@@ -762,6 +780,11 @@ int vt_screen_delete(vt_screen_t *screen) {
     free(screen->page_edits);
   }
 
+  if (screen->status_edit) {
+    vt_edit_final(screen->status_edit);
+    free(screen->status_edit);
+  }
+
   vt_log_final(&screen->logs);
 
   vt_screen_search_final(screen);
@@ -775,7 +798,16 @@ void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *scr
   screen->screen_listener = screen_listener;
 }
 
+/* This considers status line ('row' contains status line) */
 int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows) {
+  if (screen->status_edit) {
+    vt_edit_resize(screen->status_edit, cols, 1);
+
+    if (vt_screen_has_status_line(screen) && rows >= 2) {
+      rows--;
+    }
+  }
+
   vt_edit_resize(&screen->normal_edit, cols, rows);
   vt_edit_resize(&screen->alt_edit, cols, rows);
 
@@ -794,13 +826,23 @@ int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows) {
   return 1;
 }
 
-int vt_screen_cursor_row_in_screen(vt_screen_t *screen) {
-  int row;
+/* This considers status line */
+int vt_screen_cursor_row(vt_screen_t *screen) {
+  int row = vt_cursor_row(screen->edit);
 
-  row = vt_cursor_row(screen->edit);
+  if (vt_status_line_is_focused(screen)) {
+    row += vt_edit_get_rows(screen->main_edit);
+  }
+
+  return row;
+}
+
+/* This considers status line */
+int vt_screen_cursor_row_in_screen(vt_screen_t *screen) {
+  int row = vt_screen_cursor_row(screen);
 
   if (screen->backscroll_rows > 0) {
-    if ((row += screen->backscroll_rows) >= vt_edit_get_rows(screen->edit)) {
+    if ((row += screen->backscroll_rows) >= vt_screen_get_rows(screen)) {
       return -1;
     }
   }
@@ -809,15 +851,33 @@ int vt_screen_cursor_row_in_screen(vt_screen_t *screen) {
 }
 
 u_int vt_screen_get_logical_cols(vt_screen_t *screen) {
-  if (screen->logvis) {
+  if (screen->logvis && screen->logvis->is_visual) {
     return (*screen->logvis->logical_cols)(screen->logvis);
   } else {
     return vt_edit_get_cols(screen->edit);
   }
 }
 
+/* This considers status line */
+u_int vt_screen_get_rows(vt_screen_t *screen) {
+  u_int rows;
+
+  rows = vt_edit_get_rows(screen->edit);
+
+  if (vt_screen_has_status_line(screen)) {
+    if (vt_status_line_is_focused(screen)) {
+      rows += vt_edit_get_rows(screen->main_edit);
+    } else {
+      rows ++;
+    }
+  }
+
+  return rows;
+}
+
+/* This ignores status line */
 u_int vt_screen_get_logical_rows(vt_screen_t *screen) {
-  if (screen->logvis) {
+  if (screen->logvis && screen->logvis->is_visual) {
     return (*screen->logvis->logical_rows)(screen->logvis);
   } else {
     return vt_edit_get_rows(screen->edit);
@@ -828,69 +888,52 @@ int vt_screen_convert_scr_row_to_abs(vt_screen_t *screen, int row) {
   return row - screen->backscroll_rows;
 }
 
+/* This considers status line */
 vt_line_t *vt_screen_get_line(vt_screen_t *screen, int row) {
-  if (row < -(int)vt_get_num_of_logged_lines(&screen->logs)) {
-#ifdef __DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " row %d is over the beg of screen.\n", row);
-#endif
-
-    return NULL;
-  } else if (row >= (int)vt_edit_get_rows(screen->edit)) {
-#ifdef __DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " row %d is over the end of screen.\n", row);
-#endif
-
-    return NULL;
-  }
-
   if (row < 0) {
     return vt_log_get(&screen->logs, ROW_IN_LOGS(screen, row));
+  } else if (vt_screen_has_status_line(screen)) {
+    if (row == vt_edit_get_rows(screen->main_edit)) {
+      return vt_edit_get_line(screen->status_edit, 0);
+    } else {
+      return vt_edit_get_line(screen->main_edit, row);
+    }
   } else {
     return vt_edit_get_line(screen->edit, row);
   }
 }
 
+/* This considers status line */
 vt_line_t *vt_screen_get_line_in_screen(vt_screen_t *screen, int row) {
   if (screen->is_backscrolling && screen->backscroll_rows > 0) {
-    int abs_row;
+    row -= screen->backscroll_rows;
 
-    if (row < 0 - (int)vt_get_num_of_logged_lines(&screen->logs)) {
-#ifdef __DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " row %d is over the beg of screen.\n", row);
-#endif
-
-      return NULL;
-    } else if (row >= (int)vt_edit_get_rows(screen->edit)) {
-#ifdef __DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " row %d is over the end of screen.\n", row);
-#endif
-
-      return NULL;
+    if (row < 0) {
+      return vt_log_get(&screen->logs, ROW_IN_LOGS(screen, row));
     }
+  }
 
-    abs_row = row - screen->backscroll_rows;
-
-    if (abs_row < 0) {
-      return vt_log_get(&screen->logs, ROW_IN_LOGS(screen, abs_row));
+  if (vt_screen_has_status_line(screen)) {
+    if (row == vt_edit_get_rows(screen->main_edit)) {
+      return vt_edit_get_line(screen->status_edit, 0);
     } else {
-      return vt_edit_get_line(screen->edit, abs_row);
+      return vt_edit_get_line(screen->main_edit, row);
     }
   } else {
     return vt_edit_get_line(screen->edit, row);
   }
 }
 
-int vt_screen_set_modified_all(vt_screen_t *screen) {
+void vt_screen_set_modified_all(vt_screen_t *screen) {
   int row;
   vt_line_t *line;
+  u_int num_of_rows = vt_screen_get_rows(screen);
 
-  for (row = 0; row < vt_edit_get_rows(screen->edit); row++) {
+  for (row = 0; row < num_of_rows; row++) {
     if ((line = vt_screen_get_line_in_screen(screen, row))) {
       vt_line_set_modified_all(line);
     }
   }
-
-  return 1;
 }
 
 int vt_screen_add_logical_visual(vt_screen_t *screen, vt_logical_visual_t *logvis) {
@@ -962,35 +1005,26 @@ vt_bs_mode_t vt_screen_is_backscrolling(vt_screen_t *screen) {
   }
 }
 
-int vt_set_backscroll_mode(vt_screen_t *screen, vt_bs_mode_t mode) {
+void vt_set_backscroll_mode(vt_screen_t *screen, vt_bs_mode_t mode) {
   screen->backscroll_mode = mode;
 
   if (screen->is_backscrolling) {
     screen->is_backscrolling = mode;
   }
-
-  return 1;
 }
 
-int vt_enter_backscroll_mode(vt_screen_t *screen) {
+void vt_enter_backscroll_mode(vt_screen_t *screen) {
   screen->is_backscrolling = screen->backscroll_mode;
-
-  return 1;
 }
 
-int vt_exit_backscroll_mode(vt_screen_t *screen) {
+void vt_exit_backscroll_mode(vt_screen_t *screen) {
   screen->is_backscrolling = 0;
   screen->backscroll_rows = 0;
 
   vt_screen_set_modified_all(screen);
-
-  return 1;
 }
 
 int vt_screen_backscroll_to(vt_screen_t *screen, int row) {
-  vt_line_t *line;
-  u_int count;
-
   if (!screen->is_backscrolling) {
     return 0;
   }
@@ -1001,13 +1035,7 @@ int vt_screen_backscroll_to(vt_screen_t *screen, int row) {
     screen->backscroll_rows = abs(row);
   }
 
-  for (count = 0; count < vt_edit_get_rows(screen->edit); count++) {
-    if ((line = vt_screen_get_line_in_screen(screen, count)) == NULL) {
-      break;
-    }
-
-    vt_line_set_modified_all(line);
-  }
+  vt_screen_set_modified_all(screen);
 
 #ifdef EXIT_BS_AT_BOTTOM
   if (screen->backscroll_rows == 0) {
@@ -1020,7 +1048,8 @@ int vt_screen_backscroll_to(vt_screen_t *screen, int row) {
 
 int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
   vt_line_t *line;
-  int count;
+  u_int count;
+  u_int num_of_rows;
 
   if (!screen->is_backscrolling) {
     return 0;
@@ -1036,10 +1065,12 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
 
   screen->backscroll_rows -= size;
 
+  num_of_rows = vt_screen_get_rows(screen);
+
   if (!screen->screen_listener || !screen->screen_listener->window_scroll_upward_region ||
       !(*screen->screen_listener->window_scroll_upward_region)(
-          screen->screen_listener->self, 0, vt_edit_get_rows(screen->edit) - 1, size)) {
-    for (count = 0; count < vt_edit_get_rows(screen->edit) - size; count++) {
+          screen->screen_listener->self, 0, num_of_rows - 1, size)) {
+    for (count = 0; count < num_of_rows - size; count++) {
       if ((line = vt_screen_get_line_in_screen(screen, count)) == NULL) {
         break;
       }
@@ -1048,8 +1079,7 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
     }
   }
 
-  for (count = vt_edit_get_rows(screen->edit) - size; count < vt_edit_get_rows(screen->edit);
-       count++) {
+  for (count = num_of_rows - size; count < num_of_rows; count++) {
     if ((line = vt_screen_get_line_in_screen(screen, count)) == NULL) {
       break;
     }
@@ -1069,6 +1099,7 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
 int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size) {
   vt_line_t *line;
   u_int count;
+  int num_of_rows;
 
   if (!screen->is_backscrolling) {
     return 0;
@@ -1084,10 +1115,12 @@ int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size) {
 
   screen->backscroll_rows += size;
 
+  num_of_rows = vt_screen_get_rows(screen);
+
   if (!screen->screen_listener || !screen->screen_listener->window_scroll_downward_region ||
       !(*screen->screen_listener->window_scroll_downward_region)(
-          screen->screen_listener->self, 0, vt_edit_get_rows(screen->edit) - 1, size)) {
-    for (count = size; count < vt_edit_get_rows(screen->edit); count++) {
+          screen->screen_listener->self, 0, num_of_rows - 1, size)) {
+    for (count = size; count < num_of_rows; count++) {
       if ((line = vt_screen_get_line_in_screen(screen, count)) == NULL) {
         break;
       }
@@ -1582,8 +1615,9 @@ int vt_screen_blink(vt_screen_t *screen) {
     int char_index;
     int row;
     vt_line_t *line;
+    u_int num_of_rows = vt_screen_get_rows(screen);
 
-    for (row = 0; row + screen->backscroll_rows < vt_edit_get_rows(screen->edit); row++) {
+    for (row = 0; row + screen->backscroll_rows < num_of_rows; row++) {
       if ((line = vt_screen_get_line(screen, row)) == NULL) {
         continue;
       }
@@ -1905,7 +1939,7 @@ int vt_screen_disable_local_echo(vt_screen_t *screen) {
   return 1;
 }
 
-int vt_screen_fill_area(vt_screen_t *screen, int code /* Unicode */, int is_protected,
+void vt_screen_fill_area(vt_screen_t *screen, int code /* Unicode */, int is_protected,
                         int col, int row, u_int num_of_cols, u_int num_of_rows) {
   vt_char_t ch;
 
@@ -1918,13 +1952,11 @@ int vt_screen_fill_area(vt_screen_t *screen, int code /* Unicode */, int is_prot
   vt_edit_fill_area(screen->edit, &ch, col, row, num_of_cols, num_of_rows);
 
   vt_char_final(&ch);
-
-  return 1;
 }
 
-int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_of_copy_cols,
-                        u_int num_of_copy_rows, u_int src_page,
-                        int dst_col, int dst_row, u_int dst_page) {
+void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_of_copy_cols,
+                         u_int num_of_copy_rows, u_int src_page,
+                         int dst_col, int dst_row, u_int dst_page) {
   vt_edit_t *src_edit;
   vt_edit_t *dst_edit;
 
@@ -1936,11 +1968,9 @@ int vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num
   }
 
   if ((src_edit = get_edit(screen, src_page)) && (dst_edit = get_edit(screen, dst_page))) {
-    return vt_edit_copy_area(src_edit, src_col, src_row, num_of_copy_cols, num_of_copy_rows,
-                             dst_edit, dst_col, dst_row);
+    vt_edit_copy_area(src_edit, src_col, src_row, num_of_copy_cols, num_of_copy_rows,
+                      dst_edit, dst_col, dst_row);
   }
-
-  return 0;
 }
 
 void vt_screen_enable_blinking(vt_screen_t *screen) { screen->has_blinking_char = 1; }
@@ -2068,4 +2098,48 @@ int vt_screen_goto_prev_page(vt_screen_t *screen, u_int offset) {
   }
 
   return 0;
+}
+
+void vt_screen_set_use_status_line(vt_screen_t *screen, int use) {
+  if (use) {
+    if (!vt_screen_has_status_line(screen)) {
+      if ((!screen->status_edit && !(screen->status_edit = status_edit_new(screen->edit))) ||
+          /* XXX status line is *not* supported on vertical mode */
+          (screen->logvis && !screen->logvis->is_reversible)) {
+        return;
+      }
+
+      screen->main_edit = screen->edit;
+      screen->has_status_line = 1;
+      vt_edit_set_modified_all(screen->status_edit);
+
+      vt_screen_resize(screen, vt_edit_get_cols(screen->main_edit),
+                       vt_edit_get_rows(screen->main_edit));
+    }
+  } else {
+    if (vt_screen_has_status_line(screen)) {
+      screen->has_status_line = 0;
+
+      vt_screen_resize(screen, vt_edit_get_cols(screen->main_edit),
+                       vt_edit_get_rows(screen->main_edit) + 1);
+      screen->main_edit = NULL;
+    }
+  }
+}
+
+void vt_focus_status_line(vt_screen_t *screen) {
+  if (!screen->status_edit && !(screen->status_edit = status_edit_new(screen->edit))) {
+    return;
+  }
+
+  if (!vt_status_line_is_focused(screen)) {
+    screen->main_edit = screen->edit;
+    change_edit(screen, screen->status_edit);
+  }
+}
+
+void vt_focus_main_screen(vt_screen_t *screen) {
+  if (screen->main_edit && vt_status_line_is_focused(screen)) {
+    change_edit(screen, screen->main_edit);
+  }
 }

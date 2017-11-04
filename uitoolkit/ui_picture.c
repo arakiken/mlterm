@@ -1020,6 +1020,7 @@ int ui_animate_inline_pictures(vt_term_t *term) {
   int wait;
   int row;
   vt_line_t *line;
+  u_int num_of_rows;
 
   if (!num_of_anims) {
     return 0;
@@ -1027,7 +1028,8 @@ int ui_animate_inline_pictures(vt_term_t *term) {
 
   wait = 0;
 
-  for (row = 0; row < vt_term_get_rows(term); row++) {
+  num_of_rows = vt_term_get_rows(term);
+  for (row = 0; row < num_of_rows; row++) {
     if ((line = vt_term_get_line_in_screen(term, row))) {
       int char_index;
 

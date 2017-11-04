@@ -247,8 +247,8 @@ static int horizontal_tabs(vt_edit_t *edit, u_int num, int is_forward) {
   return 1;
 }
 
-static int copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of_copy_cols,
-                     u_int num_of_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row) {
+static void copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of_copy_cols,
+                      u_int num_of_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row) {
   u_int count;
   vt_line_t *src_line;
   vt_line_t *dst_line;
@@ -334,11 +334,9 @@ static int copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of
       vt_line_fill(dst_line, vt_sp_ch(), dst_char_index + num_of_src_chars, src_cols_rest);
     }
   }
-
-  return 1;
 }
 
-static int erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
+static void erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
   u_int count;
   vt_line_t *line;
   int char_index;
@@ -362,8 +360,6 @@ static int erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_in
 
     vt_line_fill(line, edit->use_bce ? &edit->bce_ch : vt_sp_ch(), char_index, num_of_cols);
   }
-
-  return 1;
 }
 
 static int scroll_downward_region(vt_edit_t *edit, u_int size, int is_cursor_beg,
@@ -1088,7 +1084,9 @@ int vt_edit_clear_above(vt_edit_t *edit) {
   }
 }
 
-vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit, int beg_row, int end_row,
+vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit,
+                                                 int beg_row, /* -1: cursor row (unless relative) */
+                                                 int end_row, /* -1: cursor row (unless relative) */
                                                  int relative) {
   vt_protect_store_t *save = NULL;
   vt_char_t *dst;
@@ -1096,12 +1094,21 @@ vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit, int beg_row, i
   int row;
   vt_line_t *line;
 
-  if (relative && edit->is_relative_origin) {
-    if ((beg_row += edit->vmargin_beg) > edit->vmargin_end) {
-      return NULL;
+  if (relative) {
+    if (edit->is_relative_origin) {
+      if ((beg_row += edit->vmargin_beg) > edit->vmargin_end) {
+        return NULL;
+      }
+      if ((end_row += edit->vmargin_beg) > edit->vmargin_end) {
+        end_row = edit->vmargin_end;
+      }
     }
-    if ((end_row += edit->vmargin_beg) > edit->vmargin_end) {
-      end_row = edit->vmargin_end;
+  } else {
+    if (beg_row == -1) {
+      beg_row = vt_cursor_row(edit);
+    }
+    if (end_row == -1) {
+      end_row = vt_cursor_row(edit);
     }
   }
 
@@ -1350,7 +1357,7 @@ int vt_edit_scroll_downward(vt_edit_t *edit, u_int size) {
   return 1;
 }
 
-int vt_edit_set_use_hmargin(vt_edit_t *edit, int use) {
+void vt_edit_set_use_hmargin(vt_edit_t *edit, int use) {
   if (use <= 0) {
     edit->use_margin = 0;
     edit->hmargin_beg = 0;
@@ -1362,8 +1369,6 @@ int vt_edit_set_use_hmargin(vt_edit_t *edit, int use) {
   if (use >= 0) {
     vt_edit_goto_home(edit);
   }
-
-  return 1;
 }
 
 int vt_edit_set_hmargin(vt_edit_t *edit, int beg, int end) {
@@ -1448,14 +1453,12 @@ void vt_edit_clear_all_tab_stops(vt_edit_t *edit) {
   memset(edit->tab_stops, 0, TAB_STOPS_SIZE(edit));
 }
 
-int vt_edit_set_modified_all(vt_edit_t *edit) {
-  int count;
+void vt_edit_set_modified_all(vt_edit_t *edit) {
+  u_int count;
 
   for (count = 0; count < edit->model.num_of_rows; count++) {
     vt_line_set_modified_all(vt_model_get_line(&edit->model, count));
   }
-
-  return 1;
 }
 
 int vt_edit_goto_beg_of_line(vt_edit_t *edit) {
@@ -1680,14 +1683,14 @@ int vt_edit_restore_cursor(vt_edit_t *edit) {
   }
 }
 
-int vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_of_cols,
+void vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_of_cols,
                       u_int num_of_rows) {
   int char_index;
   u_int cols_rest;
   vt_line_t *line;
 
   if (!apply_relative_origin(edit, &col, &row, &num_of_cols, &num_of_rows)) {
-    return 1;
+    return;
   }
 
   for (; num_of_rows > 0; num_of_rows--) {
@@ -1701,18 +1704,16 @@ int vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int nu
 
     vt_line_fill(line, ch, char_index, num_of_cols);
   }
-
-  return 1;
 }
 
-int vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of_copy_cols,
+void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of_copy_cols,
                       u_int num_of_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row) {
   if (src_edit->is_relative_origin) {
     if ((src_row += src_edit->vmargin_beg) > src_edit->vmargin_end ||
         (dst_row += dst_edit->vmargin_beg) > dst_edit->vmargin_end ||
         (src_col += src_edit->hmargin_beg) > src_edit->hmargin_end ||
         (dst_col += dst_edit->hmargin_beg) > dst_edit->hmargin_end) {
-      return 1;
+      return;
     }
 
     if (src_row + num_of_copy_rows > src_edit->vmargin_end + 1) {
@@ -1732,22 +1733,22 @@ int vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_o
     }
   }
 
-  return copy_area(src_edit, src_col, src_row, num_of_copy_cols, num_of_copy_rows,
-                   dst_edit, dst_col, dst_row);
+  copy_area(src_edit, src_col, src_row, num_of_copy_cols, num_of_copy_rows,
+            dst_edit, dst_col, dst_row);
 }
 
-int vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
+void vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows) {
   if (!apply_relative_origin(edit, &col, &row, &num_of_cols, &num_of_rows)) {
-    return 1;
+    return;
   }
 
-  return erase_area(edit, col, row, num_of_cols, num_of_rows);
+  erase_area(edit, col, row, num_of_cols, num_of_rows);
 }
 
-int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
-                             u_int num_of_rows,
-                             void (*func)(vt_char_t*, int, int, int, int, int, int),
-                             int attr) {
+void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
+                              u_int num_of_rows,
+                              void (*func)(vt_char_t*, int, int, int, int, int, int),
+                              int attr) {
   u_int count;
   vt_line_t *line;
   int char_index;
@@ -1797,7 +1798,7 @@ int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_col
   }
 
   if (!apply_relative_origin(edit, &col, &row, &num_of_cols, &num_of_rows)) {
-    return 1;
+    return;
   }
 
   for (count = 0; count < num_of_rows; count++) {
@@ -1840,8 +1841,6 @@ int vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_col
               crossed_out);
     }
   }
-
-  return 1;
 }
 
 void vt_edit_clear_size_attr(vt_edit_t *edit) {
@@ -1850,6 +1849,30 @@ void vt_edit_clear_size_attr(vt_edit_t *edit) {
   for (count = 0; count < edit->model.num_of_rows; count++) {
     vt_line_set_size_attr(vt_edit_get_line(edit, count), 0);
   }
+}
+
+int vt_edit_cursor_logical_col(vt_edit_t *edit) {
+  if (edit->is_relative_origin) {
+    if (edit->cursor.col > edit->hmargin_beg) {
+      return edit->cursor.col - edit->hmargin_beg;
+    } else {
+      return 0;
+    }
+  }
+
+  return edit->cursor.col;
+}
+
+int vt_edit_cursor_logical_row(vt_edit_t *edit) {
+  if (edit->is_relative_origin) {
+    if (edit->cursor.row > edit->vmargin_beg) {
+      return edit->cursor.row - edit->vmargin_beg;
+    } else {
+      return 0;
+    }
+  }
+
+  return edit->cursor.row;
 }
 
 /*
