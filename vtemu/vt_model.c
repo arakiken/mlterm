@@ -74,10 +74,11 @@ int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_of_cols, u_int nu
     return 0;
   }
 
-  if ((filled_rows = vt_model_get_num_of_filled_rows(model)) == 0 ||
-      (lines_p = calloc(sizeof(vt_line_t), num_of_rows)) == NULL) {
+  if ((lines_p = calloc(sizeof(vt_line_t), num_of_rows)) == NULL) {
     return 0;
   }
+
+  filled_rows = vt_model_get_num_of_filled_rows(model);
 
   if (num_of_rows >= filled_rows) {
     old_row = 0;
