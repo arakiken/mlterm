@@ -37,6 +37,9 @@ typedef struct ui_im_event_listener {
   int (*compare_key_state_with_modmap)(void *, u_int, int *, int *, int *, int *, int *, int *,
                                        int *, int *);
   void (*write_to_term)(void *, u_char *, size_t);
+#ifdef DEBUG
+  void (*write_to_status_line)(void *, u_char *, size_t);
+#endif
 
 } ui_im_event_listener_t;
 
