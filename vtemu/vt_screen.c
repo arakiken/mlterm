@@ -617,13 +617,15 @@ static void change_edit(vt_screen_t *screen, vt_edit_t *edit) {
     if (screen->main_edit) {
       screen->main_edit = edit;
     }
+
+    if (screen->edit != screen->status_edit) {
+      vt_edit_set_modified_all(edit);
+    }
   } else {
     screen->main_edit = screen->edit;
   }
 
   edit->bce_ch = screen->edit->bce_ch;
-
-  vt_edit_set_modified_all(edit);
 
   screen->edit = edit;
 }

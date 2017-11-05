@@ -1,5 +1,13 @@
 2017-11-05  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_im.h, ui_screen.c: write_to_status_line is added to ui_im_event_listener_t
+	  if DEBUG is defined.
+
+	* vt_screen.c: change_edit() calls vt_set_modified_all() only if both current
+	  screen->edit and new edit aren't screen->status_edit.
+
+2017-11-05  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_model.c: Whether vt_model_get_num_of_filled_rows == 0 or not is not checked
 	  in vt_model_resize().
 

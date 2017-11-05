@@ -5059,6 +5059,21 @@ static void write_to_term(void *p, u_char *str, /* must be same as term encoding
   vt_term_write(screen->term, str, len);
 }
 
+#ifdef DEBUG
+static void write_to_status_line(void *p, u_char *str /* must be same as term encoding */,
+                                 size_t len) {
+  ui_screen_t *screen = p;
+
+  if (str) {
+    vt_term_write_loopback(screen->term, "\x1b[2$~\x1b[1$}\x1b[H\x1b[2K", 17);
+    vt_term_write_loopback(screen->term, str, len);
+    vt_term_write_loopback(screen->term, "\x1b[0$}", 5);
+  } else {
+    vt_term_write_loopback(screen->term, "\x1b[0$~", 5);
+  }
+}
+#endif
+
 /*
  * callbacks of vt_xterm_event_listener_t
  */
@@ -5762,6 +5777,9 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->im_listener.im_changed = im_changed;
   screen->im_listener.compare_key_state_with_modmap = compare_key_state_with_modmap;
   screen->im_listener.write_to_term = write_to_term;
+#ifdef DEBUG
+  screen->im_listener.write_to_status_line = write_to_status_line;
+#endif
 
   ui_window_set_cursor(&screen->window, XC_xterm);
 
