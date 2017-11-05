@@ -127,7 +127,7 @@ u_int vt_model_get_num_of_filled_rows(vt_model_t *model) {
   u_int filled_rows;
 
   for (filled_rows = model->num_of_rows; filled_rows > 0; filled_rows--) {
-#if 0
+#if 1
     /*
      * This is problematic, since the value of 'slide' can be incorrect when
      * cursor is located at the line which contains white spaces alone.

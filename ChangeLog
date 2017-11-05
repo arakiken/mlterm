@@ -1,5 +1,17 @@
 2017-11-05  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_edit.c: vt_edit_resize() moves cursor to the bottom line if cursor position
+	  is outside of the screen after resizing.
+
+	* vt_mode.c: vt_mode_get_num_of_filled_rows() uses
+	  vt_line_get_num_of_filled_chars_except_spaces() instead of vt_line_is_empty().
+
+	* im_skk.c:
+	  - cand_screen -> status_screen
+	  - start_candidate is added to struct im_skk.
+
+2017-11-05  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_screen.c: change_edit() changes screen->main_edit correctly.
 
 	* vt_parser.c: vt_set_pty_winsize() is called in processing DECSSDT.
