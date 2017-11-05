@@ -613,6 +613,12 @@ static void change_edit(vt_screen_t *screen, vt_edit_t *edit) {
     if (screen->logvis) {
       (*screen->logvis->init)(screen->logvis, &edit->model, &edit->cursor);
     }
+
+    if (screen->main_edit) {
+      screen->main_edit = edit;
+    }
+  } else {
+    screen->main_edit = screen->edit;
   }
 
   edit->bce_ch = screen->edit->bce_ch;
@@ -656,9 +662,9 @@ static vt_edit_t *status_edit_new(vt_edit_t *main_edit) {
   vt_edit_t *status_edit;
 
   if ((status_edit = malloc(sizeof(vt_edit_t)))) {
-      vt_edit_init(status_edit, &main_edit->scroll_listener,
-                   vt_edit_get_cols(main_edit), 1, vt_edit_get_tab_size(main_edit), 1,
-                   main_edit->use_bce);
+    vt_edit_init(status_edit, main_edit->scroll_listener,
+                 vt_edit_get_cols(main_edit), 1, vt_edit_get_tab_size(main_edit), 1,
+                 main_edit->use_bce);
   }
 
   return status_edit;
@@ -2133,7 +2139,6 @@ void vt_focus_status_line(vt_screen_t *screen) {
   }
 
   if (!vt_status_line_is_focused(screen)) {
-    screen->main_edit = screen->edit;
     change_edit(screen, screen->status_edit);
   }
 }

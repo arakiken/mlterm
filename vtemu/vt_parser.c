@@ -3587,6 +3587,28 @@ static void send_display_extent(vt_pty_ptr_t pty, u_int cols, u_int rows, int vm
   vt_write_to_pty(pty, seq, strlen(seq));
 }
 
+static void set_use_status_line(vt_parser_t *vt_parser, int ps) {
+  u_int width;
+  u_int height;
+
+  if (ps <= 1) {
+    vt_screen_set_use_status_line(vt_parser->screen, 0);
+  } else if (ps == 2) {
+    vt_screen_set_use_status_line(vt_parser->screen, 1);
+  } else {
+    return;
+  }
+
+  if (!HAS_XTERM_LISTENER(vt_parser, get_window_size) ||
+      !(*vt_parser->xterm_listener->get_window_size)(vt_parser->xterm_listener->self,
+                                                     &width, &height)) {
+    width = height = 0;
+  }
+
+  vt_set_pty_winsize(vt_parser->pty, vt_screen_get_logical_cols(vt_parser->screen),
+                     vt_screen_get_logical_rows(vt_parser->screen), width, height);
+}
+
 /*
  * For string outside escape sequences.
  */
@@ -4304,11 +4326,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == '~') {
           /* "CSI $ ~" DECSSDT */
 
-          if (ps[0] <= 1) {
-            vt_screen_set_use_status_line(vt_parser->screen, 0);
-          } else {
-            vt_screen_set_use_status_line(vt_parser->screen, 1);
-          }
+          set_use_status_line(vt_parser, ps[0]);
         } else if (*str_p == 'u') {
           if (ps[0] == 1) {
             /* "CSI 1 $ u" DECRQTSR */

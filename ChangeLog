@@ -1,3 +1,9 @@
+2017-11-05  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_screen.c: change_edit() changes screen->main_edit correctly.
+
+	* vt_parser.c: vt_set_pty_winsize() is called in processing DECSSDT.
+
 2017-11-04  Araki Ken  <arakiken@users.sf.net>
 
 	* ControlSequences: Updated.
