@@ -61,9 +61,10 @@ typedef struct im_skk {
 
   input_mode_t mode;
 
-  int sticky_shift;
+  int8_t sticky_shift;
+  int8_t start_candidate;
 
-  int is_editing_new_word;
+  int8_t is_editing_new_word;
   ef_char_t new_word[MAX_CAPTION_LEN];
   u_int new_word_len;
 
@@ -993,11 +994,8 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
       }
 
       step = 0;
+      skk->start_candidate = 1;
     } else {
-      if (!skk->im.cand_screen) {
-        update = 1;
-      }
-
       dict_candidate_get_state(skk->candidate, &cur_index, &num);
 
       if (ksym == XK_Left) {
@@ -1027,12 +1025,12 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
           } else {
             update = 1;
           }
-        } else {
-          if (cur_index % CAND_UNIT == CAND_UNIT - 1) {
-            update = 1;
-          }
+        } else if ((cur_index % CAND_UNIT == CAND_UNIT - 1) || skk->start_candidate) {
+          update = 1;
         }
       }
+
+      skk->start_candidate = 0;
     }
 
     preedited_alphabet = (skk->mode == ALPHABET && skk->is_preediting);
@@ -1081,8 +1079,8 @@ static void focused(ui_im_t *im) {
 
   skk = (im_skk_t*)im;
 
-  if (skk->im.cand_screen) {
-    (*skk->im.cand_screen->show)(skk->im.cand_screen);
+  if (skk->im.stat_screen) {
+    (*skk->im.stat_screen->show)(skk->im.stat_screen);
   }
 }
 
@@ -1091,8 +1089,8 @@ static void unfocused(ui_im_t *im) {
 
   skk = (im_skk_t*)im;
 
-  if (skk->im.cand_screen) {
-    (*skk->im.cand_screen->hide)(skk->im.cand_screen);
+  if (skk->im.stat_screen) {
+    (*skk->im.stat_screen->hide)(skk->im.stat_screen);
   }
 }
 

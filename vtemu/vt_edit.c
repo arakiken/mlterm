@@ -588,6 +588,12 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_of_cols, u_int num_of_rows) {
   } else {
     edit->cursor.row -= slide;
 
+    if (edit->cursor.row >= num_of_rows) {
+      /* Forcibly move cursor to the bottom line. */
+      edit->cursor.row = num_of_rows - 1;
+      edit->cursor.col = edit->cursor.char_index = 0;
+    }
+
     if (num_of_cols < old_cols) {
       if (edit->cursor.col >= num_of_cols) {
         edit->cursor.col = num_of_cols - 1;
@@ -1793,7 +1799,7 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_co
     } else if (attr == 29) {
       crossed_out = -1;
     } else {
-      return 0;
+      return;
     }
   }
 
