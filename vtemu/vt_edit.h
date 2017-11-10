@@ -99,9 +99,9 @@ int vt_edit_scroll_upward(vt_edit_t *edit, u_int size);
 
 int vt_edit_scroll_downward(vt_edit_t *edit, u_int size);
 
-int vt_edit_scroll_leftward(vt_edit_t *edit, u_int size);
+void vt_edit_scroll_leftward(vt_edit_t *edit, u_int size);
 
-int vt_edit_scroll_rightward(vt_edit_t *edit, u_int size);
+void vt_edit_scroll_rightward(vt_edit_t *edit, u_int size);
 
 int vt_edit_scroll_leftward_from_cursor(vt_edit_t *edit, u_int size);
 
