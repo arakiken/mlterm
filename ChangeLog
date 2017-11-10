@@ -1,3 +1,15 @@
+2017-11-10  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_cursor.[ch]: Functions whose return values are not used return void.
+
+	* vt_edit.[ch]:
+	  - horizontal_tabs() moves cursor downward if edit->wraparound_ready_line is set.
+	  - horizontal_tabs() checkes edit->hmargin_beg.
+	  - vt_edit_set_{h|v}margin() move cursor to the top-left corner.
+	  - vt_edit_set_use_hmargin() doesn't move cursor.
+
+	* vt_screen.h, vt_parser.c: Minor fixes.
+
 2017-11-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_im.h, ui_screen.c: write_to_status_line is added to ui_im_event_listener_t

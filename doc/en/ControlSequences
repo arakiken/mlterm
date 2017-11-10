@@ -27,7 +27,6 @@ O DCH (Delete Character)                                    CSI Pn P
 O DECAC (Assign Color)                                      CSI Ps1;Ps2;Ps3 , l
 O DECALN (Screen Alignment Pattern)                         ESC # 8
 O DECANM (ANSI Mode)                                        CSI ? 2 [hl]
-O DECANM exit
 - DECARM (Autorepeat Mode)                                  CSI ? 8 [hl]
 - DECARR (Select Auto Repeat Rate)                          CSI Ps - p
 - DECARSM (Set/Reset Auto Resize Mode)                      CSI ? 98 [hl]

@@ -44,9 +44,9 @@ int vt_cursor_goto_by_col(vt_cursor_t *cursor, int col, int row);
 
 int vt_cursor_moveh_by_col(vt_cursor_t *cursor, int col);
 
-int vt_cursor_goto_home(vt_cursor_t *cursor);
+void vt_cursor_goto_home(vt_cursor_t *cursor);
 
-int vt_cursor_goto_beg_of_line(vt_cursor_t *cursor);
+void vt_cursor_goto_beg_of_line(vt_cursor_t *cursor);
 
 int vt_cursor_go_forward(vt_cursor_t *cursor);
 
@@ -56,11 +56,11 @@ vt_line_t *vt_get_cursor_line(vt_cursor_t *cursor);
 
 vt_char_t *vt_get_cursor_char(vt_cursor_t *cursor);
 
-int vt_cursor_char_is_cleared(vt_cursor_t *cursor);
+void vt_cursor_char_is_cleared(vt_cursor_t *cursor);
 
-int vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t *cursor);
+void vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t *cursor);
 
-int vt_cursor_save(vt_cursor_t *cursor);
+void vt_cursor_save(vt_cursor_t *cursor);
 
 int vt_cursor_restore(vt_cursor_t *cursor);
 
