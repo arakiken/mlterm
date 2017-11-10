@@ -3496,6 +3496,14 @@ static void soft_reset(vt_parser_t *vt_parser) {
   vt_screen_set_vmargin(vt_parser->screen, -1, -1);
 }
 
+static void full_reset(vt_parser_t *vt_parser) {
+  vt_screen_goto_page(vt_parser->screen, 0);
+  soft_reset(vt_parser); /* XXX insufficient */
+  clear_display_all(vt_parser); /* XXX off-screen pages are not cleared */
+  delete_all_macros(vt_parser);
+  vt_drcs_final_full();
+}
+
 static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
   char *seq;
   char amb[] = "\x1b[?884Xn";
@@ -3900,10 +3908,7 @@ inline static int parse_vt100_escape_sequence(
     } else if (*str_p == 'c') {
       /* "ESC c" full reset (RIS) */
 
-      soft_reset(vt_parser);
-      clear_display_all(vt_parser);
-      vt_screen_goto(vt_parser->screen, 0, 0);
-      delete_all_macros(vt_parser);
+      full_reset(vt_parser);
     }
 #if 0
     else if (*str_p == 'l') {
@@ -4595,6 +4600,19 @@ inline static int parse_vt100_escape_sequence(
              * if DECATC specifies alternate colors.
              */
             vt_parser->use_ansi_colors = 1;
+          }
+        }
+      } else if (intmed_ch == '+') {
+        if (*str_p == 'p') {
+          /* "CSI + p" DECSR */
+
+          full_reset(vt_parser);
+
+          if (ps[0] >= 0) {
+            char seq[2+DIGIT_STR_LEN(ps[0])+3];
+
+            sprintf(seq, "\x1b[%d*q", ps[0]);
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
         }
       }

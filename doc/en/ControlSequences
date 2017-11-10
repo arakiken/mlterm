@@ -147,8 +147,7 @@ O DECSNLS (Set Lines Per Screen)                            CSI Pn * |
 - DECSPP (Set Port Parameter)                               CSI Ps1;Ps2;Ps3;Ps4 + w
 - DECSPPCS (Select ProPrinter Character Set)                CSI Pn * p
 - DECSPRTT (Select Printer Type)                            CSI Ps $ s
-- DECSR (Secure Reset)                                      CSI Pr + p
-- DECSRC (Secure Reset Confirmation)                        CSI Pr * q
+O DECSR (Secure Reset)                                      CSI Pr + p
 - DECSSCLS (Set Scroll Speed)                               CSI Ps SP p
 O DECSSDT (Select Status Display (LineType))                CSI Ps $ ~
 - DECSSL (Select Set-Up Language)                           CSI Ps p
