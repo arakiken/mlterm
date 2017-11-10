@@ -4429,34 +4429,31 @@ inline static int parse_vt100_escape_sequence(
           } else if (ps[0] == 6) {
             vt_parser->cursor_style = CS_BAR;
           }
-        } else if (*str_p == '@') {
-          /* CSI SP @ (SL) */
-          vt_screen_scroll_leftward(vt_parser->screen, ps[0]);
-        } else if (*str_p == 'A') {
-          /* CSI SP A (SR) */
-          vt_screen_scroll_rightward(vt_parser->screen, ps[0]);
-        } else if (*str_p == 'P') {
-          /* CSI SP P (PPA) */
-          if (ps[0] <= 0) {
-            ps[0] = 1;
-          }
-          vt_screen_goto_page(vt_parser->screen, ps[0] - 1);
-        } else if (*str_p == 'Q') {
-          /* CSI SP Q (PPR) */
-          if (ps[0] <= 0) {
-            ps[0] = 1;
-          }
-          vt_screen_goto_next_page(vt_parser->screen, ps[0]);
-        } else if (*str_p == 'R') {
-          /* CSI SP R (PPB) */
-          if (ps[0] <= 0) {
-            ps[0] = 1;
-          }
-          vt_screen_goto_prev_page(vt_parser->screen, ps[0]);
         } else {
-          /*
-           * "CSI SP t"(DECSWBV), "CSI SP u"(DECSMBV)
-           */
+          if (ps[0] <= 0) {
+            ps[0] = 1;
+          }
+
+          if (*str_p == '@') {
+            /* CSI SP @ (SL) */
+            vt_screen_scroll_leftward(vt_parser->screen, ps[0]);
+          } else if (*str_p == 'A') {
+            /* CSI SP A (SR) */
+            vt_screen_scroll_rightward(vt_parser->screen, ps[0]);
+          } else if (*str_p == 'P') {
+            /* CSI SP P (PPA) */
+            vt_screen_goto_page(vt_parser->screen, ps[0] - 1);
+          } else if (*str_p == 'Q') {
+            /* CSI SP Q (PPR) */
+            vt_screen_goto_next_page(vt_parser->screen, ps[0]);
+          } else if (*str_p == 'R') {
+            /* CSI SP R (PPB) */
+            vt_screen_goto_prev_page(vt_parser->screen, ps[0]);
+          } else {
+            /*
+             * "CSI SP t"(DECSWBV), "CSI SP u"(DECSMBV)
+             */
+          }
         }
       } else if (intmed_ch == '*') {
         if (ps[0] == -1) {

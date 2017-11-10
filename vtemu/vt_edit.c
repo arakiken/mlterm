@@ -1240,54 +1240,22 @@ int vt_edit_set_vmargin(vt_edit_t *edit, int beg, int end) {
   return 1;
 }
 
-int vt_edit_scroll_leftward(vt_edit_t *edit, u_int size) {
-  int orig_mode;
-
-  orig_mode = edit->is_relative_origin;
-  edit->is_relative_origin = 1; /* Compatible with RLogin */
-
-#if 0
-  if (!edit->is_relative_origin) {
-    vt_edit_copy_area(edit, size, 0, vt_edit_get_cols(edit) - size, vt_edit_get_rows(edit),
-                      edit, 0, 0);
-    vt_edit_erase_area(edit, vt_edit_get_cols(edit) - size, 0, size, vt_edit_get_rows(edit));
-  } else
-#endif
-  {
-    vt_edit_copy_area(edit, size, 0, edit->hmargin_end - edit->hmargin_beg + 1 - size,
-                      edit->vmargin_end - edit->vmargin_beg + 1,
-                      edit, 0, 0);
-    vt_edit_erase_area(edit, edit->hmargin_end - edit->hmargin_beg + 1 - size, 0, size,
-                       edit->vmargin_end - edit->vmargin_beg + 1);
-  }
-
-  edit->is_relative_origin = orig_mode;
-
-  return 1;
+void vt_edit_scroll_leftward(vt_edit_t *edit, u_int size) {
+  copy_area(edit, edit->hmargin_beg + size, edit->vmargin_beg,
+            edit->hmargin_end - edit->hmargin_beg + 1 - size,
+            edit->vmargin_end - edit->vmargin_beg + 1,
+            edit, edit->hmargin_beg, edit->vmargin_beg);
+  erase_area(edit, edit->hmargin_end - edit->hmargin_beg + 1 - size, edit->vmargin_beg,
+             size, edit->vmargin_end - edit->vmargin_beg + 1);
 }
 
-int vt_edit_scroll_rightward(vt_edit_t *edit, u_int size) {
-  int orig_mode;
-
-  orig_mode = edit->is_relative_origin;
-  edit->is_relative_origin = 1; /* Compatible with RLogin */
-
-#if 0
-  if (!edit->is_relative_origin) {
-    vt_edit_copy_area(edit, 0, 0, vt_edit_get_cols(edit) - size, vt_edit_get_rows(edit),
-                      edit, size, 0);
-    vt_edit_erase_area(edit, 0, 0, size, vt_edit_get_rows(edit));
-  } else
-#endif
-  {
-    vt_edit_copy_area(edit, 0, 0, edit->hmargin_end - edit->hmargin_beg + 1 - size,
-                      edit->vmargin_end - edit->vmargin_beg + 1, edit, size, 0);
-    vt_edit_erase_area(edit, 0, 0, size, edit->vmargin_end - edit->vmargin_beg + 1);
-  }
-
-  edit->is_relative_origin = orig_mode;
-
-  return 1;
+void vt_edit_scroll_rightward(vt_edit_t *edit, u_int size) {
+  copy_area(edit, edit->hmargin_beg, edit->vmargin_beg,
+            edit->hmargin_end - edit->hmargin_beg + 1 - size,
+            edit->vmargin_end - edit->vmargin_beg + 1,
+            edit, edit->hmargin_beg + size, edit->vmargin_beg);
+  erase_area(edit, edit->hmargin_beg, edit->vmargin_beg,
+             size, edit->vmargin_end - edit->vmargin_beg + 1);
 }
 
 int vt_edit_scroll_leftward_from_cursor(vt_edit_t *edit, u_int width) {
@@ -1307,7 +1275,7 @@ int vt_edit_scroll_leftward_from_cursor(vt_edit_t *edit, u_int width) {
     width = edit->hmargin_end - edit->cursor.col + 1;
   }
 
-  erase_area(edit, edit->hmargin_end - width + 1, edit->vmargin_end, width, height);
+  erase_area(edit, edit->hmargin_end - width + 1, edit->vmargin_beg, width, height);
 
   return 1;
 }

@@ -1,5 +1,15 @@
 2017-11-11  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c: Parameter of SL and SR is regarded as 1 if omitted.
+
+	* vt_edit.c:
+	  - {copy|erase}_area() are used in vt_edit_scroll_{right|left}ward()
+	    instead of vt_edit_{copy|erase}_area().
+	  - The third argument of erase_area() is fixed in
+	    vt_edit_scroll_leftward_from_cursor().
+
+2017-11-11  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_parser.c: DECSR is supported.
 
 2017-11-10  Araki Ken  <arakiken@users.sf.net>
