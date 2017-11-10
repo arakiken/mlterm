@@ -229,7 +229,7 @@ int ui_xic_filter_event(ui_window_t *win, /* Should be root window. */
     return 0;
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_xic_filter_event(win->children[count], event);
   }
 

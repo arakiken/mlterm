@@ -308,7 +308,7 @@ static int need_style(vt_char_t *ch, vt_char_t *prev_ch) {
   return need_style;
 }
 
-static u_int get_num_of_filled_chars_except_spaces(vt_line_t *line) {
+static u_int get_num_filled_chars_except_sp(vt_line_t *line) {
   if (vt_line_is_empty(line)) {
     return 0;
   } else {
@@ -867,25 +867,25 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jcl
 #else
   u_int count;
   vt_term_t **terms;
-  u_int num_of_terms;
+  u_int num_terms;
   int maxfd;
   int ptyfd;
   fd_set read_fds;
 #ifdef USE_LIBSSH2
   struct timeval tval;
   int *xssh_fds;
-  u_int num_of_xssh_fds;
+  u_int num_xssh_fds;
 #endif
 
   vt_close_dead_terms();
-  num_of_terms = vt_get_all_terms(&terms);
+  num_terms = vt_get_all_terms(&terms);
 
-  if (num_of_terms == 0) {
+  if (num_terms == 0) {
     return JNI_FALSE;
   }
 
 #ifdef USE_LIBSSH2
-  num_of_xssh_fds = vt_pty_ssh_get_x11_fds(&xssh_fds);
+  num_xssh_fds = vt_pty_ssh_get_x11_fds(&xssh_fds);
 #endif
 
   while (1) {
@@ -898,7 +898,7 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jcl
     maxfd = 0;
     FD_ZERO(&read_fds);
 
-    for (count = 0; count < num_of_terms; count++) {
+    for (count = 0; count < num_terms; count++) {
       ptyfd = vt_term_get_master_fd(terms[count]);
       FD_SET(ptyfd, &read_fds);
 
@@ -908,7 +908,7 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jcl
     }
 
 #ifdef USE_LIBSSH2
-    for (count = 0; count < num_of_xssh_fds; count++) {
+    for (count = 0; count < num_xssh_fds; count++) {
       FD_SET(xssh_fds[count], &read_fds);
 
       if (xssh_fds[count] > maxfd) {
@@ -973,24 +973,24 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeRead(JNIEnv *env, jobject
     if (ret) {
 #if 0 /* #ifdef  TUNEUP_HACK */
       u_int row;
-      u_int num_of_skip;
-      u_int num_of_rows;
-      u_int num_of_mod;
+      u_int num_skip;
+      u_int num_rows;
+      u_int num_mod;
       int prev_is_modified;
       vt_line_t *line;
 
       prev_is_modified = 0;
-      num_of_skip = 0;
-      num_of_mod = 0;
-      num_of_rows = vt_term_get_rows(nativeObj->term);
-      for (row = 0; row < num_of_rows; row++) {
+      num_skip = 0;
+      num_mod = 0;
+      num_rows = vt_term_get_rows(nativeObj->term);
+      for (row = 0; row < num_rows; row++) {
         if ((line = vt_term_get_line(nativeObj->term, row)) && vt_line_is_modified(line)) {
           if (!prev_is_modified) {
-            num_of_skip++;
+            num_skip++;
           }
           prev_is_modified = 1;
 
-          num_of_mod++;
+          num_mod++;
         } else if (prev_is_modified) {
           prev_is_modified = 0;
         }
@@ -1000,8 +1000,8 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeRead(JNIEnv *env, jobject
        * If 80% of lines are modified, set modified flag to all lines
        * to decrease the number of calling replaceTextRange().
        */
-      if (num_of_skip > 2 && num_of_mod * 5 / 4 > num_of_rows) {
-        for (row = 0; row < num_of_rows; row++) {
+      if (num_skip > 2 && num_mod * 5 / 4 > num_rows) {
+        for (row = 0; row < num_rows; row++) {
           if ((line = vt_term_get_line(nativeObj->term, row))) {
             vt_line_set_modified_all(line);
           }
@@ -1187,12 +1187,12 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
   u_char *buf;
   size_t buf_len;
   int mod_beg;
-  u_int num_of_chars;
+  u_int num_chars;
   u_int count;
   u_int start;
   size_t redraw_len;
   jobject *styles;
-  u_int num_of_styles;
+  u_int num_styles;
   static jfieldID region_str;
   static jfieldID region_start;
   static jfieldID region_styles;
@@ -1226,20 +1226,20 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
 
   mod_beg = vt_line_get_beg_of_modified(line);
 #if 0
-  num_of_chars = vt_line_get_num_of_redrawn_chars(line, 1 /* to end */);
+  num_chars = vt_line_get_num_redrawn_chars(line, 1 /* to end */);
 #else
-  if ((num_of_chars = get_num_of_filled_chars_except_spaces(line)) >= mod_beg) {
-    num_of_chars -= mod_beg;
+  if ((num_chars = get_num_filled_chars_except_sp(line)) >= mod_beg) {
+    num_chars -= mod_beg;
   } else {
-    num_of_chars = 0;
+    num_chars = 0;
   }
 #endif
 
-  buf_len = (mod_beg + num_of_chars) * sizeof(u_int16_t) * 2 /* SURROGATE_PAIR */
+  buf_len = (mod_beg + num_chars) * sizeof(u_int16_t) * 2 /* SURROGATE_PAIR */
             + 2 /* NULL */;
   buf = alloca(buf_len);
 
-  num_of_styles = 0;
+  num_styles = 0;
 
   if (mod_beg > 0) {
     (*str_parser->init)(str_parser);
@@ -1249,13 +1249,13 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
     start = 0;
   }
 
-  if (num_of_chars > 0) {
+  if (num_chars > 0) {
     int prev_ch_was_added = 0;
 
-    styles = alloca(sizeof(jobject) * num_of_chars);
+    styles = alloca(sizeof(jobject) * num_chars);
     redraw_len = 0;
     (*str_parser->init)(str_parser);
-    for (count = 0; count < num_of_chars; count++) {
+    for (count = 0; count < num_chars; count++) {
       size_t len;
       int ret;
 
@@ -1280,8 +1280,8 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
 
       if (ret == 1) {
         (*env)->SetIntField(
-            env, styles[num_of_styles - 1], style_length,
-            (*env)->GetIntField(env, styles[num_of_styles - 1], style_length) + len / 2);
+            env, styles[num_styles - 1], style_length,
+            (*env)->GetIntField(env, styles[num_styles - 1], style_length) + len / 2);
       } else if (ret == 2) {
         vt_color_t color;
         u_int8_t red;
@@ -1302,42 +1302,42 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
           style_italic = (*env)->GetFieldID(env, style_class, "italic", "Z");
         }
 
-        styles[num_of_styles++] = (*env)->AllocObject(env, style_class);
+        styles[num_styles++] = (*env)->AllocObject(env, style_class);
 
-        (*env)->SetIntField(env, styles[num_of_styles - 1], style_length, len / 2);
+        (*env)->SetIntField(env, styles[num_styles - 1], style_length, len / 2);
 
-        (*env)->SetIntField(env, styles[num_of_styles - 1], style_start, redraw_len / 2);
+        (*env)->SetIntField(env, styles[num_styles - 1], style_start, redraw_len / 2);
 
         color = vt_char_fg_color(line->chars + mod_beg + count);
-        (*env)->SetIntField(env, styles[num_of_styles - 1], style_fg_color, color);
-        (*env)->SetIntField(env, styles[num_of_styles - 1], style_fg_pixel,
+        (*env)->SetIntField(env, styles[num_styles - 1], style_fg_color, color);
+        (*env)->SetIntField(env, styles[num_styles - 1], style_fg_pixel,
                             /* return -1(white) for invalid color. */
                             vt_get_color_rgba(color, &red, &green, &blue, NULL)
                                 ? ((red << 16) | (green << 8) | blue)
                                 : -1);
 
         color = vt_char_bg_color(line->chars + mod_beg + count);
-        (*env)->SetIntField(env, styles[num_of_styles - 1], style_bg_color, color);
-        (*env)->SetIntField(env, styles[num_of_styles - 1], style_bg_pixel,
+        (*env)->SetIntField(env, styles[num_styles - 1], style_bg_color, color);
+        (*env)->SetIntField(env, styles[num_styles - 1], style_bg_pixel,
                             /* return -1(white) for invalid color. */
                             vt_get_color_rgba(color, &red, &green, &blue, NULL)
                                 ? ((red << 16) | (green << 8) | blue)
                                 : -1);
 
         (*env)->SetBooleanField(
-            env, styles[num_of_styles - 1], style_underline,
+            env, styles[num_styles - 1], style_underline,
             vt_char_underline_style(line->chars + mod_beg + count) ? JNI_TRUE : JNI_FALSE);
 
         (*env)->SetBooleanField(
-            env, styles[num_of_styles - 1], style_strikeout,
+            env, styles[num_styles - 1], style_strikeout,
             vt_char_is_crossed_out(line->chars + mod_beg + count) ? JNI_TRUE : JNI_FALSE);
 
         (*env)->SetBooleanField(
-            env, styles[num_of_styles - 1], style_bold,
+            env, styles[num_styles - 1], style_bold,
             vt_char_font(line->chars + mod_beg + count) & FONT_BOLD ? JNI_TRUE : JNI_FALSE);
 
         (*env)->SetBooleanField(
-            env, styles[num_of_styles - 1], style_italic,
+            env, styles[num_styles - 1], style_italic,
             vt_char_font(line->chars + mod_beg + count) & FONT_ITALIC ? JNI_TRUE : JNI_FALSE);
       }
 
@@ -1358,11 +1358,11 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
   (*env)->SetObjectField(env, region, region_str, ((*env)->NewString)(env, buf, redraw_len / 2));
   (*env)->SetIntField(env, region, region_start, start);
 
-  if (num_of_styles > 0) {
+  if (num_styles > 0) {
     u_int count;
 
-    array = (*env)->NewObjectArray(env, num_of_styles, style_class, styles[0]);
-    for (count = 1; count < num_of_styles; count++) {
+    array = (*env)->NewObjectArray(env, num_styles, style_class, styles[0]);
+    for (count = 1; count < num_styles; count++) {
       (*env)->SetObjectArrayElement(env, array, count, styles[count]);
     }
   } else {

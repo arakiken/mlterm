@@ -511,11 +511,11 @@ static void preedit_clear(void *ptr) {
   uim = (im_uim_t *)ptr;
 
   if (uim->im.preedit.chars) {
-    (*syms->vt_str_delete)(uim->im.preedit.chars, uim->im.preedit.num_of_chars);
+    (*syms->vt_str_delete)(uim->im.preedit.chars, uim->im.preedit.num_chars);
     uim->im.preedit.chars = NULL;
   }
 
-  uim->im.preedit.num_of_chars = 0;
+  uim->im.preedit.num_chars = 0;
   uim->im.preedit.filled_len = 0;
   uim->im.preedit.segment_offset = 0;
   uim->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -585,16 +585,16 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
   }
 
   /* no space left? (current array size < new array size?)*/
-  if (uim->im.preedit.num_of_chars < uim->im.preedit.filled_len + count) {
+  if (uim->im.preedit.num_chars < uim->im.preedit.filled_len + count) {
     if (!(p = realloc(uim->im.preedit.chars,
                       sizeof(vt_char_t) * (uim->im.preedit.filled_len + count)))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
 
-      (*syms->vt_str_delete)(uim->im.preedit.chars, uim->im.preedit.num_of_chars);
+      (*syms->vt_str_delete)(uim->im.preedit.chars, uim->im.preedit.num_chars);
       uim->im.preedit.chars = NULL;
-      uim->im.preedit.num_of_chars = 0;
+      uim->im.preedit.num_chars = 0;
       uim->im.preedit.filled_len = 0;
 
       if (NEED_TO_CONV(uim)) {
@@ -605,7 +605,7 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
     }
 
     uim->im.preedit.chars = p;
-    uim->im.preedit.num_of_chars = uim->im.preedit.filled_len + count;
+    uim->im.preedit.num_chars = uim->im.preedit.filled_len + count;
   }
 
   /*
@@ -788,7 +788,7 @@ static void candidate_select(void *p, int index) {
     if (uim->is_mozc && uim->im.cand_screen->index != index &&
         uim->im.cand_screen->index / uim->cand_limit != index / uim->cand_limit &&
         (index % uim->cand_limit) == 0) {
-      candidate_activate(p, uim->im.cand_screen->num_of_candidates, uim->cand_limit);
+      candidate_activate(p, uim->im.cand_screen->num_candidates, uim->cand_limit);
     }
 
     (*uim->im.cand_screen->select)(uim->im.cand_screen, index);
@@ -813,10 +813,10 @@ static void candidate_shift_page(void *p, int direction) {
 
   if (!direction && index < uim->cand_limit) {
     /* top page -> last page */
-    index = (uim->im.cand_screen->num_of_candidates / uim->cand_limit) * uim->cand_limit + index;
+    index = (uim->im.cand_screen->num_candidates / uim->cand_limit) * uim->cand_limit + index;
   } else if (direction &&
              ((index / uim->cand_limit) + 1) * uim->cand_limit >
-                 uim->im.cand_screen->num_of_candidates) {
+                 uim->im.cand_screen->num_candidates) {
     /* last page -> top page */
     index = index % uim->cand_limit;
   } else {
@@ -826,8 +826,8 @@ static void candidate_shift_page(void *p, int direction) {
 
   if (index < 0) {
     index = 0;
-  } else if (index >= uim->im.cand_screen->num_of_candidates) {
-    index = uim->im.cand_screen->num_of_candidates - 1;
+  } else if (index >= uim->im.cand_screen->num_candidates) {
+    index = uim->im.cand_screen->num_candidates - 1;
   }
 
   (*uim->im.cand_screen->select)(uim->im.cand_screen, index);
@@ -1465,12 +1465,12 @@ im_info_t *im_uim_get_info(char *locale, char *encoding) {
     goto error;
   }
 
-  result->num_of_args = uim_get_nr_im(u) + 1;
-  if (!(result->args = calloc(result->num_of_args, sizeof(char *)))) {
+  result->num_args = uim_get_nr_im(u) + 1;
+  if (!(result->args = calloc(result->num_args, sizeof(char *)))) {
     goto error;
   }
 
-  if (!(result->readable_args = calloc(result->num_of_args, sizeof(char *)))) {
+  if (!(result->readable_args = calloc(result->num_args, sizeof(char *)))) {
     free(result->args);
     goto error;
   }
@@ -1478,7 +1478,7 @@ im_info_t *im_uim_get_info(char *locale, char *encoding) {
   result->args[0] = strdup("");
   result->readable_args[0] = strdup(uim_get_default_im_name(locale));
 
-  for (i = 1; i < result->num_of_args; i++) {
+  for (i = 1; i < result->num_args; i++) {
     const char *im_name;
     const char *lang_id;
     size_t len;

@@ -186,7 +186,7 @@ static void delete(ui_im_status_screen_t *stat_screen) {
   ui_display_remove_root(stat_screen->window.disp, &stat_screen->window);
 
   if (stat_screen->chars) {
-    vt_str_delete(stat_screen->chars, stat_screen->num_of_chars);
+    vt_str_delete(stat_screen->chars, stat_screen->num_chars);
   }
 
 #ifdef USE_REAL_VERTICAL_FONT
@@ -228,7 +228,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
   ef_char_t ch;
   vt_char_t *p;
   vt_char_t *old_chars;
-  u_int old_num_of_chars;
+  u_int old_num_chars;
   u_int old_filled_len;
   int modified_beg;
 
@@ -242,7 +242,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
     ;
 
   old_chars = stat_screen->chars;
-  old_num_of_chars = stat_screen->num_of_chars;
+  old_num_chars = stat_screen->num_chars;
   old_filled_len = stat_screen->filled_len;
 
   if (!(stat_screen->chars = vt_str_new(count))) {
@@ -253,7 +253,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
     return 0;
   }
 
-  stat_screen->num_of_chars = count;
+  stat_screen->num_chars = count;
   stat_screen->filled_len = 0;
 
   /*
@@ -265,7 +265,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
 
   p = stat_screen->chars;
 
-  vt_str_init(p, stat_screen->num_of_chars);
+  vt_str_init(p, stat_screen->num_chars);
 
   while ((*parser->next_char)(parser, &ch)) {
     int is_fullwidth = 0;
@@ -312,7 +312,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
     ;
 
   if (old_chars) {
-    vt_str_delete(old_chars, old_num_of_chars);
+    vt_str_delete(old_chars, old_num_chars);
   }
 
   if (modified_beg < old_filled_len || old_filled_len != stat_screen->filled_len) {

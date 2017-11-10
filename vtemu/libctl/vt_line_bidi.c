@@ -101,7 +101,7 @@ int vt_line_bidi_render(vt_line_t *line, /* is always modified */
 
     base_was_rtl = BASE_IS_RTL(line->ctl_info.bidi);
 
-    if ((ret = vt_bidi(line->ctl_info.bidi, line->chars, line->num_of_filled_chars, bidi_mode,
+    if ((ret = vt_bidi(line->ctl_info.bidi, line->chars, line->num_filled_chars, bidi_mode,
                        separators)) <= 0) {
       return ret;
     }

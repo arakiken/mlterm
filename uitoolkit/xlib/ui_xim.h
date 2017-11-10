@@ -18,7 +18,7 @@ typedef struct ui_xim {
   vt_char_encoding_t encoding;
 
   ui_window_t **xic_wins;
-  u_int num_of_xic_wins;
+  u_int num_xic_wins;
 
 } ui_xim_t;
 

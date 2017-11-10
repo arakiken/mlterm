@@ -274,7 +274,7 @@ static inline ui_window_t *get_window(int x, /* X in display */
   ui_window_t *win;
   u_int count;
 
-  for (count = 0; count < _disp.roots[0]->num_of_children; count++) {
+  for (count = 0; count < _disp.roots[0]->num_children; count++) {
     if ((win = _disp.roots[0]->children[count])->is_mapped) {
       if (win->x <= x && x < win->x + ACTUAL_WIDTH(win) && win->y <= y &&
           y < win->y + ACTUAL_HEIGHT(win)) {
@@ -449,7 +449,7 @@ static void update_window(ui_window_t *win) {
     (*win->window_exposed)(win, 0, 0, win->width, win->height);
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     update_window(win->children[count]);
   }
 }
@@ -479,7 +479,7 @@ static void init_window(ANativeWindow *window) {
     /* In case of locked is 1 here. */
     locked = 0;
 
-    for (count = 0; count < _disp.num_of_roots; count++) {
+    for (count = 0; count < _disp.num_roots; count++) {
       ui_window_set_mapped_flag(_disp.roots[count], 1); /* In case of restarting */
       update_window(_disp.roots[count]);
     }
@@ -513,7 +513,7 @@ static void on_app_cmd(struct android_app *app, int32_t cmd) {
 #endif
       {
         u_int count;
-        for (count = 0; count < _disp.num_of_roots; count++) {
+        for (count = 0; count < _disp.num_roots; count++) {
           ui_window_set_mapped_flag(_disp.roots[count], 0);
         }
       }
@@ -583,7 +583,7 @@ void ui_display_close_all(void) {
   if (DISP_IS_INITED) {
     u_int count;
 
-    for (count = 0; count < _disp.num_of_roots; count++) {
+    for (count = 0; count < _disp.num_roots; count++) {
 #if 0
       ui_window_unmap(_disp.roots[count]);
 #endif
@@ -603,7 +603,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
                          ) {
   void *p;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_of_roots + 1))) == NULL) {
+  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_roots + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -624,7 +624,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     root->app_name = app_name;
   }
 
-  disp->roots[disp->num_of_roots++] = root;
+  disp->roots[disp->num_roots++] = root;
 
   /* Cursor is drawn internally by calling ui_display_put_image(). */
   return ui_window_show(root, hint);
@@ -633,7 +633,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
 /* XXX ui_window_unmap resize all windows internally. */
 #if 0
@@ -641,12 +641,12 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 #endif
       ui_window_final(root);
 
-      disp->num_of_roots--;
+      disp->num_roots--;
 
-      if (count == disp->num_of_roots) {
+      if (count == disp->num_roots) {
         disp->roots[count] = NULL;
       } else {
-        disp->roots[count] = disp->roots[disp->num_of_roots];
+        disp->roots[count] = disp->roots[disp->num_roots];
       }
 
       return 1;
@@ -678,7 +678,7 @@ void ui_display_idling(ui_display_t *disp /* ignored */
     }
   }
 
-  for (count = 0; count < _disp.num_of_roots; count++) {
+  for (count = 0; count < _disp.num_roots; count++) {
     ui_window_idling(_disp.roots[count]);
   }
 }
@@ -1025,7 +1025,7 @@ void ui_display_resize(int yoffset, int width, int height,
 
   _display.yoffset = yoffset;
 
-  if (_disp.num_of_roots == 0) {
+  if (_disp.num_roots == 0) {
     _disp.width = width;
     _disp.height = height;
 
@@ -1048,7 +1048,7 @@ void ui_display_resize(int yoffset, int width, int height,
 /* Called in the main thread (not in the native activity thread) */
 
 void ui_display_update_all(void) {
-  if (_disp.num_of_roots > 0) {
+  if (_disp.num_roots > 0) {
     ui_window_update_all(_disp.roots[0]);
   }
 }
@@ -1060,7 +1060,7 @@ void ui_window_set_mapped_flag(ui_window_t *win, int flag) {
     return;
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_set_mapped_flag(win->children[count], flag);
   }
 

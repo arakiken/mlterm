@@ -623,10 +623,10 @@ static void unconcat(char *str) {
   }
 }
 
-static int candidate_exists(const char **cands, u_int num_of_cands, const char *cand) {
+static int candidate_exists(const char **cands, u_int num_cands, const char *cand) {
   u_int count;
 
-  for (count = 0; count < num_of_cands; count++) {
+  for (count = 0; count < num_cands; count++) {
     if (strcmp(cands[count], cand) == 0) {
       return 1;
     }

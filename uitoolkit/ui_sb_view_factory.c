@@ -31,7 +31,7 @@ typedef ui_sb_view_t* (*ui_sb_engine_new_func_t)(ui_sb_view_conf_t *conf, int is
 
 #ifdef SUPPORT_PIXMAP_ENGINE
 static ui_sb_view_conf_t **view_confs;
-static u_int num_of_view_confs;
+static u_int num_view_confs;
 #endif
 
 /* --- static functions --- */
@@ -131,7 +131,7 @@ static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(const char *name) {
 static ui_sb_view_conf_t *search_view_conf(const char *sb_name) {
   u_int count;
 
-  for (count = 0; count < num_of_view_confs; count++) {
+  for (count = 0; count < num_view_confs; count++) {
     if (strcmp(view_confs[count]->sb_name, sb_name) == 0) {
       return view_confs[count];
     }
@@ -214,7 +214,7 @@ static ui_sb_view_conf_t *register_new_view_conf(bl_file_t *rcfile, const char *
                   conf->dir);
 #endif
 
-  if ((p = realloc(view_confs, sizeof(ui_sb_view_conf_t*) * (num_of_view_confs + 1))) == NULL) {
+  if ((p = realloc(view_confs, sizeof(ui_sb_view_conf_t*) * (num_view_confs + 1))) == NULL) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -223,7 +223,7 @@ static ui_sb_view_conf_t *register_new_view_conf(bl_file_t *rcfile, const char *
   }
 
   view_confs = p;
-  view_confs[num_of_view_confs++] = conf;
+  view_confs[num_view_confs++] = conf;
 
   return conf;
 
@@ -235,12 +235,12 @@ error:
 static int unregister_view_conf(ui_sb_view_conf_t *conf) {
   u_int count;
 
-  for (count = 0; count < num_of_view_confs; count++) {
+  for (count = 0; count < num_view_confs; count++) {
     if (view_confs[count] == conf) {
       free_conf(conf);
-      view_confs[count] = view_confs[--num_of_view_confs];
+      view_confs[count] = view_confs[--num_view_confs];
 
-      if (num_of_view_confs == 0) {
+      if (num_view_confs == 0) {
         free(view_confs);
         view_confs = NULL;
       }

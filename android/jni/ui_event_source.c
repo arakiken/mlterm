@@ -28,12 +28,12 @@ static int connect_to_ssh_server;
 
 static vt_term_t *get_current_term(void) {
   vt_term_t **terms;
-  u_int num_of_terms;
+  u_int num_terms;
   u_int count;
 
-  num_of_terms = vt_get_all_terms(&terms);
+  num_terms = vt_get_all_terms(&terms);
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     ui_window_t *win;
 
     if (vt_term_is_attached(terms[count]) && (win = UIWINDOW_OF(terms[count])) && win->is_focused) {
@@ -109,10 +109,10 @@ static void update_ime_text_on_active_term(char *preedit_text, char *commit_text
   }
 }
 
-static void ALooper_removeFds(ALooper *looper, int *fds, u_int num_of_fds) {
+static void ALooper_removeFds(ALooper *looper, int *fds, u_int num_fds) {
   u_int count;
 
-  for (count = 0; count < num_of_fds; count++) {
+  for (count = 0; count < num_fds; count++) {
     ALooper_removeFd(looper, fds[count]);
   }
 }
@@ -123,12 +123,12 @@ static int need_resize(u_int cur_width,  /* contains scrollbar width and margin 
                        u_int new_height  /* contains margin area */
                        ) {
   vt_term_t **terms;
-  u_int num_of_terms;
+  u_int num_terms;
   u_int count;
 
-  num_of_terms = vt_get_all_terms(&terms);
+  num_terms = vt_get_all_terms(&terms);
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     ui_window_t *win;
 
     if (vt_term_is_attached(terms[count]) && (win = UIWINDOW_OF(terms[count])) && win->is_focused) {
@@ -156,7 +156,7 @@ static int need_resize(u_int cur_width,  /* contains scrollbar width and margin 
   if (cur_width > new_width) {
     return 0;
   } else {
-    if (count < num_of_terms) {
+    if (count < num_terms) {
       vt_term_set_config(terms[count], "use_local_echo", "false");
     }
 
@@ -176,31 +176,31 @@ int ui_event_source_process(void) {
   int events;
   struct android_poll_source *source;
   vt_term_t **terms;
-  u_int num_of_terms;
+  u_int num_terms;
   u_int count;
-  static u_int prev_num_of_terms;
+  static u_int prev_num_terms;
   static int *fds;
 
   looper = ALooper_forThread();
 
-  if ((num_of_terms = vt_get_all_terms(&terms)) == 0) {
+  if ((num_terms = vt_get_all_terms(&terms)) == 0) {
     ui_display_final();
     free(fds);
     fds = NULL;
   } else {
     void *p;
 
-    if (prev_num_of_terms != num_of_terms && (p = realloc(fds, sizeof(int) * num_of_terms))) {
+    if (prev_num_terms != num_terms && (p = realloc(fds, sizeof(int) * num_terms))) {
       fds = p;
     }
 
-    for (count = 0; count < num_of_terms; count++) {
+    for (count = 0; count < num_terms; count++) {
       fds[count] = vt_term_get_master_fd(terms[count]);
       ALooper_addFd(looper, fds[count], 1000 + fds[count], ALOOPER_EVENT_INPUT, NULL, NULL);
     }
   }
 
-  prev_num_of_terms = num_of_terms;
+  prev_num_terms = num_terms;
 
   /*
    * Read all pending events.
@@ -214,8 +214,8 @@ int ui_event_source_process(void) {
 
   if (ident >= 0) {
     if (!ui_display_process_event(source, ident)) {
-      ALooper_removeFds(looper, fds, num_of_terms);
-      prev_num_of_terms = 0;
+      ALooper_removeFds(looper, fds, num_terms);
+      prev_num_terms = 0;
       free(fds);
       fds = NULL;
 
@@ -224,7 +224,7 @@ int ui_event_source_process(void) {
       return 0;
     }
 
-    for (count = 0; count < num_of_terms; count++) {
+    for (count = 0; count < num_terms; count++) {
       if (vt_term_get_master_fd(terms[count]) + 1000 == ident) {
         ui_window_t *win;
 
@@ -252,7 +252,7 @@ int ui_event_source_process(void) {
     ui_display_idling(NULL);
   }
 
-  if (num_of_terms > 0) {
+  if (num_terms > 0) {
     if (connect_to_ssh_server) {
       vt_term_t *term = get_current_term();
       if (term && term->parser->config_listener) {
@@ -262,7 +262,7 @@ int ui_event_source_process(void) {
       connect_to_ssh_server = 0;
     }
 
-    ALooper_removeFds(looper, fds, num_of_terms);
+    ALooper_removeFds(looper, fds, num_terms);
   }
 
   vt_close_dead_terms();

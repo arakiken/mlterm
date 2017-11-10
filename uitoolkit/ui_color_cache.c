@@ -8,7 +8,7 @@
 /* --- static variables --- */
 
 static ui_color_cache_t **color_caches;
-static u_int num_of_caches;
+static u_int num_caches;
 
 /* --- static functions --- */
 
@@ -16,7 +16,7 @@ static ui_color_cache_256ext_t *acquire_color_cache_256ext(ui_display_t *disp) {
   u_int count;
   ui_color_cache_256ext_t *cache;
 
-  for (count = 0; count < num_of_caches; count++) {
+  for (count = 0; count < num_caches; count++) {
     if (color_caches[count]->disp == disp && color_caches[count]->cache_256ext) {
       color_caches[count]->cache_256ext->ref_count++;
 
@@ -54,7 +54,7 @@ static ui_color_t *get_cached_256ext_xcolor(ui_color_cache_t *color_cache, vt_co
     } else {
       u_int count;
 
-      for (count = 0; count < num_of_caches; count++) {
+      for (count = 0; count < num_caches; count++) {
         if (color_caches[count]->cache_256ext) {
           ui_unload_xcolor(color_caches[count]->disp,
                            &color_caches[count]->cache_256ext->xcolors[color - 16]);
@@ -130,7 +130,7 @@ ui_color_cache_t *ui_acquire_color_cache(ui_display_t *disp, u_int8_t fade_ratio
   ui_color_cache_t *color_cache;
   void *p;
 
-  for (count = 0; count < num_of_caches; count++) {
+  for (count = 0; count < num_caches; count++) {
     if (color_caches[count]->disp == disp && color_caches[count]->fade_ratio == fade_ratio) {
       color_caches[count]->ref_count++;
 
@@ -138,7 +138,7 @@ ui_color_cache_t *ui_acquire_color_cache(ui_display_t *disp, u_int8_t fade_ratio
     }
   }
 
-  if ((p = realloc(color_caches, sizeof(ui_color_cache_t*) * (num_of_caches + 1))) == NULL) {
+  if ((p = realloc(color_caches, sizeof(ui_color_cache_t*) * (num_caches + 1))) == NULL) {
     return NULL;
   }
 
@@ -160,7 +160,7 @@ ui_color_cache_t *ui_acquire_color_cache(ui_display_t *disp, u_int8_t fade_ratio
 
   color_cache->ref_count = 1;
 
-  color_caches[num_of_caches++] = color_cache;
+  color_caches[num_caches++] = color_cache;
 
   return color_cache;
 }
@@ -172,16 +172,16 @@ void ui_release_color_cache(ui_color_cache_t *color_cache) {
     return;
   }
 
-  for (count = 0; count < num_of_caches; count++) {
+  for (count = 0; count < num_caches; count++) {
     if (color_caches[count] == color_cache) {
-      color_caches[count] = color_caches[--num_of_caches];
+      color_caches[count] = color_caches[--num_caches];
 
       ui_color_cache_unload(color_cache);
       ui_unload_xcolor(color_cache->disp, &color_cache->black);
 
       free(color_cache);
 
-      if (num_of_caches == 0) {
+      if (num_caches == 0) {
         free(color_caches);
         color_caches = NULL;
       }
@@ -221,7 +221,7 @@ void ui_color_cache_unload(ui_color_cache_t *color_cache) {
 void ui_color_cache_unload_all(void) {
   u_int count;
 
-  for (count = 0; count < num_of_caches; count++) {
+  for (count = 0; count < num_caches; count++) {
     ui_color_cache_unload(color_caches[count]);
   }
 }

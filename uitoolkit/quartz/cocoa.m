@@ -71,7 +71,7 @@ static struct {
 
 } * additional_fds;
 
-static u_int num_of_additional_fds;
+static u_int num_additional_fds;
 
 static ui_window_t *uiwindow_for_mlterm_view;
 
@@ -128,18 +128,18 @@ static void monitor_pty(void) {
             vt_close_dead_terms();
 
             vt_term_t **terms;
-            u_int num_of_terms = vt_get_all_terms(&terms);
+            u_int num_terms = vt_get_all_terms(&terms);
 
             int count;
             int ptyfd;
             if (ret > 0) {
-              for (count = 0; count < num_of_additional_fds; count++) {
+              for (count = 0; count < num_additional_fds; count++) {
                 if (additional_fds[count].fd < 0) {
                   (*additional_fds[count].handler)();
                 }
               }
 
-              for (count = 0; count < num_of_terms; count++) {
+              for (count = 0; count < num_terms; count++) {
                 if ((ptyfd = vt_term_get_master_fd(terms[count])) >= 0 &&
                     FD_ISSET(ptyfd, &read_fds)) {
                   vt_term_parse_vt100_sequence(terms[count]);
@@ -158,7 +158,7 @@ static void monitor_pty(void) {
             FD_ZERO(&read_fds);
             maxfd = -1;
 
-            for (count = 0; count < num_of_terms; count++) {
+            for (count = 0; count < num_terms; count++) {
               if ((ptyfd = vt_term_get_master_fd(terms[count])) >= 0) {
                 FD_SET(ptyfd, &read_fds);
 
@@ -168,7 +168,7 @@ static void monitor_pty(void) {
               }
             }
 
-            for (count = 0; count < num_of_additional_fds; count++) {
+            for (count = 0; count < num_additional_fds; count++) {
               if (additional_fds[count].fd >= 0) {
                 FD_SET(additional_fds[count].fd, &read_fds);
 
@@ -287,7 +287,7 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
 
 static void (*orig_draw_preedit_str)(void *, vt_char_t *, u_int, int);
 
-static void dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars,
+static void dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars,
                                    int cursor_offset) {
   /* Don't set ui_screen_t::is_preediting = 0. */
 }
@@ -342,7 +342,7 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
 static void remove_all_observers(ui_window_t *uiwindow) {
   u_int count;
 
-  for (count = 0; count < uiwindow->num_of_children; count++) {
+  for (count = 0; count < uiwindow->num_children; count++) {
     [[NSNotificationCenter defaultCenter]
         removeObserver:uiwindow->children[count]->my_window];
     remove_all_observers(uiwindow->children[count]);
@@ -472,7 +472,7 @@ int cocoa_dialog_alert(const char *msg);
 static void reset_position(ui_window_t *uiwindow) {
   u_int count;
 
-  for (count = 0; count < uiwindow->num_of_children; count++) {
+  for (count = 0; count < uiwindow->num_children; count++) {
     ui_window_t *child = uiwindow->children[count];
 
     [((NSView *)child->my_window)
@@ -710,7 +710,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     return win;
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_t *hit;
 
     if ((hit = get_current_window(win->children[count]))) {
@@ -780,9 +780,9 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
   ui_window_t *root = ui_get_root_window(uiwindow);
 
-  if (root->num_of_children == 0) {
+  if (root->num_children == 0) {
     /*
-     * This function can be called if root->num_of_children == 0
+     * This function can be called if root->num_children == 0
      * by window_dealloc() in ui_window.c.
      */
     return;
@@ -1650,13 +1650,13 @@ int cocoa_add_fd(int fd, void (*handler)(void)) {
   }
 
   if ((p = realloc(additional_fds, sizeof(*additional_fds) *
-                                       (num_of_additional_fds + 1))) == NULL) {
+                                       (num_additional_fds + 1))) == NULL) {
     return 0;
   }
 
   additional_fds = p;
-  additional_fds[num_of_additional_fds].fd = fd;
-  additional_fds[num_of_additional_fds++].handler = handler;
+  additional_fds[num_additional_fds].fd = fd;
+  additional_fds[num_additional_fds++].handler = handler;
   if (fd >= 0) {
     bl_file_set_cloexec(fd);
   }
@@ -1671,13 +1671,13 @@ int cocoa_add_fd(int fd, void (*handler)(void)) {
 int cocoa_remove_fd(int fd) {
   u_int count;
 
-  for (count = 0; count < num_of_additional_fds; count++) {
+  for (count = 0; count < num_additional_fds; count++) {
     if (additional_fds[count].fd == fd) {
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " Additional fd %d is removed.\n", fd);
 #endif
 
-      additional_fds[count] = additional_fds[--num_of_additional_fds];
+      additional_fds[count] = additional_fds[--num_additional_fds];
 
       return 1;
     }

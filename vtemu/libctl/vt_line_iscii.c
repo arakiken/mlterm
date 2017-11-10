@@ -53,7 +53,7 @@ int vt_line_iscii_render(vt_line_t *line /* is always visual */
   }
 
   if (vt_line_is_real_modified(line)) {
-    if ((ret = vt_iscii(line->ctl_info.iscii, line->chars, line->num_of_filled_chars)) <= 0) {
+    if ((ret = vt_iscii(line->ctl_info.iscii, line->chars, line->num_filled_chars)) <= 0) {
       return ret;
     }
 
@@ -71,7 +71,7 @@ int vt_line_iscii_render(vt_line_t *line /* is always visual */
      * If this line contains ISCII chars, it should be redrawn to the end of
      * line.
      */
-    vt_line_set_modified(line, visual_mod_beg, line->num_of_chars);
+    vt_line_set_modified(line, visual_mod_beg, line->num_chars);
   } else {
     vt_line_set_modified(line, visual_mod_beg, vt_line_iscii_convert_logical_char_index_to_visual(
                                                    line, vt_line_get_end_of_modified(line)));
@@ -97,7 +97,7 @@ int vt_line_iscii_visual(vt_line_t *line) {
     return 1;
   }
 
-  src_len = line->num_of_filled_chars;
+  src_len = line->num_filled_chars;
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
@@ -105,16 +105,16 @@ int vt_line_iscii_visual(vt_line_t *line) {
   vt_str_copy(src, line->chars, src_len);
 
   dst_len = line->ctl_info.iscii->size;
-  if (line->num_of_chars < dst_len) {
+  if (line->num_chars < dst_len) {
     vt_char_t *chars;
 
     if ((chars = vt_str_new(dst_len))) {
       /* XXX => shrunk at vt_screen.c and vt_logical_visual_ctl.c */
-      vt_str_delete(line->chars, line->num_of_chars);
+      vt_str_delete(line->chars, line->num_chars);
       line->chars = chars;
-      line->num_of_chars = dst_len;
+      line->num_chars = dst_len;
     } else {
-      dst_len = line->num_of_chars;
+      dst_len = line->num_chars;
     }
   }
 
@@ -122,7 +122,7 @@ int vt_line_iscii_visual(vt_line_t *line) {
 
   src_pos = 0;
   for (dst_pos = 0; dst_pos < dst_len; dst_pos++) {
-    if (line->ctl_info.iscii->num_of_chars_array[dst_pos] == 0) {
+    if (line->ctl_info.iscii->num_chars_array[dst_pos] == 0) {
       vt_char_copy(dst + dst_pos, vt_get_base_char(src + src_pos - 1));
       /* NULL */
       vt_char_set_code(dst + dst_pos, 0);
@@ -131,7 +131,7 @@ int vt_line_iscii_visual(vt_line_t *line) {
 
       vt_char_copy(dst + dst_pos, src + (src_pos++));
 
-      for (count = 1; count < line->ctl_info.iscii->num_of_chars_array[dst_pos]; count++) {
+      for (count = 1; count < line->ctl_info.iscii->num_chars_array[dst_pos]; count++) {
         vt_char_t *comb;
         u_int num;
 
@@ -163,7 +163,7 @@ int vt_line_iscii_visual(vt_line_t *line) {
 
   vt_str_final(src, src_len);
 
-  line->num_of_filled_chars = dst_pos;
+  line->num_filled_chars = dst_pos;
 
   return 1;
 }
@@ -183,7 +183,7 @@ int vt_line_iscii_logical(vt_line_t *line) {
     return 1;
   }
 
-  src_len = line->num_of_filled_chars;
+  src_len = line->num_filled_chars;
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
@@ -195,9 +195,9 @@ int vt_line_iscii_logical(vt_line_t *line) {
     vt_char_t *comb;
     u_int num;
 
-    if (line->ctl_info.iscii->num_of_chars_array[src_pos] == 0) {
+    if (line->ctl_info.iscii->num_chars_array[src_pos] == 0) {
       continue;
-    } else if (line->ctl_info.iscii->num_of_chars_array[src_pos] == 1) {
+    } else if (line->ctl_info.iscii->num_chars_array[src_pos] == 1) {
       vt_char_copy(dst, src + src_pos);
     } else {
       vt_char_copy(dst, vt_get_base_char(src + src_pos));
@@ -217,7 +217,7 @@ int vt_line_iscii_logical(vt_line_t *line) {
 
   vt_str_final(src, src_len);
 
-  line->num_of_filled_chars = dst - line->chars;
+  line->num_filled_chars = dst - line->chars;
 
   return 1;
 }
@@ -239,7 +239,7 @@ int vt_line_iscii_convert_logical_char_index_to_visual(vt_line_t *line, int logi
 
   for (visual_char_index = 0; visual_char_index < line->ctl_info.iscii->size; visual_char_index++) {
     if (logical_char_index == 0 ||
-        (logical_char_index -= line->ctl_info.iscii->num_of_chars_array[visual_char_index]) < 0) {
+        (logical_char_index -= line->ctl_info.iscii->num_chars_array[visual_char_index]) < 0) {
       break;
     }
   }

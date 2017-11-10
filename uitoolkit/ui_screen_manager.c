@@ -47,11 +47,11 @@ static u_int max_screens_multiple;
 static u_int32_t *dead_mask;
 
 static ui_screen_t **screens;
-static u_int num_of_screens;
+static u_int num_screens;
 
 static u_int depth;
 
-static u_int num_of_startup_screens;
+static u_int num_startup_screens;
 
 static ui_system_event_listener_t system_listener;
 
@@ -90,7 +90,7 @@ static void font_config_updated(void) {
 
   ui_font_cache_unload_all();
 
-  for (count = 0; count < num_of_screens; count++) {
+  for (count = 0; count < num_screens; count++) {
     ui_screen_reset_view(screens[count]);
   }
 }
@@ -102,7 +102,7 @@ static void color_config_updated(void) {
 
   ui_display_reset_cmap();
 
-  for (count = 0; count < num_of_screens; count++) {
+  for (count = 0; count < num_screens; count++) {
     ui_screen_reset_view(screens[count]);
   }
 }
@@ -112,7 +112,7 @@ static vt_term_t *create_term_intern(void) {
 
   if ((term = vt_create_term(
            main_config.term_type, main_config.cols, main_config.rows, main_config.tab_size,
-           main_config.num_of_log_lines, main_config.encoding, main_config.is_auto_encoding,
+           main_config.num_log_lines, main_config.encoding, main_config.is_auto_encoding,
            main_config.use_auto_detect, main_config.logging_vt_seq, main_config.unicode_policy,
            main_config.col_size_of_width_a, main_config.use_char_combining,
            main_config.use_multi_col_char, main_config.use_ctl, main_config.bidi_mode,
@@ -378,18 +378,18 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
 #ifndef NO_IMAGE
 
-static vt_char_t *get_picture_data(void *p, char *file_path, int *num_of_cols, /* can be 0 */
-                                   int *num_of_rows,                           /* can be 0 */
+static vt_char_t *get_picture_data(void *p, char *file_path, int *num_cols, /* can be 0 */
+                                   int *num_rows,                           /* can be 0 */
                                    u_int32_t **sixel_palette) {
   vt_char_t *data;
 
-  if (num_of_screens > 0) {
+  if (num_screens > 0) {
     vt_term_t *orig_term;
 
     orig_term = screens[0]->term;
     screens[0]->term = p; /* XXX */
     data = (*screens[0]->xterm_listener.get_picture_data)(
-        screens[0]->xterm_listener.self, file_path, num_of_cols, num_of_rows, sixel_palette);
+        screens[0]->xterm_listener.self, file_path, num_cols, num_rows, sixel_palette);
     screens[0]->term = orig_term;
   } else {
     data = NULL;
@@ -470,7 +470,7 @@ static void close_screen_intern(ui_screen_t *screen) {
   if (!ui_display_remove_root(disp, root)) {
     ui_window_unmap(root);
     ui_window_final(root);
-  } else if (disp->num_of_roots == 0) {
+  } else if (disp->num_roots == 0) {
     ui_display_close(disp);
   }
 }
@@ -494,7 +494,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
   screen = NULL;
   root = NULL;
 
-  if (MAX_SCREENS <= num_of_screens) {
+  if (MAX_SCREENS <= num_screens) {
     return NULL;
   }
 
@@ -602,7 +602,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
     }
   }
 
-  if ((p = realloc(screens, sizeof(ui_screen_t *) * (num_of_screens + 1))) == NULL) {
+  if ((p = realloc(screens, sizeof(ui_screen_t *) * (num_screens + 1))) == NULL) {
     /*
      * XXX
      * After ui_display_show_root() screen is not deleted correctly by
@@ -638,7 +638,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
       vt_destroy_term(term);
 
 #ifdef USE_WIN32GUI
-      screens[num_of_screens++] = screen;
+      screens[num_screens++] = screen;
       close_screen_win32(screen);
 #else
       close_screen_intern(screen);
@@ -653,7 +653,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
   }
 
   /* Don't add screen to screens before "return NULL" above unless USE_WIN32GUI. */
-  screens[num_of_screens++] = screen;
+  screens[num_screens++] = screen;
 
   return screen;
 
@@ -680,7 +680,7 @@ error:
     }
   }
 
-  if (disp && disp->num_of_roots == 0) {
+  if (disp && disp->num_roots == 0) {
     ui_display_close(disp);
   }
 
@@ -704,7 +704,7 @@ static void __exit(void *p, int status) {
 #ifdef USE_WIN32GUI
   u_int count;
 
-  for (count = 0; count < num_of_screens; count++) {
+  for (count = 0; count < num_screens; count++) {
     SendMessage(ui_get_root_window(&screens[count]->window), WM_CLOSE, 0, 0);
   }
 #endif
@@ -857,7 +857,7 @@ static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already 
   bl_debug_printf(BL_DEBUG_TAG " pty which is attached to screen %p is closed.\n", screen);
 #endif
 
-  for (count = num_of_screens - 1; count >= 0; count--) {
+  for (count = num_screens - 1; count >= 0; count--) {
     if (screen == screens[count]) {
       vt_term_t *term;
 
@@ -869,7 +869,7 @@ static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already 
 #ifdef USE_WIN32GUI
         close_screen_win32(screen);
 #else
-        screens[count] = screens[--num_of_screens];
+        screens[count] = screens[--num_screens];
         close_screen_intern(screen);
 #endif
       } else {
@@ -969,7 +969,7 @@ static int close_screen(void *p, ui_screen_t *screen, /* Screen which triggers t
     return 0;
   }
 
-  for (count = 0; count < num_of_screens; count++) {
+  for (count = 0; count < num_screens; count++) {
     u_int idx;
 
     if (screen != screens[count]) {
@@ -1187,7 +1187,7 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
 /* --- global functions --- */
 
 int ui_screen_manager_init(char *_mlterm_version, u_int _depth, u_int _max_screens_multiple,
-                           u_int _num_of_startup_screens, ui_main_config_t *_main_config) {
+                           u_int _num_startup_screens, ui_main_config_t *_main_config) {
   mlterm_version = _mlterm_version;
 
   depth = _depth;
@@ -1200,10 +1200,10 @@ int ui_screen_manager_init(char *_mlterm_version, u_int _depth, u_int _max_scree
     return 0;
   }
 
-  if (_num_of_startup_screens > MAX_SCREENS) {
-    num_of_startup_screens = MAX_SCREENS;
+  if (_num_startup_screens > MAX_SCREENS) {
+    num_startup_screens = MAX_SCREENS;
   } else {
-    num_of_startup_screens = _num_of_startup_screens;
+    num_startup_screens = _num_startup_screens;
   }
 
   if (!vt_term_manager_init(max_screens_multiple)) {
@@ -1287,7 +1287,7 @@ void ui_screen_manager_final(void) {
 
   ui_main_config_final(&main_config);
 
-  for (count = 0; count < num_of_screens; count++) {
+  for (count = 0; count < num_screens; count++) {
     close_screen_intern(screens[count]);
   }
 
@@ -1310,13 +1310,13 @@ int ui_screen_manager_suspend(void) {
 
   ui_close_dead_screens();
 
-  for (count = 0; count < num_of_screens; count++) {
+  for (count = 0; count < num_screens; count++) {
     close_screen_intern(screens[count]);
   }
 
   free(screens);
   screens = NULL;
-  num_of_screens = 0;
+  num_screens = 0;
 
   ui_display_close_all();
 
@@ -1343,7 +1343,7 @@ u_int ui_screen_manager_startup(void) {
   }
 #endif
 
-  for (count = 0; count < num_of_startup_screens; count++) {
+  for (count = 0; count < num_startup_screens; count++) {
     if (!open_screen_intern(main_config.disp_name, vt_get_detached_term(NULL), NULL, 0, 0,
 #if defined(USE_LIBSSH2) && defined(__ANDROID__)
                             !start_with_local_pty
@@ -1365,10 +1365,10 @@ u_int ui_screen_manager_startup(void) {
 }
 
 void ui_close_dead_screens(void) {
-  if (num_of_screens > 0) {
+  if (num_screens > 0) {
     int idx;
 
-    for (idx = (num_of_screens - 1) / MSU; idx >= 0; idx--) {
+    for (idx = (num_screens - 1) / MSU; idx >= 0; idx--) {
       if (dead_mask[idx]) {
         int count;
 
@@ -1381,11 +1381,11 @@ void ui_close_dead_screens(void) {
 #endif
 
             screen = screens[idx * MSU + count];
-            screens[idx * MSU + count] = screens[--num_of_screens];
+            screens[idx * MSU + count] = screens[--num_screens];
             close_screen_intern(screen);
 
 #ifdef __DEBUG
-            bl_msg_printf(" => Finished. Rest %d\n", num_of_screens);
+            bl_msg_printf(" => Finished. Rest %d\n", num_screens);
 #endif
           }
         }
@@ -1401,7 +1401,7 @@ u_int ui_get_all_screens(ui_screen_t ***_screens) {
     *_screens = screens;
   }
 
-  return num_of_screens;
+  return num_screens;
 }
 
 int ui_mlclient(char *args, FILE *fp) { return mlclient(NULL, NULL, args, fp); }

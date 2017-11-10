@@ -10,12 +10,12 @@
 
 static void update_scroller(ui_scrollbar_t *sb) {
   scroller_update(sb->window.my_window,
-                  sb->num_of_filled_log_lines == 0
+                  sb->num_filled_log_lines == 0
                       ? 1.0
-                      : ((float)(sb->current_row + sb->num_of_filled_log_lines)) /
-                            ((float)sb->num_of_filled_log_lines),
-                  ((float)sb->num_of_scr_lines) /
-                      ((float)(sb->num_of_filled_log_lines + sb->num_of_scr_lines)));
+                      : ((float)(sb->current_row + sb->num_filled_log_lines)) /
+                            ((float)sb->num_filled_log_lines),
+                  ((float)sb->num_scr_lines) /
+                      ((float)(sb->num_filled_log_lines + sb->num_scr_lines)));
 }
 
 /*
@@ -31,7 +31,7 @@ static void window_resized(ui_window_t *win) {
 
   sb = (ui_scrollbar_t*)win;
 
-  sb->num_of_scr_lines = sb->window.height / sb->line_height;
+  sb->num_scr_lines = sb->window.height / sb->line_height;
 
   update_scroller(sb);
 }
@@ -40,7 +40,7 @@ static void window_resized(ui_window_t *win) {
 
 int ui_scrollbar_init(ui_scrollbar_t *sb, ui_scrollbar_event_listener_t *sb_listener,
                       char *view_name, char *fg_color, char *bg_color, u_int height,
-                      u_int line_height, u_int num_of_log_lines, u_int num_of_filled_log_lines,
+                      u_int line_height, u_int num_log_lines, u_int num_filled_log_lines,
                       int use_transbg, ui_picture_modifier_t *pic_mod) {
   sb->view_name = "simple";
   sb->view = NULL;
@@ -54,9 +54,9 @@ int ui_scrollbar_init(ui_scrollbar_t *sb, ui_scrollbar_event_listener_t *sb_list
   }
 
   sb->line_height = line_height;
-  sb->num_of_scr_lines = height / line_height;
-  sb->num_of_log_lines = num_of_log_lines;
-  sb->num_of_filled_log_lines = num_of_filled_log_lines;
+  sb->num_scr_lines = height / line_height;
+  sb->num_log_lines = num_log_lines;
+  sb->num_filled_log_lines = num_filled_log_lines;
 
   sb->window.window_resized = window_resized;
 
@@ -65,15 +65,15 @@ int ui_scrollbar_init(ui_scrollbar_t *sb, ui_scrollbar_event_listener_t *sb_list
 
 int ui_scrollbar_final(ui_scrollbar_t *sb) { return 1; }
 
-int ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines) {
-  if (sb->num_of_log_lines == num_of_log_lines) {
+int ui_scrollbar_set_num_log_lines(ui_scrollbar_t *sb, u_int num_log_lines) {
+  if (sb->num_log_lines == num_log_lines) {
     return 1;
   }
 
-  sb->num_of_log_lines = num_of_log_lines;
+  sb->num_log_lines = num_log_lines;
 
-  if (sb->num_of_filled_log_lines > sb->num_of_log_lines) {
-    sb->num_of_filled_log_lines = sb->num_of_log_lines;
+  if (sb->num_filled_log_lines > sb->num_log_lines) {
+    sb->num_filled_log_lines = sb->num_log_lines;
   }
 
   update_scroller(sb);
@@ -81,16 +81,16 @@ int ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines
   return 1;
 }
 
-int ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
-  if (lines > sb->num_of_log_lines) {
-    lines = sb->num_of_log_lines;
+int ui_scrollbar_set_num_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
+  if (lines > sb->num_log_lines) {
+    lines = sb->num_log_lines;
   }
 
-  if (sb->num_of_filled_log_lines == lines) {
+  if (sb->num_filled_log_lines == lines) {
     return 1;
   }
 
-  sb->num_of_filled_log_lines = lines;
+  sb->num_filled_log_lines = lines;
 
   update_scroller(sb);
 
@@ -99,15 +99,15 @@ int ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
 
 int ui_scrollbar_line_is_added(ui_scrollbar_t *sb) {
   if ((*sb->sb_listener->screen_is_static)(sb->sb_listener->self)) {
-    if (sb->num_of_filled_log_lines < sb->num_of_log_lines) {
-      sb->num_of_filled_log_lines++;
+    if (sb->num_filled_log_lines < sb->num_log_lines) {
+      sb->num_filled_log_lines++;
     }
 
     sb->current_row--;
-  } else if (sb->num_of_filled_log_lines == sb->num_of_log_lines) {
+  } else if (sb->num_filled_log_lines == sb->num_log_lines) {
     return 0;
   } else {
-    sb->num_of_filled_log_lines++;
+    sb->num_filled_log_lines++;
   }
 
   update_scroller(sb);
@@ -128,7 +128,7 @@ int ui_scrollbar_move_upward(ui_scrollbar_t *sb, u_int size) {
    * XXX Adhoc solution
    * Fix ui_screen.c:bs_{half_}page_{up|down}ward() instead.
    */
-  if (sb->current_row + sb->num_of_filled_log_lines == 0) {
+  if (sb->current_row + sb->num_filled_log_lines == 0) {
     return 0;
   }
 
@@ -146,8 +146,8 @@ int ui_scrollbar_move_downward(ui_scrollbar_t *sb, u_int size) {
 int ui_scrollbar_move(ui_scrollbar_t *sb, int row) {
   if (0 < row) {
     row = 0;
-  } else if (row + (int)sb->num_of_filled_log_lines < 0) {
-    row = -(sb->num_of_filled_log_lines);
+  } else if (row + (int)sb->num_filled_log_lines < 0) {
+    row = -(sb->num_filled_log_lines);
   }
 
   if (sb->current_row == row) {
@@ -184,7 +184,7 @@ int ui_scrollbar_set_transparent(ui_scrollbar_t *sb, ui_picture_modifier_t *pic_
 int ui_scrollbar_unset_transparent(ui_scrollbar_t *sb) { return 1; }
 
 void ui_scrollbar_is_moved(ui_scrollbar_t *sb, float pos) {
-  sb->current_row = sb->num_of_filled_log_lines * pos - sb->num_of_filled_log_lines;
+  sb->current_row = sb->num_filled_log_lines * pos - sb->num_filled_log_lines;
 
   if (sb->sb_listener->screen_scroll_to) {
     (*sb->sb_listener->screen_scroll_to)(sb->sb_listener->self, sb->current_row);

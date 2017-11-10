@@ -54,7 +54,7 @@ typedef struct vt_termcap {
 /* --- static variables --- */
 
 static vt_termcap_t *entries;
-static u_int num_of_entries;
+static u_int num_entries;
 
 static str_field_table_t str_field_table[] = {
     {
@@ -162,7 +162,7 @@ static int parse_termcap_db(vt_termcap_t *termcap, char *termcap_db) {
 static vt_termcap_t *search_termcap(const char *name) {
   int count;
 
-  for (count = 0; count < num_of_entries; count++) {
+  for (count = 0; count < num_entries; count++) {
     const char *p1;
     const char *p2;
 
@@ -258,12 +258,12 @@ static int read_conf(char *filename) {
           entry_init(termcap, field);
 #endif
           parse_termcap_db(termcap, db_p);
-        } else if ((p = realloc(entries, sizeof(vt_termcap_t) * (num_of_entries + 1)))) {
+        } else if ((p = realloc(entries, sizeof(vt_termcap_t) * (num_entries + 1)))) {
           entries = p;
-          termcap = &entries[num_of_entries];
+          termcap = &entries[num_entries];
 
           if (entry_init(termcap, field) && parse_termcap_db(termcap, db_p)) {
-            num_of_entries++;
+            num_entries++;
           }
         }
       }
@@ -291,7 +291,7 @@ static int termcap_init(void) {
   }
 
   entries[0].bool_fields[TC_BCE] = 1;
-  num_of_entries = 1;
+  num_entries = 1;
 
   if ((rcpath = bl_get_sys_rc_path(tc_file))) {
     if (!read_conf(rcpath)) {
@@ -315,7 +315,7 @@ static int termcap_init(void) {
         size_t count;
 
         entries = p;
-        num_of_entries = sizeof(db) / sizeof(db[0]) + 1;
+        num_entries = sizeof(db) / sizeof(db[0]) + 1;
 
         for (count = 0; count < sizeof(db) / sizeof(db[0]); count++) {
           entry_init(entries + count + 1, names[count]);
@@ -359,7 +359,7 @@ vt_termcap_t *vt_termcap_get(const char *name) {
 void vt_termcap_final(void) {
   int count;
 
-  for (count = 0; count < num_of_entries; count++) {
+  for (count = 0; count < num_entries; count++) {
     entry_final(&entries[count]);
   }
 

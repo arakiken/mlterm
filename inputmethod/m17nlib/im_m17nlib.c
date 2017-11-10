@@ -80,16 +80,16 @@ static ui_im_export_syms_t *syms = NULL;
 static void show_available_ims(void) {
   MPlist *im_list;
   MSymbol sym_im;
-  int num_of_ims;
+  int num_ims;
   int i;
 
   sym_im = msymbol("input-method");
 
   im_list = mdatabase_list(sym_im, Mnil, Mnil, Mnil);
 
-  num_of_ims = mplist_length(im_list);
+  num_ims = mplist_length(im_list);
 
-  for (i = 0; i < num_of_ims; i++, im_list = mplist_next(im_list)) {
+  for (i = 0; i < num_ims; i++, im_list = mplist_next(im_list)) {
     MDatabase *db;
     MSymbol *tag;
 
@@ -379,7 +379,7 @@ static MInputMethod *find_input_method(char *param) {
   MPlist *im_list;
   MInputMethod *result = NULL;
   int found = 0;
-  int num_of_ims;
+  int num_ims;
   int i;
 
   if (param) {
@@ -407,9 +407,9 @@ static MInputMethod *find_input_method(char *param) {
     return 0;
   }
 
-  num_of_ims = mplist_length(im_list);
+  num_ims = mplist_length(im_list);
 
-  for (i = 0; i < num_of_ims; i++, im_list = mplist_next(im_list)) {
+  for (i = 0; i < num_ims; i++, im_list = mplist_next(im_list)) {
     MDatabase *db;
     MSymbol *tag;
 
@@ -451,11 +451,11 @@ static MInputMethod *find_input_method(char *param) {
 
 static void commit(im_m17nlib_t *m17nlib, MText *text) {
   u_char *buf = NULL;
-  u_int num_of_chars;
+  u_int num_chars;
   int filled_len;
 
-  if ((num_of_chars = mtext_len(text))) {
-    if (!(buf = alloca(MAX_BYTES(num_of_chars)))) {
+  if ((num_chars = mtext_len(text))) {
+    if (!(buf = alloca(MAX_BYTES(num_chars)))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG, " alloca failed\n");
 #endif
@@ -464,7 +464,7 @@ static void commit(im_m17nlib_t *m17nlib, MText *text) {
 
   if (buf) {
     mconv_reset_converter(m17nlib->mconverter);
-    mconv_rebind_buffer(m17nlib->mconverter, buf, MAX_BYTES(num_of_chars));
+    mconv_rebind_buffer(m17nlib->mconverter, buf, MAX_BYTES(num_chars));
     filled_len = mconv_encode(m17nlib->mconverter, text);
 
     if (filled_len == -1) {
@@ -480,14 +480,14 @@ static void commit(im_m17nlib_t *m17nlib, MText *text) {
 
 static void set_candidate(im_m17nlib_t *m17nlib, MText *candidate, int idx) {
   u_char *buf;
-  u_int num_of_chars;
+  u_int num_chars;
   u_int filled_len;
 
-  if (!(num_of_chars = mtext_len(candidate))) {
+  if (!(num_chars = mtext_len(candidate))) {
     return;
   }
 
-  if (!(buf = alloca(MAX_BYTES(num_of_chars)))) {
+  if (!(buf = alloca(MAX_BYTES(num_chars)))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG, " alloca failed\n");
 #endif
@@ -495,7 +495,7 @@ static void set_candidate(im_m17nlib_t *m17nlib, MText *candidate, int idx) {
   }
 
   mconv_reset_converter(m17nlib->mconverter);
-  mconv_rebind_buffer(m17nlib->mconverter, buf, MAX_BYTES(num_of_chars));
+  mconv_rebind_buffer(m17nlib->mconverter, buf, MAX_BYTES(num_chars));
   filled_len = mconv_encode(m17nlib->mconverter, candidate);
 
   if (filled_len == -1) {
@@ -513,7 +513,7 @@ static void set_candidate(im_m17nlib_t *m17nlib, MText *candidate, int idx) {
 static void preedit_changed(im_m17nlib_t *m17nlib) {
   int filled_len;
   u_char *buf;
-  u_int num_of_chars;
+  u_int num_chars;
   vt_char_t *p;
   ef_char_t ch;
   u_int pos = 0;
@@ -527,11 +527,11 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
    */
 
   if (m17nlib->im.preedit.chars) {
-    (*syms->vt_str_delete)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_of_chars);
+    (*syms->vt_str_delete)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_chars);
     m17nlib->im.preedit.chars = NULL;
   }
 
-  m17nlib->im.preedit.num_of_chars = 0;
+  m17nlib->im.preedit.num_chars = 0;
   m17nlib->im.preedit.filled_len = 0;
   m17nlib->im.preedit.segment_offset = 0;
   m17nlib->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -540,13 +540,13 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
    * MText -> u_char
    */
 
-  num_of_chars = mtext_len(m17nlib->input_context->preedit);
+  num_chars = mtext_len(m17nlib->input_context->preedit);
 
-  if (!num_of_chars) {
+  if (!num_chars) {
     goto draw;
   }
 
-  if (!(buf = alloca(MAX_BYTES(num_of_chars)))) {
+  if (!(buf = alloca(MAX_BYTES(num_chars)))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG, " alloca failed\n");
 #endif
@@ -554,7 +554,7 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
   }
 
   mconv_reset_converter(m17nlib->mconverter);
-  mconv_rebind_buffer(m17nlib->mconverter, buf, MAX_BYTES(num_of_chars));
+  mconv_rebind_buffer(m17nlib->mconverter, buf, MAX_BYTES(num_chars));
   filled_len = mconv_encode(m17nlib->mconverter, m17nlib->input_context->preedit);
 
   if (filled_len == -1) {
@@ -567,20 +567,20 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
    * allocate im.preedit.chars
    */
 
-  if (!(m17nlib->im.preedit.chars = calloc(num_of_chars, sizeof(vt_char_t)))) {
+  if (!(m17nlib->im.preedit.chars = calloc(num_chars, sizeof(vt_char_t)))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG, " calloc failed\n");
 #endif
     return;
   }
-  m17nlib->im.preedit.num_of_chars = num_of_chars;
+  m17nlib->im.preedit.num_chars = num_chars;
 
   /*
    * u_char -> vt_char_t
    */
 
   p = m17nlib->im.preedit.chars;
-  (*syms->vt_str_init)(p, m17nlib->im.preedit.num_of_chars);
+  (*syms->vt_str_init)(p, m17nlib->im.preedit.num_chars);
 
   (*m17nlib->parser_term->init)(m17nlib->parser_term);
   (*m17nlib->parser_term->set_str)(m17nlib->parser_term, (u_char*)buf, filled_len);
@@ -645,7 +645,7 @@ draw:
 static void candidates_changed(im_m17nlib_t *m17nlib) {
   MPlist *group;
   MPlist *candidate;
-  u_int num_of_candidates = 0;
+  u_int num_candidates = 0;
   int idx;
   int x;
   int y;
@@ -671,15 +671,15 @@ static void candidates_changed(im_m17nlib_t *m17nlib) {
   group = m17nlib->input_context->candidate_list;
   while (mplist_value(group) != Mnil) {
     if (mplist_key(group) == Mtext) {
-      num_of_candidates += mtext_len(mplist_value(group));
+      num_candidates += mtext_len(mplist_value(group));
     } else {
-      num_of_candidates += mplist_length(mplist_value(group));
+      num_candidates += mplist_length(mplist_value(group));
     }
     group = mplist_next(group);
   }
 
 #ifdef IM_M17NLIB_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " number of candidates: %d\n", num_of_candidates);
+  bl_debug_printf(BL_DEBUG_TAG " number of candidates: %d\n", num_candidates);
 #endif
 
   (*m17nlib->im.listener->get_spot)(m17nlib->im.listener->self, m17nlib->im.preedit.chars,
@@ -708,7 +708,7 @@ static void candidates_changed(im_m17nlib_t *m17nlib) {
     m17nlib->im.cand_screen->listener.selected = NULL; /* XXX */
   }
 
-  if (!(*m17nlib->im.cand_screen->init)(m17nlib->im.cand_screen, num_of_candidates, 10)) {
+  if (!(*m17nlib->im.cand_screen->init)(m17nlib->im.cand_screen, num_candidates, 10)) {
     (*m17nlib->im.cand_screen->delete)(m17nlib->im.cand_screen);
     m17nlib->im.cand_screen = NULL;
     return;
@@ -897,11 +897,11 @@ static int switch_mode(ui_im_t *im) {
      */
 
     if (m17nlib->im.preedit.chars) {
-      (*syms->vt_str_delete)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_of_chars);
+      (*syms->vt_str_delete)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_chars);
       m17nlib->im.preedit.chars = NULL;
     }
 
-    m17nlib->im.preedit.num_of_chars = 0;
+    m17nlib->im.preedit.num_chars = 0;
     m17nlib->im.preedit.filled_len = 0;
     m17nlib->im.preedit.segment_offset = 0;
     m17nlib->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -1136,16 +1136,16 @@ im_info_t *im_m17nlib_get_info(char *locale, char *encoding) {
   MPlist *im_list;
   MSymbol sym_im;
   int i;
-  int num_of_ims;
+  int num_ims;
   int auto_idx = 0;
 
   M17N_INIT();
 
   sym_im = msymbol("input-method");
   im_list = mdatabase_list(sym_im, Mnil, Mnil, Mnil);
-  num_of_ims = mplist_length(im_list);
+  num_ims = mplist_length(im_list);
 
-  if (num_of_ims == 0) {
+  if (num_ims == 0) {
     goto error;
   }
 
@@ -1153,17 +1153,17 @@ im_info_t *im_m17nlib_get_info(char *locale, char *encoding) {
     goto error;
   }
 
-  result->num_of_args = num_of_ims + 1;
-  if (!(result->args = calloc(result->num_of_args, sizeof(char*)))) {
+  result->num_args = num_ims + 1;
+  if (!(result->args = calloc(result->num_args, sizeof(char*)))) {
     goto error;
   }
 
-  if (!(result->readable_args = calloc(result->num_of_args, sizeof(char*)))) {
+  if (!(result->readable_args = calloc(result->num_args, sizeof(char*)))) {
     free(result->args);
     goto error;
   }
 
-  for (i = 1; i < result->num_of_args; i++, im_list = mplist_next(im_list)) {
+  for (i = 1; i < result->num_args; i++, im_list = mplist_next(im_list)) {
     MDatabase *db;
     MSymbol *tag;
     size_t len;

@@ -43,7 +43,7 @@ static void usage(bl_conf_t *conf) {
 
   printf("usage: %s", prog_name);
 
-  for (count = 0; count < conf->num_of_opts; count++) {
+  for (count = 0; count < conf->num_opts; count++) {
     if (conf->arg_opts[count] != NULL && conf->arg_opts[count]->opt != conf->end_opt) {
       printf(" [options]");
 
@@ -58,7 +58,7 @@ static void usage(bl_conf_t *conf) {
   printf("\n\noptions:\n");
 
   end_opt = NULL;
-  for (count = 0; count < conf->num_of_opts; count++) {
+  for (count = 0; count < conf->num_opts; count++) {
     if (conf->arg_opts[count] != NULL) {
       if (conf->arg_opts[count]->opt == conf->end_opt) {
         end_opt = conf->arg_opts[count];
@@ -189,9 +189,9 @@ bl_conf_t *bl_conf_new(void) {
     return NULL;
   }
 
-  conf->num_of_opts = 0x60;
+  conf->num_opts = 0x60;
 
-  if ((conf->arg_opts = malloc(conf->num_of_opts * sizeof(bl_arg_opt_t *))) == NULL) {
+  if ((conf->arg_opts = malloc(conf->num_opts * sizeof(bl_arg_opt_t *))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " malloc() failed.\n");
 #endif
@@ -201,7 +201,7 @@ bl_conf_t *bl_conf_new(void) {
     return NULL;
   }
 
-  memset(conf->arg_opts, 0, conf->num_of_opts * sizeof(bl_arg_opt_t *));
+  memset(conf->arg_opts, 0, conf->num_opts * sizeof(bl_arg_opt_t *));
 
   conf->end_opt = '\0';
 
@@ -216,7 +216,7 @@ int bl_conf_delete(bl_conf_t *conf) {
   BL_PAIR(bl_conf_entry) * pairs;
   u_int size;
 
-  for (count = 0; count < conf->num_of_opts; count++) {
+  for (count = 0; count < conf->num_opts; count++) {
     if (conf->arg_opts[count]) {
       free(conf->arg_opts[count]);
     }
@@ -257,7 +257,7 @@ int bl_conf_add_opt(bl_conf_t *conf, char short_opt, /* '\0' is accepted */
       return 0;
     }
 
-    if ((arg_opts = realloc(conf->arg_opts, (conf->num_of_opts + 1) * sizeof(bl_arg_opt_t *))) ==
+    if ((arg_opts = realloc(conf->arg_opts, (conf->num_opts + 1) * sizeof(bl_arg_opt_t *))) ==
         NULL) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " realloc() failed.\n");
@@ -267,7 +267,7 @@ int bl_conf_add_opt(bl_conf_t *conf, char short_opt, /* '\0' is accepted */
     }
 
     conf->arg_opts = arg_opts;
-    opt = &arg_opts[conf->num_of_opts++];
+    opt = &arg_opts[conf->num_opts++];
     *opt = NULL;
   } else if (short_opt < ' ') {
     return 0;
@@ -335,7 +335,7 @@ int bl_conf_parse_args(bl_conf_t *conf, int *argc, char ***argv, int ignore_unkn
 
       opt = NULL;
 
-      for (count = 0; count < conf->num_of_opts; count++) {
+      for (count = 0; count < conf->num_opts; count++) {
         if (conf->arg_opts[count] && conf->arg_opts[count]->long_opt &&
             strcmp(opt_name, conf->arg_opts[count]->long_opt) == 0) {
           opt = conf->arg_opts[count];

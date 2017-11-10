@@ -157,23 +157,23 @@ static void preedit(im_wnn_t *wnn, char *preedit,                               
   } else {
     ef_char_t ch;
     vt_char_t *p;
-    u_int num_of_chars;
+    u_int num_chars;
     u_int len;
     u_char *tmp = NULL;
     size_t pos_len;
 
     wnn->im.preedit.cursor_offset = rev_pos;
 
-    num_of_chars = 0;
+    num_chars = 0;
     (*parser_wchar->init)(parser_wchar);
     (*parser_wchar->set_str)(parser_wchar, preedit, preedit_len);
     while ((*parser_wchar->next_char)(parser_wchar, &ch)) {
-      num_of_chars++;
+      num_chars++;
     }
 
     pos_len = strlen(pos);
 
-    if ((p = realloc(wnn->im.preedit.chars, sizeof(vt_char_t) * (num_of_chars + pos_len))) ==
+    if ((p = realloc(wnn->im.preedit.chars, sizeof(vt_char_t) * (num_chars + pos_len))) ==
         NULL) {
       return;
     }
@@ -185,7 +185,7 @@ static void preedit(im_wnn_t *wnn, char *preedit,                               
     }
 
     (*syms->vt_str_init)(wnn->im.preedit.chars = p,
-                         wnn->im.preedit.num_of_chars = (num_of_chars + pos_len));
+                         wnn->im.preedit.num_chars = (num_chars + pos_len));
     wnn->im.preedit.filled_len = 0;
 
     (*wnn->parser_term->init)(wnn->parser_term);
@@ -928,7 +928,7 @@ im_info_t *im_wnn_get_info(char *locale, char *encoding) {
   if ((result = malloc(sizeof(im_info_t)))) {
     result->id = strdup("wnn");
     result->name = strdup("Wnn");
-    result->num_of_args = 0;
+    result->num_args = 0;
     result->args = NULL;
     result->readable_args = NULL;
   }

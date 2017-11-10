@@ -109,11 +109,11 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
 #endif
 
 #ifndef NO_IMAGE
-static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_of_glyphs, int dst_x,
+static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs, int dst_x,
                         int dst_y, u_int ch_width, u_int line_height) {
   u_int count;
   ui_inline_picture_t *cur_pic;
-  u_int num_of_rows;
+  u_int num_rows;
   int src_x;
   int src_y;
   u_int src_width;
@@ -125,7 +125,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_of_gly
   cur_pic = NULL;
   is_end = 0;
 
-  for (count = 0; count < num_of_glyphs; count++) {
+  for (count = 0; count < num_glyphs; count++) {
     ui_inline_picture_t *pic;
     int pos;
     int x;
@@ -142,11 +142,11 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_of_gly
      */
 
     if (pic != cur_pic) {
-      num_of_rows = (pic->height + pic->line_height - 1) / pic->line_height;
+      num_rows = (pic->height + pic->line_height - 1) / pic->line_height;
     }
 
     pos = INLINEPIC_POS(glyphs[count]);
-    x = (pos / num_of_rows) * ch_width;
+    x = (pos / num_rows) * ch_width;
 
     if (x + ch_width > pic->width) {
       w = pic->width > x ? pic->width - x : 0;
@@ -164,7 +164,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_of_gly
       src_width += w;
       dst_width += ch_width;
 
-      if (count + 1 < num_of_glyphs) {
+      if (count + 1 < num_glyphs) {
         continue;
       }
 
@@ -196,7 +196,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_of_gly
     dst_x += dst_width;
 
   new_picture:
-    src_y = (pos % num_of_rows) * line_height;
+    src_y = (pos % num_rows) * line_height;
     src_x = x;
     dst_width = ch_width;
     cur_pic = pic;
@@ -250,7 +250,7 @@ static int get_drcs_bitmap(char *glyph, u_int width, int x, int y) {
   return (glyph[(y / 6) * (width + 1) + x] - '?') & (1 << (y % 6));
 }
 
-static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_of_glyphs, int x, int y,
+static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_glyphs, int x, int y,
                      u_int ch_width, u_int line_height, ui_color_t *fg_xcolor, int size_attr) {
   int y_off = 0;
 
@@ -274,7 +274,7 @@ static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_of_glyphs, in
 
     w = 0;
 
-    for (x_off_sum = 0; x_off_sum < ch_width * num_of_glyphs; x_off_sum++) {
+    for (x_off_sum = 0; x_off_sum < ch_width * num_glyphs; x_off_sum++) {
       int left_x;
       int top_y;
       int hit;
@@ -335,7 +335,7 @@ static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_of_glyphs, in
       if (n_smpl <= hit * 2) {
         w++;
 
-        if (x_off_sum + 1 == ch_width * num_of_glyphs) {
+        if (x_off_sum + 1 == ch_width * num_glyphs) {
           /* for x_off - w */
           x_off_sum++;
         } else {
@@ -449,7 +449,7 @@ static void fc_draw_combining_chars(ui_window_t *window, ui_font_manager_t *font
 
 static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                        ui_color_manager_t *color_man, u_int *updated_width, vt_char_t *chars,
-                       u_int num_of_chars, int x, int y, u_int height, u_int ascent,
+                       u_int num_chars, int x, int y, u_int height, u_int ascent,
                        int top_margin, int hide_underline, int underline_offset) {
   int count;
   int start_draw;
@@ -494,7 +494,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   int draw_count = 0;
 #endif
 
-  if (num_of_chars == 0) {
+  if (num_chars == 0) {
 #ifdef __DEBUG
     bl_debug_printf(BL_DEBUG_TAG " input chars length is 0(ui_window_draw_str).\n");
 #endif
@@ -507,7 +507,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
   count = 0;
   while (vt_char_cols(&chars[count]) == 0) {
-    if (++count >= num_of_chars) {
+    if (++count >= num_chars) {
       return 1;
     }
   }
@@ -542,7 +542,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   if (!(str8 = str32 = pic_glyphs = drcs_glyphs =
             alloca(K_MAX(sizeof(*str8),
                          K_MAX(sizeof(*str32), K_MAX(sizeof(*pic_glyphs), sizeof(*drcs_glyphs)))) *
-                   num_of_chars))) {
+                   num_chars))) {
     return 0;
   }
 
@@ -576,7 +576,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
      */
 
     do {
-      if (++count >= num_of_chars) {
+      if (++count >= num_chars) {
         start_draw = 1;
         end_of_str = 1;
 
@@ -818,7 +818,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
 
 static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                           ui_color_manager_t *color_man, u_int *updated_width, vt_char_t *chars,
-                          u_int num_of_chars, int x, int y, u_int height, u_int ascent,
+                          u_int num_chars, int x, int y, u_int height, u_int ascent,
                           int top_margin, int hide_underline, int underline_offset) {
   int count;
   int start_draw;
@@ -861,7 +861,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   int draw_count = 0;
 #endif
 
-  if (num_of_chars == 0) {
+  if (num_chars == 0) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " input chars length is 0(ui_window_draw_str).\n");
 #endif
@@ -871,7 +871,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
   count = 0;
   while (vt_char_cols(&chars[count]) == 0) {
-    if (++count >= num_of_chars) {
+    if (++count >= num_chars) {
       return 1;
     }
   }
@@ -909,7 +909,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
             /* '* 2' is for UTF16 surrogate pair. */
         alloca(K_MAX(sizeof(*str2b) * 2,
                      K_MAX(sizeof(*str), K_MAX(sizeof(*pic_glyphs), sizeof(*drcs_glyphs)))) *
-               num_of_chars))) {
+               num_chars))) {
     return 0;
   }
 
@@ -940,7 +940,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
      */
 
     do {
-      if (++count >= num_of_chars) {
+      if (++count >= num_chars) {
         start_draw = 1;
         end_of_str = 1;
 
@@ -1197,7 +1197,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 /* --- global functions --- */
 
 int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
-                vt_char_t *chars, u_int num_of_chars, int x, int y, u_int height, u_int ascent,
+                vt_char_t *chars, u_int num_chars, int x, int y, u_int height, u_int ascent,
                 int top_margin, int hide_underline, int underline_offset) {
   u_int updated_width;
   int ret;
@@ -1219,7 +1219,7 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
     case TYPE_XFT:
     case TYPE_CAIRO:
-      ret = fc_draw_str(window, font_man, color_man, &updated_width, chars, num_of_chars, x, y,
+      ret = fc_draw_str(window, font_man, color_man, &updated_width, chars, num_chars, x, y,
                         height, ascent, top_margin, hide_underline, underline_offset);
 
       break;
@@ -1227,7 +1227,7 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
     case TYPE_XCORE:
-      ret = xcore_draw_str(window, font_man, color_man, &updated_width, chars, num_of_chars, x, y,
+      ret = xcore_draw_str(window, font_man, color_man, &updated_width, chars, num_chars, x, y,
                            height, ascent, top_margin, hide_underline, underline_offset);
 
       break;
@@ -1242,7 +1242,7 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
 }
 
 int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
-                       ui_color_manager_t *color_man, vt_char_t *chars, u_int num_of_chars, int x,
+                       ui_color_manager_t *color_man, vt_char_t *chars, u_int num_chars, int x,
                        int y, u_int height, u_int ascent, int top_margin,
                        int hide_underline, int underline_offset) {
   u_int updated_width;
@@ -1269,7 +1269,7 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
 
       ret = fc_draw_str(
           window, font_man, color_man, NULL /* NULL disables ui_window_clear() in fc_draw_str() */,
-          chars, num_of_chars, x, y, height, ascent, top_margin, hide_underline,
+          chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
           underline_offset);
 
       break;
@@ -1277,7 +1277,7 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
     case TYPE_XCORE:
-      ret = xcore_draw_str(window, font_man, color_man, &updated_width, chars, num_of_chars, x, y,
+      ret = xcore_draw_str(window, font_man, color_man, &updated_width, chars, num_chars, x, y,
                            height, ascent, top_margin, hide_underline, underline_offset);
 
       if (updated_width < window->width) {

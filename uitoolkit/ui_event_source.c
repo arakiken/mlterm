@@ -31,7 +31,7 @@ static struct {
   void (*handler)(void);
 
 } * additional_fds;
-static u_int num_of_additional_fds;
+static u_int num_additional_fds;
 #endif
 
 /* --- static functions --- */
@@ -40,12 +40,12 @@ static u_int num_of_additional_fds;
 
 static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT timerid, DWORD time) {
   ui_display_t **displays;
-  u_int num_of_displays;
+  u_int num_displays;
   int count;
 
-  displays = ui_get_opened_displays(&num_of_displays);
+  displays = ui_get_opened_displays(&num_displays);
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     ui_display_idling(displays[count]);
   }
 }
@@ -55,7 +55,7 @@ static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT timerid, DWORD time) {
 static void receive_next_event(void) {
   u_int count;
   vt_term_t **terms;
-  u_int num_of_terms;
+  u_int num_terms;
   int xfd;
   int ptyfd;
   int maxfd;
@@ -63,14 +63,14 @@ static void receive_next_event(void) {
   fd_set read_fds;
   struct timeval tval;
   ui_display_t **displays;
-  u_int num_of_displays;
+  u_int num_displays;
 #ifdef USE_LIBSSH2
   int *xssh_fds;
-  u_int num_of_xssh_fds;
+  u_int num_xssh_fds;
 
-  num_of_xssh_fds = vt_pty_ssh_get_x11_fds(&xssh_fds);
+  num_xssh_fds = vt_pty_ssh_get_x11_fds(&xssh_fds);
 #endif
-  num_of_terms = vt_get_all_terms(&terms);
+  num_terms = vt_get_all_terms(&terms);
 
   while (1) {
 /* on Linux tv_usec,tv_sec members are zero cleared after select() */
@@ -92,12 +92,12 @@ static void receive_next_event(void) {
        * stops receive_bytes in vt_term_parse_vt100_sequence() is enabled.
        */
 
-      for (count = num_of_xssh_fds; count > 0; count--) {
+      for (count = num_xssh_fds; count > 0; count--) {
         vt_pty_ssh_send_recv_x11(
             count - 1, xssh_fds[count - 1] >= 0 && FD_ISSET(xssh_fds[count - 1], &read_fds));
       }
 
-      for (count = 0; count < num_of_terms; count++) {
+      for (count = 0; count < num_terms; count++) {
         ptyfd = vt_term_get_master_fd(terms[count]);
 #ifdef OPEN_PTY_ASYNC
         if (ptyfd >= 0)
@@ -115,7 +115,7 @@ static void receive_next_event(void) {
     FD_ZERO(&read_fds);
 
 #ifdef USE_LIBSSH2
-    for (count = 0; count < num_of_xssh_fds; count++) {
+    for (count = 0; count < num_xssh_fds; count++) {
       if (xssh_fds[count] >= 0) {
         FD_SET(xssh_fds[count], &read_fds);
 
@@ -126,9 +126,9 @@ static void receive_next_event(void) {
     }
 #endif
 
-    displays = ui_get_opened_displays(&num_of_displays);
+    displays = ui_get_opened_displays(&num_displays);
 
-    for (count = 0; count < num_of_displays; count++) {
+    for (count = 0; count < num_displays; count++) {
 #ifdef NEED_DISPLAY_SYNC_EVERY_TIME
       /*
        * Need to read pending events and to flush events in
@@ -146,7 +146,7 @@ static void receive_next_event(void) {
       }
     }
 
-    for (count = 0; count < num_of_terms; count++) {
+    for (count = 0; count < num_terms; count++) {
       ptyfd = vt_term_get_master_fd(terms[count]);
 #ifdef OPEN_PTY_ASYNC
       if (ptyfd >= 0)
@@ -160,7 +160,7 @@ static void receive_next_event(void) {
       }
     }
 
-    for (count = 0; count < num_of_additional_fds; count++) {
+    for (count = 0; count < num_additional_fds; count++) {
       if (additional_fds[count].fd >= 0) {
         FD_SET(additional_fds[count].fd, &read_fds);
 
@@ -192,7 +192,7 @@ static void receive_next_event(void) {
     display_idling_wait = 4;
 #endif
 
-    for (count = 0; count < num_of_displays; count++) {
+    for (count = 0; count < num_displays; count++) {
       ui_display_idling(displays[count]);
     }
 
@@ -203,7 +203,7 @@ static void receive_next_event(void) {
      * additional_fds.handler (-> update_preedit_text -> cand_screen->delete) of
      * ibus may destroy ui_display on wayland.
      */
-    for (count = 0; count < num_of_additional_fds; count++) {
+    for (count = 0; count < num_additional_fds; count++) {
       if (additional_fds[count].fd < 0) {
         (*additional_fds[count].handler)();
       }
@@ -216,11 +216,11 @@ static void receive_next_event(void) {
    * X Window -> PTY -> additional_fds
    */
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (FD_ISSET(ui_display_fd(displays[count]), &read_fds)) {
       ui_display_receive_next_event(displays[count]);
       /* XXX displays pointer may be changed (realloced) */
-      displays = ui_get_opened_displays(&num_of_displays);
+      displays = ui_get_opened_displays(&num_displays);
     }
   }
 
@@ -229,13 +229,13 @@ static void receive_next_event(void) {
    * vt_pty_ssh_send_recv_x11() should be called before
    * vt_term_parse_vt100_sequence() where xssh_fds can be deleted.
    */
-  for (count = num_of_xssh_fds; count > 0; count--) {
+  for (count = num_xssh_fds; count > 0; count--) {
     vt_pty_ssh_send_recv_x11(count - 1,
                              xssh_fds[count - 1] >= 0 && FD_ISSET(xssh_fds[count - 1], &read_fds));
   }
 #endif
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     ptyfd = vt_term_get_master_fd(terms[count]);
 #ifdef OPEN_PTY_ASYNC
     if (ptyfd >= 0)
@@ -247,7 +247,7 @@ static void receive_next_event(void) {
     }
   }
 
-  for (count = 0; count < num_of_additional_fds; count++) {
+  for (count = 0; count < num_additional_fds; count++) {
     if (additional_fds[count].fd >= 0) {
       if (FD_ISSET(additional_fds[count].fd, &read_fds)) {
         (*additional_fds[count].handler)();
@@ -275,17 +275,17 @@ void ui_event_source_final(void) {
 
 int ui_event_source_process(void) {
 #ifdef USE_WIN32API
-  u_int num_of_displays;
+  u_int num_displays;
   ui_display_t **displays;
   vt_term_t **terms;
-  u_int num_of_terms;
+  u_int num_terms;
   int *xssh_fds;
   u_int count;
 #endif
 
 #ifdef USE_WIN32API
-  displays = ui_get_opened_displays(&num_of_displays);
-  for (count = 0; count < num_of_displays; count++) {
+  displays = ui_get_opened_displays(&num_displays);
+  for (count = 0; count < num_displays; count++) {
     ui_display_receive_next_event(displays[count]);
   }
 #else
@@ -306,9 +306,9 @@ int ui_event_source_process(void) {
   }
 #endif
 
-  num_of_terms = vt_get_all_terms(&terms);
+  num_terms = vt_get_all_terms(&terms);
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     vt_term_parse_vt100_sequence(terms[count]);
   }
 #endif
@@ -335,14 +335,14 @@ int ui_event_source_add_fd(int fd, void (*handler)(void)) {
     return 0;
   }
 
-  if ((p = realloc(additional_fds, sizeof(*additional_fds) * (num_of_additional_fds + 1))) ==
+  if ((p = realloc(additional_fds, sizeof(*additional_fds) * (num_additional_fds + 1))) ==
       NULL) {
     return 0;
   }
 
   additional_fds = p;
-  additional_fds[num_of_additional_fds].fd = fd;
-  additional_fds[num_of_additional_fds++].handler = handler;
+  additional_fds[num_additional_fds].fd = fd;
+  additional_fds[num_additional_fds++].handler = handler;
   if (fd >= 0) {
     bl_file_set_cloexec(fd);
   }
@@ -364,13 +364,13 @@ void ui_event_source_remove_fd(int fd) {
 #ifndef USE_WIN32API
   u_int count;
 
-  for (count = 0; count < num_of_additional_fds; count++) {
+  for (count = 0; count < num_additional_fds; count++) {
     if (additional_fds[count].fd == fd) {
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " Additional fd %d is removed.\n", fd);
 #endif
 
-      additional_fds[count] = additional_fds[--num_of_additional_fds];
+      additional_fds[count] = additional_fds[--num_additional_fds];
 
       return;
     }

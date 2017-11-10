@@ -205,7 +205,7 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
     }
 
     (*syms->vt_str_init)(skk->im.preedit.chars = p,
-                         skk->im.preedit.num_of_chars = (preedit_len + pos_len));
+                         skk->im.preedit.num_chars = (preedit_len + pos_len));
 
     skk->im.preedit.filled_len = 0;
     for (count = 0; count < preedit_len; count++) {
@@ -1243,7 +1243,7 @@ im_info_t *im_skk_get_info(char *locale, char *encoding) {
   if ((result = malloc(sizeof(im_info_t)))) {
     result->id = strdup("skk");
     result->name = strdup("Skk");
-    result->num_of_args = 0;
+    result->num_args = 0;
     result->args = NULL;
     result->readable_args = NULL;
   }

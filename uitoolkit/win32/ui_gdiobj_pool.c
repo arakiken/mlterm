@@ -21,28 +21,28 @@ typedef struct stock_brush {
 /* --- static variables --- */
 
 static stock_pen_t *stock_pens;
-static u_int num_of_stock_pens;
+static u_int num_stock_pens;
 static stock_brush_t *stock_brushes;
-static u_int num_of_stock_brushes;
+static u_int num_stock_brushes;
 
 /* --- static functions --- */
 
 static int garbage_unused_objects(void) {
   int count;
 
-  for (count = 0; count < num_of_stock_pens;) {
+  for (count = 0; count < num_stock_pens;) {
     if (stock_pens[count].ref_count <= 0) {
       DeleteObject(stock_pens[count].pen);
-      stock_pens[count] = stock_pens[--num_of_stock_pens];
+      stock_pens[count] = stock_pens[--num_stock_pens];
     } else {
       count++;
     }
   }
 
-  for (count = 0; count < num_of_stock_brushes;) {
+  for (count = 0; count < num_stock_brushes;) {
     if (stock_brushes[count].ref_count <= 0) {
       DeleteObject(stock_brushes[count].brush);
-      stock_brushes[count] = stock_brushes[--num_of_stock_brushes];
+      stock_brushes[count] = stock_brushes[--num_stock_brushes];
     } else {
       count++;
     }
@@ -58,11 +58,11 @@ int ui_gdiobj_pool_init(void) { return 1; }
 int ui_gdiobj_pool_final(void) {
   u_int count;
 
-  for (count = 0; count < num_of_stock_pens; count++) {
+  for (count = 0; count < num_stock_pens; count++) {
     DeleteObject(stock_pens[count].pen);
   }
 
-  for (count = 0; count < num_of_stock_brushes; count++) {
+  for (count = 0; count < num_stock_brushes; count++) {
     DeleteObject(stock_brushes[count].brush);
   }
 
@@ -78,7 +78,7 @@ HPEN ui_acquire_pen(u_long rgb) {
   /* Remove alpha */
   rgb &= 0xffffff;
 
-  for (count = 0; count < num_of_stock_pens; count++) {
+  for (count = 0; count < num_stock_pens; count++) {
     if (rgb == stock_pens[count].rgb) {
       stock_pens[count].ref_count++;
 
@@ -93,28 +93,28 @@ HPEN ui_acquire_pen(u_long rgb) {
   } else {
     void *p;
 
-    if (num_of_stock_pens % 10 == 9) {
+    if (num_stock_pens % 10 == 9) {
       garbage_unused_objects();
     }
 
-    if ((p = realloc(stock_pens, sizeof(stock_pen_t) * (num_of_stock_pens + 1))) == NULL) {
+    if ((p = realloc(stock_pens, sizeof(stock_pen_t) * (num_stock_pens + 1))) == NULL) {
       return None;
     }
 
     stock_pens = p;
 
-    stock_pens[num_of_stock_pens].rgb = rgb;
-    stock_pens[num_of_stock_pens].pen = CreatePen(PS_SOLID, 1, rgb);
-    stock_pens[num_of_stock_pens].ref_count = 1;
+    stock_pens[num_stock_pens].rgb = rgb;
+    stock_pens[num_stock_pens].pen = CreatePen(PS_SOLID, 1, rgb);
+    stock_pens[num_stock_pens].ref_count = 1;
 
-    return stock_pens[num_of_stock_pens++].pen;
+    return stock_pens[num_stock_pens++].pen;
   }
 }
 
 int ui_release_pen(HPEN pen) {
   u_int count;
 
-  for (count = 0; count < num_of_stock_pens; count++) {
+  for (count = 0; count < num_stock_pens; count++) {
     if (pen == stock_pens[count].pen) {
       --stock_pens[count].ref_count;
 
@@ -132,7 +132,7 @@ ui_acquire_brush(u_long rgb) {
   /* Remove alpha */
   rgb &= 0xffffff;
 
-  for (count = 0; count < num_of_stock_brushes; count++) {
+  for (count = 0; count < num_stock_brushes; count++) {
     if (rgb == stock_brushes[count].rgb) {
       stock_brushes[count].ref_count++;
 
@@ -147,28 +147,28 @@ ui_acquire_brush(u_long rgb) {
   } else {
     void *p;
 
-    if (num_of_stock_brushes % 10 == 9) {
+    if (num_stock_brushes % 10 == 9) {
       garbage_unused_objects();
     }
 
-    if ((p = realloc(stock_brushes, sizeof(stock_brush_t) * (num_of_stock_brushes + 1))) == NULL) {
+    if ((p = realloc(stock_brushes, sizeof(stock_brush_t) * (num_stock_brushes + 1))) == NULL) {
       return None;
     }
 
     stock_brushes = p;
 
-    stock_brushes[num_of_stock_brushes].rgb = rgb;
-    stock_brushes[num_of_stock_brushes].brush = CreateSolidBrush(rgb);
-    stock_brushes[num_of_stock_brushes].ref_count = 1;
+    stock_brushes[num_stock_brushes].rgb = rgb;
+    stock_brushes[num_stock_brushes].brush = CreateSolidBrush(rgb);
+    stock_brushes[num_stock_brushes].ref_count = 1;
 
-    return stock_brushes[num_of_stock_brushes++].brush;
+    return stock_brushes[num_stock_brushes++].brush;
   }
 }
 
 int ui_release_brush(HBRUSH brush) {
   u_int count;
 
-  for (count = 0; count < num_of_stock_brushes; count++) {
+  for (count = 0; count < num_stock_brushes; count++) {
     if (brush == stock_brushes[count].brush) {
       --stock_brushes[count].ref_count;
 

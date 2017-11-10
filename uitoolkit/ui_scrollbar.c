@@ -170,11 +170,11 @@ static void draw_button(ui_scrollbar_t *sb, int upbutton, int downbutton) {
  */
 static int calculate_bar_top_y(ui_scrollbar_t *sb) {
   if (IS_TOO_SMALL(sb) || MAX_BAR_HEIGHT(sb) == sb->bar_height ||
-      abs(sb->current_row) == sb->num_of_filled_log_lines) {
+      abs(sb->current_row) == sb->num_filled_log_lines) {
     return 0;
   } else {
-    return (sb->current_row + sb->num_of_filled_log_lines) * (MAX_BAR_HEIGHT(sb) - sb->bar_height) /
-           sb->num_of_filled_log_lines;
+    return (sb->current_row + sb->num_filled_log_lines) * (MAX_BAR_HEIGHT(sb) - sb->bar_height) /
+           sb->num_filled_log_lines;
   }
 }
 
@@ -186,24 +186,24 @@ static int calculate_current_row(ui_scrollbar_t *sb) {
     return 0;
   } else {
     /*
-     * sb->bar_top_y / (sb->num_of_filled_log_lines /
+     * sb->bar_top_y / (sb->num_filled_log_lines /
      *	(MAX_BAR_HEIGHT(sb) - sb->bar_height))
-     * => (sb->num_of_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height))
+     * => (sb->num_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height))
      *    = pixel per line
      */
-    return sb->bar_top_y * sb->num_of_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height) -
-           sb->num_of_filled_log_lines;
+    return sb->bar_top_y * sb->num_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height) -
+           sb->num_filled_log_lines;
   }
 }
 
 static u_int calculate_bar_height(ui_scrollbar_t *sb) {
-  if (IS_TOO_SMALL(sb) || sb->num_of_filled_log_lines + sb->num_of_scr_lines == 0) {
+  if (IS_TOO_SMALL(sb) || sb->num_filled_log_lines + sb->num_scr_lines == 0) {
     return 0;
   } else {
     u_int bar_height;
 
-    bar_height = (sb->num_of_scr_lines * MAX_BAR_HEIGHT(sb)) /
-                 (sb->num_of_filled_log_lines + sb->num_of_scr_lines);
+    bar_height = (sb->num_scr_lines * MAX_BAR_HEIGHT(sb)) /
+                 (sb->num_filled_log_lines + sb->num_scr_lines);
 
     if (bar_height < MAX_BAR_HEIGHT(sb) / 20) {
       bar_height = MAX_BAR_HEIGHT(sb) / 20;
@@ -302,11 +302,11 @@ static void window_resized(ui_window_t *win) {
     bl_warn_printf(BL_DEBUG_TAG " scrollbar is too small to be drawn.\n");
 #endif
 
-    sb->num_of_scr_lines = 0;
+    sb->num_scr_lines = 0;
     sb->bar_height = 0;
     sb->bar_top_y = 0;
   } else {
-    sb->num_of_scr_lines = MAX_BAR_HEIGHT(sb) / sb->line_height;
+    sb->num_scr_lines = MAX_BAR_HEIGHT(sb) / sb->line_height;
     sb->bar_height = calculate_bar_height(sb);
     sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height;
   }
@@ -431,18 +431,18 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
   if (result == 0) {
     if (y < sb->bar_top_y) {
-      ui_scrollbar_move_upward(sb, sb->num_of_scr_lines);
+      ui_scrollbar_move_upward(sb, sb->num_scr_lines);
 
       if (sb->sb_listener->screen_scroll_downward) {
         /* down button scrolls *down* screen */
-        (*sb->sb_listener->screen_scroll_downward)(sb->sb_listener->self, sb->num_of_scr_lines);
+        (*sb->sb_listener->screen_scroll_downward)(sb->sb_listener->self, sb->num_scr_lines);
       }
     } else if (y > sb->bar_top_y + sb->bar_height) {
-      ui_scrollbar_move_downward(sb, sb->num_of_scr_lines);
+      ui_scrollbar_move_downward(sb, sb->num_scr_lines);
 
       if (sb->sb_listener->screen_scroll_upward) {
         /* down button scrolls *up* screen */
-        (*sb->sb_listener->screen_scroll_upward)(sb->sb_listener->self, sb->num_of_scr_lines);
+        (*sb->sb_listener->screen_scroll_upward)(sb->sb_listener->self, sb->num_scr_lines);
       }
     }
   } else if (result == 1) {
@@ -588,7 +588,7 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
 
 int ui_scrollbar_init(ui_scrollbar_t *sb, ui_scrollbar_event_listener_t *sb_listener,
                       char *view_name, char *fg_color, char *bg_color, u_int height,
-                      u_int line_height, u_int num_of_log_lines, u_int num_of_filled_log_lines,
+                      u_int line_height, u_int num_log_lines, u_int num_filled_log_lines,
                       int use_transbg, ui_picture_modifier_t *pic_mod) {
   u_int width;
 
@@ -684,14 +684,14 @@ view_created:
 #endif
 
     sb->bar_height = 0;
-    sb->num_of_scr_lines = 0;
+    sb->num_scr_lines = 0;
   } else {
     sb->bar_height = height - HEIGHT_MARGIN(sb);
-    sb->num_of_scr_lines = sb->bar_height / sb->line_height;
+    sb->num_scr_lines = sb->bar_height / sb->line_height;
   }
 
-  sb->num_of_log_lines = num_of_log_lines;
-  sb->num_of_filled_log_lines = num_of_filled_log_lines;
+  sb->num_log_lines = num_log_lines;
+  sb->num_filled_log_lines = num_filled_log_lines;
   sb->bar_top_y = 0;
   sb->y_on_bar = 0;
   sb->current_row = 0;
@@ -743,15 +743,15 @@ void ui_scrollbar_final(ui_scrollbar_t *sb) {
   free(sb->view_name);
 }
 
-void ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines) {
-  if (sb->num_of_log_lines == num_of_log_lines) {
+void ui_scrollbar_set_num_log_lines(ui_scrollbar_t *sb, u_int num_log_lines) {
+  if (sb->num_log_lines == num_log_lines) {
     return;
   }
 
-  sb->num_of_log_lines = num_of_log_lines;
+  sb->num_log_lines = num_log_lines;
 
-  if (sb->num_of_filled_log_lines > sb->num_of_log_lines) {
-    sb->num_of_filled_log_lines = sb->num_of_log_lines;
+  if (sb->num_filled_log_lines > sb->num_log_lines) {
+    sb->num_filled_log_lines = sb->num_log_lines;
   }
 
   set_redraw_area(sb, sb->bar_top_y, sb->bar_height);
@@ -762,16 +762,16 @@ void ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_line
   ui_window_update(&sb->window, UPDATE_SCROLLBAR);
 }
 
-void ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
-  if (lines > sb->num_of_log_lines) {
-    lines = sb->num_of_log_lines;
+void ui_scrollbar_set_num_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
+  if (lines > sb->num_log_lines) {
+    lines = sb->num_log_lines;
   }
 
-  if (sb->num_of_filled_log_lines == lines) {
+  if (sb->num_filled_log_lines == lines) {
     return;
   }
 
-  sb->num_of_filled_log_lines = lines;
+  sb->num_filled_log_lines = lines;
 
   set_redraw_area(sb, sb->bar_top_y, sb->bar_height);
 
@@ -786,15 +786,15 @@ int ui_scrollbar_line_is_added(ui_scrollbar_t *sb) {
   u_int old_bar_height;
 
   if ((*sb->sb_listener->screen_is_static)(sb->sb_listener->self)) {
-    if (sb->num_of_filled_log_lines < sb->num_of_log_lines) {
-      sb->num_of_filled_log_lines++;
+    if (sb->num_filled_log_lines < sb->num_log_lines) {
+      sb->num_filled_log_lines++;
     }
 
     sb->current_row--;
-  } else if (sb->num_of_filled_log_lines == sb->num_of_log_lines) {
+  } else if (sb->num_filled_log_lines == sb->num_log_lines) {
     return 0;
   } else {
-    sb->num_of_filled_log_lines++;
+    sb->num_filled_log_lines++;
   }
 
   old_bar_height = sb->bar_height;
@@ -833,7 +833,7 @@ int ui_scrollbar_move_upward(ui_scrollbar_t *sb, u_int size) {
    * XXX Adhoc solution
    * Fix ui_screen.c:bs_{half_}page_{up|down}ward() instead.
    */
-  if (sb->current_row + sb->num_of_filled_log_lines == 0)
+  if (sb->current_row + sb->num_filled_log_lines == 0)
 #endif
   {
     return 0;
@@ -853,8 +853,8 @@ int ui_scrollbar_move_downward(ui_scrollbar_t *sb, u_int size) {
 int ui_scrollbar_move(ui_scrollbar_t *sb, int row) {
   if (0 < row) {
     row = 0;
-  } else if (row + (int)sb->num_of_filled_log_lines < 0) {
-    row = -(sb->num_of_filled_log_lines);
+  } else if (row + (int)sb->num_filled_log_lines < 0) {
+    row = -(sb->num_filled_log_lines);
   }
 
   if (sb->current_row == row) {

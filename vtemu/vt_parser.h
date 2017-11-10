@@ -237,7 +237,7 @@ typedef struct vt_parser {
   vt_drcs_t *drcs;
 
   vt_macro_t *macros;
-  u_int num_of_macros;
+  u_int num_macros;
 
   u_int32_t *sixel_palette;
   u_int64_t vtmode_flags;

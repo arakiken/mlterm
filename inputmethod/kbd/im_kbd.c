@@ -676,14 +676,14 @@ im_info_t *im_kbd_get_info(char *locale, char *encoding) {
     return NULL;
   }
 
-  result->num_of_args = 13;
+  result->num_args = 13;
 
-  if (!(result->args = malloc(sizeof(char*) * result->num_of_args))) {
+  if (!(result->args = malloc(sizeof(char*) * result->num_args))) {
     free(result);
     return NULL;
   }
 
-  if (!(result->readable_args = malloc(sizeof(char*) * result->num_of_args))) {
+  if (!(result->readable_args = malloc(sizeof(char*) * result->num_args))) {
     free(result->args);
     free(result);
     return NULL;

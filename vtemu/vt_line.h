@@ -32,8 +32,8 @@ typedef struct vt_line {
   vt_char_t *chars;
 
   /* public(readonly) */
-  u_int16_t num_of_chars;        /* 0 - 65535 */
-  u_int16_t num_of_filled_chars; /* 0 - 65535 */
+  u_int16_t num_chars;        /* 0 - 65535 */
+  u_int16_t num_filled_chars; /* 0 - 65535 */
 
   /* private */
   /*
@@ -60,9 +60,9 @@ typedef struct vt_line {
 
 } vt_line_t;
 
-int vt_line_init(vt_line_t *line, u_int num_of_chars);
+int vt_line_init(vt_line_t *line, u_int num_chars);
 
-int vt_line_clone(vt_line_t *clone, vt_line_t *orig, u_int num_of_chars);
+int vt_line_clone(vt_line_t *clone, vt_line_t *orig, u_int num_chars);
 
 void vt_line_final(vt_line_t *line);
 
@@ -101,7 +101,7 @@ int vt_line_get_beg_of_modified(vt_line_t *line);
 
 int vt_line_get_end_of_modified(vt_line_t *line);
 
-u_int vt_line_get_num_of_redrawn_chars(vt_line_t *line, int to_end);
+u_int vt_line_get_num_redrawn_chars(vt_line_t *line, int to_end);
 
 void vt_line_set_updated(vt_line_t *line);
 
@@ -125,18 +125,17 @@ int vt_line_share(vt_line_t *dst, vt_line_t *src);
 
 int vt_line_is_empty(vt_line_t *line);
 
-u_int vt_line_get_num_of_filled_cols(vt_line_t *line);
+u_int vt_line_get_num_filled_cols(vt_line_t *line);
 
 int vt_line_end_char_index(vt_line_t *line);
 
 int vt_line_beg_char_index_regarding_rtl(vt_line_t *line);
 
-u_int vt_line_get_num_of_filled_chars_except_spaces_with_func(vt_line_t *line,
-                                                              int (*func)(vt_char_t *,
-                                                                          vt_char_t *));
+u_int vt_line_get_num_filled_chars_except_sp_with_func(vt_line_t *line,
+                                                       int (*func)(vt_char_t *, vt_char_t *));
 
-#define vt_line_get_num_of_filled_chars_except_spaces(line) \
-  vt_line_get_num_of_filled_chars_except_spaces_with_func((line), vt_char_code_equal)
+#define vt_line_get_num_filled_chars_except_sp(line) \
+  vt_line_get_num_filled_chars_except_sp_with_func((line), vt_char_code_equal)
 
 void vt_line_set_size_attr(vt_line_t *line, int size_attr);
 

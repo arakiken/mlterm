@@ -17,7 +17,7 @@
 #define ButtonRelease 5 /* Private in fb/ */
 #define MotionNotify 6  /* Private in fb/ */
 
-#define IM_WINDOW_IS_ACTIVATED(disp) ((disp)->num_of_roots > 1 && (disp)->roots[1]->is_mapped)
+#define IM_WINDOW_IS_ACTIVATED(disp) ((disp)->num_roots > 1 && (disp)->roots[1]->is_mapped)
 
 /* common functions for ui_window.c */
 

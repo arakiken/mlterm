@@ -62,7 +62,7 @@
 /* --- static variables --- */
 
 static XFontStruct **xfonts;
-static u_int num_of_xfonts;
+static u_int num_xfonts;
 
 static XFontStruct *get_cached_xfont(const char *file, int32_t format);
 static int add_xfont_to_cache(XFontStruct *xfont);
@@ -80,10 +80,10 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
   /* 0 -> byte , 1 -> short , 2 -> int */
   xfont->glyph_width_bytes = (glyph_pad_type == 2 ? 4 : (glyph_pad_type == 1 ? 2 : 1));
 
-  xfont->num_of_glyphs = _TOINT32(p, is_be);
+  xfont->num_glyphs = _TOINT32(p, is_be);
   p += 4;
 
-  if (size < 8 + sizeof(*offsets) * xfont->num_of_glyphs) {
+  if (size < 8 + sizeof(*offsets) * xfont->num_glyphs) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " size %d is too small.\n", size);
 #endif
@@ -91,7 +91,7 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
     return 0;
   }
 
-  if (!(xfont->glyph_offsets = malloc(sizeof(*offsets) * xfont->num_of_glyphs))) {
+  if (!(xfont->glyph_offsets = malloc(sizeof(*offsets) * xfont->num_glyphs))) {
     return 0;
   }
 
@@ -101,10 +101,10 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
   if (!is_be)
 #endif
   {
-    memcpy(xfont->glyph_offsets, p, sizeof(*offsets) * xfont->num_of_glyphs);
-    p += (sizeof(*offsets) * xfont->num_of_glyphs);
+    memcpy(xfont->glyph_offsets, p, sizeof(*offsets) * xfont->num_glyphs);
+    p += (sizeof(*offsets) * xfont->num_glyphs);
   } else {
-    for (count = 0; count < xfont->num_of_glyphs; count++) {
+    for (count = 0; count < xfont->num_glyphs; count++) {
       xfont->glyph_offsets[count] = _TOINT32(p, is_be);
       p += 4;
     }
@@ -115,7 +115,7 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
     p += 4;
   }
 
-  if (size < 8 + sizeof(*offsets) * xfont->num_of_glyphs + 16 + bitmap_sizes[glyph_pad_type]) {
+  if (size < 8 + sizeof(*offsets) * xfont->num_glyphs + 16 + bitmap_sizes[glyph_pad_type]) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " size %d is too small.\n", size);
 #endif
@@ -141,7 +141,7 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
   }
 
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG "GLYPH COUNT %d x WIDTH BYTE %d = SIZE %d\n", xfont->num_of_glyphs,
+  bl_debug_printf(BL_DEBUG_TAG "GLYPH COUNT %d x WIDTH BYTE %d = SIZE %d\n", xfont->num_glyphs,
                   xfont->glyph_width_bytes, bitmap_sizes[glyph_pad_type]);
 
   {
@@ -151,7 +151,7 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
 
     fp = fopen("log.txt", "w");
 
-    for (count = 0; count < xfont->num_of_glyphs; count++) {
+    for (count = 0; count < xfont->num_glyphs; count++) {
       fprintf(fp, "NUM %x\n", count);
       fprintf(fp, "%x\n", _TOINT32(p, is_be));
       p += 4;
@@ -262,19 +262,19 @@ static int load_encodings(XFontStruct *xfont, u_char *p, size_t size, int is_be)
 
 static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, u_int8_t *ascent,
                        u_char *p, size_t size, int is_be, int is_compressed) {
-  int16_t num_of_metrics;
+  int16_t num_metrics;
 
   /* XXX Proportional font is not considered. */
 
   if (is_compressed) {
-    num_of_metrics = _TOINT16(p, is_be);
+    num_metrics = _TOINT16(p, is_be);
     p += 2;
 
     *width = p[2] - 0x80;
     *ascent = p[3] - 0x80;
     *height = *ascent + (p[4] - 0x80);
 
-    if (num_of_metrics > 0x3000) {
+    if (num_metrics > 0x3000) {
       /* U+3000: Unicode ideographic space (Full width) */
       p += (5 * 0x3000);
       *width_full = p[2] - 0x80;
@@ -283,11 +283,11 @@ static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, 
     }
 
 #ifdef __DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " COMPRESSED METRICS %d %d %d %d %d\n", num_of_metrics, *width,
+    bl_debug_printf(BL_DEBUG_TAG " COMPRESSED METRICS %d %d %d %d %d\n", num_metrics, *width,
                     *width_full, *height, *ascent);
 #endif
   } else {
-    num_of_metrics = _TOINT32(p, is_be);
+    num_metrics = _TOINT32(p, is_be);
     p += 4;
 
     /* skip {left|right}_sided_bearing */
@@ -301,7 +301,7 @@ static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, 
 
     *height = *ascent + _TOINT16(p, is_be);
 
-    if (num_of_metrics > 0x3000) {
+    if (num_metrics > 0x3000) {
       /* skip character_descent and character attributes */
       p += 4;
 
@@ -317,7 +317,7 @@ static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, 
     }
 
 #ifdef __DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " NOT COMPRESSED METRICS %d %d %d %d %d\n", num_of_metrics, *width,
+    bl_debug_printf(BL_DEBUG_TAG " NOT COMPRESSED METRICS %d %d %d %d %d\n", num_metrics, *width,
                     *width_full, *height, *ascent);
 #endif
   }
@@ -416,7 +416,7 @@ static int load_pcf(XFontStruct *xfont, const char *file_path) {
   struct stat st;
   u_char *pcf = NULL;
   u_char *p;
-  int32_t num_of_tables;
+  int32_t num_tables;
   int table_load_count;
   int32_t count;
 
@@ -451,14 +451,14 @@ static int load_pcf(XFontStruct *xfont, const char *file_path) {
 
   p += 4;
 
-  num_of_tables = _TOINT32(p, 0);
+  num_tables = _TOINT32(p, 0);
   p += 4;
 
-  if (st.st_size <= 8 + 16 * num_of_tables) {
+  if (st.st_size <= 8 + 16 * num_tables) {
     goto end;
   }
 
-  for (count = 0; count < num_of_tables; count++) {
+  for (count = 0; count < num_tables; count++) {
     int32_t type;
     int32_t format;
     int32_t size;
@@ -696,7 +696,7 @@ static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, in
 
   fontsize = (format & ~(FONT_BOLD | FONT_ITALIC | FONT_ROTATED));
 
-  for (count = 0; count < num_of_xfonts; count++) {
+  for (count = 0; count < num_xfonts; count++) {
     if (strcmp(xfonts[count]->file, file_path) == 0 &&
         /* The same face is used for normal, italic and bold. */
         (xfonts[count]->format & ~(FONT_BOLD | FONT_ITALIC | FONT_ROTATED)) == fontsize) {
@@ -727,10 +727,10 @@ face_found:
     goto error;
   }
 
-  xfont->num_of_indeces = INITIAL_GLYPH_INDEX_TABLE_SIZE;
+  xfont->num_indeces = INITIAL_GLYPH_INDEX_TABLE_SIZE;
 
   if (!(xfont->file = strdup(file_path)) ||
-      !(xfont->glyph_indeces = calloc(xfont->num_of_indeces, sizeof(u_int16_t))) ||
+      !(xfont->glyph_indeces = calloc(xfont->num_indeces, sizeof(u_int16_t))) ||
       !(xfont->glyphs = calloc(MAX_GLYPH_TABLES, sizeof(u_char*)))) {
     goto error;
   }
@@ -828,8 +828,8 @@ static void clear_glyph_cache_ft(XFontStruct *xfont) {
   }
 
   memset(xfont->glyphs, 0, MAX_GLYPH_TABLES * sizeof(u_char*));
-  xfont->num_of_glyphs = 0;
-  memset(xfont->glyph_indeces, 0, xfont->num_of_indeces * sizeof(u_int16_t));
+  xfont->num_glyphs = 0;
+  memset(xfont->glyph_indeces, 0, xfont->num_indeces * sizeof(u_int16_t));
 }
 
 static void unload_ft(XFontStruct *xfont) {
@@ -851,7 +851,7 @@ static void unload_ft(XFontStruct *xfont) {
   free(xfont->glyphs);
   free(xfont->glyph_indeces);
 
-  if (num_of_xfonts == 0 && library) {
+  if (num_xfonts == 0 && library) {
     FT_Done_FreeType(library);
     library = NULL;
   }
@@ -897,13 +897,13 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
   u_char **glyphs;
   u_char *glyph;
 
-  if (code >= xfont->num_of_indeces) {
+  if (code >= xfont->num_indeces) {
     if (!(indeces = realloc(xfont->glyph_indeces, sizeof(u_int16_t) * (code + 1)))) {
       return NULL;
     }
-    memset(indeces + xfont->num_of_indeces, 0,
-           sizeof(u_int16_t) * (code + 1 - xfont->num_of_indeces));
-    xfont->num_of_indeces = code + 1;
+    memset(indeces + xfont->num_indeces, 0,
+           sizeof(u_int16_t) * (code + 1 - xfont->num_indeces));
+    xfont->num_indeces = code + 1;
     xfont->glyph_indeces = indeces;
   } else {
     indeces = xfont->glyph_indeces;
@@ -921,7 +921,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
     int rows;
     int32_t format;
 
-    if (xfont->num_of_glyphs >= GLYPH_TABLE_SIZE * MAX_GLYPH_TABLES - 1) {
+    if (xfont->num_glyphs >= GLYPH_TABLE_SIZE * MAX_GLYPH_TABLES - 1) {
       bl_msg_printf("Unable to show U+%x because glyph cache is full.\n", code);
 
       return NULL;
@@ -956,13 +956,13 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
       return NULL;
     }
 
-    if (OFF(xfont->num_of_glyphs) == 0) {
-      if (!(glyphs[SEG(xfont->num_of_glyphs)] = calloc(GLYPH_TABLE_SIZE, xfont->glyph_size))) {
+    if (OFF(xfont->num_glyphs) == 0) {
+      if (!(glyphs[SEG(xfont->num_glyphs)] = calloc(GLYPH_TABLE_SIZE, xfont->glyph_size))) {
         return NULL;
       }
     }
 
-    idx = ++xfont->num_of_glyphs;
+    idx = ++xfont->num_glyphs;
 
 #if 0
     bl_debug_printf("%x %c w %d %d(%d) h %d(%d) at %d %d\n", code, code, face->glyph->bitmap.width,
@@ -1141,7 +1141,7 @@ static int use_fontconfig;
 static double dpi_for_fc;
 static FcPattern *compl_pattern;
 static char **fc_files;
-static u_int num_of_fc_files;
+static u_int num_fc_files;
 static FcCharSet **fc_charsets;
 
 static void compl_final(void) {
@@ -1152,7 +1152,7 @@ static void compl_final(void) {
     compl_pattern = NULL;
 
     if (fc_files) {
-      for (count = 0; count < num_of_fc_files; count++) {
+      for (count = 0; count < num_fc_files; count++) {
         free(fc_files[count]);
         FcCharSetDestroy(fc_charsets[count]);
       }
@@ -1168,7 +1168,7 @@ static void compl_xfonts_delete(XFontStruct **xfonts) {
   if (xfonts) {
     u_int count;
 
-    for (count = 0; count < num_of_fc_files; count++) {
+    for (count = 0; count < num_fc_files; count++) {
       if (xfonts[count]) {
         xfont_unref(xfonts[count]);
       }
@@ -1412,7 +1412,7 @@ static FcPattern *parse_font_name(const char *fontname, int *is_bold, int *is_it
     }
 
     if (compl_pattern == NULL) {
-      num_of_fc_files = strip_pattern((compl_pattern = pattern), match);
+      num_fc_files = strip_pattern((compl_pattern = pattern), match);
     } else {
       FcPatternDestroy(pattern);
     }
@@ -1461,19 +1461,19 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
   }
 
   if (!fc_files) {
-    if (!(fc_files = calloc(num_of_fc_files, sizeof(*fc_charsets) + sizeof(*fc_files)))) {
+    if (!(fc_files = calloc(num_fc_files, sizeof(*fc_charsets) + sizeof(*fc_files)))) {
       return NULL;
     }
 
-    fc_charsets = fc_files + num_of_fc_files;
+    fc_charsets = fc_files + num_fc_files;
   }
 
   if (!xfont->compl_xfonts &&
-      !(xfont->compl_xfonts = calloc(num_of_fc_files, sizeof(*xfont->compl_xfonts)))) {
+      !(xfont->compl_xfonts = calloc(num_fc_files, sizeof(*xfont->compl_xfonts)))) {
     return NULL;
   }
 
-  for (count = 0; count < num_of_fc_files;) {
+  for (count = 0; count < num_fc_files;) {
     if (!fc_files[count]) {
       FcResult result;
       FcPattern *match;
@@ -1482,7 +1482,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
       FcPatternRemove(compl_pattern, FC_FAMILY, 0);
 
       if (match) {
-        num_of_fc_files = count + 1 + strip_pattern(compl_pattern, match);
+        num_fc_files = count + 1 + strip_pattern(compl_pattern, match);
 
         if (FcPatternGetCharSet(match, FC_CHARSET, 0, &fc_charsets[count]) == FcResultMatch) {
           FcValue val;
@@ -1497,7 +1497,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
       }
 
       if (!fc_files[count]) {
-        num_of_fc_files --;
+        num_fc_files --;
         if (fc_charsets[count]) {
           FcCharSetDestroy(fc_charsets[count]);
         }
@@ -1563,7 +1563,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
 static XFontStruct *get_cached_xfont(const char *file, int32_t format) {
   u_int count;
 
-  for (count = 0; count < num_of_xfonts; count++) {
+  for (count = 0; count < num_xfonts; count++) {
     if (strcmp(xfonts[count]->file, file) == 0
 #ifdef USE_FREETYPE
         && (xfonts[count]->face == NULL || xfonts[count]->format == format)
@@ -1584,7 +1584,7 @@ static XFontStruct *get_cached_xfont(const char *file, int32_t format) {
 static int add_xfont_to_cache(XFontStruct *xfont) {
   void *p;
 
-  if (!(p = realloc(xfonts, sizeof(XFontStruct*) * (num_of_xfonts + 1)))) {
+  if (!(p = realloc(xfonts, sizeof(XFontStruct*) * (num_xfonts + 1)))) {
     unload_xfont(xfont);
     free(xfont);
 
@@ -1592,7 +1592,7 @@ static int add_xfont_to_cache(XFontStruct *xfont) {
   }
 
   xfonts = p;
-  xfonts[num_of_xfonts++] = xfont;
+  xfonts[num_xfonts++] = xfont;
   xfont->ref_count = 1;
 
   return 1;
@@ -1606,10 +1606,10 @@ static void xfont_unref(XFontStruct *xfont) {
     compl_xfonts_delete(xfont->compl_xfonts);
 #endif
 
-    for (count = 0; count < num_of_xfonts; count++) {
+    for (count = 0; count < num_xfonts; count++) {
       if (xfonts[count] == xfont) {
-        if (--num_of_xfonts > 0) {
-          xfonts[count] = xfonts[num_of_xfonts];
+        if (--num_xfonts > 0) {
+          xfonts[count] = xfonts[num_xfonts];
         } else {
           free(xfonts);
           xfonts = NULL;
@@ -1624,7 +1624,7 @@ static void xfont_unref(XFontStruct *xfont) {
 
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " %s font is unloaded. => CURRENT NUM OF XFONTS %d\n",
-                    xfont->file, num_of_xfonts);
+                    xfont->file, num_xfonts);
 #endif
 
     unload_xfont(xfont);
@@ -2105,7 +2105,7 @@ xfont_loaded:
 
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s font is loaded. => CURRENT NUM OF XFONTS %d\n",
-                  font->xfont->file, num_of_xfonts);
+                  font->xfont->file, num_xfonts);
 #endif
 
 #ifdef DEBUG

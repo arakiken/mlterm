@@ -157,7 +157,7 @@ static cs_table_t cs_table[] = {
 };
 
 static ui_font_config_t **font_configs;
-static u_int num_of_configs;
+static u_int num_configs;
 
 /*
  * These will be leaked unless change_custom_cache( ... , "") deletes them.
@@ -166,7 +166,7 @@ static u_int num_of_configs;
  * file.
  */
 static custom_cache_t *custom_cache;
-static u_int num_of_customs;
+static u_int num_customs;
 
 /* --- static functions --- */
 
@@ -386,7 +386,7 @@ static int parse_conf(ui_font_config_t *font_config, const char *key,
 static int apply_custom_cache(ui_font_config_t *font_config, const char *filename) {
   u_int count;
 
-  for (count = 0; count < num_of_customs; count++) {
+  for (count = 0; count < num_customs; count++) {
     if (filename == custom_cache[count].file) {
 #ifdef __DEBUG
       bl_debug_printf("Appling customization %s=%s\n", custom_cache[count].key,
@@ -523,7 +523,7 @@ static int change_custom_cache(const char *file, const char *key, const char *va
   void *p;
   u_int count;
 
-  for (count = 0; count < num_of_customs; count++) {
+  for (count = 0; count < num_customs; count++) {
     if (custom_cache[count].file == file && strcmp(custom_cache[count].key, key) == 0) {
       if (*value) {
         /* replace */
@@ -543,8 +543,8 @@ static int change_custom_cache(const char *file, const char *key, const char *va
 
         free(custom_cache[count].key);
         free(custom_cache[count].value);
-        custom_cache[count] = custom_cache[--num_of_customs];
-        if (num_of_customs == 0) {
+        custom_cache[count] = custom_cache[--num_customs];
+        if (num_customs == 0) {
           free(custom_cache);
           custom_cache = NULL;
 
@@ -565,23 +565,23 @@ static int change_custom_cache(const char *file, const char *key, const char *va
   }
 #endif
 
-  if ((p = realloc(custom_cache, sizeof(custom_cache_t) * (num_of_customs + 1))) == NULL) {
+  if ((p = realloc(custom_cache, sizeof(custom_cache_t) * (num_customs + 1))) == NULL) {
     return 0;
   }
 
   custom_cache = p;
 
-  if ((custom_cache[num_of_customs].key = strdup(key)) == NULL) {
+  if ((custom_cache[num_customs].key = strdup(key)) == NULL) {
     return 0;
   }
 
-  if ((custom_cache[num_of_customs].value = strdup(value)) == NULL) {
-    free(custom_cache[num_of_customs].key);
+  if ((custom_cache[num_customs].value = strdup(value)) == NULL) {
+    free(custom_cache[num_customs].key);
 
     return 0;
   }
 
-  custom_cache[num_of_customs++].file = file;
+  custom_cache[num_customs++].file = file;
 
 #ifdef __DEBUG
   bl_debug_printf("%s=%s is newly added to custom cache.\n", key, value);
@@ -630,7 +630,7 @@ static ui_font_config_t *find_font_config(ui_type_engine_t type_engine,
   if (font_configs) {
     u_int count;
 
-    for (count = 0; count < num_of_configs; count++) {
+    for (count = 0; count < num_configs; count++) {
       if (font_configs[count]->font_present == font_present &&
           font_configs[count]->type_engine == type_engine) {
         return font_configs[count];
@@ -648,7 +648,7 @@ static u_int match_font_configs(ui_font_config_t **matched_configs,
   u_int size;
 
   size = 0;
-  for (count = 0; count < num_of_configs; count++) {
+  for (count = 0; count < num_configs; count++) {
     if (
 #if !defined(USE_FREETYPE) || !defined(USE_FONTCONFIG)
         (is_xcore ? font_configs[count]->type_engine == TYPE_XCORE :
@@ -670,7 +670,7 @@ static ui_font_config_t *create_shared_font_config(ui_type_engine_t type_engine,
                                                    ui_font_present_t font_present) {
   u_int count;
 
-  for (count = 0; count < num_of_configs; count++) {
+  for (count = 0; count < num_configs; count++) {
     if ((type_engine == TYPE_XCORE ? font_configs[count]->type_engine == TYPE_XCORE :
                                    /* '>= XFT' means XFT or Cairo */
              font_configs[count]->type_engine >= TYPE_XFT) &&
@@ -701,7 +701,7 @@ static ui_font_config_t *create_shared_font_config(ui_type_engine_t type_engine,
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
 int ui_use_aafont(void) {
-  if (num_of_configs > 0 || use_aafont) {
+  if (num_configs > 0 || use_aafont) {
     return 0;
   }
 
@@ -727,7 +727,7 @@ ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,
     return font_config;
   }
 
-  if ((p = realloc(font_configs, sizeof(ui_font_config_t *) * (num_of_configs + 1))) == NULL) {
+  if ((p = realloc(font_configs, sizeof(ui_font_config_t *) * (num_configs + 1))) == NULL) {
     return NULL;
   }
 
@@ -742,7 +742,7 @@ ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,
 
   font_config->ref_count++;
 
-  return font_configs[num_of_configs++] = font_config;
+  return font_configs[num_configs++] = font_config;
 }
 
 void ui_release_font_config(ui_font_config_t *font_config) {
@@ -757,9 +757,9 @@ void ui_release_font_config(ui_font_config_t *font_config) {
   has_share = 0;
   found = 0;
   count = 0;
-  while (count < num_of_configs) {
+  while (count < num_configs) {
     if (font_configs[count] == font_config) {
-      font_configs[count] = font_configs[--num_of_configs];
+      font_configs[count] = font_configs[--num_configs];
       found = 1;
 
       continue;
@@ -784,7 +784,7 @@ void ui_release_font_config(ui_font_config_t *font_config) {
     return;
   }
 
-  if (has_share /* && num_of_configs > 0 */) {
+  if (has_share /* && num_configs > 0 */) {
 #ifdef __DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Sharable font_config exists.\n");
 #endif
@@ -796,7 +796,7 @@ void ui_release_font_config(ui_font_config_t *font_config) {
 
   ui_font_config_delete(font_config);
 
-  if (num_of_configs == 0) {
+  if (num_configs == 0) {
     free(font_configs);
     font_configs = NULL;
   }
@@ -852,7 +852,7 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
    * TYPE_XFT & FONT_VAR_WIDTH & FONT_AA , TYPE_XFT & FONT_VERTICAL & FONT_AA
    */
   ui_font_config_t *targets[6];
-  u_int num_of_targets;
+  u_int num_targets;
   u_int count;
 
   if (file == NULL ||
@@ -863,22 +863,22 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
 #endif
       ) {
     file = font_file;
-    num_of_targets = match_font_configs(targets, 6, /* is xcore */ 1, 0);
+    num_targets = match_font_configs(targets, 6, /* is xcore */ 1, 0);
   } else if (strcmp(file, aafont_file + 7) == 0) {
     file = aafont_file;
-    num_of_targets = match_font_configs(targets, 6, /* is not xcore */ 0, 0);
+    num_targets = match_font_configs(targets, 6, /* is not xcore */ 0, 0);
   } else if (strcmp(file, VFONT_FILE) == 0) {
     file = vfont_file;
-    num_of_targets = match_font_configs(targets, 6, /* is xcore */ 1, FONT_VAR_WIDTH);
+    num_targets = match_font_configs(targets, 6, /* is xcore */ 1, FONT_VAR_WIDTH);
   } else if (strcmp(file, TFONT_FILE) == 0) {
     file = tfont_file;
-    num_of_targets = match_font_configs(targets, 6, /* is xcore */ 1, FONT_VERTICAL);
+    num_targets = match_font_configs(targets, 6, /* is xcore */ 1, FONT_VERTICAL);
   } else if (strcmp(file, vaafont_file + 7) == 0) {
     file = vaafont_file;
-    num_of_targets = match_font_configs(targets, 6, /* is not xcore */ 0, FONT_VAR_WIDTH);
+    num_targets = match_font_configs(targets, 6, /* is not xcore */ 0, FONT_VAR_WIDTH);
   } else if (strcmp(file, taafont_file + 7) == 0) {
     file = taafont_file;
-    num_of_targets = match_font_configs(targets, 6, /* is not xcore */ 0, FONT_VERTICAL);
+    num_targets = match_font_configs(targets, 6, /* is not xcore */ 0, FONT_VERTICAL);
   } else {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " font file %s is not found.\n", file);
@@ -888,7 +888,7 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
   }
 
 #ifdef __DEBUG
-  if (num_of_targets) {
+  if (num_targets) {
     bl_debug_printf("customize font file %s %s %s\n", file, key, value);
   } else {
     bl_debug_printf("customize font file %s %s %s(not changed in run time)\n", file, key, value);
@@ -900,7 +900,7 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
 
     if (change_custom_cache(file, key, value)) {
       ret = 1;
-      for (count = 0; count < num_of_targets; count++) {
+      for (count = 0; count < num_targets; count++) {
         read_all_conf(targets[count], file);
       }
     } else {
@@ -917,7 +917,7 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
       return 0;
     }
 
-    for (count = 0; count < num_of_targets; count++) {
+    for (count = 0; count < num_targets; count++) {
       read_all_conf(targets[count], file);
     }
   }

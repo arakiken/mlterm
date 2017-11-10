@@ -183,7 +183,7 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
   im->cand_screen = NULL;
   im->stat_screen = NULL;
   im->preedit.chars = NULL;
-  im->preedit.num_of_chars = 0;
+  im->preedit.num_chars = 0;
   im->preedit.filled_len = 0;
   im->preedit.segment_offset = 0;
   im->preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -212,7 +212,7 @@ void ui_im_delete(ui_im_t *im) {
   }
 
   if (im->preedit.chars) {
-    vt_str_delete(im->preedit.chars, im->preedit.num_of_chars);
+    vt_str_delete(im->preedit.chars, im->preedit.num_chars);
   }
 
   handle = im->handle;

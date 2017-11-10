@@ -83,7 +83,7 @@ typedef struct ui_window {
   Window parent_window;     /* This member of root window is DefaultRootWindow */
   struct ui_window *parent; /* This member of root window is NULL */
   struct ui_window **children;
-  u_int num_of_children;
+  u_int num_children;
 
   u_int cursor_shape;
 

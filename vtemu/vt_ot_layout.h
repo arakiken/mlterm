@@ -17,7 +17,7 @@ typedef enum vt_ot_layout_attr {
 
 typedef struct vt_ot_layout_state {
   void *term;
-  u_int8_t *num_of_chars_array;
+  u_int8_t *num_chars_array;
   u_int16_t size;
 
   int8_t substituted;

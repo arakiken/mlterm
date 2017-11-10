@@ -22,7 +22,7 @@ typedef struct ui_main_config {
   u_int font_size;
   u_int tab_size;
   u_int screen_width_ratio;
-  u_int num_of_log_lines;
+  u_int num_log_lines;
   ui_mod_meta_mode_t mod_meta_mode;
   ui_bel_mode_t bel_mode;
   ui_sb_mode_t sb_mode;

@@ -274,7 +274,7 @@ static void notify_focus_in_to_children(ui_window_t *win) {
     }
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     notify_focus_in_to_children(win->children[count]);
   }
 }
@@ -294,7 +294,7 @@ static void notify_focus_out_to_children(ui_window_t *win) {
     }
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     notify_focus_out_to_children(win->children[count]);
   }
 }
@@ -321,7 +321,7 @@ static void notify_move_to_children(ui_window_t *win) {
     win->is_scrollable = win->parent->is_scrollable;
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     notify_move_to_children(win->children[count]);
   }
 }
@@ -337,7 +337,7 @@ static int is_descendant_window(ui_window_t *win, Window window) {
     return 1;
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (is_descendant_window(win->children[count], window)) {
       return 1;
     }
@@ -360,7 +360,7 @@ static u_int total_min_width(ui_window_t *win) {
 
   min_width = win->min_width + win->hmargin * 2;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       /* XXX */
       min_width += total_min_width(win->children[count]);
@@ -376,7 +376,7 @@ static u_int total_min_height(ui_window_t *win) {
 
   min_height = win->min_height + win->vmargin * 2;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       /* XXX */
       min_height += total_min_height(win->children[count]);
@@ -392,7 +392,7 @@ static u_int total_width_inc(ui_window_t *win) {
 
   width_inc = win->width_inc;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       u_int sub_inc;
 
@@ -415,7 +415,7 @@ static u_int total_height_inc(ui_window_t *win) {
 
   height_inc = win->height_inc;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       u_int sub_inc;
 
@@ -765,7 +765,7 @@ static void reset_input_focus(ui_window_t *win) {
     win->inputtable = 0;
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     reset_input_focus(win->children[count]);
   }
 }
@@ -822,7 +822,7 @@ void ui_window_final(ui_window_t *win) {
   ui_window_dump_children(win);
 #endif
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_final(win->children[count]);
   }
 
@@ -870,7 +870,7 @@ int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
     InvalidateRect(win->my_window, NULL, FALSE);
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_set_wall_picture(win->children[count], ParentRelative, do_expose);
   }
 
@@ -887,7 +887,7 @@ int ui_window_unset_wall_picture(ui_window_t *win, int do_expose) {
     InvalidateRect(win->my_window, NULL, FALSE);
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_unset_wall_picture(win->children[count], do_expose);
   }
 
@@ -942,7 +942,7 @@ int ui_window_set_bg_color(ui_window_t *win, ui_color_t *bg_color) {
 int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int map) {
   void *p;
 
-  if ((p = realloc(win->children, sizeof(*win->children) * (win->num_of_children + 1))) == NULL) {
+  if ((p = realloc(win->children, sizeof(*win->children) * (win->num_children + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -960,7 +960,7 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
     child->inputtable = -1;
   }
 
-  win->children[win->num_of_children++] = child;
+  win->children[win->num_children++] = child;
 
   return 1;
 }
@@ -968,10 +968,10 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
 int ui_window_remove_child(ui_window_t *win, ui_window_t *child) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count] == child) {
       child->parent = NULL;
-      win->children[count] = win->children[--win->num_of_children];
+      win->children[count] = win->children[--win->num_children];
 
       return 1;
     }
@@ -1091,7 +1091,7 @@ int ui_window_show(ui_window_t *win,
    * showing child windows.
    */
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_show(win->children[count], 0);
   }
 
@@ -1435,7 +1435,7 @@ void ui_window_update_all(ui_window_t *win) {
 
   InvalidateRect(win->my_window, NULL, FALSE);
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_update_all(win->children[count]);
   }
 }
@@ -1443,7 +1443,7 @@ void ui_window_update_all(ui_window_t *win) {
 void ui_window_idling(ui_window_t *win) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_idling(win->children[count]);
   }
 
@@ -1468,7 +1468,7 @@ void ui_window_idling(ui_window_t *win) {
 int ui_window_receive_event(ui_window_t *win, XEvent *event) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     int val;
     if ((val = ui_window_receive_event(win->children[count], event)) != 0) {
       return val;
@@ -1870,7 +1870,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       }
 
       /* XXX grandchild windows aren't regarded for now. */
-      for (count = 0; count < win->num_of_children; count++) {
+      for (count = 0; count < win->num_children; count++) {
         if (bev.x <= win->children[count]->x && bev.y <= win->children[count]->y &&
             win->children[count]->x + ACTUAL_WIDTH(win->children[count]) <= bev.x + 1 &&
             win->children[count]->y + ACTUAL_HEIGHT(win->children[count]) <= bev.y + 1) {
@@ -2668,12 +2668,12 @@ void ui_window_dump_children(ui_window_t *win) {
   u_int count;
 
   bl_msg_printf("%p(%li) => ", win, win->my_window);
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     bl_msg_printf("%p(%li) ", win->children[count], win->children[count]->my_window);
   }
   bl_msg_printf("\n");
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_dump_children(win->children[count]);
   }
 }

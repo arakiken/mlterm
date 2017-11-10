@@ -103,7 +103,7 @@ typedef struct aux_module {
 
   bl_dl_handle_t handle;
 
-  int num_of_entries;
+  int num_entries;
   aux_entry_t *entries;
 
   struct aux_module *next;
@@ -242,7 +242,7 @@ static aux_module_t *load_module(char *file_name) {
   aux_module_t *module = NULL;
   aux_info_t *aux_info;
   aux_dir_t *aux_dir;
-  int num_of_aux_dir;
+  int num_aux_dir;
   unsigned int ifversion;
   bl_dl_handle_t dl_handle = NULL;
   aux_dir_t *dir;
@@ -312,9 +312,9 @@ static aux_module_t *load_module(char *file_name) {
   }
 
   /* count available aux_dir_t in the module */
-  for (num_of_aux_dir = 0, dir = aux_dir;
+  for (num_aux_dir = 0, dir = aux_dir;
        dir->name.len > 0;
-       dir ++, num_of_aux_dir ++);
+       dir ++, num_aux_dir ++);
 
   if (!(module = malloc(sizeof(aux_module_t)))) {
 #ifdef DEBUG
@@ -326,21 +326,21 @@ static aux_module_t *load_module(char *file_name) {
   module->file_name = strdup(file_name);
   module->handle = dl_handle;
   module->entries = NULL;
-  module->num_of_entries = 0;
+  module->num_entries = 0;
 
   module->next = NULL;
 
-  if (!(module->entries = calloc(num_of_aux_dir, sizeof(aux_entry_t)))) {
+  if (!(module->entries = calloc(num_aux_dir, sizeof(aux_entry_t)))) {
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " calloc failed. (%d, %d)\n", num_of_aux_dir, sizeof(aux_entry_t));
+    bl_debug_printf(BL_DEBUG_TAG " calloc failed. (%d, %d)\n", num_aux_dir, sizeof(aux_entry_t));
 #endif
     goto error;
   }
 
-  module->num_of_entries = num_of_aux_dir;
+  module->num_entries = num_aux_dir;
 
   for (i = 0, entry = module->entries, dir = aux_dir;
-      i < num_of_aux_dir;
+      i < num_aux_dir;
       i ++, entry ++, dir ++) {
     entry->created = 0;
     memcpy(&entry->dir, dir, sizeof(aux_dir_t));
@@ -374,7 +374,7 @@ static void unload_module(aux_module_t *module) {
     bl_dl_close(module->handle);
   }
 
-  if (module->num_of_entries) {
+  if (module->num_entries) {
     free(module->entries);
   }
 
@@ -427,7 +427,7 @@ static aux_im_data_t *create_im_data(IIIMCF_context context, const IIIMP_card16 
   int i;
 
   for (module = module_list; module; module = module->next) {
-    for (i = 0, e = module->entries; i < module->num_of_entries; i ++, e ++) {
+    for (i = 0, e = module->entries; i < module->num_entries; i ++, e ++) {
       if (memcmp(aux_name_utf16, e->dir.name.utf16str, e->dir.name.len) == 0) {
         entry = e;
       }
@@ -446,7 +446,7 @@ static aux_im_data_t *create_im_data(IIIMCF_context context, const IIIMP_card16 
     module->next = module_list;
     module_list = module;
 
-    for (i = 0, e = module->entries; i < module->num_of_entries; i ++, e ++) {
+    for (i = 0, e = module->entries; i < module->num_entries; i ++, e ++) {
       if (memcmp(aux_name_utf16, e->dir.name.utf16str, e->dir.name.len) == 0) {
         entry = e;
       }
@@ -508,7 +508,7 @@ static void register_atok12_module(void) {
     return;
   }
 
-  for (i = 0, e = module->entries; i < module->num_of_entries; i ++, e ++) {
+  for (i = 0, e = module->entries; i < module->num_entries; i ++, e ++) {
     u_char *str = NULL;
 
     PARSER_INIT_WITH_BOM(parser_utf16);
@@ -536,8 +536,8 @@ static aux_composed_t *create_composed_from_event(aux_t *aux, IIIMCF_event event
   IIIMP_card32  class_index;
   const IIIMP_card32 *int_array;
   const IIIMP_card16 **str_array;
-  int num_of_int;
-  int num_of_str;
+  int num_int;
+  int num_str;
   aux_data_t *data;
 
   int i;
@@ -550,8 +550,8 @@ static aux_composed_t *create_composed_from_event(aux_t *aux, IIIMCF_event event
   int string_n = 0;
   int *pstring_len;
 
-  if (iiimcf_get_aux_event_value(event, &aux_name, &class_index, &num_of_int, &int_array,
-                                 &num_of_str, &str_array) != IIIMF_STATUS_SUCCESS) {
+  if (iiimcf_get_aux_event_value(event, &aux_name, &class_index, &num_int, &int_array,
+                                 &num_str, &str_array) != IIIMF_STATUS_SUCCESS) {
     return NULL;
   }
 
@@ -562,19 +562,19 @@ static aux_composed_t *create_composed_from_event(aux_t *aux, IIIMCF_event event
   aux_name_n = n = ROUNDUP(n);
   aux_name_len = strlen_utf16(aux_name) / 2 ;
   n += (aux_name_len + 1) * sizeof(IIIMP_card16);
-  if (num_of_int > 0) {
+  if (num_int > 0) {
     integer_list_n = n = ROUNDUP(n);
-    n += num_of_int * sizeof(int);
+    n += num_int * sizeof(int);
   }
   pstring_len = NULL;
-  if (num_of_str > 0) {
-    if (!(pstring_len = calloc(num_of_str, sizeof(int)))) {
+  if (num_str > 0) {
+    if (!(pstring_len = calloc(num_str, sizeof(int)))) {
       return NULL;
     }
     string_list_n = n = ROUNDUP(n);
-    n += num_of_str * sizeof(aux_string_t);
+    n += num_str * sizeof(aux_string_t);
     string_n = n = ROUNDUP(n);
-    for (i = 0; i < num_of_str; i ++ ) {
+    for (i = 0; i < num_str; i ++ ) {
       pstring_len[i] = strlen_utf16(str_array[i]) / 2 ;
       n += (pstring_len[i] + 1) * sizeof(IIIMP_card16);
     }
@@ -603,21 +603,21 @@ static aux_composed_t *create_composed_from_event(aux_t *aux, IIIMCF_event event
   memcpy(data->aux_name, aux_name, (aux_name_len + 1) * sizeof(IIIMP_card16));
   data->aux_name_length = aux_name_len * sizeof(IIIMP_card16);
 
-  data->integer_count = num_of_int;
-  if (num_of_int > 0) {
+  data->integer_count = num_int;
+  if (num_int > 0) {
     data->integer_list = (int*)(p + integer_list_n);
-    for (i = 0; i < num_of_int; i ++) {
+    for (i = 0; i < num_int; i ++) {
       data->integer_list[i] = int_array[i];
     }
   }
-  data->string_count = num_of_str;
+  data->string_count = num_str;
   data->string_ptr = p;
-  if (num_of_str > 0) {
+  if (num_str > 0) {
     aux_string_t *pas;
 
     data->string_list = pas = (aux_string_t*)(p + string_list_n);
     p += string_n;
-    for (i = 0; i < num_of_str; i ++, pas ++) {
+    for (i = 0; i < num_str; i ++, pas ++) {
       pas->len = pstring_len[i] * sizeof(IIIMP_card16);
       pas->ptr = p;
       n = (pstring_len[i] + 1) * sizeof(IIIMP_card16);
@@ -1290,8 +1290,8 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
   const IIIMCF_object_descriptor *objdesc_list;
   const IIIMCF_object_descriptor **bin_objdesc_list = NULL;
   IIIMCF_downloaded_object * objs = NULL;
-  int num_of_objs;
-  int num_of_bin_objs;
+  int num_objs;
+  int num_bin_objs;
   int i;
 
   if (initialized) {
@@ -1312,7 +1312,7 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
 
   initialized = 1;
 
-  if (iiimcf_get_object_descriptor_list(handle, &num_of_objs,
+  if (iiimcf_get_object_descriptor_list(handle, &num_objs,
                                         &objdesc_list) != IIIMF_STATUS_SUCCESS) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " iiimcf_get_object_descriptor_list failed.\n");
@@ -1320,8 +1320,8 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
     return;
   }
 
-  bin_objdesc_list = alloca(sizeof(IIIMCF_object_descriptor*) * num_of_objs);
-  objs = alloca(sizeof(IIIMCF_downloaded_object) * num_of_objs);
+  bin_objdesc_list = alloca(sizeof(IIIMCF_object_descriptor*) * num_objs);
+  objs = alloca(sizeof(IIIMCF_downloaded_object) * num_objs);
 
   if (!bin_objdesc_list || !objs) {
 #ifdef DEBUG
@@ -1330,14 +1330,14 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
     return;
   }
 
-  for (i = 0, num_of_bin_objs = 0; i < num_of_objs; i ++) {
+  for (i = 0, num_bin_objs = 0; i < num_objs; i ++) {
     if (objdesc_list[i].predefined_id == IIIMP_IMATTRIBUTE_BINARY_GUI_OBJECT) {
-      bin_objdesc_list[num_of_bin_objs] = &objdesc_list[i];
-      num_of_bin_objs ++;
+      bin_objdesc_list[num_bin_objs] = &objdesc_list[i];
+      num_bin_objs ++;
     }
   }
 
-  if (iiimcf_get_downloaded_objects(handle, num_of_bin_objs, bin_objdesc_list,
+  if (iiimcf_get_downloaded_objects(handle, num_bin_objs, bin_objdesc_list,
                                     objs) != IIIMF_STATUS_SUCCESS) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG "iiimcf_get_downloaded_objects failed\n");
@@ -1348,7 +1348,7 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
     return;
   }
 
-  for (i = 0; i < num_of_bin_objs; i ++) {
+  for (i = 0; i < num_bin_objs; i ++) {
     const IIIMP_card16 *obj_name;
     u_char *file_name = NULL;
 
@@ -1411,7 +1411,7 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
         aux_entry_t *entry;
         int j;
 
-        for (j = 0, entry = module->entries; j < module->num_of_entries; j ++, entry ++) {
+        for (j = 0, entry = module->entries; j < module->num_entries; j ++, entry ++) {
           u_char *aux_name = NULL;
 
           PARSER_INIT_WITH_BOM(parser_utf16);

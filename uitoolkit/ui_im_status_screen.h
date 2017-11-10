@@ -17,7 +17,7 @@ typedef struct ui_im_status_screen {
   void *vtparser;                /* is the same as attached screen */
 
   vt_char_t *chars;
-  u_int num_of_chars; /* == array size */
+  u_int num_chars; /* == array size */
   u_int filled_len;
 
   int x;             /* not adjusted by window size */

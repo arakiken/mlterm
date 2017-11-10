@@ -220,7 +220,7 @@ u_int vt_iscii_shape(ef_charset_t cs, u_char *dst, size_t dst_size, u_char *src)
 vt_iscii_state_t vt_iscii_new(void) { return calloc(1, sizeof(struct vt_iscii_state)); }
 
 int vt_iscii_delete(vt_iscii_state_t state) {
-  free(state->num_of_chars_array);
+  free(state->num_chars_array);
   free(state);
 
   return 1;
@@ -231,7 +231,7 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len) {
   int src_pos;
   u_char *iscii_buf;
   u_char *font_buf;
-  u_int8_t *num_of_chars_array;
+  u_int8_t *num_chars_array;
   u_int font_buf_len;
   u_int prev_font_filled;
   u_int iscii_filled;
@@ -248,7 +248,7 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len) {
     return 0;
   }
 
-  if ((num_of_chars_array = alloca(font_buf_len * sizeof(u_int8_t))) == NULL) {
+  if ((num_chars_array = alloca(font_buf_len * sizeof(u_int8_t))) == NULL) {
     return 0;
   }
 
@@ -288,19 +288,19 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len) {
         dst_pos -= count;
 
         for (; count > 0; count--) {
-          num_of_chars_array[dst_pos] += num_of_chars_array[dst_pos + count];
+          num_chars_array[dst_pos] += num_chars_array[dst_pos + count];
         }
 
         prev_font_filled = font_filled; /* goto to the next if block */
       }
 
       if (dst_pos >= 0 && font_filled == prev_font_filled) {
-        num_of_chars_array[dst_pos]++;
+        num_chars_array[dst_pos]++;
       } else {
-        num_of_chars_array[++dst_pos] = 1;
+        num_chars_array[++dst_pos] = 1;
 
         for (count = font_filled - prev_font_filled; count > 1; count--) {
-          num_of_chars_array[++dst_pos] = 0;
+          num_chars_array[++dst_pos] = 0;
         }
       }
 
@@ -312,30 +312,30 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len) {
         has_ucs = 1;
       }
 
-      num_of_chars_array[++dst_pos] = 1;
+      num_chars_array[++dst_pos] = 1;
     }
   }
 
   if (state->size != dst_pos + 1) {
     void *p;
 
-    if (!(p = realloc(state->num_of_chars_array,
-                      K_MAX(dst_pos + 1, src_len) * sizeof(*num_of_chars_array)))) {
+    if (!(p = realloc(state->num_chars_array,
+                      K_MAX(dst_pos + 1, src_len) * sizeof(*num_chars_array)))) {
       return 0;
     }
 
 #ifdef __DEBUG
-    if (p != state->num_of_chars_array) {
+    if (p != state->num_chars_array) {
       bl_debug_printf(BL_DEBUG_TAG " REALLOC array %d(%p) -> %d(%p)\n", state->size,
-                      state->num_of_chars_array, dst_pos + 1, p);
+                      state->num_chars_array, dst_pos + 1, p);
     }
 #endif
 
-    state->num_of_chars_array = p;
+    state->num_chars_array = p;
     state->size = dst_pos + 1;
   }
 
-  memcpy(state->num_of_chars_array, num_of_chars_array, state->size * sizeof(*num_of_chars_array));
+  memcpy(state->num_chars_array, num_chars_array, state->size * sizeof(*num_chars_array));
 
   return (!state->has_iscii && has_ucs) ? -1 : 1;
 }
@@ -348,15 +348,15 @@ int vt_iscii_copy(vt_iscii_state_t dst, vt_iscii_state_t src, int optimize) {
 
     return -1;
   } else if (src->size == 0) {
-    free(dst->num_of_chars_array);
+    free(dst->num_chars_array);
     p = NULL;
-  } else if ((p = realloc(dst->num_of_chars_array, sizeof(u_int8_t) * src->size))) {
-    memcpy(p, src->num_of_chars_array, sizeof(u_int8_t) * src->size);
+  } else if ((p = realloc(dst->num_chars_array, sizeof(u_int8_t) * src->size))) {
+    memcpy(p, src->num_chars_array, sizeof(u_int8_t) * src->size);
   } else {
     return 0;
   }
 
-  dst->num_of_chars_array = p;
+  dst->num_chars_array = p;
   dst->size = src->size;
   dst->has_iscii = src->has_iscii;
 

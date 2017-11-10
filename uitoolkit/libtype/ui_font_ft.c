@@ -698,7 +698,7 @@ static void delete_charset_chache(void) {
 }
 #endif
 
-static int cairo_compl_font_open(ui_font_t *font, int num_of_compl_fonts, FcPattern *orig_pattern,
+static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern *orig_pattern,
                                  int ch) {
   FcValue val;
   cairo_t *cairo;
@@ -766,7 +766,7 @@ static int cairo_compl_font_open(ui_font_t *font, int num_of_compl_fonts, FcPatt
       }
     }
 
-    if ((p = realloc(font->compl_fonts, sizeof(*font->compl_fonts) * (num_of_compl_fonts + 1)))) {
+    if ((p = realloc(font->compl_fonts, sizeof(*font->compl_fonts) * (num_compl_fonts + 1)))) {
       font->compl_fonts = p;
     } else {
       break;
@@ -799,9 +799,9 @@ static int cairo_compl_font_open(ui_font_t *font, int num_of_compl_fonts, FcPatt
       break;
     }
 
-    font->compl_fonts[num_of_compl_fonts - 1].next = xfont;
-    font->compl_fonts[num_of_compl_fonts].charset = charset;
-    font->compl_fonts[num_of_compl_fonts].next = NULL;
+    font->compl_fonts[num_compl_fonts - 1].next = xfont;
+    font->compl_fonts[num_compl_fonts].charset = charset;
+    font->compl_fonts[num_compl_fonts].next = NULL;
 
     ret = 1;
 

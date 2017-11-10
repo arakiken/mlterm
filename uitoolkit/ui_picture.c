@@ -50,12 +50,12 @@ typedef struct inline_pic_args {
 /* --- static varaibles --- */
 
 static ui_picture_t **pics;
-static u_int num_of_pics;
+static u_int num_pics;
 static ui_icon_picture_t **icon_pics;
-static u_int num_of_icon_pics;
+static u_int num_icon_pics;
 static ui_inline_picture_t *inline_pics;
-static u_int num_of_inline_pics;
-static u_int num_of_anims;
+static u_int num_inline_pics;
+static u_int num_anims;
 static int need_cleanup;
 
 /* --- static functions --- */
@@ -300,7 +300,7 @@ static int delete_inline_picture(ui_inline_picture_t *pic /* pic->pixmap mustn't
    * even if load_file() fails.
    */
   if (pic->next_frame >= 0) {
-    num_of_anims--;
+    num_anims--;
   }
 
   return 1;
@@ -309,10 +309,10 @@ static int delete_inline_picture(ui_inline_picture_t *pic /* pic->pixmap mustn't
 static void pty_closed(vt_term_t *term) {
   u_int count;
 
-  for (count = 0; count < num_of_inline_pics; count++) {
+  for (count = 0; count < num_inline_pics; count++) {
     if (inline_pics[count].term == term && inline_pics[count].pixmap) {
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " delete inline picture %d (%d)\n", count, num_of_inline_pics);
+      bl_debug_printf(BL_DEBUG_TAG " delete inline picture %d (%d)\n", count, num_inline_pics);
 #endif
 
       delete_inline_picture(inline_pics + count);
@@ -329,7 +329,7 @@ static void check_inline_pictures(vt_term_t *term, u_int8_t *flags, int beg, int
 
   for (row = beg; row <= end; row++) {
     if ((line = vt_term_get_line(term, row))) {
-      for (count = 0; count < line->num_of_filled_chars; count++) {
+      for (count = 0; count < line->num_filled_chars; count++) {
         vt_char_t *ch;
 
         if ((ch = vt_get_picture_char(line->chars + count))) {
@@ -354,11 +354,11 @@ static int cleanup_inline_pictures(vt_term_t *term) {
 
   /*
    * Don't cleanup unused inline pictures until the number of cached inline
-   * pictures is THRESHOLD or more(num_of_inline_pics >= THRESHOLD and
+   * pictures is THRESHOLD or more(num_inline_pics >= THRESHOLD and
    * need_cleanup is true).
    */
-  if (num_of_inline_pics < THRESHOLD || !(flags = alloca(num_of_inline_pics))) {
-    if (num_of_inline_pics == 0) {
+  if (num_inline_pics < THRESHOLD || !(flags = alloca(num_inline_pics))) {
+    if (num_inline_pics == 0) {
       /* XXX */
       vt_term_pty_closed_event = pty_closed;
     }
@@ -367,19 +367,19 @@ static int cleanup_inline_pictures(vt_term_t *term) {
   }
 
   if (!need_cleanup) {
-    memset(flags, 1, num_of_inline_pics);
+    memset(flags, 1, num_inline_pics);
   } else {
     int beg;
     int end;
     vt_edit_t *orig_edit;
 
-    memset(flags, 0, num_of_inline_pics);
+    memset(flags, 0, num_inline_pics);
 
     /*
      * Inline pictures in back logs except recent MAX_INLINE_PICTURES*2 lines
      * are deleted in line_scrolled_out() in ui_screen.c.
      */
-    if ((beg = -vt_term_get_num_of_logged_lines(term)) < INLINEPIC_AVAIL_ROW) {
+    if ((beg = -vt_term_get_num_logged_lines(term)) < INLINEPIC_AVAIL_ROW) {
       beg = INLINEPIC_AVAIL_ROW;
     }
     end = vt_term_get_rows(term);
@@ -407,34 +407,34 @@ static int cleanup_inline_pictures(vt_term_t *term) {
 
   empty_idx = -1;
 
-  for (count = num_of_inline_pics - 1; count >= 0; count--) {
+  for (count = num_inline_pics - 1; count >= 0; count--) {
     if (inline_pics[count].pixmap == None) {
       /* do nothing */
     } else if (!flags[count] && inline_pics[count].term == term) {
       /*
        * Don't cleanup inline pictures refered twice or more times
-       * until num_of_inline_pics reaches THRESHOLD or more.
+       * until num_inline_pics reaches THRESHOLD or more.
        */
-      if (inline_pics[count].weighting >= 2 && num_of_inline_pics < THRESHOLD + 8) {
+      if (inline_pics[count].weighting >= 2 && num_inline_pics < THRESHOLD + 8) {
         inline_pics[count].weighting /= 2;
 
         continue;
       } else {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " delete inline picture %s %d (%d) \n",
-                        inline_pics[count].file_path, count, num_of_inline_pics);
+                        inline_pics[count].file_path, count, num_inline_pics);
 #endif
 
         if (!delete_inline_picture(inline_pics + count)) {
           continue;
         }
 
-        if (count == num_of_inline_pics - 1) {
-          num_of_inline_pics--;
+        if (count == num_inline_pics - 1) {
+          num_inline_pics--;
 
           /*
            * Don't return count because it is out
-           * of num_of_inline_pics.
+           * of num_inline_pics.
            */
           continue;
         }
@@ -454,7 +454,7 @@ static int cleanup_inline_pictures(vt_term_t *term) {
     }
   }
 
-  if (empty_idx == -1 && num_of_inline_pics >= THRESHOLD) {
+  if (empty_idx == -1 && num_inline_pics >= THRESHOLD) {
     /*
      * There is no empty entry. (The number of cached inline pictures
      * is THRESHOLD or more.)
@@ -548,13 +548,13 @@ static int ensure_inline_picture(ui_display_t *disp, const char *file_path,
     void *p;
 
     /* XXX pthread_mutex_lock( &mutex) is necessary. */
-    if (num_of_inline_pics >= MAX_INLINE_PICTURES ||
-        !(p = realloc(inline_pics, (num_of_inline_pics + 1) * sizeof(*inline_pics)))) {
+    if (num_inline_pics >= MAX_INLINE_PICTURES ||
+        !(p = realloc(inline_pics, (num_inline_pics + 1) * sizeof(*inline_pics)))) {
       return -1;
     }
 
     inline_pics = p;
-    idx = num_of_inline_pics++;
+    idx = num_inline_pics++;
   }
 
   inline_pics[idx].pixmap = None; /* mark as empty */
@@ -600,15 +600,15 @@ void ui_picture_display_opened(Display *display) {
 void ui_picture_display_closed(Display *display) {
   int count;
 
-  if (num_of_icon_pics > 0) {
-    for (count = num_of_icon_pics - 1; count >= 0; count--) {
+  if (num_icon_pics > 0) {
+    for (count = num_icon_pics - 1; count >= 0; count--) {
       if (icon_pics[count]->disp->display == display) {
         delete_icon_picture(icon_pics[count]);
-        icon_pics[count] = icon_pics[--num_of_icon_pics];
+        icon_pics[count] = icon_pics[--num_icon_pics];
       }
     }
 
-    if (num_of_icon_pics == 0) {
+    if (num_icon_pics == 0) {
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " All cached icons were free'ed\n");
 #endif
@@ -618,7 +618,7 @@ void ui_picture_display_closed(Display *display) {
     }
   }
 
-  for (count = 0; count < num_of_inline_pics; count++) {
+  for (count = 0; count < num_inline_pics; count++) {
     if (inline_pics[count].disp && inline_pics[count].disp->display == display) {
       if (PIXMAP_IS_ACTIVE(inline_pics[count])) {
         ui_delete_image(display, inline_pics[count].pixmap);
@@ -685,7 +685,7 @@ ui_picture_t *ui_acquire_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod
   {
     u_int count;
 
-    for (count = 0; count < num_of_pics; count++) {
+    for (count = 0; count < num_pics; count++) {
       if (strcmp(file_path, pics[count]->file_path) == 0 &&
           win->disp->display == pics[count]->display &&
           ui_picture_modifiers_equal(mod, pics[count]->mod) &&
@@ -700,14 +700,14 @@ ui_picture_t *ui_acquire_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod
     }
   }
 
-  if ((p = realloc(pics, (num_of_pics + 1) * sizeof(*pics))) == NULL) {
+  if ((p = realloc(pics, (num_pics + 1) * sizeof(*pics))) == NULL) {
     return NULL;
   }
 
   pics = p;
 
-  if (!(pics[num_of_pics] = create_bg_picture(win, mod, file_path))) {
-    if (num_of_pics == 0 /* pics == NULL */) {
+  if (!(pics[num_pics] = create_bg_picture(win, mod, file_path))) {
+    if (num_pics == 0 /* pics == NULL */) {
       free(pics);
       pics = NULL;
     }
@@ -715,18 +715,18 @@ ui_picture_t *ui_acquire_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod
     return NULL;
   }
 
-  return pics[num_of_pics++];
+  return pics[num_pics++];
 }
 
 void ui_release_picture(ui_picture_t *pic) {
   u_int count;
 
-  for (count = 0; count < num_of_pics; count++) {
+  for (count = 0; count < num_pics; count++) {
     if (pic == pics[count]) {
       if (--(pic->ref_count) == 0) {
         delete_picture(pic);
 
-        if (--num_of_pics == 0) {
+        if (--num_pics == 0) {
 #ifdef DEBUG
           bl_debug_printf(BL_DEBUG_TAG " All cached bg pictures were free'ed\n");
 #endif
@@ -734,7 +734,7 @@ void ui_release_picture(ui_picture_t *pic) {
           free(pics);
           pics = NULL;
         } else {
-          pics[count] = pics[num_of_pics];
+          pics[count] = pics[num_pics];
         }
       }
 
@@ -749,7 +749,7 @@ ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp,
   u_int count;
   ui_icon_picture_t **p;
 
-  for (count = 0; count < num_of_icon_pics; count++) {
+  for (count = 0; count < num_icon_pics; count++) {
     if (strcmp(file_path, icon_pics[count]->file_path) == 0 && disp == icon_pics[count]->disp) {
 #ifdef __DEBUG
       bl_debug_printf(BL_DEBUG_TAG " Use cached icon(%s).\n", file_path);
@@ -760,14 +760,14 @@ ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp,
     }
   }
 
-  if ((p = realloc(icon_pics, (num_of_icon_pics + 1) * sizeof(*icon_pics))) == NULL) {
+  if ((p = realloc(icon_pics, (num_icon_pics + 1) * sizeof(*icon_pics))) == NULL) {
     return NULL;
   }
 
   icon_pics = p;
 
-  if ((icon_pics[num_of_icon_pics] = create_icon_picture(disp, file_path)) == NULL) {
-    if (num_of_icon_pics == 0 /* icon_pics == NULL */) {
+  if ((icon_pics[num_icon_pics] = create_icon_picture(disp, file_path)) == NULL) {
+    if (num_icon_pics == 0 /* icon_pics == NULL */) {
       free(icon_pics);
       icon_pics = NULL;
     }
@@ -775,18 +775,18 @@ ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp,
     return NULL;
   }
 
-  return icon_pics[num_of_icon_pics++];
+  return icon_pics[num_icon_pics++];
 }
 
 void ui_release_icon_picture(ui_icon_picture_t *pic) {
   u_int count;
 
-  for (count = 0; count < num_of_icon_pics; count++) {
+  for (count = 0; count < num_icon_pics; count++) {
     if (pic == icon_pics[count]) {
       if (--(pic->ref_count) == 0) {
         delete_icon_picture(pic);
 
-        if (--num_of_icon_pics == 0) {
+        if (--num_icon_pics == 0) {
 #ifdef DEBUG
           bl_debug_printf(BL_DEBUG_TAG " All cached icons were free'ed\n");
 #endif
@@ -794,7 +794,7 @@ void ui_release_icon_picture(ui_icon_picture_t *pic) {
           free(icon_pics);
           icon_pics = NULL;
         } else {
-          icon_pics[count] = icon_pics[num_of_icon_pics];
+          icon_pics[count] = icon_pics[num_icon_pics];
         }
       }
 
@@ -812,7 +812,7 @@ int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, /*
   /* XXX Don't reuse ~/.mlterm/[pty name].six, [pty name].rgs and anim-*.gif */
   if (!strstr(file_path, "mlterm/") || strstr(file_path, "mlterm/macro") ||
       strstr(file_path, "mlterm/emoji/")) {
-    for (idx = 0; idx < num_of_inline_pics; idx++) {
+    for (idx = 0; idx < num_inline_pics; idx++) {
       if (PIXMAP_IS_ACTIVE(inline_pics[idx]) && disp == inline_pics[idx].disp &&
           strcmp(file_path, inline_pics[idx].file_path) == 0 && term == inline_pics[idx].term &&
           /* XXX */ (*width == 0 || *width == inline_pics[idx].width) &&
@@ -982,7 +982,7 @@ end:
 }
 
 ui_inline_picture_t *ui_get_inline_picture(int idx) {
-  if (inline_pics && idx < num_of_inline_pics) {
+  if (inline_pics && idx < num_inline_pics) {
     return inline_pics + idx;
   } else {
     return NULL;
@@ -1001,11 +1001,11 @@ int ui_add_frame_to_animation(int prev_idx, int next_idx) {
       /* Don't add a picture which has been already added to an animation. */
       next_pic->next_frame < 0) {
     if (prev_pic->next_frame < 0) {
-      num_of_anims += 2;
+      num_anims += 2;
       prev_pic->next_frame = next_idx;
       next_pic->next_frame = prev_idx;
     } else {
-      num_of_anims++;
+      num_anims++;
       next_pic->next_frame = prev_pic->next_frame;
       prev_pic->next_frame = next_idx;
     }
@@ -1020,20 +1020,20 @@ int ui_animate_inline_pictures(vt_term_t *term) {
   int wait;
   int row;
   vt_line_t *line;
-  u_int num_of_rows;
+  u_int num_rows;
 
-  if (!num_of_anims) {
+  if (!num_anims) {
     return 0;
   }
 
   wait = 0;
 
-  num_of_rows = vt_term_get_rows(term);
-  for (row = 0; row < num_of_rows; row++) {
+  num_rows = vt_term_get_rows(term);
+  for (row = 0; row < num_rows; row++) {
     if ((line = vt_term_get_line_in_screen(term, row))) {
       int char_index;
 
-      for (char_index = 0; char_index < line->num_of_filled_chars; char_index++) {
+      for (char_index = 0; char_index < line->num_filled_chars; char_index++) {
         vt_char_t *ch;
 
         if ((ch = vt_get_picture_char(line->chars + char_index))) {

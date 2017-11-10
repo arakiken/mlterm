@@ -16,16 +16,16 @@
 
 #ifdef __DEBUG
 #define END_CHAR_INDEX(line)                                                              \
-  ((line)->num_of_filled_chars == 0 &&                                                    \
-           bl_debug_printf("END_CHAR_INDEX()" BL_DEBUG_TAG " num_of_filled_chars is 0.\n") \
+  ((line)->num_filled_chars == 0 &&                                                    \
+           bl_debug_printf("END_CHAR_INDEX()" BL_DEBUG_TAG " num_filled_chars is 0.\n") \
        ? 0                                                                                \
-       : (line)->num_of_filled_chars - 1)
+       : (line)->num_filled_chars - 1)
 #else
 #define END_CHAR_INDEX(line) \
-  ((line)->num_of_filled_chars == 0 ? 0 : (line)->num_of_filled_chars - 1)
+  ((line)->num_filled_chars == 0 ? 0 : (line)->num_filled_chars - 1)
 #endif
 
-#define IS_EMPTY(line) ((line)->num_of_filled_chars == 0)
+#define IS_EMPTY(line) ((line)->num_filled_chars == 0)
 
 #define vt_line_is_using_bidi(line) ((line)->ctl_info_type == VINFO_BIDI)
 #define vt_line_is_using_iscii(line) ((line)->ctl_info_type == VINFO_ISCII)
@@ -281,7 +281,7 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
     return 1;
   }
 
-  src_len = line->num_of_filled_chars;
+  src_len = line->num_filled_chars;
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
@@ -289,16 +289,16 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
   vt_str_copy(src, line->chars, src_len);
 
   dst_len = line->ctl_info.ot_layout->size;
-  if (line->num_of_chars < dst_len) {
+  if (line->num_chars < dst_len) {
     vt_char_t *chars;
 
     if ((chars = vt_str_new(dst_len))) {
       /* XXX => shrunk at vt_screen.c and vt_logical_visual_ctl.c */
-      vt_str_delete(line->chars, line->num_of_chars);
+      vt_str_delete(line->chars, line->num_chars);
       line->chars = chars;
-      line->num_of_chars = dst_len;
+      line->num_chars = dst_len;
     } else {
-      dst_len = line->num_of_chars;
+      dst_len = line->num_chars;
     }
   }
 
@@ -306,7 +306,7 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
 
   src_pos = 0;
   for (dst_pos = 0; dst_pos < dst_len; dst_pos++) {
-    if (line->ctl_info.ot_layout->num_of_chars_array[dst_pos] == 0) {
+    if (line->ctl_info.ot_layout->num_chars_array[dst_pos] == 0) {
       /*
        * (logical)ACD -> (visual)A0CD -> (shaped)abcd
        *          B              B
@@ -319,7 +319,7 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
 
       vt_char_copy(dst + dst_pos, src + (src_pos++));
 
-      for (count = 1; count < line->ctl_info.ot_layout->num_of_chars_array[dst_pos]; count++) {
+      for (count = 1; count < line->ctl_info.ot_layout->num_chars_array[dst_pos]; count++) {
         vt_char_t *comb;
         u_int num;
 
@@ -352,7 +352,7 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
 
   vt_str_final(src, src_len);
 
-  line->num_of_filled_chars = dst_pos;
+  line->num_filled_chars = dst_pos;
 
   return 1;
 }
@@ -372,7 +372,7 @@ static int vt_line_ot_layout_logical(vt_line_t *line) {
     return 1;
   }
 
-  src_len = line->num_of_filled_chars;
+  src_len = line->num_filled_chars;
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
@@ -384,7 +384,7 @@ static int vt_line_ot_layout_logical(vt_line_t *line) {
     vt_char_t *comb;
     u_int num;
 
-    if (line->ctl_info.ot_layout->num_of_chars_array[src_pos] == 0) {
+    if (line->ctl_info.ot_layout->num_chars_array[src_pos] == 0) {
       continue;
     }
 
@@ -392,7 +392,7 @@ static int vt_line_ot_layout_logical(vt_line_t *line) {
       vt_char_set_cs(src + src_pos, ISO10646_UCS4_1);
     }
 
-    if (line->ctl_info.ot_layout->num_of_chars_array[src_pos] == 1) {
+    if (line->ctl_info.ot_layout->num_chars_array[src_pos] == 1) {
       vt_char_copy(dst, src + src_pos);
     } else {
       vt_char_copy(dst, vt_get_base_char(src + src_pos));
@@ -417,7 +417,7 @@ static int vt_line_ot_layout_logical(vt_line_t *line) {
 
   vt_str_final(src, src_len);
 
-  line->num_of_filled_chars = dst - line->chars;
+  line->num_filled_chars = dst - line->chars;
 
   return 1;
 }
@@ -441,7 +441,7 @@ static int vt_line_ot_layout_convert_logical_char_index_to_visual(vt_line_t *lin
   for (visual_char_index = 0; visual_char_index < line->ctl_info.ot_layout->size;
        visual_char_index++) {
     if (logical_char_index == 0 ||
-        (logical_char_index -= line->ctl_info.ot_layout->num_of_chars_array[visual_char_index]) <
+        (logical_char_index -= line->ctl_info.ot_layout->num_chars_array[visual_char_index]) <
             0) {
       break;
     }
@@ -472,7 +472,7 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
   if (vt_line_is_real_modified(line)) {
     line->ctl_info.ot_layout->term = term;
 
-    if ((ret = vt_ot_layout(line->ctl_info.ot_layout, line->chars, line->num_of_filled_chars)) <=
+    if ((ret = vt_ot_layout(line->ctl_info.ot_layout, line->chars, line->num_filled_chars)) <=
         0) {
       return ret;
     }
@@ -491,7 +491,7 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
      * If this line contains glyph indeces, it should be redrawn to
      * the end of line.
      */
-    vt_line_set_modified(line, visual_mod_beg, line->num_of_chars);
+    vt_line_set_modified(line, visual_mod_beg, line->num_chars);
   } else {
     vt_line_set_modified(line, visual_mod_beg,
                          vt_line_ot_layout_convert_logical_char_index_to_visual(
@@ -506,13 +506,13 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
 static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
   u_int copy_len;
 
-  copy_len = K_MIN(src->num_of_filled_chars, dst->num_of_chars);
+  copy_len = K_MIN(src->num_filled_chars, dst->num_chars);
 
   vt_str_copy(dst->chars, src->chars, copy_len);
-  dst->num_of_filled_chars = copy_len;
+  dst->num_filled_chars = copy_len;
 
-  dst->change_beg_col = K_MIN(src->change_beg_col, dst->num_of_chars);
-  dst->change_end_col = K_MIN(src->change_end_col, dst->num_of_chars);
+  dst->change_beg_col = K_MIN(src->change_beg_col, dst->num_chars);
+  dst->change_end_col = K_MIN(src->change_end_col, dst->num_chars);
 
   dst->is_modified = src->is_modified;
   dst->is_continued_to_next = src->is_continued_to_next;
@@ -525,7 +525,7 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
        * Don't use vt_line_bidi_render() here,
        * or it is impossible to call this function in visual context.
        */
-      if (dst->num_of_chars < src->num_of_filled_chars) {
+      if (dst->num_chars < src->num_filled_chars) {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Not copy vt_bidi.\n");
 #endif
@@ -546,7 +546,7 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
        * Don't use vt_line_iscii_render() here,
        * or it is impossible to call this function in visual context.
        */
-      if (dst->num_of_chars < src->num_of_filled_chars) {
+      if (dst->num_chars < src->num_filled_chars) {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Not copy vt_iscii.\n");
 #endif
@@ -567,7 +567,7 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
        * Don't use vt_line_ot_layout_render() here,
        * or it is impossible to call this function in visual context.
        */
-      if (dst->num_of_chars < src->num_of_filled_chars) {
+      if (dst->num_chars < src->num_filled_chars) {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Not copy vt_ot_layout.\n");
 #endif
@@ -594,20 +594,20 @@ static void set_real_modified(vt_line_t *line, int beg_char_index, int end_char_
  * Functions which doesn't have to care about visual order.
  */
 
-int vt_line_init(vt_line_t *line, u_int num_of_chars) {
+int vt_line_init(vt_line_t *line, u_int num_chars) {
   memset(line, 0, sizeof(vt_line_t));
 
-  if ((line->chars = vt_str_new(num_of_chars)) == NULL) {
+  if ((line->chars = vt_str_new(num_chars)) == NULL) {
     return 0;
   }
 
-  line->num_of_chars = num_of_chars;
+  line->num_chars = num_chars;
 
   return 1;
 }
 
-int vt_line_clone(vt_line_t *clone, vt_line_t *orig, u_int num_of_chars) {
-  if (vt_line_init(clone, num_of_chars)) {
+int vt_line_clone(vt_line_t *clone, vt_line_t *orig, u_int num_chars) {
+  if (vt_line_init(clone, num_chars)) {
     copy_line(clone, orig, 1 /* clone->ctl_info can be uncopied. */);
 
     return 1;
@@ -629,7 +629,7 @@ void vt_line_final(vt_line_t *line) {
 #endif
 
   if (line->chars) {
-    vt_str_delete(line->chars, line->num_of_chars);
+    vt_str_delete(line->chars, line->num_chars);
   }
 }
 
@@ -639,15 +639,15 @@ void vt_line_final(vt_line_t *line) {
 u_int vt_line_break_boundary(vt_line_t *line, u_int size) {
   int count;
 
-  if (line->num_of_filled_chars + size > line->num_of_chars) {
+  if (line->num_filled_chars + size > line->num_chars) {
 /* over line length */
 
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " breaking from col %d by size %d failed.",
-                   line->num_of_filled_chars, size);
+                   line->num_filled_chars, size);
 #endif
 
-    size = line->num_of_chars - line->num_of_filled_chars;
+    size = line->num_chars - line->num_filled_chars;
 
 #ifdef DEBUG
     bl_msg_printf(" ... size modified -> %d\n", size);
@@ -661,7 +661,7 @@ u_int vt_line_break_boundary(vt_line_t *line, u_int size) {
   }
 
   /* padding spaces */
-  for (count = line->num_of_filled_chars; count < line->num_of_filled_chars + size; count++) {
+  for (count = line->num_filled_chars; count < line->num_filled_chars + size; count++) {
     vt_char_copy(line->chars + count, vt_sp_ch());
   }
 
@@ -675,16 +675,16 @@ u_int vt_line_break_boundary(vt_line_t *line, u_int size) {
   }
 #endif
 
-  line->num_of_filled_chars += size;
+  line->num_filled_chars += size;
 
   return size;
 }
 
 int vt_line_assure_boundary(vt_line_t *line, int char_index) {
-  if (char_index >= line->num_of_filled_chars) {
+  if (char_index >= line->num_filled_chars) {
     u_int brk_size;
 
-    brk_size = char_index - line->num_of_filled_chars + 1;
+    brk_size = char_index - line->num_filled_chars + 1;
 
     if (vt_line_break_boundary(line, brk_size) < brk_size) {
       return 0;
@@ -719,7 +719,7 @@ void vt_line_reset(vt_line_t *line) {
   set_real_modified(line, 0, END_CHAR_INDEX(line));
 #endif
 
-  line->num_of_filled_chars = 0;
+  line->num_filled_chars = 0;
 
   if (vt_line_is_using_bidi(line)) {
     vt_bidi_reset(line->ctl_info.bidi);
@@ -737,7 +737,7 @@ void vt_line_reset(vt_line_t *line) {
 }
 
 void vt_line_clear(vt_line_t *line, int char_index) {
-  if (char_index >= line->num_of_filled_chars) {
+  if (char_index >= line->num_filled_chars) {
     return;
   }
 
@@ -761,7 +761,7 @@ void vt_line_clear(vt_line_t *line, int char_index) {
 #endif
 
   vt_char_copy(line->chars + char_index, vt_sp_ch());
-  line->num_of_filled_chars = char_index + 1;
+  line->num_filled_chars = char_index + 1;
   line->is_continued_to_next = 0;
   line->size_attr = 0;
 }
@@ -771,10 +771,10 @@ int vt_line_clear_with(vt_line_t *line, int char_index, vt_char_t *ch) {
 
   return vt_line_fill(
       line, ch, char_index,
-      (line->num_of_chars - vt_str_cols(line->chars, char_index)) / vt_char_cols(ch));
+      (line->num_chars - vt_str_cols(line->chars, char_index)) / vt_char_cols(ch));
 }
 
-int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_filled_chars is OK */
+int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_filled_chars is OK */
                       vt_char_t *chars, u_int len, u_int cols) {
   int count;
   u_int cols_to_beg;
@@ -788,22 +788,22 @@ int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_fi
     return 1;
   }
 
-  if (beg_char_index + len > line->num_of_chars) {
-    if (beg_char_index >= line->num_of_chars) {
+  if (beg_char_index + len > line->num_chars) {
+    if (beg_char_index >= line->num_chars) {
 #ifdef DEBUG
-      bl_warn_printf(BL_DEBUG_TAG " beg[%d] is over num_of_chars[%d].\n", beg_char_index,
-                     line->num_of_chars);
+      bl_warn_printf(BL_DEBUG_TAG " beg[%d] is over num_chars[%d].\n", beg_char_index,
+                     line->num_chars);
 #endif
 
       return 0;
     }
 
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " beg_char_index[%d] + len[%d] is over num_of_chars[%d].\n",
-                   beg_char_index, len, line->num_of_chars);
+    bl_warn_printf(BL_DEBUG_TAG " beg_char_index[%d] + len[%d] is over num_chars[%d].\n",
+                   beg_char_index, len, line->num_chars);
 #endif
 
-    len = line->num_of_chars - beg_char_index;
+    len = line->num_chars - beg_char_index;
   }
 
   if (beg_char_index > 0) {
@@ -811,16 +811,16 @@ int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_fi
   }
 
 #ifdef OPTIMIZE_REDRAWING
-  if (len <= line->num_of_filled_chars - beg_char_index) {
+  if (len <= line->num_filled_chars - beg_char_index) {
     if (vt_str_equal(line->chars + beg_char_index, chars, len)) {
       return 1;
     }
   } else {
     if (vt_str_equal(line->chars + beg_char_index, chars,
-                     line->num_of_filled_chars - beg_char_index)) {
-      chars += (line->num_of_filled_chars - beg_char_index);
-      len -= (line->num_of_filled_chars - beg_char_index);
-      beg_char_index = line->num_of_filled_chars;
+                     line->num_filled_chars - beg_char_index)) {
+      chars += (line->num_filled_chars - beg_char_index);
+      len -= (line->num_filled_chars - beg_char_index);
+      beg_char_index = line->num_filled_chars;
 
       count = 0;
       while (1) {
@@ -828,7 +828,7 @@ int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_fi
           break;
         } else if (++count >= len) {
           vt_str_copy(line->chars + beg_char_index, chars, len);
-          line->num_of_filled_chars = beg_char_index + len;
+          line->num_filled_chars = beg_char_index + len;
 
           /* Not necessary vt_line_set_modified() */
 
@@ -841,7 +841,7 @@ int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_fi
 
   cols_to_beg = vt_str_cols(line->chars, beg_char_index);
 
-  if (cols_to_beg + cols < line->num_of_chars) {
+  if (cols_to_beg + cols < line->num_chars) {
     int char_index;
 
     char_index = vt_convert_col_to_char_index(line, &cols_rest, cols_to_beg + cols, 0);
@@ -853,8 +853,8 @@ int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_fi
       padding = 0;
     }
 
-    if (line->num_of_filled_chars > char_index) {
-      copy_len = line->num_of_filled_chars - char_index;
+    if (line->num_filled_chars > char_index) {
+      copy_len = line->num_filled_chars - char_index;
     } else {
       copy_len = 0;
     }
@@ -868,13 +868,13 @@ int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_fi
 
   new_len = beg_char_index + len + padding + copy_len;
 
-  if (new_len > line->num_of_chars) {
+  if (new_len > line->num_chars) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " new line len %d(beg %d ow %d padding %d copy %d) is overflowed\n",
                    new_len, beg_char_index, len, padding, copy_len);
 #endif
 
-    new_len = line->num_of_chars;
+    new_len = line->num_chars;
 
     if (new_len > padding + beg_char_index + len) {
       copy_len = new_len - padding - beg_char_index - len;
@@ -899,7 +899,7 @@ int vt_line_overwrite(vt_line_t *line, int beg_char_index, /* >= line->num_of_fi
 
   vt_str_copy(line->chars + beg_char_index, chars, len);
 
-  line->num_of_filled_chars = new_len;
+  line->num_filled_chars = new_len;
 
   set_real_modified(line, beg_char_index, beg_char_index + len + padding - 1);
 
@@ -914,7 +914,7 @@ int vt_line_overwrite_all(vt_line_t *line, vt_char_t *chars, int len) {
   set_real_modified(line, 0, END_CHAR_INDEX(line));
 
   vt_str_copy(line->chars, chars, len);
-  line->num_of_filled_chars = len;
+  line->num_filled_chars = len;
 
   set_real_modified(line, 0, END_CHAR_INDEX(line));
 
@@ -922,7 +922,7 @@ int vt_line_overwrite_all(vt_line_t *line, vt_char_t *chars, int len) {
 }
 #endif
 
-int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_of_filled_chars is OK */
+int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_filled_chars is OK */
                  u_int num) {
   int count;
   int char_index;
@@ -933,9 +933,9 @@ int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_of_fil
     return 1;
   }
 
-  if (beg >= line->num_of_chars) {
+  if (beg >= line->num_chars) {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " beg[%d] is over num_of_chars[%d].\n", beg, line->num_of_chars);
+    bl_warn_printf(BL_DEBUG_TAG " beg[%d] is over num_chars[%d].\n", beg, line->num_chars);
 #endif
 
     return 0;
@@ -952,7 +952,7 @@ int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_of_fil
       beg += count;
       num -= count;
 
-      if (beg + num <= line->num_of_filled_chars) {
+      if (beg + num <= line->num_filled_chars) {
         count = 0;
         while (1) {
           if (!vt_char_equal(line->chars + beg + num - 1 - count, ch)) {
@@ -970,7 +970,7 @@ int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_of_fil
       break;
     } else if (++count >= num) {
       return 1;
-    } else if (beg + count == line->num_of_filled_chars) {
+    } else if (beg + count == line->num_filled_chars) {
       beg += count;
       num -= count;
 
@@ -979,32 +979,32 @@ int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_of_fil
   }
 #endif
 
-  num = K_MIN(num, line->num_of_chars - beg);
+  num = K_MIN(num, line->num_chars - beg);
 
   char_index = beg;
   left_cols = num * vt_char_cols(ch);
 
   while (1) {
-    if (char_index >= line->num_of_filled_chars) {
+    if (char_index >= line->num_filled_chars) {
       left_cols = 0;
       copy_len = 0;
 
       break;
     } else if (left_cols < vt_char_cols(line->chars + char_index)) {
-      if (beg + num + left_cols > line->num_of_chars) {
-        left_cols = line->num_of_chars - beg - num;
+      if (beg + num + left_cols > line->num_chars) {
+        left_cols = line->num_chars - beg - num;
         copy_len = 0;
       } else {
-        copy_len = line->num_of_filled_chars - char_index - left_cols;
+        copy_len = line->num_filled_chars - char_index - left_cols;
 
-        if (beg + num + left_cols + copy_len > line->num_of_chars) {
+        if (beg + num + left_cols + copy_len > line->num_chars) {
           /*
-           * line->num_of_chars is equal to or larger than
+           * line->num_chars is equal to or larger than
            * beg + num + left_cols since
-           * 'if( beg + num + left_cols > line->num_of_chars)'
+           * 'if( beg + num + left_cols > line->num_chars)'
            * is already passed here.
            */
-          copy_len = line->num_of_chars - beg - num - left_cols;
+          copy_len = line->num_chars - beg - num - left_cols;
         }
       }
 
@@ -1033,7 +1033,7 @@ int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_of_fil
     vt_char_copy(&line->chars[char_index++], vt_sp_ch());
   }
 
-  line->num_of_filled_chars = char_index + copy_len;
+  line->num_filled_chars = char_index + copy_len;
 
   set_real_modified(line, beg, beg + num + left_cols);
 
@@ -1041,7 +1041,7 @@ int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_of_fil
 }
 
 vt_char_t *vt_char_at(vt_line_t *line, int at) {
-  if (at >= line->num_of_filled_chars) {
+  if (at >= line->num_filled_chars) {
     return NULL;
   } else {
     return line->chars + at;
@@ -1062,7 +1062,7 @@ int vt_line_set_modified(vt_line_t *line, int beg_char_index, int end_char_index
     return 0;
   }
 
-  if (beg_char_index >= line->num_of_filled_chars) {
+  if (beg_char_index >= line->num_filled_chars) {
     beg_char_index = END_CHAR_INDEX(line);
   }
 
@@ -1071,14 +1071,14 @@ int vt_line_set_modified(vt_line_t *line, int beg_char_index, int end_char_index
     beg_col += vt_char_cols(line->chars + count);
   }
 
-  if (end_char_index >= line->num_of_filled_chars) {
+  if (end_char_index >= line->num_filled_chars) {
     /*
      * '* 2' assures change_end_col should point over the end of line.
      * If triple width(or wider) characters(!) were to exist, this hack would
      * make
      * no sense...
      */
-    end_col = line->num_of_chars * 2;
+    end_col = line->num_chars * 2;
   } else {
     end_col = beg_col;
     for (; count <= end_char_index; count++) {
@@ -1124,7 +1124,7 @@ int vt_line_set_modified_all(vt_line_t *line) {
    * If triple width(or wider) characters(!) were to exist, this hack would make
    * no sense...
    */
-  line->change_end_col = line->num_of_chars * 2;
+  line->change_end_col = line->num_chars * 2;
 
   /* Don't overwrite if line->is_modified == 2 (real modified) */
   if (!line->is_modified) {
@@ -1135,7 +1135,7 @@ int vt_line_set_modified_all(vt_line_t *line) {
 }
 
 int vt_line_is_cleared_to_end(vt_line_t *line) {
-  if (vt_line_get_num_of_filled_cols(line) < line->change_end_col + 1) {
+  if (vt_line_get_num_filled_cols(line) < line->change_end_col + 1) {
     return 1;
   } else {
     return 0;
@@ -1160,11 +1160,11 @@ int vt_line_get_end_of_modified(vt_line_t *line) {
   }
 }
 
-u_int vt_line_get_num_of_redrawn_chars(vt_line_t *line, int to_end) {
+u_int vt_line_get_num_redrawn_chars(vt_line_t *line, int to_end) {
   if (IS_EMPTY(line)) {
     return 0;
   } else if (to_end) {
-    return line->num_of_filled_chars - vt_line_get_beg_of_modified(line);
+    return line->num_filled_chars - vt_line_get_beg_of_modified(line);
   } else {
     return vt_line_get_end_of_modified(line) - vt_line_get_beg_of_modified(line) + 1;
   }
@@ -1186,20 +1186,20 @@ int vt_convert_char_index_to_col(vt_line_t *line, int char_index, int flag /* BR
   int count;
   int col;
 
-  if (char_index >= line->num_of_chars) {
+  if (char_index >= line->num_chars) {
 #ifdef __DEBUG
     bl_debug_printf(BL_DEBUG_TAG
-                    " char index %d is larger than num_of_chars(%d) ... modified -> %d.\n",
-                    char_index, line->num_of_chars, line->num_of_chars - 1);
+                    " char index %d is larger than num_chars(%d) ... modified -> %d.\n",
+                    char_index, line->num_chars, line->num_chars - 1);
 #endif
 
-    char_index = line->num_of_chars - 1;
+    char_index = line->num_chars - 1;
   }
 
   col = 0;
 
-  if ((flag & BREAK_BOUNDARY) && line->num_of_filled_chars <= char_index) {
-    for (count = 0; count < line->num_of_filled_chars; count++) {
+  if ((flag & BREAK_BOUNDARY) && line->num_filled_chars <= char_index) {
+    for (count = 0; count < line->num_filled_chars; count++) {
 #ifdef DEBUG
       if (vt_char_cols(line->chars + count) == 0) {
         bl_warn_printf(BL_DEBUG_TAG " vt_char_cols returns 0.\n");
@@ -1212,7 +1212,7 @@ int vt_convert_char_index_to_col(vt_line_t *line, int char_index, int flag /* BR
     }
 
     col += (char_index - count);
-  } else if (line->num_of_filled_chars > 0) {
+  } else if (line->num_filled_chars > 0) {
     /*
      * excluding the width of the last char.
      */
@@ -1230,15 +1230,15 @@ int vt_convert_col_to_char_index(vt_line_t *line, u_int *cols_rest, int col,
   int char_index;
 
 #ifdef DEBUG
-  if (col >= line->num_of_chars * 2 && cols_rest) {
+  if (col >= line->num_chars * 2 && cols_rest) {
     bl_warn_printf(BL_DEBUG_TAG
-                   " Since col [%d] is over line->num_of_chars * 2 [%d],"
+                   " Since col [%d] is over line->num_chars * 2 [%d],"
                    " cols_rest will be corrupt...\n",
-                   col, line->num_of_chars * 2);
+                   col, line->num_chars * 2);
   }
 #endif
 
-  for (char_index = 0; char_index + 1 < line->num_of_filled_chars; char_index++) {
+  for (char_index = 0; char_index + 1 < line->num_filled_chars; char_index++) {
     int cols;
 
     cols = vt_char_cols(line->chars + char_index);
@@ -1263,7 +1263,7 @@ end:
 }
 
 int vt_line_reverse_color(vt_line_t *line, int char_index) {
-  if (char_index >= line->num_of_filled_chars) {
+  if (char_index >= line->num_filled_chars) {
     return 0;
   }
 
@@ -1275,7 +1275,7 @@ int vt_line_reverse_color(vt_line_t *line, int char_index) {
 }
 
 int vt_line_restore_color(vt_line_t *line, int char_index) {
-  if (char_index >= line->num_of_filled_chars) {
+  if (char_index >= line->num_filled_chars) {
     return 0;
   }
 
@@ -1319,7 +1319,7 @@ int vt_line_beg_char_index_regarding_rtl(vt_line_t *line) {
   int char_index;
 
   if (vt_line_is_rtl(line)) {
-    for (char_index = 0; char_index < line->num_of_filled_chars; char_index++) {
+    for (char_index = 0; char_index < line->num_filled_chars; char_index++) {
       if (!vt_char_equal(line->chars + char_index, vt_sp_ch())) {
         return char_index;
       }
@@ -1332,26 +1332,25 @@ int vt_line_beg_char_index_regarding_rtl(vt_line_t *line) {
 int vt_line_end_char_index(vt_line_t *line) {
   if (IS_EMPTY(line)) {
 #ifdef __DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " num_of_filled_chars is 0.\n");
+    bl_debug_printf(BL_DEBUG_TAG " num_filled_chars is 0.\n");
 #endif
 
     return 0;
   } else {
-    return line->num_of_filled_chars - 1;
+    return line->num_filled_chars - 1;
   }
 }
 
-u_int vt_line_get_num_of_filled_cols(vt_line_t *line) {
-  return vt_str_cols(line->chars, line->num_of_filled_chars);
+u_int vt_line_get_num_filled_cols(vt_line_t *line) {
+  return vt_str_cols(line->chars, line->num_filled_chars);
 }
 
-u_int vt_line_get_num_of_filled_chars_except_spaces_with_func(vt_line_t *line,
-                                                              int (*func)(vt_char_t *,
-                                                                          vt_char_t *)) {
+u_int vt_line_get_num_filled_chars_except_sp_with_func(vt_line_t *line,
+                                                       int (*func)(vt_char_t *, vt_char_t *)) {
   if (IS_EMPTY(line)) {
     return 0;
   } else if (vt_line_is_rtl(line) || line->is_continued_to_next) {
-    return line->num_of_filled_chars;
+    return line->num_filled_chars;
   } else {
     int char_index;
 
@@ -1654,7 +1653,7 @@ int vt_line_ctl_logical(vt_line_t *line) {
 void vt_line_dump(vt_line_t *line) {
   int count;
 
-  for (count = 0; count < line->num_of_filled_chars; count++) {
+  for (count = 0; count < line->num_filled_chars; count++) {
     vt_char_dump(line->chars + count);
   }
 

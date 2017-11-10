@@ -97,7 +97,7 @@ vt_line_t *vt_line_shape(vt_line_t *line) {
 
     vt_line_share(orig, line);
 
-    if ((shaped = vt_str_new(line->num_of_chars)) == NULL) {
+    if ((shaped = vt_str_new(line->num_chars)) == NULL) {
       free(orig);
 
       return NULL;
@@ -105,8 +105,8 @@ vt_line_t *vt_line_shape(vt_line_t *line) {
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || \
     defined(USE_OT_LAYOUT)
-    line->num_of_filled_chars =
-        (*func)(shaped, line->num_of_chars, line->chars, line->num_of_filled_chars, line->ctl_info);
+    line->num_filled_chars =
+        (*func)(shaped, line->num_chars, line->chars, line->num_filled_chars, line->ctl_info);
 #else
 /* Never enter here */
 #endif
@@ -120,10 +120,10 @@ vt_line_t *vt_line_shape(vt_line_t *line) {
 }
 
 int vt_line_unshape(vt_line_t *line, vt_line_t *orig) {
-  vt_str_delete(line->chars, line->num_of_chars);
+  vt_str_delete(line->chars, line->num_chars);
 
   line->chars = orig->chars;
-  line->num_of_filled_chars = orig->num_of_filled_chars;
+  line->num_filled_chars = orig->num_filled_chars;
 
   free(orig);
 

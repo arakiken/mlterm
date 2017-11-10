@@ -166,12 +166,12 @@ static void draw_circle(int x, int y, int r, int color) {
 
 static int parse_options(char **options, /* 10 elements */
                          char **cmd) {
-  u_int num_of_options;
+  u_int num_options;
   int skip_count;
   int inside_bracket;
   char *end;
 
-  num_of_options = 0;
+  num_options = 0;
   inside_bracket = skip_count = 0;
   end = (*cmd);
 
@@ -182,8 +182,8 @@ static int parse_options(char **options, /* 10 elements */
       if (skip_count == 0) {
         *end = '\0';
         if (options) {
-          options[num_of_options++] = *cmd;
-          options[num_of_options] = NULL;
+          options[num_options++] = *cmd;
+          options[num_options] = NULL;
         }
         *cmd = end + 1;
 
@@ -198,15 +198,15 @@ static int parse_options(char **options, /* 10 elements */
     } else if (*end == ',') {
       if (skip_count == 0 && !inside_bracket) {
         *end = '\0';
-        if (num_of_options < 8 && options) {
-          options[num_of_options++] = *cmd;
+        if (num_options < 8 && options) {
+          options[num_options++] = *cmd;
         }
         *cmd = end + 1;
       }
     } else if (*end == '\0') {
       if (options) {
-        options[num_of_options++] = *cmd;
-        options[num_of_options] = NULL;
+        options[num_options++] = *cmd;
+        options[num_options] = NULL;
       }
       *cmd = NULL;
 

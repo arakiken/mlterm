@@ -405,7 +405,7 @@ static gboolean search_find(VteTerminal *terminal, int backward) {
 
     selection(&PVT(terminal)->screen->sel, beg_char_index, beg_row, end_char_index, end_row);
 
-    value = vt_term_get_num_of_logged_lines(PVT(terminal)->term) + (beg_row >= 0 ? 0 : beg_row);
+    value = vt_term_get_num_logged_lines(PVT(terminal)->term) + (beg_row >= 0 ? 0 : beg_row);
 
 #if GTK_CHECK_VERSION(2, 14, 0)
     gtk_adjustment_set_value(ADJUSTMENT(terminal), value);
@@ -584,7 +584,7 @@ static void font_config_updated(void) {
 
   ui_font_cache_unload_all();
 
-  for (count = 0; count < disp.num_of_roots; count++) {
+  for (count = 0; count < disp.num_roots; count++) {
     if (IS_MLTERM_SCREEN(disp.roots[count])) {
       ui_screen_reset_view((ui_screen_t *)disp.roots[count]);
     }
@@ -596,7 +596,7 @@ static void color_config_updated(void) {
 
   ui_color_cache_unload_all();
 
-  for (count = 0; count < disp.num_of_roots; count++) {
+  for (count = 0; count < disp.num_roots; count++) {
     if (IS_MLTERM_SCREEN(disp.roots[count])) {
       ui_screen_reset_view((ui_screen_t *)disp.roots[count]);
     }
@@ -643,10 +643,10 @@ static void __exit(void *p, int status) {
   bl_set_msg_log_file_name(NULL);
 
   /*
-   * Don't loop from 0 to dis.num_of_roots owing to processing inside
+   * Don't loop from 0 to dis.num_roots owing to processing inside
    * ui_display_remove_root.
    */
-  for (count = disp.num_of_roots; count > 0; count--) {
+  for (count = disp.num_roots; count > 0; count--) {
     if (IS_MLTERM_SCREEN(disp.roots[count - 1])) {
       gtk_widget_destroy(GTK_WIDGET(VTE_WIDGET((ui_screen_t *)disp.roots[count - 1])));
     } else {
@@ -978,13 +978,13 @@ static void reset_vte_size_member(VteTerminal *terminal) {
 #if GTK_CHECK_VERSION(2, 14, 0)
     int value;
 
-    value = vt_term_get_num_of_logged_lines(PVT(terminal)->term);
+    value = vt_term_get_num_logged_lines(PVT(terminal)->term);
     gtk_adjustment_configure(ADJUSTMENT(terminal), value /* value */, 0 /* lower */,
                              value + ROW_COUNT(terminal) /* upper */, 1 /* step increment */,
                              ROW_COUNT(terminal) /* page increment */,
                              ROW_COUNT(terminal) /* page size */);
 #else
-    ADJUSTMENT(terminal)->value = vt_term_get_num_of_logged_lines(PVT(terminal)->term);
+    ADJUSTMENT(terminal)->value = vt_term_get_num_logged_lines(PVT(terminal)->term);
     ADJUSTMENT(terminal)->upper = ADJUSTMENT(terminal)->value + ROW_COUNT(terminal);
     ADJUSTMENT(terminal)->page_increment = ROW_COUNT(terminal);
     ADJUSTMENT(terminal)->page_size = ROW_COUNT(terminal);
@@ -2282,7 +2282,7 @@ static void vte_terminal_init(VteTerminal *terminal) {
 #endif
 
   PVT(terminal)->term = vt_create_term(main_config.term_type, main_config.cols, main_config.rows,
-                                       main_config.tab_size, main_config.num_of_log_lines,
+                                       main_config.tab_size, main_config.num_log_lines,
                                        main_config.encoding, main_config.is_auto_encoding,
                                        main_config.use_auto_detect, main_config.logging_vt_seq,
                                        main_config.unicode_policy, main_config.col_size_of_width_a,
@@ -2964,7 +2964,7 @@ void vte_terminal_select_all(VteTerminal *terminal) {
     return;
   }
 
-  beg_row = -vt_term_get_num_of_logged_lines(PVT(terminal)->term);
+  beg_row = -vt_term_get_num_logged_lines(PVT(terminal)->term);
 
   for (end_row = vt_term_get_rows(PVT(terminal)->term) - 1; end_row >= 0; end_row--) {
     if ((line = vt_term_get_line(PVT(terminal)->term, end_row)) && !vt_line_is_empty(line)) {
@@ -2972,7 +2972,7 @@ void vte_terminal_select_all(VteTerminal *terminal) {
     }
   }
 
-  selection(&PVT(terminal)->screen->sel, 0, beg_row, line->num_of_filled_chars - 1, end_row);
+  selection(&PVT(terminal)->screen->sel, 0, beg_row, line->num_filled_chars - 1, end_row);
 
   ui_window_update(&PVT(terminal)->screen->window, 1 /* UPDATE_SCREEN */);
 }
