@@ -34,7 +34,7 @@ BL_MAP_TYPEDEF(bl_conf_entry, char *, bl_conf_entry_t *);
 
 typedef struct bl_conf {
   bl_arg_opt_t **arg_opts; /* 0x20 - 0x7f */
-  int num_of_opts;
+  int num_opts;
   char end_opt;
 
   BL_MAP(bl_conf_entry) conf_entries;

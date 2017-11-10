@@ -162,13 +162,13 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
   scim = (im_scim_t *)ptr;
 
   if (scim->im.preedit.chars) {
-    (*syms->vt_str_delete)(scim->im.preedit.chars, scim->im.preedit.num_of_chars);
+    (*syms->vt_str_delete)(scim->im.preedit.chars, scim->im.preedit.num_chars);
     scim->im.preedit.chars = NULL;
   }
 
   saved_segment_offset = scim->im.preedit.segment_offset;
 
-  scim->im.preedit.num_of_chars = 0;
+  scim->im.preedit.num_chars = 0;
   scim->im.preedit.filled_len = 0;
   scim->im.preedit.segment_offset = -1;
   scim->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -214,7 +214,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
 #endif
 
     scim->im.preedit.chars = NULL;
-    scim->im.preedit.num_of_chars = 0;
+    scim->im.preedit.num_chars = 0;
     scim->im.preedit.filled_len = 0;
 
     if (scim->term_encoding != VT_UTF8) {
@@ -224,7 +224,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
     return;
   }
 
-  scim->im.preedit.num_of_chars = count;
+  scim->im.preedit.num_chars = count;
 
   /*
    * u_char --> vt_char_t
@@ -319,7 +319,7 @@ draw:
   }
 }
 
-static void candidate_update(void *ptr, int is_vertical_lookup, uint num_of_candiate, char **str,
+static void candidate_update(void *ptr, int is_vertical_lookup, uint num_candiate, char **str,
                              int index) {
   im_scim_t *scim;
   int x;
@@ -351,7 +351,7 @@ static void candidate_update(void *ptr, int is_vertical_lookup, uint num_of_cand
     scim->im.cand_screen->listener.selected = NULL; /* TODO */
   }
 
-  if (!(*scim->im.cand_screen->init)(scim->im.cand_screen, num_of_candiate, num_of_candiate)) {
+  if (!(*scim->im.cand_screen->init)(scim->im.cand_screen, num_candiate, num_candiate)) {
     (*scim->im.cand_screen->delete)(scim->im.cand_screen);
     scim->im.cand_screen = NULL;
 
@@ -360,7 +360,7 @@ static void candidate_update(void *ptr, int is_vertical_lookup, uint num_of_cand
 
   (*scim->im.cand_screen->set_spot)(scim->im.cand_screen, x, y);
 
-  for (i = 0; i < num_of_candiate; i++) {
+  for (i = 0; i < num_candiate; i++) {
     u_char *p = NULL;
 
     if (scim->term_encoding != VT_UTF8) {
@@ -558,7 +558,7 @@ im_info_t *im_scim_get_info(char *locale, char *encoding) {
 
   result->id = strdup("scim");
   result->name = strdup("SCIM");
-  result->num_of_args = 0;
+  result->num_args = 0;
   result->args = NULL;
   result->readable_args = NULL;
 

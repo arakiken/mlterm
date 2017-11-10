@@ -28,7 +28,7 @@ typedef struct container_logical_visual {
    * logical: children[n] => ... => children[1] => children[0]
    */
   vt_logical_visual_t **children;
-  u_int num_of_children;
+  u_int num_children;
 
 } container_logical_visual_t;
 
@@ -81,8 +81,8 @@ static int container_delete(vt_logical_visual_t *logvis) {
 
   container = (container_logical_visual_t*)logvis;
 
-  if (container->num_of_children) {
-    for (count = container->num_of_children - 1; count >= 0; count--) {
+  if (container->num_children) {
+    for (count = container->num_children - 1; count >= 0; count--) {
       (*container->children[count]->delete)(container->children[count]);
     }
   }
@@ -103,7 +103,7 @@ static int container_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cur
 
   container = (container_logical_visual_t*)logvis;
 
-  for (count = 0; count < container->num_of_children; count++) {
+  for (count = 0; count < container->num_children; count++) {
     (*container->children[count]->init)(container->children[count], model, cursor);
   }
 
@@ -115,11 +115,11 @@ static u_int container_logical_cols(vt_logical_visual_t *logvis) {
 
   container = (container_logical_visual_t*)logvis;
 
-  if (container->num_of_children > 0) {
-    return (*container->children[container->num_of_children - 1]->logical_cols)(
-        container->children[container->num_of_children - 1]);
+  if (container->num_children > 0) {
+    return (*container->children[container->num_children - 1]->logical_cols)(
+        container->children[container->num_children - 1]);
   } else {
-    return logvis->model->num_of_cols;
+    return logvis->model->num_cols;
   }
 }
 
@@ -128,11 +128,11 @@ static u_int container_logical_rows(vt_logical_visual_t *logvis) {
 
   container = (container_logical_visual_t*)logvis;
 
-  if (container->num_of_children > 0) {
-    return (*container->children[container->num_of_children - 1]->logical_rows)(
-        container->children[container->num_of_children - 1]);
+  if (container->num_children > 0) {
+    return (*container->children[container->num_children - 1]->logical_rows)(
+        container->children[container->num_children - 1]);
   } else {
-    return logvis->model->num_of_rows;
+    return logvis->model->num_rows;
   }
 }
 
@@ -146,7 +146,7 @@ static int container_render(vt_logical_visual_t *logvis) {
    * XXX
    * only the first children can render correctly.
    */
-  for (count = 0; count < container->num_of_children; count++) {
+  for (count = 0; count < container->num_children; count++) {
     (*container->children[count]->render)(container->children[count]);
   }
 
@@ -163,7 +163,7 @@ static int container_visual(vt_logical_visual_t *logvis) {
 
   container = (container_logical_visual_t*)logvis;
 
-  for (count = 0; count < container->num_of_children; count++) {
+  for (count = 0; count < container->num_children; count++) {
     (*container->children[count]->visual)(container->children[count]);
   }
 
@@ -182,11 +182,11 @@ static int container_logical(vt_logical_visual_t *logvis) {
 
   container = (container_logical_visual_t*)logvis;
 
-  if (container->num_of_children == 0) {
+  if (container->num_children == 0) {
     return 1;
   }
 
-  for (count = container->num_of_children - 1; count >= 0; count--) {
+  for (count = container->num_children - 1; count >= 0; count--) {
     (*container->children[count]->logical)(container->children[count]);
   }
 
@@ -201,7 +201,7 @@ static int container_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
 
   container = (container_logical_visual_t*)logvis;
 
-  for (count = 0; count < container->num_of_children; count++) {
+  for (count = 0; count < container->num_children; count++) {
     (*container->children[count]->visual_line)(container->children[count], line);
   }
 
@@ -225,9 +225,9 @@ static int comb_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t
   return 1;
 }
 
-static u_int comb_logical_cols(vt_logical_visual_t *logvis) { return logvis->model->num_of_cols; }
+static u_int comb_logical_cols(vt_logical_visual_t *logvis) { return logvis->model->num_cols; }
 
-static u_int comb_logical_rows(vt_logical_visual_t *logvis) { return logvis->model->num_of_rows; }
+static u_int comb_logical_rows(vt_logical_visual_t *logvis) { return logvis->model->num_rows; }
 
 static int comb_render(vt_logical_visual_t *logvis) { return (*logvis->visual)(logvis); }
 
@@ -241,7 +241,7 @@ static int comb_visual(vt_logical_visual_t *logvis) {
   ((comb_logical_visual_t*)logvis)->cursor_logical_char_index = logvis->cursor->char_index;
   ((comb_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col;
 
-  for (row = 0; row < logvis->model->num_of_rows; row++) {
+  for (row = 0; row < logvis->model->num_rows; row++) {
     vt_line_t *line;
     int dst_pos;
     int src_pos;
@@ -251,7 +251,7 @@ static int comb_visual(vt_logical_visual_t *logvis) {
 
     dst_pos = 0;
     cur = line->chars;
-    for (src_pos = 0; src_pos < line->num_of_filled_chars; src_pos++) {
+    for (src_pos = 0; src_pos < line->num_filled_chars; src_pos++) {
       if (dst_pos > 0 &&
           (vt_char_is_comb(cur) ||
            vt_is_arabic_combining(dst_pos >= 2 ? vt_char_at(line, dst_pos - 2) : NULL,
@@ -316,7 +316,7 @@ static int comb_visual(vt_logical_visual_t *logvis) {
     }
 #endif
 
-    line->num_of_filled_chars = dst_pos;
+    line->num_filled_chars = dst_pos;
   }
 
   logvis->is_visual = 1;
@@ -332,11 +332,11 @@ static int comb_logical(vt_logical_visual_t *logvis) {
     return 0;
   }
 
-  if ((buf = vt_str_alloca(logvis->model->num_of_cols)) == NULL) {
+  if ((buf = vt_str_alloca(logvis->model->num_cols)) == NULL) {
     return 0;
   }
 
-  for (row = 0; row < logvis->model->num_of_rows; row++) {
+  for (row = 0; row < logvis->model->num_rows; row++) {
     vt_line_t *line;
     int src_pos;
     u_int src_len;
@@ -344,12 +344,12 @@ static int comb_logical(vt_logical_visual_t *logvis) {
 
     line = vt_model_get_line(logvis->model, row);
 
-    vt_str_copy(buf, line->chars, line->num_of_filled_chars);
+    vt_str_copy(buf, line->chars, line->num_filled_chars);
 
-    src_len = line->num_of_filled_chars;
-    line->num_of_filled_chars = 0;
+    src_len = line->num_filled_chars;
+    line->num_filled_chars = 0;
     c = buf;
-    for (src_pos = 0; src_pos < src_len && line->num_of_filled_chars < line->num_of_chars;
+    for (src_pos = 0; src_pos < src_len && line->num_filled_chars < line->num_chars;
          src_pos++) {
       vt_char_t *comb;
       u_int size;
@@ -363,10 +363,10 @@ static int comb_logical(vt_logical_visual_t *logvis) {
           ) {
         int count;
 
-        vt_char_copy(vt_char_at(line, line->num_of_filled_chars++), vt_get_base_char(c));
+        vt_char_copy(vt_char_at(line, line->num_filled_chars++), vt_get_base_char(c));
 
         for (count = 0; count < size; count++) {
-          if (line->num_of_filled_chars >= line->num_of_chars) {
+          if (line->num_filled_chars >= line->num_chars) {
             break;
           }
 
@@ -396,19 +396,19 @@ static int comb_logical(vt_logical_visual_t *logvis) {
           }
 #endif
 
-          vt_char_copy(vt_char_at(line, line->num_of_filled_chars++), comb);
+          vt_char_copy(vt_char_at(line, line->num_filled_chars++), comb);
 
           comb++;
         }
       } else {
-        vt_char_copy(vt_char_at(line, line->num_of_filled_chars++), c);
+        vt_char_copy(vt_char_at(line, line->num_filled_chars++), c);
       }
 
       c++;
     }
   }
 
-  vt_str_final(buf, logvis->model->num_of_cols);
+  vt_str_final(buf, logvis->model->num_cols);
 
   logvis->cursor->char_index = ((comb_logical_visual_t*)logvis)->cursor_logical_char_index;
   logvis->cursor->col = ((comb_logical_visual_t*)logvis)->cursor_logical_col;
@@ -425,7 +425,7 @@ static int comb_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
 
   dst_pos = 0;
   cur = line->chars;
-  for (src_pos = 0; src_pos < line->num_of_filled_chars; src_pos++) {
+  for (src_pos = 0; src_pos < line->num_filled_chars; src_pos++) {
     if (dst_pos > 0 && (vt_char_is_comb(cur) ||
                         vt_is_arabic_combining(dst_pos >= 2 ? vt_char_at(line, dst_pos - 2) : NULL,
                                                vt_char_at(line, dst_pos - 1), cur))) {
@@ -437,7 +437,7 @@ static int comb_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
     cur++;
   }
 
-  line->num_of_filled_chars = dst_pos;
+  line->num_filled_chars = dst_pos;
 
   return 1;
 }
@@ -465,9 +465,9 @@ static int vert_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t
   vert_logvis = (vert_logical_visual_t*)logvis;
 
   if (vert_logvis->is_init) {
-    vt_model_resize(&vert_logvis->visual_model, NULL, model->num_of_rows, model->num_of_cols);
+    vt_model_resize(&vert_logvis->visual_model, NULL, model->num_rows, model->num_cols);
   } else {
-    vt_model_init(&vert_logvis->visual_model, model->num_of_rows, model->num_of_cols);
+    vt_model_init(&vert_logvis->visual_model, model->num_rows, model->num_cols);
     vert_logvis->is_init = 1;
   }
 
@@ -481,17 +481,17 @@ static int vert_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t
 
 static u_int vert_logical_cols(vt_logical_visual_t *logvis) {
   if (logvis->is_visual) {
-    return ((vert_logical_visual_t*)logvis)->logical_model.num_of_cols;
+    return ((vert_logical_visual_t*)logvis)->logical_model.num_cols;
   } else {
-    return logvis->model->num_of_cols;
+    return logvis->model->num_cols;
   }
 }
 
 static u_int vert_logical_rows(vt_logical_visual_t *logvis) {
   if (logvis->is_visual) {
-    return ((vert_logical_visual_t*)logvis)->logical_model.num_of_rows;
+    return ((vert_logical_visual_t*)logvis)->logical_model.num_rows;
   } else {
-    return logvis->model->num_of_rows;
+    return logvis->model->num_rows;
   }
 }
 
@@ -517,8 +517,8 @@ static void vert_set_modified(vt_line_t *vis_line, vt_line_t *log_line, int log_
    */
   if (vt_line_is_modified(log_line) && vt_line_get_beg_of_modified(log_line) <= log_char_index &&
       (vt_line_is_cleared_to_end(log_line) || log_char_index <= log_line->change_end_col)) {
-    vt_line_set_modified(vis_line, vis_line->num_of_filled_chars - 1,
-                         vis_line->num_of_filled_chars - 1);
+    vt_line_set_modified(vis_line, vis_line->num_filled_chars - 1,
+                         vis_line->num_filled_chars - 1);
   }
 }
 
@@ -540,12 +540,12 @@ static int vert_visual_intern(vt_logical_visual_t *logvis, vt_vertical_mode_t mo
 
   vert_logvis = (vert_logical_visual_t*)logvis;
 
-  if (vert_logvis->logical_model.num_of_rows != logvis->model->num_of_rows ||
-      vert_logvis->logical_model.num_of_cols != logvis->model->num_of_cols) {
+  if (vert_logvis->logical_model.num_rows != logvis->model->num_rows ||
+      vert_logvis->logical_model.num_cols != logvis->model->num_cols) {
     /* vt_model_t is resized */
 
-    vt_model_resize(&vert_logvis->visual_model, NULL, logvis->model->num_of_rows,
-                    logvis->model->num_of_cols);
+    vt_model_resize(&vert_logvis->visual_model, NULL, logvis->model->num_rows,
+                    logvis->model->num_cols);
   }
 
   vt_model_reset(&vert_logvis->visual_model);
@@ -557,14 +557,14 @@ static int vert_visual_intern(vt_logical_visual_t *logvis, vt_vertical_mode_t mo
   } else {
     /* CJK */
 
-    count = logvis->model->num_of_rows;
+    count = logvis->model->num_rows;
   }
 
   while (1) {
     if (mode & VERT_LTR) {
       /* Mongol */
 
-      if (++count >= logvis->model->num_of_rows) {
+      if (++count >= logvis->model->num_rows) {
         break;
       }
     } else {
@@ -577,27 +577,27 @@ static int vert_visual_intern(vt_logical_visual_t *logvis, vt_vertical_mode_t mo
 
     log_line = vt_model_get_line(logvis->model, count);
 
-    for (row = 0; row < log_line->num_of_filled_chars; row++) {
+    for (row = 0; row < log_line->num_filled_chars; row++) {
       vis_line = vt_model_get_line(&vert_logvis->visual_model, row);
 
-      if (vis_line == NULL || vis_line->num_of_filled_chars >= vis_line->num_of_chars) {
+      if (vis_line == NULL || vis_line->num_filled_chars >= vis_line->num_chars) {
         continue;
       }
 
-      vt_char_copy(vt_char_at(vis_line, vis_line->num_of_filled_chars++),
+      vt_char_copy(vt_char_at(vis_line, vis_line->num_filled_chars++),
                    vt_char_at(log_line, row));
 
       vert_set_modified(vis_line, log_line, row);
     }
 
-    for (; row < vert_logvis->visual_model.num_of_rows; row++) {
+    for (; row < vert_logvis->visual_model.num_rows; row++) {
       vis_line = vt_model_get_line(&vert_logvis->visual_model, row);
 
-      if (vis_line == NULL || vis_line->num_of_filled_chars >= vis_line->num_of_chars) {
+      if (vis_line == NULL || vis_line->num_filled_chars >= vis_line->num_chars) {
         continue;
       }
 
-      vt_char_copy(vt_char_at(vis_line, vis_line->num_of_filled_chars++), vt_sp_ch());
+      vt_char_copy(vt_char_at(vis_line, vis_line->num_filled_chars++), vt_sp_ch());
 
       vert_set_modified(vis_line, log_line, row);
     }
@@ -621,7 +621,7 @@ static int vert_visual_intern(vt_logical_visual_t *logvis, vt_vertical_mode_t mo
     /* CJK */
 
     logvis->cursor->col = logvis->cursor->char_index =
-        vert_logvis->logical_model.num_of_rows - vert_logvis->cursor_logical_row - 1;
+        vert_logvis->logical_model.num_rows - vert_logvis->cursor_logical_row - 1;
   }
 
 #ifdef CURSOR_DEBUG
@@ -680,7 +680,7 @@ static int ctl_delete(vt_logical_visual_t *logvis) {
   int row;
 
   if (logvis->model) {
-    for (row = 0; row < logvis->model->num_of_rows; row++) {
+    for (row = 0; row < logvis->model->num_rows; row++) {
       vt_line_unuse_ctl(&logvis->model->lines[row]);
     }
   }
@@ -694,7 +694,7 @@ static int ctl_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t 
   int row;
 
   if (logvis->model) {
-    for (row = 0; row < logvis->model->num_of_rows; row++) {
+    for (row = 0; row < logvis->model->num_rows; row++) {
       vt_line_unuse_ctl(&logvis->model->lines[row]);
     }
   }
@@ -705,9 +705,9 @@ static int ctl_init(vt_logical_visual_t *logvis, vt_model_t *model, vt_cursor_t 
   return 1;
 }
 
-static u_int ctl_logical_cols(vt_logical_visual_t *logvis) { return logvis->model->num_of_cols; }
+static u_int ctl_logical_cols(vt_logical_visual_t *logvis) { return logvis->model->num_cols; }
 
-static u_int ctl_logical_rows(vt_logical_visual_t *logvis) { return logvis->model->num_of_rows; }
+static u_int ctl_logical_rows(vt_logical_visual_t *logvis) { return logvis->model->num_rows; }
 
 static void ctl_render_line(vt_logical_visual_t *logvis, vt_line_t *line) {
   if (!vt_line_is_empty(line) && vt_line_is_modified(line)) {
@@ -724,7 +724,7 @@ static int ctl_render(vt_logical_visual_t *logvis) {
     /*
      * all lines(not only filled lines) should be rendered.
      */
-    for (row = 0; row < logvis->model->num_of_rows; row++) {
+    for (row = 0; row < logvis->model->num_rows; row++) {
       ctl_render_line(logvis, vt_model_get_line(logvis->model, row));
     }
   }
@@ -745,7 +745,7 @@ static int ctl_visual(vt_logical_visual_t *logvis) {
                   ((ctl_logical_visual_t*)logvis)->cursor_meet_pos_info);
 #endif
 
-  for (row = 0; row < logvis->model->num_of_rows; row++) {
+  for (row = 0; row < logvis->model->num_rows; row++) {
     if (!vt_line_ctl_visual(vt_model_get_line(logvis->model, row))) {
 #ifdef __DEBUG
       bl_debug_printf(BL_DEBUG_TAG " visualize row %d failed.\n", row);
@@ -793,7 +793,7 @@ static int ctl_logical(vt_logical_visual_t *logvis) {
                   logvis->cursor->col, logvis->cursor->row);
 #endif
 
-  for (row = 0; row < logvis->model->num_of_rows; row++) {
+  for (row = 0; row < logvis->model->num_rows; row++) {
     vt_line_t *line;
 
     line = vt_model_get_line(logvis->model, row);
@@ -806,13 +806,13 @@ static int ctl_logical(vt_logical_visual_t *logvis) {
 
 #if 1
     /* XXX See vt_iscii_visual */
-    if (line->num_of_chars > logvis->model->num_of_cols) {
-      vt_str_final(line->chars + logvis->model->num_of_cols,
-                   line->num_of_chars - logvis->model->num_of_cols);
-      line->num_of_chars = logvis->model->num_of_cols;
+    if (line->num_chars > logvis->model->num_cols) {
+      vt_str_final(line->chars + logvis->model->num_cols,
+                   line->num_chars - logvis->model->num_cols);
+      line->num_chars = logvis->model->num_cols;
 
       /*
-       * line->num_of_filled_chars is equal or less than line->num_of_chars
+       * line->num_filled_chars is equal or less than line->num_chars
        * because line is logicalized.
        */
     }
@@ -884,13 +884,13 @@ int vt_logvis_container_add(vt_logical_visual_t *logvis, vt_logical_visual_t *ch
   container = (container_logical_visual_t*)logvis;
 
   if ((p = realloc(container->children,
-                   (container->num_of_children + 1) * sizeof(vt_logical_visual_t))) == NULL) {
+                   (container->num_children + 1) * sizeof(vt_logical_visual_t))) == NULL) {
     return 0;
   }
 
   container->children = p;
 
-  container->children[container->num_of_children++] = child;
+  container->children[container->num_children++] = child;
 
   if (!child->is_reversible) {
     container->logvis.is_reversible = 0;
@@ -1043,7 +1043,7 @@ int vt_logical_visual_cursor_is_rtl(vt_logical_visual_t *logvis) {
     u_int count;
     container_logical_visual_t *container = (container_logical_visual_t*)logvis;
 
-    for (count = 0; count < container->num_of_children; count++) {
+    for (count = 0; count < container->num_children; count++) {
       if (vt_logical_visual_cursor_is_rtl(container->children[count])) {
         return 1;
       }

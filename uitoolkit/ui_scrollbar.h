@@ -38,9 +38,9 @@ typedef struct ui_scrollbar {
   u_int top_margin;    /* Button area */
   u_int bottom_margin; /* Button area */
   u_int line_height;
-  u_int num_of_scr_lines;
-  u_int num_of_log_lines;
-  u_int num_of_filled_log_lines;
+  u_int num_scr_lines;
+  u_int num_log_lines;
+  u_int num_filled_log_lines;
   int bar_top_y; /* Scrollbar position without button area */
   int y_on_bar;  /* Used in button_motion event handler */
   int current_row;
@@ -60,14 +60,14 @@ typedef struct ui_scrollbar {
 
 int ui_scrollbar_init(ui_scrollbar_t *sb, ui_scrollbar_event_listener_t *sb_listener,
                       char *view_name, char *fg_color, char *bg_color, u_int height,
-                      u_int line_height, u_int num_of_log_lines, u_int num_of_filled_log_lines,
+                      u_int line_height, u_int num_log_lines, u_int num_filled_log_lines,
                       int use_transbg, ui_picture_modifier_t *pic_mod);
 
 void ui_scrollbar_final(ui_scrollbar_t *sb);
 
-void ui_scrollbar_set_num_of_log_lines(ui_scrollbar_t *sb, u_int num_of_log_lines);
+void ui_scrollbar_set_num_log_lines(ui_scrollbar_t *sb, u_int num_log_lines);
 
-void ui_scrollbar_set_num_of_filled_log_lines(ui_scrollbar_t *sb, u_int num_of_filled_log_lines);
+void ui_scrollbar_set_num_filled_log_lines(ui_scrollbar_t *sb, u_int num_filled_log_lines);
 
 int ui_scrollbar_line_is_added(ui_scrollbar_t *sb);
 

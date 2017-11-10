@@ -60,7 +60,7 @@ static struct {
   u_int32_t max;
 
 } * unicode_areas;
-static u_int num_of_unicode_areas;
+static u_int num_unicode_areas;
 static u_int unicode_area_min;
 static u_int unicode_area_max;
 
@@ -201,7 +201,7 @@ int vt_get_unicode_area(vt_font_t font, int *min, int *max) {
   u_int idx;
 
   if (/* FONT_CS(font) == ISO10646_UCS4_1 && */ (idx = UNICODE_AREA(font)) &&
-      idx <= num_of_unicode_areas) {
+      idx <= num_unicode_areas) {
     *min = unicode_areas[idx - 1].min;
     *max = unicode_areas[idx - 1].max;
 
@@ -216,20 +216,20 @@ vt_font_t vt_get_unicode_area_font(u_int32_t min, /* min <= max */
   u_int idx;
   void *p;
 
-  for (idx = num_of_unicode_areas; idx > 0; idx--) {
+  for (idx = num_unicode_areas; idx > 0; idx--) {
     if (min == unicode_areas[idx - 1].min && max == unicode_areas[idx - 1].max) {
       return ISO10646_UCS4_1 | (idx << 12);
     }
   }
 
-  if (num_of_unicode_areas == 255 /* Max is 2^8-1 */ ||
-      !(p = realloc(unicode_areas, sizeof(*unicode_areas) * (num_of_unicode_areas + 1)))) {
+  if (num_unicode_areas == 255 /* Max is 2^8-1 */ ||
+      !(p = realloc(unicode_areas, sizeof(*unicode_areas) * (num_unicode_areas + 1)))) {
     bl_msg_printf("No more unicode areas.\n");
 
     return UNKNOWN_CS;
   }
 
-  if (num_of_unicode_areas == 0) {
+  if (num_unicode_areas == 0) {
     unicode_area_min = min;
     unicode_area_max = max;
   } else {
@@ -243,10 +243,10 @@ vt_font_t vt_get_unicode_area_font(u_int32_t min, /* min <= max */
   }
 
   unicode_areas = p;
-  unicode_areas[num_of_unicode_areas].min = min;
-  unicode_areas[num_of_unicode_areas++].max = max;
+  unicode_areas[num_unicode_areas].min = min;
+  unicode_areas[num_unicode_areas++].max = max;
 
-  return ISO10646_UCS4_1 | (num_of_unicode_areas << 12);
+  return ISO10646_UCS4_1 | (num_unicode_areas << 12);
 }
 
 void vt_set_blink_chars_visible(int visible) {
@@ -291,7 +291,7 @@ int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth
      * If code == 0, unicode_area_max == 0 and unicode_area_min == 0,
      * enter this block unexpectedly, but harmless.
      */
-    for (idx = num_of_unicode_areas; idx > 0; idx--) {
+    for (idx = num_unicode_areas; idx > 0; idx--) {
       if (unicode_areas[idx - 1].min <= code && code <= unicode_areas[idx - 1].max) {
         cs = idx;
         break;

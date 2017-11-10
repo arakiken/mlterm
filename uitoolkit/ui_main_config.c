@@ -625,7 +625,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
-  main_config->num_of_log_lines = 128;
+  main_config->num_log_lines = 128;
   main_config->unlimit_log_size = 0;
 
   if ((value = bl_conf_get_value(conf, "logsize"))) {
@@ -634,7 +634,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (strcmp(value, "unlimited") == 0) {
       main_config->unlimit_log_size = 1;
     } else if (bl_str_to_uint(&size, value)) {
-      main_config->num_of_log_lines = size;
+      main_config->num_log_lines = size;
     } else {
       bl_msg_printf(invalid_msg, "log size", value);
     }

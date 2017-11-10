@@ -8,7 +8,7 @@
 /* --- static variables --- */
 
 static ui_font_cache_t **font_caches;
-static u_int num_of_caches;
+static u_int num_caches;
 static int leftward_double_drawing;
 
 /* --- static functions --- */
@@ -108,7 +108,7 @@ static char *get_font_name_list_for_fontset(ui_font_cache_t *font_cache) {
 /* --- global functions --- */
 
 void ui_set_use_leftward_double_drawing(int use) {
-  if (num_of_caches > 0) {
+  if (num_caches > 0) {
     bl_msg_printf("Unable to change leftward_double_drawing option.\n");
   } else {
     leftward_double_drawing = use;
@@ -122,7 +122,7 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
   ui_font_cache_t *font_cache;
   void *p;
 
-  for (count = 0; count < num_of_caches; count++) {
+  for (count = 0; count < num_caches; count++) {
     if (font_caches[count]->display == display && font_caches[count]->font_size == font_size &&
         font_caches[count]->usascii_font_cs == usascii_font_cs &&
         font_caches[count]->font_config == font_config &&
@@ -133,7 +133,7 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
     }
   }
 
-  if ((p = realloc(font_caches, sizeof(ui_font_cache_t*) * (num_of_caches + 1))) == NULL) {
+  if ((p = realloc(font_caches, sizeof(ui_font_cache_t*) * (num_caches + 1))) == NULL) {
     return NULL;
   }
 
@@ -163,7 +163,7 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
     return NULL;
   }
 
-  return font_caches[num_of_caches++] = font_cache;
+  return font_caches[num_caches++] = font_cache;
 }
 
 void ui_release_font_cache(ui_font_cache_t *font_cache) {
@@ -173,14 +173,14 @@ void ui_release_font_cache(ui_font_cache_t *font_cache) {
     return;
   }
 
-  for (count = 0; count < num_of_caches; count++) {
+  for (count = 0; count < num_caches; count++) {
     if (font_caches[count] == font_cache) {
-      font_caches[count] = font_caches[--num_of_caches];
+      font_caches[count] = font_caches[--num_caches];
 
       xfont_table_delete(font_cache->xfont_table, NULL);
       free(font_cache);
 
-      if (num_of_caches == 0) {
+      if (num_caches == 0) {
         free(font_caches);
         font_caches = NULL;
       }
@@ -226,7 +226,7 @@ void ui_font_cache_unload(ui_font_cache_t *font_cache) {
 void ui_font_cache_unload_all(void) {
   u_int count;
 
-  for (count = 0; count < num_of_caches; count++) {
+  for (count = 0; count < num_caches; count++) {
     ui_font_cache_unload(font_caches[count]);
   }
 }

@@ -83,7 +83,7 @@ int ui_load_decsp_xfont(XFontStruct *xfont, const char *decsp_id) {
   xfont->ascent = height - height / 6;
   xfont->min_char_or_byte2 = 0x1;
   xfont->max_char_or_byte2 = 0x1e;
-  xfont->num_of_glyphs = 30;
+  xfont->num_glyphs = 30;
   glyph_size = xfont->glyph_width_bytes * height;
   xfont->glyphs = calloc(30, glyph_size);
   xfont->glyph_offsets = calloc(30, sizeof(xfont->glyph_offsets[0]));

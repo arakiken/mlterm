@@ -180,7 +180,7 @@ static void cb_preedit_caret(IMEngineInstanceBase *instance, int caret) {
 
 static void cb_lookup_update(IMEngineInstanceBase *instance, const LookupTable &table) {
   im_scim_context_private_t *context;
-  int num_of_candiate;
+  int num_candiate;
   int index;
   char **str;
   int i;
@@ -195,19 +195,19 @@ static void cb_lookup_update(IMEngineInstanceBase *instance, const LookupTable &
     return;
   }
 
-  num_of_candiate = table.get_current_page_size();
+  num_candiate = table.get_current_page_size();
   index = table.get_cursor_pos_in_current_page();
 
-  str = new char *[num_of_candiate];
+  str = new char *[num_candiate];
 
-  for (i = 0; i < num_of_candiate; i++) {
+  for (i = 0; i < num_candiate; i++) {
     str[i] = strdup(C_STR(table.get_candidate_in_current_page(i)));
   }
 
-  (*context->cb->candidate_update)(context->self, is_vertical_lookup ? 1 : 0, num_of_candiate, str,
+  (*context->cb->candidate_update)(context->self, is_vertical_lookup ? 1 : 0, num_candiate, str,
                                    index);
 
-  for (i = 0; i < num_of_candiate; i++) {
+  for (i = 0; i < num_candiate; i++) {
     free(str[i]);
   }
 

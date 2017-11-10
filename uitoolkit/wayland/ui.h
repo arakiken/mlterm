@@ -204,7 +204,7 @@ typedef struct _XFontStruct {
   int32_t format; /* XXX (fontsize|FONT_BOLD|FONT_ITALIC) on freetype. */
 #endif
 
-  int32_t num_of_glyphs;
+  int32_t num_glyphs;
   unsigned char *glyphs;
 
   int32_t glyph_width_bytes;
@@ -230,7 +230,7 @@ typedef struct _XFontStruct {
 #ifdef USE_FREETYPE
   /* for freetype */
   void *face;
-  u_int32_t num_of_indeces;
+  u_int32_t num_indeces;
   u_int32_t glyph_size;
   int is_aa;
 

@@ -18,7 +18,7 @@
  */
 typedef struct ui_im_preedit {
   vt_char_t *chars;
-  u_int num_of_chars; /* == array size */
+  u_int num_chars; /* == array size */
   u_int filled_len;
 
   int segment_offset;

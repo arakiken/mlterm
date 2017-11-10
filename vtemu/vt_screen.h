@@ -95,7 +95,7 @@ int vt_get_regard_uri_as_word(void);
 
 #define vt_free_word_separators() vt_set_word_separators(NULL)
 
-vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_of_log_lines,
+vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_log_lines,
                            int use_bce, vt_bs_mode_t bs_mode);
 
 int vt_screen_delete(vt_screen_t *screen);
@@ -149,7 +149,7 @@ u_int vt_screen_get_logical_rows(vt_screen_t *screen);
 
 #define vt_screen_log_size_is_unlimited(screen) vt_log_size_is_unlimited(&(screen)->logs)
 
-#define vt_screen_get_num_of_logged_lines(screen) vt_get_num_of_logged_lines(&(screen)->logs)
+#define vt_screen_get_num_logged_lines(screen) vt_get_num_logged_lines(&(screen)->logs)
 
 int vt_screen_convert_scr_row_to_abs(vt_screen_t *screen, int row);
 
@@ -205,7 +205,7 @@ int vt_screen_restore_color(vt_screen_t *screen, int beg_char_index, int beg_row
 int vt_screen_reverse_color(vt_screen_t *screen, int beg_char_index, int beg_row,
                             int end_char_index, int end_row, int is_rect);
 
-u_int vt_screen_copy_region(vt_screen_t *screen, vt_char_t *chars, u_int num_of_chars,
+u_int vt_screen_copy_region(vt_screen_t *screen, vt_char_t *chars, u_int num_chars,
                             int beg_char_index, int beg_row, int end_char_index, int end_row,
                             int is_rect);
 
@@ -366,21 +366,21 @@ int vt_screen_local_echo_wait(vt_screen_t *screen, int msec);
 int vt_screen_disable_local_echo(vt_screen_t *screen);
 
 void vt_screen_fill_area(vt_screen_t *screen, int code, int is_protected, int col, int beg,
-                         u_int num_of_cols, u_int num_of_rows);
+                         u_int num_cols, u_int num_rows);
 
-void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_of_copy_cols,
-                         u_int num_of_copy_rows, u_int src_page,
+void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_copy_cols,
+                         u_int num_copy_rows, u_int src_page,
                          int dst_col, int dst_row, u_int dst_page);
 
-#define vt_screen_erase_area(screen, col, row, num_of_cols, num_of_rows) \
-  vt_edit_erase_area((screen)->edit, col, row, num_of_cols, num_of_rows)
+#define vt_screen_erase_area(screen, col, row, num_cols, num_rows) \
+  vt_edit_erase_area((screen)->edit, col, row, num_cols, num_rows)
 
-#define vt_screen_change_attr_area(screen, col, row, num_of_cols, num_of_rows, attr) \
-  vt_edit_change_attr_area((screen)->edit, col, row, num_of_cols, num_of_rows,       \
+#define vt_screen_change_attr_area(screen, col, row, num_cols, num_rows, attr) \
+  vt_edit_change_attr_area((screen)->edit, col, row, num_cols, num_rows,       \
                            vt_char_change_attr, attr)
 
-#define vt_screen_reverse_attr_area(screen, col, row, num_of_cols, num_of_rows, attr) \
-  vt_edit_change_attr_area((screen)->edit, col, row, num_of_cols, num_of_rows,        \
+#define vt_screen_reverse_attr_area(screen, col, row, num_cols, num_rows, attr) \
+  vt_edit_change_attr_area((screen)->edit, col, row, num_cols, num_rows,        \
                            vt_char_reverse_attr, attr)
 
 #define vt_screen_set_use_rect_attr_select(screen, use) \

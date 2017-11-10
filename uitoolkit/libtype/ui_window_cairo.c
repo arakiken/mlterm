@@ -17,7 +17,7 @@ int ui_search_next_cairo_font(ui_font_t *font, int ch);
 
 /* --- static functions --- */
 
-static void adjust_glyphs(ui_font_t *font, cairo_glyph_t *glyphs, int num_of_glyphs) {
+static void adjust_glyphs(ui_font_t *font, cairo_glyph_t *glyphs, int num_glyphs) {
   if (!font->is_var_col_width) {
     int count;
     double prev_x;
@@ -26,7 +26,7 @@ static void adjust_glyphs(ui_font_t *font, cairo_glyph_t *glyphs, int num_of_gly
 
     adjust = 0;
     prev_x = glyphs[0].x;
-    for (count = 1; count < num_of_glyphs; count++) {
+    for (count = 1; count < num_glyphs; count++) {
       int w;
 
       w = glyphs[count].x - prev_x;
@@ -143,7 +143,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
 #endif
   {
     static cairo_glyph_t *glyphs;
-    static int num_of_glyphs;
+    static int num_glyphs;
     cairo_glyph_t *orig_glyphs;
     u_char *str2;
 
@@ -157,20 +157,20 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
     str2[str_len] = ' '; /* dummy */
     str2[str_len + 1] = '\0';
 
-    if (cairo_scaled_font_text_to_glyphs(xfont, x, y, str2, str_len + 1, &glyphs, &num_of_glyphs,
+    if (cairo_scaled_font_text_to_glyphs(xfont, x, y, str2, str_len + 1, &glyphs, &num_glyphs,
                                          NULL, NULL, NULL) == CAIRO_STATUS_SUCCESS) {
-      adjust_glyphs(font, glyphs, num_of_glyphs);
-      num_of_glyphs--; /* remove dummy */
-      cairo_show_glyphs(cr, glyphs, num_of_glyphs);
+      adjust_glyphs(font, glyphs, num_glyphs);
+      num_glyphs--; /* remove dummy */
+      cairo_show_glyphs(cr, glyphs, num_glyphs);
 
       if (double_draw_gap) {
         int count;
 
-        for (count = 0; count < num_of_glyphs; count++) {
+        for (count = 0; count < num_glyphs; count++) {
           glyphs[count].x += double_draw_gap;
         }
 
-        cairo_show_glyphs(cr, glyphs, num_of_glyphs);
+        cairo_show_glyphs(cr, glyphs, num_glyphs);
       }
     }
 
@@ -178,8 +178,8 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
       cairo_glyph_free(orig_glyphs);
     }
 
-    if (num_of_glyphs > 0) {
-      drawn_x = glyphs[num_of_glyphs].x;
+    if (num_glyphs > 0) {
+      drawn_x = glyphs[num_glyphs].x;
     } else {
       drawn_x = 0;
     }

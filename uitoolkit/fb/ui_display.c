@@ -183,7 +183,7 @@ static struct cursor_shape {
 static inline ui_window_t *get_window_intern(ui_window_t *win, int x, int y) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_t *child;
 
     if ((child = win->children[count])->is_mapped) {
@@ -499,7 +499,7 @@ static void restore_hidden_region(void) {
     size_t width;
     u_char *saved;
     int plane;
-    int num_of_planes;
+    int num_planes;
     u_char *fb;
     u_int count;
 
@@ -507,12 +507,12 @@ static void restore_hidden_region(void) {
     saved = _mouse.saved_image;
 
     if (_display.pixels_per_byte == 8) {
-      num_of_planes = _disp.depth;
+      num_planes = _disp.depth;
     } else {
-      num_of_planes = 1;
+      num_planes = 1;
     }
 
-    for (plane = 0; plane < num_of_planes; plane++) {
+    for (plane = 0; plane < num_planes; plane++) {
       fb = get_fb(_mouse.cursor.x, _mouse.cursor.y) + _display.plane_offset[plane];
 
       for (count = 0; count < _mouse.cursor.height; count++) {
@@ -561,7 +561,7 @@ static void save_hidden_region(void) {
   size_t width;
   u_char *saved;
   int plane;
-  int num_of_planes;
+  int num_planes;
   u_char *fb;
   u_int count;
 
@@ -569,12 +569,12 @@ static void save_hidden_region(void) {
   saved = _mouse.saved_image;
 
   if (_display.pixels_per_byte == 8) {
-    num_of_planes = _disp.depth;
+    num_planes = _disp.depth;
   } else {
-    num_of_planes = 1;
+    num_planes = 1;
   }
 
-  for (plane = 0; plane < num_of_planes; plane++) {
+  for (plane = 0; plane < num_planes; plane++) {
     fb = get_fb(_mouse.cursor.x, _mouse.cursor.y) + _display.plane_offset[plane];
 
     for (count = 0; count < _mouse.cursor.height; count++) {
@@ -734,7 +734,7 @@ static void expose_display(int x, int y, u_int width, u_int height) {
 
   expose_window(_disp.roots[0], x, y, width, height);
 
-  for (count = 0; count < _disp.roots[0]->num_of_children; count++) {
+  for (count = 0; count < _disp.roots[0]->num_children; count++) {
     expose_window(_disp.roots[0]->children[count], x, y, width, height);
   }
 
@@ -755,9 +755,9 @@ static int check_visibility_of_im_window(void) {
   int redraw_im_win = 0;
 
 #ifdef DEBUG
-  if (_disp.num_of_roots > 2) {
+  if (_disp.num_roots > 2) {
     bl_debug_printf(BL_DEBUG_TAG" Multiple IM Windows (%d) are activated.\n",
-                    _disp.num_of_roots - 1);
+                    _disp.num_roots - 1);
   }
 #endif
 
@@ -802,7 +802,7 @@ static void receive_event_for_multi_roots(XEvent *xev) {
 
   ui_window_receive_event(_disp.roots[0], xev);
 
-  if (redraw_im_win && _disp.num_of_roots == 2) {
+  if (redraw_im_win && _disp.num_roots == 2) {
     /* Restart drawing input method window */
     _disp.roots[1]->is_mapped = 1;
   } else if (!check_visibility_of_im_window()) {
@@ -1031,10 +1031,10 @@ static int receive_stdin_key_event(void) {
 
 #endif /* __FreeBSD__ */
 
-static fb_cmap_t *cmap_new(int num_of_colors) {
+static fb_cmap_t *cmap_new(int num_colors) {
   fb_cmap_t *cmap;
 
-  if (!(cmap = malloc(sizeof(*cmap) + sizeof(*(cmap->red)) * num_of_colors * 3))) {
+  if (!(cmap = malloc(sizeof(*cmap) + sizeof(*(cmap->red)) * num_colors * 3))) {
     return NULL;
   }
 
@@ -1047,10 +1047,10 @@ static fb_cmap_t *cmap_new(int num_of_colors) {
   cmap->start = 0;
   cmap->transp = NULL;
 #endif
-  CMAP_SIZE(cmap) = num_of_colors;
+  CMAP_SIZE(cmap) = num_colors;
   cmap->red = cmap + 1;
-  cmap->green = cmap->red + num_of_colors;
-  cmap->blue = cmap->green + num_of_colors;
+  cmap->green = cmap->red + num_colors;
+  cmap->blue = cmap->green + num_colors;
 
   return cmap;
 }
@@ -1061,7 +1061,7 @@ static fb_cmap_t *cmap_new(int num_of_colors) {
  * on NetBSD/luna68k etc.
  */
 static int cmap_init(void) {
-  int num_of_colors;
+  int num_colors;
   vt_color_t color;
   u_int8_t r;
   u_int8_t g;
@@ -1071,16 +1071,16 @@ static int cmap_init(void) {
                               0xaa, 0xaa, 0xaa, 0xff, 0xff, 0xff};
   u_char *rgb_tbl;
 
-  num_of_colors = (2 << (_disp.depth - 1));
+  num_colors = (2 << (_disp.depth - 1));
 
   if (!_display.cmap) {
 #ifndef USE_GRF
-    if (num_of_colors > 2) {
+    if (num_colors > 2) {
       /*
-       * Not get the current cmap because num_of_colors == 2 doesn't
+       * Not get the current cmap because num_colors == 2 doesn't
        * conform the actual depth (1,2,4).
        */
-      if (!(_display.cmap_orig = cmap_new(num_of_colors))) {
+      if (!(_display.cmap_orig = cmap_new(num_colors))) {
         return 0;
       }
 
@@ -1093,7 +1093,7 @@ static int cmap_init(void) {
     }
 #endif
 
-    if (!(_display.cmap = cmap_new(num_of_colors))) {
+    if (!(_display.cmap = cmap_new(num_colors))) {
       free(_display.cmap_orig);
 
       return 0;
@@ -1107,15 +1107,15 @@ static int cmap_init(void) {
     }
   }
 
-  if (num_of_colors == 2) {
+  if (num_colors == 2) {
     rgb_tbl = rgb_1bpp;
-  } else if (num_of_colors == 4) {
+  } else if (num_colors == 4) {
     rgb_tbl = rgb_2bpp;
   } else {
     rgb_tbl = NULL;
   }
 
-  for (color = 0; color < num_of_colors; color++) {
+  for (color = 0; color < num_colors; color++) {
     if (rgb_tbl) {
       r = rgb_tbl[color * 3];
       g = rgb_tbl[color * 3 + 1];
@@ -1292,7 +1292,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
                          ) {
   void *p;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_of_roots + 1))) == NULL) {
+  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_roots + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -1313,7 +1313,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     root->app_name = app_name;
   }
 
-  disp->roots[disp->num_of_roots++] = root;
+  disp->roots[disp->num_roots++] = root;
 
   /* Cursor is drawn internally by calling ui_display_put_image2(). */
   if (!ui_window_show(root, hint)) {
@@ -1332,7 +1332,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
 /* XXX ui_window_unmap resize all windows internally. */
 #if 0
@@ -1340,12 +1340,12 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 #endif
       ui_window_final(root);
 
-      disp->num_of_roots--;
+      disp->num_roots--;
 
-      if (count == disp->num_of_roots) {
+      if (count == disp->num_roots) {
         disp->roots[count] = NULL;
       } else {
-        disp->roots[count] = disp->roots[disp->num_of_roots];
+        disp->roots[count] = disp->roots[disp->num_roots];
       }
 
       return 1;
@@ -1358,7 +1358,7 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 void ui_display_idling(ui_display_t *disp) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     ui_window_idling(disp->roots[count]);
   }
 }
@@ -1512,7 +1512,7 @@ void ui_display_rotate(int rotate /* 1: clockwise, -1: counterclockwise */
 
     rotate_display = rotate;
 
-    if (_disp.num_of_roots > 0) {
+    if (_disp.num_roots > 0) {
       ui_window_resize_with_margin(_disp.roots[0], _disp.width, _disp.height, NOTIFY_TO_MYSELF);
     }
   } else {
@@ -1520,7 +1520,7 @@ void ui_display_rotate(int rotate /* 1: clockwise, -1: counterclockwise */
 
     rotate_display = rotate;
 
-    if (_disp.num_of_roots > 0) {
+    if (_disp.num_roots > 0) {
       ui_window_update_all(_disp.roots[0]);
     }
   }
@@ -1829,7 +1829,7 @@ void ui_display_copy_lines2(int src_x, int src_y, int dst_x, int dst_y, u_int wi
   u_char *dst;
   u_int copy_len;
   u_int count;
-  int num_of_planes;
+  int num_planes;
   int plane;
 
   /* XXX cheap implementation. */
@@ -1865,12 +1865,12 @@ void ui_display_copy_lines2(int src_x, int src_y, int dst_x, int dst_y, u_int wi
   copy_len = FB_WIDTH_BYTES(&_display, src_x, width);
 
   if (_display.pixels_per_byte == 8) {
-    num_of_planes = _disp.depth;
+    num_planes = _disp.depth;
   } else {
-    num_of_planes = 1;
+    num_planes = 1;
   }
 
-  for (plane = 0; plane < num_of_planes; plane++) {
+  for (plane = 0; plane < num_planes; plane++) {
     if (src_y <= dst_y) {
       src = get_fb(src_x, src_y + height - 1) + _display.plane_offset[plane];
       dst = get_fb(dst_x, dst_y + height - 1) + _display.plane_offset[plane];

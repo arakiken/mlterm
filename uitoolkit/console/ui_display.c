@@ -39,7 +39,7 @@
 /* --- static variables --- */
 
 static ui_display_t **displays;
-static u_int num_of_displays;
+static u_int num_displays;
 
 static struct termios orig_tm;
 
@@ -125,7 +125,7 @@ static void sig_winch(int sig) {
   /* XXX */
   ui_font_cache_unload_all();
 
-  for (count = 0; count < displays[0]->num_of_roots; count++) {
+  for (count = 0; count < displays[0]->num_roots; count++) {
     ui_window_resize_with_margin(displays[0]->roots[count], displays[0]->width, displays[0]->height,
                                  NOTIFY_TO_MYSELF);
   }
@@ -136,22 +136,22 @@ static void sig_winch(int sig) {
 static ui_display_t *open_display_socket(int fd) {
   void *p;
 
-  if (!(p = realloc(displays, sizeof(ui_display_t *) * (num_of_displays + 1)))) {
+  if (!(p = realloc(displays, sizeof(ui_display_t *) * (num_displays + 1)))) {
     return NULL;
   }
 
   displays = p;
 
-  if (!(displays[num_of_displays] = calloc(1, sizeof(ui_display_t))) ||
-      !(displays[num_of_displays]->display = calloc(1, sizeof(Display)))) {
-    free(displays[num_of_displays]);
+  if (!(displays[num_displays] = calloc(1, sizeof(ui_display_t))) ||
+      !(displays[num_displays]->display = calloc(1, sizeof(Display)))) {
+    free(displays[num_displays]);
 
     return NULL;
   }
 
-  if (!(displays[num_of_displays]->display->fp = fdopen(fd, "w"))) {
-    free(displays[num_of_displays]->display);
-    free(displays[num_of_displays]);
+  if (!(displays[num_displays]->display->fp = fdopen(fd, "w"))) {
+    free(displays[num_displays]->display);
+    free(displays[num_displays]);
 
     return NULL;
   }
@@ -169,12 +169,12 @@ static ui_display_t *open_display_socket(int fd) {
   write(fd, "\x1b[?1002h\x1b[?1006h", 16);
   write(fd, "\x1b[>c", 4);
 
-  displays[num_of_displays]->display->conv = vt_char_encoding_conv_new(encoding);
-  vt_char_encoding_conv_set_use_loose_rule(displays[num_of_displays]->display->conv, encoding, 1);
+  displays[num_displays]->display->conv = vt_char_encoding_conv_new(encoding);
+  vt_char_encoding_conv_set_use_loose_rule(displays[num_displays]->display->conv, encoding, 1);
 
-  set_winsize(displays[num_of_displays], "8;24;80;4;384;640t");
+  set_winsize(displays[num_displays], "8;24;80;4;384;640t");
 
-  return displays[num_of_displays++];
+  return displays[num_displays++];
 }
 
 static ui_display_t *open_display_console(void) {
@@ -182,7 +182,7 @@ static ui_display_t *open_display_console(void) {
   struct termios tio;
   int fd;
 
-  if (num_of_displays > 0 || !isatty(STDIN_FILENO) ||
+  if (num_displays > 0 || !isatty(STDIN_FILENO) ||
       !(p = realloc(displays, sizeof(ui_display_t *)))) {
     return NULL;
   }
@@ -240,7 +240,7 @@ static ui_display_t *open_display_console(void) {
 
   signal(SIGWINCH, sig_winch);
 
-  return displays[num_of_displays++];
+  return displays[num_displays++];
 }
 
 #ifdef __linux__
@@ -267,7 +267,7 @@ static int get_key_state(void) {
 static inline ui_window_t *get_window_intern(ui_window_t *win, int x, int y) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_t *child;
 
     if ((child = win->children[count])->is_mapped) {
@@ -344,7 +344,7 @@ static void expose_display(ui_display_t *disp, int x, int y, u_int width, u_int 
 
   expose_window(disp->roots[0], x, y, width, height);
 
-  for (count = 0; count < disp->roots[0]->num_of_children; count++) {
+  for (count = 0; count < disp->roots[0]->num_children; count++) {
     expose_window(disp->roots[0]->children[count], x, y, width, height);
   }
 }
@@ -361,9 +361,9 @@ static int check_visibility_of_im_window(ui_display_t *disp) {
   int redraw_im_win = 0;
 
 #ifdef DEBUG
-  if (disp->num_of_roots > 2) {
+  if (disp->num_roots > 2) {
     bl_debug_printf(BL_DEBUG_TAG" Multiple IM Windows (%d) are activated.\n",
-                    disp->num_of_roots - 1);
+                    disp->num_roots - 1);
   }
 #endif
 
@@ -408,7 +408,7 @@ static void receive_event_for_multi_roots(ui_display_t *disp, XEvent *xev) {
 
   ui_window_receive_event(disp->roots[0], xev);
 
-  if (redraw_im_win && disp->num_of_roots == 2) {
+  if (redraw_im_win && disp->num_roots == 2) {
     /* Restart drawing input method window */
     disp->roots[1]->is_mapped = 1;
   } else if (!check_visibility_of_im_window(disp)) {
@@ -499,7 +499,7 @@ static int receive_stdin_event(ui_display_t *disp) {
   if (!receive_stdin(disp->display)) {
     u_int count;
 
-    for (count = disp->num_of_roots; count > 0; count--) {
+    for (count = disp->num_roots; count > 0; count--) {
       if (disp->roots[count - 1]->window_deleted) {
         (*disp->roots[count - 1]->window_deleted)(disp->roots[count - 1]);
       }
@@ -660,7 +660,7 @@ static int receive_stdin_event(ui_display_t *disp) {
           /* XXX */
           ui_font_cache_unload_all();
 
-          for (count = 0; count < disp->num_of_roots; count++) {
+          for (count = 0; count < disp->num_roots; count++) {
             ui_window_resize_with_margin(disp->roots[count], disp->width, disp->height,
                                          NOTIFY_TO_MYSELF);
           }
@@ -876,11 +876,11 @@ void ui_display_close(ui_display_t *disp) {
   fclose(disp->display->fp);
   (*disp->display->conv->delete)(disp->display->conv);
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count] == disp) {
       memcpy(displays + count, displays + count + 1,
-             sizeof(ui_display_t *) * (num_of_displays - count - 1));
-      num_of_displays--;
+             sizeof(ui_display_t *) * (num_displays - count - 1));
+      num_displays--;
 
       break;
     }
@@ -890,7 +890,7 @@ void ui_display_close(ui_display_t *disp) {
 void ui_display_close_all(void) {
   u_int count;
 
-  for (count = num_of_displays; count > 0; count--) {
+  for (count = num_displays; count > 0; count--) {
     ui_display_close(displays[count - 1]);
   }
 
@@ -899,7 +899,7 @@ void ui_display_close_all(void) {
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {
-  *num = num_of_displays;
+  *num = num_displays;
 
   return displays;
 }
@@ -911,7 +911,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
                          ) {
   void *p;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_of_roots + 1))) == NULL) {
+  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_roots + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -932,7 +932,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     root->app_name = app_name;
   }
 
-  disp->roots[disp->num_of_roots++] = root;
+  disp->roots[disp->num_roots++] = root;
 
   /* Cursor is drawn internally by calling ui_display_put_image(). */
   if (!ui_window_show(root, hint)) {
@@ -945,7 +945,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
 /* XXX ui_window_unmap resizes all windows internally. */
 #if 0
@@ -953,12 +953,12 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 #endif
       ui_window_final(root);
 
-      disp->num_of_roots--;
+      disp->num_roots--;
 
-      if (count == disp->num_of_roots) {
+      if (count == disp->num_roots) {
         disp->roots[count] = NULL;
       } else {
-        disp->roots[count] = disp->roots[disp->num_of_roots];
+        disp->roots[count] = disp->roots[disp->num_roots];
       }
 
       return 1;
@@ -971,7 +971,7 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 void ui_display_idling(ui_display_t *disp) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     ui_window_idling(disp->roots[count]);
   }
 }
@@ -997,7 +997,7 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
   if (disp == NULL) {
     u_int count;
 
-    for (count = 0; count < num_of_displays; count++) {
+    for (count = 0; count < num_displays; count++) {
       ui_display_clear_selection(displays[count], displays[count]->selection_owner);
     }
 

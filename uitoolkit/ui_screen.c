@@ -342,7 +342,7 @@ static int draw_line(ui_screen_t *screen, vt_line_t *line, int y) {
     ret = 1;
   } else {
     int beg_char_index;
-    u_int num_of_redrawn;
+    u_int num_redrawn;
     int is_cleared_to_end;
     vt_line_t *orig;
     ui_font_present_t present;
@@ -358,10 +358,10 @@ static int draw_line(ui_screen_t *screen, vt_line_t *line, int y) {
     }
 
     beg_char_index = vt_line_get_beg_of_modified(line);
-    num_of_redrawn = vt_line_get_num_of_redrawn_chars(line, is_cleared_to_end);
+    num_redrawn = vt_line_get_num_redrawn_chars(line, is_cleared_to_end);
 
     if ((present & FONT_VAR_WIDTH) && vt_line_is_rtl(line)) {
-      num_of_redrawn += beg_char_index;
+      num_redrawn += beg_char_index;
       beg_char_index = 0;
     }
 
@@ -376,14 +376,14 @@ static int draw_line(ui_screen_t *screen, vt_line_t *line, int y) {
         ui_window_clear(&screen->window, 0, y, beg_x, ui_line_height(screen));
 
         if (!ui_draw_str(&screen->window, screen->font_man, screen->color_man,
-                         vt_char_at(line, beg_char_index), num_of_redrawn, beg_x, y,
+                         vt_char_at(line, beg_char_index), num_redrawn, beg_x, y,
                          ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
                          screen->hide_underline, screen->underline_offset)) {
           goto end;
         }
       } else {
         if (!ui_draw_str_to_eol(&screen->window, screen->font_man, screen->color_man,
-                                vt_char_at(line, beg_char_index), num_of_redrawn, beg_x, y,
+                                vt_char_at(line, beg_char_index), num_redrawn, beg_x, y,
                                 ui_line_height(screen), ui_line_ascent(screen),
                                 line_top_margin(screen), screen->hide_underline,
                                 screen->underline_offset)) {
@@ -392,7 +392,7 @@ static int draw_line(ui_screen_t *screen, vt_line_t *line, int y) {
       }
     } else {
       if (!ui_draw_str(&screen->window, screen->font_man, screen->color_man,
-                       vt_char_at(line, beg_char_index), num_of_redrawn, beg_x, y,
+                       vt_char_at(line, beg_char_index), num_redrawn, beg_x, y,
                        ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
                        screen->hide_underline, screen->underline_offset)) {
         goto end;
@@ -2620,7 +2620,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
 
       for (count = col; count >= 0; count--) {
         if ((line = vt_term_get_line_in_screen(screen->term, count)) &&
-            row < line->num_of_filled_chars && vt_char_cols(&line->chars[row]) > 1) {
+            row < line->num_filled_chars && vt_char_cols(&line->chars[row]) > 1) {
           col++;
         }
       }
@@ -2760,7 +2760,7 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
   }
 
   if (y < 0) {
-    if (vt_term_get_num_of_logged_lines(screen->term) > 0) {
+    if (vt_term_get_num_logged_lines(screen->term) > 0) {
       if (!vt_term_is_backscrolling(screen->term)) {
         enter_backscroll_mode(screen);
       }
@@ -2795,7 +2795,7 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
     char_index = vt_convert_char_index_to_col(line, char_index, 0);
 
     if (vt_line_is_rtl(line)) {
-      char_index += (vt_term_get_cols(screen->term) - vt_line_get_num_of_filled_cols(line));
+      char_index += (vt_term_get_cols(screen->term) - vt_line_get_num_filled_cols(line));
       char_index -= (ui_rest / ui_col_width(screen));
     } else {
       char_index += (ui_rest / ui_col_width(screen));
@@ -4512,13 +4512,13 @@ static void line_scrolled_out(void *p) {
    * Note that scrolled out line hasn't been added to vt_logs_t yet here.
    * (see receive_scrolled_out_line() in vt_screen.c)
    */
-  if (vt_term_get_num_of_logged_lines(screen->term) >= -INLINEPIC_AVAIL_ROW) {
+  if (vt_term_get_num_logged_lines(screen->term) >= -INLINEPIC_AVAIL_ROW) {
     vt_line_t *line;
 
     if ((line = vt_term_get_line(screen->term, INLINEPIC_AVAIL_ROW))) {
       int count;
 
-      for (count = 0; count < line->num_of_filled_chars; count++) {
+      for (count = 0; count < line->num_filled_chars; count++) {
         vt_char_t *ch;
 
         if ((ch = vt_get_picture_char(line->chars + count))) {
@@ -4695,7 +4695,7 @@ static int is_vertical(void *p) {
   }
 }
 
-static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int cursor_offset) {
+static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cursor_offset) {
   ui_screen_t *screen;
   vt_line_t *line;
   ui_font_t *xfont;
@@ -4724,7 +4724,7 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int 
     screen->im = im;
   }
 
-  if (!num_of_chars) {
+  if (!num_chars) {
     screen->is_preediting = 0;
 
     return;
@@ -4776,7 +4776,7 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int 
 
   ui_font_manager_set_attr(screen->font_man, line->size_attr, 0);
 
-  for (i = 0, start = 0; i < num_of_chars; i++) {
+  for (i = 0, start = 0; i < num_chars; i++) {
     u_int width;
     int need_wraparound = 0;
     int _x;
@@ -4857,7 +4857,7 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int 
       continue;
     }
 
-    if (i == num_of_chars - 1) /* last? */
+    if (i == num_chars - 1) /* last? */
     {
       if (!ui_draw_str(&screen->window, screen->font_man, screen->color_man, &chars[start],
                        i - start + 1, x, y, ui_line_height(screen), ui_line_ascent(screen),
@@ -4868,7 +4868,7 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_of_chars, int 
     }
   }
 
-  if (cursor_offset == num_of_chars) {
+  if (cursor_offset == num_chars) {
     if (!vt_term_get_vertical_mode(screen->term)) {
       if ((preedit_cursor_x = x + total_width) == screen->width) {
         preedit_cursor_x--;
@@ -5375,8 +5375,8 @@ static int xterm_get_window_size(void *p, u_int *width, u_int *height) {
 }
 
 #ifndef NO_IMAGE
-static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_of_cols, /* can be 0 */
-                                         int *num_of_rows,                           /* can be 0 */
+static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols, /* can be 0 */
+                                         int *num_rows,                           /* can be 0 */
                                          u_int32_t **sixel_palette) {
   ui_screen_t *screen;
   u_int width;
@@ -5391,8 +5391,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_of_c
     return NULL;
   }
 
-  width = (*num_of_cols) *(col_width = ui_col_width(screen));
-  height = (*num_of_rows) *(line_height = ui_line_height(screen));
+  width = (*num_cols) *(col_width = ui_col_width(screen));
+  height = (*num_rows) *(line_height = ui_line_height(screen));
 
   if (sixel_palette) {
     *sixel_palette = ui_set_custom_sixel_palette(*sixel_palette);
@@ -5401,29 +5401,29 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_of_c
   if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
                                     line_height, screen->term)) != -1) {
     vt_char_t *buf;
-    int max_num_of_cols;
+    int max_num_cols;
 
     screen->prev_inline_pic = idx;
 
-    max_num_of_cols =
-        vt_term_get_cursor_line(screen->term)->num_of_chars - vt_term_cursor_col(screen->term);
-    if ((*num_of_cols = (width + col_width - 1) / col_width) > max_num_of_cols) {
-      *num_of_cols = max_num_of_cols;
+    max_num_cols =
+        vt_term_get_cursor_line(screen->term)->num_chars - vt_term_cursor_col(screen->term);
+    if ((*num_cols = (width + col_width - 1) / col_width) > max_num_cols) {
+      *num_cols = max_num_cols;
     }
 
-    *num_of_rows = (height + line_height - 1) / line_height;
+    *num_rows = (height + line_height - 1) / line_height;
 
-    if ((buf = vt_str_new((*num_of_cols) * (*num_of_rows)))) {
+    if ((buf = vt_str_new((*num_cols) * (*num_rows)))) {
       vt_char_t *buf_p;
       int col;
       int row;
 
       buf_p = buf;
-      for (row = 0; row < *num_of_rows; row++) {
-        for (col = 0; col < *num_of_cols; col++) {
+      for (row = 0; row < *num_rows; row++) {
+        for (col = 0; col < *num_cols; col++) {
           vt_char_copy(buf_p, vt_sp_ch());
 
-          vt_char_combine_picture(buf_p++, idx, MAKE_INLINEPIC_POS(col, row, *num_of_rows));
+          vt_char_combine_picture(buf_p++, idx, MAKE_INLINEPIC_POS(col, row, *num_rows));
         }
       }
 
@@ -5500,8 +5500,8 @@ static void xterm_show_sixel(void *p, char *file_path) {
 #define xterm_show_sixel NULL
 #endif
 
-static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_of_cols,
-                                         int *num_of_rows) {
+static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_cols,
+                                         int *num_rows) {
   ui_screen_t *screen;
   u_int width;
   u_int height;
@@ -5515,8 +5515,8 @@ static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_of_c
     return;
   }
 
-  width = (*num_of_cols) *(col_width = ui_col_width(screen));
-  height = (*num_of_rows) *(line_height = ui_line_height(screen));
+  width = (*num_cols) *(col_width = ui_col_width(screen));
+  height = (*num_rows) *(line_height = ui_line_height(screen));
 
   if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
                                     line_height, screen->term)) != -1 &&
@@ -5911,7 +5911,7 @@ int ui_screen_attach(ui_screen_t *screen, vt_term_t *term) {
   if (HAS_SCROLL_LISTENER(screen, term_changed)) {
     (*screen->screen_scroll_listener->term_changed)(screen->screen_scroll_listener->self,
                                                     vt_term_get_log_size(screen->term),
-                                                    vt_term_get_num_of_logged_lines(screen->term));
+                                                    vt_term_get_num_logged_lines(screen->term));
   }
 
   /*

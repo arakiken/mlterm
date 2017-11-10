@@ -52,7 +52,7 @@ static pid_t myself = -1;
 static pid_t pty_helper_pid = -1;
 static int pty_helper_tunnel = -1;
 static pty_helper_tag_t *pty_helper_tags = NULL;
-static u_int num_of_pty_helper_tags;
+static u_int num_pty_helper_tags;
 static GnomePtyOps pty_helper_open_ops = GNOME_PTY_OPEN_PTY_UTMP;
 
 /* --- static functions --- */
@@ -296,7 +296,7 @@ static void stop_pty_helper(void) {
     free(pty_helper_tags);
     pty_helper_tags = NULL;
 
-    num_of_pty_helper_tags = 0;
+    num_pty_helper_tags = 0;
 
     close(pty_helper_tunnel);
     pty_helper_tunnel = -1;
@@ -437,9 +437,9 @@ pid_t bl_pty_fork(int *master, int *slave) {
 #endif
 
   pty_helper_tags =
-      realloc(pty_helper_tags, sizeof(pty_helper_tag_t) * (num_of_pty_helper_tags + 1));
-  pty_helper_tags[num_of_pty_helper_tags].pty = *master;
-  pty_helper_tags[num_of_pty_helper_tags++].tag = tag;
+      realloc(pty_helper_tags, sizeof(pty_helper_tag_t) * (num_pty_helper_tags + 1));
+  pty_helper_tags[num_pty_helper_tags].pty = *master;
+  pty_helper_tags[num_pty_helper_tags++].tag = tag;
 
   pid = fork();
   if (pid == -1) {
@@ -463,7 +463,7 @@ pid_t bl_pty_fork(int *master, int *slave) {
 int bl_pty_close(int master) {
   u_int count;
 
-  for (count = 0; count < num_of_pty_helper_tags; count++) {
+  for (count = 0; count < num_pty_helper_tags; count++) {
     if (pty_helper_tags[count].pty == master) {
       void *tag;
       GnomePtyOps ops;
@@ -487,7 +487,7 @@ int bl_pty_close(int master) {
       n_read(pty_helper_tunnel, &ops, 1);
 #endif
 
-      pty_helper_tags[count] = pty_helper_tags[--num_of_pty_helper_tags];
+      pty_helper_tags[count] = pty_helper_tags[--num_pty_helper_tags];
 
       return 1;
     }

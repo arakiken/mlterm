@@ -620,7 +620,7 @@ static void line_scrolled_out(void *p /* must be ui_screen_t(, or child of ui_la
 
   if ((term = search_term(&layout->term, p))) {
     if (vt_term_log_size_is_unlimited(((ui_screen_t *)p)->term)) {
-      ui_scrollbar_set_num_of_log_lines(&term->scrollbar,
+      ui_scrollbar_set_num_log_lines(&term->scrollbar,
                                         vt_term_get_log_size(((ui_screen_t *)p)->term));
     }
 
@@ -715,7 +715,7 @@ static void log_size_changed(void *p, u_int log_size) {
 
   term = p;
 
-  ui_scrollbar_set_num_of_log_lines(&term->scrollbar, log_size);
+  ui_scrollbar_set_num_log_lines(&term->scrollbar, log_size);
 }
 
 static void line_height_changed(void *p, u_int line_height) {
@@ -993,8 +993,8 @@ static void term_changed(void *p, u_int log_size, u_int logged_lines) {
 
   term = p;
 
-  ui_scrollbar_set_num_of_log_lines(&term->scrollbar, log_size);
-  ui_scrollbar_set_num_of_filled_log_lines(&term->scrollbar, logged_lines);
+  ui_scrollbar_set_num_log_lines(&term->scrollbar, log_size);
+  ui_scrollbar_set_num_filled_log_lines(&term->scrollbar, logged_lines);
 }
 
 static void screen_pointer_motion(ui_window_t *win, XMotionEvent *event) {
@@ -1101,7 +1101,7 @@ ui_layout_t *ui_layout_new(ui_screen_t *screen, char *view_name, char *fg_color,
   if (ui_scrollbar_init(
           &layout->term.scrollbar, &layout->term.sb_listener, view_name, fg_color, bg_color,
           ACTUAL_HEIGHT(&screen->window), ui_line_height(screen),
-          vt_term_get_log_size(screen->term), vt_term_get_num_of_logged_lines(screen->term),
+          vt_term_get_log_size(screen->term), vt_term_get_num_logged_lines(screen->term),
           screen->window.is_transparent, ui_screen_get_picture_modifier(screen)) == 0) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_scrollbar_init() failed.\n");
@@ -1329,7 +1329,7 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
   ui_scrollbar_init(
       &next->scrollbar, &next->sb_listener, term->scrollbar.view_name, term->scrollbar.fg_color,
       term->scrollbar.bg_color, ACTUAL_HEIGHT(&screen->window), ui_line_height(screen),
-      vt_term_get_log_size(screen->term), vt_term_get_num_of_logged_lines(screen->term),
+      vt_term_get_log_size(screen->term), vt_term_get_num_logged_lines(screen->term),
       screen->window.is_transparent, ui_screen_get_picture_modifier(screen));
 #if 0
   next->scrollbar.window.key_pressed = sb_key_pressed;

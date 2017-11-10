@@ -91,7 +91,7 @@ static void modify_pixmap(Display *display, Pixmap pixmap, ui_picture_modifier_t
   u_char *value_table;
   u_int32_t *src;
   u_char *dst;
-  u_int num_of_pixels;
+  u_int num_pixels;
   u_int count;
   u_char r, g, b;
   u_long pixel;
@@ -108,9 +108,9 @@ static void modify_pixmap(Display *display, Pixmap pixmap, ui_picture_modifier_t
   }
 
   src = dst = pixmap->image;
-  num_of_pixels = pixmap->width * pixmap->height;
+  num_pixels = pixmap->width * pixmap->height;
 
-  for (count = 0; count < num_of_pixels; count++) {
+  for (count = 0; count < num_pixels; count++) {
     pixel = *(src++);
 
     r = (pixel >> 16) & 0xff;
@@ -206,7 +206,7 @@ static int resize_sixel(Pixmap pixmap, u_int width, u_int height, u_int bytes_pe
 
   if (width > pixmap->width) {
     size_t surplus;
-    u_int num_of_copy;
+    u_int num_copy;
     u_int count;
     u_char *dst_next;
 
@@ -215,12 +215,12 @@ static int resize_sixel(Pixmap pixmap, u_int width, u_int height, u_int bytes_pe
     dst = pixmap->image + line_len * y;
 
     surplus = line_len % old_line_len;
-    num_of_copy = line_len / old_line_len - 1;
+    num_copy = line_len / old_line_len - 1;
 
     for (; y >= 0; y--) {
       dst_next = memmove(dst, src, old_line_len);
 
-      for (count = num_of_copy; count > 0; count--) {
+      for (count = num_copy; count > 0; count--) {
         memcpy((dst_next += old_line_len), dst, old_line_len);
       }
       memcpy(dst_next + old_line_len, dst, surplus);

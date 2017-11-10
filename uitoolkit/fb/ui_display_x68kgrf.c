@@ -596,7 +596,7 @@ static void x68k_set_use_tvram_colors(int use) {
   }
 }
 
-static fb_cmap_t *cmap_new(int num_of_colors);
+static fb_cmap_t *cmap_new(int num_colors);
 
 static int x68k_set_tvram_cmap(u_int32_t *pixels, u_int cmap_size) {
   if (use_tvram_cmap && cmap_size <= 16) {

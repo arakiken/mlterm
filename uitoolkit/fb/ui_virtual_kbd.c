@@ -116,7 +116,7 @@ static struct kbd_key {
 static struct kbd_key_group {
   int16_t top;
   int16_t bottom;
-  u_int16_t num_of_keys;
+  u_int16_t num_keys;
   struct kbd_key *keys;
 
 } kbd_key_groups[] = {
@@ -294,7 +294,7 @@ static int start_virtual_kbd(ui_display_t *disp) {
   x_off = (disp->width - width) / 2;
   ui_window_copy_area(kbd_win, normal_pixmap, None, 0, 0, width, height, x_off, 0);
 
-  if (disp->num_of_roots > 0) {
+  if (disp->num_roots > 0) {
     ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height - height,
                                  NOTIFY_TO_MYSELF);
   }
@@ -330,7 +330,7 @@ int ui_virtual_kbd_hide(void) {
   pressed_pixmap = NULL;
 #endif
 
-  if (kbd_win->disp->num_of_roots > 0) {
+  if (kbd_win->disp->num_roots > 0) {
     ui_window_resize_with_margin(kbd_win->disp->roots[0], kbd_win->disp->width,
                                  kbd_win->disp->height, NOTIFY_TO_MYSELF);
   }
@@ -375,7 +375,7 @@ int ui_is_virtual_kbd_event(ui_display_t *disp, XButtonEvent *bev) {
     return 0;
   }
 
-  if (kbd_win->disp->num_of_roots > 0 &&
+  if (kbd_win->disp->num_roots > 0 &&
       kbd_win->disp->roots[0]->y + kbd_win->disp->roots[0]->height > kbd_win->y) {
     /* disp->roots[0] seems to be resized. */
 
@@ -430,7 +430,7 @@ int ui_virtual_kbd_read(XKeyEvent *kev, XButtonEvent *bev) {
       if (y <= key_group->bottom) {
         u_int count2;
 
-        for (count2 = 0; count2 < key_group->num_of_keys; count2++) {
+        for (count2 = 0; count2 < key_group->num_keys; count2++) {
           if (x < key_group->keys[count2].left) {
             break;
           }

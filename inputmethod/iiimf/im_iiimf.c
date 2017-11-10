@@ -278,10 +278,10 @@ static void preedit_start(im_iiimf_t *iiimf) {
 #endif
 
   if (iiimf->im.preedit.chars) {
-    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_of_chars);
+    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
   }
 
-  iiimf->im.preedit.num_of_chars = 0;
+  iiimf->im.preedit.num_chars = 0;
   iiimf->im.preedit.filled_len = 0;
   iiimf->im.preedit.segment_offset = 0;
   iiimf->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -325,9 +325,9 @@ static void preedit_change(im_iiimf_t *iiimf) {
     (*iiimf->im.listener->draw_preedit_str)(iiimf->im.listener->self, NULL, 0, 0);
 
     if (iiimf->im.preedit.chars) {
-      (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_of_chars);
+      (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
       iiimf->im.preedit.chars = NULL;
-      iiimf->im.preedit.num_of_chars = 0;
+      iiimf->im.preedit.num_chars = 0;
       iiimf->im.preedit.filled_len = 0;
       iiimf->im.preedit.segment_offset = 0;
       iiimf->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -359,9 +359,9 @@ static void preedit_change(im_iiimf_t *iiimf) {
    */
 
   if (iiimf->im.preedit.chars) {
-    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_of_chars);
+    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
     iiimf->im.preedit.chars = NULL;
-    iiimf->im.preedit.num_of_chars = 0;
+    iiimf->im.preedit.num_chars = 0;
     iiimf->im.preedit.filled_len = 0;
     iiimf->im.preedit.segment_offset = 0;
     iiimf->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -375,11 +375,11 @@ static void preedit_change(im_iiimf_t *iiimf) {
     return;
   }
 
-  iiimf->im.preedit.num_of_chars = count;
+  iiimf->im.preedit.num_chars = count;
   iiimf->im.preedit.filled_len = 0;
 
   (*syms->vt_str_init)(iiimf->im.preedit.chars,
-            iiimf->im.preedit.num_of_chars);
+            iiimf->im.preedit.num_chars);
 
 
   /*
@@ -387,7 +387,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
    */
 
   p = iiimf->im.preedit.chars;
-  (*syms->vt_str_init)(p, iiimf->im.preedit.num_of_chars);
+  (*syms->vt_str_init)(p, iiimf->im.preedit.num_chars);
 
   (*iiimf->parser_term->init)(iiimf->parser_term);
   (*iiimf->parser_term->set_str)(iiimf->parser_term,
@@ -400,7 +400,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
     IIIMP_card16  iiimcf_ch;
     const IIIMP_card32 *feedback_ids;
     const IIIMP_card32 *feedbacks;
-    int num_of_feedbacks;
+    int num_feedbacks;
     vt_color_t fg_color = VT_FG_COLOR;
     vt_color_t bg_color = VT_BG_COLOR;
     int is_fullwidth = 0;
@@ -410,11 +410,11 @@ static void preedit_change(im_iiimf_t *iiimf) {
     iiimf->im.preedit.cursor_offset = 0;
 
     if (iiimcf_get_char_with_feedback(iiimcf_text, iiimf->im.preedit.filled_len,
-                                      &iiimcf_ch, &num_of_feedbacks, &feedback_ids,
+                                      &iiimcf_ch, &num_feedbacks, &feedback_ids,
                                       &feedbacks) == IIIMF_STATUS_SUCCESS) {
       int i;
 
-      for (i = 0; i < num_of_feedbacks; i++) {
+      for (i = 0; i < num_feedbacks; i++) {
         /* IIIMP_FEEDBACK_[1,2,3...]_* don't exist? */
         if (feedback_ids[i] != IIIMP_FEEDBACK_0_ID) {
           continue;
@@ -500,9 +500,9 @@ static void preedit_done(im_iiimf_t *iiimf) {
 #endif
 
   if (iiimf->im.preedit.chars) {
-    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_of_chars);
+    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
     iiimf->im.preedit.chars = NULL;
-    iiimf->im.preedit.num_of_chars = 0;
+    iiimf->im.preedit.num_chars = 0;
     iiimf->im.preedit.filled_len = 0;
     iiimf->im.preedit.segment_offset = 0;
     iiimf->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
@@ -1299,8 +1299,8 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
   IIIMCF_input_method *input_methods;
   IIIMCF_language *langs;
   ef_conv_t *conv = NULL;
-  int num_of_ims;
-  int num_of_langs;
+  int num_ims;
+  int num_langs;
   int total = 0;
   int idx;
   int auto_idx = 0;
@@ -1316,18 +1316,18 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
     return NULL;
   }
 
-  if (iiimcf_get_supported_input_methods(handle, &num_of_ims,
+  if (iiimcf_get_supported_input_methods(handle, &num_ims,
                                          &input_methods) != IIIMF_STATUS_SUCCESS) {
     goto error;
   }
 
-  for (i = 0; i < num_of_ims; i++) {
-    if (iiimcf_get_input_method_languages(input_methods[i], &num_of_langs,
+  for (i = 0; i < num_ims; i++) {
+    if (iiimcf_get_input_method_languages(input_methods[i], &num_langs,
                                           &langs) != IIIMF_STATUS_SUCCESS) {
       goto error;
     }
 
-    total += num_of_langs;
+    total += num_langs;
   }
 
   if (!(parser_utf16 = ef_utf16_parser_new())) {
@@ -1344,21 +1344,21 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
 
   result->id = strdup("iiimf");
   result->name = strdup("IIIMF");
-  result->num_of_args = total + 1;
+  result->num_args = total + 1;
   result->args = NULL;
   result->readable_args = NULL;
 
-  if (!(result->args = calloc(result->num_of_args, sizeof(char*)))) {
+  if (!(result->args = calloc(result->num_args, sizeof(char*)))) {
     goto error;
   }
 
-  if (!(result->readable_args = calloc(result->num_of_args, sizeof(char*)))) {
+  if (!(result->readable_args = calloc(result->num_args, sizeof(char*)))) {
     goto error;
   }
 
   idx = 1;
 
-  for (i = 0; i < num_of_ims; i++) {
+  for (i = 0; i < num_ims; i++) {
     const IIIMP_card16 *im_id;
     const IIIMP_card16 *im_hrn;
     const IIIMP_card16 *im_domain;
@@ -1369,7 +1369,7 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
       continue;
     }
 
-    if (iiimcf_get_input_method_languages(input_methods[i], &num_of_langs,
+    if (iiimcf_get_input_method_languages(input_methods[i], &num_langs,
                                           &langs) != IIIMF_STATUS_SUCCESS) {
       continue;
     }
@@ -1377,7 +1377,7 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
     PARSER_INIT_WITH_BOM(parser_utf16);
     im_convert_encoding(parser_utf16, conv, (u_char*)im_id, &im, strlen_utf16(im_id) + 1);
 
-    for (j = 0; j < num_of_langs; j++) {
+    for (j = 0; j < num_langs; j++) {
       const char *lang_id;
       size_t len;
 

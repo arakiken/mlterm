@@ -58,19 +58,19 @@ typedef struct vt_edit {
 } vt_edit_t;
 
 int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,
-                 u_int num_of_cols, u_int num_of_rows, u_int tab_size, int is_logging, int use_bce);
+                 u_int num_cols, u_int num_rows, u_int tab_size, int is_logging, int use_bce);
 
 void vt_edit_final(vt_edit_t *edit);
 
 int vt_edit_clone(vt_edit_t *dst_edit, vt_edit_t *src_edit);
 
-int vt_edit_resize(vt_edit_t *edit, u_int num_of_cols, u_int num_of_rows);
+int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows);
 
-int vt_edit_insert_chars(vt_edit_t *edit, vt_char_t *chars, u_int num_of_chars);
+int vt_edit_insert_chars(vt_edit_t *edit, vt_char_t *chars, u_int num_chars);
 
-int vt_edit_insert_blank_chars(vt_edit_t *edit, u_int num_of_blank_chars);
+int vt_edit_insert_blank_chars(vt_edit_t *edit, u_int num_blank_chars);
 
-int vt_edit_overwrite_chars(vt_edit_t *edit, vt_char_t *chars, u_int num_of_chars);
+int vt_edit_overwrite_chars(vt_edit_t *edit, vt_char_t *chars, u_int num_chars);
 
 int vt_edit_delete_cols(vt_edit_t *edit, u_int delete_cols);
 
@@ -131,9 +131,9 @@ void vt_edit_clear_all_tab_stops(vt_edit_t *edit);
 
 void vt_edit_set_modified_all(vt_edit_t *edit);
 
-#define vt_edit_get_cols(edit) ((edit)->model.num_of_cols)
+#define vt_edit_get_cols(edit) ((edit)->model.num_cols)
 
-#define vt_edit_get_rows(edit) ((edit)->model.num_of_rows)
+#define vt_edit_get_rows(edit) ((edit)->model.num_rows)
 
 int vt_edit_go_forward(vt_edit_t *edit, int flag);
 
@@ -169,18 +169,16 @@ void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
 int vt_edit_restore_cursor(vt_edit_t *edit);
 
-void vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_of_cols,
-                       u_int num_of_rows);
+void vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_cols,
+                       u_int num_rows);
 
-void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_of_copy_cols,
-                       u_int num_of_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row);
+void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_copy_cols,
+                       u_int num_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row);
 
-void vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_of_cols, u_int num_of_rows);
+void vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_cols, u_int num_rows);
 
-void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_of_cols,
-                             u_int num_of_rows,
-                             void (*func)(vt_char_t *, int, int, int, int, int, int),
-                             int attr);
+void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols, u_int num_rows,
+                              void (*func)(vt_char_t *, int, int, int, int, int, int), int attr);
 
 void vt_edit_clear_size_attr(vt_edit_t *edit);
 

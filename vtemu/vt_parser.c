@@ -180,10 +180,10 @@ static u_int16_t vtmodes[] = {
 static int use_alt_buffer = 1;
 
 static area_t *unicode_noconv_areas;
-static u_int num_of_unicode_noconv_areas;
+static u_int num_unicode_noconv_areas;
 
 static area_t *full_width_areas;
-static u_int num_of_full_width_areas;
+static u_int num_full_width_areas;
 
 static char *auto_detect_encodings;
 static struct {
@@ -327,7 +327,7 @@ static inline int is_noconv_unicode(u_char *ch) {
 
     code = ef_bytes_to_int(ch, 4);
 
-    for (count = 0; count < num_of_unicode_noconv_areas; count++) {
+    for (count = 0; count < num_unicode_noconv_areas; count++) {
       if (unicode_noconv_areas[count].min <= code && code <= unicode_noconv_areas[count].max) {
         return 1;
       }
@@ -349,7 +349,7 @@ static inline ef_property_t modify_ucs_property(u_int32_t code, ef_property_t pr
   if (full_width_areas && !(prop & EF_FULLWIDTH)) {
     u_int count;
 
-    for (count = 0; count < num_of_full_width_areas; count++) {
+    for (count = 0; count < num_full_width_areas; count++) {
       if (full_width_areas[count].min <= code && code <= full_width_areas[count].max) {
         return (prop & ~EF_AWIDTH) | EF_FULLWIDTH;
       }
@@ -1278,7 +1278,7 @@ static char *parse_title(vt_parser_t *vt_parser, char *src /* the caller should 
   ef_parser_t *parser;
   vt_char_encoding_t src_encoding;
   ef_char_t ch;
-  u_int num_of_chars;
+  u_int num_chars;
   vt_char_encoding_t dst_encoding;
   char *dst;
 
@@ -1311,7 +1311,7 @@ static char *parse_title(vt_parser_t *vt_parser, char *src /* the caller should 
 
   (*parser->init)(parser);
   (*parser->set_str)(parser, src, len);
-  num_of_chars = 0;
+  num_chars = 0;
   while ((*parser->next_char)(parser, &ch)) {
     if ((ef_bytes_to_int(ch.ch, ch.size) & ~0x80) < 0x20) {
 #ifdef DEBUG
@@ -1320,7 +1320,7 @@ static char *parse_title(vt_parser_t *vt_parser, char *src /* the caller should 
 #endif
       goto end;
     }
-    num_of_chars++;
+    num_chars++;
   }
 
   /* locale encoding */
@@ -1330,10 +1330,10 @@ static char *parse_title(vt_parser_t *vt_parser, char *src /* the caller should 
     return src;
   }
 
-  if ((dst = malloc(num_of_chars * UTF_MAX_SIZE + 1))) {
+  if ((dst = malloc(num_chars * UTF_MAX_SIZE + 1))) {
     (*parser->init)(parser);
     (*parser->set_str)(parser, src, len);
-    len = vt_char_encoding_convert_with_parser(dst, num_of_chars * UTF_MAX_SIZE, dst_encoding,
+    len = vt_char_encoding_convert_with_parser(dst, num_chars * UTF_MAX_SIZE, dst_encoding,
                                                parser);
     dst[len] = '\0';
 
@@ -2481,7 +2481,7 @@ static void set_selection(vt_parser_t *vt_parser, u_char *encoded) {
 }
 
 static void delete_macro(vt_parser_t *vt_parser,
-                         int id /* should be less than vt_parser->num_of_macros */
+                         int id /* should be less than vt_parser->num_macros */
                          ) {
   if (vt_parser->macros[id].is_sixel) {
     unlink(vt_parser->macros[id].str);
@@ -2496,13 +2496,13 @@ static void delete_macro(vt_parser_t *vt_parser,
 static void delete_all_macros(vt_parser_t *vt_parser) {
   u_int count;
 
-  for (count = 0; count < vt_parser->num_of_macros; count++) {
+  for (count = 0; count < vt_parser->num_macros; count++) {
     delete_macro(vt_parser, count);
   }
 
   free(vt_parser->macros);
   vt_parser->macros = NULL;
-  vt_parser->num_of_macros = 0;
+  vt_parser->num_macros = 0;
 }
 
 static u_char *hex_to_text(u_char *hex) {
@@ -2618,7 +2618,7 @@ static void define_macro(vt_parser_t *vt_parser, u_char *param, u_char *data) {
     delete_all_macros(vt_parser);
   }
 
-  if (ps[0] >= vt_parser->num_of_macros) {
+  if (ps[0] >= vt_parser->num_macros) {
     void *p;
 
     if (*data == '\0' ||
@@ -2626,10 +2626,10 @@ static void define_macro(vt_parser_t *vt_parser, u_char *param, u_char *data) {
       return;
     }
 
-    memset(p + vt_parser->num_of_macros * sizeof(*vt_parser->macros), 0,
-           (ps[0] + 1 - vt_parser->num_of_macros) * sizeof(*vt_parser->macros));
+    memset(p + vt_parser->num_macros * sizeof(*vt_parser->macros), 0,
+           (ps[0] + 1 - vt_parser->num_macros) * sizeof(*vt_parser->macros));
     vt_parser->macros = p;
-    vt_parser->num_of_macros = ps[0] + 1;
+    vt_parser->num_macros = ps[0] + 1;
   } else {
     delete_macro(vt_parser, ps[0]);
 
@@ -2682,7 +2682,7 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
                           int enable_local_echo, int is_visual);
 
 static void invoke_macro(vt_parser_t *vt_parser, int id) {
-  if (id < vt_parser->num_of_macros && vt_parser->macros[id].str) {
+  if (id < vt_parser->num_macros && vt_parser->macros[id].str) {
 #ifndef NO_IMAGE
     if (vt_parser->macros[id].is_sixel) {
       show_picture(vt_parser, vt_parser->macros[id].str, 0, 0, 0, 0, 0, 0, 3);
@@ -5992,11 +5992,11 @@ void vt_set_use_alt_buffer(int use) { use_alt_buffer = use; }
 
 void vt_set_unicode_noconv_areas(char *areas) {
   unicode_noconv_areas =
-      set_area_to_table(unicode_noconv_areas, &num_of_unicode_noconv_areas, areas);
+      set_area_to_table(unicode_noconv_areas, &num_unicode_noconv_areas, areas);
 }
 
 void vt_set_full_width_areas(char *areas) {
-  full_width_areas = set_area_to_table(full_width_areas, &num_of_full_width_areas, areas);
+  full_width_areas = set_area_to_table(full_width_areas, &num_full_width_areas, areas);
 }
 
 void vt_set_use_ttyrec_format(int use) { use_ttyrec_format = use; }
@@ -6021,10 +6021,10 @@ void vt_parser_final(void) {
   vt_config_proto_final();
 
   free(unicode_noconv_areas);
-  num_of_unicode_noconv_areas = 0;
+  num_unicode_noconv_areas = 0;
 
   free(full_width_areas);
-  num_of_full_width_areas = 0;
+  num_full_width_areas = 0;
 
   vt_set_auto_detect_encodings("");
 }
@@ -6844,12 +6844,12 @@ int vt_parser_get_config(
       value = "false";
     }
   } else if (strcmp(key, "unicode_noconv_areas") == 0) {
-    response_area_table(vt_parser->pty, key, unicode_noconv_areas, num_of_unicode_noconv_areas,
+    response_area_table(vt_parser->pty, key, unicode_noconv_areas, num_unicode_noconv_areas,
                         to_menu);
 
     return 1;
   } else if (strcmp(key, "unicode_full_width_areas") == 0) {
-    response_area_table(vt_parser->pty, key, full_width_areas, num_of_full_width_areas, to_menu);
+    response_area_table(vt_parser->pty, key, full_width_areas, num_full_width_areas, to_menu);
 
     return 1;
   } else if (strcmp(key, "blink_cursor") == 0) {

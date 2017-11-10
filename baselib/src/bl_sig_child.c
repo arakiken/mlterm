@@ -22,7 +22,7 @@ typedef struct sig_child_event_listener {
 /* --- static variables --- */
 
 static sig_child_event_listener_t *listeners;
-static u_int num_of_listeners;
+static u_int num_listeners;
 static int is_init;
 
 /* --- static functions --- */
@@ -109,7 +109,7 @@ int bl_add_sig_child_listener(void *self, void (*exited)(void *, pid_t)) {
   }
 #endif
 
-  if ((p = realloc(listeners, sizeof(*listeners) * (num_of_listeners + 1))) == NULL) {
+  if ((p = realloc(listeners, sizeof(*listeners) * (num_listeners + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -119,10 +119,10 @@ int bl_add_sig_child_listener(void *self, void (*exited)(void *, pid_t)) {
 
   listeners = p;
 
-  listeners[num_of_listeners].self = self;
-  listeners[num_of_listeners].exited = exited;
+  listeners[num_listeners].self = self;
+  listeners[num_listeners].exited = exited;
 
-  num_of_listeners++;
+  num_listeners++;
 
   return 1;
 }
@@ -130,9 +130,9 @@ int bl_add_sig_child_listener(void *self, void (*exited)(void *, pid_t)) {
 int bl_remove_sig_child_listener(void *self, void (*exited)(void *, pid_t)) {
   u_int count;
 
-  for (count = 0; count < num_of_listeners; count++) {
+  for (count = 0; count < num_listeners; count++) {
     if (listeners[count].self == self && listeners[count].exited == exited) {
-      listeners[count] = listeners[--num_of_listeners];
+      listeners[count] = listeners[--num_listeners];
 
       /*
        * memory area of listener is not shrunk.
@@ -148,7 +148,7 @@ int bl_remove_sig_child_listener(void *self, void (*exited)(void *, pid_t)) {
 void bl_trigger_sig_child(pid_t pid) {
   u_int count;
 
-  for (count = 0; count < num_of_listeners; count++) {
+  for (count = 0; count < num_listeners; count++) {
     (*listeners[count].exited)(listeners[count].self, pid);
   }
 }

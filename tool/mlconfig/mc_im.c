@@ -60,7 +60,7 @@ static im_type_t cur_im_type;
 
 static char **xims;
 static char **locales;
-static u_int num_of_xims;
+static u_int num_xims;
 
 static int is_changed = 0;
 
@@ -70,7 +70,7 @@ static char selected_xim_name[STR_LEN] = "";
 static char selected_xim_locale[STR_LEN] = "";
 
 static im_info_t *im_info_table[IM_MAX];
-static u_int num_of_info = 0;
+static u_int num_info = 0;
 static im_info_t *selected_im = NULL;
 static int selected_im_arg = -1;
 
@@ -98,14 +98,14 @@ static im_info_t *get_kbd_info(char *locale, char *encoding) {
     return NULL;
   }
 
-  result->num_of_args = 13;
+  result->num_args = 13;
 
-  if (!(result->args = malloc(sizeof(char *) * result->num_of_args))) {
+  if (!(result->args = malloc(sizeof(char *) * result->num_args))) {
     free(result);
     return NULL;
   }
 
-  if (!(result->readable_args = malloc(sizeof(char *) * result->num_of_args))) {
+  if (!(result->readable_args = malloc(sizeof(char *) * result->num_args))) {
     free(result->args);
     free(result);
     return NULL;
@@ -160,8 +160,8 @@ static int get_im_info(char *locale, char *encoding) {
 #endif
   } else {
 #ifdef USE_WIN32API
-    if ((im_info_table[num_of_info] = get_kbd_info(locale, encoding))) {
-      num_of_info++;
+    if ((im_info_table[num_info] = get_kbd_info(locale, encoding))) {
+      num_info++;
       return 1;
     }
 #endif
@@ -202,8 +202,8 @@ static int get_im_info(char *locale, char *encoding) {
 
       if ((func = (im_get_info_func_t)bl_dl_func_symbol(handle, symname))) {
         if ((info = (*func)(locale, encoding))) {
-          im_info_table[num_of_info] = info;
-          num_of_info++;
+          im_info_table[num_info] = info;
+          num_info++;
         }
       }
 
@@ -221,7 +221,7 @@ static int get_im_info(char *locale, char *encoding) {
 static char *get_xim_locale(char *xim) {
   int count;
 
-  for (count = 0; count < num_of_xims; count++) {
+  for (count = 0; count < num_xims; count++) {
     if (strcmp(xims[count], xim) == 0) {
       return locales[count];
     }
@@ -337,7 +337,7 @@ static GtkWidget *xim_widget_new(const char *xim_name, const char *xim_locale,
   xims[count] = xim_auto_str;
   locales[count] = NULL;
 
-  num_of_xims = size + 1;
+  num_xims = size + 1;
 
   bl_map_delete(xim_locale_table);
 
@@ -353,7 +353,7 @@ static GtkWidget *xim_widget_new(const char *xim_name, const char *xim_locale,
   gtk_entry_set_text(GTK_ENTRY(entry), selected_xim_locale);
 
   snprintf(selected_xim_name, STR_LEN, "%s", xim_name ? xim_name : xim_auto_str);
-  combo = mc_combo_new(_("XIM Server"), xims, num_of_xims, selected_xim_name, 0, &combo_entry);
+  combo = mc_combo_new(_("XIM Server"), xims, num_xims, selected_xim_name, 0, &combo_entry);
   g_signal_connect(combo_entry, "changed", G_CALLBACK(xim_selected), entry);
 
   label = gtk_label_new(_("XIM locale"));
@@ -385,7 +385,7 @@ static gint im_selected(GtkWidget *widget, gpointer data) {
 
   str = (const char *)gtk_entry_get_text(GTK_ENTRY(widget));
 
-  for (i = 0; i < selected_im->num_of_args; i++)
+  for (i = 0; i < selected_im->num_args; i++)
     if (strcmp(selected_im->readable_args[i], str) == 0) selected_im_arg = i;
 
   is_changed = 1;
@@ -404,14 +404,14 @@ static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
   info = im_info_table[nth_im];
 
   if (value) {
-    for (i = 1; i < info->num_of_args; i++) {
+    for (i = 1; i < info->num_args; i++) {
       if (strcmp(info->args[i], value) == 0) {
         selected = i;
       }
     }
   }
 
-  if (!info->num_of_args) return NULL;
+  if (!info->num_args) return NULL;
 
   if (!value || (value && selected)) {
     char *auto_str;
@@ -431,7 +431,7 @@ static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
     info->readable_args[0] = strdup(value);
   }
 
-  combo = mc_combo_new(_("Option"), info->readable_args, info->num_of_args,
+  combo = mc_combo_new(_("Option"), info->readable_args, info->num_args,
                        info->readable_args[selected], 1, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(im_selected), NULL);
 
@@ -619,12 +619,12 @@ static gint button_im_checked(GtkWidget *widget, gpointer data) {
   int i;
   int idx = 0;
 
-  if (data == NULL || num_of_info == 0) {
+  if (data == NULL || num_info == 0) {
     if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
       im_type = IM_NONE;
     }
   } else {
-    for (i = 0; i < num_of_info; i++)
+    for (i = 0; i < num_info; i++)
       if (im_info_table[i] == data) idx = i;
 
     if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
@@ -676,7 +676,7 @@ GtkWidget *mc_im_config_widget_new(void) {
   } else if (strncmp(im_name, "none", 4) == 0) {
     /* do nothing */
   } else {
-    for (i = 0; i < num_of_info; i++) {
+    for (i = 0; i < num_info; i++) {
       if (strcmp(im_name, im_info_table[i]->id) == 0) {
         index = i;
         im_type = IM_OTHER + i;
@@ -692,9 +692,9 @@ GtkWidget *mc_im_config_widget_new(void) {
     xim = xim_widget_new(xim_name, xim_locale, cur_locale);
   }
 
-  im_opt_widget = malloc(sizeof(GtkWidget*) * num_of_info);
+  im_opt_widget = malloc(sizeof(GtkWidget*) * num_info);
 
-  for (i = 0; i < num_of_info; i++) {
+  for (i = 0; i < num_info; i++) {
     if (strcmp(im_info_table[i]->id, "skk") == 0)
       im_opt_widget[i] = skk_widget_new(index == i ? value : "");
     else if (strcmp(im_info_table[i]->id, "wnn") == 0)
@@ -719,7 +719,7 @@ GtkWidget *mc_im_config_widget_new(void) {
   gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
   if (im_type == IM_XIM) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
 
-  for (i = 0; i < num_of_info; i++) {
+  for (i = 0; i < num_info; i++) {
     group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
     radio = gtk_radio_button_new_with_label(group, im_info_table[i]->name);
     g_signal_connect(radio, "toggled", G_CALLBACK(button_im_checked), im_info_table[i]);
@@ -744,17 +744,17 @@ GtkWidget *mc_im_config_widget_new(void) {
   switch (im_type) {
     case IM_XIM:
       if (xim) gtk_widget_show(xim);
-      for (i = 0; i < num_of_info; i++)
+      for (i = 0; i < num_info; i++)
         if (im_opt_widget[i]) gtk_widget_hide(im_opt_widget[i]);
       break;
     case IM_NONE:
       if (xim) gtk_widget_hide(xim);
-      for (i = 0; i < num_of_info; i++)
+      for (i = 0; i < num_info; i++)
         if (im_opt_widget[i]) gtk_widget_hide(im_opt_widget[i]);
       break;
     default: /* OTHER */
       if (xim) gtk_widget_hide(xim);
-      for (i = 0; i < num_of_info; i++) {
+      for (i = 0; i < num_info; i++) {
         if (!im_opt_widget[i]) continue;
 
         if (i == index)
@@ -766,7 +766,7 @@ GtkWidget *mc_im_config_widget_new(void) {
   }
 
   if (xim) gtk_box_pack_start(GTK_BOX(vbox), xim, TRUE, TRUE, 0);
-  for (i = 0; i < num_of_info; i++)
+  for (i = 0; i < num_info; i++)
     if (im_opt_widget[i]) gtk_box_pack_start(GTK_BOX(vbox), im_opt_widget[i], TRUE, TRUE, 0);
 
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);

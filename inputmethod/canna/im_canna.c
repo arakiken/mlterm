@@ -64,7 +64,7 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
   int y;
   ef_char_t ch;
   vt_char_t *p;
-  u_int num_of_chars;
+  u_int num_chars;
   size_t preedit_len;
 
   if (preedit == NULL) {
@@ -79,11 +79,11 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
     u_char *tmp = NULL;
 
     canna->im.preedit.cursor_offset = -1;
-    num_of_chars = 0;
+    num_chars = 0;
     (*parser_eucjp->init)(parser_eucjp);
     (*parser_eucjp->set_str)(parser_eucjp, preedit, preedit_len);
     while ((*parser_eucjp->next_char)(parser_eucjp, &ch)) {
-      num_of_chars++;
+      num_chars++;
 
       if (cols >= 0) {
         /* eucjp */
@@ -96,14 +96,14 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
         }
 
         if (canna->im.preedit.cursor_offset == -1 && cols > rev_pos) {
-          canna->im.preedit.cursor_offset = num_of_chars - 1;
+          canna->im.preedit.cursor_offset = num_chars - 1;
         }
 
         if (cols >= rev_pos + rev_len) {
           if (rev_len == 0) {
-            canna->im.preedit.cursor_offset = num_of_chars;
+            canna->im.preedit.cursor_offset = num_chars;
           } else {
-            rev_len = num_of_chars - canna->im.preedit.cursor_offset;
+            rev_len = num_chars - canna->im.preedit.cursor_offset;
           }
 
           cols = -1;
@@ -111,7 +111,7 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
       }
     }
 
-    if ((p = realloc(canna->im.preedit.chars, sizeof(vt_char_t) * num_of_chars)) == NULL) {
+    if ((p = realloc(canna->im.preedit.chars, sizeof(vt_char_t) * num_chars)) == NULL) {
       return;
     }
 
@@ -124,7 +124,7 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
     }
 
     (*syms->vt_str_init)(canna->im.preedit.chars = p,
-                         canna->im.preedit.num_of_chars = num_of_chars);
+                         canna->im.preedit.num_chars = num_chars);
     canna->im.preedit.filled_len = 0;
 
     (*canna->parser_term->init)(canna->parser_term);
@@ -577,7 +577,7 @@ im_info_t *im_canna_get_info(char *locale, char *encoding) {
   if ((result = malloc(sizeof(im_info_t)))) {
     result->id = strdup("canna");
     result->name = strdup("Canna");
-    result->num_of_args = 0;
+    result->num_args = 0;
     result->args = NULL;
     result->readable_args = NULL;
   }

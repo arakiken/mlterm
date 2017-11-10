@@ -39,7 +39,7 @@ static u_int32_t *dead_mask;
  * So 'terms' array must be allocated only once.
  */
 static vt_term_t **terms;
-static u_int num_of_terms;
+static u_int num_terms;
 
 static char *pty_list;
 
@@ -57,7 +57,7 @@ static void sig_error(int sig) {
 
   env[0] = '\0';
   len = 0;
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     int master;
 
     if ((master = vt_term_get_master_fd(terms[count])) >= 0) {
@@ -91,7 +91,7 @@ static void sig_error(int sig) {
 
     if (pid == 0) {
       /* child process */
-      for (count = 0; count < num_of_terms; count++) {
+      for (count = 0; count < num_terms; count++) {
         vt_term_write_content(terms[count], vt_term_get_slave_fd(terms[count]),
                               terms[count]->parser->cc_conv, 1, WCA_ALL);
       }
@@ -134,7 +134,7 @@ static void sig_child(void *p, pid_t pid) {
     return;
   }
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     if (pid == vt_term_get_child_pid(terms[count])) {
       u_int idx;
 
@@ -195,7 +195,7 @@ void vt_term_manager_final(void) {
   bl_remove_sig_child_listener(NULL, sig_child);
   vt_term_final();
 
-  for (count = num_of_terms - 1; count >= 0; count--) {
+  for (count = num_terms - 1; count >= 0; count--) {
 #if 0
     /*
      * All windows may be invalid before vt_term_manager_final() is called.
@@ -274,7 +274,7 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
   char *list;
 #endif
 
-  if (num_of_terms == MAX_TERMS) {
+  if (num_terms == MAX_TERMS) {
     return NULL;
   }
 
@@ -293,13 +293,13 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
          * cols + 1 is for redrawing screen by vt_set_pty_winsize() below.
          */
         if ((pty = vt_pty_new_with(master, slave, child_pid, cols + 1, rows, 0, 0))) {
-          if ((terms[num_of_terms] = vt_term_new(
+          if ((terms[num_terms] = vt_term_new(
                    term_type, cols, rows, tab_size, log_size, encoding, is_auto_encoding,
                    use_auto_detect, logging_vt_seq, policy, col_size_a, use_char_combining,
                    use_multi_col_char, use_ctl, bidi_mode, bidi_separators, use_dynamic_comb,
                    bs_mode, vertical_mode, use_local_echo, win_name, icon_name, use_ansi_colors,
                    alt_color_mode, use_ot_layout, cursor_style, ignore_broadcasted_chars))) {
-            vt_term_plug_pty(terms[num_of_terms++], pty);
+            vt_term_plug_pty(terms[num_terms++], pty);
             vt_set_pty_winsize(pty, cols, rows, 0, 0);
 
             continue;
@@ -317,14 +317,14 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
     bl_unsetenv("INHERIT_PTY_LIST");
 #endif
 
-    if (num_of_terms > 0) {
-      return terms[num_of_terms - 1];
+    if (num_terms > 0) {
+      return terms[num_terms - 1];
     }
   }
 #endif
 
   /*
-   * Before modifying terms and num_of_terms, do vt_close_dead_terms().
+   * Before modifying terms and num_terms, do vt_close_dead_terms().
    */
   vt_close_dead_terms();
 
@@ -333,7 +333,7 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
    * If sig_child here...
    */
 
-  if (!(terms[num_of_terms] = vt_term_new(term_type, cols, rows, tab_size, log_size, encoding,
+  if (!(terms[num_terms] = vt_term_new(term_type, cols, rows, tab_size, log_size, encoding,
                                           is_auto_encoding, use_auto_detect, logging_vt_seq,
                                           policy, col_size_a, use_char_combining,
                                           use_multi_col_char, use_ctl, bidi_mode, bidi_separators,
@@ -343,14 +343,14 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
     return NULL;
   }
 
-  return terms[num_of_terms++];
+  return terms[num_terms++];
 }
 
 void vt_destroy_term(vt_term_t *term) {
   u_int count;
 
   /*
-   * Before modifying terms and num_of_terms, do vt_close_dead_terms().
+   * Before modifying terms and num_terms, do vt_close_dead_terms().
    */
   vt_close_dead_terms();
 
@@ -359,9 +359,9 @@ void vt_destroy_term(vt_term_t *term) {
    * If sig_child here...
    */
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     if (terms[count] == term) {
-      terms[count] = terms[--num_of_terms];
+      terms[count] = terms[--num_terms];
 
       break;
     }
@@ -373,7 +373,7 @@ void vt_destroy_term(vt_term_t *term) {
 vt_term_t *vt_get_term(const char *dev) {
   int count;
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     if (dev == NULL || strcmp(dev, vt_term_get_slave_name(terms[count])) == 0) {
       return terms[count];
     }
@@ -385,7 +385,7 @@ vt_term_t *vt_get_term(const char *dev) {
 vt_term_t *vt_get_detached_term(const char *dev) {
   int count;
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     if (!vt_term_is_attached(terms[count]) &&
         (dev == NULL || strcmp(dev, vt_term_get_slave_name(terms[count])) == 0)) {
       return terms[count];
@@ -399,13 +399,13 @@ vt_term_t *vt_next_term(vt_term_t *term /* is detached */
                         ) {
   int count;
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     if (terms[count] == term) {
       int old;
 
       old = count;
 
-      for (count++; count < num_of_terms; count++) {
+      for (count++; count < num_terms; count++) {
         if (!vt_term_is_attached(terms[count])) {
           return terms[count];
         }
@@ -428,7 +428,7 @@ vt_term_t *vt_prev_term(vt_term_t *term /* is detached */
                         ) {
   int count;
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     if (terms[count] == term) {
       int old;
 
@@ -440,7 +440,7 @@ vt_term_t *vt_prev_term(vt_term_t *term /* is detached */
         }
       }
 
-      for (count = num_of_terms - 1; count > old; count--) {
+      for (count = num_terms - 1; count > old; count--) {
         if (!vt_term_is_attached(terms[count])) {
           return terms[count];
         }
@@ -462,14 +462,14 @@ u_int vt_get_all_terms(vt_term_t*** _terms) {
     *_terms = terms;
   }
 
-  return num_of_terms;
+  return num_terms;
 }
 
 void vt_close_dead_terms(void) {
-  if (num_of_terms > 0) {
+  if (num_terms > 0) {
     int idx;
 
-    for (idx = (num_of_terms - 1) / MTU; idx >= 0; idx--) {
+    for (idx = (num_terms - 1) / MTU; idx >= 0; idx--) {
       if (dead_mask[idx]) {
         int count;
 
@@ -483,12 +483,12 @@ void vt_close_dead_terms(void) {
 
             term = terms[idx * MTU + count];
             /*
-             * Update terms and num_of_terms before
+             * Update terms and num_terms before
              * vt_term_delete, which calls
              * vt_pty_event_listener::pty_close in which
              * vt_term_manager can be used.
              */
-            terms[idx * MTU + count] = terms[--num_of_terms];
+            terms[idx * MTU + count] = terms[--num_terms];
             if (zombie_pty) {
               vt_term_zombie(term);
             } else {
@@ -511,7 +511,7 @@ char *vt_get_pty_list(void) {
   free(pty_list);
 
   /* The length of pty name is under 50. */
-  len = (50 + 2) * num_of_terms;
+  len = (50 + 2) * num_terms;
 
   if ((pty_list = malloc(len + 1)) == NULL) {
     return "";
@@ -521,7 +521,7 @@ char *vt_get_pty_list(void) {
 
   *p = '\0';
 
-  for (count = 0; count < num_of_terms; count++) {
+  for (count = 0; count < num_terms; count++) {
     bl_snprintf(p, len, "%s:%d;", vt_term_get_slave_name(terms[count]),
                 vt_term_is_attached(terms[count]));
 

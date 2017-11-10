@@ -9,7 +9,7 @@
 #include "../vt_char.h"
 
 struct vt_iscii_state {
-  u_int8_t *num_of_chars_array;
+  u_int8_t *num_chars_array;
   u_int16_t size;
 
   int8_t has_iscii;

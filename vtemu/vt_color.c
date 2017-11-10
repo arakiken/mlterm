@@ -297,7 +297,7 @@ static u_int8_t color256_rgb_table[][3] = {
 
 static char *color_file = "mlterm/color";
 static BL_MAP(color_rgb) color_config;
-static u_int num_of_changed_256_colors;
+static u_int num_changed_256_colors;
 
 static struct {
   u_int is_changed : 1;
@@ -383,7 +383,7 @@ static int color_config_set_rgb(vt_color_t color, /* is 255 or less */
 
     if (r == red && g == green && b == blue && alpha == 0xff) {
       if (IS_256_COLOR(color)) {
-        num_of_changed_256_colors--;
+        num_changed_256_colors--;
       }
 
       bl_map_erase_simple(result, color_config, color);
@@ -427,7 +427,7 @@ static int color_config_set_rgb(vt_color_t color, /* is 255 or less */
       }
 #endif
 
-      num_of_changed_256_colors++;
+      num_changed_256_colors++;
     }
 
     bl_map_set(result, color_config, color, rgb);
@@ -480,7 +480,7 @@ static int parse_conf(char *color_name, char *rgb) {
       int result;
 
       if (IS_256_COLOR(color)) {
-        num_of_changed_256_colors--;
+        num_changed_256_colors--;
       }
 
       bl_map_erase_simple(result, color_config, color);
@@ -767,9 +767,9 @@ end:
 
 void vt_color_force_linear_search(int flag) {
   if (flag) {
-    num_of_changed_256_colors++;
+    num_changed_256_colors++;
   } else {
-    num_of_changed_256_colors--;
+    num_changed_256_colors--;
   }
 }
 
@@ -787,7 +787,7 @@ u_int vt_get_closest_256_color(vt_color_t *closest, u_int *min_diff, u_int8_t re
   int count;
   int num;
 
-  if (num_of_changed_256_colors > 0) {
+  if (num_changed_256_colors > 0) {
     return 256;
   }
 

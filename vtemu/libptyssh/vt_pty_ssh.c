@@ -74,11 +74,11 @@ typedef struct ssh_session {
   int suspended;
 
   LIBSSH2_CHANNEL **pty_channels;
-  u_int num_of_ptys;
+  u_int num_ptys;
 
   int *x11_fds;
   LIBSSH2_CHANNEL **x11_channels;
-  u_int num_of_x11;
+  u_int num_x11;
 
 } ssh_session_t;
 
@@ -110,7 +110,7 @@ typedef struct scp {
 static char *pass_response;
 
 static ssh_session_t **sessions;
-static u_int num_of_sessions = 0;
+static u_int num_sessions = 0;
 
 #ifdef USE_WIN32API
 static HANDLE rd_ev;
@@ -146,11 +146,11 @@ static u_int __stdcall wait_pty_read(LPVOID thr_param) {
   bl_debug_printf("Starting wait_pty_read thread.\n");
 #endif
 
-  while (num_of_sessions > 0) {
+  while (num_sessions > 0) {
     FD_ZERO(&read_fds);
     maxfd = 0;
 
-    for (count = 0; count < num_of_sessions; count++) {
+    for (count = 0; count < num_sessions; count++) {
       u_int count2;
 
       FD_SET(sessions[count]->sock, &read_fds);
@@ -158,7 +158,7 @@ static u_int __stdcall wait_pty_read(LPVOID thr_param) {
         maxfd = sessions[count]->sock;
       }
 
-      for (count2 = 0; count2 < sessions[count]->num_of_x11; count2++) {
+      for (count2 = 0; count2 < sessions[count]->num_x11; count2++) {
         FD_SET(sessions[count]->x11_fds[count2], &read_fds);
         if (sessions[count]->x11_fds[count2] > maxfd) {
           maxfd = sessions[count]->x11_fds[count2];
@@ -334,7 +334,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
 
   set_use_multi_thread(1);
 
-  if (num_of_sessions == 0 && libssh2_init(0) != 0) {
+  if (num_sessions == 0 && libssh2_init(0) != 0) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " libssh2_init failed.\n");
 #endif
@@ -652,7 +652,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
   {
     void *p;
 
-    if (!(p = realloc(sessions, sizeof(ssh_session_t) * (num_of_sessions + 1)))) {
+    if (!(p = realloc(sessions, sizeof(ssh_session_t) * (num_sessions + 1)))) {
       goto error4;
     }
 
@@ -666,7 +666,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
   session->port = strdup(port);
   session->user = strdup(user);
 
-  sessions[num_of_sessions++] = session;
+  sessions[num_sessions++] = session;
 
   return session;
 
@@ -678,7 +678,7 @@ error3:
   closesocket(session->sock);
 
 error2:
-  if (num_of_sessions == 0) {
+  if (num_sessions == 0) {
     libssh2_exit();
   }
 
@@ -697,18 +697,18 @@ static void close_x11(ssh_session_t *session, int idx);
 static int ssh_disconnect(ssh_session_t *session) {
   u_int count;
 
-  if (session->num_of_ptys > 0) {
+  if (session->num_ptys > 0) {
     /* In case this function is called from vt_pty_new. */
     libssh2_session_set_blocking(session->obj, 0);
 
     return 0;
   }
 
-  for (count = 0; count < num_of_sessions; count++) {
+  for (count = 0; count < num_sessions; count++) {
     if (sessions[count] == session) {
-      sessions[count] = sessions[--num_of_sessions];
+      sessions[count] = sessions[--num_sessions];
 
-      if (num_of_sessions == 0) {
+      if (num_sessions == 0) {
         free(sessions);
         sessions = NULL;
       }
@@ -717,7 +717,7 @@ static int ssh_disconnect(ssh_session_t *session) {
     }
   }
 
-  for (count = session->num_of_x11; count > 0; count--) {
+  for (count = session->num_x11; count > 0; count--) {
     close_x11(session, count - 1);
   }
 
@@ -725,7 +725,7 @@ static int ssh_disconnect(ssh_session_t *session) {
   libssh2_session_free(session->obj);
   closesocket(session->sock);
 
-  if (num_of_sessions == 0) {
+  if (num_sessions == 0) {
     libssh2_exit();
   }
 
@@ -748,9 +748,9 @@ static int ssh_disconnect(ssh_session_t *session) {
 static void remove_channel_from_session(ssh_session_t *session, LIBSSH2_CHANNEL *channel) {
   u_int count;
 
-  for (count = 0; count < session->num_of_ptys; count++) {
+  for (count = 0; count < session->num_ptys; count++) {
     if (session->pty_channels[count] == channel) {
-      session->pty_channels[count] = session->pty_channels[--session->num_of_ptys];
+      session->pty_channels[count] = session->pty_channels[--session->num_ptys];
       break;
     }
   }
@@ -1324,7 +1324,7 @@ static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
   }
 
   if (!(p = realloc(pty->session->pty_channels,
-                    (pty->session->num_of_ptys + 1) * sizeof(LIBSSH2_CHANNEL *)))) {
+                    (pty->session->num_ptys + 1) * sizeof(LIBSSH2_CHANNEL *)))) {
     goto error2;
   }
 
@@ -1511,7 +1511,7 @@ static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
   }
 #endif
 
-  pty->session->pty_channels[pty->session->num_of_ptys++] = pty->channel;
+  pty->session->pty_channels[pty->session->num_ptys++] = pty->channel;
 
   set_use_multi_thread(0);
 
@@ -1593,8 +1593,8 @@ static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel,
   int display_sock;
 
   for (count = 0;; count++) {
-    if (count == num_of_sessions) {
-      /* XXX count must not reache num_of_sessions. */
+    if (count == num_sessions) {
+      /* XXX count must not reache num_sessions. */
       return;
     }
 
@@ -1604,7 +1604,7 @@ static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel,
     }
   }
 
-  if (!(p = realloc(session->x11_fds, (session->num_of_x11 + 1) * sizeof(int)))) {
+  if (!(p = realloc(session->x11_fds, (session->num_x11 + 1) * sizeof(int)))) {
     /* XXX channel resource is leaked. */
     return;
   }
@@ -1612,7 +1612,7 @@ static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel,
   session->x11_fds = p;
 
   if (!(p = realloc(session->x11_channels,
-                    (session->num_of_x11 + 1) * sizeof(LIBSSH2_CHANNEL *)))) {
+                    (session->num_x11 + 1) * sizeof(LIBSSH2_CHANNEL *)))) {
     /* XXX channel resource is leaked. */
     return;
   }
@@ -1625,13 +1625,13 @@ static void x11_callback(LIBSSH2_SESSION *session_obj, LIBSSH2_CHANNEL *channel,
     /* Don't call libssh2_channel_free() which causes segfault here. */
   }
 
-  session->x11_channels[session->num_of_x11] = channel;
-  session->x11_fds[session->num_of_x11++] = display_sock;
+  session->x11_channels[session->num_x11] = channel;
+  session->x11_fds[session->num_x11++] = display_sock;
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG
                   " x11 forwarding %d (display %d <=> ssh %p) started. => channel num %d\n",
-                  session->num_of_x11 - 1, display_sock, channel, session->num_of_x11);
+                  session->num_x11 - 1, display_sock, channel, session->num_x11);
 #endif
 }
 
@@ -1690,12 +1690,12 @@ static void close_x11(ssh_session_t *session, int idx) {
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG
                   " x11 forwarding %d (display %d <=> ssh %p) stopped. => channel num %d\n",
-                  idx, session->x11_fds[idx], session->x11_channels[idx], session->num_of_x11 - 1);
+                  idx, session->x11_fds[idx], session->x11_channels[idx], session->num_x11 - 1);
 #endif
 
-  if (--session->num_of_x11 > 0) {
-    session->x11_channels[idx] = session->x11_channels[session->num_of_x11];
-    session->x11_fds[idx] = session->x11_fds[session->num_of_x11];
+  if (--session->num_x11 > 0) {
+    session->x11_channels[idx] = session->x11_channels[session->num_x11];
+    session->x11_fds[idx] = session->x11_fds[session->num_x11];
   }
 }
 
@@ -1918,7 +1918,7 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
   }
 
   /* search from newer sessions. */
-  for (count = num_of_sessions - 1; count >= 0; count--) {
+  for (count = num_sessions - 1; count >= 0; count--) {
     if (strcmp(sessions[count]->host, host) == 0 &&
         (port == NULL || strcmp(sessions[count]->port, port) == 0) &&
         strcmp(sessions[count]->user, user) == 0) {
@@ -2074,7 +2074,7 @@ int vt_pty_ssh_keepalive(u_int spent_msec) {
   if (keepalive_msec_left <= spent_msec) {
     u_int count;
 
-    for (count = 0; count < num_of_sessions; count++) {
+    for (count = 0; count < num_sessions; count++) {
       libssh2_keepalive_send(sessions[count]->obj, NULL);
     }
 
@@ -2096,27 +2096,27 @@ void vt_pty_ssh_set_use_x11_forwarding(void *session, int use) {
 
 int vt_pty_ssh_poll(void *p) {
   fd_set *fds;
-  int num_of_fds;
+  int num_fds;
   u_int count;
 
   fds = p;
   FD_ZERO(fds);
-  num_of_fds = 0;
+  num_fds = 0;
 
-  for (count = 0; count < num_of_sessions; count++) {
+  for (count = 0; count < num_sessions; count++) {
     u_int idx;
 
     if (sessions[count]->suspended) {
       continue;
     }
 
-    for (idx = 0; idx < sessions[count]->num_of_ptys; idx++) {
+    for (idx = 0; idx < sessions[count]->num_ptys; idx++) {
       if (libssh2_poll_channel_read(sessions[count]->pty_channels[idx], 0)) {
         goto found;
       }
     }
 
-    for (idx = 0; idx < sessions[count]->num_of_x11; idx++) {
+    for (idx = 0; idx < sessions[count]->num_x11; idx++) {
       if (libssh2_poll_channel_read(sessions[count]->x11_channels[idx], 0)) {
         goto found;
       }
@@ -2126,10 +2126,10 @@ int vt_pty_ssh_poll(void *p) {
 
   found:
     FD_SET(sessions[count]->sock, fds);
-    num_of_fds++;
+    num_fds++;
   }
 
-  return num_of_fds;
+  return num_fds;
 }
 
 /*
@@ -2137,23 +2137,23 @@ int vt_pty_ssh_poll(void *p) {
  */
 u_int vt_pty_ssh_get_x11_fds(int **fds) {
   static int *x11_fds;
-  static u_int num_of_x11_fds;
+  static u_int num_x11_fds;
   u_int count;
   u_int num;
 
-  if (num_of_sessions == 0) {
+  if (num_sessions == 0) {
     return 0;
   }
 
   num = 0;
-  for (count = 0; count < num_of_sessions; count++) {
-    num += sessions[count]->num_of_x11;
+  for (count = 0; count < num_sessions; count++) {
+    num += sessions[count]->num_x11;
   }
 
-  if (num_of_x11_fds < num) {
+  if (num_x11_fds < num) {
     void *p;
 
-    num_of_x11_fds = num;
+    num_x11_fds = num;
 
     if (!(p = realloc(x11_fds, num * sizeof(int)))) {
       return 0;
@@ -2163,9 +2163,9 @@ u_int vt_pty_ssh_get_x11_fds(int **fds) {
   }
 
   num = 0;
-  for (count = 0; count < num_of_sessions; count++) {
-    memcpy(x11_fds + num, sessions[count]->x11_fds, sessions[count]->num_of_x11 * sizeof(int));
-    num += sessions[count]->num_of_x11;
+  for (count = 0; count < num_sessions; count++) {
+    memcpy(x11_fds + num, sessions[count]->x11_fds, sessions[count]->num_x11 * sizeof(int));
+    num += sessions[count]->num_x11;
   }
 
   *fds = x11_fds;
@@ -2178,15 +2178,15 @@ int vt_pty_ssh_send_recv_x11(int idx, int bidirection) {
   ssh_session_t *session;
 
   for (count = 0;; count++) {
-    if (count >= num_of_sessions) {
+    if (count >= num_sessions) {
       return 0;
     }
 
-    if (idx < sessions[count]->num_of_x11) {
+    if (idx < sessions[count]->num_x11) {
       break;
     }
 
-    idx -= sessions[count]->num_of_x11;
+    idx -= sessions[count]->num_x11;
   }
 
   session = sessions[count];

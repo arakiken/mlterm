@@ -31,7 +31,7 @@ static int cursor_goto(vt_cursor_t *cursor, int col_or_idx, int row, int is_by_c
   if (!vt_line_assure_boundary(line, char_index)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " cursor cannot goto char index %d(line length is %d)\n",
-                   char_index, line->num_of_filled_chars);
+                   char_index, line->num_filled_chars);
 #endif
 
     char_index = vt_line_end_char_index(line);
@@ -113,7 +113,7 @@ int vt_cursor_go_forward(vt_cursor_t *cursor) {
 }
 
 int vt_cursor_cr_lf(vt_cursor_t *cursor) {
-  if (cursor->model->num_of_rows <= cursor->row + 1) {
+  if (cursor->model->num_rows <= cursor->row + 1) {
     return 0;
   }
 

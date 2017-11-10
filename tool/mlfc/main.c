@@ -406,14 +406,14 @@ static int check_font_config(const char *default_family /* family name */
   const char *default_path;
   FcPattern *pattern;
   FcPattern *matches[1024];
-  u_int num_of_matches = 0;
+  u_int num_matches = 0;
   int b_idx;
   struct {
     struct unicode_block *block;
     const char *family;
     const char *path;
   } outputs[MAX_AREAS];
-  u_int num_of_outputs = 0;
+  u_int num_outputs = 0;
   FcValue val;
   u_int count;
   FILE* fp;
@@ -426,7 +426,7 @@ static int check_font_config(const char *default_family /* family name */
   FcPatternPrint(pattern);
 #endif
 
-  matches[num_of_matches++] = search_next_font(pattern);
+  matches[num_matches++] = search_next_font(pattern);
 
   if (*default_family == '\0') {
     if (FcPatternGet(matches[0], FC_FAMILY, 0, &val) == FcResultMatch) {
@@ -446,29 +446,29 @@ static int check_font_config(const char *default_family /* family name */
     for (m_idx = 0;; m_idx++) {
       FcCharSet *charset;
 
-      if (m_idx == num_of_matches) {
-        if (num_of_matches == sizeof(matches) / sizeof(matches[0]) ||
-            matches[num_of_matches - 1] == NULL) {
+      if (m_idx == num_matches) {
+        if (num_matches == sizeof(matches) / sizeof(matches[0]) ||
+            matches[num_matches - 1] == NULL) {
           break;
         }
 
-        if (!(matches[num_of_matches] = search_next_font(pattern))) {
+        if (!(matches[num_matches] = search_next_font(pattern))) {
           int count;
           FcPattern *pat = FcPatternCreate();
           FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, FC_FILE, FC_CHARSET, NULL);
           FcFontSet *fontset = FcFontList(NULL, pat, objset);
 
           for (count = 0; count < fontset->nfont; count++) {
-            matches[num_of_matches++] = fontset->fonts[count];
-            FcPatternGet(matches[num_of_matches - 1], FC_FAMILY, 0, &val);
+            matches[num_matches++] = fontset->fonts[count];
+            FcPatternGet(matches[num_matches - 1], FC_FAMILY, 0, &val);
 #if 0
             fprintf(stderr, "Add Font List %s\n", val.u.s);
 #endif
           }
-          matches[num_of_matches] = NULL;
+          matches[num_matches] = NULL;
         }
 
-        num_of_matches++;
+        num_matches++;
       }
 
       if (!matches[m_idx]) {
@@ -480,24 +480,24 @@ static int check_font_config(const char *default_family /* family name */
            FcCharSetHasChar(charset, blocks[b_idx].beg + 1))) {
         if (FcPatternGet(matches[m_idx], FC_FAMILY, 0, &val) == FcResultMatch &&
             strcmp(val.u.s, default_family) != 0) {
-          if (num_of_outputs > 0 &&
-              outputs[num_of_outputs - 1].block->end + 1 == blocks[b_idx].beg &&
-              strcmp(outputs[num_of_outputs - 1].family, val.u.s) == 0) {
+          if (num_outputs > 0 &&
+              outputs[num_outputs - 1].block->end + 1 == blocks[b_idx].beg &&
+              strcmp(outputs[num_outputs - 1].family, val.u.s) == 0) {
             /* XXX Change blocks[b_idx - 1].end */
-            outputs[num_of_outputs - 1].block->end = blocks[b_idx].end;
+            outputs[num_outputs - 1].block->end = blocks[b_idx].end;
           } else {
-            outputs[num_of_outputs].block = blocks + b_idx;
-            outputs[num_of_outputs].family = val.u.s;
+            outputs[num_outputs].block = blocks + b_idx;
+            outputs[num_outputs].family = val.u.s;
 
             if (FcPatternGet(matches[m_idx], FC_FILE, 0, &val) == FcResultMatch) {
-              outputs[num_of_outputs].path = val.u.s;
+              outputs[num_outputs].path = val.u.s;
             } else {
-              outputs[num_of_outputs].path = NULL;
+              outputs[num_outputs].path = NULL;
             }
 
-            num_of_outputs++;
+            num_outputs++;
 
-            if (num_of_outputs == sizeof(outputs) / sizeof(outputs[0])) {
+            if (num_outputs == sizeof(outputs) / sizeof(outputs[0])) {
               break;
             }
           }
@@ -519,7 +519,7 @@ static int check_font_config(const char *default_family /* family name */
 
     fprintf(fp, HEADER);
     fprintf(fp, "ISO10646_UCS4_1=%s\n", default_family);
-    for (count = 0; count < num_of_outputs; count++) {
+    for (count = 0; count < num_outputs; count++) {
       fprintf(fp, "U+%x-%x=%s\n", outputs[count].block->beg, outputs[count].block->end,
               outputs[count].family);
     }
@@ -538,7 +538,7 @@ static int check_font_config(const char *default_family /* family name */
 
     fprintf(fp, HEADER);
     fprintf(fp, "ISO10646_UCS4_1=%s\n", default_path);
-    for (count = 0; count < num_of_outputs; count++) {
+    for (count = 0; count < num_outputs; count++) {
       fprintf(fp, "U+%x-%x=%s\n", outputs[count].block->beg, outputs[count].block->end,
               outputs[count].path);
     }

@@ -41,9 +41,9 @@
 
 /* --- static variables --- */
 
-static u_int num_of_wlservs;
+static u_int num_wlservs;
 static ui_wlserv_t **wlservs;
-static u_int num_of_displays;
+static u_int num_displays;
 static ui_display_t **displays;
 static int rotate_display;
 int kbd_repeat_1 = DEFAULT_KEY_REPEAT_1;
@@ -112,7 +112,7 @@ static ui_window_t *search_focused_window(ui_window_t *win) {
    *          - child
    * (**: is_focused == 1)
    */
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if ((focused = search_focused_window(win->children[count]))) {
       return focused;
     }
@@ -134,7 +134,7 @@ static ui_window_t *search_inputtable_window(ui_window_t *candidate, ui_window_t
     }
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     candidate = search_inputtable_window(candidate, win->children[count]);
   }
 
@@ -147,7 +147,7 @@ static ui_window_t *search_inputtable_window(ui_window_t *candidate, ui_window_t
 static inline ui_window_t *get_window(ui_window_t *win, int x, int y) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_t *child;
 
     if ((child = win->children[count])->is_mapped) {
@@ -169,7 +169,7 @@ static inline u_char *get_fb(Display *display, int x, int y) {
 static ui_display_t *surface_to_display(struct wl_surface *surface) {
   u_int count;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (surface == displays[count]->display->surface) {
       return displays[count];
     }
@@ -182,7 +182,7 @@ static ui_display_t *surface_to_display(struct wl_surface *surface) {
 static ui_display_t *parent_surface_to_display(struct wl_surface *surface) {
   u_int count;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (surface == displays[count]->display->parent_surface) {
       return displays[count];
     }
@@ -198,7 +198,7 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
   void *p;
   u_int count;
 
-  if (!(p = realloc(displays, sizeof(ui_display_t*) * (num_of_displays + 1)))) {
+  if (!(p = realloc(displays, sizeof(ui_display_t*) * (num_displays + 1)))) {
     return NULL;
   }
   displays = p;
@@ -208,7 +208,7 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
       return NULL;
     }
     wlservs[0] = wlserv;
-    num_of_wlservs = 1;
+    num_wlservs = 1;
   }
 
   if (!(new = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
@@ -219,24 +219,24 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
   new->display = new + 1;
   new->name = strdup(disp->name);
   new->roots = NULL;
-  new->num_of_roots = 0;
+  new->num_roots = 0;
 
   memcpy(new->display, disp->display, sizeof(Display));
 
   new->display->parent_surface = parent_surface;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (strcmp(displays[count]->name, new->name) == 0) {
       new->selection_owner = displays[count]->selection_owner;
       break;
     }
   }
 
-  displays[num_of_displays++] = new;
+  displays[num_displays++] = new;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_of_roots + 1)))) {
+  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_roots + 1)))) {
     disp->roots = p;
-    disp->roots[disp->num_of_roots++] = root;
+    disp->roots[disp->num_roots++] = root;
   }
 
   wlserv->ref_count++;
@@ -247,14 +247,14 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
 static ui_display_t *remove_root_from_display(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
-      disp->roots[count] = disp->roots[--disp->num_of_roots];
+      disp->roots[count] = disp->roots[--disp->num_roots];
       break;
     }
   }
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count]->roots[0] == root) {
       return displays[count];
     }
@@ -369,7 +369,7 @@ static void keyboard_keymap(void *data, struct wl_keyboard *keyboard,
 static void auto_repeat(void) {
   u_int count;
 
-  for (count = 0; count < num_of_wlservs; count++) {
+  for (count = 0; count < num_wlservs; count++) {
     if (wlservs[count]->prev_kev.type && --wlservs[count]->kbd_repeat_wait == 0) {
       if (wlservs[count]->kbd_repeat_count++ == 2) {
         /*
@@ -395,7 +395,7 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
   ui_window_t *win;
 
 #ifdef COMPAT_LIBVTE
-  if (!disp || disp->num_of_roots == 0) {
+  if (!disp || disp->num_roots == 0) {
     wlserv->current_kbd_surface = surface;
 
     return;
@@ -440,7 +440,7 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
 #endif
 
 #ifdef COMPAT_LIBVTE
-  if (!disp || disp->num_of_roots == 0) {
+  if (!disp || disp->num_roots == 0) {
     return;
   }
 #endif
@@ -448,7 +448,7 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
   if (wlserv->current_kbd_surface == surface) {
     u_int count;
 
-    for (count = 0; count < num_of_displays; count++) {
+    for (count = 0; count < num_displays; count++) {
       if (displays[count]->display->parent == disp) {
         /*
          * Don't send FocusOut event to the surface which has an input method surface
@@ -984,7 +984,7 @@ static u_int total_min_width(ui_window_t *win) {
 
   min_width = win->min_width + win->hmargin * 2;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       /* XXX */
       min_width += total_min_width(win->children[count]);
@@ -1000,7 +1000,7 @@ static u_int total_min_height(ui_window_t *win) {
 
   min_height = win->min_height + win->vmargin * 2;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       /* XXX */
       min_height += total_min_height(win->children[count]);
@@ -1016,7 +1016,7 @@ static u_int total_width_inc(ui_window_t *win) {
 
   width_inc = win->width_inc;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       u_int sub_inc;
 
@@ -1039,7 +1039,7 @@ static u_int total_height_inc(ui_window_t *win) {
 
   height_inc = win->height_inc;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped) {
       u_int sub_inc;
 
@@ -1530,7 +1530,7 @@ static void close_display(ui_display_t *disp) {
 
   free(disp->name);
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     ui_window_unmap(disp->roots[count]);
     ui_window_final(disp->roots[count]);
   }
@@ -1563,13 +1563,13 @@ static void close_display(ui_display_t *disp) {
 
     close_wl_display(disp->display->wlserv);
 
-    for (count = 0; count < num_of_wlservs; count++) {
+    for (count = 0; count < num_wlservs; count++) {
       if (disp->display->wlserv == wlservs[count]) {
-        if (--num_of_wlservs == 0) {
+        if (--num_wlservs == 0) {
           free(wlservs);
           wlservs = NULL;
         } else {
-          wlservs[count] = wlservs[--num_of_wlservs];
+          wlservs[count] = wlservs[--num_wlservs];
         }
       }
     }
@@ -1696,16 +1696,16 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 
   disp->display = disp + 1;
 
-  if ((p = realloc(displays, sizeof(ui_display_t*) * (num_of_displays + 1))) == NULL) {
+  if ((p = realloc(displays, sizeof(ui_display_t*) * (num_displays + 1))) == NULL) {
     free(disp);
 
     return NULL;
   }
 
   displays = p;
-  displays[num_of_displays] = disp;
+  displays[num_displays] = disp;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (strcmp(displays[count]->name, disp_name) == 0) {
       disp->selection_owner = displays[count]->selection_owner;
       wlserv = displays[count]->display->wlserv;
@@ -1720,7 +1720,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
       return NULL;
     }
 
-    if ((p = realloc(wlservs, sizeof(ui_wlserv_t*) * (num_of_wlservs + 1))) == NULL) {
+    if ((p = realloc(wlservs, sizeof(ui_wlserv_t*) * (num_wlservs + 1))) == NULL) {
       close_wl_display(wlserv);
       free(disp);
 
@@ -1728,7 +1728,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
     }
 
     wlservs = p;
-    wlservs[num_of_wlservs++] = wlserv;
+    wlservs[num_wlservs++] = wlserv;
   }
 
   disp->display->wlserv = wlserv;
@@ -1738,7 +1738,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   disp->depth = 32;
 
   wlserv->ref_count++;
-  num_of_displays++;
+  num_displays++;
 
   ui_picture_display_opened(disp->display);
 
@@ -1753,14 +1753,14 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 void ui_display_close(ui_display_t *disp) {
   u_int count;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count] == disp) {
       close_display(disp);
-      if (--num_of_displays == 0) {
+      if (--num_displays == 0) {
         free(displays);
         displays = NULL;
       } else {
-        displays[count] = displays[num_of_displays];
+        displays[count] = displays[num_displays];
       }
 
 #ifdef DEBUG
@@ -1773,13 +1773,13 @@ void ui_display_close(ui_display_t *disp) {
 }
 
 void ui_display_close_all(void) {
-  while (num_of_displays > 0) {
+  while (num_displays > 0) {
     close_display(displays[0]);
   }
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {
-  *num = num_of_displays;
+  *num = num_displays;
 
   return displays;
 }
@@ -1795,7 +1795,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     disp = add_root_to_display(disp, root, parent_window);
 #endif
   } else {
-    if (disp->num_of_roots > 0) {
+    if (disp->num_roots > 0) {
       /* XXX Input Method */
       ui_display_t *parent = disp;
       disp = ui_display_open(disp->name, disp->depth);
@@ -1808,7 +1808,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 
   root->parent_window = parent_window;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_of_roots + 1))) == NULL) {
+  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_roots + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -1833,7 +1833,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
    * root is added to disp->roots before ui_window_show() because
    * ui_display_get_group_leader() is called in ui_window_show().
    */
-  disp->roots[disp->num_of_roots++] = root;
+  disp->roots[disp->num_roots++] = root;
 
   create_surface(disp, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root), root->app_name);
 
@@ -1873,7 +1873,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
 #ifdef COMPAT_LIBVTE
       if (disp->display->parent) {
@@ -1887,12 +1887,12 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
       /* Don't switching on or off screen in exiting. */
       ui_window_unmap(root);
       ui_window_final(root);
-      disp->num_of_roots--;
+      disp->num_roots--;
 
-      if (count == disp->num_of_roots) {
+      if (count == disp->num_roots) {
         disp->roots[count] = NULL;
 
-        if (disp->num_of_roots == 0
+        if (disp->num_roots == 0
 #ifndef COMPAT_LIBVTE
             && disp->display->parent /* XXX input method alone */
 #endif
@@ -1900,7 +1900,7 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
           ui_display_close(disp);
         }
       } else {
-        disp->roots[count] = disp->roots[disp->num_of_roots];
+        disp->roots[count] = disp->roots[disp->num_roots];
       }
 
       return 1;
@@ -1921,7 +1921,7 @@ void ui_display_idling(ui_display_t *disp) {
   display_idling_wait = 4;
 #endif
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
 #ifdef COMPAT_LIBVTE
     if (disp->roots[count]->disp->display->buffer)
 #endif
@@ -1942,7 +1942,7 @@ int ui_display_receive_next_event(ui_display_t *disp) {
 
   ui_display_sync(disp);
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count]->display->wlserv == disp->display->wlserv) {
       if (displays[count] == disp) {
         return (wl_display_dispatch(disp->display->wlserv->display) != -1);
@@ -1960,7 +1960,7 @@ int ui_display_receive_next_event_singly(ui_display_t *disp) {
 
   ui_display_sync(disp);
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count]->display->wlserv == disp->display->wlserv) {
       return (wl_display_dispatch(disp->display->wlserv->display) != -1);
     } else {
@@ -1982,7 +1982,7 @@ void ui_display_sync(ui_display_t *disp) {
    * ui_display_idling() is called with disp in vte.c, not displays in ui_display.c, so
    * call flush_display() with all displays here.
    */
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count]->display->buffer) {
       flushed |= flush_display(displays[count]->display);
     }
@@ -2010,7 +2010,7 @@ int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
     ui_display_clear_selection(NULL, disp->selection_owner);
   }
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count]->display->wlserv == wlserv) {
       displays[count]->selection_owner = win;
     }
@@ -2029,7 +2029,7 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
                                ui_window_t *win) {
   u_int count;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if ((disp == NULL || disp->display->wlserv == displays[count]->display->wlserv) &&
         (displays[count]->selection_owner == win)) {
       displays[count]->selection_owner = NULL;
@@ -2052,7 +2052,7 @@ XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return di
 void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) {}
 
 XID ui_display_get_group_leader(ui_display_t *disp) {
-  if (disp->num_of_roots > 0) {
+  if (disp->num_roots > 0) {
     return disp->roots[0]->my_window;
   } else {
     return None;

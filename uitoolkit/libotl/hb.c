@@ -27,7 +27,7 @@
 static hb_feature_t *get_hb_features(const char *features, u_int *num) {
   static const char *prev_features;
   static hb_feature_t *hbfeatures;
-  static u_int num_of_features;
+  static u_int num_features;
 
   if (features != prev_features) {
     char *str;
@@ -39,14 +39,14 @@ static hb_feature_t *get_hb_features(const char *features, u_int *num) {
       hbfeatures = p;
 
       strcpy(str, features);
-      num_of_features = 0;
+      num_features = 0;
       while ((p = bl_str_sep(&str, ","))) {
-        if (hb_feature_from_string(p, -1, &hbfeatures[num_of_features])) {
-          num_of_features++;
+        if (hb_feature_from_string(p, -1, &hbfeatures[num_features])) {
+          num_features++;
         }
       }
 
-      if (num_of_features == 0) {
+      if (num_features == 0) {
         free(hbfeatures);
         hbfeatures = NULL;
       }
@@ -55,7 +55,7 @@ static hb_feature_t *get_hb_features(const char *features, u_int *num) {
     prev_features = features;
   }
 
-  *num = num_of_features;
+  *num = num_features;
 
   return hbfeatures;
 }

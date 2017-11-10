@@ -58,7 +58,7 @@ typedef struct im_ibus {
 
 #ifdef USE_IM_CANDIDATE_SCREEN
   gchar *prev_first_cand;
-  u_int prev_num_of_cands;
+  u_int prev_num_cands;
 #endif
 
   struct im_ibus *next;
@@ -145,7 +145,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
       return;
     }
 
-    (*syms->vt_str_init)(ibus->im.preedit.chars = p, ibus->im.preedit.num_of_chars = len);
+    (*syms->vt_str_init)(ibus->im.preedit.chars = p, ibus->im.preedit.num_chars = len);
     ibus->im.preedit.filled_len = 0;
 
     (*parser_utf8->init)(parser_utf8);
@@ -353,7 +353,7 @@ static void hide_lookup_table(IBusInputContext *context, gpointer data) {
 static void update_lookup_table(IBusInputContext *context, IBusLookupTable *table, gboolean visible,
                                 gpointer data) {
   im_ibus_t *ibus;
-  u_int num_of_cands;
+  u_int num_cands;
   int cur_pos;
   u_int i;
   int x;
@@ -361,7 +361,7 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
 
   ibus = (im_ibus_t*)data;
 
-  if ((num_of_cands = ibus_lookup_table_get_number_of_candidates(table)) == 0) {
+  if ((num_cands = ibus_lookup_table_get_number_of_candidates(table)) == 0) {
     return;
   }
 
@@ -389,7 +389,7 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
     (*ibus->im.cand_screen->show)(ibus->im.cand_screen);
   }
 
-  if (!(*ibus->im.cand_screen->init)(ibus->im.cand_screen, num_of_cands, 10)) {
+  if (!(*ibus->im.cand_screen->init)(ibus->im.cand_screen, num_cands, 10)) {
     (*ibus->im.cand_screen->delete)(ibus->im.cand_screen);
     ibus->im.cand_screen = NULL;
 
@@ -398,10 +398,10 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
 
   (*ibus->im.cand_screen->set_spot)(ibus->im.cand_screen, x, y);
 
-  for (i = 0; i < num_of_cands; i++) {
+  for (i = 0; i < num_cands; i++) {
     u_char *str;
 
-    /* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_of_cands > 0. */
+    /* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_cands > 0. */
     if (!(str = ibus_text_get_text(ibus_lookup_table_get_candidate(table, i)))) {
       continue;
     }
@@ -1034,7 +1034,7 @@ im_info_t *im_ibus_get_info(char *locale, char *encoding) {
 
   result->id = strdup("ibus");
   result->name = strdup("iBus");
-  result->num_of_args = 0;
+  result->num_args = 0;
   result->args = NULL;
   result->readable_args = NULL;
 

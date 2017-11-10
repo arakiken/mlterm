@@ -21,7 +21,7 @@
 
 /* --- static variables --- */
 
-static u_int num_of_displays;
+static u_int num_displays;
 static ui_display_t **displays;
 static int (*default_error_handler)(Display *, XErrorEvent *);
 
@@ -254,7 +254,7 @@ static void close_display(ui_display_t *disp) {
     }
   }
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     ui_window_unmap(disp->roots[count]);
     ui_window_final(disp->roots[count]);
   }
@@ -275,7 +275,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   ui_display_t *disp;
   void *p;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (strcmp(displays[count]->name, disp_name) == 0) {
       return displays[count];
     }
@@ -290,14 +290,14 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
     return NULL;
   }
 
-  if ((p = realloc(displays, sizeof(ui_display_t *) * (num_of_displays + 1))) == NULL) {
+  if ((p = realloc(displays, sizeof(ui_display_t *) * (num_displays + 1))) == NULL) {
     ui_display_close(disp);
 
     return NULL;
   }
 
   displays = p;
-  displays[num_of_displays++] = disp;
+  displays[num_displays++] = disp;
 
   return disp;
 }
@@ -305,10 +305,10 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 void ui_display_close(ui_display_t *disp) {
   u_int count;
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count] == disp) {
       close_display(displays[count]);
-      displays[count] = displays[--num_of_displays];
+      displays[count] = displays[--num_displays];
 
 #ifdef DEBUG
       bl_debug_printf("X connection closed.\n");
@@ -320,8 +320,8 @@ void ui_display_close(ui_display_t *disp) {
 }
 
 void ui_display_close_all(void) {
-  while (num_of_displays > 0) {
-    close_display(displays[--num_of_displays]);
+  while (num_displays > 0) {
+    close_display(displays[--num_displays]);
   }
 
   free(displays);
@@ -330,7 +330,7 @@ void ui_display_close_all(void) {
 }
 
 ui_display_t **ui_get_opened_displays(u_int *num) {
-  *num = num_of_displays;
+  *num = num_displays;
 
   return displays;
 }
@@ -341,7 +341,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
                          char *app_name, Window parent_window) {
   void *p;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_of_roots + 1))) == NULL) {
+  if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_roots + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -372,7 +372,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
    * root is added to disp->roots before ui_window_show() because
    * ui_display_get_group_leader() is called in ui_window_show().
    */
-  disp->roots[disp->num_of_roots++] = root;
+  disp->roots[disp->num_roots++] = root;
 
   ui_window_show(root, hint);
 
@@ -384,19 +384,19 @@ int ui_window_reset_group(ui_window_t *win); /* defined in xlib/ui_window.c */
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
       /* Don't switching on or off screen in exiting. */
       ui_window_unmap(root);
 
       ui_window_final(root);
 
-      disp->num_of_roots--;
+      disp->num_roots--;
 
-      if (count == disp->num_of_roots) {
+      if (count == disp->num_roots) {
         disp->roots[count] = NULL;
       } else {
-        disp->roots[count] = disp->roots[disp->num_of_roots];
+        disp->roots[count] = disp->roots[disp->num_roots];
 
         if (count == 0) {
           /* Group leader is changed. */
@@ -404,7 +404,7 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
           bl_debug_printf(BL_DEBUG_TAG " Changing group_leader -> %x\n", disp->roots[0]->my_window);
 #endif
 
-          for (count = 0; count < disp->num_of_roots; count++) {
+          for (count = 0; count < disp->num_roots; count++) {
             ui_window_reset_group(disp->roots[count]);
           }
         }
@@ -420,7 +420,7 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 void ui_display_idling(ui_display_t *disp) {
   int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     ui_window_idling(disp->roots[count]);
   }
 }
@@ -433,7 +433,7 @@ int ui_display_receive_next_event(ui_display_t *disp) {
     XNextEvent(disp->display, &event);
 
     if (!XFilterEvent(&event, None)) {
-      for (count = 0; count < disp->num_of_roots; count++) {
+      for (count = 0; count < disp->num_roots; count++) {
         ui_window_receive_event(disp->roots[count], &event);
       }
     }
@@ -469,7 +469,7 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
   if (disp == NULL) {
     u_int count;
 
-    for (count = 0; count < num_of_displays; count++) {
+    for (count = 0; count < num_displays; count++) {
       ui_display_clear_selection(displays[count], displays[count]->selection_owner);
     }
 
@@ -552,7 +552,7 @@ XVisualInfo *ui_display_get_visual_info(ui_display_t *disp) {
 }
 
 XID ui_display_get_group_leader(ui_display_t *disp) {
-  if (disp->num_of_roots > 0) {
+  if (disp->num_roots > 0) {
     return disp->roots[0]->my_window;
   } else {
     return None;

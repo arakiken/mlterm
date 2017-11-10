@@ -36,7 +36,7 @@ static ui_color_t black = {TP_COLOR, 0, 0, 0, 0};
 #define LINE_HEIGHT (win->disp->display->line_height)
 
 /* XXX Check if win is input method window or not. */
-#define IS_IM_WINDOW(win) ((win)->disp->num_of_roots >= 2 && (win) == (win)->disp->roots[1])
+#define IS_IM_WINDOW(win) ((win)->disp->num_roots >= 2 && (win) == (win)->disp->roots[1])
 
 /* --- static variables --- */
 
@@ -339,7 +339,7 @@ static void clear_margin_area(ui_window_t *win) {
   }
 
   /* XXX */
-  if (win->num_of_children == 2 &&
+  if (win->num_children == 2 &&
       ACTUAL_HEIGHT(win->children[0]) == ACTUAL_HEIGHT(win->children[1])) {
     if (win->children[0]->x + ACTUAL_WIDTH(win->children[0]) <= win->children[1]->x) {
       ui_window_clear(win, win->children[0]->x + ACTUAL_WIDTH(win->children[0]), 0,
@@ -386,18 +386,18 @@ static void reset_input_focus(ui_window_t *win) {
     }
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     reset_input_focus(win->children[count]);
   }
 }
 
 #if 0
 static int check_child_window_area(ui_window_t *win) {
-  if (win->num_of_children > 0) {
+  if (win->num_children > 0) {
     u_int count;
     u_int sum;
 
-    for (sum = 0, count = 1; count < win->num_of_children; count++) {
+    for (sum = 0, count = 1; count < win->num_children; count++) {
       sum += (ACTUAL_WIDTH(win->children[count]) * ACTUAL_HEIGHT(win->children[count]));
     }
 
@@ -445,7 +445,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
 void ui_window_final(ui_window_t *win) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_final(win->children[count]);
   }
 
@@ -489,7 +489,7 @@ int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
 #endif
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_set_wall_picture(win->children[count], ParentRelative, do_expose);
   }
 
@@ -515,7 +515,7 @@ int ui_window_unset_wall_picture(ui_window_t *win, int do_expose) {
 #endif
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_unset_wall_picture(win->children[count], do_expose);
   }
 
@@ -564,7 +564,7 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
     return 0;
   }
 
-  if ((p = realloc(win->children, sizeof(*win->children) * (win->num_of_children + 1))) == NULL) {
+  if ((p = realloc(win->children, sizeof(*win->children) * (win->num_children + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -587,7 +587,7 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
     }
   }
 
-  win->children[win->num_of_children++] = child;
+  win->children[win->num_children++] = child;
 
   return 1;
 }
@@ -595,11 +595,11 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
 int ui_window_remove_child(ui_window_t *win, ui_window_t *child) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (win->children[count] == child) {
       child->parent = NULL;
 
-      win->children[count] = win->children[--win->num_of_children];
+      win->children[count] = win->children[--win->num_children];
 
       return 1;
     }
@@ -665,7 +665,7 @@ int ui_window_show(ui_window_t *win,
    * showing child windows.
    */
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_show(win->children[count], 0);
   }
 
@@ -935,7 +935,7 @@ void ui_window_update_all(ui_window_t *win) {
     (*win->window_exposed)(win, 0, 0, win->width, win->height);
   }
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_update_all(win->children[count]);
   }
 }
@@ -943,7 +943,7 @@ void ui_window_update_all(ui_window_t *win) {
 void ui_window_idling(ui_window_t *win) {
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     ui_window_idling(win->children[count]);
   }
 
@@ -968,7 +968,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 #if 0
   u_int count;
 
-  for (count = 0; count < win->num_of_children; count++) {
+  for (count = 0; count < win->num_children; count++) {
     if (ui_window_receive_event(win->children[count], event)) {
       return 1;
     }
@@ -1321,10 +1321,10 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
 
 int ui_window_xct_selection_request(ui_window_t *win, Time time) {
   u_int count;
-  u_int num_of_displays;
-  ui_display_t **displays = ui_get_opened_displays(&num_of_displays);
+  u_int num_displays;
+  ui_display_t **displays = ui_get_opened_displays(&num_displays);
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count]->selection_owner) {
       ui_window_t *owner = displays[count]->selection_owner;
       if (owner->xct_selection_requested) {
@@ -1343,10 +1343,10 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time) {
 
 int ui_window_utf_selection_request(ui_window_t *win, Time time) {
   u_int count;
-  u_int num_of_displays;
-  ui_display_t **displays = ui_get_opened_displays(&num_of_displays);
+  u_int num_displays;
+  ui_display_t **displays = ui_get_opened_displays(&num_displays);
 
-  for (count = 0; count < num_of_displays; count++) {
+  for (count = 0; count < num_displays; count++) {
     if (displays[count]->selection_owner) {
       ui_window_t *owner = displays[count]->selection_owner;
       if (owner->utf_selection_requested) {

@@ -251,7 +251,7 @@ static void auto_repeat(void) {
 }
 #endif
 
-static fb_cmap_t *cmap_new(int num_of_colors);
+static fb_cmap_t *cmap_new(int num_colors);
 
 static int open_display(u_int depth /* used on luna68k alone. */
                         ) {
@@ -429,19 +429,19 @@ static int open_display(u_int depth /* used on luna68k alone. */
 
   if (_disp.depth < 15) {
     if (vinfo.depth >= 2 && _disp.depth == 1) {
-      int num_of_colors;
+      int num_colors;
       vt_color_t color;
 
-      num_of_colors = (2 << (vinfo.depth - 1));
+      num_colors = (2 << (vinfo.depth - 1));
 
       if (!_display.cmap) {
-        if (!(_display.cmap_orig = cmap_new(num_of_colors))) {
+        if (!(_display.cmap_orig = cmap_new(num_colors))) {
           goto error;
         }
 
         ioctl(_display.fb_fd, FBIOGETCMAP, _display.cmap_orig);
 
-        if (!(_display.cmap = cmap_new(num_of_colors))) {
+        if (!(_display.cmap = cmap_new(num_colors))) {
           free(_display.cmap_orig);
 
           goto error;
@@ -455,7 +455,7 @@ static int open_display(u_int depth /* used on luna68k alone. */
         }
       }
 
-      for (color = 0; color < num_of_colors; color++) {
+      for (color = 0; color < num_colors; color++) {
         _display.cmap->red[color] = (color & 1) ? 0xff : 0;
         _display.cmap->green[color] = (color & 1) ? 0xff : 0;
         _display.cmap->blue[color] = (color & 1) ? 0xff : 0;

@@ -676,7 +676,7 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
   char **font_encoding_p;
   u_int percent;
   int count;
-  int num_of_spacings;
+  int num_spacings;
   char *spacings[] = {"c", "m", "p"};
 
   if ((csinfo = get_cs_info(FONT_CS(font->id))) == NULL) {
@@ -763,17 +763,17 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
 
   if ((font->id & FONT_FULLWIDTH) && (FONT_CS(font->id) == ISO10646_UCS4_1)) {
     family = "biwidth";
-    num_of_spacings = sizeof(spacings) / sizeof(spacings[0]);
+    num_spacings = sizeof(spacings) / sizeof(spacings[0]);
   } else {
     family = "fixed";
-    num_of_spacings = 1;
+    num_spacings = 1;
   }
 
   for (count = 0;; count++) {
     FOREACH_FONT_ENCODINGS(csinfo, font_encoding_p) {
       int idx;
 
-      for (idx = 0; idx < num_of_spacings; idx++) {
+      for (idx = 0; idx < num_spacings; idx++) {
         if ((xfont = load_xfont(font->display, family, weight, slant, width, fontsize,
                                 spacings[idx], *font_encoding_p))) {
           goto font_found;
@@ -784,7 +784,7 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     if (count == 0) {
       width = "*";
       family = "*";
-      num_of_spacings = sizeof(spacings) / sizeof(spacings[0]);
+      num_spacings = sizeof(spacings) / sizeof(spacings[0]);
     } else if (count == 1) {
       slant = "*";
     } else if (count == 2) {

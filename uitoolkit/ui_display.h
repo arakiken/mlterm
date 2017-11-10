@@ -44,7 +44,7 @@ typedef struct ui_display {
    * Private
    */
   ui_window_ptr_t *roots;
-  u_int num_of_roots;
+  u_int num_roots;
 
   ui_window_ptr_t selection_owner;
 

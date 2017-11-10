@@ -49,7 +49,7 @@ vt_drcs_font_t *vt_drcs_get_font(ef_charset_t cs, int create) {
   } else if (!cur_drcs) {
     return NULL;
   } else {
-    for (count = 0; count < cur_drcs->num_of_fonts; count++) {
+    for (count = 0; count < cur_drcs->num_fonts; count++) {
       if (cur_drcs->fonts[count].cs == cs) {
         return &cur_drcs->fonts[count];
       }
@@ -58,15 +58,15 @@ vt_drcs_font_t *vt_drcs_get_font(ef_charset_t cs, int create) {
 
   if (!create ||
       /* XXX leaks */
-      !(p = realloc(cur_drcs->fonts, sizeof(vt_drcs_font_t) * (cur_drcs->num_of_fonts + 1)))) {
+      !(p = realloc(cur_drcs->fonts, sizeof(vt_drcs_font_t) * (cur_drcs->num_fonts + 1)))) {
     return NULL;
   }
 
   cur_drcs->fonts = p;
-  memset(cur_drcs->fonts + cur_drcs->num_of_fonts, 0, sizeof(vt_drcs_font_t));
-  cached_font_cs = cur_drcs->fonts[cur_drcs->num_of_fonts].cs = cs;
+  memset(cur_drcs->fonts + cur_drcs->num_fonts, 0, sizeof(vt_drcs_font_t));
+  cached_font_cs = cur_drcs->fonts[cur_drcs->num_fonts].cs = cs;
 
-  return (cached_font = &cur_drcs->fonts[cur_drcs->num_of_fonts++]);
+  return (cached_font = &cur_drcs->fonts[cur_drcs->num_fonts++]);
 }
 
 char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx) {
@@ -83,10 +83,10 @@ char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx) {
 void vt_drcs_final(ef_charset_t cs) {
   u_int count;
 
-  for (count = 0; count < cur_drcs->num_of_fonts; count++) {
+  for (count = 0; count < cur_drcs->num_fonts; count++) {
     if (cur_drcs->fonts[count].cs == cs) {
       drcs_final(cur_drcs->fonts + count);
-      cur_drcs->fonts[count] = cur_drcs->fonts[--cur_drcs->num_of_fonts];
+      cur_drcs->fonts[count] = cur_drcs->fonts[--cur_drcs->num_fonts];
 
       return;
     }
@@ -96,13 +96,13 @@ void vt_drcs_final(ef_charset_t cs) {
 void vt_drcs_final_full(void) {
   u_int count;
 
-  for (count = 0; count < cur_drcs->num_of_fonts; count++) {
+  for (count = 0; count < cur_drcs->num_fonts; count++) {
     drcs_final(cur_drcs->fonts + count);
   }
 
   free(cur_drcs->fonts);
   cur_drcs->fonts = NULL;
-  cur_drcs->num_of_fonts = 0;
+  cur_drcs->num_fonts = 0;
   cur_drcs = NULL;
 }
 

@@ -13,7 +13,7 @@
 #include "vt_char_encoding.h"
 #include "vt_str_parser.h"
 
-#define ROW_IN_LOGS(screen, row) (vt_get_num_of_logged_lines(&(screen)->logs) + row)
+#define ROW_IN_LOGS(screen, row) (vt_get_num_logged_lines(&(screen)->logs) + row)
 
 /* Not contains the first page. */
 #define MAX_PAGE_ID 8
@@ -93,25 +93,25 @@ static void receive_scrolled_out_line(void *p, vt_line_t *line) {
   if (screen->logvis) {
     (*screen->logvis->visual_line)(screen->logvis, line);
   } else {
-    line->num_of_filled_chars =
-        vt_line_get_num_of_filled_chars_except_spaces_with_func(line, vt_char_equal);
+    line->num_filled_chars =
+        vt_line_get_num_filled_chars_except_sp_with_func(line, vt_char_equal);
   }
 
   vt_log_add(&screen->logs, line);
 
 /* XXX see vt_line_iscii_visual() */
 #if 1
-  if (line->num_of_chars > vt_screen_get_logical_cols(screen)) {
+  if (line->num_chars > vt_screen_get_logical_cols(screen)) {
     /*
-     * line->num_of_filled_chars can be more than line->num_of_chars
+     * line->num_filled_chars can be more than line->num_chars
      * without vt_line_reset() here because line is visualized.
      */
     vt_line_reset(line);
     vt_line_set_updated(line);
 
     vt_str_final(line->chars + vt_screen_get_logical_cols(screen),
-                 line->num_of_chars - vt_screen_get_logical_cols(screen));
-    line->num_of_chars = vt_screen_get_logical_cols(screen);
+                 line->num_chars - vt_screen_get_logical_cols(screen));
+    line->num_chars = vt_screen_get_logical_cols(screen);
   } else
 #endif
   {
@@ -189,7 +189,7 @@ static int modify_region(vt_screen_t *screen, /* visual */
   row = *end_row;
 
   while ((line = vt_screen_get_line(screen, row)) == NULL || vt_line_is_empty(line)) {
-    if (--row < 0 && abs(row) > vt_get_num_of_logged_lines(&screen->logs)) {
+    if (--row < 0 && abs(row) > vt_get_num_logged_lines(&screen->logs)) {
       return 0;
     }
   }
@@ -198,7 +198,7 @@ static int modify_region(vt_screen_t *screen, /* visual */
     if (vt_line_is_rtl(line)) {
       *end_char_index = vt_line_beg_char_index_regarding_rtl(line);
     } else {
-      if ((*end_char_index = vt_line_get_num_of_filled_chars_except_spaces(line)) > 0) {
+      if ((*end_char_index = vt_line_get_num_filled_chars_except_sp(line)) > 0) {
         (*end_char_index)--;
       }
     }
@@ -219,14 +219,14 @@ static void convert_col_to_char_index(vt_screen_t *screen, /* visual */
   u_int rest;
 
   if (vt_line_is_rtl(line) &&
-      (padding = vt_screen_get_cols(screen) - vt_line_get_num_of_filled_cols(line)) > 0) {
+      (padding = vt_screen_get_cols(screen) - vt_line_get_num_filled_cols(line)) > 0) {
     beg_col -= padding;
     end_col -= padding;
   }
 
   *beg_char_index = vt_convert_col_to_char_index(line, &rest, beg_col, 0);
 
-  if ((end = vt_line_get_num_of_filled_chars_except_spaces(line)) <= *beg_char_index ||
+  if ((end = vt_line_get_num_filled_chars_except_sp(line)) <= *beg_char_index ||
       (end == *beg_char_index + 1 && rest > 0)) {
     *beg_char_index = end;
   } else if ((beg = vt_line_beg_char_index_regarding_rtl(line)) > *beg_char_index) {
@@ -285,7 +285,7 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
   int char_index;
   int row;
   vt_line_t *line;
-  u_int size_except_spaces;
+  u_int size_except_sp;
   int beg_regarding_rtl;
 
   if (!modify_region(screen, &end_char_index, &end_row)) {
@@ -301,19 +301,19 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
       goto next_line;
     }
 
-    size_except_spaces = vt_line_get_num_of_filled_chars_except_spaces(line);
+    size_except_sp = vt_line_get_num_filled_chars_except_sp(line);
     beg_regarding_rtl = vt_line_beg_char_index_regarding_rtl(line);
 
     if (vt_line_is_rtl(line)) {
-      if (row > beg_row || beg_char_index >= size_except_spaces) {
-        beg_char_index = K_MAX(size_except_spaces, 1) - 1;
+      if (row > beg_row || beg_char_index >= size_except_sp) {
+        beg_char_index = K_MAX(size_except_sp, 1) - 1;
       } else if (beg_char_index < beg_regarding_rtl) {
         goto next_line;
       }
     } else {
       if (row > beg_row || beg_char_index < beg_regarding_rtl) {
         beg_char_index = beg_regarding_rtl;
-      } else if (beg_char_index >= size_except_spaces) {
+      } else if (beg_char_index >= size_except_sp) {
         goto next_line;
       }
     }
@@ -332,7 +332,7 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
         (*func)(line, char_index);
       }
     } else {
-      for (char_index = beg_char_index; char_index < size_except_spaces; char_index++) {
+      for (char_index = beg_char_index; char_index < size_except_sp; char_index++) {
         (*func)(line, char_index);
       }
     }
@@ -342,9 +342,9 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
         continue;
       }
 
-      size_except_spaces = vt_line_get_num_of_filled_chars_except_spaces(line);
+      size_except_sp = vt_line_get_num_filled_chars_except_sp(line);
 
-      for (char_index = vt_line_beg_char_index_regarding_rtl(line); char_index < size_except_spaces;
+      for (char_index = vt_line_beg_char_index_regarding_rtl(line); char_index < size_except_sp;
            char_index++) {
         (*func)(line, char_index);
       }
@@ -354,11 +354,11 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
       return 1;
     }
 
-    size_except_spaces = vt_line_get_num_of_filled_chars_except_spaces(line);
+    size_except_sp = vt_line_get_num_filled_chars_except_sp(line);
     beg_regarding_rtl = vt_line_beg_char_index_regarding_rtl(line);
 
     if (vt_line_is_rtl(line)) {
-      beg_char_index = K_MAX(size_except_spaces, 1) - 1;
+      beg_char_index = K_MAX(size_except_sp, 1) - 1;
     } else {
       beg_char_index = beg_regarding_rtl;
     }
@@ -367,7 +367,7 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
   /* row == end_row */
 
   if (vt_line_is_rtl(line)) {
-    if (end_char_index < size_except_spaces) {
+    if (end_char_index < size_except_sp) {
       for (char_index = K_MAX(end_char_index, beg_regarding_rtl); char_index <= beg_char_index;
            char_index++) {
         (*func)(line, char_index);
@@ -375,7 +375,7 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
     }
   } else {
     if (end_char_index >= beg_regarding_rtl) {
-      for (char_index = beg_char_index; char_index < K_MIN(end_char_index + 1, size_except_spaces);
+      for (char_index = beg_char_index; char_index < K_MIN(end_char_index + 1, size_except_sp);
            char_index++) {
         (*func)(line, char_index);
       }
@@ -388,7 +388,7 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
 static u_int check_or_copy_region_rect(
     vt_screen_t *screen, /* visual */
     vt_char_t *chars,    /* Behavior is undefined if chars is insufficient. */
-    u_int num_of_chars, int beg_col, int beg_row, int end_col, int end_row) {
+    u_int num_chars, int beg_col, int beg_row, int end_col, int end_row) {
   int row;
   vt_line_t *line;
   u_int region_size;
@@ -413,14 +413,14 @@ static u_int check_or_copy_region_rect(
 
       size = end_char_index - beg_char_index;
 
-      if (chars && num_of_chars >= region_size + size) {
+      if (chars && num_chars >= region_size + size) {
         vt_line_copy_logical_str(line, chars + region_size, beg_char_index, size);
       }
 
       region_size += size;
 
       if (row < end_row) {
-        if (chars && num_of_chars >= region_size + 1) {
+        if (chars && num_chars >= region_size + 1) {
           vt_char_copy(chars + region_size, vt_nl_ch());
         }
 
@@ -435,8 +435,8 @@ static u_int check_or_copy_region_rect(
 static u_int check_or_copy_region(
     vt_screen_t *screen,                    /* visual */
     vt_char_t *chars,                       /* Behavior is undefined if chars is insufficient. */
-    u_int num_of_chars, int beg_char_index, /* can be over size_except_spaces */
-    int beg_row, int end_char_index,        /* can be over size_except_spaces */
+    u_int num_chars, int beg_char_index, /* can be over size_except_sp */
+    int beg_row, int end_char_index,        /* can be over size_except_sp */
     int end_row) {
   /*
    * LTR line:    a<aa bbb ccc>
@@ -450,7 +450,7 @@ static u_int check_or_copy_region(
   vt_line_t *line;
   u_int size;
   u_int region_size;
-  u_int size_except_spaces;
+  u_int size_except_sp;
   int beg_regarding_rtl;
   int row;
 
@@ -471,19 +471,19 @@ static u_int check_or_copy_region(
       goto next_line;
     }
 
-    size_except_spaces = vt_line_get_num_of_filled_chars_except_spaces(line);
+    size_except_sp = vt_line_get_num_filled_chars_except_sp(line);
     beg_regarding_rtl = vt_line_beg_char_index_regarding_rtl(line);
 
     if (vt_line_is_rtl(line)) {
-      if (row > beg_row || beg_char_index >= size_except_spaces) {
-        beg_char_index = K_MAX(size_except_spaces, 1) - 1;
+      if (row > beg_row || beg_char_index >= size_except_sp) {
+        beg_char_index = K_MAX(size_except_sp, 1) - 1;
       } else if (beg_char_index < beg_regarding_rtl) {
         goto next_line;
       }
     } else {
       if (row > beg_row || beg_char_index < beg_regarding_rtl) {
         beg_char_index = beg_regarding_rtl;
-      } else if (beg_char_index >= size_except_spaces) {
+      } else if (beg_char_index >= size_except_sp) {
         goto next_line;
       }
     }
@@ -502,13 +502,13 @@ static u_int check_or_copy_region(
     if (vt_line_is_rtl(line)) {
       size = beg_char_index - beg_regarding_rtl + 1;
 
-      if (chars && num_of_chars >= region_size + size) {
+      if (chars && num_chars >= region_size + size) {
         vt_line_copy_logical_str(line, chars + region_size, beg_regarding_rtl, size);
       }
     } else {
-      size = size_except_spaces - beg_char_index;
+      size = size_except_sp - beg_char_index;
 
-      if (chars && num_of_chars >= region_size + size) {
+      if (chars && num_chars >= region_size + size) {
         vt_line_copy_logical_str(line, chars + region_size, beg_char_index, size);
       }
     }
@@ -516,7 +516,7 @@ static u_int check_or_copy_region(
     region_size += size;
 
     if (!vt_line_is_continued_to_next(line)) {
-      if (chars && num_of_chars > region_size) {
+      if (chars && num_chars > region_size) {
         vt_char_copy(chars + region_size, vt_nl_ch());
       }
       region_size++;
@@ -526,16 +526,16 @@ static u_int check_or_copy_region(
       line = vt_screen_get_line(screen, row);
 
       beg_regarding_rtl = vt_line_beg_char_index_regarding_rtl(line);
-      size = vt_line_get_num_of_filled_chars_except_spaces(line) - beg_regarding_rtl;
+      size = vt_line_get_num_filled_chars_except_sp(line) - beg_regarding_rtl;
 
-      if (chars && num_of_chars >= region_size + size) {
+      if (chars && num_chars >= region_size + size) {
         vt_line_copy_logical_str(line, chars + region_size, beg_regarding_rtl, size);
       }
 
       region_size += size;
 
       if (!vt_line_is_continued_to_next(line)) {
-        if (chars && num_of_chars > region_size) {
+        if (chars && num_chars > region_size) {
           vt_char_copy(chars + region_size, vt_nl_ch());
         }
         region_size++;
@@ -546,11 +546,11 @@ static u_int check_or_copy_region(
       return region_size;
     }
 
-    size_except_spaces = vt_line_get_num_of_filled_chars_except_spaces(line);
+    size_except_sp = vt_line_get_num_filled_chars_except_sp(line);
     beg_regarding_rtl = vt_line_beg_char_index_regarding_rtl(line);
 
     if (vt_line_is_rtl(line)) {
-      beg_char_index = K_MAX(size_except_spaces, 1) - 1;
+      beg_char_index = K_MAX(size_except_sp, 1) - 1;
     } else {
       beg_char_index = beg_regarding_rtl;
     }
@@ -558,17 +558,17 @@ static u_int check_or_copy_region(
 
   /* row == end_row */
 
-  if (size_except_spaces == 0) {
+  if (size_except_sp == 0) {
     /* do nothing */
   } else if (vt_line_is_rtl(line)) {
-    if (end_char_index < size_except_spaces) {
+    if (end_char_index < size_except_sp) {
       if (end_char_index < beg_regarding_rtl) {
         end_char_index = beg_regarding_rtl;
       }
 
       size = beg_char_index - end_char_index + 1;
 
-      if (chars && num_of_chars >= region_size + size) {
+      if (chars && num_chars >= region_size + size) {
         vt_line_copy_logical_str(line, chars + region_size, end_char_index, size);
       }
 
@@ -576,13 +576,13 @@ static u_int check_or_copy_region(
     }
   } else {
     if (end_char_index >= beg_regarding_rtl) {
-      if (end_char_index >= size_except_spaces) {
-        end_char_index = size_except_spaces - 1;
+      if (end_char_index >= size_except_sp) {
+        end_char_index = size_except_sp - 1;
       }
 
       size = end_char_index - beg_char_index + 1;
 
-      if (chars && num_of_chars >= region_size + size) {
+      if (chars && num_chars >= region_size + size) {
         vt_line_copy_logical_str(line, chars + region_size, beg_char_index, size);
       }
 
@@ -705,7 +705,7 @@ void vt_set_regard_uri_as_word(int flag) { regard_uri_as_word = flag; }
 
 int vt_get_regard_uri_as_word(void) { return regard_uri_as_word; }
 
-vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_of_log_lines,
+vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_log_lines,
                            int use_bce, vt_bs_mode_t bs_mode) {
   vt_screen_t *screen;
 
@@ -743,7 +743,7 @@ vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_of_
 
   screen->edit = &screen->normal_edit;
 
-  if (!vt_log_init(&screen->logs, num_of_log_lines)) {
+  if (!vt_log_init(&screen->logs, num_log_lines)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " vt_log_init failed.\n");
 #endif
@@ -935,9 +935,9 @@ vt_line_t *vt_screen_get_line_in_screen(vt_screen_t *screen, int row) {
 void vt_screen_set_modified_all(vt_screen_t *screen) {
   int row;
   vt_line_t *line;
-  u_int num_of_rows = vt_screen_get_rows(screen);
+  u_int num_rows = vt_screen_get_rows(screen);
 
-  for (row = 0; row < num_of_rows; row++) {
+  for (row = 0; row < num_rows; row++) {
     if ((line = vt_screen_get_line_in_screen(screen, row))) {
       vt_line_set_modified_all(line);
     }
@@ -1057,7 +1057,7 @@ int vt_screen_backscroll_to(vt_screen_t *screen, int row) {
 int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
   vt_line_t *line;
   u_int count;
-  u_int num_of_rows;
+  u_int num_rows;
 
   if (!screen->is_backscrolling) {
     return 0;
@@ -1073,12 +1073,12 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
 
   screen->backscroll_rows -= size;
 
-  num_of_rows = vt_screen_get_rows(screen);
+  num_rows = vt_screen_get_rows(screen);
 
   if (!screen->screen_listener || !screen->screen_listener->window_scroll_upward_region ||
       !(*screen->screen_listener->window_scroll_upward_region)(
-          screen->screen_listener->self, 0, num_of_rows - 1, size)) {
-    for (count = 0; count < num_of_rows - size; count++) {
+          screen->screen_listener->self, 0, num_rows - 1, size)) {
+    for (count = 0; count < num_rows - size; count++) {
       if ((line = vt_screen_get_line_in_screen(screen, count)) == NULL) {
         break;
       }
@@ -1087,7 +1087,7 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
     }
   }
 
-  for (count = num_of_rows - size; count < num_of_rows; count++) {
+  for (count = num_rows - size; count < num_rows; count++) {
     if ((line = vt_screen_get_line_in_screen(screen, count)) == NULL) {
       break;
     }
@@ -1107,14 +1107,14 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size) {
 int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size) {
   vt_line_t *line;
   u_int count;
-  int num_of_rows;
+  int num_rows;
 
   if (!screen->is_backscrolling) {
     return 0;
   }
 
-  if (vt_get_num_of_logged_lines(&screen->logs) < screen->backscroll_rows + size) {
-    size = vt_get_num_of_logged_lines(&screen->logs) - screen->backscroll_rows;
+  if (vt_get_num_logged_lines(&screen->logs) < screen->backscroll_rows + size) {
+    size = vt_get_num_logged_lines(&screen->logs) - screen->backscroll_rows;
   }
 
   if (size == 0) {
@@ -1123,12 +1123,12 @@ int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size) {
 
   screen->backscroll_rows += size;
 
-  num_of_rows = vt_screen_get_rows(screen);
+  num_rows = vt_screen_get_rows(screen);
 
   if (!screen->screen_listener || !screen->screen_listener->window_scroll_downward_region ||
       !(*screen->screen_listener->window_scroll_downward_region)(
-          screen->screen_listener->self, 0, num_of_rows - 1, size)) {
-    for (count = size; count < num_of_rows; count++) {
+          screen->screen_listener->self, 0, num_rows - 1, size)) {
+    for (count = size; count < num_rows; count++) {
       if ((line = vt_screen_get_line_in_screen(screen, count)) == NULL) {
         break;
       }
@@ -1170,14 +1170,14 @@ int vt_screen_restore_color(vt_screen_t *screen, int beg_char_index, int beg_row
   }
 }
 
-u_int vt_screen_copy_region(vt_screen_t *screen, vt_char_t *chars, u_int num_of_chars,
+u_int vt_screen_copy_region(vt_screen_t *screen, vt_char_t *chars, u_int num_chars,
                             int beg_char_index, int beg_row, int end_char_index, int end_row,
                             int is_rect) {
   if (is_rect) {
-    return check_or_copy_region_rect(screen, chars, num_of_chars, beg_char_index, beg_row,
+    return check_or_copy_region_rect(screen, chars, num_chars, beg_char_index, beg_row,
                                      end_char_index, end_row);
   } else {
-    return check_or_copy_region(screen, chars, num_of_chars, beg_char_index, beg_row,
+    return check_or_copy_region(screen, chars, num_chars, beg_char_index, beg_row,
                                 end_char_index, end_row);
   }
 }
@@ -1220,7 +1220,7 @@ int vt_screen_get_line_region(vt_screen_t *screen, int *beg_row, int *end_char_i
     row++;
   }
 
-  *end_char_index = line->num_of_filled_chars - 1;
+  *end_char_index = line->num_filled_chars - 1;
   *end_row = row;
 
   /*
@@ -1330,7 +1330,7 @@ int vt_screen_get_word_region(vt_screen_t *screen, int *beg_char_index, int *beg
       }
 
       row--;
-      char_index = line->num_of_filled_chars - 1;
+      char_index = line->num_filled_chars - 1;
     } else {
       char_index--;
     }
@@ -1354,7 +1354,7 @@ int vt_screen_get_word_region(vt_screen_t *screen, int *beg_char_index, int *beg
   line = base_line;
 
   while (1) {
-    if (char_index == line->num_of_filled_chars - 1) {
+    if (char_index == line->num_filled_chars - 1) {
       if (!vt_line_is_continued_to_next(line) ||
           (line = vt_screen_get_line(screen, row + 1)) == NULL || vt_line_is_empty(line)) {
         *end_char_index = char_index;
@@ -1486,7 +1486,7 @@ int vt_screen_search_find(vt_screen_t *screen,
     size_t match_beg;
     size_t match_len;
 
-    if ((line_len = vt_line_get_num_of_filled_chars_except_spaces(line)) == 0) {
+    if ((line_len = vt_line_get_num_filled_chars_except_sp(line)) == 0) {
       continue;
     }
 
@@ -1623,14 +1623,14 @@ int vt_screen_blink(vt_screen_t *screen) {
     int char_index;
     int row;
     vt_line_t *line;
-    u_int num_of_rows = vt_screen_get_rows(screen);
+    u_int num_rows = vt_screen_get_rows(screen);
 
-    for (row = 0; row + screen->backscroll_rows < num_of_rows; row++) {
+    for (row = 0; row + screen->backscroll_rows < num_rows; row++) {
       if ((line = vt_screen_get_line(screen, row)) == NULL) {
         continue;
       }
 
-      for (char_index = 0; char_index < line->num_of_filled_chars; char_index++) {
+      for (char_index = 0; char_index < line->num_filled_chars; char_index++) {
         if (vt_char_is_blinking(line->chars + char_index)) {
           vt_line_set_modified(line, char_index, char_index);
           has_blinking_char = 1;
@@ -1910,7 +1910,7 @@ int vt_screen_local_echo_wait(vt_screen_t *screen, int msec /* 0: stored_edit->t
  */
 int vt_screen_disable_local_echo(vt_screen_t *screen) {
   u_int row;
-  u_int num_of_rows;
+  u_int num_rows;
   vt_line_t *old_line;
   vt_line_t *new_line;
 
@@ -1918,20 +1918,20 @@ int vt_screen_disable_local_echo(vt_screen_t *screen) {
     return 0;
   }
 
-  num_of_rows = vt_edit_get_rows(screen->edit);
+  num_rows = vt_edit_get_rows(screen->edit);
 
   /*
    * Set modified flag to the difference between the current edit and the stored
    * one
    * to restore the screen before starting local echo.
    */
-  for (row = 0; row < num_of_rows; row++) {
+  for (row = 0; row < num_rows; row++) {
     if ((new_line = vt_edit_get_line(&screen->stored_edit->edit, row)) &&
         (old_line = vt_edit_get_line(screen->edit, row)) &&
         (vt_line_is_modified(old_line) ||
-         old_line->num_of_filled_chars != new_line->num_of_filled_chars
+         old_line->num_filled_chars != new_line->num_filled_chars
 #if 1
-         || !vt_str_bytes_equal(old_line->chars, new_line->chars, new_line->num_of_filled_chars)
+         || !vt_str_bytes_equal(old_line->chars, new_line->chars, new_line->num_filled_chars)
 #endif
              )) {
       vt_line_set_modified_all(new_line);
@@ -1948,7 +1948,7 @@ int vt_screen_disable_local_echo(vt_screen_t *screen) {
 }
 
 void vt_screen_fill_area(vt_screen_t *screen, int code /* Unicode */, int is_protected,
-                        int col, int row, u_int num_of_cols, u_int num_of_rows) {
+                        int col, int row, u_int num_cols, u_int num_rows) {
   vt_char_t ch;
 
   vt_char_init(&ch);
@@ -1957,13 +1957,13 @@ void vt_screen_fill_area(vt_screen_t *screen, int code /* Unicode */, int is_pro
               code <= 0x7f ? US_ASCII : ISO10646_UCS4_1, /* XXX biwidth is not supported. */
               0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, is_protected);
 
-  vt_edit_fill_area(screen->edit, &ch, col, row, num_of_cols, num_of_rows);
+  vt_edit_fill_area(screen->edit, &ch, col, row, num_cols, num_rows);
 
   vt_char_final(&ch);
 }
 
-void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_of_copy_cols,
-                         u_int num_of_copy_rows, u_int src_page,
+void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_copy_cols,
+                         u_int num_copy_rows, u_int src_page,
                          int dst_col, int dst_row, u_int dst_page) {
   vt_edit_t *src_edit;
   vt_edit_t *dst_edit;
@@ -1976,7 +1976,7 @@ void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int nu
   }
 
   if ((src_edit = get_edit(screen, src_page)) && (dst_edit = get_edit(screen, dst_page))) {
-    vt_edit_copy_area(src_edit, src_col, src_row, num_of_copy_cols, num_of_copy_rows,
+    vt_edit_copy_area(src_edit, src_col, src_row, num_copy_cols, num_copy_rows,
                       dst_edit, dst_col, dst_row);
   }
 }
@@ -2003,7 +2003,7 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
   } else {
     end = vt_screen_get_rows(screen);
     if (area == WCA_ALL) {
-      beg = -vt_screen_get_num_of_logged_lines(screen);
+      beg = -vt_screen_get_num_logged_lines(screen);
     } else /* if (area == WCA_SCREEN) */ {
       beg = 0;
     }

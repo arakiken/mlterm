@@ -85,7 +85,7 @@ void ui_display_close_all(void) {
 
   ui_gc_delete(_disp.gc);
 
-  for (count = 0; count < _disp.num_of_roots; count++) {
+  for (count = 0; count < _disp.num_roots; count++) {
     ui_window_unmap(_disp.roots[count]);
     ui_window_final(_disp.roots[count]);
   }
@@ -114,7 +114,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
                          ) {
   void *p;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_of_roots + 1))) == NULL) {
+  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_roots + 1))) == NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
@@ -135,10 +135,10 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     root->app_name = app_name;
   }
 
-  disp->roots[disp->num_of_roots++] = root;
+  disp->roots[disp->num_roots++] = root;
 
   if (ui_window_show(root, hint)) {
-    if (disp->num_of_roots > 1) {
+    if (disp->num_roots > 1) {
       window_alloc(root);
     }
 
@@ -151,17 +151,17 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
   u_int count;
 
-  for (count = 0; count < disp->num_of_roots; count++) {
+  for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
       ui_window_unmap(root);
       ui_window_final(root);
 
-      disp->num_of_roots--;
+      disp->num_roots--;
 
-      if (count == disp->num_of_roots) {
+      if (count == disp->num_roots) {
         disp->roots[count] = NULL;
       } else {
-        disp->roots[count] = disp->roots[disp->num_of_roots];
+        disp->roots[count] = disp->roots[disp->num_roots];
       }
 
       return 1;
@@ -174,7 +174,7 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 void ui_display_idling(ui_display_t *disp) {
   u_int count;
 
-  for (count = 0; count < _disp.num_of_roots; count++) {
+  for (count = 0; count < _disp.num_roots; count++) {
     ui_window_idling(_disp.roots[count]);
   }
 }

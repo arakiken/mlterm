@@ -35,7 +35,7 @@ typedef struct vt_pty_pipe {
 
 static DWORD main_tid;
 static HANDLE* child_procs; /* Notice: The first element is "ADDED_CHILD" event */
-static DWORD num_of_child_procs;
+static DWORD num_child_procs;
 
 /* --- static functions --- */
 
@@ -47,9 +47,9 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
 #endif
 
   while (1) {
-    ev = WaitForMultipleObjects(num_of_child_procs, child_procs, FALSE, INFINITE);
+    ev = WaitForMultipleObjects(num_child_procs, child_procs, FALSE, INFINITE);
 
-    if (ev > WAIT_OBJECT_0 && ev < WAIT_OBJECT_0 + num_of_child_procs) {
+    if (ev > WAIT_OBJECT_0 && ev < WAIT_OBJECT_0 + num_child_procs) {
 #ifdef __DEBUG
       bl_debug_printf("%dth child exited.\n", ev);
 #endif
@@ -59,16 +59,16 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
 
       CloseHandle(child_procs[ev - WAIT_OBJECT_0]);
 
-      child_procs[ev - WAIT_OBJECT_0] = child_procs[--num_of_child_procs];
+      child_procs[ev - WAIT_OBJECT_0] = child_procs[--num_child_procs];
     }
 
-    if (num_of_child_procs == 1) {
+    if (num_child_procs == 1) {
       break;
     }
   }
 
   free(child_procs);
-  num_of_child_procs = 0;
+  num_child_procs = 0;
   child_procs = NULL;
 
 #ifdef __DEBUG
@@ -335,7 +335,7 @@ static int final(vt_pty_t *p) {
    * If pty->child_proc is not in child_procs, pty->child_proc is already
    * closed in wait_child_exited, so TerminateProcess is not called.
    */
-  for (count = 0; count < num_of_child_procs; count++) {
+  for (count = 0; count < num_child_procs; count++) {
     if (pty->child_proc == child_procs[count]) {
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " Terminate process %d\n", pty->child_proc);
@@ -489,7 +489,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
   char *port;
   int idx;
 
-  if (num_of_child_procs == 0) {
+  if (num_child_procs == 0) {
     main_tid = GetCurrentThreadId();
 
     /*
@@ -501,7 +501,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
     }
 
     child_procs[0] = CreateEvent(NULL, FALSE, FALSE, "ADDED_CHILD");
-    num_of_child_procs = 1;
+    num_child_procs = 1;
 
     /* Launch the thread that wait for child exited. */
     if (!(thrd = CreateThread(NULL, 0, wait_child_exited, NULL, 0, &tid))) {
@@ -620,14 +620,14 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
 
     /* Add to child_procs */
 
-    if (!(p = realloc(child_procs, sizeof(HANDLE) * (num_of_child_procs + 1)))) {
+    if (!(p = realloc(child_procs, sizeof(HANDLE) * (num_child_procs + 1)))) {
       vt_pty_delete(&pty->pty);
 
       return NULL;
     }
 
     child_procs = p;
-    child_procs[num_of_child_procs++] = pty->child_proc;
+    child_procs[num_child_procs++] = pty->child_proc;
 
     /*
      * Exit WaitForMultipleObjects in wait_child_proc and do
@@ -638,7 +638,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
 
 #ifdef __DEBUG
     bl_warn_printf(BL_DEBUG_TAG " Added child procs NUM %d ADDED-HANDLE %d:%d.\n",
-                   num_of_child_procs, child_procs[num_of_child_procs - 1], pty->child_proc);
+                   num_child_procs, child_procs[num_child_procs - 1], pty->child_proc);
 #endif
 
     return &pty->pty;

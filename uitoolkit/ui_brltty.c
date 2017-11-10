@@ -47,14 +47,14 @@ static void write_line_to_display(vt_line_t *line, int cursor /* The first posit
     }
   }
 
-  if (viewport_col >= vt_line_get_num_of_filled_chars_except_spaces(line)) {
+  if (viewport_col >= vt_line_get_num_filled_chars_except_sp(line)) {
     brlapi_writeText(cursor, "");
     return;
   }
 
   (*parser->init)(parser);
   vt_str_parser_set_str(parser, line->chars + viewport_col,
-                        vt_line_get_num_of_filled_chars_except_spaces(line) - viewport_col);
+                        vt_line_get_num_filled_chars_except_sp(line) - viewport_col);
   (*wconv->init)(conv);
 
   if ((buf = alloca(display_cols * sizeof(wchar_t) + 4))) {
@@ -91,7 +91,7 @@ static void speak_line(vt_line_t *line, int full) {
   int beg;
   u_int cols;
 
-  cols = vt_line_get_num_of_filled_chars_except_spaces(line);
+  cols = vt_line_get_num_filled_chars_except_sp(line);
 
   if (full) {
     if (cols == 0) {

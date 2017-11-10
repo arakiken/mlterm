@@ -9,11 +9,11 @@
 #include "ui_color_manager.h"
 
 int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manager_t *color_man,
-                vt_char_t *chars, u_int num_of_chars, int x, int y, u_int height, u_int ascent,
+                vt_char_t *chars, u_int num_chars, int x, int y, u_int height, u_int ascent,
                 int top_margin, int hide_underline, int underline_offset);
 
 int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
-                       ui_color_manager_t *color_man, vt_char_t *chars, u_int num_of_chars, int x,
+                       ui_color_manager_t *color_man, vt_char_t *chars, u_int num_chars, int x,
                        int y, u_int height, u_int ascent, int top_margin,
                        int hide_underline, int underline_offset);
 

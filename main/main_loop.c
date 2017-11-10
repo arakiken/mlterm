@@ -110,7 +110,7 @@ int main_loop_init(int argc, char **argv) {
   int use_xim;
 #endif
   u_int max_screens_multiple;
-  u_int num_of_startup_screens;
+  u_int num_startup_screens;
   u_int depth;
   char *invalid_msg = "%s %s is not valid.\n";
   char *orig_argv;
@@ -344,7 +344,7 @@ int main_loop_init(int argc, char **argv) {
     }
   }
 
-  num_of_startup_screens = 1;
+  num_startup_screens = 1;
 
   if ((value = bl_conf_get_value(conf, "startup_screens"))) {
     u_int n;
@@ -352,7 +352,7 @@ int main_loop_init(int argc, char **argv) {
     if (!bl_str_to_uint(&n, value) || (!is_genuine_daemon && n == 0)) {
       bl_msg_printf(invalid_msg, "startup_screens", value);
     } else {
-      num_of_startup_screens = n;
+      num_startup_screens = n;
     }
   }
 
@@ -430,7 +430,7 @@ int main_loop_init(int argc, char **argv) {
   bl_conf_delete(conf);
 
   if (!ui_screen_manager_init("MLTERM=" VERSION, depth, max_screens_multiple,
-                              num_of_startup_screens, &main_config)) {
+                              num_startup_screens, &main_config)) {
     daemon_final();
 #ifdef USE_XLIB
     ui_xim_final();

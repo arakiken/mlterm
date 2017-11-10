@@ -194,7 +194,7 @@ int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual);
 
 #define vt_term_log_size_is_unlimited(term) vt_screen_log_size_is_unlimited((term)->screen)
 
-#define vt_term_get_num_of_logged_lines(term) vt_screen_get_num_of_logged_lines((term)->screen)
+#define vt_term_get_num_logged_lines(term) vt_screen_get_num_logged_lines((term)->screen)
 
 #define vt_term_convert_scr_row_to_abs(term, row) \
   vt_screen_convert_scr_row_to_abs((term)->screen, row)
@@ -244,9 +244,9 @@ void vt_term_enter_backscroll_mode(vt_term_t *term);
 #define vt_term_restore_color(term, beg_char_index, beg_row, end_char_index, end_row, is_rect) \
   vt_screen_restore_color((term)->screen, beg_char_index, beg_row, end_char_index, end_row, is_rect)
 
-#define vt_term_copy_region(term, chars, num_of_chars, beg_char_index, beg_row, end_char_index, \
+#define vt_term_copy_region(term, chars, num_chars, beg_char_index, beg_row, end_char_index, \
                             end_row, is_rect)                                                   \
-  vt_screen_copy_region((term)->screen, chars, num_of_chars, beg_char_index, beg_row,           \
+  vt_screen_copy_region((term)->screen, chars, num_chars, beg_char_index, beg_row,           \
                         end_char_index, end_row, is_rect)
 
 #define vt_term_get_region_size(term, beg_char_index, beg_row, end_char_index, end_row, is_rect) \

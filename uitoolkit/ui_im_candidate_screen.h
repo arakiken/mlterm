@@ -14,7 +14,7 @@ typedef struct ui_im_candidate {
   u_short info; /* to store misc. info from IM plugins */
 
   vt_char_t *chars;
-  u_int num_of_chars; /* == array size */
+  u_int num_chars; /* == array size */
   u_int filled_len;
 
 } ui_im_candidate_t;
@@ -33,7 +33,7 @@ typedef struct ui_im_candidate_screen {
   void *vtparser;                /* same as attached screen */
 
   ui_im_candidate_t *candidates;
-  u_int num_of_candidates; /* == array size          */
+  u_int num_candidates; /* == array size          */
 
   u_int num_per_window;
 

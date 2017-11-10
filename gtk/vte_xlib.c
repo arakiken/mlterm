@@ -56,7 +56,7 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
     is_key_event = 0;
   }
 
-  for (count = 0; count < disp.num_of_roots; count++) {
+  for (count = 0; count < disp.num_roots; count++) {
     VteTerminal *terminal;
 
     if (IS_MLTERM_SCREEN(disp.roots[count])) {

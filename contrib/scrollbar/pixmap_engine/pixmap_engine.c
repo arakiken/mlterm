@@ -126,7 +126,7 @@ typedef struct ui_window { ui_display_t *disp; } ui_window_t;
 /* --- static variables --- */
 
 static shared_image_t **shared_images;
-static unsigned int num_of_shared_images;
+static unsigned int num_shared_images;
 
 /* --- static functions --- */
 
@@ -167,7 +167,7 @@ static shared_image_t *acquire_shared_image(ui_display_t *disp, ui_sb_view_conf_
   shared_image_t *si;
   void *p;
 
-  for (count = 0; count < num_of_shared_images; count++) {
+  for (count = 0; count < num_shared_images; count++) {
     if (shared_images[count]->display == disp->display && shared_images[count]->conf == conf) {
       if (*btn_up_h == 0) {
         *btn_up_h = shared_images[count]->btn_up_h;
@@ -186,14 +186,14 @@ static shared_image_t *acquire_shared_image(ui_display_t *disp, ui_sb_view_conf_
     return NULL;
   }
 
-  if ((p = realloc(shared_images, sizeof(shared_image_t *) * (num_of_shared_images + 1))) == NULL) {
+  if ((p = realloc(shared_images, sizeof(shared_image_t *) * (num_shared_images + 1))) == NULL) {
     free(si);
 
     return NULL;
   }
 
   shared_images = p;
-  shared_images[num_of_shared_images++] = si;
+  shared_images[num_shared_images++] = si;
 
   si->display = disp->display;
   si->conf = conf;
@@ -241,10 +241,10 @@ static void release_shared_image(shared_image_t *si) {
     return;
   }
 
-  for (count = 0; count < num_of_shared_images; count++) {
+  for (count = 0; count < num_shared_images; count++) {
     if (shared_images[count] == si) {
-      shared_images[count] = shared_images[--num_of_shared_images];
-      if (num_of_shared_images == 0) {
+      shared_images[count] = shared_images[--num_shared_images];
+      if (num_shared_images == 0) {
         free(shared_images);
         shared_images = NULL;
       }

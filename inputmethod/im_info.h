@@ -7,7 +7,7 @@ typedef struct im_info {
   char *id;
   char *name;
 
-  u_int num_of_args;
+  u_int num_args;
 
   char **args;
   char **readable_args;
@@ -24,7 +24,7 @@ typedef struct im_info {
       if ((info)->name) {                         \
         free((info)->name);                       \
       }                                           \
-      for (i = 0; i < (info)->num_of_args; i++) { \
+      for (i = 0; i < (info)->num_args; i++) { \
         if ((info)->args[i]) {                    \
           free((info)->args[i]);                  \
         }                                         \

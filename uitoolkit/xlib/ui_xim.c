@@ -25,7 +25,7 @@ static int use_xim;
 static char *default_xim_name; /* this can be NULL */
 
 static ui_xim_t xims[MAX_XIMS_SAME_TIME];
-static u_int num_of_xims;
+static u_int num_xims;
 
 /* --- static functions --- */
 
@@ -52,7 +52,7 @@ static int close_xim(ui_xim_t *xim) {
 static int invoke_xim_destroyed(ui_xim_t *xim) {
   int count;
 
-  for (count = 0; count < xim->num_of_xic_wins; count++) {
+  for (count = 0; count < xim->num_xic_wins; count++) {
     ui_xim_destroyed(xims->xic_wins[count]);
   }
 
@@ -62,11 +62,11 @@ static int invoke_xim_destroyed(ui_xim_t *xim) {
 static void xim_server_destroyed(XIM im, XPointer data1, XPointer data2) {
   int count;
 
-  for (count = 0; count < num_of_xims; count++) {
+  for (count = 0; count < num_xims; count++) {
     if (xims[count].im == im) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " %s xim(with %d xic) server destroyed.\n", xims[count].name,
-                     xims[count].num_of_xic_wins);
+                     xims[count].num_xic_wins);
 #endif
 
       invoke_xim_destroyed(&xims[count]);
@@ -164,7 +164,7 @@ static int activate_xim(ui_xim_t *xim, Display *display) {
     return 0;
   }
 
-  for (count = 0; count < xim->num_of_xic_wins; count++) {
+  for (count = 0; count < xim->num_xic_wins; count++) {
     ui_xim_activated(xim->xic_wins[count]);
   }
 
@@ -178,7 +178,7 @@ static void xim_server_instantiated(Display *display, XPointer client_data, XPoi
   bl_debug_printf(BL_DEBUG_TAG " new xim server is instantiated.\n");
 #endif
 
-  for (count = 0; count < num_of_xims; count++) {
+  for (count = 0; count < num_xims; count++) {
     activate_xim(&xims[count], display);
   }
 }
@@ -186,7 +186,7 @@ static void xim_server_instantiated(Display *display, XPointer client_data, XPoi
 static ui_xim_t *search_xim(Display *display, char *xim_name) {
   int count;
 
-  for (count = 0; count < num_of_xims; count++) {
+  for (count = 0; count < num_xims; count++) {
     if (strcmp(xims[count].name, xim_name) == 0) {
       if (!xims[count].im) {
         return &xims[count];
@@ -203,18 +203,18 @@ static ui_xim_t *get_xim(Display *display, char *xim_name, char *xim_locale) {
   ui_xim_t *xim;
 
   if ((xim = search_xim(display, xim_name)) == NULL) {
-    if (num_of_xims == MAX_XIMS_SAME_TIME) {
+    if (num_xims == MAX_XIMS_SAME_TIME) {
       int count;
 
       count = 0;
 
       while (1) {
-        if (count == num_of_xims) {
+        if (count == num_xims) {
           return NULL;
-        } else if (xims[count].num_of_xic_wins == 0) {
+        } else if (xims[count].num_xic_wins == 0) {
           close_xim(&xims[count]);
 
-          xims[count] = xims[--num_of_xims];
+          xims[count] = xims[--num_xims];
 
           break;
         } else {
@@ -223,7 +223,7 @@ static ui_xim_t *get_xim(Display *display, char *xim_name, char *xim_locale) {
       }
     }
 
-    xim = &xims[num_of_xims++];
+    xim = &xims[num_xims++];
     memset(xim, 0, sizeof(ui_xim_t));
 
     xim->name = strdup(xim_name);
@@ -280,7 +280,7 @@ int ui_xim_final(void) {
     return 0;
   }
 
-  for (count = 0; count < num_of_xims; count++) {
+  for (count = 0; count < num_xims; count++) {
     close_xim(&xims[count]);
   }
 
@@ -313,10 +313,10 @@ int ui_xim_display_closed(Display *display) {
   }
 
   count = 0;
-  while (count < num_of_xims) {
+  while (count < num_xims) {
     if (xims[count].im && XDisplayOfIM(xims[count].im) == display) {
       close_xim(&xims[count]);
-      xims[count] = xims[--num_of_xims];
+      xims[count] = xims[--num_xims];
     } else {
       count++;
     }
@@ -372,7 +372,7 @@ int ui_add_xim_listener(ui_window_t *win, char *xim_name, char *xim_locale) {
     return 0;
   }
 
-  if ((p = realloc(win->xim->xic_wins, sizeof(ui_window_t*) * (win->xim->num_of_xic_wins + 1))) ==
+  if ((p = realloc(win->xim->xic_wins, sizeof(ui_window_t*) * (win->xim->num_xic_wins + 1))) ==
       NULL) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
@@ -383,7 +383,7 @@ int ui_add_xim_listener(ui_window_t *win, char *xim_name, char *xim_locale) {
 
   win->xim->xic_wins = p;
 
-  win->xim->xic_wins[win->xim->num_of_xic_wins++] = win;
+  win->xim->xic_wins[win->xim->num_xic_wins++] = win;
 
   return activate_xim(win->xim, win->disp->display);
 }
@@ -395,13 +395,13 @@ int ui_remove_xim_listener(ui_window_t *win) {
     return 0;
   }
 
-  if (win->xim->num_of_xic_wins == 0) {
+  if (win->xim->num_xic_wins == 0) {
     return 0;
   }
 
-  for (count = 0; count < win->xim->num_of_xic_wins; count++) {
+  for (count = 0; count < win->xim->num_xic_wins; count++) {
     if (win->xim->xic_wins[count] == win) {
-      win->xim->xic_wins[count] = win->xim->xic_wins[--win->xim->num_of_xic_wins];
+      win->xim->xic_wins[count] = win->xim->xic_wins[--win->xim->num_xic_wins];
       win->xim = NULL;
 
       /*

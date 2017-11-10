@@ -20,26 +20,26 @@ static int copy_lines(vt_edit_t *edit, int dst_row, int src_row, u_int size, int
     return 1;
   }
 
-  if (src_row + size > edit->model.num_of_rows) {
+  if (src_row + size > edit->model.num_rows) {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " copying %d lines from %d row is over edit->model.num_of_rows(%d)",
-                   size, src_row, edit->model.num_of_rows);
+    bl_warn_printf(BL_DEBUG_TAG " copying %d lines from %d row is over edit->model.num_rows(%d)",
+                   size, src_row, edit->model.num_rows);
 #endif
 
-    size = edit->model.num_of_rows - src_row;
+    size = edit->model.num_rows - src_row;
 
 #ifdef DEBUG
     bl_msg_printf(" ... size modified -> %d.\n", size);
 #endif
   }
 
-  if (dst_row + size > edit->model.num_of_rows) {
+  if (dst_row + size > edit->model.num_rows) {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " copying %d lines to %d row is over edit->model.num_of_rows(%d)",
-                   size, dst_row, edit->model.num_of_rows);
+    bl_warn_printf(BL_DEBUG_TAG " copying %d lines to %d row is over edit->model.num_rows(%d)",
+                   size, dst_row, edit->model.num_rows);
 #endif
 
-    size = edit->model.num_of_rows - dst_row;
+    size = edit->model.num_rows - dst_row;
 
 #ifdef DEBUG
     bl_msg_printf(" ... size modified -> %d.\n", size);
@@ -283,11 +283,11 @@ int vt_edsl_scroll_downward(vt_edit_t *edit, u_int size) {
  */
 #if 0
 int vt_edsl_scroll_upward_in_all(vt_edit_t *edit, u_int size) {
-  return scroll_upward_region(edit, 0, edit->model.num_of_rows - 1, size);
+  return scroll_upward_region(edit, 0, edit->model.num_rows - 1, size);
 }
 
 int vt_edsl_scroll_downward_in_all(vt_edit_t *edit, u_int size) {
-  return scroll_downward_region(edit, 0, edit->model.num_of_rows - 1, size);
+  return scroll_downward_region(edit, 0, edit->model.num_rows - 1, size);
 }
 #endif
 

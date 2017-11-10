@@ -14,7 +14,7 @@ typedef struct vt_drcs_font {
 
 typedef struct vt_drcs {
   vt_drcs_font_t *fonts;
-  u_int num_of_fonts;
+  u_int num_fonts;
 
 } vt_drcs_t;
 

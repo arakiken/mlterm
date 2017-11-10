@@ -8,7 +8,7 @@
 #include "ui_main_config.h"
 
 int ui_screen_manager_init(char *mlterm_version, u_int depth, u_int max_screens_multiple,
-                           u_int num_of_startup_screens, ui_main_config_t *main_config);
+                           u_int num_startup_screens, ui_main_config_t *main_config);
 
 void ui_screen_manager_final(void);
 

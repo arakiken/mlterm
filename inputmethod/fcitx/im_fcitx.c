@@ -426,7 +426,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
   int y;
   ef_char_t ch;
   vt_char_t *p;
-  u_int num_of_chars;
+  u_int num_chars;
   size_t preedit_len;
 
   fcitx = (im_fcitx_t*)data;
@@ -441,18 +441,18 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
   } else {
     u_char *tmp = NULL;
 
-    fcitx->im.preedit.cursor_offset = num_of_chars = 0;
+    fcitx->im.preedit.cursor_offset = num_chars = 0;
     (*parser_utf8->init)(parser_utf8);
     (*parser_utf8->set_str)(parser_utf8, preedit, preedit_len);
     while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
       if (preedit_len - parser_utf8->left > cursor_pos) {
-        fcitx->im.preedit.cursor_offset = num_of_chars;
+        fcitx->im.preedit.cursor_offset = num_chars;
         cursor_pos = preedit_len; /* Not to enter here twice. */
       }
-      num_of_chars++;
+      num_chars++;
     }
 
-    if ((p = realloc(fcitx->im.preedit.chars, sizeof(vt_char_t) * num_of_chars)) == NULL) {
+    if ((p = realloc(fcitx->im.preedit.chars, sizeof(vt_char_t) * num_chars)) == NULL) {
       return;
     }
 
@@ -465,7 +465,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
     }
 
     (*syms->vt_str_init)(fcitx->im.preedit.chars = p,
-                         fcitx->im.preedit.num_of_chars = num_of_chars);
+                         fcitx->im.preedit.num_chars = num_chars);
     fcitx->im.preedit.filled_len = 0;
 
     (*fcitx->parser_term->init)(fcitx->parser_term);
@@ -610,7 +610,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
     FcitxPreeditItem *item;
     ef_char_t ch;
     vt_char_t *p;
-    u_int num_of_chars;
+    u_int num_chars;
     guint count;
 
     if (fcitx->im.preedit.filled_len == 0) {
@@ -626,7 +626,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
       }
     }
 
-    fcitx->im.preedit.cursor_offset = num_of_chars = 0;
+    fcitx->im.preedit.cursor_offset = num_chars = 0;
 
     for (count = 0; count < list->len; count++) {
       size_t str_len;
@@ -636,23 +636,23 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
       str_len = strlen(item->string);
 
       if (cursor_pos >= 0 && (cursor_pos -= str_len) < 0) {
-        fcitx->im.preedit.cursor_offset = num_of_chars;
+        fcitx->im.preedit.cursor_offset = num_chars;
       }
 
       (*parser_utf8->init)(parser_utf8);
       (*parser_utf8->set_str)(parser_utf8, item->string, str_len);
 
       while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
-        num_of_chars++;
+        num_chars++;
       }
     }
 
-    if ((p = realloc(fcitx->im.preedit.chars, sizeof(vt_char_t) * num_of_chars)) == NULL) {
+    if ((p = realloc(fcitx->im.preedit.chars, sizeof(vt_char_t) * num_chars)) == NULL) {
       return;
     }
 
     (*syms->vt_str_init)(fcitx->im.preedit.chars = p,
-                         fcitx->im.preedit.num_of_chars = num_of_chars);
+                         fcitx->im.preedit.num_chars = num_chars);
     fcitx->im.preedit.filled_len = 0;
 
     for (count = 0; count < list->len; count++) {
@@ -850,7 +850,7 @@ im_info_t *im_fcitx_get_info(char *locale, char *encoding) {
 
   result->id = strdup("fcitx");
   result->name = strdup("fcitx");
-  result->num_of_args = 0;
+  result->num_args = 0;
   result->args = NULL;
   result->readable_args = NULL;
 

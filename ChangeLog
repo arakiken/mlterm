@@ -1,5 +1,9 @@
 2017-11-10  Araki Ken  <arakiken@users.sf.net>
 
+	* num_of_xxx -> num_xxx
+
+2017-11-10  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_cursor.[ch]: Functions whose return values are not used return void.
 
 	* vt_edit.[ch]:
