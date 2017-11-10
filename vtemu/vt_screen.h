@@ -317,10 +317,10 @@ int vt_screen_go_downward(vt_screen_t *screen, u_int size);
 #define vt_screen_goto_beg_of_line(screen) vt_edit_goto_beg_of_line((screen)->edit)
 
 #define vt_screen_go_horizontally(screen, col) \
-  vt_screen_goto(screen, col, vt_cursor_row((screen)->edit))
+  vt_edit_goto((screen)->edit, col, vt_edit_cursor_logical_row((screen)->edit))
 
 #define vt_screen_go_vertically(screen, row) \
-  vt_screen_goto(screen, vt_cursor_col((screen)->edit), row)
+  vt_edit_goto((screen)->edit, vt_edit_cursor_logical_col((screen)->edit), row)
 
 #define vt_screen_goto_home(screen) vt_edit_goto_home((screen)->edit)
 

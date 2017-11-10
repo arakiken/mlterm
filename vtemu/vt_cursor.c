@@ -76,21 +76,17 @@ int vt_cursor_moveh_by_col(vt_cursor_t *cursor, int col) {
   return cursor_goto(cursor, col, cursor->row, 1);
 }
 
-int vt_cursor_goto_home(vt_cursor_t *cursor) {
+void vt_cursor_goto_home(vt_cursor_t *cursor) {
   cursor->row = 0;
   cursor->char_index = 0;
   cursor->col = 0;
   cursor->col_in_char = 0;
-
-  return 1;
 }
 
-int vt_cursor_goto_beg_of_line(vt_cursor_t *cursor) {
+void vt_cursor_goto_beg_of_line(vt_cursor_t *cursor) {
   cursor->char_index = 0;
   cursor->col = 0;
   cursor->col_in_char = 0;
-
-  return 1;
 }
 
 int vt_cursor_go_forward(vt_cursor_t *cursor) {
@@ -141,27 +137,21 @@ vt_char_t *vt_get_cursor_char(vt_cursor_t *cursor) {
   return vt_model_get_line(cursor->model, cursor->row)->chars + cursor->char_index;
 }
 
-int vt_cursor_char_is_cleared(vt_cursor_t *cursor) {
+void vt_cursor_char_is_cleared(vt_cursor_t *cursor) {
   cursor->char_index += cursor->col_in_char;
   cursor->col_in_char = 0;
-
-  return 1;
 }
 
-int vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t *cursor) {
+void vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t *cursor) {
   cursor->char_index = cursor->col;
   cursor->col_in_char = 0;
-
-  return 1;
 }
 
-int vt_cursor_save(vt_cursor_t *cursor) {
+void vt_cursor_save(vt_cursor_t *cursor) {
   cursor->saved_col = cursor->col;
   cursor->saved_char_index = cursor->char_index;
   cursor->saved_row = cursor->row;
   cursor->is_saved = 1;
-
-  return 1;
 }
 
 int vt_cursor_restore(vt_cursor_t *cursor) {

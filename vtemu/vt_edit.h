@@ -143,9 +143,9 @@ int vt_edit_go_upward(vt_edit_t *edit, int flag);
 
 int vt_edit_go_downward(vt_edit_t *edit, int flag);
 
-int vt_edit_goto_beg_of_line(vt_edit_t *edit);
+void vt_edit_goto_beg_of_line(vt_edit_t *edit);
 
-int vt_edit_goto_home(vt_edit_t *edit);
+void vt_edit_goto_home(vt_edit_t *edit);
 
 int vt_edit_goto(vt_edit_t *edit, int col, int row);
 

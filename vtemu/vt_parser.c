@@ -3249,7 +3249,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     break;
 
   case DECMODE_69:
-    /* DECVSSM */
+    /* DECLRMM */
     vt_screen_set_use_hmargin(vt_parser->screen, flag);
     break;
 
@@ -4909,9 +4909,7 @@ inline static int parse_vt100_escape_sequence(
           ps[1] = 0;
         }
 
-        if (vt_screen_set_vmargin(vt_parser->screen, ps[0] - 1, ps[1] - 1)) {
-          vt_screen_goto(vt_parser->screen, 0, 0);
-        }
+        vt_screen_set_vmargin(vt_parser->screen, ps[0] - 1, ps[1] - 1);
       } else if (*str_p == 's') {
         /* "CSI s" SCOSC or DECSLRM */
 

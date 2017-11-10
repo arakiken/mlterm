@@ -212,6 +212,11 @@ static int horizontal_tabs(vt_edit_t *edit, u_int num, int is_forward) {
   int col;
   u_int count;
 
+  if (edit->wraparound_ready_line) {
+    vt_edit_go_downward(edit, SCROLL);
+    vt_edit_goto_beg_of_line(edit);
+  }
+
   if (edit->cursor.col < edit->hmargin_beg) {
     vt_cursor_goto_by_col(&edit->cursor, edit->hmargin_beg, edit->cursor.row);
   } else if (edit->cursor.col > edit->hmargin_end) {
@@ -230,7 +235,7 @@ static int horizontal_tabs(vt_edit_t *edit, u_int num, int is_forward) {
         col++;
         vt_edit_go_forward(edit, WRAPAROUND);
       } else {
-        if (col <= 0) {
+        if (col <= edit->hmargin_beg) {
           return 1;
         }
 
@@ -1230,6 +1235,8 @@ int vt_edit_set_vmargin(vt_edit_t *edit, int beg, int end) {
   edit->vmargin_beg = beg;
   edit->vmargin_end = end;
 
+  vt_edit_goto(edit, 0, 0);
+
   return 1;
 }
 
@@ -1371,10 +1378,6 @@ void vt_edit_set_use_hmargin(vt_edit_t *edit, int use) {
   } else {
     edit->use_margin = 1;
   }
-
-  if (use >= 0) {
-    vt_edit_goto_home(edit);
-  }
 }
 
 int vt_edit_set_hmargin(vt_edit_t *edit, int beg, int end) {
@@ -1382,7 +1385,7 @@ int vt_edit_set_hmargin(vt_edit_t *edit, int beg, int end) {
     edit->hmargin_beg = beg;
     edit->hmargin_end = end;
 
-    vt_edit_goto_home(edit);
+    vt_edit_goto(edit, 0, 0);
 
     return 1;
   } else {
@@ -1467,25 +1470,23 @@ void vt_edit_set_modified_all(vt_edit_t *edit) {
   }
 }
 
-int vt_edit_goto_beg_of_line(vt_edit_t *edit) {
+void vt_edit_goto_beg_of_line(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   if (edit->hmargin_beg > 0 && edit->cursor.col >= edit->hmargin_beg) {
-    return vt_cursor_goto_by_col(&edit->cursor, edit->hmargin_beg, edit->cursor.row);
+    vt_cursor_goto_by_col(&edit->cursor, edit->hmargin_beg, edit->cursor.row);
   } else {
-    return vt_cursor_goto_beg_of_line(&edit->cursor);
+    vt_cursor_goto_beg_of_line(&edit->cursor);
   }
 }
 
 /*
  * Note that this function ignores edit->is_relative_origin.
  */
-int vt_edit_goto_home(vt_edit_t *edit) {
+void vt_edit_goto_home(vt_edit_t *edit) {
   reset_wraparound_checker(edit);
 
   vt_cursor_goto_home(&edit->cursor);
-
-  return 1;
 }
 
 int vt_edit_go_forward(vt_edit_t *edit, int flag /* WARPAROUND | SCROLL */
@@ -1535,13 +1536,7 @@ int vt_edit_go_back(vt_edit_t *edit, int flag /* WRAPAROUND | SCROLL */
   vt_cursor_dump(&edit->cursor);
 #endif
 
-  if (edit->wraparound_ready_line) {
-    reset_wraparound_checker(edit);
-
-#if 0 /* removed for sf.net BTS #1048321 -seiichi */
-    return 1;
-#endif
-  }
+  reset_wraparound_checker(edit);
 
   /*
    * full width char check.
