@@ -1,5 +1,7 @@
 2017-11-11  Araki Ken  <arakiken@users.sf.net>
 
+	* skk/dict.c: dict_set_global() is fixed.
+
 	* vt_edit.c: vt_edit_fill_area() applies bce fg/bg colors to a character to be filled.
 
 	* vt_screen.[ch]: vt_screen_fill_area() is changed from a function to a wrapper macro
