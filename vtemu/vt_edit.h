@@ -169,8 +169,8 @@ void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
 int vt_edit_restore_cursor(vt_edit_t *edit);
 
-void vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_cols,
-                       u_int num_rows);
+void vt_edit_fill_area(vt_edit_t *edit, int code, int is_protected,
+                       int col, int row, u_int num_cols, u_int num_rows);
 
 void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_copy_cols,
                        u_int num_copy_rows, vt_edit_t *dst_edit, int dst_col, int dst_row);
