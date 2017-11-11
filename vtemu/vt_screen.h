@@ -365,8 +365,8 @@ int vt_screen_local_echo_wait(vt_screen_t *screen, int msec);
 
 int vt_screen_disable_local_echo(vt_screen_t *screen);
 
-void vt_screen_fill_area(vt_screen_t *screen, int code, int is_protected, int col, int beg,
-                         u_int num_cols, u_int num_rows);
+#define vt_screen_fill_area(screen, code, is_protected, col, beg, num_cols, num_rows) \
+  vt_edit_fill_area((screen)->edit, code, is_protected, col, beg, num_cols, num_rows)
 
 void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_copy_cols,
                          u_int num_copy_rows, u_int src_page,

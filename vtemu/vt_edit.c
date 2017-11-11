@@ -359,7 +359,7 @@ static void erase_area(vt_edit_t *edit, int col, int row, u_int num_cols, u_int 
     }
 
     if (cols_rest > 0) {
-      vt_line_fill(line, vt_sp_ch(), char_index, cols_rest);
+      vt_line_fill(line, edit->use_bce ? &edit->bce_ch : vt_sp_ch(), char_index, cols_rest);
       char_index += cols_rest;
     }
 
@@ -987,7 +987,8 @@ int vt_edit_clear_cols(vt_edit_t *edit, u_int cols) {
   cursor_line = CURSOR_LINE(edit);
 
   if (edit->cursor.col_in_char) {
-    vt_line_fill(cursor_line, vt_sp_ch(), edit->cursor.char_index, edit->cursor.col_in_char);
+    vt_line_fill(cursor_line, edit->use_bce ? &edit->bce_ch : vt_sp_ch(),
+                 edit->cursor.char_index, edit->cursor.col_in_char);
 
     vt_cursor_char_is_cleared(&edit->cursor);
   }
@@ -1652,27 +1653,38 @@ int vt_edit_restore_cursor(vt_edit_t *edit) {
   }
 }
 
-void vt_edit_fill_area(vt_edit_t *edit, vt_char_t *ch, int col, int row, u_int num_cols,
-                      u_int num_rows) {
+void vt_edit_fill_area(vt_edit_t *edit, int code /* Unicode */, int is_protected,
+                       int col, int row, u_int num_cols, u_int num_rows) {
   int char_index;
   u_int cols_rest;
   vt_line_t *line;
+  vt_char_t ch;
 
   if (!apply_relative_origin(edit, &col, &row, &num_cols, &num_rows)) {
     return;
   }
+
+  vt_char_init(&ch);
+  vt_char_set(&ch, code,
+              code <= 0x7f ? US_ASCII : ISO10646_UCS4_1, /* XXX biwidth is not supported. */
+              0, 0,
+              edit->use_bce ? vt_char_fg_color(&edit->bce_ch) : VT_FG_COLOR,
+              edit->use_bce ? vt_char_bg_color(&edit->bce_ch) : VT_BG_COLOR,
+              0, 0, 0, 0, 0, is_protected);
 
   for (; num_rows > 0; num_rows--) {
     line = vt_model_get_line(&edit->model, row++);
 
     char_index = vt_convert_col_to_char_index(line, &cols_rest, col, BREAK_BOUNDARY);
     if (cols_rest > 0) {
-      vt_line_fill(line, vt_sp_ch(), char_index, cols_rest);
+      vt_line_fill(line, edit->use_bce ? &edit->bce_ch : vt_sp_ch(), char_index, cols_rest);
       char_index += cols_rest;
     }
 
-    vt_line_fill(line, ch, char_index, num_cols);
+    vt_line_fill(line, &ch, char_index, num_cols);
   }
+
+  vt_char_final(&ch);
 }
 
 void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_copy_cols,

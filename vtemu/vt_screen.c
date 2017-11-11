@@ -1947,21 +1947,6 @@ int vt_screen_disable_local_echo(vt_screen_t *screen) {
   return 1;
 }
 
-void vt_screen_fill_area(vt_screen_t *screen, int code /* Unicode */, int is_protected,
-                        int col, int row, u_int num_cols, u_int num_rows) {
-  vt_char_t ch;
-
-  vt_char_init(&ch);
-
-  vt_char_set(&ch, code,
-              code <= 0x7f ? US_ASCII : ISO10646_UCS4_1, /* XXX biwidth is not supported. */
-              0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, is_protected);
-
-  vt_edit_fill_area(screen->edit, &ch, col, row, num_cols, num_rows);
-
-  vt_char_final(&ch);
-}
-
 void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int num_copy_cols,
                          u_int num_copy_rows, u_int src_page,
                          int dst_col, int dst_row, u_int dst_page) {

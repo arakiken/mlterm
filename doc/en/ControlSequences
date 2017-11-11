@@ -160,7 +160,7 @@ O DECSTR (Soft Terminal Reset)                              CSI ! p
 - DECSWBV (Set Warning Bell Volume)                         CSI Ps SP t
 O DECSWL (Single-Width, Single-Height Line)                 ESC # 5
 - DECSZS (Select Zero Symbol)                               CSI Ps , {
-- DECSWT (Set Window Title)                                 OSC 21; <name> ST
+- DECSWT (Set Window Title)                                 OSC 2 1; <name> ST
 O DECTCEM (Text Cursor Enable Mode)                         CSI ? 25 [hl]
 - DECTID (Select Terminal ID)                               CSI Ps , q
 - DECTME (Terminal Mode Emulation)                          CSI Ps SP ~
