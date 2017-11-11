@@ -568,6 +568,7 @@ static int connect_to_server(void) {
   return sock;
 
 error:
+  bl_msg_printf("Failed to connect to skk server (%s)\n", serv);
   closesocket(sock);
 
   return -1;
@@ -1288,8 +1289,9 @@ void dict_set_global(char *dict) {
     }
 
     free(global_dict);
-    global_dict = strdup(dict);
   }
+
+  global_dict = strdup(dict);
 
   if (global_data) {
     file_unload(global_tables, global_data, global_data_size, NULL);
