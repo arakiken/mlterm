@@ -1757,6 +1757,11 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
   if (HAS_XTERM_LISTENER(vt_parser, get_picture_data)) {
     vt_char_t *data;
 
+#ifdef __DEBUG
+    struct timeval tv1, tv2;
+    gettimeofday(&tv1, NULL);
+#endif
+
     if ((data = (*vt_parser->xterm_listener->get_picture_data)(
              vt_parser->xterm_listener->self, file_path, &img_cols, &img_rows,
              is_sixel ? &vt_parser->sixel_palette : NULL)) &&
@@ -1765,6 +1770,15 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
       int row;
       int cursor_col;
       int orig_auto_wrap;
+
+#ifdef __DEBUG
+      gettimeofday(&tv2, NULL);
+      bl_debug_printf("Processing sixel time (msec) %lu - %lu = %lu\n",
+                      tv2.tv_sec * 1000 + tv2.tv_usec / 1000,
+                      tv1.tv_sec * 1000 + tv1.tv_usec / 1000,
+                      tv2.tv_sec * 1000 + tv2.tv_usec / 1000 -
+                      tv1.tv_sec * 1000 - tv1.tv_usec / 1000);
+#endif
 
       if (clip_cols == 0) {
         clip_cols = img_cols - clip_beg_col;

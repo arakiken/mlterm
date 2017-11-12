@@ -73,17 +73,18 @@ static size_t get_params(int *params, size_t max_params, char **p) {
 }
 #endif /* __GET_PARAMS__ */
 
-static int realloc_pixels(u_char **pixels, int new_width, int new_height, int cur_width,
-                          int cur_height) {
+/* realloc_pixels() might not be inlined because it is called twice. */
+#define realloc_pixels(pixels, new_width, new_height, cur_width, cur_height) \
+  ((new_width) == (cur_width) && (new_height) == (cur_height) ? \
+    1 : realloc_pixels_intern(pixels, new_width, new_height, cur_width, cur_height))
+
+static int realloc_pixels_intern(u_char **pixels, int new_width, int new_height,
+                                 int cur_width, int cur_height) {
   u_char *p;
   int y;
   int n_copy_rows;
   size_t new_line_len;
   size_t cur_line_len;
-
-  if (new_width == cur_width && new_height == cur_height) {
-    return 1;
-  }
 
   n_copy_rows = K_MIN(new_height, cur_height);
   new_line_len = new_width * PIXEL_SIZE;
@@ -217,6 +218,7 @@ static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *h
   int init_width;
   int pix_x;
   int pix_y;
+  int stride;
   int cur_width;
   int cur_height;
   int width;
@@ -276,8 +278,6 @@ static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *h
   width = 1024;
   height = 1024;
 
-  /*  Cast to u_char* is necessary because this function can be compiled by g++.
-   */
   if (!realloc_pixels(&pixels, width, height, 0, 0)) {
     free(file_data);
 
@@ -428,49 +428,74 @@ restart:
 body:
   rep = asp_x;
   pix_x = pix_y = 0;
+  stride = width * PIXEL_SIZE;
   color = 0;
 
   while (*(++p) != '\0') {
-    if (*p == '"') /* " Pan ; Pad ; Ph ; Pv */
-    {
-      if (*(++p) == '\0') {
-#ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
-#endif
+    if (*p >= '?' && *p <= '\x7E') {
+      u_int new_width;
+      u_int new_height;
+      int a;
+      int b;
+      int y;
+      u_char *line;
+
+      if (width < pix_x + rep) {
+        new_width = width + 512;
+        stride += (512 * PIXEL_SIZE);
+      } else {
+        new_width = width;
+      }
+
+      if (!realloc_pixels(&pixels, new_width,
+                          (new_height = height < pix_y + 6 ? height + 512 : height),
+                          width, height)) {
         break;
       }
 
-      if ((n = get_params(params, 4, &p)) == 1) {
-        params[1] = 1;
-        n = 2;
-      }
+      width = new_width;
+      height = new_height;
 
-/* XXX ignored */
-#if 0
-      switch (n) {
-        case 4:
-          height = params[3];
-        case 3:
-          width = params[2];
-        /* XXX realloc_pixels() is necessary here. */
-        case 2:
-/* V:H=params[0]:params[1] */
-#if 0
-          asp_x = params[1];
-          asp_y = params[0];
+      b = *p - '?';
+      a = 0x01;
+      line = pixels + pix_y * stride + pix_x * PIXEL_SIZE;
+
+      for (y = 0; y < 6; y++) {
+        if ((b & a) != 0) {
+          int x;
+
+          for (x = 0; x < rep; x++) {
+#if defined(GDK_PIXBUF_VERSION) || defined(USE_QUARTZ)
+            /* RGBA */
+            line[x * PIXEL_SIZE] = (palette[color] >> 16) & 0xff;
+            line[x * PIXEL_SIZE + 1] = (palette[color] >> 8) & 0xff;
+            line[x * PIXEL_SIZE + 2] = (palette[color]) & 0xff;
+            line[x * PIXEL_SIZE + 3] = 0xff;
+#elif defined(SIXEL_1BPP)
+            /* 0x80 is opaque mark */
+            ((pixel_t*)line)[x] = 0x80 | palette[color];
 #else
-          rep /= asp_x;
-          if ((asp_x = params[1] / params[0]) == 0) {
-            asp_x = 1; /* XXX */
-          }
-          rep *= asp_x;
+            /* ARGB (cardinal) */
+            ((pixel_t*)line)[x] = 0xff000000 | palette[color];
 #endif
+          }
+        }
+
+        a <<= 1;
+        line += stride;
       }
 
-      if (asp_x <= 0) {
-        asp_x = 1;
+      pix_x += rep;
+
+      if (cur_width < pix_x) {
+        cur_width = pix_x;
       }
-#endif
+
+      if (cur_height < pix_y + 6) {
+        cur_height = pix_y + 6;
+      }
+
+      rep = asp_x;
     } else if (*p == '!') {
       /* ! Pn Ch */
       if (*(++p) == '\0') {
@@ -488,8 +513,33 @@ body:
 
         rep *= asp_x;
       }
-    } else if (*p == '#') /* # Pc ; Pu; Px; Py; Pz */
-    {
+    } else if (*p == '$' || *p == '-') {
+      pix_x = 0;
+      rep = asp_x;
+
+      if (*p == '-') {
+        if (!init_width && width > cur_width && cur_width > 0) {
+          int y;
+
+#ifdef DEBUG
+          bl_debug_printf("Sixel width is shrunk (%d -> %d)\n", width, cur_width);
+#endif
+
+          for (y = 1; y < cur_height; y++) {
+            memmove(pixels + y * cur_width * PIXEL_SIZE, pixels + y * width * PIXEL_SIZE,
+                    cur_width * PIXEL_SIZE);
+          }
+          memset(pixels + y * cur_width * PIXEL_SIZE, 0,
+                 (cur_height * (width - cur_width) * PIXEL_SIZE));
+
+          width = cur_width;
+          stride = width * PIXEL_SIZE;
+          init_width = 1;
+        }
+
+        pix_y += 6;
+      }
+    } else if (*p == '#') /* # Pc ; Pu; Px; Py; Pz */ {
       if (*(++p) == '\0') {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
@@ -576,86 +626,46 @@ body:
         bl_debug_printf(BL_DEBUG_TAG " Set rgb %x for color %d.\n", palette[color], color);
 #endif
       }
-    } else if (*p == '$' || *p == '-') {
-      pix_x = 0;
-      rep = asp_x;
-
-      if (!init_width && width > cur_width && cur_width > 0) {
-        int y;
-
+    } else if (*p == '"') /* " Pan ; Pad ; Ph ; Pv */ {
+      if (*(++p) == '\0') {
 #ifdef DEBUG
-        bl_debug_printf("Sixel width is shrunk (%d -> %d)\n", width, cur_width);
+        bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
 #endif
-
-        for (y = 1; y < cur_height; y++) {
-          memmove(pixels + y * cur_width * PIXEL_SIZE, pixels + y * width * PIXEL_SIZE,
-                  cur_width * PIXEL_SIZE);
-        }
-        memset(pixels + y * cur_width * PIXEL_SIZE, 0,
-               (cur_height * (width - cur_width) * PIXEL_SIZE));
-
-        width = cur_width;
-        init_width = 1;
-      }
-
-      if (*p == '-') {
-        pix_y += 6;
-      }
-    } else if (*p >= '?' && *p <= '\x7E') {
-      u_int new_width;
-      u_int new_height;
-      int a;
-      int b;
-      int y;
-
-      if (!realloc_pixels(&pixels, (new_width = width < pix_x + rep ? width + 512 : width),
-                          (new_height = height < pix_y + 6 ? height + 512 : height), width,
-                          height)) {
         break;
       }
 
-      width = new_width;
-      height = new_height;
+      if ((n = get_params(params, 4, &p)) == 1) {
+        params[1] = 1;
+        n = 2;
+      }
 
-      b = *p - '?';
-      a = 0x01;
-
-      for (y = 0; y < 6; y++) {
-        if ((b & a) != 0) {
-          int x;
-
-          for (x = 0; x < rep; x++) {
-#if defined(GDK_PIXBUF_VERSION) || defined(USE_QUARTZ)
-            /* RGBA */
-            pixels[((pix_y + y) * width + pix_x + x) * PIXEL_SIZE] = (palette[color] >> 16) & 0xff;
-            pixels[((pix_y + y) * width + pix_x + x) * PIXEL_SIZE + 1] =
-                (palette[color] >> 8) & 0xff;
-            pixels[((pix_y + y) * width + pix_x + x) * PIXEL_SIZE + 2] = (palette[color]) & 0xff;
-            pixels[((pix_y + y) * width + pix_x + x) * PIXEL_SIZE + 3] = 0xff;
-#elif defined(SIXEL_1BPP)
-            /* 0x80 is opaque mark */
-            ((pixel_t*)pixels)[(pix_y + y) * width + pix_x + x] = 0x80 | palette[color];
+/* XXX ignored */
+#if 0
+      switch (n) {
+      case 4:
+        height = params[3];
+      case 3:
+        width = params[2];
+        /* XXX realloc_pixels() is necessary here. */
+        stride = width * PIXEL_SIZE;
+      case 2:
+/* V:H=params[0]:params[1] */
+#if 0
+        asp_x = params[1];
+        asp_y = params[0];
 #else
-            /* ARGB (cardinal) */
-            ((pixel_t*)pixels)[(pix_y + y) * width + pix_x + x] = 0xff000000 | palette[color];
-#endif
-          }
+        rep /= asp_x;
+        if ((asp_x = params[1] / params[0]) == 0) {
+          asp_x = 1; /* XXX */
         }
-
-        a <<= 1;
+        rep *= asp_x;
+#endif
       }
 
-      pix_x += rep;
-
-      if (cur_width < pix_x) {
-        cur_width = pix_x;
+      if (asp_x <= 0) {
+        asp_x = 1;
       }
-
-      if (cur_height < pix_y + 6) {
-        cur_height = pix_y + 6;
-      }
-
-      rep = asp_x;
+#endif
     } else if (*p == '\x1b') {
       if (*(++p) == '\\') {
 #ifdef DEBUG

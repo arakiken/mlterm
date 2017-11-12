@@ -1,3 +1,11 @@
+2017-11-12  Araki Ken  <arakiken@users.sf.net>
+
+	* c_sixel.c:
+	  - Checking if width and height is changed is placed outside of realloc_pixels().
+	  - The way of calculation of accessing address of 'pixels' array is changed.
+
+	* ui_imagelib.c, vt_parser.c: Minor fixes.
+
 2017-11-11  Araki Ken  <arakiken@users.sf.net>
 
 	* skk/dict.c: dict_set_global() is fixed.
