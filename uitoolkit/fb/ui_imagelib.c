@@ -6,6 +6,7 @@
 
 #include <stdio.h>  /* sprintf */
 #include <unistd.h> /* write , STDIN_FILENO */
+#include <sys/wait.h> /* waitpid */
 #ifdef DLOPEN_LIBM
 #include <pobl/bl_dlfcn.h> /* dynamically loading pow */
 #else
