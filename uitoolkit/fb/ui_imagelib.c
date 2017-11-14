@@ -275,16 +275,16 @@ error:
 #define CARD_HEAD_SIZE 0
 #include "../../common/c_sixel.c"
 
-#endif /* BUILTIN_SIXEL */
 
 /* For old machines (not to use mlimgloader) */
 #if (defined(__NetBSD__) || defined(__OpenBSD__)) && !defined(USE_GRF)
 
 #define SIXEL_1BPP
 #include "../../common/c_sixel.c"
+#undef SIXEL_1BPP
 
 /* depth should be checked by the caller. */
-static int load_sixel_with_mask_from_file_1bpp(char *path, u_int width, u_int height,
+static int load_sixel_with_mask_from_data_1bpp(char *file_data, u_int width, u_int height,
                                                Pixmap *pixmap, PixmapMask *mask) {
   int x;
   int y;
@@ -293,13 +293,12 @@ static int load_sixel_with_mask_from_file_1bpp(char *path, u_int width, u_int he
   u_char *dst;
 #endif
 
-  if (strcasecmp(path + strlen(path) - 4, ".six") != 0 ||
-      !(*pixmap = calloc(1, sizeof(**pixmap)))) {
+  if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
     return 0;
   }
 
   if (!((*pixmap)->image =
-            load_sixel_from_file_1bpp(path, &(*pixmap)->width, &(*pixmap)->height)) ||
+            load_sixel_from_data_1bpp(file_data, &(*pixmap)->width, &(*pixmap)->height)) ||
       /* resize_sixel() frees pixmap->image in failure. */
       !resize_sixel(*pixmap, width, height, 1)) {
     free(*pixmap);
@@ -382,8 +381,12 @@ static int load_sixel_with_mask_from_file_1bpp(char *path, u_int width, u_int he
 
   return 1;
 }
-
 #endif
+#endif /* BUILTIN_SIXEL */
+
+#define SIXEL_SHAREPALETTE
+#include "../../common/c_sixel.c"
+#undef SIXEL_SHAREPALETTE
 
 static int load_file(Display *display, char *path, u_int width, u_int height,
                      ui_picture_modifier_t *pic_mod, u_int depth, Pixmap *pixmap,
@@ -398,47 +401,76 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
     return 0;
   }
 
-/* For old machines */
-#if (defined(__NetBSD__) || defined(__OpenBSD__)) && !defined(USE_GRF)
-  if (depth == 1) {
-    /* pic_mod is ignored. */
-    if (load_sixel_with_mask_from_file_1bpp(path, width, height, pixmap, mask)) {
-      return 1;
-    }
-  } else
-#endif
 #ifdef BUILTIN_SIXEL
-      if (strcasecmp(path + strlen(path) - 4, ".six") == 0 &&
+  if (strcasecmp(path + strlen(path) - 4, ".six") == 0) {
+    char *file_data;
+
+    if (!(file_data = read_sixel_file(path))) {
+      return 0;
+    }
+
+    /* For old machines */
+#if (defined(__NetBSD__) || defined(__OpenBSD__)) && !defined(USE_GRF)
+    if (depth == 1) {
+      /* pic_mod is ignored. */
+      if (load_sixel_with_mask_from_data_1bpp(file_data, width, height, pixmap, mask)) {
+        free(file_data);
+        return 1;
+      }
+    } else
+#endif
+    if (
 /* For old machines and Android (not to use mlimgloader) */
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
-          width == 0 && height == 0 &&
+        width == 0 && height == 0 &&
 #endif
-          (*pixmap = calloc(1, sizeof(**pixmap)))) {
+        (*pixmap = calloc(1, sizeof(**pixmap)))) {
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
-    u_int32_t *sixel_cmap;
+      u_int32_t *sixel_cmap;
 
-    if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
-      sixel_cmap[256] = 0; /* No active palette */
-      custom_palette = sixel_cmap;
-    }
-#endif
-
-    if (((*pixmap)->image = load_sixel_from_file(path, &(*pixmap)->width, &(*pixmap)->height)) &&
-        /* resize_sixel() frees pixmap->image in failure. */
-        resize_sixel(*pixmap, width, height, 4)) {
-#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
-      if (sixel_cmap) {
-        /* see set_wall_picture() in ui_screen.c */
-        ui_display_set_cmap(sixel_cmap, sixel_cmap[256]);
+      if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
+        sixel_cmap[256] = 0; /* No active palette */
+        custom_palette = sixel_cmap;
       }
 #endif
 
-      goto loaded;
-    } else {
-      free(*pixmap);
-    }
-  }
+      if (depth <= 8 && ui_picture_modifier_is_normal(pic_mod) /* see modify_pixmap() */) {
+        if (((*pixmap)->image = load_sixel_from_data_sharepalette(file_data, &(*pixmap)->width,
+                                                                  &(*pixmap)->height)) &&
+            resize_sixel(*pixmap, width, height, 1)) {
+          if (mask) {
+            *mask = NULL;
+          }
+          free(file_data);
+
+#ifdef DEBUG
+          bl_debug_printf("Convert sixel to pseudo color image directly.\n");
 #endif
+          goto loaded_nomodify;
+        }
+      }
+
+      if (((*pixmap)->image = load_sixel_from_data(file_data, &(*pixmap)->width,
+                                                   &(*pixmap)->height)) &&
+          /* resize_sixel() frees pixmap->image in failure. */
+          resize_sixel(*pixmap, width, height, 4)) {
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+        if (sixel_cmap) {
+          /* see set_wall_picture() in ui_screen.c */
+          ui_display_set_cmap(sixel_cmap, sixel_cmap[256]);
+        }
+#endif
+        free(file_data);
+
+        goto loaded;
+      } else {
+        free(*pixmap);
+      }
+    }
+
+    free(file_data);
+  }
+#endif /* BUILTIN_SIXEL */
 
 #ifdef __ANDROID__
   if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
@@ -578,6 +610,7 @@ loaded:
 
   modify_pixmap(display, *pixmap, pic_mod, depth);
 
+loaded_nomodify:
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s(w %d h %d) is loaded%s.\n", path, (*pixmap)->width,
                   (*pixmap)->height, (mask && *mask) ? " (has mask)" : "");

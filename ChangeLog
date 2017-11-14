@@ -1,3 +1,19 @@
+2017-11-14  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_imagelib.c:
+	  - load_sixel_with_mask_from_file_1bpp() is enabled only if
+	    BUILTIN_SIXEL macro is defined.
+	  - load_file() tries load_sixel_from_data_sharepalette() if depth <= 8 and
+	    pic_mod is normal.
+
+	* c_sixel.c:
+	  - load_sixel_from_data_sharepalette() is added if SIXEL_SHAREPALETTE macro
+	    is defined.
+	  - read_sixel_file() is added.
+
+	* vt_parser.c:
+	  "#0;9;%d;%d;%d" instead of "#0;2;%d;%d;%d" is added to sixel sequences.
+
 2017-11-12  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c:
