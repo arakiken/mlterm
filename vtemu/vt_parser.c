@@ -5305,12 +5305,14 @@ inline static int parse_vt100_escape_sequence(
             color = VT_BG_COLOR;
           } else if (strcmp(path + strlen(path) - 4, ".six") == 0) {
             /*
-             * Set VT_FG_COLOR to the default value of
-             * the first entry of the sixel palette.
+             * Set VT_FG_COLOR to the default value of the first entry of the sixel palette,
+             * because some sixel graphics data has not palette definitions (#0;2;r;g;b).
+             * '9' is a mark which means that this definition is added by mlterm itself.
+             * (see c_sixel.c)
              */
 
             /* 7 + 3*3 + 1 = 17 */
-            format = "#0;2;%d;%d;%d";
+            format = "#0;9;%d;%d;%d";
             color = VT_FG_COLOR;
           } else {
             format = NULL;

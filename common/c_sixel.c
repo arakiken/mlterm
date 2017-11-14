@@ -7,14 +7,20 @@
 
 #ifdef SIXEL_1BPP
 
-#define realloc_pixels realloc_pixels_1bpp
 #define correct_height correct_height_1bpp
-#define load_sixel_from_file load_sixel_from_file_1bpp
+#define load_sixel_from_data load_sixel_from_data_1bpp
 #define SIXEL_RGB(r, g, b) ((9 * (r) + 30 * (g) + (b)) * 51 >= 5120 * 20 ? 1 : 0)
 #define CARD_HEAD_SIZE 0
 #define pixel_t u_int8_t
 
-#else /* SIXEL_1BPP */
+#elif defined(SIXEL_SHAREPALETTE) /* Both sixel and system uses same palette */
+
+#define correct_height correct_height_sharepalette
+#define load_sixel_from_data load_sixel_from_data_sharepalette
+#define CARD_HEAD_SIZE 0
+#define pixel_t u_int8_t
+
+#else
 
 #define SIXEL_RGB(r, g, b) ((((r)*255 / 100) << 16) | (((g)*255 / 100) << 8) | ((b)*255 / 100))
 #ifndef CARD_HEAD_SIZE
@@ -32,7 +38,7 @@
 
 /* --- static variables --- */
 
-#ifndef SIXEL_1BPP
+#if !defined(SIXEL_1BPP) && !defined(SIXEL_SHAREPALETTE)
 static pixel_t *custom_palette;
 #endif
 
@@ -73,71 +79,97 @@ static size_t get_params(int *params, size_t max_params, char **p) {
 }
 #endif /* __GET_PARAMS__ */
 
-/* realloc_pixels() might not be inlined because it is called twice. */
-#define realloc_pixels(pixels, new_width, new_height, cur_width, cur_height) \
-  ((new_width) == (cur_width) && (new_height) == (cur_height) ? \
-    1 : realloc_pixels_intern(pixels, new_width, new_height, cur_width, cur_height))
+#ifndef __READ_SIXEL_FILE__
+#define __READ_SIXEL_FILE__
+static char *read_sixel_file(const char *path) {
+  FILE* fp;
+  struct stat st;
+  char * data;
+  size_t len;
 
-static int realloc_pixels_intern(u_char **pixels, int new_width, int new_height,
-                                 int cur_width, int cur_height) {
+  if (!(fp = fopen(path, "r"))) {
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " failed to open %s\n.", path);
+#endif
+
+    return NULL;
+  }
+
+  fstat(fileno(fp), &st);
+
+  /*
+   * - malloc() should be used here because alloca() could return insufficient
+   * memory.
+   * - Cast to char* is necessary because this function can be compiled by g++.
+   */
+  if (!(data = (char*)malloc(st.st_size + 1))) {
+    fclose(fp);
+
+    return NULL;
+  }
+
+  len = fread(data, 1, st.st_size, fp);
+  fclose(fp);
+  data[len] = '\0';
+
+  return data;
+}
+#endif
+
+#ifndef __REALLOC_PIXELS_INTERN__
+#define __REALLOC_PIXELS_INTERN__
+static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_height,
+                                 size_t cur_stride, int cur_height) {
   u_char *p;
   int y;
   int n_copy_rows;
-  size_t new_line_len;
-  size_t cur_line_len;
 
   n_copy_rows = K_MIN(new_height, cur_height);
-  new_line_len = new_width * PIXEL_SIZE;
-  cur_line_len = cur_width * PIXEL_SIZE;
 
-  if (new_width < cur_width) {
+  if (new_stride < cur_stride) {
     if (new_height > cur_height) {
 /* Not supported */
 
 #ifdef DEBUG
       bl_error_printf(BL_DEBUG_TAG
-                      " Sixel width is shrunk (%d->%d) but"
-                      " height is lengthen (%d->%d)\n",
-                      cur_width, cur_height, new_width, new_height);
+                      " Sixel width bytes is shrunk (%d->%d) but height is lengthen (%d->%d)\n",
+                      cur_stride, cur_height, new_stride, new_height);
 #endif
 
       return 0;
     } else /* if( new_height < cur_height) */
     {
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d %d -> shrink %d %d\n", cur_width, cur_height,
-                      new_width, new_height);
+      bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d bytes %d rows -> shrink %d bytes %d rows\n",
+                      cur_stride, cur_height, new_stride, new_height);
 #endif
 
       for (y = 1; y < n_copy_rows; y++) {
-        memmove(*pixels + (y * new_line_len), *pixels + (y * cur_line_len), new_line_len);
+        memmove(*pixels + (y * new_stride), *pixels + (y * cur_stride), new_stride);
       }
 
       return 1;
     }
-  } else if (new_width == cur_width && new_height < cur_height) {
+  } else if (new_stride == cur_stride && new_height < cur_height) {
     /* do nothing */
 
     return 1;
   }
 
-  if (new_width > (SSIZE_MAX - CARD_HEAD_SIZE) / PIXEL_SIZE / new_height) {
+  if (new_stride > (SSIZE_MAX - CARD_HEAD_SIZE) / new_height) {
     /* integer overflow */
     return 0;
   }
 
-  if (new_width == cur_width /* && new_height > cur_height */) {
+  if (new_stride == cur_stride /* && new_height > cur_height */) {
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d %d -> realloc %d %d\n", cur_width, cur_height,
-                    new_width, new_height);
+    bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d bytes %d rows -> realloc %d bytes %d rows\n",
+                    cur_stride, cur_height, new_stride, new_height);
 #endif
 
-    /*
-     * Cast to u_char* is necessary because this function can be
-     * compiled by g++.
-     */
+    /* Cast to u_char* is necessary because this function can be compiled by g++. */
     if ((p = (u_char*)realloc(*pixels - CARD_HEAD_SIZE,
-                              CARD_HEAD_SIZE + new_line_len * new_height))) {
+                              CARD_HEAD_SIZE + new_stride * new_height))) {
       p += CARD_HEAD_SIZE;
     } else {
 #ifdef DEBUG
@@ -146,16 +178,15 @@ static int realloc_pixels_intern(u_char **pixels, int new_width, int new_height,
       return 0;
     }
 
-    memset(p + cur_line_len * cur_height, 0, new_width * (new_height - cur_height));
+    memset(p + cur_stride * cur_height, 0, new_stride * (new_height - cur_height));
   } else {
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d %d -> calloc %d %d\n", cur_width, cur_height,
-                    new_width, new_height);
+    bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d bytes %d rows -> calloc %d bytes %d rows\n",
+                    cur_stride, cur_height, new_stride, new_height);
 #endif
 
-    /* Cast to u_char* is necessary because this function can be compiled by
-     * g++. */
-    if ((p = (u_char*)calloc(CARD_HEAD_SIZE + new_line_len * new_height, 1))) {
+    /* Cast to u_char* is necessary because this function can be compiled by g++. */
+    if ((p = (u_char*)calloc(CARD_HEAD_SIZE + new_stride * new_height, 1))) {
       p += CARD_HEAD_SIZE;
     } else {
 #ifdef DEBUG
@@ -165,7 +196,7 @@ static int realloc_pixels_intern(u_char **pixels, int new_width, int new_height,
     }
 
     for (y = 0; y < n_copy_rows; y++) {
-      memcpy(p + (y * new_line_len), (*pixels) + (y * cur_line_len), cur_line_len);
+      memcpy(p + (y * new_stride), (*pixels) + (y * cur_stride), cur_stride);
     }
 
     if (*pixels) {
@@ -177,13 +208,20 @@ static int realloc_pixels_intern(u_char **pixels, int new_width, int new_height,
 
   return 1;
 }
+#endif
+
+/* realloc_pixels() might not be inlined because it is called twice. */
+#define realloc_pixels(pixels, new_width, new_height, cur_width, cur_height) \
+  ((new_width) == (cur_width) && (new_height) == (cur_height) ? \
+    1 : realloc_pixels_intern(pixels, new_width * PIXEL_SIZE, new_height, \
+                              cur_width * PIXEL_SIZE, cur_height))
+
 
 /*
  * Correct the height which is always multiple of 6, but this doesn't
  * necessarily work.
  */
-static void correct_height(pixel_t *pixels, int width, int *height /* multiple of 6 */
-                           ) {
+static void correct_height(pixel_t *pixels, int width, int *height /* multiple of 6 */) {
   int x;
   int y;
 
@@ -206,12 +244,8 @@ static void correct_height(pixel_t *pixels, int width, int *height /* multiple o
  * the actual image size is less than it.
  * It is the caller that should shrink (realloc) it.
  */
-static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *height_ret) {
-  FILE* fp;
-  struct stat st;
-  char *file_data;
-  char *p;
-  size_t len;
+static u_char *load_sixel_from_data(char *file_data, u_int *width_ret, u_int *height_ret) {
+  char *p = file_data;
   u_char *pixels;
   int params[5];
   size_t n; /* number of params */
@@ -226,6 +260,7 @@ static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *h
   int rep;
   int color;
   int asp_x;
+#ifndef SIXEL_SHAREPALETTE
   /* VT340 Default Color Map */
   static pixel_t default_palette[] = {
       SIXEL_RGB(0, 0, 0),    /* BLACK */
@@ -246,31 +281,7 @@ static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *h
       SIXEL_RGB(80, 80, 80)  /* GRAY 75% */
   };
   pixel_t *palette;
-
-  if (!(fp = fopen(path, "r"))) {
-#ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " failed to open %s\n.", path);
 #endif
-
-    return NULL;
-  }
-
-  fstat(fileno(fp), &st);
-
-  /*
-   * - malloc() should be used here because alloca() could return insufficient
-   * memory.
-   * - Cast to char* is necessary because this function can be compiled by g++.
-   */
-  if (!(p = file_data = (char*)malloc(st.st_size + 1))) {
-    fclose(fp);
-
-    return NULL;
-  }
-
-  len = fread(p, 1, st.st_size, fp);
-  fclose(fp);
-  p[len] = '\0';
 
   pixels = NULL;
   init_width = 0;
@@ -279,11 +290,10 @@ static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *h
   height = 1024;
 
   if (!realloc_pixels(&pixels, width, height, 0, 0)) {
-    free(file_data);
-
     return NULL;
   }
 
+#ifndef SIXEL_SHAREPALETTE
 #ifndef SIXEL_1BPP
   if (custom_palette) {
     palette = custom_palette;
@@ -299,6 +309,7 @@ static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *h
     memcpy(palette, default_palette, sizeof(default_palette));
     memset(palette + 16, 0, sizeof(pixel_t) * 256 - sizeof(default_palette));
   }
+#endif
 
 restart:
   while (1) {
@@ -426,6 +437,18 @@ restart:
   }
 
 body:
+#ifdef SIXEL_SHAREPALETTE
+  {
+    char *p2;
+
+    /* 'p + 2' is to skip '#' of "#0;9;%d;%d;%d" appended just after "DCS ... q" in vt_parser.c */
+    if (!(p2 = memchr(p + 2, '#', 50)) || (p2[2] != ';' && p2[3] != ';' && p2[4] != ';')) {
+      /* If color definition is not found, load_sixel_from_data_sharepalette() exits. */
+      goto error;
+    }
+  }
+#endif
+
   rep = asp_x;
   pix_x = pix_y = 0;
   stride = width * PIXEL_SIZE;
@@ -460,6 +483,15 @@ body:
       a = 0x01;
       line = pixels + pix_y * stride + pix_x * PIXEL_SIZE;
 
+#ifdef SIXEL_SHAREPALETTE
+      for (y = 0; y < 6; y++) {
+        if ((b & a) != 0) {
+          memset(line, color, rep);
+        }
+        a <<= 1;
+        line += stride;
+      }
+#else
       for (y = 0; y < 6; y++) {
         if ((b & a) != 0) {
           int x;
@@ -484,6 +516,7 @@ body:
         a <<= 1;
         line += stride;
       }
+#endif /* SIXEL_SHAREPALETTE */
 
       pix_x += rep;
 
@@ -558,12 +591,13 @@ body:
       }
 
       if (n > 4) {
+        u_int8_t rgb[3];
+
         if (params[1] == 1) {
           /* HLS */
           int h;
           u_int32_t l;
           u_int32_t s;
-          u_int8_t rgb[3];
 
           h = K_MIN(params[2], 360);
           l = K_MIN(params[3], 100);
@@ -602,17 +636,39 @@ body:
               }
             }
           }
-
-          palette[color] = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-        } else if (params[1] == 2) {
+        } else if (params[1] == 2
+#ifndef SIXEL_SHAREPALETTE
+                   || params[1] == 9 /* see vt_parser.c */
+#endif
+                   ) {
           /* RGB */
-          palette[color] =
-              SIXEL_RGB(K_MIN(params[2], 100), K_MIN(params[3], 100), K_MIN(params[4], 100));
+          rgb[0] = params[2] >= 100 ? 255 : params[2] * 255 / 100;
+          rgb[1] = params[3] >= 100 ? 255 : params[3] * 255 / 100;
+          rgb[2] = params[4] >= 100 ? 255 : params[4] * 255 / 100;
         } else {
           continue;
         }
 
-#ifndef SIXEL_1BPP
+#ifdef SIXEL_SHAREPALETTE
+        {
+          u_int8_t r, g, b;
+
+          if (!ui_cmap_get_pixel_rgb(&r, &g, &b, color) ||
+              abs(r - rgb[0]) >= 0x10 || abs(g - rgb[1]) >= 0x10 || abs(b - rgb[2]) >= 0x10) {
+#ifdef __DEBUG
+            bl_debug_printf("%d color: System palette 0x%.2x%.2x%.2x doens't match "
+                            "sixel palette 0x%.2x%.2x%.2x\n",
+                            color, r, g, b, rgb[0], rgb[1], rgb[2]);
+#endif
+
+            goto error;
+          }
+        }
+#else
+        palette[color] = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+#endif
+
+#if !defined(SIXEL_1BPP) && !defined(SIXEL_SHAREPALETTE)
         if (palette == custom_palette && palette[256] <= color) {
           /*
            * Set max active palette number for NetBSD/OpenBSD.
@@ -694,31 +750,46 @@ body:
   }
 
 end:
-  free(file_data);
-
-#ifndef SIXEL_1BPP
+#if !defined(SIXEL_1BPP) && !defined(SIXEL_SHAREPALETTE)
   custom_palette = NULL;
 #endif
 
-  if (cur_width == 0 || !realloc_pixels(&pixels, cur_width, cur_height, width, height)) {
-#ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " Nothing is drawn.\n");
-#endif
+  if (cur_width > 0 && realloc_pixels(&pixels, cur_width, cur_height, width, height)) {
+    correct_height((pixel_t*)pixels, cur_width, &cur_height);
 
-    free(pixels - CARD_HEAD_SIZE);
+    *width_ret = cur_width;
+    *height_ret = cur_height;
 
-    return NULL;
+    return pixels;
   }
 
-  correct_height((pixel_t*)pixels, cur_width, &cur_height);
+#ifdef DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " Nothing is drawn.\n");
+#endif
 
-  *width_ret = cur_width;
-  *height_ret = cur_height;
+#ifdef SIXEL_SHAREPALETTE
+error:
+#endif
+  free(pixels - CARD_HEAD_SIZE);
 
-  return pixels;
+  return NULL;
 }
 
-#ifndef SIXEL_1BPP
+#if !defined(SIXEL_1BPP) && !defined(SIXEL_SHAREPALETTE)
+
+static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *height_ret) {
+  char *file_data;
+  u_char *pixels;
+
+  if ((file_data = read_sixel_file(path))) {
+    pixels = load_sixel_from_data(file_data, width_ret, height_ret);
+    free(file_data);
+
+    return pixels;
+  } else {
+    return NULL;
+  }
+}
 
 pixel_t *ui_set_custom_sixel_palette(pixel_t *palette /* NULL -> Create new palette */
                                      ) {
@@ -733,7 +804,7 @@ pixel_t *ui_set_custom_sixel_palette(pixel_t *palette /* NULL -> Create new pale
 
 #undef realloc_pixels
 #undef correct_height
-#undef load_sixel_from_file
+#undef load_sixel_from_data
 #undef SIXEL_RGB
 #undef CARD_HEAD_SIZE
 #undef pixel_t
