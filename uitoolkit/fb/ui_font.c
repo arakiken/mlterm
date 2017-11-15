@@ -516,7 +516,7 @@ static int load_pcf(XFontStruct *xfont, const char *file_path) {
     int i;
     int j;
 
-    if ((bitmap = ui_get_bitmap(xfont, ch, sizeof(ch) - 1, NULL))) {
+    if ((bitmap = ui_get_bitmap(xfont, ch, sizeof(ch) - 1, 0, NULL))) {
       for (j = 0; j < xfont->height; j++) {
         u_char *line;
 

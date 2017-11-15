@@ -16,11 +16,4 @@ u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_lay
 /* x & 7 == x % 8 */
 #define ui_get_bitmap_cell(bitmap_line, x) ((bitmap_line)[(x) / 8] & (1 << (8 - ((x)&7) - 1)))
 
-#ifdef USE_FREETYPE
-/* (xfont)->width_full == (xfont)->glyph_width_bytes / 3 */
-#define ui_get_bitmap_width_aa(xfont) ((xfont)->width_full)
-#endif
-
-#define ui_get_bitmap_width(xfont) ((xfont)->glyph_width_bytes * 8)
-
 #endif

@@ -150,6 +150,15 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
   u_int count;
   int orig_x;
   int orig_y_off;
+  /*
+   * If font_width is larger than xfont->width_full, memory access must be limited
+   * to the latter one. (Don't excess xfont->glyph_width_bytes)
+   */
+  u_int max_glyph_width = xfont->width_full;
+
+  if (max_glyph_width + font_x_off > font_width) {
+    max_glyph_width = font_width - font_x_off;
+  }
 
 #ifdef USE_FREETYPE
   if (xfont->is_aa && is_proportional) {
@@ -180,9 +189,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
       ) {
     u_char *bitmap_line;
     int x_off;
-    u_int max_glyph_width;
-
-    max_glyph_width = ui_get_bitmap_width(xfont);
+    u_int end_gap = font_width - font_x_off - max_glyph_width;
 
     switch (bpp) {
       case 1:
@@ -196,13 +203,13 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             } else {
               p += font_x_off;
 
-              for (x_off = 0; x_off < max_glyph_width; x_off++) {
+              for (x_off = 0; x_off < max_glyph_width; x_off++, p++) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
                   *p = fg_pixel;
                 }
-
-                p++;
               }
+
+              p += end_gap;
             }
           }
 
@@ -222,13 +229,13 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             } else {
               p += (font_x_off * 2);
 
-              for (x_off = 0; x_off < max_glyph_width; x_off++) {
+              for (x_off = 0; x_off < max_glyph_width; x_off++, p += 2) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
                   *((u_int16_t *)p) = fg_pixel;
                 }
-
-                p += 2;
               }
+
+              p += (end_gap * 2);
             }
           }
 
@@ -249,13 +256,13 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             } else {
               p += (font_x_off * 4);
 
-              for (x_off = 0; x_off < max_glyph_width; x_off++) {
+              for (x_off = 0; x_off < max_glyph_width; x_off++, p += 4) {
                 if (ui_get_bitmap_cell(bitmap_line, x_off)) {
                   *((u_int32_t *)p) = fg_pixel;
                 }
-
-                p += 4;
               }
+
+              p += (end_gap * 4);
             }
           }
 
@@ -390,9 +397,9 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             x = x + advance - font_width;
           }
         } else {
-          u_int glyph_end = font_x_off + ui_get_bitmap_width_aa(xfont);
+          u_int glyph_end = font_x_off + max_glyph_width;
 
-          for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
+          for (x_off = 0; ; x_off++, p += bpp) {
             if (font_x_off <= x_off && x_off < glyph_end) {
               u_long bg;
 
@@ -406,10 +413,11 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
                 bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
               }
 
-              if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg,
-                                     bpp)) {
+              if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
                 continue;
               }
+            } else if (font_width <= x_off) {
+              break;
             }
 
             if (!src_bg_is_set) {
@@ -424,16 +432,17 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 #endif
       else {
         int force_fg = 0;
-        u_int glyph_end = font_x_off + ui_get_bitmap_width(xfont);
+        u_int glyph_end = font_x_off + max_glyph_width;
 
-        for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
+        for (x_off = 0; ; x_off++, p += bpp) {
           u_long pixel;
 
           if (font_x_off <= x_off && x_off < glyph_end &&
               ui_get_bitmap_cell(bitmap_line, x_off - font_x_off)) {
             pixel = fg_pixel;
-
             force_fg = double_draw_gap;
+          } else if (font_width <= x_off) {
+            break;
           } else {
             if (force_fg) {
               pixel = fg_pixel;
@@ -655,7 +664,7 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
         xfont = compl_xfont;
 
         /* see ui_font.c */
-        if ((font->id & FONT_FULLWIDTH) && xfont->width_full > 0) {
+        if (font->id & FONT_FULLWIDTH) {
           w = xfont->width_full;
         } else {
           w = xfont->width;
