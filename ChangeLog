@@ -1,3 +1,12 @@
+2017-11-15  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_window.c:
+	  max_glyph_width is limited to font_width - font_x_off in draw_string_intern().
+
+	* fb/ui_font.[ch]:
+	  - Compiling error is fixed.
+	  - ui_get_bitmap_width() and ui_get_bitmap_width_aa() are removed.
+
 2017-11-14  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_imagelib.c:
