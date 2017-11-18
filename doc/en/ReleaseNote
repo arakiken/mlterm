@@ -14,6 +14,7 @@
 * Add doc/en/ControlSequences which lists escape/control sequences which mlterm supports.
 * Change the default value of "use_vertical_cursor" option from false to true.
 * Drop "CSI ? 9500 [hl]".
+* Improve processing sixel graphics on pseudo color framebuffer.
 * Merge patches:
   https://sf.net/p/mlterm/patches/_discuss/thread/f5dc445d/0fc3/attachment/fix_spelling.diff
 * Bug fixes:

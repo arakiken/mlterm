@@ -303,7 +303,6 @@ O (Allow 80 -> 132 Mode)                                    CSI ? 40 [hl]
 - (Reverse-wraparound Mode)                                 CSI ? 45 [hl]
 - (Use Hilite Mouse Tracking)                               CSI ? 1001 [hl]
 O (Enable Urgency window manager hint)                      CSI ? 1042 [hl]
-O (Sixel scrolling leaves cursor to right of graphic)       CSI ? 8452 [hl]
 O (Change Icon Name and Window Title)                       OSC 0;Pt ST
 O (Change Icon Name)                                        OSC 1;Pt ST
 O (Change Window Title)                                     OSC 2;Pt ST
@@ -372,7 +371,8 @@ O RLAMBCHM                                                  CSI ? 8428 [hl]
 - RLCURCOL                                                  CSI < Pn ! q
 - RLIMGCP                                                   CSI < Pn ! i
 - RLSCD                                                     CSI Pn v
-- CSI ? 8400/8401/8402/8403/8405/8406/8435/8437/8440/8441/8442/8443/8448/8449/8450/8451/8452/8453/8455/8456/8457/8458 [hl]
+O (Sixel scrolling leaves cursor to right of graphic)       CSI ? 8452 [hl]
+- CSI ? 8400/8401/8402/8403/8405/8406/8435/8437/8440/8441/8442/8443/8448/8449/8450/8451/8453/8455/8456/8457/8458 [hl]
 
 <iTerm2> https://www.iterm2.com/documentation-escape-codes.html
 O OSC 1337;Pt ST

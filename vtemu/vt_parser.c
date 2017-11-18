@@ -1838,7 +1838,9 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
       if (is_sixel) {
         if (vt_parser->sixel_scrolling) {
-          if (!vt_parser->cursor_to_right_of_sixel) {
+          if (!vt_parser->cursor_to_right_of_sixel &&
+              /* mlterm always enables DECSET 8452 in status line. */
+              !vt_status_line_is_focused(vt_parser->screen)) {
             vt_screen_line_feed(vt_parser->screen);
             vt_screen_go_horizontally(vt_parser->screen, cursor_col);
           }
