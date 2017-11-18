@@ -37,6 +37,12 @@
 #endif
 
 /*
+ * Note for XStringToKeysym(char *str)
+ * The values of 'a'-'z' keysyms are always 0x61-0x7a, but the values of other
+ * keysyms (signs, digits etc) aren't necessarily their ascii values.
+ */
+
+/*
  * Xlib utility definitions.
  */
 

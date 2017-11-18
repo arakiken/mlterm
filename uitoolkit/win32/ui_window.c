@@ -1715,6 +1715,14 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
                  */
               }
             }
+          } else if ((VK_OEM_1 /* 0xba */ <= event->wparam &&
+                      event->wparam <= VK_OEM_3 /* 0xc0 */) ||
+                     (VK_OEM_4 /* 0xdb */ <= event->wparam &&
+                      event->wparam <= VK_OEM_8 /* 0xdf */) ||
+                     (VK_OEM_AX /* 0xe1 */ <= event->wparam &&
+                      event->wparam <= VK_OEM_102 /* 0xe2 */)) {
+            /* wait for WM_*_CHAR message. */
+            break;
           }
         }
 

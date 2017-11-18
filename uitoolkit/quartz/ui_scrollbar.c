@@ -63,11 +63,11 @@ int ui_scrollbar_init(ui_scrollbar_t *sb, ui_scrollbar_event_listener_t *sb_list
   return 1;
 }
 
-int ui_scrollbar_final(ui_scrollbar_t *sb) { return 1; }
+void ui_scrollbar_final(ui_scrollbar_t *sb) {}
 
-int ui_scrollbar_set_num_log_lines(ui_scrollbar_t *sb, u_int num_log_lines) {
+void ui_scrollbar_set_num_log_lines(ui_scrollbar_t *sb, u_int num_log_lines) {
   if (sb->num_log_lines == num_log_lines) {
-    return 1;
+    return;
   }
 
   sb->num_log_lines = num_log_lines;
@@ -77,24 +77,20 @@ int ui_scrollbar_set_num_log_lines(ui_scrollbar_t *sb, u_int num_log_lines) {
   }
 
   update_scroller(sb);
-
-  return 1;
 }
 
-int ui_scrollbar_set_num_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
+void ui_scrollbar_set_num_filled_log_lines(ui_scrollbar_t *sb, u_int lines) {
   if (lines > sb->num_log_lines) {
     lines = sb->num_log_lines;
   }
 
   if (sb->num_filled_log_lines == lines) {
-    return 1;
+    return;
   }
 
   sb->num_filled_log_lines = lines;
 
   update_scroller(sb);
-
-  return 1;
 }
 
 int ui_scrollbar_line_is_added(ui_scrollbar_t *sb) {
@@ -115,12 +111,10 @@ int ui_scrollbar_line_is_added(ui_scrollbar_t *sb) {
   return 1;
 }
 
-int ui_scrollbar_reset(ui_scrollbar_t *sb) {
+void ui_scrollbar_reset(ui_scrollbar_t *sb) {
   sb->current_row = 0;
 
   update_scroller(sb);
-
-  return 1;
 }
 
 int ui_scrollbar_move_upward(ui_scrollbar_t *sb, u_int size) {
