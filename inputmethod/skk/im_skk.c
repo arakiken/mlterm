@@ -83,7 +83,8 @@ typedef struct im_skk {
 
 ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 static int ref_count = 0;
-static KeySym sticky_shift_key = NoSymbol;
+static KeySym sticky_shift_ksym;
+static int sticky_shift_ch;
 
 /* --- static functions --- */
 
@@ -826,7 +827,8 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
   /* skk is enabled */
 
   if (skk->mode != ALPHABET && skk->mode != ALPHABET_FULL) {
-    if (ksym == sticky_shift_key) {
+    if (sticky_shift_ch ? (key_char == sticky_shift_ch) :
+                          (sticky_shift_ksym ? (ksym == sticky_shift_ksym) : 0)) {
       if (skk->sticky_shift) {
         skk->sticky_shift = 0;
       } else {
@@ -1097,12 +1099,17 @@ static void unfocused(ui_im_t *im) {
 static void set_sticky_shift_key(char *key) {
   int digit;
   if (strlen(key) == 1) {
-    sticky_shift_key = *key;
+    sticky_shift_ch = *key;
   } else if (sscanf(key, "\\x%x", &digit) == 1) {
-    sticky_shift_key = digit;
+    sticky_shift_ch = digit;
   } else {
-    sticky_shift_key = (*syms->XStringToKeysym)(key);
+    sticky_shift_ksym = (*syms->XStringToKeysym)(key);
+    sticky_shift_ch = 0;
+
+    return;
   }
+
+  sticky_shift_ksym = 0;
 }
 
 /* --- global functions --- */
