@@ -1,3 +1,9 @@
+2017-11-19  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/ControlSequences: Updated.
+
+	* vt_parser.c: "CSI ? 8452 h" is always set on status line.
+
 2017-11-18  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/ui_window.c: WM_SYSKEYDOWN event of VK_OEM_XXX keys are ignored.
