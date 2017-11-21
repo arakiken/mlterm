@@ -18,7 +18,11 @@
 #define correct_height correct_height_sharepalette
 #define load_sixel_from_data load_sixel_from_data_sharepalette
 #define CARD_HEAD_SIZE 0
+#ifdef USE_GRF
+#define pixel_t u_int16_t
+#else
 #define pixel_t u_int8_t
+#endif
 
 #else
 
@@ -486,7 +490,14 @@ body:
 #ifdef SIXEL_SHAREPALETTE
       for (y = 0; y < 6; y++) {
         if ((b & a) != 0) {
+#ifdef USE_GRF
+          int x;
+          for (x = 0; x < rep; x++) {
+            ((u_int16_t*)line)[x] = color;
+          }
+#else
           memset(line, color, rep);
+#endif
         }
         a <<= 1;
         line += stride;

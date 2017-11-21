@@ -10,10 +10,12 @@
 #include <stdlib.h>    /* getenv */
 #include <termios.h>
 #include <signal.h>
-#include <time.h>
+#include <time.h>      /* time */
+#include <sys/time.h>  /* gettimeofday */
 #include <errno.h>
 #include <sys/select.h> /* select */
 
+#include <pobl/bl_def.h> /* HAVE_GETTIMEOFDAY */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_privilege.h> /* bl_priv_change_e(u|g)id */
 #include <pobl/bl_unistd.h>    /* bl_getuid */
@@ -601,7 +603,9 @@ static int receive_stdin_event(ui_display_t *disp) {
         } else if (*ft == 'M' || *ft == 'm') {
           XButtonEvent bev;
           int state;
+#ifdef HAVE_GETTIMEOFDAY
           struct timeval tv;
+#endif
           ui_window_t *win;
 
           if (*ft == 'M') {
@@ -646,8 +650,12 @@ static int receive_stdin_event(ui_display_t *disp) {
           bev.x -= win->x;
           bev.y -= win->y;
 
+#ifdef HAVE_GETTIMEOFDAY
           gettimeofday(&tv, NULL);
           bev.time = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+#else
+          bev.time = time(NULL) * 1000;
+#endif
 
           set_blocking(fileno(disp->display->fp), 1);
           ui_window_receive_event(win, &bev);

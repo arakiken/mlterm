@@ -437,7 +437,13 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
       if (depth <= 8 && ui_picture_modifier_is_normal(pic_mod) /* see modify_pixmap() */) {
         if (((*pixmap)->image = load_sixel_from_data_sharepalette(file_data, &(*pixmap)->width,
                                                                   &(*pixmap)->height)) &&
-            resize_sixel(*pixmap, width, height, 1)) {
+            resize_sixel(*pixmap, width, height,
+#ifdef USE_GRF
+                         2
+#else
+                         1
+#endif
+                         )) {
           if (mask) {
             *mask = NULL;
           }

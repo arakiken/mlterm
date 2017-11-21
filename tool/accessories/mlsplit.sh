@@ -51,6 +51,9 @@ set_config ()
 
 get_dev_num
 
+# maximize window
+/usr/bin/printf "\x1b[9;1t"
+
 mlcc exec hsplit_screen 101
 mlcc exec next_screen
 mlcc exec vsplit_screen 30%

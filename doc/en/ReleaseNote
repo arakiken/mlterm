@@ -1,5 +1,5 @@
 * Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,
-  DECSR, CSI 7 t, CSI ? Pm s, CSI ? Pm r and CSI 34 [hl].
+  DECSR, CSI 7 t, CSI 9;1 t, CSI ? Pm s, CSI ? Pm r and CSI 34 [hl].
 * Support DECSASD, DECSSDT unless vertical mode is enabled.
 * Support 90-degree rotation of alphabet glyphs in vertical mode (cjk alone) on framebuffer,
   wayland and android if freetype is enabled.

@@ -35,6 +35,14 @@ typedef enum ui_resize_flag {
 
 } ui_resize_flag_t;
 
+typedef enum ui_maximize_flag {
+  MAXIMIZE_RESTORE = 0x0,
+  MAXIMIZE_VERTICAL = 0x1,
+  MAXIMIZE_HORIZONTAL = 0x2,
+  MAXIMIZE_FULL = 0x3,
+
+} ui_maximize_flag_t;
+
 typedef struct ui_xim_event_listener {
   void *self;
 
@@ -261,6 +269,8 @@ int ui_window_resize(ui_window_t *win, u_int width, u_int height, ui_resize_flag
 
 int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
                                  ui_resize_flag_t flag);
+
+void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag);
 
 void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
                                 u_int width_inc, u_int height_inc);

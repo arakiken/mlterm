@@ -61,7 +61,7 @@ typedef struct vt_char {
  * 1 bit : is_bold(0 or 1)
  * 1 bit : is_fullwidth(0 or 1)
  * 9 bit : charset(0x0 - 0x1ff) or
- *         1 bit: CS_REVISION_1(ISO10646_UCS4_1_V)
+ *         1 bit: CS_REVISION_1(ISO10646_UCS4_1_V(*))
  *         8 bit: unicode area id
  * 1 bit : is_reversed(0 or 1)	... used for X Selection
  * 1 bit : is_crossed_out
@@ -69,6 +69,9 @@ typedef struct vt_char {
  * 1 bit : is_comb_trailing(0 or 1)
  * ---
  * 1 bit : is_single_ch(0 or 1)
+ *
+ * (*) ISO10646_UCS4_1_V is set during being shaped.
+ *     (See vt_shape.c and vt_char_set_cs())
  */
 #ifdef WORDS_BIGENDIAN
       u_int code : 23; /* Can be shrunk to 21 bits (Unicode: 0-10FFFF) */
