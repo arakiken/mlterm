@@ -286,7 +286,7 @@ int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth
 
   ch->u.ch.code = code;
 
-  if (code <= unicode_area_max && cs == ISO10646_UCS4_1 && unicode_area_min <= code) {
+  if (unicode_area_min <= code && cs == ISO10646_UCS4_1 && code <= unicode_area_max) {
     /*
      * If code == 0, unicode_area_max == 0 and unicode_area_min == 0,
      * enter this block unexpectedly, but harmless.

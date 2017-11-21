@@ -108,7 +108,7 @@ typedef struct vt_xterm_event_listener {
   void (*stop)(void *);      /* called in visual context. */
   void (*interrupt)(void *); /* called in visual context. */
 
-  void (*resize)(void *, u_int, u_int);                        /* called in visual context. */
+  void (*resize)(void *, u_int, u_int, int);                   /* called in visual context. */
   void (*reverse_video)(void *, int);                          /* called in visual context. */
   void (*set_mouse_report)(void *);                            /* called in visual context. */
   void (*request_locator)(void *);                             /* called in visual context. */

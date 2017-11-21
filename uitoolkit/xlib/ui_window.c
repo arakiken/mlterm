@@ -1530,6 +1530,36 @@ int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
                           height <= min_height ? min_height : height - win->vmargin * 2, flag);
 }
 
+void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag) {
+  if (flag) {
+    u_int w;
+    u_int h;
+
+    win = ui_get_root_window(win);
+
+    if (flag & MAXIMIZE_HORIZONTAL) {
+      w = win->disp->width - win->hmargin * 2;
+    } else {
+      w = win->width;
+    }
+
+    if (flag & MAXIMIZE_VERTICAL) {
+      h = win->disp->height - win->vmargin * 2;
+    } else {
+      h = win->height;
+    }
+
+    if (flag == MAXIMIZE_FULL) {
+      XMoveWindow(win->disp->display, win->my_window, 0, 0);
+      ui_window_resize(win, w, h, NOTIFY_TO_MYSELF);
+    } else {
+      /* XXX MAXIMIZE_HORIZONTAL and MAXIMIZE_VERTICAL are not supported for now. */
+    }
+  } else {
+    /* XXX MAXIMIZE_RESTORE is not supported for now. */
+  }
+}
+
 void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
                                 u_int width_inc, u_int height_inc) {
   XSizeHints size_hints;

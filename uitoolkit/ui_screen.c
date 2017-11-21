@@ -5166,10 +5166,16 @@ static void interrupt_vt100_cmd(void *p) {
   ui_display_sync(screen->window.disp);
 }
 
-static void xterm_resize(void *p, u_int width, u_int height) {
+static void xterm_resize(void *p, u_int width, u_int height, int flag) {
   ui_screen_t *screen;
 
   screen = p;
+
+  if (flag) {
+    ui_window_set_maximize_flag(&screen->window, flag - 1 /* converting to ui_maximize_flag_t */);
+
+    return;
+  }
 
   if (width == 0 && height == 0) {
     /* vt_term_t is already resized. */

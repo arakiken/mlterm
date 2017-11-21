@@ -1164,6 +1164,14 @@ static void restore_cursor(vt_parser_t *vt_parser) {
   vt_screen_restore_cursor(vt_parser->screen);
 }
 
+static void set_maximize(vt_parser_t *vt_parser, int flag) {
+  if (HAS_XTERM_LISTENER(vt_parser, resize)) {
+    stop_vt100_cmd(vt_parser, 0);
+    (*vt_parser->xterm_listener->resize)(vt_parser->xterm_listener->self, 0, 0, flag);
+    start_vt100_cmd(vt_parser, 0);
+  }
+}
+
 static void resize(vt_parser_t *vt_parser, u_int width, u_int height, int by_char) {
   if (HAS_XTERM_LISTENER(vt_parser, resize)) {
     if (by_char) {
@@ -1207,7 +1215,7 @@ static void resize(vt_parser_t *vt_parser, u_int width, u_int height, int by_cha
     }
 
     stop_vt100_cmd(vt_parser, 0);
-    (*vt_parser->xterm_listener->resize)(vt_parser->xterm_listener->self, width, height);
+    (*vt_parser->xterm_listener->resize)(vt_parser->xterm_listener->self, width, height, 0);
     start_vt100_cmd(vt_parser, 0);
   }
 }
@@ -4963,6 +4971,18 @@ inline static int parse_vt100_escape_sequence(
 
           if (num == 3) {
             resize(vt_parser, ps[2], ps[1], ps[0] == 8);
+          }
+        } else if (ps[0] == 9) {
+          if (num == 2 && 0 <= ps[1] && ps[1] <= 3) {
+            int flag;
+
+            if (ps[1] >= 2) {
+              flag = ps[1]; /* MAXIMIZE VERTICALLY or HORIZONTALLY */
+            } else {
+              flag = (ps[1] == 0 ? 1 /* UNMAXIMIZE */ : 4 /* MAXIMIZE FULL */);
+            }
+
+            set_maximize(vt_parser, flag);
           }
         } else if (num == 2) {
           if (ps[0] == 22) {

@@ -1,3 +1,15 @@
+2017-11-21  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c, vt_parser.[ch]:
+	  - 'int flag' is added to arguments of vt_xterm_event_listener_t::resize().
+	  - "CSI 9;P1 t" is supported.
+
+	* ui_window.h, */ui_window.c: ui_window_set_maximize_flag() is added.
+
+	* console/ui_display.c: HAVE_GETTIMEOFDAY is considered.
+
+	* c_sixel.c, c_imagelib.c: SIXEL_SHAREPALETTE works if USE_GRF is defined.
+
 2017-11-19  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/ControlSequences: Updated.
