@@ -15,7 +15,6 @@
 #define SIZE_ATTR_FONT(font, size_attr) ((font) | (((int)(size_attr)) << 21))
 #define SIZE_ATTR_OF(font) (((font) >> 21) & 0x3)
 #define NO_SIZE_ATTR(font) ((font) & ~(0x3 << 21))
-#define IS_ISO10646_UCS4(cs) (((cs) & ~CS_REVISION_1(0)) == ISO10646_UCS4_1)
 
 enum {
   DOUBLE_WIDTH = 0x1,

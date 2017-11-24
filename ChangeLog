@@ -1,3 +1,42 @@
+2017-11-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_draw_str.c:
+	  - LS_OVERLINE is processed.
+	  - is_crossed_out and underline_style are united to line_style.
+
+	* ui_im_{status|candidate}_screen.c:
+	  Fixes of vt_char_set() and vt_char_combine() arguments.
+
+	* inputmethod/*/*.c: Fixes of syms->vt_char_combine and syms->vt_char_set arguments.
+
+	* vt_edit.[ch]:
+	  - 53 and 55 of 'attr' argument of vt_edit_change_attr_area() are processed.
+	  - Fixes of vt_char_set() arguments.
+
+	* vt_parser.[ch]:
+	  - is_crossed_out is removed from vt_parser_t and vt_storage_states_t.
+	  - 'CSI 53 m' and 'CSI 55 m' are supported.
+
+	* vt_char.[ch]:
+	  - vt_underline_style_t -> vt_line_style_t
+	  - LS_CROSSED_OUT and LS_OVERLINE are added to vt_line_style_t.
+	  - vt_char_underline_style() -> vt_char_line_style().
+	  - is_crossed_out is removed from arguments of vt_char_set() and vt_char_combine().
+	  - is_overlined is added to arguments of vt_char_{change|reverse}_attr().
+	  - vt_char_cols() returns 0 (not 1) just before vt_char_init().
+
+	* fb/ui_imagelib.c: Minor fixes.
+
+	* fb/ui_display.c: ui_cmap_get_pixel_rgb() returns 0 if specified pixel
+	  is TP_COLOR on x68k.
+
+	* fb/ui.h: COLOR_CACHE_MINIMUM is defined.
+
+	* c_sixel.c: color_indexes[color] is used instead of color
+	  if SIXEL_SHAREPALETTE is defined.
+
+	* ef_charset.h: IS_ISO10646_UCS4 is moved from vt_char.h.
+
 2017-11-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c, vt_parser.[ch]:

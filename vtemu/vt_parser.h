@@ -156,28 +156,27 @@ typedef struct vt_config_event_listener {
 
 typedef struct vt_parser *vt_parser_ptr_t;
 
-typedef struct vt_vt100_storable_states {
+typedef struct vt_storable_states {
   int is_saved : 1;
 
   int is_bold : 1;
   int is_italic : 1;
   int is_reversed : 1;
-  int is_crossed_out : 1;
   int is_blinking : 1;
   int is_invisible : 1;
 
-  /* vt_underline_style_t */ int8_t underline_style;
+  /* vt_line_style_t */ int8_t line_style;
   vt_color_t fg_color;
   vt_color_t bg_color;
   ef_charset_t cs;
 
-} vt_vt100_storable_states_t;
+} vt_storable_states_t;
 
-typedef struct vt_vt100_saved_names {
+typedef struct vt_saved_names {
   char **names;
   u_int num;
 
-} vt_vt100_saved_names_t;
+} vt_saved_names_t;
 
 typedef struct vt_macro {
   u_char *str;
@@ -228,11 +227,11 @@ typedef struct vt_parser {
   } alt_colors;
 
   /* for save/restore cursor */
-  vt_vt100_storable_states_t saved_normal;
-  vt_vt100_storable_states_t saved_alternate;
+  vt_storable_states_t saved_normal;
+  vt_storable_states_t saved_alternate;
 
-  vt_vt100_saved_names_t saved_win_names;
-  vt_vt100_saved_names_t saved_icon_names;
+  vt_saved_names_t saved_win_names;
+  vt_saved_names_t saved_icon_names;
 
   vt_drcs_t *drcs;
 
@@ -252,7 +251,7 @@ typedef struct vt_parser {
   /* vt_alt_color_mode_t */ int8_t alt_color_mode;
   u_int8_t col_size_of_width_a; /* 1 or 2 */
   /* vt_cursor_style_t */ int8_t cursor_style;
-  /* vt_underline_style_t */ int8_t underline_style;
+  /* vt_line_style_t */ int8_t line_style;
   int8_t modify_cursor_keys;
   int8_t modify_function_keys;
   int8_t modify_other_keys;
@@ -268,7 +267,6 @@ typedef struct vt_parser {
   int is_bold : 1;
   int is_italic : 1;
   int is_reversed : 1;
-  int is_crossed_out : 1;
   int is_blinking : 1;
   int is_invisible : 1;
 

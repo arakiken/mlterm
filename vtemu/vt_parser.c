@@ -817,8 +817,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   int is_comb;
   int is_bold;
   int is_italic;
-  int underline_style;
-  int is_crossed_out;
+  int line_style;
   int is_blinking;
   int is_protected;
 
@@ -867,10 +866,9 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   fg_color = vt_parser->fg_color;
   bg_color = vt_parser->bg_color;
   is_italic = vt_parser->is_italic ? 1 : 0;
-  is_crossed_out = vt_parser->is_crossed_out ? 1 : 0;
   is_blinking = vt_parser->is_blinking ? 1 : 0;
   is_protected = vt_parser->is_protected ? 1 : 0;
-  underline_style = vt_parser->underline_style;
+  line_style = vt_parser->line_style;
   if (cs == ISO10646_UCS4_1 && 0x2580 <= ch && ch <= 0x259f) {
     /* prevent these block characters from being drawn doubly. */
     is_bold = 0;
@@ -884,8 +882,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
       fg_color = VT_ITALIC_COLOR;
     }
 
-    if (is_crossed_out && (vt_parser->alt_color_mode & ALT_COLOR_CROSSED_OUT)) {
-      is_crossed_out = 0;
+    if ((line_style & LS_CROSSED_OUT) && (vt_parser->alt_color_mode & ALT_COLOR_CROSSED_OUT)) {
+      line_style &= ~LS_CROSSED_OUT;
       fg_color = VT_CROSSED_OUT_COLOR;
     }
 
@@ -894,8 +892,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
       fg_color = VT_BLINKING_COLOR;
     }
 
-    if (underline_style && (vt_parser->alt_color_mode & ALT_COLOR_UNDERLINE)) {
-      underline_style = UNDERLINE_NONE;
+    if ((line_style & LS_UNDERLINE) && (vt_parser->alt_color_mode & ALT_COLOR_UNDERLINE)) {
+      line_style &= ~LS_UNDERLINE;
       fg_color = VT_UNDERLINE_COLOR;
     }
 
@@ -922,7 +920,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
 
   if (vt_parser->alt_colors.flags) {
     int idx = is_bold | ((vt_parser->is_reversed ? 1 : 0) << 1) |
-              (underline_style ? 4 : 0) | (is_blinking << 3);
+              ((line_style & LS_UNDERLINE) ? 4 : 0) | (is_blinking << 3);
 
     if (/* idx < 16 && */ (vt_parser->alt_colors.flags & (1 << idx))) {
       fg_color = vt_parser->alt_colors.fg[idx];
@@ -945,14 +943,14 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
        * internally.
        */
       if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
-                                           fg_color, bg_color, is_bold, is_italic, underline_style,
-                                           is_crossed_out, is_blinking, is_protected)) {
+                                           fg_color, bg_color, is_bold, is_italic, line_style,
+                                           is_blinking, is_protected)) {
         return;
       }
     } else {
       if (vt_char_combine(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1], ch, cs,
                           is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                          underline_style, is_crossed_out, is_blinking, is_protected)) {
+                          line_style, is_blinking, is_protected)) {
         return;
       }
     }
@@ -963,8 +961,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   }
 
   vt_char_set(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len++], ch, cs, is_fullwidth,
-              is_comb, fg_color, bg_color, is_bold, is_italic, underline_style, is_crossed_out,
-              is_blinking, is_protected);
+              is_comb, fg_color, bg_color, is_bold, is_italic, line_style, is_blinking,
+              is_protected);
 
   if (cs != ISO10646_UCS4_1) {
     return;
@@ -1005,15 +1003,15 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
         /* Base char: emoji1, Comb1: picture, Comb2: emoji2 */
         if (emoji2 == emoji1 + 1) {
           vt_char_combine(emoji1, ch, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold,
-                          is_italic, underline_style, is_crossed_out, is_blinking, is_protected);
+                          is_italic, line_style, is_blinking, is_protected);
         } else {
           /*
            * vt_line_set_modified() is done in
            * vt_screen_combine_with_prev_char() internally.
            */
           vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
-                                           fg_color, bg_color, is_bold, is_italic, underline_style,
-                                           is_crossed_out, is_blinking, is_protected);
+                                           fg_color, bg_color, is_bold, is_italic, line_style,
+                                           is_blinking, is_protected);
         }
         vt_parser->w_buf.filled_len--;
       }
@@ -1055,8 +1053,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     if (IS_ARABIC_CHAR(ch) && vt_is_arabic_combining(prev2, prev, cur)) {
       if (vt_parser->w_buf.filled_len >= 2) {
         if (vt_char_combine(prev, ch, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold,
-                            is_italic, underline_style, is_crossed_out, is_blinking,
-                            is_protected)) {
+                            is_italic, line_style, is_blinking, is_protected)) {
           vt_parser->w_buf.filled_len--;
         }
       } else {
@@ -1066,8 +1063,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
          */
         if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
                                              fg_color, bg_color, is_bold, is_italic,
-                                             underline_style, is_crossed_out, is_blinking,
-                                             is_protected)) {
+                                             line_style, is_blinking, is_protected)) {
           vt_parser->w_buf.filled_len--;
         }
       }
@@ -1075,7 +1071,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   }
 }
 
-static void push_to_saved_names(vt_vt100_saved_names_t *saved, char *name) {
+static void push_to_saved_names(vt_saved_names_t *saved, char *name) {
   void *p;
 
   if (!(p = realloc(saved->names, (saved->num + 1) * sizeof(name)))) {
@@ -1086,7 +1082,7 @@ static void push_to_saved_names(vt_vt100_saved_names_t *saved, char *name) {
   saved->names[saved->num++] = name ? strdup(name) : NULL;
 }
 
-static char *pop_from_saved_names(vt_vt100_saved_names_t *saved) {
+static char *pop_from_saved_names(vt_saved_names_t *saved) {
   char *name;
 
   name = saved->names[--saved->num];
@@ -1104,7 +1100,7 @@ static char *pop_from_saved_names(vt_vt100_saved_names_t *saved) {
  */
 
 static void save_cursor(vt_parser_t *vt_parser) {
-  vt_vt100_storable_states_t *dest;
+  vt_storable_states_t *dest;
 
   dest = (vt_screen_is_alternative_edit(vt_parser->screen)) ? &(vt_parser->saved_alternate)
                                                                : &(vt_parser->saved_normal);
@@ -1113,9 +1109,8 @@ static void save_cursor(vt_parser_t *vt_parser) {
   dest->bg_color = vt_parser->bg_color;
   dest->is_bold = vt_parser->is_bold;
   dest->is_italic = vt_parser->is_italic;
-  dest->underline_style = vt_parser->underline_style;
+  dest->line_style = vt_parser->line_style;
   dest->is_reversed = vt_parser->is_reversed;
-  dest->is_crossed_out = vt_parser->is_crossed_out;
   dest->is_blinking = vt_parser->is_blinking;
   dest->is_invisible = vt_parser->is_invisible;
   dest->cs = vt_parser->cs;
@@ -1124,7 +1119,7 @@ static void save_cursor(vt_parser_t *vt_parser) {
 }
 
 static void restore_cursor(vt_parser_t *vt_parser) {
-  vt_vt100_storable_states_t *src;
+  vt_storable_states_t *src;
 
   src = (vt_screen_is_alternative_edit(vt_parser->screen)) ? &(vt_parser->saved_alternate)
                                                               : &(vt_parser->saved_normal);
@@ -1135,9 +1130,8 @@ static void restore_cursor(vt_parser_t *vt_parser) {
     vt_screen_set_bce_bg_color(vt_parser->screen, src->bg_color);
     vt_parser->is_bold = src->is_bold;
     vt_parser->is_italic = src->is_italic;
-    vt_parser->underline_style = src->underline_style;
+    vt_parser->line_style = src->line_style;
     vt_parser->is_reversed = src->is_reversed;
-    vt_parser->is_crossed_out = src->is_crossed_out;
     vt_parser->is_blinking = src->is_blinking;
     vt_parser->is_invisible = src->is_invisible;
     if (IS_ENCODING_BASED_ON_ISO2022(vt_parser->encoding)) {
@@ -1528,7 +1522,8 @@ static void set_presentation_state(vt_parser_t *vt_parser, char *seq) {
     if (rend & 0x20) {
       vt_parser->is_reversed = ((rend & 0x8) == 0x8);
       vt_parser->is_blinking = ((rend & 0x4) == 0x4);
-      vt_parser->underline_style = ((rend & 0x2) ? UNDERLINE_NORMAL : 0);
+      vt_parser->line_style &= ~LS_UNDERLINE;
+      vt_parser->line_style |= ((rend & 0x2) ? LS_UNDERLINE_SINGLE : 0);
       vt_parser->is_bold = ((rend & 0x1) == 0x1);
     }
 
@@ -1557,7 +1552,7 @@ static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
     if (vt_parser->is_blinking) {
       rend |= 0x4;
     }
-    if (vt_parser->underline_style == UNDERLINE_NORMAL) {
+    if (vt_parser->line_style & LS_UNDERLINE) {
       rend |= 0x2;
     }
     if (vt_parser->is_bold) {
@@ -2281,9 +2276,8 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
     bg_color = VT_BG_COLOR;
     vt_parser->is_bold = 0;
     vt_parser->is_italic = 0;
-    vt_parser->underline_style = 0;
+    vt_parser->line_style = 0;
     vt_parser->is_reversed = 0;
-    vt_parser->is_crossed_out = 0;
     vt_parser->is_blinking = 0;
     vt_parser->is_invisible = 0;
   } else if (flag == 1) {
@@ -2297,7 +2291,7 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
     vt_parser->is_italic = 1;
   } else if (flag == 4) {
     /* Underscore */
-    vt_parser->underline_style = UNDERLINE_NORMAL;
+    vt_parser->line_style = (vt_parser->line_style & ~LS_UNDERLINE) | LS_UNDERLINE_SINGLE;
   } else if (flag == 5 || flag == 6) {
     /* Blink (6 is repidly blinking) */
     vt_parser->is_blinking = 1;
@@ -2308,10 +2302,10 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
   } else if (flag == 8) {
     vt_parser->is_invisible = 1;
   } else if (flag == 9) {
-    vt_parser->is_crossed_out = 1;
+    vt_parser->line_style |= LS_CROSSED_OUT;
   } else if (flag == 21) {
     /* Double underscore */
-    vt_parser->underline_style = UNDERLINE_DOUBLE;
+    vt_parser->line_style = (vt_parser->line_style & ~LS_UNDERLINE) | LS_UNDERLINE_DOUBLE;
   } else if (flag == 22) {
     /* Bold */
     vt_parser->is_bold = 0;
@@ -2320,7 +2314,7 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
     vt_parser->is_italic = 0;
   } else if (flag == 24) {
     /* Underline */
-    vt_parser->underline_style = 0;
+    vt_parser->line_style &= ~LS_UNDERLINE;
   } else if (flag == 25) {
     /* blink */
     vt_parser->is_blinking = 0;
@@ -2329,12 +2323,16 @@ static void change_char_attr(vt_parser_t *vt_parser, int flag) {
   } else if (flag == 28) {
     vt_parser->is_invisible = 0;
   } else if (flag == 29) {
-    vt_parser->is_crossed_out = 0;
+    vt_parser->line_style &= ~LS_CROSSED_OUT;
   } else if (flag == 39) {
     /* default fg */
     fg_color = VT_FG_COLOR;
   } else if (flag == 49) {
     bg_color = VT_BG_COLOR;
+  } else if (flag == 53) {
+    vt_parser->line_style |= LS_OVERLINE;
+  } else if (flag == 55) {
+    vt_parser->line_style &= ~LS_OVERLINE;
   } else if (vt_parser->use_ansi_colors) {
     /* Color attributes */
 
@@ -2483,7 +2481,7 @@ static void set_selection(vt_parser_t *vt_parser, u_char *encoded) {
     str_len = 0;
     (*vt_parser->cc_parser->set_str)(vt_parser->cc_parser, decoded, d_len);
     while ((*vt_parser->cc_parser->next_char)(vt_parser->cc_parser, &ch)) {
-      vt_char_set(&str[str_len++], ef_char_to_int(&ch), ch.cs, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      vt_char_set(&str[str_len++], ef_char_to_int(&ch), ch.cs, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
 /*
@@ -2887,7 +2885,7 @@ static void report_char_attr_status(vt_parser_t *vt_parser) {
     vt_write_to_pty(vt_parser->pty, ";3", 2);
   }
 
-  if (vt_parser->underline_style == UNDERLINE_NORMAL) {
+  if (vt_parser->line_style & LS_UNDERLINE_SINGLE) {
     vt_write_to_pty(vt_parser->pty, ";4", 2);
   }
 
@@ -2903,12 +2901,16 @@ static void report_char_attr_status(vt_parser_t *vt_parser) {
     vt_write_to_pty(vt_parser->pty, ":8", 2);
   }
 
-  if (vt_parser->is_crossed_out) {
+  if (vt_parser->line_style & LS_CROSSED_OUT) {
     vt_write_to_pty(vt_parser->pty, ";9", 2);
   }
 
-  if (vt_parser->underline_style == UNDERLINE_DOUBLE) {
+  if (vt_parser->line_style & LS_UNDERLINE_DOUBLE) {
     vt_write_to_pty(vt_parser->pty, ";21", 3);
+  }
+
+  if (vt_parser->line_style & LS_OVERLINE) {
+    vt_write_to_pty(vt_parser->pty, ":53", 3);
   }
 
   color[0] = ';';
@@ -6317,7 +6319,7 @@ int vt_parser_show_message(vt_parser_t *vt_parser, char *msg) {
 
 #if defined(__ANDROID__) || defined(__APPLE__)
 int vt_parser_preedit(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
-  if (!vt_parser->underline_style) {
+  if (!(vt_parser->line_style & LS_UNDERLINE) {
     char *new_buf;
     size_t new_len;
 
@@ -6348,7 +6350,7 @@ int vt_parser_local_echo(vt_parser_t *vt_parser, const u_char *buf, size_t len) 
 
   vt_parse_vt100_sequence(vt_parser);
 
-  if (!vt_parser->underline_style) {
+  if (!(vt_parser->line_style & LS_UNDERLINE)) {
     char *new_buf;
     size_t new_len;
 

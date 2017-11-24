@@ -281,7 +281,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
       is_comb = 1;
 
       if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0, 0)) {
+                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0)) {
         index++;
         continue;
       }
@@ -292,7 +292,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
     }
 
     (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color, bg_color,
-                         is_bold, 0, is_underline, 0, 0, 0);
+                         is_bold, 0, is_underline, 0, 0);
 
     p++;
     scim->im.preedit.filled_len++;

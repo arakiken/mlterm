@@ -1672,8 +1672,7 @@ vt_char_t *vt_screen_get_n_prev_char(vt_screen_t *screen, int n) {
 int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_charset_t cs,
                                      int is_fullwidth, int is_comb, vt_color_t fg_color,
                                      vt_color_t bg_color, int is_bold, int is_italic,
-                                     int is_underlined, int is_crossed_out, int is_blinking,
-                                     int is_protected) {
+                                     int line_style, int is_blinking, int is_protected) {
   int char_index;
   int row;
   vt_char_t *ch;
@@ -1692,7 +1691,7 @@ int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_cha
   }
 
   if (!vt_char_combine(ch, code, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                       is_underlined, is_crossed_out, is_blinking, is_protected)) {
+                       line_style, is_blinking, is_protected)) {
     return 0;
   }
 

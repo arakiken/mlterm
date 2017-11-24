@@ -617,7 +617,7 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
       is_comb = 1;
 
       if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                   fg_color, bg_color, 0, 0, is_underline, 0, 0, 0)) {
+                                   fg_color, bg_color, 0, 0, is_underline, 0, 0)) {
         pos++;
         continue;
       }
@@ -628,7 +628,7 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
     }
 
     (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color, bg_color,
-                         0, 0, is_underline, 0, 0, 0);
+                         0, 0, is_underline, 0, 0);
 
     pos++;
     p++;
