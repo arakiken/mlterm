@@ -49,6 +49,7 @@
 #define IS_FULLWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0x1e0 <= (cs) && (cs) <= 0x1ff))
 #define CS_SIZE(cs) \
   ((cs) == ISO10646_UCS4_1 ? 4 : ((IS_FULLWIDTH_CS(cs) || (cs) == ISO10646_UCS2_1) ? 2 : 1))
+#define IS_ISO10646_UCS4(cs) (((cs) & ~CS_REVISION_1(0)) == ISO10646_UCS4_1)
 
 /*
  * These enumeration numbers are based on iso2022 Ft(0x30-0x7e).

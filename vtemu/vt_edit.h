@@ -178,7 +178,8 @@ void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_
 void vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_cols, u_int num_rows);
 
 void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols, u_int num_rows,
-                              void (*func)(vt_char_t *, int, int, int, int, int, int), int attr);
+                              void (*func)(vt_char_t *, int, int, int, int, int, int, int),
+                              int attr);
 
 void vt_edit_clear_size_attr(vt_edit_t *edit);
 

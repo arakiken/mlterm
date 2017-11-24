@@ -7,20 +7,17 @@
 #include <pobl/bl_util.h> /* K_MIN */
 #include <pobl/bl_mem.h>  /* malloc */
 
-#define UNDERLINE_STYLE(attr) (((attr) >> 21) & 0x3)
-
-#define IS_ZEROWIDTH(attr) ((attr) & (0x1 << 20))
+#define LINE_STYLE(attr) (((attr) >> 19) & 0xf)
 
 #define IS_UNICODE_AREA_CS(attr) ((attr) & (0x1 << 17))
 
 /* Combination of IS_ITALIC, IS_BOLD, IS_FULLWIDTH, CS_REVISION_1 and
  * CHARSET(UNICODE AREA) */
-#define MLFONT(attr)                                                            \
+#define VTFONT(attr)                                                            \
   IS_UNICODE_AREA_CS(attr)                                                      \
       ? ((((attr) >> 5) & 0xf00) | ISO10646_UCS4_1 | (((attr) << 7) & 0xff000)) \
       : (((attr) >> 5) & 0xfff)
 
-#define IS_PROTECTED(attr) ((attr) & (0x1 << 19))
 #define IS_BLINKING(attr) ((attr) & (0x1 << 18))
 #define IS_ITALIC(attr) ((attr) & (0x1 << 16))
 #define IS_BOLD(attr) ((attr) & (0x1 << 15))
@@ -32,7 +29,7 @@
 #define REVERSE_COLOR(attr) ((attr) |= (0x1 << 4))
 #define RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 4))
 
-#define IS_CROSSED_OUT(attr) ((attr) & (0x1 << 3))
+#define IS_PROTECTED(attr) ((attr) & (0x1 << 3))
 
 #define IS_COMB(attr) ((attr) & (0x1 << 2))
 
@@ -44,12 +41,11 @@
 #define USE_MULTI_CH(attr) ((attr) &= 0xfffffe)
 #define UNUSE_MULTI_CH(attr) ((attr) |= 0x1)
 
-#define COMPOUND_ATTR(charset, is_zerowidth, is_fullwidth, is_bold, is_italic, is_unicode_area_cs, \
-                      underline_style, is_crossed_out, is_blinking, is_protected, is_comb)         \
-  (((underline_style) << 21) | ((is_zerowidth) << 20) | ((is_protected) << 19) | \
-   ((is_blinking) << 18) | ((is_unicode_area_cs) << 17) | ((is_italic) << 16) | \
-   ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | ((is_crossed_out) << 3) | \
-   ((is_comb) << 2) | 0x1)
+#define COMPOUND_ATTR(charset, is_fullwidth, is_bold, is_italic, is_unicode_area_cs, \
+                      line_style, is_blinking, is_protected, is_comb) \
+  (((line_style) << 19) | ((is_blinking) << 18) | ((is_unicode_area_cs) << 17) | \
+   ((is_italic) << 16) | ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
+   ((is_protected) << 3) | ((is_comb) << 2) | 0x1)
 
 /* --- static variables --- */
 
@@ -85,7 +81,7 @@ static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr) {
   u_int comb_size;
 
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    if (IS_ZEROWIDTH(ch->u.ch.attr)) {
+    if (ch->u.ch.cols == 0) {
       /*
        * Zero width characters must not be combined to
        * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
@@ -120,7 +116,7 @@ static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr) {
       abort();
     }
   } else {
-    if (IS_ZEROWIDTH(ch->u.multi_ch->u.ch.attr)) {
+    if (ch->u.multi_ch->u.ch.cols == 0) {
       /*
        * Zero width characters must not be combined to
        * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
@@ -276,11 +272,10 @@ void vt_char_final(vt_char_t *ch) {
   }
 }
 
-int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
-                vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
-                int underline_style, int is_crossed_out, int is_blinking, int is_protected) {
+void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
+                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
+                 int line_style, int is_blinking, int is_protected) {
   u_int idx;
-  int is_zerowidth;
 
   vt_char_final(ch);
 
@@ -317,23 +312,18 @@ int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth
    *
    * see is_noconv_unicode() in vt_parser.c
    */
-  if (cs == ISO10646_UCS4_1 &&
+  if ((code & ~0x2f) == 0x2000 /* 0x2000-0x2000f or 0x2020-0x202f */ && cs == ISO10646_UCS4_1 &&
       ((0x200c <= code && code <= 0x200f) || (0x202a <= code && code <= 0x202e))) {
-    is_zerowidth = 1;
-  } else
-#endif
-  {
-    is_zerowidth = 0;
+    ch->u.ch.cols = 0;
+  } else {
+    ch->u.ch.cols = is_fullwidth ? 2 : 1;
   }
+#endif
 
-  ch->u.ch.attr =
-      COMPOUND_ATTR(cs, is_zerowidth, is_fullwidth != 0, is_bold != 0, is_italic != 0, idx > 0,
-                    underline_style, is_crossed_out != 0, is_blinking != 0, is_protected != 0,
-                    is_comb != 0);
+  ch->u.ch.attr = COMPOUND_ATTR(cs, is_fullwidth != 0, is_bold != 0, is_italic != 0, idx > 0,
+                                line_style, is_blinking != 0, is_protected != 0, is_comb != 0);
   ch->u.ch.fg_color = fg_color;
   ch->u.ch.bg_color = bg_color;
-
-  return 1;
 }
 
 void vt_char_change_attr(vt_char_t *ch, int is_bold, /* 0: don't change, 1: set, -1: unset */
@@ -341,21 +331,43 @@ void vt_char_change_attr(vt_char_t *ch, int is_bold, /* 0: don't change, 1: set,
                          int underline_style,        /* 0: don't change, 1,2: set, -1: unset */
                          int is_blinking,            /* 0: don't change, 1: set, -1: unset */
                          int is_reversed,            /* 0: don't change, 1: set, -1: unset */
-                         int is_crossed_out          /* 0: don't change, 1: set, -1: unset */
-                         ) {
+                         int is_crossed_out,         /* 0: don't change, 1: set, -1: unset */
+                         int is_overlined            /* 0: don't change, 1: set, -1: unset */) {
   u_int attr;
 
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr)) {
+    int line_style = LINE_STYLE(attr);
+
+    if (is_overlined) {
+      if (is_overlined > 0) {
+        line_style |= LS_OVERLINE;
+      } else {
+        line_style &= ~LS_OVERLINE;
+      }
+    }
+
+    if (is_crossed_out) {
+      if (is_crossed_out > 0) {
+        line_style |= LS_CROSSED_OUT;
+      } else {
+        line_style &= ~LS_CROSSED_OUT;
+      }
+    }
+
+    if (underline_style) {
+      line_style &= ~LS_UNDERLINE;
+      if (underline_style > 0) {
+        line_style |= underline_style;
+      }
+    }
+
     ch->u.ch.attr =
-      COMPOUND_ATTR(CHARSET(attr), IS_ZEROWIDTH(attr) != 0, IS_FULLWIDTH(attr) != 0,
+      COMPOUND_ATTR(CHARSET(attr), IS_FULLWIDTH(attr) != 0,
                     is_bold ? is_bold > 0 : IS_BOLD(attr) != 0,
                     is_italic ? is_italic > 0 : IS_ITALIC(attr) != 0,
-                    IS_UNICODE_AREA_CS(attr) != 0,
-                    underline_style ? (underline_style > 0 ? underline_style : 0) :
-                                      UNDERLINE_STYLE(attr),
-                    is_crossed_out ? is_crossed_out > 0 : IS_CROSSED_OUT(attr) != 0,
+                    IS_UNICODE_AREA_CS(attr) != 0, line_style,
                     is_blinking ? is_blinking > 0 : IS_BLINKING(attr) != 0,
                     IS_PROTECTED(attr) != 0, IS_COMB(attr) != 0) |
       (is_reversed ? (is_reversed > 0 ? IS_REVERSED(0xffffff) : IS_REVERSED(0)) :
@@ -364,20 +376,44 @@ void vt_char_change_attr(vt_char_t *ch, int is_bold, /* 0: don't change, 1: set,
 }
 
 void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underline_style, int blinking,
-                          int reversed, int crossed_out) {
+                          int reversed, int crossed_out, int overlined) {
   u_int attr;
 
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr)) {
+    int line_style = LINE_STYLE(attr);
+
+    if (overlined) {
+      if (line_style & LS_OVERLINE) {
+        line_style &= ~LS_OVERLINE;
+      } else {
+        line_style |= LS_OVERLINE;
+      }
+    }
+
+    if (crossed_out) {
+      if (line_style & LS_CROSSED_OUT) {
+        line_style &= ~LS_CROSSED_OUT;
+      } else {
+        line_style |= LS_CROSSED_OUT;
+      }
+    }
+
+    if (underline_style) {
+      if (line_style & LS_UNDERLINE) {
+        line_style &= ~LS_UNDERLINE;
+      } else {
+        line_style = (line_style & ~LS_UNDERLINE) |
+                     (underline_style > 0 ? underline_style : LS_UNDERLINE_SINGLE);
+      }
+    }
+
     ch->u.ch.attr =
-      COMPOUND_ATTR(CHARSET(attr), IS_ZEROWIDTH(attr) != 0, IS_FULLWIDTH(attr) != 0,
+      COMPOUND_ATTR(CHARSET(attr), IS_FULLWIDTH(attr) != 0,
                     bold ? !IS_BOLD(attr) : IS_BOLD(attr) != 0,
                     italic ? !IS_ITALIC(attr) : IS_ITALIC(attr) != 0,
-                    IS_UNICODE_AREA_CS(attr) != 0,
-                    underline_style ? (UNDERLINE_STYLE(attr) ? 0 : UNDERLINE_NORMAL) :
-                                      UNDERLINE_STYLE(attr),
-                    crossed_out ? !IS_CROSSED_OUT(attr) : IS_CROSSED_OUT(attr) != 0,
+                    IS_UNICODE_AREA_CS(attr) != 0, line_style,
                     blinking ? !IS_BLINKING(attr) : IS_BLINKING(attr) != 0,
                     IS_PROTECTED(attr) != 0, IS_COMB(attr) != 0) |
       (reversed ? (IS_REVERSED(attr) ? IS_REVERSED(0) : IS_REVERSED(0xffffff)) :
@@ -387,8 +423,7 @@ void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underline_sty
 
 vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
                            int is_comb, vt_color_t fg_color, vt_color_t bg_color, int is_bold,
-                           int is_italic, int underline_style, int is_crossed_out,
-                           int is_blinking, int is_protected) {
+                           int is_italic, int line_style, int is_blinking, int is_protected) {
   vt_char_t *comb;
   u_int comb_size;
 
@@ -414,10 +449,8 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
   }
 
   vt_char_init(comb);
-  if (vt_char_set(comb, code, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                  underline_style, is_crossed_out, is_protected, is_blinking) == 0) {
-    return NULL;
-  }
+  vt_char_set(comb, code, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
+              line_style, is_blinking, is_protected);
 
 #ifdef USE_NORMALIZE
   normalize(ch, comb_size);
@@ -591,7 +624,7 @@ vt_font_t vt_char_font(vt_char_t *ch) {
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr)) {
-    return MLFONT(attr);
+    return VTFONT(attr);
   } else {
     return vt_char_font(ch->u.multi_ch);
   }
@@ -607,13 +640,11 @@ u_int vt_char_cols(vt_char_t *ch) {
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr)) {
-    if (IS_ZEROWIDTH(attr)) {
-      return 0;
-    } else if (use_multi_col_char && IS_FULLWIDTH(attr)) {
-      return 2;
+    if (!use_multi_col_char) {
+      return ch->u.ch.cols ? 1 : 0;
+    } else {
+      return ch->u.ch.cols;
     }
-
-    return 1;
   } else {
     return vt_char_cols(ch->u.multi_ch);
   }
@@ -771,19 +802,11 @@ int vt_char_set_position(vt_char_t *ch, u_int8_t offset, /* signed -> unsigned *
   }
 }
 
-int vt_char_underline_style(vt_char_t *ch) {
+int vt_char_line_style(vt_char_t *ch) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    return UNDERLINE_STYLE(ch->u.ch.attr);
+    return LINE_STYLE(ch->u.ch.attr);
   } else {
-    return vt_char_underline_style(ch->u.multi_ch);
-  }
-}
-
-int vt_char_is_crossed_out(vt_char_t *ch) {
-  if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    return IS_CROSSED_OUT(ch->u.ch.attr);
-  } else {
-    return vt_char_is_crossed_out(ch->u.multi_ch);
+    return vt_char_line_style(ch->u.multi_ch);
   }
 }
 
@@ -914,7 +937,7 @@ vt_char_t *vt_sp_ch(void) {
 
   if (sp_ch.u.ch.attr == 0) {
     vt_char_init(&sp_ch);
-    vt_char_set(&sp_ch, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, 0);
+    vt_char_set(&sp_ch, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
   }
 
   return &sp_ch;
@@ -925,7 +948,7 @@ vt_char_t *vt_nl_ch(void) {
 
   if (nl_ch.u.ch.attr == 0) {
     vt_char_init(&nl_ch);
-    vt_char_set(&nl_ch, '\n', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, 0);
+    vt_char_set(&nl_ch, '\n', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
   }
 
   return &nl_ch;

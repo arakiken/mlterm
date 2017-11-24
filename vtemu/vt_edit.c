@@ -1164,6 +1164,7 @@ vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit,
 void vt_edit_restore_protected_chars(vt_edit_t *edit, vt_protect_store_t *save) {
   int row;
   int col;
+  u_int cols;
   vt_line_t *line;
   vt_char_t *src_p;
 
@@ -1176,12 +1177,14 @@ void vt_edit_restore_protected_chars(vt_edit_t *edit, vt_protect_store_t *save) 
   for (row = save->beg_row; row <= save->end_row; row++) {
     if ((line = vt_edit_get_line(edit, row))) {
       for (col = 0; !vt_char_equal(src_p, vt_nl_ch()); src_p++) {
-        u_int cols = vt_char_cols(src_p);
         if (vt_char_is_protected(src_p)) {
+          cols = vt_char_cols(src_p);
           vt_line_overwrite(line,
                             /* cols_rest must be always 0, so pass NULL. */
                             vt_convert_col_to_char_index(line, NULL, col, BREAK_BOUNDARY),
                             src_p, 1, cols);
+        } else {
+          cols = 1;
         }
         col += cols;
       }
@@ -1670,7 +1673,7 @@ void vt_edit_fill_area(vt_edit_t *edit, int code /* Unicode */, int is_protected
               0, 0,
               edit->use_bce ? vt_char_fg_color(&edit->bce_ch) : VT_FG_COLOR,
               edit->use_bce ? vt_char_bg_color(&edit->bce_ch) : VT_BG_COLOR,
-              0, 0, 0, 0, 0, is_protected);
+              0, 0, 0, 0, is_protected);
 
   for (; num_rows > 0; num_rows--) {
     line = vt_model_get_line(&edit->model, row++);
@@ -1727,7 +1730,8 @@ void vt_edit_erase_area(vt_edit_t *edit, int col, int row, u_int num_cols, u_int
 }
 
 void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols, u_int num_rows,
-                              void (*func)(vt_char_t*, int, int, int, int, int, int), int attr) {
+                              void (*func)(vt_char_t*, int, int, int, int, int, int, int),
+                              int attr) {
   u_int count;
   vt_line_t *line;
   int char_index;
@@ -1739,18 +1743,19 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols,
   int blinking;
   int reversed;
   int crossed_out;
+  int overlined;
 
   if (attr == 0) {
-    bold = italic = underline_style = blinking = reversed = crossed_out = -1;
+    bold = italic = underline_style = blinking = reversed = crossed_out = overlined = -1;
   } else {
-    bold = italic = underline_style = blinking = reversed = crossed_out = 0;
+    bold = italic = underline_style = blinking = reversed = crossed_out = overlined = 0;
 
     if (attr == 1) {
       bold = 1;
     } else if (attr == 3) {
       italic = 1;
     } else if (attr == 4) {
-      underline_style = UNDERLINE_NORMAL;
+      underline_style = LS_UNDERLINE_SINGLE;
     } else if (attr == 5 || attr == 6) {
       blinking = 1;
     } else if (attr == 7) {
@@ -1758,7 +1763,7 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols,
     } else if (attr == 9) {
       crossed_out = 1;
     } else if (attr == 21) {
-      underline_style = UNDERLINE_DOUBLE;
+      underline_style = LS_UNDERLINE_DOUBLE;
     } else if (attr == 22) {
       bold = -1;
     } else if (attr == 23) {
@@ -1771,6 +1776,10 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols,
       reversed = -1;
     } else if (attr == 29) {
       crossed_out = -1;
+    } else if (attr == 53) {
+      overlined = 1;
+    } else if (attr == 55) {
+      overlined = -1;
     } else {
       return;
     }
@@ -1817,7 +1826,7 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols,
 
     for (; char_index <= end_char_index; char_index++) {
       (*func)(vt_char_at(line, char_index), bold, italic, underline_style, blinking, reversed,
-              crossed_out);
+              crossed_out, overlined);
     }
   }
 }

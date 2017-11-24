@@ -427,34 +427,37 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
         (*pixmap = calloc(1, sizeof(**pixmap)))) {
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
       u_int32_t *sixel_cmap;
+#endif
 
+      if (depth <= 8) {
+        if (ui_picture_modifier_is_normal(pic_mod) /* see modify_pixmap() */) {
+          if (((*pixmap)->image = load_sixel_from_data_sharepalette(file_data, &(*pixmap)->width,
+                                                                    &(*pixmap)->height)) &&
+              resize_sixel(*pixmap, width, height,
+#ifdef USE_GRF
+                           2
+#else
+                           1
+#endif
+                           )) {
+            if (mask) {
+              *mask = NULL;
+            }
+            free(file_data);
+
+            goto loaded_nomodify;
+          }
+        }
+
+        bl_msg_printf("Use closest colors for %s.\n", path);
+      }
+
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
       if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
         sixel_cmap[256] = 0; /* No active palette */
         custom_palette = sixel_cmap;
       }
 #endif
-
-      if (depth <= 8 && ui_picture_modifier_is_normal(pic_mod) /* see modify_pixmap() */) {
-        if (((*pixmap)->image = load_sixel_from_data_sharepalette(file_data, &(*pixmap)->width,
-                                                                  &(*pixmap)->height)) &&
-            resize_sixel(*pixmap, width, height,
-#ifdef USE_GRF
-                         2
-#else
-                         1
-#endif
-                         )) {
-          if (mask) {
-            *mask = NULL;
-          }
-          free(file_data);
-
-#ifdef DEBUG
-          bl_debug_printf("Convert sixel to pseudo color image directly.\n");
-#endif
-          goto loaded_nomodify;
-        }
-      }
 
       if (((*pixmap)->image = load_sixel_from_data(file_data, &(*pixmap)->width,
                                                    &(*pixmap)->height)) &&

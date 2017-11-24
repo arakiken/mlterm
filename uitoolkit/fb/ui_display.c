@@ -2058,6 +2058,12 @@ end:
 }
 
 int ui_cmap_get_pixel_rgb(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_long pixel) {
+#ifdef USE_GRF
+  if (grf0_fd != -1 && !use_tvram_cmap && pixel == TP_COLOR) {
+    return 0;
+  }
+#endif
+
   *red = WORD_COLOR_TO_BYTE(_display.cmap->red[pixel]);
   *green = WORD_COLOR_TO_BYTE(_display.cmap->green[pixel]);
   *blue = WORD_COLOR_TO_BYTE(_display.cmap->blue[pixel]);

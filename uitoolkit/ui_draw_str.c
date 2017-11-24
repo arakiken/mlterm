@@ -48,8 +48,7 @@ static u_int calculate_char_width(ui_font_t *font, u_int code, ef_charset_t cs, 
 }
 
 #ifndef USE_CONSOLE
-static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
-                      int flag, /* 0 == underline 1 == double underline, 2 == crossed out */
+static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical, int line_style,
                       int x, int y, u_int width, u_int height, u_int ascent, int top_margin) {
   u_int w;
   u_int h;
@@ -60,24 +59,23 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
     w = 1;
     h = height;
 
-    if (flag == 1) /* double */
-    {
+    if (line_style == LS_UNDERLINE_DOUBLE) {
       x2 = x + 2;
       y2 = y;
     } else {
       w += ((ascent - top_margin) / 16);
 
-      if (flag == 2) /* crossed out */
-      {
+      if (line_style == LS_CROSSED_OUT) {
         x += ((width - 1) / 2);
+      } else if (line_style == LS_OVERLINE) {
+        x += (width - (width >= 2 ? 2 : 1));
       }
     }
   } else {
     w = width;
     h = 1;
 
-    if (flag == 1) /* double */
-    {
+    if (line_style == LS_UNDERLINE_DOUBLE) {
       x2 = x;
 
       if (ascent + 2 >= height) {
@@ -90,9 +88,10 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
     } else {
       h += ((ascent - top_margin) / 16);
 
-      if (flag == 2) /* crossed out */
-      {
+      if (line_style == LS_CROSSED_OUT) {
         y += ((height + 1) / 2);
+      } else if (line_style == LS_OVERLINE) {
+        /* do nothing */
       } else {
         y += ascent;
       }
@@ -101,8 +100,7 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical,
 
   ui_window_fill_with(window, color, x, y, w, h);
 
-  if (flag == 1) /* double */
-  {
+  if (line_style == LS_UNDERLINE_DOUBLE) {
     ui_window_fill_with(window, color, x2, y2, w, h);
   }
 }
@@ -468,8 +466,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   vt_font_t font;
   vt_color_t fg_color;
   vt_color_t bg_color;
-  int underline_style;
-  int is_crossed_out;
+  int line_style;
   vt_char_t *comb_chars;
   u_int comb_size;
   int draw_alone;
@@ -483,8 +480,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   vt_font_t next_font;
   vt_color_t next_fg_color;
   vt_color_t next_bg_color;
-  int next_underline_style;
-  int next_is_crossed_out;
+  int next_line_style;
   vt_char_t *next_comb_chars;
   u_int next_comb_size;
   u_int next_ch_width;
@@ -536,8 +532,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   fg_color = vt_char_fg_color(&chars[count]);
   bg_color = vt_char_bg_color(&chars[count]);
 
-  underline_style = vt_char_underline_style(&chars[count]);
-  is_crossed_out = vt_char_is_crossed_out(&chars[count]);
+  line_style = vt_char_line_style(&chars[count]);
 
   if (!(str8 = str32 = pic_glyphs = drcs_glyphs =
             alloca(K_MAX(sizeof(*str8),
@@ -590,8 +585,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       ch_cs = FONT_CS(next_font);
       next_fg_color = vt_char_fg_color(&chars[count]);
       next_bg_color = vt_char_bg_color(&chars[count]);
-      next_underline_style = vt_char_underline_style(&chars[count]);
-      next_is_crossed_out = vt_char_is_crossed_out(&chars[count]);
+      next_line_style = vt_char_line_style(&chars[count]);
       next_comb_chars = vt_get_combining_chars(&chars[count], &next_comb_size);
       next_ch_width = calculate_char_width(next_xfont, ch_code, ch_cs, next_comb_chars,
                                            next_comb_size, &next_draw_alone);
@@ -615,17 +609,11 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
        * 'font & FONT_BOLD' is necessary.
        */
       else if (next_xfont != xfont || next_fg_color != fg_color || next_bg_color != bg_color ||
-               next_underline_style != underline_style || next_is_crossed_out != is_crossed_out
-               /*
-                * Eevn if both is_underline and next_is_underline are 1
-                * underline is drawn one by one in vertical mode.
-                * (is_crossed_out is the same.)
-                */
-               ||
-               ((underline_style || is_crossed_out) && xfont->is_vertical) || state != next_state ||
-               draw_alone || next_draw_alone
+               next_line_style != line_style ||
+               /* If line_style > 0, line is drawn one by one in vertical mode. */
+               (line_style && xfont->is_vertical) || state != next_state ||
+               draw_alone || next_draw_alone ||
                /* FONT_BOLD flag is not the same. */
-               ||
                ((font ^ next_font) & FONT_BOLD)) {
         start_draw = 1;
       } else {
@@ -704,15 +692,22 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                                 y + ascent);
       }
 
-      if (!hide_underline && underline_style) {
-        draw_line(window, fg_xcolor, xfont->is_vertical,
-                  underline_style == UNDERLINE_DOUBLE ? 1 : 0, x, y, current_width - x, height,
-                  ascent + underline_offset, top_margin);
-      }
+      if (line_style) {
+        if ((line_style & LS_UNDERLINE) && !hide_underline) {
+          draw_line(window, fg_xcolor, xfont->is_vertical,
+                    line_style & LS_UNDERLINE,
+                    x, y, current_width - x, height, ascent + underline_offset, top_margin);
+        }
 
-      if (is_crossed_out) {
-        draw_line(window, fg_xcolor, xfont->is_vertical, 2, x, y, current_width - x, height, ascent,
-                  top_margin);
+        if (line_style & LS_CROSSED_OUT) {
+          draw_line(window, fg_xcolor, xfont->is_vertical,
+                    LS_CROSSED_OUT, x, y, current_width - x, height, ascent, top_margin);
+        }
+
+        if (line_style & LS_OVERLINE) {
+          draw_line(window, fg_xcolor, xfont->is_vertical,
+                    LS_OVERLINE, x, y, current_width - x, height, ascent, top_margin);
+        }
       }
 
     end_draw:
@@ -726,8 +721,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       break;
     }
 
-    underline_style = next_underline_style;
-    is_crossed_out = next_is_crossed_out;
+    line_style = next_line_style;
     xfont = next_xfont;
     font = next_font;
     fg_color = next_fg_color;
@@ -838,8 +832,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   vt_font_t font;
   vt_color_t fg_color;
   vt_color_t bg_color;
-  int underline_style;
-  int is_crossed_out;
+  int line_style;
   int draw_alone;
   u_int32_t pic_glyph;
   u_int32_t *pic_glyphs;
@@ -854,8 +847,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   vt_font_t next_font;
   vt_color_t next_fg_color;
   vt_color_t next_bg_color;
-  int next_underline_style;
-  int next_is_crossed_out;
+  int next_line_style;
   int next_draw_alone;
 #ifdef PERF_DEBUG
   int draw_count = 0;
@@ -902,8 +894,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
   fg_color = vt_char_fg_color(&chars[count]);
   bg_color = vt_char_bg_color(&chars[count]);
-  underline_style = vt_char_underline_style(&chars[count]);
-  is_crossed_out = vt_char_is_crossed_out(&chars[count]);
+  line_style = vt_char_line_style(&chars[count]);
 
   if (!(str2b = str = pic_glyphs = drcs_glyphs =
             /* '* 2' is for UTF16 surrogate pair. */
@@ -954,8 +945,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       ch_cs = FONT_CS(next_font);
       next_fg_color = vt_char_fg_color(&chars[count]);
       next_bg_color = vt_char_bg_color(&chars[count]);
-      next_underline_style = vt_char_underline_style(&chars[count]);
-      next_is_crossed_out = vt_char_is_crossed_out(&chars[count]);
+      next_line_style = vt_char_line_style(&chars[count]);
       next_comb_chars = vt_get_combining_chars(&chars[count], &next_comb_size);
       next_ch_width = calculate_char_width(next_xfont, ch_code, ch_cs, next_comb_chars,
                                            next_comb_size, &next_draw_alone);
@@ -979,17 +969,11 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
        * 'font & FONT_BOLD' is necessary.
        */
       else if (next_xfont != xfont || next_fg_color != fg_color || next_bg_color != bg_color ||
-               next_underline_style != underline_style || next_is_crossed_out != is_crossed_out
-               /*
-                * Eevn if both is_underline and next_is_underline are 1,
-                * underline is drawn one by one in vertical mode.
-                * (is_crossed_out is the same.)
-                */
-               ||
-               ((underline_style || is_crossed_out) && xfont->is_vertical) || next_state != state ||
-               draw_alone || next_draw_alone
+               next_line_style != line_style ||
+               /* If line_style > 0, line is drawn one by one in vertical mode. */
+               (line_style && xfont->is_vertical) || next_state != state ||
+               draw_alone || next_draw_alone ||
                /* FONT_BOLD flag is not the same */
-               ||
                ((font ^ next_font) & FONT_BOLD)) {
         start_draw = 1;
       } else {
@@ -1054,14 +1038,14 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
         if (state == 2) {
           ui_window_console_draw_string16(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
-                                          str_len, underline_style);
+                                          str_len, line_style);
         } else if (state == 1) {
           ui_window_console_draw_decsp_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent,
-                                              str, str_len, underline_style);
+                                              str, str_len, line_style);
         } else /* if( state == 0) */
         {
           ui_window_console_draw_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str,
-                                        str_len, underline_style);
+                                        str_len, line_style);
         }
       }
 #else /* USE_CONSOLE */
@@ -1145,15 +1129,22 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                                    y + ascent);
       }
 
-      if (!hide_underline && underline_style) {
-        draw_line(window, fg_xcolor, xfont->is_vertical,
-                  underline_style == UNDERLINE_DOUBLE ? 1 : 0, x, y, current_width - x, height,
-                  ascent + underline_offset, top_margin);
-      }
+      if (line_style) {
+        if ((line_style & LS_UNDERLINE) && !hide_underline) {
+          draw_line(window, fg_xcolor, xfont->is_vertical,
+                    line_style & LS_UNDERLINE,
+                    x, y, current_width - x, height, ascent + underline_offset, top_margin);
+        }
 
-      if (is_crossed_out) {
-        draw_line(window, fg_xcolor, xfont->is_vertical, 2, x, y, current_width - x, height, ascent,
-                  top_margin);
+        if (line_style & LS_CROSSED_OUT) {
+          draw_line(window, fg_xcolor, xfont->is_vertical,
+                    LS_CROSSED_OUT, x, y, current_width - x, height, ascent, top_margin);
+        }
+
+        if (line_style & LS_OVERLINE) {
+          draw_line(window, fg_xcolor, xfont->is_vertical,
+                    LS_OVERLINE, x, y, current_width - x, height, ascent, top_margin);
+        }
       }
 #endif /* USE_CONSOLE */
 
@@ -1172,8 +1163,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
     font = next_font;
     fg_color = next_fg_color;
     bg_color = next_bg_color;
-    underline_style = next_underline_style;
-    is_crossed_out = next_is_crossed_out;
+    line_style = next_line_style;
     state = next_state;
     draw_alone = next_draw_alone;
     comb_chars = next_comb_chars;

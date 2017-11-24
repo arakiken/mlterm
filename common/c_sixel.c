@@ -13,7 +13,7 @@
 #define CARD_HEAD_SIZE 0
 #define pixel_t u_int8_t
 
-#elif defined(SIXEL_SHAREPALETTE) /* Both sixel and system uses same palette */
+#elif defined(SIXEL_SHAREPALETTE) /* Both sixel and system uses same palette (works on fb alone) */
 
 #define correct_height correct_height_sharepalette
 #define load_sixel_from_data load_sixel_from_data_sharepalette
@@ -264,7 +264,25 @@ static u_char *load_sixel_from_data(char *file_data, u_int *width_ret, u_int *he
   int rep;
   int color;
   int asp_x;
-#ifndef SIXEL_SHAREPALETTE
+#ifdef SIXEL_SHAREPALETTE
+  u_int8_t color_indexes[] =
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+      48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+      64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+      80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95,
+      96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+      112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127,
+      128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
+      144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175,
+      176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191,
+      192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207,
+      208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
+      224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+      240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255 };
+#else
   /* VT340 Default Color Map */
   static pixel_t default_palette[] = {
       SIXEL_RGB(0, 0, 0),    /* BLACK */
@@ -493,10 +511,10 @@ body:
 #ifdef USE_GRF
           int x;
           for (x = 0; x < rep; x++) {
-            ((u_int16_t*)line)[x] = color;
+            ((u_int16_t*)line)[x] = color_indexes[color];
           }
 #else
-          memset(line, color, rep);
+          memset(line, color_indexes[color], rep);
 #endif
         }
         a <<= 1;
@@ -664,15 +682,20 @@ body:
         {
           u_int8_t r, g, b;
 
+          /* fb/ui_display.h which defines ui_cmap_get_pixel_rgb() is included from ui_imagelib.c */
           if (!ui_cmap_get_pixel_rgb(&r, &g, &b, color) ||
               abs(r - rgb[0]) >= 0x10 || abs(g - rgb[1]) >= 0x10 || abs(b - rgb[2]) >= 0x10) {
-#ifdef __DEBUG
-            bl_debug_printf("%d color: System palette 0x%.2x%.2x%.2x doens't match "
-                            "sixel palette 0x%.2x%.2x%.2x\n",
-                            color, r, g, b, rgb[0], rgb[1], rgb[2]);
-#endif
+            u_long closest;
 
-            goto error;
+            /*
+             * fb/ui_display.h which defines ui_cmap_get_closest_color() is included
+             * from ui_imagelib.c
+             */
+            if (ui_cmap_get_closest_color(&closest, rgb[0], rgb[1], rgb[2])) {
+              color_indexes[color] = closest;
+            } else {
+              goto error;
+            }
           }
         }
 #else

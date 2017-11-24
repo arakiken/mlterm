@@ -465,7 +465,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
       is_comb = 1;
 
       if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0, 0)) {
+                                   fg_color, bg_color, is_bold, 0, is_underline, 0, 0)) {
         continue;
       }
 
@@ -475,7 +475,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
     }
 
     (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color,
-                         bg_color, is_bold, 0, is_underline, 0, 0, 0);
+                         bg_color, is_bold, 0, is_underline, 0, 0);
 
     p++;
     iiimf->im.preedit.filled_len++;

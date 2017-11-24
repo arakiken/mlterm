@@ -29,11 +29,15 @@
 #define PICTURE_ID_BITS 9   /* fg or bg color */
 #define PICTURE_POS_BITS 23 /* code (Can be shrunk to 21 bits) */
 
+#define LS_UNDERLINE (LS_UNDERLINE_SINGLE|LS_UNDERLINE_DOUBLE)
+
 typedef enum {
-  UNDERLINE_NONE,
-  UNDERLINE_NORMAL,
-  UNDERLINE_DOUBLE,
-} vt_underline_style_t;
+  LS_NOLINE = 0x0,
+  LS_UNDERLINE_SINGLE = 0x1,
+  LS_UNDERLINE_DOUBLE = 0x2,
+  LS_OVERLINE = 0x4,
+  LS_CROSSED_OUT = 0x8,
+} vt_line_style_t;
 
 /*
  * This object size should be kept as small as possible.
@@ -52,19 +56,17 @@ typedef struct vt_char {
 /*
  * attr member contents.
  * Total 23 bit
- * 2 bit : underline_style(0 or 1 or 2)
- * 1 bit : is_zerowidth(0 or 1)
- * 1 bit : is_protected(0 or 1)
+ * 4 bit : vt_char_attr_line_style_t
  * 1 bit : is_blinking(0 or 1)
  * 1 bit : is unicode area cs(0 or 1)
- * 1 bit : is_italic(0 or 1)
- * 1 bit : is_bold(0 or 1)
- * 1 bit : is_fullwidth(0 or 1)
- * 9 bit : charset(0x0 - 0x1ff) or
+ * 1 bit : is_italic(0 or 1)       -+
+ * 1 bit : is_bold(0 or 1)          |__\ vt_font_t
+ * 1 bit : is_fullwidth(0 or 1)     |
+ * 9 bit : charset(0x0 - 0x1ff) or -+
  *         1 bit: CS_REVISION_1(ISO10646_UCS4_1_V(*))
  *         8 bit: unicode area id
  * 1 bit : is_reversed(0 or 1)	... used for X Selection
- * 1 bit : is_crossed_out
+ * 1 bit : is_protected(0 or 1)
  * 1 bit : is_comb(0 or 1)
  * 1 bit : is_comb_trailing(0 or 1)
  * ---
@@ -74,15 +76,29 @@ typedef struct vt_char {
  *     (See vt_shape.c and vt_char_set_cs())
  */
 #ifdef WORDS_BIGENDIAN
-      u_int code : 23; /* Can be shrunk to 21 bits (Unicode: 0-10FFFF) */
+      u_int code : 21;
+      /*
+       * cols = 0 or 1 or 2
+       *
+       * XXX 'cols == 2' equals to 'is_fullwidth == 1', so there is room to
+       * improve efficiency of memory.
+       */
+      u_int cols : 2;
       u_int fg_color : 9;
       u_int bg_color : 9;
-      u_int attr : 23;
+      u_int attr : 21;
 #else
       u_int attr : 23;
       u_int fg_color : 9;
       u_int bg_color : 9;
-      u_int code : 23; /* Can be shrunk to 21 bits (Unicode: 0-10FFFF) */
+      /*
+       * cols = 0 or 1 or 2
+       *
+       * XXX 'cols == 2' equals to 'is_fullwidth == 1', so there is room to
+       * improve efficiency of memory.
+       */
+      u_int cols : 2;
+      u_int code : 21;
 #endif
     } ch;
 
@@ -108,24 +124,23 @@ void vt_char_init(vt_char_t *ch);
 
 void vt_char_final(vt_char_t *ch);
 
-int vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
-                vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
-                int underline_style, int is_crossed_out, int is_blinking, int is_protected);
+void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
+                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
+                 int line_style, int is_blinking, int is_protected);
 
 void vt_char_change_attr(vt_char_t *ch, int is_bold, int is_italic, int underline_style,
-                         int is_blinking, int is_reversed, int crossed_out);
+                         int is_blinking, int is_reversed, int crossed_out, int is_overlined);
 
-void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underlined,
-                          int blinking, int reversed, int crossed_out);
+void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underline_style,
+                          int blinking, int reversed, int crossed_out, int overlined);
 
 vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
                            int is_comb, vt_color_t fg_color, vt_color_t bg_color, int is_bold,
-                           int is_italic, int underline_style, int is_crossed_out,
-                           int is_blinking, int is_protected);
+                           int is_italic, int line_style, int is_blinking, int is_protected);
 
 /* set both fg and bg colors for reversing. */
 #define vt_char_combine_picture(ch, id, pos) \
-  vt_char_combine(ch, pos, PICTURE_CHARSET, 0, 0, id, id, 0, 0, 0, 0, 0, 0)
+  vt_char_combine(ch, pos, PICTURE_CHARSET, 0, 0, id, id, 0, 0, 0, 0, 0)
 
 vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *comb);
 
@@ -177,9 +192,7 @@ u_int vt_char_get_width(vt_char_t *ch);
 
 int vt_char_set_position(vt_char_t *ch, u_int8_t offset, u_int8_t width);
 
-int vt_char_underline_style(vt_char_t *ch);
-
-int vt_char_is_crossed_out(vt_char_t *ch);
+int vt_char_line_style(vt_char_t *ch);
 
 int vt_char_is_blinking(vt_char_t *ch);
 

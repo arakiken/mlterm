@@ -239,8 +239,7 @@ vt_char_t *vt_screen_get_n_prev_char(vt_screen_t *screen, int n);
 int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_charset_t cs,
                                      int is_fullwidth, int is_comb, vt_color_t fg_color,
                                      vt_color_t bg_color, int is_bold, int is_italic,
-                                     int is_underlined, int is_crossed_out, int is_blinking,
-                                     int is_protected);
+                                     int line_style, int is_blinking, int is_protected);
 
 int vt_screen_insert_chars(vt_screen_t *screen, vt_char_t *chars, u_int len);
 

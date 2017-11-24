@@ -36,6 +36,9 @@ typedef struct fb_cmap fb_cmap_t;
 
 #endif
 
+/* SIXEL_SHAREPALETTE in c_sixel.c reduces the role of COLOR_CACHE_MINIMUM. */
+#define COLOR_CACHE_MINIMUM
+
 typedef struct {
   int fd;
 

@@ -492,7 +492,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0, 0)) {
+                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
           continue;
         }
 
@@ -504,7 +504,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
       }
 
       (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                           VT_BG_COLOR, 0, 0, 1, 0, 0, 0);
+                           VT_BG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
 
       p++;
       fcitx->im.preedit.filled_len++;
@@ -690,7 +690,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
           is_comb = 1;
 
           if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                       fg_color, bg_color, 0, 0, 1, 0, 0, 0)) {
+                                       fg_color, bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
             continue;
           }
 
@@ -700,7 +700,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
         }
 
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color,
-                             bg_color, 0, 0, 1, 0, 0, 0);
+                             bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
 
         p++;
         fcitx->im.preedit.filled_len++;

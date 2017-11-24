@@ -232,7 +232,7 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1, 0, 0, 0)) {
+                                     VT_FG_COLOR, VT_BG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
           continue;
         }
 
@@ -245,10 +245,10 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
 
       if (rev_pos <= skk->im.preedit.filled_len && skk->im.preedit.filled_len < rev_pos + rev_len) {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_BG_COLOR,
-                             VT_FG_COLOR, 0, 0, 1, 0, 0, 0);
+                             VT_FG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
       } else {
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                             VT_BG_COLOR, 0, 0, 1, 0, 0, 0);
+                             VT_BG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
       }
 
       p++;
@@ -256,8 +256,8 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
     }
 
     for (; pos_len > 0; pos_len--) {
-      (*syms->vt_char_set)(p++, *(pos++), US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 1,
-                           0, 0, 0);
+      (*syms->vt_char_set)(p++, *(pos++), US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0,
+                           LS_UNDERLINE_SINGLE, 0, 0);
       skk->im.preedit.filled_len++;
     }
   }

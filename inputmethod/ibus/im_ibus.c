@@ -196,7 +196,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
         is_comb = 1;
 
         if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
-                                     fg_color, bg_color, 0, 0, 1, 0, 0, 0)) {
+                                     fg_color, bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
           continue;
         }
 
@@ -206,7 +206,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
       }
 
       (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, fg_color,
-                           bg_color, 0, 0, 1, 0, 0, 0);
+                           bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
 
       p++;
       ibus->im.preedit.filled_len++;
