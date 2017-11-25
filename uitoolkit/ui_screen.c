@@ -1753,9 +1753,8 @@ const char *cocoa_get_bundle_path(void);
 static void start_menu(ui_screen_t *screen, char *str, int x, int y) {
   int global_x;
   int global_y;
-  Window child;
 
-  ui_window_translate_coordinates(&screen->window, x, y, &global_x, &global_y, &child);
+  ui_window_translate_coordinates(&screen->window, x, y, &global_x, &global_y);
 
   /*
    * XXX I don't know why but XGrabPointer() in child processes
@@ -4669,14 +4668,13 @@ static ui_color_t *get_bg_color(void *p) {
 
 static int get_im_spot(void *p, vt_char_t *chars, int segment_offset, int *x, int *y) {
   ui_screen_t *screen = p;
-  Window unused;
 
   if (!get_spot_intern(screen, chars, segment_offset, 1, 0, x, y)) {
     return 0;
   }
 
   ui_window_translate_coordinates(&screen->window, *x + screen->window.hmargin,
-                                  *y + screen->window.vmargin, x, y, &unused);
+                                  *y + screen->window.vmargin, x, y);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " im spot => x %d y %d\n", *x, *y);

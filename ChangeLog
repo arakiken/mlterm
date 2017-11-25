@@ -1,3 +1,21 @@
+2017-11-25  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/ui_window.c, xlib/ui_window.c: ui_window_set_maximize_flag() supports
+	  MAXIMIZE_HORIZONTAL and MAXIMIZE_VERTICAL.
+
+	* quartz/cocoa.[hm]: window_move_resize() is added.
+
+	* fb/ui_window.c: ui_window_set_maximize_flag() calls ui_display_set_maximized()
+	  on wayland.
+
+	* wayland/ui_display.[ch]: ui_display_set_maximized() is added.
+
+	* ui_window.h, */ui_window.c: 'Window *child' is removed from arguments of
+	  ui_window_translate_coordinates().
+
+	* vte.c: vt_xterm_event_listener_t::xterm_resize is overridden by
+	  xterm_resize() in vte.c which supports MAXIMIZE_FULL and MAXIMIZE_RESTORE.
+
 2017-11-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_draw_str.c:

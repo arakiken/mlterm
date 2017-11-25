@@ -2318,6 +2318,12 @@ void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int 
 #endif
 }
 
+void ui_display_set_maximized(ui_display_t *disp) {
+#ifndef COMPAT_LIBVTE
+  wl_shell_surface_set_maximized(disp->display->shell_surface, disp->display->wlserv->output);
+#endif
+}
+
 void ui_display_set_title(ui_display_t *disp, const u_char *name) {
 #ifndef COMPAT_LIBVTE
   wl_shell_surface_set_title(disp->display->shell_surface, name);

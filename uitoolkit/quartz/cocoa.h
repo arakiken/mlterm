@@ -55,6 +55,8 @@ void window_dealloc(void *window);
 
 void window_resize(void *window, int width, int height);
 
+void window_move_resize(void *window, int x, int y, int width, int height);
+
 void window_accepts_mouse_moved_events(void *window, int accept);
 
 void window_set_normal_hints(void *window, u_int width_inc, u_int height_inc);

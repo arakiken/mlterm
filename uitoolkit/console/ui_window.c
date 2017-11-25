@@ -1475,8 +1475,7 @@ void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   }
 }
 
-void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
-                                    Window *child) {
+void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y) {
   *global_x = x + win->x;
   *global_y = y + win->y;
 }
