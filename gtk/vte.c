@@ -1661,7 +1661,7 @@ static void vte_terminal_screen_changed(GtkWidget *widget, GdkScreen *previous_s
 #endif
 
 #if GTK_CHECK_VERSION(2, 90, 0)
-static void vte_terminal_draw(GtkWidget *widget, cairo_t *cr) {
+static gboolean vte_terminal_draw(GtkWidget *widget, cairo_t *cr) {
   int width = gtk_widget_get_allocated_width(widget);
   int height = gtk_widget_get_allocated_height(widget);
   cairo_rectangle(cr, 0, 0, width, height);

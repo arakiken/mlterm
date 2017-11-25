@@ -1,3 +1,7 @@
+2017-11-26  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: Return value type of vte_terminal_draw() is fixed.
+
 2017-11-25  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/ui_window.c, xlib/ui_window.c: ui_window_set_maximize_flag() supports
