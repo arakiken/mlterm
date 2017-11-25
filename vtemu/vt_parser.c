@@ -6319,7 +6319,7 @@ int vt_parser_show_message(vt_parser_t *vt_parser, char *msg) {
 
 #if defined(__ANDROID__) || defined(__APPLE__)
 int vt_parser_preedit(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
-  if (!(vt_parser->line_style & LS_UNDERLINE) {
+  if (!(vt_parser->line_style & LS_UNDERLINE)) {
     char *new_buf;
     size_t new_len;
 
