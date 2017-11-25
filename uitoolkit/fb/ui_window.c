@@ -1328,7 +1328,13 @@ int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
   return ui_window_resize(win, width - win->hmargin * 2, height - win->vmargin * 2, flag);
 }
 
-void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag) {}
+void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag) {
+#ifdef USE_WAYLAND
+  if (flag == MAXIMIZE_FULL) {
+    ui_display_set_maximized(win->disp);
+  }
+#endif
+}
 
 void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
                                 u_int width_inc, u_int height_inc) {
@@ -2046,8 +2052,7 @@ void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   }
 }
 
-void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
-                                     Window *child) {
+void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y) {
   *global_x = x + win->x;
   *global_y = y + win->y;
 

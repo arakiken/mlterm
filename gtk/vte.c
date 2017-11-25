@@ -137,8 +137,7 @@ struct _VteTerminalPrivate {
   ui_system_event_listener_t system_listener;
 
   void (*line_scrolled_out)(void *);
-  void (*set_window_name)(void *, u_char *);
-  void (*set_icon_name)(void *, u_char *);
+  void (*xterm_resize)(void *, u_int, u_int, int);
   ui_screen_scroll_event_listener_t screen_scroll_listener;
   int8_t adj_value_changed_by_myself;
 
@@ -693,6 +692,22 @@ static void __exit(void *p, int status) {
  * vt_xterm_event_listener_t (overriding) handlers
  */
 
+static void xterm_resize(void *p, u_int width, u_int height, int flag) {
+  ui_screen_t *screen = p;
+  VteTerminal *terminal = VTE_WIDGET(screen);
+
+  if (flag) {
+    flag --; /* converting to ui_maximize_flag_t */
+    if (flag == MAXIMIZE_FULL) {
+      gtk_window_maximize(gtk_widget_get_toplevel(GTK_WIDGET(terminal)));
+    } else if (flag == MAXIMIZE_RESTORE) {
+      gtk_window_unmaximize(gtk_widget_get_toplevel(GTK_WIDGET(terminal)));
+    }
+  } else {
+    (*PVT(terminal)->xterm_resize)(p, width, height, 0);
+  }
+}
+
 static void set_window_name(void *p, u_char *name) {
   ui_screen_t *screen;
   VteTerminal *terminal;
@@ -743,7 +758,7 @@ static void line_scrolled_out(void *p /* must be ui_screen_t */
   screen = p;
   terminal = VTE_WIDGET(screen);
 
-  PVT(terminal)->line_scrolled_out(p);
+  (*PVT(terminal)->line_scrolled_out)(p);
 
   /*
    * line_scrolled_out is called in vt100 mode
@@ -1211,10 +1226,10 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
   PVT(terminal)->line_scrolled_out = PVT(terminal)->screen->screen_listener.line_scrolled_out;
   PVT(terminal)->screen->screen_listener.line_scrolled_out = line_scrolled_out;
 
-  PVT(terminal)->set_window_name = PVT(terminal)->screen->xterm_listener.set_window_name;
   PVT(terminal)->screen->xterm_listener.set_window_name = set_window_name;
-  PVT(terminal)->set_icon_name = PVT(terminal)->screen->xterm_listener.set_icon_name;
   PVT(terminal)->screen->xterm_listener.set_icon_name = set_icon_name;
+  PVT(terminal)->xterm_resize = PVT(terminal)->screen->xterm_listener.resize;
+  PVT(terminal)->screen->xterm_listener.resize = xterm_resize;
 
   orig_select_in_window = PVT(terminal)->screen->sel_listener.select_in_window;
   PVT(terminal)->screen->sel_listener.select_in_window = select_in_window;

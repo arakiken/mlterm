@@ -697,26 +697,33 @@ void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag) {
   if (flag) {
     u_int w;
     u_int h;
+    int x;
+    int y;
 
     win = ui_get_root_window(win);
 
+    window_get_position(win->my_window, &x, &y);
+
     if (flag & MAXIMIZE_HORIZONTAL) {
-      w = win->disp->width - win->hmargin * 2;
+      w = win->disp->width;
+      x = 0;
     } else {
       w = win->width;
     }
 
     if (flag & MAXIMIZE_VERTICAL) {
-      h = win->disp->height - win->vmargin * 2;
+      h = win->disp->height;
+      y = 0;
     } else {
       h = win->height;
     }
 
-    if (flag == MAXIMIZE_FULL) {
-      /* XXX window should be moved to 0 here */
-      ui_window_resize(win, w, h, NOTIFY_TO_MYSELF);
-    } else {
-      /* XXX MAXIMIZE_HORIZONTAL and MAXIMIZE_VERTICAL are not supported for now. */
+    window_move_resize(win->my_window, x, y, w, h);
+
+    /* Same processing as ui_window_resize() */
+    if (win->window_resized) {
+      (*win->window_resized)(win);
+      win->update_window_flag = 0; /* force redraw */
     }
   } else {
     /* XXX MAXIMIZE_RESTORE is not supported for now. */
@@ -1261,8 +1268,7 @@ void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   }
 }
 
-void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y,
-                                     Window *child) {
+void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global_x, int *global_y) {
   win = ui_get_root_window(win);
   window_get_position(win->my_window, global_x, global_y);
   *global_x += x;

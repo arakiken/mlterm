@@ -1497,6 +1497,19 @@ void window_resize(NSWindow *window, int width, int height) {
   [window setFrame:wr display:YES];
 }
 
+void window_move_resize(NSWindow *window, int x, int y, int width, int height) {
+  CGRect wr = window.frame;
+  CGSize vs = ((NSView *)window.contentView).frame.size;
+  int diff_x = wr.size.width - vs.width;
+  int diff_y = wr.size.height - vs.height;
+
+  wr.origin.y = [[window screen] visibleFrame].size.height - y - height;
+  wr.origin.x = x;
+  wr.size.width = width + diff_x;
+  wr.size.height = height + diff_y;
+  [window setFrame:wr display:YES];
+}
+
 void window_accepts_mouse_moved_events(NSWindow *window, int accept) {
   window.acceptsMouseMovedEvents = (accept ? YES : NO);
 }
