@@ -1,5 +1,14 @@
 2017-11-26  Araki Ken  <arakiken@users.sf.net>
 
+	* MLTermPty.c:
+	  vt_char_underline_style() and vt_char_is_crossed_out() => vt_char_line_style()
+
+	* skk/dict.c:
+	  - set_blocking() -> set_nonblocking()
+	  - check_protocol_4() returns 0 if recv() returns error except EAGAIN.
+
+2017-11-26  Araki Ken  <arakiken@users.sf.net>
+
 	* vte.c: Return value type of vte_terminal_draw() is fixed.
 
 2017-11-25  Araki Ken  <arakiken@users.sf.net>
