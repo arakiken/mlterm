@@ -286,8 +286,7 @@ static int need_style(vt_char_t *ch, vt_char_t *prev_ch) {
   int need_style;
 
   if (vt_char_fg_color(ch) != VT_FG_COLOR || vt_char_bg_color(ch) != VT_BG_COLOR ||
-      vt_char_underline_style(ch) || vt_char_is_crossed_out(ch) ||
-      (vt_char_font(ch) & (FONT_BOLD | FONT_ITALIC))) {
+      vt_char_line_style(ch) || (vt_char_font(ch) & (FONT_BOLD | FONT_ITALIC))) {
     need_style = 2;
   } else {
     need_style = 0;
@@ -295,8 +294,7 @@ static int need_style(vt_char_t *ch, vt_char_t *prev_ch) {
 
   if (prev_ch && vt_char_fg_color(ch) == vt_char_fg_color(prev_ch) &&
       vt_char_bg_color(ch) == vt_char_bg_color(prev_ch) &&
-      vt_char_underline_style(ch) == vt_char_underline_style(prev_ch) &&
-      vt_char_is_crossed_out(ch) == vt_char_is_crossed_out(prev_ch) &&
+      vt_char_line_style(ch) == vt_char_line_style(prev_ch) &&
       (vt_char_font(ch) & (FONT_BOLD | FONT_ITALIC)) ==
           (vt_char_font(prev_ch) & (FONT_BOLD | FONT_ITALIC))) {
     if (need_style) {
@@ -1287,6 +1285,7 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
         u_int8_t red;
         u_int8_t green;
         u_int8_t blue;
+        int line_style;
 
         if (!style_class) {
           style_class = (*env)->NewGlobalRef(env, (*env)->FindClass(env, "mlterm/Style"));
@@ -1324,13 +1323,13 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
                                 ? ((red << 16) | (green << 8) | blue)
                                 : -1);
 
-        (*env)->SetBooleanField(
-            env, styles[num_styles - 1], style_underline,
-            vt_char_underline_style(line->chars + mod_beg + count) ? JNI_TRUE : JNI_FALSE);
+        line_style = vt_char_line_style(line->chars + mod_beg + count);
 
-        (*env)->SetBooleanField(
-            env, styles[num_styles - 1], style_strikeout,
-            vt_char_is_crossed_out(line->chars + mod_beg + count) ? JNI_TRUE : JNI_FALSE);
+        (*env)->SetBooleanField(env, styles[num_styles - 1], style_underline,
+                                (line_style & LS_UNDERLINE_SINGLE) ? JNI_TRUE : JNI_FALSE);
+
+        (*env)->SetBooleanField(env, styles[num_styles - 1], style_strikeout,
+                                (line_style & LS_CROSSED_OUT) ? JNI_TRUE : JNI_FALSE);
 
         (*env)->SetBooleanField(
             env, styles[num_styles - 1], style_bold,

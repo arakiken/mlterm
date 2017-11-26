@@ -474,7 +474,7 @@ static char *serv_search(int sock, ef_conv_t *dic_conv, ef_parser_t *dic_parser,
   return strdup(buf + 1);
 }
 
-static void set_blocking(int fd, int nonblock) {
+static void set_nonblocking(int fd, int nonblock) {
 /* Non blocking */
 #ifdef USE_WIN32API
   u_long val = nonblock;
@@ -494,13 +494,13 @@ static int check_protocol_4(int sock) {
   char p;
   int count;
 
-  set_blocking(sock, 0);
+  set_nonblocking(sock, 0);
   send(sock, msg, sizeof(msg) - 1, 0);
 #ifndef USE_WIN32API
   fsync(sock);
 #endif
 
-  set_blocking(sock, 1);
+  set_nonblocking(sock, 1);
   count = 0;
   while (1) {
     if (recv(sock, &p, 1, 0) == 1) {
@@ -513,10 +513,14 @@ static int check_protocol_4(int sock) {
       }
 
       bl_usleep(1000);
+    } else {
+      /* recv() of winsock sets errno=ENOENT if skk server doesn't respond to msg. */
+      count = 10;
+      break;
     }
   }
 
-  set_blocking(sock, 0);
+  set_nonblocking(sock, 0);
 
   return (count != 10);
 }
