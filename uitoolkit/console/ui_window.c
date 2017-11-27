@@ -116,7 +116,7 @@ static int scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u_
 }
 
 static void set_attr(FILE *fp, vt_font_t font, u_int fg_pixel, u_int bg_pixel,
-                     int underline_style, int size_attr) {
+                     int line_style, int size_attr) {
   static int size_attr_set;
 
   if (fg_pixel < 0x8) {
@@ -135,13 +135,18 @@ static void set_attr(FILE *fp, vt_font_t font, u_int fg_pixel, u_int bg_pixel,
     fprintf(fp, "\x1b[48;5;%dm", bg_pixel);
   }
 
-  switch (underline_style) {
-    case UNDERLINE_NORMAL:
-      fwrite("\x1b[4m", 1, 4, fp);
-      break;
-    case UNDERLINE_DOUBLE:
-      fwrite("\x1b[21m", 1, 5, fp);
-      break;
+  if (line_style & LS_UNDERLINE_SINGLE) {
+    fwrite("\x1b[4m", 1, 4, fp);
+  } else if (line_style & LS_UNDERLINE_DOUBLE) {
+    fwrite("\x1b[21m", 1, 5, fp);
+  }
+
+  if (line_style & LS_CROSSED_OUT) {
+    fwrite("\x1b[9m", 1, 4, fp);
+  }
+
+  if (line_style & LS_OVERLINE) {
+    fwrite("\x1b[53m", 1, 5, fp);
   }
 
   if (font & FONT_BOLD) {
@@ -172,7 +177,7 @@ static void set_attr(FILE *fp, vt_font_t font, u_int fg_pixel, u_int bg_pixel,
 static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                         ui_color_t *bg_color,      /* must be NULL if wall_picture_bg is 1 */
                         int x, int y, u_char *str, /* 'len * ch_len' bytes */
-                        u_int len, u_int ch_len, int underline_style) {
+                        u_int len, u_int ch_len, int line_style) {
   u_char *str2;
 
   if (!win->is_mapped) {
@@ -234,7 +239,7 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
           (win->y + win->vmargin + y) / LINE_HEIGHT + 1 +
             (font->size_attr == DOUBLE_HEIGHT_BOTTOM ? 1 : 0),
           (win->x + win->hmargin + x) / COL_WIDTH + 1);
-  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style,
+  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, line_style,
            font->size_attr);
   fwrite(str, 1, len, win->disp->display->fp);
   fwrite("\x1b[m", 1, 3, win->disp->display->fp);
@@ -1271,7 +1276,7 @@ void ui_window_unset_clip(ui_window_t *win) {}
 
 void ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                                          ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
-                                         int underline_style) {
+                                         int line_style) {
   if (!win->is_mapped) {
     return;
   }
@@ -1280,7 +1285,7 @@ void ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_c
           (win->y + win->vmargin + y) / LINE_HEIGHT + 1 +
             (font->size_attr == DOUBLE_HEIGHT_BOTTOM ? 1 : 0),
           (win->x + win->hmargin + x) / COL_WIDTH + 1);
-  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, underline_style,
+  set_attr(win->disp->display->fp, font->id, fg_color->pixel, bg_color->pixel, line_style,
            font->size_attr);
   fwrite("\x1b(0", 1, 3, win->disp->display->fp);
   fwrite(str, 1, len, win->disp->display->fp);
@@ -1290,14 +1295,14 @@ void ui_window_console_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_c
 
 void ui_window_console_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                                    ui_color_t *bg_color, int x, int y, u_char *str, u_int len,
-                                   int underline_style) {
-  draw_string(win, font, fg_color, bg_color, x, y, str, len, 1, underline_style);
+                                   int line_style) {
+  draw_string(win, font, fg_color, bg_color, x, y, str, len, 1, line_style);
 }
 
 void ui_window_console_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                                      ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len,
-                                     int underline_style) {
-  draw_string(win, font, fg_color, bg_color, x, y, str, len, 2, underline_style);
+                                     int line_style) {
+  draw_string(win, font, fg_color, bg_color, x, y, str, len, 2, line_style);
 }
 
 void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
