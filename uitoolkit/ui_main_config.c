@@ -1271,7 +1271,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   if ((value = bl_conf_get_value(conf, "use_ot_layout"))) {
     if (strcmp(value, "true") == 0) {
       main_config->use_ot_layout = 1;
-      main_config->use_ctl = 1;
+      if (!main_config->use_ctl) {
+        bl_msg_printf("Set use_ctl=true forcibly.");
+        main_config->use_ctl = 1;
+      }
     }
   }
 

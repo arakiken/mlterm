@@ -20,7 +20,9 @@ typedef struct vt_ot_layout_state {
   u_int8_t *num_chars_array;
   u_int16_t size;
 
-  int8_t substituted;
+  int substituted : 2;
+  int complex_shape : 2;
+  int has_var_width_char : 2;
 
 } * vt_ot_layout_state_t;
 

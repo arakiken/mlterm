@@ -114,7 +114,7 @@ int vt_line_iscii_visual(vt_line_t *line) {
       line->chars = chars;
       line->num_chars = dst_len;
     } else {
-      dst_len = line->num_chars;
+      line->ctl_info.iscii->size = dst_len = line->num_chars;
     }
   }
 

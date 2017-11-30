@@ -118,6 +118,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
   u_int shaped_buf_len;
   u_int prev_shaped_filled;
   u_int ucs_filled;
+  u_int32_t prev_shaped;
   vt_font_t font;
   vt_font_t prev_font;
   void *xfont;
@@ -136,9 +137,12 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
   }
 
   state->substituted = 0;
+  state->complex_shape = 0;
+  state->has_var_width_char = 0;
   dst_pos = -1;
   prev_font = font = UNKNOWN_CS;
   xfont = NULL;
+  prev_shaped = 0;
   for (src_pos = 0; src_pos < src_len; src_pos++) {
     font = vt_char_font(src + src_pos);
     if (FONT_CS(font) == US_ASCII && vt_char_code(src + src_pos) != ' ') {
@@ -147,8 +151,14 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
     }
 
     if (prev_font != font) {
-      if (xfont && (prev_shaped_filled != ucs_filled ||
-                    memcmp(shaped_buf, ucs_buf, prev_shaped_filled * sizeof(*shaped_buf)) != 0)) {
+      if (!state->substituted && xfont &&
+          (prev_shaped_filled != ucs_filled ||
+           memcmp(shaped_buf, ucs_buf, prev_shaped_filled * sizeof(*shaped_buf)) != 0)) {
+        /*
+         * state->substituted is useful for libotf (ucs -> glyph index -> shaped glyph index)
+         * while useless for libharfbuzz (ucs -> ucs -> shaped glyph index)
+         * If glyph index and shaped glyph index are the same, state->substituted is 0.
+         */
         state->substituted = 1;
       }
 
@@ -171,12 +181,15 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
       ucs_buf[ucs_filled] = vt_char_code(src + src_pos);
       if (vt_is_rtl_char(ucs_buf[ucs_filled])) {
         return -1;
+      } else if (IS_VAR_WIDTH_CHAR(ucs_buf[ucs_filled])) {
+        state->has_var_width_char = 1;
       }
+
       /* Don't do it in vt_is_rtl_char() which may be replaced by (0). */
       ucs_filled++;
 
       comb = vt_get_combining_chars(src + src_pos, &num);
-      for (; num > 0; num--) {
+      for (count = 0; count < num; count++) {
         ucs_buf[ucs_filled] = vt_char_code(comb++);
         if (vt_is_rtl_char(ucs_buf[ucs_filled])) {
           return -1;
@@ -206,15 +219,32 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
         }
 
         prev_shaped_filled = shaped_filled; /* goto to the next if block */
+
+        state->complex_shape = 1;
       }
 
       if (dst_pos >= 0 && shaped_filled == prev_shaped_filled) {
         num_chars_array[dst_pos]++;
+        state->complex_shape = 1;
       } else {
         num_chars_array[++dst_pos] = 1;
 
-        for (count = shaped_filled - prev_shaped_filled; count > 1; count--) {
-          num_chars_array[++dst_pos] = 0;
+        if ((count = shaped_filled - prev_shaped_filled) > 1) {
+          do {
+            num_chars_array[++dst_pos] = 0;
+          } while (--count > 1);
+
+          state->complex_shape = 1;
+        } else if (!state->complex_shape) {
+          if (shaped_filled >= 2 && shaped_buf[shaped_filled - 2] != prev_shaped) {
+            /*
+             * This line contains glyphs which are changeable according to the context
+             * before and after.
+             */
+            state->complex_shape = 1;
+          }
+
+          prev_shaped = shaped_buf[shaped_filled - 1];
         }
       }
 
@@ -226,8 +256,9 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
     }
   }
 
-  if (xfont && (prev_shaped_filled != ucs_filled ||
-                memcmp(shaped_buf, ucs_buf, prev_shaped_filled * sizeof(*shaped_buf)) != 0)) {
+  if (!state->substituted && xfont &&
+      (prev_shaped_filled != ucs_filled ||
+       memcmp(shaped_buf, ucs_buf, prev_shaped_filled * sizeof(*shaped_buf)) != 0)) {
     state->substituted = 1;
   }
 

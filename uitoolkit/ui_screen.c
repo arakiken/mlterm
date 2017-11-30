@@ -146,7 +146,7 @@ static int convert_char_index_to_x(
       ch = vt_char_at(line, count);
 
       if (vt_char_cols(ch) > 0) {
-        x -= ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
+        x -= ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
       }
     }
   } else {
@@ -160,7 +160,7 @@ static int convert_char_index_to_x(
       ch = vt_char_at(line, count);
 
       if (vt_char_cols(ch) > 0) {
-        x += ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
+        x += ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
       }
     }
   }
@@ -215,7 +215,7 @@ static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *
         continue;
       }
 
-      width = ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
+      width = ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
 
       if (x <= width) {
         break;
@@ -237,7 +237,7 @@ static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *
         continue;
       }
 
-      width = ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
+      width = ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
 
       if (x < width) {
         break;
@@ -462,6 +462,10 @@ static int draw_cursor(ui_screen_t *screen) {
 #if 1
   if (x + ui_col_width(screen) > screen->width || y + ui_line_height(screen) > screen->height) {
     /* XXX screen_width_ratio option drives out the cursor outside of the screen. */
+    if (orig) {
+      vt_line_unshape(line, orig);
+    }
+
     return 0;
   }
 #endif
@@ -507,11 +511,11 @@ static int draw_cursor(ui_screen_t *screen) {
   if (vt_term_get_cursor_style(screen->term) & CS_UNDERLINE) {
     ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
     ui_window_fill(&screen->window, x, y + ui_line_ascent(screen),
-                   ui_calculate_mlchar_width(xfont, &ch, NULL), 2);
+                   ui_calculate_vtchar_width(xfont, &ch, NULL), 2);
   } else if (vt_term_get_cursor_style(screen->term) & CS_BAR) {
     if (vt_term_cursor_is_rtl(screen->term)) {
       ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
-      ui_window_fill(&screen->window, x + ui_calculate_mlchar_width(xfont, &ch, NULL) - 2,
+      ui_window_fill(&screen->window, x + ui_calculate_vtchar_width(xfont, &ch, NULL) - 2,
                      y, 2, ui_line_height(screen));
     } else {
       ui_window_fill(&screen->window, x, y, 2, ui_line_height(screen));
@@ -535,7 +539,7 @@ static int draw_cursor(ui_screen_t *screen) {
                            ui_get_xcolor(screen->color_man, vt_char_fg_color(&ch)));
 
     ui_window_draw_rect_frame(&screen->window, x, y,
-                              x + ui_calculate_mlchar_width(xfont, &ch, NULL) - 1,
+                              x + ui_calculate_vtchar_width(xfont, &ch, NULL) - 1,
                               y + ui_line_height(screen) - 1);
   }
 
@@ -4571,7 +4575,7 @@ static int get_spot_intern(ui_screen_t *screen, vt_char_t *chars, int segment_of
       do {
         u_int width;
 
-        width = ui_calculate_mlchar_width(ui_get_font(screen->font_man, vt_char_font(&chars[i])),
+        width = ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(&chars[i])),
                                           &chars[i], NULL);
 
         *x += width;
@@ -4781,7 +4785,7 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
     int _y;
 
     xfont = ui_get_font(screen->font_man, vt_char_font(&chars[i]));
-    width = ui_calculate_mlchar_width(xfont, &chars[i], NULL);
+    width = ui_calculate_vtchar_width(xfont, &chars[i], NULL);
 
     total_width += width;
 

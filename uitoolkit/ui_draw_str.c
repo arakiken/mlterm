@@ -1192,6 +1192,10 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
   u_int updated_width;
   int ret;
 
+#ifdef __DEBUG
+  bl_debug_printf("Draw %d characters.\n", num_chars);
+#endif
+
   if (font_man->size_attr >= DOUBLE_HEIGHT_TOP) {
     ui_window_set_clip(window, x, y, window->width - x, height);
     ascent = height - (height - ascent) * 2;
@@ -1237,6 +1241,10 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
                        int hide_underline, int underline_offset) {
   u_int updated_width;
   int ret;
+
+#ifdef __DEBUG
+  bl_debug_printf("Draw %d characters to eol.\n", num_chars);
+#endif
 
   if (font_man->size_attr >= DOUBLE_HEIGHT_TOP) {
     ui_window_set_clip(window, x, y, window->width - x, height);
@@ -1285,7 +1293,7 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
   return ret;
 }
 
-u_int ui_calculate_mlchar_width(ui_font_t *font, vt_char_t *ch, int *draw_alone) {
+u_int ui_calculate_vtchar_width(ui_font_t *font, vt_char_t *ch, int *draw_alone) {
   ef_charset_t cs;
   vt_char_t *comb;
   u_int comb_size;

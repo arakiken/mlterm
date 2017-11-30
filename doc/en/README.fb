@@ -138,3 +138,4 @@ Framebuffer support
   o mlclient (mlclientx is avaialble, though)
   o OPEN_SCREEN shortcut of ~/.mlterm/key.
   o geometry option
+  o use_ot_layout option doesn't work correctly if FiraCode or some fonts.
