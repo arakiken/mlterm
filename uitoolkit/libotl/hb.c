@@ -140,7 +140,7 @@ static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped /* never NUL
     }
   } else {
     /*
-     * cmapped -> shaped (called from vt_ot_layout.c) */
+     * cmapped -> shaped (called from vt_ot_layout.c)
      * (offsets and widths are not set)
      */
 
