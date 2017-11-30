@@ -1,3 +1,21 @@
+2017-11-30  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL, doc/en/README.fb, doc/ja/README.fb, README.ja: Updated.
+
+	* vt_line.c: line->ctl_info.ot_layout->complex_shape and
+	  line->ctl_info.ot_layout->has_var_width_char are checked.
+
+	* vt_ot_layout.[ch]:
+	  complex_shape and has_var_width_char are added to vt_ot_layout_state_t.
+
+	* vt_shape.[ch]: IS_VAR_WIDTH_CHAR() is added.
+
+	* hb.c: convert_text_to_glyphs() always sets glyph indexes in 'shaped'.
+
+	* ui_screen.c: vt_line_unshape() is added before 'return 0' in draw_cursor().
+
+	* ui_draw_str.[ch]: ui_calculate_mlchar_width() -> ui_calculate_vtchar_width()
+
 2017-11-26  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.c:

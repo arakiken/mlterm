@@ -10,6 +10,7 @@
 #include "vt_line.h" /* ctl_info_t */
 
 #define IS_ARABIC_CHAR(ucode) (((ucode)&0xffffff00) == 0x600)
+#define IS_VAR_WIDTH_CHAR(ucode) (0x900 <= (ucode) && (ucode) <= 0xd7f)
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 

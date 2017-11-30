@@ -276,7 +276,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --disable-iiimf
       IIIMF (Internet/Intranet Input Method Framework) を無効にします。
-      libiiimcf が必要です。
+      有効にする場合、libiiimcf が必要です。
 
     --enable-pty-helper
       gnome-pty-helper をサポートします。(BSD style pty のシステムでは無効です。)
@@ -295,6 +295,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --disable-otl
       OpenType フォントの置換グリフ等を使った表示を無効にします。
+      有効にする場合、harfbuzz が必要です(libotf も使えますが、推奨しません)。
 
     --enable-brlapi
       brlapi ライブラリを使って brltty サーバに接続します。(Experimental)
@@ -602,6 +603,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         なお、use_ot_layout=true の場合、cairo on xlib 及び freetype+fontconfig on
         framebuffer/wayland における代替グリフ検索による自動フォント補完機能は無効
         となります。
+        また、今のところ、FiraCode フォント及びそれと同様の方法により等幅でリガチャ
+        するフォントについては、freetype on framebuffer/wayland では表示できません。
 
       o ot_script (latn) (#)
         グリフ置換を行う場合の script を指定します。

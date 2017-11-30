@@ -112,8 +112,7 @@ static
         memset(widths, 0, shaped_len * sizeof(*widths));
       }
     }
-  } else /* if( cmapped) */
-  {
+  } else /* if(cmapped) */ {
     for (count = 0; count < src_len; count++) {
       otfstr.glyphs[count].glyph_id = cmapped[count];
     }

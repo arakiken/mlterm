@@ -298,7 +298,7 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
       line->chars = chars;
       line->num_chars = dst_len;
     } else {
-      dst_len = line->num_chars;
+      line->ctl_info.ot_layout->size = dst_len = line->num_chars;
     }
   }
 
@@ -401,7 +401,6 @@ static int vt_line_ot_layout_logical(vt_line_t *line) {
       for (; num > 0; num--, comb++) {
         if (vt_char_cs(comb) == ISO10646_UCS4_1_V) {
           vt_char_set_cs(comb, ISO10646_UCS4_1);
-          bl_debug_printf("%x\n", vt_char_cs(comb));
         }
 
         if (vt_char_is_comb(comb)) {
@@ -441,8 +440,7 @@ static int vt_line_ot_layout_convert_logical_char_index_to_visual(vt_line_t *lin
   for (visual_char_index = 0; visual_char_index < line->ctl_info.ot_layout->size;
        visual_char_index++) {
     if (logical_char_index == 0 ||
-        (logical_char_index -= line->ctl_info.ot_layout->num_chars_array[visual_char_index]) <
-            0) {
+        (logical_char_index -= line->ctl_info.ot_layout->num_chars_array[visual_char_index]) < 0) {
       break;
     }
   }
@@ -455,6 +453,7 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
                                     void *term) {
   int ret;
   int visual_mod_beg;
+  int visual_mod_end;
 
   /*
    * Lower case: ASCII
@@ -470,33 +469,68 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
   }
 
   if (vt_line_is_real_modified(line)) {
+    int char_index;
+    int complex_shape = line->ctl_info.ot_layout->complex_shape;
+    int has_var_width_char = line->ctl_info.ot_layout->has_var_width_char;
+    int count;
+
     line->ctl_info.ot_layout->term = term;
 
-    if ((ret = vt_ot_layout(line->ctl_info.ot_layout, line->chars, line->num_filled_chars)) <=
-        0) {
+    if ((ret = vt_ot_layout(line->ctl_info.ot_layout, line->chars, line->num_filled_chars)) <= 0) {
       return ret;
     }
+
+    complex_shape |= line->ctl_info.ot_layout->complex_shape;
+    has_var_width_char |= line->ctl_info.ot_layout->has_var_width_char;
 
     if (line->ctl_info.ot_layout->substituted) {
       int beg;
 
       if ((beg = vt_line_ot_layout_convert_logical_char_index_to_visual(
-               line, vt_line_get_beg_of_modified(line))) < visual_mod_beg) {
+                   line, vt_line_get_beg_of_modified(line))) < visual_mod_beg) {
         visual_mod_beg = beg;
       }
     }
 
-    /*
-     * Conforming line->change_{beg|end}_col to visual mode.
-     * If this line contains glyph indeces, it should be redrawn to
-     * the end of line.
-     */
-    vt_line_set_modified(line, visual_mod_beg, line->num_chars);
+    if (has_var_width_char) {
+      visual_mod_end = line->num_chars;
+    } else {
+      visual_mod_end = vt_line_ot_layout_convert_logical_char_index_to_visual(line,
+                         vt_line_get_end_of_modified(line));
+    }
+
+    if (complex_shape) {
+      /*
+       * XXX
+       *
+       * Input  Logical    Visual
+       * !    => !      => !
+       *         ^         ^
+       * =    => !=     => =/=
+       *          ^        ^^^
+       * ('=' after '!' should be redrawn in logical, but the first '!' should
+       *  be also redrawn in visual.)
+       */
+      for (count = 0; visual_mod_beg > 0 && count < 4; count++, visual_mod_beg--) {
+        if (vt_char_code(line->chars + visual_mod_beg - 1) == 0x20 /* SP */) {
+          break;
+        }
+      }
+
+      /* If trailing characters in this line are all spaces, visual_mod_end is not modified. */
+      for (char_index = visual_mod_end + 1; char_index < line->num_filled_chars; char_index++) {
+        if (vt_char_code(line->chars + char_index) != 0x20 /* SP */) {
+          visual_mod_end = line->num_chars;
+          break;
+        }
+      }
+    }
   } else {
-    vt_line_set_modified(line, visual_mod_beg,
-                         vt_line_ot_layout_convert_logical_char_index_to_visual(
-                             line, vt_line_get_end_of_modified(line)));
+    visual_mod_end = vt_line_ot_layout_convert_logical_char_index_to_visual(line,
+                       vt_line_get_end_of_modified(line));
   }
+
+  vt_line_set_modified(line, visual_mod_beg, visual_mod_end);
 
   return 1;
 }

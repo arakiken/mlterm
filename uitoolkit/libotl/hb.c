@@ -60,9 +60,10 @@ static hb_feature_t *get_hb_features(const char *features, u_int *num) {
   return hbfeatures;
 }
 
-static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shaped_len,
-                                    int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                    u_int32_t *src, u_int src_len, hb_script_t hbscript,
+static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped /* never NULL */,
+                                    u_int shaped_len, int8_t *offsets, u_int8_t *widths,
+                                    u_int32_t *cmapped, u_int32_t *src /* never NULL */,
+                                    u_int src_len, hb_script_t hbscript,
                                     hb_feature_t *hbfeatures, u_int hbfeatures_num) {
   static hb_buffer_t *buf;
   hb_glyph_info_t *info;
@@ -92,11 +93,16 @@ static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shape
   pos = hb_buffer_get_glyph_positions(buf, &num);
 
   if (!cmapped) {
+    /* src -> shaped (called from vt_shape.c) */
+
     int32_t prev_offset;
 
     prev_offset = 0;
     shaped[0] = info[0].codepoint;
-    if (offsets && widths) {
+#if 0
+    if (offsets && widths)
+#endif
+    {
       offsets[0] = widths[0] = 0;
     }
 
@@ -108,6 +114,7 @@ static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shape
         /* do nothing */
       } else
 #endif
+      {
         if (abs(pos[count].x_offset) >= 64) {
           int32_t offset;
 
@@ -129,15 +136,22 @@ static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shape
           offsets[count] = widths[count] = 0;
           prev_offset = 0;
         }
+      }
     }
   } else {
-    u_int minus;
+    /*
+     * cmapped -> shaped (called from vt_ot_layout.c) */
+     * (offsets and widths are not set)
+     */
 
-    minus = 0;
+    u_int minus = 0;
+
+    shaped[0] = info[0].codepoint;
     for (count = 1; count < num; count++) {
       if (abs(pos[count].x_offset) >= 64) {
         minus++;
       }
+      shaped[count] = info[count].codepoint;
     }
 
     num -= minus;
@@ -402,7 +416,9 @@ otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shaped_len, in
                            u_int8_t *widths, u_int32_t *cmapped, u_int32_t *src, u_int src_len,
                            const char *script, const char *features, u_int fontsize) {
   if (src && cmapped) {
-    memcpy(cmapped, src, sizeof(*src) * src_len);
+    if (cmapped != src) {
+      memcpy(cmapped, src, sizeof(*src) * src_len);
+    }
 
     return src_len;
   } else {

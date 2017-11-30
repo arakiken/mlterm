@@ -17,6 +17,6 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
                        int y, u_int height, u_int ascent, int top_margin,
                        int hide_underline, int underline_offset);
 
-u_int ui_calculate_mlchar_width(ui_font_t *font, vt_char_t *ch, int *draw_alone);
+u_int ui_calculate_vtchar_width(ui_font_t *font, vt_char_t *ch, int *draw_alone);
 
 #endif

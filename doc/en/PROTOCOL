@@ -21,7 +21,8 @@ version 20170923
   set&save         = "\x1b]5383;" <challenge> ";color:" <key> "=" <value> "\x07"
 
   return value     = "#" <key> "=" <value> "\x0a" | "#error\x0a" | "#forbidden\x0a"
-  exec command     = paste | select_pty <dev> | next_pty | prev_pty | full_reset | open_pty |
+
+  exec command     = paste (*) | select_pty <dev> | next_pty | prev_pty | full_reset | open_pty |
                      close_pty (<dev>) | open_screen | vsplit_screen (<columns>|<percent>%) |
                      hsplit_screen (<rows>|<percent>%) | next_screen | prev_screen |
                      vresize_screen (+<columns>|-<columns>) | hresize_screen (+<rows>|-<rows>) |
@@ -31,7 +32,7 @@ version 20170923
                      search_prev <pattern> | search_next <pattern> | update_all |
                      show_picture "<file name>" "(WxH)" "(WxH+X+Y)" |
                      add_frame "<file name>" "(WxH)" | mlconfig |
-                     set_shortcut <key>=<operation> |
+                     set_shortcut <key>=<operation> (*) |
                      scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                      "(<encoding name>)"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
@@ -49,7 +50,7 @@ version 20170923
                      use_clipboard | auto_restart | use_alt_buffer | use_ansi_colors |
                      exit_backscroll_by_pty | only_use_unicode_font | not_use_unicode_font |
                      unicode_noconv_areas | unicode_full_width_areas | box_drawing_font |
-                     use_urgent_bell | allow_osc52 | allow_scp | auto_detect_encodings |
+                     use_urgent_bell | allow_osc52 (*) | allow_scp (*) | auto_detect_encodings |
                      use_auto_detect | use_extended_scroll_shortcut | use_ot_layout |
                      ot_script | ot_features | regard_uri_as_word | vt_color_mode |
                      console_encoding | console_sixel_colors | borderless | underline_offset |
@@ -75,6 +76,9 @@ version 20170923
                      regard_uri_as_word | borderless | use_aafont | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | fontconfig |
                      use_vertical_cursor | click_interval
+
+                   (*): Works in "proto:xxxx" in ~/.mlterm/key.
+
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 

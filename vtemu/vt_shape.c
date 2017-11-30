@@ -15,7 +15,7 @@ static int combine_replacing_code(vt_char_t *dst, vt_char_t *src, u_int new_code
   dst = vt_char_combine_simple(dst, src);
   code = vt_char_code(src);
 
-  if ((0x900 <= code && code <= 0xd7f) || (code == 0 && was_vcol)) {
+  if (IS_VAR_WIDTH_CHAR(code) || (code == 0 && was_vcol)) {
     vt_char_set_cs(dst, ISO10646_UCS4_1_V);
     vt_char_set_position(dst, offset, width);
     was_vcol = 1;
@@ -34,7 +34,7 @@ static int replace_code(vt_char_t *ch, u_int new_code, int was_vcol) {
 
   code = vt_char_code(ch);
 
-  if ((0x900 <= code && code <= 0xd7f) || (code == 0 && was_vcol)) {
+  if (IS_VAR_WIDTH_CHAR(code) || (code == 0 && was_vcol)) {
     vt_char_set_cs(ch, ISO10646_UCS4_1_V);
     was_vcol = 1;
   } else {
@@ -202,8 +202,8 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
         ucs_buf[ucs_filled++] = vt_char_code(ch);
 
         comb = vt_get_combining_chars(ch, &comb_size);
-        for (count = 0; count < comb_size; count++) {
-          ucs_buf[ucs_filled++] = vt_char_code(&comb[count]);
+        for (; comb_size > 0; comb_size--) {
+          ucs_buf[ucs_filled++] = vt_char_code(comb++);
         }
       }
 
