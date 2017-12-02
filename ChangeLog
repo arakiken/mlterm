@@ -1,5 +1,16 @@
 2017-12-02  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.8.4 released.
+	  (tag "rel-3_8_4")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.8.4.
+
+	* PROTOCOL, man/mlterm.1: Updated.
+
+2017-12-02  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_font_ft.c: ISCII and ISO10646_UCS4_1 fonts are forced to be treated as
 	  proportional.
 
