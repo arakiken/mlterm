@@ -1572,8 +1572,8 @@ void ui_font_dump(ui_font_t *font) {
   bl_msg_printf("Font id %x: CairoFont %p ", font->id, font->cairo_font);
 #endif
 
-  bl_msg_printf("(width %d, height %d, ascent %d, x_off %d)", font->width, font->height,
-                font->ascent, font->x_off);
+  bl_msg_printf("(width %d, height %d, ascent %d, x_off %d, gap %d)", font->width, font->height,
+                font->ascent, font->x_off, font->double_draw_gap);
 
   if (font->is_proportional) {
     bl_msg_printf(" (proportional)");

@@ -1059,7 +1059,12 @@ font_found:
       font->width = xft_calculate_char_width(font, 'W');
 
       if (font->width != xft_calculate_char_width(font, 'l') ||
-          (col_width > 0 && font->width != col_width * cols)) {
+          (col_width > 0 && font->width != col_width * cols) ||
+          /*
+           * 'W' and 'l' are the same width, but tamil glyphs are proportional in
+           * "Noto Sans Tamil" font.
+           */
+          IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V) {
         /* Regard it as proportional. */
 
         if (font->is_var_col_width) {
@@ -1173,8 +1178,15 @@ font_found:
         font->is_proportional = 0;
       }
 #endif
-    } else {
-      if (col_width > 0 && font->width != col_width * cols) {
+    } else if (!font->is_proportional) {
+      /* is_var_col_width is true and is_proportional is false */
+
+      if ((col_width > 0 && font->width != col_width * cols) ||
+          /*
+           * 'W' and 'l' are the same width, but tamil glyphs are proportional in
+           * "Noto Sans Tamil" font.
+           */
+          IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V) {
         font->is_proportional = 1;
       }
     }
