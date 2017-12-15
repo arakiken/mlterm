@@ -211,6 +211,9 @@ static u_int8_t alt_color_idxs[] = { 0, 1, 2, 4, 8, 3, 5, 9, 6, 10, 12, 7, 11, 1
 /* --- static functions --- */
 
 #ifdef DEBUG
+#if 0
+#define debug_print_unknown bl_debug_printf
+#else
 static void debug_print_unknown(const char *format, ...) {
   va_list arg_list;
 
@@ -219,6 +222,7 @@ static void debug_print_unknown(const char *format, ...) {
   fprintf(stderr, BL_DEBUG_TAG " received unknown sequence ");
   vfprintf(stderr, format, arg_list);
 }
+#endif
 #endif
 
 /* XXX This function should be moved to pobl */
@@ -5112,7 +5116,9 @@ inline static int parse_vt100_escape_sequence(
       }
 
       pt = str_p;
+
       /*
+       * Skip string which was already parsed.
        * +1 in case str_p[left - vt_parser->r_buf.new_len] points
        * "\\" of "\x1b\\".
        */
@@ -5999,20 +6005,38 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
   char *orig_buf;
   size_t orig_left;
 
-  if (vt_parser->r_buf.len < len && !change_read_buffer_size(&vt_parser->r_buf, len)) {
-    return 0;
-  }
-
-  if ((orig_left = vt_parser->r_buf.left) > 0) {
-    if (!(orig_buf = alloca(orig_left))) {
+  if (vt_pty_get_master_fd(vt_parser->pty) != -1) {
+    if (vt_parser->r_buf.len < len && !change_read_buffer_size(&vt_parser->r_buf, len)) {
       return 0;
     }
 
-    memcpy(orig_buf, CURRENT_STR_P(vt_parser), orig_left);
-  }
+    if ((orig_left = vt_parser->r_buf.left) > 0) {
+      if (!(orig_buf = alloca(orig_left))) {
+        return 0;
+      }
 
-  memcpy(vt_parser->r_buf.chars, buf, len);
-  vt_parser->r_buf.filled_len = vt_parser->r_buf.left = len;
+      memcpy(orig_buf, CURRENT_STR_P(vt_parser), orig_left);
+    }
+
+    memcpy(vt_parser->r_buf.chars, buf, len);
+    vt_parser->r_buf.filled_len = vt_parser->r_buf.left = vt_parser->r_buf.new_len = len;
+  } else {
+    /* for vterm compatible library */
+
+    if (vt_parser->r_buf.len < len + vt_parser->r_buf.left &&
+        !change_read_buffer_size(&vt_parser->r_buf,
+                                 len + vt_parser->r_buf.filled_len - vt_parser->r_buf.left)) {
+      return 0;
+    }
+
+    memmove(vt_parser->r_buf.chars,
+            vt_parser->r_buf.chars + vt_parser->r_buf.filled_len - vt_parser->r_buf.left,
+            vt_parser->r_buf.left);
+    memcpy(vt_parser->r_buf.chars + vt_parser->r_buf.left, buf, len);
+    vt_parser->r_buf.filled_len = (vt_parser->r_buf.left += len);
+    vt_parser->r_buf.new_len = len;
+    orig_left = 0;
+  }
 
   if (is_visual) {
     start_vt100_cmd(vt_parser, 1);
@@ -6021,6 +6045,7 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
   if (enable_local_echo) {
     vt_screen_enable_local_echo(vt_parser->screen);
   }
+
   /*
    * bidi and visual-indian is always stopped from here.
    * If you want to call {start|stop}_vt100_cmd (where vt_xterm_event_listener
@@ -6925,6 +6950,12 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "use_multi_column_char") == 0) {
+    if (vt_parser->use_multi_col_char) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -7077,6 +7108,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
 
     if ((flag = true_or_false(value)) != -1) {
       is_broadcasting = flag;
+    }
+  } else if (strcmp(key, "use_multi_column_char") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      vt_parser->use_multi_col_char = flag;
     }
   } else {
     /* Continue to process it in x_screen.c */

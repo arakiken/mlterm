@@ -84,14 +84,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     で、端末ウィンドウを開けます。
     (see doc/ja/README.server)
 
-  o vte compatible library
-    mlterm の機能(一部制限あり)を、(ほぼ) vte 互換の API で wrap したライブラリ
-    (libvte.so.9, libvte2_90.so.9, libvte-2.91.so.0) を提供しています。
-    システムにインストールされている libvte.so.9 等を置きかえることにより、
-    gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
-    GTK+ (2.x 以上) が必要となります。
-    (see gtk/README)
-
   o ssh2 client
     ssh2 client として直接 ssh2 server に接続することができます。
     libssh2 (http://www.libssh2.org) が必要となります。
@@ -116,6 +108,23 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
   o ReGIS 及び Sixel Graphics
     ReGIS の一部機能及び Sixel Graphics に対応しています。
     ReGIS については、SDL, SDL_ttf 及び fontconfig が必要となります。
+
+  o vte compatible library
+    mlterm の機能(一部制限あり)を、(ほぼ) vte 互換の API で wrap したライブラリ
+    (libvte.so.9, libvte2_90.so.9, libvte-2.91.so.0) を提供しています。
+    システムにインストールされている libvte.so.9 等を置きかえることにより、
+    gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
+    GTK+ (2.x 以上) が必要となります。
+    (see gtk/README)
+
+  o libvterm compatible library
+    mlterm の機能(一部制限あり)を、libvterm 互換の API (ただし、今のところ、
+    neovim の terminal が動作するレベル) で wrap したライブラリ
+    (libvterm.so.0) を提供しています。
+    システムにインストールされている libvterm.so.0 を置きかえることにより、
+    neovim の terminal の中で、mlterm を動作させることができます。
+    (see libvterm/README)
+
 
 * 対応プラットフォーム
   o Linux, *BSD (X11, Framebuffer, Wayland or Console)

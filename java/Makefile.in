@@ -62,7 +62,7 @@ mlterm.jar : $(CLASS) $(TARGET@WIN32TAG@) manifest.mf
 		`find * -name "*.dll" -o -name "*.s*" -o -name "plink.exe"`
 
 $(TARGET_win32) : MLTermPty.h
-	(cd ../vtemu;rm -f vt_term.o;CFLAGS_LOCAL=-DOPEN_PTY_SYNC make vt_term.o)
+	(cd ../vtemu;rm -f vt_term.o;CFLAGS_LOCAL=-DOPEN_PTY_SYNC make vt_term.o mlterm.o)
 	$(CC) -Wl,--kill-at $(CFLAGS) -shared -o MLTermPty.dll \
 	$(top_srcdir)/java/MLTermPty.c ../vtemu/.libs/*.o ../baselib/src/.libs/libpobl.dll.a \
 	../encodefilter/src/.libs/libmef.dll.a -L/usr/local/lib @SSH2_LIBS_FOR_PROG@

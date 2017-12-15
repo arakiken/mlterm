@@ -1524,7 +1524,7 @@ if test "${SUBDIRS}" != "" ; then
 fi
 
 MAKE_DIRS="vtemu vtemu/libctl uitoolkit/libtype uitoolkit main man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile vtemu/Makefile vtemu/libctl/Makefile uitoolkit/libtype/Makefile uitoolkit/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile ${OUTPUT_FILES}"
+OUTPUT_FILES="Makefile vtemu/Makefile vtemu/libctl/Makefile uitoolkit/libtype/Makefile uitoolkit/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile libvterm/Makefile ${OUTPUT_FILES}"
 
 AC_ARG_ENABLE(ind,
 	[  --disable-ind           libind @<:@default=enabled@:>@],

@@ -1,3 +1,5 @@
+* Support libvterm (https://launchpad.net/libvterm) compatible library partially.
+
 ver 3.8.4
 * Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,
   DECSR, CSI 7 t, CSI 9;1 t, CSI ? Pm s, CSI ? Pm r, CSI 34 [hl], CSI 53 m and CSI 55 m.
