@@ -440,8 +440,11 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
     argv = alloca(sizeof(char *) * (len + 1));
 
     for (count = 0; count < len; count++) {
-      argv[count] = (*env)->GetStringUTFChars(
-          env, (*env)->GetObjectArrayElement(env, jarray_argv, count), NULL);
+      char *p;
+      jobject obj = (*env)->GetObjectArrayElement(env, jarray_argv, count);
+      p = (*env)->GetStringUTFChars(env, obj, NULL);
+      argv[count] = bl_str_alloca_dup(p);
+      (*env)->ReleaseStringUTFChars(env, obj, p);
     }
     argv[count] = NULL;
   } else {
@@ -465,17 +468,6 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
 #ifdef USE_LIBSSH2
   env_for_dialog = NULL;
 #endif
-
-  if (jarray_argv) {
-    jsize count;
-
-    argv[0] = cmd_path;
-
-    for (count = 0; argv[count]; count++) {
-      (*env)->ReleaseStringUTFChars(env, (*env)->GetObjectArrayElement(env, jarray_argv, count),
-                                    argv[count]);
-    }
-  }
 
   if (jstr_host) {
     (*env)->ReleaseStringUTFChars(env, jstr_host, host);
