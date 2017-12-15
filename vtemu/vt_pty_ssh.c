@@ -35,7 +35,7 @@ static int (*set_use_loopback)(vt_pty_ptr_t, int);
 static int (*ssh_scp)(vt_pty_ptr_t, int, char *, char *);
 static void (*ssh_set_cipher_list)(const char *);
 static void (*ssh_set_keepalive_interval)(u_int);
-static int (*ssh_keepalive)(u_int);
+static u_int (*ssh_keepalive)(u_int);
 static void (*ssh_set_use_x11_forwarding)(void *, int);
 static int (*ssh_poll)(void *);
 static u_int (*ssh_get_x11_fds)(int **);
@@ -145,11 +145,11 @@ void vt_pty_ssh_set_keepalive_interval(u_int interval_sec) {
   }
 }
 
-int vt_pty_ssh_keepalive(u_int spent_msec) {
+u_int vt_pty_ssh_keepalive(u_int spent_msec) {
   if (ssh_keepalive) {
     return (*ssh_keepalive)(spent_msec);
   } else {
-    return 0;
+    return keepalive_interval_sec * 1000;
   }
 }
 

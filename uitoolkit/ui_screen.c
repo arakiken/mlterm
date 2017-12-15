@@ -2612,14 +2612,9 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
     }
 
     if (vt_term_is_using_multi_col_char(screen->term)) {
-      row = x / ui_col_width(screen);
-    } else {
-      row = vt_convert_char_index_to_col(line,
-              convert_x_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
-    }
-
-    if (vt_term_is_using_multi_col_char(screen->term)) {
       int count;
+
+      row = x / ui_col_width(screen);
 
       for (count = col; count >= 0; count--) {
         if ((line = vt_term_get_line_in_screen(screen->term, count)) &&
@@ -2627,6 +2622,9 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
           col++;
         }
       }
+    } else {
+      row = vt_convert_char_index_to_col(line,
+              convert_x_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
     }
 
     if (vt_term_get_vertical_mode(screen->term) & VERT_RTL) {
@@ -4161,12 +4159,6 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     }
   } else if (strcmp(key, "use_variable_column_width") == 0) {
     if (ui_get_font_present(screen->font_man) & FONT_VAR_WIDTH) {
-      value = "true";
-    } else {
-      value = "false";
-    }
-  } else if (strcmp(key, "use_multi_column_char") == 0) {
-    if (vt_term_is_using_multi_col_char(screen->term)) {
       value = "true";
     } else {
       value = "false";
@@ -6463,12 +6455,6 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     }
 
     change_font_present(screen, ui_get_type_engine(screen->font_man), font_present);
-  } else if (strcmp(key, "use_multi_column_char") == 0) {
-    int flag;
-
-    if ((flag = true_or_false(value)) != -1) {
-      vt_term_set_use_multi_col_char(screen->term, flag);
-    }
   } else if (strcmp(key, "use_bold_font") == 0) {
     int flag;
 

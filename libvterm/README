@@ -1,0 +1,48 @@
+comment -*- mode: text -*-
+
+How to build & install libvterm compatible library using mlterm engine.
+
+* Requirements
+  o libvterm library and headers
+  o neovim and other applications using libvterm.
+
+* Build
+  $ ./configure
+  $ make
+  $ make vterm (== "cd libvterm ; make")
+
+* Install (Replace official libvte)
+  $ cd baselib ; make install-la
+  $ cd encodefilter ; make install-la
+  $ make install-vterm (== "cd libvterm ; make install")
+  $ ln -sf [where libvterm of mlterm is installed]/libvterm.so.0 \
+           [where official libvterm is installed]/libvterm.so.0
+
+* Start neovim terminal using libvterm
+  $ neovim => :terminal
+
+* Notice
+  o Unsupported vte api functions
+    - vterm_new_with_allocator
+    - vterm_keyboard_start_paste
+    - vterm_keyboard_end_paste
+    - vterm_parser_set_callbacks
+    - vterm_parser_get_cbdata
+    - vterm_state_set_callbacks
+    - vterm_state_get_cbdata
+    - vterm_state_set_unrecognised_fallbacks
+    - vterm_state_get_unrecognised_fbdata
+    - vterm_state_set_bold_highbright
+    - vterm_state_get_penattr
+    - vterm_state_set_termprop
+    - vterm_state_get_lineinfo
+    - vterm_screen_set_unrecognised_fallbacks
+    - vterm_screen_get_unrecognized_fbdata
+    - vterm_screen_enable_altscreen
+    - vterm_screen_set_damage_merge
+    - vterm_screen_get_chars
+    - vterm_screen_get_text
+    - vterm_screen_get_attrs_extent
+    - vterm_screen_is_eol
+    - vterm_scroll_rect
+    - vterm_copy_cells

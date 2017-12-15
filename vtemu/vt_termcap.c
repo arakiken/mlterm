@@ -416,7 +416,7 @@ char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key,
       if (is_app_escape) {
         return "\x1bO[";
       } else {
-        return NULL;
+        return "\x1b";
       }
 
     case SPKEY_END:

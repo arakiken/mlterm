@@ -1,3 +1,33 @@
+2017-12-15  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja: Updated.
+
+	* java/Makefile.in: vtemu/mlterm.o is built.
+
+	* mlterm.[ch], MLTermPty.c: Java_mlterm_MLTermPty_nativeOpen() in MLTermPty.c
+	  is separated to mlterm_open() in mlterm.[ch].
+
+	* ef_utf32_parser.c: Illegal access to uninitalized memory is fixed.
+
+	* configure.in: libvterm/Makefile is generated.
+
+	* Makefile.in: vterm, install-vterm and clean-vterm targets are added.
+
+	* libvterm/*: Added.
+
+	* vt_termcap.c: vt_termcap_special_key_to_seq() returns "\x1b" for SPKEY_ESCAPE.
+
+	* vt_parser.[ch]:
+	  - write_loopback() changes behavior if pty is for libvterm or not.
+	  - vt_parser_set_use_multi_col_char() is removed.
+
+	* ui_screen.c, vt_parser.c: OSC 5379/5380 of "use_multi_column_char" is
+	  processed in vt_parser.c instead of ui_screen.c.
+
+	* vt_pty_ssh.c: vt_pty_ssh_keepalive() returns left time of keepalive.
+
+	* version.h: 3.8.4 -> 3.8.4post
+
 2017-12-02  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.4 released.

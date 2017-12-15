@@ -389,9 +389,6 @@ void vt_init_encoding_conv(vt_parser_t *vt_parser);
 
 #define vt_parser_is_using_char_combining(vt_parser) ((vt_parser)->use_char_combining)
 
-#define vt_parser_set_use_multi_col_char(vt_parser, use) \
-  ((vt_parser)->use_multi_col_char = (use))
-
 #define vt_parser_is_using_multi_col_char(vt_parser) ((vt_parser)->use_multi_col_char)
 
 #define vt_parser_get_mouse_report_mode(vt_parser) ((vt_parser)->mouse_mode)

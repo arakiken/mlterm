@@ -87,7 +87,7 @@ void vt_pty_ssh_set_cipher_list(const char *list);
 
 void vt_pty_ssh_set_keepalive_interval(u_int interval_sec);
 
-int vt_pty_ssh_keepalive(u_int spent_msec);
+u_int vt_pty_ssh_keepalive(u_int spent_msec);
 
 void vt_pty_ssh_set_use_x11_forwarding(void *session, int use_x11_forwarding);
 

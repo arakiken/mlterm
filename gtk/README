@@ -23,8 +23,8 @@ How to build & install libvte compatible library using mlterm engine.
   $ make vte (== "cd gtk ; make")
 
 * Install (Replace official libvte)
-  $ cd baselib ; make install
-  $ cd encodefilter ; make install
+  $ cd baselib ; make install-la
+  $ cd encodefilter ; make install-la
   $ make install-vte (== "cd gtk ; make install")
   $ ln -sf [where libvte of mlterm is installed]/libvte.so.9 \
            [where official libvte is installed]/libvte.so.9

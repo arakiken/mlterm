@@ -1,0 +1,48 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+BINDIR = $(DESTDIR)$(bindir)
+LIBDIR = $(DESTDIR)$(libdir)
+
+VPATH = $(top_srcdir)/libvterm
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @SSH2_CFLAGS@ \
+	@CFLAGS@ @CPPFLAGS@ -I$(top_srcdir)/vtemu -I/usr/local/include
+
+LIBS = $(LIBS_LOCAL) @LPOBL@ @LMEF@
+
+OBJ = vterm.o
+
+LIBNAME = libvterm
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(LIBNAME).la
+
+$(LIBNAME).la: $(OBJ)
+	(cd ../vtemu;make mlterm.o)
+	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) ../vtemu/*.lo \
+	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -version-info 0:0:0 $(LIBS)
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+clean:
+	rm -rf $(OBJ) (OBJ:.o=.lo) $(LIBNAME).la *.core .libs
+
+distclean: clean
+	rm -f Makefile
+
+install:
+	$(LIBTOOL_INSTALL) $(LIBNAME).la $(LIBDIR)

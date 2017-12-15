@@ -33,6 +33,15 @@ install-vte:
 clean-vte:
 	(cd gtk; $(MAKE) clean)
 
+vterm:
+	(cd vterm; $(MAKE))
+
+install-vterm:
+	(cd vterm; $(MAKE) install)
+
+clean-vterm:
+	(cd vterm; $(MAKE) clean)
+
 distclean:
 	if [ -f baselib/Makefile ]; then (cd baselib ; $(MAKE) $@) ; fi
 	if [ -f encodefilter/Makefile ]; then (cd encodefilter ; $(MAKE) $@) ; fi
