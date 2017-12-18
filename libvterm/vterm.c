@@ -4,6 +4,8 @@
 
 #include <stdio.h> /* sprintf */
 #include <string.h>
+#include <unistd.h> /* STDOUT_FILENO */
+#include <sys/ioctl.h> /* TIOCGWINSZ */
 #include <pobl/bl_def.h> /* WORDS_BIGENDIGN */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
@@ -13,6 +15,13 @@
 #include <mef/ef_ucs4_map.h>
 #include <vt_pty_intern.h>
 #include <mlterm.h>
+
+#define SIXEL_1BPP
+#include "../common/c_sixel.c"
+
+#if 1
+#define RLOGIN_DRCS_SIXEL
+#endif
 
 typedef struct VTerm {
   vt_term_t *term;
@@ -28,6 +37,10 @@ typedef struct VTerm {
   int mouse_col;
   int mouse_row;
   int mouse_button;
+
+  u_char drcs_charset;
+  u_int col_width;
+  u_int line_height;
 
   const VTermScreenCallbacks *vterm_screen_cb;
   void *vterm_screen_cbdata;
@@ -145,6 +158,187 @@ static void update_screen(VTerm *vterm) {
   }
 }
 
+static void get_cell_size(VTerm *vterm) {
+#ifdef  TIOCGWINSZ
+  {
+    struct winsize ws;
+
+    if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0 && ws.ws_xpixel > 0 &&
+        ws.ws_col > 0 && ws.ws_ypixel > 0 && ws.ws_row > 0) {
+      vterm->col_width = ws.ws_xpixel / ws.ws_col;
+      vterm->line_height = ws.ws_ypixel / ws.ws_row;
+      bl_msg_printf("Cell size is %dx%d\n", vterm->col_width, vterm->line_height);
+
+      return;
+    }
+  }
+#endif
+
+  bl_msg_printf("Regard cell size as 8x16\n");
+  vterm->col_width = 8;
+  vterm->line_height = 16;
+}
+
+static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols, /* can be 0 */
+                                         int *num_rows,                           /* can be 0 */
+                                         u_int32_t **sixel_palette) {
+  VTerm *vterm = p;
+  u_int width;
+  u_int height;
+  FILE *fp;
+  u_char data[1024];
+  u_char *data_p;
+  u_char *all_data;
+  size_t len;
+  size_t skipped_len;
+  int x, y;
+  int max_num_cols;
+  vt_char_t *buf;
+
+  width = (*num_cols) * vterm->col_width;
+  height = (*num_rows) * vterm->line_height;
+
+  if (!(fp = fopen(file_path, "r"))) {
+    return NULL;
+  }
+
+  len = fread(data, 1, sizeof(data) - 1, fp);
+  if (len < 2) {
+    fclose(fp);
+
+    return NULL;
+  }
+
+  data[len] = '\0';
+
+  if (*data == 0x90) {
+    data_p = data + 1;
+  } else if (strncmp(data, "\x1bP", 2) == 0) {
+    data_p = data + 2;
+  } else {
+    fclose(fp);
+
+    return NULL;
+  }
+
+  while ('0' <= *data_p && *data_p <= ';') { data_p++; }
+  skipped_len = (data_p - data);
+
+  if (*data_p != 'q' || sscanf(data_p + 1, "\"%d;%d;%d;%d", &x, &y, &width, &height) != 4 ||
+      width == 0 || height == 0) {
+    struct stat st;
+    u_char *picture;
+
+    fstat(fileno(fp), &st);
+
+    if (!(all_data = malloc(st.st_size + 1))) {
+      fclose(fp);
+
+      return NULL;
+    }
+
+    memcpy(all_data, data, len);
+    len += fread(all_data + len, 1, st.st_size - len, fp);
+    all_data[len] = '\0';
+
+    if (!(picture = load_sixel_from_data_1bpp(all_data, &width, &height))) {
+      free(all_data);
+      fclose(fp);
+
+      return NULL;
+    }
+
+    free(picture);
+
+    data_p = all_data + skipped_len;
+  } else {
+    all_data = NULL;
+  }
+
+  len -= skipped_len;
+
+  if (vterm->drcs_charset == '\0') {
+    vterm->drcs_charset = '@';
+    get_cell_size(vterm);
+  }
+
+  write(STDOUT_FILENO, "\x1b[?8800h\x1bP1;0;0;8;1;3;16;0{ ", 28);
+  write(STDOUT_FILENO, &vterm->drcs_charset, 1);
+  while (1) {
+    write(STDOUT_FILENO, data_p, len);
+    if ((len = fread(data, 1, sizeof(data), fp)) == 0) {
+      break;
+    }
+    data_p = data;
+  }
+
+  if (all_data) {
+    free(all_data);
+  }
+
+  fclose(fp);
+
+  max_num_cols = vt_term_get_cursor_line(vterm->term)->num_chars - vt_term_cursor_col(vterm->term);
+
+#ifdef RLOGIN_DRCS_SIXEL
+  *num_cols = width / vterm->col_width;
+#else
+  *num_cols = (width + vterm->col_width - 1) / vterm->col_width;
+#endif
+
+  if (*num_cols > max_num_cols) {
+    *num_cols = max_num_cols;
+  }
+
+#ifdef RLOGIN_DRCS_SIXEL
+  *num_rows = height / vterm->line_height;
+#else
+  *num_rows = (height + vterm->line_height - 1) / vterm->line_height;
+#endif
+
+  if ((buf = vt_str_new((*num_cols) * (*num_rows)))) {
+    vt_char_t *buf_p;
+    int col;
+    int row;
+    u_int code = 0x100020 + vterm->drcs_charset * 0x100;
+
+    buf_p = buf;
+    for (row = 0; row < *num_rows; row++) {
+      for (col = 0; col < *num_cols; col++) {
+        if (code == 0x20) {
+          vt_char_copy(buf_p++, vt_sp_ch());
+        } else {
+          vt_char_set(buf_p++, code++, ISO10646_UCS4_1, 0 /* fullwidth */, 0 /* comb */,
+                      VT_FG_COLOR, VT_BG_COLOR, 0 /* bold */, 0 /* italic */, 0 /* line_style */,
+                      0 /* blinking */, 0 /* protected */);
+          if ((code & 0x7f) == 0x0) {
+#ifndef RLOGIN_DRCS_SIXEL
+            if (vterm->drcs_charset == 0x7e) {
+              vterm->drcs_charset = '@';
+            } else {
+              vterm->drcs_charset++;
+            }
+            code = 0x100020 + vterm->drcs_charset * 0x100;
+#else
+            code = 0x20;
+#endif
+          }
+        }
+      }
+    }
+
+    if (vterm->drcs_charset == 0x7e) {
+      vterm->drcs_charset = '@';
+    } else {
+      vterm->drcs_charset++;
+    }
+
+    return buf;
+  }
+
+  return NULL;
+}
+
 static void xterm_bel(void *p) {
   VTerm *vterm = p;
 
@@ -203,6 +397,7 @@ VTerm *vterm_new(int rows, int cols) {
   vterm->xterm_listener.set_mouse_report = xterm_set_mouse_report;
 #endif
   vterm->xterm_listener.bel = xterm_bel;
+  vterm->xterm_listener.get_picture_data = xterm_get_picture_data;
 
   vterm->pty = loopback_pty();
   vterm->term = mlterm_open(NULL, NULL, cols, rows, 1, NULL, NULL, &vterm->xterm_listener,
@@ -222,6 +417,11 @@ VTerm *vterm_new_with_allocator(int rows, int cols, VTermAllocatorFunctions *fun
 void vterm_free(VTerm* vterm) {
   vt_destroy_term(vterm->term);
   free(vterm);
+
+#if 0
+  mlterm_final();
+  bl_mem_dump_all();
+#endif
 }
 
 void vterm_get_size(const VTerm *vterm, int *rowsp, int *colsp) {

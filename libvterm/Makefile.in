@@ -39,7 +39,7 @@ $(LIBNAME).la: $(OBJ)
 	$(LIBTOOL_CC) -c $<
 
 clean:
-	rm -rf $(OBJ) (OBJ:.o=.lo) $(LIBNAME).la *.core .libs
+	rm -rf $(OBJ) $(OBJ:.o=.lo) $(LIBNAME).la *.core .libs
 
 distclean: clean
 	rm -f Makefile

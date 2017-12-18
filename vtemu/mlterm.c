@@ -388,3 +388,11 @@ error:
 
   return NULL;
 }
+
+void mlterm_final(void) {
+  vt_term_manager_final();
+  vt_color_config_final();
+  vt_free_word_separators();
+  bl_sig_child_final();
+  bl_locale_final();
+}

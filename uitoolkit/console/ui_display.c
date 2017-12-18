@@ -1080,6 +1080,7 @@ void ui_display_set_sixel_colors(ui_display_t *disp, const char *colors) {
       disp->display->sixel_dither = sixel_dither_get(dither_id);
     }
 
+    /* See modify_pixmap() (which reorder ARGB bytes by RGBA) in ui_imagelib.c */
     sixel_dither_set_pixelformat(disp->display->sixel_dither, PIXELFORMAT_RGBA8888);
   }
 }

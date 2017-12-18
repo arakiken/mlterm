@@ -248,8 +248,8 @@ static void correct_height(pixel_t *pixels, int width, int *height /* multiple o
  * the actual image size is less than it.
  * It is the caller that should shrink (realloc) it.
  */
-static u_char *load_sixel_from_data(char *file_data, u_int *width_ret, u_int *height_ret) {
-  char *p = file_data;
+static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_int *height_ret) {
+  const char *p = file_data;
   u_char *pixels;
   int params[5];
   size_t n; /* number of params */
