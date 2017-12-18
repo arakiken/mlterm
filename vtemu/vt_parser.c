@@ -6024,8 +6024,7 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
     /* for vterm compatible library */
 
     if (vt_parser->r_buf.len < len + vt_parser->r_buf.left &&
-        !change_read_buffer_size(&vt_parser->r_buf,
-                                 len + vt_parser->r_buf.filled_len - vt_parser->r_buf.left)) {
+        !change_read_buffer_size(&vt_parser->r_buf, len + vt_parser->r_buf.left)) {
       return 0;
     }
 

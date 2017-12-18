@@ -8,3 +8,5 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
                        vt_config_event_listener_t *config_listener,
                        vt_screen_event_listener_t *screen_listener,
                        vt_pty_event_listener_t *pty_listener, int open_pty);
+
+void mlterm_final(void);

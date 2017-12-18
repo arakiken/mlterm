@@ -1,3 +1,12 @@
+2017-12-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vterm.c: Sixel graphics is supported with the use of sixel extension of
+	  DRCS of rlogin.
+
+	* mlterm.[ch]: mlterm_final() is added.
+
+	* vt_parser.c: Wrong new buffer size in write_loopback() is fixed.
+
 2017-12-15  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja: Updated.
