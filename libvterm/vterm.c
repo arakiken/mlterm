@@ -4,8 +4,10 @@
 
 #include <stdio.h> /* sprintf */
 #include <string.h>
+#include <stdlib.h> /* getenv */
 #include <unistd.h> /* STDOUT_FILENO */
 #include <sys/ioctl.h> /* TIOCGWINSZ */
+#include <errno.h>
 #include <pobl/bl_def.h> /* WORDS_BIGENDIGN */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
@@ -18,10 +20,6 @@
 
 #define SIXEL_1BPP
 #include "../common/c_sixel.c"
-
-#if 1
-#define RLOGIN_DRCS_SIXEL
-#endif
 
 typedef struct VTerm {
   vt_term_t *term;
@@ -39,12 +37,17 @@ typedef struct VTerm {
   int mouse_button;
 
   u_char drcs_charset;
+  u_char drcs_plane; /* '0'(94) or '1'(96) */
   u_int col_width;
   u_int line_height;
 
   const VTermScreenCallbacks *vterm_screen_cb;
   void *vterm_screen_cbdata;
 } VTerm;
+
+/* --- static variables --- */
+
+static const char *env;
 
 /* --- static functions --- */
 
@@ -179,9 +182,30 @@ static void get_cell_size(VTerm *vterm) {
   vterm->line_height = 16;
 }
 
-static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols, /* can be 0 */
-                                         int *num_rows,                           /* can be 0 */
-                                         u_int32_t **sixel_palette) {
+static void write_to_stdout(u_char *buf, size_t len) {
+  ssize_t written;
+
+  while (1) {
+    if ((written = write(STDOUT_FILENO, buf, len)) < 0) {
+      if (errno = EAGAIN) {
+        usleep(100); /* 0.1 msec */
+      } else {
+        return;
+      }
+    } else if (written == len) {
+      return;
+    } else {
+      buf += written;
+      len -= written;
+    }
+  }
+}
+
+static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols /* can be 0 */,
+                                         int *num_rows /* can be 0 */,
+                                         int *num_cols_small /* set only if drcs_sixel is 1. */,
+                                         int *num_rows_small /* set only if drcs_sixel is 1. */,
+                                         u_int32_t **sixel_palette, int drcs_sixel) {
   VTerm *vterm = p;
   u_int width;
   u_int height;
@@ -194,6 +218,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
   int x, y;
   int max_num_cols;
   vt_char_t *buf;
+  char seq[] = "\x1b[?8800h\x1bP1;0;0;8;1;3;16;0{ @"; /* 29+1 bytes */
 
   width = (*num_cols) * vterm->col_width;
   height = (*num_rows) * vterm->line_height;
@@ -259,13 +284,23 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
 
   if (vterm->drcs_charset == '\0') {
     vterm->drcs_charset = '@';
+    vterm->drcs_plane = '0';
     get_cell_size(vterm);
   }
 
-  write(STDOUT_FILENO, "\x1b[?8800h\x1bP1;0;0;8;1;3;16;0{ ", 28);
-  write(STDOUT_FILENO, &vterm->drcs_charset, 1);
+  if (!env) {
+    if (!(env = getenv("DRCS_SIXEL_VERSION"))) {
+      env = "1";
+    } else if (strcmp(env, "2") == 0) {
+      write_to_stdout("\x1b]5379;drcs_sixel_version=2\x07", 28);
+    }
+  }
+
+  seq[25] = vterm->drcs_plane;
+  seq[28] = vterm->drcs_charset;
+  write_to_stdout(seq, sizeof(seq) - 1);
   while (1) {
-    write(STDOUT_FILENO, data_p, len);
+    write_to_stdout(data_p, len);
     if ((len = fread(data, 1, sizeof(data), fp)) == 0) {
       break;
     }
@@ -278,49 +313,59 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
 
   fclose(fp);
 
-  max_num_cols = vt_term_get_cursor_line(vterm->term)->num_chars - vt_term_cursor_col(vterm->term);
-
-#ifdef RLOGIN_DRCS_SIXEL
-  *num_cols = width / vterm->col_width;
-#else
-  *num_cols = (width + vterm->col_width - 1) / vterm->col_width;
-#endif
-
-  if (*num_cols > max_num_cols) {
-    *num_cols = max_num_cols;
+  if (strcmp(env, "2") == 0) {
+    *num_cols = (width + vterm->col_width - 1) / vterm->col_width;
+    *num_rows = (height + vterm->line_height - 1) / vterm->line_height;
+  } else {
+    /* for rlogin */
+    *num_cols = (width + 1) / vterm->col_width;
+    *num_rows = (height + 1) / vterm->line_height;
   }
 
-#ifdef RLOGIN_DRCS_SIXEL
-  *num_rows = height / vterm->line_height;
-#else
-  *num_rows = (height + vterm->line_height - 1) / vterm->line_height;
+#if 0
+  bl_debug_printf("Image cols %d/%d=%d rows %d/%d=%d\n",
+                  width, vterm->col_width, *num_cols, height, vterm->line_height, *num_rows);
 #endif
 
   if ((buf = vt_str_new((*num_cols) * (*num_rows)))) {
     vt_char_t *buf_p;
     int col;
     int row;
-    u_int code = 0x100020 + vterm->drcs_charset * 0x100;
+    u_int code;
+
+    code = 0x100020 + (vterm->drcs_plane == '1' ? 0x80 : 0) + vterm->drcs_charset * 0x100;
 
     buf_p = buf;
     for (row = 0; row < *num_rows; row++) {
       for (col = 0; col < *num_cols; col++) {
+#if 0
+        /* for rlogin */
         if (code == 0x20) {
           vt_char_copy(buf_p++, vt_sp_ch());
-        } else {
+        } else
+#endif
+        {
           vt_char_set(buf_p++, code++, ISO10646_UCS4_1, 0 /* fullwidth */, 0 /* comb */,
                       VT_FG_COLOR, VT_BG_COLOR, 0 /* bold */, 0 /* italic */, 0 /* line_style */,
                       0 /* blinking */, 0 /* protected */);
           if ((code & 0x7f) == 0x0) {
-#ifndef RLOGIN_DRCS_SIXEL
+#if 0
+            /* for rlogin */
+            code = 0x20;
+#else
             if (vterm->drcs_charset == 0x7e) {
+              if (vterm->drcs_plane == '0') {
+                vterm->drcs_plane = '1';
+              } else {
+                vterm->drcs_plane = '0';
+              }
               vterm->drcs_charset = '@';
             } else {
               vterm->drcs_charset++;
             }
-            code = 0x100020 + vterm->drcs_charset * 0x100;
-#else
-            code = 0x20;
+
+            code = 0x100020 + (vterm->drcs_plane == '1' ? 0x80 : 0) +
+                   vterm->drcs_charset * 0x100;
 #endif
           }
         }
@@ -328,6 +373,11 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
     }
 
     if (vterm->drcs_charset == 0x7e) {
+      if (vterm->drcs_plane == '0') {
+        vterm->drcs_plane = '1';
+      } else {
+        vterm->drcs_plane = '0';
+      }
       vterm->drcs_charset = '@';
     } else {
       vterm->drcs_charset++;

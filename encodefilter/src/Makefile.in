@@ -49,7 +49,7 @@ INC = $(PARSER_OBJ:.o=.h) $(CONV_OBJ:.o=.h) $(MAP_OBJ:.o=.h) ef_char.h ef_sjis_e
 
 LIBNAME = libmef
 LIBNAME_DEB = libmef_deb
-MAJOR = 1
+MAJOR = 2
 MINOR = 0
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
