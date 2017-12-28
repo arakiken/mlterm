@@ -5375,9 +5375,11 @@ static int xterm_get_window_size(void *p, u_int *width, u_int *height) {
 }
 
 #ifndef NO_IMAGE
-static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols, /* can be 0 */
-                                         int *num_rows,                           /* can be 0 */
-                                         u_int32_t **sixel_palette) {
+static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols /* can be 0 */,
+                                         int *num_rows /* can be 0 */,
+                                         int *num_cols_small /* set only if drcs_sixel is 1. */,
+                                         int *num_rows_small /* set only if drcs_sixel is 1. */,
+                                         u_int32_t **sixel_palette, int drcs_sixel) {
   ui_screen_t *screen;
   u_int width;
   u_int height;
@@ -5401,17 +5403,22 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
   if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
                                     line_height, screen->term)) != -1) {
     vt_char_t *buf;
-    int max_num_cols;
 
     screen->prev_inline_pic = idx;
 
-    max_num_cols =
-        vt_term_get_cursor_line(screen->term)->num_chars - vt_term_cursor_col(screen->term);
-    if ((*num_cols = (width + col_width - 1) / col_width) > max_num_cols) {
-      *num_cols = max_num_cols;
-    }
-
+    *num_cols = (width + col_width - 1) / col_width;
     *num_rows = (height + line_height - 1) / line_height;
+
+    if (drcs_sixel) {
+      *num_cols_small = (width + 1) / col_width;
+      *num_rows_small = (height + 1) / line_height;
+    } else {
+      int max_num_cols = vt_term_get_cols(screen->term) - vt_term_cursor_col(screen->term);
+
+      if (*num_cols > max_num_cols) {
+        *num_cols = max_num_cols;
+      }
+    }
 
     if ((buf = vt_str_new((*num_cols) * (*num_rows)))) {
       vt_char_t *buf_p;

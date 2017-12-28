@@ -7,35 +7,47 @@
 #include <mef/ef_char.h>
 
 typedef struct vt_drcs_font {
-  ef_charset_t cs;
-  char *glyphs[0x5f];
+  /*ef_charset_t cs;*/ /* 0x40-0x7e */
+  char *glyphs[0x60];
+
+  u_int16_t pic_id; /* MAX_INLINE_PICTURES in ui_picture.h */
+  u_int16_t pic_beg_idx; /* 0x0-0x59 */
+  u_int16_t pic_num_cols;
+  u_int16_t pic_num_rows;
+  u_int16_t pic_num_cols_small;
+  u_int16_t pic_num_rows_small;
+  int pic_offset;
 
 } vt_drcs_font_t;
 
 typedef struct vt_drcs {
-  vt_drcs_font_t *fonts;
-  u_int num_fonts;
+  vt_drcs_font_t *fonts[0x7f]; /* 0x40-0x7e, 0xc0-0xfe */
 
 } vt_drcs_t;
 
 #define vt_drcs_new() calloc(1, sizeof(vt_drcs_t))
 
 #define vt_drcs_delete(drcs) \
-  vt_drcs_select(drcs);      \
-  vt_drcs_final_full();      \
+  vt_drcs_final_full(drcs);  \
   free(drcs);
 
 void vt_drcs_select(vt_drcs_t *drcs);
 
-vt_drcs_font_t *vt_drcs_get_font(ef_charset_t cs, int create);
-
 char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx);
 
-void vt_drcs_final(ef_charset_t cs);
+vt_drcs_font_t *vt_drcs_get_font(vt_drcs_t *drcs, ef_charset_t cs, int create);
 
-void vt_drcs_final_full(void);
+void vt_drcs_final(vt_drcs_t *drcs, ef_charset_t cs);
 
-int vt_drcs_add(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height);
+void vt_drcs_final_full(vt_drcs_t *drcs);
+
+void vt_drcs_add_glyph(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height);
+
+void vt_drcs_add_picture(vt_drcs_font_t *font, int id, int offset, int beg_inx,
+                         u_int num_cols, u_int num_rows, u_int num_cols_small,
+                         u_int num_rows_small);
+
+int vt_drcs_get_picture(vt_drcs_font_t *font, int *id, int *pos, u_int ch);
 
 int vt_convert_drcs_to_unicode_pua(ef_char_t *ch);
 

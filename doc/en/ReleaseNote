@@ -1,4 +1,5 @@
 * Support libvterm (https://launchpad.net/libvterm) compatible library partially.
+* Support sixel extention of DRCS. (http://nanno.dip.jp/softlib/man/rlogin/ctrlcode.html)
 
 ver 3.8.4
 * Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,

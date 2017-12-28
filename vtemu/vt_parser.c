@@ -108,6 +108,10 @@ static u_int64_t true64 = 1;
 
 #define VTMODE(mode) ((mode) + 10000)
 
+#define delete_drcs(drcs) \
+  vt_drcs_delete(drcs);   \
+  (drcs) = NULL;
+
 /*
  * If VTMODE_NUM >= 64, enlarge the size of vt_parser_t::vtmode_flags.
  * See get_initial_vtmode_flags() to check initial values of these modes.
@@ -201,6 +205,8 @@ static char *primary_da;
 static char *secondary_da;
 
 static int is_broadcasting;
+
+static int drcs_sixel_version = 1;
 
 #ifdef USE_LIBSSH2
 static int use_scp_full;
@@ -963,6 +969,25 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
      * if combining failed , char is normally appended.
      */
   }
+
+#ifndef NO_IMAGE
+  {
+    vt_drcs_font_t *font;
+    int pic_id;
+    int pic_pos;
+
+    if (cs != US_ASCII &&
+        (font = vt_drcs_get_font(vt_parser->drcs,
+                                 cs == CS_REVISION_1(US_ASCII) ? US_ASCII : cs, 0)) &&
+        vt_drcs_get_picture(font, &pic_id, &pic_pos, ch)) {
+      vt_char_copy(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len], vt_sp_ch());
+      vt_char_combine_picture(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len++],
+                              pic_id, pic_pos);
+
+      return;
+    }
+  }
+#endif
 
   vt_char_set(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len++], ch, cs, is_fullwidth,
               is_comb, fg_color, bg_color, is_bold, is_italic, line_style, is_blinking,
@@ -1770,8 +1795,8 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 #endif
 
     if ((data = (*vt_parser->xterm_listener->get_picture_data)(
-             vt_parser->xterm_listener->self, file_path, &img_cols, &img_rows,
-             is_sixel ? &vt_parser->sixel_palette : NULL)) &&
+                    vt_parser->xterm_listener->self, file_path, &img_cols, &img_rows, NULL, NULL,
+                    is_sixel ? &vt_parser->sixel_palette : NULL, 0)) &&
         clip_beg_row < img_rows && clip_beg_col < img_cols) {
       vt_char_t *p;
       int row;
@@ -1867,6 +1892,172 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
       }
     }
   }
+}
+
+static int increment_str(u_char **str, size_t *left);
+
+static int save_sixel_or_regis(vt_parser_t *vt_parser, char *path, u_char *dcs_beg,
+                           u_char **body, size_t *body_len) {
+  u_char *str_p = *body;
+  size_t left = *body_len;
+  int is_end;
+  FILE *fp;
+
+  if (left > 2 && *(str_p + 1) == '\0') {
+    fp = fopen(path, "a");
+    is_end = *(str_p + 2);
+    /*
+     * dcs_beg will equal to str_p after str_p is
+     * incremented by the following increment_str().
+     */
+    dcs_beg = (str_p += 2) + 1;
+    left -= 2;
+  } else {
+    char *format;
+    vt_color_t color;
+    u_int8_t red;
+    u_int8_t green;
+    u_int8_t blue;
+
+    fp = fopen(path, "w");
+    is_end = 0;
+
+    if (strcmp(path + strlen(path) - 4, ".rgs") == 0) {
+      /* Clear background by VT_BG_COLOR */
+
+      /* 13 + 3*3 + 1 = 23 */
+      format = "S(I(R%dG%dB%d))S(E)";
+      color = VT_BG_COLOR;
+    } else if (strcmp(path + strlen(path) - 4, ".six") == 0) {
+      /*
+       * Set VT_FG_COLOR to the default value of the first entry of the sixel palette,
+       * because some sixel graphics data has not palette definitions (#0;2;r;g;b).
+       * '9' is a mark which means that this definition is added by mlterm itself.
+       * (see c_sixel.c)
+       */
+
+      /* 7 + 3*3 + 1 = 17 */
+      format = "#0;9;%d;%d;%d";
+      color = VT_FG_COLOR;
+    } else {
+      format = NULL;
+    }
+
+    if (format && HAS_XTERM_LISTENER(vt_parser, get_rgb) &&
+        (*vt_parser->xterm_listener->get_rgb)(vt_parser->xterm_listener->self, &red,
+                                              &green, &blue, color)) {
+      char color_seq[23];
+
+      if (color == VT_FG_COLOR) {
+        /* sixel */
+        red = red * 100 / 255;
+        green = green * 100 / 255;
+        blue = blue * 100 / 255;
+      }
+
+      fwrite(dcs_beg, 1, str_p - dcs_beg + 1, fp);
+      sprintf(color_seq, format, red, green, blue);
+      fwrite(color_seq, 1, strlen(color_seq), fp);
+      dcs_beg = str_p + 1;
+    }
+
+    /*
+     * +1 in case str_p[left - vt_parser->r_buf.new_len]
+     * points "\\" of "\x1b\\".
+     */
+    if (left > vt_parser->r_buf.new_len + 1) {
+      str_p += (left - vt_parser->r_buf.new_len - 1);
+      left = vt_parser->r_buf.new_len + 1;
+    }
+  }
+
+  while (1) {
+    if (!increment_str(&str_p, &left)) {
+      if (is_end == 2) {
+        left++;
+        break;
+      }
+
+      if (vt_parser->logging_vt_seq && use_ttyrec_format) {
+        fclose(fp);
+        free(path);
+
+        *body = str_p;
+        *body_len = left;
+
+        return 0;
+      }
+
+      fwrite(dcs_beg, 1, str_p - dcs_beg + 1, fp);
+
+      vt_parser->r_buf.left = 0;
+      if (!receive_bytes(vt_parser)) {
+        fclose(fp);
+        memcpy(vt_parser->r_buf.chars,
+               strcmp(path + strlen(path) - 4, ".six") == 0 ? "\x1bPq\0" : "\x1bPp\0", 4);
+        free(path);
+        vt_parser->r_buf.chars[4] = is_end;
+        vt_parser->r_buf.filled_len = vt_parser->r_buf.left = 5;
+
+        /* No more data in pty. */
+        vt_parser->yield = 1;
+
+        *body = str_p;
+        *body_len = left;
+
+        return 0;
+      }
+
+      dcs_beg = str_p = CURRENT_STR_P(vt_parser);
+      left = vt_parser->r_buf.left;
+    }
+
+    if (is_end == 2) {
+      u_char *p;
+
+      p = str_p;
+
+      /* \x38 == '8' */
+      if (strncmp(p, "\x1d\x38k @\x1f", 6) == 0) {
+        /* XXX Hack for biplane.six */
+        p += 6;
+      }
+
+      if (*p == 0x90 ||
+          /* XXX If left == 0 and next char is 'P'... */
+          (*p == CTL_ESC && left > p - str_p + 1 && *(p + 1) == 'P')) {
+        /* continued ... */
+        is_end = 0;
+      } else {
+        str_p--;
+        left++;
+        break;
+      }
+    }
+    /*
+     * 0x9c is regarded as ST here, because sixel sequence
+     * unuses it certainly.
+     */
+    else if (*str_p == 0x9c) {
+      is_end = 2;
+    } else if (*str_p == CTL_ESC) {
+      is_end = 1;
+    } else if (is_end == 1) {
+      if (*str_p == '\\') {
+        is_end = 2;
+      } else {
+        is_end = 0;
+      }
+    }
+  }
+
+  fwrite(dcs_beg, 1, str_p - dcs_beg + 1, fp);
+  fclose(fp);
+
+  *body = str_p;
+  *body_len = left;
+
+  return 1;
 }
 #endif
 
@@ -3531,7 +3722,7 @@ static void full_reset(vt_parser_t *vt_parser) {
   soft_reset(vt_parser); /* XXX insufficient */
   clear_display_all(vt_parser); /* XXX off-screen pages are not cleared */
   delete_all_macros(vt_parser);
-  vt_drcs_final_full();
+  delete_drcs(vt_parser->drcs);
 }
 
 static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
@@ -5305,160 +5496,14 @@ inline static int parse_vt100_escape_sequence(
           /* ReGIS */
           (*str_p == 'p' &&
            (path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5, "rgs")))) {
-        int is_end;
-        FILE *fp;
-
-        if (left > 2 && *(str_p + 1) == '\0') {
-          fp = fopen(path, "a");
-          is_end = *(str_p + 2);
-          /*
-           * dcs_beg will equal to str_p after str_p is
-           * incremented by the following increment_str().
-           */
-          dcs_beg = (str_p += 2) + 1;
-          left -= 2;
-        } else {
-          char *format;
-          vt_color_t color;
-          u_int8_t red;
-          u_int8_t green;
-          u_int8_t blue;
-
-          fp = fopen(path, "w");
-          is_end = 0;
-
-          if (strcmp(path + strlen(path) - 4, ".rgs") == 0) {
-            /* Clear background by VT_BG_COLOR */
-
-            /* 13 + 3*3 + 1 = 23 */
-            format = "S(I(R%dG%dB%d))S(E)";
-            color = VT_BG_COLOR;
-          } else if (strcmp(path + strlen(path) - 4, ".six") == 0) {
-            /*
-             * Set VT_FG_COLOR to the default value of the first entry of the sixel palette,
-             * because some sixel graphics data has not palette definitions (#0;2;r;g;b).
-             * '9' is a mark which means that this definition is added by mlterm itself.
-             * (see c_sixel.c)
-             */
-
-            /* 7 + 3*3 + 1 = 17 */
-            format = "#0;9;%d;%d;%d";
-            color = VT_FG_COLOR;
-          } else {
-            format = NULL;
-          }
-
-          if (format && HAS_XTERM_LISTENER(vt_parser, get_rgb) &&
-              (*vt_parser->xterm_listener->get_rgb)(vt_parser->xterm_listener->self, &red,
-                                                       &green, &blue, color)) {
-            char color_seq[23];
-
-            if (color == VT_FG_COLOR) {
-              /* sixel */
-              red = red * 100 / 255;
-              green = green * 100 / 255;
-              blue = blue * 100 / 255;
-            }
-
-            fwrite(dcs_beg, 1, str_p - dcs_beg + 1, fp);
-            sprintf(color_seq, format, red, green, blue);
-            fwrite(color_seq, 1, strlen(color_seq), fp);
-            dcs_beg = str_p + 1;
-          }
-
-          /*
-           * +1 in case str_p[left - vt_parser->r_buf.new_len]
-           * points "\\" of "\x1b\\".
-           */
-          if (left > vt_parser->r_buf.new_len + 1) {
-            str_p += (left - vt_parser->r_buf.new_len - 1);
-            left = vt_parser->r_buf.new_len + 1;
-          }
+        if (!save_sixel_or_regis(vt_parser, path, dcs_beg, &str_p, &left)) {
+          return 0;
         }
-
-        while (1) {
-          if (!increment_str(&str_p, &left)) {
-            if (is_end == 2) {
-              left++;
-              break;
-            }
-
-            if (vt_parser->logging_vt_seq && use_ttyrec_format) {
-              fclose(fp);
-              free(path);
-
-              return 0;
-            }
-
-            fwrite(dcs_beg, 1, str_p - dcs_beg + 1, fp);
-
-            vt_parser->r_buf.left = 0;
-            if (!receive_bytes(vt_parser)) {
-              fclose(fp);
-              memcpy(vt_parser->r_buf.chars,
-                     strcmp(path + strlen(path) - 4, ".six") == 0 ? "\x1bPq\0" : "\x1bPp\0", 4);
-              free(path);
-              vt_parser->r_buf.chars[4] = is_end;
-              vt_parser->r_buf.filled_len = vt_parser->r_buf.left = 5;
-
-              /* No more data in pty. */
-              vt_parser->yield = 1;
-
-              return 0;
-            }
-
-            dcs_beg = str_p = CURRENT_STR_P(vt_parser);
-            left = vt_parser->r_buf.left;
-          }
-
-          if (is_end == 2) {
-            u_char *p;
-
-            p = str_p;
-
-            /* \x38 == '8' */
-            if (strncmp(p, "\x1d\x38k @\x1f", 6) == 0) {
-              /* XXX Hack for biplane.six */
-              p += 6;
-            }
-
-            if (*p == 0x90 ||
-                /* XXX If left == 0 and next char is 'P'... */
-                (*p == CTL_ESC && left > p - str_p + 1 && *(p + 1) == 'P')) {
-              /* continued ... */
-              is_end = 0;
-            } else {
-              str_p--;
-              left++;
-              break;
-            }
-          }
-          /*
-           * 0x9c is regarded as ST here, because sixel sequence
-           * unuses it certainly.
-           */
-          else if (*str_p == 0x9c) {
-            is_end = 2;
-          } else if (*str_p == CTL_ESC) {
-            is_end = 1;
-          } else if (is_end == 1) {
-            if (*str_p == '\\') {
-              is_end = 2;
-            } else {
-              is_end = 0;
-            }
-          }
-        }
-
-        fwrite(dcs_beg, 1, str_p - dcs_beg + 1, fp);
-        fclose(fp);
 
         if (strcmp(path + strlen(path) - 4, ".six") == 0) {
           show_picture(vt_parser, path, 0, 0, 0, 0, 0, 0,
                        (!vt_parser->sixel_scrolling &&
-                        check_sixel_anim(vt_parser->screen, str_p, left))
-                           ? 2
-                           : 1);
+                        check_sixel_anim(vt_parser->screen, str_p, left)) ? 2 : 1);
         } else {
           /* ReGIS */
           int orig_flag;
@@ -5475,122 +5520,220 @@ inline static int parse_vt100_escape_sequence(
       if (*str_p == '{') {
         /* DECDLD */
 
-        u_char *pt;
+        u_char *param;
+        ef_charset_t cs;
         vt_drcs_font_t *font;
         int num;
         u_char *p;
-        int ps[8];
+        int ps[9];
         int idx;
         int is_end;
         u_int width;
         u_int height;
 
-        while (1) {
-          if (*str_p == 0x9c || (*str_p == CTL_ESC && left > 1 && *(str_p + 1) == '\\')) {
-            *str_p = '\0';
-            increment_str(&str_p, &left);
-            break;
-          } else if (!increment_str(&str_p, &left)) {
-            return 0;
-          }
-        }
-
         if (*dcs_beg == '\x1b') {
-          pt = dcs_beg + 2;
-        } else /* if( *dcs_beg == '\x90') */
-        {
-          pt = dcs_beg + 1;
+          param = dcs_beg + 2;
+        } else /* if( *dcs_beg == '\x90') */ {
+          param = dcs_beg + 1;
         }
 
-        for (num = 0; num < 8; num++) {
-          p = pt;
+        for (num = 0; num < 9; num++) {
+          u_char c;
 
-          while ('0' <= *pt && *pt <= '9') {
-            pt++;
+          p = param;
+
+          while ('0' <= *param && *param <= '9') {
+            param++;
           }
 
-          if (*pt == ';' || *pt == '{') {
-            *(pt++) = '\0';
-          } else {
+          c = *param;
+          if (c != ';' && c != '{') {
             break;
           }
-
+          *param = '\0';
           ps[num] = *p ? atoi(p) : 0;
+          *(param++) = c; /* restore in case of restarting to parse from the begining. */
         }
-
-        if (*pt == ' ') {
-          /* ESC ( SP Ft */
-          pt++;
-        }
-
-        vt_drcs_select(vt_parser->drcs);
 
         if (num != 8) {
-          /* illegal format */
-        } else if (*pt == '\0') {
-          if (ps[2] == 2) {
-            vt_drcs_final_full();
+          if (!get_pt_in_esc_seq(&str_p, &left, 1, 0)) {
+            return 0;
           }
-        } else if (0x30 <= *pt && *pt <= 0x7e) {
-          ef_charset_t cs;
+        } else {
+          char *path;
 
-          if (ps[7] == 0) {
-            idx = (ps[1] == 0 ? 1 : ps[1]);
-            cs = CS94SB_ID(*pt);
-          } else {
-            idx = ps[1];
-            cs = CS96SB_ID(*pt);
+          if (!increment_str(&str_p, &left)) {
+            return 0;
           }
 
-          if (ps[2] == 0) {
-            vt_drcs_final(cs);
-          } else if (ps[2] == 2) {
-            vt_drcs_final_full();
-          }
-
-          font = vt_drcs_get_font(cs, 1);
-
-          if (ps[3] <= 4 || ps[3] >= 255) {
-            width = 15;
-          } else {
-            width = ps[3];
-          }
-
-          if (ps[6] == 0 || ps[6] >= 255) {
-            height = 12;
-          } else {
-            height = ps[6];
-          }
-
-          while (1) {
-            p = ++pt;
-
-            while (*pt == '/' || ('?' <= *pt && *pt <= '~')) {
-              pt++;
+          if (*str_p == ' ') {
+            /* ESC ( SP Ft */
+            if (!increment_str(&str_p, &left)) {
+              return 0;
             }
+          }
 
-            if (*pt) {
-              *pt = '\0';
-              is_end = 0;
+          idx = ps[1];
+
+          if (0x40 <= *str_p && *str_p <= 0x7e) {
+            /* Ft */
+            if (ps[7] == 0) {
+              cs = CS94SB_ID(*str_p);
             } else {
-              is_end = 1;
+              cs = CS96SB_ID(*str_p);
             }
 
-            if (*p) {
-              if (strlen(p) == (width + 1) * ((height + 5) / 6) - 1) {
-                vt_drcs_add(font, idx, p, width, height);
+            if (ps[3] <= 4 || ps[3] >= 255) {
+              width = 15;
+            } else {
+              width = ps[3];
+            }
+
+            if (ps[6] == 0 || ps[6] >= 255) {
+              height = 12;
+            } else {
+              height = ps[6];
+            }
+          } else {
+            cs = UNKNOWN_CS;
+            width = height = 0;
+          }
+
+          if (ps[5] == 3 && cs != UNKNOWN_CS &&
+              (path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5,
+                                         "six"))) {
+            /* DRCS Sixel */
+            u_char *orig;
+            size_t len = str_p - dcs_beg + 1;
+
+            orig = alloca(len);
+            memcpy(orig, dcs_beg, len);
+
+            dcs_beg = str_p - 1;
+
+            /* skip sixel header parameters */
+            do {
+              if (!increment_str(&str_p, &left)) {
+                free(path);
+
+                return 0;
               }
+            } while (*str_p == ';' || ('0' <= *str_p && *str_p <= '9'));
+
+            dcs_beg[0] = '\x1b';
+            dcs_beg[1] = 'P';
+
+            if (!save_sixel_or_regis(vt_parser, path, dcs_beg, &str_p, &left)) {
+              memmove(vt_parser->r_buf.chars + len, vt_parser->r_buf.chars + 2 /* ESC P */,
+                      vt_parser->r_buf.filled_len - 2);
+              memcpy(vt_parser->r_buf.chars, orig, len);
+              vt_parser->r_buf.filled_len += (len - 2);
+              vt_parser->r_buf.left += (len - 2);
+
+              return 0;
+            }
+
+            if (HAS_XTERM_LISTENER(vt_parser, get_picture_data)) {
+              vt_char_t *data;
+              int cols = 0;
+              int rows = 0;
+              int cols_small = 0;
+              int rows_small = 0;
+
+              if (idx <= 0x5f &&
+                  (data = (*vt_parser->xterm_listener->get_picture_data)(
+                              vt_parser->xterm_listener->self, path, &cols, &rows,
+                              &cols_small, &rows_small, NULL, 1))) {
+                int pages;
+                int offset = 0;
+
+                if (!vt_parser->drcs) {
+                  vt_parser->drcs = vt_drcs_new();
+                }
+
+                if (drcs_sixel_version == 2) {
+                  cols_small = cols;
+                  rows_small = rows;
+                }
+
+                for (pages = (cols_small * rows_small + 95) / 96; pages > 0; pages--) {
+                  font = vt_drcs_get_font(vt_parser->drcs, cs, 1);
+
+                  vt_drcs_add_picture(font, vt_char_picture_id(vt_get_picture_char(data)),
+                                      offset, idx, cols, rows, cols_small, rows_small);
+
+                  offset += (96 - idx);
+                  idx = 0;
+
+                  if (cs == CS94SB_ID(0x7e)) {
+                    cs = CS96SB_ID(0x40);
+                  } else if (cs == CS96SB_ID(0x7e)) {
+                    cs = CS94SB_ID(0x40);
+                  } else {
+                    cs++;
+                  }
+                }
+
+                vt_str_delete(data, cols * rows);
+              }
+            }
+
+            free(path);
+          } else {
+            u_char *pt = str_p;
+
+            if (!get_pt_in_esc_seq(&str_p, &left, 1, 0)) {
+              return 0;
+            }
+
+            if (cs == UNKNOWN_CS) {
+              if (ps[2] == 2) {
+                delete_drcs(vt_parser->drcs);
+              }
+            } else {
+              if (ps[2] == 0) {
+                vt_drcs_final(vt_parser->drcs, cs);
+              } else if (ps[2] == 2) {
+                vt_drcs_final_full(vt_parser->drcs);
+              }
+
+              if (!vt_parser->drcs) {
+                vt_parser->drcs = vt_drcs_new();
+              }
+
+              font = vt_drcs_get_font(vt_parser->drcs, cs, 1);
+
+              while (1) {
+                p = ++pt;
+
+                while (*pt == '/' || ('?' <= *pt && *pt <= '~')) {
+                  pt++;
+                }
+
+                if (*pt) {
+                  *pt = '\0';
+                  is_end = 0;
+                } else {
+                  is_end = 1;
+                }
+
+                if (*p) {
+                  if (strlen(p) == (width + 1) * ((height + 5) / 6) - 1) {
+                    vt_drcs_add_glyph(font, idx, p, width, height);
+                  }
 #ifdef DEBUG
-              else {
-                bl_debug_printf(BL_DEBUG_TAG "DRCS illegal size %s\n", p);
-              }
+                  else {
+                    bl_debug_printf(BL_DEBUG_TAG "DRCS illegal size %s\n", p);
+                  }
 #endif
 
-              idx++;
-            }
+                  idx++;
+                }
 
-            if (is_end) {
-              break;
+                if (is_end) {
+                  break;
+                }
+              }
             }
           }
         }
@@ -6152,10 +6295,6 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
     goto error;
   }
 
-  if ((vt_parser->drcs = vt_drcs_new()) == NULL) {
-    goto error;
-  }
-
   vt_parser->encoding = encoding;
 
   if (win_name) {
@@ -6193,10 +6332,6 @@ error:
     (*vt_parser->cc_parser->delete)(vt_parser->cc_parser);
   }
 
-  if (vt_parser->drcs) {
-    vt_drcs_delete(vt_parser->drcs);
-  }
-
   free(vt_parser);
 
   return NULL;
@@ -6206,7 +6341,7 @@ int vt_parser_delete(vt_parser_t *vt_parser) {
   vt_str_final(vt_parser->w_buf.chars, PTY_WR_BUFFER_SIZE);
   (*vt_parser->cc_parser->delete)(vt_parser->cc_parser);
   (*vt_parser->cc_conv->delete)(vt_parser->cc_conv);
-  vt_drcs_delete(vt_parser->drcs);
+  delete_drcs(vt_parser->drcs);
   delete_all_macros(vt_parser);
   free(vt_parser->sixel_palette);
 
@@ -6545,7 +6680,19 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
     /* See http://github.com/saitoha/drcsterm/ */
     else if ((vt_parser->unicode_policy & USE_UNICODE_DRCS) &&
              vt_convert_unicode_pua_to_drcs(&ch)) {
-      /* do nothing */
+      if (ch.cs == US_ASCII) {
+        vt_drcs_font_t *font;
+
+        if ((font = vt_drcs_get_font(vt_parser->drcs, US_ASCII, 0)) && font->pic_num_cols > 0) {
+          ch.cs = CS_REVISION_1(US_ASCII);
+        }
+      }
+
+      /*
+       * Go to end to skip 'if (ch.ch[0] == 0x7f) { return 0; }' in next block.
+       * Otherwise, 0x10XX7f doesn't work.
+       */
+      goto end_func;
     }
 #endif
     else {
@@ -6567,7 +6714,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
 
           ch = non_ucs;
 
-          goto end;
+          goto end_block;
         }
       }
 
@@ -6580,7 +6727,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
             /* non_ucs.cs is set if ef_map_ucs4_to_iscii() fails. */
             !(*vt_parser->xterm_listener->check_iscii_font)(vt_parser->xterm_listener->self,
                                                             non_ucs.cs)) {
-          goto end;
+          goto end_block;
         }
 
         if (ret) {
@@ -6636,7 +6783,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
               ch.ch[0] = '\xdc';
               break;
             default:
-              goto end;
+              goto end_block;
           }
 
           ch.ch[1] = '\xe9';
@@ -6648,7 +6795,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
       }
 #endif
 
-    end:
+    end_block:
       ;
     }
   } else if (ch.cs != US_ASCII) {
@@ -6768,6 +6915,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
     }
   }
 
+end_func:
   *orig_ch = ch;
 
   return 1;
@@ -6955,6 +7103,9 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "drcs_sixel_version") == 0) {
+    sprintf(digit, "%d", drcs_sixel_version);
+    value = digit;
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -7114,6 +7265,8 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
     if ((flag = true_or_false(value)) != -1) {
       vt_parser->use_multi_col_char = flag;
     }
+  } else if (strcmp(key, "drcs_sixel_version") == 0) {
+    drcs_sixel_version = atoi(value);
   } else {
     /* Continue to process it in x_screen.c */
     return 0;

@@ -3,125 +3,165 @@
 #include "vt_drcs.h"
 
 #include <string.h> /* memset */
+#include <limits.h> /* UINT_MAX */
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_debug.h>
 
+/* 0x40(@) => 0x10 (ISO646_IRV) => 0x0 */
+#define CS_TO_INDEX(cs) ((cs) -= 0x10)
+#ifndef UINT16_MAX
+#define UINT16_MAX ((1 << 16) - 1)
+#endif
+
 /* --- static variables --- */
 
 static vt_drcs_t *cur_drcs;
-static ef_charset_t cached_font_cs = UNKNOWN_CS;
-static vt_drcs_font_t *cached_font;
-
-/* --- static functions --- */
-
-static void drcs_final(vt_drcs_font_t *font) {
-  int idx;
-
-  for (idx = 0; idx < 0x5f; idx++) {
-    free(font->glyphs[idx]);
-  }
-
-  memset(font->glyphs, 0, sizeof(font->glyphs));
-
-  if (cached_font_cs == font->cs) {
-    /* Clear cache in vt_drcs_get(). */
-    cached_font_cs = UNKNOWN_CS;
-  }
-}
 
 /* --- global functions --- */
 
 void vt_drcs_select(vt_drcs_t *drcs) {
   cur_drcs = drcs;
-  /* Clear cache in vt_drcs_get(). */
-  cached_font_cs = UNKNOWN_CS;
-}
-
-vt_drcs_font_t *vt_drcs_get_font(ef_charset_t cs, int create) {
-  u_int count;
-  void *p;
-
-  if (cs == cached_font_cs) {
-    if (cached_font || !create) {
-      return cached_font;
-    }
-  } else if (!cur_drcs) {
-    return NULL;
-  } else {
-    for (count = 0; count < cur_drcs->num_fonts; count++) {
-      if (cur_drcs->fonts[count].cs == cs) {
-        return &cur_drcs->fonts[count];
-      }
-    }
-  }
-
-  if (!create ||
-      /* XXX leaks */
-      !(p = realloc(cur_drcs->fonts, sizeof(vt_drcs_font_t) * (cur_drcs->num_fonts + 1)))) {
-    return NULL;
-  }
-
-  cur_drcs->fonts = p;
-  memset(cur_drcs->fonts + cur_drcs->num_fonts, 0, sizeof(vt_drcs_font_t));
-  cached_font_cs = cur_drcs->fonts[cur_drcs->num_fonts].cs = cs;
-
-  return (cached_font = &cur_drcs->fonts[cur_drcs->num_fonts++]);
 }
 
 char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx) {
   vt_drcs_font_t *font;
 
   /* msb can be set in vt_parser.c (e.g. ESC(I (JISX0201 kana)) */
-  if ((font = vt_drcs_get_font(cs, 0)) && 0x20 <= (idx & 0x7f)) {
+  if ((font = vt_drcs_get_font(cur_drcs, cs, 0)) && 0x20 <= (idx & 0x7f)) {
+#if 0
+    /*
+     * See https://vt100.net/docs/vt510-rm/DECDLD.html
+     *
+     * Pcss: Defines the character set as a 94- or 96- character graphic set.
+     *       0 = 94-character set. (default)
+     *       1 = 96-character set.
+     * The value of Pcss changes the meaning of the Pcn (starting character) parameter above.
+     * If Pcss = 0 (94-character set)
+     * The terminal ignores any attempt to load characters into the 2/0 or 7/15 table positions.
+     *     Pcn        Specifies
+     *     1          column 2/row 1
+     *     ...
+     *     94         column 7/row 14
+     *
+     *     If Pcss = 1 (96-character set)
+     *     Pcn        Specifies
+     *     0          column 2/row 0
+     *     ...
+     *     95         column 7/row 15
+     */
+    if (IS_CS94SB(cs) && (idx == 0x20 | idx == 0x7f)) {
+      return NULL;
+    }
+#endif
+
     return font->glyphs[(idx & 0x7f) - 0x20];
   } else {
     return NULL;
   }
 }
 
-void vt_drcs_final(ef_charset_t cs) {
-  u_int count;
+vt_drcs_font_t *vt_drcs_get_font(vt_drcs_t *drcs, ef_charset_t cs, int create) {
+  if (!drcs) {
+    return NULL;
+  }
 
-  for (count = 0; count < cur_drcs->num_fonts; count++) {
-    if (cur_drcs->fonts[count].cs == cs) {
-      drcs_final(cur_drcs->fonts + count);
-      cur_drcs->fonts[count] = cur_drcs->fonts[--cur_drcs->num_fonts];
+  CS_TO_INDEX(cs);
+  /* CS94SB(0x40)-CS94SB(0x7e) (0x10-0x4e), CS96SB(0x40)-CS96SB(0x7e) (0x50-0x8e) */
+  if (cs > 0x8e) {
+    return NULL;
+  }
 
-      return;
+  if (!drcs->fonts[cs]) {
+    if (!create || !(drcs->fonts[cs] = calloc(1, sizeof(vt_drcs_font_t)))) {
+      return NULL;
+    }
+  }
+
+  return drcs->fonts[cs];
+}
+
+void vt_drcs_final(vt_drcs_t *drcs, ef_charset_t cs) {
+  if (drcs) {
+    CS_TO_INDEX(cs);
+
+    if (drcs->fonts[cs]) {
+      int idx;
+
+      for (idx = 0; idx <= 0x5f; idx++) {
+        free(drcs->fonts[cs]->glyphs[idx]);
+      }
+
+      free(drcs->fonts[cs]);
+      drcs->fonts[cs] = NULL;
     }
   }
 }
 
-void vt_drcs_final_full(void) {
-  u_int count;
+void vt_drcs_final_full(vt_drcs_t *drcs) {
+  ef_charset_t cs;
 
-  for (count = 0; count < cur_drcs->num_fonts; count++) {
-    drcs_final(cur_drcs->fonts + count);
+  for (cs = CS94SB_ID(0x40); cs <= CS96SB_ID(0x7e); cs++) {
+    vt_drcs_final(drcs, cs);
   }
-
-  free(cur_drcs->fonts);
-  cur_drcs->fonts = NULL;
-  cur_drcs->num_fonts = 0;
-  cur_drcs = NULL;
 }
 
-int vt_drcs_add(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height) {
-  free(font->glyphs[idx]);
+void vt_drcs_add_glyph(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height) {
+  if (font) {
+    free(font->glyphs[idx]);
 
-  if ((font->glyphs[idx] = malloc(2 + strlen(seq) + 1))) {
-    font->glyphs[idx][0] = width;
-    font->glyphs[idx][1] = height;
-    strcpy(font->glyphs[idx] + 2, seq);
+    if ((font->glyphs[idx] = malloc(2 + strlen(seq) + 1))) {
+      font->glyphs[idx][0] = width;
+      font->glyphs[idx][1] = height;
+      strcpy(font->glyphs[idx] + 2, seq);
+    }
+  }
+}
+
+void vt_drcs_add_picture(vt_drcs_font_t *font, int id, int offset, int beg_idx,
+                         u_int num_cols, u_int num_rows,
+                         u_int num_cols_small, u_int num_rows_small) {
+  if (num_cols > UINT16_MAX || num_rows > UINT16_MAX) {
+    return;
   }
 
-  return 1;
+  if (font) {
+    font->pic_id = id;
+    font->pic_offset = offset;
+    font->pic_beg_idx = beg_idx;
+    font->pic_num_rows = num_rows;
+    font->pic_num_cols = num_cols;
+    font->pic_num_cols_small = num_cols_small;
+    font->pic_num_rows_small = num_rows_small;
+  }
+}
+
+int vt_drcs_get_picture(vt_drcs_font_t *font, int *id, int *pos, u_int ch) {
+  if (font->pic_num_rows > 0) {
+    ch &= 0x7f;
+    if (ch >= 0x20 && (ch -= 0x20) >= font->pic_beg_idx) {
+      ch += font->pic_offset;
+      /* See MAKE_INLINEPIC_POS() in ui_picture.h */
+      *pos = (ch % font->pic_num_cols_small) * font->pic_num_rows +
+             (ch / font->pic_num_cols_small);
+      *id = font->pic_id;
+
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 }
 
 int vt_convert_drcs_to_unicode_pua(ef_char_t *ch) {
   if (vt_drcs_get_glyph(ch->cs, ch->ch[0])) {
-    ch->ch[3] = ch->ch[0];
-    ch->ch[2] = ch->cs + 0x30; /* see CS94SB_ID() in ef_charset.h */
+    if (IS_CS94SB(ch->cs)) {
+      ch->ch[2] = CS94SB_FT(ch->cs);
+      ch->ch[3] = ch->ch[0] & 0x7f;
+    } else {
+      ch->ch[2] = CS96SB_FT(ch->cs);
+      ch->ch[3] = ch->ch[0] | 0x80;
+    }
     ch->ch[1] = 0x10;
     ch->ch[0] = 0x00;
     ch->cs = ISO10646_UCS4_1;
@@ -139,15 +179,21 @@ int vt_convert_unicode_pua_to_drcs(ef_char_t *ch) {
 
   c = ch->ch;
 
-  if (c[1] == 0x10 && 0x40 <= c[2] && c[2] <= 0x7e && 0x20 <= c[3] && c[3] <= 0x7f &&
-      c[0] == 0x00) {
+  if (c[1] == 0x10 && 0x40 <= c[2] && c[2] <= 0x7e && c[0] == 0x00) {
+    if (0x20 <= c[3] && c[3] <= 0x7f) {
+      ch->cs = CS94SB_ID(c[2]);
+    } else if (0xa0 <= c[3] && c[3] <= 0xff) {
+      ch->cs = CS96SB_ID(c[2]);
+    } else {
+      return 0;
+    }
+
     c[0] = c[3];
-    ch->cs = CS94SB_ID(c[2]);
     ch->size = 1;
     ch->property = 0;
 
     return 1;
-  } else {
-    return 0;
   }
+
+  return 0;
 }

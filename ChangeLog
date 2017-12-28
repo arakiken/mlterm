@@ -1,3 +1,34 @@
+2017-12-25  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - save_sixel_or_regis() is added.
+	  - DRCS-Sixel sequence which rlogin originally supports is processed.
+	  - If OSC 5379;drcs_sixel_version=2, cols and rows of DRCS-Sixel image
+	    are rounded up.
+
+	* vt_drcs.[ch]:
+	  - vt_drcs_add_picture() and vt_drcs_get_picture() are added.
+	  - 'vt_drcs_t *drcs' is added to arguments of vt_drcs_get_font(),
+	    vt_drcs_final() and vt_drcs_final_full().
+
+	* ui_screen.c, ui_screen_manager.c:
+	  xterm_get_picture_data() returns num_cols_small and num_rows_small.
+
+	* vterm.c:
+	  - write_to_stdout() is added.
+	  - xterm_get_picture_data() returns num_cols_small and num_rows_small.
+	  - If the value of "DRCS_SIXEL_VERSION" environmental variable is "2",
+	    num_cols and num_rows are rounded up.
+	  - vt_convert_drcs_to_unicode_pua() and vt_convert_unicode_pua_to_drcs()
+	    processes following extension.
+	    U+10XXZZ (0x40 <= 0xXX <= 0x7E, 0xA0 <= 0xZZ <= 0xFF)
+	    => ESC - SP <\xXX> <\xYY>
+
+	* encodefilter/src/Makefile.in: MAJOR.MINOR 1.0 => 2.0
+
+	* ef_charset.h: The range of CS84SB_ID() is changed from 0x40-0x6f to 0x40-0x7e
+	  to handle drcs correctly.
+
 2017-12-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vterm.c: Sixel graphics is supported with the use of sixel extension of

@@ -378,9 +378,11 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
 #ifndef NO_IMAGE
 
-static vt_char_t *get_picture_data(void *p, char *file_path, int *num_cols, /* can be 0 */
-                                   int *num_rows,                           /* can be 0 */
-                                   u_int32_t **sixel_palette) {
+static vt_char_t *get_picture_data(void *p, char *file_path, int *num_cols /* can be 0 */,
+                                   int *num_rows /* can be 0 */,
+                                   int *num_cols_small /* set only if drcs_sixel is 1. */,
+                                   int *num_rows_small /* set only if drcs_sixel is 1. */,
+                                   u_int32_t **sixel_palette, int drcs_sixel) {
   vt_char_t *data;
 
   if (num_screens > 0) {
@@ -388,8 +390,10 @@ static vt_char_t *get_picture_data(void *p, char *file_path, int *num_cols, /* c
 
     orig_term = screens[0]->term;
     screens[0]->term = p; /* XXX */
-    data = (*screens[0]->xterm_listener.get_picture_data)(
-        screens[0]->xterm_listener.self, file_path, num_cols, num_rows, sixel_palette);
+    data = (*screens[0]->xterm_listener.get_picture_data)(screens[0]->xterm_listener.self,
+                                                          file_path, num_cols, num_rows,
+                                                          num_cols_small, num_rows_small,
+                                                          sixel_palette, drcs_sixel);
     screens[0]->term = orig_term;
   } else {
     data = NULL;
